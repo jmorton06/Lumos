@@ -293,6 +293,11 @@ namespace Lumos
 		listener->SetBeginFunction(func);
 		Application::Get().GetSystem<B2PhysicsEngine>()->SetContactListener(listener);
 	}
+	
+	static void SetB2DGravity(const Maths::Vector2& gravity)
+	{
+		Application::Get().GetSystem<B2PhysicsEngine>()->SetGravity(gravity);
+	}
 
 	Ref<RigidBody3D> CreateSharedPhysics3D()
 	{
@@ -347,14 +352,18 @@ namespace Lumos
 		physics2D_type.set_function("SetOrientation", &RigidBody2D::SetOrientation);
 		physics2D_type.set_function("SetAngularVelocity", &RigidBody2D::SetAngularVelocity);
 		physics2D_type.set_function("SetFriction", &RigidBody2D::SetFriction);
+        physics2D_type.set_function("GetLinearVelocity", &RigidBody2D::GetLinearVelocity);
+
 		physics2D_type.set_function("GetPosition", &RigidBody2D::GetPosition);
 		physics2D_type.set_function("GetAngle", &RigidBody2D::GetAngle);
 		physics2D_type.set_function("GetFriction", &RigidBody2D::GetFriction);
 		physics2D_type.set_function("GetIsStatic", &RigidBody2D::GetIsStatic);
 		physics2D_type.set_function("GetB2Body", &RigidBody2D::GetB2BodyRef);
 		physics2D_type.set_function("Init", &RigidBody2D::Init);
+        physics2D_type.set_function("SetIsStatic", &RigidBody2D::SetIsStatic);
 
 		state.set_function("SetCallback", &SetCallback);
+		state.set_function("SetB2DGravity", &SetB2DGravity);
 
 		state.new_enum("b2BodyType", "b2_staticBody", b2BodyType::b2_staticBody, "b2_kinematicBody", b2BodyType::b2_kinematicBody, "b2_dynamicBody", b2BodyType::b2_dynamicBody);
 

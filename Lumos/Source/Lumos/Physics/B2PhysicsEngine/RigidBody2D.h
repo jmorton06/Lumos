@@ -38,6 +38,9 @@ namespace Lumos
 		void SetForce(const Maths::Vector2& v) const;
 		void SetPosition(const Maths::Vector2& pos) const;
 		void SetOrientation(float angle) const;
+		void SetIsStatic(bool isStatic) override;
+        
+        const Maths::Vector2 GetLinearVelocity() const;
 
 		void Init(const RigidBodyParameters& params);
 

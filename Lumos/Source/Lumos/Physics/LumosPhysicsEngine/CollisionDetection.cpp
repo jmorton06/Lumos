@@ -15,6 +15,9 @@ namespace Lumos
 		
 		m_CollisionCheckFunctions[CollisionSphere] = &CollisionDetection::CheckSphereCollision;
 		m_CollisionCheckFunctions[CollisionCuboid] = &CollisionDetection::CheckPolyhedronCollision;
+        m_CollisionCheckFunctions[CollisionPyramid] = &CollisionDetection::CheckPolyhedronCollision;
+        m_CollisionCheckFunctions[CollisionHull] = &CollisionDetection::CheckPolyhedronCollision;
+
 		m_CollisionCheckFunctions[CollisionSphere | CollisionCuboid] = &CollisionDetection::CheckPolyhedronSphereCollision;
 	}
 	
@@ -26,6 +29,7 @@ namespace Lumos
 	
 	bool CollisionDetection::CheckSphereCollision(  RigidBody3D* obj1,   RigidBody3D* obj2, CollisionShape* shape1, CollisionShape* shape2, CollisionData* out_coldata)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		CollisionData colData;
 		Maths::Vector3 axis = obj2->GetPosition() - obj1->GetPosition();
 		axis.Normalize();
@@ -40,6 +44,7 @@ namespace Lumos
 	
 	void AddPossibleCollisionAxis(Maths::Vector3& axis, std::vector<Maths::Vector3>* possible_collision_axes)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		const float epsilon = 0.0001f;
 		
 		if(axis.LengthSquared() < epsilon)
@@ -58,6 +63,7 @@ namespace Lumos
 	
 	bool CollisionDetection::CheckPolyhedronSphereCollision(RigidBody3D* obj1, RigidBody3D* obj2, CollisionShape* shape1, CollisionShape* shape2, CollisionData* out_coldata)
 	{
+		LUMOS_PROFILE_FUNCTION();
         CollisionShape* complexShape;
         RigidBody3D* complexObj;
         RigidBody3D* sphereObj;
@@ -104,6 +110,7 @@ namespace Lumos
 	
 	bool CollisionDetection::CheckPolyhedronCollision(  RigidBody3D* obj1,   RigidBody3D* obj2, CollisionShape* shape1, CollisionShape* shape2, CollisionData* out_coldata)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		CollisionData cur_colData;
 		CollisionData best_colData;
 		best_colData.penetration = -FLT_MAX;
@@ -147,6 +154,7 @@ namespace Lumos
 	
 	bool CollisionDetection::CheckCollisionAxis(const Maths::Vector3& axis,   RigidBody3D* obj1,   RigidBody3D* obj2, CollisionShape* shape1, CollisionShape* shape2, CollisionData* out_coldata)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		Maths::Vector3 min1, min2, max1, max2;
 		
 		shape1->GetMinMaxVertexOnAxis(obj1, axis, &min1, &max1);
@@ -267,6 +275,7 @@ namespace Lumos
 	
 	Maths::Vector3 CollisionDetection::GetClosestPointOnEdges(const Maths::Vector3& target, const std::vector<CollisionEdge>& edges)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		Maths::Vector3 closest_point, temp_closest_point;
 		float closest_distsq = FLT_MAX;
 		

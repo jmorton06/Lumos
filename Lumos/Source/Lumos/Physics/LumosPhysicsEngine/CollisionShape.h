@@ -35,7 +35,8 @@ namespace Lumos
 		CollisionSphere = 2,
 		CollisionPyramid = 3,
 		CollisionCapsule = 4,
-		CollisionShapeTypeMax
+        CollisionHull = 5,
+		CollisionShapeTypeMax = 6
 	};
 
 	class LUMOS_EXPORT CollisionShape

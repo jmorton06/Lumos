@@ -57,7 +57,7 @@ namespace Lumos
 		{
 			if(m_MultipleUpdates)
 			{
-				m_UpdateAccum += timeStep.GetMillis();
+				m_UpdateAccum += timeStep.GetSeconds();
 				for(int i = 0; (m_UpdateAccum >= m_UpdateTimestep) && i < max_updates_per_frame; ++i)
 				{
 					m_UpdateAccum -= m_UpdateTimestep;
@@ -157,6 +157,11 @@ namespace Lumos
 	void B2PhysicsEngine::SetDebugDrawFlags(uint32_t flags)
 	{
 		m_DebugDraw->SetFlags(flags);
+	}
+	
+	void B2PhysicsEngine::SetGravity(const Maths::Vector2& gravity)
+	{
+		m_B2DWorld->SetGravity({ gravity.x, gravity.y });
 	}
 
 	uint32_t B2PhysicsEngine::GetDebugDrawFlags()

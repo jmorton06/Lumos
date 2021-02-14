@@ -6,6 +6,7 @@
 #include "Physics/LumosPhysicsEngine/SphereCollisionShape.h"
 #include "Physics/LumosPhysicsEngine/CuboidCollisionShape.h"
 #include "Physics/LumosPhysicsEngine/PyramidCollisionShape.h"
+#include "Physics/LumosPhysicsEngine/HullCollisionShape.h"
 
 #include "Maths/Maths.h"
 #include <cereal/types/polymorphic.hpp>
@@ -14,10 +15,13 @@
 CEREAL_REGISTER_TYPE(Lumos::SphereCollisionShape);
 CEREAL_REGISTER_TYPE(Lumos::CuboidCollisionShape);
 CEREAL_REGISTER_TYPE(Lumos::PyramidCollisionShape);
+CEREAL_REGISTER_TYPE(Lumos::HullCollisionShape);
+
 
 CEREAL_REGISTER_POLYMORPHIC_RELATION(Lumos::CollisionShape, Lumos::SphereCollisionShape);
 CEREAL_REGISTER_POLYMORPHIC_RELATION(Lumos::CollisionShape, Lumos::CuboidCollisionShape);
 CEREAL_REGISTER_POLYMORPHIC_RELATION(Lumos::CollisionShape, Lumos::PyramidCollisionShape);
+CEREAL_REGISTER_POLYMORPHIC_RELATION(Lumos::CollisionShape, Lumos::HullCollisionShape);
 
 namespace Lumos
 {

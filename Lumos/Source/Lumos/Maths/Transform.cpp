@@ -1,7 +1,6 @@
 #include "Precompiled.h"
 #include "Transform.h"
 #include "Maths/Maths.h"
-#include <imgui/imgui.h>
 
 namespace Lumos
 {
@@ -123,63 +122,6 @@ namespace Lumos
 		const Quaternion& Transform::GetLocalOrientation() const
 		{
 			return m_LocalOrientation;
-		}
-       
-		void Transform::OnImGui()
-		{
-			auto rotation = m_LocalOrientation.EulerAngles();
-
-			bool update = false;
-
-			ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
-			ImGui::Columns(2);
-			ImGui::Separator();
-
-			ImGui::AlignTextToFramePadding();
-			ImGui::TextUnformatted("Position");
-			ImGui::NextColumn();
-			ImGui::PushItemWidth(-1);
-			if (ImGui::DragFloat3("##Position", Maths::ValuePointer(m_LocalPosition)))
-			{
-				update = true;
-			}
-
-			ImGui::PopItemWidth();
-			ImGui::NextColumn();
-
-			ImGui::AlignTextToFramePadding();
-			ImGui::TextUnformatted("Rotation");
-			ImGui::NextColumn();
-			ImGui::PushItemWidth(-1);
-			if (ImGui::DragFloat3("##Rotation", Maths::ValuePointer(rotation)))
-			{
-				float pitch = Maths::Min(rotation.x, 89.9f);
-				pitch = Maths::Max(pitch, -89.9f);
-				SetLocalOrientation(Maths::Quaternion::EulerAnglesToQuaternion(pitch, rotation.y, rotation.z));
-				update = true;
-			}
-
-			ImGui::PopItemWidth();
-			ImGui::NextColumn();
-
-			ImGui::AlignTextToFramePadding();
-			ImGui::TextUnformatted("Scale");
-			ImGui::NextColumn();
-			ImGui::PushItemWidth(-1);
-			if (ImGui::DragFloat3("##Scale", Maths::ValuePointer(m_LocalScale), 0.1f))
-			{
-				update = true;
-			}
-
-			ImGui::PopItemWidth();
-			ImGui::NextColumn();
-
-			if (update)
-				UpdateMatrices();
-
-			ImGui::Columns(1);
-			ImGui::Separator();
-			ImGui::PopStyleVar();
 		}
 	}
 }

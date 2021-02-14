@@ -16,6 +16,7 @@
 #include "Core/Application.h"
 #include "Graphics/Camera/Camera.h"
 #include "Maths/Transform.h"
+#include "Graphics/Renderers/RenderGraph.h"
 
 #include <imgui/imgui.h>
 
@@ -104,13 +105,14 @@ namespace Lumos
 				commandBuffer->Init(true);
 			}
             
-			AttachmentInfo textureTypes[1] =
+			AttachmentInfo textureTypes[2] =
             {
                 {TextureType::COLOUR, TextureFormat::RGBA8},
+				{TextureType::DEPTH, TextureFormat::DEPTH},
             };
             
 			Graphics::RenderPassInfo renderpassCI;
-			renderpassCI.attachmentCount = 1;
+			renderpassCI.attachmentCount = 2;
 			renderpassCI.textureType = textureTypes;
 			renderpassCI.clear = false;
             
@@ -289,16 +291,19 @@ namespace Lumos
 		void GridRenderer::CreateFramebuffers()
 		{
 			LUMOS_PROFILE_FUNCTION();
-			TextureType attachmentTypes[1];
+			TextureType attachmentTypes[2];
 			attachmentTypes[0] = TextureType::COLOUR;
-            
-			Texture* attachments[1];
+            attachmentTypes[1] = TextureType::DEPTH;
+			
+			Texture* attachments[2];
 			FramebufferInfo bufferInfo{};
 			bufferInfo.width = m_ScreenBufferWidth;
 			bufferInfo.height = m_ScreenBufferHeight;
-			bufferInfo.attachmentCount = 1;
+			bufferInfo.attachmentCount = 2;
 			bufferInfo.renderPass = m_RenderPass.get();
 			bufferInfo.attachmentTypes = attachmentTypes;
+			
+			attachments[1] = Application::Get().GetRenderGraph()->GetGBuffer()->GetDepthTexture();
             
 			if(m_RenderTexture)
 			{

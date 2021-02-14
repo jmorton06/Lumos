@@ -5,7 +5,7 @@
         "Width": 1223,
         "Height": 688,
         "Fullscreen": false,
-        "VSync": false,
+        "VSync": true,
         "ShowConsole": false,
         "Title": "LumosGame",
         "FilePath": "/Sandbox/Sandbox.lmproj",
@@ -14,7 +14,7 @@
             "/Scenes/Physics.lsn",
             "/Scenes/Terrain.lsn"
         ],
-        "SceneIndex": 1,
+        "SceneIndex": 0,
         "Borderless": false
     }
 }

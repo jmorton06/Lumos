@@ -1,6 +1,5 @@
 #pragma once
 
-
 #include "API/IndexBuffer.h"
 #include "API/VertexBuffer.h"
 #include "Graphics/API/CommandBuffer.h"
@@ -52,8 +51,9 @@ namespace Lumos
 
 			Mesh();
 			Mesh(const Mesh& mesh);
+			Mesh(const std::vector<uint32_t>& indices, const std::vector<Vertex>& vertices, float optimiseThreshold = 0.9f);
 			Mesh(Ref<VertexBuffer>& vertexBuffer, Ref<IndexBuffer>& indexBuffer, const Ref<Maths::BoundingBox>& boundingBox);
-
+			
 			virtual ~Mesh();
 
 			const Ref<VertexBuffer>& GetVertexBuffer() const { return m_VertexBuffer; }
@@ -80,6 +80,8 @@ namespace Lumos
 			std::string m_Name;
 			
 			bool m_Active = true;
+            std::vector<uint32_t> m_Indices;
+			std::vector<Vertex> m_Vertices;
 		};
 	}
 }

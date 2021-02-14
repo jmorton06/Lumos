@@ -12,7 +12,7 @@ namespace Lumos
 	class LUMOS_EXPORT LuaScriptComponent
 	{
 	public:
-		LuaScriptComponent() = default;
+		LuaScriptComponent();
 		LuaScriptComponent(const std::string& fileName, Scene* scene);
 		~LuaScriptComponent();
 
@@ -51,7 +51,7 @@ namespace Lumos
 
 		bool Loaded()
 		{
-			return m_Env != nullptr;
+			return m_Env.get() != nullptr;
 		}
 
 		template<typename Archive>
@@ -79,6 +79,8 @@ namespace Lumos
 		Ref<sol::environment> m_Env;
 		Ref<sol::protected_function> m_OnInitFunc;
 		Ref<sol::protected_function> m_UpdateFunc;
+        Ref<sol::protected_function> m_OnReleaseFunc;
+
         Ref<sol::protected_function> m_Phys2DBeginFunc;
         Ref<sol::protected_function> m_Phys3DBeginFunc;
         Ref<sol::protected_function> m_Phys2DEndFunc;

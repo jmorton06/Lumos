@@ -301,7 +301,7 @@ int Socket::Recv( void* _buf, int len, int timeout )
 
     if( poll( &fd, 1, timeout ) > 0 )
     {
-        return recv( sock, buf, len, 0 );
+        return (int)recv( sock, buf, len, 0 );
     }
     else
     {
@@ -551,7 +551,7 @@ int UdpBroadcast::Send( int port, const void* data, int len )
     addr.sin_family = AF_INET;
     addr.sin_port = htons( port );
     addr.sin_addr.s_addr = INADDR_BROADCAST;
-    return sendto( m_sock, (const char*)data, len, MSG_NOSIGNAL, (sockaddr*)&addr, sizeof( addr ) );
+    return (int)sendto( m_sock, (const char*)data, len, MSG_NOSIGNAL, (sockaddr*)&addr, sizeof( addr ) );
 }
 
 IpAddress::IpAddress()

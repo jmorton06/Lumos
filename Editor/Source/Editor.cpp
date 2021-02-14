@@ -299,6 +299,11 @@ namespace Lumos
 					Application::Get().GetSceneManager()->SwitchScene((int)(Application::Get().GetSceneManager()->GetScenes().size()) - 1);
 				}
                 
+                if(ImGui::MenuItem("Save Scene", "CTRL+S"))
+                {
+                    Application::Get().GetSceneManager()->GetCurrentScene()->Serialise(ROOT_DIR "/Sandbox/Assets/scenes/", false);
+                }
+                
 				if(ImGui::BeginMenu("Style"))
 				{
 					if(ImGui::MenuItem("Dark", ""))
@@ -592,7 +597,7 @@ namespace Lumos
 			
 			static Engine::Stats stats = {};
 			static float timer = 1.1f;
-			timer += Engine::GetTimeStep().GetMillis();
+			timer += Engine::GetTimeStep().GetSeconds();
 			
 			if(timer > 1.0f)
 			{
@@ -600,7 +605,7 @@ namespace Lumos
 				stats = Engine::Get().Statistics();
 			}
 			
-			ImGui::Text("%.2f ms (%i FPS)", stats.FrameTime * 1000.0f, stats.FramesPerSecond);
+			ImGui::Text("%.2f ms (%.i FPS)", stats.FrameTime, stats.FramesPerSecond);
 			
 			ImGui::SameLine();
             
@@ -1085,8 +1090,8 @@ namespace Lumos
 			{
 				const Maths::Vector2 mousePos = Input::GetInput()->GetMousePosition();
 				
-				m_EditorCameraController.HandleMouse(m_EditorCameraTransform, ts.GetMillis(), mousePos.x, mousePos.y);
-				m_EditorCameraController.HandleKeyboard(m_EditorCameraTransform, ts.GetMillis());
+				m_EditorCameraController.HandleMouse(m_EditorCameraTransform, ts.GetSeconds(), mousePos.x, mousePos.y);
+				m_EditorCameraController.HandleKeyboard(m_EditorCameraTransform, ts.GetSeconds());
                 
 				if(Input::GetInput()->GetKeyPressed(InputCode::Key::F))
 				{
@@ -1153,8 +1158,10 @@ namespace Lumos
             
 			if((Input::GetInput()->GetKeyHeld(InputCode::Key::LeftSuper) || (Input::GetInput()->GetKeyHeld(InputCode::Key::LeftControl)) )) 
 			{
-				if(Input::GetInput()->GetKeyPressed(InputCode::Key::S))
+				if(Input::GetInput()->GetKeyPressed(InputCode::Key::S) && Application::Get().GetSceneActive())
+                {
 					Application::Get().GetSceneManager()->GetCurrentScene()->Serialise(ROOT_DIR "/Sandbox/Assets/scenes/", false);
+                }
                 
 				if(Input::GetInput()->GetKeyPressed(InputCode::Key::O))
 					Application::Get().GetSceneManager()->GetCurrentScene()->Deserialise(ROOT_DIR "/Sandbox/Assets/scenes/", false);

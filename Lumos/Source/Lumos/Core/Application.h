@@ -177,9 +177,16 @@ namespace Lumos
             int projectVersion = 5;
 			
 			archive(cereal::make_nvp("Project Version", projectVersion));
+            auto windowSize = GetWindowSize();
+
+            if(windowSize.x == 0)
+                windowSize.x = 800;
+            
+            if(windowSize.y == 0)
+                windowSize.y = 600;
+            
 			//Version 1
 			
-			auto windowSize = GetWindowSize();
 			archive(cereal::make_nvp("RenderAPI", RenderAPI),
 						cereal::make_nvp("Width", (int)windowSize.x),
 						cereal::make_nvp("Height", (int)windowSize.y),

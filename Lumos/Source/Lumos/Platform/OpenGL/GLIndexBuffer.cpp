@@ -59,6 +59,33 @@ namespace Lumos
 		{
 			return m_Count;
 		}
+		
+		void* GLIndexBuffer::GetPointerInternal()
+        {
+			LUMOS_PROFILE_FUNCTION();
+            void* result = nullptr;
+            if(!m_Mapped)
+            {
+                GLCall(result = glMapBuffer(GL_ELEMENT_ARRAY_BUFFER, GL_WRITE_ONLY));
+                m_Mapped = true;
+            }
+            else
+            {
+                LUMOS_LOG_WARN("Vertex buffer already mapped");
+            }
+			
+			return result;
+		}
+		
+		void GLIndexBuffer::ReleasePointer()
+		{
+			LUMOS_PROFILE_FUNCTION();
+            if(m_Mapped)
+            {
+                GLCall(glUnmapBuffer(GL_ELEMENT_ARRAY_BUFFER));
+                m_Mapped = false;
+            }
+		}
 
 		void GLIndexBuffer::MakeDefault()
 		{

@@ -94,3 +94,4 @@ To run on apple devices with Vulkan ( MoltenVK ), disable Metal API Validation h
  * [Box2D](https://github.com/erincatto/Box2D) : 2D physics engine.
  * [sol2](https://github.com/ThePhD/sol2) : C++ <-> Lua API wrapper
  * [cereal](https://github.com/USCiLab/cereal) : A C++11 library for serialization
+ * [meshoptimizer](https://github.com/zeux/meshoptimizer) : Mesh optimization library that makes meshes smaller and faster to render
