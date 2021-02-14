@@ -56,7 +56,7 @@ namespace Lumos
 		{
 			return m_Friction;
 		}
-		void SetIsStatic(const bool isStatic)
+		virtual void SetIsStatic(const bool isStatic)
 		{
 			m_Static = isStatic;
 		}

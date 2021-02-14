@@ -360,6 +360,7 @@ namespace Lumos
 		physics2D_type.set_function("GetIsStatic", &RigidBody2D::GetIsStatic);
 		physics2D_type.set_function("GetB2Body", &RigidBody2D::GetB2BodyRef);
 		physics2D_type.set_function("Init", &RigidBody2D::Init);
+        physics2D_type.set_function("SetIsStatic", &RigidBody2D::SetIsStatic);
 
 		state.set_function("SetCallback", &SetCallback);
 		state.set_function("SetB2DGravity", &SetB2DGravity);

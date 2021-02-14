@@ -13,10 +13,11 @@ local PILLARTYPEID = 2
 
 local GameStates = {
     Running=0,
-    GameOver=1
+    GameOver=1,
+	Start
 }
 
-local gameState = GameStates.Running
+local gameState = GameStates.Start
 local entityManager = {}
 
 local player = {}
@@ -56,6 +57,7 @@ function CreatePlayer()
 
     player:GetTransform():SetLocalPosition(Vector3.new(1.0,1.0,1.0))
     player:AddPhysics2DComponent(params):GetRigidBody():SetForce(Vector2.new(200.0,0.0))
+    player:GetPhysics2DComponent():GetRigidBody():SetIsStatic(true)
 end
 
 function CreatePillar(index, offset)
@@ -148,11 +150,21 @@ function OnInit()
     end
 end
 
+function PlayerJump()
+
+	local phys = player:GetPhysics2DComponent()
+	local vel = phys:GetRigidBody():GetLinearVelocity()
+
+	vel.y = 10;
+
+    phys:GetRigidBody():SetLinearVelocity(vel)
+end
+
 function OnUpdate(dt)
 	tracy.ZoneBegin()
 
 	if Input.GetKeyPressed( Key.M ) then
-            SwitchScene()
+    	SwitchScene()
     end
     if gameState == GameStates.Running then
 		phys = player:GetPhysics2DComponent()
@@ -161,7 +173,7 @@ function OnUpdate(dt)
         right = Vector3.new(1, 0, 0)
 
         if Input.GetKeyPressed( Key.Space ) or Input.GetMouseClicked(MouseButton.Left) then
-            phys:GetRigidBody():SetForce(Vector2.new(0.0,700.0))
+			PlayerJump()
         end
 
         pos = player:GetTransform():GetWorldPosition()
@@ -195,13 +207,11 @@ function OnUpdate(dt)
 
         gui.setNextWindowPos(gui.ImVec2.new(268.0, 50.0))
         gui.setNextWindowBgAlpha(0.4)
-        if gameState == GameStates.Running then
-            gui.beginWindow("Running", gui.WindowFlags.NoDecoration)
-            gui.text("Score : ")
-            gui.sameLine()
-            gui.text(tostring(score))
-            gui.endWindow()
-        end
+        gui.beginWindow("Running", gui.WindowFlags.NoDecoration)
+        gui.text("Score : ")
+        gui.sameLine()
+        gui.text(tostring(score))
+        gui.endWindow()
     elseif gameState == GameStates.GameOver then
         gui.setNextWindowPos(gui.ImVec2.new(268.0, 50.0))
         gui.setNextWindowBgAlpha(0.4)
@@ -215,13 +225,31 @@ function OnUpdate(dt)
             Reset();
         end
         gui.endWindow()
+	elseif gameState == GameStates.Start then
+
+	    gui.setNextWindowPos(gui.ImVec2.new(268.0, 50.0))
+        gui.setNextWindowBgAlpha(0.4)
+        gui.beginWindow("Start", gui.WindowFlags.NoDecoration)
+        gui.text("Press Space or Left Click to start")
+        gui.endWindow()
+
+ 	pos = player:GetTransform():GetWorldPosition()
+     pos.y = 0.0
+ 	camera:GetTransform():SetLocalPosition(pos)
+	 if Input.GetKeyPressed( Key.Space ) or Input.GetMouseClicked(MouseButton.Left) then
+		gameState = GameStates.Running
+		player:GetPhysics2DComponent():GetRigidBody():SetIsStatic(false)
+		player:GetPhysics2DComponent():GetRigidBody():SetForce(Vector2.new(200.0,0.0))
+
+		PlayerJump()
+     end
 end
 
 tracy.ZoneEnd()
 end
 
 function Reset()
-    gameState = GameStates.Running
+    gameState = GameStates.Start
     phys = player:GetPhysics2DComponent():GetRigidBody()
 
     phys:SetPosition(Vector2.new(0.0, 0.0))
@@ -230,6 +258,7 @@ function Reset()
     phys:SetLinearVelocity(Vector2.new(0.0, 0.0))
 	phys:SetOrientation(0.0)
 	phys:SetAngularVelocity(0.0)
+	phys:SetIsStatic(true)
 
 	m_FurthestPillarPosX = 0.0
 	m_PillarTarget = 35.0
