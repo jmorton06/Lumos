@@ -167,7 +167,7 @@ namespace Lumos
                     wss << "JobSystem_" << threadID;
                     HRESULT hr = SetThreadDescription(handle, wss.str().c_str());
                     LUMOS_ASSERT(SUCCEEDED(hr),"");
-                    LUMOS_PROFILE_SETTHREADNAME(wss.str().c_str());
+                    //LUMOS_PROFILE_SETTHREADNAME(wss.str().c_str());
 					
 #elif LUMOS_PLATFORM_MACOS
 					auto  mask = 1ull << threadID;
