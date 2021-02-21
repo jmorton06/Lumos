@@ -13,7 +13,7 @@ namespace Lumos
 		explicit BruteForceBroadphase(const Maths::Vector3& axis = Maths::Vector3(0.0f));
 		virtual ~BruteForceBroadphase();
 
-		void FindPotentialCollisionPairs(Ref<RigidBody3D>* objects, uint32_t objectCount, std::vector<CollisionPair>& collisionPairs) override;
+		void FindPotentialCollisionPairs(RigidBody3D** objects, uint32_t objectCount, std::vector<CollisionPair>& collisionPairs) override;
 		void DebugDraw() override;
 
 	private:

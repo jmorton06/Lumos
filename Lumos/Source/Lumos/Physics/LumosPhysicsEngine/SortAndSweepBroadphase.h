@@ -15,16 +15,16 @@ namespace Lumos
 
 		inline Maths::Vector3 Axis() const
 		{
-			return m_axis;
+			return m_Axis;
 		}
 
 		void SetAxis(const Maths::Vector3& axis);
 
-		void FindPotentialCollisionPairs(Ref<RigidBody3D>* objects, uint32_t objectCount, std::vector<CollisionPair>& collisionPairs) override;
+		void FindPotentialCollisionPairs(RigidBody3D** objects, uint32_t objectCount, std::vector<CollisionPair>& collisionPairs) override;
 		void DebugDraw() override;
 
 	protected:
-		Maths::Vector3 m_axis; //Axis along which testing is performed
-		int m_axisIndex; //Index of axis along which testing is performed
+		Maths::Vector3 m_Axis; //Axis along which testing is performed
+		int m_AxisIndex; //Index of axis along which testing is performed
 	};
 }

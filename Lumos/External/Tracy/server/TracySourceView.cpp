@@ -2,7 +2,7 @@
 #include <inttypes.h>
 #include <stdio.h>
 
-#include <capstone/capstone.h>
+#include <capstone.h>
 
 #include "../imgui/imgui.h"
 #include "TracyCharUtil.hpp"
@@ -47,8 +47,10 @@ static constexpr MicroArchUx s_uArchUx[] = {
     { "Coffee Lake", "Core i7-8700K", "CFL" },
     { "Cannon Lake", "Core i3-8121U", "CNL" },
     { "Ice Lake", "Core i5-1035G1", "ICL" },
+    { "Cascade Lake", "Core i9-10980XE", "CLX" },
     { "AMD Zen+", "Ryzen 5 2600", "ZEN+" },
     { "AMD Zen 2", "Ryzen 7 3700X", "ZEN2" },
+    { "AMD Zen 3", "Ryzen 9 5950X", "ZEN3" },
 };
 
 static constexpr const char* s_regNameX86[] = {
@@ -322,7 +324,12 @@ static constexpr CpuIdMap s_cpuIdMap[] = {
     { PackCpuInfo( 0x870F10 ), "ZEN2" },
     { PackCpuInfo( 0x830F10 ), "ZEN2" },
     { PackCpuInfo( 0x860F01 ), "ZEN2" },
+    { PackCpuInfo( 0x860F81 ), "ZEN2" },
+    { PackCpuInfo( 0x890F00 ), "ZEN2" },
+    { PackCpuInfo( 0xA20F10 ), "ZEN3" },
     { PackCpuInfo( 0x0706E5 ), "ICL" },
+    { PackCpuInfo( 0x050656 ), "CLX" },
+    { PackCpuInfo( 0x050657 ), "CLX" },
     { PackCpuInfo( 0x060663 ), "CNL" },
     { PackCpuInfo( 0x0906EA ), "CFL" },
     { PackCpuInfo( 0x0906EB ), "CFL" },
@@ -380,11 +387,13 @@ void SourceView::SetCpuId( uint32_t cpuId )
         if( cpuId == ptr->cpuInfo )
         {
             SelectMicroArchitecture( ptr->moniker );
+            m_profileMicroArch = m_selMicroArch;
             return;
         }
         ptr++;
     }
     SelectMicroArchitecture( "ZEN2" );
+    m_profileMicroArch = -1;
 }
 
 void SourceView::OpenSource( const char* fileName, int line, const View& view, const Worker& worker )
@@ -488,6 +497,7 @@ void SourceView::ParseSource( const char* fileName, const Worker& worker, const 
                     auto end = txt;
                     while( *end != '\n' && *end != '\r' && end - m_data < sz ) end++;
                     m_lines.emplace_back( Line { txt, end, Tokenize( txt, end ) } );
+                    if( end - m_data == sz ) break;
                     if( *end == '\n' )
                     {
                         end++;
@@ -777,7 +787,7 @@ bool SourceView::Disassemble( uint64_t symAddr, const Worker& worker )
             }
 #endif
 
-            const auto mLen = strlen( op.mnemonic );
+            const auto mLen = (int)strlen( op.mnemonic );
             if( mLen > mLenMax ) mLenMax = mLen;
             if( op.size > bytesMax ) bytesMax = op.size;
 
@@ -821,7 +831,7 @@ bool SourceView::Disassemble( uint64_t symAddr, const Worker& worker )
             {
                 auto it = m_jumpTable.find( v.target );
                 assert( it != m_jumpTable.end() );
-                int level = 0;
+                size_t level = 0;
                 for(;;)
                 {
                     assert( levelRanges.size() >= level );
@@ -938,7 +948,8 @@ void SourceView::RenderSimpleSourceView()
     }
     else
     {
-        ImGuiListClipper clipper( (int)m_lines.size() );
+        ImGuiListClipper clipper;
+        clipper.Begin( (int)m_lines.size() );
         while( clipper.Step() )
         {
             for( auto i=clipper.DisplayStart; i<clipper.DisplayEnd; i++ )
@@ -1512,7 +1523,8 @@ void SourceView::RenderSymbolSourceView( uint32_t iptotal, unordered_flat_map<ui
     }
     else
     {
-        ImGuiListClipper clipper( (int)m_lines.size() );
+        ImGuiListClipper clipper;
+        clipper.Begin( (int)m_lines.size() );
         while( clipper.Step() )
         {
             if( iptotal == 0 )
@@ -1640,9 +1652,10 @@ void SourceView::RenderSymbolSourceView( uint32_t iptotal, unordered_flat_map<ui
     }
 }
 
-static int PrintHexBytes( char* buf, const uint8_t* bytes, size_t len )
+static constexpr char HexPrint[] = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F' };
+
+static int PrintHexBytesRaw( char* buf, const uint8_t* bytes, size_t len )
 {
-    static constexpr char HexPrint[] = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F' };
     const auto start = buf;
     for( size_t i=0; i<len; i++ )
     {
@@ -1653,6 +1666,37 @@ static int PrintHexBytes( char* buf, const uint8_t* bytes, size_t len )
     }
     *--buf = '\0';
     return buf - start;
+}
+
+static int PrintHexBytesArm( char* buf, const uint8_t* bytes )
+{
+    const auto start = buf;
+    for( int i=3; i>=0; i-- )
+    {
+        const auto byte = bytes[i];
+        *buf++ = HexPrint[byte >> 4];
+        *buf++ = HexPrint[byte & 0xF];
+        *buf++ = ' ';
+    }
+    *--buf = '\0';
+    return buf - start;
+}
+
+static int PrintHexBytes( char* buf, const uint8_t* bytes, size_t len, CpuArchitecture arch )
+{
+    switch( arch )
+    {
+    case CpuArchX86:
+    case CpuArchX64:
+        return PrintHexBytesRaw( buf, bytes, len );
+    case CpuArchArm32:
+    case CpuArchArm64:
+        assert( len == 4 );
+        return PrintHexBytesArm( buf, bytes );
+    default:
+        assert( false );
+        return 0;
+    }
 }
 
 uint64_t SourceView::RenderSymbolAsmView( uint32_t iptotal, unordered_flat_map<uint64_t, uint32_t> ipcount, uint32_t ipmax, const Worker& worker, View& view )
@@ -1674,7 +1718,7 @@ uint64_t SourceView::RenderSymbolAsmView( uint32_t iptotal, unordered_flat_map<u
             auto bytesLeft = std::min( 16u, m_codeLen - m_disasmFail );
             auto code = worker.GetSymbolCode( m_baseAddr, m_codeLen );
             assert( code );
-            PrintHexBytes( tmp, (const uint8_t*)code, bytesLeft );
+            PrintHexBytesRaw( tmp, (const uint8_t*)code, bytesLeft );
             TextFocused( "Failure bytes:", tmp );
             TextDisabledUnformatted( "Click to copy to clipboard." );
             ImGui::EndTooltip();
@@ -1717,7 +1761,36 @@ uint64_t SourceView::RenderSymbolAsmView( uint32_t iptotal, unordered_flat_map<u
                 const auto w = ImGui::CalcTextSize( v.uArch ).x;
                 if( w > mw ) mw = w;
             }
-            ImGui::TextUnformatted( ICON_FA_MICROCHIP " \xce\xbc""arch:" );
+            if( m_selMicroArch == m_profileMicroArch )
+            {
+                TextColoredUnformatted( ImVec4( 0.4f, 0.8f, 0.4f, 1.f ), ICON_FA_MICROCHIP );
+                if( ImGui::IsItemHovered() )
+                {
+                    ImGui::BeginTooltip();
+                    ImGui::TextUnformatted( "Selected microarchitecture is the same as the profiled application was running on" );
+                    ImGui::EndTooltip();
+                }
+            }
+            else
+            {
+                TextColoredUnformatted( ImVec4( 1.f, 0.3f, 0.3f, 1.f ), ICON_FA_MICROCHIP );
+                if( ImGui::IsItemHovered() )
+                {
+                    ImGui::BeginTooltip();
+                    ImGui::TextUnformatted( "Selected microarchitecture does not match the one profiled application was running on" );
+                    if( m_profileMicroArch >= 0 )
+                    {
+                        ImGui::Text( "Measurements were performed on the %s microarchitecture", s_uArchUx[m_profileMicroArch].uArch );
+                    }
+                    else
+                    {
+                        ImGui::TextUnformatted( "Measurements were performed on an unknown microarchitecture" );
+                    }
+                    ImGui::EndTooltip();
+                }
+            }
+            ImGui::SameLine( 0, 0 );
+            ImGui::TextUnformatted( " \xce\xbc""arch:" );
             ImGui::SameLine();
             ImGui::SetNextItemWidth( mw + ImGui::GetFontSize() );
             ImGui::PushStyleVar( ImGuiStyleVar_FramePadding, ImVec2( 0, 0 ) );
@@ -1786,7 +1859,8 @@ uint64_t SourceView::RenderSymbolAsmView( uint32_t iptotal, unordered_flat_map<u
     else
     {
         const auto th = (int)ImGui::GetTextLineHeightWithSpacing();
-        ImGuiListClipper clipper( (int)m_asm.size(), th );
+        ImGuiListClipper clipper;
+        clipper.Begin( (int)m_asm.size(), th );
         while( clipper.Step() )
         {
             assert( clipper.StepNo == 3 );
@@ -2063,7 +2137,7 @@ uint64_t SourceView::RenderSymbolAsmView( uint32_t iptotal, unordered_flat_map<u
             const auto x0 = rect.Min.x;
             const auto x1 = rect.Min.x + rect.GetWidth() * 0.2f;
             float sy;
-            for( size_t i=0; i<m_asm.size(); i++ )
+            for( int i=0; i<(int)m_asm.size(); i++ )
             {
                 if( i == m_asmSelected )
                 {
@@ -2597,7 +2671,7 @@ void SourceView::RenderAsmLine( AsmLine& line, uint32_t ipcnt, uint32_t iptotal,
         auto code = (const uint8_t*)worker.GetSymbolCode( m_baseAddr, m_codeLen );
         assert( code );
         char tmp[64];
-        const auto len = PrintHexBytes( tmp, code + line.addr - m_baseAddr, line.len );
+        const auto len = PrintHexBytes( tmp, code + line.addr - m_baseAddr, line.len, worker.GetCpuArch() );
         ImGui::SameLine();
         TextColoredUnformatted( ImVec4( 0.5, 0.5, 1, 1 ), tmp );
         ImGui::SameLine( 0, 0 );
@@ -2627,6 +2701,7 @@ void SourceView::RenderAsmLine( AsmLine& line, uint32_t ipcnt, uint32_t iptotal,
         ImGui::SameLine( 0, ty );
     }
 
+    int opdesc = 0;
     const AsmVar* asmVar = nullptr;
     if( !m_atnt && ( m_cpuArch == CpuArchX64 || m_cpuArch == CpuArchX86 ) )
     {
@@ -2653,12 +2728,13 @@ void SourceView::RenderAsmLine( AsmLine& line, uint32_t ipcnt, uint32_t iptotal,
             if( oit != uarch->ops + uarch->numOps && (*oit)->id == opid )
             {
                 const auto& op = *oit;
+                opdesc = op->descId;
                 std::vector<std::pair<int, int>> res;
                 res.reserve( op->numVariants );
                 for( int i=0; i<op->numVariants; i++ )
                 {
                     const auto& var = *op->variant[i];
-                    if( var.descNum == line.params.size() )
+                    if( var.descNum == (int)line.params.size() )
                     {
                         int penalty = 0;
                         bool match = true;
@@ -2764,6 +2840,11 @@ void SourceView::RenderAsmLine( AsmLine& line, uint32_t ipcnt, uint32_t iptotal,
             const auto& var = *asmVar;
             if( m_font ) ImGui::PopFont();
             ImGui::BeginTooltip();
+            if( opdesc != 0 )
+            {
+                ImGui::TextUnformatted( OpDescList[opdesc] );
+                ImGui::Separator();
+            }
             TextFocused( "Throughput:", RealToString( var.tp ) );
             ImGui::SameLine();
             TextDisabledUnformatted( "(cycles per instruction, lower is better)" );
@@ -3315,7 +3396,7 @@ static bool TokenizeNumber( const char*& begin, const char* end )
         {
             isBinary = true;
             begin++;
-            while( begin < end && ( *begin == '0' || *begin == '1' ) || *begin == '\'' ) begin++;
+            while( begin < end && ( ( *begin == '0' || *begin == '1' ) || *begin == '\'' ) ) begin++;
         }
     }
     if( !isBinary )
@@ -3374,7 +3455,7 @@ SourceView::TokenColor SourceView::IdentifyToken( const char*& begin, const char
     {
         const char* tmp = begin;
         begin++;
-        while( begin < end && ( *begin >= 'a' && *begin <= 'z' ) || ( *begin >= 'A' && *begin <= 'Z' ) || ( *begin >= '0' && *begin <= '9' ) || *begin == '_' ) begin++;
+        while( begin < end && ( ( *begin >= 'a' && *begin <= 'z' ) || ( *begin >= 'A' && *begin <= 'Z' ) || ( *begin >= '0' && *begin <= '9' ) || *begin == '_' ) ) begin++;
         if( begin - tmp <= 24 )
         {
             char buf[25];
@@ -3542,7 +3623,7 @@ void SourceView::ResetAsm()
     for( auto& line : m_asm ) memset( line.regData, 0, sizeof( line.regData ) );
 }
 
-void SourceView::FollowRead( int line, RegsX86 reg, int limit )
+void SourceView::FollowRead( size_t line, RegsX86 reg, size_t limit )
 {
     if( limit == 0 ) return;
     const auto& data = m_asm[line];
@@ -3562,7 +3643,7 @@ void SourceView::FollowRead( int line, RegsX86 reg, int limit )
     }
 }
 
-void SourceView::FollowWrite( int line, RegsX86 reg, int limit )
+void SourceView::FollowWrite( size_t line, RegsX86 reg, size_t limit )
 {
     if( limit == 0 ) return;
     const auto& data = m_asm[line];
@@ -3577,14 +3658,15 @@ void SourceView::FollowWrite( int line, RegsX86 reg, int limit )
             CheckWrite( fit - m_asm.begin(), reg, limit );
         }
     }
-    if( line-1 >= 0 )
+    if( line > 0 )
     {
         CheckWrite( line-1, reg, limit );
     }
 }
 
-void SourceView::CheckRead( int line, RegsX86 reg, int limit )
+void SourceView::CheckRead( size_t line, RegsX86 reg, size_t limit )
 {
+    assert( limit > 0 );
     auto& data = m_asm[line];
     int idx = 0;
     for(;;)
@@ -3642,8 +3724,9 @@ void SourceView::CheckRead( int line, RegsX86 reg, int limit )
     }
 }
 
-void SourceView::CheckWrite( int line, RegsX86 reg, int limit )
+void SourceView::CheckWrite( size_t line, RegsX86 reg, size_t limit )
 {
+    assert( limit > 0 );
     auto& data = m_asm[line];
     int idx = 0;
     for(;;)

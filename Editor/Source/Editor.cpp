@@ -157,7 +157,7 @@ namespace Lumos
 		m_Windows.emplace_back(CreateRef<GraphicsInfoWindow>());
 		m_Windows.back()->SetActive(false);
 #ifndef LUMOS_PLATFORM_IOS
-		//m_Windows.emplace_back(CreateRef<AssetWindow>());
+		m_Windows.emplace_back(CreateRef<AssetWindow>());
 #endif
         
 		for(auto& window : m_Windows)
@@ -1652,6 +1652,7 @@ namespace Lumos
 		Application::Get().GetSystem<B2PhysicsEngine>()->SetDebugDrawFlags(m_IniFile.GetOrDefault("PhysicsDebugDrawFlags2D", 0));
 		
 		ImGuiHelpers::SetTheme(m_Theme);
+		OS::Instance()->SetTitleBarColour(ImGui::GetStyle().Colors[ImGuiCol_MenuBarBg]);
 	}
     
 	const char* Editor::GetIconFontIcon(const std::string& filePath)

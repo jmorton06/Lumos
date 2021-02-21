@@ -5,13 +5,13 @@
 
 namespace Lumos
 {
-	
 	CollisionDetection::CollisionDetection()
 	{
 		//max actual size
-		unsigned int maxSize = CollisionShapeTypeMax | (CollisionShapeTypeMax >> 1);
-		m_CollisionCheckFunctions = new CollisionCheckFunc[maxSize];
-		std::fill(m_CollisionCheckFunctions, m_CollisionCheckFunctions + maxSize, &CollisionDetection::InvalidCheckCollision);
+		m_MaxSize = CollisionShapeTypeMax | (CollisionShapeTypeMax >> 1);
+		LUMOS_LOG_INFO("Max Collision Size {0}", m_MaxSize);
+		m_CollisionCheckFunctions = new CollisionCheckFunc[m_MaxSize];
+		std::fill(m_CollisionCheckFunctions, m_CollisionCheckFunctions + m_MaxSize, &CollisionDetection::CheckPolyhedronCollision);
 		
 		m_CollisionCheckFunctions[CollisionSphere] = &CollisionDetection::CheckSphereCollision;
 		m_CollisionCheckFunctions[CollisionCuboid] = &CollisionDetection::CheckPolyhedronCollision;
@@ -19,6 +19,16 @@ namespace Lumos
         m_CollisionCheckFunctions[CollisionHull] = &CollisionDetection::CheckPolyhedronCollision;
 
 		m_CollisionCheckFunctions[CollisionSphere | CollisionCuboid] = &CollisionDetection::CheckPolyhedronSphereCollision;
+		m_CollisionCheckFunctions[CollisionSphere | CollisionPyramid] = &CollisionDetection::CheckPolyhedronSphereCollision;
+		m_CollisionCheckFunctions[CollisionSphere | CollisionHull] = &CollisionDetection::CheckPolyhedronSphereCollision;
+	}
+	
+	bool CollisionDetection::CheckCollision(RigidBody3D* obj1, RigidBody3D* obj2, CollisionShape* shape1, CollisionShape* shape2, CollisionData* out_coldata)
+	{
+		LUMOS_PROFILE_FUNCTION();
+		if((shape1->GetType() | shape2->GetType()) >=  m_MaxSize)
+			LUMOS_LOG_INFO("Invalid collision func {0}, {1}, {2}, {3}", shape1->GetType() , shape1->GetType(), shape2->GetType() | shape2->GetType(), m_MaxSize  );
+		return CALL_MEMBER_FN(*this, m_CollisionCheckFunctions[shape1->GetType() | shape2->GetType()])(obj1, obj2, shape1, shape2, out_coldata);
 	}
 	
 	bool CollisionDetection::InvalidCheckCollision(  RigidBody3D* obj1,   RigidBody3D* obj2, CollisionShape* shape1, CollisionShape* shape2, CollisionData* out_coldata)
@@ -85,7 +95,7 @@ namespace Lumos
 		CollisionData best_colData;
 		best_colData.penetration = -FLT_MAX;
 		
-        std::vector<Maths::Vector3>& possibleCollisionAxes = complexShape->GetCollisionAxes(complexObj);
+        std::vector<Maths::Vector3> possibleCollisionAxes = complexShape->GetCollisionAxes(complexObj);
         std::vector<CollisionEdge>& complex_shape_edges = complexShape->GetEdges(complexObj);
 		
 		Maths::Vector3 p = GetClosestPointOnEdges(sphereObj->GetPosition(), complex_shape_edges);
@@ -115,8 +125,9 @@ namespace Lumos
 		CollisionData best_colData;
 		best_colData.penetration = -FLT_MAX;
 		
-        std::vector<Maths::Vector3>& possibleCollisionAxes = shape1->GetCollisionAxes(obj1);
+        std::vector<Maths::Vector3> possibleCollisionAxes = shape1->GetCollisionAxes(obj1);
         std::vector<Maths::Vector3>& tempPossibleCollisionAxes = shape2->GetCollisionAxes(obj2);
+		
 		for(Maths::Vector3& temp : tempPossibleCollisionAxes)
 			AddPossibleCollisionAxis(temp, &possibleCollisionAxes);
 		

@@ -14,7 +14,7 @@ namespace Lumos
 	{
 	}
 
-	void BruteForceBroadphase::FindPotentialCollisionPairs(Ref<RigidBody3D>* objects, uint32_t objectCount,
+	void BruteForceBroadphase::FindPotentialCollisionPairs(RigidBody3D** objects, uint32_t objectCount,
 		std::vector<CollisionPair>& collisionPairs)
 	{
 		if(objectCount == 0)
@@ -24,8 +24,8 @@ namespace Lumos
 		{
 			for(size_t j = i + 1; j < objectCount; ++j)
 			{
-				RigidBody3D* obj1 = objects[i].get();
-				RigidBody3D* obj2 = objects[j].get();
+				RigidBody3D* obj1 = objects[i];
+				RigidBody3D* obj2 = objects[j];
 
 				if(obj1->GetIsAtRest() && obj2->GetIsAtRest())
 					continue;
