@@ -42,6 +42,7 @@ namespace Lumos
     std::vector<Maths::Vector3>& SphereCollisionShape::GetCollisionAxes(const RigidBody3D* currentObject)
     {
         /* There is infinite edges so handle seperately */
+		m_Axes.clear();
         return m_Axes;
     }
 

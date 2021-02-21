@@ -16,6 +16,10 @@
 
 #include <imgui/imgui.h>
 
+#define THREAD_RIGID_BODY_UPDATE
+#define THREAD_APPLY_IMPULSES
+#define THREAD_NARROWPHASE
+
 namespace Lumos
 {
 	
@@ -70,7 +74,7 @@ namespace Lumos
                 {
                     const auto& phys = group.get<Physics3DComponent>(entity);
                     auto& physicsObj = phys.GetRigidBody();
-                    m_RigidBodys.push_back(physicsObj);
+                    m_RigidBodys.push_back(physicsObj.get());
 				};
 			}
             
@@ -128,7 +132,7 @@ namespace Lumos
 			
 			{
 				LUMOS_PROFILE_SCOPE("Physics::UpdatePhysics");
-			if(m_MultipleUpdates)
+				if(m_MultipleUpdates)
 			{
 				const int max_updates_per_frame = 5;
 				
@@ -136,7 +140,7 @@ namespace Lumos
 				for(int i = 0; (m_UpdateAccum >= s_UpdateTimestep) && i < max_updates_per_frame; ++i)
 				{
 					m_UpdateAccum -= s_UpdateTimestep;
-					UpdatePhysics(scene);
+					UpdatePhysics();
 				}
 				
 				if(m_UpdateAccum >= s_UpdateTimestep)
@@ -149,12 +153,13 @@ namespace Lumos
 			else
 			{
 				s_UpdateTimestep = timeStep.GetSeconds();
-				UpdatePhysics(scene);
+				UpdatePhysics();
 				}
 			}
 			
 			{
 				LUMOS_PROFILE_SCOPE("Physics::Set Transforms");
+				
                 for(auto entity : group)
                 {
                     const auto& [phys, trans] = group.get<Physics3DComponent, Maths::Transform>(entity);
@@ -167,7 +172,7 @@ namespace Lumos
         }
 	}
 	
-	void LumosPhysicsEngine::UpdatePhysics(Scene* scene)
+	void LumosPhysicsEngine::UpdatePhysics()
 	{
 		m_Manifolds.clear();
 		
@@ -186,12 +191,12 @@ namespace Lumos
 	{
 #ifdef THREAD_RIGID_BODY_UPDATE
         LUMOS_PROFILE_SCOPE("Thread Update Rigid Body");
-
-		System::JobSystem::Dispatch(static_cast<uint32_t>(m_RigidBodys.size()), 4, [&](JobDispatchArgs args) {
+		System::JobSystem::Context jobSystemContext;
+		System::JobSystem::Dispatch(jobSystemContext, static_cast<uint32_t>(m_RigidBodys.size()), 128, [&](JobDispatchArgs args) {
 										UpdateRigidBody(m_RigidBodys[args.jobIndex]);
 									});
 		
-		System::JobSystem::Wait();
+		System::JobSystem::Wait(jobSystemContext);
 #else
         LUMOS_PROFILE_SCOPE("Update Rigid Body");
 
@@ -200,7 +205,7 @@ namespace Lumos
 #endif
 	}
 	
-	void LumosPhysicsEngine::UpdateRigidBody(const Ref<RigidBody3D>& obj) const
+	void LumosPhysicsEngine::UpdateRigidBody(RigidBody3D* obj) const
 	{
 		LUMOS_PROFILE_FUNCTION();
 		if(!obj->GetIsStatic() && obj->IsAwake())
@@ -326,53 +331,61 @@ namespace Lumos
 	void LumosPhysicsEngine::NarrowPhaseCollisions()
 	{
 		LUMOS_PROFILE_FUNCTION();
-		if(!m_BroadphaseCollisionPairs.empty())
+		if(m_BroadphaseCollisionPairs.empty())
+			return;
+#ifdef THREAD_NARROWPHASE
+		System::JobSystem::Context jobSystemContext;
+		System::JobSystem::Dispatch(jobSystemContext, static_cast<uint32_t>(m_BroadphaseCollisionPairs.size()), 128, [&](JobDispatchArgs args)
+#else
+		for(auto& cp : m_BroadphaseCollisionPairs)
+#endif
 		{
-			CollisionData colData;
-			
-			//System::JobSystem::Dispatch(static_cast<uint32_t>(m_BroadphaseCollisionPairs.size()), 4, [&](JobDispatchArgs args)
-			for(auto& cp : m_BroadphaseCollisionPairs)
-			{
-                LUMOS_PROFILE_SCOPE("Collision Pairs");
-				//CollisionPair &cp = m_BroadphaseCollisionPairs[args.jobIndex];
-				auto shapeA = cp.pObjectA->GetCollisionShape();
-				auto shapeB = cp.pObjectB->GetCollisionShape();
+#ifdef THREAD_NARROWPHASE
+			CollisionPair &cp = m_BroadphaseCollisionPairs[args.jobIndex];
+#endif
+			auto shapeA = cp.pObjectA->GetCollisionShape();
+			auto shapeB = cp.pObjectB->GetCollisionShape();
 				
-				if(shapeA && shapeB)
+			if(shapeA && shapeB)
+			{
+				CollisionData colData;
+
+				// Detects if the objects are colliding - Seperating Axis Theorem
+				if(CollisionDetection::Get().CheckCollision(cp.pObjectA, cp.pObjectB, shapeA.get(), shapeB.get(), &colData))
 				{
-					// Detects if the objects are colliding - Seperating Axis Theorem
-					if(CollisionDetection::Get().CheckCollision(cp.pObjectA, cp.pObjectB, shapeA.get(), shapeB.get(), &colData))
-					{
-						// Check to see if any of the objects have collision callbacks that dont
-						// want the objects to physically collide
-						const bool okA = cp.pObjectA->FireOnCollisionEvent(cp.pObjectA, cp.pObjectB);
-						const bool okB = cp.pObjectB->FireOnCollisionEvent(cp.pObjectB, cp.pObjectA);
+					// Check to see if any of the objects have collision callbacks that dont
+					// want the objects to physically collide
+					const bool okA = cp.pObjectA->FireOnCollisionEvent(cp.pObjectA, cp.pObjectB);
+					const bool okB = cp.pObjectB->FireOnCollisionEvent(cp.pObjectB, cp.pObjectA);
 						
-						if(okA && okB)
-						{
-							// Build full collision manifold that will also handle the collision
-							// response between the two objects in the solver stage
-							Manifold& manifold = m_Manifolds.emplace_back();
-							manifold.Initiate(cp.pObjectA, cp.pObjectB);
+					if(okA && okB)
+					{
+						// Build full collision manifold that will also handle the collision
+						// response between the two objects in the solver stage
+						Manifold& manifold = m_Manifolds.emplace_back();
+						manifold.Initiate(cp.pObjectA, cp.pObjectB);
 							
-							// Construct contact points that form the perimeter of the collision manifold
-							if(CollisionDetection::Get().BuildCollisionManifold(cp.pObjectA, cp.pObjectB, shapeA.get(), shapeB.get(), colData, &manifold))
-							{
-								// Fire callback
-								cp.pObjectA->FireOnCollisionManifoldCallback(cp.pObjectA, cp.pObjectB, &manifold);
-								cp.pObjectB->FireOnCollisionManifoldCallback(cp.pObjectB, cp.pObjectA, &manifold);
-							}
-							else
-							{
-                                m_Manifolds.pop_back();
-							}
+						// Construct contact points that form the perimeter of the collision manifold
+						if(CollisionDetection::Get().BuildCollisionManifold(cp.pObjectA, cp.pObjectB, shapeA.get(), shapeB.get(), colData, &manifold))
+						{
+							// Fire callback
+							cp.pObjectA->FireOnCollisionManifoldCallback(cp.pObjectA, cp.pObjectB, &manifold);
+							cp.pObjectB->FireOnCollisionManifoldCallback(cp.pObjectB, cp.pObjectA, &manifold);
+						}
+						else
+						{
+                            m_Manifolds.pop_back();
 						}
 					}
 				}
-			} //);
+			}
+		} 
+#ifdef THREAD_NARROWPHASE
+		);
 			
-			//System::JobSystem::Wait();
-		}
+		System::JobSystem::Wait(jobSystemContext);
+#endif
+		
 	}
 	
 	void LumosPhysicsEngine::SolveConstraints()
@@ -393,21 +406,30 @@ namespace Lumos
         }
 		
         {
-            for(size_t i = 0; i < SOLVER_ITERATIONS; ++i)
-            {
-                LUMOS_PROFILE_SCOPE("Apply Impulse");
-
-                for(Manifold& m : m_Manifolds)
-                {
-                    m.ApplyImpulse();
-                }
-                
-                for(Constraint* c : m_Constraints)
-                {
-                    c->ApplyImpulse();
-                }
-            }
-        }
+			LUMOS_PROFILE_SCOPE("Apply Impulses");
+#ifdef THREAD_APPLY_IMPULSES
+			System::JobSystem::Context jobSystemContext;
+			System::JobSystem::Dispatch(jobSystemContext, static_cast<uint32_t>( SOLVER_ITERATIONS), 128, [&](JobDispatchArgs args)
+#else
+											for(int i = 0; i < SOLVER_ITERATIONS; i++)
+#endif
+											{
+												for(
+													Manifold& m : m_Manifolds)
+			{
+				m.ApplyImpulse();
+			}
+												
+			for(Constraint* c : m_Constraints)
+			{
+				c->ApplyImpulse();
+												}
+											}
+#ifdef THREAD_APPLY_IMPULSES
+			);
+			System::JobSystem::Wait(jobSystemContext);
+#endif
+		}
 	}
 	
 	void LumosPhysicsEngine::ClearConstraints()

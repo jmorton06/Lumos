@@ -86,6 +86,9 @@ namespace Lumos
 		bool m_isInListView;
 		bool m_updateBreadCrumbs;
 		bool m_showSearchBar;
+		bool m_ShowHiddenFiles;
+		
+		ImGuiTextFilter m_Filter;
 
 		char* inputText;
 		char* inputHint;

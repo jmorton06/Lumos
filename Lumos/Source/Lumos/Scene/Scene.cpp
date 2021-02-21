@@ -10,6 +10,7 @@
 #include "Utilities/TimeStep.h"
 #include "Audio/AudioManager.h"
 #include "Physics/LumosPhysicsEngine/SortAndSweepBroadphase.h"
+#include "Physics/LumosPhysicsEngine/BruteForceBroadphase.h"
 #include "Physics/LumosPhysicsEngine/OctreeBroadphase.h"
 #include "Physics/LumosPhysicsEngine/LumosPhysicsEngine.h"
 #include "Physics/LumosPhysicsEngine/SphereCollisionShape.h"
@@ -69,9 +70,9 @@ namespace Lumos
 		LuaManager::Get().GetState().set("scene", this);
 
 		//Default physics setup
-		Application::Get().GetSystem<LumosPhysicsEngine>()->SetDampingFactor(0.998f);
+		Application::Get().GetSystem<LumosPhysicsEngine>()->SetDampingFactor(0.999f);
 		Application::Get().GetSystem<LumosPhysicsEngine>()->SetIntegrationType(IntegrationType::RUNGE_KUTTA_4);
-		Application::Get().GetSystem<LumosPhysicsEngine>()->SetBroadphase(Lumos::CreateRef<OctreeBroadphase>(5, 3, Lumos::CreateRef<SortAndSweepBroadphase>()));
+		Application::Get().GetSystem<LumosPhysicsEngine>()->SetBroadphase(Lumos::CreateRef<OctreeBroadphase>(5,5,Lumos::CreateRef<SortAndSweepBroadphase>()));
 		
 		m_SceneGraph = CreateUniqueRef<SceneGraph>();
 		m_SceneGraph->Init(m_EntityManager->GetRegistry());

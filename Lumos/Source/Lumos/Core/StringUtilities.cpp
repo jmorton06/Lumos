@@ -52,7 +52,19 @@ namespace Lumos
 		if(pos != std::string::npos)
 			return FilePath.substr(0, pos + 1);
         return FilePath;
-    }
+		}
+		
+		bool IsHiddenFile(const std::string& path)
+		{
+			if(path != ".." &&
+				   path!= "."  &&
+				   path[0] == '.')
+			{
+				return true;
+			}
+			
+			return false;
+		}
 		
 	std::vector<std::string> SplitString(const std::string& string, const std::string& delimiters)
 	{

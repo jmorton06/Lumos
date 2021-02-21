@@ -27,6 +27,7 @@
 #include "Core/OS/OS.h"
 #include "Core/Profiler.h"
 #include "Core/VFS.h"
+#include "Core/JobSystem.h"
 #include "Core/StringUtilities.h"
 #include "Core/OS/FileSystem.h"
 #include "Scripting/Lua/LuaManager.h"
@@ -78,7 +79,7 @@ namespace Lumos
 
 		m_Timer = CreateUniqueRef<Timer>();
         
-		WindowProperties  windowProperties;
+		WindowProperties windowProperties;
 		windowProperties.Width = Width;
 		windowProperties.Height = Height;
 		windowProperties.RenderAPI = RenderAPI;
@@ -132,39 +133,56 @@ namespace Lumos
 
 		uint32_t screenWidth = m_Window->GetWidth();
 		uint32_t screenHeight = m_Window->GetHeight();
-
-		Lumos::Input::Create();
+		
+		System::JobSystem::Context context;
+		
+		System::JobSystem::Execute(context, [](JobDispatchArgs args) 
+								   {
+										   Lumos::Input::Create();
+								   });
         
-        m_ShaderLibrary = CreateRef<ShaderLibrary>();
+		System::JobSystem::Execute(context, [this](JobDispatchArgs args) 
+							 {
+								 m_ImGuiManager = CreateUniqueRef<ImGuiManager>(false);
+									 m_ImGuiManager->OnInit();
+							   });
+		
+		System::JobSystem::Execute(context, [this](JobDispatchArgs args) 
+						   {
+								   m_SystemManager = CreateUniqueRef<SystemManager>();
+						   });
+		
+		System::JobSystem::Execute(context, [this](JobDispatchArgs args) 
+						   {
+								   auto audioManager = AudioManager::Create();
+								   if(audioManager)
+								   {
+									   audioManager->OnInit();
+									   m_SystemManager->RegisterSystem<AudioManager>(audioManager);
+								   }
+							   });
+		
+		System::JobSystem::Execute(context, [this](JobDispatchArgs args) 
+						   {
+							   m_SystemManager->RegisterSystem<LumosPhysicsEngine>();
+							   m_SystemManager->RegisterSystem<B2PhysicsEngine>();
+							   });
+		
+		System::JobSystem::Execute(context, [this](JobDispatchArgs args) 
+						   {
+								   m_SceneManager->LoadCurrentList();
+									   });
+		
+		// Graphics Loading on main thread
+		m_ShaderLibrary = CreateRef<ShaderLibrary>();
         
 		Graphics::Renderer::Init(screenWidth, screenHeight);
-
-		// Graphics Loading on main thread
+		
 		m_RenderGraph = CreateUniqueRef<Graphics::RenderGraph>(screenWidth, screenHeight);
 
-        m_ImGuiManager = CreateUniqueRef<ImGuiManager>(false);
-        m_ImGuiManager->OnInit();
-
-		m_SystemManager = CreateUniqueRef<SystemManager>();
-
-		auto audioManager = AudioManager::Create();
-		if(audioManager)
-		{
-			audioManager->OnInit();
-			m_SystemManager->RegisterSystem<AudioManager>(audioManager);
-		}
-
-		m_SystemManager->RegisterSystem<LumosPhysicsEngine>();
-		m_SystemManager->RegisterSystem<B2PhysicsEngine>();
-		
-		Application::Get().GetSystem<LumosPhysicsEngine>()->SetPaused(false);
-		Application::Get().GetSystem<B2PhysicsEngine>()->SetPaused(false);
-        
-		Graphics::Material::InitDefaultTexture();
-        
-        m_SceneManager->LoadCurrentList();
-
 		m_CurrentState = AppState::Running;
+		
+		Graphics::Material::InitDefaultTexture();
             
 //#ifndef LUMOS_PLATFORM_IOS //Need to disable for A12 and earlier
         auto shadowRenderer = new Graphics::ShadowRenderer();
@@ -177,6 +195,8 @@ namespace Lumos
         m_RenderGraph->AddRenderer(new Graphics::Renderer2D(screenWidth, screenHeight, false, false, true));
         
         m_RenderGraph->EnableDebugRenderer(true);
+		
+		System::JobSystem::Wait(context);
 	}
 
 	void Application::Quit()

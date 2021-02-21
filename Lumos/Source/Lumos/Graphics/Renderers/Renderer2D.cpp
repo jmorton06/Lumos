@@ -321,16 +321,16 @@ namespace Lumos
 			currentCMDBuffer->UpdateViewport(m_ScreenBufferWidth, m_ScreenBufferHeight);
 			m_Pipeline->Bind(currentCMDBuffer);
 
-			m_VertexBuffers[m_BatchDrawCallIndex]->ReleasePointer();
-			m_VertexBuffers[m_BatchDrawCallIndex]->Unbind();
-
-			m_IndexBuffer->SetCount(m_IndexCount);
+			//m_VertexBuffers[m_BatchDrawCallIndex]->Unbind();
 
             m_CurrentDescriptorSets[0] = m_Pipeline->GetDescriptorSet();
             m_CurrentDescriptorSets[1] = m_TextureCount > 0 ? m_DescriptorSet.get() : nullptr;
 
-			m_VertexBuffers[m_BatchDrawCallIndex]->Bind(currentCMDBuffer, m_Pipeline.get());
+			m_IndexBuffer->SetCount(m_IndexCount);
 			m_IndexBuffer->Bind(currentCMDBuffer);
+
+			m_VertexBuffers[m_BatchDrawCallIndex]->ReleasePointer();
+			//m_VertexBuffers[m_BatchDrawCallIndex]->Bind(currentCMDBuffer, m_Pipeline.get());
 
 			Renderer::BindDescriptorSets(m_Pipeline.get(), currentCMDBuffer, 0, m_CurrentDescriptorSets);
 			Renderer::DrawIndexed(currentCMDBuffer, DrawType::TRIANGLE, m_IndexCount);

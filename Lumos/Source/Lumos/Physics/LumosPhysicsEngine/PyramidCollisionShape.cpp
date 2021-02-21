@@ -91,6 +91,8 @@ namespace Lumos
     {
         LUMOS_PROFILE_FUNCTION();
         {
+			m_Axes.clear();
+			m_Axes.resize(5);
             const Maths::Matrix3 objOrientation = currentObject->GetOrientation().RotationMatrix();
             m_Axes[0] = (objOrientation * m_Normals[0]);
             m_Axes[1] = (objOrientation * m_Normals[1]);

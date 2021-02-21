@@ -2,6 +2,7 @@
 #include "AssetWindow.h"
 #include <Lumos/Core/OS/FileSystem.h>
 #include <Lumos/Core/Profiler.h>
+#include <Lumos/Core/StringUtilities.h>
 
 #if __has_include(<filesystem>)
 #	include <filesystem>
@@ -42,6 +43,7 @@ namespace Lumos
 		m_isInListView = true;
 		m_updateBreadCrumbs = true;
 		m_showSearchBar = false;
+		m_ShowHiddenFiles = false;
 	}
 
 	void AssetWindow::OnImGui()
@@ -53,17 +55,31 @@ namespace Lumos
 
 			ImGui::BeginChild("##folders_common");
 			{
+				RenderBreadCrumbs();
+				ImGui::EndChild();
+				
 				if(ImGui::CollapsingHeader("Assets://", nullptr, ImGuiTreeNodeFlags_DefaultOpen))
 				{
 					if(ImGui::TreeNode("Contents"))
 					{
 						for(int i = 0; i < m_BaseProjectDir.size(); i++)
 						{
+							if(!m_ShowHiddenFiles && Lumos::StringUtilities::IsHiddenFile(m_BaseProjectDir[i].filename))
+							{
+								continue;
+							}
+							
 							if(ImGui::TreeNode(m_BaseProjectDir[i].filename.c_str()))
 							{
+								ImGui::Indent(16.0f);
 								auto dirData = ReadDirectory(m_BaseProjectDir[i].absolutePath.c_str());
 								for(int d = 0; d < dirData.size(); d++)
 								{
+									if(Lumos::StringUtilities::IsHiddenFile(dirData[d].filename))
+									{
+										continue;
+									}
+									
 									if(!dirData[d].isFile)
 									{
 										if(ImGui::TreeNode(dirData[d].filename.c_str()))
@@ -79,6 +95,7 @@ namespace Lumos
 										ImGui::Unindent();
 									}
 								}
+								ImGui::Unindent(16.0f);
 								ImGui::TreePop();
 							}
 
@@ -119,9 +136,37 @@ namespace Lumos
 
 			ImGui::BeginChild("##directory_structure", ImVec2(ImGui::GetColumnWidth() - 12, 250));
 			{
-				RenderBreadCrumbs();
-				ImGui::EndChild();
-
+				if(m_isInListView)
+				{
+					if(ImGui::Button(ICON_MDI_VIEW_GRID))
+					{
+						m_isInListView = !m_isInListView;
+					}
+					ImGui::SameLine();
+				}
+				else
+				{
+					if(ImGui::Button(ICON_MDI_VIEW_LIST))
+					{
+						m_isInListView = !m_isInListView;
+					}
+					ImGui::SameLine();
+				}
+				
+				/*if(ImGui::Button(ICON_MDI_MAGNIFY))
+				{
+					m_showSearchBar = !m_showSearchBar;
+				}*/
+				ImGui::TextUnformatted(ICON_MDI_MAGNIFY);
+				m_showSearchBar = true;
+				
+				ImGui::SameLine();
+				
+				if(m_showSearchBar)
+				{
+					m_Filter.Draw("##Filter");
+				}
+				
 				ImGui::BeginChild("Scrolling");
 
 				if(!m_isInListView)
@@ -131,6 +176,19 @@ namespace Lumos
 				{
 					if(m_CurrentDir.size() > 0)
 					{
+						if(!m_ShowHiddenFiles && Lumos::StringUtilities::IsHiddenFile(m_CurrentDir[i].filename) )
+						{
+							continue;
+						}
+						
+						if(m_Filter.IsActive())
+						{
+							if(!m_Filter.PassFilter(m_CurrentDir[i].filename.c_str()))
+							{
+								continue;
+							}
+						}
+						
 						if(!m_CurrentDir[i].isFile)
 						{
 							if(!m_isInListView)
@@ -201,46 +259,6 @@ namespace Lumos
 		LUMOS_PROFILE_FUNCTION();
 		ImGui::BeginChild("##directory_breadcrumbs", ImVec2(ImGui::GetColumnWidth() - 100, 30));
 		{
-			if(m_isInListView)
-			{
-				if(ImGui::Button(ICON_MDI_VIEW_GRID))
-				{
-					m_isInListView = !m_isInListView;
-				}
-				ImGui::SameLine();
-			}
-			else
-			{
-				if(ImGui::Button(ICON_MDI_VIEW_LIST))
-				{
-					m_isInListView = !m_isInListView;
-				}
-				ImGui::SameLine();
-			}
-
-			if(ImGui::Button(ICON_MDI_MAGNIFY))
-			{
-				m_showSearchBar = !m_showSearchBar;
-
-				if(m_showSearchBar)
-				{
-				}
-				else
-				{
-				}
-			}
-			ImGui::SameLine();
-
-			if(m_showSearchBar)
-			{
-				char buff[100] = {0};
-				ImGui::SameLine();
-				ImGui::PushItemWidth(200);
-				ImGui::InputTextWithHint(inputText, inputHint, buff, 100);
-				ImGui::PopItemWidth();
-				ImGui::SameLine();
-			}
-
 			if(ImGui::Button(ICON_MDI_ARROW_LEFT))
 			{
 				if(strlen(m_CurrentDirPath.c_str()) != m_basePathLen)
@@ -260,22 +278,48 @@ namespace Lumos
 			ImGui::SameLine();
 
 			GetDirectories(m_CurrentDirPath);
-
-			for(int i = 0; i < m_DirectoryCount; i++)
-			{
-				if(m_Directories[i] != m_BaseDirPath)
-				{
-					ImGui::TextUnformatted(ICON_MDI_CHEVRON_RIGHT);
-				}
-				ImGui::SameLine();
-				ImGui::TextUnformatted(m_Directories[i].c_str());
-				ImGui::SameLine();
-			}
-
-			ImGui::SameLine();
-
-			ImGui::Dummy(ImVec2(ImGui::GetColumnWidth() - 400, 0));
-
+            
+            int secIdx = 0, newPwdLastSecIdx = -1;
+            auto dir  = std::filesystem::path(m_CurrentDirPath);
+            for(auto &sec : dir)
+            {
+            #ifdef _WIN32
+                if(secIdx == 1)
+                {
+                    ++secIdx;
+                    continue;
+                }
+            #endif
+                ImGui::PushID(secIdx);
+                if(secIdx > 0)
+                    ImGui::SameLine();
+                if(ImGui::SmallButton(sec.u8string().c_str()))
+                {
+                    newPwdLastSecIdx = secIdx;
+                }
+                ImGui::PopID();
+                ++secIdx;
+            }
+            
+            if(newPwdLastSecIdx >= 0)
+            {
+                int i = 0;
+                std::filesystem::path newPwd;
+                for(auto &sec : dir)
+                {
+                    if(i++ > newPwdLastSecIdx)
+                        break;
+                    newPwd /= sec;
+                }
+        #ifdef _WIN32
+                if(newPwdLastSecIdx == 0)
+                    newPwd /= "\\";
+        #endif
+                
+                m_prevDirPath = GetParentPath(m_CurrentDirPath);
+                m_CurrentDirPath = newPwd.c_str();
+                m_CurrentDir = ReadDirectory(m_CurrentDirPath);
+            }
 			ImGui::SameLine();
 		}
 	}
@@ -401,6 +445,11 @@ namespace Lumos
 
 		for(const auto& entry : std::filesystem::directory_iterator(path))
 		{
+			if(Lumos::StringUtilities::IsHiddenFile(entry.path().string()))
+			{
+				break;
+			}
+			
 			bool isDir = std::filesystem::is_directory(entry);
 			auto test = std::vector<std::string>();
 			const char del = *m_Delimiter.c_str();
@@ -422,7 +471,7 @@ namespace Lumos
 
 		return dInfo;
 	}
-
+	
 	std::vector<DirectoryInformation> AssetWindow::ReadDirectory(const std::string& path)
 	{
 		std::vector<DirectoryInformation> dInfo;
@@ -430,7 +479,7 @@ namespace Lumos
 		for(const auto& entry : std::filesystem::directory_iterator(path))
 		{
 			bool isDir = std::filesystem::is_directory(entry);
-
+			
 			auto test = std::vector<std::string>();
 			const char del = *m_Delimiter.c_str();
 
@@ -448,8 +497,9 @@ namespace Lumos
 				dInfo.push_back(d);
 			}
 		}
+		
 		return dInfo;
-	}
+		}
 
 	std::vector<DirectoryInformation> AssetWindow::ReadDirectoryRecursive(const std::string& path)
 	{
