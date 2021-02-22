@@ -10,6 +10,7 @@
 #ifdef LUMOS_PLATFORM_WINDOWS
 #define NOMINMAX
 #include <Windows.h>
+#include <comdef.h>
 #elif LUMOS_PLATFORM_MACOS
 #include <pthread.h>
 #include <sys/types.h>
@@ -136,8 +137,12 @@ namespace Lumos
 
                 for (uint32_t threadID = 0; threadID < numThreads; ++threadID)
                 {
-                    std::thread worker([]
+					std::thread worker([threadID]
                     {
+						std::stringstream ss;
+						ss << "JobSystem_" << threadID;
+						LUMOS_PROFILE_SETTHREADNAME(ss.str().c_str());
+
                         while (true)
                         {
                             if (!work())
@@ -166,8 +171,8 @@ namespace Lumos
                     std::wstringstream wss;
                     wss << "JobSystem_" << threadID;
                     HRESULT hr = SetThreadDescription(handle, wss.str().c_str());
+
                     LUMOS_ASSERT(SUCCEEDED(hr),"");
-                    //LUMOS_PROFILE_SETTHREADNAME(wss.str().c_str());
 					
 #elif LUMOS_PLATFORM_MACOS
 					auto  mask = 1ull << threadID;

@@ -317,7 +317,7 @@ namespace Lumos
         #endif
                 
                 m_prevDirPath = GetParentPath(m_CurrentDirPath);
-                m_CurrentDirPath = newPwd.c_str();
+                m_CurrentDirPath = newPwd.string();
                 m_CurrentDir = ReadDirectory(m_CurrentDirPath);
             }
 			ImGui::SameLine();

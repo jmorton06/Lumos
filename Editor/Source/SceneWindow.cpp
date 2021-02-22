@@ -19,6 +19,7 @@
 #include <Lumos/ImGui/IconsMaterialDesignIcons.h>
 #include <Lumos/Graphics/Camera/EditorCamera.h>
 #include <Lumos/ImGui/ImGuiHelpers.h>
+#include <Lumos/Events/ApplicationEvent.h>
 
 #include <box2d/box2d.h>
 #include <imgui/imgui_internal.h>
