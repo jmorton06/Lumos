@@ -77,8 +77,6 @@ project "Lumos"
 		"LUMOS_DYNAMIC",
 		"LUMOS_ROOT_DIR="  .. root_dir,
 		"IMGUI_USER_CONFIG=\"Source/Lumos/ImGui/ImConfig.h\"",
-		"LUMOS_PROFILE",
-		"TRACY_ENABLE",
 		"SPDLOG_COMPILED_LIB"
 	}
 
@@ -134,6 +132,7 @@ project "Lumos"
 		links
 		{
 			"glfw",
+			"Dbghelp"
 		}
 
 		buildoptions
@@ -361,13 +360,13 @@ project "Lumos"
 			}
 
 	filter "configurations:Debug"
-		defines { "LUMOS_DEBUG", "_DEBUG" }
+		defines { "LUMOS_DEBUG", "_DEBUG","TRACY_ENABLE","LUMOS_PROFILE", }
 		symbols "On"
 		runtime "Debug"
 		optimize "Off"
 
 	filter "configurations:Release"
-		defines "LUMOS_RELEASE"
+		defines { "LUMOS_RELEASE","TRACY_ENABLE", "LUMOS_PROFILE",}
 		optimize "Speed"
 		symbols "On"
 		runtime "Release"

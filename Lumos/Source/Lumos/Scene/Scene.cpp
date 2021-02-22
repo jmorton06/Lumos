@@ -17,6 +17,9 @@
 #include "Physics/LumosPhysicsEngine/CuboidCollisionShape.h"
 #include "Physics/LumosPhysicsEngine/PyramidCollisionShape.h"
 
+#include "Events/Event.h"
+#include "Events/ApplicationEvent.h"
+
 #include "Maths/Transform.h"
 #include "Core/OS/FileSystem.h"
 #include "Scene/Component/Components.h"

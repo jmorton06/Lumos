@@ -133,51 +133,44 @@ namespace Lumos
 
 		uint32_t screenWidth = m_Window->GetWidth();
 		uint32_t screenHeight = m_Window->GetHeight();
-		
+		m_SystemManager = CreateUniqueRef<SystemManager>();
+
 		System::JobSystem::Context context;
 		
 		System::JobSystem::Execute(context, [](JobDispatchArgs args) 
-								   {
-										   Lumos::Input::Create();
-								   });
+					    {
+							Lumos::Input::Create();
+						});
         
 		System::JobSystem::Execute(context, [this](JobDispatchArgs args) 
-							 {
-								 m_ImGuiManager = CreateUniqueRef<ImGuiManager>(false);
-									 m_ImGuiManager->OnInit();
-							   });
+						{
+							auto audioManager = AudioManager::Create();
+							if(audioManager)
+							{
+								audioManager->OnInit();
+								m_SystemManager->RegisterSystem<AudioManager>(audioManager);
+							}
+						});
 		
 		System::JobSystem::Execute(context, [this](JobDispatchArgs args) 
-						   {
-								   m_SystemManager = CreateUniqueRef<SystemManager>();
-						   });
+						{
+							m_SystemManager->RegisterSystem<LumosPhysicsEngine>();
+							m_SystemManager->RegisterSystem<B2PhysicsEngine>();
+						});
 		
 		System::JobSystem::Execute(context, [this](JobDispatchArgs args) 
-						   {
-								   auto audioManager = AudioManager::Create();
-								   if(audioManager)
-								   {
-									   audioManager->OnInit();
-									   m_SystemManager->RegisterSystem<AudioManager>(audioManager);
-								   }
-							   });
+						{
+							m_SceneManager->LoadCurrentList();
+						});
 		
-		System::JobSystem::Execute(context, [this](JobDispatchArgs args) 
-						   {
-							   m_SystemManager->RegisterSystem<LumosPhysicsEngine>();
-							   m_SystemManager->RegisterSystem<B2PhysicsEngine>();
-							   });
-		
-		System::JobSystem::Execute(context, [this](JobDispatchArgs args) 
-						   {
-								   m_SceneManager->LoadCurrentList();
-									   });
-		
+
 		// Graphics Loading on main thread
+        Graphics::Renderer::Init(screenWidth, screenHeight);
+
+		m_ImGuiManager = CreateUniqueRef<ImGuiManager>(false);
+		m_ImGuiManager->OnInit();
 		m_ShaderLibrary = CreateRef<ShaderLibrary>();
-        
-		Graphics::Renderer::Init(screenWidth, screenHeight);
-		
+        		
 		m_RenderGraph = CreateUniqueRef<Graphics::RenderGraph>(screenWidth, screenHeight);
 
 		m_CurrentState = AppState::Running;
@@ -229,7 +222,18 @@ namespace Lumos
 	bool Application::OnFrame()
 	{
 		LUMOS_PROFILE_FUNCTION();
+		LUMOS_PROFILE_FRAMEMARKER();
+		
 		float now = m_Timer->GetElapsedS();
+		
+		{
+			LUMOS_PROFILE_SCOPE("Application::SceneSwitch");
+			if(m_SceneManager->GetSwitchingScene())
+			{
+				m_SceneManager->ApplySceneSwitch();
+				return m_CurrentState != AppState::Closing;
+			}
+		}
 
 #ifdef LUMOS_LIMIT_FRAMERATE
 		if(now - m_UpdateTimer > Engine::Get().TargetFrameRate())
@@ -249,10 +253,6 @@ namespace Lumos
 				stats.FrameTime = ts.GetMillis();
 			}
 			
-			{
-				LUMOS_PROFILE_SCOPE("Application::SceneSwitch");
-                m_SceneManager->ApplySceneSwitch();
-			}
 			{
 				LUMOS_PROFILE_SCOPE("Application::ImGui::NewFrame");
 				ImGui::NewFrame();
@@ -277,8 +277,8 @@ namespace Lumos
 			
 			{
 				LUMOS_PROFILE_SCOPE("Application::UpdateGraphicsStats");
-                stats.UsedGPUMemory = Graphics::GraphicsContext::GetContext()->GetGPUMemoryUsed();
-				stats.TotalGPUMemory = Graphics::GraphicsContext::GetContext()-> GetTotalGPUMemory();
+               // stats.UsedGPUMemory = Graphics::GraphicsContext::GetContext()->GetGPUMemoryUsed();
+			//	stats.TotalGPUMemory = Graphics::GraphicsContext::GetContext()-> GetTotalGPUMemory();
 			}
 			{
 				LUMOS_PROFILE_SCOPE("Application::WindowUpdate");
@@ -306,8 +306,6 @@ namespace Lumos
 			
 			m_SceneManager->GetCurrentScene()->OnTick();
 		}
-		
-		LUMOS_PROFILE_FRAMEMARKER();
 
 		return m_CurrentState != AppState::Closing;
 	}

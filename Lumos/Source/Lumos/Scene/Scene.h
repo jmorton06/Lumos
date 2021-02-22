@@ -1,11 +1,6 @@
 #pragma once
-
-
 #include "Maths/Maths.h"
 #include "Utilities/AssetManager.h"
-
-#include "Events/Event.h"
-#include "Events/ApplicationEvent.h"
 
 #include <sol/forward.hpp>
 #include <cereal/cereal.hpp>
@@ -23,6 +18,8 @@ namespace Lumos
 	class EntityManager;
 	class Entity;
 	class SceneGraph;
+	class Event;
+	class WindowResizeEvent;
 
 	namespace Graphics
 	{
@@ -148,8 +145,8 @@ namespace Lumos
 
 	private:
 		NONCOPYABLE(Scene)
-
-		bool OnWindowResize(WindowResizeEvent& e);
+			
+			bool OnWindowResize(WindowResizeEvent& e);
 
 		friend class Entity;
 	};

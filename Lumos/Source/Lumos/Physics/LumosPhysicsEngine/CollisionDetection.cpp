@@ -125,7 +125,7 @@ namespace Lumos
 		CollisionData best_colData;
 		best_colData.penetration = -FLT_MAX;
 		
-        std::vector<Maths::Vector3> possibleCollisionAxes = shape1->GetCollisionAxes(obj1);
+        std::vector<Maths::Vector3>& possibleCollisionAxes = shape1->GetCollisionAxes(obj1);
         std::vector<Maths::Vector3>& tempPossibleCollisionAxes = shape2->GetCollisionAxes(obj2);
 		
 		for(Maths::Vector3& temp : tempPossibleCollisionAxes)

@@ -3,7 +3,7 @@
 #include <cctype>
 
 
-#ifdef _WIN32
+#ifdef LUMOS_PLATFORM_WINDOWS
 #include <windows.h>
 #include <DbgHelp.h>
 #else
@@ -267,7 +267,7 @@ namespace Lumos
 	{
 		if (string.empty()) return {};
 		
-#if defined(_WIN32)
+#if defined(LUMOS_PLATFORM_WINDOWS)
 		char undecorated_name[1024];
 		if (!UnDecorateSymbolName(
 										  string.c_str(), undecorated_name, sizeof(undecorated_name),
