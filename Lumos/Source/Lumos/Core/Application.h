@@ -276,7 +276,6 @@ namespace Lumos
 		bool m_Minimized = false;
 		bool m_SceneActive = true;
 		
-		float m_UpdateTimer;
 		uint32_t m_SceneViewWidth = 0;
 		uint32_t m_SceneViewHeight = 0;
 		bool m_SceneViewSizeUpdated = false;

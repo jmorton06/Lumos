@@ -18,7 +18,7 @@ namespace Lumos
 			virtual ~VKBuffer();
 
 			void Init(VkBufferUsageFlags usage, uint32_t size, const void* data);
-
+			void Resize(uint32_t size, const void* data);
 			void SetData(uint32_t size, const void* data);
 			const VkBuffer& GetBuffer() const { return m_Buffer; }
 
@@ -28,6 +28,7 @@ namespace Lumos
 			void UnMap();
 			void Flush(VkDeviceSize size = VK_WHOLE_SIZE, VkDeviceSize offset = 0);
 			void Invalidate(VkDeviceSize size = VK_WHOLE_SIZE, VkDeviceSize offset = 0);
+			void SetUsage(VkBufferUsageFlags flags) { m_UsageFlags = flags; }
 
 		protected:
 			VkBuffer m_Buffer{};
@@ -35,6 +36,7 @@ namespace Lumos
 			VkDescriptorBufferInfo m_DesciptorBufferInfo{};
 			VkDeviceSize m_Size = 0;
 			VkDeviceSize m_Alignment = 0;
+			VkBufferUsageFlags m_UsageFlags;
 			void* m_Mapped = nullptr;
 
 #ifdef USE_VMA_ALLOCATOR

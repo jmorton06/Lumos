@@ -3,6 +3,7 @@
 #include <Lumos/Core/OS/FileSystem.h>
 #include <Lumos/Core/Profiler.h>
 #include <Lumos/Core/StringUtilities.h>
+#include <Lumos/Core/VFS.h>
 
 #if __has_include(<filesystem>)
 #	include <filesystem>
@@ -12,6 +13,8 @@
 
 #include <Lumos/ImGui/IconsMaterialDesignIcons.h>
 #include <imgui/imgui.h>
+#include <imgui/imgui_internal.h>
+
 
 namespace Lumos
 {
@@ -45,6 +48,93 @@ namespace Lumos
 		m_showSearchBar = false;
 		m_ShowHiddenFiles = false;
 	}
+	
+	void AssetWindow::DrawFolder(const std::vector<DirectoryInformation>& dirInfo, bool topLevel)
+	{
+		for(int i = 0; i < dirInfo.size(); i++)
+		{
+			
+			ImGuiTreeNodeFlags nodeFlags = ((dirInfo[i].absolutePath == m_CurrentDirPath) ? ImGuiTreeNodeFlags_Selected : 0);
+			nodeFlags |= ImGuiTreeNodeFlags_OpenOnArrow;// | ImGuiTreeNodeFlags_FramePadding;
+			
+			
+			if(!dirInfo[i].isFile )
+			{
+				auto dirData = ReadDirectory(dirInfo[i].absolutePath.c_str());
+				
+				bool containsFolder = false;
+				
+				for(auto& file : dirData)
+				{
+					if(!file.isFile )
+					{
+						containsFolder = true;
+						break;
+                    }
+				}
+				
+                if(!containsFolder)
+					nodeFlags |= ImGuiTreeNodeFlags_Leaf;
+				
+				bool isOpen = ImGui::TreeNodeEx(dirInfo[i].filename.c_str(), nodeFlags);
+				
+				if(ImGui::IsItemClicked())
+				{
+					m_prevDirPath = GetParentPath(m_CurrentDirPath);
+					m_CurrentDirPath = dirInfo[i].absolutePath;
+					m_CurrentDir = dirData;
+				}
+				
+				if(isOpen)
+                {
+                    ImGui::Indent(10.0f);
+					
+					const ImColor TreeLineColor = ImColor(128, 128, 128, 128);
+					const float SmallOffsetX = 6.0f;
+					ImDrawList* drawList = ImGui::GetWindowDrawList();
+					
+					ImVec2 verticalLineStart = ImGui::GetCursorScreenPos() - ImVec2(10.0f, ImGui::GetFontSize() + ImGui::GetStyle().FramePadding.y);
+					verticalLineStart.x += SmallOffsetX; //to nicely line up with the arrow symbol
+					ImVec2 verticalLineEnd = verticalLineStart;
+					
+					if(! dirData.empty())
+					{
+						{
+							float HorizontalTreeLineSize = 16.0f; //chosen arbitrarily
+							auto currentPos = ImGui::GetCursorScreenPos();
+							//ImGui::Indent(10.0f);
+							
+							HorizontalTreeLineSize *= 0.5f;
+							DrawFolder(dirData, false);
+							//ImGui::Unindent(10.0f);
+							
+							const ImRect childRect = ImRect(currentPos, currentPos + ImVec2(0.0f, ImGui::GetFontSize() + ImGui::GetStyle().FramePadding.y));
+							
+							if(!topLevel)
+							{
+							const float midpoint = (childRect.Min.y + childRect.Max.y) / 2.0f;
+							drawList->AddLine(ImVec2(verticalLineStart.x, midpoint), ImVec2(verticalLineStart.x + HorizontalTreeLineSize, midpoint), TreeLineColor);
+								verticalLineEnd.y = midpoint;
+							}
+						}
+					}
+					
+					if(!topLevel)
+					{
+						drawList->AddLine(verticalLineStart, verticalLineEnd, TreeLineColor);
+					}
+                    
+					ImGui::Unindent(10.0f);
+                    ImGui::TreePop();
+                }
+            }
+			
+			if(m_IsDragging && ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenBlockedByActiveItem))
+			{
+				m_MovePath = dirInfo[i].absolutePath.c_str();
+			}
+		}
+	}
 
 	void AssetWindow::OnImGui()
 	{
@@ -56,55 +146,13 @@ namespace Lumos
 			ImGui::BeginChild("##folders_common");
 			{
 				RenderBreadCrumbs();
-				ImGui::EndChild();
 				
-				if(ImGui::CollapsingHeader("Assets://", nullptr, ImGuiTreeNodeFlags_DefaultOpen))
 				{
-					if(ImGui::TreeNode("Contents"))
+					ImGui::BeginChild("##folders");
 					{
-						for(int i = 0; i < m_BaseProjectDir.size(); i++)
-						{
-							if(!m_ShowHiddenFiles && Lumos::StringUtilities::IsHiddenFile(m_BaseProjectDir[i].filename))
-							{
-								continue;
-							}
-							
-							if(ImGui::TreeNode(m_BaseProjectDir[i].filename.c_str()))
-							{
-								ImGui::Indent(16.0f);
-								auto dirData = ReadDirectory(m_BaseProjectDir[i].absolutePath.c_str());
-								for(int d = 0; d < dirData.size(); d++)
-								{
-									if(Lumos::StringUtilities::IsHiddenFile(dirData[d].filename))
-									{
-										continue;
-									}
-									
-									if(!dirData[d].isFile)
-									{
-										if(ImGui::TreeNode(dirData[d].filename.c_str()))
-										{
-											ImGui::TreePop();
-										}
-									}
-									else
-									{
-										auto parentDir = GetParentPath(dirData[d].absolutePath);
-										ImGui::Indent();
-										ImGui::Selectable(dirData[d].filename.c_str(), false);
-										ImGui::Unindent();
-									}
-								}
-								ImGui::Unindent(16.0f);
-								ImGui::TreePop();
-							}
-
-							if(m_IsDragging && ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenBlockedByActiveItem))
-							{
-								m_MovePath = m_BaseProjectDir[i].absolutePath.c_str();
-							}
+						DrawFolder(m_BaseProjectDir, true);
 						}
-						ImGui::TreePop();
+						ImGui::EndChild();
 					}
 
 					if(ImGui::IsMouseDown(1))
@@ -114,7 +162,7 @@ namespace Lumos
 				}
 
 				ImGui::EndChild();
-			}
+			
 
 			if(ImGui::BeginDragDropTarget())
 			{
@@ -134,8 +182,10 @@ namespace Lumos
 
 			ImGui::NextColumn();
 
-			ImGui::BeginChild("##directory_structure", ImVec2(ImGui::GetColumnWidth() - 12, 250));
+			ImGui::BeginChild("##directory_structure");
 			{
+				{
+				ImGui::BeginChild("##directory_breadcrumbs", ImVec2(ImGui::GetColumnWidth(), 30));
 				if(m_isInListView)
 				{
 					if(ImGui::Button(ICON_MDI_VIEW_GRID))
@@ -153,21 +203,17 @@ namespace Lumos
 					ImGui::SameLine();
 				}
 				
-				/*if(ImGui::Button(ICON_MDI_MAGNIFY))
-				{
-					m_showSearchBar = !m_showSearchBar;
-				}*/
 				ImGui::TextUnformatted(ICON_MDI_MAGNIFY);
-				m_showSearchBar = true;
 				
 				ImGui::SameLine();
 				
-				if(m_showSearchBar)
-				{
-					m_Filter.Draw("##Filter");
+					m_Filter.Draw("##Filter",ImGui::GetContentRegionAvail().x - ImGui::GetStyle().IndentSpacing);
+					
+					ImGui::EndChild();
 				}
 				
-				ImGui::BeginChild("Scrolling");
+				{
+					ImGui::BeginChild("##Scrolling");
 
 				if(!m_isInListView)
 					ImGui::Columns(17, nullptr, false);
@@ -208,7 +254,8 @@ namespace Lumos
 					}
 				}
 
-				ImGui::EndChild();
+					ImGui::EndChild();
+				}
 				ImGui::EndChild();
 			}
 
@@ -257,7 +304,7 @@ namespace Lumos
 	void AssetWindow::RenderBreadCrumbs()
 	{
 		LUMOS_PROFILE_FUNCTION();
-		ImGui::BeginChild("##directory_breadcrumbs", ImVec2(ImGui::GetColumnWidth() - 100, 30));
+		ImGui::BeginChild("##directory_breadcrumbs", ImVec2(ImGui::GetColumnWidth(), 30));
 		{
 			if(ImGui::Button(ICON_MDI_ARROW_LEFT))
 			{
@@ -281,47 +328,15 @@ namespace Lumos
             
             int secIdx = 0, newPwdLastSecIdx = -1;
             auto dir  = std::filesystem::path(m_CurrentDirPath);
-            for(auto &sec : dir)
-            {
-            #ifdef _WIN32
-                if(secIdx == 1)
-                {
-                    ++secIdx;
-                    continue;
-                }
-            #endif
-                ImGui::PushID(secIdx);
-                if(secIdx > 0)
-                    ImGui::SameLine();
-                if(ImGui::SmallButton(sec.u8string().c_str()))
-                {
-                    newPwdLastSecIdx = secIdx;
-                }
-                ImGui::PopID();
-                ++secIdx;
-            }
-            
-            if(newPwdLastSecIdx >= 0)
-            {
-                int i = 0;
-                std::filesystem::path newPwd;
-                for(auto &sec : dir)
-                {
-                    if(i++ > newPwdLastSecIdx)
-                        break;
-                    newPwd /= sec;
-                }
-        #ifdef _WIN32
-                if(newPwdLastSecIdx == 0)
-                    newPwd /= "\\";
-        #endif
-                
-                m_prevDirPath = GetParentPath(m_CurrentDirPath);
-                m_CurrentDirPath = newPwd.string();
-                m_CurrentDir = ReadDirectory(m_CurrentDirPath);
-            }
+			
+			std::string filePath;
+			VFS::Get()->AbsoulePathToVFS(m_CurrentDirPath, filePath);
+			ImGui::TextUnformatted(filePath.c_str());
+        
 			ImGui::SameLine();
 		}
+		
+		ImGui::EndChild();
 	}
 
 	void AssetWindow::RenderFileListView(int dirIndex)

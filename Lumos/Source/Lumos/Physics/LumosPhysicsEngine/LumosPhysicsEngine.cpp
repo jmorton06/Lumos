@@ -18,7 +18,7 @@
 
 #define THREAD_RIGID_BODY_UPDATE
 #define THREAD_APPLY_IMPULSES
-//#define THREAD_NARROWPHASE
+#define THREAD_NARROWPHASE
 
 namespace Lumos
 {
@@ -365,7 +365,8 @@ namespace Lumos
 						if(okA && okB)
 						{
 							// Build full collision manifold that will also handle the collision
-							// response between the two objects in the solver stage
+														// response between the two objects in the solver stage
+														m_ManifoldLock.lock();
 							Manifold& manifold = m_Manifolds.emplace_back();
 							manifold.Initiate(cp.pObjectA, cp.pObjectB);
 
@@ -379,7 +380,9 @@ namespace Lumos
 							else
 							{
 								m_Manifolds.pop_back();
-							}
+														}
+														
+														m_ManifoldLock.unlock();
 						}
 					}
 				}
