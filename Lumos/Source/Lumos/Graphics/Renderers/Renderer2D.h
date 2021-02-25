@@ -6,7 +6,7 @@
 #include "Maths/Transform.h"
 
 #define MAX_BOUND_TEXTURES 16
-
+#define MAP_VERTEX_ARRAY 1
 namespace Lumos
 {
 	class Scene;
@@ -116,7 +116,10 @@ namespace Lumos
 			UniformBuffer* m_UniformBuffer = nullptr;
 			IndexBuffer* m_IndexBuffer = nullptr;
 			VertexData* m_Buffer = nullptr;
-
+#if !MAP_VERTEX_ARRAY 
+			std::vector<VertexData*> m_BufferBases;
+			#endif
+			
 			std::vector<Maths::Matrix4> m_TransformationStack;
 			const Maths::Matrix4* m_TransformationBack{};
 

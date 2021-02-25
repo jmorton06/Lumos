@@ -45,8 +45,7 @@ namespace Lumos
 	Application* Application::s_Instance = nullptr;
 	
 	Application::Application(const std::string& projectRoot, const std::string& projectName)
-		: m_UpdateTimer(0)
-		, m_Frames(0)
+		: m_Frames(0)
 		, m_Updates(0)
         , m_SceneViewWidth(800)
         , m_SceneViewHeight(600)
@@ -68,6 +67,7 @@ namespace Lumos
         VFS::Get()->Mount("Sounds", root + projectRoot + std::string("Assets/Sounds"));
         VFS::Get()->Mount("Scripts", root + projectRoot + std::string("Assets/Scripts"));
         VFS::Get()->Mount("Scenes", root + projectRoot + std::string("Assets/Scenes"));
+		VFS::Get()->Mount("Assets", root + projectRoot + std::string("Assets"));
         VFS::Get()->Mount("CoreShaders", root + std::string("/Lumos/Assets/Shaders"));
 #endif
 		
@@ -224,74 +224,66 @@ namespace Lumos
 		LUMOS_PROFILE_FUNCTION();
 		LUMOS_PROFILE_FRAMEMARKER();
 		
+        {
+            LUMOS_PROFILE_SCOPE("Application::SceneSwitch");
+            if(m_SceneManager->GetSwitchingScene())
+            {
+                m_SceneManager->ApplySceneSwitch();
+                return m_CurrentState != AppState::Closing;
+            }
+        }
+        
 		float now = m_Timer->GetElapsedS();
-		
-		{
-			LUMOS_PROFILE_SCOPE("Application::SceneSwitch");
-			if(m_SceneManager->GetSwitchingScene())
-			{
-				m_SceneManager->ApplySceneSwitch();
-				return m_CurrentState != AppState::Closing;
-			}
-		}
-
-#ifdef LUMOS_LIMIT_FRAMERATE
-		if(now - m_UpdateTimer > Engine::Get().TargetFrameRate())
-		{
-			m_UpdateTimer += Engine::Get().TargetFrameRate();
-#endif
-				auto& stats = Engine::Get().Statistics();
-				auto& ts = Engine::GetTimeStep();
+        auto& stats = Engine::Get().Statistics();
+        auto& ts = Engine::GetTimeStep();
 			
-			{
-				LUMOS_PROFILE_SCOPE("Application::TimeStepUpdates");
-				ts.Update(now);
-				
-				ImGuiIO& io = ImGui::GetIO();
-				io.DeltaTime = ts.GetSeconds();
-				
-				stats.FrameTime = ts.GetMillis();
-			}
-			
-			{
-				LUMOS_PROFILE_SCOPE("Application::ImGui::NewFrame");
-				ImGui::NewFrame();
-			}
+        {
+            LUMOS_PROFILE_SCOPE("Application::TimeStepUpdates");
+            ts.Update(now);
+            
+            ImGuiIO& io = ImGui::GetIO();
+            io.DeltaTime = ts.GetSeconds();
+            
+            stats.FrameTime = ts.GetMillis();
+        }
+        
+        {
+            LUMOS_PROFILE_SCOPE("Application::ImGui::NewFrame");
+            ImGui::NewFrame();
+        }
 
-			{
-				LUMOS_PROFILE_SCOPE("Application::Update");
-				OnUpdate(ts);
-				m_Updates++;
-			}
+        {
+            LUMOS_PROFILE_SCOPE("Application::Update");
+            OnUpdate(ts);
+            m_Updates++;
+        }
 
-			if(!m_Minimized)
-			{
-				LUMOS_PROFILE_SCOPE("Application::Render");
+        if(!m_Minimized)
+        {
+            LUMOS_PROFILE_SCOPE("Application::Render");
 
-				OnRender();
-                m_ImGuiManager->OnRender(m_SceneManager->GetCurrentScene());
-                
-                Graphics::Renderer::GetRenderer()->Present();
-				m_Frames++;
-			}
-			
-			{
-				LUMOS_PROFILE_SCOPE("Application::UpdateGraphicsStats");
-               // stats.UsedGPUMemory = Graphics::GraphicsContext::GetContext()->GetGPUMemoryUsed();
-			//	stats.TotalGPUMemory = Graphics::GraphicsContext::GetContext()-> GetTotalGPUMemory();
-			}
-			{
-				LUMOS_PROFILE_SCOPE("Application::WindowUpdate");
-                Input::GetInput()->ResetPressed();
-                m_Window->UpdateCursorImGui();
-				m_Window->OnUpdate();
-			}
+            OnRender();
+            m_ImGuiManager->OnRender(m_SceneManager->GetCurrentScene());
+            
+            Graphics::Renderer::GetRenderer()->Present();
+            m_Frames++;
+        }
+        
+        {
+            LUMOS_PROFILE_SCOPE("Application::UpdateGraphicsStats");
+            stats.UsedGPUMemory = Graphics::GraphicsContext::GetContext()->GetGPUMemoryUsed();
+            stats.TotalGPUMemory = Graphics::GraphicsContext::GetContext()-> GetTotalGPUMemory();
+        }
+        {
+            LUMOS_PROFILE_SCOPE("Application::WindowUpdate");
+            Input::GetInput()->ResetPressed();
+            m_Window->UpdateCursorImGui();
+            m_Window->OnUpdate();
+        }
 
-			if(Input::GetInput()->GetKeyPressed(Lumos::InputCode::Key::Escape))
-				m_CurrentState = AppState::Closing;
-#ifdef LUMOS_LIMIT_FRAMERATE
-		}
-#endif
+        if(Input::GetInput()->GetKeyPressed(Lumos::InputCode::Key::Escape))
+            m_CurrentState = AppState::Closing;
+
 		
 		if(now - m_SecondTimer > 1.0f)
 		{
@@ -303,8 +295,6 @@ namespace Lumos
 
 			m_Frames = 0;
 			m_Updates = 0;
-			
-			m_SceneManager->GetCurrentScene()->OnTick();
 		}
 
 		return m_CurrentState != AppState::Closing;
@@ -371,7 +361,6 @@ namespace Lumos
 
 	void Application::Run()
 	{
-		m_UpdateTimer = m_Timer->GetElapsedS();
 		while(OnFrame())
 		{
 		}
