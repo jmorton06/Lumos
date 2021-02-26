@@ -36,7 +36,7 @@ namespace Lumos
 		void RenderDircListView(int dirIndex);
 		void RenderDircGridView(int dirIndex);
 		
-		void DrawFolder(const std::vector<DirectoryInformation>& dirInfo, bool topLevel);
+		void DrawFolder(const DirectoryInformation& dirInfo);
 		void RenderBreadCrumbs();
 		void RenderBottom();
 		void GetDirectories(const std::string& path);
