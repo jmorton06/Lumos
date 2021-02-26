@@ -31,9 +31,9 @@ namespace Lumos
 		m_SimpleName = "Assets";
 
     #ifdef LUMOS_PLATFORM_IOS
-		m_BaseDirPath = "Assets/";
+		m_BaseDirPath = "Assets";
     #else
-        m_BaseDirPath = ROOT_DIR "/Sandbox/Assets/";
+        m_BaseDirPath = ROOT_DIR "/Sandbox/Assets";
     #endif
 		m_CurrentDirPath = m_BaseDirPath;
 		m_prevDirPath = m_CurrentDirPath;
@@ -49,91 +49,97 @@ namespace Lumos
 		m_ShowHiddenFiles = false;
 	}
 	
-	void AssetWindow::DrawFolder(const std::vector<DirectoryInformation>& dirInfo, bool topLevel)
+	void AssetWindow::DrawFolder(const DirectoryInformation& dirInfo)
 	{
-		for(int i = 0; i < dirInfo.size(); i++)
-		{
-			
-			ImGuiTreeNodeFlags nodeFlags = ((dirInfo[i].absolutePath == m_CurrentDirPath) ? ImGuiTreeNodeFlags_Selected : 0);
-			nodeFlags |= ImGuiTreeNodeFlags_OpenOnArrow;// | ImGuiTreeNodeFlags_FramePadding;
-			
-			
-			if(!dirInfo[i].isFile )
-			{
-				auto dirData = ReadDirectory(dirInfo[i].absolutePath.c_str());
-				
-				bool containsFolder = false;
-				
-				for(auto& file : dirData)
-				{
-					if(!file.isFile )
-					{
-						containsFolder = true;
-						break;
-                    }
-				}
-				
-                if(!containsFolder)
-					nodeFlags |= ImGuiTreeNodeFlags_Leaf;
-				
-				bool isOpen = ImGui::TreeNodeEx(dirInfo[i].filename.c_str(), nodeFlags);
-				
-				if(ImGui::IsItemClicked())
-				{
-					m_prevDirPath = GetParentPath(m_CurrentDirPath);
-					m_CurrentDirPath = dirInfo[i].absolutePath;
-					m_CurrentDir = dirData;
-				}
-				
-				if(isOpen)
+        ImGuiTreeNodeFlags nodeFlags = ((dirInfo.absolutePath == m_CurrentDirPath) ? ImGuiTreeNodeFlags_Selected : 0);
+        nodeFlags |= ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick;
+        
+        const ImColor TreeLineColor = ImColor(128, 128, 128, 128);
+        const float SmallOffsetX = 6.0f;
+        ImDrawList* drawList = ImGui::GetWindowDrawList();
+        
+        if(!dirInfo.isFile )
+        {
+            auto dirData = ReadDirectory(dirInfo.absolutePath.c_str());
+            
+            bool containsFolder = false;
+            
+            for(auto& file : dirData)
+            {
+                if(!file.isFile )
                 {
-                    ImGui::Indent(10.0f);
-					
-					const ImColor TreeLineColor = ImColor(128, 128, 128, 128);
-					const float SmallOffsetX = 6.0f;
-					ImDrawList* drawList = ImGui::GetWindowDrawList();
-					
-					ImVec2 verticalLineStart = ImGui::GetCursorScreenPos() - ImVec2(10.0f, ImGui::GetFontSize() + ImGui::GetStyle().FramePadding.y);
-					verticalLineStart.x += SmallOffsetX; //to nicely line up with the arrow symbol
-					ImVec2 verticalLineEnd = verticalLineStart;
-					
-					if(! dirData.empty())
-					{
-						{
-							float HorizontalTreeLineSize = 16.0f; //chosen arbitrarily
-							auto currentPos = ImGui::GetCursorScreenPos();
-							//ImGui::Indent(10.0f);
-							
-							HorizontalTreeLineSize *= 0.5f;
-							DrawFolder(dirData, false);
-							//ImGui::Unindent(10.0f);
-							
-							const ImRect childRect = ImRect(currentPos, currentPos + ImVec2(0.0f, ImGui::GetFontSize() + ImGui::GetStyle().FramePadding.y));
-							
-							if(!topLevel)
-							{
-							const float midpoint = (childRect.Min.y + childRect.Max.y) / 2.0f;
-							drawList->AddLine(ImVec2(verticalLineStart.x, midpoint), ImVec2(verticalLineStart.x + HorizontalTreeLineSize, midpoint), TreeLineColor);
-								verticalLineEnd.y = midpoint;
-							}
-						}
-					}
-					
-					if(!topLevel)
-					{
-						drawList->AddLine(verticalLineStart, verticalLineEnd, TreeLineColor);
-					}
-                    
-					ImGui::Unindent(10.0f);
-                    ImGui::TreePop();
+                    containsFolder = true;
+                    break;
                 }
             }
-			
-			if(m_IsDragging && ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenBlockedByActiveItem))
-			{
-				m_MovePath = dirInfo[i].absolutePath.c_str();
-			}
-		}
+            if(!containsFolder)
+                nodeFlags |= ImGuiTreeNodeFlags_Leaf;
+            
+            static std::string folderIcon = ICON_MDI_FOLDER " ";
+            
+            bool isOpen = ImGui::TreeNodeEx((folderIcon + dirInfo.filename).c_str(), nodeFlags);
+            
+            ImVec2 verticalLineStart = ImGui::GetCursorScreenPos();
+            
+            if(ImGui::IsItemClicked())
+            {
+                m_prevDirPath = GetParentPath(m_CurrentDirPath);
+                m_CurrentDirPath = dirInfo.absolutePath;
+                m_CurrentDir = dirData;
+            }
+            
+            if(isOpen && containsFolder)
+            {
+                verticalLineStart.x += SmallOffsetX; //to nicely line up with the arrow symbol
+                ImVec2 verticalLineEnd = verticalLineStart;
+                
+                for(int i = 0; i < dirData.size(); i++)
+                {
+                    if(!dirData[i].isFile )
+                    {
+                        float HorizontalTreeLineSize = 16.0f; //chosen arbitrarily
+                        auto currentPos = ImGui::GetCursorScreenPos();
+                        
+                        ImGui::Indent(10.0f);
+                        
+                        auto dirDataTemp = ReadDirectory(dirData[i].absolutePath.c_str());
+                        
+                        bool containsFolderTemp = false;
+                        for(auto& file : dirDataTemp)
+                        {
+                            if(!file.isFile )
+                            {
+                                containsFolderTemp = true;
+                                break;
+                            }
+                        }
+                        if(containsFolderTemp)
+                            HorizontalTreeLineSize *= 0.5f;
+                        DrawFolder(dirData[i]);
+                        
+                        const ImRect childRect = ImRect(currentPos, currentPos + ImVec2(0.0f, ImGui::GetFontSize() ));//+ ImGui::GetStyle().FramePadding.y));
+                        
+                        const float midpoint = (childRect.Min.y + childRect.Max.y) / 2.0f;
+                        drawList->AddLine(ImVec2(verticalLineStart.x, midpoint), ImVec2(verticalLineStart.x + HorizontalTreeLineSize, midpoint), TreeLineColor);
+                            verticalLineEnd.y = midpoint;
+                    
+                        ImGui::Unindent(10.0f);
+                    }
+                }
+                
+                drawList->AddLine(verticalLineStart, verticalLineEnd, TreeLineColor);
+            
+                ImGui::TreePop();
+            }
+            
+            if(isOpen && !containsFolder)
+                ImGui::TreePop();
+        }
+        
+        if(m_IsDragging && ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenBlockedByActiveItem))
+        {
+            m_MovePath = dirInfo.absolutePath.c_str();
+        }
 	}
 
 	void AssetWindow::OnImGui()
@@ -150,9 +156,10 @@ namespace Lumos
 				{
 					ImGui::BeginChild("##folders");
 					{
-						DrawFolder(m_BaseProjectDir, true);
-						}
-						ImGui::EndChild();
+                        for(int i = 0; i < m_BaseProjectDir.size(); i++)
+                            DrawFolder(m_BaseProjectDir[i]);
+                    }
+                    ImGui::EndChild();
 					}
 
 					if(ImGui::IsMouseDown(1))
