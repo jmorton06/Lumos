@@ -306,7 +306,7 @@ namespace Lumos
 
 		if(ImGui::BeginDragDropTarget())
 		{
-			auto data = ImGui::AcceptDragDropPayload("selectable", ImGuiDragDropFlags_AcceptNoDrawDefaultRect);
+			auto data = ImGui::AcceptDragDropPayload("AssetFile", ImGuiDragDropFlags_AcceptNoDrawDefaultRect);
 			if(data)
 			{
 				std::string file = (char*)data->Data;

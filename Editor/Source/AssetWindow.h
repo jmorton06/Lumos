@@ -30,12 +30,7 @@ namespace Lumos
 
 		void OnImGui() override;
 
-		void RenderFileListView(int dirIndex);
-		void RenderFileGridView(int dirIndex);
-
-		void RenderDircListView(int dirIndex);
-		void RenderDircGridView(int dirIndex);
-		
+		void RenderFile(int dirIndex, bool folder, int shownIndex, bool gridView);
 		void DrawFolder(const DirectoryInformation& dirInfo);
 		void RenderBreadCrumbs();
 		void RenderBottom();
