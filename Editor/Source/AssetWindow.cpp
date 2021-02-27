@@ -117,7 +117,7 @@ namespace Lumos
                             HorizontalTreeLineSize *= 0.5f;
                         DrawFolder(dirData[i]);
                         
-                        const ImRect childRect = ImRect(currentPos, currentPos + ImVec2(0.0f, ImGui::GetFontSize() ));//+ ImGui::GetStyle().FramePadding.y));
+                        const ImRect childRect = ImRect(currentPos, currentPos + ImVec2(0.0f, ImGui::GetFontSize() ));
                         
                         const float midpoint = (childRect.Min.y + childRect.Max.y) / 2.0f;
                         drawList->AddLine(ImVec2(verticalLineStart.x, midpoint), ImVec2(verticalLineStart.x + HorizontalTreeLineSize, midpoint), TreeLineColor);
@@ -221,9 +221,8 @@ namespace Lumos
 				
 				{
 					ImGui::BeginChild("##Scrolling");
-
-				if(!m_isInListView)
-					ImGui::Columns(17, nullptr, false);
+					
+					int shownIndex = 0;
 
 				for(int i = 0; i < m_CurrentDir.size(); i++)
 				{
@@ -241,23 +240,9 @@ namespace Lumos
 								continue;
 							}
 						}
-						
-						if(!m_CurrentDir[i].isFile)
-						{
-							if(!m_isInListView)
-								RenderDircGridView(i);
-							else
-								RenderDircListView(i);
-						}
-						else
-						{
-							if(!m_isInListView)
-								RenderFileGridView(i);
-							else
-								RenderFileListView(i);
-						}
-
-						ImGui::NextColumn();
+							
+							RenderFile(i, !m_CurrentDir[i].isFile,  shownIndex, !m_isInListView);
+							shownIndex++;
 					}
 				}
 
@@ -345,110 +330,81 @@ namespace Lumos
 		
 		ImGui::EndChild();
 	}
-
-	void AssetWindow::RenderFileListView(int dirIndex)
+	
+	void AssetWindow::RenderFile(int dirIndex, bool folder, int shownIndex, bool gridView)
 	{
 		LUMOS_PROFILE_FUNCTION();
 		auto fileID = GetParsedAssetID(m_CurrentDir[dirIndex].fileType);
-
-		ImGui::TextUnformatted(m_Editor->GetIconFontIcon(m_CurrentDir[dirIndex].absolutePath));
+		
+		bool doubleClicked = false;
+		
+		if(gridView)
+		{
+			ImGui::BeginGroup();
+			
+			auto fileID = GetParsedAssetID(m_CurrentDir[dirIndex].fileType);
+			
+			if(ImGui::Button(folder ? ICON_MDI_FOLDER : m_Editor->GetIconFontIcon(m_CurrentDir[dirIndex].absolutePath), ImVec2(70.0f, 70.0f)))
+			{
+				
+			}
+			
+			if(ImGui::IsMouseDoubleClicked(0))
+			{
+				doubleClicked = true;
+			}
+			
+			float xAvail = ImGui::GetContentRegionAvail().x - ImGui::GetCursorPos().x;
+			
+			auto& fname = m_CurrentDir[dirIndex].filename;
+			auto newFname = StripExtras(fname);
+			
+			ImGui::TextWrapped("%s",newFname.c_str());
+			ImGui::EndGroup();
+			
+			if(xAvail >= 70.0f)
+				ImGui::SameLine();
+		}
+		else
+		{
+			ImGui::TextUnformatted(folder ? ICON_MDI_FOLDER : m_Editor->GetIconFontIcon(m_CurrentDir[dirIndex].absolutePath));
 		ImGui::SameLine();
 		if(ImGui::Selectable(m_CurrentDir[dirIndex].filename.c_str(), false, ImGuiSelectableFlags_AllowDoubleClick))
+			{
+				if(ImGui::IsMouseDoubleClicked(0))
+				{
+					doubleClicked = true;
+			}
+			}
+		}
+		
+		if(doubleClicked)
 		{
-			if(ImGui::IsMouseDoubleClicked(0))
+			if(folder)
+			{
+				m_prevDirPath = m_CurrentDir[dirIndex].absolutePath;
+				m_CurrentDirPath = m_CurrentDir[dirIndex].absolutePath;
+				m_CurrentDir = ReadDirectory(m_CurrentDir[dirIndex].absolutePath);
+			}
+			
+			else
 			{
 				m_Editor->FileOpenCallback(m_CurrentDir[dirIndex].absolutePath);
 			}
 		}
-
+		
 		if(ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID))
 		{
 			ImGui::TextUnformatted(m_Editor->GetIconFontIcon(m_CurrentDir[dirIndex].absolutePath));
-
+			
 			ImGui::SameLine();
 			ImGui::TextUnformatted(m_CurrentDir[dirIndex].filename.c_str());
 			size_t size = sizeof(const char*) + strlen(m_CurrentDir[dirIndex].absolutePath.c_str());
-			ImGui::SetDragDropPayload("selectable", m_CurrentDir[dirIndex].absolutePath.c_str(), size);
+			ImGui::SetDragDropPayload("AssetFile", m_CurrentDir[dirIndex].absolutePath.c_str(), size);
 			m_IsDragging = true;
 			ImGui::EndDragDropSource();
 		}
-	}
-
-	void AssetWindow::RenderFileGridView(int dirIndex)
-	{
-		LUMOS_PROFILE_FUNCTION();
-		ImGui::BeginGroup();
-
-		auto fileID = GetParsedAssetID(m_CurrentDir[dirIndex].fileType);
-
-		ImGui::Button(m_Editor->GetIconFontIcon(m_CurrentDir[dirIndex].absolutePath));
-		auto fname = m_CurrentDir[dirIndex].filename;
-		auto newFname = StripExtras(fname);
-
-		ImGui::TextWrapped("%s", newFname.c_str());
-		ImGui::EndGroup();
-
-		if(ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID))
-		{
-			ImGui::TextUnformatted(m_Editor->GetIconFontIcon(m_CurrentDir[dirIndex].absolutePath));
-			ImGui::SameLine();
-
-			ImGui::TextUnformatted(m_CurrentDir[dirIndex].filename.c_str());
-			size_t size = sizeof(const char*) + strlen(m_CurrentDir[dirIndex].absolutePath.c_str());
-			ImGui::SetDragDropPayload("selectable", m_CurrentDir[dirIndex].absolutePath.c_str(), size);
-			m_IsDragging = true;
-			ImGui::EndDragDropSource();
-		}
-	}
-
-	void AssetWindow::RenderDircListView(int dirIndex)
-	{
-		LUMOS_PROFILE_FUNCTION();
-		ImGui::TextUnformatted(ICON_MDI_FOLDER);
-		ImGui::SameLine();
-
-		if(ImGui::Selectable(m_CurrentDir[dirIndex].filename.c_str(), false, ImGuiSelectableFlags_AllowDoubleClick))
-		{
-			if(ImGui::IsMouseDoubleClicked(0))
-			{
-				m_prevDirPath = m_CurrentDir[dirIndex].absolutePath;
-				m_CurrentDirPath = m_CurrentDir[dirIndex].absolutePath;
-				m_CurrentDir = ReadDirectory(m_CurrentDir[dirIndex].absolutePath);
-			}
-		}
-
-		if(ImGui::BeginDragDropSource(ImGuiDragDropFlags_AcceptNoDrawDefaultRect))
-		{
-			ImGui::TextUnformatted(ICON_MDI_FOLDER);
-			ImGui::SameLine();
-			ImGui::TextUnformatted(m_CurrentDir[dirIndex].filename.c_str());
-			size_t size = sizeof(const char*) + strlen(m_CurrentDir[dirIndex].absolutePath.c_str());
-			ImGui::SetDragDropPayload("selectable", m_CurrentDir[dirIndex].absolutePath.c_str(), size);
-			m_IsDragging = true;
-			ImGui::EndDragDropSource();
-		}
-	}
-
-	void AssetWindow::RenderDircGridView(int dirIndex)
-	{
-		LUMOS_PROFILE_FUNCTION();
-		//ImGui::BeginGroup();
-		//ImGui::TextUnformatted(ICON_MDI_FOLDER);
-
-		auto fname = m_CurrentDir[dirIndex].filename;
-		auto newFname = StripExtras(fname);
-		//	ImGui::TextWrapped("%s", newFname.c_str());
-		//	ImGui::EndGroup();
-
-		if(ImGui::Selectable((std::string(ICON_MDI_FOLDER "/n/n") + newFname).c_str(), false, 0, ImVec2(70, 70)))
-		{
-			if(ImGui::IsMouseDoubleClicked(0))
-			{
-				m_prevDirPath = m_CurrentDir[dirIndex].absolutePath;
-				m_CurrentDirPath = m_CurrentDir[dirIndex].absolutePath;
-				m_CurrentDir = ReadDirectory(m_CurrentDir[dirIndex].absolutePath);
-			}
-		}
+		
 	}
 
 	void AssetWindow::RenderBottom()
