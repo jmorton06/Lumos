@@ -37,12 +37,12 @@ namespace Lumos
 			uint32_t ChildCount = 0;
 			uint32_t PhysicsObjectCount = 0;
 			uint32_t ChildNodeIndices[8] = {0};
-			Ref<RigidBody3D> PhysicsObjects[MAX_OBJECTS_PER_NODE];
+			RigidBody3D* PhysicsObjects[MAX_OBJECTS_PER_NODE];
 			
 			Maths::BoundingBox boundingBox;
 		};
 
-		void FindPotentialCollisionPairs(Ref<RigidBody3D>* objects, uint32_t objectCount, std::vector<CollisionPair>& collisionPairs) override;
+		void FindPotentialCollisionPairs(RigidBody3D** objects, uint32_t objectCount, std::vector<CollisionPair>& collisionPairs) override;
 		void DebugDraw() override;
 		void Divide(OctreeNode& node, size_t iteration);
         void DebugDrawOctreeNode(const OctreeNode& node);

@@ -19,6 +19,7 @@
 #include <Lumos/ImGui/IconsMaterialDesignIcons.h>
 #include <Lumos/Graphics/Camera/EditorCamera.h>
 #include <Lumos/ImGui/ImGuiHelpers.h>
+#include <Lumos/Events/ApplicationEvent.h>
 
 #include <box2d/box2d.h>
 #include <imgui/imgui_internal.h>
@@ -305,7 +306,7 @@ namespace Lumos
 
 		if(ImGui::BeginDragDropTarget())
 		{
-			auto data = ImGui::AcceptDragDropPayload("selectable", ImGuiDragDropFlags_AcceptNoDrawDefaultRect);
+			auto data = ImGui::AcceptDragDropPayload("AssetFile", ImGuiDragDropFlags_AcceptNoDrawDefaultRect);
 			if(data)
 			{
 				std::string file = (char*)data->Data;

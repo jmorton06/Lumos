@@ -46,13 +46,17 @@ struct ViewData
     uint8_t drawPlots = true;
     uint8_t onlyContendedLocks = true;
     uint8_t drawEmptyLabels = false;
+    uint8_t drawFrameTargets = false;
     uint8_t drawContextSwitches = true;
     uint8_t darkenContextSwitches = true;
     uint8_t drawCpuData = true;
     uint8_t drawCpuUsageGraph = true;
     uint8_t drawSamples = true;
     uint8_t dynamicColors = 1;
+    uint8_t forceColors = false;
     uint8_t ghostZones = true;
+
+    uint32_t frameTarget = 60;
 };
 
 struct Annotation

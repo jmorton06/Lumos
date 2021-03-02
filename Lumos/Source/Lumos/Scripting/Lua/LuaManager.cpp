@@ -24,6 +24,7 @@
 #include "Scene/Entity.h"
 #include "Scene/EntityManager.h"
 #include "Scene/EntityFactory.h"
+#include "Physics/LumosPhysicsEngine/LumosPhysicsEngine.h"
 
 #include "ImGuiLua.h"
 #include "PhysicsLua.h"
@@ -479,7 +480,7 @@ namespace Lumos
 		Application::Get().GetSceneManager()->SwitchScene(index);
 	}
 	
-	static void SwitchScene(int index)
+	static void SwitchScene()
 	{
 		Application::Get().GetSceneManager()->SwitchScene();
 	}
@@ -489,12 +490,34 @@ namespace Lumos
 		Application::Get().GetSceneManager()->SwitchScene(name);
 	}
 	
+	static void SetPhysicsDebugFlags(int flags)
+	{
+		Application::Get().GetSystem<LumosPhysicsEngine>()->SetDebugDrawFlags(flags);
+	}
+	
 	void LuaManager::BindAppLua(sol::state& state)
 	{
 		sol::usertype<Application> app_type = state.new_usertype<Application>("Application");
 		state.set_function("SwitchSceneByIndex", &SwitchSceneByIndex);
 		state.set_function("SwitchSceneByName", &SwitchSceneByName);
 		state.set_function("SwitchScene", &SwitchScene);
+		state.set_function("SetPhysicsDebugFlags", &SetPhysicsDebugFlags);
+		
+		std::initializer_list<std::pair<sol::string_view, Lumos::PhysicsDebugFlags>> physicsDebugFlags =
+		{
+			{"CONSTRAINT", Lumos::PhysicsDebugFlags::CONSTRAINT},
+			{"MANIFOLD", Lumos::PhysicsDebugFlags::MANIFOLD},
+			{"COLLISIONVOLUMES", Lumos::PhysicsDebugFlags::COLLISIONVOLUMES},
+			{"COLLISIONNORMALS", Lumos::PhysicsDebugFlags::COLLISIONNORMALS},
+			{"AABB", Lumos::PhysicsDebugFlags::AABB},
+			{"LINEARVELOCITY", Lumos::PhysicsDebugFlags::LINEARVELOCITY},
+			{"LINEARFORCE", Lumos::PhysicsDebugFlags::LINEARFORCE},
+			{"BROADPHASE", Lumos::PhysicsDebugFlags::BROADPHASE},
+			{"BROADPHASE_PAIRS", Lumos::PhysicsDebugFlags::BROADPHASE_PAIRS},
+			{"BOUNDING_RADIUS", Lumos::PhysicsDebugFlags::BOUNDING_RADIUS},
+		};
+		
+		state.new_enum<PhysicsDebugFlags, false>("PhysicsDebugFlags", physicsDebugFlags);
 		
 		app_type.set_function("GetWindowSize",&Application::GetWindowSize);
 		state.set_function("GetAppInstance", &Application::Get);

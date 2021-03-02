@@ -256,7 +256,9 @@ namespace Lumos
 #ifdef USE_VMA_ALLOCATOR
 			vmaDestroyAllocator(m_Allocator);
 #endif
+#if defined(LUMOS_PROFILE) && defined(TRACY_ENABLE)
 			TracyVkDestroy(m_TracyContext);
+#endif
 			
 			vkDestroyDevice(m_Device, VK_NULL_HANDLE);
 		}
@@ -370,7 +372,9 @@ namespace Lumos
             VkCommandBuffer tracyBuffer;
             vkAllocateCommandBuffers(m_Device, &allocInfo, &tracyBuffer);
 			
+#if defined(LUMOS_PROFILE) && defined(TRACY_ENABLE)
             m_TracyContext = TracyVkContext(m_PhysicalDevice->GetVulkanPhysicalDevice(), m_Device, m_GraphicsQueue, tracyBuffer);
+#endif
 			
             vkQueueWaitIdle(m_GraphicsQueue);
             vkFreeCommandBuffers(m_Device,  m_CommandPool->GetCommandPool(), 1, &tracyBuffer);

@@ -14,7 +14,7 @@
             "/Scenes/Physics.lsn",
             "/Scenes/Terrain.lsn"
         ],
-        "SceneIndex": 0,
+        "SceneIndex": 1,
         "Borderless": false
     }
 }

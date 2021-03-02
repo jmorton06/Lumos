@@ -23,12 +23,14 @@ public:
     Socket( int sock );
     ~Socket();
 
-    bool Connect( const char* addr, int port );
+    bool Connect( const char* addr, uint16_t port );
+    bool ConnectBlocking( const char* addr, uint16_t port );
     void Close();
 
     int Send( const void* buf, int len );
     int GetSendBufSize();
 
+    int ReadUpTo( void* buf, int len, int timeout );
     bool Read( void* buf, int len, int timeout );
 
     template<typename ShouldExit>
@@ -74,7 +76,7 @@ public:
     ListenSocket();
     ~ListenSocket();
 
-    bool Listen( int port, int backlog );
+    bool Listen( uint16_t port, int backlog );
     Socket* Accept();
     void Close();
 
@@ -93,10 +95,10 @@ public:
     UdpBroadcast();
     ~UdpBroadcast();
 
-    bool Open( const char* addr, int port );
+    bool Open( const char* addr, uint16_t port );
     void Close();
 
-    int Send( int port, const void* data, int len );
+    int Send( uint16_t port, const void* data, int len );
 
     UdpBroadcast( const UdpBroadcast& ) = delete;
     UdpBroadcast( UdpBroadcast&& ) = delete;
@@ -105,6 +107,7 @@ public:
 
 private:
     int m_sock;
+    uint32_t m_addr;
 };
 
 class IpAddress
@@ -134,10 +137,10 @@ public:
     UdpListen();
     ~UdpListen();
 
-    bool Listen( int port );
+    bool Listen( uint16_t port );
     void Close();
 
-    const char* Read( size_t& len, IpAddress& addr );
+    const char* Read( size_t& len, IpAddress& addr, int timeout );
 
     UdpListen( const UdpListen& ) = delete;
     UdpListen( UdpListen&& ) = delete;

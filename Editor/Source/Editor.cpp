@@ -157,7 +157,7 @@ namespace Lumos
 		m_Windows.emplace_back(CreateRef<GraphicsInfoWindow>());
 		m_Windows.back()->SetActive(false);
 #ifndef LUMOS_PLATFORM_IOS
-		//m_Windows.emplace_back(CreateRef<AssetWindow>());
+		m_Windows.emplace_back(CreateRef<AssetWindow>());
 #endif
         
 		for(auto& window : m_Windows)
@@ -213,6 +213,17 @@ namespace Lumos
 		std::string extension = StringUtilities::GetFilePathExtension(filePath);
         
 		if(extension == "obj" || extension == "gltf" || extension == "glb" || extension == "fbx" || extension == "FBX")
+			return true;
+        
+		return false;
+	}
+	
+	bool IsTextureFile(const std::string& filePath)
+	{
+		LUMOS_PROFILE_FUNCTION();
+		std::string extension = StringUtilities::GetFilePathExtension(filePath);
+        
+		if(extension == "png" || extension == "tga" || extension == "jpg")
 			return true;
         
 		return false;
@@ -1600,6 +1611,16 @@ namespace Lumos
             Application::Get().GetSceneManager()->EnqueueSceneFromFile(filePath);
             Application::Get().GetSceneManager()->SwitchScene((int)(Application::Get().GetSceneManager()->GetScenes().size()) - 1);
         }
+		else if(IsTextureFile(filePath))
+		{
+			auto entity = Application::Get().GetSceneManager()->GetCurrentScene()->CreateEntity("Sprite");
+			auto& sprite = entity.AddComponent<Graphics::Sprite>();
+			entity.GetOrAddComponent<Maths::Transform>();
+			
+			Ref<Graphics::Texture2D> texture = Ref<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile(filePath, filePath));
+			sprite.SetTexture(texture);
+			
+		}
 	}
     
 	void Editor::SaveEditorSettings()
@@ -1652,6 +1673,7 @@ namespace Lumos
 		Application::Get().GetSystem<B2PhysicsEngine>()->SetDebugDrawFlags(m_IniFile.GetOrDefault("PhysicsDebugDrawFlags2D", 0));
 		
 		ImGuiHelpers::SetTheme(m_Theme);
+		OS::Instance()->SetTitleBarColour(ImGui::GetStyle().Colors[ImGuiCol_MenuBarBg]);
 	}
     
 	const char* Editor::GetIconFontIcon(const std::string& filePath)
@@ -1668,6 +1690,10 @@ namespace Lumos
 		else if(IsAudioFile(filePath))
 		{
 			return ICON_MDI_FILE_MUSIC;
+		}
+		else if(IsTextureFile(filePath))
+		{
+			return ICON_MDI_FILE_IMAGE;
 		}
         
 		return ICON_MDI_FILE;

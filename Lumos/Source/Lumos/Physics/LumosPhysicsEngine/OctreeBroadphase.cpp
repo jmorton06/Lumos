@@ -22,7 +22,7 @@ namespace Lumos
 	{
 	}
 
-	void OctreeBroadphase::FindPotentialCollisionPairs(Ref<RigidBody3D>* objects, uint32_t objectCount,
+	void OctreeBroadphase::FindPotentialCollisionPairs(RigidBody3D** objects, uint32_t objectCount,
 		std::vector<CollisionPair>& collisionPairs)
 	{
         LUMOS_PROFILE_FUNCTION();
@@ -31,20 +31,17 @@ namespace Lumos
             LUMOS_PROFILE_SCOPE("Reset nodes");
 
             m_LeafCount = 0;
+			m_CurrentPoolIndex = 0;
             
             for(int i = 0; i < MAX_PARTITION_DEPTH * MAX_PARTITION_DEPTH * MAX_PARTITION_DEPTH; i++)
             {
                 m_NodePool[i].ChildCount = 0;
-                
-                for(uint32_t j = 0; j < m_NodePool[i].PhysicsObjectCount; j++)
-                    m_NodePool[i].PhysicsObjects[j] = nullptr;
-                
                 m_NodePool[i].PhysicsObjectCount = 0;
                 m_NodePool[i].Index = 0;
             }
-            m_CurrentPoolIndex = 1;
-
         }
+		
+		m_NodePool[0].boundingBox = Maths::BoundingBox();
 
 		for(uint32_t i = 0; i < objectCount; i++)
 		{
@@ -58,6 +55,8 @@ namespace Lumos
                 m_NodePool[0].PhysicsObjectCount++;
 			}
 		}
+		
+		m_CurrentPoolIndex++;
 
 		// Recursively divide world
 		Divide(m_NodePool[0], 0);
@@ -131,6 +130,7 @@ namespace Lumos
 			// Add objects inside division
             for(uint32_t i = 0; i < division.PhysicsObjectCount; i++)
 			{
+				LUMOS_PROFILE_SCOPE("PhysicsObject BB check");
                 auto& physicsObject = division.PhysicsObjects[i];
 				if(newNode.boundingBox.IsInsideFast(physicsObject->GetWorldSpaceAABB()))
                 {

@@ -26,11 +26,8 @@
 namespace tracy
 {
 
-struct __declspec(uuid("{ce1dbfb4-137e-4da6-87b0-3f59aa102cbc}")) PERFINFOGUID;
-static const auto PerfInfoGuid = __uuidof(PERFINFOGUID);
-
-struct __declspec(uuid("{802EC45A-1E99-4B83-9920-87C98277BA9D}")) DXGKRNLGUID;
-static const auto DxgKrnlGuid = __uuidof(DXGKRNLGUID);
+static const GUID PerfInfoGuid = { 0xce1dbfb4, 0x137e, 0x4da6, { 0x87, 0xb0, 0x3f, 0x59, 0xaa, 0x10, 0x2c, 0xbc } };
+static const GUID DxgKrnlGuid  = { 0x802ec45a, 0x1e99, 0x4b83, { 0x99, 0x20, 0x87, 0xc9, 0x82, 0x77, 0xba, 0x9d } };
 
 
 static TRACEHANDLE s_traceHandle;
@@ -240,7 +237,6 @@ void WINAPI EventRecordCallbackVsync( PEVENT_RECORD record )
     }
     while( ++idx < 8 );
 
-    const char* name = "Vsync";
     TracyLfqPrepare( QueueType::FrameMarkMsg );
     MemWrite( &item->frameMark.time, hdr.TimeStamp.QuadPart );
     MemWrite( &item->frameMark.name, uint64_t( VsyncName[idx] ) );
@@ -249,6 +245,7 @@ void WINAPI EventRecordCallbackVsync( PEVENT_RECORD record )
 
 static void SetupVsync()
 {
+#if _WIN32_WINNT >= _WIN32_WINNT_WINBLUE
     const auto psz = sizeof( EVENT_TRACE_PROPERTIES ) + MAX_PATH;
     s_propVsync = (EVENT_TRACE_PROPERTIES*)tracy_malloc( psz );
     memset( s_propVsync, 0, sizeof( EVENT_TRACE_PROPERTIES ) );
@@ -301,7 +298,11 @@ static void SetupVsync()
     params.FilterDescCount = 1;
 
     uint64_t mask = 0x4000000000000001;   // Microsoft_Windows_DxgKrnl_Performance | Base
-    EnableTraceEx2( s_traceHandleVsync, &DxgKrnlGuid, EVENT_CONTROL_CODE_ENABLE_PROVIDER, TRACE_LEVEL_INFORMATION, mask, mask, 0, &params );
+    if( EnableTraceEx2( s_traceHandleVsync, &DxgKrnlGuid, EVENT_CONTROL_CODE_ENABLE_PROVIDER, TRACE_LEVEL_INFORMATION, mask, mask, 0, &params ) != ERROR_SUCCESS )
+    {
+        tracy_free( s_propVsync );
+        return;
+    }
 
     char loggerName[MAX_PATH];
     strcpy( loggerName, "TracyVsync" );
@@ -326,6 +327,7 @@ static void SetupVsync()
         SetThreadName( "Tracy Vsync" );
         ProcessTrace( &s_traceHandleVsync2, 1, nullptr, nullptr );
     }, nullptr );
+#endif
 }
 
 bool SysTraceStart( int64_t& samplingPeriod )
@@ -367,8 +369,13 @@ bool SysTraceStart( int64_t& samplingPeriod )
     const auto psz = sizeof( EVENT_TRACE_PROPERTIES ) + sizeof( KERNEL_LOGGER_NAME );
     s_prop = (EVENT_TRACE_PROPERTIES*)tracy_malloc( psz );
     memset( s_prop, 0, sizeof( EVENT_TRACE_PROPERTIES ) );
-    ULONG flags = EVENT_TRACE_FLAG_CSWITCH | EVENT_TRACE_FLAG_DISPATCHER | EVENT_TRACE_FLAG_THREAD;
+    ULONG flags = 0;
+#ifndef TRACY_NO_CONTEXT_SWITCH
+    flags = EVENT_TRACE_FLAG_CSWITCH | EVENT_TRACE_FLAG_DISPATCHER | EVENT_TRACE_FLAG_THREAD;
+#endif
+#ifndef TRACY_NO_SAMPLING
     if( isOs64Bit ) flags |= EVENT_TRACE_FLAG_PROFILE;
+#endif
     s_prop->EnableFlags = flags;
     s_prop->LogFileMode = EVENT_TRACE_REAL_TIME_MODE;
     s_prop->Wnode.BufferSize = psz;
@@ -438,7 +445,9 @@ bool SysTraceStart( int64_t& samplingPeriod )
         return false;
     }
 
+#ifndef TRACY_NO_VSYNC_CAPTURE
     SetupVsync();
+#endif
 
     return true;
 }
@@ -593,8 +602,10 @@ void SysTraceSendExternalName( uint64_t thread )
 #    include <atomic>
 #    include <thread>
 #    include <linux/perf_event.h>
+#    include <linux/version.h>
 #    include <sys/mman.h>
 #    include <sys/ioctl.h>
+#    include <sys/syscall.h>
 
 #    include "TracyProfiler.hpp"
 #    include "TracyRingBuffer.hpp"
@@ -648,7 +659,9 @@ static void SetupSampling( int64_t& samplingPeriod )
 
     pe.sample_freq = 10000;
     pe.sample_type = PERF_SAMPLE_TID | PERF_SAMPLE_TIME | PERF_SAMPLE_CALLCHAIN;
+#if LINUX_VERSION_CODE >= KERNEL_VERSION( 4, 8, 0 )
     pe.sample_max_stack = 127;
+#endif
     pe.exclude_callchain_kernel = 1;
 
     pe.disabled = 1;
@@ -723,6 +736,23 @@ static void SetupSampling( int64_t& samplingPeriod )
                         auto trace = (uint64_t*)tracy_malloc( ( 1 + cnt ) * sizeof( uint64_t ) );
                         s_ring[i].Read( trace+1, offset, sizeof( uint64_t ) * cnt );
 
+                        // remove non-canonical pointers
+                        do
+                        {
+                            const auto test = (int64_t)trace[cnt];
+                            const auto m1 = test >> 63;
+                            const auto m2 = test >> 47;
+                            if( m1 == m2 ) break;
+                        }
+                        while( --cnt > 0 );
+                        for( uint64_t j=1; j<cnt; j++ )
+                        {
+                            const auto test = (int64_t)trace[j];
+                            const auto m1 = test >> 63;
+                            const auto m2 = test >> 47;
+                            if( m1 != m2 ) trace[j] = 0;
+                        }
+
                         // skip kernel frames
                         uint64_t j;
                         for( j=0; j<cnt; j++ )
@@ -756,6 +786,7 @@ static void SetupSampling( int64_t& samplingPeriod )
                 }
                 s_ring[i].Advance( hdr.size );
             }
+            if( !traceActive.load( std::memory_order_relaxed) ) break;
             if( !hadData )
             {
                 std::this_thread::sleep_for( std::chrono::milliseconds( 10 ) );
@@ -770,8 +801,20 @@ static void SetupSampling( int64_t& samplingPeriod )
 #ifdef __ANDROID__
 static bool TraceWrite( const char* path, size_t psz, const char* val, size_t vsz )
 {
+    // Explanation for "su root sh -c": there are 2 flavors of "su" in circulation
+    // on Android. The default Android su has the following syntax to run a command
+    // as root:
+    //   su root 'command'
+    // and 'command' is exec'd not passed to a shell, so if shell interpretation is
+    // wanted, one needs to do:
+    //   su root sh -c 'command'
+    // Besides that default Android 'su' command, some Android devices use a different
+    // su with a command-line interface closer to the familiar util-linux su found
+    // on Linux distributions. Fortunately, both the util-linux su and the one
+    // in https://github.com/topjohnwu/Magisk seem to be happy with the above
+    // `su root sh -c 'command'` command line syntax.
     char tmp[256];
-    sprintf( tmp, "su -c 'echo \"%s\" > %s%s'", val, BasePath, path );
+    sprintf( tmp, "su root sh -c 'echo \"%s\" > %s%s'", val, BasePath, path );
     return system( tmp ) == 0;
 }
 #else
@@ -817,7 +860,7 @@ void SysTraceInjectPayload()
             if( dup2( pipefd[0], STDIN_FILENO ) >= 0 )
             {
                 close( pipefd[0] );
-                execlp( "su", "su", "-c", "cat > /data/tracy_systrace", (char*)nullptr );
+                execlp( "su", "su", "root", "sh", "-c", "cat > /data/tracy_systrace", (char*)nullptr );
                 exit( 1 );
             }
         }
@@ -834,7 +877,7 @@ void SysTraceInjectPayload()
             close( pipefd[1] );
             waitpid( pid, nullptr, 0 );
 
-            system( "su -c 'chmod 700 /data/tracy_systrace'" );
+            system( "su root sh -c 'chmod 700 /data/tracy_systrace'" );
         }
     }
 }
@@ -1045,7 +1088,7 @@ static void HandleTraceLine( const char* line )
     {
         line += 14;
 
-        while( memcmp( line, "pid", 3 ) != 0 ) line++;
+        while( memcmp( line, "pid=", 4 ) != 0 ) line++;
         line += 4;
 
         const auto pid = ReadNumber( line );
@@ -1133,16 +1176,16 @@ void SysTraceWorker( void* ptr )
         {
             // child
             close( pipefd[0] );
-            dup2( pipefd[1], STDERR_FILENO );
+            dup2( open( "/dev/null", O_WRONLY ), STDERR_FILENO );
             if( dup2( pipefd[1], STDOUT_FILENO ) >= 0 )
             {
                 close( pipefd[1] );
                 sched_param sp = { 4 };
                 pthread_setschedparam( pthread_self(), SCHED_FIFO, &sp );
 #if defined __ANDROID__ && ( defined __aarch64__ || defined __ARM_ARCH )
-                execlp( "su", "su", "-c", "/data/tracy_systrace", (char*)nullptr );
+                execlp( "su", "su", "root", "sh", "-c", "/data/tracy_systrace", (char*)nullptr );
 #endif
-                execlp( "su", "su", "-c", "cat /sys/kernel/debug/tracing/trace_pipe", (char*)nullptr );
+                execlp( "su", "su", "root", "sh", "-c", "cat /sys/kernel/debug/tracing/trace_pipe", (char*)nullptr );
                 exit( 1 );
             }
         }
@@ -1154,6 +1197,7 @@ void SysTraceWorker( void* ptr )
             pthread_setschedparam( pthread_self(), SCHED_FIFO, &sp );
             ProcessTraceLines( pipefd[0] );
             close( pipefd[0] );
+            waitpid( pid, nullptr, 0 );
         }
     }
 }

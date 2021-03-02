@@ -7,7 +7,7 @@ namespace Lumos
 
 	SortAndSweepBroadphase::SortAndSweepBroadphase(const Maths::Vector3& axis)
 		: Broadphase()
-		, m_axisIndex(0)
+		, m_AxisIndex(0)
 	{
 		SetAxis(axis);
 	}
@@ -20,47 +20,47 @@ namespace Lumos
 	{
         LUMOS_PROFILE_FUNCTION();
 		// Determine axis
-		m_axis = axis;
-		m_axis.Normalize();
+		m_Axis = axis;
+		m_Axis.Normalize();
 
-		if(abs(m_axis.x) > 0.9f)
-			m_axisIndex = 0;
-		else if(abs(m_axis.y) > 0.9f)
-			m_axisIndex = 1;
-		else if(abs(m_axis.z) > 0.9f)
-			m_axisIndex = 2;
+		if(abs(m_Axis.x) > 0.9f)
+			m_AxisIndex = 0;
+		else if(abs(m_Axis.y) > 0.9f)
+			m_AxisIndex = 1;
+		else if(abs(m_Axis.z) > 0.9f)
+			m_AxisIndex = 2;
 	}
 
-	void SortAndSweepBroadphase::FindPotentialCollisionPairs(Ref<RigidBody3D>* objects, uint32_t objectCount,
+	void SortAndSweepBroadphase::FindPotentialCollisionPairs(RigidBody3D** objects, uint32_t objectCount,
 		std::vector<CollisionPair>& collisionPairs)
 	{
         LUMOS_PROFILE_FUNCTION();
 		// Sort entities along axis
-		std::sort(objects, objects + objectCount, [this](Ref<RigidBody3D> a, Ref<RigidBody3D> b) -> bool {
-			return a->GetWorldSpaceAABB().min_[this->m_axisIndex] < b->GetWorldSpaceAABB().min_[this->m_axisIndex];
+		std::sort(objects, objects + objectCount, [this](RigidBody3D* a, RigidBody3D* b) -> bool {
+			return a->GetWorldSpaceAABB().min_[this->m_AxisIndex] < b->GetWorldSpaceAABB().min_[this->m_AxisIndex];
 		});
 
 		for(uint32_t i = 0; i < objectCount; i++)
 		{
-			auto obj = objects[i];
+			auto& obj = *objects[i];
 			
-			float thisBoxRight = obj->GetWorldSpaceAABB().max_[m_axisIndex];
+			float thisBoxRight = obj.GetWorldSpaceAABB().max_[m_AxisIndex];
 
             for(uint32_t iit = i + 1; iit < objectCount; iit++)
 			{
-                auto obj2 = objects[iit];
+                auto& obj2 = *objects[iit];
 				// Skip pairs of two at rest/static objects
-				if((obj->GetIsAtRest() || obj->GetIsStatic()) && (obj2->GetIsAtRest() || obj2->GetIsStatic()))
+				if((obj.GetIsAtRest() || obj.GetIsStatic()) && (obj2.GetIsAtRest() || obj2.GetIsStatic()))
 					continue;
 
-				float testBoxLeft = obj2->GetWorldSpaceAABB().min_[m_axisIndex];
+				float testBoxLeft = obj2.GetWorldSpaceAABB().min_[m_AxisIndex];
 
 				// Test for overlap between the axis values of the bounding boxes
 				if(testBoxLeft < thisBoxRight)
 				{
 					CollisionPair cp;
-					cp.pObjectA = obj.get();
-					cp.pObjectB = obj2.get();
+					cp.pObjectA = &obj;
+					cp.pObjectB = &obj2;
 
 					collisionPairs.push_back(cp);
 				}

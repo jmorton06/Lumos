@@ -22,6 +22,7 @@ namespace Lumos
 		, m_UpdateTimestep(1.0f / 60.f)
 		, m_UpdateAccum(0.0f)
 		, m_Listener(nullptr)
+		, m_Paused(false)
 	{
 		m_DebugName = "Box2D Physics Engine";
 		m_B2DWorld->SetDebugDraw(m_DebugDraw.get());
