@@ -36,16 +36,15 @@ namespace Lumos
         m_BaseDirPath = ROOT_DIR "/Sandbox/Assets";
     #endif
 		m_CurrentDirPath = m_BaseDirPath;
-		m_prevDirPath = m_CurrentDirPath;
-		m_lastNavPath = m_BaseDirPath;
+		m_PreviousDirPath = m_CurrentDirPath;
+		m_LastNavPath = m_BaseDirPath;
 		m_BaseProjectDir = GetFsContents(m_BaseDirPath);
 		m_CurrentDir = m_BaseProjectDir;
-		m_basePathLen = strlen(m_BaseDirPath.c_str());
+		m_BasePathLen = strlen(m_BaseDirPath.c_str());
 
 		m_IsDragging = false;
-		m_isInListView = true;
-		m_updateBreadCrumbs = true;
-		m_showSearchBar = false;
+		m_IsInListView = true;
+		m_UpdateBreadCrumbs = true;
 		m_ShowHiddenFiles = false;
 	}
 	
@@ -83,7 +82,7 @@ namespace Lumos
             
             if(ImGui::IsItemClicked())
             {
-                m_prevDirPath = GetParentPath(m_CurrentDirPath);
+                m_PreviousDirPath = GetParentPath(m_CurrentDirPath);
                 m_CurrentDirPath = dirInfo.absolutePath;
                 m_CurrentDir = dirData;
             }
@@ -193,11 +192,11 @@ namespace Lumos
 			{
 				{
 				ImGui::BeginChild("##directory_breadcrumbs", ImVec2(ImGui::GetColumnWidth(), 30));
-				if(m_isInListView)
+				if(m_IsInListView)
 				{
 					if(ImGui::Button(ICON_MDI_VIEW_GRID))
 					{
-						m_isInListView = !m_isInListView;
+						m_IsInListView = !m_IsInListView;
 					}
 					ImGui::SameLine();
 				}
@@ -205,7 +204,7 @@ namespace Lumos
 				{
 					if(ImGui::Button(ICON_MDI_VIEW_LIST))
 					{
-						m_isInListView = !m_isInListView;
+						m_IsInListView = !m_IsInListView;
 					}
 					ImGui::SameLine();
 				}
@@ -223,6 +222,10 @@ namespace Lumos
 					ImGui::BeginChild("##Scrolling");
 					
 					int shownIndex = 0;
+					
+					float xAvail = ImGui::GetContentRegionAvail().x;
+					m_GridItemsPerRow = (int)floor(xAvail / 70.0f);
+					m_GridItemsPerRow = Maths::Max(1, m_GridItemsPerRow);
 
 				for(int i = 0; i < m_CurrentDir.size(); i++)
 				{
@@ -241,7 +244,10 @@ namespace Lumos
 							}
 						}
 							
-							RenderFile(i, !m_CurrentDir[i].isFile,  shownIndex, !m_isInListView);
+							bool doubleClicked = RenderFile(i, !m_CurrentDir[i].isFile,  shownIndex, !m_IsInListView);
+							
+							if(doubleClicked)
+								break;
 							shownIndex++;
 					}
 				}
@@ -300,19 +306,19 @@ namespace Lumos
 		{
 			if(ImGui::Button(ICON_MDI_ARROW_LEFT))
 			{
-				if(strlen(m_CurrentDirPath.c_str()) != m_basePathLen)
+				if(strlen(m_CurrentDirPath.c_str()) != m_BasePathLen)
 				{
-					m_prevDirPath = GetParentPath(m_CurrentDirPath);
-					m_CurrentDirPath = m_prevDirPath;
+					m_PreviousDirPath = GetParentPath(m_CurrentDirPath);
+					m_CurrentDirPath = m_PreviousDirPath;
 					m_CurrentDir = ReadDirectory(m_CurrentDirPath);
 				}
 			}
 			ImGui::SameLine();
 			if(ImGui::Button(ICON_MDI_ARROW_RIGHT))
 			{
-				m_prevDirPath = GetParentPath(m_CurrentDirPath);
-				m_CurrentDirPath = m_lastNavPath;
-				m_CurrentDir = ReadDirectory(m_lastNavPath);
+				m_PreviousDirPath = GetParentPath(m_CurrentDirPath);
+				m_CurrentDirPath = m_LastNavPath;
+				m_CurrentDir = ReadDirectory(m_LastNavPath);
 			}
 			ImGui::SameLine();
 
@@ -331,7 +337,7 @@ namespace Lumos
 		ImGui::EndChild();
 	}
 	
-	void AssetWindow::RenderFile(int dirIndex, bool folder, int shownIndex, bool gridView)
+	 bool AssetWindow::RenderFile(int dirIndex, bool folder, int shownIndex, bool gridView)
 	{
 		LUMOS_PROFILE_FUNCTION();
 		auto fileID = GetParsedAssetID(m_CurrentDir[dirIndex].fileType);
@@ -354,16 +360,21 @@ namespace Lumos
 				doubleClicked = true;
 			}
 			
-			float xAvail = ImGui::GetContentRegionAvail().x - ImGui::GetCursorPos().x;
-			
 			auto& fname = m_CurrentDir[dirIndex].filename;
 			auto newFname = StripExtras(fname);
 			
 			ImGui::TextWrapped("%s",newFname.c_str());
 			ImGui::EndGroup();
 			
-			if(xAvail >= 70.0f)
+			if((shownIndex + 1)% m_GridItemsPerRow != 0)
 				ImGui::SameLine();
+			
+			//ImGui::SameLine();
+			
+			//float xAvail = ImGui::GetContentRegionAvail().x - ImGui::GetCursorPos().x;
+			//if(xAvail * 2.0f <= 70.0f)
+				//ImGui::NewLine();
+				
 		}
 		else
 		{
@@ -382,7 +393,7 @@ namespace Lumos
 		{
 			if(folder)
 			{
-				m_prevDirPath = m_CurrentDir[dirIndex].absolutePath;
+				m_PreviousDirPath = m_CurrentDir[dirIndex].absolutePath;
 				m_CurrentDirPath = m_CurrentDir[dirIndex].absolutePath;
 				m_CurrentDir = ReadDirectory(m_CurrentDir[dirIndex].absolutePath);
 			}
@@ -404,6 +415,8 @@ namespace Lumos
 			m_IsDragging = true;
 			ImGui::EndDragDropSource();
 		}
+		
+		return doubleClicked;
 		
 	}
 

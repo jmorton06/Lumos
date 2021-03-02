@@ -3,7 +3,7 @@
         "Version": 4,
         "Scene Name": "Physics"
     },
-    "value1": 33,
+    "value1": 34,
     "value2": 1048576,
     "value3": 1,
     "value4": 2097154,
@@ -37,9 +37,10 @@
     "value32": 30,
     "value33": 1048607,
     "value34": 1048608,
-    "value35": 31,
-    "value36": 26,
-    "value37": {
+    "value35": 33,
+    "value36": 32,
+    "value37": 26,
+    "value38": {
         "Position": {
             "value0": -31.00002670288086,
             "value1": 11.999995231628418,
@@ -57,8 +58,8 @@
             "value2": 1.0000008344650269
         }
     },
-    "value38": 1,
-    "value39": {
+    "value39": 1,
+    "value40": {
         "Position": {
             "value0": 0.0,
             "value1": -1.5239448547363282,
@@ -76,8 +77,8 @@
             "value2": 100.0
         }
     },
-    "value40": 28,
-    "value41": {
+    "value41": 28,
+    "value42": {
         "Position": {
             "value0": 34.3039436340332,
             "value1": 15.190068244934082,
@@ -95,8 +96,8 @@
             "value2": 0.9999999403953552
         }
     },
-    "value42": 30,
-    "value43": {
+    "value43": 30,
+    "value44": {
         "Position": {
             "value0": 0.0,
             "value1": 0.0,
@@ -114,8 +115,8 @@
             "value2": 1.0
         }
     },
-    "value44": 4,
-    "value45": {
+    "value45": 4,
+    "value46": {
         "Position": {
             "value0": 0.0,
             "value1": 17.0,
@@ -133,8 +134,8 @@
             "value2": 0.4999999701976776
         }
     },
-    "value46": 5,
-    "value47": {
+    "value47": 5,
+    "value48": {
         "Position": {
             "value0": 1.0,
             "value1": 17.0,
@@ -152,8 +153,8 @@
             "value2": 0.4999999701976776
         }
     },
-    "value48": 6,
-    "value49": {
+    "value49": 6,
+    "value50": {
         "Position": {
             "value0": 2.0,
             "value1": 17.0,
@@ -171,8 +172,8 @@
             "value2": 0.4999999701976776
         }
     },
-    "value50": 7,
-    "value51": {
+    "value51": 7,
+    "value52": {
         "Position": {
             "value0": 3.0,
             "value1": 17.0,
@@ -190,8 +191,8 @@
             "value2": 0.4999999701976776
         }
     },
-    "value52": 8,
-    "value53": {
+    "value53": 8,
+    "value54": {
         "Position": {
             "value0": 4.0,
             "value1": 17.0,
@@ -209,8 +210,8 @@
             "value2": 0.4999999701976776
         }
     },
-    "value54": 9,
-    "value55": {
+    "value55": 9,
+    "value56": {
         "Position": {
             "value0": 5.0,
             "value1": 17.0,
@@ -228,8 +229,8 @@
             "value2": 0.4999999701976776
         }
     },
-    "value56": 10,
-    "value57": {
+    "value57": 10,
+    "value58": {
         "Position": {
             "value0": 6.0,
             "value1": 17.0,
@@ -247,8 +248,8 @@
             "value2": 0.4999999701976776
         }
     },
-    "value58": 11,
-    "value59": {
+    "value59": 11,
+    "value60": {
         "Position": {
             "value0": 7.0,
             "value1": 17.0,
@@ -266,8 +267,8 @@
             "value2": 0.4999999701976776
         }
     },
-    "value60": 12,
-    "value61": {
+    "value61": 12,
+    "value62": {
         "Position": {
             "value0": 8.0,
             "value1": 17.0,
@@ -285,8 +286,8 @@
             "value2": 0.4999999701976776
         }
     },
-    "value62": 13,
-    "value63": {
+    "value63": 13,
+    "value64": {
         "Position": {
             "value0": 9.0,
             "value1": 17.0,
@@ -304,8 +305,8 @@
             "value2": 0.4999999701976776
         }
     },
-    "value64": 14,
-    "value65": {
+    "value65": 14,
+    "value66": {
         "Position": {
             "value0": 0.0,
             "value1": 18.0,
@@ -323,8 +324,8 @@
             "value2": 0.4999999701976776
         }
     },
-    "value66": 15,
-    "value67": {
+    "value67": 15,
+    "value68": {
         "Position": {
             "value0": 1.0,
             "value1": 18.0,
@@ -342,8 +343,8 @@
             "value2": 0.4999999701976776
         }
     },
-    "value68": 16,
-    "value69": {
+    "value69": 16,
+    "value70": {
         "Position": {
             "value0": 2.0,
             "value1": 18.0,
@@ -361,8 +362,8 @@
             "value2": 0.4999999701976776
         }
     },
-    "value70": 17,
-    "value71": {
+    "value71": 17,
+    "value72": {
         "Position": {
             "value0": 3.0,
             "value1": 18.0,
@@ -380,8 +381,8 @@
             "value2": 0.4999999701976776
         }
     },
-    "value72": 18,
-    "value73": {
+    "value73": 18,
+    "value74": {
         "Position": {
             "value0": 4.0,
             "value1": 18.0,
@@ -399,8 +400,8 @@
             "value2": 0.4999999701976776
         }
     },
-    "value74": 19,
-    "value75": {
+    "value75": 19,
+    "value76": {
         "Position": {
             "value0": 5.0,
             "value1": 18.0,
@@ -418,8 +419,8 @@
             "value2": 0.4999999701976776
         }
     },
-    "value76": 20,
-    "value77": {
+    "value77": 20,
+    "value78": {
         "Position": {
             "value0": 6.0,
             "value1": 18.0,
@@ -437,8 +438,8 @@
             "value2": 0.4999999701976776
         }
     },
-    "value78": 21,
-    "value79": {
+    "value79": 21,
+    "value80": {
         "Position": {
             "value0": 7.0,
             "value1": 18.0,
@@ -456,8 +457,8 @@
             "value2": 0.4999999701976776
         }
     },
-    "value80": 22,
-    "value81": {
+    "value81": 22,
+    "value82": {
         "Position": {
             "value0": 8.0,
             "value1": 18.0,
@@ -475,8 +476,8 @@
             "value2": 0.4999999403953552
         }
     },
-    "value82": 23,
-    "value83": {
+    "value83": 23,
+    "value84": {
         "Position": {
             "value0": 5.0,
             "value1": 0.0,
@@ -494,8 +495,8 @@
             "value2": 0.4999999701976776
         }
     },
-    "value84": 25,
-    "value85": {
+    "value85": 25,
+    "value86": {
         "Position": {
             "value0": 26.0,
             "value1": 22.0,
@@ -513,8 +514,8 @@
             "value2": 0.9999999403953552
         }
     },
-    "value86": 3145757,
-    "value87": {
+    "value87": 3145757,
+    "value88": {
         "Position": {
             "value0": -100.96780395507813,
             "value1": 4.210052490234375,
@@ -532,8 +533,8 @@
             "value2": 100.0
         }
     },
-    "value88": 2097179,
-    "value89": {
+    "value89": 2097179,
+    "value90": {
         "Position": {
             "value0": 98.88309478759766,
             "value1": 4.266810894012451,
@@ -551,8 +552,8 @@
             "value2": 100.0
         }
     },
-    "value90": 2097154,
-    "value91": {
+    "value91": 2097154,
+    "value92": {
         "Position": {
             "value0": 0.01968160644173622,
             "value1": 4.176888465881348,
@@ -570,8 +571,8 @@
             "value2": 100.00016784667969
         }
     },
-    "value92": 2097155,
-    "value93": {
+    "value93": 2097155,
+    "value94": {
         "Position": {
             "value0": -0.29128527641296389,
             "value1": 4.3156633377075199,
@@ -589,8 +590,8 @@
             "value2": 100.00016784667969
         }
     },
-    "value94": 1048576,
-    "value95": {
+    "value95": 1048576,
+    "value96": {
         "Position": {
             "value0": 9.0,
             "value1": 18.0,
@@ -608,8 +609,8 @@
             "value2": 0.4999999403953552
         }
     },
-    "value96": 1048607,
-    "value97": {
+    "value97": 1048607,
+    "value98": {
         "Position": {
             "value0": 0.0,
             "value1": 2.132436513900757,
@@ -627,281 +628,300 @@
             "value2": 2.137307643890381
         }
     },
-    "value98": 27,
-    "value99": 30,
+    "value99": 33,
     "value100": {
+        "Position": {
+            "value0": 35.72151184082031,
+            "value1": 22.028072357177736,
+            "value2": -40.00749969482422
+        },
+        "Rotation": {
+            "value0": -0.19185781478881837,
+            "value1": 0.657464861869812,
+            "value2": 0.7072034478187561,
+            "value3": 0.17548270523548127
+        },
+        "Scale": {
+            "value0": 0.9999915361404419,
+            "value1": 1.000016689300537,
+            "value2": 1.0000039339065552
+        }
+    },
+    "value101": 27,
+    "value102": 30,
+    "value103": {
         "Name": "Spheres"
     },
-    "value101": 1,
-    "value102": {
+    "value104": 1,
+    "value105": {
         "Name": "Ground"
     },
-    "value103": 28,
-    "value104": {
+    "value106": 28,
+    "value107": {
         "Name": "Cat"
     },
-    "value105": 4,
-    "value106": {
+    "value108": 4,
+    "value109": {
         "Name": "Sphere0"
     },
-    "value107": 5,
-    "value108": {
+    "value110": 5,
+    "value111": {
         "Name": "Sphere1"
     },
-    "value109": 6,
-    "value110": {
+    "value112": 6,
+    "value113": {
         "Name": "Sphere2"
     },
-    "value111": 7,
-    "value112": {
+    "value114": 7,
+    "value115": {
         "Name": "Sphere3"
     },
-    "value113": 8,
-    "value114": {
+    "value116": 8,
+    "value117": {
         "Name": "Sphere4"
     },
-    "value115": 9,
-    "value116": {
+    "value118": 9,
+    "value119": {
         "Name": "Sphere5"
     },
-    "value117": 10,
-    "value118": {
+    "value120": 10,
+    "value121": {
         "Name": "Sphere6"
     },
-    "value119": 11,
-    "value120": {
+    "value122": 11,
+    "value123": {
         "Name": "Sphere7"
     },
-    "value121": 12,
-    "value122": {
+    "value124": 12,
+    "value125": {
         "Name": "Sphere8"
     },
-    "value123": 13,
-    "value124": {
+    "value126": 13,
+    "value127": {
         "Name": "Sphere9"
     },
-    "value125": 14,
-    "value126": {
+    "value128": 14,
+    "value129": {
         "Name": "Sphere10"
     },
-    "value127": 15,
-    "value128": {
+    "value130": 15,
+    "value131": {
         "Name": "Sphere11"
     },
-    "value129": 16,
-    "value130": {
+    "value132": 16,
+    "value133": {
         "Name": "Sphere12"
     },
-    "value131": 17,
-    "value132": {
+    "value134": 17,
+    "value135": {
         "Name": "Sphere13"
     },
-    "value133": 18,
-    "value134": {
+    "value136": 18,
+    "value137": {
         "Name": "Sphere14"
     },
-    "value135": 19,
-    "value136": {
+    "value138": 19,
+    "value139": {
         "Name": "Sphere15"
     },
-    "value137": 20,
-    "value138": {
+    "value140": 20,
+    "value141": {
         "Name": "Sphere16"
     },
-    "value139": 21,
-    "value140": {
+    "value142": 21,
+    "value143": {
         "Name": "Sphere17"
     },
-    "value141": 22,
-    "value142": {
+    "value144": 22,
+    "value145": {
         "Name": "Sphere18"
     },
-    "value143": 23,
-    "value144": {
+    "value146": 23,
+    "value147": {
         "Name": "Sphere19"
     },
-    "value145": 24,
-    "value146": {
+    "value148": 24,
+    "value149": {
         "Name": "Environment"
     },
-    "value147": 25,
-    "value148": {
+    "value150": 25,
+    "value151": {
         "Name": "Light"
     },
-    "value149": 26,
-    "value150": {
+    "value152": 26,
+    "value153": {
         "Name": "Camera"
     },
-    "value151": 1048608,
-    "value152": {
+    "value154": 1048608,
+    "value155": {
         "Name": "GameController"
     },
-    "value153": 0,
-    "value154": 21,
-    "value155": 23,
-    "value156": {
+    "value156": 0,
+    "value157": 21,
+    "value158": 23,
+    "value159": {
         "First": 1048575,
         "Next": 22,
         "Previous": 1048575,
         "Parent": 30
     },
-    "value157": 30,
-    "value158": {
+    "value160": 30,
+    "value161": {
         "First": 23,
         "Next": 1048575,
         "Previous": 1048575,
         "Parent": 1048575
     },
-    "value159": 22,
-    "value160": {
+    "value162": 22,
+    "value163": {
         "First": 1048575,
         "Next": 21,
         "Previous": 23,
         "Parent": 30
     },
-    "value161": 21,
-    "value162": {
+    "value164": 21,
+    "value165": {
         "First": 1048575,
         "Next": 20,
         "Previous": 22,
         "Parent": 30
     },
-    "value163": 20,
-    "value164": {
+    "value166": 20,
+    "value167": {
         "First": 1048575,
         "Next": 19,
         "Previous": 21,
         "Parent": 30
     },
-    "value165": 19,
-    "value166": {
+    "value168": 19,
+    "value169": {
         "First": 1048575,
         "Next": 18,
         "Previous": 20,
         "Parent": 30
     },
-    "value167": 18,
-    "value168": {
+    "value170": 18,
+    "value171": {
         "First": 1048575,
         "Next": 17,
         "Previous": 19,
         "Parent": 30
     },
-    "value169": 17,
-    "value170": {
+    "value172": 17,
+    "value173": {
         "First": 1048575,
         "Next": 16,
         "Previous": 18,
         "Parent": 30
     },
-    "value171": 16,
-    "value172": {
+    "value174": 16,
+    "value175": {
         "First": 1048575,
         "Next": 15,
         "Previous": 17,
         "Parent": 30
     },
-    "value173": 15,
-    "value174": {
+    "value176": 15,
+    "value177": {
         "First": 1048575,
         "Next": 14,
         "Previous": 16,
         "Parent": 30
     },
-    "value175": 14,
-    "value176": {
+    "value178": 14,
+    "value179": {
         "First": 1048575,
         "Next": 13,
         "Previous": 15,
         "Parent": 30
     },
-    "value177": 13,
-    "value178": {
+    "value180": 13,
+    "value181": {
         "First": 1048575,
         "Next": 12,
         "Previous": 14,
         "Parent": 30
     },
-    "value179": 12,
-    "value180": {
+    "value182": 12,
+    "value183": {
         "First": 1048575,
         "Next": 11,
         "Previous": 13,
         "Parent": 30
     },
-    "value181": 11,
-    "value182": {
+    "value184": 11,
+    "value185": {
         "First": 1048575,
         "Next": 10,
         "Previous": 12,
         "Parent": 30
     },
-    "value183": 10,
-    "value184": {
+    "value186": 10,
+    "value187": {
         "First": 1048575,
         "Next": 9,
         "Previous": 11,
         "Parent": 30
     },
-    "value185": 9,
-    "value186": {
+    "value188": 9,
+    "value189": {
         "First": 1048575,
         "Next": 8,
         "Previous": 10,
         "Parent": 30
     },
-    "value187": 8,
-    "value188": {
+    "value190": 8,
+    "value191": {
         "First": 1048575,
         "Next": 7,
         "Previous": 9,
         "Parent": 30
     },
-    "value189": 7,
-    "value190": {
+    "value192": 7,
+    "value193": {
         "First": 1048575,
         "Next": 6,
         "Previous": 8,
         "Parent": 30
     },
-    "value191": 6,
-    "value192": {
+    "value194": 6,
+    "value195": {
         "First": 1048575,
         "Next": 5,
         "Previous": 7,
         "Parent": 30
     },
-    "value193": 5,
-    "value194": {
+    "value196": 5,
+    "value197": {
         "First": 1048575,
         "Next": 4,
         "Previous": 6,
         "Parent": 30
     },
-    "value195": 4,
-    "value196": {
+    "value198": 4,
+    "value199": {
         "First": 1048575,
         "Next": 1048575,
         "Previous": 5,
         "Parent": 30
     },
-    "value197": 1,
-    "value198": 26,
-    "value199": {
+    "value200": 1,
+    "value201": 26,
+    "value202": {
         "Scale": 1.0,
-        "Aspect": 1.8266475200653077,
+        "Aspect": 1.7052897214889527,
         "FOV": 60.0,
         "Near": 0.10000000149011612,
         "Far": 1000.0
     },
-    "value200": 1,
-    "value201": 1048608,
-    "value202": {
+    "value203": 1,
+    "value204": 1048608,
+    "value205": {
         "FilePath": "//Scripts/Projectile.lua"
     },
-    "value203": 27,
-    "value204": 23,
-    "value205": {
+    "value206": 28,
+    "value207": 23,
+    "value208": {
         "PrimitiveType": 4,
         "FilePath": "Primitive",
         "Material": {
@@ -949,8 +969,8 @@
             }
         }
     },
-    "value206": 1,
-    "value207": {
+    "value209": 1,
+    "value210": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
         "Material": {
@@ -998,8 +1018,8 @@
             }
         }
     },
-    "value208": 22,
-    "value209": {
+    "value211": 22,
+    "value212": {
         "PrimitiveType": 4,
         "FilePath": "Primitive",
         "Material": {
@@ -1047,8 +1067,8 @@
             }
         }
     },
-    "value210": 21,
-    "value211": {
+    "value213": 21,
+    "value214": {
         "PrimitiveType": 4,
         "FilePath": "Primitive",
         "Material": {
@@ -1096,8 +1116,8 @@
             }
         }
     },
-    "value212": 4,
-    "value213": {
+    "value215": 4,
+    "value216": {
         "PrimitiveType": 4,
         "FilePath": "Primitive",
         "Material": {
@@ -1145,8 +1165,8 @@
             }
         }
     },
-    "value214": 5,
-    "value215": {
+    "value217": 5,
+    "value218": {
         "PrimitiveType": 4,
         "FilePath": "Primitive",
         "Material": {
@@ -1194,8 +1214,8 @@
             }
         }
     },
-    "value216": 6,
-    "value217": {
+    "value219": 6,
+    "value220": {
         "PrimitiveType": 4,
         "FilePath": "Primitive",
         "Material": {
@@ -1243,8 +1263,8 @@
             }
         }
     },
-    "value218": 7,
-    "value219": {
+    "value221": 7,
+    "value222": {
         "PrimitiveType": 4,
         "FilePath": "Primitive",
         "Material": {
@@ -1292,8 +1312,8 @@
             }
         }
     },
-    "value220": 8,
-    "value221": {
+    "value223": 8,
+    "value224": {
         "PrimitiveType": 4,
         "FilePath": "Primitive",
         "Material": {
@@ -1341,8 +1361,8 @@
             }
         }
     },
-    "value222": 9,
-    "value223": {
+    "value225": 9,
+    "value226": {
         "PrimitiveType": 4,
         "FilePath": "Primitive",
         "Material": {
@@ -1390,8 +1410,8 @@
             }
         }
     },
-    "value224": 10,
-    "value225": {
+    "value227": 10,
+    "value228": {
         "PrimitiveType": 4,
         "FilePath": "Primitive",
         "Material": {
@@ -1439,8 +1459,8 @@
             }
         }
     },
-    "value226": 11,
-    "value227": {
+    "value229": 11,
+    "value230": {
         "PrimitiveType": 4,
         "FilePath": "Primitive",
         "Material": {
@@ -1488,8 +1508,8 @@
             }
         }
     },
-    "value228": 12,
-    "value229": {
+    "value231": 12,
+    "value232": {
         "PrimitiveType": 4,
         "FilePath": "Primitive",
         "Material": {
@@ -1537,8 +1557,8 @@
             }
         }
     },
-    "value230": 13,
-    "value231": {
+    "value233": 13,
+    "value234": {
         "PrimitiveType": 4,
         "FilePath": "Primitive",
         "Material": {
@@ -1586,8 +1606,8 @@
             }
         }
     },
-    "value232": 14,
-    "value233": {
+    "value235": 14,
+    "value236": {
         "PrimitiveType": 4,
         "FilePath": "Primitive",
         "Material": {
@@ -1635,8 +1655,8 @@
             }
         }
     },
-    "value234": 15,
-    "value235": {
+    "value237": 15,
+    "value238": {
         "PrimitiveType": 4,
         "FilePath": "Primitive",
         "Material": {
@@ -1684,8 +1704,8 @@
             }
         }
     },
-    "value236": 16,
-    "value237": {
+    "value239": 16,
+    "value240": {
         "PrimitiveType": 4,
         "FilePath": "Primitive",
         "Material": {
@@ -1733,8 +1753,8 @@
             }
         }
     },
-    "value238": 17,
-    "value239": {
+    "value241": 17,
+    "value242": {
         "PrimitiveType": 4,
         "FilePath": "Primitive",
         "Material": {
@@ -1782,8 +1802,8 @@
             }
         }
     },
-    "value240": 18,
-    "value241": {
+    "value243": 18,
+    "value244": {
         "PrimitiveType": 4,
         "FilePath": "Primitive",
         "Material": {
@@ -1831,8 +1851,8 @@
             }
         }
     },
-    "value242": 19,
-    "value243": {
+    "value245": 19,
+    "value246": {
         "PrimitiveType": 4,
         "FilePath": "Primitive",
         "Material": {
@@ -1880,8 +1900,8 @@
             }
         }
     },
-    "value244": 20,
-    "value245": {
+    "value247": 20,
+    "value248": {
         "PrimitiveType": 4,
         "FilePath": "Primitive",
         "Material": {
@@ -1929,8 +1949,8 @@
             }
         }
     },
-    "value246": 3145757,
-    "value247": {
+    "value249": 3145757,
+    "value250": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
         "Material": {
@@ -1978,8 +1998,8 @@
             }
         }
     },
-    "value248": 2097179,
-    "value249": {
+    "value251": 2097179,
+    "value252": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
         "Material": {
@@ -2027,8 +2047,8 @@
             }
         }
     },
-    "value250": 2097154,
-    "value251": {
+    "value253": 2097154,
+    "value254": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
         "Material": {
@@ -2076,8 +2096,8 @@
             }
         }
     },
-    "value252": 2097155,
-    "value253": {
+    "value255": 2097155,
+    "value256": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
         "Material": {
@@ -2125,8 +2145,8 @@
             }
         }
     },
-    "value254": 1048576,
-    "value255": {
+    "value257": 1048576,
+    "value258": {
         "PrimitiveType": 4,
         "FilePath": "Primitive",
         "Material": {
@@ -2174,8 +2194,8 @@
             }
         }
     },
-    "value256": 1048607,
-    "value257": {
+    "value259": 1048607,
+    "value260": {
         "PrimitiveType": 8,
         "FilePath": "//Meshes/DamagedHelmet/glTF/DamagedHelmet.gltf",
         "Material": {
@@ -2190,26 +2210,26 @@
                     "Emissive": "NULL",
                     "albedoColour": {
                         "value0": 1.0,
-                        "value1": 0.0,
+                        "value1": 1.0,
                         "value2": 1.0,
                         "value3": 1.0
                     },
                     "roughnessColour": {
                         "value0": 1.0,
-                        "value1": 0.0,
+                        "value1": 1.0,
                         "value2": 1.0,
                         "value3": 1.0
                     },
                     "metallicColour": {
-                        "value0": 0.0,
+                        "value0": 1.0,
                         "value1": 1.0,
-                        "value2": 0.0,
+                        "value2": 1.0,
                         "value3": 1.0
                     },
                     "emissiveColour": {
-                        "value0": 0.0,
-                        "value1": 0.0,
-                        "value2": 0.0,
+                        "value0": 1.0,
+                        "value1": 1.0,
+                        "value2": 1.0,
                         "value3": 1.0
                     },
                     "usingAlbedoMap": 1.0,
@@ -2223,9 +2243,58 @@
             }
         }
     },
-    "value258": 1,
-    "value259": 25,
-    "value260": {
+    "value261": 33,
+    "value262": {
+        "PrimitiveType": 8,
+        "FilePath": "//Assets/Meshes/Scene/scene.gltf",
+        "Material": {
+            "ptr_wrapper": {
+                "valid": 1,
+                "data": {
+                    "Albedo": "NULL",
+                    "Normal": "",
+                    "Metallic": "",
+                    "Roughness": "",
+                    "Ao": "",
+                    "Emissive": "NULL",
+                    "albedoColour": {
+                        "value0": 1.0,
+                        "value1": 1.0,
+                        "value2": 1.0,
+                        "value3": 1.0
+                    },
+                    "roughnessColour": {
+                        "value0": 1.0,
+                        "value1": 1.0,
+                        "value2": 1.0,
+                        "value3": 1.0
+                    },
+                    "metallicColour": {
+                        "value0": 1.0,
+                        "value1": 1.0,
+                        "value2": 1.0,
+                        "value3": 1.0
+                    },
+                    "emissiveColour": {
+                        "value0": 1.0,
+                        "value1": 1.0,
+                        "value2": 1.0,
+                        "value3": 1.0
+                    },
+                    "usingAlbedoMap": 1.0,
+                    "usingMetallicMap": 0.0,
+                    "usingRoughnessMap": 0.0,
+                    "usingNormalMap": 0.0,
+                    "usingAOMap": 0.0,
+                    "usingEmissiveMap": 1.0,
+                    "workflow": 1.0
+                }
+            }
+        }
+    },
+    "value263": 1,
+    "value264": 25,
+    "value265": {
         "value0": {
             "value0": 26.0,
             "value1": 22.0,
@@ -2241,17 +2310,17 @@
         "value2": 0.0,
         "value3": 0.0,
         "value4": {
-            "value0": 0.43871307373046877,
-            "value1": 0.3712187707424164,
+            "value0": 0.4387131631374359,
+            "value1": 0.37121883034706118,
             "value2": 0.8183687925338745,
             "value3": 1.0
         },
         "value5": 1.2999999523162842,
         "value6": 1.0
     },
-    "value261": 5,
-    "value262": 1,
-    "value263": {
+    "value266": 5,
+    "value267": 1,
+    "value268": {
         "value0": {
             "Position": {
                 "value0": 0.0,
@@ -2305,8 +2374,8 @@
             "Trigger": false
         }
     },
-    "value264": 3145757,
-    "value265": {
+    "value269": 3145757,
+    "value270": {
         "value0": {
             "Position": {
                 "value0": -100.96780395507813,
@@ -2359,8 +2428,8 @@
             "Trigger": false
         }
     },
-    "value266": 2097179,
-    "value267": {
+    "value271": 2097179,
+    "value272": {
         "value0": {
             "Position": {
                 "value0": 98.88309478759766,
@@ -2413,8 +2482,8 @@
             "Trigger": false
         }
     },
-    "value268": 2097154,
-    "value269": {
+    "value273": 2097154,
+    "value274": {
         "value0": {
             "Position": {
                 "value0": 0.01968160644173622,
@@ -2467,8 +2536,8 @@
             "Trigger": false
         }
     },
-    "value270": 2097155,
-    "value271": {
+    "value275": 2097155,
+    "value276": {
         "value0": {
             "Position": {
                 "value0": -0.29128527641296389,
@@ -2521,9 +2590,9 @@
             "Trigger": false
         }
     },
-    "value272": 1,
-    "value273": 24,
-    "value274": {
+    "value277": 1,
+    "value278": 24,
+    "value279": {
         "value0": "//Textures/cubemap/noga",
         "value1": 11,
         "value2": 3072,
@@ -2531,16 +2600,16 @@
         "value4": ".tga",
         "value5": 0.03125
     },
-    "value275": 0,
-    "value276": 0,
-    "value277": 1,
-    "value278": 26,
-    "value279": {
+    "value280": 0,
+    "value281": 0,
+    "value282": 1,
+    "value283": 26,
+    "value284": {
         "ControllerType": 4
     },
-    "value280": 1,
-    "value281": 28,
-    "value282": {
+    "value285": 1,
+    "value286": 28,
+    "value287": {
         "TexturePath": "//Textures/cat.png",
         "Position": {
             "value0": 0.0,
@@ -2608,31 +2677,6 @@
                 }
             },
             {
-                "key": "RunRight",
-                "value": {
-                    "PlayMode": 0,
-                    "Frames": [
-                        {
-                            "value0": 0.0,
-                            "value1": 32.0
-                        },
-                        {
-                            "value0": 32.0,
-                            "value1": 32.0
-                        },
-                        {
-                            "value0": 64.0,
-                            "value1": 32.0
-                        },
-                        {
-                            "value0": 96.0,
-                            "value1": 32.0
-                        }
-                    ],
-                    "FrameDuration": 0.10000000149011612
-                }
-            },
-            {
                 "key": "RunLeft",
                 "value": {
                     "PlayMode": 0,
@@ -2652,6 +2696,31 @@
                         {
                             "value0": 96.0,
                             "value1": 96.0
+                        }
+                    ],
+                    "FrameDuration": 0.10000000149011612
+                }
+            },
+            {
+                "key": "RunRight",
+                "value": {
+                    "PlayMode": 0,
+                    "Frames": [
+                        {
+                            "value0": 0.0,
+                            "value1": 32.0
+                        },
+                        {
+                            "value0": 32.0,
+                            "value1": 32.0
+                        },
+                        {
+                            "value0": 64.0,
+                            "value1": 32.0
+                        },
+                        {
+                            "value0": 96.0,
+                            "value1": 32.0
                         }
                     ],
                     "FrameDuration": 0.10000000149011612
@@ -2685,5 +2754,5 @@
         ],
         "State": "RunRight"
     },
-    "value283": 0
+    "value288": 0
 }

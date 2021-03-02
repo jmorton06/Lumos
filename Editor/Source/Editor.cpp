@@ -217,6 +217,17 @@ namespace Lumos
         
 		return false;
 	}
+	
+	bool IsTextureFile(const std::string& filePath)
+	{
+		LUMOS_PROFILE_FUNCTION();
+		std::string extension = StringUtilities::GetFilePathExtension(filePath);
+        
+		if(extension == "png" || extension == "tga" || extension == "jpg")
+			return true;
+        
+		return false;
+	}
     
 	void Editor::OnImGui()
 	{
@@ -1600,6 +1611,16 @@ namespace Lumos
             Application::Get().GetSceneManager()->EnqueueSceneFromFile(filePath);
             Application::Get().GetSceneManager()->SwitchScene((int)(Application::Get().GetSceneManager()->GetScenes().size()) - 1);
         }
+		else if(IsTextureFile(filePath))
+		{
+			auto entity = Application::Get().GetSceneManager()->GetCurrentScene()->CreateEntity("Sprite");
+			auto& sprite = entity.AddComponent<Graphics::Sprite>();
+			entity.GetOrAddComponent<Maths::Transform>();
+			
+			Ref<Graphics::Texture2D> texture = Ref<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile(filePath, filePath));
+			sprite.SetTexture(texture);
+			
+		}
 	}
     
 	void Editor::SaveEditorSettings()
@@ -1669,6 +1690,10 @@ namespace Lumos
 		else if(IsAudioFile(filePath))
 		{
 			return ICON_MDI_FILE_MUSIC;
+		}
+		else if(IsTextureFile(filePath))
+		{
+			return ICON_MDI_FILE_IMAGE;
 		}
         
 		return ICON_MDI_FILE;
