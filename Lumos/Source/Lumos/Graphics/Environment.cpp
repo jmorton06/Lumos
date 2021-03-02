@@ -74,8 +74,8 @@ namespace Lumos
 				}
 			}
 			
-			currWidth = m_Width * m_IrrFactor;
-			currHeight = m_Height * m_IrrFactor;
+			currWidth = (uint32_t)((float) m_Width * m_IrrFactor);
+			currHeight = (uint32_t)((float)m_Height * m_IrrFactor);
 			
 			int numMipsIrr = 0;
 			

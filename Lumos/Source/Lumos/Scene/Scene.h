@@ -1,11 +1,6 @@
 #pragma once
-
-
 #include "Maths/Maths.h"
 #include "Utilities/AssetManager.h"
-
-#include "Events/Event.h"
-#include "Events/ApplicationEvent.h"
 
 #include <sol/forward.hpp>
 #include <cereal/cereal.hpp>
@@ -23,6 +18,8 @@ namespace Lumos
 	class EntityManager;
 	class Entity;
 	class SceneGraph;
+	class Event;
+	class WindowResizeEvent;
 
 	namespace Graphics
 	{
@@ -57,7 +54,6 @@ namespace Lumos
 		//   - Called once per frame and should contain all time-sensitive update logic
 		//	   Note: This is time relative to seconds not milliseconds! (e.g. msec / 1000)
 		virtual void OnUpdate(const TimeStep& timeStep);
-		virtual void OnTick(){};
 		virtual void OnImGui(){};
 		virtual void OnEvent(Event& e);
 		// Delete all contained Objects
@@ -148,8 +144,8 @@ namespace Lumos
 
 	private:
 		NONCOPYABLE(Scene)
-
-		bool OnWindowResize(WindowResizeEvent& e);
+			
+			bool OnWindowResize(WindowResizeEvent& e);
 
 		friend class Entity;
 	};

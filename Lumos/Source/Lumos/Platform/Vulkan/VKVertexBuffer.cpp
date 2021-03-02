@@ -11,6 +11,7 @@ namespace Lumos
 		VKVertexBuffer::VKVertexBuffer(const BufferUsage& usage)
 			: VKBuffer(), m_Usage(usage), m_Size(0)
 		{
+			VKBuffer::SetUsage(VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
 		}
 
 		VKVertexBuffer::~VKVertexBuffer()
@@ -27,23 +28,42 @@ namespace Lumos
 		void VKVertexBuffer::Resize(uint32_t size)
 		{
 			LUMOS_PROFILE_FUNCTION();
+			
+			if(m_Size != size)
+			{
 			m_Size = size;
-
-			VKBuffer::Init(VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, size, nullptr);
+				VKBuffer::Resize(size, nullptr);
+			}
 		}
 
 		void VKVertexBuffer::SetData(uint32_t size, const void* data)
 		{
 			LUMOS_PROFILE_FUNCTION();
+			if(m_Size != size)
+			{
 			m_Size = size;
-			VKBuffer::Init(VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, size, data);
+				VKBuffer::Resize(size, data);
+			}
+			else
+			{
+				VKBuffer::SetData(size, data);
+			}
 		}
 
 		void VKVertexBuffer::SetDataSub(uint32_t size, const void* data, uint32_t offset)
 		{
 			LUMOS_PROFILE_FUNCTION();
 			m_Size = size;
-			VKBuffer::Init(VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, size, data);
+			
+			if(m_Size != size)
+			{
+				m_Size = size;
+				VKBuffer::Resize( size, data);
+			}
+			else
+			{
+				VKBuffer::SetData(size, data);
+			}
 		}
 
 		void* VKVertexBuffer::GetPointerInternal()

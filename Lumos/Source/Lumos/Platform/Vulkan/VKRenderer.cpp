@@ -32,7 +32,9 @@ namespace Lumos
 		void VKRenderer::PresentInternal(CommandBuffer* cmdBuffer)
 		{
 			LUMOS_PROFILE_FUNCTION();
+#if defined(LUMOS_PROFILE) && defined(TRACY_ENABLE)
             TracyVkCollect(VKDevice::Get().GetTracyContext(), static_cast<VKCommandBuffer*>(cmdBuffer)->GetCommandBuffer());
+#endif
 			static_cast<VKCommandBuffer*>(cmdBuffer)->ExecuteInternal(VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
 				m_ImageAvailableSemaphore[m_CurrentSemaphoreIndex],
 				m_ImageAvailableSemaphore[m_CurrentSemaphoreIndex + 1],

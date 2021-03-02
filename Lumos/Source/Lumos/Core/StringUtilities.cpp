@@ -3,7 +3,7 @@
 #include <cctype>
 
 
-#ifdef _WIN32
+#ifdef LUMOS_PLATFORM_WINDOWS
 #include <windows.h>
 #include <DbgHelp.h>
 #else
@@ -52,7 +52,19 @@ namespace Lumos
 		if(pos != std::string::npos)
 			return FilePath.substr(0, pos + 1);
         return FilePath;
-    }
+		}
+		
+		bool IsHiddenFile(const std::string& path)
+		{
+			if(path != ".." &&
+				   path!= "."  &&
+				   path[0] == '.')
+			{
+				return true;
+			}
+			
+			return false;
+		}
 		
 	std::vector<std::string> SplitString(const std::string& string, const std::string& delimiters)
 	{
@@ -255,7 +267,7 @@ namespace Lumos
 	{
 		if (string.empty()) return {};
 		
-#if defined(_WIN32)
+#if defined(LUMOS_PLATFORM_WINDOWS)
 		char undecorated_name[1024];
 		if (!UnDecorateSymbolName(
 										  string.c_str(), undecorated_name, sizeof(undecorated_name),

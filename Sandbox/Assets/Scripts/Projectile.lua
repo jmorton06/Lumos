@@ -1,4 +1,7 @@
 
+function OnInit()
+--SetPhysicsDebugFlags(PhysicsDebugFlags.BROADPHASE | PhysicsDebugFlags.COLLISIONVOLUMES | PhysicsDebugFlags.BROADPHASE_PAIRS)
+end
 
 function OnUpdate()
 

@@ -120,57 +120,42 @@ namespace Lumos::Graphics
 					params = Graphics::TextureParameters(GetFilter(imageAndSampler.Sampler->minFilter), GetFilter(imageAndSampler.Sampler->magFilter), GetWrapMode(imageAndSampler.Sampler->wrapS));
 
 				Graphics::Texture2D* texture2D = Graphics::Texture2D::CreateFromSource(imageAndSampler.Image->width, imageAndSampler.Image->height, imageAndSampler.Image->image.data(), params);
-				if(texture2D)
-					loadedTextures.push_back(Ref<Graphics::Texture2D>(texture2D));
+                loadedTextures.push_back(Ref<Graphics::Texture2D>(texture2D ? texture2D: nullptr) );
 			}
 		}
+        
+        auto TextureName = [&](int index)
+        {
+            if(index >= 0)
+            {
+                const tinygltf::Texture& tex = gltfModel.textures[index];
+                if(tex.source >= 0 && tex.source < loadedTextures.size())
+                {
+                    return loadedTextures[tex.source];
+                }
+            }
+            return Ref<Graphics::Texture2D>();
+        };
 
 		for(tinygltf::Material& mat : gltfModel.materials)
 		{
 			Ref<Material> pbrMaterial = CreateRef<Material>();
 			PBRMataterialTextures textures;
 			Graphics::MaterialProperties properties;
+            
+            const tinygltf::PbrMetallicRoughness& pbr = mat.pbrMetallicRoughness;
+            textures.albedo = TextureName(pbr.baseColorTexture.index);
+            textures.normal = TextureName(mat.normalTexture.index);
+            textures.ao = TextureName(mat.occlusionTexture.index);
+            textures.emissive = TextureName(mat.emissiveTexture.index);
+            textures.metallic = TextureName(pbr.metallicRoughnessTexture.index);
 
+            properties.workflow = PBR_WORKFLOW_METALLIC_ROUGHNESS;
+            
 			// metallic-roughness workflow:
-			auto baseColorTexture = mat.values.find("baseColorTexture");
-			auto metallicRoughnessTexture = mat.values.find("metallicRoughnessTexture");
 			auto baseColorFactor = mat.values.find("baseColorFactor");
 			auto roughnessFactor = mat.values.find("roughnessFactor");
 			auto metallicFactor = mat.values.find("metallicFactor");
-
-			// common workflow:
-			auto normalTexture = mat.additionalValues.find("normalTexture");
-			auto emissiveTexture = mat.additionalValues.find("emissiveTexture");
-			auto occlusionTexture = mat.additionalValues.find("occlusionTexture");
-			//auto emissiveFactor = mat.additionalValues.find("emissiveFactor");
-			//auto alphaCutoff = mat.additionalValues.find("alphaCutoff");
-			//auto alphaMode = mat.additionalValues.find("alphaMode");
-
-			if(baseColorTexture != mat.values.end())
-			{
-				textures.albedo = loadedTextures[gltfModel.textures[baseColorTexture->second.TextureIndex()].source];
-			}
-
-			if(normalTexture != mat.additionalValues.end())
-			{
-				textures.normal = loadedTextures[gltfModel.textures[normalTexture->second.TextureIndex()].source];
-			}
-
-			if(emissiveTexture != mat.additionalValues.end())
-			{
-				textures.emissive = loadedTextures[gltfModel.textures[emissiveTexture->second.TextureIndex()].source];
-			}
-
-			if(metallicRoughnessTexture != mat.values.end())
-			{
-				textures.metallic = loadedTextures[gltfModel.textures[metallicRoughnessTexture->second.TextureIndex()].source];
-				properties.workflow = PBR_WORKFLOW_METALLIC_ROUGHNESS;
-			}
-
-			if(occlusionTexture != mat.additionalValues.end())
-			{
-				textures.ao = loadedTextures[gltfModel.textures[occlusionTexture->second.TextureIndex()].source];
-			}
 
 			if(roughnessFactor != mat.values.end())
 			{
@@ -188,7 +173,7 @@ namespace Lumos::Graphics
 			}
 
 			// Extensions
-			auto metallicGlossinessWorkflow = mat.extensions.find("KHR_materials_pbrMetallicGlossiness");
+			auto metallicGlossinessWorkflow = mat.extensions.find("KHR_materials_pbrSpecularGlossiness");
 			if(metallicGlossinessWorkflow != mat.extensions.end())
 			{
 				if(metallicGlossinessWorkflow->second.Has("diffuseTexture"))
@@ -377,6 +362,13 @@ namespace Lumos::Graphics
 
 		auto& node = model.nodes[nodeIndex];
 		auto name = node.name;
+        
+#ifdef DEBUG_PRINT_GLTF_LOADING
+        LUMOS_LOG_INFO( "asset.copyright : {0}" , model.asset.copyright);
+        LUMOS_LOG_INFO( "asset.generator : {0}" , model.asset.generator);
+        LUMOS_LOG_INFO( "asset.version : {0}" , model.asset.version);
+        LUMOS_LOG_INFO( "asset.minVersion : {0}", model.asset.minVersion);
+#endif
 
 		Maths::Transform transform;
 

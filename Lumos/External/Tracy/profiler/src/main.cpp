@@ -32,11 +32,13 @@
 #include "../../server/tracy_pdqsort.h"
 #include "../../server/tracy_robin_hood.h"
 #include "../../server/TracyBadVersion.hpp"
+#include "../../server/TracyFileHeader.hpp"
 #include "../../server/TracyFileRead.hpp"
 #include "../../server/TracyImGui.hpp"
 #include "../../server/TracyMouse.hpp"
 #include "../../server/TracyPrint.hpp"
 #include "../../server/TracyStorage.hpp"
+#include "../../server/TracyVersion.hpp"
 #include "../../server/TracyView.hpp"
 #include "../../server/TracyWorker.hpp"
 #include "../../server/TracyVersion.hpp"
@@ -49,6 +51,7 @@
 #include "icon.hpp"
 #include "ResolvService.hpp"
 #include "NativeWindow.hpp"
+#include "HttpRequest.hpp"
 
 static void glfw_error_callback(int error, const char* description)
 {
@@ -103,8 +106,8 @@ struct ClientData
 {
     int64_t time;
     uint32_t protocolVersion;
-    uint32_t activeTime;
-    uint32_t port;
+    int32_t activeTime;
+    uint16_t port;
     std::string procName;
     std::string address;
 };
@@ -114,10 +117,10 @@ enum class ViewShutdown { False, True, Join };
 static tracy::unordered_flat_map<uint64_t, ClientData> clients;
 static std::unique_ptr<tracy::View> view;
 static tracy::BadVersionState badVer;
-static int port = 8086;
+static uint16_t port = 8086;
 static const char* connectTo = nullptr;
 static char title[128];
-static std::thread loadThread;
+static std::thread loadThread, updateThread, updateNotesThread;
 static std::unique_ptr<tracy::UdpListen> broadcastListen;
 static std::mutex resolvLock;
 static tracy::unordered_flat_map<std::string, std::string> resolvMap;
@@ -135,6 +138,9 @@ static ImGuiTextFilter addrFilter, portFilter, progFilter;
 static std::thread::id mainThread;
 static std::vector<std::function<void()>> mainThreadTasks;
 static std::mutex mainThreadLock;
+static uint32_t updateVersion = 0;
+static bool showReleaseNotes = false;
+static std::string releaseNotes;
 
 void RunOnMainThread( std::function<void()> cb )
 {
@@ -223,10 +229,26 @@ int main( int argc, char** argv )
 
     mainThread = std::this_thread::get_id();
 
+    updateThread = std::thread( [] {
+        HttpRequest( "nereid.pl", "/tracy/version", 8099, [] ( int size, char* data ) {
+            if( size == 4 )
+            {
+                uint32_t ver;
+                memcpy( &ver, data, 4 );
+                RunOnMainThread( [ver] { updateVersion = ver; } );
+            }
+            delete[] data;
+        } );
+    } );
+
     // Setup window
     glfwSetErrorCallback(glfw_error_callback);
     if( !glfwInit() ) return 1;
+#ifdef DISPLAY_SERVER_WAYLAND
+    glfwWindowHint(GLFW_ALPHA_BITS, 0);
+#else
     glfwWindowHint(GLFW_VISIBLE, 0);
+#endif
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
@@ -257,10 +279,19 @@ int main( int argc, char** argv )
     typedef UINT(*GDFS)(void);
     GDFS getDpiForSystem = nullptr;
     HMODULE dll = GetModuleHandleW(L"user32.dll");
-    if (dll != INVALID_HANDLE_VALUE)
-        getDpiForSystem = (GDFS)GetProcAddress(dll, "GetDpiForSystem");
-    if (getDpiForSystem)
-        dpiScale = getDpiForSystem() / 96.f;
+    if( dll != INVALID_HANDLE_VALUE ) getDpiForSystem = (GDFS)GetProcAddress(dll, "GetDpiForSystem");
+    if( getDpiForSystem ) dpiScale = getDpiForSystem() / 96.f;
+#elif defined __linux__
+#  if GLFW_VERSION_MAJOR > 3 || ( GLFW_VERSION_MAJOR == 3 && GLFW_VERSION_MINOR >= 3 )
+    auto monitor = glfwGetWindowMonitor( window );
+    if( !monitor ) monitor = glfwGetPrimaryMonitor();
+    if( monitor )
+    {
+        float x, y;
+        glfwGetMonitorContentScale( monitor, &x, &y );
+        dpiScale = x;
+    }
+#  endif
 #endif
 
     // Setup ImGui binding
@@ -326,7 +357,7 @@ int main( int argc, char** argv )
             }
             else if( strcmp( argv[1], "-p" ) == 0 )
             {
-                port = atoi( argv[2] );
+                port = (uint16_t)atoi( argv[2] );
             }
             else
             {
@@ -369,6 +400,8 @@ int main( int argc, char** argv )
     }
 
     if( loadThread.joinable() ) loadThread.join();
+    if( updateThread.joinable() ) updateThread.join();
+    if( updateNotesThread.joinable() ) updateNotesThread.join();
     view.reset();
 
     {
@@ -442,7 +475,7 @@ static void DrawContents()
 {
     static bool reconnect = false;
     static std::string reconnectAddr;
-    static int reconnectPort;
+    static uint16_t reconnectPort;
     static bool showFilter = false;
 
     const ImVec4 clear_color = ImColor( 114, 144, 154 );
@@ -478,10 +511,11 @@ static void DrawContents()
         {
             tracy::IpAddress addr;
             size_t len;
-            auto msg = broadcastListen->Read( len, addr );
-            if( msg )
+            for(;;)
             {
-                assert( len <= sizeof( tracy::BroadcastMessage ) );
+                auto msg = broadcastListen->Read( len, addr, 0 );
+                if( !msg ) break;
+                if( len > sizeof( tracy::BroadcastMessage ) ) continue;
                 tracy::BroadcastMessage bm;
                 memcpy( &bm, msg, len );
 
@@ -496,30 +530,37 @@ static void DrawContents()
                     const auto ipNumerical = addr.GetNumber();
                     const auto clientId = uint64_t( ipNumerical ) | ( uint64_t( listenPort ) << 32 );
                     auto it = clients.find( clientId );
-                    if( it == clients.end() )
+                    if( activeTime >= 0 )
                     {
-                        std::string ip( address );
-                        resolvLock.lock();
-                        if( resolvMap.find( ip ) == resolvMap.end() )
+                        if( it == clients.end() )
                         {
-                            resolvMap.emplace( ip, ip );
-                            resolv.Query( ipNumerical, [ip] ( std::string&& name ) {
-                                std::lock_guard<std::mutex> lock( resolvLock );
-                                auto it = resolvMap.find( ip );
-                                assert( it != resolvMap.end() );
-                                std::swap( it->second, name );
-                                } );
+                            std::string ip( address );
+                            resolvLock.lock();
+                            if( resolvMap.find( ip ) == resolvMap.end() )
+                            {
+                                resolvMap.emplace( ip, ip );
+                                resolv.Query( ipNumerical, [ip] ( std::string&& name ) {
+                                    std::lock_guard<std::mutex> lock( resolvLock );
+                                    auto it = resolvMap.find( ip );
+                                    assert( it != resolvMap.end() );
+                                    std::swap( it->second, name );
+                                    } );
+                            }
+                            resolvLock.unlock();
+                            clients.emplace( clientId, ClientData { time, protoVer, activeTime, listenPort, procname, std::move( ip ) } );
                         }
-                        resolvLock.unlock();
-                        clients.emplace( clientId, ClientData { time, protoVer, activeTime, listenPort, procname, std::move( ip ) } );
+                        else
+                        {
+                            it->second.time = time;
+                            it->second.activeTime = activeTime;
+                            it->second.port = listenPort;
+                            if( it->second.protocolVersion != protoVer ) it->second.protocolVersion = protoVer;
+                            if( strcmp( it->second.procName.c_str(), procname ) != 0 ) it->second.procName = procname;
+                        }
                     }
-                    else
+                    else if( it != clients.end() )
                     {
-                        it->second.time = time;
-                        it->second.activeTime = activeTime;
-                        it->second.port = listenPort;
-                        if( it->second.protocolVersion != protoVer ) it->second.protocolVersion = protoVer;
-                        if( strcmp( it->second.procName.c_str(), procname ) != 0 ) it->second.procName = procname;
+                        clients.erase( it );
                     }
                 }
             }
@@ -546,6 +587,30 @@ static void DrawContents()
         ImGui::PushFont( bigFont );
         tracy::TextCentered( buf );
         ImGui::PopFont();
+        ImGui::SameLine( ImGui::GetWindowContentRegionMax().x - ImGui::CalcTextSize( ICON_FA_WRENCH ).x - ImGui::GetStyle().FramePadding.x * 2 );
+        if( ImGui::Button( ICON_FA_WRENCH ) )
+        {
+            ImGui::OpenPopup( "About Tracy" );
+        }
+        bool keepOpenAbout = true;
+        if( ImGui::BeginPopupModal( "About Tracy", &keepOpenAbout, ImGuiWindowFlags_AlwaysAutoResize ) )
+        {
+            ImGui::PushFont( bigFont );
+            tracy::TextCentered( buf );
+            ImGui::PopFont();
+            ImGui::Spacing();
+            ImGui::TextUnformatted( "A real time, nanosecond resolution, remote telemetry, hybrid\nframe and sampling profiler for games and other applications." );
+            ImGui::Spacing();
+            ImGui::TextUnformatted( "Created by Bartosz Taudul" );
+            ImGui::SameLine();
+            tracy::TextDisabledUnformatted( "<wolf.pld@gmail.com>" );
+            tracy::TextDisabledUnformatted( "Additional authors listed in AUTHORS file and in git history." );
+            ImGui::Separator();
+            tracy::TextFocused( "Protocol version", tracy::RealToString( tracy::ProtocolVersion ) );
+            tracy::TextFocused( "Broadcast version", tracy::RealToString( tracy::BroadcastVersion ) );
+            tracy::TextFocused( "Build date", __DATE__ ", " __TIME__ );
+            ImGui::EndPopup();
+        }
         ImGui::Spacing();
         if( ImGui::Button( ICON_FA_BOOK " Manual" ) )
         {
@@ -599,6 +664,26 @@ static void DrawContents()
         {
             OpenWebpage( "https://github.com/sponsors/wolfpld/" );
         }
+        if( updateVersion != 0 && updateVersion > tracy::FileVersion( tracy::Version::Major, tracy::Version::Minor, tracy::Version::Patch ) )
+        {
+            ImGui::Separator();
+            ImGui::TextColored( ImVec4( 1, 1, 0, 1 ), ICON_FA_EXCLAMATION " Update to %i.%i.%i is available!", ( updateVersion >> 16 ) & 0xFF, ( updateVersion >> 8 ) & 0xFF, updateVersion & 0xFF );
+            ImGui::SameLine();
+            if( ImGui::SmallButton( ICON_FA_GIFT " Get it!" ) )
+            {
+                showReleaseNotes = true;
+                if( !updateNotesThread.joinable() )
+                {
+                    updateNotesThread = std::thread( [] {
+                        HttpRequest( "nereid.pl", "/tracy/notes", 8099, [] ( int size, char* data ) {
+                            std::string notes( data, data+size );
+                            delete[] data;
+                            RunOnMainThread( [notes = move( notes )] { releaseNotes = std::move( notes ); } );
+                        } );
+                    } );
+                }
+            }
+        }
         ImGui::Separator();
         ImGui::TextUnformatted( "Client address" );
         bool connectClicked = false;
@@ -651,7 +736,7 @@ static void DrawContents()
             if( *ptr == ':' )
             {
                 std::string addrPart = std::string( addr, ptr );
-                uint32_t portPart = atoi( ptr+1 );
+                uint16_t portPart = (uint16_t)atoi( ptr+1 );
                 view = std::make_unique<tracy::View>( RunOnMainThread, addrPart.c_str(), portPart, fixedWidth, smallFont, bigFont, SetWindowTitleCallback, GetMainWindowNative );
             }
             else
@@ -765,7 +850,7 @@ static void DrawContents()
                 if( portFilter.IsActive() )
                 {
                     char buf[32];
-                    sprintf( buf, "%" PRIu32, v.second.port );
+                    sprintf( buf, "%" PRIu16, v.second.port );
                     if( !portFilter.PassFilter( buf ) ) continue;
                 }
                 if( progFilter.IsActive() && !progFilter.PassFilter( v.second.procName.c_str() ) ) continue;
@@ -777,7 +862,7 @@ static void DrawContents()
                 if( ImGui::IsItemHovered() )
                 {
                     char portstr[32];
-                    sprintf( portstr, "%" PRIu32, v.second.port );
+                    sprintf( portstr, "%" PRIu16, v.second.port );
                     ImGui::BeginTooltip();
                     if( badProto )
                     {
@@ -792,7 +877,7 @@ static void DrawContents()
                 if( v.second.port != port )
                 {
                     ImGui::SameLine();
-                    ImGui::TextDisabled( ":%" PRIu32, v.second.port );
+                    ImGui::TextDisabled( ":%" PRIu16, v.second.port );
                 }
                 if( selected && !loadThread.joinable() )
                 {
@@ -826,11 +911,38 @@ static void DrawContents()
                 ImGui::TextUnformatted( "All clients are filtered." );
             }
         }
-
         ImGui::End();
+
+        if( showReleaseNotes )
+        {
+            assert( updateNotesThread.joinable() );
+            ImGui::SetNextWindowSize( ImVec2( 600, 400 ), ImGuiCond_FirstUseEver );
+            ImGui::Begin( "Update available!", &showReleaseNotes );
+            if( ImGui::Button( ICON_FA_DOWNLOAD " Download" ) )
+            {
+                OpenWebpage( "https://github.com/wolfpld/tracy/releases" );
+            }
+            ImGui::BeginChild( "###notes", ImVec2( 0, 0 ), true );
+            if( releaseNotes.empty() )
+            {
+                static float rnTime = 0;
+                rnTime += ImGui::GetIO().DeltaTime;
+                tracy::TextCentered( "Fetching release notes..." );
+                tracy::DrawWaitingDots( rnTime );
+            }
+            else
+            {
+                ImGui::PushFont( fixedWidth );
+                ImGui::TextUnformatted( releaseNotes.c_str() );
+                ImGui::PopFont();
+            }
+            ImGui::EndChild();
+            ImGui::End();
+        }
     }
     else
     {
+        if( showReleaseNotes ) showReleaseNotes = false;
         if( broadcastListen )
         {
             broadcastListen.reset();
@@ -948,7 +1060,7 @@ static void DrawContents()
         tracy::TextCentered( ICON_FA_BROOM );
         animTime += ImGui::GetIO().DeltaTime;
         tracy::DrawWaitingDots( animTime );
-        ImGui::Text( "Please wait, cleanup is in progress" );
+        ImGui::TextUnformatted( "Please wait, cleanup is in progress" );
         ImGui::EndPopup();
     }
 

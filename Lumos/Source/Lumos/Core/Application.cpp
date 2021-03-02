@@ -27,6 +27,7 @@
 #include "Core/OS/OS.h"
 #include "Core/Profiler.h"
 #include "Core/VFS.h"
+#include "Core/JobSystem.h"
 #include "Core/StringUtilities.h"
 #include "Core/OS/FileSystem.h"
 #include "Scripting/Lua/LuaManager.h"
@@ -44,8 +45,7 @@ namespace Lumos
 	Application* Application::s_Instance = nullptr;
 	
 	Application::Application(const std::string& projectRoot, const std::string& projectName)
-		: m_UpdateTimer(0)
-		, m_Frames(0)
+		: m_Frames(0)
 		, m_Updates(0)
         , m_SceneViewWidth(800)
         , m_SceneViewHeight(600)
@@ -67,6 +67,7 @@ namespace Lumos
         VFS::Get()->Mount("Sounds", root + projectRoot + std::string("Assets/Sounds"));
         VFS::Get()->Mount("Scripts", root + projectRoot + std::string("Assets/Scripts"));
         VFS::Get()->Mount("Scenes", root + projectRoot + std::string("Assets/Scenes"));
+		VFS::Get()->Mount("Assets", root + projectRoot + std::string("Assets"));
         VFS::Get()->Mount("CoreShaders", root + std::string("/Lumos/Assets/Shaders"));
 #endif
 		
@@ -78,7 +79,7 @@ namespace Lumos
 
 		m_Timer = CreateUniqueRef<Timer>();
         
-		WindowProperties  windowProperties;
+		WindowProperties windowProperties;
 		windowProperties.Width = Width;
 		windowProperties.Height = Height;
 		windowProperties.RenderAPI = RenderAPI;
@@ -132,39 +133,49 @@ namespace Lumos
 
 		uint32_t screenWidth = m_Window->GetWidth();
 		uint32_t screenHeight = m_Window->GetHeight();
-
-		Lumos::Input::Create();
-        
-        m_ShaderLibrary = CreateRef<ShaderLibrary>();
-        
-		Graphics::Renderer::Init(screenWidth, screenHeight);
-
-		// Graphics Loading on main thread
-		m_RenderGraph = CreateUniqueRef<Graphics::RenderGraph>(screenWidth, screenHeight);
-
-        m_ImGuiManager = CreateUniqueRef<ImGuiManager>(false);
-        m_ImGuiManager->OnInit();
-
 		m_SystemManager = CreateUniqueRef<SystemManager>();
 
-		auto audioManager = AudioManager::Create();
-		if(audioManager)
-		{
-			audioManager->OnInit();
-			m_SystemManager->RegisterSystem<AudioManager>(audioManager);
-		}
-
-		m_SystemManager->RegisterSystem<LumosPhysicsEngine>();
-		m_SystemManager->RegisterSystem<B2PhysicsEngine>();
+		System::JobSystem::Context context;
 		
-		Application::Get().GetSystem<LumosPhysicsEngine>()->SetPaused(false);
-		Application::Get().GetSystem<B2PhysicsEngine>()->SetPaused(false);
+		System::JobSystem::Execute(context, [](JobDispatchArgs args) 
+					    {
+							Lumos::Input::Create();
+						});
         
-		Graphics::Material::InitDefaultTexture();
-        
-        m_SceneManager->LoadCurrentList();
+		System::JobSystem::Execute(context, [this](JobDispatchArgs args) 
+						{
+							auto audioManager = AudioManager::Create();
+							if(audioManager)
+							{
+								audioManager->OnInit();
+								m_SystemManager->RegisterSystem<AudioManager>(audioManager);
+							}
+						});
+		
+		System::JobSystem::Execute(context, [this](JobDispatchArgs args) 
+						{
+							m_SystemManager->RegisterSystem<LumosPhysicsEngine>();
+							m_SystemManager->RegisterSystem<B2PhysicsEngine>();
+						});
+		
+		System::JobSystem::Execute(context, [this](JobDispatchArgs args) 
+						{
+							m_SceneManager->LoadCurrentList();
+						});
+		
+
+		// Graphics Loading on main thread
+        Graphics::Renderer::Init(screenWidth, screenHeight);
+
+		m_ImGuiManager = CreateUniqueRef<ImGuiManager>(false);
+		m_ImGuiManager->OnInit();
+		m_ShaderLibrary = CreateRef<ShaderLibrary>();
+        		
+		m_RenderGraph = CreateUniqueRef<Graphics::RenderGraph>(screenWidth, screenHeight);
 
 		m_CurrentState = AppState::Running;
+		
+		Graphics::Material::InitDefaultTexture();
             
 //#ifndef LUMOS_PLATFORM_IOS //Need to disable for A12 and earlier
         auto shadowRenderer = new Graphics::ShadowRenderer();
@@ -177,6 +188,8 @@ namespace Lumos
         m_RenderGraph->AddRenderer(new Graphics::Renderer2D(screenWidth, screenHeight, false, false, true));
         
         m_RenderGraph->EnableDebugRenderer(true);
+		
+		System::JobSystem::Wait(context);
 	}
 
 	void Application::Quit()
@@ -209,69 +222,68 @@ namespace Lumos
 	bool Application::OnFrame()
 	{
 		LUMOS_PROFILE_FUNCTION();
-		float now = m_Timer->GetElapsedS();
-
-#ifdef LUMOS_LIMIT_FRAMERATE
-		if(now - m_UpdateTimer > Engine::Get().TargetFrameRate())
-		{
-			m_UpdateTimer += Engine::Get().TargetFrameRate();
-#endif
-				auto& stats = Engine::Get().Statistics();
-				auto& ts = Engine::GetTimeStep();
-			
-			{
-				LUMOS_PROFILE_SCOPE("Application::TimeStepUpdates");
-				ts.Update(now);
-				
-				ImGuiIO& io = ImGui::GetIO();
-				io.DeltaTime = ts.GetSeconds();
-				
-				stats.FrameTime = ts.GetMillis();
-			}
-			
-			{
-				LUMOS_PROFILE_SCOPE("Application::SceneSwitch");
+		LUMOS_PROFILE_FRAMEMARKER();
+		
+        {
+            LUMOS_PROFILE_SCOPE("Application::SceneSwitch");
+            if(m_SceneManager->GetSwitchingScene())
+            {
                 m_SceneManager->ApplySceneSwitch();
-			}
-			{
-				LUMOS_PROFILE_SCOPE("Application::ImGui::NewFrame");
-				ImGui::NewFrame();
-			}
-
-			{
-				LUMOS_PROFILE_SCOPE("Application::Update");
-				OnUpdate(ts);
-				m_Updates++;
-			}
-
-			if(!m_Minimized)
-			{
-				LUMOS_PROFILE_SCOPE("Application::Render");
-
-				OnRender();
-                m_ImGuiManager->OnRender(m_SceneManager->GetCurrentScene());
-                
-                Graphics::Renderer::GetRenderer()->Present();
-				m_Frames++;
-			}
+                return m_CurrentState != AppState::Closing;
+            }
+        }
+        
+		float now = m_Timer->GetElapsedS();
+        auto& stats = Engine::Get().Statistics();
+        auto& ts = Engine::GetTimeStep();
 			
-			{
-				LUMOS_PROFILE_SCOPE("Application::UpdateGraphicsStats");
-                stats.UsedGPUMemory = Graphics::GraphicsContext::GetContext()->GetGPUMemoryUsed();
-				stats.TotalGPUMemory = Graphics::GraphicsContext::GetContext()-> GetTotalGPUMemory();
-			}
-			{
-				LUMOS_PROFILE_SCOPE("Application::WindowUpdate");
-                Input::GetInput()->ResetPressed();
-                m_Window->UpdateCursorImGui();
-				m_Window->OnUpdate();
-			}
+        {
+            LUMOS_PROFILE_SCOPE("Application::TimeStepUpdates");
+            ts.Update(now);
+            
+            ImGuiIO& io = ImGui::GetIO();
+            io.DeltaTime = ts.GetSeconds();
+            
+            stats.FrameTime = ts.GetMillis();
+        }
+        
+        {
+            LUMOS_PROFILE_SCOPE("Application::ImGui::NewFrame");
+            ImGui::NewFrame();
+        }
 
-			if(Input::GetInput()->GetKeyPressed(Lumos::InputCode::Key::Escape))
-				m_CurrentState = AppState::Closing;
-#ifdef LUMOS_LIMIT_FRAMERATE
-		}
-#endif
+        {
+            LUMOS_PROFILE_SCOPE("Application::Update");
+            OnUpdate(ts);
+            m_Updates++;
+        }
+
+        if(!m_Minimized)
+        {
+            LUMOS_PROFILE_SCOPE("Application::Render");
+
+            OnRender();
+            m_ImGuiManager->OnRender(m_SceneManager->GetCurrentScene());
+            
+            Graphics::Renderer::GetRenderer()->Present();
+            m_Frames++;
+        }
+        
+        {
+            LUMOS_PROFILE_SCOPE("Application::UpdateGraphicsStats");
+            stats.UsedGPUMemory = Graphics::GraphicsContext::GetContext()->GetGPUMemoryUsed();
+            stats.TotalGPUMemory = Graphics::GraphicsContext::GetContext()-> GetTotalGPUMemory();
+        }
+        {
+            LUMOS_PROFILE_SCOPE("Application::WindowUpdate");
+            Input::GetInput()->ResetPressed();
+            m_Window->UpdateCursorImGui();
+            m_Window->OnUpdate();
+        }
+
+        if(Input::GetInput()->GetKeyPressed(Lumos::InputCode::Key::Escape))
+            m_CurrentState = AppState::Closing;
+
 		
 		if(now - m_SecondTimer > 1.0f)
 		{
@@ -283,11 +295,7 @@ namespace Lumos
 
 			m_Frames = 0;
 			m_Updates = 0;
-			
-			m_SceneManager->GetCurrentScene()->OnTick();
 		}
-		
-		LUMOS_PROFILE_FRAMEMARKER();
 
 		return m_CurrentState != AppState::Closing;
 	}
@@ -353,7 +361,6 @@ namespace Lumos
 
 	void Application::Run()
 	{
-		m_UpdateTimer = m_Timer->GetElapsedS();
 		while(OnFrame())
 		{
 		}

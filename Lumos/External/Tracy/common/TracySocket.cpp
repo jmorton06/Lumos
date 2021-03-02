@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <inttypes.h>
 #include <new>
 #include <stdio.h>
 #include <stdlib.h>
@@ -106,7 +107,7 @@ Socket::~Socket()
     }
 }
 
-bool Socket::Connect( const char* addr, int port )
+bool Socket::Connect( const char* addr, uint16_t port )
 {
     assert( !IsValid() );
 
@@ -115,7 +116,7 @@ bool Socket::Connect( const char* addr, int port )
         const auto c = connect( m_connSock, m_ptr->ai_addr, m_ptr->ai_addrlen );
         if( c == -1 )
         {
-#if defined _WIN32 || defined __CYGWIN__
+#if defined _WIN32
             const auto err = WSAGetLastError();
             if( err == WSAEALREADY || err == WSAEINPROGRESS ) return false;
             if( err != WSAEISCONN )
@@ -138,7 +139,7 @@ bool Socket::Connect( const char* addr, int port )
 #endif
         }
 
-#if defined _WIN32 || defined __CYGWIN__
+#if defined _WIN32
         u_long nonblocking = 0;
         ioctlsocket( m_connSock, FIONBIO, &nonblocking );
 #else
@@ -159,7 +160,7 @@ bool Socket::Connect( const char* addr, int port )
     hints.ai_socktype = SOCK_STREAM;
 
     char portbuf[32];
-    sprintf( portbuf, "%i", port );
+    sprintf( portbuf, "%" PRIu16, port );
 
     if( getaddrinfo( addr, portbuf, &hints, &res ) != 0 ) return false;
     int sock = 0;
@@ -170,7 +171,7 @@ bool Socket::Connect( const char* addr, int port )
         int val = 1;
         setsockopt( sock, SOL_SOCKET, SO_NOSIGPIPE, &val, sizeof( val ) );
 #endif
-#if defined _WIN32 || defined __CYGWIN__
+#if defined _WIN32
         u_long nonblocking = 1;
         ioctlsocket( sock, FIONBIO, &nonblocking );
 #else
@@ -183,7 +184,7 @@ bool Socket::Connect( const char* addr, int port )
         }
         else
         {
-#if defined _WIN32 || defined __CYGWIN__
+#if defined _WIN32
             const auto err = WSAGetLastError();
             if( err != WSAEWOULDBLOCK )
             {
@@ -206,13 +207,55 @@ bool Socket::Connect( const char* addr, int port )
     freeaddrinfo( res );
     if( !ptr ) return false;
 
-#if defined _WIN32 || defined __CYGWIN__
+#if defined _WIN32
     u_long nonblocking = 0;
     ioctlsocket( sock, FIONBIO, &nonblocking );
 #else
     int flags = fcntl( sock, F_GETFL, 0 );
     fcntl( sock, F_SETFL, flags & ~O_NONBLOCK );
 #endif
+
+    m_sock.store( sock, std::memory_order_relaxed );
+    return true;
+}
+
+bool Socket::ConnectBlocking( const char* addr, uint16_t port )
+{
+    assert( !IsValid() );
+    assert( !m_ptr );
+
+    struct addrinfo hints;
+    struct addrinfo *res, *ptr;
+
+    memset( &hints, 0, sizeof( hints ) );
+    hints.ai_family = AF_UNSPEC;
+    hints.ai_socktype = SOCK_STREAM;
+
+    char portbuf[32];
+    sprintf( portbuf, "%" PRIu16, port );
+
+    if( getaddrinfo( addr, portbuf, &hints, &res ) != 0 ) return false;
+    int sock = 0;
+    for( ptr = res; ptr; ptr = ptr->ai_next )
+    {
+        if( ( sock = socket( ptr->ai_family, ptr->ai_socktype, ptr->ai_protocol ) ) == -1 ) continue;
+#if defined __APPLE__
+        int val = 1;
+        setsockopt( sock, SOL_SOCKET, SO_NOSIGPIPE, &val, sizeof( val ) );
+#endif
+        if( connect( sock, ptr->ai_addr, ptr->ai_addrlen ) == -1 )
+        {
+#ifdef _WIN32
+            closesocket( sock );
+#else
+            close( sock );
+#endif
+            continue;
+        }
+        break;
+    }
+    freeaddrinfo( res );
+    if( !ptr ) return false;
 
     m_sock.store( sock, std::memory_order_relaxed );
     return true;
@@ -250,7 +293,7 @@ int Socket::GetSendBufSize()
 {
     const auto sock = m_sock.load( std::memory_order_relaxed );
     int bufSize;
-#if defined _WIN32 || defined __CYGWIN__
+#if defined _WIN32
     int sz = sizeof( bufSize );
     getsockopt( sock, SOL_SOCKET, SO_SNDBUF, (char*)&bufSize, &sz );
 #else
@@ -301,12 +344,30 @@ int Socket::Recv( void* _buf, int len, int timeout )
 
     if( poll( &fd, 1, timeout ) > 0 )
     {
-        return (int)recv( sock, buf, len, 0 );
+        return recv( sock, buf, len, 0 );
     }
     else
     {
         return -1;
     }
+}
+
+int Socket::ReadUpTo( void* _buf, int len, int timeout )
+{
+    const auto sock = m_sock.load( std::memory_order_relaxed );
+    auto buf = (char*)_buf;
+
+    int rd = 0;
+    while( len > 0 )
+    {
+        const auto res = recv( sock, buf, len, 0 );
+        if( res == 0 ) break;
+        if( res == -1 ) return -1;
+        len -= res;
+        rd += res;
+        buf += res;
+    }
+    return rd;
 }
 
 bool Socket::Read( void* buf, int len, int timeout )
@@ -386,33 +447,45 @@ ListenSocket::~ListenSocket()
     if( m_sock != -1 ) Close();
 }
 
-bool ListenSocket::Listen( int port, int backlog )
+static int addrinfo_and_socket_for_family( uint16_t port, int ai_family, struct addrinfo** res )
+{
+    struct addrinfo hints;
+    memset( &hints, 0, sizeof( hints ) );
+    hints.ai_family = ai_family;
+    hints.ai_socktype = SOCK_STREAM;
+#ifndef TRACY_ONLY_LOCALHOST
+    const char* onlyLocalhost = getenv( "TRACY_ONLY_LOCALHOST" );
+    if( !onlyLocalhost || onlyLocalhost[0] != '1' )
+    {
+        hints.ai_flags = AI_PASSIVE;
+    }
+#endif
+    char portbuf[32];
+    sprintf( portbuf, "%" PRIu16, port );
+    if( getaddrinfo( nullptr, portbuf, &hints, res ) != 0 ) return -1;
+    int sock = socket( (*res)->ai_family, (*res)->ai_socktype, (*res)->ai_protocol );
+    if (sock == -1) freeaddrinfo( *res );
+    return sock;
+}
+
+bool ListenSocket::Listen( uint16_t port, int backlog )
 {
     assert( m_sock == -1 );
 
-    struct addrinfo* res;
-    struct addrinfo hints;
+    struct addrinfo* res = nullptr;
 
-    memset( &hints, 0, sizeof( hints ) );
-    hints.ai_family = AF_INET6;
-    hints.ai_socktype = SOCK_STREAM;
-#ifndef TRACY_ONLY_LOCALHOST
-    hints.ai_flags = AI_PASSIVE;
+#if !defined TRACY_ONLY_IPV4 && !defined TRACY_ONLY_LOCALHOST
+    const char* onlyIPv4 = getenv( "TRACY_ONLY_IPV4" );
+    if( !onlyIPv4 || onlyIPv4[0] != '1' )
+    {
+        m_sock = addrinfo_and_socket_for_family( port, AF_INET6, &res );
+    }
 #endif
-
-    char portbuf[32];
-    sprintf( portbuf, "%i", port );
-
-    if( getaddrinfo( nullptr, portbuf, &hints, &res ) != 0 ) return false;
-
-    m_sock = socket( res->ai_family, res->ai_socktype, res->ai_protocol );
     if (m_sock == -1)
     {
         // IPV6 protocol may not be available/is disabled. Try to create a socket
         // with the IPV4 protocol
-        hints.ai_family = AF_INET;
-        if( getaddrinfo( nullptr, portbuf, &hints, &res ) != 0 ) return false;
-        m_sock = socket( res->ai_family, res->ai_socktype, res->ai_protocol );
+        m_sock = addrinfo_and_socket_for_family( port, AF_INET, &res );
         if( m_sock == -1 ) return false;
     }
 #if defined _WIN32 || defined __CYGWIN__
@@ -486,7 +559,7 @@ UdpBroadcast::~UdpBroadcast()
     if( m_sock != -1 ) Close();
 }
 
-bool UdpBroadcast::Open( const char* addr, int port )
+bool UdpBroadcast::Open( const char* addr, uint16_t port )
 {
     assert( m_sock == -1 );
 
@@ -498,7 +571,7 @@ bool UdpBroadcast::Open( const char* addr, int port )
     hints.ai_socktype = SOCK_DGRAM;
 
     char portbuf[32];
-    sprintf( portbuf, "%i", port );
+    sprintf( portbuf, "%" PRIu16, port );
 
     if( getaddrinfo( addr, portbuf, &hints, &res ) != 0 ) return false;
     int sock = 0;
@@ -509,7 +582,7 @@ bool UdpBroadcast::Open( const char* addr, int port )
         int val = 1;
         setsockopt( sock, SOL_SOCKET, SO_NOSIGPIPE, &val, sizeof( val ) );
 #endif
-#if defined _WIN32 || defined __CYGWIN__
+#if defined _WIN32
         unsigned long broadcast = 1;
         if( setsockopt( sock, SOL_SOCKET, SO_BROADCAST, (const char*)&broadcast, sizeof( broadcast ) ) == -1 )
 #else
@@ -530,6 +603,7 @@ bool UdpBroadcast::Open( const char* addr, int port )
     if( !ptr ) return false;
 
     m_sock = sock;
+    inet_pton( AF_INET, addr, &m_addr );
     return true;
 }
 
@@ -544,14 +618,14 @@ void UdpBroadcast::Close()
     m_sock = -1;
 }
 
-int UdpBroadcast::Send( int port, const void* data, int len )
+int UdpBroadcast::Send( uint16_t port, const void* data, int len )
 {
     assert( m_sock != -1 );
     struct sockaddr_in addr;
     addr.sin_family = AF_INET;
     addr.sin_port = htons( port );
-    addr.sin_addr.s_addr = INADDR_BROADCAST;
-    return (int)sendto( m_sock, (const char*)data, len, MSG_NOSIGNAL, (sockaddr*)&addr, sizeof( addr ) );
+    addr.sin_addr.s_addr = m_addr;
+    return sendto( m_sock, (const char*)data, len, MSG_NOSIGNAL, (sockaddr*)&addr, sizeof( addr ) );
 }
 
 IpAddress::IpAddress()
@@ -590,7 +664,7 @@ UdpListen::~UdpListen()
     if( m_sock != -1 ) Close();
 }
 
-bool UdpListen::Listen( int port )
+bool UdpListen::Listen( uint16_t port )
 {
     assert( m_sock == -1 );
 
@@ -601,14 +675,14 @@ bool UdpListen::Listen( int port )
     int val = 1;
     setsockopt( sock, SOL_SOCKET, SO_NOSIGPIPE, &val, sizeof( val ) );
 #endif
-#if defined _WIN32 || defined __CYGWIN__
+#if defined _WIN32
     unsigned long reuse = 1;
     setsockopt( m_sock, SOL_SOCKET, SO_REUSEADDR, (const char*)&reuse, sizeof( reuse ) );
 #else
     int reuse = 1;
     setsockopt( m_sock, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof( reuse ) );
 #endif
-#if defined _WIN32 || defined __CYGWIN__
+#if defined _WIN32
     unsigned long broadcast = 1;
     if( setsockopt( sock, SOL_SOCKET, SO_BROADCAST, (const char*)&broadcast, sizeof( broadcast ) ) == -1 )
 #else
@@ -654,14 +728,14 @@ void UdpListen::Close()
     m_sock = -1;
 }
 
-const char* UdpListen::Read( size_t& len, IpAddress& addr )
+const char* UdpListen::Read( size_t& len, IpAddress& addr, int timeout )
 {
     static char buf[2048];
 
     struct pollfd fd;
     fd.fd = (socket_t)m_sock;
     fd.events = POLLIN;
-    if( poll( &fd, 1, 10 ) <= 0 ) return nullptr;
+    if( poll( &fd, 1, timeout ) <= 0 ) return nullptr;
 
     sockaddr sa;
     socklen_t salen = sizeof( struct sockaddr );

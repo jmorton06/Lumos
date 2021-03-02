@@ -4,6 +4,8 @@
 #include "Graphics/Renderers/IRenderer.h"
 #include "Graphics/Renderers/DebugRenderer.h"
 
+#include "Events/ApplicationEvent.h"
+
 namespace Lumos::Graphics
 {
 	RenderGraph::RenderGraph(uint32_t width, uint32_t height)

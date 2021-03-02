@@ -63,8 +63,6 @@ project "Sandbox"
 
 	defines
 	{
-		"LUMOS_PROFILE",
-		"TRACY_ENABLE",
 		"SPDLOG_COMPILED_LIB"
 	}
 
@@ -306,14 +304,14 @@ project "Sandbox"
 			}
 
 	filter "configurations:Debug"
-		defines "LUMOS_DEBUG"
-		optimize "Off"
+		defines { "LUMOS_DEBUG", "_DEBUG","TRACY_ENABLE","LUMOS_PROFILE", }
 		symbols "On"
 		runtime "Debug"
+		optimize "Off"
 
 	filter "configurations:Release"
-		defines "LUMOS_RELEASE"
-		optimize "On"
+		defines { "LUMOS_RELEASE","TRACY_ENABLE", "LUMOS_PROFILE",}
+		optimize "Speed"
 		symbols "On"
 		runtime "Release"
 

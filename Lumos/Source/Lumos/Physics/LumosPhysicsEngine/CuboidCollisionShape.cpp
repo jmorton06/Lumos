@@ -60,6 +60,8 @@ namespace Lumos
     {
         LUMOS_PROFILE_FUNCTION();
         {
+			m_Axes.resize(3);
+			
             Maths::Matrix3 objOrientation = currentObject->GetOrientation().RotationMatrix();
             m_Axes[0] = (objOrientation * Maths::Vector3(1.0f, 0.0f, 0.0f)); //X - Axis
             m_Axes[1] = (objOrientation * Maths::Vector3(0.0f, 1.0f, 0.0f)); //Y - Axis

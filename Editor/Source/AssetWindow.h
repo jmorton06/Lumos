@@ -30,12 +30,8 @@ namespace Lumos
 
 		void OnImGui() override;
 
-		void RenderFileListView(int dirIndex);
-		void RenderFileGridView(int dirIndex);
-
-		void RenderDircListView(int dirIndex);
-		void RenderDircGridView(int dirIndex);
-
+		 bool RenderFile(int dirIndex, bool folder, int shownIndex, bool gridView);
+		void DrawFolder(const DirectoryInformation& dirInfo);
 		void RenderBreadCrumbs();
 		void RenderBottom();
 		void GetDirectories(const std::string& path);
@@ -73,19 +69,22 @@ namespace Lumos
 
 		std::string m_CurrentDirPath;
 		std::string m_BaseDirPath;
-		std::string m_prevDirPath;
+		std::string m_PreviousDirPath;
 		std::string m_MovePath;
-		std::string m_lastNavPath;
+		std::string m_LastNavPath;
 		static std::string m_Delimiter;
 		
 		std::string m_Directories[100];
 		int m_DirectoryCount;
 
-		size_t m_basePathLen;
+		size_t m_BasePathLen;
 		bool m_IsDragging;
-		bool m_isInListView;
-		bool m_updateBreadCrumbs;
-		bool m_showSearchBar;
+		bool m_IsInListView;
+		bool m_UpdateBreadCrumbs;
+		bool m_ShowHiddenFiles;
+		int m_GridItemsPerRow;
+		
+		ImGuiTextFilter m_Filter;
 
 		char* inputText;
 		char* inputHint;

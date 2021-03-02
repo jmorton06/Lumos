@@ -11,7 +11,7 @@
 namespace Lumos
 {
 
-#define SOLVER_ITERATIONS 50
+#define SOLVER_ITERATIONS 20
 
 	enum class LUMOS_EXPORT IntegrationType
 	{
@@ -132,7 +132,7 @@ namespace Lumos
 
 	protected:
 		//The actual time-independant update function
-		void UpdatePhysics(Scene* scene);
+		void UpdatePhysics();
 
 		//Handles broadphase collision detection
 		void BroadPhaseCollisions();
@@ -140,9 +140,9 @@ namespace Lumos
 		//Handles narrowphase collision detection
 		void NarrowPhaseCollisions();
 
-		//Updates all physics objects position, orientation, velocity etc (default method uses symplectic euler integration)
+		//Updates all Rigid Body position, orientation, velocity etc (default method uses symplectic euler integration)
 		void UpdateRigidBodys();
-		void UpdateRigidBody(const Ref<RigidBody3D>& obj) const;
+		void UpdateRigidBody(RigidBody3D* obj) const;
 
 		//Solves all engine constraints (constraints and manifolds)
 		void SolveConstraints();
@@ -153,7 +153,7 @@ namespace Lumos
 		Maths::Vector3 m_Gravity;
 		float m_DampingFactor;
 
-		std::vector<Ref<RigidBody3D>> m_RigidBodys;
+		std::vector<RigidBody3D*> m_RigidBodys;
 		std::vector<CollisionPair> m_BroadphaseCollisionPairs;
 
 		std::vector<Constraint*> m_Constraints; // Misc constraints between pairs of objects
@@ -164,8 +164,9 @@ namespace Lumos
 		IntegrationType m_IntegrationType;
 
 		uint32_t m_DebugDrawFlags = 0;
+		std::mutex m_ManifoldLock;
 
-		bool m_MultipleUpdates = false;
+		bool m_MultipleUpdates = true;
 		static float s_UpdateTimestep;
 	};
 }

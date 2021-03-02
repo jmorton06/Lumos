@@ -45,11 +45,11 @@ function CreatePlayer()
     texture = LoadTextureWithParams("icon", "//Textures/TappyPlane/PNG/Planes/planeBlue1.png", TextureFilter.Linear, TextureWrap.ClampToEdge)
 
     player = entityManager:Create()
-    player:AddSprite(Vector2.new(-1.0/2.0, -1.0/2.0), Vector2.new(1.15, 1.0), Vector4.new(1.0,1.0,1.0,1.0)):SetTexture(texture)
+    player:AddSprite(Vector2.new(-0.9, -0.8), Vector2.new(1.7, 1.5), Vector4.new(1.0,1.0,1.0,1.0)):SetTexture(texture)
 
     local params = RigidBodyParameters.new()
     params.position = Vector3.new( 1.0, 1.0, 1.0)
-    params.scale = Vector3.new(1.0 / 2.0, 1.0 / 2.0, 1.0)
+    params.scale = Vector3.new(1.7 / 2.0, 1.5 / 2.0, 1.0)
 	params.shape = Shape.Circle
 	params.isStatic = false
 
@@ -155,7 +155,8 @@ function PlayerJump()
 	local phys = player:GetPhysics2DComponent()
 	local vel = phys:GetRigidBody():GetLinearVelocity()
 
-	vel.y = 10;
+	vel.y = 8
+	vel.x = 5
 
     phys:GetRigidBody():SetLinearVelocity(vel)
 end
@@ -172,7 +173,7 @@ function OnUpdate(dt)
         up = Vector3.new(0, 1, 0)
         right = Vector3.new(1, 0, 0)
 
-        if Input.GetKeyPressed( Key.Space ) or Input.GetMouseClicked(MouseButton.Left) then
+        if Input.GetKeyHeld( Key.Space ) or Input.GetMouseClicked(MouseButton.Left) then
 			PlayerJump()
         end
 
@@ -233,17 +234,16 @@ function OnUpdate(dt)
         gui.text("Press Space or Left Click to start")
         gui.endWindow()
 
- 	pos = player:GetTransform():GetWorldPosition()
-     pos.y = 0.0
- 	camera:GetTransform():SetLocalPosition(pos)
-	 if Input.GetKeyPressed( Key.Space ) or Input.GetMouseClicked(MouseButton.Left) then
-		gameState = GameStates.Running
-		player:GetPhysics2DComponent():GetRigidBody():SetIsStatic(false)
-		player:GetPhysics2DComponent():GetRigidBody():SetForce(Vector2.new(200.0,0.0))
-
-		PlayerJump()
-     end
-end
+ 	   pos = player:GetTransform():GetWorldPosition()
+        pos.y = 0.0
+ 	   camera:GetTransform():SetLocalPosition(pos)
+	 	if Input.GetKeyPressed( Key.Space ) or Input.GetMouseClicked(MouseButton.Left) then
+			gameState = GameStates.Running
+			player:GetPhysics2DComponent():GetRigidBody():SetIsStatic(false)
+			player:GetPhysics2DComponent():GetRigidBody():SetForce(Vector2.new(200.0,0.0))
+			PlayerJump()
+     	end
+	end
 
 tracy.ZoneEnd()
 end
@@ -253,7 +253,7 @@ function Reset()
     phys = player:GetPhysics2DComponent():GetRigidBody()
 
     phys:SetPosition(Vector2.new(0.0, 0.0))
-    phys:SetForce(Vector2.new(200.0,0.0))
+    phys:SetForce(Vector2.new(400.0,0.0))
 
     phys:SetLinearVelocity(Vector2.new(0.0, 0.0))
 	phys:SetOrientation(0.0)

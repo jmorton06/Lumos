@@ -62,8 +62,9 @@ void* operator new(std::size_t size)
     {
         throw std::bad_alloc();
     }
-    
+#if defined(LUMOS_PROFILE) && defined(TRACY_ENABLE)
     TracyAlloc(result, size);
+#endif
     return result;
 }
 
@@ -74,20 +75,25 @@ void* operator new[](std::size_t size)
     {
         throw std::bad_alloc();
     }
+#if defined(LUMOS_PROFILE) && defined(TRACY_ENABLE)
     TracyAlloc(result, size);
-
+#endif
     return result;
 }
 
 void operator delete(void * p) throw()
 {
+#if defined(LUMOS_PROFILE) && defined(TRACY_ENABLE)
     TracyFree(p);
+#endif
     Lumos::Memory::DeleteFunc(p);
 }
 
 void operator delete[](void *p) throw()
 {
+#if defined(LUMOS_PROFILE) && defined(TRACY_ENABLE)
     TracyFree(p);
+#endif
     Lumos::Memory::DeleteFunc(p);
 }
 #endif

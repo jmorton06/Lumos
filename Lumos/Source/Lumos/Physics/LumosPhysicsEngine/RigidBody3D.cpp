@@ -45,6 +45,7 @@ namespace Lumos
 
 	Maths::BoundingBox RigidBody3D::GetWorldSpaceAABB()
 	{
+		LUMOS_PROFILE_FUNCTION();
 		if(m_wsAabbInvalidated)
 		{
 			m_wsAabb = m_localBoundingBox.Transformed(GetWorldSpaceTransform());
@@ -66,6 +67,7 @@ namespace Lumos
 
 	const Maths::Matrix4& RigidBody3D::GetWorldSpaceTransform() const
 	{
+		LUMOS_PROFILE_FUNCTION();
 		if(m_wsTransformInvalidated)
 		{
 			m_wsTransform = m_Orientation.RotationMatrix4();
@@ -79,6 +81,7 @@ namespace Lumos
 
 	void RigidBody3D::AutoResizeBoundingBox()
 	{
+		LUMOS_PROFILE_FUNCTION();
 		m_localBoundingBox.Clear();
 
 		const Maths::Vector3 xAxis(1.0f, 0.0f, 0.0f);

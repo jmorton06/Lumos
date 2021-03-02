@@ -29,6 +29,8 @@ namespace Lumos
 		std::string GetFileName(const std::string& FilePath);
 		std::string RemoveName(const std::string& FilePath);
         std::string GetFileLocation(const std::string& FilePath);
+		
+		bool IsHiddenFile(const std::string& path);
 
         std::vector<std::string> LUMOS_EXPORT SplitString(const std::string& string, const std::string& delimiters);
         std::vector<std::string> LUMOS_EXPORT SplitString(const std::string& string, const char delimiter);

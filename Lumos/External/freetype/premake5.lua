@@ -3,6 +3,7 @@ project "freetype"
 	language "C"
     staticruntime "on"
     systemversion "latest"
+	warnings "off"
 
 	
 	files {
@@ -63,12 +64,6 @@ project "freetype"
     
     includedirs {
 		"include"
-    }
-    
-
-    buildoptions
-    {
-        "-w"
     }
 
     filter "configurations:Debug"

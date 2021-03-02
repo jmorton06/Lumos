@@ -10,8 +10,18 @@
 #ifdef LUMOS_PLATFORM_WINDOWS
 #define NOMINMAX
 #include <Windows.h>
+#include <comdef.h>
+#elif LUMOS_PLATFORM_MACOS
+#include <pthread.h>
+#include <sys/types.h>
+//#include <sys/sysctl.h>
+//#include <sys/syscall.h>
+#include <mach/mach.h> 
+//#include <mach/mach_init.h>
+#include <mach/thread_policy.h> 
 #endif
-namespace Lumos 
+
+namespace Lumos
 {
     namespace System 
     {
@@ -25,6 +35,7 @@ namespace Lumos
             //	Returns false if there is not enough space
             inline bool push_back(const T& item)
             {
+				LUMOS_PROFILE_FUNCTION();
                 bool result = false;
                 lock.lock();
                 size_t next = (head + 1) % capacity;
@@ -43,6 +54,7 @@ namespace Lumos
             //	Returns false if there are no items
             inline bool pop_front(T& item)
             {
+				LUMOS_PROFILE_FUNCTION();
                 bool result = false;
                 lock.lock();
                 if (tail != head)
@@ -59,49 +71,87 @@ namespace Lumos
             T data[capacity];
             size_t head = 0;
             size_t tail = 0;
-            std::mutex lock; // this just works better than a spinlock here (on windows)
+            std::mutex lock;
         };
 
         namespace JobSystem
         {
+			struct Job
+			{
+				Context* ctx;
+				std::function<void(JobDispatchArgs)> task;
+				uint32_t groupID;
+				uint32_t groupJobOffset;
+				uint32_t groupJobEnd;
+				uint32_t sharedmemory_size;
+			};
+			
+			
             uint32_t numThreads = 0;
-            ThreadSafeRingBuffer<std::function<void()>, 256> jobPool;
+            ThreadSafeRingBuffer<Job, 256> jobQueue;
             std::condition_variable wakeCondition;
             std::mutex wakeMutex;
-            uint64_t currentLabel = 0;
-            std::atomic<uint64_t> finishedLabel;
-
+			
+			
+            inline bool work()
+            {
+				LUMOS_PROFILE_FUNCTION();
+                Job job;
+				if (jobQueue.pop_front(job))
+				{
+					JobDispatchArgs args;
+					args.groupID = job.groupID;
+					if (job.sharedmemory_size > 0)
+					{
+						args.sharedmemory = alloca(job.sharedmemory_size);
+					}
+					else
+					{
+						args.sharedmemory = nullptr;
+					}
+					
+					for (uint32_t i = job.groupJobOffset; i < job.groupJobEnd; ++i)
+					{
+						LUMOS_PROFILE_SCOPE("Group Loop");
+						args.jobIndex = i;
+						args.groupIndex = i - job.groupJobOffset;
+						args.isFirstJobInGroup = (i == job.groupJobOffset);
+						args.isLastJobInGroup = (i == job.groupJobEnd - 1);
+						job.task(args);
+					}
+					
+					job.ctx->counter.fetch_sub(1);
+					return true;
+				}
+				return false;
+				
+            }
+			
             void OnInit()
             {
-                finishedLabel.store(0);
-
                 // Retrieve the number of hardware threads in this System:
                 auto numCores = std::thread::hardware_concurrency();
 
                 // Calculate the actual number of worker threads we want:
-                numThreads = Lumos::Maths::Max(1U, numCores);
+                numThreads = Lumos::Maths::Max(1U, numCores - 1);
 
                 for (uint32_t threadID = 0; threadID < numThreads; ++threadID)
                 {
-                    std::thread worker([] {
-
-                        std::function<void()> job;
+					std::thread worker([threadID]
+                    {
+						std::stringstream ss;
+						ss << "JobSystem_" << threadID;
+						LUMOS_PROFILE_SETTHREADNAME(ss.str().c_str());
 
                         while (true)
                         {
-                            if (jobPool.pop_front(job))
-                            {
-                                job(); // execute job
-                                finishedLabel.fetch_add(1); // update worker label state
-                            }
-                            else
+                            if (!work())
                             {
                                 // no job, put thread to sleep
                                 std::unique_lock<std::mutex> lock(wakeMutex);
                                 wakeCondition.wait(lock);
                             }
                         }
-
                     });
 
         #ifdef LUMOS_PLATFORM_WINDOWS
@@ -112,12 +162,31 @@ namespace Lumos
                     DWORD_PTR affinityMask = 1ull << threadID; 
                     DWORD_PTR affinity_result = SetThreadAffinityMask(handle, affinityMask);
                     LUMOS_ASSERT(affinity_result > 0,"");
+					
+					// Increase thread priority:
+					BOOL priority_result = SetThreadPriority(handle, THREAD_PRIORITY_HIGHEST);
+					LUMOS_ASSERT(priority_result != 0, "");
+					
                     // Name the thread:
                     std::wstringstream wss;
                     wss << "JobSystem_" << threadID;
                     HRESULT hr = SetThreadDescription(handle, wss.str().c_str());
+
                     LUMOS_ASSERT(SUCCEEDED(hr),"");
-        #endif // LUMOS_PLATFORM_WINDOWS
+					
+#elif LUMOS_PLATFORM_MACOS
+					auto  mask = 1ull << threadID;
+					auto thread = worker.native_handle();
+					thread_policy_set(pthread_mach_thread_np(thread),
+										  THREAD_AFFINITY_POLICY, (integer_t *)&mask, 1);
+					
+					//setpriority(PRIO_PROCESS, 0, -19);
+					
+					std::stringstream wss;
+                    wss << "JobSystem_" << threadID;
+                    pthread_setname_np(wss.str().c_str());
+                    LUMOS_PROFILE_SETTHREADNAME(wss.str().c_str());
+        #endif
 
                     worker.detach();
                 }
@@ -125,80 +194,77 @@ namespace Lumos
                 LUMOS_LOG_INFO("Initialised JobSystem with [{0} cores] [{1} threads]" ,numCores, numThreads);
             }
 
-            // This little function will not let the System to be deadlocked while the main thread is waiting for something
-            inline void poll()
-            {
-                wakeCondition.notify_one(); // wake one worker thread
-                std::this_thread::yield(); // allow this thread to be rescheduled
-            }
-
             uint32_t GetThreadCount()
             {
                 return numThreads;
             }
 
-            void Execute(const std::function<void()>& job)
+            void Execute(Context& ctx, const std::function<void(JobDispatchArgs)>& task)
             {
-                // The main thread label state is updated:
-                currentLabel += 1;
-
-                // Try to push a new job until it is pushed successfully:
-                while (!jobPool.push_back(job)) { poll(); }
-
-                wakeCondition.notify_one(); // wake one thread
+				// Context state is updated:
+				ctx.counter.fetch_add(1);
+				
+				Job job;
+				job.ctx = &ctx;
+				job.task = task;
+				job.groupID = 0;
+				job.groupJobOffset = 0;
+				job.groupJobEnd = 1;
+				job.sharedmemory_size = 0;
+				
+				// Try to push a new job until it is pushed successfully:
+				while (!jobQueue.push_back(job)) { wakeCondition.notify_all(); work(); }
+				
+				// Wake any one thread that might be sleeping:
+				wakeCondition.notify_one();
             }
 
-            void Dispatch(uint32_t jobCount, uint32_t groupSize, const std::function<void(JobDispatchArgs)>& job)
+            void Dispatch(Context& ctx, uint32_t jobCount, uint32_t groupSize, const std::function<void(JobDispatchArgs)>& task, size_t sharedmemory_size)
             {
+				LUMOS_PROFILE_FUNCTION();
                 if (jobCount == 0 || groupSize == 0)
                 {
                     return;
                 }
 
-                // Calculate the amount of job groups to dispatch (overestimate, or "ceil"):
-                const uint32_t groupCount = (jobCount + groupSize - 1) / groupSize;
+                const uint32_t groupCount = DispatchGroupCount(jobCount, groupSize);
+				
+				// Context state is updated:
+				ctx.counter.fetch_add(groupCount);
 
-                // The main thread label state is updated:
-                currentLabel += groupCount;
-
-                for (uint32_t groupIndex = 0; groupIndex < groupCount; ++groupIndex)
+				Job job;
+				job.ctx = &ctx;
+				job.task = task;
+				job.sharedmemory_size = (uint32_t)sharedmemory_size;
+				
+                for (uint32_t groupID = 0; groupID < groupCount; ++groupID)
                 {
-                    // For each group, generate one real job:
-                    const auto& jobGroup = [jobCount, groupSize, job, groupIndex]() {
-
-                        // Calculate the current group's offset into the jobs:
-                        const uint32_t groupJobOffset = groupIndex * groupSize;
-                        const uint32_t groupJobEnd = Lumos::Maths::Min(groupJobOffset + groupSize, jobCount);
-
-                        JobDispatchArgs args;
-                        args.groupIndex = groupIndex;
-
-                        // Inside the group, loop through all job indices and execute job for each index:
-                        for (uint32_t i = groupJobOffset; i < groupJobEnd; ++i)
-                        {
-                            args.jobIndex = i;
-                            job(args);
-                        }
-                    };
-
-                    // Try to push a new job until it is pushed successfully:
-                    while (!jobPool.push_back(jobGroup)) { poll(); }
-
-                    wakeCondition.notify_one(); // wake one thread
+					// For each group, generate one real job:
+					job.groupID = groupID;
+					job.groupJobOffset = groupID * groupSize;
+					job.groupJobEnd = std::min(job.groupJobOffset + groupSize, jobCount);
+					
+					// Try to push a new job until it is pushed successfully:
+					while (!jobQueue.push_back(job)) { wakeCondition.notify_all(); work(); }
                 }
+            }
+			
+			uint32_t DispatchGroupCount(uint32_t jobCount, uint32_t groupSize)
+			{
+				// Calculate the amount of job groups to dispatch (overestimate, or "ceil"):
+				return (jobCount + groupSize - 1) / groupSize;
+			}
 
-
+            bool IsBusy(const Context& ctx)
+            {
+				// Whenever the main thread label is not reached by the workers, it indicates that some worker is still alive
+                return ctx.counter.load() > 0;
             }
 
-            bool IsBusy()
+            void Wait(const Context& ctx)
             {
-                // Whenever the main thread label is not reached by the workers, it indicates that some worker is still alive
-                return finishedLabel.load() < currentLabel;
-            }
-
-            void Wait()
-            {
-                while (IsBusy()) { poll(); }
+					wakeCondition.notify_all();
+                while (IsBusy(ctx)) { work(); }
             }
         }
     }
