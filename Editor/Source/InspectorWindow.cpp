@@ -950,7 +950,7 @@ end
 		if (ImGui::TreeNode("States"))
 		{
 			//ImGui::Indent(20.0f);
-			ImGui::SameLine(ImGui::GetWindowContentRegionWidth() - 16.0f);
+			ImGui::SameLine(ImGui::GetWindowContentRegionWidth() - ImGui::GetFontSize());
             ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.7f, 0.7f, 0.7f, 0.0f));
 			
 			if(ImGui::Button(ICON_MDI_PLUS))

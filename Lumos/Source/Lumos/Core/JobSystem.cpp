@@ -154,7 +154,7 @@ namespace Lumos
                         }
                     });
 
-        #ifdef LUMOS_PLATFORM_WINDOWS
+#ifdef LUMOS_PLATFORM_WINDOWS
                     // Do Windows-specific thread setup:
                     HANDLE handle = (HANDLE)worker.native_handle();
 
@@ -263,7 +263,7 @@ namespace Lumos
 
             void Wait(const Context& ctx)
             {
-					wakeCondition.notify_all();
+                wakeCondition.notify_all();
                 while (IsBusy(ctx)) { work(); }
             }
         }

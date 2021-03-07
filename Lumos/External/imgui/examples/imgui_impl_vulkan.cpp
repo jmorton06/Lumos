@@ -256,6 +256,11 @@ void ImGui_ImplVulkan_RenderDrawData(ImDrawData* draw_data, VkCommandBuffer comm
     VkResult err;
     if (draw_data->TotalVtxCount == 0)
         return;
+	
+	int fb_width = (int)(draw_data->DisplaySize.x * draw_data->FramebufferScale.x);
+    int fb_height = (int)(draw_data->DisplaySize.y * draw_data->FramebufferScale.y);
+    if (fb_width <= 0 || fb_height <= 0)
+        return;
 
 	CreateDescriptorSets(draw_data);
 
@@ -316,11 +321,11 @@ void ImGui_ImplVulkan_RenderDrawData(ImDrawData* draw_data, VkCommandBuffer comm
 
     // Setup viewport:
     {
-        VkViewport viewport;
+		VkViewport viewport;
         viewport.x = 0;
         viewport.y = 0;
-        viewport.width = draw_data->DisplaySize.x;
-        viewport.height = draw_data->DisplaySize.y;
+        viewport.width = (float)fb_width;
+        viewport.height = (float)fb_height;
         viewport.minDepth = 0.0f;
         viewport.maxDepth = 1.0f;
         vkCmdSetViewport(command_buffer, 0, 1, &viewport);
@@ -329,7 +334,7 @@ void ImGui_ImplVulkan_RenderDrawData(ImDrawData* draw_data, VkCommandBuffer comm
     // Setup scale and translation:
     // Our visible imgui space lies from draw_data->DisplayPps (top left) to draw_data->DisplayPos+data_data->DisplaySize (bottom right). DisplayMin is typically (0,0) for single viewport apps.
     {
-        float scale[2];
+		float scale[2];
         scale[0] = 2.0f / draw_data->DisplaySize.x;
         scale[1] = 2.0f / draw_data->DisplaySize.y;
         float translate[2];
@@ -340,9 +345,12 @@ void ImGui_ImplVulkan_RenderDrawData(ImDrawData* draw_data, VkCommandBuffer comm
     }
 
     // Render the command lists:
-    int vtx_offset = 0;
-    int idx_offset = 0;
-    ImVec2 display_pos = draw_data->DisplayPos;
+	int global_vtx_offset = 0;
+    int global_idx_offset = 0;
+	
+    // Will project scissor/clipping rectangles into framebuffer space
+    ImVec2 clip_off = draw_data->DisplayPos;         // (0,0) unless using multi-viewports
+    ImVec2 clip_scale = draw_data->FramebufferScale; // (1,1) unless using retina display which are often (2,2)
     for (int n = 0; n < draw_data->CmdListsCount; n++)
     {
         const ImDrawList* cmd_list = draw_data->CmdLists[n];
@@ -380,20 +388,36 @@ void ImGui_ImplVulkan_RenderDrawData(ImDrawData* draw_data, VkCommandBuffer comm
 					}
 				}
 
-                VkRect2D scissor;
-                scissor.offset.x = (int32_t)(pcmd->ClipRect.x - display_pos.x) > 0 ? (int32_t)(pcmd->ClipRect.x - display_pos.x) : 0;
-                scissor.offset.y = (int32_t)(pcmd->ClipRect.y - display_pos.y) > 0 ? (int32_t)(pcmd->ClipRect.y - display_pos.y) : 0;
-                scissor.extent.width = (uint32_t)(pcmd->ClipRect.z - pcmd->ClipRect.x);
-                scissor.extent.height = (uint32_t)(pcmd->ClipRect.w - pcmd->ClipRect.y + 1); // FIXME: Why +1 here?
-                vkCmdSetScissor(command_buffer, 0, 1, &scissor);
-                
-                // Draw
-                vkCmdDrawIndexed(command_buffer, pcmd->ElemCount, 1, idx_offset, vtx_offset, 0);
+				// Project scissor/clipping rectangles into framebuffer space
+                ImVec4 clip_rect;
+                clip_rect.x = (pcmd->ClipRect.x - clip_off.x) * clip_scale.x;
+                clip_rect.y = (pcmd->ClipRect.y - clip_off.y) * clip_scale.y;
+                clip_rect.z = (pcmd->ClipRect.z - clip_off.x) * clip_scale.x;
+                clip_rect.w = (pcmd->ClipRect.w - clip_off.y) * clip_scale.y;
+				
+                if (clip_rect.x < fb_width && clip_rect.y < fb_height && clip_rect.z >= 0.0f && clip_rect.w >= 0.0f)
+                {
+                    // Negative offsets are illegal for vkCmdSetScissor
+                    if (clip_rect.x < 0.0f)
+                        clip_rect.x = 0.0f;
+                    if (clip_rect.y < 0.0f)
+                        clip_rect.y = 0.0f;
+					
+                    // Apply scissor/clipping rectangle
+                    VkRect2D scissor;
+                    scissor.offset.x = (int32_t)(clip_rect.x);
+                    scissor.offset.y = (int32_t)(clip_rect.y);
+                    scissor.extent.width = (uint32_t)(clip_rect.z - clip_rect.x);
+                    scissor.extent.height = (uint32_t)(clip_rect.w - clip_rect.y);
+                    vkCmdSetScissor(command_buffer, 0, 1, &scissor);
+					
+                    // Draw
+                    vkCmdDrawIndexed(command_buffer, pcmd->ElemCount, 1, pcmd->IdxOffset + global_idx_offset, pcmd->VtxOffset + global_vtx_offset, 0);
+                }
             }
-            idx_offset += pcmd->ElemCount;
         }
-        vtx_offset += cmd_list->VtxBuffer.Size;
-    }
+		global_idx_offset += cmd_list->IdxBuffer.Size;
+        global_vtx_offset += cmd_list->VtxBuffer.Size;}
 }
 
 

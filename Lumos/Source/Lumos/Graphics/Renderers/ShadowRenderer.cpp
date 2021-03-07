@@ -23,7 +23,7 @@
 
 #include <imgui/imgui.h>
 
-//#define THREAD_CASCADE_GEN
+#define THREAD_CASCADE_GEN
 #ifdef THREAD_CASCADE_GEN
 #	include "Core/JobSystem.h"
 #endif
@@ -331,9 +331,10 @@ namespace Lumos
 				float d = m_CascadeSplitLambda * (log - uniform) + uniform;
 				cascadeSplits[i] = (d - nearClip) / clipRange;
 			}
-
+			
+			System::JobSystem::Context ctx;
 #ifdef THREAD_CASCADE_GEN
-			System::JobSystem::Dispatch(static_cast<uint32_t>(m_ShadowMapNum), 1, [&](JobDispatchArgs args)
+			System::JobSystem::Dispatch(ctx, static_cast<uint32_t>(m_ShadowMapNum), 1, [&](JobDispatchArgs args)
 #else
 			for(uint32_t i = 0; i < m_ShadowMapNum; i++)
 #endif
@@ -341,6 +342,7 @@ namespace Lumos
 #ifdef THREAD_CASCADE_GEN
 					int i = args.jobIndex;
 #endif
+					LUMOS_PROFILE_SCOPE("Create Cascade");
 					float splitDist = cascadeSplits[i];
 					float lastSplitDist = i == 0 ? 0.0f : cascadeSplits[i - 1];
 
@@ -428,7 +430,7 @@ namespace Lumos
 				}
 #ifdef THREAD_CASCADE_GEN
 			);
-			System::JobSystem::Wait();
+			System::JobSystem::Wait(ctx);
 #endif
 		}
 

@@ -115,6 +115,7 @@ namespace Lumos
         VFS::Get()->Mount("Sounds", projectRoot + std::string("Assets/sounds"));
         VFS::Get()->Mount("Scripts", projectRoot + std::string("Assets/scripts"));
         VFS::Get()->Mount("Scenes", projectRoot + std::string("Assets/scenes"));
+		VFS::Get()->Mount("Assets", projectRoot + std::string("Assets"));
 		#endif
 	}
 
@@ -247,6 +248,9 @@ namespace Lumos
             stats.FrameTime = ts.GetMillis();
         }
         
+        Input::GetInput()->ResetPressed();
+        m_Window->ProcessInput();
+        
         {
             LUMOS_PROFILE_SCOPE("Application::ImGui::NewFrame");
             ImGui::NewFrame();
@@ -276,7 +280,6 @@ namespace Lumos
         }
         {
             LUMOS_PROFILE_SCOPE("Application::WindowUpdate");
-            Input::GetInput()->ResetPressed();
             m_Window->UpdateCursorImGui();
             m_Window->OnUpdate();
         }

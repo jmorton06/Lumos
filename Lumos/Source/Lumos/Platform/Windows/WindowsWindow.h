@@ -20,6 +20,7 @@ namespace Lumos
 		void SetWindowTitle(const std::string& title) override;
 		void SetBorderlessWindow(bool borderless) override;
 		void OnUpdate() override;
+		void ProcessInput() override;
 
 		void SetVSync(bool set) override{};
 		void HideMouse(bool hide) override{};

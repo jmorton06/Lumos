@@ -24,7 +24,7 @@ void MaterialTest::OnInit()
 	LoadModels();
 	
 	auto environment = CreateEntity("Environment");
-	environment.AddComponent<Graphics::Environment>("//TextuAssets/cubemap/Arches_E_PineTree", 11, 3072, 4096, 1.0f/32.0f,  ".tga");
+	environment.AddComponent<Graphics::Environment>("//Textures/cubemap/Arches_E_PineTree", 11, 3072, 4096, 1.0f/32.0f,  ".tga");
 	
 	auto lightEntity = CreateEntity("Light");
 	lightEntity.AddComponent<Graphics::Light>(Maths::Vector3(26.0f, 22.0f, 48.5f), Maths::Vector4(1.0f), 1.3f);
@@ -56,35 +56,35 @@ void MaterialTest::LoadModels()
 	std::vector<Lumos::Ref<Material>> materials;
 	
 	auto grassMaterial = CreateRef<Material>();
-	grassMaterial->LoadPBRMaterial("grass", "//TextuAssets/pbr");
+	grassMaterial->LoadPBRMaterial("grass", "//Textures/pbr");
 	materials.push_back(grassMaterial);
 	
 	auto stonewallMaterial = CreateRef<Material>();
-	stonewallMaterial->LoadPBRMaterial("stonewall", "//TextuAssets/pbr");
+	stonewallMaterial->LoadPBRMaterial("stonewall", "//Textures/pbr");
 	materials.push_back(stonewallMaterial);
 	
 	auto castIronMaterial = CreateRef<Material>();
-	castIronMaterial->LoadPBRMaterial("CastIron", "//TextuAssets/pbr", ".tga");
+	castIronMaterial->LoadPBRMaterial("CastIron", "//Textures/pbr", ".tga");
 	materials.push_back(castIronMaterial);
 	
 	auto GunMetalMaterial = CreateRef<Material>();
-	GunMetalMaterial->LoadPBRMaterial("GunMetal", "//TextuAssets/pbr", ".tga");
+	GunMetalMaterial->LoadPBRMaterial("GunMetal", "//Textures/pbr", ".tga");
 	materials.push_back(GunMetalMaterial);
 	
 	auto WornWoodMaterial = CreateRef<Material>();
-	WornWoodMaterial->LoadPBRMaterial("WornWood", "//TextuAssets/pbr", ".tga");
+	WornWoodMaterial->LoadPBRMaterial("WornWood", "//Textures/pbr", ".tga");
 	materials.push_back(WornWoodMaterial);
 	
 	auto marbleMaterial = CreateRef<Material>();
-	marbleMaterial->LoadPBRMaterial("marble", "//TextuAssets/pbr");
+	marbleMaterial->LoadPBRMaterial("marble", "//Textures/pbr");
 	materials.push_back(marbleMaterial);
 	
 	auto stoneMaterial = CreateRef<Material>();
-	stoneMaterial->LoadPBRMaterial("stone", "//TextuAssets/pbr");
+	stoneMaterial->LoadPBRMaterial("stone", "//Textures/pbr");
 	materials.push_back(stoneMaterial);
 	
 	auto testMaterial = CreateRef<Material>();
-	testMaterial->LoadMaterial("checkerboard", "//TextuAssets/checkerboard.tga");
+	testMaterial->LoadMaterial("checkerboard", "//Textures/checkerboard.tga");
 	materials.push_back(testMaterial);
 	
 	const float groundWidth = (float(materials.size()) * 1.2f + 1.0f) / 2.0f;

@@ -98,7 +98,7 @@ namespace Lumos
 		}
 		const Maths::Matrix4& GetWorldSpaceTransform() const; //Built from scratch or returned from cached value
 
-		Maths::BoundingBox GetWorldSpaceAABB();
+		const Maths::BoundingBox& GetWorldSpaceAABB();
 
 		void WakeUp() override;
 		void SetIsAtRest(const bool isAtRest) override;

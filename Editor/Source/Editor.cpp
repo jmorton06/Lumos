@@ -603,9 +603,7 @@ namespace Lumos
 				if(selected)
 					ImGui::PopStyleColor();
 			}
-            
-			ImGui::SameLine(ImGui::GetWindowContentRegionMax().x - 240.0f);
-			
+            			
 			static Engine::Stats stats = {};
 			static float timer = 1.1f;
 			timer += Engine::GetTimeStep().GetSeconds();
@@ -616,6 +614,10 @@ namespace Lumos
 				stats = Engine::Get().Statistics();
 			}
 			
+            auto size = ImGui::CalcTextSize("%.2f ms (%.i FPS)");
+            float sizeOfGfxAPIDropDown = ImGui::GetFontSize() * 8;
+            ImGui::SameLine(ImGui::GetWindowContentRegionMax().x - size.x - ImGui::GetStyle().ItemSpacing.x * 2.0f - sizeOfGfxAPIDropDown);
+
 			ImGui::Text("%.2f ms (%.i FPS)", stats.FrameTime, stats.FramesPerSecond);
 			
 			ImGui::SameLine();
