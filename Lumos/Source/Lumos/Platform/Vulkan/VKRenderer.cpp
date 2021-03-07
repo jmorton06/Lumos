@@ -80,6 +80,14 @@ namespace Lumos
 			m_Width = width;
 			m_Height = height;
 			
+			VkSurfaceCapabilitiesKHR capabilities;
+			vkGetPhysicalDeviceSurfaceCapabilitiesKHR(VKDevice::Get().GetGPU(), VKContext::Get()->GetSwapchain()->GetSurface(), &capabilities);
+			
+			
+			m_Width = std::max(capabilities.minImageExtent.width, std::min(capabilities.maxImageExtent.width, m_Width));
+			m_Height = std::max(capabilities.minImageExtent.height, std::min(capabilities.maxImageExtent.height, m_Height));
+			
+			
 			VKContext::Get()->OnResize(m_Width, m_Height);
         }
 

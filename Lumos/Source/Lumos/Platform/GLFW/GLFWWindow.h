@@ -26,6 +26,7 @@ namespace Lumos
 		void HideMouse(bool hide) override;
 		void SetMousePosition(const Maths::Vector2& pos) override;
 		void UpdateCursorImGui() override;
+        void ProcessInput() override;
 
 		bool Init(const WindowProperties& properties);
 
@@ -46,18 +47,27 @@ namespace Lumos
 		{
 			return m_Data.Height;
 		}
+        
+        inline float GetDPIScale() const override
+        {
+            return m_Data.DPIScale;
+        }
+        
 		inline float GetScreenRatio() const override
 		{
 			return (float)m_Data.Width / (float)m_Data.Height;
 		}
+        
 		inline bool GetExit() const override
 		{
 			return m_Data.Exit;
 		}
+        
 		inline void SetExit(bool exit) override
 		{
 			m_Data.Exit = exit;
 		}
+        
 		inline void SetEventCallback(const EventCallbackFn& callback) override
 		{
 			m_Data.EventCallback = callback;
@@ -79,6 +89,7 @@ namespace Lumos
 			bool VSync;
 			bool Exit;
 			Graphics::RenderAPI m_RenderAPI;
+            float DPIScale;
 
 			EventCallbackFn EventCallback;
 		};

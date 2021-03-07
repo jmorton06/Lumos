@@ -43,7 +43,7 @@ namespace Lumos
 	{
 	}
 
-	Maths::BoundingBox RigidBody3D::GetWorldSpaceAABB()
+	const Maths::BoundingBox& RigidBody3D::GetWorldSpaceAABB()
 	{
 		LUMOS_PROFILE_FUNCTION();
 		if(m_wsAabbInvalidated)

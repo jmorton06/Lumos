@@ -111,10 +111,10 @@ namespace Lumos
         ImGui::TextUnformatted(ICON_MDI_MAGNIFY);
         ImGui::SameLine();
         
-        float levelButtonWidths = 6 * (ImGui::GetFontSize() + ImGui::GetStyle().ItemSpacing.x) + 2.0f;
-        Filter.Draw("###ConsoleFilter", ImGui::GetWindowWidth() - levelButtonWidths * 1.6f);
+        float levelButtonWidths = 6 * (ImGui::GetFontSize() + ImGui::GetStyle().ItemSpacing.x);
+        Filter.Draw("###ConsoleFilter", ImGui::GetWindowWidth() - levelButtonWidths * 1.8f);
         
-        ImGui::SameLine(ImGui::GetWindowWidth() - levelButtonWidths);
+        ImGui::SameLine();//ImGui::GetWindowWidth() - levelButtonWidths);
         
         for(int i = 0; i < 6; i++)
         {
@@ -237,7 +237,7 @@ namespace Lumos
 			
 			if (m_Count > 1)
 			{
-				ImGui::SameLine(ImGui::GetContentRegionAvail().x - (m_Count > 99 ? 35 : 28));
+				ImGui::SameLine(ImGui::GetContentRegionAvail().x - (m_Count > 99 ? ImGui::GetFontSize() * 1.7f : ImGui::GetFontSize() * 1.5f));
 				ImGui::Text("%d", m_Count);
 			}
 			

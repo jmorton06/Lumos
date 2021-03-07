@@ -62,9 +62,12 @@ namespace Lumos
 		
 		axis.Normalize();
 		
-		for(const Maths::Vector3& p_axis : *possible_collision_axes)
+		float value = (1.0f - epsilon);
+		auto& axes = *possible_collision_axes;
+
+		for(const Maths::Vector3& p_axis : axes)
 		{
-			if(abs(Maths::Vector3::Dot(axis, p_axis)) >= (1.0f - epsilon))
+			if(abs(Maths::Vector3::Dot(axis, p_axis)) >= value)
 				return;
 		}
 		
@@ -278,6 +281,7 @@ namespace Lumos
 					globalOnB = endPoint - coldata.normal * contact_penetration;
 				}
 				
+				//Thread safe here
 				manifold->AddContact(globalOnA, globalOnB, coldata.normal, contact_penetration);
 			}
 		}

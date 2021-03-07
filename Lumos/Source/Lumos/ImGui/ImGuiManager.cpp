@@ -21,11 +21,12 @@ namespace Lumos
     ImGuiManager::ImGuiManager(bool clearScreen)
 	{
 		m_ClearScreen = clearScreen;
-		m_FontSize = 16.0f;
+		m_FontSize = 18.0f;
         
 #ifdef LUMOS_PLATFORM_IOS
         m_FontSize *= 2.0f;
 #endif
+    
 	}
 
     ImGuiManager::~ImGuiManager()
@@ -38,6 +39,7 @@ namespace Lumos
 		Application& app = Application::Get();
 		ImGuiIO& io = ImGui::GetIO();
 		io.DisplaySize = ImVec2(static_cast<float>(app.GetWindow()->GetWidth()), static_cast<float>(app.GetWindow()->GetHeight()));
+		io.DisplayFramebufferScale = ImVec2(app.GetWindow()->GetDPIScale(), app.GetWindow()->GetDPIScale());
         io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
 #ifdef LUMOS_PLATFORM_IOS
@@ -46,11 +48,16 @@ namespace Lumos
 		io.BackendFlags |= ImGuiBackendFlags_HasMouseCursors;
 		io.ConfigWindowsMoveFromTitleBarOnly = true;
         
+        //m_FontSize *= app.GetWindow()->GetDPIScale();
+        
 		SetImGuiKeyCodes();
 		SetImGuiStyle();
-
+		
 #ifdef LUMOS_PLATFORM_IOS
         ImGui::GetStyle().ScaleAllSizes(0.5f);
+#endif
+#ifdef LUMOS_PLATFORM_MACOS
+        //ImGui::GetStyle().ScaleAllSizes(app.GetWindow()->GetDPIScale());
 #endif
 
 		m_IMGUIRenderer = UniqueRef<Graphics::IMGUIRenderer>(Graphics::IMGUIRenderer::Create(app.GetWindow()->GetWidth(), app.GetWindow()->GetHeight(), m_ClearScreen));
@@ -189,7 +196,7 @@ namespace Lumos
 		uint32_t height = Maths::Max(1u, e.GetHeight());
 
 		io.DisplaySize = ImVec2(static_cast<float>(width), static_cast<float>(height));
-		io.DisplayFramebufferScale = ImVec2(1.0f, 1.0f);
+		io.DisplayFramebufferScale = ImVec2(e.GetDPIScale(), e.GetDPIScale());
 
 		m_IMGUIRenderer->OnResize(width, height);
 
@@ -263,10 +270,11 @@ namespace Lumos
 			font_config->RasterizerFlags = ImGuiFreeType::RasterizerFlags::ForceAutoHint;
 		}
 
-		ImGuiFreeType::BuildFontAtlas(io.Fonts, ImGuiFreeType::RasterizerFlags::ForceAutoHint);
+		ImGuiFreeType::BuildFontAtlas(io.Fonts, ImGuiFreeType::RasterizerFlags::LightHinting);
 
 		ImGuiStyle& style = ImGui::GetStyle();
 #ifdef LUMOS_PLATFORM_IOS
+        //TODO: Check this 
         style.ScaleAllSizes(3.0f);
 #endif
 

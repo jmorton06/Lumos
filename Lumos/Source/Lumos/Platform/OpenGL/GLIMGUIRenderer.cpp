@@ -15,10 +15,6 @@ namespace Lumos
 	        m_ClearScreen = clearScreen;
 	        ImGui_ImplOpenGL3_Init("#version 410");
             ImGui_ImplOpenGL3_NewFrame();
-            
-#ifdef LUMOS_PLATFORM_MACOS
-            //ImGui::GetIO().DisplayFramebufferScale = {2.0f,2.0f};
-#endif
         }
 
         GLIMGUIRenderer::~GLIMGUIRenderer()
