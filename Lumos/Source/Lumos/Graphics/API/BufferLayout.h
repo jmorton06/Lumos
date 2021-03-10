@@ -12,7 +12,7 @@ namespace Lumos
 			std::string name;
             Format format;
 			uint32_t offset = 0;
-			bool normalized = false;
+			bool Normalised = false;
 		};
 
 		class LUMOS_EXPORT BufferLayout
@@ -25,7 +25,7 @@ namespace Lumos
 			BufferLayout();
 
 			template<typename T>
-			void Push(const std::string& name, bool normalized = false)
+			void Push(const std::string& name, bool Normalised = false)
 			{
 				LUMOS_ASSERT(false, "Unkown type!");
 			}
@@ -40,25 +40,25 @@ namespace Lumos
 			}
 
 		private:
-			void Push(const std::string& name, Format format, uint32_t size, bool normalized);
+			void Push(const std::string& name, Format format, uint32_t size, bool Normalised);
 		};
 
 		template<>
-		void LUMOS_EXPORT BufferLayout::Push<float>(const std::string& name, bool normalized);
+		void LUMOS_EXPORT BufferLayout::Push<float>(const std::string& name, bool Normalised);
 		template<>
-		void LUMOS_EXPORT BufferLayout::Push<uint32_t>(const std::string& name, bool normalized);
+		void LUMOS_EXPORT BufferLayout::Push<uint32_t>(const std::string& name, bool Normalised);
 		template<>
-		void LUMOS_EXPORT BufferLayout::Push<uint8_t>(const std::string& name, bool normalized);
+		void LUMOS_EXPORT BufferLayout::Push<uint8_t>(const std::string& name, bool Normalised);
 		template<>
-		void LUMOS_EXPORT BufferLayout::Push<Maths::Vector2>(const std::string& name, bool normalized);
+		void LUMOS_EXPORT BufferLayout::Push<Maths::Vector2>(const std::string& name, bool Normalised);
 		template<>
-		void LUMOS_EXPORT BufferLayout::Push<Maths::Vector3>(const std::string& name, bool normalized);
+		void LUMOS_EXPORT BufferLayout::Push<Maths::Vector3>(const std::string& name, bool Normalised);
 		template<>
-		void LUMOS_EXPORT BufferLayout::Push<Maths::Vector4>(const std::string& name, bool normalized);
+		void LUMOS_EXPORT BufferLayout::Push<Maths::Vector4>(const std::string& name, bool Normalised);
         template<>
-        void LUMOS_EXPORT BufferLayout::Push<Maths::IntVector3>(const std::string& name, bool normalized);
+        void LUMOS_EXPORT BufferLayout::Push<Maths::IntVector3>(const std::string& name, bool Normalised);
         template<>
-        void LUMOS_EXPORT BufferLayout::Push<Maths::IntVector4>(const std::string& name, bool normalized);
+        void LUMOS_EXPORT BufferLayout::Push<Maths::IntVector4>(const std::string& name, bool Normalised);
 
 	}
 }

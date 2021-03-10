@@ -83,6 +83,11 @@ namespace Lumos
 			void CreateGraphicsPipeline();
 			void CreateFramebuffers();
 			void UpdateDesciptorSet() const;
+            
+            void Clear()
+            {
+                m_Points.clear();
+            }
 	
 		protected:
 			void FlushAndResetPoints();

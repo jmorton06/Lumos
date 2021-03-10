@@ -73,6 +73,7 @@ namespace Lumos
         virtual void OnRender();
         virtual void OnUpdate(const TimeStep& dt);
         virtual void OnImGui();
+        virtual void OnDebugDraw();
 
 		SceneManager* GetSceneManager() const
 		{
@@ -252,7 +253,6 @@ namespace Lumos
             {
                 archive(cereal::make_nvp("Borderless", Borderless));
             }
-
 		}
 					
 
@@ -270,8 +270,8 @@ namespace Lumos
 		std::string FilePath;
 		//
 
-		uint32_t m_Frames;
-		uint32_t m_Updates;
+		uint32_t m_Frames = 0;
+		uint32_t m_Updates = 0;
 		float m_SecondTimer = 0.0f;
 		bool m_Minimized = false;
 		bool m_SceneActive = true;

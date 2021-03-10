@@ -99,6 +99,11 @@ namespace Lumos
 
 			void FlushAndReset();
 			void SubmitTriangles();
+            void Clear()
+            {
+                m_Triangles.clear();
+                m_CommandQueue2D.clear();
+            }
 
 		private:
 			void SubmitInternal(const TriangleInfo& triangle);

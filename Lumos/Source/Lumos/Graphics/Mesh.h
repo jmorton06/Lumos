@@ -51,7 +51,7 @@ namespace Lumos
 
 			Mesh();
 			Mesh(const Mesh& mesh);
-			Mesh(const std::vector<uint32_t>& indices, const std::vector<Vertex>& vertices, float optimiseThreshold = 0.95f);
+			Mesh(const std::vector<uint32_t>& indices, const std::vector<Vertex>& vertices, float optimiseThreshold = 1.0f);
 			Mesh(Ref<VertexBuffer>& vertexBuffer, Ref<IndexBuffer>& indexBuffer, const Ref<Maths::BoundingBox>& boundingBox);
 			
 			virtual ~Mesh();

@@ -50,7 +50,7 @@ namespace Lumos
 
 		Maths::Vector3 ab = globalOnB - globalOnA;
 		Maths::Vector3 abn = ab;
-		abn.Normalize();
+		abn.Normalise();
 
 		Maths::Vector3 v0 = m_pObj1->GetLinearVelocity() + Maths::Vector3::Cross(m_pObj1->GetAngularVelocity(), r1);
 		Maths::Vector3 v1 = m_pObj2->GetLinearVelocity() + Maths::Vector3::Cross(m_pObj2->GetAngularVelocity(), r2);

@@ -178,16 +178,11 @@ namespace Lumos
 		
 		Graphics::Material::InitDefaultTexture();
             
-//#ifndef LUMOS_PLATFORM_IOS //Need to disable for A12 and earlier
-        auto shadowRenderer = new Graphics::ShadowRenderer();
-        Application::Get().GetRenderGraph()->SetShadowRenderer(shadowRenderer);
-        m_RenderGraph->AddRenderer(shadowRenderer);
-//#endif
-        
+		//Need to disable for A12 and earlier - doesn't support rendering to depth array
+        m_RenderGraph->AddRenderer(new Graphics::ShadowRenderer());
         m_RenderGraph->AddRenderer(new Graphics::DeferredRenderer(screenWidth, screenHeight));
         m_RenderGraph->AddRenderer(new Graphics::SkyboxRenderer(screenWidth, screenHeight));
         m_RenderGraph->AddRenderer(new Graphics::Renderer2D(screenWidth, screenHeight, false, false, true));
-        
         m_RenderGraph->EnableDebugRenderer(true);
 		
 		System::JobSystem::Wait(context);
@@ -197,6 +192,7 @@ namespace Lumos
 	{
 		LUMOS_PROFILE_FUNCTION();
 		Serialise(FilePath);
+		Graphics::GraphicsContext::GetContext()->WaitIdle();
 		Graphics::Material::ReleaseDefaultTexture();
 		Engine::Release();
 		Input::Release();
@@ -225,13 +221,11 @@ namespace Lumos
 		LUMOS_PROFILE_FUNCTION();
 		LUMOS_PROFILE_FRAMEMARKER();
 		
+        if(m_SceneManager->GetSwitchingScene())
         {
             LUMOS_PROFILE_SCOPE("Application::SceneSwitch");
-            if(m_SceneManager->GetSwitchingScene())
-            {
-                m_SceneManager->ApplySceneSwitch();
-                return m_CurrentState != AppState::Closing;
-            }
+            m_SceneManager->ApplySceneSwitch();
+            return m_CurrentState != AppState::Closing;
         }
         
 		float now = m_Timer->GetElapsedS();
@@ -251,6 +245,16 @@ namespace Lumos
         Input::GetInput()->ResetPressed();
         m_Window->ProcessInput();
         
+		if(Input::GetInput()->GetKeyPressed(Lumos::InputCode::Key::Escape))
+        {
+            m_CurrentState = AppState::Closing;
+        }
+		
+		//Exit frame early if escape or close button clicked
+		//Prevents a crash with vulkan/moltenvk
+		if(m_CurrentState == AppState::Closing) 
+			return false;
+		
         {
             LUMOS_PROFILE_SCOPE("Application::ImGui::NewFrame");
             ImGui::NewFrame();
@@ -267,6 +271,7 @@ namespace Lumos
             LUMOS_PROFILE_SCOPE("Application::Render");
 
             OnRender();
+
             m_ImGuiManager->OnRender(m_SceneManager->GetCurrentScene());
             
             Graphics::Renderer::GetRenderer()->Present();
@@ -278,15 +283,12 @@ namespace Lumos
             stats.UsedGPUMemory = Graphics::GraphicsContext::GetContext()->GetGPUMemoryUsed();
             stats.TotalGPUMemory = Graphics::GraphicsContext::GetContext()-> GetTotalGPUMemory();
         }
+		
         {
             LUMOS_PROFILE_SCOPE("Application::WindowUpdate");
             m_Window->UpdateCursorImGui();
             m_Window->OnUpdate();
         }
-
-        if(Input::GetInput()->GetKeyPressed(Lumos::InputCode::Key::Escape))
-            m_CurrentState = AppState::Closing;
-
 		
 		if(now - m_SecondTimer > 1.0f)
 		{
@@ -308,17 +310,25 @@ namespace Lumos
 		LUMOS_PROFILE_FUNCTION();
 		if(m_RenderGraph->GetCount() > 0)
 		{
+            DebugRenderer::Clear();
 			Graphics::Renderer::GetRenderer()->Begin();
-
             m_RenderGraph->BeginScene(m_SceneManager->GetCurrentScene());
-            m_SystemManager->OnDebugDraw();
 
-			m_RenderGraph->OnRender();
+            m_RenderGraph->OnRender();
+            OnDebugDraw();
+            DebugRenderer::Render();
 		}
 	}
 
+    void Application::OnDebugDraw()
+    {
+        m_SystemManager->OnDebugDraw();
+
+    }
+
 	void Application::OnUpdate(const TimeStep& dt)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		if(Application::Get().GetEditorState() != EditorState::Paused
 			&& Application::Get().GetEditorState() != EditorState::Preview)
 		{
@@ -380,6 +390,7 @@ namespace Lumos
 
 	void Application::OnExitScene()
 	{
+		
 	}
 
 	bool Application::OnWindowClose(WindowCloseEvent& e)

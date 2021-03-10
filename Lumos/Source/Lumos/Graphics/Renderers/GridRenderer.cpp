@@ -212,18 +212,10 @@ namespace Lumos
 		void GridRenderer::CreateGraphicsPipeline()
 		{
 			LUMOS_PROFILE_FUNCTION();
-                        
-            Graphics::BufferLayout vertexBufferLayout;
-            vertexBufferLayout.Push<Maths::Vector3>("position");
-            vertexBufferLayout.Push<Maths::Vector4>("colour");
-            vertexBufferLayout.Push<Maths::Vector2>("uv");
-            vertexBufferLayout.Push<Maths::Vector3>("normal");
-            vertexBufferLayout.Push<Maths::Vector3>("tangent");
-
+            
 			Graphics::PipelineInfo pipelineCreateInfo;
 			pipelineCreateInfo.shader = m_Shader;
 			pipelineCreateInfo.renderpass = m_RenderPass;
-            pipelineCreateInfo.vertexBufferLayout = vertexBufferLayout;
 			pipelineCreateInfo.polygonMode = Graphics::PolygonMode::FILL;
 			pipelineCreateInfo.cullMode = Graphics::CullMode::NONE;
 			pipelineCreateInfo.transparencyEnabled = true;

@@ -86,6 +86,11 @@ namespace Lumos
 			void CreateGraphicsPipeline();
 			void CreateFramebuffers();
 			void FlushAndResetLines();
+            
+            void Clear()
+            {
+                m_Lines.clear();
+            }
 
 		protected:
 			void SubmitInternal(const LineInfo& info);

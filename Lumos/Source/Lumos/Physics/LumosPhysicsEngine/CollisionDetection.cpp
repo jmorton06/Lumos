@@ -42,7 +42,7 @@ namespace Lumos
 		LUMOS_PROFILE_FUNCTION();
 		CollisionData colData;
 		Maths::Vector3 axis = obj2->GetPosition() - obj1->GetPosition();
-		axis.Normalize();
+		axis.Normalise();
 		if(!CheckCollisionAxis(axis, obj1, obj2, shape1, shape2, &colData))
 			return false;
 		
@@ -60,7 +60,7 @@ namespace Lumos
 		if(axis.LengthSquared() < epsilon)
 			return;
 		
-		axis.Normalize();
+		axis.Normalise();
 		
 		float value = (1.0f - epsilon);
 		auto& axes = *possible_collision_axes;
@@ -103,7 +103,7 @@ namespace Lumos
 		
 		Maths::Vector3 p = GetClosestPointOnEdges(sphereObj->GetPosition(), complex_shape_edges);
 		Maths::Vector3 p_t = sphereObj->GetPosition() - p;
-		p_t.Normalize();
+		p_t.Normalise();
 		AddPossibleCollisionAxis(p_t, &possibleCollisionAxes);
 		
 		for(const Maths::Vector3& axis : possibleCollisionAxes)
@@ -143,8 +143,8 @@ namespace Lumos
 			{
 				Maths::Vector3 e1 = edge1.posB - edge1.posA;
 				Maths::Vector3 e2 = edge2.posB - edge2.posA;
-				e1.Normalize();
-				e2.Normalize();
+				e1.Normalise();
+				e2.Normalise();
 				
 				Maths::Vector3 temp = e1.CrossProduct(e2);
 				AddPossibleCollisionAxis(temp, &possibleCollisionAxes);
@@ -301,7 +301,7 @@ namespace Lumos
 			
 			float magnitudeAB = a_b.DotProduct(a_b); //Magnitude of AB vector (it's length squared)
 			float ABAPproduct = a_t.DotProduct(a_b); //The DOT product of a_to_t and a_to_b
-			float distance = ABAPproduct / magnitudeAB; //The normalized "distance" from a to your closest point
+			float distance = ABAPproduct / magnitudeAB; //The Normalised "distance" from a to your closest point
 			
 			if(distance < 0.0f) //Clamp returned point to be on the line, e.g if the closest point is beyond the AB return either A or B as closest points
 				temp_closest_point = edge.posA;

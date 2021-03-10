@@ -322,6 +322,16 @@ namespace Lumos
 			m_PointRenderer->Begin();
 	}
 
+    void DebugRenderer::ClearInternal()
+    {
+        if(m_Renderer2D)
+            m_Renderer2D->Clear();
+        if(m_PointRenderer)
+            m_PointRenderer->Clear();
+        if(m_LineRenderer)
+            m_LineRenderer->Clear();
+    }
+
 	void DebugRenderer::BeginSceneInternal(Scene* scene, Camera* overrideCamera, Maths::Transform* overrideCameraTransform)
 	{
 		LUMOS_PROFILE_FUNCTION();

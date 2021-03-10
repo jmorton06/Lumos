@@ -12,28 +12,23 @@ namespace Lumos
 		Mesh* CreateQuad(float x, float y, float width, float height)
 		{
 			LUMOS_PROFILE_FUNCTION();
-			struct QuadVertex
-			{
-				Maths::Vector3 position;
-				Maths::Vector2 uv;
-			};
+			
+            Vertex* data = new Vertex[4];
             
-			QuadVertex* data = new QuadVertex[4];
+			data[0].Position = Maths::Vector3(x, y, 0.0f);
+			data[0].TexCoords = Maths::Vector2(0.0f, 1.0f);
             
-			data[0].position = Maths::Vector3(x, y, 0.0f);
-			data[0].uv = Maths::Vector2(0.0f, 1.0f);
+			data[1].Position = Maths::Vector3(x + width, y, 0.0f);
+			data[1].TexCoords = Maths::Vector2(0, 0);
             
-			data[1].position = Maths::Vector3(x + width, y, 0.0f);
-			data[1].uv = Maths::Vector2(0, 0);
+			data[2].Position = Maths::Vector3(x + width, y + height, 0.0f);
+			data[2].TexCoords = Maths::Vector2(1, 0);
             
-			data[2].position = Maths::Vector3(x + width, y + height, 0.0f);
-			data[2].uv = Maths::Vector2(1, 0);
-            
-			data[3].position = Maths::Vector3(x, y + height, 0.0f);
-			data[3].uv = Maths::Vector2(1, 1);
+			data[3].Position = Maths::Vector3(x, y + height, 0.0f);
+			data[3].TexCoords = Maths::Vector2(1, 1);
             
 			Ref<VertexBuffer> vb = Ref<VertexBuffer>(VertexBuffer::Create(BufferUsage::STATIC));
-			vb->SetData(sizeof(QuadVertex) * 4, data);
+			vb->SetData(sizeof(Vertex) * 4, data);
             
 			delete[] data;
             
@@ -44,7 +39,7 @@ namespace Lumos
 			Ref<Maths::BoundingBox> boundingBox = CreateRef<Maths::BoundingBox>();
 			for (int i = 0; i < 4; i++)
 			{
-				boundingBox->Merge(data[i].position);
+				boundingBox->Merge(data[i].Position);
 			}
 			return new Mesh(vb, ib, boundingBox);
 		}
@@ -401,7 +396,7 @@ namespace Lumos
 					Vertex vertex;
 					vertex.Position = Maths::Vector3(x, y, z);
 					vertex.TexCoords = Maths::Vector2(s, t);
-					vertex.Normal = Maths::Vector3(x, y, z).Normalized();
+					vertex.Normal = Maths::Vector3(x, y, z).Normalised();
                     
 					data.emplace_back(vertex);
 				}
@@ -537,7 +532,7 @@ namespace Lumos
                     
 					Vertex vertex;
 					vertex.Position = p + Maths::Vector3(0.0f, 0.0f, 0.5f * midHeight);
-					vertex.Normal = (p + Maths::Vector3(0.0f, 0.0f, 0.5f * midHeight)).Normalized();
+					vertex.Normal = (p + Maths::Vector3(0.0f, 0.0f, 0.5f * midHeight)).Normalised();
 					vertex.TexCoords = Maths::Vector2(u, onethird * v);
 					data.emplace_back(vertex);
 					point++;
@@ -628,7 +623,7 @@ namespace Lumos
                     
 					Vertex vertex;
 					vertex.Position = p + Maths::Vector3(0.0f, 0.0f, -0.5f * midHeight);
-					vertex.Normal = (p + Maths::Vector3(0.0f, 0.0f, -0.5f * midHeight)).Normalized();
+					vertex.Normal = (p + Maths::Vector3(0.0f, 0.0f, -0.5f * midHeight)).Normalised();
 					vertex.TexCoords = Maths::Vector2(u2, twothirds + ((v - 1.0f) * onethird));
 					data.emplace_back(vertex);
                     

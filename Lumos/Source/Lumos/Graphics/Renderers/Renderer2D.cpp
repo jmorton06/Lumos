@@ -493,16 +493,9 @@ namespace Lumos
 		void Renderer2D::CreateGraphicsPipeline()
 		{
 			LUMOS_PROFILE_FUNCTION();
-            Graphics::BufferLayout vertexBufferLayout;
-            vertexBufferLayout.Push<Maths::Vector3>("position");
-            vertexBufferLayout.Push<Maths::Vector2>("uv");
-            vertexBufferLayout.Push<Maths::Vector2>("tid");
-            vertexBufferLayout.Push<Maths::Vector4>("colour");
-
 			Graphics::PipelineInfo pipelineCreateInfo;
 			pipelineCreateInfo.shader = m_Shader;
 			pipelineCreateInfo.renderpass = m_RenderPass;
-            pipelineCreateInfo.vertexBufferLayout = vertexBufferLayout;
 			pipelineCreateInfo.polygonMode = Graphics::PolygonMode::FILL;
 			pipelineCreateInfo.cullMode = Graphics::CullMode::BACK;
 			pipelineCreateInfo.transparencyEnabled = true;

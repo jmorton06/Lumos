@@ -75,7 +75,6 @@ namespace Lumos
             GLCall(glGenVertexArrays(1, &m_VertexArray));
 
 			m_Shader = info.shader;
-            m_VertexBufferLayout = pipelineCreateInfo.vertexBufferLayout;
             return true;
         }
     
@@ -83,14 +82,14 @@ namespace Lumos
         {
             GLCall(glBindVertexArray(m_VertexArray));
 
-            auto& vertexLayout = m_VertexBufferLayout.GetLayout();
+            auto& vertexLayout = ((GLShader*)m_Shader)->GetBufferLayout().GetLayout();
             uint32_t count = 0;
             
             for(auto& layout : vertexLayout)
             {
                 GLCall(glEnableVertexAttribArray(count));
                 size_t offset = static_cast<size_t>(layout.offset);
-                VertexAtrribPointer(layout.format, count, offset, m_VertexBufferLayout.GetStride());
+                VertexAtrribPointer(layout.format, count, offset, ((GLShader*)m_Shader)->GetBufferLayout().GetStride());
                 count++;
             }
         }

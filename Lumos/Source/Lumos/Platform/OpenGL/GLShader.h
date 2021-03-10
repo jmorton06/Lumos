@@ -48,6 +48,7 @@ namespace Lumos
 			std::map<uint32_t, uint32_t> m_uniformBlockLocations;
 			std::map<uint32_t, uint32_t> m_sampledImageLocations;
 			std::vector<spirv_cross::CompilerGLSL*> m_pShaderCompilers;
+            Graphics::BufferLayout m_Layout;
 
 			void* GetHandle() const override
 			{
@@ -107,6 +108,8 @@ namespace Lumos
 			{
 				return m_Handle;
 			}
+            const Graphics::BufferLayout& GetBufferLayout() const { return m_Layout; }
+            
 			static ShaderUniformDeclaration* FindUniformDeclaration(const std::string& name, const ShaderUniformBufferDeclaration* buffer);
 			ShaderUniformDeclaration* FindUniformDeclaration(const std::string& name);
 

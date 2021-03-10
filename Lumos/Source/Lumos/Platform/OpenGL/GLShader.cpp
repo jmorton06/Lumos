@@ -20,6 +20,48 @@ namespace Lumos
 		bool IGNORE_LINES = false;
 		static ShaderType s_Type = ShaderType::UNKNOWN;
 
+        uint32_t GetStrideFromOpenGLFormat(uint32_t format)
+        {
+            switch (format)
+            {
+//                case VK_FORMAT_R8_SINT:
+//                return sizeof(int);
+//                case VK_FORMAT_R32_SFLOAT:
+//                return sizeof(float);
+//                case VK_FORMAT_R32G32_SFLOAT:
+//                return sizeof(Maths::Vector2);
+//                case VK_FORMAT_R32G32B32_SFLOAT:
+//                return sizeof(Maths::Vector3);
+//                case VK_FORMAT_R32G32B32A32_SFLOAT:
+//                return sizeof(Maths::Vector4);
+                default:
+                //LUMOS_LOG_ERROR("Unsupported Format {0}", format);
+                return 0;
+            }
+            
+            return 0;
+        }
+    
+        void PushTypeToBuffer(const spirv_cross::SPIRType type, Graphics::BufferLayout& layout)
+        {
+            switch (type.basetype)
+            {
+                case spirv_cross::SPIRType::Float:
+                switch(type.vecsize)
+                {
+                    case 1 : layout.Push<float>(""); break;
+                    case 2 : layout.Push<Maths::Vector2>(""); break;
+                    case 3 : layout.Push<Maths::Vector3>(""); break;
+                    case 4 : layout.Push<Maths::Vector4>(""); break;
+
+                }
+                case spirv_cross::SPIRType::Double:
+                break;
+                default:
+                break;
+            }
+        }
+    
 		GLShader::GLShader(const std::string& filePath, bool loadSPV)
 			: m_LoadSPV(loadSPV)
 		{
@@ -75,7 +117,26 @@ namespace Lumos
 
 				// The SPIR-V is now parsed, and we can perform reflection on it.
 				spirv_cross::ShaderResources resources = glsl->get_shader_resources();
-
+                
+                if(file.first == ShaderType::VERTEX)
+                {
+                    uint32_t stride = 0;
+                    for (const spirv_cross::Resource& resource : resources.stage_inputs)
+                    {
+                        const spirv_cross::SPIRType& InputType = glsl->get_type(resource.type_id);
+                        //Switch to GL layout
+                        PushTypeToBuffer(InputType, m_Layout);
+//                        GLVertexInputAttributeDescription Description = {};
+//                        Description.binding  = glsl->get_decoration(resource.id, spv::DecorationBinding);
+//                        Description.location = glsl->get_decoration(resource.id, spv::DecorationLocation);
+//                        Description.offset   = stride;
+//                        Description.format   = GetOpenGLFormat(InputType);
+//                        m_VertexInputAttributeDescriptions.push_back(Description);
+                        
+                        stride += GetStrideFromOpenGLFormat(0);//InputType.width * InputType.vecsize / 8;
+                    }
+                }
+                
 				// Get all sampled images in the shader.
 				for(auto& resource : resources.sampled_images)
 				{

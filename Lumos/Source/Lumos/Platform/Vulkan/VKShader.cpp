@@ -23,7 +23,54 @@ namespace Lumos
 	namespace Graphics
 	{
 		static ShaderType type = ShaderType::UNKNOWN;
-
+		
+		VkFormat GetVulkanFormat(const spirv_cross::SPIRType type)
+        {
+            VkFormat float_types[] =
+            {
+                VK_FORMAT_R32_SFLOAT, VK_FORMAT_R32G32_SFLOAT, VK_FORMAT_R32G32B32_SFLOAT, VK_FORMAT_R32G32B32A32_SFLOAT
+            };
+			
+            VkFormat double_types[] =
+            {
+                VK_FORMAT_R64_SFLOAT,
+                VK_FORMAT_R64G64_SFLOAT,
+                VK_FORMAT_R64G64B64_SFLOAT,
+                VK_FORMAT_R64G64B64A64_SFLOAT,
+            };
+            switch (type.basetype)
+            {
+                case spirv_cross::SPIRType::Float:
+				return float_types[type.vecsize - 1];
+                case spirv_cross::SPIRType::Double:
+				return double_types[type.vecsize - 1];
+                default:
+				LUMOS_LOG_ERROR("Cannot find VK_Format"); return VK_FORMAT_R32G32B32A32_SFLOAT;
+            }
+        }
+		
+        uint32_t GetStrideFromVulkanFormat(VkFormat format)
+        {
+            switch (format)
+            {
+                case VK_FORMAT_R8_SINT:
+				return sizeof(int);
+                case VK_FORMAT_R32_SFLOAT:
+				return sizeof(float);
+                case VK_FORMAT_R32G32_SFLOAT:
+				return sizeof(Maths::Vector2);
+                case VK_FORMAT_R32G32B32_SFLOAT:
+				return sizeof(Maths::Vector3);
+                case VK_FORMAT_R32G32B32A32_SFLOAT:
+				return sizeof(Maths::Vector4);
+                default:
+				LUMOS_LOG_ERROR("Unsupported Format {0}", format);
+				return 0;
+            }
+            
+            return 0;
+        }
+		
 		VKShader::VKShader(const std::string& filePath)
 			: m_StageCount(0)
 		{
@@ -80,6 +127,25 @@ namespace Lumos
                 // The SPIR-V is now parsed, and we can perform reflection on it.
                 spirv_cross::ShaderResources resources = comp.get_shader_resources();
                 
+				if(file.first == ShaderType::VERTEX)
+                {
+                    m_VertexInputStride = 0;
+					
+                    for (const spirv_cross::Resource& resource : resources.stage_inputs)
+                    {
+                        const spirv_cross::SPIRType& InputType = comp.get_type(resource.type_id);
+						
+                        VkVertexInputAttributeDescription Description = {};
+                        Description.binding  = comp.get_decoration(resource.id, spv::DecorationBinding);
+                        Description.location = comp.get_decoration(resource.id, spv::DecorationLocation);
+                        Description.offset   = m_VertexInputStride;
+                        Description.format   = GetVulkanFormat(InputType);
+                        m_VertexInputAttributeDescriptions.push_back(Description);
+						
+                        m_VertexInputStride += GetStrideFromVulkanFormat(Description.format);//InputType.width * InputType.vecsize / 8;
+                    }
+                }
+				
                 for (auto &u : resources.uniform_buffers)
                 {
                     uint32_t set = comp.get_decoration(u.id, spv::DecorationDescriptorSet);

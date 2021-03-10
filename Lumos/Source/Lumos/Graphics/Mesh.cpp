@@ -111,7 +111,7 @@ namespace Lumos
 			
 			for (uint32_t i = 0; i < vertexCount; ++i)
 			{
-				vertices[i].Normal = normals[i].Normalized();
+				vertices[i].Normal = normals[i].Normalised();
 			}
 			
 			delete[] normals;
@@ -156,7 +156,7 @@ namespace Lumos
 			}
 			for (uint32_t i = 0; i < vertexCount; ++i)
 			{
-				vertices[i].Tangent = tangents[i].Normalized();
+				vertices[i].Tangent = tangents[i].Normalised();
 			}
 			
 			delete[] tangents;
@@ -220,7 +220,7 @@ namespace Lumos
 
 			for (uint32_t i = 0; i < numVertices; ++i)
 			{
-				normals[i].Normalize();
+				normals[i].Normalise();
 			}
 
 			return normals;
@@ -270,7 +270,7 @@ namespace Lumos
 			}
 			for (uint32_t i = 0; i < numVertices; ++i)
 			{
-				tangents[i].Normalize();
+				tangents[i].Normalise();
 			}
 
 			return tangents;

@@ -13,7 +13,7 @@ layout(push_constant) uniform PushConsts
 } pushConsts;
 
 layout(location = 0) in vec3 inPosition;
-layout(location = 1) in vec3 inColor;
+layout(location = 1) in vec4 inColor;
 layout(location = 2) in vec2 inTexCoord;
 layout(location = 3) in vec3 inNormal;
 layout(location = 4) in vec3 inTangent;
@@ -34,7 +34,7 @@ void main()
 	fragPosition = vec4(inPosition, 1.0) * pushConsts.transform;
     gl_Position = fragPosition * ubo.projView;
     
-    fragColor = inColor;
+    fragColor = inColor.xyz;
 	fragTexCoord = inTexCoord;
     fragNormal = normalize(inNormal) * transpose(inverse(mat3(pushConsts.transform)));
     fragTangent = inTangent;

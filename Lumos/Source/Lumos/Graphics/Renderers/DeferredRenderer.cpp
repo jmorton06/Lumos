@@ -324,7 +324,7 @@ namespace Lumos
 				Maths::Vector3 forward = Maths::Vector3::FORWARD;
 				forward = trans.GetWorldOrientation() * forward;
 
-				light.Direction = forward.Normalized();
+				light.Direction = forward.Normalised();
 
 				memcpy(m_PSSystemUniformBuffer + m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_Lights] + sizeof(Graphics::Light) * numLights, &light, sizeof(Graphics::Light));
 				numLights++;
@@ -413,15 +413,8 @@ namespace Lumos
 		void DeferredRenderer::CreateDeferredPipeline()
 		{
 			LUMOS_PROFILE_FUNCTION();
-            Graphics::BufferLayout vertexBufferLayout;
-            vertexBufferLayout.Push<Maths::Vector3>("position");
-            vertexBufferLayout.Push<Maths::Vector4>("colour");
-            vertexBufferLayout.Push<Maths::Vector2>("uv");
-            vertexBufferLayout.Push<Maths::Vector3>("normal");
-            vertexBufferLayout.Push<Maths::Vector3>("tangent");
 
 			Graphics::PipelineInfo pipelineCreateInfo{};
-            pipelineCreateInfo.vertexBufferLayout = vertexBufferLayout;
 			pipelineCreateInfo.shader = m_Shader;
             pipelineCreateInfo.renderpass = m_RenderPass;
 			pipelineCreateInfo.polygonMode = Graphics::PolygonMode::FILL;

@@ -87,7 +87,7 @@ namespace Lumos
 
 		Maths::Matrix4 viewProjInverse = (m_ProjMatrix * viewMatrix).Inverse();
 
-		// The parameters range from 0.0 to 1.0. Expand to normalized device coordinates (-1.0 to 1.0)
+		// The parameters range from 0.0 to 1.0. Expand to Normalised device coordinates (-1.0 to 1.0)
 		x = 2.0f * x - 1.0f;
 		y = 2.0f * y - 1.0f;
 
@@ -97,7 +97,7 @@ namespace Lumos
 		Maths::Vector3 farPlane(x, y, 1.0f);
 
 		ret.origin_ = viewProjInverse * nearPlane;
-		ret.direction_ = ((viewProjInverse * farPlane) - ret.origin_).Normalized();
+		ret.direction_ = ((viewProjInverse * farPlane) - ret.origin_).Normalised();
 
 		return ret;
 	}

@@ -273,7 +273,7 @@ namespace Lumos::Maths
     inline int Random(int min, int max) { auto range = (float)(max - min); return (int)(Random() * range) + min; }
     
     /// Return a random normal distributed number with the given mean value and variance.
-    inline float RandomNormal(float meanValue, float variance) { return RandStandardNormalized() * sqrtf(variance) + meanValue; }
+    inline float RandomNormal(float meanValue, float variance) { return RandStandardNormalised() * sqrtf(variance) + meanValue; }
     
     /// Convert float to half float. From https://gist.github.com/martinkallman/5049614
     inline unsigned short FloatToHalf(float value)
