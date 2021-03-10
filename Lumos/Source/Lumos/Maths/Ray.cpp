@@ -243,7 +243,7 @@ namespace Lumos::Maths
         if (outUV)
         {
             if (nearestIdx == M_MAX_UNSIGNED)
-                *outUV = Vector2::ZERO;
+                *outUV = Vector2(0.0f);
             else
             {
                 // Interpolate the UV coordinate using barycentric coordinate
@@ -290,7 +290,7 @@ namespace Lumos::Maths
             if (outUV)
             {
                 if (nearestIndices == nullptr)
-                    *outUV = Vector2::ZERO;
+                    *outUV = Vector2(0.0f);
                 else
                 {
                     // Interpolate the UV coordinate using barycentric coordinate
@@ -326,7 +326,7 @@ namespace Lumos::Maths
             if (outUV)
             {
                 if (nearestIndices == nullptr)
-                    *outUV = Vector2::ZERO;
+                    *outUV = Vector2(0.0f);
                 else
                 {
                     // Interpolate the UV coordinate using barycentric coordinate

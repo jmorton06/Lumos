@@ -366,7 +366,7 @@ namespace Lumos::Maths
         }
 
         /// Project vector onto axis.
-        float ProjectOntoAxis(const Vector3& axis) const { return DotProduct(Vector4(axis.Normalized(), 0.0f)); }
+        float ProjectOntoAxis(const Vector3& axis) const { return DotProduct(Vector4(axis.Normalised(), 0.0f)); }
 
         /// Return absolute vector.
         Vector4 Abs() const { return Vector4(Lumos::Maths::Abs(x), Lumos::Maths::Abs(y), Lumos::Maths::Abs(z), Lumos::Maths::Abs(w)); }

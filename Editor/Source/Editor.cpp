@@ -173,7 +173,7 @@ namespace Lumos
 		ImGuizmo::SetGizmoSizeClipSpace(0.25f);
 	}
     
-	bool IsTextFile(const std::string& filePath)
+	bool Editor::IsTextFile(const std::string& filePath)
 	{
 		LUMOS_PROFILE_FUNCTION();
 		std::string extension = StringUtilities::GetFilePathExtension(filePath);
@@ -185,7 +185,7 @@ namespace Lumos
 		return false;
 	}
     
-	bool IsAudioFile(const std::string& filePath)
+	bool Editor::IsAudioFile(const std::string& filePath)
 	{
 		LUMOS_PROFILE_FUNCTION();
 		std::string extension = StringUtilities::GetFilePathExtension(filePath);
@@ -196,7 +196,7 @@ namespace Lumos
 		return false;
 	}
     
-    bool IsSceneFile(const std::string& filePath)
+    bool Editor::IsSceneFile(const std::string& filePath)
     {
 		LUMOS_PROFILE_FUNCTION();
         std::string extension = StringUtilities::GetFilePathExtension(filePath);
@@ -207,7 +207,7 @@ namespace Lumos
         return false;
     }
     
-	bool IsModelFile(const std::string& filePath)
+	bool Editor::IsModelFile(const std::string& filePath)
 	{
 		LUMOS_PROFILE_FUNCTION();
 		std::string extension = StringUtilities::GetFilePathExtension(filePath);
@@ -218,7 +218,7 @@ namespace Lumos
 		return false;
 	}
 	
-	bool IsTextureFile(const std::string& filePath)
+	bool Editor::IsTextureFile(const std::string& filePath)
 	{
 		LUMOS_PROFILE_FUNCTION();
 		std::string extension = StringUtilities::GetFilePathExtension(filePath);
@@ -1536,18 +1536,22 @@ namespace Lumos
 			ImGuiHelpers::Image(m_PreviewTexture.get(), {200, 200});
 		ImGui::End();
 	}
+
+    void Editor::OnDebugDraw()
+    {
+        Application::OnDebugDraw();
+        DebugDraw();
+        
+        if(Application::Get().GetEditorState() == EditorState::Preview && m_ShowGrid && !m_EditorCamera->IsOrthographic())
+            Draw3DGrid();
+    }
     
 	void Editor::OnRender()
 	{
 		LUMOS_PROFILE_FUNCTION();
 		//DrawPreview();
-        
-        DebugDraw();
-        
+
         Application::OnRender();
-        
-		if(Application::Get().GetEditorState() == EditorState::Preview && m_ShowGrid && !m_EditorCamera->IsOrthographic())
-			Draw3DGrid();
 	}
     
 	void Editor::DrawPreview()

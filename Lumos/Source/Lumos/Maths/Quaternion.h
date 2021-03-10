@@ -8,7 +8,7 @@
 namespace Lumos::Maths
 {
     class Matrix4;
-    /// Rotation represented as a four-dimensional normalized vector.
+    /// Rotation represented as a four-dimensional Normalised vector.
     class  Quaternion
     {
     public:
@@ -121,7 +121,7 @@ namespace Lumos::Maths
         /// Assign from another quaternion.
         Quaternion& operator =(const Quaternion& rhs) noexcept
         {
-    #if defined(LUMOS_SSE) && (!defined(_MSC_VER) || _MSC_VER >= 1700) /* Visual Studio 2012 and newer. VS2010 has a bug with these, see https://github.com/Lumos/Lumos/issues/1044 */
+    #if defined(LUMOS_SSE)
             _mm_storeu_ps(&w, _mm_loadu_ps(&rhs.w));
     #else
             w = rhs.w;
@@ -286,8 +286,8 @@ namespace Lumos::Maths
         /// Define from a direction to look in and an up direction. Return true if successful, or false if would result in a NaN, in which case the current value remains.
         bool FromLookRotation(const Vector3& direction, const Vector3& up = Vector3::UP);
 
-        /// Normalize to unit length.
-        void Normalize()
+        /// Normalise to unit length.
+        void Normalise()
         {
     #ifdef LUMOS_SSE
             __m128 q = _mm_loadu_ps(&w);
@@ -312,8 +312,8 @@ namespace Lumos::Maths
     #endif
         }
 
-        /// Return normalized to unit length.
-        Quaternion Normalized() const
+        /// Return Normalised to unit length.
+        Quaternion Normalised() const
         {
     #ifdef LUMOS_SSE
             __m128 q = _mm_loadu_ps(&w);
@@ -427,7 +427,7 @@ namespace Lumos::Maths
         Matrix4 RotationMatrix4() const;
         /// Spherical interpolation with another quaternion.
         Quaternion Slerp(const Quaternion& rhs, float t) const;
-        /// Normalized linear interpolation with another quaternion.
+        /// Normalised linear interpolation with another quaternion.
         Quaternion Nlerp(const Quaternion& rhs, float t, bool shortestPath = false) const;
 
         /// Return float data.

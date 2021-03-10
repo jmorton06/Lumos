@@ -21,7 +21,7 @@ namespace Lumos
         LUMOS_PROFILE_FUNCTION();
 		// Determine axis
 		m_Axis = axis;
-		m_Axis.Normalize();
+		m_Axis.Normalise();
 
 		if(abs(m_Axis.x) > 0.9f)
 			m_AxisIndex = 0;

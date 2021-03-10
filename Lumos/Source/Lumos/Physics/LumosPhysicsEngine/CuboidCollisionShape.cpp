@@ -137,7 +137,7 @@ namespace Lumos
         {
             if(best_face)
                 refPolygon.Normal = normalMatrix * best_face->normal;
-            refPolygon.Normal.Normalize();
+            refPolygon.Normal.Normalise();
         }
 
         if(best_face)
@@ -154,7 +154,7 @@ namespace Lumos
             //Add the reference face itself to the list of adjacent planes
             Maths::Vector3 wsPointOnPlane = wsTransform * m_CubeHull->GetVertex(m_CubeHull->GetEdge(best_face->edge_ids[0]).vStart).pos;
             Maths::Vector3 planeNrml = -(normalMatrix * best_face->normal);
-            planeNrml.Normalize();
+            planeNrml.Normalise();
             float planeDist = -Maths::Vector3::Dot(planeNrml, wsPointOnPlane);
             
             refPolygon.AdjacentPlanes[refPolygon.PlaneCount++] = {planeNrml, planeDist};
@@ -172,7 +172,7 @@ namespace Lumos
                         const HullFace& adjFace = m_CubeHull->GetFace(adjFaceIdx);
 
                         planeNrml = -(normalMatrix * adjFace.normal);
-                        planeNrml.Normalize();
+                        planeNrml.Normalise();
                         planeDist = -Maths::Vector3::Dot(planeNrml, wsPointOnPlane);
 
                         refPolygon.AdjacentPlanes[refPolygon.PlaneCount++] = {planeNrml, planeDist};

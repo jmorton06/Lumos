@@ -56,12 +56,19 @@ namespace Lumos
 		void Init() override;
 		void OnImGui() override;
 		void OnRender() override;
+        void OnDebugDraw() override;
 		void OnEvent(Event& e) override;
         void Quit() override;
 
 		void DrawMenuBar();
 		void BeginDockSpace(bool gameFullScreen);
 		void EndDockSpace();
+		
+		bool IsTextFile(const std::string& filePath);
+		bool IsAudioFile(const std::string& filePath);
+		bool IsSceneFile(const std::string& filePath);
+		bool IsModelFile(const std::string& filePath);
+		bool IsTextureFile(const std::string& filePath);
 
 		void SetImGuizmoOperation(uint32_t operation)
 		{

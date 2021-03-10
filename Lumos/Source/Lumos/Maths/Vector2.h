@@ -131,19 +131,6 @@ namespace Lumos::Maths
         int x;
         /// Y coordinate.
         int y;
-
-        /// Zero vector.
-        static const IntVector2 ZERO;
-        /// (-1,0) vector.
-        static const IntVector2 LEFT;
-        /// (1,0) vector.
-        static const IntVector2 RIGHT;
-        /// (0,1) vector.
-        static const IntVector2 UP;
-        /// (0,-1) vector.
-        static const IntVector2 DOWN;
-        /// (1,1) vector.
-        static const IntVector2 ONE;
     };
 
     /// Two-dimensional vector.
@@ -272,8 +259,8 @@ namespace Lumos::Maths
             return o;
         }
 
-        /// Normalize to unit length.
-        void Normalize()
+        /// Normalise to unit length.
+        void Normalise()
         {
             float lenSquared = LengthSquared();
             if (!Maths::Equals(lenSquared, 1.0f) && lenSquared > 0.0f)
@@ -297,7 +284,7 @@ namespace Lumos::Maths
         float AbsDotProduct(const Vector2& rhs) const { return Lumos::Maths::Abs(x * rhs.x) + Lumos::Maths::Abs(y * rhs.y); }
 
         /// Project vector onto axis.
-        float ProjectOntoAxis(const Vector2& axis) const { return DotProduct(axis.Normalized()); }
+        float ProjectOntoAxis(const Vector2& axis) const { return DotProduct(axis.Normalised()); }
 
         /// Returns the angle between this vector and another vector in degrees.
         float Angle(const Vector2& rhs) const { return Acos(DotProduct(rhs) / (Length() * rhs.Length())); }
@@ -314,8 +301,8 @@ namespace Lumos::Maths
         /// Return whether is NaN.
         bool IsNaN() const { return Lumos::Maths::IsNaN(x) || Lumos::Maths::IsNaN(y); }
 
-        /// Return normalized to unit length.
-        Vector2 Normalized() const
+        /// Return normalised to unit length.
+        Vector2 Normalised() const
         {
             const float lenSquared = LengthSquared();
             if (!Maths::Equals(lenSquared, 1.0f) && lenSquared > 0.0f)
@@ -327,8 +314,8 @@ namespace Lumos::Maths
                 return *this;
         }
 
-        /// Return normalized to unit length or zero if length is too small.
-        Vector2 NormalizedOrDefault(const Vector2& defaultValue = Vector2::ZERO, float eps = M_LARGE_EPSILON) const
+        /// Return normalised to unit length or zero if length is too small.
+        Vector2 NormalisedOrDefault(const Vector2& defaultValue = Vector2(0.0f), float eps = M_LARGE_EPSILON) const
         {
             const float lenSquared = LengthSquared();
             if (lenSquared < eps * eps)
@@ -336,8 +323,8 @@ namespace Lumos::Maths
             return *this / sqrtf(lenSquared);
         }
 
-        /// Return normalized vector with length in given range.
-        Vector2 ReNormalized(float minLength, float maxLength, const Vector2& defaultValue = Vector2::ZERO, float eps = M_LARGE_EPSILON) const
+        /// Return normalised vector with length in given range.
+        Vector2 ReNormalised(float minLength, float maxLength, const Vector2& defaultValue = Vector2(0.0f), float eps = M_LARGE_EPSILON) const
         {
             const float lenSquared = LengthSquared();
             if (lenSquared < eps * eps)
@@ -367,19 +354,6 @@ namespace Lumos::Maths
         float x;
         /// Y coordinate.
         float y;
-
-        /// Zero vector.
-        static const Vector2 ZERO;
-        /// (-1,0) vector.
-        static const Vector2 LEFT;
-        /// (1,0) vector.
-        static const Vector2 RIGHT;
-        /// (0,1) vector.
-        static const Vector2 UP;
-        /// (0,-1) vector.
-        static const Vector2 DOWN;
-        /// (1,1) vector.
-        static const Vector2 ONE;
     };
 
     /// Multiply Vector2 with a scalar

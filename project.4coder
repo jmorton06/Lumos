@@ -39,7 +39,7 @@ command_list = {
             { "./Scripts/BuildMacOS.sh", .os = "mac"   }, }, },
 
  { .name = "run",
-   .out = "*Run - Debug*", .footer_panel = true, .save_dirty_files = false,.cursor_at_end = true,
+   .out = "*Run - Release*", .footer_panel = true, .save_dirty_files = false,.cursor_at_end = true,
    .cmd = { { "bin\\Release\\Sandbox.exe", .os = "win"   },
             { "./Scripts/RunLinux.sh" , .os = "linux" },
             { "./Scripts/RunMacOS.sh" , .os = "mac"   }, }, },
@@ -72,7 +72,7 @@ command_list = {
             { "./Scripts/BuildMacOS-Editor.sh", .os = "mac"   }, }, },
 	
 	{ .name = "run-Editor",
-		.out = "*Run - Editor - Debug*", .footer_panel = true, .save_dirty_files = false,.cursor_at_end = true,
+		.out = "*Run - Editor - Release*", .footer_panel = true, .save_dirty_files = false,.cursor_at_end = true,
 		.cmd = { { "bin\\Release\\LumosEditor.exe", .os = "win"   },
             { "./Scripts/RunLinux-Editor.sh" , .os = "linux" },
             { "./Scripts/RunMacOS-Editor.sh" , .os = "mac"   }, }, },

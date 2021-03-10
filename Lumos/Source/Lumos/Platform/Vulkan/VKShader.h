@@ -49,7 +49,10 @@ namespace Lumos
 			{
 				return nullptr;
 			}
-
+			
+			const std::vector<VkVertexInputAttributeDescription>& GetVertexInputAttributeDescription() const { return m_VertexInputAttributeDescriptions; }
+            const uint32_t GetVertexInputStride() const { return m_VertexInputStride; }
+            
 		protected:
 			static Shader* CreateFuncVulkan(const std::string&);
 
@@ -60,7 +63,11 @@ namespace Lumos
 			std::string m_FilePath;
 			std::string m_Source;
 			std::vector<ShaderType> m_ShaderTypes;
+			
+			std::vector<VkVertexInputAttributeDescription> m_VertexInputAttributeDescriptions;
+            uint32_t m_VertexInputStride = 0;
             
+			VkPipelineLayout m_PipelineLayout;
             std::vector<PushConstant> m_PushConstants;
             std::vector<Graphics::DescriptorLayoutInfo> m_DescriptorLayoutInfo;
 		};

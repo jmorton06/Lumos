@@ -22,14 +22,6 @@ namespace Lumos
             size_t hash = 0;
             HashCombine(hash, pipelineInfo.shader.get(), pipelineInfo.cullMode, pipelineInfo.depthBiasEnabled, pipelineInfo.drawType, pipelineInfo.polygonMode,  pipelineInfo.transparencyEnabled, pipelineInfo.renderpass.get());
             
-            const auto& vertexLayout = pipelineInfo.vertexBufferLayout.GetLayout();
-            HashCombine(hash, pipelineInfo.vertexBufferLayout.GetStride(), vertexLayout.size() );
-            
-            for(auto& layout : vertexLayout)
-            {
-                HashCombine(hash, layout.name, layout.format, layout.normalized, layout.offset);
-            }
-            
             auto found = m_PipelineCache.find(hash);
             if (found != m_PipelineCache.end() && found->second)
             {

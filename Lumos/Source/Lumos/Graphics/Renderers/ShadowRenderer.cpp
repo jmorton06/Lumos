@@ -14,6 +14,7 @@
 #include "Graphics/Model.h"
 #include "Graphics/Camera/Camera.h"
 #include "Graphics/Light.h"
+#include "RenderGraph.h"
 #include "Maths/Transform.h"
 #include "Core/Engine.h"
 #include "Scene/Scene.h"
@@ -60,6 +61,7 @@ namespace Lumos
             m_InitialBias = 0.0023f;
 
 			ShadowRenderer::Init();
+			Application::Get().GetRenderGraph()->SetShadowRenderer(this);
 		}
 
 		ShadowRenderer::~ShadowRenderer()
@@ -396,7 +398,7 @@ namespace Lumos
 					Maths::Vector3 minExtents = -maxExtents;
 
 					Maths::Vector3 lightDir = -light->Direction.ToVector3();
-					lightDir.Normalize();
+					lightDir.Normalise();
 					Maths::Matrix4 lightViewMatrix = Maths::Quaternion::LookAt(frustumCenter - lightDir * -minExtents.z, frustumCenter).RotationMatrix4();
 					lightViewMatrix.SetTranslation(frustumCenter);
 
@@ -468,17 +470,9 @@ namespace Lumos
 		void ShadowRenderer::CreateGraphicsPipeline()
 		{
 			LUMOS_PROFILE_FUNCTION();
-            Graphics::BufferLayout vertexBufferLayout;
-            vertexBufferLayout.Push<Maths::Vector3>("position");
-            vertexBufferLayout.Push<Maths::Vector4>("colour");
-            vertexBufferLayout.Push<Maths::Vector2>("uv");
-            vertexBufferLayout.Push<Maths::Vector3>("normal");
-            vertexBufferLayout.Push<Maths::Vector3>("tangent");
-
 			Graphics::PipelineInfo pipelineCreateInfo;
 			pipelineCreateInfo.shader = m_Shader;
 			pipelineCreateInfo.renderpass = m_RenderPass;
-            pipelineCreateInfo.vertexBufferLayout = vertexBufferLayout;
 			pipelineCreateInfo.cullMode = Graphics::CullMode::NONE;
 			pipelineCreateInfo.transparencyEnabled = false;
 			pipelineCreateInfo.depthBiasEnabled = true;

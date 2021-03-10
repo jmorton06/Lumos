@@ -50,6 +50,7 @@ namespace Lumos
 	
 	void AssetWindow::DrawFolder(const DirectoryInformation& dirInfo)
 	{
+		LUMOS_PROFILE_FUNCTION();
         ImGuiTreeNodeFlags nodeFlags = ((dirInfo.absolutePath == m_CurrentDirPath) ? ImGuiTreeNodeFlags_Selected : 0);
         nodeFlags |= ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick;
         
@@ -146,12 +147,25 @@ namespace Lumos
 		LUMOS_PROFILE_FUNCTION();
 		ImGui::Begin(m_SimpleName.c_str());
 		{
-			ImGui::Columns(2, "AB", true);            
-
+            ImGui::BeginColumns("AssetWindowColumns", 2, ImGuiColumnsFlags_NoResize);
+            ImGui::SetColumnWidth(0, ImGui::GetWindowContentRegionWidth() / 3.0f);
 			ImGui::BeginChild("##folders_common");
 			{
 				RenderBreadCrumbs();
 				
+                ImGuiTreeNodeFlags nodeFlag = ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_OpenOnDoubleClick;
+                bool assetTreeNodeOpen = ImGui::TreeNodeEx("Assets//", nodeFlag);
+                
+                if(ImGui::IsItemClicked())
+                {
+                    std::string assetsBasePath;
+                    VFS::Get()->ResolvePhysicalPath("//Assets", assetsBasePath);
+                    m_PreviousDirPath = GetParentPath(m_CurrentDirPath);
+                    m_CurrentDirPath = assetsBasePath;
+                    m_CurrentDir = ReadDirectory(m_CurrentDirPath);
+                }
+                
+				if(assetTreeNodeOpen)
 				{
 					ImGui::BeginChild("##folders");
 					{
@@ -159,6 +173,7 @@ namespace Lumos
                             DrawFolder(m_BaseProjectDir[i]);
                     }
                     ImGui::EndChild();
+					ImGui::TreePop();
 					}
 
 					if(ImGui::IsMouseDown(1))
@@ -528,6 +543,7 @@ namespace Lumos
 	
 	std::vector<DirectoryInformation> AssetWindow::ReadDirectory(const std::string& path)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		std::vector<DirectoryInformation> dInfo;
 
 		for(const auto& entry : std::filesystem::directory_iterator(path))
