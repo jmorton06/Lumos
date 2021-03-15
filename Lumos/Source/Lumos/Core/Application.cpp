@@ -135,7 +135,7 @@ namespace Lumos
 		uint32_t screenWidth = m_Window->GetWidth();
 		uint32_t screenHeight = m_Window->GetHeight();
 		m_SystemManager = CreateUniqueRef<SystemManager>();
-
+		
 		System::JobSystem::Context context;
 		
 		System::JobSystem::Execute(context, [](JobDispatchArgs args) 
@@ -178,7 +178,7 @@ namespace Lumos
 		
 		Graphics::Material::InitDefaultTexture();
             
-		//Need to disable for A12 and earlier - doesn't support rendering to depth array
+		//Need to disable shadows for A12 and earlier - doesn't support rendering to depth array
         m_RenderGraph->AddRenderer(new Graphics::ShadowRenderer());
         m_RenderGraph->AddRenderer(new Graphics::DeferredRenderer(screenWidth, screenHeight));
         m_RenderGraph->AddRenderer(new Graphics::SkyboxRenderer(screenWidth, screenHeight));
@@ -192,7 +192,6 @@ namespace Lumos
 	{
 		LUMOS_PROFILE_FUNCTION();
 		Serialise(FilePath);
-		Graphics::GraphicsContext::GetContext()->WaitIdle();
 		Graphics::Material::ReleaseDefaultTexture();
 		Engine::Release();
 		Input::Release();
@@ -269,12 +268,16 @@ namespace Lumos
         if(!m_Minimized)
         {
             LUMOS_PROFILE_SCOPE("Application::Render");
-
+			
+			DebugRenderer::Clear();
+			Graphics::Renderer::GetRenderer()->Begin();
+			
             OnRender();
-
             m_ImGuiManager->OnRender(m_SceneManager->GetCurrentScene());
-            
+
             Graphics::Renderer::GetRenderer()->Present();
+            
+           // Graphics::GraphicsContext::GetContext()->WaitIdle();
             m_Frames++;
         }
         
@@ -297,11 +300,11 @@ namespace Lumos
 			
 			stats.FramesPerSecond = m_Frames;
 			stats.UpdatesPerSecond = m_Updates;
-
+			
 			m_Frames = 0;
 			m_Updates = 0;
 		}
-
+		
 		return m_CurrentState != AppState::Closing;
 	}
 
@@ -310,8 +313,6 @@ namespace Lumos
 		LUMOS_PROFILE_FUNCTION();
 		if(m_RenderGraph->GetCount() > 0)
 		{
-            DebugRenderer::Clear();
-			Graphics::Renderer::GetRenderer()->Begin();
             m_RenderGraph->BeginScene(m_SceneManager->GetCurrentScene());
 
             m_RenderGraph->OnRender();

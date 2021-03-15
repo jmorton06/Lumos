@@ -13,8 +13,8 @@ layout(set = 0,binding = 0) uniform UniformBufferObject
 	mat4 u_MVP;
 } ubo;
 
-layout(location = 0) out vec2 v_TexCoord;
-layout(location = 1) out vec3 v_Position;
+layout(location = 0) out vec3 fragPosition;
+layout(location = 1) out vec2 fragTexCoord;
 
 out gl_PerVertex
 {
@@ -24,8 +24,7 @@ out gl_PerVertex
 void main()
 {
 	vec4 position = vec4(inPosition, 1.0) * ubo.u_MVP;
-	gl_Position = position;
-	v_Position = inPosition.xyz;
-
-	v_TexCoord = inTexCoord;
+    gl_Position  = position;
+	fragPosition = inPosition;
+	fragTexCoord = inTexCoord;
 }

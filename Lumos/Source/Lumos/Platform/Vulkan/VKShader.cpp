@@ -26,6 +26,16 @@ namespace Lumos
 		
 		VkFormat GetVulkanFormat(const spirv_cross::SPIRType type)
         {
+			VkFormat uint_types[] =
+            {
+                VK_FORMAT_R32_UINT, VK_FORMAT_R32G32_UINT, VK_FORMAT_R32G32B32_UINT, VK_FORMAT_R32G32B32A32_UINT
+            };
+            
+            VkFormat int_types[] =
+            {
+                VK_FORMAT_R32_SINT, VK_FORMAT_R32G32_SINT, VK_FORMAT_R32G32B32_SINT, VK_FORMAT_R32G32B32A32_SINT
+            };
+			
             VkFormat float_types[] =
             {
                 VK_FORMAT_R32_SFLOAT, VK_FORMAT_R32G32_SFLOAT, VK_FORMAT_R32G32B32_SFLOAT, VK_FORMAT_R32G32B32A32_SFLOAT
@@ -40,12 +50,16 @@ namespace Lumos
             };
             switch (type.basetype)
             {
+                case spirv_cross::SPIRType::UInt:
+                return uint_types[type.vecsize - 1];
+				case spirv_cross::SPIRType::Int:
+				return int_types[type.vecsize - 1];
                 case spirv_cross::SPIRType::Float:
 				return float_types[type.vecsize - 1];
                 case spirv_cross::SPIRType::Double:
 				return double_types[type.vecsize - 1];
                 default:
-				LUMOS_LOG_ERROR("Cannot find VK_Format"); return VK_FORMAT_R32G32B32A32_SFLOAT;
+				LUMOS_LOG_ERROR("Cannot find VK_Format : {0}", type.basetype); return VK_FORMAT_R32G32B32A32_SFLOAT;
             }
         }
 		
@@ -63,6 +77,18 @@ namespace Lumos
 				return sizeof(Maths::Vector3);
                 case VK_FORMAT_R32G32B32A32_SFLOAT:
 				return sizeof(Maths::Vector4);
+                case VK_FORMAT_R32G32_SINT:
+                return sizeof(Maths::IntVector2);
+                case VK_FORMAT_R32G32B32_SINT:
+                return sizeof(Maths::IntVector3);
+                case VK_FORMAT_R32G32B32A32_SINT:
+                return sizeof(Maths::IntVector4);
+                case VK_FORMAT_R32G32_UINT:
+                return sizeof(Maths::IntVector2);
+                case VK_FORMAT_R32G32B32_UINT:
+                return sizeof(Maths::IntVector3);
+                case VK_FORMAT_R32G32B32A32_UINT:
+                return sizeof(Maths::IntVector4); //Need uintvec?
                 default:
 				LUMOS_LOG_ERROR("Unsupported Format {0}", format);
 				return 0;

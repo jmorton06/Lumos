@@ -32,6 +32,8 @@ namespace Lumos
 			Framebuffer* CreateFramebuffer(RenderPass* renderPass, uint32_t id) override { return nullptr; };
 			
 			VkSurfaceKHR CreatePlatformSurface(VkInstance vkInstance, Window* window);
+            VkSemaphore GetImageAcquiredSemaphore();
+			CommandBuffer* GetCurrentCommandBuffer() const override;
 
             static void MakeDefault();
         protected:
@@ -39,19 +41,22 @@ namespace Lumos
             
 			private:
 			
-			void FindImageFormatAndColorSpace();
+			void FindImageFormatAndColourSpace();
 			
             VkSwapchainKHR m_SwapChain;
 			std::vector<Texture2D*> m_SwapChainBuffers;
             std::vector<VkSemaphore> m_ImageAquiredSemaphores;
+			std::vector<CommandBuffer*> m_CommandBuffers;
+			
 			uint32_t m_CurrentBuffer = 0;
-			uint32_t	m_Width;
-			uint32_t	m_Height;
+			uint32_t m_AcquireImageIndex = 0;
+			uint32_t m_Width;
+			uint32_t m_Height;
 			uint32_t m_QueueNodeIndex = UINT32_MAX;
 			
             VkSurfaceKHR m_Surface;
-			VkFormat m_ColorFormat;
-			VkColorSpaceKHR m_ColorSpace;
+			VkFormat m_ColourFormat;
+			VkColorSpaceKHR m_ColourSpace;
 		};
 	}
 }

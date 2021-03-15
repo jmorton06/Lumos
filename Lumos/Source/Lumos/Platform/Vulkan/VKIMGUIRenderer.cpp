@@ -205,14 +205,14 @@ namespace Lumos
         {
             wd->FrameIndex = Renderer::GetRenderer()->GetSwapchain()->GetCurrentBufferId();
 
-			m_Renderpass->BeginRenderpass(m_CommandBuffers[wd->FrameIndex], Maths::Vector4(0.1f,0.1f,0.1f,1.0f), m_Framebuffers[wd->FrameIndex], Graphics::SubPassContents::INLINE, wd->Width, wd->Height);
+			m_Renderpass->BeginRenderpass(Renderer::GetSwapchain()->GetCurrentCommandBuffer(), Maths::Vector4(0.1f,0.1f,0.1f,1.0f), m_Framebuffers[wd->FrameIndex], Graphics::SubPassContents::INLINE, wd->Width, wd->Height);
 
             // Record Imgui Draw Data and draw funcs into command buffer
-            ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), m_CommandBuffers[wd->FrameIndex]->GetCommandBuffer());
+            ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), ((VKCommandBuffer*)Renderer::GetSwapchain()->GetCurrentCommandBuffer())->GetCommandBuffer());
 
-			m_Renderpass->EndRenderpass(m_CommandBuffers[wd->FrameIndex]);
+			m_Renderpass->EndRenderpass(Renderer::GetSwapchain()->GetCurrentCommandBuffer());
 
-            VKRenderer::GetRenderer()->Present(m_CommandBuffers[wd->FrameIndex]);
+            //VKRenderer::GetRenderer()->Present(m_CommandBuffers[wd->FrameIndex]);
         }
 
         void VKIMGUIRenderer::Render(Lumos::Graphics::CommandBuffer* commandBuffer)

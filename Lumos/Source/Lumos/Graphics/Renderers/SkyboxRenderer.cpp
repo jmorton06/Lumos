@@ -57,23 +57,23 @@ namespace Lumos
 
 			Begin();
             SetSystemUniforms(m_Shader.get());
-			m_Pipeline->Bind(m_CommandBuffers[m_CurrentBufferID].get());
+			m_Pipeline->Bind(Renderer::GetSwapchain()->GetCurrentCommandBuffer());
 
             m_CurrentDescriptorSets[0] = m_Pipeline->GetDescriptorSet();
 
-			m_Skybox->GetVertexBuffer()->Bind(m_CommandBuffers[m_CurrentBufferID].get(), m_Pipeline.get());
-			m_Skybox->GetIndexBuffer()->Bind(m_CommandBuffers[m_CurrentBufferID].get());
+			m_Skybox->GetVertexBuffer()->Bind(Renderer::GetSwapchain()->GetCurrentCommandBuffer(), m_Pipeline.get());
+			m_Skybox->GetIndexBuffer()->Bind(Renderer::GetSwapchain()->GetCurrentCommandBuffer());
 
-			Renderer::BindDescriptorSets(m_Pipeline.get(), m_CommandBuffers[m_CurrentBufferID].get(), 0, m_CurrentDescriptorSets);
-			Renderer::DrawIndexed(m_CommandBuffers[m_CurrentBufferID].get(), DrawType::TRIANGLE, m_Skybox->GetIndexBuffer()->GetCount());
+			Renderer::BindDescriptorSets(m_Pipeline.get(), Renderer::GetSwapchain()->GetCurrentCommandBuffer(), 0, m_CurrentDescriptorSets);
+			Renderer::DrawIndexed(Renderer::GetSwapchain()->GetCurrentCommandBuffer(), DrawType::TRIANGLE, m_Skybox->GetIndexBuffer()->GetCount());
 
 			m_Skybox->GetVertexBuffer()->Unbind();
 			m_Skybox->GetIndexBuffer()->Unbind();
 
 			End();
 
-			if(!m_RenderTexture)
-				Renderer::Present((m_CommandBuffers[m_CurrentBufferID].get()));
+			//if(!m_RenderTexture)
+				//Renderer::Present((m_CommandBuffers[m_CurrentBufferID].get()));
 		}
 
 		enum VSSystemUniformIndices : int32_t
@@ -126,7 +126,7 @@ namespace Lumos
 		void SkyboxRenderer::Begin()
 		{
 			LUMOS_PROFILE_FUNCTION();
-			m_RenderPass->BeginRenderpass(m_CommandBuffers[m_CurrentBufferID].get(), Maths::Vector4(0.0f), m_Framebuffers[m_CurrentBufferID].get(), Graphics::INLINE, m_ScreenBufferWidth, m_ScreenBufferHeight);
+			m_RenderPass->BeginRenderpass(Renderer::GetSwapchain()->GetCurrentCommandBuffer(), Maths::Vector4(0.0f), m_Framebuffers[m_CurrentBufferID].get(), Graphics::INLINE, m_ScreenBufferWidth, m_ScreenBufferHeight);
 		}
 
 		void SkyboxRenderer::BeginScene(Scene* scene, Camera* overrideCamera, Maths::Transform* overrideCameraTransform)
@@ -178,10 +178,10 @@ namespace Lumos
 		void SkyboxRenderer::End()
 		{
 			LUMOS_PROFILE_FUNCTION();
-			m_RenderPass->EndRenderpass(m_CommandBuffers[m_CurrentBufferID].get());
+			m_RenderPass->EndRenderpass(Renderer::GetSwapchain()->GetCurrentCommandBuffer());
 
-			if(m_RenderTexture)
-				m_CommandBuffers[m_CurrentBufferID]->Execute(true);
+			//if(m_RenderTexture)
+				//m_CommandBuffers[m_CurrentBufferID]->Execute(true);
 		}
 
 		void SkyboxRenderer::SetSystemUniforms(Shader* shader) const

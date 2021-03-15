@@ -16,11 +16,11 @@ namespace Lumos
 		struct LUMOS_EXPORT LineVertexData
 		{
 			Maths::Vector3 vertex;
-			Maths::Vector4 color;
+			Maths::Vector4 colour;
 
 			bool operator==(const LineVertexData& other) const
 			{
-				return vertex == other.vertex && color == other.color;
+				return vertex == other.vertex && colour == other.colour;
 			}
 		};
 

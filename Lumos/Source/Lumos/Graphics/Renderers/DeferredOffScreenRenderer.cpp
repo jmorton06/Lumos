@@ -169,13 +169,13 @@ namespace Lumos
 		void DeferredOffScreenRenderer::PresentToScreen()
 		{
 			LUMOS_PROFILE_FUNCTION();
-			Renderer::Present(m_CommandBuffers[Renderer::GetSwapchain()->GetCurrentBufferId()].get());
+			//Renderer::Present(m_CommandBuffers[Renderer::GetSwapchain()->GetCurrentBufferId()].get());
 		}
 
 		void DeferredOffScreenRenderer::Begin()
 		{
 			LUMOS_PROFILE_FUNCTION();
-			m_RenderPass->BeginRenderpass(m_DeferredCommandBuffers, Maths::Vector4(0.0f), m_Framebuffers.front().get(), Graphics::INLINE, m_ScreenBufferWidth, m_ScreenBufferHeight);
+			m_RenderPass->BeginRenderpass(Renderer::GetSwapchain()->GetCurrentCommandBuffer(), Maths::Vector4(0.0f), m_Framebuffers.front().get(), Graphics::INLINE, m_ScreenBufferWidth, m_ScreenBufferHeight);
 		}
 
 		void DeferredOffScreenRenderer::BeginScene(Scene* scene, Camera* overrideCamera, Maths::Transform* overrideCameraTransform)
@@ -272,8 +272,8 @@ namespace Lumos
 		void DeferredOffScreenRenderer::End()
 		{
 			LUMOS_PROFILE_FUNCTION();
-			m_RenderPass->EndRenderpass(m_DeferredCommandBuffers);
-			m_DeferredCommandBuffers->Execute(true);
+			m_RenderPass->EndRenderpass(Renderer::GetSwapchain()->GetCurrentCommandBuffer());
+			//m_DeferredCommandBuffers->Execute(true);
 		}
 
 		void DeferredOffScreenRenderer::SetSystemUniforms(Shader* shader)
@@ -287,7 +287,7 @@ namespace Lumos
 		void DeferredOffScreenRenderer::Present()
 		{
 			LUMOS_PROFILE_FUNCTION();
-			m_Pipeline->Bind(m_DeferredCommandBuffers);
+			m_Pipeline->Bind(Renderer::GetSwapchain()->GetCurrentCommandBuffer());
 
 			for(uint32_t i = 0; i < static_cast<uint32_t>(m_CommandQueue.size()); i++)
 			{
@@ -303,11 +303,11 @@ namespace Lumos
                 memcpy(m_PushConstants[0].data, &trans, sizeof(Maths::Matrix4));
                 m_CurrentDescriptorSets[0]->SetPushConstants(m_PushConstants);
 
-				mesh->GetVertexBuffer()->Bind(m_DeferredCommandBuffers, m_Pipeline.get());
-				mesh->GetIndexBuffer()->Bind(m_DeferredCommandBuffers);
+				mesh->GetVertexBuffer()->Bind(Renderer::GetSwapchain()->GetCurrentCommandBuffer(), m_Pipeline.get());
+				mesh->GetIndexBuffer()->Bind(Renderer::GetSwapchain()->GetCurrentCommandBuffer());
 
-				Renderer::BindDescriptorSets(m_Pipeline.get(), m_DeferredCommandBuffers, 0, m_CurrentDescriptorSets);
-				Renderer::DrawIndexed(m_DeferredCommandBuffers, DrawType::TRIANGLE, mesh->GetIndexBuffer()->GetCount());
+				Renderer::BindDescriptorSets(m_Pipeline.get(), Renderer::GetSwapchain()->GetCurrentCommandBuffer(), 0, m_CurrentDescriptorSets);
+				Renderer::DrawIndexed(Renderer::GetSwapchain()->GetCurrentCommandBuffer(), DrawType::TRIANGLE, mesh->GetIndexBuffer()->GetCount());
 
 				mesh->GetVertexBuffer()->Unbind();
 				mesh->GetIndexBuffer()->Unbind();

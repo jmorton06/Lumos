@@ -98,7 +98,7 @@ namespace Lumos
 		bool VKSwapchain::Init(bool vsync)
 		{
 			LUMOS_PROFILE_FUNCTION();
-            FindImageFormatAndColorSpace();
+            FindImageFormatAndColourSpace();
             
             if(!m_Surface)
             {
@@ -137,7 +137,7 @@ namespace Lumos
 			swapChainCI.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
 			swapChainCI.surface = m_Surface;
 			swapChainCI.minImageCount = numSwapChainImages;
-			swapChainCI.imageFormat = m_ColorFormat;
+			swapChainCI.imageFormat = m_ColourFormat;
 			swapChainCI.imageExtent.width = swapChainExtent.width;
 			swapChainCI.imageExtent.height = swapChainExtent.height;
 			swapChainCI.preTransform = preTransform;
@@ -145,7 +145,7 @@ namespace Lumos
 			swapChainCI.imageArrayLayers = 1;
 			swapChainCI.presentMode = swapChainPresentMode;
 			swapChainCI.oldSwapchain = VK_NULL_HANDLE;
-            swapChainCI.imageColorSpace = m_ColorSpace;
+            swapChainCI.imageColorSpace = m_ColourSpace;
             swapChainCI.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
 			swapChainCI.queueFamilyIndexCount = 0;
             swapChainCI.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
@@ -164,7 +164,7 @@ namespace Lumos
 			{
                 VkImageViewCreateInfo viewCI{};
 				viewCI.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-				viewCI.format = m_ColorFormat;
+				viewCI.format = m_ColourFormat;
 				viewCI.components.r = VK_COMPONENT_SWIZZLE_R;
 				viewCI.components.g = VK_COMPONENT_SWIZZLE_G;
 				viewCI.components.b = VK_COMPONENT_SWIZZLE_B;
@@ -191,8 +191,13 @@ namespace Lumos
                 VkSemaphore semaphore;
                 VK_CHECK_RESULT(vkCreateSemaphore(VKDevice::Get().GetDevice(), &semaphoreInfo, nullptr, &semaphore));
                 m_ImageAquiredSemaphores.push_back(semaphore);
+				
+				auto commandBuffer = Graphics::CommandBuffer::Create();
+				commandBuffer->Init(true);
+				
+				m_CommandBuffers.push_back(commandBuffer);
 			}
-
+			
 			delete[] pSwapChainImages;
 			
 			return true;
@@ -201,12 +206,30 @@ namespace Lumos
         VkResult VKSwapchain::AcquireNextImage(VkSemaphore signalSemaphore)
 		{
 			LUMOS_PROFILE_FUNCTION();
-			return vkAcquireNextImageKHR(VKDevice::Get().GetDevice(), m_SwapChain, UINT64_MAX, signalSemaphore/* m_ImageAquiredSemaphores[m_CurrentBuffer]*/, VK_NULL_HANDLE, &m_CurrentBuffer);
+            uint32_t nextIndex = (m_AcquireImageIndex + 1) % m_SwapChainBuffers.size();
+            
+			auto result =  vkAcquireNextImageKHR(VKDevice::Get().GetDevice(), m_SwapChain, UINT64_MAX, m_ImageAquiredSemaphores[nextIndex], VK_NULL_HANDLE, &m_CurrentBuffer);
+            
+             m_AcquireImageIndex = nextIndex;
+            
+            return result;
 		}
-
+    
+        VkSemaphore VKSwapchain::GetImageAcquiredSemaphore()
+		{
+			return m_ImageAquiredSemaphores[m_AcquireImageIndex];
+		}
+		
+		CommandBuffer* VKSwapchain::GetCurrentCommandBuffer() const
+		{
+            //LUMOS_LOG_INFO(m_Swapchain->GetCurrentBufferId());
+			return m_CommandBuffers[m_CurrentBuffer];
+		}
+		
         void VKSwapchain::Present(VkSemaphore waitSemaphore)
 		{
 			LUMOS_PROFILE_FUNCTION();
+            //LUMOS_LOG_INFO("Present Swapchain {0}" , m_CurrentBuffer);
             VkPresentInfoKHR present;
 			present.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
 			present.pNext = VK_NULL_HANDLE;
@@ -243,7 +266,7 @@ namespace Lumos
         }
 	}
 	
-    void Graphics::VKSwapchain::FindImageFormatAndColorSpace()
+    void Graphics::VKSwapchain::FindImageFormatAndColourSpace()
 	{
 		LUMOS_PROFILE_FUNCTION();
 		VkPhysicalDevice physicalDevice = VKDevice::Get().GetPhysicalDevice()->GetVulkanPhysicalDevice();
@@ -260,8 +283,8 @@ namespace Lumos
 		// there is no preferered format, so we assume VK_FORMAT_B8G8R8A8_UNORM
 		if ((formatCount == 1) && (surfaceFormats[0].format == VK_FORMAT_UNDEFINED))
 		{
-			m_ColorFormat = VK_FORMAT_B8G8R8A8_UNORM;
-			m_ColorSpace = surfaceFormats[0].colorSpace;
+			m_ColourFormat = VK_FORMAT_B8G8R8A8_UNORM;
+			m_ColourSpace = surfaceFormats[0].colorSpace;
 		}
 		else
 		{
@@ -272,19 +295,19 @@ namespace Lumos
 			{
                 if (surfaceFormat.format == VK_FORMAT_B8G8R8A8_UNORM)
 				{
-					m_ColorFormat = surfaceFormat.format;
-					m_ColorSpace = surfaceFormat.colorSpace;
+					m_ColourFormat = surfaceFormat.format;
+					m_ColourSpace = surfaceFormat.colorSpace;
 					found_B8G8R8A8_UNORM = true;
 					break;
 				}
 			}
 			
 			// in case VK_FORMAT_B8G8R8A8_UNORM is not available
-			// select the first available color format
+			// select the first available colour format
 			if (!found_B8G8R8A8_UNORM)
 			{
-				m_ColorFormat = surfaceFormats[0].format;
-				m_ColorSpace = surfaceFormats[0].colorSpace;
+				m_ColourFormat = surfaceFormats[0].format;
+				m_ColourSpace = surfaceFormats[0].colorSpace;
 			}
 		}
 		

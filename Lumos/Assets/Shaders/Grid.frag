@@ -14,15 +14,15 @@ layout(set = 0, binding = 1) uniform UniformBuffer
 }
 ubo;
 
-layout(location = 0) in vec2 v_TexCoord;
-layout(location = 1) in vec3 v_Position;
+layout(location = 0) in vec3 fragPosition;
+layout(location = 1) in vec2 fragTexCoord;
 
 const float step = 100.0f;
 const float subdivisions = 10.0f;
 
-vec4 Grid(float p_divisions)
+vec4 Grid(float divisions)
 {
-	vec2 coord = v_TexCoord.xy * p_divisions;
+	vec2 coord = fragTexCoord.xy * divisions;
 
 	vec2 grid = abs(fract(coord - 0.5) - 0.5) / fwidth(coord);
 	float line = min(grid.x, grid.y);
@@ -34,8 +34,8 @@ vec4 Grid(float p_divisions)
 
 void main()
 {
-	vec3 pseudoViewPos = vec3(ubo.u_CameraPos.x, v_Position.y, ubo.u_CameraPos.z);
-	float distanceToCamera = max(distance(v_Position, pseudoViewPos) - abs(ubo.u_CameraPos.y), 0);
+	vec3 pseudoViewPos = vec3(ubo.u_CameraPos.x, fragPosition.y, ubo.u_CameraPos.z);
+	float distanceToCamera = max(distance(fragPosition, pseudoViewPos) - abs(ubo.u_CameraPos.y), 0);
 
 	float divs = ubo.u_Scale / pow(2, round((abs(ubo.u_CameraPos.y) - step / subdivisions) / step));
 
