@@ -394,7 +394,6 @@ float CalculateShadow(vec3 wsPos, int cascadeIndex, float bias, vec3 lightDirect
 		}
 		else
 		{
-			float bias = 0.0005;
 			return 1.0 - PoissonDotShadow(shadowCoord, cascadeIndex, bias, wsPos) * ShadowFade;
 			//return PCSS_DirectionalLight(uShadowMap, shadowCoord * ( 1.0 / shadowCoord.w), ubo.lightSize, lightDirection, normal, wsPos, cascadeIndex );
 		}
@@ -505,9 +504,9 @@ vec3 IBL(vec3 F0, vec3 Lr, Material material)
 	return kd * diffuseIBL + specularIBL;
 }
 
-vec3 FinalGamma(vec3 color)
+vec3 FinalGamma(vec3 colour)
 {
-	return pow(color, vec3(1.0 / GAMMA));
+	return pow(colour, vec3(1.0 / GAMMA));
 }
 
 vec3 GammaCorrectTextureRGB(vec3 texCol)

@@ -49,6 +49,7 @@ namespace Lumos
 			void DrawInternal(CommandBuffer* commandBuffer, DrawType type, uint32_t count, DataType datayType, void* indices) const override;
 
 			void CreateSemaphores();
+            void AcquireNextImage();
 
 			static void MakeDefault();
 
@@ -58,7 +59,6 @@ namespace Lumos
 		private:
 			Lumos::Graphics::VKContext* m_Context;
 
-			VkSemaphore m_ImageAvailableSemaphore[NUM_SEMAPHORES];
 			uint32_t m_CurrentSemaphoreIndex = 0;
 
 			std::string m_RendererTitle;

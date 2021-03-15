@@ -31,13 +31,13 @@ namespace Lumos
 		struct LUMOS_EXPORT PointVertexData
 		{
 			Maths::Vector3 vertex;
-			Maths::Vector4 color;
+			Maths::Vector4 colour;
 			Maths::Vector2 size;
 			Maths::Vector2 uv;
 
 			bool operator==(const PointVertexData& other) const
 			{
-				return vertex == other.vertex && color == other.color && size == other.size && uv == other.uv;
+				return vertex == other.vertex && colour == other.colour && size == other.size && uv == other.uv;
             }
 		};
 

@@ -199,14 +199,14 @@ namespace Lumos
 			Present();
 			End();
 
-			if(!m_RenderTexture)
-				PresentToScreen();
+			//if(!m_RenderTexture)
+				//PresentToScreen();
 		}
 
 		void DeferredRenderer::PresentToScreen()
 		{
 			LUMOS_PROFILE_FUNCTION();
-			Renderer::Present((m_CommandBuffers[Renderer::GetSwapchain()->GetCurrentBufferId()].get()));
+			//Renderer::Present(Renderer::GetSwapchain()->GetCurrentCommandBuffer());
 		}
 
 		void DeferredRenderer::Begin(int commandBufferID)
@@ -215,7 +215,7 @@ namespace Lumos
 			m_CommandQueue.clear();
 
 			m_CommandBufferIndex = commandBufferID;
-			m_RenderPass->BeginRenderpass(m_CommandBuffers[m_CommandBufferIndex].get(), m_ClearColour, m_Framebuffers[m_CommandBufferIndex].get(), Graphics::INLINE, m_ScreenBufferWidth, m_ScreenBufferHeight);
+			m_RenderPass->BeginRenderpass(Renderer::GetSwapchain()->GetCurrentCommandBuffer(), m_ClearColour, m_Framebuffers[m_CommandBufferIndex].get(), Graphics::INLINE, m_ScreenBufferWidth, m_ScreenBufferHeight);
 		}
 
 		void DeferredRenderer::BeginScene(Scene* scene, Camera* overrideCamera, Maths::Transform* overrideCameraTransform)
@@ -378,10 +378,10 @@ namespace Lumos
 		void DeferredRenderer::End()
 		{
 			LUMOS_PROFILE_FUNCTION();
-			m_RenderPass->EndRenderpass(m_CommandBuffers[m_CommandBufferIndex].get());
+            m_RenderPass->EndRenderpass(Renderer::GetSwapchain()->GetCurrentCommandBuffer());
 
-			if(m_RenderTexture)
-				m_CommandBuffers[0]->Execute(true);
+			//if(m_RenderTexture)
+//				m_CommandBuffers[0]->Execute(true);
 		}
 
 		void DeferredRenderer::SetSystemUniforms(Shader* shader) const
@@ -393,7 +393,7 @@ namespace Lumos
 		void DeferredRenderer::Present()
 		{
 			LUMOS_PROFILE_FUNCTION();
-			Graphics::CommandBuffer* currentCMDBuffer = m_CommandBuffers[m_CommandBufferIndex].get();
+            Graphics::CommandBuffer* currentCMDBuffer = Renderer::GetSwapchain()->GetCurrentCommandBuffer();//m_CommandBuffers[m_CommandBufferIndex].get();
 
 			m_Pipeline->Bind(currentCMDBuffer);
 

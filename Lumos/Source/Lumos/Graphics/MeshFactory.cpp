@@ -456,8 +456,7 @@ namespace Lumos
 			Maths::Vector3 vec = normal * 90.0f;
 			Maths::Quaternion rotation = Maths::Quaternion(vec.z, Maths::Vector3(1.0f, 0.0f, 0.0f)) * Maths::Quaternion(vec.y, Maths::Vector3(0.0f, 1.0f, 0.0f)) * Maths::Quaternion(vec.x, Maths::Vector3(0.0f, 0.0f, 1.0f));
             
-			Vertex data[4];
-			memset(data, 0, 4 * sizeof(Vertex));
+			Vertex* data = new Vertex[4];
             
 			data[0].Position = rotation * Maths::Vector3(-width / 2.0f, -1.0f, -height / 2.0f);
 			data[0].Normal = normal;
@@ -477,6 +476,7 @@ namespace Lumos
             
 			Ref<VertexBuffer> vb = Ref<VertexBuffer>(VertexBuffer::Create(BufferUsage::STATIC));
 			vb->SetData(4 * sizeof(Vertex), data);
+			delete[] data;
             
             Ref<Maths::BoundingBox> boundingBox = CreateRef<Maths::BoundingBox>();
             for (int i = 0; i < 4; i++)
@@ -490,8 +490,7 @@ namespace Lumos
                 2, 3, 0
 			};
             
-			Ref<IndexBuffer> ib;
-			ib.reset(IndexBuffer::Create(indices, 6));
+			Ref<IndexBuffer> ib = Ref<IndexBuffer>(IndexBuffer::Create(indices, 6));
 			
 			return new Mesh(vb, ib, boundingBox);
 		}

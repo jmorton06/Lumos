@@ -22,24 +22,11 @@ namespace Lumos
 
 		VKRenderer::~VKRenderer()
 		{
-			for(int i = 0; i < NUM_SEMAPHORES; i++)
-			{
-				vkDestroySemaphore(VKDevice::Get().GetDevice(), m_ImageAvailableSemaphore[i], nullptr);
-
-			}
 		}
 
 		void VKRenderer::PresentInternal(CommandBuffer* cmdBuffer)
 		{
 			LUMOS_PROFILE_FUNCTION();
-#if defined(LUMOS_PROFILE) && defined(TRACY_ENABLE)
-            TracyVkCollect(VKDevice::Get().GetTracyContext(), static_cast<VKCommandBuffer*>(cmdBuffer)->GetCommandBuffer());
-#endif
-			static_cast<VKCommandBuffer*>(cmdBuffer)->ExecuteInternal(VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-				m_ImageAvailableSemaphore[m_CurrentSemaphoreIndex],
-				m_ImageAvailableSemaphore[m_CurrentSemaphoreIndex + 1],
-				true);
-			m_CurrentSemaphoreIndex++;
 		}
 
 		void VKRenderer::ClearSwapchainImage() const
@@ -57,18 +44,12 @@ namespace Lumos
 				subresourceRange.layerCount = 1;
 				subresourceRange.levelCount = 1;
 
-				VkClearColorValue clearColorValue = VkClearColorValue({{0.0f, 0.0f, 0.0f, 0.0f}});
+				VkClearColorValue clearColourValue = VkClearColorValue({{0.0f, 0.0f, 0.0f, 0.0f}});
 
-				vkCmdClearColorImage(cmd, static_cast<VKTexture2D*>(m_Swapchain->GetImage(i))->GetImage(), VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, &clearColorValue, 1, &subresourceRange);
+				vkCmdClearColorImage(cmd, static_cast<VKTexture2D*>(m_Swapchain->GetImage(i))->GetImage(), VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, &clearColourValue, 1, &subresourceRange);
 
 				VKTools::EndSingleTimeCommands(cmd);
 			}
-		}
-
-		void VKRenderer::PresentInternal()
-		{
-			LUMOS_PROFILE_FUNCTION();
-            VKContext::Get()->GetSwapchain()->Present(m_ImageAvailableSemaphore[m_CurrentSemaphoreIndex]);
 		}
 
 		void VKRenderer::OnResize(uint32_t width, uint32_t height)
@@ -93,15 +74,6 @@ namespace Lumos
 
 		void VKRenderer::CreateSemaphores()
 		{
-			LUMOS_PROFILE_FUNCTION();
-			VkSemaphoreCreateInfo semaphoreInfo = {};
-			semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-			semaphoreInfo.pNext = nullptr;
-
-			for(int i = 0; i < NUM_SEMAPHORES; i++)
-			{
-				VK_CHECK_RESULT(vkCreateSemaphore(VKDevice::Get().GetDevice(), &semaphoreInfo, nullptr, &m_ImageAvailableSemaphore[i]));
-			}
 		}
     
         Swapchain* VKRenderer::GetSwapchainInternal() const
@@ -112,23 +84,49 @@ namespace Lumos
 		void VKRenderer::Begin()
 		{
 			LUMOS_PROFILE_FUNCTION();
-			m_CurrentSemaphoreIndex = 0;
-            auto m_Swapchain = VKContext::Get()->GetSwapchain();
-			auto result = m_Swapchain->AcquireNextImage(m_ImageAvailableSemaphore[m_CurrentSemaphoreIndex]);
-			if(result == VK_ERROR_OUT_OF_DATE_KHR)
-			{
-				OnResize(m_Width, m_Height);
-				return;
-			}
-			else if(result == VK_SUBOPTIMAL_KHR)
-			{
-				LUMOS_LOG_WARN("[VULKAN] Swapchain Image - SubOptimal!");
-			}
-			else if(result != VK_SUCCESS)
-			{
-				LUMOS_LOG_CRITICAL("[VULKAN] Failed to acquire swap chain image!");
-			}
+           // LUMOS_LOG_INFO("Begin VK Renderer");
+            m_Context = VKContext::Get();
+            AcquireNextImage();
+            //m_Context->WaitIdle();
+
+			GetSwapchainInternal()->GetCurrentCommandBuffer()->BeginRecording();
 		}
+    
+        void VKRenderer::AcquireNextImage()
+        {
+            auto swapchain = VKContext::Get()->GetSwapchain();
+            m_Context = VKContext::Get();
+
+            auto result = swapchain->AcquireNextImage(nullptr);
+            if(result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR)
+            {
+                OnResize(m_Width, m_Height);
+                //Begin();
+                return;
+            }
+            else if(result != VK_SUCCESS)
+            {
+                LUMOS_LOG_CRITICAL("[VULKAN] Failed to acquire swap chain image!");
+            }
+            
+           // LUMOS_LOG_INFO("Acquire image {0}", swapchain->GetCurrentBufferId());
+
+        }
+    
+        void VKRenderer::PresentInternal()
+        {
+            LUMOS_PROFILE_FUNCTION();
+            //LUMOS_LOG_INFO("Present Internal");
+            GetSwapchainInternal()->GetCurrentCommandBuffer()->EndRecording();
+                        
+            static_cast<VKCommandBuffer*>(GetSwapchainInternal()->GetCurrentCommandBuffer())->ExecuteInternal(VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+                static_cast<VKSwapchain*>(m_Context->GetSwapchain().get())->GetImageAcquiredSemaphore(),
+                nullptr,
+                true);
+                    
+           // LUMOS_LOG_INFO("Processed Semaphore");
+            VKContext::Get()->GetSwapchain()->Present(static_cast<VKCommandBuffer*>(GetSwapchainInternal()->GetCurrentCommandBuffer())->GetProcessedSemaphore());
+        }
 
 		const std::string& VKRenderer::GetTitleInternal() const
 		{

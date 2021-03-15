@@ -1120,12 +1120,12 @@ namespace Lumos
 			});
 
 		//@TODO: Overload
-		imgui["colorEdit3"] = [](const char* _label, float _r, float _g, float _b, sol::function _cb) {
+		imgui["colourEdit3"] = [](const char* _label, float _r, float _g, float _b, sol::function _cb) {
 			float tmp[3] = {_r, _g, _b};
 			if(ImGui::ColorEdit3(_label, tmp))
 				_cb(tmp[0], tmp[1], tmp[2]);
 		};
-		imgui["colorEdit4"] = sol::overload(
+		imgui["colourEdit4"] = sol::overload(
 			[](const char* _label, float _r, float _g, float _b, float _a, sol::function _cb) {
 				float tmp[4] = {_r, _g, _b, _a};
 				if(ImGui::ColorEdit4(_label, tmp))
@@ -1137,19 +1137,19 @@ namespace Lumos
 					_cb(tmp[0], tmp[1], tmp[2], tmp[3]);
 			});
 		//@TODO: Overload
-		imgui["colorPicker3"] = [](const char* _label, float _r, float _g, float _b, sol::function _cb) {
+		imgui["colourPicker3"] = [](const char* _label, float _r, float _g, float _b, sol::function _cb) {
 			float tmp[3] = {_r, _g, _b};
 			if(ImGui::ColorPicker3(_label, tmp))
 				_cb(tmp[0], tmp[1], tmp[2]);
 		};
 		//@TODO: Overload
-		imgui["colorPicker3"] = [](const char* _label, float _r, float _g, float _b, float _a, sol::function _cb) {
+		imgui["colourPicker3"] = [](const char* _label, float _r, float _g, float _b, float _a, sol::function _cb) {
 			float tmp[4] = {_r, _g, _b, _a};
 			if(ImGui::ColorPicker4(_label, tmp))
 				_cb(tmp[0], tmp[1], tmp[2], tmp[3]);
 		};
 		//@TODO: Overload
-		imgui["colorButton"] = [](const char* _label, float _r, float _g, float _b, float _a, sol::function _cb) {
+		imgui["colourButton"] = [](const char* _label, float _r, float _g, float _b, float _a, sol::function _cb) {
 			ImVec4 tmp = {_r, _g, _b, _a};
 			if(ImGui::ColorButton(_label, tmp))
 				_cb(tmp.x, tmp.y, tmp.z, tmp.y);

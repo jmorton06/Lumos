@@ -78,6 +78,8 @@ namespace Lumos
 
 	void DebugRenderer::SetRenderTarget(Graphics::Texture* texture, bool rebuildFramebuffer)
 	{
+        if(!s_Instance)
+            return;
 		if(s_Instance->m_LineRenderer)
 			s_Instance->m_LineRenderer->SetRenderTarget(texture, rebuildFramebuffer);
 		if(s_Instance->m_Renderer2D)

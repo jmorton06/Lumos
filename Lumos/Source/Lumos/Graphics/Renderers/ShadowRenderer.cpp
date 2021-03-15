@@ -9,6 +9,7 @@
 #include "Graphics/API/Pipeline.h"
 #include "Graphics/API/UniformBuffer.h"
 #include "Graphics/API/GraphicsContext.h"
+#include "Graphics/API/Swapchain.h"
 #include "Graphics/API/Shader.h"
 
 #include "Graphics/Model.h"
@@ -58,7 +59,7 @@ namespace Lumos
             m_MaxShadowDistance = 400.0f;
             m_ShadowFade = 40.0f;
             m_CascadeTransitionFade = 1.5f;
-            m_InitialBias = 0.0023f;
+            m_InitialBias = 0.0013f;
 
 			ShadowRenderer::Init();
 			Application::Get().GetRenderGraph()->SetShadowRenderer(this);
@@ -127,7 +128,7 @@ namespace Lumos
 		void ShadowRenderer::Begin()
 		{
 			LUMOS_PROFILE_FUNCTION();
-			m_CommandBuffer->BeginRecording();
+			//m_CommandBuffer->BeginRecording();
 		}
 
 		void ShadowRenderer::BeginScene(Scene* scene, Camera* overrideCamera, Maths::Transform* overrideCameraTransform)
@@ -227,8 +228,8 @@ namespace Lumos
 		void ShadowRenderer::End()
 		{
 			LUMOS_PROFILE_FUNCTION();
-			m_CommandBuffer->EndRecording();
-			m_CommandBuffer->Execute(false);
+			//m_CommandBuffer->EndRecording();
+			//m_CommandBuffer->Execute(false);
 		}
 
 		void ShadowRenderer::Present()
@@ -236,9 +237,9 @@ namespace Lumos
 			LUMOS_PROFILE_FUNCTION();
 			int index = 0;
 
-			m_RenderPass->BeginRenderpass(m_CommandBuffer, Maths::Vector4(0.0f), m_ShadowFramebuffer[m_Layer].get(), Graphics::INLINE, m_ShadowMapSize, m_ShadowMapSize, false);
+			m_RenderPass->BeginRenderpass(Renderer::GetSwapchain()->GetCurrentCommandBuffer(), Maths::Vector4(0.0f), m_ShadowFramebuffer[m_Layer].get(), Graphics::INLINE, m_ShadowMapSize, m_ShadowMapSize, false);
 
-			m_Pipeline->Bind(m_CommandBuffer);
+			m_Pipeline->Bind(Renderer::GetSwapchain()->GetCurrentCommandBuffer());
 
 			for(auto& command : m_CascadeCommandQueue[m_Layer])
 			{
@@ -248,8 +249,8 @@ namespace Lumos
 
                 m_CurrentDescriptorSets[0] = m_Pipeline->GetDescriptorSet();
 
-				mesh->GetVertexBuffer()->Bind(m_CommandBuffer, m_Pipeline.get());
-				mesh->GetIndexBuffer()->Bind(m_CommandBuffer);
+				mesh->GetVertexBuffer()->Bind(Renderer::GetSwapchain()->GetCurrentCommandBuffer(), m_Pipeline.get());
+				mesh->GetIndexBuffer()->Bind(Renderer::GetSwapchain()->GetCurrentCommandBuffer());
                 
                 uint32_t layer = static_cast<uint32_t>(m_Layer);
                 auto trans = command.transform;
@@ -258,8 +259,8 @@ namespace Lumos
 
                 m_CurrentDescriptorSets[0]->SetPushConstants(m_PushConstants);
                 
-				Renderer::BindDescriptorSets(m_Pipeline.get(), m_CommandBuffer, 0, m_CurrentDescriptorSets);
-				Renderer::DrawIndexed(m_CommandBuffer, DrawType::TRIANGLE, mesh->GetIndexBuffer()->GetCount());
+				Renderer::BindDescriptorSets(m_Pipeline.get(), Renderer::GetSwapchain()->GetCurrentCommandBuffer(), 0, m_CurrentDescriptorSets);
+				Renderer::DrawIndexed(Renderer::GetSwapchain()->GetCurrentCommandBuffer(), DrawType::TRIANGLE, mesh->GetIndexBuffer()->GetCount());
 
 				mesh->GetVertexBuffer()->Unbind();
 				mesh->GetIndexBuffer()->Unbind();
@@ -267,7 +268,7 @@ namespace Lumos
 				index++;
 			}
 
-			m_RenderPass->EndRenderpass(m_CommandBuffer, false);
+			m_RenderPass->EndRenderpass(Renderer::GetSwapchain()->GetCurrentCommandBuffer(), false);
             //m_CommandBuffer->Execute(true);
 		}
 

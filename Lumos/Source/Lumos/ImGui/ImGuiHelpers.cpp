@@ -82,7 +82,7 @@ namespace Lumos
 		ImGui::PushItemWidth(-1);
 
 		std::string id = "##" + name;
-		if((int)flags & (int)PropertyFlag::ColorProperty)
+		if((int)flags & (int)PropertyFlag::ColourProperty)
 		{
 			if(ImGui::ColorEdit3(id.c_str(), Maths::ValuePointer(value), ImGuiColorEditFlags_NoInputs))
 				updated = true;
@@ -114,7 +114,7 @@ namespace Lumos
 		ImGui::PushItemWidth(-1);
 
 		std::string id = "##" + name;
-		if((int)flags & (int)PropertyFlag::ColorProperty)
+		if((int)flags & (int)PropertyFlag::ColourProperty)
 		{
 			if(ImGui::ColorEdit4(id.c_str(), Maths::ValuePointer(value), ImGuiColorEditFlags_NoInputs))
 				updated = true;
@@ -235,7 +235,7 @@ namespace Lumos
 		return true;
 	}
 
-	bool ImGuiHelpers::Spinner(const char* label, float radius, int thickness, const uint32_t& color)
+	bool ImGuiHelpers::Spinner(const char* label, float radius, int thickness, const uint32_t& colour)
 	{
 		auto g = ImGui::GetCurrentContext();
 		const ImGuiStyle& style = g->Style;
@@ -268,30 +268,30 @@ namespace Lumos
 				centre.y + ImSin(a + float(g->Time) * 8) * radius));
 		}
 
-		drawList->PathStroke(color, false, float(thickness));
+		drawList->PathStroke(colour, false, float(thickness));
 
 		return true;
 	}
 
 	void ImGuiHelpers::SetTheme(Theme theme)
 	{
-		ImVec4 color_for_text = ImVec4(236.f / 255.f, 240.f / 255.f, 241.f / 255.f, 1.0f);
-		ImVec4 color_for_head = ImVec4(41.f / 255.f, 128.f / 255.f, 185.f / 255.f, 1.0f);
-		ImVec4 color_for_area = ImVec4(57.f / 255.f, 79.f / 255.f, 105.f / 255.f, 1.0f);
-		ImVec4 color_for_body = ImVec4(44.f / 255.f, 62.f / 255.f, 80.f / 255.f, 1.0f);
-		ImVec4 color_for_pops = ImVec4(33.f / 255.f, 46.f / 255.f, 60.f / 255.f, 1.0f);
+		ImVec4 colour_for_text = ImVec4(236.f / 255.f, 240.f / 255.f, 241.f / 255.f, 1.0f);
+		ImVec4 colour_for_head = ImVec4(41.f / 255.f, 128.f / 255.f, 185.f / 255.f, 1.0f);
+		ImVec4 colour_for_area = ImVec4(57.f / 255.f, 79.f / 255.f, 105.f / 255.f, 1.0f);
+		ImVec4 colour_for_body = ImVec4(44.f / 255.f, 62.f / 255.f, 80.f / 255.f, 1.0f);
+		ImVec4 colour_for_pops = ImVec4(33.f / 255.f, 46.f / 255.f, 60.f / 255.f, 1.0f);
 
 		ImVec4 black(0, 0, 0, 0);
 		ImVec4 white(1, 1, 1, 1);
-		ImVec4 color1(0.86f, 0.93f, 0.89f, 1); // text ->
-		ImVec4 color2(0.20f, 0.22f, 0.27f, 1); // blur
-		ImVec4 color3(0.92f, 0.18f, 0.29f, 1); // active
-		ImVec4 color4(0.47f, 0.77f, 0.83f, 1); // slider ->
-		ImVec4 color5(0.13f, 0.14f, 0.17f, 1); // windowbg
-		ImVec4 color6(0.31f, 0.31f, 1.00f, 1); // border, unused -> black
-		ImVec4 color7(0.09f, 0.15f, 0.16f, 1); // ScrollbarGrab
-		ImVec4 color8(0.71f, 0.22f, 0.27f, 1); // CheckMark
-		ImVec4 color9(0.14f, 0.16f, 0.19f, 1); // Column
+		ImVec4 colour1(0.86f, 0.93f, 0.89f, 1); // text ->
+		ImVec4 colour2(0.20f, 0.22f, 0.27f, 1); // blur
+		ImVec4 colour3(0.92f, 0.18f, 0.29f, 1); // active
+		ImVec4 colour4(0.47f, 0.77f, 0.83f, 1); // slider ->
+		ImVec4 colour5(0.13f, 0.14f, 0.17f, 1); // windowbg
+		ImVec4 colour6(0.31f, 0.31f, 1.00f, 1); // border, unused -> black
+		ImVec4 colour7(0.09f, 0.15f, 0.16f, 1); // ScrollbarGrab
+		ImVec4 colour8(0.71f, 0.22f, 0.27f, 1); // CheckMark
+		ImVec4 colour9(0.14f, 0.16f, 0.19f, 1); // Column
 
 		static const float max = 255.0f;
 		ImVec4 blue = ImVec4(0.0f, 0.0f, 1.0f, 1.0f);
@@ -566,40 +566,40 @@ namespace Lumos
 
 			break;
 		case Blue:
-			colours[ImGuiCol_Text] = ImVec4(color_for_text.x, color_for_text.y, color_for_text.z, 1.00f);
-			colours[ImGuiCol_TextDisabled] = ImVec4(color_for_text.x, color_for_text.y, color_for_text.z, 0.58f);
-			colours[ImGuiCol_WindowBg] = ImVec4(color_for_body.x, color_for_body.y, color_for_body.z, 0.95f);
-			colours[ImGuiCol_Border] = ImVec4(color_for_body.x, color_for_body.y, color_for_body.z, 0.00f);
-			colours[ImGuiCol_BorderShadow] = ImVec4(color_for_body.x, color_for_body.y, color_for_body.z, 0.00f);
-			colours[ImGuiCol_FrameBg] = ImVec4(color_for_area.x, color_for_area.y, color_for_area.z, 1.00f);
-			colours[ImGuiCol_FrameBgHovered] = ImVec4(color_for_head.x, color_for_head.y, color_for_head.z, 0.78f);
-			colours[ImGuiCol_FrameBgActive] = ImVec4(color_for_head.x, color_for_head.y, color_for_head.z, 1.00f);
-			colours[ImGuiCol_TitleBg] = ImVec4(color_for_area.x, color_for_area.y, color_for_area.z, 1.00f);
-			colours[ImGuiCol_TitleBgCollapsed] = ImVec4(color_for_area.x, color_for_area.y, color_for_area.z, 0.75f);
-			colours[ImGuiCol_TitleBgActive] = ImVec4(color_for_head.x, color_for_head.y, color_for_head.z, 1.00f);
-			colours[ImGuiCol_MenuBarBg] = ImVec4(color_for_area.x, color_for_area.y, color_for_area.z, 0.47f);
-			colours[ImGuiCol_ScrollbarBg] = ImVec4(color_for_area.x, color_for_area.y, color_for_area.z, 1.00f);
-			colours[ImGuiCol_ScrollbarGrab] = ImVec4(color_for_head.x, color_for_head.y, color_for_head.z, 0.21f);
-			colours[ImGuiCol_ScrollbarGrabHovered] = ImVec4(color_for_head.x, color_for_head.y, color_for_head.z, 0.78f);
-			colours[ImGuiCol_ScrollbarGrabActive] = ImVec4(color_for_head.x, color_for_head.y, color_for_head.z, 1.00f);
-			colours[ImGuiCol_CheckMark] = ImVec4(color_for_head.x, color_for_head.y, color_for_head.z, 0.80f);
-			colours[ImGuiCol_SliderGrab] = ImVec4(color_for_head.x, color_for_head.y, color_for_head.z, 0.50f);
-			colours[ImGuiCol_SliderGrabActive] = ImVec4(color_for_head.x, color_for_head.y, color_for_head.z, 1.00f);
-			colours[ImGuiCol_Button] = ImVec4(color_for_head.x, color_for_head.y, color_for_head.z, 0.50f);
-			colours[ImGuiCol_ButtonHovered] = ImVec4(color_for_head.x, color_for_head.y, color_for_head.z, 0.86f);
-			colours[ImGuiCol_ButtonActive] = ImVec4(color_for_head.x, color_for_head.y, color_for_head.z, 1.00f);
-			colours[ImGuiCol_Header] = ImVec4(color_for_head.x, color_for_head.y, color_for_head.z, 0.76f);
-			colours[ImGuiCol_HeaderHovered] = ImVec4(color_for_head.x, color_for_head.y, color_for_head.z, 0.86f);
-			colours[ImGuiCol_HeaderActive] = ImVec4(color_for_head.x, color_for_head.y, color_for_head.z, 1.00f);
-			colours[ImGuiCol_ResizeGrip] = ImVec4(color_for_head.x, color_for_head.y, color_for_head.z, 0.15f);
-			colours[ImGuiCol_ResizeGripHovered] = ImVec4(color_for_head.x, color_for_head.y, color_for_head.z, 0.78f);
-			colours[ImGuiCol_ResizeGripActive] = ImVec4(color_for_head.x, color_for_head.y, color_for_head.z, 1.00f);
-			colours[ImGuiCol_PlotLines] = ImVec4(color_for_text.x, color_for_text.y, color_for_text.z, 0.63f);
-			colours[ImGuiCol_PlotLinesHovered] = ImVec4(color_for_head.x, color_for_head.y, color_for_head.z, 1.00f);
-			colours[ImGuiCol_PlotHistogram] = ImVec4(color_for_text.x, color_for_text.y, color_for_text.z, 0.63f);
-			colours[ImGuiCol_PlotHistogramHovered] = ImVec4(color_for_head.x, color_for_head.y, color_for_head.z, 1.00f);
-			colours[ImGuiCol_TextSelectedBg] = ImVec4(color_for_head.x, color_for_head.y, color_for_head.z, 0.43f);
-			colours[ImGuiCol_PopupBg] = ImVec4(color_for_pops.x, color_for_pops.y, color_for_pops.z, 0.92f);
+			colours[ImGuiCol_Text] = ImVec4(colour_for_text.x, colour_for_text.y, colour_for_text.z, 1.00f);
+			colours[ImGuiCol_TextDisabled] = ImVec4(colour_for_text.x, colour_for_text.y, colour_for_text.z, 0.58f);
+			colours[ImGuiCol_WindowBg] = ImVec4(colour_for_body.x, colour_for_body.y, colour_for_body.z, 0.95f);
+			colours[ImGuiCol_Border] = ImVec4(colour_for_body.x, colour_for_body.y, colour_for_body.z, 0.00f);
+			colours[ImGuiCol_BorderShadow] = ImVec4(colour_for_body.x, colour_for_body.y, colour_for_body.z, 0.00f);
+			colours[ImGuiCol_FrameBg] = ImVec4(colour_for_area.x, colour_for_area.y, colour_for_area.z, 1.00f);
+			colours[ImGuiCol_FrameBgHovered] = ImVec4(colour_for_head.x, colour_for_head.y, colour_for_head.z, 0.78f);
+			colours[ImGuiCol_FrameBgActive] = ImVec4(colour_for_head.x, colour_for_head.y, colour_for_head.z, 1.00f);
+			colours[ImGuiCol_TitleBg] = ImVec4(colour_for_area.x, colour_for_area.y, colour_for_area.z, 1.00f);
+			colours[ImGuiCol_TitleBgCollapsed] = ImVec4(colour_for_area.x, colour_for_area.y, colour_for_area.z, 0.75f);
+			colours[ImGuiCol_TitleBgActive] = ImVec4(colour_for_head.x, colour_for_head.y, colour_for_head.z, 1.00f);
+			colours[ImGuiCol_MenuBarBg] = ImVec4(colour_for_area.x, colour_for_area.y, colour_for_area.z, 0.47f);
+			colours[ImGuiCol_ScrollbarBg] = ImVec4(colour_for_area.x, colour_for_area.y, colour_for_area.z, 1.00f);
+			colours[ImGuiCol_ScrollbarGrab] = ImVec4(colour_for_head.x, colour_for_head.y, colour_for_head.z, 0.21f);
+			colours[ImGuiCol_ScrollbarGrabHovered] = ImVec4(colour_for_head.x, colour_for_head.y, colour_for_head.z, 0.78f);
+			colours[ImGuiCol_ScrollbarGrabActive] = ImVec4(colour_for_head.x, colour_for_head.y, colour_for_head.z, 1.00f);
+			colours[ImGuiCol_CheckMark] = ImVec4(colour_for_head.x, colour_for_head.y, colour_for_head.z, 0.80f);
+			colours[ImGuiCol_SliderGrab] = ImVec4(colour_for_head.x, colour_for_head.y, colour_for_head.z, 0.50f);
+			colours[ImGuiCol_SliderGrabActive] = ImVec4(colour_for_head.x, colour_for_head.y, colour_for_head.z, 1.00f);
+			colours[ImGuiCol_Button] = ImVec4(colour_for_head.x, colour_for_head.y, colour_for_head.z, 0.50f);
+			colours[ImGuiCol_ButtonHovered] = ImVec4(colour_for_head.x, colour_for_head.y, colour_for_head.z, 0.86f);
+			colours[ImGuiCol_ButtonActive] = ImVec4(colour_for_head.x, colour_for_head.y, colour_for_head.z, 1.00f);
+			colours[ImGuiCol_Header] = ImVec4(colour_for_head.x, colour_for_head.y, colour_for_head.z, 0.76f);
+			colours[ImGuiCol_HeaderHovered] = ImVec4(colour_for_head.x, colour_for_head.y, colour_for_head.z, 0.86f);
+			colours[ImGuiCol_HeaderActive] = ImVec4(colour_for_head.x, colour_for_head.y, colour_for_head.z, 1.00f);
+			colours[ImGuiCol_ResizeGrip] = ImVec4(colour_for_head.x, colour_for_head.y, colour_for_head.z, 0.15f);
+			colours[ImGuiCol_ResizeGripHovered] = ImVec4(colour_for_head.x, colour_for_head.y, colour_for_head.z, 0.78f);
+			colours[ImGuiCol_ResizeGripActive] = ImVec4(colour_for_head.x, colour_for_head.y, colour_for_head.z, 1.00f);
+			colours[ImGuiCol_PlotLines] = ImVec4(colour_for_text.x, colour_for_text.y, colour_for_text.z, 0.63f);
+			colours[ImGuiCol_PlotLinesHovered] = ImVec4(colour_for_head.x, colour_for_head.y, colour_for_head.z, 1.00f);
+			colours[ImGuiCol_PlotHistogram] = ImVec4(colour_for_text.x, colour_for_text.y, colour_for_text.z, 0.63f);
+			colours[ImGuiCol_PlotHistogramHovered] = ImVec4(colour_for_head.x, colour_for_head.y, colour_for_head.z, 1.00f);
+			colours[ImGuiCol_TextSelectedBg] = ImVec4(colour_for_head.x, colour_for_head.y, colour_for_head.z, 0.43f);
+			colours[ImGuiCol_PopupBg] = ImVec4(colour_for_pops.x, colour_for_pops.y, colour_for_pops.z, 0.92f);
 			break;
 		case Classic:
 			ImGui::StyleColorsClassic();
@@ -679,7 +679,7 @@ namespace Lumos
 
 namespace ImGui
 {
-bool DragFloatN_Colored(const char* label, float* v, int components, float v_speed, float v_min, float v_max, const char* display_format, float power)
+bool DragFloatN_Coloured(const char* label, float* v, int components, float v_speed, float v_min, float v_max, const char* display_format, float power)
 {
     ImGuiWindow* window = GetCurrentWindow();
     if (window->SkipItems)
@@ -692,7 +692,7 @@ bool DragFloatN_Colored(const char* label, float* v, int components, float v_spe
     PushMultiItemsWidths(components, CalcItemWidth());
     for (int i = 0; i < components; i++)
     {
-        static const ImU32 colors[] = {
+        static const ImU32 colours[] = {
             0xBB0000FF, // red
             0xBB00FF00, // green
             0xBBFF0000, // blue
@@ -708,7 +708,7 @@ bool DragFloatN_Colored(const char* label, float* v, int components, float v_spe
         const float halfSpacing = spacing / 2;
 
         // This is the main change
-        window->DrawList->AddLine({ min.x + spacing, max.y - halfSpacing }, { max.x - spacing, max.y - halfSpacing }, colors[i], 4);
+        window->DrawList->AddLine({ min.x + spacing, max.y - halfSpacing }, { max.x - spacing, max.y - halfSpacing }, colours[i], 4);
 
         SameLine(0, g.Style.ItemInnerSpacing.x);
         PopID();
@@ -769,16 +769,16 @@ bool DragFloatNEx(const char* labels[], float* v, int components, float v_speed,
 
 bool DragFloat3Coloured(const char* label, float* v, float v_speed, float v_min, float v_max)
 {
-    return DragFloatN_Colored(label,v,3,v_speed, v_min, v_max);
+    return DragFloatN_Coloured(label,v,3,v_speed, v_min, v_max);
 }
 
 bool DragFloat4Coloured(const char* label, float* v, float v_speed, float v_min, float v_max)
 {
-    return DragFloatN_Colored(label,v,4,v_speed, v_min, v_max);
+    return DragFloatN_Coloured(label,v,4,v_speed, v_min, v_max);
 }
 
 bool DragFloat2Coloured(const char* label, float* v, float v_speed, float v_min, float v_max)
 {
-    return DragFloatN_Colored(label,v,2,v_speed, v_min, v_max);
+    return DragFloatN_Coloured(label,v,2,v_speed, v_min, v_max);
 }
 }

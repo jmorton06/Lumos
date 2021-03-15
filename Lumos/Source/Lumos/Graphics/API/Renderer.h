@@ -83,7 +83,7 @@ namespace Lumos
 			int MaxTextureUnits = 0;
 			int UniformBufferOffsetAlignment = 0;
 		};
-
+		
 		class LUMOS_EXPORT Renderer
 		{
 		public:

@@ -1289,7 +1289,7 @@ end
 
 		if(light.Type != 0)
 			Lumos::ImGuiHelpers::Property("Radius", light.Radius, 0.0f, 100.0f);
-		Lumos::ImGuiHelpers::Property("Colour", light.Colour, true, Lumos::ImGuiHelpers::PropertyFlag::ColorProperty);
+		Lumos::ImGuiHelpers::Property("Colour", light.Colour, true, Lumos::ImGuiHelpers::PropertyFlag::ColourProperty);
 		Lumos::ImGuiHelpers::Property("Intensity", light.Intensity, 0.0f, 4.0f);
 
 		if(light.Type == 1)
@@ -1460,7 +1460,7 @@ end
             ImGui::NextColumn();
 
             ImGuiHelpers::Property("Use Map", usingMapProperty, 0.0f, 1.0f);
-            ImGuiHelpers::Property("Colour", colourProperty, 0.0f, 1.0f, false, Lumos::ImGuiHelpers::PropertyFlag::ColorProperty);
+            ImGuiHelpers::Property("Colour", colourProperty, 0.0f, 1.0f, false, Lumos::ImGuiHelpers::PropertyFlag::ColourProperty);
 
             ImGui::Columns(1);
             ImGui::Separator();

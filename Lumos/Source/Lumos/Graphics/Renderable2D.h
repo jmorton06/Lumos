@@ -14,11 +14,11 @@ namespace Lumos
 			Maths::Vector3 vertex;
 			Maths::Vector2 uv;
 			Maths::Vector2 tid;
-			Maths::Vector4 color;
+			Maths::Vector4 colour;
 
 			bool operator==(const VertexData& other) const
 			{
-				return vertex == other.vertex  && uv == other.uv && tid == other.tid && color == other.color;
+				return vertex == other.vertex  && uv == other.uv && tid == other.tid && colour == other.colour;
 			}
 		};
 

@@ -6,6 +6,14 @@ namespace Lumos
 {
 	namespace Graphics
 	{
+        enum class CommandBufferState : uint8_t
+       {
+           Idle,
+           Recording,
+           Ended,
+           Submitted
+       };
+    
 		class VKCommandBuffer : public CommandBuffer
 		{
 		public:
@@ -26,6 +34,7 @@ namespace Lumos
 
 			VkCommandBuffer GetCommandBuffer() const { return m_CommandBuffer; };
 			VkFence GetFence() const { return m_Fence; };
+            VkSemaphore GetProcessedSemaphore() { return m_ProcessedSemaphore; }
 
             static void MakeDefault();
         protected:
@@ -33,7 +42,9 @@ namespace Lumos
 		private:
 			VkCommandBuffer m_CommandBuffer;
 			VkFence m_Fence;
+            VkSemaphore m_ProcessedSemaphore;
 			bool m_Primary;
+            CommandBufferState m_State;
 		};
 	}
 }
