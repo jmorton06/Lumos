@@ -68,16 +68,8 @@ namespace Lumos
 		ShadowRenderer::~ShadowRenderer()
 		{
 			delete m_ShadowTex;
-
 			delete[] m_VSSystemUniformBuffer;
-            
-            for(auto& pc: m_PushConstants)
-                delete[] pc.data;
-            
-            m_PushConstants.clear();
-
 			delete m_UniformBuffer;
-			delete m_CommandBuffer;
 		}
 
 		void ShadowRenderer::Init()
@@ -87,13 +79,6 @@ namespace Lumos
 			m_VSSystemUniformBuffer = new uint8_t[m_VSSystemUniformBufferSize];
 			memset(m_VSSystemUniformBuffer, 0, m_VSSystemUniformBufferSize);
 			m_VSSystemUniformBufferOffsets.resize(VSSystemUniformIndex_Size);
-
-			auto pushConstant = Graphics::PushConstant();
-            pushConstant.size = sizeof(int32_t) + sizeof(Lumos::Maths::Matrix4);
-            pushConstant.data = new uint8_t[sizeof(int32_t) + sizeof(Lumos::Maths::Matrix4)];
-            pushConstant.shaderStage = ShaderType::VERTEX;
-            
-            m_PushConstants.push_back(pushConstant);
 
 			// Per Scene System Uniforms
 			m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_ProjectionViewMatrix] = 0;
@@ -110,9 +95,6 @@ namespace Lumos
 
             m_RenderPass = Graphics::RenderPass::Get(renderpassCI);
 
-			m_CommandBuffer = Graphics::CommandBuffer::Create();
-			m_CommandBuffer->Init(true);
-
 			CreateGraphicsPipeline();
 			CreateUniformBuffer();
 			CreateFramebuffers();
@@ -128,7 +110,6 @@ namespace Lumos
 		void ShadowRenderer::Begin()
 		{
 			LUMOS_PROFILE_FUNCTION();
-			//m_CommandBuffer->BeginRecording();
 		}
 
 		void ShadowRenderer::BeginScene(Scene* scene, Camera* overrideCamera, Maths::Transform* overrideCameraTransform)
@@ -228,8 +209,6 @@ namespace Lumos
 		void ShadowRenderer::End()
 		{
 			LUMOS_PROFILE_FUNCTION();
-			//m_CommandBuffer->EndRecording();
-			//m_CommandBuffer->Execute(false);
 		}
 
 		void ShadowRenderer::Present()
@@ -254,10 +233,11 @@ namespace Lumos
                 
                 uint32_t layer = static_cast<uint32_t>(m_Layer);
                 auto trans = command.transform;
-                memcpy(m_PushConstants[0].data, &trans, sizeof(Maths::Matrix4));
-                memcpy(m_PushConstants[0].data + sizeof(Maths::Matrix4), &layer, sizeof(uint32_t));
-
-                m_CurrentDescriptorSets[0]->SetPushConstants(m_PushConstants);
+                auto& pushConstants = m_Shader->GetPushConstants();
+                memcpy(pushConstants[0].data, &trans, sizeof(Maths::Matrix4));
+                memcpy(pushConstants[0].data + sizeof(Maths::Matrix4), &layer, sizeof(uint32_t));
+                
+                m_Shader->BindPushConstants(Renderer::GetSwapchain()->GetCurrentCommandBuffer(), m_Pipeline.get());
                 
 				Renderer::BindDescriptorSets(m_Pipeline.get(), Renderer::GetSwapchain()->GetCurrentCommandBuffer(), 0, m_CurrentDescriptorSets);
 				Renderer::DrawIndexed(Renderer::GetSwapchain()->GetCurrentCommandBuffer(), DrawType::TRIANGLE, mesh->GetIndexBuffer()->GetCount());
@@ -269,7 +249,6 @@ namespace Lumos
 			}
 
 			m_RenderPass->EndRenderpass(Renderer::GetSwapchain()->GetCurrentCommandBuffer(), false);
-            //m_CommandBuffer->Execute(true);
 		}
 
 		void ShadowRenderer::SetShadowMapNum(uint32_t num)

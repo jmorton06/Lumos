@@ -89,15 +89,7 @@ namespace Lumos
             m_RenderPass = Graphics::RenderPass::Get(renderpassCI);
 
 			CreateFramebuffers();
-
-			m_CommandBuffers.resize(Renderer::GetSwapchain()->GetSwapchainBufferCount());
-
-			for(auto& commandBuffer : m_CommandBuffers)
-			{
-				commandBuffer = Ref<Graphics::CommandBuffer>(Graphics::CommandBuffer::Create());
-				commandBuffer->Init(true);
-			}
-
+            
 			m_SecondaryCommandBuffers.resize(m_Limits.MaxBatchDrawCalls);
 
 			for(auto& cmdBuffer : m_SecondaryCommandBuffers)

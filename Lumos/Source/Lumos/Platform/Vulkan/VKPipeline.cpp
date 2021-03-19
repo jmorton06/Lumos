@@ -72,7 +72,7 @@ namespace Lumos
                 m_DescriptorLayouts.push_back(layout);
             }
             
-            const auto& pushConsts = m_Shader.As<VKShader>()->GetPushConstant();
+            const auto& pushConsts = m_Shader.As<VKShader>()->GetPushConstants();
             std::vector<VkPushConstantRange> pushConstantRanges;
             
             for(auto& pushConst : pushConsts)

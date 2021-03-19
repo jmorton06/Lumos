@@ -656,6 +656,7 @@ end
 		auto radius = sound.GetSoundNode()->GetRadius();
 		auto paused = sound.GetSoundNode()->GetPaused();
 		auto pitch = sound.GetSoundNode()->GetPitch();
+		auto volume = sound.GetSoundNode()->GetVolume();
 		auto referenceDistance = sound.GetSoundNode()->GetReferenceDistance();
 
 		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
@@ -689,6 +690,16 @@ end
 		if(ImGui::InputFloat("##Pitch", &pitch))
 			sound.GetSoundNode()->SetPitch(pitch);
 
+		ImGui::PopItemWidth();
+		ImGui::NextColumn();
+		
+		ImGui::AlignTextToFramePadding();
+		ImGui::TextUnformatted("Volume");
+		ImGui::NextColumn();
+		ImGui::PushItemWidth(-1);
+		if(ImGui::InputFloat("##Volume", &volume))
+			sound.GetSoundNode()->SetVolume(volume);
+		
 		ImGui::PopItemWidth();
 		ImGui::NextColumn();
 

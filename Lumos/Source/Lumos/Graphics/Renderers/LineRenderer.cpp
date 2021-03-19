@@ -54,7 +54,6 @@ namespace Lumos
 		delete[] m_VSSystemUniformBuffer;
 
 		m_Framebuffers.clear();
-		m_CommandBuffers.clear();
 
 		for(int i = 0; i < MAX_BATCH_DRAW_CALLS; i++)
 			delete m_VertexBuffers[i];

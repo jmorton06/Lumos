@@ -95,7 +95,6 @@ namespace Lumos
 			Maths::Transform* m_CameraTransform = nullptr;
 
 			std::vector<Ref<Framebuffer>> m_Framebuffers;
-			std::vector<Ref<CommandBuffer>> m_CommandBuffers;
 			Ref<Shader> m_Shader = nullptr;
 
 			Ref<Lumos::Graphics::RenderPass> m_RenderPass;

@@ -155,14 +155,6 @@ namespace Lumos
 
             m_RenderPass = Graphics::RenderPass::Get(renderpassCI);
 
-			m_CommandBuffers.resize(Renderer::GetSwapchain()->GetSwapchainBufferCount());
-
-			for(auto& commandBuffer : m_CommandBuffers)
-			{
-				commandBuffer = Ref<Graphics::CommandBuffer>(Graphics::CommandBuffer::Create());
-				commandBuffer->Init(true);
-			}
-
 			m_DeferredCommandBuffers = Graphics::CommandBuffer::Create();
 			m_DeferredCommandBuffers->Init(true);
 
@@ -187,20 +179,22 @@ namespace Lumos
 		{
 			LUMOS_PROFILE_FUNCTION();
 
+            int commandBufferIndex = 0;
+            if(!m_RenderTexture)
+                commandBufferIndex = Renderer::GetSwapchain()->GetCurrentBufferId();
+            
+            //Renderer::GetRenderer()->ClearRenderTarget(m_RenderTexture ? m_RenderTexture : Renderer::GetSwapchain()->GetImage(commandBufferIndex), Renderer::GetSwapchain()->GetCurrentCommandBuffer());
+            
 			m_OffScreenRenderer->RenderScene();
+            
+            //if(!m_OffScreenRenderer->HadRendered())
+            //   return;
 
 			SetSystemUniforms(m_Shader.get());
-
-			int commandBufferIndex = 0;
-			if(!m_RenderTexture)
-				commandBufferIndex = Renderer::GetSwapchain()->GetCurrentBufferId();
-
+            
 			Begin(commandBufferIndex);
 			Present();
 			End();
-
-			//if(!m_RenderTexture)
-				//PresentToScreen();
 		}
 
 		void DeferredRenderer::PresentToScreen()

@@ -28,6 +28,21 @@ namespace Lumos
 		{
 			LUMOS_PROFILE_FUNCTION();
 		}
+    
+        void VKRenderer::ClearRenderTarget(Graphics::Texture* texture, Graphics::CommandBuffer* cmdBuffer)
+        {
+            VkImageSubresourceRange subresourceRange = {}; //TODO: Get from texture
+            subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+            subresourceRange.baseMipLevel = 0;
+            subresourceRange.layerCount = 1;
+            subresourceRange.levelCount = 1;
+            
+            //TODO: Pass clear Value
+            //TODO: Handle Depth/Stencil
+            
+            VkClearColorValue clearColourValue = VkClearColorValue({{0.0f, 0.0f, 0.0f, 0.0f}});
+            vkCmdClearColorImage(((VKCommandBuffer*)cmdBuffer)->GetCommandBuffer(), static_cast<VKTexture2D*>(texture)->GetImage(), VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, &clearColourValue, 1, &subresourceRange);
+        }
 
 		void VKRenderer::ClearSwapchainImage() const
 		{
@@ -64,7 +79,6 @@ namespace Lumos
 			VkSurfaceCapabilitiesKHR capabilities;
 			vkGetPhysicalDeviceSurfaceCapabilitiesKHR(VKDevice::Get().GetGPU(), VKContext::Get()->GetSwapchain()->GetSurface(), &capabilities);
 			
-			
 			m_Width = std::max(capabilities.minImageExtent.width, std::min(capabilities.maxImageExtent.width, m_Width));
 			m_Height = std::max(capabilities.minImageExtent.height, std::min(capabilities.maxImageExtent.height, m_Height));
 			
@@ -84,10 +98,8 @@ namespace Lumos
 		void VKRenderer::Begin()
 		{
 			LUMOS_PROFILE_FUNCTION();
-           // LUMOS_LOG_INFO("Begin VK Renderer");
             m_Context = VKContext::Get();
             AcquireNextImage();
-            //m_Context->WaitIdle();
 
 			GetSwapchainInternal()->GetCurrentCommandBuffer()->BeginRecording();
 		}
@@ -108,15 +120,11 @@ namespace Lumos
             {
                 LUMOS_LOG_CRITICAL("[VULKAN] Failed to acquire swap chain image!");
             }
-            
-           // LUMOS_LOG_INFO("Acquire image {0}", swapchain->GetCurrentBufferId());
-
         }
     
         void VKRenderer::PresentInternal()
         {
             LUMOS_PROFILE_FUNCTION();
-            //LUMOS_LOG_INFO("Present Internal");
             GetSwapchainInternal()->GetCurrentCommandBuffer()->EndRecording();
                         
             static_cast<VKCommandBuffer*>(GetSwapchainInternal()->GetCurrentCommandBuffer())->ExecuteInternal(VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
@@ -124,7 +132,6 @@ namespace Lumos
                 nullptr,
                 true);
                     
-           // LUMOS_LOG_INFO("Processed Semaphore");
             VKContext::Get()->GetSwapchain()->Present(static_cast<VKCommandBuffer*>(GetSwapchainInternal()->GetCurrentCommandBuffer())->GetProcessedSemaphore());
         }
 
@@ -148,12 +155,6 @@ namespace Lumos
                         numDynamicDescriptorSets++;
 
                     m_DescriptorSetPool[numDesciptorSets] = vkDesSet->GetDescriptorSet();
-
-                    uint32_t index = 0;
-                    for(auto& pc : vkDesSet->GetPushConstants())
-                    {
-                        vkCmdPushConstants(static_cast<Graphics::VKCommandBuffer*>(cmdBuffer)->GetCommandBuffer(), static_cast<Graphics::VKPipeline*>(pipeline)->GetPipelineLayout(), VKTools::ShaderTypeToVK(pc.shaderStage), index, pc.size, pc.data);
-                    }
 
                     numDesciptorSets++;
                 }

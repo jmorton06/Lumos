@@ -2,7 +2,7 @@ require 'Scripts/premake-defines'
 require 'Scripts/premake-common'
 require 'Scripts/premake-triggers'
 require 'Scripts/premake-settings'
-require 'Scripts/premake-vscode/vscode'
+--require 'Scripts/premake-vscode/vscode'
 
 root_dir = os.getcwd()
 

@@ -94,6 +94,9 @@ namespace Lumos
 					delete j;
 				}
 			}
+            
+            for(auto& pc : m_PushConstants)
+                delete[] pc.data;
 
 			for(auto& shader : m_UserUniformBuffers)
 			{
@@ -185,6 +188,27 @@ namespace Lumos
 					auto set{glsl->get_decoration(sampler.id, spv::Decoration::DecorationDescriptorSet)};
 					glsl->set_decoration(sampler.id, spv::Decoration::DecorationDescriptorSet, DESCRIPTOR_TABLE_INITIAL_SPACE + 2 * set + 1);
 				}
+                
+                for (auto &u : resources.push_constant_buffers)
+                {
+                    uint32_t set = glsl->get_decoration(u.id, spv::DecorationDescriptorSet);
+                    uint32_t binding = glsl->get_decoration(u.id, spv::DecorationBinding);
+                    
+                    uint32_t binding3 = glsl->get_decoration(u.id, spv::DecorationOffset);
+
+                    auto& type = glsl->get_type(u.type_id);
+                    
+                    auto ranges = glsl->get_active_buffer_ranges(u.id);
+                    
+                    uint32_t size = 0;
+                    for(auto& range : ranges)
+                    {
+                        size += uint32_t(range.range);
+                    }
+                    
+                    m_PushConstants.push_back({size, file.first});
+                    m_PushConstants.back().data = new uint8_t[size];
+                }
 
 				spirv_cross::CompilerGLSL::Options options;
 				options.version = 410;
@@ -234,6 +258,13 @@ namespace Lumos
 			LUMOS_PROFILE_FUNCTION();
 			GLCall(glDeleteProgram(m_Handle));
 		}
+    
+        void GLShader::BindPushConstants(Graphics::CommandBuffer* cmdBuffer, Graphics::Pipeline* pipeline)
+        {
+            LUMOS_PROFILE_FUNCTION();
+            for (auto pc : m_PushConstants)
+                SetUserUniformBuffer(pc.shaderStage, pc.data, pc.size);
+        }
 
 		bool GLShader::CreateLocations()
 		{

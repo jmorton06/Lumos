@@ -59,17 +59,11 @@ namespace Lumos
 		{
 			delete m_UniformBuffer;
             delete m_AnimUniformBuffer;
-			delete m_DeferredCommandBuffers;
 			delete m_DefaultMaterial;
 
 			delete[] m_VSSystemUniformBuffer;
             
-            for(auto& pc: m_PushConstants)
-                delete[] pc.data;
-            
-            m_PushConstants.clear();
 			m_Framebuffers.clear();
-			m_CommandBuffers.clear();
 		}
 
 		void DeferredOffScreenRenderer::Init()
@@ -126,26 +120,7 @@ namespace Lumos
 			renderpassCIOffScreen.textureType = textureTypesOffScreen;
 
             m_RenderPass = Graphics::RenderPass::Get(renderpassCIOffScreen);
-
             
-            auto pushConstant = Graphics::PushConstant();
-            pushConstant.size = sizeof(Lumos::Maths::Matrix4);
-            pushConstant.data = new uint8_t[sizeof(Lumos::Maths::Matrix4)];
-            pushConstant.shaderStage = ShaderType::VERTEX;
-            
-            m_PushConstants.push_back(pushConstant);
-
-			m_CommandBuffers.resize(Renderer::GetSwapchain()->GetSwapchainBufferCount());
-
-			for(auto& commandBuffer : m_CommandBuffers)
-			{
-				commandBuffer = Graphics::CommandBuffer::Create();
-				commandBuffer->Init(true);
-			}
-
-			m_DeferredCommandBuffers = Graphics::CommandBuffer::Create();
-			m_DeferredCommandBuffers->Init(true);
-
 			CreatePipeline();
 			CreateBuffer();
 			CreateFramebuffer();
@@ -159,6 +134,14 @@ namespace Lumos
 		void DeferredOffScreenRenderer::RenderScene()
 		{
 			LUMOS_PROFILE_FUNCTION();
+            
+            if(m_CommandQueue.empty())
+            {
+                m_HasRendered = false;
+               // return;
+            }
+            
+            m_HasRendered = true;
 
 			Begin();
 			SetSystemUniforms(m_Shader.get());
@@ -300,8 +283,9 @@ namespace Lumos
                 m_CurrentDescriptorSets[1] = command.material ? command.material->GetDescriptorSet() : m_DefaultMaterial->GetDescriptorSet();
                 
                 auto trans = command.transform;
-                memcpy(m_PushConstants[0].data, &trans, sizeof(Maths::Matrix4));
-                m_CurrentDescriptorSets[0]->SetPushConstants(m_PushConstants);
+                auto& pushConstants = m_Shader->GetPushConstants();
+                memcpy(pushConstants[0].data, &trans, sizeof(Maths::Matrix4));
+                m_Shader->BindPushConstants(Renderer::GetSwapchain()->GetCurrentCommandBuffer(), m_Pipeline.get());
 
 				mesh->GetVertexBuffer()->Bind(Renderer::GetSwapchain()->GetCurrentCommandBuffer(), m_Pipeline.get());
 				mesh->GetIndexBuffer()->Bind(Renderer::GetSwapchain()->GetCurrentCommandBuffer());

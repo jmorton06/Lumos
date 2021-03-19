@@ -229,7 +229,6 @@ namespace Lumos
         void VKSwapchain::Present(VkSemaphore waitSemaphore)
 		{
 			LUMOS_PROFILE_FUNCTION();
-            //LUMOS_LOG_INFO("Present Swapchain {0}" , m_CurrentBuffer);
             VkPresentInfoKHR present;
 			present.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
 			present.pNext = VK_NULL_HANDLE;
@@ -243,7 +242,7 @@ namespace Lumos
             
             if (error == VK_ERROR_OUT_OF_DATE_KHR)
             {
-                LUMOS_LOG_ERROR("[Vulkan] Swapchain out of data");
+                LUMOS_LOG_ERROR("[Vulkan] Swapchain out of date");
             }
             else if (error == VK_SUBOPTIMAL_KHR)
             {

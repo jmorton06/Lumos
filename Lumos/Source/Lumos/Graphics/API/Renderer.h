@@ -10,6 +10,7 @@ namespace Lumos
 		class Swapchain;
 		class IndexBuffer;
 		class Mesh;
+        class Texture;
 
 		enum RendererBufferType
 		{
@@ -95,6 +96,7 @@ namespace Lumos
 			virtual void InitInternal() = 0;
 			virtual void Begin() = 0;
 			virtual void OnResize(uint32_t width, uint32_t height) = 0;
+            virtual void ClearRenderTarget(Graphics::Texture* texture, Graphics::CommandBuffer* cmdBuffer) {}
 			inline static Renderer* GetRenderer()
 			{
 				return s_Instance;

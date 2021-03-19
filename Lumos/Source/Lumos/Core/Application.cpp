@@ -149,6 +149,7 @@ namespace Lumos
 							if(audioManager)
 							{
 								audioManager->OnInit();
+                                audioManager->SetPaused(true);
 								m_SystemManager->RegisterSystem<AudioManager>(audioManager);
 							}
 						});
@@ -277,7 +278,6 @@ namespace Lumos
 
             Graphics::Renderer::GetRenderer()->Present();
             
-           // Graphics::GraphicsContext::GetContext()->WaitIdle();
             m_Frames++;
         }
         
