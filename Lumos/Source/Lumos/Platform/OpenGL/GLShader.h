@@ -48,6 +48,7 @@ namespace Lumos
 			std::map<uint32_t, uint32_t> m_uniformBlockLocations;
 			std::map<uint32_t, uint32_t> m_sampledImageLocations;
 			std::vector<spirv_cross::CompilerGLSL*> m_pShaderCompilers;
+            std::vector<PushConstant> m_PushConstants;
             Graphics::BufferLayout m_Layout;
 
 			void* GetHandle() const override
@@ -129,7 +130,15 @@ namespace Lumos
 			void SetUniformMat4(const std::string& name, const Maths::Matrix4& matrix) const;
 
 			void BindUniformBuffer(GLUniformBuffer* buffer, uint32_t slot, const std::string& name);
-
+            
+            PushConstant* GetPushConstant(uint32_t index) override
+            {
+                LUMOS_ASSERT(index < m_PushConstants.size(), "Push constants out of bounds");
+                return &m_PushConstants[index];
+            }
+            std::vector<PushConstant>& GetPushConstants() override { return m_PushConstants; }
+            void BindPushConstants(Graphics::CommandBuffer* cmdBuffer, Graphics::Pipeline* pipeline) override;
+            
 			static void SetUniform1f(uint32_t location, float value);
 			static void SetUniform1fv(uint32_t location, float* value, int32_t count);
 			static void SetUniform1i(uint32_t location, int32_t value);

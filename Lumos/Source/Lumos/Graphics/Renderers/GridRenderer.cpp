@@ -98,14 +98,6 @@ namespace Lumos
 			m_PSSystemUniformBuffer = new uint8_t[m_PSSystemUniformBufferSize];
 			memset(m_PSSystemUniformBuffer, 0, m_PSSystemUniformBufferSize);
             
-			m_CommandBuffers.resize(Renderer::GetSwapchain()->GetSwapchainBufferCount());
-            
-			for(auto& commandBuffer : m_CommandBuffers)
-			{
-				commandBuffer = Ref<Graphics::CommandBuffer>(Graphics::CommandBuffer::Create());
-				commandBuffer->Init(true);
-			}
-            
 			AttachmentInfo textureTypes[2] =
             {
                 {TextureType::COLOUR, TextureFormat::RGBA8},

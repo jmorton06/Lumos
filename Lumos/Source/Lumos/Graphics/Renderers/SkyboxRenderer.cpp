@@ -42,7 +42,6 @@ namespace Lumos
 			delete[] m_VSSystemUniformBuffer;
 
 			m_Framebuffers.clear();
-			m_CommandBuffers.clear();
 		}
 
 		void SkyboxRenderer::RenderScene()
@@ -96,14 +95,6 @@ namespace Lumos
 
 			// Per Scene System Uniforms
 			m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_InverseProjectionViewMatrix] = 0;
-
-			m_CommandBuffers.resize(Renderer::GetSwapchain()->GetSwapchainBufferCount());
-
-			for(auto& commandBuffer : m_CommandBuffers)
-			{
-				commandBuffer = Ref<Graphics::CommandBuffer>(Graphics::CommandBuffer::Create());
-				commandBuffer->Init(true);
-			}
 
 			AttachmentInfo textureTypes[2] = {
 				{TextureType::COLOUR, TextureFormat::RGBA8},

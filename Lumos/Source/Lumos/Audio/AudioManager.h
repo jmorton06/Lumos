@@ -31,9 +31,13 @@ namespace Lumos
 		{
 			m_SoundNodes.clear();
 		}
+        
+        bool GetPaused() const { return m_Paused; }
+        void SetPaused(bool paused);
 
 	protected:
 		Camera* m_Listener;
 		std::vector<SoundNode*> m_SoundNodes;
+        bool m_Paused;
 	};
 }

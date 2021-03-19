@@ -53,10 +53,9 @@ namespace Lumos
 			vkDestroyFence(VKDevice::Get().GetDevice(), m_Fence, nullptr);
 			vkFreeCommandBuffers(VKDevice::Get().GetDevice(), VKDevice::Get().GetCommandPool()->GetCommandPool(),1, &m_CommandBuffer);
 		}
-
+        
 		void VKCommandBuffer::BeginRecording()
 		{
-            //LUMOS_LOG_INFO("Begin Recording");
 			LUMOS_PROFILE_FUNCTION();
             LUMOS_ASSERT(m_Primary, "BeginRecording() called from a secondary command buffer!");
             
@@ -65,9 +64,10 @@ namespace Lumos
             beginCI.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
             beginCI.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
             VK_CHECK_RESULT(vkBeginCommandBuffer(m_CommandBuffer, &beginCI));
+             
 		}
-
-		void VKCommandBuffer::BeginRecordingSecondary(RenderPass* renderPass, Framebuffer* framebuffer)
+    
+        void VKCommandBuffer::BeginRecordingSecondary(RenderPass* renderPass, Framebuffer* framebuffer)
 		{
 			LUMOS_PROFILE_FUNCTION();
             LUMOS_ASSERT(!m_Primary, "BeginRecordingSecondary() called from a primary command buffer!");
@@ -89,17 +89,14 @@ namespace Lumos
 
 		void VKCommandBuffer::EndRecording()
 		{
-            //LUMOS_LOG_INFO("End Recording");
 			LUMOS_PROFILE_FUNCTION();
             LUMOS_ASSERT(m_State == CommandBufferState::Recording, "CommandBuffer ended before started recording");
-
 			VK_CHECK_RESULT(vkEndCommandBuffer(m_CommandBuffer));
             m_State = CommandBufferState::Ended;
 		}
 
 		void VKCommandBuffer::Execute(bool waitFence)
 		{
-            //LUMOS_LOG_INFO("Execute Recording");
 			LUMOS_PROFILE_FUNCTION();
             LUMOS_ASSERT(m_State == CommandBufferState::Ended, "CommandBuffer executed before ended recording");
 

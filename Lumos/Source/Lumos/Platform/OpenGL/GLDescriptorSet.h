@@ -16,7 +16,6 @@ namespace Lumos
             void Update(std::vector<ImageInfo> &imageInfos, std::vector <BufferInfo> &bufferInfos) override;
             void Update(std::vector <ImageInfo> &imageInfos) override;
             void Update(std::vector <BufferInfo> &bufferInfos) override;
-            void SetPushConstants(std::vector<PushConstant>& pushConstants) override;
 
 			void Bind(uint32_t offset = 0);
 
@@ -31,7 +30,6 @@ namespace Lumos
 
 			std::vector<ImageInfo> m_ImageInfos;
 			std::vector <BufferInfo> m_BufferInfos;
-            std::vector<PushConstant> m_PushConstants;
         };
     }
 }

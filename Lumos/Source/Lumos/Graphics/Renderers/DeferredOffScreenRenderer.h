@@ -43,17 +43,9 @@ namespace Lumos
 			void CreateBuffer();
 			void CreateFramebuffer();
 
-			int GetCommandBufferCount() const
-			{
-				return static_cast<int>(m_CommandBuffers.size());
-			}
-
-			CommandBuffer* GetCommandBuffer(int id) const
-			{
-				return m_CommandBuffers[id].get();
-			}
-
 			void OnImGui() override;
+            
+            bool HadRendered() const { return m_HasRendered; }
 
 		private:
 			void SetSystemUniforms(Shader* shader);
@@ -68,16 +60,13 @@ namespace Lumos
             uint8_t* m_VSSystemUniformBufferAnim = nullptr;
             uint32_t m_VSSystemUniformBufferAnimSize = 0;
 
-			CommandBuffer* m_DeferredCommandBuffers;
-
 			struct UniformBufferModel
 			{
 				Maths::Matrix4* model;
 			};
 
 			UniformBufferModel m_UBODataDynamic;
-			int m_CommandBufferIndex = 0;
-            std::vector<Graphics::PushConstant> m_PushConstants;
+            bool m_HasRendered = false;
 		};
 	}
 }

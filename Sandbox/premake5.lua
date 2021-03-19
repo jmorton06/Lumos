@@ -204,11 +204,11 @@ project "Sandbox"
 			"../Resources/AppIcons/Assets.xcassets",
 			"../Lumos/Assets/Shaders",
 			"../Lumos/Source/Lumos/Platform/iOS/Client/**",
-	"Assets/Scenes",
-	"Assets/Scripts",
-	"Assets/Meshes",
-	"Assets/Sounds",
-	"Assets/Textures",
+			"Assets/Scenes",
+			"Assets/Scripts",
+			"Assets/Meshes",
+			"Assets/Sounds",
+			"Assets/Textures",
 			"Sandbox.lmproj"
 		}
 
@@ -252,12 +252,12 @@ project "Sandbox"
 		{
 			"../Lumos/Source/Platform/iOS/Client",
 			"Assets.xcassets",
-            "EngineShaders",
-            "meshes",
-            "scenes",
-            "scripts",
-            "sounds",
-            "textures",
+            "Shaders",
+            "Meshes",
+            "Scenes",
+            "Scripts",
+            "Sounds",
+            "Textures",
             "Sandbox.lmproj"
 		}
 		SetRecommendedXcodeSettings()

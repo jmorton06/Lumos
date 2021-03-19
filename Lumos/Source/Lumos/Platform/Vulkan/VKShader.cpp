@@ -3,6 +3,8 @@
 #include "VKDevice.h"
 #include "VKTools.h"
 #include "VKDescriptorSet.h"
+#include "VKPipeline.h"
+#include "VKCommandBuffer.h"
 
 #include "Core/OS/FileSystem.h"
 #include "Core/VFS.h"
@@ -113,10 +115,14 @@ namespace Lumos
 			Unload();
 			delete[] m_ShaderStages;
 			m_ShaderStages = VK_NULL_HANDLE;
+            
+            for(auto& pc : m_PushConstants)
+                delete[] pc.data;
 		}
 
 		bool VKShader::Init()
 		{
+            LUMOS_PROFILE_FUNCTION();
 			uint32_t currentShaderStage = 0;
 			m_StageCount = 0;
 
@@ -204,6 +210,7 @@ namespace Lumos
                     SHADER_LOG(LUMOS_LOG_INFO("Found Push Constant {0} at set = {1}, binding = {2}", u.name.c_str(), set, binding, type.array.size() ? uint32_t(type.array[0]) : 1));
                     
                     m_PushConstants.push_back({size, file.first});
+                    m_PushConstants.back().data = new uint8_t[size];
                 }
                 
                 for (auto &u : resources.sampled_images)
@@ -235,11 +242,22 @@ namespace Lumos
 
 		void VKShader::Unload() const
 		{
+            LUMOS_PROFILE_FUNCTION();
 			for(uint32_t i = 0; i < m_StageCount; i++)
 			{
 				vkDestroyShaderModule(VKDevice::Get().GetDevice(), m_ShaderStages[i].module, nullptr);
 			}
 		}
+    
+        void VKShader::BindPushConstants(Graphics::CommandBuffer* cmdBuffer, Graphics::Pipeline* pipeline)
+        {
+            LUMOS_PROFILE_FUNCTION();
+            uint32_t index = 0;
+            for(auto& pc : m_PushConstants)
+            {
+                vkCmdPushConstants(static_cast<Graphics::VKCommandBuffer*>(cmdBuffer)->GetCommandBuffer(), static_cast<Graphics::VKPipeline*>(pipeline)->GetPipelineLayout(), VKTools::ShaderTypeToVK(pc.shaderStage), index, pc.size, pc.data);
+            }
+        }
 
 		VkPipelineShaderStageCreateInfo* VKShader::GetShaderStages() const
 		{

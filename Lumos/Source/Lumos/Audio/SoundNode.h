@@ -69,13 +69,13 @@ namespace Lumos
 			void load(Archive& archive)
 		{
 			std::string soundFilePath;
-			archive(cereal::make_nvp("Position", m_Position), cereal::make_nvp("Radius", m_Radius), cereal::make_nvp("Pitch", m_Pitch), cereal::make_nvp("Volume", m_Volume), cereal::make_nvp("Velocity", m_Velocity), cereal::make_nvp("Looping", m_IsLooping), cereal::make_nvp("Paused", m_Paused), cereal::make_nvp("ReferenceDistance", m_ReferenceDistance), cereal::make_nvp("Global", m_IsGlobal), cereal::make_nvp("TimeLeft", m_TimeLeft), cereal::make_nvp("Stationary", m_Stationary),
+			archive(cereal::make_nvp("Position", m_Position), cereal::make_nvp("Radius", m_Radius), cereal::make_nvp("Pitch", m_Pitch), cereal::make_nvp("Volume", m_Volume), cereal::make_nvp("Velocity", m_Velocity), cereal::make_nvp("Looping", m_IsLooping), cereal::make_nvp("Paused", m_Paused), cereal::make_nvp("ReferenceDistance", m_ReferenceDistance), cereal::make_nvp("Global", m_IsGlobal), cereal::make_nvp("TimeLeft", 0.0f), cereal::make_nvp("Stationary", m_Stationary),
 					cereal::make_nvp("SoundNodePath", soundFilePath));
 			
 			
 			if(!soundFilePath.empty())
 			{
-				m_Sound = Sound::Create(soundFilePath, StringUtilities::GetFilePathExtension(soundFilePath));
+				SetSound(Sound::Create(soundFilePath, StringUtilities::GetFilePathExtension(soundFilePath)));
 			}
 		}
 
