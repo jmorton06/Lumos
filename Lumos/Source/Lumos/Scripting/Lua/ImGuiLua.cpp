@@ -23,13 +23,13 @@ namespace Lumos
 			"BotRight",
 			1 << 3,
 			"Top",
-			ImDrawCornerFlags_TopLeft | ImDrawCornerFlags_TopRight,
+                       ImDrawFlags_RoundCornersTopLeft | ImDrawFlags_RoundCornersTopRight,
 			"Bot",
-			ImDrawCornerFlags_BotLeft | ImDrawCornerFlags_BotRight,
+                       ImDrawFlags_RoundCornersBottomLeft | ImDrawFlags_RoundCornersBottomRight,
 			"Left",
-			ImDrawCornerFlags_TopLeft | ImDrawCornerFlags_BotLeft,
+                       ImDrawFlags_RoundCornersTopLeft | ImDrawFlags_RoundCornersBottomLeft,
 			"Right",
-			ImDrawCornerFlags_TopRight | ImDrawCornerFlags_BotRight,
+                       ImDrawFlags_RoundCornersTopRight | ImDrawFlags_RoundCornersBottomRight,
 			"All",
 			0xF);
 

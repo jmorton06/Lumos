@@ -75,6 +75,8 @@ namespace Lumos
 
 			m_Width = width;
 			m_Height = height;
+            
+            LUMOS_LOG_INFO("{0},{1}", width, height);
 			
 			VkSurfaceCapabilitiesKHR capabilities;
 			vkGetPhysicalDeviceSurfaceCapabilitiesKHR(VKDevice::Get().GetGPU(), VKContext::Get()->GetSwapchain()->GetSurface(), &capabilities);
@@ -112,7 +114,10 @@ namespace Lumos
             auto result = swapchain->AcquireNextImage(nullptr);
             if(result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR)
             {
-                OnResize(m_Width, m_Height);
+              //  LUMOS_LOG_INFO("Acquire Image result : {0}", result == VK_ERROR_OUT_OF_DATE_KHR ? "Out of Date" : "SubOptimal");
+                
+                if(result == VK_ERROR_OUT_OF_DATE_KHR)
+                    OnResize(m_Width, m_Height);
                 //Begin();
                 return;
             }

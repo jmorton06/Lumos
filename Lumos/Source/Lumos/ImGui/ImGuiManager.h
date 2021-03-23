@@ -43,6 +43,7 @@ namespace Lumos
 		void AddIconFont();
 
 		float m_FontSize;
+        float m_DPIScale;
 
         UniqueRef<Graphics::IMGUIRenderer> m_IMGUIRenderer;
 		bool m_ClearScreen;

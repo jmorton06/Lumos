@@ -2,9 +2,9 @@
     "value0": {
         "Project Version": 5,
         "RenderAPI": 1,
-        "Width": 1201,
-        "Height": 718,
-        "Fullscreen": false,
+        "Width": 1440,
+        "Height": 794,
+        "Fullscreen": true,
         "VSync": true,
         "ShowConsole": false,
         "Title": "LumosGame",

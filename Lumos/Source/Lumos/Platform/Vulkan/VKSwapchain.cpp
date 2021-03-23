@@ -222,7 +222,6 @@ namespace Lumos
 		
 		CommandBuffer* VKSwapchain::GetCurrentCommandBuffer() const
 		{
-            //LUMOS_LOG_INFO(m_Swapchain->GetCurrentBufferId());
 			return m_CommandBuffers[m_CurrentBuffer];
 		}
 		

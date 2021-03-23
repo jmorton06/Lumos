@@ -128,6 +128,7 @@ namespace Lumos
 		}
     
 		Maths::Vector2 GetWindowSize() const;
+        float GetWindowDPI() const;
         
         Ref<ShaderLibrary>& GetShaderLibrary();
 
@@ -178,7 +179,7 @@ namespace Lumos
             int projectVersion = 5;
 			
 			archive(cereal::make_nvp("Project Version", projectVersion));
-            auto windowSize = GetWindowSize();
+            auto windowSize = GetWindowSize() / GetWindowDPI();
 
             if(windowSize.x == 0)
                 windowSize.x = 800;

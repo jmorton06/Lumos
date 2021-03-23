@@ -5,9 +5,9 @@ namespace Lumos
 {
     RefCount::RefCount()
     {
-        m_Refcount.init();
-        m_RefcountInit.init();
-		m_WeakRefcount.init(0);
+        m_Refcount.Init();
+        m_RefcountInit.Init();
+		m_WeakRefcount.Init(0);
     }
     
     RefCount::~RefCount()
@@ -18,9 +18,9 @@ namespace Lumos
     {
         if (reference())
         {
-            if (m_RefcountInit.get() > 0)
+            if (m_RefcountInit.Get() > 0)
             {
-                m_RefcountInit.unref();
+                m_RefcountInit.Unref();
                 unreference(); // first referencing is already 1, so compensate for the ref above
             }
             
@@ -35,38 +35,38 @@ namespace Lumos
     
     int RefCount::GetReferenceCount() const
     {
-        return m_Refcount.get();
+        return m_Refcount.Get();
     }
 
 	int RefCount::GetWeakReferenceCount() const
 	{
-		return m_WeakRefcount.get();
+		return m_WeakRefcount.Get();
 	}
     
     bool RefCount::reference()
     {
-        bool success = m_Refcount.ref();
+        bool success = m_Refcount.Ref();
         
         return success;
     }
     
     bool RefCount::unreference()
     {
-        bool die = m_Refcount.unref();
+        bool die = m_Refcount.Unref();
         
         return die;
     }
 
 	bool RefCount::weakReference()
 	{
-		bool success = m_WeakRefcount.ref();
+		bool success = m_WeakRefcount.Ref();
 
 		return success;
 	}
 
 	bool RefCount::weakUnreference()
 	{
-		bool die = m_WeakRefcount.unref() && m_Refcount.count == 0;
+		bool die = m_WeakRefcount.Unref() && m_Refcount.count == 0;
 
 		return die;
 	}

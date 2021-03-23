@@ -15,12 +15,13 @@ namespace Lumos
 		{
 			LUMOS_LOG_CRITICAL("Failed to load OGG file '{0}'!", fileName);
 		}
-
-		auto m_StreamHandle = stb_vorbis_open_filename(fileName.c_str(), nullptr, nullptr);
+        int error;
+		auto m_StreamHandle = stb_vorbis_open_filename(fileName.c_str(), &error, nullptr);
 
 		if(!m_StreamHandle)
 		{
-			LUMOS_LOG_CRITICAL("Failed to load OGG file '{0}'!", fileName);
+			LUMOS_LOG_CRITICAL("Failed to load OGG file '{0}'! , Error {1}", fileName, error);
+            return data;
 		}
 
 		// Get file info

@@ -15,7 +15,6 @@
 #include <imgui/imgui.h>
 #include <imgui/imgui_internal.h>
 
-
 namespace Lumos
 {
 
@@ -147,12 +146,12 @@ namespace Lumos
 		LUMOS_PROFILE_FUNCTION();
 		ImGui::Begin(m_SimpleName.c_str());
 		{
-            ImGui::BeginColumns("AssetWindowColumns", 2, ImGuiColumnsFlags_NoResize);
+            ImGui::BeginColumns("AssetWindowColumns", 2, ImGuiOldColumnFlags_NoResize);
             ImGui::SetColumnWidth(0, ImGui::GetWindowContentRegionWidth() / 3.0f);
 			ImGui::BeginChild("##folders_common");
 			{
 				RenderBreadCrumbs();
-				
+                				
                 ImGuiTreeNodeFlags nodeFlag = ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_OpenOnDoubleClick;
                 bool assetTreeNodeOpen = ImGui::TreeNodeEx("Assets//", nodeFlag);
                 
@@ -206,7 +205,7 @@ namespace Lumos
 			ImGui::BeginChild("##directory_structure");
 			{
 				{
-				ImGui::BeginChild("##directory_breadcrumbs", ImVec2(ImGui::GetColumnWidth(), 30));
+				ImGui::BeginChild("##directory_breadcrumbs", ImVec2(ImGui::GetColumnWidth(), ImGui::GetFontSize() * 2.0f));
 				if(m_IsInListView)
 				{
 					if(ImGui::Button(ICON_MDI_VIEW_GRID))
@@ -317,7 +316,7 @@ namespace Lumos
 	void AssetWindow::RenderBreadCrumbs()
 	{
 		LUMOS_PROFILE_FUNCTION();
-		ImGui::BeginChild("##directory_breadcrumbs", ImVec2(ImGui::GetColumnWidth(), 30));
+		ImGui::BeginChild("##directory_breadcrumbs", ImVec2(ImGui::GetColumnWidth(), ImGui::GetFontSize() * 2.0f));
 		{
 			if(ImGui::Button(ICON_MDI_ARROW_LEFT))
 			{
@@ -511,7 +510,7 @@ namespace Lumos
 	void AssetWindow::RenderBottom()
 	{
 		LUMOS_PROFILE_FUNCTION();
-		ImGui::BeginChild("##nav", ImVec2(ImGui::GetColumnWidth() - 12, 23));
+		ImGui::BeginChild("##nav", ImVec2(ImGui::GetColumnWidth() - 12, ImGui::GetFontSize() * 1.8f));
 		{
 			ImGui::EndChild();
 		}

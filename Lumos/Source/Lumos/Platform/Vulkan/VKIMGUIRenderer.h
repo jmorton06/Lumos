@@ -5,7 +5,7 @@
 
 #include "VKCommandBuffer.h"
 
-struct ImGui_ImplVulkanH_WindowData;
+struct ImGui_ImplVulkanH_Window;
 namespace Lumos
 {
 	namespace Graphics
@@ -26,8 +26,8 @@ namespace Lumos
             void OnResize(uint32_t width, uint32_t height) override;
 			void Clear() override;
             
-            void FrameRender(ImGui_ImplVulkanH_WindowData* wd);
-            void SetupVulkanWindowData(ImGui_ImplVulkanH_WindowData* wd, VkSurfaceKHR surface, int width, int height);
+            void FrameRender(ImGui_ImplVulkanH_Window* wd);
+            void SetupVulkanWindowData(ImGui_ImplVulkanH_Window* wd, VkSurfaceKHR surface, int width, int height);
 			bool Implemented() const override { return true; }
             void RebuildFontTexture() override;
             

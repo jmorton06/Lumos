@@ -36,19 +36,25 @@ namespace Lumos
 	void ImGuiManager::OnInit()
 	{
 		LUMOS_PROFILE_FUNCTION();
+        
+        LUMOS_LOG_INFO("ImGui Version : {0}", IMGUI_VERSION);
+#ifdef IMGUI_USER_CONFIG
+        LUMOS_LOG_INFO("ImConfig File : {0}", std::string(IMGUI_USER_CONFIG));
+#endif
 		Application& app = Application::Get();
 		ImGuiIO& io = ImGui::GetIO();
 		io.DisplaySize = ImVec2(static_cast<float>(app.GetWindow()->GetWidth()), static_cast<float>(app.GetWindow()->GetHeight()));
-		io.DisplayFramebufferScale = ImVec2(app.GetWindow()->GetDPIScale(), app.GetWindow()->GetDPIScale());
+		//io.DisplayFramebufferScale = ImVec2(app.GetWindow()->GetDPIScale(), app.GetWindow()->GetDPIScale());
         io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-
+        
+        m_DPIScale = app.GetWindow()->GetDPIScale();
 #ifdef LUMOS_PLATFORM_IOS
 		io.ConfigFlags |= ImGuiConfigFlags_IsTouchScreen;
 #endif
 		io.BackendFlags |= ImGuiBackendFlags_HasMouseCursors;
 		io.ConfigWindowsMoveFromTitleBarOnly = true;
         
-        //m_FontSize *= app.GetWindow()->GetDPIScale();
+        m_FontSize *= app.GetWindow()->GetDPIScale();
         
 		SetImGuiKeyCodes();
 		SetImGuiStyle();
@@ -57,7 +63,7 @@ namespace Lumos
         ImGui::GetStyle().ScaleAllSizes(0.5f);
 #endif
 #ifdef LUMOS_PLATFORM_MACOS
-        //ImGui::GetStyle().ScaleAllSizes(app.GetWindow()->GetDPIScale());
+        ImGui::GetStyle().ScaleAllSizes(app.GetWindow()->GetDPIScale());
 #endif
 
 		m_IMGUIRenderer = UniqueRef<Graphics::IMGUIRenderer>(Graphics::IMGUIRenderer::Create(app.GetWindow()->GetWidth(), app.GetWindow()->GetHeight(), m_ClearScreen));
@@ -137,7 +143,7 @@ namespace Lumos
 	bool ImGuiManager::OnMouseMovedEvent(MouseMovedEvent& e)
 	{
 		ImGuiIO& io = ImGui::GetIO();
-		io.MousePos = ImVec2(e.GetX(), e.GetY());
+		io.MousePos = ImVec2(e.GetX() * m_DPIScale, e.GetY() * m_DPIScale);
 
 		return false;
 	}
@@ -196,8 +202,8 @@ namespace Lumos
 		uint32_t height = Maths::Max(1u, e.GetHeight());
 
 		io.DisplaySize = ImVec2(static_cast<float>(width), static_cast<float>(height));
-		io.DisplayFramebufferScale = ImVec2(e.GetDPIScale(), e.GetDPIScale());
-
+		//io.DisplayFramebufferScale = ImVec2(e.GetDPIScale(), e.GetDPIScale());
+        m_DPIScale = e.GetDPIScale();
 		m_IMGUIRenderer->OnResize(width, height);
 
 		return false;
@@ -267,11 +273,9 @@ namespace Lumos
 		{
 			ImFontConfig* font_config = (ImFontConfig*)&io.Fonts->ConfigData[n];
 			font_config->RasterizerMultiply = 1.0f;
-			font_config->RasterizerFlags = ImGuiFreeType::RasterizerFlags::ForceAutoHint;
 		}
 
-		ImGuiFreeType::BuildFontAtlas(io.Fonts, ImGuiFreeType::RasterizerFlags::LightHinting);
-
+        
 		ImGuiStyle& style = ImGui::GetStyle();
 #ifdef LUMOS_PLATFORM_IOS
         //TODO: Check this 

@@ -54,6 +54,11 @@ project "freetype"
        "src/winfonts/winfnt.c"
    }
 
+buildoptions
+{
+	"-w"
+}
+
    defines {
        "FT2_BUILD_LIBRARY",
    }
