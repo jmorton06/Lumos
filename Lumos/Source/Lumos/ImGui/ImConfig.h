@@ -82,6 +82,7 @@
         operator Lumos::Maths::Colour() const { return Lumos::Maths::Colour(x,y,z,w); }     \
 
 
+#define IMGUI_ENABLE_FREETYPE
 
 //---- Use 32-bit vertex indices (default is 16-bit) is one way to allow large meshes with more than 64K vertices.
 // Your renderer back-end will need to support it (most example renderer back-ends support both 16/32-bit indices).

@@ -1,4 +1,4 @@
-// stb_include.h - v0.01 - parse and process #include directives - public domain
+// stb_include.h - v0.02 - parse and process #include directives - public domain
 //
 // To build this, in one source file that includes this file do
 //      #define STB_INCLUDE_IMPLEMENTATION
@@ -26,6 +26,13 @@
 //      stdio.h     FILE, fopen, fclose, fseek, ftell
 //      stdlib.h    malloc, realloc, free
 //      string.h    strcpy, strncmp, memcpy
+//
+// Credits:
+//
+// Written by Sean Barrett.
+//
+// Fixes:
+//  Michal Klos
 
 #ifndef STB_INCLUDE_STB_INCLUDE_H
 #define STB_INCLUDE_STB_INCLUDE_H
@@ -95,7 +102,7 @@ static void stb_include_free_includes(include_info *array, int len)
 
 static int stb_include_isspace(int ch)
 {
-   return (ch == ' ' || ch == '\t' || ch == '\r' || ch == 'n');
+   return (ch == ' ' || ch == '\t' || ch == '\r' || ch == '\n');
 }
 
 // find location of all #include and #inject
@@ -249,17 +256,17 @@ char *stb_include_strings(char **strs, int count, char *inject, char *path_to_in
    char *result;
    int i;
    size_t length=0;
-   for (i=0; i < count; ++count)
+   for (i=0; i < count; ++i)
       length += strlen(strs[i]);
    text = (char *) malloc(length+1);
    length = 0;
-   for (i=0; i < count; ++count) {
+   for (i=0; i < count; ++i) {
       strcpy(text + length, strs[i]);
       length += strlen(strs[i]);
    }
    result = stb_include_string(text, inject, path_to_includes, filename, error);
    free(text);
-   return result;   
+   return result;
 }
 
 char *stb_include_file(char *filename, char *inject, char *path_to_includes, char error[256])

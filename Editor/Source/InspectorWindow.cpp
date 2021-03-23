@@ -651,13 +651,14 @@ end
 	{
 		LUMOS_PROFILE_FUNCTION();
 		auto& sound = reg.get<Lumos::SoundComponent>(e);
+        auto soundNode = sound.GetSoundNode();
 
-		auto pos = sound.GetSoundNode()->GetPosition();
-		auto radius = sound.GetSoundNode()->GetRadius();
-		auto paused = sound.GetSoundNode()->GetPaused();
-		auto pitch = sound.GetSoundNode()->GetPitch();
-		auto volume = sound.GetSoundNode()->GetVolume();
-		auto referenceDistance = sound.GetSoundNode()->GetReferenceDistance();
+		auto pos = soundNode->GetPosition();
+		auto radius = soundNode->GetRadius();
+		auto paused = soundNode->GetPaused();
+		auto pitch = soundNode->GetPitch();
+		auto volume = soundNode->GetVolume();
+		auto referenceDistance = soundNode->GetReferenceDistance();
 
 		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
 		ImGui::Columns(2);
@@ -668,7 +669,7 @@ end
 		ImGui::NextColumn();
 		ImGui::PushItemWidth(-1);
 		if(ImGui::InputFloat3("##Position", Lumos::Maths::ValuePointer(pos)))
-			sound.GetSoundNode()->SetPosition(pos);
+            soundNode->SetPosition(pos);
 
 		ImGui::PopItemWidth();
 		ImGui::NextColumn();
@@ -678,7 +679,7 @@ end
 		ImGui::NextColumn();
 		ImGui::PushItemWidth(-1);
 		if(ImGui::InputFloat("##Radius", &radius))
-			sound.GetSoundNode()->SetRadius(radius);
+            soundNode->SetRadius(radius);
 
 		ImGui::PopItemWidth();
 		ImGui::NextColumn();
@@ -688,7 +689,7 @@ end
 		ImGui::NextColumn();
 		ImGui::PushItemWidth(-1);
 		if(ImGui::InputFloat("##Pitch", &pitch))
-			sound.GetSoundNode()->SetPitch(pitch);
+            soundNode->SetPitch(pitch);
 
 		ImGui::PopItemWidth();
 		ImGui::NextColumn();
@@ -698,7 +699,7 @@ end
 		ImGui::NextColumn();
 		ImGui::PushItemWidth(-1);
 		if(ImGui::InputFloat("##Volume", &volume))
-			sound.GetSoundNode()->SetVolume(volume);
+            soundNode->SetVolume(volume);
 		
 		ImGui::PopItemWidth();
 		ImGui::NextColumn();
@@ -708,7 +709,7 @@ end
 		ImGui::NextColumn();
 		ImGui::PushItemWidth(-1);
 		if(ImGui::DragFloat("##Reference Distance", &referenceDistance))
-			sound.GetSoundNode()->SetReferenceDistance(referenceDistance);
+            soundNode->SetReferenceDistance(referenceDistance);
 
 		ImGui::PopItemWidth();
 		ImGui::NextColumn();
@@ -718,11 +719,47 @@ end
 		ImGui::NextColumn();
 		ImGui::PushItemWidth(-1);
 		if(ImGui::Checkbox("##Paused", &paused))
-			sound.GetSoundNode()->SetPaused(paused);
+            soundNode->SetPaused(paused);
 
 		ImGui::PopItemWidth();
 		ImGui::NextColumn();
+        
+        auto soundPointer = soundNode->GetSound();
+        auto path = soundPointer->GetFilePath();
+        ImGui::AlignTextToFramePadding();
+        ImGui::TextUnformatted("File Path");
+        ImGui::NextColumn();
+        ImGui::PushItemWidth(-1);
+        ImGui::TextUnformatted(path.c_str());
+        
+        const ImGuiPayload* payload = ImGui::GetDragDropPayload();
 
+        if(payload != NULL && payload->IsDataType("AssetFile"))
+        {
+            auto filePath = std::string(reinterpret_cast<const char*>(payload->Data));
+            if(Lumos::Editor::GetEditor()->IsAudioFile(filePath))
+            {
+                if(ImGui::BeginDragDropTarget())
+                {
+                    // Drop directly on to node and append to the end of it's children list.
+                    if(ImGui::AcceptDragDropPayload("AssetFile"))
+                    {
+                        std::string physicalPath;
+                        Lumos::VFS::Get()->ResolvePhysicalPath(filePath, physicalPath);
+                        auto newSound = Lumos::Sound::Create(physicalPath, Lumos::StringUtilities::GetFilePathExtension(filePath));
+                        
+                        soundNode->SetSound(newSound);
+                    }
+                    
+                    ImGui::EndDragDropTarget();
+                }
+            }
+        }
+
+        
+        ImGui::PopItemWidth();
+        ImGui::NextColumn();
+        
 		ImGui::Columns(1);
 		ImGui::Separator();
 		ImGui::PopStyleVar();

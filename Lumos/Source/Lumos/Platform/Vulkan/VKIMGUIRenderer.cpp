@@ -1,7 +1,10 @@
 #include "Precompiled.h"
 #include "VKIMGUIRenderer.h"
 #include <imgui/imgui.h>
-#include <imgui/examples/imgui_impl_vulkan.h>
+
+#define IMGUI_IMPL_VULKAN_NO_PROTOTYPES
+#define VK_NO_PROTOTYPES
+#include <imgui/backends/imgui_impl_vulkan.h>
 
 #include "VKDevice.h"
 #include "VKCommandBuffer.h"
@@ -9,7 +12,7 @@
 #include "VKRenderpass.h"
 #include "VKTexture.h"
 
-static ImGui_ImplVulkanH_WindowData g_WindowData;
+static ImGui_ImplVulkanH_Window g_WindowData;
 static VkAllocationCallbacks* g_Allocator = nullptr;
 static VkDescriptorPool g_DescriptorPool = VK_NULL_HANDLE;
 
@@ -50,7 +53,8 @@ namespace Lumos
 
             for (int i = 0; i < Renderer::GetRenderer()->GetSwapchain()->GetSwapchainBufferCount(); i++)
             {
-                ImGui_ImplVulkanH_FrameData* fd = &g_WindowData.Frames[i];
+                ImGui_ImplVulkanH_Frame* fd = &g_WindowData.Frames[i];
+                
                 vkDestroyFence(VKDevice::Get().GetDevice(), fd->Fence, g_Allocator);
                 vkDestroyCommandPool(VKDevice::Get().GetDevice(), fd->CommandPool, g_Allocator);
             }
@@ -60,7 +64,7 @@ namespace Lumos
             ImGui_ImplVulkan_Shutdown();
         }
 
-        void VKIMGUIRenderer::SetupVulkanWindowData(ImGui_ImplVulkanH_WindowData* wd, VkSurfaceKHR surface, int width, int height)
+        void VKIMGUIRenderer::SetupVulkanWindowData(ImGui_ImplVulkanH_Window* wd, VkSurfaceKHR surface, int width, int height)
         {
             // Create Descriptor Pool
             {
@@ -102,8 +106,8 @@ namespace Lumos
             wd->Swapchain = swapChain->GetSwapchain();
             wd->Width = width;
             wd->Height = height;
-
-            wd->BackBufferCount = static_cast<uint32_t>(swapChain->GetSwapchainBufferCount());
+            
+            wd->ImageCount = static_cast<uint32_t>(swapChain->GetSwapchainBufferCount());
             
 			AttachmentInfo textureTypes[2] =
 			{
@@ -118,13 +122,18 @@ namespace Lumos
 			m_Renderpass = new VKRenderpass(renderpassCI);
             wd->RenderPass = m_Renderpass->GetRenderpass();
 
+            wd->Frames = (ImGui_ImplVulkanH_Frame*)IM_ALLOC(sizeof(ImGui_ImplVulkanH_Frame) * wd->ImageCount);
+             wd->FrameSemaphores = (ImGui_ImplVulkanH_FrameSemaphores*)IM_ALLOC(sizeof(ImGui_ImplVulkanH_FrameSemaphores) * wd->ImageCount);
+             memset(wd->Frames, 0, sizeof(wd->Frames[0]) * wd->ImageCount);
+             memset(wd->FrameSemaphores, 0, sizeof(wd->FrameSemaphores[0]) * wd->ImageCount);
+            
             // Create The Image Views
             {
-                for (uint32_t i = 0; i < wd->BackBufferCount; i++)
+                for (uint32_t i = 0; i < wd->ImageCount; i++)
                 {
                     auto scBuffer = (VKTexture2D*)swapChain->GetTexture(i);
-                    wd->BackBuffer[i] = scBuffer->GetImage();
-                    wd->BackBufferView[i] = scBuffer->GetImageView();
+                    wd->Frames[i].Backbuffer = scBuffer->GetImage();
+                    wd->Frames[i].BackbufferView = scBuffer->GetImageView();
                 }
             }
 
@@ -146,7 +155,7 @@ namespace Lumos
 				bufferInfo.attachments = attachments;
 
 				m_Framebuffers[i] = new VKFramebuffer(bufferInfo);
-				wd->Framebuffer[i] = m_Framebuffers[i]->GetFramebuffer();
+				wd->Frames[i].Framebuffer = m_Framebuffers[i]->GetFramebuffer();
 			}
         }
 
@@ -155,7 +164,7 @@ namespace Lumos
             int w, h;
             w = (int)m_Width;
             h = (int)m_Height;
-            ImGui_ImplVulkanH_WindowData* wd = &g_WindowData;
+            ImGui_ImplVulkanH_Window* wd = &g_WindowData;
             VkSurfaceKHR surface = VKContext::Get()->GetSwapchain()->GetSurface();
             SetupVulkanWindowData(wd, surface, w, h);
 
@@ -170,6 +179,8 @@ namespace Lumos
             init_info.DescriptorPool = g_DescriptorPool;
             init_info.Allocator = g_Allocator;
             init_info.CheckVkResultFn = NULL;
+            init_info.MinImageCount = 2;
+            init_info.ImageCount = (uint32_t)Renderer::GetRenderer()->GetSwapchain()->GetSwapchainBufferCount();
 			ImGui_ImplVulkan_Init(&init_info, wd->RenderPass);
 			// Upload Fonts
 			{
@@ -193,7 +204,7 @@ namespace Lumos
 
 				ImGui_ImplVulkan_AddTexture(io.Fonts->TexID, ImGui_ImplVulkanH_GetFontDescriptor());
 
-				ImGui_ImplVulkan_InvalidateFontUploadObjects();
+				//ImGui_ImplVulkan_InvalidateFontUploadObjects();
 			}
         }
 
@@ -201,7 +212,7 @@ namespace Lumos
         {
         }
 
-        void VKIMGUIRenderer::FrameRender(ImGui_ImplVulkanH_WindowData* wd)
+        void VKIMGUIRenderer::FrameRender(ImGui_ImplVulkanH_Window* wd)
         {
             wd->FrameIndex = Renderer::GetRenderer()->GetSwapchain()->GetCurrentBufferId();
 
@@ -225,17 +236,17 @@ namespace Lumos
             auto* wd = &g_WindowData;
             auto swapChain = static_cast<VKSwapchain*>(VKRenderer::GetSwapchain());
             wd->Swapchain = swapChain->GetSwapchain();
-            for (uint32_t i = 0; i < wd->BackBufferCount; i++)
+            for (uint32_t i = 0; i < wd->ImageCount; i++)
             {
                 auto scBuffer = (VKTexture2D*)swapChain->GetTexture(i);
-                wd->BackBuffer[i] = scBuffer->GetImage();
-                wd->BackBufferView[i] = scBuffer->GetImageView();
+                wd->Frames[i].Backbuffer = scBuffer->GetImage();
+                wd->Frames[i].BackbufferView = scBuffer->GetImageView();
             }
 
             wd->Width = width;
             wd->Height = height;
 
-			for (uint32_t i = 0; i < wd->BackBufferCount; i++)
+			for (uint32_t i = 0; i < wd->ImageCount; i++)
 			{
 				delete m_Framebuffers[i];
 			}
@@ -258,7 +269,7 @@ namespace Lumos
 				bufferInfo.attachments = attachments;
 
 				m_Framebuffers[i] = new VKFramebuffer(bufferInfo);
-				wd->Framebuffer[i] = m_Framebuffers[i]->GetFramebuffer();
+				wd->Frames[i].Framebuffer = m_Framebuffers[i]->GetFramebuffer();
 			}
         }
 
@@ -301,7 +312,7 @@ namespace Lumos
 
                 ImGui_ImplVulkan_AddTexture(io.Fonts->TexID, ImGui_ImplVulkanH_GetFontDescriptor());
 
-                ImGui_ImplVulkan_InvalidateFontUploadObjects();
+                //ImGui_ImplVulkan_InvalidateFontUploadObjects();
             }
         }
     }

@@ -216,6 +216,11 @@ namespace Lumos
 		return Maths::Vector2(static_cast<float>(m_Window->GetWidth()), static_cast<float>(m_Window->GetHeight()));
 	}
 
+    float Application::GetWindowDPI() const
+    {
+        return m_Window->GetDPIScale();
+    }
+
 	bool Application::OnFrame()
 	{
 		LUMOS_PROFILE_FUNCTION();

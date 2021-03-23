@@ -96,7 +96,7 @@ class ImGuiEntityEditor {
                     
                         bool removed = false;
                     
-                        ImGui::SameLine(ImGui::GetContentRegionAvail().x - 16.0f);
+                        ImGui::SameLine(ImGui::GetContentRegionAvail().x - ImGui::GetFontSize());
 
                         ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.7f, 0.7f, 0.7f, 0.0f));
 

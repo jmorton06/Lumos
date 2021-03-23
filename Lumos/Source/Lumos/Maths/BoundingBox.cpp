@@ -116,6 +116,7 @@ namespace Lumos::Maths
 
     BoundingBox BoundingBox::Transformed(const Matrix3x4& transform) const
     {
+		LUMOS_PROFILE_FUNCTION();
     #ifdef LUMOS_SSE
         const __m128 one = _mm_set_ss(1.f);
         __m128 minPt = _mm_movelh_ps(_mm_loadl_pi(_mm_setzero_ps(), (const __m64*)&min_.x), _mm_unpacklo_ps(_mm_set_ss(min_.z), one));
@@ -155,6 +156,7 @@ namespace Lumos::Maths
 
     Rect BoundingBox::Projected(const Matrix4& projection) const
     {
+		LUMOS_PROFILE_FUNCTION();
         Vector3 projMin = min_;
         Vector3 projMax = max_;
         if (projMin.z < M_MIN_NEARCLIP)
@@ -184,6 +186,7 @@ namespace Lumos::Maths
 
     float BoundingBox::DistanceToPoint(const Vector3& point) const
     {
+		LUMOS_PROFILE_FUNCTION();
         const Vector3 offset = Center() - point;
         const Vector3 absOffset(Abs(offset.x), Abs(offset.y), Abs(offset.z));
         return VectorMax(Vector3::ZERO, absOffset - HalfSize()).Length();
@@ -191,6 +194,7 @@ namespace Lumos::Maths
 
     Intersection BoundingBox::IsInside(const Sphere& sphere) const
     {
+		LUMOS_PROFILE_FUNCTION();
         float distSquared = 0;
         float temp;
         const Vector3& center = sphere.center_;
@@ -238,6 +242,7 @@ namespace Lumos::Maths
 
     Intersection BoundingBox::IsInsideFast(const Sphere& sphere) const
     {
+		LUMOS_PROFILE_FUNCTION();
         float distSquared = 0;
         float temp;
         const Vector3& center = sphere.center_;

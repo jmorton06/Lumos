@@ -234,8 +234,9 @@ namespace Lumos
 
 		if(!gameView && app.GetSceneActive() && !ImGuizmo::IsUsing() && Input::GetInput()->GetMouseClicked(InputCode::MouseKey::ButtonLeft))
 		{
-			auto clickPos = Input::GetInput()->GetMousePosition() - Maths::Vector2(sceneViewPosition.x, sceneViewPosition.y);
-			m_Editor->SelectObject(m_Editor->GetScreenRay(int(clickPos.x), int(clickPos.y), camera, int(sceneViewSize.x), int(sceneViewSize.y)));
+            float dpi = Application::Get().GetWindowDPI();
+			auto clickPos = Input::GetInput()->GetMousePosition() - Maths::Vector2(sceneViewPosition.x / dpi, sceneViewPosition.y /dpi);
+			m_Editor->SelectObject(m_Editor->GetScreenRay(int(clickPos.x), int(clickPos.y), camera, int(sceneViewSize.x)/ dpi, int(sceneViewSize.y) /dpi));
 		}
 
 		DrawGizmos(sceneViewSize.x, sceneViewSize.y, offset.x, offset.y, app.GetSceneManager()->GetCurrentScene());

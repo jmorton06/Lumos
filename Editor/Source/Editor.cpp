@@ -170,9 +170,9 @@ namespace Lumos
         
 		m_SelectedEntity = entt::null;
 		m_PreviewTexture = nullptr;
-		
-		ImGuizmo::SetGizmoSizeClipSpace(0.25f);
-	}
+        
+        ImGuizmo::SetGizmoSizeClipSpace(0.25f);
+    }
     
 	bool Editor::IsTextFile(const std::string& filePath)
 	{
@@ -872,7 +872,7 @@ namespace Lumos
 		{
             ImGui::DockBuilderRemoveNode(DockspaceID); // Clear out existing layout
             ImGui::DockBuilderAddNode(DockspaceID); // Add empty node
-            ImGui::DockBuilderSetNodeSize(DockspaceID, ImGui::GetIO().DisplaySize);
+            ImGui::DockBuilderSetNodeSize(DockspaceID, ImGui::GetIO().DisplaySize * ImGui::GetIO().DisplayFramebufferScale);
             
             ImGuiID dock_main_id = DockspaceID;
             ImGuiID DockBottom = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Down, 0.3f, nullptr, &dock_main_id);

@@ -43,9 +43,14 @@ namespace Lumos
 		m_Data.m_RenderAPI = static_cast<Graphics::RenderAPI>(properties.RenderAPI);
 
 		m_Init = Init(properties);
+        
+        //Setting fullscreen overrides width and heigh in Init
+        auto propCopy = properties;
+        propCopy.Width = m_Data.Width;
+        propCopy.Height = m_Data.Height;
 		
 		Graphics::GraphicsContext::SetRenderAPI(static_cast<Graphics::RenderAPI>(properties.RenderAPI));
-		Graphics::GraphicsContext::Create(properties, this);
+		Graphics::GraphicsContext::Create(propCopy, this);
 		Graphics::GraphicsContext::GetContext()->Init();
 	}
 
@@ -89,7 +94,7 @@ namespace Lumos
         GLFWmonitor* monitor = glfwGetPrimaryMonitor();
         float xscale, yscale;
         glfwGetMonitorContentScale(monitor, &xscale, &yscale);
-        m_Data.DPIScale = 1.0f;//xscale;
+        m_Data.DPIScale = xscale;
 
 #ifdef LUMOS_PLATFORM_MACOS
         if (m_Data.DPIScale > 1.0f)
@@ -136,8 +141,8 @@ namespace Lumos
 		}
 		else
 		{
-			ScreenWidth = properties.Width;
-			ScreenHeight = properties.Height;
+            ScreenWidth = properties.Width;
+            ScreenHeight = properties.Height;
 		}
 
 		m_Data.Title = properties.Title;
@@ -152,6 +157,12 @@ namespace Lumos
 
 		m_Handle = glfwCreateWindow(ScreenWidth, ScreenHeight, properties.Title.c_str(), nullptr, nullptr);
 
+        int w, h;
+        glfwGetFramebufferSize(m_Handle, &w, &h);
+        m_Data.Width = w;
+        m_Data.Height = h;
+        
+        
 #ifdef LUMOS_RENDER_API_OPENGL
 		if(m_Data.m_RenderAPI == Graphics::RenderAPI::OPENGL)
 			glfwMakeContextCurrent(m_Handle);
@@ -163,7 +174,7 @@ namespace Lumos
 		SetIcon("//Textures/icon.png", "//Textures/icon32.png");
 #endif
 
-		//glfwSetWindowPos(m_Handle, mode->width / 2 - ScreenWidth / 2, mode->height / 2 - ScreenHeight / 2);
+		//glfwSetWindowPos(m_Handle, mode->width / 2 - m_Data.Width / 2, mode->height / 2 - m_Data.Height / 2);
 		glfwSetInputMode(m_Handle, GLFW_STICKY_KEYS, true);
 
 		// Set GLFW callbacks
@@ -174,10 +185,10 @@ namespace Lumos
             int w, h;
             glfwGetFramebufferSize(window, &w, &h);
             
-            data.DPIScale = 1.0f;//(float)w / (float)width;
+            data.DPIScale = (float)w / (float)width;
 
-            data.Width = width;
-            data.Height = height;
+            data.Width = width * data.DPIScale;
+            data.Height = height * data.DPIScale;
 
             WindowResizeEvent event( data.Width, data.Height, data.DPIScale);
 			data.EventCallback(event);

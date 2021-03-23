@@ -25,7 +25,7 @@
 
 #include <imgui/imgui.h>
 
-#define THREAD_CASCADE_GEN
+//#define THREAD_CASCADE_GEN
 #ifdef THREAD_CASCADE_GEN
 #	include "Core/JobSystem.h"
 #endif
@@ -120,7 +120,8 @@ namespace Lumos
             auto view = registry.view<Graphics::Light>();
 
             Light* light = nullptr;
-
+			{
+				LUMOS_PROFILE_SCOPE("Get Light");
             for(auto& lightEntity : view)
             {
                 auto& currentLight = view.get<Graphics::Light>(lightEntity);
@@ -132,7 +133,8 @@ namespace Lumos
             {
                 m_ShouldRender = false;
                 return;
-            }
+				}
+			}
 
             if(overrideCamera)
             {
@@ -166,6 +168,7 @@ namespace Lumos
 
             for(uint32_t i = 0; i < m_ShadowMapNum; ++i)
             {
+				LUMOS_PROFILE_SCOPE("Submit Meshes");
                 m_Layer = i;
 
                 Maths::Frustum f;
@@ -314,8 +317,8 @@ namespace Lumos
 				cascadeSplits[i] = (d - nearClip) / clipRange;
 			}
 			
-			System::JobSystem::Context ctx;
 #ifdef THREAD_CASCADE_GEN
+			System::JobSystem::Context ctx;
 			System::JobSystem::Dispatch(ctx, static_cast<uint32_t>(m_ShadowMapNum), 1, [&](JobDispatchArgs args)
 #else
 			for(uint32_t i = 0; i < m_ShadowMapNum; i++)
