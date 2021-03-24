@@ -100,7 +100,7 @@ static uint32_t                 g_Subpass = 0;
 static VkShaderModule           g_ShaderModuleVert;
 static VkShaderModule           g_ShaderModuleFrag;
 #ifdef VK_NO_PROTOTYPES
-static bool                     g_FunctionsLoaded = false;
+static bool                     g_FunctionsLoaded = true;
 #else
 static bool                     g_FunctionsLoaded = true;
 #endif
@@ -984,27 +984,6 @@ void    ImGui_ImplVulkan_DestroyDeviceObjects()
     if (g_DescriptorSetLayout)  { vkDestroyDescriptorSetLayout(v->Device, g_DescriptorSetLayout, v->Allocator); g_DescriptorSetLayout = VK_NULL_HANDLE; }
     if (g_PipelineLayout)       { vkDestroyPipelineLayout(v->Device, g_PipelineLayout, v->Allocator); g_PipelineLayout = VK_NULL_HANDLE; }
     if (g_Pipeline)             { vkDestroyPipeline(v->Device, g_Pipeline, v->Allocator); g_Pipeline = VK_NULL_HANDLE; }
-}
-
-bool    ImGui_ImplVulkan_LoadFunctions(PFN_vkVoidFunction(*loader_func)(const char* function_name, void* user_data), void* user_data)
-{
-    // Load function pointers
-    // You can use the default Vulkan loader using:
-    //      ImGui_ImplVulkan_LoadFunctions([](const char* function_name, void*) { return vkGetInstanceProcAddr(your_vk_isntance, function_name); });
-    // But this would be equivalent to not setting VK_NO_PROTOTYPES.
-//#ifdef VK_NO_PROTOTYPES
-//#define IMGUI_VULKAN_FUNC_LOAD(func) \
-//    func = reinterpret_cast<decltype(func)>(loader_func(#func, user_data)); \
-//    if (func == NULL)   \
-//        return false;
-//    IMGUI_VULKAN_FUNC_MAP(IMGUI_VULKAN_FUNC_LOAD)
-//#undef IMGUI_VULKAN_FUNC_LOAD
-//#else
-//    IM_UNUSED(loader_func);
-//    IM_UNUSED(user_data);
-//#endif
-    g_FunctionsLoaded = true;
-    return true;
 }
 
 void ImGui_ImplVulkan_ClearDescriptors()
