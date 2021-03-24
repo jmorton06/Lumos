@@ -167,7 +167,7 @@ namespace Lumos
             ImGui_ImplVulkanH_Window* wd = &g_WindowData;
             VkSurfaceKHR surface = VKContext::Get()->GetSwapchain()->GetSurface();
             SetupVulkanWindowData(wd, surface, w, h);
-
+            
             // Setup Vulkan binding
             ImGui_ImplVulkan_InitInfo init_info = {};
             init_info.Instance = static_cast<VKContext*>(VKContext::GetContext())->GetVKInstance();
