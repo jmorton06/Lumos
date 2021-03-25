@@ -4,11 +4,21 @@
 #include "VKFramebuffer.h"
 #include "Graphics/API/Swapchain.h"
 
+#define MAX_SWAPCHAIN_BUFFERS 3
 namespace Lumos
 {
     class Window;
 	namespace Graphics
 	{
+		struct FrameData 
+		{
+			VkSemaphore PresentSemaphore, RenderSemaphore;
+			VkFence RenderFence;
+			
+			VkCommandPool CommandPool;
+            CommandBuffer* MainCommandBuffer;
+		};
+		
         class Texture2D;
 		class VKSwapchain : public Swapchain
 		{
@@ -23,17 +33,20 @@ namespace Lumos
 
             VkSurfaceKHR GetSurface() const { return m_Surface; }
             VkSwapchainKHR GetSwapchain() const { return m_SwapChain; }
-			uint32_t GetCurrentBufferId() const override { return m_CurrentBuffer; };
+            uint32_t GetCurrentBufferId() const override { return m_AcquireImageIndex;}
 			size_t GetSwapchainBufferCount() const override { return m_SwapChainBuffers.size(); };
 			uint32_t GetFramebufferCount() const override { return static_cast<uint32_t>(m_SwapChainBuffers.size()); }
+            
             Texture2D* GetTexture(int id) const { return m_SwapChainBuffers[id]; }
-			Texture* GetCurrentImage() override { return (Texture*)m_SwapChainBuffers[m_CurrentBuffer]; };
+			Texture* GetCurrentImage() override { return (Texture*)m_SwapChainBuffers[m_AcquireImageIndex]; };
 			Texture* GetImage(uint32_t id) override { return (Texture*)m_SwapChainBuffers[id]; };
 			Framebuffer* CreateFramebuffer(RenderPass* renderPass, uint32_t id) override { return nullptr; };
 			
 			VkSurfaceKHR CreatePlatformSurface(VkInstance vkInstance, Window* window);
             VkSemaphore GetImageAcquiredSemaphore();
-			CommandBuffer* GetCurrentCommandBuffer() const override;
+			CommandBuffer* GetCurrentCommandBuffer() override;
+			
+			FrameData& GetCurrentFrameData();
 
             static void MakeDefault();
         protected:
@@ -41,12 +54,12 @@ namespace Lumos
             
 			private:
 			
+			FrameData m_Frames[MAX_SWAPCHAIN_BUFFERS];
+			
 			void FindImageFormatAndColourSpace();
 			
             VkSwapchainKHR m_SwapChain;
 			std::vector<Texture2D*> m_SwapChainBuffers;
-            std::vector<VkSemaphore> m_ImageAquiredSemaphores;
-			std::vector<CommandBuffer*> m_CommandBuffers;
 			
 			uint32_t m_CurrentBuffer = 0;
 			uint32_t m_AcquireImageIndex = 0;

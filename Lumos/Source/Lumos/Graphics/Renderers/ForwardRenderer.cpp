@@ -220,8 +220,6 @@ namespace Lumos
 		void ForwardRenderer::Begin()
 		{
 			m_CurrentBufferID = 0;
-			if(!m_RenderTexture)
-				m_CurrentBufferID = Renderer::GetSwapchain()->GetCurrentBufferId();
 
 			m_RenderPass->BeginRenderpass(m_CommandBuffers[m_CurrentBufferID], m_ClearColour, m_Framebuffers[m_CurrentBufferID].get(), Graphics::INLINE, m_ScreenBufferWidth, m_ScreenBufferHeight);
 		}

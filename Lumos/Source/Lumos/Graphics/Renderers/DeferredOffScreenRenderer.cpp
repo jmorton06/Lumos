@@ -149,12 +149,6 @@ namespace Lumos
 			End();
 		}
 
-		void DeferredOffScreenRenderer::PresentToScreen()
-		{
-			LUMOS_PROFILE_FUNCTION();
-			//Renderer::Present(m_CommandBuffers[Renderer::GetSwapchain()->GetCurrentBufferId()].get());
-		}
-
 		void DeferredOffScreenRenderer::Begin()
 		{
 			LUMOS_PROFILE_FUNCTION();

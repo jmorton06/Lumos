@@ -37,7 +37,7 @@ namespace Lumos
 			void End() override;
 			void Present() override;
 			void OnResize(uint32_t width, uint32_t height) override;
-			void PresentToScreen() override;
+            void PresentToScreen() override {}
 
 			void CreatePipeline();
 			void CreateBuffer();
