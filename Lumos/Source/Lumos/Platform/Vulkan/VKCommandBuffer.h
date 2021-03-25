@@ -17,10 +17,12 @@ namespace Lumos
 		class VKCommandBuffer : public CommandBuffer
 		{
 		public:
-			VKCommandBuffer();
+            VKCommandBuffer();
+			VKCommandBuffer(VkCommandBuffer commandBuffer);
 			~VKCommandBuffer();
 
 			bool Init(bool primary) override;
+            bool Init(bool primary, VkCommandPool commandPool);
 			void Unload() override;
 			void BeginRecording() override;
 			void BeginRecordingSecondary(RenderPass* renderPass, Framebuffer* framebuffer) override;
@@ -33,16 +35,12 @@ namespace Lumos
             void UpdateViewport(uint32_t width, uint32_t height) override;
 
 			VkCommandBuffer GetCommandBuffer() const { return m_CommandBuffer; };
-			VkFence GetFence() const { return m_Fence; };
-            VkSemaphore GetProcessedSemaphore() { return m_ProcessedSemaphore; }
 
             static void MakeDefault();
         protected:
             static CommandBuffer* CreateFuncVulkan();
 		private:
 			VkCommandBuffer m_CommandBuffer;
-			VkFence m_Fence;
-            VkSemaphore m_ProcessedSemaphore;
 			bool m_Primary;
             CommandBufferState m_State;
 		};

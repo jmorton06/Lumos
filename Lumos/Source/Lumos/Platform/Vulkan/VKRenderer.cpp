@@ -100,7 +100,6 @@ namespace Lumos
 		void VKRenderer::Begin()
 		{
 			LUMOS_PROFILE_FUNCTION();
-            m_Context = VKContext::Get();
             AcquireNextImage();
 
 			GetSwapchainInternal()->GetCurrentCommandBuffer()->BeginRecording();
@@ -108,17 +107,16 @@ namespace Lumos
     
         void VKRenderer::AcquireNextImage()
         {
-            auto swapchain = VKContext::Get()->GetSwapchain();
             m_Context = VKContext::Get();
+            auto swapchain = m_Context->GetSwapchain();
 
             auto result = swapchain->AcquireNextImage(nullptr);
             if(result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR)
             {
-              //  LUMOS_LOG_INFO("Acquire Image result : {0}", result == VK_ERROR_OUT_OF_DATE_KHR ? "Out of Date" : "SubOptimal");
+               LUMOS_LOG_INFO("Acquire Image result : {0}", result == VK_ERROR_OUT_OF_DATE_KHR ? "Out of Date" : "SubOptimal");
                 
                 if(result == VK_ERROR_OUT_OF_DATE_KHR)
                     OnResize(m_Width, m_Height);
-                //Begin();
                 return;
             }
             else if(result != VK_SUCCESS)
@@ -132,12 +130,12 @@ namespace Lumos
             LUMOS_PROFILE_FUNCTION();
             GetSwapchainInternal()->GetCurrentCommandBuffer()->EndRecording();
                         
-            static_cast<VKCommandBuffer*>(GetSwapchainInternal()->GetCurrentCommandBuffer())->ExecuteInternal(VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-                static_cast<VKSwapchain*>(m_Context->GetSwapchain().get())->GetImageAcquiredSemaphore(),
-                nullptr,
-                true);
+//            static_cast<VKCommandBuffer*>(GetSwapchainInternal()->GetCurrentCommandBuffer())->ExecuteInternal(VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+//                static_cast<VKSwapchain*>(m_Context->GetSwapchain().get())->GetImageAcquiredSemaphore(),
+//                nullptr,
+//                true);
                     
-            VKContext::Get()->GetSwapchain()->Present(static_cast<VKCommandBuffer*>(GetSwapchainInternal()->GetCurrentCommandBuffer())->GetProcessedSemaphore());
+            VKContext::Get()->GetSwapchain()->Present(nullptr);
         }
 
 		const std::string& VKRenderer::GetTitleInternal() const
