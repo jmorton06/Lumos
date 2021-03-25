@@ -15,7 +15,6 @@
 #include <imgui/imgui.h>
 #include <imgui/imgui_internal.h>
 
-
 namespace Lumos
 {
 
@@ -50,6 +49,7 @@ namespace Lumos
 	
 	void AssetWindow::DrawFolder(const DirectoryInformation& dirInfo)
 	{
+		LUMOS_PROFILE_FUNCTION();
         ImGuiTreeNodeFlags nodeFlags = ((dirInfo.absolutePath == m_CurrentDirPath) ? ImGuiTreeNodeFlags_Selected : 0);
         nodeFlags |= ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick;
         
@@ -146,12 +146,25 @@ namespace Lumos
 		LUMOS_PROFILE_FUNCTION();
 		ImGui::Begin(m_SimpleName.c_str());
 		{
-			ImGui::Columns(2, "AB", true);            
-
+            ImGui::BeginColumns("AssetWindowColumns", 2, ImGuiOldColumnFlags_NoResize);
+            ImGui::SetColumnWidth(0, ImGui::GetWindowContentRegionWidth() / 3.0f);
 			ImGui::BeginChild("##folders_common");
 			{
 				RenderBreadCrumbs();
-				
+                				
+                ImGuiTreeNodeFlags nodeFlag = ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_OpenOnDoubleClick;
+                bool assetTreeNodeOpen = ImGui::TreeNodeEx("Assets//", nodeFlag);
+                
+                if(ImGui::IsItemClicked())
+                {
+                    std::string assetsBasePath;
+                    VFS::Get()->ResolvePhysicalPath("//Assets", assetsBasePath);
+                    m_PreviousDirPath = GetParentPath(m_CurrentDirPath);
+                    m_CurrentDirPath = assetsBasePath;
+                    m_CurrentDir = ReadDirectory(m_CurrentDirPath);
+                }
+                
+				if(assetTreeNodeOpen)
 				{
 					ImGui::BeginChild("##folders");
 					{
@@ -159,6 +172,7 @@ namespace Lumos
                             DrawFolder(m_BaseProjectDir[i]);
                     }
                     ImGui::EndChild();
+					ImGui::TreePop();
 					}
 
 					if(ImGui::IsMouseDown(1))
@@ -191,7 +205,7 @@ namespace Lumos
 			ImGui::BeginChild("##directory_structure");
 			{
 				{
-				ImGui::BeginChild("##directory_breadcrumbs", ImVec2(ImGui::GetColumnWidth(), 30));
+				ImGui::BeginChild("##directory_breadcrumbs", ImVec2(ImGui::GetColumnWidth(), ImGui::GetFontSize() * 2.0f));
 				if(m_IsInListView)
 				{
 					if(ImGui::Button(ICON_MDI_VIEW_GRID))
@@ -302,7 +316,7 @@ namespace Lumos
 	void AssetWindow::RenderBreadCrumbs()
 	{
 		LUMOS_PROFILE_FUNCTION();
-		ImGui::BeginChild("##directory_breadcrumbs", ImVec2(ImGui::GetColumnWidth(), 30));
+		ImGui::BeginChild("##directory_breadcrumbs", ImVec2(ImGui::GetColumnWidth(), ImGui::GetFontSize() * 2.0f));
 		{
 			if(ImGui::Button(ICON_MDI_ARROW_LEFT))
 			{
@@ -325,11 +339,84 @@ namespace Lumos
 			GetDirectories(m_CurrentDirPath);
             
             int secIdx = 0, newPwdLastSecIdx = -1;
-            auto dir  = std::filesystem::path(m_CurrentDirPath);
 			
-			std::string filePath;
-			VFS::Get()->AbsoulePathToVFS(m_CurrentDirPath, filePath);
-			ImGui::TextUnformatted(filePath.c_str());
+			std::string assetsBasePath;
+			VFS::Get()->ResolvePhysicalPath("//Assets", assetsBasePath);
+            auto dir  = std::filesystem::path(assetsBasePath);
+			
+			auto AssetsDir = std::filesystem::path(m_CurrentDirPath);
+			
+            size_t PhysicalPathCount = 0;
+			            
+            for(auto &sec : dir)
+            {
+                PhysicalPathCount++;
+            }
+            
+            ImGui::PushID(secIdx);
+            if(secIdx > 0)
+                ImGui::SameLine();
+            if(ImGui::SmallButton("Assets"))
+            {
+                m_PreviousDirPath = GetParentPath(m_CurrentDirPath);
+                m_CurrentDirPath = assetsBasePath;
+                m_CurrentDir = ReadDirectory(m_CurrentDirPath);
+            }
+            ImGui::PopID();
+            
+            int dirIndex= 0;
+
+            for(auto &sec : AssetsDir)
+            {
+				if(dirIndex < PhysicalPathCount - 1)
+				{
+					dirIndex++;
+                    secIdx++;
+					continue;
+				}
+				
+				dirIndex++;
+#ifdef _WIN32
+                if(secIdx == 1)
+                {
+                    secIdx++;
+                    continue;
+                }
+#endif
+                if(!sec.u8string().empty())
+                {
+                    ImGui::PushID(secIdx);
+                    //if(secIdx > 0)
+                        ImGui::SameLine();
+                    if(ImGui::SmallButton(sec.u8string().c_str()))
+                    {
+                        newPwdLastSecIdx = secIdx;
+                    }
+                    ImGui::PopID();
+                }
+             
+                secIdx++;
+            }
+			
+            if(newPwdLastSecIdx >= 0)
+            {
+                int i = 0;
+                std::filesystem::path newPwd;
+                for(auto &sec : AssetsDir)
+                {
+                    if(i++ > newPwdLastSecIdx)
+                        break;
+                    newPwd /= sec;
+                }
+#ifdef _WIN32
+                if(newPwdLastSecIdx == 0)
+                    newPwd /= "\\";
+#endif
+				
+                m_PreviousDirPath = GetParentPath(m_CurrentDirPath);
+                m_CurrentDirPath = newPwd.string();
+                m_CurrentDir = ReadDirectory(m_CurrentDirPath);
+            }
         
 			ImGui::SameLine();
 		}
@@ -423,7 +510,7 @@ namespace Lumos
 	void AssetWindow::RenderBottom()
 	{
 		LUMOS_PROFILE_FUNCTION();
-		ImGui::BeginChild("##nav", ImVec2(ImGui::GetColumnWidth() - 12, 23));
+		ImGui::BeginChild("##nav", ImVec2(ImGui::GetColumnWidth() - 12, ImGui::GetFontSize() * 1.8f));
 		{
 			ImGui::EndChild();
 		}
@@ -442,22 +529,12 @@ namespace Lumos
 			}
 			
 			bool isDir = std::filesystem::is_directory(entry);
-			auto test = std::vector<std::string>();
-			const char del = *m_Delimiter.c_str();
 
-			auto dir_data = ParseFilename(entry.path().string(), del, test);
-			auto fileExt = ParseFiletype(dir_data);
+			auto dir_data = StringUtilities::GetFileName(entry.path().string());;
+			auto fileExt = StringUtilities::GetFilePathExtension(dir_data);
 
-			if(isDir)
-			{
-				DirectoryInformation d(dir_data, fileExt, entry.path().string(), false);
+				DirectoryInformation d(dir_data, fileExt, entry.path().string(), !isDir);
 				dInfo.push_back(d);
-			}
-			else
-			{
-				DirectoryInformation d(dir_data, fileExt, entry.path().string(), true);
-				dInfo.push_back(d);
-			}
 		}
 
 		return dInfo;
@@ -465,28 +542,17 @@ namespace Lumos
 	
 	std::vector<DirectoryInformation> AssetWindow::ReadDirectory(const std::string& path)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		std::vector<DirectoryInformation> dInfo;
 
 		for(const auto& entry : std::filesystem::directory_iterator(path))
 		{
 			bool isDir = std::filesystem::is_directory(entry);
-			
-			auto test = std::vector<std::string>();
-			const char del = *m_Delimiter.c_str();
+			auto dir_data = StringUtilities::GetFileName(entry.path().string());
+			auto fileExt = StringUtilities::GetFilePathExtension(dir_data);
 
-			auto dir_data = ParseFilename(entry.path().string(), del, test);
-			auto fileExt = ParseFiletype(dir_data);
-
-			if(isDir)
-			{
-				DirectoryInformation d(dir_data, fileExt, entry.path().string(), false);
-				dInfo.push_back(d);
-			}
-			else
-			{
-				DirectoryInformation d(dir_data, fileExt, entry.path().string(), true);
-				dInfo.push_back(d);
-			}
+				DirectoryInformation d(dir_data, fileExt, entry.path().string(), !isDir);
+			dInfo.push_back(d);
 		}
 		
 		return dInfo;
@@ -500,22 +566,8 @@ namespace Lumos
 		for(const auto& entry : std::filesystem::recursive_directory_iterator(path))
 		{
 			bool isDir = std::filesystem::is_directory(entry);
-
-			auto test = std::vector<std::string>();
-			const char del = *m_Delimiter.c_str();
-
-			auto dir_data = ParseFilename(entry.path().string(), del, test);
-
-			if(isDir)
-			{
-				DirectoryInformation d(dir_data, ".Lumos", entry.path().string(), false);
-				dInfo.push_back(d);
-			}
-			else
-			{
-				DirectoryInformation d(dir_data, ".Lumos", entry.path().string(), true);
-				dInfo.push_back(d);
-			}
+			auto dir_data = StringUtilities::GetFileName(entry.path().string());
+				DirectoryInformation d(dir_data, ".Lumos", entry.path().string(), !isDir);
 		}
 
 		return dInfo;
@@ -556,17 +608,7 @@ namespace Lumos
 		system(s.c_str());
     #endif
 
-		std::vector<std::string> data;
-
-		const char del = *m_Delimiter.c_str();
-		if(std::filesystem::exists(std::filesystem::path(movePath + m_Delimiter + ParseFilename(filePath, del, data))))
-		{
-			return true;
-		}
-		else
-		{
-			return false;
-		}
+		return std::filesystem::exists(std::filesystem::path(movePath + m_Delimiter + StringUtilities::GetFileName(filePath)));
 	}
 
 	std::string AssetWindow::StripExtras(const std::string& filename)
@@ -602,36 +644,4 @@ namespace Lumos
 
 		return newFileName;
 	}
-
-	std::string AssetWindow::ParseFilename(const std::string& str, const char delim, std::vector<std::string>& out)
-	{
-		LUMOS_PROFILE_FUNCTION();
-		size_t start;
-		size_t end = 0;
-
-		while((start = str.find_first_not_of(delim, end)) != std::string::npos)
-		{
-			end = str.find(delim, start);
-			out.push_back(str.substr(start, end - start));
-		}
-
-		return out[out.size() - 1];
-	}
-
-	std::string AssetWindow::ParseFiletype(const std::string& filename)
-	{
-		LUMOS_PROFILE_FUNCTION();
-		size_t start;
-		size_t end = 0;
-		std::vector<std::string> out;
-
-		while((start = filename.find_first_not_of(".", end)) != std::string::npos)
-		{
-			end = filename.find(".", start);
-			out.push_back(filename.substr(start, end - start));
-		}
-
-		return out[out.size() - 1];
-	}
-
 }

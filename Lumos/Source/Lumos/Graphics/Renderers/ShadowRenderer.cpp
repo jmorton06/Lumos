@@ -9,11 +9,13 @@
 #include "Graphics/API/Pipeline.h"
 #include "Graphics/API/UniformBuffer.h"
 #include "Graphics/API/GraphicsContext.h"
+#include "Graphics/API/Swapchain.h"
 #include "Graphics/API/Shader.h"
 
 #include "Graphics/Model.h"
 #include "Graphics/Camera/Camera.h"
 #include "Graphics/Light.h"
+#include "RenderGraph.h"
 #include "Maths/Transform.h"
 #include "Core/Engine.h"
 #include "Scene/Scene.h"
@@ -57,24 +59,17 @@ namespace Lumos
             m_MaxShadowDistance = 400.0f;
             m_ShadowFade = 40.0f;
             m_CascadeTransitionFade = 1.5f;
-            m_InitialBias = 0.0023f;
+            m_InitialBias = 0.0013f;
 
 			ShadowRenderer::Init();
+			Application::Get().GetRenderGraph()->SetShadowRenderer(this);
 		}
 
 		ShadowRenderer::~ShadowRenderer()
 		{
 			delete m_ShadowTex;
-
 			delete[] m_VSSystemUniformBuffer;
-            
-            for(auto& pc: m_PushConstants)
-                delete[] pc.data;
-            
-            m_PushConstants.clear();
-
 			delete m_UniformBuffer;
-			delete m_CommandBuffer;
 		}
 
 		void ShadowRenderer::Init()
@@ -84,13 +79,6 @@ namespace Lumos
 			m_VSSystemUniformBuffer = new uint8_t[m_VSSystemUniformBufferSize];
 			memset(m_VSSystemUniformBuffer, 0, m_VSSystemUniformBufferSize);
 			m_VSSystemUniformBufferOffsets.resize(VSSystemUniformIndex_Size);
-
-			auto pushConstant = Graphics::PushConstant();
-            pushConstant.size = sizeof(int32_t) + sizeof(Lumos::Maths::Matrix4);
-            pushConstant.data = new uint8_t[sizeof(int32_t) + sizeof(Lumos::Maths::Matrix4)];
-            pushConstant.shaderStage = ShaderType::VERTEX;
-            
-            m_PushConstants.push_back(pushConstant);
 
 			// Per Scene System Uniforms
 			m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_ProjectionViewMatrix] = 0;
@@ -107,9 +95,6 @@ namespace Lumos
 
             m_RenderPass = Graphics::RenderPass::Get(renderpassCI);
 
-			m_CommandBuffer = Graphics::CommandBuffer::Create();
-			m_CommandBuffer->Init(true);
-
 			CreateGraphicsPipeline();
 			CreateUniformBuffer();
 			CreateFramebuffers();
@@ -125,7 +110,6 @@ namespace Lumos
 		void ShadowRenderer::Begin()
 		{
 			LUMOS_PROFILE_FUNCTION();
-			m_CommandBuffer->BeginRecording();
 		}
 
 		void ShadowRenderer::BeginScene(Scene* scene, Camera* overrideCamera, Maths::Transform* overrideCameraTransform)
@@ -136,7 +120,8 @@ namespace Lumos
             auto view = registry.view<Graphics::Light>();
 
             Light* light = nullptr;
-
+			{
+				LUMOS_PROFILE_SCOPE("Get Light");
             for(auto& lightEntity : view)
             {
                 auto& currentLight = view.get<Graphics::Light>(lightEntity);
@@ -148,7 +133,8 @@ namespace Lumos
             {
                 m_ShouldRender = false;
                 return;
-            }
+				}
+			}
 
             if(overrideCamera)
             {
@@ -182,6 +168,7 @@ namespace Lumos
 
             for(uint32_t i = 0; i < m_ShadowMapNum; ++i)
             {
+				LUMOS_PROFILE_SCOPE("Submit Meshes");
                 m_Layer = i;
 
                 Maths::Frustum f;
@@ -225,8 +212,6 @@ namespace Lumos
 		void ShadowRenderer::End()
 		{
 			LUMOS_PROFILE_FUNCTION();
-			m_CommandBuffer->EndRecording();
-			m_CommandBuffer->Execute(false);
 		}
 
 		void ShadowRenderer::Present()
@@ -234,9 +219,9 @@ namespace Lumos
 			LUMOS_PROFILE_FUNCTION();
 			int index = 0;
 
-			m_RenderPass->BeginRenderpass(m_CommandBuffer, Maths::Vector4(0.0f), m_ShadowFramebuffer[m_Layer].get(), Graphics::INLINE, m_ShadowMapSize, m_ShadowMapSize, false);
+			m_RenderPass->BeginRenderpass(Renderer::GetSwapchain()->GetCurrentCommandBuffer(), Maths::Vector4(0.0f), m_ShadowFramebuffer[m_Layer].get(), Graphics::INLINE, m_ShadowMapSize, m_ShadowMapSize, false);
 
-			m_Pipeline->Bind(m_CommandBuffer);
+			m_Pipeline->Bind(Renderer::GetSwapchain()->GetCurrentCommandBuffer());
 
 			for(auto& command : m_CascadeCommandQueue[m_Layer])
 			{
@@ -246,18 +231,19 @@ namespace Lumos
 
                 m_CurrentDescriptorSets[0] = m_Pipeline->GetDescriptorSet();
 
-				mesh->GetVertexBuffer()->Bind(m_CommandBuffer, m_Pipeline.get());
-				mesh->GetIndexBuffer()->Bind(m_CommandBuffer);
+				mesh->GetVertexBuffer()->Bind(Renderer::GetSwapchain()->GetCurrentCommandBuffer(), m_Pipeline.get());
+				mesh->GetIndexBuffer()->Bind(Renderer::GetSwapchain()->GetCurrentCommandBuffer());
                 
                 uint32_t layer = static_cast<uint32_t>(m_Layer);
                 auto trans = command.transform;
-                memcpy(m_PushConstants[0].data, &trans, sizeof(Maths::Matrix4));
-                memcpy(m_PushConstants[0].data + sizeof(Maths::Matrix4), &layer, sizeof(uint32_t));
-
-                m_CurrentDescriptorSets[0]->SetPushConstants(m_PushConstants);
+                auto& pushConstants = m_Shader->GetPushConstants();
+                memcpy(pushConstants[0].data, &trans, sizeof(Maths::Matrix4));
+                memcpy(pushConstants[0].data + sizeof(Maths::Matrix4), &layer, sizeof(uint32_t));
                 
-				Renderer::BindDescriptorSets(m_Pipeline.get(), m_CommandBuffer, 0, m_CurrentDescriptorSets);
-				Renderer::DrawIndexed(m_CommandBuffer, DrawType::TRIANGLE, mesh->GetIndexBuffer()->GetCount());
+                m_Shader->BindPushConstants(Renderer::GetSwapchain()->GetCurrentCommandBuffer(), m_Pipeline.get());
+                
+				Renderer::BindDescriptorSets(m_Pipeline.get(), Renderer::GetSwapchain()->GetCurrentCommandBuffer(), 0, m_CurrentDescriptorSets);
+				Renderer::DrawIndexed(Renderer::GetSwapchain()->GetCurrentCommandBuffer(), DrawType::TRIANGLE, mesh->GetIndexBuffer()->GetCount());
 
 				mesh->GetVertexBuffer()->Unbind();
 				mesh->GetIndexBuffer()->Unbind();
@@ -265,8 +251,7 @@ namespace Lumos
 				index++;
 			}
 
-			m_RenderPass->EndRenderpass(m_CommandBuffer, false);
-            //m_CommandBuffer->Execute(true);
+			m_RenderPass->EndRenderpass(Renderer::GetSwapchain()->GetCurrentCommandBuffer(), false);
 		}
 
 		void ShadowRenderer::SetShadowMapNum(uint32_t num)
@@ -331,9 +316,10 @@ namespace Lumos
 				float d = m_CascadeSplitLambda * (log - uniform) + uniform;
 				cascadeSplits[i] = (d - nearClip) / clipRange;
 			}
-
+			
 #ifdef THREAD_CASCADE_GEN
-			System::JobSystem::Dispatch(static_cast<uint32_t>(m_ShadowMapNum), 1, [&](JobDispatchArgs args)
+			System::JobSystem::Context ctx;
+			System::JobSystem::Dispatch(ctx, static_cast<uint32_t>(m_ShadowMapNum), 1, [&](JobDispatchArgs args)
 #else
 			for(uint32_t i = 0; i < m_ShadowMapNum; i++)
 #endif
@@ -341,6 +327,7 @@ namespace Lumos
 #ifdef THREAD_CASCADE_GEN
 					int i = args.jobIndex;
 #endif
+					LUMOS_PROFILE_SCOPE("Create Cascade");
 					float splitDist = cascadeSplits[i];
 					float lastSplitDist = i == 0 ? 0.0f : cascadeSplits[i - 1];
 
@@ -394,7 +381,7 @@ namespace Lumos
 					Maths::Vector3 minExtents = -maxExtents;
 
 					Maths::Vector3 lightDir = -light->Direction.ToVector3();
-					lightDir.Normalize();
+					lightDir.Normalise();
 					Maths::Matrix4 lightViewMatrix = Maths::Quaternion::LookAt(frustumCenter - lightDir * -minExtents.z, frustumCenter).RotationMatrix4();
 					lightViewMatrix.SetTranslation(frustumCenter);
 
@@ -428,7 +415,7 @@ namespace Lumos
 				}
 #ifdef THREAD_CASCADE_GEN
 			);
-			System::JobSystem::Wait();
+			System::JobSystem::Wait(ctx);
 #endif
 		}
 
@@ -466,17 +453,9 @@ namespace Lumos
 		void ShadowRenderer::CreateGraphicsPipeline()
 		{
 			LUMOS_PROFILE_FUNCTION();
-            Graphics::BufferLayout vertexBufferLayout;
-            vertexBufferLayout.Push<Maths::Vector3>("position");
-            vertexBufferLayout.Push<Maths::Vector4>("colour");
-            vertexBufferLayout.Push<Maths::Vector2>("uv");
-            vertexBufferLayout.Push<Maths::Vector3>("normal");
-            vertexBufferLayout.Push<Maths::Vector3>("tangent");
-
 			Graphics::PipelineInfo pipelineCreateInfo;
 			pipelineCreateInfo.shader = m_Shader;
 			pipelineCreateInfo.renderpass = m_RenderPass;
-            pipelineCreateInfo.vertexBufferLayout = vertexBufferLayout;
 			pipelineCreateInfo.cullMode = Graphics::CullMode::NONE;
 			pipelineCreateInfo.transparencyEnabled = false;
 			pipelineCreateInfo.depthBiasEnabled = true;

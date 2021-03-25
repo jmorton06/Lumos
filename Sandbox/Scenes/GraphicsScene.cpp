@@ -20,7 +20,7 @@ void GraphicsScene::OnInit()
 	LoadModels();
 
     auto environment = m_EntityManager->Create("Environment");
-    environment.AddComponent<Graphics::Environment>("//TextuAssets/cubemap/Arches_E_PineTree", 11, 3072, 4096, 1.0f/ 32.0f, ".tga");
+    environment.AddComponent<Graphics::Environment>("//Textures/cubemap/Arches_E_PineTree", 11, 3072, 4096, 1.0f/ 32.0f, ".tga");
     
     auto lightEntity = m_EntityManager->Create("Light");
     lightEntity.AddComponent<Graphics::Light>(Maths::Vector3(26.0f, 22.0f, 48.5f), Maths::Vector4(1.0f), 1.3f);
@@ -51,7 +51,7 @@ void GraphicsScene::LoadModels()
 	Lumos::Ref<Graphics::Mesh> terrain = Lumos::Ref<Graphics::Mesh>(new Terrain());
 
 	auto material = Lumos::CreateRef<Graphics::Material>();
-	material->LoadMaterial("checkerboard", "//TextuAssets/checkerboard.tga");
+	material->LoadMaterial("checkerboard", "//Textures/checkerboard.tga");
 
 	terrain->SetMaterial(material);
     terrianEntity.AddComponent<Graphics::Model>(terrain, Graphics::PrimitiveType::Terrain);

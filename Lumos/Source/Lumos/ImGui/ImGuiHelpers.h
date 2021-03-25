@@ -16,7 +16,7 @@ namespace Lumos
 		enum class PropertyFlag
 		{
 			None = 0,
-			ColorProperty = 1
+			ColourProperty = 1
 		};
 
 		enum Theme
@@ -53,7 +53,7 @@ namespace Lumos
 		void SetTheme(Theme theme);
 
 		bool BufferingBar(const char* label, float value, const Maths::Vector2& size_arg, const uint32_t& bg_col, const uint32_t& fg_col);
-		bool Spinner(const char* label, float radius, int thickness, const uint32_t& color);
+		bool Spinner(const char* label, float radius, int thickness, const uint32_t& colour);
     
         Maths::Vector4 GetSelectedColour();
 
@@ -62,8 +62,8 @@ namespace Lumos
 
 namespace ImGui
 {
-    // Dupe of DragFloatN with a tweak to add colored lines
-    bool DragFloatN_Colored(const char* label, float* v, int components, float v_speed = 1.0f, float v_min = 0.0f, float v_max = 0.0f, const char* display_format = "%.2f", float power = 1.0f);
+    // Dupe of DragFloatN with a tweak to add coloured lines
+    bool DragFloatN_Coloured(const char* label, float* v, int components, float v_speed = 1.0f, float v_min = 0.0f, float v_max = 0.0f, const char* display_format = "%.2f", float power = 1.0f);
 
     bool DragFloat3Coloured(const char* label, float* v, float v_speed = 1.0f, float v_min = 0.0f, float v_max = 0.0f);
     bool DragFloat4Coloured(const char* label, float* v, float v_speed = 1.0f, float v_min = 0.0f, float v_max = 0.0f);

@@ -3,12 +3,12 @@
 #extension GL_ARB_shading_language_420pack : enable
 
 layout(location = 0) in vec3 inPosition;
-layout(location = 1) in vec3 inColor;
+layout(location = 1) in vec4 inColour;
 layout(location = 2) in vec2 inTexCoord;
 layout(location = 3) in vec3 inNormal;
 layout(location = 4) in vec3 inTangent;
 
-layout(location = 0) out vec3 fragColor;
+layout(location = 0) out vec3 fragColour;
 layout(location = 1) out vec2 fragTexCoord;
 
 out gl_PerVertex
@@ -19,6 +19,6 @@ out gl_PerVertex
 void main() 
 {
     gl_Position = vec4(inPosition, 1.0);
-    fragColor = inColor;
+    fragColour = inColour.xyz;
 	fragTexCoord = inTexCoord;
 }

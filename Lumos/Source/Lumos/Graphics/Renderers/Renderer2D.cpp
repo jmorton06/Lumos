@@ -5,6 +5,7 @@
 #include "Graphics/API/UniformBuffer.h"
 #include "Graphics/API/Renderer.h"
 #include "Graphics/API/CommandBuffer.h"
+#include "Graphics/API/GraphicsContext.h"
 #include "Graphics/API/Swapchain.h"
 #include "Graphics/API/RenderPass.h"
 #include "Graphics/API/Pipeline.h"
@@ -88,15 +89,7 @@ namespace Lumos
             m_RenderPass = Graphics::RenderPass::Get(renderpassCI);
 
 			CreateFramebuffers();
-
-			m_CommandBuffers.resize(Renderer::GetSwapchain()->GetSwapchainBufferCount());
-
-			for(auto& commandBuffer : m_CommandBuffers)
-			{
-				commandBuffer = Ref<Graphics::CommandBuffer>(Graphics::CommandBuffer::Create());
-				commandBuffer->Init(true);
-			}
-
+            
 			m_SecondaryCommandBuffers.resize(m_Limits.MaxBatchDrawCalls);
 
 			for(auto& cmdBuffer : m_SecondaryCommandBuffers)
@@ -204,19 +197,19 @@ namespace Lumos
 			m_Buffer->vertex = triangleInfo.p1;
 			m_Buffer->uv = {0.0f, 0.0f};
 			m_Buffer->tid = Maths::Vector2(textureSlot, 0.0f);
-			m_Buffer->color = triangleInfo.col;
+			m_Buffer->colour = triangleInfo.col;
 			m_Buffer++;
 
 			m_Buffer->vertex = triangleInfo.p2;
 			m_Buffer->uv = {0.0f, 0.0f};
 			m_Buffer->tid = Maths::Vector2(textureSlot, 0.0f);
-			m_Buffer->color = triangleInfo.col;
+			m_Buffer->colour = triangleInfo.col;
 			m_Buffer++;
 
 			m_Buffer->vertex = triangleInfo.p3;
 			m_Buffer->uv = {0.0f, 0.0f};
 			m_Buffer->tid = Maths::Vector2(textureSlot, 0.0f);
-			m_Buffer->color = triangleInfo.col;
+			m_Buffer->colour = triangleInfo.col;
 			m_Buffer++;
 
 			m_IndexCount += 3;
@@ -236,12 +229,12 @@ namespace Lumos
 			if(!m_RenderTexture)
 				m_CurrentBufferID = Renderer::GetSwapchain()->GetCurrentBufferId();
 
-			m_RenderPass->BeginRenderpass(m_CommandBuffers[m_CurrentBufferID].get(), m_ClearColour, m_Framebuffers[m_CurrentBufferID].get(), Graphics::SECONDARY, m_ScreenBufferWidth, m_ScreenBufferHeight);
+			m_RenderPass->BeginRenderpass(Renderer::GetSwapchain()->GetCurrentCommandBuffer(), m_ClearColour, m_Framebuffers[m_CurrentBufferID].get(), Graphics::INLINE, m_ScreenBufferWidth, m_ScreenBufferHeight);
 
 			m_TextureCount = 0;
 			//m_Triangles.clear();
 
-            m_VertexBuffers[m_BatchDrawCallIndex]->Bind(m_CommandBuffers[m_CurrentBufferID].get(), m_Pipeline.get());
+            m_VertexBuffers[m_BatchDrawCallIndex]->Bind(Renderer::GetSwapchain()->GetCurrentCommandBuffer(), m_Pipeline.get());
 #if MAP_VERTEX_ARRAY 
 			m_Buffer = m_VertexBuffers[m_BatchDrawCallIndex]->GetPointer<VertexData>();
 #else
@@ -332,10 +325,7 @@ namespace Lumos
             m_Empty = false;
 			UpdateDesciptorSet();
 
-			Graphics::CommandBuffer* currentCMDBuffer = m_SecondaryCommandBuffers[m_BatchDrawCallIndex];
-
-			currentCMDBuffer->BeginRecordingSecondary(m_RenderPass.get(), m_Framebuffers[m_CurrentBufferID].get());
-			currentCMDBuffer->UpdateViewport(m_ScreenBufferWidth, m_ScreenBufferHeight);
+            Graphics::CommandBuffer* currentCMDBuffer = Renderer::GetSwapchain()->GetCurrentCommandBuffer();
 			m_Pipeline->Bind(currentCMDBuffer);
 
 
@@ -359,22 +349,13 @@ namespace Lumos
 
 			m_IndexCount = 0;
 
-			currentCMDBuffer->EndRecording();
-			currentCMDBuffer->ExecuteSecondary(m_CommandBuffers[m_CurrentBufferID].get());
-
 			m_BatchDrawCallIndex++;
 		}
 
 		void Renderer2D::End()
 		{
 			LUMOS_PROFILE_FUNCTION();
-			m_RenderPass->EndRenderpass(m_CommandBuffers[m_CurrentBufferID].get());
-
-			if(m_RenderTexture)
-				m_CommandBuffers[m_CurrentBufferID]->Execute(true);
-
-			if(!m_RenderTexture && !m_Empty)
-				PresentToScreen();
+			m_RenderPass->EndRenderpass(Renderer::GetSwapchain()->GetCurrentCommandBuffer());
 
 			m_BatchDrawCallIndex = 0;
 		}
@@ -406,28 +387,28 @@ namespace Lumos
                 m_Buffer->vertex = vertex;
                 m_Buffer->uv = uv[0];
                 m_Buffer->tid = Maths::Vector2(textureSlot, 0.0f);
-                m_Buffer->color = colour;
+                m_Buffer->colour = colour;
                 m_Buffer++;
 
                 vertex = transform * Maths::Vector3(max.x, min.y, 0.0f);
                 m_Buffer->vertex = vertex;
                 m_Buffer->uv = uv[1];
                 m_Buffer->tid = Maths::Vector2(textureSlot, 0.0f);
-                m_Buffer->color = colour;
+                m_Buffer->colour = colour;
                 m_Buffer++;
 
                 vertex = transform * Maths::Vector3(max.x, max.y, 0.0f);
                 m_Buffer->vertex = vertex;
                 m_Buffer->uv = uv[2];
                 m_Buffer->tid = Maths::Vector2(textureSlot, 0.0f);
-                m_Buffer->color = colour;
+                m_Buffer->colour = colour;
                 m_Buffer++;
 
                 vertex = transform * Maths::Vector3(min.x, max.y, 0.0f);
                 m_Buffer->vertex = vertex;
                 m_Buffer->uv = uv[3];
                 m_Buffer->tid = Maths::Vector2(textureSlot, 0.0f);
-                m_Buffer->color = colour;
+                m_Buffer->colour = colour;
                 m_Buffer++;
 
                 m_IndexCount += 6;
@@ -487,22 +468,15 @@ namespace Lumos
 		void Renderer2D::PresentToScreen()
 		{
 			LUMOS_PROFILE_FUNCTION();
-			Renderer::Present((m_CommandBuffers[Renderer::GetSwapchain()->GetCurrentBufferId()].get()));
+			//Renderer::Present((m_CommandBuffers[Renderer::GetSwapchain()->GetCurrentBufferId()].get()));
 		}
 
 		void Renderer2D::CreateGraphicsPipeline()
 		{
 			LUMOS_PROFILE_FUNCTION();
-            Graphics::BufferLayout vertexBufferLayout;
-            vertexBufferLayout.Push<Maths::Vector3>("position");
-            vertexBufferLayout.Push<Maths::Vector2>("uv");
-            vertexBufferLayout.Push<Maths::Vector2>("tid");
-            vertexBufferLayout.Push<Maths::Vector4>("colour");
-
 			Graphics::PipelineInfo pipelineCreateInfo;
 			pipelineCreateInfo.shader = m_Shader;
 			pipelineCreateInfo.renderpass = m_RenderPass;
-            pipelineCreateInfo.vertexBufferLayout = vertexBufferLayout;
 			pipelineCreateInfo.polygonMode = Graphics::PolygonMode::FILL;
 			pipelineCreateInfo.cullMode = Graphics::CullMode::BACK;
 			pipelineCreateInfo.transparencyEnabled = true;

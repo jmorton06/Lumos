@@ -41,7 +41,7 @@ namespace Lumos
 		bool physics_enabled,
 		float inverse_mass,
 		bool collidable,
-		const Maths::Vector4& color)
+		const Maths::Vector4& colour)
 	{
 		auto sphere = scene->GetEntityManager()->Create(name);
 		sphere.AddComponent<Maths::Transform>(Maths::Matrix4::Translation(pos) * Maths::Matrix4::Scale(Maths::Vector3(radius, radius, radius)));
@@ -49,7 +49,7 @@ namespace Lumos
 
 		Ref<Graphics::Material> matInstance = CreateRef<Graphics::Material>();
 		Graphics::MaterialProperties properties;
-		properties.albedoColour = color;
+		properties.albedoColour = colour;
 		properties.roughnessColour = Vector4(RandomNumberGenerator32::Rand(0.0f, 1.0f));
 		properties.metallicColour = Vector4(RandomNumberGenerator32::Rand(0.0f, 1.0f));
 		properties.usingAlbedoMap = 0.0f;
@@ -96,7 +96,7 @@ namespace Lumos
 		bool physics_enabled,
 		float inverse_mass,
 		bool collidable,
-		const Maths::Vector4& color)
+		const Maths::Vector4& colour)
 	{
 		auto cube = scene->GetEntityManager()->Create(name);
 		cube.AddComponent<Maths::Transform>(Maths::Matrix4::Translation(pos) * Maths::Matrix4::Scale(halfdims));
@@ -104,10 +104,10 @@ namespace Lumos
 
 		auto matInstance = CreateRef<Graphics::Material>();
 		Graphics::MaterialProperties properties;
-		properties.albedoColour = color;
+		properties.albedoColour = colour;
 		properties.roughnessColour = Vector4(RandomNumberGenerator32::Rand(0.0f, 1.0f));
 		properties.metallicColour = Vector4(RandomNumberGenerator32::Rand(0.0f, 1.0f));
-		properties.emissiveColour = color;
+		properties.emissiveColour = colour;
 		properties.usingAlbedoMap = 0.0f;
 		properties.usingRoughnessMap = 0.0f;
 		properties.usingNormalMap = 0.0f;

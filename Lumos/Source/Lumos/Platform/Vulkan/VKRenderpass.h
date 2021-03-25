@@ -14,8 +14,8 @@ namespace Lumos
             ~VKRenderpass();
 
             bool Init(const RenderPassInfo& renderpassCI);
-            void BeginRenderpass(CommandBuffer * commandBuffer, const Maths::Vector4& clearColour, Framebuffer* frame, SubPassContents contents, uint32_t width, uint32_t height, bool beginCommandBuffer = true) const override;
-            void EndRenderpass(CommandBuffer* commandBuffer, bool endCommandBuffer = true) override;
+            void BeginRenderpass(CommandBuffer * commandBuffer, const Maths::Vector4& clearColour, Framebuffer* frame, SubPassContents contents, uint32_t width, uint32_t height, bool beginCommandBuffer = false) const override;
+            void EndRenderpass(CommandBuffer* commandBuffer, bool endCommandBuffer = false) override;
 
             const VkRenderPass& GetRenderpass() const { return m_RenderPass; };
             int GetAttachmentCount() const override { return m_ClearCount; };

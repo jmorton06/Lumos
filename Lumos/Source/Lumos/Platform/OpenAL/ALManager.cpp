@@ -4,6 +4,7 @@
 #include "Maths/Maths.h"
 #include "Graphics/Camera/Camera.h"
 #include "Utilities/TimeStep.h"
+#include "Scene/Component/SoundComponent.h"
 
 #include <imgui/imgui.h>
 
@@ -58,9 +59,11 @@ namespace Lumos
 
 			UpdateListener();
 
-			for(auto node : m_SoundNodes)
-				node->OnUpdate(dt.GetElapsedMillis());
-		}
+            auto soundsView = registry.view<SoundComponent>();
+          
+			for(auto entity : soundsView)
+                soundsView.get<SoundComponent>(entity).GetSoundNode()->OnUpdate(dt.GetElapsedMillis());
+            }
 
         //Pass Cameras transform
 		void ALManager::UpdateListener()

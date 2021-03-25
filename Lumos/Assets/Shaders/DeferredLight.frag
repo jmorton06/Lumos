@@ -15,8 +15,16 @@ layout(set = 1, binding = 6) uniform samplerCube uIrradianceMap;
 layout(set = 1, binding = 7) uniform sampler2DArray uShadowMap;
 layout(set = 1, binding = 8) uniform sampler2D uDepthSampler;
 
+#define PI 3.1415926535897932384626433832795
+#define GAMMA 2.2
 #define MAX_LIGHTS 32
 #define MAX_SHADOWMAPS 4
+
+const int NumPCFSamples = 16;
+const int numBlockerSearchSamples = 16;
+const bool fadeCascades = false;
+const float Epsilon = 0.00001;
+float ShadowFade = 1.0;
 
 struct Light
 {
@@ -27,6 +35,18 @@ struct Light
 	float radius;
 	float type;
 	float angle;
+};
+
+struct Material
+{
+	vec4 Albedo;
+	vec3 Metallic;
+	float Roughness;
+	vec3 Emissive;
+	vec3 Normal;
+	float AO;
+	vec3 View;
+	float NDotV;
 };
 
 layout(std140, binding = 0) uniform UniformBufferLight
@@ -49,29 +69,6 @@ layout(std140, binding = 0) uniform UniformBufferLight
 	int cubemapMipLevels; // 4
 	float initialBias;
 } ubo;
-
-#define PI 3.1415926535897932384626433832795
-#define GAMMA 2.2
-
-const int NumPCFSamples = 16;
-const int numBlockerSearchSamples = 16;
-const bool fadeCascades = false;
-
-struct Material
-{
-	vec4 Albedo;
-	vec3 Metallic;
-	float Roughness;
-	vec3 Emissive;
-	vec3 Normal;
-	float AO;
-	vec3 View;
-	float NDotV;
-};
-
-const float Epsilon = 0.00001;
-
-float ShadowFade = 1.0;
 
 // Constant normal incidence Fresnel factor for all dielectrics.
 const vec3 Fdielectric = vec3(0.04);
@@ -397,7 +394,6 @@ float CalculateShadow(vec3 wsPos, int cascadeIndex, float bias, vec3 lightDirect
 		}
 		else
 		{
-			float bias = 0.0005;
 			return 1.0 - PoissonDotShadow(shadowCoord, cascadeIndex, bias, wsPos) * ShadowFade;
 			//return PCSS_DirectionalLight(uShadowMap, shadowCoord * ( 1.0 / shadowCoord.w), ubo.lightSize, lightDirection, normal, wsPos, cascadeIndex );
 		}
@@ -508,9 +504,9 @@ vec3 IBL(vec3 F0, vec3 Lr, Material material)
 	return kd * diffuseIBL + specularIBL;
 }
 
-vec3 FinalGamma(vec3 color)
+vec3 FinalGamma(vec3 colour)
 {
-	return pow(color, vec3(1.0 / GAMMA));
+	return pow(colour, vec3(1.0 / GAMMA));
 }
 
 vec3 GammaCorrectTextureRGB(vec3 texCol)

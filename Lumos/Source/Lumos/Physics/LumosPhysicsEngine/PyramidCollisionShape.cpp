@@ -37,10 +37,10 @@ namespace Lumos
 			m_LocalTransform * Maths::Vector3(1.0f, -1.0f, -1.0f),
 			m_LocalTransform * Maths::Vector3(0.0f, 1.0f, 0.0f)};
 
-		m_Normals[0] = Maths::Vector3::Cross(m_Points[0] - m_Points[3], m_Points[4] - m_Points[3]).Normalized();
-		m_Normals[1] = Maths::Vector3::Cross(m_Points[1] - m_Points[0], m_Points[4] - m_Points[0]).Normalized();
-		m_Normals[2] = Maths::Vector3::Cross(m_Points[2] - m_Points[1], m_Points[4] - m_Points[1]).Normalized();
-		m_Normals[3] = Maths::Vector3::Cross(m_Points[3] - m_Points[2], m_Points[4] - m_Points[2]).Normalized();
+		m_Normals[0] = Maths::Vector3::Cross(m_Points[0] - m_Points[3], m_Points[4] - m_Points[3]).Normalised();
+		m_Normals[1] = Maths::Vector3::Cross(m_Points[1] - m_Points[0], m_Points[4] - m_Points[0]).Normalised();
+		m_Normals[2] = Maths::Vector3::Cross(m_Points[2] - m_Points[1], m_Points[4] - m_Points[1]).Normalised();
+		m_Normals[3] = Maths::Vector3::Cross(m_Points[3] - m_Points[2], m_Points[4] - m_Points[2]).Normalised();
 		m_Normals[4] = Maths::Vector3(0.0f, -1.0f, 0.0f);
 
 		if(m_PyramidHull->GetNumVertices() == 0)
@@ -152,7 +152,7 @@ namespace Lumos
 		{
 			if(best_face)
                 refPolygon.Normal = normalMatrix * best_face->normal;
-            refPolygon.Normal.Normalize();
+            refPolygon.Normal.Normalise();
 		}
 
 		if(best_face)
@@ -169,7 +169,7 @@ namespace Lumos
 			//Add the reference face itself to the list of adjacent planes
 			Maths::Vector3 wsPointOnPlane = wsTransform * m_PyramidHull->GetVertex(m_PyramidHull->GetEdge(best_face->edge_ids[0]).vStart).pos;
 			Maths::Vector3 planeNrml = -(normalMatrix * best_face->normal);
-			planeNrml.Normalize();
+			planeNrml.Normalise();
 			float planeDist = -Maths::Vector3::Dot(planeNrml, wsPointOnPlane);
             
             refPolygon.AdjacentPlanes[refPolygon.PlaneCount++] = {planeNrml, planeDist};
@@ -187,7 +187,7 @@ namespace Lumos
 						const HullFace& adjFace = m_PyramidHull->GetFace(adjFaceIdx);
 
 						planeNrml = -(normalMatrix * adjFace.normal);
-						planeNrml.Normalize();
+						planeNrml.Normalise();
 						planeDist = -Maths::Vector3::Dot(planeNrml, wsPointOnPlane);
 
                         refPolygon.AdjacentPlanes[refPolygon.PlaneCount++] = {planeNrml, planeDist};
@@ -226,10 +226,10 @@ namespace Lumos
 		int face4[] = {3, 4, 2};
 		int face5[] = {0, 3, 2, 1};
 
-		m_PyramidHull->AddFace(Maths::Vector3::Cross((v0 - v3), v4 - v3).Normalized(), 3, face1);
-		m_PyramidHull->AddFace(Maths::Vector3::Cross(v1 - v0, v4 - v0).Normalized(), 3, face2);
-		m_PyramidHull->AddFace(Maths::Vector3::Cross(v2 - v1, v4 - v1).Normalized(), 3, face3);
-		m_PyramidHull->AddFace(Maths::Vector3::Cross(v3 - v2, v4 - v2).Normalized(), 3, face4);
+		m_PyramidHull->AddFace(Maths::Vector3::Cross((v0 - v3), v4 - v3).Normalised(), 3, face1);
+		m_PyramidHull->AddFace(Maths::Vector3::Cross(v1 - v0, v4 - v0).Normalised(), 3, face2);
+		m_PyramidHull->AddFace(Maths::Vector3::Cross(v2 - v1, v4 - v1).Normalised(), 3, face3);
+		m_PyramidHull->AddFace(Maths::Vector3::Cross(v3 - v2, v4 - v2).Normalised(), 3, face4);
 		m_PyramidHull->AddFace(Maths::Vector3(0.0f, -1.0f, 0.0f), 4, face5);
 	}
 }

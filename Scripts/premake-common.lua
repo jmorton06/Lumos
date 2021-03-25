@@ -75,27 +75,27 @@ function SetRecommendedXcodeSettings()
 		['GCC_WARN_UNDECLARED_SELECTOR'] = 'YES',
 	  	['CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF'] = 'YES',
 		['CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS'] = 'YES',
-		['CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER'] = 'YES'
+		['CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER'] = 'YES',
    }
 
    filter {"system:macosx or system:ios", "configurations:debug"}
         xcodebuildsettings
     	{
 			['ENABLE_TESTABILITY'] = 'YES',
-			['ONLY_ACTIVE_ARCH'] = 'YES'
+			--['ONLY_ACTIVE_ARCH'] = 'YES'
 		}
 	filter{"system:macosx"}
 		xcodebuildsettings 
 		{   
 			["MACOSX_DEPLOYMENT_TARGET"] = "10.15",
-			['ARCHS'] = 'x86_64',
-			['ONLY_ACTIVE_ARCH'] = 'YES',
+			--['ARCHS'] = 'x86_64',
+			--['ONLY_ACTIVE_ARCH'] = 'YES',
 		}
 
 	filter {"system:ios"}
 		xcodebuildsettings
 		{
-			['ARCHS'] = '$(ARCHS_STANDARD)',
+			--['ARCHS'] = '$(ARCHS_STANDARD)',
 			['SDKROOT'] = 'iphoneos',
 			['TARGETED_DEVICE_FAMILY'] = '1,2',
 			['SUPPORTED_PLATFORMS'] = 'iphonesimulator iphoneos',

@@ -31,7 +31,7 @@ namespace Lumos
 		class LUMOS_EXPORT ShadowRenderer : public IRenderer
 		{
 		public:
-			ShadowRenderer(TextureDepthArray* texture = nullptr, uint32_t shadowMapSize = 4096, uint32_t numMaps = 4);
+			ShadowRenderer(TextureDepthArray* texture = nullptr, uint32_t shadowMapSize = 2048, uint32_t numMaps = 4);
 			~ShadowRenderer();
 
 			ShadowRenderer(ShadowRenderer const&) = delete;
@@ -123,7 +123,6 @@ namespace Lumos
             CommandQueue m_CascadeCommandQueue[SHADOWMAP_MAX];
 
 			Lumos::Graphics::UniformBuffer* m_UniformBuffer;
-			Lumos::Graphics::CommandBuffer* m_CommandBuffer = nullptr;
 			
 			uint32_t m_Layer = 0;
             float m_CascadeSplitLambda;
@@ -134,8 +133,6 @@ namespace Lumos
             float m_ShadowFade;
             float m_CascadeTransitionFade;
             float m_InitialBias;
-            
-            std::vector<Graphics::PushConstant> m_PushConstants;
-		};
+        };
 	}
 }

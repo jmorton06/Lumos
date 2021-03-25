@@ -3,6 +3,7 @@
 #include "VKDevice.h"
 #include "VKSwapchain.h"
 #include "VKCommandPool.h"
+#include "VKCommandBuffer.h"
 #include "Core/Version.h"
 
 #include <imgui/imgui.h>
@@ -26,6 +27,12 @@ namespace Lumos
 			}
 
 			extensions.push_back("VK_KHR_surface");
+            
+#if 0
+#if defined(TRACY_ENABLE) && defined( LUMOS_PLATFORM_WINDOWS)
+            extensions.push_back("VK_EXT_calibrated_timestamps");
+#endif
+#endif
 
 #if defined(_WIN32)
 			extensions.push_back(VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
@@ -105,7 +112,7 @@ namespace Lumos
 			DestroyDebugReportCallbackEXT(m_VkInstance, m_DebugCallback, nullptr);
 			vkDestroyInstance(m_VkInstance, nullptr);
 		}
-
+		
 		void VKContext::Init()
 		{
 			LUMOS_PROFILE_FUNCTION();

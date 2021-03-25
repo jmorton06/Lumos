@@ -78,6 +78,8 @@ namespace Lumos
 
 	void DebugRenderer::SetRenderTarget(Graphics::Texture* texture, bool rebuildFramebuffer)
 	{
+        if(!s_Instance)
+            return;
 		if(s_Instance->m_LineRenderer)
 			s_Instance->m_LineRenderer->SetRenderTarget(texture, rebuildFramebuffer);
 		if(s_Instance->m_Renderer2D)
@@ -321,6 +323,16 @@ namespace Lumos
 		if(m_PointRenderer)
 			m_PointRenderer->Begin();
 	}
+
+    void DebugRenderer::ClearInternal()
+    {
+        if(m_Renderer2D)
+            m_Renderer2D->Clear();
+        if(m_PointRenderer)
+            m_PointRenderer->Clear();
+        if(m_LineRenderer)
+            m_LineRenderer->Clear();
+    }
 
 	void DebugRenderer::BeginSceneInternal(Scene* scene, Camera* overrideCamera, Maths::Transform* overrideCameraTransform)
 	{

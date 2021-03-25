@@ -410,25 +410,25 @@ namespace Lumos
             return pipelineRasterizationStateCreateInfo;
         }
 
-        inline VkPipelineColorBlendAttachmentState pipelineColorBlendAttachmentState(
+        inline VkPipelineColorBlendAttachmentState pipelineColourBlendAttachmentState(
             VkColorComponentFlags colorWriteMask,
             VkBool32 blendEnable)
         {
-            VkPipelineColorBlendAttachmentState pipelineColorBlendAttachmentState {};
-            pipelineColorBlendAttachmentState.colorWriteMask = colorWriteMask;
-            pipelineColorBlendAttachmentState.blendEnable = blendEnable;
-            return pipelineColorBlendAttachmentState;
+            VkPipelineColorBlendAttachmentState pipelineColourBlendAttachmentState {};
+            pipelineColourBlendAttachmentState.colorWriteMask = colorWriteMask;
+            pipelineColourBlendAttachmentState.blendEnable = blendEnable;
+            return pipelineColourBlendAttachmentState;
         }
 
-        inline VkPipelineColorBlendStateCreateInfo pipelineColorBlendStateCreateInfo(
+        inline VkPipelineColorBlendStateCreateInfo pipelineColourBlendStateCreateInfo(
             uint32_t attachmentCount,
             const VkPipelineColorBlendAttachmentState * pAttachments)
         {
-            VkPipelineColorBlendStateCreateInfo pipelineColorBlendStateCreateInfo {};
-            pipelineColorBlendStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
-            pipelineColorBlendStateCreateInfo.attachmentCount = attachmentCount;
-            pipelineColorBlendStateCreateInfo.pAttachments = pAttachments;
-            return pipelineColorBlendStateCreateInfo;
+            VkPipelineColorBlendStateCreateInfo pipelineColourBlendStateCreateInfo {};
+            pipelineColourBlendStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
+            pipelineColourBlendStateCreateInfo.attachmentCount = attachmentCount;
+            pipelineColourBlendStateCreateInfo.pAttachments = pAttachments;
+            return pipelineColourBlendStateCreateInfo;
         }
 
         inline VkPipelineDepthStencilStateCreateInfo pipelineDepthStencilStateCreateInfo(

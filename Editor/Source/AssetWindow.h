@@ -49,9 +49,6 @@ namespace Lumos
 			return -1;
 		}
 
-		static std::string ParseFilename(const std::string& str, const char delim, std::vector<std::string>& out);
-		static std::string ParseFiletype(const std::string& filename);
-
 		static std::vector<DirectoryInformation> GetFsContents(const std::string& path);
 		static std::vector<DirectoryInformation> ReadDirectory(const std::string& path);
 		static std::vector<DirectoryInformation> ReadDirectoryRecursive(const std::string& path);

@@ -1,7 +1,4 @@
 #pragma once
-
-
-
 #include "ShaderUniform.h"
 #include "ShaderResource.h"
 
@@ -26,6 +23,14 @@ namespace Lumos
 			COMPUTE,
 			UNKNOWN
 		};
+    
+        struct PushConstant
+        {
+            uint32_t size;
+            ShaderType shaderStage;
+            uint8_t* data;
+            uint32_t offset = 0;
+        };
 
 		struct ShaderEnumClassHash
 		{
@@ -35,6 +40,9 @@ namespace Lumos
 				return static_cast<std::size_t>(t);
 			}
 		};
+    
+        class CommandBuffer;
+        class Pipeline;
 
 		template<typename Key>
 		using HashType = typename std::conditional<std::is_enum<Key>::value, ShaderEnumClassHash, std::hash<Key>>::type;
@@ -58,6 +66,10 @@ namespace Lumos
 			virtual const std::string& GetFilePath() const = 0;
 
 			virtual void* GetHandle() const = 0;
+            
+            virtual std::vector<PushConstant>& GetPushConstants() = 0;
+            virtual PushConstant* GetPushConstant(uint32_t index) { return nullptr; }
+            virtual void BindPushConstants(Graphics::CommandBuffer* cmdBuffer, Graphics::Pipeline* pipeline) = 0;
 
 		public:
 			static Shader* CreateFromFile(const std::string& filepath);

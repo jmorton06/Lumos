@@ -45,10 +45,10 @@ namespace Lumos
 				m_LocalTransform * Maths::Vector3(1.0f, -1.0f, -1.0f),
 				m_LocalTransform * Maths::Vector3(0.0f, 1.0f, 0.0f)};
 
-			m_Normals[0] = Maths::Vector3::Cross(m_Points[0] - m_Points[3], m_Points[4] - m_Points[3]).Normalized();
-			m_Normals[1] = Maths::Vector3::Cross(m_Points[1] - m_Points[0], m_Points[4] - m_Points[0]).Normalized();
-			m_Normals[2] = Maths::Vector3::Cross(m_Points[2] - m_Points[1], m_Points[4] - m_Points[1]).Normalized();
-			m_Normals[3] = Maths::Vector3::Cross(m_Points[3] - m_Points[2], m_Points[4] - m_Points[2]).Normalized();
+			m_Normals[0] = Maths::Vector3::Cross(m_Points[0] - m_Points[3], m_Points[4] - m_Points[3]).Normalised();
+			m_Normals[1] = Maths::Vector3::Cross(m_Points[1] - m_Points[0], m_Points[4] - m_Points[0]).Normalised();
+			m_Normals[2] = Maths::Vector3::Cross(m_Points[2] - m_Points[1], m_Points[4] - m_Points[1]).Normalised();
+			m_Normals[3] = Maths::Vector3::Cross(m_Points[3] - m_Points[2], m_Points[4] - m_Points[2]).Normalised();
 			m_Normals[4] = Maths::Vector3(0.0f, -1.0f, 0.0f);
 
 			if(m_PyramidHull->GetNumVertices() == 0)
@@ -83,10 +83,10 @@ namespace Lumos
 				m_LocalTransform * Maths::Vector3(1.0f, -1.0f, -1.0f),
 				m_LocalTransform * Maths::Vector3(0.0f, 1.0f, 0.0f)};
 
-			m_Normals[0] = Maths::Vector3::Cross(m_Points[0] - m_Points[3], m_Points[4] - m_Points[3]).Normalized();
-			m_Normals[1] = Maths::Vector3::Cross(m_Points[1] - m_Points[0], m_Points[4] - m_Points[0]).Normalized();
-			m_Normals[2] = Maths::Vector3::Cross(m_Points[2] - m_Points[1], m_Points[4] - m_Points[1]).Normalized();
-			m_Normals[3] = Maths::Vector3::Cross(m_Points[3] - m_Points[2], m_Points[4] - m_Points[2]).Normalized();
+			m_Normals[0] = Maths::Vector3::Cross(m_Points[0] - m_Points[3], m_Points[4] - m_Points[3]).Normalised();
+			m_Normals[1] = Maths::Vector3::Cross(m_Points[1] - m_Points[0], m_Points[4] - m_Points[0]).Normalised();
+			m_Normals[2] = Maths::Vector3::Cross(m_Points[2] - m_Points[1], m_Points[4] - m_Points[1]).Normalised();
+			m_Normals[3] = Maths::Vector3::Cross(m_Points[3] - m_Points[2], m_Points[4] - m_Points[2]).Normalised();
 			m_Normals[4] = Maths::Vector3(0.0f, -1.0f, 0.0f);
 
 			if(m_PyramidHull->GetNumVertices() == 0)

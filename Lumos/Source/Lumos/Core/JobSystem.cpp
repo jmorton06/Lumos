@@ -142,7 +142,10 @@ namespace Lumos
 						std::stringstream ss;
 						ss << "JobSystem_" << threadID;
 						LUMOS_PROFILE_SETTHREADNAME(ss.str().c_str());
-
+                        
+#ifdef LUMOS_PLATFORM_MACOS
+                        setpriority(PRIO_PROCESS, 0, -10);
+#endif
                         while (true)
                         {
                             if (!work())
@@ -154,7 +157,7 @@ namespace Lumos
                         }
                     });
 
-        #ifdef LUMOS_PLATFORM_WINDOWS
+#ifdef LUMOS_PLATFORM_WINDOWS
                     // Do Windows-specific thread setup:
                     HANDLE handle = (HANDLE)worker.native_handle();
 
@@ -175,13 +178,11 @@ namespace Lumos
                     LUMOS_ASSERT(SUCCEEDED(hr),"");
 					
 #elif LUMOS_PLATFORM_MACOS
-					auto  mask = 1ull << threadID;
+					thread_affinity_policy_data_t policy = { (int32_t)threadID };
 					auto thread = worker.native_handle();
 					thread_policy_set(pthread_mach_thread_np(thread),
-										  THREAD_AFFINITY_POLICY, (integer_t *)&mask, 1);
-					
-					//setpriority(PRIO_PROCESS, 0, -19);
-					
+										  THREAD_AFFINITY_POLICY, reinterpret_cast<thread_policy_t>(&policy), 1);
+										
 					std::stringstream wss;
                     wss << "JobSystem_" << threadID;
                     pthread_setname_np(wss.str().c_str());
@@ -263,7 +264,7 @@ namespace Lumos
 
             void Wait(const Context& ctx)
             {
-					wakeCondition.notify_all();
+                wakeCondition.notify_all();
                 while (IsBusy(ctx)) { work(); }
             }
         }

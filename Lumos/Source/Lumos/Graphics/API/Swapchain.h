@@ -8,6 +8,7 @@ namespace Lumos
 		class Texture;
 		class Framebuffer;
 		class RenderPass;
+		class CommandBuffer;
 
 		class Swapchain
 		{
@@ -22,7 +23,8 @@ namespace Lumos
 			virtual size_t GetSwapchainBufferCount() const = 0;
 			virtual uint32_t GetFramebufferCount() const = 0;
 			virtual Framebuffer* CreateFramebuffer(RenderPass* renderPass, uint32_t id) = 0;
-            
+            virtual CommandBuffer* GetCurrentCommandBuffer() { return nullptr; }
+			
         protected:
             static Swapchain* (*CreateFunc)(uint32_t, uint32_t);
 		};

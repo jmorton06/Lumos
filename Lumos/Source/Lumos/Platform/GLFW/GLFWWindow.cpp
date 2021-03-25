@@ -43,9 +43,14 @@ namespace Lumos
 		m_Data.m_RenderAPI = static_cast<Graphics::RenderAPI>(properties.RenderAPI);
 
 		m_Init = Init(properties);
+        
+        //Setting fullscreen overrides width and heigh in Init
+        auto propCopy = properties;
+        propCopy.Width = m_Data.Width;
+        propCopy.Height = m_Data.Height;
 		
 		Graphics::GraphicsContext::SetRenderAPI(static_cast<Graphics::RenderAPI>(properties.RenderAPI));
-		Graphics::GraphicsContext::Create(properties, this);
+		Graphics::GraphicsContext::Create(propCopy, this);
 		Graphics::GraphicsContext::GetContext()->Init();
 	}
 
@@ -85,6 +90,24 @@ namespace Lumos
 		}
 
 		s_NumGLFWWindows++;
+        
+        GLFWmonitor* monitor = glfwGetPrimaryMonitor();
+        float xscale, yscale;
+        glfwGetMonitorContentScale(monitor, &xscale, &yscale);
+        m_Data.DPIScale = xscale;
+
+#ifdef LUMOS_PLATFORM_MACOS
+        if (m_Data.DPIScale > 1.0f)
+        {
+			glfwWindowHint(GLFW_SCALE_TO_MONITOR, GLFW_TRUE);
+            glfwWindowHint(GLFW_COCOA_RETINA_FRAMEBUFFER, GLFW_TRUE);
+        }
+		else
+		{
+            glfwWindowHint(GLFW_SCALE_TO_MONITOR, GLFW_FALSE);
+            glfwWindowHint(GLFW_COCOA_RETINA_FRAMEBUFFER, GLFW_FALSE);
+		}
+#endif
 
 #ifdef LUMOS_RENDER_API_OPENGL
 		if(m_Data.m_RenderAPI == Graphics::RenderAPI::OPENGL)
@@ -92,22 +115,21 @@ namespace Lumos
 			glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 			glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
 			glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-#	ifdef LUMOS_PLATFORM_MACOS
+#ifdef LUMOS_PLATFORM_MACOS
 			glfwWindowHint(GLFW_SAMPLES, 1);
 			glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 			glfwWindowHint(GLFW_TRANSPARENT_FRAMEBUFFER, GLFW_FALSE);
-			glfwWindowHint(GLFW_COCOA_RETINA_FRAMEBUFFER, GLFW_FALSE);
 			glfwWindowHint(GLFW_COCOA_GRAPHICS_SWITCHING, GL_TRUE);
 			glfwWindowHint(GLFW_STENCIL_BITS, 8); // Fixes 16 bit stencil bits in macOS.
 			glfwWindowHint(GLFW_STEREO, GLFW_FALSE);
 			glfwWindowHint(GLFW_SRGB_CAPABLE, GLFW_TRUE);
-#	endif
+#endif
 		}
 #endif
 
 		SetBorderlessWindow(properties.Borderless);
 
-		const GLFWvidmode* mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
+		const GLFWvidmode* mode = glfwGetVideoMode(monitor);
 
 		uint32_t ScreenWidth = 0;
 		uint32_t ScreenHeight = 0;
@@ -119,8 +141,8 @@ namespace Lumos
 		}
 		else
 		{
-			ScreenWidth = properties.Width;
-			ScreenHeight = properties.Height;
+            ScreenWidth = properties.Width;
+            ScreenHeight = properties.Height;
 		}
 
 		m_Data.Title = properties.Title;
@@ -135,6 +157,12 @@ namespace Lumos
 
 		m_Handle = glfwCreateWindow(ScreenWidth, ScreenHeight, properties.Title.c_str(), nullptr, nullptr);
 
+        int w, h;
+        glfwGetFramebufferSize(m_Handle, &w, &h);
+        m_Data.Width = w;
+        m_Data.Height = h;
+        
+        
 #ifdef LUMOS_RENDER_API_OPENGL
 		if(m_Data.m_RenderAPI == Graphics::RenderAPI::OPENGL)
 			glfwMakeContextCurrent(m_Handle);
@@ -143,20 +171,26 @@ namespace Lumos
 		glfwSetWindowUserPointer(m_Handle, &m_Data);
 
 #ifdef LUMOS_PLATFORM_WINDOWS
-		SetIcon("//TextuAssets/icon.png", "//TextuAssets/icon32.png");
+		SetIcon("//Textures/icon.png", "//Textures/icon32.png");
 #endif
 
-		glfwSetWindowPos(m_Handle, mode->width / 2 - ScreenWidth / 2, mode->height / 2 - ScreenHeight / 2);
+		//glfwSetWindowPos(m_Handle, mode->width / 2 - m_Data.Width / 2, mode->height / 2 - m_Data.Height / 2);
 		glfwSetInputMode(m_Handle, GLFW_STICKY_KEYS, true);
 
 		// Set GLFW callbacks
-		glfwSetWindowSizeCallback(m_Handle, [](GLFWwindow* window, int width, int height) {
+		glfwSetWindowSizeCallback(m_Handle, [](GLFWwindow* window, int width, int height)
+        {
 			WindowData& data = *static_cast<WindowData*>((glfwGetWindowUserPointer(window)));
+										  
+            int w, h;
+            glfwGetFramebufferSize(window, &w, &h);
+            
+            data.DPIScale = (float)w / (float)width;
 
-			data.Width = width;
-			data.Height = height;
+            data.Width = width * data.DPIScale;
+            data.Height = height * data.DPIScale;
 
-			WindowResizeEvent event(width, height);
+            WindowResizeEvent event( data.Width, data.Height, data.DPIScale);
 			data.EventCallback(event);
 		});
 
@@ -170,6 +204,20 @@ namespace Lumos
 		glfwSetWindowFocusCallback(m_Handle, [](GLFWwindow* window, int focused) {
 			Input::GetInput()->SetWindowFocus(focused);
 		});
+        
+        glfwSetWindowIconifyCallback(m_Handle, [](GLFWwindow* window, int32_t state ){
+            switch ( state )
+            {
+                case GL_TRUE:
+                    Input::GetInput()->SetWindowFocus(false);
+                break;
+                case GL_FALSE:
+                    Input::GetInput()->SetWindowFocus(true);
+                break;
+                default:
+                    LUMOS_LOG_INFO("Unsupported window iconify state from callback");
+            }
+        });
 
 		glfwSetKeyCallback(m_Handle, [](GLFWwindow* window, int key, int scancode, int action, int mods) {
 			WindowData& data = *static_cast<WindowData*>((glfwGetWindowUserPointer(window)));
@@ -222,7 +270,7 @@ namespace Lumos
 		glfwSetCursorPosCallback(m_Handle, [](GLFWwindow* window, double xPos, double yPos) {
 			WindowData& data = *static_cast<WindowData*>((glfwGetWindowUserPointer(window)));
 
-			MouseMovedEvent event((float)xPos, (float)yPos);
+			MouseMovedEvent event((float)xPos /* * data.DPIScale*/, (float)yPos /* * data.DPIScale*/);
 			data.EventCallback(event);
 		});
 
@@ -327,10 +375,6 @@ namespace Lumos
 			glfwSwapBuffers(m_Handle);
 		}
 #endif
-		{
-			LUMOS_PROFILE_SCOPE("GLFW PollEvents");
-			glfwPollEvents();
-		}
 	}
 
 	void GLFWWindow::SetBorderlessWindow(bool borderless)
@@ -362,7 +406,9 @@ namespace Lumos
 	void GLFWWindow::SetMousePosition(const Maths::Vector2& pos)
 	{
 		LUMOS_PROFILE_FUNCTION();
+		Input::GetInput()->StoreMousePosition(pos.x, pos.y);
 		glfwSetCursorPos(m_Handle, pos.x, pos.y);
+        glfwWaitEvents();
 	}
 
 	void GLFWWindow::MakeDefault()
@@ -395,4 +441,10 @@ namespace Lumos
 			glfwSetInputMode(m_Handle, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 		}
 	}
+
+    void GLFWWindow::ProcessInput()
+    {
+        LUMOS_PROFILE_SCOPE("GLFW PollEvents");
+        glfwPollEvents();
+    }
 }

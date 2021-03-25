@@ -54,6 +54,9 @@ namespace Lumos
 		m_EntityManager->AddDependency<Graphics::Light, Maths::Transform>();
 		m_EntityManager->AddDependency<Graphics::Sprite, Maths::Transform>();
 		m_EntityManager->AddDependency<Graphics::AnimatedSprite, Maths::Transform>();
+        
+        m_SceneGraph = CreateUniqueRef<SceneGraph>();
+        m_SceneGraph->Init(m_EntityManager->GetRegistry());
 	}
 	
 	Scene::~Scene()
@@ -76,9 +79,6 @@ namespace Lumos
 		Application::Get().GetSystem<LumosPhysicsEngine>()->SetDampingFactor(0.999f);
 		Application::Get().GetSystem<LumosPhysicsEngine>()->SetIntegrationType(IntegrationType::RUNGE_KUTTA_4);
 		Application::Get().GetSystem<LumosPhysicsEngine>()->SetBroadphase(Lumos::CreateRef<OctreeBroadphase>(5,5,Lumos::CreateRef<SortAndSweepBroadphase>()));
-		
-		m_SceneGraph = CreateUniqueRef<SceneGraph>();
-		m_SceneGraph->Init(m_EntityManager->GetRegistry());
 
 		LuaManager::Get().OnInit(this);
 	}

@@ -100,13 +100,6 @@ namespace Lumos
 						attrib.normals[3 * index.normal_index + 1],
 						attrib.normals[3 * index.normal_index + 2]));
 				}
-				else
-				{
-					vertex.Normal = (Maths::Vector3(
-						0.0f,
-						0.0f,
-						0.0f));
-				}
 
 				Maths::Vector4 colour = Maths::Vector4(0.0f);
 
@@ -128,7 +121,12 @@ namespace Lumos
 
 				vertexCount++;
 			}
-
+			
+			if(attrib.normals.empty())
+			Graphics::Mesh::GenerateNormals(vertices, vertexCount, indices, numIndices);
+			
+			Graphics::Mesh::GenerateTangents(vertices, vertexCount, indices, numIndices);
+			
 			Ref<Material> pbrMaterial = CreateRef<Material>();
 
 			PBRMataterialTextures textures;

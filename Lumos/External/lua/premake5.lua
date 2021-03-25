@@ -14,10 +14,6 @@ project 'lua'
 		defines "LUA_USE_APICHECK=1"
 	filter {}
 
-	buildoptions { "-w" }
-
-	--buildoptions { "/MT" }
-
 	files
 	{
 		lua_src .. '*.h',

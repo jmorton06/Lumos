@@ -10,15 +10,20 @@ namespace Lumos
 	{
 	public:
 		WindowResizeEvent(uint32_t width, uint32_t height)
-			: m_Width(width), m_Height(height) {}
+			: m_Width(width), m_Height(height) , m_DPIScale(1.0f) {}
+		
+		WindowResizeEvent(uint32_t width, uint32_t height, float dpiScale)
+			: m_Width(width), m_Height(height), m_DPIScale(dpiScale) {}
 
 		inline uint32_t GetWidth() const { return m_Width; }
 		inline uint32_t GetHeight() const { return m_Height; }
-
+		
+		inline float GetDPIScale() const { return m_DPIScale; }
+		
 		std::string ToString() const override
 		{
 			std::stringstream ss;
-			ss << "WindowResizeEvent: " << m_Width << ", " << m_Height;
+			ss << "WindowResizeEvent: " << m_Width << ", " << m_Height << ", " << m_DPIScale;
 			return ss.str();
 		}
 
@@ -27,6 +32,8 @@ namespace Lumos
 
 	private:
 		uint32_t m_Width, m_Height;
+		
+		float m_DPIScale;
 	};
 
 	class LUMOS_EXPORT WindowCloseEvent : public Event

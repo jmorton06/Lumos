@@ -101,10 +101,10 @@ namespace Lumos::Maths
         }
         else
         {
-            Vector3 NormalizedOffset = offset / dist;
+            Vector3 NormalisedOffset = offset / dist;
 
-            Vector3 min = center_ - radius_ * NormalizedOffset;
-            Vector3 max = sphere.center_ + sphere.radius_ * NormalizedOffset;
+            Vector3 min = center_ - radius_ * NormalisedOffset;
+            Vector3 max = sphere.center_ + sphere.radius_ * NormalisedOffset;
             center_ = (min + max) * 0.5f;
             radius_ = (max - center_).Length();
         }

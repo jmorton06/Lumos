@@ -52,7 +52,7 @@ namespace Lumos
 			&b2Vec2::Length,
 			"LengthSquared",
 			&b2Vec2::LengthSquared,
-			"Normalize",
+			"Normalise",
 			&b2Vec2::Normalize,
 			"IsValid",
 			&b2Vec2::IsValid,
@@ -260,7 +260,7 @@ namespace Lumos
 			&b2Sweep::GetTransform,
 			"Advance",
 			&b2Sweep::Advance,
-			"Normalize",
+			"Normalise",
 			&b2Sweep::Normalize
 			// constructors
 		);

@@ -28,8 +28,9 @@ jobs:
     - name: Build
       run: |
         gem install xcpretty
+        gem install xcpretty-actions-formatter
         Tools/premake5 xcode4
-        xcodebuild -project build/Sandbox.xcodeproj CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO | xcpretty
+        xcodebuild -project build/Sandbox.xcodeproj CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO -sdk macosx -arch x86_64 | xcpretty -f `xcpretty-actions-formatter`
 
   iOS:
     runs-on: macOS-latest
@@ -40,8 +41,9 @@ jobs:
     - name: Build
       run: |
         gem install xcpretty
+        gem install xcpretty-actions-formatter
         Tools/premake5 --os=ios xcode4 
-        xcodebuild -project build/Sandbox.xcodeproj CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO | xcpretty
+        xcodebuild -project build/Sandbox.xcodeproj CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO | xcpretty -f `xcpretty-actions-formatter`
         
   Windows:
     runs-on: windows-2019

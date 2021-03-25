@@ -155,14 +155,6 @@ namespace Lumos
 
             m_RenderPass = Graphics::RenderPass::Get(renderpassCI);
 
-			m_CommandBuffers.resize(Renderer::GetSwapchain()->GetSwapchainBufferCount());
-
-			for(auto& commandBuffer : m_CommandBuffers)
-			{
-				commandBuffer = Ref<Graphics::CommandBuffer>(Graphics::CommandBuffer::Create());
-				commandBuffer->Init(true);
-			}
-
 			m_DeferredCommandBuffers = Graphics::CommandBuffer::Create();
 			m_DeferredCommandBuffers->Init(true);
 
@@ -187,26 +179,28 @@ namespace Lumos
 		{
 			LUMOS_PROFILE_FUNCTION();
 
+            int commandBufferIndex = 0;
+            if(!m_RenderTexture)
+                commandBufferIndex = Renderer::GetSwapchain()->GetCurrentBufferId();
+            
+            //Renderer::GetRenderer()->ClearRenderTarget(m_RenderTexture ? m_RenderTexture : Renderer::GetSwapchain()->GetImage(commandBufferIndex), Renderer::GetSwapchain()->GetCurrentCommandBuffer());
+            
 			m_OffScreenRenderer->RenderScene();
+            
+            //if(!m_OffScreenRenderer->HadRendered())
+            //   return;
 
 			SetSystemUniforms(m_Shader.get());
-
-			int commandBufferIndex = 0;
-			if(!m_RenderTexture)
-				commandBufferIndex = Renderer::GetSwapchain()->GetCurrentBufferId();
-
+            
 			Begin(commandBufferIndex);
 			Present();
 			End();
-
-			if(!m_RenderTexture)
-				PresentToScreen();
 		}
 
 		void DeferredRenderer::PresentToScreen()
 		{
 			LUMOS_PROFILE_FUNCTION();
-			Renderer::Present((m_CommandBuffers[Renderer::GetSwapchain()->GetCurrentBufferId()].get()));
+			//Renderer::Present(Renderer::GetSwapchain()->GetCurrentCommandBuffer());
 		}
 
 		void DeferredRenderer::Begin(int commandBufferID)
@@ -215,7 +209,7 @@ namespace Lumos
 			m_CommandQueue.clear();
 
 			m_CommandBufferIndex = commandBufferID;
-			m_RenderPass->BeginRenderpass(m_CommandBuffers[m_CommandBufferIndex].get(), m_ClearColour, m_Framebuffers[m_CommandBufferIndex].get(), Graphics::INLINE, m_ScreenBufferWidth, m_ScreenBufferHeight);
+			m_RenderPass->BeginRenderpass(Renderer::GetSwapchain()->GetCurrentCommandBuffer(), m_ClearColour, m_Framebuffers[m_CommandBufferIndex].get(), Graphics::INLINE, m_ScreenBufferWidth, m_ScreenBufferHeight);
 		}
 
 		void DeferredRenderer::BeginScene(Scene* scene, Camera* overrideCamera, Maths::Transform* overrideCameraTransform)
@@ -324,7 +318,7 @@ namespace Lumos
 				Maths::Vector3 forward = Maths::Vector3::FORWARD;
 				forward = trans.GetWorldOrientation() * forward;
 
-				light.Direction = forward.Normalized();
+				light.Direction = forward.Normalised();
 
 				memcpy(m_PSSystemUniformBuffer + m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_Lights] + sizeof(Graphics::Light) * numLights, &light, sizeof(Graphics::Light));
 				numLights++;
@@ -378,10 +372,10 @@ namespace Lumos
 		void DeferredRenderer::End()
 		{
 			LUMOS_PROFILE_FUNCTION();
-			m_RenderPass->EndRenderpass(m_CommandBuffers[m_CommandBufferIndex].get());
+            m_RenderPass->EndRenderpass(Renderer::GetSwapchain()->GetCurrentCommandBuffer());
 
-			if(m_RenderTexture)
-				m_CommandBuffers[0]->Execute(true);
+			//if(m_RenderTexture)
+//				m_CommandBuffers[0]->Execute(true);
 		}
 
 		void DeferredRenderer::SetSystemUniforms(Shader* shader) const
@@ -393,7 +387,7 @@ namespace Lumos
 		void DeferredRenderer::Present()
 		{
 			LUMOS_PROFILE_FUNCTION();
-			Graphics::CommandBuffer* currentCMDBuffer = m_CommandBuffers[m_CommandBufferIndex].get();
+            Graphics::CommandBuffer* currentCMDBuffer = Renderer::GetSwapchain()->GetCurrentCommandBuffer();//m_CommandBuffers[m_CommandBufferIndex].get();
 
 			m_Pipeline->Bind(currentCMDBuffer);
 
@@ -413,15 +407,8 @@ namespace Lumos
 		void DeferredRenderer::CreateDeferredPipeline()
 		{
 			LUMOS_PROFILE_FUNCTION();
-            Graphics::BufferLayout vertexBufferLayout;
-            vertexBufferLayout.Push<Maths::Vector3>("position");
-            vertexBufferLayout.Push<Maths::Vector4>("colour");
-            vertexBufferLayout.Push<Maths::Vector2>("uv");
-            vertexBufferLayout.Push<Maths::Vector3>("normal");
-            vertexBufferLayout.Push<Maths::Vector3>("tangent");
 
 			Graphics::PipelineInfo pipelineCreateInfo{};
-            pipelineCreateInfo.vertexBufferLayout = vertexBufferLayout;
 			pipelineCreateInfo.shader = m_Shader;
             pipelineCreateInfo.renderpass = m_RenderPass;
 			pipelineCreateInfo.polygonMode = Graphics::PolygonMode::FILL;

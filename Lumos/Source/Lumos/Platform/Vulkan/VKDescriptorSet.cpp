@@ -56,16 +56,6 @@ namespace Lumos
             UpdateInternal(&imageInfos, &bufferInfos);
 		}
 
-		void VKDescriptorSet::SetPushConstants(std::vector<PushConstant>& pushConstants)
-		{
-			LUMOS_PROFILE_FUNCTION();
-			m_PushConstants.clear();
-			for (auto& pushConstant : pushConstants)
-			{
-				m_PushConstants.push_back(pushConstant);
-			}
-		}
-
 		void VKDescriptorSet::MakeDefault()
 		{
 			CreateFunc = CreateFuncVulkan;

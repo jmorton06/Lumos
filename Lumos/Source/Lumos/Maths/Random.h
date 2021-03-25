@@ -9,5 +9,5 @@ namespace Lumos::Maths
     /// Return a random number between 0-32767. Should operate similarly to MSVC rand().
      int Rand();
     /// Return a standard normal distributed number.
-     float RandStandardNormalized();
+     float RandStandardNormalised();
 }
