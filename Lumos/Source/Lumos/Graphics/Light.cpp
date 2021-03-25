@@ -63,7 +63,7 @@ namespace Lumos
 
 			if(Type != 0)
 				ImGuiHelpers::Property("Radius", Radius, 0.0f, 100.0f);
-			ImGuiHelpers::Property("Colour", Colour, true, ImGuiHelpers::PropertyFlag::ColorProperty);
+			ImGuiHelpers::Property("Colour", Colour, true, ImGuiHelpers::PropertyFlag::ColourProperty);
 			ImGuiHelpers::Property("Intensity", Intensity, 0.0f, 100.0f);
 
 			if(Type == 1)

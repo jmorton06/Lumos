@@ -20,6 +20,48 @@ namespace Lumos
 		bool IGNORE_LINES = false;
 		static ShaderType s_Type = ShaderType::UNKNOWN;
 
+        uint32_t GetStrideFromOpenGLFormat(uint32_t format)
+        {
+            switch (format)
+            {
+//                case VK_FORMAT_R8_SINT:
+//                return sizeof(int);
+//                case VK_FORMAT_R32_SFLOAT:
+//                return sizeof(float);
+//                case VK_FORMAT_R32G32_SFLOAT:
+//                return sizeof(Maths::Vector2);
+//                case VK_FORMAT_R32G32B32_SFLOAT:
+//                return sizeof(Maths::Vector3);
+//                case VK_FORMAT_R32G32B32A32_SFLOAT:
+//                return sizeof(Maths::Vector4);
+                default:
+                //LUMOS_LOG_ERROR("Unsupported Format {0}", format);
+                return 0;
+            }
+            
+            return 0;
+        }
+    
+        void PushTypeToBuffer(const spirv_cross::SPIRType type, Graphics::BufferLayout& layout)
+        {
+            switch (type.basetype)
+            {
+                case spirv_cross::SPIRType::Float:
+                switch(type.vecsize)
+                {
+                    case 1 : layout.Push<float>(""); break;
+                    case 2 : layout.Push<Maths::Vector2>(""); break;
+                    case 3 : layout.Push<Maths::Vector3>(""); break;
+                    case 4 : layout.Push<Maths::Vector4>(""); break;
+
+                }
+                case spirv_cross::SPIRType::Double:
+                break;
+                default:
+                break;
+            }
+        }
+    
 		GLShader::GLShader(const std::string& filePath, bool loadSPV)
 			: m_LoadSPV(loadSPV)
 		{
@@ -52,6 +94,9 @@ namespace Lumos
 					delete j;
 				}
 			}
+            
+            for(auto& pc : m_PushConstants)
+                delete[] pc.data;
 
 			for(auto& shader : m_UserUniformBuffers)
 			{
@@ -75,7 +120,26 @@ namespace Lumos
 
 				// The SPIR-V is now parsed, and we can perform reflection on it.
 				spirv_cross::ShaderResources resources = glsl->get_shader_resources();
-
+                
+                if(file.first == ShaderType::VERTEX)
+                {
+                    uint32_t stride = 0;
+                    for (const spirv_cross::Resource& resource : resources.stage_inputs)
+                    {
+                        const spirv_cross::SPIRType& InputType = glsl->get_type(resource.type_id);
+                        //Switch to GL layout
+                        PushTypeToBuffer(InputType, m_Layout);
+//                        GLVertexInputAttributeDescription Description = {};
+//                        Description.binding  = glsl->get_decoration(resource.id, spv::DecorationBinding);
+//                        Description.location = glsl->get_decoration(resource.id, spv::DecorationLocation);
+//                        Description.offset   = stride;
+//                        Description.format   = GetOpenGLFormat(InputType);
+//                        m_VertexInputAttributeDescriptions.push_back(Description);
+                        
+                        stride += GetStrideFromOpenGLFormat(0);//InputType.width * InputType.vecsize / 8;
+                    }
+                }
+                
 				// Get all sampled images in the shader.
 				for(auto& resource : resources.sampled_images)
 				{
@@ -124,6 +188,27 @@ namespace Lumos
 					auto set{glsl->get_decoration(sampler.id, spv::Decoration::DecorationDescriptorSet)};
 					glsl->set_decoration(sampler.id, spv::Decoration::DecorationDescriptorSet, DESCRIPTOR_TABLE_INITIAL_SPACE + 2 * set + 1);
 				}
+                
+                for (auto &u : resources.push_constant_buffers)
+                {
+                    uint32_t set = glsl->get_decoration(u.id, spv::DecorationDescriptorSet);
+                    uint32_t binding = glsl->get_decoration(u.id, spv::DecorationBinding);
+                    
+                    uint32_t binding3 = glsl->get_decoration(u.id, spv::DecorationOffset);
+
+                    auto& type = glsl->get_type(u.type_id);
+                    
+                    auto ranges = glsl->get_active_buffer_ranges(u.id);
+                    
+                    uint32_t size = 0;
+                    for(auto& range : ranges)
+                    {
+                        size += uint32_t(range.range);
+                    }
+                    
+                    m_PushConstants.push_back({size, file.first});
+                    m_PushConstants.back().data = new uint8_t[size];
+                }
 
 				spirv_cross::CompilerGLSL::Options options;
 				options.version = 410;
@@ -173,6 +258,13 @@ namespace Lumos
 			LUMOS_PROFILE_FUNCTION();
 			GLCall(glDeleteProgram(m_Handle));
 		}
+    
+        void GLShader::BindPushConstants(Graphics::CommandBuffer* cmdBuffer, Graphics::Pipeline* pipeline)
+        {
+            LUMOS_PROFILE_FUNCTION();
+            for (auto pc : m_PushConstants)
+                SetUserUniformBuffer(pc.shaderStage, pc.data, pc.size);
+        }
 
 		bool GLShader::CreateLocations()
 		{

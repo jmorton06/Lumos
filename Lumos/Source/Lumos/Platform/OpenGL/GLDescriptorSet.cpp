@@ -145,22 +145,6 @@ namespace Lumos
 					}
                 }
 			}
-			
-			{
-				LUMOS_PROFILE_SCOPE("Push Constants");
-			for (auto pc : m_PushConstants)
-					static_cast<GLShader*>(m_Shader)->SetUserUniformBuffer(pc.shaderStage, pc.data, pc.size);
-			}
-		}
-
-        void GLDescriptorSet::SetPushConstants(std::vector<PushConstant>& pushConstants)
-		{
-			LUMOS_PROFILE_FUNCTION();
-			m_PushConstants.clear();
-			for (auto& pushConstant : pushConstants)
-			{
-				m_PushConstants.push_back(pushConstant);
-			}
 		}
 
 		void GLDescriptorSet::MakeDefault()

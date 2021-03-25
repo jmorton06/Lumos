@@ -8,7 +8,7 @@ namespace Lumos::Maths
 
     void Quaternion::FromAngleAxis(float angle, const Vector3& axis)
     {
-        Vector3 normAxis = axis.Normalized();
+        Vector3 normAxis = axis.Normalised();
         angle *= M_DEGTORAD_2;
         float sinAngle = sinf(angle);
         float cosAngle = cosf(angle);
@@ -40,8 +40,8 @@ namespace Lumos::Maths
 
     void Quaternion::FromRotationTo(const Vector3& start, const Vector3& end)
     {
-        Vector3 normStart = start.Normalized();
-        Vector3 normEnd = end.Normalized();
+        Vector3 normStart = start.Normalised();
+        Vector3 normEnd = end.Normalised();
         float d = normStart.DotProduct(normEnd);
 
         if (d > -1.0f + M_EPSILON)
@@ -124,13 +124,13 @@ namespace Lumos::Maths
     bool Quaternion::FromLookRotation(const Vector3& direction, const Vector3& up)
     {
         Quaternion ret;
-        Vector3 forward = direction.Normalized();
+        Vector3 forward = direction.Normalised();
 
         Vector3 v = forward.CrossProduct(up);
         // If direction & up are parallel and crossproduct becomes zero, use FromRotationTo() fallback
         if (v.LengthSquared() >= M_EPSILON)
         {
-            v.Normalize();
+            v.Normalise();
             Vector3 up = v.CrossProduct(forward);
             Vector3 right = up.CrossProduct(forward);
             ret.FromAxes(right, up, forward);
@@ -255,8 +255,8 @@ namespace Lumos::Maths
             a = 1.f - t;
             b = t;
         }
-        // Lerp and renormalize.
-        return (*this * (a * sign) + rhs * b).Normalized();
+        // Lerp and reNormalise.
+        return (*this * (a * sign) + rhs * b).Normalised();
     #else
         // Favor accuracy for native code builds
         float cosAngle = DotProduct(rhs);
@@ -296,7 +296,7 @@ namespace Lumos::Maths
             result = (*this) + (((-rhs) - (*this)) * t);
         else
             result = (*this) + ((rhs - (*this)) * t);
-        result.Normalize();
+        result.Normalise();
         return result;
     }
 }

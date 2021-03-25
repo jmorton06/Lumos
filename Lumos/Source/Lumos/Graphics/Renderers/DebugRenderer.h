@@ -47,6 +47,12 @@ namespace Lumos
 	public:
 		static void Init(uint32_t width, uint32_t height);
 		static void Release();
+        
+        static void Clear()
+        {
+            if(s_Instance)
+                s_Instance->ClearInternal();
+        }
 		
 		static void BeginScene(Scene* scene, Camera* overrideCamera, Maths::Transform* overrideCameraTransform)
 		{
@@ -142,6 +148,7 @@ namespace Lumos
 		void Begin();
 		void BeginSceneInternal(Scene* scene, Camera* overrideCamera, Maths::Transform* overrideCameraTransform);
 		void RenderInternal();
+        void ClearInternal();
 		
 		void OnResizeInternal(uint32_t width, uint32_t height);
 

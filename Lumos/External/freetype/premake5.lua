@@ -1,8 +1,8 @@
 project "freetype"
 	kind "StaticLib"
 	language "C"
-    staticruntime "on"
-    systemversion "latest"
+    	staticruntime "on"
+    	systemversion "latest"
 	warnings "off"
 
 	
@@ -53,6 +53,11 @@ project "freetype"
        "src/type42/type42.c",
        "src/winfonts/winfnt.c"
    }
+
+buildoptions
+{
+	"-w"
+}
 
    defines {
        "FT2_BUILD_LIBRARY",

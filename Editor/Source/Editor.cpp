@@ -17,6 +17,7 @@
 #include <Lumos/Core/OS/OS.h>
 #include <Lumos/Core/Version.h>
 #include <Lumos/Core/Engine.h>
+#include <Lumos/Audio/AudioManager.h>
 #include <Lumos/Scene/Scene.h>
 #include <Lumos/Scene/SceneManager.h>
 #include <Lumos/Scene/Entity.h>
@@ -169,11 +170,11 @@ namespace Lumos
         
 		m_SelectedEntity = entt::null;
 		m_PreviewTexture = nullptr;
-		
-		ImGuizmo::SetGizmoSizeClipSpace(0.25f);
-	}
+        
+        ImGuizmo::SetGizmoSizeClipSpace(0.25f);
+    }
     
-	bool IsTextFile(const std::string& filePath)
+	bool Editor::IsTextFile(const std::string& filePath)
 	{
 		LUMOS_PROFILE_FUNCTION();
 		std::string extension = StringUtilities::GetFilePathExtension(filePath);
@@ -185,7 +186,7 @@ namespace Lumos
 		return false;
 	}
     
-	bool IsAudioFile(const std::string& filePath)
+	bool Editor::IsAudioFile(const std::string& filePath)
 	{
 		LUMOS_PROFILE_FUNCTION();
 		std::string extension = StringUtilities::GetFilePathExtension(filePath);
@@ -196,7 +197,7 @@ namespace Lumos
 		return false;
 	}
     
-    bool IsSceneFile(const std::string& filePath)
+    bool Editor::IsSceneFile(const std::string& filePath)
     {
 		LUMOS_PROFILE_FUNCTION();
         std::string extension = StringUtilities::GetFilePathExtension(filePath);
@@ -207,7 +208,7 @@ namespace Lumos
         return false;
     }
     
-	bool IsModelFile(const std::string& filePath)
+	bool Editor::IsModelFile(const std::string& filePath)
 	{
 		LUMOS_PROFILE_FUNCTION();
 		std::string extension = StringUtilities::GetFilePathExtension(filePath);
@@ -218,7 +219,7 @@ namespace Lumos
 		return false;
 	}
 	
-	bool IsTextureFile(const std::string& filePath)
+	bool Editor::IsTextureFile(const std::string& filePath)
 	{
 		LUMOS_PROFILE_FUNCTION();
 		std::string extension = StringUtilities::GetFilePathExtension(filePath);
@@ -554,6 +555,7 @@ namespace Lumos
                 {
                     Application::Get().GetSystem<LumosPhysicsEngine>()->SetPaused(selected);
                     Application::Get().GetSystem<B2PhysicsEngine>()->SetPaused(selected);
+					Application::Get().GetSystem<AudioManager>()->SetPaused(selected);
                     Application::Get().SetEditorState(selected ? EditorState::Preview : EditorState::Play);
                     
                     m_SelectedEntity = entt::null;
@@ -603,9 +605,7 @@ namespace Lumos
 				if(selected)
 					ImGui::PopStyleColor();
 			}
-            
-			ImGui::SameLine(ImGui::GetWindowContentRegionMax().x - 240.0f);
-			
+            			
 			static Engine::Stats stats = {};
 			static float timer = 1.1f;
 			timer += Engine::GetTimeStep().GetSeconds();
@@ -616,6 +616,10 @@ namespace Lumos
 				stats = Engine::Get().Statistics();
 			}
 			
+            auto size = ImGui::CalcTextSize("%.2f ms (%.i FPS)");
+            float sizeOfGfxAPIDropDown = ImGui::GetFontSize() * 8;
+            ImGui::SameLine(ImGui::GetWindowContentRegionMax().x - size.x - ImGui::GetStyle().ItemSpacing.x * 2.0f - sizeOfGfxAPIDropDown);
+
 			ImGui::Text("%.2f ms (%.i FPS)", stats.FrameTime, stats.FramesPerSecond);
 			
 			ImGui::SameLine();
@@ -868,7 +872,7 @@ namespace Lumos
 		{
             ImGui::DockBuilderRemoveNode(DockspaceID); // Clear out existing layout
             ImGui::DockBuilderAddNode(DockspaceID); // Add empty node
-            ImGui::DockBuilderSetNodeSize(DockspaceID, ImGui::GetIO().DisplaySize);
+            ImGui::DockBuilderSetNodeSize(DockspaceID, ImGui::GetIO().DisplaySize * ImGui::GetIO().DisplayFramebufferScale);
             
             ImGuiID dock_main_id = DockspaceID;
             ImGuiID DockBottom = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Down, 0.3f, nullptr, &dock_main_id);
@@ -1534,18 +1538,22 @@ namespace Lumos
 			ImGuiHelpers::Image(m_PreviewTexture.get(), {200, 200});
 		ImGui::End();
 	}
+
+    void Editor::OnDebugDraw()
+    {
+        Application::OnDebugDraw();
+        DebugDraw();
+        
+        if(Application::Get().GetEditorState() == EditorState::Preview && m_ShowGrid && !m_EditorCamera->IsOrthographic())
+            Draw3DGrid();
+    }
     
 	void Editor::OnRender()
 	{
 		LUMOS_PROFILE_FUNCTION();
 		//DrawPreview();
-        
-        DebugDraw();
-        
+
         Application::OnRender();
-        
-		if(Application::Get().GetEditorState() == EditorState::Preview && m_ShowGrid && !m_EditorCamera->IsOrthographic())
-			Draw3DGrid();
 	}
     
 	void Editor::DrawPreview()
@@ -1589,10 +1597,12 @@ namespace Lumos
 		}
 		else if(IsAudioFile(filePath))
 		{
-			//AssetsManager::Sounds()->LoadAsset(StringUtilities::GetFileName(filePath), filePath);
+            std::string physicalPath;
+            Lumos::VFS::Get()->ResolvePhysicalPath(filePath, physicalPath);
+			auto sound = Sound::Create(physicalPath, StringUtilities::GetFilePathExtension(filePath));
             
 			auto soundNode = Ref<SoundNode>(SoundNode::Create());
-			//soundNode->SetSound(AssetsManager::Sounds()->Get(StringUtilities::GetFileName(filePath)).get());
+			soundNode->SetSound(sound);
 			soundNode->SetVolume(1.0f);
 			soundNode->SetPosition(Maths::Vector3(0.1f, 10.0f, 10.0f));
 			soundNode->SetLooping(true);

@@ -186,7 +186,7 @@ namespace Lumos::Graphics
 			const ofbx::Vec3* vertices = geom->getVertices();
 			const ofbx::Vec3* normals = geom->getNormals();
 			const ofbx::Vec3* tangents = geom->getTangents();
-			const ofbx::Vec4* colors = geom->getColors();
+			const ofbx::Vec4* colours = geom->getColors();
 			const ofbx::Vec2* uvs = geom->getUVs();
 			Graphics::Vertex* tempvertices = new Graphics::Vertex[vertex_count];
 			uint32_t* indicesArray = new uint32_t[numIndices];
@@ -216,8 +216,8 @@ namespace Lumos::Graphics
 					vertex.Normal = Maths::Vector3(float(normals[i].x), float(normals[i].y), float(normals[i].z));
 				if(uvs)
 					vertex.TexCoords = Maths::Vector2(float(uvs[i].x), 1.0f - float(uvs[i].y));
-				if(colors)
-					vertex.Colours = Maths::Vector4(float(colors[i].x), float(colors[i].y), float(colors[i].z), float(colors[i].w));
+				if(colours)
+					vertex.Colours = Maths::Vector4(float(colours[i].x), float(colours[i].y), float(colours[i].z), float(colours[i].w));
 				if(tangents)
 					vertex.Tangent = Maths::Vector3(float(tangents[i].x), float(tangents[i].y), float(tangents[i].z));
 				

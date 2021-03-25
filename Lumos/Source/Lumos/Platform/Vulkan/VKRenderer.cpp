@@ -22,25 +22,27 @@ namespace Lumos
 
 		VKRenderer::~VKRenderer()
 		{
-			for(int i = 0; i < NUM_SEMAPHORES; i++)
-			{
-				vkDestroySemaphore(VKDevice::Get().GetDevice(), m_ImageAvailableSemaphore[i], nullptr);
-
-			}
 		}
 
 		void VKRenderer::PresentInternal(CommandBuffer* cmdBuffer)
 		{
 			LUMOS_PROFILE_FUNCTION();
-#if defined(LUMOS_PROFILE) && defined(TRACY_ENABLE)
-            TracyVkCollect(VKDevice::Get().GetTracyContext(), static_cast<VKCommandBuffer*>(cmdBuffer)->GetCommandBuffer());
-#endif
-			static_cast<VKCommandBuffer*>(cmdBuffer)->ExecuteInternal(VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-				m_ImageAvailableSemaphore[m_CurrentSemaphoreIndex],
-				m_ImageAvailableSemaphore[m_CurrentSemaphoreIndex + 1],
-				true);
-			m_CurrentSemaphoreIndex++;
 		}
+    
+        void VKRenderer::ClearRenderTarget(Graphics::Texture* texture, Graphics::CommandBuffer* cmdBuffer)
+        {
+            VkImageSubresourceRange subresourceRange = {}; //TODO: Get from texture
+            subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+            subresourceRange.baseMipLevel = 0;
+            subresourceRange.layerCount = 1;
+            subresourceRange.levelCount = 1;
+            
+            //TODO: Pass clear Value
+            //TODO: Handle Depth/Stencil
+            
+            VkClearColorValue clearColourValue = VkClearColorValue({{0.0f, 0.0f, 0.0f, 0.0f}});
+            vkCmdClearColorImage(((VKCommandBuffer*)cmdBuffer)->GetCommandBuffer(), static_cast<VKTexture2D*>(texture)->GetImage(), VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, &clearColourValue, 1, &subresourceRange);
+        }
 
 		void VKRenderer::ClearSwapchainImage() const
 		{
@@ -57,18 +59,12 @@ namespace Lumos
 				subresourceRange.layerCount = 1;
 				subresourceRange.levelCount = 1;
 
-				VkClearColorValue clearColorValue = VkClearColorValue({{0.0f, 0.0f, 0.0f, 0.0f}});
+				VkClearColorValue clearColourValue = VkClearColorValue({{0.0f, 0.0f, 0.0f, 0.0f}});
 
-				vkCmdClearColorImage(cmd, static_cast<VKTexture2D*>(m_Swapchain->GetImage(i))->GetImage(), VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, &clearColorValue, 1, &subresourceRange);
+				vkCmdClearColorImage(cmd, static_cast<VKTexture2D*>(m_Swapchain->GetImage(i))->GetImage(), VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, &clearColourValue, 1, &subresourceRange);
 
 				VKTools::EndSingleTimeCommands(cmd);
 			}
-		}
-
-		void VKRenderer::PresentInternal()
-		{
-			LUMOS_PROFILE_FUNCTION();
-            VKContext::Get()->GetSwapchain()->Present(m_ImageAvailableSemaphore[m_CurrentSemaphoreIndex]);
 		}
 
 		void VKRenderer::OnResize(uint32_t width, uint32_t height)
@@ -79,21 +75,21 @@ namespace Lumos
 
 			m_Width = width;
 			m_Height = height;
+            
+            LUMOS_LOG_INFO("{0},{1}", width, height);
+			
+			VkSurfaceCapabilitiesKHR capabilities;
+			vkGetPhysicalDeviceSurfaceCapabilitiesKHR(VKDevice::Get().GetGPU(), VKContext::Get()->GetSwapchain()->GetSurface(), &capabilities);
+			
+			m_Width = std::max(capabilities.minImageExtent.width, std::min(capabilities.maxImageExtent.width, m_Width));
+			m_Height = std::max(capabilities.minImageExtent.height, std::min(capabilities.maxImageExtent.height, m_Height));
+			
 			
 			VKContext::Get()->OnResize(m_Width, m_Height);
         }
 
 		void VKRenderer::CreateSemaphores()
 		{
-			LUMOS_PROFILE_FUNCTION();
-			VkSemaphoreCreateInfo semaphoreInfo = {};
-			semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-			semaphoreInfo.pNext = nullptr;
-
-			for(int i = 0; i < NUM_SEMAPHORES; i++)
-			{
-				VK_CHECK_RESULT(vkCreateSemaphore(VKDevice::Get().GetDevice(), &semaphoreInfo, nullptr, &m_ImageAvailableSemaphore[i]));
-			}
 		}
     
         Swapchain* VKRenderer::GetSwapchainInternal() const
@@ -104,23 +100,43 @@ namespace Lumos
 		void VKRenderer::Begin()
 		{
 			LUMOS_PROFILE_FUNCTION();
-			m_CurrentSemaphoreIndex = 0;
-            auto m_Swapchain = VKContext::Get()->GetSwapchain();
-			auto result = m_Swapchain->AcquireNextImage(m_ImageAvailableSemaphore[m_CurrentSemaphoreIndex]);
-			if(result == VK_ERROR_OUT_OF_DATE_KHR)
-			{
-				OnResize(m_Width, m_Height);
-				return;
-			}
-			else if(result == VK_SUBOPTIMAL_KHR)
-			{
-				LUMOS_LOG_WARN("[VULKAN] Swapchain Image - SubOptimal!");
-			}
-			else if(result != VK_SUCCESS)
-			{
-				LUMOS_LOG_CRITICAL("[VULKAN] Failed to acquire swap chain image!");
-			}
+            AcquireNextImage();
+
+			GetSwapchainInternal()->GetCurrentCommandBuffer()->BeginRecording();
 		}
+    
+        void VKRenderer::AcquireNextImage()
+        {
+            m_Context = VKContext::Get();
+            auto swapchain = m_Context->GetSwapchain();
+
+            auto result = swapchain->AcquireNextImage(nullptr);
+            if(result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR)
+            {
+               LUMOS_LOG_INFO("Acquire Image result : {0}", result == VK_ERROR_OUT_OF_DATE_KHR ? "Out of Date" : "SubOptimal");
+                
+                if(result == VK_ERROR_OUT_OF_DATE_KHR)
+                    OnResize(m_Width, m_Height);
+                return;
+            }
+            else if(result != VK_SUCCESS)
+            {
+                LUMOS_LOG_CRITICAL("[VULKAN] Failed to acquire swap chain image!");
+            }
+        }
+    
+        void VKRenderer::PresentInternal()
+        {
+            LUMOS_PROFILE_FUNCTION();
+            GetSwapchainInternal()->GetCurrentCommandBuffer()->EndRecording();
+                        
+//            static_cast<VKCommandBuffer*>(GetSwapchainInternal()->GetCurrentCommandBuffer())->ExecuteInternal(VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+//                static_cast<VKSwapchain*>(m_Context->GetSwapchain().get())->GetImageAcquiredSemaphore(),
+//                nullptr,
+//                true);
+                    
+            VKContext::Get()->GetSwapchain()->Present(nullptr);
+        }
 
 		const std::string& VKRenderer::GetTitleInternal() const
 		{
@@ -142,12 +158,6 @@ namespace Lumos
                         numDynamicDescriptorSets++;
 
                     m_DescriptorSetPool[numDesciptorSets] = vkDesSet->GetDescriptorSet();
-
-                    uint32_t index = 0;
-                    for(auto& pc : vkDesSet->GetPushConstants())
-                    {
-                        vkCmdPushConstants(static_cast<Graphics::VKCommandBuffer*>(cmdBuffer)->GetCommandBuffer(), static_cast<Graphics::VKPipeline*>(pipeline)->GetPipelineLayout(), VKTools::ShaderTypeToVK(pc.shaderStage), index, pc.size, pc.data);
-                    }
 
                     numDesciptorSets++;
                 }

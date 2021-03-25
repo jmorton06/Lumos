@@ -3,6 +3,8 @@
 #include "VKDevice.h"
 #include "VKTools.h"
 #include "VKDescriptorSet.h"
+#include "VKPipeline.h"
+#include "VKCommandBuffer.h"
 
 #include "Core/OS/FileSystem.h"
 #include "Core/VFS.h"
@@ -23,7 +25,80 @@ namespace Lumos
 	namespace Graphics
 	{
 		static ShaderType type = ShaderType::UNKNOWN;
-
+		
+		VkFormat GetVulkanFormat(const spirv_cross::SPIRType type)
+        {
+			VkFormat uint_types[] =
+            {
+                VK_FORMAT_R32_UINT, VK_FORMAT_R32G32_UINT, VK_FORMAT_R32G32B32_UINT, VK_FORMAT_R32G32B32A32_UINT
+            };
+            
+            VkFormat int_types[] =
+            {
+                VK_FORMAT_R32_SINT, VK_FORMAT_R32G32_SINT, VK_FORMAT_R32G32B32_SINT, VK_FORMAT_R32G32B32A32_SINT
+            };
+			
+            VkFormat float_types[] =
+            {
+                VK_FORMAT_R32_SFLOAT, VK_FORMAT_R32G32_SFLOAT, VK_FORMAT_R32G32B32_SFLOAT, VK_FORMAT_R32G32B32A32_SFLOAT
+            };
+			
+            VkFormat double_types[] =
+            {
+                VK_FORMAT_R64_SFLOAT,
+                VK_FORMAT_R64G64_SFLOAT,
+                VK_FORMAT_R64G64B64_SFLOAT,
+                VK_FORMAT_R64G64B64A64_SFLOAT,
+            };
+            switch (type.basetype)
+            {
+                case spirv_cross::SPIRType::UInt:
+                return uint_types[type.vecsize - 1];
+				case spirv_cross::SPIRType::Int:
+				return int_types[type.vecsize - 1];
+                case spirv_cross::SPIRType::Float:
+				return float_types[type.vecsize - 1];
+                case spirv_cross::SPIRType::Double:
+				return double_types[type.vecsize - 1];
+                default:
+				LUMOS_LOG_ERROR("Cannot find VK_Format : {0}", type.basetype); return VK_FORMAT_R32G32B32A32_SFLOAT;
+            }
+        }
+		
+        uint32_t GetStrideFromVulkanFormat(VkFormat format)
+        {
+            switch (format)
+            {
+                case VK_FORMAT_R8_SINT:
+				return sizeof(int);
+                case VK_FORMAT_R32_SFLOAT:
+				return sizeof(float);
+                case VK_FORMAT_R32G32_SFLOAT:
+				return sizeof(Maths::Vector2);
+                case VK_FORMAT_R32G32B32_SFLOAT:
+				return sizeof(Maths::Vector3);
+                case VK_FORMAT_R32G32B32A32_SFLOAT:
+				return sizeof(Maths::Vector4);
+                case VK_FORMAT_R32G32_SINT:
+                return sizeof(Maths::IntVector2);
+                case VK_FORMAT_R32G32B32_SINT:
+                return sizeof(Maths::IntVector3);
+                case VK_FORMAT_R32G32B32A32_SINT:
+                return sizeof(Maths::IntVector4);
+                case VK_FORMAT_R32G32_UINT:
+                return sizeof(Maths::IntVector2);
+                case VK_FORMAT_R32G32B32_UINT:
+                return sizeof(Maths::IntVector3);
+                case VK_FORMAT_R32G32B32A32_UINT:
+                return sizeof(Maths::IntVector4); //Need uintvec?
+                default:
+				LUMOS_LOG_ERROR("Unsupported Format {0}", format);
+				return 0;
+            }
+            
+            return 0;
+        }
+		
 		VKShader::VKShader(const std::string& filePath)
 			: m_StageCount(0)
 		{
@@ -40,10 +115,14 @@ namespace Lumos
 			Unload();
 			delete[] m_ShaderStages;
 			m_ShaderStages = VK_NULL_HANDLE;
+            
+            for(auto& pc : m_PushConstants)
+                delete[] pc.data;
 		}
 
 		bool VKShader::Init()
 		{
+            LUMOS_PROFILE_FUNCTION();
 			uint32_t currentShaderStage = 0;
 			m_StageCount = 0;
 
@@ -80,6 +159,25 @@ namespace Lumos
                 // The SPIR-V is now parsed, and we can perform reflection on it.
                 spirv_cross::ShaderResources resources = comp.get_shader_resources();
                 
+				if(file.first == ShaderType::VERTEX)
+                {
+                    m_VertexInputStride = 0;
+					
+                    for (const spirv_cross::Resource& resource : resources.stage_inputs)
+                    {
+                        const spirv_cross::SPIRType& InputType = comp.get_type(resource.type_id);
+						
+                        VkVertexInputAttributeDescription Description = {};
+                        Description.binding  = comp.get_decoration(resource.id, spv::DecorationBinding);
+                        Description.location = comp.get_decoration(resource.id, spv::DecorationLocation);
+                        Description.offset   = m_VertexInputStride;
+                        Description.format   = GetVulkanFormat(InputType);
+                        m_VertexInputAttributeDescriptions.push_back(Description);
+						
+                        m_VertexInputStride += GetStrideFromVulkanFormat(Description.format);//InputType.width * InputType.vecsize / 8;
+                    }
+                }
+				
                 for (auto &u : resources.uniform_buffers)
                 {
                     uint32_t set = comp.get_decoration(u.id, spv::DecorationDescriptorSet);
@@ -112,6 +210,7 @@ namespace Lumos
                     SHADER_LOG(LUMOS_LOG_INFO("Found Push Constant {0} at set = {1}, binding = {2}", u.name.c_str(), set, binding, type.array.size() ? uint32_t(type.array[0]) : 1));
                     
                     m_PushConstants.push_back({size, file.first});
+                    m_PushConstants.back().data = new uint8_t[size];
                 }
                 
                 for (auto &u : resources.sampled_images)
@@ -143,11 +242,22 @@ namespace Lumos
 
 		void VKShader::Unload() const
 		{
+            LUMOS_PROFILE_FUNCTION();
 			for(uint32_t i = 0; i < m_StageCount; i++)
 			{
 				vkDestroyShaderModule(VKDevice::Get().GetDevice(), m_ShaderStages[i].module, nullptr);
 			}
 		}
+    
+        void VKShader::BindPushConstants(Graphics::CommandBuffer* cmdBuffer, Graphics::Pipeline* pipeline)
+        {
+            LUMOS_PROFILE_FUNCTION();
+            uint32_t index = 0;
+            for(auto& pc : m_PushConstants)
+            {
+                vkCmdPushConstants(static_cast<Graphics::VKCommandBuffer*>(cmdBuffer)->GetCommandBuffer(), static_cast<Graphics::VKPipeline*>(pipeline)->GetPipelineLayout(), VKTools::ShaderTypeToVK(pc.shaderStage), index, pc.size, pc.data);
+            }
+        }
 
 		VkPipelineShaderStageCreateInfo* VKShader::GetShaderStages() const
 		{

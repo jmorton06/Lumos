@@ -1,21 +1,21 @@
 #version 450
 #extension GL_ARB_separate_shader_objects : enable
 #extension GL_ARB_shading_language_420pack : enable
-layout (location = 0) out vec4 color;
+layout (location = 0) out vec4 colour;
 
 layout (location = 0) in DATA
 {
 	vec3 position;
 	vec2 uv;
 	float tid;
-	vec4 color;
+	vec4 colour;
 } fs_in;
 
 layout(set = 1, binding = 0) uniform sampler2D textures[16];
 
 void main()
 {
-	vec4 texColor = fs_in.color;
+	vec4 texColor = fs_in.colour;
     if (fs_in.tid > 0.0)
     {
         
@@ -56,5 +56,5 @@ void main()
     }
     }
                                     
-	color = texColor;
+	colour = texColor;
 }

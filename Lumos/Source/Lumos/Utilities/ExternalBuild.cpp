@@ -3,16 +3,19 @@
 #pragma warning(push, 0)
 #ifdef LUMOS_RENDER_API_OPENGL
 #define IMGUI_IMPL_OPENGL_LOADER_GLAD
-#include <imgui/examples/imgui_impl_opengl3.cpp>
+#include <imgui/backends/imgui_impl_opengl3.cpp>
 #endif
 
 #ifdef LUMOS_RENDER_API_VULKAN
-#include <imgui/examples/imgui_impl_vulkan.cpp>
+#include <imgui/backends/imgui_impl_vulkan.cpp>
 #endif
 
 #include <imgui/misc/freetype/imgui_freetype.cpp>
 
 #include <stb/stb_vorbis.c>
+
+#define STB_RECT_PACK_IMPLEMENTATION
+#include <stb/stb_rect_pack.h>
 
 #define STB_PERLIN_IMPLEMENTATION
 #include <stb/stb_perlin.h>

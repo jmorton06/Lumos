@@ -9,6 +9,7 @@
 #include "Graphics/API/Swapchain.h"
 #include "Graphics/API/RenderPass.h"
 #include "Graphics/API/Pipeline.h"
+#include "Graphics/API/GraphicsContext.h"
 #include "Graphics/GBuffer.h"
 #include "Graphics/Mesh.h"
 #include "Graphics/MeshFactory.h"
@@ -57,23 +58,23 @@ namespace Lumos
             
 			SetSystemUniforms(m_Shader.get());
             
-            m_Pipeline->Bind(m_CommandBuffers[m_CurrentBufferID].get());
+            m_Pipeline->Bind(Renderer::GetSwapchain()->GetCurrentCommandBuffer());
             
             m_CurrentDescriptorSets[0] = m_Pipeline->GetDescriptorSet();
             
-			m_Quad->GetVertexBuffer()->Bind(m_CommandBuffers[m_CurrentBufferID].get(), m_Pipeline.get());
-			m_Quad->GetIndexBuffer()->Bind(m_CommandBuffers[m_CurrentBufferID].get());
+			m_Quad->GetVertexBuffer()->Bind(Renderer::GetSwapchain()->GetCurrentCommandBuffer(), m_Pipeline.get());
+			m_Quad->GetIndexBuffer()->Bind(Renderer::GetSwapchain()->GetCurrentCommandBuffer());
             
-			Renderer::BindDescriptorSets(m_Pipeline.get(), m_CommandBuffers[m_CurrentBufferID].get(), 0, m_CurrentDescriptorSets);
-			Renderer::DrawIndexed(m_CommandBuffers[m_CurrentBufferID].get(), DrawType::TRIANGLE, m_Quad->GetIndexBuffer()->GetCount());
+			Renderer::BindDescriptorSets(m_Pipeline.get(), Renderer::GetSwapchain()->GetCurrentCommandBuffer(), 0, m_CurrentDescriptorSets);
+			Renderer::DrawIndexed(Renderer::GetSwapchain()->GetCurrentCommandBuffer(), DrawType::TRIANGLE, m_Quad->GetIndexBuffer()->GetCount());
             
 			m_Quad->GetVertexBuffer()->Unbind();
 			m_Quad->GetIndexBuffer()->Unbind();
             
 			End();
             
-			if(!m_RenderTexture)
-				Renderer::Present((m_CommandBuffers[Renderer::GetSwapchain()->GetCurrentBufferId()].get()));
+			//if(!m_RenderTexture)
+				//Renderer::Present((m_CommandBuffers[Renderer::GetSwapchain()->GetCurrentBufferId()].get()));
 		}
         
 		enum VSSystemUniformIndices : int32_t
@@ -96,14 +97,6 @@ namespace Lumos
 			m_PSSystemUniformBufferSize = sizeof(UniformBufferObjectFrag);
 			m_PSSystemUniformBuffer = new uint8_t[m_PSSystemUniformBufferSize];
 			memset(m_PSSystemUniformBuffer, 0, m_PSSystemUniformBufferSize);
-            
-			m_CommandBuffers.resize(Renderer::GetSwapchain()->GetSwapchainBufferCount());
-            
-			for(auto& commandBuffer : m_CommandBuffers)
-			{
-				commandBuffer = Ref<Graphics::CommandBuffer>(Graphics::CommandBuffer::Create());
-				commandBuffer->Init(true);
-			}
             
 			AttachmentInfo textureTypes[2] =
             {
@@ -128,7 +121,7 @@ namespace Lumos
 		void GridRenderer::Begin()
 		{
 			LUMOS_PROFILE_FUNCTION();
-			m_RenderPass->BeginRenderpass(m_CommandBuffers[m_CurrentBufferID].get(), Maths::Vector4(0.0f), m_Framebuffers[m_CurrentBufferID].get(), Graphics::INLINE, m_ScreenBufferWidth, m_ScreenBufferHeight);
+			m_RenderPass->BeginRenderpass(Renderer::GetSwapchain()->GetCurrentCommandBuffer(), Maths::Vector4(0.0f), m_Framebuffers[m_CurrentBufferID].get(), Graphics::INLINE, m_ScreenBufferWidth, m_ScreenBufferHeight);
 		}
         
 		void GridRenderer::BeginScene(Scene* scene, Camera* overrideCamera, Maths::Transform* overrideCameraTransform)
@@ -170,10 +163,10 @@ namespace Lumos
 		void GridRenderer::End()
 		{
 			LUMOS_PROFILE_FUNCTION();
-			m_RenderPass->EndRenderpass(m_CommandBuffers[m_CurrentBufferID].get());
+			m_RenderPass->EndRenderpass(Renderer::GetSwapchain()->GetCurrentCommandBuffer());
             
-			if(m_RenderTexture)
-				m_CommandBuffers[m_CurrentBufferID]->Execute(true);
+			//if(m_RenderTexture)
+				//m_CommandBuffers[m_CurrentBufferID]->Execute(true);
 		}
         
 		void GridRenderer::SetSystemUniforms(Shader* shader) const
@@ -212,18 +205,10 @@ namespace Lumos
 		void GridRenderer::CreateGraphicsPipeline()
 		{
 			LUMOS_PROFILE_FUNCTION();
-                        
-            Graphics::BufferLayout vertexBufferLayout;
-            vertexBufferLayout.Push<Maths::Vector3>("position");
-            vertexBufferLayout.Push<Maths::Vector4>("colour");
-            vertexBufferLayout.Push<Maths::Vector2>("uv");
-            vertexBufferLayout.Push<Maths::Vector3>("normal");
-            vertexBufferLayout.Push<Maths::Vector3>("tangent");
-
+            
 			Graphics::PipelineInfo pipelineCreateInfo;
 			pipelineCreateInfo.shader = m_Shader;
 			pipelineCreateInfo.renderpass = m_RenderPass;
-            pipelineCreateInfo.vertexBufferLayout = vertexBufferLayout;
 			pipelineCreateInfo.polygonMode = Graphics::PolygonMode::FILL;
 			pipelineCreateInfo.cullMode = Graphics::CullMode::NONE;
 			pipelineCreateInfo.transparencyEnabled = true;

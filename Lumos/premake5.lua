@@ -78,7 +78,13 @@ project "Lumos"
 		"LUMOS_ROOT_DIR="  .. root_dir,
 		"IMGUI_USER_CONFIG=\"Source/Lumos/ImGui/ImConfig.h\"",
 		"SPDLOG_COMPILED_LIB"
-	}
+}
+
+filter 'files:Source/Lumos/Utilities/ExternalBuild.cpp'
+buildoptions
+{
+	"-w"
+}
 
 	filter 'architecture:x86_64'
 		defines { "LUMOS_SSE" ,"USE_VMA_ALLOCATOR"}
@@ -106,7 +112,8 @@ project "Lumos"
 			"_SILENCE_CXX17_ITERATOR_BASE_CLASS_DEPRECATION_WARNING",
 			"LUMOS_IMGUI",
 			"LUMOS_OPENAL",
-			"LUMOS_VOLK"
+			"LUMOS_VOLK",
+			"LUMOS_USE_GLFW_WINDOWS"
 		}
 
 		files

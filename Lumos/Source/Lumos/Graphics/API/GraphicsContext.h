@@ -15,6 +15,8 @@ namespace Lumos
 			METAL, //Unsupported
 			NONE, //Unsupported
 		};
+		
+		class CommandBuffer;
 
 		class LUMOS_EXPORT GraphicsContext
 		{

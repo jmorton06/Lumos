@@ -2,7 +2,7 @@
 #include "GLIMGUIRenderer.h"
 #include <imgui/imgui.h>
 #define IMGUI_IMPL_OPENGL_LOADER_GLAD
-#include <imgui/examples/imgui_impl_opengl3.h>
+#include <imgui/backends/imgui_impl_opengl3.h>
 
 #include "GLDebug.h"
 
@@ -15,10 +15,6 @@ namespace Lumos
 	        m_ClearScreen = clearScreen;
 	        ImGui_ImplOpenGL3_Init("#version 410");
             ImGui_ImplOpenGL3_NewFrame();
-            
-#ifdef LUMOS_PLATFORM_MACOS
-            //ImGui::GetIO().DisplayFramebufferScale = {2.0f,2.0f};
-#endif
         }
 
         GLIMGUIRenderer::~GLIMGUIRenderer()

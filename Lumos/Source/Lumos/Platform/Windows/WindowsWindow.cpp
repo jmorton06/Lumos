@@ -326,10 +326,15 @@ namespace Lumos
 
 	void WindowsWindow::OnUpdate()
 	{
+		::SwapBuffers(hDc);
+	}
+	
+	void WindowsWindow::ProcessInput() 
+	{
 		MSG message;
-
+		
 		ZeroMemory(&message, sizeof(MSG));
-
+		
 		while(PeekMessage(&message, NULL, NULL, NULL, PM_REMOVE) > 0)
 		{
 			if(message.message == WM_QUIT)
@@ -342,8 +347,6 @@ namespace Lumos
 			TranslateMessage(&message);
 			DispatchMessage(&message);
 		}
-
-		::SwapBuffers(hDc);
 	}
 
 	void WindowsWindow::SetWindowTitle(const std::string& title)

@@ -33,7 +33,6 @@ namespace Lumos
 		{
             Ref<RenderPass> renderpass;
 			Ref<Shader> shader;
-            BufferLayout vertexBufferLayout;
             
 			CullMode cullMode = CullMode::BACK;
 			PolygonMode polygonMode = PolygonMode::FILL;

@@ -332,8 +332,8 @@ namespace Lumos::Maths
             }
         }
 
-        /// Normalize to unit length.
-        void Normalize()
+        /// Normalise to unit length.
+        void Normalise()
         {
             float lenSquared = LengthSquared();
             if (!Lumos::Maths::Equals(lenSquared, 1.0f) && lenSquared > 0.0f)
@@ -361,13 +361,13 @@ namespace Lumos::Maths
         }
 
         /// Project direction vector onto axis.
-        float ProjectOntoAxis(const Vector3& axis) const { return DotProduct(axis.Normalized()); }
+        float ProjectOntoAxis(const Vector3& axis) const { return DotProduct(axis.Normalised()); }
 
         /// Project position vector onto plane with given origin and normal.
         Vector3 ProjectOntoPlane(const Vector3& origin, const Vector3& normal) const
         {
             const Vector3 delta = *this - origin;
-            return *this - normal.Normalized() * delta.ProjectOntoAxis(normal);
+            return *this - normal.Normalised() * delta.ProjectOntoAxis(normal);
         }
 
         /// Project position vector onto line segment.
@@ -390,7 +390,7 @@ namespace Lumos::Maths
         float DistanceToPlane(const Vector3& origin, const Vector3& normal) const { return (*this - origin).ProjectOntoAxis(normal); }
 
         /// Make vector orthogonal to the axis.
-        Vector3 Orthogonalize(const Vector3& axis) const { return axis.CrossProduct(*this).CrossProduct(axis).Normalized(); }
+        Vector3 Orthogonalize(const Vector3& axis) const { return axis.CrossProduct(*this).CrossProduct(axis).Normalised(); }
 
         /// Calculate cross product.
         Vector3 CrossProduct(const Vector3& rhs) const
@@ -424,8 +424,8 @@ namespace Lumos::Maths
         bool IsInf() const { return Lumos::Maths::IsInf(x) || Lumos::Maths::IsInf(y) || Lumos::Maths::IsInf(z); }
 
 
-        /// Return normalized to unit length.
-        Vector3 Normalized() const
+        /// Return Normalised to unit length.
+        Vector3 Normalised() const
         {
             const float lenSquared = LengthSquared();
             if (!Lumos::Maths::Equals(lenSquared, 1.0f) && lenSquared > 0.0f)
@@ -437,8 +437,8 @@ namespace Lumos::Maths
                 return *this;
         }
 
-        /// Return normalized to unit length or zero if length is too small.
-        Vector3 NormalizedOrDefault(const Vector3& defaultValue = Vector3::ZERO, float eps = M_LARGE_EPSILON) const
+        /// Return Normalised to unit length or zero if length is too small.
+        Vector3 NormalisedOrDefault(const Vector3& defaultValue = Vector3::ZERO, float eps = M_LARGE_EPSILON) const
         {
             const float lenSquared = LengthSquared();
             if (lenSquared < eps * eps)
@@ -446,8 +446,8 @@ namespace Lumos::Maths
             return *this / sqrtf(lenSquared);
         }
 
-        /// Return normalized vector with length in given range.
-        Vector3 ReNormalized(float minLength, float maxLength, const Vector3& defaultValue = Vector3::ZERO, float eps = M_LARGE_EPSILON) const
+        /// Return Normalised vector with length in given range.
+        Vector3 ReNormalised(float minLength, float maxLength, const Vector3& defaultValue = Vector3::ZERO, float eps = M_LARGE_EPSILON) const
         {
             const float lenSquared = LengthSquared();
             if (lenSquared < eps * eps)

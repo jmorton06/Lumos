@@ -16,7 +16,7 @@ namespace Lumos::Maths
         /// Construct a degenerate ray with zero origin and direction.
         Ray() noexcept = default;
 
-        /// Construct from origin and direction. The direction will be normalized.
+        /// Construct from origin and direction. The direction will be Normalised.
         Ray(const Vector3& origin, const Vector3& direction) noexcept
         {
             Define(origin, direction);
@@ -34,11 +34,11 @@ namespace Lumos::Maths
         /// Check for inequality with another ray.
         bool operator !=(const Ray& rhs) const { return origin_ != rhs.origin_ || direction_ != rhs.direction_; }
 
-        /// Define from origin and direction. The direction will be normalized.
+        /// Define from origin and direction. The direction will be Normalised.
         void Define(const Vector3& origin, const Vector3& direction)
         {
             origin_ = origin;
-            direction_ = direction.Normalized();
+            direction_ = direction.Normalised();
         }
 
         /// Project a point on the ray.
@@ -79,7 +79,7 @@ namespace Lumos::Maths
         /// Return whether ray is inside indexed geometry.
         bool InsideGeometry(const void* vertexData, unsigned vertexSize, const void* indexData, unsigned indexSize, unsigned indexStart,
             unsigned indexCount) const;
-        /// Return transformed by a 3x4 matrix. This may result in a non-normalized direction.
+        /// Return transformed by a 3x4 matrix. This may result in a non-Normalised direction.
         Ray Transformed(const Matrix3x4& transform) const;
 
         /// Ray origin.

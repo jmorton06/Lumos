@@ -93,8 +93,8 @@ namespace Lumos
             "w", &Maths::Quaternion::w,
             "EulerAngles", &Maths::Quaternion::EulerAngles,
             "Conjugate", &Maths::Quaternion::Conjugate,
-            "Normalize", &Maths::Quaternion::Normalize,
-            "Normal", &Maths::Quaternion::Normalized,
+            "Normalise", &Maths::Quaternion::Normalise,
+            "Normal", &Maths::Quaternion::Normalised,
             sol::meta_function::addition, sol::overload(
                 static_cast<Maths::Quaternion(Maths::Quaternion::*)(const Maths::Quaternion&) const>(&Maths::Quaternion::operator+)
             ),

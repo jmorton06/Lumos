@@ -45,16 +45,6 @@ namespace Lumos
 			void CreateFramebuffers();
 			void UpdateScreenDescriptorSet();
 
-			int GetCommandBufferCount() const
-			{
-				return static_cast<int>(m_CommandBuffers.size());
-			}
-
-			CommandBuffer* GetCommandBuffer(int id) const
-			{
-				return m_CommandBuffers[id].get();
-			}
-
 			void SetRenderTarget(Texture* texture, bool rebuildFramebuffer) override;
 
 			void OnImGui() override;

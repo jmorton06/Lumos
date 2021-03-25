@@ -18,7 +18,11 @@ out gl_PerVertex
     vec4 gl_Position;
 };
 
-layout (location = 0) in vec3 position;
+layout(location = 0) in vec3 inPosition;
+layout(location = 1) in vec4 inColor;
+layout(location = 2) in vec2 inTexCoord;
+layout(location = 3) in vec3 inNormal;
+layout(location = 4) in vec3 inTangent;
 
 void main()
 {
@@ -38,5 +42,5 @@ void main()
             proj = ubo.projView[3];
             break;
     }
-    gl_Position = vec4(position, 1.0) * pushConsts.transform * proj; 
+    gl_Position = vec4(inPosition, 1.0) * pushConsts.transform * proj; 
 }

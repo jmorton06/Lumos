@@ -60,6 +60,7 @@ namespace Lumos
 		virtual void SetVSync(bool set) = 0;
 		virtual void SetWindowTitle(const std::string& title) = 0;
 		virtual void OnUpdate() = 0;
+        virtual void ProcessInput() {};
 		virtual void SetBorderlessWindow(bool borderless) = 0;
 		virtual void* GetHandle()
 		{
@@ -75,6 +76,7 @@ namespace Lumos
 		virtual std::string GetTitle() const = 0;
 		virtual uint32_t GetWidth() const = 0;
 		virtual uint32_t GetHeight() const = 0;
+        virtual float GetDPIScale() const { return 1.0f; }
 
 	protected:
 		static Window* (*CreateFunc)(const WindowProperties&);

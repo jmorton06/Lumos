@@ -21,7 +21,7 @@ void SceneModelViewer::OnInit()
 	auto audioSystem = Application::Get().GetSystem<AudioManager>();
 
     auto environment = m_EntityManager->Create("Environment");
-    environment.AddComponent<Graphics::Environment>("//TextuAssets/cubemap/Arches_E_PineTree", 11, 3072, 4096,1.0f/32.0f, ".tga");
+    environment.AddComponent<Graphics::Environment>("//Textures/cubemap/Arches_E_PineTree", 11, 3072, 4096,1.0f/32.0f, ".tga");
     
     auto lightEntity = m_EntityManager->Create("Light");
     lightEntity.AddComponent<Maths::Transform>(Matrix4::Translation(Maths::Vector3(26.0f, 22.0f, 48.5f)) * Maths::Quaternion::LookAt(Maths::Vector3(26.0f, 22.0f, 48.5f), Maths::Vector3::ZERO).RotationMatrix4());

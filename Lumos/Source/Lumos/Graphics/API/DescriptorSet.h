@@ -83,21 +83,6 @@ namespace Lumos
 			ShaderType shaderType;
 		};
 
-		enum class PushConstantDataType
-		{
-			UINT,
-			FLOAT,
-			VEC4
-		};
-
-		struct PushConstant
-		{
-			uint32_t size;
-			ShaderType shaderStage;
-            uint8_t* data;
-            uint32_t offset = 0;
-        };
-
 		struct ImageInfo
 		{
 			Texture** textures;
@@ -118,7 +103,6 @@ namespace Lumos
 			virtual void Update(std::vector<ImageInfo>& imageInfos, std::vector<BufferInfo>& bufferInfos) = 0;
 			virtual void Update(std::vector<ImageInfo>& imageInfos) = 0;
 			virtual void Update(std::vector<BufferInfo>& bufferInfos) = 0;
-			virtual void SetPushConstants(std::vector<PushConstant>& pushConstants) = 0;
 			virtual void SetDynamicOffset(uint32_t offset) = 0;
 			virtual uint32_t GetDynamicOffset() const = 0;
 

@@ -30,7 +30,7 @@ namespace Lumos::Maths
 
 		Plane(const Vector3& normal, float distance) noexcept
 		{
-			normal_ = normal.Normalized();
+			normal_ = normal.Normalised();
 			absNormal_ = normal_.Abs();
 			d_ = distance;
 		}
@@ -56,7 +56,7 @@ namespace Lumos::Maths
         /// Define from a normal vector and a point on the plane.
         void Define(const Vector3& normal, const Vector3& point)
         {
-            normal_ = normal.Normalized();
+            normal_ = normal.Normalised();
             absNormal_ = normal_.Abs();
             d_ = -normal_.DotProduct(point);
         }
@@ -82,7 +82,7 @@ namespace Lumos::Maths
         /// Return signed distance to a point.
         float Distance(const Vector3& point) const { return normal_.DotProduct(point) + d_; }
 
-        /// Reflect a normalized direction vector.
+        /// Reflect a Normalised direction vector.
         Vector3 Reflect(const Vector3& direction) const { return direction - (2.0f * normal_.DotProduct(direction) * normal_); }
 
         bool PointInPlane(const Vector3 &position) const

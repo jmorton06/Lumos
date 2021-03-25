@@ -72,7 +72,7 @@ namespace Lumos
                 m_DescriptorLayouts.push_back(layout);
             }
             
-            const auto& pushConsts = m_Shader.As<VKShader>()->GetPushConstant();
+            const auto& pushConsts = m_Shader.As<VKShader>()->GetPushConstants();
             std::vector<VkPushConstantRange> pushConstantRanges;
             
             for(auto& pushConst : pushConsts)
@@ -130,19 +130,9 @@ namespace Lumos
             // Vertex layout
             m_VertexBindingDescription.binding = 0;
             m_VertexBindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
-            m_VertexBindingDescription.stride = pipelineCreateInfo.vertexBufferLayout.GetStride();
-            
-            auto& vertexLayout = pipelineCreateInfo.vertexBufferLayout.GetLayout();
-            int count = 0;
-            for(auto& layout : vertexLayout)
-            {
-                VkVertexInputAttributeDescription vInputAttribDescription;
-                vInputAttribDescription.location = count++;
-                vInputAttribDescription.binding = 0;
-                vInputAttribDescription.format = VKTools::FormatToVK(layout.format);
-                vInputAttribDescription.offset = layout.offset;
-                vertexInputDescription.push_back(vInputAttribDescription);
-            }
+            m_VertexBindingDescription.stride = m_Shader.As<VKShader>()->GetVertexInputStride();
+			
+            const std::vector<VkVertexInputAttributeDescription>& vertexInputAttributeDescription = m_Shader.As<VKShader>()->GetVertexInputAttributeDescription();
             
 			VkPipelineVertexInputStateCreateInfo vi{};
 			memset(&vi, 0, sizeof(vi));
@@ -150,8 +140,8 @@ namespace Lumos
 			vi.pNext = NULL;
 			vi.vertexBindingDescriptionCount = 1;
 			vi.pVertexBindingDescriptions = &m_VertexBindingDescription;
-			vi.vertexAttributeDescriptionCount = uint32_t(vertexInputDescription.size());
-			vi.pVertexAttributeDescriptions = vertexInputDescription.data();
+			vi.vertexAttributeDescriptionCount = uint32_t(vertexInputAttributeDescription.size());
+			vi.pVertexAttributeDescriptions = vertexInputAttributeDescription.data();
 
 			VkPipelineInputAssemblyStateCreateInfo inputAssemblyCI{};
 			inputAssemblyCI.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;

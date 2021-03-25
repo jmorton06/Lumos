@@ -231,7 +231,7 @@ namespace Lumos
 
 				// Update orientation
 				obj->m_Orientation = obj->m_Orientation + ((obj->m_AngularVelocity * s_UpdateTimestep * 0.5f) * obj->m_Orientation);
-				obj->m_Orientation.Normalize();
+				obj->m_Orientation.Normalise();
 
 				// Update angular velocity
 				obj->m_AngularVelocity += obj->m_InvInertia * obj->m_Torque * s_UpdateTimestep;
@@ -261,7 +261,7 @@ namespace Lumos
 
 				// Update orientation
 				obj->m_Orientation = obj->m_Orientation + ((obj->m_AngularVelocity * s_UpdateTimestep * 0.5f) * obj->m_Orientation);
-				obj->m_Orientation.Normalize();
+				obj->m_Orientation.Normalise();
 
 				break;
 			}
@@ -286,7 +286,7 @@ namespace Lumos
 
 				// Update orientation
 				obj->m_Orientation = obj->m_Orientation + ((obj->m_AngularVelocity * s_UpdateTimestep * 0.5f) * obj->m_Orientation);
-				obj->m_Orientation.Normalize();
+				obj->m_Orientation.Normalise();
 
 				break;
 			}
@@ -310,7 +310,7 @@ namespace Lumos
 
 				// Update orientation
 				obj->m_Orientation = obj->m_Orientation + ((obj->m_AngularVelocity * s_UpdateTimestep * 0.5f) * obj->m_Orientation);
-				obj->m_Orientation.Normalize();
+				obj->m_Orientation.Normalise();
 
 				break;
 			}

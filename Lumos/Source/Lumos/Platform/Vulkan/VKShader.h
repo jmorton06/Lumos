@@ -37,10 +37,17 @@ namespace Lumos
 				return m_FilePath;
 			};
             
-            const std::vector<DescriptorLayoutInfo>& GetDescriptorLayout() const { return m_DescriptorLayoutInfo; }
-            const std::vector<PushConstant>& GetPushConstant() const { return m_PushConstants; }
+            PushConstant* GetPushConstant(uint32_t index) override
+            {
+                LUMOS_ASSERT(index < m_PushConstants.size(), "Push constants out of bounds");
+                return &m_PushConstants[index];
+            }
 
-			static void PreProcess(const std::string& source, std::map<ShaderType, std::string>* sources);
+            std::vector<PushConstant>& GetPushConstants() override { return m_PushConstants; }
+            const std::vector<DescriptorLayoutInfo>& GetDescriptorLayout() const { return m_DescriptorLayoutInfo; }
+            void BindPushConstants(Graphics::CommandBuffer* cmdBuffer, Graphics::Pipeline* pipeline) override;
+		
+            static void PreProcess(const std::string& source, std::map<ShaderType, std::string>* sources);
 			static void ReadShaderFile(std::vector<std::string> lines, std::map<ShaderType, std::string>* shaders);
 
 			static void MakeDefault();
@@ -49,7 +56,10 @@ namespace Lumos
 			{
 				return nullptr;
 			}
-
+			
+			const std::vector<VkVertexInputAttributeDescription>& GetVertexInputAttributeDescription() const { return m_VertexInputAttributeDescriptions; }
+            const uint32_t GetVertexInputStride() const { return m_VertexInputStride; }
+            
 		protected:
 			static Shader* CreateFuncVulkan(const std::string&);
 
@@ -60,7 +70,11 @@ namespace Lumos
 			std::string m_FilePath;
 			std::string m_Source;
 			std::vector<ShaderType> m_ShaderTypes;
+			
+			std::vector<VkVertexInputAttributeDescription> m_VertexInputAttributeDescriptions;
+            uint32_t m_VertexInputStride = 0;
             
+			VkPipelineLayout m_PipelineLayout;
             std::vector<PushConstant> m_PushConstants;
             std::vector<Graphics::DescriptorLayoutInfo> m_DescriptorLayoutInfo;
 		};

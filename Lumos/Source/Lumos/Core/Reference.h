@@ -14,7 +14,7 @@ namespace Lumos
 
 		inline bool IsReferenced() const
 		{
-			return m_RefcountInit.get() < 1;
+			return m_RefcountInit.Get() < 1;
 		}
 		bool InitRef();
 

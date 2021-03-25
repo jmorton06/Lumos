@@ -153,7 +153,7 @@ namespace Lumos::Graphics
             properties.workflow = PBR_WORKFLOW_METALLIC_ROUGHNESS;
             
 			// metallic-roughness workflow:
-			auto baseColorFactor = mat.values.find("baseColorFactor");
+			auto baseColourFactor = mat.values.find("baseColorFactor");
 			auto roughnessFactor = mat.values.find("roughnessFactor");
 			auto metallicFactor = mat.values.find("metallicFactor");
 
@@ -167,9 +167,9 @@ namespace Lumos::Graphics
 				properties.metallicColour = Maths::Vector4(static_cast<float>(metallicFactor->second.Factor()));
 			}
 
-			if(baseColorFactor != mat.values.end())
+			if(baseColourFactor != mat.values.end())
 			{
-				properties.albedoColour = Maths::Vector4((float)baseColorFactor->second.ColorFactor()[0], (float)baseColorFactor->second.ColorFactor()[1], (float)baseColorFactor->second.ColorFactor()[2], 1.0f);
+				properties.albedoColour = Maths::Vector4((float)baseColourFactor->second.ColorFactor()[0], (float)baseColourFactor->second.ColorFactor()[1], (float)baseColourFactor->second.ColorFactor()[2], 1.0f);
 			}
 
 			// Extensions

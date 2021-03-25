@@ -10,6 +10,7 @@ namespace Lumos::Graphics
 {
 	RenderGraph::RenderGraph(uint32_t width, uint32_t height)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		SetScreenBufferSize(width, height);
 		
 		m_GBuffer = new GBuffer(width, height);
@@ -29,6 +30,7 @@ namespace Lumos::Graphics
 	
 	void RenderGraph::OnResize(uint32_t width, uint32_t height)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		SetScreenBufferSize(width, height);
 		m_GBuffer->UpdateTextureSize(width, height);
 	}
@@ -43,6 +45,7 @@ namespace Lumos::Graphics
 
     void RenderGraph::BeginScene(Scene* scene)
     {
+		LUMOS_PROFILE_FUNCTION();
 		DebugRenderer::Reset();
 		
         for(auto renderer: m_Renderers)
@@ -55,6 +58,7 @@ namespace Lumos::Graphics
 
     void RenderGraph::SetRenderTarget(Graphics::Texture* texture, bool onlyIfTargetsScreen, bool rebuildFramebuffer)
     {
+		LUMOS_PROFILE_FUNCTION();
         for(auto renderer: m_Renderers)
         {
             if(!onlyIfTargetsScreen || renderer->GetScreenRenderer())
@@ -66,13 +70,11 @@ namespace Lumos::Graphics
 
     void RenderGraph::OnRender()
     {
+		LUMOS_PROFILE_FUNCTION();
         for(auto renderer : m_Renderers)
         {
             renderer->RenderScene();
         }
-		
-		DebugRenderer::Render();
-
     }
 
     void RenderGraph::OnUpdate(const TimeStep& timeStep, Scene* scene)
@@ -81,6 +83,7 @@ namespace Lumos::Graphics
 
     bool RenderGraph::OnwindowResizeEvent(WindowResizeEvent& e)
     {
+		LUMOS_PROFILE_FUNCTION();
         for(auto renderer : m_Renderers)
         {
             renderer->OnResize(e.GetWidth(), e.GetHeight());
@@ -93,12 +96,14 @@ namespace Lumos::Graphics
 
     void RenderGraph::OnEvent(Event& e)
     {
+		LUMOS_PROFILE_FUNCTION();
         EventDispatcher dispatcher(e);
         dispatcher.Dispatch<WindowResizeEvent>(BIND_EVENT_FN(RenderGraph::OnwindowResizeEvent));
     }
 
     void RenderGraph::OnImGui()
     {
+		LUMOS_PROFILE_FUNCTION();
         for(auto renderer : m_Renderers)
         {
             renderer->OnImGui();
@@ -131,6 +136,7 @@ namespace Lumos::Graphics
 
     void RenderGraph::SortRenderers()
     {
+		LUMOS_PROFILE_FUNCTION();
 		std::sort(m_Renderers.begin(), m_Renderers.end(), [](Graphics::IRenderer* a, Graphics::IRenderer* b) { return a->GetRenderPriority() > b->GetRenderPriority(); });
     }
 }
