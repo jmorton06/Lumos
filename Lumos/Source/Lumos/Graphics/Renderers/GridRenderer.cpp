@@ -164,9 +164,6 @@ namespace Lumos
 		{
 			LUMOS_PROFILE_FUNCTION();
 			m_RenderPass->EndRenderpass(Renderer::GetSwapchain()->GetCurrentCommandBuffer());
-            
-			//if(m_RenderTexture)
-				//m_CommandBuffers[m_CurrentBufferID]->Execute(true);
 		}
         
 		void GridRenderer::SetSystemUniforms(Shader* shader) const

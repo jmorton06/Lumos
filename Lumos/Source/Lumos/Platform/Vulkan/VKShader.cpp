@@ -26,45 +26,323 @@ namespace Lumos
 	{
 		static ShaderType type = ShaderType::UNKNOWN;
 		
-		VkFormat GetVulkanFormat(const spirv_cross::SPIRType type)
-        {
-			VkFormat uint_types[] =
-            {
-                VK_FORMAT_R32_UINT, VK_FORMAT_R32G32_UINT, VK_FORMAT_R32G32B32_UINT, VK_FORMAT_R32G32B32A32_UINT
-            };
-            
-            VkFormat int_types[] =
-            {
-                VK_FORMAT_R32_SINT, VK_FORMAT_R32G32_SINT, VK_FORMAT_R32G32B32_SINT, VK_FORMAT_R32G32B32A32_SINT
-            };
-			
-            VkFormat float_types[] =
-            {
-                VK_FORMAT_R32_SFLOAT, VK_FORMAT_R32G32_SFLOAT, VK_FORMAT_R32G32B32_SFLOAT, VK_FORMAT_R32G32B32A32_SFLOAT
-            };
-			
-            VkFormat double_types[] =
-            {
-                VK_FORMAT_R64_SFLOAT,
-                VK_FORMAT_R64G64_SFLOAT,
-                VK_FORMAT_R64G64B64_SFLOAT,
-                VK_FORMAT_R64G64B64A64_SFLOAT,
-            };
-            switch (type.basetype)
-            {
-                case spirv_cross::SPIRType::UInt:
-                return uint_types[type.vecsize - 1];
-				case spirv_cross::SPIRType::Int:
-				return int_types[type.vecsize - 1];
-                case spirv_cross::SPIRType::Float:
-				return float_types[type.vecsize - 1];
-                case spirv_cross::SPIRType::Double:
-				return double_types[type.vecsize - 1];
-                default:
-				LUMOS_LOG_ERROR("Cannot find VK_Format : {0}", type.basetype); return VK_FORMAT_R32G32B32A32_SFLOAT;
-            }
-        }
-		
+		VkFormat GetVulkanFormat(const spirv_cross::SPIRType& type)
+       {
+           using namespace spirv_cross;
+           if (type.basetype == SPIRType::Struct || type.basetype == SPIRType::Sampler)
+           {
+               LUMOS_LOG_WARN("Tried to convert a structure or SPIR sampler into a VkFormat enum value!");
+               return VK_FORMAT_UNDEFINED;
+           }
+           else if (type.basetype == SPIRType::Image || type.basetype == SPIRType::SampledImage)
+           {
+               switch (type.image.format)
+               {
+               case spv::ImageFormatR8:
+                   return VK_FORMAT_R8_UNORM;
+               case spv::ImageFormatR8Snorm:
+                   return VK_FORMAT_R8_SNORM;
+               case spv::ImageFormatR8ui:
+                   return VK_FORMAT_R8_UINT;
+               case spv::ImageFormatR8i:
+                   return VK_FORMAT_R8_SINT;
+               case spv::ImageFormatRg8:
+                   return VK_FORMAT_R8G8_UNORM;
+               case spv::ImageFormatRg8Snorm:
+                   return VK_FORMAT_R8G8_SNORM;
+               case spv::ImageFormatRg8ui:
+                   return VK_FORMAT_R8G8_UINT;
+               case spv::ImageFormatRg8i:
+                   return VK_FORMAT_R8G8_SINT;
+               case spv::ImageFormatRgba8i:
+                   return VK_FORMAT_R8G8B8A8_SINT;
+               case spv::ImageFormatRgba8ui:
+                   return VK_FORMAT_R8G8B8A8_UINT;
+               case spv::ImageFormatRgba8:
+                   return VK_FORMAT_R8G8B8A8_UNORM;
+               case spv::ImageFormatRgba8Snorm:
+                   return VK_FORMAT_R8G8B8A8_SNORM;
+               case spv::ImageFormatR32i:
+                   return VK_FORMAT_R32_SINT;
+               case spv::ImageFormatR32ui:
+                   return VK_FORMAT_R32_UINT;
+               case spv::ImageFormatRg32i:
+                   return VK_FORMAT_R32G32_SINT;
+               case spv::ImageFormatRg32ui:
+                   return VK_FORMAT_R32G32_UINT;
+               case spv::ImageFormatRgba32f:
+                   return VK_FORMAT_R32G32B32A32_SFLOAT;
+               case spv::ImageFormatRgba16f:
+                   return VK_FORMAT_R16G16B16A16_SFLOAT;
+               case spv::ImageFormatR32f:
+                   return VK_FORMAT_R32_SFLOAT;
+               case spv::ImageFormatRg32f:
+                   return VK_FORMAT_R32G32_SFLOAT;
+               case spv::ImageFormatR16f:
+                   return VK_FORMAT_R16_SFLOAT;
+               case spv::ImageFormatRgba32i:
+                   return VK_FORMAT_R32G32B32A32_SINT;
+               case spv::ImageFormatRgba32ui:
+                   return VK_FORMAT_R32G32B32A32_UINT;
+               default:
+                   LUMOS_LOG_WARN("Failed to convert an image format to a VkFormat enum.");
+                   return VK_FORMAT_UNDEFINED;
+               }
+           }
+           else if (type.vecsize == 1)
+           {
+               if (type.width == 8)
+               {
+                   switch (type.basetype)
+                   {
+                   case SPIRType::Int:
+                       return VK_FORMAT_R8_SINT;
+                   case SPIRType::UInt:
+                       return VK_FORMAT_R8_UINT;
+                   default:
+                       return VK_FORMAT_UNDEFINED;
+                   }
+               }
+               else if (type.width == 16)
+               {
+                   switch (type.basetype)
+                   {
+                   case SPIRType::Int:
+                       return VK_FORMAT_R16_SINT;
+                   case SPIRType::UInt:
+                       return VK_FORMAT_R16_UINT;
+                   case SPIRType::Float:
+                       return VK_FORMAT_R16_SFLOAT;
+                   default:
+                       return VK_FORMAT_UNDEFINED;
+                   }
+               }
+               else if (type.width == 32)
+               {
+                   switch (type.basetype)
+                   {
+                   case SPIRType::Int:
+                       return VK_FORMAT_R32_SINT;
+                   case SPIRType::UInt:
+                       return VK_FORMAT_R32_UINT;
+                   case SPIRType::Float:
+                       return VK_FORMAT_R32_SFLOAT;
+                   default:
+                       return VK_FORMAT_UNDEFINED;
+                   }
+               }
+               else if (type.width == 64)
+               {
+                   switch (type.basetype)
+                   {
+                       case SPIRType::Int64:
+                           return VK_FORMAT_R64_SINT;
+                       case SPIRType::UInt64:
+                           return VK_FORMAT_R64_UINT;
+                       case SPIRType::Double:
+                           return VK_FORMAT_R64_SFLOAT;
+                       default:
+                           return VK_FORMAT_UNDEFINED;
+                   }
+               }
+               else
+               {
+                   LUMOS_LOG_WARN("Invalid type width for conversion of SPIR-Type to VkFormat enum value!");
+                   return VK_FORMAT_UNDEFINED;
+               }
+           }
+           else if (type.vecsize == 2)
+   {
+               if (type.width == 8)
+               {
+                   switch (type.basetype)
+                   {
+                   case SPIRType::Int:
+                       return VK_FORMAT_R8G8_SINT;
+                   case SPIRType::UInt:
+                       return VK_FORMAT_R8G8_UINT;
+                   default:
+                       return VK_FORMAT_UNDEFINED;
+                   }
+               }
+               else if (type.width == 16)
+               {
+                   switch (type.basetype)
+                   {
+                   case SPIRType::Int:
+                       return VK_FORMAT_R16G16_SINT;
+                   case SPIRType::UInt:
+                       return VK_FORMAT_R16G16_UINT;
+                   case SPIRType::Float:
+                       return VK_FORMAT_R16G16_SFLOAT;
+                   default:
+                       return VK_FORMAT_UNDEFINED;
+                   }
+               }
+               else if (type.width == 32)
+               {
+                   switch (type.basetype)
+                   {
+                   case SPIRType::Int:
+                       return VK_FORMAT_R32G32_SINT;
+                   case SPIRType::UInt:
+                       return VK_FORMAT_R32G32_UINT;
+                   case SPIRType::Float:
+                       return VK_FORMAT_R32G32_SFLOAT;
+                   default:
+                       return VK_FORMAT_UNDEFINED;
+                   }
+               }
+               else if (type.width == 64)
+               {
+                   switch (type.basetype)
+                   {
+                       case SPIRType::Int64:
+                           return VK_FORMAT_R64G64_SINT;
+                       case SPIRType::UInt64:
+                           return VK_FORMAT_R64G64_UINT;
+                       case SPIRType::Double:
+                           return VK_FORMAT_R64G64_SFLOAT;
+                       default:
+                           return VK_FORMAT_UNDEFINED;
+                   }
+               }
+               else
+               {
+                   LUMOS_LOG_WARN("Invalid type width for conversion of SPIR-Type to VkFormat enum value!");
+                   return VK_FORMAT_UNDEFINED;
+               }
+           }
+           else if (type.vecsize == 3)
+   {
+               if (type.width == 8)
+               {
+                   switch (type.basetype)
+                   {
+                   case SPIRType::Int:
+                       return VK_FORMAT_R8G8B8_SINT;
+                   case SPIRType::UInt:
+                       return VK_FORMAT_R8G8B8_UINT;
+                   default:
+                       return VK_FORMAT_UNDEFINED;
+                   }
+               }
+               else if (type.width == 16)
+               {
+                   switch (type.basetype)
+                   {
+                   case SPIRType::Int:
+                       return VK_FORMAT_R16G16B16_SINT;
+                   case SPIRType::UInt:
+                       return VK_FORMAT_R16G16B16_UINT;
+                   case SPIRType::Float:
+                       return VK_FORMAT_R16G16B16_SFLOAT;
+                   default:
+                       return VK_FORMAT_UNDEFINED;
+                   }
+               }
+               else if (type.width == 32)
+               {
+                   switch (type.basetype)
+                   {
+                   case SPIRType::Int:
+                       return VK_FORMAT_R32G32B32_SINT;
+                   case SPIRType::UInt:
+                       return VK_FORMAT_R32G32B32_UINT;
+                   case SPIRType::Float:
+                       return VK_FORMAT_R32G32B32_SFLOAT;
+                   default:
+                       return VK_FORMAT_UNDEFINED;
+                   }
+               }
+               else if (type.width == 64)
+               {
+                   switch (type.basetype)
+                   {
+                       case SPIRType::Int64:
+                           return VK_FORMAT_R64G64B64_SINT;
+                       case SPIRType::UInt64:
+                           return VK_FORMAT_R64G64B64_UINT;
+                       case SPIRType::Double:
+                           return VK_FORMAT_R64G64B64_SFLOAT;
+                       default:
+                           return VK_FORMAT_UNDEFINED;
+                   }
+               }
+               else
+               {
+                   LUMOS_LOG_WARN("Invalid type width for conversion of SPIR-Type to VkFormat enum value!");
+                   return VK_FORMAT_UNDEFINED;
+               }
+           }
+           else if (type.vecsize == 4)
+   {
+               if (type.width == 8)
+               {
+                   switch (type.basetype)
+                   {
+                   case SPIRType::Int:
+                       return VK_FORMAT_R8G8B8A8_SINT;
+                   case SPIRType::UInt:
+                       return VK_FORMAT_R8G8B8A8_UINT;
+                   default:
+                       return VK_FORMAT_UNDEFINED;
+                   }
+               }
+               else if (type.width == 16)
+               {
+                   switch (type.basetype)
+                   {
+                   case SPIRType::Int:
+                       return VK_FORMAT_R16G16B16A16_SINT;
+                   case SPIRType::UInt:
+                       return VK_FORMAT_R16G16B16A16_UINT;
+                   case SPIRType::Float:
+                       return VK_FORMAT_R16G16B16A16_SFLOAT;
+                   default:
+                       return VK_FORMAT_UNDEFINED;
+                   }
+               }
+               else if (type.width == 32)
+               {
+                   switch (type.basetype)
+                   {
+                   case SPIRType::Int:
+                       return VK_FORMAT_R32G32B32A32_SINT;
+                   case SPIRType::UInt:
+                       return VK_FORMAT_R32G32B32A32_UINT;
+                   case SPIRType::Float:
+                       return VK_FORMAT_R32G32B32A32_SFLOAT;
+                   default:
+                       return VK_FORMAT_UNDEFINED;
+                   }
+               }
+               else if (type.width == 64)
+               {
+                   switch (type.basetype)
+                   {
+                       case SPIRType::Int64:
+                           return VK_FORMAT_R64G64B64A64_SINT;
+                       case SPIRType::UInt64:
+                           return VK_FORMAT_R64G64B64A64_UINT;
+                       case SPIRType::Double:
+                           return VK_FORMAT_R64G64B64A64_SFLOAT;
+                       default:
+                           return VK_FORMAT_UNDEFINED;
+                   }
+               }
+               else
+               {
+                   LUMOS_LOG_WARN("Invalid type width for conversion to a VkFormat enum");
+                   return VK_FORMAT_UNDEFINED;
+               }
+           }
+           else
+           {
+               LUMOS_LOG_WARN("Vector size in vertex input attributes isn't explicitly supported for parsing from SPIRType->VkFormat");
+               return VK_FORMAT_UNDEFINED;
+           }
+       }
         uint32_t GetStrideFromVulkanFormat(VkFormat format)
         {
             switch (format)
