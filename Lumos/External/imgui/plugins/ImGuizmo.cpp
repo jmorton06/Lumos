@@ -41,6 +41,7 @@ namespace ImGuizmo
    static const float RAD2DEG = (180.f / ZPI);
    static const float DEG2RAD = (ZPI / 180.f);
 	static float gGizmoSizeClipSpace = 0.1f;
+	static float gGizmoSizeScale = 1.0f;
    const float screenRotateSize = 0.06f;
 
    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1107,7 +1108,7 @@ namespace ImGuizmo
 
       cameraToModelNormalized.TransformVector(gContext.mModelInverse);
 
-      gContext.mRadiusSquareCenter = screenRotateSize * gContext.mHeight;
+		gContext.mRadiusSquareCenter = screenRotateSize * gContext.mHeight * gGizmoSizeScale;
 
       for (int axis = 0; axis < 3; axis++)
       {
@@ -1129,9 +1130,9 @@ namespace ImGuizmo
             gContext.mRadiusSquareCenter = radiusAxis;
          }
 
-         drawList->AddPolyline(circlePos, halfCircleSegmentCount, colors[3 - axis], false, 2);
+			drawList->AddPolyline(circlePos, halfCircleSegmentCount, colors[3 - axis], false, 2 * gGizmoSizeScale);
       }
-      drawList->AddCircle(worldToPos(gContext.mModel.v.position, gContext.mViewProjection), gContext.mRadiusSquareCenter, colors[0], 64, 3.f);
+		drawList->AddCircle(worldToPos(gContext.mModel.v.position, gContext.mViewProjection), gContext.mRadiusSquareCenter, colors[0], 64, 3.f * gGizmoSizeScale);
 
       if (gContext.mbUsing && (gContext.mActualID == -1 || gContext.mActualID == gContext.mEditingID))
       {
@@ -1149,7 +1150,7 @@ namespace ImGuizmo
             circlePos[i] = worldToPos(pos + gContext.mModel.v.position, gContext.mViewProjection);
          }
          drawList->AddConvexPolyFilled(circlePos, halfCircleSegmentCount, 0x801080FF);
-         drawList->AddPolyline(circlePos, halfCircleSegmentCount, 0xFF1080FF, true, 2);
+			drawList->AddPolyline(circlePos, halfCircleSegmentCount, 0xFF1080FF, true, 2 * gGizmoSizeScale);
 
          ImVec2 destinationPosOnScreen = circlePos[1];
          char tmps[512];
@@ -1190,12 +1191,12 @@ namespace ImGuizmo
 
             if (gContext.mbUsing && (gContext.mActualID == -1 || gContext.mActualID == gContext.mEditingID))
             {
-               drawList->AddLine(baseSSpace, worldDirSSpaceNoScale, 0xFF404040, 3.f);
-               drawList->AddCircleFilled(worldDirSSpaceNoScale, 6.f, 0xFF404040);
+					drawList->AddLine(baseSSpace, worldDirSSpaceNoScale, 0xFF404040, 3.f * gGizmoSizeScale);
+					drawList->AddCircleFilled(worldDirSSpaceNoScale, 6.f * gGizmoSizeScale, 0xFF404040);
             }
 
-            drawList->AddLine(baseSSpace, worldDirSSpace, colors[i + 1], 3.f);
-            drawList->AddCircleFilled(worldDirSSpace, 6.f, colors[i + 1]);
+				drawList->AddLine(baseSSpace, worldDirSSpace, colors[i + 1], 3.f * gGizmoSizeScale);
+				drawList->AddCircleFilled(worldDirSSpace, 6.f * gGizmoSizeScale, colors[i + 1]);
 
             if (gContext.mAxisFactor[i] < 0.f)
             {
@@ -1205,7 +1206,7 @@ namespace ImGuizmo
       }
 
       // draw screen cirle
-      drawList->AddCircleFilled(gContext.mScreenSquareCenter, 6.f, colors[0], 32);
+		drawList->AddCircleFilled(gContext.mScreenSquareCenter, 6.f * gGizmoSizeScale, colors[0], 32);
 
       if (gContext.mbUsing && (gContext.mActualID == -1 || gContext.mActualID == gContext.mEditingID))
       {
@@ -1226,9 +1227,8 @@ namespace ImGuizmo
          drawList->AddText(ImVec2(destinationPosOnScreen.x + 14, destinationPosOnScreen.y + 14), 0xFFFFFFFF, tmps);
       }
    }
-
-
-   static void DrawTranslationGizmo(int type)
+	
+	static void DrawTranslationGizmo(int type)
    {
       ImDrawList* drawList = gContext.mDrawList;
       if (!drawList)
@@ -1256,14 +1256,14 @@ namespace ImGuizmo
             ImVec2 baseSSpace = worldToPos(dirAxis * 0.1f * gContext.mScreenFactor, gContext.mMVP);
             ImVec2 worldDirSSpace = worldToPos(dirAxis * gContext.mScreenFactor, gContext.mMVP);
 
-            drawList->AddLine(baseSSpace, worldDirSSpace, colors[i + 1], 3.f);
+				drawList->AddLine(baseSSpace, worldDirSSpace, colors[i + 1], 3.f * gGizmoSizeScale);
 
             // Arrow head begin
             ImVec2 dir(origin - worldDirSSpace);
 
             float d = sqrtf(ImLengthSqr(dir));
             dir /= d; // Normalize
-            dir *= 6.0f;
+				dir *= 6.0f * gGizmoSizeScale;
 
             ImVec2 ortogonalDir(dir.y, -dir.x); // Perpendicular vector
             ImVec2 a(worldDirSSpace + dir);
@@ -1282,7 +1282,7 @@ namespace ImGuizmo
             ImVec2 screenQuadPts[4];
             for (int j = 0; j < 4; ++j)
             {
-               vec_t cornerWorldPos = (dirPlaneX * quadUV[j * 2] + dirPlaneY * quadUV[j * 2 + 1]) * gContext.mScreenFactor;
+					vec_t cornerWorldPos = (dirPlaneX * quadUV[j * 2] + dirPlaneY * quadUV[j * 2 + 1]) * gContext.mScreenFactor;
                screenQuadPts[j] = worldToPos(cornerWorldPos, gContext.mMVP);
             }
             drawList->AddPolyline(screenQuadPts, 4, directionColor[i], true, 1.0f);
@@ -1290,7 +1290,7 @@ namespace ImGuizmo
          }
       }
 
-      drawList->AddCircleFilled(gContext.mScreenSquareCenter, 6.f, colors[0], 32);
+		drawList->AddCircleFilled(gContext.mScreenSquareCenter, 6.f * gGizmoSizeScale, colors[0], 32);
 
       if (gContext.mbUsing && (gContext.mActualID == -1 || gContext.mActualID == gContext.mEditingID))
       {
@@ -1623,7 +1623,7 @@ namespace ImGuizmo
 
       vec_t deltaScreen = { io.MousePos.x - gContext.mScreenSquareCenter.x, io.MousePos.y - gContext.mScreenSquareCenter.y, 0.f, 0.f };
       float dist = deltaScreen.Length();
-      if (dist >= (gContext.mRadiusSquareCenter - 1.0f) && dist < (gContext.mRadiusSquareCenter + 1.0f))
+		if (dist >= (gContext.mRadiusSquareCenter - 1.0f * gGizmoSizeScale) && dist < (gContext.mRadiusSquareCenter + 1.0f * gGizmoSizeScale))
       {
          type = ROTATE_SCREEN;
       }
@@ -2137,7 +2137,12 @@ namespace ImGuizmo
    void SetGizmoSizeClipSpace(float value)
    {
        gGizmoSizeClipSpace = value;
-   }
+	}
+	
+	void SetGizmoSizeScale(float value)
+	{
+		gGizmoSizeScale = value;
+	}
 
    ///////////////////////////////////////////////////////////////////////////////////////////////////
    void ComputeFrustumPlanes(vec_t* frustum, const float* clip)

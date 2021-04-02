@@ -172,6 +172,7 @@ namespace Lumos
 		m_PreviewTexture = nullptr;
         
         ImGuizmo::SetGizmoSizeClipSpace(0.25f);
+		ImGuizmo::SetGizmoSizeScale(Application::Get().GetWindowDPI());
     }
     
 	bool Editor::IsTextFile(const std::string& filePath)
@@ -322,51 +323,61 @@ namespace Lumos
 					{
 						m_Theme = ImGuiHelpers::Dark;
 						ImGuiHelpers::SetTheme(ImGuiHelpers::Dark);
+						OS::Instance()->SetTitleBarColour(ImGui::GetStyle().Colors[ImGuiCol_MenuBarBg]);
 					}
 					if(ImGui::MenuItem("Black", ""))
 					{
 						m_Theme = ImGuiHelpers::Black;
 						ImGuiHelpers::SetTheme(ImGuiHelpers::Black);
+						OS::Instance()->SetTitleBarColour(ImGui::GetStyle().Colors[ImGuiCol_MenuBarBg]);
 					}
 					if(ImGui::MenuItem("Grey", ""))
 					{
 						m_Theme = ImGuiHelpers::Grey;
 						ImGuiHelpers::SetTheme(ImGuiHelpers::Grey);
+						OS::Instance()->SetTitleBarColour(ImGui::GetStyle().Colors[ImGuiCol_MenuBarBg]);
 					}
 					if(ImGui::MenuItem("Light", ""))
 					{
 						m_Theme = ImGuiHelpers::Light;
 						ImGuiHelpers::SetTheme(ImGuiHelpers::Light);
+						OS::Instance()->SetTitleBarColour(ImGui::GetStyle().Colors[ImGuiCol_MenuBarBg]);
 					}
 					if(ImGui::MenuItem("Cherry", ""))
 					{
 						m_Theme = ImGuiHelpers::Cherry;
 						ImGuiHelpers::SetTheme(ImGuiHelpers::Cherry);
+						OS::Instance()->SetTitleBarColour(ImGui::GetStyle().Colors[ImGuiCol_MenuBarBg]);
 					}
 					if(ImGui::MenuItem("Blue", ""))
 					{
 						m_Theme = ImGuiHelpers::Blue;
 						ImGuiHelpers::SetTheme(ImGuiHelpers::Blue);
+						OS::Instance()->SetTitleBarColour(ImGui::GetStyle().Colors[ImGuiCol_MenuBarBg]);
 					}
 					if(ImGui::MenuItem("Cinder", ""))
 					{
 						m_Theme = ImGuiHelpers::Cinder;
 						ImGuiHelpers::SetTheme(ImGuiHelpers::Cinder);
+						OS::Instance()->SetTitleBarColour(ImGui::GetStyle().Colors[ImGuiCol_MenuBarBg]);
 					}
 					if(ImGui::MenuItem("Classic", ""))
 					{
 						m_Theme = ImGuiHelpers::Classic;
 						ImGuiHelpers::SetTheme(ImGuiHelpers::Classic);
+						OS::Instance()->SetTitleBarColour(ImGui::GetStyle().Colors[ImGuiCol_MenuBarBg]);
 					}
 					if(ImGui::MenuItem("ClassicDark", ""))
 					{
 						m_Theme = ImGuiHelpers::ClassicDark;
 						ImGuiHelpers::SetTheme(ImGuiHelpers::ClassicDark);
+						OS::Instance()->SetTitleBarColour(ImGui::GetStyle().Colors[ImGuiCol_MenuBarBg]);
 					}
 					if(ImGui::MenuItem("ClassicLight", ""))
 					{
 						m_Theme = ImGuiHelpers::ClassicLight;
 						ImGuiHelpers::SetTheme(ImGuiHelpers::ClassicLight);
+						OS::Instance()->SetTitleBarColour(ImGui::GetStyle().Colors[ImGuiCol_MenuBarBg]);
 					}
 					ImGui::EndMenu();
 				}
