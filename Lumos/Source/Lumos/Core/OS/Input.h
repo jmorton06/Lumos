@@ -15,6 +15,13 @@ namespace Lumos
 {
 	class Event;
 
+    enum class MouseMode
+    {
+        Visible,
+        Hidden,
+        Captured
+    };
+
 	class LUMOS_EXPORT Input
 	{
 	public:
@@ -48,6 +55,9 @@ namespace Lumos
 		void Reset();
 		void ResetPressed();
 		void OnEvent(Event& e);
+        
+        MouseMode GetMouseMode() const { return m_MouseMode; }
+        void SetMouseMode(MouseMode mode) { m_MouseMode = mode; }
 
 	protected:
 		Input();
@@ -73,6 +83,8 @@ namespace Lumos
 
 		bool m_MouseOnScreen;
 		bool m_WindowFocus;
+        
+        MouseMode m_MouseMode;
 
 		Maths::Vector2 m_MousePosition;
 	};

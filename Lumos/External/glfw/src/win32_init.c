@@ -1,5 +1,5 @@
 //========================================================================
-// GLFW 3.4 Win32 - www.glfw.org
+// GLFW 3.3 Win32 - www.glfw.org
 //------------------------------------------------------------------------
 // Copyright (c) 2002-2006 Marcus Geelnard
 // Copyright (c) 2006-2019 Camilla Löwy <elmindreda@glfw.org>
@@ -38,6 +38,10 @@ static const GUID _glfw_GUID_DEVINTERFACE_HID =
 #define GUID_DEVINTERFACE_HID _glfw_GUID_DEVINTERFACE_HID
 
 #if defined(_GLFW_USE_HYBRID_HPG) || defined(_GLFW_USE_OPTIMUS_HPG)
+
+#if defined(_GLFW_BUILD_DLL)
+ #warning "These symbols must be exported by the executable and have no effect in a DLL"
+#endif
 
 // Executables (but not DLLs) exporting this symbol with this value will be
 // automatically directed to the high-performance GPU on Nvidia Optimus systems
@@ -143,6 +147,8 @@ static GLFWbool loadLibraries(void)
             GetProcAddress(_glfw.win32.dwmapi.instance, "DwmFlush");
         _glfw.win32.dwmapi.EnableBlurBehindWindow = (PFN_DwmEnableBlurBehindWindow)
             GetProcAddress(_glfw.win32.dwmapi.instance, "DwmEnableBlurBehindWindow");
+        _glfw.win32.dwmapi.GetColorizationColor = (PFN_DwmGetColorizationColor)
+            GetProcAddress(_glfw.win32.dwmapi.instance, "DwmGetColorizationColor");
     }
 
     _glfw.win32.shcore.instance = LoadLibraryA("shcore.dll");

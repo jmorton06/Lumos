@@ -1,5 +1,5 @@
 //========================================================================
-// GLFW 3.4 EGL - www.glfw.org
+// GLFW 3.3 EGL - www.glfw.org
 //------------------------------------------------------------------------
 // Copyright (c) 2002-2006 Marcus Geelnard
 // Copyright (c) 2006-2019 Camilla Löwy <elmindreda@glfw.org>
@@ -588,17 +588,15 @@ GLFWbool _glfwCreateContextEGL(_GLFWwindow* window,
     }
 
     // Set up attributes for surface creation
+    index = 0;
+
+    if (fbconfig->sRGB)
     {
-        int index = 0;
-
-        if (fbconfig->sRGB)
-        {
-            if (_glfw.egl.KHR_gl_colorspace)
-                setAttrib(EGL_GL_COLORSPACE_KHR, EGL_GL_COLORSPACE_SRGB_KHR);
-        }
-
-        setAttrib(EGL_NONE, EGL_NONE);
+        if (_glfw.egl.KHR_gl_colorspace)
+            setAttrib(EGL_GL_COLORSPACE_KHR, EGL_GL_COLORSPACE_SRGB_KHR);
     }
+
+    setAttrib(EGL_NONE, EGL_NONE);
 
     window->context.egl.surface =
         eglCreateWindowSurface(_glfw.egl.display,

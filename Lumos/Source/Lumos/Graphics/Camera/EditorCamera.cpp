@@ -3,6 +3,7 @@
 #include "Graphics/Camera/Camera.h"
 #include "Core/Application.h"
 #include "Core/OS/Input.h"
+#include "Core/OS/Window.h"
 
 namespace Lumos
 {
@@ -19,7 +20,7 @@ namespace Lumos
 	EditorCameraController::~EditorCameraController()
 	{
 	}
-
+	
 	void EditorCameraController::HandleMouse(Maths::Transform& transform, float dt, float xpos, float ypos)
 	{
 		LUMOS_PROFILE_FUNCTION();
@@ -36,30 +37,38 @@ namespace Lumos
         }
         else
 		{
+			static bool mouseHeld = false;
+			if(Input::GetInput()->GetMouseClicked(InputCode::MouseKey::ButtonRight))
+			{
+				mouseHeld = true;
+				Application::Get().GetWindow()->HideMouse(true);
+                Input::GetInput()->SetMouseMode(MouseMode::Captured);
+				m_StoredCursorPos = Maths::Vector2(xpos, ypos);
+			}
+			
 			if(Input::GetInput()->GetMouseHeld(InputCode::MouseKey::ButtonRight))
 			{
 				m_MouseSensitivity = 0.02f;
-				m_RotateVelocity = m_RotateVelocity + Maths::Vector2((xpos - m_PreviousCurserPos.x), (ypos - m_PreviousCurserPos.y)) * m_MouseSensitivity;
-                //Application::Get().GetWindow()->HideMouse(true);
-               // Application::Get().GetWindow()->SetMousePosition(m_PreviousCurserPos);
-               // LUMOS_LOG_INFO(m_PreviousCurserPos);
-               // LUMOS_LOG_INFO("{0}, {1}", xpos, ypos);
+				m_RotateVelocity = Maths::Vector2((xpos - m_PreviousCurserPos.x), (ypos - m_PreviousCurserPos.y)) * m_MouseSensitivity * 10.0f;
             }
             else
             {
-                //Application::Get().GetWindow()->HideMouse(false);
+				if(mouseHeld)
+				{
+					mouseHeld = false;
+					Application::Get().GetWindow()->HideMouse(false);
+                    Application::Get().GetWindow()->SetMousePosition(m_StoredCursorPos);
+                    Input::GetInput()->SetMouseMode(MouseMode::Visible);
+				}
             }
-            
-				
+
 			Maths::Vector3 euler = transform.GetLocalOrientation().EulerAngles();
 			float pitch = euler.x - m_RotateVelocity.y;
-			float yaw = euler.y - m_RotateVelocity.x;
-			
 			pitch = Maths::Min(pitch, 84.0f);
 			pitch = Maths::Max(pitch, -84.0f);
+			float yaw = euler.y - m_RotateVelocity.x;
             m_PreviousCurserPos = Maths::Vector2(xpos, ypos);
-
-			transform.SetLocalOrientation(Maths::Quaternion::EulerAnglesToQuaternion(pitch, yaw, 0.0f));
+            transform.SetLocalOrientation(Maths::Quaternion::EulerAnglesToQuaternion(pitch, yaw, 0.0f));
 		}
 
 		m_RotateVelocity = m_RotateVelocity * pow(m_RotateDampeningFactor, dt);
