@@ -17,6 +17,7 @@ namespace Lumos
         void SetMode(bool is2D) { m_2DMode = is2D; }
 	private:
         bool m_2DMode = false;
+		Maths::Vector2 m_StoredCursorPos;
     
     };
 }

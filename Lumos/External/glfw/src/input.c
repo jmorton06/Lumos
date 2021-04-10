@@ -1,5 +1,5 @@
 //========================================================================
-// GLFW 3.4 - www.glfw.org
+// GLFW 3.3 - www.glfw.org
 //------------------------------------------------------------------------
 // Copyright (c) 2002-2006 Marcus Geelnard
 // Copyright (c) 2006-2019 Camilla Löwy <elmindreda@glfw.org>
@@ -757,13 +757,9 @@ GLFWAPI GLFWcursor* glfwCreateStandardCursor(int shape)
     if (shape != GLFW_ARROW_CURSOR &&
         shape != GLFW_IBEAM_CURSOR &&
         shape != GLFW_CROSSHAIR_CURSOR &&
-        shape != GLFW_POINTING_HAND_CURSOR &&
-        shape != GLFW_RESIZE_EW_CURSOR &&
-        shape != GLFW_RESIZE_NS_CURSOR &&
-        shape != GLFW_RESIZE_NWSE_CURSOR &&
-        shape != GLFW_RESIZE_NESW_CURSOR &&
-        shape != GLFW_RESIZE_ALL_CURSOR &&
-        shape != GLFW_NOT_ALLOWED_CURSOR)
+        shape != GLFW_HAND_CURSOR &&
+        shape != GLFW_HRESIZE_CURSOR &&
+        shape != GLFW_VRESIZE_CURSOR)
     {
         _glfwInputError(GLFW_INVALID_ENUM, "Invalid standard cursor 0x%08X", shape);
         return NULL;

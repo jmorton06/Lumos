@@ -206,7 +206,7 @@ namespace Lumos
 		ImVec2 minBound = sceneViewPosition;
 
 		ImVec2 maxBound = {minBound.x + windowSize.x, minBound.y + windowSize.y};
-		bool updateCamera = ImGui::IsMouseHoveringRect(minBound, maxBound);
+        bool updateCamera = true;//ImGui::IsMouseHoveringRect(minBound, maxBound);
 
 		app.SetSceneActive(ImGui::IsWindowFocused() && !ImGuizmo::IsUsing() && updateCamera);
 

@@ -126,7 +126,6 @@ namespace Lumos
 #endif
 		}
 #endif
-
 		SetBorderlessWindow(properties.Borderless);
 
 		const GLFWvidmode* mode = glfwGetVideoMode(monitor);
@@ -169,6 +168,9 @@ namespace Lumos
 #endif
 
 		glfwSetWindowUserPointer(m_Handle, &m_Data);
+		
+		if (glfwRawMouseMotionSupported())
+			glfwSetInputMode(m_Handle, GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
 
 #ifdef LUMOS_PLATFORM_WINDOWS
 		SetIcon("//Textures/icon.png", "//Textures/icon32.png");
@@ -262,14 +264,12 @@ namespace Lumos
 
 		glfwSetScrollCallback(m_Handle, [](GLFWwindow* window, double xOffset, double yOffset) {
 			WindowData& data = *static_cast<WindowData*>((glfwGetWindowUserPointer(window)));
-
 			MouseScrolledEvent event((float)xOffset, (float)yOffset);
 			data.EventCallback(event);
 		});
 
 		glfwSetCursorPosCallback(m_Handle, [](GLFWwindow* window, double xPos, double yPos) {
 			WindowData& data = *static_cast<WindowData*>((glfwGetWindowUserPointer(window)));
-
 			MouseMovedEvent event((float)xPos /* * data.DPIScale*/, (float)yPos /* * data.DPIScale*/);
 			data.EventCallback(event);
 		});
@@ -433,12 +433,15 @@ namespace Lumos
 		if(imgui_cursor == ImGuiMouseCursor_None || io.MouseDrawCursor)
 		{
 			// Hide OS mouse cursor if imgui is drawing it or if it wants no cursor
-			glfwSetInputMode(m_Handle, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+			
+			//TODO: This was disabled as it would override control of hiding the cursor
+			//      Need to find a solution to support both
+			//glfwSetInputMode(m_Handle, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
 		}
 		else
 		{
 			glfwSetCursor(m_Handle, g_MouseCursors[imgui_cursor] ? g_MouseCursors[imgui_cursor] : g_MouseCursors[ImGuiMouseCursor_Arrow]);
-			glfwSetInputMode(m_Handle, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+			//glfwSetInputMode(m_Handle, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 		}
 	}
 

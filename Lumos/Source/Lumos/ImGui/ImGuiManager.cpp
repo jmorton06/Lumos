@@ -143,7 +143,8 @@ namespace Lumos
 	bool ImGuiManager::OnMouseMovedEvent(MouseMovedEvent& e)
 	{
 		ImGuiIO& io = ImGui::GetIO();
-		io.MousePos = ImVec2(e.GetX() * m_DPIScale, e.GetY() * m_DPIScale);
+        if(Input::GetInput()->GetMouseMode() == MouseMode::Visible)
+            io.MousePos = ImVec2(e.GetX() * m_DPIScale, e.GetY() * m_DPIScale);
 
 		return false;
 	}

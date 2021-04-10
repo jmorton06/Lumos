@@ -12,7 +12,7 @@ namespace Lumos
 	}
 
 	Input::Input()
-		: m_WindowFocus(true)
+    : m_WindowFocus(true), m_MouseMode(MouseMode::Visible)
 	{
 		Reset();
 	}
