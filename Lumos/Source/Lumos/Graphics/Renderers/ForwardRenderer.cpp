@@ -28,227 +28,226 @@
 
 namespace Lumos
 {
-	namespace Graphics
-	{
-		ForwardRenderer::ForwardRenderer(uint32_t width, uint32_t height, bool depthTest)
-		{
-			m_DepthTest = depthTest;
-			SetScreenBufferSize(width, height);
-			ForwardRenderer::Init();
-		}
+    namespace Graphics
+    {
+        ForwardRenderer::ForwardRenderer(uint32_t width, uint32_t height, bool depthTest)
+        {
+            m_DepthTest = depthTest;
+            SetScreenBufferSize(width, height);
+            ForwardRenderer::Init();
+        }
 
-		ForwardRenderer::~ForwardRenderer()
-		{
-			delete m_DefaultTexture;
-			delete m_UniformBuffer;
+        ForwardRenderer::~ForwardRenderer()
+        {
+            delete m_DefaultTexture;
+            delete m_UniformBuffer;
 
-			Memory::AlignedFree(m_UBODataDynamic.model);
+            Memory::AlignedFree(m_UBODataDynamic.model);
 
-			delete m_ModelUniformBuffer;
+            delete m_ModelUniformBuffer;
 
-			delete[] m_VSSystemUniformBuffer;
-			delete[] m_PSSystemUniformBuffer;
-            
-			for(auto& commandBuffer : m_CommandBuffers)
-			{
-				delete commandBuffer;
-			}
-		}
+            delete[] m_VSSystemUniformBuffer;
+            delete[] m_PSSystemUniformBuffer;
 
-		void ForwardRenderer::RenderScene()
-		{
-			//for (i = 0; i < commandBuffers.size(); i++)
-			{
-				Begin();
+            for(auto& commandBuffer : m_CommandBuffers)
+            {
+                delete commandBuffer;
+            }
+        }
 
-				SetSystemUniforms(m_Shader.get());
+        void ForwardRenderer::RenderScene()
+        {
+            //for (i = 0; i < commandBuffers.size(); i++)
+            {
+                Begin();
 
-				Present();
+                SetSystemUniforms(m_Shader.get());
 
-				EndScene();
-				End();
-			}
+                Present();
 
-			if(!m_RenderTexture)
-				Renderer::Present((m_CommandBuffers[Renderer::GetSwapchain()->GetCurrentBufferId()]));
-		}
+                EndScene();
+                End();
+            }
 
-		enum VSSystemUniformIndices : int32_t
-		{
-			VSSystemUniformIndex_ProjectionMatrix = 0,
-			VSSystemUniformIndex_ViewMatrix = 1,
-			VSSystemUniformIndex_ModelMatrix = 2,
-			VSSystemUniformIndex_TextureMatrix = 3,
-			VSSystemUniformIndex_Size
-		};
+            if(!m_RenderTexture)
+                Renderer::Present((m_CommandBuffers[Renderer::GetSwapchain()->GetCurrentBufferId()]));
+        }
 
-		enum PSSystemUniformIndices : int32_t
-		{
-			PSSystemUniformIndex_Lights = 0,
-			PSSystemUniformIndex_Size
-		};
+        enum VSSystemUniformIndices : int32_t
+        {
+            VSSystemUniformIndex_ProjectionMatrix = 0,
+            VSSystemUniformIndex_ViewMatrix = 1,
+            VSSystemUniformIndex_ModelMatrix = 2,
+            VSSystemUniformIndex_TextureMatrix = 3,
+            VSSystemUniformIndex_Size
+        };
 
-		void ForwardRenderer::Init()
-		{
-			m_CommandQueue.reserve(1000);
+        enum PSSystemUniformIndices : int32_t
+        {
+            PSSystemUniformIndex_Lights = 0,
+            PSSystemUniformIndex_Size
+        };
 
-			//
-			// Vertex shader System uniforms
-			//
-			m_VSSystemUniformBufferSize = sizeof(Maths::Matrix4) + sizeof(Maths::Matrix4) + sizeof(Maths::Matrix4) + sizeof(Maths::Matrix4);
-			m_VSSystemUniformBuffer = new uint8_t[m_VSSystemUniformBufferSize];
-			memset(m_VSSystemUniformBuffer, 0, m_VSSystemUniformBufferSize);
-			m_VSSystemUniformBufferOffsets.resize(VSSystemUniformIndex_Size);
+        void ForwardRenderer::Init()
+        {
+            m_CommandQueue.reserve(1000);
 
-			// Per Scene System Uniforms
-			m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_ProjectionMatrix] = 0;
-			m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_ViewMatrix] = m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_ProjectionMatrix] + sizeof(Maths::Matrix4);
-			m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_ModelMatrix] = m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_ViewMatrix] + sizeof(Maths::Matrix4);
-			m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_TextureMatrix] = m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_ModelMatrix] + sizeof(Maths::Matrix4);
+            //
+            // Vertex shader System uniforms
+            //
+            m_VSSystemUniformBufferSize = sizeof(Maths::Matrix4) + sizeof(Maths::Matrix4) + sizeof(Maths::Matrix4) + sizeof(Maths::Matrix4);
+            m_VSSystemUniformBuffer = new uint8_t[m_VSSystemUniformBufferSize];
+            memset(m_VSSystemUniformBuffer, 0, m_VSSystemUniformBufferSize);
+            m_VSSystemUniformBufferOffsets.resize(VSSystemUniformIndex_Size);
 
-			// Pixel/fragment shader System uniforms
-			m_PSSystemUniformBufferSize = sizeof(Graphics::Light);
-			m_PSSystemUniformBuffer = new uint8_t[m_PSSystemUniformBufferSize];
-			memset(m_PSSystemUniformBuffer, 0, m_PSSystemUniformBufferSize);
-			m_PSSystemUniformBufferOffsets.resize(PSSystemUniformIndex_Size);
+            // Per Scene System Uniforms
+            m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_ProjectionMatrix] = 0;
+            m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_ViewMatrix] = m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_ProjectionMatrix] + sizeof(Maths::Matrix4);
+            m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_ModelMatrix] = m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_ViewMatrix] + sizeof(Maths::Matrix4);
+            m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_TextureMatrix] = m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_ModelMatrix] + sizeof(Maths::Matrix4);
 
-			// Per Scene System Uniforms
-			m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_Lights] = 0;
+            // Pixel/fragment shader System uniforms
+            m_PSSystemUniformBufferSize = sizeof(Graphics::Light);
+            m_PSSystemUniformBuffer = new uint8_t[m_PSSystemUniformBufferSize];
+            memset(m_PSSystemUniformBuffer, 0, m_PSSystemUniformBufferSize);
+            m_PSSystemUniformBufferOffsets.resize(PSSystemUniformIndex_Size);
 
-			m_UniformBuffer = Graphics::UniformBuffer::Create();
-			m_ModelUniformBuffer = Graphics::UniformBuffer::Create();
+            // Per Scene System Uniforms
+            m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_Lights] = 0;
 
-			Graphics::RenderPassInfo renderpassCI{};
+            m_UniformBuffer = Graphics::UniformBuffer::Create();
+            m_ModelUniformBuffer = Graphics::UniformBuffer::Create();
 
-			if(m_DepthTest)
-			{
-				AttachmentInfo textureTypes[2] =
-					{
-						{TextureType::COLOUR, TextureFormat::RGBA8},
-						{TextureType::DEPTH, TextureFormat::DEPTH}};
+            Graphics::RenderPassInfo renderpassCI {};
 
-				renderpassCI.attachmentCount = 2;
-				renderpassCI.textureType = textureTypes;
-			}
-			else
-			{
-				AttachmentInfo textureTypes[1] =
-					{
-						{TextureType::COLOUR, TextureFormat::RGBA8},
-					};
+            if(m_DepthTest)
+            {
+                AttachmentInfo textureTypes[2] = {
+                    { TextureType::COLOUR, TextureFormat::RGBA8 },
+                    { TextureType::DEPTH, TextureFormat::DEPTH }
+                };
 
-				renderpassCI.attachmentCount = 1;
-				renderpassCI.textureType = textureTypes;
-			}
+                renderpassCI.attachmentCount = 2;
+                renderpassCI.textureType = textureTypes;
+            }
+            else
+            {
+                AttachmentInfo textureTypes[1] = {
+                    { TextureType::COLOUR, TextureFormat::RGBA8 },
+                };
+
+                renderpassCI.attachmentCount = 1;
+                renderpassCI.textureType = textureTypes;
+            }
 
             m_RenderPass = Graphics::RenderPass::Get(renderpassCI);
 
-			CreateFramebuffers();
+            CreateFramebuffers();
 
-			m_CommandBuffers.resize(Renderer::GetSwapchain()->GetSwapchainBufferCount());
+            m_CommandBuffers.resize(Renderer::GetSwapchain()->GetSwapchainBufferCount());
 
-			for(auto& commandBuffer : m_CommandBuffers)
-			{
-				commandBuffer = Graphics::CommandBuffer::Create();
-				commandBuffer->Init(true);
-			}
+            for(auto& commandBuffer : m_CommandBuffers)
+            {
+                commandBuffer = Graphics::CommandBuffer::Create();
+                commandBuffer->Init(true);
+            }
 
-			CreateGraphicsPipeline();
+            CreateGraphicsPipeline();
 
-			uint32_t bufferSize = static_cast<uint32_t>(sizeof(UniformBufferObject));
-			m_UniformBuffer->Init(bufferSize, nullptr);
+            uint32_t bufferSize = static_cast<uint32_t>(sizeof(UniformBufferObject));
+            m_UniformBuffer->Init(bufferSize, nullptr);
 
-			const size_t minUboAlignment = Graphics::GraphicsContext::GetContext()->GetMinUniformBufferOffsetAlignment();
+            const size_t minUboAlignment = Graphics::GraphicsContext::GetContext()->GetMinUniformBufferOffsetAlignment();
 
-			m_DynamicAlignment = sizeof(Lumos::Maths::Matrix4);
-			if(minUboAlignment > 0)
-			{
-				m_DynamicAlignment = (m_DynamicAlignment + minUboAlignment - 1) & ~(minUboAlignment - 1);
-			}
+            m_DynamicAlignment = sizeof(Lumos::Maths::Matrix4);
+            if(minUboAlignment > 0)
+            {
+                m_DynamicAlignment = (m_DynamicAlignment + minUboAlignment - 1) & ~(minUboAlignment - 1);
+            }
 
-			uint32_t bufferSize2 = static_cast<uint32_t>(MAX_OBJECTS * m_DynamicAlignment);
+            uint32_t bufferSize2 = static_cast<uint32_t>(MAX_OBJECTS * m_DynamicAlignment);
 
-			m_UBODataDynamic.model = static_cast<Maths::Matrix4*>(Memory::AlignedAlloc(bufferSize2, m_DynamicAlignment));
+            m_UBODataDynamic.model = static_cast<Maths::Matrix4*>(Memory::AlignedAlloc(bufferSize2, m_DynamicAlignment));
 
-			m_ModelUniformBuffer->Init(bufferSize2, nullptr);
+            m_ModelUniformBuffer->Init(bufferSize2, nullptr);
 
-			std::vector<Graphics::BufferInfo> bufferInfos;
+            std::vector<Graphics::BufferInfo> bufferInfos;
 
-			Graphics::BufferInfo bufferInfo = {};
-			bufferInfo.buffer = m_UniformBuffer;
-			bufferInfo.offset = 0;
-			bufferInfo.size = sizeof(UniformBufferObject);
-			bufferInfo.type = Graphics::DescriptorType::UNIFORM_BUFFER;
-			bufferInfo.binding = 0;
+            Graphics::BufferInfo bufferInfo = {};
+            bufferInfo.buffer = m_UniformBuffer;
+            bufferInfo.offset = 0;
+            bufferInfo.size = sizeof(UniformBufferObject);
+            bufferInfo.type = Graphics::DescriptorType::UNIFORM_BUFFER;
+            bufferInfo.binding = 0;
 
-			Graphics::BufferInfo bufferInfo2 = {};
-			bufferInfo2.buffer = m_ModelUniformBuffer;
-			bufferInfo2.offset = 0;
-			bufferInfo2.size = sizeof(UniformBufferModel);
-			bufferInfo2.type = Graphics::DescriptorType::UNIFORM_BUFFER_DYNAMIC;
-			bufferInfo2.binding = 1;
+            Graphics::BufferInfo bufferInfo2 = {};
+            bufferInfo2.buffer = m_ModelUniformBuffer;
+            bufferInfo2.offset = 0;
+            bufferInfo2.size = sizeof(UniformBufferModel);
+            bufferInfo2.type = Graphics::DescriptorType::UNIFORM_BUFFER_DYNAMIC;
+            bufferInfo2.binding = 1;
 
-			bufferInfos.push_back(bufferInfo);
-			bufferInfos.push_back(bufferInfo2);
+            bufferInfos.push_back(bufferInfo);
+            bufferInfos.push_back(bufferInfo2);
 
-			m_Pipeline->GetDescriptorSet()->Update(bufferInfos);
+            m_Pipeline->GetDescriptorSet()->Update(bufferInfos);
 
-			m_ClearColour = Maths::Vector4(0.4f, 0.4f, 0.4f, 1.0f);
+            m_ClearColour = Maths::Vector4(0.4f, 0.4f, 0.4f, 1.0f);
 
-			m_DefaultTexture = Texture2D::CreateFromSource(CheckerboardTextureArrayWidth, CheckerboardTextureArrayHeight, (void*)(uint8_t*)CheckerboardTextureArray);
+            m_DefaultTexture = Texture2D::CreateFromSource(CheckerboardTextureArrayWidth, CheckerboardTextureArrayHeight, (void*)(uint8_t*)CheckerboardTextureArray);
 
-			Graphics::DescriptorInfo info{};
-			info.pipeline = m_Pipeline.get();
-			info.layoutIndex = 1;
-			info.shader = m_Shader.get();
-			m_DescriptorSet = Graphics::DescriptorSet::Create(info);
+            Graphics::DescriptorInfo info {};
+            info.pipeline = m_Pipeline.get();
+            info.layoutIndex = 1;
+            info.shader = m_Shader.get();
+            m_DescriptorSet = Graphics::DescriptorSet::Create(info);
 
-			std::vector<Graphics::ImageInfo> bufferInfosDefault;
+            std::vector<Graphics::ImageInfo> bufferInfosDefault;
 
-			Graphics::ImageInfo imageInfo = {};
-			imageInfo.texture = {m_DefaultTexture};
-			imageInfo.binding = 0;
-			imageInfo.name = "texSampler";
+            Graphics::ImageInfo imageInfo = {};
+            imageInfo.texture = { m_DefaultTexture };
+            imageInfo.binding = 0;
+            imageInfo.name = "texSampler";
 
-			bufferInfosDefault.push_back(imageInfo);
+            bufferInfosDefault.push_back(imageInfo);
 
-			m_DescriptorSet->Update(bufferInfosDefault);
-            
+            m_DescriptorSet->Update(bufferInfosDefault);
+
             m_CurrentDescriptorSets.resize(2);
-		}
+        }
 
-		void ForwardRenderer::Begin()
-		{
-			m_CurrentBufferID = 0;
+        void ForwardRenderer::Begin()
+        {
+            m_CurrentBufferID = 0;
 
-			m_RenderPass->BeginRenderpass(m_CommandBuffers[m_CurrentBufferID], m_ClearColour, m_Framebuffers[m_CurrentBufferID].get(), Graphics::INLINE, m_ScreenBufferWidth, m_ScreenBufferHeight);
-		}
+            m_RenderPass->BeginRenderpass(m_CommandBuffers[m_CurrentBufferID], m_ClearColour, m_Framebuffers[m_CurrentBufferID].get(), Graphics::INLINE, m_ScreenBufferWidth, m_ScreenBufferHeight);
+        }
 
-		void ForwardRenderer::BeginScene(Scene* scene, Camera* overrideCamera, Maths::Transform* overrideCameraTransform)
-		{
-			auto& registry = scene->GetRegistry();
+        void ForwardRenderer::BeginScene(Scene* scene, Camera* overrideCamera, Maths::Transform* overrideCameraTransform)
+        {
+            auto& registry = scene->GetRegistry();
 
-			if(overrideCamera)
-			{
-				m_Camera = overrideCamera;
-				m_CameraTransform = overrideCameraTransform;
-			}
-			else
-			{
-				auto cameraView = registry.view<Camera>();
-				if(!cameraView.empty())
-				{
-					m_Camera = &cameraView.get<Camera>(cameraView.front());
-					m_CameraTransform = registry.try_get<Maths::Transform>(cameraView.front());
-				}
-			}
+            if(overrideCamera)
+            {
+                m_Camera = overrideCamera;
+                m_CameraTransform = overrideCameraTransform;
+            }
+            else
+            {
+                auto cameraView = registry.view<Camera>();
+                if(!cameraView.empty())
+                {
+                    m_Camera = &cameraView.get<Camera>(cameraView.front());
+                    m_CameraTransform = registry.try_get<Maths::Transform>(cameraView.front());
+                }
+            }
 
-			if(!m_Camera || !m_CameraTransform)
-				return;
+            if(!m_Camera || !m_CameraTransform)
+                return;
 
-			auto proj = m_Camera->GetProjectionMatrix();
+            auto proj = m_Camera->GetProjectionMatrix();
 
-			memcpy(m_VSSystemUniformBuffer + m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_ProjectionMatrix], &proj, sizeof(Maths::Matrix4));
+            memcpy(m_VSSystemUniformBuffer + m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_ProjectionMatrix], &proj, sizeof(Maths::Matrix4));
 
             m_CommandQueue.clear();
 
@@ -259,7 +258,7 @@ namespace Lumos
                 const auto& [model, trans] = group.get<Model, Maths::Transform>(entity);
 
                 const auto& meshes = model.GetMeshes();
-                
+
                 for(auto mesh : meshes)
                 {
                     if(mesh->GetActive())
@@ -295,160 +294,160 @@ namespace Lumos
                     }
                 }
             }
-		}
+        }
 
-		void ForwardRenderer::BeginScene(const Maths::Matrix4& proj, const Maths::Matrix4& view)
-		{
-			memcpy(m_VSSystemUniformBuffer + m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_ProjectionMatrix], &proj, sizeof(Maths::Matrix4));
-			memcpy(m_VSSystemUniformBuffer + m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_ViewMatrix], &view, sizeof(Maths::Matrix4));
-		}
+        void ForwardRenderer::BeginScene(const Maths::Matrix4& proj, const Maths::Matrix4& view)
+        {
+            memcpy(m_VSSystemUniformBuffer + m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_ProjectionMatrix], &proj, sizeof(Maths::Matrix4));
+            memcpy(m_VSSystemUniformBuffer + m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_ViewMatrix], &view, sizeof(Maths::Matrix4));
+        }
 
-		void ForwardRenderer::Submit(const RenderCommand& command)
-		{
-			m_CommandQueue.push_back(command);
-		}
+        void ForwardRenderer::Submit(const RenderCommand& command)
+        {
+            m_CommandQueue.push_back(command);
+        }
 
-		void ForwardRenderer::SubmitMesh(Mesh* mesh, Material* material, const Maths::Matrix4& transform, const Maths::Matrix4& textureMatrix)
-		{
-			RenderCommand command;
-			command.mesh = mesh;
-			command.transform = transform;
-			command.textureMatrix = textureMatrix;
-			command.material = material;
-			Submit(command);
-		}
+        void ForwardRenderer::SubmitMesh(Mesh* mesh, Material* material, const Maths::Matrix4& transform, const Maths::Matrix4& textureMatrix)
+        {
+            RenderCommand command;
+            command.mesh = mesh;
+            command.transform = transform;
+            command.textureMatrix = textureMatrix;
+            command.material = material;
+            Submit(command);
+        }
 
-		void ForwardRenderer::EndScene()
-		{
-		}
+        void ForwardRenderer::EndScene()
+        {
+        }
 
-		void ForwardRenderer::End()
-		{
-			m_RenderPass->EndRenderpass(m_CommandBuffers[m_CurrentBufferID]);
-			m_CommandBuffers[m_CurrentBufferID]->EndRecording();
+        void ForwardRenderer::End()
+        {
+            m_RenderPass->EndRenderpass(m_CommandBuffers[m_CurrentBufferID]);
+            m_CommandBuffers[m_CurrentBufferID]->EndRecording();
 
-			if(m_RenderTexture)
-				m_CommandBuffers[m_CurrentBufferID]->Execute(true);
-		}
+            if(m_RenderTexture)
+                m_CommandBuffers[m_CurrentBufferID]->Execute(true);
+        }
 
-		void ForwardRenderer::SetSystemUniforms(Shader* shader) const
-		{
-			m_UniformBuffer->SetData(sizeof(UniformBufferObject), *&m_VSSystemUniformBuffer);
+        void ForwardRenderer::SetSystemUniforms(Shader* shader) const
+        {
+            m_UniformBuffer->SetData(sizeof(UniformBufferObject), *&m_VSSystemUniformBuffer);
 
-			int index = 0;
+            int index = 0;
 
-			for(auto& command : m_CommandQueue)
-			{
-				Maths::Matrix4* modelMat = reinterpret_cast<Maths::Matrix4*>((reinterpret_cast<uint64_t>(m_UBODataDynamic.model) + (index * m_DynamicAlignment)));
-				*modelMat = command.transform;
-				index++;
-			}
+            for(auto& command : m_CommandQueue)
+            {
+                Maths::Matrix4* modelMat = reinterpret_cast<Maths::Matrix4*>((reinterpret_cast<uint64_t>(m_UBODataDynamic.model) + (index * m_DynamicAlignment)));
+                *modelMat = command.transform;
+                index++;
+            }
 
-			m_ModelUniformBuffer->SetDynamicData(static_cast<uint32_t>(index * m_DynamicAlignment), sizeof(Maths::Matrix4), &*m_UBODataDynamic.model);
-		}
+            m_ModelUniformBuffer->SetDynamicData(static_cast<uint32_t>(index * m_DynamicAlignment), sizeof(Maths::Matrix4), &*m_UBODataDynamic.model);
+        }
 
-		void ForwardRenderer::Present()
-		{
-			int index = 0;
+        void ForwardRenderer::Present()
+        {
+            int index = 0;
 
-			for(auto& command : m_CommandQueue)
-			{
-				Mesh* mesh = command.mesh;
+            for(auto& command : m_CommandQueue)
+            {
+                Mesh* mesh = command.mesh;
 
-				Graphics::CommandBuffer* currentCMDBuffer = m_CommandBuffers[m_CurrentBufferID];
+                Graphics::CommandBuffer* currentCMDBuffer = m_CommandBuffers[m_CurrentBufferID];
 
-				m_Pipeline->Bind(currentCMDBuffer);
+                m_Pipeline->Bind(currentCMDBuffer);
 
-				uint32_t dynamicOffset = index * static_cast<uint32_t>(m_DynamicAlignment);
+                uint32_t dynamicOffset = index * static_cast<uint32_t>(m_DynamicAlignment);
 
                 m_CurrentDescriptorSets[0] = m_Pipeline->GetDescriptorSet();
                 m_CurrentDescriptorSets[1] = m_DescriptorSet.get();
-				
-				mesh->GetVertexBuffer()->Bind(currentCMDBuffer, m_Pipeline.get());
-				mesh->GetIndexBuffer()->Bind(currentCMDBuffer);
 
-				Renderer::BindDescriptorSets(m_Pipeline.get(), currentCMDBuffer, dynamicOffset, m_CurrentDescriptorSets);
-				Renderer::DrawIndexed(currentCMDBuffer, DrawType::TRIANGLE, mesh->GetIndexBuffer()->GetCount());
+                mesh->GetVertexBuffer()->Bind(currentCMDBuffer, m_Pipeline.get());
+                mesh->GetIndexBuffer()->Bind(currentCMDBuffer);
 
-				mesh->GetVertexBuffer()->Unbind();
-				mesh->GetIndexBuffer()->Unbind();
+                Renderer::BindDescriptorSets(m_Pipeline.get(), currentCMDBuffer, dynamicOffset, m_CurrentDescriptorSets);
+                Renderer::DrawIndexed(currentCMDBuffer, DrawType::TRIANGLE, mesh->GetIndexBuffer()->GetCount());
 
-				index++;
-			}
-		}
+                mesh->GetVertexBuffer()->Unbind();
+                mesh->GetIndexBuffer()->Unbind();
 
-		void ForwardRenderer::OnResize(uint32_t width, uint32_t height)
-		{
-			SetScreenBufferSize(width, height);
-			m_Framebuffers.clear();
+                index++;
+            }
+        }
 
-			CreateFramebuffers();
-		}
+        void ForwardRenderer::OnResize(uint32_t width, uint32_t height)
+        {
+            SetScreenBufferSize(width, height);
+            m_Framebuffers.clear();
 
-		void ForwardRenderer::CreateGraphicsPipeline()
-		{
-			m_Shader = Application::Get().GetShaderLibrary()->GetResource("/CoreShaders/Simple.shader");
-            
-			Graphics::PipelineInfo pipelineCreateInfo{};
-			pipelineCreateInfo.shader = m_Shader;
-			pipelineCreateInfo.renderpass = m_RenderPass;
-			pipelineCreateInfo.polygonMode = Graphics::PolygonMode::FILL;
-			pipelineCreateInfo.cullMode = Graphics::CullMode::BACK;
-			pipelineCreateInfo.transparencyEnabled = false;
-			pipelineCreateInfo.depthBiasEnabled = false;
+            CreateFramebuffers();
+        }
 
-			m_Pipeline = Graphics::Pipeline::Get(pipelineCreateInfo);
-		}
+        void ForwardRenderer::CreateGraphicsPipeline()
+        {
+            m_Shader = Application::Get().GetShaderLibrary()->GetResource("/CoreShaders/Simple.shader");
 
-		void ForwardRenderer::SetRenderTarget(Texture* texture, bool rebuildFramebuffer)
-		{
-			m_RenderTexture = texture;
+            Graphics::PipelineInfo pipelineCreateInfo {};
+            pipelineCreateInfo.shader = m_Shader;
+            pipelineCreateInfo.renderpass = m_RenderPass;
+            pipelineCreateInfo.polygonMode = Graphics::PolygonMode::FILL;
+            pipelineCreateInfo.cullMode = Graphics::CullMode::BACK;
+            pipelineCreateInfo.transparencyEnabled = false;
+            pipelineCreateInfo.depthBiasEnabled = false;
 
-			if(!rebuildFramebuffer)
-				return;
+            m_Pipeline = Graphics::Pipeline::Get(pipelineCreateInfo);
+        }
 
-			m_Framebuffers.clear();
+        void ForwardRenderer::SetRenderTarget(Texture* texture, bool rebuildFramebuffer)
+        {
+            m_RenderTexture = texture;
 
-			CreateFramebuffers();
-		}
+            if(!rebuildFramebuffer)
+                return;
 
-		void ForwardRenderer::CreateFramebuffers()
-		{
-			TextureType attachmentTypes[2];
-			Texture* attachments[2];
+            m_Framebuffers.clear();
 
-			attachmentTypes[0] = TextureType::COLOUR;
-			if(m_DepthTest)
-			{
-				attachmentTypes[1] = TextureType::DEPTH;
-				attachments[1] = reinterpret_cast<Texture*>(Application::Get().GetRenderGraph()->GetGBuffer()->GetDepthTexture());
-			}
+            CreateFramebuffers();
+        }
 
-			FramebufferInfo bufferInfo{};
-			bufferInfo.width = m_ScreenBufferWidth;
-			bufferInfo.height = m_ScreenBufferHeight;
-			bufferInfo.attachmentCount = m_DepthTest ? 2 : 1;
-			bufferInfo.renderPass = m_RenderPass.get();
-			bufferInfo.attachmentTypes = attachmentTypes;
+        void ForwardRenderer::CreateFramebuffers()
+        {
+            TextureType attachmentTypes[2];
+            Texture* attachments[2];
 
-			if(m_RenderTexture)
-			{
-				attachments[0] = m_RenderTexture;
-				bufferInfo.attachments = attachments;
-				bufferInfo.screenFBO = false;
-				m_Framebuffers.emplace_back(Framebuffer::Get(bufferInfo));
-			}
-			else
-			{
-				for(uint32_t i = 0; i < Renderer::GetSwapchain()->GetSwapchainBufferCount(); i++)
-				{
-					bufferInfo.screenFBO = true;
-					attachments[0] = Renderer::GetSwapchain()->GetImage(i);
-					bufferInfo.attachments = attachments;
+            attachmentTypes[0] = TextureType::COLOUR;
+            if(m_DepthTest)
+            {
+                attachmentTypes[1] = TextureType::DEPTH;
+                attachments[1] = reinterpret_cast<Texture*>(Application::Get().GetRenderGraph()->GetGBuffer()->GetDepthTexture());
+            }
 
-					m_Framebuffers.emplace_back(Framebuffer::Get(bufferInfo));
-				}
-			}
-		}
-	}
+            FramebufferInfo bufferInfo {};
+            bufferInfo.width = m_ScreenBufferWidth;
+            bufferInfo.height = m_ScreenBufferHeight;
+            bufferInfo.attachmentCount = m_DepthTest ? 2 : 1;
+            bufferInfo.renderPass = m_RenderPass.get();
+            bufferInfo.attachmentTypes = attachmentTypes;
+
+            if(m_RenderTexture)
+            {
+                attachments[0] = m_RenderTexture;
+                bufferInfo.attachments = attachments;
+                bufferInfo.screenFBO = false;
+                m_Framebuffers.emplace_back(Framebuffer::Get(bufferInfo));
+            }
+            else
+            {
+                for(uint32_t i = 0; i < Renderer::GetSwapchain()->GetSwapchainBufferCount(); i++)
+                {
+                    bufferInfo.screenFBO = true;
+                    attachments[0] = Renderer::GetSwapchain()->GetImage(i);
+                    bufferInfo.attachments = attachments;
+
+                    m_Framebuffers.emplace_back(Framebuffer::Get(bufferInfo));
+                }
+            }
+        }
+    }
 }

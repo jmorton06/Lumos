@@ -5,59 +5,59 @@
 
 namespace Lumos
 {
-	namespace Graphics
-	{
-		class Texture2D;
-		class TextureCube;
-	}
+    namespace Graphics
+    {
+        class Texture2D;
+        class TextureCube;
+    }
 
-	namespace ImGuiHelpers
-	{
-		enum class PropertyFlag
-		{
-			None = 0,
-			ColourProperty = 1
-		};
+    namespace ImGuiHelpers
+    {
+        enum class PropertyFlag
+        {
+            None = 0,
+            ColourProperty = 1
+        };
 
-		enum Theme
-		{
-			Black = 0,
-			Dark,
-			Grey,
-			Light,
-			Blue,
-			ClassicLight,
-			ClassicDark,
-			Classic,
-			Cherry,
-			Cinder
-		};
+        enum Theme
+        {
+            Black = 0,
+            Dark,
+            Grey,
+            Light,
+            Blue,
+            ClassicLight,
+            ClassicDark,
+            Classic,
+            Cherry,
+            Cinder
+        };
 
-		bool Property(const std::string& name, bool& value);
-		bool Property(const std::string& name, float& value, float min = -1.0f, float max = 1.0f, PropertyFlag flags = PropertyFlag::None);
-		bool Property(const std::string& name, Maths::Vector2& value, PropertyFlag flags);
-		bool Property(const std::string& name, Maths::Vector2& value, float min = -1.0f, float max = 1.0f, PropertyFlag flags = PropertyFlag::None);
-		bool Property(const std::string& name, Maths::Vector3& value, PropertyFlag flags);
-		bool Property(const std::string& name, Maths::Vector3& value, float min = -1.0f, float max = 1.0f, PropertyFlag flags = PropertyFlag::None);
-		bool Property(const std::string& name, Maths::Vector4& value, bool exposeW, PropertyFlag flags);
-		bool Property(const std::string& name, Maths::Vector4& value, float min = -1.0f, float max = 1.0f, bool exposeW = false, PropertyFlag flags = PropertyFlag::None);
+        bool Property(const std::string& name, bool& value);
+        bool Property(const std::string& name, float& value, float min = -1.0f, float max = 1.0f, PropertyFlag flags = PropertyFlag::None);
+        bool Property(const std::string& name, Maths::Vector2& value, PropertyFlag flags);
+        bool Property(const std::string& name, Maths::Vector2& value, float min = -1.0f, float max = 1.0f, PropertyFlag flags = PropertyFlag::None);
+        bool Property(const std::string& name, Maths::Vector3& value, PropertyFlag flags);
+        bool Property(const std::string& name, Maths::Vector3& value, float min = -1.0f, float max = 1.0f, PropertyFlag flags = PropertyFlag::None);
+        bool Property(const std::string& name, Maths::Vector4& value, bool exposeW, PropertyFlag flags);
+        bool Property(const std::string& name, Maths::Vector4& value, float min = -1.0f, float max = 1.0f, bool exposeW = false, PropertyFlag flags = PropertyFlag::None);
 
-		void Tooltip(const std::string& text);
-		void Tooltip(const char* text);
+        void Tooltip(const std::string& text);
+        void Tooltip(const char* text);
 
-		void Tooltip(Graphics::Texture2D* texture, const Maths::Vector2& size);
-		void Tooltip(Graphics::Texture2D* texture, const Maths::Vector2& size, const std::string& text);
-		void Image(Graphics::Texture2D* texture, const Maths::Vector2& size);
-		void Image(Graphics::TextureCube* texture, const Maths::Vector2& size);
+        void Tooltip(Graphics::Texture2D* texture, const Maths::Vector2& size);
+        void Tooltip(Graphics::Texture2D* texture, const Maths::Vector2& size, const std::string& text);
+        void Image(Graphics::Texture2D* texture, const Maths::Vector2& size);
+        void Image(Graphics::TextureCube* texture, const Maths::Vector2& size);
 
-		void SetTheme(Theme theme);
+        void SetTheme(Theme theme);
 
-		bool BufferingBar(const char* label, float value, const Maths::Vector2& size_arg, const uint32_t& bg_col, const uint32_t& fg_col);
-		bool Spinner(const char* label, float radius, int thickness, const uint32_t& colour);
-    
+        bool BufferingBar(const char* label, float value, const Maths::Vector2& size_arg, const uint32_t& bg_col, const uint32_t& fg_col);
+        bool Spinner(const char* label, float radius, int thickness, const uint32_t& colour);
+
         Maths::Vector4 GetSelectedColour();
 
-	}
+    }
 }
 
 namespace ImGui
@@ -73,26 +73,113 @@ namespace ImGui
     bool DragFloatNEx(const char* labels[], float* v, int components, float v_speed = 1.0f, float v_min = 0.0f, float v_max = 0.0f, const char* display_format = "%.3f", float power = 1.0f);
 }
 
-
-static inline ImVec2 operator*(const ImVec2& lhs, const float rhs)   { return ImVec2(lhs.x*rhs, lhs.y*rhs); }
-static inline ImVec2 operator/(const ImVec2& lhs, const float rhs)   { return ImVec2(lhs.x/rhs, lhs.y/rhs); }
-static inline ImVec2 operator+(const ImVec2& lhs, const ImVec2& rhs) { return ImVec2(lhs.x+rhs.x, lhs.y+rhs.y); }
-static inline ImVec2 operator-(const ImVec2& lhs, const ImVec2& rhs) { return ImVec2(lhs.x-rhs.x, lhs.y-rhs.y); }
-static inline ImVec2 operator*(const ImVec2& lhs, const ImVec2& rhs) { return ImVec2(lhs.x*rhs.x, lhs.y*rhs.y); }
-static inline ImVec2 operator/(const ImVec2& lhs, const ImVec2& rhs) { return ImVec2(lhs.x/rhs.x, lhs.y/rhs.y); }
-static inline ImVec2& operator+=(ImVec2& lhs, const ImVec2& rhs)     { lhs.x += rhs.x; lhs.y += rhs.y; return lhs; }
-static inline ImVec2& operator-=(ImVec2& lhs, const ImVec2& rhs)     { lhs.x -= rhs.x; lhs.y -= rhs.y; return lhs; }
-static inline ImVec2& operator*=(ImVec2& lhs, const float rhs)       { lhs.x *= rhs; lhs.y *= rhs; return lhs; }
-static inline ImVec2& operator/=(ImVec2& lhs, const float rhs)       { lhs.x /= rhs; lhs.y /= rhs; return lhs; }
-static inline ImVec4 operator-(const ImVec4& lhs, const ImVec4& rhs) { return ImVec4(lhs.x-rhs.x, lhs.y-rhs.y, lhs.z-rhs.z, lhs.w-rhs.w); }
-static inline ImVec4 operator+(const ImVec4& lhs, const ImVec4& rhs) { return ImVec4(lhs.x+rhs.x, lhs.y+rhs.y, lhs.z+rhs.z, lhs.w+rhs.w); }
-static inline ImVec4 operator*(const ImVec4& lhs, const float rhs)   { return ImVec4(lhs.x*rhs, lhs.y*rhs,lhs.z*rhs,lhs.w*rhs); }
-static inline ImVec4 operator/(const ImVec4& lhs, const float rhs)   { return ImVec4(lhs.x/rhs, lhs.y/rhs,lhs.z/rhs,lhs.w/rhs); }
-static inline ImVec4 operator*(const ImVec4& lhs, const ImVec4& rhs) { return ImVec4(lhs.x*rhs.x, lhs.y*rhs.y,lhs.z*rhs.z,lhs.w*rhs.w); }
-static inline ImVec4 operator/(const ImVec4& lhs, const ImVec4& rhs) { return ImVec4(lhs.x/rhs.x,lhs.y/rhs.y,lhs.z/rhs.z,lhs.w/rhs.w); }
-static inline ImVec4& operator+=(ImVec4& lhs, const ImVec4& rhs)     { lhs.x += rhs.x; lhs.y += rhs.y;lhs.z += rhs.z;lhs.w += rhs.w;return lhs; }
-static inline ImVec4& operator-=(ImVec4& lhs, const ImVec4& rhs)     { lhs.x -= rhs.x; lhs.y -= rhs.y;lhs.z -= rhs.z;lhs.w -= rhs.w; return lhs; }
-static inline ImVec4& operator*=(ImVec4& lhs, const float rhs)       { lhs.x *= rhs; lhs.y *= rhs; return lhs; }
-static inline ImVec4& operator/=(ImVec4& lhs, const float rhs)       { lhs.x /= rhs; lhs.y /= rhs; return lhs; }
-static inline std::ostream& operator<<(std::ostream& ostream, const ImVec2 a) { ostream<< "{ " << a.x << ", " << a.y << " }"; return ostream; }
-static inline std::ostream& operator<<(std::ostream& ostream, const ImVec4 a) { ostream<< "{ " << a.x << ", " << a.y << ", " << a.z << ", " << a.w << " }"; return ostream; }
+static inline ImVec2 operator*(const ImVec2& lhs, const float rhs)
+{
+    return ImVec2(lhs.x * rhs, lhs.y * rhs);
+}
+static inline ImVec2 operator/(const ImVec2& lhs, const float rhs)
+{
+    return ImVec2(lhs.x / rhs, lhs.y / rhs);
+}
+static inline ImVec2 operator+(const ImVec2& lhs, const ImVec2& rhs)
+{
+    return ImVec2(lhs.x + rhs.x, lhs.y + rhs.y);
+}
+static inline ImVec2 operator-(const ImVec2& lhs, const ImVec2& rhs)
+{
+    return ImVec2(lhs.x - rhs.x, lhs.y - rhs.y);
+}
+static inline ImVec2 operator*(const ImVec2& lhs, const ImVec2& rhs)
+{
+    return ImVec2(lhs.x * rhs.x, lhs.y * rhs.y);
+}
+static inline ImVec2 operator/(const ImVec2& lhs, const ImVec2& rhs)
+{
+    return ImVec2(lhs.x / rhs.x, lhs.y / rhs.y);
+}
+static inline ImVec2& operator+=(ImVec2& lhs, const ImVec2& rhs)
+{
+    lhs.x += rhs.x;
+    lhs.y += rhs.y;
+    return lhs;
+}
+static inline ImVec2& operator-=(ImVec2& lhs, const ImVec2& rhs)
+{
+    lhs.x -= rhs.x;
+    lhs.y -= rhs.y;
+    return lhs;
+}
+static inline ImVec2& operator*=(ImVec2& lhs, const float rhs)
+{
+    lhs.x *= rhs;
+    lhs.y *= rhs;
+    return lhs;
+}
+static inline ImVec2& operator/=(ImVec2& lhs, const float rhs)
+{
+    lhs.x /= rhs;
+    lhs.y /= rhs;
+    return lhs;
+}
+static inline ImVec4 operator-(const ImVec4& lhs, const ImVec4& rhs)
+{
+    return ImVec4(lhs.x - rhs.x, lhs.y - rhs.y, lhs.z - rhs.z, lhs.w - rhs.w);
+}
+static inline ImVec4 operator+(const ImVec4& lhs, const ImVec4& rhs)
+{
+    return ImVec4(lhs.x + rhs.x, lhs.y + rhs.y, lhs.z + rhs.z, lhs.w + rhs.w);
+}
+static inline ImVec4 operator*(const ImVec4& lhs, const float rhs)
+{
+    return ImVec4(lhs.x * rhs, lhs.y * rhs, lhs.z * rhs, lhs.w * rhs);
+}
+static inline ImVec4 operator/(const ImVec4& lhs, const float rhs)
+{
+    return ImVec4(lhs.x / rhs, lhs.y / rhs, lhs.z / rhs, lhs.w / rhs);
+}
+static inline ImVec4 operator*(const ImVec4& lhs, const ImVec4& rhs)
+{
+    return ImVec4(lhs.x * rhs.x, lhs.y * rhs.y, lhs.z * rhs.z, lhs.w * rhs.w);
+}
+static inline ImVec4 operator/(const ImVec4& lhs, const ImVec4& rhs)
+{
+    return ImVec4(lhs.x / rhs.x, lhs.y / rhs.y, lhs.z / rhs.z, lhs.w / rhs.w);
+}
+static inline ImVec4& operator+=(ImVec4& lhs, const ImVec4& rhs)
+{
+    lhs.x += rhs.x;
+    lhs.y += rhs.y;
+    lhs.z += rhs.z;
+    lhs.w += rhs.w;
+    return lhs;
+}
+static inline ImVec4& operator-=(ImVec4& lhs, const ImVec4& rhs)
+{
+    lhs.x -= rhs.x;
+    lhs.y -= rhs.y;
+    lhs.z -= rhs.z;
+    lhs.w -= rhs.w;
+    return lhs;
+}
+static inline ImVec4& operator*=(ImVec4& lhs, const float rhs)
+{
+    lhs.x *= rhs;
+    lhs.y *= rhs;
+    return lhs;
+}
+static inline ImVec4& operator/=(ImVec4& lhs, const float rhs)
+{
+    lhs.x /= rhs;
+    lhs.y /= rhs;
+    return lhs;
+}
+static inline std::ostream& operator<<(std::ostream& ostream, const ImVec2 a)
+{
+    ostream << "{ " << a.x << ", " << a.y << " }";
+    return ostream;
+}
+static inline std::ostream& operator<<(std::ostream& ostream, const ImVec4 a)
+{
+    ostream << "{ " << a.x << ", " << a.y << ", " << a.z << ", " << a.w << " }";
+    return ostream;
+}

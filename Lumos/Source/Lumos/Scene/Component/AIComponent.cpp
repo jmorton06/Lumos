@@ -9,14 +9,14 @@ namespace Lumos
     {
         m_AINode = CreateRef<AINode>();
     }
-    
-	AIComponent::AIComponent(Ref<AINode>& aiNode)
-		: m_AINode(aiNode)
-	{
-	}
 
-	void AIComponent::OnImGui()
-	{
-	}
+    AIComponent::AIComponent(Ref<AINode>& aiNode)
+        : m_AINode(aiNode)
+    {
+    }
+
+    void AIComponent::OnImGui()
+    {
+    }
 
 }

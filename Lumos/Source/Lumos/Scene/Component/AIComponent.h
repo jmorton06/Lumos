@@ -4,14 +4,15 @@
 
 namespace Lumos
 {
-	class LUMOS_EXPORT AIComponent
-	{
-	public:
+    class LUMOS_EXPORT AIComponent
+    {
+    public:
         AIComponent();
-		explicit AIComponent(Ref<AINode>& aiNode);
+        explicit AIComponent(Ref<AINode>& aiNode);
 
-		void OnImGui();
+        void OnImGui();
+
     private:
         Ref<AINode> m_AINode;
-	};
+    };
 }

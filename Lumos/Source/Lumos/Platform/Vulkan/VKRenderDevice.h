@@ -10,13 +10,13 @@ namespace Lumos
         public:
             VKRenderDevice() = default;
             ~VKRenderDevice() = default;
-            
+
             void Init() override;
-            
+
             static void MakeDefault();
+
         protected:
             static RenderDevice* CreateFuncVulkan();
-            
         };
     }
 }

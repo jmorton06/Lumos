@@ -5,16 +5,15 @@ namespace Lumos::Graphics
 {
     void GLRenderDevice::Init()
     {
-        
     }
 
-	void GLRenderDevice::MakeDefault()
-	{
-		CreateFunc = CreateFuncGL;
-	}
+    void GLRenderDevice::MakeDefault()
+    {
+        CreateFunc = CreateFuncGL;
+    }
 
-	RenderDevice* GLRenderDevice::CreateFuncGL()
-	{
-		return new GLRenderDevice();
-	}
+    RenderDevice* GLRenderDevice::CreateFuncGL()
+    {
+        return new GLRenderDevice();
+    }
 }

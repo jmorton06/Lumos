@@ -12,33 +12,33 @@ namespace Lumos
 {
     AudioManager* AudioManager::Create()
     {
-        #ifdef LUMOS_OPENAL
+#ifdef LUMOS_OPENAL
         return new Audio::ALManager();
-        #else
+#else
         return nullptr;
-        #endif
+#endif
     }
-	
-	void AudioManager::SetPaused(bool paused)
-	{
-		m_Paused = paused;
+
+    void AudioManager::SetPaused(bool paused)
+    {
+        m_Paused = paused;
         if(!Application::Get().GetCurrentScene())
             return;
-		auto soundsView = Application::Get().GetCurrentScene()->GetRegistry().view<SoundComponent>();
-		
-		if(m_Paused)
-		{
-			for(auto entity : soundsView)
+        auto soundsView = Application::Get().GetCurrentScene()->GetRegistry().view<SoundComponent>();
+
+        if(m_Paused)
+        {
+            for(auto entity : soundsView)
                 soundsView.get<SoundComponent>(entity).GetSoundNode()->Stop();
-		}
-		else
-		{
-			for(auto entity : soundsView)
-			{
-				auto soundNode = soundsView.get<SoundComponent>(entity).GetSoundNode();
+        }
+        else
+        {
+            for(auto entity : soundsView)
+            {
+                auto soundNode = soundsView.get<SoundComponent>(entity).GetSoundNode();
                 if(!soundNode->GetPaused())
-					soundNode->Resume();
-			}
-		}
-	}
+                    soundNode->Resume();
+            }
+        }
+    }
 }

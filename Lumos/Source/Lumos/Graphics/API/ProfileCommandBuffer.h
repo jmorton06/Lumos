@@ -8,5 +8,4 @@
 #ifndef ProfileCommandBuffer_h
 #define ProfileCommandBuffer_h
 
-
 #endif /* ProfileCommandBuffer_h */

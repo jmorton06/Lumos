@@ -9,7 +9,8 @@ namespace Lumos
 {
     namespace Graphics
     {
-        GLPipeline::GLPipeline(const PipelineInfo &pipelineCreateInfo) : m_RenderPass(nullptr)
+        GLPipeline::GLPipeline(const PipelineInfo& pipelineCreateInfo)
+            : m_RenderPass(nullptr)
         {
             Init(pipelineCreateInfo);
         }
@@ -24,67 +25,67 @@ namespace Lumos
         {
             switch(format)
             {
-                case Format::R32_FLOAT :
+            case Format::R32_FLOAT:
                 GLCall(glVertexAttribPointer(index, 1, GL_FLOAT, false, stride, (const void*)(intptr_t)(offset)));
                 break;
-                case Format::R32G32_FLOAT : 
+            case Format::R32G32_FLOAT:
                 GLCall(glVertexAttribPointer(index, 2, GL_FLOAT, false, stride, (const void*)(intptr_t)(offset)));
                 break;
-                case Format::R32G32B32_FLOAT : 
+            case Format::R32G32B32_FLOAT:
                 GLCall(glVertexAttribPointer(index, 3, GL_FLOAT, false, stride, (const void*)(intptr_t)(offset)));
                 break;
-                case Format::R32G32B32A32_FLOAT : 
+            case Format::R32G32B32A32_FLOAT:
                 GLCall(glVertexAttribPointer(index, 4, GL_FLOAT, false, stride, (const void*)(intptr_t)(offset)));
                 break;
-                case Format::R8_UINT :
+            case Format::R8_UINT:
                 GLCall(glVertexAttribPointer(index, 1, GL_UNSIGNED_BYTE, false, stride, (const void*)(intptr_t)(offset)));
                 break;
-                case Format::R32_UINT : 
+            case Format::R32_UINT:
                 GLCall(glVertexAttribPointer(index, 1, GL_UNSIGNED_INT, false, stride, (const void*)(intptr_t)(offset)));
                 break;
-                case Format::R32G32_UINT :
+            case Format::R32G32_UINT:
                 GLCall(glVertexAttribPointer(index, 2, GL_UNSIGNED_INT, false, stride, (const void*)(intptr_t)(offset)));
                 break;
-                case Format::R32G32B32_UINT :
+            case Format::R32G32B32_UINT:
                 GLCall(glVertexAttribPointer(index, 3, GL_UNSIGNED_INT, false, stride, (const void*)(intptr_t)(offset)));
                 break;
-                case Format::R32G32B32A32_UINT :
+            case Format::R32G32B32A32_UINT:
                 GLCall(glVertexAttribPointer(index, 4, GL_UNSIGNED_INT, false, stride, (const void*)(intptr_t)(offset)));
                 break;
-                case Format::R32G32_INT :
+            case Format::R32G32_INT:
                 GLCall(glVertexAttribPointer(index, 2, GL_INT, false, stride, (const void*)(intptr_t)(offset)));
                 break;
-                case Format::R32G32B32_INT :
+            case Format::R32G32B32_INT:
                 GLCall(glVertexAttribPointer(index, 3, GL_INT, false, stride, (const void*)(intptr_t)(offset)));
                 break;
-                case Format::R32G32B32A32_INT :
+            case Format::R32G32B32A32_INT:
                 GLCall(glVertexAttribPointer(index, 4, GL_INT, false, stride, (const void*)(intptr_t)(offset)));
                 break;
             }
         }
 
-        bool GLPipeline::Init(const PipelineInfo &pipelineCreateInfo)
+        bool GLPipeline::Init(const PipelineInfo& pipelineCreateInfo)
         {
             DescriptorInfo info;
             info.pipeline = this;
             info.layoutIndex = 0;
             info.shader = pipelineCreateInfo.shader.get();
-			m_DescriptorSet = new GLDescriptorSet(info);
+            m_DescriptorSet = new GLDescriptorSet(info);
             m_TransparencyEnabled = pipelineCreateInfo.transparencyEnabled;
 
             GLCall(glGenVertexArrays(1, &m_VertexArray));
 
-			m_Shader = info.shader;
+            m_Shader = info.shader;
             return true;
         }
-    
+
         void GLPipeline::BindVertexArray()
         {
             GLCall(glBindVertexArray(m_VertexArray));
 
             auto& vertexLayout = ((GLShader*)m_Shader)->GetBufferLayout().GetLayout();
             uint32_t count = 0;
-            
+
             for(auto& layout : vertexLayout)
             {
                 GLCall(glEnableVertexAttribArray(count));
@@ -93,7 +94,7 @@ namespace Lumos
                 count++;
             }
         }
-    
+
         void GLPipeline::Bind(Graphics::CommandBuffer* cmdBuffer)
         {
             if(m_TransparencyEnabled)
@@ -104,14 +105,14 @@ namespace Lumos
             m_Shader->Bind();
         }
 
-		void GLPipeline::MakeDefault()
-		{
-			CreateFunc = CreateFuncGL;
-		}
+        void GLPipeline::MakeDefault()
+        {
+            CreateFunc = CreateFuncGL;
+        }
 
-		Pipeline* GLPipeline::CreateFuncGL(const PipelineInfo & pipelineCreateInfo)
-		{
-			return new GLPipeline(pipelineCreateInfo);
-		}
+        Pipeline* GLPipeline::CreateFuncGL(const PipelineInfo& pipelineCreateInfo)
+        {
+            return new GLPipeline(pipelineCreateInfo);
+        }
     }
 }

@@ -404,8 +404,8 @@ namespace Lumos
 		m_SelectUp = false;
 		m_SelectDown = false;
 		
-		m_SelectUp = Input::GetInput()->GetKeyPressed(Lumos::InputCode::Key::Up);
-		m_SelectDown = Input::GetInput()->GetKeyPressed(Lumos::InputCode::Key::Down);
+		m_SelectUp = Input::Get().GetKeyPressed(Lumos::InputCode::Key::Up);
+		m_SelectDown = Input::Get().GetKeyPressed(Lumos::InputCode::Key::Down);
 		
 		ImGui::Begin(m_Name.c_str(), &m_Active, flags);
 		{

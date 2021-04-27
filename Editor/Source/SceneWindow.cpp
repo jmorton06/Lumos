@@ -232,10 +232,10 @@ namespace Lumos
 
 		m_Editor->OnImGuizmo();
 
-		if(!gameView && app.GetSceneActive() && !ImGuizmo::IsUsing() && Input::GetInput()->GetMouseClicked(InputCode::MouseKey::ButtonLeft))
+		if(!gameView && app.GetSceneActive() && !ImGuizmo::IsUsing() && Input::Get().GetMouseClicked(InputCode::MouseKey::ButtonLeft))
 		{
             float dpi = Application::Get().GetWindowDPI();
-			auto clickPos = Input::GetInput()->GetMousePosition() - Maths::Vector2(sceneViewPosition.x / dpi, sceneViewPosition.y /dpi);
+			auto clickPos = Input::Get().GetMousePosition() - Maths::Vector2(sceneViewPosition.x / dpi, sceneViewPosition.y /dpi);
 			m_Editor->SelectObject(m_Editor->GetScreenRay(int(clickPos.x), int(clickPos.y), camera, int(sceneViewSize.x)/ dpi, int(sceneViewSize.y) /dpi));
 		}
 

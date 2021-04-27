@@ -18,22 +18,22 @@
 
 void Lumos::Graphics::Vulkan::MakeDefault()
 {
-	VKCommandBuffer::MakeDefault();
-	VKContext::MakeDefault();
-	VKDescriptorSet::MakeDefault();
-	VKFramebuffer::MakeDefault();
-	VKIMGUIRenderer::MakeDefault();
-	VKIndexBuffer::MakeDefault();
-	VKPipeline::MakeDefault();
-	VKRenderDevice::MakeDefault();
-	VKRenderer::MakeDefault();
-	VKRenderpass::MakeDefault();
-	VKShader::MakeDefault();
-	VKSwapchain::MakeDefault();
-	VKTexture2D::MakeDefault();
-	VKTextureCube::MakeDefault();
-	VKTextureDepth::MakeDefault();
-	VKTextureDepthArray::MakeDefault();
-	VKUniformBuffer::MakeDefault();
-	VKVertexBuffer::MakeDefault();
+    VKCommandBuffer::MakeDefault();
+    VKContext::MakeDefault();
+    VKDescriptorSet::MakeDefault();
+    VKFramebuffer::MakeDefault();
+    VKIMGUIRenderer::MakeDefault();
+    VKIndexBuffer::MakeDefault();
+    VKPipeline::MakeDefault();
+    VKRenderDevice::MakeDefault();
+    VKRenderer::MakeDefault();
+    VKRenderpass::MakeDefault();
+    VKShader::MakeDefault();
+    VKSwapchain::MakeDefault();
+    VKTexture2D::MakeDefault();
+    VKTextureCube::MakeDefault();
+    VKTextureDepth::MakeDefault();
+    VKTextureDepthArray::MakeDefault();
+    VKUniformBuffer::MakeDefault();
+    VKVertexBuffer::MakeDefault();
 }

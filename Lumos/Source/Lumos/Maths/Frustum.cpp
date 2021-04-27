@@ -5,25 +5,24 @@ namespace Lumos::Maths
 {
     inline Vector3 ClipEdgeZ(const Vector3& v0, const Vector3& v1, float clipZ)
     {
-		LUMOS_PROFILE_FUNCTION();
+        LUMOS_PROFILE_FUNCTION();
         return Vector3(
             v1.x + (v0.x - v1.x) * ((clipZ - v1.z) / (v0.z - v1.z)),
             v1.y + (v0.y - v1.y) * ((clipZ - v1.z) / (v0.z - v1.z)),
-            clipZ
-        );
+            clipZ);
     }
 
     void ProjectAndMergeEdge(Vector3 v0, Vector3 v1, Rect& rect, const Matrix4& projection)
     {
-		LUMOS_PROFILE_FUNCTION();
+        LUMOS_PROFILE_FUNCTION();
         // Check if both vertices behind near plane
-        if (v0.z < M_MIN_NEARCLIP && v1.z < M_MIN_NEARCLIP)
+        if(v0.z < M_MIN_NEARCLIP && v1.z < M_MIN_NEARCLIP)
             return;
 
         // Check if need to clip one of the vertices
-        if (v1.z < M_MIN_NEARCLIP)
+        if(v1.z < M_MIN_NEARCLIP)
             v1 = ClipEdgeZ(v1, v0, M_MIN_NEARCLIP);
-        else if (v0.z < M_MIN_NEARCLIP)
+        else if(v0.z < M_MIN_NEARCLIP)
             v0 = ClipEdgeZ(v0, v1, M_MIN_NEARCLIP);
 
         // Project, perspective divide and merge
@@ -38,12 +37,12 @@ namespace Lumos::Maths
         *this = frustum;
     }
 
-    Frustum& Frustum::operator =(const Frustum& rhs) noexcept
+    Frustum& Frustum::operator=(const Frustum& rhs) noexcept
     {
-		LUMOS_PROFILE_FUNCTION();
-        for (unsigned i = 0; i < NUM_FRUSTUM_PLANES; ++i)
+        LUMOS_PROFILE_FUNCTION();
+        for(unsigned i = 0; i < NUM_FRUSTUM_PLANES; ++i)
             planes_[i] = rhs.planes_[i];
-        for (unsigned i = 0; i < NUM_FRUSTUM_VERTICES; ++i)
+        for(unsigned i = 0; i < NUM_FRUSTUM_VERTICES; ++i)
             vertices_[i] = rhs.vertices_[i];
 
         return *this;
@@ -51,7 +50,7 @@ namespace Lumos::Maths
 
     void Frustum::Define(float fov, float aspectRatio, float zoom, float nearZ, float farZ, const Matrix3x4& transform)
     {
-		LUMOS_PROFILE_FUNCTION();
+        LUMOS_PROFILE_FUNCTION();
         nearZ = Max(nearZ, 0.0f);
         farZ = Max(farZ, nearZ);
         float halfViewSize = tanf(fov * M_DEGTORAD_2) / zoom;
@@ -69,7 +68,7 @@ namespace Lumos::Maths
 
     void Frustum::Define(const Vector3& lNear, const Vector3& lFar, const Matrix3x4& transform)
     {
-		LUMOS_PROFILE_FUNCTION();
+        LUMOS_PROFILE_FUNCTION();
         vertices_[0] = transform * lNear;
         vertices_[1] = transform * Vector3(lNear.x, -lNear.y, lNear.z);
         vertices_[2] = transform * Vector3(-lNear.x, -lNear.y, lNear.z);
@@ -84,7 +83,7 @@ namespace Lumos::Maths
 
     void Frustum::Define(const BoundingBox& box, const Matrix3x4& transform)
     {
-		LUMOS_PROFILE_FUNCTION();
+        LUMOS_PROFILE_FUNCTION();
         vertices_[0] = transform * Vector3(box.max_.x, box.max_.y, box.min_.z);
         vertices_[1] = transform * Vector3(box.max_.x, box.min_.y, box.min_.z);
         vertices_[2] = transform * Vector3(box.min_.x, box.min_.y, box.min_.z);
@@ -99,11 +98,11 @@ namespace Lumos::Maths
 
     void Frustum::Define(const Matrix4& projection)
     {
-		LUMOS_PROFILE_FUNCTION();
+        LUMOS_PROFILE_FUNCTION();
         Matrix4 projInverse = projection.Inverse();
 
         bool zeroOne = Matrix4::IsDepthZeroOne();
-    
+
         vertices_[0] = projInverse * Vector3(1.0f, 1.0f, zeroOne ? 0.0f : -1.0f);
         vertices_[1] = projInverse * Vector3(1.0f, -1.0f, zeroOne ? 0.0f : -1.0f);
         vertices_[2] = projInverse * Vector3(-1.0f, -1.0f, zeroOne ? 0.0f : -1.0f);
@@ -118,23 +117,23 @@ namespace Lumos::Maths
 
     void Frustum::DefineOrtho(float orthoSize, float aspectRatio, float zoom, float nearZ, float farZ, const Matrix3x4& transform)
     {
-		LUMOS_PROFILE_FUNCTION();
+        LUMOS_PROFILE_FUNCTION();
         nearZ = Max(nearZ, 0.0f);
         farZ = Max(farZ, nearZ);
         float halfViewSize = orthoSize * 0.5f / zoom;
         Vector3 lNear, lFar;
 
-		lNear.z = nearZ;
-		lFar.z = farZ;
-		lFar.y = lNear.y = halfViewSize;
-		lFar.x = lNear.x = lNear.y * aspectRatio;
+        lNear.z = nearZ;
+        lFar.z = farZ;
+        lFar.y = lNear.y = halfViewSize;
+        lFar.x = lNear.x = lNear.y * aspectRatio;
 
         Define(lNear, lFar, transform);
     }
 
     void Frustum::DefineSplit(const Matrix4& projection, float lNear, float lFar)
     {
-		LUMOS_PROFILE_FUNCTION();
+        LUMOS_PROFILE_FUNCTION();
         Matrix4 projInverse = projection.Inverse();
 
         // Figure out depth values for near & far
@@ -151,14 +150,14 @@ namespace Lumos::Maths
         vertices_[5] = projInverse * Vector3(1.0f, -1.0f, farZ);
         vertices_[6] = projInverse * Vector3(-1.0f, -1.0f, farZ);
         vertices_[7] = projInverse * Vector3(-1.0f, 1.0f, farZ);
-    
+
         UpdatePlanes();
     }
 
     void Frustum::Transform(const Matrix3& transform)
     {
-		LUMOS_PROFILE_FUNCTION();
-        for (auto& vertice : vertices_)
+        LUMOS_PROFILE_FUNCTION();
+        for(auto& vertice : vertices_)
             vertice = transform * vertice;
 
         UpdatePlanes();
@@ -166,8 +165,8 @@ namespace Lumos::Maths
 
     void Frustum::Transform(const Matrix3x4& transform)
     {
-		LUMOS_PROFILE_FUNCTION();
-        for (auto& vertice : vertices_)
+        LUMOS_PROFILE_FUNCTION();
+        for(auto& vertice : vertices_)
             vertice = transform * vertice;
 
         UpdatePlanes();
@@ -175,9 +174,9 @@ namespace Lumos::Maths
 
     Frustum Frustum::Transformed(const Matrix3& transform) const
     {
-		LUMOS_PROFILE_FUNCTION();
+        LUMOS_PROFILE_FUNCTION();
         Frustum transformed;
-        for (unsigned i = 0; i < NUM_FRUSTUM_VERTICES; ++i)
+        for(unsigned i = 0; i < NUM_FRUSTUM_VERTICES; ++i)
             transformed.vertices_[i] = transform * vertices_[i];
 
         transformed.UpdatePlanes();
@@ -186,9 +185,9 @@ namespace Lumos::Maths
 
     Frustum Frustum::Transformed(const Matrix3x4& transform) const
     {
-		LUMOS_PROFILE_FUNCTION();
+        LUMOS_PROFILE_FUNCTION();
         Frustum transformed;
-        for (unsigned i = 0; i < NUM_FRUSTUM_VERTICES; ++i)
+        for(unsigned i = 0; i < NUM_FRUSTUM_VERTICES; ++i)
             transformed.vertices_[i] = transform * vertices_[i];
 
         transformed.UpdatePlanes();
@@ -197,7 +196,7 @@ namespace Lumos::Maths
 
     Rect Frustum::Projected(const Matrix4& projection) const
     {
-		LUMOS_PROFILE_FUNCTION();
+        LUMOS_PROFILE_FUNCTION();
         Rect rect;
 
         ProjectAndMergeEdge(vertices_[0], vertices_[4], rect, projection);
@@ -214,7 +213,7 @@ namespace Lumos::Maths
 
     void Frustum::UpdatePlanes()
     {
-		LUMOS_PROFILE_FUNCTION();
+        LUMOS_PROFILE_FUNCTION();
         planes_[PLANE_NEAR].Define(vertices_[2], vertices_[1], vertices_[0]);
         planes_[PLANE_LEFT].Define(vertices_[3], vertices_[7], vertices_[6]);
         planes_[PLANE_RIGHT].Define(vertices_[1], vertices_[5], vertices_[4]);
@@ -223,9 +222,9 @@ namespace Lumos::Maths
         planes_[PLANE_FAR].Define(vertices_[5], vertices_[6], vertices_[7]);
 
         // Check if we ended up with inverted planes (reflected transform) and flip in that case
-        if (planes_[PLANE_NEAR].Distance(vertices_[5]) < 0.0f)
+        if(planes_[PLANE_NEAR].Distance(vertices_[5]) < 0.0f)
         {
-            for (auto& plane : planes_)
+            for(auto& plane : planes_)
             {
                 plane.normal_ = -plane.normal_;
                 plane.d_ = -plane.d_;

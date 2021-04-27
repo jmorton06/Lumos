@@ -2,7 +2,7 @@
 
 namespace Lumos
 {
-    struct InternalVersion 
+    struct InternalVersion
     {
         int major = 0;
         int minor = 3;
@@ -11,9 +11,9 @@ namespace Lumos
 
     constexpr InternalVersion const LumosVersion = InternalVersion();
 
-    struct Version 
+    struct Version
     {
-        enum class Stage 
+        enum class Stage
         {
             Preview,
             Alpha,
@@ -28,5 +28,5 @@ namespace Lumos
         int rev = 3;
     };
 
-	constexpr Version const version = Version();
+    constexpr Version const version = Version();
 }

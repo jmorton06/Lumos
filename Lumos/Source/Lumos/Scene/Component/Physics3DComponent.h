@@ -16,86 +16,86 @@ namespace Lumos
     public:
         AxisConstraintComponent(Entity entity, Axes axis);
         ~AxisConstraintComponent() = default;
-        
-        const Ref<AxisConstraint>& GetConstraint() const { return m_Constraint;}
+
+        const Ref<AxisConstraint>& GetConstraint() const { return m_Constraint; }
 
     private:
         Ref<AxisConstraint> m_Constraint;
     };
 
-	class SpringConstraintComponent
-	{
-	public:
-		SpringConstraintComponent(Entity entity, Entity otherEntity, const Maths::Vector3& pos1, const Maths::Vector3& pos2, float constant = 1.0f);
-		SpringConstraintComponent(Entity entity, Entity otherEntity);
-		~SpringConstraintComponent() = default;
-		
-		const Ref<SpringConstraint>& GetConstraint() const { return m_Constraint;}
+    class SpringConstraintComponent
+    {
+    public:
+        SpringConstraintComponent(Entity entity, Entity otherEntity, const Maths::Vector3& pos1, const Maths::Vector3& pos2, float constant = 1.0f);
+        SpringConstraintComponent(Entity entity, Entity otherEntity);
+        ~SpringConstraintComponent() = default;
 
-	private:
-		Ref<SpringConstraint> m_Constraint;
-		Entity m_OtherEntity;
-	};
+        const Ref<SpringConstraint>& GetConstraint() const { return m_Constraint; }
 
-	class WeldConstraintComponent
-	{
-	public:
-		WeldConstraintComponent(Entity entity,Entity otherEntity, const Maths::Vector3& pos1, const Maths::Vector3& pos2, float constant = 1.0f);
-		WeldConstraintComponent(Entity entity,Entity otherEntity);
-		~WeldConstraintComponent() = default;
-		
-		const Ref<WeldConstraint>& GetConstraint() const { return m_Constraint;}
-		
-	private:
-		Ref<WeldConstraint> m_Constraint;
-		Entity m_OtherEntity;
-	};
+    private:
+        Ref<SpringConstraint> m_Constraint;
+        Entity m_OtherEntity;
+    };
 
-	class DistanceConstraintComponent
-	{
-	public:
-		DistanceConstraintComponent(Entity entity,Entity otherEntity, const Maths::Vector3& pos1, const Maths::Vector3& pos2, float constant = 1.0f);
-		DistanceConstraintComponent(Entity entity,Entity otherEntity);
-		~DistanceConstraintComponent() = default;
-		
-		const Ref<DistanceConstraint>& GetConstraint() const { return m_Constraint;}
-		
-	private:
-		Ref<DistanceConstraint> m_Constraint;
-		Entity m_OtherEntity;
-	};
+    class WeldConstraintComponent
+    {
+    public:
+        WeldConstraintComponent(Entity entity, Entity otherEntity, const Maths::Vector3& pos1, const Maths::Vector3& pos2, float constant = 1.0f);
+        WeldConstraintComponent(Entity entity, Entity otherEntity);
+        ~WeldConstraintComponent() = default;
 
-	class LUMOS_EXPORT Physics3DComponent
-	{
-	public:
-		Physics3DComponent();
-		explicit Physics3DComponent(Ref<RigidBody3D>& physics);
+        const Ref<WeldConstraint>& GetConstraint() const { return m_Constraint; }
 
-		~Physics3DComponent() = default;
+    private:
+        Ref<WeldConstraint> m_Constraint;
+        Entity m_OtherEntity;
+    };
 
-		void Init();
-		void Update();
-		void OnImGui();
+    class DistanceConstraintComponent
+    {
+    public:
+        DistanceConstraintComponent(Entity entity, Entity otherEntity, const Maths::Vector3& pos1, const Maths::Vector3& pos2, float constant = 1.0f);
+        DistanceConstraintComponent(Entity entity, Entity otherEntity);
+        ~DistanceConstraintComponent() = default;
 
-		const Ref<RigidBody3D>& GetRigidBody() const
-		{
-			return m_RigidBody;
-		}
+        const Ref<DistanceConstraint>& GetConstraint() const { return m_Constraint; }
 
-		template<typename Archive>
-		void save(Archive& archive) const
-		{
-			archive(*m_RigidBody.get());
-		}
+    private:
+        Ref<DistanceConstraint> m_Constraint;
+        Entity m_OtherEntity;
+    };
 
-		template<typename Archive>
-		void load(Archive& archive)
-		{
-			m_RigidBody = CreateRef<RigidBody3D>();
-			archive(*m_RigidBody.get());
-		}
+    class LUMOS_EXPORT Physics3DComponent
+    {
+    public:
+        Physics3DComponent();
+        explicit Physics3DComponent(Ref<RigidBody3D>& physics);
 
-	private:
-		Ref<RigidBody3D> m_RigidBody;
-	};
+        ~Physics3DComponent() = default;
+
+        void Init();
+        void Update();
+        void OnImGui();
+
+        const Ref<RigidBody3D>& GetRigidBody() const
+        {
+            return m_RigidBody;
+        }
+
+        template <typename Archive>
+        void save(Archive& archive) const
+        {
+            archive(*m_RigidBody.get());
+        }
+
+        template <typename Archive>
+        void load(Archive& archive)
+        {
+            m_RigidBody = CreateRef<RigidBody3D>();
+            archive(*m_RigidBody.get());
+        }
+
+    private:
+        Ref<RigidBody3D> m_RigidBody;
+    };
 }

@@ -2,11 +2,11 @@
 
 namespace Lumos
 {
-	namespace Graphics
-	{
-		namespace GL
-		{
-			void MakeDefault();
-		}
-	}
+    namespace Graphics
+    {
+        namespace GL
+        {
+            void MakeDefault();
+        }
+    }
 }

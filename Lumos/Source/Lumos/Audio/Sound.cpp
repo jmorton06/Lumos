@@ -3,33 +3,33 @@
 #include "Core/VFS.h"
 
 #ifdef LUMOS_OPENAL
-#	include "Platform/OpenAL/ALSound.h"
+#include "Platform/OpenAL/ALSound.h"
 #endif
 
 namespace Lumos
 {
-	Sound::Sound()
-		: m_Streaming(false)
-		, m_Data(AudioData())
-	{
-	}
+    Sound::Sound()
+        : m_Streaming(false)
+        , m_Data(AudioData())
+    {
+    }
 
-	Sound::~Sound()
-	{
-		delete[] m_Data.Data;
-	}
+    Sound::~Sound()
+    {
+        delete[] m_Data.Data;
+    }
 
-	Sound* Sound::Create(const std::string& name, const std::string& extension)
-	{
+    Sound* Sound::Create(const std::string& name, const std::string& extension)
+    {
 #ifdef LUMOS_OPENAL
-		return new ALSound(name, extension);
+        return new ALSound(name, extension);
 #else
-		return nullptr;
+        return nullptr;
 #endif
-	}
+    }
 
-	double Sound::GetLength() const
-	{
-		return m_Data.Length;
-	}
+    double Sound::GetLength() const
+    {
+        return m_Data.Length;
+    }
 }

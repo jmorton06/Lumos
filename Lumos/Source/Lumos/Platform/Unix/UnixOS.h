@@ -3,17 +3,17 @@
 
 namespace Lumos
 {
-	class UnixOS : public OS
-	{
-	public:
-		UnixOS() = default;
-		~UnixOS() = default;
+    class UnixOS : public OS
+    {
+    public:
+        UnixOS() = default;
+        ~UnixOS() = default;
 
-		void Init();
-		void Run() override;
-		std::string GetExecutablePath() override
-		{
-			return "";
-		}
-	};
+        void Init();
+        void Run() override;
+        std::string GetExecutablePath() override
+        {
+            return "";
+        }
+    };
 }
