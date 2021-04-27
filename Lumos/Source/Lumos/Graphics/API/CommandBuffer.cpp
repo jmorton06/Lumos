@@ -3,15 +3,15 @@
 
 namespace Lumos
 {
-	namespace Graphics
-	{
-        CommandBuffer*(*CommandBuffer::CreateFunc)() = nullptr;
+    namespace Graphics
+    {
+        CommandBuffer* (*CommandBuffer::CreateFunc)() = nullptr;
 
-		CommandBuffer* CommandBuffer::Create()
-		{
+        CommandBuffer* CommandBuffer::Create()
+        {
             LUMOS_ASSERT(CreateFunc, "No CommandBuffer Create Function");
-            
+
             return CreateFunc();
-		}
-	}
+        }
+    }
 }

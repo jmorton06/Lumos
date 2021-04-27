@@ -3,12 +3,12 @@
 
 namespace Lumos
 {
-	TextureMatrixComponent::TextureMatrixComponent(const Maths::Matrix4& matrix)
-		: m_TextureMatrix(matrix)
-	{
-	}
+    TextureMatrixComponent::TextureMatrixComponent(const Maths::Matrix4& matrix)
+        : m_TextureMatrix(matrix)
+    {
+    }
 
-	void TextureMatrixComponent::OnImGui()
-	{
-	}
+    void TextureMatrixComponent::OnImGui()
+    {
+    }
 }

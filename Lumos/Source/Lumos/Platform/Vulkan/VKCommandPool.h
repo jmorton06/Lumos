@@ -4,20 +4,20 @@
 
 namespace Lumos
 {
-	namespace Graphics
-	{
-		class VKCommandPool
-		{
-		public:
-			VKCommandPool();
-			~VKCommandPool();
+    namespace Graphics
+    {
+        class VKCommandPool
+        {
+        public:
+            VKCommandPool();
+            ~VKCommandPool();
 
-			void Init();
+            void Init();
 
-			const VkCommandPool& GetCommandPool() const { return m_CommandPool; }
-            
+            const VkCommandPool& GetCommandPool() const { return m_CommandPool; }
+
         private:
-			VkCommandPool m_CommandPool;
-		};
-	}
+            VkCommandPool m_CommandPool;
+        };
+    }
 }

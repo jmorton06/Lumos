@@ -23,7 +23,7 @@ namespace Lumos::Maths
     static const unsigned NUM_FRUSTUM_VERTICES = 8;
 
     /// Convex constructed of 6 planes.
-    class  Frustum
+    class Frustum
     {
     public:
         /// Construct a degenerate frustum with all points at origin.
@@ -33,11 +33,11 @@ namespace Lumos::Maths
         Frustum(const Frustum& frustum) noexcept;
 
         /// Assign from another frustum.
-        Frustum& operator =(const Frustum& rhs) noexcept;
+        Frustum& operator=(const Frustum& rhs) noexcept;
 
         /// Define with projection parameters and a transform matrix.
         void
-            Define(float fov, float aspectRatio, float zoom, float nearZ, float farZ, const Matrix3x4& transform = Matrix3x4::IDENTITY);
+        Define(float fov, float aspectRatio, float zoom, float nearZ, float farZ, const Matrix3x4& transform = Matrix3x4::IDENTITY);
         /// Define with near and far dimension vectors and a transform matrix.
         void Define(const Vector3& lNear, const Vector3& lFar, const Matrix3x4& transform = Matrix3x4::IDENTITY);
         /// Define with a bounding box and a transform matrix.
@@ -45,21 +45,20 @@ namespace Lumos::Maths
         /// Define from a projection or view-projection matrix.
         void Define(const Matrix4& projection);
         /// Define with orthographic projection parameters and a transform matrix.
-        void DefineOrtho
-            (float orthoSize, float aspectRatio, float zoom, float nearZ, float farZ, const Matrix3x4& transform = Matrix3x4::IDENTITY);
+        void DefineOrtho(float orthoSize, float aspectRatio, float zoom, float nearZ, float farZ, const Matrix3x4& transform = Matrix3x4::IDENTITY);
         /// Define a split (limited) frustum from a projection matrix, with near & far distances specified.
         void DefineSplit(const Matrix4& projection, float lNear, float lFar);
         /// Transform by a 3x3 matrix.
         void Transform(const Matrix3& transform);
         /// Transform by a 3x4 matrix.
         void Transform(const Matrix3x4& transform);
-    
+
         /// Test if a point is inside or outside.
         Intersection IsInside(const Vector3& point) const
         {
-            for (const auto& plane : planes_)
+            for(const auto& plane : planes_)
             {
-                if (plane.Distance(point) < 0.0f)
+                if(plane.Distance(point) < 0.0f)
                     return OUTSIDE;
             }
 
@@ -70,12 +69,12 @@ namespace Lumos::Maths
         Intersection IsInside(const Sphere& sphere) const
         {
             bool allInside = true;
-            for (const auto& plane : planes_)
+            for(const auto& plane : planes_)
             {
                 float dist = plane.Distance(sphere.center_);
-                if (dist < -sphere.radius_)
+                if(dist < -sphere.radius_)
                     return OUTSIDE;
-                else if (dist < sphere.radius_)
+                else if(dist < sphere.radius_)
                     allInside = false;
             }
 
@@ -85,9 +84,9 @@ namespace Lumos::Maths
         /// Test if a sphere if (partially) inside or outside.
         Intersection IsInsideFast(const Sphere& sphere) const
         {
-            for (const auto& plane : planes_)
+            for(const auto& plane : planes_)
             {
-                if (plane.Distance(sphere.center_) < -sphere.radius_)
+                if(plane.Distance(sphere.center_) < -sphere.radius_)
                     return OUTSIDE;
             }
 
@@ -101,14 +100,14 @@ namespace Lumos::Maths
             Vector3 edge = center - box.min_;
             bool allInside = true;
 
-            for (const auto& plane : planes_)
+            for(const auto& plane : planes_)
             {
                 float dist = plane.normal_.DotProduct(center) + plane.d_;
                 float absDist = plane.absNormal_.DotProduct(edge);
 
-                if (dist < -absDist)
+                if(dist < -absDist)
                     return OUTSIDE;
-                else if (dist < absDist)
+                else if(dist < absDist)
                     allInside = false;
             }
 
@@ -121,12 +120,12 @@ namespace Lumos::Maths
             Vector3 center = box.Center();
             Vector3 edge = center - box.min_;
 
-            for (const auto& plane : planes_)
+            for(const auto& plane : planes_)
             {
                 float dist = plane.normal_.DotProduct(center) + plane.d_;
                 float absDist = plane.absNormal_.DotProduct(edge);
 
-                if (dist < -absDist)
+                if(dist < -absDist)
                     return OUTSIDE;
             }
 
@@ -137,7 +136,7 @@ namespace Lumos::Maths
         float Distance(const Vector3& point) const
         {
             float distance = 0.0f;
-            for (const auto& plane : planes_)
+            for(const auto& plane : planes_)
                 distance = Max(-plane.Distance(point), distance);
 
             return distance;

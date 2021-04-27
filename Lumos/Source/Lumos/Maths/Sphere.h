@@ -12,9 +12,9 @@ namespace Lumos::Maths
     {
     public:
         /// Construct undefined.
-        Sphere() noexcept :
-            center_(Vector3::ZERO),
-            radius_(-M_INFINITY)
+        Sphere() noexcept
+            : center_(Vector3::ZERO)
+            , radius_(-M_INFINITY)
         {
         }
 
@@ -22,9 +22,9 @@ namespace Lumos::Maths
         Sphere(const Sphere& sphere) noexcept = default;
 
         /// Construct from center and radius.
-        Sphere(const Vector3& center, float radius) noexcept :
-            center_(center),
-            radius_(radius)
+        Sphere(const Vector3& center, float radius) noexcept
+            : center_(center)
+            , radius_(radius)
         {
         }
 
@@ -53,13 +53,13 @@ namespace Lumos::Maths
         }
 
         /// Assign from another sphere.
-        Sphere& operator =(const Sphere& rhs) noexcept = default;
+        Sphere& operator=(const Sphere& rhs) noexcept = default;
 
         /// Test for equality with another sphere.
-        bool operator ==(const Sphere& rhs) const { return center_ == rhs.center_ && radius_ == rhs.radius_; }
+        bool operator==(const Sphere& rhs) const { return center_ == rhs.center_ && radius_ == rhs.radius_; }
 
         /// Test for inequality with another sphere.
-        bool operator !=(const Sphere& rhs) const { return center_ != rhs.center_ || radius_ != rhs.radius_; }
+        bool operator!=(const Sphere& rhs) const { return center_ != rhs.center_ || radius_ != rhs.radius_; }
 
         /// Define from another sphere.
         void Define(const Sphere& sphere)
@@ -86,7 +86,7 @@ namespace Lumos::Maths
         /// Merge a point.
         void Merge(const Vector3& point)
         {
-            if (radius_ < 0.0f)
+            if(radius_ < 0.0f)
             {
                 center_ = point;
                 radius_ = 0.0f;
@@ -96,7 +96,7 @@ namespace Lumos::Maths
             Vector3 offset = point - center_;
             float dist = offset.Length();
 
-            if (dist > radius_)
+            if(dist > radius_)
             {
                 float half = (dist - radius_) * 0.5f;
                 radius_ += half;
@@ -132,7 +132,7 @@ namespace Lumos::Maths
         Intersection IsInside(const Vector3& point) const
         {
             float distSquared = (point - center_).LengthSquared();
-            if (distSquared < radius_ * radius_)
+            if(distSquared < radius_ * radius_)
                 return INSIDE;
             else
                 return OUTSIDE;
@@ -142,9 +142,9 @@ namespace Lumos::Maths
         Intersection IsInside(const Sphere& sphere) const
         {
             float dist = (sphere.center_ - center_).Length();
-            if (dist >= sphere.radius_ + radius_)
+            if(dist >= sphere.radius_ + radius_)
                 return OUTSIDE;
-            else if (dist + sphere.radius_ < radius_)
+            else if(dist + sphere.radius_ < radius_)
                 return INSIDE;
             else
                 return INTERSECTS;
@@ -156,7 +156,7 @@ namespace Lumos::Maths
             float distSquared = (sphere.center_ - center_).LengthSquared();
             float combined = sphere.radius_ + radius_;
 
-            if (distSquared >= combined * combined)
+            if(distSquared >= combined * combined)
                 return OUTSIDE;
             else
                 return INSIDE;
@@ -177,6 +177,6 @@ namespace Lumos::Maths
         /// Sphere center.
         Vector3 center_;
         /// Sphere radius.
-        float radius_{};
+        float radius_ {};
     };
 }

@@ -4,12 +4,12 @@
 namespace Lumos::Maths
 {
     /// Surface in three-dimensional space.
-    class  Plane
+    class Plane
     {
     public:
         /// Construct a degenerate plane with zero normal and parameter.
-        Plane() noexcept :
-            d_(0.0f)
+        Plane() noexcept
+            : d_(0.0f)
         {
         }
 
@@ -28,12 +28,12 @@ namespace Lumos::Maths
             Define(normal, point);
         }
 
-		Plane(const Vector3& normal, float distance) noexcept
-		{
-			normal_ = normal.Normalised();
-			absNormal_ = normal_.Abs();
-			d_ = distance;
-		}
+        Plane(const Vector3& normal, float distance) noexcept
+        {
+            normal_ = normal.Normalised();
+            absNormal_ = normal_.Abs();
+            d_ = distance;
+        }
 
         /// Construct from a 4-dimensional vector, where the w coordinate is the plane parameter.
         explicit Plane(const Vector4& plane) noexcept
@@ -42,7 +42,7 @@ namespace Lumos::Maths
         }
 
         /// Assign from another plane.
-        Plane& operator =(const Plane& rhs) noexcept = default;
+        Plane& operator=(const Plane& rhs) noexcept = default;
 
         /// Define from 3 vertices.
         void Define(const Vector3& v0, const Vector3& v1, const Vector3& v2)
@@ -85,7 +85,7 @@ namespace Lumos::Maths
         /// Reflect a Normalised direction vector.
         Vector3 Reflect(const Vector3& direction) const { return direction - (2.0f * normal_.DotProduct(direction) * normal_); }
 
-        bool PointInPlane(const Vector3 &position) const
+        bool PointInPlane(const Vector3& position) const
         {
             return Vector3::Dot(position, normal_) + Distance(Maths::Vector3(0.0f)) >= -0.0001f;
         }
@@ -107,7 +107,7 @@ namespace Lumos::Maths
         /// Plane absolute normal.
         Vector3 absNormal_;
         /// Plane constant.
-        float d_{};
+        float d_ {};
 
         /// Plane at origin with normal pointing up.
         static const Plane UP;

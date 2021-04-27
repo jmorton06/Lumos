@@ -5,71 +5,71 @@
 namespace Lumos::Maths
 {
     /// Two-dimensional vector with integer values.
-    class  IntVector2
+    class IntVector2
     {
     public:
         /// Construct a zero vector.
-        IntVector2() noexcept :
-            x(0),
-            y(0)
+        IntVector2() noexcept
+            : x(0)
+            , y(0)
         {
         }
 
         /// Construct from coordinates.
-        IntVector2(int x, int y) noexcept :
-            x(x),
-            y(y)
+        IntVector2(int x, int y) noexcept
+            : x(x)
+            , y(y)
         {
         }
 
         /// Construct from an int array.
-        explicit IntVector2(const int* data) noexcept :
-            x(data[0]),
-            y(data[1])
+        explicit IntVector2(const int* data) noexcept
+            : x(data[0])
+            , y(data[1])
         {
         }
 
         /// Construct from an float array.
-        explicit IntVector2(const float* data) :
-            x((int)data[0]),
-            y((int)data[1])
+        explicit IntVector2(const float* data)
+            : x((int)data[0])
+            , y((int)data[1])
         {
         }
         /// Copy-construct from another vector.
         IntVector2(const IntVector2& rhs) noexcept = default;
 
         /// Assign from another vector.
-        IntVector2& operator =(const IntVector2& rhs) noexcept = default;
+        IntVector2& operator=(const IntVector2& rhs) noexcept = default;
 
         /// Test for equality with another vector.
-        bool operator ==(const IntVector2& rhs) const { return x == rhs.x && y == rhs.y; }
+        bool operator==(const IntVector2& rhs) const { return x == rhs.x && y == rhs.y; }
 
         /// Test for inequality with another vector.
-        bool operator !=(const IntVector2& rhs) const { return x != rhs.x || y != rhs.y; }
+        bool operator!=(const IntVector2& rhs) const { return x != rhs.x || y != rhs.y; }
 
         /// Add a vector.
-        IntVector2 operator +(const IntVector2& rhs) const { return IntVector2(x + rhs.x, y + rhs.y); }
+        IntVector2 operator+(const IntVector2& rhs) const { return IntVector2(x + rhs.x, y + rhs.y); }
 
         /// Return negation.
-        IntVector2 operator -() const { return IntVector2(-x, -y); }
+        IntVector2 operator-() const { return IntVector2(-x, -y); }
 
         /// Subtract a vector.
-        IntVector2 operator -(const IntVector2& rhs) const { return IntVector2(x - rhs.x, y - rhs.y); }
+        IntVector2 operator-(const IntVector2& rhs) const { return IntVector2(x - rhs.x, y - rhs.y); }
 
         /// Multiply with a scalar.
-        IntVector2 operator *(int rhs) const { return IntVector2(x * rhs, y * rhs); }
+        IntVector2 operator*(int rhs) const { return IntVector2(x * rhs, y * rhs); }
 
         /// Multiply with a vector.
-        IntVector2 operator *(const IntVector2& rhs) const { return IntVector2(x * rhs.x, y * rhs.y); }
+        IntVector2 operator*(const IntVector2& rhs) const { return IntVector2(x * rhs.x, y * rhs.y); }
 
         /// Divide by a scalar.
-        IntVector2 operator /(int rhs) const { return IntVector2(x / rhs, y / rhs); }
+        IntVector2 operator/(int rhs) const { return IntVector2(x / rhs, y / rhs); }
 
         /// Divide by a vector.
-        IntVector2 operator /(const IntVector2& rhs) const { return IntVector2(x / rhs.x, y / rhs.y); }
+        IntVector2 operator/(const IntVector2& rhs) const { return IntVector2(x / rhs.x, y / rhs.y); }
 
         /// Add-assign a vector.
-        IntVector2& operator +=(const IntVector2& rhs)
+        IntVector2& operator+=(const IntVector2& rhs)
         {
             x += rhs.x;
             y += rhs.y;
@@ -77,7 +77,7 @@ namespace Lumos::Maths
         }
 
         /// Subtract-assign a vector.
-        IntVector2& operator -=(const IntVector2& rhs)
+        IntVector2& operator-=(const IntVector2& rhs)
         {
             x -= rhs.x;
             y -= rhs.y;
@@ -85,7 +85,7 @@ namespace Lumos::Maths
         }
 
         /// Multiply-assign a scalar.
-        IntVector2& operator *=(int rhs)
+        IntVector2& operator*=(int rhs)
         {
             x *= rhs;
             y *= rhs;
@@ -93,7 +93,7 @@ namespace Lumos::Maths
         }
 
         /// Multiply-assign a vector.
-        IntVector2& operator *=(const IntVector2& rhs)
+        IntVector2& operator*=(const IntVector2& rhs)
         {
             x *= rhs.x;
             y *= rhs.y;
@@ -101,7 +101,7 @@ namespace Lumos::Maths
         }
 
         /// Divide-assign a scalar.
-        IntVector2& operator /=(int rhs)
+        IntVector2& operator/=(int rhs)
         {
             x /= rhs;
             y /= rhs;
@@ -109,7 +109,7 @@ namespace Lumos::Maths
         }
 
         /// Divide-assign a vector.
-        IntVector2& operator /=(const IntVector2& rhs)
+        IntVector2& operator/=(const IntVector2& rhs)
         {
             x /= rhs.x;
             y /= rhs.y;
@@ -134,19 +134,19 @@ namespace Lumos::Maths
     };
 
     /// Two-dimensional vector.
-    class  Vector2
+    class Vector2
     {
     public:
         /// Construct a zero vector.
-        Vector2() noexcept :
-            x(0.0f),
-            y(0.0f)
+        Vector2() noexcept
+            : x(0.0f)
+            , y(0.0f)
         {
         }
 
-        explicit Vector2(float x) noexcept :
-            x(x),
-            y(x)
+        explicit Vector2(float x) noexcept
+            : x(x)
+            , y(x)
         {
         }
 
@@ -154,58 +154,58 @@ namespace Lumos::Maths
         Vector2(const Vector2& vector) noexcept = default;
 
         /// Construct from an IntVector2.
-        explicit Vector2(const IntVector2& vector) noexcept :
-            x((float)vector.x),
-            y((float)vector.y)
+        explicit Vector2(const IntVector2& vector) noexcept
+            : x((float)vector.x)
+            , y((float)vector.y)
         {
         }
 
         /// Construct from coordinates.
-        Vector2(float x, float y) noexcept :
-            x(x),
-            y(y)
+        Vector2(float x, float y) noexcept
+            : x(x)
+            , y(y)
         {
         }
 
         /// Construct from a float array.
-        explicit Vector2(const float* data) noexcept :
-            x(data[0]),
-            y(data[1])
+        explicit Vector2(const float* data) noexcept
+            : x(data[0])
+            , y(data[1])
         {
         }
 
         /// Assign from another vector.
-        Vector2& operator =(const Vector2& rhs) noexcept = default;
+        Vector2& operator=(const Vector2& rhs) noexcept = default;
 
         /// Test for equality with another vector without epsilon.
-        bool operator ==(const Vector2& rhs) const { return x == rhs.x && y == rhs.y; }
+        bool operator==(const Vector2& rhs) const { return x == rhs.x && y == rhs.y; }
 
         /// Test for inequality with another vector without epsilon.
-        bool operator !=(const Vector2& rhs) const { return x != rhs.x || y != rhs.y; }
+        bool operator!=(const Vector2& rhs) const { return x != rhs.x || y != rhs.y; }
 
         /// Add a vector.
-        Vector2 operator +(const Vector2& rhs) const { return Vector2(x + rhs.x, y + rhs.y); }
+        Vector2 operator+(const Vector2& rhs) const { return Vector2(x + rhs.x, y + rhs.y); }
 
         /// Return negation.
-        Vector2 operator -() const { return Vector2(-x, -y); }
+        Vector2 operator-() const { return Vector2(-x, -y); }
 
         /// Subtract a vector.
-        Vector2 operator -(const Vector2& rhs) const { return Vector2(x - rhs.x, y - rhs.y); }
+        Vector2 operator-(const Vector2& rhs) const { return Vector2(x - rhs.x, y - rhs.y); }
 
         /// Multiply with a scalar.
-        Vector2 operator *(float rhs) const { return Vector2(x * rhs, y * rhs); }
+        Vector2 operator*(float rhs) const { return Vector2(x * rhs, y * rhs); }
 
         /// Multiply with a vector.
-        Vector2 operator *(const Vector2& rhs) const { return Vector2(x * rhs.x, y * rhs.y); }
+        Vector2 operator*(const Vector2& rhs) const { return Vector2(x * rhs.x, y * rhs.y); }
 
         /// Divide by a scalar.
-        Vector2 operator /(float rhs) const { return Vector2(x / rhs, y / rhs); }
+        Vector2 operator/(float rhs) const { return Vector2(x / rhs, y / rhs); }
 
         /// Divide by a vector.
-        Vector2 operator /(const Vector2& rhs) const { return Vector2(x / rhs.x, y / rhs.y); }
+        Vector2 operator/(const Vector2& rhs) const { return Vector2(x / rhs.x, y / rhs.y); }
 
         /// Add-assign a vector.
-        Vector2& operator +=(const Vector2& rhs)
+        Vector2& operator+=(const Vector2& rhs)
         {
             x += rhs.x;
             y += rhs.y;
@@ -213,7 +213,7 @@ namespace Lumos::Maths
         }
 
         /// Subtract-assign a vector.
-        Vector2& operator -=(const Vector2& rhs)
+        Vector2& operator-=(const Vector2& rhs)
         {
             x -= rhs.x;
             y -= rhs.y;
@@ -221,7 +221,7 @@ namespace Lumos::Maths
         }
 
         /// Multiply-assign a scalar.
-        Vector2& operator *=(float rhs)
+        Vector2& operator*=(float rhs)
         {
             x *= rhs;
             y *= rhs;
@@ -229,7 +229,7 @@ namespace Lumos::Maths
         }
 
         /// Multiply-assign a vector.
-        Vector2& operator *=(const Vector2& rhs)
+        Vector2& operator*=(const Vector2& rhs)
         {
             x *= rhs.x;
             y *= rhs.y;
@@ -237,7 +237,7 @@ namespace Lumos::Maths
         }
 
         /// Divide-assign a scalar.
-        Vector2& operator /=(float rhs)
+        Vector2& operator/=(float rhs)
         {
             float invRhs = 1.0f / rhs;
             x *= invRhs;
@@ -246,14 +246,14 @@ namespace Lumos::Maths
         }
 
         /// Divide-assign a vector.
-        Vector2& operator /=(const Vector2& rhs)
+        Vector2& operator/=(const Vector2& rhs)
         {
             x /= rhs.x;
             y /= rhs.y;
             return *this;
         }
-        
-        inline friend std::ostream &operator<<(std::ostream &o, const Vector2 &v)
+
+        inline friend std::ostream& operator<<(std::ostream& o, const Vector2& v)
         {
             o << "Vector2(" << v.x << "," << v.y << ")" << std::endl;
             return o;
@@ -263,7 +263,7 @@ namespace Lumos::Maths
         void Normalise()
         {
             float lenSquared = LengthSquared();
-            if (!Maths::Equals(lenSquared, 1.0f) && lenSquared > 0.0f)
+            if(!Maths::Equals(lenSquared, 1.0f) && lenSquared > 0.0f)
             {
                 float invLen = 1.0f / sqrtf(lenSquared);
                 x *= invLen;
@@ -305,7 +305,7 @@ namespace Lumos::Maths
         Vector2 Normalised() const
         {
             const float lenSquared = LengthSquared();
-            if (!Maths::Equals(lenSquared, 1.0f) && lenSquared > 0.0f)
+            if(!Maths::Equals(lenSquared, 1.0f) && lenSquared > 0.0f)
             {
                 const float invLen = 1.0f / sqrtf(lenSquared);
                 return *this * invLen;
@@ -318,7 +318,7 @@ namespace Lumos::Maths
         Vector2 NormalisedOrDefault(const Vector2& defaultValue = Vector2(0.0f), float eps = M_LARGE_EPSILON) const
         {
             const float lenSquared = LengthSquared();
-            if (lenSquared < eps * eps)
+            if(lenSquared < eps * eps)
                 return defaultValue;
             return *this / sqrtf(lenSquared);
         }
@@ -327,7 +327,7 @@ namespace Lumos::Maths
         Vector2 ReNormalised(float minLength, float maxLength, const Vector2& defaultValue = Vector2(0.0f), float eps = M_LARGE_EPSILON) const
         {
             const float lenSquared = LengthSquared();
-            if (lenSquared < eps * eps)
+            if(lenSquared < eps * eps)
                 return defaultValue;
 
             const float len = sqrtf(lenSquared);
@@ -357,10 +357,10 @@ namespace Lumos::Maths
     };
 
     /// Multiply Vector2 with a scalar
-    inline Vector2 operator *(float lhs, const Vector2& rhs) { return rhs * lhs; }
+    inline Vector2 operator*(float lhs, const Vector2& rhs) { return rhs * lhs; }
 
     /// Multiply IntVector2 with a scalar.
-    inline IntVector2 operator *(int lhs, const IntVector2& rhs) { return rhs * lhs; }
+    inline IntVector2 operator*(int lhs, const IntVector2& rhs) { return rhs * lhs; }
 
     /// Per-component linear interpolation between two 2-vectors.
     inline Vector2 VectorLerp(const Vector2& lhs, const Vector2& rhs, const Vector2& t) { return lhs + (rhs - lhs) * t; }
@@ -401,8 +401,9 @@ namespace Lumos::Maths
 
     /// Return a random value from [0, 1) from scalar seed.
     inline float StableRandom(float seed) { return StableRandom(Vector2(seed, seed)); }
-    
-    template<typename Archive> void serialize(Archive& archive, Maths::Vector2& v2)
+
+    template <typename Archive>
+    void serialize(Archive& archive, Maths::Vector2& v2)
     {
         archive(v2.x, v2.y);
     }
@@ -410,12 +411,12 @@ namespace Lumos::Maths
 
 namespace std
 {
-	template<>
-	struct hash<Lumos::Maths::Vector2>
-	{
-		size_t operator()(const Lumos::Maths::Vector2& x) const
-		{
-			return hash<float>()(x.x) ^ (hash<float>()(x.y) * 997u);
-		}
-	};
+    template <>
+    struct hash<Lumos::Maths::Vector2>
+    {
+        size_t operator()(const Lumos::Maths::Vector2& x) const
+        {
+            return hash<float>()(x.x) ^ (hash<float>()(x.y) * 997u);
+        }
+    };
 }

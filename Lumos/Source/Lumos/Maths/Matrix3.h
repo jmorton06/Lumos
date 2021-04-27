@@ -5,20 +5,20 @@
 namespace Lumos::Maths
 {
     /// 3x3 matrix for rotation and scaling.
-    class  Matrix3
+    class Matrix3
     {
     public:
         /// Construct an identity matrix.
-        Matrix3() noexcept :
-            m00_(1.0f),
-            m01_(0.0f),
-            m02_(0.0f),
-            m10_(0.0f),
-            m11_(1.0f),
-            m12_(0.0f),
-            m20_(0.0f),
-            m21_(0.0f),
-            m22_(1.0f)
+        Matrix3() noexcept
+            : m00_(1.0f)
+            , m01_(0.0f)
+            , m02_(0.0f)
+            , m10_(0.0f)
+            , m11_(1.0f)
+            , m12_(0.0f)
+            , m20_(0.0f)
+            , m21_(0.0f)
+            , m22_(1.0f)
         {
         }
 
@@ -27,46 +27,46 @@ namespace Lumos::Maths
 
         /// Construct from values.
         Matrix3(float v00, float v01, float v02,
-                float v10, float v11, float v12,
-                float v20, float v21, float v22) noexcept :
-            m00_(v00),
-            m01_(v01),
-            m02_(v02),
-            m10_(v10),
-            m11_(v11),
-            m12_(v12),
-            m20_(v20),
-            m21_(v21),
-            m22_(v22)
+            float v10, float v11, float v12,
+            float v20, float v21, float v22) noexcept
+            : m00_(v00)
+            , m01_(v01)
+            , m02_(v02)
+            , m10_(v10)
+            , m11_(v11)
+            , m12_(v12)
+            , m20_(v20)
+            , m21_(v21)
+            , m22_(v22)
         {
         }
 
         /// Construct from a float array.
-        explicit Matrix3(const float* data) noexcept :
-            m00_(data[0]),
-            m01_(data[1]),
-            m02_(data[2]),
-            m10_(data[3]),
-            m11_(data[4]),
-            m12_(data[5]),
-            m20_(data[6]),
-            m21_(data[7]),
-            m22_(data[8])
+        explicit Matrix3(const float* data) noexcept
+            : m00_(data[0])
+            , m01_(data[1])
+            , m02_(data[2])
+            , m10_(data[3])
+            , m11_(data[4])
+            , m12_(data[5])
+            , m20_(data[6])
+            , m21_(data[7])
+            , m22_(data[8])
         {
         }
 
         /// Assign from another matrix.
-        Matrix3& operator =(const Matrix3& rhs) noexcept = default;
+        Matrix3& operator=(const Matrix3& rhs) noexcept = default;
 
         /// Test for equality with another matrix without epsilon.
-        bool operator ==(const Matrix3& rhs) const
+        bool operator==(const Matrix3& rhs) const
         {
             const float* leftData = Data();
             const float* rightData = rhs.Data();
 
-            for (unsigned i = 0; i < 9; ++i)
+            for(unsigned i = 0; i < 9; ++i)
             {
-                if (leftData[i] != rightData[i])
+                if(leftData[i] != rightData[i])
                     return false;
             }
 
@@ -74,20 +74,19 @@ namespace Lumos::Maths
         }
 
         /// Test for inequality with another matrix without epsilon.
-        bool operator !=(const Matrix3& rhs) const { return !(*this == rhs); }
+        bool operator!=(const Matrix3& rhs) const { return !(*this == rhs); }
 
         /// Multiply a Vector3.
-        Vector3 operator *(const Vector3& rhs) const
+        Vector3 operator*(const Vector3& rhs) const
         {
             return Vector3(
                 m00_ * rhs.x + m01_ * rhs.y + m02_ * rhs.z,
                 m10_ * rhs.x + m11_ * rhs.y + m12_ * rhs.z,
-                m20_ * rhs.x + m21_ * rhs.y + m22_ * rhs.z
-            );
+                m20_ * rhs.x + m21_ * rhs.y + m22_ * rhs.z);
         }
 
         /// Add a matrix.
-        Matrix3 operator +(const Matrix3& rhs) const
+        Matrix3 operator+(const Matrix3& rhs) const
         {
             return Matrix3(
                 m00_ + rhs.m00_,
@@ -98,12 +97,11 @@ namespace Lumos::Maths
                 m12_ + rhs.m12_,
                 m20_ + rhs.m20_,
                 m21_ + rhs.m21_,
-                m22_ + rhs.m22_
-            );
+                m22_ + rhs.m22_);
         }
 
         /// Subtract a matrix.
-        Matrix3 operator -(const Matrix3& rhs) const
+        Matrix3 operator-(const Matrix3& rhs) const
         {
             return Matrix3(
                 m00_ - rhs.m00_,
@@ -114,12 +112,11 @@ namespace Lumos::Maths
                 m12_ - rhs.m12_,
                 m20_ - rhs.m20_,
                 m21_ - rhs.m21_,
-                m22_ - rhs.m22_
-            );
+                m22_ - rhs.m22_);
         }
 
         /// Multiply with a scalar.
-        Matrix3 operator *(float rhs) const
+        Matrix3 operator*(float rhs) const
         {
             return Matrix3(
                 m00_ * rhs,
@@ -130,12 +127,11 @@ namespace Lumos::Maths
                 m12_ * rhs,
                 m20_ * rhs,
                 m21_ * rhs,
-                m22_ * rhs
-            );
+                m22_ * rhs);
         }
 
         /// Multiply a matrix.
-        Matrix3 operator *(const Matrix3& rhs) const
+        Matrix3 operator*(const Matrix3& rhs) const
         {
             return Matrix3(
                 m00_ * rhs.m00_ + m01_ * rhs.m10_ + m02_ * rhs.m20_,
@@ -146,8 +142,7 @@ namespace Lumos::Maths
                 m10_ * rhs.m02_ + m11_ * rhs.m12_ + m12_ * rhs.m22_,
                 m20_ * rhs.m00_ + m21_ * rhs.m10_ + m22_ * rhs.m20_,
                 m20_ * rhs.m01_ + m21_ * rhs.m11_ + m22_ * rhs.m21_,
-                m20_ * rhs.m02_ + m21_ * rhs.m12_ + m22_ * rhs.m22_
-            );
+                m20_ * rhs.m02_ + m21_ * rhs.m12_ + m22_ * rhs.m22_);
         }
 
         /// Set scaling elements.
@@ -172,8 +167,7 @@ namespace Lumos::Maths
             return Vector3(
                 sqrtf(m00_ * m00_ + m10_ * m10_ + m20_ * m20_),
                 sqrtf(m01_ * m01_ + m11_ * m11_ + m21_ * m21_),
-                sqrtf(m02_ * m02_ + m12_ * m12_ + m22_ * m22_)
-            );
+                sqrtf(m02_ * m02_ + m12_ * m12_ + m22_ * m22_));
         }
 
         /// Return the scaling part with the sign. Reference rotation matrix is required to avoid ambiguity.
@@ -182,8 +176,7 @@ namespace Lumos::Maths
             return Vector3(
                 rotation.m00_ * m00_ + rotation.m10_ * m10_ + rotation.m20_ * m20_,
                 rotation.m01_ * m01_ + rotation.m11_ * m11_ + rotation.m21_ * m21_,
-                rotation.m02_ * m02_ + rotation.m12_ * m12_ + rotation.m22_ * m22_
-            );
+                rotation.m02_ * m02_ + rotation.m12_ * m12_ + rotation.m22_ * m22_);
         }
 
         /// Return transposed.
@@ -198,8 +191,7 @@ namespace Lumos::Maths
                 m21_,
                 m02_,
                 m12_,
-                m22_
-            );
+                m22_);
         }
 
         /// Return scaled by a vector.
@@ -214,8 +206,7 @@ namespace Lumos::Maths
                 m12_ * scale.z,
                 m20_ * scale.x,
                 m21_ * scale.y,
-                m22_ * scale.z
-            );
+                m22_ * scale.z);
         }
 
         /// Test for equality with another matrix with epsilon.
@@ -224,9 +215,9 @@ namespace Lumos::Maths
             const float* leftData = Data();
             const float* rightData = rhs.Data();
 
-            for (unsigned i = 0; i < 9; ++i)
+            for(unsigned i = 0; i < 9; ++i)
             {
-                if (!Lumos::Maths::Equals(leftData[i], rightData[i], eps))
+                if(!Lumos::Maths::Equals(leftData[i], rightData[i], eps))
                     return false;
             }
 
@@ -254,7 +245,7 @@ namespace Lumos::Maths
         unsigned ToHash() const
         {
             unsigned hash = 37;
-            for (int i = 0; i < 3 * 3; i++)
+            for(int i = 0; i < 3 * 3; i++)
                 hash = 37 * hash + FloatToRawIntBits(Data()[i]);
             return hash;
         }
@@ -272,7 +263,7 @@ namespace Lumos::Maths
         /// Bulk transpose matrices.
         static void BulkTranspose(float* dest, const float* src, unsigned count)
         {
-            for (unsigned i = 0; i < count; ++i)
+            for(unsigned i = 0; i < count; ++i)
             {
                 dest[0] = src[0];
                 dest[1] = src[3];
@@ -306,5 +297,5 @@ namespace Lumos::Maths
     };
 
     /// Multiply a 3x3 matrix with a scalar.
-    inline Matrix3 operator *(float lhs, const Matrix3& rhs) { return rhs * lhs; }
+    inline Matrix3 operator*(float lhs, const Matrix3& rhs) { return rhs * lhs; }
 }

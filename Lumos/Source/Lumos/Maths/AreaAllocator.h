@@ -4,7 +4,7 @@
 namespace Lumos::Maths
 {
     /// Rectangular area allocator.
-    class  AreaAllocator
+    class AreaAllocator
     {
     public:
         /// Default construct with empty size.
@@ -41,8 +41,8 @@ namespace Lumos::Maths
         /// Maximum size it allows to grow. It is zero when it is not allowed to grow.
         IntVector2 maxSize_;
         /// The dimension use for next growth. Used internally.
-        bool doubleWidth_{true};
+        bool doubleWidth_ { true };
         /// Fast mode flag.
-        bool fastMode_{true};
+        bool fastMode_ { true };
     };
 }

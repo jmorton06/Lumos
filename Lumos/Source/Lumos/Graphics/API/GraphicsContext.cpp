@@ -16,54 +16,55 @@
 
 namespace Lumos
 {
-	namespace Graphics
-	{
-        GraphicsContext*(*GraphicsContext::CreateFunc)(const WindowProperties&, Window*) = nullptr;
+    namespace Graphics
+    {
+        GraphicsContext* (*GraphicsContext::CreateFunc)(const WindowProperties&, Window*) = nullptr;
 
-		GraphicsContext* GraphicsContext::s_Context = nullptr;
-		RenderAPI GraphicsContext::s_RenderAPI;
+        GraphicsContext* GraphicsContext::s_Context = nullptr;
+        RenderAPI GraphicsContext::s_RenderAPI;
 
-		void GraphicsContext::Create(const WindowProperties& properties, Window* window)
-		{
+        void GraphicsContext::Create(const WindowProperties& properties, Window* window)
+        {
             LUMOS_ASSERT(CreateFunc, "No GraphicsContext Create Function");
-            
-			s_Context = CreateFunc(properties, window);
-		}
 
-		void GraphicsContext::Release()
-		{
-			delete s_Context;
-		}
+            s_Context = CreateFunc(properties, window);
+        }
 
-		GraphicsContext::~GraphicsContext()
-		{
-		}
+        void GraphicsContext::Release()
+        {
+            delete s_Context;
+        }
 
-		void GraphicsContext::SetRenderAPI(RenderAPI api)
-		{ 
-			s_RenderAPI = api;
+        GraphicsContext::~GraphicsContext()
+        {
+        }
 
-			switch (s_RenderAPI)
-			{
+        void GraphicsContext::SetRenderAPI(RenderAPI api)
+        {
+            s_RenderAPI = api;
+
+            switch(s_RenderAPI)
+            {
 #ifdef LUMOS_RENDER_API_VULKAN
-			case RenderAPI::VULKAN :
-				Graphics::Vulkan::MakeDefault();
-				break;
+            case RenderAPI::VULKAN:
+                Graphics::Vulkan::MakeDefault();
+                break;
 #endif
 
 #ifdef LUMOS_RENDER_API_OPENGL
-			case RenderAPI::OPENGL:
-				Graphics::GL::MakeDefault();
-				break;
+            case RenderAPI::OPENGL:
+                Graphics::GL::MakeDefault();
+                break;
 #endif
 
 #ifdef LUMOS_RENDER_API_DIRECT3D
-			case RenderAPI::DIRECT3D:
-				Graphics::DIRECT3D::MakeDefault();
-				break;
+            case RenderAPI::DIRECT3D:
+                Graphics::DIRECT3D::MakeDefault();
+                break;
 #endif
-                default: break;
-			}
-		}
-	}
+            default:
+                break;
+            }
+        }
+    }
 }

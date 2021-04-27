@@ -2,19 +2,19 @@
 
 namespace Lumos
 {
-	class MacOSOS : public OS
-	{
-		public:
-		MacOSOS()
-		{
-		}
-		~MacOSOS()
-		{
-		}
+    class MacOSOS : public OS
+    {
+    public:
+        MacOSOS()
+        {
+        }
+        ~MacOSOS()
+        {
+        }
 
-		void Init();
-		void Run() override;
-		std::string GetExecutablePath() override;
+        void Init();
+        void Run() override;
+        std::string GetExecutablePath() override;
         void SetTitleBarColour(const Maths::Vector4& colour, bool dark = true) override;
-	};
+    };
 }

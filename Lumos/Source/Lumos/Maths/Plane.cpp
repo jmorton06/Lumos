@@ -35,8 +35,7 @@ namespace Lumos::Maths
             -2.0f * normal_.z * normal_.x,
             -2.0f * normal_.z * normal_.y,
             -2.0f * normal_.z * normal_.z + 1.0f,
-            -2.0f * normal_.z * d_
-        );
+            -2.0f * normal_.z * d_);
     }
 
     Plane Plane::Transformed(const Matrix3& transform) const

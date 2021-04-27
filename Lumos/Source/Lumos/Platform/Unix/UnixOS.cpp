@@ -9,26 +9,26 @@ extern Lumos::Application* Lumos::CreateApplication();
 
 namespace Lumos
 {
-	void UnixOS::Run()
-	{
-		const std::string root = ROOT_DIR;
-		VFS::Get()->Mount("Meshes", root + "/Assets/meshes");
-		VFS::Get()->Mount("Textures", root + "/Assets/textures");
-		VFS::Get()->Mount("Sounds", root + "/Assets/sounds");
+    void UnixOS::Run()
+    {
+        const std::string root = ROOT_DIR;
+        VFS::Get()->Mount("Meshes", root + "/Assets/meshes");
+        VFS::Get()->Mount("Textures", root + "/Assets/textures");
+        VFS::Get()->Mount("Sounds", root + "/Assets/sounds");
 
-		auto& app = Lumos::Application::Get();
-		app.Init();
-		app.Run();
-		app.Release();
-	}
+        auto& app = Lumos::Application::Get();
+        app.Init();
+        app.Run();
+        app.Release();
+    }
 
-	void UnixOS::Init()
-	{
-		GLFWWindow::MakeDefault();
-	}
+    void UnixOS::Init()
+    {
+        GLFWWindow::MakeDefault();
+    }
 
-	SystemMemoryInfo MemoryManager::GetSystemInfo()
-	{
-		return SystemMemoryInfo();
-	}
+    SystemMemoryInfo MemoryManager::GetSystemInfo()
+    {
+        return SystemMemoryInfo();
+    }
 }

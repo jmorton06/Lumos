@@ -23,7 +23,7 @@ void Scene3D::OnUpdate(const TimeStep& timeStep)
 {
 	Scene::OnUpdate(timeStep);
 
-	if(Input::GetInput()->GetKeyPressed(InputCode::Key::P))
+	if(Input::Get().GetKeyPressed(InputCode::Key::P))
     {
         Application::Get().GetSystem<LumosPhysicsEngine>()->SetPaused(!Application::Get().GetSystem<LumosPhysicsEngine>()->IsPaused());
         Application::Get().GetSystem<B2PhysicsEngine>()->SetPaused(!Application::Get().GetSystem<B2PhysicsEngine>()->IsPaused());
@@ -41,11 +41,11 @@ void Scene3D::OnUpdate(const TimeStep& timeStep)
 
 	if(transform)
 	{
-		if(Input::GetInput()->GetKeyPressed(InputCode::Key::J))
+		if(Input::Get().GetKeyPressed(InputCode::Key::J))
 			EntityFactory::AddSphere(this, transform->GetWorldPosition(), -transform->GetForwardDirection());
-		if(Input::GetInput()->GetKeyPressed(InputCode::Key::K))
+		if(Input::Get().GetKeyPressed(InputCode::Key::K))
 			EntityFactory::AddPyramid(this, transform->GetWorldPosition(), -transform->GetForwardDirection());
-		if(Input::GetInput()->GetKeyPressed(InputCode::Key::L))
+		if(Input::Get().GetKeyPressed(InputCode::Key::L))
 			EntityFactory::AddLightCube(this, transform->GetWorldPosition(), -transform->GetForwardDirection());
 	}
 }

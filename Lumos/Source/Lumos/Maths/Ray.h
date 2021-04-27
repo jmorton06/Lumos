@@ -10,7 +10,7 @@ namespace Lumos::Maths
     class Sphere;
 
     /// Infinite straight line in three-dimensional space.
-    class  Ray
+    class Ray
     {
     public:
         /// Construct a degenerate ray with zero origin and direction.
@@ -26,13 +26,13 @@ namespace Lumos::Maths
         Ray(const Ray& ray) noexcept = default;
 
         /// Assign from another ray.
-        Ray& operator =(const Ray& rhs) noexcept = default;
+        Ray& operator=(const Ray& rhs) noexcept = default;
 
         /// Check for equality with another ray.
-        bool operator ==(const Ray& rhs) const { return origin_ == rhs.origin_ && direction_ == rhs.direction_; }
+        bool operator==(const Ray& rhs) const { return origin_ == rhs.origin_ && direction_ == rhs.direction_; }
 
         /// Check for inequality with another ray.
-        bool operator !=(const Ray& rhs) const { return origin_ != rhs.origin_ || direction_ != rhs.direction_; }
+        bool operator!=(const Ray& rhs) const { return origin_ != rhs.origin_ || direction_ != rhs.direction_; }
 
         /// Define from origin and direction. The direction will be Normalised.
         void Define(const Vector3& origin, const Vector3& direction)
@@ -68,9 +68,8 @@ namespace Lumos::Maths
         /// Return hit distance to a triangle, or infinity if no hit. Optionally return hit normal and hit barycentric coordinate at intersect point.
         float HitDistance(const Vector3& v0, const Vector3& v1, const Vector3& v2, Vector3* outNormal = nullptr, Vector3* outBary = nullptr) const;
         /// Return hit distance to non-indexed geometry data, or infinity if no hit. Optionally return hit normal and hit uv coordinates at intersect point.
-        float HitDistance
-            (const void* vertexData, unsigned vertexStride, unsigned vertexStart, unsigned vertexCount, Vector3* outNormal = nullptr,
-                Vector2* outUV = nullptr, unsigned uvOffset = 0) const;
+        float HitDistance(const void* vertexData, unsigned vertexStride, unsigned vertexStart, unsigned vertexCount, Vector3* outNormal = nullptr,
+            Vector2* outUV = nullptr, unsigned uvOffset = 0) const;
         /// Return hit distance to indexed geometry data, or infinity if no hit. Optionally return hit normal and hit uv coordinates at intersect point.
         float HitDistance(const void* vertexData, unsigned vertexStride, const void* indexData, unsigned indexSize, unsigned indexStart,
             unsigned indexCount, Vector3* outNormal = nullptr, Vector2* outUV = nullptr, unsigned uvOffset = 0) const;

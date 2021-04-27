@@ -2,14 +2,12 @@
 
 namespace Lumos
 {
-	class AINode
-	{
-	public:
+    class AINode
+    {
+    public:
         AINode() = default;
-		virtual ~AINode() = default;
+        virtual ~AINode() = default;
 
         void Update(float dt) {};
-		
-		
-	};
+    };
 }

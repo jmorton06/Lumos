@@ -1,36 +1,36 @@
 #pragma once
 
 #ifdef LUMOS_PLATFORM_ANDROID
-template<typename T>
+template <typename T>
 std::string to_string(const T& n)
 {
-	std::ostringstream stm;
-	stm << n;
-	return stm.str();
+    std::ostringstream stm;
+    stm << n;
+    return stm.str();
 }
 #endif
 
 namespace Lumos
 {
-	 namespace StringUtilities
-	{
-		template<typename T>
-		static std::string ToString(const T& input)
-		{
+    namespace StringUtilities
+    {
+        template <typename T>
+        static std::string ToString(const T& input)
+        {
 #ifdef LUMOS_PLATFORM_ANDROID
-			return to_string(input);
+            return to_string(input);
 #else
-			return std::to_string(input);
+            return std::to_string(input);
 #endif
-		}
+        }
 
-		std::string GetFilePathExtension(const std::string& FileName);
+        std::string GetFilePathExtension(const std::string& FileName);
         std::string RemoveFilePathExtension(const std::string& FileName);
-		std::string GetFileName(const std::string& FilePath);
-		std::string RemoveName(const std::string& FilePath);
+        std::string GetFileName(const std::string& FilePath);
+        std::string RemoveName(const std::string& FilePath);
         std::string GetFileLocation(const std::string& FilePath);
-		
-		bool IsHiddenFile(const std::string& path);
+
+        bool IsHiddenFile(const std::string& path);
 
         std::vector<std::string> LUMOS_EXPORT SplitString(const std::string& string, const std::string& delimiters);
         std::vector<std::string> LUMOS_EXPORT SplitString(const std::string& string, const char delimiter);
@@ -58,7 +58,7 @@ namespace Lumos
 
         std::string& BackSlashesToSlashes(std::string& string);
         std::string& SlashesToBackSlashes(std::string& string);
-		std::string& RemoveSpaces(std::string& string);
-		std::string Demangle(const std::string& string);
-	}
+        std::string& RemoveSpaces(std::string& string);
+        std::string Demangle(const std::string& string);
+    }
 }
