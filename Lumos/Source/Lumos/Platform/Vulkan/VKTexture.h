@@ -65,6 +65,11 @@ namespace Lumos
             {
                 return &m_Descriptor;
             }
+            
+            VkDescriptorImageInfo& GetDescriptorRef()
+            {
+                return m_Descriptor;
+            }
 
             void UpdateDescriptor();
 
@@ -86,6 +91,8 @@ namespace Lumos
             {
                 return m_TextureSampler;
             }
+
+            const TextureParameters& GetTextureParameters() const { return m_Parameters; }
 
             static void MakeDefault();
 

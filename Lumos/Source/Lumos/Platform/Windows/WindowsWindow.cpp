@@ -322,7 +322,7 @@ namespace Lumos
 
     void FocusCallback(Window* window, bool focused)
     {
-        Input::GetInput()->SetWindowFocus(focused);
+        Input::Get().SetWindowFocus(focused);
     }
 
     void WindowsWindow::OnUpdate()

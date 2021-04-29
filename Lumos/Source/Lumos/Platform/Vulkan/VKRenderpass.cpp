@@ -5,6 +5,7 @@
 #include "VKRenderer.h"
 #include "VKInitialisers.h"
 #include "VKTools.h"
+#include "VKContext.h"
 
 namespace Lumos
 {
@@ -34,7 +35,7 @@ namespace Lumos
             VkAttachmentDescription attachment = {};
             if(info.textureType == TextureType::COLOUR)
             {
-                attachment.format = VKTools::TextureFormatToVK(info.format, false);
+                attachment.format = info.format == TextureFormat::SCREEN ? VKContext::Get()->GetSwapchain()->GetScreenFormat() : VKTools::TextureFormatToVK(info.format, false);
                 attachment.finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
             }
             else if(info.textureType == TextureType::DEPTH)
@@ -128,6 +129,8 @@ namespace Lumos
             subpass.colorAttachmentCount = static_cast<uint32_t>(colourAttachmentReferences.size());
             subpass.pColorAttachments = colourAttachmentReferences.data();
             subpass.pDepthStencilAttachment = depthAttachmentReferences.data();
+            
+            m_ColourAttachmentCount = int(colourAttachmentReferences.size());
 
             VkRenderPassCreateInfo vkRenderpassCI = VKInitialisers::renderPassCreateInfo();
             vkRenderpassCI.attachmentCount = uint32_t(renderpassCI.attachmentCount);

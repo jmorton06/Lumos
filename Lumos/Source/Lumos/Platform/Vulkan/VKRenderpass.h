@@ -19,6 +19,7 @@ namespace Lumos
 
             const VkRenderPass& GetHandle() const { return m_RenderPass; };
             int GetAttachmentCount() const override { return m_ClearCount; };
+            int GetColourAttachmentCount() const { return m_ColourAttachmentCount; }
 
             static void MakeDefault();
 
@@ -29,6 +30,7 @@ namespace Lumos
             VkRenderPass m_RenderPass;
             VkClearValue* m_ClearValue;
             int m_ClearCount;
+            int m_ColourAttachmentCount;
             bool m_DepthOnly;
             bool m_ClearDepth;
         };

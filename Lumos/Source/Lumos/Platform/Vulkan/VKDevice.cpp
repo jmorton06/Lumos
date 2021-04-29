@@ -279,12 +279,19 @@ namespace Lumos
                 VK_KHR_SWAPCHAIN_EXTENSION_NAME
             };
 
-            // Enable the debug marker extension if it is present (likely meaning a debugging tool is present)
-            if(m_PhysicalDevice->IsExtensionSupported(VK_EXT_DEBUG_MARKER_EXTENSION_NAME))
+            if(m_PhysicalDevice->IsExtensionSupported(VK_EXT_DEBUG_UTILS_EXTENSION_NAME))
             {
-                deviceExtensions.push_back(VK_EXT_DEBUG_MARKER_EXTENSION_NAME);
+                deviceExtensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
                 m_EnableDebugMarkers = true;
             }
+
+#if defined(LUMOS_PLATFORM_MACOS) || defined(LUMOS_PLATFORM_IOS)
+            // https://vulkan.lunarg.com/doc/view/1.2.162.0/mac/1.2-extensions/vkspec.html#VUID-VkDeviceCreateInfo-pProperties-04451
+            if(m_PhysicalDevice->IsExtensionSupported("VK_KHR_portability_subset"))
+            {
+                deviceExtensions.push_back("VK_KHR_portability_subset");
+            }
+#endif
 
             // Device
             VkDeviceCreateInfo deviceCI {};

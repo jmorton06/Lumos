@@ -30,11 +30,12 @@ namespace Lumos
                 delete m_Frames[i].RenderFence;
                 delete m_SwapChainBuffers[i];
             }
+            vkDestroySwapchainKHR(VKDevice::Get().GetDevice(), m_SwapChain, VK_NULL_HANDLE);
+
             if(m_Surface != VK_NULL_HANDLE)
             {
                 vkDestroySurfaceKHR(VKContext::Get()->GetVKInstance(), m_Surface, nullptr);
             }
-            vkDestroySwapchainKHR(VKDevice::Get().GetDevice(), m_SwapChain, VK_NULL_HANDLE);
         }
 
         void VKSwapchain::Init(bool vsync, Window* windowHandle)
@@ -117,6 +118,12 @@ namespace Lumos
                 LUMOS_LOG_CRITICAL("[VULKAN] Failed to create window surface!");
             }
 
+            VkBool32 queueIndexSupported;
+            vkGetPhysicalDeviceSurfaceSupportKHR(VKDevice::Get().GetPhysicalDevice()->GetVulkanPhysicalDevice(), VKDevice::Get().GetPhysicalDevice()->GetGraphicsQueueFamilyIndex(), m_Surface, &queueIndexSupported);
+
+            if(queueIndexSupported == VK_FALSE)
+                LUMOS_LOG_ERROR("Present Queue not supported");
+
             // Swap chain
             VkSurfaceCapabilitiesKHR surfaceCapabilities;
             vkGetPhysicalDeviceSurfaceCapabilitiesKHR(VKDevice::Get().GetGPU(), m_Surface, &surfaceCapabilities);
@@ -194,6 +201,10 @@ namespace Lumos
                 VK_CHECK_RESULT(vkCreateImageView(VKDevice::Get().GetDevice(), &viewCI, VK_NULL_HANDLE, &imageView));
                 VKTexture2D* swapChainBuffer = new VKTexture2D(pSwapChainImages[i], imageView);
 
+                //VKTools::TransitionImageLayout(swapChainBuffer->GetImage(), VKTools::TextureFormatToVK(swapChainBuffer->GetTextureParameters().format, swapChainBuffer->GetTextureParameters().srgb), VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
+                
+                swapChainBuffer->GetDescriptorRef().imageLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+
                 m_SwapChainBuffers.push_back(swapChainBuffer);
 
                 VkSemaphoreCreateInfo semaphoreInfo = {};
@@ -229,7 +240,7 @@ namespace Lumos
                 LUMOS_PROFILE_SCOPE("vkAcquireNextImageKHR");
 
                 auto result = vkAcquireNextImageKHR(VKDevice::Get().GetDevice(), m_SwapChain, UINT64_MAX, GetCurrentFrameData().PresentSemaphore, VK_NULL_HANDLE, &m_AcquireImageIndex);
-                
+
                 return result;
             }
         }
@@ -259,20 +270,19 @@ namespace Lumos
 
             submitInfo.signalSemaphoreCount = 1;
             submitInfo.pSignalSemaphores = &frameData.RenderSemaphore;
-            
+
             {
                 LUMOS_PROFILE_SCOPE("vkQueueSubmit");
                 VK_CHECK_RESULT(vkQueueSubmit(VKDevice::Get().GetGraphicsQueue(), 1, &submitInfo, frameData.RenderFence->GetHandle()));
             }
-            
+
             GetCurrentFrameData().RenderFence->Wait();
-            
+
             if(GetCurrentFrameData().RenderFence->Signaled())
             {
                 GetCurrentFrameData().MainCommandBuffer->Reset();
                 GetCurrentFrameData().RenderFence->Reset();
             }
-            
 
             VkPresentInfoKHR present;
             present.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
@@ -297,7 +307,7 @@ namespace Lumos
             {
                 VK_CHECK_RESULT(error);
             }
-            
+
             m_CurrentBuffer = (m_CurrentBuffer + 1) % m_SwapChainBuffers.size();
         }
 

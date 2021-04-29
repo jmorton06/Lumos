@@ -168,7 +168,7 @@ namespace Lumos
             cb.flags = 0;
 
             std::vector<VkPipelineColorBlendAttachmentState> blendAttachState;
-            blendAttachState.resize(pipelineCreateInfo.renderpass->GetAttachmentCount());
+            blendAttachState.resize(((VKRenderpass*)pipelineCreateInfo.renderpass.get())->GetColourAttachmentCount());
 
             for(unsigned int i = 0; i < blendAttachState.size(); i++)
             {
