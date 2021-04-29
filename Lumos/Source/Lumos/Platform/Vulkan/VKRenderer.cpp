@@ -11,24 +11,6 @@ namespace Lumos
 {
     namespace Graphics
     {
-        VkImageMemoryBarrier imageBarrier(VkImage image, VkAccessFlags srcAccessMask, VkAccessFlags dstAccessMask, VkImageLayout oldLayout, VkImageLayout newLayout, VkImageAspectFlags aspectMask = VK_IMAGE_ASPECT_COLOR_BIT)
-        {
-            VkImageMemoryBarrier result = { VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER };
-
-            result.srcAccessMask = srcAccessMask;
-            result.dstAccessMask = dstAccessMask;
-            result.oldLayout = oldLayout;
-            result.newLayout = newLayout;
-            result.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-            result.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-            result.image = image;
-            result.subresourceRange.aspectMask = aspectMask;
-            result.subresourceRange.levelCount = VK_REMAINING_MIP_LEVELS;
-            result.subresourceRange.layerCount = VK_REMAINING_ARRAY_LAYERS;
-
-            return result;
-        }
-
         void VKRenderer::InitInternal()
         {
             LUMOS_PROFILE_FUNCTION();
@@ -137,9 +119,6 @@ namespace Lumos
         void VKRenderer::PresentInternal()
         {
             LUMOS_PROFILE_FUNCTION();
-            VkImageMemoryBarrier presentBarrier = imageBarrier(((VKTexture2D*)GetSwapchainInternal()->GetCurrentImage())->GetImage(), VK_ACCESS_TRANSFER_WRITE_BIT, 0, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
-            vkCmdPipelineBarrier(((VKCommandBuffer*)GetSwapchainInternal()->GetCurrentCommandBuffer())->GetHandle(), VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_DEPENDENCY_BY_REGION_BIT, 0, 0, 0, 0, 1, &presentBarrier);
-
             GetSwapchainInternal()->GetCurrentCommandBuffer()->EndRecording();
             VKContext::Get()->GetSwapchain()->Present();
         }

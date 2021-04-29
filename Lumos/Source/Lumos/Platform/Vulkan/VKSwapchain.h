@@ -47,6 +47,7 @@ namespace Lumos
             CommandBuffer* GetCurrentCommandBuffer() override;
 
             FrameData& GetCurrentFrameData();
+            VkFormat GetScreenFormat() const { return m_ColourFormat; }
 
             static void MakeDefault();
 

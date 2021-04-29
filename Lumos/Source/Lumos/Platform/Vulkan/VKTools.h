@@ -58,6 +58,8 @@ namespace Lumos
             VkPolygonMode PolygonModeToVk(Lumos::Graphics::PolygonMode mode);
             VkPrimitiveTopology DrawTypeToVk(Lumos::Graphics::DrawType type);
 
+            VkImageMemoryBarrier ImageBarrier(VkImage image, VkAccessFlags srcAccessMask, VkAccessFlags dstAccessMask, VkImageLayout oldLayout, VkImageLayout newLayout, VkImageAspectFlags aspectMask = VK_IMAGE_ASPECT_COLOR_BIT);
+
             void SetImageLayout(
                 VkCommandBuffer cmdbuffer,
                 VkImage image,

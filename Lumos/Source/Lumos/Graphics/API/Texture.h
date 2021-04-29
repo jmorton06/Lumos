@@ -38,7 +38,8 @@ namespace Lumos
             RGBA,
             DEPTH,
             STENCIL,
-            DEPTH_STENCIL
+            DEPTH_STENCIL,
+            SCREEN
         };
 
         enum class TextureType

@@ -11,14 +11,14 @@ namespace Lumos
 
         enum LUMOS_EXPORT ScreenTextures
         {
-            SCREENTEX_DEPTH = 0, //Depth Buffer
-            SCREENTEX_STENCIL = 0, //Stencil Buffer (Same Tex as Depth)
-            SCREENTEX_COLOUR = 1, //Main Render
-            SCREENTEX_POSITION = 2, //Deferred Render - World Space Positions
-            SCREENTEX_NORMALS = 3, //Deferred Render - World Space Normals
-            SCREENTEX_PBR = 4, //Metallic/Roughness/Ao Stored Here
-            SCREENTEX_OFFSCREEN0 = 5, //Extra Textures for multipass post processing
-            SCREENTEX_OFFSCREEN1 = 6, //Or Displaying scene in editor mode
+            SCREENTEX_COLOUR = 0, //Main Render
+            SCREENTEX_POSITION = 1, //Deferred Render - World Space Positions
+            SCREENTEX_NORMALS = 2, //Deferred Render - World Space Normals
+            SCREENTEX_PBR = 3, //Metallic/Roughness/Ao Stored Here
+            SCREENTEX_OFFSCREEN0 = 4, //Extra Textures for multipass post processing
+            SCREENTEX_OFFSCREEN1 = 5, //Or Displaying scene in editor mode
+            SCREENTEX_DEPTH = 6, //Depth Buffer
+            SCREENTEX_STENCIL = 7, //Stencil Buffer (Same Tex as Depth)
             SCREENTEX_MAX
         };
 

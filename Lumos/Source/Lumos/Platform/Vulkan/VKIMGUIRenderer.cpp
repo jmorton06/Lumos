@@ -101,7 +101,7 @@ namespace Lumos
             wd->ImageCount = static_cast<uint32_t>(swapChain->GetSwapchainBufferCount());
 
             AttachmentInfo textureTypes[2] = {
-                { TextureType::COLOUR, TextureFormat::RGBA8 }
+                { TextureType::COLOUR, TextureFormat::SCREEN }
             };
 
             Graphics::RenderPassInfo renderpassCI;
