@@ -266,14 +266,9 @@ namespace Lumos
         bool VKDevice::Init()
         {
             m_PhysicalDevice = CreateRef<VKPhysicalDevice>();
-
-            VkPhysicalDeviceFeatures deviceFeatures;
-            memset(&deviceFeatures, 0, sizeof(VkPhysicalDeviceFeatures));
-            deviceFeatures.shaderClipDistance = VK_TRUE;
-            deviceFeatures.geometryShader = VK_FALSE;
-            deviceFeatures.shaderTessellationAndGeometryPointSize = VK_TRUE;
-            deviceFeatures.fillModeNonSolid = VK_TRUE;
-            deviceFeatures.samplerAnisotropy = VK_TRUE;
+            
+            VkPhysicalDeviceFeatures physicalDeviceFeatures;
+            vkGetPhysicalDeviceFeatures(m_PhysicalDevice->GetVulkanPhysicalDevice(), &physicalDeviceFeatures);
 
             std::vector<const char*> deviceExtensions = {
                 VK_KHR_SWAPCHAIN_EXTENSION_NAME
@@ -297,11 +292,10 @@ namespace Lumos
             VkDeviceCreateInfo deviceCI {};
             deviceCI.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
             deviceCI.queueCreateInfoCount = static_cast<uint32_t>(m_PhysicalDevice->m_QueueCreateInfos.size());
-            ;
             deviceCI.pQueueCreateInfos = m_PhysicalDevice->m_QueueCreateInfos.data();
             deviceCI.enabledExtensionCount = static_cast<uint32_t>(deviceExtensions.size());
             deviceCI.ppEnabledExtensionNames = deviceExtensions.data();
-            deviceCI.pEnabledFeatures = &deviceFeatures;
+            deviceCI.pEnabledFeatures = &physicalDeviceFeatures;
             deviceCI.enabledLayerCount = 0;
 
             auto result = vkCreateDevice(m_PhysicalDevice->GetVulkanPhysicalDevice(), &deviceCI, VK_NULL_HANDLE, &m_Device);
@@ -352,7 +346,7 @@ namespace Lumos
                 LUMOS_LOG_CRITICAL("[VULKAN] Failed to create VMA allocator");
             }
 #endif
-            m_CommandPool = CreateRef<VKCommandPool>();
+            m_CommandPool = CreateRef<VKCommandPool>(m_PhysicalDevice->GetGraphicsQueueFamilyIndex());
 
             CreateTracyContext();
             CreatePipelineCache();

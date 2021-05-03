@@ -9,10 +9,11 @@ namespace Lumos
         class VKCommandPool
         {
         public:
-            VKCommandPool();
+            VKCommandPool(int queueIndex);
             ~VKCommandPool();
 
-            void Init();
+            void Init(int queueIndex);
+            void Reset();
 
             const VkCommandPool& GetCommandPool() const { return m_CommandPool; }
 

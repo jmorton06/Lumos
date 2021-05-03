@@ -18,12 +18,9 @@ namespace Lumos
             ~VKPipeline();
 
             bool Init(const PipelineInfo& pipelineCreateInfo);
-
-            void Unload() const;
             void Bind(CommandBuffer* cmdBuffer) override;
 
             VkDescriptorSet CreateDescriptorSet();
-
             VkDescriptorSetLayout* GetDescriptorLayout(int id)
             {
                 return &m_DescriptorLayouts[id];

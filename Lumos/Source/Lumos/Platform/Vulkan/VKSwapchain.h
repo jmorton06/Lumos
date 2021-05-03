@@ -15,10 +15,10 @@ namespace Lumos
         struct FrameData
         {
             VkSemaphore PresentSemaphore, RenderSemaphore;
-            VKFence* RenderFence;
-
-            VkCommandPool CommandPool;
-            VKCommandBuffer* MainCommandBuffer;
+            
+            Ref<VKFence> RenderFence;
+            Ref<VKCommandPool> CommandPool;
+            Ref<VKCommandBuffer> MainCommandBuffer;
         };
 
         class Texture2D;
