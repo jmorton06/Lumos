@@ -85,7 +85,7 @@ namespace Lumos
             dependency.srcAccessMask = 0;
             dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
             dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-
+            
             std::vector<VkAttachmentDescription> attachments;
 
             std::vector<VkAttachmentReference> colourAttachmentReferences;
@@ -137,8 +137,8 @@ namespace Lumos
             vkRenderpassCI.pAttachments = attachments.data();
             vkRenderpassCI.subpassCount = 1;
             vkRenderpassCI.pSubpasses = &subpass;
-            vkRenderpassCI.dependencyCount = 1;
-            vkRenderpassCI.pDependencies = &dependency;
+            vkRenderpassCI.dependencyCount = 0;//1;
+            vkRenderpassCI.pDependencies = nullptr;//&dependency;
 
             VK_CHECK_RESULT(vkCreateRenderPass(VKDevice::Get().GetDevice(), &vkRenderpassCI, VK_NULL_HANDLE, &m_RenderPass));
 

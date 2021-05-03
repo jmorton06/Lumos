@@ -21,8 +21,13 @@ namespace Lumos
 
         VKPipeline::~VKPipeline()
         {
-            Unload();
+            vkDestroyDescriptorPool(VKDevice::Get().GetDevice(), m_DescriptorPool, VK_NULL_HANDLE);
+            vkDestroyPipelineLayout(VKDevice::Get().GetDevice(), m_PipelineLayout, VK_NULL_HANDLE);
 
+            for(auto& descriptorLayout : m_DescriptorLayouts)
+                vkDestroyDescriptorSetLayout(VKDevice::Get().GetDevice(), descriptorLayout, VK_NULL_HANDLE);
+
+            vkDestroyPipeline(VKDevice::Get().GetDevice(), m_Pipeline, VK_NULL_HANDLE);
             delete m_DescriptorSet;
         }
 
@@ -273,17 +278,6 @@ namespace Lumos
             VK_CHECK_RESULT(vkCreateGraphicsPipelines(VKDevice::Get().GetDevice(), VKDevice::Get().GetPipelineCache(), 1, &graphicsPipelineCreateInfo, VK_NULL_HANDLE, &m_Pipeline));
 
             return true;
-        }
-
-        void VKPipeline::Unload() const
-        {
-            vkDestroyDescriptorPool(VKDevice::Get().GetDevice(), m_DescriptorPool, VK_NULL_HANDLE);
-            vkDestroyPipelineLayout(VKDevice::Get().GetDevice(), m_PipelineLayout, VK_NULL_HANDLE);
-
-            for(auto& descriptorLayout : m_DescriptorLayouts)
-                vkDestroyDescriptorSetLayout(VKDevice::Get().GetDevice(), descriptorLayout, VK_NULL_HANDLE);
-
-            vkDestroyPipeline(VKDevice::Get().GetDevice(), m_Pipeline, VK_NULL_HANDLE);
         }
 
         void VKPipeline::Bind(CommandBuffer* cmdBuffer)

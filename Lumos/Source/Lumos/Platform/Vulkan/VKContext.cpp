@@ -22,7 +22,6 @@ namespace Lumos
 
             if(EnableValidationLayers)
             {
-                extensions.push_back(VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
                 extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
             }
 
