@@ -253,7 +253,7 @@ namespace Lumos
         {
             m_Descriptor.sampler = m_TextureSampler;
             m_Descriptor.imageView = m_TextureImageView;
-            m_Descriptor.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+            m_Descriptor.imageLayout = m_ImageLayout;
         }
 
         void GenerateMipmaps(VkImage image, VkFormat imageFormat, int32_t texWidth, int32_t texHeight, uint32_t mipLevels)
@@ -404,7 +404,8 @@ namespace Lumos
 
             VKTools::TransitionImageLayout(m_TextureImage, VKTools::TextureFormatToVK(m_Parameters.format, m_Parameters.srgb), VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, m_MipLevels);
             VKTools::CopyBufferToImage(stagingBuffer->GetBuffer(), m_TextureImage, static_cast<uint32_t>(m_Width), static_cast<uint32_t>(m_Height));
-            //VKTools::TransitionImageLayout(m_TextureImage, VKTools::TextureFormatToVK(m_Parameters.format), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, m_MipLevels);
+            m_ImageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;;
+            VKTools::TransitionImageLayout(m_TextureImage, VKTools::TextureFormatToVK(m_Parameters.format), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, m_MipLevels);
 
             delete stagingBuffer;
 

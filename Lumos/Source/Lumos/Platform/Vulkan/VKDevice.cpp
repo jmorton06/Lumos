@@ -266,7 +266,7 @@ namespace Lumos
         bool VKDevice::Init()
         {
             m_PhysicalDevice = CreateRef<VKPhysicalDevice>();
-            
+
             VkPhysicalDeviceFeatures physicalDeviceFeatures;
             vkGetPhysicalDeviceFeatures(m_PhysicalDevice->GetVulkanPhysicalDevice(), &physicalDeviceFeatures);
 
@@ -346,7 +346,7 @@ namespace Lumos
                 LUMOS_LOG_CRITICAL("[VULKAN] Failed to create VMA allocator");
             }
 #endif
-            m_CommandPool = CreateRef<VKCommandPool>(m_PhysicalDevice->GetGraphicsQueueFamilyIndex());
+            m_CommandPool = CreateRef<VKCommandPool>(m_PhysicalDevice->GetGraphicsQueueFamilyIndex(), VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT);
 
             CreateTracyContext();
             CreatePipelineCache();
@@ -366,7 +366,7 @@ namespace Lumos
             VkCommandBufferAllocateInfo allocInfo = {};
             allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
             allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-            allocInfo.commandPool = m_CommandPool->GetCommandPool();
+            allocInfo.commandPool = m_CommandPool->GetHandle();
             allocInfo.commandBufferCount = 1;
 
             VkCommandBuffer tracyBuffer;
@@ -377,7 +377,7 @@ namespace Lumos
 #endif
 
             vkQueueWaitIdle(m_GraphicsQueue);
-            vkFreeCommandBuffers(m_Device, m_CommandPool->GetCommandPool(), 1, &tracyBuffer);
+            vkFreeCommandBuffers(m_Device, m_CommandPool->GetHandle(), 1, &tracyBuffer);
         }
     }
 }

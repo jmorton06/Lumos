@@ -36,6 +36,7 @@ namespace Lumos
             void UpdateViewport(uint32_t width, uint32_t height) override;
 
             VkCommandBuffer GetHandle() const { return m_CommandBuffer; };
+            CommandBufferState GetState() const { return m_State; }
 
             static void MakeDefault();
 

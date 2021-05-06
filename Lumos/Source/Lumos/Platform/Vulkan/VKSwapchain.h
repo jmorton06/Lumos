@@ -14,8 +14,8 @@ namespace Lumos
 
         struct FrameData
         {
-            VkSemaphore PresentSemaphore, RenderSemaphore;
-            
+            VkSemaphore PresentSemaphore = VK_NULL_HANDLE, RenderSemaphore = VK_NULL_HANDLE;
+
             Ref<VKFence> RenderFence;
             Ref<VKCommandPool> CommandPool;
             Ref<VKCommandBuffer> MainCommandBuffer;
@@ -30,8 +30,13 @@ namespace Lumos
 
             bool Init(bool vsync) override;
             void Init(bool vsync, Window* windowHandle);
-            VkResult AcquireNextImage();
+            void CreateFrameData();
+            void AcquireNextImage();
+            void QueueSubmit();
             void Present();
+            void Begin();
+            void End();
+            void OnResize(uint32_t width, uint32_t height, bool forceResize = false, Window* windowHandle = nullptr);
 
             VkSurfaceKHR GetSurface() const { return m_Surface; }
             VkSwapchainKHR GetSwapchain() const { return m_SwapChain; }
@@ -59,7 +64,6 @@ namespace Lumos
 
             void FindImageFormatAndColourSpace();
 
-            VkSwapchainKHR m_SwapChain;
             std::vector<Texture2D*> m_SwapChainBuffers;
 
             uint32_t m_CurrentBuffer = 0;
@@ -67,7 +71,10 @@ namespace Lumos
             uint32_t m_Width;
             uint32_t m_Height;
             uint32_t m_QueueNodeIndex = UINT32_MAX;
+            bool m_VSyncEnabled = false;
 
+            VkSwapchainKHR m_SwapChain;
+            VkSwapchainKHR m_OldSwapChain;
             VkSurfaceKHR m_Surface;
             VkFormat m_ColourFormat;
             VkColorSpaceKHR m_ColourSpace;

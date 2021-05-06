@@ -37,7 +37,7 @@ namespace Lumos
 
             VkCommandBufferAllocateInfo cmdBufferCI {};
 
-            m_CommandPool = VKDevice::Get().GetCommandPool()->GetCommandPool();
+            m_CommandPool = VKDevice::Get().GetCommandPool()->GetHandle();
 
             cmdBufferCI.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
             cmdBufferCI.commandPool = m_CommandPool;

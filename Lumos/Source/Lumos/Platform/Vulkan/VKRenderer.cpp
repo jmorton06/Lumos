@@ -74,12 +74,7 @@ namespace Lumos
             m_Width = width;
             m_Height = height;
 
-            VkSurfaceCapabilitiesKHR capabilities;
-            vkGetPhysicalDeviceSurfaceCapabilitiesKHR(VKDevice::Get().GetGPU(), VKContext::Get()->GetSwapchain()->GetSurface(), &capabilities);
-
-            m_Width = std::max(capabilities.minImageExtent.width, std::min(capabilities.maxImageExtent.width, m_Width));
-            m_Height = std::max(capabilities.minImageExtent.height, std::min(capabilities.maxImageExtent.height, m_Height));
-
+            VKTools::ValidateResolution(width, height);
             VKContext::Get()->OnResize(m_Width, m_Height);
         }
 
@@ -91,36 +86,18 @@ namespace Lumos
         void VKRenderer::Begin()
         {
             LUMOS_PROFILE_FUNCTION();
-            AcquireNextImage();
-
-            GetSwapchainInternal()->GetCurrentCommandBuffer()->BeginRecording();
-        }
-
-        void VKRenderer::AcquireNextImage()
-        {
-            m_Context = VKContext::Get();
-            auto swapchain = m_Context->GetSwapchain();
-
-            auto result = swapchain->AcquireNextImage();
-            if(result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR)
-            {
-                LUMOS_LOG_INFO("Acquire Image result : {0}", result == VK_ERROR_OUT_OF_DATE_KHR ? "Out of Date" : "SubOptimal");
-
-                if(result == VK_ERROR_OUT_OF_DATE_KHR)
-                    OnResize(m_Width, m_Height);
-                return;
-            }
-            else if(result != VK_SUCCESS)
-            {
-                LUMOS_LOG_CRITICAL("[VULKAN] Failed to acquire swap chain image!");
-            }
+            VKContext::Get()->GetSwapchain()->AcquireNextImage();
+            VKContext::Get()->GetSwapchain()->Begin();
         }
 
         void VKRenderer::PresentInternal()
         {
             LUMOS_PROFILE_FUNCTION();
-            GetSwapchainInternal()->GetCurrentCommandBuffer()->EndRecording();
-            VKContext::Get()->GetSwapchain()->Present();
+            m_Context = VKContext::Get();
+
+            m_Context->GetSwapchain()->End();
+            m_Context->GetSwapchain()->QueueSubmit();
+            m_Context->GetSwapchain()->Present();
         }
 
         const std::string& VKRenderer::GetTitleInternal() const

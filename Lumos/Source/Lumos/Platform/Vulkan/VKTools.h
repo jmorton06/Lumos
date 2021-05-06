@@ -45,6 +45,10 @@ namespace Lumos
             VkFormat FindSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
             VkFormat FindDepthFormat();
 
+            void ValidateResolution(uint32_t& width, uint32_t& height);
+            bool IsPresentModeSupported(const std::vector<VkPresentModeKHR>& supportedModes, VkPresentModeKHR presentMode);
+            VkPresentModeKHR ChoosePresentMode(const std::vector<VkPresentModeKHR>& supportedModes, bool vsync);
+
             std::string ErrorString(VkResult errorCode);
 
             VkVertexInputAttributeDescription VertexInputDescriptionToVK(VertexInputDescription description);
@@ -67,7 +71,7 @@ namespace Lumos
                 VkImageLayout newImageLayout,
                 VkImageSubresourceRange subresourceRange,
                 VkPipelineStageFlags srcStageMask = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
-									VkPipelineStageFlags dstStageMask = VK_PIPELINE_STAGE_TRANSFER_BIT);
+                VkPipelineStageFlags dstStageMask = VK_PIPELINE_STAGE_TRANSFER_BIT);
             // Uses a fixed sub resource layout with first mip level and layer
             void SetImageLayout(
                 VkCommandBuffer cmdbuffer,
@@ -76,7 +80,7 @@ namespace Lumos
                 VkImageLayout oldImageLayout,
                 VkImageLayout newImageLayout,
                 VkPipelineStageFlags srcStageMask = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
-									VkPipelineStageFlags dstStageMask = VK_PIPELINE_STAGE_TRANSFER_BIT);
+                VkPipelineStageFlags dstStageMask = VK_PIPELINE_STAGE_TRANSFER_BIT);
         }
     }
 }

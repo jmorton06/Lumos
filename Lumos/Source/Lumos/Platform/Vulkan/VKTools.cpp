@@ -2,6 +2,7 @@
 #include "VKTools.h"
 #include "VKDevice.h"
 #include "VKShader.h"
+#include "VKSwapchain.h"
 #include "VKCommandPool.h"
 #include "Graphics/API/Texture.h"
 #include "Graphics/API/DescriptorSet.h"
@@ -72,7 +73,7 @@ namespace Lumos
             VkCommandBufferAllocateInfo allocInfo = {};
             allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
             allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-            allocInfo.commandPool = VKDevice::Get().GetCommandPool()->GetCommandPool();
+            allocInfo.commandPool = VKDevice::Get().GetCommandPool()->GetHandle();
             allocInfo.commandBufferCount = 1;
 
             VkCommandBuffer commandBuffer;
@@ -105,7 +106,7 @@ namespace Lumos
             VK_CHECK_RESULT(vkQueueWaitIdle(VKDevice::Get().GetGraphicsQueue()));
 
             vkFreeCommandBuffers(VKDevice::Get().GetDevice(),
-                VKDevice::Get().GetCommandPool()->GetCommandPool(), 1, &commandBuffer);
+                VKDevice::Get().GetCommandPool()->GetHandle(), 1, &commandBuffer);
         }
 
         void VKTools::CopyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height)
@@ -213,6 +214,11 @@ namespace Lumos
             {
                 barrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_COLOR_ATTACHMENT_READ_BIT;
                 sourceStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+            }
+            else if(oldLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
+            {
+                barrier.srcAccessMask = VK_ACCESS_SHADER_READ_BIT;
+                destinationStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
             }
             else if(oldLayout == VK_IMAGE_LAYOUT_GENERAL)
             {
@@ -416,6 +422,15 @@ namespace Lumos
             }
 
             return VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        }
+
+        void VKTools::ValidateResolution(uint32_t& width, uint32_t& height)
+        {
+            VkSurfaceCapabilitiesKHR capabilities;
+            vkGetPhysicalDeviceSurfaceCapabilitiesKHR(VKDevice::Get().GetGPU(), VKContext::Get()->GetSwapchain()->GetSurface(), &capabilities);
+
+            width = std::max(capabilities.minImageExtent.width, std::min(capabilities.maxImageExtent.width, width));
+            height = std::max(capabilities.minImageExtent.height, std::min(capabilities.maxImageExtent.height, height));
         }
 
         void VKTools::SetImageLayout(
@@ -742,5 +757,61 @@ namespace Lumos
             return result;
         }
 
+        bool VKTools::IsPresentModeSupported(const std::vector<VkPresentModeKHR>& supportedModes, VkPresentModeKHR presentMode)
+        {
+            for(const auto& mode : supportedModes)
+            {
+                if(mode == presentMode)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        VkPresentModeKHR VKTools::ChoosePresentMode(const std::vector<VkPresentModeKHR>& supportedModes, bool vsync)
+        {
+            VkPresentModeKHR presentMode = VK_PRESENT_MODE_MAILBOX_KHR;
+            if(vsync)
+            {
+                if(IsPresentModeSupported(supportedModes, VK_PRESENT_MODE_MAILBOX_KHR))
+                {
+                    presentMode = VK_PRESENT_MODE_MAILBOX_KHR;
+                }
+                else if(IsPresentModeSupported(supportedModes, VK_PRESENT_MODE_FIFO_KHR))
+                {
+                    presentMode = VK_PRESENT_MODE_FIFO_KHR;
+                }
+                else if(IsPresentModeSupported(supportedModes, VK_PRESENT_MODE_IMMEDIATE_KHR))
+                {
+                    presentMode = VK_PRESENT_MODE_IMMEDIATE_KHR;
+                }
+                else
+                {
+                    LUMOS_LOG_ERROR("Failed to find supported presentation mode.");
+                }
+            }
+            else
+            {
+                if(IsPresentModeSupported(supportedModes, VK_PRESENT_MODE_IMMEDIATE_KHR))
+                {
+                    presentMode = VK_PRESENT_MODE_IMMEDIATE_KHR;
+                }
+                else if(IsPresentModeSupported(supportedModes, VK_PRESENT_MODE_FIFO_RELAXED_KHR))
+                {
+                    presentMode = VK_PRESENT_MODE_FIFO_RELAXED_KHR;
+                }
+                else if(IsPresentModeSupported(supportedModes, VK_PRESENT_MODE_FIFO_KHR))
+                {
+                    presentMode = VK_PRESENT_MODE_FIFO_KHR;
+                }
+                else
+                {
+                    LUMOS_LOG_ERROR("Failed to find supported presentation mode.");
+                }
+            }
+
+            return presentMode;
+        }
     }
 }

@@ -121,6 +121,7 @@ namespace Lumos
 
             m_Swapchain = CreateRef<VKSwapchain>(m_Width, m_Height);
             m_Swapchain->Init(m_VSync, m_Window);
+            //m_Swapchain->AcquireNextImage();
 
             SetupDebugCallback();
 
@@ -133,8 +134,8 @@ namespace Lumos
             m_Width = width;
             m_Height = height;
 
-            m_Swapchain = CreateRef<VKSwapchain>(width, height);
-            m_Swapchain->Init(m_VSync, m_Window);
+            m_Swapchain->OnResize(width, height, true, m_Window);
+            //m_Swapchain->AcquireNextImage();
         }
 
         void VKContext::Present()
