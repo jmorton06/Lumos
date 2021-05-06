@@ -65,7 +65,13 @@ namespace Lumos
             {
                 return &m_Descriptor;
             }
-            
+
+            void SetImageLayout(VkImageLayout layout)
+            {
+                m_ImageLayout = layout;
+                UpdateDescriptor();
+            }
+
             VkDescriptorImageInfo& GetDescriptorRef()
             {
                 return m_Descriptor;
@@ -113,7 +119,7 @@ namespace Lumos
             TextureLoadOptions m_LoadOptions;
 
             VkImage m_TextureImage {};
-            VkImageLayout m_ImageLayout;
+            VkImageLayout m_ImageLayout = VK_IMAGE_LAYOUT_UNDEFINED;
             VkDeviceMemory m_TextureImageMemory {};
             VkImageView m_TextureImageView;
             VkSampler m_TextureSampler {};

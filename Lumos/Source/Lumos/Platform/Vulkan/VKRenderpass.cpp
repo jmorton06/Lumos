@@ -36,7 +36,7 @@ namespace Lumos
             if(info.textureType == TextureType::COLOUR)
             {
                 attachment.format = info.format == TextureFormat::SCREEN ? VKContext::Get()->GetSwapchain()->GetScreenFormat() : VKTools::TextureFormatToVK(info.format, false);
-                attachment.finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+                attachment.finalLayout = info.format == TextureFormat::SCREEN ? VK_IMAGE_LAYOUT_PRESENT_SRC_KHR : VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
             }
             else if(info.textureType == TextureType::DEPTH)
             {
@@ -85,7 +85,7 @@ namespace Lumos
             dependency.srcAccessMask = 0;
             dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
             dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-            
+
             std::vector<VkAttachmentDescription> attachments;
 
             std::vector<VkAttachmentReference> colourAttachmentReferences;
@@ -129,7 +129,7 @@ namespace Lumos
             subpass.colorAttachmentCount = static_cast<uint32_t>(colourAttachmentReferences.size());
             subpass.pColorAttachments = colourAttachmentReferences.data();
             subpass.pDepthStencilAttachment = depthAttachmentReferences.data();
-            
+
             m_ColourAttachmentCount = int(colourAttachmentReferences.size());
 
             VkRenderPassCreateInfo vkRenderpassCI = VKInitialisers::renderPassCreateInfo();
@@ -137,8 +137,8 @@ namespace Lumos
             vkRenderpassCI.pAttachments = attachments.data();
             vkRenderpassCI.subpassCount = 1;
             vkRenderpassCI.pSubpasses = &subpass;
-            vkRenderpassCI.dependencyCount = 0;//1;
-            vkRenderpassCI.pDependencies = nullptr;//&dependency;
+            vkRenderpassCI.dependencyCount = 0; //1;
+            vkRenderpassCI.pDependencies = nullptr; //&dependency;
 
             VK_CHECK_RESULT(vkCreateRenderPass(VKDevice::Get().GetDevice(), &vkRenderpassCI, VK_NULL_HANDLE, &m_RenderPass));
 

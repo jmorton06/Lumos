@@ -14,7 +14,9 @@ namespace Lumos
             m_Width = width;
             m_Height = height;
             m_SwapChain = VK_NULL_HANDLE;
-            m_CurrentBuffer = 0;
+            m_OldSwapChain = VK_NULL_HANDLE;
+            m_Surface = VK_NULL_HANDLE;
+            m_CurrentBuffer = 0;//std::numeric_limits<uint32_t>::max();
         }
 
         VKSwapchain::~VKSwapchain()
@@ -25,10 +27,10 @@ namespace Lumos
 
                 vkDestroySemaphore(VKDevice::Get().GetDevice(), m_Frames[i].PresentSemaphore, nullptr);
                 vkDestroySemaphore(VKDevice::Get().GetDevice(), m_Frames[i].RenderSemaphore, nullptr);
-                
-                m_Frames[i].MainCommandBuffer.reset();
-                m_Frames[i].CommandPool.reset();
-                m_Frames[i].RenderFence.reset();
+
+                m_Frames[i].MainCommandBuffer = nullptr;
+                m_Frames[i].CommandPool = nullptr;
+                m_Frames[i].RenderFence = nullptr;
 
                 delete m_SwapChainBuffers[i];
             }
@@ -43,7 +45,11 @@ namespace Lumos
         void VKSwapchain::Init(bool vsync, Window* windowHandle)
         {
             LUMOS_PROFILE_FUNCTION();
-            m_Surface = CreatePlatformSurface(VKContext::Get()->GetVKInstance(), windowHandle);
+            m_VSyncEnabled = vsync;
+            
+            if(m_Surface == VK_NULL_HANDLE)
+                m_Surface = CreatePlatformSurface(VKContext::Get()->GetVKInstance(), windowHandle);
+            
             Init(vsync);
         }
 
@@ -51,63 +57,6 @@ namespace Lumos
         {
             LUMOS_ASSERT(m_CurrentBuffer < m_SwapChainBuffers.size(), "Incorrect swapchain buffer index");
             return m_Frames[m_CurrentBuffer];
-        }
-
-        bool IsPresentModeSupported(const std::vector<VkPresentModeKHR>& supportedModes, VkPresentModeKHR presentMode)
-        {
-            for(const auto& mode : supportedModes)
-            {
-                if(mode == presentMode)
-                {
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        VkPresentModeKHR ChoosePresentMode(const std::vector<VkPresentModeKHR>& supportedModes, bool vsync)
-        {
-            VkPresentModeKHR presentMode = VK_PRESENT_MODE_MAILBOX_KHR;
-            if(vsync)
-            {
-                if(IsPresentModeSupported(supportedModes, VK_PRESENT_MODE_MAILBOX_KHR))
-                {
-                    presentMode = VK_PRESENT_MODE_MAILBOX_KHR;
-                }
-                else if(IsPresentModeSupported(supportedModes, VK_PRESENT_MODE_FIFO_KHR))
-                {
-                    presentMode = VK_PRESENT_MODE_FIFO_KHR;
-                }
-                else if(IsPresentModeSupported(supportedModes, VK_PRESENT_MODE_IMMEDIATE_KHR))
-                {
-                    presentMode = VK_PRESENT_MODE_IMMEDIATE_KHR;
-                }
-                else
-                {
-                    LUMOS_LOG_ERROR("Failed to find supported presentation mode.");
-                }
-            }
-            else
-            {
-                if(IsPresentModeSupported(supportedModes, VK_PRESENT_MODE_IMMEDIATE_KHR))
-                {
-                    presentMode = VK_PRESENT_MODE_IMMEDIATE_KHR;
-                }
-                else if(IsPresentModeSupported(supportedModes, VK_PRESENT_MODE_FIFO_RELAXED_KHR))
-                {
-                    presentMode = VK_PRESENT_MODE_FIFO_RELAXED_KHR;
-                }
-                else if(IsPresentModeSupported(supportedModes, VK_PRESENT_MODE_FIFO_KHR))
-                {
-                    presentMode = VK_PRESENT_MODE_FIFO_KHR;
-                }
-                else
-                {
-                    LUMOS_LOG_ERROR("Failed to find supported presentation mode.");
-                }
-            }
-
-            return presentMode;
         }
 
         bool VKSwapchain::Init(bool vsync)
@@ -141,7 +90,7 @@ namespace Lumos
             swapChainExtent.width = static_cast<uint32_t>(m_Width);
             swapChainExtent.height = static_cast<uint32_t>(m_Height);
 
-            VkPresentModeKHR swapChainPresentMode = ChoosePresentMode(pPresentModes, vsync);
+            VkPresentModeKHR swapChainPresentMode = VKTools::ChoosePresentMode(pPresentModes, vsync);
 
             // Use triple-buffering
             uint32_t numSwapChainImages = surfaceCapabilities.maxImageCount;
@@ -165,7 +114,7 @@ namespace Lumos
             swapChainCI.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
             swapChainCI.imageArrayLayers = 1;
             swapChainCI.presentMode = swapChainPresentMode;
-            swapChainCI.oldSwapchain = VK_NULL_HANDLE;
+            swapChainCI.oldSwapchain = m_OldSwapChain;
             swapChainCI.imageColorSpace = m_ColourSpace;
             swapChainCI.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
             swapChainCI.queueFamilyIndexCount = 0;
@@ -175,6 +124,12 @@ namespace Lumos
 
             VK_CHECK_RESULT(vkCreateSwapchainKHR(VKDevice::Get().GetDevice(), &swapChainCI, VK_NULL_HANDLE, &m_SwapChain));
 
+            if(m_OldSwapChain != VK_NULL_HANDLE)
+            {
+                vkDestroySwapchainKHR(VKDevice::Get().GetDevice(), m_OldSwapChain, VK_NULL_HANDLE);
+                m_OldSwapChain = VK_NULL_HANDLE;
+            }
+            
             uint32_t swapChainImageCount;
             VK_CHECK_RESULT(vkGetSwapchainImagesKHR(VKDevice::Get().GetDevice(), m_SwapChain, &swapChainImageCount, VK_NULL_HANDLE));
 
@@ -202,50 +157,105 @@ namespace Lumos
                 VkImageView imageView;
                 VK_CHECK_RESULT(vkCreateImageView(VKDevice::Get().GetDevice(), &viewCI, VK_NULL_HANDLE, &imageView));
                 VKTexture2D* swapChainBuffer = new VKTexture2D(pSwapChainImages[i], imageView);
-                swapChainBuffer->GetDescriptorRef().imageLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+               // VKTools::TransitionImageLayout(swapChainBuffer->GetImage(), m_ColourFormat, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
+                //swapChainBuffer->SetImageLayout(VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
 
                 m_SwapChainBuffers.push_back(swapChainBuffer);
-
-                VkSemaphoreCreateInfo semaphoreInfo = {};
-                semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-                semaphoreInfo.pNext = nullptr;
-
-                m_Frames[i].RenderFence = CreateRef<VKFence>();
-
-                VK_CHECK_RESULT(vkCreateSemaphore(VKDevice::Get().GetDevice(), &semaphoreInfo, nullptr, &m_Frames[i].PresentSemaphore));
-                VK_CHECK_RESULT(vkCreateSemaphore(VKDevice::Get().GetDevice(), &semaphoreInfo, nullptr, &m_Frames[i].RenderSemaphore));
-
-                m_Frames[i].CommandPool = CreateRef<VKCommandPool>(VKDevice::Get().GetPhysicalDevice()->GetGraphicsQueueFamilyIndex());
-                m_Frames[i].MainCommandBuffer = CreateRef<VKCommandBuffer>();
-                m_Frames[i].MainCommandBuffer->Init(true, m_Frames[i].CommandPool->GetCommandPool());
             }
 
             delete[] pSwapChainImages;
 
+            CreateFrameData();
+
             return true;
         }
 
-        VkResult VKSwapchain::AcquireNextImage()
+        void VKSwapchain::CreateFrameData()
         {
-            LUMOS_PROFILE_FUNCTION();
-
+            for(uint32_t i = 0; i < int(m_SwapChainBuffers.size()); i++)
             {
-                LUMOS_PROFILE_SCOPE("vkAcquireNextImageKHR");
-                auto result = vkAcquireNextImageKHR(VKDevice::Get().GetDevice(), m_SwapChain, UINT64_MAX, GetCurrentFrameData().PresentSemaphore, VK_NULL_HANDLE, &m_AcquireImageIndex);
+                if(!m_Frames[i].RenderFence)
+                {
+                    VkSemaphoreCreateInfo semaphoreInfo = {};
+                    semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+                    semaphoreInfo.pNext = nullptr;
 
-                return result;
+                    if(m_Frames[i].PresentSemaphore == VK_NULL_HANDLE)
+                        VK_CHECK_RESULT(vkCreateSemaphore(VKDevice::Get().GetDevice(), &semaphoreInfo, nullptr, &m_Frames[i].PresentSemaphore));
+                    if(m_Frames[i].RenderSemaphore == VK_NULL_HANDLE)
+                        VK_CHECK_RESULT(vkCreateSemaphore(VKDevice::Get().GetDevice(), &semaphoreInfo, nullptr, &m_Frames[i].RenderSemaphore));
+
+                    m_Frames[i].RenderFence = CreateRef<VKFence>();
+                    m_Frames[i].CommandPool = CreateRef<VKCommandPool>(VKDevice::Get().GetPhysicalDevice()->GetGraphicsQueueFamilyIndex(), VK_COMMAND_POOL_CREATE_TRANSIENT_BIT);
+                    
+                    m_Frames[i].MainCommandBuffer = CreateRef<VKCommandBuffer>();
+                    m_Frames[i].MainCommandBuffer->Init(true, m_Frames[i].CommandPool->GetHandle());
+                }
             }
         }
 
-        CommandBuffer* VKSwapchain::GetCurrentCommandBuffer()
-        {
-            return GetCurrentFrameData().MainCommandBuffer.get();
-        }
-
-        void VKSwapchain::Present()
+        void VKSwapchain::AcquireNextImage()
         {
             LUMOS_PROFILE_FUNCTION();
 
+            uint32_t nextCmdBufferIndex = (m_CurrentBuffer + 1) % (int)m_SwapChainBuffers.size();
+            {
+                LUMOS_PROFILE_SCOPE("vkAcquireNextImageKHR");
+                auto result = vkAcquireNextImageKHR(VKDevice::Get().GetDevice(), m_SwapChain, UINT64_MAX, m_Frames[nextCmdBufferIndex].PresentSemaphore, VK_NULL_HANDLE, &m_AcquireImageIndex);
+
+                if(result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR)
+                {
+                    LUMOS_LOG_INFO("Acquire Image result : {0}", result == VK_ERROR_OUT_OF_DATE_KHR ? "Out of Date" : "SubOptimal");
+
+                    if(result == VK_ERROR_OUT_OF_DATE_KHR)
+                    {
+                        OnResize(m_Width, m_Height, true);
+                        AcquireNextImage();
+                    }
+                    return;
+                }
+                else if(result != VK_SUCCESS)
+                {
+                    LUMOS_LOG_CRITICAL("[VULKAN] Failed to acquire swap chain image!");
+                }
+
+                m_CurrentBuffer = nextCmdBufferIndex;
+                return;
+            }
+        }
+
+        void VKSwapchain::OnResize(uint32_t width, uint32_t height, bool forceResize, Window* windowHandle)
+        {
+            LUMOS_PROFILE_FUNCTION();
+
+            if(!forceResize && m_Width == width && m_Height == height)
+                return;
+
+            VKContext::Get()->WaitIdle();
+
+            m_Width = width;
+            m_Height = height;
+
+            for(uint32_t i = 0; i < m_SwapChainBuffers.size(); i++)
+            {
+                delete m_SwapChainBuffers[i];
+            }
+
+            m_SwapChainBuffers.clear();
+            m_OldSwapChain = m_SwapChain;
+
+            m_SwapChain = VK_NULL_HANDLE;
+            //m_CurrentBuffer = 0;//std::numeric_limits<uint32_t>::max();
+
+            if(windowHandle)
+                Init(m_VSyncEnabled, windowHandle);
+            else
+                Init(m_VSyncEnabled);
+        }
+
+        void VKSwapchain::QueueSubmit()
+        {
+            LUMOS_PROFILE_FUNCTION();
             auto& frameData = GetCurrentFrameData();
             auto cmdBuffer = frameData.MainCommandBuffer->GetHandle();
             VkSubmitInfo submitInfo = {};
@@ -263,18 +273,41 @@ namespace Lumos
             submitInfo.signalSemaphoreCount = 1;
             submitInfo.pSignalSemaphores = &frameData.RenderSemaphore;
 
+            frameData.RenderFence->Reset();
+
             {
                 LUMOS_PROFILE_SCOPE("vkQueueSubmit");
                 VK_CHECK_RESULT(vkQueueSubmit(VKDevice::Get().GetGraphicsQueue(), 1, &submitInfo, frameData.RenderFence->GetHandle()));
             }
             
-            GetCurrentFrameData().RenderFence->Wait();
+            frameData.RenderFence->Wait(); //TODO: Remove this? - causes flickering if removed. Sync issue
+            frameData.CommandPool->Reset();
+        }
 
-            if(GetCurrentFrameData().RenderFence->Signaled())
-            {
-                GetCurrentFrameData().CommandPool->Reset();
-                GetCurrentFrameData().RenderFence->Reset();
-            }
+        CommandBuffer* VKSwapchain::GetCurrentCommandBuffer()
+        {
+            return GetCurrentFrameData().MainCommandBuffer.get();
+        }
+
+        void VKSwapchain::Begin()
+        {
+            LUMOS_PROFILE_FUNCTION();
+            if(GetCurrentFrameData().MainCommandBuffer->GetState() == CommandBufferState::Submitted)
+                GetCurrentFrameData().RenderFence->Wait();
+            GetCurrentFrameData().MainCommandBuffer->BeginRecording();
+        }
+
+        void VKSwapchain::End()
+        {
+            LUMOS_PROFILE_FUNCTION();
+            GetCurrentCommandBuffer()->EndRecording();
+        }
+
+        void VKSwapchain::Present()
+        {
+            LUMOS_PROFILE_FUNCTION();
+
+            auto& frameData = GetCurrentFrameData();
 
             VkPresentInfoKHR present;
             present.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
@@ -299,8 +332,6 @@ namespace Lumos
             {
                 VK_CHECK_RESULT(error);
             }
-
-            m_CurrentBuffer = (m_CurrentBuffer + 1) % m_SwapChainBuffers.size();
         }
 
         void VKSwapchain::MakeDefault()

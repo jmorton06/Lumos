@@ -411,9 +411,9 @@ namespace Lumos
             return false;
         }
         m_Minimized = false;
-
-        m_RenderGraph->OnResize(width, height);
+        
         Graphics::Renderer::GetRenderer()->OnResize(width, height);
+        m_RenderGraph->OnResize(width, height);
 
         Graphics::GraphicsContext::GetContext()->WaitIdle();
 

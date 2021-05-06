@@ -12,7 +12,7 @@ namespace Lumos
             ~VKFence();
 
             bool CheckState();
-            bool Signaled();
+            bool IsSignaled();
             VkFence& GetHandle() { return m_Handle; }
 
             void SetSignaled(bool signaled)
