@@ -97,7 +97,7 @@ namespace MM
 
                         bool removed = false;
 
-                        ImGui::SameLine(ImGui::GetContentRegionAvail().x - ImGui::GetFontSize());
+                        ImGui::SameLine(ImGui::GetContentRegionAvail().x - ImGui::GetFontSize() - ImGui::GetStyle().ItemSpacing.x);
 
                         ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.7f, 0.7f, 0.7f, 0.0f));
 

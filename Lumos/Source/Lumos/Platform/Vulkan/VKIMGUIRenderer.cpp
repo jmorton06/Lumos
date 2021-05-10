@@ -204,7 +204,7 @@ namespace Lumos
 
         void VKIMGUIRenderer::FrameRender(ImGui_ImplVulkanH_Window* wd)
         {
-            wd->FrameIndex = Renderer::GetRenderer()->GetSwapchain()->GetCurrentBufferId();
+            wd->FrameIndex = Renderer::GetRenderer()->GetSwapchain()->GetCurrentBufferIndex();
 
             m_Renderpass->BeginRenderpass(Renderer::GetSwapchain()->GetCurrentCommandBuffer(), Maths::Vector4(0.1f, 0.1f, 0.1f, 1.0f), m_Framebuffers[wd->FrameIndex], Graphics::SubPassContents::INLINE, wd->Width, wd->Height);
 

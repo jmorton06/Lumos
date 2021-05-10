@@ -1966,8 +1966,10 @@ namespace Lumos
 
                 ImGui::Separator();
             }
-
+			
+			ImGui::BeginChild("Components", ImVec2(0.0f,0.0f), false, ImGuiWindowFlags_None);
 			m_EnttEditor.RenderImGui(registry, selected);
+			ImGui::EndChild();
 		}
 		ImGui::End();
 	}

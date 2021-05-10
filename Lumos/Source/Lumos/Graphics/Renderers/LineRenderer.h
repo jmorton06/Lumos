@@ -65,6 +65,7 @@ namespace Lumos
             void Present() override;
             void End() override;
             void EndScene() override {};
+            void BeginSimple();
 
             void RenderInternal();
             void OnResize(uint32_t width, uint32_t height) override;

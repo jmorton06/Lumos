@@ -205,20 +205,8 @@ namespace Lumos
                             if(inside == Maths::Intersection::OUTSIDE)
                                 continue;
 
-                            auto material = mesh->GetMaterial();
-                            if(material)
-                            {
-                                if(material->GetDescriptorSet() == nullptr || material->GetPipeline() != m_Pipeline.get() || material->GetTexturesUpdated())
-                                {
-                                    LUMOS_PROFILE_SCOPE("Create DescriptorSet");
-
-                                    material->CreateDescriptorSet(m_Pipeline.get(), 1);
-                                    material->SetTexturesUpdated(false);
-                                }
-                            }
-
                             auto textureMatrixTransform = registry.try_get<TextureMatrixComponent>(entity);
-                            SubmitMesh(mesh.get(), material.get(), worldTransform, textureMatrixTransform ? textureMatrixTransform->GetMatrix() : Maths::Matrix4());
+                            SubmitMesh(mesh.get(), mesh->GetMaterial().get(), worldTransform, textureMatrixTransform ? textureMatrixTransform->GetMatrix() : Maths::Matrix4());
                         }
                     }
                 }
@@ -271,6 +259,9 @@ namespace Lumos
 
                 auto command = m_CommandQueue[i];
                 Mesh* mesh = command.mesh;
+
+                if(command.material)
+                    command.material->Bind(m_Pipeline.get());
 
                 m_CurrentDescriptorSets[0] = m_Pipeline->GetDescriptorSet();
                 m_CurrentDescriptorSets[1] = command.material ? command.material->GetDescriptorSet() : m_DefaultMaterial->GetDescriptorSet();

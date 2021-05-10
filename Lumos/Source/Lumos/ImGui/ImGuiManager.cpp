@@ -62,7 +62,7 @@ namespace Lumos
         ImGui::GetStyle().ScaleAllSizes(0.5f);
 #endif
 #ifdef LUMOS_PLATFORM_MACOS
-        ImGui::GetStyle().ScaleAllSizes(app.GetWindow()->GetDPIScale());
+        ImGui::GetStyle().ScaleAllSizes(m_DPIScale);
 #endif
 
         m_IMGUIRenderer = UniqueRef<Graphics::IMGUIRenderer>(Graphics::IMGUIRenderer::Create(app.GetWindow()->GetWidth(), app.GetWindow()->GetHeight(), m_ClearScreen));

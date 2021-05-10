@@ -161,10 +161,11 @@ namespace Lumos
             }
         }
 
-        void VKRenderpass::BeginRenderpass(CommandBuffer* commandBuffer, const Maths::Vector4& clearColour, Framebuffer* frame, SubPassContents contents, uint32_t width, uint32_t height, bool beginCommandBuffer) const
+        static bool inRenderPass = false;
+        static const VKRenderpass* currentpsss = nullptr;
+
+        void VKRenderpass::BeginRenderpass(CommandBuffer* commandBuffer, const Maths::Vector4& clearColour, Framebuffer* frame, SubPassContents contents, uint32_t width, uint32_t height) const
         {
-            if(beginCommandBuffer)
-                commandBuffer->BeginRecording();
             commandBuffer->UpdateViewport(width, height);
 
             LUMOS_PROFILE_FUNCTION();
@@ -199,12 +200,10 @@ namespace Lumos
             vkCmdBeginRenderPass(static_cast<VKCommandBuffer*>(commandBuffer)->GetHandle(), &rpBegin, SubPassContentsToVK(contents));
         }
 
-        void VKRenderpass::EndRenderpass(CommandBuffer* commandBuffer, bool endCommandBuffer)
+        void VKRenderpass::EndRenderpass(CommandBuffer* commandBuffer)
         {
             LUMOS_PROFILE_FUNCTION();
             vkCmdEndRenderPass(static_cast<VKCommandBuffer*>(commandBuffer)->GetHandle());
-            if(endCommandBuffer)
-                commandBuffer->EndRecording();
         }
 
         void VKRenderpass::MakeDefault()

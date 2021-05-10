@@ -52,7 +52,7 @@ namespace Lumos
 
             m_CurrentBufferID = 0;
             if(!m_RenderTexture)
-                m_CurrentBufferID = Renderer::GetSwapchain()->GetCurrentBufferId();
+                m_CurrentBufferID = Renderer::GetSwapchain()->GetCurrentBufferIndex();
 
             Begin();
             SetSystemUniforms(m_Shader.get());
@@ -171,9 +171,6 @@ namespace Lumos
         {
             LUMOS_PROFILE_FUNCTION();
             m_RenderPass->EndRenderpass(Renderer::GetSwapchain()->GetCurrentCommandBuffer());
-
-            //if(m_RenderTexture)
-            //m_CommandBuffers[m_CurrentBufferID]->Execute(true);
         }
 
         void SkyboxRenderer::SetSystemUniforms(Shader* shader) const
