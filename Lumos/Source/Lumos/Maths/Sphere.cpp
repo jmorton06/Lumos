@@ -6,7 +6,7 @@ namespace Lumos::Maths
 {
     void Sphere::Define(const Vector3* vertices, unsigned count)
     {
-        if (!count)
+        if(!count)
             return;
 
         Clear();
@@ -42,7 +42,7 @@ namespace Lumos::Maths
 
     void Sphere::Merge(const Vector3* vertices, unsigned count)
     {
-        while (count--)
+        while(count--)
             Merge(*vertices++);
     }
 
@@ -69,17 +69,17 @@ namespace Lumos::Maths
 
     void Sphere::Merge(const Polyhedron& poly)
     {
-        for (unsigned i = 0; i < poly.faces_.size(); ++i)
+        for(unsigned i = 0; i < poly.faces_.size(); ++i)
         {
             const std::vector<Vector3>& face = poly.faces_[i];
-            if (!face.empty())
+            if(!face.empty())
                 Merge(&face[0], (uint32_t)face.size());
         }
     }
 
     void Sphere::Merge(const Sphere& sphere)
     {
-        if (radius_ < 0.0f)
+        if(radius_ < 0.0f)
         {
             center_ = sphere.center_;
             radius_ = sphere.radius_;
@@ -90,11 +90,11 @@ namespace Lumos::Maths
         float dist = offset.Length();
 
         // If sphere fits inside, do nothing
-        if (dist + sphere.radius_ < radius_)
+        if(dist + sphere.radius_ < radius_)
             return;
 
         // If we fit inside the other sphere, become it
-        if (dist + radius_ < sphere.radius_)
+        if(dist + radius_ < sphere.radius_)
         {
             center_ = sphere.center_;
             radius_ = sphere.radius_;
@@ -118,66 +118,66 @@ namespace Lumos::Maths
         Vector3 min = box.min_;
         Vector3 max = box.max_;
 
-        if (center_.x < min.x)
+        if(center_.x < min.x)
         {
             temp = center_.x - min.x;
             distSquared += temp * temp;
         }
-        else if (center_.x > max.x)
+        else if(center_.x > max.x)
         {
             temp = center_.x - max.x;
             distSquared += temp * temp;
         }
-        if (center_.y < min.y)
+        if(center_.y < min.y)
         {
             temp = center_.y - min.y;
             distSquared += temp * temp;
         }
-        else if (center_.y > max.y)
+        else if(center_.y > max.y)
         {
             temp = center_.y - max.y;
             distSquared += temp * temp;
         }
-        if (center_.z < min.z)
+        if(center_.z < min.z)
         {
             temp = center_.z - min.z;
             distSquared += temp * temp;
         }
-        else if (center_.z > max.z)
+        else if(center_.z > max.z)
         {
             temp = center_.z - max.z;
             distSquared += temp * temp;
         }
 
-        if (distSquared >= radiusSquared)
+        if(distSquared >= radiusSquared)
             return OUTSIDE;
 
         min -= center_;
         max -= center_;
 
         Vector3 tempVec = min; // - - -
-        if (tempVec.LengthSquared() >= radiusSquared)
+        if(tempVec.LengthSquared() >= radiusSquared)
             return INTERSECTS;
         tempVec.x = max.x; // + - -
-        if (tempVec.LengthSquared() >= radiusSquared)
+        if(tempVec.LengthSquared() >= radiusSquared)
             return INTERSECTS;
         tempVec.y = max.y; // + + -
-        if (tempVec.LengthSquared() >= radiusSquared)
+        if(tempVec.LengthSquared() >= radiusSquared)
             return INTERSECTS;
         tempVec.x = min.x; // - + -
-        if (tempVec.LengthSquared() >= radiusSquared)
+        if(tempVec.LengthSquared() >= radiusSquared)
             return INTERSECTS;
         tempVec.z = max.z; // - + +
-        if (tempVec.LengthSquared() >= radiusSquared)
+        if(tempVec.LengthSquared() >= radiusSquared)
             return INTERSECTS;
         tempVec.y = min.y; // - - +
-        if (tempVec.LengthSquared() >= radiusSquared)
+        if(tempVec.LengthSquared() >= radiusSquared)
             return INTERSECTS;
         tempVec.x = max.x; // + - +
-        if (tempVec.LengthSquared() >= radiusSquared)
+        if(tempVec.LengthSquared() >= radiusSquared)
             return INTERSECTS;
         tempVec.y = max.y; // + + +
-        if (tempVec.LengthSquared() >= radiusSquared)
+        if(tempVec.LengthSquared() >= radiusSquared)
             return INTERSECTS;
 
         return INSIDE;
@@ -191,38 +191,38 @@ namespace Lumos::Maths
         Vector3 min = box.min_;
         Vector3 max = box.max_;
 
-        if (center_.x < min.x)
+        if(center_.x < min.x)
         {
             temp = center_.x - min.x;
             distSquared += temp * temp;
         }
-        else if (center_.x > max.x)
+        else if(center_.x > max.x)
         {
             temp = center_.x - max.x;
             distSquared += temp * temp;
         }
-        if (center_.y < min.y)
+        if(center_.y < min.y)
         {
             temp = center_.y - min.y;
             distSquared += temp * temp;
         }
-        else if (center_.y > max.y)
+        else if(center_.y > max.y)
         {
             temp = center_.y - max.y;
             distSquared += temp * temp;
         }
-        if (center_.z < min.z)
+        if(center_.z < min.z)
         {
             temp = center_.z - min.z;
             distSquared += temp * temp;
         }
-        else if (center_.z > max.z)
+        else if(center_.z > max.z)
         {
             temp = center_.z - max.z;
             distSquared += temp * temp;
         }
 
-        if (distSquared >= radiusSquared)
+        if(distSquared >= radiusSquared)
             return OUTSIDE;
         else
             return INSIDE;
@@ -233,7 +233,6 @@ namespace Lumos::Maths
         return Vector3(
             radius_ * Sin(theta) * Sin(phi),
             radius_ * Cos(phi),
-            radius_ * Cos(theta) * Sin(phi)
-        );
+            radius_ * Cos(theta) * Sin(phi));
     }
 }

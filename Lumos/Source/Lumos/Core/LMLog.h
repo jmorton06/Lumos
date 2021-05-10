@@ -21,19 +21,20 @@
 
 namespace Lumos
 {
-	namespace Debug
-	{
-		class LUMOS_EXPORT Log
-		{
-		public:
-			static void OnInit();
-			static void OnRelease();
+    namespace Debug
+    {
+        class LUMOS_EXPORT Log
+        {
+        public:
+            static void OnInit();
+            static void OnRelease();
 
-			inline static std::shared_ptr<spdlog::logger>& GetCoreLogger() { return s_CoreLogger; }
-            
+            inline static std::shared_ptr<spdlog::logger>& GetCoreLogger() { return s_CoreLogger; }
+
             static void AddSink(spdlog::sink_ptr& sink);
-		private:
-			static std::shared_ptr<spdlog::logger> s_CoreLogger;
-		};
-	}
+
+        private:
+            static std::shared_ptr<spdlog::logger> s_CoreLogger;
+        };
+    }
 }

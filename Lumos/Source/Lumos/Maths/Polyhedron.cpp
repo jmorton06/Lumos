@@ -4,7 +4,7 @@
 #include "Maths/Polyhedron.h"
 
 #ifdef _MSC_VER
-#pragma warning(disable:6293)
+#pragma warning(disable : 6293)
 #endif
 
 namespace Lumos::Maths
@@ -73,7 +73,7 @@ namespace Lumos::Maths
     {
         clippedVertices_.clear();
 
-        for (unsigned i = 0; i < faces_.size(); ++i)
+        for(unsigned i = 0; i < faces_.size(); ++i)
         {
             std::vector<Vector3>& face = faces_[i];
             Vector3 lastVertex;
@@ -81,12 +81,12 @@ namespace Lumos::Maths
 
             outFace_.clear();
 
-            for (unsigned j = 0; j < face.size(); ++j)
+            for(unsigned j = 0; j < face.size(); ++j)
             {
                 float distance = plane.Distance(face[j]);
-                if (distance >= 0.0f)
+                if(distance >= 0.0f)
                 {
-                    if (lastDistance < 0.0f)
+                    if(lastDistance < 0.0f)
                     {
                         float t = lastDistance / (lastDistance - distance);
                         Vector3 clippedVertex = lastVertex + t * (face[j] - lastVertex);
@@ -98,7 +98,7 @@ namespace Lumos::Maths
                 }
                 else
                 {
-                    if (lastDistance >= 0.0f && j != 0)
+                    if(lastDistance >= 0.0f && j != 0)
                     {
                         float t = lastDistance / (lastDistance - distance);
                         Vector3 clippedVertex = lastVertex + t * (face[j] - lastVertex);
@@ -113,7 +113,7 @@ namespace Lumos::Maths
 
             // Recheck the distances of the last and first vertices and add the final clipped vertex if applicable
             float distance = plane.Distance(face[0]);
-            if ((lastDistance < 0.0f && distance >= 0.0f) || (lastDistance >= 0.0f && distance < 0.0f))
+            if((lastDistance < 0.0f && distance >= 0.0f) || (lastDistance >= 0.0f && distance < 0.0f))
             {
                 float t = lastDistance / (lastDistance - distance);
                 Vector3 clippedVertex = lastVertex + t * (face[0] - lastVertex);
@@ -122,23 +122,24 @@ namespace Lumos::Maths
             }
 
             // Do not keep faces which are less than triangles
-            if (outFace_.size() < 3)
+            if(outFace_.size() < 3)
                 outFace_.clear();
 
             face = outFace_;
         }
 
-        if (clippedVertices_.size() > 3)
+        if(clippedVertices_.size() > 3)
         {
             outFace_.clear();
 
             // Start with the first vertex
-            outFace_.push_back(clippedVertices_.front());    }
+            outFace_.push_back(clippedVertices_.front());
+        }
     }
 
     void Polyhedron::Clip(const Frustum& frustum)
     {
-        for (const auto& plane : frustum.planes_)
+        for(const auto& plane : frustum.planes_)
             Clip(plane);
     }
 
@@ -169,20 +170,20 @@ namespace Lumos::Maths
 
     void Polyhedron::Transform(const Matrix3& transform)
     {
-        for (unsigned i = 0; i < faces_.size(); ++i)
+        for(unsigned i = 0; i < faces_.size(); ++i)
         {
             std::vector<Vector3>& face = faces_[i];
-            for (unsigned j = 0; j < face.size(); ++j)
+            for(unsigned j = 0; j < face.size(); ++j)
                 face[j] = transform * face[j];
         }
     }
 
     void Polyhedron::Transform(const Matrix3x4& transform)
     {
-        for (unsigned i = 0; i < faces_.size(); ++i)
+        for(unsigned i = 0; i < faces_.size(); ++i)
         {
             std::vector<Vector3>& face = faces_[i];
-            for (unsigned j = 0; j < face.size(); ++j)
+            for(unsigned j = 0; j < face.size(); ++j)
                 face[j] = transform * face[j];
         }
     }
@@ -192,13 +193,13 @@ namespace Lumos::Maths
         Polyhedron ret;
         ret.faces_.resize(faces_.size());
 
-        for (unsigned i = 0; i < faces_.size(); ++i)
+        for(unsigned i = 0; i < faces_.size(); ++i)
         {
             const std::vector<Vector3>& face = faces_[i];
             std::vector<Vector3>& newFace = ret.faces_[i];
             newFace.resize(face.size());
 
-            for (unsigned j = 0; j < face.size(); ++j)
+            for(unsigned j = 0; j < face.size(); ++j)
                 newFace[j] = transform * face[j];
         }
 
@@ -210,13 +211,13 @@ namespace Lumos::Maths
         Polyhedron ret;
         ret.faces_.resize(faces_.size());
 
-        for (unsigned i = 0; i < faces_.size(); ++i)
+        for(unsigned i = 0; i < faces_.size(); ++i)
         {
             const std::vector<Vector3>& face = faces_[i];
             std::vector<Vector3>& newFace = ret.faces_[i];
             newFace.resize(face.size());
 
-            for (unsigned j = 0; j < face.size(); ++j)
+            for(unsigned j = 0; j < face.size(); ++j)
                 newFace[j] = transform * face[j];
         }
 

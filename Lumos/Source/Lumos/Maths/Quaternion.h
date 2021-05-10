@@ -9,64 +9,64 @@ namespace Lumos::Maths
 {
     class Matrix4;
     /// Rotation represented as a four-dimensional Normalised vector.
-    class  Quaternion
+    class Quaternion
     {
     public:
         /// Construct an identity quaternion.
         Quaternion() noexcept
-    #ifndef LUMOS_SSE
-           :w(1.0f),
-            x(0.0f),
-            y(0.0f),
-            z(0.0f)
-    #endif
+#ifndef LUMOS_SSE
+            : w(1.0f)
+            , x(0.0f)
+            , y(0.0f)
+            , z(0.0f)
+#endif
         {
-    #ifdef LUMOS_SSE
+#ifdef LUMOS_SSE
             _mm_storeu_ps(&w, _mm_set_ps(0.f, 0.f, 0.f, 1.f));
-    #endif
+#endif
         }
 
         /// Copy-construct from another quaternion.
         Quaternion(const Quaternion& quat) noexcept
-    #if defined(LUMOS_SSE) && (!defined(_MSC_VER) || _MSC_VER >= 1700) /* Visual Studio 2012 and newer. VS2010 bug */
+#if defined(LUMOS_SSE) && (!defined(_MSC_VER) || _MSC_VER >= 1700) /* Visual Studio 2012 and newer. VS2010 bug */
         {
             _mm_storeu_ps(&w, _mm_loadu_ps(&quat.w));
         }
-    #else
-           :w(quat.w),
-            x(quat.x),
-            y(quat.y),
-            z(quat.z)
+#else
+            : w(quat.w)
+            , x(quat.x)
+            , y(quat.y)
+            , z(quat.z)
         {
         }
-    #endif
+#endif
 
         /// Construct from values.
         Quaternion(float pw, float px, float py, float pz) noexcept
-    #ifndef LUMOS_SSE
-           :w(pw),
-            x(px),
-            y(py),
-            z(pz)
-    #endif
+#ifndef LUMOS_SSE
+            : w(pw)
+            , x(px)
+            , y(py)
+            , z(pz)
+#endif
         {
-    #ifdef LUMOS_SSE
+#ifdef LUMOS_SSE
             _mm_storeu_ps(&w, _mm_set_ps(pz, py, px, pw));
-    #endif
+#endif
         }
 
         /// Construct from a float array.
         explicit Quaternion(const float* data) noexcept
-    #ifndef LUMOS_SSE
-           :w(data[0]),
-            x(data[1]),
-            y(data[2]),
-            z(data[3])
-    #endif
+#ifndef LUMOS_SSE
+            : w(data[0])
+            , x(data[1])
+            , y(data[2])
+            , z(data[3])
+#endif
         {
-    #ifdef LUMOS_SSE
+#ifdef LUMOS_SSE
             _mm_storeu_ps(&w, _mm_loadu_ps(data));
-    #endif
+#endif
         }
 
         /// Construct from an angle (in degrees) and axis.
@@ -111,115 +111,115 @@ namespace Lumos::Maths
             FromRotationMatrix(matrix);
         }
 
-    #ifdef LUMOS_SSE
+#ifdef LUMOS_SSE
         explicit Quaternion(__m128 wxyz) noexcept
         {
             _mm_storeu_ps(&w, wxyz);
         }
-    #endif
+#endif
 
         /// Assign from another quaternion.
-        Quaternion& operator =(const Quaternion& rhs) noexcept
+        Quaternion& operator=(const Quaternion& rhs) noexcept
         {
-    #if defined(LUMOS_SSE)
+#if defined(LUMOS_SSE)
             _mm_storeu_ps(&w, _mm_loadu_ps(&rhs.w));
-    #else
+#else
             w = rhs.w;
             x = rhs.x;
             y = rhs.y;
             z = rhs.z;
-    #endif
+#endif
             return *this;
         }
 
         /// Add-assign a quaternion.
-        Quaternion& operator +=(const Quaternion& rhs)
+        Quaternion& operator+=(const Quaternion& rhs)
         {
-    #ifdef LUMOS_SSE
+#ifdef LUMOS_SSE
             _mm_storeu_ps(&w, _mm_add_ps(_mm_loadu_ps(&w), _mm_loadu_ps(&rhs.w)));
-    #else
+#else
             w += rhs.w;
             x += rhs.x;
             y += rhs.y;
             z += rhs.z;
-    #endif
+#endif
             return *this;
         }
 
         /// Multiply-assign a scalar.
-        Quaternion& operator *=(float rhs)
+        Quaternion& operator*=(float rhs)
         {
-    #ifdef LUMOS_SSE
+#ifdef LUMOS_SSE
             _mm_storeu_ps(&w, _mm_mul_ps(_mm_loadu_ps(&w), _mm_set1_ps(rhs)));
-    #else
+#else
             w *= rhs;
             x *= rhs;
             y *= rhs;
             z *= rhs;
-    #endif
+#endif
             return *this;
         }
 
         /// Test for equality with another quaternion without epsilon.
-        bool operator ==(const Quaternion& rhs) const
+        bool operator==(const Quaternion& rhs) const
         {
-    #ifdef LUMOS_SSE
+#ifdef LUMOS_SSE
             __m128 c = _mm_cmpeq_ps(_mm_loadu_ps(&w), _mm_loadu_ps(&rhs.w));
             c = _mm_and_ps(c, _mm_movehl_ps(c, c));
             c = _mm_and_ps(c, _mm_shuffle_ps(c, c, _MM_SHUFFLE(1, 1, 1, 1)));
             return _mm_cvtsi128_si32(_mm_castps_si128(c)) == -1;
-    #else
+#else
             return w == rhs.w && x == rhs.x && y == rhs.y && z == rhs.z;
-    #endif
+#endif
         }
 
         /// Test for inequality with another quaternion without epsilon.
-        bool operator !=(const Quaternion& rhs) const { return !(*this == rhs); }
+        bool operator!=(const Quaternion& rhs) const { return !(*this == rhs); }
 
         /// Multiply with a scalar.
-        Quaternion operator *(float rhs) const
+        Quaternion operator*(float rhs) const
         {
-    #ifdef LUMOS_SSE
+#ifdef LUMOS_SSE
             return Quaternion(_mm_mul_ps(_mm_loadu_ps(&w), _mm_set1_ps(rhs)));
-    #else
+#else
             return Quaternion(w * rhs, x * rhs, y * rhs, z * rhs);
-    #endif
+#endif
         }
 
         /// Return negation.
-        Quaternion operator -() const
+        Quaternion operator-() const
         {
-    #ifdef LUMOS_SSE
+#ifdef LUMOS_SSE
             return Quaternion(_mm_xor_ps(_mm_loadu_ps(&w), _mm_castsi128_ps(_mm_set1_epi32((int)0x80000000UL))));
-    #else
+#else
             return Quaternion(-w, -x, -y, -z);
-    #endif
+#endif
         }
 
         /// Add a quaternion.
-        Quaternion operator +(const Quaternion& rhs) const
+        Quaternion operator+(const Quaternion& rhs) const
         {
-    #ifdef LUMOS_SSE
+#ifdef LUMOS_SSE
             return Quaternion(_mm_add_ps(_mm_loadu_ps(&w), _mm_loadu_ps(&rhs.w)));
-    #else
+#else
             return Quaternion(w + rhs.w, x + rhs.x, y + rhs.y, z + rhs.z);
-    #endif
+#endif
         }
 
         /// Subtract a quaternion.
-        Quaternion operator -(const Quaternion& rhs) const
+        Quaternion operator-(const Quaternion& rhs) const
         {
-    #ifdef LUMOS_SSE
+#ifdef LUMOS_SSE
             return Quaternion(_mm_sub_ps(_mm_loadu_ps(&w), _mm_loadu_ps(&rhs.w)));
-    #else
+#else
             return Quaternion(w - rhs.w, x - rhs.x, y - rhs.y, z - rhs.z);
-    #endif
+#endif
         }
 
         /// Multiply a quaternion.
-        Quaternion operator *(const Quaternion& rhs) const
+        Quaternion operator*(const Quaternion& rhs) const
         {
-    #ifdef LUMOS_SSE
+#ifdef LUMOS_SSE
             __m128 q1 = _mm_loadu_ps(&w);
             __m128 q2 = _mm_loadu_ps(&rhs.w);
             q2 = _mm_shuffle_ps(q2, q2, _MM_SHUFFLE(0, 3, 2, 1));
@@ -231,20 +231,19 @@ namespace Lumos::Maths
             out = _mm_add_ps(_mm_mul_ps(_mm_xor_ps(signz, _mm_shuffle_ps(q1, q1, _MM_SHUFFLE(3, 3, 3, 3))), _mm_shuffle_ps(q2, q2, _MM_SHUFFLE(2, 3, 0, 1))), out);
             out = _mm_add_ps(_mm_mul_ps(_mm_shuffle_ps(q1, q1, _MM_SHUFFLE(0, 0, 0, 0)), q2), out);
             return Quaternion(_mm_shuffle_ps(out, out, _MM_SHUFFLE(2, 1, 0, 3)));
-    #else
+#else
             return Quaternion(
                 w * rhs.w - x * rhs.x - y * rhs.y - z * rhs.z,
                 w * rhs.x + x * rhs.w + y * rhs.z - z * rhs.y,
                 w * rhs.y + y * rhs.w + z * rhs.x - x * rhs.z,
-                w * rhs.z + z * rhs.w + x * rhs.y - y * rhs.x
-            );
-    #endif
+                w * rhs.z + z * rhs.w + x * rhs.y - y * rhs.x);
+#endif
         }
 
         /// Multiply a Vector3.
-        Vector3 operator *(const Vector3& rhs) const
+        Vector3 operator*(const Vector3& rhs) const
         {
-    #ifdef LUMOS_SSE
+#ifdef LUMOS_SSE
             __m128 q = _mm_loadu_ps(&w);
             q = _mm_shuffle_ps(q, q, _MM_SHUFFLE(0, 3, 2, 1));
             __m128 v = _mm_set_ps(0.f, rhs.z, rhs.y, rhs.x);
@@ -264,13 +263,13 @@ namespace Lumos::Maths
                 _mm_cvtss_f32(s),
                 _mm_cvtss_f32(_mm_shuffle_ps(s, s, _MM_SHUFFLE(1, 1, 1, 1))),
                 _mm_cvtss_f32(_mm_movehl_ps(s, s)));
-    #else
+#else
             Vector3 qVec(x, y, z);
             Vector3 cross1(qVec.CrossProduct(rhs));
             Vector3 cross2(qVec.CrossProduct(cross1));
 
             return rhs + 2.0f * (cross1 * w + cross2);
-    #endif
+#endif
         }
 
         /// Define from an angle (in degrees) and axis.
@@ -289,7 +288,7 @@ namespace Lumos::Maths
         /// Normalise to unit length.
         void Normalise()
         {
-    #ifdef LUMOS_SSE
+#ifdef LUMOS_SSE
             __m128 q = _mm_loadu_ps(&w);
             __m128 n = _mm_mul_ps(q, q);
             n = _mm_add_ps(n, _mm_shuffle_ps(n, n, _MM_SHUFFLE(2, 3, 0, 1)));
@@ -299,9 +298,9 @@ namespace Lumos::Maths
             __m128 half = _mm_set1_ps(0.5f);
             n = _mm_add_ps(e, _mm_mul_ps(half, _mm_sub_ps(e, _mm_mul_ps(n, e3))));
             _mm_storeu_ps(&w, _mm_mul_ps(q, n));
-    #else
+#else
             float lenSquared = LengthSquared();
-            if (!Lumos::Maths::Equals(lenSquared, 1.0f) && lenSquared > 0.0f)
+            if(!Lumos::Maths::Equals(lenSquared, 1.0f) && lenSquared > 0.0f)
             {
                 float invLen = 1.0f / sqrtf(lenSquared);
                 w *= invLen;
@@ -309,13 +308,13 @@ namespace Lumos::Maths
                 y *= invLen;
                 z *= invLen;
             }
-    #endif
+#endif
         }
 
         /// Return Normalised to unit length.
         Quaternion Normalised() const
         {
-    #ifdef LUMOS_SSE
+#ifdef LUMOS_SSE
             __m128 q = _mm_loadu_ps(&w);
             __m128 n = _mm_mul_ps(q, q);
             n = _mm_add_ps(n, _mm_shuffle_ps(n, n, _MM_SHUFFLE(2, 3, 0, 1)));
@@ -325,65 +324,65 @@ namespace Lumos::Maths
             __m128 half = _mm_set1_ps(0.5f);
             n = _mm_add_ps(e, _mm_mul_ps(half, _mm_sub_ps(e, _mm_mul_ps(n, e3))));
             return Quaternion(_mm_mul_ps(q, n));
-    #else
+#else
             float lenSquared = LengthSquared();
-            if (!Lumos::Maths::Equals(lenSquared, 1.0f) && lenSquared > 0.0f)
+            if(!Lumos::Maths::Equals(lenSquared, 1.0f) && lenSquared > 0.0f)
             {
                 float invLen = 1.0f / sqrtf(lenSquared);
                 return *this * invLen;
             }
             else
                 return *this;
-    #endif
+#endif
         }
 
         /// Return inverse.
         Quaternion Inverse() const
         {
-    #ifdef LUMOS_SSE
+#ifdef LUMOS_SSE
             __m128 q = _mm_loadu_ps(&w);
             __m128 n = _mm_mul_ps(q, q);
             n = _mm_add_ps(n, _mm_shuffle_ps(n, n, _MM_SHUFFLE(2, 3, 0, 1)));
             n = _mm_add_ps(n, _mm_shuffle_ps(n, n, _MM_SHUFFLE(0, 1, 2, 3)));
             return Quaternion(_mm_div_ps(_mm_xor_ps(q, _mm_castsi128_ps(_mm_set_epi32((int)0x80000000UL, (int)0x80000000UL, (int)0x80000000UL, 0))), n));
-    #else
+#else
             float lenSquared = LengthSquared();
-            if (lenSquared == 1.0f)
+            if(lenSquared == 1.0f)
                 return Conjugate();
-            else if (lenSquared >= M_EPSILON)
+            else if(lenSquared >= M_EPSILON)
                 return Conjugate() * (1.0f / lenSquared);
             else
                 return IDENTITY;
-    #endif
+#endif
         }
 
         /// Return squared length.
         float LengthSquared() const
         {
-    #ifdef LUMOS_SSE
+#ifdef LUMOS_SSE
             __m128 q = _mm_loadu_ps(&w);
             __m128 n = _mm_mul_ps(q, q);
             n = _mm_add_ps(n, _mm_shuffle_ps(n, n, _MM_SHUFFLE(2, 3, 0, 1)));
             n = _mm_add_ps(n, _mm_shuffle_ps(n, n, _MM_SHUFFLE(0, 1, 2, 3)));
             return _mm_cvtss_f32(n);
-    #else
+#else
             return w * w + x * x + y * y + z * z;
-    #endif
+#endif
         }
 
         /// Calculate dot product.
         float DotProduct(const Quaternion& rhs) const
         {
-    #ifdef LUMOS_SSE
+#ifdef LUMOS_SSE
             __m128 q1 = _mm_loadu_ps(&w);
             __m128 q2 = _mm_loadu_ps(&rhs.w);
             __m128 n = _mm_mul_ps(q1, q2);
             n = _mm_add_ps(n, _mm_shuffle_ps(n, n, _MM_SHUFFLE(2, 3, 0, 1)));
             n = _mm_add_ps(n, _mm_shuffle_ps(n, n, _MM_SHUFFLE(0, 1, 2, 3)));
             return _mm_cvtss_f32(n);
-    #else
+#else
             return w * rhs.w + x * rhs.x + y * rhs.y + z * rhs.z;
-    #endif
+#endif
         }
 
         /// Test for equality with another quaternion with epsilon.
@@ -401,12 +400,12 @@ namespace Lumos::Maths
         /// Return conjugate.
         Quaternion Conjugate() const
         {
-    #ifdef LUMOS_SSE
+#ifdef LUMOS_SSE
             __m128 q = _mm_loadu_ps(&w);
             return Quaternion(_mm_xor_ps(q, _mm_castsi128_ps(_mm_set_epi32((int)0x80000000UL, (int)0x80000000UL, (int)0x80000000UL, 0))));
-    #else
+#else
             return Quaternion(w, -x, -y, -z);
-    #endif
+#endif
         }
 
         /// Return Euler angles in degrees.
@@ -448,13 +447,13 @@ namespace Lumos::Maths
         }
 
         /// W coordinate.
-        float w =0.0f;
+        float w = 0.0f;
         /// X coordinate.
-		float x = 0.0f;
+        float x = 0.0f;
         /// Y coordinate.
-		float y = 0.0f;
+        float y = 0.0f;
         /// Z coordinate.
-		float z = 0.0f;
+        float z = 0.0f;
 
         /// Identity quaternion.
         static const Quaternion IDENTITY;
@@ -473,19 +472,19 @@ namespace Lumos::Maths
             return q;
         }
     };
-    
-    template<typename Archive> void serialize(Archive& archive, Maths::Quaternion& v4)
+
+    template <typename Archive>
+    void serialize(Archive& archive, Maths::Quaternion& v4)
     {
         archive(v4.x, v4.y, v4.z, v4.w);
     }
 
-	inline Quaternion operator*(const Vector3& v, const Quaternion& rhs)
-	{
-		return Quaternion(
-			-(rhs.x * v.x) - (rhs.y * v.y) - (rhs.z * v.z),
-			 (rhs.w * v.x) + (v.y * rhs.z) - (v.z * rhs.y),
-			 (rhs.w * v.y) + (v.z * rhs.x) - (v.x * rhs.z),
-			 (rhs.w * v.z) + (v.x * rhs.y) - (v.y * rhs.x)
-		);
-	}
+    inline Quaternion operator*(const Vector3& v, const Quaternion& rhs)
+    {
+        return Quaternion(
+            -(rhs.x * v.x) - (rhs.y * v.y) - (rhs.z * v.z),
+            (rhs.w * v.x) + (v.y * rhs.z) - (v.z * rhs.y),
+            (rhs.w * v.y) + (v.z * rhs.x) - (v.x * rhs.z),
+            (rhs.w * v.z) + (v.x * rhs.y) - (v.y * rhs.x));
+    }
 }

@@ -3,5 +3,5 @@
 
 namespace Lumos
 {
-	AudioData LoadOgg(const std::string& fileName);
+    AudioData LoadOgg(const std::string& fileName);
 }

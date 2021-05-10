@@ -10,26 +10,26 @@ namespace Lumos::Maths
     {
     public:
         /// Construct a zero vector.
-        IntVector3() noexcept :
-            x(0),
-            y(0),
-            z(0)
+        IntVector3() noexcept
+            : x(0)
+            , y(0)
+            , z(0)
         {
         }
 
         /// Construct from coordinates.
-        IntVector3(int x, int y, int z) noexcept :
-            x(x),
-            y(y),
-            z(z)
+        IntVector3(int x, int y, int z) noexcept
+            : x(x)
+            , y(y)
+            , z(z)
         {
         }
 
         /// Construct from an int array.
-        explicit IntVector3(const int* data) noexcept :
-            x(data[0]),
-            y(data[1]),
-            z(data[2])
+        explicit IntVector3(const int* data) noexcept
+            : x(data[0])
+            , y(data[1])
+            , z(data[2])
         {
         }
 
@@ -37,37 +37,37 @@ namespace Lumos::Maths
         IntVector3(const IntVector3& rhs) noexcept = default;
 
         /// Assign from another vector.
-        IntVector3& operator =(const IntVector3& rhs) noexcept = default;
+        IntVector3& operator=(const IntVector3& rhs) noexcept = default;
 
         /// Test for equality with another vector.
-        bool operator ==(const IntVector3& rhs) const { return x == rhs.x && y == rhs.y && z == rhs.z; }
+        bool operator==(const IntVector3& rhs) const { return x == rhs.x && y == rhs.y && z == rhs.z; }
 
         /// Test for inequality with another vector.
-        bool operator !=(const IntVector3& rhs) const { return x != rhs.x || y != rhs.y || z != rhs.z; }
+        bool operator!=(const IntVector3& rhs) const { return x != rhs.x || y != rhs.y || z != rhs.z; }
 
         /// Add a vector.
-        IntVector3 operator +(const IntVector3& rhs) const { return IntVector3(x + rhs.x, y + rhs.y, z + rhs.z); }
+        IntVector3 operator+(const IntVector3& rhs) const { return IntVector3(x + rhs.x, y + rhs.y, z + rhs.z); }
 
         /// Return negation.
-        IntVector3 operator -() const { return IntVector3(-x, -y, -z); }
+        IntVector3 operator-() const { return IntVector3(-x, -y, -z); }
 
         /// Subtract a vector.
-        IntVector3 operator -(const IntVector3& rhs) const { return IntVector3(x - rhs.x, y - rhs.y, z - rhs.z); }
+        IntVector3 operator-(const IntVector3& rhs) const { return IntVector3(x - rhs.x, y - rhs.y, z - rhs.z); }
 
         /// Multiply with a scalar.
-        IntVector3 operator *(int rhs) const { return IntVector3(x * rhs, y * rhs, z * rhs); }
+        IntVector3 operator*(int rhs) const { return IntVector3(x * rhs, y * rhs, z * rhs); }
 
         /// Multiply with a vector.
-        IntVector3 operator *(const IntVector3& rhs) const { return IntVector3(x * rhs.x, y * rhs.y, z * rhs.z); }
+        IntVector3 operator*(const IntVector3& rhs) const { return IntVector3(x * rhs.x, y * rhs.y, z * rhs.z); }
 
         /// Divide by a scalar.
-        IntVector3 operator /(int rhs) const { return IntVector3(x / rhs, y / rhs, z / rhs); }
+        IntVector3 operator/(int rhs) const { return IntVector3(x / rhs, y / rhs, z / rhs); }
 
         /// Divide by a vector.
-        IntVector3 operator /(const IntVector3& rhs) const { return IntVector3(x / rhs.x, y / rhs.y, z / rhs.z); }
+        IntVector3 operator/(const IntVector3& rhs) const { return IntVector3(x / rhs.x, y / rhs.y, z / rhs.z); }
 
         /// Add-assign a vector.
-        IntVector3& operator +=(const IntVector3& rhs)
+        IntVector3& operator+=(const IntVector3& rhs)
         {
             x += rhs.x;
             y += rhs.y;
@@ -76,7 +76,7 @@ namespace Lumos::Maths
         }
 
         /// Subtract-assign a vector.
-        IntVector3& operator -=(const IntVector3& rhs)
+        IntVector3& operator-=(const IntVector3& rhs)
         {
             x -= rhs.x;
             y -= rhs.y;
@@ -85,7 +85,7 @@ namespace Lumos::Maths
         }
 
         /// Multiply-assign a scalar.
-        IntVector3& operator *=(int rhs)
+        IntVector3& operator*=(int rhs)
         {
             x *= rhs;
             y *= rhs;
@@ -94,7 +94,7 @@ namespace Lumos::Maths
         }
 
         /// Multiply-assign a vector.
-        IntVector3& operator *=(const IntVector3& rhs)
+        IntVector3& operator*=(const IntVector3& rhs)
         {
             x *= rhs.x;
             y *= rhs.y;
@@ -103,7 +103,7 @@ namespace Lumos::Maths
         }
 
         /// Divide-assign a scalar.
-        IntVector3& operator /=(int rhs)
+        IntVector3& operator/=(int rhs)
         {
             x /= rhs;
             y /= rhs;
@@ -112,7 +112,7 @@ namespace Lumos::Maths
         }
 
         /// Divide-assign a vector.
-        IntVector3& operator /=(const IntVector3& rhs)
+        IntVector3& operator/=(const IntVector3& rhs)
         {
             x /= rhs.x;
             y /= rhs.y;
@@ -157,21 +157,21 @@ namespace Lumos::Maths
     };
 
     /// Three-dimensional vector.
-    class  Vector3
+    class Vector3
     {
     public:
         /// Construct a zero vector.
-        Vector3() noexcept :
-            x(0.0f),
-            y(0.0f),
-            z(0.0f)
+        Vector3() noexcept
+            : x(0.0f)
+            , y(0.0f)
+            , z(0.0f)
         {
         }
 
-		explicit Vector3(float x) noexcept :
-            x(x),
-            y(x),
-            z(x)
+        explicit Vector3(float x) noexcept
+            : x(x)
+            , y(x)
+            , z(x)
         {
         }
 
@@ -179,91 +179,90 @@ namespace Lumos::Maths
         Vector3(const Vector3& vector) noexcept = default;
 
         /// Construct from a two-dimensional vector and the Z coordinate.
-        Vector3(const Vector2& vector, float z) noexcept :
-            x(vector.x),
-            y(vector.y),
-            z(z)
+        Vector3(const Vector2& vector, float z) noexcept
+            : x(vector.x)
+            , y(vector.y)
+            , z(z)
         {
         }
 
         /// Construct from a two-dimensional vector (for Urho2D).
-        explicit Vector3(const Vector2& vector) noexcept :
-            x(vector.x),
-            y(vector.y),
-            z(0.0f)
+        explicit Vector3(const Vector2& vector) noexcept
+            : x(vector.x)
+            , y(vector.y)
+            , z(0.0f)
         {
         }
 
         /// Construct from an IntVector3.
-        explicit Vector3(const IntVector3& vector) noexcept :
-            x((float)vector.x),
-            y((float)vector.y),
-            z((float)vector.z)
+        explicit Vector3(const IntVector3& vector) noexcept
+            : x((float)vector.x)
+            , y((float)vector.y)
+            , z((float)vector.z)
         {
         }
 
         /// Construct from coordinates.
-        Vector3(float x, float y, float z) noexcept :
-            x(x),
-            y(y),
-            z(z)
+        Vector3(float x, float y, float z) noexcept
+            : x(x)
+            , y(y)
+            , z(z)
         {
         }
 
         /// Construct from two-dimensional coordinates (for Urho2D).
-        Vector3(float x, float y) noexcept :
-            x(x),
-            y(y),
-            z(0.0f)
+        Vector3(float x, float y) noexcept
+            : x(x)
+            , y(y)
+            , z(0.0f)
         {
         }
 
         /// Construct from a float array.
-        explicit Vector3(const float* data) noexcept :
-            x(data[0]),
-            y(data[1]),
-            z(data[2])
+        explicit Vector3(const float* data) noexcept
+            : x(data[0])
+            , y(data[1])
+            , z(data[2])
         {
         }
 
         /// Assign from another vector.
-        Vector3& operator =(const Vector3& rhs) noexcept = default;
+        Vector3& operator=(const Vector3& rhs) noexcept = default;
 
         /// Test for equality with another vector without epsilon.
-        bool operator ==(const Vector3& rhs) const { return x == rhs.x && y == rhs.y && z == rhs.z; }
+        bool operator==(const Vector3& rhs) const { return x == rhs.x && y == rhs.y && z == rhs.z; }
 
         /// Test for inequality with another vector without epsilon.
-        bool operator !=(const Vector3& rhs) const { return x != rhs.x || y != rhs.y || z != rhs.z; }
+        bool operator!=(const Vector3& rhs) const { return x != rhs.x || y != rhs.y || z != rhs.z; }
 
         /// Add a vector.
-        Vector3 operator +(const Vector3& rhs) const { return Vector3(x + rhs.x, y + rhs.y, z + rhs.z); }
+        Vector3 operator+(const Vector3& rhs) const { return Vector3(x + rhs.x, y + rhs.y, z + rhs.z); }
 
         /// Return negation.
-        Vector3 operator -() const { return Vector3(-x, -y, -z); }
+        Vector3 operator-() const { return Vector3(-x, -y, -z); }
 
         /// Subtract a vector.
-        Vector3 operator -(const Vector3& rhs) const { return Vector3(x - rhs.x, y - rhs.y, z - rhs.z); }
+        Vector3 operator-(const Vector3& rhs) const { return Vector3(x - rhs.x, y - rhs.y, z - rhs.z); }
 
         /// Multiply with a scalar.
-        Vector3 operator *(float rhs) const { return Vector3(x * rhs, y * rhs, z * rhs); }
+        Vector3 operator*(float rhs) const { return Vector3(x * rhs, y * rhs, z * rhs); }
 
         /// Multiply with a vector.
-        Vector3 operator *(const Vector3& rhs) const { return Vector3(x * rhs.x, y * rhs.y, z * rhs.z); }
+        Vector3 operator*(const Vector3& rhs) const { return Vector3(x * rhs.x, y * rhs.y, z * rhs.z); }
 
         /// Divide by a scalar.
-        Vector3 operator /(float rhs) const { return Vector3(x / rhs, y / rhs, z / rhs); }
+        Vector3 operator/(float rhs) const { return Vector3(x / rhs, y / rhs, z / rhs); }
 
         /// Divide by a vector.
-        Vector3 operator /(const Vector3& rhs) const { return Vector3(x / rhs.x, y / rhs.y, z / rhs.z); }
+        Vector3 operator/(const Vector3& rhs) const { return Vector3(x / rhs.x, y / rhs.y, z / rhs.z); }
 
-		bool operator<(const Vector3 &other)	const { return x < other.x && y < other.y && z < other.z; }
-		bool operator<=(const Vector3 &other)	const { return x <= other.x && y <= other.y && z <= other.z; }
-		bool operator>(const Vector3 &other)	const { return x > other.x && y > other.y && z > other.z; }
-		bool operator>=(const Vector3 &other)	const { return x >= other.x && y >= other.y && z >= other.z; }
-
+        bool operator<(const Vector3& other) const { return x < other.x && y < other.y && z < other.z; }
+        bool operator<=(const Vector3& other) const { return x <= other.x && y <= other.y && z <= other.z; }
+        bool operator>(const Vector3& other) const { return x > other.x && y > other.y && z > other.z; }
+        bool operator>=(const Vector3& other) const { return x >= other.x && y >= other.y && z >= other.z; }
 
         /// Add-assign a vector.
-        Vector3& operator +=(const Vector3& rhs)
+        Vector3& operator+=(const Vector3& rhs)
         {
             x += rhs.x;
             y += rhs.y;
@@ -272,7 +271,7 @@ namespace Lumos::Maths
         }
 
         /// Subtract-assign a vector.
-        Vector3& operator -=(const Vector3& rhs)
+        Vector3& operator-=(const Vector3& rhs)
         {
             x -= rhs.x;
             y -= rhs.y;
@@ -281,7 +280,7 @@ namespace Lumos::Maths
         }
 
         /// Multiply-assign a scalar.
-        Vector3& operator *=(float rhs)
+        Vector3& operator*=(float rhs)
         {
             x *= rhs;
             y *= rhs;
@@ -290,7 +289,7 @@ namespace Lumos::Maths
         }
 
         /// Multiply-assign a vector.
-        Vector3& operator *=(const Vector3& rhs)
+        Vector3& operator*=(const Vector3& rhs)
         {
             x *= rhs.x;
             y *= rhs.y;
@@ -299,7 +298,7 @@ namespace Lumos::Maths
         }
 
         /// Divide-assign a scalar.
-        Vector3& operator /=(float rhs)
+        Vector3& operator/=(float rhs)
         {
             float invRhs = 1.0f / rhs;
             x *= invRhs;
@@ -309,7 +308,7 @@ namespace Lumos::Maths
         }
 
         /// Divide-assign a vector.
-        Vector3& operator /=(const Vector3& rhs)
+        Vector3& operator/=(const Vector3& rhs)
         {
             x /= rhs.x;
             y /= rhs.y;
@@ -319,7 +318,7 @@ namespace Lumos::Maths
 
         inline float operator[](int i) const
         {
-            switch (i)
+            switch(i)
             {
             case 0:
                 return x;
@@ -336,7 +335,7 @@ namespace Lumos::Maths
         void Normalise()
         {
             float lenSquared = LengthSquared();
-            if (!Lumos::Maths::Equals(lenSquared, 1.0f) && lenSquared > 0.0f)
+            if(!Lumos::Maths::Equals(lenSquared, 1.0f) && lenSquared > 0.0f)
             {
                 float invLen = 1.0f / sqrtf(lenSquared);
                 x *= invLen;
@@ -377,7 +376,7 @@ namespace Lumos::Maths
             const float lengthSquared = direction.LengthSquared();
             float factor = (*this - from).DotProduct(direction) / lengthSquared;
 
-            if (clamped)
+            if(clamped)
                 factor = Clamp(factor, 0.0f, 1.0f);
 
             return from + direction * factor;
@@ -398,8 +397,7 @@ namespace Lumos::Maths
             return Vector3(
                 y * rhs.z - z * rhs.y,
                 z * rhs.x - x * rhs.z,
-                x * rhs.y - y * rhs.x
-            );
+                x * rhs.y - y * rhs.x);
         }
 
         /// Return absolute vector.
@@ -423,12 +421,11 @@ namespace Lumos::Maths
         /// Return whether is Inf.
         bool IsInf() const { return Lumos::Maths::IsInf(x) || Lumos::Maths::IsInf(y) || Lumos::Maths::IsInf(z); }
 
-
         /// Return Normalised to unit length.
         Vector3 Normalised() const
         {
             const float lenSquared = LengthSquared();
-            if (!Lumos::Maths::Equals(lenSquared, 1.0f) && lenSquared > 0.0f)
+            if(!Lumos::Maths::Equals(lenSquared, 1.0f) && lenSquared > 0.0f)
             {
                 float invLen = 1.0f / sqrtf(lenSquared);
                 return *this * invLen;
@@ -441,7 +438,7 @@ namespace Lumos::Maths
         Vector3 NormalisedOrDefault(const Vector3& defaultValue = Vector3::ZERO, float eps = M_LARGE_EPSILON) const
         {
             const float lenSquared = LengthSquared();
-            if (lenSquared < eps * eps)
+            if(lenSquared < eps * eps)
                 return defaultValue;
             return *this / sqrtf(lenSquared);
         }
@@ -450,7 +447,7 @@ namespace Lumos::Maths
         Vector3 ReNormalised(float minLength, float maxLength, const Vector3& defaultValue = Vector3::ZERO, float eps = M_LARGE_EPSILON) const
         {
             const float lenSquared = LengthSquared();
-            if (lenSquared < eps * eps)
+            if(lenSquared < eps * eps)
                 return defaultValue;
 
             const float len = sqrtf(lenSquared);
@@ -473,14 +470,14 @@ namespace Lumos::Maths
 
             return hash;
         }
-        
-        inline friend std::ostream &operator<<(std::ostream &o, const Vector3 &v)
+
+        inline friend std::ostream& operator<<(std::ostream& o, const Vector3& v)
         {
             o << "Vector3(" << v.x << "," << v.y << "," << v.z << ")" << std::endl;
             return o;
         }
 
-		Vector2 xy() { return Vector2(x, y); }
+        Vector2 xy() { return Vector2(x, y); }
 
         /// X coordinate.
         float x;
@@ -518,10 +515,10 @@ namespace Lumos::Maths
     };
 
     /// Multiply Vector3 with a scalar.
-    inline Vector3 operator *(float lhs, const Vector3& rhs) { return rhs * lhs; }
+    inline Vector3 operator*(float lhs, const Vector3& rhs) { return rhs * lhs; }
 
     /// Multiply IntVector3 with a scalar.
-    inline IntVector3 operator *(int lhs, const IntVector3& rhs) { return rhs * lhs; }
+    inline IntVector3 operator*(int lhs, const IntVector3& rhs) { return rhs * lhs; }
 
     /// Per-component linear interpolation between two 3-vectors.
     inline Vector3 VectorLerp(const Vector3& lhs, const Vector3& rhs, const Vector3& t) { return lhs + (rhs - lhs) * t; }
@@ -558,8 +555,9 @@ namespace Lumos::Maths
 
     /// Return a random value from [0, 1) from 3-vector seed.
     inline float StableRandom(const Vector3& seed) { return StableRandom(Vector2(StableRandom(Vector2(seed.x, seed.y)), seed.z)); }
-            
-    template<typename Archive> void serialize(Archive& archive, Maths::Vector3& v3)
+
+    template <typename Archive>
+    void serialize(Archive& archive, Maths::Vector3& v3)
     {
         archive(v3.x, v3.y, v3.z);
     }
@@ -567,14 +565,12 @@ namespace Lumos::Maths
 
 namespace std
 {
-	template<>
-	struct hash<Lumos::Maths::Vector3>
-	{
-		size_t operator()(const Lumos::Maths::Vector3& x) const
-		{
-			return hash<float>()(x.x) ^ (hash<float>()(x.y) * 997u) ^ (hash<float>()(x.z) * 999983u);
-
-		}
-	};
+    template <>
+    struct hash<Lumos::Maths::Vector3>
+    {
+        size_t operator()(const Lumos::Maths::Vector3& x) const
+        {
+            return hash<float>()(x.x) ^ (hash<float>()(x.y) * 997u) ^ (hash<float>()(x.z) * 999983u);
+        }
+    };
 }
-

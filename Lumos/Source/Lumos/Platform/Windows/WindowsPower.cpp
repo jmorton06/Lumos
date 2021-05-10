@@ -4,13 +4,13 @@
 
 namespace Lumos
 {
-    WindowsPower::WindowsPower() :
-        m_NumberSecondsLeft(-1),
-        m_PercentageLeft(-1),
-        m_PowerState(POWERSTATE_UNKNOWN)
+    WindowsPower::WindowsPower()
+        : m_NumberSecondsLeft(-1)
+        , m_PercentageLeft(-1)
+        , m_PowerState(POWERSTATE_UNKNOWN)
     {
     }
-    
+
     WindowsPower::~WindowsPower()
     {
     }
@@ -21,35 +21,48 @@ namespace Lumos
         bool needDetails = FALSE;
 
         /* This API should exist back to Win95. */
-        if (!GetSystemPowerStatus(&status)) {
+        if(!GetSystemPowerStatus(&status))
+        {
             /* !!! FIXME: push GetLastError() into GetError() */
             m_PowerState = POWERSTATE_UNKNOWN;
-        } else if (status.BatteryFlag == 0xFF) { /* unknown state */
+        }
+        else if(status.BatteryFlag == 0xFF)
+        { /* unknown state */
             m_PowerState = POWERSTATE_UNKNOWN;
-        } else if (status.BatteryFlag & (1 << 7)) { /* no battery */
+        }
+        else if(status.BatteryFlag & (1 << 7))
+        { /* no battery */
             m_PowerState = POWERSTATE_NO_BATTERY;
-        } else if (status.BatteryFlag & (1 << 3)) { /* charging */
+        }
+        else if(status.BatteryFlag & (1 << 3))
+        { /* charging */
             m_PowerState = POWERSTATE_CHARGING;
             needDetails = TRUE;
-        } else if (status.ACLineStatus == 1) {
+        }
+        else if(status.ACLineStatus == 1)
+        {
             m_PowerState = POWERSTATE_CHARGED; /* on AC, not charging. */
             needDetails = TRUE;
-        } else {
+        }
+        else
+        {
             m_PowerState = POWERSTATE_ON_BATTERY; /* not on AC. */
             needDetails = TRUE;
         }
 
         m_PercentageLeft = -1;
         m_NumberSecondsLeft = -1;
-        if (needDetails) 
+        if(needDetails)
         {
             const int pct = (int)status.BatteryLifePercent;
             const int secs = (int)status.BatteryLifeTime;
 
-            if (pct != 255) { /* 255 == unknown */
+            if(pct != 255)
+            { /* 255 == unknown */
                 m_PercentageLeft = (pct > 100) ? 100 : pct; /* clamp between 0%, 100% */
             }
-            if (secs != (int)0xFFFFFFFF) { /* ((DWORD)-1) == unknown */
+            if(secs != (int)0xFFFFFFFF)
+            { /* ((DWORD)-1) == unknown */
                 m_NumberSecondsLeft = secs;
             }
         }
@@ -59,7 +72,7 @@ namespace Lumos
 
     bool WindowsPower::UpdatePowerInfo()
     {
-        if (GetPowerInfo_Windows())
+        if(GetPowerInfo_Windows())
         {
             return true;
         }
@@ -68,7 +81,7 @@ namespace Lumos
 
     PowerState WindowsPower::GetPowerState()
     {
-        if (UpdatePowerInfo())
+        if(UpdatePowerInfo())
         {
             return m_PowerState;
         }
@@ -80,7 +93,7 @@ namespace Lumos
 
     int WindowsPower::GetPowerSecondsLeft()
     {
-        if (UpdatePowerInfo())
+        if(UpdatePowerInfo())
         {
             return m_NumberSecondsLeft;
         }
@@ -92,7 +105,7 @@ namespace Lumos
 
     int WindowsPower::GetPowerPercentageLeft()
     {
-        if (UpdatePowerInfo())
+        if(UpdatePowerInfo())
         {
             return m_PercentageLeft;
         }

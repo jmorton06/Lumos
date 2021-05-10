@@ -23,11 +23,11 @@ namespace Lumos
 }
 
 #if GL_DEBUG
-#define GLCall(x) GLClearError();\
-		x; \
-		if (!GLLogCall(#x, __FILE__, __LINE__)) LUMOS_BREAK();
+#define GLCall(x)                          \
+    GLClearError();                        \
+    x;                                     \
+    if(!GLLogCall(#x, __FILE__, __LINE__)) \
+        LUMOS_BREAK();
 #else
 #define GLCall(x) x
 #endif
-
-

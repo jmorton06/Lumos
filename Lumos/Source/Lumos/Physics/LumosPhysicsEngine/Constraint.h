@@ -1,26 +1,25 @@
 #pragma once
 
-
 namespace Lumos
 {
 
-	class LUMOS_EXPORT Constraint
-	{
-	public:
-		virtual ~Constraint() = default;
+    class LUMOS_EXPORT Constraint
+    {
+    public:
+        virtual ~Constraint() = default;
 
-		Constraint()
-		{
-		}
+        Constraint()
+        {
+        }
 
-		virtual void ApplyImpulse() = 0;
+        virtual void ApplyImpulse() = 0;
 
-		virtual void PreSolverStep(float dt)
-		{
-		}
+        virtual void PreSolverStep(float dt)
+        {
+        }
 
-		virtual void DebugDraw() const
-		{
-		}
-	};
+        virtual void DebugDraw() const
+        {
+        }
+    };
 }

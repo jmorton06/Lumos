@@ -10,13 +10,13 @@ namespace Lumos
         public:
             GLRenderDevice() = default;
             ~GLRenderDevice() = default;
-            
+
             void Init() override;
-            
+
             static void MakeDefault();
+
         protected:
             static RenderDevice* CreateFuncGL();
-            
         };
     }
 }

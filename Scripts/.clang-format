@@ -1,0 +1,20 @@
+---
+BasedOnStyle: WebKit
+AllowShortBlocksOnASingleLine: 'true'
+AllowShortFunctionsOnASingleLine: Inline
+AllowShortLambdasOnASingleLine: Inline
+AllowShortLoopsOnASingleLine: 'true'
+AlwaysBreakAfterReturnType: None
+BinPackArguments: 'true'
+BinPackParameters: 'true'
+BreakBeforeBraces: Allman
+Language: Cpp
+NamespaceIndentation: All
+SpacesInAngles: 'false'
+SpacesInCStyleCastParentheses: 'false'
+SpacesInParentheses: 'false'
+Standard: Auto
+ColumnLimit: 0
+SortIncludes: false
+SpaceBeforeParens: Never
+...

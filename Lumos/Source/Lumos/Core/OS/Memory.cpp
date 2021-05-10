@@ -6,21 +6,21 @@
 
 namespace Lumos
 {
-	Allocator* const Memory::MemoryAllocator = new DefaultAllocator();
+    Allocator* const Memory::MemoryAllocator = new DefaultAllocator();
 
     void* Memory::AlignedAlloc(size_t size, size_t alignment)
     {
-        void *data;
+        void* data;
 #if defined(LUMOS_PLATFORM_WINDOWS)
         data = _aligned_malloc(size, alignment);
 #else
         int res = posix_memalign(&data, alignment, size);
-        if (res != 0)
+        if(res != 0)
             data = nullptr;
 #endif
         return data;
     }
-    
+
     void Memory::AlignedFree(void* data)
     {
 #if defined(LUMOS_PLATFORM_WINDOWS)
@@ -29,27 +29,27 @@ namespace Lumos
         free(data);
 #endif
     }
-    
-    void* Memory::NewFunc(std::size_t size, const char *file, int line)
+
+    void* Memory::NewFunc(std::size_t size, const char* file, int line)
     {
-		if (MemoryAllocator)
-			return MemoryAllocator->Malloc(size, file, line);
-		else
-			return malloc(size);
+        if(MemoryAllocator)
+            return MemoryAllocator->Malloc(size, file, line);
+        else
+            return malloc(size);
     }
-    
+
     void Memory::DeleteFunc(void* p)
     {
-		if (MemoryAllocator)
-			return MemoryAllocator->Free(p);
-		else
-			return free(p);
+        if(MemoryAllocator)
+            return MemoryAllocator->Free(p);
+        else
+            return free(p);
     }
-    
+
     void Memory::LogMemoryInformation()
     {
-		if (MemoryAllocator)
-			return MemoryAllocator->Print();
+        if(MemoryAllocator)
+            return MemoryAllocator->Print();
     }
 }
 
@@ -58,7 +58,7 @@ namespace Lumos
 void* operator new(std::size_t size)
 {
     void* result = Lumos::Memory::NewFunc(size, __FILE__, __LINE__);
-    if (result == nullptr)
+    if(result == nullptr)
     {
         throw std::bad_alloc();
     }
@@ -71,7 +71,7 @@ void* operator new(std::size_t size)
 void* operator new[](std::size_t size)
 {
     void* result = Lumos::Memory::NewFunc(size, __FILE__, __LINE__);
-    if (result == nullptr)
+    if(result == nullptr)
     {
         throw std::bad_alloc();
     }
@@ -81,7 +81,7 @@ void* operator new[](std::size_t size)
     return result;
 }
 
-void operator delete(void * p) throw()
+void operator delete(void* p) throw()
 {
 #if defined(LUMOS_PROFILE) && defined(TRACY_ENABLE)
     TracyFree(p);
@@ -89,7 +89,7 @@ void operator delete(void * p) throw()
     Lumos::Memory::DeleteFunc(p);
 }
 
-void operator delete[](void *p) throw()
+void operator delete[](void* p) throw()
 {
 #if defined(LUMOS_PROFILE) && defined(TRACY_ENABLE)
     TracyFree(p);

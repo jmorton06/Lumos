@@ -218,7 +218,7 @@ namespace Lumos
             const std::vector<VkDescriptorPoolSize>& poolSizes,
             uint32_t maxSets)
         {
-            VkDescriptorPoolCreateInfo descriptorPoolInfo{};
+            VkDescriptorPoolCreateInfo descriptorPoolInfo {};
             descriptorPoolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
             descriptorPoolInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
             descriptorPoolInfo.pPoolSizes = poolSizes.data();
@@ -264,7 +264,7 @@ namespace Lumos
         inline VkDescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo(
             const std::vector<VkDescriptorSetLayoutBinding>& bindings)
         {
-            VkDescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo{};
+            VkDescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo {};
             descriptorSetLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
             descriptorSetLayoutCreateInfo.pBindings = bindings.data();
             descriptorSetLayoutCreateInfo.bindingCount = static_cast<uint32_t>(bindings.size());
@@ -285,7 +285,7 @@ namespace Lumos
         inline VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo(
             uint32_t setLayoutCount = 1)
         {
-            VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo{};
+            VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo {};
             pipelineLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
             pipelineLayoutCreateInfo.setLayoutCount = setLayoutCount;
             return pipelineLayoutCreateInfo;
@@ -334,7 +334,7 @@ namespace Lumos
             VkDescriptorSet dstSet,
             VkDescriptorType type,
             uint32_t binding,
-            VkDescriptorImageInfo *imageInfo,
+            VkDescriptorImageInfo* imageInfo,
             uint32_t descriptorCount = 1)
         {
             VkWriteDescriptorSet writeDescriptorSet {};
@@ -422,7 +422,7 @@ namespace Lumos
 
         inline VkPipelineColorBlendStateCreateInfo pipelineColourBlendStateCreateInfo(
             uint32_t attachmentCount,
-            const VkPipelineColorBlendAttachmentState * pAttachments)
+            const VkPipelineColorBlendAttachmentState* pAttachments)
         {
             VkPipelineColorBlendStateCreateInfo pipelineColourBlendStateCreateInfo {};
             pipelineColourBlendStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
@@ -471,7 +471,7 @@ namespace Lumos
         }
 
         inline VkPipelineDynamicStateCreateInfo pipelineDynamicStateCreateInfo(
-            const VkDynamicState * pDynamicStates,
+            const VkDynamicState* pDynamicStates,
             uint32_t dynamicStateCount,
             VkPipelineDynamicStateCreateFlags flags = 0)
         {
@@ -487,7 +487,7 @@ namespace Lumos
             const std::vector<VkDynamicState>& pDynamicStates,
             VkPipelineDynamicStateCreateFlags flags = 0)
         {
-            VkPipelineDynamicStateCreateInfo pipelineDynamicStateCreateInfo{};
+            VkPipelineDynamicStateCreateInfo pipelineDynamicStateCreateInfo {};
             pipelineDynamicStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
             pipelineDynamicStateCreateInfo.pDynamicStates = pDynamicStates.data();
             pipelineDynamicStateCreateInfo.dynamicStateCount = static_cast<uint32_t>(pDynamicStates.size());
@@ -520,7 +520,7 @@ namespace Lumos
 
         inline VkGraphicsPipelineCreateInfo pipelineCreateInfo()
         {
-            VkGraphicsPipelineCreateInfo pipelineCreateInfo{};
+            VkGraphicsPipelineCreateInfo pipelineCreateInfo {};
             pipelineCreateInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
             pipelineCreateInfo.basePipelineIndex = -1;
             pipelineCreateInfo.basePipelineHandle = VK_NULL_HANDLE;
@@ -552,7 +552,7 @@ namespace Lumos
 
         inline VkBindSparseInfo bindSparseInfo()
         {
-            VkBindSparseInfo bindSparseInfo{};
+            VkBindSparseInfo bindSparseInfo {};
             bindSparseInfo.sType = VK_STRUCTURE_TYPE_BIND_SPARSE_INFO;
             return bindSparseInfo;
         }
@@ -560,7 +560,7 @@ namespace Lumos
         /** @brief Initialize a map entry for a shader specialization constant */
         inline VkSpecializationMapEntry specializationMapEntry(uint32_t constantID, uint32_t offset, size_t size)
         {
-            VkSpecializationMapEntry specializationMapEntry{};
+            VkSpecializationMapEntry specializationMapEntry {};
             specializationMapEntry.constantID = constantID;
             specializationMapEntry.offset = offset;
             specializationMapEntry.size = size;
@@ -570,7 +570,7 @@ namespace Lumos
         /** @brief Initialize a specialization constant info structure to pass to a shader stage */
         inline VkSpecializationInfo specializationInfo(uint32_t mapEntryCount, const VkSpecializationMapEntry* mapEntries, size_t dataSize, const void* data)
         {
-            VkSpecializationInfo specializationInfo{};
+            VkSpecializationInfo specializationInfo {};
             specializationInfo.mapEntryCount = mapEntryCount;
             specializationInfo.pMapEntries = mapEntries;
             specializationInfo.dataSize = dataSize;

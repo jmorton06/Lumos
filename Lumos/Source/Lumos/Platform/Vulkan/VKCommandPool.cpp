@@ -4,27 +4,26 @@
 
 namespace Lumos
 {
-	namespace Graphics
-	{
-		VKCommandPool::VKCommandPool()
-		{
-			Init();
-		}
+    namespace Graphics
+    {
+        VKCommandPool::VKCommandPool(int queueIndex, VkCommandPoolCreateFlags flags)
+        {
+            VkCommandPoolCreateInfo cmdPoolCI {};
+            cmdPoolCI.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+            cmdPoolCI.queueFamilyIndex = queueIndex;
+            cmdPoolCI.flags = flags;
 
-		VKCommandPool::~VKCommandPool()
-		{
-			vkDestroyCommandPool(VKDevice::Get().GetDevice(), m_CommandPool, nullptr);
-		}
+            vkCreateCommandPool(VKDevice::Get().GetDevice(), &cmdPoolCI, nullptr, &m_Handle);
+        }
 
-		void VKCommandPool::Init()
-		{
-			VkCommandPoolCreateInfo cmdPoolCI{};
+        VKCommandPool::~VKCommandPool()
+        {
+            vkDestroyCommandPool(VKDevice::Get().GetDevice(), m_Handle, nullptr);
+        }
 
-			cmdPoolCI.queueFamilyIndex = VKDevice::Get().GetPhysicalDevice()-> GetGraphicsQueueFamilyIndex();
-			cmdPoolCI.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-			cmdPoolCI.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
-
-			vkCreateCommandPool(VKDevice::Get().GetDevice(), &cmdPoolCI, nullptr, &m_CommandPool);
-		}
-	}
+        void VKCommandPool::Reset()
+        {
+            vkResetCommandPool(VKDevice::Get().GetDevice(), m_Handle, VK_COMMAND_POOL_RESET_RELEASE_RESOURCES_BIT);
+        }
+    }
 }

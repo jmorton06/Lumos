@@ -7,67 +7,67 @@
 
 namespace Lumos
 {
-	class Timer;
-	class Window;
-	struct WindowProperties;
-	class AudioManager;
-	class SystemManager;
-	class Editor;
-	class Scene;
-	class Event;
-	class WindowCloseEvent;
-	class WindowResizeEvent;
+    class Timer;
+    class Window;
+    struct WindowProperties;
+    class AudioManager;
+    class SystemManager;
+    class Editor;
+    class Scene;
+    class Event;
+    class WindowCloseEvent;
+    class WindowResizeEvent;
     class ImGuiManager;
 
-	namespace Graphics
-	{
-		class RenderGraph;
-		enum class RenderAPI : uint32_t;
-	}
+    namespace Graphics
+    {
+        class RenderGraph;
+        enum class RenderAPI : uint32_t;
+    }
 
-	namespace Maths
-	{
-		class Vector2;
-	}
+    namespace Maths
+    {
+        class Vector2;
+    }
 
-	enum class AppState
-	{
-		Running,
-		Loading,
-		Closing
-	};
+    enum class AppState
+    {
+        Running,
+        Loading,
+        Closing
+    };
 
-	enum class EditorState
-	{
-		Paused,
-		Play,
-		Next,
-		Preview
-	};
+    enum class EditorState
+    {
+        Paused,
+        Play,
+        Next,
+        Preview
+    };
 
-	enum class AppType
-	{
-		Game,
-		Editor
-	};
+    enum class AppType
+    {
+        Game,
+        Editor
+    };
 
-	class LUMOS_EXPORT Application
-	{
-		friend class Editor;
+    class LUMOS_EXPORT Application
+    {
+        friend class Editor;
 
-	public:
-		Application(const std::string& projectRoot, const std::string& projectName);
-		virtual ~Application();
+    public:
+        Application(const std::string& projectRoot, const std::string& projectName);
+        virtual ~Application();
 
-		void Run();
-		bool OnFrame();
-	
-		void OnExitScene();
-		void OnSceneViewSizeUpdated(uint32_t width, uint32_t height);
-		void OpenProject(const std::string& filePath);
+        void Run();
+        bool OnFrame();
+
+        void OnExitScene();
+        void OnSceneViewSizeUpdated(uint32_t width, uint32_t height);
+        void OpenProject(const std::string& filePath);
 
         virtual void Quit();
-		virtual void Init();
+        virtual void Init();
         virtual void OnEvent(Event& e);
         virtual void OnNewScene(Scene* scene);
         virtual void OnRender();
@@ -75,131 +75,130 @@ namespace Lumos
         virtual void OnImGui();
         virtual void OnDebugDraw();
 
-		SceneManager* GetSceneManager() const
-		{
-			return m_SceneManager.get();
-		}
-    
-		Graphics::RenderGraph* GetRenderGraph() const
-		{
-			return m_RenderGraph.get();
-		}
-    
-		Window* GetWindow() const
-		{
-			return m_Window.get();
-		}
-    
-		AppState GetState() const
-		{
-			return m_CurrentState;
-		}
-    
-		EditorState GetEditorState() const
-		{
-			return m_EditorState;
-		}
-    
-		SystemManager* GetSystemManager() const
-		{
-			return m_SystemManager.get();
-		}
+        SceneManager* GetSceneManager() const
+        {
+            return m_SceneManager.get();
+        }
 
-		Scene* GetCurrentScene() const;
+        Graphics::RenderGraph* GetRenderGraph() const
+        {
+            return m_RenderGraph.get();
+        }
 
-		void SetAppState(AppState state)
-		{
-			m_CurrentState = state;
-		}
-    
-		void SetEditorState(EditorState state)
-		{
-			m_EditorState = state;
-		}
-    
-		void SetSceneActive(bool active)
-		{
-			m_SceneActive = active;
-		}
-    
-		bool GetSceneActive() const
-		{
-			return m_SceneActive;
-		}
-    
-		Maths::Vector2 GetWindowSize() const;
+        Window* GetWindow() const
+        {
+            return m_Window.get();
+        }
+
+        AppState GetState() const
+        {
+            return m_CurrentState;
+        }
+
+        EditorState GetEditorState() const
+        {
+            return m_EditorState;
+        }
+
+        SystemManager* GetSystemManager() const
+        {
+            return m_SystemManager.get();
+        }
+
+        Scene* GetCurrentScene() const;
+
+        void SetAppState(AppState state)
+        {
+            m_CurrentState = state;
+        }
+
+        void SetEditorState(EditorState state)
+        {
+            m_EditorState = state;
+        }
+
+        void SetSceneActive(bool active)
+        {
+            m_SceneActive = active;
+        }
+
+        bool GetSceneActive() const
+        {
+            return m_SceneActive;
+        }
+
+        Maths::Vector2 GetWindowSize() const;
         float GetWindowDPI() const;
-        
+
         Ref<ShaderLibrary>& GetShaderLibrary();
 
-		static Application& Get()
-		{
-			return *s_Instance;
-		}
-    
-		static void Release()
-		{
-			if(s_Instance)
-				delete s_Instance;
-			s_Instance = nullptr;
-		}
+        static Application& Get()
+        {
+            return *s_Instance;
+        }
 
-		template<typename T>
-		T* GetSystem()
-		{
-			return m_SystemManager->GetSystem<T>();
-		}
+        static void Release()
+        {
+            if(s_Instance)
+                delete s_Instance;
+            s_Instance = nullptr;
+        }
 
-		bool OnWindowResize(WindowResizeEvent& e);
+        template <typename T>
+        T* GetSystem()
+        {
+            return m_SystemManager->GetSystem<T>();
+        }
 
-		void SetSceneViewDimensions(uint32_t width, uint32_t height)
-		{
-			if(width != m_SceneViewWidth)
-			{
-				m_SceneViewWidth = width;
-				m_SceneViewSizeUpdated = true;
-			}
+        bool OnWindowResize(WindowResizeEvent& e);
 
-			if(height != m_SceneViewHeight)
-			{
-				m_SceneViewHeight = height;
-				m_SceneViewSizeUpdated = true;
-			}
-		}
-		
+        void SetSceneViewDimensions(uint32_t width, uint32_t height)
+        {
+            if(width != m_SceneViewWidth)
+            {
+                m_SceneViewWidth = width;
+                m_SceneViewSizeUpdated = true;
+            }
+
+            if(height != m_SceneViewHeight)
+            {
+                m_SceneViewHeight = height;
+                m_SceneViewSizeUpdated = true;
+            }
+        }
+
         void EmbedTexture(const std::string& texFilePath, const std::string& outPath, const std::string& arrayName);
-		
-		virtual void Serialise(const std::string& filePath);
-		virtual void Deserialise(const std::string& filePath);
-		
-		template<typename Archive>
-			void save(Archive& archive) const
-			
-		{
+
+        virtual void Serialise(const std::string& filePath);
+        virtual void Deserialise(const std::string& filePath);
+
+        template <typename Archive>
+        void save(Archive& archive) const
+
+        {
             int projectVersion = 5;
-			
-			archive(cereal::make_nvp("Project Version", projectVersion));
+
+            archive(cereal::make_nvp("Project Version", projectVersion));
             auto windowSize = GetWindowSize() / GetWindowDPI();
 
             if(windowSize.x == 0)
                 windowSize.x = 800;
-            
+
             if(windowSize.y == 0)
                 windowSize.y = 600;
-            
-			//Version 1
-			
-			archive(cereal::make_nvp("RenderAPI", RenderAPI),
-						cereal::make_nvp("Width", (int)windowSize.x),
-						cereal::make_nvp("Height", (int)windowSize.y),
-						cereal::make_nvp("Fullscreen", Fullscreen),
-						cereal::make_nvp("VSync", VSync),
-						cereal::make_nvp("ShowConsole", ShowConsole),
-						cereal::make_nvp("Title", Title),
-						cereal::make_nvp("FilePath", FilePath)
-						);
-			//Version 2
-            
+
+            //Version 1
+
+            archive(cereal::make_nvp("RenderAPI", RenderAPI),
+                cereal::make_nvp("Width", (int)windowSize.x),
+                cereal::make_nvp("Height", (int)windowSize.y),
+                cereal::make_nvp("Fullscreen", Fullscreen),
+                cereal::make_nvp("VSync", VSync),
+                cereal::make_nvp("ShowConsole", ShowConsole),
+                cereal::make_nvp("Title", Title),
+                cereal::make_nvp("FilePath", FilePath));
+            //Version 2
+
             auto paths = m_SceneManager->GetSceneFilePaths();
             std::vector<std::string> newPaths;
             for(auto& path : paths)
@@ -208,42 +207,40 @@ namespace Lumos
                 VFS::Get()->AbsoulePathToVFS(path, newPath);
                 newPaths.push_back(path);
             }
-			archive(cereal::make_nvp("Scenes", newPaths));
+            archive(cereal::make_nvp("Scenes", newPaths));
             //Version 3
             archive(cereal::make_nvp("SceneIndex", m_SceneManager->GetCurrentSceneIndex()));
             //Version 4
             archive(cereal::make_nvp("Borderless", Borderless));
+        }
 
-		}
-		
-		
-		template<typename Archive>
-			void load(Archive& archive)
-		{
-			 int projectVersion = 0;
-			archive(cereal::make_nvp("Project Version", projectVersion));
-			
-			if(projectVersion > 0)
-			{
-			archive(cereal::make_nvp("RenderAPI", RenderAPI),
-					cereal::make_nvp("Width", Width),
-					cereal::make_nvp("Height", Height),
-					cereal::make_nvp("Fullscreen", Fullscreen),
-					cereal::make_nvp("VSync", VSync),
-					cereal::make_nvp("ShowConsole", ShowConsole),
-					cereal::make_nvp("Title", Title),
-							cereal::make_nvp("FilePath", FilePath));
-			}
-			if(projectVersion > 2)
-			{
-				std::vector<std::string> sceneFilePaths;
-				archive(cereal::make_nvp("Scenes", sceneFilePaths));
-				
-				for(auto& filePath : sceneFilePaths)
-				{
-					m_SceneManager->AddFileToLoadList(filePath);
-				}
-			}
+        template <typename Archive>
+        void load(Archive& archive)
+        {
+            int projectVersion = 0;
+            archive(cereal::make_nvp("Project Version", projectVersion));
+
+            if(projectVersion > 0)
+            {
+                archive(cereal::make_nvp("RenderAPI", RenderAPI),
+                    cereal::make_nvp("Width", Width),
+                    cereal::make_nvp("Height", Height),
+                    cereal::make_nvp("Fullscreen", Fullscreen),
+                    cereal::make_nvp("VSync", VSync),
+                    cereal::make_nvp("ShowConsole", ShowConsole),
+                    cereal::make_nvp("Title", Title),
+                    cereal::make_nvp("FilePath", FilePath));
+            }
+            if(projectVersion > 2)
+            {
+                std::vector<std::string> sceneFilePaths;
+                archive(cereal::make_nvp("Scenes", sceneFilePaths));
+
+                for(auto& filePath : sceneFilePaths)
+                {
+                    m_SceneManager->AddFileToLoadList(filePath);
+                }
+            }
             if(projectVersion > 3)
             {
                 int sceneIndex;
@@ -254,50 +251,49 @@ namespace Lumos
             {
                 archive(cereal::make_nvp("Borderless", Borderless));
             }
-		}
-					
+        }
 
-	private:
-		bool OnWindowClose(WindowCloseEvent& e);
-		
-		//Start proj saving
-		uint32_t Width, Height;
-		bool Fullscreen;
-		bool VSync;
-		bool Borderless = false;
-		bool ShowConsole = true;
-		std::string Title;
-		int RenderAPI;
-		std::string FilePath;
-		//
+    private:
+        bool OnWindowClose(WindowCloseEvent& e);
 
-		uint32_t m_Frames = 0;
-		uint32_t m_Updates = 0;
-		float m_SecondTimer = 0.0f;
-		bool m_Minimized = false;
-		bool m_SceneActive = true;
-		
-		uint32_t m_SceneViewWidth = 0;
-		uint32_t m_SceneViewHeight = 0;
-		bool m_SceneViewSizeUpdated = false;
+        //Start proj saving
+        uint32_t Width, Height;
+        bool Fullscreen;
+        bool VSync;
+        bool Borderless = false;
+        bool ShowConsole = true;
+        std::string Title;
+        int RenderAPI;
+        std::string FilePath;
+        //
 
-		UniqueRef<Window> m_Window;
-		UniqueRef<SceneManager> m_SceneManager;
-		UniqueRef<SystemManager> m_SystemManager;
-		UniqueRef<Graphics::RenderGraph> m_RenderGraph;
+        uint32_t m_Frames = 0;
+        uint32_t m_Updates = 0;
+        float m_SecondTimer = 0.0f;
+        bool m_Minimized = false;
+        bool m_SceneActive = true;
+
+        uint32_t m_SceneViewWidth = 0;
+        uint32_t m_SceneViewHeight = 0;
+        bool m_SceneViewSizeUpdated = false;
+
+        UniqueRef<Window> m_Window;
+        UniqueRef<SceneManager> m_SceneManager;
+        UniqueRef<SystemManager> m_SystemManager;
+        UniqueRef<Graphics::RenderGraph> m_RenderGraph;
         UniqueRef<ImGuiManager> m_ImGuiManager;
         UniqueRef<Timer> m_Timer;
         Ref<ShaderLibrary> m_ShaderLibrary;
 
-		AppState m_CurrentState = AppState::Loading;
-		EditorState m_EditorState = EditorState::Preview;
-		AppType m_AppType = AppType::Editor;
+        AppState m_CurrentState = AppState::Loading;
+        EditorState m_EditorState = EditorState::Preview;
+        AppType m_AppType = AppType::Editor;
 
-		static Application* s_Instance;
+        static Application* s_Instance;
 
-		NONCOPYABLE(Application)
-	};
+        NONCOPYABLE(Application)
+    };
 
-	//Defined by client
-	Application* CreateApplication();
+    //Defined by client
+    Application* CreateApplication();
 }

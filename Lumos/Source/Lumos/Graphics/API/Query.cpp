@@ -13,15 +13,15 @@
 
 namespace Lumos
 {
-	namespace Graphics
+    namespace Graphics
     {
-        Query*(*Query::CreateFunc)(QueryType) = nullptr;
+        Query* (*Query::CreateFunc)(QueryType) = nullptr;
 
-		Query* Query::Create(QueryType type)
-		{
+        Query* Query::Create(QueryType type)
+        {
             LUMOS_ASSERT(CreateFunc, "No Query Create Function");
-            
+
             return CreateFunc(type);
-		}
-	}
+        }
+    }
 }

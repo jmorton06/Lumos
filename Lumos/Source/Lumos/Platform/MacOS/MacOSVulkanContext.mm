@@ -42,6 +42,7 @@ namespace Lumos
         VkMetalSurfaceCreateInfoEXT surfaceInfo;
         surfaceInfo.sType = VK_STRUCTURE_TYPE_METAL_SURFACE_CREATE_INFO_EXT;
         surfaceInfo.pNext = NULL;
+        surfaceInfo.flags = 0;
         surfaceInfo.pLayer = (CAMetalLayer*)GetCAMetalLayer((void*)glfwGetCocoaWindow(static_cast<GLFWwindow*>(window->GetHandle())));
         vkCreateMetalSurfaceEXT(vkInstance, &surfaceInfo, nullptr, &surface);
 #endif

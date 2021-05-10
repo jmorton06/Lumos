@@ -3,7 +3,7 @@
 #extension GL_ARB_shading_language_420pack : enable
 
 layout(location = 0) in vec3 inPosition;
-layout(location = 1) in vec4 inColor;
+layout(location = 1) in vec4 inColour;
 layout(location = 2) in vec2 inTexCoord;
 layout(location = 3) in vec3 inNormal;
 layout(location = 4) in vec3 inTangent;
@@ -26,5 +26,7 @@ void main()
 	vec4 position = vec4(inPosition, 1.0) * ubo.u_MVP;
     gl_Position  = position;
 	fragPosition = inPosition;
+	
+	vec4 test = inColour; //SPV vertex layout incorrect when inColour not used
 	fragTexCoord = inTexCoord;
 }

@@ -24,7 +24,7 @@ namespace Lumos::Maths
     float RandStandardNormalised()
     {
         float val = 0.0f;
-        for (int i = 0; i < 12; i++)
+        for(int i = 0; i < 12; i++)
             val += Rand() / 32768.0f;
         val -= 6.0f;
 

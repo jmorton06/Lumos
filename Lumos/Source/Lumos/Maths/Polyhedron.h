@@ -11,7 +11,7 @@ namespace Lumos::Maths
     class Plane;
 
     /// A convex volume built from polygon faces.
-    class  Polyhedron
+    class Polyhedron
     {
     public:
         /// Construct empty.
@@ -20,14 +20,14 @@ namespace Lumos::Maths
         ~Polyhedron() noexcept = default;
 
         /// Copy-construct from another polyhedron.
-        Polyhedron(const Polyhedron& polyhedron) :
-            faces_(polyhedron.faces_)
+        Polyhedron(const Polyhedron& polyhedron)
+            : faces_(polyhedron.faces_)
         {
         }
 
         /// Construct from a list of faces.
-        explicit Polyhedron(const std::vector<std::vector<Vector3> >& faces) :
-            faces_(faces)
+        explicit Polyhedron(const std::vector<std::vector<Vector3> >& faces)
+            : faces_(faces)
         {
         }
 
@@ -44,7 +44,7 @@ namespace Lumos::Maths
         }
 
         /// Assign from another polyhedron.
-        Polyhedron& operator =(const Polyhedron& rhs)
+        Polyhedron& operator=(const Polyhedron& rhs)
         {
             faces_ = rhs.faces_;
             return *this;

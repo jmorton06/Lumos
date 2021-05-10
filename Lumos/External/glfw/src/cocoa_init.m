@@ -1,5 +1,5 @@
 //========================================================================
-// GLFW 3.4 macOS - www.glfw.org
+// GLFW 3.3 macOS - www.glfw.org
 //------------------------------------------------------------------------
 // Copyright (c) 2009-2019 Camilla Löwy <elmindreda@glfw.org>
 //
@@ -428,9 +428,6 @@ static GLFWbool initializeTIS(void)
 {
     if (_glfw.hints.init.ns.menubar)
     {
-        // In case we are unbundled, make us a proper UI application
-        [NSApp setActivationPolicy:NSApplicationActivationPolicyRegular];
-
         // Menu bar setup must go between sharedApplication and finishLaunching
         // in order to properly emulate the behavior of NSApplicationMain
 
@@ -447,7 +444,13 @@ static GLFWbool initializeTIS(void)
 
 - (void)applicationDidFinishLaunching:(NSNotification *)notification
 {
+    _glfw.ns.finishedLaunching = GLFW_TRUE;
     _glfwPlatformPostEmptyEvent();
+
+    // In case we are unbundled, make us a proper UI application
+    if (_glfw.hints.init.ns.menubar)
+        [NSApp setActivationPolicy:NSApplicationActivationPolicyRegular];
+
     [NSApp stop:nil];
 }
 
@@ -502,6 +505,9 @@ int _glfwPlatformInit(void)
                              toTarget:_glfw.ns.helper
                            withObject:nil];
 
+    if (NSApp)
+        _glfw.ns.finishedLaunching = GLFW_TRUE;
+
     [NSApplication sharedApplication];
 
     _glfw.ns.delegate = [[GLFWApplicationDelegate alloc] init];
@@ -554,10 +560,6 @@ int _glfwPlatformInit(void)
     _glfwInitJoysticksNS();
 
     _glfwPollMonitorsNS();
-
-    if (![[NSRunningApplication currentApplication] isFinishedLaunching])
-        [NSApp run];
-
     return GLFW_TRUE;
 
     } // autoreleasepool

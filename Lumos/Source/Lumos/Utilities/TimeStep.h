@@ -1,13 +1,14 @@
 #pragma once
 
-
 namespace Lumos
 {
     class LUMOS_EXPORT TimeStep
     {
     public:
         explicit inline TimeStep(float initialTime)
-                : m_Timestep(0.0f), m_LastTime(initialTime), m_Elapsed(0.0f)
+            : m_Timestep(0.0f)
+            , m_LastTime(initialTime)
+            , m_Elapsed(0.0f)
         {
         }
 

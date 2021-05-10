@@ -8,38 +8,40 @@
 #include <entt/entt.hpp>
 #include <imgui.h>
 
-namespace MM {
-
-template <class Component, class EntityType>
-void ComponentEditorWidget(entt::basic_registry<EntityType>& registry, EntityType entity) {}
-
-template <class Component, class EntityType>
-void ComponentAddAction(entt::basic_registry<EntityType>& registry, EntityType entity)
+namespace MM
 {
-    registry.template emplace<Component>(entity);
-}
 
-template <class Component, class EntityType>
-void ComponentRemoveAction(entt::basic_registry<EntityType>& registry, EntityType entity)
-{
-    registry.template remove<Component>(entity);
-}
+    template <class Component, class EntityType>
+    void ComponentEditorWidget(entt::basic_registry<EntityType>& registry, EntityType entity) { }
 
-template<typename EntityType>
-class ImGuiEntityEditor {
-	private:
+    template <class Component, class EntityType>
+    void ComponentAddAction(entt::basic_registry<EntityType>& registry, EntityType entity)
+    {
+        registry.template emplace<Component>(entity);
+    }
+
+    template <class Component, class EntityType>
+    void ComponentRemoveAction(entt::basic_registry<EntityType>& registry, EntityType entity)
+    {
+        registry.template remove<Component>(entity);
+    }
+
+    template <typename EntityType>
+    class ImGuiEntityEditor
+    {
+    private:
         using Registry = entt::basic_registry<EntityType>;
 
-
-        struct ComponentInfo {
+        struct ComponentInfo
+        {
             using Callback = std::function<void(Registry&, EntityType)>;
             std::string name;
             Callback widget, create, destroy;
         };
-    
+
     private:
         using ComponentTypeID = ENTT_ID_TYPE;
-		ImGuiTextFilter m_ComponentFilter;
+        ImGuiTextFilter m_ComponentFilter;
 
         std::map<ComponentTypeID, ComponentInfo> component_infos;
 
@@ -48,9 +50,8 @@ class ImGuiEntityEditor {
             ComponentTypeID type[] = { type_id };
             return registry.runtime_view(std::cbegin(type), std::cend(type)).contains(entity);
         }
-    
-	public:
-    
+
+    public:
         template <class Component>
         ComponentInfo& registerComponent(const ComponentInfo& component_info)
         {
@@ -63,7 +64,7 @@ class ImGuiEntityEditor {
         template <class Component>
         ComponentInfo& registerComponent(const std::string& name, typename ComponentInfo::Callback widget)
         {
-            return registerComponent<Component>(ComponentInfo{
+            return registerComponent<Component>(ComponentInfo {
                 name,
                 widget,
                 ComponentAddAction<Component, EntityType>,
@@ -76,43 +77,43 @@ class ImGuiEntityEditor {
         {
             return registerComponent<Component>(name, ComponentEditorWidget<Component, EntityType>);
         }
-    
-		// calls all the ImGui functions
-		// call this every frame
-		void RenderImGui(Registry& registry, typename Registry::entity_type& e)
-		{
-			if (e != entt::null)
-			{
-				std::map<ComponentTypeID, ComponentInfo> has_not;
-                for (auto& [component_type_id, ci] : component_infos)
+
+        // calls all the ImGui functions
+        // call this every frame
+        void RenderImGui(Registry& registry, typename Registry::entity_type& e)
+        {
+            if(e != entt::null)
+            {
+                std::map<ComponentTypeID, ComponentInfo> has_not;
+                for(auto& [component_type_id, ci] : component_infos)
                 {
-                    if (entityHasComponent(registry, e, component_type_id))
+                    if(entityHasComponent(registry, e, component_type_id))
                     {
                         ImGui::PushID(component_type_id);
 
                         std::string label = ci.name;
-                        
+
                         bool open = ImGui::CollapsingHeader(label.c_str(), ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_DefaultOpen);
-                    
+
                         bool removed = false;
-                    
-                        ImGui::SameLine(ImGui::GetContentRegionAvail().x - ImGui::GetFontSize());
+
+                        ImGui::SameLine(ImGui::GetContentRegionAvail().x - ImGui::GetFontSize() - ImGui::GetStyle().ItemSpacing.x);
 
                         ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.7f, 0.7f, 0.7f, 0.0f));
 
-                        if (ImGui::Button((ICON_MDI_TUNE"##" + label).c_str()))
+                        if(ImGui::Button((ICON_MDI_TUNE "##" + label).c_str()))
                             ImGui::OpenPopup(("Remove Component" + label).c_str());
                         ImGui::PopStyleColor();
-                    
-                        if (ImGui::BeginPopup(("Remove Component" + label).c_str(), 3))
+
+                        if(ImGui::BeginPopup(("Remove Component" + label).c_str(), 3))
                         {
-                            if (ImGui::Selectable(("Remove##" + label).c_str()))
+                            if(ImGui::Selectable(("Remove##" + label).c_str()))
                             {
                                 ci.destroy(registry, e);
                                 removed = true;
                             }
                             ImGui::EndPopup();
-                            if (removed)
+                            if(removed)
                             {
                                 ImGui::PopID();
                                 continue;
@@ -132,51 +133,51 @@ class ImGuiEntityEditor {
                     }
                 }
 
-				if (!has_not.empty()) 
-				{
-					if (ImGui::Button(ICON_MDI_PLUS_BOX_OUTLINE" Add Component", ImVec2(ImGui::GetContentRegionAvail().x, 0.0f)))
-					{
-						ImGui::OpenPopup("addComponent");
-					}
-					
-					if (ImGui::BeginPopup("addComponent"))
-					{
-						ImGui::Separator();
-						
-						ImGui::TextUnformatted(ICON_MDI_MAGNIFY);
-						ImGui::SameLine();
-						
-						float filterSize = ImGui::GetContentRegionAvail().x - ImGui::GetStyle().IndentSpacing;
-						filterSize = filterSize < 200 ? 200 : filterSize;
-						m_ComponentFilter.Draw("##ComponentFilter", filterSize);
-                        
-                        for (auto& [component_type_id, ci] : has_not)
+                if(!has_not.empty())
+                {
+                    if(ImGui::Button(ICON_MDI_PLUS_BOX_OUTLINE " Add Component", ImVec2(ImGui::GetContentRegionAvail().x, 0.0f)))
+                    {
+                        ImGui::OpenPopup("addComponent");
+                    }
+
+                    if(ImGui::BeginPopup("addComponent"))
+                    {
+                        ImGui::Separator();
+
+                        ImGui::TextUnformatted(ICON_MDI_MAGNIFY);
+                        ImGui::SameLine();
+
+                        float filterSize = ImGui::GetContentRegionAvail().x - ImGui::GetStyle().IndentSpacing;
+                        filterSize = filterSize < 200 ? 200 : filterSize;
+                        m_ComponentFilter.Draw("##ComponentFilter", filterSize);
+
+                        for(auto& [component_type_id, ci] : has_not)
                         {
-							bool show = true;
-							if(m_ComponentFilter.IsActive())
-							{
-								if(!m_ComponentFilter.PassFilter(ci.name.c_str()))
-								{
-									show = false;
-								}
-							}
-							if(show)
-							{
-                            ImGui::PushID(component_type_id);
-                            if (ImGui::Selectable(ci.name.c_str()))
+                            bool show = true;
+                            if(m_ComponentFilter.IsActive())
                             {
-                                ci.create(registry, e);
+                                if(!m_ComponentFilter.PassFilter(ci.name.c_str()))
+                                {
+                                    show = false;
+                                }
                             }
-								ImGui::PopID();
-							}
+                            if(show)
+                            {
+                                ImGui::PushID(component_type_id);
+                                if(ImGui::Selectable(ci.name.c_str()))
+                                {
+                                    ci.create(registry, e);
+                                }
+                                ImGui::PopID();
+                            }
                         }
 
-						ImGui::EndPopup();
-					}
-				}
-			}
-		}
-};
+                        ImGui::EndPopup();
+                    }
+                }
+            }
+        }
+    };
 
 } // MM
 
@@ -201,4 +202,3 @@ class ImGuiEntityEditor {
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
-

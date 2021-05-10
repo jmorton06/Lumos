@@ -1,5 +1,5 @@
 //========================================================================
-// GLFW 3.4 X11 - www.glfw.org
+// GLFW 3.3 X11 - www.glfw.org
 //------------------------------------------------------------------------
 // Copyright (c) 2002-2006 Marcus Geelnard
 // Copyright (c) 2006-2019 Camilla Löwy <elmindreda@glfw.org>
@@ -164,7 +164,7 @@ void _glfwPollMonitorsX11(void)
             if (widthMM <= 0 || heightMM <= 0)
             {
                 // HACK: If RandR does not provide a physical size, assume the
-                //       X11 default 96 DPI and calcuate from the CRTC viewport
+                //       X11 default 96 DPI and calculate from the CRTC viewport
                 // NOTE: These members are affected by rotation, unlike the mode
                 //       info and output info members
                 widthMM  = (int) (ci->width * 25.4f / 96.f);

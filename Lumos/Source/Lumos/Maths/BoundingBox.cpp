@@ -10,7 +10,7 @@ namespace Lumos::Maths
     {
         Clear();
 
-        if (!count)
+        if(!count)
             return;
 
         Merge(vertices, count);
@@ -39,7 +39,7 @@ namespace Lumos::Maths
 
     void BoundingBox::Merge(const Vector3* vertices, unsigned count)
     {
-        while (count--)
+        while(count--)
             Merge(*vertices++);
     }
 
@@ -50,10 +50,10 @@ namespace Lumos::Maths
 
     void BoundingBox::Merge(const Polyhedron& poly)
     {
-        for (unsigned i = 0; i < poly.faces_.size(); ++i)
+        for(unsigned i = 0; i < poly.faces_.size(); ++i)
         {
             const std::vector<Vector3>& face = poly.faces_[i];
-            if (!face.empty())
+            if(!face.empty())
                 Merge(&face[0], (uint32_t)face.size());
         }
     }
@@ -69,20 +69,20 @@ namespace Lumos::Maths
 
     void BoundingBox::Clip(const BoundingBox& box)
     {
-        if (box.min_.x > min_.x)
+        if(box.min_.x > min_.x)
             min_.x = box.min_.x;
-        if (box.max_.x < max_.x)
+        if(box.max_.x < max_.x)
             max_.x = box.max_.x;
-        if (box.min_.y > min_.y)
+        if(box.min_.y > min_.y)
             min_.y = box.min_.y;
-        if (box.max_.y < max_.y)
+        if(box.max_.y < max_.y)
             max_.y = box.max_.y;
-        if (box.min_.z > min_.z)
+        if(box.min_.z > min_.z)
             min_.z = box.min_.z;
-        if (box.max_.z < max_.z)
+        if(box.max_.z < max_.z)
             max_.z = box.max_.z;
 
-        if (min_.x > max_.x || min_.y > max_.y || min_.z > max_.z)
+        if(min_.x > max_.x || min_.y > max_.y || min_.z > max_.z)
         {
             min_ = Vector3(M_INFINITY, M_INFINITY, M_INFINITY);
             max_ = Vector3(-M_INFINITY, -M_INFINITY, -M_INFINITY);
@@ -116,8 +116,8 @@ namespace Lumos::Maths
 
     BoundingBox BoundingBox::Transformed(const Matrix3x4& transform) const
     {
-		LUMOS_PROFILE_FUNCTION();
-    #ifdef LUMOS_SSE
+        LUMOS_PROFILE_FUNCTION();
+#ifdef LUMOS_SSE
         const __m128 one = _mm_set_ss(1.f);
         __m128 minPt = _mm_movelh_ps(_mm_loadl_pi(_mm_setzero_ps(), (const __m64*)&min_.x), _mm_unpacklo_ps(_mm_set_ss(min_.z), one));
         __m128 maxPt = _mm_movelh_ps(_mm_loadl_pi(_mm_setzero_ps(), (const __m64*)&max_.x), _mm_unpacklo_ps(_mm_set_ss(max_.z), one));
@@ -141,27 +141,26 @@ namespace Lumos::Maths
         t2 = _mm_add_ps(_mm_unpacklo_ps(z, zero), _mm_unpackhi_ps(z, zero));
         __m128 newDir = _mm_add_ps(_mm_movelh_ps(t0, t2), _mm_movehl_ps(t2, t0));
         return BoundingBox(_mm_sub_ps(newCenter, newDir), _mm_add_ps(newCenter, newDir));
-    #else
+#else
         Vector3 newCenter = transform * Center();
         Vector3 oldEdge = Size() * 0.5f;
         Vector3 newEdge = Vector3(
             Abs(transform.m00_) * oldEdge.x + Abs(transform.m01_) * oldEdge.y + Abs(transform.m02_) * oldEdge.z,
             Abs(transform.m10_) * oldEdge.x + Abs(transform.m11_) * oldEdge.y + Abs(transform.m12_) * oldEdge.z,
-            Abs(transform.m20_) * oldEdge.x + Abs(transform.m21_) * oldEdge.y + Abs(transform.m22_) * oldEdge.z
-        );
+            Abs(transform.m20_) * oldEdge.x + Abs(transform.m21_) * oldEdge.y + Abs(transform.m22_) * oldEdge.z);
 
         return BoundingBox(newCenter - newEdge, newCenter + newEdge);
-    #endif
+#endif
     }
 
     Rect BoundingBox::Projected(const Matrix4& projection) const
     {
-		LUMOS_PROFILE_FUNCTION();
+        LUMOS_PROFILE_FUNCTION();
         Vector3 projMin = min_;
         Vector3 projMax = max_;
-        if (projMin.z < M_MIN_NEARCLIP)
+        if(projMin.z < M_MIN_NEARCLIP)
             projMin.z = M_MIN_NEARCLIP;
-        if (projMax.z < M_MIN_NEARCLIP)
+        if(projMax.z < M_MIN_NEARCLIP)
             projMax.z = M_MIN_NEARCLIP;
 
         Vector3 vertices[8];
@@ -175,7 +174,7 @@ namespace Lumos::Maths
         vertices[7] = projMax;
 
         Rect rect;
-        for (const auto& vertice : vertices)
+        for(const auto& vertice : vertices)
         {
             Vector3 projected = projection * vertice;
             rect.Merge(Vector2(projected.x, projected.y));
@@ -186,7 +185,7 @@ namespace Lumos::Maths
 
     float BoundingBox::DistanceToPoint(const Vector3& point) const
     {
-		LUMOS_PROFILE_FUNCTION();
+        LUMOS_PROFILE_FUNCTION();
         const Vector3 offset = Center() - point;
         const Vector3 absOffset(Abs(offset.x), Abs(offset.y), Abs(offset.z));
         return VectorMax(Vector3::ZERO, absOffset - HalfSize()).Length();
@@ -194,47 +193,46 @@ namespace Lumos::Maths
 
     Intersection BoundingBox::IsInside(const Sphere& sphere) const
     {
-		LUMOS_PROFILE_FUNCTION();
+        LUMOS_PROFILE_FUNCTION();
         float distSquared = 0;
         float temp;
         const Vector3& center = sphere.center_;
 
-        if (center.x < min_.x)
+        if(center.x < min_.x)
         {
             temp = center.x - min_.x;
             distSquared += temp * temp;
         }
-        else if (center.x > max_.x)
+        else if(center.x > max_.x)
         {
             temp = center.x - max_.x;
             distSquared += temp * temp;
         }
-        if (center.y < min_.y)
+        if(center.y < min_.y)
         {
             temp = center.y - min_.y;
             distSquared += temp * temp;
         }
-        else if (center.y > max_.y)
+        else if(center.y > max_.y)
         {
             temp = center.y - max_.y;
             distSquared += temp * temp;
         }
-        if (center.z < min_.z)
+        if(center.z < min_.z)
         {
             temp = center.z - min_.z;
             distSquared += temp * temp;
         }
-        else if (center.z > max_.z)
+        else if(center.z > max_.z)
         {
             temp = center.z - max_.z;
             distSquared += temp * temp;
         }
 
         float radius = sphere.radius_;
-        if (distSquared > radius * radius)
+        if(distSquared > radius * radius)
             return OUTSIDE;
-        else if (center.x - radius < min_.x || center.x + radius > max_.x || center.y - radius < min_.y ||
-                 center.y + radius > max_.y || center.z - radius < min_.z || center.z + radius > max_.z)
+        else if(center.x - radius < min_.x || center.x + radius > max_.x || center.y - radius < min_.y || center.y + radius > max_.y || center.z - radius < min_.z || center.z + radius > max_.z)
             return INTERSECTS;
         else
             return INSIDE;
@@ -242,44 +240,44 @@ namespace Lumos::Maths
 
     Intersection BoundingBox::IsInsideFast(const Sphere& sphere) const
     {
-		LUMOS_PROFILE_FUNCTION();
+        LUMOS_PROFILE_FUNCTION();
         float distSquared = 0;
         float temp;
         const Vector3& center = sphere.center_;
 
-        if (center.x < min_.x)
+        if(center.x < min_.x)
         {
             temp = center.x - min_.x;
             distSquared += temp * temp;
         }
-        else if (center.x > max_.x)
+        else if(center.x > max_.x)
         {
             temp = center.x - max_.x;
             distSquared += temp * temp;
         }
-        if (center.y < min_.y)
+        if(center.y < min_.y)
         {
             temp = center.y - min_.y;
             distSquared += temp * temp;
         }
-        else if (center.y > max_.y)
+        else if(center.y > max_.y)
         {
             temp = center.y - max_.y;
             distSquared += temp * temp;
         }
-        if (center.z < min_.z)
+        if(center.z < min_.z)
         {
             temp = center.z - min_.z;
             distSquared += temp * temp;
         }
-        else if (center.z > max_.z)
+        else if(center.z > max_.z)
         {
             temp = center.z - max_.z;
             distSquared += temp * temp;
         }
 
         float radius = sphere.radius_;
-        if (distSquared >= radius * radius)
+        if(distSquared >= radius * radius)
             return OUTSIDE;
         else
             return INSIDE;

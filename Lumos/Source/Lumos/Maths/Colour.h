@@ -4,7 +4,7 @@
 namespace Lumos::Maths
 {
     /// RGBA Colour.
-    class  Colour
+    class Colour
     {
     public:
         /// Mask describing Colour channels.
@@ -25,11 +25,11 @@ namespace Lumos::Maths
         static const ChannelMask ARGB;
 
         /// Construct with default values (opaque white.)
-        Colour() noexcept :
-            r_(1.0f),
-            g_(1.0f),
-            b_(1.0f),
-            a_(1.0f)
+        Colour() noexcept
+            : r_(1.0f)
+            , g_(1.0f)
+            , b_(1.0f)
+            , a_(1.0f)
         {
         }
 
@@ -37,38 +37,38 @@ namespace Lumos::Maths
         Colour(const Colour& Colour) noexcept = default;
 
         /// Construct from another Colour and modify the alpha.
-        Colour(const Colour& Colour, float a) noexcept :
-            r_(Colour.r_),
-            g_(Colour.g_),
-            b_(Colour.b_),
-            a_(a)
+        Colour(const Colour& Colour, float a) noexcept
+            : r_(Colour.r_)
+            , g_(Colour.g_)
+            , b_(Colour.b_)
+            , a_(a)
         {
         }
 
         /// Construct from RGB values and set alpha fully opaque.
-        Colour(float r, float g, float b) noexcept :
-            r_(r),
-            g_(g),
-            b_(b),
-            a_(1.0f)
+        Colour(float r, float g, float b) noexcept
+            : r_(r)
+            , g_(g)
+            , b_(b)
+            , a_(1.0f)
         {
         }
 
         /// Construct from RGBA values.
-        Colour(float r, float g, float b, float a) noexcept :
-            r_(r),
-            g_(g),
-            b_(b),
-            a_(a)
+        Colour(float r, float g, float b, float a) noexcept
+            : r_(r)
+            , g_(g)
+            , b_(b)
+            , a_(a)
         {
         }
 
         /// Construct from a float array.
-        explicit Colour(const float* data) noexcept :
-            r_(data[0]),
-            g_(data[1]),
-            b_(data[2]),
-            a_(data[3])
+        explicit Colour(const float* data) noexcept
+            : r_(data[0])
+            , g_(data[1])
+            , b_(data[2])
+            , a_(data[3])
         {
         }
 
@@ -76,28 +76,28 @@ namespace Lumos::Maths
         explicit Colour(unsigned Colour, ChannelMask mask = ABGR) { FromUIntMask(Colour, mask); }
 
         /// Assign from another Colour.
-        Colour& operator =(const Colour& rhs) noexcept = default;
+        Colour& operator=(const Colour& rhs) noexcept = default;
 
         /// Test for equality with another Colour without epsilon.
-        bool operator ==(const Colour& rhs) const { return r_ == rhs.r_ && g_ == rhs.g_ && b_ == rhs.b_ && a_ == rhs.a_; }
+        bool operator==(const Colour& rhs) const { return r_ == rhs.r_ && g_ == rhs.g_ && b_ == rhs.b_ && a_ == rhs.a_; }
 
         /// Test for inequality with another Colour without epsilon.
-        bool operator !=(const Colour& rhs) const { return r_ != rhs.r_ || g_ != rhs.g_ || b_ != rhs.b_ || a_ != rhs.a_; }
+        bool operator!=(const Colour& rhs) const { return r_ != rhs.r_ || g_ != rhs.g_ || b_ != rhs.b_ || a_ != rhs.a_; }
 
         /// Multiply with a scalar.
-        Colour operator *(float rhs) const { return Colour(r_ * rhs, g_ * rhs, b_ * rhs, a_ * rhs); }
+        Colour operator*(float rhs) const { return Colour(r_ * rhs, g_ * rhs, b_ * rhs, a_ * rhs); }
 
         /// Add a Colour.
-        Colour operator +(const Colour& rhs) const { return Colour(r_ + rhs.r_, g_ + rhs.g_, b_ + rhs.b_, a_ + rhs.a_); }
+        Colour operator+(const Colour& rhs) const { return Colour(r_ + rhs.r_, g_ + rhs.g_, b_ + rhs.b_, a_ + rhs.a_); }
 
         /// Return negation.
-        Colour operator -() const { return Colour(-r_, -g_, -b_, -a_); }
+        Colour operator-() const { return Colour(-r_, -g_, -b_, -a_); }
 
         /// Subtract a Colour.
-        Colour operator -(const Colour& rhs) const { return Colour(r_ - rhs.r_, g_ - rhs.g_, b_ - rhs.b_, a_ - rhs.a_); }
+        Colour operator-(const Colour& rhs) const { return Colour(r_ - rhs.r_, g_ - rhs.g_, b_ - rhs.b_, a_ - rhs.a_); }
 
         /// Add-assign a Colour.
-        Colour& operator +=(const Colour& rhs)
+        Colour& operator+=(const Colour& rhs)
         {
             r_ += rhs.r_;
             g_ += rhs.g_;
@@ -183,13 +183,13 @@ namespace Lumos::Maths
                 && Lumos::Maths::Equals(b_, rhs.b_, eps)
                 && Lumos::Maths::Equals(a_, rhs.a_, eps);
         }
-        
-        static Colour Hex( uint32_t hexValue )
+
+        static Colour Hex(uint32_t hexValue)
         {
-            uint8_t red = ( hexValue >> 16 ) & 255;
-            uint8_t green = ( hexValue >> 8 ) & 255;
+            uint8_t red = (hexValue >> 16) & 255;
+            uint8_t green = (hexValue >> 8) & 255;
             uint8_t blue = hexValue & 255;
-            return Colour( red, green, blue );
+            return Colour(red, green, blue);
         }
 
         /// Return as string.
@@ -242,5 +242,5 @@ namespace Lumos::Maths
     };
 
     /// Multiply Colour with a scalar.
-    inline Colour operator *(float lhs, const Colour& rhs) { return rhs * lhs; }
+    inline Colour operator*(float lhs, const Colour& rhs) { return rhs * lhs; }
 }

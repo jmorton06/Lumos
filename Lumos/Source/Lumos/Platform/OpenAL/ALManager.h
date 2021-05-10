@@ -6,24 +6,24 @@
 
 namespace Lumos
 {
-	namespace Audio
-	{
-		class ALManager : public AudioManager
-		{
-		public:
-			ALManager(int numChannels = 8);
-			~ALManager();
+    namespace Audio
+    {
+        class ALManager : public AudioManager
+        {
+        public:
+            ALManager(int numChannels = 8);
+            ~ALManager();
 
-			void OnInit() override;
-			void OnUpdate(const TimeStep& dt, Scene* scene) override;
-			void UpdateListener();
-			void OnImGui() override;
+            void OnInit() override;
+            void OnUpdate(const TimeStep& dt, Scene* scene) override;
+            void UpdateListener();
+            void OnImGui() override;
 
-		private:
-			ALCcontext* m_Context;
-			ALCdevice* m_Device;
+        private:
+            ALCcontext* m_Context;
+            ALCdevice* m_Device;
 
-			int m_NumChannels = 0;
-		};
-	}
+            int m_NumChannels = 0;
+        };
+    }
 }

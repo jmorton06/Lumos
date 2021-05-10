@@ -40,9 +40,9 @@ namespace Lumos
 	void TextEditWindow::OnImGui()
 	{
         
-        if((Input::GetInput()->GetKeyHeld(InputCode::Key::LeftSuper) || (Input::GetInput()->GetKeyHeld(InputCode::Key::LeftControl)) ))
+        if((Input::Get().GetKeyHeld(InputCode::Key::LeftSuper) || (Input::Get().GetKeyHeld(InputCode::Key::LeftControl)) ))
         {
-            if(Input::GetInput()->GetKeyPressed(InputCode::Key::S))
+            if(Input::Get().GetKeyPressed(InputCode::Key::S))
             {
                 auto textToSave = editor.GetText();
                 FileSystem::WriteTextFile(m_FilePath, textToSave);
@@ -114,7 +114,7 @@ namespace Lumos
 
 		if(ImGui::IsItemActive())
 		{
-			if(Input::GetInput()->GetKeyHeld(InputCode::Key::LeftControl) && Input::GetInput()->GetKeyPressed(InputCode::Key::S))
+			if(Input::Get().GetKeyHeld(InputCode::Key::LeftControl) && Input::Get().GetKeyPressed(InputCode::Key::S))
 			{
 				auto textToSave = editor.GetText();
 				FileSystem::WriteTextFile(m_FilePath, textToSave);
