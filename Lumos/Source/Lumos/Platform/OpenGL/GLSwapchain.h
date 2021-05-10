@@ -16,11 +16,9 @@ namespace Lumos
             bool Init(bool vsync) override;
 
             Texture* GetCurrentImage() override;
-            Texture* GetImage(uint32_t id) override { return nullptr; };
-            uint32_t GetCurrentBufferId() const override;
+            Texture* GetImage(uint32_t index) override { return nullptr; };
+            uint32_t GetCurrentBufferIndex() const override;
             size_t GetSwapchainBufferCount() const override;
-            uint32_t GetFramebufferCount() const override { return 1; }
-            Framebuffer* CreateFramebuffer(RenderPass* renderPass, uint32_t id) override { return nullptr; }
 
             static void MakeDefault();
 

@@ -32,7 +32,7 @@ namespace Lumos
             return nullptr; //swapChainBuffers[0];
         }
 
-        uint32_t GLSwapchain::GetCurrentBufferId() const
+        uint32_t GLSwapchain::GetCurrentBufferIndex() const
         {
             return 0;
         }

@@ -41,7 +41,7 @@ namespace Lumos
 
 		const auto nameComponent = registry.try_get<NameComponent>(node);
 		std::string name = nameComponent ? nameComponent->name : StringUtilities::ToString(entt::to_integral(node));
-
+		
 		if(m_HierarchyFilter.IsActive())
 		{
 			if(!m_HierarchyFilter.PassFilter(name.c_str()))
@@ -305,7 +305,7 @@ namespace Lumos
 			}
 
             const ImColor TreeLineColor = ImColor(128, 128, 128, 128);
-            const float SmallOffsetX = 6.0f;
+            const float SmallOffsetX = 6.0f * Application::Get().GetWindowDPI();
             ImDrawList* drawList = ImGui::GetWindowDrawList();
 
             ImVec2 verticalLineStart = ImGui::GetCursorScreenPos();
@@ -317,7 +317,7 @@ namespace Lumos
 				entt::entity child = hierarchyComponent->First();
 				while(child != entt::null && registry.valid(child))
 				{
-                    float HorizontalTreeLineSize = 16.0f; //chosen arbitrarily
+                    float HorizontalTreeLineSize = 16.0f * Application::Get().GetWindowDPI(); //chosen arbitrarily
                     auto currentPos = ImGui::GetCursorScreenPos();
 					ImGui::Indent(10.0f);
                     
@@ -482,7 +482,8 @@ namespace Lumos
 			m_HierarchyFilter.Draw("##HierarchyFilter", ImGui::GetContentRegionAvail().x - ImGui::GetStyle().IndentSpacing);
 			ImGui::PopStyleColor();
 			ImGui::Unindent();
-
+			
+			ImGui::BeginChild("Nodes");
 			{
 				if(ImGui::BeginDragDropTarget())
 				{
@@ -554,6 +555,7 @@ namespace Lumos
 					}
 				}
 			}
+				ImGui::EndChild();
 		}
 		ImGui::End();
 	}

@@ -40,13 +40,10 @@ namespace Lumos
 
             VkSurfaceKHR GetSurface() const { return m_Surface; }
             VkSwapchainKHR GetSwapchain() const { return m_SwapChain; }
-            uint32_t GetCurrentBufferId() const override { return m_AcquireImageIndex; }
-            size_t GetSwapchainBufferCount() const override { return m_SwapChainBuffers.size(); };
-            uint32_t GetFramebufferCount() const override { return static_cast<uint32_t>(m_SwapChainBuffers.size()); }
-
+            uint32_t GetCurrentBufferIndex() const override { return m_AcquireImageIndex; }
+            size_t GetSwapchainBufferCount() const override { return m_SwapchainBufferCount; };
             Texture* GetCurrentImage() override { return (Texture*)m_SwapChainBuffers[m_AcquireImageIndex]; };
-            Texture* GetImage(uint32_t id) override { return (Texture*)m_SwapChainBuffers[id]; };
-            Framebuffer* CreateFramebuffer(RenderPass* renderPass, uint32_t id) override { return nullptr; };
+            Texture* GetImage(uint32_t index) override { return (Texture*)m_SwapChainBuffers[index]; };
 
             VkSurfaceKHR CreatePlatformSurface(VkInstance vkInstance, Window* window);
             CommandBuffer* GetCurrentCommandBuffer() override;
@@ -71,6 +68,7 @@ namespace Lumos
             uint32_t m_Width;
             uint32_t m_Height;
             uint32_t m_QueueNodeIndex = UINT32_MAX;
+            uint32_t m_SwapchainBufferCount;
             bool m_VSyncEnabled = false;
 
             VkSwapchainKHR m_SwapChain;

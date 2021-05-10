@@ -52,7 +52,7 @@ namespace Lumos
             LUMOS_PROFILE_FUNCTION();
             m_CurrentBufferID = 0;
             if(!m_RenderTexture)
-                m_CurrentBufferID = Renderer::GetSwapchain()->GetCurrentBufferId();
+                m_CurrentBufferID = Renderer::GetSwapchain()->GetCurrentBufferIndex();
 
             Begin();
 
@@ -74,7 +74,7 @@ namespace Lumos
             End();
 
             //if(!m_RenderTexture)
-            //Renderer::Present((m_CommandBuffers[Renderer::GetSwapchain()->GetCurrentBufferId()].get()));
+            //Renderer::Present((m_CommandBuffers[Renderer::GetSwapchain()->GetCurrentBufferIndex()].get()));
         }
 
         enum VSSystemUniformIndices : int32_t

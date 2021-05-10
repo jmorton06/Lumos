@@ -172,7 +172,7 @@ namespace Lumos
 
         m_Lines.clear();
 
-        m_RenderPass->BeginRenderpass(Renderer::GetSwapchain()->GetCurrentCommandBuffer(), m_ClearColour, m_Framebuffers[m_CurrentBufferID].get(), Graphics::SECONDARY, m_ScreenBufferWidth, m_ScreenBufferHeight);
+        //m_RenderPass->BeginRenderpass(Renderer::GetSwapchain()->GetCurrentCommandBuffer(), m_ClearColour, m_Framebuffers[m_CurrentBufferID].get(), Graphics::SECONDARY, m_ScreenBufferWidth, m_ScreenBufferHeight);
     }
 
     void LineRenderer::SetSystemUniforms(Shader* shader) const
@@ -246,7 +246,7 @@ namespace Lumos
         LUMOS_PROFILE_FUNCTION();
 
         if(!m_RenderTexture)
-            m_CurrentBufferID = Renderer::GetSwapchain()->GetCurrentBufferId();
+            m_CurrentBufferID = Renderer::GetSwapchain()->GetCurrentBufferIndex();
 
         m_Pipeline->Bind(Renderer::GetSwapchain()->GetCurrentCommandBuffer());
 
@@ -278,7 +278,7 @@ namespace Lumos
 
     void LineRenderer::PresentToScreen()
     {
-        //Renderer::Present((m_CommandBuffers[Renderer::GetSwapchain()->GetCurrentBufferId()].get()));
+        //Renderer::Present((m_CommandBuffers[Renderer::GetSwapchain()->GetCurrentBufferIndex()].get()));
     }
 
     void LineRenderer::SetScreenBufferSize(uint32_t width, uint32_t height)

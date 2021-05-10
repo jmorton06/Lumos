@@ -227,7 +227,7 @@ namespace Lumos
             LUMOS_PROFILE_FUNCTION();
             m_CurrentBufferID = 0;
             if(!m_RenderTexture)
-                m_CurrentBufferID = Renderer::GetSwapchain()->GetCurrentBufferId();
+                m_CurrentBufferID = Renderer::GetSwapchain()->GetCurrentBufferIndex();
 
             m_RenderPass->BeginRenderpass(Renderer::GetSwapchain()->GetCurrentCommandBuffer(), m_ClearColour, m_Framebuffers[m_CurrentBufferID].get(), Graphics::INLINE, m_ScreenBufferWidth, m_ScreenBufferHeight);
 
@@ -467,7 +467,7 @@ namespace Lumos
         void Renderer2D::PresentToScreen()
         {
             LUMOS_PROFILE_FUNCTION();
-            //Renderer::Present((m_CommandBuffers[Renderer::GetSwapchain()->GetCurrentBufferId()].get()));
+            //Renderer::Present((m_CommandBuffers[Renderer::GetSwapchain()->GetCurrentBufferIndex()].get()));
         }
 
         void Renderer2D::CreateGraphicsPipeline()

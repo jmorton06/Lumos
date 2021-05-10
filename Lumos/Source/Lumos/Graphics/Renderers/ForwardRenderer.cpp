@@ -70,7 +70,7 @@ namespace Lumos
             }
 
             if(!m_RenderTexture)
-                Renderer::Present((m_CommandBuffers[Renderer::GetSwapchain()->GetCurrentBufferId()]));
+                Renderer::Present((m_CommandBuffers[Renderer::GetSwapchain()->GetCurrentBufferIndex()]));
         }
 
         enum VSSystemUniformIndices : int32_t
@@ -273,15 +273,6 @@ namespace Lumos
                             continue;
 
                         auto meshPtr = mesh;
-                        auto material = meshPtr->GetMaterial();
-                        if(material)
-                        {
-                            if(material->GetDescriptorSet() == nullptr || material->GetPipeline() != m_Pipeline.get() || material->GetTexturesUpdated())
-                            {
-                                material->CreateDescriptorSet(m_Pipeline.get(), 1);
-                                material->SetTexturesUpdated(false);
-                            }
-                        }
 
                         auto textureMatrixTransform = registry.try_get<TextureMatrixComponent>(entity);
                         Maths::Matrix4 textureMatrix;
@@ -290,7 +281,7 @@ namespace Lumos
                         else
                             textureMatrix = Maths::Matrix4();
 
-                        SubmitMesh(meshPtr.get(), material.get(), worldTransform, textureMatrix);
+                        SubmitMesh(meshPtr.get(), meshPtr->GetMaterial().get(), worldTransform, textureMatrix);
                     }
                 }
             }

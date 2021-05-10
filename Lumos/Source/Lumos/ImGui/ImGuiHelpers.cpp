@@ -297,12 +297,12 @@ namespace Lumos
         ImVec4 blue = ImVec4(0.0f, 0.0f, 1.0f, 1.0f);
         ImVec4 red = ImVec4(1.0f, 0.0f, 0.0f, 1.0f);
 
-        ImVec4 Titlebar = ImVec4(20.0f / max, 28.0f / max, 50.0f / max, 1.0f);
-        ImVec4 windowBackground = Titlebar + ImVec4(12.0f / max, 12.0f / max, 12.0f / max, 0.0f);
-        ImVec4 TabActive = windowBackground;
+        ImVec4 Titlebar = ImVec4(40.0f / max, 42.0f / max, 54.0f / max, 1.0f);
+        ImVec4 TabActive = ImVec4(48.0f / max, 50.0f / max, 60.0f / max, 1.0f);
         ImVec4 TabUnactive = ImVec4(35.0f / max, 43.0f / max, 59.0f / max, 1.0f);
 
         ImVec4* colours = ImGui::GetStyle().Colors;
+        SelectedColour = Maths::Vector4(0.28f, 0.56f, 0.9f, 1.0f);
         switch(theme)
         {
         case Lumos::ImGuiHelpers::Black:
@@ -361,7 +361,8 @@ namespace Lumos
         case Lumos::ImGuiHelpers::Dark:
             ImGui::StyleColorsDark();
 
-            colours[ImGuiCol_Text] = ImVec4(0.95f, 0.96f, 0.98f, 1.00f);
+            SelectedColour = ImVec4(155.0f / 255.0f, 130.0f / 255.0f, 207.0f / 255.0f, 1.00f);
+            colours[ImGuiCol_Text] = ImVec4(200.0f / 255.0f, 200.0f / 255.0f, 200.0f / 255.0f, 1.00f);
             colours[ImGuiCol_TextDisabled] = ImVec4(0.36f, 0.42f, 0.47f, 1.00f);
 
             colours[ImGuiCol_WindowBg] = TabActive;
@@ -384,9 +385,9 @@ namespace Lumos
             colours[ImGuiCol_ScrollbarGrabActive] = ImVec4(0.7f, 0.7f, 0.7f, 1.00f);
             colours[ImGuiCol_ScrollbarGrabHovered] = ImVec4(0.8f, 0.8f, 0.8f, 1.00f);
 
-            colours[ImGuiCol_CheckMark] = ImVec4(0.28f, 0.56f, 1.00f, 1.00f);
-            colours[ImGuiCol_SliderGrab] = ImVec4(0.28f, 0.56f, 1.00f, 1.00f);
-            colours[ImGuiCol_SliderGrabActive] = ImVec4(0.37f, 0.61f, 1.00f, 1.00f);
+            colours[ImGuiCol_CheckMark] = ImVec4(155.0f / 255.0f, 130.0f / 255.0f, 207.0f / 255.0f, 1.00f);
+            colours[ImGuiCol_SliderGrab] = ImVec4(155.0f / 255.0f, 130.0f / 255.0f, 207.0f / 255.0f, 1.00f);
+            colours[ImGuiCol_SliderGrabActive] = ImVec4(185.0f / 255.0f, 160.0f / 255.0f, 237.0f / 255.0f, 1.00f);
             colours[ImGuiCol_Button] = ImVec4(0.20f, 0.25f, 0.29f, 1.00f);
             colours[ImGuiCol_ButtonHovered] = ImVec4(0.20f, 0.25f, 0.29f, 1.00f) + ImVec4(0.1f, 0.1f, 0.1f, 0.1f);
             colours[ImGuiCol_ButtonActive] = ImVec4(0.20f, 0.25f, 0.29f, 1.00f) + ImVec4(0.1f, 0.1f, 0.1f, 0.1f);

@@ -16,12 +16,12 @@ namespace Lumos
             m_SwapChain = VK_NULL_HANDLE;
             m_OldSwapChain = VK_NULL_HANDLE;
             m_Surface = VK_NULL_HANDLE;
-            m_CurrentBuffer = 0;//std::numeric_limits<uint32_t>::max();
+            m_CurrentBuffer = 0; //std::numeric_limits<uint32_t>::max();
         }
 
         VKSwapchain::~VKSwapchain()
         {
-            for(uint32_t i = 0; i < m_SwapChainBuffers.size(); i++)
+            for(uint32_t i = 0; i < m_SwapchainBufferCount; i++)
             {
                 VKContext::Get()->WaitIdle();
 
@@ -46,16 +46,16 @@ namespace Lumos
         {
             LUMOS_PROFILE_FUNCTION();
             m_VSyncEnabled = vsync;
-            
+
             if(m_Surface == VK_NULL_HANDLE)
                 m_Surface = CreatePlatformSurface(VKContext::Get()->GetVKInstance(), windowHandle);
-            
+
             Init(vsync);
         }
 
         FrameData& VKSwapchain::GetCurrentFrameData()
         {
-            LUMOS_ASSERT(m_CurrentBuffer < m_SwapChainBuffers.size(), "Incorrect swapchain buffer index");
+            LUMOS_ASSERT(m_CurrentBuffer < m_SwapchainBufferCount, "Incorrect swapchain buffer index");
             return m_Frames[m_CurrentBuffer];
         }
 
@@ -93,9 +93,9 @@ namespace Lumos
             VkPresentModeKHR swapChainPresentMode = VKTools::ChoosePresentMode(pPresentModes, vsync);
 
             // Use triple-buffering
-            uint32_t numSwapChainImages = surfaceCapabilities.maxImageCount;
-            if(numSwapChainImages > 3)
-                numSwapChainImages = 3;
+            m_SwapchainBufferCount = surfaceCapabilities.maxImageCount;
+            if(m_SwapchainBufferCount > 3)
+                m_SwapchainBufferCount = 3;
 
             VkSurfaceTransformFlagBitsKHR preTransform;
             if(surfaceCapabilities.supportedTransforms & VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR)
@@ -106,7 +106,7 @@ namespace Lumos
             VkSwapchainCreateInfoKHR swapChainCI {};
             swapChainCI.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
             swapChainCI.surface = m_Surface;
-            swapChainCI.minImageCount = numSwapChainImages;
+            swapChainCI.minImageCount = m_SwapchainBufferCount;
             swapChainCI.imageFormat = m_ColourFormat;
             swapChainCI.imageExtent.width = swapChainExtent.width;
             swapChainCI.imageExtent.height = swapChainExtent.height;
@@ -129,14 +129,14 @@ namespace Lumos
                 vkDestroySwapchainKHR(VKDevice::Get().GetDevice(), m_OldSwapChain, VK_NULL_HANDLE);
                 m_OldSwapChain = VK_NULL_HANDLE;
             }
-            
+
             uint32_t swapChainImageCount;
             VK_CHECK_RESULT(vkGetSwapchainImagesKHR(VKDevice::Get().GetDevice(), m_SwapChain, &swapChainImageCount, VK_NULL_HANDLE));
 
             VkImage* pSwapChainImages = new VkImage[swapChainImageCount];
             VK_CHECK_RESULT(vkGetSwapchainImagesKHR(VKDevice::Get().GetDevice(), m_SwapChain, &swapChainImageCount, pSwapChainImages));
 
-            for(uint32_t i = 0; i < swapChainImageCount; i++)
+            for(uint32_t i = 0; i < m_SwapchainBufferCount; i++)
             {
                 VkImageViewCreateInfo viewCI {};
                 viewCI.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
@@ -157,7 +157,7 @@ namespace Lumos
                 VkImageView imageView;
                 VK_CHECK_RESULT(vkCreateImageView(VKDevice::Get().GetDevice(), &viewCI, VK_NULL_HANDLE, &imageView));
                 VKTexture2D* swapChainBuffer = new VKTexture2D(pSwapChainImages[i], imageView);
-               // VKTools::TransitionImageLayout(swapChainBuffer->GetImage(), m_ColourFormat, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
+                // VKTools::TransitionImageLayout(swapChainBuffer->GetImage(), m_ColourFormat, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
                 //swapChainBuffer->SetImageLayout(VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
 
                 m_SwapChainBuffers.push_back(swapChainBuffer);
@@ -172,7 +172,7 @@ namespace Lumos
 
         void VKSwapchain::CreateFrameData()
         {
-            for(uint32_t i = 0; i < int(m_SwapChainBuffers.size()); i++)
+            for(uint32_t i = 0; i < m_SwapchainBufferCount; i++)
             {
                 if(!m_Frames[i].RenderFence)
                 {
@@ -187,7 +187,7 @@ namespace Lumos
 
                     m_Frames[i].RenderFence = CreateRef<VKFence>();
                     m_Frames[i].CommandPool = CreateRef<VKCommandPool>(VKDevice::Get().GetPhysicalDevice()->GetGraphicsQueueFamilyIndex(), VK_COMMAND_POOL_CREATE_TRANSIENT_BIT);
-                    
+
                     m_Frames[i].MainCommandBuffer = CreateRef<VKCommandBuffer>();
                     m_Frames[i].MainCommandBuffer->Init(true, m_Frames[i].CommandPool->GetHandle());
                 }
@@ -198,7 +198,7 @@ namespace Lumos
         {
             LUMOS_PROFILE_FUNCTION();
 
-            uint32_t nextCmdBufferIndex = (m_CurrentBuffer + 1) % (int)m_SwapChainBuffers.size();
+            uint32_t nextCmdBufferIndex = (m_CurrentBuffer + 1) % m_SwapchainBufferCount;
             {
                 LUMOS_PROFILE_SCOPE("vkAcquireNextImageKHR");
                 auto result = vkAcquireNextImageKHR(VKDevice::Get().GetDevice(), m_SwapChain, UINT64_MAX, m_Frames[nextCmdBufferIndex].PresentSemaphore, VK_NULL_HANDLE, &m_AcquireImageIndex);
@@ -236,7 +236,7 @@ namespace Lumos
             m_Width = width;
             m_Height = height;
 
-            for(uint32_t i = 0; i < m_SwapChainBuffers.size(); i++)
+            for(uint32_t i = 0; i < m_SwapchainBufferCount; i++)
             {
                 delete m_SwapChainBuffers[i];
             }
@@ -279,7 +279,7 @@ namespace Lumos
                 LUMOS_PROFILE_SCOPE("vkQueueSubmit");
                 VK_CHECK_RESULT(vkQueueSubmit(VKDevice::Get().GetGraphicsQueue(), 1, &submitInfo, frameData.RenderFence->GetHandle()));
             }
-            
+
             frameData.RenderFence->Wait(); //TODO: Remove this? - causes flickering if removed. Sync issue
             frameData.CommandPool->Reset();
         }

@@ -179,7 +179,7 @@ namespace Lumos
 
             int commandBufferIndex = 0;
             if(!m_RenderTexture)
-                commandBufferIndex = Renderer::GetSwapchain()->GetCurrentBufferId();
+                commandBufferIndex = Renderer::GetSwapchain()->GetCurrentBufferIndex();
 
             //Renderer::GetRenderer()->ClearRenderTarget(m_RenderTexture ? m_RenderTexture : Renderer::GetSwapchain()->GetImage(commandBufferIndex), Renderer::GetSwapchain()->GetCurrentCommandBuffer());
 

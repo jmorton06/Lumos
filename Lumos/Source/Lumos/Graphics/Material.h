@@ -135,6 +135,8 @@ namespace Lumos
                 return m_MaterialProperties;
             }
 
+            void Bind(Pipeline* pipeline);
+
             static void InitDefaultTexture();
             static void ReleaseDefaultTexture();
 

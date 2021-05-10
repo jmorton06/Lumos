@@ -17,11 +17,9 @@ namespace Lumos
 
             virtual bool Init(bool vsync) = 0;
             virtual Texture* GetCurrentImage() = 0;
-            virtual Texture* GetImage(uint32_t id) = 0;
-            virtual uint32_t GetCurrentBufferId() const = 0;
+            virtual Texture* GetImage(uint32_t index) = 0;
+            virtual uint32_t GetCurrentBufferIndex() const = 0;
             virtual size_t GetSwapchainBufferCount() const = 0;
-            virtual uint32_t GetFramebufferCount() const = 0;
-            virtual Framebuffer* CreateFramebuffer(RenderPass* renderPass, uint32_t id) = 0;
             virtual CommandBuffer* GetCurrentCommandBuffer() { return nullptr; }
 
         protected:

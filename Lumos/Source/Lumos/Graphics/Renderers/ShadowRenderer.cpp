@@ -217,7 +217,7 @@ namespace Lumos
             LUMOS_PROFILE_FUNCTION();
             int index = 0;
 
-            m_RenderPass->BeginRenderpass(Renderer::GetSwapchain()->GetCurrentCommandBuffer(), Maths::Vector4(0.0f), m_ShadowFramebuffer[m_Layer].get(), Graphics::INLINE, m_ShadowMapSize, m_ShadowMapSize, false);
+            m_RenderPass->BeginRenderpass(Renderer::GetSwapchain()->GetCurrentCommandBuffer(), Maths::Vector4(0.0f), m_ShadowFramebuffer[m_Layer].get(), Graphics::INLINE, m_ShadowMapSize, m_ShadowMapSize);
 
             m_Pipeline->Bind(Renderer::GetSwapchain()->GetCurrentCommandBuffer());
 
@@ -249,7 +249,7 @@ namespace Lumos
                 index++;
             }
 
-            m_RenderPass->EndRenderpass(Renderer::GetSwapchain()->GetCurrentCommandBuffer(), false);
+            m_RenderPass->EndRenderpass(Renderer::GetSwapchain()->GetCurrentCommandBuffer());
         }
 
         void ShadowRenderer::SetShadowMapNum(uint32_t num)

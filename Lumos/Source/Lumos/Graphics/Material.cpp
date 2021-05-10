@@ -20,6 +20,8 @@ namespace Lumos::Graphics
         : m_PBRMaterialTextures(textures)
         , m_Shader(shader)
     {
+        LUMOS_PROFILE_FUNCTION();
+
         m_RenderFlags = 0;
         SetRenderFlag(RenderFlags::DEFERREDRENDER);
         m_DescriptorSet = nullptr;
@@ -34,6 +36,8 @@ namespace Lumos::Graphics
     Material::Material()
         : m_Shader(nullptr)
     {
+        LUMOS_PROFILE_FUNCTION();
+
         m_RenderFlags = 0;
         SetRenderFlag(RenderFlags::DEFERREDRENDER);
         m_DescriptorSet = nullptr;
@@ -49,6 +53,8 @@ namespace Lumos::Graphics
 
     Material::~Material()
     {
+        LUMOS_PROFILE_FUNCTION();
+
         delete m_DescriptorSet;
         delete m_MaterialProperties;
         delete m_MaterialPropertiesBuffer;
@@ -57,6 +63,7 @@ namespace Lumos::Graphics
 
     void Material::SetTextures(const PBRMataterialTextures& textures)
     {
+        LUMOS_PROFILE_FUNCTION();
         m_PBRMaterialTextures.albedo = textures.albedo;
         m_PBRMaterialTextures.normal = textures.normal;
         m_PBRMaterialTextures.roughness = textures.roughness;
@@ -67,6 +74,8 @@ namespace Lumos::Graphics
 
     bool FileExists(const std::string& path)
     {
+        LUMOS_PROFILE_FUNCTION();
+
         std::string physicalPath;
 
         VFS::Get()->ResolvePhysicalPath(path, physicalPath);
@@ -75,6 +84,8 @@ namespace Lumos::Graphics
 
     void Material::LoadPBRMaterial(const std::string& name, const std::string& path, const std::string& extension)
     {
+        LUMOS_PROFILE_FUNCTION();
+
         m_Name = name;
         m_PBRMaterialTextures = PBRMataterialTextures();
         auto params = Graphics::TextureParameters(Graphics::TextureFormat::RGBA8, Graphics::TextureFilter::LINEAR, Graphics::TextureFilter::LINEAR, Graphics::TextureWrap::CLAMP_TO_EDGE);
@@ -112,6 +123,8 @@ namespace Lumos::Graphics
 
     void Material::LoadMaterial(const std::string& name, const std::string& path)
     {
+        LUMOS_PROFILE_FUNCTION();
+
         m_Name = name;
         m_PBRMaterialTextures = PBRMataterialTextures();
         m_PBRMaterialTextures.albedo = Ref<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile(name, path));
@@ -129,6 +142,8 @@ namespace Lumos::Graphics
 
     void Material::SetMaterialProperites(const MaterialProperties& properties)
     {
+        LUMOS_PROFILE_FUNCTION();
+
         m_MaterialProperties->albedoColour = properties.albedoColour;
         m_MaterialProperties->metallicColour = properties.metallicColour;
         m_MaterialProperties->roughnessColour = properties.roughnessColour;
@@ -149,6 +164,8 @@ namespace Lumos::Graphics
 
     void Material::CreateDescriptorSet(Graphics::Pipeline* pipeline, int layoutID, bool pbr)
     {
+        LUMOS_PROFILE_FUNCTION();
+
         if(m_DescriptorSet)
             delete m_DescriptorSet;
 
@@ -300,19 +317,36 @@ namespace Lumos::Graphics
         m_DescriptorSet->Update(imageInfos, bufferInfos);
     }
 
+    void Material::Bind(Pipeline* pipeline)
+    {
+        LUMOS_PROFILE_FUNCTION();
+
+        if(m_DescriptorSet == nullptr || m_Pipeline != pipeline || GetTexturesUpdated())
+        {
+            CreateDescriptorSet(pipeline, 1);
+            SetTexturesUpdated(false);
+        }
+    }
+
     void Material::InitDefaultTexture()
     {
+        LUMOS_PROFILE_FUNCTION();
+
         uint32_t whiteTextureData = 0xffffffff;
         s_DefaultTexture = Ref<Graphics::Texture2D>(Graphics::Texture2D::CreateFromSource(1, 1, &whiteTextureData));
     }
 
     void Material::ReleaseDefaultTexture()
     {
+        LUMOS_PROFILE_FUNCTION();
+
         s_DefaultTexture.reset();
     }
 
     void Material::SetAlbedoTexture(const std::string& path)
     {
+        LUMOS_PROFILE_FUNCTION();
+
         auto tex = Ref<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile(path, path));
         if(tex)
         {
@@ -323,6 +357,8 @@ namespace Lumos::Graphics
 
     void Material::SetNormalTexture(const std::string& path)
     {
+        LUMOS_PROFILE_FUNCTION();
+
         auto tex = Ref<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile(path, path));
         if(tex)
         {
@@ -333,6 +369,8 @@ namespace Lumos::Graphics
 
     void Material::SetRoughnessTexture(const std::string& path)
     {
+        LUMOS_PROFILE_FUNCTION();
+
         auto tex = Ref<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile(path, path));
         if(tex)
         {
@@ -343,6 +381,8 @@ namespace Lumos::Graphics
 
     void Material::SetMetallicTexture(const std::string& path)
     {
+        LUMOS_PROFILE_FUNCTION();
+
         auto tex = Ref<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile(path, path));
         if(tex)
         {
@@ -353,6 +393,8 @@ namespace Lumos::Graphics
 
     void Material::SetAOTexture(const std::string& path)
     {
+        LUMOS_PROFILE_FUNCTION();
+
         auto tex = Ref<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile(path, path));
         if(tex)
         {
@@ -363,6 +405,8 @@ namespace Lumos::Graphics
 
     void Material::SetEmissiveTexture(const std::string& path)
     {
+        LUMOS_PROFILE_FUNCTION();
+
         auto tex = Ref<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile(path, path));
         if(tex)
         {

@@ -567,7 +567,7 @@ namespace Lumos
 			{
 				selected = Application::Get().GetEditorState() == EditorState::Play;
 				if(selected)
-					ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.28f, 0.56f, 0.9f, 1.0f));
+					ImGui::PushStyleColor(ImGuiCol_Text, ImGuiHelpers::GetSelectedColour());
                 
 				if(ImGui::Button(ICON_MDI_PLAY))
                 {
@@ -597,7 +597,7 @@ namespace Lumos
 			{
 				selected = Application::Get().GetEditorState() == EditorState::Paused;
 				if(selected)
-					ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.28f, 0.56f, 0.9f, 1.0f));
+					ImGui::PushStyleColor(ImGuiCol_Text, ImGuiHelpers::GetSelectedColour());
                 
 				if(ImGui::Button(ICON_MDI_PAUSE))
 					Application::Get().SetEditorState(selected ? EditorState::Play : EditorState::Paused);
@@ -613,7 +613,7 @@ namespace Lumos
 			{
 				selected = Application::Get().GetEditorState() == EditorState::Next;
 				if(selected)
-					ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.28f, 0.56f, 0.9f, 1.0f));
+					ImGui::PushStyleColor(ImGuiCol_Text, ImGuiHelpers::GetSelectedColour());
                 
 				if(ImGui::Button(ICON_MDI_STEP_FORWARD))
 					Application::Get().SetEditorState(EditorState::Next);
