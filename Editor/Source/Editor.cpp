@@ -172,6 +172,7 @@ namespace Lumos
 		m_PreviewTexture = nullptr;
         
         ImGuizmo::SetGizmoSizeClipSpace(0.25f);
+		ImGuizmo::SetGizmoSizeScale(Application::Get().GetWindowDPI());
     }
     
 	bool Editor::IsTextFile(const std::string& filePath)
@@ -288,32 +289,34 @@ namespace Lumos
 	void Editor::DrawMenuBar()
 	{
 		LUMOS_PROFILE_FUNCTION();
+        
+        bool openSaveScenePopup = false;
+        bool openNewScenePopup = false;
+        bool openReloadScenePopup = false;
+
 		if(ImGui::BeginMainMenuBar())
 		{
 			if(ImGui::BeginMenu("File"))
 			{
-				if(ImGui::MenuItem("Exit"))
-				{
-					Application::Get().SetAppState(AppState::Closing);
-				}
-                
 				if(ImGui::MenuItem("Open File"))
 				{
 					m_FileBrowserWindow.SetCallback(BIND_FILEBROWSER_FN(Editor::FileOpenCallback));
 					m_FileBrowserWindow.Open();
 				}
                 
-				if(ImGui::MenuItem("New Scene"))
+				if(ImGui::MenuItem("New Scene", "CTRL+N"))
 				{
-					auto scene = new Scene("New Scene");
-					scene->SetHasCppClass(false);
-					Application::Get().GetSceneManager()->EnqueueScene(scene);
-					Application::Get().GetSceneManager()->SwitchScene((int)(Application::Get().GetSceneManager()->GetScenes().size()) - 1);
+                    openNewScenePopup = true;
 				}
                 
                 if(ImGui::MenuItem("Save Scene", "CTRL+S"))
                 {
-                    Application::Get().GetSceneManager()->GetCurrentScene()->Serialise(ROOT_DIR "/Sandbox/Assets/scenes/", false);
+                    openSaveScenePopup = true;
+                }
+				
+				if(ImGui::MenuItem("Reload Scene", "CTRL+R"))
+                {
+                    openReloadScenePopup = true;
                 }
                 
 				if(ImGui::BeginMenu("Style"))
@@ -322,53 +325,68 @@ namespace Lumos
 					{
 						m_Theme = ImGuiHelpers::Dark;
 						ImGuiHelpers::SetTheme(ImGuiHelpers::Dark);
+						OS::Instance()->SetTitleBarColour(ImGui::GetStyle().Colors[ImGuiCol_MenuBarBg]);
 					}
 					if(ImGui::MenuItem("Black", ""))
 					{
 						m_Theme = ImGuiHelpers::Black;
 						ImGuiHelpers::SetTheme(ImGuiHelpers::Black);
+						OS::Instance()->SetTitleBarColour(ImGui::GetStyle().Colors[ImGuiCol_MenuBarBg]);
 					}
 					if(ImGui::MenuItem("Grey", ""))
 					{
 						m_Theme = ImGuiHelpers::Grey;
 						ImGuiHelpers::SetTheme(ImGuiHelpers::Grey);
+						OS::Instance()->SetTitleBarColour(ImGui::GetStyle().Colors[ImGuiCol_MenuBarBg]);
 					}
 					if(ImGui::MenuItem("Light", ""))
 					{
 						m_Theme = ImGuiHelpers::Light;
 						ImGuiHelpers::SetTheme(ImGuiHelpers::Light);
+						OS::Instance()->SetTitleBarColour(ImGui::GetStyle().Colors[ImGuiCol_MenuBarBg]);
 					}
 					if(ImGui::MenuItem("Cherry", ""))
 					{
 						m_Theme = ImGuiHelpers::Cherry;
 						ImGuiHelpers::SetTheme(ImGuiHelpers::Cherry);
+						OS::Instance()->SetTitleBarColour(ImGui::GetStyle().Colors[ImGuiCol_MenuBarBg]);
 					}
 					if(ImGui::MenuItem("Blue", ""))
 					{
 						m_Theme = ImGuiHelpers::Blue;
 						ImGuiHelpers::SetTheme(ImGuiHelpers::Blue);
+						OS::Instance()->SetTitleBarColour(ImGui::GetStyle().Colors[ImGuiCol_MenuBarBg]);
 					}
 					if(ImGui::MenuItem("Cinder", ""))
 					{
 						m_Theme = ImGuiHelpers::Cinder;
 						ImGuiHelpers::SetTheme(ImGuiHelpers::Cinder);
+						OS::Instance()->SetTitleBarColour(ImGui::GetStyle().Colors[ImGuiCol_MenuBarBg]);
 					}
 					if(ImGui::MenuItem("Classic", ""))
 					{
 						m_Theme = ImGuiHelpers::Classic;
 						ImGuiHelpers::SetTheme(ImGuiHelpers::Classic);
+						OS::Instance()->SetTitleBarColour(ImGui::GetStyle().Colors[ImGuiCol_MenuBarBg]);
 					}
 					if(ImGui::MenuItem("ClassicDark", ""))
 					{
 						m_Theme = ImGuiHelpers::ClassicDark;
 						ImGuiHelpers::SetTheme(ImGuiHelpers::ClassicDark);
+						OS::Instance()->SetTitleBarColour(ImGui::GetStyle().Colors[ImGuiCol_MenuBarBg]);
 					}
 					if(ImGui::MenuItem("ClassicLight", ""))
 					{
 						m_Theme = ImGuiHelpers::ClassicLight;
 						ImGuiHelpers::SetTheme(ImGuiHelpers::ClassicLight);
+						OS::Instance()->SetTitleBarColour(ImGui::GetStyle().Colors[ImGuiCol_MenuBarBg]);
 					}
 					ImGui::EndMenu();
+				}
+				
+				if(ImGui::MenuItem("Exit"))
+				{
+					Application::Get().SetAppState(AppState::Closing);
 				}
                 
 				ImGui::EndMenu();
@@ -549,7 +567,7 @@ namespace Lumos
 			{
 				selected = Application::Get().GetEditorState() == EditorState::Play;
 				if(selected)
-					ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.28f, 0.56f, 0.9f, 1.0f));
+					ImGui::PushStyleColor(ImGuiCol_Text, ImGuiHelpers::GetSelectedColour());
                 
 				if(ImGui::Button(ICON_MDI_PLAY))
                 {
@@ -579,7 +597,7 @@ namespace Lumos
 			{
 				selected = Application::Get().GetEditorState() == EditorState::Paused;
 				if(selected)
-					ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.28f, 0.56f, 0.9f, 1.0f));
+					ImGui::PushStyleColor(ImGuiCol_Text, ImGuiHelpers::GetSelectedColour());
                 
 				if(ImGui::Button(ICON_MDI_PAUSE))
 					Application::Get().SetEditorState(selected ? EditorState::Play : EditorState::Paused);
@@ -595,7 +613,7 @@ namespace Lumos
 			{
 				selected = Application::Get().GetEditorState() == EditorState::Next;
 				if(selected)
-					ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.28f, 0.56f, 0.9f, 1.0f));
+					ImGui::PushStyleColor(ImGuiCol_Text, ImGuiHelpers::GetSelectedColour());
                 
 				if(ImGui::Button(ICON_MDI_STEP_FORWARD))
 					Application::Get().SetEditorState(EditorState::Next);
@@ -707,6 +725,87 @@ namespace Lumos
             
 			ImGui::EndMainMenuBar();
 		}
+        
+        if(openSaveScenePopup)
+            ImGui::OpenPopup("Save Scene");
+
+        ImVec2 center = ImGui::GetMainViewport()->GetCenter();
+        ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+        
+        if (ImGui::BeginPopupModal("Save Scene", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+        {
+            ImGui::Text("Save Current Scene Changes?\n\n");
+            ImGui::Separator();
+            
+            if (ImGui::Button("OK", ImVec2(120, 0)))
+            {
+                Application::Get().GetSceneManager()->GetCurrentScene()->Serialise(ROOT_DIR "/Sandbox/Assets/scenes/", false);
+                ImGui::CloseCurrentPopup();
+            }
+            ImGui::SetItemDefaultFocus();
+            ImGui::SameLine();
+            if (ImGui::Button("Cancel", ImVec2(120, 0)))
+            {
+                ImGui::CloseCurrentPopup();
+            }
+            ImGui::EndPopup();
+        }
+        
+        if(openNewScenePopup)
+            ImGui::OpenPopup("New Scene");
+        
+        if (ImGui::BeginPopupModal("New Scene", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+        {
+            if (ImGui::Button("Save Current Scene Changes"))
+            {
+                Application::Get().GetSceneManager()->GetCurrentScene()->Serialise(ROOT_DIR "/Sandbox/Assets/scenes/", false);
+            }
+            
+            ImGui::Text("Create New Scene?\n\n");
+            ImGui::Separator();
+            
+            if (ImGui::Button("OK", ImVec2(120, 0)))
+            {
+                auto scene = new Scene("New Scene");
+                scene->SetHasCppClass(false);
+                Application::Get().GetSceneManager()->EnqueueScene(scene);
+                Application::Get().GetSceneManager()->SwitchScene((int)(Application::Get().GetSceneManager()->GetScenes().size()) - 1);
+                
+                ImGui::CloseCurrentPopup();
+            }
+            ImGui::SetItemDefaultFocus();
+            ImGui::SameLine();
+            if (ImGui::Button("Cancel", ImVec2(120, 0)))
+            {
+                ImGui::CloseCurrentPopup();
+            }
+            ImGui::EndPopup();
+        }
+        
+        if(openReloadScenePopup)
+            ImGui::OpenPopup("Reload Scene");
+        
+        if (ImGui::BeginPopupModal("Reload Scene", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+        {
+            ImGui::Text("Reload Scene?\n\n");
+            ImGui::Separator();
+            
+            if (ImGui::Button("OK", ImVec2(120, 0)))
+            {
+                auto scene = new Scene("New Scene");
+                scene->SetHasCppClass(false);
+                Application::Get().GetSceneManager()->SwitchScene(Application::Get().GetSceneManager()->GetCurrentSceneIndex());
+                
+                ImGui::CloseCurrentPopup();
+            }
+            ImGui::SetItemDefaultFocus();
+            ImGui::SameLine();
+            if (ImGui::Button("Cancel", ImVec2(120, 0)))
+            {
+                ImGui::CloseCurrentPopup();
+            }
+            ImGui::EndPopup();
+        }
 	}
     
 	static const float identityMatrix[16] =
@@ -1103,12 +1202,12 @@ namespace Lumos
 			
 			if(Application::Get().GetSceneActive())
 			{
-				const Maths::Vector2 mousePos = Input::GetInput()->GetMousePosition();
+				const Maths::Vector2 mousePos = Input::Get().GetMousePosition();
 				
 				m_EditorCameraController.HandleMouse(m_EditorCameraTransform, ts.GetSeconds(), mousePos.x, mousePos.y);
 				m_EditorCameraController.HandleKeyboard(m_EditorCameraTransform, ts.GetSeconds());
                 
-				if(Input::GetInput()->GetKeyPressed(InputCode::Key::F))
+				if(Input::Get().GetKeyPressed(InputCode::Key::F))
 				{
 					if(registry.valid(m_SelectedEntity))
 					{
@@ -1119,7 +1218,7 @@ namespace Lumos
 				}
 			}
 			
-			if(Input::GetInput()->GetKeyHeld(InputCode::Key::O))
+			if(Input::Get().GetKeyHeld(InputCode::Key::O))
 			{
 				FocusCamera(Maths::Vector3(0.0f, 0.0f, 0.0f), 2.0f, 2.0f);
 			}
@@ -1138,62 +1237,62 @@ namespace Lumos
 					m_TransitioningCamera = false;
 			}
 			
-			if(!Input::GetInput()->GetMouseHeld(InputCode::MouseKey::ButtonRight) && !ImGuizmo::IsUsing())
+			if(!Input::Get().GetMouseHeld(InputCode::MouseKey::ButtonRight) && !ImGuizmo::IsUsing())
 			{
-				if(Input::GetInput()->GetKeyPressed(InputCode::Key::Q))
+				if(Input::Get().GetKeyPressed(InputCode::Key::Q))
 				{
 					SetImGuizmoOperation(4);
 				}
                 
-				if(Input::GetInput()->GetKeyPressed(InputCode::Key::W))
+				if(Input::Get().GetKeyPressed(InputCode::Key::W))
 				{
 					SetImGuizmoOperation(0);
 				}
 				
-				if(Input::GetInput()->GetKeyPressed(InputCode::Key::E))
+				if(Input::Get().GetKeyPressed(InputCode::Key::E))
 				{
 					SetImGuizmoOperation(1);
 				}
 				
-				if(Input::GetInput()->GetKeyPressed(InputCode::Key::R))
+				if(Input::Get().GetKeyPressed(InputCode::Key::R))
 				{
 					SetImGuizmoOperation(2);
 				}
 				
-				if(Input::GetInput()->GetKeyPressed(InputCode::Key::T))
+				if(Input::Get().GetKeyPressed(InputCode::Key::T))
 				{
 					SetImGuizmoOperation(3);
 				}
 				
-				if(Input::GetInput()->GetKeyPressed(InputCode::Key::Y))
+				if(Input::Get().GetKeyPressed(InputCode::Key::Y))
 				{
 					ToggleSnap();
 				}
 			}
             
-			if((Input::GetInput()->GetKeyHeld(InputCode::Key::LeftSuper) || (Input::GetInput()->GetKeyHeld(InputCode::Key::LeftControl)) )) 
+			if((Input::Get().GetKeyHeld(InputCode::Key::LeftSuper) || (Input::Get().GetKeyHeld(InputCode::Key::LeftControl)) )) 
 			{
-				if(Input::GetInput()->GetKeyPressed(InputCode::Key::S) && Application::Get().GetSceneActive())
+				if(Input::Get().GetKeyPressed(InputCode::Key::S) && Application::Get().GetSceneActive())
                 {
 					Application::Get().GetSceneManager()->GetCurrentScene()->Serialise(ROOT_DIR "/Sandbox/Assets/scenes/", false);
                 }
                 
-				if(Input::GetInput()->GetKeyPressed(InputCode::Key::O))
+				if(Input::Get().GetKeyPressed(InputCode::Key::O))
 					Application::Get().GetSceneManager()->GetCurrentScene()->Deserialise(ROOT_DIR "/Sandbox/Assets/scenes/", false);
                 
-                if(Input::GetInput()->GetKeyPressed(InputCode::Key::X))
+                if(Input::Get().GetKeyPressed(InputCode::Key::X))
                 {
                     m_CopiedEntity = m_SelectedEntity;
                     m_CutCopyEntity = true;
                 }
                 
-                if(Input::GetInput()->GetKeyPressed(InputCode::Key::C))
+                if(Input::Get().GetKeyPressed(InputCode::Key::C))
                 {
                     m_CopiedEntity = m_SelectedEntity;
                     m_CutCopyEntity = false;
                 }
                 
-                if(Input::GetInput()->GetKeyPressed(InputCode::Key::V))
+                if(Input::Get().GetKeyPressed(InputCode::Key::V))
                 {
                     Application::Get().GetCurrentScene()->DuplicateEntity({ m_CopiedEntity, Application::Get().GetCurrentScene() });
                     if(m_CutCopyEntity)

@@ -10,10 +10,11 @@ namespace Lumos
 {
     namespace Graphics
     {
-        GLIMGUIRenderer::GLIMGUIRenderer(uint32_t width, uint32_t height, bool clearScreen): m_WindowHandle(nullptr)
+        GLIMGUIRenderer::GLIMGUIRenderer(uint32_t width, uint32_t height, bool clearScreen)
+            : m_WindowHandle(nullptr)
         {
-	        m_ClearScreen = clearScreen;
-	        ImGui_ImplOpenGL3_Init("#version 410");
+            m_ClearScreen = clearScreen;
+            ImGui_ImplOpenGL3_Init("#version 410");
             ImGui_ImplOpenGL3_NewFrame();
         }
 
@@ -24,37 +25,34 @@ namespace Lumos
 
         void GLIMGUIRenderer::Init()
         {
-
         }
 
         void GLIMGUIRenderer::NewFrame()
         {
-
         }
 
         void GLIMGUIRenderer::Render(Lumos::Graphics::CommandBuffer* commandBuffer)
         {
-			if (m_ClearScreen)
-			{
-				GLCall(glClear(GL_COLOR_BUFFER_BIT));
-			}
+            if(m_ClearScreen)
+            {
+                GLCall(glClear(GL_COLOR_BUFFER_BIT));
+            }
             ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
         }
 
         void GLIMGUIRenderer::OnResize(uint32_t width, uint32_t height)
         {
-            
         }
 
-		void GLIMGUIRenderer::MakeDefault()
-		{
-			CreateFunc = CreateFuncGL;
-		}
+        void GLIMGUIRenderer::MakeDefault()
+        {
+            CreateFunc = CreateFuncGL;
+        }
 
-		IMGUIRenderer* GLIMGUIRenderer::CreateFuncGL(uint32_t width, uint32_t height, bool clearScreen)
-		{
-			return new GLIMGUIRenderer(width, height, clearScreen);
-		}
+        IMGUIRenderer* GLIMGUIRenderer::CreateFuncGL(uint32_t width, uint32_t height, bool clearScreen)
+        {
+            return new GLIMGUIRenderer(width, height, clearScreen);
+        }
 
         void GLIMGUIRenderer::RebuildFontTexture()
         {
@@ -63,4 +61,3 @@ namespace Lumos
         }
     }
 }
-

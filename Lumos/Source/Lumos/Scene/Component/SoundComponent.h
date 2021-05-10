@@ -5,33 +5,33 @@
 
 namespace Lumos
 {
-	class LUMOS_EXPORT SoundComponent
-	{
-	public:
+    class LUMOS_EXPORT SoundComponent
+    {
+    public:
         SoundComponent();
-		explicit SoundComponent(Ref<SoundNode>& sound);
+        explicit SoundComponent(Ref<SoundNode>& sound);
 
-		void Init();
+        void Init();
 
-		void OnImGui();
-        
+        void OnImGui();
+
         SoundNode* GetSoundNode() const { return m_SoundNode.get(); }
-		
-		template<typename Archive>
-			void save(Archive& archive) const
-		{
-			archive(*m_SoundNode.get());
-		}
-		
-		template<typename Archive>
-			void load(Archive& archive)
-		{
-			auto* node = SoundNode::Create();
-			archive(*node);
-			m_SoundNode = Ref<SoundNode>(node);
-		}
-		
+
+        template <typename Archive>
+        void save(Archive& archive) const
+        {
+            archive(*m_SoundNode.get());
+        }
+
+        template <typename Archive>
+        void load(Archive& archive)
+        {
+            auto* node = SoundNode::Create();
+            archive(*node);
+            m_SoundNode = Ref<SoundNode>(node);
+        }
+
     private:
         Ref<SoundNode> m_SoundNode;
-	};
+    };
 }

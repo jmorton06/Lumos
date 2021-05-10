@@ -18,22 +18,22 @@
 
 void Lumos::Graphics::GL::MakeDefault()
 {
-	GLCommandBuffer::MakeDefault();
-	GLContext::MakeDefault();
-	GLDescriptorSet::MakeDefault();
-	GLFramebuffer::MakeDefault();
-	GLIMGUIRenderer::MakeDefault();
-	GLIndexBuffer::MakeDefault();
-	GLPipeline::MakeDefault();
-	GLRenderDevice::MakeDefault();
-	GLRenderer::MakeDefault();
-	GLRenderPass::MakeDefault();
-	GLShader::MakeDefault();
-	GLSwapchain::MakeDefault();
-	GLTexture2D::MakeDefault();
-	GLTextureCube::MakeDefault();
-	GLTextureDepth::MakeDefault();
-	GLTextureDepthArray::MakeDefault();
-	GLUniformBuffer::MakeDefault();
-	GLVertexBuffer::MakeDefault();
+    GLCommandBuffer::MakeDefault();
+    GLContext::MakeDefault();
+    GLDescriptorSet::MakeDefault();
+    GLFramebuffer::MakeDefault();
+    GLIMGUIRenderer::MakeDefault();
+    GLIndexBuffer::MakeDefault();
+    GLPipeline::MakeDefault();
+    GLRenderDevice::MakeDefault();
+    GLRenderer::MakeDefault();
+    GLRenderPass::MakeDefault();
+    GLShader::MakeDefault();
+    GLSwapchain::MakeDefault();
+    GLTexture2D::MakeDefault();
+    GLTextureCube::MakeDefault();
+    GLTextureDepth::MakeDefault();
+    GLTextureDepthArray::MakeDefault();
+    GLUniformBuffer::MakeDefault();
+    GLVertexBuffer::MakeDefault();
 }

@@ -206,7 +206,7 @@ namespace Lumos
 		ImVec2 minBound = sceneViewPosition;
 
 		ImVec2 maxBound = {minBound.x + windowSize.x, minBound.y + windowSize.y};
-		bool updateCamera = ImGui::IsMouseHoveringRect(minBound, maxBound);
+        bool updateCamera = true;//ImGui::IsMouseHoveringRect(minBound, maxBound);
 
 		app.SetSceneActive(ImGui::IsWindowFocused() && !ImGuizmo::IsUsing() && updateCamera);
 
@@ -232,10 +232,10 @@ namespace Lumos
 
 		m_Editor->OnImGuizmo();
 
-		if(!gameView && app.GetSceneActive() && !ImGuizmo::IsUsing() && Input::GetInput()->GetMouseClicked(InputCode::MouseKey::ButtonLeft))
+		if(!gameView && app.GetSceneActive() && !ImGuizmo::IsUsing() && Input::Get().GetMouseClicked(InputCode::MouseKey::ButtonLeft))
 		{
             float dpi = Application::Get().GetWindowDPI();
-			auto clickPos = Input::GetInput()->GetMousePosition() - Maths::Vector2(sceneViewPosition.x / dpi, sceneViewPosition.y /dpi);
+			auto clickPos = Input::Get().GetMousePosition() - Maths::Vector2(sceneViewPosition.x / dpi, sceneViewPosition.y /dpi);
 			m_Editor->SelectObject(m_Editor->GetScreenRay(int(clickPos.x), int(clickPos.y), camera, int(sceneViewSize.x)/ dpi, int(sceneViewSize.y) /dpi));
 		}
 

@@ -16,13 +16,13 @@ namespace Lumos
 {
     namespace Graphics
     {
-        IMGUIRenderer*(*IMGUIRenderer::CreateFunc)(uint32_t, uint32_t, bool) = nullptr;
-        
+        IMGUIRenderer* (*IMGUIRenderer::CreateFunc)(uint32_t, uint32_t, bool) = nullptr;
+
         IMGUIRenderer* IMGUIRenderer::Create(uint32_t width, uint32_t height, bool clearScreen)
-		{
+        {
             LUMOS_ASSERT(CreateFunc, "No IMGUIRenderer Create Function");
-            
+
             return CreateFunc(width, height, clearScreen);
-		}
+        }
     }
 }

@@ -21,8 +21,9 @@ else
 end
 
 workspace( settings.workspace_name )
-	location "build"
-	flags { 'MultiProcessorCompile' }
+location "build"
+startproject "Sandbox"
+	flags 'MultiProcessorCompile'
 	
 	outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 	targetdir ("bin/%{outputdir}/")
@@ -71,6 +72,3 @@ workspace( settings.workspace_name )
 	include "Lumos/premake5"
 	include "Sandbox/premake5"
 	include "Editor/premake5"
-
-workspace( settings.workspace_name )
-	startproject("Sandbox")

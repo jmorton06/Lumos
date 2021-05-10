@@ -2,11 +2,11 @@
 
 namespace Lumos
 {
-	namespace Graphics
-	{
-		namespace Vulkan
-		{
-			void MakeDefault();
-		}
-	}
+    namespace Graphics
+    {
+        namespace Vulkan
+        {
+            void MakeDefault();
+        }
+    }
 }

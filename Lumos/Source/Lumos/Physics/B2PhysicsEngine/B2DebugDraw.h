@@ -2,7 +2,8 @@
 
 #include <box2d/box2d.h>
 
-namespace Lumos {
+namespace Lumos
+{
 
     class B2DebugDraw : public b2Draw
     {
@@ -24,7 +25,7 @@ namespace Lumos {
 
         void DrawPoint(const b2Vec2& p, float size, const b2Color& colour) override;
 
-        void DrawString(int x, int y, const char* string, ...); 
+        void DrawString(int x, int y, const char* string, ...);
 
         void DrawString(const b2Vec2& p, const char* string, ...);
 

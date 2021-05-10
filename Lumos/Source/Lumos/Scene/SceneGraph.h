@@ -12,215 +12,215 @@
 namespace Lumos
 {
 
-	class DefaultCameraController
-	{
-	public:
-		enum class ControllerType : int
-		{
-			FPS = 0,
-			ThirdPerson,
-			Simple,
-			Camera2D,
-			EditorCamera,
-			Custom
-		};
+    class DefaultCameraController
+    {
+    public:
+        enum class ControllerType : int
+        {
+            FPS = 0,
+            ThirdPerson,
+            Simple,
+            Camera2D,
+            EditorCamera,
+            Custom
+        };
 
-		DefaultCameraController()
-			: m_Type(ControllerType::Custom)
-		{
-		}
+        DefaultCameraController()
+            : m_Type(ControllerType::Custom)
+        {
+        }
 
-		DefaultCameraController(ControllerType type)
-		{
-			SetControllerType(type);
-		}
+        DefaultCameraController(ControllerType type)
+        {
+            SetControllerType(type);
+        }
 
-		void SetControllerType(ControllerType type)
-		{
+        void SetControllerType(ControllerType type)
+        {
             //if(type != m_Type)
-			{
-				m_Type = type;
-				switch(type)
-				{
-				case ControllerType::ThirdPerson:
-					m_CameraController = CreateRef<ThirdPersonCameraController>();
-					break;
-				case ControllerType::FPS:
-					m_CameraController = CreateRef<FPSCameraController>();
-					break;
-				case ControllerType::Simple:
-					m_CameraController = CreateRef<FPSCameraController>();
-					break;
-				case ControllerType::EditorCamera:
-					m_CameraController = CreateRef<EditorCameraController>();
-					break;
-				case ControllerType::Camera2D:
-					m_CameraController = CreateRef<CameraController2D>();
-					break;
-				case ControllerType::Custom:
-					m_CameraController = nullptr;
-					break;
-				}
-			}
-		}
+            {
+                m_Type = type;
+                switch(type)
+                {
+                case ControllerType::ThirdPerson:
+                    m_CameraController = CreateRef<ThirdPersonCameraController>();
+                    break;
+                case ControllerType::FPS:
+                    m_CameraController = CreateRef<FPSCameraController>();
+                    break;
+                case ControllerType::Simple:
+                    m_CameraController = CreateRef<FPSCameraController>();
+                    break;
+                case ControllerType::EditorCamera:
+                    m_CameraController = CreateRef<EditorCameraController>();
+                    break;
+                case ControllerType::Camera2D:
+                    m_CameraController = CreateRef<CameraController2D>();
+                    break;
+                case ControllerType::Custom:
+                    m_CameraController = nullptr;
+                    break;
+                }
+            }
+        }
 
-		static std::string CameraControllerTypeToString(ControllerType type)
-		{
-			switch(type)
-			{
-			case ControllerType::ThirdPerson:
-				return "ThirdPerson";
-			case ControllerType::FPS:
-				return "FPS";
-			case ControllerType::Simple:
-				return "Simple";
-			case ControllerType::EditorCamera:
-				return "Editor";
-			case ControllerType::Camera2D:
-				return "2D";
-			case ControllerType::Custom:
-				return "Custom";
-			}
+        static std::string CameraControllerTypeToString(ControllerType type)
+        {
+            switch(type)
+            {
+            case ControllerType::ThirdPerson:
+                return "ThirdPerson";
+            case ControllerType::FPS:
+                return "FPS";
+            case ControllerType::Simple:
+                return "Simple";
+            case ControllerType::EditorCamera:
+                return "Editor";
+            case ControllerType::Camera2D:
+                return "2D";
+            case ControllerType::Custom:
+                return "Custom";
+            }
 
-			return "Custom";
-		}
+            return "Custom";
+        }
 
-		static ControllerType StringToControllerType(const std::string& type)
-		{
-			if(type == "ThirdPerson")
-				return ControllerType::ThirdPerson;
-			if(type == "FPS")
-				return ControllerType::FPS;
-			if(type == "Simple")
-				return ControllerType::Simple;
-			if(type == "Editor")
-				return ControllerType::EditorCamera;
-			if(type == "2D")
-				return ControllerType::Camera2D;
-			if(type == "Custom")
-				return ControllerType::Custom;
+        static ControllerType StringToControllerType(const std::string& type)
+        {
+            if(type == "ThirdPerson")
+                return ControllerType::ThirdPerson;
+            if(type == "FPS")
+                return ControllerType::FPS;
+            if(type == "Simple")
+                return ControllerType::Simple;
+            if(type == "Editor")
+                return ControllerType::EditorCamera;
+            if(type == "2D")
+                return ControllerType::Camera2D;
+            if(type == "Custom")
+                return ControllerType::Custom;
 
-			LUMOS_LOG_ERROR("Unsupported Camera controller {0}", type);
-			return ControllerType::Custom;
-		}
+            LUMOS_LOG_ERROR("Unsupported Camera controller {0}", type);
+            return ControllerType::Custom;
+        }
 
-		const Ref<CameraController> & GetController() const 
-		{
-			return m_CameraController;
-		}
+        const Ref<CameraController>& GetController() const
+        {
+            return m_CameraController;
+        }
 
-		template<typename Archive>
-		void save(Archive& archive) const
-		{
-			archive(cereal::make_nvp("ControllerType", m_Type));
-		}
+        template <typename Archive>
+        void save(Archive& archive) const
+        {
+            archive(cereal::make_nvp("ControllerType", m_Type));
+        }
 
-		template<typename Archive>
-		void load(Archive& archive)
-		{
-			archive(cereal::make_nvp("ControllerType", m_Type));
-			SetControllerType(m_Type);
-		}
+        template <typename Archive>
+        void load(Archive& archive)
+        {
+            archive(cereal::make_nvp("ControllerType", m_Type));
+            SetControllerType(m_Type);
+        }
 
-		ControllerType GetType() 
-		{
-			return m_Type;
-		}
+        ControllerType GetType()
+        {
+            return m_Type;
+        }
 
-	private:
-		ControllerType m_Type = ControllerType::Custom;
-		Ref<CameraController> m_CameraController;
-	};
+    private:
+        ControllerType m_Type = ControllerType::Custom;
+        Ref<CameraController> m_CameraController;
+    };
 
-	struct NameComponent
-	{
-		template<typename Archive>
-		void serialize(Archive& archive)
-		{
-			archive(cereal::make_nvp("Name", name));
-		}
-		std::string name;
-	};
+    struct NameComponent
+    {
+        template <typename Archive>
+        void serialize(Archive& archive)
+        {
+            archive(cereal::make_nvp("Name", name));
+        }
+        std::string name;
+    };
 
-	struct ActiveComponent
-	{
-		ActiveComponent()
-		{
-			active = true;
-		}
+    struct ActiveComponent
+    {
+        ActiveComponent()
+        {
+            active = true;
+        }
 
-		ActiveComponent(bool act)
-		{
-			active = act;
-		}
+        ActiveComponent(bool act)
+        {
+            active = act;
+        }
 
-		template<typename Archive>
-		void serialize(Archive& archive)
-		{
-			archive(cereal::make_nvp("Active", active));
-		}
+        template <typename Archive>
+        void serialize(Archive& archive)
+        {
+            archive(cereal::make_nvp("Active", active));
+        }
 
-		bool active = true;
-	};
+        bool active = true;
+    };
 
-	class Hierarchy
-	{
-	public:
-		Hierarchy(entt::entity p);
-		Hierarchy();
+    class Hierarchy
+    {
+    public:
+        Hierarchy(entt::entity p);
+        Hierarchy();
 
-		inline entt::entity Parent() const
-		{
-			return m_Parent;
-		}
-		inline entt::entity Next() const
-		{
-			return m_Next;
-		}
+        inline entt::entity Parent() const
+        {
+            return m_Parent;
+        }
+        inline entt::entity Next() const
+        {
+            return m_Next;
+        }
         inline entt::entity Prev() const
-		{
-			return m_Prev;
-		}
-		inline entt::entity First() const
-		{
-			return m_First;
-		}
+        {
+            return m_Prev;
+        }
+        inline entt::entity First() const
+        {
+            return m_First;
+        }
 
-		// Return true if rhs is an ancestor of rhs
-		bool Compare(const entt::registry& registry, const entt::entity rhs) const;
+        // Return true if rhs is an ancestor of rhs
+        bool Compare(const entt::registry& registry, const entt::entity rhs) const;
         void Reset();
 
-		// update hierarchy components when hierarchy component is added
-		static void OnConstruct(entt::registry& registry, entt::entity entity);
+        // update hierarchy components when hierarchy component is added
+        static void OnConstruct(entt::registry& registry, entt::entity entity);
 
-		// update hierarchy components when hierarchy component is removed
-		static void OnDestroy(entt::registry& registry, entt::entity entity);
-		static void OnUpdate(entt::registry& registry, entt::entity entity);
-		static void Reparent(entt::entity entity, entt::entity parent, entt::registry& registry, Hierarchy& hierarchy);
+        // update hierarchy components when hierarchy component is removed
+        static void OnDestroy(entt::registry& registry, entt::entity entity);
+        static void OnUpdate(entt::registry& registry, entt::entity entity);
+        static void Reparent(entt::entity entity, entt::entity parent, entt::registry& registry, Hierarchy& hierarchy);
 
-		entt::entity m_Parent;
-		entt::entity m_First;
-		entt::entity m_Next;
-		entt::entity m_Prev;
+        entt::entity m_Parent;
+        entt::entity m_First;
+        entt::entity m_Next;
+        entt::entity m_Prev;
 
-		template<typename Archive>
-		void serialize(Archive& archive)
-		{
-			archive(cereal::make_nvp("First", m_First), cereal::make_nvp("Next", m_Next), cereal::make_nvp("Previous", m_Prev), cereal::make_nvp("Parent", m_Parent));
-		}
-	};
+        template <typename Archive>
+        void serialize(Archive& archive)
+        {
+            archive(cereal::make_nvp("First", m_First), cereal::make_nvp("Next", m_Next), cereal::make_nvp("Previous", m_Prev), cereal::make_nvp("Parent", m_Parent));
+        }
+    };
 
-	class SceneGraph
-	{
-	public:
-		SceneGraph();
-		~SceneGraph() = default;
+    class SceneGraph
+    {
+    public:
+        SceneGraph();
+        ~SceneGraph() = default;
 
-		void Init(entt::registry& registry);
-        
+        void Init(entt::registry& registry);
+
         void DisableOnConstruct(bool disable, entt::registry& registry);
 
-		void Update(entt::registry& registry);
-		void UpdateTransform(entt::entity entity, entt::registry& registry);
-	};
+        void Update(entt::registry& registry);
+        void UpdateTransform(entt::entity entity, entt::registry& registry);
+    };
 }

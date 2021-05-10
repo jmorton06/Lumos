@@ -32,29 +32,29 @@ namespace Lumos::Maths
 
     bool AreaAllocator::Allocate(int width, int height, int& x, int& y)
     {
-        if (width < 0)
+        if(width < 0)
             width = 0;
-        if (height < 0)
+        if(height < 0)
             height = 0;
 
         std::vector<IntRect>::iterator best;
         int bestFreeArea;
 
-        for (;;)
+        for(;;)
         {
             best = freeAreas_.end();
             bestFreeArea = M_MAX_INT;
-            for (auto i = freeAreas_.begin(); i != freeAreas_.end(); ++i)
+            for(auto i = freeAreas_.begin(); i != freeAreas_.end(); ++i)
             {
                 int freeWidth = i->Width();
                 int freeHeight = i->Height();
 
-                if (freeWidth >= width && freeHeight >= height)
+                if(freeWidth >= width && freeHeight >= height)
                 {
                     // Calculate rank for free area. Lower is better
                     int freeArea = freeWidth * freeHeight;
 
-                    if (freeArea < bestFreeArea)
+                    if(freeArea < bestFreeArea)
                     {
                         best = i;
                         bestFreeArea = freeArea;
@@ -62,16 +62,15 @@ namespace Lumos::Maths
                 }
             }
 
-            if (best == freeAreas_.end())
+            if(best == freeAreas_.end())
             {
-                if (doubleWidth_ && size_.x < maxSize_.x)
+                if(doubleWidth_ && size_.x < maxSize_.x)
                 {
                     int oldWidth = size_.x;
                     size_.x <<= 1;
                     // If no allocations yet, simply expand the single free area
                     IntRect& first = freeAreas_.front();
-                    if (freeAreas_.size() == 1 && first.left_ == 0 && first.top_ == 0 && first.right_ == oldWidth &&
-                        first.bottom_ == size_.y)
+                    if(freeAreas_.size() == 1 && first.left_ == 0 && first.top_ == 0 && first.right_ == oldWidth && first.bottom_ == size_.y)
                         first.right_ = size_.x;
                     else
                     {
@@ -79,14 +78,13 @@ namespace Lumos::Maths
                         freeAreas_.push_back(newArea);
                     }
                 }
-                else if (!doubleWidth_ && size_.y < maxSize_.y)
+                else if(!doubleWidth_ && size_.y < maxSize_.y)
                 {
                     int oldHeight = size_.y;
                     size_.y <<= 1;
                     // If no allocations yet, simply expand the single free area
                     IntRect& first = freeAreas_.front();
-                    if (freeAreas_.size() == 1 && first.left_ == 0 && first.top_ == 0 && first.right_ == size_.x &&
-                        first.bottom_ == oldHeight)
+                    if(freeAreas_.size() == 1 && first.left_ == 0 && first.top_ == 0 && first.right_ == size_.x && first.bottom_ == oldHeight)
                         first.bottom_ = size_.y;
                     else
                     {
@@ -107,11 +105,11 @@ namespace Lumos::Maths
         x = best->left_;
         y = best->top_;
 
-        if (fastMode_)
+        if(fastMode_)
         {
             // Reserve the area by splitting up the remaining free area
             best->left_ = reserved.right_;
-            if (best->Height() > 2 * height || height >= size_.y / 2)
+            if(best->Height() > 2 * height || height >= size_.y / 2)
             {
                 IntRect splitArea(reserved.left_, reserved.bottom_, best->right_, best->bottom_);
                 best->bottom_ = reserved.bottom_;
@@ -120,7 +118,6 @@ namespace Lumos::Maths
         }
         else
         {
-           
 
             Cleanup();
         }
@@ -133,32 +130,31 @@ namespace Lumos::Maths
         // Make a copy, as the vector will be modified
         IntRect original = freeAreas_[freeAreaIndex];
 
-        if (reserve.right_ > original.left_ && reserve.left_ < original.right_ && reserve.bottom_ > original.top_ &&
-            reserve.top_ < original.bottom_)
+        if(reserve.right_ > original.left_ && reserve.left_ < original.right_ && reserve.bottom_ > original.top_ && reserve.top_ < original.bottom_)
         {
             // Check for splitting from the right
-            if (reserve.right_ < original.right_)
+            if(reserve.right_ < original.right_)
             {
                 IntRect newRect = original;
                 newRect.left_ = reserve.right_;
                 freeAreas_.push_back(newRect);
             }
             // Check for splitting from the left
-            if (reserve.left_ > original.left_)
+            if(reserve.left_ > original.left_)
             {
                 IntRect newRect = original;
                 newRect.right_ = reserve.left_;
                 freeAreas_.push_back(newRect);
             }
             // Check for splitting from the bottom
-            if (reserve.bottom_ < original.bottom_)
+            if(reserve.bottom_ < original.bottom_)
             {
                 IntRect newRect = original;
                 newRect.top_ = reserve.bottom_;
                 freeAreas_.push_back(newRect);
             }
             // Check for splitting from the top
-            if (reserve.top_ > original.top_)
+            if(reserve.top_ > original.top_)
             {
                 IntRect newRect = original;
                 newRect.bottom_ = reserve.top_;
@@ -174,14 +170,13 @@ namespace Lumos::Maths
     void AreaAllocator::Cleanup()
     {
         // Remove rects which are contained within another rect
-        for (unsigned i = 0; i < freeAreas_.size();)
+        for(unsigned i = 0; i < freeAreas_.size();)
         {
             bool erased = false;
-            for (unsigned j = i + 1; j < freeAreas_.size();)
+            for(unsigned j = i + 1; j < freeAreas_.size();)
             {
-            
             }
-            if (!erased)
+            if(!erased)
                 ++i;
         }
     }

@@ -212,13 +212,11 @@ library or as a DLL / shared library / dynamic library.
 
 @anchor GLFW_BUILD_EXAMPLES
 __GLFW_BUILD_EXAMPLES__ determines whether the GLFW examples are built
-along with the library.  This is enabled by default unless GLFW is being built
-as a sub-project.
+along with the library.
 
 @anchor GLFW_BUILD_TESTS
 __GLFW_BUILD_TESTS__ determines whether the GLFW test programs are
-built along with the library.  This is enabled by default unless GLFW is being
-built as a sub-project.
+built along with the library.
 
 @anchor GLFW_BUILD_DOCS
 __GLFW_BUILD_DOCS__ determines whether the GLFW documentation is built along

@@ -4,41 +4,41 @@
 namespace Lumos::Maths
 {
     /// Two-dimensional bounding rectangle.
-    class  Rect
+    class Rect
     {
     public:
         /// Construct an undefined rect.
-        Rect() noexcept :
-            min_(M_INFINITY, M_INFINITY),
-            max_(-M_INFINITY, -M_INFINITY)
+        Rect() noexcept
+            : min_(M_INFINITY, M_INFINITY)
+            , max_(-M_INFINITY, -M_INFINITY)
         {
         }
 
         /// Construct from minimum and maximum vectors.
-        Rect(const Vector2& min, const Vector2& max) noexcept :
-            min_(min),
-            max_(max)
+        Rect(const Vector2& min, const Vector2& max) noexcept
+            : min_(min)
+            , max_(max)
         {
         }
 
         /// Construct from coordinates.
-        Rect(float left, float top, float right, float bottom) noexcept :
-            min_(left, top),
-            max_(right, bottom)
+        Rect(float left, float top, float right, float bottom) noexcept
+            : min_(left, top)
+            , max_(right, bottom)
         {
         }
 
         /// Construct from a Vector4.
-        explicit Rect(const Vector4& vector) noexcept :
-            min_(vector.x, vector.y),
-            max_(vector.z, vector.w)
+        explicit Rect(const Vector4& vector) noexcept
+            : min_(vector.x, vector.y)
+            , max_(vector.z, vector.w)
         {
         }
 
         /// Construct from a float array.
-        explicit Rect(const float* data) noexcept :
-            min_(data[0], data[1]),
-            max_(data[2], data[3])
+        explicit Rect(const float* data) noexcept
+            : min_(data[0], data[1])
+            , max_(data[2], data[3])
         {
         }
 
@@ -46,16 +46,16 @@ namespace Lumos::Maths
         Rect(const Rect& rect) noexcept = default;
 
         /// Assign from another rect.
-        Rect& operator =(const Rect& rhs) noexcept = default;
+        Rect& operator=(const Rect& rhs) noexcept = default;
 
         /// Test for equality with another rect.
-        bool operator ==(const Rect& rhs) const { return min_ == rhs.min_ && max_ == rhs.max_; }
+        bool operator==(const Rect& rhs) const { return min_ == rhs.min_ && max_ == rhs.max_; }
 
         /// Test for inequality with another rect.
-        bool operator !=(const Rect& rhs) const { return min_ != rhs.min_ || max_ != rhs.max_; }
+        bool operator!=(const Rect& rhs) const { return min_ != rhs.min_ || max_ != rhs.max_; }
 
         /// Add another rect to this one inplace.
-        Rect& operator +=(const Rect& rhs)
+        Rect& operator+=(const Rect& rhs)
         {
             min_ += rhs.min_;
             max_ += rhs.max_;
@@ -63,7 +63,7 @@ namespace Lumos::Maths
         }
 
         /// Subtract another rect from this one inplace.
-        Rect& operator -=(const Rect& rhs)
+        Rect& operator-=(const Rect& rhs)
         {
             min_ -= rhs.min_;
             max_ -= rhs.max_;
@@ -71,7 +71,7 @@ namespace Lumos::Maths
         }
 
         /// Divide by scalar inplace.
-        Rect& operator /=(float value)
+        Rect& operator/=(float value)
         {
             min_ /= value;
             max_ /= value;
@@ -79,7 +79,7 @@ namespace Lumos::Maths
         }
 
         /// Multiply by scalar inplace.
-        Rect& operator *=(float value)
+        Rect& operator*=(float value)
         {
             min_ *= value;
             max_ *= value;
@@ -87,25 +87,25 @@ namespace Lumos::Maths
         }
 
         /// Divide by scalar.
-        Rect operator /(float value) const
+        Rect operator/(float value) const
         {
             return Rect(min_ / value, max_ / value);
         }
 
         /// Multiply by scalar.
-        Rect operator *(float value) const
+        Rect operator*(float value) const
         {
             return Rect(min_ * value, max_ * value);
         }
 
         /// Add another rect.
-        Rect operator +(const Rect& rhs) const
+        Rect operator+(const Rect& rhs) const
         {
             return Rect(min_ + rhs.min_, max_ + rhs.max_);
         }
 
         /// Subtract another rect.
-        Rect operator -(const Rect& rhs) const
+        Rect operator-(const Rect& rhs) const
         {
             return Rect(min_ - rhs.min_, max_ - rhs.max_);
         }
@@ -133,26 +133,26 @@ namespace Lumos::Maths
         /// Merge a point.
         void Merge(const Vector2& point)
         {
-            if (point.x < min_.x)
+            if(point.x < min_.x)
                 min_.x = point.x;
-            if (point.x > max_.x)
+            if(point.x > max_.x)
                 max_.x = point.x;
-            if (point.y < min_.y)
+            if(point.y < min_.y)
                 min_.y = point.y;
-            if (point.y > max_.y)
+            if(point.y > max_.y)
                 max_.y = point.y;
         }
 
         /// Merge a rect.
         void Merge(const Rect& rect)
         {
-            if (rect.min_.x < min_.x)
+            if(rect.min_.x < min_.x)
                 min_.x = rect.min_.x;
-            if (rect.min_.y < min_.y)
+            if(rect.min_.y < min_.y)
                 min_.y = rect.min_.y;
-            if (rect.max_.x > max_.x)
+            if(rect.max_.x > max_.x)
                 max_.x = rect.max_.x;
-            if (rect.max_.y > max_.y)
+            if(rect.max_.y > max_.y)
                 max_.y = rect.max_.y;
         }
 
@@ -187,7 +187,7 @@ namespace Lumos::Maths
         /// Test whether a point is inside.
         Intersection IsInside(const Vector2& point) const
         {
-            if (point.x < min_.x || point.y < min_.y || point.x > max_.x || point.y > max_.y)
+            if(point.x < min_.x || point.y < min_.y || point.x > max_.x || point.y > max_.y)
                 return OUTSIDE;
             else
                 return INSIDE;
@@ -196,9 +196,9 @@ namespace Lumos::Maths
         /// Test if another rect is inside, outside or intersects.
         Intersection IsInside(const Rect& rect) const
         {
-            if (rect.max_.x < min_.x || rect.min_.x > max_.x || rect.max_.y < min_.y || rect.min_.y > max_.y)
+            if(rect.max_.x < min_.x || rect.min_.x > max_.x || rect.max_.y < min_.y || rect.min_.y > max_.y)
                 return OUTSIDE;
-            else if (rect.min_.x < min_.x || rect.max_.x > max_.x || rect.min_.y < min_.y || rect.max_.y > max_.y)
+            else if(rect.min_.x < min_.x || rect.max_.x > max_.x || rect.min_.y < min_.y || rect.max_.y > max_.y)
                 return INTERSECTS;
             else
                 return INSIDE;
@@ -250,59 +250,59 @@ namespace Lumos::Maths
     };
 
     /// Two-dimensional bounding rectangle with integer values.
-    class  IntRect
+    class IntRect
     {
     public:
         /// Construct a zero rect.
-        IntRect() noexcept :
-            left_(0),
-            top_(0),
-            right_(0),
-            bottom_(0)
+        IntRect() noexcept
+            : left_(0)
+            , top_(0)
+            , right_(0)
+            , bottom_(0)
         {
         }
 
         /// Construct from minimum and maximum vectors.
-        IntRect(const IntVector2& min, const IntVector2& max) noexcept :
-            left_(min.x),
-            top_(min.y),
-            right_(max.x),
-            bottom_(max.y)
+        IntRect(const IntVector2& min, const IntVector2& max) noexcept
+            : left_(min.x)
+            , top_(min.y)
+            , right_(max.x)
+            , bottom_(max.y)
         {
         }
 
         /// Construct from coordinates.
-        IntRect(int left, int top, int right, int bottom) noexcept :
-            left_(left),
-            top_(top),
-            right_(right),
-            bottom_(bottom)
+        IntRect(int left, int top, int right, int bottom) noexcept
+            : left_(left)
+            , top_(top)
+            , right_(right)
+            , bottom_(bottom)
         {
         }
 
         /// Construct from an int array.
-        explicit IntRect(const int* data) noexcept :
-            left_(data[0]),
-            top_(data[1]),
-            right_(data[2]),
-            bottom_(data[3])
+        explicit IntRect(const int* data) noexcept
+            : left_(data[0])
+            , top_(data[1])
+            , right_(data[2])
+            , bottom_(data[3])
         {
         }
 
         /// Test for equality with another rect.
-        bool operator ==(const IntRect& rhs) const
+        bool operator==(const IntRect& rhs) const
         {
             return left_ == rhs.left_ && top_ == rhs.top_ && right_ == rhs.right_ && bottom_ == rhs.bottom_;
         }
 
         /// Test for inequality with another rect.
-        bool operator !=(const IntRect& rhs) const
+        bool operator!=(const IntRect& rhs) const
         {
             return left_ != rhs.left_ || top_ != rhs.top_ || right_ != rhs.right_ || bottom_ != rhs.bottom_;
         }
 
         /// Add another rect to this one inplace.
-        IntRect& operator +=(const IntRect& rhs)
+        IntRect& operator+=(const IntRect& rhs)
         {
             left_ += rhs.left_;
             top_ += rhs.top_;
@@ -312,7 +312,7 @@ namespace Lumos::Maths
         }
 
         /// Subtract another rect from this one inplace.
-        IntRect& operator -=(const IntRect& rhs)
+        IntRect& operator-=(const IntRect& rhs)
         {
             left_ -= rhs.left_;
             top_ -= rhs.top_;
@@ -322,7 +322,7 @@ namespace Lumos::Maths
         }
 
         /// Divide by scalar inplace.
-        IntRect& operator /=(float value)
+        IntRect& operator/=(float value)
         {
             left_ = static_cast<int>(left_ / value);
             top_ = static_cast<int>(top_ / value);
@@ -332,7 +332,7 @@ namespace Lumos::Maths
         }
 
         /// Multiply by scalar inplace.
-        IntRect& operator *=(float value)
+        IntRect& operator*=(float value)
         {
             left_ = static_cast<int>(left_ * value);
             top_ = static_cast<int>(top_ * value);
@@ -342,7 +342,7 @@ namespace Lumos::Maths
         }
 
         /// Divide by scalar.
-        IntRect operator /(float value) const
+        IntRect operator/(float value) const
         {
             return {
                 static_cast<int>(left_ / value), static_cast<int>(top_ / value),
@@ -351,7 +351,7 @@ namespace Lumos::Maths
         }
 
         /// Multiply by scalar.
-        IntRect operator *(float value) const
+        IntRect operator*(float value) const
         {
             return {
                 static_cast<int>(left_ * value), static_cast<int>(top_ * value),
@@ -360,7 +360,7 @@ namespace Lumos::Maths
         }
 
         /// Add another rect.
-        IntRect operator +(const IntRect& rhs) const
+        IntRect operator+(const IntRect& rhs) const
         {
             return {
                 left_ + rhs.left_, top_ + rhs.top_,
@@ -369,7 +369,7 @@ namespace Lumos::Maths
         }
 
         /// Subtract another rect.
-        IntRect operator -(const IntRect& rhs) const
+        IntRect operator-(const IntRect& rhs) const
         {
             return {
                 left_ - rhs.left_, top_ - rhs.top_,
@@ -389,7 +389,7 @@ namespace Lumos::Maths
         /// Test whether a point is inside.
         Intersection IsInside(const IntVector2& point) const
         {
-            if (point.x < left_ || point.y < top_ || point.x >= right_ || point.y >= bottom_)
+            if(point.x < left_ || point.y < top_ || point.x >= right_ || point.y >= bottom_)
                 return OUTSIDE;
             else
                 return INSIDE;
@@ -412,10 +412,10 @@ namespace Lumos::Maths
         unsigned ToHash() const { return (unsigned)left_ * 31 * 31 * 31 + (unsigned)right_ * 31 * 31 + (unsigned)top_ * 31 + (unsigned)bottom_; }
 
         /// Return left-top corner position.
-        IntVector2 Min() const { return {left_, top_}; }
+        IntVector2 Min() const { return { left_, top_ }; }
 
         /// Return right-bottom corner position.
-        IntVector2 Max() const { return {right_, bottom_}; }
+        IntVector2 Max() const { return { right_, bottom_ }; }
 
         /// Return left coordinate.
         int Left() const { return left_; }

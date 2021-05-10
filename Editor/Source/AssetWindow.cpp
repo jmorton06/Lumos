@@ -54,7 +54,7 @@ namespace Lumos
         nodeFlags |= ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick;
         
         const ImColor TreeLineColor = ImColor(128, 128, 128, 128);
-        const float SmallOffsetX = 6.0f;
+        const float SmallOffsetX = 6.0f * Application::Get().GetWindowDPI();
         ImDrawList* drawList = ImGui::GetWindowDrawList();
         
         if(!dirInfo.isFile )
@@ -91,12 +91,12 @@ namespace Lumos
             {
                 verticalLineStart.x += SmallOffsetX; //to nicely line up with the arrow symbol
                 ImVec2 verticalLineEnd = verticalLineStart;
-                
+                float HorizontalTreeLineSize = 16.0f * Application::Get().GetWindowDPI(); //chosen arbitrarily
+				
                 for(int i = 0; i < dirData.size(); i++)
                 {
                     if(!dirData[i].isFile )
                     {
-                        float HorizontalTreeLineSize = 16.0f; //chosen arbitrarily
                         auto currentPos = ImGui::GetCursorScreenPos();
                         
                         ImGui::Indent(10.0f);
