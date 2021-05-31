@@ -238,8 +238,10 @@ namespace Lumos::Graphics
 
             Ref<Graphics::IndexBuffer> ib;
             ib.reset(Graphics::IndexBuffer::Create(indicesArray, numIndices));
+            //TODO : if(isAnimated) Load deferredColourAnimated;
+            auto shader = Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/DeferredColour.shader");
 
-            Ref<Material> pbrMaterial = CreateRef<Material>();
+            Ref<Material> pbrMaterial = CreateRef<Material>(shader);
 
             const ofbx::Material* material = fbx_mesh->getMaterialCount() > 0 ? fbx_mesh->getMaterial(0) : nullptr;
             if(material)

@@ -32,13 +32,13 @@ namespace Lumos
 
     bool VFS::ResolvePhysicalPath(const std::string& path, std::string& outPhysicalPath, bool folder)
     {
-        if(path[0] != '/' && path[1] != '/')
+        if(!(path[0] == '/' && path[1] == '/'))
         {
             outPhysicalPath = path;
             return folder ? FileSystem ::FolderExists(path) : FileSystem::FileExists(path);
         }
 
-        static std::string delimiter = "//";
+        static std::string delimiter = "/";
         std::vector<std::string> dirs = StringUtilities::SplitString(path, delimiter);
         const std::string& virtualDir = dirs.front();
 
@@ -51,7 +51,7 @@ namespace Lumos
         const std::string remainder = path.substr(virtualDir.size() + 2, path.size() - virtualDir.size());
         for(const std::string& physicalPath : m_MountPoints[virtualDir])
         {
-            const std::string newPath = physicalPath + "/" + remainder;
+            const std::string newPath = physicalPath + /* "/" +*/ remainder;
             if(folder ? FileSystem::FolderExists(newPath) : FileSystem::FileExists(newPath))
             {
                 outPhysicalPath = newPath;

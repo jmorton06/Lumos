@@ -17,8 +17,6 @@ namespace Lumos
             , m_Device(nullptr)
             , m_NumChannels(numChannels)
         {
-            m_Listener = nullptr;
-
             m_DebugName = "OpenAL Audio";
         }
 
@@ -51,28 +49,30 @@ namespace Lumos
         {
             LUMOS_PROFILE_FUNCTION();
             auto& registry = scene->GetRegistry();
-            auto cameraView = registry.view<Camera>();
-            if(!cameraView.empty())
+            auto listenerView = registry.view<Listener, Maths::Transform>();
+            if(!listenerView.empty())
             {
-                m_Listener = &registry.get<Camera>(cameraView.front());
+                auto& listenerTransform = registry.get<Maths::Transform>(listenerView.front());
+                UpdateListener(listenerTransform);
             }
 
-            UpdateListener();
-
-            auto soundsView = registry.view<SoundComponent>();
+            auto soundsView = registry.view<SoundComponent, Maths::Transform>();
 
             for(auto entity : soundsView)
-                soundsView.get<SoundComponent>(entity).GetSoundNode()->OnUpdate(dt.GetElapsedMillis());
+            {
+                auto soundNode = soundsView.get<SoundComponent>(entity).GetSoundNode();
+                soundNode->SetPosition(soundsView.get<Maths::Transform>(entity).GetWorldPosition());
+                soundNode->OnUpdate(dt.GetElapsedMillis());
+            }
         }
 
         //Pass Cameras transform
-        void ALManager::UpdateListener()
+        void ALManager::UpdateListener(const Maths::Transform& listenerTransform)
         {
             LUMOS_PROFILE_FUNCTION();
-            if(m_Listener)
             {
-                Maths::Vector3 worldPos; // = m_Listener->GetPosition();
-                Maths::Vector3 velocity = Maths::Vector3(0.0f); //m_Listener->GetVelocity();
+                Maths::Vector3 worldPos = listenerTransform.GetWorldPosition();
+                Maths::Vector3 velocity = Maths::Vector3(0.0f); //TODO: m_Listener->GetVelocity();
 
                 ALfloat direction[6];
 

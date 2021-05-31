@@ -77,8 +77,6 @@ namespace Lumos
         ImGuizmo::BeginFrame();
 
         Application::Get().OnImGui();
-
-        ImGui::Render();
     }
 
     void ImGuiManager::OnEvent(Event& event)
@@ -300,7 +298,7 @@ namespace Lumos
         style.PopupBorderSize = 3;
         style.FrameBorderSize = 0.0f;
 
-        const int roundingAmount = 2;
+        const int roundingAmount = 1; //2;
         style.PopupRounding = roundingAmount;
         style.WindowRounding = roundingAmount;
         style.ChildRounding = 0;
@@ -311,7 +309,7 @@ namespace Lumos
 
 #ifdef IMGUI_HAS_DOCK
         style.TabBorderSize = 1.0f;
-        style.TabRounding = roundingAmount + 4;
+        style.TabRounding = roundingAmount; // + 4;
 
         if(ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
         {

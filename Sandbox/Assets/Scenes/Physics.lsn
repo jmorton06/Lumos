@@ -1,6 +1,6 @@
 {
     "value0": {
-        "Version": 4,
+        "Version": 5,
         "Scene Name": "Physics"
     },
     "value1": 35,
@@ -910,7 +910,7 @@
     "value202": 26,
     "value203": {
         "Scale": 1.0,
-        "Aspect": 1.600000023841858,
+        "Aspect": 1.8136019706726075,
         "FOV": 60.0,
         "Near": 0.10000000149011612,
         "Far": 1000.0
@@ -965,7 +965,8 @@
                     "usingNormalMap": 0.0,
                     "usingAOMap": 0.0,
                     "usingEmissiveMap": 0.0,
-                    "workflow": 0.0
+                    "workflow": 0.0,
+                    "shader": "//CoreShaders/DeferredColour.shader"
                 }
             }
         }
@@ -1014,7 +1015,8 @@
                     "usingNormalMap": 0.0,
                     "usingAOMap": 0.0,
                     "usingEmissiveMap": 0.0,
-                    "workflow": 0.0
+                    "workflow": 0.0,
+                    "shader": "//CoreShaders/DeferredColour.shader"
                 }
             }
         }
@@ -1063,7 +1065,8 @@
                     "usingNormalMap": 0.0,
                     "usingAOMap": 0.0,
                     "usingEmissiveMap": 0.0,
-                    "workflow": 0.0
+                    "workflow": 0.0,
+                    "shader": "//CoreShaders/DeferredColour.shader"
                 }
             }
         }
@@ -1112,7 +1115,8 @@
                     "usingNormalMap": 0.0,
                     "usingAOMap": 0.0,
                     "usingEmissiveMap": 0.0,
-                    "workflow": 0.0
+                    "workflow": 0.0,
+                    "shader": "//CoreShaders/DeferredColour.shader"
                 }
             }
         }
@@ -1161,7 +1165,8 @@
                     "usingNormalMap": 0.0,
                     "usingAOMap": 0.0,
                     "usingEmissiveMap": 0.0,
-                    "workflow": 0.0
+                    "workflow": 0.0,
+                    "shader": "//CoreShaders/DeferredColour.shader"
                 }
             }
         }
@@ -1210,7 +1215,8 @@
                     "usingNormalMap": 0.0,
                     "usingAOMap": 0.0,
                     "usingEmissiveMap": 0.0,
-                    "workflow": 0.0
+                    "workflow": 0.0,
+                    "shader": "//CoreShaders/DeferredColour.shader"
                 }
             }
         }
@@ -1259,7 +1265,8 @@
                     "usingNormalMap": 0.0,
                     "usingAOMap": 0.0,
                     "usingEmissiveMap": 0.0,
-                    "workflow": 0.0
+                    "workflow": 0.0,
+                    "shader": "//CoreShaders/DeferredColour.shader"
                 }
             }
         }
@@ -1308,7 +1315,8 @@
                     "usingNormalMap": 0.0,
                     "usingAOMap": 0.0,
                     "usingEmissiveMap": 0.0,
-                    "workflow": 0.0
+                    "workflow": 0.0,
+                    "shader": "//CoreShaders/DeferredColour.shader"
                 }
             }
         }
@@ -1357,7 +1365,8 @@
                     "usingNormalMap": 0.0,
                     "usingAOMap": 0.0,
                     "usingEmissiveMap": 0.0,
-                    "workflow": 0.0
+                    "workflow": 0.0,
+                    "shader": "//CoreShaders/DeferredColour.shader"
                 }
             }
         }
@@ -1406,7 +1415,8 @@
                     "usingNormalMap": 0.0,
                     "usingAOMap": 0.0,
                     "usingEmissiveMap": 0.0,
-                    "workflow": 0.0
+                    "workflow": 0.0,
+                    "shader": "//CoreShaders/DeferredColour.shader"
                 }
             }
         }
@@ -1455,7 +1465,8 @@
                     "usingNormalMap": 0.0,
                     "usingAOMap": 0.0,
                     "usingEmissiveMap": 0.0,
-                    "workflow": 0.0
+                    "workflow": 0.0,
+                    "shader": "//CoreShaders/DeferredColour.shader"
                 }
             }
         }
@@ -1504,7 +1515,8 @@
                     "usingNormalMap": 0.0,
                     "usingAOMap": 0.0,
                     "usingEmissiveMap": 0.0,
-                    "workflow": 0.0
+                    "workflow": 0.0,
+                    "shader": "//CoreShaders/DeferredColour.shader"
                 }
             }
         }
@@ -1553,7 +1565,8 @@
                     "usingNormalMap": 0.0,
                     "usingAOMap": 0.0,
                     "usingEmissiveMap": 0.0,
-                    "workflow": 0.0
+                    "workflow": 0.0,
+                    "shader": "//CoreShaders/DeferredColour.shader"
                 }
             }
         }
@@ -1602,7 +1615,8 @@
                     "usingNormalMap": 0.0,
                     "usingAOMap": 0.0,
                     "usingEmissiveMap": 0.0,
-                    "workflow": 0.0
+                    "workflow": 0.0,
+                    "shader": "//CoreShaders/DeferredColour.shader"
                 }
             }
         }
@@ -1651,7 +1665,8 @@
                     "usingNormalMap": 0.0,
                     "usingAOMap": 0.0,
                     "usingEmissiveMap": 0.0,
-                    "workflow": 0.0
+                    "workflow": 0.0,
+                    "shader": "//CoreShaders/DeferredColour.shader"
                 }
             }
         }
@@ -1700,7 +1715,8 @@
                     "usingNormalMap": 0.0,
                     "usingAOMap": 0.0,
                     "usingEmissiveMap": 0.0,
-                    "workflow": 0.0
+                    "workflow": 0.0,
+                    "shader": "//CoreShaders/DeferredColour.shader"
                 }
             }
         }
@@ -1749,7 +1765,8 @@
                     "usingNormalMap": 0.0,
                     "usingAOMap": 0.0,
                     "usingEmissiveMap": 0.0,
-                    "workflow": 0.0
+                    "workflow": 0.0,
+                    "shader": "//CoreShaders/DeferredColour.shader"
                 }
             }
         }
@@ -1798,7 +1815,8 @@
                     "usingNormalMap": 0.0,
                     "usingAOMap": 0.0,
                     "usingEmissiveMap": 0.0,
-                    "workflow": 0.0
+                    "workflow": 0.0,
+                    "shader": "//CoreShaders/DeferredColour.shader"
                 }
             }
         }
@@ -1847,7 +1865,8 @@
                     "usingNormalMap": 0.0,
                     "usingAOMap": 0.0,
                     "usingEmissiveMap": 0.0,
-                    "workflow": 0.0
+                    "workflow": 0.0,
+                    "shader": "//CoreShaders/DeferredColour.shader"
                 }
             }
         }
@@ -1896,7 +1915,8 @@
                     "usingNormalMap": 0.0,
                     "usingAOMap": 0.0,
                     "usingEmissiveMap": 0.0,
-                    "workflow": 0.0
+                    "workflow": 0.0,
+                    "shader": "//CoreShaders/DeferredColour.shader"
                 }
             }
         }
@@ -1945,7 +1965,8 @@
                     "usingNormalMap": 0.0,
                     "usingAOMap": 0.0,
                     "usingEmissiveMap": 0.0,
-                    "workflow": 0.0
+                    "workflow": 0.0,
+                    "shader": "//CoreShaders/DeferredColour.shader"
                 }
             }
         }
@@ -1994,7 +2015,8 @@
                     "usingNormalMap": 0.0,
                     "usingAOMap": 0.0,
                     "usingEmissiveMap": 0.0,
-                    "workflow": 0.0
+                    "workflow": 0.0,
+                    "shader": "//CoreShaders/DeferredColour.shader"
                 }
             }
         }
@@ -2043,7 +2065,8 @@
                     "usingNormalMap": 0.0,
                     "usingAOMap": 0.0,
                     "usingEmissiveMap": 0.0,
-                    "workflow": 0.0
+                    "workflow": 0.0,
+                    "shader": "//CoreShaders/DeferredColour.shader"
                 }
             }
         }
@@ -2092,7 +2115,8 @@
                     "usingNormalMap": 0.0,
                     "usingAOMap": 0.0,
                     "usingEmissiveMap": 0.0,
-                    "workflow": 0.0
+                    "workflow": 0.0,
+                    "shader": "//CoreShaders/DeferredColour.shader"
                 }
             }
         }
@@ -2141,7 +2165,8 @@
                     "usingNormalMap": 0.0,
                     "usingAOMap": 0.0,
                     "usingEmissiveMap": 0.0,
-                    "workflow": 0.0
+                    "workflow": 0.0,
+                    "shader": "//CoreShaders/DeferredColour.shader"
                 }
             }
         }
@@ -2190,7 +2215,8 @@
                     "usingNormalMap": 0.0,
                     "usingAOMap": 0.0,
                     "usingEmissiveMap": 0.0,
-                    "workflow": 0.0
+                    "workflow": 0.0,
+                    "shader": "//CoreShaders/DeferredColour.shader"
                 }
             }
         }
@@ -2203,12 +2229,12 @@
             "ptr_wrapper": {
                 "valid": 1,
                 "data": {
-                    "Albedo": "NULL",
-                    "Normal": "NULL",
-                    "Metallic": "NULL",
+                    "Albedo": "",
+                    "Normal": "",
+                    "Metallic": "",
                     "Roughness": "",
-                    "Ao": "NULL",
-                    "Emissive": "NULL",
+                    "Ao": "",
+                    "Emissive": "",
                     "albedoColour": {
                         "value0": 1.0,
                         "value1": 1.0,
@@ -2239,7 +2265,8 @@
                     "usingNormalMap": 1.0,
                     "usingAOMap": 1.0,
                     "usingEmissiveMap": 1.0,
-                    "workflow": 1.0
+                    "workflow": 1.0,
+                    "shader": "//CoreShaders/DeferredColour.shader"
                 }
             }
         }
@@ -2252,12 +2279,12 @@
             "ptr_wrapper": {
                 "valid": 1,
                 "data": {
-                    "Albedo": "NULL",
+                    "Albedo": "",
                     "Normal": "",
                     "Metallic": "",
                     "Roughness": "",
                     "Ao": "",
-                    "Emissive": "NULL",
+                    "Emissive": "",
                     "albedoColour": {
                         "value0": 1.0,
                         "value1": 1.0,
@@ -2288,7 +2315,8 @@
                     "usingNormalMap": 0.0,
                     "usingAOMap": 0.0,
                     "usingEmissiveMap": 1.0,
-                    "workflow": 1.0
+                    "workflow": 1.0,
+                    "shader": "//CoreShaders/DeferredColour.shader"
                 }
             }
         }
@@ -2311,8 +2339,8 @@
         "value2": 0.0,
         "value3": 0.0,
         "value4": {
-            "value0": 0.43871307373046877,
-            "value1": 0.3712187707424164,
+            "value0": 0.4387131631374359,
+            "value1": 0.37121883034706118,
             "value2": 0.8183687925338745,
             "value3": 1.0
         },
@@ -2678,31 +2706,6 @@
                 }
             },
             {
-                "key": "RunRight",
-                "value": {
-                    "PlayMode": 0,
-                    "Frames": [
-                        {
-                            "value0": 0.0,
-                            "value1": 32.0
-                        },
-                        {
-                            "value0": 32.0,
-                            "value1": 32.0
-                        },
-                        {
-                            "value0": 64.0,
-                            "value1": 32.0
-                        },
-                        {
-                            "value0": 96.0,
-                            "value1": 32.0
-                        }
-                    ],
-                    "FrameDuration": 0.10000000149011612
-                }
-            },
-            {
                 "key": "RunLeft",
                 "value": {
                     "PlayMode": 0,
@@ -2722,6 +2725,31 @@
                         {
                             "value0": 96.0,
                             "value1": 96.0
+                        }
+                    ],
+                    "FrameDuration": 0.10000000149011612
+                }
+            },
+            {
+                "key": "RunRight",
+                "value": {
+                    "PlayMode": 0,
+                    "Frames": [
+                        {
+                            "value0": 0.0,
+                            "value1": 32.0
+                        },
+                        {
+                            "value0": 32.0,
+                            "value1": 32.0
+                        },
+                        {
+                            "value0": 64.0,
+                            "value1": 32.0
+                        },
+                        {
+                            "value0": 96.0,
+                            "value1": 32.0
                         }
                     ],
                     "FrameDuration": 0.10000000149011612
@@ -2755,5 +2783,10 @@
         ],
         "State": "RunRight"
     },
-    "value289": 0
+    "value289": 0,
+    "value290": 1,
+    "value291": 26,
+    "value292": {
+        "enabled": true
+    }
 }

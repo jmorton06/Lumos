@@ -7,6 +7,23 @@ namespace Lumos
     class Camera;
     class SoundNode;
 
+    struct Listener
+    {
+        bool m_Enabled = true;
+
+        template <typename Archive>
+        void save(Archive& archive) const
+        {
+            archive(cereal::make_nvp("enabled", m_Enabled));
+        }
+
+        template <typename Archive>
+        void load(Archive& archive)
+        {
+            archive(cereal::make_nvp("enabled", m_Enabled));
+        }
+    };
+
     class LUMOS_EXPORT AudioManager : public ISystem
     {
     public:
@@ -15,11 +32,6 @@ namespace Lumos
         virtual ~AudioManager() = default;
         virtual void OnInit() override = 0;
         virtual void OnUpdate(const TimeStep& dt, Scene* scene) override = 0;
-
-        Camera* GetListener() const
-        {
-            return m_Listener;
-        }
 
         void AddSoundNode(SoundNode* node)
         {
@@ -36,7 +48,6 @@ namespace Lumos
         void SetPaused(bool paused);
 
     protected:
-        Camera* m_Listener;
         std::vector<SoundNode*> m_SoundNodes;
         bool m_Paused;
     };

@@ -585,8 +585,8 @@ namespace Lumos
                         Application::Get().GetCurrentScene()->OnInit();
                     }
                 }
-                
-				ImGuiHelpers::Tooltip("Play");
+                if(ImGui::IsItemHovered())
+				ImGui::SetTooltip("Play");
                 
 				if(selected)
 					ImGui::PopStyleColor();
@@ -602,7 +602,8 @@ namespace Lumos
 				if(ImGui::Button(ICON_MDI_PAUSE))
 					Application::Get().SetEditorState(selected ? EditorState::Play : EditorState::Paused);
                 
-				ImGuiHelpers::Tooltip("Pause");
+				if(ImGui::IsItemHovered())
+				ImGui::SetTooltip("Pause");
                 
 				if(selected)
 					ImGui::PopStyleColor();
@@ -618,7 +619,8 @@ namespace Lumos
 				if(ImGui::Button(ICON_MDI_STEP_FORWARD))
 					Application::Get().SetEditorState(EditorState::Next);
                 
-				ImGuiHelpers::Tooltip("Next");
+				if(ImGui::IsItemHovered())
+				ImGui::SetTooltip("Next");
                 
 				if(selected)
 					ImGui::PopStyleColor();
@@ -861,8 +863,9 @@ namespace Lumos
 				{
 					if(static_cast<ImGuizmo::OPERATION>(m_ImGuizmoOperation) == ImGuizmo::OPERATION::SCALE)
 					{
+						model = model.Transpose();
 						auto mat = Maths::Matrix4(delta).Transpose();
-						transform->SetLocalScale(transform->GetLocalScale() * mat.Scale());
+						transform->SetLocalScale(model.Scale() + transform->GetParentMatrix().Scale() - Maths::Vector3(1.0f,1.0f,1.0f));
 					}
 					else
 					{

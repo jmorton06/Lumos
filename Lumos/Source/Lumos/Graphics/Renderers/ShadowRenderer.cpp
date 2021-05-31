@@ -49,10 +49,9 @@ namespace Lumos
             , m_CascadeSplitLambda(0.91f)
             , m_SceneRadiusMultiplier(1.4f)
         {
-            m_Shader = Application::Get().GetShaderLibrary()->GetResource("/CoreShaders/Shadow.shader");
+            m_Shader = Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/Shadow.shader");
             m_ShadowTex = texture ? texture : TextureDepthArray::Create(m_ShadowMapSize, m_ShadowMapSize, m_ShadowMapNum);
 
-            m_DescriptorSet = nullptr;
             m_ScreenRenderer = false;
 
             m_LightSize = 0.1f;
@@ -93,6 +92,12 @@ namespace Lumos
             renderpassCI.clear = true;
 
             m_RenderPass = Graphics::RenderPass::Get(renderpassCI);
+
+            Graphics::DescriptorInfo info {};
+            info.layoutIndex = 0;
+            info.shader = m_Shader.get();
+            m_DescriptorSet.resize(1);
+            m_DescriptorSet[0] = Ref<Graphics::DescriptorSet>(Graphics::DescriptorSet::Create(info));
 
             CreateGraphicsPipeline();
             CreateUniformBuffer();
@@ -227,7 +232,7 @@ namespace Lumos
 
                 Mesh* mesh = command.mesh;
 
-                m_CurrentDescriptorSets[0] = m_Pipeline->GetDescriptorSet();
+                m_CurrentDescriptorSets[0] = m_DescriptorSet[0].get();
 
                 mesh->GetVertexBuffer()->Bind(Renderer::GetSwapchain()->GetCurrentCommandBuffer(), m_Pipeline.get());
                 mesh->GetIndexBuffer()->Bind(Renderer::GetSwapchain()->GetCurrentCommandBuffer());
@@ -472,9 +477,9 @@ namespace Lumos
                 m_UniformBuffer->Init(bufferSize, nullptr);
             }
 
-            std::vector<Graphics::BufferInfo> bufferInfos;
+            std::vector<Graphics::Descriptor> bufferInfos;
 
-            Graphics::BufferInfo bufferInfo;
+            Graphics::Descriptor bufferInfo;
             bufferInfo.buffer = m_UniformBuffer;
             bufferInfo.offset = 0;
             bufferInfo.name = "UniformBufferObject";
@@ -485,7 +490,7 @@ namespace Lumos
 
             bufferInfos.push_back(bufferInfo);
 
-            m_Pipeline->GetDescriptorSet()->Update(bufferInfos);
+            m_DescriptorSet[0]->Update(bufferInfos);
         }
 
         void ShadowRenderer::SetSystemUniforms(Shader* shader)

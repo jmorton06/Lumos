@@ -6,6 +6,7 @@ namespace Lumos
 {
     namespace Graphics
     {
+        class GLShader;
         class GLDescriptorSet : public DescriptorSet
         {
         public:
@@ -13,9 +14,7 @@ namespace Lumos
 
             ~GLDescriptorSet() {};
 
-            void Update(std::vector<ImageInfo>& imageInfos, std::vector<BufferInfo>& bufferInfos) override;
-            void Update(std::vector<ImageInfo>& imageInfos) override;
-            void Update(std::vector<BufferInfo>& bufferInfos) override;
+            void Update(std::vector<Descriptor>& descriptors) override;
 
             void Bind(uint32_t offset = 0);
 
@@ -28,10 +27,9 @@ namespace Lumos
 
         private:
             uint32_t m_DynamicOffset = 0;
-            Shader* m_Shader = nullptr;
+            GLShader* m_Shader = nullptr;
 
-            std::vector<ImageInfo> m_ImageInfos;
-            std::vector<BufferInfo> m_BufferInfos;
+            std::vector<Descriptor> m_Descriptors;
         };
     }
 }

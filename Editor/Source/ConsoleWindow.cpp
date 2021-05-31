@@ -134,9 +134,7 @@ namespace Lumos
             
             if(ImGui::IsItemHovered())
             {
-                ImGui::BeginTooltip();
-                ImGui::TextUnformatted(Message::GetLevelName(level));
-                ImGui::EndTooltip();
+				ImGui::SetTooltip("%s", Message::GetLevelName(level));
             }
             ImGui::PopStyleColor();
         }
@@ -230,9 +228,7 @@ namespace Lumos
 			
 			if(ImGui::IsItemHovered())
 			{
-				ImGui::BeginTooltip();
-				ImGui::TextUnformatted(m_Source.c_str());
-				ImGui::EndTooltip();
+				ImGui::SetTooltip("%s", m_Source.c_str());
 			}
 			
 			if (m_Count > 1)

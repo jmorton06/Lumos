@@ -8,6 +8,9 @@
 #include "Graphics/API/RenderPass.h"
 #include "Graphics/API/Pipeline.h"
 
+#define SCENE_DESCRIPTORSET_ID 0
+#define MATERIAL_DESCRIPTORSET_ID 1
+
 namespace Lumos
 {
     class RenderList;
@@ -99,7 +102,7 @@ namespace Lumos
 
             Ref<Lumos::Graphics::RenderPass> m_RenderPass;
             Ref<Lumos::Graphics::Pipeline> m_Pipeline;
-            Ref<Graphics::DescriptorSet> m_DescriptorSet;
+            std::vector<Ref<Graphics::DescriptorSet>> m_DescriptorSet;
 
             std::vector<Graphics::DescriptorSet*> m_CurrentDescriptorSets;
 

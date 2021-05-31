@@ -298,7 +298,7 @@ namespace Lumos
         ImVec4 red = ImVec4(1.0f, 0.0f, 0.0f, 1.0f);
 
         ImVec4 Titlebar = ImVec4(40.0f / max, 42.0f / max, 54.0f / max, 1.0f);
-        ImVec4 TabActive = ImVec4(48.0f / max, 50.0f / max, 60.0f / max, 1.0f);
+        ImVec4 TabActive = ImVec4(52.0f / max, 54.0f / max, 64.0f / max, 1.0f);
         ImVec4 TabUnactive = ImVec4(35.0f / max, 43.0f / max, 59.0f / max, 1.0f);
 
         ImVec4* colours = ImGui::GetStyle().Colors;

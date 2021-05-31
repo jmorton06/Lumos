@@ -142,7 +142,10 @@ namespace Lumos::Graphics
 
         for(tinygltf::Material& mat : gltfModel.materials)
         {
-            Ref<Material> pbrMaterial = CreateRef<Material>();
+            //TODO : if(isAnimated) Load deferredColourAnimated;
+            auto shader = Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/DeferredColour.shader");
+
+            Ref<Material> pbrMaterial = CreateRef<Material>(shader);
             PBRMataterialTextures textures;
             Graphics::MaterialProperties properties;
 
@@ -216,6 +219,10 @@ namespace Lumos::Graphics
 
             pbrMaterial->SetTextures(textures);
             pbrMaterial->SetMaterialProperites(properties);
+
+            if(mat.doubleSided)
+                pbrMaterial->SetFlag(Graphics::Material::RenderFlags::TWOSIDED);
+
             loadedMaterials.push_back(pbrMaterial);
         }
 

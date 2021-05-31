@@ -62,7 +62,7 @@ namespace Lumos
         void Renderer2D::Init()
         {
             LUMOS_PROFILE_FUNCTION();
-            m_Shader = Application::Get().GetShaderLibrary()->GetResource("/CoreShaders/Batch2D.shader");
+            m_Shader = Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/Batch2D.shader");
 
             m_TransformationStack.emplace_back(Maths::Matrix4());
             m_TransformationBack = &m_TransformationStack.back();
@@ -103,9 +103,9 @@ namespace Lumos
             uint32_t bufferSize = static_cast<uint32_t>(sizeof(Maths::Matrix4));
             m_UniformBuffer->Init(bufferSize, nullptr);
 
-            std::vector<Graphics::BufferInfo> bufferInfos;
+            std::vector<Graphics::Descriptor> bufferInfos;
 
-            Graphics::BufferInfo bufferInfo;
+            Graphics::Descriptor bufferInfo;
             bufferInfo.buffer = m_UniformBuffer;
             bufferInfo.offset = 0;
             bufferInfo.size = bufferSize;
@@ -116,13 +116,14 @@ namespace Lumos
 
             bufferInfos.push_back(bufferInfo);
 
-            m_Pipeline->GetDescriptorSet()->Update(bufferInfos);
-
             Graphics::DescriptorInfo info {};
-            info.pipeline = m_Pipeline.get();
-            info.layoutIndex = 1; //?
+            info.layoutIndex = 0;
             info.shader = m_Shader.get();
-            m_DescriptorSet = Graphics::DescriptorSet::Create(info);
+            m_DescriptorSet.resize(2);
+            m_DescriptorSet[0] = Ref<Graphics::DescriptorSet>(Graphics::DescriptorSet::Create(info));
+            info.layoutIndex = 1;
+            m_DescriptorSet[1] = Ref<Graphics::DescriptorSet>(Graphics::DescriptorSet::Create(info));
+            m_DescriptorSet[0]->Update(bufferInfos);
 
             m_VertexBuffers.resize(m_Limits.MaxBatchDrawCalls);
 #if !MAP_VERTEX_ARRAY
@@ -328,8 +329,8 @@ namespace Lumos
             Graphics::CommandBuffer* currentCMDBuffer = Renderer::GetSwapchain()->GetCurrentCommandBuffer();
             m_Pipeline->Bind(currentCMDBuffer);
 
-            m_CurrentDescriptorSets[0] = m_Pipeline->GetDescriptorSet();
-            m_CurrentDescriptorSets[1] = m_TextureCount > 0 ? m_DescriptorSet.get() : nullptr;
+            m_CurrentDescriptorSets[0] = m_DescriptorSet[0].get();
+            m_CurrentDescriptorSets[1] = m_TextureCount > 0 ? m_DescriptorSet[1].get() : nullptr;
 
             m_IndexBuffer->SetCount(m_IndexCount);
             m_IndexBuffer->Bind(currentCMDBuffer);
@@ -479,7 +480,6 @@ namespace Lumos
             pipelineCreateInfo.polygonMode = Graphics::PolygonMode::FILL;
             pipelineCreateInfo.cullMode = Graphics::CullMode::BACK;
             pipelineCreateInfo.transparencyEnabled = true;
-            pipelineCreateInfo.depthBiasEnabled = false;
 
             m_Pipeline = Graphics::Pipeline::Get(pipelineCreateInfo);
         }
@@ -532,18 +532,17 @@ namespace Lumos
 
             if(m_TextureCount != m_PreviousFrameTextureCount)
             {
-                //When previous frame texture count was less then than the previous frame
+                // When previous frame texture count was less then than the previous frame
                 // and the texture previously used was deleted, there was a crash - maybe moltenvk only
                 Graphics::DescriptorInfo info {};
-                info.pipeline = m_Pipeline.get();
                 info.layoutIndex = 1;
                 info.shader = m_Shader.get();
-                m_DescriptorSet = Graphics::DescriptorSet::Create(info);
+                m_DescriptorSet[1] = Graphics::DescriptorSet::Create(info);
             }
 
-            std::vector<Graphics::ImageInfo> imageInfos;
+            std::vector<Graphics::Descriptor> imageInfos;
 
-            Graphics::ImageInfo imageInfo = {};
+            Graphics::Descriptor imageInfo = {};
 
             imageInfo.binding = 0;
             imageInfo.name = "textures";
@@ -551,11 +550,12 @@ namespace Lumos
                 imageInfo.textures = m_Textures;
             else
                 imageInfo.texture = m_Textures[0];
-            imageInfo.count = m_TextureCount;
+            imageInfo.textureCount = m_TextureCount;
+            imageInfo.type = DescriptorType::IMAGE_SAMPLER;
 
             imageInfos.push_back(imageInfo);
 
-            m_DescriptorSet->Update(imageInfos);
+            m_DescriptorSet[1]->Update(imageInfos);
 
             m_PreviousFrameTextureCount = m_TextureCount;
         }

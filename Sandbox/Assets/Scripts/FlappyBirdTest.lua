@@ -1,7 +1,8 @@
 pillars = {}
 
 local MAX_HEIGHT = 10.0
-local SPEED = 3.0
+local SPEED = 7
+local VerticalSpeed = 8
 local m_FurthestPillarPosX = 0
 local gapSize = 4.0;
 
@@ -155,8 +156,8 @@ function PlayerJump()
 	local phys = player:GetPhysics2DComponent()
 	local vel = phys:GetRigidBody():GetLinearVelocity()
 
-	vel.y = 8
-	vel.x = 5
+	vel.y = VerticalSpeed
+	vel.x = SPEED
 
     phys:GetRigidBody():SetLinearVelocity(vel)
 end
@@ -288,6 +289,9 @@ function OnCleanUp()
     blockPhysics = nil
     blockPhysics2 = nil
 end
+
+
+
 
 
 

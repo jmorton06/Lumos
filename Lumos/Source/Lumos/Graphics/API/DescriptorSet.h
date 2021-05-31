@@ -35,6 +35,35 @@ namespace Lumos
             R32_FLOAT
         };
 
+        enum class ShaderDataType
+        {
+            NONE,
+            FLOAT32,
+            VEC2,
+            VEC3,
+            VEC4,
+            IVEC2,
+            IVEC3,
+            IVEC4,
+            MAT3,
+            MAT4,
+            INT32,
+            INT,
+            UINT,
+            BOOL,
+            STRUCT,
+            MAT4ARRAY
+        };
+
+        struct BufferMemberInfo
+        {
+            uint32_t size;
+            uint32_t offset;
+            ShaderDataType type;
+            std::string name;
+            std::string fullName;
+        };
+
         struct VertexInputDescription
         {
             uint32_t binding;
@@ -66,32 +95,33 @@ namespace Lumos
 
         struct DescriptorInfo
         {
-            Pipeline* pipeline;
             uint32_t layoutIndex;
             Shader* shader;
             uint32_t count = 1;
         };
 
-        struct BufferInfo
-        {
-            UniformBuffer* buffer;
-            uint32_t offset;
-            uint32_t size;
-            int binding;
-            std::string name = "";
-            DescriptorType type;
-            ShaderType shaderType;
-        };
-
-        struct ImageInfo
+        struct Descriptor
         {
             Texture** textures;
             Texture* texture;
+            UniformBuffer* buffer;
 
-            int count = 1;
-            int binding;
+            uint32_t offset;
+            uint32_t size;
+            uint32_t binding;
+            uint32_t textureCount = 1;
             std::string name;
-            TextureType type;
+
+            TextureType textureType;
+            DescriptorType type = DescriptorType::IMAGE_SAMPLER;
+            ShaderType shaderType;
+
+            std::vector<BufferMemberInfo> m_Members;
+        };
+
+        struct DescriptorSetInfo
+        {
+            std::vector<Descriptor> descriptors;
         };
 
         class DescriptorSet
@@ -100,9 +130,7 @@ namespace Lumos
             virtual ~DescriptorSet() = default;
             static DescriptorSet* Create(const DescriptorInfo& info);
 
-            virtual void Update(std::vector<ImageInfo>& imageInfos, std::vector<BufferInfo>& bufferInfos) = 0;
-            virtual void Update(std::vector<ImageInfo>& imageInfos) = 0;
-            virtual void Update(std::vector<BufferInfo>& bufferInfos) = 0;
+            virtual void Update(std::vector<Descriptor>& descriptors) = 0;
             virtual void SetDynamicOffset(uint32_t offset) = 0;
             virtual uint32_t GetDynamicOffset() const = 0;
 

@@ -33,6 +33,8 @@ namespace Lumos
 
         void GLIMGUIRenderer::Render(Lumos::Graphics::CommandBuffer* commandBuffer)
         {
+            ImGui::Render();
+
             if(m_ClearScreen)
             {
                 GLCall(glClear(GL_COLOR_BUFFER_BIT));

@@ -75,7 +75,7 @@ namespace Lumos
             }
             else
             {
-                LUMOS_LOG_WARN("Vertex buffer already mapped");
+                LUMOS_LOG_WARN("Index buffer already mapped");
             }
 
             return result;

@@ -94,7 +94,7 @@
     "value28": 2,
     "value29": {
         "Scale": 1.0,
-        "Aspect": 1.777616262435913,
+        "Aspect": 1.8136019706726075,
         "FOV": 79.24700164794922,
         "Near": 0.27399998903274538,
         "Far": 831.0960083007813
@@ -149,7 +149,8 @@
                     "usingNormalMap": 0.0,
                     "usingAOMap": 0.0,
                     "usingEmissiveMap": 0.0,
-                    "workflow": 0.0
+                    "workflow": 0.0,
+                    "shader": "//CoreShaders/DeferredColour.shader"
                 }
             }
         }
@@ -172,9 +173,9 @@
         "value2": 0.0,
         "value3": 0.0,
         "value4": {
-            "value0": 0.5005642175674439,
-            "value1": 0.5449690818786621,
-            "value2": 0.6726396679878235,
+            "value0": 0.5005642771720886,
+            "value1": 0.5449690222740173,
+            "value2": 0.6726396083831787,
             "value3": 1.0
         },
         "value5": 1.0,

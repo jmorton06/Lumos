@@ -160,7 +160,7 @@ namespace Lumos
 
             // Setup Vulkan binding
             ImGui_ImplVulkan_InitInfo init_info = {};
-            init_info.Instance = static_cast<VKContext*>(VKContext::GetContext())->GetVKInstance();
+            init_info.Instance = VKContext::Get()->GetVKInstance();
             init_info.PhysicalDevice = VKDevice::Get().GetGPU();
             init_info.Device = VKDevice::Get().GetDevice();
             init_info.QueueFamily = VKDevice::Get().GetPhysicalDevice()->GetGraphicsQueueFamilyIndex();
@@ -216,6 +216,7 @@ namespace Lumos
 
         void VKIMGUIRenderer::Render(Lumos::Graphics::CommandBuffer* commandBuffer)
         {
+            ImGui::Render();
             FrameRender(&g_WindowData);
         }
 

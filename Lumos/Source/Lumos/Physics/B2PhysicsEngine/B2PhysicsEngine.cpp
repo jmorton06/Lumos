@@ -52,28 +52,12 @@ namespace Lumos
     void B2PhysicsEngine::OnUpdate(const TimeStep& timeStep, Scene* scene)
     {
         LUMOS_PROFILE_FUNCTION();
-        const int max_updates_per_frame = 5;
 
         if(!m_Paused)
         {
-            if(m_MultipleUpdates)
-            {
-                m_UpdateAccum += timeStep.GetSeconds();
-                for(int i = 0; (m_UpdateAccum >= m_UpdateTimestep) && i < max_updates_per_frame; ++i)
-                {
-                    m_UpdateAccum -= m_UpdateTimestep;
-                    m_B2DWorld->Step(m_UpdateTimestep, 6, 2);
-                }
-
-                if(m_UpdateAccum >= m_UpdateTimestep)
-                {
-                    LUMOS_LOG_ERROR("Physics too slow to run in real time!");
-                    //Drop Time in the hope that it can continue to run in real-time
-                    m_UpdateAccum = 0.0f;
-                }
-            }
-            else
-                m_B2DWorld->Step(m_UpdateTimestep, 6, 2);
+            const int32_t velocityIterations = 6;
+            const int32_t positionIterations = 2;
+            m_B2DWorld->Step(timeStep.GetSeconds(), velocityIterations, positionIterations);
 
             auto& registry = scene->GetRegistry();
 
@@ -88,7 +72,7 @@ namespace Lumos
 
                 trans.SetLocalPosition(Maths::Vector3(phys.GetRigidBody()->GetPosition(), 0.0f));
                 trans.SetLocalOrientation(Maths::Quaternion::EulerAnglesToQuaternion(0.0f, 0.0f, phys.GetRigidBody()->GetAngle() * Maths::M_RADTODEG));
-                trans.SetWorldMatrix(Maths::Matrix4()); // temp
+                trans.SetWorldMatrix(Maths::Matrix4()); //TODO: temp
             };
         }
     }
