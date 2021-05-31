@@ -417,7 +417,26 @@ namespace Lumos
 				ImGui::Text("C++ scene : %s", StringUtilities::Demangle(typeid(*scene).name()).c_str());
 				ImGui::Separator();
 			}
+        
+            const std::string& sceneName = scene->GetSceneName();
+            
+            static char objName[INPUT_BUF_SIZE];
+            strcpy(objName, sceneName.c_str());
+            
+            ImGui::PushItemWidth(-1);
+            if(ImGui::InputText("##Name", objName, IM_ARRAYSIZE(objName), 0))
+                scene->SetName(objName);
+            ImGui::Separator();
 
+			ImGui::PushStyleColor(ImGuiCol_MenuBarBg, ImGui::GetStyleColorVec4(ImGuiCol_TabActive));
+			ImGui::TextUnformatted(ICON_MDI_MAGNIFY);
+			ImGui::SameLine();
+			m_HierarchyFilter.Draw("##HierarchyFilter", ImGui::GetContentRegionAvail().x - ImGui::GetStyle().IndentSpacing);
+			ImGui::PopStyleColor();
+			ImGui::Unindent();
+			
+			ImGui::BeginChild("Nodes");
+			
 			if(ImGui::BeginPopupContextWindow())
 			{
 				if(ImGui::Selectable("Add Empty Entity"))
@@ -439,7 +458,7 @@ namespace Lumos
                     entity.GetOrAddComponent<Maths::Transform>();
                     entity.AddComponent<AxisConstraintComponent>(entity, Axes::XZ);
                     entity.GetComponent<Physics3DComponent>().GetRigidBody()->SetCollisionShape(CollisionShapeType::CollisionCuboid);
-
+					
                 }
                 
                 if(ImGui::Selectable("Add Camera"))
@@ -465,25 +484,6 @@ namespace Lumos
                 
 				ImGui::EndPopup();
 			}
-        
-            const std::string& sceneName = scene->GetSceneName();
-            
-            static char objName[INPUT_BUF_SIZE];
-            strcpy(objName, sceneName.c_str());
-            
-            ImGui::PushItemWidth(-1);
-            if(ImGui::InputText("##Name", objName, IM_ARRAYSIZE(objName), 0))
-                scene->SetName(objName);
-            ImGui::Separator();
-
-			ImGui::PushStyleColor(ImGuiCol_MenuBarBg, ImGui::GetStyleColorVec4(ImGuiCol_TabActive));
-			ImGui::TextUnformatted(ICON_MDI_MAGNIFY);
-			ImGui::SameLine();
-			m_HierarchyFilter.Draw("##HierarchyFilter", ImGui::GetContentRegionAvail().x - ImGui::GetStyle().IndentSpacing);
-			ImGui::PopStyleColor();
-			ImGui::Unindent();
-			
-			ImGui::BeginChild("Nodes");
 			{
 				if(ImGui::BeginDragDropTarget())
 				{

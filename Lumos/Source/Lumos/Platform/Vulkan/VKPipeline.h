@@ -20,16 +20,6 @@ namespace Lumos
             bool Init(const PipelineInfo& pipelineCreateInfo);
             void Bind(CommandBuffer* cmdBuffer) override;
 
-            VkDescriptorSet CreateDescriptorSet();
-            VkDescriptorSetLayout* GetDescriptorLayout(int id)
-            {
-                return &m_DescriptorLayouts[id];
-            };
-
-            const VkDescriptorPool& GetDescriptorPool() const
-            {
-                return m_DescriptorPool;
-            };
             const VkPipelineLayout& GetPipelineLayout() const
             {
                 return m_PipelineLayout;
@@ -39,10 +29,6 @@ namespace Lumos
                 return m_Pipeline;
             }
 
-            DescriptorSet* GetDescriptorSet() const override
-            {
-                return m_DescriptorSet;
-            }
             Shader* GetShader() const override
             {
                 return m_Shader.get();
@@ -54,10 +40,6 @@ namespace Lumos
             static Pipeline* CreateFuncVulkan(const PipelineInfo& pipelineCreateInfo);
 
         private:
-            VkVertexInputBindingDescription m_VertexBindingDescription;
-            std::vector<VkDescriptorSetLayout> m_DescriptorLayouts;
-            VkDescriptorPool m_DescriptorPool;
-            DescriptorSet* m_DescriptorSet = nullptr;
             Ref<Shader> m_Shader;
 
             VkPipelineLayout m_PipelineLayout;

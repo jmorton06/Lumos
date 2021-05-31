@@ -172,6 +172,7 @@ namespace Lumos
 
 #define ALL_COMPONENTSV2 ALL_COMPONENTSV1, Graphics::AnimatedSprite
 #define ALL_COMPONENTSV3 ALL_COMPONENTSV2, SoundComponent
+#define ALL_COMPONENTSV4 ALL_COMPONENTSV3, Listener
 
     void Scene::Serialise(const std::string& filePath, bool binary)
     {
@@ -179,6 +180,9 @@ namespace Lumos
         LUMOS_LOG_INFO("Scene saved - {0}", filePath);
         std::string path = filePath;
         path += StringUtilities::RemoveSpaces(m_SceneName);
+
+        m_SceneSerialisationVersion = 5;
+
         if(binary)
         {
             path += std::string(".bin");
@@ -189,7 +193,7 @@ namespace Lumos
                 // output finishes flushing its contents when it goes out of scope
                 cereal::BinaryOutputArchive output { file };
                 output(*this);
-                entt::snapshot { m_EntityManager->GetRegistry() }.entities(output).component<ALL_COMPONENTSV3>(output);
+                entt::snapshot { m_EntityManager->GetRegistry() }.entities(output).component<ALL_COMPONENTSV4>(output);
             }
             file.close();
         }
@@ -202,7 +206,7 @@ namespace Lumos
                 // output finishes flushing its contents when it goes out of scope
                 cereal::JSONOutputArchive output { storage };
                 output(*this);
-                entt::snapshot { m_EntityManager->GetRegistry() }.entities(output).component<ALL_COMPONENTSV3>(output);
+                entt::snapshot { m_EntityManager->GetRegistry() }.entities(output).component<ALL_COMPONENTSV4>(output);
             }
             FileSystem::WriteTextFile(path, storage.str());
         }
@@ -235,6 +239,8 @@ namespace Lumos
                 entt::snapshot_loader { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV2>(input);
             else if(m_SceneSerialisationVersion == 4)
                 entt::snapshot_loader { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV3>(input);
+            else if(m_SceneSerialisationVersion == 5)
+                entt::snapshot_loader { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV4>(input);
         }
         else
         {
@@ -257,6 +263,8 @@ namespace Lumos
                 entt::snapshot_loader { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV2>(input);
             else if(m_SceneSerialisationVersion == 4)
                 entt::snapshot_loader { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV3>(input);
+            else if(m_SceneSerialisationVersion == 5)
+                entt::snapshot_loader { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV4>(input);
         }
 
         m_SceneGraph->DisableOnConstruct(false, m_EntityManager->GetRegistry());
@@ -304,6 +312,7 @@ namespace Lumos
         CopyComponentIfExists<Graphics::Light>(newEntity.GetHandle(), entity.GetHandle(), m_EntityManager->GetRegistry());
         CopyComponentIfExists<SoundComponent>(newEntity.GetHandle(), entity.GetHandle(), m_EntityManager->GetRegistry());
         CopyComponentIfExists<Graphics::Environment>(newEntity.GetHandle(), entity.GetHandle(), m_EntityManager->GetRegistry());
+        CopyComponentIfExists<Listener>(newEntity.GetHandle(), entity.GetHandle(), m_EntityManager->GetRegistry());
     }
 
     void Scene::DuplicateEntity(Entity entity, Entity parent)
@@ -321,6 +330,7 @@ namespace Lumos
         CopyComponentIfExists<Graphics::Light>(newEntity.GetHandle(), entity.GetHandle(), m_EntityManager->GetRegistry());
         CopyComponentIfExists<SoundComponent>(newEntity.GetHandle(), entity.GetHandle(), m_EntityManager->GetRegistry());
         CopyComponentIfExists<Graphics::Environment>(newEntity.GetHandle(), entity.GetHandle(), m_EntityManager->GetRegistry());
+        CopyComponentIfExists<Listener>(newEntity.GetHandle(), entity.GetHandle(), m_EntityManager->GetRegistry());
 
         if(parent)
             newEntity.SetParent(parent);

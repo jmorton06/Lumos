@@ -126,7 +126,10 @@ namespace Lumos
 
             Graphics::Mesh::GenerateTangents(vertices, vertexCount, indices, numIndices);
 
-            Ref<Material> pbrMaterial = CreateRef<Material>();
+            //TODO : if(isAnimated) Load deferredColourAnimated;
+            auto shader = Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/DeferredColour.shader");
+
+            Ref<Material> pbrMaterial = CreateRef<Material>(shader);
 
             PBRMataterialTextures textures;
 

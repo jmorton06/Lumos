@@ -55,35 +55,37 @@ void MaterialTest::LoadModels()
 	using namespace Lumos::Graphics;
 	std::vector<Lumos::Ref<Material>> materials;
 	
-	auto grassMaterial = CreateRef<Material>();
+    auto shader = Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/DeferredColour.shader");
+
+	auto grassMaterial = CreateRef<Material>(shader);
 	grassMaterial->LoadPBRMaterial("grass", "//Textures/pbr");
 	materials.push_back(grassMaterial);
 	
-	auto stonewallMaterial = CreateRef<Material>();
+	auto stonewallMaterial = CreateRef<Material>(shader);
 	stonewallMaterial->LoadPBRMaterial("stonewall", "//Textures/pbr");
 	materials.push_back(stonewallMaterial);
 	
-	auto castIronMaterial = CreateRef<Material>();
+	auto castIronMaterial = CreateRef<Material>(shader);
 	castIronMaterial->LoadPBRMaterial("CastIron", "//Textures/pbr", ".tga");
 	materials.push_back(castIronMaterial);
 	
-	auto GunMetalMaterial = CreateRef<Material>();
+	auto GunMetalMaterial = CreateRef<Material>(shader);
 	GunMetalMaterial->LoadPBRMaterial("GunMetal", "//Textures/pbr", ".tga");
 	materials.push_back(GunMetalMaterial);
 	
-	auto WornWoodMaterial = CreateRef<Material>();
+	auto WornWoodMaterial = CreateRef<Material>(shader);
 	WornWoodMaterial->LoadPBRMaterial("WornWood", "//Textures/pbr", ".tga");
 	materials.push_back(WornWoodMaterial);
 	
-	auto marbleMaterial = CreateRef<Material>();
+	auto marbleMaterial = CreateRef<Material>(shader);
 	marbleMaterial->LoadPBRMaterial("marble", "//Textures/pbr");
 	materials.push_back(marbleMaterial);
 	
-	auto stoneMaterial = CreateRef<Material>();
+	auto stoneMaterial = CreateRef<Material>(shader);
 	stoneMaterial->LoadPBRMaterial("stone", "//Textures/pbr");
 	materials.push_back(stoneMaterial);
 	
-	auto testMaterial = CreateRef<Material>();
+	auto testMaterial = CreateRef<Material>(shader);
 	testMaterial->LoadMaterial("checkerboard", "//Textures/checkerboard.tga");
 	materials.push_back(testMaterial);
 	

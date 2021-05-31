@@ -171,16 +171,16 @@ namespace Lumos
 
             m_ModelUniformBuffer->Init(bufferSize2, nullptr);
 
-            std::vector<Graphics::BufferInfo> bufferInfos;
+            std::vector<Graphics::Descriptor> bufferInfos;
 
-            Graphics::BufferInfo bufferInfo = {};
+            Graphics::Descriptor bufferInfo = {};
             bufferInfo.buffer = m_UniformBuffer;
             bufferInfo.offset = 0;
             bufferInfo.size = sizeof(UniformBufferObject);
             bufferInfo.type = Graphics::DescriptorType::UNIFORM_BUFFER;
             bufferInfo.binding = 0;
 
-            Graphics::BufferInfo bufferInfo2 = {};
+            Graphics::Descriptor bufferInfo2 = {};
             bufferInfo2.buffer = m_ModelUniformBuffer;
             bufferInfo2.offset = 0;
             bufferInfo2.size = sizeof(UniformBufferModel);
@@ -190,28 +190,30 @@ namespace Lumos
             bufferInfos.push_back(bufferInfo);
             bufferInfos.push_back(bufferInfo2);
 
-            m_Pipeline->GetDescriptorSet()->Update(bufferInfos);
+            m_DescriptorSet[0].get()->Update(bufferInfos);
 
             m_ClearColour = Maths::Vector4(0.4f, 0.4f, 0.4f, 1.0f);
 
             m_DefaultTexture = Texture2D::CreateFromSource(CheckerboardTextureArrayWidth, CheckerboardTextureArrayHeight, (void*)(uint8_t*)CheckerboardTextureArray);
 
             Graphics::DescriptorInfo info {};
-            info.pipeline = m_Pipeline.get();
-            info.layoutIndex = 1;
+            info.layoutIndex = 0;
             info.shader = m_Shader.get();
-            m_DescriptorSet = Graphics::DescriptorSet::Create(info);
+            m_DescriptorSet.resize(2);
+            m_DescriptorSet[0] = Ref<Graphics::DescriptorSet>(Graphics::DescriptorSet::Create(info));
+            info.layoutIndex = 1;
+            m_DescriptorSet[1] = Ref<Graphics::DescriptorSet>(Graphics::DescriptorSet::Create(info));
 
-            std::vector<Graphics::ImageInfo> bufferInfosDefault;
+            std::vector<Graphics::Descriptor> bufferInfosDefault;
 
-            Graphics::ImageInfo imageInfo = {};
+            Graphics::Descriptor imageInfo = {};
             imageInfo.texture = { m_DefaultTexture };
             imageInfo.binding = 0;
             imageInfo.name = "texSampler";
 
             bufferInfosDefault.push_back(imageInfo);
 
-            m_DescriptorSet->Update(bufferInfosDefault);
+            m_DescriptorSet[1]->Update(bufferInfosDefault);
 
             m_CurrentDescriptorSets.resize(2);
         }
@@ -351,8 +353,8 @@ namespace Lumos
 
                 uint32_t dynamicOffset = index * static_cast<uint32_t>(m_DynamicAlignment);
 
-                m_CurrentDescriptorSets[0] = m_Pipeline->GetDescriptorSet();
-                m_CurrentDescriptorSets[1] = m_DescriptorSet.get();
+                m_CurrentDescriptorSets[0] = m_DescriptorSet[0].get();
+                m_CurrentDescriptorSets[1] = m_DescriptorSet[1].get();
 
                 mesh->GetVertexBuffer()->Bind(currentCMDBuffer, m_Pipeline.get());
                 mesh->GetIndexBuffer()->Bind(currentCMDBuffer);
@@ -377,7 +379,7 @@ namespace Lumos
 
         void ForwardRenderer::CreateGraphicsPipeline()
         {
-            m_Shader = Application::Get().GetShaderLibrary()->GetResource("/CoreShaders/Simple.shader");
+            m_Shader = Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/Simple.shader");
 
             Graphics::PipelineInfo pipelineCreateInfo {};
             pipelineCreateInfo.shader = m_Shader;
@@ -385,7 +387,6 @@ namespace Lumos
             pipelineCreateInfo.polygonMode = Graphics::PolygonMode::FILL;
             pipelineCreateInfo.cullMode = Graphics::CullMode::BACK;
             pipelineCreateInfo.transparencyEnabled = false;
-            pipelineCreateInfo.depthBiasEnabled = false;
 
             m_Pipeline = Graphics::Pipeline::Get(pipelineCreateInfo);
         }

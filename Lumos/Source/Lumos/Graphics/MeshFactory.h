@@ -30,6 +30,7 @@ namespace Lumos
         LUMOS_EXPORT Mesh* CreatePrimative(PrimitiveType type);
 
         Mesh* CreateQuad();
+        Mesh* CreateScreenQuad();
         Mesh* CreateQuad(float x, float y, float width, float height);
         Mesh* CreateQuad(const Maths::Vector2& position, const Maths::Vector2& size);
         Mesh* CreateCube();

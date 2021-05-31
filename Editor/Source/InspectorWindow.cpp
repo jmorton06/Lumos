@@ -1,7 +1,7 @@
 #include "InspectorWindow.h"
 #include "Editor.h"
 #include "FileBrowserWindow.h"
-
+#include <Lumos/Audio/AudioManager.h>
 #include <Lumos/Core/Application.h>
 #include <Lumos/Core/OS/FileSystem.h>
 #include <Lumos/Scene/SceneManager.h>
@@ -868,7 +868,7 @@ end
             ImGui::AlignTextToFramePadding();
             auto tex = sprite.GetTexture();
             
-            auto imageButtonSize = ImVec2(64, 64);
+            auto imageButtonSize = ImVec2(64, 64) * Application::Get().GetWindowDPI();
 			auto callback = std::bind(&Lumos::Graphics::Sprite::SetTextureFromFile, &sprite, std::placeholders::_1);
 			const ImGuiPayload* payload = ImGui::GetDragDropPayload();
             auto min = ImGui::GetCurrentWindow()->DC.CursorPos;
@@ -931,6 +931,7 @@ end
             ImGui::TextUnformatted(tex ? tex->GetFilepath().c_str() : "No Texture");
 			if(tex)
 			{
+                ImGuiHelpers::Tooltip(tex->GetFilepath());
 				ImGui::Text("%u x %u", tex->GetWidth(), tex->GetHeight());
 				ImGui::Text("Mip Levels : %u", tex->GetMipMapLevels());
 			}
@@ -1237,7 +1238,7 @@ end
 			//ImGui::AlignTextToFramePadding();
 			auto tex = sprite.GetTexture();
             
-			auto imageButtonSize = ImVec2(64, 64);
+			auto imageButtonSize = ImVec2(64, 64) * Application::Get().GetWindowDPI();
 			auto callback = std::bind(&Sprite::SetTextureFromFile, &sprite, std::placeholders::_1);
 			const ImGuiPayload* payload = ImGui::GetDragDropPayload();
             auto min = ImGui::GetCurrentWindow()->DC.CursorPos;
@@ -1300,6 +1301,7 @@ end
             ImGui::TextUnformatted(tex ? tex->GetFilepath().c_str() : "No Texture");
 			if(tex)
 			{
+                ImGuiHelpers::Tooltip(tex->GetFilepath());
 				ImGui::Text("%u x %u", tex->GetWidth(), tex->GetHeight());
 				ImGui::Text("Mip Levels : %u", tex->GetMipMapLevels());
 			}
@@ -1501,6 +1503,7 @@ end
             ImGui::TextUnformatted(tex ? tex->GetFilepath().c_str() : "No Texture");
 			if(tex)
 			{
+                ImGuiHelpers::Tooltip(tex->GetFilepath());
 				ImGui::Text("%u x %u", tex->GetWidth(), tex->GetHeight());
 				ImGui::Text("Mip Levels : %u", tex->GetMipMapLevels());
 			}
@@ -1569,6 +1572,7 @@ end
             ImGui::NextColumn();
             ImGui::PushItemWidth(-1);
             ImGui::TextUnformatted(model.GetFilePath().c_str());
+            Lumos::ImGuiHelpers::Tooltip(model.GetFilePath());
 
             ImGui::PopItemWidth();
             ImGui::NextColumn();
@@ -1600,22 +1604,22 @@ end
                 Graphics::MaterialProperties* prop = material->GetProperties();
                 auto colour = Maths::Vector4();
                 auto& textures = material->GetTextures();
-                TextureWidget("Albedo", material.get(), textures.albedo.get(), flipImage, prop->usingAlbedoMap, prop->albedoColour, std::bind(&Graphics::Material::SetAlbedoTexture, material, std::placeholders::_1));
+                TextureWidget("Albedo", material.get(), textures.albedo.get(), flipImage, prop->usingAlbedoMap, prop->albedoColour, std::bind(&Graphics::Material::SetAlbedoTexture, material, std::placeholders::_1), ImVec2(64,64) * Application::Get().GetWindowDPI());
                 ImGui::Separator();
 
-                TextureWidget("Normal", material.get(), textures.normal.get(), flipImage, prop->usingNormalMap, colour, std::bind(&Graphics::Material::SetNormalTexture, material, std::placeholders::_1));
+                TextureWidget("Normal", material.get(), textures.normal.get(), flipImage, prop->usingNormalMap, colour, std::bind(&Graphics::Material::SetNormalTexture, material, std::placeholders::_1), ImVec2(64,64) * Application::Get().GetWindowDPI());
                 ImGui::Separator();
 
-                TextureWidget("Metallic", material.get(), textures.metallic.get(), flipImage, prop->usingMetallicMap, prop->metallicColour, std::bind(&Graphics::Material::SetMetallicTexture, material, std::placeholders::_1));
+                TextureWidget("Metallic", material.get(), textures.metallic.get(), flipImage, prop->usingMetallicMap, prop->metallicColour, std::bind(&Graphics::Material::SetMetallicTexture, material, std::placeholders::_1), ImVec2(64,64) * Application::Get().GetWindowDPI());
                 ImGui::Separator();
 
-                TextureWidget("Roughness", material.get(), textures.roughness.get(), flipImage, prop->usingRoughnessMap, prop->roughnessColour, std::bind(&Graphics::Material::SetRoughnessTexture, material, std::placeholders::_1));
+                TextureWidget("Roughness", material.get(), textures.roughness.get(), flipImage, prop->usingRoughnessMap, prop->roughnessColour, std::bind(&Graphics::Material::SetRoughnessTexture, material, std::placeholders::_1), ImVec2(64,64) * Application::Get().GetWindowDPI());
                ImGui::Separator();
 
-                TextureWidget("AO", material.get(), textures.ao.get(), flipImage, prop->usingAOMap, colour, std::bind(&Graphics::Material::SetAOTexture, material, std::placeholders::_1));
+                TextureWidget("AO", material.get(), textures.ao.get(), flipImage, prop->usingAOMap, colour, std::bind(&Graphics::Material::SetAOTexture, material, std::placeholders::_1), ImVec2(64,64) * Application::Get().GetWindowDPI());
                 ImGui::Separator();
 
-				TextureWidget("Emissive", material.get(), textures.emissive.get(), flipImage, prop->usingEmissiveMap, prop->emissiveColour, std::bind(&Graphics::Material::SetEmissiveTexture, material, std::placeholders::_1));
+				TextureWidget("Emissive", material.get(), textures.emissive.get(), flipImage, prop->usingEmissiveMap, prop->emissiveColour, std::bind(&Graphics::Material::SetEmissiveTexture, material, std::placeholders::_1), ImVec2(64,64) * Application::Get().GetWindowDPI());
 				
 				material->SetMaterialProperites(*prop);
 				ImGui::TreePop();
@@ -1809,6 +1813,11 @@ end
 		ImGui::Separator();
 		ImGui::PopStyleVar();
 	}
+
+    template<>
+    void ComponentEditorWidget<Lumos::Listener>(entt::registry& reg, entt::registry::entity_type e)
+    {
+    }
 }
 
 namespace Lumos
@@ -1855,6 +1864,7 @@ namespace Lumos
 		TRIVIAL_COMPONENT(Graphics::Environment, "Environment");
 		TRIVIAL_COMPONENT(TextureMatrixComponent, "Texture Matrix");
 		TRIVIAL_COMPONENT(DefaultCameraController, "Default Camera Controller");
+        TRIVIAL_COMPONENT(Listener, "Listener");
 	}
 
 	void InspectorWindow::OnImGui()

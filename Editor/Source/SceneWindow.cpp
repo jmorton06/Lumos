@@ -206,7 +206,7 @@ namespace Lumos
 		ImVec2 minBound = sceneViewPosition;
 
 		ImVec2 maxBound = {minBound.x + windowSize.x, minBound.y + windowSize.y};
-        bool updateCamera = true;//ImGui::IsMouseHoveringRect(minBound, maxBound);
+        bool updateCamera = ImGui::IsMouseHoveringRect(minBound, maxBound) || Input::Get().GetMouseMode() == MouseMode::Captured;
 
 		app.SetSceneActive(ImGui::IsWindowFocused() && !ImGuizmo::IsUsing() && updateCamera);
 
@@ -708,7 +708,8 @@ namespace Lumos
             if(ImGui::Button("Half Res"))
                 m_HalfRes = !m_HalfRes;
             
-            ImGuiHelpers::Tooltip("Scene view with halved resolution");
+			if(ImGui::IsItemHovered())
+            ImGui::SetTooltip("Scene view with halved resolution");
             
             if(selected)
                 ImGui::PopStyleColor();
@@ -724,7 +725,8 @@ namespace Lumos
             if(ImGui::Button("Maximise"))
                 m_Editor->FullScreenOnPlay() = !m_Editor->FullScreenOnPlay();
             
-            ImGuiHelpers::Tooltip("Maximise on play");
+			if(ImGui::IsItemHovered())
+            ImGui::SetTooltip("Maximise on play");
             
             if(selected)
                 ImGui::PopStyleColor();

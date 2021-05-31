@@ -113,7 +113,6 @@ namespace Lumos
         properties.usingNormalMap = 0.0f;
         properties.usingMetallicMap = 0.0f;
         matInstance->SetMaterialProperites(properties);
-        matInstance->SetRenderFlags(0);
         model.GetMeshes().front()->SetMaterial(matInstance);
 
         if(physics_enabled)

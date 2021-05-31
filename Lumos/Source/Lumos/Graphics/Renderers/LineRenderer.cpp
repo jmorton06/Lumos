@@ -62,7 +62,7 @@ namespace Lumos
     {
         LUMOS_PROFILE_FUNCTION();
 
-        m_Shader = Application::Get().GetShaderLibrary()->GetResource("/CoreShaders/Batch2DLine.shader");
+        m_Shader = Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/Batch2DLine.shader");
 
         m_VSSystemUniformBufferSize = sizeof(Maths::Matrix4);
         m_VSSystemUniformBuffer = new uint8_t[m_VSSystemUniformBufferSize];
@@ -80,16 +80,21 @@ namespace Lumos
 
         m_RenderPass = Graphics::RenderPass::Get(renderpassCI);
 
-        CreateFramebuffers();
+        Graphics::DescriptorInfo info {};
+        info.layoutIndex = 0;
+        info.shader = m_Shader.get();
+        m_DescriptorSet.resize(1);
+        m_DescriptorSet[0] = Ref<Graphics::DescriptorSet>(Graphics::DescriptorSet::Create(info));
 
+        CreateFramebuffers();
         CreateGraphicsPipeline();
 
         uint32_t bufferSize = static_cast<uint32_t>(sizeof(UniformBufferObject));
         m_UniformBuffer->Init(bufferSize, nullptr);
 
-        std::vector<Graphics::BufferInfo> bufferInfos;
+        std::vector<Graphics::Descriptor> bufferInfos;
 
-        Graphics::BufferInfo bufferInfo;
+        Graphics::Descriptor bufferInfo;
         bufferInfo.buffer = m_UniformBuffer;
         bufferInfo.offset = 0;
         bufferInfo.size = sizeof(UniformBufferObject);
@@ -100,7 +105,7 @@ namespace Lumos
 
         bufferInfos.push_back(bufferInfo);
 
-        m_Pipeline->GetDescriptorSet()->Update(bufferInfos);
+        m_DescriptorSet[0].get()->Update(bufferInfos);
 
         m_VertexBuffers.resize(MAX_BATCH_DRAW_CALLS);
 
@@ -218,7 +223,7 @@ namespace Lumos
 
         m_IndexBuffer->SetCount(LineIndexCount);
 
-        m_CurrentDescriptorSets[0] = m_Pipeline->GetDescriptorSet();
+        m_CurrentDescriptorSets[0] = m_DescriptorSet[0].get();
 
         m_VertexBuffers[m_BatchDrawCallIndex]->Bind(currentCMDBuffer, m_Pipeline.get());
         m_IndexBuffer->Bind(currentCMDBuffer);
@@ -305,7 +310,6 @@ namespace Lumos
         pipelineCreateInfo.polygonMode = Graphics::PolygonMode::FILL;
         pipelineCreateInfo.cullMode = Graphics::CullMode::BACK;
         pipelineCreateInfo.transparencyEnabled = false;
-        pipelineCreateInfo.depthBiasEnabled = true;
         pipelineCreateInfo.drawType = DrawType::LINES;
 
         m_Pipeline = Graphics::Pipeline::Get(pipelineCreateInfo);

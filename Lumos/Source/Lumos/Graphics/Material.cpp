@@ -8,6 +8,7 @@
 #include "Graphics/API/GraphicsContext.h"
 #include "Core/OS/FileSystem.h"
 #include "Core/VFS.h"
+#include "Core/Application.h"
 
 #include <imgui/imgui.h>
 
@@ -22,15 +23,17 @@ namespace Lumos::Graphics
     {
         LUMOS_PROFILE_FUNCTION();
 
-        m_RenderFlags = 0;
-        SetRenderFlag(RenderFlags::DEFERREDRENDER);
+        m_Flags = 0;
+        SetFlag(RenderFlags::DEPTHTEST);
         m_DescriptorSet = nullptr;
         m_MaterialProperties = new MaterialProperties();
-        SetMaterialProperites(properties);
         m_MaterialPropertiesBuffer = nullptr;
         m_MaterialBufferSize = sizeof(MaterialProperties);
         m_MaterialBufferData = new uint8_t[m_MaterialBufferSize];
-        m_Pipeline = nullptr;
+
+        m_DescriptorSet = m_Shader->CreateDescriptorSet(1);
+
+        SetMaterialProperites(properties);
     }
 
     Material::Material()
@@ -38,8 +41,8 @@ namespace Lumos::Graphics
     {
         LUMOS_PROFILE_FUNCTION();
 
-        m_RenderFlags = 0;
-        SetRenderFlag(RenderFlags::DEFERREDRENDER);
+        m_Flags = 0;
+        SetFlag(RenderFlags::DEPTHTEST);
         m_DescriptorSet = nullptr;
         m_MaterialPropertiesBuffer = nullptr;
         m_MaterialProperties = new MaterialProperties();
@@ -47,8 +50,6 @@ namespace Lumos::Graphics
 
         m_MaterialBufferSize = sizeof(MaterialProperties);
         m_MaterialBufferData = new uint8_t[m_MaterialBufferSize];
-
-        m_Pipeline = nullptr;
     }
 
     Material::~Material()
@@ -162,19 +163,23 @@ namespace Lumos::Graphics
             m_MaterialPropertiesBuffer->SetData(m_MaterialBufferSize, *&m_MaterialBufferData);
     }
 
-    void Material::CreateDescriptorSet(Graphics::Pipeline* pipeline, int layoutID, bool pbr)
+    void Material::CreateDescriptorSet(int layoutID, bool pbr)
     {
         LUMOS_PROFILE_FUNCTION();
 
         if(m_DescriptorSet)
             delete m_DescriptorSet;
 
-        m_Pipeline = pipeline;
+        if(!m_Shader)
+        {
+            //If no shader then set it to the default pbr shader
+            //TODO default to forward
+            m_Shader = Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/DeferredColour.shader");
+        }
 
         Graphics::DescriptorInfo info;
-        info.pipeline = pipeline;
         info.layoutIndex = layoutID;
-        info.shader = pipeline->GetShader();
+        info.shader = m_Shader.get();
 
         if(m_MaterialPropertiesBuffer == nullptr && pbr)
         {
@@ -186,120 +191,111 @@ namespace Lumos::Graphics
 
         m_DescriptorSet = Graphics::DescriptorSet::Create(info);
 
-        std::vector<Graphics::ImageInfo> imageInfos;
-        std::vector<Graphics::BufferInfo> bufferInfos;
+        std::vector<Graphics::Descriptor> imageInfos;
 
         if(m_PBRMaterialTextures.albedo != nullptr)
         {
-            Graphics::ImageInfo imageInfo1 = {};
+            Graphics::Descriptor imageInfo1 = {};
             imageInfo1.texture = { m_PBRMaterialTextures.albedo.get() };
             imageInfo1.binding = 0;
             imageInfo1.name = "u_AlbedoMap";
+            imageInfo1.type = DescriptorType::IMAGE_SAMPLER;
             imageInfos.push_back(imageInfo1);
         }
         else
         {
-            Graphics::ImageInfo imageInfo1 = {};
+            Graphics::Descriptor imageInfo1 = {};
             imageInfo1.texture = { s_DefaultTexture.get() };
             imageInfo1.binding = 0;
             imageInfo1.name = "u_AlbedoMap";
+            imageInfo1.type = DescriptorType::IMAGE_SAMPLER;
             imageInfos.push_back(imageInfo1);
             m_MaterialProperties->usingAlbedoMap = 0.0f;
         }
 
         if(pbr)
         {
-            if(m_PBRMaterialTextures.metallic != nullptr)
-            {
-                Graphics::ImageInfo imageInfo2 = {};
-                imageInfo2.texture = { m_PBRMaterialTextures.metallic.get() };
-                imageInfo2.binding = 1;
-                imageInfo2.name = "u_MetallicMap";
-                imageInfos.push_back(imageInfo2);
-            }
-            else
-            {
-                Graphics::ImageInfo imageInfo2 = {};
-                imageInfo2.texture = { s_DefaultTexture.get() };
-                imageInfo2.binding = 1;
-                imageInfo2.name = "u_MetallicMap";
-                imageInfos.push_back(imageInfo2);
-                m_MaterialProperties->usingMetallicMap = 0.0f;
-            }
+            Graphics::Descriptor imageInfo2 = {};
+            imageInfo2.texture = { m_PBRMaterialTextures.metallic ? m_PBRMaterialTextures.metallic.get() : s_DefaultTexture.get() };
+            imageInfo2.binding = 1;
+            imageInfo2.name = "u_MetallicMap";
+            imageInfo2.type = DescriptorType::IMAGE_SAMPLER;
+            imageInfos.push_back(imageInfo2);
 
-            if(m_PBRMaterialTextures.roughness != nullptr)
-            {
-                Graphics::ImageInfo imageInfo3 = {};
-                imageInfo3.texture = { m_PBRMaterialTextures.roughness.get() };
-                imageInfo3.binding = 2;
-                imageInfo3.name = "u_RoughnessMap";
-                imageInfos.push_back(imageInfo3);
-            }
-            else
-            {
-                Graphics::ImageInfo imageInfo3 = {};
-                imageInfo3.texture = { s_DefaultTexture.get() };
-                imageInfo3.binding = 2;
-                imageInfo3.name = "u_RoughnessMap";
-                imageInfos.push_back(imageInfo3);
+            if(!m_PBRMaterialTextures.metallic)
+                m_MaterialProperties->usingMetallicMap = 0.0f;
+
+            Graphics::Descriptor imageInfo3 = {};
+            imageInfo3.texture = { m_PBRMaterialTextures.roughness ? m_PBRMaterialTextures.roughness.get() : s_DefaultTexture.get() };
+            imageInfo3.binding = 2;
+            imageInfo3.name = "u_RoughnessMap";
+            imageInfo3.type = DescriptorType::IMAGE_SAMPLER;
+            imageInfos.push_back(imageInfo3);
+
+            if(!m_PBRMaterialTextures.roughness)
                 m_MaterialProperties->usingRoughnessMap = 0.0f;
-            }
 
             if(m_PBRMaterialTextures.normal != nullptr)
             {
-                Graphics::ImageInfo imageInfo4 = {};
+                Graphics::Descriptor imageInfo4 = {};
                 imageInfo4.texture = { m_PBRMaterialTextures.normal.get() };
                 imageInfo4.binding = 3;
                 imageInfo4.name = "u_NormalMap";
+                imageInfo4.type = DescriptorType::IMAGE_SAMPLER;
                 imageInfos.push_back(imageInfo4);
             }
             else
             {
-                Graphics::ImageInfo imageInfo4 = {};
+                Graphics::Descriptor imageInfo4 = {};
                 imageInfo4.texture = { s_DefaultTexture.get() };
                 imageInfo4.binding = 3;
                 imageInfo4.name = "u_NormalMap";
+                imageInfo4.type = DescriptorType::IMAGE_SAMPLER;
                 imageInfos.push_back(imageInfo4);
                 m_MaterialProperties->usingNormalMap = 0.0f;
             }
 
             if(m_PBRMaterialTextures.ao != nullptr)
             {
-                Graphics::ImageInfo imageInfo5 = {};
+                Graphics::Descriptor imageInfo5 = {};
                 imageInfo5.texture = { m_PBRMaterialTextures.ao.get() };
                 imageInfo5.binding = 4;
+                imageInfo5.type = DescriptorType::IMAGE_SAMPLER;
                 imageInfo5.name = "u_AOMap";
                 imageInfos.push_back(imageInfo5);
             }
             else
             {
-                Graphics::ImageInfo imageInfo5 = {};
+                Graphics::Descriptor imageInfo5 = {};
                 imageInfo5.texture = { s_DefaultTexture.get() };
                 imageInfo5.binding = 5;
                 imageInfo5.name = "u_AOMap";
+                imageInfo5.type = DescriptorType::IMAGE_SAMPLER;
                 imageInfos.push_back(imageInfo5);
                 m_MaterialProperties->usingAOMap = 0.0f;
             }
 
             if(m_PBRMaterialTextures.emissive != nullptr)
             {
-                Graphics::ImageInfo imageInfo6 = {};
+                Graphics::Descriptor imageInfo6 = {};
                 imageInfo6.texture = { m_PBRMaterialTextures.emissive.get() };
                 imageInfo6.binding = 5;
+                imageInfo6.type = DescriptorType::IMAGE_SAMPLER;
                 imageInfo6.name = "u_EmissiveMap";
                 imageInfos.push_back(imageInfo6);
             }
             else
             {
-                Graphics::ImageInfo imageInfo6 = {};
+                Graphics::Descriptor imageInfo6 = {};
                 imageInfo6.texture = { s_DefaultTexture.get() };
                 imageInfo6.binding = 5;
+                imageInfo6.type = DescriptorType::IMAGE_SAMPLER;
                 imageInfo6.name = "u_EmissiveMap";
                 imageInfos.push_back(imageInfo6);
                 m_MaterialProperties->usingEmissiveMap = 0.0f;
             }
 
-            Graphics::BufferInfo bufferInfo = {};
+            Graphics::Descriptor bufferInfo = {};
             bufferInfo.buffer = m_MaterialPropertiesBuffer;
             bufferInfo.offset = 0;
             bufferInfo.size = sizeof(MaterialProperties);
@@ -308,24 +304,29 @@ namespace Lumos::Graphics
             bufferInfo.shaderType = Graphics::ShaderType::FRAGMENT;
             bufferInfo.name = "UniformMaterialData";
 
-            bufferInfos.push_back(bufferInfo);
+            imageInfos.push_back(bufferInfo);
 
             UpdateMaterialPropertiesData();
             m_MaterialPropertiesBuffer->SetData(m_MaterialBufferSize, *&m_MaterialBufferData);
         }
 
-        m_DescriptorSet->Update(imageInfos, bufferInfos);
+        m_DescriptorSet->Update(imageInfos);
     }
 
-    void Material::Bind(Pipeline* pipeline)
+    void Material::Bind()
     {
         LUMOS_PROFILE_FUNCTION();
 
-        if(m_DescriptorSet == nullptr || m_Pipeline != pipeline || GetTexturesUpdated())
+        if(m_DescriptorSet == nullptr || GetTexturesUpdated())
         {
-            CreateDescriptorSet(pipeline, 1);
+            CreateDescriptorSet(1);
             SetTexturesUpdated(false);
         }
+    }
+
+    void Material::SetShader(const std::string& filePath)
+    {
+        m_Shader = Application::Get().GetShaderLibrary()->GetResource(filePath);
     }
 
     void Material::InitDefaultTexture()

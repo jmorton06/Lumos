@@ -5,6 +5,9 @@
 #include "VKDescriptorSet.h"
 #include "VKPipeline.h"
 #include "VKCommandBuffer.h"
+#include "VKInitialisers.h"
+#include "VKUniformBuffer.h"
+#include "Graphics/Material.h"
 
 #include "Core/OS/FileSystem.h"
 #include "Core/VFS.h"
@@ -343,6 +346,7 @@ namespace Lumos
                 return VK_FORMAT_UNDEFINED;
             }
         }
+
         uint32_t GetStrideFromVulkanFormat(VkFormat format)
         {
             switch(format)
@@ -439,6 +443,7 @@ namespace Lumos
 
                 if(file.first == ShaderType::VERTEX)
                 {
+                    //Vertex Layout
                     m_VertexInputStride = 0;
 
                     for(const spirv_cross::Resource& resource : resources.stage_inputs)
@@ -452,10 +457,11 @@ namespace Lumos
                         Description.format = GetVulkanFormat(InputType);
                         m_VertexInputAttributeDescriptions.push_back(Description);
 
-                        m_VertexInputStride += GetStrideFromVulkanFormat(Description.format); //InputType.width * InputType.vecsize / 8;
+                        m_VertexInputStride += GetStrideFromVulkanFormat(Description.format);
                     }
                 }
 
+                //Descriptor Layout
                 for(auto& u : resources.uniform_buffers)
                 {
                     uint32_t set = comp.get_decoration(u.id, spv::DecorationDescriptorSet);
@@ -464,6 +470,37 @@ namespace Lumos
 
                     SHADER_LOG(LUMOS_LOG_INFO("Found UBO {0} at set = {1}, binding = {2}", u.name.c_str(), set, binding));
                     m_DescriptorLayoutInfo.push_back({ Graphics::DescriptorType::UNIFORM_BUFFER, file.first, binding, set, type.array.size() ? uint32_t(type.array[0]) : 1 });
+
+                    auto& bufferType = comp.get_type(u.base_type_id);
+                    auto bufferSize = comp.get_declared_struct_size(bufferType);
+                    int memberCount = (int)bufferType.member_types.size();
+
+                    auto& descriptorInfo = m_DescriptorInfos[set];
+                    auto& descriptor = descriptorInfo.descriptors.emplace_back();
+                    descriptor.binding = binding;
+                    descriptor.size = (uint32_t)bufferSize;
+                    descriptor.name = u.name;
+                    descriptor.offset = 0;
+                    descriptor.shaderType = file.first;
+                    descriptor.type = Graphics::DescriptorType::UNIFORM_BUFFER;
+                    descriptor.buffer = nullptr;
+
+                    for(int i = 0; i < memberCount; i++)
+                    {
+                        auto type = comp.get_type(bufferType.member_types[i]);
+                        const auto& memberName = comp.get_member_name(bufferType.self, i);
+                        auto size = comp.get_declared_struct_member_size(bufferType, i);
+                        auto offset = comp.type_struct_member_offset(bufferType, i);
+
+                        std::string uniformName = u.name + "." + memberName;
+
+                        auto& member = descriptor.m_Members.emplace_back();
+                        member.name = memberName;
+                        member.offset = offset;
+                        member.size = (uint32_t)size;
+
+                        SHADER_LOG(LUMOS_LOG_INFO("{0} - Size {1}, offset {2}", uniformName, size, offset));
+                    }
                 }
 
                 for(auto& u : resources.push_constant_buffers)
@@ -488,6 +525,27 @@ namespace Lumos
 
                     m_PushConstants.push_back({ size, file.first });
                     m_PushConstants.back().data = new uint8_t[size];
+
+                    auto& bufferType = comp.get_type(u.base_type_id);
+                    auto bufferSize = comp.get_declared_struct_size(bufferType);
+                    int memberCount = (int)bufferType.member_types.size();
+
+                    for(int i = 0; i < memberCount; i++)
+                    {
+                        auto type = comp.get_type(bufferType.member_types[i]);
+                        const auto& memberName = comp.get_member_name(bufferType.self, i);
+                        auto size = comp.get_declared_struct_member_size(bufferType, i);
+                        auto offset = comp.type_struct_member_offset(bufferType, i);
+
+                        std::string uniformName = u.name + "." + memberName;
+
+                        auto& member = m_PushConstants.back().m_Members.emplace_back();
+                        member.size = (uint32_t)size;
+                        member.offset = offset;
+                        member.type = SPIRVTypeToLumosDataType(type);
+                        member.fullName = uniformName;
+                        member.name = memberName;
+                    }
                 }
 
                 for(auto& u : resources.sampled_images)
@@ -495,10 +553,18 @@ namespace Lumos
                     uint32_t set = comp.get_decoration(u.id, spv::DecorationDescriptorSet);
                     uint32_t binding = comp.get_decoration(u.id, spv::DecorationBinding);
 
+                    auto& descriptorInfo = m_DescriptorInfos[set];
+                    auto& descriptor = descriptorInfo.descriptors.emplace_back();
+
                     auto& type = comp.get_type(u.type_id);
                     SHADER_LOG(LUMOS_LOG_INFO("Found Sampled Image {0} at set = {1}, binding = {2}", u.name.c_str(), set, binding));
 
                     m_DescriptorLayoutInfo.push_back({ Graphics::DescriptorType::IMAGE_SAMPLER, file.first, binding, set, type.array.size() ? uint32_t(type.array[0]) : 1 });
+
+                    descriptor.binding = binding;
+                    descriptor.textureCount = 1;
+                    descriptor.name = u.name;
+                    descriptor.texture = Graphics::Material::GetDefaultTexture().get(); //TODO: Move
                 }
 
                 m_ShaderStages[currentShaderStage].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
@@ -513,6 +579,68 @@ namespace Lumos
                 currentShaderStage++;
             }
 
+            std::vector<std::vector<Graphics::DescriptorLayoutInfo>> layouts;
+
+            for(auto& descriptorLayout : GetDescriptorLayout())
+            {
+                if(layouts.size() < descriptorLayout.setID + 1)
+                {
+                    layouts.emplace_back();
+                }
+
+                layouts[descriptorLayout.setID].push_back(descriptorLayout);
+            }
+
+            for(auto& l : layouts)
+            {
+                std::vector<VkDescriptorSetLayoutBinding> setLayoutBindings;
+                setLayoutBindings.reserve(l.size());
+
+                for(uint32_t i = 0; i < l.size(); i++)
+                {
+                    auto& info = l[i];
+
+                    VkDescriptorSetLayoutBinding setLayoutBinding {};
+                    setLayoutBinding.descriptorType = VKTools::DescriptorTypeToVK(info.type);
+                    setLayoutBinding.stageFlags = VKTools::ShaderTypeToVK(info.stage);
+                    setLayoutBinding.binding = info.binding;
+                    setLayoutBinding.descriptorCount = info.count;
+
+                    setLayoutBindings.push_back(setLayoutBinding);
+                }
+
+                // Pipeline layout
+                VkDescriptorSetLayoutCreateInfo descriptorLayoutCI {};
+                descriptorLayoutCI.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+                descriptorLayoutCI.bindingCount = static_cast<uint32_t>(setLayoutBindings.size());
+                descriptorLayoutCI.pBindings = setLayoutBindings.data();
+
+                VkDescriptorSetLayout layout;
+                vkCreateDescriptorSetLayout(VKDevice::Get().GetDevice(), &descriptorLayoutCI, VK_NULL_HANDLE, &layout);
+
+                m_DescriptorSetLayouts.push_back(layout);
+            }
+
+            const auto& pushConsts = GetPushConstants();
+            std::vector<VkPushConstantRange> pushConstantRanges;
+
+            for(auto& pushConst : pushConsts)
+            {
+                pushConstantRanges.push_back(VKInitialisers::pushConstantRange(VKTools::ShaderTypeToVK(pushConst.shaderStage), pushConst.size, pushConst.offset));
+            }
+
+            auto& descriptorSetLayouts = GetDescriptorLayouts();
+
+            VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo {};
+            pipelineLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+            pipelineLayoutCreateInfo.setLayoutCount = static_cast<uint32_t>(descriptorSetLayouts.size());
+            pipelineLayoutCreateInfo.pSetLayouts = descriptorSetLayouts.data();
+
+            pipelineLayoutCreateInfo.pushConstantRangeCount = uint32_t(pushConstantRanges.size());
+            pipelineLayoutCreateInfo.pPushConstantRanges = pushConstantRanges.data();
+
+            VK_CHECK_RESULT(vkCreatePipelineLayout(VKDevice::Get().GetDevice(), &pipelineLayoutCreateInfo, VK_NULL_HANDLE, &m_PipelineLayout));
+
             return true;
         }
 
@@ -523,6 +651,11 @@ namespace Lumos
             {
                 vkDestroyShaderModule(VKDevice::Get().GetDevice(), m_ShaderStages[i].module, nullptr);
             }
+
+            for(auto& descriptorLayout : m_DescriptorSetLayouts)
+                vkDestroyDescriptorSetLayout(VKDevice::Get().GetDevice(), descriptorLayout, VK_NULL_HANDLE);
+
+            vkDestroyPipelineLayout(VKDevice::Get().GetDevice(), m_PipelineLayout, VK_NULL_HANDLE);
         }
 
         void VKShader::BindPushConstants(Graphics::CommandBuffer* cmdBuffer, Graphics::Pipeline* pipeline)
@@ -552,7 +685,7 @@ namespace Lumos
             ReadShaderFile(lines, sources);
         }
 
-        void VKShader::ReadShaderFile(std::vector<std::string> lines, std::map<ShaderType, std::string>* shaders)
+        void VKShader::ReadShaderFile(const std::vector<std::string>& lines, std::map<ShaderType, std::string>* shaders)
         {
             for(uint32_t i = 0; i < lines.size(); i++)
             {

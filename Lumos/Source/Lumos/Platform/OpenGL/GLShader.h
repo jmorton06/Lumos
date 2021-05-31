@@ -27,37 +27,8 @@ namespace Lumos
             friend class Shader;
             friend class ShaderManager;
 
-        private:
-            uint32_t m_Handle;
-            std::string m_Name, m_Path;
-            std::string m_Source;
-
-            UnorderedMap<ShaderType, ShaderUniformBufferList> m_UniformBuffers;
-            UnorderedMap<ShaderType, GLShaderUniformBufferDeclaration*> m_UserUniformBuffers;
-
-            std::vector<ShaderType> m_ShaderTypes;
-
-            ShaderResourceList m_Resources;
-            ShaderStructList m_Structs;
-            bool m_LoadSPV = false;
-
-            bool CreateLocations();
-            bool SetUniformLocation(const char* szName);
-
-            std::map<uint32_t, std::string> m_names;
-            std::map<uint32_t, uint32_t> m_uniformBlockLocations;
-            std::map<uint32_t, uint32_t> m_sampledImageLocations;
-            std::vector<spirv_cross::CompilerGLSL*> m_pShaderCompilers;
-            std::vector<PushConstant> m_PushConstants;
-            Graphics::BufferLayout m_Layout;
-
-            void* GetHandle() const override
-            {
-                return (void*)(size_t)m_Handle;
-            }
-
         public:
-            GLShader(const std::string& filePath, bool loadSPV = false);
+            GLShader(const std::string& filePath);
 
             ~GLShader();
 
@@ -65,10 +36,6 @@ namespace Lumos
             void Shutdown() const;
             void Bind() const override;
             void Unbind() const override;
-
-            void SetUserUniformBuffer(ShaderType type, uint8_t* data, uint32_t size);
-            void SetUniform(const std::string& name, uint8_t* data);
-            void ResolveAndSetUniformField(const GLShaderUniformDeclaration& field, uint8_t* data, int32_t offset, uint32_t count) const;
 
             inline const std::string& GetName() const override
             {
@@ -83,10 +50,6 @@ namespace Lumos
             {
                 return m_ShaderTypes;
             }
-            inline const ShaderResourceList& GetResources() const
-            {
-                return m_Resources;
-            }
 
             static GLuint CompileShader(ShaderType type, std::string source, uint32_t program, GLShaderErrorInfo& info);
             static uint32_t Compile(std::map<ShaderType, std::string>* sources, GLShaderErrorInfo& info);
@@ -96,38 +59,26 @@ namespace Lumos
             void Parse(std::map<ShaderType, std::string>* sources);
             void ParseUniform(const std::string& statement, ShaderType type);
             void ParseUniformStruct(const std::string& block, ShaderType shaderType);
+            void SetUniform(ShaderDataType type, uint8_t* data, uint32_t size, uint32_t offset, const std::string& name);
 
             static bool IsTypeStringResource(const std::string& type);
 
-            ShaderStruct* FindStruct(const std::string& name);
-
-            void ResolveUniforms();
-            static void ValidateUniforms();
-            static bool IsSystemUniform(ShaderUniformDeclaration* uniform);
-            int32_t GetUniformLocation(const std::string& name) const;
+            int32_t GetUniformLocation(const std::string& name);
             uint32_t GetHandleInternal() const
             {
                 return m_Handle;
             }
             const Graphics::BufferLayout& GetBufferLayout() const { return m_Layout; }
 
-            static ShaderUniformDeclaration* FindUniformDeclaration(const std::string& name, const ShaderUniformBufferDeclaration* buffer);
-            ShaderUniformDeclaration* FindUniformDeclaration(const std::string& name);
-
-            void ResolveAndSetUniforms(ShaderUniformBufferDeclaration* buffer, uint8_t* data, uint32_t size) const;
-            void ResolveAndSetUniform(GLShaderUniformDeclaration* uniform, uint8_t* data, uint32_t size, uint32_t count) const;
-
-            void SetUniformStruct(GLShaderUniformDeclaration* uniform, uint8_t* data, int32_t offset) const;
-
-            void SetUniform1f(const std::string& name, float value) const;
-            void SetUniform1fv(const std::string& name, float* value, int32_t count) const;
-            void SetUniform1i(const std::string& name, int32_t value) const;
-            void SetUniform1ui(const std::string& name, uint32_t value) const;
-            void SetUniform1iv(const std::string& name, int32_t* value, int32_t count) const;
-            void SetUniform2f(const std::string& name, const Maths::Vector2& vector) const;
-            void SetUniform3f(const std::string& name, const Maths::Vector3& vector) const;
-            void SetUniform4f(const std::string& name, const Maths::Vector4& vector) const;
-            void SetUniformMat4(const std::string& name, const Maths::Matrix4& matrix) const;
+            void SetUniform1f(const std::string& name, float value);
+            void SetUniform1fv(const std::string& name, float* value, int32_t count);
+            void SetUniform1i(const std::string& name, int32_t value);
+            void SetUniform1ui(const std::string& name, uint32_t value);
+            void SetUniform1iv(const std::string& name, int32_t* value, int32_t count);
+            void SetUniform2f(const std::string& name, const Maths::Vector2& vector);
+            void SetUniform3f(const std::string& name, const Maths::Vector3& vector);
+            void SetUniform4f(const std::string& name, const Maths::Vector4& vector);
+            void SetUniformMat4(const std::string& name, const Maths::Matrix4& matrix);
 
             void BindUniformBuffer(GLUniformBuffer* buffer, uint32_t slot, const std::string& name);
 
@@ -138,6 +89,17 @@ namespace Lumos
             }
             std::vector<PushConstant>& GetPushConstants() override { return m_PushConstants; }
             void BindPushConstants(Graphics::CommandBuffer* cmdBuffer, Graphics::Pipeline* pipeline) override;
+
+            DescriptorSetInfo GetDescriptorInfo(uint32_t index) override
+            {
+                if(m_DescriptorInfos.find(index) != m_DescriptorInfos.end())
+                {
+                    return m_DescriptorInfos[index];
+                }
+
+                LUMOS_LOG_WARN("DescriptorInfo not found. Index = {0}", index);
+                return DescriptorSetInfo();
+            }
 
             static void SetUniform1f(uint32_t location, float value);
             static void SetUniform1fv(uint32_t location, float* value, int32_t count);
@@ -155,6 +117,31 @@ namespace Lumos
 
         protected:
             static Shader* CreateFuncGL(const std::string& filePath);
+
+        private:
+            uint32_t m_Handle;
+            std::string m_Name, m_Path;
+            std::string m_Source;
+
+            std::vector<ShaderType> m_ShaderTypes;
+            std::unordered_map<uint32_t, DescriptorSetInfo> m_DescriptorInfos;
+
+            bool CreateLocations();
+            bool SetUniformLocation(const char* szName);
+
+            std::map<uint32_t, uint32_t> m_UniformBlockLocations;
+            std::map<uint32_t, uint32_t> m_SampledImageLocations;
+            std::map<uint32_t, uint32_t> m_UniformLocations;
+
+            std::vector<spirv_cross::CompilerGLSL*> m_ShaderCompilers;
+            std::vector<PushConstant> m_PushConstants;
+
+            Graphics::BufferLayout m_Layout;
+
+            void* GetHandle() const override
+            {
+                return (void*)(size_t)m_Handle;
+            }
         };
     }
 }
