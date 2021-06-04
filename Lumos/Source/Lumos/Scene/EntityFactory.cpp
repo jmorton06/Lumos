@@ -57,6 +57,9 @@ namespace Lumos
         properties.usingNormalMap = 0.0f;
         properties.usingMetallicMap = 0.0f;
         matInstance->SetMaterialProperites(properties);
+
+        auto shader = Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/DeferredColour.shader");
+        matInstance->SetShader(shader);
         model.GetMeshes().front()->SetMaterial(matInstance);
 
         if(physics_enabled)
@@ -113,6 +116,9 @@ namespace Lumos
         properties.usingNormalMap = 0.0f;
         properties.usingMetallicMap = 0.0f;
         matInstance->SetMaterialProperites(properties);
+
+        auto shader = Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/DeferredColour.shader");
+        matInstance->SetShader(shader);
         model.GetMeshes().front()->SetMaterial(matInstance);
 
         if(physics_enabled)
@@ -167,6 +173,9 @@ namespace Lumos
         properties.usingNormalMap = 0.0f;
         properties.usingMetallicMap = 0.0f;
         matInstance->SetMaterialProperites(properties);
+
+        auto shader = Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/DeferredColour.shader");
+        matInstance->SetShader(shader);
 
         pyramidMeshEntity.AddComponent<Maths::Transform>(Maths::Quaternion(-90.0f, 0.0f, 0.0f).RotationMatrix4() * Maths::Matrix4::Scale(halfdims));
         pyramidMeshEntity.SetParent(pyramid);

@@ -38,7 +38,7 @@ namespace Lumos
                     {
                         static const int MAX_TEXTURE_UNITS = 16;
                         int32_t samplers[MAX_TEXTURE_UNITS];
-                        
+
                         LUMOS_ASSERT(MAX_TEXTURE_UNITS >= imageInfo.textureCount, "Texture Count greater than max");
 
                         for(int i = 0; i < imageInfo.textureCount; i++)

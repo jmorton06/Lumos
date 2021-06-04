@@ -34,6 +34,7 @@ namespace Lumos
         {
             return channels == 2 ? AL_FORMAT_STEREO8 : AL_FORMAT_MONO8;
         }
+        LUMOS_LOG_INFO("Using default oal format");
         return AL_FORMAT_MONO8;
     }
 }

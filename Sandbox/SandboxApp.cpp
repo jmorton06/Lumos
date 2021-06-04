@@ -9,38 +9,38 @@ using namespace Lumos;
 
 class Game : public Application
 {
-    public:
-	explicit Game()
-		: Application(std::string("/Sandbox/"), std::string("Sandbox"))
-	{
+public:
+    explicit Game()
+        : Application(std::string("/Sandbox/"), std::string("Sandbox"))
+    {
         Application::Get().GetWindow()->SetWindowTitle("Sandbox");
-	}
+    }
 
-	~Game()
-	{
-	}
-    
+    ~Game()
+    {
+    }
+
     void OnEvent(Event& e) override
     {
         Application::OnEvent(e);
     }
 
-	void Init() override
-	{
-		Application::Init();
+    void Init() override
+    {
+        Application::Init();
         Application::SetEditorState(EditorState::Play);
         Application::Get().GetWindow()->SetEventCallback(BIND_EVENT_FN(Game::OnEvent));
-        
+
         //GetSceneManager()->EnqueueScene<Scene3D>(std::string("Physics"));
-		//GetSceneManager()->EnqueueScene<SceneModelViewer>(std::string("SceneModelViewer"));
-		//GetSceneManager()->EnqueueScene<GraphicsScene>(std::string("Terrain"));
-		//GetSceneManager()->EnqueueScene<MaterialTest>(std::string("Material"));
-	}
-    
+        //GetSceneManager()->EnqueueScene<SceneModelViewer>(std::string("SceneModelViewer"));
+        //GetSceneManager()->EnqueueScene<GraphicsScene>(std::string("Terrain"));
+        //GetSceneManager()->EnqueueScene<MaterialTest>(std::string("Material"));
+    }
+
     void OnImGui() override
     {
         ImGui::Begin("Metrics");
-        ImGui::Text("FPS : %.2f",(float)Lumos::Engine::Get().Statistics().FramesPerSecond );
+        ImGui::Text("FPS : %.2f", (float)Lumos::Engine::Get().Statistics().FramesPerSecond);
         ImGui::End();
         Application::OnImGui();
     }
@@ -48,5 +48,5 @@ class Game : public Application
 
 Lumos::Application* Lumos::CreateApplication()
 {
-	return new Game();
+    return new Game();
 }
