@@ -84,6 +84,9 @@ namespace Lumos
             properties.usingMetallicMap = 0.0f;
             m_DefaultMaterial->SetMaterialProperites(properties);
 
+            auto shader = Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/DeferredColour.shader");
+            m_DefaultMaterial->SetShader(shader);
+
             const size_t minUboAlignment = size_t(Graphics::Renderer::GetCapabilities().UniformBufferOffsetAlignment);
 
             m_UniformBuffer = nullptr;
@@ -264,7 +267,7 @@ namespace Lumos
                 Mesh* mesh = command.mesh;
 
                 if(!command.material || !command.material->GetShader())
-                    break;
+                    continue;
 
                 auto commandBuffer = Renderer::GetSwapchain()->GetCurrentCommandBuffer();
 
@@ -285,10 +288,10 @@ namespace Lumos
                 m_CurrentDescriptorSets[MATERIAL_DESCRIPTORSET_ID] = command.material->GetDescriptorSet();
 
                 auto trans = command.transform;
-                auto& pushConstants = m_Shader->GetPushConstants()[0];
+                auto& pushConstants = command.material->GetShader()->GetPushConstants()[0];
                 pushConstants.SetValue("transform", (void*)&trans);
 
-                m_Shader->BindPushConstants(commandBuffer, pipeline.get());
+                command.material->GetShader()->BindPushConstants(commandBuffer, pipeline.get());
 
                 mesh->GetVertexBuffer()->Bind(commandBuffer, pipeline.get());
                 mesh->GetIndexBuffer()->Bind(commandBuffer);

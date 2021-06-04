@@ -29,17 +29,13 @@ namespace Lumos
         void ALManager::OnInit()
         {
             LUMOS_PROFILE_FUNCTION();
-            LUMOS_LOG_INFO("Creating SoundSystem!");
-            LUMOS_LOG_INFO("Found the following devices: {0}", alcGetString(nullptr, ALC_DEVICE_SPECIFIER));
-
             m_Device = alcOpenDevice(nullptr);
+            m_Context = alcCreateContext(m_Device, nullptr);
+
+            LUMOS_LOG_INFO("Creating SoundSystem - {0}, Number of devices : ", alcGetString(m_Device, ALC_DEVICE_SPECIFIER), alcGetString(nullptr, ALC_DEVICE_SPECIFIER));
 
             if(!m_Device)
                 LUMOS_LOG_INFO("Failed to create SoundSystem! (No valid device!)");
-
-            LUMOS_LOG_INFO("SoundSystem created with device: {0}", alcGetString(m_Device, ALC_DEVICE_SPECIFIER)); //Outputs used OAL device!
-
-            m_Context = alcCreateContext(m_Device, nullptr);
 
             alcMakeContextCurrent(m_Context);
             alDistanceModel(AL_LINEAR_DISTANCE_CLAMPED);
@@ -76,7 +72,7 @@ namespace Lumos
 
                 ALfloat direction[6];
 
-                Maths::Quaternion orientation; // = m_Listener->GetOrientation();
+                Maths::Quaternion orientation = listenerTransform.GetWorldOrientation();
 
                 direction[0] = -2 * (orientation.w * orientation.y + orientation.x * orientation.z);
                 direction[1] = 2 * (orientation.x * orientation.w - orientation.z * orientation.y);
@@ -87,7 +83,7 @@ namespace Lumos
 
                 alListenerfv(AL_POSITION, reinterpret_cast<float*>(&worldPos));
                 alListenerfv(AL_VELOCITY, reinterpret_cast<float*>(&velocity));
-                alListenerfv(AL_ORIENTATION, direction); // reinterpret_cast<float*>(&dirup));
+                alListenerfv(AL_ORIENTATION, direction);
             }
         }
 

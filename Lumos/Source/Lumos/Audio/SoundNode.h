@@ -3,7 +3,7 @@
 #include "Sound.h"
 #include "Maths/Maths.h"
 #include "Core/StringUtilities.h"
-
+#include "Core/VFS.h"
 #include <cereal/cereal.hpp>
 
 namespace Lumos
@@ -61,8 +61,12 @@ namespace Lumos
         template <typename Archive>
         void save(Archive& archive) const
         {
+
+            std::string path;
+            VFS::Get()->AbsoulePathToVFS(m_Sound ? m_Sound->GetFilePath() : "", path);
+
             archive(cereal::make_nvp("Position", m_Position), cereal::make_nvp("Radius", m_Radius), cereal::make_nvp("Pitch", m_Pitch), cereal::make_nvp("Volume", m_Volume), cereal::make_nvp("Velocity", m_Velocity), cereal::make_nvp("Looping", m_IsLooping), cereal::make_nvp("Paused", m_Paused), cereal::make_nvp("ReferenceDistance", m_ReferenceDistance), cereal::make_nvp("Global", m_IsGlobal), cereal::make_nvp("TimeLeft", m_TimeLeft), cereal::make_nvp("Stationary", m_Stationary),
-                cereal::make_nvp("SoundNodePath", m_Sound ? m_Sound->GetFilePath() : ""));
+                cereal::make_nvp("SoundNodePath", path));
         }
 
         template <typename Archive>
