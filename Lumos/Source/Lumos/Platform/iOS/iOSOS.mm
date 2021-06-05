@@ -39,6 +39,19 @@ static iOSOS* os = nullptr;
     {
     }
 
+    void AudioInterruptionListenerCallback(void* user_data, UInt32 interruption_state)
+    {
+       if (kAudioSessionBeginInterruption == interruption_state)
+       {
+           //alcMakeContextCurrent(NULL);
+       }
+       else if (kAudioSessionEndInterruption == interruption_state)
+       {
+           AudioSessionSetActive(true);
+           //alcMakeContextCurrent(openALContext);
+       }
+    }
+
     void iOSOS::Init()
     {
         Lumos::Internal::CoreSystem::Init(false);
@@ -51,12 +64,22 @@ static iOSOS* os = nullptr;
         Lumos::VFS::Get()->Mount("Textures", root + "Textures");
         Lumos::VFS::Get()->Mount("Scripts", root + "Scripts");
         Lumos::VFS::Get()->Mount("Scenes", root + "Scenes");
-        
+        Lumos::VFS::Get()->Mount("Sounds", root + "Sounds");
+        Lumos::VFS::Get()->Mount("Assets", root + "Assets");
+
         LUMOS_LOG_INFO("Device : {0}",GetModelName());
         
         iOSWindow::MakeDefault();
 
         s_Instance = this;
+        
+        //TODO: Replace with non depricated functions
+        AudioSessionInitialize(NULL, NULL, AudioInterruptionListenerCallback, NULL);
+                
+        UInt32 session_category = kAudioSessionCategory_MediaPlayback;
+        AudioSessionSetProperty(kAudioSessionProperty_AudioCategory, sizeof(session_category), &session_category);
+        
+        AudioSessionSetActive(true);
 
         auto app = Lumos::CreateApplication();
         app->Init();
@@ -345,7 +368,8 @@ static iOSOS* os = nullptr;
     self.view = lumosView;
     self.view.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
     
-    
+    self.multipleTouchEnabled = true;
+
     Lumos::os->SetIOSView((__bridge void *)lumosView);
     Lumos::os->SetWindowSize(frame.size.width * scale, frame.size.height * scale);
     Lumos::os->Init();
@@ -440,7 +464,7 @@ typedef enum {
         index = firstNullIndex;
         activeTouches[index] = (__bridge const void *)touch;
     }
-
+    
     {
         CGPoint currLocation = [touch locationInView:self.view];
         currLocation.x *= self.view.contentScaleFactor;

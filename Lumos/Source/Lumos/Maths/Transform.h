@@ -77,8 +77,11 @@ namespace Lumos
                 m_Dirty = true;
             }
 
+            const Matrix4& GetParentMatrix() const { return m_ParentMatrix; }
+
         protected:
             Matrix4 m_LocalMatrix;
+            Matrix4 m_ParentMatrix;
             Matrix4 m_WorldMatrix;
 
             Vector3 m_LocalPosition;

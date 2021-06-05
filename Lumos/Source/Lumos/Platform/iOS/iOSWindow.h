@@ -1,6 +1,7 @@
 #pragma once
 #include "Core/OS/Window.h"
 #include "Core/OS/KeyCodes.h"
+#include "Events/Event.h"
 
 namespace Lumos
 {
@@ -44,6 +45,8 @@ namespace Lumos
         {
         }
 
+        void ProcessInput() override;
+
         float GetScreenRatio() const override
         {
             return (float)m_Data.Width / (float)m_Data.Height;
@@ -85,5 +88,7 @@ namespace Lumos
 
         WindowData m_Data;
         void* m_Handle;
+
+        std::vector<Event*> m_QueuedEvents;
     };
 }

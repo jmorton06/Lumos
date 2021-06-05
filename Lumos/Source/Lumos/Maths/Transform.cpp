@@ -13,6 +13,7 @@ namespace Lumos
             m_LocalScale = Vector3(1.0f, 1.0f, 1.0f);
             m_LocalMatrix = Matrix4();
             m_WorldMatrix = Matrix4();
+            m_ParentMatrix = Matrix4();
         }
 
         Transform::Transform(const Matrix4& matrix)
@@ -22,6 +23,7 @@ namespace Lumos
             m_LocalScale = matrix.Scale();
             m_LocalMatrix = matrix;
             m_WorldMatrix = matrix;
+            m_ParentMatrix = Matrix4();
         }
 
         Transform::Transform(const Vector3& position)
@@ -31,6 +33,7 @@ namespace Lumos
             m_LocalScale = Vector3(1.0f, 1.0f, 1.0f);
             m_LocalMatrix = Matrix4();
             m_WorldMatrix = Matrix4();
+            m_ParentMatrix = Matrix4();
             SetLocalPosition(position);
         }
 
@@ -39,6 +42,8 @@ namespace Lumos
         void Transform::UpdateMatrices()
         {
             m_LocalMatrix = Matrix4::Translation(m_LocalPosition) * m_LocalOrientation.RotationMatrix4() * Matrix4::Scale(m_LocalScale);
+
+            m_WorldMatrix = m_ParentMatrix * m_LocalMatrix;
             m_Dirty = false;
             m_HasUpdated = true;
         }
@@ -54,7 +59,8 @@ namespace Lumos
         {
             if(m_Dirty)
                 UpdateMatrices();
-            m_WorldMatrix = mat * m_LocalMatrix;
+            m_ParentMatrix = mat;
+            m_WorldMatrix = m_ParentMatrix * m_LocalMatrix;
         }
 
         void Transform::SetLocalTransform(const Matrix4& localMat)

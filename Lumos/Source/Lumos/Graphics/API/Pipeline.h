@@ -39,7 +39,7 @@ namespace Lumos
             DrawType drawType = DrawType::TRIANGLE;
 
             bool transparencyEnabled;
-            bool depthBiasEnabled;
+            bool depthBiasEnabled = false;
         };
 
         class LUMOS_EXPORT Pipeline
@@ -54,7 +54,6 @@ namespace Lumos
 
             virtual void Bind(CommandBuffer* cmdBuffer) = 0;
 
-            virtual DescriptorSet* GetDescriptorSet() const = 0;
             virtual Shader* GetShader() const = 0;
 
         protected:

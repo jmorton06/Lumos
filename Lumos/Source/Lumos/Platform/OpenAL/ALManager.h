@@ -6,6 +6,11 @@
 
 namespace Lumos
 {
+    namespace Maths
+    {
+        class Transform;
+    }
+
     namespace Audio
     {
         class ALManager : public AudioManager
@@ -16,7 +21,7 @@ namespace Lumos
 
             void OnInit() override;
             void OnUpdate(const TimeStep& dt, Scene* scene) override;
-            void UpdateListener();
+            void UpdateListener(const Maths::Transform& listenerTransform);
             void OnImGui() override;
 
         private:

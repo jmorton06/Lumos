@@ -4,12 +4,12 @@
 
 namespace Lumos
 {
-	class GraphicsInfoWindow : public EditorWindow
-	{
-	public:
-		GraphicsInfoWindow();
-		~GraphicsInfoWindow() = default;
+    class GraphicsInfoWindow : public EditorWindow
+    {
+    public:
+        GraphicsInfoWindow();
+        ~GraphicsInfoWindow() = default;
 
-		void OnImGui() override;
-	};
+        void OnImGui() override;
+    };
 }

@@ -4,5 +4,5 @@
 
 Lumos::Application* Lumos::CreateApplication()
 {
-	return new Editor();
+    return new Editor();
 }

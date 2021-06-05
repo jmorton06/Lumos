@@ -103,6 +103,22 @@ namespace Lumos
             else
                 preTransform = surfaceCapabilities.currentTransform;
 
+            VkCompositeAlphaFlagBitsKHR compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
+            std::vector<VkCompositeAlphaFlagBitsKHR> compositeAlphaFlags = {
+                VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR,
+                VK_COMPOSITE_ALPHA_PRE_MULTIPLIED_BIT_KHR,
+                VK_COMPOSITE_ALPHA_POST_MULTIPLIED_BIT_KHR,
+                VK_COMPOSITE_ALPHA_INHERIT_BIT_KHR,
+            };
+            for(auto& compositeAlphaFlag : compositeAlphaFlags)
+            {
+                if(surfaceCapabilities.supportedCompositeAlpha & compositeAlphaFlag)
+                {
+                    compositeAlpha = compositeAlphaFlag;
+                    break;
+                };
+            }
+
             VkSwapchainCreateInfoKHR swapChainCI {};
             swapChainCI.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
             swapChainCI.surface = m_Surface;
@@ -111,7 +127,7 @@ namespace Lumos
             swapChainCI.imageExtent.width = swapChainExtent.width;
             swapChainCI.imageExtent.height = swapChainExtent.height;
             swapChainCI.preTransform = preTransform;
-            swapChainCI.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
+            swapChainCI.compositeAlpha = compositeAlpha;
             swapChainCI.imageArrayLayers = 1;
             swapChainCI.presentMode = swapChainPresentMode;
             swapChainCI.oldSwapchain = m_OldSwapChain;
@@ -121,6 +137,16 @@ namespace Lumos
             swapChainCI.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
             swapChainCI.pQueueFamilyIndices = VK_NULL_HANDLE;
             swapChainCI.clipped = VK_TRUE;
+
+            if(surfaceCapabilities.supportedUsageFlags & VK_IMAGE_USAGE_TRANSFER_SRC_BIT)
+            {
+                swapChainCI.imageUsage |= VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
+            }
+
+            if(surfaceCapabilities.supportedUsageFlags & VK_IMAGE_USAGE_TRANSFER_DST_BIT)
+            {
+                swapChainCI.imageUsage |= VK_IMAGE_USAGE_TRANSFER_DST_BIT;
+            }
 
             VK_CHECK_RESULT(vkCreateSwapchainKHR(VKDevice::Get().GetDevice(), &swapChainCI, VK_NULL_HANDLE, &m_SwapChain));
 
@@ -157,8 +183,6 @@ namespace Lumos
                 VkImageView imageView;
                 VK_CHECK_RESULT(vkCreateImageView(VKDevice::Get().GetDevice(), &viewCI, VK_NULL_HANDLE, &imageView));
                 VKTexture2D* swapChainBuffer = new VKTexture2D(pSwapChainImages[i], imageView);
-                // VKTools::TransitionImageLayout(swapChainBuffer->GetImage(), m_ColourFormat, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
-                //swapChainBuffer->SetImageLayout(VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
 
                 m_SwapChainBuffers.push_back(swapChainBuffer);
             }
@@ -185,7 +209,7 @@ namespace Lumos
                     if(m_Frames[i].RenderSemaphore == VK_NULL_HANDLE)
                         VK_CHECK_RESULT(vkCreateSemaphore(VKDevice::Get().GetDevice(), &semaphoreInfo, nullptr, &m_Frames[i].RenderSemaphore));
 
-                    m_Frames[i].RenderFence = CreateRef<VKFence>();
+                    m_Frames[i].RenderFence = CreateRef<VKFence>(true);
                     m_Frames[i].CommandPool = CreateRef<VKCommandPool>(VKDevice::Get().GetPhysicalDevice()->GetGraphicsQueueFamilyIndex(), VK_COMMAND_POOL_CREATE_TRANSIENT_BIT);
 
                     m_Frames[i].MainCommandBuffer = CreateRef<VKCommandBuffer>();
@@ -332,6 +356,9 @@ namespace Lumos
             {
                 VK_CHECK_RESULT(error);
             }
+
+            //uint32_t nextCmdBufferIndex = (m_CurrentBuffer + 1) % m_SwapchainBufferCount;
+            //m_Frames[nextCmdBufferIndex].RenderFence->Wait();
         }
 
         void VKSwapchain::MakeDefault()

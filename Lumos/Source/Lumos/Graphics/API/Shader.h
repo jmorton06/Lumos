@@ -1,4 +1,5 @@
 #pragma once
+#include "DescriptorSet.h"
 #include "ShaderUniform.h"
 #include "ShaderResource.h"
 
@@ -9,6 +10,10 @@
 #define SHADER_MID_INDEX 4
 #define SHADER_COLOR_INDEX 5
 
+namespace spirv_cross
+{
+    class SPIRType;
+}
 namespace Lumos
 {
     namespace Graphics
@@ -30,6 +35,26 @@ namespace Lumos
             ShaderType shaderStage;
             uint8_t* data;
             uint32_t offset = 0;
+            std::string name;
+
+            std::vector<BufferMemberInfo> m_Members;
+
+            void SetValue(const std::string& name, void* value)
+            {
+                for(auto& member : m_Members)
+                {
+                    if(member.name == name)
+                    {
+                        memcpy(&data[member.offset], value, member.size);
+                        break;
+                    }
+                }
+            }
+
+            void SetData(void* value)
+            {
+                memcpy(data, value, size);
+            }
         };
 
         struct ShaderEnumClassHash
@@ -43,6 +68,7 @@ namespace Lumos
 
         class CommandBuffer;
         class Pipeline;
+        class DescriptorSet;
 
         template <typename Key>
         using HashType = typename std::conditional<std::is_enum<Key>::value, ShaderEnumClassHash, std::hash<Key>>::type;
@@ -70,6 +96,10 @@ namespace Lumos
             virtual std::vector<PushConstant>& GetPushConstants() = 0;
             virtual PushConstant* GetPushConstant(uint32_t index) { return nullptr; }
             virtual void BindPushConstants(Graphics::CommandBuffer* cmdBuffer, Graphics::Pipeline* pipeline) = 0;
+            virtual DescriptorSet* CreateDescriptorSet(uint32_t index) { return nullptr; };
+            virtual DescriptorSetInfo GetDescriptorInfo(uint32_t index) { return DescriptorSetInfo(); }
+
+            ShaderDataType SPIRVTypeToLumosDataType(const spirv_cross::SPIRType type);
 
         public:
             static Shader* CreateFromFile(const std::string& filepath);

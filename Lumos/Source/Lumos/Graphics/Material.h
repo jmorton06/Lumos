@@ -2,13 +2,13 @@
 #include "Maths/Maths.h"
 #include "API/Texture.h"
 #include "API/Shader.h"
+#include "Core/VFS.h"
 #include <cereal/cereal.hpp>
 
 namespace Lumos
 {
     namespace Graphics
     {
-        class Pipeline;
         class DescriptorSet;
         class UniformBuffer;
 
@@ -48,15 +48,14 @@ namespace Lumos
             enum class RenderFlags
             {
                 NONE = 0,
-                DISABLE_DEPTH_TEST = BIT(0),
+                DEPTHTEST = BIT(0),
                 WIREFRAME = BIT(1),
                 FORWARDRENDER = BIT(2),
                 DEFERREDRENDER = BIT(3),
                 NOSHADOW = BIT(4),
+                TWOSIDED = BIT(5),
+                ALPHABLEND = BIT(6)
             };
-
-        protected:
-            int m_RenderFlags;
 
         public:
             Material(Ref<Shader>& shader, const MaterialProperties& properties = MaterialProperties(), const PBRMataterialTextures& textures = PBRMataterialTextures());
@@ -64,17 +63,9 @@ namespace Lumos
 
             ~Material();
 
-            void SetRenderFlags(int flags)
-            {
-                m_RenderFlags = flags;
-            }
-            void SetRenderFlag(Material::RenderFlags flag)
-            {
-                m_RenderFlags |= static_cast<int>(flag);
-            }
             void LoadPBRMaterial(const std::string& name, const std::string& path, const std::string& extension = ".png"); //TODO : Texture Parameters
             void LoadMaterial(const std::string& name, const std::string& path);
-            void CreateDescriptorSet(Pipeline* pipeline, int layoutID, bool pbr = true);
+            void CreateDescriptorSet(int layoutID, bool pbr = true);
 
             void SetTextures(const PBRMataterialTextures& textures);
             void SetMaterialProperites(const MaterialProperties& properties);
@@ -86,6 +77,11 @@ namespace Lumos
             void SetMetallicTexture(const std::string& path);
             void SetAOTexture(const std::string& path);
             void SetEmissiveTexture(const std::string& path);
+            void SetShader(Ref<Shader>& shader)
+            {
+                m_Shader = shader;
+                m_TexturesUpdated = true; //TODO
+            }
 
             bool& GetTexturesUpdated()
             {
@@ -110,22 +106,15 @@ namespace Lumos
             {
                 return m_PBRMaterialTextures;
             }
-            Shader* GetShader() const
+            Ref<Shader> GetShader() const
             {
-                return m_Shader.get();
+                return m_Shader;
             }
             DescriptorSet* GetDescriptorSet() const
             {
                 return m_DescriptorSet;
             }
-            Pipeline* GetPipeline() const
-            {
-                return m_Pipeline;
-            }
-            int GetRenderFlags() const
-            {
-                return m_RenderFlags;
-            }
+
             const std::string& GetName() const
             {
                 return m_Name;
@@ -135,7 +124,8 @@ namespace Lumos
                 return m_MaterialProperties;
             }
 
-            void Bind(Pipeline* pipeline);
+            void Bind();
+            void SetShader(const std::string& filePath);
 
             static void InitDefaultTexture();
             static void ReleaseDefaultTexture();
@@ -143,6 +133,14 @@ namespace Lumos
             template <typename Archive>
             void save(Archive& archive) const
             {
+                std::string shaderPath = "";
+
+                if(m_Shader)
+                {
+                    std::string path = m_Shader->GetFilePath() + m_Shader->GetName();
+                    VFS::Get()->AbsoulePathToVFS(path, shaderPath);
+                }
+
                 archive(cereal::make_nvp("Albedo", m_PBRMaterialTextures.albedo ? m_PBRMaterialTextures.albedo->GetFilepath() : ""),
                     cereal::make_nvp("Normal", m_PBRMaterialTextures.normal ? m_PBRMaterialTextures.normal->GetFilepath() : ""),
                     cereal::make_nvp("Metallic", m_PBRMaterialTextures.metallic ? m_PBRMaterialTextures.metallic->GetFilepath() : ""),
@@ -159,7 +157,8 @@ namespace Lumos
                     cereal::make_nvp("usingNormalMap", m_MaterialProperties->usingNormalMap),
                     cereal::make_nvp("usingAOMap", m_MaterialProperties->usingAOMap),
                     cereal::make_nvp("usingEmissiveMap", m_MaterialProperties->usingEmissiveMap),
-                    cereal::make_nvp("workflow", m_MaterialProperties->workflow));
+                    cereal::make_nvp("workflow", m_MaterialProperties->workflow),
+                    cereal::make_nvp("shader", shaderPath));
             }
 
             template <typename Archive>
@@ -171,6 +170,7 @@ namespace Lumos
                 std::string metallicFilePath;
                 std::string emissiveFilePath;
                 std::string aoFilePath;
+                std::string shaderFilePath;
 
                 archive(cereal::make_nvp("Albedo", albedoFilePath),
                     cereal::make_nvp("Normal", normalFilePath),
@@ -188,7 +188,11 @@ namespace Lumos
                     cereal::make_nvp("usingNormalMap", m_MaterialProperties->usingNormalMap),
                     cereal::make_nvp("usingAOMap", m_MaterialProperties->usingAOMap),
                     cereal::make_nvp("usingEmissiveMap", m_MaterialProperties->usingEmissiveMap),
-                    cereal::make_nvp("workflow", m_MaterialProperties->workflow));
+                    cereal::make_nvp("workflow", m_MaterialProperties->workflow),
+                    cereal::make_nvp("shader", shaderFilePath));
+
+                if(!shaderFilePath.empty())
+                    SetShader(shaderFilePath);
 
                 if(!albedoFilePath.empty())
                     m_PBRMaterialTextures.albedo = Ref<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile("albedo", albedoFilePath));
@@ -204,10 +208,25 @@ namespace Lumos
                     m_PBRMaterialTextures.ao = Ref<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile("ao", aoFilePath));
             }
 
+            uint32_t GetFlags() const { return m_Flags; };
+            bool GetFlag(RenderFlags flag) const { return (uint32_t)flag & m_Flags; };
+            void SetFlag(RenderFlags flag, bool value = true)
+            {
+                if(value)
+                {
+                    m_Flags |= (uint32_t)flag;
+                }
+                else
+                {
+                    m_Flags &= ~(uint32_t)flag;
+                }
+            };
+
+            static Ref<Texture2D> GetDefaultTexture() { return s_DefaultTexture; }
+
         private:
             PBRMataterialTextures m_PBRMaterialTextures;
             Ref<Shader> m_Shader;
-            Pipeline* m_Pipeline;
             DescriptorSet* m_DescriptorSet;
             UniformBuffer* m_MaterialPropertiesBuffer;
             MaterialProperties* m_MaterialProperties;
@@ -215,6 +234,7 @@ namespace Lumos
             uint8_t* m_MaterialBufferData;
             std::string m_Name;
             bool m_TexturesUpdated = false;
+            uint32_t m_Flags;
 
             static Ref<Texture2D> s_DefaultTexture;
         };

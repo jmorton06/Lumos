@@ -59,7 +59,10 @@ namespace Lumos
         SetImGuiStyle();
 
 #ifdef LUMOS_PLATFORM_IOS
-        ImGui::GetStyle().ScaleAllSizes(0.5f);
+        ImGui::GetStyle().ScaleAllSizes(1.5f);
+        ImGuiStyle& style = ImGui::GetStyle();
+
+        style.ScrollbarSize = 20;
 #endif
 #ifdef LUMOS_PLATFORM_MACOS
         ImGui::GetStyle().ScaleAllSizes(m_DPIScale);
@@ -77,8 +80,6 @@ namespace Lumos
         ImGuizmo::BeginFrame();
 
         Application::Get().OnImGui();
-
-        ImGui::Render();
     }
 
     void ImGuiManager::OnEvent(Event& event)
@@ -281,10 +282,6 @@ namespace Lumos
         }
 
         ImGuiStyle& style = ImGui::GetStyle();
-#ifdef LUMOS_PLATFORM_IOS
-        //TODO: Check this
-        style.ScaleAllSizes(3.0f);
-#endif
 
         style.WindowPadding = ImVec2(5, 5);
         style.FramePadding = ImVec2(4, 4);
@@ -300,7 +297,7 @@ namespace Lumos
         style.PopupBorderSize = 3;
         style.FrameBorderSize = 0.0f;
 
-        const int roundingAmount = 2;
+        const int roundingAmount = 1; //2;
         style.PopupRounding = roundingAmount;
         style.WindowRounding = roundingAmount;
         style.ChildRounding = 0;
@@ -311,7 +308,7 @@ namespace Lumos
 
 #ifdef IMGUI_HAS_DOCK
         style.TabBorderSize = 1.0f;
-        style.TabRounding = roundingAmount + 4;
+        style.TabRounding = roundingAmount; // + 4;
 
         if(ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
         {

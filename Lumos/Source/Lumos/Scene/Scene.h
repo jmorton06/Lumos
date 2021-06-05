@@ -119,7 +119,7 @@ namespace Lumos
         template <typename Archive>
         void save(Archive& archive) const
         {
-            archive(cereal::make_nvp("Version", 4));
+            archive(cereal::make_nvp("Version", 5));
             archive(cereal::make_nvp("Scene Name", m_SceneName));
         }
 
