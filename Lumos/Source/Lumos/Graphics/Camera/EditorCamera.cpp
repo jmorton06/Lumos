@@ -44,6 +44,7 @@ namespace Lumos
                 Application::Get().GetWindow()->HideMouse(true);
                 Input::Get().SetMouseMode(MouseMode::Captured);
                 m_StoredCursorPos = Maths::Vector2(xpos, ypos);
+                m_PreviousCurserPos = m_StoredCursorPos;
             }
 
             if(Input::Get().GetMouseHeld(InputCode::MouseKey::ButtonRight))

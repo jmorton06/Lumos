@@ -419,7 +419,6 @@ namespace Lumos
         LUMOS_PROFILE_FUNCTION();
         Input::Get().StoreMousePosition(pos.x, pos.y);
         glfwSetCursorPos(m_Handle, pos.x, pos.y);
-        glfwWaitEvents();
     }
 
     void GLFWWindow::MakeDefault()

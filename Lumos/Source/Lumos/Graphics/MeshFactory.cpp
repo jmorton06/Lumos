@@ -5,6 +5,8 @@
 #include "Maths/Maths.h"
 #include "Terrain.h"
 
+#include "Graphics/API/GraphicsContext.h"
+
 namespace Lumos
 {
     namespace Graphics
@@ -98,6 +100,72 @@ namespace Lumos
             };
             Ref<IndexBuffer> ib;
             ib.reset(IndexBuffer::Create(indices, 6));
+
+            return new Mesh(vb, ib, BoundingBox);
+        }
+
+        Mesh* CreateScreenQuad()
+        {
+            LUMOS_PROFILE_FUNCTION();
+            Vertex* data = new Vertex[4];
+
+            data[0].Position = Maths::Vector3(-1.0f, -1.0f, 0.0f);
+            data[0].TexCoords = Maths::Vector2(0.0f, 0.0f);
+
+            data[1].Position = Maths::Vector3(1.0f, -1.0f, 0.0f);
+            data[1].TexCoords = Maths::Vector2(1.0f, 0.0f);
+
+            data[2].Position = Maths::Vector3(1.0f, 1.0f, 0.0f);
+            data[2].TexCoords = Maths::Vector2(1.0f, 1.0f);
+
+            data[3].Position = Maths::Vector3(-1.0f, 1.0f, 0.0f);
+            data[3].TexCoords = Maths::Vector2(0.0f, 1.0f);
+
+            Ref<VertexBuffer> vb = Ref<VertexBuffer>(VertexBuffer::Create(BufferUsage::STATIC));
+            vb->SetData(sizeof(Vertex) * 4, data);
+
+            Ref<Maths::BoundingBox> BoundingBox = CreateRef<Maths::BoundingBox>();
+            for(int i = 0; i < 4; i++)
+            {
+                BoundingBox->Merge(data[i].Position);
+            }
+
+            delete[] data;
+
+            bool usingVulkan = false;
+#ifdef LUMOS_RENDER_API_VULKAN
+            if(GraphicsContext::GetRenderAPI() == RenderAPI::VULKAN)
+                usingVulkan = true;
+#endif
+
+            Ref<IndexBuffer> ib;
+
+            if(usingVulkan)
+            {
+                uint32_t indices[6] = {
+                    0,
+                    3,
+                    2,
+                    2,
+                    1,
+                    0,
+                };
+
+                ib.reset(IndexBuffer::Create(indices, 6));
+            }
+            else
+            {
+                uint32_t indices[6] = {
+                    0,
+                    1,
+                    2,
+                    2,
+                    3,
+                    0,
+                };
+
+                ib.reset(IndexBuffer::Create(indices, 6));
+            }
 
             return new Mesh(vb, ib, BoundingBox);
         }

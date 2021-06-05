@@ -201,17 +201,18 @@ project "LumosEditor"
 			"../Lumos/External/vulkan/libs/iOS/libMoltenVK.a"
 		}
 
+--Adding assets from Game Project folder. Needs rework
 		files
 		{
 			"../Resources/AppIcons/Assets.xcassets",
 			"../Lumos/Assets/Shaders",
-			"../Lumos/Source/Platform/iOS/Client/**",
-            "Assets/Scenes",
-            "Assets/Scripts",
-            "Assets/Meshes",
-            "Assets/Sounds",
-            "Assets/Textures",
-			"LumosEditor.lmproj"
+			"../Lumos/Source/Lumos/Platform/iOS/Client/**",
+            "../Sandbox/Assets/Scenes",
+	"../Sandbox/Assets/Scripts",
+	"../Sandbox/Assets/Meshes",
+	"../Sandbox/Assets/Sounds",
+	"../Sandbox/Assets/Textures",
+	"../Sandbox/Sandbox.lmproj"
 		}
 
 		xcodebuildsettings
@@ -254,14 +255,15 @@ project "LumosEditor"
 		{
 			"../Lumos/Source/Platform/iOS/Client",
 			"Assets.xcassets",
-            "EngineShaders",
-            "meshes",
-            "scenes",
-            "scripts",
-            "sounds",
-            "textures",
-            "LumosEditor.lmproj"
-		}
+            "Shaders",
+            "Meshes",
+            "Scenes",
+            "Scripts",
+            "Sounds",
+	"Textures",
+	"Sandbox.lmproj"
+}
+
 		SetRecommendedXcodeSettings()
 
 	filter "system:linux"
@@ -306,13 +308,13 @@ project "LumosEditor"
 			}
 
 	filter "configurations:Debug"
-		defines { "LUMOS_DEBUG", "_DEBUG","TRACY_ENABLE","LUMOS_PROFILE", }
+		defines { "LUMOS_DEBUG", "_DEBUG" }
 		symbols "On"
 		runtime "Debug"
 		optimize "Off"
 
 	filter "configurations:Release"
-		defines { "LUMOS_RELEASE","TRACY_ENABLE", "LUMOS_PROFILE",}
+		defines { "LUMOS_RELEASE",}
 		optimize "Speed"
 		symbols "On"
 		runtime "Release"

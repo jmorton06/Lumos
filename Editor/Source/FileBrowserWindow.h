@@ -4,26 +4,26 @@
 
 namespace ImGui
 {
-	class FileBrowser;
+    class FileBrowser;
 }
 
 namespace Lumos
 {
-	class FileBrowserWindow : public EditorWindow
-	{
-	public:
-		FileBrowserWindow();
-		~FileBrowserWindow();
+    class FileBrowserWindow : public EditorWindow
+    {
+    public:
+        FileBrowserWindow();
+        ~FileBrowserWindow();
 
-		void Open();
-		void OnImGui() override;
-		void SetCallback(const std::function<void(const std::string&)>& callback)
-		{
-			m_Callback = callback;
-		}
+        void Open();
+        void OnImGui() override;
+        void SetCallback(const std::function<void(const std::string&)>& callback)
+        {
+            m_Callback = callback;
+        }
 
-	private:
-		std::function<void(const std::string&)> m_Callback;
-		ImGui::FileBrowser* m_FileBrowser;
-	};
+    private:
+        std::function<void(const std::string&)> m_Callback;
+        ImGui::FileBrowser* m_FileBrowser;
+    };
 }

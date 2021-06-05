@@ -17,7 +17,6 @@ namespace Lumos
 
         GLPipeline::~GLPipeline()
         {
-            delete m_DescriptorSet;
             glDeleteVertexArrays(1, &m_VertexArray);
         }
 
@@ -66,16 +65,12 @@ namespace Lumos
 
         bool GLPipeline::Init(const PipelineInfo& pipelineCreateInfo)
         {
-            DescriptorInfo info;
-            info.pipeline = this;
-            info.layoutIndex = 0;
-            info.shader = pipelineCreateInfo.shader.get();
-            m_DescriptorSet = new GLDescriptorSet(info);
             m_TransparencyEnabled = pipelineCreateInfo.transparencyEnabled;
+            m_CullMode = pipelineCreateInfo.cullMode;
 
             GLCall(glGenVertexArrays(1, &m_VertexArray));
 
-            m_Shader = info.shader;
+            m_Shader = pipelineCreateInfo.shader.get();
             return true;
         }
 
@@ -97,12 +92,32 @@ namespace Lumos
 
         void GLPipeline::Bind(Graphics::CommandBuffer* cmdBuffer)
         {
+            m_Shader->Bind();
+
             if(m_TransparencyEnabled)
                 glEnable(GL_BLEND);
             else
                 glDisable(GL_BLEND);
 
-            m_Shader->Bind();
+            glEnable(GL_CULL_FACE);
+
+            switch(m_CullMode)
+            {
+            case CullMode::BACK:
+                glCullFace(GL_BACK);
+                break;
+            case CullMode::FRONT:
+                glCullFace(GL_FRONT);
+                break;
+            case CullMode::FRONTANDBACK:
+                glCullFace(GL_FRONT_AND_BACK);
+                break;
+            case CullMode::NONE:
+                glDisable(GL_CULL_FACE);
+                break;
+            }
+
+            GLCall(glFrontFace(GL_CCW));
         }
 
         void GLPipeline::MakeDefault()

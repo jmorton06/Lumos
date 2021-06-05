@@ -14,10 +14,7 @@ namespace Lumos
 
             VkDescriptorSet GetDescriptorSet() const { return m_DescriptorSet; }
 
-            void Update(std::vector<ImageInfo>& imageInfos, std::vector<BufferInfo>& bufferInfos) override;
-            void Update(std::vector<BufferInfo>& bufferInfos) override;
-            void Update(std::vector<ImageInfo>& imageInfos) override;
-
+            void Update(std::vector<Descriptor>& descriptors) override;
             bool GetIsDynamic() const { return m_Dynamic; }
 
             void SetDynamicOffset(uint32_t offset) override { m_DynamicOffset = offset; }
@@ -26,7 +23,7 @@ namespace Lumos
             static void MakeDefault();
 
         protected:
-            void UpdateInternal(std::vector<ImageInfo>* imageInfos, std::vector<BufferInfo>* bufferInfos);
+            void UpdateInternal(std::vector<Descriptor>* imageInfos);
 
             static DescriptorSet* CreateFuncVulkan(const DescriptorInfo&);
 
@@ -38,6 +35,8 @@ namespace Lumos
             VkDescriptorBufferInfo* m_BufferInfoPool = nullptr;
             VkDescriptorImageInfo* m_ImageInfoPool = nullptr;
             VkWriteDescriptorSet* m_WriteDescriptorSetPool = nullptr;
+
+            DescriptorSetInfo m_Descriptors;
         };
     }
 }

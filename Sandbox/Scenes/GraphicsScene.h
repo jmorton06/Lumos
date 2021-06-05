@@ -4,14 +4,14 @@
 class GraphicsScene : public Lumos::Scene
 {
 public:
-	GraphicsScene(const std::string& SceneName);
-	virtual ~GraphicsScene();
+    GraphicsScene(const std::string& SceneName);
+    virtual ~GraphicsScene();
 
-	virtual void OnInit() override;
-	virtual void OnCleanupScene() override;
-	virtual void OnUpdate(const Lumos::TimeStep& timeStep) override;
+    virtual void OnInit() override;
+    virtual void OnCleanupScene() override;
+    virtual void OnUpdate(const Lumos::TimeStep& timeStep) override;
 
-	void LoadModels();
-    
+    void LoadModels();
+
 private:
 };

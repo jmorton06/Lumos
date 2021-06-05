@@ -11,15 +11,38 @@ namespace Lumos
 {
     namespace Graphics
     {
+        static constexpr uint32_t MAX_DESCRIPTOR_SET_COUNT = 1500;
+
         void VKRenderer::InitInternal()
         {
             LUMOS_PROFILE_FUNCTION();
 
             m_RendererTitle = "Vulkan";
+
+            // Pool sizes
+            std::array<VkDescriptorPoolSize, 5> pool_sizes = {
+                VkDescriptorPoolSize { VK_DESCRIPTOR_TYPE_SAMPLER, 100 },
+                VkDescriptorPoolSize { VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, 100 },
+                VkDescriptorPoolSize { VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 100 },
+                VkDescriptorPoolSize { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 100 },
+                VkDescriptorPoolSize { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 100 }
+            };
+
+            // Create info
+            VkDescriptorPoolCreateInfo pool_create_info = {};
+            pool_create_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+            pool_create_info.flags = 0;
+            pool_create_info.poolSizeCount = static_cast<uint32_t>(pool_sizes.size());
+            pool_create_info.pPoolSizes = pool_sizes.data();
+            pool_create_info.maxSets = MAX_DESCRIPTOR_SET_COUNT;
+
+            // Pool
+            VK_CHECK_RESULT(vkCreateDescriptorPool(VKDevice::Get().GetDevice(), &pool_create_info, nullptr, &m_DescriptorPool));
         }
 
         VKRenderer::~VKRenderer()
         {
+            vkDestroyDescriptorPool(VKDevice::Get().GetDevice(), m_DescriptorPool, VK_NULL_HANDLE);
         }
 
         void VKRenderer::PresentInternal(CommandBuffer* cmdBuffer)

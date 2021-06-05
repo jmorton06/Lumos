@@ -10,7 +10,6 @@
 
 namespace Lumos
 {
-    static constexpr uint32_t MAX_DESCRIPTOR_SET_COUNT = 1500;
 
     namespace Graphics
     {
@@ -21,106 +20,13 @@ namespace Lumos
 
         VKPipeline::~VKPipeline()
         {
-            vkDestroyDescriptorPool(VKDevice::Get().GetDevice(), m_DescriptorPool, VK_NULL_HANDLE);
-            vkDestroyPipelineLayout(VKDevice::Get().GetDevice(), m_PipelineLayout, VK_NULL_HANDLE);
-
-            for(auto& descriptorLayout : m_DescriptorLayouts)
-                vkDestroyDescriptorSetLayout(VKDevice::Get().GetDevice(), descriptorLayout, VK_NULL_HANDLE);
-
             vkDestroyPipeline(VKDevice::Get().GetDevice(), m_Pipeline, VK_NULL_HANDLE);
-            delete m_DescriptorSet;
         }
 
         bool VKPipeline::Init(const PipelineInfo& pipelineCreateInfo)
         {
             m_Shader = pipelineCreateInfo.shader;
-
-            std::vector<std::vector<Graphics::DescriptorLayoutInfo>> layouts;
-
-            for(auto& descriptorLayout : pipelineCreateInfo.shader.As<VKShader>()->GetDescriptorLayout())
-            {
-                if(layouts.size() < descriptorLayout.setID + 1)
-                {
-                    layouts.emplace_back();
-                }
-
-                layouts[descriptorLayout.setID].push_back(descriptorLayout);
-            }
-
-            for(auto& l : layouts)
-            {
-                std::vector<VkDescriptorSetLayoutBinding> setLayoutBindings;
-                setLayoutBindings.reserve(l.size());
-
-                for(uint32_t i = 0; i < l.size(); i++)
-                {
-                    auto& info = l[i];
-
-                    VkDescriptorSetLayoutBinding setLayoutBinding {};
-                    setLayoutBinding.descriptorType = VKTools::DescriptorTypeToVK(info.type);
-                    setLayoutBinding.stageFlags = VKTools::ShaderTypeToVK(info.stage);
-                    setLayoutBinding.binding = info.binding;
-                    setLayoutBinding.descriptorCount = info.count;
-
-                    setLayoutBindings.push_back(setLayoutBinding);
-                }
-
-                // Pipeline layout
-                VkDescriptorSetLayoutCreateInfo descriptorLayoutCI {};
-                descriptorLayoutCI.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-                descriptorLayoutCI.bindingCount = static_cast<uint32_t>(setLayoutBindings.size());
-                descriptorLayoutCI.pBindings = setLayoutBindings.data();
-
-                VkDescriptorSetLayout layout;
-                vkCreateDescriptorSetLayout(VKDevice::Get().GetDevice(), &descriptorLayoutCI, VK_NULL_HANDLE, &layout);
-
-                m_DescriptorLayouts.push_back(layout);
-            }
-
-            const auto& pushConsts = m_Shader.As<VKShader>()->GetPushConstants();
-            std::vector<VkPushConstantRange> pushConstantRanges;
-
-            for(auto& pushConst : pushConsts)
-            {
-                pushConstantRanges.push_back(VKInitialisers::pushConstantRange(VKTools::ShaderTypeToVK(pushConst.shaderStage), pushConst.size, pushConst.offset));
-            }
-
-            VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo {};
-            pipelineLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-            pipelineLayoutCreateInfo.setLayoutCount = static_cast<uint32_t>(m_DescriptorLayouts.size());
-            pipelineLayoutCreateInfo.pSetLayouts = m_DescriptorLayouts.data();
-
-            pipelineLayoutCreateInfo.pushConstantRangeCount = uint32_t(pushConstantRanges.size());
-            pipelineLayoutCreateInfo.pPushConstantRanges = pushConstantRanges.data();
-
-            VK_CHECK_RESULT(vkCreatePipelineLayout(VKDevice::Get().GetDevice(), &pipelineLayoutCreateInfo, VK_NULL_HANDLE, &m_PipelineLayout));
-
-            // Pool sizes
-            std::array<VkDescriptorPoolSize, 5> pool_sizes = {
-                VkDescriptorPoolSize { VK_DESCRIPTOR_TYPE_SAMPLER, 10 },
-                VkDescriptorPoolSize { VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, 10 },
-                VkDescriptorPoolSize { VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 10 },
-                VkDescriptorPoolSize { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 10 },
-                VkDescriptorPoolSize { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 10 }
-            };
-
-            // Create info
-            VkDescriptorPoolCreateInfo pool_create_info = {};
-            pool_create_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-            pool_create_info.flags = 0;
-            pool_create_info.poolSizeCount = static_cast<uint32_t>(pool_sizes.size());
-            pool_create_info.pPoolSizes = pool_sizes.data();
-            pool_create_info.maxSets = MAX_DESCRIPTOR_SET_COUNT;
-
-            // Pool
-            VK_CHECK_RESULT(vkCreateDescriptorPool(VKDevice::Get().GetDevice(), &pool_create_info, nullptr, &m_DescriptorPool));
-
-            DescriptorInfo info;
-            info.pipeline = this;
-            info.layoutIndex = 0;
-            info.shader = pipelineCreateInfo.shader.get();
-
-            m_DescriptorSet = new VKDescriptorSet(info);
+            m_PipelineLayout = m_Shader.As<VKShader>()->GetPipelineLayout();
 
             // Pipeline
             std::vector<VkDynamicState> dynamicStateDescriptors;
@@ -132,18 +38,18 @@ namespace Lumos
             std::vector<VkVertexInputAttributeDescription> vertexInputDescription;
 
             // Vertex layout
-            m_VertexBindingDescription.binding = 0;
-            m_VertexBindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
-            m_VertexBindingDescription.stride = m_Shader.As<VKShader>()->GetVertexInputStride();
+            VkVertexInputBindingDescription vertexBindingDescription;
+            vertexBindingDescription.binding = 0;
+            vertexBindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+            vertexBindingDescription.stride = m_Shader.As<VKShader>()->GetVertexInputStride();
 
             const std::vector<VkVertexInputAttributeDescription>& vertexInputAttributeDescription = m_Shader.As<VKShader>()->GetVertexInputAttributeDescription();
 
             VkPipelineVertexInputStateCreateInfo vi {};
-            memset(&vi, 0, sizeof(vi));
             vi.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
             vi.pNext = NULL;
             vi.vertexBindingDescriptionCount = 1;
-            vi.pVertexBindingDescriptions = &m_VertexBindingDescription;
+            vi.pVertexBindingDescriptions = &vertexBindingDescription;
             vi.vertexAttributeDescriptionCount = uint32_t(vertexInputAttributeDescription.size());
             vi.pVertexAttributeDescriptions = vertexInputAttributeDescription.data();
 
@@ -173,7 +79,7 @@ namespace Lumos
             cb.flags = 0;
 
             std::vector<VkPipelineColorBlendAttachmentState> blendAttachState;
-            blendAttachState.resize(((VKRenderpass*)pipelineCreateInfo.renderpass.get())->GetColourAttachmentCount());
+            blendAttachState.resize(pipelineCreateInfo.renderpass.As<VKRenderpass>()->GetColourAttachmentCount());
 
             for(unsigned int i = 0; i < blendAttachState.size(); i++)
             {
@@ -283,19 +189,6 @@ namespace Lumos
         void VKPipeline::Bind(CommandBuffer* cmdBuffer)
         {
             vkCmdBindPipeline(static_cast<VKCommandBuffer*>(cmdBuffer)->GetHandle(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_Pipeline);
-        }
-
-        VkDescriptorSet VKPipeline::CreateDescriptorSet()
-        {
-            VkDescriptorSet set;
-            VkDescriptorSetAllocateInfo descSetAllocInfo[1];
-            descSetAllocInfo[0].sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-            descSetAllocInfo[0].pNext = NULL;
-            descSetAllocInfo[0].descriptorPool = m_DescriptorPool;
-            descSetAllocInfo[0].descriptorSetCount = 1;
-            descSetAllocInfo[0].pSetLayouts = m_DescriptorLayouts.data();
-            VK_CHECK_RESULT(vkAllocateDescriptorSets(VKDevice::Get().GetDevice(), descSetAllocInfo, &set));
-            return set;
         }
 
         void VKPipeline::MakeDefault()

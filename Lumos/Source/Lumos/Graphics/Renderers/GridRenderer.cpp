@@ -60,7 +60,7 @@ namespace Lumos
 
             m_Pipeline->Bind(Renderer::GetSwapchain()->GetCurrentCommandBuffer());
 
-            m_CurrentDescriptorSets[0] = m_Pipeline->GetDescriptorSet();
+            m_CurrentDescriptorSets[0] = m_DescriptorSet[0].get();
 
             m_Quad->GetVertexBuffer()->Bind(Renderer::GetSwapchain()->GetCurrentCommandBuffer(), m_Pipeline.get());
             m_Quad->GetIndexBuffer()->Bind(Renderer::GetSwapchain()->GetCurrentCommandBuffer());
@@ -86,7 +86,7 @@ namespace Lumos
         void GridRenderer::Init()
         {
             LUMOS_PROFILE_FUNCTION();
-            m_Shader = Application::Get().GetShaderLibrary()->GetResource("/CoreShaders/Grid.shader");
+            m_Shader = Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/Grid.shader");
             m_Quad = Graphics::CreatePlane(5000.0f, 5000.f, Maths::Vector3(0.0f, 1.0f, 0.0f));
 
             // Vertex shader System uniforms
@@ -109,6 +109,12 @@ namespace Lumos
             renderpassCI.clear = false;
 
             m_RenderPass = Graphics::RenderPass::Get(renderpassCI);
+
+            Graphics::DescriptorInfo info {};
+            info.layoutIndex = 0;
+            info.shader = m_Shader.get();
+            m_DescriptorSet.resize(1);
+            m_DescriptorSet[0] = Ref<Graphics::DescriptorSet>(Graphics::DescriptorSet::Create(info));
 
             CreateGraphicsPipeline();
             UpdateUniformBuffer();
@@ -208,7 +214,6 @@ namespace Lumos
             pipelineCreateInfo.polygonMode = Graphics::PolygonMode::FILL;
             pipelineCreateInfo.cullMode = Graphics::CullMode::NONE;
             pipelineCreateInfo.transparencyEnabled = true;
-            pipelineCreateInfo.depthBiasEnabled = false;
 
             m_Pipeline = Graphics::Pipeline::Get(pipelineCreateInfo);
         }
@@ -223,9 +228,9 @@ namespace Lumos
                 m_UniformBuffer->Init(bufferSize, nullptr);
             }
 
-            std::vector<Graphics::BufferInfo> bufferInfos;
+            std::vector<Graphics::Descriptor> bufferInfos;
 
-            Graphics::BufferInfo bufferInfo;
+            Graphics::Descriptor bufferInfo;
             bufferInfo.name = "UniformBufferObject";
             bufferInfo.buffer = m_UniformBuffer;
             bufferInfo.offset = 0;
@@ -241,7 +246,7 @@ namespace Lumos
                 m_UniformBufferFrag->Init(bufferSize, nullptr);
             }
 
-            Graphics::BufferInfo bufferInfo2;
+            Graphics::Descriptor bufferInfo2;
             bufferInfo2.name = "UniformBuffer";
             bufferInfo2.buffer = m_UniformBufferFrag;
             bufferInfo2.offset = 0;
@@ -253,7 +258,7 @@ namespace Lumos
             bufferInfos.push_back(bufferInfo);
             bufferInfos.push_back(bufferInfo2);
             if(m_Pipeline != nullptr)
-                m_Pipeline->GetDescriptorSet()->Update(bufferInfos);
+                m_DescriptorSet[0].get()->Update(bufferInfos);
         }
 
         void GridRenderer::SetRenderTarget(Texture* texture, bool rebuildFramebuffer)

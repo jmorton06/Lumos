@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Core/VFS.h"
+#include "Core/Engine.h"
 #include "Audio/Sound.h"
 #include "Graphics/API/Shader.h"
 #include "Utilities/TSingleton.h"
@@ -18,6 +19,7 @@ namespace Lumos
         struct Resource
         {
             float timeSinceReload;
+            float lastAccessed;
             ResourceHandle data;
             bool onDisk;
         };
@@ -31,14 +33,15 @@ namespace Lumos
 
         ResourceHandle GetResource(const IDType& name)
         {
-            typename MapType::iterator itr = m_nameResourceMap.find(name);
-            if(itr != m_nameResourceMap.end())
+            typename MapType::iterator itr = m_NameResourceMap.find(name);
+            if(itr != m_NameResourceMap.end())
             {
+                itr->second.lastAccessed = Engine::GetTimeStep().GetElapsedSeconds();
                 return itr->second.data;
             }
 
             ResourceHandle resourceData;
-            if(!m_loadFunc(name, resourceData))
+            if(!m_LoadFunc(name, resourceData))
             {
                 LUMOS_LOG_ERROR("Resource Manager could not load resource name {0} of type {1}", name, typeid(T).name());
                 return ResourceHandle(nullptr);
@@ -48,17 +51,19 @@ namespace Lumos
             newResource.data = resourceData;
             newResource.timeSinceReload = 0;
             newResource.onDisk = true;
-            m_nameResourceMap.emplace(name, newResource);
+            newResource.lastAccessed = Engine::GetTimeStep().GetElapsedSeconds();
+
+            m_NameResourceMap.emplace(name, newResource);
 
             return resourceData;
         }
 
         ResourceHandle GetResource(const ResourceHandle& data)
         {
-            IDType newId = m_getIdFunc(data);
+            IDType newId = m_GetIdFunc(data);
 
-            typename MapType::iterator itr = m_nameResourceMap.find(newId);
-            if(itr == m_nameResourceMap.end())
+            typename MapType::iterator itr = m_NameResourceMap.find(newId);
+            if(itr == m_NameResourceMap.end())
             {
                 ResourceHandle resourceData = data;
 
@@ -66,7 +71,7 @@ namespace Lumos
                 newResource.data = resourceData;
                 newResource.timeSinceReload = 0;
                 newResource.onDisk = false;
-                m_nameResourceMap.emplace(newId, newResource);
+                m_NameResourceMap.emplace(newId, newResource);
 
                 return resourceData;
             }
@@ -76,22 +81,23 @@ namespace Lumos
 
         void Destroy()
         {
-            typename MapType::iterator itr = m_nameResourceMap.begin();
-            while(itr != m_nameResourceMap.end())
+            typename MapType::iterator itr = m_NameResourceMap.begin();
+            while(itr != m_NameResourceMap.end())
             {
-                m_releaseFunc((itr->second.data));
+                m_ReleaseFunc((itr->second.data));
                 ++itr;
             }
         }
 
         void Update(const float elapsedMilliseconds)
         {
-            typename MapType::iterator itr = m_nameResourceMap.begin();
+            typename MapType::iterator itr = m_NameResourceMap.begin();
 
-            while(itr != m_nameResourceMap.end())
+            float now = Engine::GetTimeStep().GetElapsedSeconds();
+            while(itr != m_NameResourceMap.end())
             {
-                if(itr->second.data.GetCounter()->GetReferenceCount() == 1)
-                    itr = m_nameResourceMap.erase(itr);
+                if(itr->second.data.GetCounter()->GetReferenceCount() == 1 && m_ExpirationTime < (now - itr->second.lastAccessed))
+                    itr = m_NameResourceMap.erase(itr);
                 else
                     ++itr;
             }
@@ -99,11 +105,11 @@ namespace Lumos
 
         bool ReloadResources()
         {
-            typename MapType::iterator itr = m_nameResourceMap.begin();
-            while(itr != m_nameResourceMap.end())
+            typename MapType::iterator itr = m_NameResourceMap.begin();
+            while(itr != m_NameResourceMap.end())
             {
                 itr->second.timeSinceReload = 0;
-                if(!m_reloadFunc(itr->first, (itr->second.data)))
+                if(!m_ReloadFunc(itr->first, (itr->second.data)))
                 {
                     LUMOS_LOG_ERROR("Resource Manager could not reload resource name {0} of type {1}", itr->first, typeid(T).name());
                 }
@@ -114,8 +120,8 @@ namespace Lumos
 
         bool ResourceExists(const IDType& name)
         {
-            typename MapType::iterator itr = m_nameResourceMap.find(name);
-            return itr != m_nameResourceMap.end();
+            typename MapType::iterator itr = m_NameResourceMap.find(name);
+            return itr != m_NameResourceMap.end();
         }
 
         ResourceHandle operator[](const IDType& name)
@@ -123,16 +129,17 @@ namespace Lumos
             return GetResource(name);
         }
 
-        LoadFunc& LoadFunction() { return m_loadFunc; }
-        ReleaseFunc& ReleaseFunction() { return m_releaseFunc; }
-        ReloadFunc& ReloadFunction() { return m_reloadFunc; }
+        LoadFunc& LoadFunction() { return m_LoadFunc; }
+        ReleaseFunc& ReleaseFunction() { return m_ReleaseFunc; }
+        ReloadFunc& ReloadFunction() { return m_ReloadFunc; }
 
     protected:
-        MapType m_nameResourceMap = {};
-        LoadFunc m_loadFunc;
-        ReleaseFunc m_releaseFunc;
-        ReloadFunc m_reloadFunc;
-        GetIdFunc m_getIdFunc;
+        MapType m_NameResourceMap = {};
+        LoadFunc m_LoadFunc;
+        ReleaseFunc m_ReleaseFunc;
+        ReloadFunc m_ReloadFunc;
+        GetIdFunc m_GetIdFunc;
+        float m_ExpirationTime = 3.0f;
     };
 
     class ShaderLibrary : public ResourceManager<Graphics::Shader>
@@ -140,7 +147,7 @@ namespace Lumos
     public:
         ShaderLibrary()
         {
-            m_loadFunc = Load;
+            m_LoadFunc = Load;
         }
 
         ~ShaderLibrary()

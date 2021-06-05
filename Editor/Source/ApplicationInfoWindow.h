@@ -4,12 +4,12 @@
 
 namespace Lumos
 {
-	class ApplicationInfoWindow : public EditorWindow
-	{
-	public:
-		ApplicationInfoWindow();
-		~ApplicationInfoWindow() = default;
+    class ApplicationInfoWindow : public EditorWindow
+    {
+    public:
+        ApplicationInfoWindow();
+        ~ApplicationInfoWindow() = default;
 
-		void OnImGui() override;
-	};
+        void OnImGui() override;
+    };
 }

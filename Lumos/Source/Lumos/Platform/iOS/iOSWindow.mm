@@ -71,6 +71,17 @@ namespace Lumos
 
 	}
 
+    void iOSWindow::ProcessInput()
+    {
+        for(auto& event : m_QueuedEvents)
+        {
+            m_Data.EventCallback(*event);
+            delete event;
+        }
+        
+        m_QueuedEvents.clear();
+    }
+
 	void iOSWindow::MakeDefault()
 	{
 		CreateFunc = CreateFunciOS;
@@ -85,42 +96,44 @@ namespace Lumos
     {
         if(down)
         {
-            KeyPressedEvent event(key, 0);
-            m_Data.EventCallback(event);
+            KeyPressedEvent* event = new KeyPressedEvent(key, 0);
+            m_QueuedEvents.push_back(event);
         }
         else
         {
-            KeyReleasedEvent event(key);
-            m_Data.EventCallback(event);
+            KeyReleasedEvent* event = new KeyReleasedEvent(key);
+            m_QueuedEvents.push_back(event);
         }
     }
 
     void iOSWindow::OnTouchEvent(uint32_t xPos, uint32_t yPos, uint32_t count, bool down)
     {
-        MouseMovedEvent event((float)xPos, (float)yPos);
-        m_Data.EventCallback(event);
+        MouseMovedEvent* event = new MouseMovedEvent((float)xPos, (float)yPos);
+        m_QueuedEvents.push_back(event);
+
         
         if(down)
         {
-            MouseButtonPressedEvent event2((Lumos::InputCode::MouseKey)Lumos::iOSKeyCodes::iOSTouchToLumosMouseKey(count));
-            m_Data.EventCallback(event2);
+            MouseButtonPressedEvent* event2 = new MouseButtonPressedEvent((Lumos::InputCode::MouseKey)Lumos::iOSKeyCodes::iOSTouchToLumosMouseKey(count));
+            m_QueuedEvents.push_back(event2);
         }
         else
         {
-            MouseButtonReleasedEvent event2((Lumos::InputCode::MouseKey)Lumos::iOSKeyCodes::iOSTouchToLumosMouseKey(count));
-            m_Data.EventCallback(event2);
+            MouseButtonReleasedEvent* event2 = new MouseButtonReleasedEvent((Lumos::InputCode::MouseKey)Lumos::iOSKeyCodes::iOSTouchToLumosMouseKey(count));
+            m_QueuedEvents.push_back(event2);
+
         }
     }
 
     void iOSWindow::OnMouseMovedEvent(uint32_t xPos, uint32_t yPos)
     {
-        MouseMovedEvent event(xPos, yPos);
-        m_Data.EventCallback(event);
+        MouseMovedEvent* event = new MouseMovedEvent(xPos, yPos);
+        m_QueuedEvents.push_back(event);
     }
 
     void iOSWindow::OnResizeEvent(uint32_t width, uint32_t height)
     {
-        WindowResizeEvent event(width, height);
-        m_Data.EventCallback(event);
+        WindowResizeEvent* event = new WindowResizeEvent(width, height);
+        m_QueuedEvents.push_back(event);
     }
 }

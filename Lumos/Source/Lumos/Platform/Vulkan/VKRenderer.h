@@ -49,6 +49,11 @@ namespace Lumos
             void DrawIndexedInternal(CommandBuffer* commandBuffer, DrawType type, uint32_t count, uint32_t start) const override;
             void DrawInternal(CommandBuffer* commandBuffer, DrawType type, uint32_t count, DataType datayType, void* indices) const override;
 
+            const VkDescriptorPool& GetDescriptorPool() const
+            {
+                return m_DescriptorPool;
+            };
+
             static void MakeDefault();
 
         protected:
@@ -62,6 +67,7 @@ namespace Lumos
             std::string m_RendererTitle;
             uint32_t m_Width, m_Height;
 
+            VkDescriptorPool m_DescriptorPool;
             VkDescriptorSet m_DescriptorSetPool[16];
         };
     }

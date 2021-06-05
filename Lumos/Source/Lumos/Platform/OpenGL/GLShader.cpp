@@ -69,8 +69,7 @@ namespace Lumos
             }
         }
 
-        GLShader::GLShader(const std::string& filePath, bool loadSPV)
-            : m_LoadSPV(loadSPV)
+        GLShader::GLShader(const std::string& filePath)
         {
             m_Name = StringUtilities::GetFileName(filePath);
             m_Path = StringUtilities::GetFileLocation(filePath);
@@ -84,31 +83,8 @@ namespace Lumos
         {
             Shutdown();
 
-            for(auto& resource : m_Resources)
-            {
-                delete resource;
-            }
-
-            for(auto& structs : m_Structs)
-            {
-                delete structs;
-            }
-
-            for(auto& shader : m_UniformBuffers)
-            {
-                for(auto j : shader.second)
-                {
-                    delete j;
-                }
-            }
-
             for(auto& pc : m_PushConstants)
                 delete[] pc.data;
-
-            for(auto& shader : m_UserUniformBuffers)
-            {
-                delete shader.second;
-            }
         }
 
         void GLShader::Init()
@@ -136,13 +112,6 @@ namespace Lumos
                         const spirv_cross::SPIRType& InputType = glsl->get_type(resource.type_id);
                         //Switch to GL layout
                         PushTypeToBuffer(InputType, m_Layout);
-                        //                        GLVertexInputAttributeDescription Description = {};
-                        //                        Description.binding  = glsl->get_decoration(resource.id, spv::DecorationBinding);
-                        //                        Description.location = glsl->get_decoration(resource.id, spv::DecorationLocation);
-                        //                        Description.offset   = stride;
-                        //                        Description.format   = GetOpenGLFormat(InputType);
-                        //                        m_VertexInputAttributeDescriptions.push_back(Description);
-
                         stride += GetStrideFromOpenGLFormat(0); //InputType.width * InputType.vecsize / 8;
                     }
                 }
@@ -150,14 +119,21 @@ namespace Lumos
                 // Get all sampled images in the shader.
                 for(auto& resource : resources.sampled_images)
                 {
-                    unsigned set = glsl->get_decoration(resource.id, spv::DecorationDescriptorSet);
-                    unsigned binding = glsl->get_decoration(resource.id, spv::DecorationBinding);
+                    uint32_t set = glsl->get_decoration(resource.id, spv::DecorationDescriptorSet);
+                    uint32_t binding = glsl->get_decoration(resource.id, spv::DecorationBinding);
 
                     // Modify the decoration to prepare it for GLSL.
                     glsl->unset_decoration(resource.id, spv::DecorationDescriptorSet);
 
                     // Some arbitrary remapping if we want.
                     glsl->set_decoration(resource.id, spv::DecorationBinding, set * 16 + binding);
+
+                    auto& descriptorInfo = m_DescriptorInfos[set];
+                    auto& descriptor = descriptorInfo.descriptors.emplace_back();
+                    descriptor.binding = binding;
+                    descriptor.name = resource.name;
+                    descriptor.shaderType = file.first;
+                    descriptor.type = Graphics::DescriptorType::IMAGE_SAMPLER;
                 }
 
                 for(auto const& image : resources.separate_images)
@@ -174,6 +150,39 @@ namespace Lumos
                 {
                     auto set { glsl->get_decoration(uniform_buffer.id, spv::Decoration::DecorationDescriptorSet) };
                     glsl->set_decoration(uniform_buffer.id, spv::Decoration::DecorationDescriptorSet, DESCRIPTOR_TABLE_INITIAL_SPACE + 2 * set);
+
+                    uint32_t binding = glsl->get_decoration(uniform_buffer.id, spv::DecorationBinding);
+                    auto& bufferType = glsl->get_type(uniform_buffer.type_id);
+
+                    auto bufferSize = glsl->get_declared_struct_size(bufferType);
+                    int memberCount = (int)bufferType.member_types.size();
+
+                    auto& descriptorInfo = m_DescriptorInfos[set];
+                    auto& descriptor = descriptorInfo.descriptors.emplace_back();
+                    descriptor.binding = binding;
+                    descriptor.size = (uint32_t)bufferSize;
+                    descriptor.name = uniform_buffer.name;
+                    descriptor.offset = 0;
+                    descriptor.shaderType = file.first;
+                    descriptor.type = Graphics::DescriptorType::UNIFORM_BUFFER;
+                    descriptor.buffer = nullptr;
+
+                    for(int i = 0; i < memberCount; i++)
+                    {
+                        auto type = glsl->get_type(bufferType.member_types[i]);
+                        const auto& memberName = glsl->get_member_name(bufferType.self, i);
+                        auto size = glsl->get_declared_struct_member_size(bufferType, i);
+                        auto offset = glsl->type_struct_member_offset(bufferType, i);
+
+                        std::string uniformName = uniform_buffer.name + "." + memberName;
+
+                        auto& member = descriptor.m_Members.emplace_back();
+                        member.size = (uint32_t)size;
+                        member.offset = offset;
+                        member.type = SPIRVTypeToLumosDataType(type);
+                        member.fullName = uniformName;
+                        member.name = memberName;
+                    }
                 }
                 for(auto const& storage_buffer : resources.storage_buffers)
                 {
@@ -185,11 +194,7 @@ namespace Lumos
                     auto set { glsl->get_decoration(storage_image.id, spv::Decoration::DecorationDescriptorSet) };
                     glsl->set_decoration(storage_image.id, spv::Decoration::DecorationDescriptorSet, DESCRIPTOR_TABLE_INITIAL_SPACE + 2 * set);
                 }
-                for(auto const& image : resources.sampled_images)
-                {
-                    auto set { glsl->get_decoration(image.id, spv::Decoration::DecorationDescriptorSet) };
-                    glsl->set_decoration(image.id, spv::Decoration::DecorationDescriptorSet, DESCRIPTOR_TABLE_INITIAL_SPACE + 2 * set); // Sampler offset done in spirv-cross
-                }
+
                 for(auto const& sampler : resources.separate_samplers)
                 {
                     auto set { glsl->get_decoration(sampler.id, spv::Decoration::DecorationDescriptorSet) };
@@ -201,9 +206,8 @@ namespace Lumos
                     uint32_t set = glsl->get_decoration(u.id, spv::DecorationDescriptorSet);
                     uint32_t binding = glsl->get_decoration(u.id, spv::DecorationBinding);
 
-                    uint32_t binding3 = glsl->get_decoration(u.id, spv::DecorationOffset);
-
                     auto& type = glsl->get_type(u.type_id);
+                    auto name = glsl->get_name(u.id);
 
                     auto ranges = glsl->get_active_buffer_ranges(u.id);
 
@@ -213,8 +217,29 @@ namespace Lumos
                         size += uint32_t(range.range);
                     }
 
+                    auto& bufferType = glsl->get_type(u.base_type_id);
+                    auto bufferSize = glsl->get_declared_struct_size(bufferType);
+                    int memberCount = (int)bufferType.member_types.size();
+
                     m_PushConstants.push_back({ size, file.first });
                     m_PushConstants.back().data = new uint8_t[size];
+
+                    for(int i = 0; i < memberCount; i++)
+                    {
+                        auto type = glsl->get_type(bufferType.member_types[i]);
+                        const auto& memberName = glsl->get_member_name(bufferType.self, i);
+                        auto size = glsl->get_declared_struct_member_size(bufferType, i);
+                        auto offset = glsl->type_struct_member_offset(bufferType, i);
+
+                        std::string uniformName = u.name + "." + memberName;
+
+                        auto& member = m_PushConstants.back().m_Members.emplace_back();
+                        member.size = (uint32_t)size;
+                        member.offset = offset;
+                        member.type = SPIRVTypeToLumosDataType(type);
+                        member.fullName = uniformName;
+                        member.name = memberName;
+                    }
                 }
 
                 spirv_cross::CompilerGLSL::Options options;
@@ -223,16 +248,15 @@ namespace Lumos
                 options.vulkan_semantics = false;
                 options.separate_shader_objects = false;
                 options.enable_420pack_extension = false;
+                options.emit_push_constant_as_uniform_buffer = false;
                 glsl->set_common_options(options);
 
                 // Compile to GLSL, ready to give to GL driver.
                 std::string glslSource = glsl->compile();
                 file.second = glslSource;
 
-                m_pShaderCompilers.push_back(glsl);
+                m_ShaderCompilers.push_back(glsl);
             }
-
-            Parse(sources);
 
             for(auto& source : *sources)
             {
@@ -251,10 +275,6 @@ namespace Lumos
                 LUMOS_LOG_INFO("Successfully compiled shader: {0}", m_Name);
             }
 
-            //LUMOS_ASSERT(m_Handle, "");
-
-            ResolveUniforms();
-            ValidateUniforms();
             CreateLocations();
 
             delete sources;
@@ -266,33 +286,9 @@ namespace Lumos
             GLCall(glDeleteProgram(m_Handle));
         }
 
-        void GLShader::BindPushConstants(Graphics::CommandBuffer* cmdBuffer, Graphics::Pipeline* pipeline)
-        {
-            LUMOS_PROFILE_FUNCTION();
-            for(auto pc : m_PushConstants)
-                SetUserUniformBuffer(pc.shaderStage, pc.data, pc.size);
-        }
-
-        bool GLShader::CreateLocations()
-        {
-            LUMOS_PROFILE_FUNCTION();
-            for(auto& compiler : m_pShaderCompilers)
-            {
-                const spirv_cross::ShaderResources shaderResources = compiler->get_shader_resources();
-
-                for(const auto& itUniform : shaderResources.uniform_buffers)
-                {
-                    if(compiler->get_type(itUniform.type_id).basetype == spirv_cross::SPIRType::Struct)
-                    {
-                        SetUniformLocation(itUniform.name.c_str());
-                    }
-                }
-            }
-            return true;
-        }
-
         GLuint HashValue(const char* szString)
         {
+            LUMOS_PROFILE_FUNCTION();
             const char* c = szString;
             GLuint dwHashValue = 0x00000000;
 
@@ -305,12 +301,112 @@ namespace Lumos
             return dwHashValue ? dwHashValue : 0xffffffff;
         }
 
+        void GLShader::SetUniform(ShaderDataType type, uint8_t* data, uint32_t size, uint32_t offset, const std::string& name)
+        {
+            LUMOS_PROFILE_FUNCTION();
+
+            GLuint hashName = HashValue(name.c_str());
+
+            if(m_UniformLocations.find(hashName) == m_UniformLocations.end())
+            {
+                GLuint location = glGetUniformLocation(m_Handle, name.c_str());
+
+                if(location != GL_INVALID_INDEX)
+                {
+                    m_UniformLocations[hashName] = location;
+                }
+                else
+                {
+                    LUMOS_LOG_WARN("Invalid uniform location {0}", name);
+                }
+            }
+
+            auto location = m_UniformLocations[hashName];
+            if(location == -1)
+            {
+                LUMOS_LOG_ERROR("Couldnt Find Uniform In Shader: {0}", name);
+                return;
+            }
+
+            switch(type)
+            {
+            case ShaderDataType::FLOAT32:
+                SetUniform1f(location, *reinterpret_cast<float*>(&data[offset]));
+                break;
+            case ShaderDataType::INT32:
+                SetUniform1i(location, *reinterpret_cast<int32_t*>(&data[offset]));
+                break;
+            case ShaderDataType::UINT:
+                SetUniform1ui(location, *reinterpret_cast<uint32_t*>(&data[offset]));
+                break;
+            case ShaderDataType::INT:
+                SetUniform1i(location, *reinterpret_cast<int*>(&data[offset]));
+                break;
+            case ShaderDataType::VEC2:
+                SetUniform2f(location, *reinterpret_cast<Maths::Vector2*>(&data[offset]));
+                break;
+            case ShaderDataType::VEC3:
+                SetUniform3f(location, *reinterpret_cast<Maths::Vector3*>(&data[offset]));
+                break;
+            case ShaderDataType::VEC4:
+                SetUniform4f(location, *reinterpret_cast<Maths::Vector4*>(&data[offset]));
+                break;
+            case ShaderDataType::MAT3:
+                SetUniformMat3(location, *reinterpret_cast<Maths::Matrix3*>(&data[offset]));
+                break;
+            case ShaderDataType::MAT4:
+                SetUniformMat4(location, *reinterpret_cast<Maths::Matrix4*>(&data[offset]));
+                break;
+            default:
+                LUMOS_ASSERT(false, "Unknown type!");
+            }
+        }
+
+        void GLShader::BindPushConstants(Graphics::CommandBuffer* cmdBuffer, Graphics::Pipeline* pipeline)
+        {
+            LUMOS_PROFILE_FUNCTION();
+            int index = 0;
+            for(auto pc : m_PushConstants)
+            {
+                for(auto& member : pc.m_Members)
+                {
+                    SetUniform(member.type, pc.data, member.size, member.offset, member.fullName);
+                }
+            }
+        }
+
+        bool GLShader::CreateLocations()
+        {
+            LUMOS_PROFILE_FUNCTION();
+            for(auto& compiler : m_ShaderCompilers)
+            {
+                const spirv_cross::ShaderResources shaderResources = compiler->get_shader_resources();
+
+                for(const auto& itUniform : shaderResources.uniform_buffers)
+                {
+                    if(compiler->get_type(itUniform.type_id).basetype == spirv_cross::SPIRType::Struct)
+                    {
+                        SetUniformLocation(itUniform.name.c_str());
+                    }
+                }
+
+                for(const auto& itUniform : shaderResources.push_constant_buffers)
+                {
+                    if(compiler->get_type(itUniform.type_id).basetype == spirv_cross::SPIRType::Struct)
+                    {
+                        auto name = compiler->get_name(itUniform.base_type_id);
+                        SetUniformLocation(name.c_str());
+                    }
+                }
+            }
+            return true;
+        }
+
         void GLShader::BindUniformBuffer(GLUniformBuffer* buffer, uint32_t slot, const std::string& name)
         {
+            LUMOS_PROFILE_FUNCTION();
             GLuint nameInt = HashValue(name.c_str());
-            const auto& itLocation = m_uniformBlockLocations.find(nameInt); //
-
-            //auto loc = glGetUniformBlockIndex(m_Handle, name.c_str());
+            const auto& itLocation = m_UniformBlockLocations.find(nameInt);
             GLCall(glUniformBlockBinding(m_Handle, itLocation->second, slot));
         }
 
@@ -319,14 +415,13 @@ namespace Lumos
             LUMOS_PROFILE_FUNCTION();
             GLuint name = HashValue(szName);
 
-            if(m_uniformBlockLocations.find(name) == m_uniformBlockLocations.end())
+            if(m_UniformBlockLocations.find(name) == m_UniformBlockLocations.end())
             {
                 GLuint location = glGetUniformBlockIndex(m_Handle, szName);
 
                 if(location != GL_INVALID_INDEX)
                 {
-                    m_names[name] = szName;
-                    m_uniformBlockLocations[name] = location;
+                    m_UniformBlockLocations[name] = location;
                     glUniformBlockBinding(m_Handle, location, location);
                     return true;
                 }
@@ -593,205 +688,6 @@ namespace Lumos
             s_CurrentlyBound = nullptr;
         }
 
-        void GLShader::Parse(std::map<ShaderType, std::string>* sources)
-        {
-            for(auto& source : *sources)
-            {
-                m_UniformBuffers[source.first].push_back(new GLShaderUniformBufferDeclaration("Global", static_cast<uint32_t>(source.first)));
-
-                const char* token;
-                const char* str;
-
-                str = source.second.c_str();
-                while((token = StringUtilities::FindToken(str, "struct")))
-                    ParseUniformStruct(StringUtilities::GetBlock(token, &str), source.first);
-
-                str = source.second.c_str();
-                while((token = StringUtilities::FindToken(str, "uniform")))
-                    ParseUniform(StringUtilities::GetStatement(token, &str), source.first);
-            }
-        }
-
-        void GLShader::ParseUniform(const std::string& statement, ShaderType type)
-        {
-            LUMOS_PROFILE_FUNCTION();
-            std::vector<std::string> tokens = StringUtilities::Tokenize(statement);
-            uint32_t index = 0;
-
-            index++; // "uniform"
-            const std::string typeString = tokens[index++];
-            std::string name = tokens[index++];
-            // Strip ; from name if present
-            if(const char* s = strstr(name.c_str(), ";"))
-                name = std::string(name.c_str(), s - name.c_str());
-
-            std::string n(name);
-            int32_t count = 1;
-            const char* namestr = n.c_str();
-            if(const char* s = strstr(namestr, "["))
-            {
-                name = std::string(namestr, s - namestr);
-
-                const char* end = strstr(namestr, "]");
-                std::string c(s + 1, end - s);
-                count = atoi(c.c_str());
-            }
-
-            if(IsTypeStringResource(typeString))
-            {
-                ShaderResourceDeclaration* declaration = new GLShaderResourceDeclaration(GLShaderResourceDeclaration::StringToType(typeString), name, count);
-                m_Resources.push_back(declaration);
-            }
-            else
-            {
-
-                if(count > 1)
-                {
-                    for(int countID = 0; countID < count; countID++)
-                    {
-                        const GLShaderUniformDeclaration::Type t = GLShaderUniformDeclaration::StringToType(typeString, count);
-                        GLShaderUniformDeclaration* declaration;
-
-                        name += "[" + StringUtilities::ToString(countID) + "]";
-                        bool ISStruct = false;
-
-                        if(t == GLShaderUniformDeclaration::Type::NONE)
-                        {
-                            ShaderStruct* s = FindStruct(typeString);
-                            LUMOS_ASSERT(s, "");
-                            declaration = new GLShaderUniformDeclaration(s, name, count);
-
-                            ISStruct = true;
-                        }
-                        else
-                        {
-                            declaration = new GLShaderUniformDeclaration(t, name, count);
-                        }
-
-                        if(StringUtilities::StartsWith(name, "sys_"))
-                        {
-                            static_cast<GLShaderUniformBufferDeclaration*>(m_UniformBuffers[type].front())->PushUniform(declaration);
-                        }
-                        else
-                        {
-
-                            if(m_UserUniformBuffers[type] == nullptr)
-                                m_UserUniformBuffers[type] = new GLShaderUniformBufferDeclaration("", 0);
-
-                            if(ISStruct)
-                            {
-                                for(uint32_t id = 0; id < static_cast<uint32_t>(count); id++)
-                                {
-                                    GLShaderUniformDeclaration* test = new GLShaderUniformDeclaration(*declaration);
-                                    test->SetName(name + "[" + StringUtilities::ToString(id) + "]");
-                                    test->m_Struct = new ShaderStruct(*declaration->m_Struct);
-                                    m_UserUniformBuffers[type]->PushUniform(test);
-                                }
-                            }
-                            else
-                            {
-                                m_UserUniformBuffers[type]->PushUniform(declaration);
-                            }
-                        }
-
-                        if(countID > 9)
-                            name = name.substr(0, name.size() - 4);
-                        else
-                            name = name.substr(0, name.size() - 3);
-                    }
-                }
-                else
-                {
-                    const GLShaderUniformDeclaration::Type t = GLShaderUniformDeclaration::StringToType(typeString, count);
-                    GLShaderUniformDeclaration* declaration;
-
-                    bool isStruct = false;
-                    if(t == GLShaderUniformDeclaration::Type::NONE)
-                    {
-                        ///Shaderstruct* s = FindStruct(typeString);
-                        //LUMOS_ASSERT(s, "");
-                        //declaration = new GLShaderUniformDeclaration(s, name, count);
-
-                        ShaderStruct* s = FindStruct(typeString);
-                        if(s)
-                        {
-                            declaration = new GLShaderUniformDeclaration(s, name, count);
-
-                            isStruct = true;
-                        }
-                        else
-                        {
-                            return;
-                        }
-                    }
-                    else
-                    {
-                        declaration = new GLShaderUniformDeclaration(t, name, count);
-                    }
-
-                    if(StringUtilities::StartsWith(name, "sys_"))
-                    {
-                        static_cast<GLShaderUniformBufferDeclaration*>(m_UniformBuffers[type].front())->PushUniform(declaration);
-                    }
-                    else
-                    {
-                        if(m_UserUniformBuffers[type] == nullptr)
-                            m_UserUniformBuffers[type] = new GLShaderUniformBufferDeclaration("", 0);
-
-                        if(isStruct)
-                        {
-                            GLShaderUniformDeclaration* test = new GLShaderUniformDeclaration(*declaration);
-                            test->SetName(name);
-                            test->m_Struct = new ShaderStruct(*declaration->m_Struct);
-                            m_UserUniformBuffers[type]->PushUniform(test);
-                        }
-                        else
-                        {
-                            m_UserUniformBuffers[type]->PushUniform(declaration);
-                        }
-                    }
-                }
-            }
-        }
-
-        void GLShader::ParseUniformStruct(const std::string& block, ShaderType shaderType)
-        {
-            std::vector<std::string> tokens = StringUtilities::Tokenize(block);
-
-            uint32_t index = 0;
-            index++; // struct
-            std::string name = tokens[index++];
-            ShaderStruct* uniformStruct = new ShaderStruct(name);
-            index++; // {
-            while(index < tokens.size())
-            {
-                if(tokens[index] == "}")
-                    break;
-
-                const std::string type = tokens[index++];
-                name = tokens[index++];
-
-                // Strip ; from name if present
-                if(const char* s = strstr(name.c_str(), ";"))
-                    name = std::string(name.c_str(), s - name.c_str());
-
-                uint32_t count = 1;
-                const char* namestr = name.c_str();
-                if(const char* s = strstr(namestr, "["))
-                {
-                    name = std::string(namestr, s - namestr);
-
-                    const char* end = strstr(namestr, "]");
-                    std::string c(s + 1, end - s);
-                    count = atoi(c.c_str());
-                }
-
-                ShaderUniformDeclaration* field = new GLShaderUniformDeclaration(GLShaderUniformDeclaration::StringToType(type, count), name, count);
-                uniformStruct->AddField(field);
-            }
-            m_Structs.push_back(uniformStruct);
-        }
-
         bool GLShader::IsTypeStringResource(const std::string& type)
         {
             if(type == "sampler2D")
@@ -805,367 +701,84 @@ namespace Lumos
             return false;
         }
 
-        void GLShader::ResolveUniforms()
+        GLint GLShader::GetUniformLocation(const std::string& name)
         {
             LUMOS_PROFILE_FUNCTION();
-            Bind();
+            GLuint hashName = HashValue(name.c_str());
 
-            for(auto shader : m_UniformBuffers)
+            if(m_UniformLocations.find(hashName) == m_UniformLocations.end())
             {
-                for(auto j : shader.second)
+                GLuint location = glGetUniformLocation(m_Handle, name.c_str());
+
+                if(location != GL_INVALID_INDEX)
                 {
-                    GLShaderUniformBufferDeclaration* decl = static_cast<GLShaderUniformBufferDeclaration*>(j);
-                    const ShaderUniformList& uniforms = decl->GetUniformDeclarations();
-                    for(uint32_t k = 0; k < uniforms.size(); k++)
-                    {
-                        GLShaderUniformDeclaration* uniform = static_cast<GLShaderUniformDeclaration*>(uniforms[k]);
-                        if(uniform->GetType() == GLShaderUniformDeclaration::Type::STRUCT)
-                        {
-                            const ShaderStruct& s = uniform->GetShaderUniformStruct();
-                            const auto& fields = s.GetFields();
-                            if(uniform->GetCount() == 1)
-                            {
-                                for(uint32_t l = 0; l < fields.size(); l++)
-                                {
-                                    GLShaderUniformDeclaration* field = static_cast<GLShaderUniformDeclaration*>(fields[l]);
-                                    field->m_Location = GetUniformLocation(uniform->m_Name + "." + field->m_Name);
-                                }
-                            }
-                            else
-                            {
-                                for(uint32_t i = 0; i < uniform->GetCount(); i++)
-                                {
-                                    for(uint32_t l = 0; l < fields.size(); l++)
-                                    {
-                                        GLShaderUniformDeclaration* field = static_cast<GLShaderUniformDeclaration*>(fields[l]);
-                                        field->m_Location = GetUniformLocation(uniform->m_Name + "[" + std::to_string(i) + "]" + "." + field->m_Name);
-                                    }
-                                }
-                            }
-                        }
-                        else
-                        {
-                            uniform->m_Location = GetUniformLocation(uniform->m_Name);
-                        }
-                    }
+                    m_UniformLocations[hashName] = location;
+                }
+                else
+                {
+                    LUMOS_LOG_WARN("Invalid uniform location {0}", name);
                 }
             }
 
-            for(const auto& shader : m_UserUniformBuffers)
+            auto location = m_UniformLocations[hashName];
+            if(location == -1)
             {
-                GLShaderUniformBufferDeclaration* decl = shader.second;
-                if(decl)
-                {
-                    const ShaderUniformList& uniforms = decl->GetUniformDeclarations();
-                    for(uint32_t j = 0; j < uniforms.size(); j++)
-                    {
-                        GLShaderUniformDeclaration* uniform = static_cast<GLShaderUniformDeclaration*>(uniforms[j]);
-                        if(uniform->GetType() == GLShaderUniformDeclaration::Type::STRUCT)
-                        {
-                            const ShaderStruct& s = uniform->GetShaderUniformStruct();
-                            const auto& fields = s.GetFields();
-
-                            if(uniform->GetCount() == 1)
-                            {
-                                for(uint32_t k = 0; k < fields.size(); k++)
-                                {
-                                    GLShaderUniformDeclaration* field = static_cast<GLShaderUniformDeclaration*>(fields[k]);
-                                    field->m_Location = GetUniformLocation(uniform->m_Name + "." + field->m_Name);
-                                }
-                            }
-                            else
-                            {
-                                for(uint32_t i = 0; i < uniform->GetCount(); i++)
-                                {
-                                    for(uint32_t k = 0; k < fields.size(); k++)
-                                    {
-                                        GLShaderUniformDeclaration* field = static_cast<GLShaderUniformDeclaration*>(fields[k]);
-                                        field->m_Location = GetUniformLocation(uniform->m_Name + "[" + std::to_string(i) + "]" + "." + field->m_Name);
-                                    }
-                                }
-                            }
-                        }
-                        else
-                        {
-                            uniform->m_Location = GetUniformLocation(uniform->m_Name);
-                        }
-                    }
-                }
+                LUMOS_LOG_ERROR("Couldnt Find Uniform In Shader: {0}", name);
+                return location;
             }
 
-            uint32_t sampler = 0;
-            for(uint32_t i = 0; i < m_Resources.size(); i++)
-            {
-                GLShaderResourceDeclaration* resource = static_cast<GLShaderResourceDeclaration*>(m_Resources[i]);
-                uint32_t location = GetUniformLocation(resource->m_Name);
-                if(resource->GetCount() == 1)
-                {
-                    resource->m_Register = sampler;
-                    SetUniform1i(location, sampler++);
-                }
-                else if(resource->GetCount() > 1)
-                {
-                    resource->m_Register = 0;
-                    uint32_t count = resource->GetCount();
-                    int32_t* samplers = new int32_t[count];
-                    for(uint32_t s = 0; s < count; s++)
-                        samplers[s] = s;
-                    SetUniform1iv(resource->GetName(), samplers, count);
-                    delete[] samplers;
-                }
-            }
-            Unbind();
+            return location;
         }
 
-        void GLShader::ValidateUniforms()
-        {
-        }
-
-        bool GLShader::IsSystemUniform(ShaderUniformDeclaration* uniform)
-        {
-            LUMOS_PROFILE_FUNCTION();
-            return StringUtilities::StartsWith(uniform->GetName(), "sys_");
-        }
-
-        GLint GLShader::GetUniformLocation(const std::string& name) const
-        {
-            LUMOS_PROFILE_FUNCTION();
-            GLCall(const GLint result = glGetUniformLocation(m_Handle, name.c_str()));
-            //if (result == -1)
-            //	LUMOS_LOG_WARN("{0} : could not find uniform {1} in shader!",m_Name,name);
-
-            return result;
-        }
-
-        void GLShader::SetUniformStruct(GLShaderUniformDeclaration* uniform, uint8_t* data, int32_t offset) const
-        {
-            LUMOS_PROFILE_FUNCTION();
-            const ShaderStruct& s = uniform->GetShaderUniformStruct();
-            const auto& fields = s.GetFields();
-            for(uint32_t k = 0; k < fields.size(); k++)
-            {
-                GLShaderUniformDeclaration* field = static_cast<GLShaderUniformDeclaration*>(fields[k]);
-                ResolveAndSetUniformField(*field, data, offset, uniform->GetCount());
-                offset += field->m_Size;
-            }
-        }
-
-        ShaderUniformDeclaration* GLShader::FindUniformDeclaration(const std::string& name, const ShaderUniformBufferDeclaration* buffer)
-        {
-            LUMOS_PROFILE_FUNCTION();
-            const ShaderUniformList& uniforms = buffer->GetUniformDeclarations();
-            for(uint32_t i = 0; i < uniforms.size(); i++)
-            {
-                if(uniforms[i]->GetName() == name)
-                    return uniforms[i];
-            }
-            return nullptr;
-        }
-
-        ShaderUniformDeclaration* GLShader::FindUniformDeclaration(const std::string& name)
-        {
-            LUMOS_PROFILE_FUNCTION();
-            ShaderUniformDeclaration* result = nullptr;
-
-            for(auto shader : m_UniformBuffers)
-            {
-                for(uint32_t i = 0; i < shader.second.size(); i++)
-                {
-                    result = FindUniformDeclaration(name, shader.second[i]);
-                    if(result)
-                        return result;
-                }
-            }
-
-            for(const auto& shader : m_UserUniformBuffers)
-            {
-                result = FindUniformDeclaration(name, shader.second);
-                if(result)
-                    return result;
-            }
-
-            return result;
-        }
-
-        void GLShader::SetUserUniformBuffer(ShaderType type, uint8_t* data, uint32_t size)
-        {
-            LUMOS_PROFILE_FUNCTION();
-            ResolveAndSetUniforms(m_UserUniformBuffers[type], data, size);
-        }
-
-        ShaderStruct* GLShader::FindStruct(const std::string& name)
-        {
-            LUMOS_PROFILE_FUNCTION();
-            for(ShaderStruct* s : m_Structs)
-            {
-                if(s->GetName() == name)
-                    return s;
-            }
-            return nullptr;
-        }
-
-        void GLShader::ResolveAndSetUniforms(ShaderUniformBufferDeclaration* buffer, uint8_t* data, uint32_t size) const
-        {
-            LUMOS_PROFILE_FUNCTION();
-            const ShaderUniformList& uniforms = buffer->GetUniformDeclarations();
-            for(uint32_t i = 0; i < uniforms.size(); i++)
-            {
-                GLShaderUniformDeclaration* uniform = static_cast<GLShaderUniformDeclaration*>(uniforms[i]);
-
-                ResolveAndSetUniform(uniform, data, size, uniform->GetCount());
-            }
-        }
-
-        void GLShader::ResolveAndSetUniform(GLShaderUniformDeclaration* uniform, uint8_t* data, uint32_t size, uint32_t count) const
-        {
-            LUMOS_PROFILE_FUNCTION();
-            if(uniform->GetLocation() == -1)
-            {
-                //LUMOS_LOG_ERROR( "Couldnt Find Uniform In Shader: " + uniform->GetName());
-                return;
-            }
-
-            const uint32_t offset = uniform->GetOffset();
-            switch(uniform->GetType())
-            {
-            case GLShaderUniformDeclaration::Type::FLOAT32:
-                SetUniform1f(uniform->GetLocation(), *reinterpret_cast<float*>(&data[offset]));
-                break;
-            case GLShaderUniformDeclaration::Type::INT32:
-                SetUniform1i(uniform->GetLocation(), *reinterpret_cast<int32_t*>(&data[offset]));
-                break;
-            case GLShaderUniformDeclaration::Type::UINT:
-                SetUniform1ui(uniform->GetLocation(), *reinterpret_cast<uint32_t*>(&data[offset]));
-                break;
-            case GLShaderUniformDeclaration::Type::INT:
-                SetUniform1i(uniform->GetLocation(), *reinterpret_cast<int*>(&data[offset]));
-                break;
-            case GLShaderUniformDeclaration::Type::VEC2:
-                SetUniform2f(uniform->GetLocation(), *reinterpret_cast<Maths::Vector2*>(&data[offset]));
-                break;
-            case GLShaderUniformDeclaration::Type::VEC3:
-                SetUniform3f(uniform->GetLocation(), *reinterpret_cast<Maths::Vector3*>(&data[offset]));
-                break;
-            case GLShaderUniformDeclaration::Type::VEC4:
-                SetUniform4f(uniform->GetLocation(), *reinterpret_cast<Maths::Vector4*>(&data[offset]));
-                break;
-            case GLShaderUniformDeclaration::Type::MAT3:
-                SetUniformMat3(uniform->GetLocation(), *reinterpret_cast<Maths::Matrix3*>(&data[offset]));
-                break;
-            case GLShaderUniformDeclaration::Type::MAT4:
-                SetUniformMat4(uniform->GetLocation(), *reinterpret_cast<Maths::Matrix4*>(&data[offset]));
-                break;
-            case GLShaderUniformDeclaration::Type::MAT4ARRAY:
-                SetUniformMat4Array(uniform->GetLocation(), count, *reinterpret_cast<Maths::Matrix4*>(&data[offset]));
-                break;
-            case GLShaderUniformDeclaration::Type::STRUCT:
-                SetUniformStruct(uniform, data, offset);
-                break;
-            default:
-                LUMOS_ASSERT(false, "Unknown type!");
-            }
-        }
-
-        void GLShader::SetUniform(const std::string& name, uint8_t* data)
-        {
-            LUMOS_PROFILE_FUNCTION();
-            ShaderUniformDeclaration* uniform = FindUniformDeclaration(name);
-            if(!uniform)
-            {
-                LUMOS_LOG_ERROR("Cannot find uniform in {0} shader with name '{1}'", m_Name, name);
-                return;
-            }
-            ResolveAndSetUniform(static_cast<GLShaderUniformDeclaration*>(uniform), data, 0, uniform->GetCount());
-        }
-
-        void GLShader::ResolveAndSetUniformField(const GLShaderUniformDeclaration& field, uint8_t* data, int32_t offset, uint32_t count) const
-        {
-            LUMOS_PROFILE_FUNCTION();
-            //LUMOS_ASSERT(field.GetLocation() < 0, "Couldnt Find Uniform In Shader: " + field.GetName());
-
-            switch(field.GetType())
-            {
-            case GLShaderUniformDeclaration::Type::FLOAT32:
-                SetUniform1f(field.GetLocation(), *reinterpret_cast<float*>(&data[offset]));
-                break;
-            case GLShaderUniformDeclaration::Type::INT32:
-                SetUniform1i(field.GetLocation(), *reinterpret_cast<int32_t*>(&data[offset]));
-                break;
-            case GLShaderUniformDeclaration::Type::UINT:
-                SetUniform1ui(field.GetLocation(), *reinterpret_cast<uint32_t*>(&data[offset]));
-                break;
-            case GLShaderUniformDeclaration::Type::VEC2:
-                SetUniform2f(field.GetLocation(), *reinterpret_cast<Maths::Vector2*>(&data[offset]));
-                break;
-            case GLShaderUniformDeclaration::Type::VEC3:
-                SetUniform3f(field.GetLocation(), *reinterpret_cast<Maths::Vector3*>(&data[offset]));
-                break;
-            case GLShaderUniformDeclaration::Type::VEC4:
-                SetUniform4f(field.GetLocation(), *reinterpret_cast<Maths::Vector4*>(&data[offset]));
-                break;
-            case GLShaderUniformDeclaration::Type::MAT3:
-                SetUniformMat3(field.GetLocation(), *reinterpret_cast<Maths::Matrix3*>(&data[offset]));
-                break;
-            case GLShaderUniformDeclaration::Type::MAT4:
-                SetUniformMat4(field.GetLocation(), *reinterpret_cast<Maths::Matrix4*>(&data[offset]));
-                break;
-            case GLShaderUniformDeclaration::Type::MAT4ARRAY:
-                SetUniformMat4Array(field.GetLocation(), count, *reinterpret_cast<Maths::Matrix4*>(&data[offset]));
-                break;
-            default:
-                LUMOS_ASSERT(false, "Unknown type!");
-            }
-        }
-
-        void GLShader::SetUniform1f(const std::string& name, float value) const
+        void GLShader::SetUniform1f(const std::string& name, float value)
         {
             LUMOS_PROFILE_FUNCTION();
             SetUniform1f(GetUniformLocation(name), value);
         }
 
-        void GLShader::SetUniform1fv(const std::string& name, float* value, int32_t count) const
+        void GLShader::SetUniform1fv(const std::string& name, float* value, int32_t count)
         {
             LUMOS_PROFILE_FUNCTION();
             SetUniform1fv(GetUniformLocation(name), value, count);
         }
 
-        void GLShader::SetUniform1i(const std::string& name, int32_t value) const
+        void GLShader::SetUniform1i(const std::string& name, int32_t value)
         {
             LUMOS_PROFILE_FUNCTION();
             SetUniform1i(GetUniformLocation(name), value);
         }
 
-        void GLShader::SetUniform1ui(const std::string& name, uint32_t value) const
+        void GLShader::SetUniform1ui(const std::string& name, uint32_t value)
         {
             LUMOS_PROFILE_FUNCTION();
             SetUniform1ui(GetUniformLocation(name), value);
         }
 
-        void GLShader::SetUniform1iv(const std::string& name, int32_t* value, int32_t count) const
+        void GLShader::SetUniform1iv(const std::string& name, int32_t* value, int32_t count)
         {
             LUMOS_PROFILE_FUNCTION();
             SetUniform1iv(GetUniformLocation(name), value, count);
         }
 
-        void GLShader::SetUniform2f(const std::string& name, const Maths::Vector2& vector) const
+        void GLShader::SetUniform2f(const std::string& name, const Maths::Vector2& vector)
         {
             LUMOS_PROFILE_FUNCTION();
             SetUniform2f(GetUniformLocation(name), vector);
         }
 
-        void GLShader::SetUniform3f(const std::string& name, const Maths::Vector3& vector) const
+        void GLShader::SetUniform3f(const std::string& name, const Maths::Vector3& vector)
         {
             LUMOS_PROFILE_FUNCTION();
             SetUniform3f(GetUniformLocation(name), vector);
         }
 
-        void GLShader::SetUniform4f(const std::string& name, const Maths::Vector4& vector) const
+        void GLShader::SetUniform4f(const std::string& name, const Maths::Vector4& vector)
         {
             LUMOS_PROFILE_FUNCTION();
             SetUniform4f(GetUniformLocation(name), vector);
         }
 
-        void GLShader::SetUniformMat4(const std::string& name, const Maths::Matrix4& matrix) const
+        void GLShader::SetUniformMat4(const std::string& name, const Maths::Matrix4& matrix)
         {
             LUMOS_PROFILE_FUNCTION();
             SetUniformMat4(GetUniformLocation(name), matrix);
@@ -1231,7 +844,6 @@ namespace Lumos
             std::string physicalPath;
             Lumos::VFS::Get()->ResolvePhysicalPath(filePath, physicalPath);
             GLShader* result = new GLShader(physicalPath);
-            result->m_Path = filePath;
             return result;
         }
 

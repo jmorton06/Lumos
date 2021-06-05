@@ -69,10 +69,10 @@ namespace Lumos
         void DeferredOffScreenRenderer::Init()
         {
             LUMOS_PROFILE_FUNCTION();
-            m_Shader = Application::Get().GetShaderLibrary()->GetResource("/CoreShaders/DeferredColour.shader");
-            m_AnimatedShader = Application::Get().GetShaderLibrary()->GetResource("/CoreShaders/DeferredColourAnim.shader");
+            m_Shader = Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/DeferredColour.shader");
+            m_AnimatedShader = Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/DeferredColourAnim.shader");
 
-            m_DefaultMaterial = new Material();
+            m_DefaultMaterial = new Material(m_Shader);
 
             Graphics::MaterialProperties properties;
             properties.albedoColour = Maths::Vector4(1.0f);
@@ -83,6 +83,9 @@ namespace Lumos
             properties.usingNormalMap = 0.0f;
             properties.usingMetallicMap = 0.0f;
             m_DefaultMaterial->SetMaterialProperites(properties);
+
+            auto shader = Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/DeferredColour.shader");
+            m_DefaultMaterial->SetShader(shader);
 
             const size_t minUboAlignment = size_t(Graphics::Renderer::GetCapabilities().UniformBufferOffsetAlignment);
 
@@ -121,11 +124,17 @@ namespace Lumos
 
             m_RenderPass = Graphics::RenderPass::Get(renderpassCIOffScreen);
 
+            Graphics::DescriptorInfo info {};
+            info.layoutIndex = 0;
+            info.shader = m_Shader.get();
+            m_DescriptorSet.resize(1);
+            m_DescriptorSet[0] = Ref<Graphics::DescriptorSet>(Graphics::DescriptorSet::Create(info));
+
             CreatePipeline();
             CreateBuffer();
             CreateFramebuffer();
 
-            m_DefaultMaterial->CreateDescriptorSet(m_Pipeline.get(), 1);
+            m_DefaultMaterial->CreateDescriptorSet(1);
 
             m_ClearColour = Maths::Vector4(0.1f, 0.1f, 0.1f, 1.0f);
             m_CurrentDescriptorSets.resize(2);
@@ -190,10 +199,8 @@ namespace Lumos
 
                     for(auto& mesh : meshes)
                     {
-
                         if(mesh->GetActive())
                         {
-
                             auto& worldTransform = trans.GetWorldMatrix();
                             Maths::Intersection inside;
                             {
@@ -224,7 +231,7 @@ namespace Lumos
             LUMOS_PROFILE_FUNCTION();
             RenderCommand command;
             command.mesh = mesh;
-            command.material = material;
+            command.material = material ? material : m_DefaultMaterial;
             command.transform = transform;
             command.textureMatrix = textureMatrix;
             Submit(command);
@@ -251,7 +258,6 @@ namespace Lumos
         void DeferredOffScreenRenderer::Present()
         {
             LUMOS_PROFILE_FUNCTION();
-            m_Pipeline->Bind(Renderer::GetSwapchain()->GetCurrentCommandBuffer());
 
             for(uint32_t i = 0; i < static_cast<uint32_t>(m_CommandQueue.size()); i++)
             {
@@ -260,22 +266,38 @@ namespace Lumos
                 auto command = m_CommandQueue[i];
                 Mesh* mesh = command.mesh;
 
-                if(command.material)
-                    command.material->Bind(m_Pipeline.get());
+                if(!command.material || !command.material->GetShader())
+                    continue;
 
-                m_CurrentDescriptorSets[0] = m_Pipeline->GetDescriptorSet();
-                m_CurrentDescriptorSets[1] = command.material ? command.material->GetDescriptorSet() : m_DefaultMaterial->GetDescriptorSet();
+                auto commandBuffer = Renderer::GetSwapchain()->GetCurrentCommandBuffer();
+
+                Graphics::PipelineInfo pipelineCreateInfo {};
+                pipelineCreateInfo.shader = command.material->GetShader();
+                pipelineCreateInfo.renderpass = m_RenderPass;
+                pipelineCreateInfo.polygonMode = Graphics::PolygonMode::FILL;
+                pipelineCreateInfo.cullMode = command.material->GetFlag(Material::RenderFlags::TWOSIDED) ? Graphics::CullMode::NONE : Graphics::CullMode::BACK;
+                pipelineCreateInfo.transparencyEnabled = command.material->GetFlag(Material::RenderFlags::ALPHABLEND);
+
+                auto pipeline = Graphics::Pipeline::Get(pipelineCreateInfo);
+
+                pipeline->Bind(commandBuffer);
+
+                command.material->Bind();
+
+                m_CurrentDescriptorSets[SCENE_DESCRIPTORSET_ID] = m_DescriptorSet[SCENE_DESCRIPTORSET_ID].get();
+                m_CurrentDescriptorSets[MATERIAL_DESCRIPTORSET_ID] = command.material->GetDescriptorSet();
 
                 auto trans = command.transform;
-                auto& pushConstants = m_Shader->GetPushConstants();
-                memcpy(pushConstants[0].data, &trans, sizeof(Maths::Matrix4));
-                m_Shader->BindPushConstants(Renderer::GetSwapchain()->GetCurrentCommandBuffer(), m_Pipeline.get());
+                auto& pushConstants = command.material->GetShader()->GetPushConstants()[0];
+                pushConstants.SetValue("transform", (void*)&trans);
 
-                mesh->GetVertexBuffer()->Bind(Renderer::GetSwapchain()->GetCurrentCommandBuffer(), m_Pipeline.get());
-                mesh->GetIndexBuffer()->Bind(Renderer::GetSwapchain()->GetCurrentCommandBuffer());
+                command.material->GetShader()->BindPushConstants(commandBuffer, pipeline.get());
 
-                Renderer::BindDescriptorSets(m_Pipeline.get(), Renderer::GetSwapchain()->GetCurrentCommandBuffer(), 0, m_CurrentDescriptorSets);
-                Renderer::DrawIndexed(Renderer::GetSwapchain()->GetCurrentCommandBuffer(), DrawType::TRIANGLE, mesh->GetIndexBuffer()->GetCount());
+                mesh->GetVertexBuffer()->Bind(commandBuffer, pipeline.get());
+                mesh->GetIndexBuffer()->Bind(commandBuffer);
+
+                Renderer::BindDescriptorSets(pipeline.get(), commandBuffer, 0, m_CurrentDescriptorSets);
+                Renderer::DrawIndexed(commandBuffer, DrawType::TRIANGLE, mesh->GetIndexBuffer()->GetCount());
 
                 mesh->GetVertexBuffer()->Unbind();
                 mesh->GetIndexBuffer()->Unbind();
@@ -292,7 +314,6 @@ namespace Lumos
             pipelineCreateInfo.polygonMode = Graphics::PolygonMode::FILL;
             pipelineCreateInfo.cullMode = Graphics::CullMode::BACK;
             pipelineCreateInfo.transparencyEnabled = false;
-            pipelineCreateInfo.depthBiasEnabled = false;
 
             m_Pipeline = Graphics::Pipeline::Get(pipelineCreateInfo);
 
@@ -304,7 +325,6 @@ namespace Lumos
             pipelineCreateInfoAnim.polygonMode = Graphics::PolygonMode::FILL;
             pipelineCreateInfoAnim.cullMode = Graphics::CullMode::BACK;
             pipelineCreateInfoAnim.transparencyEnabled = false;
-            pipelineCreateInfoAnim.depthBiasEnabled = false;
 
             m_AnimatedPipeline = Graphics::Pipeline::Get(pipelineCreateInfoAnim);
         }
@@ -328,9 +348,9 @@ namespace Lumos
                 m_AnimUniformBuffer->Init(bufferSize, nullptr);
             }
 
-            std::vector<Graphics::BufferInfo> bufferInfos;
+            std::vector<Graphics::Descriptor> bufferInfos;
 
-            Graphics::BufferInfo bufferInfo = {};
+            Graphics::Descriptor bufferInfo = {};
             bufferInfo.buffer = m_UniformBuffer;
             bufferInfo.offset = 0;
             bufferInfo.size = m_VSSystemUniformBufferSize;
@@ -340,9 +360,9 @@ namespace Lumos
             bufferInfo.name = "UniformBufferObject";
             bufferInfos.push_back(bufferInfo);
 
-            m_Pipeline->GetDescriptorSet()->Update(bufferInfos);
+            m_DescriptorSet[0]->Update(bufferInfos);
 
-            Graphics::BufferInfo bufferInfoAnim = {};
+            Graphics::Descriptor bufferInfoAnim = {};
             bufferInfoAnim.buffer = m_AnimUniformBuffer;
             bufferInfoAnim.offset = 0;
             bufferInfoAnim.size = m_VSSystemUniformBufferAnimSize;
@@ -352,7 +372,7 @@ namespace Lumos
             bufferInfoAnim.name = "UniformBufferObjectAnim";
             bufferInfos.push_back(bufferInfoAnim);
 
-            m_AnimatedPipeline->GetDescriptorSet()->Update(bufferInfos);
+            //m_AnimatedDescriptorSets->Update(bufferInfos);
         }
 
         void DeferredOffScreenRenderer::CreateFramebuffer()

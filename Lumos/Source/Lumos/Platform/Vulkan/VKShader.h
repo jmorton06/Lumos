@@ -44,11 +44,30 @@ namespace Lumos
             }
 
             std::vector<PushConstant>& GetPushConstants() override { return m_PushConstants; }
+            VkDescriptorSetLayout* GetDescriptorLayout(int id)
+            {
+                return &m_DescriptorSetLayouts[id];
+            };
+
+            VkPipelineLayout GetPipelineLayout() const { return m_PipelineLayout; }
+
+            DescriptorSetInfo GetDescriptorInfo(uint32_t index) override
+            {
+                if(m_DescriptorInfos.find(index) != m_DescriptorInfos.end())
+                {
+                    return m_DescriptorInfos[index];
+                }
+
+                LUMOS_LOG_WARN("DescriptorInfo not found. Index = {0}", index);
+                return DescriptorSetInfo();
+            }
+
             const std::vector<DescriptorLayoutInfo>& GetDescriptorLayout() const { return m_DescriptorLayoutInfo; }
+            const std::vector<VkDescriptorSetLayout>& GetDescriptorLayouts() const { return m_DescriptorSetLayouts; }
             void BindPushConstants(Graphics::CommandBuffer* cmdBuffer, Graphics::Pipeline* pipeline) override;
 
             static void PreProcess(const std::string& source, std::map<ShaderType, std::string>* sources);
-            static void ReadShaderFile(std::vector<std::string> lines, std::map<ShaderType, std::string>* shaders);
+            static void ReadShaderFile(const std::vector<std::string>& lines, std::map<ShaderType, std::string>* shaders);
 
             static void MakeDefault();
 
@@ -64,6 +83,8 @@ namespace Lumos
             static Shader* CreateFuncVulkan(const std::string&);
 
         private:
+            std::unordered_map<uint32_t, DescriptorSetInfo> m_DescriptorInfos;
+
             VkPipelineShaderStageCreateInfo* m_ShaderStages;
             uint32_t m_StageCount;
             std::string m_Name;
@@ -77,6 +98,7 @@ namespace Lumos
             VkPipelineLayout m_PipelineLayout;
             std::vector<PushConstant> m_PushConstants;
             std::vector<Graphics::DescriptorLayoutInfo> m_DescriptorLayoutInfo;
+            std::vector<VkDescriptorSetLayout> m_DescriptorSetLayouts;
         };
     }
 }

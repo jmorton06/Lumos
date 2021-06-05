@@ -1,5 +1,6 @@
 #include "Precompiled.h"
 #include "OggLoader.h"
+#include "Core/VFS.h"
 
 #include <stb/stb_vorbis.h>
 
@@ -9,18 +10,24 @@ namespace Lumos
     {
         AudioData data = AudioData();
 
-        const auto m_FileHandle = fopen(fileName.c_str(), "rb");
+        std::string physicalPath;
+        if(!Lumos::VFS::Get()->ResolvePhysicalPath(fileName, physicalPath))
+        {
+            LUMOS_LOG_INFO("Failed to load Ogg file : File Not Found");
+        }
+
+        const auto m_FileHandle = fopen(physicalPath.c_str(), "rb");
 
         if(!m_FileHandle)
         {
-            LUMOS_LOG_CRITICAL("Failed to load OGG file '{0}'!", fileName);
+            LUMOS_LOG_CRITICAL("Failed to load OGG file '{0}'!", physicalPath);
         }
         int error;
-        auto m_StreamHandle = stb_vorbis_open_filename(fileName.c_str(), &error, nullptr);
+        auto m_StreamHandle = stb_vorbis_open_filename(physicalPath.c_str(), &error, nullptr);
 
         if(!m_StreamHandle)
         {
-            LUMOS_LOG_CRITICAL("Failed to load OGG file '{0}'! , Error {1}", fileName, error);
+            LUMOS_LOG_CRITICAL("Failed to load OGG file '{0}'! , Error {1}", physicalPath, error);
             return data;
         }
 
