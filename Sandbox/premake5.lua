@@ -304,13 +304,13 @@ project "Sandbox"
 			}
 
 	filter "configurations:Debug"
-		defines { "LUMOS_DEBUG", "_DEBUG","TRACY_ENABLE","LUMOS_PROFILE", }
+defines { "LUMOS_DEBUG", "_DEBUG","TRACY_ENABLE","LUMOS_PROFILE","TRACY_ON_DEMAND" }
 		symbols "On"
 		runtime "Debug"
 		optimize "Off"
 
 	filter "configurations:Release"
-		defines { "LUMOS_RELEASE","TRACY_ENABLE", "LUMOS_PROFILE",}
+defines { "LUMOS_RELEASE","TRACY_ENABLE", "LUMOS_PROFILE","TRACY_ON_DEMAND"}
 		optimize "Speed"
 		symbols "On"
 		runtime "Release"

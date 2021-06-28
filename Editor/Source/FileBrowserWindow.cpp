@@ -13,7 +13,7 @@ namespace Lumos
         m_Name = "FileBrowserWindow";
         m_SimpleName = "FileBrowser";
 
-        m_FileBrowser = new ImGui::FileBrowser(ImGuiFileBrowserFlags_CreateNewDir | ImGuiFileBrowserFlags_EnterNewFilename | ImGuiFileBrowserFlags_NoModal);
+        m_FileBrowser = new ImGui::FileBrowser(ImGuiFileBrowserFlags_CreateNewDir | ImGuiFileBrowserFlags_EnterNewFilename | ImGuiFileBrowserFlags_NoModal | ImGuiFileBrowserFlags_HideHiddenFiles);
         m_FileBrowser->SetTitle("Test File Browser");
         //m_FileBrowser->SetFileFilters({ ".sh" , ".h" });
         m_FileBrowser->SetLabels(ICON_MDI_FOLDER, ICON_MDI_FILE, ICON_MDI_FOLDER_OPEN);

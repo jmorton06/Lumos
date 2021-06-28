@@ -1,34 +1,38 @@
 #include "Precompiled.h"
-#include "Maths/Random.h"
+#include "Random.h"
 
-namespace Lumos::Maths
+#define SUPPORT_RANDOM_DEVICE LUMOS_PLATFORM_WINDOWS
+
+#if !SUPPORT_RANDOM_DEVICE
+#include <chrono>
+#endif
+
+namespace Lumos
 {
-    static unsigned randomSeed = 1;
+    Random32 Random32::Rand = Random32(Random32::RandSeed());
+    Random64 Random64::Rand = Random64(Random64::RandSeed());
 
-    void SetRandomSeed(unsigned seed)
+    uint32_t Random32::RandSeed()
     {
-        randomSeed = seed;
+#if SUPPORT_RANDOM_DEVICE
+        std::random_device randDevice;
+        return randDevice();
+#else
+        //crushto32 function from https://gist.github.com/imneme/540829265469e673d045
+        uint64_t result = uint64_t(std::chrono::high_resolution_clock::now().time_since_epoch().count());
+        result *= 0xbc2ad017d719504d;
+        return uint32_t(result ^ (result >> 32));
+#endif
     }
 
-    unsigned GetRandomSeed()
+    uint64_t Random64::RandSeed()
     {
-        return randomSeed;
-    }
-
-    int Rand()
-    {
-        randomSeed = randomSeed * 214013 + 2531011;
-        return (randomSeed >> 16u) & 32767u;
-    }
-
-    float RandStandardNormalised()
-    {
-        float val = 0.0f;
-        for(int i = 0; i < 12; i++)
-            val += Rand() / 32768.0f;
-        val -= 6.0f;
-
-        // Now val is approximatly standard normal distributed
-        return val;
+#if SUPPORT_RANDOM_DEVICE
+        std::random_device randDevice;
+        uint64_t value = randDevice();
+        return (value << 32) | randDevice();
+#else
+        return uint64_t(std::chrono::high_resolution_clock::now().time_since_epoch().count());
+#endif
     }
 }

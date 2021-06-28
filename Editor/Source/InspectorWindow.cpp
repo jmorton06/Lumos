@@ -661,7 +661,7 @@ end
         auto pitch = soundNode->GetPitch();
         auto volume = soundNode->GetVolume();
         auto referenceDistance = soundNode->GetReferenceDistance();
-        
+
         ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
         ImGui::Columns(2);
         ImGui::Separator();
@@ -725,7 +725,7 @@ end
 
         ImGui::PopItemWidth();
         ImGui::NextColumn();
-        
+
         ImGui::Separator();
         auto soundPointer = soundNode->GetSound();
 
@@ -761,17 +761,17 @@ end
                 }
             }
         }
-        
+
         if(soundPointer)
         {
             ImGui::NextColumn();
-            
+
             int bitrate = soundPointer->GetBitRate();
             float frequency = soundPointer->GetFrequency();
             int size = soundPointer->GetSize();
             double length = soundPointer->GetLength();
             int channels = soundPointer->GetChannels();
-            
+
             ImGui::AlignTextToFramePadding();
             ImGui::TextUnformatted("Bit Rate");
             ImGui::NextColumn();

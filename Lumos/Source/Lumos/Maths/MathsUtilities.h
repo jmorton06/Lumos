@@ -279,28 +279,6 @@ namespace Lumos::Maths
     /// Update a hash with the given 8-bit value using the SDBM algorithm.
     inline constexpr unsigned SDBMHash(unsigned hash, unsigned char c) { return c + (hash << 6u) + (hash << 16u) - hash; }
 
-    /// Return a random float between 0.0 (inclusive) and 1.0 (exclusive.)
-    inline float Random() { return Rand() / 32768.0f; }
-
-    /// Return a random float between 0.0 and range, inclusive from both ends.
-    inline float Random(float range) { return Rand() * range / 32767.0f; }
-
-    /// Return a random float between min and max, inclusive from both ends.
-    inline float Random(float min, float max) { return Rand() * (max - min) / 32767.0f + min; }
-
-    /// Return a random integer between 0 and range - 1.
-    inline int Random(int range) { return (int)(Random() * range); }
-
-    /// Return a random integer between min and max - 1.
-    inline int Random(int min, int max)
-    {
-        auto range = (float)(max - min);
-        return (int)(Random() * range) + min;
-    }
-
-    /// Return a random normal distributed number with the given mean value and variance.
-    inline float RandomNormal(float meanValue, float variance) { return RandStandardNormalised() * sqrtf(variance) + meanValue; }
-
     /// Convert float to half float. From https://gist.github.com/martinkallman/5049614
     inline unsigned short FloatToHalf(float value)
     {

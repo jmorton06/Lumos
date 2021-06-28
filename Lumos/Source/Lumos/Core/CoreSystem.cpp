@@ -49,7 +49,7 @@ namespace Lumos
             }
 
             System::JobSystem::OnInit();
-            LUMOS_LOG_INFO("Initializing System");
+            LUMOS_LOG_INFO("Initialising System");
             VFS::OnInit();
             LuaManager::Get().OnInit();
 

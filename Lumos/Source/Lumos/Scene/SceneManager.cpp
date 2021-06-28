@@ -102,7 +102,7 @@ namespace Lumos
         m_SceneIdx = m_QueuedSceneIndex;
         m_CurrentScene = m_vpAllScenes[m_QueuedSceneIndex].get();
 
-        //Initialize new scene
+        //Initialise new scene
         app.GetSystem<LumosPhysicsEngine>()->SetDefaults();
         app.GetSystem<B2PhysicsEngine>()->SetDefaults();
         app.GetSystem<LumosPhysicsEngine>()->SetPaused(false);

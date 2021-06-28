@@ -26,6 +26,7 @@ enum ImGuiFileBrowserFlags_
     ImGuiFileBrowserFlags_NoStatusBar        = 1 << 4, // hide status bar at the bottom of browsing window
     ImGuiFileBrowserFlags_CloseOnEsc         = 1 << 5, // close file browser when pressing 'ESC'
     ImGuiFileBrowserFlags_CreateNewDir       = 1 << 6, // allow user to create new directory
+    ImGuiFileBrowserFlags_HideHiddenFiles    = 1 << 7, // hide hidden files that start with .
 };
 
 namespace ImGui
@@ -83,6 +84,8 @@ namespace ImGui
         void SetLabels(const char* folderLabel = "[D]", const char* fileLabel = "[F]", const char* newFolderLabel = "+");
 
         void SetFileFilters(const std::vector<const char*>& fileFilters);
+        
+        bool IsHidden(const std::filesystem::path &p);
 
     private:
 
@@ -116,6 +119,7 @@ namespace ImGui
         bool closeFlag_;
         bool isOpened_;
         bool ok_;
+        bool showHiddenFiles_;
 
         std::string statusStr_;
     
@@ -240,6 +244,20 @@ inline bool ImGui::FileBrowser::IsOpened() const noexcept
     return isOpened_;
 }
 
+inline bool ImGui::FileBrowser::IsHidden(const std::filesystem::path &p)
+{
+    auto name = p.u8string();
+    
+    if(name != ".." &&
+       name != "."  &&
+       name[0] == '.')
+    {
+       return true;
+    }
+
+    return false;
+}
+
 inline void ImGui::FileBrowser::Display()
 {
     PushID(this);
@@ -288,6 +306,9 @@ inline void ImGui::FileBrowser::Display()
             continue;
         }
 #endif
+        if(flags_ & ImGuiFileBrowserFlags_HideHiddenFiles && IsHidden(sec))
+            continue;
+        
         PushID(secIdx);
         if(secIdx > 0)
             SameLine();
@@ -374,6 +395,9 @@ inline void ImGui::FileBrowser::Display()
                 continue;
 
             if(!rsc.name.empty() && rsc.name.c_str()[0] == '$')
+                continue;
+            
+            if(flags_ & ImGuiFileBrowserFlags_HideHiddenFiles && IsHidden(rsc.name))
                 continue;
 
             const bool selected = selectedFilename_ == rsc.name;

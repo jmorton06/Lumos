@@ -1,5 +1,5 @@
 #pragma once
-#include "Maths/MathDefs.h"
+#include "Maths/MathsUtilities.h"
 #include <iostream>
 
 namespace Lumos::Maths

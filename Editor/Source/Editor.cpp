@@ -1709,10 +1709,10 @@ namespace Lumos
             soundNode->SetReferenceDistance(1.0f);
             soundNode->SetRadius(30.0f);
 
-            auto& registry = Application::Get().GetSceneManager()->GetCurrentScene()->GetRegistry();
-            entt::entity e = registry.create();
-            registry.emplace<SoundComponent>(e, soundNode);
-            m_SelectedEntity = e;
+            Entity entity = Application::Get().GetSceneManager()->GetCurrentScene()->GetEntityManager()->Create();
+            entity.AddComponent<SoundComponent>(soundNode);
+            entity.GetOrAddComponent<Maths::Transform>();
+            m_SelectedEntity = entity.GetHandle();
         }
         else if(IsSceneFile(filePath))
         {
