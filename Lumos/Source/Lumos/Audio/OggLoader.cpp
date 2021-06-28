@@ -1,6 +1,7 @@
 #include "Precompiled.h"
 #include "OggLoader.h"
 #include "Core/VFS.h"
+#include "Sound.h"
 
 #include <stb/stb_vorbis.h>
 
@@ -36,14 +37,14 @@ namespace Lumos
         data.Channels = m_VorbisInfo.channels;
         data.BitRate = 16;
         data.FreqRate = static_cast<float>(m_VorbisInfo.sample_rate);
+        data.Size = stb_vorbis_stream_length_in_samples(m_StreamHandle) * m_VorbisInfo.channels * sizeof(int16_t);
+        data.Data = new unsigned char[data.Size];
 
-        const uint32_t dataSize = stb_vorbis_stream_length_in_samples(m_StreamHandle) * m_VorbisInfo.channels * sizeof(int16_t);
-        auto* buffer = static_cast<int16_t*>(malloc(dataSize * sizeof(uint16_t)));
-        stb_vorbis_get_samples_short_interleaved(m_StreamHandle, m_VorbisInfo.channels, static_cast<short*>(buffer), dataSize);
-        data.Data = reinterpret_cast<unsigned char*>(buffer);
-        data.Size = dataSize;
+        stb_vorbis_get_samples_short_interleaved(m_StreamHandle, m_VorbisInfo.channels, reinterpret_cast<short*>(data.Data), data.Size);
 
-        data.Length = stb_vorbis_stream_length_in_seconds(m_StreamHandle) * 1000.0f; // * m_VorbisInfo.channels;
+        Sound::ConvertToMono(data.Data, data.Size, data.Data, data.Channels, data.BitRate);
+        data.Channels = 1;
+        data.Length = stb_vorbis_stream_length_in_seconds(m_StreamHandle) * 1000.0f; //Milliseconds
 
         stb_vorbis_close(m_StreamHandle);
 

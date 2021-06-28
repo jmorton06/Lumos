@@ -56,6 +56,7 @@ namespace Lumos
             }
         }
 
+        //Milliseconds
         data.Length = static_cast<float>(data.Size) / (data.Channels * data.FreqRate * (data.BitRate / 8.0f)) * 1000.0f;
 
         file.close();

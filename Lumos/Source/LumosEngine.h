@@ -76,7 +76,7 @@
 //Utilities
 #include "Utilities/LoadImage.h"
 #include "Utilities/Timer.h"
-#include "Utilities/RandomNumberGenerator.h"
+#include "Maths/Random.h"
 #include "Utilities/TimeStep.h"
 
 #include "ImGui/ImGuiManager.h"

@@ -467,7 +467,9 @@ vec3 Lighting(vec3 F0, vec3 wsPos, Material material)
 		float cosLi = max(0.0, dot(material.Normal, Li));
 		float cosLh = max(0.0, dot(material.Normal, Lh));
 
-		vec3 F = fresnelSchlick(F0, max(0.0, dot(Lh, material.View)));
+		//vec3 F = fresnelSchlick(F0, max(0.0, dot(Lh, material.View)));
+		vec3 F = fresnelSchlickRoughness(F0, max(0.0, dot(Lh,  material.View)), material.Roughness);
+		
 		float D = ndfGGX(cosLh, material.Roughness);
 		float G = gaSchlickGGX(cosLi, material.NDotV, material.Roughness);
 
@@ -499,7 +501,7 @@ vec3 IBL(vec3 F0, vec3 Lr, Material material)
 	vec3 specularIrradiance = textureLod(uEnvironmentMap, Lr, material.Roughness * u_EnvRadianceTexLevels).rgb;
 
 	vec2 specularBRDF = texture(uPreintegratedFG, vec2(material.NDotV, 1.0 - material.Roughness.x)).rg;
-	vec3 specularIBL = specularIrradiance * (F * specularBRDF.x + specularBRDF.y);
+	vec3 specularIBL = specularIrradiance * (F0 * specularBRDF.x + specularBRDF.y);
 
 	return kd * diffuseIBL + specularIBL;
 }

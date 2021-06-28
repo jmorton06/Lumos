@@ -53,6 +53,13 @@ Tools/premake5 xcode4
 xcodebuild -project build/Sandbox.xcodeproj
 ```
 
+M1 Macs may need : 
+```
+cd Lumos
+Tools/premake5 xcode4 --arch=arm64 --os=macosx
+xcodebuild -project build/Sandbox.xcodeproj
+```
+
 #### iOS
 ```
 cd Lumos

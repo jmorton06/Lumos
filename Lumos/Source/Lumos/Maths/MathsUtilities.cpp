@@ -1,5 +1,5 @@
 #include "Precompiled.h"
-#include "Maths/MathDefs.h"
+#include "Maths/MathsUtilities.h"
 
 namespace Lumos::Maths
 {

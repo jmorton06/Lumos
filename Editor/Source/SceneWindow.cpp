@@ -236,6 +236,19 @@ namespace Lumos
             auto clickPos = Input::Get().GetMousePosition() - Maths::Vector2(sceneViewPosition.x / dpi, sceneViewPosition.y / dpi);
             m_Editor->SelectObject(m_Editor->GetScreenRay(int(clickPos.x), int(clickPos.y), camera, int(sceneViewSize.x) / dpi, int(sceneViewSize.y) / dpi));
         }
+        
+        const ImGuiPayload* payload = ImGui::GetDragDropPayload();
+
+        if(ImGui::BeginDragDropTarget())
+        {
+            auto data = ImGui::AcceptDragDropPayload("AssetFile", ImGuiDragDropFlags_AcceptNoDrawDefaultRect);
+            if(data)
+            {
+                std::string file = (char*)data->Data;
+                m_Editor->FileOpenCallback(file);
+            }
+            ImGui::EndDragDropTarget();
+        }
 
         DrawGizmos(sceneViewSize.x, sceneViewSize.y, offset.x, offset.y, app.GetSceneManager()->GetCurrentScene());
 
@@ -299,22 +312,6 @@ namespace Lumos
                 }
             }
             ImGui::End();
-        }
-
-        const ImGuiPayload* payload = ImGui::GetDragDropPayload();
-
-        if(ImGui::BeginDragDropTarget())
-        {
-            LUMOS_LOG_INFO("Begin Drag Drop");
-            auto data = ImGui::AcceptDragDropPayload("AssetFile", ImGuiDragDropFlags_AcceptNoDrawDefaultRect);
-            if(data)
-            {
-                std::string file = (char*)data->Data;
-                LUMOS_LOG_INFO("Dropped Asset Type {0}", file);
-
-                m_Editor->FileOpenCallback(file);
-            }
-            ImGui::EndDragDropTarget();
         }
 
         ImGui::End();

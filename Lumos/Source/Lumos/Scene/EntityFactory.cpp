@@ -5,7 +5,7 @@
 #include "Physics/LumosPhysicsEngine/CuboidCollisionShape.h"
 #include "Physics/LumosPhysicsEngine/LumosPhysicsEngine.h"
 #include "Graphics/Model.h"
-#include "Utilities/RandomNumberGenerator.h"
+#include "Maths/Random.h"
 #include "Scene/Scene.h"
 #include "Core/Application.h"
 #include "Graphics/Camera/Camera.h"
@@ -26,9 +26,9 @@ namespace Lumos
         Maths::Vector4 c;
         c.w = alpha;
 
-        c.x = RandomNumberGenerator32::Rand(0.0f, 1.0f);
-        c.y = RandomNumberGenerator32::Rand(0.0f, 1.0f);
-        c.z = RandomNumberGenerator32::Rand(0.0f, 1.0f);
+        c.x = Random32::Rand(0.0f, 1.0f);
+        c.y = Random32::Rand(0.0f, 1.0f);
+        c.z = Random32::Rand(0.0f, 1.0f);
 
         return c;
     }
@@ -50,8 +50,8 @@ namespace Lumos
         Ref<Graphics::Material> matInstance = CreateRef<Graphics::Material>();
         Graphics::MaterialProperties properties;
         properties.albedoColour = colour;
-        properties.roughnessColour = Vector4(RandomNumberGenerator32::Rand(0.0f, 1.0f));
-        properties.metallicColour = Vector4(RandomNumberGenerator32::Rand(0.0f, 1.0f));
+        properties.roughnessColour = Vector4(Random32::Rand(0.0f, 1.0f));
+        properties.metallicColour = Vector4(Random32::Rand(0.0f, 1.0f));
         properties.usingAlbedoMap = 0.0f;
         properties.usingRoughnessMap = 0.0f;
         properties.usingNormalMap = 0.0f;
@@ -108,8 +108,8 @@ namespace Lumos
         auto matInstance = CreateRef<Graphics::Material>();
         Graphics::MaterialProperties properties;
         properties.albedoColour = colour;
-        properties.roughnessColour = Vector4(RandomNumberGenerator32::Rand(0.0f, 1.0f));
-        properties.metallicColour = Vector4(RandomNumberGenerator32::Rand(0.0f, 1.0f));
+        properties.roughnessColour = Vector4(Random32::Rand(0.0f, 1.0f));
+        properties.metallicColour = Vector4(Random32::Rand(0.0f, 1.0f));
         properties.emissiveColour = colour;
         properties.usingAlbedoMap = 0.0f;
         properties.usingRoughnessMap = 0.0f;
@@ -166,8 +166,8 @@ namespace Lumos
         Ref<Graphics::Material> matInstance = CreateRef<Graphics::Material>();
         Graphics::MaterialProperties properties;
         properties.albedoColour = colour;
-        properties.roughnessColour = Vector4(RandomNumberGenerator32::Rand(0.0f, 1.0f));
-        properties.metallicColour = Vector4(RandomNumberGenerator32::Rand(0.0f, 1.0f));
+        properties.roughnessColour = Vector4(Random32::Rand(0.0f, 1.0f));
+        properties.metallicColour = Vector4(Random32::Rand(0.0f, 1.0f));
         properties.usingAlbedoMap = 0.0f;
         properties.usingRoughnessMap = 0.0f;
         properties.usingNormalMap = 0.0f;
@@ -214,9 +214,9 @@ namespace Lumos
 
     void EntityFactory::AddLightCube(Scene* scene, const Maths::Vector3& pos, const Maths::Vector3& dir)
     {
-        Maths::Vector4 colour = Maths::Vector4(RandomNumberGenerator32::Rand(0.0f, 1.0f),
-            RandomNumberGenerator32::Rand(0.0f, 1.0f),
-            RandomNumberGenerator32::Rand(0.0f, 1.0f),
+        Maths::Vector4 colour = Maths::Vector4(Random32::Rand(0.0f, 1.0f),
+            Random32::Rand(0.0f, 1.0f),
+            Random32::Rand(0.0f, 1.0f),
             1.0f);
 
         entt::registry& registry = scene->GetRegistry();
@@ -232,8 +232,8 @@ namespace Lumos
             colour);
 
         cube.GetComponent<Physics3DComponent>().GetRigidBody()->SetIsAtRest(true);
-        const float radius = RandomNumberGenerator32::Rand(1.0f, 30.0f);
-        const float intensity = RandomNumberGenerator32::Rand(0.0f, 2.0f);
+        const float radius = Random32::Rand(1.0f, 30.0f);
+        const float intensity = Random32::Rand(0.0f, 2.0f);
 
         cube.AddComponent<Graphics::Light>(pos, colour, intensity, Graphics::LightType::PointLight, pos, radius);
     }
@@ -250,9 +250,9 @@ namespace Lumos
             true,
             1.0f,
             true,
-            Maths::Vector4(RandomNumberGenerator32::Rand(0.0f, 1.0f),
-                RandomNumberGenerator32::Rand(0.0f, 1.0f),
-                RandomNumberGenerator32::Rand(0.0f, 1.0f),
+            Maths::Vector4(Random32::Rand(0.0f, 1.0f),
+                Random32::Rand(0.0f, 1.0f),
+                Random32::Rand(0.0f, 1.0f),
                 1.0f));
 
         const Maths::Vector3 forward = dir;
@@ -271,9 +271,9 @@ namespace Lumos
             true,
             1.0f,
             true,
-            Maths::Vector4(RandomNumberGenerator32::Rand(0.0f, 1.0f),
-                RandomNumberGenerator32::Rand(0.0f, 1.0f),
-                RandomNumberGenerator32::Rand(0.0f, 1.0f),
+            Maths::Vector4(Random32::Rand(0.0f, 1.0f),
+                Random32::Rand(0.0f, 1.0f),
+                Random32::Rand(0.0f, 1.0f),
                 1.0f));
 
         const Maths::Vector3 forward = dir;

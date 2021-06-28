@@ -152,8 +152,15 @@ namespace Lumos
             {
                 RenderBreadCrumbs();
 
-                ImGuiTreeNodeFlags nodeFlag = ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_OpenOnDoubleClick;
-                bool assetTreeNodeOpen = ImGui::TreeNodeEx("Assets//", nodeFlag);
+                ImGuiTreeNodeFlags nodeFlag = ImGuiTreeNodeFlags_DefaultOpen;
+                bool assetTreeNodeOpen = ImGui::TreeNodeEx("//Assets", nodeFlag);
+                
+                if(ImGui::IsItemHovered())
+                {
+                    std::string fullPath;
+                    VFS::Get()->ResolvePhysicalPath("//Assets", fullPath);
+                    ImGuiHelpers::Tooltip(fullPath);
+                }
 
                 if(ImGui::IsItemClicked())
                 {
@@ -352,16 +359,6 @@ namespace Lumos
                 PhysicalPathCount++;
             }
 
-            ImGui::PushID(secIdx);
-            if(secIdx > 0)
-                ImGui::SameLine();
-            if(ImGui::SmallButton("Assets"))
-            {
-                m_PreviousDirPath = GetParentPath(m_CurrentDirPath);
-                m_CurrentDirPath = assetsBasePath;
-                m_CurrentDir = ReadDirectory(m_CurrentDirPath);
-            }
-            ImGui::PopID();
 
             int dirIndex = 0;
 
@@ -490,8 +487,6 @@ namespace Lumos
 
         if(ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID))
         {
-            LUMOS_LOG_INFO("Begin Drag Source");
-
             ImGui::TextUnformatted(m_Editor->GetIconFontIcon(m_CurrentDir[dirIndex].absolutePath));
 
             ImGui::SameLine();

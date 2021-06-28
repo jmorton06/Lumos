@@ -145,7 +145,7 @@ namespace Lumos
 
             if(!wglMakeCurrent(hDc, tempContext))
             {
-                LUMOS_LOG_ERROR("Failed to initialize OpenGL context");
+                LUMOS_LOG_ERROR("Failed to initialise OpenGL context");
             }
 
             if(!gladLoadWGL(hDc))
@@ -184,7 +184,7 @@ namespace Lumos
 #else
             if(!gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress)))
             {
-                LUMOS_LOG_ERROR("Failed to initialize OpenGL context");
+                LUMOS_LOG_ERROR("Failed to initialise OpenGL context");
             }
 #endif
 

@@ -20,7 +20,7 @@
 #include "Graphics/Light.h"
 #include "Graphics/API/Texture.h"
 #include "Graphics/Model.h"
-#include "Utilities/RandomNumberGenerator.h"
+#include "Maths/Random.h"
 #include "Scene/Entity.h"
 #include "Scene/EntityManager.h"
 #include "Scene/EntityFactory.h"
@@ -446,7 +446,7 @@ namespace Lumos
 
     static float LuaRand(float a, float b)
     {
-        return RandomNumberGenerator32::Rand(a, b);
+        return Random32::Rand(a, b);
     }
 
     void LuaManager::BindSceneLua(sol::state& state)

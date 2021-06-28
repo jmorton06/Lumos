@@ -501,6 +501,8 @@ namespace Lumos
                     Title = "LumosGame";
                     ShowConsole = false;
                     Fullscreen = false;
+
+                    m_SceneManager->EnqueueScene(new Scene("Empty Scene"));
                 }
                 return;
             }
