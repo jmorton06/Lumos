@@ -63,7 +63,7 @@ namespace Lumos
             case 2:
             {
                 int64_t data = 0;
-                for(uint c = 0; c < channelSize; c += bytesPerSample)
+                for(uint32_t c = 0; c < channelSize; c += bytesPerSample)
                 {
                     data += static_cast<const int64_t>(*reinterpret_cast<const int16_t*>(inputData + i + c));
                 }
@@ -74,7 +74,7 @@ namespace Lumos
             case 4:
             {
                 float data = 0;
-                for(uint c = 0; c < channelSize; c += bytesPerSample)
+                for(uint32_t c = 0; c < channelSize; c += bytesPerSample)
                 {
                     data += *reinterpret_cast<const float*>(inputData + i + c);
                 }

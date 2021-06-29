@@ -380,7 +380,6 @@ namespace Lumos::Graphics
                 auto object = fbx_mesh;
                 ofbx::Vec3 p = object->getLocalTranslation();
 
-                const Maths::Matrix3 gInvert = Maths::Matrix3(-1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 1.0, 0.0);
                 Maths::Vector3 pos = (Maths::Vector3(static_cast<float>(p.x), static_cast<float>(p.y), static_cast<float>(p.z)));
                 transform.SetLocalPosition(FixOrientation(pos));
 
@@ -403,7 +402,7 @@ namespace Lumos::Graphics
 
                 auto object = fbx_mesh;
                 ofbx::Vec3 p = object->getLocalTranslation();
-                const Maths::Matrix3 gInvert = Maths::Matrix3(-1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 1.0, 0.0);
+
                 Maths::Vector3 pos = (Maths::Vector3(static_cast<float>(p.x), static_cast<float>(p.y), static_cast<float>(p.z))); // * settings->customScale());
                 transform.SetLocalPosition(FixOrientation(pos));
 
