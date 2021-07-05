@@ -133,6 +133,7 @@ namespace Lumos
         for(auto entity : view)
         {
             auto& luaScript = registry.get<LuaScriptComponent>(entity);
+            luaScript.SetThisComponent();
             luaScript.OnInit();
         }
     }
@@ -366,6 +367,8 @@ namespace Lumos
 
         sol::usertype<LuaScriptComponent> script_type = state.new_usertype<LuaScriptComponent>("LuaScriptComponent", sol::constructors<sol::types<std::string, Scene*>>());
         REGISTER_COMPONENT_WITH_ECS(state, LuaScriptComponent, static_cast<LuaScriptComponent& (Entity::*)(std::string&&, Scene * &&)>(&Entity::AddComponent<LuaScriptComponent, std::string, Scene*>));
+        script_type.set_function("GetCurrentEntity", &LuaScriptComponent::GetCurrentEntity);
+        script_type.set_function("SetThisComponent", &LuaScriptComponent::SetThisComponent);
 
         using namespace Maths;
         REGISTER_COMPONENT_WITH_ECS(state, Transform, static_cast<Transform& (Entity::*)()>(&Entity::AddComponent<Transform>));
@@ -375,6 +378,16 @@ namespace Lumos
         sprite_type.set_function("SetTexture", &Sprite::SetTexture);
 
         REGISTER_COMPONENT_WITH_ECS(state, Sprite, static_cast<Sprite& (Entity::*)(const Vector2&, const Vector2&, const Vector4&)>(&Entity::AddComponent<Sprite, const Vector2&, const Vector2&, const Vector4&>));
+
+        state.new_usertype<Light>(
+            "Light",
+            "Intensity", &Light::Intensity,
+            "Radius", &Light::Radius,
+            "Colour", &Light::Colour,
+            "Direction", &Light::Direction,
+            "Position", &Light::Position,
+            "Type", &Light::Type,
+            "Angle", &Light::Angle);
 
         REGISTER_COMPONENT_WITH_ECS(state, Light, static_cast<Light& (Entity::*)()>(&Entity::AddComponent<Light>));
 

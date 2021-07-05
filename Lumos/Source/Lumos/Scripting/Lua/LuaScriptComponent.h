@@ -8,6 +8,7 @@
 namespace Lumos
 {
     class Scene;
+    class Entity;
 
     class LUMOS_EXPORT LuaScriptComponent
     {
@@ -21,6 +22,10 @@ namespace Lumos
         void OnUpdate(float dt);
         void Reload();
         void Load(const std::string& fileName);
+        Entity GetCurrentEntity();
+
+        //For accessing this component in lua
+        void SetThisComponent();
 
         void LoadScript(const std::string& fileName);
 

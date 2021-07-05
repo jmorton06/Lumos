@@ -44,6 +44,9 @@ namespace Lumos
         float GetReferenceDistance() const { return m_ReferenceDistance; }
         void SetReferenceDistance(float value) { m_ReferenceDistance = value; }
 
+        float GetRollOffFactor() const { return m_RollOffFactor; }
+        void SetRollOffFactor(float value) { m_RollOffFactor = value; }
+        
         bool GetIsGlobal() const { return m_IsGlobal; }
         void SetIsGlobal(bool value) { m_IsGlobal = value; }
 
@@ -61,12 +64,11 @@ namespace Lumos
         template <typename Archive>
         void save(Archive& archive) const
         {
-
             std::string path;
             VFS::Get()->AbsoulePathToVFS(m_Sound ? m_Sound->GetFilePath() : "", path);
 
             archive(cereal::make_nvp("Position", m_Position), cereal::make_nvp("Radius", m_Radius), cereal::make_nvp("Pitch", m_Pitch), cereal::make_nvp("Volume", m_Volume), cereal::make_nvp("Velocity", m_Velocity), cereal::make_nvp("Looping", m_IsLooping), cereal::make_nvp("Paused", m_Paused), cereal::make_nvp("ReferenceDistance", m_ReferenceDistance), cereal::make_nvp("Global", m_IsGlobal), cereal::make_nvp("TimeLeft", m_TimeLeft), cereal::make_nvp("Stationary", m_Stationary),
-                cereal::make_nvp("SoundNodePath", path));
+                cereal::make_nvp("SoundNodePath", path), cereal::make_nvp("RollOffFactor", m_RollOffFactor));
         }
 
         template <typename Archive>
@@ -74,7 +76,7 @@ namespace Lumos
         {
             std::string soundFilePath;
             archive(cereal::make_nvp("Position", m_Position), cereal::make_nvp("Radius", m_Radius), cereal::make_nvp("Pitch", m_Pitch), cereal::make_nvp("Volume", m_Volume), cereal::make_nvp("Velocity", m_Velocity), cereal::make_nvp("Looping", m_IsLooping), cereal::make_nvp("Paused", m_Paused), cereal::make_nvp("ReferenceDistance", m_ReferenceDistance), cereal::make_nvp("Global", m_IsGlobal), cereal::make_nvp("TimeLeft", 0.0f), cereal::make_nvp("Stationary", m_Stationary),
-                cereal::make_nvp("SoundNodePath", soundFilePath));
+                cereal::make_nvp("SoundNodePath", soundFilePath), cereal::make_nvp("RollOffFactor", m_RollOffFactor));
 
             if(!soundFilePath.empty())
             {
@@ -94,6 +96,7 @@ namespace Lumos
         double m_TimeLeft;
         bool m_Paused;
         float m_ReferenceDistance;
+        float m_RollOffFactor;
         bool m_Stationary;
         double m_StreamPos;
     };

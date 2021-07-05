@@ -133,6 +133,110 @@ namespace Lumos::Graphics
         return Maths::Quaternion(float(quat.x), float(quat.y), float(quat.z), float(quat.w));
     }
 
+    Graphics::Texture2D* LoadTexture(const ofbx::Material* material, ofbx::Texture::TextureType type)
+    {
+        const ofbx::Texture* ofbxTexture = material->getTexture(type);
+        Graphics::Texture2D* texture2D = nullptr;
+        if(ofbxTexture)
+        {
+            std::string stringFilepath;
+            ofbx::DataView filename = ofbxTexture->getRelativeFileName();
+            if(filename == "")
+                filename = ofbxTexture->getFileName();
+
+            char filePath[MAX_PATH_LENGTH];
+            filename.toString(filePath);
+
+            stringFilepath = std::string(filePath);
+            stringFilepath = m_FBXModelDirectory + "/" + StringUtilities::BackSlashesToSlashes(stringFilepath);
+
+            bool fileFound = false;
+
+            fileFound = FileSystem::FileExists(stringFilepath);
+
+            if(!fileFound)
+            {
+                stringFilepath = StringUtilities::GetFileName(stringFilepath);
+                stringFilepath = m_FBXModelDirectory + "/" + stringFilepath;
+                fileFound = FileSystem::FileExists(stringFilepath);
+            }
+            if(fileFound)
+            {
+                texture2D = Graphics::Texture2D::CreateFromFile(stringFilepath, stringFilepath);
+            }
+        }
+
+        return texture2D;
+    }
+
+    Ref<Material> LoadMaterial(const ofbx::Material* material, bool animated)
+    {
+        auto shader = animated ? Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/DeferredColourAnim.shader") : Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/DeferredColour.shader");
+
+        Ref<Material> pbrMaterial = CreateRef<Material>(shader);
+
+        PBRMataterialTextures textures;
+        Graphics::MaterialProperties properties;
+
+        properties.albedoColour = ToLumosVector(material->getDiffuseColor());
+        properties.metallicColour = ToLumosVector(material->getSpecularColor());
+
+        float roughness = 1.0f - Maths::Sqrt(float(material->getShininess()) / 100.0f);
+        properties.roughnessColour = Maths::Vector3(roughness);
+
+        textures.albedo = LoadTexture(material, ofbx::Texture::TextureType::DIFFUSE);
+        textures.normal = LoadTexture(material, ofbx::Texture::TextureType::NORMAL);
+        //textures.metallic = LoadTexture(material, ofbx::Texture::TextureType::REFLECTION);
+        textures.metallic = LoadTexture(material, ofbx::Texture::TextureType::SPECULAR);
+        textures.roughness = LoadTexture(material, ofbx::Texture::TextureType::SHININESS);
+        textures.emissive = LoadTexture(material, ofbx::Texture::TextureType::EMISSIVE);
+        textures.ao = LoadTexture(material, ofbx::Texture::TextureType::AMBIENT);
+
+        if(!textures.albedo)
+            properties.usingAlbedoMap = 0.0f;
+        if(!textures.normal)
+            properties.usingNormalMap = 0.0f;
+        if(!textures.metallic)
+            properties.usingMetallicMap = 0.0f;
+        if(!textures.roughness)
+            properties.usingRoughnessMap = 0.0f;
+        if(!textures.emissive)
+            properties.usingEmissiveMap = 0.0f;
+        if(!textures.ao)
+            properties.usingAOMap = 0.0f;
+
+        pbrMaterial->SetTextures(textures);
+        pbrMaterial->SetMaterialProperites(properties);
+
+        return pbrMaterial;
+    }
+
+    Maths::Transform GetTransform(const ofbx::Object* mesh)
+    {
+        auto transform = Maths::Transform();
+
+        ofbx::Vec3 p = mesh->getLocalTranslation();
+
+        Maths::Vector3 pos = (Maths::Vector3(static_cast<float>(p.x), static_cast<float>(p.y), static_cast<float>(p.z)));
+        transform.SetLocalPosition(FixOrientation(pos));
+
+        ofbx::Vec3 r = mesh->getLocalRotation();
+        Maths::Vector3 rot = FixOrientation(Maths::Vector3(static_cast<float>(r.x), static_cast<float>(r.y), static_cast<float>(r.z)));
+        transform.SetLocalOrientation(Maths::Quaternion::EulerAnglesToQuaternion(rot.x, rot.y, rot.z));
+
+        ofbx::Vec3 s = mesh->getLocalScaling();
+        Maths::Vector3 scl = Maths::Vector3(static_cast<float>(s.x), static_cast<float>(s.y), static_cast<float>(s.z));
+        transform.SetLocalScale(scl);
+        transform.UpdateMatrices();
+
+        if(mesh->getParent())
+        {
+            transform.SetWorldMatrix(GetTransform(mesh->getParent()).GetWorldMatrix());
+        }
+
+        return transform;
+    }
+
     void Model::LoadFBX(const std::string& path)
     {
         std::string err;
@@ -204,12 +308,14 @@ namespace Lumos::Graphics
                 tangents = generatedTangents;
             }
 
+            auto transform = GetTransform(fbx_mesh);
+
             for(int i = 0; i < vertex_count; ++i)
             {
                 ofbx::Vec3 cp = vertices[i];
 
                 auto& vertex = tempvertices[i];
-                vertex.Position = Maths::Vector3(float(cp.x), float(cp.y), float(cp.z));
+                vertex.Position = transform.GetWorldMatrix() * Maths::Vector3(float(cp.x), float(cp.y), float(cp.z));
                 FixOrientation(vertex.Position);
                 boundingBox->Merge(vertex.Position);
 
@@ -238,182 +344,20 @@ namespace Lumos::Graphics
 
             Ref<Graphics::IndexBuffer> ib;
             ib.reset(Graphics::IndexBuffer::Create(indicesArray, numIndices));
-            //TODO : if(isAnimated) Load deferredColourAnimated;
-            auto shader = Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/DeferredColour.shader");
-
-            Ref<Material> pbrMaterial = CreateRef<Material>(shader);
 
             const ofbx::Material* material = fbx_mesh->getMaterialCount() > 0 ? fbx_mesh->getMaterial(0) : nullptr;
+            Ref<Material> pbrMaterial;
             if(material)
             {
-                PBRMataterialTextures textures;
-                Graphics::MaterialProperties properties;
-
-                properties.albedoColour = ToLumosVector(material->getDiffuseColor());
-                properties.metallicColour = ToLumosVector(material->getSpecularColor());
-
-                float roughness = 1.0f - Maths::Sqrt(float(material->getShininess()) / 100.0f);
-                properties.roughnessColour = Maths::Vector3(roughness);
-
-                const ofbx::Texture* diffuseTexture = material->getTexture(ofbx::Texture::TextureType::DIFFUSE);
-                if(diffuseTexture)
-                {
-                    std::string stringFilepath;
-                    ofbx::DataView filename = diffuseTexture->getRelativeFileName();
-                    if(filename == "")
-                        filename = diffuseTexture->getFileName();
-
-                    char filePath[MAX_PATH_LENGTH];
-                    filename.toString(filePath);
-
-                    stringFilepath = std::string(filePath);
-                    stringFilepath = m_FBXModelDirectory + "/" + StringUtilities::BackSlashesToSlashes(stringFilepath);
-                    Graphics::Texture2D* texture2D = Graphics::Texture2D::CreateFromFile(stringFilepath, stringFilepath, Graphics::TextureParameters(Graphics::TextureFilter::LINEAR, Graphics::TextureFilter::LINEAR));
-                    if(texture2D)
-                        textures.albedo = (Ref<Graphics::Texture2D>(texture2D));
-                }
-
-                const ofbx::Texture* normalTexture = material->getTexture(ofbx::Texture::TextureType::NORMAL);
-                if(normalTexture)
-                {
-                    std::string stringFilepath;
-                    ofbx::DataView filename = normalTexture->getRelativeFileName();
-                    if(filename == "")
-                        filename = normalTexture->getFileName();
-
-                    char filePath[MAX_PATH_LENGTH];
-                    filename.toString(filePath);
-
-                    stringFilepath = std::string(filePath);
-                    stringFilepath = m_FBXModelDirectory + "/" + StringUtilities::BackSlashesToSlashes(stringFilepath);
-                    Graphics::Texture2D* texture2D = Graphics::Texture2D::CreateFromFile(stringFilepath, stringFilepath, Graphics::TextureParameters(Graphics::TextureFilter::LINEAR, Graphics::TextureFilter::LINEAR));
-                    if(texture2D)
-                        textures.normal = (Ref<Graphics::Texture2D>(texture2D));
-                }
-
-                const ofbx::Texture* specularTexture = material->getTexture(ofbx::Texture::TextureType::SPECULAR);
-                if(specularTexture)
-                {
-                    std::string stringFilepath;
-                    ofbx::DataView filename = specularTexture->getRelativeFileName();
-                    if(filename == "")
-                        filename = specularTexture->getFileName();
-
-                    char filePath[MAX_PATH_LENGTH];
-                    filename.toString(filePath);
-
-                    stringFilepath = std::string(filePath);
-                    stringFilepath = m_FBXModelDirectory + "/" + StringUtilities::BackSlashesToSlashes(stringFilepath);
-                    Graphics::Texture2D* texture2D = Graphics::Texture2D::CreateFromFile(stringFilepath, stringFilepath, Graphics::TextureParameters(Graphics::TextureFilter::LINEAR, Graphics::TextureFilter::LINEAR));
-                    if(texture2D)
-                        textures.metallic = (Ref<Graphics::Texture2D>(texture2D));
-                }
-
-                const ofbx::Texture* shininessTexture = material->getTexture(ofbx::Texture::TextureType::SHININESS);
-                if(shininessTexture)
-                {
-                    std::string stringFilepath;
-                    ofbx::DataView filename = shininessTexture->getRelativeFileName();
-                    if(filename == "")
-                        filename = shininessTexture->getFileName();
-
-                    char filePath[MAX_PATH_LENGTH];
-                    filename.toString(filePath);
-
-                    stringFilepath = std::string(filePath);
-                    stringFilepath = m_FBXModelDirectory + "/" + StringUtilities::BackSlashesToSlashes(stringFilepath);
-                    Graphics::Texture2D* texture2D = Graphics::Texture2D::CreateFromFile(stringFilepath, stringFilepath, Graphics::TextureParameters(Graphics::TextureFilter::LINEAR, Graphics::TextureFilter::LINEAR));
-                    if(texture2D)
-                        textures.roughness = (Ref<Graphics::Texture2D>(texture2D));
-                }
-                const ofbx::Texture* emissiveTexture = material->getTexture(ofbx::Texture::TextureType::EMISSIVE);
-                if(emissiveTexture)
-                {
-                    std::string stringFilepath;
-                    ofbx::DataView filename = emissiveTexture->getRelativeFileName();
-                    if(filename == "")
-                        filename = emissiveTexture->getFileName();
-
-                    char filePath[MAX_PATH_LENGTH];
-                    filename.toString(filePath);
-
-                    stringFilepath = std::string(filePath);
-                    stringFilepath = m_FBXModelDirectory + "/" + StringUtilities::BackSlashesToSlashes(stringFilepath);
-                    Graphics::Texture2D* texture2D = Graphics::Texture2D::CreateFromFile(stringFilepath, stringFilepath, Graphics::TextureParameters(Graphics::TextureFilter::LINEAR, Graphics::TextureFilter::LINEAR));
-                    if(texture2D)
-                        textures.emissive = (Ref<Graphics::Texture2D>(texture2D));
-                }
-
-                const ofbx::Texture* reflectionTexture = material->getTexture(ofbx::Texture::TextureType::REFLECTION);
-                if(reflectionTexture)
-                {
-                    std::string stringFilepath;
-                    ofbx::DataView filename = reflectionTexture->getRelativeFileName();
-                    if(filename == "")
-                        filename = reflectionTexture->getFileName();
-
-                    char filePath[MAX_PATH_LENGTH];
-                    filename.toString(filePath);
-
-                    stringFilepath = std::string(filePath);
-                    stringFilepath = m_FBXModelDirectory + "/" + StringUtilities::BackSlashesToSlashes(stringFilepath);
-                    Graphics::Texture2D* texture2D = Graphics::Texture2D::CreateFromFile(stringFilepath, stringFilepath, Graphics::TextureParameters(Graphics::TextureFilter::LINEAR, Graphics::TextureFilter::LINEAR));
-                    if(texture2D)
-                        textures.metallic = (Ref<Graphics::Texture2D>(texture2D));
-                }
-
-                pbrMaterial->SetTextures(textures);
-                pbrMaterial->SetMaterialProperites(properties);
+                pbrMaterial = LoadMaterial(material, false);
             }
 
             auto mesh = CreateRef<Graphics::Mesh>(vb, ib, boundingBox);
-            if(c == 1)
-            {
-                mesh->SetName(fbx_mesh->name);
-                if(material)
-                    mesh->SetMaterial(pbrMaterial);
+            mesh->SetName(fbx_mesh->name);
+            if(material)
+                mesh->SetMaterial(pbrMaterial);
 
-                m_Meshes.push_back(mesh);
-
-                auto transform = Maths::Transform();
-
-                auto object = fbx_mesh;
-                ofbx::Vec3 p = object->getLocalTranslation();
-
-                Maths::Vector3 pos = (Maths::Vector3(static_cast<float>(p.x), static_cast<float>(p.y), static_cast<float>(p.z)));
-                transform.SetLocalPosition(FixOrientation(pos));
-
-                ofbx::Vec3 r = object->getLocalRotation();
-                Maths::Vector3 rot = FixOrientation(Maths::Vector3(static_cast<float>(r.x), static_cast<float>(r.y), static_cast<float>(r.z)));
-                transform.SetLocalOrientation(Maths::Quaternion::EulerAnglesToQuaternion(rot.x, rot.y, rot.z));
-
-                ofbx::Vec3 s = object->getLocalScaling();
-                Maths::Vector3 scl = Maths::Vector3(static_cast<float>(s.x), static_cast<float>(s.y), static_cast<float>(s.z));
-                transform.SetLocalScale(scl);
-            }
-            else
-            {
-                mesh->SetName(fbx_mesh->name);
-                if(material)
-                    mesh->SetMaterial(pbrMaterial);
-
-                m_Meshes.push_back(mesh);
-                auto transform = Maths::Transform();
-
-                auto object = fbx_mesh;
-                ofbx::Vec3 p = object->getLocalTranslation();
-
-                Maths::Vector3 pos = (Maths::Vector3(static_cast<float>(p.x), static_cast<float>(p.y), static_cast<float>(p.z))); // * settings->customScale());
-                transform.SetLocalPosition(FixOrientation(pos));
-
-                ofbx::Vec3 r = object->getLocalRotation();
-                Maths::Vector3 rot = FixOrientation(Maths::Vector3(static_cast<float>(r.x), static_cast<float>(r.y), static_cast<float>(r.z)));
-                transform.SetLocalOrientation(Maths::Quaternion::EulerAnglesToQuaternion(rot.x, rot.y, rot.z));
-
-                ofbx::Vec3 s = object->getLocalScaling();
-                Maths::Vector3 scl = Maths::Vector3(static_cast<float>(s.x), static_cast<float>(s.y), static_cast<float>(s.z));
-                transform.SetLocalScale(scl);
-            }
+            m_Meshes.push_back(mesh);
 
             if(generatedTangents)
                 delete[] generatedTangents;

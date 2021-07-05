@@ -21,6 +21,7 @@ namespace Lumos
 
             void OnInit() override;
             void OnUpdate(const TimeStep& dt, Scene* scene) override;
+            void UpdateListener(Scene* scene) override;
             void UpdateListener(const Maths::Transform& listenerTransform);
             void OnImGui() override;
 

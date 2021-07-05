@@ -86,7 +86,7 @@ function OnCleanUp()
 end
 )";
 
-                Lumos::FileSystem::WriteTextFile(physicalPath + "Script.lua", defaultScript);
+                Lumos::FileSystem::WriteTextFile(physicalPath + "/Script.lua", defaultScript);
                 script.SetFilePath(newFilePath + "/Script.lua");
                 script.Reload();
                 hasReloaded = true;
@@ -655,12 +655,15 @@ end
         auto& sound = reg.get<Lumos::SoundComponent>(e);
         auto soundNode = sound.GetSoundNode();
 
+        bool updated = false;
+
         auto pos = soundNode->GetPosition();
         auto radius = soundNode->GetRadius();
         auto paused = soundNode->GetPaused();
         auto pitch = soundNode->GetPitch();
         auto volume = soundNode->GetVolume();
         auto referenceDistance = soundNode->GetReferenceDistance();
+        auto rollOffFactor = soundNode->GetRollOffFactor();
 
         ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
         ImGui::Columns(2);
@@ -671,7 +674,10 @@ end
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
         if(ImGui::InputFloat3("##Position", Lumos::Maths::ValuePointer(pos)))
+        {
             soundNode->SetPosition(pos);
+            updated = true;
+        }
 
         ImGui::PopItemWidth();
         ImGui::NextColumn();
@@ -681,7 +687,10 @@ end
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
         if(ImGui::InputFloat("##Radius", &radius))
+        {
             soundNode->SetRadius(radius);
+            updated = true;
+        }
 
         ImGui::PopItemWidth();
         ImGui::NextColumn();
@@ -691,7 +700,10 @@ end
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
         if(ImGui::InputFloat("##Pitch", &pitch))
+        {
             soundNode->SetPitch(pitch);
+            updated = true;
+        }
 
         ImGui::PopItemWidth();
         ImGui::NextColumn();
@@ -701,7 +713,10 @@ end
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
         if(ImGui::InputFloat("##Volume", &volume))
+        {
             soundNode->SetVolume(volume);
+            updated = true;
+        }
 
         ImGui::PopItemWidth();
         ImGui::NextColumn();
@@ -711,7 +726,23 @@ end
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
         if(ImGui::DragFloat("##Reference Distance", &referenceDistance))
+        {
             soundNode->SetReferenceDistance(referenceDistance);
+            updated = true;
+        }
+        
+        ImGui::PopItemWidth();
+        ImGui::NextColumn();
+
+        ImGui::AlignTextToFramePadding();
+        ImGui::TextUnformatted("Roll Off Factor");
+        ImGui::NextColumn();
+        ImGui::PushItemWidth(-1);
+        if(ImGui::DragFloat("##RollOffFactor", &rollOffFactor))
+        {
+            soundNode->SetRollOffFactor(rollOffFactor);
+            updated = true;
+        }
 
         ImGui::PopItemWidth();
         ImGui::NextColumn();
@@ -721,7 +752,10 @@ end
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
         if(ImGui::Checkbox("##Paused", &paused))
+        {
             soundNode->SetPaused(paused);
+            updated = true;
+        }
 
         ImGui::PopItemWidth();
         ImGui::NextColumn();
@@ -812,6 +846,9 @@ end
             ImGui::Text("%i", channels);
             ImGui::PopItemWidth();
             ImGui::NextColumn();
+
+            if(updated)
+                soundNode->SetSound(soundPointer);
         }
 
         ImGui::PopItemWidth();

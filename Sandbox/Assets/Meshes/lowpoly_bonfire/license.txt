@@ -1,0 +1,11 @@
+Model Information:
+* title:	LowPoly bonfire
+* source:	https://sketchfab.com/3d-models/lowpoly-bonfire-6c0ca6f74536435ab7d54eb17a1155bb
+* author:	LEX_GFX (https://sketchfab.com/boltex360)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "LowPoly bonfire" (https://sketchfab.com/3d-models/lowpoly-bonfire-6c0ca6f74536435ab7d54eb17a1155bb) by LEX_GFX (https://sketchfab.com/boltex360) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

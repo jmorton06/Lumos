@@ -574,6 +574,8 @@ namespace Lumos
                 {
                     Application::Get().GetSystem<LumosPhysicsEngine>()->SetPaused(selected);
                     Application::Get().GetSystem<B2PhysicsEngine>()->SetPaused(selected);
+                    
+                    Application::Get().GetSystem<AudioManager>()->UpdateListener(Application::Get().GetCurrentScene());
                     Application::Get().GetSystem<AudioManager>()->SetPaused(selected);
                     Application::Get().SetEditorState(selected ? EditorState::Preview : EditorState::Play);
 
@@ -1196,9 +1198,7 @@ namespace Lumos
     void Editor::OnUpdate(const TimeStep& ts)
     {
         LUMOS_PROFILE_FUNCTION();
-
-        Application::OnUpdate(ts);
-
+        
         if(Application::Get().GetEditorState() == EditorState::Preview)
         {
             auto& registry = Application::Get().GetSceneManager()->GetCurrentScene()->GetRegistry();
@@ -1308,6 +1308,8 @@ namespace Lumos
 
             m_EditorCameraTransform.SetWorldMatrix(Maths::Matrix4());
         }
+        
+        Application::OnUpdate(ts);
     }
 
     void Editor::FocusCamera(const Maths::Vector3& point, float distance, float speed)
@@ -1355,6 +1357,7 @@ namespace Lumos
         LUMOS_PROFILE_FUNCTION();
         auto& registry = Application::Get().GetSceneManager()->GetCurrentScene()->GetRegistry();
 
+        Maths::Vector4 selectedColour = Maths::Vector4(0.9f);
         if(m_DebugDrawFlags & EditorDebugFlags::MeshBoundingBoxes)
         {
             auto group = registry.group<Graphics::Model>(entt::get<Maths::Transform>);
@@ -1369,7 +1372,7 @@ namespace Lumos
                     {
                         auto& worldTransform = trans.GetWorldMatrix();
                         auto bbCopy = mesh->GetBoundingBox()->Transformed(worldTransform);
-                        DebugRenderer::DebugDraw(bbCopy, Maths::Vector4(0.1f, 0.9f, 0.1f, 0.4f), true);
+                        DebugRenderer::DebugDraw(bbCopy, selectedColour, true);
                     }
                 }
             }
@@ -1388,7 +1391,7 @@ namespace Lumos
 
                     auto bb = Maths::BoundingBox(Maths::Rect(sprite.GetPosition(), sprite.GetPosition() + sprite.GetScale()));
                     bb.Transform(trans.GetWorldMatrix());
-                    DebugRenderer::DebugDraw(bb, Maths::Vector4(0.1f, 0.9f, 0.1f, 0.4f), true);
+                    DebugRenderer::DebugDraw(bb, selectedColour, true);
                 }
             }
         }
@@ -1421,7 +1424,7 @@ namespace Lumos
                     {
                         auto& worldTransform = transform->GetWorldMatrix();
                         auto bbCopy = mesh->GetBoundingBox()->Transformed(worldTransform);
-                        DebugRenderer::DebugDraw(bbCopy, Maths::Vector4(0.1f, 0.9f, 0.1f, 0.4f), true);
+                        DebugRenderer::DebugDraw(bbCopy, selectedColour, true);
                     }
                 }
             }
@@ -1435,7 +1438,7 @@ namespace Lumos
                     auto bb = Maths::BoundingBox(
                         Maths::Rect(sprite->GetPosition(), sprite->GetPosition() + sprite->GetScale()));
                     bb.Transform(worldTransform);
-                    DebugRenderer::DebugDraw(bb, Maths::Vector4(0.1f, 0.9f, 0.1f, 0.4f), true);
+                    DebugRenderer::DebugDraw(bb, selectedColour, true);
                 }
             }
 
@@ -1447,7 +1450,7 @@ namespace Lumos
 
                     auto bb = Maths::BoundingBox(Maths::Rect(animSprite->GetPosition(), animSprite->GetPosition() + animSprite->GetScale()));
                     bb.Transform(worldTransform);
-                    DebugRenderer::DebugDraw(bb, Maths::Vector4(0.1f, 0.9f, 0.1f, 0.4f), true);
+                    DebugRenderer::DebugDraw(bb, selectedColour, true);
                 }
             }
 

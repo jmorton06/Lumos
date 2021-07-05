@@ -62,6 +62,17 @@ namespace Lumos
             }
         }
 
+        void ALManager::UpdateListener(Scene* scene)
+        {
+            auto& registry = scene->GetRegistry();
+            auto listenerView = registry.view<Listener, Maths::Transform>();
+            if(!listenerView.empty())
+            {
+                auto& listenerTransform = registry.get<Maths::Transform>(listenerView.front());
+                UpdateListener(listenerTransform);
+            }
+        }
+
         //Pass Cameras transform
         void ALManager::UpdateListener(const Maths::Transform& listenerTransform)
         {

@@ -61,7 +61,7 @@ namespace Lumos
                 sizeof(Graphics::Vertex) // vertex stride
             );
 
-            LUMOS_LOG_INFO("Mesh Optimizer - Before : {0} indices {1} vertices , After : {2} indices , {3} vertices", indexCount, m_Vertices.size(), newIndexCount, newVertexCount);
+            //LUMOS_LOG_INFO("Mesh Optimizer - Before : {0} indices {1} vertices , After : {2} indices , {3} vertices", indexCount, m_Vertices.size(), newIndexCount, newVertexCount);
 
             m_BoundingBox = CreateRef<Maths::BoundingBox>();
 
