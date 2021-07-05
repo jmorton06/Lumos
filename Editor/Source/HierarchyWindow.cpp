@@ -439,6 +439,34 @@ namespace Lumos
 
             if(ImGui::BeginPopupContextWindow())
             {
+                if(m_Editor->GetCopiedEntity() != entt::null && registry.valid(m_Editor->GetCopiedEntity()))
+                {
+                    if(ImGui::Selectable("Paste"))
+                    {
+                        auto scene = Application::Get().GetSceneManager()->GetCurrentScene();
+                        Entity copiedEntity = { m_Editor->GetCopiedEntity(), scene };
+                        if(!copiedEntity.Valid())
+                        {
+                            m_Editor->SetCopiedEntity(entt::null);
+                        }
+                        else
+                        {
+                            scene->DuplicateEntity(copiedEntity);
+
+                            if(m_Editor->GetCutCopyEntity())
+                            {
+                                DestroyEntity(m_Editor->GetCopiedEntity(), registry);
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    ImGui::TextDisabled("Paste");
+                }
+
+                ImGui::Separator();
+
                 if(ImGui::Selectable("Add Empty Entity"))
                 {
                     scene->CreateEntity();

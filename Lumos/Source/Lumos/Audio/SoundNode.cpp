@@ -39,7 +39,8 @@ namespace Lumos
         m_StreamPos = 0;
         m_IsGlobal = false;
         m_Stationary = false;
-        m_ReferenceDistance = 0.0f;
+        m_ReferenceDistance = 1.0f;
+        m_RollOffFactor = 1.0f;
         m_Velocity = Maths::Vector3(0.0f);
     }
 

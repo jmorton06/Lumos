@@ -2,6 +2,8 @@
 #include "LuaScriptComponent.h"
 #include "LuaManager.h"
 #include "Scene/Scene.h"
+#include "Scene/Entity.h"
+#include "Scene/EntityManager.h"
 #include "Core/Engine.h"
 
 namespace Lumos
@@ -59,8 +61,11 @@ namespace Lumos
             m_Errors.push_back(std::string(err.what()));
         }
 
-        if(m_Scene)
-            (*m_Env)["CurrentScene"] = m_Scene;
+        if(!m_Scene)
+            m_Scene = Application::Get().GetCurrentScene();
+
+        (*m_Env)["CurrentScene"] = m_Scene;
+        (*m_Env)["LuaComponent"] = this;
 
         m_OnInitFunc = CreateRef<sol::protected_function>((*m_Env)["OnInit"]);
         if(!m_OnInitFunc->valid())
@@ -127,6 +132,29 @@ namespace Lumos
         }
 
         Init();
+    }
+
+    Entity LuaScriptComponent::GetCurrentEntity()
+    {
+        //TODO: Faster alternative
+        if(!m_Scene)
+            m_Scene = Application::Get().GetCurrentScene();
+
+        auto entities = m_Scene->GetEntityManager()->GetEntitiesWithType<LuaScriptComponent>();
+
+        for(auto entity : entities)
+        {
+            LuaScriptComponent* comp = &entity.GetComponent<LuaScriptComponent>();
+            if(comp->GetFilePath() == GetFilePath())
+                return entity;
+        }
+
+        return Entity();
+    }
+
+    void LuaScriptComponent::SetThisComponent()
+    {
+        (*m_Env)["LuaComponent"] = this;
     }
 
     void LuaScriptComponent::Load(const std::string& fileName)
