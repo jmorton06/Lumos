@@ -54,7 +54,7 @@ namespace Lumos
     Editor* Editor::s_Editor = nullptr;
 
     Editor::Editor()
-        : Application(std::string("/Sandbox/"), std::string("Sandbox"))
+        : Application(std::string("/ExampleProject/"), std::string("Example"))
         , m_SelectedEntity(entt::null)
         , m_CopiedEntity(entt::null)
         , m_IniFile("")
@@ -127,7 +127,7 @@ namespace Lumos
         }
 #endif
 
-        m_EditorCamera = CreateRef<Camera>(-20.0f,
+        m_EditorCamera = CreateSharedRef<Camera>(-20.0f,
             -40.0f,
             Maths::Vector3(-31.0f, 12.0f, 51.0f),
             60.0f,
@@ -151,15 +151,15 @@ namespace Lumos
         m_ComponentIconMap[typeid(Graphics::Environment).hash_code()] = ICON_MDI_EARTH;
         m_ComponentIconMap[typeid(Editor).hash_code()] = ICON_MDI_SQUARE;
 
-        m_Windows.emplace_back(CreateRef<ConsoleWindow>());
-        m_Windows.emplace_back(CreateRef<SceneWindow>());
-        m_Windows.emplace_back(CreateRef<InspectorWindow>());
-        m_Windows.emplace_back(CreateRef<ApplicationInfoWindow>());
-        m_Windows.emplace_back(CreateRef<HierarchyWindow>());
-        m_Windows.emplace_back(CreateRef<GraphicsInfoWindow>());
+        m_Windows.emplace_back(CreateSharedRef<ConsoleWindow>());
+        m_Windows.emplace_back(CreateSharedRef<SceneWindow>());
+        m_Windows.emplace_back(CreateSharedRef<InspectorWindow>());
+        m_Windows.emplace_back(CreateSharedRef<ApplicationInfoWindow>());
+        m_Windows.emplace_back(CreateSharedRef<HierarchyWindow>());
+        m_Windows.emplace_back(CreateSharedRef<GraphicsInfoWindow>());
         m_Windows.back()->SetActive(false);
 #ifndef LUMOS_PLATFORM_IOS
-        m_Windows.emplace_back(CreateRef<AssetWindow>());
+        m_Windows.emplace_back(CreateSharedRef<AssetWindow>());
 #endif
 
         for(auto& window : m_Windows)
@@ -299,11 +299,26 @@ namespace Lumos
         {
             if(ImGui::BeginMenu("File"))
             {
+				if(ImGui::MenuItem("New Project"))
+                {
+                    Application::Get().OpenNewProject();
+                }
+				
+				if(ImGui::MenuItem("Open Project"))
+                {
+                    m_FileBrowserWindow.SetCallback(BIND_FILEBROWSER_FN(Editor::ProjectOpenCallback));
+                    m_FileBrowserWindow.Open();
+                }
+				
+				ImGui::Separator();
+				
                 if(ImGui::MenuItem("Open File"))
                 {
                     m_FileBrowserWindow.SetCallback(BIND_FILEBROWSER_FN(Editor::FileOpenCallback));
                     m_FileBrowserWindow.Open();
                 }
+                
+                ImGui::Separator();
 
                 if(ImGui::MenuItem("New Scene", "CTRL+N"))
                 {
@@ -319,6 +334,8 @@ namespace Lumos
                 {
                     openReloadScenePopup = true;
                 }
+                
+                ImGui::Separator();
 
                 if(ImGui::BeginMenu("Style"))
                 {
@@ -385,6 +402,8 @@ namespace Lumos
                     ImGui::EndMenu();
                 }
 
+                ImGui::Separator();
+                
                 if(ImGui::MenuItem("Exit"))
                 {
                     Application::Get().SetAppState(AppState::Closing);
@@ -479,43 +498,43 @@ namespace Lumos
                 if(ImGui::MenuItem("Cube"))
                 {
                     auto entity = scene->CreateEntity("Cube");
-                    entity.AddComponent<Graphics::Model>(Ref<Graphics::Mesh>(Graphics::CreatePrimative(Graphics::PrimitiveType::Cube)), Graphics::PrimitiveType::Cube);
+                    entity.AddComponent<Graphics::Model>(SharedRef<Graphics::Mesh>(Graphics::CreatePrimative(Graphics::PrimitiveType::Cube)), Graphics::PrimitiveType::Cube);
                 }
 
                 if(ImGui::MenuItem("Sphere"))
                 {
                     auto entity = scene->CreateEntity("Sphere");
-                    entity.AddComponent<Graphics::Model>(Ref<Graphics::Mesh>(Graphics::CreatePrimative(Graphics::PrimitiveType::Sphere)), Graphics::PrimitiveType::Sphere);
+                    entity.AddComponent<Graphics::Model>(SharedRef<Graphics::Mesh>(Graphics::CreatePrimative(Graphics::PrimitiveType::Sphere)), Graphics::PrimitiveType::Sphere);
                 }
 
                 if(ImGui::MenuItem("Pyramid"))
                 {
                     auto entity = scene->CreateEntity("Pyramid");
-                    entity.AddComponent<Graphics::Model>(Ref<Graphics::Mesh>(Graphics::CreatePrimative(Graphics::PrimitiveType::Pyramid)), Graphics::PrimitiveType::Pyramid);
+                    entity.AddComponent<Graphics::Model>(SharedRef<Graphics::Mesh>(Graphics::CreatePrimative(Graphics::PrimitiveType::Pyramid)), Graphics::PrimitiveType::Pyramid);
                 }
 
                 if(ImGui::MenuItem("Plane"))
                 {
                     auto entity = scene->CreateEntity("Plane");
-                    entity.AddComponent<Graphics::Model>(Ref<Graphics::Mesh>(Graphics::CreatePrimative(Graphics::PrimitiveType::Plane)), Graphics::PrimitiveType::Plane);
+                    entity.AddComponent<Graphics::Model>(SharedRef<Graphics::Mesh>(Graphics::CreatePrimative(Graphics::PrimitiveType::Plane)), Graphics::PrimitiveType::Plane);
                 }
 
                 if(ImGui::MenuItem("Cylinder"))
                 {
                     auto entity = scene->CreateEntity("Cylinder");
-                    entity.AddComponent<Graphics::Model>(Ref<Graphics::Mesh>(Graphics::CreatePrimative(Graphics::PrimitiveType::Cylinder)), Graphics::PrimitiveType::Cylinder);
+                    entity.AddComponent<Graphics::Model>(SharedRef<Graphics::Mesh>(Graphics::CreatePrimative(Graphics::PrimitiveType::Cylinder)), Graphics::PrimitiveType::Cylinder);
                 }
 
                 if(ImGui::MenuItem("Capsule"))
                 {
                     auto entity = scene->CreateEntity("Capsule");
-                    entity.AddComponent<Graphics::Model>(Ref<Graphics::Mesh>(Graphics::CreatePrimative(Graphics::PrimitiveType::Capsule)), Graphics::PrimitiveType::Capsule);
+                    entity.AddComponent<Graphics::Model>(SharedRef<Graphics::Mesh>(Graphics::CreatePrimative(Graphics::PrimitiveType::Capsule)), Graphics::PrimitiveType::Capsule);
                 }
 
                 if(ImGui::MenuItem("Terrain"))
                 {
                     auto entity = scene->CreateEntity("Terrain");
-                    entity.AddComponent<Graphics::Model>(Ref<Graphics::Mesh>(Graphics::CreatePrimative(Graphics::PrimitiveType::Terrain)), Graphics::PrimitiveType::Terrain);
+                    entity.AddComponent<Graphics::Model>(SharedRef<Graphics::Mesh>(Graphics::CreatePrimative(Graphics::PrimitiveType::Terrain)), Graphics::PrimitiveType::Terrain);
                 }
 
                 if(ImGui::MenuItem("Light Cube"))
@@ -744,7 +763,7 @@ namespace Lumos
 
             if(ImGui::Button("OK", ImVec2(120, 0)))
             {
-                Application::Get().GetSceneManager()->GetCurrentScene()->Serialise(ROOT_DIR "/Sandbox/Assets/scenes/", false);
+                Application::Get().GetSceneManager()->GetCurrentScene()->Serialise(ROOT_DIR "/ExampleProject/Assets/Scenes/", false);
                 ImGui::CloseCurrentPopup();
             }
             ImGui::SetItemDefaultFocus();
@@ -763,7 +782,7 @@ namespace Lumos
         {
             if(ImGui::Button("Save Current Scene Changes"))
             {
-                Application::Get().GetSceneManager()->GetCurrentScene()->Serialise(ROOT_DIR "/Sandbox/Assets/scenes/", false);
+                Application::Get().GetSceneManager()->GetCurrentScene()->Serialise(ROOT_DIR "/ExampleProject/Assets/Scenes/", false);
             }
 
             ImGui::Text("Create New Scene?\n\n");
@@ -945,7 +964,7 @@ namespace Lumos
 
         ImGuiID DockspaceID = ImGui::GetID("MyDockspace");
 
-        static std::vector<Ref<EditorWindow>> hiddenWindows;
+        static std::vector<SharedRef<EditorWindow>> hiddenWindows;
         if(m_FullScreenSceneView != gameFullScreen)
         {
             m_FullScreenSceneView = gameFullScreen;
@@ -1276,11 +1295,11 @@ namespace Lumos
             {
                 if(Input::Get().GetKeyPressed(InputCode::Key::S) && Application::Get().GetSceneActive())
                 {
-                    Application::Get().GetSceneManager()->GetCurrentScene()->Serialise(ROOT_DIR "/Sandbox/Assets/scenes/", false);
+                    Application::Get().GetSceneManager()->GetCurrentScene()->Serialise(ROOT_DIR "/ExampleProject/Assets/scenes/", false);
                 }
 
                 if(Input::Get().GetKeyPressed(InputCode::Key::O))
-                    Application::Get().GetSceneManager()->GetCurrentScene()->Deserialise(ROOT_DIR "/Sandbox/Assets/scenes/", false);
+                    Application::Get().GetSceneManager()->GetCurrentScene()->Deserialise(ROOT_DIR "/ExampleProject/Assets/scenes/", false);
 
                 if(Input::Get().GetKeyPressed(InputCode::Key::X))
                 {
@@ -1613,7 +1632,7 @@ namespace Lumos
             }
         }
 
-        m_Windows.emplace_back(CreateRef<TextEditWindow>(physicalPath));
+        m_Windows.emplace_back(CreateSharedRef<TextEditWindow>(physicalPath));
         m_Windows.back()->SetEditor(this);
     }
 
@@ -1662,11 +1681,11 @@ namespace Lumos
         LUMOS_PROFILE_FUNCTION();
         if(!m_PreviewTexture)
         {
-            m_PreviewTexture = Ref<Graphics::Texture2D>(Graphics::Texture2D::Create());
+            m_PreviewTexture = SharedRef<Graphics::Texture2D>(Graphics::Texture2D::Create());
             m_PreviewTexture->BuildTexture(Graphics::TextureFormat::RGBA8, 200, 200, false, false, false);
 
-            m_PreviewRenderer = CreateRef<Graphics::ForwardRenderer>(200, 200, false);
-            m_PreviewSphere = Ref<Graphics::Mesh>(Graphics::CreateSphere());
+            m_PreviewRenderer = CreateSharedRef<Graphics::ForwardRenderer>(200, 200, false);
+            m_PreviewSphere = SharedRef<Graphics::Mesh>(Graphics::CreateSphere());
 
             m_PreviewRenderer->SetRenderTarget(m_PreviewTexture.get(), true);
         }
@@ -1702,7 +1721,7 @@ namespace Lumos
             Lumos::VFS::Get()->ResolvePhysicalPath(filePath, physicalPath);
             auto sound = Sound::Create(physicalPath, StringUtilities::GetFilePathExtension(filePath));
 
-            auto soundNode = Ref<SoundNode>(SoundNode::Create());
+            auto soundNode = SharedRef<SoundNode>(SoundNode::Create());
             soundNode->SetSound(sound);
             soundNode->SetVolume(1.0f);
             soundNode->SetPosition(Maths::Vector3(0.1f, 10.0f, 10.0f));
@@ -1728,10 +1747,15 @@ namespace Lumos
             auto& sprite = entity.AddComponent<Graphics::Sprite>();
             entity.GetOrAddComponent<Maths::Transform>();
 
-            Ref<Graphics::Texture2D> texture = Ref<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile(filePath, filePath));
+            SharedRef<Graphics::Texture2D> texture = SharedRef<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile(filePath, filePath));
             sprite.SetTexture(texture);
         }
     }
+	
+	void Editor::ProjectOpenCallback(const std::string& filePath)
+    {
+		Application::Get().OpenProject(filePath);
+	}
 
     void Editor::SaveEditorSettings()
     {
@@ -1813,14 +1837,14 @@ namespace Lumos
     {
         LUMOS_PROFILE_FUNCTION();
         if(!m_GridRenderer)
-            m_GridRenderer = CreateRef<Graphics::GridRenderer>(uint32_t(Application::Get().m_SceneViewWidth), uint32_t(Application::Get().m_SceneViewHeight));
+            m_GridRenderer = CreateSharedRef<Graphics::GridRenderer>(uint32_t(Application::Get().m_SceneViewWidth), uint32_t(Application::Get().m_SceneViewHeight));
     }
 
-    const Ref<Graphics::GridRenderer>& Editor::GetGridRenderer()
+    const SharedRef<Graphics::GridRenderer>& Editor::GetGridRenderer()
     {
         LUMOS_PROFILE_FUNCTION();
         //if(!m_GridRenderer)
-        //  m_GridRenderer = CreateRef<Graphics::GridRenderer>(uint32_t(Application::Get().m_SceneViewWidth), uint32_t(Application::Get().m_SceneViewHeight), true);
+        //  m_GridRenderer = CreateSharedRef<Graphics::GridRenderer>(uint32_t(Application::Get().m_SceneViewWidth), uint32_t(Application::Get().m_SceneViewHeight), true);
         return m_GridRenderer;
     }
 

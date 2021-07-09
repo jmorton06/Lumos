@@ -72,7 +72,9 @@ namespace Lumos
 #endif
 
         m_SceneManager = CreateUniqueRef<SceneManager>();
-
+#ifndef LUMOS_PLATFORM_IOS
+        FilePath = ROOT_DIR + FilePath;
+#endif
         Deserialise(FilePath);
 
         Engine::Get();
@@ -117,7 +119,27 @@ namespace Lumos
         VFS::Get()->Mount("Scenes", projectRoot + std::string("Assets/scenes"));
         VFS::Get()->Mount("Assets", projectRoot + std::string("Assets"));
 #endif
+		
+		m_SceneManager = CreateUniqueRef<SceneManager>();
+		
+		Deserialise(FilePath);
+        
+        m_SceneManager->LoadCurrentList();
+        m_SceneManager->ApplySceneSwitch();
     }
+	
+	void Application::OpenNewProject()
+	{
+		m_SceneManager = CreateUniqueRef<SceneManager>();
+        
+        //Set Default values
+        Title = "App";
+        Fullscreen = false;
+
+        m_SceneManager->EnqueueScene(new Scene("Empty Scene"));
+        m_SceneManager->SwitchScene(0);
+        m_SceneManager->ApplySceneSwitch();
+	}
 
     Scene* Application::GetCurrentScene() const
     {
@@ -166,7 +188,7 @@ namespace Lumos
 
         m_ImGuiManager = CreateUniqueRef<ImGuiManager>(false);
         m_ImGuiManager->OnInit();
-        m_ShaderLibrary = CreateRef<ShaderLibrary>();
+        m_ShaderLibrary = CreateSharedRef<ShaderLibrary>();
 
         m_RenderGraph = CreateUniqueRef<Graphics::RenderGraph>(screenWidth, screenHeight);
 
@@ -386,7 +408,7 @@ namespace Lumos
         LUMOS_PROFILE_FUNCTION();
     }
 
-    Ref<ShaderLibrary>& Application::GetShaderLibrary() { return m_ShaderLibrary; }
+    SharedRef<ShaderLibrary>& Application::GetShaderLibrary() { return m_ShaderLibrary; }
 
     void Application::OnExitScene()
     {
@@ -483,14 +505,9 @@ namespace Lumos
     {
         LUMOS_PROFILE_FUNCTION();
         {
-#ifdef LUMOS_PLATFORM_IOS
-            auto fullPath = filePath;
-#else
-            auto fullPath = ROOT_DIR + filePath;
-#endif
-            if(!FileSystem::FileExists(fullPath))
+            if(!FileSystem::FileExists(filePath))
             {
-                LUMOS_LOG_INFO("No saved Project file found {0}", fullPath);
+                LUMOS_LOG_INFO("No saved Project file found {0}", filePath);
                 {
                     //Set Default values
                     RenderAPI = 1;
@@ -498,16 +515,18 @@ namespace Lumos
                     Height = 800;
                     Borderless = false;
                     VSync = false;
-                    Title = "LumosGame";
+                    Title = "App";
                     ShowConsole = false;
                     Fullscreen = false;
 
                     m_SceneManager->EnqueueScene(new Scene("Empty Scene"));
+                    m_SceneManager->SwitchScene(0);
+                    m_SceneManager->ApplySceneSwitch();
                 }
                 return;
             }
 
-            std::string data = FileSystem::ReadTextFile(fullPath);
+            std::string data = FileSystem::ReadTextFile(filePath);
             std::istringstream istr;
             istr.str(data);
             cereal::JSONInputArchive input(istr);

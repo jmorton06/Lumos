@@ -169,11 +169,11 @@ namespace Lumos::Graphics
         return texture2D;
     }
 
-    Ref<Material> LoadMaterial(const ofbx::Material* material, bool animated)
+    SharedRef<Material> LoadMaterial(const ofbx::Material* material, bool animated)
     {
         auto shader = animated ? Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/DeferredColourAnim.shader") : Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/DeferredColour.shader");
 
-        Ref<Material> pbrMaterial = CreateRef<Material>(shader);
+        SharedRef<Material> pbrMaterial = CreateSharedRef<Material>(shader);
 
         PBRMataterialTextures textures;
         Graphics::MaterialProperties properties;
@@ -296,7 +296,7 @@ namespace Lumos::Graphics
             Graphics::Vertex* tempvertices = new Graphics::Vertex[vertex_count];
             uint32_t* indicesArray = new uint32_t[numIndices];
 
-            Ref<Maths::BoundingBox> boundingBox = CreateRef<Maths::BoundingBox>();
+            SharedRef<Maths::BoundingBox> boundingBox = CreateSharedRef<Maths::BoundingBox>();
 
             auto indices = geom->getFaceIndices();
 
@@ -320,13 +320,13 @@ namespace Lumos::Graphics
                 boundingBox->Merge(vertex.Position);
 
                 if(normals)
-                    vertex.Normal = Maths::Vector3(float(normals[i].x), float(normals[i].y), float(normals[i].z));
+                    vertex.Normal = (transform.GetWorldMatrix() * Maths::Vector3(float(normals[i].x), float(normals[i].y), float(normals[i].z))).Normalised();
                 if(uvs)
                     vertex.TexCoords = Maths::Vector2(float(uvs[i].x), 1.0f - float(uvs[i].y));
                 if(colours)
                     vertex.Colours = Maths::Vector4(float(colours[i].x), float(colours[i].y), float(colours[i].z), float(colours[i].w));
                 if(tangents)
-                    vertex.Tangent = Maths::Vector3(float(tangents[i].x), float(tangents[i].y), float(tangents[i].z));
+                    vertex.Tangent = transform.GetWorldMatrix() * Maths::Vector3(float(tangents[i].x), float(tangents[i].y), float(tangents[i].z));
 
                 FixOrientation(vertex.Normal);
                 FixOrientation(vertex.Tangent);
@@ -339,20 +339,20 @@ namespace Lumos::Graphics
                 indicesArray[i] = index;
             }
 
-            Ref<Graphics::VertexBuffer> vb = Ref<Graphics::VertexBuffer>(Graphics::VertexBuffer::Create());
+            SharedRef<Graphics::VertexBuffer> vb = SharedRef<Graphics::VertexBuffer>(Graphics::VertexBuffer::Create());
             vb->SetData(sizeof(Graphics::Vertex) * vertex_count, tempvertices);
 
-            Ref<Graphics::IndexBuffer> ib;
+            SharedRef<Graphics::IndexBuffer> ib;
             ib.reset(Graphics::IndexBuffer::Create(indicesArray, numIndices));
 
             const ofbx::Material* material = fbx_mesh->getMaterialCount() > 0 ? fbx_mesh->getMaterial(0) : nullptr;
-            Ref<Material> pbrMaterial;
+            SharedRef<Material> pbrMaterial;
             if(material)
             {
                 pbrMaterial = LoadMaterial(material, false);
             }
 
-            auto mesh = CreateRef<Graphics::Mesh>(vb, ib, boundingBox);
+            auto mesh = CreateSharedRef<Graphics::Mesh>(vb, ib, boundingBox);
             mesh->SetName(fbx_mesh->name);
             if(material)
                 mesh->SetMaterial(pbrMaterial);

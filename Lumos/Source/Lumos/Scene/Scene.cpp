@@ -78,7 +78,7 @@ namespace Lumos
         //Default physics setup
         Application::Get().GetSystem<LumosPhysicsEngine>()->SetDampingFactor(0.999f);
         Application::Get().GetSystem<LumosPhysicsEngine>()->SetIntegrationType(IntegrationType::RUNGE_KUTTA_4);
-        Application::Get().GetSystem<LumosPhysicsEngine>()->SetBroadphase(Lumos::CreateRef<OctreeBroadphase>(5, 5, Lumos::CreateRef<SortAndSweepBroadphase>()));
+        Application::Get().GetSystem<LumosPhysicsEngine>()->SetBroadphase(Lumos::CreateSharedRef<OctreeBroadphase>(5, 5, Lumos::CreateSharedRef<SortAndSweepBroadphase>()));
 
         LuaManager::Get().OnInit(this);
     }

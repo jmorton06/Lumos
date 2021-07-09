@@ -65,7 +65,8 @@ namespace Lumos
         void OnExitScene();
         void OnSceneViewSizeUpdated(uint32_t width, uint32_t height);
         void OpenProject(const std::string& filePath);
-
+		void OpenNewProject();
+		
         virtual void Quit();
         virtual void Init();
         virtual void OnEvent(Event& e);
@@ -130,7 +131,7 @@ namespace Lumos
         Maths::Vector2 GetWindowSize() const;
         float GetWindowDPI() const;
 
-        Ref<ShaderLibrary>& GetShaderLibrary();
+        SharedRef<ShaderLibrary>& GetShaderLibrary();
 
         static Application& Get()
         {
@@ -218,6 +219,7 @@ namespace Lumos
         void load(Archive& archive)
         {
             int projectVersion = 0;
+            int sceneIndex = 0;
             archive(cereal::make_nvp("Project Version", projectVersion));
 
             if(projectVersion > 0)
@@ -240,10 +242,16 @@ namespace Lumos
                 {
                     m_SceneManager->AddFileToLoadList(filePath);
                 }
+                
+                if(m_SceneManager->GetScenes().size() == 0 && sceneFilePaths
+                   .size() == sceneIndex)
+                {
+                    m_SceneManager->EnqueueScene(new Scene("Empty Scene"));
+                    m_SceneManager->SwitchScene(0);
+                }
             }
             if(projectVersion > 3)
             {
-                int sceneIndex;
                 archive(cereal::make_nvp("SceneIndex", sceneIndex));
                 m_SceneManager->SwitchScene(sceneIndex);
             }
@@ -283,7 +291,7 @@ namespace Lumos
         UniqueRef<Graphics::RenderGraph> m_RenderGraph;
         UniqueRef<ImGuiManager> m_ImGuiManager;
         UniqueRef<Timer> m_Timer;
-        Ref<ShaderLibrary> m_ShaderLibrary;
+        SharedRef<ShaderLibrary> m_ShaderLibrary;
 
         AppState m_CurrentState = AppState::Loading;
         EditorState m_EditorState = EditorState::Preview;

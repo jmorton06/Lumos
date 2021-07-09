@@ -37,10 +37,10 @@
 namespace sol
 {
     template <typename T>
-    struct unique_usertype_traits<Lumos::Ref<T>>
+    struct unique_usertype_traits<Lumos::SharedRef<T>>
     {
         typedef T type;
-        typedef Lumos::Ref<T> actual_type;
+        typedef Lumos::SharedRef<T> actual_type;
         static const bool value = true;
 
         static bool is_null(const actual_type& ptr)
@@ -323,16 +323,16 @@ namespace Lumos
         state.new_enum<Lumos::InputCode::MouseKey, false>("MouseButton", mouseItems);
     }
 
-    Ref<Graphics::Texture2D> LoadTexture(const std::string& name, const std::string& path)
+    SharedRef<Graphics::Texture2D> LoadTexture(const std::string& name, const std::string& path)
     {
         LUMOS_PROFILE_FUNCTION();
-        return Ref<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile(name, path));
+        return SharedRef<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile(name, path));
     }
 
-    Ref<Graphics::Texture2D> LoadTextureWithParams(const std::string& name, const std::string& path, Lumos::Graphics::TextureFilter filter, Lumos::Graphics::TextureWrap wrapMode)
+    SharedRef<Graphics::Texture2D> LoadTextureWithParams(const std::string& name, const std::string& path, Lumos::Graphics::TextureFilter filter, Lumos::Graphics::TextureWrap wrapMode)
     {
         LUMOS_PROFILE_FUNCTION();
-        return Ref<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile(name, path, Graphics::TextureParameters(filter, filter, wrapMode)));
+        return SharedRef<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile(name, path, Graphics::TextureParameters(filter, filter, wrapMode)));
     }
 
     void LuaManager::BindECSLua(sol::state& state)
@@ -374,7 +374,7 @@ namespace Lumos
         REGISTER_COMPONENT_WITH_ECS(state, Transform, static_cast<Transform& (Entity::*)()>(&Entity::AddComponent<Transform>));
 
         using namespace Graphics;
-        sol::usertype<Sprite> sprite_type = state.new_usertype<Sprite>("Sprite", sol::constructors<sol::types<Maths::Vector2, Maths::Vector2, Maths::Vector4>, Sprite(const Ref<Graphics::Texture2D>&, const Maths::Vector2&, const Maths::Vector2&, const Maths::Vector4&)>());
+        sol::usertype<Sprite> sprite_type = state.new_usertype<Sprite>("Sprite", sol::constructors<sol::types<Maths::Vector2, Maths::Vector2, Maths::Vector4>, Sprite(const SharedRef<Graphics::Texture2D>&, const Maths::Vector2&, const Maths::Vector2&, const Maths::Vector4&)>());
         sprite_type.set_function("SetTexture", &Sprite::SetTexture);
 
         REGISTER_COMPONENT_WITH_ECS(state, Sprite, static_cast<Sprite& (Entity::*)(const Vector2&, const Vector2&, const Vector4&)>(&Entity::AddComponent<Sprite, const Vector2&, const Vector2&, const Vector4&>));
@@ -418,9 +418,9 @@ namespace Lumos
 
         REGISTER_COMPONENT_WITH_ECS(state, Camera, static_cast<Camera& (Entity::*)(const float&, const float&)>(&Entity::AddComponent<Camera, const float&, const float&>));
 
-        sol::usertype<Physics3DComponent> physics3DComponent_type = state.new_usertype<Physics3DComponent>("Physics3DComponent", sol::constructors<sol::types<const Ref<RigidBody3D>&>>());
+        sol::usertype<Physics3DComponent> physics3DComponent_type = state.new_usertype<Physics3DComponent>("Physics3DComponent", sol::constructors<sol::types<const SharedRef<RigidBody3D>&>>());
         physics3DComponent_type.set_function("GetRigidBody", &Physics3DComponent::GetRigidBody);
-        REGISTER_COMPONENT_WITH_ECS(state, Physics3DComponent, static_cast<Physics3DComponent& (Entity::*)(Ref<RigidBody3D>&)>(&Entity::AddComponent<Physics3DComponent, Ref<RigidBody3D>&>));
+        REGISTER_COMPONENT_WITH_ECS(state, Physics3DComponent, static_cast<Physics3DComponent& (Entity::*)(SharedRef<RigidBody3D>&)>(&Entity::AddComponent<Physics3DComponent, SharedRef<RigidBody3D>&>));
 
         sol::usertype<Physics2DComponent> physics2DComponent_type = state.new_usertype<Physics2DComponent>("Physics2DComponent", sol::constructors<sol::types<const RigidBodyParameters&>>());
         physics2DComponent_type.set_function("GetRigidBody", &Physics2DComponent::GetRigidBody);

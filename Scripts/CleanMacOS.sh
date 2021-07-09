@@ -1,2 +1,2 @@
 cd build
-xcodebuild -project Sandbox.xcodeproj -configuration Release clean
+xcodebuild -project Runtime.xcodeproj -configuration Release clean

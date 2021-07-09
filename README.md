@@ -50,21 +50,21 @@ msbuild /p:Platform=x64 /p:Configuration=Release build/Lumos.sln
 ```
 cd Lumos
 Tools/premake5 xcode4
-xcodebuild -project build/Sandbox.xcodeproj
+xcodebuild -project build/Runtime.xcodeproj
 ```
 
 M1 Macs may need : 
 ```
 cd Lumos
 Tools/premake5 xcode4 --arch=arm64 --os=macosx
-xcodebuild -project build/Sandbox.xcodeproj
+xcodebuild -project build/Runtime.xcodeproj
 ```
 
 #### iOS
 ```
 cd Lumos
 Tools/premake5 xcode4 --os=ios
-xcodebuild -project build/Sandbox.xcodeproj CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO
+xcodebuild -project build/Runtime.xcodeproj CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO
 ```
 
 

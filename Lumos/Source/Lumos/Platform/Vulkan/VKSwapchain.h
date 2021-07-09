@@ -16,9 +16,9 @@ namespace Lumos
         {
             VkSemaphore PresentSemaphore = VK_NULL_HANDLE, RenderSemaphore = VK_NULL_HANDLE;
 
-            Ref<VKFence> RenderFence;
-            Ref<VKCommandPool> CommandPool;
-            Ref<VKCommandBuffer> MainCommandBuffer;
+            SharedRef<VKFence> RenderFence;
+            SharedRef<VKCommandPool> CommandPool;
+            SharedRef<VKCommandBuffer> MainCommandBuffer;
         };
 
         class Texture2D;

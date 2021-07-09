@@ -14,7 +14,7 @@ IncludeDir["SpirvCross"] = "../Lumos/External/SPIRV-Cross"
 IncludeDir["cereal"] = "../Lumos/External/cereal/include"
 IncludeDir["spdlog"] = "../Lumos/External/spdlog/include"
 
-project "Sandbox"
+project "Runtime"
 	kind "WindowedApp"
 	language "C++"
 
@@ -209,7 +209,7 @@ project "Sandbox"
 			"Assets/Meshes",
 			"Assets/Sounds",
 			"Assets/Textures",
-			"Sandbox.lmproj"
+			"Runtime.lmproj"
 		}
 
 		xcodebuildsettings
@@ -258,7 +258,7 @@ project "Sandbox"
             "Scripts",
             "Sounds",
             "Textures",
-            "Sandbox.lmproj"
+            "Runtime.lmproj"
 		}
 		SetRecommendedXcodeSettings()
 

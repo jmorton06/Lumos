@@ -80,6 +80,7 @@ namespace Lumos
         bool m_UpdateBreadCrumbs;
         bool m_ShowHiddenFiles;
         int m_GridItemsPerRow;
+        float m_GridSize = 128.0f;
 
         ImGuiTextFilter m_Filter;
 

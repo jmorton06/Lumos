@@ -15,9 +15,9 @@
 namespace Lumos::Graphics
 {
 
-    Ref<Graphics::Texture2D> Material::s_DefaultTexture = nullptr;
+    SharedRef<Graphics::Texture2D> Material::s_DefaultTexture = nullptr;
 
-    Material::Material(Ref<Graphics::Shader>& shader, const MaterialProperties& properties, const PBRMataterialTextures& textures)
+    Material::Material(SharedRef<Graphics::Shader>& shader, const MaterialProperties& properties, const PBRMataterialTextures& textures)
         : m_PBRMaterialTextures(textures)
         , m_Shader(shader)
     {
@@ -94,32 +94,32 @@ namespace Lumos::Graphics
         auto filePath = path + "/" + name + "/albedo" + extension;
 
         if(FileExists(filePath))
-            m_PBRMaterialTextures.albedo = Ref<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile(name, path + "/" + name + "/albedo" + extension, params));
+            m_PBRMaterialTextures.albedo = SharedRef<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile(name, path + "/" + name + "/albedo" + extension, params));
 
         filePath = path + "/" + name + "/normal" + extension;
 
         if(FileExists(filePath))
-            m_PBRMaterialTextures.normal = Ref<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile(name, path + "/" + name + "/normal" + extension, params));
+            m_PBRMaterialTextures.normal = SharedRef<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile(name, path + "/" + name + "/normal" + extension, params));
 
         filePath = path + "/" + name + "/roughness" + extension;
 
         if(FileExists(filePath))
-            m_PBRMaterialTextures.roughness = Ref<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile(name, path + "/" + name + "/roughness" + extension, params));
+            m_PBRMaterialTextures.roughness = SharedRef<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile(name, path + "/" + name + "/roughness" + extension, params));
 
         filePath = path + "/" + name + "/metallic" + extension;
 
         if(FileExists(filePath))
-            m_PBRMaterialTextures.metallic = Ref<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile(name, path + "/" + name + "/metallic" + extension, params));
+            m_PBRMaterialTextures.metallic = SharedRef<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile(name, path + "/" + name + "/metallic" + extension, params));
 
         filePath = path + "/" + name + "/ao" + extension;
 
         if(FileExists(filePath))
-            m_PBRMaterialTextures.ao = Ref<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile(name, path + "/" + name + "/ao" + extension, params));
+            m_PBRMaterialTextures.ao = SharedRef<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile(name, path + "/" + name + "/ao" + extension, params));
 
         filePath = path + "/" + name + "/emissive" + extension;
 
         if(FileExists(filePath))
-            m_PBRMaterialTextures.emissive = Ref<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile(name, path + "/" + name + "/emissive" + extension, params));
+            m_PBRMaterialTextures.emissive = SharedRef<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile(name, path + "/" + name + "/emissive" + extension, params));
     }
 
     void Material::LoadMaterial(const std::string& name, const std::string& path)
@@ -128,7 +128,7 @@ namespace Lumos::Graphics
 
         m_Name = name;
         m_PBRMaterialTextures = PBRMataterialTextures();
-        m_PBRMaterialTextures.albedo = Ref<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile(name, path));
+        m_PBRMaterialTextures.albedo = SharedRef<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile(name, path));
         m_PBRMaterialTextures.normal = nullptr;
         m_PBRMaterialTextures.roughness = nullptr;
         m_PBRMaterialTextures.metallic = nullptr;
@@ -334,7 +334,7 @@ namespace Lumos::Graphics
         LUMOS_PROFILE_FUNCTION();
 
         uint32_t whiteTextureData = 0xffffffff;
-        s_DefaultTexture = Ref<Graphics::Texture2D>(Graphics::Texture2D::CreateFromSource(1, 1, &whiteTextureData));
+        s_DefaultTexture = SharedRef<Graphics::Texture2D>(Graphics::Texture2D::CreateFromSource(1, 1, &whiteTextureData));
     }
 
     void Material::ReleaseDefaultTexture()
@@ -348,7 +348,7 @@ namespace Lumos::Graphics
     {
         LUMOS_PROFILE_FUNCTION();
 
-        auto tex = Ref<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile(path, path));
+        auto tex = SharedRef<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile(path, path));
         if(tex)
         {
             m_PBRMaterialTextures.albedo = tex;
@@ -360,7 +360,7 @@ namespace Lumos::Graphics
     {
         LUMOS_PROFILE_FUNCTION();
 
-        auto tex = Ref<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile(path, path));
+        auto tex = SharedRef<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile(path, path));
         if(tex)
         {
             m_PBRMaterialTextures.normal = tex;
@@ -372,7 +372,7 @@ namespace Lumos::Graphics
     {
         LUMOS_PROFILE_FUNCTION();
 
-        auto tex = Ref<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile(path, path));
+        auto tex = SharedRef<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile(path, path));
         if(tex)
         {
             m_PBRMaterialTextures.roughness = tex;
@@ -384,7 +384,7 @@ namespace Lumos::Graphics
     {
         LUMOS_PROFILE_FUNCTION();
 
-        auto tex = Ref<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile(path, path));
+        auto tex = SharedRef<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile(path, path));
         if(tex)
         {
             m_PBRMaterialTextures.metallic = tex;
@@ -396,7 +396,7 @@ namespace Lumos::Graphics
     {
         LUMOS_PROFILE_FUNCTION();
 
-        auto tex = Ref<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile(path, path));
+        auto tex = SharedRef<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile(path, path));
         if(tex)
         {
             m_PBRMaterialTextures.ao = tex;
@@ -408,7 +408,7 @@ namespace Lumos::Graphics
     {
         LUMOS_PROFILE_FUNCTION();
 
-        auto tex = Ref<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile(path, path));
+        auto tex = SharedRef<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile(path, path));
         if(tex)
         {
             m_PBRMaterialTextures.emissive = tex;

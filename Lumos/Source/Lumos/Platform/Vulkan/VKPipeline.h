@@ -40,7 +40,7 @@ namespace Lumos
             static Pipeline* CreateFuncVulkan(const PipelineInfo& pipelineCreateInfo);
 
         private:
-            Ref<Shader> m_Shader;
+            SharedRef<Shader> m_Shader;
 
             VkPipelineLayout m_PipelineLayout;
             VkPipeline m_Pipeline;

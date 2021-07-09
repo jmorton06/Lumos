@@ -54,8 +54,8 @@ namespace Lumos
 
             UniformBuffer* m_UniformBuffer;
 
-            Ref<Shader> m_AnimatedShader = nullptr;
-            Ref<Lumos::Graphics::Pipeline> m_AnimatedPipeline;
+            SharedRef<Shader> m_AnimatedShader = nullptr;
+            SharedRef<Lumos::Graphics::Pipeline> m_AnimatedPipeline;
             UniformBuffer* m_AnimUniformBuffer;
             uint8_t* m_VSSystemUniformBufferAnim = nullptr;
             uint32_t m_VSSystemUniformBufferAnimSize = 0;

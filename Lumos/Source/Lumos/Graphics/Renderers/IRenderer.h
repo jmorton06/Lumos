@@ -62,7 +62,7 @@ namespace Lumos
                 return m_RenderTexture;
             }
 
-            const Ref<Shader>& GetShader() const
+            const SharedRef<Shader>& GetShader() const
             {
                 return m_Shader;
             }
@@ -97,12 +97,12 @@ namespace Lumos
             Camera* m_Camera = nullptr;
             Maths::Transform* m_CameraTransform = nullptr;
 
-            std::vector<Ref<Framebuffer>> m_Framebuffers;
-            Ref<Shader> m_Shader = nullptr;
+            std::vector<SharedRef<Framebuffer>> m_Framebuffers;
+            SharedRef<Shader> m_Shader = nullptr;
 
-            Ref<Lumos::Graphics::RenderPass> m_RenderPass;
-            Ref<Lumos::Graphics::Pipeline> m_Pipeline;
-            std::vector<Ref<Graphics::DescriptorSet>> m_DescriptorSet;
+            SharedRef<Lumos::Graphics::RenderPass> m_RenderPass;
+            SharedRef<Lumos::Graphics::Pipeline> m_Pipeline;
+            std::vector<SharedRef<Graphics::DescriptorSet>> m_DescriptorSet;
 
             std::vector<Graphics::DescriptorSet*> m_CurrentDescriptorSets;
 

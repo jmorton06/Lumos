@@ -38,7 +38,7 @@ namespace Lumos
         public:
             virtual ~RenderPass();
             static RenderPass* Create(const RenderPassInfo& renderPassCI);
-            static Ref<RenderPass> Get(const RenderPassInfo& renderPassCI);
+            static SharedRef<RenderPass> Get(const RenderPassInfo& renderPassCI);
             static void ClearCache();
             static void DeleteUnusedCache();
 
