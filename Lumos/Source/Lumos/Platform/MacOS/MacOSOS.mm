@@ -28,12 +28,7 @@ namespace Lumos
 		minutes = minutes % 60;
 		
         LUMOS_LOG_INFO("Battery Info - {0}% , Time Left {1}h : {2}m , State : {3}", percentage, hours, minutes, PowerStateToString(state));
-        
-        const std::string root = ROOT_DIR;
-		VFS::Get()->Mount("Meshes", root + "/Assets/meshes");
-		VFS::Get()->Mount("Textures", root + "/Assets/textures");
-		VFS::Get()->Mount("Sounds", root + "/Assets/sounds");
-        
+
         auto& app = Lumos::Application::Get();
 
         app.Init();

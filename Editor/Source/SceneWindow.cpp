@@ -765,7 +765,7 @@ namespace Lumos
         }
 
         if(!m_GameViewTexture)
-            m_GameViewTexture = Ref<Graphics::Texture2D>(Graphics::Texture2D::Create());
+            m_GameViewTexture = SharedRef<Graphics::Texture2D>(Graphics::Texture2D::Create());
 
         if(resize)
         {

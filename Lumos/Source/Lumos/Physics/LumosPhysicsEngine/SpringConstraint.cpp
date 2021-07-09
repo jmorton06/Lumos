@@ -5,7 +5,7 @@
 
 namespace Lumos
 {
-    SpringConstraint::SpringConstraint(const Ref<RigidBody3D>& obj1, const Ref<RigidBody3D>& obj2, float springConstant, float dampingFactor)
+    SpringConstraint::SpringConstraint(const SharedRef<RigidBody3D>& obj1, const SharedRef<RigidBody3D>& obj2, float springConstant, float dampingFactor)
         : m_pObj1(obj1)
         , m_pObj2(obj2)
         , m_springConstant(springConstant)
@@ -20,7 +20,7 @@ namespace Lumos
         m_LocalOnB = Maths::Matrix3::Transpose(m_pObj2->GetOrientation().RotationMatrix()) * r2;
     }
 
-    SpringConstraint::SpringConstraint(const Ref<RigidBody3D>& obj1, const Ref<RigidBody3D>& obj2, const Maths::Vector3& globalOnA, const Maths::Vector3& globalOnB, float springConstant, float dampingFactor)
+    SpringConstraint::SpringConstraint(const SharedRef<RigidBody3D>& obj1, const SharedRef<RigidBody3D>& obj2, const Maths::Vector3& globalOnA, const Maths::Vector3& globalOnB, float springConstant, float dampingFactor)
         : m_pObj1(obj1)
         , m_pObj2(obj2)
         , m_springConstant(springConstant)

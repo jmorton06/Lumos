@@ -10,7 +10,7 @@ namespace Lumos
     {
         struct PipelineAsset
         {
-            Ref<Pipeline> pipeline;
+            SharedRef<Pipeline> pipeline;
             float timeSinceLastAccessed;
         };
         static std::unordered_map<std::size_t, PipelineAsset> m_PipelineCache;
@@ -25,7 +25,7 @@ namespace Lumos
             return CreateFunc(pipelineInfo);
         }
 
-        Ref<Pipeline> Pipeline::Get(const PipelineInfo& pipelineInfo)
+        SharedRef<Pipeline> Pipeline::Get(const PipelineInfo& pipelineInfo)
         {
             LUMOS_PROFILE_FUNCTION();
             size_t hash = 0;
@@ -38,7 +38,7 @@ namespace Lumos
                 return found->second.pipeline;
             }
 
-            auto pipeline = Ref<Pipeline>(Create(pipelineInfo));
+            auto pipeline = SharedRef<Pipeline>(Create(pipelineInfo));
             m_PipelineCache[hash] = { pipeline, Engine::GetTimeStep().GetElapsedSeconds() };
             return pipeline;
         }

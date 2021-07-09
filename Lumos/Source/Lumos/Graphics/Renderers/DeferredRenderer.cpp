@@ -160,9 +160,9 @@ namespace Lumos
             info.layoutIndex = 0;
             info.shader = m_Shader.get();
             m_DescriptorSet.resize(2);
-            m_DescriptorSet[0] = Ref<Graphics::DescriptorSet>(Graphics::DescriptorSet::Create(info));
+            m_DescriptorSet[0] = SharedRef<Graphics::DescriptorSet>(Graphics::DescriptorSet::Create(info));
             info.layoutIndex = 1;
-            m_DescriptorSet[1] = Ref<Graphics::DescriptorSet>(Graphics::DescriptorSet::Create(info));
+            m_DescriptorSet[1] = SharedRef<Graphics::DescriptorSet>(Graphics::DescriptorSet::Create(info));
 
             CreateDeferredPipeline();
             CreateFramebuffers();
@@ -248,9 +248,9 @@ namespace Lumos
                     info.shader = m_Shader.get();
                     m_DescriptorSet.clear();
                     m_DescriptorSet.resize(2);
-                    m_DescriptorSet[0] = Ref<Graphics::DescriptorSet>(Graphics::DescriptorSet::Create(info));
+                    m_DescriptorSet[0] = SharedRef<Graphics::DescriptorSet>(Graphics::DescriptorSet::Create(info));
                     info.layoutIndex = 1;
-                    m_DescriptorSet[1] = Ref<Graphics::DescriptorSet>(Graphics::DescriptorSet::Create(info));
+                    m_DescriptorSet[1] = SharedRef<Graphics::DescriptorSet>(Graphics::DescriptorSet::Create(info));
 
                     UpdateScreenDescriptorSet();
                 }
@@ -267,9 +267,9 @@ namespace Lumos
                     info.shader = m_Shader.get();
                     m_DescriptorSet.clear();
                     m_DescriptorSet.resize(2);
-                    m_DescriptorSet[0] = Ref<Graphics::DescriptorSet>(Graphics::DescriptorSet::Create(info));
+                    m_DescriptorSet[0] = SharedRef<Graphics::DescriptorSet>(Graphics::DescriptorSet::Create(info));
                     info.layoutIndex = 1;
-                    m_DescriptorSet[1] = Ref<Graphics::DescriptorSet>(Graphics::DescriptorSet::Create(info));
+                    m_DescriptorSet[1] = SharedRef<Graphics::DescriptorSet>(Graphics::DescriptorSet::Create(info));
 
                     m_EnvironmentMap = env.GetEnvironmentMap();
                     m_IrradianceMap = env.GetIrradianceMap();

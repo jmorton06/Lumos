@@ -7,10 +7,10 @@ namespace Lumos
 {
     AIComponent::AIComponent()
     {
-        m_AINode = CreateRef<AINode>();
+        m_AINode = CreateSharedRef<AINode>();
     }
 
-    AIComponent::AIComponent(Ref<AINode>& aiNode)
+    AIComponent::AIComponent(SharedRef<AINode>& aiNode)
         : m_AINode(aiNode)
     {
     }

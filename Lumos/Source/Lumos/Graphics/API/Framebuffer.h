@@ -38,7 +38,7 @@ namespace Lumos
         class LUMOS_EXPORT Framebuffer
         {
         public:
-            static Ref<Framebuffer> Get(const FramebufferInfo& framebufferInfo);
+            static SharedRef<Framebuffer> Get(const FramebufferInfo& framebufferInfo);
             static Framebuffer* Create(const FramebufferInfo& framebufferInfo);
             static void ClearCache();
             static void DeleteUnusedCache();

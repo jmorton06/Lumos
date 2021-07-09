@@ -7,7 +7,7 @@ namespace Lumos
 {
     namespace Graphics
     {
-        static std::unordered_map<std::size_t, Ref<RenderPass>> m_RenderPassCache;
+        static std::unordered_map<std::size_t, SharedRef<RenderPass>> m_RenderPassCache;
 
         RenderPass::~RenderPass() = default;
         RenderPass* (*RenderPass::CreateFunc)(const RenderPassInfo&) = nullptr;
@@ -19,7 +19,7 @@ namespace Lumos
             return CreateFunc(renderPassCI);
         }
 
-        Ref<RenderPass> RenderPass::Get(const RenderPassInfo& renderPassInfo)
+        SharedRef<RenderPass> RenderPass::Get(const RenderPassInfo& renderPassInfo)
         {
             size_t hash = 0;
             HashCombine(hash, renderPassInfo.attachmentCount, renderPassInfo.clear);
@@ -35,7 +35,7 @@ namespace Lumos
                 return found->second;
             }
 
-            auto renderpass = Ref<RenderPass>(Create(renderPassInfo));
+            auto renderpass = SharedRef<RenderPass>(Create(renderPassInfo));
             m_RenderPassCache[hash] = renderpass;
             return renderpass;
         }

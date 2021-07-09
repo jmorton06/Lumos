@@ -31,8 +31,8 @@ namespace Lumos
 
         struct PipelineInfo
         {
-            Ref<RenderPass> renderpass;
-            Ref<Shader> shader;
+            SharedRef<RenderPass> renderpass;
+            SharedRef<Shader> shader;
 
             CullMode cullMode = CullMode::BACK;
             PolygonMode polygonMode = PolygonMode::FILL;
@@ -46,7 +46,7 @@ namespace Lumos
         {
         public:
             static Pipeline* Create(const PipelineInfo& pipelineInfo);
-            static Ref<Pipeline> Get(const PipelineInfo& pipelineInfo);
+            static SharedRef<Pipeline> Get(const PipelineInfo& pipelineInfo);
             static void ClearCache();
             static void DeleteUnusedCache();
 

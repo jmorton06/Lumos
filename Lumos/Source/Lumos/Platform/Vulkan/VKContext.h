@@ -60,7 +60,7 @@ namespace Lumos
             const std::vector<const char*>& GetLayerNames() const { return m_InstanceLayerNames; }
             const std::vector<const char*>& GetExtensionNames() const { return m_InstanceExtensionNames; }
 
-            const Ref<Lumos::Graphics::VKSwapchain>& GetSwapchain() const { return m_Swapchain; }
+            const SharedRef<Lumos::Graphics::VKSwapchain>& GetSwapchain() const { return m_Swapchain; }
 
             static void MakeDefault();
 
@@ -89,7 +89,7 @@ namespace Lumos
             std::vector<const char*> m_InstanceLayerNames;
             std::vector<const char*> m_InstanceExtensionNames;
 
-            Ref<Lumos::Graphics::VKSwapchain> m_Swapchain;
+            SharedRef<Lumos::Graphics::VKSwapchain> m_Swapchain;
 
             uint32_t m_Width, m_Height;
             bool m_VSync;

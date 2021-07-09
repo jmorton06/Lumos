@@ -173,7 +173,8 @@ namespace Lumos
         Maths::Ray GetScreenRay(int x, int y, Camera* camera, int width, int height);
 
         void FileOpenCallback(const std::string& filepath);
-
+		void ProjectOpenCallback(const std::string& filepath);
+		
         FileBrowserWindow& GetFileBrowserWindow()
         {
             return m_FileBrowserWindow;
@@ -192,7 +193,7 @@ namespace Lumos
         }
 
         void CreateGridRenderer();
-        const Ref<Graphics::GridRenderer>& GetGridRenderer();
+        const SharedRef<Graphics::GridRenderer>& GetGridRenderer();
 
         EditorCameraController& GetEditorCameraController()
         {
@@ -239,7 +240,7 @@ namespace Lumos
         bool m_FullScreenSceneView = false;
         ImGuiHelpers::Theme m_Theme = ImGuiHelpers::Theme::Dark;
 
-        std::vector<Ref<EditorWindow>> m_Windows;
+        std::vector<SharedRef<EditorWindow>> m_Windows;
 
         std::unordered_map<size_t, const char*> m_ComponentIconMap;
 
@@ -248,11 +249,11 @@ namespace Lumos
         EditorCameraController m_EditorCameraController;
         Maths::Transform m_EditorCameraTransform;
 
-        Ref<Camera> m_EditorCamera = nullptr;
-        Ref<Graphics::ForwardRenderer> m_PreviewRenderer;
-        Ref<Graphics::Texture2D> m_PreviewTexture;
-        Ref<Graphics::Mesh> m_PreviewSphere;
-        Ref<Graphics::GridRenderer> m_GridRenderer;
+        SharedRef<Camera> m_EditorCamera = nullptr;
+        SharedRef<Graphics::ForwardRenderer> m_PreviewRenderer;
+        SharedRef<Graphics::Texture2D> m_PreviewTexture;
+        SharedRef<Graphics::Mesh> m_PreviewSphere;
+        SharedRef<Graphics::GridRenderer> m_GridRenderer;
         std::string m_TempSceneSaveFilePath;
 
         IniFile m_IniFile;

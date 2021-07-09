@@ -27,7 +27,7 @@ namespace Lumos
         Maths::Vector3* vertices = new Maths::Vector3[numVertices];
         Maths::Vector2* texCoords = new Maths::Vector2[numVertices];
         uint32_t* indices = new uint32_t[numIndices];
-        m_BoundingBox = CreateRef<Maths::BoundingBox>();
+        m_BoundingBox = CreateSharedRef<Maths::BoundingBox>();
 
         for(int x = 0; x < width; ++x)
         {
@@ -87,10 +87,10 @@ namespace Lumos
             m_BoundingBox->Merge(verts[i].Position);
         }
 
-        m_VertexBuffer = Ref<Graphics::VertexBuffer>(Graphics::VertexBuffer::Create(Graphics::BufferUsage::STATIC));
+        m_VertexBuffer = SharedRef<Graphics::VertexBuffer>(Graphics::VertexBuffer::Create(Graphics::BufferUsage::STATIC));
         m_VertexBuffer->SetData(sizeof(Graphics::Vertex) * numVertices, (void*)verts);
 
-        m_IndexBuffer = Ref<Graphics::IndexBuffer>(Graphics::IndexBuffer::Create(indices, indicesCount)); // / sizeof(uint32_t));
+        m_IndexBuffer = SharedRef<Graphics::IndexBuffer>(Graphics::IndexBuffer::Create(indices, indicesCount)); // / sizeof(uint32_t));
 
         delete[] normals;
         delete[] tangents;

@@ -9,7 +9,7 @@ namespace Lumos
     uint16_t ConsoleWindow::s_MessageBufferCapacity = 200;
     uint16_t ConsoleWindow::s_MessageBufferSize = 0;
     uint16_t ConsoleWindow::s_MessageBufferBegin = 0;
-    std::vector<Ref<ConsoleWindow::Message>> ConsoleWindow::s_MessageBuffer = std::vector<Ref<ConsoleWindow::Message>>(200);
+    std::vector<SharedRef<ConsoleWindow::Message>> ConsoleWindow::s_MessageBuffer = std::vector<SharedRef<ConsoleWindow::Message>>(200);
     bool ConsoleWindow::s_AllowScrollingToBottom = true;
     bool ConsoleWindow::s_RequestScrollToBottom = false;
 
@@ -21,7 +21,7 @@ namespace Lumos
         s_MessageBufferRenderFilter = Message::Level::Trace | Message::Level::Info | Message::Level::Debug | Message::Level::Warn | Message::Level::Error | Message::Level::Critical;
     }
 
-    void ConsoleWindow::AddMessage(const Ref<Message>& message)
+    void ConsoleWindow::AddMessage(const SharedRef<Message>& message)
     {
         LUMOS_PROFILE_FUNCTION();
         if(message->m_Level == 0)

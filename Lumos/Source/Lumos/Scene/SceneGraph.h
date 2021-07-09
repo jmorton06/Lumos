@@ -43,19 +43,19 @@ namespace Lumos
                 switch(type)
                 {
                 case ControllerType::ThirdPerson:
-                    m_CameraController = CreateRef<ThirdPersonCameraController>();
+                    m_CameraController = CreateSharedRef<ThirdPersonCameraController>();
                     break;
                 case ControllerType::FPS:
-                    m_CameraController = CreateRef<FPSCameraController>();
+                    m_CameraController = CreateSharedRef<FPSCameraController>();
                     break;
                 case ControllerType::Simple:
-                    m_CameraController = CreateRef<FPSCameraController>();
+                    m_CameraController = CreateSharedRef<FPSCameraController>();
                     break;
                 case ControllerType::EditorCamera:
-                    m_CameraController = CreateRef<EditorCameraController>();
+                    m_CameraController = CreateSharedRef<EditorCameraController>();
                     break;
                 case ControllerType::Camera2D:
-                    m_CameraController = CreateRef<CameraController2D>();
+                    m_CameraController = CreateSharedRef<CameraController2D>();
                     break;
                 case ControllerType::Custom:
                     m_CameraController = nullptr;
@@ -104,7 +104,7 @@ namespace Lumos
             return ControllerType::Custom;
         }
 
-        const Ref<CameraController>& GetController() const
+        const SharedRef<CameraController>& GetController() const
         {
             return m_CameraController;
         }
@@ -129,7 +129,7 @@ namespace Lumos
 
     private:
         ControllerType m_Type = ControllerType::Custom;
-        Ref<CameraController> m_CameraController;
+        SharedRef<CameraController> m_CameraController;
     };
 
     struct NameComponent

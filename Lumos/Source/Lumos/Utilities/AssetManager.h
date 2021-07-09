@@ -14,7 +14,7 @@ namespace Lumos
     public:
         typedef T Type;
         typedef std::string IDType;
-        typedef Ref<T> ResourceHandle;
+        typedef SharedRef<T> ResourceHandle;
 
         struct Resource
         {
@@ -154,9 +154,9 @@ namespace Lumos
         {
         }
 
-        static bool Load(const std::string& filePath, Ref<Graphics::Shader>& shader)
+        static bool Load(const std::string& filePath, SharedRef<Graphics::Shader>& shader)
         {
-            shader = Ref<Graphics::Shader>(Graphics::Shader::CreateFromFile(filePath));
+            shader = SharedRef<Graphics::Shader>(Graphics::Shader::CreateFromFile(filePath));
             return true;
         }
     };

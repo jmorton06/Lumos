@@ -128,7 +128,7 @@ namespace Lumos
             info.layoutIndex = 0;
             info.shader = m_Shader.get();
             m_DescriptorSet.resize(1);
-            m_DescriptorSet[0] = Ref<Graphics::DescriptorSet>(Graphics::DescriptorSet::Create(info));
+            m_DescriptorSet[0] = SharedRef<Graphics::DescriptorSet>(Graphics::DescriptorSet::Create(info));
 
             CreatePipeline();
             CreateBuffer();
@@ -401,7 +401,7 @@ namespace Lumos
             attachments[4] = Application::Get().GetRenderGraph()->GetGBuffer()->GetDepthTexture();
             bufferInfo.attachments = attachments;
 
-            m_Framebuffers.push_back(Ref<Framebuffer>(Framebuffer::Get(bufferInfo)));
+            m_Framebuffers.push_back(SharedRef<Framebuffer>(Framebuffer::Get(bufferInfo)));
         }
 
         void DeferredOffScreenRenderer::OnResize(uint32_t width, uint32_t height)

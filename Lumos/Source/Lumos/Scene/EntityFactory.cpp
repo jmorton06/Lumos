@@ -45,9 +45,9 @@ namespace Lumos
     {
         auto sphere = scene->GetEntityManager()->Create(name);
         sphere.AddComponent<Maths::Transform>(Maths::Matrix4::Translation(pos) * Maths::Matrix4::Scale(Maths::Vector3(radius, radius, radius)));
-        auto& model = sphere.AddComponent<Graphics::Model>(Ref<Graphics::Mesh>(Graphics::CreateSphere()), Graphics::PrimitiveType::Sphere);
+        auto& model = sphere.AddComponent<Graphics::Model>(SharedRef<Graphics::Mesh>(Graphics::CreateSphere()), Graphics::PrimitiveType::Sphere);
 
-        Ref<Graphics::Material> matInstance = CreateRef<Graphics::Material>();
+        SharedRef<Graphics::Material> matInstance = CreateSharedRef<Graphics::Material>();
         Graphics::MaterialProperties properties;
         properties.albedoColour = colour;
         properties.roughnessColour = Vector4(Random32::Rand(0.0f, 1.0f));
@@ -65,7 +65,7 @@ namespace Lumos
         if(physics_enabled)
         {
             //Otherwise create a physics object, and set it's position etc
-            Ref<RigidBody3D> testPhysics = CreateRef<RigidBody3D>();
+            SharedRef<RigidBody3D> testPhysics = CreateSharedRef<RigidBody3D>();
 
             testPhysics->SetPosition(pos);
             testPhysics->SetInverseMass(inverse_mass);
@@ -77,7 +77,7 @@ namespace Lumos
             }
             else
             {
-                testPhysics->SetCollisionShape(CreateRef<SphereCollisionShape>(radius));
+                testPhysics->SetCollisionShape(CreateSharedRef<SphereCollisionShape>(radius));
                 testPhysics->SetInverseInertia(testPhysics->GetCollisionShape()->BuildInverseInertia(inverse_mass));
             }
 
@@ -103,9 +103,9 @@ namespace Lumos
     {
         auto cube = scene->GetEntityManager()->Create(name);
         cube.AddComponent<Maths::Transform>(Maths::Matrix4::Translation(pos) * Maths::Matrix4::Scale(halfdims));
-        auto& model = cube.AddComponent<Graphics::Model>(Ref<Graphics::Mesh>(Graphics::CreateCube()), Graphics::PrimitiveType::Cube);
+        auto& model = cube.AddComponent<Graphics::Model>(SharedRef<Graphics::Mesh>(Graphics::CreateCube()), Graphics::PrimitiveType::Cube);
 
-        auto matInstance = CreateRef<Graphics::Material>();
+        auto matInstance = CreateSharedRef<Graphics::Material>();
         Graphics::MaterialProperties properties;
         properties.albedoColour = colour;
         properties.roughnessColour = Vector4(Random32::Rand(0.0f, 1.0f));
@@ -124,7 +124,7 @@ namespace Lumos
         if(physics_enabled)
         {
             //Otherwise create a physics object, and set it's position etc
-            Ref<RigidBody3D> testPhysics = CreateRef<RigidBody3D>();
+            SharedRef<RigidBody3D> testPhysics = CreateSharedRef<RigidBody3D>();
 
             testPhysics->SetPosition(pos);
             testPhysics->SetInverseMass(inverse_mass);
@@ -136,7 +136,7 @@ namespace Lumos
             }
             else
             {
-                testPhysics->SetCollisionShape(CreateRef<CuboidCollisionShape>(halfdims));
+                testPhysics->SetCollisionShape(CreateSharedRef<CuboidCollisionShape>(halfdims));
                 testPhysics->SetInverseInertia(testPhysics->GetCollisionShape()->BuildInverseInertia(inverse_mass));
             }
 
@@ -163,7 +163,7 @@ namespace Lumos
         auto pyramid = scene->GetEntityManager()->Create(name);
         auto pyramidMeshEntity = scene->GetEntityManager()->Create();
 
-        Ref<Graphics::Material> matInstance = CreateRef<Graphics::Material>();
+        SharedRef<Graphics::Material> matInstance = CreateSharedRef<Graphics::Material>();
         Graphics::MaterialProperties properties;
         properties.albedoColour = colour;
         properties.roughnessColour = Vector4(Random32::Rand(0.0f, 1.0f));
@@ -179,13 +179,13 @@ namespace Lumos
 
         pyramidMeshEntity.AddComponent<Maths::Transform>(Maths::Quaternion(-90.0f, 0.0f, 0.0f).RotationMatrix4() * Maths::Matrix4::Scale(halfdims));
         pyramidMeshEntity.SetParent(pyramid);
-        auto& model = pyramidMeshEntity.AddComponent<Graphics::Model>(Ref<Graphics::Mesh>(Graphics::CreatePyramid()), Graphics::PrimitiveType::Pyramid);
+        auto& model = pyramidMeshEntity.AddComponent<Graphics::Model>(SharedRef<Graphics::Mesh>(Graphics::CreatePyramid()), Graphics::PrimitiveType::Pyramid);
         model.GetMeshes().front()->SetMaterial(matInstance);
 
         if(physics_enabled)
         {
             //Otherwise create a physics object, and set it's position etc
-            Ref<RigidBody3D> testPhysics = CreateRef<RigidBody3D>();
+            SharedRef<RigidBody3D> testPhysics = CreateSharedRef<RigidBody3D>();
 
             testPhysics->SetPosition(pos);
             testPhysics->SetInverseMass(inverse_mass);
@@ -197,7 +197,7 @@ namespace Lumos
             }
             else
             {
-                testPhysics->SetCollisionShape(CreateRef<PyramidCollisionShape>(halfdims));
+                testPhysics->SetCollisionShape(CreateSharedRef<PyramidCollisionShape>(halfdims));
                 testPhysics->SetInverseInertia(testPhysics->GetCollisionShape()->BuildInverseInertia(inverse_mass));
             }
 

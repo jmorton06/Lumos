@@ -18,9 +18,9 @@ namespace Lumos
             return CreateFunc(framebufferInfo);
         }
 
-        static std::unordered_map<std::size_t, Ref<Framebuffer>> m_FramebufferCache;
+        static std::unordered_map<std::size_t, SharedRef<Framebuffer>> m_FramebufferCache;
 
-        Ref<Framebuffer> Framebuffer::Get(const FramebufferInfo& framebufferInfo)
+        SharedRef<Framebuffer> Framebuffer::Get(const FramebufferInfo& framebufferInfo)
         {
             size_t hash = 0;
             HashCombine(hash, framebufferInfo.attachmentCount, framebufferInfo.width, framebufferInfo.height, framebufferInfo.layer, framebufferInfo.renderPass, framebufferInfo.screenFBO);
@@ -37,7 +37,7 @@ namespace Lumos
                 return found->second;
             }
 
-            auto framebuffer = Ref<Framebuffer>(Create(framebufferInfo));
+            auto framebuffer = SharedRef<Framebuffer>(Create(framebufferInfo));
             m_FramebufferCache[hash] = framebuffer;
             return framebuffer;
         }

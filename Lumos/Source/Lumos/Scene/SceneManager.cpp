@@ -76,7 +76,7 @@ namespace Lumos
                 return;
 
             if(m_vpAllScenes.empty())
-                m_vpAllScenes.push_back(CreateRef<Scene>("NewScene"));
+                m_vpAllScenes.push_back(CreateSharedRef<Scene>("NewScene"));
 
             m_QueuedSceneIndex = 0;
         }
@@ -151,7 +151,7 @@ namespace Lumos
 
     void SceneManager::EnqueueScene(Scene* scene)
     {
-        m_vpAllScenes.push_back(Ref<Scene>(scene));
+        m_vpAllScenes.push_back(SharedRef<Scene>(scene));
         LUMOS_LOG_INFO("[SceneManager] - Enqueued scene : {0}", scene->GetSceneName().c_str());
     }
 

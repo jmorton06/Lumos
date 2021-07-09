@@ -81,14 +81,14 @@ namespace Lumos
 
         std::vector<std::string> m_Errors;
 
-        Ref<sol::environment> m_Env;
-        Ref<sol::protected_function> m_OnInitFunc;
-        Ref<sol::protected_function> m_UpdateFunc;
-        Ref<sol::protected_function> m_OnReleaseFunc;
+        SharedRef<sol::environment> m_Env;
+        SharedRef<sol::protected_function> m_OnInitFunc;
+        SharedRef<sol::protected_function> m_UpdateFunc;
+        SharedRef<sol::protected_function> m_OnReleaseFunc;
 
-        Ref<sol::protected_function> m_Phys2DBeginFunc;
-        Ref<sol::protected_function> m_Phys3DBeginFunc;
-        Ref<sol::protected_function> m_Phys2DEndFunc;
-        Ref<sol::protected_function> m_Phys3DEndFunc;
+        SharedRef<sol::protected_function> m_Phys2DBeginFunc;
+        SharedRef<sol::protected_function> m_Phys3DBeginFunc;
+        SharedRef<sol::protected_function> m_Phys2DEndFunc;
+        SharedRef<sol::protected_function> m_Phys3DEndFunc;
     };
 }

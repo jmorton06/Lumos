@@ -151,16 +151,16 @@ namespace Lumos
         switch(type)
         {
         case CollisionShapeType::CollisionCuboid:
-            SetCollisionShape(CreateRef<CuboidCollisionShape>());
+            SetCollisionShape(CreateSharedRef<CuboidCollisionShape>());
             break;
         case CollisionShapeType::CollisionSphere:
-            SetCollisionShape(CreateRef<SphereCollisionShape>());
+            SetCollisionShape(CreateSharedRef<SphereCollisionShape>());
             break;
         case CollisionShapeType::CollisionPyramid:
-            SetCollisionShape(CreateRef<PyramidCollisionShape>());
+            SetCollisionShape(CreateSharedRef<PyramidCollisionShape>());
             break;
         case CollisionShapeType::CollisionCapsule:
-            SetCollisionShape(CreateRef<CapsuleCollisionShape>());
+            SetCollisionShape(CreateSharedRef<CapsuleCollisionShape>());
             break;
         default:
             LUMOS_LOG_ERROR("Unsupported Collision shape");

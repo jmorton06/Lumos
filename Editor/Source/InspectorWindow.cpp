@@ -1650,7 +1650,7 @@ end
                     meshes.clear();
                     if(strcmp(shapes[n], "File") != 0)
                     {
-                        meshes.push_back(Lumos::Ref<Lumos::Graphics::Mesh>(Lumos::Graphics::CreatePrimative(GetPrimativeName(shapes[n]))));
+                        meshes.push_back(Lumos::SharedRef<Lumos::Graphics::Mesh>(Lumos::Graphics::CreatePrimative(GetPrimativeName(shapes[n]))));
                         model.SetPrimitiveType(GetPrimativeName(shapes[n]));
                     }
                     else
@@ -1694,7 +1694,7 @@ end
             {
                 ImGui::TextUnformatted("Empty Material");
                 if(ImGui::Button("Add Material", ImVec2(ImGui::GetContentRegionAvail().x, 0.0f)))
-                    mesh->SetMaterial(Lumos::CreateRef<Lumos::Graphics::Material>());
+                    mesh->SetMaterial(Lumos::CreateSharedRef<Lumos::Graphics::Material>());
             }
             else if(ImGui::TreeNodeEx(matName.c_str(), 0))
             {

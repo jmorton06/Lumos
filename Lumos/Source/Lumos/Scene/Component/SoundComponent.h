@@ -9,7 +9,7 @@ namespace Lumos
     {
     public:
         SoundComponent();
-        explicit SoundComponent(Ref<SoundNode>& sound);
+        explicit SoundComponent(SharedRef<SoundNode>& sound);
 
         void Init();
 
@@ -28,10 +28,10 @@ namespace Lumos
         {
             auto* node = SoundNode::Create();
             archive(*node);
-            m_SoundNode = Ref<SoundNode>(node);
+            m_SoundNode = SharedRef<SoundNode>(node);
         }
 
     private:
-        Ref<SoundNode> m_SoundNode;
+        SharedRef<SoundNode> m_SoundNode;
     };
 }

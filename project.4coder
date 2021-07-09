@@ -22,7 +22,7 @@ blacklist_patterns = {
 };
 load_paths_base = {
  { "./Lumos/Source", .relative = true, .recursive = true, },
-	{ "./Sandbox", .relative = true, .recursive = true, },
+	{ "./Runtime", .relative = true, .recursive = true, },
 	{ "./Editor", .relative = true, .recursive = true, },
 };
 load_paths = {
@@ -40,7 +40,7 @@ command_list = {
 
  { .name = "run",
    .out = "*Run - Release*", .footer_panel = true, .save_dirty_files = false,.cursor_at_end = true,
-   .cmd = { { "bin\\Release-windows-x86_64\\Sandbox.exe", .os = "win"   },
+   .cmd = { { "bin\\Release-windows-x86_64\\Runtime.exe", .os = "win"   },
             { "./Scripts/RunLinux.sh" , .os = "linux" },
             { "./Scripts/RunMacOS.sh" , .os = "mac"   }, }, },
 

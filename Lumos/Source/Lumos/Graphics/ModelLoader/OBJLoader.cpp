@@ -14,9 +14,9 @@
 namespace Lumos
 {
     std::string m_Directory;
-    std::vector<Ref<Graphics::Texture2D>> m_Textures;
+    std::vector<SharedRef<Graphics::Texture2D>> m_Textures;
 
-    Ref<Graphics::Texture2D> LoadMaterialTextures(const std::string& typeName, std::vector<Ref<Graphics::Texture2D>>& textures_loaded, const std::string& name, const std::string& directory, Graphics::TextureParameters format)
+    SharedRef<Graphics::Texture2D> LoadMaterialTextures(const std::string& typeName, std::vector<SharedRef<Graphics::Texture2D>>& textures_loaded, const std::string& name, const std::string& directory, Graphics::TextureParameters format)
     {
         for(uint32_t j = 0; j < textures_loaded.size(); j++)
         {
@@ -28,7 +28,7 @@ namespace Lumos
 
         { // If texture hasn't been loaded already, load it
             Graphics::TextureLoadOptions options(false, true);
-            auto texture = Ref<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile(typeName, directory + "/" + name, format, options));
+            auto texture = SharedRef<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile(typeName, directory + "/" + name, format, options));
             textures_loaded.push_back(texture); // Store it as texture loaded for entire model, to ensure we won't unnecessary load duplicate textures.
 
             return texture;
@@ -68,7 +68,7 @@ namespace Lumos
 
             std::unordered_map<Graphics::Vertex, uint32_t> uniqueVertices;
 
-            Ref<Maths::BoundingBox> boundingBox = CreateRef<Maths::BoundingBox>();
+            SharedRef<Maths::BoundingBox> boundingBox = CreateSharedRef<Maths::BoundingBox>();
 
             for(uint32_t i = 0; i < shape.mesh.indices.size(); i++)
             {
@@ -129,7 +129,7 @@ namespace Lumos
             //TODO : if(isAnimated) Load deferredColourAnimated;
             auto shader = Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/DeferredColour.shader");
 
-            Ref<Material> pbrMaterial = CreateRef<Material>(shader);
+            SharedRef<Material> pbrMaterial = CreateSharedRef<Material>(shader);
 
             PBRMataterialTextures textures;
 
@@ -139,35 +139,35 @@ namespace Lumos
 
                 if(mp->diffuse_texname.length() > 0)
                 {
-                    Ref<Graphics::Texture2D> texture = LoadMaterialTextures("Albedo", m_Textures, mp->diffuse_texname, m_Directory, Graphics::TextureParameters(Graphics::TextureFilter::NEAREST, Graphics::TextureFilter::NEAREST, mp->diffuse_texopt.clamp ? Graphics::TextureWrap::CLAMP_TO_EDGE : Graphics::TextureWrap::REPEAT));
+                    SharedRef<Graphics::Texture2D> texture = LoadMaterialTextures("Albedo", m_Textures, mp->diffuse_texname, m_Directory, Graphics::TextureParameters(Graphics::TextureFilter::NEAREST, Graphics::TextureFilter::NEAREST, mp->diffuse_texopt.clamp ? Graphics::TextureWrap::CLAMP_TO_EDGE : Graphics::TextureWrap::REPEAT));
                     if(texture)
                         textures.albedo = texture;
                 }
 
                 if(mp->bump_texname.length() > 0)
                 {
-                    Ref<Graphics::Texture2D> texture = LoadMaterialTextures("Normal", m_Textures, mp->bump_texname, m_Directory, Graphics::TextureParameters(Graphics::TextureFilter::NEAREST, Graphics::TextureFilter::NEAREST, mp->bump_texopt.clamp ? Graphics::TextureWrap::CLAMP_TO_EDGE : Graphics::TextureWrap::REPEAT));
+                    SharedRef<Graphics::Texture2D> texture = LoadMaterialTextures("Normal", m_Textures, mp->bump_texname, m_Directory, Graphics::TextureParameters(Graphics::TextureFilter::NEAREST, Graphics::TextureFilter::NEAREST, mp->bump_texopt.clamp ? Graphics::TextureWrap::CLAMP_TO_EDGE : Graphics::TextureWrap::REPEAT));
                     if(texture)
                         textures.normal = texture; //pbrMaterial->SetNormalMap(texture);
                 }
 
                 if(mp->roughness_texname.length() > 0)
                 {
-                    Ref<Graphics::Texture2D> texture = LoadMaterialTextures("Roughness", m_Textures, mp->roughness_texname.c_str(), m_Directory, Graphics::TextureParameters(Graphics::TextureFilter::NEAREST, Graphics::TextureFilter::NEAREST, mp->roughness_texopt.clamp ? Graphics::TextureWrap::CLAMP_TO_EDGE : Graphics::TextureWrap::REPEAT));
+                    SharedRef<Graphics::Texture2D> texture = LoadMaterialTextures("Roughness", m_Textures, mp->roughness_texname.c_str(), m_Directory, Graphics::TextureParameters(Graphics::TextureFilter::NEAREST, Graphics::TextureFilter::NEAREST, mp->roughness_texopt.clamp ? Graphics::TextureWrap::CLAMP_TO_EDGE : Graphics::TextureWrap::REPEAT));
                     if(texture)
                         textures.roughness = texture;
                 }
 
                 if(mp->metallic_texname.length() > 0)
                 {
-                    Ref<Graphics::Texture2D> texture = LoadMaterialTextures("Metallic", m_Textures, mp->metallic_texname, m_Directory, Graphics::TextureParameters(Graphics::TextureFilter::NEAREST, Graphics::TextureFilter::NEAREST, mp->metallic_texopt.clamp ? Graphics::TextureWrap::CLAMP_TO_EDGE : Graphics::TextureWrap::REPEAT));
+                    SharedRef<Graphics::Texture2D> texture = LoadMaterialTextures("Metallic", m_Textures, mp->metallic_texname, m_Directory, Graphics::TextureParameters(Graphics::TextureFilter::NEAREST, Graphics::TextureFilter::NEAREST, mp->metallic_texopt.clamp ? Graphics::TextureWrap::CLAMP_TO_EDGE : Graphics::TextureWrap::REPEAT));
                     if(texture)
                         textures.metallic = texture;
                 }
 
                 if(mp->specular_highlight_texname.length() > 0)
                 {
-                    Ref<Graphics::Texture2D> texture = LoadMaterialTextures("Metallic", m_Textures, mp->specular_highlight_texname, m_Directory, Graphics::TextureParameters(Graphics::TextureFilter::NEAREST, Graphics::TextureFilter::NEAREST, mp->specular_texopt.clamp ? Graphics::TextureWrap::CLAMP_TO_EDGE : Graphics::TextureWrap::REPEAT));
+                    SharedRef<Graphics::Texture2D> texture = LoadMaterialTextures("Metallic", m_Textures, mp->specular_highlight_texname, m_Directory, Graphics::TextureParameters(Graphics::TextureFilter::NEAREST, Graphics::TextureFilter::NEAREST, mp->specular_texopt.clamp ? Graphics::TextureWrap::CLAMP_TO_EDGE : Graphics::TextureWrap::REPEAT));
                     if(texture)
                         textures.metallic = texture;
                 }
@@ -175,13 +175,13 @@ namespace Lumos
 
             pbrMaterial->SetTextures(textures);
 
-            Ref<VertexBuffer> vb = Ref<VertexBuffer>(VertexBuffer::Create(BufferUsage::STATIC));
+            SharedRef<VertexBuffer> vb = SharedRef<VertexBuffer>(VertexBuffer::Create(BufferUsage::STATIC));
             vb->SetData(sizeof(Graphics::Vertex) * numVertices, vertices);
 
-            Ref<Graphics::IndexBuffer> ib;
+            SharedRef<Graphics::IndexBuffer> ib;
             ib.reset(Graphics::IndexBuffer::Create(indices, numIndices));
 
-            auto mesh = CreateRef<Graphics::Mesh>(vb, ib, boundingBox);
+            auto mesh = CreateSharedRef<Graphics::Mesh>(vb, ib, boundingBox);
             mesh->SetMaterial(pbrMaterial);
             m_Meshes.push_back(mesh);
 

@@ -29,10 +29,11 @@ namespace Lumos
         m_Name = "AssetWindow";
         m_SimpleName = "Assets";
 
+        //TODO: Get Project path from editor
 #ifdef LUMOS_PLATFORM_IOS
         m_BaseDirPath = "Assets";
 #else
-        m_BaseDirPath = ROOT_DIR "/Sandbox/Assets";
+        m_BaseDirPath = ROOT_DIR "/ExampleProject/Assets";
 #endif
         m_CurrentDirPath = m_BaseDirPath;
         m_PreviousDirPath = m_CurrentDirPath;
@@ -244,34 +245,71 @@ namespace Lumos
                     int shownIndex = 0;
 
                     float xAvail = ImGui::GetContentRegionAvail().x;
-                    m_GridItemsPerRow = (int)floor(xAvail / 70.0f);
+                    
+                    m_GridItemsPerRow = (int)floor(xAvail / m_GridSize);
                     m_GridItemsPerRow = Maths::Max(1, m_GridItemsPerRow);
 
-                    for(int i = 0; i < m_CurrentDir.size(); i++)
+                    if(m_IsInListView)
                     {
-                        if(m_CurrentDir.size() > 0)
-                        {
-                            if(!m_ShowHiddenFiles && Lumos::StringUtilities::IsHiddenFile(m_CurrentDir[i].filename))
-                            {
-                                continue;
-                            }
-
-                            if(m_Filter.IsActive())
-                            {
-                                if(!m_Filter.PassFilter(m_CurrentDir[i].filename.c_str()))
-                                {
-                                    continue;
-                                }
-                            }
-
-                            bool doubleClicked = RenderFile(i, !m_CurrentDir[i].isFile, shownIndex, !m_IsInListView);
-
-                            if(doubleClicked)
-                                break;
-                            shownIndex++;
-                        }
+                        for(int i = 0; i < m_CurrentDir.size(); i++)
+                      {
+                          if(m_CurrentDir.size() > 0)
+                          {
+                              if(!m_ShowHiddenFiles && Lumos::StringUtilities::IsHiddenFile(m_CurrentDir[i].filename))
+                              {
+                                  continue;
+                              }
+  
+                              if(m_Filter.IsActive())
+                              {
+                                  if(!m_Filter.PassFilter(m_CurrentDir[i].filename.c_str()))
+                                  {
+                                      continue;
+                                  }
+                              }
+  
+                              bool doubleClicked = RenderFile(i, !m_CurrentDir[i].isFile, shownIndex, !m_IsInListView);
+  
+                              if(doubleClicked)
+                                  break;
+                              shownIndex++;
+                          }
+                      }
+                        
                     }
-
+                    else
+                    {
+                        if (ImGui::BeginTable("assetTable", m_GridItemsPerRow))
+                       {
+                           {
+                               for(int i = 0; i < m_CurrentDir.size(); i++)
+                             {
+                                 if(m_CurrentDir.size() > 0)
+                                 {
+                                     if(!m_ShowHiddenFiles && Lumos::StringUtilities::IsHiddenFile(m_CurrentDir[i].filename))
+                                     {
+                                         continue;
+                                     }
+         
+                                     if(m_Filter.IsActive())
+                                     {
+                                         if(!m_Filter.PassFilter(m_CurrentDir[i].filename.c_str()))
+                                         {
+                                             continue;
+                                         }
+                                     }
+         
+                                     bool doubleClicked = RenderFile(i, !m_CurrentDir[i].isFile, shownIndex, !m_IsInListView);
+         
+                                     if(doubleClicked)
+                                         break;
+                                     shownIndex++;
+                                 }
+                             }
+                           }
+                           ImGui::EndTable();
+                       }
+                    }
                     ImGui::EndChild();
                 }
                 ImGui::EndChild();
@@ -314,7 +352,7 @@ namespace Lumos
                 }
                 ImGui::EndMenuBar();
             }
-
+            
             ImGui::End();
         }
     }
@@ -433,11 +471,11 @@ namespace Lumos
 
             auto fileID = GetParsedAssetID(m_CurrentDir[dirIndex].fileType);
 
-            if(ImGui::Button(folder ? ICON_MDI_FOLDER : m_Editor->GetIconFontIcon(m_CurrentDir[dirIndex].absolutePath), ImVec2(70.0f, 70.0f)))
+            if(ImGui::Button(folder ? ICON_MDI_FOLDER : m_Editor->GetIconFontIcon(m_CurrentDir[dirIndex].absolutePath), ImVec2(m_GridSize, m_GridSize)))
             {
             }
 
-            if(ImGui::IsMouseDoubleClicked(0))
+            if(ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
             {
                 doubleClicked = true;
             }
@@ -445,11 +483,12 @@ namespace Lumos
             auto& fname = m_CurrentDir[dirIndex].filename;
             auto newFname = StripExtras(fname);
 
-            ImGui::TextWrapped("%s", newFname.c_str());
+            ImGui::TextUnformatted(newFname.c_str());
             ImGui::EndGroup();
-
-            if((shownIndex + 1) % m_GridItemsPerRow != 0)
-                ImGui::SameLine();
+            
+            ImGui::TableNextColumn();
+           // if((shownIndex + 1) % m_GridItemsPerRow != 0)
+             //   ImGui::SameLine();
 
             //ImGui::SameLine();
 
