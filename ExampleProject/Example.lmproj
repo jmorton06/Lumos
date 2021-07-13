@@ -2,13 +2,12 @@
     "value0": {
         "Project Version": 5,
         "RenderAPI": 1,
-        "Width": 1440,
-        "Height": 847,
+        "Width": 1200,
+        "Height": 800,
         "Fullscreen": true,
         "VSync": true,
         "ShowConsole": false,
         "Title": "Example",
-        "FilePath": "/ExampleProject/Example.lmproj",
         "Scenes": [
             "/Scenes/2D.lsn",
             "/Scenes/Physics.lsn",

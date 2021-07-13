@@ -7,7 +7,7 @@ class Runtime : public Application
 {
 public:
     explicit Runtime()
-        : Application(std::string("/ExampleProject/"), std::string("Example"))
+        : Application()
     {
         Application::Get().GetWindow()->SetWindowTitle("Runtime");
     }

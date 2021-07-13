@@ -41,8 +41,29 @@ namespace Lumos
         }
     }
 
+    void FileBrowserWindow::SetCurrentPath(const std::string& path)
+    {
+        m_FileBrowser->SetPwd(path);
+    }
+
     void FileBrowserWindow::Open()
     {
         m_FileBrowser->Open();
+    }
+
+    void FileBrowserWindow::SetOpenDirectory(bool value)
+    {
+        if(value)
+        {
+            auto flags = m_FileBrowser->GetFlags();
+            flags |= ImGuiFileBrowserFlags_SelectDirectory;
+            m_FileBrowser->SetFlags(ImGuiFileBrowserFlags_CreateNewDir | ImGuiFileBrowserFlags_EnterNewFilename | ImGuiFileBrowserFlags_NoModal | ImGuiFileBrowserFlags_SelectDirectory | ImGuiFileBrowserFlags_HideHiddenFiles);
+        }
+        else
+        {
+            auto flags = m_FileBrowser->GetFlags();
+            flags &= ~(ImGuiFileBrowserFlags_SelectDirectory);
+            m_FileBrowser->SetFlags(ImGuiFileBrowserFlags_CreateNewDir | ImGuiFileBrowserFlags_EnterNewFilename | ImGuiFileBrowserFlags_NoModal | ImGuiFileBrowserFlags_HideHiddenFiles);
+        }
     }
 }

@@ -17,6 +17,8 @@ namespace Lumos
 
         void Open();
         void OnImGui() override;
+        void SetCurrentPath(const std::string& path);
+        void SetOpenDirectory(bool value);
         void SetCallback(const std::function<void(const std::string&)>& callback)
         {
             m_Callback = callback;

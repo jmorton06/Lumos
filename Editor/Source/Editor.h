@@ -60,7 +60,7 @@ namespace Lumos
         void OnRender() override;
         void OnDebugDraw() override;
         void OnEvent(Event& e) override;
-        void Quit() override;
+        void OnQuit() override;
 
         void DrawMenuBar();
         void BeginDockSpace(bool gameFullScreen);
@@ -174,6 +174,7 @@ namespace Lumos
 
         void FileOpenCallback(const std::string& filepath);
 		void ProjectOpenCallback(const std::string& filepath);
+        void NewProjectOpenCallback(const std::string& filepath);
 		
         FileBrowserWindow& GetFileBrowserWindow()
         {
@@ -207,6 +208,8 @@ namespace Lumos
 
         void CacheScene();
         void LoadCachedScene();
+        
+        const std::string& GetProjectRoot() const { return m_ProjectRoot; }
 
     protected:
         NONCOPYABLE(Editor)
@@ -221,6 +224,8 @@ namespace Lumos
 
         float m_GridSize = 10.0f;
         uint32_t m_DebugDrawFlags = 0;
+        uint32_t m_Physics2DDebugFlags = 0;
+        uint32_t m_Physics3DDebugFlags = 0;
 
         bool m_ShowGrid = false;
         bool m_ShowGizmos = true;
