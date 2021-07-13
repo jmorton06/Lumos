@@ -86,6 +86,9 @@ namespace ImGui
         void SetFileFilters(const std::vector<const char*>& fileFilters);
         
         bool IsHidden(const std::filesystem::path &p);
+        
+        ImGuiFileBrowserFlags GetFlags() const { return flags_; }
+        void SetFlags(ImGuiFileBrowserFlags flags) { flags_ = flags; }
 
     private:
 
@@ -478,7 +481,7 @@ inline void ImGui::FileBrowser::Display()
                 CloseCurrentPopup();
             }
         }
-        else if(Button("open"))
+        else if(Button("Open"))
             SetPwd(pwd_ / selectedFilename_);
     }
 

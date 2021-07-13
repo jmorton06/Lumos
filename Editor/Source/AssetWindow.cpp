@@ -33,6 +33,7 @@ namespace Lumos
 #ifdef LUMOS_PLATFORM_IOS
         m_BaseDirPath = "Assets";
 #else
+//        m_BaseDirPath = m_Editor->GetProjectRoot() + "/ExampleProject/Assets";
         m_BaseDirPath = ROOT_DIR "/ExampleProject/Assets";
 #endif
         m_CurrentDirPath = m_BaseDirPath;
@@ -246,7 +247,7 @@ namespace Lumos
 
                     float xAvail = ImGui::GetContentRegionAvail().x;
                     
-                    m_GridItemsPerRow = (int)floor(xAvail / m_GridSize);
+                    m_GridItemsPerRow = (int)floor(xAvail / (m_GridSize + ImGui::GetStyle().ItemSpacing.x));
                     m_GridItemsPerRow = Maths::Max(1, m_GridItemsPerRow);
 
                     if(m_IsInListView)
@@ -279,9 +280,6 @@ namespace Lumos
                     }
                     else
                     {
-                        if (ImGui::BeginTable("assetTable", m_GridItemsPerRow))
-                       {
-                           {
                                for(int i = 0; i < m_CurrentDir.size(); i++)
                              {
                                  if(m_CurrentDir.size() > 0)
@@ -305,9 +303,6 @@ namespace Lumos
                                          break;
                                      shownIndex++;
                                  }
-                             }
-                           }
-                           ImGui::EndTable();
                        }
                     }
                     ImGui::EndChild();
@@ -486,15 +481,8 @@ namespace Lumos
             ImGui::TextUnformatted(newFname.c_str());
             ImGui::EndGroup();
             
-            ImGui::TableNextColumn();
-           // if((shownIndex + 1) % m_GridItemsPerRow != 0)
-             //   ImGui::SameLine();
-
-            //ImGui::SameLine();
-
-            //float xAvail = ImGui::GetContentRegionAvail().x - ImGui::GetCursorPos().x;
-            //if(xAvail * 2.0f <= 70.0f)
-            //ImGui::NewLine();
+            if((shownIndex + 1) % m_GridItemsPerRow != 0)
+                ImGui::SameLine();
         }
         else
         {
@@ -502,7 +490,7 @@ namespace Lumos
             ImGui::SameLine();
             if(ImGui::Selectable(m_CurrentDir[dirIndex].filename.c_str(), false, ImGuiSelectableFlags_AllowDoubleClick))
             {
-                if(ImGui::IsMouseDoubleClicked(0))
+                if(ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
                 {
                     doubleClicked = true;
                 }
@@ -544,6 +532,8 @@ namespace Lumos
         LUMOS_PROFILE_FUNCTION();
         ImGui::BeginChild("##nav", ImVec2(ImGui::GetColumnWidth() - 12, ImGui::GetFontSize() * 1.8f));
         {
+            ImGui::TextUnformatted("Grid Size");
+            ImGui::DragFloat("#GridSize", &m_GridSize, 1.0f, 40.0f, 400.0f);
             ImGui::EndChild();
         }
     }

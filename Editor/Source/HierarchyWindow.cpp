@@ -257,10 +257,10 @@ namespace Lumos
 
             if(ImGui::IsItemClicked() && !deleteEntity)
                 m_Editor->SetSelected(node);
-            else if(m_DoubleClicked == node && ImGui::IsMouseClicked(0) && !ImGui::IsItemHovered(ImGuiHoveredFlags_None))
+            else if(m_DoubleClicked == node && ImGui::IsMouseClicked(ImGuiMouseButton_Left) && !ImGui::IsItemHovered(ImGuiHoveredFlags_None))
                 m_DoubleClicked = entt::null;
 
-            if(ImGui::IsMouseDoubleClicked(0) && ImGui::IsItemHovered(ImGuiHoveredFlags_None))
+            if(ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left) && ImGui::IsItemHovered(ImGuiHoveredFlags_None))
             {
                 m_DoubleClicked = node;
                 if(Application::Get().GetEditorState() == EditorState::Preview)

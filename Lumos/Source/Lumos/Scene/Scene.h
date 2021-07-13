@@ -31,11 +31,11 @@ namespace Lumos
     class LUMOS_EXPORT Scene
     {
     public:
-        explicit Scene(const std::string& SceneName); //Called once at program start - all scene initialization should be done in 'OnInitialize'
+        explicit Scene(const std::string& name);
         virtual ~Scene();
 
         // Called when scene is being activated, and will begin being rendered/updated.
-        //	 - Initialize objects/physics here
+        //	 - Initialise objects/physics here
         virtual void OnInit();
 
         // Called when scene is being swapped and will no longer be rendered/updated

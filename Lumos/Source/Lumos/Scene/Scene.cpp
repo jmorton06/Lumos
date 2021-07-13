@@ -41,8 +41,8 @@
 
 namespace Lumos
 {
-    Scene::Scene(const std::string& friendly_name)
-        : m_SceneName(friendly_name)
+    Scene::Scene(const std::string& name)
+        : m_SceneName(name)
         , m_ScreenWidth(0)
         , m_ScreenHeight(0)
     {

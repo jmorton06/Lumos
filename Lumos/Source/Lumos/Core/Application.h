@@ -56,7 +56,7 @@ namespace Lumos
         friend class Editor;
 
     public:
-        Application(const std::string& projectRoot, const std::string& projectName);
+        Application();
         virtual ~Application();
 
         void Run();
@@ -65,9 +65,9 @@ namespace Lumos
         void OnExitScene();
         void OnSceneViewSizeUpdated(uint32_t width, uint32_t height);
         void OpenProject(const std::string& filePath);
-		void OpenNewProject();
+		void OpenNewProject(const std::string& path);
 		
-        virtual void Quit();
+        virtual void OnQuit();
         virtual void Init();
         virtual void OnEvent(Event& e);
         virtual void OnNewScene(Scene* scene);
@@ -170,8 +170,8 @@ namespace Lumos
 
         void EmbedTexture(const std::string& texFilePath, const std::string& outPath, const std::string& arrayName);
 
-        virtual void Serialise(const std::string& filePath);
-        virtual void Deserialise(const std::string& filePath);
+        virtual void Serialise();
+        virtual void Deserialise();
 
         template <typename Archive>
         void save(Archive& archive) const
@@ -189,6 +189,8 @@ namespace Lumos
                 windowSize.y = 600;
 
             //Version 1
+            
+            std::string path;
 
             archive(cereal::make_nvp("RenderAPI", RenderAPI),
                 cereal::make_nvp("Width", (int)windowSize.x),
@@ -196,8 +198,7 @@ namespace Lumos
                 cereal::make_nvp("Fullscreen", Fullscreen),
                 cereal::make_nvp("VSync", VSync),
                 cereal::make_nvp("ShowConsole", ShowConsole),
-                cereal::make_nvp("Title", Title),
-                cereal::make_nvp("FilePath", FilePath));
+                cereal::make_nvp("Title", Title));
             //Version 2
 
             auto paths = m_SceneManager->GetSceneFilePaths();
@@ -222,6 +223,7 @@ namespace Lumos
             int sceneIndex = 0;
             archive(cereal::make_nvp("Project Version", projectVersion));
 
+            std::string test;
             if(projectVersion > 0)
             {
                 archive(cereal::make_nvp("RenderAPI", RenderAPI),
@@ -230,8 +232,7 @@ namespace Lumos
                     cereal::make_nvp("Fullscreen", Fullscreen),
                     cereal::make_nvp("VSync", VSync),
                     cereal::make_nvp("ShowConsole", ShowConsole),
-                    cereal::make_nvp("Title", Title),
-                    cereal::make_nvp("FilePath", FilePath));
+                    cereal::make_nvp("Title", Title));
             }
             if(projectVersion > 2)
             {
@@ -272,7 +273,6 @@ namespace Lumos
         bool ShowConsole = true;
         std::string Title;
         int RenderAPI;
-        std::string FilePath;
         //
 
         uint32_t m_Frames = 0;
@@ -284,6 +284,8 @@ namespace Lumos
         uint32_t m_SceneViewWidth = 0;
         uint32_t m_SceneViewHeight = 0;
         bool m_SceneViewSizeUpdated = false;
+        std::string m_ProjectRoot;
+        std::string m_ProjectName;
 
         UniqueRef<Window> m_Window;
         UniqueRef<SceneManager> m_SceneManager;

@@ -54,12 +54,11 @@ namespace Lumos
     Editor* Editor::s_Editor = nullptr;
 
     Editor::Editor()
-        : Application(std::string("/ExampleProject/"), std::string("Example"))
+        : Application()
         , m_SelectedEntity(entt::null)
         , m_CopiedEntity(entt::null)
         , m_IniFile("")
     {
-        Application::Get().GetWindow()->SetWindowTitle("Lumos Editor");
         spdlog::sink_ptr sink = std::make_shared<ImGuiConsoleSink_mt>();
 
         Lumos::Debug::Log::AddSink(sink);
@@ -71,7 +70,7 @@ namespace Lumos
     {
     }
 
-    void Editor::Quit()
+    void Editor::OnQuit()
     {
         SaveEditorSettings();
 
@@ -81,16 +80,12 @@ namespace Lumos
         m_PreviewSphere.reset();
         m_Windows.clear();
 
-        Application::Quit();
+        Application::OnQuit();
     }
 
     void Editor::Init()
     {
         LUMOS_PROFILE_FUNCTION();
-
-        Application::Init();
-        Application::SetEditorState(EditorState::Preview);
-        Application::Get().GetWindow()->SetEventCallback(BIND_EVENT_FN(Editor::OnEvent));
 
 #ifdef LUMOS_PLATFORM_IOS
         m_TempSceneSaveFilePath = OS::Instance()->GetAssetPath();
@@ -126,6 +121,10 @@ namespace Lumos
             // ImGui::GetIO().IniFilename = "editor.ini";
         }
 #endif
+        
+        Application::Init();
+        Application::SetEditorState(EditorState::Preview);
+        Application::Get().GetWindow()->SetEventCallback(BIND_EVENT_FN(Editor::OnEvent));
 
         m_EditorCamera = CreateSharedRef<Camera>(-20.0f,
             -40.0f,
@@ -171,6 +170,13 @@ namespace Lumos
 
         m_SelectedEntity = entt::null;
         m_PreviewTexture = nullptr;
+        
+        Application::Get().GetSystem<LumosPhysicsEngine>()->SetDebugDrawFlags(m_Physics3DDebugFlags);
+        Application::Get().GetSystem<B2PhysicsEngine>()->SetDebugDrawFlags(m_Physics2DDebugFlags);
+
+        ImGuiHelpers::SetTheme(m_Theme);
+        OS::Instance()->SetTitleBarColour(ImGui::GetStyle().Colors[ImGuiCol_MenuBarBg]);
+        Application::Get().GetWindow()->SetWindowTitle("Lumos Editor");
 
         ImGuizmo::SetGizmoSizeClipSpace(0.25f);
         ImGuizmo::SetGizmoSizeScale(Application::Get().GetWindowDPI());
@@ -301,11 +307,14 @@ namespace Lumos
             {
 				if(ImGui::MenuItem("New Project"))
                 {
-                    Application::Get().OpenNewProject();
+                    m_FileBrowserWindow.SetOpenDirectory(true);
+                    m_FileBrowserWindow.SetCallback(BIND_FILEBROWSER_FN(Editor::NewProjectOpenCallback));
+                    m_FileBrowserWindow.Open();
                 }
 				
 				if(ImGui::MenuItem("Open Project"))
                 {
+                    m_FileBrowserWindow.SetCurrentPath(m_ProjectRoot);
                     m_FileBrowserWindow.SetCallback(BIND_FILEBROWSER_FN(Editor::ProjectOpenCallback));
                     m_FileBrowserWindow.Open();
                 }
@@ -314,6 +323,7 @@ namespace Lumos
 				
                 if(ImGui::MenuItem("Open File"))
                 {
+                    m_FileBrowserWindow.SetCurrentPath(m_ProjectRoot);
                     m_FileBrowserWindow.SetCallback(BIND_FILEBROWSER_FN(Editor::FileOpenCallback));
                     m_FileBrowserWindow.Open();
                 }
@@ -763,7 +773,7 @@ namespace Lumos
 
             if(ImGui::Button("OK", ImVec2(120, 0)))
             {
-                Application::Get().GetSceneManager()->GetCurrentScene()->Serialise(ROOT_DIR "/ExampleProject/Assets/Scenes/", false);
+                Application::Get().GetSceneManager()->GetCurrentScene()->Serialise(m_ProjectRoot + "Assets/Scenes/", false);
                 ImGui::CloseCurrentPopup();
             }
             ImGui::SetItemDefaultFocus();
@@ -1757,6 +1767,12 @@ namespace Lumos
 		Application::Get().OpenProject(filePath);
 	}
 
+    void Editor::NewProjectOpenCallback(const std::string& filePath)
+    {
+        Application::Get().OpenNewProject(filePath);
+        m_FileBrowserWindow.SetOpenDirectory(false);
+    }
+
     void Editor::SaveEditorSettings()
     {
         LUMOS_PROFILE_FUNCTION();
@@ -1771,6 +1787,8 @@ namespace Lumos
         m_IniFile.SetOrAdd("PhysicsDebugDrawFlags", Application::Get().GetSystem<LumosPhysicsEngine>()->GetDebugDrawFlags());
         m_IniFile.SetOrAdd("PhysicsDebugDrawFlags2D", Application::Get().GetSystem<B2PhysicsEngine>()->GetDebugDrawFlags());
         m_IniFile.SetOrAdd("Theme", (int)m_Theme);
+        m_IniFile.SetOrAdd("ProjectRoot", m_ProjectRoot);
+        m_IniFile.SetOrAdd("ProjectName", m_ProjectName);
         m_IniFile.Rewrite();
     }
 
@@ -1786,8 +1804,10 @@ namespace Lumos
         m_IniFile.Add("SnapQuizmo", m_SnapQuizmo);
         m_IniFile.Add("DebugDrawFlags", m_DebugDrawFlags);
         m_IniFile.Add("PhysicsDebugDrawFlags", 0);
-        m_IniFile.Set("PhysicsDebugDrawFlags2D", 0);
-        m_IniFile.Set("Theme", (int)m_Theme);
+        m_IniFile.Add("PhysicsDebugDrawFlags2D", 0);
+        m_IniFile.Add("Theme", (int)m_Theme);
+        m_IniFile.Add("ProjectRoot", ROOT_DIR"/ExampleProject/");
+        m_IniFile.Add("ProjectName", "Example");
         m_IniFile.Rewrite();
     }
 
@@ -1803,11 +1823,11 @@ namespace Lumos
         m_SnapQuizmo = m_IniFile.GetOrDefault("SnapQuizmo", m_SnapQuizmo);
         m_DebugDrawFlags = m_IniFile.GetOrDefault("DebugDrawFlags", m_DebugDrawFlags);
         m_Theme = ImGuiHelpers::Theme(m_IniFile.GetOrDefault("Theme", (int)m_Theme));
-        Application::Get().GetSystem<LumosPhysicsEngine>()->SetDebugDrawFlags(m_IniFile.GetOrDefault("PhysicsDebugDrawFlags", 0));
-        Application::Get().GetSystem<B2PhysicsEngine>()->SetDebugDrawFlags(m_IniFile.GetOrDefault("PhysicsDebugDrawFlags2D", 0));
-
-        ImGuiHelpers::SetTheme(m_Theme);
-        OS::Instance()->SetTitleBarColour(ImGui::GetStyle().Colors[ImGuiCol_MenuBarBg]);
+        
+        m_ProjectRoot = m_IniFile.GetOrDefault("ProjectRoot", std::string(ROOT_DIR"/ExampleProject/"));
+        m_ProjectName = m_IniFile.GetOrDefault("ProjectName", std::string("Example"));
+        m_Physics2DDebugFlags = m_IniFile.GetOrDefault("PhysicsDebugDrawFlags2D", 0);
+        m_Physics3DDebugFlags = m_IniFile.GetOrDefault("PhysicsDebugDrawFlags", 0);
     }
 
     const char* Editor::GetIconFontIcon(const std::string& filePath)
