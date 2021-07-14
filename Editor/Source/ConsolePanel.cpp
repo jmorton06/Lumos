@@ -1,19 +1,19 @@
-#include "ConsoleWindow.h"
+#include "ConsolePanel.h"
 #include <Lumos/ImGui/IconsMaterialDesignIcons.h>
 #include <Lumos/ImGui/ImGuiHelpers.h>
 #include <Lumos/Core/Profiler.h>
 
 namespace Lumos
 {
-    uint32_t ConsoleWindow::s_MessageBufferRenderFilter = 0;
-    uint16_t ConsoleWindow::s_MessageBufferCapacity = 200;
-    uint16_t ConsoleWindow::s_MessageBufferSize = 0;
-    uint16_t ConsoleWindow::s_MessageBufferBegin = 0;
-    std::vector<SharedRef<ConsoleWindow::Message>> ConsoleWindow::s_MessageBuffer = std::vector<SharedRef<ConsoleWindow::Message>>(200);
-    bool ConsoleWindow::s_AllowScrollingToBottom = true;
-    bool ConsoleWindow::s_RequestScrollToBottom = false;
+    uint32_t ConsolePanel::s_MessageBufferRenderFilter = 0;
+    uint16_t ConsolePanel::s_MessageBufferCapacity = 200;
+    uint16_t ConsolePanel::s_MessageBufferSize = 0;
+    uint16_t ConsolePanel::s_MessageBufferBegin = 0;
+    std::vector<SharedRef<ConsolePanel::Message>> ConsolePanel::s_MessageBuffer = std::vector<SharedRef<ConsolePanel::Message>>(200);
+    bool ConsolePanel::s_AllowScrollingToBottom = true;
+    bool ConsolePanel::s_RequestScrollToBottom = false;
 
-    ConsoleWindow::ConsoleWindow()
+    ConsolePanel::ConsolePanel()
     {
         LUMOS_PROFILE_FUNCTION();
         m_Name = ICON_MDI_VIEW_LIST " Console###console";
@@ -21,7 +21,7 @@ namespace Lumos
         s_MessageBufferRenderFilter = Message::Level::Trace | Message::Level::Info | Message::Level::Debug | Message::Level::Warn | Message::Level::Error | Message::Level::Critical;
     }
 
-    void ConsoleWindow::AddMessage(const SharedRef<Message>& message)
+    void ConsolePanel::AddMessage(const SharedRef<Message>& message)
     {
         LUMOS_PROFILE_FUNCTION();
         if(message->m_Level == 0)
@@ -65,7 +65,7 @@ namespace Lumos
             s_RequestScrollToBottom = true;
     }
 
-    void ConsoleWindow::Flush()
+    void ConsolePanel::Flush()
     {
         LUMOS_PROFILE_FUNCTION();
         for(auto message = s_MessageBuffer.begin(); message != s_MessageBuffer.end(); message++)
@@ -73,7 +73,7 @@ namespace Lumos
         s_MessageBufferBegin = 0;
     }
 
-    void ConsoleWindow::OnImGui()
+    void ConsolePanel::OnImGui()
     {
         LUMOS_PROFILE_FUNCTION();
         auto flags = ImGuiWindowFlags_NoCollapse;
@@ -87,7 +87,7 @@ namespace Lumos
         ImGui::End();
     }
 
-    void ConsoleWindow::ImGuiRenderHeader()
+    void ConsolePanel::ImGuiRenderHeader()
     {
         LUMOS_PROFILE_FUNCTION();
         ImGuiStyle& style = ImGui::GetStyle();
@@ -140,7 +140,7 @@ namespace Lumos
         }
     }
 
-    void ConsoleWindow::ImGuiRenderMessages()
+    void ConsolePanel::ImGuiRenderMessages()
     {
         LUMOS_PROFILE_FUNCTION();
         ImGui::BeginChild("ScrollRegion", ImVec2(0, 0), false, ImGuiWindowFlags_HorizontalScrollbar);
@@ -194,7 +194,7 @@ namespace Lumos
         ImGui::EndChild();
     }
 
-    ConsoleWindow::Message::Message(const std::string& message, Level level, const std::string& source, int threadID)
+    ConsolePanel::Message::Message(const std::string& message, Level level, const std::string& source, int threadID)
         : m_Message(message)
         , m_Level(level)
         , m_Source(source)
@@ -203,7 +203,7 @@ namespace Lumos
     {
     }
 
-    void ConsoleWindow::Message::OnImGUIRender()
+    void ConsolePanel::Message::OnImGUIRender()
     {
         LUMOS_PROFILE_FUNCTION();
         if(s_MessageBufferRenderFilter & m_Level)
@@ -241,63 +241,63 @@ namespace Lumos
         }
     }
 
-    const char* ConsoleWindow::Message::GetLevelIcon(Level level)
+    const char* ConsolePanel::Message::GetLevelIcon(Level level)
     {
         switch(level)
         {
-        case ConsoleWindow::Message::Level::Trace:
+        case ConsolePanel::Message::Level::Trace:
             return ICON_MDI_MESSAGE_TEXT;
-        case ConsoleWindow::Message::Level::Info:
+        case ConsolePanel::Message::Level::Info:
             return ICON_MDI_INFORMATION;
-        case ConsoleWindow::Message::Level::Debug:
+        case ConsolePanel::Message::Level::Debug:
             return ICON_MDI_BUG;
-        case ConsoleWindow::Message::Level::Warn:
+        case ConsolePanel::Message::Level::Warn:
             return ICON_MDI_ALERT;
-        case ConsoleWindow::Message::Level::Error:
+        case ConsolePanel::Message::Level::Error:
             return ICON_MDI_CLOSE_OCTAGON;
-        case ConsoleWindow::Message::Level::Critical:
+        case ConsolePanel::Message::Level::Critical:
             return ICON_MDI_ALERT_OCTAGRAM;
         default:
             return "Unknown name";
         }
     }
 
-    const char* ConsoleWindow::Message::GetLevelName(Level level)
+    const char* ConsolePanel::Message::GetLevelName(Level level)
     {
         switch(level)
         {
-        case ConsoleWindow::Message::Level::Trace:
+        case ConsolePanel::Message::Level::Trace:
             return ICON_MDI_MESSAGE_TEXT " Trace";
-        case ConsoleWindow::Message::Level::Info:
+        case ConsolePanel::Message::Level::Info:
             return ICON_MDI_INFORMATION " Info";
-        case ConsoleWindow::Message::Level::Debug:
+        case ConsolePanel::Message::Level::Debug:
             return ICON_MDI_BUG " Debug";
-        case ConsoleWindow::Message::Level::Warn:
+        case ConsolePanel::Message::Level::Warn:
             return ICON_MDI_ALERT " Warning";
-        case ConsoleWindow::Message::Level::Error:
+        case ConsolePanel::Message::Level::Error:
             return ICON_MDI_CLOSE_OCTAGON " Error";
-        case ConsoleWindow::Message::Level::Critical:
+        case ConsolePanel::Message::Level::Critical:
             return ICON_MDI_ALERT_OCTAGRAM " Critical";
         default:
             return "Unknown name";
         }
     }
 
-    Maths::Colour ConsoleWindow::Message::GetRenderColour(Level level)
+    Maths::Colour ConsolePanel::Message::GetRenderColour(Level level)
     {
         switch(level)
         {
-        case ConsoleWindow::Message::Level::Trace:
+        case ConsolePanel::Message::Level::Trace:
             return { 0.75f, 0.75f, 0.75f, 1.00f }; // Gray
-        case ConsoleWindow::Message::Level::Info:
+        case ConsolePanel::Message::Level::Info:
             return { 0.40f, 0.70f, 1.00f, 1.00f }; // Blue
-        case ConsoleWindow::Message::Level::Debug:
+        case ConsolePanel::Message::Level::Debug:
             return { 0.00f, 0.50f, 0.50f, 1.00f }; // Cyan
-        case ConsoleWindow::Message::Level::Warn:
+        case ConsolePanel::Message::Level::Warn:
             return { 1.00f, 1.00f, 0.00f, 1.00f }; // Yellow
-        case ConsoleWindow::Message::Level::Error:
+        case ConsolePanel::Message::Level::Error:
             return { 1.00f, 0.25f, 0.25f, 1.00f }; // Red
-        case ConsoleWindow::Message::Level::Critical:
+        case ConsolePanel::Message::Level::Critical:
             return { 0.6f, 0.2f, 0.8f, 1.00f }; // Purple
         default:
             return { 1.00f, 1.00f, 1.00f, 1.00f };

@@ -1,5 +1,5 @@
 #include "Editor.h"
-#include "AssetWindow.h"
+#include "ResourcePanel.h"
 #include <Lumos/Core/OS/FileSystem.h>
 #include <Lumos/Core/Profiler.h>
 #include <Lumos/Core/StringUtilities.h>
@@ -21,13 +21,13 @@ namespace Lumos
 #ifdef LUMOS_PLATFORM_WINDOWS
     std::string AssetWindow::m_Delimiter = "\\";
 #else
-    std::string AssetWindow::m_Delimiter = "/";
+    std::string ResourcePanel::m_Delimiter = "/";
 #endif
-    AssetWindow::AssetWindow()
+    ResourcePanel::ResourcePanel()
     {
         LUMOS_PROFILE_FUNCTION();
-        m_Name = "AssetWindow";
-        m_SimpleName = "Assets";
+        m_Name = "ResourceWindow";
+        m_SimpleName = "Resources";
 
         //TODO: Get Project path from editor
 #ifdef LUMOS_PLATFORM_IOS
@@ -49,7 +49,7 @@ namespace Lumos
         m_ShowHiddenFiles = false;
     }
 
-    void AssetWindow::DrawFolder(const DirectoryInformation& dirInfo)
+    void ResourcePanel::DrawFolder(const DirectoryInformation& dirInfo)
     {
         LUMOS_PROFILE_FUNCTION();
         ImGuiTreeNodeFlags nodeFlags = ((dirInfo.absolutePath == m_CurrentDirPath) ? ImGuiTreeNodeFlags_Selected : 0);
@@ -143,7 +143,7 @@ namespace Lumos
         }
     }
 
-    void AssetWindow::OnImGui()
+    void ResourcePanel::OnImGui()
     {
         LUMOS_PROFILE_FUNCTION();
         ImGui::Begin(m_SimpleName.c_str());
@@ -352,7 +352,7 @@ namespace Lumos
         }
     }
 
-    void AssetWindow::RenderBreadCrumbs()
+    void ResourcePanel::RenderBreadCrumbs()
     {
         LUMOS_PROFILE_FUNCTION();
         ImGui::BeginChild("##directory_breadcrumbs", ImVec2(ImGui::GetColumnWidth(), ImGui::GetFontSize() * 2.0f));
@@ -453,7 +453,7 @@ namespace Lumos
         ImGui::EndChild();
     }
 
-    bool AssetWindow::RenderFile(int dirIndex, bool folder, int shownIndex, bool gridView)
+    bool ResourcePanel::RenderFile(int dirIndex, bool folder, int shownIndex, bool gridView)
     {
         LUMOS_PROFILE_FUNCTION();
         auto fileID = GetParsedAssetID(m_CurrentDir[dirIndex].fileType);
@@ -527,7 +527,7 @@ namespace Lumos
         return doubleClicked;
     }
 
-    void AssetWindow::RenderBottom()
+    void ResourcePanel::RenderBottom()
     {
         LUMOS_PROFILE_FUNCTION();
         ImGui::BeginChild("##nav", ImVec2(ImGui::GetColumnWidth() - 12, ImGui::GetFontSize() * 1.8f));
@@ -538,7 +538,7 @@ namespace Lumos
         }
     }
 
-    std::vector<DirectoryInformation> AssetWindow::GetFsContents(const std::string& path)
+    std::vector<DirectoryInformation> ResourcePanel::GetFsContents(const std::string& path)
     {
         LUMOS_PROFILE_FUNCTION();
         std::vector<DirectoryInformation> dInfo;
@@ -563,7 +563,7 @@ namespace Lumos
         return dInfo;
     }
 
-    std::vector<DirectoryInformation> AssetWindow::ReadDirectory(const std::string& path)
+    std::vector<DirectoryInformation> ResourcePanel::ReadDirectory(const std::string& path)
     {
         LUMOS_PROFILE_FUNCTION();
         std::vector<DirectoryInformation> dInfo;
@@ -581,7 +581,7 @@ namespace Lumos
         return dInfo;
     }
 
-    std::vector<DirectoryInformation> AssetWindow::ReadDirectoryRecursive(const std::string& path)
+    std::vector<DirectoryInformation> ResourcePanel::ReadDirectoryRecursive(const std::string& path)
     {
         LUMOS_PROFILE_FUNCTION();
         std::vector<DirectoryInformation> dInfo;
@@ -596,14 +596,14 @@ namespace Lumos
         return dInfo;
     }
 
-    std::string AssetWindow::GetParentPath(const std::string& path)
+    std::string ResourcePanel::GetParentPath(const std::string& path)
     {
         LUMOS_PROFILE_FUNCTION();
         auto p = std::filesystem::path(path);
         return p.parent_path().string();
     }
 
-    void AssetWindow::GetDirectories(const std::string& path)
+    void ResourcePanel::GetDirectories(const std::string& path)
     {
         LUMOS_PROFILE_FUNCTION();
         m_DirectoryCount = 0;
@@ -618,12 +618,12 @@ namespace Lumos
         }
     }
 
-    std::vector<std::string> AssetWindow::SearchFiles(const std::string& query)
+    std::vector<std::string> ResourcePanel::SearchFiles(const std::string& query)
     {
         return std::vector<std::string>();
     }
 
-    bool AssetWindow::MoveFile(const std::string& filePath, const std::string& movePath)
+    bool ResourcePanel::MoveFile(const std::string& filePath, const std::string& movePath)
     {
         LUMOS_PROFILE_FUNCTION();
         std::string s = "move " + filePath + " " + movePath.c_str();
@@ -634,7 +634,7 @@ namespace Lumos
         return std::filesystem::exists(std::filesystem::path(movePath + m_Delimiter + StringUtilities::GetFileName(filePath)));
     }
 
-    std::string AssetWindow::StripExtras(const std::string& filename)
+    std::string ResourcePanel::StripExtras(const std::string& filename)
     {
         LUMOS_PROFILE_FUNCTION();
         std::vector<std::string> out;

@@ -1,17 +1,17 @@
-#include "GraphicsInfoWindow.h"
+#include "GraphicsInfoPanel.h"
 #include <Lumos/Graphics/API/GraphicsContext.h>
 
 #include <imgui/imgui.h>
 
 namespace Lumos
 {
-    GraphicsInfoWindow::GraphicsInfoWindow()
+    GraphicsInfoPanel::GraphicsInfoPanel()
     {
         m_Name = "GraphicsInfo";
         m_SimpleName = "GraphicsInfo";
     }
 
-    void GraphicsInfoWindow::OnImGui()
+    void GraphicsInfoPanel::OnImGui()
     {
         auto flags = ImGuiWindowFlags_NoCollapse;
         ImGui::Begin("GraphicsInfo", &m_Active, flags);

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "EditorWindow.h"
+#include "EditorPanel.h"
 
 #include <imgui/imgui.h>
 #include <Lumos/Maths/Colour.h>
@@ -8,7 +8,7 @@
 
 namespace Lumos
 {
-    class ConsoleWindow : public EditorWindow
+    class ConsolePanel : public EditorPanel
     {
     public:
         class Message
@@ -43,8 +43,8 @@ namespace Lumos
             size_t m_MessageID;
         };
 
-        ConsoleWindow();
-        ~ConsoleWindow() = default;
+        ConsolePanel();
+        ~ConsolePanel() = default;
         static void Flush();
         void OnImGui() override;
 

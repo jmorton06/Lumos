@@ -1,12 +1,12 @@
 #include "Editor.h"
-#include "SceneWindow.h"
-#include "ConsoleWindow.h"
-#include "HierarchyWindow.h"
-#include "InspectorWindow.h"
-#include "ApplicationInfoWindow.h"
-#include "GraphicsInfoWindow.h"
-#include "TextEditWindow.h"
-#include "AssetWindow.h"
+#include "SceneViewPanel.h"
+#include "ConsolePanel.h"
+#include "HierarchyPanel.h"
+#include "InspectorPanel.h"
+#include "ApplicationInfoPanel.h"
+#include "GraphicsInfoPanel.h"
+#include "TextEditPanel.h"
+#include "ResourcePanel.h"
 #include "ImGUIConsoleSink.h"
 
 #include <Lumos/Graphics/Camera/EditorCamera.h>
@@ -150,15 +150,15 @@ namespace Lumos
         m_ComponentIconMap[typeid(Graphics::Environment).hash_code()] = ICON_MDI_EARTH;
         m_ComponentIconMap[typeid(Editor).hash_code()] = ICON_MDI_SQUARE;
 
-        m_Windows.emplace_back(CreateSharedRef<ConsoleWindow>());
-        m_Windows.emplace_back(CreateSharedRef<SceneWindow>());
-        m_Windows.emplace_back(CreateSharedRef<InspectorWindow>());
-        m_Windows.emplace_back(CreateSharedRef<ApplicationInfoWindow>());
-        m_Windows.emplace_back(CreateSharedRef<HierarchyWindow>());
-        m_Windows.emplace_back(CreateSharedRef<GraphicsInfoWindow>());
+        m_Windows.emplace_back(CreateSharedRef<ConsolePanel>());
+        m_Windows.emplace_back(CreateSharedRef<SceneViewPanel>());
+        m_Windows.emplace_back(CreateSharedRef<InspectorPanel>());
+        m_Windows.emplace_back(CreateSharedRef<ApplicationInfoPanel>());
+        m_Windows.emplace_back(CreateSharedRef<HierarchyPanel>());
+        m_Windows.emplace_back(CreateSharedRef<GraphicsInfoPanel>());
         m_Windows.back()->SetActive(false);
 #ifndef LUMOS_PLATFORM_IOS
-        m_Windows.emplace_back(CreateSharedRef<AssetWindow>());
+        m_Windows.emplace_back(CreateSharedRef<ResourcePanel>());
 #endif
 
         for(auto& window : m_Windows)
@@ -974,7 +974,7 @@ namespace Lumos
 
         ImGuiID DockspaceID = ImGui::GetID("MyDockspace");
 
-        static std::vector<SharedRef<EditorWindow>> hiddenWindows;
+        static std::vector<SharedRef<EditorPanel>> hiddenWindows;
         if(m_FullScreenSceneView != gameFullScreen)
         {
             m_FullScreenSceneView = gameFullScreen;
@@ -1028,7 +1028,7 @@ namespace Lumos
             ImGui::DockBuilderDockWindow("###inspector", DockRight);
             ImGui::DockBuilderDockWindow("###console", DockingBottomLeftChild);
             ImGui::DockBuilderDockWindow("###profiler", DockingBottomLeftChild);
-            ImGui::DockBuilderDockWindow("Assets", DockingBottomRightChild);
+            ImGui::DockBuilderDockWindow("Resources", DockingBottomRightChild);
             ImGui::DockBuilderDockWindow("Dear ImGui Demo", DockLeft);
             ImGui::DockBuilderDockWindow("GraphicsInfo", DockLeft);
             ImGui::DockBuilderDockWindow("ApplicationInfo", DockLeft);
@@ -1634,7 +1634,7 @@ namespace Lumos
 
         for(int i = 0; i < int(m_Windows.size()); i++)
         {
-            EditorWindow* w = m_Windows[i].get();
+            EditorPanel* w = m_Windows[i].get();
             if(w->GetSimpleName() == "TextEdit")
             {
                 m_Windows.erase(m_Windows.begin() + i);
@@ -1642,16 +1642,16 @@ namespace Lumos
             }
         }
 
-        m_Windows.emplace_back(CreateSharedRef<TextEditWindow>(physicalPath));
+        m_Windows.emplace_back(CreateSharedRef<TextEditPanel>(physicalPath));
         m_Windows.back()->SetEditor(this);
     }
 
-    void Editor::RemoveWindow(EditorWindow* window)
+    void Editor::RemoveWindow(EditorPanel* window)
     {
         LUMOS_PROFILE_FUNCTION();
         for(int i = 0; i < int(m_Windows.size()); i++)
         {
-            EditorWindow* w = m_Windows[i].get();
+            EditorPanel* w = m_Windows[i].get();
             if(w == window)
             {
                 m_Windows.erase(m_Windows.begin() + i);

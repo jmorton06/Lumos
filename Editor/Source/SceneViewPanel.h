@@ -1,5 +1,5 @@
 
-#include "EditorWindow.h"
+#include "EditorPanel.h"
 #include "Editor.h"
 #include <Lumos/Maths/Maths.h>
 #include <Lumos/Maths/Frustum.h>
@@ -16,11 +16,11 @@ DISABLE_WARNING_POP
 
 namespace Lumos
 {
-    class SceneWindow : public EditorWindow
+    class SceneViewPanel : public EditorPanel
     {
     public:
-        SceneWindow();
-        ~SceneWindow() = default;
+        SceneViewPanel();
+        ~SceneViewPanel() = default;
 
         void OnImGui() override;
         void OnNewScene(Scene* scene) override;

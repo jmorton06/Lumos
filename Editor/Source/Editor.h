@@ -1,7 +1,7 @@
 #pragma once
 
-#include "EditorWindow.h"
-#include "FileBrowserWindow.h"
+#include "EditorPanel.h"
+#include "FileBrowserPanel.h"
 
 #include <Lumos/Maths/Maths.h>
 #include <Lumos/Maths/Ray.h>
@@ -49,7 +49,7 @@ namespace Lumos
     class Editor : public Application
     {
         friend class Application;
-        friend class SceneWindow;
+        friend class SceneViewPanel;
 
     public:
         Editor();
@@ -162,7 +162,7 @@ namespace Lumos
         void SelectObject(const Maths::Ray& ray);
 
         void OpenTextFile(const std::string& filePath);
-        void RemoveWindow(EditorWindow* window);
+        void RemoveWindow(EditorPanel* window);
 
         void ShowPreview();
         void DrawPreview();
@@ -176,7 +176,7 @@ namespace Lumos
 		void ProjectOpenCallback(const std::string& filepath);
         void NewProjectOpenCallback(const std::string& filepath);
 		
-        FileBrowserWindow& GetFileBrowserWindow()
+        FileBrowserPanel& GetFileBrowserWindow()
         {
             return m_FileBrowserWindow;
         }
@@ -245,11 +245,11 @@ namespace Lumos
         bool m_FullScreenSceneView = false;
         ImGuiHelpers::Theme m_Theme = ImGuiHelpers::Theme::Dark;
 
-        std::vector<SharedRef<EditorWindow>> m_Windows;
+        std::vector<SharedRef<EditorPanel>> m_Windows;
 
         std::unordered_map<size_t, const char*> m_ComponentIconMap;
 
-        FileBrowserWindow m_FileBrowserWindow;
+        FileBrowserPanel m_FileBrowserWindow;
         Camera* m_CurrentCamera = nullptr;
         EditorCameraController m_EditorCameraController;
         Maths::Transform m_EditorCameraTransform;

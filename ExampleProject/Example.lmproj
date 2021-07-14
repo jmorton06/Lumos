@@ -2,8 +2,8 @@
     "value0": {
         "Project Version": 5,
         "RenderAPI": 1,
-        "Width": 1200,
-        "Height": 800,
+        "Width": 1440,
+        "Height": 847,
         "Fullscreen": true,
         "VSync": true,
         "ShowConsole": false,

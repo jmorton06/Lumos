@@ -156,8 +156,11 @@ namespace Lumos::Graphics
             textures.emissive = TextureName(mat.emissiveTexture.index);
             textures.metallic = TextureName(pbr.metallicRoughnessTexture.index);
 
-            properties.workflow = PBR_WORKFLOW_METALLIC_ROUGHNESS;
-
+            if(textures.metallic)
+                properties.workflow = PBR_WORKFLOW_METALLIC_ROUGHNESS;
+            else
+                properties.workflow = PBR_WORKFLOW_SEPARATE_TEXTURES;
+            
             // metallic-roughness workflow:
             auto baseColourFactor = mat.values.find("baseColorFactor");
             auto roughnessFactor = mat.values.find("roughnessFactor");
@@ -192,6 +195,7 @@ namespace Lumos::Graphics
                 {
                     int index = metallicGlossinessWorkflow->second.Get("metallicGlossinessTexture").Get("index").Get<int>();
                     textures.roughness = loadedTextures[gltfModel.textures[index].source];
+                    properties.workflow = PBR_WORKFLOW_SPECULAR_GLOSINESS;
                 }
 
                 if(metallicGlossinessWorkflow->second.Has("diffuseFactor"))
@@ -279,7 +283,7 @@ namespace Lumos::Graphics
                     Maths::Vector3Simple* normals = reinterpret_cast<Maths::Vector3Simple*>(data.data());
                     for(auto p = 0; p < normalCount; ++p)
                     {
-                        vertices[p].Normal = (parentTransform.GetWorldMatrix() * Maths::ToVector(normals[p])).Normalised();
+                        vertices[p].Normal = (parentTransform.GetWorldMatrix().ToMatrix3().Inverse().Transpose()  * Maths::ToVector(normals[p])).Normalised();
                     }
                 }
 

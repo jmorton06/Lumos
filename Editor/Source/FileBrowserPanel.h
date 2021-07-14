@@ -1,5 +1,5 @@
 #pragma once
-#include "EditorWindow.h"
+#include "EditorPanel.h"
 #include <functional>
 
 namespace ImGui
@@ -9,11 +9,11 @@ namespace ImGui
 
 namespace Lumos
 {
-    class FileBrowserWindow : public EditorWindow
+    class FileBrowserPanel : public EditorPanel
     {
     public:
-        FileBrowserWindow();
-        ~FileBrowserWindow();
+        FileBrowserPanel();
+        ~FileBrowserPanel();
 
         void Open();
         void OnImGui() override;
