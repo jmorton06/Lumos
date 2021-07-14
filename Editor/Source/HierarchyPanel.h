@@ -1,17 +1,17 @@
 #pragma once
 
-#include "EditorWindow.h"
+#include "EditorPanel.h"
 
 #include <entt/entity/fwd.hpp>
 #include <imgui/imgui.h>
 
 namespace Lumos
 {
-    class HierarchyWindow : public EditorWindow
+    class HierarchyPanel : public EditorPanel
     {
     public:
-        HierarchyWindow();
-        ~HierarchyWindow() = default;
+        HierarchyPanel();
+        ~HierarchyPanel() = default;
 
         void DrawNode(entt::entity node, entt::registry& registry);
         void OnImGui() override;

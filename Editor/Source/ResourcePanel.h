@@ -1,6 +1,6 @@
 #pragma once
 
-#include "EditorWindow.h"
+#include "EditorPanel.h"
 
 namespace Lumos
 {
@@ -22,11 +22,11 @@ namespace Lumos
         }
     };
 
-    class AssetWindow : public EditorWindow
+    class ResourcePanel : public EditorPanel
     {
     public:
-        AssetWindow();
-        ~AssetWindow() = default;
+        ResourcePanel();
+        ~ResourcePanel() = default;
 
         void OnImGui() override;
 

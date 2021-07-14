@@ -54,6 +54,7 @@ namespace Lumos
     class LUMOS_EXPORT Application
     {
         friend class Editor;
+        friend class Runtime;
 
     public:
         Application();
@@ -261,6 +262,10 @@ namespace Lumos
                 archive(cereal::make_nvp("Borderless", Borderless));
             }
         }
+        
+    protected:
+        std::string m_ProjectRoot;
+        std::string m_ProjectName;
 
     private:
         bool OnWindowClose(WindowCloseEvent& e);
@@ -284,8 +289,6 @@ namespace Lumos
         uint32_t m_SceneViewWidth = 0;
         uint32_t m_SceneViewHeight = 0;
         bool m_SceneViewSizeUpdated = false;
-        std::string m_ProjectRoot;
-        std::string m_ProjectName;
 
         UniqueRef<Window> m_Window;
         UniqueRef<SceneManager> m_SceneManager;

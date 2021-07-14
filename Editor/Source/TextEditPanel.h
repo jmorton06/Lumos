@@ -1,14 +1,14 @@
 #pragma once
-#include "EditorWindow.h"
+#include "EditorPanel.h"
 #include <imgui/plugins/ImTextEditor.h>
 
 namespace Lumos
 {
-    class TextEditWindow : public EditorWindow
+    class TextEditPanel : public EditorPanel
     {
     public:
-        TextEditWindow(const std::string& filePath);
-        ~TextEditWindow() = default;
+        TextEditPanel(const std::string& filePath);
+        ~TextEditPanel() = default;
 
         void OnImGui() override;
         void OnClose();

@@ -40,6 +40,7 @@
 
 #include <cereal/archives/json.hpp>
 #include <imgui/imgui.h>
+
 namespace Lumos
 {
     Application* Application::s_Instance = nullptr;

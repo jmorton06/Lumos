@@ -1,4 +1,4 @@
-#include "SceneWindow.h"
+#include "SceneViewPanel.h"
 #include "Editor.h"
 #include <Lumos/Graphics/Camera/Camera.h>
 #include <Lumos/Core/Application.h>
@@ -26,7 +26,7 @@
 #include <imgui/plugins/ImGuizmo.h>
 namespace Lumos
 {
-    SceneWindow::SceneWindow()
+    SceneViewPanel::SceneViewPanel()
     {
         m_Name = ICON_MDI_GAMEPAD_VARIANT " Scene###scene";
         m_SimpleName = "Scene";
@@ -97,7 +97,7 @@ namespace Lumos
         }
     }
 
-    void SceneWindow::OnImGui()
+    void SceneViewPanel::OnImGui()
     {
         LUMOS_PROFILE_FUNCTION();
         Application& app = Application::Get();
@@ -318,7 +318,7 @@ namespace Lumos
         ImGui::PopStyleVar();
     }
 
-    void SceneWindow::DrawGizmos(float width, float height, float xpos, float ypos, Scene* scene)
+    void SceneViewPanel::DrawGizmos(float width, float height, float xpos, float ypos, Scene* scene)
     {
         LUMOS_PROFILE_FUNCTION();
         Camera* camera = m_Editor->GetCamera();
@@ -340,7 +340,7 @@ namespace Lumos
         ShowComponentGizmo<SoundComponent>(width, height, xpos, ypos, viewProj, f, registry);
     }
 
-    void SceneWindow::ToolBar()
+    void SceneViewPanel::ToolBar()
     {
         LUMOS_PROFILE_FUNCTION();
         ImGui::Indent();
@@ -734,7 +734,7 @@ namespace Lumos
         ImGui::Unindent();
     }
 
-    void SceneWindow::OnNewScene(Scene* scene)
+    void SceneViewPanel::OnNewScene(Scene* scene)
     {
         LUMOS_PROFILE_FUNCTION();
         m_AspectRatio = 1.0f;
@@ -749,7 +749,7 @@ namespace Lumos
         DebugRenderer::SetOverrideCamera(m_Editor->GetCamera(), &m_Editor->GetEditorCameraTransform());
     }
 
-    void SceneWindow::Resize(uint32_t width, uint32_t height)
+    void SceneViewPanel::Resize(uint32_t width, uint32_t height)
     {
         bool resize = false;
 

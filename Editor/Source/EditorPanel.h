@@ -6,10 +6,10 @@ namespace Lumos
     class Editor;
     class Scene;
 
-    class EditorWindow
+    class EditorPanel
     {
     public:
-        virtual ~EditorWindow() = default;
+        virtual ~EditorPanel() = default;
 
         const std::string& GetName() const
         {

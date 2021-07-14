@@ -1,4 +1,4 @@
-#include "FileBrowserWindow.h"
+#include "FileBrowserPanel.h"
 #include "Editor.h"
 #include <Lumos/Core/StringUtilities.h>
 #include <Lumos/Core/OS/FileSystem.h>
@@ -8,7 +8,7 @@
 
 namespace Lumos
 {
-    FileBrowserWindow::FileBrowserWindow()
+    FileBrowserPanel::FileBrowserPanel()
     {
         m_Name = "FileBrowserWindow";
         m_SimpleName = "FileBrowser";
@@ -20,12 +20,12 @@ namespace Lumos
         m_FileBrowser->Refresh();
     }
 
-    FileBrowserWindow::~FileBrowserWindow()
+    FileBrowserPanel::~FileBrowserPanel()
     {
         delete m_FileBrowser;
     }
 
-    void FileBrowserWindow::OnImGui()
+    void FileBrowserPanel::OnImGui()
     {
         m_FileBrowser->Display();
 
@@ -41,17 +41,17 @@ namespace Lumos
         }
     }
 
-    void FileBrowserWindow::SetCurrentPath(const std::string& path)
+    void FileBrowserPanel::SetCurrentPath(const std::string& path)
     {
         m_FileBrowser->SetPwd(path);
     }
 
-    void FileBrowserWindow::Open()
+    void FileBrowserPanel::Open()
     {
         m_FileBrowser->Open();
     }
 
-    void FileBrowserWindow::SetOpenDirectory(bool value)
+    void FileBrowserPanel::SetOpenDirectory(bool value)
     {
         if(value)
         {

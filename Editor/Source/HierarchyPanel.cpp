@@ -1,6 +1,6 @@
-#include "HierarchyWindow.h"
+#include "HierarchyPanel.h"
 #include "Editor.h"
-#include "InspectorWindow.h"
+#include "InspectorPanel.h"
 
 #include <Lumos/Core/OS/Input.h>
 #include <Lumos/Core/Application.h>
@@ -23,7 +23,7 @@
 
 namespace Lumos
 {
-    HierarchyWindow::HierarchyWindow()
+    HierarchyPanel::HierarchyPanel()
         : m_HadRecentDroppedEntity(entt::null)
         , m_DoubleClicked(entt::null)
     {
@@ -31,7 +31,7 @@ namespace Lumos
         m_SimpleName = "Hierarchy";
     }
 
-    void HierarchyWindow::DrawNode(entt::entity node, entt::registry& registry)
+    void HierarchyPanel::DrawNode(entt::entity node, entt::registry& registry)
     {
         LUMOS_PROFILE_FUNCTION();
         bool show = true;
@@ -354,7 +354,7 @@ namespace Lumos
         }
     }
 
-    void HierarchyWindow::DestroyEntity(entt::entity entity, entt::registry& registry)
+    void HierarchyPanel::DestroyEntity(entt::entity entity, entt::registry& registry)
     {
         LUMOS_PROFILE_FUNCTION();
         auto hierarchyComponent = registry.try_get<Hierarchy>(entity);
@@ -372,7 +372,7 @@ namespace Lumos
         registry.destroy(entity);
     }
 
-    bool HierarchyWindow::IsParentOfEntity(entt::entity entity, entt::entity child, entt::registry& registry)
+    bool HierarchyPanel::IsParentOfEntity(entt::entity entity, entt::entity child, entt::registry& registry)
     {
         LUMOS_PROFILE_FUNCTION();
         auto nodeHierarchyComponent = registry.try_get<Hierarchy>(child);
@@ -396,7 +396,7 @@ namespace Lumos
         return false;
     }
 
-    void HierarchyWindow::OnImGui()
+    void HierarchyPanel::OnImGui()
     {
         LUMOS_PROFILE_FUNCTION();
         auto flags = ImGuiWindowFlags_NoCollapse;

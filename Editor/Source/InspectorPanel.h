@@ -1,15 +1,15 @@
 #pragma once
 
-#include "EditorWindow.h"
+#include "EditorPanel.h"
 #include <Lumos/ImGui/ImGuiEnttEditor.hpp>
 
 namespace Lumos
 {
-    class InspectorWindow : public EditorWindow
+    class InspectorPanel : public EditorPanel
     {
     public:
-        InspectorWindow();
-        ~InspectorWindow() = default;
+        InspectorPanel();
+        ~InspectorPanel() = default;
 
         void OnNewScene(Scene* scene) override;
         void OnImGui() override;

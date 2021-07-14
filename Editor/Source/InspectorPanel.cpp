@@ -1,6 +1,6 @@
-#include "InspectorWindow.h"
+#include "InspectorPanel.h"
 #include "Editor.h"
-#include "FileBrowserWindow.h"
+#include "FileBrowserPanel.h"
 #include <Lumos/Audio/AudioManager.h>
 #include <Lumos/Core/Application.h>
 #include <Lumos/Core/OS/FileSystem.h>
@@ -1614,6 +1614,8 @@ end
             ImGuiHelpers::Property("Colour", colourProperty, 0.0f, 1.0f, false, Lumos::ImGuiHelpers::PropertyFlag::ColourProperty);
 
             ImGui::Columns(1);
+            
+            ImGui::Text("Workflow %.1f", material->GetProperties()->workflow);
             ImGui::Separator();
             ImGui::PopStyleVar();
 
@@ -1922,14 +1924,14 @@ end
 
 namespace Lumos
 {
-    InspectorWindow::InspectorWindow()
+    InspectorPanel::InspectorPanel()
     {
         m_Name = ICON_MDI_INFORMATION " Inspector###inspector";
         m_SimpleName = "Inspector";
     }
 
     static bool init = false;
-    void InspectorWindow::OnNewScene(Scene* scene)
+    void InspectorPanel::OnNewScene(Scene* scene)
     {
         LUMOS_PROFILE_FUNCTION();
         if(init)
@@ -1967,7 +1969,7 @@ namespace Lumos
         TRIVIAL_COMPONENT(Listener, "Listener");
     }
 
-    void InspectorWindow::OnImGui()
+    void InspectorPanel::OnImGui()
     {
         LUMOS_PROFILE_FUNCTION();
         auto& registry = Application::Get().GetSceneManager()->GetCurrentScene()->GetRegistry();
@@ -2084,7 +2086,7 @@ namespace Lumos
         ImGui::End();
     }
 
-    void InspectorWindow::SetDebugMode(bool mode)
+    void InspectorPanel::SetDebugMode(bool mode)
     {
         m_DebugMode = mode;
     }

@@ -1,6 +1,6 @@
-#include "HierarchyWindow.h"
+#include "HierarchyPanel.h"
 #include "Editor.h"
-#include "ApplicationInfoWindow.h"
+#include "ApplicationInfoPanel.h"
 
 #include <Lumos/Graphics/API/GraphicsContext.h>
 #include <Lumos/Core/Application.h>
@@ -13,13 +13,13 @@
 
 namespace Lumos
 {
-    ApplicationInfoWindow::ApplicationInfoWindow()
+    ApplicationInfoPanel::ApplicationInfoPanel()
     {
         m_Name = "ApplicationInfo";
         m_SimpleName = "ApplicationInfo";
     }
 
-    void ApplicationInfoWindow::OnImGui()
+    void ApplicationInfoPanel::OnImGui()
     {
         auto flags = ImGuiWindowFlags_NoCollapse;
         ImGui::Begin(m_Name.c_str(), &m_Active, flags);

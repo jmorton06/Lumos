@@ -13,6 +13,12 @@
 
 #include <OpenFBX/ofbx.h>
 
+//#define THREAD_MESH_LOADING //Can't use with opengl
+#ifdef THREAD_MESH_LOADING
+#include "Core/JobSystem.h"
+#endif
+
+
 const uint32_t MAX_PATH_LENGTH = 260;
 
 namespace Lumos::Graphics
@@ -160,6 +166,14 @@ namespace Lumos::Graphics
                 stringFilepath = m_FBXModelDirectory + "/" + stringFilepath;
                 fileFound = FileSystem::FileExists(stringFilepath);
             }
+            
+            if(!fileFound)
+            {
+                stringFilepath = StringUtilities::GetFileName(stringFilepath);
+                stringFilepath = m_FBXModelDirectory + "/textures/" + stringFilepath;
+                fileFound = FileSystem::FileExists(stringFilepath);
+            }
+            
             if(fileFound)
             {
                 texture2D = Graphics::Texture2D::CreateFromFile(stringFilepath, stringFilepath);
@@ -219,7 +233,7 @@ namespace Lumos::Graphics
 
         Maths::Vector3 pos = (Maths::Vector3(static_cast<float>(p.x), static_cast<float>(p.y), static_cast<float>(p.z)));
         transform.SetLocalPosition(FixOrientation(pos));
-
+        
         ofbx::Vec3 r = mesh->getLocalRotation();
         Maths::Vector3 rot = FixOrientation(Maths::Vector3(static_cast<float>(r.x), static_cast<float>(r.y), static_cast<float>(r.z)));
         transform.SetLocalOrientation(Maths::Quaternion::EulerAnglesToQuaternion(rot.x, rot.y, rot.z));
@@ -227,12 +241,13 @@ namespace Lumos::Graphics
         ofbx::Vec3 s = mesh->getLocalScaling();
         Maths::Vector3 scl = Maths::Vector3(static_cast<float>(s.x), static_cast<float>(s.y), static_cast<float>(s.z));
         transform.SetLocalScale(scl);
-        transform.UpdateMatrices();
 
         if(mesh->getParent())
         {
             transform.SetWorldMatrix(GetTransform(mesh->getParent()).GetWorldMatrix());
         }
+        else
+            transform.SetWorldMatrix(Maths::Matrix4());
 
         return transform;
     }
@@ -281,9 +296,20 @@ namespace Lumos::Graphics
             break;
         }
 
-        int c = scene->getMeshCount();
-        for(int i = 0; i < c; ++i)
+        int meshCount = scene->getMeshCount();
+        
+#ifdef THREAD_MESH_LOADING
+        System::JobSystem::Context ctx;
+        System::JobSystem::Dispatch(ctx, static_cast<uint32_t>(meshCount), 1, [&](JobDispatchArgs args)
+#else
+        for(int i = 0; i < meshCount; ++i)
+#endif
         {
+#ifdef THREAD_MESH_LOADING
+            int i = args.jobIndex;
+#endif
+        
+
             const ofbx::Mesh* fbx_mesh = (const ofbx::Mesh*)scene->getMesh(i);
             auto geom = fbx_mesh->getGeometry();
             auto numIndices = geom->getIndexCount();
@@ -320,7 +346,7 @@ namespace Lumos::Graphics
                 boundingBox->Merge(vertex.Position);
 
                 if(normals)
-                    vertex.Normal = (transform.GetWorldMatrix() * Maths::Vector3(float(normals[i].x), float(normals[i].y), float(normals[i].z))).Normalised();
+                    vertex.Normal = transform.GetWorldMatrix().ToMatrix3().Inverse().Transpose() * (Maths::Vector3(float(normals[i].x), float(normals[i].y), float(normals[i].z))).Normalised();
                 if(uvs)
                     vertex.TexCoords = Maths::Vector2(float(uvs[i].x), 1.0f - float(uvs[i].y));
                 if(colours)
@@ -364,6 +390,10 @@ namespace Lumos::Graphics
             delete[] tempvertices;
             delete[] indicesArray;
         }
+#ifdef THREAD_MESH_LOADING
+        );
+        System::JobSystem::Wait(ctx);
+#endif
     }
 
 }

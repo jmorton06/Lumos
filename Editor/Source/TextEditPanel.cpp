@@ -1,4 +1,4 @@
-#include "TextEditWindow.h"
+#include "TextEditPanel.h"
 #include "Editor.h"
 #include <Lumos/Core/OS/FileSystem.h>
 #include <Lumos/Core/OS/Input.h>
@@ -8,7 +8,7 @@
 
 namespace Lumos
 {
-    TextEditWindow::TextEditWindow(const std::string& filePath)
+    TextEditPanel::TextEditPanel(const std::string& filePath)
         : m_FilePath(filePath)
     {
         m_Name = "TextEditWindow";
@@ -37,7 +37,7 @@ namespace Lumos
         editor.SetShowWhitespaces(false);
     }
 
-    void TextEditWindow::OnImGui()
+    void TextEditPanel::OnImGui()
     {
 
         if((Input::Get().GetKeyHeld(InputCode::Key::LeftSuper) || (Input::Get().GetKeyHeld(InputCode::Key::LeftControl))))
@@ -125,7 +125,7 @@ namespace Lumos
         ImGui::End();
     }
 
-    void TextEditWindow::OnClose()
+    void TextEditPanel::OnClose()
     {
         m_Editor->RemoveWindow(this);
     }
