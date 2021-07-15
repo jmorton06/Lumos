@@ -5,8 +5,8 @@
 #include "Engine.h"
 #include "Utilities/Timer.h"
 
-#include "Graphics/API/Renderer.h"
-#include "Graphics/API/GraphicsContext.h"
+#include "Graphics/RHI/Renderer.h"
+#include "Graphics/RHI/GraphicsContext.h"
 #include "Graphics/Renderers/RenderGraph.h"
 #include "Graphics/Camera/Camera.h"
 #include "Graphics/Material.h"
@@ -64,6 +64,7 @@ namespace Lumos
 
     void Application::OpenProject(const std::string& filePath)
     {
+        LUMOS_PROFILE_FUNCTION();
         m_ProjectName = StringUtilities::GetFileName(filePath);
         m_ProjectName = StringUtilities::RemoveFilePathExtension(m_ProjectName);
         
@@ -92,6 +93,7 @@ namespace Lumos
 	
 	void Application::OpenNewProject(const std::string& path)
 	{
+        LUMOS_PROFILE_FUNCTION();
         m_ProjectRoot = path;
         m_ProjectName = "NewProject";
         
@@ -148,7 +150,7 @@ namespace Lumos
 
         m_Timer = CreateUniqueRef<Timer>();
 
-        WindowProperties windowProperties;
+        WindowDesc windowProperties;
         windowProperties.Width = Width;
         windowProperties.Height = Height;
         windowProperties.RenderAPI = RenderAPI;

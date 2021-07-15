@@ -1,6 +1,6 @@
 #pragma once
 #include "VK.h"
-#include "Graphics/API/Pipeline.h"
+#include "Graphics/RHI/Pipeline.h"
 #include "VKDescriptorSet.h"
 
 namespace Lumos
@@ -14,10 +14,10 @@ namespace Lumos
         class VKPipeline : public Pipeline
         {
         public:
-            VKPipeline(const PipelineInfo& pipelineCreateInfo);
+            VKPipeline(const PipelineDesc& pipelineCreateInfo);
             ~VKPipeline();
 
-            bool Init(const PipelineInfo& pipelineCreateInfo);
+            bool Init(const PipelineDesc& pipelineCreateInfo);
             void Bind(CommandBuffer* cmdBuffer) override;
 
             const VkPipelineLayout& GetPipelineLayout() const
@@ -37,7 +37,7 @@ namespace Lumos
             static void MakeDefault();
 
         protected:
-            static Pipeline* CreateFuncVulkan(const PipelineInfo& pipelineCreateInfo);
+            static Pipeline* CreateFuncVulkan(const PipelineDesc& pipelineCreateInfo);
 
         private:
             SharedRef<Shader> m_Shader;

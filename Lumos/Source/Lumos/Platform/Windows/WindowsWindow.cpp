@@ -11,7 +11,7 @@
 
 #include "WindowsWindow.h"
 #include "WindowsKeyCodes.h"
-#include "Graphics/API/GraphicsContext.h"
+#include "Graphics/RHI/GraphicsContext.h"
 #include "Core/Application.h"
 #include "Core/OS/Input.h"
 #include "Utilities/LoadImage.h"
@@ -44,7 +44,7 @@ namespace Lumos
 #define HID_USAGE_GENERIC_KEYBOARD ((USHORT)0x06)
 #endif
 
-    WindowsWindow::WindowsWindow(const WindowProperties& properties)
+    WindowsWindow::WindowsWindow(const WindowDesc& properties)
         : hWnd(nullptr)
     {
         m_Init = false;
@@ -162,7 +162,7 @@ namespace Lumos
         return handle;
     }
 
-    bool WindowsWindow::Init(const WindowProperties& properties)
+    bool WindowsWindow::Init(const WindowDesc& properties)
     {
         m_Data.Title = properties.Title;
         m_Data.Width = properties.Width;
@@ -664,7 +664,7 @@ namespace Lumos
         CreateFunc = CreateFuncWindows;
     }
 
-    Window* WindowsWindow::CreateFuncWindows(const WindowProperties& properties)
+    Window* WindowsWindow::CreateFuncWindows(const WindowDesc& properties)
     {
         return new WindowsWindow(properties);
     }

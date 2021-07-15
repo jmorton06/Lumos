@@ -3,7 +3,7 @@
 #include "Core/VFS.h"
 #include "Core/Engine.h"
 #include "Audio/Sound.h"
-#include "Graphics/API/Shader.h"
+#include "Graphics/RHI/Shader.h"
 #include "Utilities/TSingleton.h"
 
 namespace Lumos

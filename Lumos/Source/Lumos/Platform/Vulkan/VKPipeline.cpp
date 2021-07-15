@@ -5,7 +5,7 @@
 #include "VKRenderpass.h"
 #include "VKShader.h"
 #include "VKTools.h"
-#include "Graphics/API/DescriptorSet.h"
+#include "Graphics/RHI/DescriptorSet.h"
 #include "VKInitialisers.h"
 
 namespace Lumos
@@ -13,7 +13,7 @@ namespace Lumos
 
     namespace Graphics
     {
-        VKPipeline::VKPipeline(const PipelineInfo& pipelineCreateInfo)
+        VKPipeline::VKPipeline(const PipelineDesc& pipelineCreateInfo)
         {
             Init(pipelineCreateInfo);
         }
@@ -23,7 +23,7 @@ namespace Lumos
             vkDestroyPipeline(VKDevice::Get().GetDevice(), m_Pipeline, VK_NULL_HANDLE);
         }
 
-        bool VKPipeline::Init(const PipelineInfo& pipelineCreateInfo)
+        bool VKPipeline::Init(const PipelineDesc& pipelineCreateInfo)
         {
             m_Shader = pipelineCreateInfo.shader;
             m_PipelineLayout = m_Shader.As<VKShader>()->GetPipelineLayout();
@@ -196,7 +196,7 @@ namespace Lumos
             CreateFunc = CreateFuncVulkan;
         }
 
-        Pipeline* VKPipeline::CreateFuncVulkan(const PipelineInfo& pipelineCreateInfo)
+        Pipeline* VKPipeline::CreateFuncVulkan(const PipelineDesc& pipelineCreateInfo)
         {
             return new VKPipeline(pipelineCreateInfo);
         }

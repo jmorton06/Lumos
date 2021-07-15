@@ -16,7 +16,7 @@ namespace Lumos
 {
     namespace Graphics
     {
-        VKDescriptorSet::VKDescriptorSet(const DescriptorInfo& info)
+        VKDescriptorSet::VKDescriptorSet(const DescriptorDesc& info)
         {
             LUMOS_PROFILE_FUNCTION();
             VkDescriptorSetAllocateInfo descriptorSetAllocateInfo;
@@ -58,7 +58,7 @@ namespace Lumos
             CreateFunc = CreateFuncVulkan;
         }
 
-        DescriptorSet* VKDescriptorSet::CreateFuncVulkan(const DescriptorInfo& info)
+        DescriptorSet* VKDescriptorSet::CreateFuncVulkan(const DescriptorDesc& info)
         {
             return new VKDescriptorSet(info);
         }

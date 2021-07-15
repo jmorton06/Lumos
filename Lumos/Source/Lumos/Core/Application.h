@@ -9,7 +9,7 @@ namespace Lumos
 {
     class Timer;
     class Window;
-    struct WindowProperties;
+    struct WindowDesc;
     class AudioManager;
     class SystemManager;
     class Editor;

@@ -2,7 +2,7 @@
 #include "Editor.h"
 #include "ApplicationInfoPanel.h"
 
-#include <Lumos/Graphics/API/GraphicsContext.h>
+#include <Lumos/Graphics/RHI/GraphicsContext.h>
 #include <Lumos/Core/Application.h>
 #include <Lumos/Scene/SceneManager.h>
 #include <Lumos/Core/Engine.h>

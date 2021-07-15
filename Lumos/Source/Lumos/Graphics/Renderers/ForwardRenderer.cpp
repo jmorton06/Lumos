@@ -1,19 +1,19 @@
 #include "Precompiled.h"
 #include "ForwardRenderer.h"
-#include "Graphics/API/Shader.h"
-#include "Graphics/API/Framebuffer.h"
+#include "Graphics/RHI/Shader.h"
+#include "Graphics/RHI/Framebuffer.h"
 #include "Graphics/Light.h"
-#include "Graphics/API/Texture.h"
-#include "Graphics/API/UniformBuffer.h"
+#include "Graphics/RHI/Texture.h"
+#include "Graphics/RHI/UniformBuffer.h"
 #include "Graphics/Mesh.h"
 #include "Graphics/Model.h"
 #include "Graphics/Material.h"
-#include "Graphics/API/Renderer.h"
-#include "Graphics/API/CommandBuffer.h"
-#include "Graphics/API/Swapchain.h"
-#include "Graphics/API/RenderPass.h"
-#include "Graphics/API/Pipeline.h"
-#include "Graphics/API/GraphicsContext.h"
+#include "Graphics/RHI/Renderer.h"
+#include "Graphics/RHI/CommandBuffer.h"
+#include "Graphics/RHI/Swapchain.h"
+#include "Graphics/RHI/RenderPass.h"
+#include "Graphics/RHI/Pipeline.h"
+#include "Graphics/RHI/GraphicsContext.h"
 #include "Graphics/GBuffer.h"
 #include "Scene/Scene.h"
 #include "Scene/Component/TextureMatrixComponent.h"
@@ -118,7 +118,7 @@ namespace Lumos
             m_UniformBuffer = Graphics::UniformBuffer::Create();
             m_ModelUniformBuffer = Graphics::UniformBuffer::Create();
 
-            Graphics::RenderPassInfo renderpassCI {};
+            Graphics::RenderPassDesc renderpassCI {};
 
             if(m_DepthTest)
             {
@@ -196,7 +196,7 @@ namespace Lumos
 
             m_DefaultTexture = Texture2D::CreateFromSource(CheckerboardTextureArrayWidth, CheckerboardTextureArrayHeight, (void*)(uint8_t*)CheckerboardTextureArray);
 
-            Graphics::DescriptorInfo info {};
+            Graphics::DescriptorDesc info {};
             info.layoutIndex = 0;
             info.shader = m_Shader.get();
             m_DescriptorSet.resize(2);
@@ -381,7 +381,7 @@ namespace Lumos
         {
             m_Shader = Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/Simple.shader");
 
-            Graphics::PipelineInfo pipelineCreateInfo {};
+            Graphics::PipelineDesc pipelineCreateInfo {};
             pipelineCreateInfo.shader = m_Shader;
             pipelineCreateInfo.renderpass = m_RenderPass;
             pipelineCreateInfo.polygonMode = Graphics::PolygonMode::FILL;
@@ -415,7 +415,7 @@ namespace Lumos
                 attachments[1] = reinterpret_cast<Texture*>(Application::Get().GetRenderGraph()->GetGBuffer()->GetDepthTexture());
             }
 
-            FramebufferInfo bufferInfo {};
+            FramebufferDesc bufferInfo {};
             bufferInfo.width = m_ScreenBufferWidth;
             bufferInfo.height = m_ScreenBufferHeight;
             bufferInfo.attachmentCount = m_DepthTest ? 2 : 1;

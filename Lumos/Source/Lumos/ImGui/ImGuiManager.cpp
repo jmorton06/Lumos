@@ -3,7 +3,7 @@
 #include "Core/OS/Input.h"
 #include "Core/OS/Window.h"
 #include "Core/Application.h"
-#include "Graphics/API/IMGUIRenderer.h"
+#include "Graphics/RHI/IMGUIRenderer.h"
 #include "Core/VFS.h"
 #include "ImGuiHelpers.h"
 

@@ -9,7 +9,7 @@
 #include "Graphics/directx/DXQuery.h"
 #endif
 
-#include "Graphics/API/GraphicsContext.h"
+#include "Graphics/RHI/GraphicsContext.h"
 
 namespace Lumos
 {

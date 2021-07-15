@@ -16,16 +16,16 @@ namespace Lumos
         static std::unordered_map<std::size_t, PipelineAsset> m_PipelineCache;
         static const float m_CacheLifeTime = 3.0f;
 
-        Pipeline* (*Pipeline::CreateFunc)(const PipelineInfo&) = nullptr;
+        Pipeline* (*Pipeline::CreateFunc)(const PipelineDesc&) = nullptr;
 
-        Pipeline* Pipeline::Create(const PipelineInfo& pipelineInfo)
+        Pipeline* Pipeline::Create(const PipelineDesc& pipelineInfo)
         {
             LUMOS_PROFILE_FUNCTION();
             LUMOS_ASSERT(CreateFunc, "No Pipeline Create Function");
             return CreateFunc(pipelineInfo);
         }
 
-        SharedRef<Pipeline> Pipeline::Get(const PipelineInfo& pipelineInfo)
+        SharedRef<Pipeline> Pipeline::Get(const PipelineDesc& pipelineInfo)
         {
             LUMOS_PROFILE_FUNCTION();
             size_t hash = 0;

@@ -29,6 +29,7 @@ namespace Lumos::Graphics
 
     void Model::LoadModel(const std::string& path)
     {
+        LUMOS_PROFILE_FUNCTION();
         std::string physicalPath;
         if(!Lumos::VFS::Get()->ResolvePhysicalPath(path, physicalPath))
         {

@@ -15,8 +15,8 @@
 #include <Lumos/Graphics/Light.h>
 #include <Lumos/Graphics/Material.h>
 #include <Lumos/Graphics/Environment.h>
-#include <Lumos/Graphics/API/Texture.h>
-#include <Lumos/Graphics/API/GraphicsContext.h>
+#include <Lumos/Graphics/RHI/Texture.h>
+#include <Lumos/Graphics/RHI/GraphicsContext.h>
 #include <Lumos/Maths/Transform.h>
 #include <Lumos/Scripting/Lua/LuaScriptComponent.h>
 #include <Lumos/ImGui/ImGuiHelpers.h>

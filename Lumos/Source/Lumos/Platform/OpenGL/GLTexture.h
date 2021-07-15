@@ -1,5 +1,5 @@
 #pragma once
-#include "Graphics/API/Texture.h"
+#include "Graphics/RHI/Texture.h"
 
 namespace Lumos
 {

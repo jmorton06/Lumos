@@ -29,7 +29,7 @@ namespace Lumos
             POINT
         };
 
-        struct PipelineInfo
+        struct PipelineDesc
         {
             SharedRef<RenderPass> renderpass;
             SharedRef<Shader> shader;
@@ -45,8 +45,8 @@ namespace Lumos
         class LUMOS_EXPORT Pipeline
         {
         public:
-            static Pipeline* Create(const PipelineInfo& pipelineInfo);
-            static SharedRef<Pipeline> Get(const PipelineInfo& pipelineInfo);
+            static Pipeline* Create(const PipelineDesc& pipelineInfo);
+            static SharedRef<Pipeline> Get(const PipelineDesc& pipelineInfo);
             static void ClearCache();
             static void DeleteUnusedCache();
 
@@ -57,7 +57,7 @@ namespace Lumos
             virtual Shader* GetShader() const = 0;
 
         protected:
-            static Pipeline* (*CreateFunc)(const PipelineInfo&);
+            static Pipeline* (*CreateFunc)(const PipelineDesc&);
         };
     }
 }

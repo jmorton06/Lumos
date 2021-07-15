@@ -95,7 +95,7 @@ namespace Lumos
             }
         }
 
-        VKContext::VKContext(const WindowProperties& properties, Window* window)
+        VKContext::VKContext(const WindowDesc& properties, Window* window)
             : m_VkInstance(nullptr)
         {
             m_Window = window;
@@ -336,7 +336,7 @@ namespace Lumos
             CreateFunc = CreateFuncVulkan;
         }
 
-        GraphicsContext* VKContext::CreateFuncVulkan(const WindowProperties& properties, Window* win)
+        GraphicsContext* VKContext::CreateFuncVulkan(const WindowDesc& properties, Window* win)
         {
             return new VKContext(properties, win);
         }

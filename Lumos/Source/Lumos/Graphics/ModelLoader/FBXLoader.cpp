@@ -4,7 +4,7 @@
 #include "Graphics/Material.h"
 #include "Core/OS/FileSystem.h"
 
-#include "Graphics/API/Texture.h"
+#include "Graphics/RHI/Texture.h"
 #include "Maths/Maths.h"
 
 #include "Maths/Transform.h"
@@ -254,6 +254,7 @@ namespace Lumos::Graphics
 
     void Model::LoadFBX(const std::string& path)
     {
+        LUMOS_PROFILE_FUNCTION();
         std::string err;
         std::string pathCopy = path;
         pathCopy = StringUtilities::BackSlashesToSlashes(pathCopy);

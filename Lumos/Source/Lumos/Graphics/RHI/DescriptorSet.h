@@ -93,7 +93,7 @@ namespace Lumos
             DescriptorLayoutInfo* layoutInfo;
         };
 
-        struct DescriptorInfo
+        struct DescriptorDesc
         {
             uint32_t layoutIndex;
             Shader* shader;
@@ -128,14 +128,14 @@ namespace Lumos
         {
         public:
             virtual ~DescriptorSet() = default;
-            static DescriptorSet* Create(const DescriptorInfo& info);
+            static DescriptorSet* Create(const DescriptorDesc& info);
 
             virtual void Update(std::vector<Descriptor>& descriptors) = 0;
             virtual void SetDynamicOffset(uint32_t offset) = 0;
             virtual uint32_t GetDynamicOffset() const = 0;
 
         protected:
-            static DescriptorSet* (*CreateFunc)(const DescriptorInfo&);
+            static DescriptorSet* (*CreateFunc)(const DescriptorDesc&);
         };
     }
 }

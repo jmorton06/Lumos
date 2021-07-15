@@ -16,16 +16,16 @@
 #include "Graphics/GBuffer.h"
 #include "Graphics/Light.h"
 
-#include "Graphics/API/Shader.h"
-#include "Graphics/API/Framebuffer.h"
-#include "Graphics/API/Texture.h"
-#include "Graphics/API/UniformBuffer.h"
-#include "Graphics/API/Renderer.h"
-#include "Graphics/API/CommandBuffer.h"
-#include "Graphics/API/Swapchain.h"
-#include "Graphics/API/RenderPass.h"
-#include "Graphics/API/Pipeline.h"
-#include "Graphics/API/GraphicsContext.h"
+#include "Graphics/RHI/Shader.h"
+#include "Graphics/RHI/Framebuffer.h"
+#include "Graphics/RHI/Texture.h"
+#include "Graphics/RHI/UniformBuffer.h"
+#include "Graphics/RHI/Renderer.h"
+#include "Graphics/RHI/CommandBuffer.h"
+#include "Graphics/RHI/Swapchain.h"
+#include "Graphics/RHI/RenderPass.h"
+#include "Graphics/RHI/Pipeline.h"
+#include "Graphics/RHI/GraphicsContext.h"
 #include "Graphics/Environment.h"
 #include "Embedded/BRDFTexture.inl"
 #include "Utilities/AssetManager.h"
@@ -146,7 +146,7 @@ namespace Lumos
             AttachmentInfo textureTypes[2] = {
                 { TextureType::COLOUR, TextureFormat::RGBA8 }
             };
-            Graphics::RenderPassInfo renderpassCI {};
+            Graphics::RenderPassDesc renderpassCI {};
             renderpassCI.attachmentCount = 1;
             renderpassCI.textureType = textureTypes;
             renderpassCI.clear = true;
@@ -156,7 +156,7 @@ namespace Lumos
             m_DeferredCommandBuffers = Graphics::CommandBuffer::Create();
             m_DeferredCommandBuffers->Init(true);
 
-            Graphics::DescriptorInfo info {};
+            Graphics::DescriptorDesc info {};
             info.layoutIndex = 0;
             info.shader = m_Shader.get();
             m_DescriptorSet.resize(2);
@@ -243,7 +243,7 @@ namespace Lumos
                     m_EnvironmentMap = nullptr;
                     m_IrradianceMap = nullptr;
 
-                    Graphics::DescriptorInfo info {};
+                    Graphics::DescriptorDesc info {};
                     info.layoutIndex = 0;
                     info.shader = m_Shader.get();
                     m_DescriptorSet.clear();
@@ -262,7 +262,7 @@ namespace Lumos
 
                 if(m_EnvironmentMap != env.GetEnvironmentMap())
                 {
-                    Graphics::DescriptorInfo info {};
+                    Graphics::DescriptorDesc info {};
                     info.layoutIndex = 0;
                     info.shader = m_Shader.get();
                     m_DescriptorSet.clear();
@@ -416,7 +416,7 @@ namespace Lumos
         {
             LUMOS_PROFILE_FUNCTION();
 
-            Graphics::PipelineInfo pipelineCreateInfo {};
+            Graphics::PipelineDesc pipelineCreateInfo {};
             pipelineCreateInfo.shader = m_Shader;
             pipelineCreateInfo.renderpass = m_RenderPass;
             pipelineCreateInfo.polygonMode = Graphics::PolygonMode::FILL;
@@ -514,7 +514,7 @@ namespace Lumos
             attachmentTypes[0] = TextureType::COLOUR;
 
             Texture* attachments[1];
-            FramebufferInfo bufferInfo {};
+            FramebufferDesc bufferInfo {};
             bufferInfo.width = m_ScreenBufferWidth;
             bufferInfo.height = m_ScreenBufferHeight;
             bufferInfo.attachmentCount = 1;

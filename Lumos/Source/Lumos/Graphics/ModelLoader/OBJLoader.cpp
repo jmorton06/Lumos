@@ -3,7 +3,7 @@
 #include "Graphics/Mesh.h"
 #include "Graphics/Material.h"
 #include "Maths/Transform.h"
-#include "Graphics/API/Texture.h"
+#include "Graphics/RHI/Texture.h"
 #include "Maths/Maths.h"
 
 #include "Core/Application.h"
@@ -37,6 +37,7 @@ namespace Lumos
 
     void Graphics::Model::LoadOBJ(const std::string& path)
     {
+        LUMOS_PROFILE_FUNCTION();
         std::string resolvedPath = path;
         tinyobj::attrib_t attrib;
         std::string error;
