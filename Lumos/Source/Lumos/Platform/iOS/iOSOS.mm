@@ -92,7 +92,7 @@ static iOSOS* os = nullptr;
     
     void iOSOS::OnQuit()
     {
-        Application::Get().Quit();
+        Application::Get().OnQuit();
         Application::Release();
 	    Lumos::Internal::CoreSystem::Shutdown();
     }

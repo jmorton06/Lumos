@@ -19,7 +19,7 @@ namespace Lumos
 {
 
 #ifdef LUMOS_PLATFORM_WINDOWS
-    std::string AssetWindow::m_Delimiter = "\\";
+    std::string ResourcePanel::m_Delimiter = "\\";
 #else
     std::string ResourcePanel::m_Delimiter = "/";
 #endif
