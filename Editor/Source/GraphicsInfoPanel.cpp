@@ -1,5 +1,5 @@
 #include "GraphicsInfoPanel.h"
-#include <Lumos/Graphics/API/GraphicsContext.h>
+#include <Lumos/Graphics/RHI/GraphicsContext.h>
 
 #include <imgui/imgui.h>
 

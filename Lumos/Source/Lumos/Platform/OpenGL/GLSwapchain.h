@@ -1,5 +1,5 @@
 #pragma once
-#include "Graphics/API/Swapchain.h"
+#include "Graphics/RHI/Swapchain.h"
 
 namespace Lumos
 {

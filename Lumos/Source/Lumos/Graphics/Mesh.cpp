@@ -1,6 +1,6 @@
 #include "Precompiled.h"
 #include "Mesh.h"
-#include "API/Renderer.h"
+#include "RHI/Renderer.h"
 
 #include <meshoptimizer/src/meshoptimizer.h>
 

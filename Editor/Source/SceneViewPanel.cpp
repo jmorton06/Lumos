@@ -5,8 +5,8 @@
 #include <Lumos/Scene/SceneManager.h>
 #include <Lumos/Core/Engine.h>
 #include <Lumos/Core/Profiler.h>
-#include <Lumos/Graphics/API/GraphicsContext.h>
-#include <Lumos/Graphics/API/Texture.h>
+#include <Lumos/Graphics/RHI/GraphicsContext.h>
+#include <Lumos/Graphics/RHI/Texture.h>
 #include <Lumos/Graphics/Renderers/RenderGraph.h>
 #include <Lumos/Graphics/GBuffer.h>
 #include <Lumos/Graphics/Light.h>

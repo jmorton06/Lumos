@@ -22,7 +22,7 @@ namespace Lumos
         enum class TextureFormat;
         class RenderPass;
 
-        struct FramebufferInfo
+        struct FramebufferDesc
         {
             uint32_t width;
             uint32_t height;
@@ -38,8 +38,8 @@ namespace Lumos
         class LUMOS_EXPORT Framebuffer
         {
         public:
-            static SharedRef<Framebuffer> Get(const FramebufferInfo& framebufferInfo);
-            static Framebuffer* Create(const FramebufferInfo& framebufferInfo);
+            static SharedRef<Framebuffer> Get(const FramebufferDesc& framebufferInfo);
+            static Framebuffer* Create(const FramebufferDesc& framebufferInfo);
             static void ClearCache();
             static void DeleteUnusedCache();
 
@@ -61,7 +61,7 @@ namespace Lumos
             virtual void SetClearColour(const Maths::Vector4& colour) = 0;
 
         protected:
-            static Framebuffer* (*CreateFunc)(const FramebufferInfo&);
+            static Framebuffer* (*CreateFunc)(const FramebufferDesc&);
         };
     }
 }

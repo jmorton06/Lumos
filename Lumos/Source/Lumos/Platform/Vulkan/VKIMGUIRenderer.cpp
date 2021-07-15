@@ -104,7 +104,7 @@ namespace Lumos
                 { TextureType::COLOUR, TextureFormat::SCREEN }
             };
 
-            Graphics::RenderPassInfo renderpassCI;
+            Graphics::RenderPassDesc renderpassCI;
             renderpassCI.attachmentCount = 1;
             renderpassCI.textureType = textureTypes;
             renderpassCI.clear = m_ClearScreen;
@@ -131,7 +131,7 @@ namespace Lumos
             attachmentTypes[0] = TextureType::COLOUR;
 
             Texture* attachments[1];
-            FramebufferInfo bufferInfo {};
+            FramebufferDesc bufferInfo {};
             bufferInfo.width = wd->Width;
             bufferInfo.height = wd->Height;
             bufferInfo.attachmentCount = 1;
@@ -151,6 +151,7 @@ namespace Lumos
 
         void VKIMGUIRenderer::Init()
         {
+            LUMOS_PROFILE_FUNCTION();
             int w, h;
             w = (int)m_Width;
             h = (int)m_Height;
@@ -244,7 +245,7 @@ namespace Lumos
             attachmentTypes[0] = TextureType::COLOUR;
 
             Texture* attachments[1];
-            FramebufferInfo bufferInfo {};
+            FramebufferDesc bufferInfo {};
             bufferInfo.width = wd->Width;
             bufferInfo.height = wd->Height;
             bufferInfo.attachmentCount = 1;

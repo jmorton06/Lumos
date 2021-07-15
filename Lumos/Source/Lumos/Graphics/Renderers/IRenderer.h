@@ -4,9 +4,9 @@
 #include "Maths/Maths.h"
 #include "Maths/Transform.h"
 
-#include "Graphics/API/Framebuffer.h"
-#include "Graphics/API/RenderPass.h"
-#include "Graphics/API/Pipeline.h"
+#include "Graphics/RHI/Framebuffer.h"
+#include "Graphics/RHI/RenderPass.h"
+#include "Graphics/RHI/Pipeline.h"
 
 #define SCENE_DESCRIPTORSET_ID 0
 #define MATERIAL_DESCRIPTORSET_ID 1

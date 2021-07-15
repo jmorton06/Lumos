@@ -3,7 +3,7 @@
 #include "Graphics/Mesh.h"
 #include "Graphics/Material.h"
 
-#include "Graphics/API/Texture.h"
+#include "Graphics/RHI/Texture.h"
 #include "Maths/Maths.h"
 
 #include "Maths/Transform.h"
@@ -11,6 +11,7 @@
 #include "Core/StringUtilities.h"
 
 #define TINYGLTF_IMPLEMENTATION
+#define TINYGLTF_USE_CPP14
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 
 #ifdef LUMOS_DIST
@@ -97,6 +98,7 @@ namespace Lumos::Graphics
 
     std::vector<SharedRef<Material>> LoadMaterials(tinygltf::Model& gltfModel)
     {
+        LUMOS_PROFILE_FUNCTION();
         std::vector<SharedRef<Graphics::Texture2D>> loadedTextures;
         std::vector<SharedRef<Material>> loadedMaterials;
         loadedTextures.reserve(gltfModel.textures.size());
@@ -369,6 +371,7 @@ namespace Lumos::Graphics
 
     void LoadNode(Model* mainModel, int nodeIndex, const Maths::Matrix4& parentTransform, tinygltf::Model& model, std::vector<SharedRef<Material>>& materials, std::vector<std::vector<Graphics::Mesh*>>& meshes)
     {
+        LUMOS_PROFILE_FUNCTION();
         if(nodeIndex < 0)
         {
             return;
@@ -447,6 +450,7 @@ namespace Lumos::Graphics
 
     void Model::LoadGLTF(const std::string& path)
     {
+        LUMOS_PROFILE_FUNCTION();
         tinygltf::Model model;
         tinygltf::TinyGLTF loader;
         std::string err;
@@ -454,17 +458,19 @@ namespace Lumos::Graphics
 
         std::string ext = StringUtilities::GetFilePathExtension(path);
 
-        loader.SetImageLoader(tinygltf::LoadImageData, nullptr);
-        loader.SetImageWriter(tinygltf::WriteImageData, nullptr);
+        //loader.SetImageLoader(tinygltf::LoadImageData, nullptr);
+        //loader.SetImageWriter(tinygltf::WriteImageData, nullptr);
 
         bool ret;
 
         if(ext == "glb") // assume binary glTF.
         {
+            LUMOS_PROFILE_SCOPE(".glb binary loading");
             ret = tinygltf::TinyGLTF().LoadBinaryFromFile(&model, &err, &warn, path);
         }
         else // assume ascii glTF.
         {
+            LUMOS_PROFILE_SCOPE(".gltf loading");
             ret = tinygltf::TinyGLTF().LoadASCIIFromFile(&model, &err, &warn, path);
         }
 
@@ -482,16 +488,19 @@ namespace Lumos::Graphics
         {
             LUMOS_LOG_ERROR("Failed to parse glTF");
         }
-
-        auto LoadedMaterials = LoadMaterials(model);
-
-        std::string name = path.substr(path.find_last_of('/') + 1);
-
-        auto meshes = std::vector<std::vector<Graphics::Mesh*>>();
-        const tinygltf::Scene& gltfScene = model.scenes[Lumos::Maths::Max(0, model.defaultScene)];
-        for(size_t i = 0; i < gltfScene.nodes.size(); i++)
         {
-            LoadNode(this, gltfScene.nodes[i], Maths::Matrix4(), model, LoadedMaterials, meshes);
+            LUMOS_PROFILE_SCOPE("Parse GLTF Model");
+
+            auto LoadedMaterials = LoadMaterials(model);
+
+            std::string name = path.substr(path.find_last_of('/') + 1);
+
+            auto meshes = std::vector<std::vector<Graphics::Mesh*>>();
+            const tinygltf::Scene& gltfScene = model.scenes[Lumos::Maths::Max(0, model.defaultScene)];
+            for(size_t i = 0; i < gltfScene.nodes.size(); i++)
+            {
+                LoadNode(this, gltfScene.nodes[i], Maths::Matrix4(), model, LoadedMaterials, meshes);
+            }
         }
     }
 }

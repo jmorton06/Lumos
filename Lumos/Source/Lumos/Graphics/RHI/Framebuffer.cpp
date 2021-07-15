@@ -1,7 +1,7 @@
 #include "Precompiled.h"
 #include "Framebuffer.h"
 #include "Texture.h"
-#include "Graphics/API/GraphicsContext.h"
+#include "Graphics/RHI/GraphicsContext.h"
 
 #include "Utilities/CombineHash.h"
 
@@ -9,9 +9,9 @@ namespace Lumos
 {
     namespace Graphics
     {
-        Framebuffer* (*Framebuffer::CreateFunc)(const FramebufferInfo&) = nullptr;
+        Framebuffer* (*Framebuffer::CreateFunc)(const FramebufferDesc&) = nullptr;
 
-        Framebuffer* Framebuffer::Create(const FramebufferInfo& framebufferInfo)
+        Framebuffer* Framebuffer::Create(const FramebufferDesc& framebufferInfo)
         {
             LUMOS_ASSERT(CreateFunc, "No Framebuffer Create Function");
 
@@ -20,7 +20,7 @@ namespace Lumos
 
         static std::unordered_map<std::size_t, SharedRef<Framebuffer>> m_FramebufferCache;
 
-        SharedRef<Framebuffer> Framebuffer::Get(const FramebufferInfo& framebufferInfo)
+        SharedRef<Framebuffer> Framebuffer::Get(const FramebufferDesc& framebufferInfo)
         {
             size_t hash = 0;
             HashCombine(hash, framebufferInfo.attachmentCount, framebufferInfo.width, framebufferInfo.height, framebufferInfo.layer, framebufferInfo.renderPass, framebufferInfo.screenFBO);

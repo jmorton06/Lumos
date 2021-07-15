@@ -1,11 +1,11 @@
 #include "Precompiled.h"
 #include "Material.h"
-#include "Graphics/API/Shader.h"
-#include "Graphics/API/Texture.h"
-#include "Graphics/API/DescriptorSet.h"
-#include "Graphics/API/Pipeline.h"
-#include "Graphics/API/UniformBuffer.h"
-#include "Graphics/API/GraphicsContext.h"
+#include "Graphics/RHI/Shader.h"
+#include "Graphics/RHI/Texture.h"
+#include "Graphics/RHI/DescriptorSet.h"
+#include "Graphics/RHI/Pipeline.h"
+#include "Graphics/RHI/UniformBuffer.h"
+#include "Graphics/RHI/GraphicsContext.h"
 #include "Core/OS/FileSystem.h"
 #include "Core/VFS.h"
 #include "Core/Application.h"
@@ -177,7 +177,7 @@ namespace Lumos::Graphics
             m_Shader = Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/DeferredColour.shader");
         }
 
-        Graphics::DescriptorInfo info;
+        Graphics::DescriptorDesc info;
         info.layoutIndex = layoutID;
         info.shader = m_Shader.get();
 

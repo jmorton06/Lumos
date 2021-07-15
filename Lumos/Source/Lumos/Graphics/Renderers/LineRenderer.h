@@ -3,7 +3,7 @@
 #include "IRenderer.h"
 #include "Maths/Maths.h"
 #include "Maths/Transform.h"
-#include "Graphics/API/DescriptorSet.h"
+#include "Graphics/RHI/DescriptorSet.h"
 
 namespace Lumos
 {

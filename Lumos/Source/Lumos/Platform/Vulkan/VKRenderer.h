@@ -3,11 +3,11 @@
 #include "VK.h"
 #include "VKContext.h"
 #include "VKSwapchain.h"
-#include "Graphics/API/DescriptorSet.h"
-#include "Graphics/API/RenderPass.h"
+#include "Graphics/RHI/DescriptorSet.h"
+#include "Graphics/RHI/RenderPass.h"
 #include "VKUniformBuffer.h"
 #include "VKDescriptorSet.h"
-#include "Graphics/API/Renderer.h"
+#include "Graphics/RHI/Renderer.h"
 
 #define NUM_SEMAPHORES 10
 

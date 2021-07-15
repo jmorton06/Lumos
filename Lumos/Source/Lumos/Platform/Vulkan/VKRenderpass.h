@@ -1,7 +1,7 @@
 #pragma once
 
 #include "VKDevice.h"
-#include "Graphics/API/RenderPass.h"
+#include "Graphics/RHI/RenderPass.h"
 
 namespace Lumos
 {
@@ -10,10 +10,10 @@ namespace Lumos
         class VKRenderpass : public RenderPass
         {
         public:
-            VKRenderpass(const RenderPassInfo& renderPassCI);
+            VKRenderpass(const RenderPassDesc& renderPassCI);
             ~VKRenderpass();
 
-            bool Init(const RenderPassInfo& renderpassCI);
+            bool Init(const RenderPassDesc& renderpassCI);
             void BeginRenderpass(CommandBuffer* commandBuffer, const Maths::Vector4& clearColour, Framebuffer* frame, SubPassContents contents, uint32_t width, uint32_t height) const override;
             void EndRenderpass(CommandBuffer* commandBuffer) override;
 
@@ -24,7 +24,7 @@ namespace Lumos
             static void MakeDefault();
 
         protected:
-            static RenderPass* CreateFuncVulkan(const RenderPassInfo& renderPassCI);
+            static RenderPass* CreateFuncVulkan(const RenderPassDesc& renderPassCI);
 
         private:
             VkRenderPass m_RenderPass;

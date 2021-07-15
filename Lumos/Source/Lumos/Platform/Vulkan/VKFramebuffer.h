@@ -1,6 +1,6 @@
 #pragma once
 #include "Core/Core.h"
-#include "Graphics/API/Framebuffer.h"
+#include "Graphics/RHI/Framebuffer.h"
 #include "VK.h"
 #include "VKTexture.h"
 #include "VKRenderpass.h"
@@ -12,7 +12,7 @@ namespace Lumos
         class LUMOS_EXPORT VKFramebuffer : public Framebuffer
         {
         public:
-            VKFramebuffer(const FramebufferInfo& frameBufferInfo);
+            VKFramebuffer(const FramebufferDesc& frameBufferInfo);
             ~VKFramebuffer();
 
             const VkFramebuffer& GetFramebuffer() const { return m_Framebuffer; }
@@ -36,7 +36,7 @@ namespace Lumos
             static void MakeDefault();
 
         protected:
-            static Framebuffer* CreateFuncVulkan(const FramebufferInfo&);
+            static Framebuffer* CreateFuncVulkan(const FramebufferDesc&);
 
         private:
             uint32_t m_Width;

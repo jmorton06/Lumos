@@ -1,7 +1,7 @@
 #include "Precompiled.h"
 #include "iOSWindow.h"
 #include "iOSOS.h"
-#include "Graphics/API/GraphicsContext.h"
+#include "Graphics/RHI/GraphicsContext.h"
 
 #include "Events/ApplicationEvent.h"
 #include "Events/MouseEvent.h"
@@ -13,7 +13,7 @@
 
 namespace Lumos
 {
-	iOSWindow::iOSWindow(const WindowProperties& properties)
+	iOSWindow::iOSWindow(const WindowDesc& properties)
 	{
 		m_Init = false;
         auto prop = properties;
@@ -39,7 +39,7 @@ namespace Lumos
 	}
 
 
-	bool iOSWindow::Init(const WindowProperties& properties, const std::string& title)
+	bool iOSWindow::Init(const WindowDesc& properties, const std::string& title)
 	{
         LUMOS_LOG_INFO("Creating window - Title : {0}, Width : {1}, Height : {2}", properties.Title, properties.Width, properties.Height);
 
@@ -87,7 +87,7 @@ namespace Lumos
 		CreateFunc = CreateFunciOS;
 	}
 
-	Window* iOSWindow::CreateFunciOS(const WindowProperties& properties)
+	Window* iOSWindow::CreateFunciOS(const WindowDesc& properties)
 	{
 		return new iOSWindow(properties);
 	}

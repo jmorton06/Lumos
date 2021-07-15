@@ -1,7 +1,7 @@
 #pragma once
 #include "Maths/Maths.h"
-#include "API/Texture.h"
-#include "API/Shader.h"
+#include "RHI/Texture.h"
+#include "RHI/Shader.h"
 #include "Core/VFS.h"
 #include <cereal/cereal.hpp>
 

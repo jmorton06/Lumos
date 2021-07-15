@@ -204,12 +204,12 @@ project "Runtime"
 			"../Resources/AppIcons/Assets.xcassets",
 			"../Lumos/Assets/Shaders",
 			"../Lumos/Source/Lumos/Platform/iOS/Client/**",
-			"Assets/Scenes",
-			"Assets/Scripts",
-			"Assets/Meshes",
-			"Assets/Sounds",
-			"Assets/Textures",
-			"Runtime.lmproj"
+			"../ExampleProject/Assets/Scenes",
+	"../ExampleProject/Assets/Scripts",
+	"../ExampleProject/Assets/Meshes",
+	"../ExampleProject/Assets/Sounds",
+	"../ExampleProject/Assets/Textures",
+	"../ExampleProject/Example.lmproj"
 		}
 
 		xcodebuildsettings
@@ -258,7 +258,7 @@ project "Runtime"
             "Scripts",
             "Sounds",
             "Textures",
-            "Runtime.lmproj"
+            "Example.lmproj"
 		}
 		SetRecommendedXcodeSettings()
 

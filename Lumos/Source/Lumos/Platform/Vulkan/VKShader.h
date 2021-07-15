@@ -1,8 +1,8 @@
 #pragma once
 
 #include "VK.h"
-#include "Graphics/API/Shader.h"
-#include "Graphics/API/DescriptorSet.h"
+#include "Graphics/RHI/Shader.h"
+#include "Graphics/RHI/DescriptorSet.h"
 
 namespace Lumos
 {
@@ -58,7 +58,7 @@ namespace Lumos
                     return m_DescriptorInfos[index];
                 }
 
-                LUMOS_LOG_WARN("DescriptorInfo not found. Index = {0}", index);
+                LUMOS_LOG_WARN("DescriptorDesc not found. Index = {0}", index);
                 return DescriptorSetInfo();
             }
 

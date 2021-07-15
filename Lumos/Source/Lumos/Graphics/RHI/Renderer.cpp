@@ -12,7 +12,7 @@ namespace Lumos
         void Renderer::Init(uint32_t width, uint32_t height)
         {
             LUMOS_ASSERT(CreateFunc, "No Renderer Create Function");
-
+            LUMOS_PROFILE_FUNCTION();
             s_Instance = CreateFunc(width, height);
             s_Instance->InitInternal();
         }

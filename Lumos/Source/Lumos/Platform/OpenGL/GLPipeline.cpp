@@ -9,7 +9,7 @@ namespace Lumos
 {
     namespace Graphics
     {
-        GLPipeline::GLPipeline(const PipelineInfo& pipelineCreateInfo)
+        GLPipeline::GLPipeline(const PipelineDesc& pipelineCreateInfo)
             : m_RenderPass(nullptr)
         {
             Init(pipelineCreateInfo);
@@ -63,7 +63,7 @@ namespace Lumos
             }
         }
 
-        bool GLPipeline::Init(const PipelineInfo& pipelineCreateInfo)
+        bool GLPipeline::Init(const PipelineDesc& pipelineCreateInfo)
         {
             m_TransparencyEnabled = pipelineCreateInfo.transparencyEnabled;
             m_CullMode = pipelineCreateInfo.cullMode;
@@ -125,7 +125,7 @@ namespace Lumos
             CreateFunc = CreateFuncGL;
         }
 
-        Pipeline* GLPipeline::CreateFuncGL(const PipelineInfo& pipelineCreateInfo)
+        Pipeline* GLPipeline::CreateFuncGL(const PipelineDesc& pipelineCreateInfo)
         {
             return new GLPipeline(pipelineCreateInfo);
         }

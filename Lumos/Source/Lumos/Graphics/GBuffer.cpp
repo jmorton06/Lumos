@@ -1,7 +1,7 @@
 #include "Precompiled.h"
 #include "GBuffer.h"
-#include "API/Framebuffer.h"
-#include "API/Texture.h"
+#include "RHI/Framebuffer.h"
+#include "RHI/Texture.h"
 
 namespace Lumos
 {

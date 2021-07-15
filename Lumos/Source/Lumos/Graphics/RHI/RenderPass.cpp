@@ -10,16 +10,16 @@ namespace Lumos
         static std::unordered_map<std::size_t, SharedRef<RenderPass>> m_RenderPassCache;
 
         RenderPass::~RenderPass() = default;
-        RenderPass* (*RenderPass::CreateFunc)(const RenderPassInfo&) = nullptr;
+        RenderPass* (*RenderPass::CreateFunc)(const RenderPassDesc&) = nullptr;
 
-        RenderPass* RenderPass::Create(const RenderPassInfo& renderPassCI)
+        RenderPass* RenderPass::Create(const RenderPassDesc& renderPassCI)
         {
             LUMOS_ASSERT(CreateFunc, "No RenderPass Create Function");
 
             return CreateFunc(renderPassCI);
         }
 
-        SharedRef<RenderPass> RenderPass::Get(const RenderPassInfo& renderPassInfo)
+        SharedRef<RenderPass> RenderPass::Get(const RenderPassDesc& renderPassInfo)
         {
             size_t hash = 0;
             HashCombine(hash, renderPassInfo.attachmentCount, renderPassInfo.clear);

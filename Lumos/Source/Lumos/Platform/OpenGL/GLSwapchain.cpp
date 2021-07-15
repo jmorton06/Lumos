@@ -1,6 +1,6 @@
 #include "Precompiled.h"
 #include "GLSwapchain.h"
-#include "Graphics/API/Framebuffer.h"
+#include "Graphics/RHI/Framebuffer.h"
 #include "GLTexture.h"
 #include "Core/OS/Window.h"
 
@@ -10,7 +10,7 @@ namespace Lumos
     {
         GLSwapchain::GLSwapchain(uint32_t width, uint32_t height)
         {
-            FramebufferInfo info {};
+            FramebufferDesc info {};
             info.width = width;
             info.height = height;
             info.attachments = nullptr;

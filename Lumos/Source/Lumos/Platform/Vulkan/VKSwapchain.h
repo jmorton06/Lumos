@@ -2,7 +2,7 @@
 #include "VKCommandBuffer.h"
 #include "VKRenderpass.h"
 #include "VKFramebuffer.h"
-#include "Graphics/API/Swapchain.h"
+#include "Graphics/RHI/Swapchain.h"
 
 #define MAX_SWAPCHAIN_BUFFERS 3
 namespace Lumos

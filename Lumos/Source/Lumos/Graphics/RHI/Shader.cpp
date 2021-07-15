@@ -1,7 +1,7 @@
 #include "Precompiled.h"
 #include "Shader.h"
 
-#include "Graphics/API/GraphicsContext.h"
+#include "Graphics/RHI/GraphicsContext.h"
 #include "Core/VFS.h"
 
 #include <spirv_cross.hpp>

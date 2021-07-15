@@ -1,5 +1,5 @@
 #pragma once
-#include "Graphics/API/Framebuffer.h"
+#include "Graphics/RHI/Framebuffer.h"
 #include "Platform/OpenGL/GL.h"
 #include "GLTexture.h"
 
@@ -13,7 +13,7 @@ namespace Lumos
         {
         public:
             GLFramebuffer();
-            GLFramebuffer(const FramebufferInfo& bufferInfo);
+            GLFramebuffer(const FramebufferDesc& bufferInfo);
             ~GLFramebuffer();
 
             inline uint32_t GetFramebuffer() const { return m_Handle; }
@@ -42,7 +42,7 @@ namespace Lumos
             static void MakeDefault();
 
         protected:
-            static Framebuffer* CreateFuncGL(const FramebufferInfo& bufferInfo);
+            static Framebuffer* CreateFuncGL(const FramebufferDesc& bufferInfo);
 
         private:
             uint32_t m_Handle;

@@ -1,5 +1,5 @@
 #pragma once
-#include "Graphics/API/GraphicsContext.h"
+#include "Graphics/RHI/GraphicsContext.h"
 
 #include "VK.h"
 #include "Core/Reference.h"
@@ -26,7 +26,7 @@ namespace Lumos
         class VKContext : public GraphicsContext
         {
         public:
-            VKContext(const WindowProperties& properties, Window* window);
+            VKContext(const WindowDesc& properties, Window* window);
             ~VKContext();
 
             void Init() override;
@@ -65,7 +65,7 @@ namespace Lumos
             static void MakeDefault();
 
         protected:
-            static GraphicsContext* CreateFuncVulkan(const WindowProperties&, Window*);
+            static GraphicsContext* CreateFuncVulkan(const WindowDesc&, Window*);
 
             void CreateInstance();
             void SetupDebugCallback();

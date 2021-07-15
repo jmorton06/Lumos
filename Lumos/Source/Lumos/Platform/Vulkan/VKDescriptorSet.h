@@ -1,5 +1,5 @@
 #pragma once
-#include "Graphics/API/DescriptorSet.h"
+#include "Graphics/RHI/DescriptorSet.h"
 #include "VK.h"
 
 namespace Lumos
@@ -9,7 +9,7 @@ namespace Lumos
         class VKDescriptorSet : public DescriptorSet
         {
         public:
-            VKDescriptorSet(const DescriptorInfo& info);
+            VKDescriptorSet(const DescriptorDesc& info);
             ~VKDescriptorSet();
 
             VkDescriptorSet GetDescriptorSet() const { return m_DescriptorSet; }
@@ -25,7 +25,7 @@ namespace Lumos
         protected:
             void UpdateInternal(std::vector<Descriptor>* imageInfos);
 
-            static DescriptorSet* CreateFuncVulkan(const DescriptorInfo&);
+            static DescriptorSet* CreateFuncVulkan(const DescriptorDesc&);
 
         private:
             VkDescriptorSet m_DescriptorSet;

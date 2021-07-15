@@ -18,7 +18,7 @@
 
 #include "Graphics/Sprite.h"
 #include "Graphics/Light.h"
-#include "Graphics/API/Texture.h"
+#include "Graphics/RHI/Texture.h"
 #include "Graphics/Model.h"
 #include "Maths/Random.h"
 #include "Scene/Entity.h"

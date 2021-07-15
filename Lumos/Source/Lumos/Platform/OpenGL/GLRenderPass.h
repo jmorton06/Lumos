@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Graphics/API/RenderPass.h"
+#include "Graphics/RHI/RenderPass.h"
 
 namespace Lumos
 {
@@ -9,10 +9,10 @@ namespace Lumos
         class GLRenderPass : public RenderPass
         {
         public:
-            GLRenderPass(const RenderPassInfo& renderpassCI);
+            GLRenderPass(const RenderPassDesc& renderpassCI);
             ~GLRenderPass();
 
-            bool Init(const RenderPassInfo& renderpassCI);
+            bool Init(const RenderPassDesc& renderpassCI);
             void BeginRenderpass(CommandBuffer* commandBuffer, const Maths::Vector4& clearColour, Framebuffer* frame, SubPassContents contents, uint32_t width, uint32_t height) const override;
             void EndRenderpass(CommandBuffer* commandBuffer) override;
             int GetAttachmentCount() const override { return m_ClearCount; };
@@ -20,7 +20,7 @@ namespace Lumos
             static void MakeDefault();
 
         protected:
-            static RenderPass* CreateFuncGL(const RenderPassInfo& renderpassCI);
+            static RenderPass* CreateFuncGL(const RenderPassDesc& renderpassCI);
 
         private:
             bool m_Clear = true;

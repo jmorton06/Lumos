@@ -1,7 +1,7 @@
 #include "Precompiled.h"
 #include "Environment.h"
 
-#include "API/Texture.h"
+#include "RHI/Texture.h"
 #include "Core/VFS.h"
 #include "Core/StringUtilities.h"
 

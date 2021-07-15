@@ -12,7 +12,7 @@ namespace Lumos
     namespace Graphics
     {
 
-        VKRenderpass::VKRenderpass(const RenderPassInfo& renderPassCI)
+        VKRenderpass::VKRenderpass(const RenderPassDesc& renderPassCI)
             : m_ClearCount(0)
             , m_DepthOnly(false)
         {
@@ -75,7 +75,7 @@ namespace Lumos
             return attachment;
         }
 
-        bool VKRenderpass::Init(const RenderPassInfo& renderpassCI)
+        bool VKRenderpass::Init(const RenderPassDesc& renderpassCI)
         {
             LUMOS_PROFILE_FUNCTION();
             VkSubpassDependency dependency = {};
@@ -211,7 +211,7 @@ namespace Lumos
             CreateFunc = CreateFuncVulkan;
         }
 
-        RenderPass* VKRenderpass::CreateFuncVulkan(const RenderPassInfo& renderPassCI)
+        RenderPass* VKRenderpass::CreateFuncVulkan(const RenderPassDesc& renderPassCI)
         {
             return new VKRenderpass(renderPassCI);
         }

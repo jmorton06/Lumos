@@ -32,9 +32,9 @@
 #include <Lumos/Graphics/Sprite.h>
 #include <Lumos/Graphics/AnimatedSprite.h>
 #include <Lumos/Graphics/Light.h>
-#include <Lumos/Graphics/API/Texture.h>
+#include <Lumos/Graphics/RHI/Texture.h>
 #include <Lumos/Graphics/Camera/Camera.h>
-#include <Lumos/Graphics/API/GraphicsContext.h>
+#include <Lumos/Graphics/RHI/GraphicsContext.h>
 #include <Lumos/Graphics/Renderers/GridRenderer.h>
 #include <Lumos/Graphics/Renderers/DebugRenderer.h>
 #include <Lumos/Graphics/Model.h>

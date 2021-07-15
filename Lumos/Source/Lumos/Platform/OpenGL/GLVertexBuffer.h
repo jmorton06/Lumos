@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Graphics/API/VertexBuffer.h"
+#include "Graphics/RHI/VertexBuffer.h"
 #include "GLDebug.h"
 
 namespace Lumos

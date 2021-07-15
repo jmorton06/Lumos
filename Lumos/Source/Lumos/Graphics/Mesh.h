@@ -1,9 +1,9 @@
 #pragma once
 
-#include "API/IndexBuffer.h"
-#include "API/VertexBuffer.h"
-#include "Graphics/API/CommandBuffer.h"
-#include "Graphics/API/DescriptorSet.h"
+#include "RHI/IndexBuffer.h"
+#include "RHI/VertexBuffer.h"
+#include "Graphics/RHI/CommandBuffer.h"
+#include "Graphics/RHI/DescriptorSet.h"
 #include "Maths/Maths.h"
 #include "Material.h"
 

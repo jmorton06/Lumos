@@ -5,7 +5,7 @@
 #include "Maths/Maths.h"
 #include "Terrain.h"
 
-#include "Graphics/API/GraphicsContext.h"
+#include "Graphics/RHI/GraphicsContext.h"
 
 namespace Lumos
 {

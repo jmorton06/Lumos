@@ -1,7 +1,7 @@
 #include "Precompiled.h"
 #include "ImGui/ImGuiHelpers.h"
-#include "Graphics/API/Texture.h"
-#include "Graphics/API/GraphicsContext.h"
+#include "Graphics/RHI/Texture.h"
+#include "Graphics/RHI/GraphicsContext.h"
 #include "Core/OS/OS.h"
 
 #include <imgui/imgui_internal.h>

@@ -1,7 +1,7 @@
 #pragma once
 #include "Maths/Maths.h"
-#include "Graphics/API/DescriptorSet.h"
-#include "Graphics/API/Texture.h"
+#include "Graphics/RHI/DescriptorSet.h"
+#include "Graphics/RHI/Texture.h"
 
 #define RENDERER2D_VERTEX_SIZE sizeof(VertexData)
 

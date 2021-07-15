@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Graphics/Mesh.h"
-#include "Graphics/API/Shader.h"
+#include "Graphics/RHI/Shader.h"
 
 namespace Lumos
 {
