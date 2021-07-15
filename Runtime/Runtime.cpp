@@ -43,5 +43,5 @@ public:
 
 Lumos::Application* Lumos::CreateApplication()
 {
-    return new Lumos::Runtime();
+    return new ::Runtime();
 }
