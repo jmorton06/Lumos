@@ -268,6 +268,8 @@ end
     {
         LUMOS_PROFILE_FUNCTION();
         ImGui::TextUnformatted("Hull Collision Shape");
+        ImGui::NextColumn();
+        ImGui::PushItemWidth(-1);
     }
 
     std::string CollisionShape2DTypeToString(Lumos::Shape shape)
@@ -529,13 +531,21 @@ end
                 HullCollisionShapeInspector(reinterpret_cast<Lumos::HullCollisionShape*>(collisionShape.get()), phys);
                 break;
             default:
+                ImGui::NextColumn();
+                ImGui::PushItemWidth(-1);
                 LUMOS_LOG_ERROR("Unsupported Collision shape");
                 break;
             }
         }
+        else
+        {
+            ImGui::NextColumn();
+            ImGui::PushItemWidth(-1);
+        }
 
         ImGui::PopItemWidth();
         ImGui::Columns(1);
+
         ImGui::Separator();
         ImGui::PopStyleVar();
     }
@@ -730,7 +740,7 @@ end
             soundNode->SetReferenceDistance(referenceDistance);
             updated = true;
         }
-        
+
         ImGui::PopItemWidth();
         ImGui::NextColumn();
 
@@ -1614,7 +1624,7 @@ end
             ImGuiHelpers::Property("Colour", colourProperty, 0.0f, 1.0f, false, Lumos::ImGuiHelpers::PropertyFlag::ColourProperty);
 
             ImGui::Columns(1);
-            
+
             ImGui::Text("Workflow %.1f", material->GetProperties()->workflow);
             ImGui::Separator();
             ImGui::PopStyleVar();

@@ -173,9 +173,9 @@ namespace Lumos
         Maths::Ray GetScreenRay(int x, int y, Camera* camera, int width, int height);
 
         void FileOpenCallback(const std::string& filepath);
-		void ProjectOpenCallback(const std::string& filepath);
+        void ProjectOpenCallback(const std::string& filepath);
         void NewProjectOpenCallback(const std::string& filepath);
-		
+
         FileBrowserPanel& GetFileBrowserWindow()
         {
             return m_FileBrowserWindow;
@@ -208,8 +208,6 @@ namespace Lumos
 
         void CacheScene();
         void LoadCachedScene();
-        
-        const std::string& GetProjectRoot() const { return m_ProjectRoot; }
 
     protected:
         NONCOPYABLE(Editor)

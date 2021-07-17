@@ -66,8 +66,8 @@ namespace Lumos
         void OnExitScene();
         void OnSceneViewSizeUpdated(uint32_t width, uint32_t height);
         void OpenProject(const std::string& filePath);
-		void OpenNewProject(const std::string& path);
-		
+        void OpenNewProject(const std::string& path);
+
         virtual void OnQuit();
         virtual void Init();
         virtual void OnEvent(Event& e);
@@ -190,7 +190,7 @@ namespace Lumos
                 windowSize.y = 600;
 
             //Version 1
-            
+
             std::string path;
 
             archive(cereal::make_nvp("RenderAPI", RenderAPI),
@@ -244,9 +244,8 @@ namespace Lumos
                 {
                     m_SceneManager->AddFileToLoadList(filePath);
                 }
-                
-                if(m_SceneManager->GetScenes().size() == 0 && sceneFilePaths
-                   .size() == sceneIndex)
+
+                if(m_SceneManager->GetScenes().size() == 0 && sceneFilePaths.size() == sceneIndex)
                 {
                     m_SceneManager->EnqueueScene(new Scene("Empty Scene"));
                     m_SceneManager->SwitchScene(0);
@@ -262,7 +261,9 @@ namespace Lumos
                 archive(cereal::make_nvp("Borderless", Borderless));
             }
         }
-        
+
+        const std::string& GetProjectRoot() const { return m_ProjectRoot; }
+
     protected:
         std::string m_ProjectRoot;
         std::string m_ProjectName;

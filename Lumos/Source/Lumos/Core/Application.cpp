@@ -67,14 +67,14 @@ namespace Lumos
         LUMOS_PROFILE_FUNCTION();
         m_ProjectName = StringUtilities::GetFileName(filePath);
         m_ProjectName = StringUtilities::RemoveFilePathExtension(m_ProjectName);
-        
+
 #ifndef LUMOS_PLATFORM_IOS
         auto projectRoot = StringUtilities::GetFileLocation(filePath);
         m_ProjectRoot = projectRoot;
-        
+
         m_ProjectRoot = StringUtilities::RemoveSpaces(m_ProjectRoot);
         m_ProjectName = StringUtilities::RemoveSpaces(m_ProjectName);
-        
+
         VFS::Get()->Mount("Meshes", projectRoot + std::string("Assets/Meshes"));
         VFS::Get()->Mount("Textures", projectRoot + std::string("Assets/Textures"));
         VFS::Get()->Mount("Sounds", projectRoot + std::string("Assets/Sounds"));
@@ -82,32 +82,32 @@ namespace Lumos
         VFS::Get()->Mount("Scenes", projectRoot + std::string("Assets/Scenes"));
         VFS::Get()->Mount("Assets", projectRoot + std::string("Assets"));
 #endif
-		
-		m_SceneManager = CreateUniqueRef<SceneManager>();
-		
-		Deserialise();
-        
+
+        m_SceneManager = CreateUniqueRef<SceneManager>();
+
+        Deserialise();
+
         m_SceneManager->LoadCurrentList();
         m_SceneManager->ApplySceneSwitch();
     }
-	
-	void Application::OpenNewProject(const std::string& path)
-	{
+
+    void Application::OpenNewProject(const std::string& path)
+    {
         LUMOS_PROFILE_FUNCTION();
         m_ProjectRoot = path;
         m_ProjectName = "NewProject";
-        
+
         m_ProjectRoot = StringUtilities::RemoveSpaces(m_ProjectRoot);
 
-		m_SceneManager = CreateUniqueRef<SceneManager>();
-        
+        m_SceneManager = CreateUniqueRef<SceneManager>();
+
         VFS::Get()->Mount("Meshes", m_ProjectRoot + std::string("Assets/Meshes"));
         VFS::Get()->Mount("Textures", m_ProjectRoot + std::string("Assets/Textures"));
         VFS::Get()->Mount("Sounds", m_ProjectRoot + std::string("Assets/Sounds"));
         VFS::Get()->Mount("Scripts", m_ProjectRoot + std::string("Assets/Scripts"));
         VFS::Get()->Mount("Scenes", m_ProjectRoot + std::string("Assets/Scenes"));
         VFS::Get()->Mount("Assets", m_ProjectRoot + std::string("Assets"));
-        
+
         //Set Default values
         Title = "App";
         Fullscreen = false;
@@ -115,9 +115,9 @@ namespace Lumos
         m_SceneManager->EnqueueScene(new Scene("Empty Scene"));
         m_SceneManager->SwitchScene(0);
         m_SceneManager->ApplySceneSwitch();
-        
+
         Serialise();
-	}
+    }
 
     Scene* Application::GetCurrentScene() const
     {
@@ -131,7 +131,7 @@ namespace Lumos
 
         m_ProjectRoot = StringUtilities::RemoveSpaces(m_ProjectRoot);
         m_ProjectName = StringUtilities::RemoveSpaces(m_ProjectName);
-        
+
 #ifndef LUMOS_PLATFORM_IOS
         const std::string root = ROOT_DIR;
         VFS::Get()->Mount("Meshes", m_ProjectRoot + std::string("Assets/Meshes"));
@@ -167,7 +167,7 @@ namespace Lumos
 
         ImGui::CreateContext();
         ImGui::StyleColorsDark();
-        
+
         // Initialise the Window
         if(!m_Window->HasInitialised())
             OnQuit();
@@ -515,7 +515,7 @@ namespace Lumos
                 output(*this);
             }
             auto fullPath = m_ProjectRoot + m_ProjectName + std::string(".lmproj");
-            LUMOS_LOG_INFO("Serialising Application {0}" , fullPath);
+            LUMOS_LOG_INFO("Serialising Application {0}", fullPath);
             FileSystem::WriteTextFile(fullPath, storage.str());
         }
     }

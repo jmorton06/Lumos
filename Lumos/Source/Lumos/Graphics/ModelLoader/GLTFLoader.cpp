@@ -162,7 +162,7 @@ namespace Lumos::Graphics
                 properties.workflow = PBR_WORKFLOW_METALLIC_ROUGHNESS;
             else
                 properties.workflow = PBR_WORKFLOW_SEPARATE_TEXTURES;
-            
+
             // metallic-roughness workflow:
             auto baseColourFactor = mat.values.find("baseColorFactor");
             auto roughnessFactor = mat.values.find("roughnessFactor");
@@ -285,7 +285,7 @@ namespace Lumos::Graphics
                     Maths::Vector3Simple* normals = reinterpret_cast<Maths::Vector3Simple*>(data.data());
                     for(auto p = 0; p < normalCount; ++p)
                     {
-                        vertices[p].Normal = (parentTransform.GetWorldMatrix().ToMatrix3().Inverse().Transpose()  * Maths::ToVector(normals[p])).Normalised();
+                        vertices[p].Normal = (parentTransform.GetWorldMatrix().ToMatrix3().Inverse().Transpose() * Maths::ToVector(normals[p])).Normalised();
                     }
                 }
 

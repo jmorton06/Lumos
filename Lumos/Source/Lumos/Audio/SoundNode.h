@@ -46,7 +46,7 @@ namespace Lumos
 
         float GetRollOffFactor() const { return m_RollOffFactor; }
         void SetRollOffFactor(float value) { m_RollOffFactor = value; }
-        
+
         bool GetIsGlobal() const { return m_IsGlobal; }
         void SetIsGlobal(bool value) { m_IsGlobal = value; }
 

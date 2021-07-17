@@ -18,7 +18,6 @@
 #include "Core/JobSystem.h"
 #endif
 
-
 const uint32_t MAX_PATH_LENGTH = 260;
 
 namespace Lumos::Graphics
@@ -166,14 +165,14 @@ namespace Lumos::Graphics
                 stringFilepath = m_FBXModelDirectory + "/" + stringFilepath;
                 fileFound = FileSystem::FileExists(stringFilepath);
             }
-            
+
             if(!fileFound)
             {
                 stringFilepath = StringUtilities::GetFileName(stringFilepath);
                 stringFilepath = m_FBXModelDirectory + "/textures/" + stringFilepath;
                 fileFound = FileSystem::FileExists(stringFilepath);
             }
-            
+
             if(fileFound)
             {
                 texture2D = Graphics::Texture2D::CreateFromFile(stringFilepath, stringFilepath);
@@ -233,7 +232,7 @@ namespace Lumos::Graphics
 
         Maths::Vector3 pos = (Maths::Vector3(static_cast<float>(p.x), static_cast<float>(p.y), static_cast<float>(p.z)));
         transform.SetLocalPosition(FixOrientation(pos));
-        
+
         ofbx::Vec3 r = mesh->getLocalRotation();
         Maths::Vector3 rot = FixOrientation(Maths::Vector3(static_cast<float>(r.x), static_cast<float>(r.y), static_cast<float>(r.z)));
         transform.SetLocalOrientation(Maths::Quaternion::EulerAnglesToQuaternion(rot.x, rot.y, rot.z));
@@ -298,99 +297,98 @@ namespace Lumos::Graphics
         }
 
         int meshCount = scene->getMeshCount();
-        
+
 #ifdef THREAD_MESH_LOADING
         System::JobSystem::Context ctx;
         System::JobSystem::Dispatch(ctx, static_cast<uint32_t>(meshCount), 1, [&](JobDispatchArgs args)
 #else
         for(int i = 0; i < meshCount; ++i)
 #endif
-        {
+            {
 #ifdef THREAD_MESH_LOADING
-            int i = args.jobIndex;
+                int i = args.jobIndex;
 #endif
-        
 
-            const ofbx::Mesh* fbx_mesh = (const ofbx::Mesh*)scene->getMesh(i);
-            auto geom = fbx_mesh->getGeometry();
-            auto numIndices = geom->getIndexCount();
-            int vertex_count = geom->getVertexCount();
-            const ofbx::Vec3* vertices = geom->getVertices();
-            const ofbx::Vec3* normals = geom->getNormals();
-            const ofbx::Vec3* tangents = geom->getTangents();
-            const ofbx::Vec4* colours = geom->getColors();
-            const ofbx::Vec2* uvs = geom->getUVs();
-            Graphics::Vertex* tempvertices = new Graphics::Vertex[vertex_count];
-            uint32_t* indicesArray = new uint32_t[numIndices];
+                const ofbx::Mesh* fbx_mesh = (const ofbx::Mesh*)scene->getMesh(i);
+                auto geom = fbx_mesh->getGeometry();
+                auto numIndices = geom->getIndexCount();
+                int vertex_count = geom->getVertexCount();
+                const ofbx::Vec3* vertices = geom->getVertices();
+                const ofbx::Vec3* normals = geom->getNormals();
+                const ofbx::Vec3* tangents = geom->getTangents();
+                const ofbx::Vec4* colours = geom->getColors();
+                const ofbx::Vec2* uvs = geom->getUVs();
+                Graphics::Vertex* tempvertices = new Graphics::Vertex[vertex_count];
+                uint32_t* indicesArray = new uint32_t[numIndices];
 
-            SharedRef<Maths::BoundingBox> boundingBox = CreateSharedRef<Maths::BoundingBox>();
+                SharedRef<Maths::BoundingBox> boundingBox = CreateSharedRef<Maths::BoundingBox>();
 
-            auto indices = geom->getFaceIndices();
+                auto indices = geom->getFaceIndices();
 
-            ofbx::Vec3* generatedTangents = nullptr;
-            if(!tangents && normals && uvs)
-            {
-                generatedTangents = new ofbx::Vec3[vertex_count];
-                computeTangents(generatedTangents, vertex_count, vertices, normals, uvs);
-                tangents = generatedTangents;
+                ofbx::Vec3* generatedTangents = nullptr;
+                if(!tangents && normals && uvs)
+                {
+                    generatedTangents = new ofbx::Vec3[vertex_count];
+                    computeTangents(generatedTangents, vertex_count, vertices, normals, uvs);
+                    tangents = generatedTangents;
+                }
+
+                auto transform = GetTransform(fbx_mesh);
+
+                for(int i = 0; i < vertex_count; ++i)
+                {
+                    ofbx::Vec3 cp = vertices[i];
+
+                    auto& vertex = tempvertices[i];
+                    vertex.Position = transform.GetWorldMatrix() * Maths::Vector3(float(cp.x), float(cp.y), float(cp.z));
+                    FixOrientation(vertex.Position);
+                    boundingBox->Merge(vertex.Position);
+
+                    if(normals)
+                        vertex.Normal = transform.GetWorldMatrix().ToMatrix3().Inverse().Transpose() * (Maths::Vector3(float(normals[i].x), float(normals[i].y), float(normals[i].z))).Normalised();
+                    if(uvs)
+                        vertex.TexCoords = Maths::Vector2(float(uvs[i].x), 1.0f - float(uvs[i].y));
+                    if(colours)
+                        vertex.Colours = Maths::Vector4(float(colours[i].x), float(colours[i].y), float(colours[i].z), float(colours[i].w));
+                    if(tangents)
+                        vertex.Tangent = transform.GetWorldMatrix() * Maths::Vector3(float(tangents[i].x), float(tangents[i].y), float(tangents[i].z));
+
+                    FixOrientation(vertex.Normal);
+                    FixOrientation(vertex.Tangent);
+                }
+
+                for(int i = 0; i < numIndices; i++)
+                {
+                    int index = (i % 3 == 2) ? (-indices[i] - 1) : indices[i];
+
+                    indicesArray[i] = index;
+                }
+
+                SharedRef<Graphics::VertexBuffer> vb = SharedRef<Graphics::VertexBuffer>(Graphics::VertexBuffer::Create());
+                vb->SetData(sizeof(Graphics::Vertex) * vertex_count, tempvertices);
+
+                SharedRef<Graphics::IndexBuffer> ib;
+                ib.reset(Graphics::IndexBuffer::Create(indicesArray, numIndices));
+
+                const ofbx::Material* material = fbx_mesh->getMaterialCount() > 0 ? fbx_mesh->getMaterial(0) : nullptr;
+                SharedRef<Material> pbrMaterial;
+                if(material)
+                {
+                    pbrMaterial = LoadMaterial(material, false);
+                }
+
+                auto mesh = CreateSharedRef<Graphics::Mesh>(vb, ib, boundingBox);
+                mesh->SetName(fbx_mesh->name);
+                if(material)
+                    mesh->SetMaterial(pbrMaterial);
+
+                m_Meshes.push_back(mesh);
+
+                if(generatedTangents)
+                    delete[] generatedTangents;
+                delete[] tempvertices;
+                delete[] indicesArray;
             }
-
-            auto transform = GetTransform(fbx_mesh);
-
-            for(int i = 0; i < vertex_count; ++i)
-            {
-                ofbx::Vec3 cp = vertices[i];
-
-                auto& vertex = tempvertices[i];
-                vertex.Position = transform.GetWorldMatrix() * Maths::Vector3(float(cp.x), float(cp.y), float(cp.z));
-                FixOrientation(vertex.Position);
-                boundingBox->Merge(vertex.Position);
-
-                if(normals)
-                    vertex.Normal = transform.GetWorldMatrix().ToMatrix3().Inverse().Transpose() * (Maths::Vector3(float(normals[i].x), float(normals[i].y), float(normals[i].z))).Normalised();
-                if(uvs)
-                    vertex.TexCoords = Maths::Vector2(float(uvs[i].x), 1.0f - float(uvs[i].y));
-                if(colours)
-                    vertex.Colours = Maths::Vector4(float(colours[i].x), float(colours[i].y), float(colours[i].z), float(colours[i].w));
-                if(tangents)
-                    vertex.Tangent = transform.GetWorldMatrix() * Maths::Vector3(float(tangents[i].x), float(tangents[i].y), float(tangents[i].z));
-
-                FixOrientation(vertex.Normal);
-                FixOrientation(vertex.Tangent);
-            }
-
-            for(int i = 0; i < numIndices; i++)
-            {
-                int index = (i % 3 == 2) ? (-indices[i] - 1) : indices[i];
-
-                indicesArray[i] = index;
-            }
-
-            SharedRef<Graphics::VertexBuffer> vb = SharedRef<Graphics::VertexBuffer>(Graphics::VertexBuffer::Create());
-            vb->SetData(sizeof(Graphics::Vertex) * vertex_count, tempvertices);
-
-            SharedRef<Graphics::IndexBuffer> ib;
-            ib.reset(Graphics::IndexBuffer::Create(indicesArray, numIndices));
-
-            const ofbx::Material* material = fbx_mesh->getMaterialCount() > 0 ? fbx_mesh->getMaterial(0) : nullptr;
-            SharedRef<Material> pbrMaterial;
-            if(material)
-            {
-                pbrMaterial = LoadMaterial(material, false);
-            }
-
-            auto mesh = CreateSharedRef<Graphics::Mesh>(vb, ib, boundingBox);
-            mesh->SetName(fbx_mesh->name);
-            if(material)
-                mesh->SetMaterial(pbrMaterial);
-
-            m_Meshes.push_back(mesh);
-
-            if(generatedTangents)
-                delete[] generatedTangents;
-            delete[] tempvertices;
-            delete[] indicesArray;
-        }
 #ifdef THREAD_MESH_LOADING
         );
         System::JobSystem::Wait(ctx);
