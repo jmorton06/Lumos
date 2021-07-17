@@ -121,7 +121,7 @@ namespace Lumos
             // ImGui::GetIO().IniFilename = "editor.ini";
         }
 #endif
-        
+
         Application::Init();
         Application::SetEditorState(EditorState::Preview);
         Application::Get().GetWindow()->SetEventCallback(BIND_EVENT_FN(Editor::OnEvent));
@@ -170,7 +170,7 @@ namespace Lumos
 
         m_SelectedEntity = entt::null;
         m_PreviewTexture = nullptr;
-        
+
         Application::Get().GetSystem<LumosPhysicsEngine>()->SetDebugDrawFlags(m_Physics3DDebugFlags);
         Application::Get().GetSystem<B2PhysicsEngine>()->SetDebugDrawFlags(m_Physics2DDebugFlags);
 
@@ -305,29 +305,29 @@ namespace Lumos
         {
             if(ImGui::BeginMenu("File"))
             {
-				if(ImGui::MenuItem("New Project"))
+                if(ImGui::MenuItem("New Project"))
                 {
                     m_FileBrowserWindow.SetOpenDirectory(true);
                     m_FileBrowserWindow.SetCallback(BIND_FILEBROWSER_FN(Editor::NewProjectOpenCallback));
                     m_FileBrowserWindow.Open();
                 }
-				
-				if(ImGui::MenuItem("Open Project"))
+
+                if(ImGui::MenuItem("Open Project"))
                 {
                     m_FileBrowserWindow.SetCurrentPath(m_ProjectRoot);
                     m_FileBrowserWindow.SetCallback(BIND_FILEBROWSER_FN(Editor::ProjectOpenCallback));
                     m_FileBrowserWindow.Open();
                 }
-				
-				ImGui::Separator();
-				
+
+                ImGui::Separator();
+
                 if(ImGui::MenuItem("Open File"))
                 {
                     m_FileBrowserWindow.SetCurrentPath(m_ProjectRoot);
                     m_FileBrowserWindow.SetCallback(BIND_FILEBROWSER_FN(Editor::FileOpenCallback));
                     m_FileBrowserWindow.Open();
                 }
-                
+
                 ImGui::Separator();
 
                 if(ImGui::MenuItem("New Scene", "CTRL+N"))
@@ -344,7 +344,7 @@ namespace Lumos
                 {
                     openReloadScenePopup = true;
                 }
-                
+
                 ImGui::Separator();
 
                 if(ImGui::BeginMenu("Style"))
@@ -413,7 +413,7 @@ namespace Lumos
                 }
 
                 ImGui::Separator();
-                
+
                 if(ImGui::MenuItem("Exit"))
                 {
                     Application::Get().SetAppState(AppState::Closing);
@@ -603,7 +603,7 @@ namespace Lumos
                 {
                     Application::Get().GetSystem<LumosPhysicsEngine>()->SetPaused(selected);
                     Application::Get().GetSystem<B2PhysicsEngine>()->SetPaused(selected);
-                    
+
                     Application::Get().GetSystem<AudioManager>()->UpdateListener(Application::Get().GetCurrentScene());
                     Application::Get().GetSystem<AudioManager>()->SetPaused(selected);
                     Application::Get().SetEditorState(selected ? EditorState::Preview : EditorState::Play);
@@ -1028,7 +1028,7 @@ namespace Lumos
             ImGui::DockBuilderDockWindow("###inspector", DockRight);
             ImGui::DockBuilderDockWindow("###console", DockingBottomLeftChild);
             ImGui::DockBuilderDockWindow("###profiler", DockingBottomLeftChild);
-            ImGui::DockBuilderDockWindow("Resources", DockingBottomRightChild);
+            ImGui::DockBuilderDockWindow("###resources", DockingBottomRightChild);
             ImGui::DockBuilderDockWindow("Dear ImGui Demo", DockLeft);
             ImGui::DockBuilderDockWindow("GraphicsInfo", DockLeft);
             ImGui::DockBuilderDockWindow("ApplicationInfo", DockLeft);
@@ -1227,7 +1227,7 @@ namespace Lumos
     void Editor::OnUpdate(const TimeStep& ts)
     {
         LUMOS_PROFILE_FUNCTION();
-        
+
         if(Application::Get().GetEditorState() == EditorState::Preview)
         {
             auto& registry = Application::Get().GetSceneManager()->GetCurrentScene()->GetRegistry();
@@ -1337,7 +1337,7 @@ namespace Lumos
 
             m_EditorCameraTransform.SetWorldMatrix(Maths::Matrix4());
         }
-        
+
         Application::OnUpdate(ts);
     }
 
@@ -1761,11 +1761,11 @@ namespace Lumos
             sprite.SetTexture(texture);
         }
     }
-	
-	void Editor::ProjectOpenCallback(const std::string& filePath)
+
+    void Editor::ProjectOpenCallback(const std::string& filePath)
     {
-		Application::Get().OpenProject(filePath);
-	}
+        Application::Get().OpenProject(filePath);
+    }
 
     void Editor::NewProjectOpenCallback(const std::string& filePath)
     {
@@ -1806,7 +1806,7 @@ namespace Lumos
         m_IniFile.Add("PhysicsDebugDrawFlags", 0);
         m_IniFile.Add("PhysicsDebugDrawFlags2D", 0);
         m_IniFile.Add("Theme", (int)m_Theme);
-        m_IniFile.Add("ProjectRoot", ROOT_DIR"/ExampleProject/");
+        m_IniFile.Add("ProjectRoot", ROOT_DIR "/ExampleProject/");
         m_IniFile.Add("ProjectName", "Example");
         m_IniFile.Rewrite();
     }
@@ -1823,8 +1823,8 @@ namespace Lumos
         m_SnapQuizmo = m_IniFile.GetOrDefault("SnapQuizmo", m_SnapQuizmo);
         m_DebugDrawFlags = m_IniFile.GetOrDefault("DebugDrawFlags", m_DebugDrawFlags);
         m_Theme = ImGuiHelpers::Theme(m_IniFile.GetOrDefault("Theme", (int)m_Theme));
-        
-        m_ProjectRoot = m_IniFile.GetOrDefault("ProjectRoot", std::string(ROOT_DIR"/ExampleProject/"));
+
+        m_ProjectRoot = m_IniFile.GetOrDefault("ProjectRoot", std::string(ROOT_DIR "/ExampleProject/"));
         m_ProjectName = m_IniFile.GetOrDefault("ProjectName", std::string("Example"));
         m_Physics2DDebugFlags = m_IniFile.GetOrDefault("PhysicsDebugDrawFlags2D", 0);
         m_Physics3DDebugFlags = m_IniFile.GetOrDefault("PhysicsDebugDrawFlags", 0);

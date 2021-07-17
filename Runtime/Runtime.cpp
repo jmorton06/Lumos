@@ -6,6 +6,7 @@ using namespace Lumos;
 class Runtime : public Application
 {
     friend class Application;
+
 public:
     explicit Runtime()
         : Application()
@@ -25,7 +26,7 @@ public:
     {
         m_ProjectRoot = ROOT_DIR "/ExampleProject/";
         m_ProjectName = "Example";
-        
+
         Application::Init();
         Application::SetEditorState(EditorState::Play);
         Application::Get().GetWindow()->SetWindowTitle("Runtime");

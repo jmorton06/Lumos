@@ -30,12 +30,11 @@ namespace Lumos
 
         std::string RemoveName(const std::string& FilePath);
         std::string RemoveFilePathExtension(const std::string& FileName);
-    
+
         std::string& BackSlashesToSlashes(std::string& string);
         std::string& SlashesToBackSlashes(std::string& string);
         std::string& RemoveSpaces(std::string& string);
         std::string Demangle(const std::string& string);
-
 
         bool IsHiddenFile(const std::string& path);
 
