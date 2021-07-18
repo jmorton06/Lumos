@@ -70,7 +70,7 @@ namespace Lumos
 
     std::string ResourcePanel::ProcessDirectory(const std::filesystem::path& directoryPath, const SharedRef<DirectoryInformation>& parent)
     {
-        const auto& directory = m_Directories[directoryPath]; 
+        const auto& directory = m_Directories[directoryPath.string()]; 
         if(directory)
             return directory->FilePath.string();
 
