@@ -184,7 +184,7 @@ namespace Lumos::Graphics
 
     SharedRef<Material> LoadMaterial(const ofbx::Material* material, bool animated)
     {
-        auto shader = animated ? Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/DeferredColourAnim.shader") : Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/DeferredColour.shader");
+        auto shader = animated ? Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/ForwardPBR.shader") : Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/ForwardPBR.shader");
 
         SharedRef<Material> pbrMaterial = CreateSharedRef<Material>(shader);
 

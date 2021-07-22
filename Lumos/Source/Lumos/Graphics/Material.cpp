@@ -174,7 +174,7 @@ namespace Lumos::Graphics
         {
             //If no shader then set it to the default pbr shader
             //TODO default to forward
-            m_Shader = Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/DeferredColour.shader");
+            m_Shader = Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/ForwardPBR.shader");
         }
 
         Graphics::DescriptorDesc info;

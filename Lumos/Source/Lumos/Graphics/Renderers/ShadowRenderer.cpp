@@ -54,7 +54,7 @@ namespace Lumos
 
             m_ScreenRenderer = false;
 
-            m_LightSize = 0.1f;
+            m_LightSize = 1.5f;
             m_MaxShadowDistance = 400.0f;
             m_ShadowFade = 40.0f;
             m_CascadeTransitionFade = 1.5f;
@@ -560,7 +560,7 @@ namespace Lumos
             }
 
             ImGui::DragFloat("Initial Bias", &m_InitialBias, 0.00005f, 0.0f, 1.0f, "%.6f");
-            ImGui::DragFloat("Light Size", &m_LightSize, 0.00005f, 0.0f, 1.0f);
+            ImGui::DragFloat("Light Size", &m_LightSize, 0.00005f, 0.0f, 10.0f);
             ImGui::DragFloat("Max Shadow Distance", &m_MaxShadowDistance, 0.05f, 0.0f, 10000.0f);
             ImGui::DragFloat("Shadow Fade", &m_ShadowFade, 0.0005f, 0.0f, 500.0f);
             ImGui::DragFloat("Cascade Transition Fade", &m_CascadeTransitionFade, 0.0005f, 0.0f, 5.0f);

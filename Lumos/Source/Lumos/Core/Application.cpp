@@ -216,7 +216,7 @@ namespace Lumos
 
         //Need to disable shadows for A12 and earlier - doesn't support rendering to depth array
         m_RenderGraph->AddRenderer(new Graphics::ShadowRenderer());
-        m_RenderGraph->AddRenderer(new Graphics::DeferredRenderer(screenWidth, screenHeight));
+        m_RenderGraph->AddRenderer(new Graphics::ForwardRenderer(screenWidth, screenHeight));
         m_RenderGraph->AddRenderer(new Graphics::SkyboxRenderer(screenWidth, screenHeight));
         m_RenderGraph->AddRenderer(new Graphics::Renderer2D(screenWidth, screenHeight, false, false, true));
         m_RenderGraph->EnableDebugRenderer(true);
@@ -549,8 +549,26 @@ namespace Lumos
             std::string data = FileSystem::ReadTextFile(filePath);
             std::istringstream istr;
             istr.str(data);
-            cereal::JSONInputArchive input(istr);
-            input(*this);
+            try {
+                cereal::JSONInputArchive input(istr);
+                input(*this);
+            } catch (...) {
+                //Set Default values
+                RenderAPI = 1;
+                Width = 1200;
+                Height = 800;
+                Borderless = false;
+                VSync = false;
+                Title = "App";
+                ShowConsole = false;
+                Fullscreen = false;
+
+                m_SceneManager->EnqueueScene(new Scene("Empty Scene"));
+                m_SceneManager->SwitchScene(0);
+                
+                LUMOS_LOG_ERROR("Failed to load project");
+            }
+       
         }
     }
 }

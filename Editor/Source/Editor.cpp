@@ -1707,7 +1707,7 @@ namespace Lumos
                                   .Inverse()
                                   .ToMatrix4();
         m_PreviewRenderer->Begin();
-        m_PreviewRenderer->BeginScene(proj, view);
+        //m_PreviewRenderer->BeginScene(proj, view);
         m_PreviewRenderer->SubmitMesh(m_PreviewSphere.get(), nullptr, Maths::Matrix4(), Maths::Matrix4());
         m_PreviewRenderer->SetSystemUniforms(m_PreviewRenderer->GetShader().get());
         m_PreviewRenderer->Present();

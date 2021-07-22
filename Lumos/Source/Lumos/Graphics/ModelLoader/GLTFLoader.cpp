@@ -145,7 +145,7 @@ namespace Lumos::Graphics
         for(tinygltf::Material& mat : gltfModel.materials)
         {
             //TODO : if(isAnimated) Load deferredColourAnimated;
-            auto shader = Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/DeferredColour.shader");
+            auto shader = Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/ForwardPBR.shader");
 
             SharedRef<Material> pbrMaterial = CreateSharedRef<Material>(shader);
             PBRMataterialTextures textures;

@@ -111,8 +111,11 @@ namespace Lumos
         ImGui::TextUnformatted(ICON_MDI_MAGNIFY);
         ImGui::SameLine();
 
-        float levelButtonWidths = 6 * (ImGui::GetFontSize() + ImGui::GetStyle().ItemSpacing.x);
-        Filter.Draw("###ConsoleFilter", ImGui::GetWindowWidth() - levelButtonWidths * 1.8f);
+        float spacing = ImGui::GetStyle().ItemSpacing.x;
+        ImGui::GetStyle().ItemSpacing.x = 2;
+        float levelButtonWidth = (ImGui::CalcTextSize(Message::GetLevelIcon(Message::Level(1))) + ImGui::GetStyle().FramePadding * 2.0f).x;
+        float levelButtonWidths = (levelButtonWidth + ImGui::GetStyle().ItemSpacing.x)* 6;
+        Filter.Draw("###ConsoleFilter", ImGui::GetContentRegionAvail().x - (levelButtonWidths));
 
         ImGui::SameLine(); //ImGui::GetWindowWidth() - levelButtonWidths);
 
@@ -138,6 +141,8 @@ namespace Lumos
             }
             ImGui::PopStyleColor();
         }
+        
+        ImGui::GetStyle().ItemSpacing.x = spacing;
     }
 
     void ConsolePanel::ImGuiRenderMessages()

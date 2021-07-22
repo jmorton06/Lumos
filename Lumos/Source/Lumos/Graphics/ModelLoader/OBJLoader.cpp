@@ -128,7 +128,7 @@ namespace Lumos
             Graphics::Mesh::GenerateTangents(vertices, vertexCount, indices, numIndices);
 
             //TODO : if(isAnimated) Load deferredColourAnimated;
-            auto shader = Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/DeferredColour.shader");
+            auto shader = Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/ForwardPBR.shader");
 
             SharedRef<Material> pbrMaterial = CreateSharedRef<Material>(shader);
 
