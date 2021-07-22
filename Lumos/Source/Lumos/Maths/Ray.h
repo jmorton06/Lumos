@@ -1,6 +1,6 @@
 #pragma once
 #include "Maths/Vector3.h"
-#include "Maths/Matrix3x4.h"
+#include "Maths/Matrix4.h"
 
 namespace Lumos::Maths
 {
@@ -78,8 +78,8 @@ namespace Lumos::Maths
         /// Return whether ray is inside indexed geometry.
         bool InsideGeometry(const void* vertexData, unsigned vertexSize, const void* indexData, unsigned indexSize, unsigned indexStart,
             unsigned indexCount) const;
-        /// Return transformed by a 3x4 matrix. This may result in a non-Normalised direction.
-        Ray Transformed(const Matrix3x4& transform) const;
+        /// Return transformed by a 4x4 matrix. This may result in a non-Normalised direction.
+        Ray Transformed(const Matrix4& transform) const;
 
         /// Ray origin.
         Vector3 origin_;

@@ -457,8 +457,9 @@ float CalculateShadow(vec3 wsPos, int cascadeIndex, float bias, vec3 lightDirect
 	}
 	else
 	{
-		float bias = 0.0005;
-		return 1.0 - PoissonDotShadow(shadowCoord, cascadeIndex, bias, wsPos, 1.0) * ShadowFade;
+		//float bias = 0.0005;
+		//return 1.0 - PoissonDotShadow(shadowCoord, cascadeIndex, bias, wsPos, 1.0) * ShadowFade;
+		return PCSS_DirectionalLight(uShadowMap, shadowCoord * ( 1.0 / shadowCoord.w), ubo.lightSize, lightDirection, normal, wsPos, cascadeIndex );
 	}
 }
 

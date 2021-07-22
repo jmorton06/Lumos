@@ -58,9 +58,9 @@ namespace Lumos
             else
             {
                 if(m_Orthographic)
-                    m_Frustum.DefineOrtho(m_Scale, m_AspectRatio, m_Zoom, GetNear(), GetFar(), Maths::Matrix3x4(viewMatrix));
+                    m_Frustum.DefineOrtho(m_Scale, m_AspectRatio, m_Zoom, GetNear(), GetFar(), Maths::Matrix4(viewMatrix));
                 else
-                    m_Frustum.Define(m_Fov, m_AspectRatio, m_Zoom, GetNear(), GetFar(), Maths::Matrix3x4(viewMatrix));
+                    m_Frustum.Define(m_Fov, m_AspectRatio, m_Zoom, GetNear(), GetFar(), Maths::Matrix4(viewMatrix));
             }
 
             m_FrustumDirty = false;

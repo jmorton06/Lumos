@@ -1,5 +1,5 @@
 #pragma once
-#include "Maths/Matrix3x4.h"
+#include "Maths/Matrix4.h"
 
 namespace Lumos::Maths
 {
@@ -71,8 +71,6 @@ namespace Lumos::Maths
 
         /// Transform with a 3x3 matrix.
         void Transform(const Matrix3& transform);
-        /// Transform with a 3x4 matrix.
-        void Transform(const Matrix3x4& transform);
         /// Transform with a 4x4 matrix.
         void Transform(const Matrix4& transform);
 
@@ -91,11 +89,9 @@ namespace Lumos::Maths
         }
 
         /// Return a reflection matrix.
-        Matrix3x4 ReflectionMatrix() const;
+        Matrix4 ReflectionMatrix() const;
         /// Return transformed by a 3x3 matrix.
         Plane Transformed(const Matrix3& transform) const;
-        /// Return transformed by a 3x4 matrix.
-        Plane Transformed(const Matrix3x4& transform) const;
         /// Return transformed by a 4x4 matrix.
         Plane Transformed(const Matrix4& transform) const;
 

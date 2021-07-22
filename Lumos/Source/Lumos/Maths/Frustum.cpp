@@ -48,7 +48,7 @@ namespace Lumos::Maths
         return *this;
     }
 
-    void Frustum::Define(float fov, float aspectRatio, float zoom, float nearZ, float farZ, const Matrix3x4& transform)
+    void Frustum::Define(float fov, float aspectRatio, float zoom, float nearZ, float farZ, const Matrix4& transform)
     {
         LUMOS_PROFILE_FUNCTION();
         nearZ = Max(nearZ, 0.0f);
@@ -66,7 +66,7 @@ namespace Lumos::Maths
         Define(lNear, lFar, transform);
     }
 
-    void Frustum::Define(const Vector3& lNear, const Vector3& lFar, const Matrix3x4& transform)
+    void Frustum::Define(const Vector3& lNear, const Vector3& lFar, const Matrix4& transform)
     {
         LUMOS_PROFILE_FUNCTION();
         vertices_[0] = transform * lNear;
@@ -81,7 +81,7 @@ namespace Lumos::Maths
         UpdatePlanes();
     }
 
-    void Frustum::Define(const BoundingBox& box, const Matrix3x4& transform)
+    void Frustum::Define(const BoundingBox& box, const Matrix4& transform)
     {
         LUMOS_PROFILE_FUNCTION();
         vertices_[0] = transform * Vector3(box.max_.x, box.max_.y, box.min_.z);
@@ -115,7 +115,7 @@ namespace Lumos::Maths
         UpdatePlanes();
     }
 
-    void Frustum::DefineOrtho(float orthoSize, float aspectRatio, float zoom, float nearZ, float farZ, const Matrix3x4& transform)
+    void Frustum::DefineOrtho(float orthoSize, float aspectRatio, float zoom, float nearZ, float farZ, const Matrix4& transform)
     {
         LUMOS_PROFILE_FUNCTION();
         nearZ = Max(nearZ, 0.0f);
@@ -163,7 +163,7 @@ namespace Lumos::Maths
         UpdatePlanes();
     }
 
-    void Frustum::Transform(const Matrix3x4& transform)
+    void Frustum::Transform(const Matrix4& transform)
     {
         LUMOS_PROFILE_FUNCTION();
         for(auto& vertice : vertices_)
@@ -183,7 +183,7 @@ namespace Lumos::Maths
         return transformed;
     }
 
-    Frustum Frustum::Transformed(const Matrix3x4& transform) const
+    Frustum Frustum::Transformed(const Matrix4& transform) const
     {
         LUMOS_PROFILE_FUNCTION();
         Frustum transformed;

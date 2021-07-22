@@ -8,6 +8,9 @@
 #include <Utilities.h>
 #else
 #define STB_IMAGE_IMPLEMENTATION
+#ifdef LUMOS_PLATFORM_LINUX
+#define STBI_NO_SIMD
+#endif
 #include "stb_image.h"
 #endif
 
