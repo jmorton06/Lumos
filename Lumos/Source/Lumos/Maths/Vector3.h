@@ -186,7 +186,7 @@ namespace Lumos::Maths
         {
         }
 
-        /// Construct from a two-dimensional vector (for Urho2D).
+        /// Construct from a two-dimensional vector
         explicit Vector3(const Vector2& vector) noexcept
             : x(vector.x)
             , y(vector.y)
@@ -210,7 +210,7 @@ namespace Lumos::Maths
         {
         }
 
-        /// Construct from two-dimensional coordinates (for Urho2D).
+        /// Construct from two-dimensional coordinates
         Vector3(float x, float y) noexcept
             : x(x)
             , y(y)

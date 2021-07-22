@@ -1701,11 +1701,10 @@ namespace Lumos
         }
 
         Maths::Matrix4 proj = Maths::Matrix4::Perspective(0.1f, 10.0f, 200.0f / 200.0f, 60.0f);
-        Maths::Matrix4 view = Maths::Matrix3x4(Maths::Vector3(0.0f, 0.0f, 3.0f),
+        Maths::Matrix4 view = Maths::Matrix4(Maths::Vector3(0.0f, 0.0f, 3.0f),
             Maths::Quaternion::EulerAnglesToQuaternion(0.0f, 0.0f, 0.0f),
-            Maths::Vector3(1.0f))
-                                  .Inverse()
-                                  .ToMatrix4();
+            Maths::Vector3(1.0f)).Inverse();
+        
         m_PreviewRenderer->Begin();
         //m_PreviewRenderer->BeginScene(proj, view);
         m_PreviewRenderer->SubmitMesh(m_PreviewSphere.get(), nullptr, Maths::Matrix4(), Maths::Matrix4());
