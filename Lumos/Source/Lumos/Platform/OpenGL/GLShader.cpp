@@ -136,16 +136,16 @@ namespace Lumos
                     descriptor.type = Graphics::DescriptorType::IMAGE_SAMPLER;
                 }
 
-                for(auto const& image : resources.separate_images)
-                {
-                    auto set { glsl->get_decoration(image.id, spv::Decoration::DecorationDescriptorSet) };
-                    glsl->set_decoration(image.id, spv::Decoration::DecorationDescriptorSet, DESCRIPTOR_TABLE_INITIAL_SPACE + 2 * set);
-                }
-                for(auto const& input : resources.subpass_inputs)
-                {
-                    auto set { glsl->get_decoration(input.id, spv::Decoration::DecorationDescriptorSet) };
-                    glsl->set_decoration(input.id, spv::Decoration::DecorationDescriptorSet, DESCRIPTOR_TABLE_INITIAL_SPACE + 2 * set);
-                }
+//                for(auto const& image : resources.separate_images)
+//                {
+//                    auto set { glsl->get_decoration(image.id, spv::Decoration::DecorationDescriptorSet) };
+//                    glsl->set_decoration(image.id, spv::Decoration::DecorationDescriptorSet, DESCRIPTOR_TABLE_INITIAL_SPACE + 2 * set);
+//                }
+//                for(auto const& input : resources.subpass_inputs)
+//                {
+//                    auto set { glsl->get_decoration(input.id, spv::Decoration::DecorationDescriptorSet) };
+//                    glsl->set_decoration(input.id, spv::Decoration::DecorationDescriptorSet, DESCRIPTOR_TABLE_INITIAL_SPACE + 2 * set);
+//                }
                 for(auto const& uniform_buffer : resources.uniform_buffers)
                 {
                     auto set { glsl->get_decoration(uniform_buffer.id, spv::Decoration::DecorationDescriptorSet) };
@@ -184,27 +184,27 @@ namespace Lumos
                         member.name = memberName;
                     }
                 }
-                for(auto const& storage_buffer : resources.storage_buffers)
-                {
-                    auto set { glsl->get_decoration(storage_buffer.id, spv::Decoration::DecorationDescriptorSet) };
-                    glsl->set_decoration(storage_buffer.id, spv::Decoration::DecorationDescriptorSet, DESCRIPTOR_TABLE_INITIAL_SPACE + 2 * set);
-                }
-                for(auto const& storage_image : resources.storage_images)
-                {
-                    auto set { glsl->get_decoration(storage_image.id, spv::Decoration::DecorationDescriptorSet) };
-                    glsl->set_decoration(storage_image.id, spv::Decoration::DecorationDescriptorSet, DESCRIPTOR_TABLE_INITIAL_SPACE + 2 * set);
-                }
-
-                for(auto const& sampler : resources.separate_samplers)
-                {
-                    auto set { glsl->get_decoration(sampler.id, spv::Decoration::DecorationDescriptorSet) };
-                    glsl->set_decoration(sampler.id, spv::Decoration::DecorationDescriptorSet, DESCRIPTOR_TABLE_INITIAL_SPACE + 2 * set + 1);
-                }
+//                for(auto const& storage_buffer : resources.storage_buffers)
+//                {
+//                    auto set { glsl->get_decoration(storage_buffer.id, spv::Decoration::DecorationDescriptorSet) };
+//                    glsl->set_decoration(storage_buffer.id, spv::Decoration::DecorationDescriptorSet, DESCRIPTOR_TABLE_INITIAL_SPACE + 2 * set);
+//                }
+//                for(auto const& storage_image : resources.storage_images)
+//                {
+//                    auto set { glsl->get_decoration(storage_image.id, spv::Decoration::DecorationDescriptorSet) };
+//                    glsl->set_decoration(storage_image.id, spv::Decoration::DecorationDescriptorSet, DESCRIPTOR_TABLE_INITIAL_SPACE + 2 * set);
+//                }
+//
+//                for(auto const& sampler : resources.separate_samplers)
+//                {
+//                    auto set { glsl->get_decoration(sampler.id, spv::Decoration::DecorationDescriptorSet) };
+//                    glsl->set_decoration(sampler.id, spv::Decoration::DecorationDescriptorSet, DESCRIPTOR_TABLE_INITIAL_SPACE + 2 * set + 1);
+//                }
 
                 for(auto& u : resources.push_constant_buffers)
                 {
-                    uint32_t set = glsl->get_decoration(u.id, spv::DecorationDescriptorSet);
-                    uint32_t binding = glsl->get_decoration(u.id, spv::DecorationBinding);
+                   // uint32_t set = glsl->get_decoration(u.id, spv::DecorationDescriptorSet);
+                   // uint32_t binding = glsl->get_decoration(u.id, spv::DecorationBinding);
 
                     auto& type = glsl->get_type(u.type_id);
                     auto name = glsl->get_name(u.id);

@@ -554,13 +554,14 @@ namespace Lumos
 
             SharedRef<VertexBuffer> vb = SharedRef<VertexBuffer>(VertexBuffer::Create(BufferUsage::STATIC));
             vb->SetData(4 * sizeof(Vertex), data);
-            delete[] data;
 
             SharedRef<Maths::BoundingBox> boundingBox = CreateSharedRef<Maths::BoundingBox>();
             for(int i = 0; i < 4; i++)
             {
                 boundingBox->Merge(data[i].Position);
             }
+            
+            delete[] data;
 
             uint32_t indices[6] {
                 0, 1, 2,

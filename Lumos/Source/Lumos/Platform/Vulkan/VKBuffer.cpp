@@ -41,6 +41,7 @@ namespace Lumos
             LUMOS_PROFILE_FUNCTION();
 
             m_UsageFlags = usage;
+            m_Size = size;
 
             VkBufferCreateInfo bufferInfo = {};
             bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;

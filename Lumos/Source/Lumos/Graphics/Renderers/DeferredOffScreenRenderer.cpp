@@ -84,8 +84,6 @@ namespace Lumos
             properties.usingMetallicMap = 0.0f;
             m_DefaultMaterial->SetMaterialProperites(properties);
 
-            auto shader = Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/DeferredColour.shader");
-            m_DefaultMaterial->SetShader(shader);
 
             const size_t minUboAlignment = size_t(Graphics::Renderer::GetCapabilities().UniformBufferOffsetAlignment);
 

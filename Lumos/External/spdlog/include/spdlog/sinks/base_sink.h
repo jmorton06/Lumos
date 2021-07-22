@@ -37,7 +37,7 @@ public:
 protected:
     // sink formatter
     std::unique_ptr<spdlog::formatter> formatter_;
-    Mutex mutex_;
+    mutable Mutex mutex_;
 
     virtual void sink_it_(const details::log_msg &msg) = 0;
     virtual void flush_() = 0;
@@ -48,5 +48,5 @@ protected:
 } // namespace spdlog
 
 #ifdef SPDLOG_HEADER_ONLY
-#include "base_sink-inl.h"
+#    include "base_sink-inl.h"
 #endif
