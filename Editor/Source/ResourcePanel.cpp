@@ -106,6 +106,9 @@ namespace Lumos
         LUMOS_PROFILE_FUNCTION();
         ImGuiTreeNodeFlags nodeFlags = ((dirInfo == m_CurrentDir) ? ImGuiTreeNodeFlags_Selected : 0);
         nodeFlags |= ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick;
+        
+        if(dirInfo->Parent == nullptr)
+            nodeFlags |= ImGuiTreeNodeFlags_Framed;
 
         const ImColor TreeLineColor = ImColor(128, 128, 128, 128);
         const float SmallOffsetX = 6.0f * Application::Get().GetWindowDPI();
@@ -202,9 +205,19 @@ namespace Lumos
         
         ImGui::Begin(m_Name.c_str(), &m_Active);
         {
-            ImGui::BeginColumns("ResourcePanelColumns", 2, ImGuiOldColumnFlags_NoResize);
-            ImGui::SetColumnWidth(0, ImGui::GetWindowContentRegionWidth() / 3.0f);
-            ImGui::BeginChild("##folders_common");
+			
+			auto windowSize = ImGui::GetWindowSize();
+			bool vertical = windowSize.y > windowSize.x;
+			
+			if(!vertical)
+			{
+                ImGui::BeginColumns("ResourcePanelColumns", 2, ImGuiOldColumnFlags_NoResize);
+				ImGui::SetColumnWidth(0, ImGui::GetWindowContentRegionWidth() / 3.0f);
+                ImGui::BeginChild("##folders_common");
+			}
+            else
+                ImGui::BeginChild("##folders_common", ImVec2(0, ImGui::GetWindowHeight() / 3.0f));
+            
             {
                 RenderBreadCrumbs();
 
@@ -233,10 +246,19 @@ namespace Lumos
                 }
                 ImGui::EndDragDropTarget();
             }
-
-            ImGui::NextColumn();
+            float offset = 0.0f;
+			if(!vertical)
+			{
+				ImGui::NextColumn();
+			}
+            else
+            {
+                offset = ImGui::GetWindowHeight() / 3.0f + 6.0f;
+                ImGui::SeparatorEx(ImGuiSeparatorFlags_Horizontal);
+            }
             
-            ImGui::BeginChild("##directory_structure", ImVec2(0, ImGui::GetWindowHeight() - ImGui::GetFrameHeightWithSpacing() * 2.6f));
+        
+            ImGui::BeginChild("##directory_structure", ImVec2(0, ImGui::GetWindowHeight() - ImGui::GetFrameHeightWithSpacing() * 2.6f - offset));
             {
                 {
                     ImGui::BeginChild("##directory_breadcrumbs", ImVec2(ImGui::GetColumnWidth(), ImGui::GetFrameHeightWithSpacing()));
@@ -367,29 +389,33 @@ namespace Lumos
                             shownIndex++;
                         }
                     }
+					
+					if(ImGui::BeginPopupContextWindow())
+					{
+						{
+							if(ImGui::Selectable("Import New Asset"))
+							{
+								m_Editor->OpenFile();
+							}
+							
+							if(ImGui::Selectable("Refresh"))
+							{
+								m_BasePath = Application::Get().GetProjectRoot() + "Assets";
+								
+								auto currentPath = m_CurrentDir->FilePath;
+								
+								std::string baseDirectoryHandle = ProcessDirectory(std::filesystem::path(m_BasePath), nullptr);
+								m_BaseProjectDir = m_Directories[baseDirectoryHandle];
+								
+								if(FileSystem::FolderExists(currentPath))
+									m_Directories[currentPath];
+								else
+									ChangeDirectory(m_BaseProjectDir);
+							}
+						}
+						ImGui::EndPopup();
+					}
                     ImGui::EndChild();
-                }
-                if(ImGui::BeginPopupContextWindow())
-                {
-                    if(ImGui::BeginMenu("Create"))
-                    {
-                        if(ImGui::MenuItem("Import New Asset", "Ctrl + O"))
-                        {
-                            m_Editor->OpenFile();
-                        }
-
-                        if(ImGui::MenuItem("Refresh", "Ctrl + R"))
-                        {
-                            //                        auto data = GetFsContents(m_BaseDirPath);
-                            //                        for(int i = 0; i < data->Children.size(); i++)
-                            //                        {
-                            //                            LUMOS_LOG_INFO(data->Children[i]->FilePath.string());
-                            //                        }
-                        }
-
-                        ImGui::EndMenu();
-                    }
-                    ImGui::EndPopup();
                 }
                 
                 ImGui::EndChild();

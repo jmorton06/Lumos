@@ -195,6 +195,7 @@ namespace Lumos
 
                 renderpassCI.attachmentCount = 2;
                 renderpassCI.textureType = textureTypes;
+				m_RenderPass = Graphics::RenderPass::Get(renderpassCI);
             }
             else
             {
@@ -204,12 +205,11 @@ namespace Lumos
 
                 renderpassCI.attachmentCount = 1;
                 renderpassCI.textureType = textureTypes;
+				m_RenderPass = Graphics::RenderPass::Get(renderpassCI);
             }
 
-            m_RenderPass = Graphics::RenderPass::Get(renderpassCI);
-
             CreateFramebuffers();
-            CreateGraphicsPipeline();
+            CreateGraphicsPipeline(); 
 
             m_ClearColour = Maths::Vector4(0.4f, 0.4f, 0.4f, 1.0f);
             
