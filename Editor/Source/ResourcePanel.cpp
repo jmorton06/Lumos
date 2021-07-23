@@ -407,8 +407,8 @@ namespace Lumos
 								std::string baseDirectoryHandle = ProcessDirectory(std::filesystem::path(m_BasePath), nullptr);
 								m_BaseProjectDir = m_Directories[baseDirectoryHandle];
 								
-								if(FileSystem::FolderExists(currentPath))
-									m_Directories[currentPath];
+								if(FileSystem::FolderExists(currentPath.string()))
+									m_Directories[currentPath.string()];
 								else
 									ChangeDirectory(m_BaseProjectDir);
 							}
