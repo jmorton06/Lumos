@@ -48,7 +48,7 @@ namespace Lumos
 
             void SetSystemUniforms(Shader* shader) const;
             void UpdateScreenDescriptorSet();
-            
+
         private:
             Texture2D* m_DefaultTexture;
             Material* m_DefaultMaterial;
@@ -60,12 +60,12 @@ namespace Lumos
             std::vector<Lumos::Graphics::CommandBuffer*> m_CommandBuffers;
 
             int m_RenderMode = 0;
-            
+
             Maths::Matrix4 m_BiasMatrix;
 
             Texture* m_EnvironmentMap = nullptr;
             Texture* m_IrradianceMap = nullptr;
-            
+
             uint8_t* m_PSSceneUniformBuffer = nullptr;
             std::vector<uint32_t> m_PSSceneUniformBufferOffsets;
 

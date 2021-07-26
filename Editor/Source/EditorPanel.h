@@ -40,6 +40,10 @@ namespace Lumos
         virtual void OnNewScene(Scene* scene)
         {
         }
+		
+		virtual void OnNewProject()
+		{
+		}
 
     protected:
         bool m_Active = true;

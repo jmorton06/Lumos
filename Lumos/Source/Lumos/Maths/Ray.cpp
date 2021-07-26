@@ -437,9 +437,9 @@ namespace Lumos::Maths
     {
         Ray ret;
         ret.origin_ = transform * origin_;
-        
+
         Maths::Vector4 direction4 = transform * Vector4(direction_, 0.0f);
-        ret.direction_ = Vector3(direction4.x,direction4.y,direction4.z);
+        ret.direction_ = Vector3(direction4.x, direction4.y, direction4.z);
         return ret;
     }
 }

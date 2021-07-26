@@ -75,7 +75,6 @@ project "Lumos"
 		"LUMOS_ENGINE",
 		"FREEIMAGE_LIB",
 		"LUMOS_DYNAMIC",
-		"LUMOS_ROOT_DIR="  .. root_dir,
 		"IMGUI_USER_CONFIG=\"Source/Lumos/ImGui/ImConfig.h\"",
 		"SPDLOG_COMPILED_LIB"
 }
@@ -302,7 +301,8 @@ buildoptions
 			"LUMOS_RENDER_API_VULKAN",
 			"VK_USE_PLATFORM_XCB_KHR",
 			"LUMOS_IMGUI",
-			"LUMOS_VOLK"
+			"LUMOS_VOLK",
+			"LUMOS_OPENAL"
 		}
 
 		files
@@ -330,7 +330,7 @@ buildoptions
 
 		linkoptions
 		{
-			"external/OpenAL/libs/linux/libopenal.so"
+			"External/OpenAL/libs/linux/libopenal.so"
 		}
 
 		linkoptions{ "-Wl,-rpath=\\$$ORIGIN" }

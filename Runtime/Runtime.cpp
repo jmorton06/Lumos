@@ -24,7 +24,7 @@ public:
 
     void Init() override
     {
-        m_ProjectRoot = ROOT_DIR "/ExampleProject/";
+        m_ProjectRoot = "/Users/jmorton/dev/Lumos/ExampleProject/";
         m_ProjectName = "Example";
 
         Application::Init();
