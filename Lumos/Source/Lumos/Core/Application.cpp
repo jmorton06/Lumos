@@ -38,6 +38,12 @@
 #include "Physics/B2PhysicsEngine/B2PhysicsEngine.h"
 #include "Physics/LumosPhysicsEngine/LumosPhysicsEngine.h"
 
+#if __has_include(<filesystem>)
+#include <filesystem>
+#elif __has_include(<experimental/filesystem>)
+#include <experimental/filesystem>
+#endif
+
 #include <cereal/archives/json.hpp>
 #include <imgui/imgui.h>
 
