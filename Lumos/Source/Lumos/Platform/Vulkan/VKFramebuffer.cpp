@@ -9,7 +9,7 @@ namespace Lumos
 {
     namespace Graphics
     {
-        VKFramebuffer::VKFramebuffer(const FramebufferInfo& frameBufferInfo)
+        VKFramebuffer::VKFramebuffer(const FramebufferDesc& frameBufferInfo)
         {
             m_Width = frameBufferInfo.width;
             m_Height = frameBufferInfo.height;
@@ -64,7 +64,7 @@ namespace Lumos
             CreateFunc = CreateFuncVulkan;
         }
 
-        Framebuffer* VKFramebuffer::CreateFuncVulkan(const FramebufferInfo& info)
+        Framebuffer* VKFramebuffer::CreateFuncVulkan(const FramebufferDesc& info)
         {
             return new VKFramebuffer(info);
         }

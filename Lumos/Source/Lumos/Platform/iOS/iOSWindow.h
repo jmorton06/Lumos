@@ -8,7 +8,7 @@ namespace Lumos
     class iOSWindow : public Window
     {
     public:
-        iOSWindow(const WindowProperties& properties);
+        iOSWindow(const WindowDesc& properties);
         ~iOSWindow();
 
         void ToggleVSync() override;
@@ -16,7 +16,7 @@ namespace Lumos
         void SetBorderlessWindow(bool borderless) override;
         void OnUpdate() override;
 
-        bool Init(const WindowProperties& properties, const std::string& title);
+        bool Init(const WindowDesc& properties, const std::string& title);
 
         void* GetHandle() override
         {
@@ -73,7 +73,7 @@ namespace Lumos
         static void MakeDefault();
 
     protected:
-        static Window* CreateFunciOS(const WindowProperties& properties);
+        static Window* CreateFunciOS(const WindowDesc& properties);
 
         struct WindowData
         {

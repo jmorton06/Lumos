@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Graphics/API/DescriptorSet.h"
+#include "Graphics/RHI/DescriptorSet.h"
 
 namespace Lumos
 {
@@ -10,7 +10,7 @@ namespace Lumos
         class GLDescriptorSet : public DescriptorSet
         {
         public:
-            GLDescriptorSet(const DescriptorInfo& info);
+            GLDescriptorSet(const DescriptorDesc& info);
 
             ~GLDescriptorSet() {};
 
@@ -23,7 +23,7 @@ namespace Lumos
             static void MakeDefault();
 
         protected:
-            static DescriptorSet* CreateFuncGL(const DescriptorInfo& info);
+            static DescriptorSet* CreateFuncGL(const DescriptorDesc& info);
 
         private:
             uint32_t m_DynamicOffset = 0;

@@ -7,7 +7,7 @@ namespace Lumos
     class LUMOS_EXPORT HeadlessWindow : public Window
     {
     public:
-        HeadlessWindow(const WindowProperties& properties);
+        HeadlessWindow(const WindowDesc& properties);
         ~HeadlessWindow();
 
         void ToggleVSync() override;
@@ -19,7 +19,7 @@ namespace Lumos
         void SetMousePosition(const Maths::Vector2& pos) override;
         void UpdateCursorImGui() override;
 
-        bool Init(const WindowProperties& properties);
+        bool Init(const WindowDesc& properties);
 
         _FORCE_INLINE_ void* GetHandle() override
         {
@@ -60,7 +60,7 @@ namespace Lumos
         static void MakeDefault();
 
     protected:
-        static Window* CreateFuncGLFW(const WindowProperties& properties);
+        static Window* CreateFuncGLFW(const WindowDesc& properties);
 
         struct WindowData
         {

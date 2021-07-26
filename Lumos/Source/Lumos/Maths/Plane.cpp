@@ -11,19 +11,15 @@ namespace Lumos::Maths
         Define(Matrix4(transform).Inverse().Transpose() * ToVector4());
     }
 
-    void Plane::Transform(const Matrix3x4& transform)
-    {
-        Define(transform.ToMatrix4().Inverse().Transpose() * ToVector4());
-    }
-
     void Plane::Transform(const Matrix4& transform)
     {
         Define(transform.Inverse().Transpose() * ToVector4());
     }
 
-    Matrix3x4 Plane::ReflectionMatrix() const
+    Matrix4 Plane::ReflectionMatrix() const
     {
-        return Matrix3x4(
+        //Maybe wrong
+        return Matrix4(
             -2.0f * normal_.x * normal_.x + 1.0f,
             -2.0f * normal_.x * normal_.y,
             -2.0f * normal_.x * normal_.z,
@@ -35,17 +31,12 @@ namespace Lumos::Maths
             -2.0f * normal_.z * normal_.x,
             -2.0f * normal_.z * normal_.y,
             -2.0f * normal_.z * normal_.z + 1.0f,
-            -2.0f * normal_.z * d_);
+            -2.0f * normal_.z * d_, 0.0f, 0.0f, 0.0f,1.0f);
     }
 
     Plane Plane::Transformed(const Matrix3& transform) const
     {
         return Plane(Matrix4(transform).Inverse().Transpose() * ToVector4());
-    }
-
-    Plane Plane::Transformed(const Matrix3x4& transform) const
-    {
-        return Plane(transform.ToMatrix4().Inverse().Transpose() * ToVector4());
     }
 
     Plane Plane::Transformed(const Matrix4& transform) const

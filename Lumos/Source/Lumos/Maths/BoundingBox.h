@@ -12,7 +12,6 @@ namespace Lumos::Maths
     class Frustum;
     class Matrix3;
     class Matrix4;
-    class Matrix3x4;
     class Sphere;
 
     /// Three-dimensional axis-aligned bounding box.
@@ -77,15 +76,7 @@ namespace Lumos::Maths
         {
             Define(frustum);
         }
-
-        /// Construct from a polyhedron.
-        explicit BoundingBox(const Polyhedron& poly)
-            : min_(M_INFINITY, M_INFINITY, M_INFINITY)
-            , max_(-M_INFINITY, -M_INFINITY, -M_INFINITY)
-        {
-            Define(poly);
-        }
-
+        
         /// Construct from a sphere.
         explicit BoundingBox(const Sphere& sphere)
             : min_(M_INFINITY, M_INFINITY, M_INFINITY)
@@ -197,24 +188,18 @@ namespace Lumos::Maths
         void Define(const Vector3* vertices, unsigned count);
         /// Define from a frustum.
         void Define(const Frustum& frustum);
-        /// Define from a polyhedron.
-        void Define(const Polyhedron& poly);
         /// Define from a sphere.
         void Define(const Sphere& sphere);
         /// Merge an array of vertices.
         void Merge(const Vector3* vertices, unsigned count);
         /// Merge a frustum.
         void Merge(const Frustum& frustum);
-        /// Merge a polyhedron.
-        void Merge(const Polyhedron& poly);
         /// Merge a sphere.
         void Merge(const Sphere& sphere);
         /// Clip with another bounding box. The box can become degenerate (undefined) as a result.
         void Clip(const BoundingBox& box);
         /// Transform with a 3x3 matrix.
         void Transform(const Matrix3& transform);
-        /// Transform with a 3x4 matrix.
-        void Transform(const Matrix3x4& transform);
         /// Transform with a 4x4 matrix.
         void Transform(const Matrix4& transform);
 
@@ -249,8 +234,6 @@ namespace Lumos::Maths
         BoundingBox Transformed(const Matrix4& transform) const;
         /// Return transformed by a 3x3 matrix.
         BoundingBox Transformed(const Matrix3& transform) const;
-        /// Return transformed by a 3x4 matrix.
-        BoundingBox Transformed(const Matrix3x4& transform) const;
         /// Return projected by a 4x4 projection matrix.
         Rect Projected(const Matrix4& projection) const;
         /// Return distance to point.

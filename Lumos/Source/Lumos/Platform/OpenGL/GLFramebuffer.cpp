@@ -2,7 +2,7 @@
 #include "GLFramebuffer.h"
 
 #include "Platform/OpenGL/GLDebug.h"
-#include "Graphics/API/Texture.h"
+#include "Graphics/RHI/Texture.h"
 
 namespace Lumos
 {
@@ -18,7 +18,7 @@ namespace Lumos
             m_ColourAttachmentCount = 0;
         }
 
-        GLFramebuffer::GLFramebuffer(const FramebufferInfo& bufferInfo)
+        GLFramebuffer::GLFramebuffer(const FramebufferDesc& bufferInfo)
         {
             LUMOS_PROFILE_FUNCTION();
             m_ScreenFramebuffer = bufferInfo.screenFBO;
@@ -206,7 +206,7 @@ namespace Lumos
             CreateFunc = CreateFuncGL;
         }
 
-        Framebuffer* GLFramebuffer::CreateFuncGL(const FramebufferInfo& bufferInfo)
+        Framebuffer* GLFramebuffer::CreateFuncGL(const FramebufferDesc& bufferInfo)
         {
             return new GLFramebuffer(bufferInfo);
         }

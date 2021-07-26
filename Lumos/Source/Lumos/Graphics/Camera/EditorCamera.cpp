@@ -123,6 +123,10 @@ namespace Lumos
             {
                 multiplier = 10000.0f;
             }
+            else if(Input::Get().GetKeyHeld(InputCode::Key::LeftAlt))
+            {
+                multiplier = 50.0f;
+            }
 
             m_CameraSpeed = multiplier * dt;
 

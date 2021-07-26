@@ -14,7 +14,7 @@ namespace Lumos
     class LUMOS_EXPORT GLFWWindow : public Window
     {
     public:
-        GLFWWindow(const WindowProperties& properties);
+        GLFWWindow(const WindowDesc& properties);
         ~GLFWWindow();
 
         void ToggleVSync() override;
@@ -27,7 +27,7 @@ namespace Lumos
         void UpdateCursorImGui() override;
         void ProcessInput() override;
 
-        bool Init(const WindowProperties& properties);
+        bool Init(const WindowDesc& properties);
 
         inline void* GetHandle() override
         {
@@ -77,7 +77,7 @@ namespace Lumos
         static void MakeDefault();
 
     protected:
-        static Window* CreateFuncGLFW(const WindowProperties& properties);
+        static Window* CreateFuncGLFW(const WindowDesc& properties);
 
         GLFWwindow* m_Handle;
 

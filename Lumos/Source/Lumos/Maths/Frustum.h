@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Maths/BoundingBox.h"
-#include "Maths/Matrix3x4.h"
+#include "Maths/Matrix4.h"
 #include "Maths/Plane.h"
 #include "Maths/Rect.h"
 #include "Maths/Sphere.h"
@@ -37,21 +37,21 @@ namespace Lumos::Maths
 
         /// Define with projection parameters and a transform matrix.
         void
-        Define(float fov, float aspectRatio, float zoom, float nearZ, float farZ, const Matrix3x4& transform = Matrix3x4::IDENTITY);
+        Define(float fov, float aspectRatio, float zoom, float nearZ, float farZ, const Matrix4& transform = Matrix4::IDENTITY);
         /// Define with near and far dimension vectors and a transform matrix.
-        void Define(const Vector3& lNear, const Vector3& lFar, const Matrix3x4& transform = Matrix3x4::IDENTITY);
+        void Define(const Vector3& lNear, const Vector3& lFar, const Matrix4& transform = Matrix4::IDENTITY);
         /// Define with a bounding box and a transform matrix.
-        void Define(const BoundingBox& box, const Matrix3x4& transform = Matrix3x4::IDENTITY);
+        void Define(const BoundingBox& box, const Matrix4& transform = Matrix4::IDENTITY);
         /// Define from a projection or view-projection matrix.
         void Define(const Matrix4& projection);
         /// Define with orthographic projection parameters and a transform matrix.
-        void DefineOrtho(float orthoSize, float aspectRatio, float zoom, float nearZ, float farZ, const Matrix3x4& transform = Matrix3x4::IDENTITY);
+        void DefineOrtho(float orthoSize, float aspectRatio, float zoom, float nearZ, float farZ, const Matrix4& transform = Matrix4::IDENTITY);
         /// Define a split (limited) frustum from a projection matrix, with near & far distances specified.
         void DefineSplit(const Matrix4& projection, float lNear, float lFar);
         /// Transform by a 3x3 matrix.
         void Transform(const Matrix3& transform);
-        /// Transform by a 3x4 matrix.
-        void Transform(const Matrix3x4& transform);
+        /// Transform by a 4x4 matrix.
+        void Transform(const Matrix4& transform);
 
         /// Test if a point is inside or outside.
         Intersection IsInside(const Vector3& point) const
@@ -144,8 +144,8 @@ namespace Lumos::Maths
 
         /// Return transformed by a 3x3 matrix.
         Frustum Transformed(const Matrix3& transform) const;
-        /// Return transformed by a 3x4 matrix.
-        Frustum Transformed(const Matrix3x4& transform) const;
+        /// Return transformed by a 4x4 matrix.
+        Frustum Transformed(const Matrix4& transform) const;
         /// Return projected by a 4x4 projection matrix.
         Rect Projected(const Matrix4& projection) const;
 

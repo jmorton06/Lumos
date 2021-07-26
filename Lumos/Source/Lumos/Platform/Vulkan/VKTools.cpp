@@ -4,9 +4,9 @@
 #include "VKShader.h"
 #include "VKSwapchain.h"
 #include "VKCommandPool.h"
-#include "Graphics/API/Texture.h"
-#include "Graphics/API/DescriptorSet.h"
-#include "Graphics/API/Pipeline.h"
+#include "Graphics/RHI/Texture.h"
+#include "Graphics/RHI/DescriptorSet.h"
+#include "Graphics/RHI/Pipeline.h"
 
 namespace Lumos
 {

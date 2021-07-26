@@ -1,7 +1,7 @@
 #pragma once
 #include "Maths/Maths.h"
-#include "API/Texture.h"
-#include "API/Shader.h"
+#include "RHI/Texture.h"
+#include "RHI/Shader.h"
 #include "Core/VFS.h"
 #include <cereal/cereal.hpp>
 
@@ -34,12 +34,12 @@ namespace Lumos
 
         struct PBRMataterialTextures
         {
-            Ref<Texture2D> albedo;
-            Ref<Texture2D> normal;
-            Ref<Texture2D> metallic;
-            Ref<Texture2D> roughness;
-            Ref<Texture2D> ao;
-            Ref<Texture2D> emissive;
+            SharedRef<Texture2D> albedo;
+            SharedRef<Texture2D> normal;
+            SharedRef<Texture2D> metallic;
+            SharedRef<Texture2D> roughness;
+            SharedRef<Texture2D> ao;
+            SharedRef<Texture2D> emissive;
         };
 
         class LUMOS_EXPORT Material
@@ -58,7 +58,7 @@ namespace Lumos
             };
 
         public:
-            Material(Ref<Shader>& shader, const MaterialProperties& properties = MaterialProperties(), const PBRMataterialTextures& textures = PBRMataterialTextures());
+            Material(SharedRef<Shader>& shader, const MaterialProperties& properties = MaterialProperties(), const PBRMataterialTextures& textures = PBRMataterialTextures());
             Material();
 
             ~Material();
@@ -77,7 +77,7 @@ namespace Lumos
             void SetMetallicTexture(const std::string& path);
             void SetAOTexture(const std::string& path);
             void SetEmissiveTexture(const std::string& path);
-            void SetShader(Ref<Shader>& shader)
+            void SetShader(SharedRef<Shader>& shader)
             {
                 m_Shader = shader;
                 m_TexturesUpdated = true; //TODO
@@ -106,7 +106,7 @@ namespace Lumos
             {
                 return m_PBRMaterialTextures;
             }
-            Ref<Shader> GetShader() const
+            SharedRef<Shader> GetShader() const
             {
                 return m_Shader;
             }
@@ -195,17 +195,17 @@ namespace Lumos
                     SetShader(shaderFilePath);
 
                 if(!albedoFilePath.empty())
-                    m_PBRMaterialTextures.albedo = Ref<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile("albedo", albedoFilePath));
+                    m_PBRMaterialTextures.albedo = SharedRef<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile("albedo", albedoFilePath));
                 if(!normalFilePath.empty())
-                    m_PBRMaterialTextures.normal = Ref<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile("roughness", normalFilePath));
+                    m_PBRMaterialTextures.normal = SharedRef<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile("roughness", normalFilePath));
                 if(!metallicFilePath.empty())
-                    m_PBRMaterialTextures.metallic = Ref<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile("metallic", metallicFilePath));
+                    m_PBRMaterialTextures.metallic = SharedRef<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile("metallic", metallicFilePath));
                 if(!roughnessFilePath.empty())
-                    m_PBRMaterialTextures.roughness = Ref<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile("roughness", roughnessFilePath));
+                    m_PBRMaterialTextures.roughness = SharedRef<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile("roughness", roughnessFilePath));
                 if(!emissiveFilePath.empty())
-                    m_PBRMaterialTextures.emissive = Ref<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile("emissive", emissiveFilePath));
+                    m_PBRMaterialTextures.emissive = SharedRef<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile("emissive", emissiveFilePath));
                 if(!aoFilePath.empty())
-                    m_PBRMaterialTextures.ao = Ref<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile("ao", aoFilePath));
+                    m_PBRMaterialTextures.ao = SharedRef<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile("ao", aoFilePath));
             }
 
             uint32_t GetFlags() const { return m_Flags; };
@@ -222,11 +222,11 @@ namespace Lumos
                 }
             };
 
-            static Ref<Texture2D> GetDefaultTexture() { return s_DefaultTexture; }
+            static SharedRef<Texture2D> GetDefaultTexture() { return s_DefaultTexture; }
 
         private:
             PBRMataterialTextures m_PBRMaterialTextures;
-            Ref<Shader> m_Shader;
+            SharedRef<Shader> m_Shader;
             DescriptorSet* m_DescriptorSet;
             UniformBuffer* m_MaterialPropertiesBuffer;
             MaterialProperties* m_MaterialProperties;
@@ -236,7 +236,7 @@ namespace Lumos
             bool m_TexturesUpdated = false;
             uint32_t m_Flags;
 
-            static Ref<Texture2D> s_DefaultTexture;
+            static SharedRef<Texture2D> s_DefaultTexture;
         };
     }
 }

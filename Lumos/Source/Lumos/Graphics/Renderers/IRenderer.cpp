@@ -1,13 +1,13 @@
 #include "Precompiled.h"
 #include "IRenderer.h"
 
-//#include "Graphics/API/Shader.h"
-//#include "Graphics/API/Framebuffer.h"
-//#include "Graphics/API/Renderer.h"
-//#include "Graphics/API/CommandBuffer.h"
-//#include "Graphics/API/RenderPass.h"
-//#include "Graphics/API/Pipeline.h"
-//#include "Graphics/API/Texture.h"
+//#include "Graphics/RHI/Shader.h"
+//#include "Graphics/RHI/Framebuffer.h"
+//#include "Graphics/RHI/Renderer.h"
+//#include "Graphics/RHI/CommandBuffer.h"
+//#include "Graphics/RHI/RenderPass.h"
+//#include "Graphics/RHI/Pipeline.h"
+//#include "Graphics/RHI/Texture.h"
 
 namespace Lumos
 {

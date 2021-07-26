@@ -8,7 +8,7 @@ namespace Lumos
 {
     namespace Graphics
     {
-        GLDescriptorSet::GLDescriptorSet(const DescriptorInfo& info)
+        GLDescriptorSet::GLDescriptorSet(const DescriptorDesc& info)
         {
             m_Shader = (GLShader*)info.shader;
             m_Descriptors = m_Shader->GetDescriptorInfo(info.layoutIndex).descriptors;
@@ -101,7 +101,7 @@ namespace Lumos
             CreateFunc = CreateFuncGL;
         }
 
-        DescriptorSet* GLDescriptorSet::CreateFuncGL(const DescriptorInfo& info)
+        DescriptorSet* GLDescriptorSet::CreateFuncGL(const DescriptorDesc& info)
         {
             return new GLDescriptorSet(info);
         }

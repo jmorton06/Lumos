@@ -1,6 +1,6 @@
 #include "Precompiled.h"
 #include "Mesh.h"
-#include "API/Renderer.h"
+#include "RHI/Renderer.h"
 
 #include <meshoptimizer/src/meshoptimizer.h>
 
@@ -28,7 +28,7 @@ namespace Lumos
         {
         }
 
-        Mesh::Mesh(Ref<VertexBuffer>& vertexBuffer, Ref<IndexBuffer>& indexBuffer, const Ref<Maths::BoundingBox>& boundingBox)
+        Mesh::Mesh(SharedRef<VertexBuffer>& vertexBuffer, SharedRef<IndexBuffer>& indexBuffer, const SharedRef<Maths::BoundingBox>& boundingBox)
             : m_VertexBuffer(vertexBuffer)
             , m_IndexBuffer(indexBuffer)
             , m_BoundingBox(boundingBox)
@@ -61,18 +61,18 @@ namespace Lumos
                 sizeof(Graphics::Vertex) // vertex stride
             );
 
-            LUMOS_LOG_INFO("Mesh Optimizer - Before : {0} indices {1} vertices , After : {2} indices , {3} vertices", indexCount, m_Vertices.size(), newIndexCount, newVertexCount);
+            //LUMOS_LOG_INFO("Mesh Optimizer - Before : {0} indices {1} vertices , After : {2} indices , {3} vertices", indexCount, m_Vertices.size(), newIndexCount, newVertexCount);
 
-            m_BoundingBox = CreateRef<Maths::BoundingBox>();
+            m_BoundingBox = CreateSharedRef<Maths::BoundingBox>();
 
             for(auto& vertex : m_Vertices)
             {
                 m_BoundingBox->Merge(vertex.Position);
             }
 
-            m_IndexBuffer = Ref<Graphics::IndexBuffer>(Graphics::IndexBuffer::Create(m_Indices.data(), (uint32_t)newIndexCount));
+            m_IndexBuffer = SharedRef<Graphics::IndexBuffer>(Graphics::IndexBuffer::Create(m_Indices.data(), (uint32_t)newIndexCount));
 
-            m_VertexBuffer = Ref<VertexBuffer>(VertexBuffer::Create(BufferUsage::STATIC));
+            m_VertexBuffer = SharedRef<VertexBuffer>(VertexBuffer::Create(BufferUsage::STATIC));
             m_VertexBuffer->SetData((uint32_t)(sizeof(Graphics::Vertex) * newVertexCount), m_Vertices.data());
         }
 

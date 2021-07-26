@@ -209,10 +209,10 @@ namespace Lumos
                     if(m_Frames[i].RenderSemaphore == VK_NULL_HANDLE)
                         VK_CHECK_RESULT(vkCreateSemaphore(VKDevice::Get().GetDevice(), &semaphoreInfo, nullptr, &m_Frames[i].RenderSemaphore));
 
-                    m_Frames[i].RenderFence = CreateRef<VKFence>(true);
-                    m_Frames[i].CommandPool = CreateRef<VKCommandPool>(VKDevice::Get().GetPhysicalDevice()->GetGraphicsQueueFamilyIndex(), VK_COMMAND_POOL_CREATE_TRANSIENT_BIT);
+                    m_Frames[i].RenderFence = CreateSharedRef<VKFence>(true);
+                    m_Frames[i].CommandPool = CreateSharedRef<VKCommandPool>(VKDevice::Get().GetPhysicalDevice()->GetGraphicsQueueFamilyIndex(), VK_COMMAND_POOL_CREATE_TRANSIENT_BIT);
 
-                    m_Frames[i].MainCommandBuffer = CreateRef<VKCommandBuffer>();
+                    m_Frames[i].MainCommandBuffer = CreateSharedRef<VKCommandBuffer>();
                     m_Frames[i].MainCommandBuffer->Init(true, m_Frames[i].CommandPool->GetHandle());
                 }
             }

@@ -45,6 +45,8 @@ namespace Lumos
 
         const std::string& GetFilePath() const { return m_FilePath; }
 
+        static void ConvertToMono(const uint8_t* inputData, int dataSize, uint8_t* monoData, int channels, int bitsPerSample);
+
     protected:
         Sound();
         bool m_Streaming;

@@ -4,7 +4,7 @@
 #pragma once
 
 #ifdef _WIN32
-#error include tcp_client-windows.h instead
+#    error include tcp_client-windows.h instead
 #endif
 
 // tcp client helper
@@ -103,15 +103,15 @@ public:
 
         // set TCP_NODELAY
         int enable_flag = 1;
-        ::setsockopt(socket_, IPPROTO_TCP, TCP_NODELAY, (char *)&enable_flag, sizeof(enable_flag));
+        ::setsockopt(socket_, IPPROTO_TCP, TCP_NODELAY, reinterpret_cast<char *>(&enable_flag), sizeof(enable_flag));
 
         // prevent sigpipe on systems where MSG_NOSIGNAL is not available
 #if defined(SO_NOSIGPIPE) && !defined(MSG_NOSIGNAL)
-        ::setsockopt(socket_, SOL_SOCKET, SO_NOSIGPIPE, (char *)&enable_flag, sizeof(enable_flag));
+        ::setsockopt(socket_, SOL_SOCKET, SO_NOSIGPIPE, reinterpret_cast<char *>(&enable_flag), sizeof(enable_flag));
 #endif
 
 #if !defined(SO_NOSIGPIPE) && !defined(MSG_NOSIGNAL)
-#error "tcp_sink would raise SIGPIPE since niether SO_NOSIGPIPE nor MSG_NOSIGNAL are available"
+#    error "tcp_sink would raise SIGPIPE since niether SO_NOSIGPIPE nor MSG_NOSIGNAL are available"
 #endif
     }
 

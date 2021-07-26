@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Graphics/API/CommandBuffer.h"
+#include "Graphics/RHI/CommandBuffer.h"
 
 namespace Lumos
 {

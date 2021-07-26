@@ -1,6 +1,6 @@
 #include "Precompiled.h"
 #include "GLRenderer.h"
-#include "Graphics/API/Shader.h"
+#include "Graphics/RHI/Shader.h"
 #include "Core/OS/Window.h"
 #include "Core/Engine.h"
 #include "GLDebug.h"

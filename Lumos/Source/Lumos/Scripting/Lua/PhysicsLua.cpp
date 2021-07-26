@@ -307,14 +307,14 @@ namespace Lumos
         Application::Get().GetSystem<B2PhysicsEngine>()->SetGravity(gravity);
     }
 
-    Ref<RigidBody3D> CreateSharedPhysics3D()
+    SharedRef<RigidBody3D> CreateSharedPhysics3D()
     {
-        return CreateRef<RigidBody3D>();
+        return CreateSharedRef<RigidBody3D>();
     }
 
-    Ref<RigidBody3D> CreateSharedPhysics3DWithParams(const RigidBodyParameters& params)
+    SharedRef<RigidBody3D> CreateSharedPhysics3DWithParams(const RigidBodyParameters& params)
     {
-        return CreateRef<RigidBody3D>();
+        return CreateSharedRef<RigidBody3D>();
     }
 
     void BindPhysicsLua(sol::state& state)

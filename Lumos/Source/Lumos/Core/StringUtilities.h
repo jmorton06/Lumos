@@ -25,10 +25,16 @@ namespace Lumos
         }
 
         std::string GetFilePathExtension(const std::string& FileName);
-        std::string RemoveFilePathExtension(const std::string& FileName);
         std::string GetFileName(const std::string& FilePath);
-        std::string RemoveName(const std::string& FilePath);
         std::string GetFileLocation(const std::string& FilePath);
+
+        std::string RemoveName(const std::string& FilePath);
+        std::string RemoveFilePathExtension(const std::string& FileName);
+
+        std::string& BackSlashesToSlashes(std::string& string);
+        std::string& SlashesToBackSlashes(std::string& string);
+        std::string& RemoveSpaces(std::string& string);
+        std::string Demangle(const std::string& string);
 
         bool IsHiddenFile(const std::string& path);
 
@@ -55,10 +61,5 @@ namespace Lumos
         bool StringEquals(const std::string& string1, const std::string& string2);
         std::string StringReplace(std::string str, char ch1, char ch2);
         std::string StringReplace(std::string str, char ch);
-
-        std::string& BackSlashesToSlashes(std::string& string);
-        std::string& SlashesToBackSlashes(std::string& string);
-        std::string& RemoveSpaces(std::string& string);
-        std::string Demangle(const std::string& string);
     }
 }

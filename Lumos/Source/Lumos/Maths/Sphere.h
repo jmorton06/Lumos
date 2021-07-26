@@ -4,7 +4,6 @@
 namespace Lumos::Maths
 {
     class BoundingBox;
-    class Polyhedron;
     class Frustum;
 
     /// %Sphere in three-dimensional space.
@@ -46,12 +45,6 @@ namespace Lumos::Maths
             Define(frustum);
         }
 
-        /// Construct from a polyhedron.
-        explicit Sphere(const Polyhedron& poly) noexcept
-        {
-            Define(poly);
-        }
-
         /// Assign from another sphere.
         Sphere& operator=(const Sphere& rhs) noexcept = default;
 
@@ -80,8 +73,6 @@ namespace Lumos::Maths
         void Define(const BoundingBox& box);
         /// Define from a frustum.
         void Define(const Frustum& frustum);
-        /// Define from a polyhedron.
-        void Define(const Polyhedron& poly);
 
         /// Merge a point.
         void Merge(const Vector3& point)
@@ -110,8 +101,6 @@ namespace Lumos::Maths
         void Merge(const BoundingBox& box);
         /// Merge a frustum.
         void Merge(const Frustum& frustum);
-        /// Merge a polyhedron.
-        void Merge(const Polyhedron& poly);
         /// Merge a sphere.
         void Merge(const Sphere& sphere);
 

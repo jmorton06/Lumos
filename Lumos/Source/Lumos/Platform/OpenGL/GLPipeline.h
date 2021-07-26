@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Graphics/API/Pipeline.h"
+#include "Graphics/RHI/Pipeline.h"
 
 namespace Lumos
 {
@@ -12,10 +12,10 @@ namespace Lumos
         class GLPipeline : public Pipeline
         {
         public:
-            GLPipeline(const PipelineInfo& pipelineCreateInfo);
+            GLPipeline(const PipelineDesc& pipelineCreateInfo);
             ~GLPipeline();
 
-            bool Init(const PipelineInfo& pipelineCreateInfo);
+            bool Init(const PipelineDesc& pipelineCreateInfo);
             void Bind(Graphics::CommandBuffer* cmdBuffer) override;
             void BindVertexArray();
 
@@ -24,7 +24,7 @@ namespace Lumos
             static void MakeDefault();
 
         protected:
-            static Pipeline* CreateFuncGL(const PipelineInfo& pipelineCreateInfo);
+            static Pipeline* CreateFuncGL(const PipelineDesc& pipelineCreateInfo);
 
         private:
             Shader* m_Shader = nullptr;

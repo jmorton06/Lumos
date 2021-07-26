@@ -1,7 +1,7 @@
 #pragma once
-#include "Graphics/API/Texture.h"
+#include "Graphics/RHI/Texture.h"
 #include "VK.h"
-#include "Graphics/API/GraphicsContext.h"
+#include "Graphics/RHI/GraphicsContext.h"
 #include "VKContext.h"
 
 #ifdef USE_VMA_ALLOCATOR

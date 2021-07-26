@@ -75,7 +75,7 @@ namespace Lumos::Maths
             FromAngleAxis(angle, axis);
         }
 
-        /// Construct from an angle (in degrees, for Urho2D).
+        /// Construct from an angle in degrees
         explicit Quaternion(float angle) noexcept
         {
             FromAngleAxis(angle, Vector3::FORWARD);

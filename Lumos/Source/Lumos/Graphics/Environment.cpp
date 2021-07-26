@@ -1,7 +1,7 @@
 #include "Precompiled.h"
 #include "Environment.h"
 
-#include "API/Texture.h"
+#include "RHI/Texture.h"
 #include "Core/VFS.h"
 #include "Core/StringUtilities.h"
 
@@ -123,17 +123,17 @@ namespace Lumos
 
         void Environment::SetEnvironmnet(TextureCube* environmnet)
         {
-            m_Environmnet = Ref<TextureCube>(environmnet);
+            m_Environmnet = SharedRef<TextureCube>(environmnet);
         }
 
         void Environment::SetPrefilteredEnvironment(TextureCube* prefilteredEnvironment)
         {
-            m_PrefilteredEnvironment = Ref<TextureCube>(prefilteredEnvironment);
+            m_PrefilteredEnvironment = SharedRef<TextureCube>(prefilteredEnvironment);
         }
 
         void Environment::SetIrradianceMap(TextureCube* irradianceMap)
         {
-            m_IrradianceMap = Ref<TextureCube>(irradianceMap);
+            m_IrradianceMap = SharedRef<TextureCube>(irradianceMap);
         }
     }
 }

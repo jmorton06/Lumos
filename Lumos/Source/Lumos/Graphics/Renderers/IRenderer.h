@@ -4,9 +4,9 @@
 #include "Maths/Maths.h"
 #include "Maths/Transform.h"
 
-#include "Graphics/API/Framebuffer.h"
-#include "Graphics/API/RenderPass.h"
-#include "Graphics/API/Pipeline.h"
+#include "Graphics/RHI/Framebuffer.h"
+#include "Graphics/RHI/RenderPass.h"
+#include "Graphics/RHI/Pipeline.h"
 
 #define SCENE_DESCRIPTORSET_ID 0
 #define MATERIAL_DESCRIPTORSET_ID 1
@@ -62,7 +62,7 @@ namespace Lumos
                 return m_RenderTexture;
             }
 
-            const Ref<Shader>& GetShader() const
+            const SharedRef<Shader>& GetShader() const
             {
                 return m_Shader;
             }
@@ -97,12 +97,12 @@ namespace Lumos
             Camera* m_Camera = nullptr;
             Maths::Transform* m_CameraTransform = nullptr;
 
-            std::vector<Ref<Framebuffer>> m_Framebuffers;
-            Ref<Shader> m_Shader = nullptr;
+            std::vector<SharedRef<Framebuffer>> m_Framebuffers;
+            SharedRef<Shader> m_Shader = nullptr;
 
-            Ref<Lumos::Graphics::RenderPass> m_RenderPass;
-            Ref<Lumos::Graphics::Pipeline> m_Pipeline;
-            std::vector<Ref<Graphics::DescriptorSet>> m_DescriptorSet;
+            SharedRef<Lumos::Graphics::RenderPass> m_RenderPass;
+            SharedRef<Lumos::Graphics::Pipeline> m_Pipeline;
+            std::vector<SharedRef<Graphics::DescriptorSet>> m_DescriptorSet;
 
             std::vector<Graphics::DescriptorSet*> m_CurrentDescriptorSets;
 

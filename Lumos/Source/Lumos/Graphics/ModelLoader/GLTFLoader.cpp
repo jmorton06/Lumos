@@ -3,7 +3,7 @@
 #include "Graphics/Mesh.h"
 #include "Graphics/Material.h"
 
-#include "Graphics/API/Texture.h"
+#include "Graphics/RHI/Texture.h"
 #include "Maths/Maths.h"
 
 #include "Maths/Transform.h"
@@ -11,6 +11,7 @@
 #include "Core/StringUtilities.h"
 
 #define TINYGLTF_IMPLEMENTATION
+#define TINYGLTF_USE_CPP14
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 
 #ifdef LUMOS_DIST
@@ -95,10 +96,11 @@ namespace Lumos::Graphics
         }
     }
 
-    std::vector<Ref<Material>> LoadMaterials(tinygltf::Model& gltfModel)
+    std::vector<SharedRef<Material>> LoadMaterials(tinygltf::Model& gltfModel)
     {
-        std::vector<Ref<Graphics::Texture2D>> loadedTextures;
-        std::vector<Ref<Material>> loadedMaterials;
+        LUMOS_PROFILE_FUNCTION();
+        std::vector<SharedRef<Graphics::Texture2D>> loadedTextures;
+        std::vector<SharedRef<Material>> loadedMaterials;
         loadedTextures.reserve(gltfModel.textures.size());
         loadedMaterials.reserve(gltfModel.materials.size());
 
@@ -123,7 +125,7 @@ namespace Lumos::Graphics
                     params = Graphics::TextureParameters(GetFilter(imageAndSampler.Sampler->minFilter), GetFilter(imageAndSampler.Sampler->magFilter), GetWrapMode(imageAndSampler.Sampler->wrapS));
 
                 Graphics::Texture2D* texture2D = Graphics::Texture2D::CreateFromSource(imageAndSampler.Image->width, imageAndSampler.Image->height, imageAndSampler.Image->image.data(), params);
-                loadedTextures.push_back(Ref<Graphics::Texture2D>(texture2D ? texture2D : nullptr));
+                loadedTextures.push_back(SharedRef<Graphics::Texture2D>(texture2D ? texture2D : nullptr));
             }
         }
 
@@ -137,15 +139,15 @@ namespace Lumos::Graphics
                     return loadedTextures[tex.source];
                 }
             }
-            return Ref<Graphics::Texture2D>();
+            return SharedRef<Graphics::Texture2D>();
         };
 
         for(tinygltf::Material& mat : gltfModel.materials)
         {
             //TODO : if(isAnimated) Load deferredColourAnimated;
-            auto shader = Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/DeferredColour.shader");
+            auto shader = Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/ForwardPBR.shader");
 
-            Ref<Material> pbrMaterial = CreateRef<Material>(shader);
+            SharedRef<Material> pbrMaterial = CreateSharedRef<Material>(shader);
             PBRMataterialTextures textures;
             Graphics::MaterialProperties properties;
 
@@ -156,7 +158,10 @@ namespace Lumos::Graphics
             textures.emissive = TextureName(mat.emissiveTexture.index);
             textures.metallic = TextureName(pbr.metallicRoughnessTexture.index);
 
-            properties.workflow = PBR_WORKFLOW_METALLIC_ROUGHNESS;
+            if(textures.metallic)
+                properties.workflow = PBR_WORKFLOW_METALLIC_ROUGHNESS;
+            else
+                properties.workflow = PBR_WORKFLOW_SEPARATE_TEXTURES;
 
             // metallic-roughness workflow:
             auto baseColourFactor = mat.values.find("baseColorFactor");
@@ -192,6 +197,7 @@ namespace Lumos::Graphics
                 {
                     int index = metallicGlossinessWorkflow->second.Get("metallicGlossinessTexture").Get("index").Get<int>();
                     textures.roughness = loadedTextures[gltfModel.textures[index].source];
+                    properties.workflow = PBR_WORKFLOW_SPECULAR_GLOSINESS;
                 }
 
                 if(metallicGlossinessWorkflow->second.Has("diffuseFactor"))
@@ -229,7 +235,7 @@ namespace Lumos::Graphics
         return loadedMaterials;
     }
 
-    std::vector<Graphics::Mesh*> LoadMesh(tinygltf::Model& model, tinygltf::Mesh& mesh, std::vector<Ref<Material>>& materials, Maths::Transform& parentTransform)
+    std::vector<Graphics::Mesh*> LoadMesh(tinygltf::Model& model, tinygltf::Mesh& mesh, std::vector<SharedRef<Material>>& materials, Maths::Transform& parentTransform)
     {
         std::vector<Graphics::Mesh*> meshes;
 
@@ -279,7 +285,7 @@ namespace Lumos::Graphics
                     Maths::Vector3Simple* normals = reinterpret_cast<Maths::Vector3Simple*>(data.data());
                     for(auto p = 0; p < normalCount; ++p)
                     {
-                        vertices[p].Normal = parentTransform.GetWorldMatrix() * Maths::ToVector(normals[p]);
+                        vertices[p].Normal = (parentTransform.GetWorldMatrix().ToMatrix3().Inverse().Transpose() * Maths::ToVector(normals[p])).Normalised();
                     }
                 }
 
@@ -363,8 +369,9 @@ namespace Lumos::Graphics
         return meshes;
     }
 
-    void LoadNode(Model* mainModel, int nodeIndex, const Maths::Matrix4& parentTransform, tinygltf::Model& model, std::vector<Ref<Material>>& materials, std::vector<std::vector<Graphics::Mesh*>>& meshes)
+    void LoadNode(Model* mainModel, int nodeIndex, const Maths::Matrix4& parentTransform, tinygltf::Model& model, std::vector<SharedRef<Material>>& materials, std::vector<std::vector<Graphics::Mesh*>>& meshes)
     {
+        LUMOS_PROFILE_FUNCTION();
         if(nodeIndex < 0)
         {
             return;
@@ -415,7 +422,7 @@ namespace Lumos::Graphics
             for(auto& mesh : meshes)
             {
                 auto subname = node.name;
-                auto lMesh = Ref<Graphics::Mesh>(mesh);
+                auto lMesh = SharedRef<Graphics::Mesh>(mesh);
                 lMesh->SetName(subname);
 
                 int materialIndex = model.meshes[node.mesh].primitives[subIndex].material;
@@ -443,6 +450,7 @@ namespace Lumos::Graphics
 
     void Model::LoadGLTF(const std::string& path)
     {
+        LUMOS_PROFILE_FUNCTION();
         tinygltf::Model model;
         tinygltf::TinyGLTF loader;
         std::string err;
@@ -450,17 +458,19 @@ namespace Lumos::Graphics
 
         std::string ext = StringUtilities::GetFilePathExtension(path);
 
-        loader.SetImageLoader(tinygltf::LoadImageData, nullptr);
-        loader.SetImageWriter(tinygltf::WriteImageData, nullptr);
+        //loader.SetImageLoader(tinygltf::LoadImageData, nullptr);
+        //loader.SetImageWriter(tinygltf::WriteImageData, nullptr);
 
         bool ret;
 
         if(ext == "glb") // assume binary glTF.
         {
+            LUMOS_PROFILE_SCOPE(".glb binary loading");
             ret = tinygltf::TinyGLTF().LoadBinaryFromFile(&model, &err, &warn, path);
         }
         else // assume ascii glTF.
         {
+            LUMOS_PROFILE_SCOPE(".gltf loading");
             ret = tinygltf::TinyGLTF().LoadASCIIFromFile(&model, &err, &warn, path);
         }
 
@@ -478,16 +488,19 @@ namespace Lumos::Graphics
         {
             LUMOS_LOG_ERROR("Failed to parse glTF");
         }
-
-        auto LoadedMaterials = LoadMaterials(model);
-
-        std::string name = path.substr(path.find_last_of('/') + 1);
-
-        auto meshes = std::vector<std::vector<Graphics::Mesh*>>();
-        const tinygltf::Scene& gltfScene = model.scenes[Lumos::Maths::Max(0, model.defaultScene)];
-        for(size_t i = 0; i < gltfScene.nodes.size(); i++)
         {
-            LoadNode(this, gltfScene.nodes[i], Maths::Matrix4(), model, LoadedMaterials, meshes);
+            LUMOS_PROFILE_SCOPE("Parse GLTF Model");
+
+            auto LoadedMaterials = LoadMaterials(model);
+
+            std::string name = path.substr(path.find_last_of('/') + 1);
+
+            auto meshes = std::vector<std::vector<Graphics::Mesh*>>();
+            const tinygltf::Scene& gltfScene = model.scenes[Lumos::Maths::Max(0, model.defaultScene)];
+            for(size_t i = 0; i < gltfScene.nodes.size(); i++)
+            {
+                LoadNode(this, gltfScene.nodes[i], Maths::Matrix4(), model, LoadedMaterials, meshes);
+            }
         }
     }
 }

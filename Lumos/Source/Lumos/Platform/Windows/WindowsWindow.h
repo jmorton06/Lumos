@@ -13,7 +13,7 @@ namespace Lumos
     class LUMOS_EXPORT WindowsWindow : public Window
     {
     public:
-        WindowsWindow(const WindowProperties& properties);
+        WindowsWindow(const WindowDesc& properties);
         ~WindowsWindow();
 
         void ToggleVSync() override;
@@ -28,7 +28,7 @@ namespace Lumos
         void UpdateCursorImGui() override;
         void SetIcon(const std::string& filePath, const std::string& smallIconFilePath = "") override;
 
-        bool Init(const WindowProperties& properties);
+        bool Init(const WindowDesc& properties);
 
         inline std::string GetTitle() const override
         {
@@ -89,7 +89,7 @@ namespace Lumos
         static void MakeDefault();
 
     protected:
-        static Window* CreateFuncWindows(const WindowProperties& properties);
+        static Window* CreateFuncWindows(const WindowDesc& properties);
 
         HINSTANCE hInstance {};
         HDC hDc {};

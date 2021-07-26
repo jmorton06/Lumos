@@ -9,7 +9,7 @@
 #include "Maths/BoundingBox.h"
 #include "Maths/Sphere.h"
 #include "Maths/Frustum.h"
-#include "Maths/MathDefs.h"
+#include "Maths/MathsUtilities.h"
 #include "Core/LMLog.h"
 #include "Core/Core.h"
 

@@ -1,9 +1,9 @@
 #pragma once
 
-#include "Graphics/API/Pipeline.h"
+#include "Graphics/RHI/Pipeline.h"
 #include "Maths/Maths.h"
 #include "Core/OS/Window.h"
-#include "Graphics/API/Renderer.h"
+#include "Graphics/RHI/Renderer.h"
 #include "GLSwapchain.h"
 
 namespace Lumos

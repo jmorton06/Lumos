@@ -134,7 +134,7 @@ namespace Lumos
 {
     namespace Graphics
     {
-        GLContext::GLContext(const WindowProperties& properties, Window* window)
+        GLContext::GLContext(const WindowDesc& properties, Window* window)
         {
 
 #if defined(LUMOS_PLATFORM_WINDOWS) && !defined(LUMOS_USE_GLFW_WINDOWS)
@@ -145,7 +145,7 @@ namespace Lumos
 
             if(!wglMakeCurrent(hDc, tempContext))
             {
-                LUMOS_LOG_ERROR("Failed to initialize OpenGL context");
+                LUMOS_LOG_ERROR("Failed to initialise OpenGL context");
             }
 
             if(!gladLoadWGL(hDc))
@@ -184,7 +184,7 @@ namespace Lumos
 #else
             if(!gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress)))
             {
-                LUMOS_LOG_ERROR("Failed to initialize OpenGL context");
+                LUMOS_LOG_ERROR("Failed to initialise OpenGL context");
             }
 #endif
 
@@ -238,7 +238,7 @@ namespace Lumos
             CreateFunc = CreateFuncGL;
         }
 
-        GraphicsContext* GLContext::CreateFuncGL(const WindowProperties& properties, Window* cont)
+        GraphicsContext* GLContext::CreateFuncGL(const WindowDesc& properties, Window* cont)
         {
             return new GLContext(properties, cont);
         }

@@ -1,6 +1,6 @@
 #include "Precompiled.h"
 #include "GLRenderPass.h"
-#include "Graphics/API/Renderer.h"
+#include "Graphics/RHI/Renderer.h"
 #include "GLFramebuffer.h"
 #include "GLDebug.h"
 
@@ -8,7 +8,7 @@ namespace Lumos
 {
     namespace Graphics
     {
-        GLRenderPass::GLRenderPass(const RenderPassInfo& renderpassCI)
+        GLRenderPass::GLRenderPass(const RenderPassDesc& renderpassCI)
         {
             Init(renderpassCI);
         }
@@ -17,7 +17,7 @@ namespace Lumos
         {
         }
 
-        bool GLRenderPass::Init(const RenderPassInfo& renderpassCI)
+        bool GLRenderPass::Init(const RenderPassDesc& renderpassCI)
         {
             m_Clear = renderpassCI.clear;
             m_ClearCount = renderpassCI.attachmentCount;
@@ -54,7 +54,7 @@ namespace Lumos
             CreateFunc = CreateFuncGL;
         }
 
-        RenderPass* GLRenderPass::CreateFuncGL(const RenderPassInfo& renderpassCI)
+        RenderPass* GLRenderPass::CreateFuncGL(const RenderPassDesc& renderpassCI)
         {
             return new GLRenderPass(renderpassCI);
         }

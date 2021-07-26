@@ -26,11 +26,11 @@
 #include "Physics/LumosPhysicsEngine/RigidBody3D.h"
 
 //Graphics
-#include "Graphics/API/Texture.h"
-#include "Graphics/API/GraphicsContext.h"
-#include "Graphics/API/Framebuffer.h"
-#include "Graphics/API/Shader.h"
-#include "Graphics/API/IMGUIRenderer.h"
+#include "Graphics/RHI/Texture.h"
+#include "Graphics/RHI/GraphicsContext.h"
+#include "Graphics/RHI/Framebuffer.h"
+#include "Graphics/RHI/Shader.h"
+#include "Graphics/RHI/IMGUIRenderer.h"
 #include "Graphics/Mesh.h"
 #include "Graphics/Model.h"
 #include "Graphics/Material.h"
@@ -76,7 +76,7 @@
 //Utilities
 #include "Utilities/LoadImage.h"
 #include "Utilities/Timer.h"
-#include "Utilities/RandomNumberGenerator.h"
+#include "Maths/Random.h"
 #include "Utilities/TimeStep.h"
 
 #include "ImGui/ImGuiManager.h"

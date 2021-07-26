@@ -1,5 +1,5 @@
 #pragma once
-#include "Graphics/API/GraphicsContext.h"
+#include "Graphics/RHI/GraphicsContext.h"
 
 #include "VK.h"
 #include "Core/Reference.h"
@@ -26,7 +26,7 @@ namespace Lumos
         class VKContext : public GraphicsContext
         {
         public:
-            VKContext(const WindowProperties& properties, Window* window);
+            VKContext(const WindowDesc& properties, Window* window);
             ~VKContext();
 
             void Init() override;
@@ -60,12 +60,12 @@ namespace Lumos
             const std::vector<const char*>& GetLayerNames() const { return m_InstanceLayerNames; }
             const std::vector<const char*>& GetExtensionNames() const { return m_InstanceExtensionNames; }
 
-            const Ref<Lumos::Graphics::VKSwapchain>& GetSwapchain() const { return m_Swapchain; }
+            const SharedRef<Lumos::Graphics::VKSwapchain>& GetSwapchain() const { return m_Swapchain; }
 
             static void MakeDefault();
 
         protected:
-            static GraphicsContext* CreateFuncVulkan(const WindowProperties&, Window*);
+            static GraphicsContext* CreateFuncVulkan(const WindowDesc&, Window*);
 
             void CreateInstance();
             void SetupDebugCallback();
@@ -89,7 +89,7 @@ namespace Lumos
             std::vector<const char*> m_InstanceLayerNames;
             std::vector<const char*> m_InstanceExtensionNames;
 
-            Ref<Lumos::Graphics::VKSwapchain> m_Swapchain;
+            SharedRef<Lumos::Graphics::VKSwapchain> m_Swapchain;
 
             uint32_t m_Width, m_Height;
             bool m_VSync;
