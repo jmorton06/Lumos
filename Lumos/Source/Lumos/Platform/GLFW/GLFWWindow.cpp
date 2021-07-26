@@ -5,7 +5,7 @@
 #endif
 
 #include "GLFWWindow.h"
-#include "Graphics/API/GraphicsContext.h"
+#include "Graphics/RHI/GraphicsContext.h"
 #include "Utilities/LoadImage.h"
 
 #include "GLFWKeyCodes.h"
@@ -33,8 +33,9 @@ namespace Lumos
         LUMOS_LOG_ERROR("GLFW Error - {0} : {1}", error, description);
     }
 
-    GLFWWindow::GLFWWindow(const WindowProperties& properties)
+    GLFWWindow::GLFWWindow(const WindowDesc& properties)
     {
+        LUMOS_PROFILE_FUNCTION();
         m_Init = false;
         m_VSync = properties.VSync;
 
@@ -75,7 +76,7 @@ namespace Lumos
         }
     }
 
-    bool GLFWWindow::Init(const WindowProperties& properties)
+    bool GLFWWindow::Init(const WindowDesc& properties)
     {
         LUMOS_PROFILE_FUNCTION();
         LUMOS_LOG_INFO("Creating window - Title : {0}, Width : {1}, Height : {2}", properties.Title, properties.Width, properties.Height);
@@ -426,7 +427,7 @@ namespace Lumos
         CreateFunc = CreateFuncGLFW;
     }
 
-    Window* GLFWWindow::CreateFuncGLFW(const WindowProperties& properties)
+    Window* GLFWWindow::CreateFuncGLFW(const WindowDesc& properties)
     {
         return new GLFWWindow(properties);
     }

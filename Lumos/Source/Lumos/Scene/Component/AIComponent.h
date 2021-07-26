@@ -8,11 +8,11 @@ namespace Lumos
     {
     public:
         AIComponent();
-        explicit AIComponent(Ref<AINode>& aiNode);
+        explicit AIComponent(SharedRef<AINode>& aiNode);
 
         void OnImGui();
 
     private:
-        Ref<AINode> m_AINode;
+        SharedRef<AINode> m_AINode;
     };
 }

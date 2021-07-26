@@ -1,9 +1,7 @@
 #pragma once
 
-#include "Graphics/API/Shader.h"
+#include "Graphics/RHI/Shader.h"
 #include "GLDebug.h"
-#include "GLShaderUniform.h"
-#include "GLShaderResource.h"
 #include "GLUniformBuffer.h"
 
 #include <spirv_glsl.hpp>
@@ -97,7 +95,7 @@ namespace Lumos
                     return m_DescriptorInfos[index];
                 }
 
-                LUMOS_LOG_WARN("DescriptorInfo not found. Index = {0}", index);
+                LUMOS_LOG_WARN("DescriptorDesc not found. Index = {0}", index);
                 return DescriptorSetInfo();
             }
 

@@ -98,7 +98,7 @@ namespace Lumos
     protected:
         Maths::Vector3 m_CuboidHalfDimensions;
 
-        static Ref<Hull> m_CubeHull;
+        static SharedRef<Hull> m_CubeHull;
     };
 
 }

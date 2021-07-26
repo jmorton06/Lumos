@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Graphics/API/IMGUIRenderer.h"
+#include "Graphics/RHI/IMGUIRenderer.h"
 
 namespace Lumos
 {

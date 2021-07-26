@@ -3,7 +3,7 @@
 #include "Core/OS/Input.h"
 #include "Core/OS/Window.h"
 #include "Core/Application.h"
-#include "Graphics/API/IMGUIRenderer.h"
+#include "Graphics/RHI/IMGUIRenderer.h"
 #include "Core/VFS.h"
 #include "ImGuiHelpers.h"
 
@@ -21,7 +21,7 @@ namespace Lumos
     ImGuiManager::ImGuiManager(bool clearScreen)
     {
         m_ClearScreen = clearScreen;
-        m_FontSize = 18.0f;
+        m_FontSize = 16.0f;
 
 #ifdef LUMOS_PLATFORM_IOS
         m_FontSize *= 2.0f;

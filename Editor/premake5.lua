@@ -207,12 +207,12 @@ project "LumosEditor"
 			"../Resources/AppIcons/Assets.xcassets",
 			"../Lumos/Assets/Shaders",
 			"../Lumos/Source/Lumos/Platform/iOS/Client/**",
-            "../Sandbox/Assets/Scenes",
-	"../Sandbox/Assets/Scripts",
-	"../Sandbox/Assets/Meshes",
-	"../Sandbox/Assets/Sounds",
-	"../Sandbox/Assets/Textures",
-	"../Sandbox/Sandbox.lmproj"
+            "../ExampleProject/Assets/Scenes",
+	"../ExampleProject/Assets/Scripts",
+	"../ExampleProject/Assets/Meshes",
+	"../ExampleProject/Assets/Sounds",
+	"../ExampleProject/Assets/Textures",
+	"../Runtime/Runtime.lmproj"
 		}
 
 		xcodebuildsettings
@@ -261,7 +261,7 @@ project "LumosEditor"
             "Scripts",
             "Sounds",
 	"Textures",
-	"Sandbox.lmproj"
+	"Runtime.lmproj"
 }
 
 		SetRecommendedXcodeSettings()
@@ -308,13 +308,13 @@ project "LumosEditor"
 			}
 
 	filter "configurations:Debug"
-		defines { "LUMOS_DEBUG", "_DEBUG" }
+defines { "LUMOS_DEBUG", "_DEBUG","TRACY_ENABLE","LUMOS_PROFILE","TRACY_ON_DEMAND" }
 		symbols "On"
 		runtime "Debug"
 		optimize "Off"
 
 	filter "configurations:Release"
-		defines { "LUMOS_RELEASE",}
+defines { "LUMOS_RELEASE","TRACY_ENABLE","LUMOS_PROFILE","TRACY_ON_DEMAND"}
 		optimize "Speed"
 		symbols "On"
 		runtime "Release"

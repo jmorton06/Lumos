@@ -47,7 +47,7 @@ public:
 
 private:
     const int open_tries_ = 5;
-    const int open_interval_ = 10;
+    const unsigned int open_interval_ = 10;
     std::FILE *fd_{nullptr};
     filename_t filename_;
 };
@@ -55,5 +55,5 @@ private:
 } // namespace spdlog
 
 #ifdef SPDLOG_HEADER_ONLY
-#include "file_helper-inl.h"
+#    include "file_helper-inl.h"
 #endif

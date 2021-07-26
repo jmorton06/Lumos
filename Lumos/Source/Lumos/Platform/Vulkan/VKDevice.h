@@ -88,7 +88,7 @@ namespace Lumos
             {
                 return m_PhysicalDevice->GetVulkanPhysicalDevice();
             };
-            const Ref<VKPhysicalDevice>& GetPhysicalDevice() const
+            const SharedRef<VKPhysicalDevice>& GetPhysicalDevice() const
             {
                 return m_PhysicalDevice;
             }
@@ -102,7 +102,7 @@ namespace Lumos
                 return m_PresentQueue;
             };
 
-            const Ref<VKCommandPool>& GetCommandPool() const
+            const SharedRef<VKCommandPool>& GetCommandPool() const
             {
                 return m_CommandPool;
             }
@@ -140,8 +140,8 @@ namespace Lumos
             VkDescriptorPool m_DescriptorPool;
             VkPhysicalDeviceFeatures m_EnabledFeatures;
 
-            Ref<VKCommandPool> m_CommandPool;
-            Ref<VKPhysicalDevice> m_PhysicalDevice;
+            SharedRef<VKCommandPool> m_CommandPool;
+            SharedRef<VKPhysicalDevice> m_PhysicalDevice;
 
             bool m_EnableDebugMarkers = false;
 

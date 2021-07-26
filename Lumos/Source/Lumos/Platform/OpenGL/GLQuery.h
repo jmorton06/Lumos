@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Graphics/API/Query.h"
+#include "Graphics/RHI/Query.h"
 
 namespace Lumos
 {

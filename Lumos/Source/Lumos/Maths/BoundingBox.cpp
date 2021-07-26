@@ -1,7 +1,6 @@
 #include "Precompiled.h"
 
 #include "Maths/Frustum.h"
-#include "Maths/Polyhedron.h"
 #include "Maths/Matrix4.h"
 
 namespace Lumos::Maths
@@ -22,12 +21,6 @@ namespace Lumos::Maths
         Define(frustum.vertices_, NUM_FRUSTUM_VERTICES);
     }
 
-    void BoundingBox::Define(const Polyhedron& poly)
-    {
-        Clear();
-        Merge(poly);
-    }
-
     void BoundingBox::Define(const Sphere& sphere)
     {
         const Vector3& center = sphere.center_;
@@ -46,16 +39,6 @@ namespace Lumos::Maths
     void BoundingBox::Merge(const Frustum& frustum)
     {
         Merge(frustum.vertices_, NUM_FRUSTUM_VERTICES);
-    }
-
-    void BoundingBox::Merge(const Polyhedron& poly)
-    {
-        for(unsigned i = 0; i < poly.faces_.size(); ++i)
-        {
-            const std::vector<Vector3>& face = poly.faces_[i];
-            if(!face.empty())
-                Merge(&face[0], (uint32_t)face.size());
-        }
     }
 
     void BoundingBox::Merge(const Sphere& sphere)
@@ -91,12 +74,7 @@ namespace Lumos::Maths
 
     void BoundingBox::Transform(const Matrix3& transform)
     {
-        *this = Transformed(Matrix3x4(transform));
-    }
-
-    void BoundingBox::Transform(const Matrix3x4& transform)
-    {
-        *this = Transformed(transform);
+        *this = Transformed(Matrix4(transform));
     }
 
     void BoundingBox::Transform(const Matrix4& transform)
@@ -106,15 +84,10 @@ namespace Lumos::Maths
 
     BoundingBox BoundingBox::Transformed(const Matrix3& transform) const
     {
-        return Transformed(Matrix3x4(transform));
+        return Transformed(Matrix4(transform));
     }
 
     BoundingBox BoundingBox::Transformed(const Matrix4& transform) const
-    {
-        return Transformed(Matrix3x4(transform));
-    }
-
-    BoundingBox BoundingBox::Transformed(const Matrix3x4& transform) const
     {
         LUMOS_PROFILE_FUNCTION();
 #ifdef LUMOS_SSE

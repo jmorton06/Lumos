@@ -2,7 +2,7 @@
 #include "Scene.h"
 #include "Core/OS/Input.h"
 #include "Core/Application.h"
-#include "Graphics/API/GraphicsContext.h"
+#include "Graphics/RHI/GraphicsContext.h"
 #include "Graphics/Renderers/RenderGraph.h"
 #include "Graphics/Camera/Camera.h"
 #include "Graphics/Sprite.h"
@@ -41,8 +41,8 @@
 
 namespace Lumos
 {
-    Scene::Scene(const std::string& friendly_name)
-        : m_SceneName(friendly_name)
+    Scene::Scene(const std::string& name)
+        : m_SceneName(name)
         , m_ScreenWidth(0)
         , m_ScreenHeight(0)
     {
@@ -78,7 +78,7 @@ namespace Lumos
         //Default physics setup
         Application::Get().GetSystem<LumosPhysicsEngine>()->SetDampingFactor(0.999f);
         Application::Get().GetSystem<LumosPhysicsEngine>()->SetIntegrationType(IntegrationType::RUNGE_KUTTA_4);
-        Application::Get().GetSystem<LumosPhysicsEngine>()->SetBroadphase(Lumos::CreateRef<OctreeBroadphase>(5, 5, Lumos::CreateRef<SortAndSweepBroadphase>()));
+        Application::Get().GetSystem<LumosPhysicsEngine>()->SetBroadphase(Lumos::CreateSharedRef<OctreeBroadphase>(5, 5, Lumos::CreateSharedRef<SortAndSweepBroadphase>()));
 
         LuaManager::Get().OnInit(this);
     }
@@ -230,17 +230,25 @@ namespace Lumos
                 return;
             }
 
-            std::ifstream file(path, std::ios::binary);
-            cereal::BinaryInputArchive input(file);
-            input(*this);
-            if(m_SceneSerialisationVersion < 2)
-                entt::snapshot_loader { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV1>(input);
-            else if(m_SceneSerialisationVersion == 3)
-                entt::snapshot_loader { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV2>(input);
-            else if(m_SceneSerialisationVersion == 4)
-                entt::snapshot_loader { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV3>(input);
-            else if(m_SceneSerialisationVersion == 5)
-                entt::snapshot_loader { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV4>(input);
+            try
+            {
+                std::ifstream file(path, std::ios::binary);
+                cereal::BinaryInputArchive input(file);
+                input(*this);
+                if(m_SceneSerialisationVersion < 2)
+                    entt::snapshot_loader { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV1>(input);
+                else if(m_SceneSerialisationVersion == 3)
+                    entt::snapshot_loader { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV2>(input);
+                else if(m_SceneSerialisationVersion == 4)
+                    entt::snapshot_loader { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV3>(input);
+                else if(m_SceneSerialisationVersion == 5)
+                    entt::snapshot_loader { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV4>(input);
+            }
+            catch (...)
+            {
+                LUMOS_LOG_ERROR("Failed to load scene - {0}", path);
+
+            }
         }
         else
         {
@@ -251,20 +259,28 @@ namespace Lumos
                 LUMOS_LOG_ERROR("No saved scene file found {0}", path);
                 return;
             }
-            std::string data = FileSystem::ReadTextFile(path);
-            std::istringstream istr;
-            istr.str(data);
-            cereal::JSONInputArchive input(istr);
-            input(*this);
+            try
+            {
+                std::string data = FileSystem::ReadTextFile(path);
+                std::istringstream istr;
+                istr.str(data);
+                cereal::JSONInputArchive input(istr);
+                input(*this);
 
-            if(m_SceneSerialisationVersion < 2)
-                entt::snapshot_loader { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV1>(input);
-            else if(m_SceneSerialisationVersion == 3)
-                entt::snapshot_loader { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV2>(input);
-            else if(m_SceneSerialisationVersion == 4)
-                entt::snapshot_loader { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV3>(input);
-            else if(m_SceneSerialisationVersion == 5)
-                entt::snapshot_loader { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV4>(input);
+                if(m_SceneSerialisationVersion < 2)
+                    entt::snapshot_loader { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV1>(input);
+                else if(m_SceneSerialisationVersion == 3)
+                    entt::snapshot_loader { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV2>(input);
+                else if(m_SceneSerialisationVersion == 4)
+                    entt::snapshot_loader { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV3>(input);
+                else if(m_SceneSerialisationVersion == 5)
+                    entt::snapshot_loader { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV4>(input);
+            }
+            catch (...)
+            {
+                LUMOS_LOG_ERROR("Failed to load scene - {0}", path);
+
+            }
         }
 
         m_SceneGraph->DisableOnConstruct(false, m_EntityManager->GetRegistry());

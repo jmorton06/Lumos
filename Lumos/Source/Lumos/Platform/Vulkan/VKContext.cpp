@@ -95,7 +95,7 @@ namespace Lumos
             }
         }
 
-        VKContext::VKContext(const WindowProperties& properties, Window* window)
+        VKContext::VKContext(const WindowDesc& properties, Window* window)
             : m_VkInstance(nullptr)
         {
             m_Window = window;
@@ -119,7 +119,7 @@ namespace Lumos
 
             VKDevice::Get().Init();
 
-            m_Swapchain = CreateRef<VKSwapchain>(m_Width, m_Height);
+            m_Swapchain = CreateSharedRef<VKSwapchain>(m_Width, m_Height);
             m_Swapchain->Init(m_VSync, m_Window);
             //m_Swapchain->AcquireNextImage();
 
@@ -268,7 +268,7 @@ namespace Lumos
 #endif
 
             VkApplicationInfo appInfo = {};
-            appInfo.pApplicationName = "Sandbox";
+            appInfo.pApplicationName = "Runtime";
             appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
             appInfo.pEngineName = "Lumos";
             appInfo.engineVersion = VK_MAKE_VERSION(LumosVersion.major, LumosVersion.minor, LumosVersion.patch);
@@ -336,7 +336,7 @@ namespace Lumos
             CreateFunc = CreateFuncVulkan;
         }
 
-        GraphicsContext* VKContext::CreateFuncVulkan(const WindowProperties& properties, Window* win)
+        GraphicsContext* VKContext::CreateFuncVulkan(const WindowDesc& properties, Window* win)
         {
             return new VKContext(properties, win);
         }

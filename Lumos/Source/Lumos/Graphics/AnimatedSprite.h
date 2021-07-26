@@ -33,7 +33,7 @@ namespace Lumos::Graphics
 
         AnimatedSprite();
 
-        AnimatedSprite(const Ref<Texture2D>& texture, const Maths::Vector2& position, const Maths::Vector2& scale, const std::vector<Maths::Vector2>& frames, float frameDuration, const std::string& stateName);
+        AnimatedSprite(const SharedRef<Texture2D>& texture, const Maths::Vector2& position, const Maths::Vector2& scale, const std::vector<Maths::Vector2>& frames, float frameDuration, const std::string& stateName);
         virtual ~AnimatedSprite() = default;
 
         void OnUpdate(float dt);
@@ -68,7 +68,7 @@ namespace Lumos::Graphics
                 cereal::make_nvp("State", m_State));
 
             if(!textureFilePath.empty())
-                m_Texture = Ref<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile("sprite", textureFilePath));
+                m_Texture = SharedRef<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile("sprite", textureFilePath));
 
             SetState(m_State);
         }

@@ -433,11 +433,13 @@ namespace Lumos::Maths
         return false;
     }
 
-    Ray Ray::Transformed(const Matrix3x4& transform) const
+    Ray Ray::Transformed(const Matrix4& transform) const
     {
         Ray ret;
         ret.origin_ = transform * origin_;
-        ret.direction_ = transform * Vector4(direction_, 0.0f);
+        
+        Maths::Vector4 direction4 = transform * Vector4(direction_, 0.0f);
+        ret.direction_ = Vector3(direction4.x,direction4.y,direction4.z);
         return ret;
     }
 }

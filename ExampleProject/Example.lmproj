@@ -1,0 +1,19 @@
+{
+    "value0": {
+        "Project Version": 5,
+        "RenderAPI": 1,
+        "Width": 1440,
+        "Height": 847,
+        "Fullscreen": true,
+        "VSync": true,
+        "ShowConsole": false,
+        "Title": "Example",
+        "Scenes": [
+            "/Scenes/2D.lsn",
+            "/Scenes/Physics.lsn",
+            "/Scenes/Terrain.lsn"
+        ],
+        "SceneIndex": 1,
+        "Borderless": false
+    }
+}

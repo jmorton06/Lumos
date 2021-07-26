@@ -529,10 +529,10 @@ namespace Lumos
 #ifdef CUSTOM_SMART_PTR
 
     template <class T>
-    using Ref = Reference<T>;
+    using SharedRef = Reference<T>;
 
     template <typename T, typename... Args>
-    Ref<T> CreateRef(Args&&... args)
+    SharedRef<T> CreateSharedRef(Args&&... args)
     {
         auto ptr = new T(std::forward<Args>(args)...);
 
@@ -553,10 +553,10 @@ namespace Lumos
     using WeakRef = WeakReference<T>;
 #else
     template <class T>
-    using Ref = std::shared_ptr<T>;
+    using SharedRef = std::shared_ptr<T>;
 
     template <typename T, typename... Args>
-    Ref<T> CreateRef(Args&&... args)
+    SharedRef<T> CreateSharedRef(Args&&... args)
     {
         return std::make_shared<T>(std::forward<Args>(args)...);
     }

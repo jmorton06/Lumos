@@ -2,7 +2,7 @@
 #include "VKCommandBuffer.h"
 #include "VKRenderpass.h"
 #include "VKFramebuffer.h"
-#include "Graphics/API/Swapchain.h"
+#include "Graphics/RHI/Swapchain.h"
 
 #define MAX_SWAPCHAIN_BUFFERS 3
 namespace Lumos
@@ -16,9 +16,9 @@ namespace Lumos
         {
             VkSemaphore PresentSemaphore = VK_NULL_HANDLE, RenderSemaphore = VK_NULL_HANDLE;
 
-            Ref<VKFence> RenderFence;
-            Ref<VKCommandPool> CommandPool;
-            Ref<VKCommandBuffer> MainCommandBuffer;
+            SharedRef<VKFence> RenderFence;
+            SharedRef<VKCommandPool> CommandPool;
+            SharedRef<VKCommandBuffer> MainCommandBuffer;
         };
 
         class Texture2D;

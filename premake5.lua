@@ -22,7 +22,7 @@ end
 
 workspace( settings.workspace_name )
 location "build"
-startproject "Sandbox"
+startproject "Runtime"
 	flags 'MultiProcessorCompile'
 	
 	outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
@@ -70,5 +70,5 @@ startproject "Sandbox"
 	group ""
 
 	include "Lumos/premake5"
-	include "Sandbox/premake5"
+	include "Runtime/premake5"
 	include "Editor/premake5"

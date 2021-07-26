@@ -1,7 +1,7 @@
 #pragma once
 
 #include "VKBuffer.h"
-#include "Graphics/API/IndexBuffer.h"
+#include "Graphics/RHI/IndexBuffer.h"
 
 namespace Lumos
 {

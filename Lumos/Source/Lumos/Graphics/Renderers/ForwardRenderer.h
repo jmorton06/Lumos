@@ -11,6 +11,7 @@ namespace Lumos
     {
         class DescriptorSet;
         class TextureDepth;
+        class Material;
 
         class LUMOS_EXPORT ForwardRenderer : public IRenderer
         {
@@ -22,10 +23,9 @@ namespace Lumos
             void Init() override;
             void Begin() override;
             void BeginScene(Scene* scene, Camera* overrideCamera, Maths::Transform* overrideCameraTransform) override;
-
-            void BeginScene(const Maths::Matrix4& proj, const Maths::Matrix4& view);
             void Submit(const RenderCommand& command) override;
             void SubmitMesh(Mesh* mesh, Material* material, const Maths::Matrix4& transform, const Maths::Matrix4& textureMatrix) override;
+            void SubmitLightSetup(Scene* scene);
             void EndScene() override;
             void End() override;
             void Present() override;
@@ -38,8 +38,7 @@ namespace Lumos
 
             struct UniformBufferObject
             {
-                Lumos::Maths::Matrix4 proj;
-                Lumos::Maths::Matrix4 view;
+                Lumos::Maths::Matrix4 projview;
             };
 
             struct UniformBufferModel
@@ -48,18 +47,29 @@ namespace Lumos
             };
 
             void SetSystemUniforms(Shader* shader) const;
-
+            void UpdateScreenDescriptorSet();
+            
         private:
             Texture2D* m_DefaultTexture;
+            Material* m_DefaultMaterial;
 
             UniformBuffer* m_UniformBuffer;
-            UniformBuffer* m_ModelUniformBuffer;
+            UniformBuffer* m_LightUniformBuffer;
+            UniqueRef<Texture2D> m_PreintegratedFG;
 
             std::vector<Lumos::Graphics::CommandBuffer*> m_CommandBuffers;
 
-            size_t m_DynamicAlignment;
-            UniformBufferModel m_UBODataDynamic;
+            int m_RenderMode = 0;
+            
+            Maths::Matrix4 m_BiasMatrix;
 
+            Texture* m_EnvironmentMap = nullptr;
+            Texture* m_IrradianceMap = nullptr;
+            
+            uint8_t* m_PSSceneUniformBuffer = nullptr;
+            std::vector<uint32_t> m_PSSceneUniformBufferOffsets;
+
+            uint32_t m_PSSceneUniformBufferSize = 0;
             uint32_t m_CurrentBufferID = 0;
             bool m_DepthTest = false;
         };

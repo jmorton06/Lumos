@@ -1,6 +1,5 @@
 #include "Precompiled.h"
 #include "Maths/Frustum.h"
-#include "Maths/Polyhedron.h"
 
 namespace Lumos::Maths
 {
@@ -34,12 +33,6 @@ namespace Lumos::Maths
         Define(frustum.vertices_, NUM_FRUSTUM_VERTICES);
     }
 
-    void Sphere::Define(const Polyhedron& poly)
-    {
-        Clear();
-        Merge(poly);
-    }
-
     void Sphere::Merge(const Vector3* vertices, unsigned count)
     {
         while(count--)
@@ -65,16 +58,6 @@ namespace Lumos::Maths
     {
         const Vector3* vertices = frustum.vertices_;
         Merge(vertices, NUM_FRUSTUM_VERTICES);
-    }
-
-    void Sphere::Merge(const Polyhedron& poly)
-    {
-        for(unsigned i = 0; i < poly.faces_.size(); ++i)
-        {
-            const std::vector<Vector3>& face = poly.faces_[i];
-            if(!face.empty())
-                Merge(&face[0], (uint32_t)face.size());
-        }
     }
 
     void Sphere::Merge(const Sphere& sphere)

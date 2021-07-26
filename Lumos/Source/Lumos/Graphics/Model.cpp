@@ -13,7 +13,7 @@ namespace Lumos::Graphics
         LoadModel(m_FilePath);
     }
 
-    Model::Model(const Ref<Mesh>& mesh, PrimitiveType type)
+    Model::Model(const SharedRef<Mesh>& mesh, PrimitiveType type)
         : m_FilePath("Primitive")
         , m_PrimitiveType(type)
     {
@@ -24,11 +24,12 @@ namespace Lumos::Graphics
         : m_FilePath("Primitive")
         , m_PrimitiveType(type)
     {
-        m_Meshes.push_back(Ref<Mesh>(CreatePrimative(type)));
+        m_Meshes.push_back(SharedRef<Mesh>(CreatePrimative(type)));
     }
 
     void Model::LoadModel(const std::string& path)
     {
+        LUMOS_PROFILE_FUNCTION();
         std::string physicalPath;
         if(!Lumos::VFS::Get()->ResolvePhysicalPath(path, physicalPath))
         {

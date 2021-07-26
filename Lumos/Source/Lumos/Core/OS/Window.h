@@ -5,9 +5,9 @@
 
 namespace Lumos
 {
-    struct LUMOS_EXPORT WindowProperties
+    struct LUMOS_EXPORT WindowDesc
     {
-        WindowProperties(uint32_t width = 1280, uint32_t height = 720, int renderAPI = 0, const std::string& title = "Lumos", bool fullscreen = false, bool vSync = true, bool borderless = false, const std::string& filepath = "")
+        WindowDesc(uint32_t width = 1280, uint32_t height = 720, int renderAPI = 0, const std::string& title = "Lumos", bool fullscreen = false, bool vSync = true, bool borderless = false, const std::string& filepath = "")
             : Width(width)
             , Height(height)
             , Title(title)
@@ -34,9 +34,9 @@ namespace Lumos
     public:
         using EventCallbackFn = std::function<void(Event&)>;
 
-        static Window* Create(const WindowProperties& properties);
+        static Window* Create(const WindowDesc& properties);
         virtual ~Window() = default;
-        bool Initialise(const WindowProperties& properties);
+        bool Initialise(const WindowDesc& properties);
 
         bool HasInitialised() const
         {
@@ -78,7 +78,7 @@ namespace Lumos
         virtual float GetDPIScale() const { return 1.0f; }
 
     protected:
-        static Window* (*CreateFunc)(const WindowProperties&);
+        static Window* (*CreateFunc)(const WindowDesc&);
 
         Window() = default;
 

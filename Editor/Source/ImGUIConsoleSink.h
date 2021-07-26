@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ConsoleWindow.h"
+#include "ConsolePanel.h"
 #include <spdlog/sinks/base_sink.h>
 
 namespace Lumos
@@ -21,33 +21,33 @@ namespace Lumos
             spdlog::memory_buf_t formatted;
             spdlog::sinks::base_sink<Mutex>::formatter_->format(msg, formatted);
             std::string source = fmt::format("File : {0} | Function : {1} | Line : {2}", msg.source.filename, msg.source.funcname, msg.source.line);
-            auto message = CreateRef<ConsoleWindow::Message>(fmt::to_string(formatted), GetMessageLevel(msg.level), source, static_cast<int>(msg.thread_id));
-            ConsoleWindow::AddMessage(message);
+            auto message = CreateSharedRef<ConsolePanel::Message>(fmt::to_string(formatted), GetMessageLevel(msg.level), source, static_cast<int>(msg.thread_id));
+            ConsolePanel::AddMessage(message);
         }
 
-        static ConsoleWindow::Message::Level GetMessageLevel(const spdlog::level::level_enum level)
+        static ConsolePanel::Message::Level GetMessageLevel(const spdlog::level::level_enum level)
         {
             switch(level)
             {
             case spdlog::level::level_enum::trace:
-                return ConsoleWindow::Message::Level::Trace;
+                return ConsolePanel::Message::Level::Trace;
             case spdlog::level::level_enum::debug:
-                return ConsoleWindow::Message::Level::Debug;
+                return ConsolePanel::Message::Level::Debug;
             case spdlog::level::level_enum::info:
-                return ConsoleWindow::Message::Level::Info;
+                return ConsolePanel::Message::Level::Info;
             case spdlog::level::level_enum::warn:
-                return ConsoleWindow::Message::Level::Warn;
+                return ConsolePanel::Message::Level::Warn;
             case spdlog::level::level_enum::err:
-                return ConsoleWindow::Message::Level::Error;
+                return ConsolePanel::Message::Level::Error;
             case spdlog::level::level_enum::critical:
-                return ConsoleWindow::Message::Level::Critical;
+                return ConsolePanel::Message::Level::Critical;
             }
-            return ConsoleWindow::Message::Level::Trace;
+            return ConsolePanel::Message::Level::Trace;
         }
 
         void flush_() override
         {
-            ConsoleWindow::Flush();
+            ConsolePanel::Flush();
         };
     };
 }

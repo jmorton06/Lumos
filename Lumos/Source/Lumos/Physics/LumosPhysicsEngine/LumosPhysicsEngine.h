@@ -88,11 +88,11 @@ namespace Lumos
             return s_UpdateTimestep;
         }
 
-        Ref<Broadphase> GetBroadphase() const
+        SharedRef<Broadphase> GetBroadphase() const
         {
             return m_BroadphaseDetection;
         }
-        inline void SetBroadphase(const Ref<Broadphase>& bp)
+        inline void SetBroadphase(const SharedRef<Broadphase>& bp)
         {
             m_BroadphaseDetection = bp;
         }
@@ -159,7 +159,7 @@ namespace Lumos
         std::vector<Manifold> m_Manifolds; // Contact constraints between pairs of objects
         std::mutex m_ManifoldsMutex;
 
-        Ref<Broadphase> m_BroadphaseDetection;
+        SharedRef<Broadphase> m_BroadphaseDetection;
         IntegrationType m_IntegrationType;
 
         uint32_t m_DebugDrawFlags = 0;

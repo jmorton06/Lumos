@@ -9,7 +9,7 @@ namespace Lumos
 {
     class Timer;
     class Window;
-    struct WindowProperties;
+    struct WindowDesc;
     class AudioManager;
     class SystemManager;
     class Editor;
@@ -54,9 +54,10 @@ namespace Lumos
     class LUMOS_EXPORT Application
     {
         friend class Editor;
+        friend class Runtime;
 
     public:
-        Application(const std::string& projectRoot, const std::string& projectName);
+        Application();
         virtual ~Application();
 
         void Run();
@@ -65,8 +66,9 @@ namespace Lumos
         void OnExitScene();
         void OnSceneViewSizeUpdated(uint32_t width, uint32_t height);
         void OpenProject(const std::string& filePath);
+        void OpenNewProject(const std::string& path);
 
-        virtual void Quit();
+        virtual void OnQuit();
         virtual void Init();
         virtual void OnEvent(Event& e);
         virtual void OnNewScene(Scene* scene);
@@ -130,7 +132,7 @@ namespace Lumos
         Maths::Vector2 GetWindowSize() const;
         float GetWindowDPI() const;
 
-        Ref<ShaderLibrary>& GetShaderLibrary();
+        SharedRef<ShaderLibrary>& GetShaderLibrary();
 
         static Application& Get()
         {
@@ -169,8 +171,8 @@ namespace Lumos
 
         void EmbedTexture(const std::string& texFilePath, const std::string& outPath, const std::string& arrayName);
 
-        virtual void Serialise(const std::string& filePath);
-        virtual void Deserialise(const std::string& filePath);
+        virtual void Serialise();
+        virtual void Deserialise();
 
         template <typename Archive>
         void save(Archive& archive) const
@@ -189,14 +191,15 @@ namespace Lumos
 
             //Version 1
 
+            std::string path;
+
             archive(cereal::make_nvp("RenderAPI", RenderAPI),
                 cereal::make_nvp("Width", (int)windowSize.x),
                 cereal::make_nvp("Height", (int)windowSize.y),
                 cereal::make_nvp("Fullscreen", Fullscreen),
                 cereal::make_nvp("VSync", VSync),
                 cereal::make_nvp("ShowConsole", ShowConsole),
-                cereal::make_nvp("Title", Title),
-                cereal::make_nvp("FilePath", FilePath));
+                cereal::make_nvp("Title", Title));
             //Version 2
 
             auto paths = m_SceneManager->GetSceneFilePaths();
@@ -218,8 +221,10 @@ namespace Lumos
         void load(Archive& archive)
         {
             int projectVersion = 0;
+            int sceneIndex = 0;
             archive(cereal::make_nvp("Project Version", projectVersion));
 
+            std::string test;
             if(projectVersion > 0)
             {
                 archive(cereal::make_nvp("RenderAPI", RenderAPI),
@@ -228,8 +233,7 @@ namespace Lumos
                     cereal::make_nvp("Fullscreen", Fullscreen),
                     cereal::make_nvp("VSync", VSync),
                     cereal::make_nvp("ShowConsole", ShowConsole),
-                    cereal::make_nvp("Title", Title),
-                    cereal::make_nvp("FilePath", FilePath));
+                    cereal::make_nvp("Title", Title));
             }
             if(projectVersion > 2)
             {
@@ -240,10 +244,15 @@ namespace Lumos
                 {
                     m_SceneManager->AddFileToLoadList(filePath);
                 }
+
+                if(m_SceneManager->GetScenes().size() == 0 && sceneFilePaths.size() == sceneIndex)
+                {
+                    m_SceneManager->EnqueueScene(new Scene("Empty Scene"));
+                    m_SceneManager->SwitchScene(0);
+                }
             }
             if(projectVersion > 3)
             {
-                int sceneIndex;
                 archive(cereal::make_nvp("SceneIndex", sceneIndex));
                 m_SceneManager->SwitchScene(sceneIndex);
             }
@@ -252,6 +261,12 @@ namespace Lumos
                 archive(cereal::make_nvp("Borderless", Borderless));
             }
         }
+
+        const std::string& GetProjectRoot() const { return m_ProjectRoot; }
+
+    protected:
+        std::string m_ProjectRoot;
+        std::string m_ProjectName;
 
     private:
         bool OnWindowClose(WindowCloseEvent& e);
@@ -264,7 +279,6 @@ namespace Lumos
         bool ShowConsole = true;
         std::string Title;
         int RenderAPI;
-        std::string FilePath;
         //
 
         uint32_t m_Frames = 0;
@@ -283,7 +297,7 @@ namespace Lumos
         UniqueRef<Graphics::RenderGraph> m_RenderGraph;
         UniqueRef<ImGuiManager> m_ImGuiManager;
         UniqueRef<Timer> m_Timer;
-        Ref<ShaderLibrary> m_ShaderLibrary;
+        SharedRef<ShaderLibrary> m_ShaderLibrary;
 
         AppState m_CurrentState = AppState::Loading;
         EditorState m_EditorState = EditorState::Preview;

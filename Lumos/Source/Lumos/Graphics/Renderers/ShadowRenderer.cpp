@@ -1,16 +1,16 @@
 #include "Precompiled.h"
 #include "ShadowRenderer.h"
 
-#include "Graphics/API/Texture.h"
-#include "Graphics/API/Framebuffer.h"
-#include "Graphics/API/Renderer.h"
-#include "Graphics/API/CommandBuffer.h"
-#include "Graphics/API/RenderPass.h"
-#include "Graphics/API/Pipeline.h"
-#include "Graphics/API/UniformBuffer.h"
-#include "Graphics/API/GraphicsContext.h"
-#include "Graphics/API/Swapchain.h"
-#include "Graphics/API/Shader.h"
+#include "Graphics/RHI/Texture.h"
+#include "Graphics/RHI/Framebuffer.h"
+#include "Graphics/RHI/Renderer.h"
+#include "Graphics/RHI/CommandBuffer.h"
+#include "Graphics/RHI/RenderPass.h"
+#include "Graphics/RHI/Pipeline.h"
+#include "Graphics/RHI/UniformBuffer.h"
+#include "Graphics/RHI/GraphicsContext.h"
+#include "Graphics/RHI/Swapchain.h"
+#include "Graphics/RHI/Shader.h"
 
 #include "Graphics/Model.h"
 #include "Graphics/Camera/Camera.h"
@@ -54,7 +54,7 @@ namespace Lumos
 
             m_ScreenRenderer = false;
 
-            m_LightSize = 0.1f;
+            m_LightSize = 1.5f;
             m_MaxShadowDistance = 400.0f;
             m_ShadowFade = 40.0f;
             m_CascadeTransitionFade = 1.5f;
@@ -86,18 +86,18 @@ namespace Lumos
                 { TextureType::DEPTHARRAY, TextureFormat::DEPTH }
             };
 
-            Graphics::RenderPassInfo renderpassCI {};
+            Graphics::RenderPassDesc renderpassCI {};
             renderpassCI.attachmentCount = 1;
             renderpassCI.textureType = textureTypes;
             renderpassCI.clear = true;
 
             m_RenderPass = Graphics::RenderPass::Get(renderpassCI);
 
-            Graphics::DescriptorInfo info {};
+            Graphics::DescriptorDesc info {};
             info.layoutIndex = 0;
             info.shader = m_Shader.get();
             m_DescriptorSet.resize(1);
-            m_DescriptorSet[0] = Ref<Graphics::DescriptorSet>(Graphics::DescriptorSet::Create(info));
+            m_DescriptorSet[0] = SharedRef<Graphics::DescriptorSet>(Graphics::DescriptorSet::Create(info));
 
             CreateGraphicsPipeline();
             CreateUniformBuffer();
@@ -435,7 +435,7 @@ namespace Lumos
                     TextureType attachmentTypes[attachmentCount];
                     attachmentTypes[0] = TextureType::DEPTHARRAY;
 
-                    FramebufferInfo bufferInfo {};
+                    FramebufferDesc bufferInfo {};
                     bufferInfo.width = m_ShadowMapSize;
                     bufferInfo.height = m_ShadowMapSize;
                     bufferInfo.attachmentCount = attachmentCount;
@@ -456,7 +456,7 @@ namespace Lumos
         void ShadowRenderer::CreateGraphicsPipeline()
         {
             LUMOS_PROFILE_FUNCTION();
-            Graphics::PipelineInfo pipelineCreateInfo;
+            Graphics::PipelineDesc pipelineCreateInfo;
             pipelineCreateInfo.shader = m_Shader;
             pipelineCreateInfo.renderpass = m_RenderPass;
             pipelineCreateInfo.cullMode = Graphics::CullMode::NONE;
@@ -560,7 +560,7 @@ namespace Lumos
             }
 
             ImGui::DragFloat("Initial Bias", &m_InitialBias, 0.00005f, 0.0f, 1.0f, "%.6f");
-            ImGui::DragFloat("Light Size", &m_LightSize, 0.00005f, 0.0f, 1.0f);
+            ImGui::DragFloat("Light Size", &m_LightSize, 0.00005f, 0.0f, 10.0f);
             ImGui::DragFloat("Max Shadow Distance", &m_MaxShadowDistance, 0.05f, 0.0f, 10000.0f);
             ImGui::DragFloat("Shadow Fade", &m_ShadowFade, 0.0005f, 0.0f, 500.0f);
             ImGui::DragFloat("Cascade Transition Fade", &m_CascadeTransitionFade, 0.0005f, 0.0f, 5.0f);

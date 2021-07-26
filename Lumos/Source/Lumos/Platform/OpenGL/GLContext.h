@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Graphics/API/GraphicsContext.h"
+#include "Graphics/RHI/GraphicsContext.h"
 
 namespace Lumos
 {
@@ -9,7 +9,7 @@ namespace Lumos
         class LUMOS_EXPORT GLContext : public GraphicsContext
         {
         public:
-            GLContext(const WindowProperties& properties, Window* window);
+            GLContext(const WindowDesc& properties, Window* window);
             ~GLContext();
 
             void Present() override;
@@ -30,7 +30,7 @@ namespace Lumos
             static void MakeDefault();
 
         protected:
-            static GraphicsContext* CreateFuncGL(const WindowProperties& properties, Window* cont);
+            static GraphicsContext* CreateFuncGL(const WindowDesc& properties, Window* cont);
         };
     }
 }

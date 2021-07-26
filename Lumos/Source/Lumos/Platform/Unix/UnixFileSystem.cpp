@@ -104,6 +104,10 @@ namespace Lumos
     bool FileSystem::WriteFile(const std::string& path, uint8_t* buffer)
     {
         FILE* file = fopen(path.c_str(), "wb");
+        if(file == NULL) //if file does not exist, create it
+        {
+            file = fopen(path.c_str(), "wb");
+        }
         size_t size = 0;
         if(buffer)
         {
@@ -116,6 +120,10 @@ namespace Lumos
     bool FileSystem::WriteTextFile(const std::string& path, const std::string& text)
     {
         FILE* file = fopen(path.c_str(), "w");
+        if(file == NULL) //if file does not exist, create it
+        {
+            file = fopen(path.c_str(), "wb");
+        }
         size_t size = fwrite(text.c_str(), 1, strlen(text.c_str()), file);
         fclose(file);
         return size > 0;

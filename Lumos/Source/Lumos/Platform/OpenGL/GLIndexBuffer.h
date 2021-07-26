@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Graphics/API/IndexBuffer.h"
+#include "Graphics/RHI/IndexBuffer.h"
 #include "GLDebug.h"
 
 namespace Lumos

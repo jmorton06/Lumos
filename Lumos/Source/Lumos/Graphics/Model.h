@@ -15,14 +15,14 @@ namespace Lumos
         public:
             Model() = default;
             Model(const std::string& filePath);
-            Model(const Ref<Mesh>& mesh, PrimitiveType type);
+            Model(const SharedRef<Mesh>& mesh, PrimitiveType type);
             Model(PrimitiveType type);
 
             ~Model() = default;
 
-            std::vector<Ref<Mesh>>& GetMeshes() { return m_Meshes; }
-            const std::vector<Ref<Mesh>>& GetMeshes() const { return m_Meshes; }
-            void AddMesh(Ref<Mesh> mesh) { m_Meshes.push_back(mesh); }
+            std::vector<SharedRef<Mesh>>& GetMeshes() { return m_Meshes; }
+            const std::vector<SharedRef<Mesh>>& GetMeshes() const { return m_Meshes; }
+            void AddMesh(SharedRef<Mesh> mesh) { m_Meshes.push_back(mesh); }
 
             template <typename Archive>
             void save(Archive& archive) const
@@ -49,8 +49,8 @@ namespace Lumos
 
                 if(m_PrimitiveType != PrimitiveType::File)
                 {
-                    m_Meshes.push_back(Ref<Mesh>(CreatePrimative(m_PrimitiveType)));
-                    m_Meshes.back()->SetMaterial(Ref<Material>(material.get()));
+                    m_Meshes.push_back(SharedRef<Mesh>(CreatePrimative(m_PrimitiveType)));
+                    m_Meshes.back()->SetMaterial(SharedRef<Material>(material.get()));
                     material.release();
                 }
                 else
@@ -65,7 +65,7 @@ namespace Lumos
 
         private:
             PrimitiveType m_PrimitiveType;
-            std::vector<Ref<Mesh>> m_Meshes;
+            std::vector<SharedRef<Mesh>> m_Meshes;
             std::string m_FilePath;
 
             void LoadOBJ(const std::string& path);

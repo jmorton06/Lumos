@@ -265,7 +265,7 @@ namespace Lumos
 
         bool VKDevice::Init()
         {
-            m_PhysicalDevice = CreateRef<VKPhysicalDevice>();
+            m_PhysicalDevice = CreateSharedRef<VKPhysicalDevice>();
 
             VkPhysicalDeviceFeatures physicalDeviceFeatures;
             vkGetPhysicalDeviceFeatures(m_PhysicalDevice->GetVulkanPhysicalDevice(), &physicalDeviceFeatures);
@@ -346,7 +346,7 @@ namespace Lumos
                 LUMOS_LOG_CRITICAL("[VULKAN] Failed to create VMA allocator");
             }
 #endif
-            m_CommandPool = CreateRef<VKCommandPool>(m_PhysicalDevice->GetGraphicsQueueFamilyIndex(), VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT);
+            m_CommandPool = CreateSharedRef<VKCommandPool>(m_PhysicalDevice->GetGraphicsQueueFamilyIndex(), VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT);
 
             CreateTracyContext();
             CreatePipelineCache();

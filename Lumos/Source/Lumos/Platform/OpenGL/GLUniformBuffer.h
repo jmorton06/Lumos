@@ -1,5 +1,5 @@
 #pragma once
-#include "Graphics/API/UniformBuffer.h"
+#include "Graphics/RHI/UniformBuffer.h"
 
 namespace Lumos
 {

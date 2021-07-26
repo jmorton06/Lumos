@@ -1,5 +1,5 @@
 #pragma once
-#include "Graphics/API/RenderDevice.h"
+#include "Graphics/RHI/RenderDevice.h"
 
 namespace Lumos
 {
