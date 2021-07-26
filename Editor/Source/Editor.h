@@ -162,23 +162,23 @@ namespace Lumos
         void SelectObject(const Maths::Ray& ray);
 
         void OpenTextFile(const std::string& filePath);
-        void RemoveWindow(EditorPanel* window);
+        void RemovePanel(EditorPanel* panel);
 
         void ShowPreview();
         void DrawPreview();
 
         static Editor* GetEditor() { return s_Editor; }
 
-        Maths::Vector2 m_SceneWindowPos;
+        Maths::Vector2 m_SceneViewPanelPosition;
         Maths::Ray GetScreenRay(int x, int y, Camera* camera, int width, int height);
 
         void FileOpenCallback(const std::string& filepath);
         void ProjectOpenCallback(const std::string& filepath);
         void NewProjectOpenCallback(const std::string& filepath);
 
-        FileBrowserPanel& GetFileBrowserWindow()
+        FileBrowserPanel& GetFileBrowserPanel()
         {
-            return m_FileBrowserWindow;
+            return m_FileBrowserPanel;
         }
 
         void AddDefaultEditorSettings();
@@ -243,11 +243,11 @@ namespace Lumos
         bool m_FullScreenSceneView = false;
         ImGuiHelpers::Theme m_Theme = ImGuiHelpers::Theme::Dark;
 
-        std::vector<SharedRef<EditorPanel>> m_Windows;
+        std::vector<SharedRef<EditorPanel>> m_Panels;
 
         std::unordered_map<size_t, const char*> m_ComponentIconMap;
 
-        FileBrowserPanel m_FileBrowserWindow;
+        FileBrowserPanel m_FileBrowserPanel;
         Camera* m_CurrentCamera = nullptr;
         EditorCameraController m_EditorCameraController;
         Maths::Transform m_EditorCameraTransform;

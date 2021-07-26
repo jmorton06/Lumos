@@ -90,7 +90,6 @@ project "LumosEditor"
 			"_CRT_SECURE_NO_WARNINGS",
 			"_DISABLE_EXTENDED_ALIGNED_STORAGE",
 			"_SILENCE_CXX17_ITERATOR_BASE_CLASS_DEPRECATION_WARNING",
-			"LUMOS_ROOT_DIR="  .. root_dir,
 			"LUMOS_VOLK"
 		}
 
@@ -135,7 +134,6 @@ project "LumosEditor"
 			"LUMOS_RENDER_API_VULKAN",
 			"VK_EXT_metal_surface",
 			"LUMOS_IMGUI",
-			"LUMOS_ROOT_DIR="  .. root_dir,
 			"LUMOS_VOLK"
 		}
 
@@ -279,7 +277,6 @@ project "LumosEditor"
 			"LUMOS_RENDER_API_VULKAN",
 			"VK_USE_PLATFORM_XCB_KHR",
 			"LUMOS_IMGUI",
-			"LUMOS_ROOT_DIR="  .. root_dir,
 			"LUMOS_VOLK"
 		}
 
@@ -299,7 +296,7 @@ project "LumosEditor"
 
 		links { "X11", "pthread", "dl", "atomic", "stdc++fs"}
 
-		linkoptions { "-L%{cfg.targetdir}", "-Wl,-rpath=\\$$ORIGIN" }
+		linkoptions { "-L%{cfg.targetdir}", "-Wl,-rpath=\\$$ORIGIN", "../Lumos/External/OpenAL/libs/linux/libopenal.so" }
 
 		filter {'system:linux', 'architecture:x86_64'}
 			buildoptions

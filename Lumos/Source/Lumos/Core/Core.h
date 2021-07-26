@@ -71,7 +71,6 @@
 
 #define STRINGIZE2(s) #s
 #define STRINGIZE(s) STRINGIZE2(s)
-#define ROOT_DIR STRINGIZE(LUMOS_ROOT_DIR)
 
 #if LUMOS_PLATFORM_WINDOWS
 #define LUMOS_BREAK() __debugbreak();

@@ -127,6 +127,6 @@ namespace Lumos
 
     void TextEditPanel::OnClose()
     {
-        m_Editor->RemoveWindow(this);
+        m_Editor->RemovePanel(this);
     }
 }

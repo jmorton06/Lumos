@@ -84,7 +84,6 @@ namespace Lumos
             properties.usingMetallicMap = 0.0f;
             m_DefaultMaterial->SetMaterialProperites(properties);
 
-
             const size_t minUboAlignment = size_t(Graphics::Renderer::GetCapabilities().UniformBufferOffsetAlignment);
 
             m_UniformBuffer = nullptr;

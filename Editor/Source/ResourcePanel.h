@@ -64,6 +64,8 @@ namespace Lumos
 
         void ChangeDirectory(SharedRef<DirectoryInformation>& directory);
         void RemoveDirectory(SharedRef<DirectoryInformation>& directory, bool removeFromParent = true);
+		void OnNewProject() override;
+		void Refresh();
 
     private:
         static inline std::vector<std::string> assetTypes = {

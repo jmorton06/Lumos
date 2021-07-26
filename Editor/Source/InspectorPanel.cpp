@@ -100,8 +100,8 @@ end
 
             if(ImGui::Button("Open File", ImVec2(ImGui::GetContentRegionAvail().x, 0.0f)))
             {
-                Lumos::Editor::GetEditor()->GetFileBrowserWindow().Open();
-                Lumos::Editor::GetEditor()->GetFileBrowserWindow().SetCallback(std::bind(&Lumos::LuaScriptComponent::LoadScript, &script, std::placeholders::_1));
+                Lumos::Editor::GetEditor()->GetFileBrowserPanel().Open();
+                Lumos::Editor::GetEditor()->GetFileBrowserPanel().SetCallback(std::bind(&Lumos::LuaScriptComponent::LoadScript, &script, std::placeholders::_1));
             }
 
             if(ImGui::Button("Reload", ImVec2(ImGui::GetContentRegionAvail().x, 0.0f)))
@@ -982,8 +982,8 @@ end
             {
                 if(ImGui::ImageButton(tex->GetHandle(), imageButtonSize, ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f)))
                 {
-                    Lumos::Editor::GetEditor()->GetFileBrowserWindow().Open();
-                    Lumos::Editor::GetEditor()->GetFileBrowserWindow().SetCallback(callback);
+                    Lumos::Editor::GetEditor()->GetFileBrowserPanel().Open();
+                    Lumos::Editor::GetEditor()->GetFileBrowserPanel().SetCallback(callback);
                 }
 
                 if(ImGui::IsItemHovered() && tex)
@@ -997,8 +997,8 @@ end
             {
                 if(ImGui::Button(tex ? "" : "Empty", imageButtonSize))
                 {
-                    Lumos::Editor::GetEditor()->GetFileBrowserWindow().Open();
-                    Lumos::Editor::GetEditor()->GetFileBrowserWindow().SetCallback(callback);
+                    Lumos::Editor::GetEditor()->GetFileBrowserPanel().Open();
+                    Lumos::Editor::GetEditor()->GetFileBrowserPanel().SetCallback(callback);
                 }
             }
 
@@ -1352,8 +1352,8 @@ end
             {
                 if(ImGui::ImageButton(tex->GetHandle(), imageButtonSize, ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f)))
                 {
-                    Lumos::Editor::GetEditor()->GetFileBrowserWindow().Open();
-                    Lumos::Editor::GetEditor()->GetFileBrowserWindow().SetCallback(callback);
+                    Lumos::Editor::GetEditor()->GetFileBrowserPanel().Open();
+                    Lumos::Editor::GetEditor()->GetFileBrowserPanel().SetCallback(callback);
                 }
 
                 if(ImGui::IsItemHovered() && tex)
@@ -1367,8 +1367,8 @@ end
             {
                 if(ImGui::Button(tex ? "" : "Empty", imageButtonSize))
                 {
-                    Lumos::Editor::GetEditor()->GetFileBrowserWindow().Open();
-                    Lumos::Editor::GetEditor()->GetFileBrowserWindow().SetCallback(callback);
+                    Lumos::Editor::GetEditor()->GetFileBrowserPanel().Open();
+                    Lumos::Editor::GetEditor()->GetFileBrowserPanel().SetCallback(callback);
                 }
             }
 
@@ -1562,8 +1562,8 @@ end
             {
                 if(ImGui::ImageButton(tex->GetHandle(), imageButtonSize, ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f)))
                 {
-                    Lumos::Editor::GetEditor()->GetFileBrowserWindow().Open();
-                    Lumos::Editor::GetEditor()->GetFileBrowserWindow().SetCallback(callback);
+                    Lumos::Editor::GetEditor()->GetFileBrowserPanel().Open();
+                    Lumos::Editor::GetEditor()->GetFileBrowserPanel().SetCallback(callback);
                 }
 
                 if(ImGui::IsItemHovered() && tex)
@@ -1577,8 +1577,8 @@ end
             {
                 if(ImGui::Button(tex ? "" : "Empty", imageButtonSize))
                 {
-                    Lumos::Editor::GetEditor()->GetFileBrowserWindow().Open();
-                    Lumos::Editor::GetEditor()->GetFileBrowserWindow().SetCallback(callback);
+                    Lumos::Editor::GetEditor()->GetFileBrowserPanel().Open();
+                    Lumos::Editor::GetEditor()->GetFileBrowserPanel().SetCallback(callback);
                 }
             }
 
