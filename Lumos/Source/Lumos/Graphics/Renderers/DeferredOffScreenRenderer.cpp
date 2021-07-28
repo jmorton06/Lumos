@@ -25,6 +25,10 @@
 #include "Graphics/RHI/Pipeline.h"
 #include "Graphics/RHI/GraphicsContext.h"
 
+#include "CompiledSPV/Headers/DeferredColourAnimvertspv.hpp"
+#include "CompiledSPV/Headers/DeferredColourvertspv.hpp"
+#include "CompiledSPV/Headers/DeferredColourfragspv.hpp"
+
 #include <imgui/imgui.h>
 
 #define MAX_LIGHTS 32
@@ -69,8 +73,11 @@ namespace Lumos
         void DeferredOffScreenRenderer::Init()
         {
             LUMOS_PROFILE_FUNCTION();
-            m_Shader = Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/DeferredColour.shader");
-            m_AnimatedShader = Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/DeferredColourAnim.shader");
+            //m_Shader = Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/DeferredColour.shader");
+            //m_AnimatedShader = Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/DeferredColourAnim.shader");
+
+            m_Shader = Graphics::Shader::CreateFromEmbeddedArray(spirv_DeferredColourvertspv.data(), spirv_DeferredColourvertspv_size, spirv_DeferredColourfragspv.data(), spirv_DeferredColourfragspv_size);
+            m_AnimatedShader = Graphics::Shader::CreateFromEmbeddedArray(spirv_DeferredColourAnimvertspv.data(), spirv_DeferredColourAnimvertspv_size, spirv_DeferredColourfragspv.data(), spirv_DeferredColourfragspv_size);
 
             m_DefaultMaterial = new Material(m_Shader);
 

@@ -22,6 +22,9 @@
 #include "Graphics/Renderers/Renderer2D.h"
 #include "Maths/Transform.h"
 
+#include "CompiledSPV/Headers/Batch2DLinevertspv.hpp"
+#include "CompiledSPV/Headers/Batch2DLinefragspv.hpp"
+
 namespace Lumos
 {
     using namespace Graphics;
@@ -62,7 +65,8 @@ namespace Lumos
     {
         LUMOS_PROFILE_FUNCTION();
 
-        m_Shader = Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/Batch2DLine.shader");
+       // m_Shader = Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/Batch2DLine.shader");
+        m_Shader = Graphics::Shader::CreateFromEmbeddedArray(spirv_Batch2DLinevertspv.data(), spirv_Batch2DLinevertspv_size, spirv_Batch2DLinefragspv.data(), spirv_Batch2DLinefragspv_size);
 
         m_VSSystemUniformBufferSize = sizeof(Maths::Matrix4);
         m_VSSystemUniformBuffer = new uint8_t[m_VSSystemUniformBufferSize];

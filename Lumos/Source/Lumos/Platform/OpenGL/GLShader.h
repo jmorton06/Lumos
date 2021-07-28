@@ -115,6 +115,7 @@ namespace Lumos
 
         protected:
             static Shader* CreateFuncGL(const std::string& filePath);
+            static Shader* CreateFromEmbeddedFuncGL(const uint32_t* vertData, uint32_t vertDataSize, const uint32_t* fragData, uint32_t fragDataSize){ return nullptr; }
 
         private:
             uint32_t m_Handle;

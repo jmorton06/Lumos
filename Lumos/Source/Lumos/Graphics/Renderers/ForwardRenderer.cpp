@@ -28,6 +28,9 @@
 #include "RenderGraph.h"
 #include "Graphics/Camera/Camera.h"
 
+#include "CompiledSPV/Headers/ForwardPBRvertspv.hpp"
+#include "CompiledSPV/Headers/ForwardPBRfragspv.hpp"
+
 #define MAX_LIGHTS 32
 #define MAX_SHADOWMAPS 4
 
@@ -35,6 +38,9 @@ namespace Lumos
 {
     namespace Graphics
     {
+        SharedRef<Graphics::Shader> ForwardRenderer::s_DefaultPBRShader = nullptr;
+        SharedRef<Graphics::Shader> ForwardRenderer::s_DefaultPBRAnimShader = nullptr;
+    
         enum PSSceneUniformIndices : int32_t
         {
             PSSceneUniformIndex_Lights = 0,
@@ -62,6 +68,7 @@ namespace Lumos
             m_LightUniformBuffer = nullptr;
             m_DepthTest = depthTest;
             SetScreenBufferSize(width, height);
+            
             ForwardRenderer::Init();
         }
 
@@ -73,6 +80,9 @@ namespace Lumos
             delete m_DefaultMaterial;
 
             delete[] m_VSSystemUniformBuffer;
+            
+            s_DefaultPBRShader.reset();
+            s_DefaultPBRAnimShader.reset();
 
             for(auto& commandBuffer : m_CommandBuffers)
             {
@@ -107,7 +117,13 @@ namespace Lumos
         {
             LUMOS_PROFILE_FUNCTION();
 
-            m_Shader = Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/ForwardPBR.shader");
+           // m_Shader = Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/ForwardPBR.shader");
+            m_Shader = Graphics::Shader::CreateFromEmbeddedArray(spirv_ForwardPBRvertspv.data(), spirv_ForwardPBRvertspv_size, spirv_ForwardPBRfragspv.data(), spirv_ForwardPBRfragspv_size);
+            
+            if(!s_DefaultPBRShader)
+                s_DefaultPBRShader = m_Shader;
+            if(!s_DefaultPBRAnimShader)
+                s_DefaultPBRAnimShader = m_Shader; //TODO: Support Animation
 
             m_CommandQueue.reserve(1000);
 
@@ -414,7 +430,7 @@ namespace Lumos
                 Graphics::CommandBuffer* currentCMDBuffer = Renderer::GetSwapchain()->GetCurrentCommandBuffer();
 
                 Graphics::PipelineDesc pipelineCreateInfo {};
-                pipelineCreateInfo.shader = command.material->GetShader();
+                pipelineCreateInfo.shader = m_Shader;//command.material->GetShader();
                 pipelineCreateInfo.renderpass = m_RenderPass;
                 pipelineCreateInfo.polygonMode = Graphics::PolygonMode::FILL;
                 pipelineCreateInfo.cullMode = command.material->GetFlag(Material::RenderFlags::TWOSIDED) ? Graphics::CullMode::NONE : Graphics::CullMode::BACK;

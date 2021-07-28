@@ -48,6 +48,9 @@ namespace Lumos
 
             void SetSystemUniforms(Shader* shader) const;
             void UpdateScreenDescriptorSet();
+            
+            static SharedRef<Graphics::Shader> GetDefaultPBRShader() { return s_DefaultPBRShader; }
+            static SharedRef<Graphics::Shader> GetDefaultPBRAnimShader() { return s_DefaultPBRAnimShader; }
 
         private:
             Texture2D* m_DefaultTexture;
@@ -72,6 +75,10 @@ namespace Lumos
             uint32_t m_PSSceneUniformBufferSize = 0;
             uint32_t m_CurrentBufferID = 0;
             bool m_DepthTest = false;
+            
+            static SharedRef<Graphics::Shader> s_DefaultPBRShader;
+            static SharedRef<Graphics::Shader> s_DefaultPBRAnimShader;
+
         };
     }
 }

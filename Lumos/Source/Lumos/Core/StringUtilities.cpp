@@ -260,6 +260,21 @@ namespace Lumos
 
             return string;
         }
+    
+        std::string& RemoveCharacter(std::string& string, const char character)
+        {
+            std::string::iterator endIterator = std::remove(string.begin(), string.end(), character);
+            string.erase(endIterator, string.end());
+            string.erase(std::remove_if(string.begin(),
+                             string.end(),
+                             [](unsigned char x)
+                             {
+                                 return std::isspace(x);
+                             }),
+                string.end());
+
+            return string;
+        }
 
         std::string Demangle(const std::string& string)
         {

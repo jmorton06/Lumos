@@ -30,6 +30,9 @@
 #include "Embedded/BRDFTexture.inl"
 #include "Utilities/AssetManager.h"
 
+#include "CompiledSPV/Headers/DeferredLightvertspv.hpp"
+#include "CompiledSPV/Headers/DeferredLightfragspv.hpp"
+
 #include <imgui/imgui.h>
 
 #define MAX_LIGHTS 32
@@ -81,7 +84,8 @@ namespace Lumos
             LUMOS_PROFILE_FUNCTION();
             m_OffScreenRenderer = new DeferredOffScreenRenderer(m_ScreenBufferWidth, m_ScreenBufferHeight);
 
-            m_Shader = Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/DeferredLight.shader");
+            //m_Shader = Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/DeferredLight.shader");
+            m_Shader = Graphics::Shader::CreateFromEmbeddedArray(spirv_DeferredLightvertspv.data(), spirv_DeferredLightvertspv_size, spirv_DeferredLightfragspv.data(), spirv_DeferredLightfragspv_size);
 
             switch(Graphics::GraphicsContext::GetRenderAPI())
             {

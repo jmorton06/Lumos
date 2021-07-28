@@ -208,6 +208,7 @@ namespace Lumos
 
         void CacheScene();
         void LoadCachedScene();
+        void EmbedShader(const std::string& shaderPath);
 
     protected:
         NONCOPYABLE(Editor)
