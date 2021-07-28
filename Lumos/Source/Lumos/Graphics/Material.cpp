@@ -9,6 +9,7 @@
 #include "Core/OS/FileSystem.h"
 #include "Core/VFS.h"
 #include "Core/Application.h"
+#include "Renderers/ForwardRenderer.h"
 
 #include <imgui/imgui.h>
 
@@ -174,7 +175,7 @@ namespace Lumos::Graphics
         {
             //If no shader then set it to the default pbr shader
             //TODO default to forward
-            m_Shader = Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/ForwardPBR.shader");
+            m_Shader = ForwardRenderer::GetDefaultPBRShader();//Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/ForwardPBR.shader");
         }
 
         Graphics::DescriptorDesc info;

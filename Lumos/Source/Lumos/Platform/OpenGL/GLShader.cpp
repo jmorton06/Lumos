@@ -850,6 +850,7 @@ namespace Lumos
         void GLShader::MakeDefault()
         {
             CreateFunc = CreateFuncGL;
+            CreateFuncFromEmbedded = CreateFromEmbeddedFuncGL;
         }
     }
 }

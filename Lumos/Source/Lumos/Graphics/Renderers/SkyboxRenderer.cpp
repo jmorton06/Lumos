@@ -19,6 +19,9 @@
 #include "Graphics/Camera/Camera.h"
 #include "Graphics/Environment.h"
 
+#include "CompiledSPV/Headers/Skyboxvertspv.hpp"
+#include "CompiledSPV/Headers/Skyboxfragspv.hpp"
+
 #include <imgui/imgui.h>
 
 namespace Lumos
@@ -70,9 +73,6 @@ namespace Lumos
             m_Skybox->GetIndexBuffer()->Unbind();
 
             End();
-
-            //if(!m_RenderTexture)
-            //Renderer::Present((m_CommandBuffers[m_CurrentBufferID].get()));
         }
 
         enum VSSystemUniformIndices : int32_t
@@ -84,7 +84,8 @@ namespace Lumos
         void SkyboxRenderer::Init()
         {
             LUMOS_PROFILE_FUNCTION();
-            m_Shader = Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/Skybox.shader");
+            //m_Shader = Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/Skybox.shader");
+            m_Shader = Graphics::Shader::CreateFromEmbeddedArray(spirv_Skyboxvertspv.data(), spirv_Skyboxvertspv_size, spirv_Skyboxfragspv.data(), spirv_Skyboxfragspv_size);
             m_Skybox = Graphics::CreateScreenQuad();
 
             // Vertex shader System uniforms

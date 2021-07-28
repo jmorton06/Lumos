@@ -12,6 +12,7 @@ namespace Lumos
         {
         public:
             VKShader(const std::string& filePath);
+            VKShader(const uint32_t* vertData, uint32_t vertDataSize, const uint32_t* fragData, uint32_t fragDataSize);
             ~VKShader();
 
             bool Init();
@@ -81,7 +82,11 @@ namespace Lumos
 
         protected:
             static Shader* CreateFuncVulkan(const std::string&);
+            static Shader* CreateFromEmbeddedFuncVulkan(const uint32_t* vertData, uint32_t vertDataSize, const uint32_t* fragData, uint32_t fragDataSize);
 
+            void LoadFromData(const uint32_t* data, uint32_t size, ShaderType type, int currentShaderStage);
+            void CreatePipelineLayout();
+            
         private:
             std::unordered_map<uint32_t, DescriptorSetInfo> m_DescriptorInfos;
 

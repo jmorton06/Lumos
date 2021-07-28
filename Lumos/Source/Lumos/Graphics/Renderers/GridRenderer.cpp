@@ -19,6 +19,9 @@
 #include "Maths/Transform.h"
 #include "Graphics/Renderers/RenderGraph.h"
 
+#include "CompiledSPV/Headers/Gridvertspv.hpp"
+#include "CompiledSPV/Headers/Gridfragspv.hpp"
+
 #include <imgui/imgui.h>
 
 namespace Lumos
@@ -86,7 +89,9 @@ namespace Lumos
         void GridRenderer::Init()
         {
             LUMOS_PROFILE_FUNCTION();
-            m_Shader = Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/Grid.shader");
+            //m_Shader = Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/Grid.shader");
+            m_Shader = Graphics::Shader::CreateFromEmbeddedArray(spirv_Gridvertspv.data(), spirv_Gridvertspv_size, spirv_Gridfragspv.data(), spirv_Gridfragspv_size);
+
             m_Quad = Graphics::CreatePlane(5000.0f, 5000.f, Maths::Vector3(0.0f, 1.0f, 0.0f));
 
             // Vertex shader System uniforms

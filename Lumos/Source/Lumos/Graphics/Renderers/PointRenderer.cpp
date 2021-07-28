@@ -21,6 +21,9 @@
 #include "Platform/OpenGL/GLDescriptorSet.h"
 #include "Maths/Transform.h"
 
+#include "CompiledSPV/Headers/Batch2DPointvertspv.hpp"
+#include "CompiledSPV/Headers/Batch2DPointfragspv.hpp"
+
 namespace Lumos
 {
     using namespace Graphics;
@@ -59,7 +62,8 @@ namespace Lumos
     {
         LUMOS_PROFILE_FUNCTION();
 
-        m_Shader = Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/Batch2DPoint.shader");
+       // m_Shader = Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/Batch2DPoint.shader");
+        m_Shader = Graphics::Shader::CreateFromEmbeddedArray(spirv_Batch2DPointvertspv.data(), spirv_Batch2DPointvertspv_size, spirv_Batch2DPointfragspv.data(), spirv_Batch2DPointfragspv_size);
 
         m_VSSystemUniformBufferSize = sizeof(Maths::Matrix4);
         m_VSSystemUniformBuffer = new uint8_t[m_VSSystemUniformBufferSize];

@@ -23,6 +23,9 @@
 #include "Maths/Transform.h"
 #include "Core/Engine.h"
 
+#include "CompiledSPV/Headers/Batch2Dvertspv.hpp"
+#include "CompiledSPV/Headers/Batch2Dfragspv.hpp"
+
 namespace Lumos
 {
     namespace Graphics
@@ -62,7 +65,8 @@ namespace Lumos
         void Renderer2D::Init()
         {
             LUMOS_PROFILE_FUNCTION();
-            m_Shader = Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/Batch2D.shader");
+            //m_Shader = Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/Batch2D.shader");
+            m_Shader = Graphics::Shader::CreateFromEmbeddedArray(spirv_Batch2Dvertspv.data(), spirv_Batch2Dvertspv_size, spirv_Batch2Dfragspv.data(), spirv_Batch2Dfragspv_size);
 
             m_TransformationStack.emplace_back(Maths::Matrix4());
             m_TransformationBack = &m_TransformationStack.back();

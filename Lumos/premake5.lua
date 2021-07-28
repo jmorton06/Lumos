@@ -37,7 +37,8 @@ project "Lumos"
 		"",
 		"../",
 		"Source/",
-		"Source/Lumos",
+	"Source/Lumos",
+	"Assets/Shaders"
 	}
 
 	sysincludedirs
