@@ -78,6 +78,35 @@ namespace Lumos
 
             Init();
         }
+    
+        GLShader::GLShader(const uint32_t* vertData, uint32_t vertDataSize, const uint32_t* fragData, uint32_t fragDataSize)
+        {
+            std::map<ShaderType, std::string>* sources = new std::map<ShaderType, std::string>();
+
+            LoadFromData(vertData, vertDataSize, ShaderType::VERTEX, *sources);
+            LoadFromData(fragData, fragDataSize, ShaderType::FRAGMENT, *sources);
+
+            for(auto& source : *sources)
+            {
+                m_ShaderTypes.push_back(source.first);
+            }
+
+            GLShaderErrorInfo error;
+            m_Handle = Compile(sources, error);
+
+            if(!m_Handle)
+            {
+                LUMOS_LOG_ERROR("{0} - {1}", error.message[error.shader], m_Name);
+            }
+            else
+            {
+                LUMOS_LOG_INFO("Successfully compiled shader: {0}", m_Name);
+            }
+
+            CreateLocations();
+
+            delete sources;
+        }
 
         GLShader::~GLShader()
         {
@@ -97,165 +126,7 @@ namespace Lumos
             {
                 auto fileSize = FileSystem::GetFileSize(m_Path + file.second); //TODO: once process
                 uint32_t* source = reinterpret_cast<uint32_t*>(FileSystem::ReadFile(m_Path + file.second));
-                std::vector<unsigned int> spv(source, source + fileSize / sizeof(unsigned int));
-
-                spirv_cross::CompilerGLSL* glsl = new spirv_cross::CompilerGLSL(std::move(spv));
-
-                // The SPIR-V is now parsed, and we can perform reflection on it.
-                spirv_cross::ShaderResources resources = glsl->get_shader_resources();
-
-                if(file.first == ShaderType::VERTEX)
-                {
-                    uint32_t stride = 0;
-                    for(const spirv_cross::Resource& resource : resources.stage_inputs)
-                    {
-                        const spirv_cross::SPIRType& InputType = glsl->get_type(resource.type_id);
-                        //Switch to GL layout
-                        PushTypeToBuffer(InputType, m_Layout);
-                        stride += GetStrideFromOpenGLFormat(0); //InputType.width * InputType.vecsize / 8;
-                    }
-                }
-
-                // Get all sampled images in the shader.
-                for(auto& resource : resources.sampled_images)
-                {
-                    uint32_t set = glsl->get_decoration(resource.id, spv::DecorationDescriptorSet);
-                    uint32_t binding = glsl->get_decoration(resource.id, spv::DecorationBinding);
-
-                    // Modify the decoration to prepare it for GLSL.
-                    glsl->unset_decoration(resource.id, spv::DecorationDescriptorSet);
-
-                    // Some arbitrary remapping if we want.
-                    glsl->set_decoration(resource.id, spv::DecorationBinding, set * 16 + binding);
-
-                    auto& descriptorInfo = m_DescriptorInfos[set];
-                    auto& descriptor = descriptorInfo.descriptors.emplace_back();
-                    descriptor.binding = binding;
-                    descriptor.name = resource.name;
-                    descriptor.shaderType = file.first;
-                    descriptor.type = Graphics::DescriptorType::IMAGE_SAMPLER;
-                }
-
-                //                for(auto const& image : resources.separate_images)
-                //                {
-                //                    auto set { glsl->get_decoration(image.id, spv::Decoration::DecorationDescriptorSet) };
-                //                    glsl->set_decoration(image.id, spv::Decoration::DecorationDescriptorSet, DESCRIPTOR_TABLE_INITIAL_SPACE + 2 * set);
-                //                }
-                //                for(auto const& input : resources.subpass_inputs)
-                //                {
-                //                    auto set { glsl->get_decoration(input.id, spv::Decoration::DecorationDescriptorSet) };
-                //                    glsl->set_decoration(input.id, spv::Decoration::DecorationDescriptorSet, DESCRIPTOR_TABLE_INITIAL_SPACE + 2 * set);
-                //                }
-                for(auto const& uniform_buffer : resources.uniform_buffers)
-                {
-                    auto set { glsl->get_decoration(uniform_buffer.id, spv::Decoration::DecorationDescriptorSet) };
-                    glsl->set_decoration(uniform_buffer.id, spv::Decoration::DecorationDescriptorSet, DESCRIPTOR_TABLE_INITIAL_SPACE + 2 * set);
-
-                    uint32_t binding = glsl->get_decoration(uniform_buffer.id, spv::DecorationBinding);
-                    auto& bufferType = glsl->get_type(uniform_buffer.type_id);
-
-                    auto bufferSize = glsl->get_declared_struct_size(bufferType);
-                    int memberCount = (int)bufferType.member_types.size();
-
-                    auto& descriptorInfo = m_DescriptorInfos[set];
-                    auto& descriptor = descriptorInfo.descriptors.emplace_back();
-                    descriptor.binding = binding;
-                    descriptor.size = (uint32_t)bufferSize;
-                    descriptor.name = uniform_buffer.name;
-                    descriptor.offset = 0;
-                    descriptor.shaderType = file.first;
-                    descriptor.type = Graphics::DescriptorType::UNIFORM_BUFFER;
-                    descriptor.buffer = nullptr;
-
-                    for(int i = 0; i < memberCount; i++)
-                    {
-                        auto type = glsl->get_type(bufferType.member_types[i]);
-                        const auto& memberName = glsl->get_member_name(bufferType.self, i);
-                        auto size = glsl->get_declared_struct_member_size(bufferType, i);
-                        auto offset = glsl->type_struct_member_offset(bufferType, i);
-
-                        std::string uniformName = uniform_buffer.name + "." + memberName;
-
-                        auto& member = descriptor.m_Members.emplace_back();
-                        member.size = (uint32_t)size;
-                        member.offset = offset;
-                        member.type = SPIRVTypeToLumosDataType(type);
-                        member.fullName = uniformName;
-                        member.name = memberName;
-                    }
-                }
-                //                for(auto const& storage_buffer : resources.storage_buffers)
-                //                {
-                //                    auto set { glsl->get_decoration(storage_buffer.id, spv::Decoration::DecorationDescriptorSet) };
-                //                    glsl->set_decoration(storage_buffer.id, spv::Decoration::DecorationDescriptorSet, DESCRIPTOR_TABLE_INITIAL_SPACE + 2 * set);
-                //                }
-                //                for(auto const& storage_image : resources.storage_images)
-                //                {
-                //                    auto set { glsl->get_decoration(storage_image.id, spv::Decoration::DecorationDescriptorSet) };
-                //                    glsl->set_decoration(storage_image.id, spv::Decoration::DecorationDescriptorSet, DESCRIPTOR_TABLE_INITIAL_SPACE + 2 * set);
-                //                }
-                //
-                //                for(auto const& sampler : resources.separate_samplers)
-                //                {
-                //                    auto set { glsl->get_decoration(sampler.id, spv::Decoration::DecorationDescriptorSet) };
-                //                    glsl->set_decoration(sampler.id, spv::Decoration::DecorationDescriptorSet, DESCRIPTOR_TABLE_INITIAL_SPACE + 2 * set + 1);
-                //                }
-
-                for(auto& u : resources.push_constant_buffers)
-                {
-                    // uint32_t set = glsl->get_decoration(u.id, spv::DecorationDescriptorSet);
-                    // uint32_t binding = glsl->get_decoration(u.id, spv::DecorationBinding);
-
-                    auto& type = glsl->get_type(u.type_id);
-                    auto name = glsl->get_name(u.id);
-
-                    auto ranges = glsl->get_active_buffer_ranges(u.id);
-
-                    uint32_t size = 0;
-                    for(auto& range : ranges)
-                    {
-                        size += uint32_t(range.range);
-                    }
-
-                    auto& bufferType = glsl->get_type(u.base_type_id);
-                    auto bufferSize = glsl->get_declared_struct_size(bufferType);
-                    int memberCount = (int)bufferType.member_types.size();
-
-                    m_PushConstants.push_back({ size, file.first });
-                    m_PushConstants.back().data = new uint8_t[size];
-
-                    for(int i = 0; i < memberCount; i++)
-                    {
-                        auto type = glsl->get_type(bufferType.member_types[i]);
-                        const auto& memberName = glsl->get_member_name(bufferType.self, i);
-                        auto size = glsl->get_declared_struct_member_size(bufferType, i);
-                        auto offset = glsl->type_struct_member_offset(bufferType, i);
-
-                        std::string uniformName = u.name + "." + memberName;
-
-                        auto& member = m_PushConstants.back().m_Members.emplace_back();
-                        member.size = (uint32_t)size;
-                        member.offset = offset;
-                        member.type = SPIRVTypeToLumosDataType(type);
-                        member.fullName = uniformName;
-                        member.name = memberName;
-                    }
-                }
-
-                spirv_cross::CompilerGLSL::Options options;
-                options.version = 410;
-                options.es = false;
-                options.vulkan_semantics = false;
-                options.separate_shader_objects = false;
-                options.enable_420pack_extension = false;
-                options.emit_push_constant_as_uniform_buffer = false;
-                glsl->set_common_options(options);
-
-                // Compile to GLSL, ready to give to GL driver.
-                std::string glslSource = glsl->compile();
-                file.second = glslSource;
-
-                m_ShaderCompilers.push_back(glsl);
+                LoadFromData(source, uint32_t(fileSize), file.first, *sources);
             }
 
             for(auto& source : *sources)
@@ -838,6 +709,169 @@ namespace Lumos
         {
             GLCall(glUniformMatrix4fv(location, count, GL_FALSE /*GLTRUE*/, Maths::ValuePointer(matrix)));
         }
+    
+        void GLShader::LoadFromData(const uint32_t* data, uint32_t size, ShaderType type, std::map<ShaderType, std::string>& sources)
+        {
+            std::vector<unsigned int> spv(data, data + size / sizeof(unsigned int));
+
+            spirv_cross::CompilerGLSL* glsl = new spirv_cross::CompilerGLSL(std::move(spv));
+
+            // The SPIR-V is now parsed, and we can perform reflection on it.
+            spirv_cross::ShaderResources resources = glsl->get_shader_resources();
+
+            if(type == ShaderType::VERTEX)
+            {
+                uint32_t stride = 0;
+                for(const spirv_cross::Resource& resource : resources.stage_inputs)
+                {
+                    const spirv_cross::SPIRType& InputType = glsl->get_type(resource.type_id);
+                    //Switch to GL layout
+                    PushTypeToBuffer(InputType, m_Layout);
+                    stride += GetStrideFromOpenGLFormat(0); //InputType.width * InputType.vecsize / 8;
+                }
+            }
+
+            // Get all sampled images in the shader.
+            for(auto& resource : resources.sampled_images)
+            {
+                uint32_t set = glsl->get_decoration(resource.id, spv::DecorationDescriptorSet);
+                uint32_t binding = glsl->get_decoration(resource.id, spv::DecorationBinding);
+
+                // Modify the decoration to prepare it for GLSL.
+                glsl->unset_decoration(resource.id, spv::DecorationDescriptorSet);
+
+                // Some arbitrary remapping if we want.
+                glsl->set_decoration(resource.id, spv::DecorationBinding, set * 16 + binding);
+
+                auto& descriptorInfo = m_DescriptorInfos[set];
+                auto& descriptor = descriptorInfo.descriptors.emplace_back();
+                descriptor.binding = binding;
+                descriptor.name = resource.name;
+                descriptor.shaderType = type;
+                descriptor.type = Graphics::DescriptorType::IMAGE_SAMPLER;
+            }
+
+            //                for(auto const& image : resources.separate_images)
+            //                {
+            //                    auto set { glsl->get_decoration(image.id, spv::Decoration::DecorationDescriptorSet) };
+            //                    glsl->set_decoration(image.id, spv::Decoration::DecorationDescriptorSet, DESCRIPTOR_TABLE_INITIAL_SPACE + 2 * set);
+            //                }
+            //                for(auto const& input : resources.subpass_inputs)
+            //                {
+            //                    auto set { glsl->get_decoration(input.id, spv::Decoration::DecorationDescriptorSet) };
+            //                    glsl->set_decoration(input.id, spv::Decoration::DecorationDescriptorSet, DESCRIPTOR_TABLE_INITIAL_SPACE + 2 * set);
+            //                }
+            for(auto const& uniform_buffer : resources.uniform_buffers)
+            {
+                auto set { glsl->get_decoration(uniform_buffer.id, spv::Decoration::DecorationDescriptorSet) };
+                glsl->set_decoration(uniform_buffer.id, spv::Decoration::DecorationDescriptorSet, DESCRIPTOR_TABLE_INITIAL_SPACE + 2 * set);
+
+                uint32_t binding = glsl->get_decoration(uniform_buffer.id, spv::DecorationBinding);
+                auto& bufferType = glsl->get_type(uniform_buffer.type_id);
+
+                auto bufferSize = glsl->get_declared_struct_size(bufferType);
+                int memberCount = (int)bufferType.member_types.size();
+
+                auto& descriptorInfo = m_DescriptorInfos[set];
+                auto& descriptor = descriptorInfo.descriptors.emplace_back();
+                descriptor.binding = binding;
+                descriptor.size = (uint32_t)bufferSize;
+                descriptor.name = uniform_buffer.name;
+                descriptor.offset = 0;
+                descriptor.shaderType = type;
+                descriptor.type = Graphics::DescriptorType::UNIFORM_BUFFER;
+                descriptor.buffer = nullptr;
+
+                for(int i = 0; i < memberCount; i++)
+                {
+                    auto type = glsl->get_type(bufferType.member_types[i]);
+                    const auto& memberName = glsl->get_member_name(bufferType.self, i);
+                    auto size = glsl->get_declared_struct_member_size(bufferType, i);
+                    auto offset = glsl->type_struct_member_offset(bufferType, i);
+
+                    std::string uniformName = uniform_buffer.name + "." + memberName;
+
+                    auto& member = descriptor.m_Members.emplace_back();
+                    member.size = (uint32_t)size;
+                    member.offset = offset;
+                    member.type = SPIRVTypeToLumosDataType(type);
+                    member.fullName = uniformName;
+                    member.name = memberName;
+                }
+            }
+            //                for(auto const& storage_buffer : resources.storage_buffers)
+            //                {
+            //                    auto set { glsl->get_decoration(storage_buffer.id, spv::Decoration::DecorationDescriptorSet) };
+            //                    glsl->set_decoration(storage_buffer.id, spv::Decoration::DecorationDescriptorSet, DESCRIPTOR_TABLE_INITIAL_SPACE + 2 * set);
+            //                }
+            //                for(auto const& storage_image : resources.storage_images)
+            //                {
+            //                    auto set { glsl->get_decoration(storage_image.id, spv::Decoration::DecorationDescriptorSet) };
+            //                    glsl->set_decoration(storage_image.id, spv::Decoration::DecorationDescriptorSet, DESCRIPTOR_TABLE_INITIAL_SPACE + 2 * set);
+            //                }
+            //
+            //                for(auto const& sampler : resources.separate_samplers)
+            //                {
+            //                    auto set { glsl->get_decoration(sampler.id, spv::Decoration::DecorationDescriptorSet) };
+            //                    glsl->set_decoration(sampler.id, spv::Decoration::DecorationDescriptorSet, DESCRIPTOR_TABLE_INITIAL_SPACE + 2 * set + 1);
+            //                }
+
+            for(auto& u : resources.push_constant_buffers)
+            {
+                // uint32_t set = glsl->get_decoration(u.id, spv::DecorationDescriptorSet);
+                // uint32_t binding = glsl->get_decoration(u.id, spv::DecorationBinding);
+
+                auto& pushConstantType = glsl->get_type(u.type_id);
+                auto name = glsl->get_name(u.id);
+
+                auto ranges = glsl->get_active_buffer_ranges(u.id);
+
+                uint32_t rangeSizes = 0;
+                for(auto& range : ranges)
+                {
+                    rangeSizes += uint32_t(range.range);
+                }
+
+                auto& bufferType = glsl->get_type(u.base_type_id);
+                auto bufferSize = glsl->get_declared_struct_size(bufferType);
+                int memberCount = (int)bufferType.member_types.size();
+
+                m_PushConstants.push_back({ rangeSizes, type });
+                m_PushConstants.back().data = new uint8_t[size];
+
+                for(int i = 0; i < memberCount; i++)
+                {
+                    auto type = glsl->get_type(bufferType.member_types[i]);
+                    const auto& memberName = glsl->get_member_name(bufferType.self, i);
+                    auto size = glsl->get_declared_struct_member_size(bufferType, i);
+                    auto offset = glsl->type_struct_member_offset(bufferType, i);
+
+                    std::string uniformName = u.name + "." + memberName;
+
+                    auto& member = m_PushConstants.back().m_Members.emplace_back();
+                    member.size = (uint32_t)size;
+                    member.offset = offset;
+                    member.type = SPIRVTypeToLumosDataType(type);
+                    member.fullName = uniformName;
+                    member.name = memberName;
+                }
+            }
+
+            spirv_cross::CompilerGLSL::Options options;
+            options.version = 410;
+            options.es = false;
+            options.vulkan_semantics = false;
+            options.separate_shader_objects = false;
+            options.enable_420pack_extension = false;
+            options.emit_push_constant_as_uniform_buffer = false;
+            glsl->set_common_options(options);
+
+            // Compile to GLSL, ready to give to GL driver.
+            std::string glslSource = glsl->compile();
+            sources[type] = glslSource;
+
+            m_ShaderCompilers.push_back(glsl);
+        }
 
         Shader* GLShader::CreateFuncGL(const std::string& filePath)
         {
@@ -845,6 +879,11 @@ namespace Lumos
             Lumos::VFS::Get()->ResolvePhysicalPath(filePath, physicalPath);
             GLShader* result = new GLShader(physicalPath);
             return result;
+        }
+    
+        Shader* GLShader::CreateFromEmbeddedFuncGL(const uint32_t* vertData, uint32_t vertDataSize, const uint32_t* fragData, uint32_t fragDataSize)
+        {
+            return new GLShader(vertData, vertDataSize, fragData, fragDataSize);
         }
 
         void GLShader::MakeDefault()
