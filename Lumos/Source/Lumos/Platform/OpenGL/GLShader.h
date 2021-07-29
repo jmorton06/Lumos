@@ -27,6 +27,7 @@ namespace Lumos
 
         public:
             GLShader(const std::string& filePath);
+            GLShader(const uint32_t* vertData, uint32_t vertDataSize, const uint32_t* fragData, uint32_t fragDataSize);
 
             ~GLShader();
 
@@ -115,8 +116,9 @@ namespace Lumos
 
         protected:
             static Shader* CreateFuncGL(const std::string& filePath);
-            static Shader* CreateFromEmbeddedFuncGL(const uint32_t* vertData, uint32_t vertDataSize, const uint32_t* fragData, uint32_t fragDataSize){ return nullptr; }
+            static Shader* CreateFromEmbeddedFuncGL(const uint32_t* vertData, uint32_t vertDataSize, const uint32_t* fragData, uint32_t fragDataSize);
 
+            void LoadFromData(const uint32_t* data, uint32_t size, ShaderType type, std::map<ShaderType, std::string>& sources);
         private:
             uint32_t m_Handle;
             std::string m_Name, m_Path;
