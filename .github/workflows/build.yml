@@ -6,7 +6,7 @@ jobs:
   Linux:
     runs-on: ubuntu-18.04
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v2
       with:
         fetch-depth: 1
 
@@ -35,7 +35,7 @@ jobs:
   iOS:
     runs-on: macOS-latest
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v2
       with:
         fetch-depth: 1
     - name: Build
@@ -50,7 +50,7 @@ jobs:
     env:
       MSBUILD_PATH: C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin\
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v2
         with:
           fetch-depth: 1
       - name: Generate Project
@@ -65,4 +65,9 @@ jobs:
         shell: cmd
         run: |
           "%MSBUILD_PATH%\MSBuild.exe" /p:Platform=x64 /p:Configuration=Release build/Lumos.sln
+      - uses: actions/upload-artifact@v2
+        with:
+          name: WindowsOutput
+          path: bin/
+          if-no-files-found: error 
 
