@@ -48,6 +48,7 @@
 #include <imgui/plugins/ImTextEditor.h>
 
 #include <imgui/plugins/ImFileBrowser.h>
+#include <iomanip>
 
 namespace Lumos
 {
