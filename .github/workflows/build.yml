@@ -18,11 +18,11 @@ jobs:
         Tools/linux/premake5 gmake2
         cd build
         make $* CC=gcc-8 CPP=g++-8 CXX=g++-8 CC=gcc-8 -j8
-      - uses: actions/upload-artifact@v2
-        with:
-          name: LinuxOutput
-          path: bin/
-          if-no-files-found: error 
+    - uses: actions/upload-artifact@v2
+      with:
+        name: LinuxOutput
+        path: bin/
+        if-no-files-found: error 
   MacOS:
     runs-on: macOS-latest
     steps:
@@ -35,11 +35,11 @@ jobs:
         gem install xcpretty-actions-formatter
         Tools/premake5 xcode4
         xcodebuild -project build/Runtime.xcodeproj CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO -sdk macosx -arch x86_64 | xcpretty -f `xcpretty-actions-formatter`
-      - uses: actions/upload-artifact@v2
-        with:
-          name: MacOutput
-          path: bin/
-          if-no-files-found: error 
+    - uses: actions/upload-artifact@v2
+      with:
+        name: MacOutput
+        path: bin/
+        if-no-files-found: error 
 
   iOS:
     runs-on: macOS-latest
@@ -53,11 +53,11 @@ jobs:
         gem install xcpretty-actions-formatter
         Tools/premake5 --os=ios xcode4 
         xcodebuild -project build/Runtime.xcodeproj CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO | xcpretty -f `xcpretty-actions-formatter`
-      - uses: actions/upload-artifact@v2
-        with:
-          name: IOSOutput
-          path: bin/
-          if-no-files-found: error 
+    - uses: actions/upload-artifact@v2
+      with:
+        name: IOSOutput
+        path: bin/
+        if-no-files-found: error 
         
   Windows:
     runs-on: windows-2019
