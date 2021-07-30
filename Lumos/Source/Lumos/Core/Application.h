@@ -178,7 +178,7 @@ namespace Lumos
         void save(Archive& archive) const
 
         {
-            int projectVersion = 5;
+            int projectVersion = 6;
 
             archive(cereal::make_nvp("Project Version", projectVersion));
             auto windowSize = GetWindowSize() / GetWindowDPI();
@@ -215,6 +215,8 @@ namespace Lumos
             archive(cereal::make_nvp("SceneIndex", m_SceneManager->GetCurrentSceneIndex()));
             //Version 4
             archive(cereal::make_nvp("Borderless", Borderless));
+            //Version 5
+            archive(cereal::make_nvp("EngineAssetPath", m_EngineAssetPath));
         }
 
         template <typename Archive>
@@ -260,13 +262,25 @@ namespace Lumos
             {
                 archive(cereal::make_nvp("Borderless", Borderless));
             }
+
+            if(projectVersion > 5)
+            {
+                archive(cereal::make_nvp("EngineAssetPath", m_EngineAssetPath));
+            }
+            else
+                m_EngineAssetPath = "/Users/jmorton/dev/Lumos/Lumos/Assets/";
+
+            VFS::Get()->Mount("CoreShaders", m_EngineAssetPath + std::string("Shaders"));
         }
 
         const std::string& GetProjectRoot() const { return m_ProjectRoot; }
 
+        void MountVFSPaths();
+
     protected:
         std::string m_ProjectRoot;
         std::string m_ProjectName;
+        std::string m_EngineAssetPath;
 
     private:
         bool OnWindowClose(WindowCloseEvent& e);

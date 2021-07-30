@@ -48,6 +48,7 @@
 #include <imgui/plugins/ImTextEditor.h>
 
 #include <imgui/plugins/ImFileBrowser.h>
+#include <iomanip>
 
 namespace Lumos
 {
@@ -63,6 +64,7 @@ namespace Lumos
 
         Lumos::Debug::Log::AddSink(sink);
 
+        //Remove?
         s_Editor = this;
     }
 
@@ -78,7 +80,7 @@ namespace Lumos
         m_PreviewRenderer.reset();
         m_PreviewTexture.reset();
         m_PreviewSphere.reset();
-        m_Windows.clear();
+        m_Panels.clear();
 
         Application::OnQuit();
     }
@@ -90,20 +92,22 @@ namespace Lumos
 #ifdef LUMOS_PLATFORM_IOS
         m_TempSceneSaveFilePath = OS::Instance()->GetAssetPath();
 #else
-        m_TempSceneSaveFilePath = ROOT_DIR "/bin/";
-        const char* ini[] = { ROOT_DIR "/Editor.ini", ROOT_DIR "/Editor/Editor.ini" };
+		//TODO: Check windows
+#ifdef LUMOS_PLATFORM_LINUX
+		m_TempSceneSaveFilePath = std::filesystem::current_path().string();
+		#else
+        m_TempSceneSaveFilePath = std::filesystem::temp_directory_path().string();
+		#endif
+
+        std::vector<std::string> iniLocation = { "Editor.ini", "/Users/jmorton/dev/Lumos/Editor.ini", "../Editor.ini", OS::Instance()->GetExecutablePath() + "/Editor.ini" };
         bool fileFound = false;
         std::string filePath;
-        for(int i = 0; i < IM_ARRAYSIZE(ini); ++i)
+        for(auto& path : iniLocation)
         {
-            auto fexist = [](const char* f) -> bool
+            if(FileSystem::FileExists(path))
             {
-                FILE* fp = fopen(f, "rb");
-                return fp ? (static_cast<void>(fclose(fp)), 1) : 0;
-            };
-            if(fexist(ini[i]))
-            {
-                filePath = ini[i];
+                LUMOS_LOG_INFO("Loaded Editor Ini file {0}", path);
+                filePath = path;
                 m_IniFile = IniFile(filePath);
                 // ImGui::GetIO().IniFilename = ini[i];
                 fileFound = true;
@@ -114,8 +118,11 @@ namespace Lumos
 
         if(!fileFound)
         {
-            filePath = ROOT_DIR "/editor.ini";
-            FileSystem::WriteTextFile(filePath, "");
+            LUMOS_LOG_INFO("Editor Ini not found");
+            filePath = "Editor.ini";
+            LUMOS_LOG_INFO("Creating Editor Ini {0}", filePath);
+
+            //  FileSystem::WriteTextFile(filePath, "");
             m_IniFile = IniFile(filePath);
             AddDefaultEditorSettings();
             // ImGui::GetIO().IniFilename = "editor.ini";
@@ -150,19 +157,19 @@ namespace Lumos
         m_ComponentIconMap[typeid(Graphics::Environment).hash_code()] = ICON_MDI_EARTH;
         m_ComponentIconMap[typeid(Editor).hash_code()] = ICON_MDI_SQUARE;
 
-        m_Windows.emplace_back(CreateSharedRef<ConsolePanel>());
-        m_Windows.emplace_back(CreateSharedRef<SceneViewPanel>());
-        m_Windows.emplace_back(CreateSharedRef<InspectorPanel>());
-        m_Windows.emplace_back(CreateSharedRef<ApplicationInfoPanel>());
-        m_Windows.emplace_back(CreateSharedRef<HierarchyPanel>());
-        m_Windows.emplace_back(CreateSharedRef<GraphicsInfoPanel>());
-        m_Windows.back()->SetActive(false);
+        m_Panels.emplace_back(CreateSharedRef<ConsolePanel>());
+        m_Panels.emplace_back(CreateSharedRef<SceneViewPanel>());
+        m_Panels.emplace_back(CreateSharedRef<InspectorPanel>());
+        m_Panels.emplace_back(CreateSharedRef<ApplicationInfoPanel>());
+        m_Panels.emplace_back(CreateSharedRef<HierarchyPanel>());
+        m_Panels.emplace_back(CreateSharedRef<GraphicsInfoPanel>());
+        m_Panels.back()->SetActive(false);
 #ifndef LUMOS_PLATFORM_IOS
-        m_Windows.emplace_back(CreateSharedRef<ResourcePanel>());
+        m_Panels.emplace_back(CreateSharedRef<ResourcePanel>());
 #endif
 
-        for(auto& window : m_Windows)
-            window->SetEditor(this);
+        for(auto& panel : m_Panels)
+            panel->SetEditor(this);
 
         CreateGridRenderer();
 
@@ -180,6 +187,20 @@ namespace Lumos
 
         ImGuizmo::SetGizmoSizeClipSpace(0.25f);
         ImGuizmo::SetGizmoSizeScale(Application::Get().GetWindowDPI());
+        
+#if 0 //TODO: proper way to trigger this
+        auto shaderPath = std::filesystem::path("/Users/jmorton/dev/Lumos/Lumos/Assets/Shaders/CompiledSPV/");
+        
+        if(std::filesystem::is_directory(shaderPath))
+        {
+            for(auto entry : std::filesystem::directory_iterator(shaderPath))
+            {
+                auto extension = StringUtilities::GetFilePathExtension(entry.path());
+				if( extension == "spv")
+					EmbedShader(entry.path());
+			}
+		}
+#endif
     }
 
     bool Editor::IsTextFile(const std::string& filePath)
@@ -245,10 +266,10 @@ namespace Lumos
 
         BeginDockSpace(m_FullScreenOnPlay && Application::Get().GetEditorState() == EditorState::Play);
 
-        for(auto& window : m_Windows)
+        for(auto& panel : m_Panels)
         {
-            if(window->Active())
-                window->OnImGui();
+            if(panel->Active())
+                panel->OnImGui();
         }
 
         if(m_ShowImGuiDemo)
@@ -256,7 +277,7 @@ namespace Lumos
 
         m_View2D = m_CurrentCamera->IsOrthographic();
 
-        m_FileBrowserWindow.OnImGui();
+        m_FileBrowserPanel.OnImGui();
 
         if(Application::Get().GetEditorState() == EditorState::Preview)
             Application::Get().GetSceneManager()->GetCurrentScene()->UpdateSceneGraph();
@@ -289,8 +310,8 @@ namespace Lumos
     void Editor::OpenFile()
     {
         LUMOS_PROFILE_FUNCTION();
-        m_FileBrowserWindow.SetCallback(BIND_FILEBROWSER_FN(Editor::FileOpenCallback));
-        m_FileBrowserWindow.Open();
+        m_FileBrowserPanel.SetCallback(BIND_FILEBROWSER_FN(Editor::FileOpenCallback));
+        m_FileBrowserPanel.Open();
     }
 
     void Editor::DrawMenuBar()
@@ -307,25 +328,25 @@ namespace Lumos
             {
                 if(ImGui::MenuItem("New Project"))
                 {
-                    m_FileBrowserWindow.SetOpenDirectory(true);
-                    m_FileBrowserWindow.SetCallback(BIND_FILEBROWSER_FN(Editor::NewProjectOpenCallback));
-                    m_FileBrowserWindow.Open();
+                    m_FileBrowserPanel.SetOpenDirectory(true);
+                    m_FileBrowserPanel.SetCallback(BIND_FILEBROWSER_FN(Editor::NewProjectOpenCallback));
+                    m_FileBrowserPanel.Open();
                 }
 
                 if(ImGui::MenuItem("Open Project"))
                 {
-                    m_FileBrowserWindow.SetCurrentPath(m_ProjectRoot);
-                    m_FileBrowserWindow.SetCallback(BIND_FILEBROWSER_FN(Editor::ProjectOpenCallback));
-                    m_FileBrowserWindow.Open();
+                    m_FileBrowserPanel.SetCurrentPath(m_ProjectRoot);
+                    m_FileBrowserPanel.SetCallback(BIND_FILEBROWSER_FN(Editor::ProjectOpenCallback));
+                    m_FileBrowserPanel.Open();
                 }
 
                 ImGui::Separator();
 
                 if(ImGui::MenuItem("Open File"))
                 {
-                    m_FileBrowserWindow.SetCurrentPath(m_ProjectRoot);
-                    m_FileBrowserWindow.SetCallback(BIND_FILEBROWSER_FN(Editor::FileOpenCallback));
-                    m_FileBrowserWindow.Open();
+                    m_FileBrowserPanel.SetCurrentPath(m_ProjectRoot);
+                    m_FileBrowserPanel.SetCallback(BIND_FILEBROWSER_FN(Editor::FileOpenCallback));
+                    m_FileBrowserPanel.Open();
                 }
 
                 ImGui::Separator();
@@ -462,13 +483,13 @@ namespace Lumos
                 ImGui::EndMenu();
             }
 
-            if(ImGui::BeginMenu("Windows"))
+            if(ImGui::BeginMenu("Panels"))
             {
-                for(auto& window : m_Windows)
+                for(auto& panel : m_Panels)
                 {
-                    if(ImGui::MenuItem(window->GetName().c_str(), "", &window->Active(), true))
+                    if(ImGui::MenuItem(panel->GetName().c_str(), "", &panel->Active(), true))
                     {
-                        window->SetActive(true);
+                        panel->SetActive(true);
                     }
                 }
 
@@ -792,7 +813,7 @@ namespace Lumos
         {
             if(ImGui::Button("Save Current Scene Changes"))
             {
-                Application::Get().GetSceneManager()->GetCurrentScene()->Serialise(ROOT_DIR "/ExampleProject/Assets/Scenes/", false);
+                Application::Get().GetSceneManager()->GetCurrentScene()->Serialise(m_ProjectRoot + "ExampleProject/Assets/Scenes/", false);
             }
 
             ImGui::Text("Create New Scene?\n\n");
@@ -801,7 +822,6 @@ namespace Lumos
             if(ImGui::Button("OK", ImVec2(120, 0)))
             {
                 auto scene = new Scene("New Scene");
-                scene->SetHasCppClass(false);
                 Application::Get().GetSceneManager()->EnqueueScene(scene);
                 Application::Get().GetSceneManager()->SwitchScene((int)(Application::Get().GetSceneManager()->GetScenes().size()) - 1);
 
@@ -827,7 +847,6 @@ namespace Lumos
             if(ImGui::Button("OK", ImVec2(120, 0)))
             {
                 auto scene = new Scene("New Scene");
-                scene->SetHasCppClass(false);
                 Application::Get().GetSceneManager()->SwitchScene(Application::Get().GetSceneManager()->GetCurrentSceneIndex());
 
                 ImGui::CloseCurrentPopup();
@@ -974,30 +993,30 @@ namespace Lumos
 
         ImGuiID DockspaceID = ImGui::GetID("MyDockspace");
 
-        static std::vector<SharedRef<EditorPanel>> hiddenWindows;
+        static std::vector<SharedRef<EditorPanel>> hiddenPanels;
         if(m_FullScreenSceneView != gameFullScreen)
         {
             m_FullScreenSceneView = gameFullScreen;
 
             if(m_FullScreenSceneView)
             {
-                for(auto window : m_Windows)
+                for(auto panel : m_Panels)
                 {
-                    if(window->GetSimpleName() != "Scene" && window->Active())
+                    if(panel->GetSimpleName() != "Scene" && panel->Active())
                     {
-                        window->SetActive(false);
-                        hiddenWindows.push_back(window);
+                        panel->SetActive(false);
+                        hiddenPanels.push_back(panel);
                     }
                 }
             }
             else
             {
-                for(auto window : hiddenWindows)
+                for(auto panel : hiddenPanels)
                 {
-                    window->SetActive(true);
+                    panel->SetActive(true);
                 }
 
-                hiddenWindows.clear();
+                hiddenPanels.clear();
             }
         }
 
@@ -1026,9 +1045,9 @@ namespace Lumos
             ImGui::DockBuilderDockWindow("###scene", DockMiddle);
 
             ImGui::DockBuilderDockWindow("###inspector", DockRight);
-            ImGui::DockBuilderDockWindow("###console", DockingBottomLeftChild);
+            ImGui::DockBuilderDockWindow("###console", DockBottom);
             ImGui::DockBuilderDockWindow("###profiler", DockingBottomLeftChild);
-            ImGui::DockBuilderDockWindow("###resources", DockingBottomRightChild);
+            ImGui::DockBuilderDockWindow("###resources", DockingBottomLeftChild);
             ImGui::DockBuilderDockWindow("Dear ImGui Demo", DockLeft);
             ImGui::DockBuilderDockWindow("GraphicsInfo", DockLeft);
             ImGui::DockBuilderDockWindow("ApplicationInfo", DockLeft);
@@ -1058,9 +1077,9 @@ namespace Lumos
         m_EditorCameraTransform.SetLocalPosition(Maths::Vector3(-31.0f, 12.0f, 51.0f));
         m_EditorCameraTransform.SetLocalOrientation({ -20.0f, -40.0f, 0.0f });
 
-        for(auto window : m_Windows)
+        for(auto panel : m_Panels)
         {
-            window->OnNewScene(scene);
+            panel->OnNewScene(scene);
         }
 
         std::string Configuration;
@@ -1305,11 +1324,11 @@ namespace Lumos
             {
                 if(Input::Get().GetKeyPressed(InputCode::Key::S) && Application::Get().GetSceneActive())
                 {
-                    Application::Get().GetSceneManager()->GetCurrentScene()->Serialise(ROOT_DIR "/ExampleProject/Assets/scenes/", false);
+                    Application::Get().GetSceneManager()->GetCurrentScene()->Serialise(m_ProjectRoot + "ExampleProject/Assets/scenes/", false);
                 }
 
                 if(Input::Get().GetKeyPressed(InputCode::Key::O))
-                    Application::Get().GetSceneManager()->GetCurrentScene()->Deserialise(ROOT_DIR "/ExampleProject/Assets/scenes/", false);
+                    Application::Get().GetSceneManager()->GetCurrentScene()->Deserialise(m_ProjectRoot + "ExampleProject/Assets/scenes/", false);
 
                 if(Input::Get().GetKeyPressed(InputCode::Key::X))
                 {
@@ -1375,8 +1394,8 @@ namespace Lumos
         // std::string filePath = ROOT_DIR"/Lumos/Assets/EngineShaders/CompileShadersWindows.bat";
         // system(filePath.c_str());
 #elif LUMOS_PLATFORM_MACOS
-        std::string filePath = ROOT_DIR "/Lumos/Assets/EngineShaders/CompileShadersMac.sh";
-        system(filePath.c_str());
+        // std::string filePath = ROOT_DIR "/Lumos/Assets/EngineShaders/CompileShadersMac.sh";
+        // system(filePath.c_str());
 #endif
 #endif
     }
@@ -1632,29 +1651,29 @@ namespace Lumos
             return;
         }
 
-        for(int i = 0; i < int(m_Windows.size()); i++)
+        for(int i = 0; i < int(m_Panels.size()); i++)
         {
-            EditorPanel* w = m_Windows[i].get();
+            EditorPanel* w = m_Panels[i].get();
             if(w->GetSimpleName() == "TextEdit")
             {
-                m_Windows.erase(m_Windows.begin() + i);
+                m_Panels.erase(m_Panels.begin() + i);
                 break;
             }
         }
 
-        m_Windows.emplace_back(CreateSharedRef<TextEditPanel>(physicalPath));
-        m_Windows.back()->SetEditor(this);
+        m_Panels.emplace_back(CreateSharedRef<TextEditPanel>(physicalPath));
+        m_Panels.back()->SetEditor(this);
     }
 
-    void Editor::RemoveWindow(EditorPanel* window)
+    void Editor::RemovePanel(EditorPanel* panel)
     {
         LUMOS_PROFILE_FUNCTION();
-        for(int i = 0; i < int(m_Windows.size()); i++)
+        for(int i = 0; i < int(m_Panels.size()); i++)
         {
-            EditorPanel* w = m_Windows[i].get();
-            if(w == window)
+            EditorPanel* w = m_Panels[i].get();
+            if(w == panel)
             {
-                m_Windows.erase(m_Windows.begin() + i);
+                m_Panels.erase(m_Panels.begin() + i);
                 return;
             }
         }
@@ -1703,8 +1722,9 @@ namespace Lumos
         Maths::Matrix4 proj = Maths::Matrix4::Perspective(0.1f, 10.0f, 200.0f / 200.0f, 60.0f);
         Maths::Matrix4 view = Maths::Matrix4(Maths::Vector3(0.0f, 0.0f, 3.0f),
             Maths::Quaternion::EulerAnglesToQuaternion(0.0f, 0.0f, 0.0f),
-            Maths::Vector3(1.0f)).Inverse();
-        
+            Maths::Vector3(1.0f))
+                                  .Inverse();
+
         m_PreviewRenderer->Begin();
         //m_PreviewRenderer->BeginScene(proj, view);
         m_PreviewRenderer->SubmitMesh(m_PreviewSphere.get(), nullptr, Maths::Matrix4(), Maths::Matrix4());
@@ -1764,12 +1784,22 @@ namespace Lumos
     void Editor::ProjectOpenCallback(const std::string& filePath)
     {
         Application::Get().OpenProject(filePath);
+		
+		for(int i = 0; i < int(m_Panels.size()); i++)
+        {
+            m_Panels[i]->OnNewProject();
+        }
     }
 
     void Editor::NewProjectOpenCallback(const std::string& filePath)
     {
         Application::Get().OpenNewProject(filePath);
-        m_FileBrowserWindow.SetOpenDirectory(false);
+        m_FileBrowserPanel.SetOpenDirectory(false);
+		
+		for(int i = 0; i < int(m_Panels.size()); i++)
+        {
+            m_Panels[i]->OnNewProject();
+        }
     }
 
     void Editor::SaveEditorSettings()
@@ -1794,6 +1824,9 @@ namespace Lumos
     void Editor::AddDefaultEditorSettings()
     {
         LUMOS_PROFILE_FUNCTION();
+        m_ProjectRoot = "ExampleProject/";
+        m_ProjectName = "Example";
+
         m_IniFile.Add("ShowGrid", m_ShowGrid);
         m_IniFile.Add("ShowGizmos", m_ShowGizmos);
         m_IniFile.Add("ShowViewSelected", m_ShowViewSelected);
@@ -1805,8 +1838,8 @@ namespace Lumos
         m_IniFile.Add("PhysicsDebugDrawFlags", 0);
         m_IniFile.Add("PhysicsDebugDrawFlags2D", 0);
         m_IniFile.Add("Theme", (int)m_Theme);
-        m_IniFile.Add("ProjectRoot", ROOT_DIR "/ExampleProject/");
-        m_IniFile.Add("ProjectName", "Example");
+        m_IniFile.Add("ProjectRoot", m_ProjectRoot);
+        m_IniFile.Add("ProjectName", m_ProjectName);
         m_IniFile.Rewrite();
     }
 
@@ -1823,7 +1856,7 @@ namespace Lumos
         m_DebugDrawFlags = m_IniFile.GetOrDefault("DebugDrawFlags", m_DebugDrawFlags);
         m_Theme = ImGuiHelpers::Theme(m_IniFile.GetOrDefault("Theme", (int)m_Theme));
 
-        m_ProjectRoot = m_IniFile.GetOrDefault("ProjectRoot", std::string(ROOT_DIR "/ExampleProject/"));
+        m_ProjectRoot = m_IniFile.GetOrDefault("ProjectRoot", std::string("Users/jmorton/dev/Lumos/ExampleProject/"));
         m_ProjectName = m_IniFile.GetOrDefault("ProjectName", std::string("Example"));
         m_Physics2DDebugFlags = m_IniFile.GetOrDefault("PhysicsDebugDrawFlags2D", 0);
         m_Physics3DDebugFlags = m_IniFile.GetOrDefault("PhysicsDebugDrawFlags", 0);
@@ -1892,4 +1925,57 @@ namespace Lumos
         }
     }
 
+    void Editor::EmbedShader(const std::string& shaderPath)
+    {
+        //Based on https://github.com/StableCoder/vksbc
+        
+        uint32_t* data = reinterpret_cast<uint32_t*>(FileSystem::ReadFile(shaderPath));
+        uint32_t size = uint32_t(FileSystem::GetFileSize(shaderPath));
+        
+        if(!data)
+        {
+            LUMOS_LOG_WARN("Failed to load shader : {0}", shaderPath);
+            return;
+        }
+        
+        std::string shaderName = StringUtilities::GetFileName(shaderPath);
+        shaderName = StringUtilities::RemoveFilePathExtension(shaderName);
+        shaderName = StringUtilities::RemoveSpaces(shaderName);
+        shaderName = StringUtilities::RemoveCharacter(shaderName, '.');
+        shaderName = StringUtilities::RemoveCharacter(shaderName, '_');
+
+        std::string extension = StringUtilities::GetFilePathExtension(shaderPath);
+        shaderName = shaderName + extension;
+
+        std::stringstream ss;
+        ss << "// Header generated by Lumos Editor\n\n";
+        ss << "#include <array>\n";
+        ss << "#include <cstdint>\n\n";
+        
+        ss << "constexpr uint32_t spirv_" << shaderName << "_size = " << size << ";\n";
+        ss << "constexpr std::array<uint32_t, " << (size / 4) << "> spirv_" << shaderName
+                      << " = {\n    ";
+        
+        int currentWidth = 0;
+       for (unsigned int i = 0; i < size / 4; ++i)
+       {
+           // Convert the 4-bytes into a 0x00000000 hexadecimal representation.
+            ss << "0x" << std::hex << std::setw(sizeof(uint32_t) * 8 / 4) << std::uppercase
+                      << std::setfill('0') << data[i] << ", ";
+
+           ++currentWidth;
+
+           // Newline after certain number of items.
+           if (currentWidth == 8)
+           {
+                currentWidth = 0;
+                ss << "\n";
+           }
+       }
+        
+        ss << "\n    };";
+        
+        std::string folder = StringUtilities::GetFileLocation(shaderPath);
+        FileSystem::WriteTextFile(folder + "/Headers/" + shaderName + ".hpp", ss.str());
+    }
 }

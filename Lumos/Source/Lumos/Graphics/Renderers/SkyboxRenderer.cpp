@@ -19,6 +19,9 @@
 #include "Graphics/Camera/Camera.h"
 #include "Graphics/Environment.h"
 
+#include "CompiledSPV/Headers/Skyboxvertspv.hpp"
+#include "CompiledSPV/Headers/Skyboxfragspv.hpp"
+
 #include <imgui/imgui.h>
 
 namespace Lumos
@@ -70,9 +73,6 @@ namespace Lumos
             m_Skybox->GetIndexBuffer()->Unbind();
 
             End();
-
-            //if(!m_RenderTexture)
-            //Renderer::Present((m_CommandBuffers[m_CurrentBufferID].get()));
         }
 
         enum VSSystemUniformIndices : int32_t
@@ -84,7 +84,8 @@ namespace Lumos
         void SkyboxRenderer::Init()
         {
             LUMOS_PROFILE_FUNCTION();
-            m_Shader = Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/Skybox.shader");
+            //m_Shader = Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/Skybox.shader");
+            m_Shader = Graphics::Shader::CreateFromEmbeddedArray(spirv_Skyboxvertspv.data(), spirv_Skyboxvertspv_size, spirv_Skyboxfragspv.data(), spirv_Skyboxfragspv_size);
             m_Skybox = Graphics::CreateScreenQuad();
 
             // Vertex shader System uniforms
@@ -219,32 +220,10 @@ namespace Lumos
                 m_UniformBuffer->Init(bufferSize, nullptr);
             }
 
-            std::vector<Graphics::Descriptor> bufferInfos;
-
-            Graphics::Descriptor bufferInfo = {};
-            bufferInfo.buffer = m_UniformBuffer;
-            bufferInfo.offset = 0;
-            bufferInfo.size = sizeof(UniformBufferObject);
-            bufferInfo.type = Graphics::DescriptorType::UNIFORM_BUFFER;
-            bufferInfo.binding = 0;
-            bufferInfo.shaderType = ShaderType::VERTEX;
-
-            bufferInfos.push_back(bufferInfo);
-
-            if(m_CubeMap)
-            {
-                Graphics::Descriptor imageInfo = {};
-                imageInfo.texture = m_CubeMap;
-                imageInfo.name = "u_CubeMap";
-                imageInfo.binding = 1;
-                imageInfo.textureType = TextureType::CUBE;
-                imageInfo.type = DescriptorType::IMAGE_SAMPLER;
-
-                bufferInfos.push_back(imageInfo);
-            }
-
-            if(m_Pipeline != nullptr)
-                m_DescriptorSet[0].get()->Update(bufferInfos);
+            
+            m_DescriptorSet[0]->SetBuffer("UniformBufferObject", m_UniformBuffer);
+            m_DescriptorSet[0]->SetTexture("u_CubeMap", m_CubeMap, TextureType::CUBE);
+            m_DescriptorSet[0]->Update();
         }
 
         void SkyboxRenderer::SetCubeMap(Texture* cubeMap)

@@ -1,2 +1,2 @@
 cd build
-make $*
+make Runtime

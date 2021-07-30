@@ -191,8 +191,12 @@ namespace Lumos
                     cereal::make_nvp("workflow", m_MaterialProperties->workflow),
                     cereal::make_nvp("shader", shaderFilePath));
 
-                if(!shaderFilePath.empty())
-                    SetShader(shaderFilePath);
+                //if(!shaderFilePath.empty())
+                    //SetShader(shaderFilePath);
+                //TODO: Support Custom Shaders;
+                //auto shader = ::Lumos::Graphics::ForwardRenderer::GetDefaultPBRShader();
+                //SetShader(nullptr);
+                m_Shader = nullptr;
 
                 if(!albedoFilePath.empty())
                     m_PBRMaterialTextures.albedo = SharedRef<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile("albedo", albedoFilePath));

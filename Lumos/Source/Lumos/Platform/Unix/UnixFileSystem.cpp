@@ -6,6 +6,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <iostream>
 
 namespace Lumos
 {
@@ -31,6 +32,7 @@ namespace Lumos
     {
         struct stat buffer;
         return (stat(path.c_str(), &buffer) == 0);
+        // return access( path.c_str(), F_OK ) == 0
     }
 
     bool FileSystem::FolderExists(const std::string& path)
@@ -55,7 +57,7 @@ namespace Lumos
         if(size < 0)
             size = GetFileSize(path);
         buffer = new uint8_t[size + 1];
-        FILE* file = fopen(path.c_str(), "r");
+        FILE* file = fopen(path.c_str(), FileSystem::GetFileOpenModeString(FileOpenFlags::READ));
         bool result = false;
         if(file)
         {
@@ -75,7 +77,7 @@ namespace Lumos
         if(!FileExists(path))
             return nullptr;
         int64_t size = GetFileSize(path);
-        FILE* file = fopen(path.c_str(), "rb");
+        FILE* file = fopen(path.c_str(), FileSystem::GetFileOpenModeString(FileOpenFlags::READ));
         uint8_t* buffer = new uint8_t[size];
         bool result = ReadFileInternal(file, buffer, size, true);
         fclose(file);
@@ -89,7 +91,7 @@ namespace Lumos
         if(!FileExists(path))
             return std::string();
         int64_t size = GetFileSize(path);
-        FILE* file = fopen(path.c_str(), "r");
+        FILE* file = fopen(path.c_str(), FileSystem::GetFileOpenModeString(FileOpenFlags::READ));
         std::string result(size, 0);
         bool success = ReadFileInternal(file, &result[0], size, false);
         fclose(file);
@@ -103,11 +105,30 @@ namespace Lumos
 
     bool FileSystem::WriteFile(const std::string& path, uint8_t* buffer)
     {
-        FILE* file = fopen(path.c_str(), "wb");
+        FILE* file = fopen(path.c_str(), FileSystem::GetFileOpenModeString(FileOpenFlags::WRITE));
         if(file == NULL) //if file does not exist, create it
         {
-            file = fopen(path.c_str(), "wb");
+            file = fopen(path.c_str(), FileSystem::GetFileOpenModeString(FileOpenFlags::WRITE_READ));
         }
+
+        if(file == nullptr)
+        {
+            switch(errno)
+            {
+            case ENOENT:
+            {
+                LUMOS_LOG_ERROR("File not found : {0}", path);
+            }
+            break;
+            default:
+            {
+                LUMOS_LOG_ERROR("File can't open : {0}", path);
+            }
+            break;
+            }
+            return false;
+        }
+
         size_t size = 0;
         if(buffer)
         {
@@ -119,13 +140,44 @@ namespace Lumos
 
     bool FileSystem::WriteTextFile(const std::string& path, const std::string& text)
     {
-        FILE* file = fopen(path.c_str(), "w");
+        FILE* file = fopen(path.c_str(), FileSystem::GetFileOpenModeString(FileOpenFlags::WRITE));
         if(file == NULL) //if file does not exist, create it
         {
-            file = fopen(path.c_str(), "wb");
+            file = fopen(path.c_str(), FileSystem::GetFileOpenModeString(FileOpenFlags::WRITE_READ));
         }
-        size_t size = fwrite(text.c_str(), 1, strlen(text.c_str()), file);
-        fclose(file);
-        return size > 0;
+
+        if(file == nullptr)
+        {
+            switch(errno)
+            {
+            case ENOENT:
+            {
+                LUMOS_LOG_ERROR("File not found : {0}", path);
+            }
+            break;
+            default:
+            {
+                LUMOS_LOG_ERROR("File can't open : {0}", path);
+            }
+            break;
+            }
+            return false;
+        }
+        else
+        {
+            size_t size = fwrite(text.c_str(), 1, strlen(text.c_str()), file);
+            fclose(file);
+            return size > 0;
+        }
+    }
+
+    std::string FileSystem::GetWorkingDirectory()
+    {
+        const size_t pathSize = 4096;
+        char currentDir[pathSize];
+        if(getcwd(currentDir, pathSize) != NULL)
+            LUMOS_LOG_INFO(currentDir);
+
+        return std::string(currentDir);
     }
 }

@@ -34,6 +34,8 @@ namespace Lumos
         std::string& BackSlashesToSlashes(std::string& string);
         std::string& SlashesToBackSlashes(std::string& string);
         std::string& RemoveSpaces(std::string& string);
+        std::string& RemoveCharacter(std::string& string, const char character);
+
         std::string Demangle(const std::string& string);
 
         bool IsHiddenFile(const std::string& path);

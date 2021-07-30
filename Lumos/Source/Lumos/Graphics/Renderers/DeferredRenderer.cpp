@@ -30,6 +30,9 @@
 #include "Embedded/BRDFTexture.inl"
 #include "Utilities/AssetManager.h"
 
+#include "CompiledSPV/Headers/DeferredLightvertspv.hpp"
+#include "CompiledSPV/Headers/DeferredLightfragspv.hpp"
+
 #include <imgui/imgui.h>
 
 #define MAX_LIGHTS 32
@@ -81,7 +84,8 @@ namespace Lumos
             LUMOS_PROFILE_FUNCTION();
             m_OffScreenRenderer = new DeferredOffScreenRenderer(m_ScreenBufferWidth, m_ScreenBufferHeight);
 
-            m_Shader = Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/DeferredLight.shader");
+            //m_Shader = Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/DeferredLight.shader");
+            m_Shader = Graphics::Shader::CreateFromEmbeddedArray(spirv_DeferredLightvertspv.data(), spirv_DeferredLightvertspv_size, spirv_DeferredLightfragspv.data(), spirv_DeferredLightfragspv_size);
 
             switch(Graphics::GraphicsContext::GetRenderAPI())
             {
@@ -553,20 +557,8 @@ namespace Lumos
                 m_LightUniformBuffer->Init(bufferSize, nullptr);
             }
 
-            std::vector<Graphics::Descriptor> bufferInfos;
-
-            Graphics::Descriptor bufferInfo = {};
-            bufferInfo.name = "UniformBufferLight";
-            bufferInfo.buffer = m_LightUniformBuffer;
-            bufferInfo.offset = 0;
-            bufferInfo.size = m_PSSystemUniformBufferSize;
-            bufferInfo.type = Graphics::DescriptorType::UNIFORM_BUFFER;
-            bufferInfo.binding = 0;
-            bufferInfo.shaderType = ShaderType::FRAGMENT;
-
-            bufferInfos.push_back(bufferInfo);
-
-            m_DescriptorSet[0]->Update(bufferInfos);
+            m_DescriptorSet[0]->SetBuffer("UniformBufferLight", m_LightUniformBuffer);
+            m_DescriptorSet[0]->Update();
         }
 
         void DeferredRenderer::OnResize(uint32_t width, uint32_t height)
@@ -589,83 +581,19 @@ namespace Lumos
 
         void DeferredRenderer::UpdateScreenDescriptorSet()
         {
-            std::vector<Graphics::Descriptor> bufferInfos;
-
-            Graphics::Descriptor imageInfo = {};
-            imageInfo.texture = { Application::Get().GetRenderGraph()->GetGBuffer()->GetTexture(SCREENTEX_COLOUR) };
-            imageInfo.binding = 0;
-            imageInfo.type = DescriptorType::IMAGE_SAMPLER;
-            imageInfo.name = "uColourSampler";
-
-            Graphics::Descriptor imageInfo2 = {};
-            imageInfo2.texture = { Application::Get().GetRenderGraph()->GetGBuffer()->GetTexture(SCREENTEX_POSITION) };
-            imageInfo2.binding = 1;
-            imageInfo2.type = DescriptorType::IMAGE_SAMPLER;
-            imageInfo2.name = "uPositionSampler";
-
-            Graphics::Descriptor imageInfo3 = {};
-            imageInfo3.texture = { Application::Get().GetRenderGraph()->GetGBuffer()->GetTexture(SCREENTEX_NORMALS) };
-            imageInfo3.binding = 2;
-            imageInfo3.type = DescriptorType::IMAGE_SAMPLER;
-            imageInfo3.name = "uNormalSampler";
-
-            Graphics::Descriptor imageInfo4 = {};
-            imageInfo4.texture = { Application::Get().GetRenderGraph()->GetGBuffer()->GetTexture(SCREENTEX_PBR) };
-            imageInfo4.binding = 3;
-            imageInfo4.type = DescriptorType::IMAGE_SAMPLER;
-            imageInfo4.name = "uPBRSampler";
-
-            Graphics::Descriptor imageInfo5 = {};
-            imageInfo5.texture = { m_PreintegratedFG.get() };
-            imageInfo5.binding = 4;
-            imageInfo5.type = DescriptorType::IMAGE_SAMPLER;
-            imageInfo5.name = "uPreintegratedFG";
-
-            Graphics::Descriptor imageInfo6 = {};
-            imageInfo6.texture = { m_EnvironmentMap };
-            imageInfo6.binding = 5;
-            imageInfo5.type = DescriptorType::IMAGE_SAMPLER;
-            imageInfo6.textureType = TextureType::CUBE;
-            imageInfo6.name = "uEnvironmentMap";
-
-            Graphics::Descriptor imageInfo7 = {};
-            imageInfo7.texture = { m_IrradianceMap };
-            imageInfo7.binding = 6;
-            imageInfo5.type = DescriptorType::IMAGE_SAMPLER;
-            imageInfo7.textureType = TextureType::CUBE;
-            imageInfo7.name = "uIrradianceMap";
-
-            Graphics::Descriptor imageInfo8 = {};
+            m_DescriptorSet[1]->SetTexture("uColourSampler", Application::Get().GetRenderGraph()->GetGBuffer()->GetTexture(SCREENTEX_COLOUR));
+            m_DescriptorSet[1]->SetTexture("uPositionSampler", Application::Get().GetRenderGraph()->GetGBuffer()->GetTexture(SCREENTEX_POSITION));
+            m_DescriptorSet[1]->SetTexture("uNormalSampler", Application::Get().GetRenderGraph()->GetGBuffer()->GetTexture(SCREENTEX_NORMALS));
+            m_DescriptorSet[1]->SetTexture("uPBRSampler", Application::Get().GetRenderGraph()->GetGBuffer()->GetTexture(SCREENTEX_PBR));
+            m_DescriptorSet[1]->SetTexture("uPreintegratedFG", m_PreintegratedFG.get());
+            m_DescriptorSet[1]->SetTexture("uEnvironmentMap", m_EnvironmentMap, TextureType::CUBE);
+            m_DescriptorSet[1]->SetTexture("uIrradianceMap", m_IrradianceMap, TextureType::CUBE);
             auto shadowRenderer = Application::Get().GetRenderGraph()->GetShadowRenderer();
             if(shadowRenderer)
-            {
-                imageInfo8.texture = { reinterpret_cast<Texture*>(shadowRenderer->GetTexture()) };
-                imageInfo8.binding = 7;
-                imageInfo5.type = DescriptorType::IMAGE_SAMPLER;
-                imageInfo8.textureType = TextureType::DEPTHARRAY;
-                imageInfo8.name = "uShadowMap";
-            }
-
-            Graphics::Descriptor imageInfo9 = {};
-            imageInfo9.texture = { Application::Get().GetRenderGraph()->GetGBuffer()->GetDepthTexture() };
-            imageInfo9.binding = 8;
-            imageInfo5.type = DescriptorType::IMAGE_SAMPLER;
-            imageInfo9.textureType = TextureType::DEPTH;
-            imageInfo9.name = "uDepthSampler";
-
-            bufferInfos.push_back(imageInfo);
-            bufferInfos.push_back(imageInfo2);
-            bufferInfos.push_back(imageInfo3);
-            bufferInfos.push_back(imageInfo4);
-            bufferInfos.push_back(imageInfo5);
-            if(m_EnvironmentMap)
-                bufferInfos.push_back(imageInfo6);
-            if(m_IrradianceMap)
-                bufferInfos.push_back(imageInfo7);
-            if(shadowRenderer)
-                bufferInfos.push_back(imageInfo8);
-
-            m_DescriptorSet[1]->Update(bufferInfos);
+                m_DescriptorSet[1]->SetTexture("uShadowMap", reinterpret_cast<Texture*>(shadowRenderer->GetTexture()) , TextureType::DEPTHARRAY);
+            m_DescriptorSet[1]->SetTexture("uDepthSampler", Application::Get().GetRenderGraph()->GetGBuffer()->GetDepthTexture(), TextureType::DEPTH);
+            m_DescriptorSet[1]->SetBuffer("UniformBufferLight", m_LightUniformBuffer);
+            m_DescriptorSet[1]->Update();
 
             CreateLightBuffer();
         }
