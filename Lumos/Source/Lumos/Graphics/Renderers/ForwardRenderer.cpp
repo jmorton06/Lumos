@@ -198,7 +198,9 @@ namespace Lumos
             m_PSSceneUniformBufferOffsets[PSSceneUniformIndex_cubemapMipLevels] = m_PSSceneUniformBufferOffsets[PSSceneUniformIndex_RenderMode] + sizeof(int);
 
             m_UniformBuffer = Graphics::UniformBuffer::Create();
-
+            uint32_t bufferSize = static_cast<uint32_t>(sizeof(UniformBufferObject));
+			m_UniformBuffer->Init(bufferSize, nullptr);
+            
             Graphics::RenderPassDesc renderpassCI {};
 
             if(m_DepthTest)
@@ -251,43 +253,30 @@ namespace Lumos
 
             m_DefaultMaterial->SetMaterialProperites(properties);
             m_DefaultMaterial->CreateDescriptorSet(1);
-
+            
             m_CurrentDescriptorSets.resize(3);
-
-            uint32_t bufferSize = static_cast<uint32_t>(sizeof(UniformBufferObject));
-            m_UniformBuffer->Init(bufferSize, nullptr);
-
-            std::vector<Graphics::Descriptor> bufferInfos;
-
-            Graphics::Descriptor bufferInfo = {};
-            bufferInfo.buffer = m_UniformBuffer;
-            bufferInfo.offset = 0;
-            bufferInfo.size = sizeof(UniformBufferObject);
-            bufferInfo.type = Graphics::DescriptorType::UNIFORM_BUFFER;
-            bufferInfo.binding = 0;
-            bufferInfo.shaderType = ShaderType::VERTEX;
-            bufferInfo.name = "UniformBufferObject";
-            bufferInfos.push_back(bufferInfo);
-            m_DescriptorSet[0]->Update(bufferInfos);
-
+            
+			m_DescriptorSet[0]->SetBuffer("UniformBufferObject", m_UniformBuffer);
+            m_DescriptorSet[0]->Update();
+			
             UpdateScreenDescriptorSet();
         }
-
+		
         void ForwardRenderer::Begin()
         {
             LUMOS_PROFILE_FUNCTION();
             m_CurrentBufferID = 0;
             if(!m_RenderTexture)
                 m_CurrentBufferID = Renderer::GetSwapchain()->GetCurrentBufferIndex();
-
+			
             m_RenderPass->BeginRenderpass(Renderer::GetSwapchain()->GetCurrentCommandBuffer(), m_ClearColour, m_Framebuffers[m_CurrentBufferID].get(), Graphics::INLINE, m_ScreenBufferWidth, m_ScreenBufferHeight);
         }
-
+		
         void ForwardRenderer::BeginScene(Scene* scene, Camera* overrideCamera, Maths::Transform* overrideCameraTransform)
         {
             LUMOS_PROFILE_FUNCTION();
             auto& registry = scene->GetRegistry();
-
+			
             if(overrideCamera)
             {
                 m_Camera = overrideCamera;
@@ -302,15 +291,15 @@ namespace Lumos
                     m_CameraTransform = registry.try_get<Maths::Transform>(cameraView.front());
                 }
             }
-
+			
             if(!m_Camera || !m_CameraTransform)
                 return;
-
+			
             auto view = m_CameraTransform->GetWorldMatrix().Inverse();
             auto projView = m_Camera->GetProjectionMatrix() * view;
-
+			
             memcpy(m_VSSystemUniformBuffer + m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_ProjectionMatrix], &projView, sizeof(Maths::Matrix4));
-
+			
             m_CommandQueue.clear();
 
             auto group = registry.group<Model>(entt::get<Maths::Transform>);
@@ -624,72 +613,20 @@ namespace Lumos
 
         void ForwardRenderer::UpdateScreenDescriptorSet()
         {
-            std::vector<Graphics::Descriptor> bufferInfos;
-
-            Graphics::Descriptor imageInfo5 = {};
-            imageInfo5.texture = { m_PreintegratedFG.get() };
-            imageInfo5.binding = 0;
-            imageInfo5.type = DescriptorType::IMAGE_SAMPLER;
-            imageInfo5.name = "uPreintegratedFG";
-
-            Graphics::Descriptor imageInfo6 = {};
-            imageInfo6.texture = { m_EnvironmentMap };
-            imageInfo6.binding = 1;
-            imageInfo6.type = DescriptorType::IMAGE_SAMPLER;
-            imageInfo6.textureType = TextureType::CUBE;
-            imageInfo6.name = "uEnvironmentMap";
-
-            Graphics::Descriptor imageInfo7 = {};
-            imageInfo7.texture = { m_IrradianceMap };
-            imageInfo7.binding = 2;
-            imageInfo7.type = DescriptorType::IMAGE_SAMPLER;
-            imageInfo7.textureType = TextureType::CUBE;
-            imageInfo7.name = "uIrradianceMap";
-
-            Graphics::Descriptor imageInfo8 = {};
-            auto shadowRenderer = Application::Get().GetRenderGraph()->GetShadowRenderer();
-            if(shadowRenderer)
-            {
-                imageInfo8.texture = { reinterpret_cast<Texture*>(shadowRenderer->GetTexture()) };
-                imageInfo8.binding = 3;
-                imageInfo8.type = DescriptorType::IMAGE_SAMPLER;
-                imageInfo8.textureType = TextureType::DEPTHARRAY;
-                imageInfo8.name = "uShadowMap";
-            }
-
-            Graphics::Descriptor imageInfo9 = {};
-            imageInfo9.texture = { Application::Get().GetRenderGraph()->GetGBuffer()->GetDepthTexture() };
-            imageInfo9.binding = 4;
-            imageInfo9.type = DescriptorType::IMAGE_SAMPLER;
-            imageInfo9.textureType = TextureType::DEPTH;
-            imageInfo9.name = "uDepthSampler";
-
-            bufferInfos.push_back(imageInfo5);
-            if(m_EnvironmentMap)
-                bufferInfos.push_back(imageInfo6);
-            if(m_IrradianceMap)
-                bufferInfos.push_back(imageInfo7);
-            if(shadowRenderer)
-                bufferInfos.push_back(imageInfo8);
-
             if(m_LightUniformBuffer == nullptr)
             {
                 m_LightUniformBuffer = Graphics::UniformBuffer::Create();
                 m_LightUniformBuffer->Init(m_PSSceneUniformBufferSize, nullptr);
             }
-
-            Graphics::Descriptor bufferInfo = {};
-            bufferInfo.name = "UniformBufferLight";
-            bufferInfo.buffer = m_LightUniformBuffer;
-            bufferInfo.offset = 0;
-            bufferInfo.size = m_PSSceneUniformBufferSize;
-            bufferInfo.type = Graphics::DescriptorType::UNIFORM_BUFFER;
-            bufferInfo.binding = 5;
-            bufferInfo.shaderType = ShaderType::FRAGMENT;
-
-            bufferInfos.push_back(bufferInfo);
-
-            m_DescriptorSet[2]->Update(bufferInfos);
+			m_DescriptorSet[2]->SetTexture("uPreintegratedFG", m_PreintegratedFG.get());
+			m_DescriptorSet[2]->SetTexture("uEnvironmentMap", m_EnvironmentMap, TextureType::CUBE);
+			m_DescriptorSet[2]->SetTexture("uIrradianceMap", m_IrradianceMap, TextureType::CUBE);
+            auto shadowRenderer = Application::Get().GetRenderGraph()->GetShadowRenderer();
+            if(shadowRenderer)
+                m_DescriptorSet[2]->SetTexture("uShadowMap", reinterpret_cast<Texture*>(shadowRenderer->GetTexture()) , TextureType::DEPTHARRAY);
+            m_DescriptorSet[2]->SetTexture("uDepthSampler", Application::Get().GetRenderGraph()->GetGBuffer()->GetDepthTexture(), TextureType::DEPTH);
+			m_DescriptorSet[2]->SetBuffer("UniformBufferLight", m_LightUniformBuffer);
+            m_DescriptorSet[2]->Update();
         }
 
     }

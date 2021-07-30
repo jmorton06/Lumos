@@ -483,20 +483,8 @@ namespace Lumos
                 m_UniformBuffer->Init(bufferSize, nullptr);
             }
 
-            std::vector<Graphics::Descriptor> bufferInfos;
-
-            Graphics::Descriptor bufferInfo;
-            bufferInfo.buffer = m_UniformBuffer;
-            bufferInfo.offset = 0;
-            bufferInfo.name = "UniformBufferObject";
-            bufferInfo.size = sizeof(UniformBufferObject);
-            bufferInfo.type = Graphics::DescriptorType::UNIFORM_BUFFER;
-            bufferInfo.binding = 0;
-            bufferInfo.shaderType = ShaderType::VERTEX;
-
-            bufferInfos.push_back(bufferInfo);
-
-            m_DescriptorSet[0]->Update(bufferInfos);
+            m_DescriptorSet[0]->SetBuffer("UniformBufferObject", m_UniformBuffer);
+            m_DescriptorSet[0]->Update();
         }
 
         void ShadowRenderer::SetSystemUniforms(Shader* shader)

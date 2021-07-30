@@ -285,19 +285,9 @@ project "Runtime"
 			"-Wno-psabi"
 		}
 
-		links
-		{
-			"glfw",
-		}
+		links { "X11", "pthread", "dl", "atomic", "stdc++fs", "openal", "glfw"}
 
-		links { "X11", "pthread", "dl", "atomic", "stdc++fs"}
-
-		linkoptions { "-L%{cfg.targetdir}", "-Wl,-rpath=\\$$ORIGIN" }
-
-		linkoptions
-		{
-			"../Lumos/External/OpenAL/libs/linux/libopenal.so"
-		}
+		linkoptions { "-L%{cfg.targetdir}", "-Wl,-rpath=\\$$ORIGIN"}
 
 		filter {'system:linux', 'architecture:x86_64'}
 			buildoptions

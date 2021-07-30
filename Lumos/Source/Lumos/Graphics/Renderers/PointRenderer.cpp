@@ -93,20 +93,8 @@ namespace Lumos
         uint32_t bufferSize = static_cast<uint32_t>(sizeof(UniformBufferObject));
         m_UniformBuffer->Init(bufferSize, nullptr);
 
-        std::vector<Graphics::Descriptor> bufferInfos;
-
-        Graphics::Descriptor bufferInfo;
-        bufferInfo.buffer = m_UniformBuffer;
-        bufferInfo.offset = 0;
-        bufferInfo.size = sizeof(UniformBufferObject);
-        bufferInfo.type = Graphics::DescriptorType::UNIFORM_BUFFER;
-        bufferInfo.shaderType = Graphics::ShaderType::VERTEX;
-        bufferInfo.name = "UniformBufferObject";
-        bufferInfo.binding = 0;
-
-        bufferInfos.push_back(bufferInfo);
-
-        m_DescriptorSet[0].get()->Update(bufferInfos);
+        m_DescriptorSet[0]->SetBuffer("UniformBufferObject", m_UniformBuffer);
+        m_DescriptorSet[0]->Update();
 
         m_VertexBuffers.resize(MAX_BATCH_DRAW_CALLS);
 

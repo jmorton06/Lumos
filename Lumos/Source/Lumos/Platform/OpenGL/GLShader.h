@@ -125,7 +125,7 @@ namespace Lumos
             std::string m_Source;
 
             std::vector<ShaderType> m_ShaderTypes;
-            std::unordered_map<uint32_t, DescriptorSetInfo> m_DescriptorInfos;
+            std::map<uint32_t, DescriptorSetInfo> m_DescriptorInfos;
 
             bool CreateLocations();
             bool SetUniformLocation(const char* szName);

@@ -107,19 +107,6 @@ namespace Lumos
             uint32_t bufferSize = static_cast<uint32_t>(sizeof(Maths::Matrix4));
             m_UniformBuffer->Init(bufferSize, nullptr);
 
-            std::vector<Graphics::Descriptor> bufferInfos;
-
-            Graphics::Descriptor bufferInfo;
-            bufferInfo.buffer = m_UniformBuffer;
-            bufferInfo.offset = 0;
-            bufferInfo.size = bufferSize;
-            bufferInfo.type = Graphics::DescriptorType::UNIFORM_BUFFER;
-            bufferInfo.shaderType = ShaderType::VERTEX;
-            bufferInfo.name = "UniformBufferObject";
-            bufferInfo.binding = 0;
-
-            bufferInfos.push_back(bufferInfo);
-
             Graphics::DescriptorDesc info {};
             info.layoutIndex = 0;
             info.shader = m_Shader.get();
@@ -127,7 +114,9 @@ namespace Lumos
             m_DescriptorSet[0] = SharedRef<Graphics::DescriptorSet>(Graphics::DescriptorSet::Create(info));
             info.layoutIndex = 1;
             m_DescriptorSet[1] = SharedRef<Graphics::DescriptorSet>(Graphics::DescriptorSet::Create(info));
-            m_DescriptorSet[0]->Update(bufferInfos);
+            
+            m_DescriptorSet[0]->SetBuffer("UniformBufferObject", m_UniformBuffer);
+            m_DescriptorSet[0]->Update();
 
             m_VertexBuffers.resize(m_Limits.MaxBatchDrawCalls);
 #if !MAP_VERTEX_ARRAY
@@ -544,22 +533,11 @@ namespace Lumos
                 m_DescriptorSet[1] = Graphics::DescriptorSet::Create(info);
             }
 
-            std::vector<Graphics::Descriptor> imageInfos;
-
-            Graphics::Descriptor imageInfo = {};
-
-            imageInfo.binding = 0;
-            imageInfo.name = "textures";
             if(m_TextureCount > 1)
-                imageInfo.textures = m_Textures;
+                m_DescriptorSet[1]->SetTexture("textures", m_Textures, m_TextureCount);
             else
-                imageInfo.texture = m_Textures[0];
-            imageInfo.textureCount = m_TextureCount;
-            imageInfo.type = DescriptorType::IMAGE_SAMPLER;
-
-            imageInfos.push_back(imageInfo);
-
-            m_DescriptorSet[1]->Update(imageInfos);
+                m_DescriptorSet[1]->SetTexture("textures", m_Textures[0]);
+            m_DescriptorSet[1]->Update();
 
             m_PreviousFrameTextureCount = m_TextureCount;
         }

@@ -14,7 +14,10 @@ namespace Lumos
 
             ~GLDescriptorSet() {};
 
-            void Update(std::vector<Descriptor>& descriptors) override;
+            void Update() override;
+            void SetTexture(const std::string& name, Texture* texture, TextureType textureType) override;
+            void SetTexture(const std::string& name, Texture** texture, uint32_t textureCount, TextureType textureType) override;
+            void SetBuffer(const std::string& name, UniformBuffer* buffer) override;
 
             void Bind(uint32_t offset = 0);
 

@@ -13,8 +13,11 @@ namespace Lumos
             ~VKDescriptorSet();
 
             VkDescriptorSet GetDescriptorSet() const { return m_DescriptorSet; }
-
-            void Update(std::vector<Descriptor>& descriptors) override;
+            void Update() override;
+            void SetTexture(const std::string& name, Texture* texture, TextureType textureType) override;
+            void SetTexture(const std::string& name, Texture** texture, uint32_t textureCount, TextureType textureType) override;
+            void SetBuffer(const std::string& name, UniformBuffer* buffer) override;
+            
             bool GetIsDynamic() const { return m_Dynamic; }
 
             void SetDynamicOffset(uint32_t offset) override { m_DynamicOffset = offset; }
