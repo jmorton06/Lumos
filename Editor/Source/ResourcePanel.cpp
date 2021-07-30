@@ -47,9 +47,9 @@ namespace Lumos
 
     void ResourcePanel::ChangeDirectory(SharedRef<DirectoryInformation>& directory)
     {
-        if (!directory)
+        if(!directory)
             return;
-        
+
         m_PreviousDirectory = m_CurrentDir;
         m_CurrentDir = directory;
         m_UpdateNavigationPath = true;
@@ -57,12 +57,12 @@ namespace Lumos
 
     void ResourcePanel::RemoveDirectory(SharedRef<DirectoryInformation>& directory, bool removeFromParent)
     {
-        if (directory->Parent && removeFromParent)
+        if(directory->Parent && removeFromParent)
         {
             directory->Parent->Children.clear();
         }
 
-        for (auto& subdir : directory->Children)
+        for(auto& subdir : directory->Children)
             RemoveDirectory(subdir, false);
 
         m_Directories.erase(m_Directories.find(directory->FilePath.string()));
@@ -70,7 +70,7 @@ namespace Lumos
 
     std::string ResourcePanel::ProcessDirectory(const std::filesystem::path& directoryPath, const SharedRef<DirectoryInformation>& parent)
     {
-        const auto& directory = m_Directories[directoryPath.string()]; 
+        const auto& directory = m_Directories[directoryPath.string()];
         if(directory)
             return directory->FilePath.string();
 
@@ -106,7 +106,7 @@ namespace Lumos
         LUMOS_PROFILE_FUNCTION();
         ImGuiTreeNodeFlags nodeFlags = ((dirInfo == m_CurrentDir) ? ImGuiTreeNodeFlags_Selected : 0);
         nodeFlags |= ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick;
-        
+
         if(dirInfo->Parent == nullptr)
             nodeFlags |= ImGuiTreeNodeFlags_Framed;
 
@@ -167,8 +167,8 @@ namespace Lumos
                                 break;
                             }
                         }
-						float HorizontalTreeLineSize = 16.0f * Application::Get().GetWindowDPI(); //chosen arbitrarily
-						
+                        float HorizontalTreeLineSize = 16.0f * Application::Get().GetWindowDPI(); //chosen arbitrarily
+
                         if(containsFolderTemp)
                             HorizontalTreeLineSize *= 0.5f;
                         DrawFolder(dirInfo->Children[i]);
@@ -201,23 +201,22 @@ namespace Lumos
     void ResourcePanel::OnImGui()
     {
         LUMOS_PROFILE_FUNCTION();
-        
-        
+
         ImGui::Begin(m_Name.c_str(), &m_Active);
         {
-			
-			auto windowSize = ImGui::GetWindowSize();
-			bool vertical = windowSize.y > windowSize.x;
-			
-			if(!vertical)
-			{
+
+            auto windowSize = ImGui::GetWindowSize();
+            bool vertical = windowSize.y > windowSize.x;
+
+            if(!vertical)
+            {
                 ImGui::BeginColumns("ResourcePanelColumns", 2, ImGuiOldColumnFlags_NoResize);
-				ImGui::SetColumnWidth(0, ImGui::GetWindowContentRegionWidth() / 3.0f);
+                ImGui::SetColumnWidth(0, ImGui::GetWindowContentRegionWidth() / 3.0f);
                 ImGui::BeginChild("##folders_common");
-			}
+            }
             else
                 ImGui::BeginChild("##folders_common", ImVec2(0, ImGui::GetWindowHeight() / 3.0f));
-            
+
             {
                 RenderBreadCrumbs();
 
@@ -247,36 +246,35 @@ namespace Lumos
                 ImGui::EndDragDropTarget();
             }
             float offset = 0.0f;
-			if(!vertical)
-			{
-				ImGui::NextColumn();
-			}
+            if(!vertical)
+            {
+                ImGui::NextColumn();
+            }
             else
             {
                 offset = ImGui::GetWindowHeight() / 3.0f + 6.0f;
                 ImGui::SeparatorEx(ImGuiSeparatorFlags_Horizontal);
             }
-            
-        
+
             ImGui::BeginChild("##directory_structure", ImVec2(0, ImGui::GetWindowHeight() - ImGui::GetFrameHeightWithSpacing() * 2.6f - offset));
             {
                 {
                     ImGui::BeginChild("##directory_breadcrumbs", ImVec2(ImGui::GetColumnWidth(), ImGui::GetFrameHeightWithSpacing()));
-                    
+
                     if(ImGui::Button(ICON_MDI_ARROW_LEFT))
                     {
                         if(m_CurrentDir != m_BaseProjectDir)
                         {
                             m_PreviousDirectory = m_CurrentDir;
                             m_CurrentDir = m_CurrentDir->Parent;
-                        m_UpdateNavigationPath = true;
-                                        }
+                            m_UpdateNavigationPath = true;
+                        }
                     }
                     ImGui::SameLine();
                     if(ImGui::Button(ICON_MDI_ARROW_RIGHT))
                     {
                         m_PreviousDirectory = m_CurrentDir;
-                                        //m_CurrentDir = m_LastNavPath;
+                        //m_CurrentDir = m_LastNavPath;
                         m_UpdateNavigationPath = true;
                     }
                     ImGui::SameLine();
@@ -302,7 +300,7 @@ namespace Lumos
                         std::reverse(m_BreadCrumbData.begin(), m_BreadCrumbData.end());
                         m_UpdateNavigationPath = false;
                     }
-                    
+
                     if(m_IsInListView)
                     {
                         if(ImGui::Button(ICON_MDI_VIEW_GRID))
@@ -389,40 +387,29 @@ namespace Lumos
                             shownIndex++;
                         }
                     }
-					
-					if(ImGui::BeginPopupContextWindow())
-					{
-						{
-							if(ImGui::Selectable("Import New Asset"))
-							{
-								m_Editor->OpenFile();
-							}
-							
-							if(ImGui::Selectable("Refresh"))
-							{
-								m_BasePath = Application::Get().GetProjectRoot() + "Assets";
-								
-								auto currentPath = m_CurrentDir->FilePath;
-								
-								std::string baseDirectoryHandle = ProcessDirectory(std::filesystem::path(m_BasePath), nullptr);
-								m_BaseProjectDir = m_Directories[baseDirectoryHandle];
-								
-								if(FileSystem::FolderExists(currentPath.string()))
-									m_Directories[currentPath.string()];
-								else
-									ChangeDirectory(m_BaseProjectDir);
-							}
-						}
-						ImGui::EndPopup();
-					}
+
+                    if(ImGui::BeginPopupContextWindow())
+                    {
+                        {
+                            if(ImGui::Selectable("Import New Asset"))
+                            {
+                                m_Editor->OpenFile();
+                            }
+
+                            if(ImGui::Selectable("Refresh"))
+                            {
+                                Refresh();
+                            }
+                        }
+                        ImGui::EndPopup();
+                    }
                     ImGui::EndChild();
                 }
-                
+
                 ImGui::EndChild();
-                
+
                 ImGui::SeparatorEx(ImGuiSeparatorFlags_Horizontal);
                 RenderBottom();
-
             }
 
             if(ImGui::BeginDragDropTarget())
@@ -448,46 +435,46 @@ namespace Lumos
     {
         LUMOS_PROFILE_FUNCTION();
         //ImGui::BeginChild("##directory_breadcrumbs", ImVec2(ImGui::GetColumnWidth(), ImGui::GetFontSize() * 2.0f));
-       // {
+        // {
 
-//            int dirIndex = 0;
-//            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.1f, 0.2f, 0.7f, 0.0f));
-//
-//            for(auto& directory : m_BreadCrumbData)
-//            {
-//                std::string directoryName = directory->FilePath.filename().string();
-//                if(ImGui::SmallButton(directoryName.c_str()))
-//                    ChangeDirectory(directory);
-//
-//                ImGui::SameLine();
-//            }
-//
-//            ImGui::PopStyleColor();
-//
-//            if(newPwdLastSecIdx >= 0)
-//            {
-//                int i = 0;
-//                std::filesystem::path newPwd;
-//                for(auto& sec : AssetsDir)
-//                {
-//                    if(i++ > newPwdLastSecIdx)
-//                        break;
-//                    newPwd /= sec;
-//                }
-//#ifdef _WIN32
-//                if(newPwdLastSecIdx == 0)
-//                    newPwd /= "\\";
-//#endif
-//
-//                m_PreviousDirectory = m_CurrentDir;
-//                m_CurrentDir = m_Directories[newPwd.string()];
-//                m_UpdateNavigationPath = true;
-//            }
-//
-//            ImGui::SameLine();
-//        }
+        //            int dirIndex = 0;
+        //            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.1f, 0.2f, 0.7f, 0.0f));
+        //
+        //            for(auto& directory : m_BreadCrumbData)
+        //            {
+        //                std::string directoryName = directory->FilePath.filename().string();
+        //                if(ImGui::SmallButton(directoryName.c_str()))
+        //                    ChangeDirectory(directory);
+        //
+        //                ImGui::SameLine();
+        //            }
+        //
+        //            ImGui::PopStyleColor();
+        //
+        //            if(newPwdLastSecIdx >= 0)
+        //            {
+        //                int i = 0;
+        //                std::filesystem::path newPwd;
+        //                for(auto& sec : AssetsDir)
+        //                {
+        //                    if(i++ > newPwdLastSecIdx)
+        //                        break;
+        //                    newPwd /= sec;
+        //                }
+        //#ifdef _WIN32
+        //                if(newPwdLastSecIdx == 0)
+        //                    newPwd /= "\\";
+        //#endif
+        //
+        //                m_PreviousDirectory = m_CurrentDir;
+        //                m_CurrentDir = m_Directories[newPwd.string()];
+        //                m_UpdateNavigationPath = true;
+        //            }
+        //
+        //            ImGui::SameLine();
+        //        }
 
-       // ImGui::EndChild();
+        // ImGui::EndChild();
     }
 
     bool ResourcePanel::RenderFile(int dirIndex, bool folder, int shownIndex, bool gridView)
@@ -552,7 +539,7 @@ namespace Lumos
             ImGui::TextUnformatted(m_Editor->GetIconFontIcon(m_CurrentDir->Children[dirIndex]->FilePath.string()));
 
             ImGui::SameLine();
-			m_MovePath = m_BasePath + "/" + m_CurrentDir->Children[dirIndex]->FilePath.string();
+            m_MovePath = m_BasePath + "/" + m_CurrentDir->Children[dirIndex]->FilePath.string();
             ImGui::TextUnformatted(m_MovePath.c_str());
             size_t size = sizeof(const char*) + strlen(m_MovePath.c_str());
             ImGui::SetDragDropPayload("AssetFile", m_MovePath.c_str(), size);
@@ -586,43 +573,43 @@ namespace Lumos
 
             for(auto& directory : m_BreadCrumbData)
             {
-              std::string directoryName = directory->FilePath.filename().string();
-              if(ImGui::SmallButton(directoryName.c_str()))
-                  ChangeDirectory(directory);
+                std::string directoryName = directory->FilePath.filename().string();
+                if(ImGui::SmallButton(directoryName.c_str()))
+                    ChangeDirectory(directory);
 
-              ImGui::SameLine();
+                ImGui::SameLine();
             }
 
             ImGui::PopStyleColor();
 
             if(newPwdLastSecIdx >= 0)
             {
-              int i = 0;
-              std::filesystem::path newPwd;
-              for(auto& sec : AssetsDir)
-              {
-                  if(i++ > newPwdLastSecIdx)
-                      break;
-                  newPwd /= sec;
-              }
-            #ifdef _WIN32
-              if(newPwdLastSecIdx == 0)
-                  newPwd /= "\\";
-            #endif
+                int i = 0;
+                std::filesystem::path newPwd;
+                for(auto& sec : AssetsDir)
+                {
+                    if(i++ > newPwdLastSecIdx)
+                        break;
+                    newPwd /= sec;
+                }
+#ifdef _WIN32
+                if(newPwdLastSecIdx == 0)
+                    newPwd /= "\\";
+#endif
 
-              m_PreviousDirectory = m_CurrentDir;
-              m_CurrentDir = m_Directories[newPwd.string()];
-              m_UpdateNavigationPath = true;
+                m_PreviousDirectory = m_CurrentDir;
+                m_CurrentDir = m_Directories[newPwd.string()];
+                m_UpdateNavigationPath = true;
             }
 
             ImGui::SameLine();
-            }
-        
-            if(!m_IsInListView)
-            {
-                ImGui::SliderFloat("##GridSize", &m_GridSize, 40.0f, 400.0f);
-            }
-            ImGui::EndChild();
+        }
+
+        if(!m_IsInListView)
+        {
+            ImGui::SliderFloat("##GridSize", &m_GridSize, 40.0f, 400.0f);
+        }
+        ImGui::EndChild();
     }
 
     std::vector<std::string> ResourcePanel::SearchFiles(const std::string& query)
@@ -676,4 +663,30 @@ namespace Lumos
 
         return newFileName;
     }
+	
+	void ResourcePanel::OnNewProject()
+	{
+		Refresh();
+	}
+	
+	void ResourcePanel::Refresh()
+	{
+		m_BasePath = Application::Get().GetProjectRoot() + "Assets";
+		
+		auto currentPath = m_CurrentDir->FilePath;
+		
+		m_UpdateNavigationPath = true;
+		
+        m_Directories.clear();
+		std::string baseDirectoryHandle = ProcessDirectory(std::filesystem::path(m_BasePath), nullptr);
+		m_BaseProjectDir = m_Directories[baseDirectoryHandle];
+        m_PreviousDirectory = nullptr;
+        m_CurrentDir = nullptr;
+        
+		if(m_Directories.find(currentPath.string()) != m_Directories.end())
+			m_CurrentDir = m_Directories[currentPath.string()];
+		else
+			ChangeDirectory(m_BaseProjectDir);
+	}
 }
+	

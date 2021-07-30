@@ -28,6 +28,9 @@
 #include "RenderGraph.h"
 #include "Graphics/Camera/Camera.h"
 
+#include "CompiledSPV/Headers/ForwardPBRvertspv.hpp"
+#include "CompiledSPV/Headers/ForwardPBRfragspv.hpp"
+
 #define MAX_LIGHTS 32
 #define MAX_SHADOWMAPS 4
 
@@ -35,6 +38,9 @@ namespace Lumos
 {
     namespace Graphics
     {
+        SharedRef<Graphics::Shader> ForwardRenderer::s_DefaultPBRShader = nullptr;
+        SharedRef<Graphics::Shader> ForwardRenderer::s_DefaultPBRAnimShader = nullptr;
+    
         enum PSSceneUniformIndices : int32_t
         {
             PSSceneUniformIndex_Lights = 0,
@@ -54,7 +60,7 @@ namespace Lumos
             PSSceneUniformIndex_cascadeTransitionFade,
             PSSceneUniformIndex_Size
         };
-        
+
         ForwardRenderer::ForwardRenderer(uint32_t width, uint32_t height, bool depthTest)
         {
             LUMOS_PROFILE_FUNCTION();
@@ -62,6 +68,7 @@ namespace Lumos
             m_LightUniformBuffer = nullptr;
             m_DepthTest = depthTest;
             SetScreenBufferSize(width, height);
+            
             ForwardRenderer::Init();
         }
 
@@ -73,6 +80,9 @@ namespace Lumos
             delete m_DefaultMaterial;
 
             delete[] m_VSSystemUniformBuffer;
+            
+            s_DefaultPBRShader.reset();
+            s_DefaultPBRAnimShader.reset();
 
             for(auto& commandBuffer : m_CommandBuffers)
             {
@@ -106,8 +116,14 @@ namespace Lumos
         void ForwardRenderer::Init()
         {
             LUMOS_PROFILE_FUNCTION();
+
+           // m_Shader = Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/ForwardPBR.shader");
+            m_Shader = Graphics::Shader::CreateFromEmbeddedArray(spirv_ForwardPBRvertspv.data(), spirv_ForwardPBRvertspv_size, spirv_ForwardPBRfragspv.data(), spirv_ForwardPBRfragspv_size);
             
-            m_Shader = Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/ForwardPBR.shader");
+            if(!s_DefaultPBRShader)
+                s_DefaultPBRShader = m_Shader;
+            if(!s_DefaultPBRAnimShader)
+                s_DefaultPBRAnimShader = m_Shader; //TODO: Support Animation
 
             m_CommandQueue.reserve(1000);
 
@@ -133,7 +149,7 @@ namespace Lumos
             default:
                 break;
             }
-            
+
             TextureParameters param;
             param.minFilter = TextureFilter::LINEAR;
             param.magFilter = TextureFilter::LINEAR;
@@ -141,15 +157,15 @@ namespace Lumos
             param.srgb = false;
             param.wrap = TextureWrap::CLAMP_TO_EDGE;
             m_PreintegratedFG = UniqueRef<Texture2D>(Texture2D::CreateFromSource(BRDFTextureWidth, BRDFTextureHeight, (void*)BRDFTexture, param));
-            
+
             //
             // Vertex shader System uniforms
             //
-            
+
             m_LightUniformBuffer = nullptr;
             m_UniformBuffer = nullptr;
-            
-            m_VSSystemUniformBufferSize = sizeof(Maths::Matrix4);// + sizeof(Maths::Matrix4) + sizeof(Maths::Matrix4) + sizeof(Maths::Matrix4);
+
+            m_VSSystemUniformBufferSize = sizeof(Maths::Matrix4); // + sizeof(Maths::Matrix4) + sizeof(Maths::Matrix4) + sizeof(Maths::Matrix4);
             m_VSSystemUniformBuffer = new uint8_t[m_VSSystemUniformBufferSize];
             memset(m_VSSystemUniformBuffer, 0, m_VSSystemUniformBufferSize);
             m_VSSystemUniformBufferOffsets.resize(VSSystemUniformIndex_Size);
@@ -181,9 +197,10 @@ namespace Lumos
             m_PSSceneUniformBufferOffsets[PSSceneUniformIndex_RenderMode] = m_PSSceneUniformBufferOffsets[PSSceneUniformIndex_ShadowCount] + sizeof(int);
             m_PSSceneUniformBufferOffsets[PSSceneUniformIndex_cubemapMipLevels] = m_PSSceneUniformBufferOffsets[PSSceneUniformIndex_RenderMode] + sizeof(int);
 
-
             m_UniformBuffer = Graphics::UniformBuffer::Create();
-
+            uint32_t bufferSize = static_cast<uint32_t>(sizeof(UniformBufferObject));
+			m_UniformBuffer->Init(bufferSize, nullptr);
+            
             Graphics::RenderPassDesc renderpassCI {};
 
             if(m_DepthTest)
@@ -195,7 +212,7 @@ namespace Lumos
 
                 renderpassCI.attachmentCount = 2;
                 renderpassCI.textureType = textureTypes;
-				m_RenderPass = Graphics::RenderPass::Get(renderpassCI);
+                m_RenderPass = Graphics::RenderPass::Get(renderpassCI);
             }
             else
             {
@@ -205,14 +222,14 @@ namespace Lumos
 
                 renderpassCI.attachmentCount = 1;
                 renderpassCI.textureType = textureTypes;
-				m_RenderPass = Graphics::RenderPass::Get(renderpassCI);
+                m_RenderPass = Graphics::RenderPass::Get(renderpassCI);
             }
 
             CreateFramebuffers();
-            CreateGraphicsPipeline(); 
+            CreateGraphicsPipeline();
 
             m_ClearColour = Maths::Vector4(0.4f, 0.4f, 0.4f, 1.0f);
-            
+
             auto descriptorSetScene = m_Shader->GetDescriptorInfo(2);
 
             Graphics::DescriptorDesc info {};
@@ -222,7 +239,7 @@ namespace Lumos
             m_DescriptorSet[0] = SharedRef<Graphics::DescriptorSet>(Graphics::DescriptorSet::Create(info));
             info.layoutIndex = 2;
             m_DescriptorSet[2] = SharedRef<Graphics::DescriptorSet>(Graphics::DescriptorSet::Create(info));
-            
+
             m_DefaultMaterial = new Material(m_Shader);
 
             Graphics::MaterialProperties properties;
@@ -236,43 +253,30 @@ namespace Lumos
 
             m_DefaultMaterial->SetMaterialProperites(properties);
             m_DefaultMaterial->CreateDescriptorSet(1);
-
+            
             m_CurrentDescriptorSets.resize(3);
             
-            uint32_t bufferSize = static_cast<uint32_t>(sizeof(UniformBufferObject));
-            m_UniformBuffer->Init(bufferSize, nullptr);
-
-            std::vector<Graphics::Descriptor> bufferInfos;
-
-            Graphics::Descriptor bufferInfo = {};
-            bufferInfo.buffer = m_UniformBuffer;
-            bufferInfo.offset = 0;
-            bufferInfo.size = sizeof(UniformBufferObject);
-            bufferInfo.type = Graphics::DescriptorType::UNIFORM_BUFFER;
-            bufferInfo.binding = 0;
-            bufferInfo.shaderType = ShaderType::VERTEX;
-            bufferInfo.name = "UniformBufferObject";
-            bufferInfos.push_back(bufferInfo);
-            m_DescriptorSet[0]->Update(bufferInfos);
-            
+			m_DescriptorSet[0]->SetBuffer("UniformBufferObject", m_UniformBuffer);
+            m_DescriptorSet[0]->Update();
+			
             UpdateScreenDescriptorSet();
         }
-
+		
         void ForwardRenderer::Begin()
         {
             LUMOS_PROFILE_FUNCTION();
             m_CurrentBufferID = 0;
             if(!m_RenderTexture)
                 m_CurrentBufferID = Renderer::GetSwapchain()->GetCurrentBufferIndex();
-            
+			
             m_RenderPass->BeginRenderpass(Renderer::GetSwapchain()->GetCurrentCommandBuffer(), m_ClearColour, m_Framebuffers[m_CurrentBufferID].get(), Graphics::INLINE, m_ScreenBufferWidth, m_ScreenBufferHeight);
         }
-
+		
         void ForwardRenderer::BeginScene(Scene* scene, Camera* overrideCamera, Maths::Transform* overrideCameraTransform)
         {
             LUMOS_PROFILE_FUNCTION();
             auto& registry = scene->GetRegistry();
-
+			
             if(overrideCamera)
             {
                 m_Camera = overrideCamera;
@@ -287,15 +291,15 @@ namespace Lumos
                     m_CameraTransform = registry.try_get<Maths::Transform>(cameraView.front());
                 }
             }
-
+			
             if(!m_Camera || !m_CameraTransform)
                 return;
-
+			
             auto view = m_CameraTransform->GetWorldMatrix().Inverse();
             auto projView = m_Camera->GetProjectionMatrix() * view;
-            
+			
             memcpy(m_VSSystemUniformBuffer + m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_ProjectionMatrix], &projView, sizeof(Maths::Matrix4));
-            
+			
             m_CommandQueue.clear();
 
             auto group = registry.group<Model>(entt::get<Maths::Transform>);
@@ -332,7 +336,7 @@ namespace Lumos
                     }
                 }
             }
-                    
+
             auto envView = registry.view<Graphics::Environment>();
 
             if(envView.size() == 0)
@@ -363,11 +367,9 @@ namespace Lumos
                     m_EnvironmentMap = env.GetEnvironmentMap();
                     m_IrradianceMap = env.GetIrradianceMap();
                     UpdateScreenDescriptorSet();
-
                 }
             }
             SubmitLightSetup(scene);
-
         }
 
         void ForwardRenderer::Submit(const RenderCommand& command)
@@ -402,7 +404,6 @@ namespace Lumos
             LUMOS_PROFILE_FUNCTION();
             m_UniformBuffer->SetData(sizeof(UniformBufferObject), *&m_VSSystemUniformBuffer);
             m_LightUniformBuffer->SetData(m_PSSceneUniformBufferSize, *&m_PSSceneUniformBuffer);
-
         }
 
         void ForwardRenderer::Present()
@@ -418,14 +419,14 @@ namespace Lumos
                 Graphics::CommandBuffer* currentCMDBuffer = Renderer::GetSwapchain()->GetCurrentCommandBuffer();
 
                 Graphics::PipelineDesc pipelineCreateInfo {};
-                pipelineCreateInfo.shader = command.material->GetShader();
+                pipelineCreateInfo.shader = m_Shader;//command.material->GetShader();
                 pipelineCreateInfo.renderpass = m_RenderPass;
                 pipelineCreateInfo.polygonMode = Graphics::PolygonMode::FILL;
                 pipelineCreateInfo.cullMode = command.material->GetFlag(Material::RenderFlags::TWOSIDED) ? Graphics::CullMode::NONE : Graphics::CullMode::BACK;
                 pipelineCreateInfo.transparencyEnabled = command.material->GetFlag(Material::RenderFlags::ALPHABLEND);
 
                 auto pipeline = Graphics::Pipeline::Get(pipelineCreateInfo);
-                
+
                 pipeline->Bind(currentCMDBuffer);
 
                 command.material->Bind();
@@ -436,11 +437,11 @@ namespace Lumos
 
                 mesh->GetVertexBuffer()->Bind(currentCMDBuffer, pipeline.get());
                 mesh->GetIndexBuffer()->Bind(currentCMDBuffer);
-				
-				auto trans = command.transform;
+
+                auto trans = command.transform;
                 auto& pushConstants = m_Shader->GetPushConstants()[0];
                 pushConstants.SetValue("transform", (void*)&trans);
-				
+
                 m_Shader->BindPushConstants(currentCMDBuffer, pipeline.get());
                 Renderer::BindDescriptorSets(pipeline.get(), currentCMDBuffer, 0, m_CurrentDescriptorSets);
                 Renderer::DrawIndexed(currentCMDBuffer, DrawType::TRIANGLE, mesh->GetIndexBuffer()->GetCount());
@@ -459,7 +460,7 @@ namespace Lumos
             m_Framebuffers.clear();
 
             CreateFramebuffers();
-            
+
             m_EnvironmentMap = nullptr;
             m_IrradianceMap = nullptr;
 
@@ -534,152 +535,99 @@ namespace Lumos
                 }
             }
         }
-    
-    void ForwardRenderer::SubmitLightSetup(Scene* scene)
-    {
-        LUMOS_PROFILE_FUNCTION();
 
-        auto& registry = scene->GetRegistry();
-        auto group = registry.group<Graphics::Light>(entt::get<Maths::Transform>);
-
-        uint32_t numLights = 0;
-
-        auto viewMatrix = m_CameraTransform->GetWorldMatrix().Inverse();
-
-        auto& frustum = m_Camera->GetFrustum(viewMatrix);
-
-        for(auto entity : group)
+        void ForwardRenderer::SubmitLightSetup(Scene* scene)
         {
-            const auto& [light, trans] = group.get<Graphics::Light, Maths::Transform>(entity);
-            light.Position = trans.GetWorldPosition();
+            LUMOS_PROFILE_FUNCTION();
 
-            if(light.Type != float(LightType::DirectionalLight))
+            auto& registry = scene->GetRegistry();
+            auto group = registry.group<Graphics::Light>(entt::get<Maths::Transform>);
+
+            uint32_t numLights = 0;
+
+            auto viewMatrix = m_CameraTransform->GetWorldMatrix().Inverse();
+
+            auto& frustum = m_Camera->GetFrustum(viewMatrix);
+
+            for(auto entity : group)
             {
-                auto inside = frustum.IsInsideFast(Maths::Sphere(light.Position.ToVector3(), light.Radius));
+                const auto& [light, trans] = group.get<Graphics::Light, Maths::Transform>(entity);
+                light.Position = trans.GetWorldPosition();
 
-                if(inside == Maths::Intersection::OUTSIDE)
-                    continue;
+                if(light.Type != float(LightType::DirectionalLight))
+                {
+                    auto inside = frustum.IsInsideFast(Maths::Sphere(light.Position.ToVector3(), light.Radius));
+
+                    if(inside == Maths::Intersection::OUTSIDE)
+                        continue;
+                }
+
+                Maths::Vector3 forward = Maths::Vector3::FORWARD;
+                forward = trans.GetWorldOrientation() * forward;
+
+                light.Direction = forward.Normalised();
+
+                memcpy(m_PSSceneUniformBuffer + m_PSSceneUniformBufferOffsets[PSSceneUniformIndex_Lights] + sizeof(Graphics::Light) * numLights, &light, sizeof(Graphics::Light));
+                numLights++;
             }
 
-            Maths::Vector3 forward = Maths::Vector3::FORWARD;
-            forward = trans.GetWorldOrientation() * forward;
+            Maths::Vector4 cameraPos = Maths::Vector4(m_CameraTransform->GetWorldPosition());
+            memcpy(m_PSSceneUniformBuffer + m_PSSceneUniformBufferOffsets[PSSceneUniformIndex_CameraPosition], &cameraPos, sizeof(Maths::Vector4));
 
-            light.Direction = forward.Normalised();
+            auto shadowRenderer = Application::Get().GetRenderGraph()->GetShadowRenderer();
+            if(shadowRenderer)
+            {
+                Maths::Matrix4* shadowTransforms = shadowRenderer->GetShadowProjView();
+                Lumos::Maths::Vector4* uSplitDepth = shadowRenderer->GetSplitDepths();
+                const Maths::Matrix4& lightView = shadowRenderer->GetLightView();
 
-            memcpy(m_PSSceneUniformBuffer + m_PSSceneUniformBufferOffsets[PSSceneUniformIndex_Lights] + sizeof(Graphics::Light) * numLights, &light, sizeof(Graphics::Light));
-            numLights++;
+                memcpy(m_PSSceneUniformBuffer + m_PSSceneUniformBufferOffsets[PSSceneUniformIndex_ViewMatrix], &viewMatrix, sizeof(Maths::Matrix4));
+                memcpy(m_PSSceneUniformBuffer + m_PSSceneUniformBufferOffsets[PSSceneUniformIndex_LightView], &lightView, sizeof(Maths::Matrix4));
+
+                memcpy(m_PSSceneUniformBuffer + m_PSSceneUniformBufferOffsets[PSSceneUniformIndex_ShadowTransforms], shadowTransforms, sizeof(Maths::Matrix4) * MAX_SHADOWMAPS);
+                memcpy(m_PSSceneUniformBuffer + m_PSSceneUniformBufferOffsets[PSSceneUniformIndex_ShadowSplitDepths], uSplitDepth, sizeof(Maths::Vector4) * MAX_SHADOWMAPS);
+                memcpy(m_PSSceneUniformBuffer + m_PSSceneUniformBufferOffsets[PSSceneUniformIndex_BiasMatrix], &m_BiasMatrix, sizeof(Maths::Matrix4));
+
+                float bias = shadowRenderer->GetInitialBias();
+
+                float maxShadowDistance = shadowRenderer->GetMaxShadowDistance();
+                float LightSize = shadowRenderer->GetLightSize();
+                float transitionFade = shadowRenderer->GetCascadeTransitionFade();
+                float shadowFade = shadowRenderer->GetShadowFade();
+
+                memcpy(m_PSSceneUniformBuffer + m_PSSceneUniformBufferOffsets[PSSceneUniformIndex_lightSize], &LightSize, sizeof(float));
+                memcpy(m_PSSceneUniformBuffer + m_PSSceneUniformBufferOffsets[PSSceneUniformIndex_shadowFade], &shadowFade, sizeof(float));
+                memcpy(m_PSSceneUniformBuffer + m_PSSceneUniformBufferOffsets[PSSceneUniformIndex_cascadeTransitionFade], &transitionFade, sizeof(float));
+                memcpy(m_PSSceneUniformBuffer + m_PSSceneUniformBufferOffsets[PSSceneUniformIndex_maxShadowDistance], &maxShadowDistance, sizeof(float));
+
+                memcpy(m_PSSceneUniformBuffer + m_PSSceneUniformBufferOffsets[PSSceneUniformIndex_cubemapMipLevels] + sizeof(int), &bias, sizeof(float));
+            }
+
+            int numShadows = shadowRenderer ? int(shadowRenderer->GetShadowMapNum()) : 0;
+            auto cubemapMipLevels = m_EnvironmentMap ? m_EnvironmentMap->GetMipMapLevels() : 0;
+            memcpy(m_PSSceneUniformBuffer + m_PSSceneUniformBufferOffsets[PSSceneUniformIndex_LightCount], &numLights, sizeof(int));
+            memcpy(m_PSSceneUniformBuffer + m_PSSceneUniformBufferOffsets[PSSceneUniformIndex_ShadowCount], &numShadows, sizeof(int));
+            memcpy(m_PSSceneUniformBuffer + m_PSSceneUniformBufferOffsets[PSSceneUniformIndex_RenderMode], &m_RenderMode, sizeof(int));
+            memcpy(m_PSSceneUniformBuffer + m_PSSceneUniformBufferOffsets[PSSceneUniformIndex_cubemapMipLevels], &cubemapMipLevels, sizeof(int));
         }
 
-        Maths::Vector4 cameraPos = Maths::Vector4(m_CameraTransform->GetWorldPosition());
-        memcpy(m_PSSceneUniformBuffer + m_PSSceneUniformBufferOffsets[PSSceneUniformIndex_CameraPosition], &cameraPos, sizeof(Maths::Vector4));
-
-        auto shadowRenderer = Application::Get().GetRenderGraph()->GetShadowRenderer();
-        if(shadowRenderer)
+        void ForwardRenderer::UpdateScreenDescriptorSet()
         {
-            Maths::Matrix4* shadowTransforms = shadowRenderer->GetShadowProjView();
-            Lumos::Maths::Vector4* uSplitDepth = shadowRenderer->GetSplitDepths();
-            const Maths::Matrix4& lightView = shadowRenderer->GetLightView();
-
-            memcpy(m_PSSceneUniformBuffer + m_PSSceneUniformBufferOffsets[PSSceneUniformIndex_ViewMatrix], &viewMatrix, sizeof(Maths::Matrix4));
-            memcpy(m_PSSceneUniformBuffer + m_PSSceneUniformBufferOffsets[PSSceneUniformIndex_LightView], &lightView, sizeof(Maths::Matrix4));
-
-            memcpy(m_PSSceneUniformBuffer + m_PSSceneUniformBufferOffsets[PSSceneUniformIndex_ShadowTransforms], shadowTransforms, sizeof(Maths::Matrix4) * MAX_SHADOWMAPS);
-            memcpy(m_PSSceneUniformBuffer + m_PSSceneUniformBufferOffsets[PSSceneUniformIndex_ShadowSplitDepths], uSplitDepth, sizeof(Maths::Vector4) * MAX_SHADOWMAPS);
-            memcpy(m_PSSceneUniformBuffer + m_PSSceneUniformBufferOffsets[PSSceneUniformIndex_BiasMatrix], &m_BiasMatrix, sizeof(Maths::Matrix4));
-
-            float bias = shadowRenderer->GetInitialBias();
-
-            float maxShadowDistance = shadowRenderer->GetMaxShadowDistance();
-            float LightSize = shadowRenderer->GetLightSize();
-            float transitionFade = shadowRenderer->GetCascadeTransitionFade();
-            float shadowFade = shadowRenderer->GetShadowFade();
-
-            memcpy(m_PSSceneUniformBuffer + m_PSSceneUniformBufferOffsets[PSSceneUniformIndex_lightSize], &LightSize, sizeof(float));
-            memcpy(m_PSSceneUniformBuffer + m_PSSceneUniformBufferOffsets[PSSceneUniformIndex_shadowFade], &shadowFade, sizeof(float));
-            memcpy(m_PSSceneUniformBuffer + m_PSSceneUniformBufferOffsets[PSSceneUniformIndex_cascadeTransitionFade], &transitionFade, sizeof(float));
-            memcpy(m_PSSceneUniformBuffer + m_PSSceneUniformBufferOffsets[PSSceneUniformIndex_maxShadowDistance], &maxShadowDistance, sizeof(float));
-
-            memcpy(m_PSSceneUniformBuffer + m_PSSceneUniformBufferOffsets[PSSceneUniformIndex_cubemapMipLevels] + sizeof(int), &bias, sizeof(float));
+            if(m_LightUniformBuffer == nullptr)
+            {
+                m_LightUniformBuffer = Graphics::UniformBuffer::Create();
+                m_LightUniformBuffer->Init(m_PSSceneUniformBufferSize, nullptr);
+            }
+			m_DescriptorSet[2]->SetTexture("uPreintegratedFG", m_PreintegratedFG.get());
+			m_DescriptorSet[2]->SetTexture("uEnvironmentMap", m_EnvironmentMap, TextureType::CUBE);
+			m_DescriptorSet[2]->SetTexture("uIrradianceMap", m_IrradianceMap, TextureType::CUBE);
+            auto shadowRenderer = Application::Get().GetRenderGraph()->GetShadowRenderer();
+            if(shadowRenderer)
+                m_DescriptorSet[2]->SetTexture("uShadowMap", reinterpret_cast<Texture*>(shadowRenderer->GetTexture()) , TextureType::DEPTHARRAY);
+            m_DescriptorSet[2]->SetTexture("uDepthSampler", Application::Get().GetRenderGraph()->GetGBuffer()->GetDepthTexture(), TextureType::DEPTH);
+			m_DescriptorSet[2]->SetBuffer("UniformBufferLight", m_LightUniformBuffer);
+            m_DescriptorSet[2]->Update();
         }
-
-        int numShadows = shadowRenderer ? int(shadowRenderer->GetShadowMapNum()) : 0;
-        auto cubemapMipLevels = m_EnvironmentMap ? m_EnvironmentMap->GetMipMapLevels() : 0;
-        memcpy(m_PSSceneUniformBuffer + m_PSSceneUniformBufferOffsets[PSSceneUniformIndex_LightCount], &numLights, sizeof(int));
-        memcpy(m_PSSceneUniformBuffer + m_PSSceneUniformBufferOffsets[PSSceneUniformIndex_ShadowCount], &numShadows, sizeof(int));
-        memcpy(m_PSSceneUniformBuffer + m_PSSceneUniformBufferOffsets[PSSceneUniformIndex_RenderMode], &m_RenderMode, sizeof(int));
-        memcpy(m_PSSceneUniformBuffer + m_PSSceneUniformBufferOffsets[PSSceneUniformIndex_cubemapMipLevels], &cubemapMipLevels, sizeof(int));
-    }
-    
-    void ForwardRenderer::UpdateScreenDescriptorSet()
-    {
-        std::vector<Graphics::Descriptor> bufferInfos;
-
-        Graphics::Descriptor imageInfo5 = {};
-        imageInfo5.texture = { m_PreintegratedFG.get() };
-        imageInfo5.binding = 0;
-        imageInfo5.type = DescriptorType::IMAGE_SAMPLER;
-        imageInfo5.name = "uPreintegratedFG";
-
-        Graphics::Descriptor imageInfo6 = {};
-        imageInfo6.texture = { m_EnvironmentMap };
-        imageInfo6.binding = 1;
-        imageInfo6.type = DescriptorType::IMAGE_SAMPLER;
-        imageInfo6.textureType = TextureType::CUBE;
-        imageInfo6.name = "uEnvironmentMap";
-
-        Graphics::Descriptor imageInfo7 = {};
-        imageInfo7.texture = { m_IrradianceMap };
-        imageInfo7.binding = 2;
-        imageInfo7.type = DescriptorType::IMAGE_SAMPLER;
-        imageInfo7.textureType = TextureType::CUBE;
-        imageInfo7.name = "uIrradianceMap";
-
-        Graphics::Descriptor imageInfo8 = {};
-        auto shadowRenderer = Application::Get().GetRenderGraph()->GetShadowRenderer();
-        if(shadowRenderer)
-        {
-            imageInfo8.texture = { reinterpret_cast<Texture*>(shadowRenderer->GetTexture()) };
-            imageInfo8.binding = 3;
-            imageInfo8.type = DescriptorType::IMAGE_SAMPLER;
-            imageInfo8.textureType = TextureType::DEPTHARRAY;
-            imageInfo8.name = "uShadowMap";
-        }
-
-        Graphics::Descriptor imageInfo9 = {};
-        imageInfo9.texture = { Application::Get().GetRenderGraph()->GetGBuffer()->GetDepthTexture() };
-        imageInfo9.binding = 4;
-        imageInfo9.type = DescriptorType::IMAGE_SAMPLER;
-        imageInfo9.textureType = TextureType::DEPTH;
-        imageInfo9.name = "uDepthSampler";
-
-        bufferInfos.push_back(imageInfo5);
-        if(m_EnvironmentMap)
-            bufferInfos.push_back(imageInfo6);
-        if(m_IrradianceMap)
-            bufferInfos.push_back(imageInfo7);
-        if(shadowRenderer)
-            bufferInfos.push_back(imageInfo8);
-        
-        if(m_LightUniformBuffer == nullptr)
-        {
-            m_LightUniformBuffer = Graphics::UniformBuffer::Create();
-            m_LightUniformBuffer->Init(m_PSSceneUniformBufferSize, nullptr);
-        }
-
-
-        Graphics::Descriptor bufferInfo = {};
-        bufferInfo.name = "UniformBufferLight";
-        bufferInfo.buffer = m_LightUniformBuffer;
-        bufferInfo.offset = 0;
-        bufferInfo.size = m_PSSceneUniformBufferSize;
-        bufferInfo.type = Graphics::DescriptorType::UNIFORM_BUFFER;
-        bufferInfo.binding = 5;
-        bufferInfo.shaderType = ShaderType::FRAGMENT;
-
-        bufferInfos.push_back(bufferInfo);
-
-        m_DescriptorSet[2]->Update(bufferInfos);
-    }
 
     }
 }

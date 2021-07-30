@@ -1,6 +1,6 @@
 {
     "value0": {
-        "Project Version": 5,
+        "Project Version": 6,
         "RenderAPI": 1,
         "Width": 1440,
         "Height": 847,
@@ -14,6 +14,7 @@
             "/Scenes/Terrain.lsn"
         ],
         "SceneIndex": 1,
-        "Borderless": false
+        "Borderless": false,
+        "EngineAssetPath": "/Users/jmorton/dev/Lumos/Lumos/Assets/"
     }
 }

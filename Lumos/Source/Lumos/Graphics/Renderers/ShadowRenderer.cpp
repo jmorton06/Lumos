@@ -23,6 +23,10 @@
 #include "RenderCommand.h"
 #include "Core/Application.h"
 
+#include "CompiledSPV/Headers/Shadowvertspv.hpp"
+#include "CompiledSPV/Headers/Shadowfragspv.hpp"
+#include "CompiledSPV/Headers/ShadowAnimvertspv.hpp"
+
 #include <imgui/imgui.h>
 
 //#define THREAD_CASCADE_GEN
@@ -49,7 +53,9 @@ namespace Lumos
             , m_CascadeSplitLambda(0.91f)
             , m_SceneRadiusMultiplier(1.4f)
         {
-            m_Shader = Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/Shadow.shader");
+           // m_Shader = Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/Shadow.shader");
+            m_Shader = Graphics::Shader::CreateFromEmbeddedArray(spirv_Shadowvertspv.data(), spirv_Shadowvertspv_size, spirv_Shadowfragspv.data(), spirv_Shadowfragspv_size);
+
             m_ShadowTex = texture ? texture : TextureDepthArray::Create(m_ShadowMapSize, m_ShadowMapSize, m_ShadowMapNum);
 
             m_ScreenRenderer = false;
@@ -477,20 +483,8 @@ namespace Lumos
                 m_UniformBuffer->Init(bufferSize, nullptr);
             }
 
-            std::vector<Graphics::Descriptor> bufferInfos;
-
-            Graphics::Descriptor bufferInfo;
-            bufferInfo.buffer = m_UniformBuffer;
-            bufferInfo.offset = 0;
-            bufferInfo.name = "UniformBufferObject";
-            bufferInfo.size = sizeof(UniformBufferObject);
-            bufferInfo.type = Graphics::DescriptorType::UNIFORM_BUFFER;
-            bufferInfo.binding = 0;
-            bufferInfo.shaderType = ShaderType::VERTEX;
-
-            bufferInfos.push_back(bufferInfo);
-
-            m_DescriptorSet[0]->Update(bufferInfos);
+            m_DescriptorSet[0]->SetBuffer("UniformBufferObject", m_UniformBuffer);
+            m_DescriptorSet[0]->Update();
         }
 
         void ShadowRenderer::SetSystemUniforms(Shader* shader)

@@ -35,11 +35,6 @@ namespace Lumos
         auto systemInfo = MemoryManager::Get()->GetSystemInfo();
         systemInfo.Log();
 
-        const std::string root = ROOT_DIR;
-        VFS::Get()->Mount("Meshes", root + "/Assets/meshes");
-        VFS::Get()->Mount("Textures", root + "/Assets/textures");
-        VFS::Get()->Mount("Sounds", root + "/Assets/sounds");
-
         auto& app = Lumos::Application::Get();
         app.Init();
         app.Run();

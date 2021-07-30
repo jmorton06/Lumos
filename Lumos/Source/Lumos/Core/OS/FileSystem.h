@@ -2,6 +2,14 @@
 
 namespace Lumos
 {
+    enum class FileOpenFlags
+    {
+        READ,
+        WRITE,
+        READ_WRITE,
+        WRITE_READ
+    };
+
     class FileSystem
     {
     public:
@@ -15,6 +23,8 @@ namespace Lumos
 
         static bool WriteFile(const std::string& path, uint8_t* buffer);
         static bool WriteTextFile(const std::string& path, const std::string& text);
+
+        static std::string GetWorkingDirectory();
 
         static bool IsRelativePath(const char* path)
         {
@@ -39,6 +49,31 @@ namespace Lumos
             }
 
             return !IsRelativePath(path);
+        }
+
+        static const char* GetFileOpenModeString(FileOpenFlags flag)
+        {
+            if(flag == FileOpenFlags::READ)
+            {
+                return "rb";
+            }
+            else if(flag == FileOpenFlags::WRITE)
+            {
+                return "wb";
+            }
+            else if(flag == FileOpenFlags::READ_WRITE)
+            {
+                return "rb+";
+            }
+            else if(flag == FileOpenFlags::WRITE_READ)
+            {
+                return "wb+";
+            }
+            else
+            {
+                LUMOS_LOG_WARN("Invalid open flag");
+                return "rb";
+            }
         }
 
     private:

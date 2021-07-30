@@ -10,6 +10,8 @@
 #include "Core/Application.h"
 #include "Core/StringUtilities.h"
 
+#include "Graphics/Renderers/ForwardRenderer.h"
+
 #define TINYGLTF_IMPLEMENTATION
 #define TINYGLTF_USE_CPP14
 #define STB_IMAGE_WRITE_IMPLEMENTATION
@@ -145,7 +147,8 @@ namespace Lumos::Graphics
         for(tinygltf::Material& mat : gltfModel.materials)
         {
             //TODO : if(isAnimated) Load deferredColourAnimated;
-            auto shader = Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/ForwardPBR.shader");
+            //auto shader = Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/ForwardPBR.shader");
+            auto shader = ForwardRenderer::GetDefaultPBRShader();
 
             SharedRef<Material> pbrMaterial = CreateSharedRef<Material>(shader);
             PBRMataterialTextures textures;

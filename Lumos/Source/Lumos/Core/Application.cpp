@@ -38,6 +38,12 @@
 #include "Physics/B2PhysicsEngine/B2PhysicsEngine.h"
 #include "Physics/LumosPhysicsEngine/LumosPhysicsEngine.h"
 
+#if __has_include(<filesystem>)
+#include <filesystem>
+#elif __has_include(<experimental/filesystem>)
+#include <experimental/filesystem>
+#endif
+
 #include <cereal/archives/json.hpp>
 #include <imgui/imgui.h>
 
@@ -74,13 +80,6 @@ namespace Lumos
 
         m_ProjectRoot = StringUtilities::RemoveSpaces(m_ProjectRoot);
         m_ProjectName = StringUtilities::RemoveSpaces(m_ProjectName);
-
-        VFS::Get()->Mount("Meshes", projectRoot + std::string("Assets/Meshes"));
-        VFS::Get()->Mount("Textures", projectRoot + std::string("Assets/Textures"));
-        VFS::Get()->Mount("Sounds", projectRoot + std::string("Assets/Sounds"));
-        VFS::Get()->Mount("Scripts", projectRoot + std::string("Assets/Scripts"));
-        VFS::Get()->Mount("Scenes", projectRoot + std::string("Assets/Scenes"));
-        VFS::Get()->Mount("Assets", projectRoot + std::string("Assets"));
 #endif
 
         m_SceneManager = CreateUniqueRef<SceneManager>();
@@ -94,29 +93,50 @@ namespace Lumos
     void Application::OpenNewProject(const std::string& path)
     {
         LUMOS_PROFILE_FUNCTION();
-        m_ProjectRoot = path;
+        m_ProjectRoot = path + "NewProject/";
         m_ProjectName = "NewProject";
-
         m_ProjectRoot = StringUtilities::RemoveSpaces(m_ProjectRoot);
+
+        std::filesystem::create_directory(m_ProjectRoot);
 
         m_SceneManager = CreateUniqueRef<SceneManager>();
 
+        MountVFSPaths();
+        //Set Default values
+        RenderAPI = 1;
+        Width = 1200;
+        Height = 800;
+        Borderless = false;
+        VSync = false;
+        Title = "App";
+        ShowConsole = false;
+        Fullscreen = false;
+        m_EngineAssetPath = "/Users/jmorton/dev/Lumos/Lumos/Assets/";
+        VFS::Get()->Mount("CoreShaders", m_EngineAssetPath + std::string("Shaders"));
+        
+        if(!FileSystem::FolderExists(m_ProjectRoot + "Assets"))
+            std::filesystem::create_directory(m_ProjectRoot + "Assets");
+
+        m_SceneManager->EnqueueScene(new Scene("Empty Scene"));
+        m_SceneManager->SwitchScene(0);
+
+        //Set Default values
+        Title = "App";
+        Fullscreen = false;
+
+        m_SceneManager->ApplySceneSwitch();
+
+        Serialise();
+    }
+
+    void Application::MountVFSPaths()
+    {
         VFS::Get()->Mount("Meshes", m_ProjectRoot + std::string("Assets/Meshes"));
         VFS::Get()->Mount("Textures", m_ProjectRoot + std::string("Assets/Textures"));
         VFS::Get()->Mount("Sounds", m_ProjectRoot + std::string("Assets/Sounds"));
         VFS::Get()->Mount("Scripts", m_ProjectRoot + std::string("Assets/Scripts"));
         VFS::Get()->Mount("Scenes", m_ProjectRoot + std::string("Assets/Scenes"));
         VFS::Get()->Mount("Assets", m_ProjectRoot + std::string("Assets"));
-
-        //Set Default values
-        Title = "App";
-        Fullscreen = false;
-
-        m_SceneManager->EnqueueScene(new Scene("Empty Scene"));
-        m_SceneManager->SwitchScene(0);
-        m_SceneManager->ApplySceneSwitch();
-
-        Serialise();
     }
 
     Scene* Application::GetCurrentScene() const
@@ -131,17 +151,6 @@ namespace Lumos
 
         m_ProjectRoot = StringUtilities::RemoveSpaces(m_ProjectRoot);
         m_ProjectName = StringUtilities::RemoveSpaces(m_ProjectName);
-
-#ifndef LUMOS_PLATFORM_IOS
-        const std::string root = ROOT_DIR;
-        VFS::Get()->Mount("Meshes", m_ProjectRoot + std::string("Assets/Meshes"));
-        VFS::Get()->Mount("Textures", m_ProjectRoot + std::string("Assets/Textures"));
-        VFS::Get()->Mount("Sounds", m_ProjectRoot + std::string("Assets/Sounds"));
-        VFS::Get()->Mount("Scripts", m_ProjectRoot + std::string("Assets/Scripts"));
-        VFS::Get()->Mount("Scenes", m_ProjectRoot + std::string("Assets/Scenes"));
-        VFS::Get()->Mount("Assets", m_ProjectRoot + std::string("Assets"));
-        VFS::Get()->Mount("CoreShaders", root + std::string("/Lumos/Assets/Shaders"));
-#endif
 
         m_SceneManager = CreateUniqueRef<SceneManager>();
         Deserialise();
@@ -206,6 +215,8 @@ namespace Lumos
 
         m_ImGuiManager = CreateUniqueRef<ImGuiManager>(false);
         m_ImGuiManager->OnInit();
+        LUMOS_LOG_INFO("Initialised ImGui Manager");
+
         m_ShaderLibrary = CreateSharedRef<ShaderLibrary>();
 
         m_RenderGraph = CreateUniqueRef<Graphics::RenderGraph>(screenWidth, screenHeight);
@@ -526,6 +537,8 @@ namespace Lumos
         {
             auto filePath = m_ProjectRoot + m_ProjectName + std::string(".lmproj");
 
+            MountVFSPaths();
+
             if(!FileSystem::FileExists(filePath))
             {
                 LUMOS_LOG_INFO("No saved Project file found {0}", filePath);
@@ -539,6 +552,8 @@ namespace Lumos
                     Title = "App";
                     ShowConsole = false;
                     Fullscreen = false;
+                    m_EngineAssetPath = "/Users/jmorton/dev/Lumos/Lumos/Assets/";
+                    VFS::Get()->Mount("CoreShaders", m_EngineAssetPath + std::string("Shaders"));
 
                     m_SceneManager->EnqueueScene(new Scene("Empty Scene"));
                     m_SceneManager->SwitchScene(0);
@@ -549,10 +564,13 @@ namespace Lumos
             std::string data = FileSystem::ReadTextFile(filePath);
             std::istringstream istr;
             istr.str(data);
-            try {
+            try
+            {
                 cereal::JSONInputArchive input(istr);
                 input(*this);
-            } catch (...) {
+            }
+            catch(...)
+            {
                 //Set Default values
                 RenderAPI = 1;
                 Width = 1200;
@@ -562,13 +580,14 @@ namespace Lumos
                 Title = "App";
                 ShowConsole = false;
                 Fullscreen = false;
+                m_EngineAssetPath = "/Users/jmorton/dev/Lumos/Lumos/Assets/";
+                VFS::Get()->Mount("CoreShaders", m_EngineAssetPath + std::string("Shaders"));
 
                 m_SceneManager->EnqueueScene(new Scene("Empty Scene"));
                 m_SceneManager->SwitchScene(0);
-                
+
                 LUMOS_LOG_ERROR("Failed to load project");
             }
-       
         }
     }
 }

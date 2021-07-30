@@ -412,12 +412,6 @@ namespace Lumos
             auto scene = Application::Get().GetSceneManager()->GetCurrentScene();
             auto& registry = scene->GetRegistry();
 
-            if(scene->GetHasCppClass())
-            {
-                ImGui::Text("C++ scene : %s", StringUtilities::Demangle(typeid(*scene).name()).c_str());
-                ImGui::Separator();
-            }
-
             const std::string& sceneName = scene->GetSceneName();
 
             static char objName[INPUT_BUF_SIZE];

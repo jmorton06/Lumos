@@ -159,7 +159,7 @@ namespace Lumos::Maths
             _mm_storeu_ps(&m30_, _mm_loadu_ps(data + 12));
 #endif
         }
-        
+
         Matrix4(const Vector3& translation, const Quaternion& rotation, float scale) noexcept
         {
 #ifdef LUMOS_SSE
@@ -172,7 +172,7 @@ namespace Lumos::Maths
             SetTranslation(translation);
 #endif
         }
-        
+
         Matrix4(const Vector3& translation, const Quaternion& rotation, const Maths::Vector3& scale) noexcept
         {
 #ifdef LUMOS_SSE
@@ -849,7 +849,6 @@ namespace Lumos::Maths
             _mm_storeu_ps(&m20_, _mm_mul_ps(_mm_movelh_ps(tmp1, tmp3), s));
         }
 #endif
-
     };
 
     /// Multiply a 4x4 matrix with a scalar.

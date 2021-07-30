@@ -244,10 +244,9 @@ namespace Lumos
                 else if(m_SceneSerialisationVersion == 5)
                     entt::snapshot_loader { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV4>(input);
             }
-            catch (...)
+            catch(...)
             {
                 LUMOS_LOG_ERROR("Failed to load scene - {0}", path);
-
             }
         }
         else
@@ -276,10 +275,9 @@ namespace Lumos
                 else if(m_SceneSerialisationVersion == 5)
                     entt::snapshot_loader { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV4>(input);
             }
-            catch (...)
+            catch(...)
             {
                 LUMOS_LOG_ERROR("Failed to load scene - {0}", path);
-
             }
         }
 

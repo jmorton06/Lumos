@@ -39,6 +39,7 @@ namespace Lumos
         }
         static std::string PowerStateToString(PowerState state);
 
+        virtual std::string GetCurrentWorkingDirectory() { return std::string(""); };
         virtual std::string GetExecutablePath() = 0;
         virtual std::string GetAssetPath()
         {

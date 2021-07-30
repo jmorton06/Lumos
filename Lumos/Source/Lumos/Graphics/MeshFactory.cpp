@@ -560,7 +560,7 @@ namespace Lumos
             {
                 boundingBox->Merge(data[i].Position);
             }
-            
+
             delete[] data;
 
             uint32_t indices[6] {

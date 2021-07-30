@@ -10,6 +10,7 @@
 #include "Maths/Transform.h"
 #include "Core/Application.h"
 #include "Core/StringUtilities.h"
+#include "Graphics/Renderers/ForwardRenderer.h"
 
 #include <OpenFBX/ofbx.h>
 
@@ -184,7 +185,8 @@ namespace Lumos::Graphics
 
     SharedRef<Material> LoadMaterial(const ofbx::Material* material, bool animated)
     {
-        auto shader = animated ? Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/ForwardPBR.shader") : Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/ForwardPBR.shader");
+        //auto shader = animated ? Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/ForwardPBR.shader") : Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/ForwardPBR.shader");
+        auto shader = ForwardRenderer::GetDefaultPBRShader();
 
         SharedRef<Material> pbrMaterial = CreateSharedRef<Material>(shader);
 

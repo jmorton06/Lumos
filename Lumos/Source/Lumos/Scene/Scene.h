@@ -103,16 +103,6 @@ namespace Lumos
 
         EntityManager* GetEntityManager() { return m_EntityManager.get(); }
 
-        void SetHasCppClass(bool value)
-        {
-            m_HasCppClass = value;
-        }
-
-        bool GetHasCppClass() const
-        {
-            return m_HasCppClass;
-        }
-
         virtual void Serialise(const std::string& filePath, bool binary = false);
         virtual void Deserialise(const std::string& filePath, bool binary = false);
 
@@ -139,8 +129,6 @@ namespace Lumos
 
         uint32_t m_ScreenWidth;
         uint32_t m_ScreenHeight;
-
-        bool m_HasCppClass = true;
 
     private:
         NONCOPYABLE(Scene)

@@ -188,7 +188,7 @@ namespace Lumos
         {
             camera->SetAspectRatio(aspect);
         }
-        m_Editor->m_SceneWindowPos = Maths::Vector2(sceneViewPosition.x, sceneViewPosition.y);
+        m_Editor->m_SceneViewPanelPosition = Maths::Vector2(sceneViewPosition.x, sceneViewPosition.y);
 
         if(m_HalfRes)
             sceneViewSize /= 2.0f;

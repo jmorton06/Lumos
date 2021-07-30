@@ -7,6 +7,7 @@
 #include "Maths/Maths.h"
 
 #include "Core/Application.h"
+#include "Graphics/Renderers/ForwardRenderer.h"
 
 #define TINYOBJLOADER_IMPLEMENTATION
 #include <tinyobjloader/tiny_obj_loader.h>
@@ -128,7 +129,8 @@ namespace Lumos
             Graphics::Mesh::GenerateTangents(vertices, vertexCount, indices, numIndices);
 
             //TODO : if(isAnimated) Load deferredColourAnimated;
-            auto shader = Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/ForwardPBR.shader");
+           // auto shader = Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/ForwardPBR.shader");
+            auto shader = ForwardRenderer::GetDefaultPBRShader();
 
             SharedRef<Material> pbrMaterial = CreateSharedRef<Material>(shader);
 

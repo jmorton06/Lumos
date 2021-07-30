@@ -76,7 +76,7 @@ namespace Lumos::Maths
         {
             Define(frustum);
         }
-        
+
         /// Construct from a sphere.
         explicit BoundingBox(const Sphere& sphere)
             : min_(M_INFINITY, M_INFINITY, M_INFINITY)

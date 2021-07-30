@@ -25,6 +25,10 @@
 #include "Graphics/RHI/Pipeline.h"
 #include "Graphics/RHI/GraphicsContext.h"
 
+#include "CompiledSPV/Headers/DeferredColourAnimvertspv.hpp"
+#include "CompiledSPV/Headers/DeferredColourvertspv.hpp"
+#include "CompiledSPV/Headers/DeferredColourfragspv.hpp"
+
 #include <imgui/imgui.h>
 
 #define MAX_LIGHTS 32
@@ -69,8 +73,11 @@ namespace Lumos
         void DeferredOffScreenRenderer::Init()
         {
             LUMOS_PROFILE_FUNCTION();
-            m_Shader = Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/DeferredColour.shader");
-            m_AnimatedShader = Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/DeferredColourAnim.shader");
+            //m_Shader = Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/DeferredColour.shader");
+            //m_AnimatedShader = Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/DeferredColourAnim.shader");
+
+            m_Shader = Graphics::Shader::CreateFromEmbeddedArray(spirv_DeferredColourvertspv.data(), spirv_DeferredColourvertspv_size, spirv_DeferredColourfragspv.data(), spirv_DeferredColourfragspv_size);
+            m_AnimatedShader = Graphics::Shader::CreateFromEmbeddedArray(spirv_DeferredColourAnimvertspv.data(), spirv_DeferredColourAnimvertspv_size, spirv_DeferredColourfragspv.data(), spirv_DeferredColourfragspv_size);
 
             m_DefaultMaterial = new Material(m_Shader);
 
@@ -83,7 +90,6 @@ namespace Lumos
             properties.usingNormalMap = 0.0f;
             properties.usingMetallicMap = 0.0f;
             m_DefaultMaterial->SetMaterialProperites(properties);
-
 
             const size_t minUboAlignment = size_t(Graphics::Renderer::GetCapabilities().UniformBufferOffsetAlignment);
 
@@ -346,29 +352,10 @@ namespace Lumos
                 m_AnimUniformBuffer->Init(bufferSize, nullptr);
             }
 
-            std::vector<Graphics::Descriptor> bufferInfos;
-
-            Graphics::Descriptor bufferInfo = {};
-            bufferInfo.buffer = m_UniformBuffer;
-            bufferInfo.offset = 0;
-            bufferInfo.size = m_VSSystemUniformBufferSize;
-            bufferInfo.type = Graphics::DescriptorType::UNIFORM_BUFFER;
-            bufferInfo.binding = 0;
-            bufferInfo.shaderType = ShaderType::VERTEX;
-            bufferInfo.name = "UniformBufferObject";
-            bufferInfos.push_back(bufferInfo);
-
-            m_DescriptorSet[0]->Update(bufferInfos);
-
-            Graphics::Descriptor bufferInfoAnim = {};
-            bufferInfoAnim.buffer = m_AnimUniformBuffer;
-            bufferInfoAnim.offset = 0;
-            bufferInfoAnim.size = m_VSSystemUniformBufferAnimSize;
-            bufferInfoAnim.type = Graphics::DescriptorType::UNIFORM_BUFFER;
-            bufferInfoAnim.binding = 1;
-            bufferInfoAnim.shaderType = ShaderType::VERTEX;
-            bufferInfoAnim.name = "UniformBufferObjectAnim";
-            bufferInfos.push_back(bufferInfoAnim);
+            m_DescriptorSet[0]->SetBuffer("UniformBufferObject", m_UniformBuffer);
+            m_DescriptorSet[0]->Update();
+            
+           // m_AnimatedDescriptorSets[0]->SetBuffer("UniformBufferObjectAnim", m_AnimUniformBuffer);
 
             //m_AnimatedDescriptorSets->Update(bufferInfos);
         }

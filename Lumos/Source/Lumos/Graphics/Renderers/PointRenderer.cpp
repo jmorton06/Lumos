@@ -21,6 +21,9 @@
 #include "Platform/OpenGL/GLDescriptorSet.h"
 #include "Maths/Transform.h"
 
+#include "CompiledSPV/Headers/Batch2DPointvertspv.hpp"
+#include "CompiledSPV/Headers/Batch2DPointfragspv.hpp"
+
 namespace Lumos
 {
     using namespace Graphics;
@@ -59,7 +62,8 @@ namespace Lumos
     {
         LUMOS_PROFILE_FUNCTION();
 
-        m_Shader = Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/Batch2DPoint.shader");
+       // m_Shader = Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/Batch2DPoint.shader");
+        m_Shader = Graphics::Shader::CreateFromEmbeddedArray(spirv_Batch2DPointvertspv.data(), spirv_Batch2DPointvertspv_size, spirv_Batch2DPointfragspv.data(), spirv_Batch2DPointfragspv_size);
 
         m_VSSystemUniformBufferSize = sizeof(Maths::Matrix4);
         m_VSSystemUniformBuffer = new uint8_t[m_VSSystemUniformBufferSize];
@@ -89,20 +93,8 @@ namespace Lumos
         uint32_t bufferSize = static_cast<uint32_t>(sizeof(UniformBufferObject));
         m_UniformBuffer->Init(bufferSize, nullptr);
 
-        std::vector<Graphics::Descriptor> bufferInfos;
-
-        Graphics::Descriptor bufferInfo;
-        bufferInfo.buffer = m_UniformBuffer;
-        bufferInfo.offset = 0;
-        bufferInfo.size = sizeof(UniformBufferObject);
-        bufferInfo.type = Graphics::DescriptorType::UNIFORM_BUFFER;
-        bufferInfo.shaderType = Graphics::ShaderType::VERTEX;
-        bufferInfo.name = "UniformBufferObject";
-        bufferInfo.binding = 0;
-
-        bufferInfos.push_back(bufferInfo);
-
-        m_DescriptorSet[0].get()->Update(bufferInfos);
+        m_DescriptorSet[0]->SetBuffer("UniformBufferObject", m_UniformBuffer);
+        m_DescriptorSet[0]->Update();
 
         m_VertexBuffers.resize(MAX_BATCH_DRAW_CALLS);
 
