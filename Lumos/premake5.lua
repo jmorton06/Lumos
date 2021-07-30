@@ -326,19 +326,16 @@ buildoptions
 
 		links
 		{
-			"glfw"
-		}
-
-		linkoptions
-		{
-			"External/OpenAL/libs/linux/libopenal.so"
+			"glfw",
+			"libopenal"
 		}
 
 		linkoptions{ "-Wl,-rpath=\\$$ORIGIN" }
 
 		libdirs
 		{
-			"../bin/**"
+			"../bin/**",
+			"External/OpenAL/libs/linux"
 		}
 
 		buildoptions

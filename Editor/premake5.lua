@@ -124,7 +124,7 @@ project "LumosEditor"
 			['INFOPLIST_FILE'] = '../Lumos/Source/Lumos/Platform/macOS/Info.plist',
 			['ASSETCATALOG_COMPILER_APPICON_NAME'] = 'AppIcon'
 			--['ENABLE_HARDENED_RUNTIME'] = 'YES'
-}
+		}
 
 		defines
 		{
@@ -294,9 +294,9 @@ project "LumosEditor"
 			"glfw",
 		}
 
-		links { "X11", "pthread", "dl", "atomic", "stdc++fs"}
+		links { "X11", "pthread", "dl", "atomic", "stdc++fs", "openal"}
 
-		linkoptions { "-L%{cfg.targetdir}", "-Wl,-rpath=\\$$ORIGIN", "../Lumos/External/OpenAL/libs/linux/libopenal.so" }
+		linkoptions { "-L%{cfg.targetdir}", "-Wl,-rpath=\\$$ORIGIN"}
 
 		filter {'system:linux', 'architecture:x86_64'}
 			buildoptions

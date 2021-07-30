@@ -91,7 +91,12 @@ namespace Lumos
 #ifdef LUMOS_PLATFORM_IOS
         m_TempSceneSaveFilePath = OS::Instance()->GetAssetPath();
 #else
+		//TODO: Check windows
+#ifdef LUMOS_PLATFORM_LINUX
+		m_TempSceneSaveFilePath = std::filesystem::current_path().string();
+		#else
         m_TempSceneSaveFilePath = std::filesystem::temp_directory_path().string();
+		#endif
 
         std::vector<std::string> iniLocation = { "Editor.ini", "/Users/jmorton/dev/Lumos/Editor.ini", "../Editor.ini", OS::Instance()->GetExecutablePath() + "/Editor.ini" };
         bool fileFound = false;

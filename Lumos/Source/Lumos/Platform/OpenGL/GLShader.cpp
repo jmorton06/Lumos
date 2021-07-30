@@ -738,10 +738,10 @@ namespace Lumos
                 uint32_t binding = glsl->get_decoration(resource.id, spv::DecorationBinding);
 
                 // Modify the decoration to prepare it for GLSL.
-                glsl->unset_decoration(resource.id, spv::DecorationDescriptorSet);
+               // glsl->unset_decoration(resource.id, spv::DecorationDescriptorSet);
 
                 // Some arbitrary remapping if we want.
-                glsl->set_decoration(resource.id, spv::DecorationBinding, set * 16 + binding);
+               // glsl->set_decoration(resource.id, spv::DecorationBinding, set * 16 + binding);
 
                 auto& descriptorInfo = m_DescriptorInfos[set];
                 auto& descriptor = descriptorInfo.descriptors.emplace_back();
@@ -854,6 +854,31 @@ namespace Lumos
                     member.type = SPIRVTypeToLumosDataType(type);
                     member.fullName = uniformName;
                     member.name = memberName;
+                }
+            }
+            
+            int imageCount[16] = {0};
+            int bufferCount[16] = {0};
+            
+            for(int i = 0; i < m_DescriptorInfos.size(); i++)
+            {
+                auto& descriptorInfo = m_DescriptorInfos[i];
+                for(auto& descriptor : descriptorInfo.descriptors)
+                {
+                    if(descriptor.type == DescriptorType::IMAGE_SAMPLER)
+                    {
+                        imageCount[i]++;
+                        
+                        if(i > 0)
+                            descriptor.binding = descriptor.binding + imageCount[i - 1];
+                    }
+                    else if(descriptor.type == DescriptorType::UNIFORM_BUFFER)
+                    {
+                        bufferCount[i]++;
+                        
+                        if(i > 0)
+                            descriptor.binding = descriptor.binding + bufferCount[i - 1];
+                    }
                 }
             }
 

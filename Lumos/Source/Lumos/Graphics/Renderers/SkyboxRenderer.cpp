@@ -220,32 +220,10 @@ namespace Lumos
                 m_UniformBuffer->Init(bufferSize, nullptr);
             }
 
-            std::vector<Graphics::Descriptor> bufferInfos;
-
-            Graphics::Descriptor bufferInfo = {};
-            bufferInfo.buffer = m_UniformBuffer;
-            bufferInfo.offset = 0;
-            bufferInfo.size = sizeof(UniformBufferObject);
-            bufferInfo.type = Graphics::DescriptorType::UNIFORM_BUFFER;
-            bufferInfo.binding = 0;
-            bufferInfo.shaderType = ShaderType::VERTEX;
-
-            bufferInfos.push_back(bufferInfo);
-
-            if(m_CubeMap)
-            {
-                Graphics::Descriptor imageInfo = {};
-                imageInfo.texture = m_CubeMap;
-                imageInfo.name = "u_CubeMap";
-                imageInfo.binding = 1;
-                imageInfo.textureType = TextureType::CUBE;
-                imageInfo.type = DescriptorType::IMAGE_SAMPLER;
-
-                bufferInfos.push_back(imageInfo);
-            }
-
-            if(m_Pipeline != nullptr)
-                m_DescriptorSet[0].get()->Update(bufferInfos);
+            
+            m_DescriptorSet[0]->SetBuffer("UniformBufferObject", m_UniformBuffer);
+            m_DescriptorSet[0]->SetTexture("u_CubeMap", m_CubeMap, TextureType::CUBE);
+            m_DescriptorSet[0]->Update();
         }
 
         void SkyboxRenderer::SetCubeMap(Texture* cubeMap)

@@ -352,29 +352,10 @@ namespace Lumos
                 m_AnimUniformBuffer->Init(bufferSize, nullptr);
             }
 
-            std::vector<Graphics::Descriptor> bufferInfos;
-
-            Graphics::Descriptor bufferInfo = {};
-            bufferInfo.buffer = m_UniformBuffer;
-            bufferInfo.offset = 0;
-            bufferInfo.size = m_VSSystemUniformBufferSize;
-            bufferInfo.type = Graphics::DescriptorType::UNIFORM_BUFFER;
-            bufferInfo.binding = 0;
-            bufferInfo.shaderType = ShaderType::VERTEX;
-            bufferInfo.name = "UniformBufferObject";
-            bufferInfos.push_back(bufferInfo);
-
-            m_DescriptorSet[0]->Update(bufferInfos);
-
-            Graphics::Descriptor bufferInfoAnim = {};
-            bufferInfoAnim.buffer = m_AnimUniformBuffer;
-            bufferInfoAnim.offset = 0;
-            bufferInfoAnim.size = m_VSSystemUniformBufferAnimSize;
-            bufferInfoAnim.type = Graphics::DescriptorType::UNIFORM_BUFFER;
-            bufferInfoAnim.binding = 1;
-            bufferInfoAnim.shaderType = ShaderType::VERTEX;
-            bufferInfoAnim.name = "UniformBufferObjectAnim";
-            bufferInfos.push_back(bufferInfoAnim);
+            m_DescriptorSet[0]->SetBuffer("UniformBufferObject", m_UniformBuffer);
+            m_DescriptorSet[0]->Update();
+            
+           // m_AnimatedDescriptorSets[0]->SetBuffer("UniformBufferObjectAnim", m_AnimUniformBuffer);
 
             //m_AnimatedDescriptorSets->Update(bufferInfos);
         }

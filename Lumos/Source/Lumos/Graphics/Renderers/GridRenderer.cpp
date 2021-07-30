@@ -233,17 +233,6 @@ namespace Lumos
                 m_UniformBuffer->Init(bufferSize, nullptr);
             }
 
-            std::vector<Graphics::Descriptor> bufferInfos;
-
-            Graphics::Descriptor bufferInfo;
-            bufferInfo.name = "UniformBufferObject";
-            bufferInfo.buffer = m_UniformBuffer;
-            bufferInfo.offset = 0;
-            bufferInfo.size = sizeof(UniformBufferObject);
-            bufferInfo.type = Graphics::DescriptorType::UNIFORM_BUFFER;
-            bufferInfo.binding = 0;
-            bufferInfo.shaderType = ShaderType::VERTEX;
-
             if(m_UniformBufferFrag == nullptr)
             {
                 m_UniformBufferFrag = Graphics::UniformBuffer::Create();
@@ -251,19 +240,9 @@ namespace Lumos
                 m_UniformBufferFrag->Init(bufferSize, nullptr);
             }
 
-            Graphics::Descriptor bufferInfo2;
-            bufferInfo2.name = "UniformBuffer";
-            bufferInfo2.buffer = m_UniformBufferFrag;
-            bufferInfo2.offset = 0;
-            bufferInfo2.size = sizeof(UniformBufferObjectFrag);
-            bufferInfo2.type = Graphics::DescriptorType::UNIFORM_BUFFER;
-            bufferInfo2.binding = 1;
-            bufferInfo2.shaderType = ShaderType::FRAGMENT;
-
-            bufferInfos.push_back(bufferInfo);
-            bufferInfos.push_back(bufferInfo2);
-            if(m_Pipeline != nullptr)
-                m_DescriptorSet[0].get()->Update(bufferInfos);
+            m_DescriptorSet[0]->SetBuffer("UniformBufferObject", m_UniformBuffer);
+            m_DescriptorSet[0]->SetBuffer("UniformBuffer", m_UniformBufferFrag);
+            m_DescriptorSet[0]->Update();
         }
 
         void GridRenderer::SetRenderTarget(Texture* texture, bool rebuildFramebuffer)

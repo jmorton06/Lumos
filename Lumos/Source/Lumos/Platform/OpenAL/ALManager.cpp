@@ -32,7 +32,7 @@ namespace Lumos
             m_Device = alcOpenDevice(nullptr);
             m_Context = alcCreateContext(m_Device, nullptr);
 
-            LUMOS_LOG_INFO("Creating SoundSystem - {0}, Number of devices : ", alcGetString(m_Device, ALC_DEVICE_SPECIFIER), alcGetString(nullptr, ALC_DEVICE_SPECIFIER));
+            LUMOS_LOG_INFO("Initialising AudioManager - {0}, Number of devices : {1}", alcGetString(m_Device, ALC_DEVICE_SPECIFIER), alcGetString(nullptr, ALC_DEVICE_SPECIFIER));
 
             if(!m_Device)
                 LUMOS_LOG_INFO("Failed to create SoundSystem! (No valid device!)");
