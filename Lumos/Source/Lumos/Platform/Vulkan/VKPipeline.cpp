@@ -126,7 +126,16 @@ namespace Lumos
             dynamicStateDescriptors.push_back(VK_DYNAMIC_STATE_SCISSOR);
 
             if(pipelineCreateInfo.depthBiasEnabled)
+            {
                 dynamicStateDescriptors.push_back(VK_DYNAMIC_STATE_DEPTH_BIAS);
+                m_DepthBiasConstant = 1.25f;
+                m_DepthBiasSlope = 1.75f;
+                m_DepthBiasEnabled = true;
+            }
+            else
+            {
+                m_DepthBiasEnabled = false;
+            }
 
             VkPipelineDepthStencilStateCreateInfo ds {};
             ds.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
@@ -188,6 +197,12 @@ namespace Lumos
 
         void VKPipeline::Bind(CommandBuffer* cmdBuffer)
         {
+            if(m_DepthBiasEnabled)
+                vkCmdSetDepthBias( static_cast<VKCommandBuffer*>(cmdBuffer)->GetHandle(),
+                                  m_DepthBiasConstant,
+                                  0.0f,
+                                  m_DepthBiasSlope);
+            
             vkCmdBindPipeline(static_cast<VKCommandBuffer*>(cmdBuffer)->GetHandle(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_Pipeline);
         }
 

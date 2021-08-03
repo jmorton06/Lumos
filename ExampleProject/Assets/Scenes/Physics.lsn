@@ -976,7 +976,7 @@
     "value218": 26,
     "value219": {
         "Scale": 1.0,
-        "Aspect": 1.700118064880371,
+        "Aspect": 1.804511308670044,
         "FOV": 60.0,
         "Near": 0.10000000149011612,
         "Far": 1000.0
@@ -1036,7 +1036,7 @@
                     "usingAOMap": 0.0,
                     "usingEmissiveMap": 0.0,
                     "workflow": 0.0,
-                    "shader": "//CoreShaders/ForwardPBR.shader"
+                    "shader": "Embedded"
                 }
             }
         }
@@ -1086,7 +1086,7 @@
                     "usingAOMap": 0.0,
                     "usingEmissiveMap": 0.0,
                     "workflow": 0.0,
-                    "shader": "//CoreShaders/ForwardPBR.shader"
+                    "shader": "Embedded"
                 }
             }
         }
@@ -1136,7 +1136,7 @@
                     "usingAOMap": 0.0,
                     "usingEmissiveMap": 0.0,
                     "workflow": 0.0,
-                    "shader": "//CoreShaders/ForwardPBR.shader"
+                    "shader": "Embedded"
                 }
             }
         }
@@ -1186,7 +1186,7 @@
                     "usingAOMap": 0.0,
                     "usingEmissiveMap": 0.0,
                     "workflow": 0.0,
-                    "shader": "//CoreShaders/ForwardPBR.shader"
+                    "shader": "Embedded"
                 }
             }
         }
@@ -1236,7 +1236,7 @@
                     "usingAOMap": 0.0,
                     "usingEmissiveMap": 0.0,
                     "workflow": 0.0,
-                    "shader": "//CoreShaders/ForwardPBR.shader"
+                    "shader": "Embedded"
                 }
             }
         }
@@ -1286,7 +1286,7 @@
                     "usingAOMap": 0.0,
                     "usingEmissiveMap": 0.0,
                     "workflow": 0.0,
-                    "shader": "//CoreShaders/ForwardPBR.shader"
+                    "shader": "Embedded"
                 }
             }
         }
@@ -1336,7 +1336,7 @@
                     "usingAOMap": 0.0,
                     "usingEmissiveMap": 0.0,
                     "workflow": 0.0,
-                    "shader": "//CoreShaders/ForwardPBR.shader"
+                    "shader": "Embedded"
                 }
             }
         }
@@ -1386,7 +1386,7 @@
                     "usingAOMap": 0.0,
                     "usingEmissiveMap": 0.0,
                     "workflow": 0.0,
-                    "shader": "//CoreShaders/ForwardPBR.shader"
+                    "shader": "Embedded"
                 }
             }
         }
@@ -1436,7 +1436,7 @@
                     "usingAOMap": 0.0,
                     "usingEmissiveMap": 0.0,
                     "workflow": 0.0,
-                    "shader": "//CoreShaders/ForwardPBR.shader"
+                    "shader": "Embedded"
                 }
             }
         }
@@ -1486,7 +1486,7 @@
                     "usingAOMap": 0.0,
                     "usingEmissiveMap": 0.0,
                     "workflow": 0.0,
-                    "shader": "//CoreShaders/ForwardPBR.shader"
+                    "shader": "Embedded"
                 }
             }
         }
@@ -1536,7 +1536,7 @@
                     "usingAOMap": 0.0,
                     "usingEmissiveMap": 0.0,
                     "workflow": 0.0,
-                    "shader": "//CoreShaders/ForwardPBR.shader"
+                    "shader": "Embedded"
                 }
             }
         }
@@ -1586,7 +1586,7 @@
                     "usingAOMap": 0.0,
                     "usingEmissiveMap": 0.0,
                     "workflow": 0.0,
-                    "shader": "//CoreShaders/ForwardPBR.shader"
+                    "shader": "Embedded"
                 }
             }
         }
@@ -1636,7 +1636,7 @@
                     "usingAOMap": 0.0,
                     "usingEmissiveMap": 0.0,
                     "workflow": 0.0,
-                    "shader": "//CoreShaders/ForwardPBR.shader"
+                    "shader": "Embedded"
                 }
             }
         }
@@ -1686,7 +1686,7 @@
                     "usingAOMap": 0.0,
                     "usingEmissiveMap": 0.0,
                     "workflow": 0.0,
-                    "shader": "//CoreShaders/ForwardPBR.shader"
+                    "shader": "Embedded"
                 }
             }
         }
@@ -1736,7 +1736,7 @@
                     "usingAOMap": 0.0,
                     "usingEmissiveMap": 0.0,
                     "workflow": 0.0,
-                    "shader": "//CoreShaders/ForwardPBR.shader"
+                    "shader": "Embedded"
                 }
             }
         }
@@ -1786,7 +1786,7 @@
                     "usingAOMap": 0.0,
                     "usingEmissiveMap": 0.0,
                     "workflow": 0.0,
-                    "shader": "//CoreShaders/ForwardPBR.shader"
+                    "shader": "Embedded"
                 }
             }
         }
@@ -1836,7 +1836,7 @@
                     "usingAOMap": 0.0,
                     "usingEmissiveMap": 0.0,
                     "workflow": 0.0,
-                    "shader": "//CoreShaders/ForwardPBR.shader"
+                    "shader": "Embedded"
                 }
             }
         }
@@ -1886,7 +1886,7 @@
                     "usingAOMap": 0.0,
                     "usingEmissiveMap": 0.0,
                     "workflow": 0.0,
-                    "shader": "//CoreShaders/ForwardPBR.shader"
+                    "shader": "Embedded"
                 }
             }
         }
@@ -1936,7 +1936,7 @@
                     "usingAOMap": 0.0,
                     "usingEmissiveMap": 0.0,
                     "workflow": 0.0,
-                    "shader": "//CoreShaders/ForwardPBR.shader"
+                    "shader": "Embedded"
                 }
             }
         }
@@ -1986,7 +1986,7 @@
                     "usingAOMap": 0.0,
                     "usingEmissiveMap": 0.0,
                     "workflow": 0.0,
-                    "shader": "//CoreShaders/ForwardPBR.shader"
+                    "shader": "Embedded"
                 }
             }
         }
@@ -2036,7 +2036,7 @@
                     "usingAOMap": 0.0,
                     "usingEmissiveMap": 0.0,
                     "workflow": 0.0,
-                    "shader": "//CoreShaders/ForwardPBR.shader"
+                    "shader": "Embedded"
                 }
             }
         }
@@ -2086,7 +2086,7 @@
                     "usingAOMap": 0.0,
                     "usingEmissiveMap": 0.0,
                     "workflow": 0.0,
-                    "shader": "//CoreShaders/ForwardPBR.shader"
+                    "shader": "Embedded"
                 }
             }
         }
@@ -2136,7 +2136,7 @@
                     "usingAOMap": 0.0,
                     "usingEmissiveMap": 0.0,
                     "workflow": 0.0,
-                    "shader": "//CoreShaders/ForwardPBR.shader"
+                    "shader": "Embedded"
                 }
             }
         }
@@ -2186,7 +2186,7 @@
                     "usingAOMap": 0.0,
                     "usingEmissiveMap": 0.0,
                     "workflow": 0.0,
-                    "shader": "//CoreShaders/ForwardPBR.shader"
+                    "shader": "Embedded"
                 }
             }
         }
@@ -2236,7 +2236,7 @@
                     "usingAOMap": 0.0,
                     "usingEmissiveMap": 0.0,
                     "workflow": 0.0,
-                    "shader": "//CoreShaders/ForwardPBR.shader"
+                    "shader": "Embedded"
                 }
             }
         }
@@ -2286,7 +2286,7 @@
                     "usingAOMap": 0.0,
                     "usingEmissiveMap": 0.0,
                     "workflow": 0.0,
-                    "shader": "//CoreShaders/ForwardPBR.shader"
+                    "shader": "Embedded"
                 }
             }
         }
@@ -2336,7 +2336,7 @@
                     "usingAOMap": 1.0,
                     "usingEmissiveMap": 1.0,
                     "workflow": 1.0,
-                    "shader": "//CoreShaders/ForwardPBR.shader"
+                    "shader": "Embedded"
                 }
             }
         }
@@ -2386,7 +2386,7 @@
                     "usingAOMap": 0.0,
                     "usingEmissiveMap": 1.0,
                     "workflow": 0.0,
-                    "shader": "//CoreShaders/ForwardPBR.shader"
+                    "shader": "Embedded"
                 }
             }
         }
@@ -2436,7 +2436,7 @@
                     "usingAOMap": 0.0,
                     "usingEmissiveMap": 1.0,
                     "workflow": 1.0,
-                    "shader": "//CoreShaders/ForwardPBR.shader"
+                    "shader": "Embedded"
                 }
             }
         }
@@ -2492,7 +2492,7 @@
         "value5": 3.9564571380615236,
         "value6": 26.92300033569336
     },
-    "value289": 5,
+    "value289": 6,
     "value290": 1,
     "value291": {
         "value0": {
@@ -2764,9 +2764,60 @@
             "Trigger": false
         }
     },
-    "value300": 1,
-    "value301": 24,
-    "value302": {
+    "value300": 23,
+    "value301": {
+        "value0": {
+            "Position": {
+                "value0": 5.0,
+                "value1": 5.693999767303467,
+                "value2": 0.0
+            },
+            "Orientation": {
+                "value0": 0.0,
+                "value1": 0.0,
+                "value2": 0.0,
+                "value3": 1.0
+            },
+            "LinearVelocity": {
+                "value0": 0.0,
+                "value1": 0.0,
+                "value2": 0.0
+            },
+            "Force": {
+                "value0": 0.0,
+                "value1": 0.0,
+                "value2": 0.0
+            },
+            "Mass": 1.0,
+            "AngularVelocity": {
+                "value0": 0.0,
+                "value1": 0.0,
+                "value2": 0.0
+            },
+            "Torque": {
+                "value0": 0.0,
+                "value1": 0.0,
+                "value2": 0.0
+            },
+            "Static": false,
+            "Friction": 0.800000011920929,
+            "Elasticity": 0.8999999761581421,
+            "CollisionShape": {
+                "polymorphic_id": 2147483650,
+                "polymorphic_name": "Lumos::SphereCollisionShape",
+                "ptr_wrapper": {
+                    "valid": 1,
+                    "data": {
+                        "value0": 0.5
+                    }
+                }
+            },
+            "Trigger": false
+        }
+    },
+    "value302": 1,
+    "value303": 24,
+    "value304": {
         "value0": "//Textures/cubemap/noga",
         "value1": 11,
         "value2": 3072,
@@ -2774,16 +2825,16 @@
         "value4": ".tga",
         "value5": 0.03125
     },
-    "value303": 0,
-    "value304": 0,
-    "value305": 1,
-    "value306": 26,
-    "value307": {
+    "value305": 0,
+    "value306": 0,
+    "value307": 1,
+    "value308": 26,
+    "value309": {
         "ControllerType": 4
     },
-    "value308": 1,
-    "value309": 28,
-    "value310": {
+    "value310": 1,
+    "value311": 28,
+    "value312": {
         "TexturePath": "//Textures/cat.png",
         "Position": {
             "value0": 0.0,
@@ -2851,31 +2902,6 @@
                 }
             },
             {
-                "key": "RunLeft",
-                "value": {
-                    "PlayMode": 0,
-                    "Frames": [
-                        {
-                            "value0": 0.0,
-                            "value1": 96.0
-                        },
-                        {
-                            "value0": 32.0,
-                            "value1": 96.0
-                        },
-                        {
-                            "value0": 64.0,
-                            "value1": 96.0
-                        },
-                        {
-                            "value0": 96.0,
-                            "value1": 96.0
-                        }
-                    ],
-                    "FrameDuration": 0.10000000149011612
-                }
-            },
-            {
                 "key": "RunRight",
                 "value": {
                     "PlayMode": 0,
@@ -2895,6 +2921,31 @@
                         {
                             "value0": 96.0,
                             "value1": 32.0
+                        }
+                    ],
+                    "FrameDuration": 0.10000000149011612
+                }
+            },
+            {
+                "key": "RunLeft",
+                "value": {
+                    "PlayMode": 0,
+                    "Frames": [
+                        {
+                            "value0": 0.0,
+                            "value1": 96.0
+                        },
+                        {
+                            "value0": 32.0,
+                            "value1": 96.0
+                        },
+                        {
+                            "value0": 64.0,
+                            "value1": 96.0
+                        },
+                        {
+                            "value0": 96.0,
+                            "value1": 96.0
                         }
                     ],
                     "FrameDuration": 0.10000000149011612
@@ -2928,9 +2979,9 @@
         ],
         "State": "RunRight"
     },
-    "value311": 2,
-    "value312": 35,
-    "value313": {
+    "value313": 2,
+    "value314": 35,
+    "value315": {
         "value0": {
             "Position": {
                 "value0": 0.0,
@@ -2955,8 +3006,8 @@
             "RollOffFactor": 6.0
         }
     },
-    "value314": 1048610,
-    "value315": {
+    "value316": 1048610,
+    "value317": {
         "value0": {
             "Position": {
                 "value0": 0.10000000149011612,
@@ -2981,9 +3032,9 @@
             "RollOffFactor": 6.0
         }
     },
-    "value316": 1,
-    "value317": 26,
-    "value318": {
+    "value318": 1,
+    "value319": 26,
+    "value320": {
         "enabled": true
     }
 }

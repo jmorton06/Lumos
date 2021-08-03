@@ -47,9 +47,7 @@ namespace Lumos
         Renderer2D::~Renderer2D()
         {
             delete m_IndexBuffer;
-            delete m_UniformBuffer;
 
-            delete[] m_VSSystemUniformBuffer;
             for(uint32_t i = 0; i < m_Limits.MaxBatchDrawCalls; i++)
             {
                 delete m_VertexBuffers[i];
@@ -70,11 +68,6 @@ namespace Lumos
 
             m_TransformationStack.emplace_back(Maths::Matrix4());
             m_TransformationBack = &m_TransformationStack.back();
-
-            m_VSSystemUniformBufferSize = sizeof(Maths::Matrix4);
-            m_VSSystemUniformBuffer = new uint8_t[m_VSSystemUniformBufferSize];
-
-            m_UniformBuffer = Graphics::UniformBuffer::Create();
 
             AttachmentInfo textureTypes[2] = {
                 { TextureType::COLOUR, TextureFormat::RGBA8 }
@@ -104,8 +97,8 @@ namespace Lumos
 
             CreateGraphicsPipeline();
 
-            uint32_t bufferSize = static_cast<uint32_t>(sizeof(Maths::Matrix4));
-            m_UniformBuffer->Init(bufferSize, nullptr);
+            //uint32_t bufferSize = static_cast<uint32_t>(sizeof(Maths::Matrix4));
+            //m_UniformBuffer->Init(bufferSize, nullptr);
 
             Graphics::DescriptorDesc info {};
             info.layoutIndex = 0;
@@ -114,9 +107,6 @@ namespace Lumos
             m_DescriptorSet[0] = SharedRef<Graphics::DescriptorSet>(Graphics::DescriptorSet::Create(info));
             info.layoutIndex = 1;
             m_DescriptorSet[1] = SharedRef<Graphics::DescriptorSet>(Graphics::DescriptorSet::Create(info));
-            
-            m_DescriptorSet[0]->SetBuffer("UniformBufferObject", m_UniformBuffer);
-            m_DescriptorSet[0]->Update();
 
             m_VertexBuffers.resize(m_Limits.MaxBatchDrawCalls);
 #if !MAP_VERTEX_ARRAY
@@ -239,7 +229,7 @@ namespace Lumos
         void Renderer2D::SetSystemUniforms(Shader* shader) const
         {
             LUMOS_PROFILE_FUNCTION();
-            m_UniformBuffer->SetData(sizeof(Maths::Matrix4), *&m_VSSystemUniformBuffer);
+            //m_UniformBuffer->SetData(sizeof(Maths::Matrix4), *&m_VSSystemUniformBuffer);
         }
 
         void Renderer2D::BeginScene(Scene* scene, Camera* overrideCamera, Maths::Transform* overrideCameraTransform)
@@ -267,8 +257,9 @@ namespace Lumos
 
             auto view = m_CameraTransform->GetWorldMatrix().Inverse();
             auto projView = m_Camera->GetProjectionMatrix() * view;
-
-            memcpy(m_VSSystemUniformBuffer, &projView, sizeof(Maths::Matrix4));
+            m_DescriptorSet[0]->SetUniform("UniformBufferObject", "projView", &projView);
+            m_DescriptorSet[0]->Update();
+            //memcpy(m_VSSystemUniformBuffer, &projView, sizeof(Maths::Matrix4));
 
             m_Frustum = m_Camera->GetFrustum(view);
             m_CommandQueue2D.clear();
@@ -411,6 +402,10 @@ namespace Lumos
         void Renderer2D::RenderScene()
         {
             LUMOS_PROFILE_FUNCTION();
+            
+            if(m_CommandQueue2D.empty())
+                return;
+            
             Begin();
 
             SetSystemUniforms(m_Shader.get());
@@ -427,7 +422,7 @@ namespace Lumos
             bool found = false;
             for(uint32_t i = 0; i < m_TextureCount; i++)
             {
-                if(m_Textures[i] == texture) //Temp
+                if(m_Textures[i] == texture)
                 {
                     result = static_cast<float>(i + 1);
                     found = true;

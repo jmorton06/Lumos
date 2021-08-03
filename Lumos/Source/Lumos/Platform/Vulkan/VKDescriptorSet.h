@@ -1,6 +1,7 @@
 #pragma once
 #include "Graphics/RHI/DescriptorSet.h"
 #include "VK.h"
+#include "Core/Buffer.h"
 
 namespace Lumos
 {
@@ -17,7 +18,11 @@ namespace Lumos
             void SetTexture(const std::string& name, Texture* texture, TextureType textureType) override;
             void SetTexture(const std::string& name, Texture** texture, uint32_t textureCount, TextureType textureType) override;
             void SetBuffer(const std::string& name, UniformBuffer* buffer) override;
+            void SetUniform(const std::string& bufferName, const std::string& uniformName, void* data) override;
+            void SetUniform(const std::string& bufferName, const std::string& uniformName, void* data, uint32_t size) override;
+            void SetUniformBufferData(const std::string& bufferName, void* data) override;
             
+            Graphics::UniformBuffer* GetUnifromBuffer(const std::string& name) override;
             bool GetIsDynamic() const { return m_Dynamic; }
 
             void SetDynamicOffset(uint32_t offset) override { m_DynamicOffset = offset; }
@@ -39,7 +44,15 @@ namespace Lumos
             VkDescriptorImageInfo* m_ImageInfoPool = nullptr;
             VkWriteDescriptorSet* m_WriteDescriptorSetPool = nullptr;
 
+            struct UniformBufferInfo
+            {
+                SharedRef<UniformBuffer> UB;
+                std::vector<BufferMemberInfo> m_Members;
+                Buffer LocalStorage;
+                bool HasUpdated;
+            };
             DescriptorSetInfo m_Descriptors;
+			std::unordered_map<std::string, UniformBufferInfo> m_UniformBuffers;
         };
     }
 }

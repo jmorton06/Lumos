@@ -56,6 +56,9 @@ namespace Lumos
                 else
                 {
                     LoadModel(m_FilePath);
+                    //TODO: This should load material changes from editor
+                    //m_Meshes.back()->SetMaterial(SharedRef<Material>(material.get()));
+                    //material.release();
                 }
             }
 

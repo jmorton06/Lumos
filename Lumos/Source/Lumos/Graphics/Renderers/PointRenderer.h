@@ -75,11 +75,6 @@ namespace Lumos
             void SetSystemUniforms(Graphics::Shader* shader) const;
             float SubmitTexture(Graphics::Texture* texture);
 
-            struct UniformBufferObject
-            {
-                Maths::Matrix4 projView;
-            };
-
             void CreateGraphicsPipeline();
             void CreateFramebuffers();
             void UpdateDesciptorSet() const;
@@ -95,7 +90,6 @@ namespace Lumos
 
             PointVertexData* m_Buffer = nullptr;
             Graphics::IndexBuffer* m_IndexBuffer = nullptr;
-            Graphics::UniformBuffer* m_UniformBuffer = nullptr;
             std::vector<Graphics::CommandBuffer*> m_SecondaryCommandBuffers;
             std::vector<Graphics::VertexBuffer*> m_VertexBuffers;
             std::vector<PointInfo> m_Points;

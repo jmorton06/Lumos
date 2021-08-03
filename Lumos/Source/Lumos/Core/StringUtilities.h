@@ -63,5 +63,7 @@ namespace Lumos
         bool StringEquals(const std::string& string1, const std::string& string2);
         std::string StringReplace(std::string str, char ch1, char ch2);
         std::string StringReplace(std::string str, char ch);
+    
+        std::string BytesToString(uint64_t bytes);
     }
 }

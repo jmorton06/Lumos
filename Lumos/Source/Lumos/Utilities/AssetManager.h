@@ -78,6 +78,24 @@ namespace Lumos
 
             return itr->second.data;
         }
+        
+        void AddResource(const IDType& name, ResourceHandle& data)
+        {
+            typename MapType::iterator itr = m_NameResourceMap.find(name);
+            if(itr != m_NameResourceMap.end())
+            {
+                itr->second.lastAccessed = Engine::GetTimeStep().GetElapsedSeconds();
+                itr->second.data = data;
+            }
+
+            Resource newResource;
+            newResource.data = data;
+            newResource.timeSinceReload = 0;
+            newResource.onDisk = true;
+            newResource.lastAccessed = Engine::GetTimeStep().GetElapsedSeconds();
+
+            m_NameResourceMap.emplace(name, newResource);
+        }
 
         void Destroy()
         {

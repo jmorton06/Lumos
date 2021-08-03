@@ -29,8 +29,7 @@ namespace Lumos
     namespace Graphics
     {
         SkyboxRenderer::SkyboxRenderer(uint32_t width, uint32_t height)
-            : m_UniformBuffer(nullptr)
-            , m_CubeMap(nullptr)
+            : m_CubeMap(nullptr)
         {
             m_Pipeline = nullptr;
 
@@ -40,9 +39,7 @@ namespace Lumos
 
         SkyboxRenderer::~SkyboxRenderer()
         {
-            delete m_UniformBuffer;
             delete m_Skybox;
-            delete[] m_VSSystemUniformBuffer;
 
             m_Framebuffers.clear();
         }
@@ -74,28 +71,13 @@ namespace Lumos
 
             End();
         }
-
-        enum VSSystemUniformIndices : int32_t
-        {
-            VSSystemUniformIndex_InverseProjectionViewMatrix = 0,
-            VSSystemUniformIndex_Size
-        };
-
+    
         void SkyboxRenderer::Init()
         {
             LUMOS_PROFILE_FUNCTION();
             //m_Shader = Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/Skybox.shader");
             m_Shader = Graphics::Shader::CreateFromEmbeddedArray(spirv_Skyboxvertspv.data(), spirv_Skyboxvertspv_size, spirv_Skyboxfragspv.data(), spirv_Skyboxfragspv_size);
             m_Skybox = Graphics::CreateScreenQuad();
-
-            // Vertex shader System uniforms
-            m_VSSystemUniformBufferSize = sizeof(Maths::Matrix4);
-            m_VSSystemUniformBuffer = new uint8_t[m_VSSystemUniformBufferSize];
-            memset(m_VSSystemUniformBuffer, 0, m_VSSystemUniformBufferSize);
-            m_VSSystemUniformBufferOffsets.resize(VSSystemUniformIndex_Size);
-
-            // Per Scene System Uniforms
-            m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_InverseProjectionViewMatrix] = 0;
 
             AttachmentInfo textureTypes[2] = {
                 { TextureType::COLOUR, TextureFormat::RGBA8 },
@@ -170,7 +152,9 @@ namespace Lumos
                 return;
 
             auto invViewProj = Maths::Matrix4::Inverse(m_Camera->GetProjectionMatrix() * m_CameraTransform->GetWorldMatrix().Inverse());
-            memcpy(m_VSSystemUniformBuffer + m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_InverseProjectionViewMatrix], &invViewProj, sizeof(Maths::Matrix4));
+            m_DescriptorSet[0]->SetUniform("UniformBufferObject", "invprojview", &invViewProj);
+            m_DescriptorSet[0]->Update();
+            //memcpy(m_VSSystemUniformBuffer + m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_InverseProjectionViewMatrix], &invViewProj, sizeof(Maths::Matrix4));
         }
 
         void SkyboxRenderer::End()
@@ -182,7 +166,7 @@ namespace Lumos
         void SkyboxRenderer::SetSystemUniforms(Shader* shader) const
         {
             LUMOS_PROFILE_FUNCTION();
-            m_UniformBuffer->SetData(sizeof(UniformBufferObject), *&m_VSSystemUniformBuffer);
+            //m_UniformBuffer->SetData(sizeof(UniformBufferObject), *&m_VSSystemUniformBuffer);
         }
 
         void SkyboxRenderer::OnResize(uint32_t width, uint32_t height)
@@ -213,15 +197,6 @@ namespace Lumos
         void SkyboxRenderer::UpdateUniformBuffer()
         {
             LUMOS_PROFILE_FUNCTION();
-            if(m_UniformBuffer == nullptr)
-            {
-                m_UniformBuffer = Graphics::UniformBuffer::Create();
-                uint32_t bufferSize = static_cast<uint32_t>(sizeof(UniformBufferObject));
-                m_UniformBuffer->Init(bufferSize, nullptr);
-            }
-
-            
-            m_DescriptorSet[0]->SetBuffer("UniformBufferObject", m_UniformBuffer);
             m_DescriptorSet[0]->SetTexture("u_CubeMap", m_CubeMap, TextureType::CUBE);
             m_DescriptorSet[0]->Update();
         }

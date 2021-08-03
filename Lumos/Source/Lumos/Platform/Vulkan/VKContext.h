@@ -97,6 +97,7 @@ namespace Lumos
             Window* m_Window;
 
             bool m_StandardValidationLayer = false;
+            bool m_ValidationLayer = false;
             bool m_RenderDocLayer = false;
             bool m_AssistanceLayer = false;
         };
