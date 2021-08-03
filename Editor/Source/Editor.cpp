@@ -1037,21 +1037,22 @@ namespace Lumos
             ImGuiID DockingRightDownChild = ImGui::DockBuilderSplitNode(DockRightChild, ImGuiDir_Down, 0.06f, nullptr, &DockRightChild);
 
             ImGuiID DockBottomChild = ImGui::DockBuilderSplitNode(DockBottom, ImGuiDir_Down, 0.2f, nullptr, &DockBottom);
-            ImGuiID DockingBottomLeftChild = ImGui::DockBuilderSplitNode(DockBottomChild, ImGuiDir_Left, 0.5f, nullptr, &DockBottomChild);
-            ImGuiID DockingBottomRightChild = ImGui::DockBuilderSplitNode(DockBottomChild, ImGuiDir_Right, 0.5f, nullptr, &DockBottomChild);
+            ImGuiID DockingBottomLeftChild = ImGui::DockBuilderSplitNode(DockLeft, ImGuiDir_Down, 0.4f, nullptr, &DockLeft);
+            ImGuiID DockingBottomRightChild = ImGui::DockBuilderSplitNode(DockRight, ImGuiDir_Down, 0.4f, nullptr, &DockRight);
 
             ImGuiID DockMiddle = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Right, 0.8f, nullptr, &dock_main_id);
-
-            ImGui::DockBuilderDockWindow("###scene", DockMiddle);
-
+			ImGuiID DockBottomMiddle = ImGui::DockBuilderSplitNode(DockMiddle, ImGuiDir_Down, 0.3f, nullptr, &DockMiddle);
+            
+			ImGui::DockBuilderDockWindow("###scene", DockMiddle);
             ImGui::DockBuilderDockWindow("###inspector", DockRight);
-            ImGui::DockBuilderDockWindow("###console", DockBottom);
+            ImGui::DockBuilderDockWindow("###console", DockBottomMiddle);
             ImGui::DockBuilderDockWindow("###profiler", DockingBottomLeftChild);
             ImGui::DockBuilderDockWindow("###resources", DockingBottomLeftChild);
             ImGui::DockBuilderDockWindow("Dear ImGui Demo", DockLeft);
             ImGui::DockBuilderDockWindow("GraphicsInfo", DockLeft);
             ImGui::DockBuilderDockWindow("ApplicationInfo", DockLeft);
             ImGui::DockBuilderDockWindow("###hierarchy", DockLeft);
+			ImGui::DockBuilderDockWindow("Text Editor", DockMiddle);
 
             ImGui::DockBuilderFinish(DockspaceID);
         }

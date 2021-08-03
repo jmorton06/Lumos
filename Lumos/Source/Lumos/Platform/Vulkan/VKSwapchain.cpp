@@ -167,10 +167,11 @@ namespace Lumos
                 VkImageViewCreateInfo viewCI {};
                 viewCI.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
                 viewCI.format = m_ColourFormat;
-                viewCI.components.r = VK_COMPONENT_SWIZZLE_R;
-                viewCI.components.g = VK_COMPONENT_SWIZZLE_G;
-                viewCI.components.b = VK_COMPONENT_SWIZZLE_B;
-                viewCI.components.a = VK_COMPONENT_SWIZZLE_A;
+#ifdef LUMOS_PLATFORM_MACOS
+                viewCI.components = { VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY };
+#else
+                viewCI.components = { VK_COMPONENT_SWIZZLE_R, VK_COMPONENT_SWIZZLE_G, VK_COMPONENT_SWIZZLE_B, VK_COMPONENT_SWIZZLE_A };
+#endif
                 viewCI.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
                 viewCI.subresourceRange.baseMipLevel = 0;
                 viewCI.subresourceRange.levelCount = 1;

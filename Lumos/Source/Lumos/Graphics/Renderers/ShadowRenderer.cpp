@@ -38,12 +38,6 @@ namespace Lumos
 {
     namespace Graphics
     {
-        enum VSSystemUniformIndices : int32_t
-        {
-            VSSystemUniformIndex_ProjectionViewMatrix = 0,
-            VSSystemUniformIndex_Size
-        };
-
         ShadowRenderer::ShadowRenderer(TextureDepthArray* texture, uint32_t shadowMapSize, uint32_t numMaps)
             : m_ShadowTex(nullptr)
             , m_ShadowMapNum(numMaps)
@@ -73,21 +67,12 @@ namespace Lumos
         ShadowRenderer::~ShadowRenderer()
         {
             delete m_ShadowTex;
-            delete[] m_VSSystemUniformBuffer;
             delete m_UniformBuffer;
         }
 
         void ShadowRenderer::Init()
         {
             LUMOS_PROFILE_FUNCTION();
-            m_VSSystemUniformBufferSize = sizeof(Maths::Matrix4) * SHADOWMAP_MAX;
-            m_VSSystemUniformBuffer = new uint8_t[m_VSSystemUniformBufferSize];
-            memset(m_VSSystemUniformBuffer, 0, m_VSSystemUniformBufferSize);
-            m_VSSystemUniformBufferOffsets.resize(VSSystemUniformIndex_Size);
-
-            // Per Scene System Uniforms
-            m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_ProjectionViewMatrix] = 0;
-
             AttachmentInfo textureTypes[1] = {
                 { TextureType::DEPTHARRAY, TextureFormat::DEPTH }
             };
@@ -289,8 +274,9 @@ namespace Lumos
             if(!m_ShouldRender)
                 return;
 
-            memcpy(m_VSSystemUniformBuffer + m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_ProjectionViewMatrix], m_ShadowProjView, sizeof(Maths::Matrix4) * SHADOWMAP_MAX);
-
+            m_DescriptorSet[0]->SetUniform("UniformBufferObject", "projView", m_ShadowProjView);
+            m_DescriptorSet[0]->Update();
+            
             Begin();
 
             for(uint32_t i = 0; i < m_ShadowMapNum; ++i)
@@ -475,16 +461,16 @@ namespace Lumos
         void ShadowRenderer::CreateUniformBuffer()
         {
             LUMOS_PROFILE_FUNCTION();
-            if(m_UniformBuffer == nullptr)
-            {
-                m_UniformBuffer = Graphics::UniformBuffer::Create();
+         //   if(m_UniformBuffer == nullptr)
+//            {
+//                m_UniformBuffer = Graphics::UniformBuffer::Create();
+//
+//                const uint32_t bufferSize = static_cast<uint32_t>(sizeof(UniformBufferObject));
+//                m_UniformBuffer->Init(bufferSize, nullptr);
+//            }
 
-                const uint32_t bufferSize = static_cast<uint32_t>(sizeof(UniformBufferObject));
-                m_UniformBuffer->Init(bufferSize, nullptr);
-            }
-
-            m_DescriptorSet[0]->SetBuffer("UniformBufferObject", m_UniformBuffer);
-            m_DescriptorSet[0]->Update();
+           // m_DescriptorSet[0]->SetBuffer("UniformBufferObject", m_UniformBuffer);
+           // m_DescriptorSet[0]->Update();
         }
 
         void ShadowRenderer::SetSystemUniforms(Shader* shader)
@@ -493,7 +479,7 @@ namespace Lumos
 
             {
                 LUMOS_PROFILE_SCOPE("Vertex Uniform Buffer Update");
-                m_UniformBuffer->SetData(sizeof(Maths::Matrix4) * m_ShadowMapNum, *&m_VSSystemUniformBuffer);
+                //m_UniformBuffer->SetData(sizeof(Maths::Matrix4) * m_ShadowMapNum, *&m_VSSystemUniformBuffer);
             }
         }
 

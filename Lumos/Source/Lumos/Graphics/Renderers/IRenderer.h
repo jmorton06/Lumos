@@ -99,7 +99,6 @@ namespace Lumos
 
             std::vector<SharedRef<Framebuffer>> m_Framebuffers;
             SharedRef<Shader> m_Shader = nullptr;
-
             SharedRef<Lumos::Graphics::RenderPass> m_RenderPass;
             SharedRef<Lumos::Graphics::Pipeline> m_Pipeline;
             std::vector<SharedRef<Graphics::DescriptorSet>> m_DescriptorSet;
@@ -112,14 +111,6 @@ namespace Lumos
             Texture* m_DepthTexture = nullptr;
 
             Maths::Frustum m_Frustum;
-
-            uint8_t* m_VSSystemUniformBuffer = nullptr;
-            uint32_t m_VSSystemUniformBufferSize = 0;
-            uint8_t* m_PSSystemUniformBuffer = nullptr;
-            uint32_t m_PSSystemUniformBufferSize = 0;
-
-            std::vector<uint32_t> m_VSSystemUniformBufferOffsets;
-            std::vector<uint32_t> m_PSSystemUniformBufferOffsets;
             Maths::Vector4 m_ClearColour;
 
             int m_RenderPriority = 0;

@@ -39,10 +39,16 @@ namespace Lumos
             {
                 return m_QueueFamilyIndices.Graphics;
             }
+            
             VkPhysicalDeviceProperties GetProperties() const
             {
                 return m_PhysicalDeviceProperties;
-            };
+            }
+            
+            VkPhysicalDeviceMemoryProperties GetMemoryProperties() const
+            {
+                return m_MemoryProperties;
+            }
 
         private:
             struct QueueFamilyIndices

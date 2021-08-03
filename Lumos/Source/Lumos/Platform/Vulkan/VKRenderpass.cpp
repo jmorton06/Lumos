@@ -166,8 +166,6 @@ namespace Lumos
 
         void VKRenderpass::BeginRenderpass(CommandBuffer* commandBuffer, const Maths::Vector4& clearColour, Framebuffer* frame, SubPassContents contents, uint32_t width, uint32_t height) const
         {
-            commandBuffer->UpdateViewport(width, height);
-
             LUMOS_PROFILE_FUNCTION();
             if(!m_DepthOnly)
             {
@@ -198,6 +196,7 @@ namespace Lumos
             rpBegin.pClearValues = m_ClearValue;
 
             vkCmdBeginRenderPass(static_cast<VKCommandBuffer*>(commandBuffer)->GetHandle(), &rpBegin, SubPassContentsToVK(contents));
+            commandBuffer->UpdateViewport(width, height);
         }
 
         void VKRenderpass::EndRenderpass(CommandBuffer* commandBuffer)

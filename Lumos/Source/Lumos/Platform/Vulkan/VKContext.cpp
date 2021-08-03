@@ -5,12 +5,15 @@
 #include "VKCommandPool.h"
 #include "VKCommandBuffer.h"
 #include "Core/Version.h"
+#include "Core/StringUtilities.h"
 
 #include <imgui/imgui.h>
 
 #define VK_LAYER_LUNARG_STANDARD_VALIDATION_NAME "VK_LAYER_LUNARG_standard_validation"
 #define VK_LAYER_LUNARG_ASSISTENT_LAYER_NAME "VK_LAYER_LUNARG_assistant_layer"
 #define VK_LAYER_RENDERDOC_CAPTURE_NAME "VK_LAYER_RENDERDOC_Capture"
+#define VK_LAYER_LUNARG_VALIDATION_NAME "VK_LAYER_KHRONOS_validation"
+
 
 namespace Lumos
 {
@@ -66,6 +69,9 @@ namespace Lumos
 
             if(m_AssistanceLayer)
                 layers.emplace_back(VK_LAYER_LUNARG_ASSISTENT_LAYER_NAME);
+            
+            if(m_ValidationLayer)
+                layers.emplace_back(VK_LAYER_LUNARG_VALIDATION_NAME);
 
             return layers;
         }
@@ -461,6 +467,22 @@ namespace Lumos
 
             VmaStats stats;
             vmaCalculateStats(allocator, &stats);
+            
+            const auto& memoryProps = VKDevice::Get().GetPhysicalDevice()->GetMemoryProperties();
+            std::vector<VmaBudget> budgets(memoryProps.memoryHeapCount);
+            vmaGetBudget(allocator, budgets.data());
+
+            uint64_t usage = 0;
+            uint64_t budget = 0;
+
+            for (VmaBudget& b : budgets)
+            {
+                usage += b.usage;
+                budget += b.budget;
+            }
+            
+            ImGui::Text("Memory Usage %s", StringUtilities::BytesToString(usage).c_str());
+            ImGui::Text("Memory Budget %s", StringUtilities::BytesToString(budget).c_str());
 
             if(ImGui::CollapsingHeader("Total"))
             {

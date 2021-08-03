@@ -44,6 +44,9 @@ namespace Lumos
 
             VkPipelineLayout m_PipelineLayout;
             VkPipeline m_Pipeline;
+            bool m_DepthBiasEnabled;
+            float m_DepthBiasConstant;
+            float m_DepthBiasSlope;
         };
     }
 }

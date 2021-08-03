@@ -21,6 +21,7 @@ namespace Lumos
             void Init(uint32_t size, const void* data) override;
 
             void SetData(uint32_t size, const void* data) override;
+            void SetData(const void* data) override { SetData((uint32_t)m_Size, data); }
             void SetDynamicData(uint32_t size, uint32_t typeSize, const void* data) override;
 
             VkBuffer* GetBuffer() { return &m_Buffer; }

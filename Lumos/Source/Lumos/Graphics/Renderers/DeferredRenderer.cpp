@@ -123,30 +123,6 @@ namespace Lumos
 
             m_ScreenQuad = Graphics::CreateScreenQuad();
 
-            // Pixel/fragment shader System uniforms
-            m_PSSystemUniformBufferSize = sizeof(Light) * MAX_LIGHTS + sizeof(Maths::Matrix4) * MAX_SHADOWMAPS + sizeof(Maths::Matrix4) * 3 + sizeof(Maths::Vector4) + sizeof(Maths::Vector4) * MAX_SHADOWMAPS + sizeof(float) * 4 + sizeof(int) * 4 + sizeof(float);
-            m_PSSystemUniformBuffer = new uint8_t[m_PSSystemUniformBufferSize];
-            memset(m_PSSystemUniformBuffer, 0, m_PSSystemUniformBufferSize);
-            m_PSSystemUniformBufferOffsets.resize(PSSystemUniformIndex_Size);
-
-            // Per Scene System Uniforms
-            m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_Lights] = 0;
-            m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_ShadowTransforms] = m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_Lights] + sizeof(Light) * MAX_LIGHTS;
-            m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_ViewMatrix] = m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_ShadowTransforms] + sizeof(Maths::Matrix4) * MAX_SHADOWMAPS;
-            m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_LightView] = m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_ViewMatrix] + sizeof(Maths::Matrix4);
-            m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_BiasMatrix] = m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_LightView] + sizeof(Maths::Matrix4);
-            m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_CameraPosition] = m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_BiasMatrix] + sizeof(Maths::Matrix4);
-            m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_ShadowSplitDepths] = m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_CameraPosition] + sizeof(Maths::Vector4);
-
-            m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_lightSize] = m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_ShadowSplitDepths] + sizeof(Maths::Vector4) * MAX_SHADOWMAPS;
-            m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_maxShadowDistance] = m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_lightSize] + sizeof(float);
-            m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_shadowFade] = m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_maxShadowDistance] + sizeof(float);
-            m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_cascadeTransitionFade] = m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_shadowFade] + sizeof(float);
-            m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_LightCount] = m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_cascadeTransitionFade] + sizeof(float);
-            m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_ShadowCount] = m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_LightCount] + sizeof(int);
-            m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_RenderMode] = m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_ShadowCount] + sizeof(int);
-            m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_cubemapMipLevels] = m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_RenderMode] + sizeof(int);
-
             AttachmentInfo textureTypes[2] = {
                 { TextureType::COLOUR, TextureFormat::RGBA8 }
             };
@@ -316,7 +292,7 @@ namespace Lumos
             auto viewMatrix = m_CameraTransform->GetWorldMatrix().Inverse();
 
             auto& frustum = m_Camera->GetFrustum(viewMatrix);
-
+            Light lights[256];
             for(auto entity : group)
             {
                 const auto& [light, trans] = group.get<Graphics::Light, Maths::Transform>(entity);
@@ -334,28 +310,20 @@ namespace Lumos
                 forward = trans.GetWorldOrientation() * forward;
 
                 light.Direction = forward.Normalised();
-
-                memcpy(m_PSSystemUniformBuffer + m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_Lights] + sizeof(Graphics::Light) * numLights, &light, sizeof(Graphics::Light));
+                lights[numLights] = light;
                 numLights++;
             }
-
+            
+            m_DescriptorSet[2]->SetUniform("UniformBufferLight", "lights", lights, sizeof(Graphics::Light) * numLights);
             Maths::Vector4 cameraPos = Maths::Vector4(m_CameraTransform->GetWorldPosition());
-            memcpy(m_PSSystemUniformBuffer + m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_CameraPosition], &cameraPos, sizeof(Maths::Vector4));
+            m_DescriptorSet[2]->SetUniform("UniformBufferLight", "cameraPosition", &cameraPos);
 
             auto shadowRenderer = Application::Get().GetRenderGraph()->GetShadowRenderer();
             if(shadowRenderer)
             {
                 Maths::Matrix4* shadowTransforms = shadowRenderer->GetShadowProjView();
                 Lumos::Maths::Vector4* uSplitDepth = shadowRenderer->GetSplitDepths();
-                const Maths::Matrix4& lightView = shadowRenderer->GetLightView();
-
-                memcpy(m_PSSystemUniformBuffer + m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_ViewMatrix], &viewMatrix, sizeof(Maths::Matrix4));
-                memcpy(m_PSSystemUniformBuffer + m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_LightView], &lightView, sizeof(Maths::Matrix4));
-
-                memcpy(m_PSSystemUniformBuffer + m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_ShadowTransforms], shadowTransforms, sizeof(Maths::Matrix4) * MAX_SHADOWMAPS);
-                memcpy(m_PSSystemUniformBuffer + m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_ShadowSplitDepths], uSplitDepth, sizeof(Maths::Vector4) * MAX_SHADOWMAPS);
-                memcpy(m_PSSystemUniformBuffer + m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_BiasMatrix], &m_BiasMatrix, sizeof(Maths::Matrix4));
-
+                Maths::Matrix4 lightView = shadowRenderer->GetLightView();
                 float bias = shadowRenderer->GetInitialBias();
 
                 float maxShadowDistance = shadowRenderer->GetMaxShadowDistance();
@@ -363,21 +331,25 @@ namespace Lumos
                 float transitionFade = shadowRenderer->GetCascadeTransitionFade();
                 float shadowFade = shadowRenderer->GetShadowFade();
 
-                memcpy(m_PSSystemUniformBuffer + m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_lightSize], &LightSize, sizeof(float));
-                memcpy(m_PSSystemUniformBuffer + m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_shadowFade], &shadowFade, sizeof(float));
-                memcpy(m_PSSystemUniformBuffer + m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_cascadeTransitionFade], &transitionFade, sizeof(float));
-                memcpy(m_PSSystemUniformBuffer + m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_maxShadowDistance], &maxShadowDistance, sizeof(float));
-
-                memcpy(m_PSSystemUniformBuffer + m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_cubemapMipLevels] + sizeof(int), &bias, sizeof(float));
+                m_DescriptorSet[2]->SetUniform("UniformBufferLight", "viewMatrix", &viewMatrix);
+                m_DescriptorSet[2]->SetUniform("UniformBufferLight", "lightView", &lightView);
+                m_DescriptorSet[2]->SetUniform("UniformBufferLight", "uShadowTransform", shadowTransforms);
+                m_DescriptorSet[2]->SetUniform("UniformBufferLight", "uSplitDepths", uSplitDepth);
+                m_DescriptorSet[2]->SetUniform("UniformBufferLight", "biasMat", &m_BiasMatrix);
+                m_DescriptorSet[2]->SetUniform("UniformBufferLight", "lightSize", &LightSize);
+                m_DescriptorSet[2]->SetUniform("UniformBufferLight", "shadowFade", &shadowFade);
+                m_DescriptorSet[2]->SetUniform("UniformBufferLight", "cascadeTransitionFade", &transitionFade);
+                m_DescriptorSet[2]->SetUniform("UniformBufferLight", "maxShadowDistance", &maxShadowDistance);
+                m_DescriptorSet[2]->SetUniform("UniformBufferLight", "initialBias", &bias);
             }
 
             int numShadows = shadowRenderer ? int(shadowRenderer->GetShadowMapNum()) : 0;
-
             auto cubemapMipLevels = m_EnvironmentMap ? m_EnvironmentMap->GetMipMapLevels() : 0;
-            memcpy(m_PSSystemUniformBuffer + m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_LightCount], &numLights, sizeof(int));
-            memcpy(m_PSSystemUniformBuffer + m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_ShadowCount], &numShadows, sizeof(int));
-            memcpy(m_PSSystemUniformBuffer + m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_RenderMode], &m_RenderMode, sizeof(int));
-            memcpy(m_PSSystemUniformBuffer + m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_cubemapMipLevels], &cubemapMipLevels, sizeof(int));
+            m_DescriptorSet[2]->SetUniform("UniformBufferLight", "lightCount", &numLights);
+            m_DescriptorSet[2]->SetUniform("UniformBufferLight", "shadowCount", &numShadows);
+            m_DescriptorSet[2]->SetUniform("UniformBufferLight", "mode", &m_RenderMode);
+            m_DescriptorSet[2]->SetUniform("UniformBufferLight", "cubemapMipLevels", &cubemapMipLevels);
+            m_DescriptorSet[2]->Update();
         }
 
         void DeferredRenderer::EndScene()

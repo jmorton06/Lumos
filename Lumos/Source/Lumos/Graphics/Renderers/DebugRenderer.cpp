@@ -350,7 +350,7 @@ namespace Lumos
     void DebugRenderer::RenderInternal()
     {
         LUMOS_PROFILE_FUNCTION();
-        if(m_Renderer2D)
+        if(m_Renderer2D && m_Renderer2D->GetTriangleCount() > 0)
         {
             m_Renderer2D->Begin();
             m_Renderer2D->SetSystemUniforms(m_Renderer2D->GetShader().get());

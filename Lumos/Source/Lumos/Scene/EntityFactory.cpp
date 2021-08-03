@@ -46,7 +46,7 @@ namespace Lumos
         auto sphere = scene->GetEntityManager()->Create(name);
         sphere.AddComponent<Maths::Transform>(Maths::Matrix4::Translation(pos) * Maths::Matrix4::Scale(Maths::Vector3(radius, radius, radius)));
         auto& model = sphere.AddComponent<Graphics::Model>(SharedRef<Graphics::Mesh>(Graphics::CreateSphere()), Graphics::PrimitiveType::Sphere);
-
+		
         SharedRef<Graphics::Material> matInstance = CreateSharedRef<Graphics::Material>();
         Graphics::MaterialProperties properties;
         properties.albedoColour = colour;
@@ -58,8 +58,8 @@ namespace Lumos
         properties.usingMetallicMap = 0.0f;
         matInstance->SetMaterialProperites(properties);
 
-        auto shader = Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/ForwardPBR.shader");
-        matInstance->SetShader(shader);
+        //auto shader = Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/ForwardPBR.shader");
+        //matInstance->SetShader(nullptr);//shader);
         model.GetMeshes().front()->SetMaterial(matInstance);
 
         if(physics_enabled)
@@ -117,8 +117,8 @@ namespace Lumos
         properties.usingMetallicMap = 0.0f;
         matInstance->SetMaterialProperites(properties);
 
-        auto shader = Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/ForwardPBR.shader");
-        matInstance->SetShader(shader);
+        //auto shader = Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/ForwardPBR.shader");
+        //matInstance->SetShader(shader);
         model.GetMeshes().front()->SetMaterial(matInstance);
 
         if(physics_enabled)
@@ -174,8 +174,8 @@ namespace Lumos
         properties.usingMetallicMap = 0.0f;
         matInstance->SetMaterialProperites(properties);
 
-        auto shader = Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/ForwardPBR.shader");
-        matInstance->SetShader(shader);
+        //auto shader = Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/ForwardPBR.shader");
+        //matInstance->SetShader(shader);
 
         pyramidMeshEntity.AddComponent<Maths::Transform>(Maths::Quaternion(-90.0f, 0.0f, 0.0f).RotationMatrix4() * Maths::Matrix4::Scale(halfdims));
         pyramidMeshEntity.SetParent(pyramid);
@@ -244,7 +244,7 @@ namespace Lumos
 
         auto sphere = EntityFactory::BuildSphereObject(
             scene,
-            "Sphere",
+														   "Sphere",
             pos,
             0.5f,
             true,
