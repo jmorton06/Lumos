@@ -38,6 +38,7 @@ namespace Lumos
 
             void SetSystemUniforms(Shader* shader) const;
             void UpdateScreenDescriptorSet();
+			void OnImGui() override;
 
         private:
             Texture2D* m_DefaultTexture;
