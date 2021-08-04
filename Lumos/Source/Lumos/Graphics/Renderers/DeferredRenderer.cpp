@@ -42,26 +42,6 @@ namespace Lumos
 {
     namespace Graphics
     {
-        enum PSSystemUniformIndices : int32_t
-        {
-            PSSystemUniformIndex_Lights = 0,
-            PSSystemUniformIndex_CameraPosition,
-            PSSystemUniformIndex_ViewMatrix,
-            PSSystemUniformIndex_LightView,
-            PSSystemUniformIndex_ShadowTransforms,
-            PSSystemUniformIndex_ShadowSplitDepths,
-            PSSystemUniformIndex_BiasMatrix,
-            PSSystemUniformIndex_LightCount,
-            PSSystemUniformIndex_ShadowCount,
-            PSSystemUniformIndex_RenderMode,
-            PSSystemUniformIndex_cubemapMipLevels,
-            PSSystemUniformIndex_lightSize,
-            PSSystemUniformIndex_maxShadowDistance,
-            PSSystemUniformIndex_shadowFade,
-            PSSystemUniformIndex_cascadeTransitionFade,
-            PSSystemUniformIndex_Size
-        };
-
         DeferredRenderer::DeferredRenderer(uint32_t width, uint32_t height)
         {
             DeferredRenderer::SetScreenBufferSize(width, height);
@@ -70,12 +50,8 @@ namespace Lumos
 
         DeferredRenderer::~DeferredRenderer()
         {
-            delete m_UniformBuffer;
-            delete m_LightUniformBuffer;
             delete m_ScreenQuad;
             delete m_OffScreenRenderer;
-
-            delete[] m_PSSystemUniformBuffer;
             delete m_DeferredCommandBuffers;
         }
 
@@ -84,7 +60,6 @@ namespace Lumos
             LUMOS_PROFILE_FUNCTION();
             m_OffScreenRenderer = new DeferredOffScreenRenderer(m_ScreenBufferWidth, m_ScreenBufferHeight);
 
-            //m_Shader = Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/DeferredLight.shader");
             m_Shader = Graphics::Shader::CreateFromEmbeddedArray(spirv_DeferredLightvertspv.data(), spirv_DeferredLightvertspv_size, spirv_DeferredLightfragspv.data(), spirv_DeferredLightfragspv_size);
 
             switch(Graphics::GraphicsContext::GetRenderAPI())
@@ -117,9 +92,6 @@ namespace Lumos
             param.srgb = false;
             param.wrap = TextureWrap::CLAMP_TO_EDGE;
             m_PreintegratedFG = UniqueRef<Texture2D>(Texture2D::CreateFromSource(BRDFTextureWidth, BRDFTextureHeight, (void*)BRDFTexture, param));
-
-            m_LightUniformBuffer = nullptr;
-            m_UniformBuffer = nullptr;
 
             m_ScreenQuad = Graphics::CreateScreenQuad();
 
@@ -365,7 +337,6 @@ namespace Lumos
         void DeferredRenderer::SetSystemUniforms(Shader* shader) const
         {
             LUMOS_PROFILE_FUNCTION();
-            m_LightUniformBuffer->SetData(m_PSSystemUniformBufferSize, *&m_PSSystemUniformBuffer);
         }
 
         void DeferredRenderer::Present()
@@ -521,16 +492,7 @@ namespace Lumos
 
         void DeferredRenderer::CreateLightBuffer()
         {
-            if(m_LightUniformBuffer == nullptr)
-            {
-                m_LightUniformBuffer = Graphics::UniformBuffer::Create();
-
-                uint32_t bufferSize = m_PSSystemUniformBufferSize;
-                m_LightUniformBuffer->Init(bufferSize, nullptr);
-            }
-
-            m_DescriptorSet[0]->SetBuffer("UniformBufferLight", m_LightUniformBuffer);
-            m_DescriptorSet[0]->Update();
+            
         }
 
         void DeferredRenderer::OnResize(uint32_t width, uint32_t height)
@@ -564,7 +526,6 @@ namespace Lumos
             if(shadowRenderer)
                 m_DescriptorSet[1]->SetTexture("uShadowMap", reinterpret_cast<Texture*>(shadowRenderer->GetTexture()) , TextureType::DEPTHARRAY);
             m_DescriptorSet[1]->SetTexture("uDepthSampler", Application::Get().GetRenderGraph()->GetGBuffer()->GetDepthTexture(), TextureType::DEPTH);
-            m_DescriptorSet[1]->SetBuffer("UniformBufferLight", m_LightUniformBuffer);
             m_DescriptorSet[1]->Update();
 
             CreateLightBuffer();

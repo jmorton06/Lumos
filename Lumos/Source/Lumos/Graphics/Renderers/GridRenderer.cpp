@@ -29,8 +29,6 @@ namespace Lumos
     namespace Graphics
     {
         GridRenderer::GridRenderer(uint32_t width, uint32_t height)
-            : m_UniformBuffer(nullptr)
-            , m_UniformBufferFrag(nullptr)
         {
             m_Pipeline = nullptr;
 
@@ -44,8 +42,6 @@ namespace Lumos
         GridRenderer::~GridRenderer()
         {
             delete m_Quad;
-            delete m_UniformBuffer;
-            delete m_UniformBufferFrag;
         }
 
         void GridRenderer::RenderScene()
@@ -155,8 +151,9 @@ namespace Lumos
             test.maxDistance = m_MaxDistance;
 
             auto invViewProj = proj * m_CameraTransform->GetWorldMatrix().Inverse();
-            m_DescriptorSet[0]->SetUniform("UniformBufferObject", "m_MVP", &invViewProj);
-            m_DescriptorSet[0]->SetUniformBufferData("UniformBufferObject", &invViewProj);
+            m_DescriptorSet[0]->SetUniform("UniformBufferObject", "u_MVP", &invViewProj);
+            m_DescriptorSet[0]->SetUniformBufferData("UniformBuffer", &test);
+			m_DescriptorSet[0]->Update();
         }
 
         void GridRenderer::End()
@@ -213,23 +210,6 @@ namespace Lumos
         void GridRenderer::UpdateUniformBuffer()
         {
             LUMOS_PROFILE_FUNCTION();
-            if(m_UniformBuffer == nullptr)
-            {
-                m_UniformBuffer = Graphics::UniformBuffer::Create();
-                uint32_t bufferSize = static_cast<uint32_t>(sizeof(UniformBufferObject));
-                m_UniformBuffer->Init(bufferSize, nullptr);
-            }
-
-            if(m_UniformBufferFrag == nullptr)
-            {
-                m_UniformBufferFrag = Graphics::UniformBuffer::Create();
-                uint32_t bufferSize = static_cast<uint32_t>(sizeof(UniformBufferObjectFrag));
-                m_UniformBufferFrag->Init(bufferSize, nullptr);
-            }
-
-            m_DescriptorSet[0]->SetBuffer("UniformBufferObject", m_UniformBuffer);
-            m_DescriptorSet[0]->SetBuffer("UniformBuffer", m_UniformBufferFrag);
-            m_DescriptorSet[0]->Update();
         }
 
         void GridRenderer::SetRenderTarget(Texture* texture, bool rebuildFramebuffer)

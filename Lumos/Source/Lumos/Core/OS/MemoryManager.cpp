@@ -1,7 +1,7 @@
 #include "Precompiled.h"
 #include "MemoryManager.h"
 #include "Core/StringUtilities.h"
-#include <iomanip>
+
 namespace Lumos
 {
     MemoryManager* MemoryManager::s_Instance = nullptr;

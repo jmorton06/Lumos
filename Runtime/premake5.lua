@@ -103,6 +103,11 @@ project "Runtime"
 			"OpenAL32"
 		}
 
+		postbuildcommands
+		{
+			'{COPY} "../Lumos/External/OpenAL/libs/Win32/OpenAL32.dll" "%{cfg.targetdir}"'
+		}
+
 		disablewarnings { 4307 }
 
 	filter "system:macosx"

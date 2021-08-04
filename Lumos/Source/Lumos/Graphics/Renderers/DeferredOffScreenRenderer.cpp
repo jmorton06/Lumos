@@ -39,18 +39,6 @@ namespace Lumos
 {
     namespace Graphics
     {
-        enum VSSystemUniformIndices : int32_t
-        {
-            VSSystemUniformIndex_ProjectionViewMatrix = 0,
-            VSSystemUniformIndex_Size
-        };
-
-        enum PSSystemUniformIndices : int32_t
-        {
-            PSSystemUniformIndex_Lights = 0,
-            PSSystemUniformIndex_Size
-        };
-
         DeferredOffScreenRenderer::DeferredOffScreenRenderer(uint32_t width, uint32_t height)
         {
             m_ScreenRenderer = false;
@@ -68,9 +56,6 @@ namespace Lumos
         void DeferredOffScreenRenderer::Init()
         {
             LUMOS_PROFILE_FUNCTION();
-            //m_Shader = Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/DeferredColour.shader");
-            //m_AnimatedShader = Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/DeferredColourAnim.shader");
-
             m_Shader = Graphics::Shader::CreateFromEmbeddedArray(spirv_DeferredColourvertspv.data(), spirv_DeferredColourvertspv_size, spirv_DeferredColourfragspv.data(), spirv_DeferredColourfragspv_size);
             m_AnimatedShader = Graphics::Shader::CreateFromEmbeddedArray(spirv_DeferredColourAnimvertspv.data(), spirv_DeferredColourAnimvertspv_size, spirv_DeferredColourfragspv.data(), spirv_DeferredColourfragspv_size);
 

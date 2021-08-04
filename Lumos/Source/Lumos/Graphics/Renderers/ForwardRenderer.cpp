@@ -30,6 +30,7 @@
 
 #include "CompiledSPV/Headers/ForwardPBRvertspv.hpp"
 #include "CompiledSPV/Headers/ForwardPBRfragspv.hpp"
+#include <imgui/imgui.h>
 
 #define MAX_LIGHTS 32
 #define MAX_SHADOWMAPS 4
@@ -234,15 +235,14 @@ namespace Lumos
                             continue;
 
                         auto meshPtr = mesh;
-
-                        auto textureMatrixTransform = registry.try_get<TextureMatrixComponent>(entity);
                         Maths::Matrix4 textureMatrix;
+                        auto textureMatrixTransform = registry.try_get<TextureMatrixComponent>(entity);
                         if(textureMatrixTransform)
                             textureMatrix = textureMatrixTransform->GetMatrix();
                         else
                             textureMatrix = Maths::Matrix4();
-
                         SubmitMesh(meshPtr.get(), meshPtr->GetMaterial() ? meshPtr->GetMaterial().get() : m_DefaultMaterial, worldTransform, textureMatrix);
+
                     }
                 }
             }
@@ -528,6 +528,73 @@ namespace Lumos
                 m_DescriptorSet[2]->SetTexture("uShadowMap", reinterpret_cast<Texture*>(shadowRenderer->GetTexture()) , TextureType::DEPTHARRAY);
             m_DescriptorSet[2]->SetTexture("uDepthSampler", Application::Get().GetRenderGraph()->GetGBuffer()->GetDepthTexture(), TextureType::DEPTH);
             m_DescriptorSet[2]->Update();
+        }
+		
+		std::string RenderModeToString(int mode)
+        {
+            switch(mode)
+            {
+				case 0:
+                return "Lighting";
+				case 1:
+                return "Colour";
+				case 2:
+                return "Metallic";
+				case 3:
+                return "Roughness";
+				case 4:
+                return "AO";
+				case 5:
+                return "Emissive";
+				case 6:
+                return "Normal";
+				case 7:
+                return "Shadow Cascades";
+				default:
+                return "Lighting";
+            }
+        }
+		
+        void ForwardRenderer::OnImGui()
+        {
+            LUMOS_PROFILE_FUNCTION();			
+            ImGui::TextUnformatted("Forward PBR Renderer");
+			
+            ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
+            ImGui::Columns(2);
+            ImGui::Separator();
+			
+            ImGui::AlignTextToFramePadding();
+            ImGui::TextUnformatted("Number Of Renderables");
+            ImGui::NextColumn();
+            ImGui::PushItemWidth(-1);
+            ImGui::Text("%5.2lu", m_CommandQueue.size());
+            ImGui::PopItemWidth();
+            ImGui::NextColumn();
+			
+            ImGui::AlignTextToFramePadding();
+            ImGui::TextUnformatted("Render Mode");
+            ImGui::NextColumn();
+            ImGui::PushItemWidth(-1);
+            if(ImGui::BeginMenu(RenderModeToString(m_RenderMode).c_str()))
+            {
+                const int numRenderModes = 8;
+				
+                for(int i = 0; i < numRenderModes; i++)
+                {
+                    if(ImGui::MenuItem(RenderModeToString(i).c_str(), "", m_RenderMode == i, true))
+                    {
+                        m_RenderMode = i;
+                    }
+                }
+                ImGui::EndMenu();
+            }
+            ImGui::PopItemWidth();
+            ImGui::NextColumn();
+			
+            ImGui::Columns(1);
+            ImGui::Separator();
+            ImGui::PopStyleVar();
         }
 
     }

@@ -9,6 +9,8 @@
 #include <cxxabi.h> // __cxa_demangle()
 #endif
 
+#include <iomanip>
+
 namespace Lumos
 {
     namespace StringUtilities
