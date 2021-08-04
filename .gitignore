@@ -43,7 +43,6 @@ lib/
 
 # Compiled Dynamic libraries
 *.so
-*.dll
 *.plug
 
 # Compiled Static libraries
