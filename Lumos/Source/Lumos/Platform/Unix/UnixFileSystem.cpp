@@ -129,13 +129,13 @@ namespace Lumos
             return false;
         }
 
-        size_t size = 0;
+        size_t output = 0;
         if(buffer)
         {
-            size = fwrite(buffer, 1, size, file);
+            output = fwrite(buffer, 1, size, file);
         }
         fclose(file);
-        return size > 0;
+        return output > 0;
     }
 
     bool FileSystem::WriteTextFile(const std::string& path, const std::string& text)
