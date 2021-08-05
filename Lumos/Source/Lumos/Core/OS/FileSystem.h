@@ -30,7 +30,7 @@ namespace Lumos
         {
             if(!path || path[0] == '/' || path[0] == '\\')
             {
-                eturn false;
+                return false;
             }
 
             if(strlen(path) >= 2 && isalpha(path[0]) && path[1] == ':')
