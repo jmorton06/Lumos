@@ -99,6 +99,10 @@ namespace Lumos
         m_TempSceneSaveFilePath = std::filesystem::temp_directory_path().string();
 #endif
 
+        m_TempSceneSaveFilePath += "Lumos/";
+        if(!FileSystem::FolderExists(m_TempSceneSaveFilePath))
+            std::filesystem::create_directory(m_TempSceneSaveFilePath);
+        
         std::vector<std::string> iniLocation = { "Editor.ini", "/Users/jmorton/dev/Lumos/Editor.ini", "../Editor.ini", StringUtilities::GetFileLocation(OS::Instance()->GetExecutablePath()) + "Editor.ini", StringUtilities::GetFileLocation(OS::Instance()->GetExecutablePath()) + "../../../Editor.ini"};
         bool fileFound = false;
         std::string filePath;
@@ -122,7 +126,7 @@ namespace Lumos
 #ifdef LUMOS_PLATFORM_MACOS
             filePath = StringUtilities::GetFileLocation(OS::Instance()->GetExecutablePath()) + "../../../Editor.ini";
 #else
-            filePath = "Editor.ini";
+            filePath = StringUtilities::GetFileLocation(OS::Instance()->GetExecutablePath()) + "Editor.ini";
 #endif
             LUMOS_LOG_INFO("Creating Editor Ini {0}", filePath);
 

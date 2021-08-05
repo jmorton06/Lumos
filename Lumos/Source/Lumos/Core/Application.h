@@ -192,7 +192,9 @@ namespace Lumos
             //Version 1
 
             std::string path;
-
+            
+            //Window size and full screen shouldnt be in project
+            
             archive(cereal::make_nvp("RenderAPI", RenderAPI),
                 cereal::make_nvp("Width", (int)windowSize.x),
                 cereal::make_nvp("Height", (int)windowSize.y),

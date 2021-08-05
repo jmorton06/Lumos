@@ -116,6 +116,23 @@ namespace Lumos
         
         if(!FileSystem::FolderExists(m_ProjectRoot + "Assets"))
             std::filesystem::create_directory(m_ProjectRoot + "Assets");
+        
+        if(!FileSystem::FolderExists(m_ProjectRoot + "Assets/Scripts"))
+            std::filesystem::create_directory(m_ProjectRoot + "Assets/Scripts");
+		
+		if(!FileSystem::FolderExists(m_ProjectRoot + "Assets/Scenes"))
+            std::filesystem::create_directory(m_ProjectRoot + "Assets/Scenes");
+		
+		if(!FileSystem::FolderExists(m_ProjectRoot + "Assets/Textures"))
+            std::filesystem::create_directory(m_ProjectRoot + "Assets/Texturs");
+		
+		if(!FileSystem::FolderExists(m_ProjectRoot + "Assets/Meshes"))
+            std::filesystem::create_directory(m_ProjectRoot + "Assets/Meshes");
+		
+		if(!FileSystem::FolderExists(m_ProjectRoot + "Assets/Sounds"))
+            std::filesystem::create_directory(m_ProjectRoot + "Assets/Sounds");
+		
+		MountVFSPaths();
 
         m_SceneManager->EnqueueScene(new Scene("Empty Scene"));
         m_SceneManager->SwitchScene(0);
@@ -124,7 +141,7 @@ namespace Lumos
         Title = "App";
         Fullscreen = false;
 
-        m_SceneManager->ApplySceneSwitch();
+        //m_SceneManager->ApplySceneSwitch();
 
         Serialise();
     }
@@ -259,11 +276,16 @@ namespace Lumos
 
     Maths::Vector2 Application::GetWindowSize() const
     {
+        if(!m_Window)
+            return Maths::Vector2(0.0f,0.0f);
         return Maths::Vector2(static_cast<float>(m_Window->GetWidth()), static_cast<float>(m_Window->GetHeight()));
     }
 
     float Application::GetWindowDPI() const
     {
+        if(!m_Window)
+            return 1.0f;
+        
         return m_Window->GetDPIScale();
     }
 
@@ -543,20 +565,11 @@ namespace Lumos
             {
                 LUMOS_LOG_INFO("No saved Project file found {0}", filePath);
                 {
-                    //Set Default values
-                    RenderAPI = 1;
-                    Width = 1200;
-                    Height = 800;
-                    Borderless = false;
-                    VSync = false;
-                    Title = "App";
-                    ShowConsole = false;
-                    Fullscreen = false;
-                    m_EngineAssetPath = "/Users/jmorton/dev/Lumos/Lumos/Assets/";
-                    VFS::Get()->Mount("CoreShaders", m_EngineAssetPath + std::string("Shaders"));
-
-                    m_SceneManager->EnqueueScene(new Scene("Empty Scene"));
-                    m_SceneManager->SwitchScene(0);
+#ifdef LUMOS_PLATFORM_MACOS
+                    OpenNewProject(StringUtilities::GetFileLocation(OS::Instance()->GetExecutablePath()) + "../../../");
+#else
+                    OpenNewProject(StringUtilities::GetFileLocation(OS::GetExecutablePath()));
+#endif
                 }
                 return;
             }
