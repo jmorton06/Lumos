@@ -568,7 +568,7 @@ namespace Lumos
 #ifdef LUMOS_PLATFORM_MACOS
                     OpenNewProject(StringUtilities::GetFileLocation(OS::Instance()->GetExecutablePath()) + "../../../");
 #else
-                    OpenNewProject(StringUtilities::GetFileLocation(OS::GetExecutablePath()));
+                    OpenNewProject(StringUtilities::GetFileLocation(OS::Instance()->GetExecutablePath()));
 #endif
                 }
                 return;
