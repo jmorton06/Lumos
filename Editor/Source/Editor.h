@@ -226,7 +226,7 @@ namespace Lumos
         uint32_t m_Physics2DDebugFlags = 0;
         uint32_t m_Physics3DDebugFlags = 0;
 
-        bool m_ShowGrid = false;
+        bool m_ShowGrid = true;
         bool m_ShowGizmos = true;
         bool m_ShowViewSelected = false;
         bool m_SnapQuizmo = false;

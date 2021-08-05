@@ -154,7 +154,10 @@ namespace Lumos
 
     void LuaScriptComponent::SetThisComponent()
     {
-        (*m_Env)["LuaComponent"] = this;
+        if(m_Env)
+        {
+            (*m_Env)["LuaComponent"] = this;
+        }
     }
 
     void LuaScriptComponent::Load(const std::string& fileName)
