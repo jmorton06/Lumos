@@ -38,9 +38,13 @@ namespace Lumos
         editor.SetShowWhitespaces(false);
     }
 
+    void TextEditPanel::SetErrors(const std::map<int, std::string>& errors)
+    {
+        editor.SetErrorMarkers(errors);
+    }
+
     void TextEditPanel::OnImGui()
     {
-
         if((Input::Get().GetKeyHeld(InputCode::Key::LeftSuper) || (Input::Get().GetKeyHeld(InputCode::Key::LeftControl))))
         {
             if(Input::Get().GetKeyPressed(InputCode::Key::S))

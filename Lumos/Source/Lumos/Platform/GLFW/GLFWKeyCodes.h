@@ -81,7 +81,8 @@ namespace Lumos
                 { GLFW_KEY_LEFT_ALT, Lumos::InputCode::Key::LeftAlt },
                 { GLFW_KEY_RIGHT_ALT, Lumos::InputCode::Key::RightAlt },
                 { GLFW_KEY_LEFT_CONTROL, Lumos::InputCode::Key::LeftControl },
-                { GLFW_KEY_RIGHT_CONTROL, Lumos::InputCode::Key::RightControl }
+                { GLFW_KEY_RIGHT_CONTROL, Lumos::InputCode::Key::RightControl },
+                { GLFW_KEY_TAB, Lumos::InputCode::Key::Tab }
             };
 
             return keyMap[glfwKey];

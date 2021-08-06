@@ -306,8 +306,23 @@ function OnCleanUp()
     texture = nil
     blockPhysics = nil
     blockPhysics2 = nil
-    gameOverTexture = nil
 end
+
+function OnRelease()
+    OnCleanUp()
+end
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

@@ -1684,6 +1684,20 @@ namespace Lumos
         m_Panels.back()->SetEditor(this);
     }
 
+    EditorPanel* Editor::GetTextEditPanel()
+    {
+        for(int i = 0; i < int(m_Panels.size()); i++)
+        {
+            EditorPanel* w = m_Panels[i].get();
+            if(w->GetSimpleName() == "TextEdit")
+            {
+                return w;
+            }
+        }
+        
+        return nullptr;
+    }
+
     void Editor::RemovePanel(EditorPanel* panel)
     {
         LUMOS_PROFILE_FUNCTION();
