@@ -142,7 +142,7 @@ namespace Lumos
             CreateFramebuffers();
             CreateGraphicsPipeline();
 
-            m_ClearColour = Maths::Vector4(0.4f, 0.4f, 0.4f, 1.0f);
+            m_ClearColour = Maths::Vector4(0.2f, 0.2f, 0.2f, 1.0f);
 
             auto descriptorSetScene = m_Shader->GetDescriptorInfo(2);
 

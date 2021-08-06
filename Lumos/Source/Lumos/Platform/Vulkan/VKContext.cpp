@@ -28,6 +28,7 @@ namespace Lumos
                 extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
             }
 
+            extensions.push_back("VK_EXT_debug_report");
             extensions.push_back("VK_KHR_surface");
 
 #if 0
@@ -223,16 +224,19 @@ namespace Lumos
             return true;
         }
 
-        bool VKContext::CheckExtensionSupport(const std::vector<const char*>& extensions)
+        bool VKContext::CheckExtensionSupport(std::vector<const char*>& extensions)
         {
             uint32_t extensionCount;
             vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);
 
             m_InstanceExtensions.resize(extensionCount);
             vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, m_InstanceExtensions.data());
+            
+            bool extensionSupported = true;
 
-            for(const char* extensionName : extensions)
+            for(int i = 0; i < extensions.size(); i++)
             {
+                const char* extensionName = extensions[i];
                 bool layerFound = false;
 
                 for(const auto& layerProperties : m_InstanceExtensions)
@@ -246,11 +250,13 @@ namespace Lumos
 
                 if(!layerFound)
                 {
-                    return false;
+                    extensions.erase(extensions.begin() + i);
+                    extensionSupported = false;
+                    LUMOS_LOG_WARN("Extension not supported {0}", extensionName);
                 }
             }
 
-            return true;
+            return extensionSupported;
         }
 
         size_t VKContext::GetMinUniformBufferOffsetAlignment() const

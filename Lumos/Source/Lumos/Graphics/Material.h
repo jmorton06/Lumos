@@ -10,7 +10,6 @@ namespace Lumos
     namespace Graphics
     {
         class DescriptorSet;
-        class UniformBuffer;
 
         const float PBR_WORKFLOW_SEPARATE_TEXTURES = 0.0f;
         const float PBR_WORKFLOW_METALLIC_ROUGHNESS = 1.0f;

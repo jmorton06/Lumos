@@ -12,9 +12,12 @@ namespace Lumos
 
         void OnImGui() override;
         void OnClose();
+        
+        void SetOnSaveCallback(const std::function<void()>& callback) { m_OnSaveCallback = callback; }
 
     private:
         std::string m_FilePath;
         TextEditor editor;
+        std::function<void()> m_OnSaveCallback;
     };
 }

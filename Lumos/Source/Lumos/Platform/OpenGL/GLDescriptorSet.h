@@ -2,6 +2,8 @@
 
 #include "Graphics/RHI/DescriptorSet.h"
 #include "Core/Buffer.h"
+#include "GLUniformBuffer.h"
+
 namespace Lumos
 {
     namespace Graphics
