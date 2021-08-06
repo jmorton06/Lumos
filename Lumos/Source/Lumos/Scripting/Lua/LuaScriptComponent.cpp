@@ -4,6 +4,7 @@
 #include "Scene/Scene.h"
 #include "Scene/Entity.h"
 #include "Scene/EntityManager.h"
+#include "Core/StringUtilities.h"
 #include "Core/Engine.h"
 
 namespace Lumos
@@ -58,7 +59,22 @@ namespace Lumos
             sol::error err = loadFileResult;
             LUMOS_LOG_ERROR("Failed to Execute Lua script {0}", physicalPath);
             LUMOS_LOG_ERROR("Error : {0}", err.what());
-            m_Errors.push_back(std::string(err.what()));
+            std::string filename = StringUtilities::GetFileName(m_FileName);
+            std::string error = std::string(err.what());
+            
+//            auto pos = error.find(filename);
+//
+//            if(pos != std::string::npos)
+//                error = error.substr(pos + filename.size() + 1 + 1);  //+1 for removing :
+//            int line = 1;
+//            auto linepos = error.find(':');
+//            auto lineString = error.substr(0, linepos - 1);
+//            line = std::stoi(lineString);
+//            error = error.substr(0, linepos + 3);  //+1 for removing :
+
+          //  Error : ...v/Lumos/ExampleProject/Assets/Scripts/FlappyBirdTest.lua:28: attempt to call a nil value (global 'LoadTextreWithParams')
+            int line = 1;
+            m_Errors[line] = std::string(error);
         }
 
         if(!m_Scene)

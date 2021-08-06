@@ -1,6 +1,7 @@
 #include "InspectorPanel.h"
 #include "Editor.h"
 #include "FileBrowserPanel.h"
+#include "TextEditPanel.h"
 #include <Lumos/Audio/AudioManager.h>
 #include <Lumos/Core/Application.h>
 #include <Lumos/Core/OS/FileSystem.h>
@@ -105,7 +106,19 @@ end
         {
             if(ImGui::Button("Edit File", ImVec2(ImGui::GetContentRegionAvail().x, 0.0f)))
             {
-                Lumos::Editor::GetEditor()->OpenTextFile(script.GetFilePath(), [&] { script.Reload(); });
+                Lumos::Editor::GetEditor()->OpenTextFile(script.GetFilePath(), [&]
+                {
+                    script.Reload();
+                    hasReloaded = true;
+                    
+                    auto textEditPanel = Lumos::Editor::GetEditor()->GetTextEditPanel();
+                    if(textEditPanel)
+                        ((Lumos::TextEditPanel*)textEditPanel)->SetErrors(script.GetErrors());
+                });
+                
+                auto textEditPanel = Lumos::Editor::GetEditor()->GetTextEditPanel();
+                if(textEditPanel)
+                    ((Lumos::TextEditPanel*)textEditPanel)->SetErrors(script.GetErrors());
             }
 
             if(ImGui::Button("Open File", ImVec2(ImGui::GetContentRegionAvail().x, 0.0f)))

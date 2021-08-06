@@ -163,6 +163,7 @@ namespace Lumos
 
         void OpenTextFile(const std::string& filePath, const std::function<void()>& callback);
         void RemovePanel(EditorPanel* panel);
+        EditorPanel* GetTextEditPanel();
 
         void ShowPreview();
         void DrawPreview();
