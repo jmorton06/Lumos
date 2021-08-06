@@ -161,7 +161,7 @@ namespace Lumos
         void DebugDraw();
         void SelectObject(const Maths::Ray& ray);
 
-        void OpenTextFile(const std::string& filePath);
+        void OpenTextFile(const std::string& filePath, const std::function<void()>& callback);
         void RemovePanel(EditorPanel* panel);
 
         void ShowPreview();

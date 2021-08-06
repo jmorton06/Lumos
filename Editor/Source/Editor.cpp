@@ -829,7 +829,16 @@ namespace Lumos
 
             if(ImGui::Button("OK", ImVec2(120, 0)))
             {
-                auto scene = new Scene("New Scene");
+                std::string sceneName = "NewScene";
+                int sameNameCount = 0;
+                auto sceneNames = m_SceneManager->GetSceneNames();
+                
+                while(FileSystem::FileExists("//Scenes/" + sceneName + ".lsn") || std::find(sceneNames.begin(), sceneNames.end(), sceneName) != sceneNames.end())
+                {
+                    sameNameCount++;
+                    sceneName = fmt::format("NewScene({0})", sameNameCount);
+                }
+                auto scene = new Scene(sceneName);
                 Application::Get().GetSceneManager()->EnqueueScene(scene);
                 Application::Get().GetSceneManager()->SwitchScene((int)(Application::Get().GetSceneManager()->GetScenes().size()) - 1);
 
@@ -1650,7 +1659,7 @@ namespace Lumos
         m_SelectedEntity = currentClosestEntity;
     }
 
-    void Editor::OpenTextFile(const std::string& filePath)
+    void Editor::OpenTextFile(const std::string& filePath, const std::function<void()>& callback)
     {
         LUMOS_PROFILE_FUNCTION();
         std::string physicalPath;
@@ -1671,6 +1680,7 @@ namespace Lumos
         }
 
         m_Panels.emplace_back(CreateSharedRef<TextEditPanel>(physicalPath));
+        m_Panels.back().As<TextEditPanel>()->SetOnSaveCallback(callback);
         m_Panels.back()->SetEditor(this);
     }
 
@@ -1746,7 +1756,7 @@ namespace Lumos
     {
         LUMOS_PROFILE_FUNCTION();
         if(IsTextFile(filePath))
-            OpenTextFile(filePath);
+            OpenTextFile(filePath, NULL);
         else if(IsModelFile(filePath))
         {
             Entity modelEntity = Application::Get().GetSceneManager()->GetCurrentScene()->GetEntityManager()->Create();

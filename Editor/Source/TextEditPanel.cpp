@@ -13,6 +13,7 @@ namespace Lumos
     {
         m_Name = "TextEditWindow";
         m_SimpleName = "TextEdit";
+        m_OnSaveCallback = NULL;
 
         auto extension = StringUtilities::GetFilePathExtension(m_FilePath);
 
@@ -60,6 +61,8 @@ namespace Lumos
                 {
                     auto textToSave = editor.GetText();
                     FileSystem::WriteTextFile(m_FilePath, textToSave);
+                    if(m_OnSaveCallback)
+                        m_OnSaveCallback();
                 }
                 ImGui::EndMenu();
             }

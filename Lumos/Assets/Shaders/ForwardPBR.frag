@@ -315,16 +315,16 @@ float PoissonDotShadow(vec4 sc, int cascadeIndex, float bias, vec3 wsPos, float 
 	return shadowMapDepth / float(NumPCFSamples);
 }
 
-float GetShadowBias(vec3 lightDirection, vec3 normal)
+float GetShadowBias(vec3 lightDirection, vec3 normal, int shadowIndex)
 {
-	float MINIMUM_SHADOW_BIAS = ubo.initialBias;
-	float bias = max(MINIMUM_SHADOW_BIAS * (1.0 - dot(normal, lightDirection)), MINIMUM_SHADOW_BIAS);
+	float minBias = ubo.initialBias;
+	float bias = max(minBias * (1.0 - dot(normal, lightDirection)), minBias);
 	return bias;
 }
 
 float FindBlockerDistance_DirectionalLight(sampler2DArray shadowMap, vec4 shadowCoords, float uvLightSize, vec3 lightDirection, vec3 normal, vec3 wsPos, int cascadeIndex)
 {
-	float bias = GetShadowBias(lightDirection, normal);
+	float bias = GetShadowBias(lightDirection, normal, cascadeIndex);
 	
 	int blockers = 0;
 	float avgBlockerDistance = 0;
@@ -351,7 +351,7 @@ float FindBlockerDistance_DirectionalLight(sampler2DArray shadowMap, vec4 shadow
 
 float PCF_DirectionalLight(sampler2DArray shadowMap, vec4 shadowCoords, float uvRadius, vec3 lightDirection, vec3 normal, vec3 wsPos, int cascadeIndex)
 {
-	float bias = GetShadowBias(lightDirection, normal);
+	float bias = GetShadowBias(lightDirection, normal, cascadeIndex);
 	float sum = 0;
 	
 	for (int i = 0; i < NumPCFSamples; i++)
@@ -398,69 +398,16 @@ int CalculateCascadeIndex(vec3 wsPos)
 	return cascadeIndex;
 }
 
-float CalculateShadow(vec3 wsPos, int cascadeIndex, float bias, vec3 lightDirection, vec3 normal)
+float CalculateShadow(vec3 wsPos, int cascadeIndex, vec3 lightDirection, vec3 normal)
 {
 	vec4 shadowCoord =  vec4(wsPos, 1.0) * ubo.uShadowTransform[cascadeIndex] * ubo.biasMat;
+	shadowCoord = shadowCoord * ( 1.0 / shadowCoord.w);
+	//return PCSS_DirectionalLight(uShadowMap, shadowCoord, ubo.lightSize, lightDirection, normal, wsPos, cascadeIndex );
+	float NEAR = 0.01;
+	float uvRadius =  ubo.lightSize * NEAR / shadowCoord.z;
+	uvRadius = min(uvRadius, 0.002f);
 	
-	if(cascadeIndex < 3)
-	{	
-		if (fadeCascades)
-		{
-			float cascadeTransitionFade = ubo.cascadeTransitionFade;
-			vec4 viewPos = vec4(wsPos, 1.0) * ubo.viewMatrix;
-			float c0 = smoothstep(ubo.uSplitDepths[0].x + cascadeTransitionFade * 0.5f, ubo.uSplitDepths[0].x - cascadeTransitionFade * 0.5f, viewPos.z);
-			float c1 = smoothstep(ubo.uSplitDepths[1].x + cascadeTransitionFade * 0.5f, ubo.uSplitDepths[1].x - cascadeTransitionFade * 0.5f, viewPos.z);
-			float c2 = smoothstep(ubo.uSplitDepths[2].x + cascadeTransitionFade * 0.5f, ubo.uSplitDepths[2].x - cascadeTransitionFade * 0.5f, viewPos.z);
-			
-			if (c0 > 0.0 && c0 < 1.0)
-			{
-				// Sample 0 & 1
-				vec4 shadowMapCoords = vec4(wsPos, 1.0) * ubo.uShadowTransform[0] * ubo.biasMat;
-				float shadowAmount0 = PCSS_DirectionalLight(uShadowMap, shadowMapCoords * ( 1.0 / shadowMapCoords.w), ubo.lightSize, lightDirection, normal, wsPos, 0 );
-				shadowMapCoords = vec4(wsPos, 1.0) * ubo.uShadowTransform[1] * ubo.biasMat;
-				float shadowAmount1 = PCSS_DirectionalLight(uShadowMap, shadowMapCoords * ( 1.0 / shadowMapCoords.w), ubo.lightSize, lightDirection, normal, wsPos, 1);
-				
-				return mix(shadowAmount0, shadowAmount1, c0);
-			}
-			else if (c1 > 0.0 && c1 < 1.0)
-			{
-				// Sample 1 & 2
-				vec4 shadowMapCoords = vec4(wsPos, 1.0) * ubo.uShadowTransform[1] * ubo.biasMat;
-				float shadowAmount0 = PCSS_DirectionalLight(uShadowMap, shadowMapCoords * ( 1.0 / shadowMapCoords.w), ubo.lightSize, lightDirection, normal, wsPos, 1 );
-				shadowMapCoords = vec4(wsPos, 1.0) * ubo.uShadowTransform[2] * ubo.biasMat;
-				float shadowAmount1 = PCSS_DirectionalLight(uShadowMap, shadowMapCoords * ( 1.0 / shadowMapCoords.w), ubo.lightSize, lightDirection, normal, wsPos, 2);
-				
-				return mix(shadowAmount0, shadowAmount1, c0);
-			}
-			else if (c2 > 0.0 && c2 < 1.0)
-			{
-				// Sample 2 & 3
-				vec4 shadowMapCoords = vec4(wsPos, 1.0) * ubo.uShadowTransform[2] * ubo.biasMat;
-				float shadowAmount0 = PCSS_DirectionalLight(uShadowMap, shadowMapCoords * ( 1.0 / shadowMapCoords.w), ubo.lightSize, lightDirection, normal, wsPos, 2 );
-				shadowMapCoords = vec4(wsPos, 1.0) * ubo.uShadowTransform[3] * ubo.biasMat;
-				//float bias = 0.0005;
-				float bias = GetShadowBias(lightDirection, normal);
-				float shadowAmount1 = 1.0 - PoissonDotShadow(shadowMapCoords * ( 1.0 / shadowMapCoords.w), 3, bias, wsPos, 1.0) * ShadowFade;
-				return mix(shadowAmount0, shadowAmount1, c0);
-			}
-			else
-			{
-				return PCSS_DirectionalLight(uShadowMap, shadowCoord * ( 1.0 / shadowCoord.w), ubo.lightSize, lightDirection, normal, wsPos, cascadeIndex );
-			}
-		}
-		else
-		{
-			//float bias = GetShadowBias(lightDirection, normal);
-			//return 1.0 - PoissonDotShadow(shadowCoord, cascadeIndex, bias, wsPos, 1.0) * ShadowFade;
-			return PCSS_DirectionalLight(uShadowMap, shadowCoord * ( 1.0 / shadowCoord.w), ubo.lightSize, lightDirection, normal, wsPos, cascadeIndex );
-		}
-	}
-	else
-	{
-		//float bias = 0.0005;
-		//return 1.0 - PoissonDotShadow(shadowCoord, cascadeIndex, bias, wsPos, 1.0) * ShadowFade;
-		return PCSS_DirectionalLight(uShadowMap, shadowCoord * ( 1.0 / shadowCoord.w), ubo.lightSize, lightDirection, normal, wsPos, cascadeIndex );
-	}
+	return 1.0 - PCF_DirectionalLight(uShadowMap, shadowCoord, uvRadius, lightDirection, normal, wsPos, cascadeIndex) * ShadowFade;
 }
 
 // Constant normal incidence Fresnel factor for all dielectrics.
@@ -548,11 +495,8 @@ vec3 Lighting(vec3 F0, vec3 wsPos, Material material)
 		}
 		else
 		{
-			float bias = ubo.initialBias;
-			bias = bias + (bias * tan(acos(clamp(dot(material.Normal, light.direction.xyz), 0.0, 1.0))) * 0.5);
-			
 			int cascadeIndex = CalculateCascadeIndex(wsPos);
-			value = CalculateShadow(wsPos,cascadeIndex, bias, light.direction.xyz, material.Normal);
+			value = CalculateShadow(wsPos,cascadeIndex, light.direction.xyz, material.Normal);
 		}
 		
 		vec3 Li = light.direction.xyz;
