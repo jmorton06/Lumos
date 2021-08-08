@@ -95,6 +95,49 @@ namespace sol
 
 namespace Lumos
 {
+
+    std::vector<std::string> LuaManager::s_Identifiers =
+    {
+        "Log",
+        "Trace",
+        "Info",
+        "Warn",
+        "Error",
+        "Critical",
+        "Input",
+        "GetKeyPressed",
+        "GetKeyHeld",
+        "GetMouseClicked",
+        "GetMouseHeld",
+        "GetMousePosition",
+        "GetScrollOffset",
+        "enttRegistry",
+        "Entity",
+        "EntityManager",
+        "Create"
+        "GetRegistry",
+        "Valid",
+        "Destroy",
+        "SetParent",
+        "GetParent",
+        "IsParent",
+        "GetChildren",
+        "SetActive",
+        "Active",
+        "GetEntityByName",
+        "AddPyramidEntity",
+        "AddSphereEntity",
+        "AddLightCubeEntity",
+        "NameComponent",
+        "GetNameComponent",
+        "GetCurrentEntity",
+        "SetThisComponent",
+        "LuaScriptComponent",
+        "GetLuaScriptComponent",
+        "Transform",
+        "GetTransform"
+    };
+
     LuaManager::LuaManager()
         : m_State(nullptr)
     {
