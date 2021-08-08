@@ -3,6 +3,7 @@
 #include <Lumos/Core/OS/FileSystem.h>
 #include <Lumos/Core/OS/Input.h>
 #include <Lumos/Core/StringUtilities.h>
+#include <Lumos/Scripting/Lua/LuaManager.h>
 
 #include <imgui/imgui.h>
 
@@ -14,13 +15,26 @@ namespace Lumos
         m_Name = "TextEditWindow";
         m_SimpleName = "TextEdit";
         m_OnSaveCallback = NULL;
-
+        editor.SetCustomIdentifiers({});
+        
         auto extension = StringUtilities::GetFilePathExtension(m_FilePath);
 
         if(extension == "lua" || extension == "Lua")
         {
             auto lang = TextEditor::LanguageDefinition::Lua();
             editor.SetLanguageDefinition(lang);
+            
+            auto& customIdentifiers = LuaManager::GetIdentifiers();
+            TextEditor::Identifiers identifiers;
+            
+            for (auto& k : customIdentifiers)
+            {
+                TextEditor::Identifier id;
+                id.mDeclaration = "Engine function";
+                identifiers.insert(std::make_pair(k, id));
+            }
+            
+            editor.SetCustomIdentifiers(identifiers);
         }
         else if(extension == "cpp")
         {

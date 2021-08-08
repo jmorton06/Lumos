@@ -261,6 +261,8 @@ public:
 	bool CanRedo() const;
 	void Undo(int aSteps = 1);
 	void Redo(int aSteps = 1);
+    
+    void SetCustomIdentifiers(const Identifiers& identifiers) { mCustomIdentifiers = identifiers; }
 
 	static const Palette& GetDarkPalette();
 	static const Palette& GetLightPalette();
@@ -347,7 +349,7 @@ private:
 	void HandleKeyboardInputs();
 	void HandleMouseInputs();
 	void Render();
-
+    
 	float mLineSpacing;
 	Lines mLines;
 	EditorState mState;
@@ -376,6 +378,8 @@ private:
 	Palette mPalette;
 	LanguageDefinition mLanguageDefinition;
 	RegexList mRegexList;
+    
+    Identifiers mCustomIdentifiers;
 
 	bool mCheckComments;
 	Breakpoints mBreakpoints;

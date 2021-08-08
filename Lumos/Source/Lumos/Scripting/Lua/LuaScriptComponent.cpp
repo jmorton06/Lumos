@@ -62,20 +62,18 @@ namespace Lumos
             std::string filename = StringUtilities::GetFileName(m_FileName);
             std::string error = std::string(err.what());
             
-//            auto pos = error.find(filename);
-//
-//            if(pos != std::string::npos)
-//                error = error.substr(pos + filename.size() + 1 + 1);  //+1 for removing :
-//            int line = 1;
-//            auto linepos = error.find(':');
-//            auto lineString = error.substr(0, linepos - 1);
-//            line = std::stoi(lineString);
-//            error = error.substr(0, linepos + 3);  //+1 for removing :
-
-          //  Error : ...v/Lumos/ExampleProject/Assets/Scripts/FlappyBirdTest.lua:28: attempt to call a nil value (global 'LoadTextreWithParams')
             int line = 1;
+            auto linepos = error.find(".lua:");
+            std::string errorLine = error.substr(linepos + 5); //+4 .lua: + 1
+            auto lineposEnd = errorLine.find(":");
+            errorLine = errorLine.substr(0, lineposEnd);
+            line = std::stoi(errorLine);
+            error = error.substr(linepos + errorLine.size() + lineposEnd + 4); //+4 .lua:
+            
             m_Errors[line] = std::string(error);
         }
+        else
+            m_Errors = {};
 
         if(!m_Scene)
             m_Scene = Application::Get().GetCurrentScene();
