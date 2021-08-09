@@ -28,11 +28,9 @@ namespace Lumos::Graphics
         SetFlag(RenderFlags::DEPTHTEST);
         m_DescriptorSet = nullptr;
         m_MaterialProperties = new MaterialProperties();
-        m_MaterialPropertiesBuffer = nullptr;
         m_MaterialBufferSize = sizeof(MaterialProperties);
-        m_MaterialBufferData = new uint8_t[m_MaterialBufferSize];
 
-        m_DescriptorSet = m_Shader->CreateDescriptorSet(1);
+        m_DescriptorSet = nullptr;
 
         SetMaterialProperites(properties);
     }
@@ -45,22 +43,16 @@ namespace Lumos::Graphics
         m_Flags = 0;
         SetFlag(RenderFlags::DEPTHTEST);
         m_DescriptorSet = nullptr;
-        m_MaterialPropertiesBuffer = nullptr;
         m_MaterialProperties = new MaterialProperties();
         m_PBRMaterialTextures.albedo = nullptr;
-
         m_MaterialBufferSize = sizeof(MaterialProperties);
-        m_MaterialBufferData = new uint8_t[m_MaterialBufferSize];
     }
 
     Material::~Material()
     {
         LUMOS_PROFILE_FUNCTION();
-
         delete m_DescriptorSet;
         delete m_MaterialProperties;
-        delete m_MaterialPropertiesBuffer;
-        delete[] m_MaterialBufferData;
     }
 
     void Material::SetTextures(const PBRMataterialTextures& textures)
@@ -139,7 +131,11 @@ namespace Lumos::Graphics
 
     void Material::UpdateMaterialPropertiesData()
     {
-        memcpy(m_MaterialBufferData, m_MaterialProperties, sizeof(MaterialProperties));
+        if(!m_DescriptorSet)
+            return;
+        
+        m_DescriptorSet->SetUniformBufferData("UniformMaterialData", *&m_MaterialProperties);
+        m_DescriptorSet->Update();
     }
 
     void Material::SetMaterialProperites(const MaterialProperties& properties)
@@ -157,11 +153,9 @@ namespace Lumos::Graphics
         m_MaterialProperties->usingEmissiveMap = properties.usingEmissiveMap;
         m_MaterialProperties->workflow = properties.workflow;
         m_MaterialProperties->emissiveColour = properties.emissiveColour;
-
+        
         UpdateMaterialPropertiesData();
 
-        if(m_MaterialPropertiesBuffer)
-            m_MaterialPropertiesBuffer->SetData(m_MaterialBufferSize, *&m_MaterialBufferData);
     }
 
     void Material::CreateDescriptorSet(int layoutID, bool pbr)
@@ -175,24 +169,14 @@ namespace Lumos::Graphics
         {
             //If no shader then set it to the default pbr shader
             //TODO default to forward
-            m_Shader = ForwardRenderer::GetDefaultPBRShader();//Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/ForwardPBR.shader");
+            m_Shader = Application::Get().GetShaderLibrary()->GetResource("ForwardPBR");
         }
 
         Graphics::DescriptorDesc info;
         info.layoutIndex = layoutID;
         info.shader = m_Shader.get();
 
-        if(m_MaterialPropertiesBuffer == nullptr && pbr)
-        {
-            m_MaterialPropertiesBuffer = Graphics::UniformBuffer::Create();
-
-            m_MaterialBufferSize = static_cast<uint32_t>(sizeof(MaterialProperties));
-            m_MaterialPropertiesBuffer->Init(m_MaterialBufferSize, nullptr);
-        }
-
         m_DescriptorSet = Graphics::DescriptorSet::Create(info);
-
-        std::vector<Graphics::Descriptor> imageInfos;
 
         if(m_PBRMaterialTextures.albedo != nullptr)
         {
@@ -249,12 +233,8 @@ namespace Lumos::Graphics
                 m_DescriptorSet->SetTexture("u_EmissiveMap", s_DefaultTexture.get());
                 m_MaterialProperties->usingEmissiveMap = 0.0f;
             }
-            
-            m_DescriptorSet->SetBuffer("UniformMaterialData", m_MaterialPropertiesBuffer);
-            
 
             UpdateMaterialPropertiesData();
-            m_MaterialPropertiesBuffer->SetData(m_MaterialBufferSize, *&m_MaterialBufferData);
         }
 
         m_DescriptorSet->Update();

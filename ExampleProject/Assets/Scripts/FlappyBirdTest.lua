@@ -25,9 +25,19 @@ local player = {}
 local camera = {}
 local score = 0
 local iconTexture = LoadTextureWithParams("icon", "//Textures/TappyPlane/PNG/rock.png", TextureFilter.Linear, TextureWrap.ClampToEdge)
+local gameOverTexture = LoadTextureWithParams("gameOver", "//Textures/TappyPlane/PNG/UI/textGameOver.png", TextureFilter.Linear, TextureWrap.ClampToEdge)
+local gameOverEntity = nil
+local gameOverScale = 1.0
+local totalTime = 0.0
 
 function beginContact(a, b)
     gameState = GameStates.GameOver
+
+    if gameOverEntity == nil then
+    gameOverEntity = entityManager:Create()
+    gameOverEntity:AddSprite(Vector2.new(0.0,0.0), Vector2.new(30, 4), Vector4.new(1.0,1.0,1.0,1.0)):SetTexture(gameOverTexture)
+    gameOverEntity:GetTransform():SetPosition(player:GetTransform():GetWorldPosition() + Vector3.new(15, 2, 0.0, 0.0))
+    end
 end
 
 function endContact(a, b, coll)
@@ -223,10 +233,15 @@ function OnUpdate(dt)
         gui.sameLine()
         gui.text(tostring(score))
 
+       totalTime = totalTime + dt
+       gameOverScale = 1.0  + (math.sin(totalTime / 2000000) + 1.0) / 20.0
+       gameOverEntity:GetTransform():SetLocalScale(Vector3.new(gameOverScale, gameOverScale, gameOverScale))
+
         if gui.button("Reset") then
             Reset();
         end
         gui.endWindow()
+
 	elseif gameState == GameStates.Start then
 
 	    gui.setNextWindowPos(gui.ImVec2.new(268.0, 50.0))
@@ -280,6 +295,9 @@ function Reset()
         CreatePillar(i, (i + 2) * 10.0)
     end
 
+    gameOverEntity:Destroy()
+    gameOverEntity = nil
+
     collectgarbage()
 end
 
@@ -289,6 +307,26 @@ function OnCleanUp()
     blockPhysics = nil
     blockPhysics2 = nil
 end
+
+function OnRelease()
+    OnCleanUp()
+end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

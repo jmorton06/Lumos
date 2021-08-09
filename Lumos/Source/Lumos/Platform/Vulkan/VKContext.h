@@ -70,7 +70,7 @@ namespace Lumos
             void CreateInstance();
             void SetupDebugCallback();
             bool CheckValidationLayerSupport(const std::vector<const char*>& validationLayers);
-            bool CheckExtensionSupport(const std::vector<const char*>& extensions);
+            bool CheckExtensionSupport(std::vector<const char*>& extensions);
 
 #ifdef USE_VMA_ALLOCATOR
             void DebugDrawVmaMemory(VmaStatInfo& info, bool indent = true);
@@ -97,6 +97,7 @@ namespace Lumos
             Window* m_Window;
 
             bool m_StandardValidationLayer = false;
+            bool m_ValidationLayer = false;
             bool m_RenderDocLayer = false;
             bool m_AssistanceLayer = false;
         };

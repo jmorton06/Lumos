@@ -3,6 +3,7 @@
 #include <Lumos/Core/OS/FileSystem.h>
 #include <Lumos/Core/OS/Input.h>
 #include <Lumos/Core/StringUtilities.h>
+#include <Lumos/Scripting/Lua/LuaManager.h>
 
 #include <imgui/imgui.h>
 
@@ -13,13 +14,27 @@ namespace Lumos
     {
         m_Name = "TextEditWindow";
         m_SimpleName = "TextEdit";
-
+        m_OnSaveCallback = NULL;
+        editor.SetCustomIdentifiers({});
+        
         auto extension = StringUtilities::GetFilePathExtension(m_FilePath);
 
         if(extension == "lua" || extension == "Lua")
         {
             auto lang = TextEditor::LanguageDefinition::Lua();
             editor.SetLanguageDefinition(lang);
+            
+            auto& customIdentifiers = LuaManager::GetIdentifiers();
+            TextEditor::Identifiers identifiers;
+            
+            for (auto& k : customIdentifiers)
+            {
+                TextEditor::Identifier id;
+                id.mDeclaration = "Engine function";
+                identifiers.insert(std::make_pair(k, id));
+            }
+            
+            editor.SetCustomIdentifiers(identifiers);
         }
         else if(extension == "cpp")
         {
@@ -37,9 +52,13 @@ namespace Lumos
         editor.SetShowWhitespaces(false);
     }
 
+    void TextEditPanel::SetErrors(const std::map<int, std::string>& errors)
+    {
+        editor.SetErrorMarkers(errors);
+    }
+
     void TextEditPanel::OnImGui()
     {
-
         if((Input::Get().GetKeyHeld(InputCode::Key::LeftSuper) || (Input::Get().GetKeyHeld(InputCode::Key::LeftControl))))
         {
             if(Input::Get().GetKeyPressed(InputCode::Key::S))
@@ -60,6 +79,8 @@ namespace Lumos
                 {
                     auto textToSave = editor.GetText();
                     FileSystem::WriteTextFile(m_FilePath, textToSave);
+                    if(m_OnSaveCallback)
+                        m_OnSaveCallback();
                 }
                 ImGui::EndMenu();
             }

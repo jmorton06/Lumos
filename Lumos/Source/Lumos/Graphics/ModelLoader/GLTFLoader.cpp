@@ -148,7 +148,7 @@ namespace Lumos::Graphics
         {
             //TODO : if(isAnimated) Load deferredColourAnimated;
             //auto shader = Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/ForwardPBR.shader");
-            auto shader = ForwardRenderer::GetDefaultPBRShader();
+            auto shader = Application::Get().GetShaderLibrary()->GetResource("ForwardPBR");
 
             SharedRef<Material> pbrMaterial = CreateSharedRef<Material>(shader);
             PBRMataterialTextures textures;

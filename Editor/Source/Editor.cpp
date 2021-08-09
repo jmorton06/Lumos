@@ -95,11 +95,15 @@ namespace Lumos
 		//TODO: Check windows
 #ifdef LUMOS_PLATFORM_LINUX
 		m_TempSceneSaveFilePath = std::filesystem::current_path().string();
-		#else
+#else
         m_TempSceneSaveFilePath = std::filesystem::temp_directory_path().string();
-		#endif
+#endif
 
-        std::vector<std::string> iniLocation = { "Editor.ini", "/Users/jmorton/dev/Lumos/Editor.ini", "../Editor.ini", OS::Instance()->GetExecutablePath() + "/Editor.ini" };
+        m_TempSceneSaveFilePath += "Lumos/";
+        if(!FileSystem::FolderExists(m_TempSceneSaveFilePath))
+            std::filesystem::create_directory(m_TempSceneSaveFilePath);
+        
+        std::vector<std::string> iniLocation = { "Editor.ini", "/Users/jmorton/dev/Lumos/Editor.ini", "../Editor.ini", StringUtilities::GetFileLocation(OS::Instance()->GetExecutablePath()) + "Editor.ini", StringUtilities::GetFileLocation(OS::Instance()->GetExecutablePath()) + "../../../Editor.ini"};
         bool fileFound = false;
         std::string filePath;
         for(auto& path : iniLocation)
@@ -119,7 +123,11 @@ namespace Lumos
         if(!fileFound)
         {
             LUMOS_LOG_INFO("Editor Ini not found");
-            filePath = "Editor.ini";
+#ifdef LUMOS_PLATFORM_MACOS
+            filePath = StringUtilities::GetFileLocation(OS::Instance()->GetExecutablePath()) + "../../../Editor.ini";
+#else
+            filePath = StringUtilities::GetFileLocation(OS::Instance()->GetExecutablePath()) + "Editor.ini";
+#endif
             LUMOS_LOG_INFO("Creating Editor Ini {0}", filePath);
 
             //  FileSystem::WriteTextFile(filePath, "");
@@ -821,7 +829,16 @@ namespace Lumos
 
             if(ImGui::Button("OK", ImVec2(120, 0)))
             {
-                auto scene = new Scene("New Scene");
+                std::string sceneName = "NewScene";
+                int sameNameCount = 0;
+                auto sceneNames = m_SceneManager->GetSceneNames();
+                
+                while(FileSystem::FileExists("//Scenes/" + sceneName + ".lsn") || std::find(sceneNames.begin(), sceneNames.end(), sceneName) != sceneNames.end())
+                {
+                    sameNameCount++;
+                    sceneName = fmt::format("NewScene({0})", sameNameCount);
+                }
+                auto scene = new Scene(sceneName);
                 Application::Get().GetSceneManager()->EnqueueScene(scene);
                 Application::Get().GetSceneManager()->SwitchScene((int)(Application::Get().GetSceneManager()->GetScenes().size()) - 1);
 
@@ -1037,21 +1054,22 @@ namespace Lumos
             ImGuiID DockingRightDownChild = ImGui::DockBuilderSplitNode(DockRightChild, ImGuiDir_Down, 0.06f, nullptr, &DockRightChild);
 
             ImGuiID DockBottomChild = ImGui::DockBuilderSplitNode(DockBottom, ImGuiDir_Down, 0.2f, nullptr, &DockBottom);
-            ImGuiID DockingBottomLeftChild = ImGui::DockBuilderSplitNode(DockBottomChild, ImGuiDir_Left, 0.5f, nullptr, &DockBottomChild);
-            ImGuiID DockingBottomRightChild = ImGui::DockBuilderSplitNode(DockBottomChild, ImGuiDir_Right, 0.5f, nullptr, &DockBottomChild);
+            ImGuiID DockingBottomLeftChild = ImGui::DockBuilderSplitNode(DockLeft, ImGuiDir_Down, 0.4f, nullptr, &DockLeft);
+            ImGuiID DockingBottomRightChild = ImGui::DockBuilderSplitNode(DockRight, ImGuiDir_Down, 0.4f, nullptr, &DockRight);
 
             ImGuiID DockMiddle = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Right, 0.8f, nullptr, &dock_main_id);
-
-            ImGui::DockBuilderDockWindow("###scene", DockMiddle);
-
+			ImGuiID DockBottomMiddle = ImGui::DockBuilderSplitNode(DockMiddle, ImGuiDir_Down, 0.3f, nullptr, &DockMiddle);
+            
+			ImGui::DockBuilderDockWindow("###scene", DockMiddle);
             ImGui::DockBuilderDockWindow("###inspector", DockRight);
-            ImGui::DockBuilderDockWindow("###console", DockBottom);
+            ImGui::DockBuilderDockWindow("###console", DockBottomMiddle);
             ImGui::DockBuilderDockWindow("###profiler", DockingBottomLeftChild);
             ImGui::DockBuilderDockWindow("###resources", DockingBottomLeftChild);
             ImGui::DockBuilderDockWindow("Dear ImGui Demo", DockLeft);
             ImGui::DockBuilderDockWindow("GraphicsInfo", DockLeft);
             ImGui::DockBuilderDockWindow("ApplicationInfo", DockLeft);
             ImGui::DockBuilderDockWindow("###hierarchy", DockLeft);
+			ImGui::DockBuilderDockWindow("Text Editor", DockMiddle);
 
             ImGui::DockBuilderFinish(DockspaceID);
         }
@@ -1641,7 +1659,7 @@ namespace Lumos
         m_SelectedEntity = currentClosestEntity;
     }
 
-    void Editor::OpenTextFile(const std::string& filePath)
+    void Editor::OpenTextFile(const std::string& filePath, const std::function<void()>& callback)
     {
         LUMOS_PROFILE_FUNCTION();
         std::string physicalPath;
@@ -1662,7 +1680,22 @@ namespace Lumos
         }
 
         m_Panels.emplace_back(CreateSharedRef<TextEditPanel>(physicalPath));
+        m_Panels.back().As<TextEditPanel>()->SetOnSaveCallback(callback);
         m_Panels.back()->SetEditor(this);
+    }
+
+    EditorPanel* Editor::GetTextEditPanel()
+    {
+        for(int i = 0; i < int(m_Panels.size()); i++)
+        {
+            EditorPanel* w = m_Panels[i].get();
+            if(w->GetSimpleName() == "TextEdit")
+            {
+                return w;
+            }
+        }
+        
+        return nullptr;
     }
 
     void Editor::RemovePanel(EditorPanel* panel)
@@ -1737,7 +1770,7 @@ namespace Lumos
     {
         LUMOS_PROFILE_FUNCTION();
         if(IsTextFile(filePath))
-            OpenTextFile(filePath);
+            OpenTextFile(filePath, NULL);
         else if(IsModelFile(filePath))
         {
             Entity modelEntity = Application::Get().GetSceneManager()->GetCurrentScene()->GetEntityManager()->Create();

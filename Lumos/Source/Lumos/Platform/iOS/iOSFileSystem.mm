@@ -173,10 +173,10 @@ namespace Lumos
         return success ? result : std::string();
     }
 
-    bool FileSystem::WriteFile(const std::string& path, uint8_t* buffer)
+    bool FileSystem::WriteFile(const std::string& path, uint8_t* buffer, uint32_t size)
     {
         FILE* file = fopen(path.c_str(), "wb");
-        size_t size = fwrite(buffer, 1, sizeof(buffer), file);
+        size_t size = fwrite(buffer, 1, size, file);
         fclose(file);
         return size > 0;
     }

@@ -9,6 +9,8 @@
 #include <cxxabi.h> // __cxa_demangle()
 #endif
 
+#include <iomanip>
+
 namespace Lumos
 {
     namespace StringUtilities
@@ -34,6 +36,11 @@ namespace Lumos
             auto pos = FilePath.find_last_of('/');
             if(pos != std::string::npos)
                 return FilePath.substr(pos + 1);
+            
+            pos = FilePath.find_last_of("\\");
+            if(pos != std::string::npos)
+                return FilePath.substr(pos + 1);
+            
             return FilePath;
         }
 
@@ -42,6 +49,11 @@ namespace Lumos
             auto pos = FilePath.find_last_of('/');
             if(pos != std::string::npos)
                 return FilePath.substr(0, pos + 1);
+            
+            pos = FilePath.find_last_of("\\");
+            if(pos != std::string::npos)
+                return FilePath.substr(0, pos + 1);
+            
             return FilePath;
         }
 
@@ -50,6 +62,11 @@ namespace Lumos
             auto pos = FilePath.find_last_of('/');
             if(pos != std::string::npos)
                 return FilePath.substr(0, pos + 1);
+            
+            pos = FilePath.find_last_of("\\");
+            if(pos != std::string::npos)
+                return FilePath.substr(0, pos + 1);
+            
             return FilePath;
         }
 
@@ -301,6 +318,25 @@ namespace Lumos
             free(demangled);
             return ret;
 #endif
+        }
+    
+        std::string BytesToString(uint64_t bytes)
+        {
+            static const float gb = 1024 * 1024 * 1024;
+            static const float mb = 1024 * 1024;
+            static const float kb = 1024;
+
+            std::stringstream result;
+            if(bytes > gb)
+                result << std::fixed << std::setprecision(2) << (float)bytes / gb << " gb";
+            else if(bytes > mb)
+                result << std::fixed << std::setprecision(2) << (float)bytes / mb << " mb";
+            else if(bytes > kb)
+                result << std::fixed << std::setprecision(2) << (float)bytes / kb << " kb";
+            else
+                result << std::fixed << std::setprecision(2) << (float)bytes << " bytes";
+
+            return result.str();
         }
     }
 }

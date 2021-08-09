@@ -6,7 +6,7 @@ namespace Lumos
     {
         int major = 0;
         int minor = 3;
-        int patch = 0;
+        int patch = 1;
     };
 
     constexpr InternalVersion const LumosVersion = InternalVersion();
@@ -22,8 +22,8 @@ namespace Lumos
             Release
         };
 
-        int year = 2020;
-        int release = 0;
+        int year = 2021;
+        int release = 1;
         Stage stage = Stage::Alpha;
         int rev = 3;
     };

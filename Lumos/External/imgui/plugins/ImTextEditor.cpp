@@ -1102,6 +1102,16 @@ void TextEditor::Render()
 						ImGui::TextUnformatted(pi->second.mDeclaration.c_str());
 						ImGui::EndTooltip();
 					}
+                    else
+                    {
+                        it = mCustomIdentifiers.find(id);
+                        if (it != mCustomIdentifiers.end())
+                        {
+                            ImGui::BeginTooltip();
+                            ImGui::TextUnformatted(it->second.mDeclaration.c_str());
+                            ImGui::EndTooltip();
+                        }
+                    }
 				}
 			}
 		}
@@ -2227,6 +2237,8 @@ void TextEditor::ColorizeRange(int aFromLine, int aToLine)
 							token_color = PaletteIndex::Keyword;
 						else if (mLanguageDefinition.mIdentifiers.count(id) != 0)
 							token_color = PaletteIndex::KnownIdentifier;
+                        else if (mCustomIdentifiers.count(id) != 0)
+                            token_color = PaletteIndex::KnownIdentifier;
 						else if (mLanguageDefinition.mPreprocIdentifiers.count(id) != 0)
 							token_color = PaletteIndex::PreprocIdentifier;
 					}

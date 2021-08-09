@@ -24,8 +24,21 @@ public:
 
     void Init() override
     {
-        m_ProjectRoot = "/Users/jmorton/dev/Lumos/ExampleProject/";
-        m_ProjectName = "Example";
+		std::vector<std::string> projectLocations = {"ExampleProject/Example.lmprj", "/Users/jmorton/dev/Lumos/ExampleProject/Example.lmprj", "../ExampleProject/Example.lmprj", OS::Instance()->GetExecutablePath() + "/ExampleProject/Example.lmprj", OS::Instance()->GetExecutablePath() + "/../ExampleProject/Example.lmprj", OS::Instance()->GetExecutablePath() + "/../../ExampleProject/Example.lmprj"};
+		bool fileFound = false;
+		std::string filePath;
+		for(auto& path : projectLocations)
+		{
+			if(FileSystem::FileExists(path))
+			{
+				LUMOS_LOG_INFO("Loaded Project {0}", path);
+				m_ProjectRoot = StringUtilities::GetFileLocation(path);
+				m_ProjectName = "Example";
+				break;
+			}
+		}
+
+    
 
         Application::Init();
         Application::SetEditorState(EditorState::Play);

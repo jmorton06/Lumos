@@ -12,15 +12,45 @@ namespace Lumos
         {
             m_Shader = (GLShader*)info.shader;
             m_Descriptors = m_Shader->GetDescriptorInfo(info.layoutIndex).descriptors;
+			
+            for(auto& descriptor : m_Descriptors)
+            {
+                if(descriptor.type == DescriptorType::UNIFORM_BUFFER)
+                {
+                    auto buffer = SharedRef<Graphics::UniformBuffer>(Graphics::UniformBuffer::Create());
+                    buffer->Init(descriptor.size, nullptr);
+                    descriptor.buffer = buffer.get();
+                    
+                    Buffer localStorage;
+                    localStorage.Allocate(descriptor.size);
+                    localStorage.InitialiseEmpty();
+                    
+                    UniformBufferInfo info;
+                    info.UB = buffer;
+                    info.LocalStorage = localStorage;
+                    info.HasUpdated = false;
+                    info.m_Members = descriptor.m_Members;
+                    m_UniformBuffers.emplace(descriptor.name, info);
+                }
+            }
         }
 
         void GLDescriptorSet::Update()
         {
             LUMOS_PROFILE_FUNCTION();
+            for(auto& bufferInfo : m_UniformBuffers)
+            {
+                if(bufferInfo.second.HasUpdated)
+                {
+                    bufferInfo.second.UB->SetData(bufferInfo.second.LocalStorage.Data);
+                    bufferInfo.second.HasUpdated = false;
+                }
+            }
         }
 		
 		void GLDescriptorSet::SetTexture(const std::string& name, Texture* texture, TextureType textureType) 
         {
+            LUMOS_PROFILE_FUNCTION();
 			for(auto& descriptor : m_Descriptors)
             {
                 if(descriptor.type == DescriptorType::IMAGE_SAMPLER && descriptor.name == name)
@@ -36,6 +66,7 @@ namespace Lumos
     
         void GLDescriptorSet::SetTexture(const std::string& name, Texture** texture, uint32_t textureCount, TextureType textureType)
         {
+            LUMOS_PROFILE_FUNCTION();
             for(auto& descriptor : m_Descriptors)
             {
                 if(descriptor.type == DescriptorType::IMAGE_SAMPLER && descriptor.name == name)
@@ -52,6 +83,8 @@ namespace Lumos
 		
         void GLDescriptorSet::SetBuffer(const std::string& name, UniformBuffer* buffer) 
         {
+            //TODO: Remove
+            LUMOS_PROFILE_FUNCTION();
 			for(auto& descriptor : m_Descriptors)
             {
                 if(descriptor.type == DescriptorType::UNIFORM_BUFFER && descriptor.name == name)
@@ -62,6 +95,72 @@ namespace Lumos
             }
             
             LUMOS_LOG_WARN("Buffer not found {0}", name);
+        }
+    
+        void GLDescriptorSet::SetUniform(const std::string& bufferName, const std::string& uniformName, void* data)
+        {
+            std::unordered_map<std::string, UniformBufferInfo>::iterator itr = m_UniformBuffers.find(bufferName);
+            if(itr != m_UniformBuffers.end())
+            {
+                for(auto& member : itr->second.m_Members)
+                {
+                    if(member.name == uniformName)
+                    {
+                        itr->second.LocalStorage.Write(data, member.size, member.offset);
+                        itr->second.HasUpdated = true;
+                        return;
+                    }
+                }
+            }
+            
+            LUMOS_LOG_WARN("Uniform not found {0}.{1}", bufferName, uniformName);
+        }
+    
+        void GLDescriptorSet::SetUniform(const std::string& bufferName, const std::string& uniformName, void* data, uint32_t size)
+        {
+            std::unordered_map<std::string, UniformBufferInfo>::iterator itr = m_UniformBuffers.find(bufferName);
+            if(itr != m_UniformBuffers.end())
+            {
+                for(auto& member : itr->second.m_Members)
+                {
+                    if(member.name == uniformName)
+                    {
+                        itr->second.LocalStorage.Write(data, size, member.offset);
+                        itr->second.HasUpdated = true;
+                        return;
+                    }
+                }
+            }
+            
+            LUMOS_LOG_WARN("Uniform not found {0}.{1}", bufferName, uniformName);
+        }
+    
+        void GLDescriptorSet::SetUniformBufferData(const std::string& bufferName, void* data)
+        {
+            std::unordered_map<std::string, UniformBufferInfo>::iterator itr = m_UniformBuffers.find(bufferName);
+            if(itr != m_UniformBuffers.end())
+            {
+                itr->second.LocalStorage.Write(data, itr->second.LocalStorage.GetSize(), 0);
+                itr->second.HasUpdated = true;
+                return;
+            }
+            
+            LUMOS_LOG_WARN("Uniform not found {0}.{1}", bufferName);
+        }
+    
+        Graphics::UniformBuffer* GLDescriptorSet::GetUnifromBuffer(const std::string& name)
+        {
+            LUMOS_PROFILE_FUNCTION();
+            for(auto& descriptor : m_Descriptors)
+            {
+                if(descriptor.type == DescriptorType::UNIFORM_BUFFER && descriptor.name == name)
+                {
+                    return descriptor.buffer;
+                }
+            }
+            
+            LUMOS_LOG_WARN("Buffer not found {0}", name);
+            return nullptr;
         }
 
         void GLDescriptorSet::Bind(uint32_t offset)

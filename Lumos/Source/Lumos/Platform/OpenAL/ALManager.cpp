@@ -32,13 +32,13 @@ namespace Lumos
             m_Device = alcOpenDevice(nullptr);
             m_Context = alcCreateContext(m_Device, nullptr);
 
-            LUMOS_LOG_INFO("Initialising AudioManager - {0}, Number of devices : {1}", alcGetString(m_Device, ALC_DEVICE_SPECIFIER), alcGetString(nullptr, ALC_DEVICE_SPECIFIER));
-
             if(!m_Device)
-                LUMOS_LOG_INFO("Failed to create SoundSystem! (No valid device!)");
+                LUMOS_LOG_INFO("Failed to Initialise AudioManager! (No valid device!)");
 
             alcMakeContextCurrent(m_Context);
             alDistanceModel(AL_LINEAR_DISTANCE_CLAMPED);
+			
+			LUMOS_LOG_INFO("Initialised AudioManager - {0}", alcGetString(m_Device, ALC_DEVICE_SPECIFIER));
         }
 
         void ALManager::OnUpdate(const TimeStep& dt, Scene* scene)
