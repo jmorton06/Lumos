@@ -4,6 +4,7 @@
 #include "Scene/Scene.h"
 #include "Scene/Entity.h"
 #include "Scene/EntityManager.h"
+#include "Core/StringUtilities.h"
 #include "Core/Engine.h"
 
 namespace Lumos
@@ -58,8 +59,21 @@ namespace Lumos
             sol::error err = loadFileResult;
             LUMOS_LOG_ERROR("Failed to Execute Lua script {0}", physicalPath);
             LUMOS_LOG_ERROR("Error : {0}", err.what());
-            m_Errors.push_back(std::string(err.what()));
+            std::string filename = StringUtilities::GetFileName(m_FileName);
+            std::string error = std::string(err.what());
+            
+            int line = 1;
+            auto linepos = error.find(".lua:");
+            std::string errorLine = error.substr(linepos + 5); //+4 .lua: + 1
+            auto lineposEnd = errorLine.find(":");
+            errorLine = errorLine.substr(0, lineposEnd);
+            line = std::stoi(errorLine);
+            error = error.substr(linepos + errorLine.size() + lineposEnd + 4); //+4 .lua:
+            
+            m_Errors[line] = std::string(error);
         }
+        else
+            m_Errors = {};
 
         if(!m_Scene)
             m_Scene = Application::Get().GetCurrentScene();
@@ -154,7 +168,10 @@ namespace Lumos
 
     void LuaScriptComponent::SetThisComponent()
     {
-        (*m_Env)["LuaComponent"] = this;
+        if(m_Env)
+        {
+            (*m_Env)["LuaComponent"] = this;
+        }
     }
 
     void LuaScriptComponent::Load(const std::string& fileName)

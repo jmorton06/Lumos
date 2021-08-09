@@ -54,14 +54,7 @@ namespace Lumos
 
             void SetSystemUniforms(Shader* shader) const;
 
-            uint8_t* m_PSSystemUniformBuffer;
-            uint32_t m_PSSystemUniformBufferSize;
-
             Maths::Matrix4 m_BiasMatrix;
-
-            UniformBuffer* m_UniformBuffer;
-            UniformBuffer* m_LightUniformBuffer;
-
             CommandBuffer* m_DeferredCommandBuffers;
 
             Mesh* m_ScreenQuad = nullptr;

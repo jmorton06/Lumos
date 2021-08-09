@@ -39,18 +39,6 @@ namespace Lumos
 {
     namespace Graphics
     {
-        enum VSSystemUniformIndices : int32_t
-        {
-            VSSystemUniformIndex_ProjectionViewMatrix = 0,
-            VSSystemUniformIndex_Size
-        };
-
-        enum PSSystemUniformIndices : int32_t
-        {
-            PSSystemUniformIndex_Lights = 0,
-            PSSystemUniformIndex_Size
-        };
-
         DeferredOffScreenRenderer::DeferredOffScreenRenderer(uint32_t width, uint32_t height)
         {
             m_ScreenRenderer = false;
@@ -61,21 +49,13 @@ namespace Lumos
 
         DeferredOffScreenRenderer::~DeferredOffScreenRenderer()
         {
-            delete m_UniformBuffer;
-            delete m_AnimUniformBuffer;
             delete m_DefaultMaterial;
-
-            delete[] m_VSSystemUniformBuffer;
-
             m_Framebuffers.clear();
         }
 
         void DeferredOffScreenRenderer::Init()
         {
             LUMOS_PROFILE_FUNCTION();
-            //m_Shader = Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/DeferredColour.shader");
-            //m_AnimatedShader = Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/DeferredColourAnim.shader");
-
             m_Shader = Graphics::Shader::CreateFromEmbeddedArray(spirv_DeferredColourvertspv.data(), spirv_DeferredColourvertspv_size, spirv_DeferredColourfragspv.data(), spirv_DeferredColourfragspv_size);
             m_AnimatedShader = Graphics::Shader::CreateFromEmbeddedArray(spirv_DeferredColourAnimvertspv.data(), spirv_DeferredColourAnimvertspv_size, spirv_DeferredColourfragspv.data(), spirv_DeferredColourfragspv_size);
 
@@ -93,26 +73,7 @@ namespace Lumos
 
             const size_t minUboAlignment = size_t(Graphics::Renderer::GetCapabilities().UniformBufferOffsetAlignment);
 
-            m_UniformBuffer = nullptr;
-            m_AnimUniformBuffer = nullptr;
-
             m_CommandQueue.reserve(1000);
-
-            //
-            // Vertex shader System uniforms
-            //
-            m_VSSystemUniformBufferSize = sizeof(Maths::Matrix4);
-            m_VSSystemUniformBuffer = new uint8_t[m_VSSystemUniformBufferSize];
-            memset(m_VSSystemUniformBuffer, 0, m_VSSystemUniformBufferSize);
-            m_VSSystemUniformBufferOffsets.resize(VSSystemUniformIndex_Size);
-
-            //Animated Vertex shader uniform
-            m_VSSystemUniformBufferAnimSize = sizeof(Maths::Matrix4) * MAX_BONES;
-            m_VSSystemUniformBufferAnim = new uint8_t[m_VSSystemUniformBufferAnimSize];
-            memset(m_VSSystemUniformBufferAnim, 0, m_VSSystemUniformBufferAnimSize);
-
-            // Per Scene System Uniforms
-            m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_ProjectionViewMatrix] = 0;
 
             AttachmentInfo textureTypesOffScreen[5] = {
                 { TextureType::COLOUR, Application::Get().GetRenderGraph()->GetGBuffer()->GetTextureFormat(SCREENTEX_COLOUR) },
@@ -187,7 +148,7 @@ namespace Lumos
 
                 LUMOS_ASSERT(m_Camera, "No Camera Set for Renderer");
                 auto projView = m_Camera->GetProjectionMatrix() * view;
-                memcpy(m_VSSystemUniformBuffer + m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_ProjectionViewMatrix], &projView, sizeof(Maths::Matrix4));
+                m_DescriptorSet[0]->SetUniform("UniformBufferObject", "projView", &projView);
 
                 m_Frustum = m_Camera->GetFrustum(view);
             }
@@ -254,9 +215,9 @@ namespace Lumos
         void DeferredOffScreenRenderer::SetSystemUniforms(Shader* shader)
         {
             LUMOS_PROFILE_FUNCTION();
-            m_UniformBuffer->SetData(m_VSSystemUniformBufferSize, *&m_VSSystemUniformBuffer);
-            //Move as per mesh
-            m_AnimUniformBuffer->SetData(m_VSSystemUniformBufferAnimSize, *&m_VSSystemUniformBufferAnim);
+//            m_UniformBuffer->SetData(m_VSSystemUniformBufferSize, *&m_VSSystemUniformBuffer);
+//            //Move as per mesh
+//            m_AnimUniformBuffer->SetData(m_VSSystemUniformBufferAnimSize, *&m_VSSystemUniformBufferAnim);
         }
 
         void DeferredOffScreenRenderer::Present()
@@ -336,24 +297,6 @@ namespace Lumos
         void DeferredOffScreenRenderer::CreateBuffer()
         {
             LUMOS_PROFILE_FUNCTION();
-            if(m_UniformBuffer == nullptr)
-            {
-                m_UniformBuffer = Graphics::UniformBuffer::Create();
-
-                uint32_t bufferSize = m_VSSystemUniformBufferSize;
-                m_UniformBuffer->Init(bufferSize, nullptr);
-            }
-
-            if(m_AnimUniformBuffer == nullptr)
-            {
-                m_AnimUniformBuffer = Graphics::UniformBuffer::Create();
-
-                uint32_t bufferSize = m_VSSystemUniformBufferAnimSize;
-                m_AnimUniformBuffer->Init(bufferSize, nullptr);
-            }
-
-            m_DescriptorSet[0]->SetBuffer("UniformBufferObject", m_UniformBuffer);
-            m_DescriptorSet[0]->Update();
             
            // m_AnimatedDescriptorSets[0]->SetBuffer("UniformBufferObjectAnim", m_AnimUniformBuffer);
 

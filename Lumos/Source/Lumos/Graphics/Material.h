@@ -10,7 +10,6 @@ namespace Lumos
     namespace Graphics
     {
         class DescriptorSet;
-        class UniformBuffer;
 
         const float PBR_WORKFLOW_SEPARATE_TEXTURES = 0.0f;
         const float PBR_WORKFLOW_METALLIC_ROUGHNESS = 1.0f;
@@ -232,10 +231,8 @@ namespace Lumos
             PBRMataterialTextures m_PBRMaterialTextures;
             SharedRef<Shader> m_Shader;
             DescriptorSet* m_DescriptorSet;
-            UniformBuffer* m_MaterialPropertiesBuffer;
             MaterialProperties* m_MaterialProperties;
             uint32_t m_MaterialBufferSize;
-            uint8_t* m_MaterialBufferData;
             std::string m_Name;
             bool m_TexturesUpdated = false;
             uint32_t m_Flags;

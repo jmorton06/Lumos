@@ -1,6 +1,7 @@
 #include "InspectorPanel.h"
 #include "Editor.h"
 #include "FileBrowserPanel.h"
+#include "TextEditPanel.h"
 #include <Lumos/Audio/AudioManager.h>
 #include <Lumos/Core/Application.h>
 #include <Lumos/Core/OS/FileSystem.h>
@@ -85,9 +86,17 @@ end
 function OnCleanUp()
 end
 )";
-
-                Lumos::FileSystem::WriteTextFile(physicalPath + "/Script.lua", defaultScript);
-                script.SetFilePath(newFilePath + "/Script.lua");
+                std::string newScriptFileName = "Script";
+                int fileIndex = 0;
+                while(Lumos::FileSystem::FileExists(physicalPath + "/" + newScriptFileName + ".lua"))
+                {
+                    fileIndex++;
+                    newScriptFileName = fmt::format("Script({0})", fileIndex);
+                }
+                
+                
+                Lumos::FileSystem::WriteTextFile(physicalPath + "/" + newScriptFileName + ".lua", defaultScript);
+                script.SetFilePath(newFilePath + "/" + newScriptFileName + ".lua");
                 script.Reload();
                 hasReloaded = true;
             }
@@ -96,7 +105,21 @@ end
         if(loaded)
         {
             if(ImGui::Button("Edit File", ImVec2(ImGui::GetContentRegionAvail().x, 0.0f)))
-                Lumos::Editor::GetEditor()->OpenTextFile(script.GetFilePath());
+            {
+                Lumos::Editor::GetEditor()->OpenTextFile(script.GetFilePath(), [&]
+                {
+                    script.Reload();
+                    hasReloaded = true;
+                    
+                    auto textEditPanel = Lumos::Editor::GetEditor()->GetTextEditPanel();
+                    if(textEditPanel)
+                        ((Lumos::TextEditPanel*)textEditPanel)->SetErrors(script.GetErrors());
+                });
+                
+                auto textEditPanel = Lumos::Editor::GetEditor()->GetTextEditPanel();
+                if(textEditPanel)
+                    ((Lumos::TextEditPanel*)textEditPanel)->SetErrors(script.GetErrors());
+            }
 
             if(ImGui::Button("Open File", ImVec2(ImGui::GetContentRegionAvail().x, 0.0f)))
             {
@@ -1987,8 +2010,9 @@ namespace Lumos
 
         if(ImGui::Begin(m_Name.c_str(), &m_Active))
         {
-            if(selected == entt::null)
+            if(selected == entt::null || !registry.valid(selected))
             {
+                m_Editor->SetSelected(entt::null);
                 ImGui::End();
                 return;
             }

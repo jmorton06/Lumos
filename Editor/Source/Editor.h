@@ -161,8 +161,9 @@ namespace Lumos
         void DebugDraw();
         void SelectObject(const Maths::Ray& ray);
 
-        void OpenTextFile(const std::string& filePath);
+        void OpenTextFile(const std::string& filePath, const std::function<void()>& callback);
         void RemovePanel(EditorPanel* panel);
+        EditorPanel* GetTextEditPanel();
 
         void ShowPreview();
         void DrawPreview();
@@ -226,7 +227,7 @@ namespace Lumos
         uint32_t m_Physics2DDebugFlags = 0;
         uint32_t m_Physics3DDebugFlags = 0;
 
-        bool m_ShowGrid = false;
+        bool m_ShowGrid = true;
         bool m_ShowGizmos = true;
         bool m_ShowViewSelected = false;
         bool m_SnapQuizmo = false;

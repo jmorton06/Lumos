@@ -52,20 +52,9 @@ namespace Lumos
 
             Material* m_DefaultMaterial;
 
-            UniformBuffer* m_UniformBuffer;
-
             SharedRef<Shader> m_AnimatedShader = nullptr;
             SharedRef<Lumos::Graphics::Pipeline> m_AnimatedPipeline;
-            UniformBuffer* m_AnimUniformBuffer;
-            uint8_t* m_VSSystemUniformBufferAnim = nullptr;
-            uint32_t m_VSSystemUniformBufferAnimSize = 0;
 
-            struct UniformBufferModel
-            {
-                Maths::Matrix4* model;
-            };
-
-            UniformBufferModel m_UBODataDynamic;
             bool m_HasRendered = false;
         };
     }

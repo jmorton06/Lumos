@@ -49,7 +49,7 @@ namespace Lumos
             m_FileName = path;
         }
 
-        const std::vector<std::string>& GetErrors() const
+        const std::map<int, std::string>& GetErrors() const
         {
             return m_Errors;
         }
@@ -79,7 +79,7 @@ namespace Lumos
         Scene* m_Scene = nullptr;
         std::string m_FileName;
 
-        std::vector<std::string> m_Errors;
+        std::map<int, std::string> m_Errors;
 
         SharedRef<sol::environment> m_Env;
         SharedRef<sol::protected_function> m_OnInitFunc;

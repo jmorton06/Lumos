@@ -5,12 +5,15 @@
 #include "VKCommandPool.h"
 #include "VKCommandBuffer.h"
 #include "Core/Version.h"
+#include "Core/StringUtilities.h"
 
 #include <imgui/imgui.h>
 
 #define VK_LAYER_LUNARG_STANDARD_VALIDATION_NAME "VK_LAYER_LUNARG_standard_validation"
 #define VK_LAYER_LUNARG_ASSISTENT_LAYER_NAME "VK_LAYER_LUNARG_assistant_layer"
 #define VK_LAYER_RENDERDOC_CAPTURE_NAME "VK_LAYER_RENDERDOC_Capture"
+#define VK_LAYER_LUNARG_VALIDATION_NAME "VK_LAYER_KHRONOS_validation"
+
 
 namespace Lumos
 {
@@ -25,6 +28,7 @@ namespace Lumos
                 extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
             }
 
+            extensions.push_back("VK_EXT_debug_report");
             extensions.push_back("VK_KHR_surface");
 
 #if 0
@@ -66,6 +70,9 @@ namespace Lumos
 
             if(m_AssistanceLayer)
                 layers.emplace_back(VK_LAYER_LUNARG_ASSISTENT_LAYER_NAME);
+            
+            if(m_ValidationLayer)
+                layers.emplace_back(VK_LAYER_LUNARG_VALIDATION_NAME);
 
             return layers;
         }
@@ -217,16 +224,19 @@ namespace Lumos
             return true;
         }
 
-        bool VKContext::CheckExtensionSupport(const std::vector<const char*>& extensions)
+        bool VKContext::CheckExtensionSupport(std::vector<const char*>& extensions)
         {
             uint32_t extensionCount;
             vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);
 
             m_InstanceExtensions.resize(extensionCount);
             vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, m_InstanceExtensions.data());
+            
+            bool extensionSupported = true;
 
-            for(const char* extensionName : extensions)
+            for(int i = 0; i < extensions.size(); i++)
             {
+                const char* extensionName = extensions[i];
                 bool layerFound = false;
 
                 for(const auto& layerProperties : m_InstanceExtensions)
@@ -240,11 +250,13 @@ namespace Lumos
 
                 if(!layerFound)
                 {
-                    return false;
+                    extensions.erase(extensions.begin() + i);
+                    extensionSupported = false;
+                    LUMOS_LOG_WARN("Extension not supported {0}", extensionName);
                 }
             }
 
-            return true;
+            return extensionSupported;
         }
 
         size_t VKContext::GetMinUniformBufferOffsetAlignment() const
@@ -461,6 +473,22 @@ namespace Lumos
 
             VmaStats stats;
             vmaCalculateStats(allocator, &stats);
+            
+            const auto& memoryProps = VKDevice::Get().GetPhysicalDevice()->GetMemoryProperties();
+            std::vector<VmaBudget> budgets(memoryProps.memoryHeapCount);
+            vmaGetBudget(allocator, budgets.data());
+
+            uint64_t usage = 0;
+            uint64_t budget = 0;
+
+            for (VmaBudget& b : budgets)
+            {
+                usage += b.usage;
+                budget += b.budget;
+            }
+            
+            ImGui::Text("Memory Usage %s", StringUtilities::BytesToString(usage).c_str());
+            ImGui::Text("Memory Budget %s", StringUtilities::BytesToString(budget).c_str());
 
             if(ImGui::CollapsingHeader("Total"))
             {

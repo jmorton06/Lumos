@@ -21,7 +21,7 @@ namespace Lumos
         uint8_t* ReadFile(const std::string& path);
         std::string ReadTextFile(const std::string& path);
 
-        bool WriteFile(const std::string& path, uint8_t* buffer);
+        bool WriteFile(const std::string& path, uint8_t* buffer, uint32_t size);
         bool WriteTextFile(const std::string& path, const std::string& text);
 
     public:

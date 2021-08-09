@@ -62,11 +62,15 @@ namespace Lumos
         void BindInputLua(sol::state& state);
         void BindSceneLua(sol::state& state);
         void BindAppLua(sol::state& state);
+        
+        static std::vector<std::string>& GetIdentifiers() { return s_Identifiers; }
 
         sol::state& GetState()
         {
             return m_State;
         }
+        
+        static std::vector<std::string> s_Identifiers;
 
     private:
         sol::state m_State;

@@ -33,23 +33,13 @@ namespace Lumos
             void PresentToScreen() override { }
 
             void CreateFramebuffers();
-
-            struct UniformBufferObject
-            {
-                Lumos::Maths::Matrix4 invprojview;
-            };
-
             void SetRenderTarget(Texture* texture, bool rebuildFramebuffer) override;
 
             void OnImGui() override;
 
         private:
             void SetSystemUniforms(Shader* shader) const;
-
-            Lumos::Graphics::UniformBuffer* m_UniformBuffer;
-
             uint32_t m_CurrentBufferID = 0;
-
             Mesh* m_Skybox;
             Texture* m_CubeMap;
         };

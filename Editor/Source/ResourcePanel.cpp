@@ -400,6 +400,12 @@ namespace Lumos
                             {
                                 Refresh();
                             }
+                            
+                            if(ImGui::Selectable("New folder"))
+                            {
+                                std::filesystem::create_directory(std::filesystem::path(m_BasePath + "/" + m_CurrentDir->FilePath.string() + "/NewFolder"));
+                                Refresh();
+                            }
                         }
                         ImGui::EndPopup();
                     }

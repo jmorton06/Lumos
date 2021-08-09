@@ -53,8 +53,6 @@ namespace Lumos
         delete m_IndexBuffer;
         delete m_UniformBuffer;
 
-        delete[] m_VSSystemUniformBuffer;
-
         m_Framebuffers.clear();
 
         for(int i = 0; i < MAX_BATCH_DRAW_CALLS; i++)
@@ -67,10 +65,7 @@ namespace Lumos
 
        // m_Shader = Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/Batch2DLine.shader");
         m_Shader = Graphics::Shader::CreateFromEmbeddedArray(spirv_Batch2DLinevertspv.data(), spirv_Batch2DLinevertspv_size, spirv_Batch2DLinefragspv.data(), spirv_Batch2DLinefragspv_size);
-
-        m_VSSystemUniformBufferSize = sizeof(Maths::Matrix4);
-        m_VSSystemUniformBuffer = new uint8_t[m_VSSystemUniformBufferSize];
-
+        
         m_UniformBuffer = Graphics::UniformBuffer::Create();
 
         AttachmentInfo textureTypes[2] = {
@@ -92,12 +87,6 @@ namespace Lumos
 
         CreateFramebuffers();
         CreateGraphicsPipeline();
-
-        uint32_t bufferSize = static_cast<uint32_t>(sizeof(UniformBufferObject));
-        m_UniformBuffer->Init(bufferSize, nullptr);
-
-        m_DescriptorSet[0]->SetBuffer("UniformBufferObject", m_UniformBuffer);
-        m_DescriptorSet[0]->Update();
 
         m_VertexBuffers.resize(MAX_BATCH_DRAW_CALLS);
 
@@ -174,7 +163,7 @@ namespace Lumos
 
     void LineRenderer::SetSystemUniforms(Shader* shader) const
     {
-        m_UniformBuffer->SetData(sizeof(UniformBufferObject), *&m_VSSystemUniformBuffer);
+        //m_UniformBuffer->SetData(sizeof(UniformBufferObject), *&m_VSSystemUniformBuffer);
     }
 
     void LineRenderer::BeginScene(Scene* scene, Camera* overrideCamera, Maths::Transform* overrideCameraTransform)
@@ -200,8 +189,8 @@ namespace Lumos
             return;
 
         auto projView = m_Camera->GetProjectionMatrix() * m_CameraTransform->GetWorldMatrix().Inverse();
-
-        memcpy(m_VSSystemUniformBuffer, &projView, sizeof(Maths::Matrix4));
+        m_DescriptorSet[0]->SetUniform("UniformBufferObject", "projView", &projView);
+        m_DescriptorSet[0]->Update();
     }
 
     void LineRenderer::Present()
@@ -242,6 +231,9 @@ namespace Lumos
     {
         LUMOS_PROFILE_FUNCTION();
 
+        if(m_Lines.empty())
+            return;
+        
         if(!m_RenderTexture)
             m_CurrentBufferID = Renderer::GetSwapchain()->GetCurrentBufferIndex();
 

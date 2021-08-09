@@ -94,13 +94,16 @@ namespace Lumos
         return success ? result : std::string();
     }
 
-    bool FileSystem::WriteFile(const std::string& path, uint8_t* buffer)
+    bool FileSystem::WriteFile(const std::string& path, uint8_t* buffer, uint32_t size)
     {
-        const HANDLE file = CreateFile(path.c_str(), GENERIC_WRITE, NULL, nullptr, CREATE_NEW | OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
+        const HANDLE file = CreateFile(path.c_str(), GENERIC_WRITE, NULL, nullptr,CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
         if(file == INVALID_HANDLE_VALUE)
-            return false;
+		{
+			DWORD dw = GetLastError(); 
+			LUMOS_LOG_WARN("Failed to write file {0}, Error {1}", path, dw);
+			return false;
+		}
 
-        const int64_t size = GetFileSizeInternal(file);
         DWORD written;
         const bool result = ::WriteFile(file, buffer, static_cast<DWORD>(size), &written, nullptr) != 0;
         CloseHandle(file);
@@ -109,7 +112,7 @@ namespace Lumos
 
     bool FileSystem::WriteTextFile(const std::string& path, const std::string& text)
     {
-        return WriteFile(path, (uint8_t*)&text[0]);
+        return WriteFile(path, (uint8_t*)&text[0], (uint32_t)text.size());
     }
 }
 

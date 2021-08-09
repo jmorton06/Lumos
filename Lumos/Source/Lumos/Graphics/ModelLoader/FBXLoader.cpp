@@ -186,7 +186,7 @@ namespace Lumos::Graphics
     SharedRef<Material> LoadMaterial(const ofbx::Material* material, bool animated)
     {
         //auto shader = animated ? Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/ForwardPBR.shader") : Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/ForwardPBR.shader");
-        auto shader = ForwardRenderer::GetDefaultPBRShader();
+        auto shader = Application::Get().GetShaderLibrary()->GetResource("ForwardPBR");
 
         SharedRef<Material> pbrMaterial = CreateSharedRef<Material>(shader);
 

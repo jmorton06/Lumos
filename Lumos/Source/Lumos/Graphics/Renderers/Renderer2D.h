@@ -103,6 +103,8 @@ namespace Lumos
                 m_Triangles.clear();
                 m_CommandQueue2D.clear();
             }
+            
+            size_t GetTriangleCount() const { return m_Triangles.size(); }
 
         private:
             void SubmitInternal(const TriangleInfo& triangle);

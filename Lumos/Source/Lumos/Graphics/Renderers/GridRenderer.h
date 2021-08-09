@@ -31,11 +31,6 @@ namespace Lumos
 
             void CreateFramebuffers();
 
-            struct UniformBufferObject
-            {
-                Lumos::Maths::Matrix4 mvp;
-            };
-
             struct UniformBufferObjectFrag
             {
                 Maths::Vector4 cameraPos;
@@ -50,9 +45,6 @@ namespace Lumos
 
         private:
             void SetSystemUniforms(Shader* shader) const;
-
-            Lumos::Graphics::UniformBuffer* m_UniformBuffer;
-            Lumos::Graphics::UniformBuffer* m_UniformBufferFrag;
 
             uint32_t m_CurrentBufferID = 0;
             Mesh* m_Quad;

@@ -105,6 +105,11 @@ project "LumosEditor"
 			"OpenAL32"
 		}
 
+		postbuildcommands
+		{
+			'{COPY} "../Lumos/External/OpenAL/libs/Win32/OpenAL32.dll" "%{cfg.targetdir}"'
+		}
+
 		disablewarnings { 4307 }
 
 	filter "system:macosx"
@@ -199,18 +204,18 @@ project "LumosEditor"
 			"../Lumos/External/vulkan/libs/iOS/libMoltenVK.a"
 		}
 
---Adding assets from Game Project folder. Needs rework
+		--Adding assets from Game Project folder. Needs rework
 		files
 		{
 			"../Resources/AppIcons/Assets.xcassets",
 			"../Lumos/Assets/Shaders",
 			"../Lumos/Source/Lumos/Platform/iOS/Client/**",
             "../ExampleProject/Assets/Scenes",
-	"../ExampleProject/Assets/Scripts",
-	"../ExampleProject/Assets/Meshes",
-	"../ExampleProject/Assets/Sounds",
-	"../ExampleProject/Assets/Textures",
-	"../Runtime/Runtime.lmproj"
+			"../ExampleProject/Assets/Scripts",
+			"../ExampleProject/Assets/Meshes",
+			"../ExampleProject/Assets/Sounds",
+			"../ExampleProject/Assets/Textures",
+			"../Runtime/Runtime.lmproj"
 		}
 
 		xcodebuildsettings
@@ -258,9 +263,9 @@ project "LumosEditor"
             "Scenes",
             "Scripts",
             "Sounds",
-	"Textures",
-	"Runtime.lmproj"
-}
+			"Textures",
+			"Runtime.lmproj"
+		}
 
 		SetRecommendedXcodeSettings()
 

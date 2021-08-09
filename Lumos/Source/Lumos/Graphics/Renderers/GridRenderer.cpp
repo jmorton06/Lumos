@@ -29,8 +29,6 @@ namespace Lumos
     namespace Graphics
     {
         GridRenderer::GridRenderer(uint32_t width, uint32_t height)
-            : m_UniformBuffer(nullptr)
-            , m_UniformBufferFrag(nullptr)
         {
             m_Pipeline = nullptr;
 
@@ -44,10 +42,6 @@ namespace Lumos
         GridRenderer::~GridRenderer()
         {
             delete m_Quad;
-            delete m_UniformBuffer;
-            delete m_UniformBufferFrag;
-            delete[] m_VSSystemUniformBuffer;
-            delete[] m_PSSystemUniformBuffer;
         }
 
         void GridRenderer::RenderScene()
@@ -93,15 +87,6 @@ namespace Lumos
             m_Shader = Graphics::Shader::CreateFromEmbeddedArray(spirv_Gridvertspv.data(), spirv_Gridvertspv_size, spirv_Gridfragspv.data(), spirv_Gridfragspv_size);
 
             m_Quad = Graphics::CreatePlane(5000.0f, 5000.f, Maths::Vector3(0.0f, 1.0f, 0.0f));
-
-            // Vertex shader System uniforms
-            m_VSSystemUniformBufferSize = sizeof(Maths::Matrix4);
-            m_VSSystemUniformBuffer = new uint8_t[m_VSSystemUniformBufferSize];
-            memset(m_VSSystemUniformBuffer, 0, m_VSSystemUniformBufferSize);
-
-            m_PSSystemUniformBufferSize = sizeof(UniformBufferObjectFrag);
-            m_PSSystemUniformBuffer = new uint8_t[m_PSSystemUniformBufferSize];
-            memset(m_PSSystemUniformBuffer, 0, m_PSSystemUniformBufferSize);
 
             AttachmentInfo textureTypes[2] = {
                 { TextureType::COLOUR, TextureFormat::RGBA8 },
@@ -166,8 +151,9 @@ namespace Lumos
             test.maxDistance = m_MaxDistance;
 
             auto invViewProj = proj * m_CameraTransform->GetWorldMatrix().Inverse();
-            memcpy(m_VSSystemUniformBuffer, &invViewProj, sizeof(Maths::Matrix4));
-            memcpy(m_PSSystemUniformBuffer, &test, sizeof(UniformBufferObjectFrag));
+            m_DescriptorSet[0]->SetUniform("UniformBufferObject", "u_MVP", &invViewProj);
+            m_DescriptorSet[0]->SetUniformBufferData("UniformBuffer", &test);
+			m_DescriptorSet[0]->Update();
         }
 
         void GridRenderer::End()
@@ -179,8 +165,6 @@ namespace Lumos
         void GridRenderer::SetSystemUniforms(Shader* shader) const
         {
             LUMOS_PROFILE_FUNCTION();
-            m_UniformBuffer->SetData(sizeof(UniformBufferObject), *&m_VSSystemUniformBuffer);
-            m_UniformBufferFrag->SetData(sizeof(UniformBufferObjectFrag), *&m_PSSystemUniformBuffer);
         }
 
         void GridRenderer::OnImGui()
@@ -226,23 +210,6 @@ namespace Lumos
         void GridRenderer::UpdateUniformBuffer()
         {
             LUMOS_PROFILE_FUNCTION();
-            if(m_UniformBuffer == nullptr)
-            {
-                m_UniformBuffer = Graphics::UniformBuffer::Create();
-                uint32_t bufferSize = static_cast<uint32_t>(sizeof(UniformBufferObject));
-                m_UniformBuffer->Init(bufferSize, nullptr);
-            }
-
-            if(m_UniformBufferFrag == nullptr)
-            {
-                m_UniformBufferFrag = Graphics::UniformBuffer::Create();
-                uint32_t bufferSize = static_cast<uint32_t>(sizeof(UniformBufferObjectFrag));
-                m_UniformBufferFrag->Init(bufferSize, nullptr);
-            }
-
-            m_DescriptorSet[0]->SetBuffer("UniformBufferObject", m_UniformBuffer);
-            m_DescriptorSet[0]->SetBuffer("UniformBuffer", m_UniformBufferFrag);
-            m_DescriptorSet[0]->Update();
         }
 
         void GridRenderer::SetRenderTarget(Texture* texture, bool rebuildFramebuffer)

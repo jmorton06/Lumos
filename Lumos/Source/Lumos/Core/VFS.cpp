@@ -32,23 +32,26 @@ namespace Lumos
 
     bool VFS::ResolvePhysicalPath(const std::string& path, std::string& outPhysicalPath, bool folder)
     {
+		std::string updatedPath = path;
+		std::replace(updatedPath.begin(), updatedPath.end(), '\\', '/');
+		
         if(!(path[0] == '/' && path[1] == '/'))
         {
             outPhysicalPath = path;
-            return folder ? FileSystem ::FolderExists(path) : FileSystem::FileExists(path);
+            return folder ? FileSystem ::FolderExists(updatedPath) : FileSystem::FileExists(updatedPath);
         }
 
         static std::string delimiter = "/";
-        std::vector<std::string> dirs = StringUtilities::SplitString(path, delimiter);
+        std::vector<std::string> dirs = StringUtilities::SplitString(updatedPath, delimiter);
         const std::string& virtualDir = dirs.front();
 
         if(m_MountPoints.find(virtualDir) == m_MountPoints.end() || m_MountPoints[virtualDir].empty())
         {
-            outPhysicalPath = path;
-            return folder ? FileSystem::FolderExists(path) : FileSystem::FileExists(path);
+            outPhysicalPath = updatedPath;
+            return folder ? FileSystem::FolderExists(updatedPath) : FileSystem::FileExists(updatedPath);
         }
 
-        const std::string remainder = path.substr(virtualDir.size() + 2, path.size() - virtualDir.size());
+        const std::string remainder = updatedPath.substr(virtualDir.size() + 2, updatedPath.size() - virtualDir.size());
         for(const std::string& physicalPath : m_MountPoints[virtualDir])
         {
             const std::string newPath = physicalPath + /* "/" +*/ remainder;
@@ -75,11 +78,11 @@ namespace Lumos
         return ResolvePhysicalPath(path, physicalPath) ? FileSystem::ReadTextFile(physicalPath) : nullptr;
     }
 
-    bool VFS::WriteFile(const std::string& path, uint8_t* buffer)
+    bool VFS::WriteFile(const std::string& path, uint8_t* buffer, uint32_t size)
     {
         LUMOS_ASSERT(s_Instance, "");
         std::string physicalPath;
-        return ResolvePhysicalPath(path, physicalPath) ? FileSystem::WriteFile(physicalPath, buffer) : false;
+        return ResolvePhysicalPath(path, physicalPath) ? FileSystem::WriteFile(physicalPath, buffer, size) : false;
     }
 
     bool VFS::WriteTextFile(const std::string& path, const std::string& text)
@@ -91,13 +94,16 @@ namespace Lumos
 
     bool VFS::AbsoulePathToVFS(const std::string& path, std::string& outVFSPath, bool folder)
     {
+        std::string updatedPath = path;
+        std::replace(updatedPath.begin(), updatedPath.end(), '\\', '/');
+        
         for(auto const& [key, val] : m_MountPoints)
         {
             for(auto& vfsPath : val)
             {
-                if(path.find(vfsPath) != std::string::npos)
+                if(updatedPath.find(vfsPath) != std::string::npos)
                 {
-                    std::string newPath = path;
+                    std::string newPath = updatedPath;
                     std::string newPartPath = "//" + key;
                     newPath.replace(0, vfsPath.length(), newPartPath);
                     outVFSPath = newPath;
@@ -106,7 +112,7 @@ namespace Lumos
             }
         }
 
-        outVFSPath = path;
+        outVFSPath = updatedPath;
         return false;
     }
 }

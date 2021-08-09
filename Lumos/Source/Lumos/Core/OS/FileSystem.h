@@ -21,7 +21,7 @@ namespace Lumos
         static bool ReadFile(const std::string& path, void* buffer, int64_t size = -1);
         static std::string ReadTextFile(const std::string& path);
 
-        static bool WriteFile(const std::string& path, uint8_t* buffer);
+        static bool WriteFile(const std::string& path, uint8_t* buffer, uint32_t size);
         static bool WriteTextFile(const std::string& path, const std::string& text);
 
         static std::string GetWorkingDirectory();
@@ -75,18 +75,6 @@ namespace Lumos
                 return "rb";
             }
         }
-
-    private:
-        static bool (*FileExistsFunc)(const std::string&);
-        static bool (*FolderExistsFunc)(const std::string&);
-        static int64_t (*GetFileSizeFunc)(const std::string&);
-
-        static uint8_t* (*ReadFileFunc)(const std::string&);
-        static bool (*ReadFileBufferFunc)(const std::string&, void*, int64_t);
-        static std::string (*ReadTextFileFunc)(const std::string&);
-
-        static bool (*WriteFileFunc)(const std::string&, uint8_t*);
-        static bool (*WriteTextFileFunc)(const std::string&, const std::string&);
     };
 
 }
