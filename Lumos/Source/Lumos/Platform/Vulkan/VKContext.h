@@ -6,6 +6,8 @@
 
 #include "VKDevice.h"
 
+#include <deque>
+
 #ifdef USE_VMA_ALLOCATOR
 #include <vulkan/vk_mem_alloc.h>
 #endif
