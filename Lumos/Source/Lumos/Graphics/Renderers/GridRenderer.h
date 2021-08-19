@@ -44,8 +44,6 @@ namespace Lumos
             void OnImGui() override;
 
         private:
-            void SetSystemUniforms(Shader* shader) const;
-
             uint32_t m_CurrentBufferID = 0;
             Mesh* m_Quad;
 

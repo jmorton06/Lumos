@@ -1,36 +1,36 @@
 #include "Precompiled.h"
 #include "VKDevice.h"
-#include "VKSwapchain.h"
-#include "VKTools.h"
+#include "VKSwapChain.h"
+#include "VKUtilities.h"
 #include "VKFence.h"
+#include "VKRenderer.h"
 #include "Core/Application.h"
 
 namespace Lumos
 {
     namespace Graphics
     {
-        VKSwapchain::VKSwapchain(uint32_t width, uint32_t height)
+        VKSwapChain::VKSwapChain(uint32_t width, uint32_t height)
         {
             m_Width = width;
             m_Height = height;
             m_SwapChain = VK_NULL_HANDLE;
             m_OldSwapChain = VK_NULL_HANDLE;
             m_Surface = VK_NULL_HANDLE;
-            m_CurrentBuffer = 0; //std::numeric_limits<uint32_t>::max();
+            m_CurrentBuffer = std::numeric_limits<uint32_t>::max();
+            m_AcquireImageIndex = std::numeric_limits<uint32_t>::max();
         }
 
-        VKSwapchain::~VKSwapchain()
+        VKSwapChain::~VKSwapChain()
         {
             for(uint32_t i = 0; i < m_SwapchainBufferCount; i++)
             {
                 VKContext::Get()->WaitIdle();
 
                 vkDestroySemaphore(VKDevice::Get().GetDevice(), m_Frames[i].PresentSemaphore, nullptr);
-                vkDestroySemaphore(VKDevice::Get().GetDevice(), m_Frames[i].RenderSemaphore, nullptr);
 
                 m_Frames[i].MainCommandBuffer = nullptr;
                 m_Frames[i].CommandPool = nullptr;
-                m_Frames[i].RenderFence = nullptr;
 
                 delete m_SwapChainBuffers[i];
             }
@@ -42,7 +42,7 @@ namespace Lumos
             }
         }
 
-        void VKSwapchain::Init(bool vsync, Window* windowHandle)
+        void VKSwapChain::Init(bool vsync, Window* windowHandle)
         {
             LUMOS_PROFILE_FUNCTION();
             m_VSyncEnabled = vsync;
@@ -51,15 +51,17 @@ namespace Lumos
                 m_Surface = CreatePlatformSurface(VKContext::Get()->GetVKInstance(), windowHandle);
 
             Init(vsync);
+
+            AcquireNextImage();
         }
 
-        FrameData& VKSwapchain::GetCurrentFrameData()
+        FrameData& VKSwapChain::GetCurrentFrameData()
         {
             LUMOS_ASSERT(m_CurrentBuffer < m_SwapchainBufferCount, "Incorrect swapchain buffer index");
             return m_Frames[m_CurrentBuffer];
         }
 
-        bool VKSwapchain::Init(bool vsync)
+        bool VKSwapChain::Init(bool vsync)
         {
             LUMOS_PROFILE_FUNCTION();
             FindImageFormatAndColourSpace();
@@ -90,7 +92,7 @@ namespace Lumos
             swapChainExtent.width = static_cast<uint32_t>(m_Width);
             swapChainExtent.height = static_cast<uint32_t>(m_Height);
 
-            VkPresentModeKHR swapChainPresentMode = VKTools::ChoosePresentMode(pPresentModes, vsync);
+            VkPresentModeKHR swapChainPresentMode = VKUtilities::ChoosePresentMode(pPresentModes, vsync);
 
             // Use triple-buffering
             m_SwapchainBufferCount = surfaceCapabilities.maxImageCount;
@@ -184,6 +186,7 @@ namespace Lumos
                 VkImageView imageView;
                 VK_CHECK_RESULT(vkCreateImageView(VKDevice::Get().GetDevice(), &viewCI, VK_NULL_HANDLE, &imageView));
                 VKTexture2D* swapChainBuffer = new VKTexture2D(pSwapChainImages[i], imageView);
+                swapChainBuffer->TransitionImage(VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
 
                 m_SwapChainBuffers.push_back(swapChainBuffer);
             }
@@ -195,11 +198,11 @@ namespace Lumos
             return true;
         }
 
-        void VKSwapchain::CreateFrameData()
+        void VKSwapChain::CreateFrameData()
         {
             for(uint32_t i = 0; i < m_SwapchainBufferCount; i++)
             {
-                if(!m_Frames[i].RenderFence)
+                if(!m_Frames[i].MainCommandBuffer)
                 {
                     VkSemaphoreCreateInfo semaphoreInfo = {};
                     semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
@@ -207,23 +210,24 @@ namespace Lumos
 
                     if(m_Frames[i].PresentSemaphore == VK_NULL_HANDLE)
                         VK_CHECK_RESULT(vkCreateSemaphore(VKDevice::Get().GetDevice(), &semaphoreInfo, nullptr, &m_Frames[i].PresentSemaphore));
-                    if(m_Frames[i].RenderSemaphore == VK_NULL_HANDLE)
-                        VK_CHECK_RESULT(vkCreateSemaphore(VKDevice::Get().GetDevice(), &semaphoreInfo, nullptr, &m_Frames[i].RenderSemaphore));
 
-                    m_Frames[i].RenderFence = CreateSharedRef<VKFence>(true);
-                    m_Frames[i].CommandPool = CreateSharedRef<VKCommandPool>(VKDevice::Get().GetPhysicalDevice()->GetGraphicsQueueFamilyIndex(), VK_COMMAND_POOL_CREATE_TRANSIENT_BIT);
+                    m_Frames[i].CommandPool = CreateSharedPtr<VKCommandPool>(VKDevice::Get().GetPhysicalDevice()->GetGraphicsQueueFamilyIndex(), VK_COMMAND_POOL_CREATE_TRANSIENT_BIT);
 
-                    m_Frames[i].MainCommandBuffer = CreateSharedRef<VKCommandBuffer>();
+                    m_Frames[i].MainCommandBuffer = CreateSharedPtr<VKCommandBuffer>();
                     m_Frames[i].MainCommandBuffer->Init(true, m_Frames[i].CommandPool->GetHandle());
                 }
             }
         }
 
-        void VKSwapchain::AcquireNextImage()
+        void VKSwapChain::AcquireNextImage()
         {
             LUMOS_PROFILE_FUNCTION();
 
             uint32_t nextCmdBufferIndex = (m_CurrentBuffer + 1) % m_SwapchainBufferCount;
+
+            if(m_SwapchainBufferCount == 1 && m_AcquireImageIndex != std::numeric_limits<uint32_t>::max())
+                return;
+
             {
                 LUMOS_PROFILE_SCOPE("vkAcquireNextImageKHR");
                 auto result = vkAcquireNextImageKHR(VKDevice::Get().GetDevice(), m_SwapChain, UINT64_MAX, m_Frames[nextCmdBufferIndex].PresentSemaphore, VK_NULL_HANDLE, &m_AcquireImageIndex);
@@ -249,7 +253,7 @@ namespace Lumos
             }
         }
 
-        void VKSwapchain::OnResize(uint32_t width, uint32_t height, bool forceResize, Window* windowHandle)
+        void VKSwapChain::OnResize(uint32_t width, uint32_t height, bool forceResize, Window* windowHandle)
         {
             LUMOS_PROFILE_FUNCTION();
 
@@ -270,7 +274,6 @@ namespace Lumos
             m_OldSwapChain = m_SwapChain;
 
             m_SwapChain = VK_NULL_HANDLE;
-            //m_CurrentBuffer = 0;//std::numeric_limits<uint32_t>::max();
 
             if(windowHandle)
                 Init(m_VSyncEnabled, windowHandle);
@@ -278,61 +281,44 @@ namespace Lumos
                 Init(m_VSyncEnabled);
         }
 
-        void VKSwapchain::QueueSubmit()
+        void VKSwapChain::QueueSubmit()
         {
             LUMOS_PROFILE_FUNCTION();
             auto& frameData = GetCurrentFrameData();
-            auto cmdBuffer = frameData.MainCommandBuffer->GetHandle();
-            VkSubmitInfo submitInfo = {};
-            submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-            submitInfo.pNext = VK_NULL_HANDLE;
-            submitInfo.commandBufferCount = 1;
-            submitInfo.pCommandBuffers = &cmdBuffer;
-            VkPipelineStageFlags waitStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-
-            submitInfo.pWaitDstStageMask = &waitStage;
-
-            submitInfo.waitSemaphoreCount = 1;
-            submitInfo.pWaitSemaphores = &frameData.PresentSemaphore;
-
-            submitInfo.signalSemaphoreCount = 1;
-            submitInfo.pSignalSemaphores = &frameData.RenderSemaphore;
-
-            frameData.RenderFence->Reset();
-
-            {
-                LUMOS_PROFILE_SCOPE("vkQueueSubmit");
-                VK_CHECK_RESULT(vkQueueSubmit(VKDevice::Get().GetGraphicsQueue(), 1, &submitInfo, frameData.RenderFence->GetHandle()));
-            }
-
-            frameData.RenderFence->Wait(); //TODO: Remove this? - causes flickering if removed. Sync issue
-            frameData.CommandPool->Reset();
+            frameData.MainCommandBuffer->Execute(VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, frameData.PresentSemaphore, true);
         }
 
-        CommandBuffer* VKSwapchain::GetCurrentCommandBuffer()
+        CommandBuffer* VKSwapChain::GetCurrentCommandBuffer()
         {
             return GetCurrentFrameData().MainCommandBuffer.get();
         }
 
-        void VKSwapchain::Begin()
+        void VKSwapChain::Begin()
         {
             LUMOS_PROFILE_FUNCTION();
-            if(GetCurrentFrameData().MainCommandBuffer->GetState() == CommandBufferState::Submitted)
-                GetCurrentFrameData().RenderFence->Wait();
-            GetCurrentFrameData().MainCommandBuffer->BeginRecording();
+
+            auto commandBuffer = GetCurrentFrameData().MainCommandBuffer;
+            if(commandBuffer->GetState() == CommandBufferState::Submitted)
+            {
+                if(!commandBuffer->Wait())
+                {
+                    return;
+                }
+            }
+
+            VKRenderer::GetDeletionQueue(m_CurrentBuffer).Flush();
+            commandBuffer->BeginRecording();
         }
 
-        void VKSwapchain::End()
+        void VKSwapChain::End()
         {
             LUMOS_PROFILE_FUNCTION();
             GetCurrentCommandBuffer()->EndRecording();
         }
 
-        void VKSwapchain::Present()
+        void VKSwapChain::Present(VkSemaphore semaphore)
         {
             LUMOS_PROFILE_FUNCTION();
-
-            auto& frameData = GetCurrentFrameData();
 
             VkPresentInfoKHR present;
             present.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
@@ -341,7 +327,7 @@ namespace Lumos
             present.pSwapchains = &m_SwapChain;
             present.pImageIndices = &m_AcquireImageIndex;
             present.waitSemaphoreCount = 1;
-            present.pWaitSemaphores = &frameData.RenderSemaphore;
+            present.pWaitSemaphores = &semaphore;
             present.pResults = VK_NULL_HANDLE;
             auto error = vkQueuePresentKHR(VKDevice::Get().GetPresentQueue(), &present);
 
@@ -358,22 +344,22 @@ namespace Lumos
                 VK_CHECK_RESULT(error);
             }
 
-            //uint32_t nextCmdBufferIndex = (m_CurrentBuffer + 1) % m_SwapchainBufferCount;
-            //m_Frames[nextCmdBufferIndex].RenderFence->Wait();
+            //Until Fix sync issue
+            VKUtilities::WaitIdle();
         }
 
-        void VKSwapchain::MakeDefault()
+        void VKSwapChain::MakeDefault()
         {
             CreateFunc = CreateFuncVulkan;
         }
 
-        Swapchain* VKSwapchain::CreateFuncVulkan(uint32_t width, uint32_t height)
+        SwapChain* VKSwapChain::CreateFuncVulkan(uint32_t width, uint32_t height)
         {
-            return new VKSwapchain(width, height);
+            return new VKSwapChain(width, height);
         }
     }
 
-    void Graphics::VKSwapchain::FindImageFormatAndColourSpace()
+    void Graphics::VKSwapChain::FindImageFormatAndColourSpace()
     {
         LUMOS_PROFILE_FUNCTION();
         VkPhysicalDevice physicalDevice = VKDevice::Get().GetPhysicalDevice()->GetVulkanPhysicalDevice();

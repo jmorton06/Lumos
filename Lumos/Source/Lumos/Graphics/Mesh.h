@@ -50,16 +50,16 @@ namespace Lumos
             Mesh();
             Mesh(const Mesh& mesh);
             Mesh(const std::vector<uint32_t>& indices, const std::vector<Vertex>& vertices, float optimiseThreshold = 0.95f);
-            Mesh(SharedRef<VertexBuffer>& vertexBuffer, SharedRef<IndexBuffer>& indexBuffer, const SharedRef<Maths::BoundingBox>& boundingBox);
+            Mesh(SharedPtr<VertexBuffer>& vertexBuffer, SharedPtr<IndexBuffer>& indexBuffer, const SharedPtr<Maths::BoundingBox>& boundingBox);
 
             virtual ~Mesh();
 
-            const SharedRef<VertexBuffer>& GetVertexBuffer() const { return m_VertexBuffer; }
-            const SharedRef<IndexBuffer>& GetIndexBuffer() const { return m_IndexBuffer; }
-            const SharedRef<Material>& GetMaterial() const { return m_Material; }
-            const SharedRef<Maths::BoundingBox>& GetBoundingBox() const { return m_BoundingBox; }
+            const SharedPtr<VertexBuffer>& GetVertexBuffer() const { return m_VertexBuffer; }
+            const SharedPtr<IndexBuffer>& GetIndexBuffer() const { return m_IndexBuffer; }
+            const SharedPtr<Material>& GetMaterial() const { return m_Material; }
+            const SharedPtr<Maths::BoundingBox>& GetBoundingBox() const { return m_BoundingBox; }
 
-            void SetMaterial(const SharedRef<Material>& material) { m_Material = material; }
+            void SetMaterial(const SharedPtr<Material>& material) { m_Material = material; }
 
             bool& GetActive() { return m_Active; }
             void SetName(const std::string& name) { m_Name = name; }
@@ -72,10 +72,10 @@ namespace Lumos
             static Maths::Vector3* GenerateNormals(uint32_t numVertices, Maths::Vector3* vertices, uint32_t* indices, uint32_t numIndices);
             static Maths::Vector3* GenerateTangents(uint32_t numVertices, Maths::Vector3* vertices, uint32_t* indices, uint32_t numIndices, Maths::Vector2* texCoords);
 
-            SharedRef<VertexBuffer> m_VertexBuffer;
-            SharedRef<IndexBuffer> m_IndexBuffer;
-            SharedRef<Material> m_Material;
-            SharedRef<Maths::BoundingBox> m_BoundingBox;
+            SharedPtr<VertexBuffer> m_VertexBuffer;
+            SharedPtr<IndexBuffer> m_IndexBuffer;
+            SharedPtr<Material> m_Material;
+            SharedPtr<Maths::BoundingBox> m_BoundingBox;
 
             std::string m_Name;
 

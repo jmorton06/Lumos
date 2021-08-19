@@ -90,8 +90,6 @@ namespace Lumos
 
             float SubmitTexture(Texture* texture);
 
-            void SetSystemUniforms(Shader* shader) const;
-
             void CreateGraphicsPipeline();
             void CreateFramebuffers();
             void UpdateDesciptorSet();
@@ -103,7 +101,7 @@ namespace Lumos
                 m_Triangles.clear();
                 m_CommandQueue2D.clear();
             }
-            
+
             size_t GetTriangleCount() const { return m_Triangles.size(); }
 
         private:

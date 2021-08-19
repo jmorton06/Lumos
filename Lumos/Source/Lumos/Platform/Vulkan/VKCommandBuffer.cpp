@@ -3,7 +3,7 @@
 #include "VKDevice.h"
 #include "VKCommandPool.h"
 #include "VKFramebuffer.h"
-#include "VKTools.h"
+#include "VKUtilities.h"
 
 #include <Tracy/TracyVulkan.hpp>
 
@@ -46,6 +46,13 @@ namespace Lumos
 
             VK_CHECK_RESULT(vkAllocateCommandBuffers(VKDevice::Get().GetDevice(), &cmdBufferCI, &m_CommandBuffer));
 
+            VkSemaphoreCreateInfo semaphoreInfo = {};
+            semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+            semaphoreInfo.pNext = nullptr;
+
+            VK_CHECK_RESULT(vkCreateSemaphore(VKDevice::Get().GetDevice(), &semaphoreInfo, nullptr, &m_Semaphore));
+            m_Fence = CreateSharedPtr<VKFence>(false);
+
             return true;
         }
 
@@ -64,12 +71,24 @@ namespace Lumos
             cmdBufferCI.level = primary ? VK_COMMAND_BUFFER_LEVEL_PRIMARY : VK_COMMAND_BUFFER_LEVEL_SECONDARY;
 
             VK_CHECK_RESULT(vkAllocateCommandBuffers(VKDevice::Get().GetDevice(), &cmdBufferCI, &m_CommandBuffer));
+
+            VkSemaphoreCreateInfo semaphoreInfo = {};
+            semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+            semaphoreInfo.pNext = nullptr;
+
+            VK_CHECK_RESULT(vkCreateSemaphore(VKDevice::Get().GetDevice(), &semaphoreInfo, nullptr, &m_Semaphore));
+            m_Fence = CreateSharedPtr<VKFence>(true);
+
             return true;
         }
 
         void VKCommandBuffer::Unload()
         {
             LUMOS_PROFILE_FUNCTION();
+            VKUtilities::WaitIdle();
+            m_Fence = nullptr;
+            vkDestroySemaphore(VKDevice::Get().GetDevice(), m_Semaphore, nullptr);
+
             vkFreeCommandBuffers(VKDevice::Get().GetDevice(), m_CommandPool, 1, &m_CommandBuffer);
         }
 
@@ -94,7 +113,7 @@ namespace Lumos
             VkCommandBufferInheritanceInfo inheritanceInfo {};
             inheritanceInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_INFO;
             inheritanceInfo.subpass = 0;
-            inheritanceInfo.renderPass = static_cast<VKRenderpass*>(renderPass)->GetHandle();
+            inheritanceInfo.renderPass = static_cast<VKRenderPass*>(renderPass)->GetHandle();
             inheritanceInfo.framebuffer = static_cast<VKFramebuffer*>(framebuffer)->GetFramebuffer();
 
             VkCommandBufferBeginInfo beginCI {};
@@ -113,21 +132,12 @@ namespace Lumos
             m_State = CommandBufferState::Ended;
         }
 
-        void VKCommandBuffer::Execute(bool waitFence)
-        {
-            LUMOS_PROFILE_FUNCTION();
-            LUMOS_ASSERT(m_State == CommandBufferState::Ended, "CommandBuffer executed before ended recording");
-
-            ExecuteInternal(VkPipelineStageFlags(), VK_NULL_HANDLE, VK_NULL_HANDLE, waitFence);
-            m_State = CommandBufferState::Submitted;
-        }
-
-        void VKCommandBuffer::ExecuteInternal(VkPipelineStageFlags flags, VkSemaphore waitSemaphore, VkSemaphore signalSemaphore, bool waitFence)
+        void VKCommandBuffer::Execute(VkPipelineStageFlags flags, VkSemaphore waitSemaphore, bool waitFence)
         {
             LUMOS_PROFILE_FUNCTION();
             LUMOS_ASSERT(m_Primary, "Used Execute on secondary command buffer!");
             LUMOS_ASSERT(m_State == CommandBufferState::Ended, "CommandBuffer executed before ended recording");
-            uint32_t waitSemaphoreCount = waitSemaphore ? 1 : 0, signalSemaphoreCount = signalSemaphore ? 1 : 0;
+            uint32_t waitSemaphoreCount = waitSemaphore ? 1 : 0, signalSemaphoreCount = m_Semaphore ? 1 : 0;
 
             VkSubmitInfo submitInfo = {};
             submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
@@ -138,9 +148,11 @@ namespace Lumos
             submitInfo.commandBufferCount = 1;
             submitInfo.pCommandBuffers = &m_CommandBuffer;
             submitInfo.signalSemaphoreCount = signalSemaphoreCount;
-            submitInfo.pSignalSemaphores = &signalSemaphore;
+            submitInfo.pSignalSemaphores = &m_Semaphore;
 
-            VK_CHECK_RESULT(vkQueueSubmit(VKDevice::Get().GetGraphicsQueue(), 1, &submitInfo, VK_NULL_HANDLE));
+            m_Fence->Reset();
+
+            VK_CHECK_RESULT(vkQueueSubmit(VKDevice::Get().GetGraphicsQueue(), 1, &submitInfo, m_Fence->GetHandle()));
             m_State = CommandBufferState::Submitted;
         }
 
@@ -176,6 +188,32 @@ namespace Lumos
         {
             LUMOS_PROFILE_FUNCTION();
             VK_CHECK_RESULT(vkResetCommandBuffer(m_CommandBuffer, 0));
+        }
+
+        bool VKCommandBuffer::Flush()
+        {
+            if(m_State == CommandBufferState::Idle)
+                return true;
+
+            VKUtilities::WaitIdle();
+
+            if(m_State == CommandBufferState::Submitted)
+                return Wait();
+
+            return true;
+        }
+
+        bool VKCommandBuffer::Wait()
+        {
+            LUMOS_ASSERT(m_State == CommandBufferState::Submitted, "");
+
+            bool fenceFailed = m_Fence->Wait();
+            if(fenceFailed)
+                return false;
+
+            m_State = CommandBufferState::Idle;
+
+            return true;
         }
 
         void VKCommandBuffer::MakeDefault()

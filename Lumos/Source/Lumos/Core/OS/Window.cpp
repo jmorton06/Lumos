@@ -5,13 +5,13 @@ namespace Lumos
 {
     Window* (*Window::CreateFunc)(const WindowDesc&) = NULL;
 
-    Window* Window::Create(const WindowDesc& properties)
+    Window* Window::Create(const WindowDesc& windowDesc)
     {
         LUMOS_ASSERT(CreateFunc, "No Windows Create Function");
-        return CreateFunc(properties);
+        return CreateFunc(windowDesc);
     }
 
-    bool Window::Initialise(const WindowDesc& properties)
+    bool Window::Initialise(const WindowDesc& windowDesc)
     {
         return HasInitialised();
     }

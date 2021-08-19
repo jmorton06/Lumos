@@ -3,7 +3,7 @@
 #include "Graphics/RHI/Framebuffer.h"
 #include "VK.h"
 #include "VKTexture.h"
-#include "VKRenderpass.h"
+#include "VKRenderPass.h"
 
 namespace Lumos
 {

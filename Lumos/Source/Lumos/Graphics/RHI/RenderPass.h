@@ -1,4 +1,5 @@
 #pragma once
+#include "Definitions.h"
 
 namespace Lumos
 {
@@ -9,36 +10,12 @@ namespace Lumos
 
     namespace Graphics
     {
-        class CommandBuffer;
-        class Framebuffer;
-        enum class TextureType : int;
-        enum class TextureFormat;
-
-        struct AttachmentInfo
-        {
-            TextureType textureType;
-            TextureFormat format;
-        };
-
-        struct RenderPassDesc
-        {
-            AttachmentInfo* textureType;
-            int attachmentCount;
-            bool clear = true;
-        };
-
-        enum SubPassContents
-        {
-            INLINE,
-            SECONDARY
-        };
-
         class LUMOS_EXPORT RenderPass
         {
         public:
             virtual ~RenderPass();
-            static RenderPass* Create(const RenderPassDesc& renderPassCI);
-            static SharedRef<RenderPass> Get(const RenderPassDesc& renderPassCI);
+            static RenderPass* Create(const RenderPassDesc& renderPassDesc);
+            static SharedPtr<RenderPass> Get(const RenderPassDesc& renderPassDesc);
             static void ClearCache();
             static void DeleteUnusedCache();
 

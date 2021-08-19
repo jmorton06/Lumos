@@ -53,8 +53,8 @@ namespace Lumos
         void SetContactListener(b2ContactListener* listener);
 
     private:
-        UniqueRef<b2World> m_B2DWorld;
-        UniqueRef<B2DebugDraw> m_DebugDraw;
+        UniquePtr<b2World> m_B2DWorld;
+        UniquePtr<B2DebugDraw> m_DebugDraw;
 
         float m_UpdateTimestep, m_UpdateAccum;
         bool m_Paused = true;

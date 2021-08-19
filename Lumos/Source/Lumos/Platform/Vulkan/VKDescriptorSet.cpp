@@ -1,7 +1,7 @@
 #include "Precompiled.h"
 #include "VKDescriptorSet.h"
 #include "VKPipeline.h"
-#include "VKTools.h"
+#include "VKUtilities.h"
 #include "VKUniformBuffer.h"
 #include "VKTexture.h"
 #include "VKDevice.h"
@@ -16,14 +16,14 @@ namespace Lumos
 {
     namespace Graphics
     {
-        VKDescriptorSet::VKDescriptorSet(const DescriptorDesc& info)
+        VKDescriptorSet::VKDescriptorSet(const DescriptorDesc& descriptorDesc)
         {
             LUMOS_PROFILE_FUNCTION();
             VkDescriptorSetAllocateInfo descriptorSetAllocateInfo;
             descriptorSetAllocateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
             descriptorSetAllocateInfo.descriptorPool = VKRenderer::GetRenderer()->GetDescriptorPool();
-            descriptorSetAllocateInfo.pSetLayouts = static_cast<Graphics::VKShader*>(info.shader)->GetDescriptorLayout(info.layoutIndex);
-            descriptorSetAllocateInfo.descriptorSetCount = info.count;
+            descriptorSetAllocateInfo.pSetLayouts = static_cast<Graphics::VKShader*>(descriptorDesc.shader)->GetDescriptorLayout(descriptorDesc.layoutIndex);
+            descriptorSetAllocateInfo.descriptorSetCount = descriptorDesc.count;
             descriptorSetAllocateInfo.pNext = nullptr;
 
             VK_CHECK_RESULT(vkAllocateDescriptorSets(VKDevice::GetHandle(), &descriptorSetAllocateInfo, &m_DescriptorSet));
@@ -32,22 +32,22 @@ namespace Lumos
             m_ImageInfoPool = new VkDescriptorImageInfo[MAX_IMAGE_INFOS];
             m_WriteDescriptorSetPool = new VkWriteDescriptorSet[MAX_WRITE_DESCTIPTORS];
 
-            m_Shader = info.shader;
+            m_Shader = descriptorDesc.shader;
 
-            m_Descriptors = m_Shader->GetDescriptorInfo(info.layoutIndex);
-			
-			for(auto& descriptor : m_Descriptors.descriptors)
+            m_Descriptors = m_Shader->GetDescriptorInfo(descriptorDesc.layoutIndex);
+
+            for(auto& descriptor : m_Descriptors.descriptors)
             {
                 if(descriptor.type == DescriptorType::UNIFORM_BUFFER)
                 {
-					auto buffer = SharedRef<Graphics::UniformBuffer>(Graphics::UniformBuffer::Create());
-					buffer->Init(descriptor.size, nullptr);
+                    auto buffer = SharedPtr<Graphics::UniformBuffer>(Graphics::UniformBuffer::Create());
+                    buffer->Init(descriptor.size, nullptr);
                     descriptor.buffer = buffer.get();
-                    
+
                     Buffer localStorage;
                     localStorage.Allocate(descriptor.size);
                     localStorage.InitialiseEmpty();
-                    
+
                     UniformBufferInfo info;
                     info.UB = buffer;
                     info.LocalStorage = localStorage;
@@ -70,9 +70,9 @@ namespace Lumos
             CreateFunc = CreateFuncVulkan;
         }
 
-        DescriptorSet* VKDescriptorSet::CreateFuncVulkan(const DescriptorDesc& info)
+        DescriptorSet* VKDescriptorSet::CreateFuncVulkan(const DescriptorDesc& descriptorDesc)
         {
-            return new VKDescriptorSet(info);
+            return new VKDescriptorSet(descriptorDesc);
         }
 
         void VKDescriptorSet::Update()
@@ -80,7 +80,7 @@ namespace Lumos
             LUMOS_PROFILE_FUNCTION();
             m_Dynamic = false;
             int descriptorWritesCount = 0;
-            
+
             for(auto& bufferInfo : m_UniformBuffers)
             {
                 if(bufferInfo.second.HasUpdated)
@@ -143,7 +143,7 @@ namespace Lumos
                             VkWriteDescriptorSet writeDescriptorSet {};
                             writeDescriptorSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
                             writeDescriptorSet.dstSet = m_DescriptorSet;
-                            writeDescriptorSet.descriptorType = VKTools::DescriptorTypeToVK(imageInfo.type);
+                            writeDescriptorSet.descriptorType = VKUtilities::DescriptorTypeToVK(imageInfo.type);
                             writeDescriptorSet.dstBinding = imageInfo.binding;
                             writeDescriptorSet.pBufferInfo = &m_BufferInfoPool[index];
                             writeDescriptorSet.descriptorCount = 1;
@@ -163,7 +163,7 @@ namespace Lumos
                 m_WriteDescriptorSetPool, 0, nullptr);
         }
 
-        void VKDescriptorSet::SetTexture(const std::string& name, Texture* texture, TextureType textureType) 
+        void VKDescriptorSet::SetTexture(const std::string& name, Texture* texture, TextureType textureType)
         {
             LUMOS_PROFILE_FUNCTION();
 
@@ -172,15 +172,15 @@ namespace Lumos
                 if(descriptor.type == DescriptorType::IMAGE_SAMPLER && descriptor.name == name)
                 {
                     descriptor.texture = texture;
-					descriptor.textureType = textureType;
+                    descriptor.textureType = textureType;
                 }
             }
         }
-    
+
         void VKDescriptorSet::SetTexture(const std::string& name, Texture** texture, uint32_t textureCount, TextureType textureType)
         {
             LUMOS_PROFILE_FUNCTION();
-              for(auto& descriptor : m_Descriptors.descriptors)
+            for(auto& descriptor : m_Descriptors.descriptors)
             {
                 if(descriptor.type == DescriptorType::IMAGE_SAMPLER && descriptor.name == name)
                 {
@@ -191,10 +191,10 @@ namespace Lumos
             }
         }
 
-        void VKDescriptorSet::SetBuffer(const std::string& name, UniformBuffer* buffer) 
+        void VKDescriptorSet::SetBuffer(const std::string& name, UniformBuffer* buffer)
         {
             LUMOS_PROFILE_FUNCTION();
-              for(auto& descriptor : m_Descriptors.descriptors)
+            for(auto& descriptor : m_Descriptors.descriptors)
             {
                 if(descriptor.type == DescriptorType::UNIFORM_BUFFER && descriptor.name == name)
                 {
@@ -202,7 +202,7 @@ namespace Lumos
                 }
             }
         }
-    
+
         Graphics::UniformBuffer* VKDescriptorSet::GetUnifromBuffer(const std::string& name)
         {
             LUMOS_PROFILE_FUNCTION();
@@ -213,11 +213,11 @@ namespace Lumos
                     return descriptor.buffer;
                 }
             }
-            
+
             LUMOS_LOG_WARN("Buffer not found {0}", name);
             return nullptr;
         }
-    
+
         void VKDescriptorSet::SetUniform(const std::string& bufferName, const std::string& uniformName, void* data)
         {
             std::unordered_map<std::string, UniformBufferInfo>::iterator itr = m_UniformBuffers.find(bufferName);
@@ -233,10 +233,10 @@ namespace Lumos
                     }
                 }
             }
-            
+
             LUMOS_LOG_WARN("Uniform not found {0}.{1}", bufferName, uniformName);
         }
-    
+
         void VKDescriptorSet::SetUniform(const std::string& bufferName, const std::string& uniformName, void* data, uint32_t size)
         {
             std::unordered_map<std::string, UniformBufferInfo>::iterator itr = m_UniformBuffers.find(bufferName);
@@ -252,10 +252,10 @@ namespace Lumos
                     }
                 }
             }
-            
+
             LUMOS_LOG_WARN("Uniform not found {0}.{1}", bufferName, uniformName);
         }
-    
+
         void VKDescriptorSet::SetUniformBufferData(const std::string& bufferName, void* data)
         {
             std::unordered_map<std::string, UniformBufferInfo>::iterator itr = m_UniformBuffers.find(bufferName);
@@ -265,7 +265,7 @@ namespace Lumos
                 itr->second.HasUpdated = true;
                 return;
             }
-            
+
             LUMOS_LOG_WARN("Uniform not found {0}.{1}", bufferName);
         }
     }

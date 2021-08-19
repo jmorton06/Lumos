@@ -48,7 +48,7 @@ namespace Lumos
         static void Flush();
         void OnImGui() override;
 
-        static void AddMessage(const SharedRef<Message>& message);
+        static void AddMessage(const SharedPtr<Message>& message);
 
     private:
         void ImGuiRenderHeader();
@@ -58,7 +58,7 @@ namespace Lumos
         static uint16_t s_MessageBufferCapacity;
         static uint16_t s_MessageBufferSize;
         static uint16_t s_MessageBufferBegin;
-        static std::vector<SharedRef<Message>> s_MessageBuffer;
+        static std::vector<SharedPtr<Message>> s_MessageBuffer;
         static bool s_AllowScrollingToBottom;
         static bool s_RequestScrollToBottom;
         static uint32_t s_MessageBufferRenderFilter;

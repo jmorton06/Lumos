@@ -7,7 +7,7 @@
 namespace Lumos
 {
 
-    OctreeBroadphase::OctreeBroadphase(const size_t maxObjectsPerPartition, const size_t maxPartitionDepth, const SharedRef<Broadphase>& secondaryBroadphase)
+    OctreeBroadphase::OctreeBroadphase(const size_t maxObjectsPerPartition, const size_t maxPartitionDepth, const SharedPtr<Broadphase>& secondaryBroadphase)
         : m_MaxObjectsPerPartition(maxObjectsPerPartition)
         , m_MaxPartitionDepth(maxPartitionDepth)
         , m_SecondaryBroadphase(secondaryBroadphase)

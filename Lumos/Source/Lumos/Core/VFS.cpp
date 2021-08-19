@@ -5,36 +5,21 @@
 
 namespace Lumos
 {
-
-    VFS* VFS::s_Instance = nullptr;
-
-    void VFS::OnInit()
-    {
-        s_Instance = new VFS();
-    }
-
-    void VFS::OnShutdown()
-    {
-        delete s_Instance;
-    }
-
     void VFS::Mount(const std::string& virtualPath, const std::string& physicalPath)
     {
-        LUMOS_ASSERT(s_Instance, "");
         m_MountPoints[virtualPath].push_back(physicalPath);
     }
 
     void VFS::Unmount(const std::string& path)
     {
-        LUMOS_ASSERT(s_Instance, "");
         m_MountPoints[path].clear();
     }
 
     bool VFS::ResolvePhysicalPath(const std::string& path, std::string& outPhysicalPath, bool folder)
     {
-		std::string updatedPath = path;
-		std::replace(updatedPath.begin(), updatedPath.end(), '\\', '/');
-		
+        std::string updatedPath = path;
+        std::replace(updatedPath.begin(), updatedPath.end(), '\\', '/');
+
         if(!(path[0] == '/' && path[1] == '/'))
         {
             outPhysicalPath = path;
@@ -66,28 +51,24 @@ namespace Lumos
 
     uint8_t* VFS::ReadFile(const std::string& path)
     {
-        LUMOS_ASSERT(s_Instance, "");
         std::string physicalPath;
         return ResolvePhysicalPath(path, physicalPath) ? FileSystem::ReadFile(physicalPath) : nullptr;
     }
 
     std::string VFS::ReadTextFile(const std::string& path)
     {
-        LUMOS_ASSERT(s_Instance, "");
         std::string physicalPath;
-        return ResolvePhysicalPath(path, physicalPath) ? FileSystem::ReadTextFile(physicalPath) : nullptr;
+        return ResolvePhysicalPath(path, physicalPath) ? FileSystem::ReadTextFile(physicalPath) : "";
     }
 
     bool VFS::WriteFile(const std::string& path, uint8_t* buffer, uint32_t size)
     {
-        LUMOS_ASSERT(s_Instance, "");
         std::string physicalPath;
         return ResolvePhysicalPath(path, physicalPath) ? FileSystem::WriteFile(physicalPath, buffer, size) : false;
     }
 
     bool VFS::WriteTextFile(const std::string& path, const std::string& text)
     {
-        LUMOS_ASSERT(s_Instance, "");
         std::string physicalPath;
         return ResolvePhysicalPath(path, physicalPath) ? FileSystem::WriteTextFile(physicalPath, text) : false;
     }
@@ -96,7 +77,7 @@ namespace Lumos
     {
         std::string updatedPath = path;
         std::replace(updatedPath.begin(), updatedPath.end(), '\\', '/');
-        
+
         for(auto const& [key, val] : m_MountPoints)
         {
             for(auto& vfsPath : val)

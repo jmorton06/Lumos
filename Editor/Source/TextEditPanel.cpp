@@ -12,28 +12,28 @@ namespace Lumos
     TextEditPanel::TextEditPanel(const std::string& filePath)
         : m_FilePath(filePath)
     {
-        m_Name = "TextEditWindow";
+        m_Name = "Text Editor###textEdit";
         m_SimpleName = "TextEdit";
         m_OnSaveCallback = NULL;
         editor.SetCustomIdentifiers({});
-        
+
         auto extension = StringUtilities::GetFilePathExtension(m_FilePath);
 
         if(extension == "lua" || extension == "Lua")
         {
             auto lang = TextEditor::LanguageDefinition::Lua();
             editor.SetLanguageDefinition(lang);
-            
+
             auto& customIdentifiers = LuaManager::GetIdentifiers();
             TextEditor::Identifiers identifiers;
-            
-            for (auto& k : customIdentifiers)
+
+            for(auto& k : customIdentifiers)
             {
                 TextEditor::Identifier id;
                 id.mDeclaration = "Engine function";
                 identifiers.insert(std::make_pair(k, id));
             }
-            
+
             editor.SetCustomIdentifiers(identifiers);
         }
         else if(extension == "cpp")
@@ -69,7 +69,7 @@ namespace Lumos
         }
 
         auto cpos = editor.GetCursorPosition();
-        ImGui::Begin("Text Editor", &m_Active, ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_MenuBar);
+        ImGui::Begin(m_Name.c_str(), &m_Active, ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_MenuBar);
         ImGui::SetWindowSize(ImVec2(800, 600), ImGuiCond_FirstUseEver);
         if(ImGui::BeginMenuBar())
         {
@@ -142,7 +142,7 @@ namespace Lumos
             }
         }
 
-        editor.Render("TextEditor");
+        editor.Render(m_Name.c_str());
         ImGui::End();
     }
 

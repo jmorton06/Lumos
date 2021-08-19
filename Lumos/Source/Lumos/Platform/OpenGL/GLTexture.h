@@ -27,6 +27,7 @@ namespace Lumos
             {
                 return m_Width;
             }
+
             inline uint32_t GetHeight() const override
             {
                 return m_Height;
@@ -46,6 +47,16 @@ namespace Lumos
             uint8_t* LoadTextureData();
             uint32_t LoadTexture(void* data) const;
 
+            TextureType GetType() const override
+            {
+                return TextureType::COLOUR;
+            }
+
+            TextureFormat GetFormat() const override
+            {
+                return m_Format;
+            }
+
             static void MakeDefault();
 
         protected:
@@ -62,6 +73,7 @@ namespace Lumos
             uint32_t m_Width, m_Height;
             TextureParameters m_Parameters;
             TextureLoadOptions m_LoadOptions;
+            TextureFormat m_Format;
             bool isHDR = false;
         };
 
@@ -100,6 +112,26 @@ namespace Lumos
                 return m_Files[0];
             }
 
+            inline uint32_t GetWidth() const override
+            {
+                return m_Width;
+            }
+
+            inline uint32_t GetHeight() const override
+            {
+                return m_Height;
+            }
+
+            TextureType GetType() const override
+            {
+                return TextureType::CUBE;
+            }
+
+            TextureFormat GetFormat() const override
+            {
+                return m_TextureFormat;
+            }
+
             static void MakeDefault();
 
         protected:
@@ -120,6 +152,7 @@ namespace Lumos
             uint32_t m_Bits;
             uint32_t m_NumMips;
             InputFormat m_Format;
+            TextureFormat m_TextureFormat;
             TextureParameters m_Parameters;
             TextureLoadOptions m_LoadOptions;
         };
@@ -148,6 +181,26 @@ namespace Lumos
                 return m_Name;
             }
 
+            inline uint32_t GetWidth() const override
+            {
+                return m_Width;
+            }
+
+            inline uint32_t GetHeight() const override
+            {
+                return m_Height;
+            }
+
+            TextureType GetType() const override
+            {
+                return TextureType::DEPTH;
+            }
+
+            TextureFormat GetFormat() const override
+            {
+                return m_Format;
+            }
+
             static void MakeDefault();
 
         protected:
@@ -158,6 +211,7 @@ namespace Lumos
             std::string m_Name;
             uint32_t m_Handle;
             uint32_t m_Width, m_Height;
+            TextureFormat m_Format;
         };
 
         class GLTextureDepthArray : public TextureDepthArray
@@ -184,9 +238,20 @@ namespace Lumos
             {
                 return m_Name;
             }
+
             inline const std::string& GetFilepath() const override
             {
                 return m_Name;
+            }
+
+            inline uint32_t GetWidth() const override
+            {
+                return m_Width;
+            }
+
+            inline uint32_t GetHeight() const override
+            {
+                return m_Height;
             }
 
             inline void SetCount(uint32_t count)
@@ -194,12 +259,25 @@ namespace Lumos
                 m_Count = count;
             }
 
+            TextureType GetType() const override
+            {
+                return TextureType::DEPTHARRAY;
+            }
+
+            TextureFormat GetFormat() const override
+            {
+                return m_Format;
+            }
+
+            uint32_t GetCount() const { return m_Count; }
+
             void Init() override;
 
             static void MakeDefault();
 
         protected:
             static TextureDepthArray* CreateFuncGL(uint32_t, uint32_t, uint32_t);
+            TextureFormat m_Format;
         };
     }
 }

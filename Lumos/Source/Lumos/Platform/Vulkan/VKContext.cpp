@@ -1,9 +1,10 @@
 #include "Precompiled.h"
 #include "VKContext.h"
 #include "VKDevice.h"
-#include "VKSwapchain.h"
+#include "VKSwapChain.h"
 #include "VKCommandPool.h"
 #include "VKCommandBuffer.h"
+#include "VKRenderer.h"
 #include "Core/Version.h"
 #include "Core/StringUtilities.h"
 
@@ -13,7 +14,6 @@
 #define VK_LAYER_LUNARG_ASSISTENT_LAYER_NAME "VK_LAYER_LUNARG_assistant_layer"
 #define VK_LAYER_RENDERDOC_CAPTURE_NAME "VK_LAYER_RENDERDOC_Capture"
 #define VK_LAYER_LUNARG_VALIDATION_NAME "VK_LAYER_KHRONOS_validation"
-
 
 namespace Lumos
 {
@@ -70,7 +70,7 @@ namespace Lumos
 
             if(m_AssistanceLayer)
                 layers.emplace_back(VK_LAYER_LUNARG_ASSISTENT_LAYER_NAME);
-            
+
             if(m_ValidationLayer)
                 layers.emplace_back(VK_LAYER_LUNARG_VALIDATION_NAME);
 
@@ -114,6 +114,12 @@ namespace Lumos
         VKContext::~VKContext()
         {
             m_Swapchain.reset();
+
+            for(int i = 0; i < 3; i++)
+            {
+                VKRenderer::GetDeletionQueue(i).Flush();
+            }
+
             VKDevice::Release();
             DestroyDebugReportCallbackEXT(m_VkInstance, m_DebugCallback, nullptr);
             vkDestroyInstance(m_VkInstance, nullptr);
@@ -126,7 +132,7 @@ namespace Lumos
 
             VKDevice::Get().Init();
 
-            m_Swapchain = CreateSharedRef<VKSwapchain>(m_Width, m_Height);
+            m_Swapchain = CreateSharedPtr<VKSwapChain>(m_Width, m_Height);
             m_Swapchain->Init(m_VSync, m_Window);
             //m_Swapchain->AcquireNextImage();
 
@@ -231,7 +237,7 @@ namespace Lumos
 
             m_InstanceExtensions.resize(extensionCount);
             vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, m_InstanceExtensions.data());
-            
+
             bool extensionSupported = true;
 
             for(int i = 0; i < extensions.size(); i++)
@@ -473,7 +479,7 @@ namespace Lumos
 
             VmaStats stats;
             vmaCalculateStats(allocator, &stats);
-            
+
             const auto& memoryProps = VKDevice::Get().GetPhysicalDevice()->GetMemoryProperties();
             std::vector<VmaBudget> budgets(memoryProps.memoryHeapCount);
             vmaGetBudget(allocator, budgets.data());
@@ -481,12 +487,12 @@ namespace Lumos
             uint64_t usage = 0;
             uint64_t budget = 0;
 
-            for (VmaBudget& b : budgets)
+            for(VmaBudget& b : budgets)
             {
                 usage += b.usage;
                 budget += b.budget;
             }
-            
+
             ImGui::Text("Memory Usage %s", StringUtilities::BytesToString(usage).c_str());
             ImGui::Text("Memory Budget %s", StringUtilities::BytesToString(budget).c_str());
 

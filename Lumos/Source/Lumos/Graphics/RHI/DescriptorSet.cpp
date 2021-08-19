@@ -7,11 +7,11 @@ namespace Lumos
     {
         DescriptorSet* (*DescriptorSet::CreateFunc)(const DescriptorDesc&) = nullptr;
 
-        DescriptorSet* DescriptorSet::Create(const DescriptorDesc& info)
+        DescriptorSet* DescriptorSet::Create(const DescriptorDesc& desc)
         {
             LUMOS_ASSERT(CreateFunc, "No DescriptorSet Create Function");
 
-            return CreateFunc(info);
+            return CreateFunc(desc);
         }
     }
 }

@@ -13,8 +13,8 @@ namespace Lumos
 
     struct DirectoryInformation
     {
-        SharedRef<DirectoryInformation> Parent;
-        std::vector<SharedRef<DirectoryInformation>> Children;
+        SharedPtr<DirectoryInformation> Parent;
+        std::vector<SharedPtr<DirectoryInformation>> Children;
 
         std::filesystem::path FilePath;
         bool IsFile;
@@ -36,7 +36,7 @@ namespace Lumos
         void OnImGui() override;
 
         bool RenderFile(int dirIndex, bool folder, int shownIndex, bool gridView);
-        void DrawFolder(const SharedRef<DirectoryInformation>& dirInfo, bool defaultOpen = false);
+        void DrawFolder(const SharedPtr<DirectoryInformation>& dirInfo, bool defaultOpen = false);
         void RenderBreadCrumbs();
         void RenderBottom();
         void GetDirectories(const std::string& path);
@@ -60,12 +60,12 @@ namespace Lumos
         static bool MoveFile(const std::string& filePath, const std::string& movePath);
 
         std::string StripExtras(const std::string& filename);
-        std::string ProcessDirectory(const std::filesystem::path& directoryPath, const SharedRef<DirectoryInformation>& parent);
+        std::string ProcessDirectory(const std::filesystem::path& directoryPath, const SharedPtr<DirectoryInformation>& parent);
 
-        void ChangeDirectory(SharedRef<DirectoryInformation>& directory);
-        void RemoveDirectory(SharedRef<DirectoryInformation>& directory, bool removeFromParent = true);
-		void OnNewProject() override;
-		void Refresh();
+        void ChangeDirectory(SharedPtr<DirectoryInformation>& directory);
+        void RemoveDirectory(SharedPtr<DirectoryInformation>& directory, bool removeFromParent = true);
+        void OnNewProject() override;
+        void Refresh();
 
     private:
         static inline std::vector<std::string> assetTypes = {
@@ -94,11 +94,11 @@ namespace Lumos
 
         bool m_UpdateNavigationPath = true;
 
-        SharedRef<DirectoryInformation> m_CurrentDir;
-        SharedRef<DirectoryInformation> m_BaseProjectDir;
-        SharedRef<DirectoryInformation> m_NextDirectory;
-        SharedRef<DirectoryInformation> m_PreviousDirectory;
-        std::unordered_map<std::string, SharedRef<DirectoryInformation>> m_Directories;
-        std::vector<SharedRef<DirectoryInformation>> m_BreadCrumbData;
+        SharedPtr<DirectoryInformation> m_CurrentDir;
+        SharedPtr<DirectoryInformation> m_BaseProjectDir;
+        SharedPtr<DirectoryInformation> m_NextDirectory;
+        SharedPtr<DirectoryInformation> m_PreviousDirectory;
+        std::unordered_map<std::string, SharedPtr<DirectoryInformation>> m_Directories;
+        std::vector<SharedPtr<DirectoryInformation>> m_BreadCrumbData;
     };
 }

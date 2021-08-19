@@ -50,7 +50,7 @@ namespace Lumos
         float Friction = 0.8f;
         bool AtRest = false;
         bool isTrigger = false;
-        SharedRef<CollisionShape> Shape = nullptr;
+        SharedPtr<CollisionShape> Shape = nullptr;
     };
 
     class LUMOS_EXPORT RigidBody3D : public RigidBody
@@ -202,7 +202,7 @@ namespace Lumos
             m_onCollisionManifoldCallbacks.push_back(callback);
         }
 
-        void SetCollisionShape(const SharedRef<CollisionShape>& shape)
+        void SetCollisionShape(const SharedPtr<CollisionShape>& shape)
         {
             m_CollisionShape = shape;
             m_InvInertia = m_CollisionShape->BuildInverseInertia(m_InvMass);
@@ -234,7 +234,7 @@ namespace Lumos
                 m_InvInertia = m_CollisionShape->BuildInverseInertia(m_InvMass);
         }
 
-        const SharedRef<CollisionShape>& GetCollisionShape() const
+        const SharedPtr<CollisionShape>& GetCollisionShape() const
         {
             return m_CollisionShape;
         }
@@ -258,7 +258,7 @@ namespace Lumos
             auto shape = std::unique_ptr<CollisionShape>(m_CollisionShape.get());
             archive(cereal::make_nvp("Position", m_Position), cereal::make_nvp("Orientation", m_Orientation), cereal::make_nvp("LinearVelocity", m_LinearVelocity), cereal::make_nvp("Force", m_Force), cereal::make_nvp("Mass", 1.0f / m_InvMass), cereal::make_nvp("AngularVelocity", m_AngularVelocity), cereal::make_nvp("Torque", m_Torque), cereal::make_nvp("Static", m_Static), cereal::make_nvp("Friction", m_Friction), cereal::make_nvp("Elasticity", m_Elasticity), cereal::make_nvp("CollisionShape", shape), cereal::make_nvp("Trigger", m_Trigger));
 
-            m_CollisionShape = SharedRef<CollisionShape>(shape.get());
+            m_CollisionShape = SharedPtr<CollisionShape>(shape.get());
             CollisionShapeUpdated();
             shape.release();
         }
@@ -287,7 +287,7 @@ namespace Lumos
         Maths::Matrix3 m_InvInertia;
 
         //<----------COLLISION------------>
-        SharedRef<CollisionShape> m_CollisionShape;
+        SharedPtr<CollisionShape> m_CollisionShape;
         PhysicsCollisionCallback m_OnCollisionCallback;
         std::vector<OnCollisionManifoldCallback> m_onCollisionManifoldCallbacks; //!< Collision callbacks post manifold generation
     };

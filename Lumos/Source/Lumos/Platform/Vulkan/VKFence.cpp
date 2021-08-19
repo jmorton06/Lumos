@@ -1,7 +1,7 @@
 #include "Precompiled.h"
 #include "VKFence.h"
 #include "VKDevice.h"
-#include "VKTools.h"
+#include "VKUtilities.h"
 
 namespace Lumos
 {

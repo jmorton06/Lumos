@@ -1,18 +1,19 @@
 #include "Precompiled.h"
-#include "VKTools.h"
+#include "VKUtilities.h"
 #include "VKDevice.h"
 #include "VKShader.h"
-#include "VKSwapchain.h"
+#include "VKSwapChain.h"
 #include "VKCommandPool.h"
 #include "Graphics/RHI/Texture.h"
 #include "Graphics/RHI/DescriptorSet.h"
 #include "Graphics/RHI/Pipeline.h"
+#include "VKInitialisers.h"
 
 namespace Lumos
 {
     namespace Graphics
     {
-        uint32_t VKTools::FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties)
+        uint32_t VKUtilities::FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties)
         {
             VkPhysicalDeviceMemoryProperties memProperties;
             vkGetPhysicalDeviceMemoryProperties(VKDevice::Get().GetGPU(), &memProperties);
@@ -28,7 +29,7 @@ namespace Lumos
             throw std::runtime_error("Failed to find suitable memory type!");
         }
 
-        void VKTools::CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer,
+        void VKUtilities::CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer,
             VkDeviceMemory& bufferMemory, VmaAllocator allocator, VmaAllocation allocation)
         {
             VkBufferCreateInfo bufferInfo = {};
@@ -68,7 +69,7 @@ namespace Lumos
             vkBindBufferMemory(VKDevice::Get().GetDevice(), buffer, bufferMemory, 0);
         }
 
-        VkCommandBuffer VKTools::BeginSingleTimeCommands()
+        VkCommandBuffer VKUtilities::BeginSingleTimeCommands()
         {
             VkCommandBufferAllocateInfo allocInfo = {};
             allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
@@ -88,7 +89,7 @@ namespace Lumos
             return commandBuffer;
         }
 
-        void VKTools::EndSingleTimeCommands(VkCommandBuffer commandBuffer)
+        void VKUtilities::EndSingleTimeCommands(VkCommandBuffer commandBuffer)
         {
             VK_CHECK_RESULT(vkEndCommandBuffer(commandBuffer));
 
@@ -109,7 +110,7 @@ namespace Lumos
                 VKDevice::Get().GetCommandPool()->GetHandle(), 1, &commandBuffer);
         }
 
-        void VKTools::CopyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height)
+        void VKUtilities::CopyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height)
         {
             VkCommandBuffer commandBuffer = BeginSingleTimeCommands();
 
@@ -130,159 +131,161 @@ namespace Lumos
 
             vkCmdCopyBufferToImage(commandBuffer, buffer, image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
 
-            VKTools::EndSingleTimeCommands(commandBuffer);
+            VKUtilities::EndSingleTimeCommands(commandBuffer);
         }
 
-        void VKTools::CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size)
+        void VKUtilities::CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size)
         {
-            VkCommandBuffer commandBuffer = VKTools::BeginSingleTimeCommands();
+            VkCommandBuffer commandBuffer = VKUtilities::BeginSingleTimeCommands();
 
             VkBufferCopy copyRegion = {};
             copyRegion.size = size;
             vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
 
-            VKTools::EndSingleTimeCommands(commandBuffer);
+            VKUtilities::EndSingleTimeCommands(commandBuffer);
         }
 
-        bool VKTools::HasStencilComponent(VkFormat format)
+        bool VKUtilities::HasStencilComponent(VkFormat format)
         {
             return format == VK_FORMAT_D32_SFLOAT_S8_UINT || format == VK_FORMAT_D24_UNORM_S8_UINT;
         }
 
-        void VKTools::TransitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout,
-            uint32_t mipLevels)
+        void VKUtilities::TransitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldImageLayout, VkImageLayout newImageLayout,
+            uint32_t mipLevels, VkCommandBuffer commandBuffer)
         {
-            VkCommandBuffer commandBuffer = BeginSingleTimeCommands();
+            bool singleTimeCommand = false;
 
-            VkImageMemoryBarrier barrier = {};
-            barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-            barrier.oldLayout = oldLayout;
-            barrier.newLayout = newLayout;
-            barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-            barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-            barrier.image = image;
-            barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-            barrier.subresourceRange.baseMipLevel = 0;
-            barrier.subresourceRange.levelCount = mipLevels;
-            barrier.subresourceRange.baseArrayLayer = 0;
-            barrier.subresourceRange.layerCount = 1;
-
-            if(newLayout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL)
+            if(!commandBuffer)
             {
-                barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
+                commandBuffer = BeginSingleTimeCommands();
+                singleTimeCommand = true;
+            }
 
-                if(HasStencilComponent(format))
+            VkImageSubresourceRange subresourceRange = {};
+            subresourceRange.aspectMask = format == FindDepthFormat() ? VK_IMAGE_ASPECT_DEPTH_BIT : VK_IMAGE_ASPECT_COLOR_BIT;
+            subresourceRange.baseMipLevel = 0;
+            subresourceRange.levelCount = 1;
+            subresourceRange.layerCount = 1;
+            subresourceRange.levelCount = mipLevels;
+            subresourceRange.baseArrayLayer = 0;
+
+            // Create an image barrier object
+            VkImageMemoryBarrier imageMemoryBarrier = VKInitialisers::imageMemoryBarrier();
+            imageMemoryBarrier.oldLayout = oldImageLayout;
+            imageMemoryBarrier.newLayout = newImageLayout;
+            imageMemoryBarrier.image = image;
+            imageMemoryBarrier.subresourceRange = subresourceRange;
+
+            // Source layouts (old)
+            // Source access mask controls actions that have to be finished on the old layout
+            // before it will be transitioned to the new layout
+            switch(oldImageLayout)
+            {
+            case VK_IMAGE_LAYOUT_UNDEFINED:
+                // Image layout is undefined (or does not matter)
+                // Only valid as initial layout
+                // No flags required, listed only for completeness
+                imageMemoryBarrier.srcAccessMask = 0;
+                break;
+
+            case VK_IMAGE_LAYOUT_PREINITIALIZED:
+                // Image is preinitialized
+                // Only valid as initial layout for linear images, preserves memory contents
+                // Make sure host writes have been finished
+                imageMemoryBarrier.srcAccessMask = VK_ACCESS_HOST_WRITE_BIT;
+                break;
+
+            case VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL:
+                // Image is a color attachment
+                // Make sure any writes to the color buffer have been finished
+                imageMemoryBarrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+                break;
+
+            case VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL:
+                // Image is a depth/stencil attachment
+                // Make sure any writes to the depth/stencil buffer have been finished
+                imageMemoryBarrier.srcAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+                break;
+
+            case VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL:
+                // Image is a transfer source
+                // Make sure any reads from the image have been finished
+                imageMemoryBarrier.srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+                break;
+
+            case VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL:
+                // Image is a transfer destination
+                // Make sure any writes to the image have been finished
+                imageMemoryBarrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+                break;
+
+            case VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL:
+                // Image is read by a shader
+                // Make sure any shader reads from the image have been finished
+                imageMemoryBarrier.srcAccessMask = VK_ACCESS_SHADER_READ_BIT;
+                break;
+            default:
+                // Other source layouts aren't handled (yet)
+                break;
+            }
+
+            // Target layouts (new)
+            // Destination access mask controls the dependency for the new image layout
+            switch(newImageLayout)
+            {
+            case VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL:
+                // Image will be used as a transfer destination
+                // Make sure any writes to the image have been finished
+                imageMemoryBarrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+                break;
+
+            case VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL:
+                // Image will be used as a transfer source
+                // Make sure any reads from the image have been finished
+                imageMemoryBarrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+                break;
+
+            case VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL:
+                // Image will be used as a color attachment
+                // Make sure any writes to the color buffer have been finished
+                imageMemoryBarrier.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+                break;
+
+            case VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL:
+                // Image layout will be used as a depth/stencil attachment
+                // Make sure any writes to depth/stencil buffer have been finished
+                imageMemoryBarrier.dstAccessMask = imageMemoryBarrier.dstAccessMask | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+                break;
+
+            case VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL:
+                // Image will be read in a shader (sampler, input attachment)
+                // Make sure any writes to the image have been finished
+                if(imageMemoryBarrier.srcAccessMask == 0)
                 {
-                    barrier.subresourceRange.aspectMask |= VK_IMAGE_ASPECT_STENCIL_BIT;
+                    imageMemoryBarrier.srcAccessMask = VK_ACCESS_HOST_WRITE_BIT | VK_ACCESS_TRANSFER_WRITE_BIT;
                 }
-            }
-            else
-            {
-                barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-            }
-
-            VkPipelineStageFlags sourceStage = 0;
-            VkPipelineStageFlags destinationStage = 0;
-
-            // set up source properties
-            if(oldLayout == VK_IMAGE_LAYOUT_UNDEFINED)
-            {
-                barrier.srcAccessMask = 0;
-                sourceStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
-            }
-            else if(oldLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL)
-            {
-                barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-                sourceStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
-            }
-            else if(oldLayout == VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL)
-            {
-                barrier.srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
-                sourceStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
-            }
-            else if(oldLayout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL)
-            {
-                barrier.srcAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
-                sourceStage = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
-            }
-            else if(oldLayout == VK_IMAGE_LAYOUT_PRESENT_SRC_KHR)
-            {
-                barrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-                sourceStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-            }
-            else if(oldLayout == VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL)
-            {
-                barrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_COLOR_ATTACHMENT_READ_BIT;
-                sourceStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-            }
-            else if(oldLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
-            {
-                barrier.srcAccessMask = VK_ACCESS_SHADER_READ_BIT;
-                destinationStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
-            }
-            else if(oldLayout == VK_IMAGE_LAYOUT_GENERAL)
-            {
-                barrier.srcAccessMask = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT;
-                sourceStage = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
-            }
-            else
-            {
-                LUMOS_LOG_CRITICAL("unsupported layout transition!");
+                imageMemoryBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+                break;
+            default:
+                // Other source layouts aren't handled (yet)
+                break;
             }
 
-            // set up destination properties
-            if(newLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL)
-            {
-                barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-                destinationStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
-            }
-            else if(newLayout == VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL)
-            {
-                barrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
-                destinationStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
-            }
-            else if(newLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
-            {
-                barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-                destinationStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
-            }
-            else if(newLayout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL)
-            {
-                barrier.dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
-                destinationStage = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
-            }
-            else if(newLayout == VK_IMAGE_LAYOUT_PRESENT_SRC_KHR)
-            {
-                barrier.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-                destinationStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-            }
-            else if(newLayout == VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL)
-            {
-                barrier.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_COLOR_ATTACHMENT_READ_BIT;
-                destinationStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-            }
-            else if(newLayout == VK_IMAGE_LAYOUT_GENERAL)
-            {
-                barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT;
-                destinationStage = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
-            }
-            else
-            {
-                LUMOS_LOG_CRITICAL("unsupported layout transition!");
-            }
-
+            // Put barrier inside setup command buffer
             vkCmdPipelineBarrier(
                 commandBuffer,
-                sourceStage, destinationStage,
+                VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
+                VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
                 0,
                 0, nullptr,
                 0, nullptr,
-                1, &barrier);
+                1, &imageMemoryBarrier);
 
-            EndSingleTimeCommands(commandBuffer);
+            if(singleTimeCommand)
+                EndSingleTimeCommands(commandBuffer);
         }
 
-        VkFormat VKTools::FindSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling,
+        VkFormat VKUtilities::FindSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling,
             VkFormatFeatureFlags features)
         {
             for(VkFormat format : candidates)
@@ -303,7 +306,7 @@ namespace Lumos
             throw std::runtime_error("failed to find supported format!");
         }
 
-        VkFormat VKTools::FindDepthFormat()
+        VkFormat VKUtilities::FindDepthFormat()
         {
             return FindSupportedFormat(
                 { VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT },
@@ -311,7 +314,7 @@ namespace Lumos
                 VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
         }
 
-        std::string VKTools::ErrorString(VkResult errorCode)
+        std::string VKUtilities::ErrorString(VkResult errorCode)
         {
             switch(errorCode)
             {
@@ -347,7 +350,7 @@ namespace Lumos
             }
         }
 
-        VkFormat VKTools::FormatToVK(Lumos::Graphics::Format format)
+        VkFormat VKUtilities::FormatToVK(Lumos::Graphics::Format format)
         {
             switch(format)
             {
@@ -382,7 +385,7 @@ namespace Lumos
             }
         }
 
-        VkVertexInputAttributeDescription VKTools::VertexInputDescriptionToVK(VertexInputDescription description)
+        VkVertexInputAttributeDescription VKUtilities::VertexInputDescriptionToVK(VertexInputDescription description)
         {
             VkVertexInputAttributeDescription vInputAttribDescription;
             vInputAttribDescription.location = description.location;
@@ -392,7 +395,7 @@ namespace Lumos
             return vInputAttribDescription;
         }
 
-        VkCullModeFlags VKTools::CullModeToVK(CullMode mode)
+        VkCullModeFlags VKUtilities::CullModeToVK(CullMode mode)
         {
             switch(mode)
             {
@@ -409,7 +412,7 @@ namespace Lumos
             return VK_CULL_MODE_BACK_BIT;
         }
 
-        VkDescriptorType VKTools::DescriptorTypeToVK(DescriptorType type)
+        VkDescriptorType VKUtilities::DescriptorTypeToVK(DescriptorType type)
         {
             switch(type)
             {
@@ -424,16 +427,102 @@ namespace Lumos
             return VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
         }
 
-        void VKTools::ValidateResolution(uint32_t& width, uint32_t& height)
+        void VKUtilities::ValidateResolution(uint32_t& width, uint32_t& height)
         {
             VkSurfaceCapabilitiesKHR capabilities;
-            vkGetPhysicalDeviceSurfaceCapabilitiesKHR(VKDevice::Get().GetGPU(), VKContext::Get()->GetSwapchain()->GetSurface(), &capabilities);
+            vkGetPhysicalDeviceSurfaceCapabilitiesKHR(VKDevice::Get().GetGPU(), VKContext::Get()->GetSwapChain()->GetSurface(), &capabilities);
 
             width = std::max(capabilities.minImageExtent.width, std::min(capabilities.maxImageExtent.width, width));
             height = std::max(capabilities.minImageExtent.height, std::min(capabilities.maxImageExtent.height, height));
         }
 
-        void VKTools::SetImageLayout(
+        VkPipelineStageFlags GetPipelineStageFromAccessFlags(VkAccessFlags accessFlags)
+        {
+            VkPipelineStageFlags stages = 0;
+
+            while(accessFlags != 0)
+            {
+                VkAccessFlagBits AccessFlag = static_cast<VkAccessFlagBits>(accessFlags & (~(accessFlags - 1)));
+                LUMOS_ASSERT(AccessFlag != 0 && (AccessFlag & (AccessFlag - 1)) == 0, "Pipeline stage flags error");
+                accessFlags &= ~AccessFlag;
+
+                switch(AccessFlag)
+                {
+                case VK_ACCESS_INDIRECT_COMMAND_READ_BIT:
+                    stages |= VK_PIPELINE_STAGE_DRAW_INDIRECT_BIT;
+                    break;
+
+                case VK_ACCESS_INDEX_READ_BIT:
+                    stages |= VK_PIPELINE_STAGE_VERTEX_INPUT_BIT;
+                    break;
+
+                case VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT:
+                    stages |= VK_PIPELINE_STAGE_VERTEX_INPUT_BIT;
+                    break;
+
+                case VK_ACCESS_UNIFORM_READ_BIT:
+                    stages |= VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+                    break;
+
+                case VK_ACCESS_INPUT_ATTACHMENT_READ_BIT:
+                    stages |= VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+                    break;
+
+                case VK_ACCESS_SHADER_READ_BIT:
+                    stages |= VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+                    break;
+
+                case VK_ACCESS_SHADER_WRITE_BIT:
+                    stages |= VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+                    break;
+
+                case VK_ACCESS_COLOR_ATTACHMENT_READ_BIT:
+                    stages |= VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+                    break;
+
+                case VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT:
+                    stages |= VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+                    break;
+
+                case VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT:
+                    stages |= VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+                    break;
+
+                case VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT:
+                    stages |= VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+                    break;
+
+                case VK_ACCESS_TRANSFER_READ_BIT:
+                    stages |= VK_PIPELINE_STAGE_TRANSFER_BIT;
+                    break;
+
+                case VK_ACCESS_TRANSFER_WRITE_BIT:
+                    stages |= VK_PIPELINE_STAGE_TRANSFER_BIT;
+                    break;
+
+                case VK_ACCESS_HOST_READ_BIT:
+                    stages |= VK_PIPELINE_STAGE_HOST_BIT;
+                    break;
+
+                case VK_ACCESS_HOST_WRITE_BIT:
+                    stages |= VK_PIPELINE_STAGE_HOST_BIT;
+                    break;
+
+                case VK_ACCESS_MEMORY_READ_BIT:
+                    break;
+
+                case VK_ACCESS_MEMORY_WRITE_BIT:
+                    break;
+
+                default:
+                    LUMOS_LOG_WARN("Unknown memory access flag");
+                    break;
+                }
+            }
+            return stages;
+        }
+
+        void VKUtilities::SetImageLayout(
             VkCommandBuffer cmdbuffer,
             VkImage image,
             VkImageLayout oldImageLayout,
@@ -550,11 +639,43 @@ namespace Lumos
                 break;
             }
 
+            VkPipelineStageFlags source_stage = 0;
+            {
+                if(imageMemoryBarrier.oldLayout == VK_IMAGE_LAYOUT_PRESENT_SRC_KHR)
+                {
+                    source_stage = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
+                }
+                else if(imageMemoryBarrier.srcAccessMask != 0)
+                {
+                    source_stage = GetPipelineStageFromAccessFlags(imageMemoryBarrier.srcAccessMask);
+                }
+                else
+                {
+                    source_stage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+                }
+            }
+
+            VkPipelineStageFlags destination_stage = 0;
+            {
+                if(imageMemoryBarrier.newLayout == VK_IMAGE_LAYOUT_PRESENT_SRC_KHR)
+                {
+                    destination_stage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+                }
+                else if(imageMemoryBarrier.dstAccessMask != 0)
+                {
+                    destination_stage = GetPipelineStageFromAccessFlags(imageMemoryBarrier.dstAccessMask);
+                }
+                else
+                {
+                    destination_stage = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
+                }
+            }
+
             // Put barrier inside setup command buffer
             vkCmdPipelineBarrier(
                 cmdbuffer,
-                srcStageMask,
-                dstStageMask,
+                source_stage,
+                destination_stage,
                 0,
                 0, nullptr,
                 0, nullptr,
@@ -562,7 +683,7 @@ namespace Lumos
         }
 
         // Fixed sub resource on first mip level and layer
-        void VKTools::SetImageLayout(
+        void VKUtilities::SetImageLayout(
             VkCommandBuffer cmdbuffer,
             VkImage image,
             VkImageAspectFlags aspectMask,
@@ -579,7 +700,7 @@ namespace Lumos
             SetImageLayout(cmdbuffer, image, oldImageLayout, newImageLayout, subresourceRange, srcStageMask, dstStageMask);
         }
 
-        VkSamplerAddressMode VKTools::TextureWrapToVK(const TextureWrap wrap)
+        VkSamplerAddressMode VKUtilities::TextureWrapToVK(const TextureWrap wrap)
         {
             switch(wrap)
             {
@@ -599,7 +720,7 @@ namespace Lumos
             }
         }
 
-        VkFilter VKTools::TextureFilterToVK(const TextureFilter filter)
+        VkFilter VKUtilities::TextureFilterToVK(const TextureFilter filter)
         {
             switch(filter)
             {
@@ -615,7 +736,7 @@ namespace Lumos
             }
         }
 
-        VkFormat VKTools::TextureFormatToVK(const TextureFormat format, bool srgb)
+        VkFormat VKUtilities::TextureFormatToVK(const TextureFormat format, bool srgb)
         {
             if(srgb)
             {
@@ -677,7 +798,7 @@ namespace Lumos
             }
         }
 
-        VkShaderStageFlagBits VKTools::ShaderTypeToVK(const ShaderType& shaderName)
+        VkShaderStageFlagBits VKUtilities::ShaderTypeToVK(const ShaderType& shaderName)
         {
             switch(shaderName)
             {
@@ -699,7 +820,7 @@ namespace Lumos
             }
         }
 
-        VkPolygonMode VKTools::PolygonModeToVk(Lumos::Graphics::PolygonMode mode)
+        VkPolygonMode VKUtilities::PolygonModeToVk(Lumos::Graphics::PolygonMode mode)
         {
             switch(mode)
             {
@@ -719,7 +840,7 @@ namespace Lumos
             }
         }
 
-        VkPrimitiveTopology VKTools::DrawTypeToVk(Lumos::Graphics::DrawType type)
+        VkPrimitiveTopology VKUtilities::DrawTypeToVk(Lumos::Graphics::DrawType type)
         {
             switch(type)
             {
@@ -739,7 +860,7 @@ namespace Lumos
             }
         }
 
-        VkImageMemoryBarrier VKTools::ImageBarrier(VkImage image, VkAccessFlags srcAccessMask, VkAccessFlags dstAccessMask, VkImageLayout oldLayout, VkImageLayout newLayout, VkImageAspectFlags aspectMask)
+        VkImageMemoryBarrier VKUtilities::ImageBarrier(VkImage image, VkAccessFlags srcAccessMask, VkAccessFlags dstAccessMask, VkImageLayout oldLayout, VkImageLayout newLayout, VkImageAspectFlags aspectMask)
         {
             VkImageMemoryBarrier result = { VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER };
 
@@ -757,7 +878,7 @@ namespace Lumos
             return result;
         }
 
-        bool VKTools::IsPresentModeSupported(const std::vector<VkPresentModeKHR>& supportedModes, VkPresentModeKHR presentMode)
+        bool VKUtilities::IsPresentModeSupported(const std::vector<VkPresentModeKHR>& supportedModes, VkPresentModeKHR presentMode)
         {
             for(const auto& mode : supportedModes)
             {
@@ -769,7 +890,7 @@ namespace Lumos
             return false;
         }
 
-        VkPresentModeKHR VKTools::ChoosePresentMode(const std::vector<VkPresentModeKHR>& supportedModes, bool vsync)
+        VkPresentModeKHR VKUtilities::ChoosePresentMode(const std::vector<VkPresentModeKHR>& supportedModes, bool vsync)
         {
             VkPresentModeKHR presentMode = VK_PRESENT_MODE_MAILBOX_KHR;
             if(vsync)
@@ -812,6 +933,11 @@ namespace Lumos
             }
 
             return presentMode;
+        }
+
+        void VKUtilities::WaitIdle()
+        {
+            vkDeviceWaitIdle(VKDevice::GetHandle());
         }
     }
 }

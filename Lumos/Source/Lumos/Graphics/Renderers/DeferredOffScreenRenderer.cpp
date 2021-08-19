@@ -20,7 +20,7 @@
 #include "Graphics/RHI/UniformBuffer.h"
 #include "Graphics/RHI/Renderer.h"
 #include "Graphics/RHI/CommandBuffer.h"
-#include "Graphics/RHI/Swapchain.h"
+#include "Graphics/RHI/SwapChain.h"
 #include "Graphics/RHI/RenderPass.h"
 #include "Graphics/RHI/Pipeline.h"
 #include "Graphics/RHI/GraphicsContext.h"
@@ -83,17 +83,17 @@ namespace Lumos
                 { TextureType::DEPTH, TextureFormat::DEPTH }
             };
 
-            Graphics::RenderPassDesc renderpassCIOffScreen {};
-            renderpassCIOffScreen.attachmentCount = 5;
-            renderpassCIOffScreen.textureType = textureTypesOffScreen;
+            Graphics::RenderPassDesc renderPassDescOffScreen {};
+            renderPassDescOffScreen.attachmentCount = 5;
+            renderPassDescOffScreen.textureType = textureTypesOffScreen;
 
-            m_RenderPass = Graphics::RenderPass::Get(renderpassCIOffScreen);
+            m_RenderPass = Graphics::RenderPass::Get(renderPassDescOffScreen);
 
             Graphics::DescriptorDesc info {};
             info.layoutIndex = 0;
             info.shader = m_Shader.get();
             m_DescriptorSet.resize(1);
-            m_DescriptorSet[0] = SharedRef<Graphics::DescriptorSet>(Graphics::DescriptorSet::Create(info));
+            m_DescriptorSet[0] = SharedPtr<Graphics::DescriptorSet>(Graphics::DescriptorSet::Create(info));
 
             CreatePipeline();
             CreateBuffer();
@@ -118,7 +118,6 @@ namespace Lumos
             m_HasRendered = true;
 
             Begin();
-            SetSystemUniforms(m_Shader.get());
             Present();
             End();
         }
@@ -126,7 +125,7 @@ namespace Lumos
         void DeferredOffScreenRenderer::Begin()
         {
             LUMOS_PROFILE_FUNCTION();
-            m_RenderPass->BeginRenderpass(Renderer::GetSwapchain()->GetCurrentCommandBuffer(), Maths::Vector4(0.0f), m_Framebuffers.front().get(), Graphics::INLINE, m_ScreenBufferWidth, m_ScreenBufferHeight);
+            m_RenderPass->BeginRenderpass(Renderer::GetSwapChain()->GetCurrentCommandBuffer(), Maths::Vector4(0.0f), m_Framebuffers.front().get(), Graphics::INLINE, m_ScreenBufferWidth, m_ScreenBufferHeight);
         }
 
         void DeferredOffScreenRenderer::BeginScene(Scene* scene, Camera* overrideCamera, Maths::Transform* overrideCameraTransform)
@@ -209,15 +208,7 @@ namespace Lumos
         void DeferredOffScreenRenderer::End()
         {
             LUMOS_PROFILE_FUNCTION();
-            m_RenderPass->EndRenderpass(Renderer::GetSwapchain()->GetCurrentCommandBuffer());
-        }
-
-        void DeferredOffScreenRenderer::SetSystemUniforms(Shader* shader)
-        {
-            LUMOS_PROFILE_FUNCTION();
-//            m_UniformBuffer->SetData(m_VSSystemUniformBufferSize, *&m_VSSystemUniformBuffer);
-//            //Move as per mesh
-//            m_AnimUniformBuffer->SetData(m_VSSystemUniformBufferAnimSize, *&m_VSSystemUniformBufferAnim);
+            m_RenderPass->EndRenderpass(Renderer::GetSwapChain()->GetCurrentCommandBuffer());
         }
 
         void DeferredOffScreenRenderer::Present()
@@ -234,16 +225,17 @@ namespace Lumos
                 if(!command.material || !command.material->GetShader())
                     continue;
 
-                auto commandBuffer = Renderer::GetSwapchain()->GetCurrentCommandBuffer();
+                auto commandBuffer = Renderer::GetSwapChain()->GetCurrentCommandBuffer();
 
-                Graphics::PipelineDesc pipelineCreateInfo {};
-                pipelineCreateInfo.shader = command.material->GetShader();
-                pipelineCreateInfo.renderpass = m_RenderPass;
-                pipelineCreateInfo.polygonMode = Graphics::PolygonMode::FILL;
-                pipelineCreateInfo.cullMode = command.material->GetFlag(Material::RenderFlags::TWOSIDED) ? Graphics::CullMode::NONE : Graphics::CullMode::BACK;
-                pipelineCreateInfo.transparencyEnabled = command.material->GetFlag(Material::RenderFlags::ALPHABLEND);
+                Graphics::PipelineDesc pipelineDesc {};
+                pipelineDesc.shader = command.material->GetShader();
 
-                auto pipeline = Graphics::Pipeline::Get(pipelineCreateInfo);
+                pipelineDesc.polygonMode = Graphics::PolygonMode::FILL;
+                pipelineDesc.cullMode = command.material->GetFlag(Material::RenderFlags::TWOSIDED) ? Graphics::CullMode::NONE : Graphics::CullMode::BACK;
+                pipelineDesc.transparencyEnabled = command.material->GetFlag(Material::RenderFlags::ALPHABLEND);
+                pipelineDesc.blendMode = BlendMode::SrcAlphaOneMinusSrcAlpha;
+
+                auto pipeline = Graphics::Pipeline::Get(pipelineDesc);
 
                 pipeline->Bind(commandBuffer);
 
@@ -273,34 +265,33 @@ namespace Lumos
         {
             LUMOS_PROFILE_FUNCTION();
 
-            Graphics::PipelineDesc pipelineCreateInfo {};
-            pipelineCreateInfo.shader = m_Shader;
-            pipelineCreateInfo.renderpass = m_RenderPass;
-            pipelineCreateInfo.polygonMode = Graphics::PolygonMode::FILL;
-            pipelineCreateInfo.cullMode = Graphics::CullMode::BACK;
-            pipelineCreateInfo.transparencyEnabled = false;
+            Graphics::PipelineDesc pipelineDesc {};
+            pipelineDesc.shader = m_Shader;
 
-            m_Pipeline = Graphics::Pipeline::Get(pipelineCreateInfo);
+            pipelineDesc.polygonMode = Graphics::PolygonMode::FILL;
+            pipelineDesc.cullMode = Graphics::CullMode::BACK;
+            pipelineDesc.transparencyEnabled = false;
+
+            m_Pipeline = Graphics::Pipeline::Get(pipelineDesc);
 
             Graphics::BufferLayout vertexBufferLayoutAnim;
 
-            Graphics::PipelineDesc pipelineCreateInfoAnim {};
-            pipelineCreateInfoAnim.shader = m_AnimatedShader;
-            pipelineCreateInfoAnim.renderpass = m_RenderPass;
-            pipelineCreateInfoAnim.polygonMode = Graphics::PolygonMode::FILL;
-            pipelineCreateInfoAnim.cullMode = Graphics::CullMode::BACK;
-            pipelineCreateInfoAnim.transparencyEnabled = false;
+            Graphics::PipelineDesc pipelineDescAnim {};
+            pipelineDescAnim.shader = m_AnimatedShader;
+            pipelineDescAnim.polygonMode = Graphics::PolygonMode::FILL;
+            pipelineDescAnim.cullMode = Graphics::CullMode::BACK;
+            pipelineDescAnim.transparencyEnabled = false;
 
-            m_AnimatedPipeline = Graphics::Pipeline::Get(pipelineCreateInfoAnim);
+            m_AnimatedPipeline = Graphics::Pipeline::Get(pipelineDescAnim);
         }
 
         void DeferredOffScreenRenderer::CreateBuffer()
         {
             LUMOS_PROFILE_FUNCTION();
-            
-           // m_AnimatedDescriptorSets[0]->SetBuffer("UniformBufferObjectAnim", m_AnimUniformBuffer);
 
-            //m_AnimatedDescriptorSets->Update(bufferInfos);
+            // m_AnimatedDescriptorSets[0]->SetBuffer("UniformBufferObjectAnim", m_AnimUniformBuffer);
+
+            //m_AnimatedDescriptorSets->Update(frameBufferDesc);
         }
 
         void DeferredOffScreenRenderer::CreateFramebuffer()
@@ -314,12 +305,12 @@ namespace Lumos
             attachmentTypes[3] = TextureType::COLOUR;
             attachmentTypes[4] = TextureType::DEPTH;
 
-            FramebufferDesc bufferInfo {};
-            bufferInfo.width = m_ScreenBufferWidth;
-            bufferInfo.height = m_ScreenBufferHeight;
-            bufferInfo.attachmentCount = attachmentCount;
-            bufferInfo.renderPass = m_RenderPass.get();
-            bufferInfo.attachmentTypes = attachmentTypes;
+            FramebufferDesc frameBufferDesc {};
+            frameBufferDesc.width = m_ScreenBufferWidth;
+            frameBufferDesc.height = m_ScreenBufferHeight;
+            frameBufferDesc.attachmentCount = attachmentCount;
+            frameBufferDesc.renderPass = m_RenderPass.get();
+            frameBufferDesc.attachmentTypes = attachmentTypes;
 
             Texture* attachments[attachmentCount];
             attachments[0] = Application::Get().GetRenderGraph()->GetGBuffer()->GetTexture(SCREENTEX_COLOUR);
@@ -327,9 +318,9 @@ namespace Lumos
             attachments[2] = Application::Get().GetRenderGraph()->GetGBuffer()->GetTexture(SCREENTEX_NORMALS);
             attachments[3] = Application::Get().GetRenderGraph()->GetGBuffer()->GetTexture(SCREENTEX_PBR);
             attachments[4] = Application::Get().GetRenderGraph()->GetGBuffer()->GetDepthTexture();
-            bufferInfo.attachments = attachments;
+            frameBufferDesc.attachments = attachments;
 
-            m_Framebuffers.push_back(SharedRef<Framebuffer>(Framebuffer::Get(bufferInfo)));
+            m_Framebuffers.push_back(SharedPtr<Framebuffer>(Framebuffer::Get(frameBufferDesc)));
         }
 
         void DeferredOffScreenRenderer::OnResize(uint32_t width, uint32_t height)

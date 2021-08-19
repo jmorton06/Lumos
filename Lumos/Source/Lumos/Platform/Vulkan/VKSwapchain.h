@@ -1,8 +1,9 @@
 #pragma once
 #include "VKCommandBuffer.h"
-#include "VKRenderpass.h"
+#include "VKRenderPass.h"
 #include "VKFramebuffer.h"
-#include "Graphics/RHI/Swapchain.h"
+#include "VKContext.h"
+#include "Graphics/RHI/SwapChain.h"
 
 #define MAX_SWAPCHAIN_BUFFERS 3
 namespace Lumos
@@ -14,34 +15,32 @@ namespace Lumos
 
         struct FrameData
         {
-            VkSemaphore PresentSemaphore = VK_NULL_HANDLE, RenderSemaphore = VK_NULL_HANDLE;
-
-            SharedRef<VKFence> RenderFence;
-            SharedRef<VKCommandPool> CommandPool;
-            SharedRef<VKCommandBuffer> MainCommandBuffer;
+            VkSemaphore PresentSemaphore = VK_NULL_HANDLE;
+            SharedPtr<VKCommandPool> CommandPool;
+            SharedPtr<VKCommandBuffer> MainCommandBuffer;
         };
 
         class Texture2D;
-        class VKSwapchain : public Swapchain
+        class VKSwapChain : public SwapChain
         {
         public:
-            VKSwapchain(uint32_t width, uint32_t height);
-            ~VKSwapchain();
+            VKSwapChain(uint32_t width, uint32_t height);
+            ~VKSwapChain();
 
             bool Init(bool vsync) override;
             void Init(bool vsync, Window* windowHandle);
             void CreateFrameData();
             void AcquireNextImage();
             void QueueSubmit();
-            void Present();
+            void Present(VkSemaphore semaphore);
             void Begin();
             void End();
             void OnResize(uint32_t width, uint32_t height, bool forceResize = false, Window* windowHandle = nullptr);
 
             VkSurfaceKHR GetSurface() const { return m_Surface; }
-            VkSwapchainKHR GetSwapchain() const { return m_SwapChain; }
+            VkSwapchainKHR GetSwapChain() const { return m_SwapChain; }
             uint32_t GetCurrentBufferIndex() const override { return m_AcquireImageIndex; }
-            size_t GetSwapchainBufferCount() const override { return m_SwapchainBufferCount; };
+            size_t GetSwapChainBufferCount() const override { return m_SwapchainBufferCount; };
             Texture* GetCurrentImage() override { return (Texture*)m_SwapChainBuffers[m_AcquireImageIndex]; };
             Texture* GetImage(uint32_t index) override { return (Texture*)m_SwapChainBuffers[index]; };
 
@@ -54,7 +53,7 @@ namespace Lumos
             static void MakeDefault();
 
         protected:
-            static Swapchain* CreateFuncVulkan(uint32_t width, uint32_t height);
+            static SwapChain* CreateFuncVulkan(uint32_t width, uint32_t height);
 
         private:
             FrameData m_Frames[MAX_SWAPCHAIN_BUFFERS];

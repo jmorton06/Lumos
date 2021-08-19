@@ -21,7 +21,7 @@ namespace Lumos
         LUMOS_PROFILE_FUNCTION();
         std::string filePath = std::string(filename);
         std::string physicalPath;
-        if(!VFS::Get()->ResolvePhysicalPath(filePath, physicalPath))
+        if(!VFS::Get().ResolvePhysicalPath(filePath, physicalPath))
             return nullptr;
 
         filename = physicalPath.c_str();

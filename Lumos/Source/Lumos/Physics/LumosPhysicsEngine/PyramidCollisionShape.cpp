@@ -5,7 +5,7 @@
 namespace Lumos
 {
 
-    UniqueRef<Hull> PyramidCollisionShape::m_PyramidHull = CreateUniqueRef<Hull>();
+    UniquePtr<Hull> PyramidCollisionShape::m_PyramidHull = CreateUniquePtr<Hull>();
 
     PyramidCollisionShape::PyramidCollisionShape()
     {

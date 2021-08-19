@@ -7,26 +7,26 @@ namespace Lumos
 {
     namespace Graphics
     {
-        static std::unordered_map<std::size_t, SharedRef<RenderPass>> m_RenderPassCache;
+        static std::unordered_map<std::size_t, SharedPtr<RenderPass>> m_RenderPassCache;
 
         RenderPass::~RenderPass() = default;
         RenderPass* (*RenderPass::CreateFunc)(const RenderPassDesc&) = nullptr;
 
-        RenderPass* RenderPass::Create(const RenderPassDesc& renderPassCI)
+        RenderPass* RenderPass::Create(const RenderPassDesc& renderPassDesc)
         {
             LUMOS_ASSERT(CreateFunc, "No RenderPass Create Function");
 
-            return CreateFunc(renderPassCI);
+            return CreateFunc(renderPassDesc);
         }
 
-        SharedRef<RenderPass> RenderPass::Get(const RenderPassDesc& renderPassInfo)
+        SharedPtr<RenderPass> RenderPass::Get(const RenderPassDesc& renderPassDesc)
         {
             size_t hash = 0;
-            HashCombine(hash, renderPassInfo.attachmentCount, renderPassInfo.clear);
+            HashCombine(hash, renderPassDesc.attachmentCount, renderPassDesc.clear);
 
-            for(int i = 0; i < renderPassInfo.attachmentCount; i++)
+            for(int i = 0; i < renderPassDesc.attachmentCount; i++)
             {
-                HashCombine(hash, renderPassInfo.textureType[i].format, renderPassInfo.textureType[i].textureType);
+                HashCombine(hash, renderPassDesc.textureType[i].format, renderPassDesc.textureType[i].textureType);
             }
 
             auto found = m_RenderPassCache.find(hash);
@@ -35,9 +35,9 @@ namespace Lumos
                 return found->second;
             }
 
-            auto renderpass = SharedRef<RenderPass>(Create(renderPassInfo));
-            m_RenderPassCache[hash] = renderpass;
-            return renderpass;
+            auto renderPass = SharedPtr<RenderPass>(Create(renderPassDesc));
+            m_RenderPassCache[hash] = renderPass;
+            return renderPass;
         }
 
         void RenderPass::ClearCache()
@@ -47,10 +47,22 @@ namespace Lumos
 
         void RenderPass::DeleteUnusedCache()
         {
-            for(const auto& [key, value] : m_RenderPassCache)
+            static std::size_t keysToDelete[256];
+            std::size_t keysToDeleteCount = 0;
+
+            for(auto&& [key, value] : m_RenderPassCache)
             {
                 if(value && value.GetCounter()->GetReferenceCount() == 1)
-                    m_RenderPassCache[key] = nullptr;
+                {
+                    keysToDelete[keysToDeleteCount] = key;
+                    keysToDeleteCount++;
+                }
+            }
+
+            for(std::size_t i = 0; i < keysToDeleteCount; i++)
+            {
+                m_RenderPassCache[keysToDelete[i]] = nullptr;
+                m_RenderPassCache.erase(keysToDelete[i]);
             }
         }
     }

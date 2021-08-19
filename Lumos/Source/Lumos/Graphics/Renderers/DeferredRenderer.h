@@ -52,14 +52,12 @@ namespace Lumos
         private:
             DeferredOffScreenRenderer* m_OffScreenRenderer;
 
-            void SetSystemUniforms(Shader* shader) const;
-
             Maths::Matrix4 m_BiasMatrix;
             CommandBuffer* m_DeferredCommandBuffers;
 
             Mesh* m_ScreenQuad = nullptr;
 
-            UniqueRef<Texture2D> m_PreintegratedFG;
+            UniquePtr<Texture2D> m_PreintegratedFG;
 
             int m_CommandBufferIndex = 0;
             int m_RenderMode = 0;

@@ -188,6 +188,11 @@ namespace Lumos
             return *this;
         }
 
+        inline operator T*() const
+        {
+            return m_Ptr;
+        }
+
         inline Reference& operator=(std::nullptr_t)
         {
             reset();
@@ -529,10 +534,10 @@ namespace Lumos
 #ifdef CUSTOM_SMART_PTR
 
     template <class T>
-    using SharedRef = Reference<T>;
+    using SharedPtr = Reference<T>;
 
     template <typename T, typename... Args>
-    SharedRef<T> CreateSharedRef(Args&&... args)
+    SharedPtr<T> CreateSharedPtr(Args&&... args)
     {
         auto ptr = new T(std::forward<Args>(args)...);
 
@@ -540,10 +545,10 @@ namespace Lumos
     }
 
     template <class T>
-    using UniqueRef = Owned<T>;
+    using UniquePtr = Owned<T>;
 
     template <typename T, typename... Args>
-    UniqueRef<T> CreateUniqueRef(Args&&... args)
+    UniquePtr<T> CreateUniquePtr(Args&&... args)
     {
         auto ptr = new T(std::forward<Args>(args)...);
         return Owned<T>(ptr);
@@ -553,10 +558,10 @@ namespace Lumos
     using WeakRef = WeakReference<T>;
 #else
     template <class T>
-    using SharedRef = std::shared_ptr<T>;
+    using SharedPtr = std::shared_ptr<T>;
 
     template <typename T, typename... Args>
-    SharedRef<T> CreateSharedRef(Args&&... args)
+    SharedPtr<T> CreateSharedPtr(Args&&... args)
     {
         return std::make_shared<T>(std::forward<Args>(args)...);
     }
@@ -565,10 +570,10 @@ namespace Lumos
     using WeakRef = std::weak_ptr<T>;
 
     template <class T>
-    using UniqueRef = std::unique_ptr<T>;
+    using UniquePtr = std::unique_ptr<T>;
 
     template <typename T, typename... Args>
-    UniqueRef<T> CreateUniqueRef(Args&&... args)
+    UniquePtr<T> CreateUniquePtr(Args&&... args)
     {
         return std::make_unique<T>(std::forward<Args>(args)...);
     }

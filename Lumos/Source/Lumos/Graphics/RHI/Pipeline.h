@@ -1,63 +1,55 @@
 #pragma once
 #include "Renderer.h"
 #include "BufferLayout.h"
+#include "Definitions.h"
+#include "Shader.h"
 
 namespace Lumos
 {
     namespace Graphics
     {
-        class Shader;
-        class RenderPass;
-        class CommandBuffer;
-        class DescriptorSet;
-        struct VertexInputDescription;
-        struct DescriptorLayoutInfo;
-        struct DescriptorPoolInfo;
-
-        enum class CullMode
-        {
-            FRONT,
-            BACK,
-            FRONTANDBACK,
-            NONE
-        };
-
-        enum class PolygonMode
-        {
-            FILL,
-            LINE,
-            POINT
-        };
-
         struct PipelineDesc
         {
-            SharedRef<RenderPass> renderpass;
-            SharedRef<Shader> shader;
+            SharedPtr<Shader> shader;
 
             CullMode cullMode = CullMode::BACK;
             PolygonMode polygonMode = PolygonMode::FILL;
             DrawType drawType = DrawType::TRIANGLE;
+            BlendMode blendMode = BlendMode::None;
 
-            bool transparencyEnabled;
+            bool transparencyEnabled = true;
             bool depthBiasEnabled = false;
+            bool swapchainTarget = false;
+            bool clearTargets = false;
+
+            std::array<Texture*, MAX_RENDER_TARGETS> colourTargets = {};
+
+            Texture* depthTarget = nullptr;
+            Texture* depthArrayTarget = nullptr;
+            Maths::Vector4 clearColour = Maths::Vector4(0.2f);
         };
 
         class LUMOS_EXPORT Pipeline
         {
         public:
-            static Pipeline* Create(const PipelineDesc& pipelineInfo);
-            static SharedRef<Pipeline> Get(const PipelineDesc& pipelineInfo);
+            static Pipeline* Create(const PipelineDesc& pipelineDesc);
+            static SharedPtr<Pipeline> Get(const PipelineDesc& pipelineDesc);
             static void ClearCache();
             static void DeleteUnusedCache();
 
             virtual ~Pipeline() = default;
 
-            virtual void Bind(CommandBuffer* cmdBuffer) = 0;
-
+            virtual void Bind(CommandBuffer* commandBuffer, uint32_t layer = 0) = 0;
+            virtual void End(CommandBuffer* commandBuffer) { }
+            virtual void ClearRenderTargets(CommandBuffer* commandBuffer) { }
             virtual Shader* GetShader() const = 0;
+
+            uint32_t GetWidth();
+            uint32_t GetHeight();
 
         protected:
             static Pipeline* (*CreateFunc)(const PipelineDesc&);
+            PipelineDesc m_Description;
         };
     }
 }

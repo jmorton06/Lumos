@@ -14,6 +14,7 @@ namespace Lumos
     RigidBody2D::RigidBody2D()
         : m_B2Body(nullptr)
     {
+        Init(RigidBodyParameters());
     }
 
     RigidBody2D::RigidBody2D(const RigidBodyParameters& params)
