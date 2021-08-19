@@ -124,8 +124,8 @@ namespace Lumos
         std::string m_SceneName;
         int m_SceneSerialisationVersion = 0;
 
-        UniqueRef<EntityManager> m_EntityManager;
-        UniqueRef<SceneGraph> m_SceneGraph;
+        UniquePtr<EntityManager> m_EntityManager;
+        UniquePtr<SceneGraph> m_SceneGraph;
 
         uint32_t m_ScreenWidth;
         uint32_t m_ScreenHeight;

@@ -2,7 +2,7 @@
 #include "VKBuffer.h"
 #include "VKDevice.h"
 #include "VKRenderer.h"
-#include "VKTools.h"
+#include "VKUtilities.h"
 
 namespace Lumos
 {
@@ -21,6 +21,7 @@ namespace Lumos
 
         VKBuffer::~VKBuffer()
         {
+            LUMOS_PROFILE_FUNCTION();
             if(m_Buffer)
             {
 #ifdef USE_VMA_ALLOCATOR

@@ -1,5 +1,6 @@
 #pragma once
 #include "Maths/Vector4.h"
+#include "Definitions.h"
 
 namespace Lumos
 {
@@ -14,13 +15,6 @@ namespace Lumos
             PositiveZ,
             NegativeZ
         };
-
-        class Texture;
-        class Texture2D;
-        class TextureCube;
-        enum class TextureType;
-        enum class TextureFormat;
-        class RenderPass;
 
         struct FramebufferDesc
         {
@@ -38,8 +32,8 @@ namespace Lumos
         class LUMOS_EXPORT Framebuffer
         {
         public:
-            static SharedRef<Framebuffer> Get(const FramebufferDesc& framebufferInfo);
-            static Framebuffer* Create(const FramebufferDesc& framebufferInfo);
+            static SharedPtr<Framebuffer> Get(const FramebufferDesc& framebufferDesc);
+            static Framebuffer* Create(const FramebufferDesc& framebufferDesc);
             static void ClearCache();
             static void DeleteUnusedCache();
 

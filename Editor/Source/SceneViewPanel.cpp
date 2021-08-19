@@ -7,6 +7,7 @@
 #include <Lumos/Core/Profiler.h>
 #include <Lumos/Graphics/RHI/GraphicsContext.h>
 #include <Lumos/Graphics/RHI/Texture.h>
+#include <Lumos/Graphics/RHI/SwapChain.h>
 #include <Lumos/Graphics/Renderers/RenderGraph.h>
 #include <Lumos/Graphics/GBuffer.h>
 #include <Lumos/Graphics/Light.h>
@@ -765,11 +766,12 @@ namespace Lumos
         }
 
         if(!m_GameViewTexture)
-            m_GameViewTexture = SharedRef<Graphics::Texture2D>(Graphics::Texture2D::Create());
+            m_GameViewTexture = SharedPtr<Graphics::Texture2D>(Graphics::Texture2D::Create());
 
         if(resize)
         {
             Graphics::GraphicsContext::GetContext()->WaitIdle();
+            // Graphics::Renderer::GetSwapChain()->GetCurrentCommandBuffer()->Flush();
 
             m_GameViewTexture->BuildTexture(Graphics::TextureFormat::RGBA8, m_Width, m_Height, false, false, false);
 

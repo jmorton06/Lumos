@@ -72,7 +72,6 @@ namespace Lumos
             void RenderInternal();
             void PresentToScreen() override;
             void Submit(const Maths::Vector3& p1, float size, const Maths::Vector4& colour);
-            void SetSystemUniforms(Graphics::Shader* shader) const;
             float SubmitTexture(Graphics::Texture* texture);
 
             void CreateGraphicsPipeline();

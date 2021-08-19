@@ -86,7 +86,7 @@ namespace Lumos
 
             virtual std::vector<PushConstant>& GetPushConstants() = 0;
             virtual PushConstant* GetPushConstant(uint32_t index) { return nullptr; }
-            virtual void BindPushConstants(Graphics::CommandBuffer* cmdBuffer, Graphics::Pipeline* pipeline) = 0;
+            virtual void BindPushConstants(Graphics::CommandBuffer* commandBuffer, Graphics::Pipeline* pipeline) = 0;
             virtual DescriptorSetInfo GetDescriptorInfo(uint32_t index) { return DescriptorSetInfo(); }
 
             ShaderDataType SPIRVTypeToLumosDataType(const spirv_cross::SPIRType type);
@@ -98,7 +98,6 @@ namespace Lumos
         protected:
             static Shader* (*CreateFunc)(const std::string&);
             static Shader* (*CreateFuncFromEmbedded)(const uint32_t*, uint32_t, const uint32_t*, uint32_t);
-
         };
     }
 }

@@ -72,7 +72,6 @@ namespace Lumos
             void SetScreenBufferSize(uint32_t width, uint32_t height) override;
             void SetRenderTarget(Graphics::Texture* texture, bool rebuildFramebuffer) override;
 
-            void SetSystemUniforms(Graphics::Shader* shader) const;
             float SubmitTexture(Graphics::Texture* texture);
             void PresentToScreen() override;
             void RenderScene() override {};

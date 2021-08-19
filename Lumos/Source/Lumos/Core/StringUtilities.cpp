@@ -36,11 +36,11 @@ namespace Lumos
             auto pos = FilePath.find_last_of('/');
             if(pos != std::string::npos)
                 return FilePath.substr(pos + 1);
-            
+
             pos = FilePath.find_last_of("\\");
             if(pos != std::string::npos)
                 return FilePath.substr(pos + 1);
-            
+
             return FilePath;
         }
 
@@ -49,11 +49,11 @@ namespace Lumos
             auto pos = FilePath.find_last_of('/');
             if(pos != std::string::npos)
                 return FilePath.substr(0, pos + 1);
-            
+
             pos = FilePath.find_last_of("\\");
             if(pos != std::string::npos)
                 return FilePath.substr(0, pos + 1);
-            
+
             return FilePath;
         }
 
@@ -62,11 +62,11 @@ namespace Lumos
             auto pos = FilePath.find_last_of('/');
             if(pos != std::string::npos)
                 return FilePath.substr(0, pos + 1);
-            
+
             pos = FilePath.find_last_of("\\");
             if(pos != std::string::npos)
                 return FilePath.substr(0, pos + 1);
-            
+
             return FilePath;
         }
 
@@ -277,7 +277,7 @@ namespace Lumos
 
             return string;
         }
-    
+
         std::string& RemoveCharacter(std::string& string, const char character)
         {
             std::string::iterator endIterator = std::remove(string.begin(), string.end(), character);
@@ -319,7 +319,7 @@ namespace Lumos
             return ret;
 #endif
         }
-    
+
         std::string BytesToString(uint64_t bytes)
         {
             static const float gb = 1024 * 1024 * 1024;

@@ -37,8 +37,8 @@ namespace Lumos
 
             alcMakeContextCurrent(m_Context);
             alDistanceModel(AL_LINEAR_DISTANCE_CLAMPED);
-			
-			LUMOS_LOG_INFO("Initialised AudioManager - {0}", alcGetString(m_Device, ALC_DEVICE_SPECIFIER));
+
+            LUMOS_LOG_INFO("Initialised AudioManager - {0}", alcGetString(m_Device, ALC_DEVICE_SPECIFIER));
         }
 
         void ALManager::OnUpdate(const TimeStep& dt, Scene* scene)

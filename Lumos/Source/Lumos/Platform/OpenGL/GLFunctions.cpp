@@ -11,7 +11,7 @@
 #include "GLRenderer.h"
 #include "GLRenderPass.h"
 #include "GLShader.h"
-#include "GLSwapchain.h"
+#include "GLSwapChain.h"
 #include "GLTexture.h"
 #include "GLUniformBuffer.h"
 #include "GLVertexBuffer.h"
@@ -29,7 +29,7 @@ void Lumos::Graphics::GL::MakeDefault()
     GLRenderer::MakeDefault();
     GLRenderPass::MakeDefault();
     GLShader::MakeDefault();
-    GLSwapchain::MakeDefault();
+    GLSwapChain::MakeDefault();
     GLTexture2D::MakeDefault();
     GLTextureCube::MakeDefault();
     GLTextureDepth::MakeDefault();

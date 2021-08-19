@@ -2,13 +2,13 @@
 #include "VK.h"
 #include <vulkan/vk_mem_alloc.h>
 
-#define VK_CHECK_RESULT(f)                                                                                                                    \
-    {                                                                                                                                         \
-        VkResult res = (f);                                                                                                                   \
-        if(res != VK_SUCCESS)                                                                                                                 \
-        {                                                                                                                                     \
-            LUMOS_LOG_ERROR("[VULKAN] : VkResult is {0} in {1} at line {2}", Lumos::Graphics::VKTools::ErrorString(res), __FILE__, __LINE__); \
-        }                                                                                                                                     \
+#define VK_CHECK_RESULT(f)                                                                                                                        \
+    {                                                                                                                                             \
+        VkResult res = (f);                                                                                                                       \
+        if(res != VK_SUCCESS)                                                                                                                     \
+        {                                                                                                                                         \
+            LUMOS_LOG_ERROR("[VULKAN] : VkResult is {0} in {1} at line {2}", Lumos::Graphics::VKUtilities::ErrorString(res), __FILE__, __LINE__); \
+        }                                                                                                                                         \
     }
 
 namespace Lumos
@@ -26,7 +26,7 @@ namespace Lumos
         enum class PolygonMode;
         enum class DrawType;
 
-        namespace VKTools
+        namespace VKUtilities
         {
             void CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer,
                 VkDeviceMemory& bufferMemory, VmaAllocator allocator = nullptr, VmaAllocation allocation = nullptr);
@@ -39,7 +39,7 @@ namespace Lumos
 
             bool HasStencilComponent(VkFormat format);
 
-            void TransitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout, uint32_t mipLevels = 1);
+            void TransitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout, uint32_t mipLevels = 1, VkCommandBuffer commandBuffer = nullptr);
 
             uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
             VkFormat FindSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
@@ -49,6 +49,7 @@ namespace Lumos
             bool IsPresentModeSupported(const std::vector<VkPresentModeKHR>& supportedModes, VkPresentModeKHR presentMode);
             VkPresentModeKHR ChoosePresentMode(const std::vector<VkPresentModeKHR>& supportedModes, bool vsync);
 
+            void WaitIdle();
             std::string ErrorString(VkResult errorCode);
 
             VkVertexInputAttributeDescription VertexInputDescriptionToVK(VertexInputDescription description);

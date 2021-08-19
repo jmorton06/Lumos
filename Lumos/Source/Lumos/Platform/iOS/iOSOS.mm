@@ -57,15 +57,15 @@ static iOSOS* os = nullptr;
         Lumos::Internal::CoreSystem::Init(false);
 
         std::string root = GetAssetPath();
-        Lumos::VFS::Get()->Mount("CoreShaders", root + "Shaders");
+        Lumos::VFS::Get().Mount("CoreShaders", root + "Shaders");
 
-       // Lumos::VFS::Get()->Mount("Shaders", root + "shaders");
-        Lumos::VFS::Get()->Mount("Meshes", root + "Meshes");
-        Lumos::VFS::Get()->Mount("Textures", root + "Textures");
-        Lumos::VFS::Get()->Mount("Scripts", root + "Scripts");
-        Lumos::VFS::Get()->Mount("Scenes", root + "Scenes");
-        Lumos::VFS::Get()->Mount("Sounds", root + "Sounds");
-        Lumos::VFS::Get()->Mount("Assets", root + "Assets");
+       // Lumos::VFS::Get().Mount("Shaders", root + "shaders");
+        Lumos::VFS::Get().Mount("Meshes", root + "Meshes");
+        Lumos::VFS::Get().Mount("Textures", root + "Textures");
+        Lumos::VFS::Get().Mount("Scripts", root + "Scripts");
+        Lumos::VFS::Get().Mount("Scenes", root + "Scenes");
+        Lumos::VFS::Get().Mount("Sounds", root + "Sounds");
+        Lumos::VFS::Get().Mount("Assets", root + "Assets");
 
         LUMOS_LOG_INFO("Device : {0}",GetModelName());
         

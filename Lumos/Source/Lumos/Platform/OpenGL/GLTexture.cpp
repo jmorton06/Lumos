@@ -13,6 +13,7 @@ namespace Lumos
             : m_Width(0)
             , m_Height(0)
         {
+            m_Format = m_Parameters.format;
             glGenTextures(1, &m_Handle);
         }
 
@@ -27,6 +28,7 @@ namespace Lumos
             m_Name = "";
             m_Parameters = parameters;
             m_LoadOptions = loadOptions;
+            m_Format = m_Parameters.format;
             m_Handle = Load(data);
         }
 
@@ -36,6 +38,7 @@ namespace Lumos
             , m_Parameters(parameters)
             , m_LoadOptions(loadOptions)
         {
+            m_Format = m_Parameters.format;
             m_Handle = Load(nullptr);
         }
 
@@ -106,6 +109,8 @@ namespace Lumos
 
         void GLTexture2D::BuildTexture(const TextureFormat internalformat, uint32_t width, uint32_t height, bool srgb, bool depth, bool samplerShadow)
         {
+            m_Format = internalformat;
+
             m_Width = width;
             m_Height = height;
             m_Name = "Texture Attachment";
@@ -168,6 +173,7 @@ namespace Lumos
             //GLCall(glGenerateMipmap(GL_TEXTURE_CUBE_MAP));
             m_Width = size;
             m_Height = size;
+            m_TextureFormat = m_Parameters.format;
         }
 
         GLTextureCube::GLTextureCube(const std::string& filepath)
@@ -180,6 +186,7 @@ namespace Lumos
         {
             m_Files[0] = filepath;
             m_Handle = LoadFromSingleFile();
+            m_TextureFormat = m_Parameters.format;
         }
 
         GLTextureCube::GLTextureCube(const std::string* files)
@@ -187,6 +194,7 @@ namespace Lumos
             for(uint32_t i = 0; i < 6; i++)
                 m_Files[i] = files[i];
             m_Handle = LoadFromMultipleFiles();
+            m_TextureFormat = m_Parameters.format;
         }
 
         GLTextureCube::GLTextureCube(const std::string* files, uint32_t mips, TextureParameters params, TextureLoadOptions loadOptions, const InputFormat format)
@@ -197,6 +205,8 @@ namespace Lumos
                 m_Files[i] = files[i];
             if(format == InputFormat::VERTICAL_CROSS)
                 m_Handle = LoadFromVCross(mips);
+
+            m_TextureFormat = m_Parameters.format;
         }
 
         GLTextureCube::~GLTextureCube()
@@ -378,6 +388,8 @@ namespace Lumos
         {
             GLCall(glGenTextures(1, &m_Handle));
 
+            m_Format = TextureFormat::DEPTH;
+
             Init();
         }
 
@@ -418,6 +430,7 @@ namespace Lumos
         {
             m_Width = width;
             m_Height = height;
+            m_Format = TextureFormat::DEPTH;
 
             Init();
         }
@@ -427,6 +440,7 @@ namespace Lumos
             , m_Height(height)
             , m_Count(count)
         {
+            m_Format = TextureFormat::DEPTH;
             GLTextureDepthArray::Init();
         }
 

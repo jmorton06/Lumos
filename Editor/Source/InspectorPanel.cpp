@@ -68,7 +68,7 @@ namespace MM
         {
             std::string newFilePath = "//Scripts";
             std::string physicalPath;
-            if(!Lumos::VFS::Get()->ResolvePhysicalPath(newFilePath, physicalPath, true))
+            if(!Lumos::VFS::Get().ResolvePhysicalPath(newFilePath, physicalPath, true))
             {
                 LUMOS_LOG_ERROR("Failed to Create Lua script {0}", physicalPath);
             }
@@ -93,8 +93,7 @@ end
                     fileIndex++;
                     newScriptFileName = fmt::format("Script({0})", fileIndex);
                 }
-                
-                
+
                 Lumos::FileSystem::WriteTextFile(physicalPath + "/" + newScriptFileName + ".lua", defaultScript);
                 script.SetFilePath(newFilePath + "/" + newScriptFileName + ".lua");
                 script.Reload();
@@ -107,15 +106,15 @@ end
             if(ImGui::Button("Edit File", ImVec2(ImGui::GetContentRegionAvail().x, 0.0f)))
             {
                 Lumos::Editor::GetEditor()->OpenTextFile(script.GetFilePath(), [&]
-                {
-                    script.Reload();
-                    hasReloaded = true;
-                    
-                    auto textEditPanel = Lumos::Editor::GetEditor()->GetTextEditPanel();
-                    if(textEditPanel)
-                        ((Lumos::TextEditPanel*)textEditPanel)->SetErrors(script.GetErrors());
-                });
-                
+                    {
+                        script.Reload();
+                        hasReloaded = true;
+
+                        auto textEditPanel = Lumos::Editor::GetEditor()->GetTextEditPanel();
+                        if(textEditPanel)
+                            ((Lumos::TextEditPanel*)textEditPanel)->SetErrors(script.GetErrors());
+                    });
+
                 auto textEditPanel = Lumos::Editor::GetEditor()->GetTextEditPanel();
                 if(textEditPanel)
                     ((Lumos::TextEditPanel*)textEditPanel)->SetErrors(script.GetErrors());
@@ -818,7 +817,7 @@ end
                     if(ImGui::AcceptDragDropPayload("AssetFile"))
                     {
                         std::string physicalPath;
-                        Lumos::VFS::Get()->ResolvePhysicalPath(filePath, physicalPath);
+                        Lumos::VFS::Get().ResolvePhysicalPath(filePath, physicalPath);
                         auto newSound = Lumos::Sound::Create(physicalPath, Lumos::StringUtilities::GetFilePathExtension(filePath));
 
                         soundNode->SetSound(newSound);
@@ -1685,7 +1684,7 @@ end
                     meshes.clear();
                     if(strcmp(shapes[n], "File") != 0)
                     {
-                        meshes.push_back(Lumos::SharedRef<Lumos::Graphics::Mesh>(Lumos::Graphics::CreatePrimative(GetPrimativeName(shapes[n]))));
+                        meshes.push_back(Lumos::SharedPtr<Lumos::Graphics::Mesh>(Lumos::Graphics::CreatePrimative(GetPrimativeName(shapes[n]))));
                         model.SetPrimitiveType(GetPrimativeName(shapes[n]));
                     }
                     else
@@ -1729,7 +1728,7 @@ end
             {
                 ImGui::TextUnformatted("Empty Material");
                 if(ImGui::Button("Add Material", ImVec2(ImGui::GetContentRegionAvail().x, 0.0f)))
-                    mesh->SetMaterial(Lumos::CreateSharedRef<Lumos::Graphics::Material>());
+                    mesh->SetMaterial(Lumos::CreateSharedPtr<Lumos::Graphics::Material>());
             }
             else if(ImGui::TreeNodeEx(matName.c_str(), 0))
             {

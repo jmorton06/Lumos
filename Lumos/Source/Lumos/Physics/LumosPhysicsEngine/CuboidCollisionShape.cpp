@@ -6,7 +6,7 @@
 namespace Lumos
 {
 
-    SharedRef<Hull> CuboidCollisionShape::m_CubeHull = CreateSharedRef<Hull>();
+    SharedPtr<Hull> CuboidCollisionShape::m_CubeHull = CreateSharedPtr<Hull>();
 
     CuboidCollisionShape::CuboidCollisionShape()
     {

@@ -7,7 +7,7 @@ namespace Lumos
         class Pipeline;
         class CommandBuffer;
         class DescriptorSet;
-        class Swapchain;
+        class SwapChain;
         class IndexBuffer;
         class Mesh;
         class Texture;
@@ -96,32 +96,32 @@ namespace Lumos
             virtual void InitInternal() = 0;
             virtual void Begin() = 0;
             virtual void OnResize(uint32_t width, uint32_t height) = 0;
-            virtual void ClearRenderTarget(Graphics::Texture* texture, Graphics::CommandBuffer* cmdBuffer) { }
+            virtual void ClearRenderTarget(Graphics::Texture* texture, Graphics::CommandBuffer* commandBuffer) { }
             inline static Renderer* GetRenderer()
             {
                 return s_Instance;
             }
 
             virtual void PresentInternal() = 0;
-            virtual void PresentInternal(Graphics::CommandBuffer* cmdBuffer) = 0;
-            virtual void BindDescriptorSetsInternal(Graphics::Pipeline* pipeline, Graphics::CommandBuffer* cmdBuffer, uint32_t dynamicOffset, std::vector<Graphics::DescriptorSet*>& descriptorSets) = 0;
+            virtual void PresentInternal(Graphics::CommandBuffer* commandBuffer) = 0;
+            virtual void BindDescriptorSetsInternal(Graphics::Pipeline* pipeline, Graphics::CommandBuffer* commandBuffer, uint32_t dynamicOffset, std::vector<Graphics::DescriptorSet*>& descriptorSets) = 0;
 
             virtual const std::string& GetTitleInternal() const = 0;
             virtual void DrawIndexedInternal(CommandBuffer* commandBuffer, DrawType type, uint32_t count, uint32_t start) const = 0;
             virtual void DrawInternal(CommandBuffer* commandBuffer, DrawType type, uint32_t count, DataType datayType, void* indices) const = 0;
-            virtual Graphics::Swapchain* GetSwapchainInternal() const = 0;
+            virtual Graphics::SwapChain* GetSwapChainInternal() const = 0;
 
             inline static void Present()
             {
                 s_Instance->PresentInternal();
             }
-            inline static void Present(Graphics::CommandBuffer* cmdBuffer)
+            inline static void Present(Graphics::CommandBuffer* commandBuffer)
             {
-                s_Instance->PresentInternal(cmdBuffer);
+                s_Instance->PresentInternal(commandBuffer);
             }
-            inline static void BindDescriptorSets(Graphics::Pipeline* pipeline, Graphics::CommandBuffer* cmdBuffer, uint32_t dynamicOffset, std::vector<Graphics::DescriptorSet*>& descriptorSets)
+            inline static void BindDescriptorSets(Graphics::Pipeline* pipeline, Graphics::CommandBuffer* commandBuffer, uint32_t dynamicOffset, std::vector<Graphics::DescriptorSet*>& descriptorSets)
             {
-                s_Instance->BindDescriptorSetsInternal(pipeline, cmdBuffer, dynamicOffset, descriptorSets);
+                s_Instance->BindDescriptorSetsInternal(pipeline, commandBuffer, dynamicOffset, descriptorSets);
             }
             inline static void Draw(CommandBuffer* commandBuffer, DrawType type, uint32_t count, DataType datayType = DataType::UNSIGNED_INT, void* indices = nullptr)
             {
@@ -136,9 +136,9 @@ namespace Lumos
                 return s_Instance->GetTitleInternal();
             }
 
-            inline static Swapchain* GetSwapchain()
+            inline static SwapChain* GetSwapChain()
             {
-                return s_Instance->GetSwapchainInternal();
+                return s_Instance->GetSwapChainInternal();
             }
 
             static RenderAPICapabilities& GetCapabilities()

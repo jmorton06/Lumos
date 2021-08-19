@@ -16,7 +16,7 @@ namespace Lumos
             void Init(uint32_t size, const void* data) override;
             void SetData(uint32_t size, const void* data) override;
             void SetDynamicData(uint32_t size, uint32_t typeSize, const void* data) override;
-            
+
             void SetData(const void* data) override { SetData(m_Size, data); }
 
             void Bind(uint32_t slot, GLShader* shader, std::string& name);

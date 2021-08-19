@@ -68,7 +68,7 @@ namespace Lumos
         ImGui::GetStyle().ScaleAllSizes(m_DPIScale);
 #endif
 
-        m_IMGUIRenderer = UniqueRef<Graphics::IMGUIRenderer>(Graphics::IMGUIRenderer::Create(app.GetWindow()->GetWidth(), app.GetWindow()->GetHeight(), m_ClearScreen));
+        m_IMGUIRenderer = UniquePtr<Graphics::IMGUIRenderer>(Graphics::IMGUIRenderer::Create(app.GetWindow()->GetWidth(), app.GetWindow()->GetHeight(), m_ClearScreen));
 
         if(m_IMGUIRenderer)
             m_IMGUIRenderer->Init();

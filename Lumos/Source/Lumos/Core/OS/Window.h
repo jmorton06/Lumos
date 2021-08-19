@@ -34,9 +34,9 @@ namespace Lumos
     public:
         using EventCallbackFn = std::function<void(Event&)>;
 
-        static Window* Create(const WindowDesc& properties);
+        static Window* Create(const WindowDesc& windowDesc);
         virtual ~Window() = default;
-        bool Initialise(const WindowDesc& properties);
+        bool Initialise(const WindowDesc& windowDesc);
 
         bool HasInitialised() const
         {

@@ -17,7 +17,7 @@ namespace Lumos
     class LUMOS_EXPORT OctreeBroadphase : public Broadphase
     {
     public:
-        OctreeBroadphase(size_t maxObjectsPerPartition, size_t maxPartitionDepth, const SharedRef<Broadphase>& secondaryBroadphase);
+        OctreeBroadphase(size_t maxObjectsPerPartition, size_t maxPartitionDepth, const SharedPtr<Broadphase>& secondaryBroadphase);
         virtual ~OctreeBroadphase();
 
         struct OctreeNode
@@ -54,7 +54,7 @@ namespace Lumos
         uint32_t m_CurrentPoolIndex = 0;
         uint32_t m_LeafCount = 0;
 
-        SharedRef<Broadphase> m_SecondaryBroadphase; //Broadphase stage used to determine collision pairs within subdivisions
+        SharedPtr<Broadphase> m_SecondaryBroadphase; //Broadphase stage used to determine collision pairs within subdivisions
         OctreeNode m_NodePool[MAX_PARTITION_DEPTH * MAX_PARTITION_DEPTH * MAX_PARTITION_DEPTH];
         uint32_t m_Leaves[MAX_PARTITION_DEPTH * MAX_PARTITION_DEPTH * MAX_PARTITION_DEPTH] = { 0 };
     };

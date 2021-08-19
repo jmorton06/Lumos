@@ -74,11 +74,11 @@ namespace Lumos
             m_Name = StringUtilities::GetFileName(filePath);
             m_Path = StringUtilities::GetFileLocation(filePath);
 
-            m_Source = VFS::Get()->ReadTextFile(filePath);
+            m_Source = VFS::Get().ReadTextFile(filePath);
 
             Init();
         }
-    
+
         GLShader::GLShader(const uint32_t* vertData, uint32_t vertDataSize, const uint32_t* fragData, uint32_t fragDataSize)
         {
             std::map<ShaderType, std::string>* sources = new std::map<ShaderType, std::string>();
@@ -233,7 +233,7 @@ namespace Lumos
             }
         }
 
-        void GLShader::BindPushConstants(Graphics::CommandBuffer* cmdBuffer, Graphics::Pipeline* pipeline)
+        void GLShader::BindPushConstants(Graphics::CommandBuffer* commandBuffer, Graphics::Pipeline* pipeline)
         {
             LUMOS_PROFILE_FUNCTION();
             int index = 0;
@@ -378,8 +378,8 @@ namespace Lumos
                             file.erase(j, rem.length());
                         file = StringUtilities::StringReplace(file, '\"');
                         LUMOS_LOG_WARN("Including file \'{0}\' into shader.", file);
-                        VFS::Get()->ReadTextFile(file);
-                        ReadShaderFile(StringUtilities::GetLines(VFS::Get()->ReadTextFile(file)), shaders);
+                        VFS::Get().ReadTextFile(file);
+                        ReadShaderFile(StringUtilities::GetLines(VFS::Get().ReadTextFile(file)), shaders);
                     }
                 }
                 else if(StringUtilities::StartsWith(str, "#if"))
@@ -709,7 +709,7 @@ namespace Lumos
         {
             GLCall(glUniformMatrix4fv(location, count, GL_FALSE /*GLTRUE*/, Maths::ValuePointer(matrix)));
         }
-    
+
         void GLShader::LoadFromData(const uint32_t* data, uint32_t size, ShaderType type, std::map<ShaderType, std::string>& sources)
         {
             std::vector<unsigned int> spv(data, data + size / sizeof(unsigned int));
@@ -738,10 +738,10 @@ namespace Lumos
                 uint32_t binding = glsl->get_decoration(resource.id, spv::DecorationBinding);
 
                 // Modify the decoration to prepare it for GLSL.
-               // glsl->unset_decoration(resource.id, spv::DecorationDescriptorSet);
+                // glsl->unset_decoration(resource.id, spv::DecorationDescriptorSet);
 
                 // Some arbitrary remapping if we want.
-               // glsl->set_decoration(resource.id, spv::DecorationBinding, set * 16 + binding);
+                // glsl->set_decoration(resource.id, spv::DecorationBinding, set * 16 + binding);
 
                 auto& descriptorInfo = m_DescriptorInfos[set];
                 auto& descriptor = descriptorInfo.descriptors.emplace_back();
@@ -856,10 +856,10 @@ namespace Lumos
                     member.name = memberName;
                 }
             }
-            
-            int imageCount[16] = {0};
-            int bufferCount[16] = {0};
-            
+
+            int imageCount[16] = { 0 };
+            int bufferCount[16] = { 0 };
+
             for(int i = 0; i < m_DescriptorInfos.size(); i++)
             {
                 auto& descriptorInfo = m_DescriptorInfos[i];
@@ -868,14 +868,14 @@ namespace Lumos
                     if(descriptor.type == DescriptorType::IMAGE_SAMPLER)
                     {
                         imageCount[i]++;
-                        
+
                         if(i > 0)
                             descriptor.binding = descriptor.binding + imageCount[i - 1];
                     }
                     else if(descriptor.type == DescriptorType::UNIFORM_BUFFER)
                     {
                         bufferCount[i]++;
-                        
+
                         if(i > 0)
                             descriptor.binding = descriptor.binding + bufferCount[i - 1];
                     }
@@ -901,11 +901,11 @@ namespace Lumos
         Shader* GLShader::CreateFuncGL(const std::string& filePath)
         {
             std::string physicalPath;
-            Lumos::VFS::Get()->ResolvePhysicalPath(filePath, physicalPath);
+            Lumos::VFS::Get().ResolvePhysicalPath(filePath, physicalPath);
             GLShader* result = new GLShader(physicalPath);
             return result;
         }
-    
+
         Shader* GLShader::CreateFromEmbeddedFuncGL(const uint32_t* vertData, uint32_t vertDataSize, const uint32_t* fragData, uint32_t fragDataSize)
         {
             return new GLShader(vertData, vertDataSize, fragData, fragDataSize);

@@ -183,12 +183,12 @@ namespace Lumos::Graphics
         return texture2D;
     }
 
-    SharedRef<Material> LoadMaterial(const ofbx::Material* material, bool animated)
+    SharedPtr<Material> LoadMaterial(const ofbx::Material* material, bool animated)
     {
         //auto shader = animated ? Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/ForwardPBR.shader") : Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/ForwardPBR.shader");
         auto shader = Application::Get().GetShaderLibrary()->GetResource("ForwardPBR");
 
-        SharedRef<Material> pbrMaterial = CreateSharedRef<Material>(shader);
+        SharedPtr<Material> pbrMaterial = CreateSharedPtr<Material>(shader);
 
         PBRMataterialTextures textures;
         Graphics::MaterialProperties properties;
@@ -323,7 +323,7 @@ namespace Lumos::Graphics
                 Graphics::Vertex* tempvertices = new Graphics::Vertex[vertex_count];
                 uint32_t* indicesArray = new uint32_t[numIndices];
 
-                SharedRef<Maths::BoundingBox> boundingBox = CreateSharedRef<Maths::BoundingBox>();
+                SharedPtr<Maths::BoundingBox> boundingBox = CreateSharedPtr<Maths::BoundingBox>();
 
                 auto indices = geom->getFaceIndices();
 
@@ -366,20 +366,20 @@ namespace Lumos::Graphics
                     indicesArray[i] = index;
                 }
 
-                SharedRef<Graphics::VertexBuffer> vb = SharedRef<Graphics::VertexBuffer>(Graphics::VertexBuffer::Create());
+                SharedPtr<Graphics::VertexBuffer> vb = SharedPtr<Graphics::VertexBuffer>(Graphics::VertexBuffer::Create());
                 vb->SetData(sizeof(Graphics::Vertex) * vertex_count, tempvertices);
 
-                SharedRef<Graphics::IndexBuffer> ib;
+                SharedPtr<Graphics::IndexBuffer> ib;
                 ib.reset(Graphics::IndexBuffer::Create(indicesArray, numIndices));
 
                 const ofbx::Material* material = fbx_mesh->getMaterialCount() > 0 ? fbx_mesh->getMaterial(0) : nullptr;
-                SharedRef<Material> pbrMaterial;
+                SharedPtr<Material> pbrMaterial;
                 if(material)
                 {
                     pbrMaterial = LoadMaterial(material, false);
                 }
 
-                auto mesh = CreateSharedRef<Graphics::Mesh>(vb, ib, boundingBox);
+                auto mesh = CreateSharedPtr<Graphics::Mesh>(vb, ib, boundingBox);
                 mesh->SetName(fbx_mesh->name);
                 if(material)
                     mesh->SetMaterial(pbrMaterial);

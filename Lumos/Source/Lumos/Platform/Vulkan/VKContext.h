@@ -21,7 +21,7 @@ namespace Lumos
     namespace Graphics
     {
         class VKCommandPool;
-        class VKSwapchain;
+        class VKSwapChain;
 
         class VKContext : public GraphicsContext
         {
@@ -60,9 +60,31 @@ namespace Lumos
             const std::vector<const char*>& GetLayerNames() const { return m_InstanceLayerNames; }
             const std::vector<const char*>& GetExtensionNames() const { return m_InstanceExtensionNames; }
 
-            const SharedRef<Lumos::Graphics::VKSwapchain>& GetSwapchain() const { return m_Swapchain; }
+            const SharedPtr<Lumos::Graphics::VKSwapChain>& GetSwapChain() const { return m_Swapchain; }
 
             static void MakeDefault();
+
+            struct DeletionQueue
+            {
+                std::deque<std::function<void()>> m_Deletors;
+
+                template <typename F>
+                void PushFunction(F&& function)
+                {
+                    LUMOS_ASSERT(sizeof(F) < 200, "Lambda too large");
+                    m_Deletors.push_back(function);
+                }
+
+                void Flush()
+                {
+                    for(auto it = m_Deletors.rbegin(); it != m_Deletors.rend(); it++)
+                    {
+                        (*it)();
+                    }
+
+                    m_Deletors.clear();
+                }
+            };
 
         protected:
             static GraphicsContext* CreateFuncVulkan(const WindowDesc&, Window*);
@@ -89,7 +111,7 @@ namespace Lumos
             std::vector<const char*> m_InstanceLayerNames;
             std::vector<const char*> m_InstanceExtensionNames;
 
-            SharedRef<Lumos::Graphics::VKSwapchain> m_Swapchain;
+            SharedPtr<Lumos::Graphics::VKSwapChain> m_Swapchain;
 
             uint32_t m_Width, m_Height;
             bool m_VSync;

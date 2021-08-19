@@ -128,7 +128,7 @@ namespace Lumos
         {
         public:
             virtual ~DescriptorSet() = default;
-            static DescriptorSet* Create(const DescriptorDesc& info);
+            static DescriptorSet* Create(const DescriptorDesc& desc);
 
             virtual void Update() = 0;
             virtual void SetDynamicOffset(uint32_t offset) = 0;
@@ -140,7 +140,6 @@ namespace Lumos
             virtual void SetUniform(const std::string& bufferName, const std::string& uniformName, void* data) = 0;
             virtual void SetUniform(const std::string& bufferName, const std::string& uniformName, void* data, uint32_t size) = 0;
             virtual void SetUniformBufferData(const std::string& bufferName, void* data) = 0;
-
 
         protected:
             static DescriptorSet* (*CreateFunc)(const DescriptorDesc&);

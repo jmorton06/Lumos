@@ -1,5 +1,5 @@
 #pragma once
-#include "Graphics/RHI/Swapchain.h"
+#include "Graphics/RHI/SwapChain.h"
 
 namespace Lumos
 {
@@ -7,23 +7,23 @@ namespace Lumos
     {
         class GLTexture2D;
 
-        class GLSwapchain : public Swapchain
+        class GLSwapChain : public SwapChain
         {
         public:
-            GLSwapchain(uint32_t width, uint32_t height);
-            ~GLSwapchain();
+            GLSwapChain(uint32_t width, uint32_t height);
+            ~GLSwapChain();
 
             bool Init(bool vsync) override;
 
             Texture* GetCurrentImage() override;
             Texture* GetImage(uint32_t index) override { return nullptr; };
             uint32_t GetCurrentBufferIndex() const override;
-            size_t GetSwapchainBufferCount() const override;
+            size_t GetSwapChainBufferCount() const override;
 
             static void MakeDefault();
 
         protected:
-            static Swapchain* CreateFuncGL(uint32_t width, uint32_t height);
+            static SwapChain* CreateFuncGL(uint32_t width, uint32_t height);
 
         private:
             std::vector<GLTexture2D*> swapChainBuffers;

@@ -28,7 +28,7 @@ namespace Lumos
         {
         }
 
-        Mesh::Mesh(SharedRef<VertexBuffer>& vertexBuffer, SharedRef<IndexBuffer>& indexBuffer, const SharedRef<Maths::BoundingBox>& boundingBox)
+        Mesh::Mesh(SharedPtr<VertexBuffer>& vertexBuffer, SharedPtr<IndexBuffer>& indexBuffer, const SharedPtr<Maths::BoundingBox>& boundingBox)
             : m_VertexBuffer(vertexBuffer)
             , m_IndexBuffer(indexBuffer)
             , m_BoundingBox(boundingBox)
@@ -63,16 +63,16 @@ namespace Lumos
 
             //LUMOS_LOG_INFO("Mesh Optimizer - Before : {0} indices {1} vertices , After : {2} indices , {3} vertices", indexCount, m_Vertices.size(), newIndexCount, newVertexCount);
 
-            m_BoundingBox = CreateSharedRef<Maths::BoundingBox>();
+            m_BoundingBox = CreateSharedPtr<Maths::BoundingBox>();
 
             for(auto& vertex : m_Vertices)
             {
                 m_BoundingBox->Merge(vertex.Position);
             }
 
-            m_IndexBuffer = SharedRef<Graphics::IndexBuffer>(Graphics::IndexBuffer::Create(m_Indices.data(), (uint32_t)newIndexCount));
+            m_IndexBuffer = SharedPtr<Graphics::IndexBuffer>(Graphics::IndexBuffer::Create(m_Indices.data(), (uint32_t)newIndexCount));
 
-            m_VertexBuffer = SharedRef<VertexBuffer>(VertexBuffer::Create(BufferUsage::STATIC));
+            m_VertexBuffer = SharedPtr<VertexBuffer>(VertexBuffer::Create(BufferUsage::STATIC));
             m_VertexBuffer->SetData((uint32_t)(sizeof(Graphics::Vertex) * newVertexCount), m_Vertices.data());
         }
 

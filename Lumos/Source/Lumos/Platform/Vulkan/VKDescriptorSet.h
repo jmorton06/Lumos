@@ -10,7 +10,7 @@ namespace Lumos
         class VKDescriptorSet : public DescriptorSet
         {
         public:
-            VKDescriptorSet(const DescriptorDesc& info);
+            VKDescriptorSet(const DescriptorDesc& descriptorDesc);
             ~VKDescriptorSet();
 
             VkDescriptorSet GetDescriptorSet() const { return m_DescriptorSet; }
@@ -21,7 +21,7 @@ namespace Lumos
             void SetUniform(const std::string& bufferName, const std::string& uniformName, void* data) override;
             void SetUniform(const std::string& bufferName, const std::string& uniformName, void* data, uint32_t size) override;
             void SetUniformBufferData(const std::string& bufferName, void* data) override;
-            
+
             Graphics::UniformBuffer* GetUnifromBuffer(const std::string& name) override;
             bool GetIsDynamic() const { return m_Dynamic; }
 
@@ -46,13 +46,13 @@ namespace Lumos
 
             struct UniformBufferInfo
             {
-                SharedRef<UniformBuffer> UB;
+                SharedPtr<UniformBuffer> UB;
                 std::vector<BufferMemberInfo> m_Members;
                 Buffer LocalStorage;
                 bool HasUpdated;
             };
             DescriptorSetInfo m_Descriptors;
-			std::unordered_map<std::string, UniformBufferInfo> m_UniformBuffers;
+            std::unordered_map<std::string, UniformBufferInfo> m_UniformBuffers;
         };
     }
 }

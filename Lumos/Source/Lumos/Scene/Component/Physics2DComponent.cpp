@@ -9,15 +9,15 @@ namespace Lumos
 {
     Physics2DComponent::Physics2DComponent()
     {
-        m_RigidBody = CreateSharedRef<RigidBody2D>();
+        m_RigidBody = CreateSharedPtr<RigidBody2D>();
     }
 
     Physics2DComponent::Physics2DComponent(const RigidBodyParameters& params)
     {
-        m_RigidBody = CreateSharedRef<RigidBody2D>(params);
+        m_RigidBody = CreateSharedPtr<RigidBody2D>(params);
     }
 
-    Physics2DComponent::Physics2DComponent(SharedRef<RigidBody2D>& physics)
+    Physics2DComponent::Physics2DComponent(SharedPtr<RigidBody2D>& physics)
         : m_RigidBody(physics)
     {
     }

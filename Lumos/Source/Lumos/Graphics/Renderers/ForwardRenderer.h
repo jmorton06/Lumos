@@ -36,17 +36,16 @@ namespace Lumos
             void CreateGraphicsPipeline();
             void CreateFramebuffers();
 
-            void SetSystemUniforms(Shader* shader) const;
             void UpdateScreenDescriptorSet();
-			void OnImGui() override;
+            void OnImGui() override;
 
         private:
             Texture2D* m_DefaultTexture;
             Material* m_DefaultMaterial;
 
-            UniqueRef<Texture2D> m_PreintegratedFG;
+            UniquePtr<Texture2D> m_PreintegratedFG;
             std::vector<Lumos::Graphics::CommandBuffer*> m_CommandBuffers;
-            
+
             Maths::Matrix4 m_BiasMatrix;
             Texture* m_EnvironmentMap = nullptr;
             Texture* m_IrradianceMap = nullptr;

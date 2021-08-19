@@ -17,8 +17,8 @@
 namespace Lumos
 {
     B2PhysicsEngine::B2PhysicsEngine()
-        : m_B2DWorld(CreateUniqueRef<b2World>(b2Vec2(0.0f, -9.81f)))
-        , m_DebugDraw(CreateUniqueRef<B2DebugDraw>())
+        : m_B2DWorld(CreateUniquePtr<b2World>(b2Vec2(0.0f, -9.81f)))
+        , m_DebugDraw(CreateUniquePtr<B2DebugDraw>())
         , m_UpdateTimestep(1.0f / 60.f)
         , m_UpdateAccum(0.0f)
         , m_Listener(nullptr)

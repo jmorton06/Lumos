@@ -38,7 +38,7 @@ namespace Lumos
             static const std::array<Maths::Vector2, 4>& GetUVs(const Maths::Vector2& min, const Maths::Vector2& max);
 
         protected:
-            SharedRef<Texture2D> m_Texture;
+            SharedPtr<Texture2D> m_Texture;
             Maths::Vector2 m_Position;
             Maths::Vector2 m_Scale;
             Maths::Vector4 m_Colour;

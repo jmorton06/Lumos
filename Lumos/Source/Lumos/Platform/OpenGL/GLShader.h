@@ -87,7 +87,7 @@ namespace Lumos
                 return &m_PushConstants[index];
             }
             std::vector<PushConstant>& GetPushConstants() override { return m_PushConstants; }
-            void BindPushConstants(Graphics::CommandBuffer* cmdBuffer, Graphics::Pipeline* pipeline) override;
+            void BindPushConstants(Graphics::CommandBuffer* commandBuffer, Graphics::Pipeline* pipeline) override;
 
             DescriptorSetInfo GetDescriptorInfo(uint32_t index) override
             {
@@ -119,6 +119,7 @@ namespace Lumos
             static Shader* CreateFromEmbeddedFuncGL(const uint32_t* vertData, uint32_t vertDataSize, const uint32_t* fragData, uint32_t fragDataSize);
 
             void LoadFromData(const uint32_t* data, uint32_t size, ShaderType type, std::map<ShaderType, std::string>& sources);
+
         private:
             uint32_t m_Handle;
             std::string m_Name, m_Path;

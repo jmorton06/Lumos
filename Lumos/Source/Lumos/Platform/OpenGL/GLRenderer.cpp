@@ -19,7 +19,7 @@ namespace Lumos
         GLRenderer::GLRenderer(uint32_t width, uint32_t height)
             : m_Context(nullptr)
         {
-            m_Swapchain = new Graphics::GLSwapchain(width, height);
+            m_Swapchain = new Graphics::GLSwapChain(width, height);
 
             m_RendererTitle = "OPENGL";
 
@@ -73,7 +73,7 @@ namespace Lumos
         {
         }
 
-        void GLRenderer::PresentInternal(Graphics::CommandBuffer* cmdBuffer)
+        void GLRenderer::PresentInternal(Graphics::CommandBuffer* commandBuffer)
         {
         }
 
@@ -225,7 +225,7 @@ namespace Lumos
             //GLCall(glDrawArrays(GLTools::DrawTypeToGL(type), start, count));
         }
 
-        void GLRenderer::BindDescriptorSetsInternal(Graphics::Pipeline* pipeline, Graphics::CommandBuffer* cmdBuffer, uint32_t dynamicOffset, std::vector<Graphics::DescriptorSet*>& descriptorSets)
+        void GLRenderer::BindDescriptorSetsInternal(Graphics::Pipeline* pipeline, Graphics::CommandBuffer* commandBuffer, uint32_t dynamicOffset, std::vector<Graphics::DescriptorSet*>& descriptorSets)
         {
             LUMOS_PROFILE_FUNCTION();
             for(auto descriptor : descriptorSets)

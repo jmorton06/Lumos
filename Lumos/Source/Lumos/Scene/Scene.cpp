@@ -46,7 +46,7 @@ namespace Lumos
         , m_ScreenWidth(0)
         , m_ScreenHeight(0)
     {
-        m_EntityManager = CreateUniqueRef<EntityManager>(this);
+        m_EntityManager = CreateUniquePtr<EntityManager>(this);
         m_EntityManager->AddDependency<Physics3DComponent, Maths::Transform>();
         m_EntityManager->AddDependency<Physics2DComponent, Maths::Transform>();
         m_EntityManager->AddDependency<Camera, Maths::Transform>();
@@ -55,7 +55,7 @@ namespace Lumos
         m_EntityManager->AddDependency<Graphics::Sprite, Maths::Transform>();
         m_EntityManager->AddDependency<Graphics::AnimatedSprite, Maths::Transform>();
 
-        m_SceneGraph = CreateUniqueRef<SceneGraph>();
+        m_SceneGraph = CreateUniquePtr<SceneGraph>();
         m_SceneGraph->Init(m_EntityManager->GetRegistry());
     }
 
@@ -78,7 +78,7 @@ namespace Lumos
         //Default physics setup
         Application::Get().GetSystem<LumosPhysicsEngine>()->SetDampingFactor(0.999f);
         Application::Get().GetSystem<LumosPhysicsEngine>()->SetIntegrationType(IntegrationType::RUNGE_KUTTA_4);
-        Application::Get().GetSystem<LumosPhysicsEngine>()->SetBroadphase(Lumos::CreateSharedRef<OctreeBroadphase>(5, 5, Lumos::CreateSharedRef<SortAndSweepBroadphase>()));
+        Application::Get().GetSystem<LumosPhysicsEngine>()->SetBroadphase(Lumos::CreateSharedPtr<OctreeBroadphase>(5, 5, Lumos::CreateSharedPtr<SortAndSweepBroadphase>()));
 
         LuaManager::Get().OnInit(this);
     }

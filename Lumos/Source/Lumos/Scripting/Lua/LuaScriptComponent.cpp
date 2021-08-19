@@ -42,16 +42,16 @@ namespace Lumos
     {
         m_FileName = fileName;
         std::string physicalPath;
-        if(!VFS::Get()->ResolvePhysicalPath(fileName, physicalPath))
+        if(!VFS::Get().ResolvePhysicalPath(fileName, physicalPath))
         {
             LUMOS_LOG_ERROR("Failed to Load Lua script {0}", fileName);
             m_Env = nullptr;
             return;
         }
 
-        VFS::Get()->AbsoulePathToVFS(m_FileName, m_FileName);
+        VFS::Get().AbsoulePathToVFS(m_FileName, m_FileName);
 
-        m_Env = CreateSharedRef<sol::environment>(LuaManager::Get().GetState(), sol::create, LuaManager::Get().GetState().globals());
+        m_Env = CreateSharedPtr<sol::environment>(LuaManager::Get().GetState(), sol::create, LuaManager::Get().GetState().globals());
 
         auto loadFileResult = LuaManager::Get().GetState().script_file(physicalPath, *m_Env, sol::script_pass_on_error);
         if(!loadFileResult.valid())
@@ -61,7 +61,7 @@ namespace Lumos
             LUMOS_LOG_ERROR("Error : {0}", err.what());
             std::string filename = StringUtilities::GetFileName(m_FileName);
             std::string error = std::string(err.what());
-            
+
             int line = 1;
             auto linepos = error.find(".lua:");
             std::string errorLine = error.substr(linepos + 5); //+4 .lua: + 1
@@ -69,7 +69,7 @@ namespace Lumos
             errorLine = errorLine.substr(0, lineposEnd);
             line = std::stoi(errorLine);
             error = error.substr(linepos + errorLine.size() + lineposEnd + 4); //+4 .lua:
-            
+
             m_Errors[line] = std::string(error);
         }
         else
@@ -81,27 +81,27 @@ namespace Lumos
         (*m_Env)["CurrentScene"] = m_Scene;
         (*m_Env)["LuaComponent"] = this;
 
-        m_OnInitFunc = CreateSharedRef<sol::protected_function>((*m_Env)["OnInit"]);
+        m_OnInitFunc = CreateSharedPtr<sol::protected_function>((*m_Env)["OnInit"]);
         if(!m_OnInitFunc->valid())
             m_OnInitFunc.reset();
 
-        m_UpdateFunc = CreateSharedRef<sol::protected_function>((*m_Env)["OnUpdate"]);
+        m_UpdateFunc = CreateSharedPtr<sol::protected_function>((*m_Env)["OnUpdate"]);
         if(!m_UpdateFunc->valid())
             m_UpdateFunc.reset();
 
-        m_Phys2DBeginFunc = CreateSharedRef<sol::protected_function>((*m_Env)["OnCollision2DBegin"]);
+        m_Phys2DBeginFunc = CreateSharedPtr<sol::protected_function>((*m_Env)["OnCollision2DBegin"]);
         if(!m_Phys2DBeginFunc->valid())
             m_Phys2DBeginFunc.reset();
 
-        m_Phys2DEndFunc = CreateSharedRef<sol::protected_function>((*m_Env)["OnCollision2DEnd"]);
+        m_Phys2DEndFunc = CreateSharedPtr<sol::protected_function>((*m_Env)["OnCollision2DEnd"]);
         if(!m_Phys2DEndFunc->valid())
             m_Phys2DEndFunc.reset();
 
-        m_Phys3DBeginFunc = CreateSharedRef<sol::protected_function>((*m_Env)["OnCollision3DBegin"]);
+        m_Phys3DBeginFunc = CreateSharedPtr<sol::protected_function>((*m_Env)["OnCollision3DBegin"]);
         if(!m_Phys3DBeginFunc->valid())
             m_Phys3DBeginFunc.reset();
 
-        m_Phys3DEndFunc = CreateSharedRef<sol::protected_function>((*m_Env)["OnCollision3DEnd"]);
+        m_Phys3DEndFunc = CreateSharedPtr<sol::protected_function>((*m_Env)["OnCollision3DEnd"]);
         if(!m_Phys3DEndFunc->valid())
             m_Phys3DEndFunc.reset();
 

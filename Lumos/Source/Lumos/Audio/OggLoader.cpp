@@ -12,7 +12,7 @@ namespace Lumos
         AudioData data = AudioData();
 
         std::string physicalPath;
-        if(!Lumos::VFS::Get()->ResolvePhysicalPath(fileName, physicalPath))
+        if(!Lumos::VFS::Get().ResolvePhysicalPath(fileName, physicalPath))
         {
             LUMOS_LOG_INFO("Failed to load Ogg file : File Not Found");
         }
