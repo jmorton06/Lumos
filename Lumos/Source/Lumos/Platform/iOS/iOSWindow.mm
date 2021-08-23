@@ -26,10 +26,13 @@ namespace Lumos
 		m_Init = Init(prop, "title");
         
         m_Handle = iosOS->GetIOSView();
+		
+		m_GraphicsContext = SharedPtr<Graphics::GraphicsContext>(Graphics::GraphicsContext::Create());
+        m_GraphicsContext->Init();
         
-		Graphics::GraphicsContext::SetRenderAPI(static_cast<Graphics::RenderAPI>(properties.RenderAPI));
-		Graphics::GraphicsContext::Create(properties, this);
-		Graphics::GraphicsContext::GetContext()->Init();
+		m_SwapChain = SharedPtr<Graphics::SwapChain>(Graphics::SwapChain::Create(m_Data.Width, m_Data.Height));
+		m_SwapChain->Init(m_Data.VSync, (Window*)this);
+		
 		
 	}
 

@@ -39,7 +39,7 @@ namespace Lumos
 
             bool HasStencilComponent(VkFormat format);
 
-            void TransitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout, uint32_t mipLevels = 1, VkCommandBuffer commandBuffer = nullptr);
+            void TransitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout, uint32_t mipLevels = 1, uint32_t layerCount = 1, VkCommandBuffer commandBuffer = nullptr);
 
             uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
             VkFormat FindSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
@@ -56,6 +56,7 @@ namespace Lumos
             VkCullModeFlags CullModeToVK(CullMode mode);
             VkDescriptorType DescriptorTypeToVK(DescriptorType type);
             VkFormat TextureFormatToVK(const TextureFormat format, bool srgb = true);
+
             VkSamplerAddressMode TextureWrapToVK(const TextureWrap format);
             VkFilter TextureFilterToVK(const TextureFilter filter);
             VkShaderStageFlagBits ShaderTypeToVK(const ShaderType& shaderName);

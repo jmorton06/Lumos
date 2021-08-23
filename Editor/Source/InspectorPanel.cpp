@@ -17,6 +17,7 @@
 #include <Lumos/Graphics/Material.h>
 #include <Lumos/Graphics/Environment.h>
 #include <Lumos/Graphics/RHI/Texture.h>
+#include <Lumos/Graphics/RHI/Renderer.h>
 #include <Lumos/Graphics/RHI/GraphicsContext.h>
 #include <Lumos/Maths/Transform.h>
 #include <Lumos/Scripting/Lua/LuaScriptComponent.h>
@@ -987,7 +988,7 @@ end
             ImGui::Columns(2);
             ImGui::Separator();
 
-            bool flipImage = Graphics::GraphicsContext::GetContext()->FlipImGUITexture();
+            bool flipImage = Graphics::Renderer::GetGraphicsContext()->FlipImGUITexture();
 
             ImGui::AlignTextToFramePadding();
             auto tex = sprite.GetTexture();
@@ -1357,7 +1358,7 @@ end
             ImGui::Columns(2);
             ImGui::Separator();
 
-            bool flipImage = Graphics::GraphicsContext::GetContext()->FlipImGUITexture();
+            bool flipImage = Graphics::Renderer::GetGraphicsContext()->FlipImGUITexture();
 
             //ImGui::AlignTextToFramePadding();
             auto tex = sprite.GetTexture();
@@ -1733,7 +1734,7 @@ end
             else if(ImGui::TreeNodeEx(matName.c_str(), 0))
             {
                 using namespace Lumos;
-                bool flipImage = Graphics::GraphicsContext::GetContext()->FlipImGUITexture();
+                bool flipImage = Graphics::Renderer::GetGraphicsContext()->FlipImGUITexture();
 
                 Graphics::MaterialProperties* prop = material->GetProperties();
                 auto colour = Maths::Vector4();

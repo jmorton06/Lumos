@@ -86,6 +86,10 @@ namespace Lumos
         {
             LUMOS_PROFILE_FUNCTION();
             VKUtilities::WaitIdle();
+            
+            if(m_State == CommandBufferState::Submitted)
+                Wait();
+            
             m_Fence = nullptr;
             vkDestroySemaphore(VKDevice::Get().GetDevice(), m_Semaphore, nullptr);
 

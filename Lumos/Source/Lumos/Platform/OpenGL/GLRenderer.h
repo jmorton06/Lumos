@@ -19,7 +19,7 @@ namespace Lumos
         {
         public:
             friend class Window;
-            GLRenderer(uint32_t width, uint32_t height);
+            GLRenderer();
             ~GLRenderer();
 
             static GLRenderer* Instance()
@@ -53,22 +53,15 @@ namespace Lumos
             void SetStencilOpInternal(StencilType fail, StencilType zfail, StencilType zpass);
 
             static void ClearInternal(uint32_t buffer);
-
-            SwapChain* GetSwapChainInternal() const override
-            {
-                return m_Swapchain;
-            }
+            void ClearRenderTarget(Graphics::Texture* texture, Graphics::CommandBuffer* commandBuffer) override;
 
             const std::string& GetTitleInternal() const override;
 
             static void MakeDefault();
 
         protected:
-            static Renderer* CreateFuncGL(uint32_t width, uint32_t height);
-
+            static Renderer* CreateFuncGL();
             std::string m_RendererTitle;
-            Graphics::GLContext* m_Context;
-            Graphics::GLSwapChain* m_Swapchain;
         };
     }
 }

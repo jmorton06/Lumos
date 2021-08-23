@@ -1,6 +1,8 @@
 #pragma once
 #include "Graphics/RHI/DescriptorSet.h"
 #include "VK.h"
+#include "Graphics/RHI/Renderer.h"
+#include "Graphics/RHI/SwapChain.h"
 #include "Core/Buffer.h"
 
 namespace Lumos
@@ -13,7 +15,11 @@ namespace Lumos
             VKDescriptorSet(const DescriptorDesc& descriptorDesc);
             ~VKDescriptorSet();
 
-            VkDescriptorSet GetDescriptorSet() const { return m_DescriptorSet; }
+            VkDescriptorSet GetDescriptorSet()
+            {
+                uint32_t currentFrame = Renderer::GetMainSwapChain()->GetCurrentBufferIndex();
+                return m_DescriptorSet[currentFrame];
+            }
             void Update() override;
             void SetTexture(const std::string& name, Texture* texture, TextureType textureType) override;
             void SetTexture(const std::string& name, Texture** texture, uint32_t textureCount, TextureType textureType) override;
@@ -36,13 +42,14 @@ namespace Lumos
             static DescriptorSet* CreateFuncVulkan(const DescriptorDesc&);
 
         private:
-            VkDescriptorSet m_DescriptorSet;
             uint32_t m_DynamicOffset = 0;
             Shader* m_Shader = nullptr;
             bool m_Dynamic = false;
             VkDescriptorBufferInfo* m_BufferInfoPool = nullptr;
             VkDescriptorImageInfo* m_ImageInfoPool = nullptr;
             VkWriteDescriptorSet* m_WriteDescriptorSetPool = nullptr;
+
+            uint32_t m_FramesInFlight = 0;
 
             struct UniformBufferInfo
             {
@@ -51,8 +58,10 @@ namespace Lumos
                 Buffer LocalStorage;
                 bool HasUpdated;
             };
-            DescriptorSetInfo m_Descriptors;
-            std::unordered_map<std::string, UniformBufferInfo> m_UniformBuffers;
+
+            std::map<uint32_t, VkDescriptorSet> m_DescriptorSet;
+            std::map<uint32_t, DescriptorSetInfo> m_Descriptors;
+            std::map<uint32_t, std::map<std::string, UniformBufferInfo>> m_UniformBuffers;
         };
     }
 }

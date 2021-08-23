@@ -95,16 +95,6 @@ namespace Lumos
 
             m_ScreenQuad = Graphics::CreateScreenQuad();
 
-            AttachmentInfo textureTypes[2] = {
-                { TextureType::COLOUR, TextureFormat::RGBA8 }
-            };
-            Graphics::RenderPassDesc renderPassDesc {};
-            renderPassDesc.attachmentCount = 1;
-            renderPassDesc.textureType = textureTypes;
-            renderPassDesc.clear = true;
-
-            m_RenderPass = Graphics::RenderPass::Get(renderPassDesc);
-
             m_DeferredCommandBuffers = Graphics::CommandBuffer::Create();
             m_DeferredCommandBuffers->Init(true);
 
@@ -132,7 +122,7 @@ namespace Lumos
 
             int commandBufferIndex = 0;
             if(!m_RenderTexture)
-                commandBufferIndex = Renderer::GetSwapChain()->GetCurrentBufferIndex();
+                commandBufferIndex = Renderer::GetMainSwapChain()->GetCurrentBufferIndex();
 
             m_OffScreenRenderer->RenderScene();
             Begin(commandBufferIndex);
@@ -143,7 +133,7 @@ namespace Lumos
         void DeferredRenderer::PresentToScreen()
         {
             LUMOS_PROFILE_FUNCTION();
-            //Renderer::Present(Renderer::GetSwapChain()->GetCurrentCommandBuffer());
+            //Renderer::Present(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer());
         }
 
         void DeferredRenderer::Begin(int commandBufferID)
@@ -152,7 +142,7 @@ namespace Lumos
             m_CommandQueue.clear();
 
             m_CommandBufferIndex = commandBufferID;
-            m_RenderPass->BeginRenderpass(Renderer::GetSwapChain()->GetCurrentCommandBuffer(), m_ClearColour, m_Framebuffers[m_CommandBufferIndex].get(), Graphics::INLINE, m_ScreenBufferWidth, m_ScreenBufferHeight);
+            m_RenderPass->BeginRenderpass(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer(), m_ClearColour, m_Framebuffers[m_CommandBufferIndex].get(), Graphics::INLINE, m_ScreenBufferWidth, m_ScreenBufferHeight);
         }
 
         void DeferredRenderer::BeginScene(Scene* scene, Camera* overrideCamera, Maths::Transform* overrideCameraTransform)
@@ -323,13 +313,13 @@ namespace Lumos
         void DeferredRenderer::End()
         {
             LUMOS_PROFILE_FUNCTION();
-            m_RenderPass->EndRenderpass(Renderer::GetSwapChain()->GetCurrentCommandBuffer());
+            m_RenderPass->EndRenderpass(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer());
         }
 
         void DeferredRenderer::Present()
         {
             LUMOS_PROFILE_FUNCTION();
-            Graphics::CommandBuffer* currentCMDBuffer = Renderer::GetSwapChain()->GetCurrentCommandBuffer();
+            Graphics::CommandBuffer* currentCMDBuffer = Renderer::GetMainSwapChain()->GetCurrentCommandBuffer();
 
             m_Pipeline->Bind(currentCMDBuffer);
 
@@ -464,12 +454,12 @@ namespace Lumos
             }
             else
             {
-                for(uint32_t i = 0; i < Renderer::GetSwapChain()->GetSwapChainBufferCount(); i++)
+                for(uint32_t i = 0; i < Renderer::GetMainSwapChain()->GetSwapChainBufferCount(); i++)
                 {
                     frameBufferDesc.screenFBO = true;
                     //TODO: frameBufferDesc.screenFBO = true; should be enough. No need for GetImage(i);
                     //Maybe have frameBufferDesc.swapchainIndex = i;
-                    attachments[0] = Renderer::GetSwapChain()->GetImage(i);
+                    attachments[0] = Renderer::GetMainSwapChain()->GetImage(i);
                     frameBufferDesc.attachments = attachments;
 
                     m_Framebuffers.emplace_back(Framebuffer::Get(frameBufferDesc));

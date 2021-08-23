@@ -23,19 +23,16 @@ namespace Lumos
     namespace Graphics
     {
         class VKCommandPool;
-        class VKSwapChain;
 
         class VKContext : public GraphicsContext
         {
         public:
-            VKContext(const WindowDesc& properties, Window* window);
+            VKContext();
             ~VKContext();
-
+            
             void Init() override;
             void Present() override;
             void Unload();
-
-            static VKContext* Get() { return static_cast<VKContext*>(s_Context); }
 
             static VKAPI_ATTR VkBool32 VKAPI_CALL DebugCallback(VkDebugReportFlagsEXT flags,
                 VkDebugReportObjectTypeEXT objType,
@@ -46,14 +43,12 @@ namespace Lumos
                 const char* pMsg,
                 void* userData);
 
-            VkInstance GetVKInstance() const { return m_VkInstance; }
-            void* GetWindowContext() const { return m_Window->GetHandle(); }
+            static VkInstance GetVKInstance() { return s_VkInstance; }
 
             size_t GetMinUniformBufferOffsetAlignment() const override;
 
             bool FlipImGUITexture() const override { return false; }
             void WaitIdle() const override;
-            void OnResize(uint32_t width, uint32_t height);
             void OnImGui() override;
 
             float GetGPUMemoryUsed() override;
@@ -61,8 +56,6 @@ namespace Lumos
 
             const std::vector<const char*>& GetLayerNames() const { return m_InstanceLayerNames; }
             const std::vector<const char*>& GetExtensionNames() const { return m_InstanceExtensionNames; }
-
-            const SharedPtr<Lumos::Graphics::VKSwapChain>& GetSwapChain() const { return m_Swapchain; }
 
             static void MakeDefault();
 
@@ -89,7 +82,7 @@ namespace Lumos
             };
 
         protected:
-            static GraphicsContext* CreateFuncVulkan(const WindowDesc&, Window*);
+            static GraphicsContext* CreateFuncVulkan();
 
             void CreateInstance();
             void SetupDebugCallback();
@@ -104,7 +97,7 @@ namespace Lumos
             const std::vector<const char*> GetRequiredLayers() const;
 
         private:
-            VkInstance m_VkInstance;
+            static VkInstance s_VkInstance;
             VkDebugReportCallbackEXT m_DebugCallback {};
 
             std::vector<VkLayerProperties> m_InstanceLayers;
@@ -112,13 +105,6 @@ namespace Lumos
 
             std::vector<const char*> m_InstanceLayerNames;
             std::vector<const char*> m_InstanceExtensionNames;
-
-            SharedPtr<Lumos::Graphics::VKSwapChain> m_Swapchain;
-
-            uint32_t m_Width, m_Height;
-            bool m_VSync;
-
-            Window* m_Window;
 
             bool m_StandardValidationLayer = false;
             bool m_ValidationLayer = false;

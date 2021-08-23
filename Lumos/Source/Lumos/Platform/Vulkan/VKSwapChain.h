@@ -28,7 +28,7 @@ namespace Lumos
             ~VKSwapChain();
 
             bool Init(bool vsync) override;
-            void Init(bool vsync, Window* windowHandle);
+            bool Init(bool vsync, Window* windowHandle) override;
             void CreateFrameData();
             void AcquireNextImage();
             void QueueSubmit();
@@ -39,8 +39,10 @@ namespace Lumos
 
             VkSurfaceKHR GetSurface() const { return m_Surface; }
             VkSwapchainKHR GetSwapChain() const { return m_SwapChain; }
-            uint32_t GetCurrentBufferIndex() const override { return m_AcquireImageIndex; }
-            size_t GetSwapChainBufferCount() const override { return m_SwapchainBufferCount; };
+            uint32_t GetCurrentImageIndex() const override { return m_AcquireImageIndex; };
+
+            uint32_t GetCurrentBufferIndex() const override { return m_CurrentBuffer; }
+            size_t GetSwapChainBufferCount() const override { return m_SwapChainBufferCount; };
             Texture* GetCurrentImage() override { return (Texture*)m_SwapChainBuffers[m_AcquireImageIndex]; };
             Texture* GetImage(uint32_t index) override { return (Texture*)m_SwapChainBuffers[index]; };
 
@@ -67,7 +69,7 @@ namespace Lumos
             uint32_t m_Width;
             uint32_t m_Height;
             uint32_t m_QueueNodeIndex = UINT32_MAX;
-            uint32_t m_SwapchainBufferCount;
+            uint32_t m_SwapChainBufferCount;
             bool m_VSyncEnabled = false;
 
             VkSwapchainKHR m_SwapChain;

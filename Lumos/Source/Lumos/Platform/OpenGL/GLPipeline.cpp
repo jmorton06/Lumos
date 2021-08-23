@@ -100,14 +100,12 @@ namespace Lumos
         void GLPipeline::CreateFramebuffers()
         {
             std::vector<TextureType> attachmentTypes;
-            std::vector<AttachmentInfo> textureTypes;
             std::vector<Texture*> attachments;
 
             if(m_Description.swapchainTarget)
             {
-                textureTypes.push_back({ TextureType::COLOUR, TextureFormat::RGBA8 });
                 attachmentTypes.push_back(TextureType::COLOUR);
-                attachments.push_back(nullptr);
+                attachments.push_back(Renderer::GetMainSwapChain()->GetImage(0));
             }
             else
             {
@@ -115,7 +113,6 @@ namespace Lumos
                 {
                     if(texture)
                     {
-                        textureTypes.push_back({ TextureType::COLOUR, texture->GetFormat() });
                         attachmentTypes.push_back(texture->GetType());
                         attachments.push_back(texture);
                     }
@@ -124,21 +121,20 @@ namespace Lumos
 
             if(m_Description.depthTarget)
             {
-                textureTypes.push_back({ TextureType::DEPTH, TextureFormat::DEPTH }); //TODO: Custom depth format
                 attachmentTypes.push_back(m_Description.depthTarget->GetType());
                 attachments.push_back(m_Description.depthTarget);
             }
 
             if(m_Description.depthArrayTarget)
             {
-                textureTypes.push_back({ TextureType::DEPTHARRAY, TextureFormat::DEPTH }); //TODO: Custom depth format
                 attachmentTypes.push_back(m_Description.depthArrayTarget->GetType());
                 attachments.push_back(m_Description.depthArrayTarget);
             }
 
             Graphics::RenderPassDesc renderPassDesc;
-            renderPassDesc.attachmentCount = uint32_t(textureTypes.size());
-            renderPassDesc.textureType = textureTypes.data();
+            renderPassDesc.attachmentCount = uint32_t(attachmentTypes.size());
+            renderPassDesc.attachmentTypes = attachmentTypes.data();
+            renderPassDesc.attachments = attachments.data();
             renderPassDesc.clear = m_Description.clearTargets;
 
             m_RenderPass = Graphics::RenderPass::Get(renderPassDesc);
@@ -152,10 +148,10 @@ namespace Lumos
 
             if(m_Description.swapchainTarget)
             {
-                for(uint32_t i = 0; i < Renderer::GetSwapChain()->GetSwapChainBufferCount(); i++)
+                for(uint32_t i = 0; i < Renderer::GetMainSwapChain()->GetSwapChainBufferCount(); i++)
                 {
                     frameBufferDesc.screenFBO = true;
-                    attachments[0] = Renderer::GetSwapChain()->GetImage(i);
+                    attachments[0] = Renderer::GetMainSwapChain()->GetImage(i);
                     frameBufferDesc.attachments = attachments.data();
 
                     m_Framebuffers.emplace_back(Framebuffer::Get(frameBufferDesc));
@@ -165,7 +161,6 @@ namespace Lumos
             {
                 for(uint32_t i = 0; i < ((GLTextureDepthArray*)m_Description.depthArrayTarget)->GetCount(); ++i)
                 {
-                    attachments[0] = Renderer::GetSwapChain()->GetImage(i);
                     frameBufferDesc.layer = i;
                     frameBufferDesc.screenFBO = false;
 
@@ -186,11 +181,10 @@ namespace Lumos
         void GLPipeline::Bind(Graphics::CommandBuffer* commandBuffer, uint32_t layer)
         {
             Framebuffer* framebuffer;
-            uint32_t width, height;
 
             if(m_Description.swapchainTarget)
             {
-                framebuffer = m_Framebuffers[Renderer::GetSwapChain()->GetCurrentBufferIndex()];
+                framebuffer = m_Framebuffers[Renderer::GetMainSwapChain()->GetCurrentBufferIndex()];
             }
             else if(m_Description.depthArrayTarget)
             {

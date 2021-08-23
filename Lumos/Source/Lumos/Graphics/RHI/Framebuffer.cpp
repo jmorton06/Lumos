@@ -34,8 +34,11 @@ namespace Lumos
                 HashCombine(hash, framebufferDesc.attachmentTypes[i], framebufferDesc.attachments[i]);
 #ifdef LUMOS_RENDER_API_VULKAN
 
-                VkDescriptorImageInfo* imageHandle = (VkDescriptorImageInfo*)(framebufferDesc.attachments[i]->GetImageHande());
-                HashCombine(hash, imageHandle->imageLayout, imageHandle->imageView, imageHandle->sampler);
+                if(GraphicsContext::GetRenderAPI() == RenderAPI::VULKAN)
+                {
+                    VkDescriptorImageInfo* imageHandle = (VkDescriptorImageInfo*)(framebufferDesc.attachments[i]->GetImageHande());
+                    HashCombine(hash, imageHandle->imageLayout, imageHandle->imageView, imageHandle->sampler);
+                }
 #endif
             }
 

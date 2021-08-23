@@ -294,7 +294,7 @@ static void CreateOrResizeBuffer(VkBuffer& buffer, VkDeviceMemory& buffer_memory
     p_buffer_size = new_size;
 }
 
-void CreateDescriptorSets(ImDrawData* draw_data)
+void ImGui_ImplVulkan_CreateDescriptorSets(ImDrawData* draw_data)
 {
     ImGui_ImplVulkan_InitInfo* v = &g_VulkanInitInfo;
     for (int n = 0; n < draw_data->CmdListsCount; n++)
@@ -398,8 +398,6 @@ void ImGui_ImplVulkan_RenderDrawData(ImDrawData* draw_data, VkCommandBuffer comm
     if (fb_width <= 0 || fb_height <= 0)
         return;
     
-    CreateDescriptorSets(draw_data);
-
     ImGui_ImplVulkan_InitInfo* v = &g_VulkanInitInfo;
     if (pipeline == VK_NULL_HANDLE)
         pipeline = g_Pipeline;

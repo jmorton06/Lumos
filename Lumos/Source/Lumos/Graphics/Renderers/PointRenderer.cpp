@@ -146,8 +146,6 @@ namespace Lumos
         m_CurrentBufferID = 0;
         PointIndexCount = 0;
         m_Points.clear();
-
-        CreateGraphicsPipeline();
     }
 
     void PointRenderer::BeginScene(Scene* scene, Camera* overrideCamera, Maths::Transform* overrideCameraTransform)
@@ -175,15 +173,15 @@ namespace Lumos
         auto projView = m_Camera->GetProjectionMatrix() * m_CameraTransform->GetWorldMatrix().Inverse();
         m_DescriptorSet[0]->SetUniform("UniformBufferObject", "projView", &projView);
         m_DescriptorSet[0]->Update();
-
-        CreateGraphicsPipeline();
     }
 
     void PointRenderer::Present()
     {
         UpdateDesciptorSet();
 
-        Graphics::CommandBuffer* currentCMDBuffer = Renderer::GetSwapChain()->GetCurrentCommandBuffer();
+        Graphics::CommandBuffer* currentCMDBuffer = Renderer::GetMainSwapChain()->GetCurrentCommandBuffer();
+
+        CreateGraphicsPipeline();
 
         m_Pipeline->Bind(currentCMDBuffer);
 
@@ -222,9 +220,9 @@ namespace Lumos
             return;
 
         if(!m_RenderTexture)
-            m_CurrentBufferID = Renderer::GetSwapChain()->GetCurrentBufferIndex();
+            m_CurrentBufferID = Renderer::GetMainSwapChain()->GetCurrentBufferIndex();
 
-        m_VertexBuffers[m_BatchDrawCallIndex]->Bind(Renderer::GetSwapChain()->GetCurrentCommandBuffer(), m_Pipeline.get());
+        m_VertexBuffers[m_BatchDrawCallIndex]->Bind(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer(), m_Pipeline.get());
         m_Buffer = m_VertexBuffers[m_BatchDrawCallIndex]->GetPointer<PointVertexData>();
 
         for(auto& point : m_Points)
@@ -246,7 +244,7 @@ namespace Lumos
 
     void PointRenderer::PresentToScreen()
     {
-        //Renderer::Present((m_CommandBuffers[Renderer::GetSwapChain()->GetCurrentBufferIndex()].get()));
+        //Renderer::Present((m_CommandBuffers[Renderer::GetMainSwapChain()->GetCurrentBufferIndex()].get()));
     }
 
     void PointRenderer::SetScreenBufferSize(uint32_t width, uint32_t height)

@@ -16,7 +16,7 @@ namespace Lumos
 
     void FPSCameraController::HandleMouse(Maths::Transform& transform, float dt, float xpos, float ypos)
     {
-        if(Input::Get().GetWindowFocus())
+        if(Application::Get().GetWindow()->GetWindowFocus())
         {
             {
                 Maths::Vector2 windowCentre = Maths::Vector2();

@@ -7,6 +7,7 @@
 #include "Graphics/RHI/Texture.h"
 #include "Graphics/RHI/DescriptorSet.h"
 #include "Graphics/RHI/Pipeline.h"
+#include "Core/Application.h"
 #include "VKInitialisers.h"
 
 namespace Lumos
@@ -149,9 +150,167 @@ namespace Lumos
         {
             return format == VK_FORMAT_D32_SFLOAT_S8_UINT || format == VK_FORMAT_D24_UNORM_S8_UINT;
         }
+    
+        VkPipelineStageFlags AccessFlagsToPipelineStage(VkAccessFlags accessFlags, const VkPipelineStageFlags stageFlags)
+       {
+           VkPipelineStageFlags stages = 0;
+
+           while (accessFlags != 0)
+           {
+               VkAccessFlagBits AccessFlag = static_cast<VkAccessFlagBits>(accessFlags & (~(accessFlags - 1)));
+               LUMOS_ASSERT(AccessFlag != 0 && (AccessFlag & (AccessFlag - 1)) == 0, "Error");
+               accessFlags &= ~AccessFlag;
+
+               switch (AccessFlag)
+               {
+               case VK_ACCESS_INDIRECT_COMMAND_READ_BIT:
+                   stages |= VK_PIPELINE_STAGE_DRAW_INDIRECT_BIT;
+                   break;
+
+               case VK_ACCESS_INDEX_READ_BIT:
+                   stages |= VK_PIPELINE_STAGE_VERTEX_INPUT_BIT;
+                   break;
+
+               case VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT:
+                   stages |= VK_PIPELINE_STAGE_VERTEX_INPUT_BIT;
+                   break;
+
+               case VK_ACCESS_UNIFORM_READ_BIT:
+                   stages |= stageFlags | VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+                   break;
+
+               case VK_ACCESS_INPUT_ATTACHMENT_READ_BIT:
+                   stages |= VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+                   break;
+
+               case VK_ACCESS_SHADER_READ_BIT:
+                   stages |= stageFlags | VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+                   break;
+
+               case VK_ACCESS_SHADER_WRITE_BIT:
+                   stages |= stageFlags | VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+                   break;
+
+               case VK_ACCESS_COLOR_ATTACHMENT_READ_BIT:
+                   stages |= VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+                   break;
+
+               case VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT:
+                   stages |= VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+                   break;
+
+               case VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT:
+                   stages |= VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+                   break;
+
+               case VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT:
+                   stages |= VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+                   break;
+
+               case VK_ACCESS_TRANSFER_READ_BIT:
+                   stages |= VK_PIPELINE_STAGE_TRANSFER_BIT;
+                   break;
+
+               case VK_ACCESS_TRANSFER_WRITE_BIT:
+                   stages |= VK_PIPELINE_STAGE_TRANSFER_BIT;
+                   break;
+
+               case VK_ACCESS_HOST_READ_BIT:
+                   stages |= VK_PIPELINE_STAGE_HOST_BIT;
+                   break;
+
+               case VK_ACCESS_HOST_WRITE_BIT:
+                   stages |= VK_PIPELINE_STAGE_HOST_BIT;
+                   break;
+
+               case VK_ACCESS_MEMORY_READ_BIT:
+                   break;
+
+               case VK_ACCESS_MEMORY_WRITE_BIT:
+                   break;
+
+               default:
+                   LUMOS_LOG_ERROR("Unknown access flag");
+                   break;
+               }
+           }
+           return stages;
+       }
+
+       inline VkPipelineStageFlags LayoutToAccessMask(const VkImageLayout layout, const bool isDestination)
+       {
+           VkPipelineStageFlags accessMask = 0;
+
+           switch (layout)
+           {
+           case VK_IMAGE_LAYOUT_UNDEFINED:
+               if (isDestination)
+               {
+                   LUMOS_LOG_ERROR("The new layout used in a transition must not be VK_IMAGE_LAYOUT_UNDEFINED.");
+               }
+               break;
+
+           case VK_IMAGE_LAYOUT_GENERAL:
+                   accessMask = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT;
+               break;
+
+           case VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL:
+                   accessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+               break;
+
+           case VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL:
+                   accessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+               break;
+
+           case VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL:
+                   accessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT;
+               break;
+
+           case VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL:
+                   accessMask = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_INPUT_ATTACHMENT_READ_BIT;
+               break;
+
+           case VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL:
+                   accessMask = VK_ACCESS_TRANSFER_READ_BIT;
+               break;
+
+           case VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL:
+                   accessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+               break;
+
+           case VK_IMAGE_LAYOUT_PREINITIALIZED:
+               if (!isDestination)
+               {
+                   accessMask = VK_ACCESS_HOST_WRITE_BIT;
+               }
+               else
+               {
+                   LUMOS_LOG_ERROR("The new layout used in a transition must not be VK_IMAGE_LAYOUT_PREINITIALIZED.");
+               }
+               break;
+
+           case VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_STENCIL_ATTACHMENT_OPTIMAL:
+                   accessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT;
+               break;
+
+           case VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_STENCIL_READ_ONLY_OPTIMAL:
+                   accessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT;
+               break;
+
+           case VK_IMAGE_LAYOUT_PRESENT_SRC_KHR:
+                   accessMask = VK_ACCESS_MEMORY_READ_BIT;
+               break;
+
+           default:
+               LUMOS_LOG_ERROR("Unexpected image layout");
+               break;
+           }
+
+           return accessMask;
+       }
 
         void VKUtilities::TransitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldImageLayout, VkImageLayout newImageLayout,
-            uint32_t mipLevels, VkCommandBuffer commandBuffer)
+            uint32_t mipLevels, uint32_t layerCount, VkCommandBuffer commandBuffer)
         {
             bool singleTimeCommand = false;
 
@@ -164,8 +323,7 @@ namespace Lumos
             VkImageSubresourceRange subresourceRange = {};
             subresourceRange.aspectMask = format == FindDepthFormat() ? VK_IMAGE_ASPECT_DEPTH_BIT : VK_IMAGE_ASPECT_COLOR_BIT;
             subresourceRange.baseMipLevel = 0;
-            subresourceRange.levelCount = 1;
-            subresourceRange.layerCount = 1;
+            subresourceRange.layerCount = layerCount;
             subresourceRange.levelCount = mipLevels;
             subresourceRange.baseArrayLayer = 0;
 
@@ -175,107 +333,48 @@ namespace Lumos
             imageMemoryBarrier.newLayout = newImageLayout;
             imageMemoryBarrier.image = image;
             imageMemoryBarrier.subresourceRange = subresourceRange;
-
-            // Source layouts (old)
-            // Source access mask controls actions that have to be finished on the old layout
-            // before it will be transitioned to the new layout
-            switch(oldImageLayout)
+            imageMemoryBarrier.srcAccessMask = LayoutToAccessMask(oldImageLayout, false);
+            imageMemoryBarrier.dstAccessMask = LayoutToAccessMask(newImageLayout, true);
+            imageMemoryBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+            imageMemoryBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+            
+            VkPipelineStageFlags sourceStage = 0;
             {
-            case VK_IMAGE_LAYOUT_UNDEFINED:
-                // Image layout is undefined (or does not matter)
-                // Only valid as initial layout
-                // No flags required, listed only for completeness
-                imageMemoryBarrier.srcAccessMask = 0;
-                break;
-
-            case VK_IMAGE_LAYOUT_PREINITIALIZED:
-                // Image is preinitialized
-                // Only valid as initial layout for linear images, preserves memory contents
-                // Make sure host writes have been finished
-                imageMemoryBarrier.srcAccessMask = VK_ACCESS_HOST_WRITE_BIT;
-                break;
-
-            case VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL:
-                // Image is a color attachment
-                // Make sure any writes to the color buffer have been finished
-                imageMemoryBarrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-                break;
-
-            case VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL:
-                // Image is a depth/stencil attachment
-                // Make sure any writes to the depth/stencil buffer have been finished
-                imageMemoryBarrier.srcAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
-                break;
-
-            case VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL:
-                // Image is a transfer source
-                // Make sure any reads from the image have been finished
-                imageMemoryBarrier.srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
-                break;
-
-            case VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL:
-                // Image is a transfer destination
-                // Make sure any writes to the image have been finished
-                imageMemoryBarrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-                break;
-
-            case VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL:
-                // Image is read by a shader
-                // Make sure any shader reads from the image have been finished
-                imageMemoryBarrier.srcAccessMask = VK_ACCESS_SHADER_READ_BIT;
-                break;
-            default:
-                // Other source layouts aren't handled (yet)
-                break;
+                if (imageMemoryBarrier.oldLayout == VK_IMAGE_LAYOUT_PRESENT_SRC_KHR)
+                {
+                    sourceStage = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
+                }
+                else if (imageMemoryBarrier.srcAccessMask != 0)
+                {
+                    sourceStage = AccessFlagsToPipelineStage(imageMemoryBarrier.srcAccessMask, VK_PIPELINE_STAGE_VERTEX_SHADER_BIT | VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
+                }
+                else
+                {
+                    sourceStage = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
+                }
             }
 
-            // Target layouts (new)
-            // Destination access mask controls the dependency for the new image layout
-            switch(newImageLayout)
+            VkPipelineStageFlags destinationStage = 0;
             {
-            case VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL:
-                // Image will be used as a transfer destination
-                // Make sure any writes to the image have been finished
-                imageMemoryBarrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-                break;
-
-            case VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL:
-                // Image will be used as a transfer source
-                // Make sure any reads from the image have been finished
-                imageMemoryBarrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
-                break;
-
-            case VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL:
-                // Image will be used as a color attachment
-                // Make sure any writes to the color buffer have been finished
-                imageMemoryBarrier.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-                break;
-
-            case VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL:
-                // Image layout will be used as a depth/stencil attachment
-                // Make sure any writes to depth/stencil buffer have been finished
-                imageMemoryBarrier.dstAccessMask = imageMemoryBarrier.dstAccessMask | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
-                break;
-
-            case VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL:
-                // Image will be read in a shader (sampler, input attachment)
-                // Make sure any writes to the image have been finished
-                if(imageMemoryBarrier.srcAccessMask == 0)
+                if (imageMemoryBarrier.newLayout == VK_IMAGE_LAYOUT_PRESENT_SRC_KHR)
                 {
-                    imageMemoryBarrier.srcAccessMask = VK_ACCESS_HOST_WRITE_BIT | VK_ACCESS_TRANSFER_WRITE_BIT;
+                    destinationStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
                 }
-                imageMemoryBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-                break;
-            default:
-                // Other source layouts aren't handled (yet)
-                break;
+                else if (imageMemoryBarrier.dstAccessMask != 0)
+                {
+                    destinationStage = AccessFlagsToPipelineStage(imageMemoryBarrier.dstAccessMask, VK_PIPELINE_STAGE_VERTEX_SHADER_BIT | VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
+                }
+                else
+                {
+                    destinationStage = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
+                }
             }
 
             // Put barrier inside setup command buffer
             vkCmdPipelineBarrier(
                 commandBuffer,
-                VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
-                VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
+                destinationStage,
+                sourceStage,
                 0,
                 0, nullptr,
                 0, nullptr,
@@ -430,7 +529,7 @@ namespace Lumos
         void VKUtilities::ValidateResolution(uint32_t& width, uint32_t& height)
         {
             VkSurfaceCapabilitiesKHR capabilities;
-            vkGetPhysicalDeviceSurfaceCapabilitiesKHR(VKDevice::Get().GetGPU(), VKContext::Get()->GetSwapChain()->GetSurface(), &capabilities);
+            vkGetPhysicalDeviceSurfaceCapabilitiesKHR(VKDevice::Get().GetGPU(), ((VKSwapChain*)Application::Get().GetWindow()->GetSwapChain().get())->GetSurface(), &capabilities);
 
             width = std::max(capabilities.minImageExtent.width, std::min(capabilities.maxImageExtent.width, width));
             height = std::max(capabilities.minImageExtent.height, std::min(capabilities.maxImageExtent.height, height));
@@ -937,6 +1036,7 @@ namespace Lumos
 
         void VKUtilities::WaitIdle()
         {
+            LUMOS_PROFILE_FUNCTION();
             vkDeviceWaitIdle(VKDevice::GetHandle());
         }
     }

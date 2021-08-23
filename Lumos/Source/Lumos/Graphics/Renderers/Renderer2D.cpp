@@ -69,24 +69,6 @@ namespace Lumos
             m_TransformationStack.emplace_back(Maths::Matrix4());
             m_TransformationBack = &m_TransformationStack.back();
 
-            AttachmentInfo textureTypes[2] = {
-                { TextureType::COLOUR, TextureFormat::RGBA8 }
-            };
-
-            if(m_RenderToDepthTexture)
-            {
-                textureTypes[1] = { TextureType::DEPTH, TextureFormat::DEPTH };
-            }
-
-            Graphics::RenderPassDesc renderPassDesc;
-            renderPassDesc.attachmentCount = m_RenderToDepthTexture ? 2 : 1;
-            renderPassDesc.textureType = textureTypes;
-            renderPassDesc.clear = m_Clear;
-
-            m_RenderPass = Graphics::RenderPass::Get(renderPassDesc);
-
-            CreateFramebuffers();
-
             m_SecondaryCommandBuffers.resize(m_Limits.MaxBatchDrawCalls);
 
             for(auto& commandBuffer : m_SecondaryCommandBuffers)
@@ -113,7 +95,7 @@ namespace Lumos
             m_BufferBases.resize(m_Limits.MaxBatchDrawCalls);
 #endif
 
-            for(int i = 0; i < m_Limits.MaxBatchDrawCalls; i++)
+            for(uint32_t i = 0; i < m_Limits.MaxBatchDrawCalls; i++)
             {
                 m_VertexBuffers[i] = Graphics::VertexBuffer::Create(BufferUsage::DYNAMIC);
                 m_VertexBuffers[i]->Resize(m_Limits.BufferSize);
@@ -211,7 +193,7 @@ namespace Lumos
             LUMOS_PROFILE_FUNCTION();
             m_CurrentBufferID = 0;
             if(!m_RenderTexture)
-                m_CurrentBufferID = Renderer::GetSwapChain()->GetCurrentBufferIndex();
+                m_CurrentBufferID = Renderer::GetMainSwapChain()->GetCurrentBufferIndex();
 
             Graphics::PipelineDesc pipelineDesc;
             pipelineDesc.shader = m_Shader;
@@ -235,7 +217,7 @@ namespace Lumos
             m_TextureCount = 0;
             //m_Triangles.clear();
 
-            m_VertexBuffers[m_BatchDrawCallIndex]->Bind(Renderer::GetSwapChain()->GetCurrentCommandBuffer(), m_Pipeline.get());
+            m_VertexBuffers[m_BatchDrawCallIndex]->Bind(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer(), m_Pipeline.get());
 #if MAP_VERTEX_ARRAY
             m_Buffer = m_VertexBuffers[m_BatchDrawCallIndex]->GetPointer<VertexData>();
 #else
@@ -321,7 +303,7 @@ namespace Lumos
             m_Empty = false;
             UpdateDesciptorSet();
 
-            Graphics::CommandBuffer* currentCMDBuffer = Renderer::GetSwapChain()->GetCurrentCommandBuffer();
+            Graphics::CommandBuffer* currentCMDBuffer = Renderer::GetMainSwapChain()->GetCurrentCommandBuffer();
 
             m_Pipeline->Bind(currentCMDBuffer);
 
@@ -342,6 +324,8 @@ namespace Lumos
 
             m_VertexBuffers[m_BatchDrawCallIndex]->Unbind();
             m_IndexBuffer->Unbind();
+            
+            m_Pipeline->End(currentCMDBuffer);
 
             m_IndexCount = 0;
 
@@ -351,7 +335,6 @@ namespace Lumos
         void Renderer2D::End()
         {
             LUMOS_PROFILE_FUNCTION();
-            m_RenderPass->EndRenderpass(Renderer::GetSwapChain()->GetCurrentCommandBuffer());
 
             m_BatchDrawCallIndex = 0;
         }
@@ -468,14 +451,12 @@ namespace Lumos
             m_Framebuffers.clear();
 
             SetScreenBufferSize(width, height);
-
-            CreateFramebuffers();
         }
 
         void Renderer2D::PresentToScreen()
         {
             LUMOS_PROFILE_FUNCTION();
-            //Renderer::Present((m_CommandBuffers[Renderer::GetSwapChain()->GetCurrentBufferIndex()].get()));
+            //Renderer::Present((m_CommandBuffers[Renderer::GetMainSwapChain()->GetCurrentBufferIndex()].get()));
         }
 
         void Renderer2D::CreateGraphicsPipeline()
@@ -485,42 +466,7 @@ namespace Lumos
 
         void Renderer2D::CreateFramebuffers()
         {
-            LUMOS_PROFILE_FUNCTION();
-            TextureType attachmentTypes[2];
-            attachmentTypes[0] = TextureType::COLOUR;
-            Texture* attachments[2];
-
-            if(m_RenderToDepthTexture)
-            {
-                attachmentTypes[1] = TextureType::DEPTH;
-                attachments[1] = reinterpret_cast<Texture*>(Application::Get().GetRenderGraph()->GetGBuffer()->GetDepthTexture());
-            }
-
-            FramebufferDesc frameBufferDesc {};
-            frameBufferDesc.width = m_ScreenBufferWidth;
-            frameBufferDesc.height = m_ScreenBufferHeight;
-            frameBufferDesc.attachmentCount = m_RenderToDepthTexture ? 2 : 1;
-            frameBufferDesc.renderPass = m_RenderPass.get();
-            frameBufferDesc.attachmentTypes = attachmentTypes;
-
-            if(m_RenderTexture)
-            {
-                attachments[0] = m_RenderTexture;
-                frameBufferDesc.attachments = attachments;
-                frameBufferDesc.screenFBO = false;
-                m_Framebuffers.emplace_back(Framebuffer::Get(frameBufferDesc));
-            }
-            else
-            {
-                for(uint32_t i = 0; i < Renderer::GetSwapChain()->GetSwapChainBufferCount(); i++)
-                {
-                    frameBufferDesc.screenFBO = true;
-                    attachments[0] = Renderer::GetSwapChain()->GetImage(i);
-                    frameBufferDesc.attachments = attachments;
-
-                    m_Framebuffers.emplace_back(Framebuffer::Get(frameBufferDesc));
-                }
-            }
+            
         }
 
         void Renderer2D::UpdateDesciptorSet()
@@ -555,7 +501,6 @@ namespace Lumos
             if(rebuildFramebuffer)
             {
                 m_Framebuffers.clear();
-                CreateFramebuffers();
             }
         }
 

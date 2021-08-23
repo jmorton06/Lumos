@@ -75,20 +75,6 @@ namespace Lumos
 
             m_CommandQueue.reserve(1000);
 
-            AttachmentInfo textureTypesOffScreen[5] = {
-                { TextureType::COLOUR, Application::Get().GetRenderGraph()->GetGBuffer()->GetTextureFormat(SCREENTEX_COLOUR) },
-                { TextureType::COLOUR, Application::Get().GetRenderGraph()->GetGBuffer()->GetTextureFormat(SCREENTEX_POSITION) },
-                { TextureType::COLOUR, Application::Get().GetRenderGraph()->GetGBuffer()->GetTextureFormat(SCREENTEX_NORMALS) },
-                { TextureType::COLOUR, Application::Get().GetRenderGraph()->GetGBuffer()->GetTextureFormat(SCREENTEX_PBR) },
-                { TextureType::DEPTH, TextureFormat::DEPTH }
-            };
-
-            Graphics::RenderPassDesc renderPassDescOffScreen {};
-            renderPassDescOffScreen.attachmentCount = 5;
-            renderPassDescOffScreen.textureType = textureTypesOffScreen;
-
-            m_RenderPass = Graphics::RenderPass::Get(renderPassDescOffScreen);
-
             Graphics::DescriptorDesc info {};
             info.layoutIndex = 0;
             info.shader = m_Shader.get();
@@ -125,7 +111,7 @@ namespace Lumos
         void DeferredOffScreenRenderer::Begin()
         {
             LUMOS_PROFILE_FUNCTION();
-            m_RenderPass->BeginRenderpass(Renderer::GetSwapChain()->GetCurrentCommandBuffer(), Maths::Vector4(0.0f), m_Framebuffers.front().get(), Graphics::INLINE, m_ScreenBufferWidth, m_ScreenBufferHeight);
+            m_RenderPass->BeginRenderpass(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer(), Maths::Vector4(0.0f), m_Framebuffers.front().get(), Graphics::INLINE, m_ScreenBufferWidth, m_ScreenBufferHeight);
         }
 
         void DeferredOffScreenRenderer::BeginScene(Scene* scene, Camera* overrideCamera, Maths::Transform* overrideCameraTransform)
@@ -208,7 +194,7 @@ namespace Lumos
         void DeferredOffScreenRenderer::End()
         {
             LUMOS_PROFILE_FUNCTION();
-            m_RenderPass->EndRenderpass(Renderer::GetSwapChain()->GetCurrentCommandBuffer());
+            m_RenderPass->EndRenderpass(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer());
         }
 
         void DeferredOffScreenRenderer::Present()
@@ -225,7 +211,7 @@ namespace Lumos
                 if(!command.material || !command.material->GetShader())
                     continue;
 
-                auto commandBuffer = Renderer::GetSwapChain()->GetCurrentCommandBuffer();
+                auto commandBuffer = Renderer::GetMainSwapChain()->GetCurrentCommandBuffer();
 
                 Graphics::PipelineDesc pipelineDesc {};
                 pipelineDesc.shader = command.material->GetShader();

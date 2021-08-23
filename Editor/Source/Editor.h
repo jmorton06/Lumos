@@ -241,6 +241,7 @@ namespace Lumos
         Maths::Vector3 m_CameraStartPosition;
         float m_CameraTransitionStartTime = 0.0f;
         float m_CameraTransitionSpeed = 0.0f;
+        bool m_SleepOutofFocus = true;
 
         bool m_FullScreenSceneView = false;
         ImGuiHelpers::Theme m_Theme = ImGuiHelpers::Theme::Dark;

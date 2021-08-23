@@ -95,17 +95,11 @@ namespace Lumos
             OTHER
         };
 
-        struct AttachmentInfo
-        {
-            TextureType textureType;
-            TextureFormat format;
-            uint32_t textureLayout;
-        };
-
         struct RenderPassDesc
         {
-            AttachmentInfo* textureType;
-            int attachmentCount;
+            Texture** attachments;
+            TextureType* attachmentTypes;
+            uint32_t attachmentCount;
             bool clear = true;
         };
 

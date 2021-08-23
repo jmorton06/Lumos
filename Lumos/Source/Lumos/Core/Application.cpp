@@ -175,6 +175,8 @@ namespace Lumos
         Engine::Get();
 
         m_Timer = CreateUniquePtr<Timer>();
+        
+        Graphics::GraphicsContext::SetRenderAPI(static_cast<Graphics::RenderAPI>(RenderAPI));
 
         WindowDesc windowDesc;
         windowDesc.Width = Width;
@@ -188,6 +190,8 @@ namespace Lumos
 
         m_Window = UniquePtr<Window>(Window::Create(windowDesc));
         m_Window->SetEventCallback(BIND_EVENT_FN(Application::OnEvent));
+        
+        Graphics::Renderer::Init();
 
         m_EditorState = EditorState::Play;
 
@@ -226,9 +230,6 @@ namespace Lumos
 
         System::JobSystem::Execute(context, [this](JobDispatchArgs args)
             { m_SceneManager->LoadCurrentList(); });
-
-        // Graphics Loading on main thread
-        Graphics::Renderer::Init(screenWidth, screenHeight);
 
         m_ImGuiManager = CreateUniquePtr<ImGuiManager>(false);
         m_ImGuiManager->OnInit();
@@ -356,8 +357,8 @@ namespace Lumos
 
         {
             LUMOS_PROFILE_SCOPE("Application::UpdateGraphicsStats");
-            stats.UsedGPUMemory = Graphics::GraphicsContext::GetContext()->GetGPUMemoryUsed();
-            stats.TotalGPUMemory = Graphics::GraphicsContext::GetContext()->GetTotalGPUMemory();
+            stats.UsedGPUMemory = Graphics::Renderer::GetGraphicsContext()->GetGPUMemoryUsed();
+            stats.TotalGPUMemory = Graphics::Renderer::GetGraphicsContext()->GetTotalGPUMemory();
         }
 
         {
@@ -472,7 +473,7 @@ namespace Lumos
     bool Application::OnWindowResize(WindowResizeEvent& e)
     {
         LUMOS_PROFILE_FUNCTION();
-        Graphics::GraphicsContext::GetContext()->WaitIdle();
+        Graphics::Renderer::GetGraphicsContext()->WaitIdle();
 
         int width = e.GetWidth(), height = e.GetHeight();
 
@@ -486,7 +487,7 @@ namespace Lumos
         Graphics::Renderer::GetRenderer()->OnResize(width, height);
         m_RenderGraph->OnResize(width, height);
 
-        Graphics::GraphicsContext::GetContext()->WaitIdle();
+        Graphics::Renderer::GetGraphicsContext()->WaitIdle();
 
         return false;
     }
@@ -500,7 +501,7 @@ namespace Lumos
     void Application::OnSceneViewSizeUpdated(uint32_t width, uint32_t height)
     {
         LUMOS_PROFILE_FUNCTION();
-        Graphics::GraphicsContext::GetContext()->WaitIdle();
+        Graphics::Renderer::GetGraphicsContext()->WaitIdle();
 
         WindowResizeEvent e(width, height);
         if(width == 0 || height == 0)
@@ -512,7 +513,7 @@ namespace Lumos
         m_RenderGraph->OnResize(width, height);
         m_RenderGraph->OnEvent(e);
 
-        Graphics::GraphicsContext::GetContext()->WaitIdle();
+        Graphics::Renderer::GetGraphicsContext()->WaitIdle();
     }
 
     void Application::EmbedTexture(const std::string& texFilePath, const std::string& outPath, const std::string& arrayName)

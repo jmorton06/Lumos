@@ -1,7 +1,6 @@
 #include "Precompiled.h"
 #include "VKContext.h"
 #include "VKDevice.h"
-#include "VKSwapChain.h"
 #include "VKCommandPool.h"
 #include "VKCommandBuffer.h"
 #include "VKRenderer.h"
@@ -19,6 +18,7 @@ namespace Lumos
 {
     namespace Graphics
     {
+        VkInstance VKContext::s_VkInstance = nullptr;
         const std::vector<const char*> VKContext::GetRequiredExtensions()
         {
             std::vector<const char*> extensions;
@@ -102,54 +102,32 @@ namespace Lumos
             }
         }
 
-        VKContext::VKContext(const WindowDesc& properties, Window* window)
-            : m_VkInstance(nullptr)
+        VKContext::VKContext()
         {
-            m_Window = window;
-            m_Width = properties.Width;
-            m_Height = properties.Height;
-            m_VSync = properties.VSync;
         }
 
         VKContext::~VKContext()
         {
-            m_Swapchain.reset();
-
             for(int i = 0; i < 3; i++)
             {
                 VKRenderer::GetDeletionQueue(i).Flush();
             }
 
             VKDevice::Release();
-            DestroyDebugReportCallbackEXT(m_VkInstance, m_DebugCallback, nullptr);
-            vkDestroyInstance(m_VkInstance, nullptr);
+            DestroyDebugReportCallbackEXT(s_VkInstance, m_DebugCallback, nullptr);
+            vkDestroyInstance(s_VkInstance, nullptr);
         }
 
         void VKContext::Init()
         {
             LUMOS_PROFILE_FUNCTION();
             CreateInstance();
-
             VKDevice::Get().Init();
-
-            m_Swapchain = CreateSharedPtr<VKSwapChain>(m_Width, m_Height);
-            m_Swapchain->Init(m_VSync, m_Window);
-            //m_Swapchain->AcquireNextImage();
 
             SetupDebugCallback();
 
             Maths::Matrix4::SetUpCoordSystem(false, true);
         };
-
-        void VKContext::OnResize(uint32_t width, uint32_t height)
-        {
-            LUMOS_PROFILE_FUNCTION();
-            m_Width = width;
-            m_Height = height;
-
-            m_Swapchain->OnResize(width, height, true, m_Window);
-            //m_Swapchain->AcquireNextImage();
-        }
 
         void VKContext::Present()
         {
@@ -320,13 +298,13 @@ namespace Lumos
             createInfo.enabledLayerCount = static_cast<uint32_t>(m_InstanceLayerNames.size());
             createInfo.ppEnabledLayerNames = m_InstanceLayerNames.data();
 
-            VkResult createResult = vkCreateInstance(&createInfo, nullptr, &m_VkInstance);
+            VkResult createResult = vkCreateInstance(&createInfo, nullptr, &s_VkInstance);
             if(createResult != VK_SUCCESS)
             {
                 LUMOS_LOG_CRITICAL("[VULKAN] Failed to create instance!");
             }
 #ifndef LUMOS_PLATFORM_IOS
-            volkLoadInstance(m_VkInstance);
+            volkLoadInstance(s_VkInstance);
 #endif
         }
 
@@ -342,7 +320,7 @@ namespace Lumos
 
             createInfo.pfnCallback = reinterpret_cast<PFN_vkDebugReportCallbackEXT>(DebugCallback);
 
-            VkResult result = CreateDebugReportCallbackEXT(m_VkInstance, &createInfo, nullptr, &m_DebugCallback);
+            VkResult result = CreateDebugReportCallbackEXT(s_VkInstance, &createInfo, nullptr, &m_DebugCallback);
             if(result != VK_SUCCESS)
             {
                 LUMOS_LOG_CRITICAL("[VULKAN] Failed to set up debug callback!");
@@ -354,9 +332,9 @@ namespace Lumos
             CreateFunc = CreateFuncVulkan;
         }
 
-        GraphicsContext* VKContext::CreateFuncVulkan(const WindowDesc& properties, Window* win)
+        GraphicsContext* VKContext::CreateFuncVulkan()
         {
-            return new VKContext(properties, win);
+            return new VKContext();
         }
 
         void VKContext::WaitIdle() const

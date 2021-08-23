@@ -1,5 +1,6 @@
 #include "Precompiled.h"
 #include "ImGui/ImGuiHelpers.h"
+#include "Graphics/RHI/Renderer.h"
 #include "Graphics/RHI/Texture.h"
 #include "Graphics/RHI/GraphicsContext.h"
 #include "Core/OS/OS.h"
@@ -12,6 +13,7 @@ namespace Lumos
 
     bool ImGuiHelpers::Property(const std::string& name, bool& value)
     {
+        LUMOS_PROFILE_FUNCTION();
         bool updated = false;
         ImGui::TextUnformatted(name.c_str());
         ImGui::NextColumn();
@@ -29,6 +31,7 @@ namespace Lumos
 
     bool ImGuiHelpers::Property(const std::string& name, float& value, float min, float max, ImGuiHelpers::PropertyFlag flags)
     {
+        LUMOS_PROFILE_FUNCTION();
         bool updated = false;
 
         ImGui::TextUnformatted(name.c_str());
@@ -47,11 +50,13 @@ namespace Lumos
 
     bool ImGuiHelpers::Property(const std::string& name, Maths::Vector2& value, ImGuiHelpers::PropertyFlag flags)
     {
+        LUMOS_PROFILE_FUNCTION();
         return ImGuiHelpers::Property(name, value, -1.0f, 1.0f, flags);
     }
 
     bool ImGuiHelpers::Property(const std::string& name, Maths::Vector2& value, float min, float max, ImGuiHelpers::PropertyFlag flags)
     {
+        LUMOS_PROFILE_FUNCTION();
         bool updated = false;
 
         ImGui::TextUnformatted(name.c_str());
@@ -70,11 +75,13 @@ namespace Lumos
 
     bool ImGuiHelpers::Property(const std::string& name, Maths::Vector3& value, ImGuiHelpers::PropertyFlag flags)
     {
+        LUMOS_PROFILE_FUNCTION();
         return ImGuiHelpers::Property(name, value, -1.0f, 1.0f, flags);
     }
 
     bool ImGuiHelpers::Property(const std::string& name, Maths::Vector3& value, float min, float max, ImGuiHelpers::PropertyFlag flags)
     {
+        LUMOS_PROFILE_FUNCTION();
         bool updated = false;
 
         ImGui::TextUnformatted(name.c_str());
@@ -101,11 +108,13 @@ namespace Lumos
 
     bool ImGuiHelpers::Property(const std::string& name, Maths::Vector4& value, bool exposeW, ImGuiHelpers::PropertyFlag flags)
     {
+        LUMOS_PROFILE_FUNCTION();
         return Property(name, value, -1.0f, 1.0f, exposeW, flags);
     }
 
     bool ImGuiHelpers::Property(const std::string& name, Maths::Vector4& value, float min, float max, bool exposeW, ImGuiHelpers::PropertyFlag flags)
     {
+        LUMOS_PROFILE_FUNCTION();
         bool updated = false;
 
         ImGui::AlignTextToFramePadding();
@@ -130,6 +139,7 @@ namespace Lumos
 
     void ImGuiHelpers::Tooltip(const std::string& text)
     {
+        LUMOS_PROFILE_FUNCTION();
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(5, 5));
         Tooltip(text.c_str());
         ImGui::PopStyleVar();
@@ -137,6 +147,7 @@ namespace Lumos
 
     void ImGuiHelpers::Tooltip(const char* text)
     {
+        LUMOS_PROFILE_FUNCTION();
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(5, 5));
 
         if(ImGui::IsItemHovered())
@@ -151,12 +162,13 @@ namespace Lumos
 
     void ImGuiHelpers::Tooltip(Graphics::Texture2D* texture, const Maths::Vector2& size)
     {
+        LUMOS_PROFILE_FUNCTION();
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(5, 5));
 
         if(ImGui::IsItemHovered())
         {
             ImGui::BeginTooltip();
-            bool flipImage = Graphics::GraphicsContext::GetContext()->FlipImGUITexture();
+            bool flipImage = Graphics::Renderer::GetGraphicsContext()->FlipImGUITexture();
             ImGui::Image(texture ? texture->GetHandle() : nullptr, ImVec2(size.x, size.y), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
             ImGui::EndTooltip();
         }
@@ -166,12 +178,13 @@ namespace Lumos
 
     void ImGuiHelpers::Tooltip(Graphics::Texture2D* texture, const Maths::Vector2& size, const std::string& text)
     {
+        LUMOS_PROFILE_FUNCTION();
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(5, 5));
 
         if(ImGui::IsItemHovered())
         {
             ImGui::BeginTooltip();
-            bool flipImage = Graphics::GraphicsContext::GetContext()->FlipImGUITexture();
+            bool flipImage = Graphics::Renderer::GetGraphicsContext()->FlipImGUITexture();
             ImGui::Image(texture ? texture->GetHandle() : nullptr, ImVec2(size.x, size.y), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
             ImGui::TextUnformatted(text.c_str());
             ImGui::EndTooltip();
@@ -182,18 +195,21 @@ namespace Lumos
 
     void ImGuiHelpers::Image(Graphics::Texture2D* texture, const Maths::Vector2& size)
     {
-        bool flipImage = Graphics::GraphicsContext::GetContext()->FlipImGUITexture();
+        LUMOS_PROFILE_FUNCTION();
+        bool flipImage = Graphics::Renderer::GetGraphicsContext()->FlipImGUITexture();
         ImGui::Image(texture ? texture->GetHandle() : nullptr, ImVec2(size.x, size.y), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
     }
 
     void ImGuiHelpers::Image(Graphics::TextureCube* texture, const Maths::Vector2& size)
     {
-        bool flipImage = Graphics::GraphicsContext::GetContext()->FlipImGUITexture();
+        LUMOS_PROFILE_FUNCTION();
+        bool flipImage = Graphics::Renderer::GetGraphicsContext()->FlipImGUITexture();
         ImGui::Image(texture ? texture->GetHandle() : nullptr, ImVec2(size.x, size.y), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
     }
 
     bool ImGuiHelpers::BufferingBar(const char* label, float value, const Maths::Vector2& size_arg, const uint32_t& bg_col, const uint32_t& fg_col)
     {
+        LUMOS_PROFILE_FUNCTION();
         auto g = ImGui::GetCurrentContext();
         auto drawList = ImGui::GetWindowDrawList();
         const ImGuiStyle& style = ImGui::GetStyle();
@@ -237,6 +253,7 @@ namespace Lumos
 
     bool ImGuiHelpers::Spinner(const char* label, float radius, int thickness, const uint32_t& colour)
     {
+        LUMOS_PROFILE_FUNCTION();
         auto g = ImGui::GetCurrentContext();
         const ImGuiStyle& style = g->Style;
         const ImGuiID id = ImGui::GetID(label);
@@ -368,10 +385,10 @@ namespace Lumos
             colours[ImGuiCol_WindowBg] = TabActive;
             colours[ImGuiCol_ChildBg] = TabActive;
 
-            colours[ImGuiCol_PopupBg] = ImVec4(0.08f, 0.08f, 0.08f, 0.94f);
+            colours[ImGuiCol_PopupBg] = ImVec4(42.0f / 255.0f, 38.0f / 255.0f, 47.0f / 255.0f, 1.00f);
             colours[ImGuiCol_Border] = ImVec4(0.08f, 0.10f, 0.12f, 1.00f);
             colours[ImGuiCol_BorderShadow] = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
-            colours[ImGuiCol_FrameBg] = ImVec4(61.0f / 255.0f, 83.0f / 255.0f, 103.0f / 255.0f, 1.00f);
+            colours[ImGuiCol_FrameBg] = ImVec4(65.0f / 255.0f, 79.0f / 255.0f, 92.0f / 255.0f, 1.00f);
             colours[ImGuiCol_FrameBgHovered] = ImVec4(0.12f, 0.20f, 0.28f, 1.00f);
             colours[ImGuiCol_FrameBgActive] = ImVec4(0.09f, 0.12f, 0.14f, 1.00f);
 
@@ -666,7 +683,7 @@ namespace Lumos
         colours[ImGuiCol_TitleBgActive] = colours[ImGuiCol_TitleBg];
         colours[ImGuiCol_TitleBgCollapsed] = colours[ImGuiCol_TitleBg];
         colours[ImGuiCol_MenuBarBg] = colours[ImGuiCol_TitleBg];
-        colours[ImGuiCol_PopupBg] = colours[ImGuiCol_WindowBg] + ImVec4(0.1f, 0.1f, 0.1f, 0.0f);
+        colours[ImGuiCol_PopupBg] = colours[ImGuiCol_WindowBg] + ImVec4(0.05f, 0.05f, 0.05f, 0.0f);
 
         colours[ImGuiCol_Border] = ImVec4(0.08f, 0.10f, 0.12f, 0.00f);
         colours[ImGuiCol_BorderShadow] = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
@@ -682,6 +699,7 @@ namespace ImGui
 {
     bool DragFloatN_Coloured(const char* label, float* v, int components, float v_speed, float v_min, float v_max, const char* display_format, float power)
     {
+        LUMOS_PROFILE_FUNCTION();
         ImGuiWindow* window = GetCurrentWindow();
         if(window->SkipItems)
             return false;
@@ -768,16 +786,19 @@ namespace ImGui
 
     bool DragFloat3Coloured(const char* label, float* v, float v_speed, float v_min, float v_max)
     {
+        LUMOS_PROFILE_FUNCTION();
         return DragFloatN_Coloured(label, v, 3, v_speed, v_min, v_max);
     }
 
     bool DragFloat4Coloured(const char* label, float* v, float v_speed, float v_min, float v_max)
     {
+        LUMOS_PROFILE_FUNCTION();
         return DragFloatN_Coloured(label, v, 4, v_speed, v_min, v_max);
     }
 
     bool DragFloat2Coloured(const char* label, float* v, float v_speed, float v_min, float v_max)
     {
+        LUMOS_PROFILE_FUNCTION();
         return DragFloatN_Coloured(label, v, 2, v_speed, v_min, v_max);
     }
 }

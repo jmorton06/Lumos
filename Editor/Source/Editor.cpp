@@ -1744,7 +1744,11 @@ namespace Lumos
         //DrawPreview();
         //TODO: move window focus to window
         //TODO: OS use TSinglton
-        if(!Input::Get().GetWindowFocus() && m_EditorState != EditorState::Play)
+        bool isProfiling = false;
+#if LUMOS_PROFILE
+        isProfiling = tracy::GetProfiler().IsConnected();
+#endif
+        if(!isProfiling && m_SleepOutofFocus && !Application::Get().GetWindow()->GetWindowFocus() && m_EditorState != EditorState::Play)
             OS::Instance()->Delay(100000);
 
         Application::OnRender();
@@ -1862,6 +1866,7 @@ namespace Lumos
         m_IniFile.SetOrAdd("Theme", (int)m_Theme);
         m_IniFile.SetOrAdd("ProjectRoot", m_ProjectRoot);
         m_IniFile.SetOrAdd("ProjectName", m_ProjectName);
+        m_IniFile.SetOrAdd("SleepOutofFocus", m_SleepOutofFocus);
         m_IniFile.Rewrite();
     }
 
@@ -1884,6 +1889,7 @@ namespace Lumos
         m_IniFile.Add("Theme", (int)m_Theme);
         m_IniFile.Add("ProjectRoot", m_ProjectRoot);
         m_IniFile.Add("ProjectName", m_ProjectName);
+        m_IniFile.Add("SleepOutofFocus", m_SleepOutofFocus);
         m_IniFile.Rewrite();
     }
 
@@ -1904,6 +1910,7 @@ namespace Lumos
         m_ProjectName = m_IniFile.GetOrDefault("ProjectName", std::string("Example"));
         m_Physics2DDebugFlags = m_IniFile.GetOrDefault("PhysicsDebugDrawFlags2D", 0);
         m_Physics3DDebugFlags = m_IniFile.GetOrDefault("PhysicsDebugDrawFlags", 0);
+        m_SleepOutofFocus = m_IniFile.GetOrDefault("SleepOutofFocus", true);
     }
 
     const char* Editor::GetIconFontIcon(const std::string& filePath)
