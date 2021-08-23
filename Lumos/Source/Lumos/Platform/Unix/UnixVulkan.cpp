@@ -2,6 +2,7 @@
 
 #include "Platform/Vulkan/VKSwapChain.h"
 #include "Core/Application.h"
+#include "Core/OS/Window.h"
 
 #include <GLFW/glfw3.h>
 #include <GLFW/glfw3native.h>
