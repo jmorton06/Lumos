@@ -49,29 +49,29 @@ namespace Lumos
             LUMOS_PROFILE_FUNCTION();
             m_CurrentBufferID = 0;
             if(!m_RenderTexture)
-                m_CurrentBufferID = Renderer::GetSwapChain()->GetCurrentBufferIndex();
+                m_CurrentBufferID = Renderer::GetMainSwapChain()->GetCurrentBufferIndex();
 
             CreateGraphicsPipeline();
 
-            m_Pipeline->Bind(Renderer::GetSwapChain()->GetCurrentCommandBuffer());
+            m_Pipeline->Bind(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer());
 
             m_CurrentDescriptorSets[0] = m_DescriptorSet[0].get();
 
-            m_Quad->GetVertexBuffer()->Bind(Renderer::GetSwapChain()->GetCurrentCommandBuffer(), m_Pipeline.get());
-            m_Quad->GetIndexBuffer()->Bind(Renderer::GetSwapChain()->GetCurrentCommandBuffer());
+            m_Quad->GetVertexBuffer()->Bind(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer(), m_Pipeline.get());
+            m_Quad->GetIndexBuffer()->Bind(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer());
 
-            Renderer::BindDescriptorSets(m_Pipeline.get(), Renderer::GetSwapChain()->GetCurrentCommandBuffer(), 0, m_CurrentDescriptorSets);
-            Renderer::DrawIndexed(Renderer::GetSwapChain()->GetCurrentCommandBuffer(), DrawType::TRIANGLE, m_Quad->GetIndexBuffer()->GetCount());
+            Renderer::BindDescriptorSets(m_Pipeline.get(), Renderer::GetMainSwapChain()->GetCurrentCommandBuffer(), 0, m_CurrentDescriptorSets);
+            Renderer::DrawIndexed(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer(), DrawType::TRIANGLE, m_Quad->GetIndexBuffer()->GetCount());
 
             m_Quad->GetVertexBuffer()->Unbind();
             m_Quad->GetIndexBuffer()->Unbind();
 
             End();
 
-            m_Pipeline->End(Renderer::GetSwapChain()->GetCurrentCommandBuffer());
+            m_Pipeline->End(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer());
 
             //if(!m_RenderTexture)
-            //Renderer::Present((m_CommandBuffers[Renderer::GetSwapChain()->GetCurrentBufferIndex()].get()));
+            //Renderer::Present((m_CommandBuffers[Renderer::GetMainSwapChain()->GetCurrentBufferIndex()].get()));
         }
 
         enum VSSystemUniformIndices : int32_t

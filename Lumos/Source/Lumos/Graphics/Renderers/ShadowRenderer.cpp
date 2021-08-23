@@ -201,9 +201,9 @@ namespace Lumos
             LUMOS_PROFILE_FUNCTION();
             int index = 0;
 
-            //m_RenderPass->BeginRenderpass(Renderer::GetSwapChain()->GetCurrentCommandBuffer(), Maths::Vector4(0.0f), m_ShadowFramebuffer[m_Layer].get(), Graphics::INLINE, m_ShadowMapSize, m_ShadowMapSize);
+            //m_RenderPass->BeginRenderpass(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer(), Maths::Vector4(0.0f), m_ShadowFramebuffer[m_Layer].get(), Graphics::INLINE, m_ShadowMapSize, m_ShadowMapSize);
 
-            m_Pipeline->Bind(Renderer::GetSwapChain()->GetCurrentCommandBuffer(), m_Layer);
+            m_Pipeline->Bind(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer(), m_Layer);
 
             for(auto& command : m_CascadeCommandQueue[m_Layer])
             {
@@ -213,8 +213,8 @@ namespace Lumos
 
                 m_CurrentDescriptorSets[0] = m_DescriptorSet[0].get();
 
-                mesh->GetVertexBuffer()->Bind(Renderer::GetSwapChain()->GetCurrentCommandBuffer(), m_Pipeline.get());
-                mesh->GetIndexBuffer()->Bind(Renderer::GetSwapChain()->GetCurrentCommandBuffer());
+                mesh->GetVertexBuffer()->Bind(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer(), m_Pipeline.get());
+                mesh->GetIndexBuffer()->Bind(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer());
 
                 uint32_t layer = static_cast<uint32_t>(m_Layer);
                 auto trans = command.transform;
@@ -222,10 +222,10 @@ namespace Lumos
                 memcpy(pushConstants[0].data, &trans, sizeof(Maths::Matrix4));
                 memcpy(pushConstants[0].data + sizeof(Maths::Matrix4), &layer, sizeof(uint32_t));
 
-                m_Shader->BindPushConstants(Renderer::GetSwapChain()->GetCurrentCommandBuffer(), m_Pipeline.get());
+                m_Shader->BindPushConstants(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer(), m_Pipeline.get());
 
-                Renderer::BindDescriptorSets(m_Pipeline.get(), Renderer::GetSwapChain()->GetCurrentCommandBuffer(), 0, m_CurrentDescriptorSets);
-                Renderer::DrawIndexed(Renderer::GetSwapChain()->GetCurrentCommandBuffer(), DrawType::TRIANGLE, mesh->GetIndexBuffer()->GetCount());
+                Renderer::BindDescriptorSets(m_Pipeline.get(), Renderer::GetMainSwapChain()->GetCurrentCommandBuffer(), 0, m_CurrentDescriptorSets);
+                Renderer::DrawIndexed(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer(), DrawType::TRIANGLE, mesh->GetIndexBuffer()->GetCount());
 
                 mesh->GetVertexBuffer()->Unbind();
                 mesh->GetIndexBuffer()->Unbind();
@@ -233,7 +233,7 @@ namespace Lumos
                 index++;
             }
 
-            m_Pipeline->End(Renderer::GetSwapChain()->GetCurrentCommandBuffer());
+            m_Pipeline->End(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer());
         }
 
         void ShadowRenderer::SetShadowMapNum(uint32_t num)
@@ -467,7 +467,7 @@ namespace Lumos
 
                 index = Maths::Max(0, index);
                 index = Maths::Min(index, 3);
-                bool flipImage = Graphics::GraphicsContext::GetContext()->FlipImGUITexture();
+                bool flipImage = Renderer::GetGraphicsContext()->FlipImGUITexture();
 
                 ImGui::Image(m_ShadowTex->GetHandleArray(uint32_t(index)), ImVec2(128, 128), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
 

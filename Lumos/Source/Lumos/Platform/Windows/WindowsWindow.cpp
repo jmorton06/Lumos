@@ -12,12 +12,20 @@
 #include "WindowsWindow.h"
 #include "WindowsKeyCodes.h"
 #include "Graphics/RHI/GraphicsContext.h"
+#include "Graphics/RHI/SwapChain.h"
 #include "Core/Application.h"
 #include "Core/OS/Input.h"
 #include "Utilities/LoadImage.h"
 #include "Events/ApplicationEvent.h"
 
 #include <imgui/imgui.h>
+
+#ifdef LUMOS_RENDER_API_OPENGL
+#undef NOGDI
+#include <glad/glad_wgl.h>
+#include <Windows.h>
+#define NOGDI
+#endif
 
 extern "C"
 {
@@ -53,15 +61,16 @@ namespace Lumos
         m_Data.m_RenderAPI = static_cast<Graphics::RenderAPI>(properties.RenderAPI);
 
         m_Init = Init(properties);
-
-        Graphics::GraphicsContext::SetRenderAPI(static_cast<Graphics::RenderAPI>(properties.RenderAPI));
-        Graphics::GraphicsContext::Create(properties, this);
-        Graphics::GraphicsContext::GetContext()->Init();
+		m_GraphicsContext = SharedPtr<Graphics::GraphicsContext>(Graphics::GraphicsContext::Create());
+        m_GraphicsContext->Init();
+		
+		m_SwapChain = SharedPtr<Graphics::SwapChain>(Graphics::SwapChain::Create(m_Data.Width, m_Data.Height));
+		m_Swapchain->Init(m_VSync, this);
+		
     }
 
     WindowsWindow::~WindowsWindow()
     {
-        Graphics::GraphicsContext::Release();
     }
 
     static PIXELFORMATDESCRIPTOR GetPixelFormat()
@@ -298,7 +307,57 @@ namespace Lumos
                 res = ChangeDisplaySettings(&dm, CDS_FULLSCREEN);
             }
         }
-
+		#if 0
+		#ifdef LUMOS_RENDER_API_OPENGL
+		if(properties.RenderAPI == RenderAPI::OpenGL)
+		{
+            HDC hDc = GetDC(static_cast<HWND>(GetHandle()));
+			
+            HGLRC tempContext = wglCreateContext(hDc);
+            wglMakeCurrent(hDc, tempContext);
+			
+            if(!wglMakeCurrent(hDc, tempContext))
+            {
+                LUMOS_LOG_ERROR("Failed to initialise OpenGL context");
+            }
+			
+            if(!gladLoadWGL(hDc))
+                LUMOS_LOG_ERROR("glad failed to load WGL!");
+            if(!gladLoadGL())
+                LUMOS_LOG_ERROR("glad failed to load OpenGL!");
+			
+            const int contextAttribsList[] = {
+                WGL_CONTEXT_MAJOR_VERSION_ARB,
+                4,
+                WGL_CONTEXT_MINOR_VERSION_ARB,
+                4,
+                WGL_CONTEXT_PROFILE_MASK_ARB,
+                WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
+#ifdef _DEBUG
+                WGL_CONTEXT_FLAGS_ARB,
+                WGL_CONTEXT_DEBUG_BIT_ARB,
+#else
+                WGL_CONTEXT_FLAGS_ARB,
+                0,
+#endif
+                0,
+            };
+			
+            HGLRC hrc = wglCreateContextAttribsARB(hDc, nullptr, contextAttribsList);
+            if(hrc == nullptr)
+            {
+                LUMOS_LOG_ERROR("Failed to create core OpenGL context");
+            }
+            else
+            {
+                wglMakeCurrent(NULL, NULL);
+                wglDeleteContext(tempContext);
+                wglMakeCurrent(hDc, hrc);
+            }
+		}
+#endif
+		#endif
+		
         //Input
         rid.usUsagePage = HID_USAGE_PAGE_GENERIC;
         rid.usUsage = HID_USAGE_GENERIC_KEYBOARD;
@@ -322,7 +381,7 @@ namespace Lumos
 
     void FocusCallback(Window* window, bool focused)
     {
-        Input::Get().SetWindowFocus(focused);
+        window->SetWindowFocus(focused);
     }
 
     void WindowsWindow::OnUpdate()

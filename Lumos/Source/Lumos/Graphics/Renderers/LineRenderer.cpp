@@ -173,7 +173,7 @@ namespace Lumos
 
     void LineRenderer::Present()
     {
-        Graphics::CommandBuffer* currentCMDBuffer = Renderer::GetSwapChain()->GetCurrentCommandBuffer();
+        Graphics::CommandBuffer* currentCMDBuffer = Renderer::GetMainSwapChain()->GetCurrentCommandBuffer();
 
         m_VertexBuffers[m_BatchDrawCallIndex]->ReleasePointer();
         m_VertexBuffers[m_BatchDrawCallIndex]->Unbind();
@@ -211,10 +211,10 @@ namespace Lumos
         CreateGraphicsPipeline();
 
         if(!m_RenderTexture)
-            m_CurrentBufferID = Renderer::GetSwapChain()->GetCurrentBufferIndex();
+            m_CurrentBufferID = Renderer::GetMainSwapChain()->GetCurrentBufferIndex();
 
-        m_Pipeline->Bind(Renderer::GetSwapChain()->GetCurrentCommandBuffer());
-        m_VertexBuffers[m_BatchDrawCallIndex]->Bind(Renderer::GetSwapChain()->GetCurrentCommandBuffer(), m_Pipeline.get());
+        m_Pipeline->Bind(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer());
+        m_VertexBuffers[m_BatchDrawCallIndex]->Bind(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer(), m_Pipeline.get());
         m_Buffer = m_VertexBuffers[m_BatchDrawCallIndex]->GetPointer<LineVertexData>();
 
         for(auto& line : m_Lines)
@@ -224,7 +224,7 @@ namespace Lumos
 
         Present();
 
-        m_Pipeline->End(Renderer::GetSwapChain()->GetCurrentCommandBuffer());
+        m_Pipeline->End(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer());
 
         End();
     }
@@ -240,7 +240,7 @@ namespace Lumos
 
     void LineRenderer::PresentToScreen()
     {
-        //Renderer::Present((m_CommandBuffers[Renderer::GetSwapChain()->GetCurrentBufferIndex()].get()));
+        //Renderer::Present((m_CommandBuffers[Renderer::GetMainSwapChain()->GetCurrentBufferIndex()].get()));
     }
 
     void LineRenderer::SetScreenBufferSize(uint32_t width, uint32_t height)

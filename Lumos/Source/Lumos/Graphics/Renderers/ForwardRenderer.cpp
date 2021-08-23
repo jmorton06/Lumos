@@ -148,7 +148,7 @@ namespace Lumos
             LUMOS_PROFILE_FUNCTION();
             m_CurrentBufferID = 0;
             if(!m_RenderTexture)
-                m_CurrentBufferID = Renderer::GetSwapChain()->GetCurrentBufferIndex();
+                m_CurrentBufferID = Renderer::GetMainSwapChain()->GetCurrentBufferIndex();
         }
 
         void ForwardRenderer::BeginScene(Scene* scene, Camera* overrideCamera, Maths::Transform* overrideCameraTransform)
@@ -212,66 +212,12 @@ namespace Lumos
                     m_EnvironmentMap = env.GetEnvironmentMap();
                     m_IrradianceMap = env.GetIrradianceMap();
 
-                    UpdateScreenDescriptorSet();
+                    //UpdateScreenDescriptorSet();
                 }
             }
             SubmitLightSetup(scene);
-        }
+            UpdateScreenDescriptorSet();
 
-        void ForwardRenderer::Submit(const RenderCommand& command)
-        {
-            LUMOS_PROFILE_FUNCTION();
-            m_CommandQueue.push_back(command);
-        }
-
-        void ForwardRenderer::SubmitMesh(Mesh* mesh, Material* material, const Maths::Matrix4& transform, const Maths::Matrix4& textureMatrix)
-        {
-            LUMOS_PROFILE_FUNCTION();
-            RenderCommand command;
-            command.mesh = mesh;
-            command.transform = transform;
-            command.textureMatrix = textureMatrix;
-            command.material = material;
-            Submit(command);
-        }
-
-        void ForwardRenderer::EndScene()
-        {
-        }
-
-        void ForwardRenderer::End()
-        {
-            LUMOS_PROFILE_FUNCTION();
-            //m_RenderPass->EndRenderpass(Renderer::GetSwapChain()->GetCurrentCommandBuffer());
-        }
-
-        void ForwardRenderer::Present()
-        {
-            LUMOS_PROFILE_FUNCTION();
-
-            Graphics::CommandBuffer* currentCMDBuffer = Renderer::GetSwapChain()->GetCurrentCommandBuffer();
-
-            Renderer::GetRenderer()->ClearRenderTarget(m_RenderTexture, currentCMDBuffer);
-            Renderer::GetRenderer()->ClearRenderTarget(reinterpret_cast<Texture*>(Application::Get().GetRenderGraph()->GetGBuffer()->GetDepthTexture()), currentCMDBuffer);
-
-            Graphics::PipelineDesc pipelineDesc {};
-            pipelineDesc.shader = m_Shader;
-            pipelineDesc.polygonMode = Graphics::PolygonMode::FILL;
-            pipelineDesc.blendMode = BlendMode::SrcAlphaOneMinusSrcAlpha;
-            pipelineDesc.clearTargets = false;
-            pipelineDesc.swapchainTarget = false;
-
-            if(m_DepthTest)
-            {
-                pipelineDesc.depthTarget = reinterpret_cast<Texture*>(Application::Get().GetRenderGraph()->GetGBuffer()->GetDepthTexture());
-            }
-
-            if(m_RenderTexture)
-                pipelineDesc.colourTargets[0] = m_RenderTexture;
-            else
-                pipelineDesc.swapchainTarget = true;
-
-            auto& registry = Application::Get().GetCurrentScene()->GetRegistry();
             auto group = registry.group<Model>(entt::get<Maths::Transform>);
 
             for(auto entity : group)
@@ -292,35 +238,125 @@ namespace Lumos
                         if(inside == Maths::Intersection::OUTSIDE)
                             continue;
 
-                        Material* material = mesh->GetMaterial() ? mesh->GetMaterial().get() : m_DefaultMaterial;
-                        pipelineDesc.cullMode = material->GetFlag(Material::RenderFlags::TWOSIDED) ? Graphics::CullMode::NONE : Graphics::CullMode::BACK;
-                        pipelineDesc.transparencyEnabled = material->GetFlag(Material::RenderFlags::ALPHABLEND);
-
-                        auto pipeline = Graphics::Pipeline::Get(pipelineDesc);
-
-                        pipeline->Bind(currentCMDBuffer);
-
-                        material->Bind();
-
-                        m_CurrentDescriptorSets[0] = m_DescriptorSet[0].get();
-                        m_CurrentDescriptorSets[1] = material->GetDescriptorSet();
-                        m_CurrentDescriptorSets[2] = m_DescriptorSet[2].get();
-
-                        mesh->GetVertexBuffer()->Bind(currentCMDBuffer, pipeline.get());
-                        mesh->GetIndexBuffer()->Bind(currentCMDBuffer);
-
-                        auto& pushConstants = m_Shader->GetPushConstants()[0];
-                        pushConstants.SetValue("transform", (void*)&worldTransform);
-
-                        m_Shader->BindPushConstants(currentCMDBuffer, pipeline.get());
-                        Renderer::BindDescriptorSets(pipeline.get(), currentCMDBuffer, 0, m_CurrentDescriptorSets);
-                        Renderer::DrawIndexed(currentCMDBuffer, DrawType::TRIANGLE, mesh->GetIndexBuffer()->GetCount());
-
-                        mesh->GetVertexBuffer()->Unbind();
-                        mesh->GetIndexBuffer()->Unbind();
-                        pipeline->End(currentCMDBuffer);
+                        auto meshPtr = mesh;
+                        Maths::Matrix4 textureMatrix;
+                        auto textureMatrixTransform = registry.try_get<TextureMatrixComponent>(entity);
+                        if(textureMatrixTransform)
+                            textureMatrix = textureMatrixTransform->GetMatrix();
+                        else
+                            textureMatrix = Maths::Matrix4();
+                        SubmitMesh(meshPtr.get(), meshPtr->GetMaterial() ? meshPtr->GetMaterial().get() : m_DefaultMaterial, worldTransform, textureMatrix);
                     }
                 }
+            }
+            {
+                LUMOS_PROFILE_SCOPE("Sort Meshes by distance from camera");
+                auto camTransform = m_CameraTransform;
+                std::sort(m_CommandQueue.begin(), m_CommandQueue.end(),
+                    [camTransform](RenderCommand& a, RenderCommand& b)
+                    {
+                        return (a.transform.Translation() - camTransform->GetWorldPosition()).Length() < (b.transform.Translation() - camTransform->GetWorldPosition()).Length();
+                    });
+            }
+        }
+
+        void ForwardRenderer::Submit(const RenderCommand& command)
+        {
+            LUMOS_PROFILE_FUNCTION();
+            m_CommandQueue.push_back(command);
+        }
+
+        void ForwardRenderer::SubmitMesh(Mesh* mesh, Material* material, const Maths::Matrix4& transform, const Maths::Matrix4& textureMatrix)
+        {
+            LUMOS_PROFILE_FUNCTION();
+            RenderCommand command;
+            command.mesh = mesh;
+            command.transform = transform;
+            command.textureMatrix = textureMatrix;
+            command.material = material;
+            
+            //Update material buffers
+            command.material->Bind();
+            Submit(command);
+        }
+
+        void ForwardRenderer::EndScene()
+        {
+        }
+
+        void ForwardRenderer::End()
+        {
+            LUMOS_PROFILE_FUNCTION();
+            //m_RenderPass->EndRenderpass(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer());
+        }
+
+        void ForwardRenderer::Present()
+        {
+            LUMOS_PROFILE_FUNCTION();
+
+            Graphics::CommandBuffer* currentCMDBuffer = Renderer::GetMainSwapChain()->GetCurrentCommandBuffer();
+
+            if(m_RenderTexture)
+            {
+                Renderer::GetRenderer()->ClearRenderTarget(m_RenderTexture, currentCMDBuffer);
+            }
+            else
+            {
+                Renderer::GetRenderer()->ClearRenderTarget(Renderer::GetMainSwapChain()->GetCurrentImage(), currentCMDBuffer);
+            }
+            
+
+            Graphics::PipelineDesc pipelineDesc {};
+            pipelineDesc.shader = m_Shader;
+            pipelineDesc.polygonMode = Graphics::PolygonMode::FILL;
+            pipelineDesc.blendMode = BlendMode::SrcAlphaOneMinusSrcAlpha;
+            pipelineDesc.clearTargets = false;
+            pipelineDesc.swapchainTarget = false;
+
+            if(m_DepthTest)
+            {
+                pipelineDesc.depthTarget = reinterpret_cast<Texture*>(Application::Get().GetRenderGraph()->GetGBuffer()->GetDepthTexture());
+                
+                Renderer::GetRenderer()->ClearRenderTarget(reinterpret_cast<Texture*>(Application::Get().GetRenderGraph()->GetGBuffer()->GetDepthTexture()), currentCMDBuffer);
+            }
+
+            if(m_RenderTexture)
+                pipelineDesc.colourTargets[0] = m_RenderTexture;
+            else
+                pipelineDesc.swapchainTarget = true;
+
+            for(auto& command : m_CommandQueue)
+            {
+                Mesh* mesh = command.mesh;
+                auto& worldTransform = command.transform;
+
+                Material* material = command.material ? command.material : m_DefaultMaterial;
+                pipelineDesc.cullMode = material->GetFlag(Material::RenderFlags::TWOSIDED) ? Graphics::CullMode::NONE : Graphics::CullMode::BACK;
+                pipelineDesc.transparencyEnabled = material->GetFlag(Material::RenderFlags::ALPHABLEND);
+
+                auto pipeline = Graphics::Pipeline::Get(pipelineDesc);
+
+                //material->Bind();
+
+                pipeline->Bind(currentCMDBuffer);
+
+                m_CurrentDescriptorSets[0] = m_DescriptorSet[0].get();
+                m_CurrentDescriptorSets[1] = material->GetDescriptorSet();
+                m_CurrentDescriptorSets[2] = m_DescriptorSet[2].get();
+
+                mesh->GetVertexBuffer()->Bind(currentCMDBuffer, pipeline.get());
+                mesh->GetIndexBuffer()->Bind(currentCMDBuffer);
+
+                auto& pushConstants = m_Shader->GetPushConstants()[0];
+                pushConstants.SetValue("transform", (void*)&worldTransform);
+
+                m_Shader->BindPushConstants(currentCMDBuffer, pipeline.get());
+                Renderer::BindDescriptorSets(pipeline.get(), currentCMDBuffer, 0, m_CurrentDescriptorSets);
+                Renderer::DrawIndexed(currentCMDBuffer, DrawType::TRIANGLE, mesh->GetIndexBuffer()->GetCount());
+
+                mesh->GetVertexBuffer()->Unbind();
+                mesh->GetIndexBuffer()->Unbind();
+                pipeline->End(currentCMDBuffer);
             }
         }
 
@@ -430,7 +466,7 @@ namespace Lumos
             m_DescriptorSet[2]->SetUniform("UniformBufferLight", "shadowCount", &numShadows);
             m_DescriptorSet[2]->SetUniform("UniformBufferLight", "mode", &m_RenderMode);
             m_DescriptorSet[2]->SetUniform("UniformBufferLight", "cubemapMipLevels", &cubemapMipLevels);
-            m_DescriptorSet[2]->Update();
+            //m_DescriptorSet[2]->Update();
         }
 
         void ForwardRenderer::UpdateScreenDescriptorSet()

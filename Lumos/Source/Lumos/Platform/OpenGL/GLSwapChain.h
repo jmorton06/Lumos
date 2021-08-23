@@ -12,12 +12,14 @@ namespace Lumos
         public:
             GLSwapChain(uint32_t width, uint32_t height);
             ~GLSwapChain();
-
+            bool Init(bool vsync, Window* window) override { return Init(vsync); };
             bool Init(bool vsync) override;
 
             Texture* GetCurrentImage() override;
             Texture* GetImage(uint32_t index) override { return nullptr; };
             uint32_t GetCurrentBufferIndex() const override;
+            uint32_t GetCurrentImageIndex() const override { return 0; };
+
             size_t GetSwapChainBufferCount() const override;
 
             static void MakeDefault();

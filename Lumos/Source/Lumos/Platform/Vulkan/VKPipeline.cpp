@@ -22,8 +22,7 @@ namespace Lumos
 
         VKPipeline::~VKPipeline()
         {
-            vkDeviceWaitIdle(VKDevice::GetHandle());
-
+            LUMOS_PROFILE_FUNCTION();
             VKContext::DeletionQueue& deletionQueue = VKRenderer::GetCurrentDeletionQueue();
 
             auto pipeline = m_Pipeline;
@@ -34,10 +33,12 @@ namespace Lumos
 
         bool VKPipeline::Init(const PipelineDesc& pipelineDesc)
         {
+            LUMOS_PROFILE_FUNCTION();
             m_Description = pipelineDesc;
             m_Shader = m_Description.shader;
             m_PipelineLayout = m_Shader.As<VKShader>()->GetPipelineLayout();
-
+            
+            TransitionAttachments();
             CreateFramebuffers();
 
             // Pipeline
@@ -228,19 +229,18 @@ namespace Lumos
 
         void VKPipeline::Bind(CommandBuffer* commandBuffer, uint32_t layer)
         {
+            LUMOS_PROFILE_FUNCTION();
             if(m_DepthBiasEnabled)
                 vkCmdSetDepthBias(static_cast<VKCommandBuffer*>(commandBuffer)->GetHandle(),
                     m_DepthBiasConstant,
                     0.0f,
                     m_DepthBiasSlope);
 
-            vkCmdBindPipeline(static_cast<VKCommandBuffer*>(commandBuffer)->GetHandle(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_Pipeline);
-
             VKFramebuffer* framebuffer;
 
             if(m_Description.swapchainTarget)
             {
-                framebuffer = m_Framebuffers[Renderer::GetSwapChain()->GetCurrentBufferIndex()];
+                framebuffer = m_Framebuffers[Renderer::GetMainSwapChain()->GetCurrentBufferIndex()];
             }
             else if(m_Description.depthArrayTarget)
             {
@@ -252,19 +252,20 @@ namespace Lumos
             }
 
             m_RenderPass->BeginRenderpass(commandBuffer, m_Description.clearColour, framebuffer, Graphics::INLINE, GetWidth(), GetHeight());
+            
+            vkCmdBindPipeline(static_cast<VKCommandBuffer*>(commandBuffer)->GetHandle(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_Pipeline);
         }
 
         void VKPipeline::CreateFramebuffers()
         {
+            LUMOS_PROFILE_FUNCTION();
             std::vector<TextureType> attachmentTypes;
-            std::vector<AttachmentInfo> textureTypes;
             std::vector<Texture*> attachments;
 
             if(m_Description.swapchainTarget)
             {
-                textureTypes.push_back({ TextureType::COLOUR, TextureFormat::RGBA8 });
                 attachmentTypes.push_back(TextureType::COLOUR);
-                attachments.push_back(nullptr);
+                attachments.push_back(Renderer::GetMainSwapChain()->GetImage(0));
             }
             else
             {
@@ -272,7 +273,6 @@ namespace Lumos
                 {
                     if(texture)
                     {
-                        textureTypes.push_back({ TextureType::COLOUR, texture->GetFormat(), (uint32_t)((VKTexture2D*)texture)->GetDescriptor()->imageLayout });
                         attachmentTypes.push_back(texture->GetType());
                         attachments.push_back(texture);
                     }
@@ -281,21 +281,20 @@ namespace Lumos
 
             if(m_Description.depthTarget)
             {
-                textureTypes.push_back({ TextureType::DEPTH, TextureFormat::DEPTH, (uint32_t)((VKTextureDepth*)m_Description.depthTarget)->GetDescriptor()->imageLayout }); //TODO: Custom depth format
                 attachmentTypes.push_back(m_Description.depthTarget->GetType());
                 attachments.push_back(m_Description.depthTarget);
             }
 
             if(m_Description.depthArrayTarget)
             {
-                textureTypes.push_back({ TextureType::DEPTHARRAY, TextureFormat::DEPTH, (uint32_t)((VKTextureDepthArray*)m_Description.depthArrayTarget)->GetDescriptor()->imageLayout }); //TODO: Custom depth format
                 attachmentTypes.push_back(m_Description.depthArrayTarget->GetType());
                 attachments.push_back(m_Description.depthArrayTarget);
             }
 
             Graphics::RenderPassDesc renderPassDesc;
-            renderPassDesc.attachmentCount = uint32_t(textureTypes.size());
-            renderPassDesc.textureType = textureTypes.data();
+            renderPassDesc.attachmentCount = uint32_t(attachmentTypes.size());
+            renderPassDesc.attachmentTypes = attachmentTypes.data();
+            renderPassDesc.attachments = attachments.data();
             renderPassDesc.clear = m_Description.clearTargets;
 
             m_RenderPass = Graphics::RenderPass::Get(renderPassDesc);
@@ -309,10 +308,10 @@ namespace Lumos
 
             if(m_Description.swapchainTarget)
             {
-                for(uint32_t i = 0; i < Renderer::GetSwapChain()->GetSwapChainBufferCount(); i++)
+                for(uint32_t i = 0; i < Renderer::GetMainSwapChain()->GetSwapChainBufferCount(); i++)
                 {
                     frameBufferDesc.screenFBO = true;
-                    attachments[0] = Renderer::GetSwapChain()->GetImage(i);
+                    attachments[0] = Renderer::GetMainSwapChain()->GetImage(i);
                     frameBufferDesc.attachments = attachments.data();
 
                     m_Framebuffers.emplace_back(Framebuffer::Get(frameBufferDesc));
@@ -341,16 +340,18 @@ namespace Lumos
 
         void VKPipeline::End(CommandBuffer* commandBuffer)
         {
+            LUMOS_PROFILE_FUNCTION();
             m_RenderPass->EndRenderpass(commandBuffer);
         }
 
         void VKPipeline::ClearRenderTargets(CommandBuffer* commandBuffer)
         {
+            LUMOS_PROFILE_FUNCTION();
             if(m_Description.swapchainTarget)
             {
-                for(uint32_t i = 0; i < Renderer::GetSwapChain()->GetSwapChainBufferCount(); i++)
+                for(uint32_t i = 0; i < Renderer::GetMainSwapChain()->GetSwapChainBufferCount(); i++)
                 {
-                    Renderer::GetRenderer()->ClearRenderTarget(Renderer::GetSwapChain()->GetImage(i), commandBuffer);
+                    Renderer::GetRenderer()->ClearRenderTarget(Renderer::GetMainSwapChain()->GetImage(i), commandBuffer);
                 }
             }
             else if(m_Description.depthArrayTarget)
@@ -368,6 +369,36 @@ namespace Lumos
                     if(texture != nullptr)
                     {
                         Renderer::GetRenderer()->ClearRenderTarget(texture, commandBuffer);
+                    }
+                }
+            }
+        }
+    
+        void VKPipeline::TransitionAttachments()
+        {
+            LUMOS_PROFILE_FUNCTION();
+            if(m_Description.swapchainTarget)
+            {
+                for(uint32_t i = 0; i < Renderer::GetMainSwapChain()->GetSwapChainBufferCount(); i++)
+                {
+                    ((VKTexture2D*)Renderer::GetMainSwapChain()->GetImage(i))->TransitionImage(VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
+                }
+            }
+            else if(m_Description.depthArrayTarget)
+            {
+                ((VKTextureDepthArray*)m_Description.depthArrayTarget)->TransitionImage(VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
+            }
+            else if(m_Description.depthTarget)
+            {
+                ((VKTextureDepth*)m_Description.depthTarget)->TransitionImage(VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
+            }
+            else
+            {
+                for(auto texture : m_Description.colourTargets)
+                {
+                    if(texture != nullptr)
+                    {
+                        ((VKTexture2D*)texture)->TransitionImage(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
                     }
                 }
             }

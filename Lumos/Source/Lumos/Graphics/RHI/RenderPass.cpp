@@ -26,7 +26,7 @@ namespace Lumos
 
             for(int i = 0; i < renderPassDesc.attachmentCount; i++)
             {
-                HashCombine(hash, renderPassDesc.textureType[i].format, renderPassDesc.textureType[i].textureType);
+                HashCombine(hash, renderPassDesc.attachmentTypes[i], renderPassDesc.attachments[i]);
             }
 
             auto found = m_RenderPassCache.find(hash);

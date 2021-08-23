@@ -73,10 +73,10 @@ namespace sol
     };
 
     template <typename T>
-    struct unique_usertype_traits<Lumos::WeakRef<T>>
+    struct unique_usertype_traits<Lumos::WeakPtr<T>>
     {
         typedef T type;
-        typedef Lumos::WeakRef<T> actual_type;
+        typedef Lumos::WeakPtr<T> actual_type;
         static const bool value = true;
 
         static bool is_null(const actual_type& ptr)

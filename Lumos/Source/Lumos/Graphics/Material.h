@@ -69,6 +69,7 @@ namespace Lumos
             void SetTextures(const PBRMataterialTextures& textures);
             void SetMaterialProperites(const MaterialProperties& properties);
             void UpdateMaterialPropertiesData();
+            void UpdateDescriptorSet();
 
             void SetAlbedoTexture(const std::string& path);
             void SetNormalTexture(const std::string& path);

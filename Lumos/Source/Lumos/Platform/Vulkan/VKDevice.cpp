@@ -37,7 +37,7 @@ namespace Lumos
             ///
             // GPU
             uint32_t numGPUs = 0;
-            auto vkInstance = VKContext::Get()->GetVKInstance();
+            auto vkInstance = VKContext::GetVKInstance();
             vkEnumeratePhysicalDevices(vkInstance, &numGPUs, VK_NULL_HANDLE);
             if(numGPUs == 0)
             {
@@ -312,7 +312,7 @@ namespace Lumos
             VmaAllocatorCreateInfo allocatorInfo = {};
             allocatorInfo.physicalDevice = m_PhysicalDevice->GetVulkanPhysicalDevice();
             allocatorInfo.device = m_Device;
-            allocatorInfo.instance = VKContext::Get()->GetVKInstance();
+            allocatorInfo.instance = VKContext::GetVKInstance();
 
             VmaVulkanFunctions fn;
             fn.vkAllocateMemory = (PFN_vkAllocateMemory)vkAllocateMemory;

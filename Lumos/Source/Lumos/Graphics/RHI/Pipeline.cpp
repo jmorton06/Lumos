@@ -6,6 +6,7 @@
 #include "Renderer.h"
 
 #include "Utilities/CombineHash.h"
+#include "Graphics/RHI/GraphicsContext.h"
 
 #ifdef LUMOS_RENDER_API_VULKAN
 #include "Platform/Vulkan/VK.h"
@@ -49,8 +50,11 @@ namespace Lumos
                     HashCombine(hash, texture->GetFormat());
 #ifdef LUMOS_RENDER_API_VULKAN
 
-                    VkDescriptorImageInfo* imageHandle = (VkDescriptorImageInfo*)texture->GetImageHande();
-                    HashCombine(hash, imageHandle->imageLayout, imageHandle->imageView, imageHandle->sampler);
+                    if(GraphicsContext::GetRenderAPI() == RenderAPI::VULKAN)
+                    {
+                        VkDescriptorImageInfo* imageHandle = (VkDescriptorImageInfo*)(texture->GetImageHande());
+                        HashCombine(hash, imageHandle->imageLayout, imageHandle->imageView, imageHandle->sampler);
+                    }
 #endif
                 }
             }
@@ -102,7 +106,7 @@ namespace Lumos
         uint32_t Pipeline::GetWidth()
         {
             if(m_Description.swapchainTarget)
-                return Renderer::GetSwapChain()->GetCurrentImage()->GetWidth();
+                return Renderer::GetMainSwapChain()->GetCurrentImage()->GetWidth();
 
             if(m_Description.colourTargets[0])
                 return m_Description.colourTargets[0]->GetWidth();
@@ -121,7 +125,7 @@ namespace Lumos
         uint32_t Pipeline::GetHeight()
         {
             if(m_Description.swapchainTarget)
-                return Renderer::GetSwapChain()->GetCurrentImage()->GetHeight();
+                return Renderer::GetMainSwapChain()->GetCurrentImage()->GetHeight();
 
             if(m_Description.colourTargets[0])
                 return m_Description.colourTargets[0]->GetHeight();

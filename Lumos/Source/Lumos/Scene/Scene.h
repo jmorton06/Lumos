@@ -119,6 +119,15 @@ namespace Lumos
             archive(cereal::make_nvp("Version", m_SceneSerialisationVersion));
             archive(cereal::make_nvp("Scene Name", m_SceneName));
         }
+        
+        struct SceneSettings
+        {
+            bool PhysicsEnabled2D;
+            bool PhysicsEnabled3D;
+            bool AudioEnabled;
+            bool Renderer2DEnabled;
+            bool Renderer3DEnabled;
+        };
 
     protected:
         std::string m_SceneName;

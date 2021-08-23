@@ -22,22 +22,22 @@ namespace Lumos
 
         uint32_t GetStrideFromOpenGLFormat(uint32_t format)
         {
-            switch(format)
-            {
-                //                case VK_FORMAT_R8_SINT:
-                //                return sizeof(int);
-                //                case VK_FORMAT_R32_SFLOAT:
-                //                return sizeof(float);
-                //                case VK_FORMAT_R32G32_SFLOAT:
-                //                return sizeof(Maths::Vector2);
-                //                case VK_FORMAT_R32G32B32_SFLOAT:
-                //                return sizeof(Maths::Vector3);
-                //                case VK_FORMAT_R32G32B32A32_SFLOAT:
-                //                return sizeof(Maths::Vector4);
-            default:
-                //LUMOS_LOG_ERROR("Unsupported Format {0}", format);
-                return 0;
-            }
+            //switch(format)
+            //{
+            //    //                case VK_FORMAT_R8_SINT:
+            //    //                return sizeof(int);
+            //    //                case VK_FORMAT_R32_SFLOAT:
+            //    //                return sizeof(float);
+            //    //                case VK_FORMAT_R32G32_SFLOAT:
+            //    //                return sizeof(Maths::Vector2);
+            //    //                case VK_FORMAT_R32G32B32_SFLOAT:
+            //    //                return sizeof(Maths::Vector3);
+            //    //                case VK_FORMAT_R32G32B32A32_SFLOAT:
+            //    //                return sizeof(Maths::Vector4);
+            //default:
+            //    //LUMOS_LOG_ERROR("Unsupported Format {0}", format);
+            //    return 0;
+            //}
 
             return 0;
         }

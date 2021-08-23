@@ -157,26 +157,8 @@ namespace Lumos::Graphics
         UpdateMaterialPropertiesData();
     }
 
-    void Material::CreateDescriptorSet(int layoutID, bool pbr)
+    void Material::UpdateDescriptorSet()
     {
-        LUMOS_PROFILE_FUNCTION();
-
-        if(m_DescriptorSet)
-            delete m_DescriptorSet;
-
-        if(!m_Shader)
-        {
-            //If no shader then set it to the default pbr shader
-            //TODO default to forward
-            m_Shader = Application::Get().GetShaderLibrary()->GetResource("ForwardPBR");
-        }
-
-        Graphics::DescriptorDesc descriptorDesc;
-        descriptorDesc.layoutIndex = layoutID;
-        descriptorDesc.shader = m_Shader.get();
-
-        m_DescriptorSet = Graphics::DescriptorSet::Create(descriptorDesc);
-
         if(m_PBRMaterialTextures.albedo != nullptr)
         {
             m_DescriptorSet->SetTexture("u_AlbedoMap", m_PBRMaterialTextures.albedo.get());
@@ -187,7 +169,7 @@ namespace Lumos::Graphics
             m_MaterialProperties->usingAlbedoMap = 0.0f;
         }
 
-        if(pbr)
+        //if(pbr)
         {
             m_DescriptorSet->SetTexture("u_MetallicMap", m_PBRMaterialTextures.metallic ? m_PBRMaterialTextures.metallic.get() : s_DefaultTexture.get());
 
@@ -235,6 +217,29 @@ namespace Lumos::Graphics
         m_DescriptorSet->Update();
     }
 
+    void Material::CreateDescriptorSet(int layoutID, bool pbr)
+    {
+        LUMOS_PROFILE_FUNCTION();
+
+        if(m_DescriptorSet)
+            delete m_DescriptorSet;
+
+        if(!m_Shader)
+        {
+            //If no shader then set it to the default pbr shader
+            //TODO default to forward
+            m_Shader = Application::Get().GetShaderLibrary()->GetResource("ForwardPBR");
+        }
+
+        Graphics::DescriptorDesc descriptorDesc;
+        descriptorDesc.layoutIndex = layoutID;
+        descriptorDesc.shader = m_Shader.get();
+
+        m_DescriptorSet = Graphics::DescriptorSet::Create(descriptorDesc);
+
+        UpdateDescriptorSet();
+    }
+
     void Material::Bind()
     {
         LUMOS_PROFILE_FUNCTION();
@@ -244,6 +249,8 @@ namespace Lumos::Graphics
             CreateDescriptorSet(1);
             SetTexturesUpdated(false);
         }
+
+        UpdateDescriptorSet();
     }
 
     void Material::SetShader(const std::string& filePath)

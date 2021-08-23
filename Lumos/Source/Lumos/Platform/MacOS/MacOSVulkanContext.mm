@@ -4,6 +4,7 @@
 #include <QuartzCore/CAMetalLayer.h>
 
 #include "Platform/Vulkan/VKSwapChain.h"
+#include "Core/OS/Window.h"
 #include "Core/Application.h"
 #undef _GLFW_REQUIRE_LOADER
 #define GLFW_EXPOSE_NATIVE_COCOA

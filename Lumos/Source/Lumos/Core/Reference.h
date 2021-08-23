@@ -555,7 +555,7 @@ namespace Lumos
     }
 
     template <class T>
-    using WeakRef = WeakReference<T>;
+    using WeakPtr = WeakReference<T>;
 #else
     template <class T>
     using SharedPtr = std::shared_ptr<T>;
@@ -567,7 +567,7 @@ namespace Lumos
     }
 
     template <class T>
-    using WeakRef = std::weak_ptr<T>;
+    using WeakPtr = std::weak_ptr<T>;
 
     template <class T>
     using UniquePtr = std::unique_ptr<T>;

@@ -6,6 +6,8 @@
 #include "VKInitialisers.h"
 #include "VKUtilities.h"
 #include "VKContext.h"
+#include "Core/Application.h"
+#include "Core/OS/Window.h"
 
 namespace Lumos
 {
@@ -36,28 +38,32 @@ namespace Lumos
                 { vkDestroyRenderPass(VKDevice::Get().GetDevice(), renderPass, VK_NULL_HANDLE); });
         }
 
-        VkAttachmentDescription GetAttachmentDescription(AttachmentInfo info, bool clear = true)
+        VkAttachmentDescription GetAttachmentDescription(TextureType type, Texture* texture, bool clear = true)
         {
             LUMOS_PROFILE_FUNCTION();
             VkAttachmentDescription attachment = {};
-            if(info.textureType == TextureType::COLOUR)
+            if(type == TextureType::COLOUR)
             {
-                attachment.format = info.format == TextureFormat::SCREEN ? VKContext::Get()->GetSwapChain()->GetScreenFormat() : VKUtilities::TextureFormatToVK(info.format, false);
-                attachment.finalLayout = info.format == TextureFormat::SCREEN ? VK_IMAGE_LAYOUT_PRESENT_SRC_KHR : VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+                VKTexture2D* colourTexture = ((VKTexture2D*)texture);
+                attachment.format = colourTexture->GetVKFormat();
+                attachment.initialLayout = colourTexture->GetImageLayout();
+                attachment.finalLayout = attachment.initialLayout;
             }
-            else if(info.textureType == TextureType::DEPTH)
+            else if(type == TextureType::DEPTH)
             {
                 attachment.format = VKUtilities::FindDepthFormat();
-                attachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+                attachment.initialLayout = ((VKTextureDepth*)texture)->GetImageLayout();
+                attachment.finalLayout = attachment.initialLayout;
             }
-            else if(info.textureType == TextureType::DEPTHARRAY)
+            else if(type == TextureType::DEPTHARRAY)
             {
                 attachment.format = VKUtilities::FindDepthFormat();
-                attachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+                attachment.initialLayout = ((VKTextureDepthArray*)texture)->GetImageLayout();
+                attachment.finalLayout = attachment.initialLayout;
             }
             else
             {
-                LUMOS_LOG_CRITICAL("[VULKAN] - Unsupported TextureType - {0}", static_cast<int>(info.textureType));
+                LUMOS_LOG_CRITICAL("[VULKAN] - Unsupported TextureType - {0}", static_cast<int>(type));
                 return attachment;
             }
 
@@ -71,12 +77,8 @@ namespace Lumos
             {
                 attachment.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
                 attachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
-                attachment.initialLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
             }
-
-            attachment.initialLayout = info.format == TextureFormat::SCREEN ? VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL : (VkImageLayout)info.textureLayout;
-            attachment.finalLayout = info.format == TextureFormat::SCREEN ? VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL : (VkImageLayout)info.textureLayout;
-
+            
             attachment.samples = VK_SAMPLE_COUNT_1_BIT;
             attachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
             attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
@@ -88,14 +90,6 @@ namespace Lumos
         bool VKRenderPass::Init(const RenderPassDesc& renderPassDesc)
         {
             LUMOS_PROFILE_FUNCTION();
-            VkSubpassDependency dependency = {};
-            dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
-            dependency.dstSubpass = 0;
-            dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-            dependency.srcAccessMask = 0;
-            dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-            dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-
             std::vector<VkAttachmentDescription> attachments;
 
             std::vector<VkAttachmentReference> colourAttachmentReferences;
@@ -104,33 +98,38 @@ namespace Lumos
             m_DepthOnly = true;
             m_ClearDepth = false;
 
-            for(int i = 0; i < renderPassDesc.attachmentCount; i++)
+            for(uint32_t i = 0; i < renderPassDesc.attachmentCount; i++)
             {
-                attachments.push_back(GetAttachmentDescription(renderPassDesc.textureType[i], renderPassDesc.clear));
+                attachments.push_back(GetAttachmentDescription(renderPassDesc.attachmentTypes[i], renderPassDesc.attachments[i], renderPassDesc.clear));
 
-                if(renderPassDesc.textureType[i].textureType == TextureType::COLOUR)
+                if(renderPassDesc.attachmentTypes[i] == TextureType::COLOUR)
                 {
+                    VkImageLayout layout = ((VKTexture2D*)renderPassDesc.attachments[i])->GetImageLayout();
                     VkAttachmentReference colourAttachmentRef = {};
                     colourAttachmentRef.attachment = uint32_t(i);
-                    colourAttachmentRef.layout = renderPassDesc.textureType[i].format == TextureFormat::SCREEN ? VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL : (VkImageLayout)renderPassDesc.textureType[i].textureLayout;
+                    colourAttachmentRef.layout = layout == VK_IMAGE_LAYOUT_PRESENT_SRC_KHR ? VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL : layout;
                     colourAttachmentReferences.push_back(colourAttachmentRef);
                     m_DepthOnly = false;
                 }
-                else if(renderPassDesc.textureType[i].textureType == TextureType::DEPTH)
+                else if(renderPassDesc.attachmentTypes[i] == TextureType::DEPTH)
                 {
                     VkAttachmentReference depthAttachmentRef = {};
                     depthAttachmentRef.attachment = uint32_t(i);
-                    depthAttachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+                    depthAttachmentRef.layout = ((VKTextureDepth*)renderPassDesc.attachments[i])->GetImageLayout();
                     depthAttachmentReferences.push_back(depthAttachmentRef);
                     m_ClearDepth = renderPassDesc.clear;
                 }
-                else if(renderPassDesc.textureType[i].textureType == TextureType::DEPTHARRAY)
+                else if(renderPassDesc.attachmentTypes[i] == TextureType::DEPTHARRAY)
                 {
                     VkAttachmentReference depthAttachmentRef = {};
                     depthAttachmentRef.attachment = uint32_t(i);
-                    depthAttachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+                    depthAttachmentRef.layout = ((VKTextureDepthArray*)renderPassDesc.attachments[i])->GetImageLayout();
                     depthAttachmentReferences.push_back(depthAttachmentRef);
                     m_ClearDepth = renderPassDesc.clear;
+                }
+                else
+                {
+                    LUMOS_LOG_ERROR("Unsupported texture attachment");
                 }
             }
 
@@ -147,8 +146,8 @@ namespace Lumos
             vkRenderpassCI.pAttachments = attachments.data();
             vkRenderpassCI.subpassCount = 1;
             vkRenderpassCI.pSubpasses = &subpass;
-            vkRenderpassCI.dependencyCount = 0; //1;
-            vkRenderpassCI.pDependencies = nullptr; //&dependency;
+            vkRenderpassCI.dependencyCount = 0;
+            vkRenderpassCI.pDependencies = nullptr;
 
             VK_CHECK_RESULT(vkCreateRenderPass(VKDevice::Get().GetDevice(), &vkRenderpassCI, VK_NULL_HANDLE, &m_RenderPass));
 

@@ -18,21 +18,14 @@ namespace Lumos
 {
     namespace Graphics
     {
-        GraphicsContext* (*GraphicsContext::CreateFunc)(const WindowDesc&, Window*) = nullptr;
+        GraphicsContext* (*GraphicsContext::CreateFunc)() = nullptr;
 
-        GraphicsContext* GraphicsContext::s_Context = nullptr;
         RenderAPI GraphicsContext::s_RenderAPI;
-
-        void GraphicsContext::Create(const WindowDesc& properties, Window* window)
+    
+        GraphicsContext* GraphicsContext::Create()
         {
             LUMOS_ASSERT(CreateFunc, "No GraphicsContext Create Function");
-
-            s_Context = CreateFunc(properties, window);
-        }
-
-        void GraphicsContext::Release()
-        {
-            delete s_Context;
+            return CreateFunc();
         }
 
         GraphicsContext::~GraphicsContext()

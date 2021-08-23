@@ -2,8 +2,8 @@
     "value0": {
         "Project Version": 6,
         "RenderAPI": 1,
-        "Width": 1440,
-        "Height": 798,
+        "Width": 1920,
+        "Height": 978,
         "Fullscreen": true,
         "VSync": true,
         "ShowConsole": false,
@@ -13,7 +13,7 @@
             "/Scenes/Physics.lsn",
             "/Scenes/Terrain.lsn"
         ],
-        "SceneIndex": 1,
+        "SceneIndex": 0,
         "Borderless": false,
         "EngineAssetPath": "/Users/jmorton/dev/Lumos/Lumos/Assets/"
     }

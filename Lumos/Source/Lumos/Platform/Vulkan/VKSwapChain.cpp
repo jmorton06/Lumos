@@ -23,10 +23,8 @@ namespace Lumos
 
         VKSwapChain::~VKSwapChain()
         {
-            for(uint32_t i = 0; i < m_SwapchainBufferCount; i++)
+            for(uint32_t i = 0; i < m_SwapChainBufferCount; i++)
             {
-                VKContext::Get()->WaitIdle();
-
                 vkDestroySemaphore(VKDevice::Get().GetDevice(), m_Frames[i].PresentSemaphore, nullptr);
 
                 m_Frames[i].MainCommandBuffer = nullptr;
@@ -38,26 +36,28 @@ namespace Lumos
 
             if(m_Surface != VK_NULL_HANDLE)
             {
-                vkDestroySurfaceKHR(VKContext::Get()->GetVKInstance(), m_Surface, nullptr);
+                vkDestroySurfaceKHR(VKContext::GetVKInstance(), m_Surface, nullptr);
             }
         }
 
-        void VKSwapChain::Init(bool vsync, Window* windowHandle)
+        bool VKSwapChain::Init(bool vsync, Window* windowHandle)
         {
             LUMOS_PROFILE_FUNCTION();
             m_VSyncEnabled = vsync;
 
             if(m_Surface == VK_NULL_HANDLE)
-                m_Surface = CreatePlatformSurface(VKContext::Get()->GetVKInstance(), windowHandle);
+                m_Surface = CreatePlatformSurface(VKContext::GetVKInstance(), windowHandle);
 
-            Init(vsync);
+            bool success = Init(vsync);
 
             AcquireNextImage();
+            
+            return success;
         }
 
         FrameData& VKSwapChain::GetCurrentFrameData()
         {
-            LUMOS_ASSERT(m_CurrentBuffer < m_SwapchainBufferCount, "Incorrect swapchain buffer index");
+            LUMOS_ASSERT(m_CurrentBuffer < m_SwapChainBufferCount, "Incorrect swapchain buffer index");
             return m_Frames[m_CurrentBuffer];
         }
 
@@ -95,9 +95,9 @@ namespace Lumos
             VkPresentModeKHR swapChainPresentMode = VKUtilities::ChoosePresentMode(pPresentModes, vsync);
 
             // Use triple-buffering
-            m_SwapchainBufferCount = surfaceCapabilities.maxImageCount;
-            if(m_SwapchainBufferCount > 3)
-                m_SwapchainBufferCount = 3;
+            m_SwapChainBufferCount = surfaceCapabilities.maxImageCount;
+            if(m_SwapChainBufferCount > 3)
+                m_SwapChainBufferCount = 3;
 
             VkSurfaceTransformFlagBitsKHR preTransform;
             if(surfaceCapabilities.supportedTransforms & VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR)
@@ -124,7 +124,7 @@ namespace Lumos
             VkSwapchainCreateInfoKHR swapChainCI {};
             swapChainCI.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
             swapChainCI.surface = m_Surface;
-            swapChainCI.minImageCount = m_SwapchainBufferCount;
+            swapChainCI.minImageCount = m_SwapChainBufferCount;
             swapChainCI.imageFormat = m_ColourFormat;
             swapChainCI.imageExtent.width = swapChainExtent.width;
             swapChainCI.imageExtent.height = swapChainExtent.height;
@@ -164,7 +164,7 @@ namespace Lumos
             VkImage* pSwapChainImages = new VkImage[swapChainImageCount];
             VK_CHECK_RESULT(vkGetSwapchainImagesKHR(VKDevice::Get().GetDevice(), m_SwapChain, &swapChainImageCount, pSwapChainImages));
 
-            for(uint32_t i = 0; i < m_SwapchainBufferCount; i++)
+            for(uint32_t i = 0; i < m_SwapChainBufferCount; i++)
             {
                 VkImageViewCreateInfo viewCI {};
                 viewCI.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
@@ -185,8 +185,8 @@ namespace Lumos
 
                 VkImageView imageView;
                 VK_CHECK_RESULT(vkCreateImageView(VKDevice::Get().GetDevice(), &viewCI, VK_NULL_HANDLE, &imageView));
-                VKTexture2D* swapChainBuffer = new VKTexture2D(pSwapChainImages[i], imageView);
-                swapChainBuffer->TransitionImage(VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+                VKTexture2D* swapChainBuffer = new VKTexture2D(pSwapChainImages[i], imageView, m_ColourFormat, m_Width, m_Height);
+                swapChainBuffer->TransitionImage(VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
 
                 m_SwapChainBuffers.push_back(swapChainBuffer);
             }
@@ -200,7 +200,7 @@ namespace Lumos
 
         void VKSwapChain::CreateFrameData()
         {
-            for(uint32_t i = 0; i < m_SwapchainBufferCount; i++)
+            for(uint32_t i = 0; i < m_SwapChainBufferCount; i++)
             {
                 if(!m_Frames[i].MainCommandBuffer)
                 {
@@ -211,7 +211,7 @@ namespace Lumos
                     if(m_Frames[i].PresentSemaphore == VK_NULL_HANDLE)
                         VK_CHECK_RESULT(vkCreateSemaphore(VKDevice::Get().GetDevice(), &semaphoreInfo, nullptr, &m_Frames[i].PresentSemaphore));
 
-                    m_Frames[i].CommandPool = CreateSharedPtr<VKCommandPool>(VKDevice::Get().GetPhysicalDevice()->GetGraphicsQueueFamilyIndex(), VK_COMMAND_POOL_CREATE_TRANSIENT_BIT);
+                    m_Frames[i].CommandPool = CreateSharedPtr<VKCommandPool>(VKDevice::Get().GetPhysicalDevice()->GetGraphicsQueueFamilyIndex(), VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT);
 
                     m_Frames[i].MainCommandBuffer = CreateSharedPtr<VKCommandBuffer>();
                     m_Frames[i].MainCommandBuffer->Init(true, m_Frames[i].CommandPool->GetHandle());
@@ -223,9 +223,9 @@ namespace Lumos
         {
             LUMOS_PROFILE_FUNCTION();
 
-            uint32_t nextCmdBufferIndex = (m_CurrentBuffer + 1) % m_SwapchainBufferCount;
+            uint32_t nextCmdBufferIndex = (m_CurrentBuffer + 1) % m_SwapChainBufferCount;
 
-            if(m_SwapchainBufferCount == 1 && m_AcquireImageIndex != std::numeric_limits<uint32_t>::max())
+            if(m_SwapChainBufferCount == 1 && m_AcquireImageIndex != std::numeric_limits<uint32_t>::max())
                 return;
 
             {
@@ -260,12 +260,12 @@ namespace Lumos
             if(!forceResize && m_Width == width && m_Height == height)
                 return;
 
-            VKContext::Get()->WaitIdle();
+            VKRenderer::GetGraphicsContext()->WaitIdle();
 
             m_Width = width;
             m_Height = height;
 
-            for(uint32_t i = 0; i < m_SwapchainBufferCount; i++)
+            for(uint32_t i = 0; i < m_SwapChainBufferCount; i++)
             {
                 delete m_SwapChainBuffers[i];
             }
@@ -285,7 +285,7 @@ namespace Lumos
         {
             LUMOS_PROFILE_FUNCTION();
             auto& frameData = GetCurrentFrameData();
-            frameData.MainCommandBuffer->Execute(VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, frameData.PresentSemaphore, true);
+            frameData.MainCommandBuffer->Execute(VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, m_Frames[m_CurrentBuffer].PresentSemaphore, true);
         }
 
         CommandBuffer* VKSwapChain::GetCurrentCommandBuffer()
@@ -296,7 +296,6 @@ namespace Lumos
         void VKSwapChain::Begin()
         {
             LUMOS_PROFILE_FUNCTION();
-
             auto commandBuffer = GetCurrentFrameData().MainCommandBuffer;
             if(commandBuffer->GetState() == CommandBufferState::Submitted)
             {
@@ -329,15 +328,16 @@ namespace Lumos
             present.waitSemaphoreCount = 1;
             present.pWaitSemaphores = &semaphore;
             present.pResults = VK_NULL_HANDLE;
+
             auto error = vkQueuePresentKHR(VKDevice::Get().GetPresentQueue(), &present);
 
             if(error == VK_ERROR_OUT_OF_DATE_KHR)
             {
-                LUMOS_LOG_ERROR("[Vulkan] Swapchain out of date");
+                LUMOS_LOG_ERROR("[Vulkan] SwapChain out of date");
             }
             else if(error == VK_SUBOPTIMAL_KHR)
             {
-                LUMOS_LOG_ERROR("[Vulkan] Swapchain suboptimal");
+                LUMOS_LOG_ERROR("[Vulkan] SwapChain suboptimal");
             }
             else
             {
@@ -345,7 +345,7 @@ namespace Lumos
             }
 
             //Until Fix sync issue
-            VKUtilities::WaitIdle();
+            //VKUtilities::WaitIdle();
         }
 
         void VKSwapChain::MakeDefault()

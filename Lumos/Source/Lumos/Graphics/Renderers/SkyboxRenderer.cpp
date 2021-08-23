@@ -70,23 +70,23 @@ namespace Lumos
 
             m_CurrentBufferID = 0;
             if(!m_RenderTexture)
-                m_CurrentBufferID = Renderer::GetSwapChain()->GetCurrentBufferIndex();
+                m_CurrentBufferID = Renderer::GetMainSwapChain()->GetCurrentBufferIndex();
 
             Begin();
-            m_Pipeline->Bind(Renderer::GetSwapChain()->GetCurrentCommandBuffer());
+            m_Pipeline->Bind(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer());
 
             m_CurrentDescriptorSets[0] = m_DescriptorSet[0].get();
 
-            m_Skybox->GetVertexBuffer()->Bind(Renderer::GetSwapChain()->GetCurrentCommandBuffer(), m_Pipeline.get());
-            m_Skybox->GetIndexBuffer()->Bind(Renderer::GetSwapChain()->GetCurrentCommandBuffer());
+            m_Skybox->GetVertexBuffer()->Bind(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer(), m_Pipeline.get());
+            m_Skybox->GetIndexBuffer()->Bind(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer());
 
-            Renderer::BindDescriptorSets(m_Pipeline.get(), Renderer::GetSwapChain()->GetCurrentCommandBuffer(), 0, m_CurrentDescriptorSets);
-            Renderer::DrawIndexed(Renderer::GetSwapChain()->GetCurrentCommandBuffer(), DrawType::TRIANGLE, m_Skybox->GetIndexBuffer()->GetCount());
+            Renderer::BindDescriptorSets(m_Pipeline.get(), Renderer::GetMainSwapChain()->GetCurrentCommandBuffer(), 0, m_CurrentDescriptorSets);
+            Renderer::DrawIndexed(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer(), DrawType::TRIANGLE, m_Skybox->GetIndexBuffer()->GetCount());
 
             m_Skybox->GetVertexBuffer()->Unbind();
             m_Skybox->GetIndexBuffer()->Unbind();
 
-            m_Pipeline->End(Renderer::GetSwapChain()->GetCurrentCommandBuffer());
+            m_Pipeline->End(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer());
 
             End();
         }
@@ -113,7 +113,7 @@ namespace Lumos
         void SkyboxRenderer::Begin()
         {
             LUMOS_PROFILE_FUNCTION();
-            //m_RenderPass->BeginRenderpass(Renderer::GetSwapChain()->GetCurrentCommandBuffer(), Maths::Vector4(0.0f), m_Framebuffers[m_CurrentBufferID].get(), Graphics::INLINE, m_ScreenBufferWidth, m_ScreenBufferHeight);
+            //m_RenderPass->BeginRenderpass(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer(), Maths::Vector4(0.0f), m_Framebuffers[m_CurrentBufferID].get(), Graphics::INLINE, m_ScreenBufferWidth, m_ScreenBufferHeight);
         }
 
         void SkyboxRenderer::BeginScene(Scene* scene, Camera* overrideCamera, Maths::Transform* overrideCameraTransform)
@@ -160,14 +160,15 @@ namespace Lumos
 
             auto invViewProj = Maths::Matrix4::Inverse(m_Camera->GetProjectionMatrix() * m_CameraTransform->GetWorldMatrix().Inverse());
             m_DescriptorSet[0]->SetUniform("UniformBufferObject", "invprojview", &invViewProj);
-            m_DescriptorSet[0]->Update();
+            //m_DescriptorSet[0]->Update();
+            UpdateUniformBuffer();
             //memcpy(m_VSSystemUniformBuffer + m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_InverseProjectionViewMatrix], &invViewProj, sizeof(Maths::Matrix4));
         }
 
         void SkyboxRenderer::End()
         {
             LUMOS_PROFILE_FUNCTION();
-            //m_RenderPass->EndRenderpass(Renderer::GetSwapChain()->GetCurrentCommandBuffer());
+            //m_RenderPass->EndRenderpass(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer());
         }
 
         void SkyboxRenderer::OnResize(uint32_t width, uint32_t height)
@@ -225,7 +226,7 @@ namespace Lumos
             ImGui::TextUnformatted("Skybox Renderer");
             if(ImGui::TreeNode("CubeMap"))
             {
-                bool flipImage = Graphics::GraphicsContext::GetContext()->FlipImGUITexture();
+                bool flipImage = Renderer::GetGraphicsContext()->FlipImGUITexture();
 
                 ImGui::Image(m_CubeMap->GetHandle(), ImVec2(128, 128), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
 

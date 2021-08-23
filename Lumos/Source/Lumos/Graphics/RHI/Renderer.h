@@ -1,4 +1,6 @@
 #pragma once
+#include "Core/Application.h"
+#include "Core/OS/Window.h"
 
 namespace Lumos
 {
@@ -11,6 +13,7 @@ namespace Lumos
         class IndexBuffer;
         class Mesh;
         class Texture;
+        class GraphicsContext;
 
         enum RendererBufferType
         {
@@ -91,7 +94,7 @@ namespace Lumos
             Renderer() = default;
             virtual ~Renderer() = default;
 
-            static void Init(uint32_t width, uint32_t height);
+            static void Init();
             static void Release();
             virtual void InitInternal() = 0;
             virtual void Begin() = 0;
@@ -109,7 +112,6 @@ namespace Lumos
             virtual const std::string& GetTitleInternal() const = 0;
             virtual void DrawIndexedInternal(CommandBuffer* commandBuffer, DrawType type, uint32_t count, uint32_t start) const = 0;
             virtual void DrawInternal(CommandBuffer* commandBuffer, DrawType type, uint32_t count, DataType datayType, void* indices) const = 0;
-            virtual Graphics::SwapChain* GetSwapChainInternal() const = 0;
 
             inline static void Present()
             {
@@ -136,19 +138,17 @@ namespace Lumos
                 return s_Instance->GetTitleInternal();
             }
 
-            inline static SwapChain* GetSwapChain()
-            {
-                return s_Instance->GetSwapChainInternal();
-            }
-
             static RenderAPICapabilities& GetCapabilities()
             {
                 static RenderAPICapabilities capabilities;
                 return capabilities;
             }
+            
+            static GraphicsContext* GetGraphicsContext() { return Application::Get().GetWindow()->GetGraphicsContext(); }
+            static SwapChain* GetMainSwapChain() { return Application::Get().GetWindow()->GetSwapChain(); }
 
         protected:
-            static Renderer* (*CreateFunc)(uint32_t, uint32_t);
+            static Renderer* (*CreateFunc)();
 
             static Renderer* s_Instance;
         };

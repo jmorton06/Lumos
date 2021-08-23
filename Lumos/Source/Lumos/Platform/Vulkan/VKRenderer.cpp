@@ -7,6 +7,7 @@
 #include "VKPipeline.h"
 #include "VKCommandBuffer.h"
 #include "Core/Engine.h"
+#include "Core/Application.h"
 
 namespace Lumos
 {
@@ -18,7 +19,7 @@ namespace Lumos
         void VKRenderer::InitInternal()
         {
             LUMOS_PROFILE_FUNCTION();
-
+            
             m_RendererTitle = "Vulkan";
 
             // Pool sizes
@@ -44,7 +45,6 @@ namespace Lumos
 
         VKRenderer::~VKRenderer()
         {
-            vkDeviceWaitIdle(VKDevice::GetHandle());
             vkDestroyDescriptorPool(VKDevice::Get().GetDevice(), m_DescriptorPool, VK_NULL_HANDLE);
         }
 
@@ -62,17 +62,17 @@ namespace Lumos
             subresourceRange.baseArrayLayer = 0;
 
             //TODO: Pass clear Value
-            //TODO: Handle Depth/Stencil
 
             if(texture->GetType() == TextureType::COLOUR)
             {
+                VkImageLayout layout = ((VKTexture2D*)texture)->GetImageLayout();
                 ((VKTexture2D*)texture)->TransitionImage(VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, (VKCommandBuffer*)commandBuffer);
 
                 subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 
                 VkClearColorValue clearColourValue = VkClearColorValue({ { 1.0f, 0.0f, 0.0f, 0.0f } });
                 vkCmdClearColorImage(((VKCommandBuffer*)commandBuffer)->GetHandle(), static_cast<VKTexture2D*>(texture)->GetImage(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, &clearColourValue, 1, &subresourceRange);
-                ((VKTexture2D*)texture)->TransitionImage(VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, (VKCommandBuffer*)commandBuffer);
+                ((VKTexture2D*)texture)->TransitionImage(layout, (VKCommandBuffer*)commandBuffer);
             }
             else if(texture->GetType() == TextureType::DEPTH)
             {
@@ -84,12 +84,12 @@ namespace Lumos
             }
         }
 
-        void VKRenderer::ClearSwapchainImage() const
+        void VKRenderer::ClearSwapChainImage() const
         {
             LUMOS_PROFILE_FUNCTION();
 
-            auto m_Swapchain = VKContext::Get()->GetSwapChain();
-            for(int i = 0; i < m_Swapchain->GetSwapChainBufferCount(); i++)
+            auto m_SwapChain = Application::Get().GetWindow()->GetSwapChain();
+            for(int i = 0; i < m_SwapChain->GetSwapChainBufferCount(); i++)
             {
                 auto cmd = VKUtilities::BeginSingleTimeCommands();
 
@@ -101,7 +101,7 @@ namespace Lumos
 
                 VkClearColorValue clearColourValue = VkClearColorValue({ { 0.0f, 0.0f, 0.0f, 0.0f } });
 
-                vkCmdClearColorImage(cmd, static_cast<VKTexture2D*>(m_Swapchain->GetImage(i))->GetImage(), VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, &clearColourValue, 1, &subresourceRange);
+                vkCmdClearColorImage(cmd, static_cast<VKTexture2D*>(m_SwapChain->GetImage(i))->GetImage(), VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, &clearColourValue, 1, &subresourceRange);
 
                 VKUtilities::EndSingleTimeCommands(cmd);
             }
@@ -113,37 +113,34 @@ namespace Lumos
             if(width == 0 || height == 0)
                 return;
 
-            m_Width = width;
-            m_Height = height;
-
             VKUtilities::ValidateResolution(width, height);
-            VKContext::Get()->OnResize(m_Width, m_Height);
-        }
+            
+            VKSwapChain* swapChain = (VKSwapChain*)Application::Get().GetWindow()->GetSwapChain().get();
+            swapChain->OnResize(width, height);
 
-        SwapChain* VKRenderer::GetSwapChainInternal() const
-        {
-            return VKContext::Get()->GetSwapChain().get();
         }
 
         void VKRenderer::Begin()
         {
             LUMOS_PROFILE_FUNCTION();
-            VKContext::Get()->GetSwapChain()->AcquireNextImage();
-            VKContext::Get()->GetSwapChain()->Begin();
+            
+            VKSwapChain* swapChain = (VKSwapChain*)Application::Get().GetWindow()->GetSwapChain().get();
+            swapChain->AcquireNextImage();
+            swapChain->Begin();
         }
 
         void VKRenderer::PresentInternal()
         {
             LUMOS_PROFILE_FUNCTION();
-            m_Context = VKContext::Get();
+            VKSwapChain* swapChain = (VKSwapChain*)Application::Get().GetWindow()->GetSwapChain().get();
 
-            m_Context->GetSwapChain()->End();
-            m_Context->GetSwapChain()->QueueSubmit();
+            swapChain->End();
+            swapChain->QueueSubmit();
 
-            auto& frameData = VKContext::Get()->GetSwapChain()->GetCurrentFrameData();
+            auto& frameData = swapChain->GetCurrentFrameData();
             auto semphore = frameData.MainCommandBuffer->GetSemaphore();
 
-            m_Context->GetSwapChain()->Present(semphore);
+            swapChain->Present(semphore);
         }
 
         const std::string& VKRenderer::GetTitleInternal() const
@@ -193,9 +190,9 @@ namespace Lumos
             CreateFunc = CreateFuncVulkan;
         }
 
-        Renderer* VKRenderer::CreateFuncVulkan(uint32_t width, uint32_t height)
+        Renderer* VKRenderer::CreateFuncVulkan()
         {
-            return new VKRenderer(width, height);
+            return new VKRenderer();
         }
     }
 }

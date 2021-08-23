@@ -5,6 +5,12 @@
 
 namespace Lumos
 {
+	namespace Graphics
+    {
+        class SwapChain;
+        class GraphicsContext;
+	}
+
     struct LUMOS_EXPORT WindowDesc
     {
         WindowDesc(uint32_t width = 1280, uint32_t height = 720, int renderAPI = 0, const std::string& title = "Lumos", bool fullscreen = false, bool vSync = true, bool borderless = false, const std::string& filepath = "")
@@ -35,7 +41,7 @@ namespace Lumos
         using EventCallbackFn = std::function<void(Event&)>;
 
         static Window* Create(const WindowDesc& windowDesc);
-        virtual ~Window() = default;
+        virtual ~Window();
         bool Initialise(const WindowDesc& windowDesc);
 
         bool HasInitialised() const
@@ -76,6 +82,12 @@ namespace Lumos
         virtual uint32_t GetWidth() const = 0;
         virtual uint32_t GetHeight() const = 0;
         virtual float GetDPIScale() const { return 1.0f; }
+        
+        void SetWindowFocus(bool focus) { m_WindowFocus = focus; }
+        bool GetWindowFocus() const { return m_WindowFocus; }
+        
+        const SharedPtr<Lumos::Graphics::SwapChain>& GetSwapChain() const { return m_SwapChain; }
+        const SharedPtr<Lumos::Graphics::GraphicsContext>& GetGraphicsContext() const { return m_GraphicsContext; }
 
     protected:
         static Window* (*CreateFunc)(const WindowDesc&);
@@ -86,6 +98,11 @@ namespace Lumos
         Maths::Vector2 m_Position;
         bool m_VSync = false;
         bool m_HasResized = false;
+        bool m_WindowFocus = true;
+		
+		SharedPtr<Lumos::Graphics::SwapChain> m_SwapChain;
+        SharedPtr<Lumos::Graphics::GraphicsContext> m_GraphicsContext;
+
     };
 
 }

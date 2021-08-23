@@ -18,7 +18,7 @@ namespace Lumos
         public:
             VKTexture2D(uint32_t width, uint32_t height, void* data, TextureParameters parameters = TextureParameters(), TextureLoadOptions loadOptions = TextureLoadOptions());
             VKTexture2D(const std::string& name, const std::string& filename, TextureParameters parameters = TextureParameters(), TextureLoadOptions loadOptions = TextureLoadOptions());
-            VKTexture2D(VkImage image, VkImageView imageView);
+            VKTexture2D(VkImage image, VkImageView imageView, VkFormat format, uint32_t width, uint32_t height);
             VKTexture2D();
             ~VKTexture2D();
 
@@ -108,6 +108,13 @@ namespace Lumos
             {
                 return m_TextureSampler;
             }
+            
+            VkFormat GetVKFormat()
+            {
+                return m_VKFormat;
+            }
+            
+            VkImageLayout GetImageLayout() const { return m_ImageLayout; }
 
             const TextureParameters& GetTextureParameters() const { return m_Parameters; }
 
@@ -131,6 +138,7 @@ namespace Lumos
             TextureLoadOptions m_LoadOptions;
 
             TextureFormat m_Format;
+            VkFormat m_VKFormat = VK_FORMAT_R8G8B8A8_UNORM;
 
             VkImage m_TextureImage {};
             VkImageLayout m_ImageLayout = VK_IMAGE_LAYOUT_UNDEFINED;
@@ -228,6 +236,11 @@ namespace Lumos
             {
                 return m_TextureSampler;
             }
+            
+            VkFormat GetVKFormat() const
+            {
+                return m_VKFormat;
+            }
 
             static void MakeDefault();
 
@@ -249,6 +262,7 @@ namespace Lumos
             TextureLoadOptions m_LoadOptions;
 
             TextureFormat m_Format;
+            VkFormat m_VKFormat;
 
             VkImage m_TextureImage {};
             VkImageLayout m_ImageLayout;
@@ -334,6 +348,9 @@ namespace Lumos
                 return &m_Descriptor;
             }
             void UpdateDescriptor();
+            void TransitionImage(VkImageLayout newLayout, VKCommandBuffer* commandBuffer = nullptr);
+
+            VkImageLayout GetImageLayout() const { return m_ImageLayout; }
 
             static void MakeDefault();
 
@@ -347,6 +364,7 @@ namespace Lumos
             uint32_t m_Width, m_Height;
             TextureFormat m_Format;
 
+            VkImageLayout m_ImageLayout;
             VkImage m_TextureImage {};
             VkDeviceMemory m_TextureImageMemory {};
             VkImageView m_TextureImageView {};
@@ -427,10 +445,12 @@ namespace Lumos
                 return &m_Descriptor;
             }
             void UpdateDescriptor();
+            void TransitionImage(VkImageLayout newLayout, VKCommandBuffer* commandBuffer = nullptr);
 
             void* GetHandleArray(uint32_t index) override;
 
             uint32_t GetCount() const { return m_Count; }
+            VkImageLayout GetImageLayout() const { return m_ImageLayout; }
 
             static void MakeDefault();
 
@@ -446,6 +466,7 @@ namespace Lumos
 
             TextureFormat m_Format;
 
+            VkImageLayout m_ImageLayout;
             VkImage m_TextureImage {};
             VkDeviceMemory m_TextureImageMemory {};
             VkImageView m_TextureImageView {};
