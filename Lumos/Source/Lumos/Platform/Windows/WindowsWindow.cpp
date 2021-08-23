@@ -65,7 +65,7 @@ namespace Lumos
         m_GraphicsContext->Init();
 		
 		m_SwapChain = SharedPtr<Graphics::SwapChain>(Graphics::SwapChain::Create(m_Data.Width, m_Data.Height));
-		m_Swapchain->Init(m_VSync, this);
+		m_SwapChain->Init(m_VSync, this);
 		
     }
 
