@@ -125,7 +125,6 @@ namespace Lumos
             LUMOS_PROFILE_FUNCTION();
             
             VKSwapChain* swapChain = (VKSwapChain*)Application::Get().GetWindow()->GetSwapChain().get();
-            swapChain->AcquireNextImage();
             swapChain->Begin();
         }
 
@@ -141,6 +140,7 @@ namespace Lumos
             auto semphore = frameData.MainCommandBuffer->GetSemaphore();
 
             swapChain->Present(semphore);
+            swapChain->AcquireNextImage();
         }
 
         const std::string& VKRenderer::GetTitleInternal() const

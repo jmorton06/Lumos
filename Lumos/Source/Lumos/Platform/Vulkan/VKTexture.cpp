@@ -477,7 +477,8 @@ namespace Lumos
         void VKTexture2D::TransitionImage(VkImageLayout newLayout, VKCommandBuffer* commandBuffer)
         {
             LUMOS_PROFILE_FUNCTION();
-            VKUtilities::TransitionImageLayout(m_TextureImage, VKUtilities::TextureFormatToVK(m_Parameters.format), m_ImageLayout, newLayout, m_MipLevels, 1, commandBuffer ? commandBuffer->GetHandle() : nullptr);
+            if(newLayout != m_ImageLayout)
+                VKUtilities::TransitionImageLayout(m_TextureImage, VKUtilities::TextureFormatToVK(m_Parameters.format), m_ImageLayout, newLayout, m_MipLevels, 1, commandBuffer ? commandBuffer->GetHandle() : nullptr);
             m_ImageLayout = newLayout;
         }
 
@@ -798,7 +799,8 @@ namespace Lumos
         void VKTextureDepth::TransitionImage(VkImageLayout newLayout, VKCommandBuffer* commandBuffer)
         {
             LUMOS_PROFILE_FUNCTION();
-            VKUtilities::TransitionImageLayout(m_TextureImage, VKUtilities::FindDepthFormat(), m_ImageLayout, newLayout, 1, 1, commandBuffer ? commandBuffer->GetHandle() : nullptr);
+            if(newLayout != m_ImageLayout)
+                VKUtilities::TransitionImageLayout(m_TextureImage, VKUtilities::FindDepthFormat(), m_ImageLayout, newLayout, 1, 1, commandBuffer ? commandBuffer->GetHandle() : nullptr);
             m_ImageLayout = newLayout;
         }
 
@@ -903,7 +905,7 @@ namespace Lumos
                 m_IndividualImageViews.push_back(imageView);
             }
 
-            VKUtilities::TransitionImageLayout(m_TextureImage, depthFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
+            VKUtilities::TransitionImageLayout(m_TextureImage, depthFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, 1, m_Count);
             m_ImageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 
             m_TextureSampler = Graphics::CreateTextureSampler();
@@ -927,7 +929,8 @@ namespace Lumos
         void VKTextureDepthArray::TransitionImage(VkImageLayout newLayout, VKCommandBuffer* commandBuffer)
         {
             LUMOS_PROFILE_FUNCTION();
-            VKUtilities::TransitionImageLayout(m_TextureImage, VKUtilities::FindDepthFormat(), m_ImageLayout, newLayout, 1, m_Count, commandBuffer ? commandBuffer->GetHandle() : nullptr);
+            if(newLayout != m_ImageLayout)
+                VKUtilities::TransitionImageLayout(m_TextureImage, VKUtilities::FindDepthFormat(), m_ImageLayout, newLayout, 1, m_Count, commandBuffer ? commandBuffer->GetHandle() : nullptr);
             m_ImageLayout = newLayout;
         }
 

@@ -50,7 +50,8 @@ namespace Lumos
 
             for(uint32_t i = 0; i < m_Limits.MaxBatchDrawCalls; i++)
             {
-                delete m_VertexBuffers[i];
+                for(int j = 0; j < Renderer::GetMainSwapChain()->GetSwapChainBufferCount(); j++)
+                    delete m_VertexBuffers[j][i];
                 delete m_SecondaryCommandBuffers[i];
             }
 
@@ -90,18 +91,26 @@ namespace Lumos
             descriptorDesc.layoutIndex = 1;
             m_DescriptorSet[1] = SharedPtr<Graphics::DescriptorSet>(Graphics::DescriptorSet::Create(descriptorDesc));
 
-            m_VertexBuffers.resize(m_Limits.MaxBatchDrawCalls);
-#if !MAP_VERTEX_ARRAY
-            m_BufferBases.resize(m_Limits.MaxBatchDrawCalls);
-#endif
-
-            for(uint32_t i = 0; i < m_Limits.MaxBatchDrawCalls; i++)
+            m_VertexBuffers.resize(3);
+            
+            for(int i = 0; i < Renderer::GetMainSwapChain()->GetSwapChainBufferCount(); i++)
             {
-                m_VertexBuffers[i] = Graphics::VertexBuffer::Create(BufferUsage::DYNAMIC);
-                m_VertexBuffers[i]->Resize(m_Limits.BufferSize);
-#if !MAP_VERTEX_ARRAY
-                m_BufferBases[i] = new VertexData[m_Limits.BufferSize / sizeof(VertexData)];
-#endif
+                m_VertexBuffers[i].resize(m_Limits.MaxBatchDrawCalls);
+    #if !MAP_VERTEX_ARRAY
+                m_BufferBases.resize(m_Limits.MaxBatchDrawCalls);
+    #endif
+
+                for(uint32_t j = 0; j < m_Limits.MaxBatchDrawCalls; j++)
+                {
+                    m_VertexBuffers[i][j] = Graphics::VertexBuffer::Create(BufferUsage::DYNAMIC);
+                    m_VertexBuffers[i][j]->Resize(m_Limits.BufferSize);
+    #if !MAP_VERTEX_ARRAY
+                    
+                    //TODO : leak
+                    LUMOS_LOG_WARN("Not updated for multiple frames");
+                    m_BufferBases[j] = new VertexData[m_Limits.BufferSize / sizeof(VertexData)];
+    #endif
+                }
             }
 
             uint32_t* indices = new uint32_t[m_Limits.IndiciesSize];
@@ -216,10 +225,11 @@ namespace Lumos
 
             m_TextureCount = 0;
             //m_Triangles.clear();
+            uint32_t currentFrame = Renderer::GetMainSwapChain()->GetCurrentBufferIndex();
 
-            m_VertexBuffers[m_BatchDrawCallIndex]->Bind(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer(), m_Pipeline.get());
+            m_VertexBuffers[currentFrame][m_BatchDrawCallIndex]->Bind(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer(), m_Pipeline.get());
 #if MAP_VERTEX_ARRAY
-            m_Buffer = m_VertexBuffers[m_BatchDrawCallIndex]->GetPointer<VertexData>();
+            m_Buffer = m_VertexBuffers[currentFrame][m_BatchDrawCallIndex]->GetPointer<VertexData>();
 #else
             m_Buffer = m_BufferBases[m_BatchDrawCallIndex];
 #endif
@@ -252,8 +262,7 @@ namespace Lumos
             auto projView = m_Camera->GetProjectionMatrix() * view;
             m_DescriptorSet[0]->SetUniform("UniformBufferObject", "projView", &projView);
             m_DescriptorSet[0]->Update();
-            //memcpy(m_VSSystemUniformBuffer, &projView, sizeof(Maths::Matrix4));
-
+            
             m_Frustum = m_Camera->GetFrustum(view);
             m_CommandQueue2D.clear();
 
@@ -291,10 +300,13 @@ namespace Lumos
         void Renderer2D::Present()
         {
             LUMOS_PROFILE_FUNCTION();
+            
+            uint32_t currentFrame = Renderer::GetMainSwapChain()->GetCurrentBufferIndex();
+
             if(m_IndexCount == 0)
             {
 #if MAP_VERTEX_ARRAY
-                m_VertexBuffers[m_BatchDrawCallIndex]->ReleasePointer();
+                m_VertexBuffers[currentFrame][m_BatchDrawCallIndex]->ReleasePointer();
 #endif
                 m_Empty = true;
                 return;
@@ -302,6 +314,9 @@ namespace Lumos
 
             m_Empty = false;
             UpdateDesciptorSet();
+            
+           // m_DescriptorSet[0]->Update();
+           // m_DescriptorSet[1]->Update();
 
             Graphics::CommandBuffer* currentCMDBuffer = Renderer::GetMainSwapChain()->GetCurrentCommandBuffer();
 
@@ -314,15 +329,15 @@ namespace Lumos
             m_IndexBuffer->Bind(currentCMDBuffer);
 
 #if MAP_VERTEX_ARRAY
-            m_VertexBuffers[m_BatchDrawCallIndex]->ReleasePointer();
+            m_VertexBuffers[currentFrame][m_BatchDrawCallIndex]->ReleasePointer();
 #else
-            m_VertexBuffers[m_BatchDrawCallIndex]->SetData(m_Limits.BufferSize, m_BufferBases[m_BatchDrawCallIndex]);
+            m_VertexBuffers[currentFrame][m_BatchDrawCallIndex]->SetData(m_Limits.BufferSize, m_BufferBases[m_BatchDrawCallIndex]);
 #endif
 
             Renderer::BindDescriptorSets(m_Pipeline.get(), currentCMDBuffer, 0, m_CurrentDescriptorSets);
             Renderer::DrawIndexed(currentCMDBuffer, DrawType::TRIANGLE, m_IndexCount);
 
-            m_VertexBuffers[m_BatchDrawCallIndex]->Unbind();
+            m_VertexBuffers[currentFrame][m_BatchDrawCallIndex]->Unbind();
             m_IndexBuffer->Unbind();
             
             m_Pipeline->End(currentCMDBuffer);
@@ -489,8 +504,8 @@ namespace Lumos
                 m_DescriptorSet[1]->SetTexture("textures", m_Textures, m_TextureCount);
             else
                 m_DescriptorSet[1]->SetTexture("textures", m_Textures[0]);
-            m_DescriptorSet[1]->Update();
 
+            m_DescriptorSet[1]->Update();
             m_PreviousFrameTextureCount = m_TextureCount;
         }
 
@@ -511,10 +526,11 @@ namespace Lumos
 
             m_TextureCount = 0;
             m_Triangles.clear();
-
-            m_VertexBuffers[m_BatchDrawCallIndex]->Bind(nullptr, nullptr);
+            
+            uint32_t currentFrame = Renderer::GetMainSwapChain()->GetCurrentBufferIndex();
+            m_VertexBuffers[currentFrame][m_BatchDrawCallIndex]->Bind(nullptr, nullptr);
 #if MAP_VERTEX_ARRAY
-            m_Buffer = m_VertexBuffers[m_BatchDrawCallIndex]->GetPointer<VertexData>();
+            m_Buffer = m_VertexBuffers[currentFrame][m_BatchDrawCallIndex]->GetPointer<VertexData>();
 #else
             m_Buffer = m_BufferBases[m_BatchDrawCallIndex];
 #endif

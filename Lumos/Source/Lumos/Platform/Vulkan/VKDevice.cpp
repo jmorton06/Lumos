@@ -96,7 +96,6 @@ namespace Lumos
                     for(const auto& ext : extensions)
                     {
                         m_SupportedExtensions.emplace(ext.extensionName);
-                        LUMOS_LOG_INFO("  {0}", ext.extensionName);
                     }
                 }
             }
@@ -266,7 +265,7 @@ namespace Lumos
         bool VKDevice::Init()
         {
             m_PhysicalDevice = CreateSharedPtr<VKPhysicalDevice>();
-
+            
             VkPhysicalDeviceFeatures physicalDeviceFeatures;
             vkGetPhysicalDeviceFeatures(m_PhysicalDevice->GetVulkanPhysicalDevice(), &physicalDeviceFeatures);
 
@@ -279,6 +278,11 @@ namespace Lumos
                 deviceExtensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
                 m_EnableDebugMarkers = true;
             }
+            
+            VkPhysicalDeviceDescriptorIndexingFeaturesEXT indexingFeatures {};
+            indexingFeatures.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_INDEXING_FEATURES_EXT;
+            indexingFeatures.runtimeDescriptorArray = VK_TRUE;
+            indexingFeatures.descriptorBindingPartiallyBound = VK_TRUE;
 
 #if defined(LUMOS_PLATFORM_MACOS) || defined(LUMOS_PLATFORM_IOS)
             // https://vulkan.lunarg.com/doc/view/1.2.162.0/mac/1.2-extensions/vkspec.html#VUID-VkDeviceCreateInfo-pProperties-04451
@@ -289,16 +293,17 @@ namespace Lumos
 #endif
 
             // Device
-            VkDeviceCreateInfo deviceCI {};
-            deviceCI.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-            deviceCI.queueCreateInfoCount = static_cast<uint32_t>(m_PhysicalDevice->m_QueueCreateInfos.size());
-            deviceCI.pQueueCreateInfos = m_PhysicalDevice->m_QueueCreateInfos.data();
-            deviceCI.enabledExtensionCount = static_cast<uint32_t>(deviceExtensions.size());
-            deviceCI.ppEnabledExtensionNames = deviceExtensions.data();
-            deviceCI.pEnabledFeatures = &physicalDeviceFeatures;
-            deviceCI.enabledLayerCount = 0;
+            VkDeviceCreateInfo deviceCreateInfo {};
+            deviceCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+            deviceCreateInfo.queueCreateInfoCount = static_cast<uint32_t>(m_PhysicalDevice->m_QueueCreateInfos.size());
+            deviceCreateInfo.pQueueCreateInfos = m_PhysicalDevice->m_QueueCreateInfos.data();
+            deviceCreateInfo.enabledExtensionCount = static_cast<uint32_t>(deviceExtensions.size());
+            deviceCreateInfo.ppEnabledExtensionNames = deviceExtensions.data();
+            deviceCreateInfo.pEnabledFeatures = &physicalDeviceFeatures;
+            deviceCreateInfo.enabledLayerCount = 0;
+            deviceCreateInfo.pNext = (void*) &indexingFeatures;
 
-            auto result = vkCreateDevice(m_PhysicalDevice->GetVulkanPhysicalDevice(), &deviceCI, VK_NULL_HANDLE, &m_Device);
+            auto result = vkCreateDevice(m_PhysicalDevice->GetVulkanPhysicalDevice(), &deviceCreateInfo, VK_NULL_HANDLE, &m_Device);
             if(result != VK_SUCCESS)
             {
                 LUMOS_LOG_CRITICAL("[VULKAN] vkCreateDevice() failed!");

@@ -475,11 +475,13 @@ namespace Lumos
 
                 layouts[descriptorLayout.setID].push_back(descriptorLayout);
             }
-
+        
             for(auto& l : layouts)
             {
                 std::vector<VkDescriptorSetLayoutBinding> setLayoutBindings;
+                std::vector<VkDescriptorBindingFlags> layoutBindingFlags;
                 setLayoutBindings.reserve(l.size());
+                layoutBindingFlags.reserve(l.size());
 
                 for(uint32_t i = 0; i < l.size(); i++)
                 {
@@ -490,18 +492,27 @@ namespace Lumos
                     setLayoutBinding.stageFlags = VKUtilities::ShaderTypeToVK(info.stage);
                     setLayoutBinding.binding = info.binding;
                     setLayoutBinding.descriptorCount = info.count;
-
+                    
+                    bool isArray = info.count > 1;
+                    layoutBindingFlags.push_back(isArray ? VK_DESCRIPTOR_BINDING_PARTIALLY_BOUND_BIT : 0);
                     setLayoutBindings.push_back(setLayoutBinding);
                 }
+                
+                
+                VkDescriptorSetLayoutBindingFlagsCreateInfoEXT flagsInfo = {};
+                flagsInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_BINDING_FLAGS_CREATE_INFO_EXT;
+                flagsInfo.pNext = nullptr;
+                flagsInfo.bindingCount = static_cast<uint32_t>(layoutBindingFlags.size());
+                flagsInfo.pBindingFlags = layoutBindingFlags.data();
 
                 // Pipeline layout
-                VkDescriptorSetLayoutCreateInfo descriptorLayoutCI {};
-                descriptorLayoutCI.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-                descriptorLayoutCI.bindingCount = static_cast<uint32_t>(setLayoutBindings.size());
-                descriptorLayoutCI.pBindings = setLayoutBindings.data();
-
+                VkDescriptorSetLayoutCreateInfo setLayoutCreateInfo {};
+                setLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+                setLayoutCreateInfo.bindingCount = static_cast<uint32_t>(setLayoutBindings.size());
+                setLayoutCreateInfo.pBindings = setLayoutBindings.data();
+                setLayoutCreateInfo.pNext = &flagsInfo;
                 VkDescriptorSetLayout layout;
-                vkCreateDescriptorSetLayout(VKDevice::Get().GetDevice(), &descriptorLayoutCI, VK_NULL_HANDLE, &layout);
+                vkCreateDescriptorSetLayout(VKDevice::Get().GetDevice(), &setLayoutCreateInfo, VK_NULL_HANDLE, &layout);
 
                 m_DescriptorSetLayouts.push_back(layout);
             }

@@ -110,7 +110,7 @@ namespace Lumos
 
             CommandQueue2D m_CommandQueue2D;
             std::vector<CommandBuffer*> m_SecondaryCommandBuffers;
-            std::vector<VertexBuffer*> m_VertexBuffers;
+            std::vector<std::vector<VertexBuffer*>> m_VertexBuffers;
 
             uint32_t m_BatchDrawCallIndex = 0;
             uint32_t m_IndexCount = 0;

@@ -17,6 +17,8 @@ namespace Lumos
             m_SwapChain = VK_NULL_HANDLE;
             m_OldSwapChain = VK_NULL_HANDLE;
             m_Surface = VK_NULL_HANDLE;
+            
+            //Initialised by first Image Aquire
             m_CurrentBuffer = std::numeric_limits<uint32_t>::max();
             m_AcquireImageIndex = std::numeric_limits<uint32_t>::max();
         }
@@ -27,6 +29,9 @@ namespace Lumos
             {
                 vkDestroySemaphore(VKDevice::Get().GetDevice(), m_Frames[i].PresentSemaphore, nullptr);
 
+                if(m_Frames[i].MainCommandBuffer->GetState() == CommandBufferState::Submitted)
+                    m_Frames[i].MainCommandBuffer->Wait();
+                
                 m_Frames[i].MainCommandBuffer = nullptr;
                 m_Frames[i].CommandPool = nullptr;
 
@@ -207,6 +212,7 @@ namespace Lumos
                     VkSemaphoreCreateInfo semaphoreInfo = {};
                     semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
                     semaphoreInfo.pNext = nullptr;
+                    semaphoreInfo.flags = 0;
 
                     if(m_Frames[i].PresentSemaphore == VK_NULL_HANDLE)
                         VK_CHECK_RESULT(vkCreateSemaphore(VKDevice::Get().GetDevice(), &semaphoreInfo, nullptr, &m_Frames[i].PresentSemaphore));
