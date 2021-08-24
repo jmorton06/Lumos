@@ -45,7 +45,7 @@ namespace Lumos
         LUMOS_LOG_INFO("VSync : {0}", m_VSync ? "True" : "False");
         m_HasResized = true;
         m_Data.m_RenderAPI = static_cast<Graphics::RenderAPI>(properties.RenderAPI);
-
+        m_Data.VSync = m_VSync;
         m_Init = Init(properties);
 
         //Setting fullscreen overrides width and heigh in Init
@@ -57,7 +57,7 @@ namespace Lumos
         m_GraphicsContext->Init();
         
 		m_SwapChain = SharedPtr<Graphics::SwapChain>(Graphics::SwapChain::Create(m_Data.Width, m_Data.Height));
-		m_SwapChain->Init(m_Data.VSync, (Window*)this);
+		m_SwapChain->Init(m_VSync, (Window*)this);
     }
 
     GLFWWindow::~GLFWWindow()

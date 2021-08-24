@@ -163,7 +163,6 @@ namespace Lumos
                     }
                 }
             }
-
             vkUpdateDescriptorSets(VKDevice::Get().GetDevice(), descriptorWritesCount,
                 m_WriteDescriptorSetPool, 0, nullptr);
         }

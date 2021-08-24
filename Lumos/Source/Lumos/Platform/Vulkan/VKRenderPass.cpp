@@ -141,15 +141,15 @@ namespace Lumos
 
             m_ColourAttachmentCount = int(colourAttachmentReferences.size());
 
-            VkRenderPassCreateInfo vkRenderpassCI = VKInitialisers::renderPassCreateInfo();
-            vkRenderpassCI.attachmentCount = uint32_t(renderPassDesc.attachmentCount);
-            vkRenderpassCI.pAttachments = attachments.data();
-            vkRenderpassCI.subpassCount = 1;
-            vkRenderpassCI.pSubpasses = &subpass;
-            vkRenderpassCI.dependencyCount = 0;
-            vkRenderpassCI.pDependencies = nullptr;
+            VkRenderPassCreateInfo renderPassCreateInfo = VKInitialisers::renderPassCreateInfo();
+            renderPassCreateInfo.attachmentCount = uint32_t(renderPassDesc.attachmentCount);
+            renderPassCreateInfo.pAttachments = attachments.data();
+            renderPassCreateInfo.subpassCount = 1;
+            renderPassCreateInfo.pSubpasses = &subpass;
+            renderPassCreateInfo.dependencyCount = 0;
+            renderPassCreateInfo.pDependencies = nullptr;
 
-            VK_CHECK_RESULT(vkCreateRenderPass(VKDevice::Get().GetDevice(), &vkRenderpassCI, VK_NULL_HANDLE, &m_RenderPass));
+            VK_CHECK_RESULT(vkCreateRenderPass(VKDevice::Get().GetDevice(), &renderPassCreateInfo, VK_NULL_HANDLE, &m_RenderPass));
 
             m_ClearValue = new VkClearValue[renderPassDesc.attachmentCount];
             m_ClearCount = renderPassDesc.attachmentCount;

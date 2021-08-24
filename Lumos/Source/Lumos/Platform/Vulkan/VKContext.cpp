@@ -114,7 +114,6 @@ namespace Lumos
             }
 
             VKDevice::Release();
-            DestroyDebugReportCallbackEXT(s_VkInstance, m_DebugCallback, nullptr);
             vkDestroyInstance(s_VkInstance, nullptr);
         }
 
@@ -316,7 +315,7 @@ namespace Lumos
 
             VkDebugReportCallbackCreateInfoEXT createInfo = {};
             createInfo.sType = VK_STRUCTURE_TYPE_DEBUG_REPORT_CALLBACK_CREATE_INFO_EXT;
-            createInfo.flags = VK_DEBUG_REPORT_ERROR_BIT_EXT | VK_DEBUG_REPORT_WARNING_BIT_EXT | VK_DEBUG_REPORT_INFORMATION_BIT_EXT | VK_DEBUG_REPORT_DEBUG_BIT_EXT | VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT;
+            createInfo.flags = VK_DEBUG_REPORT_ERROR_BIT_EXT | VK_DEBUG_REPORT_WARNING_BIT_EXT | VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT;
 
             createInfo.pfnCallback = reinterpret_cast<PFN_vkDebugReportCallbackEXT>(DebugCallback);
 

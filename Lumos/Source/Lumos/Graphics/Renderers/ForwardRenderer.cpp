@@ -195,7 +195,7 @@ namespace Lumos
                     info.shader = m_Shader.get();
                     info.layoutIndex = 2;
                     m_DescriptorSet[2] = SharedPtr<Graphics::DescriptorSet>(Graphics::DescriptorSet::Create(info));
-                    UpdateScreenDescriptorSet();
+                    //UpdateScreenDescriptorSet();
                 }
             }
             else
