@@ -39,12 +39,12 @@ namespace Lumos
             {
                 return m_QueueFamilyIndices.Graphics;
             }
-            
+
             VkPhysicalDeviceProperties GetProperties() const
             {
                 return m_PhysicalDeviceProperties;
             }
-            
+
             VkPhysicalDeviceMemoryProperties GetMemoryProperties() const
             {
                 return m_MemoryProperties;
@@ -94,7 +94,7 @@ namespace Lumos
             {
                 return m_PhysicalDevice->GetVulkanPhysicalDevice();
             };
-            const SharedRef<VKPhysicalDevice>& GetPhysicalDevice() const
+            const SharedPtr<VKPhysicalDevice>& GetPhysicalDevice() const
             {
                 return m_PhysicalDevice;
             }
@@ -108,7 +108,7 @@ namespace Lumos
                 return m_PresentQueue;
             };
 
-            const SharedRef<VKCommandPool>& GetCommandPool() const
+            const SharedPtr<VKCommandPool>& GetCommandPool() const
             {
                 return m_CommandPool;
             }
@@ -146,8 +146,8 @@ namespace Lumos
             VkDescriptorPool m_DescriptorPool;
             VkPhysicalDeviceFeatures m_EnabledFeatures;
 
-            SharedRef<VKCommandPool> m_CommandPool;
-            SharedRef<VKPhysicalDevice> m_PhysicalDevice;
+            SharedPtr<VKCommandPool> m_CommandPool;
+            SharedPtr<VKPhysicalDevice> m_PhysicalDevice;
 
             bool m_EnableDebugMarkers = false;
 

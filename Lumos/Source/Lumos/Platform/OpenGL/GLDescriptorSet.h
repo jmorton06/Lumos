@@ -12,7 +12,7 @@ namespace Lumos
         class GLDescriptorSet : public DescriptorSet
         {
         public:
-            GLDescriptorSet(const DescriptorDesc& info);
+            GLDescriptorSet(const DescriptorDesc& descriptorDesc);
 
             ~GLDescriptorSet() {};
 
@@ -23,7 +23,7 @@ namespace Lumos
             void SetUniform(const std::string& bufferName, const std::string& uniformName, void* data) override;
             void SetUniform(const std::string& bufferName, const std::string& uniformName, void* data, uint32_t size) override;
             void SetUniformBufferData(const std::string& bufferName, void* data) override;
-            
+
             Graphics::UniformBuffer* GetUnifromBuffer(const std::string& name) override;
             void Bind(uint32_t offset = 0);
 
@@ -32,7 +32,7 @@ namespace Lumos
             static void MakeDefault();
 
         protected:
-            static DescriptorSet* CreateFuncGL(const DescriptorDesc& info);
+            static DescriptorSet* CreateFuncGL(const DescriptorDesc& descriptorDesc);
 
         private:
             uint32_t m_DynamicOffset = 0;
@@ -41,7 +41,7 @@ namespace Lumos
             std::vector<Descriptor> m_Descriptors;
             struct UniformBufferInfo
             {
-                SharedRef<UniformBuffer> UB;
+                SharedPtr<UniformBuffer> UB;
                 std::vector<BufferMemberInfo> m_Members;
                 Buffer LocalStorage;
                 bool HasUpdated;

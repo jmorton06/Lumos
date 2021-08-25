@@ -65,7 +65,7 @@ namespace Lumos
 
             const std::vector<DescriptorLayoutInfo>& GetDescriptorLayout() const { return m_DescriptorLayoutInfo; }
             const std::vector<VkDescriptorSetLayout>& GetDescriptorLayouts() const { return m_DescriptorSetLayouts; }
-            void BindPushConstants(Graphics::CommandBuffer* cmdBuffer, Graphics::Pipeline* pipeline) override;
+            void BindPushConstants(Graphics::CommandBuffer* commandBuffer, Graphics::Pipeline* pipeline) override;
 
             static void PreProcess(const std::string& source, std::map<ShaderType, std::string>* sources);
             static void ReadShaderFile(const std::vector<std::string>& lines, std::map<ShaderType, std::string>* shaders);
@@ -86,7 +86,7 @@ namespace Lumos
 
             void LoadFromData(const uint32_t* data, uint32_t size, ShaderType type, int currentShaderStage);
             void CreatePipelineLayout();
-            
+
         private:
             std::unordered_map<uint32_t, DescriptorSetInfo> m_DescriptorInfos;
 

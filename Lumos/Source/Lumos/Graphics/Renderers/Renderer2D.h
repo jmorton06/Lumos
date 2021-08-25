@@ -90,8 +90,6 @@ namespace Lumos
 
             float SubmitTexture(Texture* texture);
 
-            void SetSystemUniforms(Shader* shader) const;
-
             void CreateGraphicsPipeline();
             void CreateFramebuffers();
             void UpdateDesciptorSet();
@@ -103,7 +101,7 @@ namespace Lumos
                 m_Triangles.clear();
                 m_CommandQueue2D.clear();
             }
-            
+
             size_t GetTriangleCount() const { return m_Triangles.size(); }
 
         private:
@@ -112,7 +110,7 @@ namespace Lumos
 
             CommandQueue2D m_CommandQueue2D;
             std::vector<CommandBuffer*> m_SecondaryCommandBuffers;
-            std::vector<VertexBuffer*> m_VertexBuffers;
+            std::vector<std::vector<VertexBuffer*>> m_VertexBuffers;
 
             uint32_t m_BatchDrawCallIndex = 0;
             uint32_t m_IndexCount = 0;

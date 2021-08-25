@@ -82,7 +82,7 @@ namespace Lumos
         m_ProjectName = StringUtilities::RemoveSpaces(m_ProjectName);
 #endif
 
-        m_SceneManager = CreateUniqueRef<SceneManager>();
+        m_SceneManager = CreateUniquePtr<SceneManager>();
 
         Deserialise();
 
@@ -99,7 +99,7 @@ namespace Lumos
 
         std::filesystem::create_directory(m_ProjectRoot);
 
-        m_SceneManager = CreateUniqueRef<SceneManager>();
+        m_SceneManager = CreateUniquePtr<SceneManager>();
 
         MountVFSPaths();
         //Set Default values
@@ -112,27 +112,27 @@ namespace Lumos
         ShowConsole = false;
         Fullscreen = false;
         m_EngineAssetPath = "/Users/jmorton/dev/Lumos/Lumos/Assets/";
-        VFS::Get()->Mount("CoreShaders", m_EngineAssetPath + std::string("Shaders"));
-        
+        VFS::Get().Mount("CoreShaders", m_EngineAssetPath + std::string("Shaders"));
+
         if(!FileSystem::FolderExists(m_ProjectRoot + "Assets"))
             std::filesystem::create_directory(m_ProjectRoot + "Assets");
-        
+
         if(!FileSystem::FolderExists(m_ProjectRoot + "Assets/Scripts"))
             std::filesystem::create_directory(m_ProjectRoot + "Assets/Scripts");
-		
-		if(!FileSystem::FolderExists(m_ProjectRoot + "Assets/Scenes"))
+
+        if(!FileSystem::FolderExists(m_ProjectRoot + "Assets/Scenes"))
             std::filesystem::create_directory(m_ProjectRoot + "Assets/Scenes");
-		
-		if(!FileSystem::FolderExists(m_ProjectRoot + "Assets/Textures"))
+
+        if(!FileSystem::FolderExists(m_ProjectRoot + "Assets/Textures"))
             std::filesystem::create_directory(m_ProjectRoot + "Assets/Texturs");
-		
-		if(!FileSystem::FolderExists(m_ProjectRoot + "Assets/Meshes"))
+
+        if(!FileSystem::FolderExists(m_ProjectRoot + "Assets/Meshes"))
             std::filesystem::create_directory(m_ProjectRoot + "Assets/Meshes");
-		
-		if(!FileSystem::FolderExists(m_ProjectRoot + "Assets/Sounds"))
+
+        if(!FileSystem::FolderExists(m_ProjectRoot + "Assets/Sounds"))
             std::filesystem::create_directory(m_ProjectRoot + "Assets/Sounds");
-		
-		MountVFSPaths();
+
+        MountVFSPaths();
 
         m_SceneManager->EnqueueScene(new Scene("Empty Scene"));
         m_SceneManager->SwitchScene(0);
@@ -148,12 +148,12 @@ namespace Lumos
 
     void Application::MountVFSPaths()
     {
-        VFS::Get()->Mount("Meshes", m_ProjectRoot + std::string("Assets/Meshes"));
-        VFS::Get()->Mount("Textures", m_ProjectRoot + std::string("Assets/Textures"));
-        VFS::Get()->Mount("Sounds", m_ProjectRoot + std::string("Assets/Sounds"));
-        VFS::Get()->Mount("Scripts", m_ProjectRoot + std::string("Assets/Scripts"));
-        VFS::Get()->Mount("Scenes", m_ProjectRoot + std::string("Assets/Scenes"));
-        VFS::Get()->Mount("Assets", m_ProjectRoot + std::string("Assets"));
+        VFS::Get().Mount("Meshes", m_ProjectRoot + std::string("Assets/Meshes"));
+        VFS::Get().Mount("Textures", m_ProjectRoot + std::string("Assets/Textures"));
+        VFS::Get().Mount("Sounds", m_ProjectRoot + std::string("Assets/Sounds"));
+        VFS::Get().Mount("Scripts", m_ProjectRoot + std::string("Assets/Scripts"));
+        VFS::Get().Mount("Scenes", m_ProjectRoot + std::string("Assets/Scenes"));
+        VFS::Get().Mount("Assets", m_ProjectRoot + std::string("Assets"));
     }
 
     Scene* Application::GetCurrentScene() const
@@ -169,25 +169,29 @@ namespace Lumos
         m_ProjectRoot = StringUtilities::RemoveSpaces(m_ProjectRoot);
         m_ProjectName = StringUtilities::RemoveSpaces(m_ProjectName);
 
-        m_SceneManager = CreateUniqueRef<SceneManager>();
+        m_SceneManager = CreateUniquePtr<SceneManager>();
         Deserialise();
 
         Engine::Get();
 
-        m_Timer = CreateUniqueRef<Timer>();
+        m_Timer = CreateUniquePtr<Timer>();
+        
+        Graphics::GraphicsContext::SetRenderAPI(static_cast<Graphics::RenderAPI>(RenderAPI));
 
-        WindowDesc windowProperties;
-        windowProperties.Width = Width;
-        windowProperties.Height = Height;
-        windowProperties.RenderAPI = RenderAPI;
-        windowProperties.Fullscreen = Fullscreen;
-        windowProperties.Borderless = Borderless;
-        windowProperties.ShowConsole = ShowConsole;
-        windowProperties.Title = Title;
-        windowProperties.VSync = VSync;
+        WindowDesc windowDesc;
+        windowDesc.Width = Width;
+        windowDesc.Height = Height;
+        windowDesc.RenderAPI = RenderAPI;
+        windowDesc.Fullscreen = Fullscreen;
+        windowDesc.Borderless = Borderless;
+        windowDesc.ShowConsole = ShowConsole;
+        windowDesc.Title = Title;
+        windowDesc.VSync = VSync;
 
-        m_Window = UniqueRef<Window>(Window::Create(windowProperties));
+        m_Window = UniquePtr<Window>(Window::Create(windowDesc));
         m_Window->SetEventCallback(BIND_EVENT_FN(Application::OnEvent));
+        
+        Graphics::Renderer::Init();
 
         m_EditorState = EditorState::Play;
 
@@ -200,7 +204,7 @@ namespace Lumos
 
         uint32_t screenWidth = m_Window->GetWidth();
         uint32_t screenHeight = m_Window->GetHeight();
-        m_SystemManager = CreateUniqueRef<SystemManager>();
+        m_SystemManager = CreateUniquePtr<SystemManager>();
 
         System::JobSystem::Context context;
 
@@ -227,16 +231,13 @@ namespace Lumos
         System::JobSystem::Execute(context, [this](JobDispatchArgs args)
             { m_SceneManager->LoadCurrentList(); });
 
-        // Graphics Loading on main thread
-        Graphics::Renderer::Init(screenWidth, screenHeight);
-
-        m_ImGuiManager = CreateUniqueRef<ImGuiManager>(false);
+        m_ImGuiManager = CreateUniquePtr<ImGuiManager>(false);
         m_ImGuiManager->OnInit();
         LUMOS_LOG_INFO("Initialised ImGui Manager");
 
-        m_ShaderLibrary = CreateSharedRef<ShaderLibrary>();
+        m_ShaderLibrary = CreateSharedPtr<ShaderLibrary>();
 
-        m_RenderGraph = CreateUniqueRef<Graphics::RenderGraph>(screenWidth, screenHeight);
+        m_RenderGraph = CreateUniquePtr<Graphics::RenderGraph>(screenWidth, screenHeight);
 
         m_CurrentState = AppState::Running;
 
@@ -266,10 +267,10 @@ namespace Lumos
         m_SystemManager.reset();
         m_ImGuiManager.reset();
 
-        Graphics::Renderer::Release();
         Graphics::Pipeline::ClearCache();
         Graphics::RenderPass::ClearCache();
         Graphics::Framebuffer::ClearCache();
+        Graphics::Renderer::Release();
 
         m_Window.reset();
     }
@@ -277,7 +278,7 @@ namespace Lumos
     Maths::Vector2 Application::GetWindowSize() const
     {
         if(!m_Window)
-            return Maths::Vector2(0.0f,0.0f);
+            return Maths::Vector2(0.0f, 0.0f);
         return Maths::Vector2(static_cast<float>(m_Window->GetWidth()), static_cast<float>(m_Window->GetHeight()));
     }
 
@@ -285,7 +286,7 @@ namespace Lumos
     {
         if(!m_Window)
             return 1.0f;
-        
+
         return m_Window->GetDPIScale();
     }
 
@@ -356,8 +357,8 @@ namespace Lumos
 
         {
             LUMOS_PROFILE_SCOPE("Application::UpdateGraphicsStats");
-            stats.UsedGPUMemory = Graphics::GraphicsContext::GetContext()->GetGPUMemoryUsed();
-            stats.TotalGPUMemory = Graphics::GraphicsContext::GetContext()->GetTotalGPUMemory();
+            stats.UsedGPUMemory = Graphics::Renderer::GetGraphicsContext()->GetGPUMemoryUsed();
+            stats.TotalGPUMemory = Graphics::Renderer::GetGraphicsContext()->GetTotalGPUMemory();
         }
 
         {
@@ -416,12 +417,10 @@ namespace Lumos
         }
         m_ImGuiManager->OnUpdate(dt, m_SceneManager->GetCurrentScene());
 
-        {
-            //Do every few frames instead?
-            Graphics::Pipeline::DeleteUnusedCache();
-            Graphics::RenderPass::DeleteUnusedCache();
-            Graphics::Framebuffer::DeleteUnusedCache();
-        }
+        Graphics::Pipeline::DeleteUnusedCache();
+        Graphics::Framebuffer::DeleteUnusedCache();
+        Graphics::RenderPass::DeleteUnusedCache();
+
         m_ShaderLibrary->Update(dt.GetElapsedMillis());
     }
 
@@ -459,7 +458,7 @@ namespace Lumos
         LUMOS_PROFILE_FUNCTION();
     }
 
-    SharedRef<ShaderLibrary>& Application::GetShaderLibrary() { return m_ShaderLibrary; }
+    SharedPtr<ShaderLibrary>& Application::GetShaderLibrary() { return m_ShaderLibrary; }
 
     void Application::OnExitScene()
     {
@@ -474,7 +473,7 @@ namespace Lumos
     bool Application::OnWindowResize(WindowResizeEvent& e)
     {
         LUMOS_PROFILE_FUNCTION();
-        Graphics::GraphicsContext::GetContext()->WaitIdle();
+        Graphics::Renderer::GetGraphicsContext()->WaitIdle();
 
         int width = e.GetWidth(), height = e.GetHeight();
 
@@ -488,7 +487,7 @@ namespace Lumos
         Graphics::Renderer::GetRenderer()->OnResize(width, height);
         m_RenderGraph->OnResize(width, height);
 
-        Graphics::GraphicsContext::GetContext()->WaitIdle();
+        Graphics::Renderer::GetGraphicsContext()->WaitIdle();
 
         return false;
     }
@@ -502,7 +501,7 @@ namespace Lumos
     void Application::OnSceneViewSizeUpdated(uint32_t width, uint32_t height)
     {
         LUMOS_PROFILE_FUNCTION();
-        Graphics::GraphicsContext::GetContext()->WaitIdle();
+        Graphics::Renderer::GetGraphicsContext()->WaitIdle();
 
         WindowResizeEvent e(width, height);
         if(width == 0 || height == 0)
@@ -514,7 +513,7 @@ namespace Lumos
         m_RenderGraph->OnResize(width, height);
         m_RenderGraph->OnEvent(e);
 
-        Graphics::GraphicsContext::GetContext()->WaitIdle();
+        Graphics::Renderer::GetGraphicsContext()->WaitIdle();
     }
 
     void Application::EmbedTexture(const std::string& texFilePath, const std::string& outPath, const std::string& arrayName)
@@ -594,7 +593,7 @@ namespace Lumos
                 ShowConsole = false;
                 Fullscreen = false;
                 m_EngineAssetPath = "/Users/jmorton/dev/Lumos/Lumos/Assets/";
-                VFS::Get()->Mount("CoreShaders", m_EngineAssetPath + std::string("Shaders"));
+                VFS::Get().Mount("CoreShaders", m_EngineAssetPath + std::string("Shaders"));
 
                 m_SceneManager->EnqueueScene(new Scene("Empty Scene"));
                 m_SceneManager->SwitchScene(0);

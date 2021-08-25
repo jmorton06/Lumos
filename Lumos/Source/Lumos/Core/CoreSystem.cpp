@@ -50,7 +50,7 @@ namespace Lumos
 
             System::JobSystem::OnInit();
             LUMOS_LOG_INFO("Initialising System");
-            VFS::OnInit();
+            VFS::Get();
             LuaManager::Get().OnInit();
 
             return true;
@@ -60,7 +60,7 @@ namespace Lumos
         {
             LUMOS_LOG_INFO("Shutting down System");
             LuaManager::Release();
-            VFS::OnShutdown();
+            VFS::Release();
             Lumos::Memory::LogMemoryInformation();
 
             Debug::Log::OnRelease();

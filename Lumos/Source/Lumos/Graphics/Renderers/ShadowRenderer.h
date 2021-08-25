@@ -2,9 +2,9 @@
 
 #include "Maths/Maths.h"
 #include "IRenderer.h"
+#include "Graphics/RHI/Definitions.h"
 
 #include <entt/entity/fwd.hpp>
-#define SHADOWMAP_MAX 16
 
 namespace Lumos
 {
@@ -95,7 +95,6 @@ namespace Lumos
 
             void CreateGraphicsPipeline();
             void CreateFramebuffers();
-            void CreateUniformBuffer();
             void UpdateCascades(Scene* scene, Camera* overrideCamera, Maths::Transform* overrideCameraTransform, Light* light);
 
             const Lumos::Maths::Matrix4& GetLightView() const { return m_LightMatrix; }
@@ -109,13 +108,11 @@ namespace Lumos
             float GetInitialBias() { return m_InitialBias; }
 
         protected:
-            void SetSystemUniforms(Shader* shader);
-
             TextureDepthArray* m_ShadowTex;
             uint32_t m_ShadowMapNum;
             uint32_t m_ShadowMapSize;
             bool m_ShadowMapsInvalidated;
-            SharedRef<Framebuffer> m_ShadowFramebuffer[SHADOWMAP_MAX] {};
+            SharedPtr<Framebuffer> m_ShadowFramebuffer[SHADOWMAP_MAX] {};
             Maths::Matrix4 m_ShadowProjView[SHADOWMAP_MAX];
             Maths::Vector4 m_SplitDepth[SHADOWMAP_MAX];
             Maths::Matrix4 m_LightMatrix;

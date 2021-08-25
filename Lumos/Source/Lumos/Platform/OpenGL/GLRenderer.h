@@ -4,7 +4,7 @@
 #include "Maths/Maths.h"
 #include "Core/OS/Window.h"
 #include "Graphics/RHI/Renderer.h"
-#include "GLSwapchain.h"
+#include "GLSwapChain.h"
 
 namespace Lumos
 {
@@ -19,7 +19,7 @@ namespace Lumos
         {
         public:
             friend class Window;
-            GLRenderer(uint32_t width, uint32_t height);
+            GLRenderer();
             ~GLRenderer();
 
             static GLRenderer* Instance()
@@ -30,13 +30,13 @@ namespace Lumos
             void Begin() override;
             void InitInternal() override;
 
-            void BindDescriptorSetsInternal(Graphics::Pipeline* pipeline, Graphics::CommandBuffer* cmdBuffer, uint32_t dynamicOffset, std::vector<Graphics::DescriptorSet*>& descriptorSets) override;
+            void BindDescriptorSetsInternal(Graphics::Pipeline* pipeline, Graphics::CommandBuffer* commandBuffer, uint32_t dynamicOffset, std::vector<Graphics::DescriptorSet*>& descriptorSets) override;
             void DrawInternal(CommandBuffer* commandBuffer, DrawType type, uint32_t count, DataType dataType, void* indices) const override;
             void DrawIndexedInternal(CommandBuffer* commandBuffer, DrawType type, uint32_t count, uint32_t start) const override;
             void SetRenderModeInternal(RenderMode mode);
             void OnResize(uint32_t width, uint32_t height) override;
             void PresentInternal() override;
-            void PresentInternal(Graphics::CommandBuffer* cmdBuffer) override;
+            void PresentInternal(Graphics::CommandBuffer* commandBuffer) override;
             void SetDepthTestingInternal(bool enabled);
             void SetBlendInternal(bool enabled);
             void SetStencilTestInternal(bool enabled);
@@ -53,22 +53,15 @@ namespace Lumos
             void SetStencilOpInternal(StencilType fail, StencilType zfail, StencilType zpass);
 
             static void ClearInternal(uint32_t buffer);
-
-            Swapchain* GetSwapchainInternal() const override
-            {
-                return m_Swapchain;
-            }
+            void ClearRenderTarget(Graphics::Texture* texture, Graphics::CommandBuffer* commandBuffer) override;
 
             const std::string& GetTitleInternal() const override;
 
             static void MakeDefault();
 
         protected:
-            static Renderer* CreateFuncGL(uint32_t width, uint32_t height);
-
+            static Renderer* CreateFuncGL();
             std::string m_RendererTitle;
-            Graphics::GLContext* m_Context;
-            Graphics::GLSwapchain* m_Swapchain;
         };
     }
 }

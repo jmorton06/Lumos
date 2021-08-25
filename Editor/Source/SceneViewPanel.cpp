@@ -7,6 +7,7 @@
 #include <Lumos/Core/Profiler.h>
 #include <Lumos/Graphics/RHI/GraphicsContext.h>
 #include <Lumos/Graphics/RHI/Texture.h>
+#include <Lumos/Graphics/RHI/SwapChain.h>
 #include <Lumos/Graphics/Renderers/RenderGraph.h>
 #include <Lumos/Graphics/GBuffer.h>
 #include <Lumos/Graphics/Light.h>
@@ -115,6 +116,7 @@ namespace Lumos
 
         if(app.GetEditorState() == EditorState::Preview)
         {
+            LUMOS_PROFILE_SCOPE("Set Override Camera");
             camera = m_Editor->GetCamera();
             transform = &m_Editor->GetEditorCameraTransform();
 
@@ -222,16 +224,23 @@ namespace Lumos
         {
             if(camera->IsOrthographic())
             {
+                LUMOS_PROFILE_SCOPE("2D Grid");
+
                 m_Editor->Draw2DGrid(ImGui::GetWindowDrawList(), { transform->GetWorldPosition().x, transform->GetWorldPosition().y }, sceneViewPosition, { sceneViewSize.x, sceneViewSize.y }, 1.0f, 1.5f);
             }
         }
 
-        ImGui::GetWindowDrawList()->PushClipRect(sceneViewPosition, { sceneViewSize.x + sceneViewPosition.x, sceneViewSize.y + sceneViewPosition.y - 2.0f });
+        {
+            LUMOS_PROFILE_SCOPE("Push Clip Rect");
+            ImGui::GetWindowDrawList()->PushClipRect(sceneViewPosition, { sceneViewSize.x + sceneViewPosition.x, sceneViewSize.y + sceneViewPosition.y - 2.0f });
+        }
 
         m_Editor->OnImGuizmo();
 
         if(!gameView && app.GetSceneActive() && !ImGuizmo::IsUsing() && Input::Get().GetMouseClicked(InputCode::MouseKey::ButtonLeft))
         {
+            LUMOS_PROFILE_SCOPE("Select Object");
+
             float dpi = Application::Get().GetWindowDPI();
             auto clickPos = Input::Get().GetMousePosition() - Maths::Vector2(sceneViewPosition.x / dpi, sceneViewPosition.y / dpi);
             m_Editor->SelectObject(m_Editor->GetScreenRay(int(clickPos.x), int(clickPos.y), camera, int(sceneViewSize.x) / dpi, int(sceneViewSize.y) / dpi));
@@ -751,6 +760,7 @@ namespace Lumos
 
     void SceneViewPanel::Resize(uint32_t width, uint32_t height)
     {
+        LUMOS_PROFILE_FUNCTION();
         bool resize = false;
 
         LUMOS_ASSERT(width > 0 && height > 0, "Scene View Dimensions 0");
@@ -765,12 +775,10 @@ namespace Lumos
         }
 
         if(!m_GameViewTexture)
-            m_GameViewTexture = SharedRef<Graphics::Texture2D>(Graphics::Texture2D::Create());
+            m_GameViewTexture = SharedPtr<Graphics::Texture2D>(Graphics::Texture2D::Create());
 
         if(resize)
         {
-            Graphics::GraphicsContext::GetContext()->WaitIdle();
-
             m_GameViewTexture->BuildTexture(Graphics::TextureFormat::RGBA8, m_Width, m_Height, false, false, false);
 
             auto renderGraph = Application::Get().GetRenderGraph();
@@ -790,8 +798,9 @@ namespace Lumos
 
             DebugRenderer::OnResize(width, height);
             m_Editor->GetGridRenderer()->OnResize(m_Width, m_Height);
-
-            Graphics::GraphicsContext::GetContext()->WaitIdle();
+            
+            //Should be just build texture and scene renderer set render target
+            //Renderer::GetGraphicsContext()->WaitIdle();
         }
     }
 }

@@ -29,7 +29,7 @@ namespace Lumos
             data[3].Position = Maths::Vector3(x, y + height, 0.0f);
             data[3].TexCoords = Maths::Vector2(1, 1);
 
-            SharedRef<VertexBuffer> vb = SharedRef<VertexBuffer>(VertexBuffer::Create(BufferUsage::STATIC));
+            SharedPtr<VertexBuffer> vb = SharedPtr<VertexBuffer>(VertexBuffer::Create(BufferUsage::STATIC));
             vb->SetData(sizeof(Vertex) * 4, data);
 
             delete[] data;
@@ -42,10 +42,10 @@ namespace Lumos
                 3,
                 0,
             };
-            SharedRef<IndexBuffer> ib;
+            SharedPtr<IndexBuffer> ib;
             ib.reset(IndexBuffer::Create(indices, 6));
 
-            SharedRef<Maths::BoundingBox> boundingBox = CreateSharedRef<Maths::BoundingBox>();
+            SharedPtr<Maths::BoundingBox> boundingBox = CreateSharedPtr<Maths::BoundingBox>();
             for(int i = 0; i < 4; i++)
             {
                 boundingBox->Merge(data[i].Position);
@@ -79,10 +79,10 @@ namespace Lumos
             data[3].Colours = Lumos::Maths::Vector4(0.0f);
             data[3].TexCoords = Maths::Vector2(0.0f, 1.0f);
 
-            SharedRef<VertexBuffer> vb = SharedRef<VertexBuffer>(VertexBuffer::Create(BufferUsage::STATIC));
+            SharedPtr<VertexBuffer> vb = SharedPtr<VertexBuffer>(VertexBuffer::Create(BufferUsage::STATIC));
             vb->SetData(sizeof(Vertex) * 4, data);
 
-            SharedRef<Maths::BoundingBox> BoundingBox = CreateSharedRef<Maths::BoundingBox>();
+            SharedPtr<Maths::BoundingBox> BoundingBox = CreateSharedPtr<Maths::BoundingBox>();
             for(int i = 0; i < 4; i++)
             {
                 BoundingBox->Merge(data[i].Position);
@@ -98,7 +98,7 @@ namespace Lumos
                 3,
                 0,
             };
-            SharedRef<IndexBuffer> ib;
+            SharedPtr<IndexBuffer> ib;
             ib.reset(IndexBuffer::Create(indices, 6));
 
             return new Mesh(vb, ib, BoundingBox);
@@ -121,10 +121,10 @@ namespace Lumos
             data[3].Position = Maths::Vector3(-1.0f, 1.0f, 0.0f);
             data[3].TexCoords = Maths::Vector2(0.0f, 1.0f);
 
-            SharedRef<VertexBuffer> vb = SharedRef<VertexBuffer>(VertexBuffer::Create(BufferUsage::STATIC));
+            SharedPtr<VertexBuffer> vb = SharedPtr<VertexBuffer>(VertexBuffer::Create(BufferUsage::STATIC));
             vb->SetData(sizeof(Vertex) * 4, data);
 
-            SharedRef<Maths::BoundingBox> BoundingBox = CreateSharedRef<Maths::BoundingBox>();
+            SharedPtr<Maths::BoundingBox> BoundingBox = CreateSharedPtr<Maths::BoundingBox>();
             for(int i = 0; i < 4; i++)
             {
                 BoundingBox->Merge(data[i].Position);
@@ -138,7 +138,7 @@ namespace Lumos
                 usingVulkan = true;
 #endif
 
-            SharedRef<IndexBuffer> ib;
+            SharedPtr<IndexBuffer> ib;
 
             if(usingVulkan)
             {
@@ -288,10 +288,10 @@ namespace Lumos
                 data[i * 4 + 3].TexCoords = Maths::Vector2(0.0f, 1.0f);
             }
 
-            SharedRef<VertexBuffer> vb = SharedRef<VertexBuffer>(VertexBuffer::Create(BufferUsage::STATIC));
+            SharedPtr<VertexBuffer> vb = SharedPtr<VertexBuffer>(VertexBuffer::Create(BufferUsage::STATIC));
             vb->SetData(24 * sizeof(Vertex), data);
 
-            SharedRef<Maths::BoundingBox> BoundingBox = CreateSharedRef<Maths::BoundingBox>();
+            SharedPtr<Maths::BoundingBox> BoundingBox = CreateSharedPtr<Maths::BoundingBox>();
             for(int i = 0; i < 8; i++)
             {
                 BoundingBox->Merge(data[i].Position);
@@ -314,7 +314,7 @@ namespace Lumos
                 20, 22, 23
             };
 
-            SharedRef<IndexBuffer> ib;
+            SharedPtr<IndexBuffer> ib;
             ib.reset(IndexBuffer::Create(indices, 36));
 
             return new Mesh(vb, ib, BoundingBox);
@@ -415,10 +415,10 @@ namespace Lumos
             data[17].TexCoords = Maths::Vector2(0.0f, 0.0f);
             data[17].Normal = Maths::Vector3(0.0f, 0.0f, 0.0f);
 
-            SharedRef<VertexBuffer> vb = SharedRef<VertexBuffer>(VertexBuffer::Create(BufferUsage::STATIC));
+            SharedPtr<VertexBuffer> vb = SharedPtr<VertexBuffer>(VertexBuffer::Create(BufferUsage::STATIC));
             vb->SetData(18 * sizeof(Vertex), data);
 
-            SharedRef<Maths::BoundingBox> BoundingBox = CreateSharedRef<Maths::BoundingBox>();
+            SharedPtr<Maths::BoundingBox> BoundingBox = CreateSharedPtr<Maths::BoundingBox>();
             for(int i = 0; i < 18; i++)
             {
                 BoundingBox->Merge(data[i].Position);
@@ -434,7 +434,7 @@ namespace Lumos
                 15, 12, 14
             };
 
-            SharedRef<IndexBuffer> ib;
+            SharedPtr<IndexBuffer> ib;
             ib.reset(IndexBuffer::Create(indices, 18));
 
             return new Mesh(vb, ib, BoundingBox);
@@ -480,7 +480,7 @@ namespace Lumos
                 }
             }
 
-            SharedRef<VertexBuffer> vb = SharedRef<VertexBuffer>(VertexBuffer::Create(BufferUsage::STATIC));
+            SharedPtr<VertexBuffer> vb = SharedPtr<VertexBuffer>(VertexBuffer::Create(BufferUsage::STATIC));
             vb->SetData(int(data.size()) * sizeof(Vertex), data.data());
 
             std::vector<uint32_t> indices;
@@ -511,13 +511,13 @@ namespace Lumos
                 }
             }
 
-            SharedRef<Maths::BoundingBox> boundingBox = CreateSharedRef<Maths::BoundingBox>();
+            SharedPtr<Maths::BoundingBox> boundingBox = CreateSharedPtr<Maths::BoundingBox>();
             for(size_t i = 0; i < data.size(); i++)
             {
                 boundingBox->Merge(data[i].Position);
             }
 
-            SharedRef<IndexBuffer> ib;
+            SharedPtr<IndexBuffer> ib;
             ib.reset(IndexBuffer::Create(indices.data(), static_cast<uint32_t>(indices.size())));
 
             return new Mesh(vb, ib, boundingBox);
@@ -552,10 +552,10 @@ namespace Lumos
             data[3].Normal = normal;
             data[3].TexCoords = Maths::Vector2(1.0f, 0.0f);
 
-            SharedRef<VertexBuffer> vb = SharedRef<VertexBuffer>(VertexBuffer::Create(BufferUsage::STATIC));
+            SharedPtr<VertexBuffer> vb = SharedPtr<VertexBuffer>(VertexBuffer::Create(BufferUsage::STATIC));
             vb->SetData(4 * sizeof(Vertex), data);
 
-            SharedRef<Maths::BoundingBox> boundingBox = CreateSharedRef<Maths::BoundingBox>();
+            SharedPtr<Maths::BoundingBox> boundingBox = CreateSharedPtr<Maths::BoundingBox>();
             for(int i = 0; i < 4; i++)
             {
                 boundingBox->Merge(data[i].Position);
@@ -568,7 +568,7 @@ namespace Lumos
                 2, 3, 0
             };
 
-            SharedRef<IndexBuffer> ib = SharedRef<IndexBuffer>(IndexBuffer::Create(indices, 6));
+            SharedPtr<IndexBuffer> ib = SharedPtr<IndexBuffer>(IndexBuffer::Create(indices, 6));
 
             return new Mesh(vb, ib, boundingBox);
         }
@@ -722,16 +722,16 @@ namespace Lumos
                 thisrow = point;
             }
 
-            SharedRef<VertexBuffer> vb = SharedRef<VertexBuffer>(VertexBuffer::Create(BufferUsage::STATIC));
+            SharedPtr<VertexBuffer> vb = SharedPtr<VertexBuffer>(VertexBuffer::Create(BufferUsage::STATIC));
             vb->SetData(static_cast<uint32_t>(data.size() * sizeof(Vertex)), data.data());
 
-            SharedRef<Maths::BoundingBox> boundingBox = CreateSharedRef<Maths::BoundingBox>();
+            SharedPtr<Maths::BoundingBox> boundingBox = CreateSharedPtr<Maths::BoundingBox>();
             for(size_t i = 0; i < data.size(); i++)
             {
                 boundingBox->Merge(data[i].Position);
             }
 
-            SharedRef<IndexBuffer> ib;
+            SharedPtr<IndexBuffer> ib;
             ib.reset(IndexBuffer::Create(indices.data(), static_cast<uint32_t>(indices.size())));
 
             return new Mesh(vb, ib, boundingBox);
@@ -875,16 +875,16 @@ namespace Lumos
             };
         };
 
-        SharedRef<VertexBuffer> vb = SharedRef<VertexBuffer>(VertexBuffer::Create(BufferUsage::STATIC));
+        SharedPtr<VertexBuffer> vb = SharedPtr<VertexBuffer>(VertexBuffer::Create(BufferUsage::STATIC));
         vb->SetData(static_cast<uint32_t>(data.size() * sizeof(Vertex)), data.data());
 
-        SharedRef<Maths::BoundingBox> boundingBox = CreateSharedRef<Maths::BoundingBox>();
+        SharedPtr<Maths::BoundingBox> boundingBox = CreateSharedPtr<Maths::BoundingBox>();
         for(size_t i = 0; i < data.size(); i++)
         {
             boundingBox->Merge(data[i].Position);
         }
 
-        SharedRef<IndexBuffer> ib;
+        SharedPtr<IndexBuffer> ib;
         ib.reset(IndexBuffer::Create(indices.data(), static_cast<uint32_t>(indices.size())));
 
         return new Mesh(vb, ib, boundingBox);

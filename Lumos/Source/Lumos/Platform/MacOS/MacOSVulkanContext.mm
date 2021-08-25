@@ -3,7 +3,8 @@
 #import <Cocoa/Cocoa.h>
 #include <QuartzCore/CAMetalLayer.h>
 
-#include "Platform/Vulkan/VKSwapchain.h"
+#include "Platform/Vulkan/VKSwapChain.h"
+#include "Core/OS/Window.h"
 #include "Core/Application.h"
 #undef _GLFW_REQUIRE_LOADER
 #define GLFW_EXPOSE_NATIVE_COCOA
@@ -27,7 +28,7 @@ extern "C" void* GetCAMetalLayer(void* handle)
 
 namespace Lumos
 {
-	VkSurfaceKHR Graphics::VKSwapchain::CreatePlatformSurface(VkInstance vkInstance, Window* window)
+	VkSurfaceKHR Graphics::VKSwapChain::CreatePlatformSurface(VkInstance vkInstance, Window* window)
 	{
 		VkSurfaceKHR surface;
 #if defined(VK_USE_PLATFORM_MACOS_MVK)

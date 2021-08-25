@@ -7,13 +7,13 @@ namespace Lumos
 {
     namespace Graphics
     {
-        class VKRenderpass : public RenderPass
+        class VKRenderPass : public RenderPass
         {
         public:
-            VKRenderpass(const RenderPassDesc& renderPassCI);
-            ~VKRenderpass();
+            VKRenderPass(const RenderPassDesc& renderPassDesc);
+            ~VKRenderPass();
 
-            bool Init(const RenderPassDesc& renderpassCI);
+            bool Init(const RenderPassDesc& renderPassDesc);
             void BeginRenderpass(CommandBuffer* commandBuffer, const Maths::Vector4& clearColour, Framebuffer* frame, SubPassContents contents, uint32_t width, uint32_t height) const override;
             void EndRenderpass(CommandBuffer* commandBuffer) override;
 
@@ -24,7 +24,7 @@ namespace Lumos
             static void MakeDefault();
 
         protected:
-            static RenderPass* CreateFuncVulkan(const RenderPassDesc& renderPassCI);
+            static RenderPass* CreateFuncVulkan(const RenderPassDesc& renderPassDesc);
 
         private:
             VkRenderPass m_RenderPass;

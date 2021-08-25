@@ -66,7 +66,7 @@ namespace Lumos
                     break;
 
                 std::string newPath;
-                if(!VFS::Get()->ResolvePhysicalPath(envFiles[i], newPath))
+                if(!VFS::Get().ResolvePhysicalPath(envFiles[i], newPath))
                 {
                     LUMOS_LOG_ERROR("Failed to load {0}", envFiles[i]);
                     failed = true;
@@ -90,7 +90,7 @@ namespace Lumos
                     break;
 
                 std::string newPath;
-                if(!VFS::Get()->ResolvePhysicalPath(irrFiles[i], newPath))
+                if(!VFS::Get().ResolvePhysicalPath(irrFiles[i], newPath))
                 {
                     LUMOS_LOG_ERROR("Failed to load {0}", irrFiles[i]);
                     failed = true;
@@ -123,17 +123,17 @@ namespace Lumos
 
         void Environment::SetEnvironmnet(TextureCube* environmnet)
         {
-            m_Environmnet = SharedRef<TextureCube>(environmnet);
+            m_Environmnet = SharedPtr<TextureCube>(environmnet);
         }
 
         void Environment::SetPrefilteredEnvironment(TextureCube* prefilteredEnvironment)
         {
-            m_PrefilteredEnvironment = SharedRef<TextureCube>(prefilteredEnvironment);
+            m_PrefilteredEnvironment = SharedPtr<TextureCube>(prefilteredEnvironment);
         }
 
         void Environment::SetIrradianceMap(TextureCube* irradianceMap)
         {
-            m_IrradianceMap = SharedRef<TextureCube>(irradianceMap);
+            m_IrradianceMap = SharedPtr<TextureCube>(irradianceMap);
         }
     }
 }

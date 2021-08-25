@@ -3,7 +3,8 @@
 #include "VKDevice.h"
 #include "VKTexture.h"
 #include "VKInitialisers.h"
-#include "VKTools.h"
+#include "VKUtilities.h"
+#include "VKRenderer.h"
 
 namespace Lumos
 {
@@ -42,7 +43,7 @@ namespace Lumos
 
             VkFramebufferCreateInfo framebufferCreateInfo = VKInitialisers::framebufferCreateInfo();
 
-            framebufferCreateInfo.renderPass = static_cast<VKRenderpass*>(frameBufferInfo.renderPass)->GetHandle();
+            framebufferCreateInfo.renderPass = static_cast<VKRenderPass*>(frameBufferInfo.renderPass)->GetHandle();
             framebufferCreateInfo.attachmentCount = m_AttachmentCount;
             framebufferCreateInfo.pAttachments = attachments.data();
             framebufferCreateInfo.width = m_Width;
@@ -56,7 +57,14 @@ namespace Lumos
 
         VKFramebuffer::~VKFramebuffer()
         {
-            vkDestroyFramebuffer(VKDevice::Get().GetDevice(), m_Framebuffer, VK_NULL_HANDLE);
+            vkDeviceWaitIdle(VKDevice::GetHandle());
+
+            VKContext::DeletionQueue& deletionQueue = VKRenderer::GetCurrentDeletionQueue();
+
+            auto framebuffer = m_Framebuffer;
+
+            deletionQueue.PushFunction([framebuffer]
+                { vkDestroyFramebuffer(VKDevice::Get().GetDevice(), framebuffer, VK_NULL_HANDLE); });
         }
 
         void VKFramebuffer::MakeDefault()

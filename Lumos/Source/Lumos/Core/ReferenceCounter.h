@@ -10,7 +10,7 @@ namespace Lumos
         std::atomic<int> count = 0;
 
     public:
-        inline bool SharedRef()
+        inline bool SharedPtr()
         {
             count++;
             return count != 0;

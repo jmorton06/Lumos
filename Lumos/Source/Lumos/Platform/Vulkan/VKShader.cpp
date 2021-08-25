@@ -1,7 +1,7 @@
 #include "Precompiled.h"
 #include "VKShader.h"
 #include "VKDevice.h"
-#include "VKTools.h"
+#include "VKUtilities.h"
 #include "VKDescriptorSet.h"
 #include "VKPipeline.h"
 #include "VKCommandBuffer.h"
@@ -387,17 +387,19 @@ namespace Lumos
             m_ShaderStages = VK_NULL_HANDLE;
             m_Name = StringUtilities::GetFileName(filePath);
             m_FilePath = StringUtilities::GetFileLocation(filePath);
-            m_Source = VFS::Get()->ReadTextFile(filePath);
+            m_Source = VFS::Get().ReadTextFile(filePath);
 
+            if(m_Source.empty())
+                return;
             Init();
         }
-    
+
         VKShader::VKShader(const uint32_t* vertData, uint32_t vertDataSize, const uint32_t* fragData, uint32_t fragDataSize)
         {
             m_Name = "";
             m_FilePath = "Embedded";
-            
-            m_ShaderTypes = { ShaderType::VERTEX, ShaderType::FRAGMENT};
+
+            m_ShaderTypes = { ShaderType::VERTEX, ShaderType::FRAGMENT };
             m_StageCount = 2;
             m_ShaderStages = new VkPipelineShaderStageCreateInfo[m_StageCount];
 
@@ -446,7 +448,7 @@ namespace Lumos
             {
                 uint32_t fileSize = uint32_t(FileSystem::GetFileSize(m_FilePath + file.second));
                 uint32_t* source = reinterpret_cast<uint32_t*>(FileSystem::ReadFile(m_FilePath + file.second));
-                
+
                 if(source)
                 {
                     LoadFromData(source, fileSize, file.first, currentShaderStage);
@@ -459,7 +461,7 @@ namespace Lumos
             CreatePipelineLayout();
             return true;
         }
-    
+
         void VKShader::CreatePipelineLayout()
         {
             std::vector<std::vector<Graphics::DescriptorLayoutInfo>> layouts;
@@ -473,33 +475,44 @@ namespace Lumos
 
                 layouts[descriptorLayout.setID].push_back(descriptorLayout);
             }
-
+        
             for(auto& l : layouts)
             {
                 std::vector<VkDescriptorSetLayoutBinding> setLayoutBindings;
+                std::vector<VkDescriptorBindingFlags> layoutBindingFlags;
                 setLayoutBindings.reserve(l.size());
+                layoutBindingFlags.reserve(l.size());
 
                 for(uint32_t i = 0; i < l.size(); i++)
                 {
                     auto& info = l[i];
 
                     VkDescriptorSetLayoutBinding setLayoutBinding {};
-                    setLayoutBinding.descriptorType = VKTools::DescriptorTypeToVK(info.type);
-                    setLayoutBinding.stageFlags = VKTools::ShaderTypeToVK(info.stage);
+                    setLayoutBinding.descriptorType = VKUtilities::DescriptorTypeToVK(info.type);
+                    setLayoutBinding.stageFlags = VKUtilities::ShaderTypeToVK(info.stage);
                     setLayoutBinding.binding = info.binding;
                     setLayoutBinding.descriptorCount = info.count;
-
+                    
+                    bool isArray = info.count > 1;
+                    layoutBindingFlags.push_back(isArray ? VK_DESCRIPTOR_BINDING_PARTIALLY_BOUND_BIT : 0);
                     setLayoutBindings.push_back(setLayoutBinding);
                 }
+                
+                
+                VkDescriptorSetLayoutBindingFlagsCreateInfoEXT flagsInfo = {};
+                flagsInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_BINDING_FLAGS_CREATE_INFO_EXT;
+                flagsInfo.pNext = nullptr;
+                flagsInfo.bindingCount = static_cast<uint32_t>(layoutBindingFlags.size());
+                flagsInfo.pBindingFlags = layoutBindingFlags.data();
 
                 // Pipeline layout
-                VkDescriptorSetLayoutCreateInfo descriptorLayoutCI {};
-                descriptorLayoutCI.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-                descriptorLayoutCI.bindingCount = static_cast<uint32_t>(setLayoutBindings.size());
-                descriptorLayoutCI.pBindings = setLayoutBindings.data();
-
+                VkDescriptorSetLayoutCreateInfo setLayoutCreateInfo {};
+                setLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+                setLayoutCreateInfo.bindingCount = static_cast<uint32_t>(setLayoutBindings.size());
+                setLayoutCreateInfo.pBindings = setLayoutBindings.data();
+                setLayoutCreateInfo.pNext = &flagsInfo;
                 VkDescriptorSetLayout layout;
-                vkCreateDescriptorSetLayout(VKDevice::Get().GetDevice(), &descriptorLayoutCI, VK_NULL_HANDLE, &layout);
+                vkCreateDescriptorSetLayout(VKDevice::Get().GetDevice(), &setLayoutCreateInfo, VK_NULL_HANDLE, &layout);
 
                 m_DescriptorSetLayouts.push_back(layout);
             }
@@ -509,7 +522,7 @@ namespace Lumos
 
             for(auto& pushConst : pushConsts)
             {
-                pushConstantRanges.push_back(VKInitialisers::pushConstantRange(VKTools::ShaderTypeToVK(pushConst.shaderStage), pushConst.size, pushConst.offset));
+                pushConstantRanges.push_back(VKInitialisers::pushConstantRange(VKUtilities::ShaderTypeToVK(pushConst.shaderStage), pushConst.size, pushConst.offset));
             }
 
             auto& descriptorSetLayouts = GetDescriptorLayouts();
@@ -524,7 +537,7 @@ namespace Lumos
 
             VK_CHECK_RESULT(vkCreatePipelineLayout(VKDevice::Get().GetDevice(), &pipelineLayoutCreateInfo, VK_NULL_HANDLE, &m_PipelineLayout));
         }
-    
+
         void VKShader::LoadFromData(const uint32_t* source, uint32_t fileSize, ShaderType shaderType, int currentShaderStage)
         {
             VkShaderModuleCreateInfo shaderCreateInfo {};
@@ -666,7 +679,7 @@ namespace Lumos
             }
 
             m_ShaderStages[currentShaderStage].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-            m_ShaderStages[currentShaderStage].stage = VKTools::ShaderTypeToVK(shaderType);
+            m_ShaderStages[currentShaderStage].stage = VKUtilities::ShaderTypeToVK(shaderType);
             m_ShaderStages[currentShaderStage].pName = "main";
             m_ShaderStages[currentShaderStage].pNext = VK_NULL_HANDLE;
 
@@ -689,13 +702,13 @@ namespace Lumos
             vkDestroyPipelineLayout(VKDevice::Get().GetDevice(), m_PipelineLayout, VK_NULL_HANDLE);
         }
 
-        void VKShader::BindPushConstants(Graphics::CommandBuffer* cmdBuffer, Graphics::Pipeline* pipeline)
+        void VKShader::BindPushConstants(Graphics::CommandBuffer* commandBuffer, Graphics::Pipeline* pipeline)
         {
             LUMOS_PROFILE_FUNCTION();
             uint32_t index = 0;
             for(auto& pc : m_PushConstants)
             {
-                vkCmdPushConstants(static_cast<Graphics::VKCommandBuffer*>(cmdBuffer)->GetHandle(), static_cast<Graphics::VKPipeline*>(pipeline)->GetPipelineLayout(), VKTools::ShaderTypeToVK(pc.shaderStage), index, pc.size, pc.data);
+                vkCmdPushConstants(static_cast<Graphics::VKCommandBuffer*>(commandBuffer)->GetHandle(), static_cast<Graphics::VKPipeline*>(pipeline)->GetPipelineLayout(), VKUtilities::ShaderTypeToVK(pc.shaderStage), index, pc.size, pc.data);
             }
         }
 
@@ -782,10 +795,10 @@ namespace Lumos
         Shader* VKShader::CreateFuncVulkan(const std::string& filepath)
         {
             std::string physicalPath;
-            Lumos::VFS::Get()->ResolvePhysicalPath(filepath, physicalPath, false);
+            Lumos::VFS::Get().ResolvePhysicalPath(filepath, physicalPath, false);
             return new VKShader(physicalPath);
         }
-    
+
         Shader* VKShader::CreateFromEmbeddedFuncVulkan(const uint32_t* vertData, uint32_t vertDataSize, const uint32_t* fragData, uint32_t fragDataSize)
         {
             return new VKShader(vertData, vertDataSize, fragData, fragDataSize);

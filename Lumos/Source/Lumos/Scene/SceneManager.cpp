@@ -76,7 +76,7 @@ namespace Lumos
                 return;
 
             if(m_vpAllScenes.empty())
-                m_vpAllScenes.push_back(CreateSharedRef<Scene>("NewScene"));
+                m_vpAllScenes.push_back(CreateSharedPtr<Scene>("NewScene"));
 
             m_QueuedSceneIndex = 0;
         }
@@ -108,7 +108,7 @@ namespace Lumos
         app.GetSystem<LumosPhysicsEngine>()->SetPaused(false);
 
         std::string physicalPath;
-        if(Lumos::VFS::Get()->ResolvePhysicalPath("//Scenes/" + m_CurrentScene->GetSceneName() + ".lsn", physicalPath))
+        if(Lumos::VFS::Get().ResolvePhysicalPath("//Scenes/" + m_CurrentScene->GetSceneName() + ".lsn", physicalPath))
         {
             auto newPath = StringUtilities::RemoveName(physicalPath);
             m_CurrentScene->Deserialise(newPath, false);
@@ -150,7 +150,7 @@ namespace Lumos
 
     void SceneManager::EnqueueScene(Scene* scene)
     {
-        m_vpAllScenes.push_back(SharedRef<Scene>(scene));
+        m_vpAllScenes.push_back(SharedPtr<Scene>(scene));
         LUMOS_LOG_INFO("[SceneManager] - Enqueued scene : {0}", scene->GetSceneName().c_str());
     }
 
@@ -159,7 +159,7 @@ namespace Lumos
         for(auto& filePath : m_SceneFilePathsToLoad)
         {
             std::string newPath;
-            VFS::Get()->AbsoulePathToVFS(filePath, newPath);
+            VFS::Get().AbsoulePathToVFS(filePath, newPath);
             EnqueueSceneFromFile(filePath);
         }
 

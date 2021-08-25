@@ -1,16 +1,12 @@
 #pragma once
-
+#include "Utilities/TSingleton.h"
 #include <unordered_map>
 
 namespace Lumos
 {
-    class LUMOS_EXPORT VFS
+    class LUMOS_EXPORT VFS : public ThreadSafeSingleton<VFS>
     {
-    private:
-        static VFS* s_Instance;
-
-    private:
-        std::unordered_map<std::string, std::vector<std::string>> m_MountPoints;
+        friend class ThreadSafeSingleton<VFS>;
 
     public:
         void Mount(const std::string& virtualPath, const std::string& physicalPath);
@@ -24,13 +20,7 @@ namespace Lumos
         bool WriteFile(const std::string& path, uint8_t* buffer, uint32_t size);
         bool WriteTextFile(const std::string& path, const std::string& text);
 
-    public:
-        static void OnInit();
-        static void OnShutdown();
-
-        inline static VFS* Get()
-        {
-            return s_Instance;
-        }
+    private:
+        std::unordered_map<std::string, std::vector<std::string>> m_MountPoints;
     };
 }

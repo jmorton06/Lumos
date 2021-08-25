@@ -41,6 +41,14 @@ namespace Lumos
         auto V = curLuaState.new_usertype<basic_view<entity, exclude_t<>, Comp>>(#Comp "_view");               \
         V.set_function("each", &basic_view<entity, exclude_t<>, Comp>::each<std::function<void(Comp&)>>);      \
         V.set_function("front", &basic_view<entity, exclude_t<>, Comp>::front);                                \
+        s_Identifiers.push_back(#Comp);                                                                        \
+        s_Identifiers.push_back("Add" #Comp);                                                                  \
+        s_Identifiers.push_back("Remove" #Comp);                                                               \
+        s_Identifiers.push_back("Get" #Comp);                                                                  \
+        s_Identifiers.push_back("GetOrAdd" #Comp);                                                             \
+        s_Identifiers.push_back("TryGet" #Comp);                                                               \
+        s_Identifiers.push_back("AddOrReplace" #Comp);                                                         \
+        s_Identifiers.push_back("Has" #Comp);                                                                  \
     }
 
     class Scene;
@@ -62,14 +70,14 @@ namespace Lumos
         void BindInputLua(sol::state& state);
         void BindSceneLua(sol::state& state);
         void BindAppLua(sol::state& state);
-        
+
         static std::vector<std::string>& GetIdentifiers() { return s_Identifiers; }
 
         sol::state& GetState()
         {
             return m_State;
         }
-        
+
         static std::vector<std::string> s_Identifiers;
 
     private:

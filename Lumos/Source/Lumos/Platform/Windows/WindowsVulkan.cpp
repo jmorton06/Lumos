@@ -2,7 +2,7 @@
 
 #ifdef LUMOS_RENDER_API_VULKAN
 
-#include "Platform/Vulkan/VKSwapchain.h"
+#include "Platform/Vulkan/VKSwapChain.h"
 #include "WindowsWindow.h"
 
 #ifdef LUMOS_USE_GLFW_WINDOWS
@@ -14,7 +14,7 @@
 
 namespace Lumos
 {
-    VkSurfaceKHR Graphics::VKSwapchain::CreatePlatformSurface(VkInstance vkInstance, Window* window)
+    VkSurfaceKHR Graphics::VKSwapChain::CreatePlatformSurface(VkInstance vkInstance, Window* window)
     {
         VkSurfaceKHR surface;
 

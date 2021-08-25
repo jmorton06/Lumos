@@ -132,7 +132,7 @@ namespace Lumos
         Maths::Vector2 GetWindowSize() const;
         float GetWindowDPI() const;
 
-        SharedRef<ShaderLibrary>& GetShaderLibrary();
+        SharedPtr<ShaderLibrary>& GetShaderLibrary();
 
         static Application& Get()
         {
@@ -192,9 +192,9 @@ namespace Lumos
             //Version 1
 
             std::string path;
-            
+
             //Window size and full screen shouldnt be in project
-            
+
             archive(cereal::make_nvp("RenderAPI", RenderAPI),
                 cereal::make_nvp("Width", (int)windowSize.x),
                 cereal::make_nvp("Height", (int)windowSize.y),
@@ -209,7 +209,7 @@ namespace Lumos
             for(auto& path : paths)
             {
                 std::string newPath;
-                VFS::Get()->AbsoulePathToVFS(path, newPath);
+                VFS::Get().AbsoulePathToVFS(path, newPath);
                 newPaths.push_back(path);
             }
             archive(cereal::make_nvp("Scenes", newPaths));
@@ -272,7 +272,7 @@ namespace Lumos
             else
                 m_EngineAssetPath = "/Users/jmorton/dev/Lumos/Lumos/Assets/";
 
-            VFS::Get()->Mount("CoreShaders", m_EngineAssetPath + std::string("Shaders"));
+            VFS::Get().Mount("CoreShaders", m_EngineAssetPath + std::string("Shaders"));
         }
 
         const std::string& GetProjectRoot() const { return m_ProjectRoot; }
@@ -307,13 +307,13 @@ namespace Lumos
         uint32_t m_SceneViewHeight = 0;
         bool m_SceneViewSizeUpdated = false;
 
-        UniqueRef<Window> m_Window;
-        UniqueRef<SceneManager> m_SceneManager;
-        UniqueRef<SystemManager> m_SystemManager;
-        UniqueRef<Graphics::RenderGraph> m_RenderGraph;
-        UniqueRef<ImGuiManager> m_ImGuiManager;
-        UniqueRef<Timer> m_Timer;
-        SharedRef<ShaderLibrary> m_ShaderLibrary;
+        UniquePtr<Window> m_Window;
+        UniquePtr<SceneManager> m_SceneManager;
+        UniquePtr<SystemManager> m_SystemManager;
+        UniquePtr<Graphics::RenderGraph> m_RenderGraph;
+        UniquePtr<ImGuiManager> m_ImGuiManager;
+        UniquePtr<Timer> m_Timer;
+        SharedPtr<ShaderLibrary> m_ShaderLibrary;
 
         AppState m_CurrentState = AppState::Loading;
         EditorState m_EditorState = EditorState::Preview;

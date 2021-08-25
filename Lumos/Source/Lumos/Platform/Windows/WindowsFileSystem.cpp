@@ -96,13 +96,13 @@ namespace Lumos
 
     bool FileSystem::WriteFile(const std::string& path, uint8_t* buffer, uint32_t size)
     {
-        const HANDLE file = CreateFile(path.c_str(), GENERIC_WRITE, NULL, nullptr,CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
+        const HANDLE file = CreateFile(path.c_str(), GENERIC_WRITE, NULL, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
         if(file == INVALID_HANDLE_VALUE)
-		{
-			DWORD dw = GetLastError(); 
-			LUMOS_LOG_WARN("Failed to write file {0}, Error {1}", path, dw);
-			return false;
-		}
+        {
+            DWORD dw = GetLastError();
+            LUMOS_LOG_WARN("Failed to write file {0}, Error {1}", path, dw);
+            return false;
+        }
 
         DWORD written;
         const bool result = ::WriteFile(file, buffer, static_cast<DWORD>(size), &written, nullptr) != 0;

@@ -97,7 +97,7 @@ namespace Lumos
         Maths::Vector3 m_HalfDimensions;
         Maths::BoundingBox m_BoundingBox;
 
-        SharedRef<Hull> m_Hull;
+        SharedPtr<Hull> m_Hull;
     };
 
 }

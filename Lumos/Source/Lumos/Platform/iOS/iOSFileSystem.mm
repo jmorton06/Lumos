@@ -176,9 +176,9 @@ namespace Lumos
     bool FileSystem::WriteFile(const std::string& path, uint8_t* buffer, uint32_t size)
     {
         FILE* file = fopen(path.c_str(), "wb");
-        size_t size = fwrite(buffer, 1, size, file);
+        size_t output = fwrite(buffer, 1, size, file);
         fclose(file);
-        return size > 0;
+        return output > 0;
     }
 
     bool FileSystem::WriteTextFile(const std::string& path, const std::string& text)

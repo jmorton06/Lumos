@@ -20,7 +20,7 @@ namespace Lumos
 
     void HullCollisionShape::BuildFromMesh(Graphics::Mesh* mesh)
     {
-        m_Hull = CreateSharedRef<Hull>();
+        m_Hull = CreateSharedPtr<Hull>();
 
         auto vertexBuffer = mesh->GetVertexBuffer();
         Graphics::Vertex* vertices = vertexBuffer->GetPointer<Graphics::Vertex>();

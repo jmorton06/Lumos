@@ -7,27 +7,27 @@ namespace Lumos
     {
     public:
         template <typename T, typename... Args>
-        SharedRef<T> RegisterSystem(Args&&... args)
+        SharedPtr<T> RegisterSystem(Args&&... args)
         {
             auto typeName = typeid(T).hash_code();
 
             LUMOS_ASSERT(m_Systems.find(typeName) == m_Systems.end(), "Registering system more than once.");
 
             // Create a pointer to the system and return it so it can be used externally
-            SharedRef<T> system = CreateSharedRef<T>(std::forward<Args>(args)...);
+            SharedPtr<T> system = CreateSharedPtr<T>(std::forward<Args>(args)...);
             m_Systems.insert({ typeName, std::move(system) });
             return system;
         }
 
         template <typename T>
-        SharedRef<T> RegisterSystem(T* t)
+        SharedPtr<T> RegisterSystem(T* t)
         {
             auto typeName = typeid(T).hash_code();
 
             LUMOS_ASSERT(m_Systems.find(typeName) == m_Systems.end(), "Registering system more than once.");
 
             // Create a pointer to the system and return it so it can be used externally
-            SharedRef<T> system = SharedRef<T>(t);
+            SharedPtr<T> system = SharedPtr<T>(t);
             m_Systems.insert({ typeName, std::move(system) });
             return system;
         }
@@ -84,6 +84,6 @@ namespace Lumos
 
     private:
         // Map from system type string pointer to a system pointer
-        std::unordered_map<size_t, SharedRef<ISystem>> m_Systems;
+        std::unordered_map<size_t, SharedPtr<ISystem>> m_Systems;
     };
 }

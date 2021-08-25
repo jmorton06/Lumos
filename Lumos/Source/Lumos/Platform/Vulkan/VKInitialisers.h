@@ -503,28 +503,28 @@ namespace Lumos
             return pipelineTessellationStateCreateInfo;
         }
 
-        inline VkGraphicsPipelineCreateInfo pipelineCreateInfo(
+        inline VkGraphicsPipelineCreateInfo pipelineDesc(
             VkPipelineLayout layout,
             VkRenderPass renderPass,
             VkPipelineCreateFlags flags = 0)
         {
-            VkGraphicsPipelineCreateInfo pipelineCreateInfo {};
-            pipelineCreateInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
-            pipelineCreateInfo.layout = layout;
-            pipelineCreateInfo.renderPass = renderPass;
-            pipelineCreateInfo.flags = flags;
-            pipelineCreateInfo.basePipelineIndex = -1;
-            pipelineCreateInfo.basePipelineHandle = VK_NULL_HANDLE;
-            return pipelineCreateInfo;
+            VkGraphicsPipelineCreateInfo pipelineDesc {};
+            pipelineDesc.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
+            pipelineDesc.layout = layout;
+            pipelineDesc.renderPass = renderPass;
+            pipelineDesc.flags = flags;
+            pipelineDesc.basePipelineIndex = -1;
+            pipelineDesc.basePipelineHandle = VK_NULL_HANDLE;
+            return pipelineDesc;
         }
 
-        inline VkGraphicsPipelineCreateInfo pipelineCreateInfo()
+        inline VkGraphicsPipelineCreateInfo pipelineDesc()
         {
-            VkGraphicsPipelineCreateInfo pipelineCreateInfo {};
-            pipelineCreateInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
-            pipelineCreateInfo.basePipelineIndex = -1;
-            pipelineCreateInfo.basePipelineHandle = VK_NULL_HANDLE;
-            return pipelineCreateInfo;
+            VkGraphicsPipelineCreateInfo pipelineDesc {};
+            pipelineDesc.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
+            pipelineDesc.basePipelineIndex = -1;
+            pipelineDesc.basePipelineHandle = VK_NULL_HANDLE;
+            return pipelineDesc;
         }
 
         inline VkComputePipelineCreateInfo computePipelineCreateInfo(

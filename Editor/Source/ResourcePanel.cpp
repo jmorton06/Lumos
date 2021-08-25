@@ -45,7 +45,7 @@ namespace Lumos
         m_ShowHiddenFiles = false;
     }
 
-    void ResourcePanel::ChangeDirectory(SharedRef<DirectoryInformation>& directory)
+    void ResourcePanel::ChangeDirectory(SharedPtr<DirectoryInformation>& directory)
     {
         if(!directory)
             return;
@@ -55,7 +55,7 @@ namespace Lumos
         m_UpdateNavigationPath = true;
     }
 
-    void ResourcePanel::RemoveDirectory(SharedRef<DirectoryInformation>& directory, bool removeFromParent)
+    void ResourcePanel::RemoveDirectory(SharedPtr<DirectoryInformation>& directory, bool removeFromParent)
     {
         if(directory->Parent && removeFromParent)
         {
@@ -68,13 +68,13 @@ namespace Lumos
         m_Directories.erase(m_Directories.find(directory->FilePath.string()));
     }
 
-    std::string ResourcePanel::ProcessDirectory(const std::filesystem::path& directoryPath, const SharedRef<DirectoryInformation>& parent)
+    std::string ResourcePanel::ProcessDirectory(const std::filesystem::path& directoryPath, const SharedPtr<DirectoryInformation>& parent)
     {
         const auto& directory = m_Directories[directoryPath.string()];
         if(directory)
             return directory->FilePath.string();
 
-        SharedRef<DirectoryInformation> directoryInfo = CreateSharedRef<DirectoryInformation>(directoryPath, !std::filesystem::is_directory(directoryPath));
+        SharedPtr<DirectoryInformation> directoryInfo = CreateSharedPtr<DirectoryInformation>(directoryPath, !std::filesystem::is_directory(directoryPath));
         directoryInfo->Parent = parent;
 
         if(directoryPath == m_BasePath)
@@ -101,7 +101,7 @@ namespace Lumos
         return directoryInfo->FilePath.string();
     }
 
-    void ResourcePanel::DrawFolder(const SharedRef<DirectoryInformation>& dirInfo, bool defaultOpen)
+    void ResourcePanel::DrawFolder(const SharedPtr<DirectoryInformation>& dirInfo, bool defaultOpen)
     {
         LUMOS_PROFILE_FUNCTION();
         ImGuiTreeNodeFlags nodeFlags = ((dirInfo == m_CurrentDir) ? ImGuiTreeNodeFlags_Selected : 0);
@@ -400,7 +400,7 @@ namespace Lumos
                             {
                                 Refresh();
                             }
-                            
+
                             if(ImGui::Selectable("New folder"))
                             {
                                 std::filesystem::create_directory(std::filesystem::path(m_BasePath + "/" + m_CurrentDir->FilePath.string() + "/NewFolder"));
@@ -564,9 +564,9 @@ namespace Lumos
             int secIdx = 0, newPwdLastSecIdx = -1;
 
             std::string assetsBasePath;
-            VFS::Get()->ResolvePhysicalPath("//Assets", assetsBasePath);
+            VFS::Get().ResolvePhysicalPath("//Assets", assetsBasePath);
             auto dir = std::filesystem::path(assetsBasePath);
-            auto AssetsDir = m_CurrentDir->FilePath;
+            auto& AssetsDir = m_CurrentDir->FilePath;
 
             size_t PhysicalPathCount = 0;
 
@@ -579,7 +579,7 @@ namespace Lumos
 
             for(auto& directory : m_BreadCrumbData)
             {
-                std::string directoryName = directory->FilePath.filename().string();
+                const std::string& directoryName = directory->FilePath.filename().string();
                 if(ImGui::SmallButton(directoryName.c_str()))
                     ChangeDirectory(directory);
 
@@ -669,30 +669,29 @@ namespace Lumos
 
         return newFileName;
     }
-	
-	void ResourcePanel::OnNewProject()
-	{
-		Refresh();
-	}
-	
-	void ResourcePanel::Refresh()
-	{
-		m_BasePath = Application::Get().GetProjectRoot() + "Assets";
-		
-		auto currentPath = m_CurrentDir->FilePath;
-		
-		m_UpdateNavigationPath = true;
-		
+
+    void ResourcePanel::OnNewProject()
+    {
+        Refresh();
+    }
+
+    void ResourcePanel::Refresh()
+    {
+        m_BasePath = Application::Get().GetProjectRoot() + "Assets";
+
+        auto currentPath = m_CurrentDir->FilePath;
+
+        m_UpdateNavigationPath = true;
+
         m_Directories.clear();
-		std::string baseDirectoryHandle = ProcessDirectory(std::filesystem::path(m_BasePath), nullptr);
-		m_BaseProjectDir = m_Directories[baseDirectoryHandle];
+        std::string baseDirectoryHandle = ProcessDirectory(std::filesystem::path(m_BasePath), nullptr);
+        m_BaseProjectDir = m_Directories[baseDirectoryHandle];
         m_PreviousDirectory = nullptr;
         m_CurrentDir = nullptr;
-        
-		if(m_Directories.find(currentPath.string()) != m_Directories.end())
-			m_CurrentDir = m_Directories[currentPath.string()];
-		else
-			ChangeDirectory(m_BaseProjectDir);
-	}
+
+        if(m_Directories.find(currentPath.string()) != m_Directories.end())
+            m_CurrentDir = m_Directories[currentPath.string()];
+        else
+            ChangeDirectory(m_BaseProjectDir);
+    }
 }
-	

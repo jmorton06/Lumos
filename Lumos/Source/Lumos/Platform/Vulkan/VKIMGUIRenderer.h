@@ -11,7 +11,7 @@ namespace Lumos
     namespace Graphics
     {
         class VKFramebuffer;
-        class VKRenderpass;
+        class VKRenderPass;
         class VKTexture2D;
 
         class VKIMGUIRenderer : public IMGUIRenderer
@@ -41,7 +41,7 @@ namespace Lumos
             uint32_t m_Width;
             uint32_t m_Height;
             VKFramebuffer* m_Framebuffers[3];
-            VKRenderpass* m_Renderpass;
+            VKRenderPass* m_Renderpass;
             VKTexture2D* m_FontTexture;
 
             bool m_ClearScreen;

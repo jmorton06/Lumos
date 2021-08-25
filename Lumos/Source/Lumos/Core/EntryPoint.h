@@ -29,7 +29,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int)
     delete windowsOS;
 
     Lumos::Internal::CoreSystem::Shutdown();
-	return 0;
+    return 0;
 }
 
 #elif defined(LUMOS_PLATFORM_LINUX)

@@ -51,6 +51,7 @@ namespace Lumos
         //Mobile only
         virtual void ShowKeyboard() {};
         virtual void HideKeyboard() {};
+        virtual void Delay(uint32_t usec) {};
 
     protected:
         static OS* s_Instance;
