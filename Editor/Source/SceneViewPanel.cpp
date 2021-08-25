@@ -798,7 +798,8 @@ namespace Lumos
 
             DebugRenderer::OnResize(width, height);
             m_Editor->GetGridRenderer()->OnResize(m_Width, m_Height);
-
+            
+            //Should be just build texture and scene renderer set render target
             //Renderer::GetGraphicsContext()->WaitIdle();
         }
     }

@@ -47,8 +47,8 @@ layout(set = 1,binding = 6) uniform UniformMaterialData
 #define MAX_LIGHTS 32
 #define MAX_SHADOWMAPS 4
 
-const int NumPCFSamples = 32;
-const int numBlockerSearchSamples = 16;
+const int NumPCFSamples = 16;
+const int numBlockerSearchSamples = 4;
 const bool fadeCascades = false;
 const float Epsilon = 0.00001;
 float ShadowFade = 1.0;

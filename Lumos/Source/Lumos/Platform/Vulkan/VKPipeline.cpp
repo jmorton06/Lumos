@@ -240,7 +240,7 @@ namespace Lumos
 
             if(m_Description.swapchainTarget)
             {
-                framebuffer = m_Framebuffers[Renderer::GetMainSwapChain()->GetCurrentBufferIndex()];
+                framebuffer = m_Framebuffers[Renderer::GetMainSwapChain()->GetCurrentImageIndex()];
             }
             else if(m_Description.depthArrayTarget)
             {

@@ -161,6 +161,7 @@ namespace Lumos
 
         void GLRenderer::OnResize(uint32_t width, uint32_t height)
         {
+            ((GLSwapChain*)Renderer::GetMainSwapChain())->OnResize(width, height);
         }
 
         void GLRenderer::SetCullingInternal(bool enabled, bool front)
@@ -235,27 +236,38 @@ namespace Lumos
     
         void GLRenderer::ClearRenderTarget(Graphics::Texture* texture, Graphics::CommandBuffer* commandBuffer)
         {
-            std::vector<TextureType> attachmentTypes = { texture->GetType()};
-            std::vector<Texture*> attachments = { texture };
+            if(!texture)
+            {
+                //Assume swapchain texture
+                //TODO: function for clearing swapchain image
+                
+                GLCall(glBindFramebuffer(GL_FRAMEBUFFER, 0));
 
-//            Graphics::RenderPassDesc renderPassDesc;
-//            renderPassDesc.attachmentCount = uint32_t(attachmentTypes.size());
-//            renderPassDesc.attachmentTypes = attachmentTypes.data();
-//            renderPassDesc.attachments = attachments.data();
-//            renderPassDesc.clear = false;
-//
-//            auto renderPass = Graphics::RenderPass::Get(renderPassDesc);
+            }
+            else
+            {
+                std::vector<TextureType> attachmentTypes = { texture->GetType()};
+                std::vector<Texture*> attachments = { texture };
 
-            FramebufferDesc frameBufferDesc {};
-            frameBufferDesc.width = texture->GetWidth();
-            frameBufferDesc.height = texture->GetHeight();
-            frameBufferDesc.attachmentCount = uint32_t(attachments.size());
-            frameBufferDesc.renderPass = nullptr;
-            frameBufferDesc.attachmentTypes = attachmentTypes.data();
-            frameBufferDesc.attachments = attachments.data();
-            
-            auto framebuffer = Framebuffer::Get(frameBufferDesc);
-            framebuffer->Bind();
+    //            Graphics::RenderPassDesc renderPassDesc;
+    //            renderPassDesc.attachmentCount = uint32_t(attachmentTypes.size());
+    //            renderPassDesc.attachmentTypes = attachmentTypes.data();
+    //            renderPassDesc.attachments = attachments.data();
+    //            renderPassDesc.clear = false;
+    //
+    //            auto renderPass = Graphics::RenderPass::Get(renderPassDesc);
+
+                FramebufferDesc frameBufferDesc {};
+                frameBufferDesc.width = texture->GetWidth();
+                frameBufferDesc.height = texture->GetHeight();
+                frameBufferDesc.attachmentCount = uint32_t(attachments.size());
+                frameBufferDesc.renderPass = nullptr;
+                frameBufferDesc.attachmentTypes = attachmentTypes.data();
+                frameBufferDesc.attachments = attachments.data();
+                
+                auto framebuffer = Framebuffer::Get(frameBufferDesc);
+                framebuffer->Bind();
+            }
             GLRenderer::ClearInternal(RENDERER_BUFFER_COLOUR | RENDERER_BUFFER_DEPTH | RENDERER_BUFFER_STENCIL);
         }
 
