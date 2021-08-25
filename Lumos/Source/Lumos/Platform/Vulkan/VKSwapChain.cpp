@@ -273,6 +273,9 @@ namespace Lumos
 
             for(uint32_t i = 0; i < m_SwapChainBufferCount; i++)
             {
+                if(m_Frames[i].MainCommandBuffer->GetState() == CommandBufferState::Submitted)
+                    m_Frames[i].MainCommandBuffer->Wait();
+                
                 delete m_SwapChainBuffers[i];
             }
 

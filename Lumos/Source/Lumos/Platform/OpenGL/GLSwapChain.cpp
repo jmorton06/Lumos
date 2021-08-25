@@ -129,10 +129,12 @@ namespace Lumos
     
         GLSwapChain::GLSwapChain(uint32_t width, uint32_t height)
         {
-            FramebufferDesc info {};
-            info.width = width;
-            info.height = height;
-            info.attachments = nullptr;
+            m_Width = width;
+            m_Height = height;
+//            FramebufferDesc info {};
+//            info.width = width;
+//            info.height = height;
+//            info.attachments = nullptr;
         }
 
         GLSwapChain::~GLSwapChain()

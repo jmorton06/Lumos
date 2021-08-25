@@ -25,7 +25,7 @@ namespace Lumos
 
     RigidBody2D::~RigidBody2D()
     {
-        if(m_B2Body && Application::Get().GetSystem<B2PhysicsEngine>())
+        if(m_B2Body && Application::Get().GetSystemManager() && Application::Get().GetSystem<B2PhysicsEngine>())
             Application::Get().GetSystem<B2PhysicsEngine>()->GetB2World()->DestroyBody(m_B2Body);
     }
 
