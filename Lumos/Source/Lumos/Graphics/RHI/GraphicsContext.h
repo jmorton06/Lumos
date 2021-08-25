@@ -1,6 +1,5 @@
 #pragma once
-
-#include "Core/OS/Window.h"
+#include "Core/Core.h"
 
 namespace Lumos
 {
@@ -23,9 +22,6 @@ namespace Lumos
         public:
             virtual ~GraphicsContext();
 
-            static void Create(const WindowDesc& properties, Window* window);
-            static void Release();
-
             static RenderAPI GetRenderAPI() { return s_RenderAPI; }
             static void SetRenderAPI(RenderAPI api);
 
@@ -35,16 +31,15 @@ namespace Lumos
             virtual float GetTotalGPUMemory() = 0;
 
             virtual size_t GetMinUniformBufferOffsetAlignment() const = 0;
-
-            static GraphicsContext* GetContext() { return s_Context; }
             virtual bool FlipImGUITexture() const = 0;
             virtual void WaitIdle() const = 0;
             virtual void OnImGui() = 0;
+            
+            static GraphicsContext* Create();
 
         protected:
-            static GraphicsContext* (*CreateFunc)(const WindowDesc&, Window*);
+            static GraphicsContext* (*CreateFunc)();
 
-            static GraphicsContext* s_Context;
             static RenderAPI s_RenderAPI;
         };
     }

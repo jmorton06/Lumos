@@ -5,15 +5,15 @@ namespace Lumos
 {
     namespace Graphics
     {
-        Renderer* (*Renderer::CreateFunc)(uint32_t, uint32_t) = nullptr;
+        Renderer* (*Renderer::CreateFunc)() = nullptr;
 
         Renderer* Renderer::s_Instance = nullptr;
 
-        void Renderer::Init(uint32_t width, uint32_t height)
+        void Renderer::Init()
         {
             LUMOS_ASSERT(CreateFunc, "No Renderer Create Function");
             LUMOS_PROFILE_FUNCTION();
-            s_Instance = CreateFunc(width, height);
+            s_Instance = CreateFunc();
             s_Instance->InitInternal();
         }
 

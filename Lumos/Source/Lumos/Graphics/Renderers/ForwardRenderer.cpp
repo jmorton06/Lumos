@@ -12,7 +12,7 @@
 #include "Graphics/Material.h"
 #include "Graphics/RHI/Renderer.h"
 #include "Graphics/RHI/CommandBuffer.h"
-#include "Graphics/RHI/Swapchain.h"
+#include "Graphics/RHI/SwapChain.h"
 #include "Graphics/RHI/RenderPass.h"
 #include "Graphics/RHI/Pipeline.h"
 #include "Graphics/RHI/GraphicsContext.h"
@@ -45,7 +45,7 @@ namespace Lumos
 
             m_DepthTest = depthTest;
             SetScreenBufferSize(width, height);
-            
+
             ForwardRenderer::Init();
         }
 
@@ -66,19 +66,17 @@ namespace Lumos
 
             Begin();
 
-            SetSystemUniforms(m_Shader.get());
-
             Present();
 
             EndScene();
             End();
         }
-    
+
         void ForwardRenderer::Init()
         {
             LUMOS_PROFILE_FUNCTION();
 
-           // m_Shader = Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/ForwardPBR.shader");
+            // m_Shader = Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/ForwardPBR.shader");
             m_Shader = Graphics::Shader::CreateFromEmbeddedArray(spirv_ForwardPBRvertspv.data(), spirv_ForwardPBRvertspv_size, spirv_ForwardPBRfragspv.data(), spirv_ForwardPBRfragspv_size);
             Application::Get().GetShaderLibrary()->AddResource("ForwardPBR", m_Shader);
 
@@ -113,46 +111,18 @@ namespace Lumos
             param.format = TextureFormat::RGBA8;
             param.srgb = false;
             param.wrap = TextureWrap::CLAMP_TO_EDGE;
-            m_PreintegratedFG = UniqueRef<Texture2D>(Texture2D::CreateFromSource(BRDFTextureWidth, BRDFTextureHeight, (void*)BRDFTexture, param));
-
-            Graphics::RenderPassDesc renderpassCI {};
-
-            if(m_DepthTest)
-            {
-                AttachmentInfo textureTypes[2] = {
-                    { TextureType::COLOUR, TextureFormat::RGBA8 },
-                    { TextureType::DEPTH, TextureFormat::DEPTH }
-                };
-
-                renderpassCI.attachmentCount = 2;
-                renderpassCI.textureType = textureTypes;
-                m_RenderPass = Graphics::RenderPass::Get(renderpassCI);
-            }
-            else
-            {
-                AttachmentInfo textureTypes[1] = {
-                    { TextureType::COLOUR, TextureFormat::RGBA8 },
-                };
-
-                renderpassCI.attachmentCount = 1;
-                renderpassCI.textureType = textureTypes;
-                m_RenderPass = Graphics::RenderPass::Get(renderpassCI);
-            }
-
-            CreateFramebuffers();
-            CreateGraphicsPipeline();
+            m_PreintegratedFG = UniquePtr<Texture2D>(Texture2D::CreateFromSource(BRDFTextureWidth, BRDFTextureHeight, (void*)BRDFTexture, param));
 
             m_ClearColour = Maths::Vector4(0.2f, 0.2f, 0.2f, 1.0f);
 
             auto descriptorSetScene = m_Shader->GetDescriptorInfo(2);
-
-            Graphics::DescriptorDesc info {};
-            info.layoutIndex = 0;
-            info.shader = m_Shader.get();
+            Graphics::DescriptorDesc descriptorDesc {};
+            descriptorDesc.layoutIndex = 0;
+            descriptorDesc.shader = m_Shader.get();
             m_DescriptorSet.resize(3);
-            m_DescriptorSet[0] = SharedRef<Graphics::DescriptorSet>(Graphics::DescriptorSet::Create(info));
-            info.layoutIndex = 2;
-            m_DescriptorSet[2] = SharedRef<Graphics::DescriptorSet>(Graphics::DescriptorSet::Create(info));
+            m_DescriptorSet[0] = SharedPtr<Graphics::DescriptorSet>(Graphics::DescriptorSet::Create(descriptorDesc));
+            descriptorDesc.layoutIndex = 2;
+            m_DescriptorSet[2] = SharedPtr<Graphics::DescriptorSet>(Graphics::DescriptorSet::Create(descriptorDesc));
 
             m_DefaultMaterial = new Material(m_Shader);
 
@@ -167,27 +137,25 @@ namespace Lumos
 
             m_DefaultMaterial->SetMaterialProperites(properties);
             m_DefaultMaterial->CreateDescriptorSet(1);
-            
+
             m_CurrentDescriptorSets.resize(3);
-			
+
             UpdateScreenDescriptorSet();
         }
-		
+
         void ForwardRenderer::Begin()
         {
             LUMOS_PROFILE_FUNCTION();
             m_CurrentBufferID = 0;
             if(!m_RenderTexture)
-                m_CurrentBufferID = Renderer::GetSwapchain()->GetCurrentBufferIndex();
-			
-            m_RenderPass->BeginRenderpass(Renderer::GetSwapchain()->GetCurrentCommandBuffer(), m_ClearColour, m_Framebuffers[m_CurrentBufferID].get(), Graphics::INLINE, m_ScreenBufferWidth, m_ScreenBufferHeight);
+                m_CurrentBufferID = Renderer::GetMainSwapChain()->GetCurrentBufferIndex();
         }
-		
+
         void ForwardRenderer::BeginScene(Scene* scene, Camera* overrideCamera, Maths::Transform* overrideCameraTransform)
         {
             LUMOS_PROFILE_FUNCTION();
             auto& registry = scene->GetRegistry();
-			
+
             if(overrideCamera)
             {
                 m_Camera = overrideCamera;
@@ -202,23 +170,59 @@ namespace Lumos
                     m_CameraTransform = registry.try_get<Maths::Transform>(cameraView.front());
                 }
             }
-			
+
             if(!m_Camera || !m_CameraTransform)
                 return;
-			
+
             auto view = m_CameraTransform->GetWorldMatrix().Inverse();
             auto projView = m_Camera->GetProjectionMatrix() * view;
             m_DescriptorSet[0]->SetUniform("UniformBufferObject", "projView", &projView);
             m_DescriptorSet[0]->Update();
-			
+
             m_CommandQueue.clear();
+
+            auto envView = registry.view<Graphics::Environment>();
+
+            if(envView.size() == 0)
+            {
+                if(m_EnvironmentMap)
+                {
+                    m_EnvironmentMap = nullptr;
+                    m_IrradianceMap = nullptr;
+
+                    //TODO: remove need for this
+                    Graphics::DescriptorDesc info {};
+                    info.shader = m_Shader.get();
+                    info.layoutIndex = 2;
+                    m_DescriptorSet[2] = SharedPtr<Graphics::DescriptorSet>(Graphics::DescriptorSet::Create(info));
+                    //UpdateScreenDescriptorSet();
+                }
+            }
+            else
+            {
+                //Just use first
+                const auto& env = envView.get<Graphics::Environment>(envView.front());
+
+                if(m_EnvironmentMap != env.GetEnvironmentMap())
+                {
+                    Graphics::DescriptorDesc info {};
+                    info.shader = m_Shader.get();
+                    info.layoutIndex = 2;
+                    m_DescriptorSet[2] = SharedPtr<Graphics::DescriptorSet>(Graphics::DescriptorSet::Create(info));
+                    m_EnvironmentMap = env.GetEnvironmentMap();
+                    m_IrradianceMap = env.GetIrradianceMap();
+
+                    //UpdateScreenDescriptorSet();
+                }
+            }
+            SubmitLightSetup(scene);
+            UpdateScreenDescriptorSet();
 
             auto group = registry.group<Model>(entt::get<Maths::Transform>);
 
             for(auto entity : group)
             {
                 const auto& [model, trans] = group.get<Model, Maths::Transform>(entity);
-
                 const auto& meshes = model.GetMeshes();
 
                 for(auto mesh : meshes)
@@ -242,46 +246,18 @@ namespace Lumos
                         else
                             textureMatrix = Maths::Matrix4();
                         SubmitMesh(meshPtr.get(), meshPtr->GetMaterial() ? meshPtr->GetMaterial().get() : m_DefaultMaterial, worldTransform, textureMatrix);
-
                     }
                 }
             }
-
-            auto envView = registry.view<Graphics::Environment>();
-
-            if(envView.size() == 0)
             {
-                if(m_EnvironmentMap)
-                {
-                    m_EnvironmentMap = nullptr;
-                    m_IrradianceMap = nullptr;
-
-                    //TODO: remove need for this
-                    Graphics::DescriptorDesc info {};
-                    info.shader = m_Shader.get();
-                    info.layoutIndex = 2;
-                    m_DescriptorSet[2] = SharedRef<Graphics::DescriptorSet>(Graphics::DescriptorSet::Create(info));
-                    UpdateScreenDescriptorSet();
-                }
+                LUMOS_PROFILE_SCOPE("Sort Meshes by distance from camera");
+                auto camTransform = m_CameraTransform;
+                std::sort(m_CommandQueue.begin(), m_CommandQueue.end(),
+                    [camTransform](RenderCommand& a, RenderCommand& b)
+                    {
+                        return (a.transform.Translation() - camTransform->GetWorldPosition()).Length() < (b.transform.Translation() - camTransform->GetWorldPosition()).Length();
+                    });
             }
-            else
-            {
-                //Just use first
-                const auto& env = envView.get<Graphics::Environment>(envView.front());
-
-                if(m_EnvironmentMap != env.GetEnvironmentMap())
-                {
-                    Graphics::DescriptorDesc info {};
-                    info.shader = m_Shader.get();
-                    info.layoutIndex = 2;
-                    m_DescriptorSet[2] = SharedRef<Graphics::DescriptorSet>(Graphics::DescriptorSet::Create(info));
-                    m_EnvironmentMap = env.GetEnvironmentMap();
-                    m_IrradianceMap = env.GetIrradianceMap();
-
-                    UpdateScreenDescriptorSet();
-                }
-            }
-            SubmitLightSetup(scene);
         }
 
         void ForwardRenderer::Submit(const RenderCommand& command)
@@ -298,6 +274,9 @@ namespace Lumos
             command.transform = transform;
             command.textureMatrix = textureMatrix;
             command.material = material;
+            
+            //Update material buffers
+            command.material->Bind();
             Submit(command);
         }
 
@@ -308,48 +287,68 @@ namespace Lumos
         void ForwardRenderer::End()
         {
             LUMOS_PROFILE_FUNCTION();
-            m_RenderPass->EndRenderpass(Renderer::GetSwapchain()->GetCurrentCommandBuffer());
-        }
-
-        void ForwardRenderer::SetSystemUniforms(Shader* shader) const
-        {
+            //m_RenderPass->EndRenderpass(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer());
         }
 
         void ForwardRenderer::Present()
         {
             LUMOS_PROFILE_FUNCTION();
 
-            int index = 0;
+            Graphics::CommandBuffer* currentCMDBuffer = Renderer::GetMainSwapChain()->GetCurrentCommandBuffer();
+
+            if(m_RenderTexture)
+            {
+                Renderer::GetRenderer()->ClearRenderTarget(m_RenderTexture, currentCMDBuffer);
+            }
+            else
+            {
+                Renderer::GetRenderer()->ClearRenderTarget(Renderer::GetMainSwapChain()->GetCurrentImage(), currentCMDBuffer);
+            }
+            
+
+            Graphics::PipelineDesc pipelineDesc {};
+            pipelineDesc.shader = m_Shader;
+            pipelineDesc.polygonMode = Graphics::PolygonMode::FILL;
+            pipelineDesc.blendMode = BlendMode::SrcAlphaOneMinusSrcAlpha;
+            pipelineDesc.clearTargets = false;
+            pipelineDesc.swapchainTarget = false;
+
+            if(m_DepthTest)
+            {
+                pipelineDesc.depthTarget = reinterpret_cast<Texture*>(Application::Get().GetRenderGraph()->GetGBuffer()->GetDepthTexture());
+                
+                Renderer::GetRenderer()->ClearRenderTarget(reinterpret_cast<Texture*>(Application::Get().GetRenderGraph()->GetGBuffer()->GetDepthTexture()), currentCMDBuffer);
+            }
+
+            if(m_RenderTexture)
+                pipelineDesc.colourTargets[0] = m_RenderTexture;
+            else
+                pipelineDesc.swapchainTarget = true;
 
             for(auto& command : m_CommandQueue)
             {
                 Mesh* mesh = command.mesh;
+                auto& worldTransform = command.transform;
 
-                Graphics::CommandBuffer* currentCMDBuffer = Renderer::GetSwapchain()->GetCurrentCommandBuffer();
+                Material* material = command.material ? command.material : m_DefaultMaterial;
+                pipelineDesc.cullMode = material->GetFlag(Material::RenderFlags::TWOSIDED) ? Graphics::CullMode::NONE : Graphics::CullMode::BACK;
+                pipelineDesc.transparencyEnabled = material->GetFlag(Material::RenderFlags::ALPHABLEND);
 
-                Graphics::PipelineDesc pipelineCreateInfo {};
-                pipelineCreateInfo.shader = m_Shader;//command.material->GetShader();
-                pipelineCreateInfo.renderpass = m_RenderPass;
-                pipelineCreateInfo.polygonMode = Graphics::PolygonMode::FILL;
-                pipelineCreateInfo.cullMode = command.material->GetFlag(Material::RenderFlags::TWOSIDED) ? Graphics::CullMode::NONE : Graphics::CullMode::BACK;
-                pipelineCreateInfo.transparencyEnabled = command.material->GetFlag(Material::RenderFlags::ALPHABLEND);
+                auto pipeline = Graphics::Pipeline::Get(pipelineDesc);
 
-                auto pipeline = Graphics::Pipeline::Get(pipelineCreateInfo);
+                //material->Bind();
 
                 pipeline->Bind(currentCMDBuffer);
 
-                command.material->Bind();
-
                 m_CurrentDescriptorSets[0] = m_DescriptorSet[0].get();
-                m_CurrentDescriptorSets[1] = command.material->GetDescriptorSet();
+                m_CurrentDescriptorSets[1] = material->GetDescriptorSet();
                 m_CurrentDescriptorSets[2] = m_DescriptorSet[2].get();
 
                 mesh->GetVertexBuffer()->Bind(currentCMDBuffer, pipeline.get());
                 mesh->GetIndexBuffer()->Bind(currentCMDBuffer);
 
-                auto trans = command.transform;
                 auto& pushConstants = m_Shader->GetPushConstants()[0];
-                pushConstants.SetValue("transform", (void*)&trans);
+                pushConstants.SetValue("transform", (void*)&worldTransform);
 
                 m_Shader->BindPushConstants(currentCMDBuffer, pipeline.get());
                 Renderer::BindDescriptorSets(pipeline.get(), currentCMDBuffer, 0, m_CurrentDescriptorSets);
@@ -357,8 +356,7 @@ namespace Lumos
 
                 mesh->GetVertexBuffer()->Unbind();
                 mesh->GetIndexBuffer()->Unbind();
-
-                index++;
+                pipeline->End(currentCMDBuffer);
             }
         }
 
@@ -367,8 +365,6 @@ namespace Lumos
             LUMOS_PROFILE_FUNCTION();
             SetScreenBufferSize(width, height);
             m_Framebuffers.clear();
-
-            CreateFramebuffers();
 
             m_EnvironmentMap = nullptr;
             m_IrradianceMap = nullptr;
@@ -379,15 +375,6 @@ namespace Lumos
         void ForwardRenderer::CreateGraphicsPipeline()
         {
             LUMOS_PROFILE_FUNCTION();
-
-            Graphics::PipelineDesc pipelineCreateInfo {};
-            pipelineCreateInfo.shader = m_Shader;
-            pipelineCreateInfo.renderpass = m_RenderPass;
-            pipelineCreateInfo.polygonMode = Graphics::PolygonMode::FILL;
-            pipelineCreateInfo.cullMode = Graphics::CullMode::BACK;
-            pipelineCreateInfo.transparencyEnabled = false;
-
-            m_Pipeline = Graphics::Pipeline::Get(pipelineCreateInfo);
         }
 
         void ForwardRenderer::SetRenderTarget(Texture* texture, bool rebuildFramebuffer)
@@ -401,48 +388,12 @@ namespace Lumos
 
             m_Framebuffers.clear();
 
-            CreateFramebuffers();
+            // CreateFramebuffers();
         }
 
         void ForwardRenderer::CreateFramebuffers()
         {
             LUMOS_PROFILE_FUNCTION();
-
-            TextureType attachmentTypes[2];
-            Texture* attachments[2];
-
-            attachmentTypes[0] = TextureType::COLOUR;
-            if(m_DepthTest)
-            {
-                attachmentTypes[1] = TextureType::DEPTH;
-                attachments[1] = reinterpret_cast<Texture*>(Application::Get().GetRenderGraph()->GetGBuffer()->GetDepthTexture());
-            }
-
-            FramebufferDesc bufferInfo {};
-            bufferInfo.width = m_ScreenBufferWidth;
-            bufferInfo.height = m_ScreenBufferHeight;
-            bufferInfo.attachmentCount = m_DepthTest ? 2 : 1;
-            bufferInfo.renderPass = m_RenderPass.get();
-            bufferInfo.attachmentTypes = attachmentTypes;
-
-            if(m_RenderTexture)
-            {
-                attachments[0] = m_RenderTexture;
-                bufferInfo.attachments = attachments;
-                bufferInfo.screenFBO = false;
-                m_Framebuffers.emplace_back(Framebuffer::Get(bufferInfo));
-            }
-            else
-            {
-                for(uint32_t i = 0; i < Renderer::GetSwapchain()->GetSwapchainBufferCount(); i++)
-                {
-                    bufferInfo.screenFBO = true;
-                    attachments[0] = Renderer::GetSwapchain()->GetImage(i);
-                    bufferInfo.attachments = attachments;
-
-                    m_Framebuffers.emplace_back(Framebuffer::Get(bufferInfo));
-                }
-            }
         }
 
         void ForwardRenderer::SubmitLightSetup(Scene* scene)
@@ -478,7 +429,7 @@ namespace Lumos
                 lights[numLights] = light;
                 numLights++;
             }
-            
+
             m_DescriptorSet[2]->SetUniform("UniformBufferLight", "lights", lights, sizeof(Graphics::Light) * numLights);
 
             Maths::Vector4 cameraPos = Maths::Vector4(m_CameraTransform->GetWorldPosition());
@@ -515,55 +466,54 @@ namespace Lumos
             m_DescriptorSet[2]->SetUniform("UniformBufferLight", "shadowCount", &numShadows);
             m_DescriptorSet[2]->SetUniform("UniformBufferLight", "mode", &m_RenderMode);
             m_DescriptorSet[2]->SetUniform("UniformBufferLight", "cubemapMipLevels", &cubemapMipLevels);
-            m_DescriptorSet[2]->Update();
+            //m_DescriptorSet[2]->Update();
         }
 
         void ForwardRenderer::UpdateScreenDescriptorSet()
         {
-			m_DescriptorSet[2]->SetTexture("uPreintegratedFG", m_PreintegratedFG.get());
-			m_DescriptorSet[2]->SetTexture("uEnvironmentMap", m_EnvironmentMap, TextureType::CUBE);
-			m_DescriptorSet[2]->SetTexture("uIrradianceMap", m_IrradianceMap, TextureType::CUBE);
+            m_DescriptorSet[2]->SetTexture("uPreintegratedFG", m_PreintegratedFG.get());
+            m_DescriptorSet[2]->SetTexture("uEnvironmentMap", m_EnvironmentMap, TextureType::CUBE);
+            m_DescriptorSet[2]->SetTexture("uIrradianceMap", m_IrradianceMap, TextureType::CUBE);
             auto shadowRenderer = Application::Get().GetRenderGraph()->GetShadowRenderer();
             if(shadowRenderer)
-                m_DescriptorSet[2]->SetTexture("uShadowMap", reinterpret_cast<Texture*>(shadowRenderer->GetTexture()) , TextureType::DEPTHARRAY);
-            m_DescriptorSet[2]->SetTexture("uDepthSampler", Application::Get().GetRenderGraph()->GetGBuffer()->GetDepthTexture(), TextureType::DEPTH);
+                m_DescriptorSet[2]->SetTexture("uShadowMap", reinterpret_cast<Texture*>(shadowRenderer->GetTexture()), TextureType::DEPTHARRAY);
             m_DescriptorSet[2]->Update();
         }
-		
-		std::string RenderModeToString(int mode)
+
+        std::string RenderModeToString(int mode)
         {
             switch(mode)
             {
-				case 0:
+            case 0:
                 return "Lighting";
-				case 1:
+            case 1:
                 return "Colour";
-				case 2:
+            case 2:
                 return "Metallic";
-				case 3:
+            case 3:
                 return "Roughness";
-				case 4:
+            case 4:
                 return "AO";
-				case 5:
+            case 5:
                 return "Emissive";
-				case 6:
+            case 6:
                 return "Normal";
-				case 7:
+            case 7:
                 return "Shadow Cascades";
-				default:
+            default:
                 return "Lighting";
             }
         }
-		
+
         void ForwardRenderer::OnImGui()
         {
-            LUMOS_PROFILE_FUNCTION();			
+            LUMOS_PROFILE_FUNCTION();
             ImGui::TextUnformatted("Forward PBR Renderer");
-			
+
             ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
             ImGui::Columns(2);
             ImGui::Separator();
-			
+
             ImGui::AlignTextToFramePadding();
             ImGui::TextUnformatted("Number Of Renderables");
             ImGui::NextColumn();
@@ -571,7 +521,7 @@ namespace Lumos
             ImGui::Text("%5.2lu", m_CommandQueue.size());
             ImGui::PopItemWidth();
             ImGui::NextColumn();
-			
+
             ImGui::AlignTextToFramePadding();
             ImGui::TextUnformatted("Render Mode");
             ImGui::NextColumn();
@@ -579,7 +529,7 @@ namespace Lumos
             if(ImGui::BeginMenu(RenderModeToString(m_RenderMode).c_str()))
             {
                 const int numRenderModes = 8;
-				
+
                 for(int i = 0; i < numRenderModes; i++)
                 {
                     if(ImGui::MenuItem(RenderModeToString(i).c_str(), "", m_RenderMode == i, true))
@@ -591,7 +541,7 @@ namespace Lumos
             }
             ImGui::PopItemWidth();
             ImGui::NextColumn();
-			
+
             ImGui::Columns(1);
             ImGui::Separator();
             ImGui::PopStyleVar();

@@ -48,12 +48,10 @@ namespace Lumos
             bool HadRendered() const { return m_HasRendered; }
 
         private:
-            void SetSystemUniforms(Shader* shader);
-
             Material* m_DefaultMaterial;
 
-            SharedRef<Shader> m_AnimatedShader = nullptr;
-            SharedRef<Lumos::Graphics::Pipeline> m_AnimatedPipeline;
+            SharedPtr<Shader> m_AnimatedShader = nullptr;
+            SharedPtr<Lumos::Graphics::Pipeline> m_AnimatedPipeline;
 
             bool m_HasRendered = false;
         };

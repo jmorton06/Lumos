@@ -20,7 +20,7 @@ namespace Lumos
             LUMOS_ASSERT(CreateFunc, "No Shader Create Function");
             return CreateFunc(filepath);
         }
-    
+
         Shader* Shader::CreateFromEmbeddedArray(const uint32_t* vertData, uint32_t vertDataSize, const uint32_t* fragData, uint32_t fragDataSize)
         {
             LUMOS_ASSERT(CreateFunc, "No Shader Create Function");
@@ -60,6 +60,8 @@ namespace Lumos
                 if(type.vecsize == 4)
                     return ShaderDataType::VEC4;
                 break;
+            case spirv_cross::SPIRType::Struct:
+                return ShaderDataType::STRUCT;
             }
             LUMOS_LOG_WARN("Unknown spirv type!");
             return ShaderDataType::NONE;

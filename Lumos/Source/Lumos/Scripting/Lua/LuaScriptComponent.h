@@ -63,7 +63,7 @@ namespace Lumos
         void save(Archive& archive) const
         {
             std::string newPath;
-            VFS::Get()->AbsoulePathToVFS(m_FileName, newPath);
+            VFS::Get().AbsoulePathToVFS(m_FileName, newPath);
             archive(cereal::make_nvp("FilePath", newPath));
         }
 
@@ -81,14 +81,14 @@ namespace Lumos
 
         std::map<int, std::string> m_Errors;
 
-        SharedRef<sol::environment> m_Env;
-        SharedRef<sol::protected_function> m_OnInitFunc;
-        SharedRef<sol::protected_function> m_UpdateFunc;
-        SharedRef<sol::protected_function> m_OnReleaseFunc;
+        SharedPtr<sol::environment> m_Env;
+        SharedPtr<sol::protected_function> m_OnInitFunc;
+        SharedPtr<sol::protected_function> m_UpdateFunc;
+        SharedPtr<sol::protected_function> m_OnReleaseFunc;
 
-        SharedRef<sol::protected_function> m_Phys2DBeginFunc;
-        SharedRef<sol::protected_function> m_Phys3DBeginFunc;
-        SharedRef<sol::protected_function> m_Phys2DEndFunc;
-        SharedRef<sol::protected_function> m_Phys3DEndFunc;
+        SharedPtr<sol::protected_function> m_Phys2DBeginFunc;
+        SharedPtr<sol::protected_function> m_Phys3DBeginFunc;
+        SharedPtr<sol::protected_function> m_Phys2DEndFunc;
+        SharedPtr<sol::protected_function> m_Phys3DEndFunc;
     };
 }

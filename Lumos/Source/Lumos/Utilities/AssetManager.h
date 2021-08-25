@@ -14,7 +14,7 @@ namespace Lumos
     public:
         typedef T Type;
         typedef std::string IDType;
-        typedef SharedRef<T> ResourceHandle;
+        typedef SharedPtr<T> ResourceHandle;
 
         struct Resource
         {
@@ -78,7 +78,7 @@ namespace Lumos
 
             return itr->second.data;
         }
-        
+
         void AddResource(const IDType& name, ResourceHandle& data)
         {
             typename MapType::iterator itr = m_NameResourceMap.find(name);
@@ -172,9 +172,9 @@ namespace Lumos
         {
         }
 
-        static bool Load(const std::string& filePath, SharedRef<Graphics::Shader>& shader)
+        static bool Load(const std::string& filePath, SharedPtr<Graphics::Shader>& shader)
         {
-            shader = SharedRef<Graphics::Shader>(Graphics::Shader::CreateFromFile(filePath));
+            shader = SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromFile(filePath));
             return true;
         }
     };

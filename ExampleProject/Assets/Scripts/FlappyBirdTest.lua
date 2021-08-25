@@ -24,20 +24,25 @@ local entityManager = {}
 local player = {}
 local camera = {}
 local score = 0
-local iconTexture = LoadTextureWithParams("icon", "//Textures/TappyPlane/PNG/rock.png", TextureFilter.Linear, TextureWrap.ClampToEdge)
-local gameOverTexture = LoadTextureWithParams("gameOver", "//Textures/TappyPlane/PNG/UI/textGameOver.png", TextureFilter.Linear, TextureWrap.ClampToEdge)
+local iconTexture = nil
+local gameOverTexture = nil
 local gameOverEntity = nil
 local gameOverScale = 1.0
 local totalTime = 0.0
+local gameOverSize = Vector2.new(30, 4)
 
-function beginContact(a, b)
-    gameState = GameStates.GameOver
+function EndGame()
+	gameState = GameStates.GameOver
 
     if gameOverEntity == nil then
     gameOverEntity = entityManager:Create()
-    gameOverEntity:AddSprite(Vector2.new(0.0,0.0), Vector2.new(30, 4), Vector4.new(1.0,1.0,1.0,1.0)):SetTexture(gameOverTexture)
-    gameOverEntity:GetTransform():SetPosition(player:GetTransform():GetWorldPosition() + Vector3.new(15, 2, 0.0, 0.0))
+    gameOverEntity:AddSprite(Vector2.new(0.0, 0.0), gameOverSize, Vector4.new(1.0, 1.0, 1.0, 1.0)):SetTexture(gameOverTexture)
+	gameOverPos = player:GetTransform():GetWorldPosition() + Vector3.new(15.0, 2.0, 1.0)
     end
+end
+
+function beginContact(a, b)
+    EndGame()
 end
 
 function endContact(a, b, coll)
@@ -138,6 +143,8 @@ end
 backgrounds = {}
 
 function OnInit()
+	iconTexture = LoadTextureWithParams("icon", "//Textures/TappyPlane/PNG/rock.png", TextureFilter.Linear, TextureWrap.ClampToEdge)
+	gameOverTexture = LoadTextureWithParams("gameOver", "//Textures/TappyPlane/PNG/UI/textGameOver.png", TextureFilter.Linear, TextureWrap.ClampToEdge)
 
     entityManager = scene:GetEntityManager()
 
@@ -191,7 +198,7 @@ function OnUpdate(dt)
         pos = player:GetTransform():GetWorldPosition()
 
 		if pos.y > MAX_HEIGHT or pos.y < -MAX_HEIGHT then
-            gameState = GameStates.GameOver
+           	 EndGame()
         end
 
         pos.y = 0.0
@@ -225,6 +232,13 @@ function OnUpdate(dt)
         gui.text(tostring(score))
         gui.endWindow()
     elseif gameState == GameStates.GameOver then
+
+        totalTime = totalTime + dt * 2
+        gameOverScale = 1.0  + (math.sin(totalTime) + 1.0) / 10.0
+        gameOverEntity:GetTransform():SetLocalScale(Vector3.new(gameOverScale, gameOverScale, gameOverScale))
+ 
+		gameOverEntity:GetTransform():SetLocalPosition(camera:GetTransform():GetWorldPosition() - Vector3.new((gameOverScale *  gameOverSize.x )/ 2, (gameOverScale *  gameOverSize.y )/ 2, -2.0))
+
         gui.setNextWindowPos(gui.ImVec2.new(268.0, 50.0))
         gui.setNextWindowBgAlpha(0.4)
         gui.beginWindow("GameOver", gui.WindowFlags.NoDecoration)
@@ -232,11 +246,6 @@ function OnUpdate(dt)
         gui.text("Score : ")
         gui.sameLine()
         gui.text(tostring(score))
-
-       totalTime = totalTime + dt
-       gameOverScale = 1.0  + (math.sin(totalTime / 2000000) + 1.0) / 20.0
-       gameOverEntity:GetTransform():SetLocalScale(Vector3.new(gameOverScale, gameOverScale, gameOverScale))
-
         if gui.button("Reset") then
             Reset();
         end
@@ -251,7 +260,7 @@ function OnUpdate(dt)
         gui.endWindow()
 
  	   pos = player:GetTransform():GetWorldPosition()
-        pos.y = 0.0
+       pos.y = 0.0
  	   camera:GetTransform():SetLocalPosition(pos)
 	 	if Input.GetKeyPressed( Key.Space ) or Input.GetMouseClicked(MouseButton.Left) then
 			gameState = GameStates.Running
@@ -306,11 +315,30 @@ function OnCleanUp()
     texture = nil
     blockPhysics = nil
     blockPhysics2 = nil
+	iconTexture = nil
+	gameOverTexture = nil
 end
 
 function OnRelease()
     OnCleanUp()
 end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

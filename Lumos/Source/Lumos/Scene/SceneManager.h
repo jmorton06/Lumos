@@ -40,7 +40,7 @@ namespace Lumos
         }
 
         std::vector<std::string> GetSceneNames();
-        const std::vector<SharedRef<Scene>>& GetScenes() const
+        const std::vector<SharedPtr<Scene>>& GetScenes() const
         {
             return m_vpAllScenes;
         }
@@ -61,7 +61,7 @@ namespace Lumos
         void EnqueueScene(const std::string& name)
         {
             //T* scene = new T(name);
-            m_vpAllScenes.emplace_back(CreateSharedRef<T>(name));
+            m_vpAllScenes.emplace_back(CreateSharedPtr<T>(name));
             LUMOS_LOG_INFO("[SceneManager] - Enqueued scene : {0}", name.c_str());
         }
 
@@ -80,7 +80,7 @@ namespace Lumos
     protected:
         uint32_t m_SceneIdx;
         Scene* m_CurrentScene;
-        std::vector<SharedRef<Scene>> m_vpAllScenes;
+        std::vector<SharedPtr<Scene>> m_vpAllScenes;
         std::vector<std::string> m_SceneFilePaths;
         std::vector<std::string> m_SceneFilePathsToLoad;
 

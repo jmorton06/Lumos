@@ -11,6 +11,6 @@ namespace Lumos
 
         void Init();
         void Run() override;
-		std::string GetExecutablePath() override;
+        std::string GetExecutablePath() override;
     };
 }

@@ -104,6 +104,6 @@ namespace Lumos
         Maths::Vector3 m_PyramidHalfDimensions;
         Maths::Vector3 m_Normals[5];
 
-        static UniqueRef<Hull> m_PyramidHull;
+        static UniquePtr<Hull> m_PyramidHull;
     };
 }

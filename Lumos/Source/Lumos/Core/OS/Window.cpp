@@ -1,17 +1,25 @@
 #include "Precompiled.h"
 #include "Window.h"
+#include "Graphics/RHI/SwapChain.h"
+#include "Graphics/RHI/GraphicsContext.h"
 
 namespace Lumos
 {
     Window* (*Window::CreateFunc)(const WindowDesc&) = NULL;
 
-    Window* Window::Create(const WindowDesc& properties)
+    Window::~Window()
     {
-        LUMOS_ASSERT(CreateFunc, "No Windows Create Function");
-        return CreateFunc(properties);
+        m_SwapChain.reset();
+        m_GraphicsContext.reset();
     }
 
-    bool Window::Initialise(const WindowDesc& properties)
+    Window* Window::Create(const WindowDesc& windowDesc)
+    {
+        LUMOS_ASSERT(CreateFunc, "No Windows Create Function");
+        return CreateFunc(windowDesc);
+    }
+
+    bool Window::Initialise(const WindowDesc& windowDesc)
     {
         return HasInitialised();
     }

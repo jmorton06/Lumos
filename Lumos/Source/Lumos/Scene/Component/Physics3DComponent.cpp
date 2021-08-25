@@ -8,11 +8,11 @@
 namespace Lumos
 {
     Physics3DComponent::Physics3DComponent()
-        : m_RigidBody(CreateSharedRef<RigidBody3D>())
+        : m_RigidBody(CreateSharedPtr<RigidBody3D>())
     {
     }
 
-    Physics3DComponent::Physics3DComponent(SharedRef<RigidBody3D>& physics)
+    Physics3DComponent::Physics3DComponent(SharedPtr<RigidBody3D>& physics)
         : m_RigidBody(physics)
     {
     }
@@ -149,36 +149,36 @@ namespace Lumos
 
     SpringConstraintComponent::SpringConstraintComponent(Entity entity, Entity otherEntity, const Maths::Vector3& pos1, const Maths::Vector3& pos2, float constant)
     {
-        m_Constraint = CreateSharedRef<SpringConstraint>(entity.GetComponent<Physics3DComponent>().GetRigidBody(), otherEntity.GetComponent<Physics3DComponent>().GetRigidBody(), pos1, pos2, 0.9f, 0.5f);
+        m_Constraint = CreateSharedPtr<SpringConstraint>(entity.GetComponent<Physics3DComponent>().GetRigidBody(), otherEntity.GetComponent<Physics3DComponent>().GetRigidBody(), pos1, pos2, 0.9f, 0.5f);
     }
     SpringConstraintComponent::SpringConstraintComponent(Entity entity, Entity otherEntity)
     {
-        m_Constraint = CreateSharedRef<SpringConstraint>(entity.GetComponent<Physics3DComponent>().GetRigidBody(), otherEntity.GetComponent<Physics3DComponent>().GetRigidBody(), 0.9f, 0.5f);
+        m_Constraint = CreateSharedPtr<SpringConstraint>(entity.GetComponent<Physics3DComponent>().GetRigidBody(), otherEntity.GetComponent<Physics3DComponent>().GetRigidBody(), 0.9f, 0.5f);
     }
 
     WeldConstraintComponent::WeldConstraintComponent(Entity entity, Entity otherEntity, const Maths::Vector3& pos1, const Maths::Vector3& pos2, float constant)
     {
-        m_Constraint = CreateSharedRef<WeldConstraint>(entity.GetComponent<Physics3DComponent>().GetRigidBody().get(), otherEntity.GetComponent<Physics3DComponent>().GetRigidBody().get());
+        m_Constraint = CreateSharedPtr<WeldConstraint>(entity.GetComponent<Physics3DComponent>().GetRigidBody().get(), otherEntity.GetComponent<Physics3DComponent>().GetRigidBody().get());
     }
 
     WeldConstraintComponent::WeldConstraintComponent(Entity entity, Entity otherEntity)
     {
-        m_Constraint = CreateSharedRef<WeldConstraint>(entity.GetComponent<Physics3DComponent>().GetRigidBody().get(), otherEntity.GetComponent<Physics3DComponent>().GetRigidBody().get());
+        m_Constraint = CreateSharedPtr<WeldConstraint>(entity.GetComponent<Physics3DComponent>().GetRigidBody().get(), otherEntity.GetComponent<Physics3DComponent>().GetRigidBody().get());
     }
 
     DistanceConstraintComponent::DistanceConstraintComponent(Entity entity, Entity otherEntity, const Maths::Vector3& pos1, const Maths::Vector3& pos2, float constant)
     {
-        m_Constraint = CreateSharedRef<DistanceConstraint>(entity.GetComponent<Physics3DComponent>().GetRigidBody().get(), otherEntity.GetComponent<Physics3DComponent>().GetRigidBody().get(), pos1, pos2);
+        m_Constraint = CreateSharedPtr<DistanceConstraint>(entity.GetComponent<Physics3DComponent>().GetRigidBody().get(), otherEntity.GetComponent<Physics3DComponent>().GetRigidBody().get(), pos1, pos2);
     }
 
     DistanceConstraintComponent::DistanceConstraintComponent(Entity entity, Entity otherEntity)
     {
-        m_Constraint = CreateSharedRef<DistanceConstraint>(entity.GetComponent<Physics3DComponent>().GetRigidBody().get(), otherEntity.GetComponent<Physics3DComponent>().GetRigidBody().get(),
+        m_Constraint = CreateSharedPtr<DistanceConstraint>(entity.GetComponent<Physics3DComponent>().GetRigidBody().get(), otherEntity.GetComponent<Physics3DComponent>().GetRigidBody().get(),
             entity.GetComponent<Physics3DComponent>().GetRigidBody()->GetPosition(), otherEntity.GetComponent<Physics3DComponent>().GetRigidBody()->GetPosition());
     }
 
     AxisConstraintComponent::AxisConstraintComponent(Entity entity, Axes axes)
     {
-        m_Constraint = CreateSharedRef<AxisConstraint>(entity.GetComponent<Physics3DComponent>().GetRigidBody().get(), axes);
+        m_Constraint = CreateSharedPtr<AxisConstraint>(entity.GetComponent<Physics3DComponent>().GetRigidBody().get(), axes);
     }
 }

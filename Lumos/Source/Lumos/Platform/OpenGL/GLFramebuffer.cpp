@@ -18,12 +18,12 @@ namespace Lumos
             m_ColourAttachmentCount = 0;
         }
 
-        GLFramebuffer::GLFramebuffer(const FramebufferDesc& bufferInfo)
+        GLFramebuffer::GLFramebuffer(const FramebufferDesc& frameBufferDesc)
         {
             LUMOS_PROFILE_FUNCTION();
-            m_ScreenFramebuffer = bufferInfo.screenFBO;
-            m_Width = bufferInfo.width;
-            m_Height = bufferInfo.height;
+            m_ScreenFramebuffer = frameBufferDesc.screenFBO;
+            m_Width = frameBufferDesc.width;
+            m_Height = frameBufferDesc.height;
             m_ColourAttachmentCount = 0;
 
             if(m_ScreenFramebuffer)
@@ -35,18 +35,18 @@ namespace Lumos
                 GLCall(glGenFramebuffers(1, &m_Handle));
                 GLCall(glBindFramebuffer(GL_FRAMEBUFFER, m_Handle));
 
-                for(uint32_t i = 0; i < bufferInfo.attachmentCount; i++)
+                for(uint32_t i = 0; i < frameBufferDesc.attachmentCount; i++)
                 {
-                    switch(bufferInfo.attachmentTypes[i])
+                    switch(frameBufferDesc.attachmentTypes[i])
                     {
                     case TextureType::COLOUR:
-                        AddTextureAttachment(TextureFormat::RGBA8, bufferInfo.attachments[i]);
+                        AddTextureAttachment(TextureFormat::RGBA8, frameBufferDesc.attachments[i]);
                         break;
                     case TextureType::DEPTH:
-                        AddTextureAttachment(TextureFormat::DEPTH, bufferInfo.attachments[i]);
+                        AddTextureAttachment(TextureFormat::DEPTH, frameBufferDesc.attachments[i]);
                         break;
                     case TextureType::DEPTHARRAY:
-                        AddTextureLayer(bufferInfo.layer, bufferInfo.attachments[i]);
+                        AddTextureLayer(frameBufferDesc.layer, frameBufferDesc.attachments[i]);
                         break;
                     case TextureType::OTHER:
                         UNIMPLEMENTED;
@@ -60,6 +60,8 @@ namespace Lumos
                 GLCall(glDrawBuffers(static_cast<GLsizei>(m_AttachmentData.size()), m_AttachmentData.data()));
 
                 Validate();
+
+                UnBind();
             }
         }
 
@@ -206,9 +208,9 @@ namespace Lumos
             CreateFunc = CreateFuncGL;
         }
 
-        Framebuffer* GLFramebuffer::CreateFuncGL(const FramebufferDesc& bufferInfo)
+        Framebuffer* GLFramebuffer::CreateFuncGL(const FramebufferDesc& frameBufferDesc)
         {
-            return new GLFramebuffer(bufferInfo);
+            return new GLFramebuffer(frameBufferDesc);
         }
     }
 }

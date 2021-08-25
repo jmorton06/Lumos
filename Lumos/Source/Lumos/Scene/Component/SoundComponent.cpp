@@ -10,10 +10,10 @@ namespace Lumos
 {
     SoundComponent::SoundComponent()
     {
-        m_SoundNode = SharedRef<SoundNode>(SoundNode::Create());
+        m_SoundNode = SharedPtr<SoundNode>(SoundNode::Create());
     }
 
-    SoundComponent::SoundComponent(SharedRef<SoundNode>& sound)
+    SoundComponent::SoundComponent(SharedPtr<SoundNode>& sound)
         : m_SoundNode(sound)
     {
     }

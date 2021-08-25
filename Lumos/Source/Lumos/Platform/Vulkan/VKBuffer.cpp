@@ -2,7 +2,7 @@
 #include "VKBuffer.h"
 #include "VKDevice.h"
 #include "VKRenderer.h"
-#include "VKTools.h"
+#include "VKUtilities.h"
 
 namespace Lumos
 {
@@ -21,17 +21,23 @@ namespace Lumos
 
         VKBuffer::~VKBuffer()
         {
+            LUMOS_PROFILE_FUNCTION();
             if(m_Buffer)
             {
-#ifdef USE_VMA_ALLOCATOR
-                vmaDestroyBuffer(VKDevice::Get().GetAllocator(), m_Buffer, m_Allocation);
-#else
-                vkDestroyBuffer(VKDevice::Device(), m_Buffer, nullptr);
+                VKContext::DeletionQueue& deletionQueue = VKRenderer::GetCurrentDeletionQueue();
 
-                if(m_Memory)
-                {
-                    vkFreeMemory(VKDevice::Device(), m_Memory, nullptr);
-                }
+                auto buffer = m_Buffer;
+                
+#ifdef USE_VMA_ALLOCATOR
+                auto alloc = m_Allocation;
+                deletionQueue.PushFunction([buffer, alloc]
+                    { vmaDestroyBuffer(VKDevice::Get().GetAllocator(), buffer, alloc); });
+#else
+                auto memory = m_Memory;
+                deletionQueue.PushFunction([buffer, memory]
+                    {
+                    vkDestroyBuffer(VKDevice::Device(), buffer, nullptr);
+                    vkFreeMemory(VKDevice::Device(), memory, nullptr); });
 #endif
             }
         }

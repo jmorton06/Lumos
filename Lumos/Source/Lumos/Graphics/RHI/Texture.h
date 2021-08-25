@@ -1,136 +1,10 @@
 #pragma once
-
-#define MAX_MIPS 11
+#include "Definitions.h"
 
 namespace Lumos
 {
     namespace Graphics
     {
-        enum class TextureWrap
-        {
-            NONE,
-            REPEAT,
-            CLAMP,
-            MIRRORED_REPEAT,
-            CLAMP_TO_EDGE,
-            CLAMP_TO_BORDER
-        };
-
-        enum class TextureFilter
-        {
-            NONE,
-            LINEAR,
-            NEAREST
-        };
-
-        enum class TextureFormat
-        {
-            NONE,
-            R8,
-            RG8,
-            RGB8,
-            RGBA8,
-            RGB16,
-            RGBA16,
-            RGB32,
-            RGBA32,
-            RGB,
-            RGBA,
-            DEPTH,
-            STENCIL,
-            DEPTH_STENCIL,
-            SCREEN
-        };
-
-        enum class TextureType
-        {
-            COLOUR,
-            DEPTH,
-            DEPTHARRAY,
-            CUBE,
-            OTHER
-        };
-
-        struct TextureParameters
-        {
-            TextureFormat format;
-            TextureFilter minFilter;
-            TextureFilter magFilter;
-            TextureWrap wrap;
-            bool srgb = false;
-            uint32_t msaaLevel;
-
-            TextureParameters()
-            {
-                format = TextureFormat::RGBA8;
-                minFilter = TextureFilter::NEAREST;
-                magFilter = TextureFilter::NEAREST;
-                wrap = TextureWrap::REPEAT;
-                msaaLevel = 1;
-            }
-
-            TextureParameters(TextureFormat format, TextureFilter minFilter, TextureFilter magFilter, TextureWrap wrap)
-                : format(format)
-                , minFilter(minFilter)
-                , magFilter(magFilter)
-                , wrap(wrap)
-            {
-            }
-
-            TextureParameters(TextureFilter minFilter, TextureFilter magFilter)
-                : format(TextureFormat::RGBA8)
-                , minFilter(minFilter)
-                , magFilter(magFilter)
-                , wrap(TextureWrap::CLAMP)
-            {
-            }
-
-            TextureParameters(TextureFilter minFilter, TextureFilter magFilter, TextureWrap wrap)
-                : format(TextureFormat::RGBA8)
-                , minFilter(minFilter)
-                , magFilter(magFilter)
-                , wrap(wrap)
-            {
-            }
-
-            TextureParameters(TextureWrap wrap)
-                : format(TextureFormat::RGBA8)
-                , minFilter(TextureFilter::LINEAR)
-                , magFilter(TextureFilter::LINEAR)
-                , wrap(wrap)
-            {
-            }
-
-            TextureParameters(TextureFormat format)
-                : format(format)
-                , minFilter(TextureFilter::LINEAR)
-                , magFilter(TextureFilter::LINEAR)
-                , wrap(TextureWrap::CLAMP)
-            {
-            }
-        };
-
-        struct TextureLoadOptions
-        {
-            bool flipX;
-            bool flipY;
-            bool generateMipMaps;
-
-            TextureLoadOptions()
-            {
-                flipX = false;
-                flipY = false;
-                generateMipMaps = true;
-            }
-
-            TextureLoadOptions(bool flipX, bool flipY, bool genMips = true)
-                : flipX(flipX)
-                , flipY(flipY)
-                , generateMipMaps(genMips)
-            {
-            }
-        };
-
         class LUMOS_EXPORT Texture
         {
         public:
@@ -145,6 +19,11 @@ namespace Lumos
             virtual const std::string& GetName() const = 0;
             virtual const std::string& GetFilepath() const = 0;
 
+            virtual uint32_t GetWidth() const = 0;
+            virtual uint32_t GetHeight() const = 0;
+            virtual TextureType GetType() const = 0;
+            virtual TextureFormat GetFormat() const = 0;
+
             virtual uint32_t GetSize() const
             {
                 return 0;
@@ -154,6 +33,7 @@ namespace Lumos
                 return 0;
             }
             virtual void* GetHandle() const = 0;
+            virtual void* GetImageHande() const { return GetHandle(); };
 
             static bool IsDepthStencilFormat(TextureFormat format)
             {
@@ -170,19 +50,24 @@ namespace Lumos
                 return format == TextureFormat::STENCIL;
             }
 
+            bool IsSampled() const { return m_Flags & Texture_Sampled; }
+            bool IsStorage() const { return m_Flags & Texture_Storage; }
+            bool IsDepthStencil() const { return m_Flags & Texture_DepthStencil; }
+            bool IsRenderTarget() const { return m_Flags & Texture_RenderTarget; }
+
         public:
             static uint8_t GetStrideFromFormat(TextureFormat format);
             static TextureFormat BitsToTextureFormat(uint32_t bits);
             static uint32_t CalculateMipMapCount(uint32_t width, uint32_t height);
+
+        protected:
+            uint16_t m_Flags = 0;
         };
 
         class LUMOS_EXPORT Texture2D : public Texture
         {
         public:
             virtual void SetData(const void* pixels) = 0;
-
-            virtual uint32_t GetWidth() const = 0;
-            virtual uint32_t GetHeight() const = 0;
 
         public:
             static Texture2D* Create();

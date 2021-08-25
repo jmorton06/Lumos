@@ -8,7 +8,7 @@ namespace Lumos::Graphics
         m_CurrentFrame = 0;
     }
 
-    AnimatedSprite::AnimatedSprite(const SharedRef<Texture2D>& texture, const Maths::Vector2& position, const Maths::Vector2& scale, const std::vector<Maths::Vector2>& frames,
+    AnimatedSprite::AnimatedSprite(const SharedPtr<Texture2D>& texture, const Maths::Vector2& position, const Maths::Vector2& scale, const std::vector<Maths::Vector2>& frames,
         float frameDuration, const std::string& stateName)
     {
         m_Texture = texture;

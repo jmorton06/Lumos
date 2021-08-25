@@ -195,7 +195,7 @@ namespace Lumos
         }
 
         void CreateGridRenderer();
-        const SharedRef<Graphics::GridRenderer>& GetGridRenderer();
+        const SharedPtr<Graphics::GridRenderer>& GetGridRenderer();
 
         EditorCameraController& GetEditorCameraController()
         {
@@ -241,11 +241,12 @@ namespace Lumos
         Maths::Vector3 m_CameraStartPosition;
         float m_CameraTransitionStartTime = 0.0f;
         float m_CameraTransitionSpeed = 0.0f;
+        bool m_SleepOutofFocus = true;
 
         bool m_FullScreenSceneView = false;
         ImGuiHelpers::Theme m_Theme = ImGuiHelpers::Theme::Dark;
 
-        std::vector<SharedRef<EditorPanel>> m_Panels;
+        std::vector<SharedPtr<EditorPanel>> m_Panels;
 
         std::unordered_map<size_t, const char*> m_ComponentIconMap;
 
@@ -254,11 +255,11 @@ namespace Lumos
         EditorCameraController m_EditorCameraController;
         Maths::Transform m_EditorCameraTransform;
 
-        SharedRef<Camera> m_EditorCamera = nullptr;
-        SharedRef<Graphics::ForwardRenderer> m_PreviewRenderer;
-        SharedRef<Graphics::Texture2D> m_PreviewTexture;
-        SharedRef<Graphics::Mesh> m_PreviewSphere;
-        SharedRef<Graphics::GridRenderer> m_GridRenderer;
+        SharedPtr<Camera> m_EditorCamera = nullptr;
+        SharedPtr<Graphics::ForwardRenderer> m_PreviewRenderer;
+        SharedPtr<Graphics::Texture2D> m_PreviewTexture;
+        SharedPtr<Graphics::Mesh> m_PreviewSphere;
+        SharedPtr<Graphics::GridRenderer> m_GridRenderer;
         std::string m_TempSceneSaveFilePath;
 
         IniFile m_IniFile;

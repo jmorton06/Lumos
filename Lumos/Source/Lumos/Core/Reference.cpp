@@ -45,7 +45,7 @@ namespace Lumos
 
     bool RefCount::reference()
     {
-        bool success = m_Refcount.SharedRef();
+        bool success = m_Refcount.SharedPtr();
 
         return success;
     }
@@ -59,7 +59,7 @@ namespace Lumos
 
     bool RefCount::weakReference()
     {
-        bool success = m_WeakRefcount.SharedRef();
+        bool success = m_WeakRefcount.SharedPtr();
 
         return success;
     }

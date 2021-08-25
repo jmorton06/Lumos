@@ -9,7 +9,7 @@
 #include "VKDevice.h"
 #include "VKCommandBuffer.h"
 #include "VKRenderer.h"
-#include "VKRenderpass.h"
+#include "VKRenderPass.h"
 #include "VKTexture.h"
 
 static ImGui_ImplVulkanH_Window g_WindowData;
@@ -42,7 +42,7 @@ namespace Lumos
 
         VKIMGUIRenderer::~VKIMGUIRenderer()
         {
-            for(int i = 0; i < Renderer::GetRenderer()->GetSwapchain()->GetSwapchainBufferCount(); i++)
+            for(int i = 0; i < Renderer::GetMainSwapChain()->GetSwapChainBufferCount(); i++)
             {
                 delete m_Framebuffers[i];
             }
@@ -50,7 +50,7 @@ namespace Lumos
             delete m_Renderpass;
             delete m_FontTexture;
 
-            for(int i = 0; i < Renderer::GetRenderer()->GetSwapchain()->GetSwapchainBufferCount(); i++)
+            for(int i = 0; i < Renderer::GetMainSwapChain()->GetSwapChainBufferCount(); i++)
             {
                 ImGui_ImplVulkanH_Frame* fd = &g_WindowData.Frames[i];
 
@@ -93,23 +93,24 @@ namespace Lumos
             wd->Surface = surface;
             wd->ClearEnable = m_ClearScreen;
 
-            auto swapChain = static_cast<VKSwapchain*>(VKRenderer::GetSwapchain());
-            wd->Swapchain = swapChain->GetSwapchain();
+            auto swapChain = static_cast<VKSwapChain*>(VKRenderer::GetMainSwapChain());
+            wd->Swapchain = swapChain->GetSwapChain();
             wd->Width = width;
             wd->Height = height;
 
-            wd->ImageCount = static_cast<uint32_t>(swapChain->GetSwapchainBufferCount());
+            wd->ImageCount = static_cast<uint32_t>(swapChain->GetSwapChainBufferCount());
 
-            AttachmentInfo textureTypes[2] = {
-                { TextureType::COLOUR, TextureFormat::SCREEN }
-            };
+            TextureType textureTypes[1] = { TextureType::COLOUR };
+            
+            Texture* textures[1] = { swapChain->GetImage(0) };
 
-            Graphics::RenderPassDesc renderpassCI;
-            renderpassCI.attachmentCount = 1;
-            renderpassCI.textureType = textureTypes;
-            renderpassCI.clear = m_ClearScreen;
+            Graphics::RenderPassDesc renderPassDesc;
+            renderPassDesc.attachmentCount = 1;
+            renderPassDesc.attachmentTypes = textureTypes;
+            renderPassDesc.clear = m_ClearScreen;
+            renderPassDesc.attachments = textures;
 
-            m_Renderpass = new VKRenderpass(renderpassCI);
+            m_Renderpass = new VKRenderPass(renderPassDesc);
             wd->RenderPass = m_Renderpass->GetHandle();
 
             wd->Frames = (ImGui_ImplVulkanH_Frame*)IM_ALLOC(sizeof(ImGui_ImplVulkanH_Frame) * wd->ImageCount);
@@ -131,20 +132,20 @@ namespace Lumos
             attachmentTypes[0] = TextureType::COLOUR;
 
             Texture* attachments[1];
-            FramebufferDesc bufferInfo {};
-            bufferInfo.width = wd->Width;
-            bufferInfo.height = wd->Height;
-            bufferInfo.attachmentCount = 1;
-            bufferInfo.renderPass = m_Renderpass;
-            bufferInfo.attachmentTypes = attachmentTypes;
-            bufferInfo.screenFBO = true;
+            FramebufferDesc frameBufferDesc {};
+            frameBufferDesc.width = wd->Width;
+            frameBufferDesc.height = wd->Height;
+            frameBufferDesc.attachmentCount = 1;
+            frameBufferDesc.renderPass = m_Renderpass;
+            frameBufferDesc.attachmentTypes = attachmentTypes;
+            frameBufferDesc.screenFBO = true;
 
-            for(uint32_t i = 0; i < Renderer::GetRenderer()->GetSwapchain()->GetSwapchainBufferCount(); i++)
+            for(uint32_t i = 0; i < Renderer::GetMainSwapChain()->GetSwapChainBufferCount(); i++)
             {
-                attachments[0] = Renderer::GetRenderer()->GetSwapchain()->GetImage(i);
-                bufferInfo.attachments = attachments;
+                attachments[0] = Renderer::GetMainSwapChain()->GetImage(i);
+                frameBufferDesc.attachments = attachments;
 
-                m_Framebuffers[i] = new VKFramebuffer(bufferInfo);
+                m_Framebuffers[i] = new VKFramebuffer(frameBufferDesc);
                 wd->Frames[i].Framebuffer = m_Framebuffers[i]->GetFramebuffer();
             }
         }
@@ -156,12 +157,12 @@ namespace Lumos
             w = (int)m_Width;
             h = (int)m_Height;
             ImGui_ImplVulkanH_Window* wd = &g_WindowData;
-            VkSurfaceKHR surface = VKContext::Get()->GetSwapchain()->GetSurface();
+            VkSurfaceKHR surface = VKRenderer::GetMainSwapChain()->GetSurface();
             SetupVulkanWindowData(wd, surface, w, h);
 
             // Setup Vulkan binding
             ImGui_ImplVulkan_InitInfo init_info = {};
-            init_info.Instance = VKContext::Get()->GetVKInstance();
+            init_info.Instance = VKContext::GetVKInstance();
             init_info.PhysicalDevice = VKDevice::Get().GetGPU();
             init_info.Device = VKDevice::Get().GetDevice();
             init_info.QueueFamily = VKDevice::Get().GetPhysicalDevice()->GetGraphicsQueueFamilyIndex();
@@ -171,7 +172,7 @@ namespace Lumos
             init_info.Allocator = g_Allocator;
             init_info.CheckVkResultFn = NULL;
             init_info.MinImageCount = 2;
-            init_info.ImageCount = (uint32_t)Renderer::GetRenderer()->GetSwapchain()->GetSwapchainBufferCount();
+            init_info.ImageCount = (uint32_t)Renderer::GetMainSwapChain()->GetSwapChainBufferCount();
             ImGui_ImplVulkan_Init(&init_info, wd->RenderPass);
             // Upload Fonts
             {
@@ -205,14 +206,16 @@ namespace Lumos
 
         void VKIMGUIRenderer::FrameRender(ImGui_ImplVulkanH_Window* wd)
         {
-            wd->FrameIndex = Renderer::GetRenderer()->GetSwapchain()->GetCurrentBufferIndex();
+            wd->FrameIndex = VKRenderer::GetMainSwapChain()->GetCurrentImageIndex();
+            
+            ImGui_ImplVulkan_CreateDescriptorSets(ImGui::GetDrawData());
 
-            m_Renderpass->BeginRenderpass(Renderer::GetSwapchain()->GetCurrentCommandBuffer(), Maths::Vector4(0.1f, 0.1f, 0.1f, 1.0f), m_Framebuffers[wd->FrameIndex], Graphics::SubPassContents::INLINE, wd->Width, wd->Height);
+            m_Renderpass->BeginRenderpass(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer(), Maths::Vector4(0.1f, 0.1f, 0.1f, 1.0f), m_Framebuffers[wd->FrameIndex], Graphics::SubPassContents::INLINE, wd->Width, wd->Height);
 
             // Record Imgui Draw Data and draw funcs into command buffer
-            ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), ((VKCommandBuffer*)Renderer::GetSwapchain()->GetCurrentCommandBuffer())->GetHandle());
+            ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), ((VKCommandBuffer*)Renderer::GetMainSwapChain()->GetCurrentCommandBuffer())->GetHandle());
 
-            m_Renderpass->EndRenderpass(Renderer::GetSwapchain()->GetCurrentCommandBuffer());
+            m_Renderpass->EndRenderpass(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer());
         }
 
         void VKIMGUIRenderer::Render(Lumos::Graphics::CommandBuffer* commandBuffer)
@@ -224,8 +227,8 @@ namespace Lumos
         void VKIMGUIRenderer::OnResize(uint32_t width, uint32_t height)
         {
             auto* wd = &g_WindowData;
-            auto swapChain = static_cast<VKSwapchain*>(VKRenderer::GetSwapchain());
-            wd->Swapchain = swapChain->GetSwapchain();
+            auto swapChain = static_cast<VKSwapChain*>(VKRenderer::GetMainSwapChain());
+            wd->Swapchain = swapChain->GetSwapChain();
             for(uint32_t i = 0; i < wd->ImageCount; i++)
             {
                 auto scBuffer = (VKTexture2D*)swapChain->GetImage(i);
@@ -245,20 +248,20 @@ namespace Lumos
             attachmentTypes[0] = TextureType::COLOUR;
 
             Texture* attachments[1];
-            FramebufferDesc bufferInfo {};
-            bufferInfo.width = wd->Width;
-            bufferInfo.height = wd->Height;
-            bufferInfo.attachmentCount = 1;
-            bufferInfo.renderPass = m_Renderpass;
-            bufferInfo.attachmentTypes = attachmentTypes;
-            bufferInfo.screenFBO = true;
+            FramebufferDesc frameBufferDesc {};
+            frameBufferDesc.width = wd->Width;
+            frameBufferDesc.height = wd->Height;
+            frameBufferDesc.attachmentCount = 1;
+            frameBufferDesc.renderPass = m_Renderpass;
+            frameBufferDesc.attachmentTypes = attachmentTypes;
+            frameBufferDesc.screenFBO = true;
 
-            for(uint32_t i = 0; i < Renderer::GetRenderer()->GetSwapchain()->GetSwapchainBufferCount(); i++)
+            for(uint32_t i = 0; i < Renderer::GetMainSwapChain()->GetSwapChainBufferCount(); i++)
             {
-                attachments[0] = Renderer::GetRenderer()->GetSwapchain()->GetImage(i);
-                bufferInfo.attachments = attachments;
+                attachments[0] = Renderer::GetMainSwapChain()->GetImage(i);
+                frameBufferDesc.attachments = attachments;
 
-                m_Framebuffers[i] = new VKFramebuffer(bufferInfo);
+                m_Framebuffers[i] = new VKFramebuffer(frameBufferDesc);
                 wd->Frames[i].Framebuffer = m_Framebuffers[i]->GetFramebuffer();
             }
         }

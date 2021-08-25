@@ -17,10 +17,10 @@ namespace Lumos
         AxisConstraintComponent(Entity entity, Axes axis);
         ~AxisConstraintComponent() = default;
 
-        const SharedRef<AxisConstraint>& GetConstraint() const { return m_Constraint; }
+        const SharedPtr<AxisConstraint>& GetConstraint() const { return m_Constraint; }
 
     private:
-        SharedRef<AxisConstraint> m_Constraint;
+        SharedPtr<AxisConstraint> m_Constraint;
     };
 
     class SpringConstraintComponent
@@ -30,10 +30,10 @@ namespace Lumos
         SpringConstraintComponent(Entity entity, Entity otherEntity);
         ~SpringConstraintComponent() = default;
 
-        const SharedRef<SpringConstraint>& GetConstraint() const { return m_Constraint; }
+        const SharedPtr<SpringConstraint>& GetConstraint() const { return m_Constraint; }
 
     private:
-        SharedRef<SpringConstraint> m_Constraint;
+        SharedPtr<SpringConstraint> m_Constraint;
         Entity m_OtherEntity;
     };
 
@@ -44,10 +44,10 @@ namespace Lumos
         WeldConstraintComponent(Entity entity, Entity otherEntity);
         ~WeldConstraintComponent() = default;
 
-        const SharedRef<WeldConstraint>& GetConstraint() const { return m_Constraint; }
+        const SharedPtr<WeldConstraint>& GetConstraint() const { return m_Constraint; }
 
     private:
-        SharedRef<WeldConstraint> m_Constraint;
+        SharedPtr<WeldConstraint> m_Constraint;
         Entity m_OtherEntity;
     };
 
@@ -58,10 +58,10 @@ namespace Lumos
         DistanceConstraintComponent(Entity entity, Entity otherEntity);
         ~DistanceConstraintComponent() = default;
 
-        const SharedRef<DistanceConstraint>& GetConstraint() const { return m_Constraint; }
+        const SharedPtr<DistanceConstraint>& GetConstraint() const { return m_Constraint; }
 
     private:
-        SharedRef<DistanceConstraint> m_Constraint;
+        SharedPtr<DistanceConstraint> m_Constraint;
         Entity m_OtherEntity;
     };
 
@@ -69,7 +69,7 @@ namespace Lumos
     {
     public:
         Physics3DComponent();
-        explicit Physics3DComponent(SharedRef<RigidBody3D>& physics);
+        explicit Physics3DComponent(SharedPtr<RigidBody3D>& physics);
 
         ~Physics3DComponent() = default;
 
@@ -77,7 +77,7 @@ namespace Lumos
         void Update();
         void OnImGui();
 
-        const SharedRef<RigidBody3D>& GetRigidBody() const
+        const SharedPtr<RigidBody3D>& GetRigidBody() const
         {
             return m_RigidBody;
         }
@@ -91,11 +91,11 @@ namespace Lumos
         template <typename Archive>
         void load(Archive& archive)
         {
-            m_RigidBody = CreateSharedRef<RigidBody3D>();
+            m_RigidBody = CreateSharedPtr<RigidBody3D>();
             archive(*m_RigidBody.get());
         }
 
     private:
-        SharedRef<RigidBody3D> m_RigidBody;
+        SharedPtr<RigidBody3D> m_RigidBody;
     };
 }

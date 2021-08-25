@@ -6,7 +6,7 @@
 #include "Graphics/RHI/UniformBuffer.h"
 #include "Graphics/RHI/Renderer.h"
 #include "Graphics/RHI/CommandBuffer.h"
-#include "Graphics/RHI/Swapchain.h"
+#include "Graphics/RHI/SwapChain.h"
 #include "Graphics/RHI/RenderPass.h"
 #include "Graphics/RHI/Pipeline.h"
 #include "Graphics/RHI/IndexBuffer.h"
@@ -353,7 +353,6 @@ namespace Lumos
         if(m_Renderer2D && m_Renderer2D->GetTriangleCount() > 0)
         {
             m_Renderer2D->Begin();
-            m_Renderer2D->SetSystemUniforms(m_Renderer2D->GetShader().get());
             m_Renderer2D->SubmitTriangles();
             m_Renderer2D->Present();
             m_Renderer2D->End();

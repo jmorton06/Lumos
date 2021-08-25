@@ -13,15 +13,15 @@ namespace Lumos
             Environment();
             Environment(TextureCube* env)
             {
-                m_Environmnet = SharedRef<TextureCube>(env);
+                m_Environmnet = SharedPtr<TextureCube>(env);
                 m_PrefilteredEnvironment = nullptr;
                 m_IrradianceMap = nullptr;
             }
 
             Environment(TextureCube* env, TextureCube* irr)
             {
-                m_Environmnet = SharedRef<TextureCube>(env);
-                m_IrradianceMap = SharedRef<TextureCube>(irr);
+                m_Environmnet = SharedPtr<TextureCube>(env);
+                m_IrradianceMap = SharedPtr<TextureCube>(irr);
                 m_PrefilteredEnvironment = nullptr;
             }
 
@@ -76,9 +76,9 @@ namespace Lumos
             void SetHeight(uint32_t height) { m_Height = height; }
 
         private:
-            SharedRef<TextureCube> m_Environmnet;
-            SharedRef<TextureCube> m_PrefilteredEnvironment;
-            SharedRef<TextureCube> m_IrradianceMap;
+            SharedPtr<TextureCube> m_Environmnet;
+            SharedPtr<TextureCube> m_PrefilteredEnvironment;
+            SharedPtr<TextureCube> m_IrradianceMap;
 
             uint32_t m_NumMips = 0;
             uint32_t m_Width = 0;

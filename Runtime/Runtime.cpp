@@ -24,21 +24,27 @@ public:
 
     void Init() override
     {
-		std::vector<std::string> projectLocations = {"ExampleProject/Example.lmprj", "/Users/jmorton/dev/Lumos/ExampleProject/Example.lmprj", "../ExampleProject/Example.lmprj", OS::Instance()->GetExecutablePath() + "/ExampleProject/Example.lmprj", OS::Instance()->GetExecutablePath() + "/../ExampleProject/Example.lmprj", OS::Instance()->GetExecutablePath() + "/../../ExampleProject/Example.lmprj"};
-		bool fileFound = false;
-		std::string filePath;
-		for(auto& path : projectLocations)
-		{
-			if(FileSystem::FileExists(path))
-			{
-				LUMOS_LOG_INFO("Loaded Project {0}", path);
-				m_ProjectRoot = StringUtilities::GetFileLocation(path);
-				m_ProjectName = "Example";
-				break;
-			}
-		}
-
-    
+        std::vector<std::string> projectLocations = {
+            "ExampleProject/Example.lmproj",
+            "/Users/jmorton/dev/Lumos/ExampleProject/Example.lmproj",
+            "../ExampleProject/Example.lmproj",
+            OS::Instance()->GetExecutablePath() + "/ExampleProject/Example.lmproj",
+            OS::Instance()->GetExecutablePath() + "/../ExampleProject/Example.lmproj",
+            OS::Instance()->GetExecutablePath() + "/../../ExampleProject/Example.lmproj"
+        };
+        
+        bool fileFound = false;
+        std::string filePath;
+        for(auto& path : projectLocations)
+        {
+            if(FileSystem::FileExists(path))
+            {
+                LUMOS_LOG_INFO("Loaded Project {0}", path);
+                m_ProjectRoot = StringUtilities::GetFileLocation(path);
+                m_ProjectName = "Example";
+                break;
+            }
+        }
 
         Application::Init();
         Application::SetEditorState(EditorState::Play);

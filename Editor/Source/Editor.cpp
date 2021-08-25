@@ -92,9 +92,9 @@ namespace Lumos
 #ifdef LUMOS_PLATFORM_IOS
         m_TempSceneSaveFilePath = OS::Instance()->GetAssetPath();
 #else
-		//TODO: Check windows
+        //TODO: Check windows
 #ifdef LUMOS_PLATFORM_LINUX
-		m_TempSceneSaveFilePath = std::filesystem::current_path().string();
+        m_TempSceneSaveFilePath = std::filesystem::current_path().string();
 #else
         m_TempSceneSaveFilePath = std::filesystem::temp_directory_path().string();
 #endif
@@ -102,8 +102,8 @@ namespace Lumos
         m_TempSceneSaveFilePath += "Lumos/";
         if(!FileSystem::FolderExists(m_TempSceneSaveFilePath))
             std::filesystem::create_directory(m_TempSceneSaveFilePath);
-        
-        std::vector<std::string> iniLocation = { "Editor.ini", "/Users/jmorton/dev/Lumos/Editor.ini", "../Editor.ini", StringUtilities::GetFileLocation(OS::Instance()->GetExecutablePath()) + "Editor.ini", StringUtilities::GetFileLocation(OS::Instance()->GetExecutablePath()) + "../../../Editor.ini"};
+
+        std::vector<std::string> iniLocation = { "Editor.ini", "/Users/jmorton/dev/Lumos/Editor.ini", "../Editor.ini", StringUtilities::GetFileLocation(OS::Instance()->GetExecutablePath()) + "Editor.ini", StringUtilities::GetFileLocation(OS::Instance()->GetExecutablePath()) + "../../../Editor.ini" };
         bool fileFound = false;
         std::string filePath;
         for(auto& path : iniLocation)
@@ -141,7 +141,7 @@ namespace Lumos
         Application::SetEditorState(EditorState::Preview);
         Application::Get().GetWindow()->SetEventCallback(BIND_EVENT_FN(Editor::OnEvent));
 
-        m_EditorCamera = CreateSharedRef<Camera>(-20.0f,
+        m_EditorCamera = CreateSharedPtr<Camera>(-20.0f,
             -40.0f,
             Maths::Vector3(-31.0f, 12.0f, 51.0f),
             60.0f,
@@ -165,15 +165,15 @@ namespace Lumos
         m_ComponentIconMap[typeid(Graphics::Environment).hash_code()] = ICON_MDI_EARTH;
         m_ComponentIconMap[typeid(Editor).hash_code()] = ICON_MDI_SQUARE;
 
-        m_Panels.emplace_back(CreateSharedRef<ConsolePanel>());
-        m_Panels.emplace_back(CreateSharedRef<SceneViewPanel>());
-        m_Panels.emplace_back(CreateSharedRef<InspectorPanel>());
-        m_Panels.emplace_back(CreateSharedRef<ApplicationInfoPanel>());
-        m_Panels.emplace_back(CreateSharedRef<HierarchyPanel>());
-        m_Panels.emplace_back(CreateSharedRef<GraphicsInfoPanel>());
+        m_Panels.emplace_back(CreateSharedPtr<ConsolePanel>());
+        m_Panels.emplace_back(CreateSharedPtr<SceneViewPanel>());
+        m_Panels.emplace_back(CreateSharedPtr<InspectorPanel>());
+        m_Panels.emplace_back(CreateSharedPtr<ApplicationInfoPanel>());
+        m_Panels.emplace_back(CreateSharedPtr<HierarchyPanel>());
+        m_Panels.emplace_back(CreateSharedPtr<GraphicsInfoPanel>());
         m_Panels.back()->SetActive(false);
 #ifndef LUMOS_PLATFORM_IOS
-        m_Panels.emplace_back(CreateSharedRef<ResourcePanel>());
+        m_Panels.emplace_back(CreateSharedPtr<ResourcePanel>());
 #endif
 
         for(auto& panel : m_Panels)
@@ -195,7 +195,7 @@ namespace Lumos
 
         ImGuizmo::SetGizmoSizeClipSpace(0.25f);
         ImGuizmo::SetGizmoSizeScale(Application::Get().GetWindowDPI());
-        
+
 #if 0 //TODO: proper way to trigger this
         auto shaderPath = std::filesystem::path("/Users/jmorton/dev/Lumos/Lumos/Assets/Shaders/CompiledSPV/");
         
@@ -537,43 +537,43 @@ namespace Lumos
                 if(ImGui::MenuItem("Cube"))
                 {
                     auto entity = scene->CreateEntity("Cube");
-                    entity.AddComponent<Graphics::Model>(SharedRef<Graphics::Mesh>(Graphics::CreatePrimative(Graphics::PrimitiveType::Cube)), Graphics::PrimitiveType::Cube);
+                    entity.AddComponent<Graphics::Model>(SharedPtr<Graphics::Mesh>(Graphics::CreatePrimative(Graphics::PrimitiveType::Cube)), Graphics::PrimitiveType::Cube);
                 }
 
                 if(ImGui::MenuItem("Sphere"))
                 {
                     auto entity = scene->CreateEntity("Sphere");
-                    entity.AddComponent<Graphics::Model>(SharedRef<Graphics::Mesh>(Graphics::CreatePrimative(Graphics::PrimitiveType::Sphere)), Graphics::PrimitiveType::Sphere);
+                    entity.AddComponent<Graphics::Model>(SharedPtr<Graphics::Mesh>(Graphics::CreatePrimative(Graphics::PrimitiveType::Sphere)), Graphics::PrimitiveType::Sphere);
                 }
 
                 if(ImGui::MenuItem("Pyramid"))
                 {
                     auto entity = scene->CreateEntity("Pyramid");
-                    entity.AddComponent<Graphics::Model>(SharedRef<Graphics::Mesh>(Graphics::CreatePrimative(Graphics::PrimitiveType::Pyramid)), Graphics::PrimitiveType::Pyramid);
+                    entity.AddComponent<Graphics::Model>(SharedPtr<Graphics::Mesh>(Graphics::CreatePrimative(Graphics::PrimitiveType::Pyramid)), Graphics::PrimitiveType::Pyramid);
                 }
 
                 if(ImGui::MenuItem("Plane"))
                 {
                     auto entity = scene->CreateEntity("Plane");
-                    entity.AddComponent<Graphics::Model>(SharedRef<Graphics::Mesh>(Graphics::CreatePrimative(Graphics::PrimitiveType::Plane)), Graphics::PrimitiveType::Plane);
+                    entity.AddComponent<Graphics::Model>(SharedPtr<Graphics::Mesh>(Graphics::CreatePrimative(Graphics::PrimitiveType::Plane)), Graphics::PrimitiveType::Plane);
                 }
 
                 if(ImGui::MenuItem("Cylinder"))
                 {
                     auto entity = scene->CreateEntity("Cylinder");
-                    entity.AddComponent<Graphics::Model>(SharedRef<Graphics::Mesh>(Graphics::CreatePrimative(Graphics::PrimitiveType::Cylinder)), Graphics::PrimitiveType::Cylinder);
+                    entity.AddComponent<Graphics::Model>(SharedPtr<Graphics::Mesh>(Graphics::CreatePrimative(Graphics::PrimitiveType::Cylinder)), Graphics::PrimitiveType::Cylinder);
                 }
 
                 if(ImGui::MenuItem("Capsule"))
                 {
                     auto entity = scene->CreateEntity("Capsule");
-                    entity.AddComponent<Graphics::Model>(SharedRef<Graphics::Mesh>(Graphics::CreatePrimative(Graphics::PrimitiveType::Capsule)), Graphics::PrimitiveType::Capsule);
+                    entity.AddComponent<Graphics::Model>(SharedPtr<Graphics::Mesh>(Graphics::CreatePrimative(Graphics::PrimitiveType::Capsule)), Graphics::PrimitiveType::Capsule);
                 }
 
                 if(ImGui::MenuItem("Terrain"))
                 {
                     auto entity = scene->CreateEntity("Terrain");
-                    entity.AddComponent<Graphics::Model>(SharedRef<Graphics::Mesh>(Graphics::CreatePrimative(Graphics::PrimitiveType::Terrain)), Graphics::PrimitiveType::Terrain);
+                    entity.AddComponent<Graphics::Model>(SharedPtr<Graphics::Mesh>(Graphics::CreatePrimative(Graphics::PrimitiveType::Terrain)), Graphics::PrimitiveType::Terrain);
                 }
 
                 if(ImGui::MenuItem("Light Cube"))
@@ -832,7 +832,7 @@ namespace Lumos
                 std::string sceneName = "NewScene";
                 int sameNameCount = 0;
                 auto sceneNames = m_SceneManager->GetSceneNames();
-                
+
                 while(FileSystem::FileExists("//Scenes/" + sceneName + ".lsn") || std::find(sceneNames.begin(), sceneNames.end(), sceneName) != sceneNames.end())
                 {
                     sameNameCount++;
@@ -1010,7 +1010,7 @@ namespace Lumos
 
         ImGuiID DockspaceID = ImGui::GetID("MyDockspace");
 
-        static std::vector<SharedRef<EditorPanel>> hiddenPanels;
+        static std::vector<SharedPtr<EditorPanel>> hiddenPanels;
         if(m_FullScreenSceneView != gameFullScreen)
         {
             m_FullScreenSceneView = gameFullScreen;
@@ -1058,9 +1058,9 @@ namespace Lumos
             ImGuiID DockingBottomRightChild = ImGui::DockBuilderSplitNode(DockRight, ImGuiDir_Down, 0.4f, nullptr, &DockRight);
 
             ImGuiID DockMiddle = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Right, 0.8f, nullptr, &dock_main_id);
-			ImGuiID DockBottomMiddle = ImGui::DockBuilderSplitNode(DockMiddle, ImGuiDir_Down, 0.3f, nullptr, &DockMiddle);
-            
-			ImGui::DockBuilderDockWindow("###scene", DockMiddle);
+            ImGuiID DockBottomMiddle = ImGui::DockBuilderSplitNode(DockMiddle, ImGuiDir_Down, 0.3f, nullptr, &DockMiddle);
+
+            ImGui::DockBuilderDockWindow("###scene", DockMiddle);
             ImGui::DockBuilderDockWindow("###inspector", DockRight);
             ImGui::DockBuilderDockWindow("###console", DockBottomMiddle);
             ImGui::DockBuilderDockWindow("###profiler", DockingBottomLeftChild);
@@ -1069,7 +1069,7 @@ namespace Lumos
             ImGui::DockBuilderDockWindow("GraphicsInfo", DockLeft);
             ImGui::DockBuilderDockWindow("ApplicationInfo", DockLeft);
             ImGui::DockBuilderDockWindow("###hierarchy", DockLeft);
-			ImGui::DockBuilderDockWindow("Text Editor", DockMiddle);
+            ImGui::DockBuilderDockWindow("###textEdit", DockMiddle);
 
             ImGui::DockBuilderFinish(DockspaceID);
         }
@@ -1537,6 +1537,14 @@ namespace Lumos
             {
                 DebugRenderer::DebugDraw(sound->GetSoundNode(), Maths::Vector4(0.8f, 0.8f, 0.8f, 0.2f));
             }
+
+            auto phys3D = registry.try_get<Physics3DComponent>(m_SelectedEntity);
+            if(phys3D)
+            {
+                auto cs = phys3D->GetRigidBody()->GetCollisionShape();
+                if(cs)
+                    cs->DebugDraw(phys3D->GetRigidBody().get());
+            }
         }
     }
 
@@ -1663,7 +1671,7 @@ namespace Lumos
     {
         LUMOS_PROFILE_FUNCTION();
         std::string physicalPath;
-        if(!VFS::Get()->ResolvePhysicalPath(filePath, physicalPath))
+        if(!VFS::Get().ResolvePhysicalPath(filePath, physicalPath))
         {
             LUMOS_LOG_ERROR("Failed to Load Lua script {0}", filePath);
             return;
@@ -1679,7 +1687,7 @@ namespace Lumos
             }
         }
 
-        m_Panels.emplace_back(CreateSharedRef<TextEditPanel>(physicalPath));
+        m_Panels.emplace_back(CreateSharedPtr<TextEditPanel>(physicalPath));
         m_Panels.back().As<TextEditPanel>()->SetOnSaveCallback(callback);
         m_Panels.back()->SetEditor(this);
     }
@@ -1694,7 +1702,7 @@ namespace Lumos
                 return w;
             }
         }
-        
+
         return nullptr;
     }
 
@@ -1734,6 +1742,14 @@ namespace Lumos
     {
         LUMOS_PROFILE_FUNCTION();
         //DrawPreview();
+        //TODO: move window focus to window
+        //TODO: OS use TSinglton
+        bool isProfiling = false;
+#if LUMOS_PROFILE
+        isProfiling = tracy::GetProfiler().IsConnected();
+#endif
+        if(!isProfiling && m_SleepOutofFocus && !Application::Get().GetWindow()->GetWindowFocus() && m_EditorState != EditorState::Play)
+            OS::Instance()->Delay(100000);
 
         Application::OnRender();
     }
@@ -1743,11 +1759,11 @@ namespace Lumos
         LUMOS_PROFILE_FUNCTION();
         if(!m_PreviewTexture)
         {
-            m_PreviewTexture = SharedRef<Graphics::Texture2D>(Graphics::Texture2D::Create());
+            m_PreviewTexture = SharedPtr<Graphics::Texture2D>(Graphics::Texture2D::Create());
             m_PreviewTexture->BuildTexture(Graphics::TextureFormat::RGBA8, 200, 200, false, false, false);
 
-            m_PreviewRenderer = CreateSharedRef<Graphics::ForwardRenderer>(200, 200, false);
-            m_PreviewSphere = SharedRef<Graphics::Mesh>(Graphics::CreateSphere());
+            m_PreviewRenderer = CreateSharedPtr<Graphics::ForwardRenderer>(200, 200, false);
+            m_PreviewSphere = SharedPtr<Graphics::Mesh>(Graphics::CreateSphere());
 
             m_PreviewRenderer->SetRenderTarget(m_PreviewTexture.get(), true);
         }
@@ -1761,7 +1777,6 @@ namespace Lumos
         m_PreviewRenderer->Begin();
         //m_PreviewRenderer->BeginScene(proj, view);
         m_PreviewRenderer->SubmitMesh(m_PreviewSphere.get(), nullptr, Maths::Matrix4(), Maths::Matrix4());
-        m_PreviewRenderer->SetSystemUniforms(m_PreviewRenderer->GetShader().get());
         m_PreviewRenderer->Present();
         m_PreviewRenderer->End();
     }
@@ -1780,10 +1795,10 @@ namespace Lumos
         else if(IsAudioFile(filePath))
         {
             std::string physicalPath;
-            Lumos::VFS::Get()->ResolvePhysicalPath(filePath, physicalPath);
+            Lumos::VFS::Get().ResolvePhysicalPath(filePath, physicalPath);
             auto sound = Sound::Create(physicalPath, StringUtilities::GetFilePathExtension(filePath));
 
-            auto soundNode = SharedRef<SoundNode>(SoundNode::Create());
+            auto soundNode = SharedPtr<SoundNode>(SoundNode::Create());
             soundNode->SetSound(sound);
             soundNode->SetVolume(1.0f);
             soundNode->SetPosition(Maths::Vector3(0.1f, 10.0f, 10.0f));
@@ -1809,7 +1824,7 @@ namespace Lumos
             auto& sprite = entity.AddComponent<Graphics::Sprite>();
             entity.GetOrAddComponent<Maths::Transform>();
 
-            SharedRef<Graphics::Texture2D> texture = SharedRef<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile(filePath, filePath));
+            SharedPtr<Graphics::Texture2D> texture = SharedPtr<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile(filePath, filePath));
             sprite.SetTexture(texture);
         }
     }
@@ -1817,8 +1832,8 @@ namespace Lumos
     void Editor::ProjectOpenCallback(const std::string& filePath)
     {
         Application::Get().OpenProject(filePath);
-		
-		for(int i = 0; i < int(m_Panels.size()); i++)
+
+        for(int i = 0; i < int(m_Panels.size()); i++)
         {
             m_Panels[i]->OnNewProject();
         }
@@ -1828,8 +1843,8 @@ namespace Lumos
     {
         Application::Get().OpenNewProject(filePath);
         m_FileBrowserPanel.SetOpenDirectory(false);
-		
-		for(int i = 0; i < int(m_Panels.size()); i++)
+
+        for(int i = 0; i < int(m_Panels.size()); i++)
         {
             m_Panels[i]->OnNewProject();
         }
@@ -1851,6 +1866,7 @@ namespace Lumos
         m_IniFile.SetOrAdd("Theme", (int)m_Theme);
         m_IniFile.SetOrAdd("ProjectRoot", m_ProjectRoot);
         m_IniFile.SetOrAdd("ProjectName", m_ProjectName);
+        m_IniFile.SetOrAdd("SleepOutofFocus", m_SleepOutofFocus);
         m_IniFile.Rewrite();
     }
 
@@ -1873,6 +1889,7 @@ namespace Lumos
         m_IniFile.Add("Theme", (int)m_Theme);
         m_IniFile.Add("ProjectRoot", m_ProjectRoot);
         m_IniFile.Add("ProjectName", m_ProjectName);
+        m_IniFile.Add("SleepOutofFocus", m_SleepOutofFocus);
         m_IniFile.Rewrite();
     }
 
@@ -1893,6 +1910,7 @@ namespace Lumos
         m_ProjectName = m_IniFile.GetOrDefault("ProjectName", std::string("Example"));
         m_Physics2DDebugFlags = m_IniFile.GetOrDefault("PhysicsDebugDrawFlags2D", 0);
         m_Physics3DDebugFlags = m_IniFile.GetOrDefault("PhysicsDebugDrawFlags", 0);
+        m_SleepOutofFocus = m_IniFile.GetOrDefault("SleepOutofFocus", true);
     }
 
     const char* Editor::GetIconFontIcon(const std::string& filePath)
@@ -1922,14 +1940,14 @@ namespace Lumos
     {
         LUMOS_PROFILE_FUNCTION();
         if(!m_GridRenderer)
-            m_GridRenderer = CreateSharedRef<Graphics::GridRenderer>(uint32_t(Application::Get().m_SceneViewWidth), uint32_t(Application::Get().m_SceneViewHeight));
+            m_GridRenderer = CreateSharedPtr<Graphics::GridRenderer>(uint32_t(Application::Get().m_SceneViewWidth), uint32_t(Application::Get().m_SceneViewHeight));
     }
 
-    const SharedRef<Graphics::GridRenderer>& Editor::GetGridRenderer()
+    const SharedPtr<Graphics::GridRenderer>& Editor::GetGridRenderer()
     {
         LUMOS_PROFILE_FUNCTION();
-        //if(!m_GridRenderer)
-        //  m_GridRenderer = CreateSharedRef<Graphics::GridRenderer>(uint32_t(Application::Get().m_SceneViewWidth), uint32_t(Application::Get().m_SceneViewHeight), true);
+        if(!m_GridRenderer)
+            m_GridRenderer = CreateSharedPtr<Graphics::GridRenderer>(uint32_t(Application::Get().m_SceneViewWidth), uint32_t(Application::Get().m_SceneViewHeight));
         return m_GridRenderer;
     }
 
@@ -1950,7 +1968,7 @@ namespace Lumos
         else
         {
             std::string physicalPath;
-            if(Lumos::VFS::Get()->ResolvePhysicalPath("//Scenes/" + Application::Get().GetCurrentScene()->GetSceneName() + ".lsn", physicalPath))
+            if(Lumos::VFS::Get().ResolvePhysicalPath("//Scenes/" + Application::Get().GetCurrentScene()->GetSceneName() + ".lsn", physicalPath))
             {
                 auto newPath = StringUtilities::RemoveName(physicalPath);
                 Application::Get().GetCurrentScene()->Deserialise(newPath, false);
@@ -1961,16 +1979,16 @@ namespace Lumos
     void Editor::EmbedShader(const std::string& shaderPath)
     {
         //Based on https://github.com/StableCoder/vksbc
-        
+
         uint32_t* data = reinterpret_cast<uint32_t*>(FileSystem::ReadFile(shaderPath));
         uint32_t size = uint32_t(FileSystem::GetFileSize(shaderPath));
-        
+
         if(!data)
         {
             LUMOS_LOG_WARN("Failed to load shader : {0}", shaderPath);
             return;
         }
-        
+
         std::string shaderName = StringUtilities::GetFileName(shaderPath);
         shaderName = StringUtilities::RemoveFilePathExtension(shaderName);
         shaderName = StringUtilities::RemoveSpaces(shaderName);
@@ -1984,30 +2002,30 @@ namespace Lumos
         ss << "// Header generated by Lumos Editor\n\n";
         ss << "#include <array>\n";
         ss << "#include <cstdint>\n\n";
-        
+
         ss << "constexpr uint32_t spirv_" << shaderName << "_size = " << size << ";\n";
         ss << "constexpr std::array<uint32_t, " << (size / 4) << "> spirv_" << shaderName
-                      << " = {\n    ";
-        
+           << " = {\n    ";
+
         int currentWidth = 0;
-       for (unsigned int i = 0; i < size / 4; ++i)
-       {
-           // Convert the 4-bytes into a 0x00000000 hexadecimal representation.
+        for(unsigned int i = 0; i < size / 4; ++i)
+        {
+            // Convert the 4-bytes into a 0x00000000 hexadecimal representation.
             ss << "0x" << std::hex << std::setw(sizeof(uint32_t) * 8 / 4) << std::uppercase
-                      << std::setfill('0') << data[i] << ", ";
+               << std::setfill('0') << data[i] << ", ";
 
-           ++currentWidth;
+            ++currentWidth;
 
-           // Newline after certain number of items.
-           if (currentWidth == 8)
-           {
+            // Newline after certain number of items.
+            if(currentWidth == 8)
+            {
                 currentWidth = 0;
                 ss << "\n";
-           }
-       }
-        
+            }
+        }
+
         ss << "\n    };";
-        
+
         std::string folder = StringUtilities::GetFileLocation(shaderPath);
         FileSystem::WriteTextFile(folder + "/Headers/" + shaderName + ".hpp", ss.str());
     }

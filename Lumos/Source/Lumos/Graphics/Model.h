@@ -15,14 +15,14 @@ namespace Lumos
         public:
             Model() = default;
             Model(const std::string& filePath);
-            Model(const SharedRef<Mesh>& mesh, PrimitiveType type);
+            Model(const SharedPtr<Mesh>& mesh, PrimitiveType type);
             Model(PrimitiveType type);
 
             ~Model() = default;
 
-            std::vector<SharedRef<Mesh>>& GetMeshes() { return m_Meshes; }
-            const std::vector<SharedRef<Mesh>>& GetMeshes() const { return m_Meshes; }
-            void AddMesh(SharedRef<Mesh> mesh) { m_Meshes.push_back(mesh); }
+            std::vector<SharedPtr<Mesh>>& GetMeshes() { return m_Meshes; }
+            const std::vector<SharedPtr<Mesh>>& GetMeshes() const { return m_Meshes; }
+            void AddMesh(SharedPtr<Mesh> mesh) { m_Meshes.push_back(mesh); }
 
             template <typename Archive>
             void save(Archive& archive) const
@@ -30,7 +30,7 @@ namespace Lumos
                 if(m_Meshes.size() > 0)
                 {
                     std::string newPath;
-                    VFS::Get()->AbsoulePathToVFS(m_FilePath, newPath);
+                    VFS::Get().AbsoulePathToVFS(m_FilePath, newPath);
 
                     auto material = std::unique_ptr<Material>(m_Meshes.front()->GetMaterial().get());
                     archive(cereal::make_nvp("PrimitiveType", m_PrimitiveType), cereal::make_nvp("FilePath", newPath), cereal::make_nvp("Material", material));
@@ -49,15 +49,15 @@ namespace Lumos
 
                 if(m_PrimitiveType != PrimitiveType::File)
                 {
-                    m_Meshes.push_back(SharedRef<Mesh>(CreatePrimative(m_PrimitiveType)));
-                    m_Meshes.back()->SetMaterial(SharedRef<Material>(material.get()));
+                    m_Meshes.push_back(SharedPtr<Mesh>(CreatePrimative(m_PrimitiveType)));
+                    m_Meshes.back()->SetMaterial(SharedPtr<Material>(material.get()));
                     material.release();
                 }
                 else
                 {
                     LoadModel(m_FilePath);
                     //TODO: This should load material changes from editor
-                    //m_Meshes.back()->SetMaterial(SharedRef<Material>(material.get()));
+                    //m_Meshes.back()->SetMaterial(SharedPtr<Material>(material.get()));
                     //material.release();
                 }
             }
@@ -68,7 +68,7 @@ namespace Lumos
 
         private:
             PrimitiveType m_PrimitiveType;
-            std::vector<SharedRef<Mesh>> m_Meshes;
+            std::vector<SharedPtr<Mesh>> m_Meshes;
             std::string m_FilePath;
 
             void LoadOBJ(const std::string& path);

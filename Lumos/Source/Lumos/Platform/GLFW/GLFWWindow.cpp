@@ -4,8 +4,12 @@
 #define GLFW_EXPOSE_NATIVE_COCOA
 #endif
 
+#include "Platform/OpenGL/GL.h"
+
 #include "GLFWWindow.h"
 #include "Graphics/RHI/GraphicsContext.h"
+#include "Graphics/RHI/SwapChain.h"
+
 #include "Utilities/LoadImage.h"
 
 #include "GLFWKeyCodes.h"
@@ -16,7 +20,6 @@
 #include "Events/ApplicationEvent.h"
 #include "Events/MouseEvent.h"
 #include "Events/KeyEvent.h"
-
 #include <GLFW/glfw3.h>
 #include <GLFW/glfw3native.h>
 #include <imgui/imgui.h>
@@ -42,17 +45,19 @@ namespace Lumos
         LUMOS_LOG_INFO("VSync : {0}", m_VSync ? "True" : "False");
         m_HasResized = true;
         m_Data.m_RenderAPI = static_cast<Graphics::RenderAPI>(properties.RenderAPI);
-
+        m_Data.VSync = m_VSync;
         m_Init = Init(properties);
 
         //Setting fullscreen overrides width and heigh in Init
         auto propCopy = properties;
         propCopy.Width = m_Data.Width;
         propCopy.Height = m_Data.Height;
-
-        Graphics::GraphicsContext::SetRenderAPI(static_cast<Graphics::RenderAPI>(properties.RenderAPI));
-        Graphics::GraphicsContext::Create(propCopy, this);
-        Graphics::GraphicsContext::GetContext()->Init();
+		
+        m_GraphicsContext = SharedPtr<Graphics::GraphicsContext>(Graphics::GraphicsContext::Create());
+        m_GraphicsContext->Init();
+        
+		m_SwapChain = SharedPtr<Graphics::SwapChain>(Graphics::SwapChain::Create(m_Data.Width, m_Data.Height));
+		m_SwapChain->Init(m_VSync, (Window*)this);
     }
 
     GLFWWindow::~GLFWWindow()
@@ -65,8 +70,6 @@ namespace Lumos
 
         glfwDestroyWindow(m_Handle);
 
-        Graphics::GraphicsContext::Release();
-
         s_NumGLFWWindows--;
 
         if(s_NumGLFWWindows < 1)
@@ -74,6 +77,7 @@ namespace Lumos
             s_GLFWInitialized = false;
             glfwTerminate();
         }
+
     }
 
     bool GLFWWindow::Init(const WindowDesc& properties)
@@ -164,7 +168,14 @@ namespace Lumos
 
 #ifdef LUMOS_RENDER_API_OPENGL
         if(m_Data.m_RenderAPI == Graphics::RenderAPI::OPENGL)
-            glfwMakeContextCurrent(m_Handle);
+		{
+			glfwMakeContextCurrent(m_Handle);
+		
+            if(!gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress)))
+            {
+                LUMOS_LOG_ERROR("Failed to initialise OpenGL context");
+			}
+		}
 #endif
 
         glfwSetWindowUserPointer(m_Handle, &m_Data);
@@ -205,17 +216,17 @@ namespace Lumos
             });
 
         glfwSetWindowFocusCallback(m_Handle, [](GLFWwindow* window, int focused)
-            { Input::Get().SetWindowFocus(focused); });
+            { Application::Get().GetWindow()->SetWindowFocus(focused); });
 
         glfwSetWindowIconifyCallback(m_Handle, [](GLFWwindow* window, int32_t state)
             {
                 switch(state)
                 {
                 case GL_TRUE:
-                    Input::Get().SetWindowFocus(false);
+                    Application::Get().GetWindow()->SetWindowFocus(false);
                     break;
                 case GL_FALSE:
-                    Input::Get().SetWindowFocus(true);
+                    Application::Get().GetWindow()->SetWindowFocus(true);
                     break;
                 default:
                     LUMOS_LOG_INFO("Unsupported window iconify state from callback");

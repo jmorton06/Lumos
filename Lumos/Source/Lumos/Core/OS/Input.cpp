@@ -4,8 +4,7 @@
 namespace Lumos
 {
     Input::Input()
-        : m_WindowFocus(true)
-        , m_MouseMode(MouseMode::Visible)
+        : m_MouseMode(MouseMode::Visible)
     {
         Reset();
     }
@@ -18,7 +17,6 @@ namespace Lumos
         memset(m_MouseHeld, 0, MAX_BUTTONS);
 
         m_MouseOnScreen = true;
-        m_WindowFocus = true;
         m_ScrollOffset = 0.0f;
     }
 

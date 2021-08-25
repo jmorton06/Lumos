@@ -47,8 +47,8 @@ layout(set = 1,binding = 6) uniform UniformMaterialData
 #define MAX_LIGHTS 32
 #define MAX_SHADOWMAPS 4
 
-const int NumPCFSamples = 32;
-const int numBlockerSearchSamples = 16;
+const int NumPCFSamples = 16;
+const int numBlockerSearchSamples = 4;
 const bool fadeCascades = false;
 const float Epsilon = 0.00001;
 float ShadowFade = 1.0;
@@ -57,9 +57,8 @@ layout(set = 2, binding = 0) uniform sampler2D uPreintegratedFG;
 layout(set = 2, binding = 1) uniform samplerCube uEnvironmentMap;
 layout(set = 2, binding = 2) uniform samplerCube uIrradianceMap;
 layout(set = 2, binding = 3) uniform sampler2DArray uShadowMap;
-layout(set = 2, binding = 4) uniform sampler2D uDepthSampler;
 
-layout(set = 2, binding = 5) uniform UniformBufferLight
+layout(set = 2, binding = 4) uniform UniformBufferLight
 {
 	Light lights[MAX_LIGHTS];
 	mat4 uShadowTransform[MAX_SHADOWMAPS];

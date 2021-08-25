@@ -9,7 +9,7 @@
 #include "Graphics/RHI/Pipeline.h"
 #include "Graphics/RHI/UniformBuffer.h"
 #include "Graphics/RHI/GraphicsContext.h"
-#include "Graphics/RHI/Swapchain.h"
+#include "Graphics/RHI/SwapChain.h"
 #include "Graphics/RHI/Shader.h"
 
 #include "Graphics/Model.h"
@@ -47,7 +47,7 @@ namespace Lumos
             , m_CascadeSplitLambda(0.91f)
             , m_SceneRadiusMultiplier(1.4f)
         {
-           // m_Shader = Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/Shadow.shader");
+            // m_Shader = Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/Shadow.shader");
             m_Shader = Graphics::Shader::CreateFromEmbeddedArray(spirv_Shadowvertspv.data(), spirv_Shadowvertspv_size, spirv_Shadowfragspv.data(), spirv_Shadowfragspv_size);
 
             m_ShadowTex = texture ? texture : TextureDepthArray::Create(m_ShadowMapSize, m_ShadowMapSize, m_ShadowMapNum);
@@ -73,25 +73,13 @@ namespace Lumos
         void ShadowRenderer::Init()
         {
             LUMOS_PROFILE_FUNCTION();
-            AttachmentInfo textureTypes[1] = {
-                { TextureType::DEPTHARRAY, TextureFormat::DEPTH }
-            };
-
-            Graphics::RenderPassDesc renderpassCI {};
-            renderpassCI.attachmentCount = 1;
-            renderpassCI.textureType = textureTypes;
-            renderpassCI.clear = true;
-
-            m_RenderPass = Graphics::RenderPass::Get(renderpassCI);
-
-            Graphics::DescriptorDesc info {};
-            info.layoutIndex = 0;
-            info.shader = m_Shader.get();
+            Graphics::DescriptorDesc descriptorDesc {};
+            descriptorDesc.layoutIndex = 0;
+            descriptorDesc.shader = m_Shader.get();
             m_DescriptorSet.resize(1);
-            m_DescriptorSet[0] = SharedRef<Graphics::DescriptorSet>(Graphics::DescriptorSet::Create(info));
+            m_DescriptorSet[0] = SharedPtr<Graphics::DescriptorSet>(Graphics::DescriptorSet::Create(descriptorDesc));
 
             CreateGraphicsPipeline();
-            CreateUniformBuffer();
             CreateFramebuffers();
             m_CurrentDescriptorSets.resize(1);
 
@@ -213,9 +201,9 @@ namespace Lumos
             LUMOS_PROFILE_FUNCTION();
             int index = 0;
 
-            m_RenderPass->BeginRenderpass(Renderer::GetSwapchain()->GetCurrentCommandBuffer(), Maths::Vector4(0.0f), m_ShadowFramebuffer[m_Layer].get(), Graphics::INLINE, m_ShadowMapSize, m_ShadowMapSize);
+            //m_RenderPass->BeginRenderpass(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer(), Maths::Vector4(0.0f), m_ShadowFramebuffer[m_Layer].get(), Graphics::INLINE, m_ShadowMapSize, m_ShadowMapSize);
 
-            m_Pipeline->Bind(Renderer::GetSwapchain()->GetCurrentCommandBuffer());
+            m_Pipeline->Bind(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer(), m_Layer);
 
             for(auto& command : m_CascadeCommandQueue[m_Layer])
             {
@@ -225,8 +213,8 @@ namespace Lumos
 
                 m_CurrentDescriptorSets[0] = m_DescriptorSet[0].get();
 
-                mesh->GetVertexBuffer()->Bind(Renderer::GetSwapchain()->GetCurrentCommandBuffer(), m_Pipeline.get());
-                mesh->GetIndexBuffer()->Bind(Renderer::GetSwapchain()->GetCurrentCommandBuffer());
+                mesh->GetVertexBuffer()->Bind(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer(), m_Pipeline.get());
+                mesh->GetIndexBuffer()->Bind(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer());
 
                 uint32_t layer = static_cast<uint32_t>(m_Layer);
                 auto trans = command.transform;
@@ -234,10 +222,10 @@ namespace Lumos
                 memcpy(pushConstants[0].data, &trans, sizeof(Maths::Matrix4));
                 memcpy(pushConstants[0].data + sizeof(Maths::Matrix4), &layer, sizeof(uint32_t));
 
-                m_Shader->BindPushConstants(Renderer::GetSwapchain()->GetCurrentCommandBuffer(), m_Pipeline.get());
+                m_Shader->BindPushConstants(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer(), m_Pipeline.get());
 
-                Renderer::BindDescriptorSets(m_Pipeline.get(), Renderer::GetSwapchain()->GetCurrentCommandBuffer(), 0, m_CurrentDescriptorSets);
-                Renderer::DrawIndexed(Renderer::GetSwapchain()->GetCurrentCommandBuffer(), DrawType::TRIANGLE, mesh->GetIndexBuffer()->GetCount());
+                Renderer::BindDescriptorSets(m_Pipeline.get(), Renderer::GetMainSwapChain()->GetCurrentCommandBuffer(), 0, m_CurrentDescriptorSets);
+                Renderer::DrawIndexed(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer(), DrawType::TRIANGLE, mesh->GetIndexBuffer()->GetCount());
 
                 mesh->GetVertexBuffer()->Unbind();
                 mesh->GetIndexBuffer()->Unbind();
@@ -245,7 +233,7 @@ namespace Lumos
                 index++;
             }
 
-            m_RenderPass->EndRenderpass(Renderer::GetSwapchain()->GetCurrentCommandBuffer());
+            m_Pipeline->End(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer());
         }
 
         void ShadowRenderer::SetShadowMapNum(uint32_t num)
@@ -276,13 +264,12 @@ namespace Lumos
 
             m_DescriptorSet[0]->SetUniform("UniformBufferObject", "projView", m_ShadowProjView);
             m_DescriptorSet[0]->Update();
-            
+
             Begin();
 
             for(uint32_t i = 0; i < m_ShadowMapNum; ++i)
             {
                 m_Layer = i;
-                SetSystemUniforms(m_Shader.get());
                 Present();
             }
             End();
@@ -420,67 +407,22 @@ namespace Lumos
             if(m_ShadowMapsInvalidated && m_ShadowMapNum > 0)
             {
                 m_ShadowMapsInvalidated = false;
-
-                for(uint32_t i = 0; i < m_ShadowMapNum; ++i)
-                {
-                    const uint32_t attachmentCount = 1;
-                    TextureType attachmentTypes[attachmentCount];
-                    attachmentTypes[0] = TextureType::DEPTHARRAY;
-
-                    FramebufferDesc bufferInfo {};
-                    bufferInfo.width = m_ShadowMapSize;
-                    bufferInfo.height = m_ShadowMapSize;
-                    bufferInfo.attachmentCount = attachmentCount;
-                    bufferInfo.renderPass = m_RenderPass.get();
-                    bufferInfo.attachmentTypes = attachmentTypes;
-                    bufferInfo.layer = i;
-                    bufferInfo.screenFBO = false;
-
-                    Texture* attachments[attachmentCount];
-                    attachments[0] = m_ShadowTex;
-                    bufferInfo.attachments = attachments;
-
-                    m_ShadowFramebuffer[i] = Framebuffer::Get(bufferInfo);
-                }
             }
         }
 
         void ShadowRenderer::CreateGraphicsPipeline()
         {
             LUMOS_PROFILE_FUNCTION();
-            Graphics::PipelineDesc pipelineCreateInfo;
-            pipelineCreateInfo.shader = m_Shader;
-            pipelineCreateInfo.renderpass = m_RenderPass;
-            pipelineCreateInfo.cullMode = Graphics::CullMode::NONE;
-            pipelineCreateInfo.transparencyEnabled = false;
-            pipelineCreateInfo.depthBiasEnabled = true;
+            Graphics::PipelineDesc pipelineDesc;
+            pipelineDesc.shader = m_Shader;
 
-            m_Pipeline = Graphics::Pipeline::Get(pipelineCreateInfo);
-        }
+            pipelineDesc.cullMode = Graphics::CullMode::NONE;
+            pipelineDesc.transparencyEnabled = false;
+            pipelineDesc.depthBiasEnabled = true;
+            pipelineDesc.depthArrayTarget = reinterpret_cast<Texture*>(m_ShadowTex);
+            pipelineDesc.clearTargets = true;
 
-        void ShadowRenderer::CreateUniformBuffer()
-        {
-            LUMOS_PROFILE_FUNCTION();
-         //   if(m_UniformBuffer == nullptr)
-//            {
-//                m_UniformBuffer = Graphics::UniformBuffer::Create();
-//
-//                const uint32_t bufferSize = static_cast<uint32_t>(sizeof(UniformBufferObject));
-//                m_UniformBuffer->Init(bufferSize, nullptr);
-//            }
-
-           // m_DescriptorSet[0]->SetBuffer("UniformBufferObject", m_UniformBuffer);
-           // m_DescriptorSet[0]->Update();
-        }
-
-        void ShadowRenderer::SetSystemUniforms(Shader* shader)
-        {
-            LUMOS_PROFILE_FUNCTION();
-
-            {
-                LUMOS_PROFILE_SCOPE("Vertex Uniform Buffer Update");
-                //m_UniformBuffer->SetData(sizeof(Maths::Matrix4) * m_ShadowMapNum, *&m_VSSystemUniformBuffer);
-            }
+            m_Pipeline = Graphics::Pipeline::Get(pipelineDesc);
         }
 
         void ShadowRenderer::Submit(const RenderCommand& command)
@@ -525,7 +467,7 @@ namespace Lumos
 
                 index = Maths::Max(0, index);
                 index = Maths::Min(index, 3);
-                bool flipImage = Graphics::GraphicsContext::GetContext()->FlipImGUITexture();
+                bool flipImage = Renderer::GetGraphicsContext()->FlipImGUITexture();
 
                 ImGui::Image(m_ShadowTex->GetHandleArray(uint32_t(index)), ImVec2(128, 128), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
 

@@ -28,9 +28,9 @@ namespace Lumos
             virtual void BeginRecording() = 0;
             virtual void BeginRecordingSecondary(RenderPass* renderPass, Framebuffer* framebuffer) = 0;
             virtual void EndRecording() = 0;
-            virtual void Execute(bool waitFence) = 0;
             virtual void ExecuteSecondary(CommandBuffer* primaryCmdBuffer) = 0;
             virtual void UpdateViewport(uint32_t width, uint32_t height) = 0;
+            virtual bool Flush() { return true; }
 
         protected:
             static CommandBuffer* (*CreateFunc)();

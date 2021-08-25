@@ -1,6 +1,7 @@
 #pragma once
 #include "VK.h"
 #include "Graphics/RHI/CommandBuffer.h"
+#include "VKFence.h"
 
 namespace Lumos
 {
@@ -28,15 +29,18 @@ namespace Lumos
             void BeginRecordingSecondary(RenderPass* renderPass, Framebuffer* framebuffer) override;
             void EndRecording() override;
             void Reset();
+            bool Flush() override;
+            bool Wait();
 
-            void Execute(bool waitFence) override;
-            void ExecuteInternal(VkPipelineStageFlags flags, VkSemaphore waitSemaphore, VkSemaphore signalSemaphore, bool waitFence);
+            void Execute(VkPipelineStageFlags flags, VkSemaphore signalSemaphore, bool waitFence);
 
             void ExecuteSecondary(CommandBuffer* primaryCmdBuffer) override;
             void UpdateViewport(uint32_t width, uint32_t height) override;
 
             VkCommandBuffer GetHandle() const { return m_CommandBuffer; };
             CommandBufferState GetState() const { return m_State; }
+
+            VkSemaphore GetSemaphore() const { return m_Semaphore; }
 
             static void MakeDefault();
 
@@ -48,6 +52,8 @@ namespace Lumos
             VkCommandPool m_CommandPool;
             bool m_Primary;
             CommandBufferState m_State;
+            SharedPtr<VKFence> m_Fence;
+            VkSemaphore m_Semaphore;
         };
     }
 }

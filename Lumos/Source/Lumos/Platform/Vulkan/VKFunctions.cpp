@@ -9,9 +9,9 @@
 #include "VKPipeline.h"
 #include "VKRenderDevice.h"
 #include "VKRenderer.h"
-#include "VKRenderpass.h"
+#include "VKRenderPass.h"
 #include "VKShader.h"
-#include "VKSwapchain.h"
+#include "VKSwapChain.h"
 #include "VKTexture.h"
 #include "VKUniformBuffer.h"
 #include "VKVertexBuffer.h"
@@ -27,9 +27,9 @@ void Lumos::Graphics::Vulkan::MakeDefault()
     VKPipeline::MakeDefault();
     VKRenderDevice::MakeDefault();
     VKRenderer::MakeDefault();
-    VKRenderpass::MakeDefault();
+    VKRenderPass::MakeDefault();
     VKShader::MakeDefault();
-    VKSwapchain::MakeDefault();
+    VKSwapChain::MakeDefault();
     VKTexture2D::MakeDefault();
     VKTextureCube::MakeDefault();
     VKTextureDepth::MakeDefault();

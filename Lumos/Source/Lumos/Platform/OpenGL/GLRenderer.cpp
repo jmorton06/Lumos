@@ -1,14 +1,17 @@
 #include "Precompiled.h"
 #include "GLRenderer.h"
 #include "Graphics/RHI/Shader.h"
+#include "Graphics/RHI/GraphicsContext.h"
 #include "Core/OS/Window.h"
 #include "Core/Engine.h"
 #include "GLDebug.h"
+#include "GLContext.h"
 
 #include "GL.h"
 #include "GLTools.h"
 #include "Graphics/Mesh.h"
 #include "GLDescriptorSet.h"
+#include "GLFramebuffer.h"
 #include "Graphics/Material.h"
 
 namespace Lumos
@@ -16,13 +19,9 @@ namespace Lumos
     namespace Graphics
     {
 
-        GLRenderer::GLRenderer(uint32_t width, uint32_t height)
-            : m_Context(nullptr)
+        GLRenderer::GLRenderer()
         {
-            m_Swapchain = new Graphics::GLSwapchain(width, height);
-
             m_RendererTitle = "OPENGL";
-
             auto& caps = Renderer::GetCapabilities();
 
             caps.Vendor = (const char*)glGetString(GL_VENDOR);
@@ -37,7 +36,6 @@ namespace Lumos
 
         GLRenderer::~GLRenderer()
         {
-            delete m_Swapchain;
         }
 
         void GLRenderer::InitInternal()
@@ -73,7 +71,7 @@ namespace Lumos
         {
         }
 
-        void GLRenderer::PresentInternal(Graphics::CommandBuffer* cmdBuffer)
+        void GLRenderer::PresentInternal(Graphics::CommandBuffer* commandBuffer)
         {
         }
 
@@ -163,6 +161,7 @@ namespace Lumos
 
         void GLRenderer::OnResize(uint32_t width, uint32_t height)
         {
+            ((GLSwapChain*)Renderer::GetMainSwapChain())->OnResize(width, height);
         }
 
         void GLRenderer::SetCullingInternal(bool enabled, bool front)
@@ -225,7 +224,7 @@ namespace Lumos
             //GLCall(glDrawArrays(GLTools::DrawTypeToGL(type), start, count));
         }
 
-        void GLRenderer::BindDescriptorSetsInternal(Graphics::Pipeline* pipeline, Graphics::CommandBuffer* cmdBuffer, uint32_t dynamicOffset, std::vector<Graphics::DescriptorSet*>& descriptorSets)
+        void GLRenderer::BindDescriptorSetsInternal(Graphics::Pipeline* pipeline, Graphics::CommandBuffer* commandBuffer, uint32_t dynamicOffset, std::vector<Graphics::DescriptorSet*>& descriptorSets)
         {
             LUMOS_PROFILE_FUNCTION();
             for(auto descriptor : descriptorSets)
@@ -234,15 +233,52 @@ namespace Lumos
                     static_cast<Graphics::GLDescriptorSet*>(descriptor)->Bind(dynamicOffset);
             }
         }
+    
+        void GLRenderer::ClearRenderTarget(Graphics::Texture* texture, Graphics::CommandBuffer* commandBuffer)
+        {
+            if(!texture)
+            {
+                //Assume swapchain texture
+                //TODO: function for clearing swapchain image
+                
+                GLCall(glBindFramebuffer(GL_FRAMEBUFFER, 0));
+
+            }
+            else
+            {
+                std::vector<TextureType> attachmentTypes = { texture->GetType()};
+                std::vector<Texture*> attachments = { texture };
+
+    //            Graphics::RenderPassDesc renderPassDesc;
+    //            renderPassDesc.attachmentCount = uint32_t(attachmentTypes.size());
+    //            renderPassDesc.attachmentTypes = attachmentTypes.data();
+    //            renderPassDesc.attachments = attachments.data();
+    //            renderPassDesc.clear = false;
+    //
+    //            auto renderPass = Graphics::RenderPass::Get(renderPassDesc);
+
+                FramebufferDesc frameBufferDesc {};
+                frameBufferDesc.width = texture->GetWidth();
+                frameBufferDesc.height = texture->GetHeight();
+                frameBufferDesc.attachmentCount = uint32_t(attachments.size());
+                frameBufferDesc.renderPass = nullptr;
+                frameBufferDesc.attachmentTypes = attachmentTypes.data();
+                frameBufferDesc.attachments = attachments.data();
+                
+                auto framebuffer = Framebuffer::Get(frameBufferDesc);
+                framebuffer->Bind();
+            }
+            GLRenderer::ClearInternal(RENDERER_BUFFER_COLOUR | RENDERER_BUFFER_DEPTH | RENDERER_BUFFER_STENCIL);
+        }
 
         void GLRenderer::MakeDefault()
         {
             CreateFunc = CreateFuncGL;
         }
 
-        Renderer* GLRenderer::CreateFuncGL(uint32_t width, uint32_t height)
+        Renderer* GLRenderer::CreateFuncGL()
         {
-            return new GLRenderer(width, height);
+            return new GLRenderer();
         }
     }
 }

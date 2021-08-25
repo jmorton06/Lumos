@@ -12,7 +12,7 @@ namespace Lumos
 
         void OnImGui() override;
         void OnClose();
-        
+
         void SetOnSaveCallback(const std::function<void()>& callback) { m_OnSaveCallback = callback; }
         void SetErrors(const std::map<int, std::string>& errors);
 

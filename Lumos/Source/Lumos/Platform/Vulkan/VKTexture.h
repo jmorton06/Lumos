@@ -3,6 +3,7 @@
 #include "VK.h"
 #include "Graphics/RHI/GraphicsContext.h"
 #include "VKContext.h"
+#include "VKCommandBuffer.h"
 
 #ifdef USE_VMA_ALLOCATOR
 #include <vulkan/vk_mem_alloc.h>
@@ -17,7 +18,7 @@ namespace Lumos
         public:
             VKTexture2D(uint32_t width, uint32_t height, void* data, TextureParameters parameters = TextureParameters(), TextureLoadOptions loadOptions = TextureLoadOptions());
             VKTexture2D(const std::string& name, const std::string& filename, TextureParameters parameters = TextureParameters(), TextureLoadOptions loadOptions = TextureLoadOptions());
-            VKTexture2D(VkImage image, VkImageView imageView);
+            VKTexture2D(VkImage image, VkImageView imageView, VkFormat format, uint32_t width, uint32_t height);
             VKTexture2D();
             ~VKTexture2D();
 
@@ -52,6 +53,16 @@ namespace Lumos
             inline const std::string& GetFilepath() const override
             {
                 return m_FileName;
+            }
+
+            TextureType GetType() const override
+            {
+                return TextureType::COLOUR;
+            }
+
+            TextureFormat GetFormat() const override
+            {
+                return m_Format;
             }
 
             void SetName(const std::string& name) override
@@ -97,8 +108,17 @@ namespace Lumos
             {
                 return m_TextureSampler;
             }
+            
+            VkFormat GetVKFormat()
+            {
+                return m_VKFormat;
+            }
+            
+            VkImageLayout GetImageLayout() const { return m_ImageLayout; }
 
             const TextureParameters& GetTextureParameters() const { return m_Parameters; }
+
+            void TransitionImage(VkImageLayout newLayout, VKCommandBuffer* commandBuffer = nullptr);
 
             static void MakeDefault();
 
@@ -110,13 +130,15 @@ namespace Lumos
         private:
             std::string m_Name;
             std::string m_FileName;
-            uint32_t m_Handle {};
             uint32_t m_Width {}, m_Height {};
             uint32_t m_MipLevels = 1;
             uint8_t* m_Data = nullptr;
 
             TextureParameters m_Parameters;
             TextureLoadOptions m_LoadOptions;
+
+            TextureFormat m_Format;
+            VkFormat m_VKFormat = VK_FORMAT_R8G8B8A8_UNORM;
 
             VkImage m_TextureImage {};
             VkImageLayout m_ImageLayout = VK_IMAGE_LAYOUT_UNDEFINED;
@@ -153,18 +175,40 @@ namespace Lumos
             {
                 return m_Size;
             }
+
             inline const std::string& GetName() const override
             {
                 return m_Name;
             }
+
             inline const std::string& GetFilepath() const override
             {
                 return m_Files[0];
             }
 
+            inline uint32_t GetWidth() const override
+            {
+                return m_Width;
+            }
+
+            inline uint32_t GetHeight() const override
+            {
+                return m_Height;
+            }
+
             uint32_t GetMipMapLevels() const override
             {
                 return m_NumMips;
+            }
+
+            TextureType GetType() const override
+            {
+                return TextureType::CUBE;
+            }
+
+            TextureFormat GetFormat() const override
+            {
+                return m_Format;
             }
 
             const VkDescriptorImageInfo* GetDescriptor() const
@@ -192,6 +236,11 @@ namespace Lumos
             {
                 return m_TextureSampler;
             }
+            
+            VkFormat GetVKFormat() const
+            {
+                return m_VKFormat;
+            }
 
             static void MakeDefault();
 
@@ -211,6 +260,9 @@ namespace Lumos
 
             TextureParameters m_Parameters;
             TextureLoadOptions m_LoadOptions;
+
+            TextureFormat m_Format;
+            VkFormat m_VKFormat;
 
             VkImage m_TextureImage {};
             VkImageLayout m_ImageLayout;
@@ -236,9 +288,24 @@ namespace Lumos
             void Unbind(uint32_t slot = 0) const override {};
             void Resize(uint32_t width, uint32_t height) override;
 
+            inline uint32_t GetWidth() const override
+            {
+                return m_Width;
+            }
+
+            inline uint32_t GetHeight() const override
+            {
+                return m_Height;
+            }
+
             virtual void* GetHandle() const override
             {
                 return (void*)&m_Descriptor;
+            }
+
+            virtual void* GetImageHande() const override
+            {
+                return (void*)&m_TextureImage;
             }
 
             inline const std::string& GetName() const override
@@ -248,6 +315,16 @@ namespace Lumos
             inline const std::string& GetFilepath() const override
             {
                 return m_Name;
+            }
+
+            TextureType GetType() const override
+            {
+                return TextureType::DEPTH;
+            }
+
+            TextureFormat GetFormat() const override
+            {
+                return m_Format;
             }
 
             VkImage GetImage() const
@@ -271,6 +348,9 @@ namespace Lumos
                 return &m_Descriptor;
             }
             void UpdateDescriptor();
+            void TransitionImage(VkImageLayout newLayout, VKCommandBuffer* commandBuffer = nullptr);
+
+            VkImageLayout GetImageLayout() const { return m_ImageLayout; }
 
             static void MakeDefault();
 
@@ -282,7 +362,9 @@ namespace Lumos
             std::string m_Name;
             uint32_t m_Handle {};
             uint32_t m_Width, m_Height;
+            TextureFormat m_Format;
 
+            VkImageLayout m_ImageLayout;
             VkImage m_TextureImage {};
             VkDeviceMemory m_TextureImageMemory {};
             VkImageView m_TextureImageView {};
@@ -304,6 +386,16 @@ namespace Lumos
             void Unbind(uint32_t slot = 0) const override {};
             void Resize(uint32_t width, uint32_t height, uint32_t count) override;
 
+            inline uint32_t GetWidth() const override
+            {
+                return m_Width;
+            }
+
+            inline uint32_t GetHeight() const override
+            {
+                return m_Height;
+            }
+
             virtual void* GetHandle() const override
             {
                 return (void*)&m_Descriptor;
@@ -316,6 +408,16 @@ namespace Lumos
             inline const std::string& GetFilepath() const override
             {
                 return m_Name;
+            }
+
+            TextureType GetType() const override
+            {
+                return TextureType::DEPTHARRAY;
+            }
+
+            TextureFormat GetFormat() const override
+            {
+                return m_Format;
             }
 
             VkImage GetImage() const
@@ -343,9 +445,12 @@ namespace Lumos
                 return &m_Descriptor;
             }
             void UpdateDescriptor();
+            void TransitionImage(VkImageLayout newLayout, VKCommandBuffer* commandBuffer = nullptr);
 
             void* GetHandleArray(uint32_t index) override;
-            ;
+
+            uint32_t GetCount() const { return m_Count; }
+            VkImageLayout GetImageLayout() const { return m_ImageLayout; }
 
             static void MakeDefault();
 
@@ -359,6 +464,9 @@ namespace Lumos
             uint32_t m_Width, m_Height;
             uint32_t m_Count;
 
+            TextureFormat m_Format;
+
+            VkImageLayout m_ImageLayout;
             VkImage m_TextureImage {};
             VkDeviceMemory m_TextureImageMemory {};
             VkImageView m_TextureImageView {};
