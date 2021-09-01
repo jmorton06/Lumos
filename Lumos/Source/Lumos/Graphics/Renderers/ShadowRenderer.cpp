@@ -43,7 +43,6 @@ namespace Lumos
             , m_ShadowMapNum(numMaps)
             , m_ShadowMapSize(shadowMapSize)
             , m_ShadowMapsInvalidated(true)
-            , m_UniformBuffer(nullptr)
             , m_CascadeSplitLambda(0.91f)
             , m_SceneRadiusMultiplier(1.4f)
         {
@@ -67,7 +66,6 @@ namespace Lumos
         ShadowRenderer::~ShadowRenderer()
         {
             delete m_ShadowTex;
-            delete m_UniformBuffer;
         }
 
         void ShadowRenderer::Init()
@@ -80,7 +78,6 @@ namespace Lumos
             m_DescriptorSet[0] = SharedPtr<Graphics::DescriptorSet>(Graphics::DescriptorSet::Create(descriptorDesc));
 
             CreateGraphicsPipeline();
-            CreateFramebuffers();
             m_CurrentDescriptorSets.resize(1);
 
             m_CascadeCommandQueue[0].reserve(1000);
@@ -199,10 +196,6 @@ namespace Lumos
         void ShadowRenderer::Present()
         {
             LUMOS_PROFILE_FUNCTION();
-            int index = 0;
-
-            //m_RenderPass->BeginRenderpass(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer(), Maths::Vector4(0.0f), m_ShadowFramebuffer[m_Layer].get(), Graphics::INLINE, m_ShadowMapSize, m_ShadowMapSize);
-
             m_Pipeline->Bind(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer(), m_Layer);
 
             for(auto& command : m_CascadeCommandQueue[m_Layer])
@@ -229,8 +222,6 @@ namespace Lumos
 
                 mesh->GetVertexBuffer()->Unbind();
                 mesh->GetIndexBuffer()->Unbind();
-
-                index++;
             }
 
             m_Pipeline->End(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer());
@@ -399,15 +390,6 @@ namespace Lumos
             );
             System::JobSystem::Wait(ctx);
 #endif
-        }
-
-        void ShadowRenderer::CreateFramebuffers()
-        {
-            LUMOS_PROFILE_FUNCTION();
-            if(m_ShadowMapsInvalidated && m_ShadowMapNum > 0)
-            {
-                m_ShadowMapsInvalidated = false;
-            }
         }
 
         void ShadowRenderer::CreateGraphicsPipeline()

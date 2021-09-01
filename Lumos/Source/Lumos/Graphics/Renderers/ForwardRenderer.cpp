@@ -65,6 +65,8 @@ namespace Lumos
             LUMOS_PROFILE_FUNCTION();
 
             Begin();
+            
+            UpdateScreenDescriptorSet();
 
             Present();
 
@@ -92,7 +94,7 @@ namespace Lumos
 
 #ifdef LUMOS_RENDER_API_VULKAN
             case Graphics::RenderAPI::VULKAN:
-                m_BiasMatrix = Maths::Matrix4(0.5f, 0.0f, 0.0f, 0.5f, 0.0f, 0.5f, 0.0f, 0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f);
+                    m_BiasMatrix = Maths::Matrix4(0.5f, 0.0f, 0.0f, 0.5f, 0.0f, 0.5f, 0.0f, 0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f);
                 break;
 #endif
 
@@ -140,7 +142,7 @@ namespace Lumos
 
             m_CurrentDescriptorSets.resize(3);
 
-            UpdateScreenDescriptorSet();
+            //UpdateScreenDescriptorSet();
         }
 
         void ForwardRenderer::Begin()
@@ -216,7 +218,7 @@ namespace Lumos
                 }
             }
             SubmitLightSetup(scene);
-            UpdateScreenDescriptorSet();
+            //UpdateScreenDescriptorSet();
 
             auto group = registry.group<Model>(entt::get<Maths::Transform>);
 
@@ -316,8 +318,7 @@ namespace Lumos
             if(m_DepthTest)
             {
                 pipelineDesc.depthTarget = reinterpret_cast<Texture*>(Application::Get().GetRenderGraph()->GetGBuffer()->GetDepthTexture());
-                
-                Renderer::GetRenderer()->ClearRenderTarget(reinterpret_cast<Texture*>(Application::Get().GetRenderGraph()->GetGBuffer()->GetDepthTexture()), currentCMDBuffer);
+                Renderer::GetRenderer()->ClearRenderTarget(pipelineDesc.depthTarget, currentCMDBuffer);
             }
 
             if(m_RenderTexture)
@@ -369,7 +370,7 @@ namespace Lumos
             m_EnvironmentMap = nullptr;
             m_IrradianceMap = nullptr;
 
-            UpdateScreenDescriptorSet();
+            //UpdateScreenDescriptorSet();
         }
 
         void ForwardRenderer::CreateGraphicsPipeline()
@@ -466,7 +467,6 @@ namespace Lumos
             m_DescriptorSet[2]->SetUniform("UniformBufferLight", "shadowCount", &numShadows);
             m_DescriptorSet[2]->SetUniform("UniformBufferLight", "mode", &m_RenderMode);
             m_DescriptorSet[2]->SetUniform("UniformBufferLight", "cubemapMipLevels", &cubemapMipLevels);
-            //m_DescriptorSet[2]->Update();
         }
 
         void ForwardRenderer::UpdateScreenDescriptorSet()

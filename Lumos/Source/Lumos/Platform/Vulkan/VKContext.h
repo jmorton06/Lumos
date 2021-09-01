@@ -98,7 +98,7 @@ namespace Lumos
 
         private:
             static VkInstance s_VkInstance;
-            VkDebugReportCallbackEXT m_DebugCallback {};
+            VkDebugReportCallbackEXT m_DebugCallback = VK_NULL_HANDLE;
 
             std::vector<VkLayerProperties> m_InstanceLayers;
             std::vector<VkExtensionProperties> m_InstanceExtensions;
@@ -107,7 +107,7 @@ namespace Lumos
             std::vector<const char*> m_InstanceExtensionNames;
 
             bool m_StandardValidationLayer = false;
-            bool m_ValidationLayer = false;
+            bool m_ValidationLayer = true;
             bool m_RenderDocLayer = false;
             bool m_AssistanceLayer = false;
         };

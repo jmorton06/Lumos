@@ -112,6 +112,9 @@ namespace Lumos
             {
                 VKRenderer::GetDeletionQueue(i).Flush();
             }
+            
+            if(m_DebugCallback)
+                vkDestroyDebugReportCallbackEXT(s_VkInstance, m_DebugCallback, VK_NULL_HANDLE);
 
             VKDevice::Release();
             vkDestroyInstance(s_VkInstance, nullptr);

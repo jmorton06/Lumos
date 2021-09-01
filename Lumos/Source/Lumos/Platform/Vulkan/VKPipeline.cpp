@@ -230,6 +230,8 @@ namespace Lumos
         void VKPipeline::Bind(CommandBuffer* commandBuffer, uint32_t layer)
         {
             LUMOS_PROFILE_FUNCTION();
+            TransitionAttachments();
+            
             if(m_DepthBiasEnabled)
                 vkCmdSetDepthBias(static_cast<VKCommandBuffer*>(commandBuffer)->GetHandle(),
                     m_DepthBiasConstant,
@@ -354,15 +356,17 @@ namespace Lumos
                     Renderer::GetRenderer()->ClearRenderTarget(Renderer::GetMainSwapChain()->GetImage(i), commandBuffer);
                 }
             }
-            else if(m_Description.depthArrayTarget)
+            
+            if(m_Description.depthArrayTarget)
             {
                 Renderer::GetRenderer()->ClearRenderTarget(m_Description.depthArrayTarget, commandBuffer);
             }
-            else if(m_Description.depthTarget)
+            
+            if(m_Description.depthTarget)
             {
                 Renderer::GetRenderer()->ClearRenderTarget(m_Description.depthTarget, commandBuffer);
             }
-            else
+            
             {
                 for(auto texture : m_Description.colourTargets)
                 {
@@ -377,29 +381,31 @@ namespace Lumos
         void VKPipeline::TransitionAttachments()
         {
             LUMOS_PROFILE_FUNCTION();
+            auto commandBuffer = Renderer::GetMainSwapChain()->GetCurrentCommandBuffer();
+
             if(m_Description.swapchainTarget)
             {
                 for(uint32_t i = 0; i < Renderer::GetMainSwapChain()->GetSwapChainBufferCount(); i++)
                 {
-                    ((VKTexture2D*)Renderer::GetMainSwapChain()->GetImage(i))->TransitionImage(VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
+                    ((VKTexture2D*)Renderer::GetMainSwapChain()->GetImage(i))->TransitionImage(VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,(VKCommandBuffer*)commandBuffer);
                 }
             }
-            else if(m_Description.depthArrayTarget)
+            
+            if(m_Description.depthArrayTarget)
             {
-                ((VKTextureDepthArray*)m_Description.depthArrayTarget)->TransitionImage(VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
+                ((VKTextureDepthArray*)m_Description.depthArrayTarget)->TransitionImage(VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, (VKCommandBuffer*)commandBuffer);
             }
-            else if(m_Description.depthTarget)
+            
+            if(m_Description.depthTarget)
             {
-                ((VKTextureDepth*)m_Description.depthTarget)->TransitionImage(VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
+                ((VKTextureDepth*)m_Description.depthTarget)->TransitionImage(VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, (VKCommandBuffer*)commandBuffer);
             }
-            else
+            
+            for(auto texture : m_Description.colourTargets)
             {
-                for(auto texture : m_Description.colourTargets)
+                if(texture != nullptr)
                 {
-                    if(texture != nullptr)
-                    {
-                        ((VKTexture2D*)texture)->TransitionImage(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
-                    }
+                    ((VKTexture2D*)texture)->TransitionImage(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, (VKCommandBuffer*)commandBuffer);
                 }
             }
         }

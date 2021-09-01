@@ -236,8 +236,8 @@ namespace Lumos
            }
            return stages;
        }
-
-       inline VkPipelineStageFlags LayoutToAccessMask(const VkImageLayout layout, const bool isDestination)
+    
+        VkPipelineStageFlags LayoutToAccessMask(const VkImageLayout layout, const bool isDestination)
        {
            VkPipelineStageFlags accessMask = 0;
 
@@ -308,10 +308,35 @@ namespace Lumos
 
            return accessMask;
        }
+    
+        bool IsDepthFormat(VkFormat format)
+        {
+            switch(format)
+            {
+                case VK_FORMAT_D32_SFLOAT:
+                case VK_FORMAT_D32_SFLOAT_S8_UINT:
+                case VK_FORMAT_D24_UNORM_S8_UINT:
+                    return true;
+            }
+            return false;
+        }
+    
+        bool IsStencilFormat(VkFormat format)
+        {
+            switch(format)
+            {
+                case VK_FORMAT_D32_SFLOAT_S8_UINT:
+                case VK_FORMAT_D24_UNORM_S8_UINT:
+                    return true;
+            }
+            return false;
+        }
 
         void VKUtilities::TransitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldImageLayout, VkImageLayout newImageLayout,
             uint32_t mipLevels, uint32_t layerCount, VkCommandBuffer commandBuffer)
         {
+            LUMOS_PROFILE_FUNCTION();
+            
             bool singleTimeCommand = false;
 
             if(!commandBuffer)
@@ -321,11 +346,15 @@ namespace Lumos
             }
 
             VkImageSubresourceRange subresourceRange = {};
-            subresourceRange.aspectMask = format == FindDepthFormat() ? VK_IMAGE_ASPECT_DEPTH_BIT : VK_IMAGE_ASPECT_COLOR_BIT;
+            subresourceRange.aspectMask = IsDepthFormat(format) ? VK_IMAGE_ASPECT_DEPTH_BIT : VK_IMAGE_ASPECT_COLOR_BIT;
+            
+            if(IsStencilFormat(format))
+                subresourceRange.aspectMask |= VK_IMAGE_ASPECT_STENCIL_BIT;
+            
             subresourceRange.baseMipLevel = 0;
-            subresourceRange.layerCount = layerCount;
             subresourceRange.levelCount = mipLevels;
             subresourceRange.baseArrayLayer = 0;
+            subresourceRange.layerCount = layerCount;
 
             // Create an image barrier object
             VkImageMemoryBarrier imageMemoryBarrier = VKInitialisers::imageMemoryBarrier();
@@ -373,8 +402,10 @@ namespace Lumos
             // Put barrier inside setup command buffer
             vkCmdPipelineBarrier(
                 commandBuffer,
-                destinationStage,
-                sourceStage,
+                //destinationStage,
+                //sourceStage,
+                 VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
+                 VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
                 0,
                 0, nullptr,
                 0, nullptr,
@@ -535,270 +566,6 @@ namespace Lumos
             height = std::max(capabilities.minImageExtent.height, std::min(capabilities.maxImageExtent.height, height));
         }
 
-        VkPipelineStageFlags GetPipelineStageFromAccessFlags(VkAccessFlags accessFlags)
-        {
-            VkPipelineStageFlags stages = 0;
-
-            while(accessFlags != 0)
-            {
-                VkAccessFlagBits AccessFlag = static_cast<VkAccessFlagBits>(accessFlags & (~(accessFlags - 1)));
-                LUMOS_ASSERT(AccessFlag != 0 && (AccessFlag & (AccessFlag - 1)) == 0, "Pipeline stage flags error");
-                accessFlags &= ~AccessFlag;
-
-                switch(AccessFlag)
-                {
-                case VK_ACCESS_INDIRECT_COMMAND_READ_BIT:
-                    stages |= VK_PIPELINE_STAGE_DRAW_INDIRECT_BIT;
-                    break;
-
-                case VK_ACCESS_INDEX_READ_BIT:
-                    stages |= VK_PIPELINE_STAGE_VERTEX_INPUT_BIT;
-                    break;
-
-                case VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT:
-                    stages |= VK_PIPELINE_STAGE_VERTEX_INPUT_BIT;
-                    break;
-
-                case VK_ACCESS_UNIFORM_READ_BIT:
-                    stages |= VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
-                    break;
-
-                case VK_ACCESS_INPUT_ATTACHMENT_READ_BIT:
-                    stages |= VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
-                    break;
-
-                case VK_ACCESS_SHADER_READ_BIT:
-                    stages |= VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
-                    break;
-
-                case VK_ACCESS_SHADER_WRITE_BIT:
-                    stages |= VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
-                    break;
-
-                case VK_ACCESS_COLOR_ATTACHMENT_READ_BIT:
-                    stages |= VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-                    break;
-
-                case VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT:
-                    stages |= VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-                    break;
-
-                case VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT:
-                    stages |= VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
-                    break;
-
-                case VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT:
-                    stages |= VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
-                    break;
-
-                case VK_ACCESS_TRANSFER_READ_BIT:
-                    stages |= VK_PIPELINE_STAGE_TRANSFER_BIT;
-                    break;
-
-                case VK_ACCESS_TRANSFER_WRITE_BIT:
-                    stages |= VK_PIPELINE_STAGE_TRANSFER_BIT;
-                    break;
-
-                case VK_ACCESS_HOST_READ_BIT:
-                    stages |= VK_PIPELINE_STAGE_HOST_BIT;
-                    break;
-
-                case VK_ACCESS_HOST_WRITE_BIT:
-                    stages |= VK_PIPELINE_STAGE_HOST_BIT;
-                    break;
-
-                case VK_ACCESS_MEMORY_READ_BIT:
-                    break;
-
-                case VK_ACCESS_MEMORY_WRITE_BIT:
-                    break;
-
-                default:
-                    LUMOS_LOG_WARN("Unknown memory access flag");
-                    break;
-                }
-            }
-            return stages;
-        }
-
-        void VKUtilities::SetImageLayout(
-            VkCommandBuffer cmdbuffer,
-            VkImage image,
-            VkImageLayout oldImageLayout,
-            VkImageLayout newImageLayout,
-            VkImageSubresourceRange subresourceRange,
-            VkPipelineStageFlags srcStageMask,
-            VkPipelineStageFlags dstStageMask)
-        {
-            // Create an image barrier object
-            VkImageMemoryBarrier imageMemoryBarrier;
-            imageMemoryBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-            imageMemoryBarrier.oldLayout = oldImageLayout;
-            imageMemoryBarrier.newLayout = newImageLayout;
-            imageMemoryBarrier.image = image;
-            imageMemoryBarrier.subresourceRange = subresourceRange;
-            imageMemoryBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-            imageMemoryBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-            imageMemoryBarrier.pNext = nullptr;
-            imageMemoryBarrier.srcAccessMask = 0;
-            imageMemoryBarrier.dstAccessMask = 0;
-
-            // Source layouts (old)
-            // Source access mask controls actions that have to be finished on the old layout
-            // before it will be transitioned to the new layout
-            switch(oldImageLayout)
-            {
-            case VK_IMAGE_LAYOUT_UNDEFINED:
-                // Image layout is undefined (or does not matter)
-                // Only valid as initial layout
-                // No flags required, listed only for completeness
-                imageMemoryBarrier.srcAccessMask = 0;
-                break;
-
-            case VK_IMAGE_LAYOUT_PREINITIALIZED:
-                // Image is preinitialized
-                // Only valid as initial layout for linear images, preserves memory contents
-                // Make sure host writes have been finished
-                imageMemoryBarrier.srcAccessMask = VK_ACCESS_HOST_WRITE_BIT;
-                break;
-
-            case VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL:
-                // Image is a colour attachment
-                // Make sure any writes to the colour buffer have been finished
-                imageMemoryBarrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-                break;
-
-            case VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL:
-                // Image is a depth/stencil attachment
-                // Make sure any writes to the depth/stencil buffer have been finished
-                imageMemoryBarrier.srcAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
-                break;
-
-            case VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL:
-                // Image is a transfer source
-                // Make sure any reads from the image have been finished
-                imageMemoryBarrier.srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
-                break;
-
-            case VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL:
-                // Image is a transfer destination
-                // Make sure any writes to the image have been finished
-                imageMemoryBarrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-                break;
-
-            case VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL:
-                // Image is read by a shader
-                // Make sure any shader reads from the image have been finished
-                imageMemoryBarrier.srcAccessMask = VK_ACCESS_SHADER_READ_BIT;
-                break;
-            default:
-                // Other source layouts aren't handled (yet)
-                break;
-            }
-
-            // Target layouts (new)
-            // Destination access mask controls the dependency for the new image layout
-            switch(newImageLayout)
-            {
-            case VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL:
-                // Image will be used as a transfer destination
-                // Make sure any writes to the image have been finished
-                imageMemoryBarrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-                break;
-
-            case VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL:
-                // Image will be used as a transfer source
-                // Make sure any reads from the image have been finished
-                imageMemoryBarrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
-                break;
-
-            case VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL:
-                // Image will be used as a colour attachment
-                // Make sure any writes to the colour buffer have been finished
-                imageMemoryBarrier.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-                break;
-
-            case VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL:
-                // Image layout will be used as a depth/stencil attachment
-                // Make sure any writes to depth/stencil buffer have been finished
-                imageMemoryBarrier.dstAccessMask = imageMemoryBarrier.dstAccessMask | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
-                break;
-
-            case VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL:
-                // Image will be read in a shader (sampler, input attachment)
-                // Make sure any writes to the image have been finished
-                if(imageMemoryBarrier.srcAccessMask == 0)
-                {
-                    imageMemoryBarrier.srcAccessMask = VK_ACCESS_HOST_WRITE_BIT | VK_ACCESS_TRANSFER_WRITE_BIT;
-                }
-                imageMemoryBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-                break;
-            default:
-                // Other source layouts aren't handled (yet)
-                break;
-            }
-
-            VkPipelineStageFlags source_stage = 0;
-            {
-                if(imageMemoryBarrier.oldLayout == VK_IMAGE_LAYOUT_PRESENT_SRC_KHR)
-                {
-                    source_stage = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
-                }
-                else if(imageMemoryBarrier.srcAccessMask != 0)
-                {
-                    source_stage = GetPipelineStageFromAccessFlags(imageMemoryBarrier.srcAccessMask);
-                }
-                else
-                {
-                    source_stage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
-                }
-            }
-
-            VkPipelineStageFlags destination_stage = 0;
-            {
-                if(imageMemoryBarrier.newLayout == VK_IMAGE_LAYOUT_PRESENT_SRC_KHR)
-                {
-                    destination_stage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
-                }
-                else if(imageMemoryBarrier.dstAccessMask != 0)
-                {
-                    destination_stage = GetPipelineStageFromAccessFlags(imageMemoryBarrier.dstAccessMask);
-                }
-                else
-                {
-                    destination_stage = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
-                }
-            }
-
-            // Put barrier inside setup command buffer
-            vkCmdPipelineBarrier(
-                cmdbuffer,
-                source_stage,
-                destination_stage,
-                0,
-                0, nullptr,
-                0, nullptr,
-                1, &imageMemoryBarrier);
-        }
-
-        // Fixed sub resource on first mip level and layer
-        void VKUtilities::SetImageLayout(
-            VkCommandBuffer cmdbuffer,
-            VkImage image,
-            VkImageAspectFlags aspectMask,
-            VkImageLayout oldImageLayout,
-            VkImageLayout newImageLayout,
-            VkPipelineStageFlags srcStageMask,
-            VkPipelineStageFlags dstStageMask)
-        {
-            VkImageSubresourceRange subresourceRange = {};
-            subresourceRange.aspectMask = aspectMask;
-            subresourceRange.baseMipLevel = 0;
-            subresourceRange.levelCount = 1;
-            subresourceRange.layerCount = 1;
-            SetImageLayout(cmdbuffer, image, oldImageLayout, newImageLayout, subresourceRange, srcStageMask, dstStageMask);
-        }
-
         VkSamplerAddressMode VKUtilities::TextureWrapToVK(const TextureWrap wrap)
         {
             switch(wrap)
@@ -957,24 +724,6 @@ namespace Lumos
                 return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
                 break;
             }
-        }
-
-        VkImageMemoryBarrier VKUtilities::ImageBarrier(VkImage image, VkAccessFlags srcAccessMask, VkAccessFlags dstAccessMask, VkImageLayout oldLayout, VkImageLayout newLayout, VkImageAspectFlags aspectMask)
-        {
-            VkImageMemoryBarrier result = { VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER };
-
-            result.srcAccessMask = srcAccessMask;
-            result.dstAccessMask = dstAccessMask;
-            result.oldLayout = oldLayout;
-            result.newLayout = newLayout;
-            result.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-            result.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-            result.image = image;
-            result.subresourceRange.aspectMask = aspectMask;
-            result.subresourceRange.levelCount = VK_REMAINING_MIP_LEVELS;
-            result.subresourceRange.layerCount = VK_REMAINING_ARRAY_LAYERS;
-
-            return result;
         }
 
         bool VKUtilities::IsPresentModeSupported(const std::vector<VkPresentModeKHR>& supportedModes, VkPresentModeKHR presentMode)

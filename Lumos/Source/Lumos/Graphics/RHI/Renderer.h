@@ -112,6 +112,7 @@ namespace Lumos
             virtual const std::string& GetTitleInternal() const = 0;
             virtual void DrawIndexedInternal(CommandBuffer* commandBuffer, DrawType type, uint32_t count, uint32_t start) const = 0;
             virtual void DrawInternal(CommandBuffer* commandBuffer, DrawType type, uint32_t count, DataType datayType, void* indices) const = 0;
+            virtual void DrawSplashScreen(Texture* texture) {};
 
             inline static void Present()
             {

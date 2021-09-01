@@ -79,6 +79,26 @@ namespace Lumos
         {
             return new VKDescriptorSet(descriptorDesc);
         }
+    
+        void TransitionImageToCorrectLayout(Texture* texture)
+        {
+            auto commandBuffer = Renderer::GetMainSwapChain()->GetCurrentCommandBuffer();
+            if(texture->GetType() == TextureType::COLOUR)
+            {
+                if(((VKTexture2D*)texture)->GetImageLayout() != VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
+                {
+                    ((VKTexture2D*)texture)->TransitionImage(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, (VKCommandBuffer*)commandBuffer);
+                }
+            }
+            else if(texture->GetType() == TextureType::DEPTH)
+            {
+                ((VKTextureDepth*)texture)->TransitionImage(VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL, (VKCommandBuffer*)commandBuffer);
+            }
+            else if(texture->GetType() == TextureType::DEPTHARRAY)
+            {
+                ((VKTextureDepthArray*)texture)->TransitionImage(VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL, (VKCommandBuffer*)commandBuffer);
+            }
+        }
 
         void VKDescriptorSet::Update()
         {
@@ -105,7 +125,9 @@ namespace Lumos
                         {
                             if(imageInfo.texture)
                             {
-                                VkDescriptorImageInfo& des = *static_cast<VkDescriptorImageInfo*>(imageInfo.texture->GetHandle());
+                                TransitionImageToCorrectLayout(imageInfo.texture);
+                                
+                                VkDescriptorImageInfo& des = *static_cast<VkDescriptorImageInfo*>(imageInfo.texture->GetDescriptorInfo());
                                 m_ImageInfoPool[imageIndex].imageLayout = des.imageLayout;
                                 m_ImageInfoPool[imageIndex].imageView = des.imageView;
                                 m_ImageInfoPool[imageIndex].sampler = des.sampler;
@@ -117,7 +139,9 @@ namespace Lumos
                             {
                                 for(uint32_t i = 0; i < imageInfo.textureCount; i++)
                                 {
-                                    VkDescriptorImageInfo& des = *static_cast<VkDescriptorImageInfo*>(imageInfo.textures[i]->GetHandle());
+                                    TransitionImageToCorrectLayout(imageInfo.textures[i]);
+
+                                    VkDescriptorImageInfo& des = *static_cast<VkDescriptorImageInfo*>(imageInfo.textures[i]->GetDescriptorInfo());
                                     m_ImageInfoPool[i + imageIndex].imageLayout = des.imageLayout;
                                     m_ImageInfoPool[i + imageIndex].imageView = des.imageView;
                                     m_ImageInfoPool[i + imageIndex].sampler = des.sampler;

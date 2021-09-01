@@ -28,9 +28,7 @@ namespace Lumos
             for(uint32_t i = 0; i < m_SwapChainBufferCount; i++)
             {
                 vkDestroySemaphore(VKDevice::Get().GetDevice(), m_Frames[i].PresentSemaphore, nullptr);
-
-                if(m_Frames[i].MainCommandBuffer->GetState() == CommandBufferState::Submitted)
-                    m_Frames[i].MainCommandBuffer->Wait();
+                m_Frames[i].MainCommandBuffer->Flush();
                 
                 m_Frames[i].MainCommandBuffer = nullptr;
                 m_Frames[i].CommandPool = nullptr;
@@ -101,9 +99,15 @@ namespace Lumos
 
             // Use triple-buffering
             m_SwapChainBufferCount = surfaceCapabilities.maxImageCount;
+            
             if(m_SwapChainBufferCount > 3)
                 m_SwapChainBufferCount = 3;
 
+#ifdef LUMOS_PLATFORM_MACOS
+                //Moltenvk bug - vsync is double the actual refresh rate when using 3 images
+                //m_SwapChainBufferCount = 2;
+#endif
+            
             VkSurfaceTransformFlagBitsKHR preTransform;
             if(surfaceCapabilities.supportedTransforms & VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR)
                 preTransform = VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR;
@@ -253,7 +257,7 @@ namespace Lumos
                 {
                     LUMOS_LOG_CRITICAL("[VULKAN] Failed to acquire swap chain image!");
                 }
-
+                
                 m_CurrentBuffer = nextCmdBufferIndex;
                 return;
             }
@@ -313,7 +317,7 @@ namespace Lumos
                     return;
                 }
             }
-
+            commandBuffer->Reset();
             VKRenderer::GetDeletionQueue(m_CurrentBuffer).Flush();
             commandBuffer->BeginRecording();
         }

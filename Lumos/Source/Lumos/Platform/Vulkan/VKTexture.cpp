@@ -181,6 +181,7 @@ namespace Lumos
             , m_Height(height)
             , m_VKFormat(format)
             , m_DeleteImage(false)
+            , m_ImageLayout(VK_IMAGE_LAYOUT_UNDEFINED)
         {
             m_TextureImageMemory = VK_NULL_HANDLE;
 
@@ -469,7 +470,7 @@ namespace Lumos
 
             GenerateMipmaps(m_TextureImage, VKUtilities::TextureFormatToVK(m_Parameters.format, m_Parameters.srgb), m_Width, m_Height, m_MipLevels);
 
-            m_ImageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+            TransitionImage(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
             return true;
         }
@@ -480,6 +481,7 @@ namespace Lumos
             if(newLayout != m_ImageLayout)
                 VKUtilities::TransitionImageLayout(m_TextureImage, VKUtilities::TextureFormatToVK(m_Parameters.format), m_ImageLayout, newLayout, m_MipLevels, 1, commandBuffer ? commandBuffer->GetHandle() : nullptr);
             m_ImageLayout = newLayout;
+            UpdateDescriptor();
         }
 
         VKTextureCube::VKTextureCube(uint32_t size)
@@ -523,19 +525,38 @@ namespace Lumos
 
         VKTextureCube::~VKTextureCube()
         {
+            VKContext::DeletionQueue& deletionQueue = VKRenderer::GetCurrentDeletionQueue();
+
             if(m_TextureSampler)
-                vkDestroySampler(VKDevice::GetHandle(), m_TextureSampler, nullptr);
+            {
+                auto sampler = m_TextureSampler;
+                deletionQueue.PushFunction([sampler]
+                    { vkDestroySampler(VKDevice::GetHandle(), sampler, nullptr); });
+            }
 
             if(m_TextureImageView)
-                vkDestroyImageView(VKDevice::GetHandle(), m_TextureImageView, nullptr);
+            {
+                auto imageView = m_TextureImageView;
+                deletionQueue.PushFunction([imageView]
+                    { vkDestroyImageView(VKDevice::GetHandle(), imageView, nullptr); });
+            }
 
             if(m_DeleteImage)
             {
+                auto image = m_TextureImage;
 #ifdef USE_VMA_ALLOCATOR
-                vmaDestroyImage(VKDevice::Get().GetAllocator(), m_TextureImage, m_Allocation);
+                auto alloc = m_Allocation;
+                deletionQueue.PushFunction([image, alloc]
+                    { vmaDestroyImage(VKDevice::Get().GetAllocator(), image, alloc); });
 #else
-                vkDestroyImage(VKDevice::Get().GetDevice(), m_TextureImage, nullptr);
-                vkFreeMemory(VKDevice::Get().GetDevice(), m_TextureImageMemory, nullptr);
+                deletionQueue.PushFunction([image]
+                    { vkDestroyImage(VKDevice::Get().GetAllocator(), image, nullptr); });
+                if(m_TextureImageMemory)
+                {
+                    auto imageMemory = m_TextureImageMemory;
+                    deletionQueue.PushFunction([imageMemory]
+                        { vkFreeMemory(VKDevice::Get().GetAllocator(), imageMemory, nullptr); });
+                }
 #endif
             }
         }
@@ -675,13 +696,8 @@ namespace Lumos
             subresourceRange.levelCount = m_NumMips;
             subresourceRange.layerCount = 6;
 
-            VKUtilities::SetImageLayout(
-                commandBuffer,
-                m_TextureImage,
-                VK_IMAGE_LAYOUT_UNDEFINED,
-                VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-                subresourceRange);
-
+            VKUtilities::TransitionImageLayout(m_TextureImage, VKUtilities::TextureFormatToVK(m_Parameters.format, m_Parameters.srgb), VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, m_NumMips, 6, commandBuffer);
+            
             // Copy the cube map faces from the staging buffer to the optimal tiled image
             vkCmdCopyBufferToImage(
                 commandBuffer,
@@ -692,16 +708,9 @@ namespace Lumos
                 bufferCopyRegions.data());
 
             // Change texture image layout to shader read after all faces have been copied
-            m_ImageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+            VKUtilities::TransitionImageLayout(m_TextureImage, VKUtilities::TextureFormatToVK(m_Parameters.format, m_Parameters.srgb), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, m_NumMips, 6, commandBuffer);
 
-            VKUtilities::SetImageLayout(
-                commandBuffer,
-                m_TextureImage,
-                VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-                m_ImageLayout,
-                subresourceRange,
-                VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
-                VK_PIPELINE_STAGE_TRANSFER_BIT);
+            m_ImageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 
             VKUtilities::EndSingleTimeCommands(commandBuffer);
 
@@ -800,8 +809,12 @@ namespace Lumos
         {
             LUMOS_PROFILE_FUNCTION();
             if(newLayout != m_ImageLayout)
+            {
                 VKUtilities::TransitionImageLayout(m_TextureImage, VKUtilities::FindDepthFormat(), m_ImageLayout, newLayout, 1, 1, commandBuffer ? commandBuffer->GetHandle() : nullptr);
+            }
+   
             m_ImageLayout = newLayout;
+            UpdateDescriptor();
         }
 
         void VKTextureDepth::Resize(uint32_t width, uint32_t height)
@@ -858,11 +871,17 @@ namespace Lumos
 
             auto sampler = m_TextureSampler;
             auto imageView = m_TextureImageView;
+            auto imageViews = m_IndividualImageViews;
 
-            deletionQueue.PushFunction([sampler, imageView]
+            deletionQueue.PushFunction([sampler, imageView, imageViews]
                 {
                     vkDestroySampler(VKDevice::GetHandle(), sampler, nullptr);
                     vkDestroyImageView(VKDevice::GetHandle(), imageView, nullptr);
+                
+                    for(uint32_t i = 0; i < (uint32_t)imageViews.size(); i++)
+                    {
+                        vkDestroyImageView(VKDevice::GetHandle(), imageViews[i], nullptr);
+                    }
                 });
 
 #ifdef USE_VMA_ALLOCATOR
@@ -932,6 +951,7 @@ namespace Lumos
             if(newLayout != m_ImageLayout)
                 VKUtilities::TransitionImageLayout(m_TextureImage, VKUtilities::FindDepthFormat(), m_ImageLayout, newLayout, 1, m_Count, commandBuffer ? commandBuffer->GetHandle() : nullptr);
             m_ImageLayout = newLayout;
+            UpdateDescriptor();
         }
 
         void VKTextureDepthArray::Resize(uint32_t width, uint32_t height, uint32_t count)

@@ -53,6 +53,7 @@ namespace Lumos
             void BindDescriptorSetsInternal(Graphics::Pipeline* pipeline, Graphics::CommandBuffer* commandBuffer, uint32_t dynamicOffset, std::vector<Graphics::DescriptorSet*>& descriptorSets) override;
             void DrawIndexedInternal(CommandBuffer* commandBuffer, DrawType type, uint32_t count, uint32_t start) const override;
             void DrawInternal(CommandBuffer* commandBuffer, DrawType type, uint32_t count, DataType datayType, void* indices) const override;
+            void DrawSplashScreen(Texture* texture) override;
             
             const VkDescriptorPool& GetDescriptorPool() const
             {
@@ -68,6 +69,12 @@ namespace Lumos
             static VKContext::DeletionQueue& GetCurrentDeletionQueue()
             {
                 return s_DeletionQueue[(s_Instance && Application::Get().GetWindow()) ? GetMainSwapChain()->GetCurrentBufferIndex() : 0];
+            }
+            
+            template <typename F>
+            static void PushDeletionFunction(F&& function)
+            {
+                GetCurrentDeletionQueue().PushFunction(function);
             }
 
             static void MakeDefault();

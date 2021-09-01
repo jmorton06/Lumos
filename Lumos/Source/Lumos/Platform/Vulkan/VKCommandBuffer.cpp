@@ -211,10 +211,7 @@ namespace Lumos
         {
             LUMOS_ASSERT(m_State == CommandBufferState::Submitted, "");
 
-            bool fenceFailed = m_Fence->Wait();
-            if(fenceFailed)
-                return false;
-
+            m_Fence->WaitAndReset();
             m_State = CommandBufferState::Idle;
 
             return true;
