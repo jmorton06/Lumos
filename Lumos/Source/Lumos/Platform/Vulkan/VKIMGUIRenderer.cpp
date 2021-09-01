@@ -34,6 +34,8 @@ namespace Lumos
             , m_Renderpass(nullptr)
             , m_FontTexture(nullptr)
         {
+            LUMOS_PROFILE_FUNCTION();
+
             m_WindowHandle = nullptr;
             m_Width = width;
             m_Height = height;
@@ -42,6 +44,8 @@ namespace Lumos
 
         VKIMGUIRenderer::~VKIMGUIRenderer()
         {
+            LUMOS_PROFILE_FUNCTION();
+
             for(int i = 0; i < Renderer::GetMainSwapChain()->GetSwapChainBufferCount(); i++)
             {
                 delete m_Framebuffers[i];
@@ -65,6 +69,8 @@ namespace Lumos
 
         void VKIMGUIRenderer::SetupVulkanWindowData(ImGui_ImplVulkanH_Window* wd, VkSurfaceKHR surface, int width, int height)
         {
+            LUMOS_PROFILE_FUNCTION();
+
             // Create Descriptor Pool
             {
                 VkDescriptorPoolSize pool_sizes[] = {
@@ -114,9 +120,9 @@ namespace Lumos
             wd->RenderPass = m_Renderpass->GetHandle();
 
             wd->Frames = (ImGui_ImplVulkanH_Frame*)IM_ALLOC(sizeof(ImGui_ImplVulkanH_Frame) * wd->ImageCount);
-            wd->FrameSemaphores = (ImGui_ImplVulkanH_FrameSemaphores*)IM_ALLOC(sizeof(ImGui_ImplVulkanH_FrameSemaphores) * wd->ImageCount);
+           // wd->FrameSemaphores = (ImGui_ImplVulkanH_FrameSemaphores*)IM_ALLOC(sizeof(ImGui_ImplVulkanH_FrameSemaphores) * wd->ImageCount);
             memset(wd->Frames, 0, sizeof(wd->Frames[0]) * wd->ImageCount);
-            memset(wd->FrameSemaphores, 0, sizeof(wd->FrameSemaphores[0]) * wd->ImageCount);
+            //memset(wd->FrameSemaphores, 0, sizeof(wd->FrameSemaphores[0]) * wd->ImageCount);
 
             // Create The Image Views
             {
@@ -183,18 +189,20 @@ namespace Lumos
                 io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
 
                 m_FontTexture = new VKTexture2D(width, height, pixels, TextureParameters(TextureFilter::NEAREST, TextureFilter::NEAREST));
-
-                VkWriteDescriptorSet write_desc[1] = {};
-                write_desc[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-                write_desc[0].dstSet = ImGui_ImplVulkanH_GetFontDescriptor();
-                write_desc[0].descriptorCount = 1;
-                write_desc[0].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-                write_desc[0].pImageInfo = m_FontTexture->GetDescriptor();
-                vkUpdateDescriptorSets(VKDevice::GetHandle(), 1, write_desc, 0, nullptr);
-
                 io.Fonts->TexID = (ImTextureID)m_FontTexture->GetHandle(); // GetImage();
 
-                ImGui_ImplVulkan_AddTexture(io.Fonts->TexID, ImGui_ImplVulkanH_GetFontDescriptor());
+                for(int i = 0; i < 3; i++)
+                {
+                    VkWriteDescriptorSet write_desc[1] = {};
+                    write_desc[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+                    write_desc[0].dstSet = ImGui_ImplVulkanH_GetFontDescriptor();
+                    write_desc[0].descriptorCount = 1;
+                    write_desc[0].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+                    write_desc[0].pImageInfo = m_FontTexture->GetDescriptor();
+                    vkUpdateDescriptorSets(VKDevice::GetHandle(), 1, write_desc, 0, nullptr);
+
+                    ImGui_ImplVulkan_AddTexture(io.Fonts->TexID, ImGui_ImplVulkanH_GetFontDescriptor(), i);
+                }
 
                 //ImGui_ImplVulkan_InvalidateFontUploadObjects();
             }
@@ -206,26 +214,66 @@ namespace Lumos
 
         void VKIMGUIRenderer::FrameRender(ImGui_ImplVulkanH_Window* wd)
         {
+            LUMOS_PROFILE_FUNCTION();
             wd->FrameIndex = VKRenderer::GetMainSwapChain()->GetCurrentImageIndex();
-            
-            ImGui_ImplVulkan_CreateDescriptorSets(ImGui::GetDrawData());
+            auto& descriptorImageMap = ImGui_ImplVulkan_GetDescriptorImageMap();
+
+            {
+                auto draw_data = ImGui::GetDrawData();
+                for (int n = 0; n < draw_data->CmdListsCount; n++)
+                {
+                    const ImDrawList* cmd_list = draw_data->CmdLists[n];
+                    for (int cmd_i = 0; cmd_i < cmd_list->CmdBuffer.Size; cmd_i++)
+                    {
+                        const ImDrawCmd* pcmd = &cmd_list->CmdBuffer[cmd_i];
+
+                        if ((Texture*)pcmd->TextureId)
+                        {
+                            if(((Texture*)pcmd->TextureId)->GetType() == TextureType::COLOUR)
+                            {
+                                auto texture = (VKTexture2D*)pcmd->TextureId;
+                                texture->TransitionImage(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, (VKCommandBuffer*)Renderer::GetMainSwapChain()->GetCurrentCommandBuffer());
+                                descriptorImageMap[pcmd->TextureId] = texture->GetDescriptor();
+                            }
+                            else if(((Texture*)pcmd->TextureId)->GetType() == TextureType::DEPTH)
+                            {
+                                auto texture = (VKTextureDepth*)pcmd->TextureId;
+                                texture->TransitionImage(VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL, (VKCommandBuffer*)Renderer::GetMainSwapChain()->GetCurrentCommandBuffer());
+                                descriptorImageMap[pcmd->TextureId] = texture->GetDescriptor();
+                            }
+                            else if(((Texture*)pcmd->TextureId)->GetType() == TextureType::DEPTHARRAY)
+                            {
+                                auto texture = (VKTextureDepthArray*)pcmd->TextureId;
+                                texture->TransitionImage(VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL, (VKCommandBuffer*)Renderer::GetMainSwapChain()->GetCurrentCommandBuffer());
+                                descriptorImageMap[pcmd->TextureId] = texture->GetDescriptor();
+                            }
+                        }
+                    }
+                }
+            }
+                        
+            ImGui_ImplVulkan_CreateDescriptorSets(ImGui::GetDrawData(), VKRenderer::GetMainSwapChain()->GetCurrentBufferIndex());
 
             m_Renderpass->BeginRenderpass(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer(), Maths::Vector4(0.1f, 0.1f, 0.1f, 1.0f), m_Framebuffers[wd->FrameIndex], Graphics::SubPassContents::INLINE, wd->Width, wd->Height);
 
             // Record Imgui Draw Data and draw funcs into command buffer
-            ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), ((VKCommandBuffer*)Renderer::GetMainSwapChain()->GetCurrentCommandBuffer())->GetHandle());
+            ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), ((VKCommandBuffer*)Renderer::GetMainSwapChain()->GetCurrentCommandBuffer())->GetHandle(), VK_NULL_HANDLE, VKRenderer::GetMainSwapChain()->GetCurrentBufferIndex());
 
             m_Renderpass->EndRenderpass(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer());
         }
 
         void VKIMGUIRenderer::Render(Lumos::Graphics::CommandBuffer* commandBuffer)
         {
+            LUMOS_PROFILE_FUNCTION();
+
             ImGui::Render();
             FrameRender(&g_WindowData);
         }
 
         void VKIMGUIRenderer::OnResize(uint32_t width, uint32_t height)
         {
+            LUMOS_PROFILE_FUNCTION();
+
             auto* wd = &g_WindowData;
             auto swapChain = static_cast<VKSwapChain*>(VKRenderer::GetMainSwapChain());
             wd->Swapchain = swapChain->GetSwapChain();
@@ -283,6 +331,8 @@ namespace Lumos
 
         void VKIMGUIRenderer::RebuildFontTexture()
         {
+            LUMOS_PROFILE_FUNCTION();
+
             // Upload Fonts
             {
                 ImGuiIO& io = ImGui::GetIO();
@@ -292,18 +342,21 @@ namespace Lumos
                 io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
 
                 m_FontTexture = new VKTexture2D(width, height, pixels, TextureParameters(TextureFilter::NEAREST, TextureFilter::NEAREST, TextureWrap::REPEAT));
-
-                VkWriteDescriptorSet write_desc[1] = {};
-                write_desc[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-                write_desc[0].dstSet = ImGui_ImplVulkanH_GetFontDescriptor();
-                write_desc[0].descriptorCount = 1;
-                write_desc[0].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-                write_desc[0].pImageInfo = m_FontTexture->GetDescriptor();
-                vkUpdateDescriptorSets(VKDevice::GetHandle(), 1, write_desc, 0, nullptr);
-
                 io.Fonts->TexID = (ImTextureID)m_FontTexture->GetHandle(); // GetImage();
 
-                ImGui_ImplVulkan_AddTexture(io.Fonts->TexID, ImGui_ImplVulkanH_GetFontDescriptor());
+                for(int i = 0; i < 3; i++)
+                {
+                    VkWriteDescriptorSet write_desc[1] = {};
+                    write_desc[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+                    write_desc[0].dstSet = ImGui_ImplVulkanH_GetFontDescriptor();
+                    write_desc[0].descriptorCount = 1;
+                    write_desc[0].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+                    write_desc[0].pImageInfo = m_FontTexture->GetDescriptor();
+                    vkUpdateDescriptorSets(VKDevice::GetHandle(), 1, write_desc, 0, nullptr);
+
+                    ImGui_ImplVulkan_AddTexture(io.Fonts->TexID, ImGui_ImplVulkanH_GetFontDescriptor(), i);
+
+                }
 
                 //ImGui_ImplVulkan_InvalidateFontUploadObjects();
             }

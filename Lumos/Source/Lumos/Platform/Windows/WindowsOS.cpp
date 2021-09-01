@@ -11,6 +11,7 @@
 #endif
 
 #include <Windows.h>
+#include <filesystem>
 
 extern Lumos::Application* Lumos::CreateApplication();
 
@@ -70,8 +71,10 @@ namespace Lumos
     {
         WCHAR path[MAX_PATH];
         GetModuleFileNameW(NULL, path, MAX_PATH);
-        std::wstring ws(path);
-        std::string convertedString = std::string(ws.begin(), ws.end());
+
+		//To fix warnings
+        //std::wstring ws(path);
+		std::string convertedString = std::filesystem::path(path).string();;// std::string(ws.begin(), ws.end());
         std::replace(convertedString.begin(), convertedString.end(), '\\', '/');
 
         return convertedString;

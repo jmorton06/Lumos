@@ -94,7 +94,6 @@ namespace Lumos
             };
 
             void CreateGraphicsPipeline();
-            void CreateFramebuffers();
             void UpdateCascades(Scene* scene, Camera* overrideCamera, Maths::Transform* overrideCameraTransform, Light* light);
 
             const Lumos::Maths::Matrix4& GetLightView() const { return m_LightMatrix; }
@@ -112,14 +111,11 @@ namespace Lumos
             uint32_t m_ShadowMapNum;
             uint32_t m_ShadowMapSize;
             bool m_ShadowMapsInvalidated;
-            SharedPtr<Framebuffer> m_ShadowFramebuffer[SHADOWMAP_MAX] {};
             Maths::Matrix4 m_ShadowProjView[SHADOWMAP_MAX];
             Maths::Vector4 m_SplitDepth[SHADOWMAP_MAX];
             Maths::Matrix4 m_LightMatrix;
 
             CommandQueue m_CascadeCommandQueue[SHADOWMAP_MAX];
-
-            Lumos::Graphics::UniformBuffer* m_UniformBuffer;
 
             uint32_t m_Layer = 0;
             float m_CascadeSplitLambda;

@@ -2,15 +2,11 @@
 
 #include "Maths/Maths.h"
 #include "Events/Event.h"
+#include "Graphics/RHI/SwapChain.h"
+#include "Graphics/RHI/GraphicsContext.h"
 
 namespace Lumos
 {
-	namespace Graphics
-    {
-        class SwapChain;
-        class GraphicsContext;
-	}
-
     struct LUMOS_EXPORT WindowDesc
     {
         WindowDesc(uint32_t width = 1280, uint32_t height = 720, int renderAPI = 0, const std::string& title = "Lumos", bool fullscreen = false, bool vSync = true, bool borderless = false, const std::string& filepath = "")

@@ -1,7 +1,5 @@
 #include "Precompiled.h"
 #include "Window.h"
-#include "Graphics/RHI/SwapChain.h"
-#include "Graphics/RHI/GraphicsContext.h"
 
 namespace Lumos
 {

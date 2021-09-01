@@ -38,6 +38,8 @@
 #include "Physics/B2PhysicsEngine/B2PhysicsEngine.h"
 #include "Physics/LumosPhysicsEngine/LumosPhysicsEngine.h"
 
+#include "Embedded/SplashIcon.inl"
+
 #if __has_include(<filesystem>)
 #include <filesystem>
 #elif __has_include(<experimental/filesystem>)
@@ -188,20 +190,33 @@ namespace Lumos
         windowDesc.Title = Title;
         windowDesc.VSync = VSync;
 
+        // Initialise the Window
         m_Window = UniquePtr<Window>(Window::Create(windowDesc));
-        m_Window->SetEventCallback(BIND_EVENT_FN(Application::OnEvent));
+        if(!m_Window->HasInitialised())
+            OnQuit();
         
-        Graphics::Renderer::Init();
+        m_Window->SetEventCallback(BIND_EVENT_FN(Application::OnEvent));
 
         m_EditorState = EditorState::Play;
 
         ImGui::CreateContext();
         ImGui::StyleColorsDark();
-
-        // Initialise the Window
-        if(!m_Window->HasInitialised())
-            OnQuit();
-
+        
+        Graphics::Renderer::Init();
+        
+        //Draw Splash Screeh
+        {
+            auto splashTexture = Graphics::Texture2D::CreateFromSource(SplashIconWidth, SplashIconHeight, (void*)SplashIcon);
+            Graphics::Renderer::GetRenderer()->Begin();
+            Graphics::Renderer::GetRenderer()->DrawSplashScreen(splashTexture);
+            Graphics::Renderer::GetRenderer()->Present();
+            //To Display the window
+            m_Window->ProcessInput();
+            m_Window->OnUpdate();
+            
+            delete splashTexture;
+        }
+        
         uint32_t screenWidth = m_Window->GetWidth();
         uint32_t screenHeight = m_Window->GetHeight();
         m_SystemManager = CreateUniquePtr<SystemManager>();
@@ -431,15 +446,19 @@ namespace Lumos
         dispatcher.Dispatch<WindowCloseEvent>(BIND_EVENT_FN(Application::OnWindowClose));
         dispatcher.Dispatch<WindowResizeEvent>(BIND_EVENT_FN(Application::OnWindowResize));
 
-        m_ImGuiManager->OnEvent(e);
+        if(m_ImGuiManager)
+            m_ImGuiManager->OnEvent(e);
         if(e.Handled())
             return;
-        m_RenderGraph->OnEvent(e);
+
+        if(m_RenderGraph)
+            m_RenderGraph->OnEvent(e);
 
         if(e.Handled())
             return;
 
-        m_SceneManager->GetCurrentScene()->OnEvent(e);
+        if(m_SceneManager->GetCurrentScene())
+            m_SceneManager->GetCurrentScene()->OnEvent(e);
 
         Input::Get().OnEvent(e);
     }
@@ -485,7 +504,9 @@ namespace Lumos
         m_Minimized = false;
 
         Graphics::Renderer::GetRenderer()->OnResize(width, height);
-        m_RenderGraph->OnResize(width, height);
+
+        if(m_RenderGraph)
+            m_RenderGraph->OnResize(width, height);
 
         Graphics::Renderer::GetGraphicsContext()->WaitIdle();
 
