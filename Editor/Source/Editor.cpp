@@ -591,10 +591,10 @@ namespace Lumos
                     {
                         for(auto entry : std::filesystem::directory_iterator(shaderPath))
                         {
-                            auto extension = StringUtilities::GetFilePathExtension(entry.path());
+                            auto extension = StringUtilities::GetFilePathExtension(entry.path().string());
                             if( extension == "spv")
                             {
-                                EmbedShader(entry.path());
+                                EmbedShader(entry.path().string());
                                 shaderCount++;
                             }
                         }
