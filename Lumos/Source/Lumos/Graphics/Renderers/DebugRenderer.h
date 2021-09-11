@@ -28,6 +28,51 @@ namespace Lumos
     class Scene;
     class Camera;
 
+
+    struct LineInfo
+    {
+        Maths::Vector3 p1;
+        Maths::Vector3 p2;
+        Maths::Vector4 col;
+
+        LineInfo(const Maths::Vector3& pos1, const Maths::Vector3& pos2, const Maths::Vector4& colour)
+        {
+            p1 = pos1;
+            p2 = pos2;
+            col = colour;
+        }
+    };
+
+    struct PointInfo
+    {
+        Maths::Vector3 p1;
+        Maths::Vector4 col;
+        float size;
+
+        PointInfo(const Maths::Vector3& pos1, float s, const Maths::Vector4& colour)
+        {
+            p1 = pos1;
+            size = s;
+            col = colour;
+        }
+    };
+
+    struct TriangleInfo
+    {
+        Maths::Vector3 p1;
+        Maths::Vector3 p2;
+        Maths::Vector3 p3;
+        Maths::Vector4 col;
+
+        TriangleInfo(const Maths::Vector3& pos1, const Maths::Vector3& pos2, const Maths::Vector3& pos3, const Maths::Vector4& colour)
+        {
+            p1 = pos1;
+            p2 = pos2;
+            p3 = pos3;
+            col = colour;
+        }
+    };
+
     namespace Maths
     {
         class Sphere;
@@ -39,32 +84,13 @@ namespace Lumos
     class LUMOS_EXPORT DebugRenderer
     {
         friend class Scene;
-        friend class GraphicsPipeline;
         friend class Application;
         friend class RenderGraph;
 
     public:
-        static void Init(uint32_t width, uint32_t height);
+        static void Init();
         static void Release();
-
-        static void Clear()
-        {
-            if(s_Instance)
-                s_Instance->ClearInternal();
-        }
-
-        static void BeginScene(Scene* scene, Camera* overrideCamera, Maths::Transform* overrideCameraTransform)
-        {
-            if(s_Instance)
-                s_Instance->BeginSceneInternal(scene, s_Instance->m_OverrideCamera, s_Instance->m_OverrideCameraTransform);
-        }
-
-        static void Render()
-        {
-            if(s_Instance)
-                s_Instance->RenderInternal();
-        }
-        static void SetRenderTarget(Graphics::Texture* texture, bool rebuildFramebuffer);
+        static void Reset();
 
         DebugRenderer();
         ~DebugRenderer();
@@ -111,29 +137,14 @@ namespace Lumos
         static void DebugDrawSphere(float radius, const Maths::Vector3& position, const Maths::Vector4& colour);
         static void DebugDrawCircle(int numVerts, float radius, const Maths::Vector3& position, const Maths::Quaternion& rotation, const Maths::Vector4& colour);
         static void DebugDrawCone(int numCircleVerts, int numLinesToCircle, float angle, float length, const Maths::Vector3& position, const Maths::Quaternion& rotation, const Maths::Vector4& colour);
-        static void OnResize(uint32_t width, uint32_t height)
-        {
-            if(s_Instance)
-                s_Instance->OnResizeInternal(width, height);
-        }
-
-        static void SetOverrideCamera(Camera* camera, Maths::Transform* overrideCameraTransform)
-        {
-            if(s_Instance)
-            {
-                s_Instance->m_OverrideCamera = camera;
-                s_Instance->m_OverrideCameraTransform = overrideCameraTransform;
-            }
-        }
+        
+        const std::vector<TriangleInfo>& GetTriangles() const { return m_DebugTriangles; }
+        const std::vector<LineInfo> GetLines() const { return m_DebugLines; }
+        const std::vector<PointInfo>& GetPoints() const { return m_DebugPoints; }
 
         static DebugRenderer* GetInstance()
         {
             return s_Instance;
-        }
-        static void Reset()
-        {
-            if(s_Instance)
-                s_Instance->Begin();
         }
 
     protected:
@@ -144,19 +155,14 @@ namespace Lumos
         static void GenDrawTriangle(bool ndt, const Maths::Vector3& v0, const Maths::Vector3& v1, const Maths::Vector3& v2, const Maths::Vector4& colour);
 
     private:
-        void Begin();
-        void BeginSceneInternal(Scene* scene, Camera* overrideCamera, Maths::Transform* overrideCameraTransform);
-        void RenderInternal();
+        
         void ClearInternal();
 
-        void OnResizeInternal(uint32_t width, uint32_t height);
-
         static DebugRenderer* s_Instance;
+        
+        std::vector<TriangleInfo> m_DebugTriangles;
+        std::vector<LineInfo> m_DebugLines;
+        std::vector<PointInfo> m_DebugPoints;
 
-        Graphics::Renderer2D* m_Renderer2D;
-        Graphics::LineRenderer* m_LineRenderer;
-        Graphics::PointRenderer* m_PointRenderer;
-        Camera* m_OverrideCamera = nullptr;
-        Maths::Transform* m_OverrideCameraTransform = nullptr;
     };
 }

@@ -10,8 +10,6 @@
 #include "Core/Application.h"
 #include "Core/StringUtilities.h"
 
-#include "Graphics/Renderers/ForwardRenderer.h"
-
 #define TINYGLTF_IMPLEMENTATION
 #define TINYGLTF_USE_CPP14
 #define STB_IMAGE_WRITE_IMPLEMENTATION

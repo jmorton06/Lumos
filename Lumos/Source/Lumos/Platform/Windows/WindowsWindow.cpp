@@ -61,12 +61,11 @@ namespace Lumos
         m_Data.m_RenderAPI = static_cast<Graphics::RenderAPI>(properties.RenderAPI);
 
         m_Init = Init(properties);
-		m_GraphicsContext = SharedPtr<Graphics::GraphicsContext>(Graphics::GraphicsContext::Create());
+        m_GraphicsContext = SharedPtr<Graphics::GraphicsContext>(Graphics::GraphicsContext::Create());
         m_GraphicsContext->Init();
-		
-		m_SwapChain = SharedPtr<Graphics::SwapChain>(Graphics::SwapChain::Create(m_Data.Width, m_Data.Height));
-		m_SwapChain->Init(m_VSync, this);
-		
+
+        m_SwapChain = SharedPtr<Graphics::SwapChain>(Graphics::SwapChain::Create(m_Data.Width, m_Data.Height));
+        m_SwapChain->Init(m_VSync, this);
     }
 
     WindowsWindow::~WindowsWindow()
@@ -307,8 +306,8 @@ namespace Lumos
                 res = ChangeDisplaySettings(&dm, CDS_FULLSCREEN);
             }
         }
-		#if 0
-		#ifdef LUMOS_RENDER_API_OPENGL
+#if 0
+#ifdef LUMOS_RENDER_API_OPENGL
 		if(properties.RenderAPI == RenderAPI::OpenGL)
 		{
             HDC hDc = GetDC(static_cast<HWND>(GetHandle()));
@@ -356,8 +355,8 @@ namespace Lumos
             }
 		}
 #endif
-		#endif
-		
+#endif
+
         //Input
         rid.usUsagePage = HID_USAGE_PAGE_GENERIC;
         rid.usUsage = HID_USAGE_GENERIC_KEYBOARD;

@@ -150,184 +150,184 @@ namespace Lumos
         {
             return format == VK_FORMAT_D32_SFLOAT_S8_UINT || format == VK_FORMAT_D24_UNORM_S8_UINT;
         }
-    
+
         VkPipelineStageFlags AccessFlagsToPipelineStage(VkAccessFlags accessFlags, const VkPipelineStageFlags stageFlags)
-       {
-           VkPipelineStageFlags stages = 0;
+        {
+            VkPipelineStageFlags stages = 0;
 
-           while (accessFlags != 0)
-           {
-               VkAccessFlagBits AccessFlag = static_cast<VkAccessFlagBits>(accessFlags & (~(accessFlags - 1)));
-               LUMOS_ASSERT(AccessFlag != 0 && (AccessFlag & (AccessFlag - 1)) == 0, "Error");
-               accessFlags &= ~AccessFlag;
+            while(accessFlags != 0)
+            {
+                VkAccessFlagBits AccessFlag = static_cast<VkAccessFlagBits>(accessFlags & (~(accessFlags - 1)));
+                LUMOS_ASSERT(AccessFlag != 0 && (AccessFlag & (AccessFlag - 1)) == 0, "Error");
+                accessFlags &= ~AccessFlag;
 
-               switch (AccessFlag)
-               {
-               case VK_ACCESS_INDIRECT_COMMAND_READ_BIT:
-                   stages |= VK_PIPELINE_STAGE_DRAW_INDIRECT_BIT;
-                   break;
+                switch(AccessFlag)
+                {
+                case VK_ACCESS_INDIRECT_COMMAND_READ_BIT:
+                    stages |= VK_PIPELINE_STAGE_DRAW_INDIRECT_BIT;
+                    break;
 
-               case VK_ACCESS_INDEX_READ_BIT:
-                   stages |= VK_PIPELINE_STAGE_VERTEX_INPUT_BIT;
-                   break;
+                case VK_ACCESS_INDEX_READ_BIT:
+                    stages |= VK_PIPELINE_STAGE_VERTEX_INPUT_BIT;
+                    break;
 
-               case VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT:
-                   stages |= VK_PIPELINE_STAGE_VERTEX_INPUT_BIT;
-                   break;
+                case VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT:
+                    stages |= VK_PIPELINE_STAGE_VERTEX_INPUT_BIT;
+                    break;
 
-               case VK_ACCESS_UNIFORM_READ_BIT:
-                   stages |= stageFlags | VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
-                   break;
+                case VK_ACCESS_UNIFORM_READ_BIT:
+                    stages |= stageFlags | VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+                    break;
 
-               case VK_ACCESS_INPUT_ATTACHMENT_READ_BIT:
-                   stages |= VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
-                   break;
+                case VK_ACCESS_INPUT_ATTACHMENT_READ_BIT:
+                    stages |= VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+                    break;
 
-               case VK_ACCESS_SHADER_READ_BIT:
-                   stages |= stageFlags | VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
-                   break;
+                case VK_ACCESS_SHADER_READ_BIT:
+                    stages |= stageFlags | VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+                    break;
 
-               case VK_ACCESS_SHADER_WRITE_BIT:
-                   stages |= stageFlags | VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
-                   break;
+                case VK_ACCESS_SHADER_WRITE_BIT:
+                    stages |= stageFlags | VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+                    break;
 
-               case VK_ACCESS_COLOR_ATTACHMENT_READ_BIT:
-                   stages |= VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-                   break;
+                case VK_ACCESS_COLOR_ATTACHMENT_READ_BIT:
+                    stages |= VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+                    break;
 
-               case VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT:
-                   stages |= VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-                   break;
+                case VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT:
+                    stages |= VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+                    break;
 
-               case VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT:
-                   stages |= VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
-                   break;
+                case VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT:
+                    stages |= VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+                    break;
 
-               case VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT:
-                   stages |= VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
-                   break;
+                case VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT:
+                    stages |= VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+                    break;
 
-               case VK_ACCESS_TRANSFER_READ_BIT:
-                   stages |= VK_PIPELINE_STAGE_TRANSFER_BIT;
-                   break;
+                case VK_ACCESS_TRANSFER_READ_BIT:
+                    stages |= VK_PIPELINE_STAGE_TRANSFER_BIT;
+                    break;
 
-               case VK_ACCESS_TRANSFER_WRITE_BIT:
-                   stages |= VK_PIPELINE_STAGE_TRANSFER_BIT;
-                   break;
+                case VK_ACCESS_TRANSFER_WRITE_BIT:
+                    stages |= VK_PIPELINE_STAGE_TRANSFER_BIT;
+                    break;
 
-               case VK_ACCESS_HOST_READ_BIT:
-                   stages |= VK_PIPELINE_STAGE_HOST_BIT;
-                   break;
+                case VK_ACCESS_HOST_READ_BIT:
+                    stages |= VK_PIPELINE_STAGE_HOST_BIT;
+                    break;
 
-               case VK_ACCESS_HOST_WRITE_BIT:
-                   stages |= VK_PIPELINE_STAGE_HOST_BIT;
-                   break;
+                case VK_ACCESS_HOST_WRITE_BIT:
+                    stages |= VK_PIPELINE_STAGE_HOST_BIT;
+                    break;
 
-               case VK_ACCESS_MEMORY_READ_BIT:
-                   break;
+                case VK_ACCESS_MEMORY_READ_BIT:
+                    break;
 
-               case VK_ACCESS_MEMORY_WRITE_BIT:
-                   break;
+                case VK_ACCESS_MEMORY_WRITE_BIT:
+                    break;
 
-               default:
-                   LUMOS_LOG_ERROR("Unknown access flag");
-                   break;
-               }
-           }
-           return stages;
-       }
-    
+                default:
+                    LUMOS_LOG_ERROR("Unknown access flag");
+                    break;
+                }
+            }
+            return stages;
+        }
+
         VkPipelineStageFlags LayoutToAccessMask(const VkImageLayout layout, const bool isDestination)
-       {
-           VkPipelineStageFlags accessMask = 0;
+        {
+            VkPipelineStageFlags accessMask = 0;
 
-           switch (layout)
-           {
-           case VK_IMAGE_LAYOUT_UNDEFINED:
-               if (isDestination)
-               {
-                   LUMOS_LOG_ERROR("The new layout used in a transition must not be VK_IMAGE_LAYOUT_UNDEFINED.");
-               }
-               break;
+            switch(layout)
+            {
+            case VK_IMAGE_LAYOUT_UNDEFINED:
+                if(isDestination)
+                {
+                    LUMOS_LOG_ERROR("The new layout used in a transition must not be VK_IMAGE_LAYOUT_UNDEFINED.");
+                }
+                break;
 
-           case VK_IMAGE_LAYOUT_GENERAL:
-                   accessMask = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT;
-               break;
+            case VK_IMAGE_LAYOUT_GENERAL:
+                accessMask = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT;
+                break;
 
-           case VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL:
-                   accessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-               break;
+            case VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL:
+                accessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+                break;
 
-           case VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL:
-                   accessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
-               break;
+            case VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL:
+                accessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+                break;
 
-           case VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL:
-                   accessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT;
-               break;
+            case VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL:
+                accessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT;
+                break;
 
-           case VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL:
-                   accessMask = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_INPUT_ATTACHMENT_READ_BIT;
-               break;
+            case VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL:
+                accessMask = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_INPUT_ATTACHMENT_READ_BIT;
+                break;
 
-           case VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL:
-                   accessMask = VK_ACCESS_TRANSFER_READ_BIT;
-               break;
+            case VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL:
+                accessMask = VK_ACCESS_TRANSFER_READ_BIT;
+                break;
 
-           case VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL:
-                   accessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-               break;
+            case VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL:
+                accessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+                break;
 
-           case VK_IMAGE_LAYOUT_PREINITIALIZED:
-               if (!isDestination)
-               {
-                   accessMask = VK_ACCESS_HOST_WRITE_BIT;
-               }
-               else
-               {
-                   LUMOS_LOG_ERROR("The new layout used in a transition must not be VK_IMAGE_LAYOUT_PREINITIALIZED.");
-               }
-               break;
+            case VK_IMAGE_LAYOUT_PREINITIALIZED:
+                if(!isDestination)
+                {
+                    accessMask = VK_ACCESS_HOST_WRITE_BIT;
+                }
+                else
+                {
+                    LUMOS_LOG_ERROR("The new layout used in a transition must not be VK_IMAGE_LAYOUT_PREINITIALIZED.");
+                }
+                break;
 
-           case VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_STENCIL_ATTACHMENT_OPTIMAL:
-                   accessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT;
-               break;
+            case VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_STENCIL_ATTACHMENT_OPTIMAL:
+                accessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT;
+                break;
 
-           case VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_STENCIL_READ_ONLY_OPTIMAL:
-                   accessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT;
-               break;
+            case VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_STENCIL_READ_ONLY_OPTIMAL:
+                accessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT;
+                break;
 
-           case VK_IMAGE_LAYOUT_PRESENT_SRC_KHR:
-                   accessMask = VK_ACCESS_MEMORY_READ_BIT;
-               break;
+            case VK_IMAGE_LAYOUT_PRESENT_SRC_KHR:
+                accessMask = VK_ACCESS_MEMORY_READ_BIT;
+                break;
 
-           default:
-               LUMOS_LOG_ERROR("Unexpected image layout");
-               break;
-           }
+            default:
+                LUMOS_LOG_ERROR("Unexpected image layout");
+                break;
+            }
 
-           return accessMask;
-       }
-    
+            return accessMask;
+        }
+
         bool IsDepthFormat(VkFormat format)
         {
             switch(format)
             {
-                case VK_FORMAT_D32_SFLOAT:
-                case VK_FORMAT_D32_SFLOAT_S8_UINT:
-                case VK_FORMAT_D24_UNORM_S8_UINT:
-                    return true;
+            case VK_FORMAT_D32_SFLOAT:
+            case VK_FORMAT_D32_SFLOAT_S8_UINT:
+            case VK_FORMAT_D24_UNORM_S8_UINT:
+                return true;
             }
             return false;
         }
-    
+
         bool IsStencilFormat(VkFormat format)
         {
             switch(format)
             {
-                case VK_FORMAT_D32_SFLOAT_S8_UINT:
-                case VK_FORMAT_D24_UNORM_S8_UINT:
-                    return true;
+            case VK_FORMAT_D32_SFLOAT_S8_UINT:
+            case VK_FORMAT_D24_UNORM_S8_UINT:
+                return true;
             }
             return false;
         }
@@ -336,7 +336,7 @@ namespace Lumos
             uint32_t mipLevels, uint32_t layerCount, VkCommandBuffer commandBuffer)
         {
             LUMOS_PROFILE_FUNCTION();
-            
+
             bool singleTimeCommand = false;
 
             if(!commandBuffer)
@@ -347,10 +347,10 @@ namespace Lumos
 
             VkImageSubresourceRange subresourceRange = {};
             subresourceRange.aspectMask = IsDepthFormat(format) ? VK_IMAGE_ASPECT_DEPTH_BIT : VK_IMAGE_ASPECT_COLOR_BIT;
-            
+
             if(IsStencilFormat(format))
                 subresourceRange.aspectMask |= VK_IMAGE_ASPECT_STENCIL_BIT;
-            
+
             subresourceRange.baseMipLevel = 0;
             subresourceRange.levelCount = mipLevels;
             subresourceRange.baseArrayLayer = 0;
@@ -366,14 +366,14 @@ namespace Lumos
             imageMemoryBarrier.dstAccessMask = LayoutToAccessMask(newImageLayout, true);
             imageMemoryBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
             imageMemoryBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-            
+
             VkPipelineStageFlags sourceStage = 0;
             {
-                if (imageMemoryBarrier.oldLayout == VK_IMAGE_LAYOUT_PRESENT_SRC_KHR)
+                if(imageMemoryBarrier.oldLayout == VK_IMAGE_LAYOUT_PRESENT_SRC_KHR)
                 {
                     sourceStage = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
                 }
-                else if (imageMemoryBarrier.srcAccessMask != 0)
+                else if(imageMemoryBarrier.srcAccessMask != 0)
                 {
                     sourceStage = AccessFlagsToPipelineStage(imageMemoryBarrier.srcAccessMask, VK_PIPELINE_STAGE_VERTEX_SHADER_BIT | VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
                 }
@@ -385,11 +385,11 @@ namespace Lumos
 
             VkPipelineStageFlags destinationStage = 0;
             {
-                if (imageMemoryBarrier.newLayout == VK_IMAGE_LAYOUT_PRESENT_SRC_KHR)
+                if(imageMemoryBarrier.newLayout == VK_IMAGE_LAYOUT_PRESENT_SRC_KHR)
                 {
                     destinationStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
                 }
-                else if (imageMemoryBarrier.dstAccessMask != 0)
+                else if(imageMemoryBarrier.dstAccessMask != 0)
                 {
                     destinationStage = AccessFlagsToPipelineStage(imageMemoryBarrier.dstAccessMask, VK_PIPELINE_STAGE_VERTEX_SHADER_BIT | VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
                 }
@@ -404,8 +404,8 @@ namespace Lumos
                 commandBuffer,
                 //destinationStage,
                 //sourceStage,
-                 VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
-                 VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
+                VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
+                VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
                 0,
                 0, nullptr,
                 0, nullptr,

@@ -20,19 +20,19 @@ namespace Lumos
         class LUMOS_EXPORT VKRenderer : public Renderer
         {
         public:
-            VKRenderer() {}
+            VKRenderer() { }
             ~VKRenderer();
 
             static VKRenderer* GetRenderer()
             {
                 return static_cast<VKRenderer*>(s_Instance);
             }
-            
+
             static VKContext* GetGraphicsContext()
             {
                 return static_cast<VKContext*>(s_Instance->GetGraphicsContext());
             }
-            
+
             static VKSwapChain* GetMainSwapChain()
             {
                 return static_cast<VKSwapChain*>(Renderer::GetMainSwapChain());
@@ -45,16 +45,16 @@ namespace Lumos
             void PresentInternal() override;
             void PresentInternal(CommandBuffer* commandBuffer) override;
 
-            void ClearRenderTarget(Graphics::Texture* texture, Graphics::CommandBuffer* commandBuffer) override;
+            void ClearRenderTarget(Graphics::Texture* texture, Graphics::CommandBuffer* commandBuffer, Maths::Vector4 clearColour) override;
             void ClearSwapChainImage() const;
 
             const std::string& GetTitleInternal() const override;
 
-            void BindDescriptorSetsInternal(Graphics::Pipeline* pipeline, Graphics::CommandBuffer* commandBuffer, uint32_t dynamicOffset, std::vector<Graphics::DescriptorSet*>& descriptorSets) override;
+            void BindDescriptorSetsInternal(Graphics::Pipeline* pipeline, Graphics::CommandBuffer* commandBuffer, uint32_t dynamicOffset, Graphics::DescriptorSet** descriptorSets, uint32_t descriptorCount) override;
             void DrawIndexedInternal(CommandBuffer* commandBuffer, DrawType type, uint32_t count, uint32_t start) const override;
             void DrawInternal(CommandBuffer* commandBuffer, DrawType type, uint32_t count, DataType datayType, void* indices) const override;
             void DrawSplashScreen(Texture* texture) override;
-            
+
             const VkDescriptorPool& GetDescriptorPool() const
             {
                 return m_DescriptorPool;
@@ -70,7 +70,7 @@ namespace Lumos
             {
                 return s_DeletionQueue[(s_Instance && Application::Get().GetWindow()) ? GetMainSwapChain()->GetCurrentBufferIndex() : 0];
             }
-            
+
             template <typename F>
             static void PushDeletionFunction(F&& function)
             {
@@ -86,7 +86,7 @@ namespace Lumos
             uint32_t m_CurrentSemaphoreIndex = 0;
 
             std::string m_RendererTitle;
-        
+
             VkDescriptorPool m_DescriptorPool;
             VkDescriptorSet m_DescriptorSetPool[16];
             static VKContext::DeletionQueue s_DeletionQueue[3];

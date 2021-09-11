@@ -60,7 +60,7 @@ namespace Lumos
             m_Quad->GetVertexBuffer()->Bind(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer(), m_Pipeline.get());
             m_Quad->GetIndexBuffer()->Bind(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer());
 
-            Renderer::BindDescriptorSets(m_Pipeline.get(), Renderer::GetMainSwapChain()->GetCurrentCommandBuffer(), 0, m_CurrentDescriptorSets);
+            Renderer::BindDescriptorSets(m_Pipeline.get(), Renderer::GetMainSwapChain()->GetCurrentCommandBuffer(), 0, m_CurrentDescriptorSets.data(), 1);
             Renderer::DrawIndexed(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer(), DrawType::TRIANGLE, m_Quad->GetIndexBuffer()->GetCount());
 
             m_Quad->GetVertexBuffer()->Unbind();
@@ -163,8 +163,6 @@ namespace Lumos
         void GridRenderer::OnResize(uint32_t width, uint32_t height)
         {
             LUMOS_PROFILE_FUNCTION();
-            m_Framebuffers.clear();
-
             SetScreenBufferSize(width, height);
 
             UpdateUniformBuffer();
@@ -206,8 +204,6 @@ namespace Lumos
 
             if(!rebuildFramebuffer)
                 return;
-
-            m_Framebuffers.clear();
         }
 
         void GridRenderer::CreateFramebuffers()

@@ -121,15 +121,12 @@ namespace Lumos
             transform = &m_Editor->GetEditorCameraTransform();
 
             app.GetRenderGraph()->SetOverrideCamera(camera, transform);
-
-            DebugRenderer::SetOverrideCamera(camera, transform);
         }
         else
         {
             gameView = true;
 
             app.GetRenderGraph()->SetOverrideCamera(nullptr, nullptr);
-            DebugRenderer::SetOverrideCamera(nullptr, nullptr);
 
             auto& registry = m_CurrentScene->GetRegistry();
             auto cameraView = registry.view<Camera>();
@@ -753,9 +750,6 @@ namespace Lumos
         renderGraph->SetRenderTarget(m_GameViewTexture.get(), true);
         renderGraph->SetOverrideCamera(m_Editor->GetCamera(), &m_Editor->GetEditorCameraTransform());
         m_Editor->GetGridRenderer()->SetRenderTarget(m_GameViewTexture.get(), true);
-
-        DebugRenderer::SetRenderTarget(m_GameViewTexture.get(), true);
-        DebugRenderer::SetOverrideCamera(m_Editor->GetCamera(), &m_Editor->GetEditorCameraTransform());
     }
 
     void SceneViewPanel::Resize(uint32_t width, uint32_t height)
@@ -783,9 +777,7 @@ namespace Lumos
 
             auto renderGraph = Application::Get().GetRenderGraph();
             renderGraph->SetRenderTarget(m_GameViewTexture.get(), true, false);
-
-            DebugRenderer::SetRenderTarget(m_GameViewTexture.get(), false);
-
+            
             if(!m_Editor->GetGridRenderer())
                 m_Editor->CreateGridRenderer();
             m_Editor->GetGridRenderer()->SetRenderTarget(m_GameViewTexture.get(), false);
@@ -796,9 +788,8 @@ namespace Lumos
 
             renderGraph->OnEvent(e);
 
-            DebugRenderer::OnResize(width, height);
             m_Editor->GetGridRenderer()->OnResize(m_Width, m_Height);
-            
+
             //Should be just build texture and scene renderer set render target
             //Renderer::GetGraphicsContext()->WaitIdle();
         }

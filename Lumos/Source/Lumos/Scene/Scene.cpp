@@ -31,6 +31,7 @@
 #include "Graphics/Environment.h"
 #include "Scene/EntityManager.h"
 #include "Scene/Component/SoundComponent.h"
+#include "Scene/Component/ModelComponent.h"
 #include "SceneGraph.h"
 
 #include <cereal/types/polymorphic.hpp>
@@ -50,7 +51,7 @@ namespace Lumos
         m_EntityManager->AddDependency<Physics3DComponent, Maths::Transform>();
         m_EntityManager->AddDependency<Physics2DComponent, Maths::Transform>();
         m_EntityManager->AddDependency<Camera, Maths::Transform>();
-        m_EntityManager->AddDependency<Graphics::Model, Maths::Transform>();
+        m_EntityManager->AddDependency<Graphics::ModelComponent, Maths::Transform>();
         m_EntityManager->AddDependency<Graphics::Light, Maths::Transform>();
         m_EntityManager->AddDependency<Graphics::Sprite, Maths::Transform>();
         m_EntityManager->AddDependency<Graphics::AnimatedSprite, Maths::Transform>();
@@ -173,6 +174,8 @@ namespace Lumos
 #define ALL_COMPONENTSV2 ALL_COMPONENTSV1, Graphics::AnimatedSprite
 #define ALL_COMPONENTSV3 ALL_COMPONENTSV2, SoundComponent
 #define ALL_COMPONENTSV4 ALL_COMPONENTSV3, Listener
+#define ALL_COMPONENTSV5 ALL_COMPONENTSV4, IDComponent
+#define ALL_COMPONENTSV6 ALL_COMPONENTSV5, Graphics::ModelComponent
 
     void Scene::Serialise(const std::string& filePath, bool binary)
     {
@@ -181,7 +184,7 @@ namespace Lumos
         std::string path = filePath;
         path += StringUtilities::RemoveSpaces(m_SceneName);
 
-        m_SceneSerialisationVersion = 5;
+        m_SceneSerialisationVersion = 7;
 
         if(binary)
         {
@@ -193,7 +196,7 @@ namespace Lumos
                 // output finishes flushing its contents when it goes out of scope
                 cereal::BinaryOutputArchive output { file };
                 output(*this);
-                entt::snapshot { m_EntityManager->GetRegistry() }.entities(output).component<ALL_COMPONENTSV4>(output);
+                entt::snapshot { m_EntityManager->GetRegistry() }.entities(output).component<ALL_COMPONENTSV6>(output);
             }
             file.close();
         }
@@ -206,7 +209,7 @@ namespace Lumos
                 // output finishes flushing its contents when it goes out of scope
                 cereal::JSONOutputArchive output { storage };
                 output(*this);
-                entt::snapshot { m_EntityManager->GetRegistry() }.entities(output).component<ALL_COMPONENTSV4>(output);
+                entt::snapshot { m_EntityManager->GetRegistry() }.entities(output).component<ALL_COMPONENTSV6>(output);
             }
             FileSystem::WriteTextFile(path, storage.str());
         }
@@ -243,6 +246,32 @@ namespace Lumos
                     entt::snapshot_loader { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV3>(input);
                 else if(m_SceneSerialisationVersion == 5)
                     entt::snapshot_loader { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV4>(input);
+                else if(m_SceneSerialisationVersion == 6)
+                    entt::snapshot_loader { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV5>(input);
+                else if(m_SceneSerialisationVersion == 7)
+                    entt::snapshot_loader { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV6>(input);
+                
+                if(m_SceneSerialisationVersion < 6)
+                {
+                    m_EntityManager->GetRegistry().each([&](auto entity)
+                    {
+                        m_EntityManager->GetRegistry().emplace<IDComponent>(entity, Random64::Rand(0, std::numeric_limits<uint64_t>::max()));
+                    });
+                }
+                
+                if(m_SceneSerialisationVersion < 7)
+                {
+                    m_EntityManager->GetRegistry().each([&](auto entity)
+                    {
+                        Graphics::Model* model;
+                        if(model = m_EntityManager->GetRegistry().try_get<Graphics::Model>(entity))
+                        {
+                            Graphics::Model* modelCopy = new Graphics::Model(*model);
+                            m_EntityManager->GetRegistry().emplace<Graphics::ModelComponent>(entity, SharedPtr<Graphics::Model>(modelCopy));
+                            m_EntityManager->GetRegistry().remove<Graphics::Model>(entity);
+                        }
+                    });
+                }
             }
             catch(...)
             {
@@ -274,6 +303,32 @@ namespace Lumos
                     entt::snapshot_loader { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV3>(input);
                 else if(m_SceneSerialisationVersion == 5)
                     entt::snapshot_loader { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV4>(input);
+                else if(m_SceneSerialisationVersion == 6)
+                    entt::snapshot_loader { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV5>(input);
+                else if(m_SceneSerialisationVersion == 7)
+                    entt::snapshot_loader { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV6>(input);
+                
+                if(m_SceneSerialisationVersion < 6)
+                {
+                    m_EntityManager->GetRegistry().each([&](auto entity)
+                    {
+                        m_EntityManager->GetRegistry().emplace<IDComponent>(entity, Random64::Rand(0, std::numeric_limits<uint64_t>::max()));
+                    });
+                }
+                
+                if(m_SceneSerialisationVersion < 7)
+                {
+                    m_EntityManager->GetRegistry().each([&](auto entity)
+                    {
+                        Graphics::Model* model;
+                        if(model = m_EntityManager->GetRegistry().try_get<Graphics::Model>(entity))
+                        {
+                            Graphics::Model* modelCopy = new Graphics::Model(*model);
+                            m_EntityManager->GetRegistry().emplace<Graphics::ModelComponent>(entity, SharedPtr<Graphics::Model>(modelCopy));
+                            m_EntityManager->GetRegistry().remove<Graphics::Model>(entity);
+                        }
+                    });
+                }
             }
             catch(...)
             {

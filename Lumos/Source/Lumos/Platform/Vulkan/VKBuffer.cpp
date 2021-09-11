@@ -27,7 +27,7 @@ namespace Lumos
                 VKContext::DeletionQueue& deletionQueue = VKRenderer::GetCurrentDeletionQueue();
 
                 auto buffer = m_Buffer;
-                
+
 #ifdef USE_VMA_ALLOCATOR
                 auto alloc = m_Allocation;
                 deletionQueue.PushFunction([buffer, alloc]
@@ -36,8 +36,9 @@ namespace Lumos
                 auto memory = m_Memory;
                 deletionQueue.PushFunction([buffer, memory]
                     {
-                    vkDestroyBuffer(VKDevice::Device(), buffer, nullptr);
-                    vkFreeMemory(VKDevice::Device(), memory, nullptr); });
+                        vkDestroyBuffer(VKDevice::Device(), buffer, nullptr);
+                        vkFreeMemory(VKDevice::Device(), memory, nullptr);
+                    });
 #endif
             }
         }

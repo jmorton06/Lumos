@@ -32,7 +32,7 @@ public:
             OS::Instance()->GetExecutablePath() + "/../ExampleProject/Example.lmproj",
             OS::Instance()->GetExecutablePath() + "/../../ExampleProject/Example.lmproj"
         };
-        
+
         bool fileFound = false;
         std::string filePath;
         for(auto& path : projectLocations)

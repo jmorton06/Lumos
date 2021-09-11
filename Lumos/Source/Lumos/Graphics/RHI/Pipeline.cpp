@@ -67,7 +67,7 @@ namespace Lumos
             HashCombine(hash, pipelineDesc.depthTarget);
             HashCombine(hash, pipelineDesc.depthArrayTarget);
             HashCombine(hash, pipelineDesc.swapchainTarget);
-            
+
             if(pipelineDesc.swapchainTarget)
             {
                 //Add one swapchain image to hash
@@ -88,7 +88,7 @@ namespace Lumos
 #endif
                 }
             }
-            
+
             auto found = m_PipelineCache.find(hash);
             if(found != m_PipelineCache.end() && found->second.pipeline)
             {

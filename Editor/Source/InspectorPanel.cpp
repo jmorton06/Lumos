@@ -7,6 +7,7 @@
 #include <Lumos/Core/OS/FileSystem.h>
 #include <Lumos/Scene/SceneManager.h>
 #include <Lumos/Scene/Component/Components.h>
+#include <Lumos/Scene/Component/ModelComponent.h>
 #include <Lumos/Graphics/Camera/Camera.h>
 #include <Lumos/Graphics/Sprite.h>
 #include <Lumos/Graphics/AnimatedSprite.h>
@@ -32,6 +33,7 @@
 #include <imgui/imgui_internal.h>
 
 #include <sol/sol.hpp>
+#include <inttypes.h>
 
 namespace MM
 {
@@ -1657,10 +1659,10 @@ end
     }
 
     template <>
-    void ComponentEditorWidget<Lumos::Graphics::Model>(entt::registry& reg, entt::registry::entity_type e)
+    void ComponentEditorWidget<Lumos::Graphics::ModelComponent>(entt::registry& reg, entt::registry::entity_type e)
     {
         LUMOS_PROFILE_FUNCTION();
-        auto& model = reg.get<Lumos::Graphics::Model>(e);
+        auto& model = *reg.get<Lumos::Graphics::ModelComponent>(e).ModelRef.get();
         auto& meshes = model.GetMeshes();
         auto primitiveType = model.GetPrimitiveType();
 
@@ -1767,7 +1769,8 @@ end
     {
         LUMOS_PROFILE_FUNCTION();
         auto& environment = reg.get<Lumos::Graphics::Environment>(e);
-        Lumos::ImGuiHelpers::Image(environment.GetEnvironmentMap(), Lumos::Maths::Vector2(200, 200));
+        //Disable image until texturecube is supported
+        //Lumos::ImGuiHelpers::Image(environment.GetEnvironmentMap(), Lumos::Maths::Vector2(200, 200));
 
         ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
         ImGui::Columns(2);
@@ -1988,6 +1991,7 @@ namespace Lumos
     }
         TRIVIAL_COMPONENT(Maths::Transform, "Transform");
         TRIVIAL_COMPONENT(Graphics::Model, "Model");
+        TRIVIAL_COMPONENT(Graphics::ModelComponent, "Model");
         TRIVIAL_COMPONENT(Camera, "Camera");
         TRIVIAL_COMPONENT(Physics3DComponent, "Physics3D");
         TRIVIAL_COMPONENT(Physics2DComponent, "Physics2D");
@@ -2078,6 +2082,10 @@ namespace Lumos
 
             if(m_DebugMode)
             {
+				auto idComponent = registry.try_get<IDComponent>(selected);
+				
+				ImGui::Text("UUID : %" PRIu64, idComponent->ID);
+				
                 auto hierarchyComp = registry.try_get<Hierarchy>(selected);
 
                 if(hierarchyComp)

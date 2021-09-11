@@ -21,7 +21,7 @@ namespace Lumos
         GraphicsContext* (*GraphicsContext::CreateFunc)() = nullptr;
 
         RenderAPI GraphicsContext::s_RenderAPI;
-    
+
         GraphicsContext* GraphicsContext::Create()
         {
             LUMOS_ASSERT(CreateFunc, "No GraphicsContext Create Function");

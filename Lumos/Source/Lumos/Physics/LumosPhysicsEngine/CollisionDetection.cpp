@@ -7,9 +7,7 @@ namespace Lumos
 {
     CollisionDetection::CollisionDetection()
     {
-        //max actual size
         m_MaxSize = CollisionShapeTypeMax | (CollisionShapeTypeMax >> 1);
-        LUMOS_LOG_INFO("Max Collision Size {0}", m_MaxSize);
         m_CollisionCheckFunctions = new CollisionCheckFunc[m_MaxSize];
         std::fill(m_CollisionCheckFunctions, m_CollisionCheckFunctions + m_MaxSize, &CollisionDetection::CheckPolyhedronCollision);
 

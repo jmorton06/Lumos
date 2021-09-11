@@ -297,10 +297,10 @@ namespace Lumos
 
             m_TextureImageView = Graphics::CreateImageView(m_TextureImage, VKUtilities::TextureFormatToVK(internalformat, srgb), m_MipLevels, VK_IMAGE_VIEW_TYPE_2D, VK_IMAGE_ASPECT_COLOR_BIT, 1);
             m_TextureSampler = Graphics::CreateTextureSampler(VKUtilities::TextureFilterToVK(m_Parameters.magFilter), VKUtilities::TextureFilterToVK(m_Parameters.minFilter), 0.0f, static_cast<float>(m_MipLevels), true, VKDevice::Get().GetPhysicalDevice()->GetProperties().limits.maxSamplerAnisotropy, VKUtilities::TextureWrapToVK(m_Parameters.wrap), VKUtilities::TextureWrapToVK(m_Parameters.wrap), VKUtilities::TextureWrapToVK(m_Parameters.wrap));
-            
+
             m_ImageLayout = VK_IMAGE_LAYOUT_UNDEFINED;
             TransitionImage(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
-            
+
             m_VKFormat = VKUtilities::TextureFormatToVK(internalformat, srgb);
 
             UpdateDescriptor();
@@ -697,7 +697,7 @@ namespace Lumos
             subresourceRange.layerCount = 6;
 
             VKUtilities::TransitionImageLayout(m_TextureImage, VKUtilities::TextureFormatToVK(m_Parameters.format, m_Parameters.srgb), VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, m_NumMips, 6, commandBuffer);
-            
+
             // Copy the cube map faces from the staging buffer to the optimal tiled image
             vkCmdCopyBufferToImage(
                 commandBuffer,
@@ -781,7 +781,7 @@ namespace Lumos
             VkFormat depthFormat = VKUtilities::FindDepthFormat();
             m_Format = TextureFormat::DEPTH;
 #ifdef USE_VMA_ALLOCATOR
-            Graphics::CreateImage(m_Width, m_Height, 1, depthFormat, VK_IMAGE_TYPE_2D, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT| VK_IMAGE_USAGE_TRANSFER_DST_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_TextureImage, m_TextureImageMemory, 1, 0, m_Allocation);
+            Graphics::CreateImage(m_Width, m_Height, 1, depthFormat, VK_IMAGE_TYPE_2D, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_TextureImage, m_TextureImageMemory, 1, 0, m_Allocation);
 #else
             Graphics::CreateImage(m_Width, m_Height, 1, depthFormat, VK_IMAGE_TYPE_2D, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_TextureImage, m_TextureImageMemory, 1, 0);
 #endif
@@ -790,7 +790,7 @@ namespace Lumos
             VKUtilities::TransitionImageLayout(m_TextureImage, depthFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
 
             m_ImageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-            
+
             m_TextureSampler = Graphics::CreateTextureSampler(VK_FILTER_LINEAR, VK_FILTER_LINEAR, 0.0f, 1.0f, true, VKDevice::Get().GetPhysicalDevice()->GetProperties().limits.maxSamplerAnisotropy, VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE, VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE, VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE);
 
             m_Flags |= TextureFlags::Texture_DepthStencil;
@@ -804,7 +804,7 @@ namespace Lumos
             m_Descriptor.imageView = m_TextureImageView;
             m_Descriptor.imageLayout = m_ImageLayout;
         }
-    
+
         void VKTextureDepth::TransitionImage(VkImageLayout newLayout, VKCommandBuffer* commandBuffer)
         {
             LUMOS_PROFILE_FUNCTION();
@@ -812,7 +812,7 @@ namespace Lumos
             {
                 VKUtilities::TransitionImageLayout(m_TextureImage, VKUtilities::FindDepthFormat(), m_ImageLayout, newLayout, 1, 1, commandBuffer ? commandBuffer->GetHandle() : nullptr);
             }
-   
+
             m_ImageLayout = newLayout;
             UpdateDescriptor();
         }
@@ -877,7 +877,7 @@ namespace Lumos
                 {
                     vkDestroySampler(VKDevice::GetHandle(), sampler, nullptr);
                     vkDestroyImageView(VKDevice::GetHandle(), imageView, nullptr);
-                
+
                     for(uint32_t i = 0; i < (uint32_t)imageViews.size(); i++)
                     {
                         vkDestroyImageView(VKDevice::GetHandle(), imageViews[i], nullptr);
@@ -944,7 +944,7 @@ namespace Lumos
             m_Descriptor.imageView = GetImageView(index);
             return (void*)&m_Descriptor;
         }
-    
+
         void VKTextureDepthArray::TransitionImage(VkImageLayout newLayout, VKCommandBuffer* commandBuffer)
         {
             LUMOS_PROFILE_FUNCTION();

@@ -31,8 +31,6 @@ namespace Lumos
     {
         class Texture2D;
         class GridRenderer;
-        class ForwardRenderer;
-        class GridRenderer;
         class Mesh;
     }
 
@@ -256,7 +254,7 @@ namespace Lumos
         Maths::Transform m_EditorCameraTransform;
 
         SharedPtr<Camera> m_EditorCamera = nullptr;
-        SharedPtr<Graphics::ForwardRenderer> m_PreviewRenderer;
+        //SharedPtr<Graphics::ForwardRenderer> m_PreviewRenderer;
         SharedPtr<Graphics::Texture2D> m_PreviewTexture;
         SharedPtr<Graphics::Mesh> m_PreviewSphere;
         SharedPtr<Graphics::GridRenderer> m_GridRenderer;
