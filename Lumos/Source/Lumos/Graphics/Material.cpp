@@ -9,7 +9,6 @@
 #include "Core/OS/FileSystem.h"
 #include "Core/VFS.h"
 #include "Core/Application.h"
-#include "Renderers/ForwardRenderer.h"
 
 #include <imgui/imgui.h>
 
@@ -249,8 +248,10 @@ namespace Lumos::Graphics
             CreateDescriptorSet(1);
             SetTexturesUpdated(false);
         }
+		
+		m_DescriptorSet->Update();
 
-        UpdateDescriptorSet();
+        //UpdateDescriptorSet();
     }
 
     void Material::SetShader(const std::string& filePath)

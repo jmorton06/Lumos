@@ -78,10 +78,10 @@ namespace Lumos
         virtual uint32_t GetWidth() const = 0;
         virtual uint32_t GetHeight() const = 0;
         virtual float GetDPIScale() const { return 1.0f; }
-        
+
         void SetWindowFocus(bool focus) { m_WindowFocus = focus; }
         bool GetWindowFocus() const { return m_WindowFocus; }
-        
+
         const SharedPtr<Lumos::Graphics::SwapChain>& GetSwapChain() const { return m_SwapChain; }
         const SharedPtr<Lumos::Graphics::GraphicsContext>& GetGraphicsContext() const { return m_GraphicsContext; }
 
@@ -95,10 +95,9 @@ namespace Lumos
         bool m_VSync = false;
         bool m_HasResized = false;
         bool m_WindowFocus = true;
-		
-		SharedPtr<Lumos::Graphics::SwapChain> m_SwapChain;
-        SharedPtr<Lumos::Graphics::GraphicsContext> m_GraphicsContext;
 
+        SharedPtr<Lumos::Graphics::SwapChain> m_SwapChain;
+        SharedPtr<Lumos::Graphics::GraphicsContext> m_GraphicsContext;
     };
 
 }

@@ -87,7 +87,7 @@ namespace Lumos
             {
                 return m_Descriptor;
             }
-            
+
             void* GetDescriptorInfo() const override
             {
                 return (void*)GetDescriptor();
@@ -113,12 +113,12 @@ namespace Lumos
             {
                 return m_TextureSampler;
             }
-            
+
             VkFormat GetVKFormat()
             {
                 return m_VKFormat;
             }
-            
+
             VkImageLayout GetImageLayout() const { return m_ImageLayout; }
 
             const TextureParameters& GetTextureParameters() const { return m_Parameters; }
@@ -220,7 +220,7 @@ namespace Lumos
             {
                 return &m_Descriptor;
             }
-            
+
             void* GetDescriptorInfo() const override
             {
                 return (void*)GetDescriptor();
@@ -246,7 +246,7 @@ namespace Lumos
             {
                 return m_TextureSampler;
             }
-            
+
             VkFormat GetVKFormat() const
             {
                 return m_VKFormat;
@@ -361,7 +361,7 @@ namespace Lumos
             {
                 return (void*)GetDescriptor();
             }
-            
+
             void UpdateDescriptor();
             void TransitionImage(VkImageLayout newLayout, VKCommandBuffer* commandBuffer = nullptr);
 
@@ -459,12 +459,12 @@ namespace Lumos
             {
                 return &m_Descriptor;
             }
-            
+
             void* GetDescriptorInfo() const override
             {
                 return (void*)GetDescriptor();
             }
-            
+
             void UpdateDescriptor();
             void TransitionImage(VkImageLayout newLayout, VKCommandBuffer* commandBuffer = nullptr);
 

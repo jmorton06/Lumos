@@ -23,6 +23,7 @@ namespace Lumos
         {
             Black = 0,
             Dark,
+            Dracula,
             Grey,
             Light,
             Blue,
@@ -56,6 +57,7 @@ namespace Lumos
         bool Spinner(const char* label, float radius, int thickness, const uint32_t& colour);
 
         Maths::Vector4 GetSelectedColour();
+        Maths::Vector4 GetIconColour();
 
     }
 }

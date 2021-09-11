@@ -30,7 +30,7 @@ namespace Lumos
             void Begin() override;
             void InitInternal() override;
 
-            void BindDescriptorSetsInternal(Graphics::Pipeline* pipeline, Graphics::CommandBuffer* commandBuffer, uint32_t dynamicOffset, std::vector<Graphics::DescriptorSet*>& descriptorSets) override;
+            void BindDescriptorSetsInternal(Graphics::Pipeline* pipeline, Graphics::CommandBuffer* commandBuffer, uint32_t dynamicOffset, Graphics::DescriptorSet** descriptorSets, uint32_t descriptorCount) override;
             void DrawInternal(CommandBuffer* commandBuffer, DrawType type, uint32_t count, DataType dataType, void* indices) const override;
             void DrawIndexedInternal(CommandBuffer* commandBuffer, DrawType type, uint32_t count, uint32_t start) const override;
             void SetRenderModeInternal(RenderMode mode);
@@ -53,7 +53,7 @@ namespace Lumos
             void SetStencilOpInternal(StencilType fail, StencilType zfail, StencilType zpass);
 
             static void ClearInternal(uint32_t buffer);
-            void ClearRenderTarget(Graphics::Texture* texture, Graphics::CommandBuffer* commandBuffer) override;
+            void ClearRenderTarget(Graphics::Texture* texture, Graphics::CommandBuffer* commandBuffer, Maths::Vector4 clearColour) override;
 
             const std::string& GetTitleInternal() const override;
 

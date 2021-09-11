@@ -109,7 +109,7 @@ namespace Lumos
         template <typename Archive>
         void save(Archive& archive) const
         {
-            archive(cereal::make_nvp("Version", 5));
+            archive(cereal::make_nvp("Version", 7));
             archive(cereal::make_nvp("Scene Name", m_SceneName));
         }
 
@@ -119,7 +119,7 @@ namespace Lumos
             archive(cereal::make_nvp("Version", m_SceneSerialisationVersion));
             archive(cereal::make_nvp("Scene Name", m_SceneName));
         }
-        
+
         struct SceneSettings
         {
             bool PhysicsEnabled2D;

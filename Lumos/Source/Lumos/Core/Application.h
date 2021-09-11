@@ -133,6 +133,7 @@ namespace Lumos
         float GetWindowDPI() const;
 
         SharedPtr<ShaderLibrary>& GetShaderLibrary();
+		SharedPtr<ModelLibrary>& GetModelLibrary();
 
         static Application& Get()
         {
@@ -314,7 +315,8 @@ namespace Lumos
         UniquePtr<ImGuiManager> m_ImGuiManager;
         UniquePtr<Timer> m_Timer;
         SharedPtr<ShaderLibrary> m_ShaderLibrary;
-
+		SharedPtr<ModelLibrary> m_ModelLibrary;
+		
         AppState m_CurrentState = AppState::Loading;
         EditorState m_EditorState = EditorState::Preview;
         AppType m_AppType = AppType::Editor;

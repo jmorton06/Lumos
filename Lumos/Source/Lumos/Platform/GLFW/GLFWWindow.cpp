@@ -52,12 +52,12 @@ namespace Lumos
         auto propCopy = properties;
         propCopy.Width = m_Data.Width;
         propCopy.Height = m_Data.Height;
-		
+
         m_GraphicsContext = SharedPtr<Graphics::GraphicsContext>(Graphics::GraphicsContext::Create());
         m_GraphicsContext->Init();
-        
-		m_SwapChain = SharedPtr<Graphics::SwapChain>(Graphics::SwapChain::Create(m_Data.Width, m_Data.Height));
-		m_SwapChain->Init(m_VSync, (Window*)this);
+
+        m_SwapChain = SharedPtr<Graphics::SwapChain>(Graphics::SwapChain::Create(m_Data.Width, m_Data.Height));
+        m_SwapChain->Init(m_VSync, (Window*)this);
     }
 
     GLFWWindow::~GLFWWindow()
@@ -77,7 +77,6 @@ namespace Lumos
             s_GLFWInitialized = false;
             glfwTerminate();
         }
-
     }
 
     bool GLFWWindow::Init(const WindowDesc& properties)
@@ -168,14 +167,14 @@ namespace Lumos
 
 #ifdef LUMOS_RENDER_API_OPENGL
         if(m_Data.m_RenderAPI == Graphics::RenderAPI::OPENGL)
-		{
-			glfwMakeContextCurrent(m_Handle);
-		
+        {
+            glfwMakeContextCurrent(m_Handle);
+
             if(!gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress)))
             {
                 LUMOS_LOG_ERROR("Failed to initialise OpenGL context");
-			}
-		}
+            }
+        }
 #endif
 
         glfwSetWindowUserPointer(m_Handle, &m_Data);

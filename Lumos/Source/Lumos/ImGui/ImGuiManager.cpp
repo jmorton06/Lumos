@@ -297,7 +297,7 @@ namespace Lumos
         style.PopupBorderSize = 3;
         style.FrameBorderSize = 0.0f;
 
-        const int roundingAmount = 1; //2;
+        const int roundingAmount = 2; //2;
         style.PopupRounding = roundingAmount;
         style.WindowRounding = roundingAmount;
         style.ChildRounding = 0;

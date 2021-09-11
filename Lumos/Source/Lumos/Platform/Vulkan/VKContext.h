@@ -29,7 +29,7 @@ namespace Lumos
         public:
             VKContext();
             ~VKContext();
-            
+
             void Init() override;
             void Present() override;
             void Unload();

@@ -34,7 +34,7 @@ namespace Lumos
             virtual bool FlipImGUITexture() const = 0;
             virtual void WaitIdle() const = 0;
             virtual void OnImGui() = 0;
-            
+
             static GraphicsContext* Create();
 
         protected:

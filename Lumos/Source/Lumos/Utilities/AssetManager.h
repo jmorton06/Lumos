@@ -5,6 +5,7 @@
 #include "Audio/Sound.h"
 #include "Graphics/RHI/Shader.h"
 #include "Utilities/TSingleton.h"
+#include "Scene/Component/ModelComponent.h"
 
 namespace Lumos
 {
@@ -107,17 +108,25 @@ namespace Lumos
             }
         }
 
-        void Update(const float elapsedMilliseconds)
+        void Update(const float elapsedSeconds)
         {
             typename MapType::iterator itr = m_NameResourceMap.begin();
 
-            float now = Engine::GetTimeStep().GetElapsedSeconds();
-            while(itr != m_NameResourceMap.end())
+            static IDType keysToDelete[256];
+            std::size_t keysToDeleteCount = 0;
+            
+            for(auto&& [key, value] : m_NameResourceMap)
             {
-                if(itr->second.data.GetCounter()->GetReferenceCount() == 1 && m_ExpirationTime < (now - itr->second.lastAccessed))
-                    itr = m_NameResourceMap.erase(itr);
-                else
-                    ++itr;
+                if(value.data.GetCounter()->GetReferenceCount() == 1 && m_ExpirationTime < (elapsedSeconds - itr->second.lastAccessed))
+                {
+                    keysToDelete[keysToDeleteCount] = key;
+                    keysToDeleteCount++;
+                }
+            }
+
+            for(std::size_t i = 0; i < keysToDeleteCount; i++)
+            {
+                m_NameResourceMap.erase(keysToDelete[i]);
             }
         }
 
@@ -175,6 +184,25 @@ namespace Lumos
         static bool Load(const std::string& filePath, SharedPtr<Graphics::Shader>& shader)
         {
             shader = SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromFile(filePath));
+            return true;
+        }
+    };
+
+    class ModelLibrary : public ResourceManager<Graphics::Model>
+    {
+    public:
+        ModelLibrary()
+        {
+            m_LoadFunc = Load;
+        }
+
+        ~ModelLibrary()
+        {
+        }
+
+        static bool Load(const std::string& filePath, SharedPtr<Graphics::Model>& model)
+        {
+            model = CreateSharedPtr<Graphics::Model>(filePath);
             return true;
         }
     };

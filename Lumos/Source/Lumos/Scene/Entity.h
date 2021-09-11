@@ -11,7 +11,17 @@ DISABLE_WARNING_POP
 
 namespace Lumos
 {
-
+	struct IDComponent
+	{
+		uint64_t ID;
+        
+        template <class Archive>
+        void serialize(Archive& archive)
+        {
+            archive(ID);
+        }
+	};
+	
     class Entity
     {
     public:
@@ -97,6 +107,11 @@ namespace Lumos
         {
             return m_Scene->GetRegistry().get<Maths::Transform>(m_EntityHandle);
         }
+		
+		uint64_t GetID()
+		{
+			return m_Scene->GetRegistry().get<IDComponent>(m_EntityHandle).ID;
+		}
 
         void SetParent(Entity entity)
         {

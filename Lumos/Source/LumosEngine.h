@@ -80,12 +80,7 @@
 #include "Utilities/TimeStep.h"
 
 #include "ImGui/ImGuiManager.h"
-#include "Graphics/Renderers/Renderer2D.h"
-#include "Graphics/Renderers/DeferredRenderer.h"
-#include "Graphics/Renderers/ForwardRenderer.h"
-#include "Graphics/Renderers/ShadowRenderer.h"
 #include "Graphics/Renderers/GridRenderer.h"
-#include "Graphics/Renderers/SkyboxRenderer.h"
 #include "Graphics/Renderers/RenderGraph.h"
 
 //External

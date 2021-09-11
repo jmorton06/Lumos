@@ -7,7 +7,6 @@
 #include "Maths/Maths.h"
 
 #include "Core/Application.h"
-#include "Graphics/Renderers/ForwardRenderer.h"
 
 #define TINYOBJLOADER_IMPLEMENTATION
 #include <tinyobjloader/tiny_obj_loader.h>

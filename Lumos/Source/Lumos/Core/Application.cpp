@@ -11,12 +11,7 @@
 #include "Graphics/Camera/Camera.h"
 #include "Graphics/Material.h"
 #include "Graphics/Renderers/DebugRenderer.h"
-#include "Graphics/Renderers/Renderer2D.h"
-#include "Graphics/Renderers/DeferredRenderer.h"
-#include "Graphics/Renderers/ForwardRenderer.h"
-#include "Graphics/Renderers/ShadowRenderer.h"
 #include "Graphics/Renderers/GridRenderer.h"
-#include "Graphics/Renderers/SkyboxRenderer.h"
 
 #include "Maths/Transform.h"
 
@@ -177,7 +172,7 @@ namespace Lumos
         Engine::Get();
 
         m_Timer = CreateUniquePtr<Timer>();
-        
+
         Graphics::GraphicsContext::SetRenderAPI(static_cast<Graphics::RenderAPI>(RenderAPI));
 
         WindowDesc windowDesc;
@@ -194,16 +189,16 @@ namespace Lumos
         m_Window = UniquePtr<Window>(Window::Create(windowDesc));
         if(!m_Window->HasInitialised())
             OnQuit();
-        
+
         m_Window->SetEventCallback(BIND_EVENT_FN(Application::OnEvent));
 
         m_EditorState = EditorState::Play;
 
         ImGui::CreateContext();
         ImGui::StyleColorsDark();
-        
+
         Graphics::Renderer::Init();
-        
+
         //Draw Splash Screeh
         {
             auto splashTexture = Graphics::Texture2D::CreateFromSource(SplashIconWidth, SplashIconHeight, (void*)SplashIcon);
@@ -213,10 +208,10 @@ namespace Lumos
             //To Display the window
             m_Window->ProcessInput();
             m_Window->OnUpdate();
-            
+
             delete splashTexture;
         }
-        
+
         uint32_t screenWidth = m_Window->GetWidth();
         uint32_t screenHeight = m_Window->GetHeight();
         m_SystemManager = CreateUniquePtr<SystemManager>();
@@ -251,6 +246,7 @@ namespace Lumos
         LUMOS_LOG_INFO("Initialised ImGui Manager");
 
         m_ShaderLibrary = CreateSharedPtr<ShaderLibrary>();
+		m_ModelLibrary = CreateSharedPtr<ModelLibrary>();
 
         m_RenderGraph = CreateUniquePtr<Graphics::RenderGraph>(screenWidth, screenHeight);
 
@@ -259,10 +255,9 @@ namespace Lumos
         Graphics::Material::InitDefaultTexture();
 
         //Need to disable shadows for A12 and earlier - doesn't support rendering to depth array
-        m_RenderGraph->AddRenderer(new Graphics::ShadowRenderer());
-        m_RenderGraph->AddRenderer(new Graphics::ForwardRenderer(screenWidth, screenHeight));
-        m_RenderGraph->AddRenderer(new Graphics::SkyboxRenderer(screenWidth, screenHeight));
-        m_RenderGraph->AddRenderer(new Graphics::Renderer2D(screenWidth, screenHeight, false, false, true));
+        //        m_RenderGraph->AddRenderer(new Graphics::ForwardRenderer(screenWidth, screenHeight));
+        //m_RenderGraph->AddRenderer(new Graphics::SkyboxRenderer(screenWidth, screenHeight));
+        //m_RenderGraph->AddRenderer(new Graphics::Renderer2D(screenWidth, screenHeight, false, false, true));
         m_RenderGraph->EnableDebugRenderer(true);
 
         System::JobSystem::Wait(context);
@@ -277,6 +272,7 @@ namespace Lumos
         Input::Release();
 
         m_ShaderLibrary.reset();
+		m_ModelLibrary.reset();
         m_SceneManager.reset();
         m_RenderGraph.reset();
         m_SystemManager.reset();
@@ -313,6 +309,7 @@ namespace Lumos
         if(m_SceneManager->GetSwitchingScene())
         {
             LUMOS_PROFILE_SCOPE("Application::SceneSwitch");
+            Graphics::Renderer::GetGraphicsContext()->WaitIdle();
             m_SceneManager->ApplySceneSwitch();
             return m_CurrentState != AppState::Closing;
         }
@@ -359,7 +356,6 @@ namespace Lumos
         {
             LUMOS_PROFILE_SCOPE("Application::Render");
 
-            DebugRenderer::Clear();
             Graphics::Renderer::GetRenderer()->Begin();
 
             OnRender();
@@ -367,6 +363,13 @@ namespace Lumos
 
             Graphics::Renderer::GetRenderer()->Present();
 
+            Graphics::Pipeline::DeleteUnusedCache();
+            Graphics::Framebuffer::DeleteUnusedCache();
+            Graphics::RenderPass::DeleteUnusedCache();
+
+            m_ShaderLibrary->Update(ts.GetElapsedSeconds());
+			m_ModelLibrary->Update(ts.GetElapsedSeconds());
+			
             m_Frames++;
         }
 
@@ -400,13 +403,12 @@ namespace Lumos
     void Application::OnRender()
     {
         LUMOS_PROFILE_FUNCTION();
-        if(m_RenderGraph->GetCount() > 0)
+       // if(m_RenderGraph->GetCount() > 0)
         {
             m_RenderGraph->BeginScene(m_SceneManager->GetCurrentScene());
 
             m_RenderGraph->OnRender();
             OnDebugDraw();
-            DebugRenderer::Render();
         }
     }
 
@@ -431,12 +433,6 @@ namespace Lumos
             m_RenderGraph->OnUpdate(dt, m_SceneManager->GetCurrentScene());
         }
         m_ImGuiManager->OnUpdate(dt, m_SceneManager->GetCurrentScene());
-
-        Graphics::Pipeline::DeleteUnusedCache();
-        Graphics::Framebuffer::DeleteUnusedCache();
-        Graphics::RenderPass::DeleteUnusedCache();
-
-        m_ShaderLibrary->Update(dt.GetElapsedMillis());
     }
 
     void Application::OnEvent(Event& e)
@@ -478,7 +474,8 @@ namespace Lumos
     }
 
     SharedPtr<ShaderLibrary>& Application::GetShaderLibrary() { return m_ShaderLibrary; }
-
+	SharedPtr<ModelLibrary>& Application::GetModelLibrary() { return m_ModelLibrary; }
+	
     void Application::OnExitScene()
     {
     }

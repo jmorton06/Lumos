@@ -1,5 +1,6 @@
 #include "Precompiled.h"
 #include "GLCommandBuffer.h"
+#include "GLPipeline.h"
 
 namespace Lumos
 {
@@ -7,6 +8,7 @@ namespace Lumos
     {
         GLCommandBuffer::GLCommandBuffer()
             : primary(false)
+            , m_BoundPipeline(nullptr)
         {
         }
 
@@ -42,6 +44,22 @@ namespace Lumos
         void GLCommandBuffer::MakeDefault()
         {
             CreateFunc = CreateFuncGL;
+        }
+    
+        void GLCommandBuffer::BindPipeline(Pipeline* pipeline)
+        {
+            if(pipeline != m_BoundPipeline)
+            {
+                pipeline->Bind(this);
+                m_BoundPipeline = pipeline;
+            }
+        }
+    
+        void GLCommandBuffer::UnBindPipeline()
+        {
+            if(m_BoundPipeline)
+                m_BoundPipeline->End(this);
+            m_BoundPipeline = nullptr;
         }
 
         CommandBuffer* GLCommandBuffer::CreateFuncGL()

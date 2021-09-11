@@ -265,7 +265,7 @@ namespace Lumos
         bool VKDevice::Init()
         {
             m_PhysicalDevice = CreateSharedPtr<VKPhysicalDevice>();
-            
+
             VkPhysicalDeviceFeatures physicalDeviceFeatures;
             vkGetPhysicalDeviceFeatures(m_PhysicalDevice->GetVulkanPhysicalDevice(), &physicalDeviceFeatures);
 
@@ -278,7 +278,7 @@ namespace Lumos
                 deviceExtensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
                 m_EnableDebugMarkers = true;
             }
-            
+
             VkPhysicalDeviceDescriptorIndexingFeaturesEXT indexingFeatures {};
             indexingFeatures.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_INDEXING_FEATURES_EXT;
             indexingFeatures.runtimeDescriptorArray = VK_TRUE;
@@ -301,7 +301,7 @@ namespace Lumos
             deviceCreateInfo.ppEnabledExtensionNames = deviceExtensions.data();
             deviceCreateInfo.pEnabledFeatures = &physicalDeviceFeatures;
             deviceCreateInfo.enabledLayerCount = 0;
-            deviceCreateInfo.pNext = (void*) &indexingFeatures;
+            deviceCreateInfo.pNext = (void*)&indexingFeatures;
 
             auto result = vkCreateDevice(m_PhysicalDevice->GetVulkanPhysicalDevice(), &deviceCreateInfo, VK_NULL_HANDLE, &m_Device);
             if(result != VK_SUCCESS)

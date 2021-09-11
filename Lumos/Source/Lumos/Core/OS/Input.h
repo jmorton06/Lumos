@@ -43,7 +43,7 @@ namespace Lumos
 
         void StoreMousePosition(float xpos, float ypos) { m_MousePosition = Maths::Vector2(float(xpos), float(ypos)); }
         const Maths::Vector2& GetMousePosition() const { return m_MousePosition; }
-        
+
         void SetScrollOffset(float offset) { m_ScrollOffset = offset; }
         float GetScrollOffset() const { return m_ScrollOffset; }
 

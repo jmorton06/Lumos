@@ -194,8 +194,6 @@ namespace Lumos
                 //if(!shaderFilePath.empty())
                 //SetShader(shaderFilePath);
                 //TODO: Support Custom Shaders;
-                //auto shader = ::Lumos::Graphics::ForwardRenderer::GetDefaultPBRShader();
-                //SetShader(nullptr);
                 m_Shader = nullptr;
 
                 if(!albedoFilePath.empty())
