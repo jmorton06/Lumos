@@ -1766,7 +1766,7 @@ end
                 
                 int workFlow = material->GetProperties()->workflow;
 
-                if(ImGui::DragInt("##WorkFlow", &workFlow, 0.4f , 0 , 1))
+                if(ImGui::DragInt("##WorkFlow", &workFlow, 0.3f , 0 , 2))
                 {
                     material->GetProperties()->workflow = workFlow;
                 }
@@ -1775,6 +1775,7 @@ end
                 ImGui::NextColumn();
                 
                 material->SetMaterialProperites(*prop);
+                ImGui::Columns(1);
                 ImGui::TreePop();
             }
         }

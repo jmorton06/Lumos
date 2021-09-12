@@ -275,7 +275,7 @@ namespace Lumos::Graphics
                     Maths::Vector3Simple* positions = reinterpret_cast<Maths::Vector3Simple*>(data.data());
                     for(auto p = 0; p < positionCount; ++p)
                     {
-                        vertices[p].Position = /*parentTransform.GetWorldMatrix() **/ Maths::ToVector(positions[p]);
+                        vertices[p].Position = parentTransform.GetWorldMatrix() * Maths::ToVector(positions[p]);
                     }
                 }
 
@@ -287,7 +287,7 @@ namespace Lumos::Graphics
                     Maths::Vector3Simple* normals = reinterpret_cast<Maths::Vector3Simple*>(data.data());
                     for(auto p = 0; p < normalCount; ++p)
                     {
-                        vertices[p].Normal = /*(parentTransform.GetWorldMatrix().ToMatrix3().Inverse().Transpose() **/ Maths::ToVector(normals[p]).Normalised();
+                        vertices[p].Normal = (parentTransform.GetWorldMatrix().ToMatrix3().Inverse().Transpose() * Maths::ToVector(normals[p])).Normalised();
                     }
                 }
 
@@ -346,7 +346,15 @@ namespace Lumos::Graphics
                 std::vector<uint8_t> data = std::vector<uint8_t>(first, last);
 
                 size_t indicesCount = indexAccessor.count;
-                if(componentTypeByteSize == 2)
+                if(componentTypeByteSize == 1)
+                {
+                    uint8_t* in = reinterpret_cast<uint8_t*>(data.data());
+                    for(auto iCount = 0; iCount < indicesCount; iCount++)
+                    {
+                        indices[iCount] = (uint32_t)in[iCount];
+                    }
+                }
+                else if(componentTypeByteSize == 2)
                 {
                     uint16_t* in = reinterpret_cast<uint16_t*>(data.data());
                     for(auto iCount = 0; iCount < indicesCount; iCount++)
@@ -361,6 +369,10 @@ namespace Lumos::Graphics
                     {
                         indices[iCount] = in[iCount];
                     }
+                }
+                else
+                {
+                    LUMOS_LOG_WARN("Unsupported indices data type - {0}",componentTypeByteSize);
                 }
             }
 
@@ -398,29 +410,32 @@ namespace Lumos::Graphics
         if(!node.scale.empty())
         {
             scale = Maths::Matrix4::Scale(Maths::Vector3(static_cast<float>(node.scale[0]), static_cast<float>(node.scale[1]), static_cast<float>(node.scale[2])));
-            transform.SetLocalScale(Maths::Vector3(static_cast<float>(node.scale[0]), static_cast<float>(node.scale[1]), static_cast<float>(node.scale[2])));
+            //transform.SetLocalScale(Maths::Vector3(static_cast<float>(node.scale[0]), static_cast<float>(node.scale[1]), static_cast<float>(node.scale[2])));
         }
 
         if(!node.rotation.empty())
         {
             rotation = Maths::Matrix4::Rotation(Maths::Quaternion(static_cast<float>(node.rotation[3]), static_cast<float>(node.rotation[0]), static_cast<float>(node.rotation[1]), static_cast<float>(node.rotation[2])));
-            transform.SetLocalOrientation(Maths::Quaternion(static_cast<float>(node.rotation[3]), static_cast<float>(node.rotation[0]), static_cast<float>(node.rotation[1]), static_cast<float>(node.rotation[2])));
+            //transform.SetLocalOrientation(Maths::Quaternion(static_cast<float>(node.rotation[3]), static_cast<float>(node.rotation[0]), static_cast<float>(node.rotation[1]), static_cast<float>(node.rotation[2])));
         }
 
         if(!node.translation.empty())
         {
-            transform.SetLocalPosition(Maths::Vector3(static_cast<float>(node.translation[0]), static_cast<float>(node.translation[1]), static_cast<float>(node.translation[2])));
+            //transform.SetLocalPosition(Maths::Vector3(static_cast<float>(node.translation[0]), static_cast<float>(node.translation[1]), static_cast<float>(node.translation[2])));
             position = Maths::Matrix4::Translation(Maths::Vector3(static_cast<float>(node.translation[0]), static_cast<float>(node.translation[1]), static_cast<float>(node.translation[2])));
         }
 
         if(!node.matrix.empty())
         {
-            matrix = Maths::Matrix4(reinterpret_cast<float*>(node.matrix.data()));
+            float matrixData[16];
+            for(int i = 0; i < 16; i++)
+                matrixData[i] = float(node.matrix.data()[i]);
+            matrix = Maths::Matrix4(matrixData);
             transform.SetLocalTransform(matrix.Transpose());
         }
         else
         {
-            matrix = scale * rotation * position;
+            matrix = position * rotation * scale;
             transform.SetLocalTransform(matrix);
         }
 
