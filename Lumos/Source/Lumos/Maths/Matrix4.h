@@ -571,12 +571,11 @@ namespace Lumos::Maths
         /// Return the rotation matrix with scaling removed.
         Matrix3 RotationMatrix() const
         {
-            Vector3 invScale(
-                1.0f / sqrtf(m00_ * m00_ + m10_ * m10_ + m20_ * m20_),
-                1.0f / sqrtf(m01_ * m01_ + m11_ * m11_ + m21_ * m21_),
-                1.0f / sqrtf(m02_ * m02_ + m12_ * m12_ + m22_ * m22_));
-
-            return ToMatrix3().Scaled(invScale);
+            Vector3 scale = Scale();
+            if(!Maths::Equals(scale.Length(), 0.0f))
+                return ToMatrix3().Scaled(Maths::Vector3(1.0f / scale.x, 1.0f / scale.y, 1.0f / scale.z));
+            else
+               return ToMatrix3();
         }
 
         /// Return the translation part.
@@ -691,6 +690,13 @@ namespace Lumos::Maths
         {
             Matrix4 s;
             s.SetTranslation(pos);
+            return s;
+        }
+		
+		static Matrix4 Rotation(const Quaternion& rot)
+        {
+            Matrix4 s;
+            s.SetRotation(rot.RotationMatrix());
             return s;
         }
 
