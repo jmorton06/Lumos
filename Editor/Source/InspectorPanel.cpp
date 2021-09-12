@@ -1650,7 +1650,6 @@ end
 
             ImGui::Columns(1);
 
-            ImGui::Text("Workflow %.1f", material->GetProperties()->workflow);
             ImGui::Separator();
             ImGui::PopStyleVar();
 
@@ -1758,6 +1757,23 @@ end
 
                 TextureWidget("Emissive", material.get(), textures.emissive.get(), flipImage, prop->usingEmissiveMap, prop->emissiveColour, std::bind(&Graphics::Material::SetEmissiveTexture, material, std::placeholders::_1), ImVec2(64, 64) * Application::Get().GetWindowDPI());
 
+                ImGui::Columns(2);
+                
+                ImGui::AlignTextToFramePadding();
+                ImGui::TextUnformatted("WorkFlow");
+                ImGui::NextColumn();
+                ImGui::PushItemWidth(-1);
+                
+                int workFlow = material->GetProperties()->workflow;
+
+                if(ImGui::DragInt("##WorkFlow", &workFlow, 0.4f , 0 , 1))
+                {
+                    material->GetProperties()->workflow = workFlow;
+                }
+
+                ImGui::PopItemWidth();
+                ImGui::NextColumn();
+                
                 material->SetMaterialProperites(*prop);
                 ImGui::TreePop();
             }

@@ -159,6 +159,7 @@ namespace Lumos::Graphics
             textures.emissive = TextureName(mat.emissiveTexture.index);
             textures.metallic = TextureName(pbr.metallicRoughnessTexture.index);
 
+            //TODO: correct way of handling this
             if(textures.metallic)
                 properties.workflow = PBR_WORKFLOW_METALLIC_ROUGHNESS;
             else
@@ -274,7 +275,7 @@ namespace Lumos::Graphics
                     Maths::Vector3Simple* positions = reinterpret_cast<Maths::Vector3Simple*>(data.data());
                     for(auto p = 0; p < positionCount; ++p)
                     {
-                        vertices[p].Position = parentTransform.GetWorldMatrix() * Maths::ToVector(positions[p]);
+                        vertices[p].Position = /*parentTransform.GetWorldMatrix() **/ Maths::ToVector(positions[p]);
                     }
                 }
 
@@ -286,7 +287,7 @@ namespace Lumos::Graphics
                     Maths::Vector3Simple* normals = reinterpret_cast<Maths::Vector3Simple*>(data.data());
                     for(auto p = 0; p < normalCount; ++p)
                     {
-                        vertices[p].Normal = (parentTransform.GetWorldMatrix().ToMatrix3().Inverse().Transpose() * Maths::ToVector(normals[p])).Normalised();
+                        vertices[p].Normal = /*(parentTransform.GetWorldMatrix().ToMatrix3().Inverse().Transpose() **/ Maths::ToVector(normals[p]).Normalised();
                     }
                 }
 
@@ -389,29 +390,41 @@ namespace Lumos::Graphics
 #endif
 
         Maths::Transform transform;
+        Maths::Matrix4 matrix;
+        Maths::Matrix4 position;
+        Maths::Matrix4 rotation;
+        Maths::Matrix4 scale;
 
         if(!node.scale.empty())
         {
+            scale = Maths::Matrix4::Scale(Maths::Vector3(static_cast<float>(node.scale[0]), static_cast<float>(node.scale[1]), static_cast<float>(node.scale[2])));
             transform.SetLocalScale(Maths::Vector3(static_cast<float>(node.scale[0]), static_cast<float>(node.scale[1]), static_cast<float>(node.scale[2])));
         }
 
         if(!node.rotation.empty())
         {
+            rotation = Maths::Matrix4::Rotation(Maths::Quaternion(static_cast<float>(node.rotation[3]), static_cast<float>(node.rotation[0]), static_cast<float>(node.rotation[1]), static_cast<float>(node.rotation[2])));
             transform.SetLocalOrientation(Maths::Quaternion(static_cast<float>(node.rotation[3]), static_cast<float>(node.rotation[0]), static_cast<float>(node.rotation[1]), static_cast<float>(node.rotation[2])));
         }
 
         if(!node.translation.empty())
         {
             transform.SetLocalPosition(Maths::Vector3(static_cast<float>(node.translation[0]), static_cast<float>(node.translation[1]), static_cast<float>(node.translation[2])));
+            position = Maths::Matrix4::Translation(Maths::Vector3(static_cast<float>(node.translation[0]), static_cast<float>(node.translation[1]), static_cast<float>(node.translation[2])));
         }
 
         if(!node.matrix.empty())
         {
-            auto lTransform = Maths::Matrix4(reinterpret_cast<float*>(node.matrix.data()));
-            transform.SetLocalTransform(lTransform.Transpose());
+            matrix = Maths::Matrix4(reinterpret_cast<float*>(node.matrix.data()));
+            transform.SetLocalTransform(matrix.Transpose());
+        }
+        else
+        {
+            matrix = scale * rotation * position;
+            transform.SetLocalTransform(matrix);
         }
 
-        transform.UpdateMatrices();
+        transform.ApplyTransform();
         transform.SetWorldMatrix(parentTransform);
 
         if(node.mesh >= 0)
