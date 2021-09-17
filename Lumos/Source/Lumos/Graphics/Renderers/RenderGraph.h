@@ -32,25 +32,25 @@ namespace Lumos
         class TextureDepthArray;
         class SkyboxRenderer;
         class CommandBuffer;
-    
+
         struct LineVertexData
         {
             Maths::Vector3 vertex;
             Maths::Vector4 colour;
-            
+
             bool operator==(const LineVertexData& other) const
             {
                 return vertex == other.vertex && colour == other.colour;
             }
         };
-        
+
         struct PointVertexData
         {
             Maths::Vector3 vertex;
             Maths::Vector4 colour;
             Maths::Vector2 size;
             Maths::Vector2 uv;
-            
+
             bool operator==(const PointVertexData& other) const
             {
                 return vertex == other.vertex && colour == other.colour && size == other.size && uv == other.uv;
@@ -114,7 +114,7 @@ namespace Lumos
             void DebugPass();
             float SubmitTexture(Texture* texture);
             void UpdateCascades(Scene* scene, Light* light);
-            
+
             struct LUMOS_EXPORT RenderCommand2D
             {
                 Renderable2D* renderable = nullptr;
@@ -195,7 +195,7 @@ namespace Lumos
                 uint32_t m_CurrentBufferID = 0;
                 bool m_DepthTest = false;
             };
-            
+
             struct Renderer2DData
             {
                 CommandQueue2D m_CommandQueue2D;
@@ -225,35 +225,35 @@ namespace Lumos
 
                 uint32_t m_PreviousFrameTextureCount = 0;
                 SharedPtr<Shader> m_Shader = nullptr;
-                
+
                 std::vector<SharedPtr<Graphics::DescriptorSet>> m_DescriptorSet;
                 std::vector<Graphics::DescriptorSet*> m_CurrentDescriptorSets;
             };
-			
-			struct DebugDrawData
-			{
-				std::vector<Graphics::VertexBuffer*> m_LineVertexBuffers;
-				Graphics::IndexBuffer* m_LineIndexBuffer;
-				
-				Graphics::IndexBuffer* m_PointIndexBuffer = nullptr;
-				std::vector<Graphics::VertexBuffer*> m_PointVertexBuffers;
-				
-				std::vector<SharedPtr<Graphics::DescriptorSet>> m_LineDescriptorSet;
-				std::vector<SharedPtr<Graphics::DescriptorSet>> m_PointDescriptorSet;
-				
-				LineVertexData* m_LineBuffer = nullptr;
-				PointVertexData* m_PointBuffer = nullptr;
-				
-				uint32_t LineIndexCount = 0;
-				uint32_t PointIndexCount = 0;
-				uint32_t m_LineBatchDrawCallIndex = 0;
-				uint32_t m_PointBatchDrawCallIndex = 0;
-				
-				Renderer2DData m_Renderer2DData;
-				
-				SharedPtr<Shader> m_LineShader = nullptr;
-				SharedPtr<Shader> m_PointShader = nullptr;
-			};
+
+            struct DebugDrawData
+            {
+                std::vector<Graphics::VertexBuffer*> m_LineVertexBuffers;
+                Graphics::IndexBuffer* m_LineIndexBuffer;
+
+                Graphics::IndexBuffer* m_PointIndexBuffer = nullptr;
+                std::vector<Graphics::VertexBuffer*> m_PointVertexBuffers;
+
+                std::vector<SharedPtr<Graphics::DescriptorSet>> m_LineDescriptorSet;
+                std::vector<SharedPtr<Graphics::DescriptorSet>> m_PointDescriptorSet;
+
+                LineVertexData* m_LineBuffer = nullptr;
+                PointVertexData* m_PointBuffer = nullptr;
+
+                uint32_t LineIndexCount = 0;
+                uint32_t PointIndexCount = 0;
+                uint32_t m_LineBatchDrawCallIndex = 0;
+                uint32_t m_PointBatchDrawCallIndex = 0;
+
+                Renderer2DData m_Renderer2DData;
+
+                SharedPtr<Shader> m_LineShader = nullptr;
+                SharedPtr<Shader> m_PointShader = nullptr;
+            };
 
             ForwardData& GetForwardData() { return m_ForwardData; }
             ShadowData& GetShadowData() { return m_ShadowData; }
@@ -279,7 +279,7 @@ namespace Lumos
             ShadowData m_ShadowData;
             ForwardData m_ForwardData;
             Renderer2DData m_Renderer2DData;
-			DebugDrawData m_DebugDrawData;
+            DebugDrawData m_DebugDrawData;
 
             Mesh* m_SkyboxMesh;
             Texture* m_CubeMap;

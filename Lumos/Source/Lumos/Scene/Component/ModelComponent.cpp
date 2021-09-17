@@ -4,14 +4,14 @@
 
 namespace Lumos::Graphics
 {
-	ModelComponent::ModelComponent(const std::string& path)
-	{
+    ModelComponent::ModelComponent(const std::string& path)
+    {
         LoadFromLibrary(path);
-	}
-	
-	void ModelComponent::LoadFromLibrary(const std::string& path)
-	{
-		ModelRef = Application::Get().GetModelLibrary()->GetResource(path);
-	}
-	
+    }
+
+    void ModelComponent::LoadFromLibrary(const std::string& path)
+    {
+        ModelRef = Application::Get().GetModelLibrary()->GetResource(path);
+    }
+
 }

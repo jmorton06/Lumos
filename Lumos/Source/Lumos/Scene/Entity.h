@@ -3,6 +3,8 @@
 #include "Scene/Scene.h"
 #include "Scene/SceneGraph.h"
 #include "Core/Profiler.h"
+#include "Core/StringUtilities.h"
+#include "Core/UUID.h"
 
 DISABLE_WARNING_PUSH
 DISABLE_WARNING_CONVERSION_TO_SMALLER_TYPE
@@ -11,17 +13,17 @@ DISABLE_WARNING_POP
 
 namespace Lumos
 {
-	struct IDComponent
-	{
-		uint64_t ID;
-        
+    struct IDComponent
+    {
+        UUID ID;
+
         template <class Archive>
         void serialize(Archive& archive)
         {
-            archive(ID);
+            archive((uint64_t)ID);
         }
-	};
-	
+    };
+
     class Entity
     {
     public:
@@ -107,11 +109,17 @@ namespace Lumos
         {
             return m_Scene->GetRegistry().get<Maths::Transform>(m_EntityHandle);
         }
-		
-		uint64_t GetID()
-		{
-			return m_Scene->GetRegistry().get<IDComponent>(m_EntityHandle).ID;
-		}
+
+        uint64_t GetID()
+        {
+            return m_Scene->GetRegistry().get<IDComponent>(m_EntityHandle).ID;
+        }
+
+        const std::string& GetName()
+        {
+            auto nameComponent = TryGetComponent<NameComponent>();
+            return nameComponent ? nameComponent->name : StringUtilities::ToString(entt::to_integral(m_EntityHandle));
+        }
 
         void SetParent(Entity entity)
         {

@@ -575,7 +575,7 @@ namespace Lumos::Maths
             if(!Maths::Equals(scale.Length(), 0.0f))
                 return ToMatrix3().Scaled(Maths::Vector3(1.0f / scale.x, 1.0f / scale.y, 1.0f / scale.z));
             else
-               return ToMatrix3();
+                return ToMatrix3();
         }
 
         /// Return the translation part.
@@ -692,8 +692,8 @@ namespace Lumos::Maths
             s.SetTranslation(pos);
             return s;
         }
-		
-		static Matrix4 Rotation(const Quaternion& rot)
+
+        static Matrix4 Rotation(const Quaternion& rot)
         {
             Matrix4 s;
             s.SetRotation(rot.RotationMatrix());

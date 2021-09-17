@@ -45,7 +45,7 @@ namespace Lumos
         {
             CreateFunc = CreateFuncGL;
         }
-    
+
         void GLCommandBuffer::BindPipeline(Pipeline* pipeline)
         {
             if(pipeline != m_BoundPipeline)
@@ -54,7 +54,7 @@ namespace Lumos
                 m_BoundPipeline = pipeline;
             }
         }
-    
+
         void GLCommandBuffer::UnBindPipeline()
         {
             if(m_BoundPipeline)

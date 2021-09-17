@@ -187,7 +187,8 @@ buildoptions
 			"VK_USE_PLATFORM_METAL_EXT",
 			"LUMOS_IMGUI",
 			"LUMOS_OPENAL",
-			"LUMOS_VOLK"
+	"LUMOS_VOLK",
+	"USE_VMA_ALLOCATOR"
 		}
 
 		links

@@ -59,7 +59,7 @@ namespace Lumos
             {
                 std::vector<BufferMemberInfo> m_Members;
                 Buffer LocalStorage;
-                
+
                 //Per frame in flight
                 bool HasUpdated[10];
             };
@@ -71,8 +71,8 @@ namespace Lumos
 
             std::map<std::string, UniformBufferInfo> m_UniformBuffersData;
             bool m_DescriptorDirty[3];
-			
-			//VkDescriptorSet per frame
+
+            //VkDescriptorSet per frame
             //UniformBuffer per frame;
             //1 local uniformbuffer storage
             //1 list of textures

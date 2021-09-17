@@ -132,9 +132,17 @@ namespace Lumos
             if(defaultOpen)
                 nodeFlags |= ImGuiTreeNodeFlags_DefaultOpen;
 
-            static std::string folderIcon = ICON_MDI_FOLDER " ";
+            nodeFlags |= ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_SpanAvailWidth;
 
-            bool isOpen = ImGui::TreeNodeEx((folderIcon + dirInfo->FilePath.filename().string()).c_str(), nodeFlags);
+            bool isOpen = ImGui::TreeNodeEx((void*)(intptr_t)(dirInfo.get()), nodeFlags, "");
+
+            const char* folderIcon = ((isOpen && containsFolder) || m_CurrentDir == dirInfo) ? ICON_MDI_FOLDER_OPEN : ICON_MDI_FOLDER;
+            ImGui::SameLine();
+            ImGui::PushStyleColor(ImGuiCol_Text, ImGuiHelpers::GetIconColour());
+            ImGui::Text("%s ", folderIcon);
+            ImGui::PopStyleColor();
+            ImGui::SameLine();
+            ImGui::TextUnformatted((dirInfo->FilePath.filename().string()).c_str());
 
             ImVec2 verticalLineStart = ImGui::GetCursorScreenPos();
 

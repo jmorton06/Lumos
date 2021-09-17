@@ -88,39 +88,39 @@ namespace Lumos
 
         bool& ShowGrid()
         {
-            return m_ShowGrid;
+            return m_Settings.m_ShowGrid;
         }
         const float& GetGridSize() const
         {
-            return m_GridSize;
+            return m_Settings.m_GridSize;
         }
 
         bool& ShowGizmos()
         {
-            return m_ShowGizmos;
+            return m_Settings.m_ShowGizmos;
         }
         bool& ShowViewSelected()
         {
-            return m_ShowViewSelected;
+            return m_Settings.m_ShowViewSelected;
         }
 
         void ToggleSnap()
         {
-            m_SnapQuizmo = !m_SnapQuizmo;
+            m_Settings.m_SnapQuizmo = !m_Settings.m_SnapQuizmo;
         }
 
         bool& FullScreenOnPlay()
         {
-            return m_FullScreenOnPlay;
+            return m_Settings.m_FullScreenOnPlay;
         }
 
         bool& SnapGuizmo()
         {
-            return m_SnapQuizmo;
+            return m_Settings.m_SnapQuizmo;
         }
         float& SnapAmount()
         {
-            return m_SnapAmount;
+            return m_Settings.m_SnapAmount;
         }
 
         void SetSelected(entt::entity entity)
@@ -209,6 +209,32 @@ namespace Lumos
         void LoadCachedScene();
         void EmbedShader(const std::string& shaderPath);
 
+        struct EditorSettings
+        {
+            float m_GridSize = 10.0f;
+            uint32_t m_DebugDrawFlags = 0;
+            uint32_t m_Physics2DDebugFlags = 0;
+            uint32_t m_Physics3DDebugFlags = 0;
+
+            bool m_ShowGrid = true;
+            bool m_ShowGizmos = true;
+            bool m_ShowViewSelected = false;
+            bool m_SnapQuizmo = false;
+            bool m_ShowImGuiDemo = true;
+            bool m_View2D = false;
+            bool m_FullScreenOnPlay = false;
+            float m_SnapAmount = 1.0f;
+            bool m_SleepOutofFocus = true;
+            float m_ImGuizmoScale = 0.25f;
+
+            bool m_FullScreenSceneView = false;
+            ImGuiHelpers::Theme m_Theme = ImGuiHelpers::Theme::Dark;
+
+            //Camera Settings
+        };
+
+        EditorSettings& GetSettings() { return m_Settings; }
+
     protected:
         NONCOPYABLE(Editor)
         bool OnWindowResize(WindowResizeEvent& e);
@@ -219,31 +245,14 @@ namespace Lumos
         entt::entity m_SelectedEntity;
         entt::entity m_CopiedEntity;
         bool m_CutCopyEntity = false;
-
-        float m_GridSize = 10.0f;
-        uint32_t m_DebugDrawFlags = 0;
-        uint32_t m_Physics2DDebugFlags = 0;
-        uint32_t m_Physics3DDebugFlags = 0;
-
-        bool m_ShowGrid = true;
-        bool m_ShowGizmos = true;
-        bool m_ShowViewSelected = false;
-        bool m_SnapQuizmo = false;
-        bool m_ShowImGuiDemo = true;
-        bool m_View2D = false;
-        bool m_FullScreenOnPlay = false;
-        float m_SnapAmount = 1.0f;
         float m_CurrentSceneAspectRatio = 0.0f;
+        float m_CameraTransitionStartTime = 0.0f;
+        float m_CameraTransitionSpeed = 0.0f;
         bool m_TransitioningCamera = false;
         Maths::Vector3 m_CameraDestination;
         Maths::Vector3 m_CameraStartPosition;
-        float m_CameraTransitionStartTime = 0.0f;
-        float m_CameraTransitionSpeed = 0.0f;
-        bool m_SleepOutofFocus = true;
 
-        bool m_FullScreenSceneView = false;
-        ImGuiHelpers::Theme m_Theme = ImGuiHelpers::Theme::Dark;
-
+        EditorSettings m_Settings;
         std::vector<SharedPtr<EditorPanel>> m_Panels;
 
         std::unordered_map<size_t, const char*> m_ComponentIconMap;

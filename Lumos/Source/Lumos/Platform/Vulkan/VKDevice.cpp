@@ -256,7 +256,8 @@ namespace Lumos
             vmaDestroyAllocator(m_Allocator);
 #endif
 #if defined(LUMOS_PROFILE) && defined(TRACY_ENABLE)
-            TracyVkDestroy(m_TracyContext);
+            for(int i = 0; i < 3; i++)
+                TracyVkDestroy(m_TracyContext[i]);
 #endif
 
             vkDestroyDevice(m_Device, VK_NULL_HANDLE);
@@ -378,11 +379,22 @@ namespace Lumos
             vkAllocateCommandBuffers(m_Device, &allocInfo, &tracyBuffer);
 
 #if defined(LUMOS_PROFILE) && defined(TRACY_ENABLE)
-            m_TracyContext = TracyVkContext(m_PhysicalDevice->GetVulkanPhysicalDevice(), m_Device, m_GraphicsQueue, tracyBuffer);
+            m_TracyContext.resize(3);
+            for(int i = 0; i < 3; i++)
+                m_TracyContext[i] = TracyVkContext(m_PhysicalDevice->GetVulkanPhysicalDevice(), m_Device, m_GraphicsQueue, tracyBuffer);
+
+                // m_TracyContext = TracyVkContextCalibrated(m_PhysicalDevice->GetVulkanPhysicalDevice(), m_Device, m_GraphicsQueue, tracyBuffer, vkGetPhysicalDeviceCalibrateableTimeDomainsEXT, vkGetCalibratedTimestampsEXT);
 #endif
 
             vkQueueWaitIdle(m_GraphicsQueue);
             vkFreeCommandBuffers(m_Device, m_CommandPool->GetHandle(), 1, &tracyBuffer);
         }
+
+#if defined(LUMOS_PROFILE) && defined(TRACY_ENABLE)
+        tracy::VkCtx* VKDevice::GetTracyContext()
+        {
+            return m_TracyContext[VKRenderer::GetMainSwapChain()->GetCurrentBufferIndex()];
+        }
+#endif
     }
 }

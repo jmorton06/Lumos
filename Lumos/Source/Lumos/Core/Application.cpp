@@ -246,7 +246,7 @@ namespace Lumos
         LUMOS_LOG_INFO("Initialised ImGui Manager");
 
         m_ShaderLibrary = CreateSharedPtr<ShaderLibrary>();
-		m_ModelLibrary = CreateSharedPtr<ModelLibrary>();
+        m_ModelLibrary = CreateSharedPtr<ModelLibrary>();
 
         m_RenderGraph = CreateUniquePtr<Graphics::RenderGraph>(screenWidth, screenHeight);
 
@@ -272,7 +272,7 @@ namespace Lumos
         Input::Release();
 
         m_ShaderLibrary.reset();
-		m_ModelLibrary.reset();
+        m_ModelLibrary.reset();
         m_SceneManager.reset();
         m_RenderGraph.reset();
         m_SystemManager.reset();
@@ -304,8 +304,6 @@ namespace Lumos
     bool Application::OnFrame()
     {
         LUMOS_PROFILE_FUNCTION();
-        LUMOS_PROFILE_FRAMEMARKER();
-
         if(m_SceneManager->GetSwitchingScene())
         {
             LUMOS_PROFILE_SCOPE("Application::SceneSwitch");
@@ -368,8 +366,8 @@ namespace Lumos
             Graphics::RenderPass::DeleteUnusedCache();
 
             m_ShaderLibrary->Update(ts.GetElapsedSeconds());
-			m_ModelLibrary->Update(ts.GetElapsedSeconds());
-			
+            m_ModelLibrary->Update(ts.GetElapsedSeconds());
+
             m_Frames++;
         }
 
@@ -397,13 +395,15 @@ namespace Lumos
             m_Updates = 0;
         }
 
+        LUMOS_PROFILE_FRAMEMARKER();
+
         return m_CurrentState != AppState::Closing;
     }
 
     void Application::OnRender()
     {
         LUMOS_PROFILE_FUNCTION();
-       // if(m_RenderGraph->GetCount() > 0)
+        // if(m_RenderGraph->GetCount() > 0)
         {
             m_RenderGraph->BeginScene(m_SceneManager->GetCurrentScene());
 
@@ -474,8 +474,8 @@ namespace Lumos
     }
 
     SharedPtr<ShaderLibrary>& Application::GetShaderLibrary() { return m_ShaderLibrary; }
-	SharedPtr<ModelLibrary>& Application::GetModelLibrary() { return m_ModelLibrary; }
-	
+    SharedPtr<ModelLibrary>& Application::GetModelLibrary() { return m_ModelLibrary; }
+
     void Application::OnExitScene()
     {
     }

@@ -11,7 +11,6 @@
 
 #define VK_LAYER_LUNARG_STANDARD_VALIDATION_NAME "VK_LAYER_LUNARG_standard_validation"
 #define VK_LAYER_LUNARG_ASSISTENT_LAYER_NAME "VK_LAYER_LUNARG_assistant_layer"
-#define VK_LAYER_RENDERDOC_CAPTURE_NAME "VK_LAYER_RENDERDOC_Capture"
 #define VK_LAYER_LUNARG_VALIDATION_NAME "VK_LAYER_KHRONOS_validation"
 
 namespace Lumos
@@ -26,12 +25,14 @@ namespace Lumos
             if(EnableValidationLayers)
             {
                 extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+                extensions.push_back(VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
+                extensions.push_back(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME);
             }
 
             extensions.push_back("VK_EXT_debug_report");
             extensions.push_back("VK_KHR_surface");
 
-#if 0
+#if 1
 #if defined(TRACY_ENABLE) && defined(LUMOS_PLATFORM_WINDOWS)
             extensions.push_back("VK_EXT_calibrated_timestamps");
 #endif
@@ -65,14 +66,13 @@ namespace Lumos
             if(m_StandardValidationLayer)
                 layers.emplace_back(VK_LAYER_LUNARG_STANDARD_VALIDATION_NAME);
 
-            if(m_RenderDocLayer)
-                layers.emplace_back(VK_LAYER_RENDERDOC_CAPTURE_NAME);
-
             if(m_AssistanceLayer)
                 layers.emplace_back(VK_LAYER_LUNARG_ASSISTENT_LAYER_NAME);
 
-            if(m_ValidationLayer)
+            if(EnableValidationLayers)
+            {
                 layers.emplace_back(VK_LAYER_LUNARG_VALIDATION_NAME);
+            }
 
             return layers;
         }
@@ -180,34 +180,43 @@ namespace Lumos
             return VK_FALSE;
         }
 
-        bool VKContext::CheckValidationLayerSupport(const std::vector<const char*>& validationLayers)
+        bool VKContext::CheckValidationLayerSupport(std::vector<const char*>& validationLayers)
         {
             uint32_t layerCount;
             vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
 
             m_InstanceLayers.resize(layerCount);
             vkEnumerateInstanceLayerProperties(&layerCount, m_InstanceLayers.data());
+            bool removedLayer = false;
 
-            for(const char* layerName : validationLayers)
-            {
-                bool layerFound = false;
-
-                for(const auto& layerProperties : m_InstanceLayers)
-                {
-                    if(strcmp(layerName, layerProperties.layerName) == 0)
+            validationLayers.erase(
+                std::remove_if(
+                    validationLayers.begin(),
+                    validationLayers.end(),
+                    [&](const char* layerName)
                     {
-                        layerFound = true;
-                        break;
-                    }
-                }
+                        bool layerFound = false;
 
-                if(!layerFound)
-                {
-                    return false;
-                }
-            }
+                        for(const auto& layerProperties : m_InstanceLayers)
+                        {
+                            if(strcmp(layerName, layerProperties.layerName) == 0)
+                            {
+                                layerFound = true;
+                                break;
+                            }
+                        }
 
-            return true;
+                        if(!layerFound)
+                        {
+                            removedLayer = true;
+                            LUMOS_LOG_WARN("[VULKAN] Layer not supported - {0}", layerName);
+                        }
+
+                        return !layerFound;
+                    }),
+                validationLayers.end());
+
+            return !removedLayer;
         }
 
         bool VKContext::CheckExtensionSupport(std::vector<const char*>& extensions)
@@ -218,31 +227,36 @@ namespace Lumos
             m_InstanceExtensions.resize(extensionCount);
             vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, m_InstanceExtensions.data());
 
-            bool extensionSupported = true;
+            bool removedExtension = false;
 
-            for(int i = 0; i < extensions.size(); i++)
-            {
-                const char* extensionName = extensions[i];
-                bool layerFound = false;
-
-                for(const auto& layerProperties : m_InstanceExtensions)
-                {
-                    if(strcmp(extensionName, layerProperties.extensionName) == 0)
+            extensions.erase(
+                std::remove_if(
+                    extensions.begin(),
+                    extensions.end(),
+                    [&](const char* extensionName)
                     {
-                        layerFound = true;
-                        break;
-                    }
-                }
+                        bool extensionFound = false;
 
-                if(!layerFound)
-                {
-                    extensions.erase(extensions.begin() + i);
-                    extensionSupported = false;
-                    LUMOS_LOG_WARN("Extension not supported {0}", extensionName);
-                }
-            }
+                        for(const auto& extensionProperties : m_InstanceExtensions)
+                        {
+                            if(strcmp(extensionName, extensionProperties.extensionName) == 0)
+                            {
+                                extensionFound = true;
+                                break;
+                            }
+                        }
 
-            return extensionSupported;
+                        if(!extensionFound)
+                        {
+                            removedExtension = true;
+                            LUMOS_LOG_WARN("[VULKAN] Extension not supported - {0}", extensionName);
+                        }
+
+                        return !extensionFound;
+                    }),
+                extensions.end());
+
+            return !removedExtension;
         }
 
         size_t VKContext::GetMinUniformBufferOffsetAlignment() const
@@ -282,7 +296,7 @@ namespace Lumos
             m_InstanceLayerNames = GetRequiredLayers();
             m_InstanceExtensionNames = GetRequiredExtensions();
 
-            if(EnableValidationLayers && !CheckValidationLayerSupport(m_InstanceLayerNames))
+            if(!CheckValidationLayerSupport(m_InstanceLayerNames))
             {
                 LUMOS_LOG_CRITICAL("[VULKAN] Validation layers requested, but not available!");
             }

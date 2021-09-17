@@ -777,7 +777,7 @@ namespace Lumos
 
             auto renderGraph = Application::Get().GetRenderGraph();
             renderGraph->SetRenderTarget(m_GameViewTexture.get(), true, false);
-            
+
             if(!m_Editor->GetGridRenderer())
                 m_Editor->CreateGridRenderer();
             m_Editor->GetGridRenderer()->SetRenderTarget(m_GameViewTexture.get(), false);

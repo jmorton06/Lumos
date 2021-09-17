@@ -25,38 +25,38 @@ namespace Lumos
             descriptorSetAllocateInfo.pNext = nullptr;
 
             m_Shader = descriptorDesc.shader;
-			m_Descriptors = m_Shader->GetDescriptorInfo(descriptorDesc.layoutIndex);
-			
-			for(auto& descriptor : m_Descriptors.descriptors)
-			{
-				if(descriptor.type == DescriptorType::UNIFORM_BUFFER)
-				{
-					for(uint32_t frame = 0; frame < m_FramesInFlight; frame++)
-					{
-						//Uniform Buffer per frame in flight
+            m_Descriptors = m_Shader->GetDescriptorInfo(descriptorDesc.layoutIndex);
+
+            for(auto& descriptor : m_Descriptors.descriptors)
+            {
+                if(descriptor.type == DescriptorType::UNIFORM_BUFFER)
+                {
+                    for(uint32_t frame = 0; frame < m_FramesInFlight; frame++)
+                    {
+                        //Uniform Buffer per frame in flight
                         auto buffer = SharedPtr<Graphics::UniformBuffer>(Graphics::UniformBuffer::Create());
                         buffer->Init(descriptor.size, nullptr);
-						m_UniformBuffers[frame][descriptor.name] = buffer;
-					}
-					
-					Buffer localStorage;
-					localStorage.Allocate(descriptor.size);
-					localStorage.InitialiseEmpty();
-					
-					UniformBufferInfo info;
-					info.LocalStorage = localStorage;
-					info.HasUpdated[0] = false;
+                        m_UniformBuffers[frame][descriptor.name] = buffer;
+                    }
+
+                    Buffer localStorage;
+                    localStorage.Allocate(descriptor.size);
+                    localStorage.InitialiseEmpty();
+
+                    UniformBufferInfo info;
+                    info.LocalStorage = localStorage;
+                    info.HasUpdated[0] = false;
                     info.HasUpdated[1] = false;
                     info.HasUpdated[2] = false;
 
-					info.m_Members = descriptor.m_Members;
-					m_UniformBuffersData[descriptor.name] = info;
-				}
-			}
-			
+                    info.m_Members = descriptor.m_Members;
+                    m_UniformBuffersData[descriptor.name] = info;
+                }
+            }
+
             for(uint32_t frame = 0; frame < m_FramesInFlight; frame++)
             {
-				m_DescriptorDirty[frame] = true;
+                m_DescriptorDirty[frame] = true;
                 m_DescriptorSet[frame] = nullptr;
                 VK_CHECK_RESULT(vkAllocateDescriptorSets(VKDevice::GetHandle(), &descriptorSetAllocateInfo, &m_DescriptorSet[frame]));
             }
@@ -117,7 +117,7 @@ namespace Lumos
                 m_DescriptorDirty[currentFrame] = false;
                 int imageIndex = 0;
                 int index = 0;
-                
+
                 for(auto& imageInfo : m_Descriptors.descriptors)
                 {
                     if(imageInfo.type == DescriptorType::IMAGE_SAMPLER && (imageInfo.texture || imageInfo.textures))
@@ -187,9 +187,9 @@ namespace Lumos
                         }
                     }
                 }
-            
-            vkUpdateDescriptorSets(VKDevice::Get().GetDevice(), descriptorWritesCount,
-									   m_WriteDescriptorSetPool.data(), 0, nullptr);
+
+                vkUpdateDescriptorSets(VKDevice::Get().GetDevice(), descriptorWritesCount,
+                    m_WriteDescriptorSetPool.data(), 0, nullptr);
             }
         }
 
@@ -221,11 +221,10 @@ namespace Lumos
                     descriptor.textureCount = textureCount;
                     descriptor.textures = texture;
                     descriptor.textureType = textureType;
-                    
+
                     m_DescriptorDirty[0] = true;
                     m_DescriptorDirty[1] = true;
                     m_DescriptorDirty[2] = true;
-
                 }
             }
         }
@@ -234,7 +233,7 @@ namespace Lumos
         {
             LUMOS_PROFILE_FUNCTION();
             uint32_t currentFrame = Renderer::GetMainSwapChain()->GetCurrentBufferIndex();
-			#if 0
+#if 0
             for(auto& descriptor : m_Descriptors[currentFrame].descriptors)
             {
                 if(descriptor.type == DescriptorType::UNIFORM_BUFFER && descriptor.name == name)
@@ -242,7 +241,7 @@ namespace Lumos
                     descriptor.buffer = buffer;
                 }
             }
-			#endif
+#endif
         }
 
         Graphics::UniformBuffer* VKDescriptorSet::GetUnifromBuffer(const std::string& name)
@@ -252,10 +251,10 @@ namespace Lumos
 
             //for(auto& buffers : m_UniformBuffers[currentFrame])
             //{
-                //if(descriptor.type == DescriptorType::UNIFORM_BUFFER && descriptor.name == name)
-                //{
-                    //return descriptor.buffer;
-                //}
+            //if(descriptor.type == DescriptorType::UNIFORM_BUFFER && descriptor.name == name)
+            //{
+            //return descriptor.buffer;
+            //}
             //}
 
             LUMOS_LOG_WARN("Buffer not found {0}", name);
@@ -273,10 +272,10 @@ namespace Lumos
                     if(member.name == uniformName)
                     {
                         itr->second.LocalStorage.Write(data, member.size, member.offset);
-                        
+
                         itr->second.HasUpdated[0] = true;
                         itr->second.HasUpdated[1] = true;
-						itr->second.HasUpdated[2] = true;
+                        itr->second.HasUpdated[2] = true;
                         return;
                     }
                 }

@@ -23,7 +23,7 @@ namespace Lumos
             void ClearRenderTargets(CommandBuffer* commandBuffer) override;
             void BindVertexArray();
             void CreateFramebuffers();
-            
+
             Shader* GetShader() const override { return m_Shader; }
 
             static void MakeDefault();
