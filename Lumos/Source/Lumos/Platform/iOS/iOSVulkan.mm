@@ -1,9 +1,9 @@
 #if defined(LUMOS_RENDER_API_VULKAN)
 
-#include "Platform/Vulkan/VKSwapChain.h"
 #include "Core/Application.h"
 #include "iOSOS.h"
 #include "iOSWindow.h"
+#include "Platform/Vulkan/VKSwapChain.h"
 
 #if 0
 #include <MoltenVK/vk_mvk_moltenvk.h>

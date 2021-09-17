@@ -1,4 +1,5 @@
 #pragma once
+#include "Precompiled.h"
 #include "Core/OS/OS.h"
 
 namespace Lumos
