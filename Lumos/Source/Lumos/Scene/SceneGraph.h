@@ -139,7 +139,7 @@ namespace Lumos
         {
             archive(cereal::make_nvp("Name", name));
         }
-        std::string name;
+        std::string name = "";
     };
 
     struct ActiveComponent

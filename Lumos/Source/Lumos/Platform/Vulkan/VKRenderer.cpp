@@ -53,7 +53,7 @@ namespace Lumos
             LUMOS_PROFILE_FUNCTION();
         }
 
-        void VKRenderer::ClearRenderTarget(Graphics::Texture* texture, Graphics::CommandBuffer* commandBuffer, Maths::Vector4 clearColour )
+        void VKRenderer::ClearRenderTarget(Graphics::Texture* texture, Graphics::CommandBuffer* commandBuffer, Maths::Vector4 clearColour)
         {
             VkImageSubresourceRange subresourceRange = {}; //TODO: Get from texture
             subresourceRange.baseMipLevel = 0;

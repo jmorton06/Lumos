@@ -100,17 +100,39 @@ namespace Lumos
         void DuplicateEntity(Entity entity, Entity parent);
         Entity CreateEntity();
         Entity CreateEntity(const std::string& name);
+        Entity GetEntityByUUID(uint64_t id);
 
         EntityManager* GetEntityManager() { return m_EntityManager.get(); }
 
         virtual void Serialise(const std::string& filePath, bool binary = false);
         virtual void Deserialise(const std::string& filePath, bool binary = false);
 
+        struct SceneRenderSettings
+        {
+            bool Renderer2DEnabled = true;
+            bool Renderer3DEnabled = true;
+            bool DebugRenderEnabled = true;
+            bool SkyboxRenderEnabled = true;
+            bool ShadowsEnabled = true;
+        };
+
+        struct SceneSettings
+        {
+            bool PhysicsEnabled2D = true;
+            bool PhysicsEnabled3D = true;
+            bool AudioEnabled = true;
+
+            SceneRenderSettings RenderSettings;
+        };
+
         template <typename Archive>
         void save(Archive& archive) const
         {
-            archive(cereal::make_nvp("Version", 7));
+            archive(cereal::make_nvp("Version", 8));
             archive(cereal::make_nvp("Scene Name", m_SceneName));
+
+            archive(cereal::make_nvp("PhysicsEnabled2D", m_Settings.PhysicsEnabled2D), cereal::make_nvp("PhysicsEnabled3D", m_Settings.PhysicsEnabled3D), cereal::make_nvp("AudioEnabled", m_Settings.AudioEnabled), cereal::make_nvp("Renderer2DEnabled", m_Settings.RenderSettings.Renderer2DEnabled),
+                cereal::make_nvp("Renderer3DEnabled", m_Settings.RenderSettings.Renderer3DEnabled), cereal::make_nvp("DebugRenderEnabled", m_Settings.RenderSettings.DebugRenderEnabled), cereal::make_nvp("SkyboxRenderEnabled", m_Settings.RenderSettings.SkyboxRenderEnabled), cereal::make_nvp("ShadowsEnabled", m_Settings.RenderSettings.ShadowsEnabled));
         }
 
         template <typename Archive>
@@ -118,20 +140,19 @@ namespace Lumos
         {
             archive(cereal::make_nvp("Version", m_SceneSerialisationVersion));
             archive(cereal::make_nvp("Scene Name", m_SceneName));
+
+            if(m_SceneSerialisationVersion > 7)
+                archive(cereal::make_nvp("PhysicsEnabled2D", m_Settings.PhysicsEnabled2D), cereal::make_nvp("PhysicsEnabled3D", m_Settings.PhysicsEnabled3D), cereal::make_nvp("AudioEnabled", m_Settings.AudioEnabled), cereal::make_nvp("Renderer2DEnabled", m_Settings.RenderSettings.Renderer2DEnabled),
+                    cereal::make_nvp("Renderer3DEnabled", m_Settings.RenderSettings.Renderer3DEnabled), cereal::make_nvp("DebugRenderEnabled", m_Settings.RenderSettings.DebugRenderEnabled), cereal::make_nvp("SkyboxRenderEnabled", m_Settings.RenderSettings.SkyboxRenderEnabled), cereal::make_nvp("ShadowsEnabled", m_Settings.RenderSettings.ShadowsEnabled));
         }
 
-        struct SceneSettings
-        {
-            bool PhysicsEnabled2D;
-            bool PhysicsEnabled3D;
-            bool AudioEnabled;
-            bool Renderer2DEnabled;
-            bool Renderer3DEnabled;
-        };
+        SceneSettings& GetSettings() { return m_Settings; }
+        int GetSceneVersion() const { return m_SceneSerialisationVersion; }
 
     protected:
         std::string m_SceneName;
         int m_SceneSerialisationVersion = 0;
+        SceneSettings m_Settings;
 
         UniquePtr<EntityManager> m_EntityManager;
         UniquePtr<SceneGraph> m_SceneGraph;

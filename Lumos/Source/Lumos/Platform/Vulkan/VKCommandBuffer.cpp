@@ -133,12 +133,14 @@ namespace Lumos
         {
             LUMOS_PROFILE_FUNCTION();
             LUMOS_ASSERT(m_State == CommandBufferState::Recording, "CommandBuffer ended before started recording");
-            
+
             if(m_BoundPipeline)
-                  m_BoundPipeline->End(this);
-              
-              m_BoundPipeline = nullptr;
-            
+                m_BoundPipeline->End(this);
+
+            m_BoundPipeline = nullptr;
+
+            TracyVkCollect(VKDevice::Get().GetTracyContext(), m_CommandBuffer);
+
             VK_CHECK_RESULT(vkEndCommandBuffer(m_CommandBuffer));
             m_State = CommandBufferState::Ended;
         }
@@ -175,19 +177,19 @@ namespace Lumos
 
             vkCmdExecuteCommands(static_cast<VKCommandBuffer*>(primaryCmdBuffer)->GetHandle(), 1, &m_CommandBuffer);
         }
-    
+
         void VKCommandBuffer::BindPipeline(Pipeline* pipeline)
         {
             if(pipeline != m_BoundPipeline)
             {
                 if(m_BoundPipeline)
                     m_BoundPipeline->End(this);
-                
+
                 pipeline->Bind(this);
                 m_BoundPipeline = pipeline;
             }
         }
-    
+
         void VKCommandBuffer::UnBindPipeline()
         {
             if(m_BoundPipeline)

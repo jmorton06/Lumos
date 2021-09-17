@@ -372,7 +372,7 @@ namespace Lumos::Graphics
                 }
                 else
                 {
-                    LUMOS_LOG_WARN("Unsupported indices data type - {0}",componentTypeByteSize);
+                    LUMOS_LOG_WARN("Unsupported indices data type - {0}", componentTypeByteSize);
                 }
             }
 
@@ -415,7 +415,8 @@ namespace Lumos::Graphics
 
         if(!node.rotation.empty())
         {
-            rotation = Maths::Matrix4::Rotation(Maths::Quaternion(static_cast<float>(node.rotation[3]), static_cast<float>(node.rotation[0]), static_cast<float>(node.rotation[1]), static_cast<float>(node.rotation[2])));
+            rotation = Maths::Quaternion(static_cast<float>(node.rotation[3]), static_cast<float>(node.rotation[0]), static_cast<float>(node.rotation[1]), static_cast<float>(node.rotation[2])).RotationMatrix();
+
             //transform.SetLocalOrientation(Maths::Quaternion(static_cast<float>(node.rotation[3]), static_cast<float>(node.rotation[0]), static_cast<float>(node.rotation[1]), static_cast<float>(node.rotation[2])));
         }
 

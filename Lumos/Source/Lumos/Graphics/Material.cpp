@@ -248,8 +248,8 @@ namespace Lumos::Graphics
             CreateDescriptorSet(1);
             SetTexturesUpdated(false);
         }
-		
-		m_DescriptorSet->Update();
+
+        m_DescriptorSet->Update();
 
         //UpdateDescriptorSet();
     }

@@ -14,7 +14,7 @@ namespace Lumos
             Ended,
             Submitted
         };
-    
+
         class RenderPass;
         class Pipeline;
 
@@ -34,7 +34,7 @@ namespace Lumos
             void Reset();
             bool Flush() override;
             bool Wait();
-            
+
             void BindPipeline(Pipeline* pipeline) override;
             void UnBindPipeline() override;
 
@@ -60,7 +60,7 @@ namespace Lumos
             CommandBufferState m_State;
             SharedPtr<VKFence> m_Fence;
             VkSemaphore m_Semaphore;
-            
+
             Pipeline* m_BoundPipeline = nullptr;
             RenderPass* m_BoundRenderPass = nullptr;
         };

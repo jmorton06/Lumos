@@ -255,7 +255,7 @@ namespace Lumos
                 //            renderPassDesc.clear = false;
                 //
                 //            auto renderPass = Graphics::RenderPass::Get(renderPassDesc);
-                
+
                 GLCall(glClearColor(clearColour.x, clearColour.y, clearColour.z, clearColour.w));
 
                 FramebufferDesc frameBufferDesc {};

@@ -9,7 +9,7 @@ namespace Lumos
     {
         LUMOS_PROFILE_FUNCTION();
         auto e = m_Registry.create();
-        m_Registry.emplace<IDComponent>(e, Random64::Rand(0, std::numeric_limits<uint64_t>::max()));
+        m_Registry.emplace<IDComponent>(e);
         return Entity(e, m_Scene);
     }
 
@@ -18,7 +18,7 @@ namespace Lumos
         LUMOS_PROFILE_FUNCTION();
         auto e = m_Registry.create();
         m_Registry.emplace<NameComponent>(e, name);
-        m_Registry.emplace<IDComponent>(e, Random64::Rand(0, std::numeric_limits<uint64_t>::max()));
+        m_Registry.emplace<IDComponent>(e);
         return Entity(e, m_Scene);
     }
 
@@ -30,19 +30,20 @@ namespace Lumos
 
         m_Registry.clear();
     }
-	
-	 Entity EntityManager::GetEntityByUUID(uint64_t id)
-	{
-         LUMOS_PROFILE_FUNCTION();
-		
-		auto view = m_Registry.view<IDComponent>();
-		for (auto entity : view)
-		{
-			auto& idComponent = m_Registry.get<IDComponent>(entity);
-			if (idComponent.ID == id)
-				return Entity(entity, m_Scene);
-		}
-		
-		return Entity{};
-	}
+
+    Entity EntityManager::GetEntityByUUID(uint64_t id)
+    {
+        LUMOS_PROFILE_FUNCTION();
+
+        auto view = m_Registry.view<IDComponent>();
+        for(auto entity : view)
+        {
+            auto& idComponent = m_Registry.get<IDComponent>(entity);
+            if(idComponent.ID == id)
+                return Entity(entity, m_Scene);
+        }
+
+        LUMOS_LOG_WARN("Entity not found by ID");
+        return Entity {};
+    }
 }

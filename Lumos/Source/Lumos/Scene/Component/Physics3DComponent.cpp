@@ -2,6 +2,8 @@
 #include "Physics3DComponent.h"
 #include "Core/Application.h"
 #include "Physics/LumosPhysicsEngine/LumosPhysicsEngine.h"
+#include "Scene/Scene.h"
+#include "Scene/EntityManager.h"
 
 #include <imgui/imgui.h>
 
@@ -179,6 +181,22 @@ namespace Lumos
 
     AxisConstraintComponent::AxisConstraintComponent(Entity entity, Axes axes)
     {
+        m_EntityID = entity.GetID();
+        m_Axes = axes;
         m_Constraint = CreateSharedPtr<AxisConstraint>(entity.GetComponent<Physics3DComponent>().GetRigidBody().get(), axes);
+        m_Initialised = true;
+    }
+
+    const SharedPtr<AxisConstraint>& AxisConstraintComponent::GetConstraint()
+    {
+        if(!m_Initialised)
+        {
+            auto entity = Application::Get().GetCurrentScene()->GetEntityManager()->GetEntityByUUID(m_EntityID);
+
+            if(entity)
+                m_Constraint = CreateSharedPtr<AxisConstraint>(entity.GetComponent<Physics3DComponent>().GetRigidBody().get(), m_Axes);
+            m_Initialised = true;
+        }
+        return m_Constraint;
     }
 }

@@ -1,7 +1,15 @@
 {
     "value0": {
-        "Version": 7,
-        "Scene Name": "Physics"
+        "Version": 8,
+        "Scene Name": "Physics",
+        "PhysicsEnabled2D": true,
+        "PhysicsEnabled3D": true,
+        "AudioEnabled": true,
+        "Renderer2DEnabled": true,
+        "Renderer3DEnabled": true,
+        "DebugRenderEnabled": true,
+        "SkyboxRenderEnabled": true,
+        "ShadowsEnabled": true
     },
     "value1": 37,
     "value2": 1048576,
@@ -1009,8 +1017,8 @@
         "value2": 0.0,
         "value3": 0.0,
         "value4": {
-            "value0": 0.43871307373046877,
-            "value1": 0.37121880054473879,
+            "value0": 0.4387131929397583,
+            "value1": 0.37121883034706118,
             "value2": 0.8183687925338745,
             "value3": 1.0
         },
@@ -1777,9 +1785,9 @@
                     },
                     "usingAlbedoMap": 1.0,
                     "usingMetallicMap": 1.0,
-                    "usingRoughnessMap": 1.0,
+                    "usingRoughnessMap": 0.0,
                     "usingNormalMap": 1.0,
-                    "usingAOMap": 1.0,
+                    "usingAOMap": 0.0,
                     "usingEmissiveMap": 1.0,
                     "workflow": 1.0,
                     "shader": "Embedded"

@@ -28,7 +28,6 @@ namespace Lumos
     class Scene;
     class Camera;
 
-
     struct LineInfo
     {
         Maths::Vector3 p1;
@@ -137,7 +136,7 @@ namespace Lumos
         static void DebugDrawSphere(float radius, const Maths::Vector3& position, const Maths::Vector4& colour);
         static void DebugDrawCircle(int numVerts, float radius, const Maths::Vector3& position, const Maths::Quaternion& rotation, const Maths::Vector4& colour);
         static void DebugDrawCone(int numCircleVerts, int numLinesToCircle, float angle, float length, const Maths::Vector3& position, const Maths::Quaternion& rotation, const Maths::Vector4& colour);
-        
+
         const std::vector<TriangleInfo>& GetTriangles() const { return m_DebugTriangles; }
         const std::vector<LineInfo> GetLines() const { return m_DebugLines; }
         const std::vector<PointInfo>& GetPoints() const { return m_DebugPoints; }
@@ -155,14 +154,12 @@ namespace Lumos
         static void GenDrawTriangle(bool ndt, const Maths::Vector3& v0, const Maths::Vector3& v1, const Maths::Vector3& v2, const Maths::Vector4& colour);
 
     private:
-        
         void ClearInternal();
 
         static DebugRenderer* s_Instance;
-        
+
         std::vector<TriangleInfo> m_DebugTriangles;
         std::vector<LineInfo> m_DebugLines;
         std::vector<PointInfo> m_DebugPoints;
-
     };
 }

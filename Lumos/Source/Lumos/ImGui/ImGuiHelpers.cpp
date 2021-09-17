@@ -12,7 +12,7 @@ namespace Lumos
     Maths::Vector4 SelectedColour = Maths::Vector4(0.28f, 0.56f, 0.9f, 1.0f);
     Maths::Vector4 IconColour = Maths::Vector4(0.2f, 0.2f, 0.2f, 1.0f);
 
-    bool ImGuiHelpers::Property(const std::string& name, bool& value)
+    bool ImGuiHelpers::Property(const std::string& name, std::string& value, PropertyFlag flags)
     {
         LUMOS_PROFILE_FUNCTION();
         bool updated = false;
@@ -20,10 +20,81 @@ namespace Lumos
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
 
-        std::string id = "##" + name;
-        if(ImGui::Checkbox(id.c_str(), &value))
-            updated = true;
+        if((int)flags & (int)PropertyFlag::ReadOnly)
+        {
+            ImGui::TextUnformatted(value.c_str());
+        }
+        else
+        {
+            //TODO
+        }
 
+        ImGui::PopItemWidth();
+        ImGui::NextColumn();
+
+        return updated;
+    }
+
+    void ImGuiHelpers::PropertyConst(const std::string& name, const std::string& value)
+    {
+        LUMOS_PROFILE_FUNCTION();
+        bool updated = false;
+        ImGui::TextUnformatted(name.c_str());
+        ImGui::NextColumn();
+        ImGui::PushItemWidth(-1);
+
+        {
+            ImGui::TextUnformatted(value.c_str());
+        }
+
+        ImGui::PopItemWidth();
+        ImGui::NextColumn();
+    }
+
+    bool ImGuiHelpers::Property(const std::string& name, bool& value, PropertyFlag flags)
+    {
+        LUMOS_PROFILE_FUNCTION();
+        bool updated = false;
+        ImGui::TextUnformatted(name.c_str());
+        ImGui::NextColumn();
+        ImGui::PushItemWidth(-1);
+
+        if((int)flags & (int)PropertyFlag::ReadOnly)
+        {
+            ImGui::TextUnformatted(value ? "True" : "False");
+        }
+        else
+        {
+            std::string id = "##" + name;
+            if(ImGui::Checkbox(id.c_str(), &value))
+                updated = true;
+        }
+
+        ImGui::PopItemWidth();
+        ImGui::NextColumn();
+
+        return updated;
+    }
+
+    bool ImGuiHelpers::Property(const std::string& name, int& value, ImGuiHelpers::PropertyFlag flags)
+    {
+        LUMOS_PROFILE_FUNCTION();
+        bool updated = false;
+
+        ImGui::TextUnformatted(name.c_str());
+        ImGui::NextColumn();
+        ImGui::PushItemWidth(-1);
+
+        if((int)flags & (int)PropertyFlag::ReadOnly)
+        {
+            ImGui::Text("%i", value);
+        }
+        else
+        {
+            std::string id = "##" + name;
+            if(ImGui::DragInt(id.c_str(), &value))
+                updated = true;
+        }
         ImGui::PopItemWidth();
         ImGui::NextColumn();
 
@@ -39,10 +110,41 @@ namespace Lumos
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
 
-        std::string id = "##" + name;
-        if(ImGui::SliderFloat(id.c_str(), &value, min, max))
-            updated = true;
+        if((int)flags & (int)PropertyFlag::ReadOnly)
+        {
+            ImGui::Text("%.2f", value);
+        }
+        else
+        {
+            std::string id = "##" + name;
+            if(ImGui::DragFloat(id.c_str(), &value, min, max))
+                updated = true;
+        }
+        ImGui::PopItemWidth();
+        ImGui::NextColumn();
 
+        return updated;
+    }
+
+    bool ImGuiHelpers::Property(const std::string& name, double& value, double min, double max, PropertyFlag flags)
+    {
+        LUMOS_PROFILE_FUNCTION();
+        bool updated = false;
+
+        ImGui::TextUnformatted(name.c_str());
+        ImGui::NextColumn();
+        ImGui::PushItemWidth(-1);
+
+        if((int)flags & (int)PropertyFlag::ReadOnly)
+        {
+            ImGui::Text("%.2f", (float)value);
+        }
+        else
+        {
+            std::string id = "##" + name;
+            if(ImGui::DragScalar(id.c_str(), ImGuiDataType_Double, &value))
+                updated = true;
+        }
         ImGui::PopItemWidth();
         ImGui::NextColumn();
 
@@ -64,10 +166,16 @@ namespace Lumos
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
 
-        std::string id = "##" + name;
-        if(ImGui::SliderFloat2(id.c_str(), Maths::ValuePointer(value), min, max))
-            updated = true;
-
+        if((int)flags & (int)PropertyFlag::ReadOnly)
+        {
+            ImGui::Text("%.2f , %.2f", value.x, value.y);
+        }
+        else
+        {
+            std::string id = "##" + name;
+            if(ImGui::DragFloat2(id.c_str(), Maths::ValuePointer(value)))
+                updated = true;
+        }
         ImGui::PopItemWidth();
         ImGui::NextColumn();
 
@@ -89,16 +197,23 @@ namespace Lumos
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
 
-        std::string id = "##" + name;
-        if((int)flags & (int)PropertyFlag::ColourProperty)
+        if((int)flags & (int)PropertyFlag::ReadOnly)
         {
-            if(ImGui::ColorEdit3(id.c_str(), Maths::ValuePointer(value), ImGuiColorEditFlags_NoInputs))
-                updated = true;
+            ImGui::Text("%.2f , %.2f, %.2f", value.x, value.y, value.z);
         }
         else
         {
-            if(ImGui::SliderFloat3(id.c_str(), Maths::ValuePointer(value), min, max))
-                updated = true;
+            std::string id = "##" + name;
+            if((int)flags & (int)PropertyFlag::ColourProperty)
+            {
+                if(ImGui::ColorEdit3(id.c_str(), Maths::ValuePointer(value), ImGuiColorEditFlags_NoInputs))
+                    updated = true;
+            }
+            else
+            {
+                if(ImGui::DragFloat3(id.c_str(), Maths::ValuePointer(value)))
+                    updated = true;
+            }
         }
 
         ImGui::PopItemWidth();
@@ -122,16 +237,48 @@ namespace Lumos
         ImGui::TextUnformatted(name.c_str());
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
-
-        std::string id = "##" + name;
-        if((int)flags & (int)PropertyFlag::ColourProperty)
+        if((int)flags & (int)PropertyFlag::ReadOnly)
         {
-            if(ImGui::ColorEdit4(id.c_str(), Maths::ValuePointer(value), ImGuiColorEditFlags_NoInputs))
+            ImGui::Text("%.2f , %.2f, %.2f , %.2f", value.x, value.y, value.z, value.w);
+        }
+        else
+        {
+
+            std::string id = "##" + name;
+            if((int)flags & (int)PropertyFlag::ColourProperty)
+            {
+                if(ImGui::ColorEdit4(id.c_str(), Maths::ValuePointer(value), ImGuiColorEditFlags_NoInputs))
+                    updated = true;
+            }
+            else if((exposeW ? ImGui::DragFloat4(id.c_str(), Maths::ValuePointer(value)) : ImGui::DragFloat4(id.c_str(), Maths::ValuePointer(value))))
                 updated = true;
         }
-        else if((exposeW ? ImGui::SliderFloat4(id.c_str(), Maths::ValuePointer(value), min, max) : ImGui::SliderFloat3(id.c_str(), Maths::ValuePointer(value), min, max)))
-            updated = true;
+        ImGui::PopItemWidth();
+        ImGui::NextColumn();
 
+        return updated;
+    }
+
+    bool ImGuiHelpers::Property(const std::string& name, Maths::Quaternion& value, ImGuiHelpers::PropertyFlag flags)
+    {
+        LUMOS_PROFILE_FUNCTION();
+        bool updated = false;
+
+        ImGui::AlignTextToFramePadding();
+        ImGui::TextUnformatted(name.c_str());
+        ImGui::NextColumn();
+        ImGui::PushItemWidth(-1);
+        if((int)flags & (int)PropertyFlag::ReadOnly)
+        {
+            ImGui::Text("%.2f , %.2f, %.2f , %.2f", value.x, value.y, value.z, value.w);
+        }
+        else
+        {
+
+            std::string id = "##" + name;
+            if(ImGui::DragFloat4(id.c_str(), Maths::ValuePointer(value)))
+                updated = true;
+        }
         ImGui::PopItemWidth();
         ImGui::NextColumn();
 
@@ -298,7 +445,7 @@ namespace Lumos
         auto& style = ImGui::GetStyle();
         ImVec4* colours = style.Colors;
         SelectedColour = Maths::Vector4(0.28f, 0.56f, 0.9f, 1.0f);
-        
+
         if(theme == Black)
         {
             ImGui::StyleColorsDark();
@@ -359,7 +506,7 @@ namespace Lumos
             ImVec4 Titlebar = ImVec4(40.0f / max, 42.0f / max, 54.0f / max, 1.0f);
             ImVec4 TabActive = ImVec4(52.0f / max, 54.0f / max, 64.0f / max, 1.0f);
             ImVec4 TabUnactive = ImVec4(35.0f / max, 43.0f / max, 59.0f / max, 1.0f);
-            
+
             SelectedColour = ImVec4(155.0f / 255.0f, 130.0f / 255.0f, 207.0f / 255.0f, 1.00f);
             colours[ImGuiCol_Text] = ImVec4(200.0f / 255.0f, 200.0f / 255.0f, 200.0f / 255.0f, 1.00f);
             colours[ImGuiCol_TextDisabled] = ImVec4(0.36f, 0.42f, 0.47f, 1.00f);
@@ -492,7 +639,7 @@ namespace Lumos
             colours[ImGuiCol_Text] = ImVec4(0.00f, 0.00f, 0.00f, 1.00f);
             colours[ImGuiCol_TextDisabled] = ImVec4(0.60f, 0.60f, 0.60f, 1.00f);
             IconColour = colours[ImGuiCol_Text];
-            
+
             colours[ImGuiCol_WindowBg] = ImVec4(0.94f, 0.94f, 0.94f, 0.94f);
             colours[ImGuiCol_PopupBg] = ImVec4(1.00f, 1.00f, 1.00f, 0.94f);
             colours[ImGuiCol_Border] = ImVec4(0.00f, 0.00f, 0.00f, 0.39f);
@@ -525,7 +672,6 @@ namespace Lumos
             colours[ImGuiCol_PlotHistogram] = ImVec4(0.90f, 0.70f, 0.00f, 1.00f);
             colours[ImGuiCol_PlotHistogramHovered] = ImVec4(1.00f, 0.60f, 0.00f, 1.00f);
             colours[ImGuiCol_TextSelectedBg] = ImVec4(0.26f, 0.59f, 0.98f, 0.35f);
-
         }
         else if(theme == Cherry)
         {
@@ -675,11 +821,11 @@ namespace Lumos
         else if(theme == Dracula)
         {
             ImGui::StyleColorsDark();
-            
+
             ImVec4 Titlebar = ImVec4(36.0f / max, 38.0f / max, 48.0f / max, 1.0f);
             ImVec4 TabActive = ImVec4(40.0f / max, 42.0f / max, 54.0f / max, 1.0f);
             ImVec4 TabUnactive = ImVec4(35.0f / max, 43.0f / max, 59.0f / max, 1.0f);
-            
+
             IconColour = ImVec4(183.0f / 255.0f, 158.0f / 255.0f, 220.0f / 255.0f, 1.00f);
             SelectedColour = ImVec4(145.0f / 255.0f, 111.0f / 255.0f, 186.0f / 255.0f, 1.00f);
             colours[ImGuiCol_Text] = ImVec4(159.0f / 255.0f, 159.0f / 255.0f, 163.0f / 255.0f, 1.00f);
@@ -778,6 +924,63 @@ namespace Lumos
     {
         return IconColour;
     }
+
+    bool ImGuiHelpers::PropertyDropdown(const char* label, std::string* options, int32_t optionCount, int32_t* selected)
+    {
+        const char* current = options[*selected].c_str();
+        ImGui::TextUnformatted(label);
+        ImGui::NextColumn();
+        ImGui::PushItemWidth(-1);
+
+        auto drawItemActivityOutline = [](float rounding = 0.0f, bool drawWhenInactive = false)
+        {
+            auto* drawList = ImGui::GetWindowDrawList();
+            if(ImGui::IsItemHovered() && !ImGui::IsItemActive())
+            {
+                drawList->AddRect(ImGui::GetItemRectMin(), ImGui::GetItemRectMax(),
+                    ImColor(60, 60, 60), rounding, 0, 1.5f);
+            }
+            if(ImGui::IsItemActive())
+            {
+                drawList->AddRect(ImGui::GetItemRectMin(), ImGui::GetItemRectMax(),
+                    ImColor(80, 80, 80), rounding, 0, 1.0f);
+            }
+            else if(!ImGui::IsItemHovered() && drawWhenInactive)
+            {
+                drawList->AddRect(ImGui::GetItemRectMin(), ImGui::GetItemRectMax(),
+                    ImColor(50, 50, 50), rounding, 0, 1.0f);
+            }
+        };
+
+        bool changed = false;
+
+        const std::string id = "##" + std::string(label);
+
+        if(ImGui::BeginCombo(id.c_str(), current))
+        {
+            for(int i = 0; i < optionCount; i++)
+            {
+                const bool is_selected = (current == options[i]);
+                if(ImGui::Selectable(options[i].c_str(), is_selected))
+                {
+                    current = options[i].c_str();
+                    *selected = i;
+                    changed = true;
+                }
+                if(is_selected)
+                    ImGui::SetItemDefaultFocus();
+            }
+            ImGui::EndCombo();
+        }
+
+        drawItemActivityOutline(2.5f);
+
+        ImGui::PopItemWidth();
+        ImGui::NextColumn();
+
+        return changed;
+    }
+
 }
 
 namespace ImGui

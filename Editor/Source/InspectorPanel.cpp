@@ -5,6 +5,7 @@
 #include <Lumos/Audio/AudioManager.h>
 #include <Lumos/Core/Application.h>
 #include <Lumos/Core/OS/FileSystem.h>
+#include <Lumos/Scene/EntityManager.h>
 #include <Lumos/Scene/SceneManager.h>
 #include <Lumos/Scene/Component/Components.h>
 #include <Lumos/Scene/Component/ModelComponent.h>
@@ -368,6 +369,54 @@ end
     }
 
     template <>
+    void ComponentEditorWidget<Lumos::AxisConstraintComponent>(entt::registry& reg, entt::registry::entity_type e)
+    {
+        using namespace Lumos;
+        LUMOS_PROFILE_FUNCTION();
+        ImGuiHelpers::ScopedStyle(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
+
+        ImGui::Columns(2);
+        ImGui::Separator();
+        AxisConstraintComponent& axisConstraintComponent = reg.get<Lumos::AxisConstraintComponent>(e);
+
+        uint64_t entityID = axisConstraintComponent.GetEntityID();
+        Axes axes = axisConstraintComponent.GetAxes();
+        Entity entity = Application::Get().GetCurrentScene()->GetEntityManager()->GetEntityByUUID(entityID);
+
+        bool hasName = entity ? entity.HasComponent<NameComponent>() : false;
+        std::string name;
+        if(hasName)
+            name = entity.GetComponent<NameComponent>().name;
+        else
+            name = "Empty";
+        ImGui::Text("Entity  %s", name.c_str());
+
+        std::vector<std::string> entities;
+        uint64_t currentEntityID = axisConstraintComponent.GetEntityID();
+        int index = 0;
+        int selectedIndex = 0;
+
+        auto physics3dEntities = Application::Get().GetCurrentScene()->GetEntityManager()->GetRegistry().view<Lumos::Physics3DComponent>();
+
+        for(auto entity : physics3dEntities)
+        {
+            if(Entity(entity, Application::Get().GetCurrentScene()).GetID() == currentEntityID)
+                selectedIndex = index;
+
+            entities.push_back(Entity(entity, Application::Get().GetCurrentScene()).GetName());
+
+            index++;
+        }
+
+        bool updated = Lumos::ImGuiHelpers::PropertyDropdown("Entity", entities.data(), (int)entities.size(), &selectedIndex);
+
+        if(updated)
+            axisConstraintComponent.SetEntity(Entity(physics3dEntities[selectedIndex], Application::Get().GetCurrentScene()).GetID());
+
+        ImGui::Columns(1);
+    }
+
+    template <>
     void ComponentEditorWidget<Lumos::Physics3DComponent>(entt::registry& reg, entt::registry::entity_type e)
     {
         LUMOS_PROFILE_FUNCTION();
@@ -390,151 +439,61 @@ end
 
         auto collisionShape = phys.GetRigidBody()->GetCollisionShape();
 
-        ImGui::AlignTextToFramePadding();
-        ImGui::TextUnformatted("Position");
-        ImGui::NextColumn();
-        ImGui::PushItemWidth(-1);
-        if(ImGui::DragFloat3("##Position", Lumos::Maths::ValuePointer(pos), 1.0f, 0.0f, 0.0f, "%.2f"))
+        if(Lumos::ImGuiHelpers::Property("Position", pos))
             phys.GetRigidBody()->SetPosition(pos);
 
-        ImGui::PopItemWidth();
-        ImGui::NextColumn();
-
-        ImGui::AlignTextToFramePadding();
-        ImGui::TextUnformatted("Velocity");
-        ImGui::NextColumn();
-        ImGui::PushItemWidth(-1);
-        if(ImGui::DragFloat3("##Velocity", Lumos::Maths::ValuePointer(velocity), 1.0f, 0.0f, 0.0f, "%.2f"))
+        if(Lumos::ImGuiHelpers::Property("Velocity", velocity))
             phys.GetRigidBody()->SetLinearVelocity(velocity);
 
-        ImGui::PopItemWidth();
-        ImGui::NextColumn();
-
-        ImGui::AlignTextToFramePadding();
-        ImGui::TextUnformatted("Torque");
-        ImGui::NextColumn();
-        ImGui::PushItemWidth(-1);
-        if(ImGui::DragFloat3("##Torque", Lumos::Maths::ValuePointer(torque), 1.0f, 0.0f, 0.0f, "%.2f"))
+        if(Lumos::ImGuiHelpers::Property("Torque", torque))
             phys.GetRigidBody()->SetTorque(torque);
 
-        ImGui::PopItemWidth();
-        ImGui::NextColumn();
-
-        ImGui::AlignTextToFramePadding();
-        ImGui::TextUnformatted("Orientation");
-        ImGui::NextColumn();
-        ImGui::PushItemWidth(-1);
-        if(ImGui::DragFloat3("##Orientation", Lumos::Maths::ValuePointer(orientation), 1.0f, 0.0f, 0.0f, "%.2f"))
+        if(Lumos::ImGuiHelpers::Property("Orientation", orientation))
             phys.GetRigidBody()->SetOrientation(Lumos::Maths::Quaternion(orientation));
 
-        ImGui::PopItemWidth();
-        ImGui::NextColumn();
-
-        ImGui::AlignTextToFramePadding();
-        ImGui::TextUnformatted("Force");
-        ImGui::NextColumn();
-        ImGui::PushItemWidth(-1);
-        if(ImGui::DragFloat3("##Force", Lumos::Maths::ValuePointer(force), 1.0f, 0.0f, 0.0f, "%.2f"))
+        if(Lumos::ImGuiHelpers::Property("Force", force))
             phys.GetRigidBody()->SetForce(force);
 
-        ImGui::PopItemWidth();
-        ImGui::NextColumn();
-
-        ImGui::AlignTextToFramePadding();
-        ImGui::TextUnformatted("Angular Velocity");
-        ImGui::NextColumn();
-        ImGui::PushItemWidth(-1);
-        if(ImGui::DragFloat3("##Angular Velocity", Lumos::Maths::ValuePointer(angularVelocity), 1.0f, 0.0f, 0.0f, "%.2f"))
+        if(Lumos::ImGuiHelpers::Property("Angular Velocity", angularVelocity))
             phys.GetRigidBody()->SetAngularVelocity(angularVelocity);
 
-        ImGui::PopItemWidth();
-        ImGui::NextColumn();
-
-        ImGui::AlignTextToFramePadding();
-        ImGui::TextUnformatted("Friction");
-        ImGui::NextColumn();
-        ImGui::PushItemWidth(-1);
-        if(ImGui::DragFloat("##Friction", &friction, 1.0f, 0.0f, 0.0f, "%.2f"))
+        if(Lumos::ImGuiHelpers::Property("Friction", friction))
             phys.GetRigidBody()->SetFriction(friction);
 
-        ImGui::PopItemWidth();
-        ImGui::NextColumn();
-
-        ImGui::AlignTextToFramePadding();
-        ImGui::TextUnformatted("Mass");
-        ImGui::NextColumn();
-        ImGui::PushItemWidth(-1);
-        if(ImGui::DragFloat("##Mass", &mass, 1.0f, 0.0f, 0.0f, "%.2f"))
+        if(Lumos::ImGuiHelpers::Property("Mass", mass))
             phys.GetRigidBody()->SetInverseMass(1.0f / mass);
 
-        ImGui::PopItemWidth();
-        ImGui::NextColumn();
-
-        ImGui::AlignTextToFramePadding();
-        ImGui::TextUnformatted("Elasticity");
-        ImGui::NextColumn();
-        ImGui::PushItemWidth(-1);
-        if(ImGui::DragFloat("##Elasticity", &elasticity, 1.0f, 0.0f, 0.0f, "%.2f"))
+        if(Lumos::ImGuiHelpers::Property("Elasticity", elasticity))
             phys.GetRigidBody()->SetElasticity(elasticity);
 
-        ImGui::PopItemWidth();
-        ImGui::NextColumn();
-
-        ImGui::AlignTextToFramePadding();
-        ImGui::TextUnformatted("Static");
-        ImGui::NextColumn();
-        ImGui::PushItemWidth(-1);
-        if(ImGui::Checkbox("##Static", &isStatic))
+        if(Lumos::ImGuiHelpers::Property("Static", isStatic))
             phys.GetRigidBody()->SetIsStatic(isStatic);
 
-        ImGui::PopItemWidth();
-        ImGui::NextColumn();
-
-        ImGui::AlignTextToFramePadding();
-        ImGui::TextUnformatted("At Rest");
-        ImGui::NextColumn();
-        ImGui::PushItemWidth(-1);
-        if(ImGui::Checkbox("##At Rest", &isRest))
+        if(Lumos::ImGuiHelpers::Property("At Rest", isRest))
             phys.GetRigidBody()->SetIsAtRest(isRest);
-
-        ImGui::PopItemWidth();
-        ImGui::NextColumn();
 
         ImGui::Columns(1);
         ImGui::Separator();
         ImGui::PopStyleVar();
 
-        ImGui::Separator();
-        ImGui::TextUnformatted("Collision Shape");
-
-        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
-        ImGui::Columns(2);
-        ImGui::Separator();
-
-        ImGui::AlignTextToFramePadding();
-        ImGui::TextUnformatted("Shape Type");
-        ImGui::NextColumn();
-        ImGui::PushItemWidth(-1);
-
-        const char* shapes[] = { "Sphere", "Cuboid", "Pyramid", "Capsule", "Hull" };
+        std::vector<std::string> shapes = { "Sphere", "Cuboid", "Pyramid", "Capsule", "Hull" };
+        int selectedIndex = 0;
         std::string shape_current = collisionShape ? CollisionShapeTypeToString(collisionShape->GetType()) : "";
-        if(ImGui::BeginCombo("", shape_current.c_str(), 0)) // The second parameter is the label previewed before opening the combo.
+        int index = 0;
+        for(auto& shape : shapes)
         {
-            for(int n = 0; n < 5; n++)
+            if(shape == shape_current)
             {
-                bool is_selected = (shape_current.c_str() == shapes[n]);
-                if(ImGui::Selectable(shapes[n], shape_current.c_str()))
-                {
-                    phys.GetRigidBody()->SetCollisionShape(StringToCollisionShapeType(shapes[n]));
-                }
-                if(is_selected)
-                    ImGui::SetItemDefaultFocus();
+                selectedIndex = index;
+                break;
             }
-            ImGui::EndCombo();
+            index++;
         }
 
-        ImGui::PopItemWidth();
-        ImGui::NextColumn();
+        bool updated = Lumos::ImGuiHelpers::PropertyDropdown("Collision Shape", shapes.data(), 5, &selectedIndex);
+
+        if(updated)
+            phys.GetRigidBody()->SetCollisionShape(StringToCollisionShapeType(shapes[selectedIndex]));
 
         if(collisionShape)
         {
@@ -572,7 +531,6 @@ end
         ImGui::Columns(1);
 
         ImGui::Separator();
-        ImGui::PopStyleVar();
     }
 
     template <>
@@ -704,96 +662,47 @@ end
         ImGui::Columns(2);
         ImGui::Separator();
 
-        ImGui::AlignTextToFramePadding();
-        ImGui::TextUnformatted("Position");
-        ImGui::NextColumn();
-        ImGui::PushItemWidth(-1);
-        if(ImGui::InputFloat3("##Position", Lumos::Maths::ValuePointer(pos)))
+        if(Lumos::ImGuiHelpers::Property("Position", pos))
         {
             soundNode->SetPosition(pos);
             updated = true;
         }
 
-        ImGui::PopItemWidth();
-        ImGui::NextColumn();
-
-        ImGui::AlignTextToFramePadding();
-        ImGui::TextUnformatted("Radius");
-        ImGui::NextColumn();
-        ImGui::PushItemWidth(-1);
-        if(ImGui::InputFloat("##Radius", &radius))
+        if(Lumos::ImGuiHelpers::Property("Radius", radius))
         {
             soundNode->SetRadius(radius);
             updated = true;
         }
 
-        ImGui::PopItemWidth();
-        ImGui::NextColumn();
-
-        ImGui::AlignTextToFramePadding();
-        ImGui::TextUnformatted("Pitch");
-        ImGui::NextColumn();
-        ImGui::PushItemWidth(-1);
-        if(ImGui::InputFloat("##Pitch", &pitch))
+        if(Lumos::ImGuiHelpers::Property("Pitch", pitch))
         {
             soundNode->SetPitch(pitch);
             updated = true;
         }
 
-        ImGui::PopItemWidth();
-        ImGui::NextColumn();
-
-        ImGui::AlignTextToFramePadding();
-        ImGui::TextUnformatted("Volume");
-        ImGui::NextColumn();
-        ImGui::PushItemWidth(-1);
-        if(ImGui::InputFloat("##Volume", &volume))
+        if(Lumos::ImGuiHelpers::Property("Volume", volume))
         {
             soundNode->SetVolume(volume);
             updated = true;
         }
 
-        ImGui::PopItemWidth();
-        ImGui::NextColumn();
-
-        ImGui::AlignTextToFramePadding();
-        ImGui::TextUnformatted("Reference Distance");
-        ImGui::NextColumn();
-        ImGui::PushItemWidth(-1);
-        if(ImGui::DragFloat("##Reference Distance", &referenceDistance))
+        if(Lumos::ImGuiHelpers::Property("Reference Distance", referenceDistance))
         {
             soundNode->SetReferenceDistance(referenceDistance);
             updated = true;
         }
 
-        ImGui::PopItemWidth();
-        ImGui::NextColumn();
-
-        ImGui::AlignTextToFramePadding();
-        ImGui::TextUnformatted("Roll Off Factor");
-        ImGui::NextColumn();
-        ImGui::PushItemWidth(-1);
-        if(ImGui::DragFloat("##RollOffFactor", &rollOffFactor))
+        if(Lumos::ImGuiHelpers::Property("RollOffFactor", rollOffFactor))
         {
-            soundNode->SetRollOffFactor(rollOffFactor);
+            soundNode->SetRollOffFactor(paused);
             updated = true;
         }
 
-        ImGui::PopItemWidth();
-        ImGui::NextColumn();
-
-        ImGui::AlignTextToFramePadding();
-        ImGui::TextUnformatted("Paused");
-        ImGui::NextColumn();
-        ImGui::PushItemWidth(-1);
-        if(ImGui::Checkbox("##Paused", &paused))
+        if(Lumos::ImGuiHelpers::Property("Paused", paused))
         {
             soundNode->SetPaused(paused);
             updated = true;
         }
-
-        ImGui::PopItemWidth();
-        ImGui::NextColumn();
 
         ImGui::Separator();
         auto soundPointer = soundNode->GetSound();
@@ -801,11 +710,8 @@ end
         std::string path = "Empty Path";
         if(soundPointer)
             path = soundPointer->GetFilePath();
-        ImGui::AlignTextToFramePadding();
-        ImGui::TextUnformatted("File Path");
-        ImGui::NextColumn();
-        ImGui::PushItemWidth(-1);
-        ImGui::TextUnformatted(path.c_str());
+
+        Lumos::ImGuiHelpers::Property("File Path", path);
 
         const ImGuiPayload* payload = ImGui::GetDragDropPayload();
 
@@ -833,61 +739,21 @@ end
 
         if(soundPointer)
         {
-            ImGui::NextColumn();
-
             int bitrate = soundPointer->GetBitRate();
             float frequency = soundPointer->GetFrequency();
             int size = soundPointer->GetSize();
             double length = soundPointer->GetLength();
             int channels = soundPointer->GetChannels();
 
-            ImGui::AlignTextToFramePadding();
-            ImGui::TextUnformatted("Bit Rate");
-            ImGui::NextColumn();
-            ImGui::PushItemWidth(-1);
-            ImGui::Text("%i", bitrate);
-            ImGui::PopItemWidth();
-            ImGui::NextColumn();
-
-            ImGui::AlignTextToFramePadding();
-            ImGui::TextUnformatted("Frequency");
-            ImGui::NextColumn();
-            ImGui::PushItemWidth(-1);
-            ImGui::Text("%.2f", frequency);
-
-            ImGui::PopItemWidth();
-            ImGui::NextColumn();
-
-            ImGui::AlignTextToFramePadding();
-            ImGui::TextUnformatted("Size");
-            ImGui::NextColumn();
-            ImGui::PushItemWidth(-1);
-            ImGui::Text("%i", size);
-            ImGui::PopItemWidth();
-            ImGui::NextColumn();
-
-            ImGui::AlignTextToFramePadding();
-            ImGui::TextUnformatted("Length");
-            ImGui::NextColumn();
-            ImGui::PushItemWidth(-1);
-            ImGui::Text("%.2lf", length);
-            ImGui::PopItemWidth();
-            ImGui::NextColumn();
-
-            ImGui::AlignTextToFramePadding();
-            ImGui::TextUnformatted("Channels");
-            ImGui::NextColumn();
-            ImGui::PushItemWidth(-1);
-            ImGui::Text("%i", channels);
-            ImGui::PopItemWidth();
-            ImGui::NextColumn();
+            Lumos::ImGuiHelpers::Property("Bit Rate", bitrate, Lumos::ImGuiHelpers::PropertyFlag::ReadOnly);
+            Lumos::ImGuiHelpers::Property("Frequency", frequency, 0.0f, 0.0f, Lumos::ImGuiHelpers::PropertyFlag::ReadOnly);
+            Lumos::ImGuiHelpers::Property("Size", size, Lumos::ImGuiHelpers::PropertyFlag::ReadOnly);
+            Lumos::ImGuiHelpers::Property("Length", length, 0.0, 0.0, Lumos::ImGuiHelpers::PropertyFlag::ReadOnly);
+            Lumos::ImGuiHelpers::Property("Channels", channels, Lumos::ImGuiHelpers::PropertyFlag::ReadOnly);
 
             if(updated)
                 soundNode->SetSound(soundPointer);
         }
-
-        ImGui::PopItemWidth();
-        ImGui::NextColumn();
 
         ImGui::Columns(1);
         ImGui::Separator();
@@ -900,7 +766,7 @@ end
         LUMOS_PROFILE_FUNCTION();
         auto& camera = reg.get<Lumos::Camera>(e);
 
-        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
+        Lumos::ImGuiHelpers::ScopedStyle(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
         ImGui::Columns(2);
         ImGui::Separator();
 
@@ -922,12 +788,6 @@ end
         if(ImGuiHelpers::Property("Far", far, 10.0f, 10000.0f))
             camera.SetFar(far);
 
-        //        float zoom = camera.GetZoom();
-        //        ImGuiHelpers::Property("Zoom", m_Zoom, 0.0f, 100.0f);
-        //
-        //        float offset = camera.GetOffset();
-        //        ImGuiHelpers::Property("Offset", m_ProjectionOffset, 0.0f, 10.0f);
-
         float scale = camera.GetScale();
         if(ImGuiHelpers::Property("Scale", scale, 0.0f, 1000.0f))
             camera.SetScale(scale);
@@ -938,7 +798,6 @@ end
 
         ImGui::Columns(1);
         ImGui::Separator();
-        ImGui::PopStyleVar();
     }
 
     template <>
@@ -1758,22 +1617,22 @@ end
                 TextureWidget("Emissive", material.get(), textures.emissive.get(), flipImage, prop->usingEmissiveMap, prop->emissiveColour, std::bind(&Graphics::Material::SetEmissiveTexture, material, std::placeholders::_1), ImVec2(64, 64) * Application::Get().GetWindowDPI());
 
                 ImGui::Columns(2);
-                
+
                 ImGui::AlignTextToFramePadding();
                 ImGui::TextUnformatted("WorkFlow");
                 ImGui::NextColumn();
                 ImGui::PushItemWidth(-1);
-                
+
                 int workFlow = material->GetProperties()->workflow;
 
-                if(ImGui::DragInt("##WorkFlow", &workFlow, 0.3f , 0 , 2))
+                if(ImGui::DragInt("##WorkFlow", &workFlow, 0.3f, 0, 2))
                 {
                     material->GetProperties()->workflow = workFlow;
                 }
 
                 ImGui::PopItemWidth();
                 ImGui::NextColumn();
-                
+
                 material->SetMaterialProperites(*prop);
                 ImGui::Columns(1);
                 ImGui::TreePop();
@@ -2010,6 +1869,7 @@ namespace Lumos
         TRIVIAL_COMPONENT(Graphics::Model, "Model");
         TRIVIAL_COMPONENT(Graphics::ModelComponent, "Model");
         TRIVIAL_COMPONENT(Camera, "Camera");
+        TRIVIAL_COMPONENT(AxisConstraintComponent, "AxisConstraint");
         TRIVIAL_COMPONENT(Physics3DComponent, "Physics3D");
         TRIVIAL_COMPONENT(Physics2DComponent, "Physics2D");
         TRIVIAL_COMPONENT(SoundComponent, "Sound");
@@ -2099,10 +1959,10 @@ namespace Lumos
 
             if(m_DebugMode)
             {
-				auto idComponent = registry.try_get<IDComponent>(selected);
-				
-				ImGui::Text("UUID : %" PRIu64, idComponent->ID);
-				
+                auto idComponent = registry.try_get<IDComponent>(selected);
+
+                ImGui::Text("UUID : %" PRIu64, (uint64_t)idComponent->ID);
+
                 auto hierarchyComp = registry.try_get<Hierarchy>(selected);
 
                 if(hierarchyComp)

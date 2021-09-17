@@ -114,7 +114,7 @@ namespace Lumos
 
             static IDType keysToDelete[256];
             std::size_t keysToDeleteCount = 0;
-            
+
             for(auto&& [key, value] : m_NameResourceMap)
             {
                 if(value.data.GetCounter()->GetReferenceCount() == 1 && m_ExpirationTime < (elapsedSeconds - itr->second.lastAccessed))
