@@ -784,6 +784,7 @@ namespace Lumos::Graphics
 
         ImGui::TextUnformatted("Shadow Renderer");
 #if FIX_IMGUI_TEXTURE_ARRAY
+        // TODO: Move To imgui helpers and use VKTextureArray to get the right view
         // Now pass texture pointer to imgui for vulkan so this handle array causes a crash
         if(ImGui::TreeNode("Texture"))
         {

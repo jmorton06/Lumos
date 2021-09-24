@@ -95,6 +95,7 @@ namespace Lumos
             "SetLocalOrientation", &Maths::Transform::SetLocalOrientation,
             "GetWorldPosition", &Maths::Transform::GetWorldPosition,
             "GetWorldOrientation", &Maths::Transform::GetWorldOrientation,
-            "GetForwardDirection", &Maths::Transform::GetForwardDirection);
+            "GetForwardDirection", &Maths::Transform::GetForwardDirection,
+            "GetRightDirection", &Maths::Transform::GetRightDirection);
     }
 }

@@ -23,14 +23,16 @@ namespace Lumos
         template <typename Archive>
         void save(Archive& archive) const
         {
-            archive(m_EntityID, m_Axes);
+            archive(m_EntityID, (int)m_Axes);
         }
 
         template <typename Archive>
         void load(Archive& archive)
         {
-            archive(m_EntityID, m_Axes);
+            int axisInt;
+            archive(m_EntityID, axisInt);
             m_Initialised = false;
+            m_Axes = (Axes)axisInt;
         }
 
         Axes GetAxes() { return m_Axes; }
@@ -100,6 +102,8 @@ namespace Lumos
     {
     public:
         Physics3DComponent();
+        Physics3DComponent(const Physics3DComponent& other);
+
         explicit Physics3DComponent(SharedPtr<RigidBody3D>& physics);
 
         ~Physics3DComponent() = default;

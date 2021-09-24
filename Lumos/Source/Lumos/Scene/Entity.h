@@ -17,10 +17,20 @@ namespace Lumos
     {
         UUID ID;
 
-        template <class Archive>
-        void serialize(Archive& archive)
+        template <typename Archive>
+        void save(Archive& archive) const
         {
-            archive((uint64_t)ID);
+            uint64_t uuid = (uint64_t)ID;
+            archive(uuid);
+        }
+
+        template <typename Archive>
+        void load(Archive& archive)
+        {
+            uint64_t uuid;
+            archive(uuid);
+            
+            ID =  UUID(uuid);
         }
     };
 
@@ -82,7 +92,14 @@ namespace Lumos
         template <typename T>
         void RemoveComponent()
         {
-            return m_Scene->GetRegistry().remove<T>(m_EntityHandle);
+            m_Scene->GetRegistry().remove<T>(m_EntityHandle);
+        }
+        
+        template <typename T>
+        void TryRemoveComponent()
+        {
+            if(HasComponent<T>())
+                RemoveComponent<T>();
         }
 
         bool Active()
@@ -118,7 +135,14 @@ namespace Lumos
         const std::string& GetName()
         {
             auto nameComponent = TryGetComponent<NameComponent>();
-            return nameComponent ? nameComponent->name : StringUtilities::ToString(entt::to_integral(m_EntityHandle));
+			
+			if(nameComponent)
+				return nameComponent->name;
+			else
+			{
+				static std::string tempName = "Entity";
+				return tempName;
+			}
         }
 
         void SetParent(Entity entity)
@@ -172,6 +196,15 @@ namespace Lumos
             }
 
             return children;
+        }
+        
+        void ClearChildren()
+        {
+            auto hierarchyComponent = TryGetComponent<Hierarchy>();
+            if(hierarchyComponent)
+            {
+                hierarchyComponent->m_First = entt::null;
+            }
         }
 
         bool IsParent(Entity potentialParent)

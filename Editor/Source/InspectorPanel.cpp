@@ -389,7 +389,10 @@ end
             name = entity.GetComponent<NameComponent>().name;
         else
             name = "Empty";
-        ImGui::Text("Entity  %s", name.c_str());
+        ImGui::TextUnformatted("Entity");
+        ImGui::NextColumn();
+        ImGui::Text("%s", name.c_str());
+        ImGui::NextColumn();
 
         std::vector<std::string> entities;
         uint64_t currentEntityID = axisConstraintComponent.GetEntityID();
@@ -406,12 +409,20 @@ end
             entities.push_back(Entity(entity, Application::Get().GetCurrentScene()).GetName());
 
             index++;
-        }
+		}
+		
+		static std::string possibleAxes[7] = { "X", "Y", "Z", "XY", "XZ", "YZ", "XYZ"} ;
+		
+        selectedIndex = (int)axes;
+		
+		bool updated = Lumos::ImGuiHelpers::PropertyDropdown("Axes", possibleAxes, 7, &selectedIndex);
+		if(updated)
+			axisConstraintComponent.SetAxes((Axes)selectedIndex);
 
-        bool updated = Lumos::ImGuiHelpers::PropertyDropdown("Entity", entities.data(), (int)entities.size(), &selectedIndex);
+        //bool updated = Lumos::ImGuiHelpers::PropertyDropdown("Entity", entities.data(), (int)entities.size(), &selectedIndex);
 
-        if(updated)
-            axisConstraintComponent.SetEntity(Entity(physics3dEntities[selectedIndex], Application::Get().GetCurrentScene()).GetID());
+        //if(updated)
+            //axisConstraintComponent.SetEntity(Entity(physics3dEntities[selectedIndex], Application::Get().GetCurrentScene()).GetID());
 
         ImGui::Columns(1);
     }

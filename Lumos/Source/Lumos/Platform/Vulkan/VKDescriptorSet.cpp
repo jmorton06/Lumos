@@ -78,6 +78,9 @@ namespace Lumos
 
         void TransitionImageToCorrectLayout(Texture* texture)
         {
+            if(!texture)
+                return;
+            
             auto commandBuffer = Renderer::GetMainSwapChain()->GetCurrentCommandBuffer();
             if(texture->GetType() == TextureType::COLOUR)
             {
