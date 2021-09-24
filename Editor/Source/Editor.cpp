@@ -951,28 +951,29 @@ namespace Lumos
                     if(static_cast<ImGuizmo::OPERATION>(m_ImGuizmoOperation) == ImGuizmo::OPERATION::SCALE)
                     {
                         model = model.Transpose();
-                        auto mat = Maths::Matrix4(delta).Transpose();
-                        transform->SetLocalScale(model.Scale() + transform->GetParentMatrix().Scale() - Maths::Vector3(1.0f, 1.0f, 1.0f));
+                        model = transform->GetParentMatrix().Inverse() * model;
+                        transform->SetLocalScale(model.Scale());
                     }
                     else
                     {
-                        auto mat = Maths::Matrix4(delta).Transpose() * transform->GetLocalMatrix();
-                        transform->SetLocalTransform(mat);
+                        model = model.Transpose();
+                        model = transform->GetParentMatrix().Inverse() * model;
+                        transform->SetLocalTransform(model);
 
                         auto physics2DComponent = registry.try_get<Physics2DComponent>(m_SelectedEntity);
 
                         if(physics2DComponent)
                         {
                             physics2DComponent->GetRigidBody()->SetPosition(
-                                { mat.Translation().x, mat.Translation().y });
+                                { model.Translation().x, model.Translation().y });
                         }
                         else
                         {
                             auto physics3DComponent = registry.try_get<Physics3DComponent>(m_SelectedEntity);
                             if(physics3DComponent)
                             {
-                                physics3DComponent->GetRigidBody()->SetPosition(mat.Translation());
-                                physics3DComponent->GetRigidBody()->SetOrientation(mat.Rotation());
+                                physics3DComponent->GetRigidBody()->SetPosition(model.Translation());
+                                physics3DComponent->GetRigidBody()->SetOrientation(model.Rotation());
                             }
                         }
                     }
