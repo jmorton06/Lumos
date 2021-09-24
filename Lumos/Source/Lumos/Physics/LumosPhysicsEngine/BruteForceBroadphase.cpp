@@ -27,19 +27,19 @@ namespace Lumos
                 RigidBody3D* obj1 = objects[i];
                 RigidBody3D* obj2 = objects[j];
 
-                if(obj1->GetIsAtRest() && obj2->GetIsAtRest())
-                    continue;
-
-                // Skip pairs of two at static objects
-                if(obj1->GetIsStatic() && obj2->GetIsStatic())
-                    continue;
-
-                // Skip pairs of one static and one at rest
-                if(obj1->GetIsAtRest() && obj2->GetIsStatic())
-                    continue;
-
-                if(obj1->GetIsStatic() && obj2->GetIsAtRest())
-                    continue;
+//                if(obj1->GetIsAtRest() && obj2->GetIsAtRest())
+//                    continue;
+//
+//                // Skip pairs of two at static objects
+//                if(obj1->GetIsStatic() && obj2->GetIsStatic())
+//                    continue;
+//
+//                // Skip pairs of one static and one at rest
+//                if(obj1->GetIsAtRest() && obj2->GetIsStatic())
+//                    continue;
+//
+//                if(obj1->GetIsStatic() && obj2->GetIsAtRest())
+//                    continue;
 
                 // Check they both have collision shapes and at least one is awake
                 if(obj1->GetCollisionShape() && obj2->GetCollisionShape() && (obj1->IsAwake() || obj2->IsAwake()))

@@ -99,11 +99,14 @@ namespace Lumos
             {
                 LUMOS_PROFILE_SCOPE("Physics::Get Axis Constraints");
 
-                auto viewAxis = registry.view<AxisConstraintComponent>();
+                auto viewAxis = registry.view<AxisConstraintComponent, IDComponent>();
 
                 for(auto entity : viewAxis)
                 {
-                    auto& constraint = viewAxis.get<AxisConstraintComponent>(entity);
+                    const auto& [constraint, idComp] = viewAxis.get<AxisConstraintComponent, IDComponent>(entity);
+					
+					if(constraint.GetEntityID() != idComp.ID)
+						constraint.SetEntity(idComp.ID);
                     if(constraint.GetConstraint())
                         m_Constraints.push_back(constraint.GetConstraint().get());
                 }

@@ -14,7 +14,7 @@ namespace Lumos
 
     enum class Axes
     {
-        X,
+        X = 0,
         Y,
         Z,
         XY,

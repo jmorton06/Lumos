@@ -124,11 +124,13 @@ namespace Lumos
 
             SceneRenderSettings RenderSettings;
         };
+        
+#define SceneVersion 9
 
         template <typename Archive>
         void save(Archive& archive) const
         {
-            archive(cereal::make_nvp("Version", 8));
+            archive(cereal::make_nvp("Version", SceneVersion));
             archive(cereal::make_nvp("Scene Name", m_SceneName));
 
             archive(cereal::make_nvp("PhysicsEnabled2D", m_Settings.PhysicsEnabled2D), cereal::make_nvp("PhysicsEnabled3D", m_Settings.PhysicsEnabled3D), cereal::make_nvp("AudioEnabled", m_Settings.AudioEnabled), cereal::make_nvp("Renderer2DEnabled", m_Settings.RenderSettings.Renderer2DEnabled),

@@ -176,6 +176,7 @@ namespace Lumos
 #define ALL_COMPONENTSV4 ALL_COMPONENTSV3, Listener
 #define ALL_COMPONENTSV5 ALL_COMPONENTSV4, IDComponent
 #define ALL_COMPONENTSV6 ALL_COMPONENTSV5, Graphics::ModelComponent
+#define ALL_COMPONENTSV7 ALL_COMPONENTSV6, AxisConstraintComponent
 
     void Scene::Serialise(const std::string& filePath, bool binary)
     {
@@ -184,7 +185,7 @@ namespace Lumos
         std::string path = filePath;
         path += StringUtilities::RemoveSpaces(m_SceneName);
 
-        m_SceneSerialisationVersion = 8;
+        m_SceneSerialisationVersion = SceneVersion;
 
         if(binary)
         {
@@ -196,7 +197,7 @@ namespace Lumos
                 // output finishes flushing its contents when it goes out of scope
                 cereal::BinaryOutputArchive output { file };
                 output(*this);
-                entt::snapshot { m_EntityManager->GetRegistry() }.entities(output).component<ALL_COMPONENTSV6>(output);
+                entt::snapshot { m_EntityManager->GetRegistry() }.entities(output).component<ALL_COMPONENTSV7>(output);
             }
             file.close();
         }
@@ -209,7 +210,7 @@ namespace Lumos
                 // output finishes flushing its contents when it goes out of scope
                 cereal::JSONOutputArchive output { storage };
                 output(*this);
-                entt::snapshot { m_EntityManager->GetRegistry() }.entities(output).component<ALL_COMPONENTSV6>(output);
+                entt::snapshot { m_EntityManager->GetRegistry() }.entities(output).component<ALL_COMPONENTSV7>(output);
             }
             FileSystem::WriteTextFile(path, storage.str());
         }
@@ -248,9 +249,11 @@ namespace Lumos
                     entt::snapshot_loader { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV4>(input);
                 else if(m_SceneSerialisationVersion == 6)
                     entt::snapshot_loader { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV5>(input);
-                else if(m_SceneSerialisationVersion >= 7)
+                else if(m_SceneSerialisationVersion == 7)
                     entt::snapshot_loader { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV6>(input);
-
+                else if(m_SceneSerialisationVersion >= 8)
+                    entt::snapshot_loader { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV7>(input);
+                
                 if(m_SceneSerialisationVersion < 6)
                 {
                     m_EntityManager->GetRegistry().each([&](auto entity)
@@ -303,8 +306,10 @@ namespace Lumos
                     entt::snapshot_loader { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV4>(input);
                 else if(m_SceneSerialisationVersion == 6)
                     entt::snapshot_loader { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV5>(input);
-                else if(m_SceneSerialisationVersion >= 7)
+                else if(m_SceneSerialisationVersion == 7)
                     entt::snapshot_loader { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV6>(input);
+                else if(m_SceneSerialisationVersion >= 8)
+                    entt::snapshot_loader { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV7>(input);
 
                 if(m_SceneSerialisationVersion < 6)
                 {
@@ -351,6 +356,12 @@ namespace Lumos
         }
     }
 
+    template <typename ...Component>
+    static void CopyEntity(entt::entity dst, entt::entity src, entt::registry& registry)
+    {
+        (CopyComponentIfExists<Component>(dst, src, registry), ...);
+    }
+
     Entity Scene::CreateEntity()
     {
         return m_EntityManager->Create();
@@ -371,39 +382,38 @@ namespace Lumos
     void Scene::DuplicateEntity(Entity entity)
     {
         LUMOS_PROFILE_FUNCTION();
-        Entity newEntity = m_EntityManager->Create();
-
-        CopyComponentIfExists<Maths::Transform>(newEntity.GetHandle(), entity.GetHandle(), m_EntityManager->GetRegistry());
-        CopyComponentIfExists<Graphics::Model>(newEntity.GetHandle(), entity.GetHandle(), m_EntityManager->GetRegistry());
-        CopyComponentIfExists<LuaScriptComponent>(newEntity.GetHandle(), entity.GetHandle(), m_EntityManager->GetRegistry());
-        CopyComponentIfExists<Camera>(newEntity.GetHandle(), entity.GetHandle(), m_EntityManager->GetRegistry());
-        CopyComponentIfExists<Graphics::Sprite>(newEntity.GetHandle(), entity.GetHandle(), m_EntityManager->GetRegistry());
-        CopyComponentIfExists<Physics2DComponent>(newEntity.GetHandle(), entity.GetHandle(), m_EntityManager->GetRegistry());
-        CopyComponentIfExists<Physics3DComponent>(newEntity.GetHandle(), entity.GetHandle(), m_EntityManager->GetRegistry());
-        CopyComponentIfExists<Graphics::Light>(newEntity.GetHandle(), entity.GetHandle(), m_EntityManager->GetRegistry());
-        CopyComponentIfExists<SoundComponent>(newEntity.GetHandle(), entity.GetHandle(), m_EntityManager->GetRegistry());
-        CopyComponentIfExists<Graphics::Environment>(newEntity.GetHandle(), entity.GetHandle(), m_EntityManager->GetRegistry());
-        CopyComponentIfExists<Listener>(newEntity.GetHandle(), entity.GetHandle(), m_EntityManager->GetRegistry());
+        DuplicateEntity(entity, Entity(entt::null, nullptr));
     }
 
     void Scene::DuplicateEntity(Entity entity, Entity parent)
     {
         LUMOS_PROFILE_FUNCTION();
+        m_SceneGraph->DisableOnConstruct(true, m_EntityManager->GetRegistry());
+
         Entity newEntity = m_EntityManager->Create();
 
-        CopyComponentIfExists<Maths::Transform>(newEntity.GetHandle(), entity.GetHandle(), m_EntityManager->GetRegistry());
-        CopyComponentIfExists<Graphics::Model>(newEntity.GetHandle(), entity.GetHandle(), m_EntityManager->GetRegistry());
-        CopyComponentIfExists<LuaScriptComponent>(newEntity.GetHandle(), entity.GetHandle(), m_EntityManager->GetRegistry());
-        CopyComponentIfExists<Camera>(newEntity.GetHandle(), entity.GetHandle(), m_EntityManager->GetRegistry());
-        CopyComponentIfExists<Graphics::Sprite>(newEntity.GetHandle(), entity.GetHandle(), m_EntityManager->GetRegistry());
-        CopyComponentIfExists<Physics2DComponent>(newEntity.GetHandle(), entity.GetHandle(), m_EntityManager->GetRegistry());
-        CopyComponentIfExists<Physics3DComponent>(newEntity.GetHandle(), entity.GetHandle(), m_EntityManager->GetRegistry());
-        CopyComponentIfExists<Graphics::Light>(newEntity.GetHandle(), entity.GetHandle(), m_EntityManager->GetRegistry());
-        CopyComponentIfExists<SoundComponent>(newEntity.GetHandle(), entity.GetHandle(), m_EntityManager->GetRegistry());
-        CopyComponentIfExists<Graphics::Environment>(newEntity.GetHandle(), entity.GetHandle(), m_EntityManager->GetRegistry());
-        CopyComponentIfExists<Listener>(newEntity.GetHandle(), entity.GetHandle(), m_EntityManager->GetRegistry());
+        CopyEntity<ALL_COMPONENTSV7>(newEntity.GetHandle(), entity.GetHandle(), m_EntityManager->GetRegistry());
+        
+        auto hierarchyComponent = newEntity.TryGetComponent<Hierarchy>();
+        if(hierarchyComponent)
+        {
+            hierarchyComponent->m_First = entt::null;
+            hierarchyComponent->m_Parent = entt::null;
+            hierarchyComponent->m_Next = entt::null;
+            hierarchyComponent->m_Prev = entt::null;
+        }
+        
+        auto children = entity.GetChildren();
+        std::vector<Entity> copiedChildren;
+        
+        for(auto child : children)
+        {
+            DuplicateEntity(child, newEntity);
+        }
 
         if(parent)
             newEntity.SetParent(parent);
+        
+        m_SceneGraph->DisableOnConstruct(false, m_EntityManager->GetRegistry());
     }
 }

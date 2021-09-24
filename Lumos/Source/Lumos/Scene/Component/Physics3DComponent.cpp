@@ -19,6 +19,11 @@ namespace Lumos
     {
     }
 
+    Physics3DComponent::Physics3DComponent(const Physics3DComponent& other)
+    {
+        m_RigidBody = CreateSharedPtr<RigidBody3D>(*other.GetRigidBody().get());
+    }
+
     void Physics3DComponent::Init()
     {
     }
@@ -193,7 +198,7 @@ namespace Lumos
         {
             auto entity = Application::Get().GetCurrentScene()->GetEntityManager()->GetEntityByUUID(m_EntityID);
 
-            if(entity)
+            if(entity && entity.HasComponent<Physics3DComponent>())
                 m_Constraint = CreateSharedPtr<AxisConstraint>(entity.GetComponent<Physics3DComponent>().GetRigidBody().get(), m_Axes);
             m_Initialised = true;
         }
