@@ -6,15 +6,7 @@ namespace Lumos
     {
         class RenderPass;
         class Framebuffer;
-
-        enum PipelineStageFlags
-        {
-
-        };
-
-        class Semaphore
-        {
-        };
+        class Pipeline;
 
         class CommandBuffer
         {
@@ -31,6 +23,9 @@ namespace Lumos
             virtual void ExecuteSecondary(CommandBuffer* primaryCmdBuffer) = 0;
             virtual void UpdateViewport(uint32_t width, uint32_t height) = 0;
             virtual bool Flush() { return true; }
+
+            virtual void BindPipeline(Pipeline* pipeline) = 0;
+            virtual void UnBindPipeline() = 0;
 
         protected:
             static CommandBuffer* (*CreateFunc)();

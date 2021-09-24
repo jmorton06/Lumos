@@ -5,6 +5,10 @@
 #include "Graphics/RHI/SwapChain.h"
 #include "Core/Buffer.h"
 
+#define MAX_BUFFER_INFOS 32
+#define MAX_IMAGE_INFOS 32
+#define MAX_WRITE_DESCTIPTORS 32
+
 namespace Lumos
 {
     namespace Graphics
@@ -45,23 +49,35 @@ namespace Lumos
             uint32_t m_DynamicOffset = 0;
             Shader* m_Shader = nullptr;
             bool m_Dynamic = false;
-            VkDescriptorBufferInfo* m_BufferInfoPool = nullptr;
-            VkDescriptorImageInfo* m_ImageInfoPool = nullptr;
-            VkWriteDescriptorSet* m_WriteDescriptorSetPool = nullptr;
+            std::array<VkDescriptorBufferInfo, MAX_BUFFER_INFOS> m_BufferInfoPool;
+            std::array<VkDescriptorImageInfo, MAX_IMAGE_INFOS> m_ImageInfoPool;
+            std::array<VkWriteDescriptorSet, MAX_WRITE_DESCTIPTORS> m_WriteDescriptorSetPool;
 
             uint32_t m_FramesInFlight = 0;
 
             struct UniformBufferInfo
             {
-                SharedPtr<UniformBuffer> UB;
                 std::vector<BufferMemberInfo> m_Members;
                 Buffer LocalStorage;
-                bool HasUpdated;
+
+                //Per frame in flight
+                bool HasUpdated[10];
             };
 
             std::map<uint32_t, VkDescriptorSet> m_DescriptorSet;
-            std::map<uint32_t, DescriptorSetInfo> m_Descriptors;
-            std::map<uint32_t, std::map<std::string, UniformBufferInfo>> m_UniformBuffers;
+            DescriptorSetInfo m_Descriptors;
+            //std::map<uint32_t, std::map<std::string, UniformBufferInfo>> m_UniformBuffers;
+            std::map<uint32_t, std::map<std::string, SharedPtr<UniformBuffer>>> m_UniformBuffers;
+
+            std::map<std::string, UniformBufferInfo> m_UniformBuffersData;
+            bool m_DescriptorDirty[3];
+
+            //VkDescriptorSet per frame
+            //UniformBuffer per frame;
+            //1 local uniformbuffer storage
+            //1 list of textures
+            //Setting textures/ updating local data dirties the uniform buffer / descriptorSets
+            // Does updating the uniform buffer mean you need to update the descriptorset?
         };
     }
 }

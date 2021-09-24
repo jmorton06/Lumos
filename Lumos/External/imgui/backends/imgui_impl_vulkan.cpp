@@ -105,7 +105,13 @@ static bool                     g_FunctionsLoaded = true;
 static bool                     g_FunctionsLoaded = true;
 #endif
 
-static std::map<ImTextureID, VkDescriptorSet> g_DescriptorSets;
+static std::array<std::map<ImTextureID, VkDescriptorSet>, 3> g_DescriptorSets;
+static std::map<ImTextureID, const VkDescriptorImageInfo*> g_DescriptorImageInfos;
+
+std::map<ImTextureID, const VkDescriptorImageInfo*>& ImGui_ImplVulkan_GetDescriptorImageMap()
+{
+    return g_DescriptorImageInfos;
+}
 
 // Font data
 static VkSampler                g_FontSampler = VK_NULL_HANDLE;
@@ -294,8 +300,11 @@ static void CreateOrResizeBuffer(VkBuffer& buffer, VkDeviceMemory& buffer_memory
     p_buffer_size = new_size;
 }
 
-void ImGui_ImplVulkan_CreateDescriptorSets(ImDrawData* draw_data)
+void ImGui_ImplVulkan_CreateDescriptorSets(ImDrawData* draw_data, uint32_t frameIndex)
 {
+    static std::array<std::map<ImTextureID, bool>, 3> g_DescriptorSetHasUpdated;
+    g_DescriptorSetHasUpdated[frameIndex].clear();
+    
     ImGui_ImplVulkan_InitInfo* v = &g_VulkanInitInfo;
     for (int n = 0; n < draw_data->CmdListsCount; n++)
     {
@@ -306,7 +315,7 @@ void ImGui_ImplVulkan_CreateDescriptorSets(ImDrawData* draw_data)
 
             if (pcmd->TextureId)
             {
-                if (!g_DescriptorSets[pcmd->TextureId])
+                if (!g_DescriptorSets[frameIndex][pcmd->TextureId])
                 {
                     VkWriteDescriptorSet descriptorWrites[1] = {};
 
@@ -316,28 +325,23 @@ void ImGui_ImplVulkan_CreateDescriptorSets(ImDrawData* draw_data)
                     alloc_info.descriptorPool = v->DescriptorPool;
                     alloc_info.descriptorSetCount = 1;
                     alloc_info.pSetLayouts = &g_DescriptorSetLayout;
+                    alloc_info.pNext = nullptr;
                     vkAllocateDescriptorSets(v->Device, &alloc_info, &set);
-
-                    descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-                    descriptorWrites[0].dstSet = set;
-                    descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-                    descriptorWrites[0].pImageInfo = (VkDescriptorImageInfo *) pcmd->TextureId;
-                    descriptorWrites[0].descriptorCount = 1;
-
-                    vkUpdateDescriptorSets(v->Device, 1, descriptorWrites, 0, nullptr);
-
-                    g_DescriptorSets[pcmd->TextureId] = set;
+                    g_DescriptorSets[frameIndex][pcmd->TextureId] = set;
                 }
-                else
+                
+                if(!g_DescriptorSetHasUpdated.at(frameIndex)[pcmd->TextureId])
                 {
                     VkWriteDescriptorSet descriptorWrites[1] = {};
-                    auto set = g_DescriptorSets[pcmd->TextureId];
+                    auto set = g_DescriptorSets.at(frameIndex)[pcmd->TextureId];
                     descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
                     descriptorWrites[0].dstSet = set;
                     descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-                    descriptorWrites[0].pImageInfo = (VkDescriptorImageInfo *) pcmd->TextureId;
+                    descriptorWrites[0].pImageInfo = (VkDescriptorImageInfo *) g_DescriptorImageInfos[pcmd->TextureId];
                     descriptorWrites[0].descriptorCount = 1;
+                    descriptorWrites[0].dstBinding = 0;
 
+                    g_DescriptorSetHasUpdated.at(frameIndex)[pcmd->TextureId] = true;
                     vkUpdateDescriptorSets(v->Device, 1, descriptorWrites, 0, nullptr);
                 }
             }
@@ -390,7 +394,7 @@ static void ImGui_ImplVulkan_SetupRenderState(ImDrawData* draw_data, VkPipeline 
 }
 
 // Render function
-void ImGui_ImplVulkan_RenderDrawData(ImDrawData* draw_data, VkCommandBuffer command_buffer, VkPipeline pipeline)
+void ImGui_ImplVulkan_RenderDrawData(ImDrawData* draw_data, VkCommandBuffer command_buffer, VkPipeline pipeline, uint32_t frameIndex)
 {
     // Avoid rendering when minimized, scale coordinates for retina displays (screen coordinates != framebuffer coordinates)
     int fb_width = (int)(draw_data->DisplaySize.x * draw_data->FramebufferScale.x);
@@ -414,7 +418,7 @@ void ImGui_ImplVulkan_RenderDrawData(ImDrawData* draw_data, VkCommandBuffer comm
         memset(wrb->FrameRenderBuffers, 0, sizeof(ImGui_ImplVulkanH_FrameRenderBuffers) * wrb->Count);
     }
     IM_ASSERT(wrb->Count == v->ImageCount);
-    wrb->Index = (wrb->Index + 1) % wrb->Count;
+    wrb->Index = frameIndex;//(wrb->Index + 1) % wrb->Count;
     ImGui_ImplVulkanH_FrameRenderBuffers* rb = &wrb->FrameRenderBuffers[wrb->Index];
 
     if (draw_data->TotalVtxCount > 0)
@@ -487,7 +491,8 @@ void ImGui_ImplVulkan_RenderDrawData(ImDrawData* draw_data, VkCommandBuffer comm
                 VkDescriptorSet desc_set[1];
                 if (pcmd->TextureId)
                 {
-                    auto desc = g_DescriptorSets[pcmd->TextureId];
+                    uint32_t index = 0;
+                    auto desc = g_DescriptorSets[frameIndex][pcmd->TextureId];
                     //if (lastSet != desc)
                     {
                         desc_set[0] = desc;
@@ -497,7 +502,7 @@ void ImGui_ImplVulkan_RenderDrawData(ImDrawData* draw_data, VkCommandBuffer comm
                 }
                 else
                 {
-                    if (lastSet != g_DescriptorSet)
+                    //if (lastSet != g_DescriptorSet)
                     {
                         desc_set[0] = g_DescriptorSet;
                         lastSet = g_DescriptorSet;
@@ -744,7 +749,7 @@ static void ImGui_ImplVulkan_CreateDescriptorSetLayout(VkDevice device, const Vk
     binding[0].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
     binding[0].descriptorCount = 1;
     binding[0].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
-    binding[0].pImmutableSamplers = sampler;
+    //binding[0].pImmutableSamplers = sampler;
     VkDescriptorSetLayoutCreateInfo info = {};
     info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
     info.bindingCount = 1;
@@ -909,7 +914,7 @@ bool ImGui_ImplVulkan_CreateDeviceObjects()
         binding[0].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
         binding[0].descriptorCount = 1;
         binding[0].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
-        binding[0].pImmutableSamplers = sampler;
+      //  binding[0].pImmutableSamplers = sampler;
         VkDescriptorSetLayoutCreateInfo info = {};
         info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
         info.bindingCount = 1;
@@ -986,12 +991,12 @@ void    ImGui_ImplVulkan_DestroyDeviceObjects()
 
 void ImGui_ImplVulkan_ClearDescriptors()
 {
-    g_DescriptorSets.clear();
+    g_DescriptorSets[0].clear();
 }
 
-void ImGui_ImplVulkan_AddTexture(ImTextureID id, VkDescriptorSet sets)
+void ImGui_ImplVulkan_AddTexture(ImTextureID id, VkDescriptorSet sets, uint32_t index)
 {
-    g_DescriptorSets[id] = sets;
+    g_DescriptorSets[index][id] = sets;
 }
 
 bool    ImGui_ImplVulkan_Init(ImGui_ImplVulkan_InitInfo* info, VkRenderPass render_pass)

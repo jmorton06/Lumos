@@ -51,6 +51,8 @@ namespace Lumos
 
     void ThirdPersonCameraController::HandleKeyboard(Maths::Transform& transform, float dt)
     {
+        //Temp
+        return;
         float multiplier = 1000.0f;
 
         if(Input::Get().GetKeyHeld(InputCode::Key::LeftShift))

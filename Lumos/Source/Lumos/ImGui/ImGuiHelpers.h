@@ -16,13 +16,17 @@ namespace Lumos
         enum class PropertyFlag
         {
             None = 0,
-            ColourProperty = 1
+            ColourProperty = 1,
+            ReadOnly = 2,
+            DragValue = 3,
+            SliderValue = 4,
         };
 
         enum Theme
         {
             Black = 0,
             Dark,
+            Dracula,
             Grey,
             Light,
             Blue,
@@ -33,7 +37,13 @@ namespace Lumos
             Cinder
         };
 
-        bool Property(const std::string& name, bool& value);
+        bool Property(const std::string& name, std::string& value, PropertyFlag flags = PropertyFlag::ReadOnly);
+        void PropertyConst(const std::string& name, const std::string& value);
+        bool Property(const std::string& name, bool& value, PropertyFlag flags = PropertyFlag::None);
+        bool Property(const std::string& name, int& value, PropertyFlag flags = PropertyFlag::None);
+
+        bool Property(const std::string& name, double& value, double min = -1.0, double max = 1.0, PropertyFlag flags = PropertyFlag::None);
+
         bool Property(const std::string& name, float& value, float min = -1.0f, float max = 1.0f, PropertyFlag flags = PropertyFlag::None);
         bool Property(const std::string& name, Maths::Vector2& value, PropertyFlag flags);
         bool Property(const std::string& name, Maths::Vector2& value, float min = -1.0f, float max = 1.0f, PropertyFlag flags = PropertyFlag::None);
@@ -41,6 +51,10 @@ namespace Lumos
         bool Property(const std::string& name, Maths::Vector3& value, float min = -1.0f, float max = 1.0f, PropertyFlag flags = PropertyFlag::None);
         bool Property(const std::string& name, Maths::Vector4& value, bool exposeW, PropertyFlag flags);
         bool Property(const std::string& name, Maths::Vector4& value, float min = -1.0f, float max = 1.0f, bool exposeW = false, PropertyFlag flags = PropertyFlag::None);
+
+        bool Property(const std::string& name, Maths::Quaternion& value, PropertyFlag flags);
+
+        bool PropertyDropdown(const char* label, std::string* options, int32_t optionCount, int32_t* selected);
 
         void Tooltip(const std::string& text);
         void Tooltip(const char* text);
@@ -56,7 +70,46 @@ namespace Lumos
         bool Spinner(const char* label, float radius, int thickness, const uint32_t& colour);
 
         Maths::Vector4 GetSelectedColour();
+        Maths::Vector4 GetIconColour();
 
+        class ScopedStyle
+        {
+        public:
+            ScopedStyle(const ScopedStyle&) = delete;
+            ScopedStyle operator=(const ScopedStyle&) = delete;
+            template <typename T>
+            ScopedStyle(ImGuiStyleVar styleVar, T value) { ImGui::PushStyleVar(styleVar, value); }
+            ~ScopedStyle() { ImGui::PopStyleVar(); }
+        };
+
+        class ScopedColour
+        {
+        public:
+            ScopedColour(const ScopedColour&) = delete;
+            ScopedColour operator=(const ScopedColour&) = delete;
+            template <typename T>
+            ScopedColour(ImGuiCol colourId, T colour) { ImGui::PushStyleColor(colourId, colour); }
+            ~ScopedColour() { ImGui::PopStyleColor(); }
+        };
+
+        class ScopedFont
+        {
+        public:
+            ScopedFont(const ScopedFont&) = delete;
+            ScopedFont operator=(const ScopedFont&) = delete;
+            ScopedFont(ImFont* font) { ImGui::PushFont(font); }
+            ~ScopedFont() { ImGui::PopFont(); }
+        };
+
+        class ScopedID
+        {
+        public:
+            ScopedID(const ScopedID&) = delete;
+            ScopedID operator=(const ScopedID&) = delete;
+            template <typename T>
+            ScopedID(T id) { ImGui::PushID(id); }
+            ~ScopedID() { ImGui::PopID(); }
+        };
     }
 }
 

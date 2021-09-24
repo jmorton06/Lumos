@@ -158,6 +158,8 @@ namespace Lumos
 
         void Clear();
 
+        Entity GetEntityByUUID(uint64_t id);
+
     private:
         Scene* m_Scene = nullptr;
         entt::registry m_Registry;

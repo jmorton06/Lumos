@@ -97,13 +97,11 @@ namespace Lumos
             Camera* m_Camera = nullptr;
             Maths::Transform* m_CameraTransform = nullptr;
 
-            std::vector<SharedPtr<Framebuffer>> m_Framebuffers;
-            SharedPtr<Shader> m_Shader = nullptr;
-            SharedPtr<Lumos::Graphics::RenderPass> m_RenderPass;
             SharedPtr<Lumos::Graphics::Pipeline> m_Pipeline;
             std::vector<SharedPtr<Graphics::DescriptorSet>> m_DescriptorSet;
 
             std::vector<Graphics::DescriptorSet*> m_CurrentDescriptorSets;
+            SharedPtr<Shader> m_Shader = nullptr;
 
             uint32_t m_ScreenBufferWidth = 0, m_ScreenBufferHeight = 0;
             CommandQueue m_CommandQueue;

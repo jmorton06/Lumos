@@ -19,6 +19,9 @@ namespace Lumos
             void EndRecording() override;
             void ExecuteSecondary(CommandBuffer* primaryCmdBuffer) override;
 
+            void BindPipeline(Pipeline* pipeline) override;
+            void UnBindPipeline() override;
+
             void UpdateViewport(uint32_t width, uint32_t height) override {};
             static void MakeDefault();
 
@@ -27,6 +30,7 @@ namespace Lumos
 
         private:
             bool primary;
+            Pipeline* m_BoundPipeline = nullptr;
         };
     }
 }

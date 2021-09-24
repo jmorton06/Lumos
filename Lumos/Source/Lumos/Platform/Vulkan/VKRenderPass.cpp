@@ -78,7 +78,7 @@ namespace Lumos
                 attachment.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
                 attachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
             }
-            
+
             attachment.samples = VK_SAMPLE_COUNT_1_BIT;
             attachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
             attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
@@ -169,9 +169,6 @@ namespace Lumos
                 return VK_SUBPASS_CONTENTS_INLINE;
             }
         }
-
-        static bool inRenderPass = false;
-        static const VKRenderPass* currentpsss = nullptr;
 
         void VKRenderPass::BeginRenderpass(CommandBuffer* commandBuffer, const Maths::Vector4& clearColour, Framebuffer* frame, SubPassContents contents, uint32_t width, uint32_t height) const
         {

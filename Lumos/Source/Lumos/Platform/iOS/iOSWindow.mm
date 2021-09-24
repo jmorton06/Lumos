@@ -38,7 +38,6 @@ namespace Lumos
 
 	iOSWindow::~iOSWindow()
 	{
-		Graphics::GraphicsContext::Release();
 	}
 
 

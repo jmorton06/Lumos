@@ -29,7 +29,7 @@ namespace Lumos
 
             virtual void* GetHandle() const override
             {
-                return (void*)&m_Descriptor;
+                return (void*)this;
             }
 
             inline uint32_t GetWidth() const override
@@ -88,6 +88,11 @@ namespace Lumos
                 return m_Descriptor;
             }
 
+            void* GetDescriptorInfo() const override
+            {
+                return (void*)GetDescriptor();
+            }
+
             void UpdateDescriptor();
 
             bool Load();
@@ -108,12 +113,12 @@ namespace Lumos
             {
                 return m_TextureSampler;
             }
-            
+
             VkFormat GetVKFormat()
             {
                 return m_VKFormat;
             }
-            
+
             VkImageLayout GetImageLayout() const { return m_ImageLayout; }
 
             const TextureParameters& GetTextureParameters() const { return m_Parameters; }
@@ -165,7 +170,7 @@ namespace Lumos
 
             virtual void* GetHandle() const override
             {
-                return (void*)&m_Descriptor;
+                return (void*)this;
             }
 
             void Bind(uint32_t slot = 0) const override {};
@@ -216,6 +221,11 @@ namespace Lumos
                 return &m_Descriptor;
             }
 
+            void* GetDescriptorInfo() const override
+            {
+                return (void*)GetDescriptor();
+            }
+
             void UpdateDescriptor();
 
             void Load(uint32_t mips);
@@ -236,7 +246,7 @@ namespace Lumos
             {
                 return m_TextureSampler;
             }
-            
+
             VkFormat GetVKFormat() const
             {
                 return m_VKFormat;
@@ -300,7 +310,7 @@ namespace Lumos
 
             virtual void* GetHandle() const override
             {
-                return (void*)&m_Descriptor;
+                return (void*)this;
             }
 
             virtual void* GetImageHande() const override
@@ -347,6 +357,11 @@ namespace Lumos
             {
                 return &m_Descriptor;
             }
+            void* GetDescriptorInfo() const override
+            {
+                return (void*)GetDescriptor();
+            }
+
             void UpdateDescriptor();
             void TransitionImage(VkImageLayout newLayout, VKCommandBuffer* commandBuffer = nullptr);
 
@@ -398,7 +413,7 @@ namespace Lumos
 
             virtual void* GetHandle() const override
             {
-                return (void*)&m_Descriptor;
+                return (void*)this;
             }
 
             inline const std::string& GetName() const override
@@ -444,6 +459,12 @@ namespace Lumos
             {
                 return &m_Descriptor;
             }
+
+            void* GetDescriptorInfo() const override
+            {
+                return (void*)GetDescriptor();
+            }
+
             void UpdateDescriptor();
             void TransitionImage(VkImageLayout newLayout, VKCommandBuffer* commandBuffer = nullptr);
 

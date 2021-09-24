@@ -29,7 +29,7 @@ namespace Lumos
         public:
             VKContext();
             ~VKContext();
-            
+
             void Init() override;
             void Present() override;
             void Unload();
@@ -86,7 +86,7 @@ namespace Lumos
 
             void CreateInstance();
             void SetupDebugCallback();
-            bool CheckValidationLayerSupport(const std::vector<const char*>& validationLayers);
+            bool CheckValidationLayerSupport(std::vector<const char*>& validationLayers);
             bool CheckExtensionSupport(std::vector<const char*>& extensions);
 
 #ifdef USE_VMA_ALLOCATOR
@@ -98,7 +98,7 @@ namespace Lumos
 
         private:
             static VkInstance s_VkInstance;
-            VkDebugReportCallbackEXT m_DebugCallback {};
+            VkDebugReportCallbackEXT m_DebugCallback = VK_NULL_HANDLE;
 
             std::vector<VkLayerProperties> m_InstanceLayers;
             std::vector<VkExtensionProperties> m_InstanceExtensions;
@@ -107,8 +107,6 @@ namespace Lumos
             std::vector<const char*> m_InstanceExtensionNames;
 
             bool m_StandardValidationLayer = false;
-            bool m_ValidationLayer = false;
-            bool m_RenderDocLayer = false;
             bool m_AssistanceLayer = false;
         };
     }

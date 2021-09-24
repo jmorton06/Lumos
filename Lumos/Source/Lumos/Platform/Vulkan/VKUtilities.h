@@ -63,26 +63,6 @@ namespace Lumos
             VkFormat FormatToVK(Lumos::Graphics::Format format);
             VkPolygonMode PolygonModeToVk(Lumos::Graphics::PolygonMode mode);
             VkPrimitiveTopology DrawTypeToVk(Lumos::Graphics::DrawType type);
-
-            VkImageMemoryBarrier ImageBarrier(VkImage image, VkAccessFlags srcAccessMask, VkAccessFlags dstAccessMask, VkImageLayout oldLayout, VkImageLayout newLayout, VkImageAspectFlags aspectMask = VK_IMAGE_ASPECT_COLOR_BIT);
-
-            void SetImageLayout(
-                VkCommandBuffer cmdbuffer,
-                VkImage image,
-                VkImageLayout oldImageLayout,
-                VkImageLayout newImageLayout,
-                VkImageSubresourceRange subresourceRange,
-                VkPipelineStageFlags srcStageMask = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
-                VkPipelineStageFlags dstStageMask = VK_PIPELINE_STAGE_TRANSFER_BIT);
-            // Uses a fixed sub resource layout with first mip level and layer
-            void SetImageLayout(
-                VkCommandBuffer cmdbuffer,
-                VkImage image,
-                VkImageAspectFlags aspectMask,
-                VkImageLayout oldImageLayout,
-                VkImageLayout newImageLayout,
-                VkPipelineStageFlags srcStageMask = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
-                VkPipelineStageFlags dstStageMask = VK_PIPELINE_STAGE_TRANSFER_BIT);
         }
     }
 }

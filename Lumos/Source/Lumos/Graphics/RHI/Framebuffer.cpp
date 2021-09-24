@@ -36,7 +36,7 @@ namespace Lumos
 
                 if(GraphicsContext::GetRenderAPI() == RenderAPI::VULKAN)
                 {
-                    VkDescriptorImageInfo* imageHandle = (VkDescriptorImageInfo*)(framebufferDesc.attachments[i]->GetImageHande());
+                    VkDescriptorImageInfo* imageHandle = (VkDescriptorImageInfo*)(framebufferDesc.attachments[i]->GetDescriptorInfo());
                     HashCombine(hash, imageHandle->imageLayout, imageHandle->imageView, imageHandle->sampler);
                 }
 #endif

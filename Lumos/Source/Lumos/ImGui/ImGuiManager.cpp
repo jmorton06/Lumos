@@ -297,7 +297,7 @@ namespace Lumos
         style.PopupBorderSize = 3;
         style.FrameBorderSize = 0.0f;
 
-        const int roundingAmount = 1; //2;
+        const int roundingAmount = 2; //2;
         style.PopupRounding = roundingAmount;
         style.WindowRounding = roundingAmount;
         style.ChildRounding = 0;
@@ -331,8 +331,8 @@ namespace Lumos
         icons_config.PixelSnapH = true;
         icons_config.GlyphOffset.y = 1.0f;
         icons_config.OversampleH = icons_config.OversampleV = 1;
-        icons_config.PixelSnapH = true;
-        icons_config.SizePixels = 13.0f * 1.0f;
+        icons_config.GlyphMinAdvanceX = 4.0f;
+        icons_config.SizePixels = 12.0f;
 
         io.Fonts->AddFontFromMemoryCompressedTTF(MaterialDesign_compressed_data, MaterialDesign_compressed_size, m_FontSize, &icons_config, icons_ranges);
     }

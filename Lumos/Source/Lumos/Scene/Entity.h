@@ -3,6 +3,8 @@
 #include "Scene/Scene.h"
 #include "Scene/SceneGraph.h"
 #include "Core/Profiler.h"
+#include "Core/StringUtilities.h"
+#include "Core/UUID.h"
 
 DISABLE_WARNING_PUSH
 DISABLE_WARNING_CONVERSION_TO_SMALLER_TYPE
@@ -11,6 +13,26 @@ DISABLE_WARNING_POP
 
 namespace Lumos
 {
+    struct IDComponent
+    {
+        UUID ID;
+
+        template <typename Archive>
+        void save(Archive& archive) const
+        {
+            uint64_t uuid = (uint64_t)ID;
+            archive(uuid);
+        }
+
+        template <typename Archive>
+        void load(Archive& archive)
+        {
+            uint64_t uuid;
+            archive(uuid);
+            
+            ID =  UUID(uuid);
+        }
+    };
 
     class Entity
     {
@@ -70,7 +92,14 @@ namespace Lumos
         template <typename T>
         void RemoveComponent()
         {
-            return m_Scene->GetRegistry().remove<T>(m_EntityHandle);
+            m_Scene->GetRegistry().remove<T>(m_EntityHandle);
+        }
+        
+        template <typename T>
+        void TryRemoveComponent()
+        {
+            if(HasComponent<T>())
+                RemoveComponent<T>();
         }
 
         bool Active()
@@ -96,6 +125,24 @@ namespace Lumos
         const Maths::Transform& GetTransform() const
         {
             return m_Scene->GetRegistry().get<Maths::Transform>(m_EntityHandle);
+        }
+
+        uint64_t GetID()
+        {
+            return m_Scene->GetRegistry().get<IDComponent>(m_EntityHandle).ID;
+        }
+
+        const std::string& GetName()
+        {
+            auto nameComponent = TryGetComponent<NameComponent>();
+			
+			if(nameComponent)
+				return nameComponent->name;
+			else
+			{
+				static std::string tempName = "Entity";
+				return tempName;
+			}
         }
 
         void SetParent(Entity entity)
@@ -149,6 +196,15 @@ namespace Lumos
             }
 
             return children;
+        }
+        
+        void ClearChildren()
+        {
+            auto hierarchyComponent = TryGetComponent<Hierarchy>();
+            if(hierarchyComponent)
+            {
+                hierarchyComponent->m_First = entt::null;
+            }
         }
 
         bool IsParent(Entity potentialParent)

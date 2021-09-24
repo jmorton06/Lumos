@@ -10,8 +10,9 @@
 namespace Lumos
 {
     Maths::Vector4 SelectedColour = Maths::Vector4(0.28f, 0.56f, 0.9f, 1.0f);
+    Maths::Vector4 IconColour = Maths::Vector4(0.2f, 0.2f, 0.2f, 1.0f);
 
-    bool ImGuiHelpers::Property(const std::string& name, bool& value)
+    bool ImGuiHelpers::Property(const std::string& name, std::string& value, PropertyFlag flags)
     {
         LUMOS_PROFILE_FUNCTION();
         bool updated = false;
@@ -19,10 +20,81 @@ namespace Lumos
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
 
-        std::string id = "##" + name;
-        if(ImGui::Checkbox(id.c_str(), &value))
-            updated = true;
+        if((int)flags & (int)PropertyFlag::ReadOnly)
+        {
+            ImGui::TextUnformatted(value.c_str());
+        }
+        else
+        {
+            //TODO
+        }
 
+        ImGui::PopItemWidth();
+        ImGui::NextColumn();
+
+        return updated;
+    }
+
+    void ImGuiHelpers::PropertyConst(const std::string& name, const std::string& value)
+    {
+        LUMOS_PROFILE_FUNCTION();
+        bool updated = false;
+        ImGui::TextUnformatted(name.c_str());
+        ImGui::NextColumn();
+        ImGui::PushItemWidth(-1);
+
+        {
+            ImGui::TextUnformatted(value.c_str());
+        }
+
+        ImGui::PopItemWidth();
+        ImGui::NextColumn();
+    }
+
+    bool ImGuiHelpers::Property(const std::string& name, bool& value, PropertyFlag flags)
+    {
+        LUMOS_PROFILE_FUNCTION();
+        bool updated = false;
+        ImGui::TextUnformatted(name.c_str());
+        ImGui::NextColumn();
+        ImGui::PushItemWidth(-1);
+
+        if((int)flags & (int)PropertyFlag::ReadOnly)
+        {
+            ImGui::TextUnformatted(value ? "True" : "False");
+        }
+        else
+        {
+            std::string id = "##" + name;
+            if(ImGui::Checkbox(id.c_str(), &value))
+                updated = true;
+        }
+
+        ImGui::PopItemWidth();
+        ImGui::NextColumn();
+
+        return updated;
+    }
+
+    bool ImGuiHelpers::Property(const std::string& name, int& value, ImGuiHelpers::PropertyFlag flags)
+    {
+        LUMOS_PROFILE_FUNCTION();
+        bool updated = false;
+
+        ImGui::TextUnformatted(name.c_str());
+        ImGui::NextColumn();
+        ImGui::PushItemWidth(-1);
+
+        if((int)flags & (int)PropertyFlag::ReadOnly)
+        {
+            ImGui::Text("%i", value);
+        }
+        else
+        {
+            std::string id = "##" + name;
+            if(ImGui::DragInt(id.c_str(), &value))
+                updated = true;
+        }
         ImGui::PopItemWidth();
         ImGui::NextColumn();
 
@@ -38,10 +110,41 @@ namespace Lumos
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
 
-        std::string id = "##" + name;
-        if(ImGui::SliderFloat(id.c_str(), &value, min, max))
-            updated = true;
+        if((int)flags & (int)PropertyFlag::ReadOnly)
+        {
+            ImGui::Text("%.2f", value);
+        }
+        else
+        {
+            std::string id = "##" + name;
+            if(ImGui::DragFloat(id.c_str(), &value, min, max))
+                updated = true;
+        }
+        ImGui::PopItemWidth();
+        ImGui::NextColumn();
 
+        return updated;
+    }
+
+    bool ImGuiHelpers::Property(const std::string& name, double& value, double min, double max, PropertyFlag flags)
+    {
+        LUMOS_PROFILE_FUNCTION();
+        bool updated = false;
+
+        ImGui::TextUnformatted(name.c_str());
+        ImGui::NextColumn();
+        ImGui::PushItemWidth(-1);
+
+        if((int)flags & (int)PropertyFlag::ReadOnly)
+        {
+            ImGui::Text("%.2f", (float)value);
+        }
+        else
+        {
+            std::string id = "##" + name;
+            if(ImGui::DragScalar(id.c_str(), ImGuiDataType_Double, &value))
+                updated = true;
+        }
         ImGui::PopItemWidth();
         ImGui::NextColumn();
 
@@ -63,10 +166,16 @@ namespace Lumos
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
 
-        std::string id = "##" + name;
-        if(ImGui::SliderFloat2(id.c_str(), Maths::ValuePointer(value), min, max))
-            updated = true;
-
+        if((int)flags & (int)PropertyFlag::ReadOnly)
+        {
+            ImGui::Text("%.2f , %.2f", value.x, value.y);
+        }
+        else
+        {
+            std::string id = "##" + name;
+            if(ImGui::DragFloat2(id.c_str(), Maths::ValuePointer(value)))
+                updated = true;
+        }
         ImGui::PopItemWidth();
         ImGui::NextColumn();
 
@@ -88,16 +197,23 @@ namespace Lumos
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
 
-        std::string id = "##" + name;
-        if((int)flags & (int)PropertyFlag::ColourProperty)
+        if((int)flags & (int)PropertyFlag::ReadOnly)
         {
-            if(ImGui::ColorEdit3(id.c_str(), Maths::ValuePointer(value), ImGuiColorEditFlags_NoInputs))
-                updated = true;
+            ImGui::Text("%.2f , %.2f, %.2f", value.x, value.y, value.z);
         }
         else
         {
-            if(ImGui::SliderFloat3(id.c_str(), Maths::ValuePointer(value), min, max))
-                updated = true;
+            std::string id = "##" + name;
+            if((int)flags & (int)PropertyFlag::ColourProperty)
+            {
+                if(ImGui::ColorEdit3(id.c_str(), Maths::ValuePointer(value), ImGuiColorEditFlags_NoInputs))
+                    updated = true;
+            }
+            else
+            {
+                if(ImGui::DragFloat3(id.c_str(), Maths::ValuePointer(value)))
+                    updated = true;
+            }
         }
 
         ImGui::PopItemWidth();
@@ -121,16 +237,48 @@ namespace Lumos
         ImGui::TextUnformatted(name.c_str());
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
-
-        std::string id = "##" + name;
-        if((int)flags & (int)PropertyFlag::ColourProperty)
+        if((int)flags & (int)PropertyFlag::ReadOnly)
         {
-            if(ImGui::ColorEdit4(id.c_str(), Maths::ValuePointer(value), ImGuiColorEditFlags_NoInputs))
+            ImGui::Text("%.2f , %.2f, %.2f , %.2f", value.x, value.y, value.z, value.w);
+        }
+        else
+        {
+
+            std::string id = "##" + name;
+            if((int)flags & (int)PropertyFlag::ColourProperty)
+            {
+                if(ImGui::ColorEdit4(id.c_str(), Maths::ValuePointer(value), ImGuiColorEditFlags_NoInputs))
+                    updated = true;
+            }
+            else if((exposeW ? ImGui::DragFloat4(id.c_str(), Maths::ValuePointer(value)) : ImGui::DragFloat4(id.c_str(), Maths::ValuePointer(value))))
                 updated = true;
         }
-        else if((exposeW ? ImGui::SliderFloat4(id.c_str(), Maths::ValuePointer(value), min, max) : ImGui::SliderFloat3(id.c_str(), Maths::ValuePointer(value), min, max)))
-            updated = true;
+        ImGui::PopItemWidth();
+        ImGui::NextColumn();
 
+        return updated;
+    }
+
+    bool ImGuiHelpers::Property(const std::string& name, Maths::Quaternion& value, ImGuiHelpers::PropertyFlag flags)
+    {
+        LUMOS_PROFILE_FUNCTION();
+        bool updated = false;
+
+        ImGui::AlignTextToFramePadding();
+        ImGui::TextUnformatted(name.c_str());
+        ImGui::NextColumn();
+        ImGui::PushItemWidth(-1);
+        if((int)flags & (int)PropertyFlag::ReadOnly)
+        {
+            ImGui::Text("%.2f , %.2f, %.2f , %.2f", value.x, value.y, value.z, value.w);
+        }
+        else
+        {
+
+            std::string id = "##" + name;
+            if(ImGui::DragFloat4(id.c_str(), Maths::ValuePointer(value)))
+                updated = true;
+        }
         ImGui::PopItemWidth();
         ImGui::NextColumn();
 
@@ -292,37 +440,14 @@ namespace Lumos
 
     void ImGuiHelpers::SetTheme(Theme theme)
     {
-        ImVec4 colour_for_text = ImVec4(236.f / 255.f, 240.f / 255.f, 241.f / 255.f, 1.0f);
-        ImVec4 colour_for_head = ImVec4(41.f / 255.f, 128.f / 255.f, 185.f / 255.f, 1.0f);
-        ImVec4 colour_for_area = ImVec4(57.f / 255.f, 79.f / 255.f, 105.f / 255.f, 1.0f);
-        ImVec4 colour_for_body = ImVec4(44.f / 255.f, 62.f / 255.f, 80.f / 255.f, 1.0f);
-        ImVec4 colour_for_pops = ImVec4(33.f / 255.f, 46.f / 255.f, 60.f / 255.f, 1.0f);
-
-        ImVec4 black(0, 0, 0, 0);
-        ImVec4 white(1, 1, 1, 1);
-        ImVec4 colour1(0.86f, 0.93f, 0.89f, 1); // text ->
-        ImVec4 colour2(0.20f, 0.22f, 0.27f, 1); // blur
-        ImVec4 colour3(0.92f, 0.18f, 0.29f, 1); // active
-        ImVec4 colour4(0.47f, 0.77f, 0.83f, 1); // slider ->
-        ImVec4 colour5(0.13f, 0.14f, 0.17f, 1); // windowbg
-        ImVec4 colour6(0.31f, 0.31f, 1.00f, 1); // border, unused -> black
-        ImVec4 colour7(0.09f, 0.15f, 0.16f, 1); // ScrollbarGrab
-        ImVec4 colour8(0.71f, 0.22f, 0.27f, 1); // CheckMark
-        ImVec4 colour9(0.14f, 0.16f, 0.19f, 1); // Column
-
         static const float max = 255.0f;
-        ImVec4 blue = ImVec4(0.0f, 0.0f, 1.0f, 1.0f);
-        ImVec4 red = ImVec4(1.0f, 0.0f, 0.0f, 1.0f);
 
-        ImVec4 Titlebar = ImVec4(40.0f / max, 42.0f / max, 54.0f / max, 1.0f);
-        ImVec4 TabActive = ImVec4(52.0f / max, 54.0f / max, 64.0f / max, 1.0f);
-        ImVec4 TabUnactive = ImVec4(35.0f / max, 43.0f / max, 59.0f / max, 1.0f);
-
-        ImVec4* colours = ImGui::GetStyle().Colors;
+        auto& style = ImGui::GetStyle();
+        ImVec4* colours = style.Colors;
         SelectedColour = Maths::Vector4(0.28f, 0.56f, 0.9f, 1.0f);
-        switch(theme)
+
+        if(theme == Black)
         {
-        case Lumos::ImGuiHelpers::Black:
             ImGui::StyleColorsDark();
             colours[ImGuiCol_Text] = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
             colours[ImGuiCol_TextDisabled] = ImVec4(0.50f, 0.50f, 0.50f, 1.00f);
@@ -374,14 +499,19 @@ namespace Lumos
             colours[ImGuiCol_NavWindowingHighlight] = ImVec4(1.00f, 1.00f, 1.00f, 0.70f);
             colours[ImGuiCol_NavWindowingDimBg] = ImVec4(0.80f, 0.80f, 0.80f, 0.20f);
             colours[ImGuiCol_ModalWindowDimBg] = ImVec4(0.44f, 0.44f, 0.44f, 0.35f);
-            break;
-        case Lumos::ImGuiHelpers::Dark:
+        }
+        else if(theme == Dark)
+        {
             ImGui::StyleColorsDark();
+            ImVec4 Titlebar = ImVec4(40.0f / max, 42.0f / max, 54.0f / max, 1.0f);
+            ImVec4 TabActive = ImVec4(52.0f / max, 54.0f / max, 64.0f / max, 1.0f);
+            ImVec4 TabUnactive = ImVec4(35.0f / max, 43.0f / max, 59.0f / max, 1.0f);
 
             SelectedColour = ImVec4(155.0f / 255.0f, 130.0f / 255.0f, 207.0f / 255.0f, 1.00f);
             colours[ImGuiCol_Text] = ImVec4(200.0f / 255.0f, 200.0f / 255.0f, 200.0f / 255.0f, 1.00f);
             colours[ImGuiCol_TextDisabled] = ImVec4(0.36f, 0.42f, 0.47f, 1.00f);
 
+            IconColour = colours[ImGuiCol_Text];
             colours[ImGuiCol_WindowBg] = TabActive;
             colours[ImGuiCol_ChildBg] = TabActive;
 
@@ -443,11 +573,14 @@ namespace Lumos
             colours[ImGuiCol_DockingPreview] = ImVec4(0.33f, 0.33f, 0.33f, 1.00f);
 
 #endif
-            break;
-        case Lumos::ImGuiHelpers::Grey:
+        }
+        else if(theme == Grey)
+        {
             ImGui::StyleColorsDark();
             colours[ImGuiCol_Text] = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
             colours[ImGuiCol_TextDisabled] = ImVec4(0.40f, 0.40f, 0.40f, 1.00f);
+            IconColour = colours[ImGuiCol_Text];
+
             colours[ImGuiCol_ChildBg] = ImVec4(0.25f, 0.25f, 0.25f, 1.00f);
             colours[ImGuiCol_WindowBg] = ImVec4(0.25f, 0.25f, 0.25f, 1.00f);
             colours[ImGuiCol_PopupBg] = ImVec4(0.25f, 0.25f, 0.25f, 1.00f);
@@ -499,11 +632,14 @@ namespace Lumos
             colours[ImGuiCol_TabUnfocusedActive] = ImVec4(0.33f, 0.33f, 0.33f, 1.00f);
             colours[ImGuiCol_DockingPreview] = ImVec4(0.85f, 0.85f, 0.85f, 0.28f);
 #endif
-            break;
-        case Lumos::ImGuiHelpers::Light:
+        }
+        else if(theme == Light)
+        {
             ImGui::StyleColorsLight();
             colours[ImGuiCol_Text] = ImVec4(0.00f, 0.00f, 0.00f, 1.00f);
             colours[ImGuiCol_TextDisabled] = ImVec4(0.60f, 0.60f, 0.60f, 1.00f);
+            IconColour = colours[ImGuiCol_Text];
+
             colours[ImGuiCol_WindowBg] = ImVec4(0.94f, 0.94f, 0.94f, 0.94f);
             colours[ImGuiCol_PopupBg] = ImVec4(1.00f, 1.00f, 1.00f, 0.94f);
             colours[ImGuiCol_Border] = ImVec4(0.00f, 0.00f, 0.00f, 0.39f);
@@ -536,8 +672,9 @@ namespace Lumos
             colours[ImGuiCol_PlotHistogram] = ImVec4(0.90f, 0.70f, 0.00f, 1.00f);
             colours[ImGuiCol_PlotHistogramHovered] = ImVec4(1.00f, 0.60f, 0.00f, 1.00f);
             colours[ImGuiCol_TextSelectedBg] = ImVec4(0.26f, 0.59f, 0.98f, 0.35f);
-            break;
-        case Lumos::ImGuiHelpers::Cherry:
+        }
+        else if(theme == Cherry)
+        {
             ImGui::StyleColorsDark();
 #define HI(v) ImVec4(0.502f, 0.075f, 0.256f, v)
 #define MED(v) ImVec4(0.455f, 0.198f, 0.301f, v)
@@ -547,6 +684,8 @@ namespace Lumos
 
             colours[ImGuiCol_Text] = ImVec4(0.95f, 0.96f, 0.98f, 1.00f);
             colours[ImGuiCol_TextDisabled] = ImVec4(0.36f, 0.42f, 0.47f, 1.00f);
+            IconColour = colours[ImGuiCol_Text];
+
             colours[ImGuiCol_WindowBg] = ImVec4(0.13f, 0.14f, 0.17f, 1.00f);
             colours[ImGuiCol_PopupBg] = BG(0.9f);
             colours[ImGuiCol_Border] = ImVec4(0.31f, 0.31f, 1.00f, 0.00f);
@@ -581,11 +720,18 @@ namespace Lumos
             colours[ImGuiCol_TextSelectedBg] = MED(0.43f);
             colours[ImGuiCol_Border] = ImVec4(0.539f, 0.479f, 0.255f, 0.162f);
             colours[ImGuiCol_TabHovered] = colours[ImGuiCol_ButtonHovered];
-
-            break;
-        case Blue:
+        }
+        else if(theme == Blue)
+        {
+            ImVec4 colour_for_text = ImVec4(236.f / 255.f, 240.f / 255.f, 241.f / 255.f, 1.0f);
+            ImVec4 colour_for_head = ImVec4(41.f / 255.f, 128.f / 255.f, 185.f / 255.f, 1.0f);
+            ImVec4 colour_for_area = ImVec4(57.f / 255.f, 79.f / 255.f, 105.f / 255.f, 1.0f);
+            ImVec4 colour_for_body = ImVec4(44.f / 255.f, 62.f / 255.f, 80.f / 255.f, 1.0f);
+            ImVec4 colour_for_pops = ImVec4(33.f / 255.f, 46.f / 255.f, 60.f / 255.f, 1.0f);
             colours[ImGuiCol_Text] = ImVec4(colour_for_text.x, colour_for_text.y, colour_for_text.z, 1.00f);
             colours[ImGuiCol_TextDisabled] = ImVec4(colour_for_text.x, colour_for_text.y, colour_for_text.z, 0.58f);
+            IconColour = colours[ImGuiCol_Text];
+
             colours[ImGuiCol_WindowBg] = ImVec4(colour_for_body.x, colour_for_body.y, colour_for_body.z, 0.95f);
             colours[ImGuiCol_Border] = ImVec4(colour_for_body.x, colour_for_body.y, colour_for_body.z, 0.00f);
             colours[ImGuiCol_BorderShadow] = ImVec4(colour_for_body.x, colour_for_body.y, colour_for_body.z, 0.00f);
@@ -618,19 +764,27 @@ namespace Lumos
             colours[ImGuiCol_PlotHistogramHovered] = ImVec4(colour_for_head.x, colour_for_head.y, colour_for_head.z, 1.00f);
             colours[ImGuiCol_TextSelectedBg] = ImVec4(colour_for_head.x, colour_for_head.y, colour_for_head.z, 0.43f);
             colours[ImGuiCol_PopupBg] = ImVec4(colour_for_pops.x, colour_for_pops.y, colour_for_pops.z, 0.92f);
-            break;
-        case Classic:
+        }
+        else if(theme == Classic)
+        {
             ImGui::StyleColorsClassic();
-            break;
-        case ClassicDark:
+            IconColour = colours[ImGuiCol_Text];
+        }
+        else if(theme == ClassicDark)
+        {
             ImGui::StyleColorsDark();
-            break;
-        case ClassicLight:
+            IconColour = colours[ImGuiCol_Text];
+        }
+        else if(theme == ClassicLight)
+        {
             ImGui::StyleColorsLight();
-            break;
-        case Cinder:
+            IconColour = colours[ImGuiCol_Text];
+        }
+        else if(theme == Cinder)
+        {
             colours[ImGuiCol_Text] = ImVec4(0.95f, 0.96f, 0.98f, 1.00f);
             colours[ImGuiCol_TextDisabled] = ImVec4(0.36f, 0.42f, 0.47f, 1.00f);
+            IconColour = colours[ImGuiCol_Text];
             colours[ImGuiCol_WindowBg] = ImVec4(0.13f, 0.14f, 0.17f, 1.00f);
             colours[ImGuiCol_Border] = ImVec4(0.31f, 0.31f, 1.00f, 0.00f);
             colours[ImGuiCol_BorderShadow] = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
@@ -663,9 +817,81 @@ namespace Lumos
             colours[ImGuiCol_PlotHistogramHovered] = ImVec4(0.92f, 0.18f, 0.29f, 1.00f);
             colours[ImGuiCol_TextSelectedBg] = ImVec4(0.92f, 0.18f, 0.29f, 0.43f);
             colours[ImGuiCol_PopupBg] = ImVec4(0.20f, 0.22f, 0.27f, 0.9f);
-            break;
-        default:
-            break;
+        }
+        else if(theme == Dracula)
+        {
+            ImGui::StyleColorsDark();
+
+            ImVec4 Titlebar = ImVec4(36.0f / max, 38.0f / max, 48.0f / max, 1.0f);
+            ImVec4 TabActive = ImVec4(40.0f / max, 42.0f / max, 54.0f / max, 1.0f);
+            ImVec4 TabUnactive = ImVec4(35.0f / max, 43.0f / max, 59.0f / max, 1.0f);
+
+            IconColour = ImVec4(183.0f / 255.0f, 158.0f / 255.0f, 220.0f / 255.0f, 1.00f);
+            SelectedColour = ImVec4(145.0f / 255.0f, 111.0f / 255.0f, 186.0f / 255.0f, 1.00f);
+            colours[ImGuiCol_Text] = ImVec4(159.0f / 255.0f, 159.0f / 255.0f, 163.0f / 255.0f, 1.00f);
+            colours[ImGuiCol_TextDisabled] = ImVec4(0.36f, 0.42f, 0.47f, 1.00f);
+
+            colours[ImGuiCol_WindowBg] = TabActive;
+            colours[ImGuiCol_ChildBg] = TabActive;
+
+            colours[ImGuiCol_PopupBg] = ImVec4(42.0f / 255.0f, 38.0f / 255.0f, 47.0f / 255.0f, 1.00f);
+            colours[ImGuiCol_Border] = ImVec4(0.08f, 0.10f, 0.12f, 1.00f);
+            colours[ImGuiCol_BorderShadow] = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
+            colours[ImGuiCol_FrameBg] = ImVec4(65.0f / 255.0f, 79.0f / 255.0f, 92.0f / 255.0f, 1.00f);
+            colours[ImGuiCol_FrameBgHovered] = ImVec4(0.12f, 0.20f, 0.28f, 1.00f);
+            colours[ImGuiCol_FrameBgActive] = ImVec4(0.09f, 0.12f, 0.14f, 1.00f);
+
+            colours[ImGuiCol_TitleBg] = Titlebar;
+            colours[ImGuiCol_TitleBgActive] = Titlebar;
+            colours[ImGuiCol_TitleBgCollapsed] = Titlebar;
+            colours[ImGuiCol_MenuBarBg] = Titlebar;
+
+            colours[ImGuiCol_ScrollbarBg] = ImVec4(0.02f, 0.02f, 0.02f, 0.39f);
+            colours[ImGuiCol_ScrollbarGrab] = ImVec4(0.6f, 0.6f, 0.6f, 1.00f);
+            colours[ImGuiCol_ScrollbarGrabActive] = ImVec4(0.7f, 0.7f, 0.7f, 1.00f);
+            colours[ImGuiCol_ScrollbarGrabHovered] = ImVec4(0.8f, 0.8f, 0.8f, 1.00f);
+
+            colours[ImGuiCol_CheckMark] = ImVec4(155.0f / 255.0f, 130.0f / 255.0f, 207.0f / 255.0f, 1.00f);
+            colours[ImGuiCol_SliderGrab] = ImVec4(155.0f / 255.0f, 130.0f / 255.0f, 207.0f / 255.0f, 1.00f);
+            colours[ImGuiCol_SliderGrabActive] = ImVec4(185.0f / 255.0f, 160.0f / 255.0f, 237.0f / 255.0f, 1.00f);
+            colours[ImGuiCol_Button] = ImVec4(0.20f, 0.25f, 0.29f, 1.00f);
+            colours[ImGuiCol_ButtonHovered] = ImVec4(59.0f / 255.0f, 46.0f / 255.0f, 80.0f / 255.0f, 1.0f);
+            colours[ImGuiCol_ButtonActive] = colours[ImGuiCol_ButtonHovered] + ImVec4(0.1f, 0.1f, 0.1f, 0.1f);
+
+            colours[ImGuiCol_Separator] = ImVec4(0.20f, 0.25f, 0.29f, 1.00f);
+            colours[ImGuiCol_SeparatorHovered] = ImVec4(0.10f, 0.40f, 0.75f, 0.78f);
+            colours[ImGuiCol_SeparatorActive] = ImVec4(0.10f, 0.40f, 0.75f, 1.00f);
+
+            colours[ImGuiCol_ResizeGrip] = ImVec4(0.26f, 0.59f, 0.98f, 0.25f);
+            colours[ImGuiCol_ResizeGripHovered] = ImVec4(0.26f, 0.59f, 0.98f, 0.67f);
+            colours[ImGuiCol_ResizeGripActive] = ImVec4(0.26f, 0.59f, 0.98f, 0.95f);
+
+            colours[ImGuiCol_PlotLines] = ImVec4(0.61f, 0.61f, 0.61f, 1.00f);
+            colours[ImGuiCol_PlotLinesHovered] = ImVec4(1.00f, 0.43f, 0.35f, 1.00f);
+            colours[ImGuiCol_PlotHistogram] = ImVec4(0.90f, 0.70f, 0.00f, 1.00f);
+            colours[ImGuiCol_PlotHistogramHovered] = ImVec4(1.00f, 0.60f, 0.00f, 1.00f);
+            colours[ImGuiCol_TextSelectedBg] = ImVec4(0.26f, 0.59f, 0.98f, 0.35f);
+            colours[ImGuiCol_DragDropTarget] = ImVec4(0.26f, 0.59f, 0.98f, 1.00f);
+            colours[ImGuiCol_NavHighlight] = ImVec4(0.26f, 0.59f, 0.98f, 1.00f);
+            colours[ImGuiCol_NavWindowingHighlight] = ImVec4(1.00f, 1.00f, 1.00f, 0.70f);
+            colours[ImGuiCol_NavWindowingDimBg] = ImVec4(0.80f, 0.80f, 0.80f, 0.20f);
+            colours[ImGuiCol_ModalWindowDimBg] = ImVec4(0.80f, 0.80f, 0.80f, 0.35f);
+
+            colours[ImGuiCol_Header] = TabActive + ImVec4(0.1f, 0.1f, 0.1f, 0.1f);
+            colours[ImGuiCol_HeaderHovered] = TabActive + ImVec4(0.1f, 0.1f, 0.1f, 0.1f);
+            colours[ImGuiCol_HeaderActive] = TabActive + ImVec4(0.05f, 0.05f, 0.05f, 0.1f);
+
+#ifdef IMGUI_HAS_DOCK
+
+            colours[ImGuiCol_Tab] = TabUnactive;
+            colours[ImGuiCol_TabHovered] = TabActive + ImVec4(0.1f, 0.1f, 0.1f, 0.1f);
+            colours[ImGuiCol_TabActive] = TabActive;
+            colours[ImGuiCol_TabUnfocused] = TabUnactive;
+            colours[ImGuiCol_TabUnfocusedActive] = TabActive;
+            colours[ImGuiCol_DockingEmptyBg] = ImVec4(0.33f, 0.33f, 0.33f, 1.00f);
+            colours[ImGuiCol_DockingPreview] = ImVec4(0.33f, 0.33f, 0.33f, 1.00f);
+
+#endif
         }
 
         colours[ImGuiCol_Separator] = colours[ImGuiCol_TitleBg];
@@ -693,6 +919,68 @@ namespace Lumos
     {
         return SelectedColour;
     }
+
+    Maths::Vector4 ImGuiHelpers::GetIconColour()
+    {
+        return IconColour;
+    }
+
+    bool ImGuiHelpers::PropertyDropdown(const char* label, std::string* options, int32_t optionCount, int32_t* selected)
+    {
+        const char* current = options[*selected].c_str();
+        ImGui::TextUnformatted(label);
+        ImGui::NextColumn();
+        ImGui::PushItemWidth(-1);
+
+        auto drawItemActivityOutline = [](float rounding = 0.0f, bool drawWhenInactive = false)
+        {
+            auto* drawList = ImGui::GetWindowDrawList();
+            if(ImGui::IsItemHovered() && !ImGui::IsItemActive())
+            {
+                drawList->AddRect(ImGui::GetItemRectMin(), ImGui::GetItemRectMax(),
+                    ImColor(60, 60, 60), rounding, 0, 1.5f);
+            }
+            if(ImGui::IsItemActive())
+            {
+                drawList->AddRect(ImGui::GetItemRectMin(), ImGui::GetItemRectMax(),
+                    ImColor(80, 80, 80), rounding, 0, 1.0f);
+            }
+            else if(!ImGui::IsItemHovered() && drawWhenInactive)
+            {
+                drawList->AddRect(ImGui::GetItemRectMin(), ImGui::GetItemRectMax(),
+                    ImColor(50, 50, 50), rounding, 0, 1.0f);
+            }
+        };
+
+        bool changed = false;
+
+        const std::string id = "##" + std::string(label);
+
+        if(ImGui::BeginCombo(id.c_str(), current))
+        {
+            for(int i = 0; i < optionCount; i++)
+            {
+                const bool is_selected = (current == options[i]);
+                if(ImGui::Selectable(options[i].c_str(), is_selected))
+                {
+                    current = options[i].c_str();
+                    *selected = i;
+                    changed = true;
+                }
+                if(is_selected)
+                    ImGui::SetItemDefaultFocus();
+            }
+            ImGui::EndCombo();
+        }
+
+        drawItemActivityOutline(2.5f);
+
+        ImGui::PopItemWidth();
+        ImGui::NextColumn();
+
+        return changed;
+    }
+
 }
 
 namespace ImGui

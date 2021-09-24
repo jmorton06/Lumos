@@ -119,10 +119,7 @@ namespace Lumos
             }
 
 #if defined(LUMOS_PROFILE) && defined(TRACY_ENABLE)
-            tracy::VkCtx* GetTracyContext()
-            {
-                return m_TracyContext;
-            }
+            tracy::VkCtx* GetTracyContext();
 #endif
 
 #ifdef USE_VMA_ALLOCATOR
@@ -154,7 +151,7 @@ namespace Lumos
             static uint32_t s_GraphicsQueueFamilyIndex;
 
 #if defined(LUMOS_PROFILE) && defined(TRACY_ENABLE)
-            tracy::VkCtx* m_TracyContext = nullptr;
+            std::vector<tracy::VkCtx*> m_TracyContext;
 #endif
 
 #ifdef USE_VMA_ALLOCATOR

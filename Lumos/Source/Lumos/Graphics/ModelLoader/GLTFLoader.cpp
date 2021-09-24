@@ -10,8 +10,6 @@
 #include "Core/Application.h"
 #include "Core/StringUtilities.h"
 
-#include "Graphics/Renderers/ForwardRenderer.h"
-
 #define TINYGLTF_IMPLEMENTATION
 #define TINYGLTF_USE_CPP14
 #define STB_IMAGE_WRITE_IMPLEMENTATION
@@ -161,6 +159,7 @@ namespace Lumos::Graphics
             textures.emissive = TextureName(mat.emissiveTexture.index);
             textures.metallic = TextureName(pbr.metallicRoughnessTexture.index);
 
+            //TODO: correct way of handling this
             if(textures.metallic)
                 properties.workflow = PBR_WORKFLOW_METALLIC_ROUGHNESS;
             else
@@ -347,7 +346,15 @@ namespace Lumos::Graphics
                 std::vector<uint8_t> data = std::vector<uint8_t>(first, last);
 
                 size_t indicesCount = indexAccessor.count;
-                if(componentTypeByteSize == 2)
+                if(componentTypeByteSize == 1)
+                {
+                    uint8_t* in = reinterpret_cast<uint8_t*>(data.data());
+                    for(auto iCount = 0; iCount < indicesCount; iCount++)
+                    {
+                        indices[iCount] = (uint32_t)in[iCount];
+                    }
+                }
+                else if(componentTypeByteSize == 2)
                 {
                     uint16_t* in = reinterpret_cast<uint16_t*>(data.data());
                     for(auto iCount = 0; iCount < indicesCount; iCount++)
@@ -362,6 +369,10 @@ namespace Lumos::Graphics
                     {
                         indices[iCount] = in[iCount];
                     }
+                }
+                else
+                {
+                    LUMOS_LOG_WARN("Unsupported indices data type - {0}", componentTypeByteSize);
                 }
             }
 
@@ -391,29 +402,45 @@ namespace Lumos::Graphics
 #endif
 
         Maths::Transform transform;
+        Maths::Matrix4 matrix;
+        Maths::Matrix4 position;
+        Maths::Matrix4 rotation;
+        Maths::Matrix4 scale;
 
         if(!node.scale.empty())
         {
-            transform.SetLocalScale(Maths::Vector3(static_cast<float>(node.scale[0]), static_cast<float>(node.scale[1]), static_cast<float>(node.scale[2])));
+            scale = Maths::Matrix4::Scale(Maths::Vector3(static_cast<float>(node.scale[0]), static_cast<float>(node.scale[1]), static_cast<float>(node.scale[2])));
+            //transform.SetLocalScale(Maths::Vector3(static_cast<float>(node.scale[0]), static_cast<float>(node.scale[1]), static_cast<float>(node.scale[2])));
         }
 
         if(!node.rotation.empty())
         {
-            transform.SetLocalOrientation(Maths::Quaternion(static_cast<float>(node.rotation[3]), static_cast<float>(node.rotation[0]), static_cast<float>(node.rotation[1]), static_cast<float>(node.rotation[2])));
+            rotation = Maths::Quaternion(static_cast<float>(node.rotation[3]), static_cast<float>(node.rotation[0]), static_cast<float>(node.rotation[1]), static_cast<float>(node.rotation[2])).RotationMatrix();
+
+            //transform.SetLocalOrientation(Maths::Quaternion(static_cast<float>(node.rotation[3]), static_cast<float>(node.rotation[0]), static_cast<float>(node.rotation[1]), static_cast<float>(node.rotation[2])));
         }
 
         if(!node.translation.empty())
         {
-            transform.SetLocalPosition(Maths::Vector3(static_cast<float>(node.translation[0]), static_cast<float>(node.translation[1]), static_cast<float>(node.translation[2])));
+            //transform.SetLocalPosition(Maths::Vector3(static_cast<float>(node.translation[0]), static_cast<float>(node.translation[1]), static_cast<float>(node.translation[2])));
+            position = Maths::Matrix4::Translation(Maths::Vector3(static_cast<float>(node.translation[0]), static_cast<float>(node.translation[1]), static_cast<float>(node.translation[2])));
         }
 
         if(!node.matrix.empty())
         {
-            auto lTransform = Maths::Matrix4(reinterpret_cast<float*>(node.matrix.data()));
-            transform.SetLocalTransform(lTransform.Transpose());
+            float matrixData[16];
+            for(int i = 0; i < 16; i++)
+                matrixData[i] = float(node.matrix.data()[i]);
+            matrix = Maths::Matrix4(matrixData);
+            transform.SetLocalTransform(matrix.Transpose());
+        }
+        else
+        {
+            matrix = position * rotation * scale;
+            transform.SetLocalTransform(matrix);
         }
 
-        transform.UpdateMatrices();
+        transform.ApplyTransform();
         transform.SetWorldMatrix(parentTransform);
 
         if(node.mesh >= 0)

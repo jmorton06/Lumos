@@ -256,7 +256,8 @@ namespace Lumos
             vmaDestroyAllocator(m_Allocator);
 #endif
 #if defined(LUMOS_PROFILE) && defined(TRACY_ENABLE)
-            TracyVkDestroy(m_TracyContext);
+            for(int i = 0; i < 3; i++)
+                TracyVkDestroy(m_TracyContext[i]);
 #endif
 
             vkDestroyDevice(m_Device, VK_NULL_HANDLE);
@@ -265,7 +266,7 @@ namespace Lumos
         bool VKDevice::Init()
         {
             m_PhysicalDevice = CreateSharedPtr<VKPhysicalDevice>();
-            
+
             VkPhysicalDeviceFeatures physicalDeviceFeatures;
             vkGetPhysicalDeviceFeatures(m_PhysicalDevice->GetVulkanPhysicalDevice(), &physicalDeviceFeatures);
 
@@ -278,7 +279,7 @@ namespace Lumos
                 deviceExtensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
                 m_EnableDebugMarkers = true;
             }
-            
+
             VkPhysicalDeviceDescriptorIndexingFeaturesEXT indexingFeatures {};
             indexingFeatures.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_INDEXING_FEATURES_EXT;
             indexingFeatures.runtimeDescriptorArray = VK_TRUE;
@@ -301,7 +302,7 @@ namespace Lumos
             deviceCreateInfo.ppEnabledExtensionNames = deviceExtensions.data();
             deviceCreateInfo.pEnabledFeatures = &physicalDeviceFeatures;
             deviceCreateInfo.enabledLayerCount = 0;
-            deviceCreateInfo.pNext = (void*) &indexingFeatures;
+            deviceCreateInfo.pNext = (void*)&indexingFeatures;
 
             auto result = vkCreateDevice(m_PhysicalDevice->GetVulkanPhysicalDevice(), &deviceCreateInfo, VK_NULL_HANDLE, &m_Device);
             if(result != VK_SUCCESS)
@@ -378,11 +379,22 @@ namespace Lumos
             vkAllocateCommandBuffers(m_Device, &allocInfo, &tracyBuffer);
 
 #if defined(LUMOS_PROFILE) && defined(TRACY_ENABLE)
-            m_TracyContext = TracyVkContext(m_PhysicalDevice->GetVulkanPhysicalDevice(), m_Device, m_GraphicsQueue, tracyBuffer);
+            m_TracyContext.resize(3);
+            for(int i = 0; i < 3; i++)
+                m_TracyContext[i] = TracyVkContext(m_PhysicalDevice->GetVulkanPhysicalDevice(), m_Device, m_GraphicsQueue, tracyBuffer);
+
+                // m_TracyContext = TracyVkContextCalibrated(m_PhysicalDevice->GetVulkanPhysicalDevice(), m_Device, m_GraphicsQueue, tracyBuffer, vkGetPhysicalDeviceCalibrateableTimeDomainsEXT, vkGetCalibratedTimestampsEXT);
 #endif
 
             vkQueueWaitIdle(m_GraphicsQueue);
             vkFreeCommandBuffers(m_Device, m_CommandPool->GetHandle(), 1, &tracyBuffer);
         }
+
+#if defined(LUMOS_PROFILE) && defined(TRACY_ENABLE)
+        tracy::VkCtx* VKDevice::GetTracyContext()
+        {
+            return m_TracyContext[VKRenderer::GetMainSwapChain()->GetCurrentBufferIndex()];
+        }
+#endif
     }
 }
