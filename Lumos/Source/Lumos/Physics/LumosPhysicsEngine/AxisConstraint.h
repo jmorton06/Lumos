@@ -14,7 +14,7 @@ namespace Lumos
 
     enum class Axes
     {
-        X,
+        X = 0,
         Y,
         Z,
         XY,
@@ -30,6 +30,7 @@ namespace Lumos
 
         virtual void ApplyImpulse() override;
         virtual void DebugDraw() const override;
+        Axes GetAxes() { return m_Axes; }
 
     protected:
         RigidBody3D* m_pObj1;

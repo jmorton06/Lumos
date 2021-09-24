@@ -27,7 +27,7 @@ namespace Lumos
                 VKContext::DeletionQueue& deletionQueue = VKRenderer::GetCurrentDeletionQueue();
 
                 auto buffer = m_Buffer;
-                
+
 #ifdef USE_VMA_ALLOCATOR
                 auto alloc = m_Allocation;
                 deletionQueue.PushFunction([buffer, alloc]
@@ -36,8 +36,9 @@ namespace Lumos
                 auto memory = m_Memory;
                 deletionQueue.PushFunction([buffer, memory]
                     {
-                    vkDestroyBuffer(VKDevice::Device(), buffer, nullptr);
-                    vkFreeMemory(VKDevice::Device(), memory, nullptr); });
+                        vkDestroyBuffer(VKDevice::Device(), buffer, nullptr);
+                        vkFreeMemory(VKDevice::Device(), memory, nullptr);
+                    });
 #endif
             }
         }
@@ -68,7 +69,7 @@ namespace Lumos
             VkMemoryAllocateInfo allocInfo = {};
             allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
             allocInfo.allocationSize = memRequirements.size;
-            allocInfo.memoryTypeIndex = VKTools::FindMemoryType(memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+            allocInfo.memoryTypeIndex = VKUtilities::FindMemoryType(memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 
             VK_CHECK_RESULT(vkAllocateMemory(VKDevice::Device(), &allocInfo, nullptr, &m_Memory));
 

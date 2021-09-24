@@ -215,7 +215,7 @@ project "LumosEditor"
 			"../ExampleProject/Assets/Meshes",
 			"../ExampleProject/Assets/Sounds",
 			"../ExampleProject/Assets/Textures",
-			"../Runtime/Runtime.lmproj"
+			"../ExampleProject/Example.lmproj"
 		}
 
 		xcodebuildsettings
@@ -264,7 +264,7 @@ project "LumosEditor"
             "Scripts",
             "Sounds",
 			"Textures",
-			"Runtime.lmproj"
+			"Example.lmproj"
 		}
 
 		SetRecommendedXcodeSettings()

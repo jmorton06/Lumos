@@ -99,7 +99,7 @@ namespace Lumos
             virtual void InitInternal() = 0;
             virtual void Begin() = 0;
             virtual void OnResize(uint32_t width, uint32_t height) = 0;
-            virtual void ClearRenderTarget(Graphics::Texture* texture, Graphics::CommandBuffer* commandBuffer) { }
+            virtual void ClearRenderTarget(Graphics::Texture* texture, Graphics::CommandBuffer* commandBuffer, Maths::Vector4 clearColour = Maths::Vector4(0.2f, 0.2f, 0.2f, 1.0f)) { }
             inline static Renderer* GetRenderer()
             {
                 return s_Instance;
@@ -107,11 +107,12 @@ namespace Lumos
 
             virtual void PresentInternal() = 0;
             virtual void PresentInternal(Graphics::CommandBuffer* commandBuffer) = 0;
-            virtual void BindDescriptorSetsInternal(Graphics::Pipeline* pipeline, Graphics::CommandBuffer* commandBuffer, uint32_t dynamicOffset, std::vector<Graphics::DescriptorSet*>& descriptorSets) = 0;
+            virtual void BindDescriptorSetsInternal(Graphics::Pipeline* pipeline, Graphics::CommandBuffer* commandBuffer, uint32_t dynamicOffset, Graphics::DescriptorSet** descriptorSets, uint32_t descriptorCount) = 0;
 
             virtual const std::string& GetTitleInternal() const = 0;
             virtual void DrawIndexedInternal(CommandBuffer* commandBuffer, DrawType type, uint32_t count, uint32_t start) const = 0;
             virtual void DrawInternal(CommandBuffer* commandBuffer, DrawType type, uint32_t count, DataType datayType, void* indices) const = 0;
+            virtual void DrawSplashScreen(Texture* texture) {};
 
             inline static void Present()
             {
@@ -121,9 +122,9 @@ namespace Lumos
             {
                 s_Instance->PresentInternal(commandBuffer);
             }
-            inline static void BindDescriptorSets(Graphics::Pipeline* pipeline, Graphics::CommandBuffer* commandBuffer, uint32_t dynamicOffset, std::vector<Graphics::DescriptorSet*>& descriptorSets)
+            inline static void BindDescriptorSets(Graphics::Pipeline* pipeline, Graphics::CommandBuffer* commandBuffer, uint32_t dynamicOffset, Graphics::DescriptorSet** descriptorSets, uint32_t descriptorCount)
             {
-                s_Instance->BindDescriptorSetsInternal(pipeline, commandBuffer, dynamicOffset, descriptorSets);
+                s_Instance->BindDescriptorSetsInternal(pipeline, commandBuffer, dynamicOffset, descriptorSets, descriptorCount);
             }
             inline static void Draw(CommandBuffer* commandBuffer, DrawType type, uint32_t count, DataType datayType = DataType::UNSIGNED_INT, void* indices = nullptr)
             {
@@ -143,7 +144,7 @@ namespace Lumos
                 static RenderAPICapabilities capabilities;
                 return capabilities;
             }
-            
+
             static GraphicsContext* GetGraphicsContext() { return Application::Get().GetWindow()->GetGraphicsContext(); }
             static SwapChain* GetMainSwapChain() { return Application::Get().GetWindow()->GetSwapChain(); }
 

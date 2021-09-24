@@ -19,7 +19,7 @@ namespace Lumos
         void VKRenderer::InitInternal()
         {
             LUMOS_PROFILE_FUNCTION();
-            
+
             m_RendererTitle = "Vulkan";
 
             // Pool sizes
@@ -53,7 +53,7 @@ namespace Lumos
             LUMOS_PROFILE_FUNCTION();
         }
 
-        void VKRenderer::ClearRenderTarget(Graphics::Texture* texture, Graphics::CommandBuffer* commandBuffer)
+        void VKRenderer::ClearRenderTarget(Graphics::Texture* texture, Graphics::CommandBuffer* commandBuffer, Maths::Vector4 clearColour)
         {
             VkImageSubresourceRange subresourceRange = {}; //TODO: Get from texture
             subresourceRange.baseMipLevel = 0;
@@ -70,7 +70,7 @@ namespace Lumos
 
                 subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 
-                VkClearColorValue clearColourValue = VkClearColorValue({ { 1.0f, 0.0f, 0.0f, 0.0f } });
+                VkClearColorValue clearColourValue = VkClearColorValue({ { clearColour.x, clearColour.y, clearColour.z, clearColour.w } });
                 vkCmdClearColorImage(((VKCommandBuffer*)commandBuffer)->GetHandle(), static_cast<VKTexture2D*>(texture)->GetImage(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, &clearColourValue, 1, &subresourceRange);
                 ((VKTexture2D*)texture)->TransitionImage(layout, (VKCommandBuffer*)commandBuffer);
             }
@@ -79,7 +79,7 @@ namespace Lumos
                 VkClearDepthStencilValue clear_depth_stencil = { 1.0f, 1 };
 
                 subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
-
+                ((VKTextureDepth*)texture)->TransitionImage(VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, (VKCommandBuffer*)commandBuffer);
                 vkCmdClearDepthStencilImage(((VKCommandBuffer*)commandBuffer)->GetHandle(), static_cast<VKTextureDepth*>(texture)->GetImage(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, &clear_depth_stencil, 1, &subresourceRange);
             }
         }
@@ -114,16 +114,15 @@ namespace Lumos
                 return;
 
             VKUtilities::ValidateResolution(width, height);
-            
+
             VKSwapChain* swapChain = (VKSwapChain*)Application::Get().GetWindow()->GetSwapChain().get();
             swapChain->OnResize(width, height);
-
         }
 
         void VKRenderer::Begin()
         {
             LUMOS_PROFILE_FUNCTION();
-            
+
             VKSwapChain* swapChain = (VKSwapChain*)Application::Get().GetWindow()->GetSwapChain().get();
             swapChain->Begin();
         }
@@ -148,17 +147,17 @@ namespace Lumos
             return m_RendererTitle;
         }
 
-        void VKRenderer::BindDescriptorSetsInternal(Graphics::Pipeline* pipeline, Graphics::CommandBuffer* commandBuffer, uint32_t dynamicOffset, std::vector<Graphics::DescriptorSet*>& descriptorSets)
+        void VKRenderer::BindDescriptorSetsInternal(Graphics::Pipeline* pipeline, Graphics::CommandBuffer* commandBuffer, uint32_t dynamicOffset, Graphics::DescriptorSet** descriptorSets, uint32_t descriptorCount)
         {
             LUMOS_PROFILE_FUNCTION();
             uint32_t numDynamicDescriptorSets = 0;
             uint32_t numDesciptorSets = 0;
 
-            for(auto descriptorSet : descriptorSets)
+            for(uint32_t i = 0; i < descriptorCount; i++)
             {
-                if(descriptorSet)
+                if(descriptorSets[i])
                 {
-                    auto vkDesSet = static_cast<Graphics::VKDescriptorSet*>(descriptorSet);
+                    auto vkDesSet = static_cast<Graphics::VKDescriptorSet*>(descriptorSets[i]);
                     if(vkDesSet->GetIsDynamic())
                         numDynamicDescriptorSets++;
 
@@ -183,6 +182,81 @@ namespace Lumos
             LUMOS_PROFILE_FUNCTION();
             Engine::Get().Statistics().NumDrawCalls++;
             vkCmdDraw(static_cast<VKCommandBuffer*>(commandBuffer)->GetHandle(), count, 1, 0, 0);
+        }
+
+        void VKRenderer::DrawSplashScreen(Texture* texture)
+        {
+            std::vector<TextureType> attachmentTypes;
+            std::vector<Texture*> attachments;
+
+            Graphics::CommandBuffer* commandBuffer = Renderer::GetMainSwapChain()->GetCurrentCommandBuffer();
+            auto image = Renderer::GetMainSwapChain()->GetCurrentImage();
+
+            attachmentTypes.push_back(TextureType::COLOUR);
+            attachments.push_back(image);
+
+            Graphics::RenderPassDesc renderPassDesc;
+            renderPassDesc.attachmentCount = uint32_t(attachmentTypes.size());
+            renderPassDesc.attachmentTypes = attachmentTypes.data();
+            renderPassDesc.attachments = attachments.data();
+            renderPassDesc.clear = true;
+
+            Maths::Vector4 clearColour = Maths::Vector4(040.0f / 256.0f, 42.0f / 256.0f, 54.0f / 256.0f, 1.0f);
+
+            int32_t width = Application::Get().GetWindow()->GetWidth();
+            int32_t height = Application::Get().GetWindow()->GetHeight();
+
+            auto renderPass = Graphics::RenderPass::Get(renderPassDesc);
+
+            FramebufferDesc frameBufferDesc {};
+            frameBufferDesc.width = width;
+            frameBufferDesc.height = height;
+            frameBufferDesc.attachmentCount = uint32_t(attachments.size());
+            frameBufferDesc.renderPass = renderPass.get();
+            frameBufferDesc.attachmentTypes = attachmentTypes.data();
+            frameBufferDesc.attachments = attachments.data();
+            auto frameBuffer = Framebuffer::Get(frameBufferDesc);
+
+            //To clear screen
+            renderPass->BeginRenderpass(commandBuffer, clearColour, frameBuffer, SubPassContents::INLINE, width, height);
+            renderPass->EndRenderpass(commandBuffer);
+
+            float ratio = texture->GetWidth() / texture->GetHeight();
+            VkImageBlit blit {};
+            blit.srcOffsets[0] = { 0, 0, 0 };
+            blit.srcOffsets[1] = { (int32_t)texture->GetWidth(), (int32_t)texture->GetWidth(), 1 };
+            blit.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+            blit.srcSubresource.mipLevel = 0;
+            blit.srcSubresource.baseArrayLayer = 0;
+            blit.srcSubresource.layerCount = 1;
+
+            int32_t destSizex = width / 8;
+            int32_t destSizey = destSizex * ratio;
+            int32_t offsetx = width / 2 - destSizex / 2;
+            int32_t offsety = height / 2 - destSizey / 2;
+
+            blit.dstOffsets[0] = { offsetx, offsety, 0 };
+            blit.dstOffsets[1] = { offsetx + destSizex, offsety + destSizey, 1 };
+            blit.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+            blit.dstSubresource.mipLevel = 0;
+            blit.dstSubresource.baseArrayLayer = 0;
+            blit.dstSubresource.layerCount = 1;
+
+            VkImageLayout layout = ((VKTexture2D*)image)->GetImageLayout();
+
+            ((VKTexture2D*)texture)->TransitionImage(VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, (VKCommandBuffer*)commandBuffer);
+            ((VKTexture2D*)image)->TransitionImage(VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, (VKCommandBuffer*)commandBuffer);
+
+            vkCmdBlitImage(((VKCommandBuffer*)commandBuffer)->GetHandle(),
+                ((VKTexture2D*)texture)->GetImage(),
+                VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+                ((VKTexture2D*)image)->GetImage(),
+                VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                1,
+                &blit,
+                VK_FILTER_LINEAR);
+
+            ((VKTexture2D*)image)->TransitionImage(layout, (VKCommandBuffer*)commandBuffer);
         }
 
         void VKRenderer::MakeDefault()

@@ -14,13 +14,46 @@ namespace Lumos
     class AxisConstraintComponent
     {
     public:
+        AxisConstraintComponent() = default;
         AxisConstraintComponent(Entity entity, Axes axis);
         ~AxisConstraintComponent() = default;
 
-        const SharedPtr<AxisConstraint>& GetConstraint() const { return m_Constraint; }
+        const SharedPtr<AxisConstraint>& GetConstraint();
+
+        template <typename Archive>
+        void save(Archive& archive) const
+        {
+            archive(m_EntityID, (int)m_Axes);
+        }
+
+        template <typename Archive>
+        void load(Archive& archive)
+        {
+            int axisInt;
+            archive(m_EntityID, axisInt);
+            m_Initialised = false;
+            m_Axes = (Axes)axisInt;
+        }
+
+        Axes GetAxes() { return m_Axes; }
+        uint64_t GetEntityID() { return m_EntityID; }
+        void SetAxes(Axes axes)
+        {
+            m_Axes = axes;
+            m_Initialised = false;
+        }
+
+        void SetEntity(uint64_t entityID)
+        {
+            m_EntityID = entityID;
+            m_Initialised = false;
+        }
 
     private:
         SharedPtr<AxisConstraint> m_Constraint;
+        bool m_Initialised = false;
+        uint64_t m_EntityID;
+        Axes m_Axes;
     };
 
     class SpringConstraintComponent
@@ -69,6 +102,8 @@ namespace Lumos
     {
     public:
         Physics3DComponent();
+        Physics3DComponent(const Physics3DComponent& other);
+
         explicit Physics3DComponent(SharedPtr<RigidBody3D>& physics);
 
         ~Physics3DComponent() = default;

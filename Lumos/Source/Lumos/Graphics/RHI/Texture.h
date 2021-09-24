@@ -55,6 +55,8 @@ namespace Lumos
             bool IsDepthStencil() const { return m_Flags & Texture_DepthStencil; }
             bool IsRenderTarget() const { return m_Flags & Texture_RenderTarget; }
 
+            virtual void* GetDescriptorInfo() const { return GetHandle(); }
+
         public:
             static uint8_t GetStrideFromFormat(TextureFormat format);
             static TextureFormat BitsToTextureFormat(uint32_t bits);

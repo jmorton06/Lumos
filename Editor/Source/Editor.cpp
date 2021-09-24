@@ -8,6 +8,9 @@
 #include "TextEditPanel.h"
 #include "ResourcePanel.h"
 #include "ImGUIConsoleSink.h"
+#include "SceneSettingsPanel.h"
+#include "EditorSettingsPanel.h"
+#include "ProjectSettingsPanel.h"
 
 #include <Lumos/Graphics/Camera/EditorCamera.h>
 #include <Lumos/Utilities/Timer.h>
@@ -24,10 +27,10 @@
 #include <Lumos/Scene/EntityManager.h>
 #include <Lumos/Events/ApplicationEvent.h>
 #include <Lumos/Scene/Component/Components.h>
+#include <Lumos/Scene/Component/ModelComponent.h>
 #include <Lumos/Scripting/Lua/LuaScriptComponent.h>
 #include <Lumos/Physics/LumosPhysicsEngine/LumosPhysicsEngine.h>
 #include <Lumos/Physics/B2PhysicsEngine/B2PhysicsEngine.h>
-#include <Lumos/Graphics/Renderers/ForwardRenderer.h>
 #include <Lumos/Graphics/MeshFactory.h>
 #include <Lumos/Graphics/Sprite.h>
 #include <Lumos/Graphics/AnimatedSprite.h>
@@ -77,7 +80,7 @@ namespace Lumos
         SaveEditorSettings();
 
         m_GridRenderer.reset();
-        m_PreviewRenderer.reset();
+        //m_PreviewRenderer.reset();
         m_PreviewTexture.reset();
         m_PreviewSphere.reset();
         m_Panels.clear();
@@ -160,6 +163,7 @@ namespace Lumos
         m_ComponentIconMap[typeid(Maths::Transform).hash_code()] = ICON_MDI_VECTOR_LINE;
         m_ComponentIconMap[typeid(Physics2DComponent).hash_code()] = ICON_MDI_SQUARE_OUTLINE;
         m_ComponentIconMap[typeid(Physics3DComponent).hash_code()] = ICON_MDI_CUBE_OUTLINE;
+        m_ComponentIconMap[typeid(Graphics::ModelComponent).hash_code()] = ICON_MDI_SHAPE;
         m_ComponentIconMap[typeid(Graphics::Model).hash_code()] = ICON_MDI_SHAPE;
         m_ComponentIconMap[typeid(LuaScriptComponent).hash_code()] = ICON_MDI_SCRIPT;
         m_ComponentIconMap[typeid(Graphics::Environment).hash_code()] = ICON_MDI_EARTH;
@@ -170,6 +174,12 @@ namespace Lumos
         m_Panels.emplace_back(CreateSharedPtr<InspectorPanel>());
         m_Panels.emplace_back(CreateSharedPtr<ApplicationInfoPanel>());
         m_Panels.emplace_back(CreateSharedPtr<HierarchyPanel>());
+        m_Panels.emplace_back(CreateSharedPtr<SceneSettingsPanel>());
+        m_Panels.back()->SetActive(false);
+        m_Panels.emplace_back(CreateSharedPtr<EditorSettingsPanel>());
+        m_Panels.back()->SetActive(false);
+        m_Panels.emplace_back(CreateSharedPtr<ProjectSettingsPanel>());
+        m_Panels.back()->SetActive(false);
         m_Panels.emplace_back(CreateSharedPtr<GraphicsInfoPanel>());
         m_Panels.back()->SetActive(false);
 #ifndef LUMOS_PLATFORM_IOS
@@ -181,34 +191,20 @@ namespace Lumos
 
         CreateGridRenderer();
 
-        m_ShowImGuiDemo = false;
+        m_Settings.m_ShowImGuiDemo = false;
 
         m_SelectedEntity = entt::null;
         m_PreviewTexture = nullptr;
 
-        Application::Get().GetSystem<LumosPhysicsEngine>()->SetDebugDrawFlags(m_Physics3DDebugFlags);
-        Application::Get().GetSystem<B2PhysicsEngine>()->SetDebugDrawFlags(m_Physics2DDebugFlags);
+        Application::Get().GetSystem<LumosPhysicsEngine>()->SetDebugDrawFlags(m_Settings.m_Physics3DDebugFlags);
+        Application::Get().GetSystem<B2PhysicsEngine>()->SetDebugDrawFlags(m_Settings.m_Physics2DDebugFlags);
 
-        ImGuiHelpers::SetTheme(m_Theme);
+        ImGuiHelpers::SetTheme(m_Settings.m_Theme);
         OS::Instance()->SetTitleBarColour(ImGui::GetStyle().Colors[ImGuiCol_MenuBarBg]);
         Application::Get().GetWindow()->SetWindowTitle("Lumos Editor");
 
-        ImGuizmo::SetGizmoSizeClipSpace(0.25f);
+        ImGuizmo::SetGizmoSizeClipSpace(m_Settings.m_ImGuizmoScale);
         ImGuizmo::SetGizmoSizeScale(Application::Get().GetWindowDPI());
-
-#if 0 //TODO: proper way to trigger this
-        auto shaderPath = std::filesystem::path("/Users/jmorton/dev/Lumos/Lumos/Assets/Shaders/CompiledSPV/");
-        
-        if(std::filesystem::is_directory(shaderPath))
-        {
-            for(auto entry : std::filesystem::directory_iterator(shaderPath))
-            {
-                auto extension = StringUtilities::GetFilePathExtension(entry.path());
-				if( extension == "spv")
-					EmbedShader(entry.path());
-			}
-		}
-#endif
     }
 
     bool Editor::IsTextFile(const std::string& filePath)
@@ -272,7 +268,7 @@ namespace Lumos
         LUMOS_PROFILE_FUNCTION();
         DrawMenuBar();
 
-        BeginDockSpace(m_FullScreenOnPlay && Application::Get().GetEditorState() == EditorState::Play);
+        BeginDockSpace(m_Settings.m_FullScreenOnPlay && Application::Get().GetEditorState() == EditorState::Play);
 
         for(auto& panel : m_Panels)
         {
@@ -280,10 +276,10 @@ namespace Lumos
                 panel->OnImGui();
         }
 
-        if(m_ShowImGuiDemo)
-            ImGui::ShowDemoWindow(&m_ShowImGuiDemo);
+        if(m_Settings.m_ShowImGuiDemo)
+            ImGui::ShowDemoWindow(&m_Settings.m_ShowImGuiDemo);
 
-        m_View2D = m_CurrentCamera->IsOrthographic();
+        m_Settings.m_View2D = m_CurrentCamera->IsOrthographic();
 
         m_FileBrowserPanel.OnImGui();
 
@@ -378,63 +374,69 @@ namespace Lumos
 
                 if(ImGui::BeginMenu("Style"))
                 {
-                    if(ImGui::MenuItem("Dark", ""))
+                    if(ImGui::MenuItem("Dark", "", m_Settings.m_Theme == ImGuiHelpers::Dark))
                     {
-                        m_Theme = ImGuiHelpers::Dark;
+                        m_Settings.m_Theme = ImGuiHelpers::Dark;
                         ImGuiHelpers::SetTheme(ImGuiHelpers::Dark);
                         OS::Instance()->SetTitleBarColour(ImGui::GetStyle().Colors[ImGuiCol_MenuBarBg]);
                     }
-                    if(ImGui::MenuItem("Black", ""))
+                    if(ImGui::MenuItem("Dracula", "", m_Settings.m_Theme == ImGuiHelpers::Dracula))
                     {
-                        m_Theme = ImGuiHelpers::Black;
+                        m_Settings.m_Theme = ImGuiHelpers::Dracula;
+                        ImGuiHelpers::SetTheme(ImGuiHelpers::Dracula);
+                        OS::Instance()->SetTitleBarColour(ImGui::GetStyle().Colors[ImGuiCol_MenuBarBg]);
+                    }
+                    if(ImGui::MenuItem("Black", "", m_Settings.m_Theme == ImGuiHelpers::Black))
+                    {
+                        m_Settings.m_Theme = ImGuiHelpers::Black;
                         ImGuiHelpers::SetTheme(ImGuiHelpers::Black);
                         OS::Instance()->SetTitleBarColour(ImGui::GetStyle().Colors[ImGuiCol_MenuBarBg]);
                     }
-                    if(ImGui::MenuItem("Grey", ""))
+                    if(ImGui::MenuItem("Grey", "", m_Settings.m_Theme == ImGuiHelpers::Grey))
                     {
-                        m_Theme = ImGuiHelpers::Grey;
+                        m_Settings.m_Theme = ImGuiHelpers::Grey;
                         ImGuiHelpers::SetTheme(ImGuiHelpers::Grey);
                         OS::Instance()->SetTitleBarColour(ImGui::GetStyle().Colors[ImGuiCol_MenuBarBg]);
                     }
-                    if(ImGui::MenuItem("Light", ""))
+                    if(ImGui::MenuItem("Light", "", m_Settings.m_Theme == ImGuiHelpers::Light))
                     {
-                        m_Theme = ImGuiHelpers::Light;
+                        m_Settings.m_Theme = ImGuiHelpers::Light;
                         ImGuiHelpers::SetTheme(ImGuiHelpers::Light);
                         OS::Instance()->SetTitleBarColour(ImGui::GetStyle().Colors[ImGuiCol_MenuBarBg]);
                     }
-                    if(ImGui::MenuItem("Cherry", ""))
+                    if(ImGui::MenuItem("Cherry", "", m_Settings.m_Theme == ImGuiHelpers::Cherry))
                     {
-                        m_Theme = ImGuiHelpers::Cherry;
+                        m_Settings.m_Theme = ImGuiHelpers::Cherry;
                         ImGuiHelpers::SetTheme(ImGuiHelpers::Cherry);
                         OS::Instance()->SetTitleBarColour(ImGui::GetStyle().Colors[ImGuiCol_MenuBarBg]);
                     }
-                    if(ImGui::MenuItem("Blue", ""))
+                    if(ImGui::MenuItem("Blue", "", m_Settings.m_Theme == ImGuiHelpers::Blue))
                     {
-                        m_Theme = ImGuiHelpers::Blue;
+                        m_Settings.m_Theme = ImGuiHelpers::Blue;
                         ImGuiHelpers::SetTheme(ImGuiHelpers::Blue);
                         OS::Instance()->SetTitleBarColour(ImGui::GetStyle().Colors[ImGuiCol_MenuBarBg]);
                     }
-                    if(ImGui::MenuItem("Cinder", ""))
+                    if(ImGui::MenuItem("Cinder", "", m_Settings.m_Theme == ImGuiHelpers::Cinder))
                     {
-                        m_Theme = ImGuiHelpers::Cinder;
+                        m_Settings.m_Theme = ImGuiHelpers::Cinder;
                         ImGuiHelpers::SetTheme(ImGuiHelpers::Cinder);
                         OS::Instance()->SetTitleBarColour(ImGui::GetStyle().Colors[ImGuiCol_MenuBarBg]);
                     }
-                    if(ImGui::MenuItem("Classic", ""))
+                    if(ImGui::MenuItem("Classic", "", m_Settings.m_Theme == ImGuiHelpers::Classic))
                     {
-                        m_Theme = ImGuiHelpers::Classic;
+                        m_Settings.m_Theme = ImGuiHelpers::Classic;
                         ImGuiHelpers::SetTheme(ImGuiHelpers::Classic);
                         OS::Instance()->SetTitleBarColour(ImGui::GetStyle().Colors[ImGuiCol_MenuBarBg]);
                     }
-                    if(ImGui::MenuItem("ClassicDark", ""))
+                    if(ImGui::MenuItem("ClassicDark", "", m_Settings.m_Theme == ImGuiHelpers::ClassicDark))
                     {
-                        m_Theme = ImGuiHelpers::ClassicDark;
+                        m_Settings.m_Theme = ImGuiHelpers::ClassicDark;
                         ImGuiHelpers::SetTheme(ImGuiHelpers::ClassicDark);
                         OS::Instance()->SetTitleBarColour(ImGui::GetStyle().Colors[ImGuiCol_MenuBarBg]);
                     }
-                    if(ImGui::MenuItem("ClassicLight", ""))
+                    if(ImGui::MenuItem("ClassicLight", "", m_Settings.m_Theme == ImGuiHelpers::ClassicLight))
                     {
-                        m_Theme = ImGuiHelpers::ClassicLight;
+                        m_Settings.m_Theme = ImGuiHelpers::ClassicLight;
                         ImGuiHelpers::SetTheme(ImGuiHelpers::ClassicLight);
                         OS::Instance()->SetTitleBarColour(ImGui::GetStyle().Colors[ImGuiCol_MenuBarBg]);
                     }
@@ -501,9 +503,9 @@ namespace Lumos
                     }
                 }
 
-                if(ImGui::MenuItem("ImGui Demo", "", &m_ShowImGuiDemo, true))
+                if(ImGui::MenuItem("ImGui Demo", "", &m_Settings.m_ShowImGuiDemo, true))
                 {
-                    m_ShowImGuiDemo = true;
+                    m_Settings.m_ShowImGuiDemo = true;
                 }
 
                 ImGui::EndMenu();
@@ -537,43 +539,43 @@ namespace Lumos
                 if(ImGui::MenuItem("Cube"))
                 {
                     auto entity = scene->CreateEntity("Cube");
-                    entity.AddComponent<Graphics::Model>(SharedPtr<Graphics::Mesh>(Graphics::CreatePrimative(Graphics::PrimitiveType::Cube)), Graphics::PrimitiveType::Cube);
+                    entity.AddComponent<Graphics::ModelComponent>(Graphics::PrimitiveType::Cube);
                 }
 
                 if(ImGui::MenuItem("Sphere"))
                 {
                     auto entity = scene->CreateEntity("Sphere");
-                    entity.AddComponent<Graphics::Model>(SharedPtr<Graphics::Mesh>(Graphics::CreatePrimative(Graphics::PrimitiveType::Sphere)), Graphics::PrimitiveType::Sphere);
+                    entity.AddComponent<Graphics::ModelComponent>(Graphics::PrimitiveType::Sphere);
                 }
 
                 if(ImGui::MenuItem("Pyramid"))
                 {
                     auto entity = scene->CreateEntity("Pyramid");
-                    entity.AddComponent<Graphics::Model>(SharedPtr<Graphics::Mesh>(Graphics::CreatePrimative(Graphics::PrimitiveType::Pyramid)), Graphics::PrimitiveType::Pyramid);
+                    entity.AddComponent<Graphics::ModelComponent>(Graphics::PrimitiveType::Pyramid);
                 }
 
                 if(ImGui::MenuItem("Plane"))
                 {
                     auto entity = scene->CreateEntity("Plane");
-                    entity.AddComponent<Graphics::Model>(SharedPtr<Graphics::Mesh>(Graphics::CreatePrimative(Graphics::PrimitiveType::Plane)), Graphics::PrimitiveType::Plane);
+                    entity.AddComponent<Graphics::ModelComponent>(Graphics::PrimitiveType::Plane);
                 }
 
                 if(ImGui::MenuItem("Cylinder"))
                 {
                     auto entity = scene->CreateEntity("Cylinder");
-                    entity.AddComponent<Graphics::Model>(SharedPtr<Graphics::Mesh>(Graphics::CreatePrimative(Graphics::PrimitiveType::Cylinder)), Graphics::PrimitiveType::Cylinder);
+                    entity.AddComponent<Graphics::ModelComponent>(Graphics::PrimitiveType::Cylinder);
                 }
 
                 if(ImGui::MenuItem("Capsule"))
                 {
                     auto entity = scene->CreateEntity("Capsule");
-                    entity.AddComponent<Graphics::Model>(SharedPtr<Graphics::Mesh>(Graphics::CreatePrimative(Graphics::PrimitiveType::Capsule)), Graphics::PrimitiveType::Capsule);
+                    entity.AddComponent<Graphics::ModelComponent>(Graphics::PrimitiveType::Capsule);
                 }
 
                 if(ImGui::MenuItem("Terrain"))
                 {
                     auto entity = scene->CreateEntity("Terrain");
-                    entity.AddComponent<Graphics::Model>(SharedPtr<Graphics::Mesh>(Graphics::CreatePrimative(Graphics::PrimitiveType::Terrain)), Graphics::PrimitiveType::Terrain);
+                    entity.AddComponent<Graphics::ModelComponent>(Graphics::PrimitiveType::Terrain);
                 }
 
                 if(ImGui::MenuItem("Light Cube"))
@@ -589,6 +591,24 @@ namespace Lumos
                 if(ImGui::MenuItem("Compile Shaders"))
                 {
                     RecompileShaders();
+                }
+                if(ImGui::MenuItem("Embed Shaders"))
+                {
+                    auto shaderPath = std::filesystem::path("/Users/jmorton/dev/Lumos/Lumos/Assets/Shaders/CompiledSPV/");
+                    int shaderCount = 0;
+                    if(std::filesystem::is_directory(shaderPath))
+                    {
+                        for(auto entry : std::filesystem::directory_iterator(shaderPath))
+                        {
+                            auto extension = StringUtilities::GetFilePathExtension(entry.path().string());
+                            if(extension == "spv")
+                            {
+                                EmbedShader(entry.path().string());
+                                shaderCount++;
+                            }
+                        }
+                    }
+                    LUMOS_LOG_INFO("Embedded {0} shaders. Recompile to use", shaderCount);
                 }
                 ImGui::EndMenu();
             }
@@ -895,7 +915,7 @@ namespace Lumos
         proj = proj.Transpose();
 
 #ifdef USE_IMGUIZMO_GRID
-        if(m_ShowGrid && !m_CurrentCamera->IsOrthographic())
+        if(m_Settings.m_ShowGrid && !m_CurrentCamera->IsOrthographic())
             ImGuizmo::DrawGrid(Maths::ValuePointer(view),
                 Maths::ValuePointer(proj), identityMatrix, 120.f);
 #endif
@@ -903,7 +923,7 @@ namespace Lumos
         if(m_SelectedEntity == entt::null || m_ImGuizmoOperation == 4)
             return;
 
-        if(m_ShowGizmos)
+        if(m_Settings.m_ShowGizmos)
         {
             ImGuizmo::SetDrawlist();
             ImGuizmo::SetOrthographic(m_CurrentCamera->IsOrthographic());
@@ -915,7 +935,7 @@ namespace Lumos
                 Maths::Matrix4 model = transform->GetWorldMatrix();
                 model = model.Transpose();
 
-                float snapAmount[3] = { m_SnapAmount, m_SnapAmount, m_SnapAmount };
+                float snapAmount[3] = { m_Settings.m_SnapAmount, m_Settings.m_SnapAmount, m_Settings.m_SnapAmount };
                 float delta[16];
 
                 ImGuizmo::Manipulate(Maths::ValuePointer(view),
@@ -924,35 +944,36 @@ namespace Lumos
                     ImGuizmo::LOCAL,
                     Maths::ValuePointer(model),
                     delta,
-                    m_SnapQuizmo ? snapAmount : nullptr);
+                    m_Settings.m_SnapQuizmo ? snapAmount : nullptr);
 
                 if(ImGuizmo::IsUsing())
                 {
                     if(static_cast<ImGuizmo::OPERATION>(m_ImGuizmoOperation) == ImGuizmo::OPERATION::SCALE)
                     {
                         model = model.Transpose();
-                        auto mat = Maths::Matrix4(delta).Transpose();
-                        transform->SetLocalScale(model.Scale() + transform->GetParentMatrix().Scale() - Maths::Vector3(1.0f, 1.0f, 1.0f));
+                        model = transform->GetParentMatrix().Inverse() * model;
+                        transform->SetLocalScale(model.Scale());
                     }
                     else
                     {
-                        auto mat = Maths::Matrix4(delta).Transpose() * transform->GetLocalMatrix();
-                        transform->SetLocalTransform(mat);
+                        model = model.Transpose();
+                        model = transform->GetParentMatrix().Inverse() * model;
+                        transform->SetLocalTransform(model);
 
                         auto physics2DComponent = registry.try_get<Physics2DComponent>(m_SelectedEntity);
 
                         if(physics2DComponent)
                         {
                             physics2DComponent->GetRigidBody()->SetPosition(
-                                { mat.Translation().x, mat.Translation().y });
+                                { model.Translation().x, model.Translation().y });
                         }
                         else
                         {
                             auto physics3DComponent = registry.try_get<Physics3DComponent>(m_SelectedEntity);
                             if(physics3DComponent)
                             {
-                                physics3DComponent->GetRigidBody()->SetPosition(mat.Translation());
-                                physics3DComponent->GetRigidBody()->SetOrientation(mat.Rotation());
+                                physics3DComponent->GetRigidBody()->SetPosition(model.Translation());
+                                physics3DComponent->GetRigidBody()->SetOrientation(model.Rotation());
                             }
                         }
                     }
@@ -1011,11 +1032,11 @@ namespace Lumos
         ImGuiID DockspaceID = ImGui::GetID("MyDockspace");
 
         static std::vector<SharedPtr<EditorPanel>> hiddenPanels;
-        if(m_FullScreenSceneView != gameFullScreen)
+        if(m_Settings.m_FullScreenSceneView != gameFullScreen)
         {
-            m_FullScreenSceneView = gameFullScreen;
+            m_Settings.m_FullScreenSceneView = gameFullScreen;
 
-            if(m_FullScreenSceneView)
+            if(m_Settings.m_FullScreenSceneView)
             {
                 for(auto panel : m_Panels)
                 {
@@ -1424,14 +1445,14 @@ namespace Lumos
         auto& registry = Application::Get().GetSceneManager()->GetCurrentScene()->GetRegistry();
 
         Maths::Vector4 selectedColour = Maths::Vector4(0.9f);
-        if(m_DebugDrawFlags & EditorDebugFlags::MeshBoundingBoxes)
+        if(m_Settings.m_DebugDrawFlags & EditorDebugFlags::MeshBoundingBoxes)
         {
-            auto group = registry.group<Graphics::Model>(entt::get<Maths::Transform>);
+            auto group = registry.group<Graphics::ModelComponent>(entt::get<Maths::Transform>);
 
             for(auto entity : group)
             {
-                const auto& [model, trans] = group.get<Graphics::Model, Maths::Transform>(entity);
-                auto& meshes = model.GetMeshes();
+                const auto& [model, trans] = group.get<Graphics::ModelComponent, Maths::Transform>(entity);
+                auto& meshes = model.ModelRef->GetMeshes();
                 for(auto mesh : meshes)
                 {
                     if(mesh->GetActive())
@@ -1444,7 +1465,7 @@ namespace Lumos
             }
         }
 
-        if(m_DebugDrawFlags & EditorDebugFlags::SpriteBoxes)
+        if(m_Settings.m_DebugDrawFlags & EditorDebugFlags::SpriteBoxes)
         {
             auto group = registry.group<Graphics::Sprite>(entt::get<Maths::Transform>);
 
@@ -1462,7 +1483,7 @@ namespace Lumos
             }
         }
 
-        if(m_DebugDrawFlags & EditorDebugFlags::CameraFrustum)
+        if(m_Settings.m_DebugDrawFlags & EditorDebugFlags::CameraFrustum)
         {
             auto cameraGroup = registry.group<Camera>(entt::get<Maths::Transform>);
 
@@ -1480,10 +1501,10 @@ namespace Lumos
         {
             auto transform = registry.try_get<Maths::Transform>(m_SelectedEntity);
 
-            auto model = registry.try_get<Graphics::Model>(m_SelectedEntity);
+            auto model = registry.try_get<Graphics::ModelComponent>(m_SelectedEntity);
             if(transform && model)
             {
-                auto& meshes = model->GetMeshes();
+                auto& meshes = model->ModelRef->GetMeshes();
                 for(auto mesh : meshes)
                 {
                     if(mesh->GetActive())
@@ -1555,16 +1576,16 @@ namespace Lumos
         float closestEntityDist = Maths::M_INFINITY;
         entt::entity currentClosestEntity = entt::null;
 
-        auto group = registry.group<Graphics::Model>(entt::get<Maths::Transform>);
+        auto group = registry.group<Graphics::ModelComponent>(entt::get<Maths::Transform>);
 
         static Timer timer;
         static float timeSinceLastSelect = 0.0f;
 
         for(auto entity : group)
         {
-            const auto& [model, trans] = group.get<Graphics::Model, Maths::Transform>(entity);
+            const auto& [model, trans] = group.get<Graphics::ModelComponent, Maths::Transform>(entity);
 
-            auto& meshes = model.GetMeshes();
+            auto& meshes = model.ModelRef->GetMeshes();
 
             for(auto mesh : meshes)
             {
@@ -1594,8 +1615,8 @@ namespace Lumos
                 if(timer.GetElapsedS() - timeSinceLastSelect < 1.0f)
                 {
                     auto& trans = registry.get<Maths::Transform>(m_SelectedEntity);
-                    auto& model = registry.get<Graphics::Model>(m_SelectedEntity);
-                    auto bb = model.GetMeshes().front()->GetBoundingBox()->Transformed(trans.GetWorldMatrix());
+                    auto& model = registry.get<Graphics::ModelComponent>(m_SelectedEntity);
+                    auto bb = model.ModelRef->GetMeshes().front()->GetBoundingBox()->Transformed(trans.GetWorldMatrix());
 
                     FocusCamera(trans.GetWorldPosition(), (bb.max_ - bb.min_).Length());
                 }
@@ -1734,7 +1755,7 @@ namespace Lumos
         Application::OnDebugDraw();
         DebugDraw();
 
-        if(Application::Get().GetEditorState() == EditorState::Preview && m_ShowGrid && !m_EditorCamera->IsOrthographic())
+        if(Application::Get().GetEditorState() == EditorState::Preview && m_Settings.m_ShowGrid && !m_EditorCamera->IsOrthographic())
             Draw3DGrid();
     }
 
@@ -1742,14 +1763,13 @@ namespace Lumos
     {
         LUMOS_PROFILE_FUNCTION();
         //DrawPreview();
-        //TODO: move window focus to window
-        //TODO: OS use TSinglton
+
         bool isProfiling = false;
 #if LUMOS_PROFILE
         isProfiling = tracy::GetProfiler().IsConnected();
 #endif
-        if(!isProfiling && m_SleepOutofFocus && !Application::Get().GetWindow()->GetWindowFocus() && m_EditorState != EditorState::Play)
-            OS::Instance()->Delay(100000);
+        if(!isProfiling && m_Settings.m_SleepOutofFocus && !Application::Get().GetWindow()->GetWindowFocus() && m_EditorState != EditorState::Play)
+            OS::Instance()->Delay(1000000);
 
         Application::OnRender();
     }
@@ -1762,10 +1782,10 @@ namespace Lumos
             m_PreviewTexture = SharedPtr<Graphics::Texture2D>(Graphics::Texture2D::Create());
             m_PreviewTexture->BuildTexture(Graphics::TextureFormat::RGBA8, 200, 200, false, false, false);
 
-            m_PreviewRenderer = CreateSharedPtr<Graphics::ForwardRenderer>(200, 200, false);
+            //m_PreviewRenderer = CreateSharedPtr<Graphics::ForwardRenderer>(200, 200, false);
             m_PreviewSphere = SharedPtr<Graphics::Mesh>(Graphics::CreateSphere());
 
-            m_PreviewRenderer->SetRenderTarget(m_PreviewTexture.get(), true);
+            //m_PreviewRenderer->SetRenderTarget(m_PreviewTexture.get(), true);
         }
 
         Maths::Matrix4 proj = Maths::Matrix4::Perspective(0.1f, 10.0f, 200.0f / 200.0f, 60.0f);
@@ -1774,11 +1794,11 @@ namespace Lumos
             Maths::Vector3(1.0f))
                                   .Inverse();
 
-        m_PreviewRenderer->Begin();
-        //m_PreviewRenderer->BeginScene(proj, view);
-        m_PreviewRenderer->SubmitMesh(m_PreviewSphere.get(), nullptr, Maths::Matrix4(), Maths::Matrix4());
-        m_PreviewRenderer->Present();
-        m_PreviewRenderer->End();
+        //        m_PreviewRenderer->Begin();
+        //        //m_PreviewRenderer->BeginScene(proj, view);
+        //        m_PreviewRenderer->SubmitMesh(m_PreviewSphere.get(), nullptr, Maths::Matrix4(), Maths::Matrix4());
+        //        m_PreviewRenderer->Present();
+        //        m_PreviewRenderer->End();
     }
 
     void Editor::FileOpenCallback(const std::string& filePath)
@@ -1789,7 +1809,7 @@ namespace Lumos
         else if(IsModelFile(filePath))
         {
             Entity modelEntity = Application::Get().GetSceneManager()->GetCurrentScene()->GetEntityManager()->Create();
-            modelEntity.AddComponent<Graphics::Model>(filePath);
+            modelEntity.AddComponent<Graphics::ModelComponent>(filePath);
             m_SelectedEntity = modelEntity.GetHandle();
         }
         else if(IsAudioFile(filePath))
@@ -1853,20 +1873,20 @@ namespace Lumos
     void Editor::SaveEditorSettings()
     {
         LUMOS_PROFILE_FUNCTION();
-        m_IniFile.SetOrAdd("ShowGrid", m_ShowGrid);
-        m_IniFile.SetOrAdd("ShowGizmos", m_ShowGizmos);
-        m_IniFile.SetOrAdd("ShowViewSelected", m_ShowViewSelected);
+        m_IniFile.SetOrAdd("ShowGrid", m_Settings.m_ShowGrid);
+        m_IniFile.SetOrAdd("ShowGizmos", m_Settings.m_ShowGizmos);
+        m_IniFile.SetOrAdd("ShowViewSelected", m_Settings.m_ShowViewSelected);
         m_IniFile.SetOrAdd("TransitioningCamera", m_TransitioningCamera);
-        m_IniFile.SetOrAdd("ShowImGuiDemo", m_ShowImGuiDemo);
-        m_IniFile.SetOrAdd("SnapAmount", m_SnapAmount);
-        m_IniFile.SetOrAdd("SnapQuizmo", m_SnapQuizmo);
-        m_IniFile.SetOrAdd("DebugDrawFlags", m_DebugDrawFlags);
+        m_IniFile.SetOrAdd("ShowImGuiDemo", m_Settings.m_ShowImGuiDemo);
+        m_IniFile.SetOrAdd("SnapAmount", m_Settings.m_SnapAmount);
+        m_IniFile.SetOrAdd("SnapQuizmo", m_Settings.m_SnapQuizmo);
+        m_IniFile.SetOrAdd("DebugDrawFlags", m_Settings.m_DebugDrawFlags);
         m_IniFile.SetOrAdd("PhysicsDebugDrawFlags", Application::Get().GetSystem<LumosPhysicsEngine>()->GetDebugDrawFlags());
         m_IniFile.SetOrAdd("PhysicsDebugDrawFlags2D", Application::Get().GetSystem<B2PhysicsEngine>()->GetDebugDrawFlags());
-        m_IniFile.SetOrAdd("Theme", (int)m_Theme);
+        m_IniFile.SetOrAdd("Theme", (int)m_Settings.m_Theme);
         m_IniFile.SetOrAdd("ProjectRoot", m_ProjectRoot);
         m_IniFile.SetOrAdd("ProjectName", m_ProjectName);
-        m_IniFile.SetOrAdd("SleepOutofFocus", m_SleepOutofFocus);
+        m_IniFile.SetOrAdd("SleepOutofFocus", m_Settings.m_SleepOutofFocus);
         m_IniFile.Rewrite();
     }
 
@@ -1876,41 +1896,41 @@ namespace Lumos
         m_ProjectRoot = "ExampleProject/";
         m_ProjectName = "Example";
 
-        m_IniFile.Add("ShowGrid", m_ShowGrid);
-        m_IniFile.Add("ShowGizmos", m_ShowGizmos);
-        m_IniFile.Add("ShowViewSelected", m_ShowViewSelected);
+        m_IniFile.Add("ShowGrid", m_Settings.m_ShowGrid);
+        m_IniFile.Add("ShowGizmos", m_Settings.m_ShowGizmos);
+        m_IniFile.Add("ShowViewSelected", m_Settings.m_ShowViewSelected);
         m_IniFile.Add("TransitioningCamera", m_TransitioningCamera);
-        m_IniFile.Add("ShowImGuiDemo", m_ShowImGuiDemo);
-        m_IniFile.Add("SnapAmount", m_SnapAmount);
-        m_IniFile.Add("SnapQuizmo", m_SnapQuizmo);
-        m_IniFile.Add("DebugDrawFlags", m_DebugDrawFlags);
+        m_IniFile.Add("ShowImGuiDemo", m_Settings.m_ShowImGuiDemo);
+        m_IniFile.Add("SnapAmount", m_Settings.m_SnapAmount);
+        m_IniFile.Add("SnapQuizmo", m_Settings.m_SnapQuizmo);
+        m_IniFile.Add("DebugDrawFlags", m_Settings.m_DebugDrawFlags);
         m_IniFile.Add("PhysicsDebugDrawFlags", 0);
         m_IniFile.Add("PhysicsDebugDrawFlags2D", 0);
-        m_IniFile.Add("Theme", (int)m_Theme);
+        m_IniFile.Add("Theme", (int)m_Settings.m_Theme);
         m_IniFile.Add("ProjectRoot", m_ProjectRoot);
         m_IniFile.Add("ProjectName", m_ProjectName);
-        m_IniFile.Add("SleepOutofFocus", m_SleepOutofFocus);
+        m_IniFile.Add("SleepOutofFocus", m_Settings.m_SleepOutofFocus);
         m_IniFile.Rewrite();
     }
 
     void Editor::LoadEditorSettings()
     {
         LUMOS_PROFILE_FUNCTION();
-        m_ShowGrid = m_IniFile.GetOrDefault("ShowGrid", m_ShowGrid);
-        m_ShowGizmos = m_IniFile.GetOrDefault("ShowGizmos", m_ShowGizmos);
-        m_ShowViewSelected = m_IniFile.GetOrDefault("ShowViewSelected", m_ShowViewSelected);
+        m_Settings.m_ShowGrid = m_IniFile.GetOrDefault("ShowGrid", m_Settings.m_ShowGrid);
+        m_Settings.m_ShowGizmos = m_IniFile.GetOrDefault("ShowGizmos", m_Settings.m_ShowGizmos);
+        m_Settings.m_ShowViewSelected = m_IniFile.GetOrDefault("ShowViewSelected", m_Settings.m_ShowViewSelected);
         m_TransitioningCamera = m_IniFile.GetOrDefault("TransitioningCamera", m_TransitioningCamera);
-        m_ShowImGuiDemo = m_IniFile.GetOrDefault("ShowImGuiDemo", m_ShowImGuiDemo);
-        m_SnapAmount = m_IniFile.GetOrDefault("SnapAmount", m_SnapAmount);
-        m_SnapQuizmo = m_IniFile.GetOrDefault("SnapQuizmo", m_SnapQuizmo);
-        m_DebugDrawFlags = m_IniFile.GetOrDefault("DebugDrawFlags", m_DebugDrawFlags);
-        m_Theme = ImGuiHelpers::Theme(m_IniFile.GetOrDefault("Theme", (int)m_Theme));
+        m_Settings.m_ShowImGuiDemo = m_IniFile.GetOrDefault("ShowImGuiDemo", m_Settings.m_ShowImGuiDemo);
+        m_Settings.m_SnapAmount = m_IniFile.GetOrDefault("SnapAmount", m_Settings.m_SnapAmount);
+        m_Settings.m_SnapQuizmo = m_IniFile.GetOrDefault("SnapQuizmo", m_Settings.m_SnapQuizmo);
+        m_Settings.m_DebugDrawFlags = m_IniFile.GetOrDefault("DebugDrawFlags", m_Settings.m_DebugDrawFlags);
+        m_Settings.m_Theme = ImGuiHelpers::Theme(m_IniFile.GetOrDefault("Theme", (int)m_Settings.m_Theme));
 
         m_ProjectRoot = m_IniFile.GetOrDefault("ProjectRoot", std::string("Users/jmorton/dev/Lumos/ExampleProject/"));
         m_ProjectName = m_IniFile.GetOrDefault("ProjectName", std::string("Example"));
-        m_Physics2DDebugFlags = m_IniFile.GetOrDefault("PhysicsDebugDrawFlags2D", 0);
-        m_Physics3DDebugFlags = m_IniFile.GetOrDefault("PhysicsDebugDrawFlags", 0);
-        m_SleepOutofFocus = m_IniFile.GetOrDefault("SleepOutofFocus", true);
+        m_Settings.m_Physics2DDebugFlags = m_IniFile.GetOrDefault("PhysicsDebugDrawFlags2D", 0);
+        m_Settings.m_Physics3DDebugFlags = m_IniFile.GetOrDefault("PhysicsDebugDrawFlags", 0);
+        m_Settings.m_SleepOutofFocus = m_IniFile.GetOrDefault("SleepOutofFocus", true);
     }
 
     const char* Editor::GetIconFontIcon(const std::string& filePath)

@@ -12,9 +12,8 @@ namespace Lumos
 {
     namespace Graphics
     {
-    
-    
-        #ifdef GL_DEBUD_CALLBACK
+
+#ifdef GL_DEBUD_CALLBACK
         static std::string GetStringForType(GLenum type)
         {
             switch(type)
@@ -124,17 +123,16 @@ namespace Lumos
                 LUMOS_LOG_INFO(OPENGLLOG "Severity: {0}", GetStringForSeverity(source));
             }
         }
-        #endif
+#endif
 
-    
         GLSwapChain::GLSwapChain(uint32_t width, uint32_t height)
         {
             m_Width = width;
             m_Height = height;
-//            FramebufferDesc info {};
-//            info.width = width;
-//            info.height = height;
-//            info.attachments = nullptr;
+            //            FramebufferDesc info {};
+            //            info.width = width;
+            //            info.height = height;
+            //            info.attachments = nullptr;
         }
 
         GLSwapChain::~GLSwapChain()
@@ -172,7 +170,7 @@ namespace Lumos
 #endif
 #endif
 #endif
-            
+
             return true;
         }
 

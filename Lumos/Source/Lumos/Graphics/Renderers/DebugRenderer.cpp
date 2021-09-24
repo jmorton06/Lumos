@@ -21,9 +21,6 @@
 #include "Platform/OpenGL/GLDescriptorSet.h"
 #include "Graphics/Renderable2D.h"
 #include "Graphics/Camera/Camera.h"
-#include "Graphics/Renderers/Renderer2D.h"
-#include "Graphics/Renderers/LineRenderer.h"
-#include "Graphics/Renderers/PointRenderer.h"
 #include "Maths/Transform.h"
 #include "Maths/Frustum.h"
 #include "Maths/BoundingBox.h"
@@ -43,16 +40,12 @@ namespace Lumos
 #define RENDERER_LINE_SIZE RENDERER2DLINE_VERTEX_SIZE * 4
 #define RENDERER_BUFFER_SIZE RENDERER_LINE_SIZE* MaxLineVertices
 
-    void DebugRenderer::Init(uint32_t width, uint32_t height)
+    void DebugRenderer::Init()
     {
         if(s_Instance)
             return;
 
         s_Instance = new DebugRenderer();
-
-        s_Instance->m_Renderer2D = new Graphics::Renderer2D(width, height, false, true, false);
-        s_Instance->m_LineRenderer = new Graphics::LineRenderer(width, height, false);
-        s_Instance->m_PointRenderer = new Graphics::PointRenderer(width, height, false);
     }
 
     void DebugRenderer::Release()
@@ -61,37 +54,25 @@ namespace Lumos
         s_Instance = nullptr;
     }
 
+    void DebugRenderer::Reset()
+    {
+        s_Instance->m_DebugTriangles.clear();
+        s_Instance->m_DebugLines.clear();
+        s_Instance->m_DebugPoints.clear();
+    }
+
     DebugRenderer::DebugRenderer()
     {
-        m_Renderer2D = nullptr;
-        m_LineRenderer = nullptr;
-        m_PointRenderer = nullptr;
     }
 
     DebugRenderer::~DebugRenderer()
     {
-        delete m_LineRenderer;
-        delete m_Renderer2D;
-        delete m_PointRenderer;
-    }
-
-    void DebugRenderer::SetRenderTarget(Graphics::Texture* texture, bool rebuildFramebuffer)
-    {
-        if(!s_Instance)
-            return;
-        if(s_Instance->m_LineRenderer)
-            s_Instance->m_LineRenderer->SetRenderTarget(texture, rebuildFramebuffer);
-        if(s_Instance->m_Renderer2D)
-            s_Instance->m_Renderer2D->SetRenderTarget(texture, rebuildFramebuffer);
-        if(s_Instance->m_PointRenderer)
-            s_Instance->m_PointRenderer->SetRenderTarget(texture, rebuildFramebuffer);
     }
 
     //Draw Point (circle)
     void DebugRenderer::GenDrawPoint(bool ndt, const Maths::Vector3& pos, float point_radius, const Maths::Vector4& colour)
     {
-        if(s_Instance && s_Instance->m_PointRenderer)
-            s_Instance->m_PointRenderer->Submit(pos, point_radius, colour);
+        s_Instance->m_DebugPoints.emplace_back(pos, point_radius, colour);
     }
 
     void DebugRenderer::DrawPoint(const Maths::Vector3& pos, float point_radius, const Maths::Vector3& colour)
@@ -114,8 +95,7 @@ namespace Lumos
     //Draw Line with a given thickness
     void DebugRenderer::GenDrawThickLine(bool ndt, const Maths::Vector3& start, const Maths::Vector3& end, float line_width, const Maths::Vector4& colour)
     {
-        if(s_Instance && s_Instance->m_LineRenderer)
-            s_Instance->m_LineRenderer->Submit(start, end, colour);
+        s_Instance->m_DebugLines.emplace_back(start, end, colour);
     }
     void DebugRenderer::DrawThickLine(const Maths::Vector3& start, const Maths::Vector3& end, float line_width, const Maths::Vector3& colour)
     {
@@ -137,8 +117,7 @@ namespace Lumos
     //Draw line with thickness of 1 screen pixel regardless of distance from camera
     void DebugRenderer::GenDrawHairLine(bool ndt, const Maths::Vector3& start, const Maths::Vector3& end, const Maths::Vector4& colour)
     {
-        if(s_Instance && s_Instance->m_LineRenderer)
-            s_Instance->m_LineRenderer->Submit(start, end, colour);
+        s_Instance->m_DebugLines.emplace_back(start, end, colour);
     }
     void DebugRenderer::DrawHairLine(const Maths::Vector3& start, const Maths::Vector3& end, const Maths::Vector3& colour)
     {
@@ -188,8 +167,7 @@ namespace Lumos
     //Draw Triangle
     void DebugRenderer::GenDrawTriangle(bool ndt, const Maths::Vector3& v0, const Maths::Vector3& v1, const Maths::Vector3& v2, const Maths::Vector4& colour)
     {
-        if(s_Instance && s_Instance->m_Renderer2D)
-            s_Instance->m_Renderer2D->SubmitTriangle(v0, v1, v2, colour);
+        s_Instance->m_DebugTriangles.emplace_back(v0, v1, v2, colour);
     }
 
     void DebugRenderer::DrawTriangle(const Maths::Vector3& v0, const Maths::Vector3& v1, const Maths::Vector3& v2, const Maths::Vector4& colour)
@@ -311,67 +289,6 @@ namespace Lumos
         DebugRenderer::DrawHairLine(vertices[1], vertices[5], colour);
         DebugRenderer::DrawHairLine(vertices[2], vertices[6], colour);
         DebugRenderer::DrawHairLine(vertices[3], vertices[7], colour);
-    }
-
-    void DebugRenderer::Begin()
-    {
-        if(m_LineRenderer)
-            m_LineRenderer->Begin();
-        if(m_Renderer2D)
-            m_Renderer2D->BeginSimple();
-        if(m_PointRenderer)
-            m_PointRenderer->Begin();
-    }
-
-    void DebugRenderer::ClearInternal()
-    {
-        if(m_Renderer2D)
-            m_Renderer2D->Clear();
-        if(m_PointRenderer)
-            m_PointRenderer->Clear();
-        if(m_LineRenderer)
-            m_LineRenderer->Clear();
-    }
-
-    void DebugRenderer::BeginSceneInternal(Scene* scene, Camera* overrideCamera, Maths::Transform* overrideCameraTransform)
-    {
-        LUMOS_PROFILE_FUNCTION();
-        if(m_Renderer2D)
-        {
-            m_Renderer2D->BeginScene(scene, overrideCamera, overrideCameraTransform);
-        }
-
-        if(m_PointRenderer)
-            m_PointRenderer->BeginScene(scene, overrideCamera, overrideCameraTransform);
-        if(m_LineRenderer)
-            m_LineRenderer->BeginScene(scene, overrideCamera, overrideCameraTransform);
-    }
-
-    void DebugRenderer::RenderInternal()
-    {
-        LUMOS_PROFILE_FUNCTION();
-        if(m_Renderer2D && m_Renderer2D->GetTriangleCount() > 0)
-        {
-            m_Renderer2D->Begin();
-            m_Renderer2D->SubmitTriangles();
-            m_Renderer2D->Present();
-            m_Renderer2D->End();
-        }
-
-        if(m_PointRenderer)
-            m_PointRenderer->RenderInternal();
-        if(m_LineRenderer)
-            m_LineRenderer->RenderInternal();
-    }
-
-    void DebugRenderer::OnResizeInternal(uint32_t width, uint32_t height)
-    {
-        if(m_Renderer2D)
-            m_Renderer2D->OnResize(width, height);
-        if(m_LineRenderer)
-            m_LineRenderer->OnResize(width, height);
-        if(m_PointRenderer)
-            m_PointRenderer->OnResize(width, height);
     }
 
     void DebugRenderer::DebugDraw(Graphics::Light* light, const Maths::Quaternion& rotation, const Maths::Vector4& colour)

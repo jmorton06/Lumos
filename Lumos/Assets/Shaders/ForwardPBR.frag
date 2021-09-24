@@ -48,7 +48,6 @@ layout(set = 1,binding = 6) uniform UniformMaterialData
 #define MAX_SHADOWMAPS 4
 
 const int NumPCFSamples = 16;
-const int numBlockerSearchSamples = 4;
 const bool fadeCascades = false;
 const float Epsilon = 0.00001;
 float ShadowFade = 1.0;
@@ -202,13 +201,6 @@ vec2 SamplePoisson16(int index)
 	return PoissonDistribution16[index % 16];
 }
 
-float Random(vec3 seed, int i)
-{
-	vec4 seed4 = vec4(seed, i);
-	float dot_product = dot(seed4, vec4(12.9898, 78.233, 45.164, 94.673));
-	return fract(sin(dot_product) * 43758.5453);
-}
-
 float PHI = 1.61803398874989484820459;  // Φ = Golden Ratio   
 
 float GoldNoise(vec2 xy, float seed)
@@ -224,6 +216,12 @@ float rand(vec2 co)
     float dt= dot(co.xy ,vec2(a,b));
     float sn= mod(dt,3.14);
     return fract(sin(sn) * c);
+}
+
+float Random(vec4 seed4)
+{
+	float dot_product = dot(seed4, vec4(12.9898,78.233,45.164,94.673));
+    return fract(sin(dot_product) * 43758.5453);
 }
 
 float TextureProj(vec4 shadowCoord, vec2 offset, int cascadeIndex, float bias)
@@ -277,7 +275,7 @@ float PoissonShadow(vec4 sc, int cascadeIndex, float bias, vec3 wsPos)
 	
 	for(int i = 0; i < 8; i ++)
 	{
-		int index = int(16.0*Random(floor(wsPos*1000.0), count))%16;
+		int index = i;// int(16.0*Random(floor(wsPos*1000.0), count))%16;
 		shadowFactor -= 0.1 * (1.0 - TextureProj(sc, dx * PoissonDistribution16[index], cascadeIndex, bias));
 		count++;
 	}
@@ -321,64 +319,23 @@ float GetShadowBias(vec3 lightDirection, vec3 normal, int shadowIndex)
 	return bias;
 }
 
-float FindBlockerDistance_DirectionalLight(sampler2DArray shadowMap, vec4 shadowCoords, float uvLightSize, vec3 lightDirection, vec3 normal, vec3 wsPos, int cascadeIndex)
-{
-	float bias = GetShadowBias(lightDirection, normal, cascadeIndex);
-	
-	int blockers = 0;
-	float avgBlockerDistance = 0;
-	
-	float zEye = -(vec4(wsPos, 1.0) * ubo.lightView).z;
-	vec2 searchWidth = SearchRegionRadiusUV(zEye);
-	
-	for (int i = 0; i < numBlockerSearchSamples; i++)
-	{
-		//int index = int(float(numBlockerSearchSamples)*GoldNoise(wsPos.xy, i * wsPos.z))%numBlockerSearchSamples;
-		float z = texture(shadowMap, vec3(shadowCoords.xy + SamplePoisson(i) * searchWidth , cascadeIndex)).r;
-		if (z < (shadowCoords.z - bias))
-		{
-			blockers++;
-			avgBlockerDistance += z;
-		}
-	}
-	
-	if (blockers > 0)
-		return avgBlockerDistance / float(blockers);
-	
-	return -1;
-}
-
-float PCF_DirectionalLight(sampler2DArray shadowMap, vec4 shadowCoords, float uvRadius, vec3 lightDirection, vec3 normal, vec3 wsPos, int cascadeIndex)
+float PCFShadowDirectionalLight(sampler2DArray shadowMap, vec4 shadowCoords, float uvRadius, vec3 lightDirection, vec3 normal, vec3 wsPos, int cascadeIndex)
 {
 	float bias = GetShadowBias(lightDirection, normal, cascadeIndex);
 	float sum = 0;
 	
 	for (int i = 0; i < NumPCFSamples; i++)
 	{
-		int index = int(float(NumPCFSamples)*GoldNoise(wsPos.xy, i * wsPos.z))%NumPCFSamples;
-		//float goldenNoiseValue = GoldNoise(wsPos.xy, i * wsPos.z);
-		//float newValue = goldenNoiseValue * 64;
-		//int index =  int(newValue);
-		float z = texture(shadowMap, vec3(shadowCoords.xy + SamplePoisson(index)  * uvRadius, cascadeIndex)).r;
-		sum += (z < (shadowCoords.z - bias)) ? 1 : 0;
+		//int index = int(16.0f*Random(vec4(wsPos, i)))%16;
+		//int index = int(float(NumPCFSamples)*GoldNoise(wsPos.xy, i * wsPos.z))%NumPCFSamples;
+		int index = int(float(NumPCFSamples)*Random(vec4(wsPos.xyz, 1)))%NumPCFSamples;
+		
+		float z = texture(shadowMap, vec3(shadowCoords.xy + (SamplePoisson(index) * uvRadius), cascadeIndex)).r;
+		sum += step(shadowCoords.z - bias, z);
 		//sum += step(shadowCoords.z - bias, z);
 	}
+	
 	return sum / NumPCFSamples;
-}
-
-float PCSS_DirectionalLight(sampler2DArray shadowMap, vec4 shadowCoords, float uvLightSize, vec3 lightDirection, vec3 normal, vec3 wsPos, int cascadeIndex)
-{
-	float blockerDistance = FindBlockerDistance_DirectionalLight(shadowMap, shadowCoords, uvLightSize, lightDirection, normal, wsPos, cascadeIndex);
-	if (blockerDistance == -1)
-		return 1;		
-	
-	float penumbraWidth = ( shadowCoords.z - blockerDistance) / blockerDistance;
-	
-	float NEAR = 0.01;
-	float uvRadius = penumbraWidth * uvLightSize * NEAR / shadowCoords.z;
-	uvRadius = min(uvRadius, 0.002f);
-	
-	return 1.0 - PCF_DirectionalLight(shadowMap, shadowCoords, uvRadius, lightDirection, normal, wsPos, cascadeIndex) * ShadowFade;
 }
 
 int CalculateCascadeIndex(vec3 wsPos)
@@ -399,14 +356,18 @@ int CalculateCascadeIndex(vec3 wsPos)
 
 float CalculateShadow(vec3 wsPos, int cascadeIndex, vec3 lightDirection, vec3 normal)
 {
-	vec4 shadowCoord =  vec4(wsPos, 1.0) * ubo.uShadowTransform[cascadeIndex] * ubo.biasMat;
+	vec4 shadowCoord = vec4(wsPos, 1.0) * ubo.uShadowTransform[cascadeIndex] * ubo.biasMat;
 	shadowCoord = shadowCoord * ( 1.0 / shadowCoord.w);
-	//return PCSS_DirectionalLight(uShadowMap, shadowCoord, ubo.lightSize, lightDirection, normal, wsPos, cascadeIndex );
 	float NEAR = 0.01;
 	float uvRadius =  ubo.lightSize * NEAR / shadowCoord.z;
 	uvRadius = min(uvRadius, 0.002f);
+	vec4 viewPos = vec4(wsPos, 1.0) * ubo.viewMatrix;
 	
-	return 1.0 - PCF_DirectionalLight(uShadowMap, shadowCoord, uvRadius, lightDirection, normal, wsPos, cascadeIndex) * ShadowFade;
+	float shadowAmount = 1.0;
+		shadowCoord = vec4(wsPos, 1.0) * ubo.uShadowTransform[cascadeIndex] * ubo.biasMat;
+	shadowAmount = PCFShadowDirectionalLight(uShadowMap, shadowCoord, uvRadius, lightDirection, normal, wsPos, cascadeIndex);
+	
+	return 1.0 - ((1.0 - shadowAmount) * ShadowFade);
 }
 
 // Constant normal incidence Fresnel factor for all dielectrics.

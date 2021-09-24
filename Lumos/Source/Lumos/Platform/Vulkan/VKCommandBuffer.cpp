@@ -4,6 +4,7 @@
 #include "VKCommandPool.h"
 #include "VKFramebuffer.h"
 #include "VKUtilities.h"
+#include "VKPipeline.h"
 
 #include <Tracy/TracyVulkan.hpp>
 
@@ -86,10 +87,10 @@ namespace Lumos
         {
             LUMOS_PROFILE_FUNCTION();
             VKUtilities::WaitIdle();
-            
+
             if(m_State == CommandBufferState::Submitted)
                 Wait();
-            
+
             m_Fence = nullptr;
             vkDestroySemaphore(VKDevice::Get().GetDevice(), m_Semaphore, nullptr);
 
@@ -132,6 +133,14 @@ namespace Lumos
         {
             LUMOS_PROFILE_FUNCTION();
             LUMOS_ASSERT(m_State == CommandBufferState::Recording, "CommandBuffer ended before started recording");
+
+            if(m_BoundPipeline)
+                m_BoundPipeline->End(this);
+
+            m_BoundPipeline = nullptr;
+
+            TracyVkCollect(VKDevice::Get().GetTracyContext(), m_CommandBuffer);
+
             VK_CHECK_RESULT(vkEndCommandBuffer(m_CommandBuffer));
             m_State = CommandBufferState::Ended;
         }
@@ -167,6 +176,25 @@ namespace Lumos
             m_State = CommandBufferState::Submitted;
 
             vkCmdExecuteCommands(static_cast<VKCommandBuffer*>(primaryCmdBuffer)->GetHandle(), 1, &m_CommandBuffer);
+        }
+
+        void VKCommandBuffer::BindPipeline(Pipeline* pipeline)
+        {
+            if(pipeline != m_BoundPipeline)
+            {
+                if(m_BoundPipeline)
+                    m_BoundPipeline->End(this);
+
+                pipeline->Bind(this);
+                m_BoundPipeline = pipeline;
+            }
+        }
+
+        void VKCommandBuffer::UnBindPipeline()
+        {
+            if(m_BoundPipeline)
+                m_BoundPipeline->End(this);
+            m_BoundPipeline = nullptr;
         }
 
         void VKCommandBuffer::UpdateViewport(uint32_t width, uint32_t height)
@@ -211,10 +239,7 @@ namespace Lumos
         {
             LUMOS_ASSERT(m_State == CommandBufferState::Submitted, "");
 
-            bool fenceFailed = m_Fence->Wait();
-            if(fenceFailed)
-                return false;
-
+            m_Fence->WaitAndReset();
             m_State = CommandBufferState::Idle;
 
             return true;

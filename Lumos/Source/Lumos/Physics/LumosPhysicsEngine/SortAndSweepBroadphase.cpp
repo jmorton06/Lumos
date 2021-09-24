@@ -49,8 +49,19 @@ namespace Lumos
             {
                 auto& obj2 = *objects[iit];
                 // Skip pairs of two at rest/static objects
-                if((obj.GetIsAtRest() || obj.GetIsStatic()) && (obj2.GetIsAtRest() || obj2.GetIsStatic()))
-                    continue;
+//                if(obj.GetIsAtRest() && obj2.GetIsAtRest())
+//                    continue;
+//
+//                // Skip pairs of two at static objects
+//                if(obj.GetIsStatic() && obj2.GetIsStatic())
+//                    continue;
+//
+//                // Skip pairs of one static and one at rest
+//                if(obj.GetIsAtRest() && obj2.GetIsStatic())
+//                    continue;
+//
+//                if(obj.GetIsStatic() && obj2.GetIsAtRest())
+//                    continue;
 
                 float testBoxLeft = obj2.GetWorldSpaceAABB().min_[m_AxisIndex];
 

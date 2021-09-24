@@ -339,6 +339,7 @@ namespace Lumos
         physics3D_type.set_function("SetForce", &RigidBody3D::SetForce);
         physics3D_type.set_function("SetPosition", &RigidBody3D::SetPosition);
         physics3D_type.set_function("SetLinearVelocity", &RigidBody3D::SetLinearVelocity);
+        physics3D_type.set_function("GetLinearVelocity", &RigidBody3D::GetLinearVelocity);
         physics3D_type.set_function("SetOrientation", &RigidBody3D::SetOrientation);
         physics3D_type.set_function("SetAngularVelocity", &RigidBody3D::SetAngularVelocity);
         physics3D_type.set_function("SetFriction", &RigidBody3D::SetFriction);

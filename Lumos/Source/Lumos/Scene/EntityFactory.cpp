@@ -4,7 +4,7 @@
 #include "Physics/LumosPhysicsEngine/PyramidCollisionShape.h"
 #include "Physics/LumosPhysicsEngine/CuboidCollisionShape.h"
 #include "Physics/LumosPhysicsEngine/LumosPhysicsEngine.h"
-#include "Graphics/Model.h"
+#include "Scene/Component/ModelComponent.h"
 #include "Maths/Random.h"
 #include "Scene/Scene.h"
 #include "Core/Application.h"
@@ -45,7 +45,7 @@ namespace Lumos
     {
         auto sphere = scene->GetEntityManager()->Create(name);
         sphere.AddComponent<Maths::Transform>(Maths::Matrix4::Translation(pos) * Maths::Matrix4::Scale(Maths::Vector3(radius, radius, radius)));
-        auto& model = sphere.AddComponent<Graphics::Model>(SharedPtr<Graphics::Mesh>(Graphics::CreateSphere()), Graphics::PrimitiveType::Sphere);
+        auto& model = sphere.AddComponent<Graphics::ModelComponent>(Graphics::PrimitiveType::Sphere).ModelRef;
 
         SharedPtr<Graphics::Material> matInstance = CreateSharedPtr<Graphics::Material>();
         Graphics::MaterialProperties properties;
@@ -60,7 +60,7 @@ namespace Lumos
 
         //auto shader = Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/ForwardPBR.shader");
         //matInstance->SetShader(nullptr);//shader);
-        model.GetMeshes().front()->SetMaterial(matInstance);
+        model->GetMeshes().front()->SetMaterial(matInstance);
 
         if(physics_enabled)
         {
@@ -103,7 +103,7 @@ namespace Lumos
     {
         auto cube = scene->GetEntityManager()->Create(name);
         cube.AddComponent<Maths::Transform>(Maths::Matrix4::Translation(pos) * Maths::Matrix4::Scale(halfdims));
-        auto& model = cube.AddComponent<Graphics::Model>(SharedPtr<Graphics::Mesh>(Graphics::CreateCube()), Graphics::PrimitiveType::Cube);
+        auto& model = cube.AddComponent<Graphics::ModelComponent>(Graphics::PrimitiveType::Cube).ModelRef;
 
         auto matInstance = CreateSharedPtr<Graphics::Material>();
         Graphics::MaterialProperties properties;
@@ -119,7 +119,7 @@ namespace Lumos
 
         //auto shader = Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/ForwardPBR.shader");
         //matInstance->SetShader(shader);
-        model.GetMeshes().front()->SetMaterial(matInstance);
+        model->GetMeshes().front()->SetMaterial(matInstance);
 
         if(physics_enabled)
         {
@@ -179,8 +179,8 @@ namespace Lumos
 
         pyramidMeshEntity.AddComponent<Maths::Transform>(Maths::Quaternion(-90.0f, 0.0f, 0.0f).RotationMatrix4() * Maths::Matrix4::Scale(halfdims));
         pyramidMeshEntity.SetParent(pyramid);
-        auto& model = pyramidMeshEntity.AddComponent<Graphics::Model>(SharedPtr<Graphics::Mesh>(Graphics::CreatePyramid()), Graphics::PrimitiveType::Pyramid);
-        model.GetMeshes().front()->SetMaterial(matInstance);
+        auto& model = pyramidMeshEntity.AddComponent<Graphics::ModelComponent>(Graphics::PrimitiveType::Pyramid).ModelRef;
+        model->GetMeshes().front()->SetMaterial(matInstance);
 
         if(physics_enabled)
         {

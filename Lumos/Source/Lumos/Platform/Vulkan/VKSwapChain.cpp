@@ -17,7 +17,7 @@ namespace Lumos
             m_SwapChain = VK_NULL_HANDLE;
             m_OldSwapChain = VK_NULL_HANDLE;
             m_Surface = VK_NULL_HANDLE;
-            
+
             //Initialised by first Image Aquire
             m_CurrentBuffer = std::numeric_limits<uint32_t>::max();
             m_AcquireImageIndex = std::numeric_limits<uint32_t>::max();
@@ -28,10 +28,8 @@ namespace Lumos
             for(uint32_t i = 0; i < m_SwapChainBufferCount; i++)
             {
                 vkDestroySemaphore(VKDevice::Get().GetDevice(), m_Frames[i].PresentSemaphore, nullptr);
+                m_Frames[i].MainCommandBuffer->Flush();
 
-                if(m_Frames[i].MainCommandBuffer->GetState() == CommandBufferState::Submitted)
-                    m_Frames[i].MainCommandBuffer->Wait();
-                
                 m_Frames[i].MainCommandBuffer = nullptr;
                 m_Frames[i].CommandPool = nullptr;
 
@@ -56,7 +54,7 @@ namespace Lumos
             bool success = Init(vsync);
 
             AcquireNextImage();
-            
+
             return success;
         }
 
@@ -101,8 +99,14 @@ namespace Lumos
 
             // Use triple-buffering
             m_SwapChainBufferCount = surfaceCapabilities.maxImageCount;
+
             if(m_SwapChainBufferCount > 3)
                 m_SwapChainBufferCount = 3;
+
+#ifdef LUMOS_PLATFORM_MACOS
+                //Moltenvk bug - vsync is double the actual refresh rate when using 3 images
+                //m_SwapChainBufferCount = 2;
+#endif
 
             VkSurfaceTransformFlagBitsKHR preTransform;
             if(surfaceCapabilities.supportedTransforms & VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR)
@@ -275,7 +279,7 @@ namespace Lumos
             {
                 if(m_Frames[i].MainCommandBuffer->GetState() == CommandBufferState::Submitted)
                     m_Frames[i].MainCommandBuffer->Wait();
-                
+
                 delete m_SwapChainBuffers[i];
             }
 
@@ -313,7 +317,7 @@ namespace Lumos
                     return;
                 }
             }
-
+            commandBuffer->Reset();
             VKRenderer::GetDeletionQueue(m_CurrentBuffer).Flush();
             commandBuffer->BeginRecording();
         }

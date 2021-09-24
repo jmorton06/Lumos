@@ -99,12 +99,16 @@ namespace Lumos
             {
                 LUMOS_PROFILE_SCOPE("Physics::Get Axis Constraints");
 
-                auto viewAxis = registry.view<AxisConstraintComponent>();
+                auto viewAxis = registry.view<AxisConstraintComponent, IDComponent>();
 
                 for(auto entity : viewAxis)
                 {
-                    const auto& constraint = viewAxis.get<AxisConstraintComponent>(entity).GetConstraint();
-                    m_Constraints.push_back(constraint.get());
+                    const auto& [constraint, idComp] = viewAxis.get<AxisConstraintComponent, IDComponent>(entity);
+					
+					if(constraint.GetEntityID() != idComp.ID)
+						constraint.SetEntity(idComp.ID);
+                    if(constraint.GetConstraint())
+                        m_Constraints.push_back(constraint.GetConstraint().get());
                 }
             }
 
@@ -338,7 +342,7 @@ namespace Lumos
             return;
 #ifdef THREAD_NARROWPHASE
         System::JobSystem::Context jobSystemContext;
-        System::JobSystem::Dispatch(jobSystemContext, static_cast<uint32_t>(m_BroadphaseCollisionPairs.size()), 128, [&](JobDispatchArgs args)
+        System::JobSystem::Dispatch(jobSystemContext, static_cast<uint32_t>(m_BroadphaseCollisionPairs.size()), static_cast<uint32_t>(m_BroadphaseCollisionPairs.size()) / 6, [&](JobDispatchArgs args)
 #else
         for(auto& cp : m_BroadphaseCollisionPairs)
 #endif

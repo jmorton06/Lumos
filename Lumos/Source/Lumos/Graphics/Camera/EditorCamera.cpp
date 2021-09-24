@@ -69,7 +69,7 @@ namespace Lumos
             pitch = Maths::Max(pitch, -84.0f);
             float yaw = euler.y - m_RotateVelocity.x;
             m_PreviousCurserPos = Maths::Vector2(xpos, ypos);
-            transform.SetLocalOrientation(Maths::Quaternion::EulerAnglesToQuaternion(pitch, yaw, 0.0f));
+            transform.SetLocalOrientation(Maths::Quaternion::EulerAnglesToQuaternion(pitch, yaw, euler.z));
         }
 
         m_RotateVelocity = m_RotateVelocity * pow(m_RotateDampeningFactor, dt);

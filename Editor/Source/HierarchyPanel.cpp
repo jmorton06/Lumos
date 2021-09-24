@@ -52,6 +52,7 @@ namespace Lumos
 
         if(show)
         {
+            ImGui::PushID((int)node);
             auto hierarchyComponent = registry.try_get<Hierarchy>(node);
             bool noChildren = true;
 
@@ -60,7 +61,7 @@ namespace Lumos
 
             ImGuiTreeNodeFlags nodeFlags = ((m_Editor->GetSelected() == node) ? ImGuiTreeNodeFlags_Selected : 0);
 
-            nodeFlags |= ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_FramePadding;
+            nodeFlags |= ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_FramePadding | ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_SpanAvailWidth;
 
             if(noChildren)
             {
@@ -96,6 +97,11 @@ namespace Lumos
                 if(iconMap.find(typeid(Camera).hash_code()) != iconMap.end())
                     icon = iconMap[typeid(Camera).hash_code()];
             }
+            if(registry.has<LuaScriptComponent>(node))
+            {
+                if(iconMap.find(typeid(LuaScriptComponent).hash_code()) != iconMap.end())
+                    icon = iconMap[typeid(LuaScriptComponent).hash_code()];
+            }
             else if(registry.has<SoundComponent>(node))
             {
                 if(iconMap.find(typeid(SoundComponent).hash_code()) != iconMap.end())
@@ -122,14 +128,26 @@ namespace Lumos
                     icon = iconMap[typeid(Graphics::Sprite).hash_code()];
             }
 
-            bool nodeOpen = ImGui::TreeNodeEx((void*)(intptr_t)entt::to_integral(node), nodeFlags, (icon + " %s").c_str(), doubleClicked ? "" : (name).c_str());
+            ImGui::PushStyleColor(ImGuiCol_Text, ImGuiHelpers::GetIconColour());
+            //ImGui::BeginGroup();
+            bool nodeOpen = ImGui::TreeNodeEx((void*)(intptr_t)entt::to_integral(node), nodeFlags, "%s", icon.c_str());
+            {
+                // Allow clicking of icon and text. Need twice as they are separated
+                if(ImGui::IsItemClicked())
+                    m_Editor->SetSelected(node);
+                else if(m_DoubleClicked == node && ImGui::IsMouseClicked(ImGuiMouseButton_Left) && !ImGui::IsItemHovered(ImGuiHoveredFlags_None))
+                    m_DoubleClicked = entt::null;
+            }
+            ImGui::PopStyleColor();
+            ImGui::SameLine();
+            if(!doubleClicked)
+                ImGui::TextUnformatted(name.c_str());
+            //ImGui::EndGroup();
 
             if(doubleClicked)
             {
-                ImGui::SameLine();
                 static char objName[INPUT_BUF_SIZE];
                 strcpy(objName, name.c_str());
-
                 ImGui::PushItemWidth(-1);
                 if(ImGui::InputText("##Name", objName, IM_ARRAYSIZE(objName), 0))
                     registry.get_or_emplace<NameComponent>(node).name = objName;
@@ -208,7 +226,7 @@ namespace Lumos
                 ImGui::EndPopup();
             }
 
-            if(!doubleClicked && ImGui::BeginDragDropSource(ImGuiDragDropFlags_None))
+            if(!doubleClicked && ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID))
             {
                 auto ptr = node;
                 ImGui::SetDragDropPayload("Drag_Entity", &ptr, sizeof(entt::entity*));
@@ -276,6 +294,8 @@ namespace Lumos
                 DestroyEntity(node, registry);
                 if(nodeOpen)
                     ImGui::TreePop();
+
+                ImGui::PopID();
                 return;
             }
 
@@ -301,6 +321,7 @@ namespace Lumos
 
             if(nodeOpen == false)
             {
+                ImGui::PopID();
                 return;
             }
 
@@ -351,6 +372,7 @@ namespace Lumos
             drawList->AddLine(verticalLineStart, verticalLineEnd, TreeLineColor);
 
             ImGui::TreePop();
+            ImGui::PopID();
         }
     }
 
@@ -425,7 +447,17 @@ namespace Lumos
             ImGui::PushStyleColor(ImGuiCol_MenuBarBg, ImGui::GetStyleColorVec4(ImGuiCol_TabActive));
             ImGui::TextUnformatted(ICON_MDI_MAGNIFY);
             ImGui::SameLine();
+
             m_HierarchyFilter.Draw("##HierarchyFilter", ImGui::GetContentRegionAvail().x - ImGui::GetStyle().IndentSpacing);
+
+            if(!m_HierarchyFilter.IsActive())
+            {
+                ImGui::SameLine();
+                ImGui::SetCursorPosX(ImGui::GetFontSize() * 2.0f);
+                ImGuiHelpers::ScopedStyle padding(ImGuiStyleVar_FramePadding, ImVec2(0.0f, ImGui::GetStyle().FramePadding.y));
+                ImGui::TextUnformatted("Search...");
+            }
+
             ImGui::PopStyleColor();
             ImGui::Unindent();
 

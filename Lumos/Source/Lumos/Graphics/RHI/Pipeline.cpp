@@ -26,7 +26,7 @@ namespace Lumos
             float timeSinceLastAccessed;
         };
         static std::unordered_map<std::size_t, PipelineAsset> m_PipelineCache;
-        static const float m_CacheLifeTime = 1.0f;
+        static const float m_CacheLifeTime = 3.0f;
 
         Pipeline* (*Pipeline::CreateFunc)(const PipelineDesc&) = nullptr;
 
@@ -56,7 +56,7 @@ namespace Lumos
 
                     if(GraphicsContext::GetRenderAPI() == RenderAPI::VULKAN)
                     {
-                        VkDescriptorImageInfo* imageHandle = (VkDescriptorImageInfo*)(texture->GetImageHande());
+                        VkDescriptorImageInfo* imageHandle = (VkDescriptorImageInfo*)(texture->GetDescriptorInfo());
                         HashCombine(hash, imageHandle->imageLayout, imageHandle->imageView, imageHandle->sampler);
                     }
 #endif
@@ -67,7 +67,7 @@ namespace Lumos
             HashCombine(hash, pipelineDesc.depthTarget);
             HashCombine(hash, pipelineDesc.depthArrayTarget);
             HashCombine(hash, pipelineDesc.swapchainTarget);
-            
+
             if(pipelineDesc.swapchainTarget)
             {
                 //Add one swapchain image to hash
@@ -82,13 +82,13 @@ namespace Lumos
 
                     if(GraphicsContext::GetRenderAPI() == RenderAPI::VULKAN)
                     {
-                        VkDescriptorImageInfo* imageHandle = (VkDescriptorImageInfo*)(texture->GetImageHande());
+                        VkDescriptorImageInfo* imageHandle = (VkDescriptorImageInfo*)(texture->GetDescriptorInfo());
                         HashCombine(hash, imageHandle->imageLayout, imageHandle->imageView, imageHandle->sampler);
                     }
 #endif
                 }
             }
-            
+
             auto found = m_PipelineCache.find(hash);
             if(found != m_PipelineCache.end() && found->second.pipeline)
             {
