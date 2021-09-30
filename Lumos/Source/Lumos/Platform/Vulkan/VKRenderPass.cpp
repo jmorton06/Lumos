@@ -27,11 +27,9 @@ namespace Lumos
         VKRenderPass::~VKRenderPass()
         {
             LUMOS_PROFILE_FUNCTION();
-            vkDeviceWaitIdle(VKDevice::GetHandle());
             delete[] m_ClearValue;
 
             VKContext::DeletionQueue& deletionQueue = VKRenderer::GetCurrentDeletionQueue();
-
             auto renderPass = m_RenderPass;
 
             deletionQueue.PushFunction([renderPass]

@@ -55,9 +55,9 @@ namespace Lumos
             void DrawInternal(CommandBuffer* commandBuffer, DrawType type, uint32_t count, DataType datayType, void* indices) const override;
             void DrawSplashScreen(Texture* texture) override;
 
-            const VkDescriptorPool& GetDescriptorPool() const
+            static VkDescriptorPool& GetDescriptorPool()
             {
-                return m_DescriptorPool;
+                return s_DescriptorPool;
             };
 
             static VKContext::DeletionQueue& GetDeletionQueue(int frameIndex)
@@ -87,7 +87,7 @@ namespace Lumos
 
             std::string m_RendererTitle;
 
-            VkDescriptorPool m_DescriptorPool;
+            static VkDescriptorPool s_DescriptorPool;
             VkDescriptorSet m_DescriptorSetPool[16];
             static VKContext::DeletionQueue s_DeletionQueue[3];
         };

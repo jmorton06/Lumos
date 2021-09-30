@@ -253,7 +253,7 @@ namespace Lumos
                     entt::snapshot_loader { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV6>(input);
                 else if(m_SceneSerialisationVersion >= 8)
                     entt::snapshot_loader { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV7>(input);
-                
+
                 if(m_SceneSerialisationVersion < 6)
                 {
                     m_EntityManager->GetRegistry().each([&](auto entity)
@@ -356,7 +356,7 @@ namespace Lumos
         }
     }
 
-    template <typename ...Component>
+    template <typename... Component>
     static void CopyEntity(entt::entity dst, entt::entity src, entt::registry& registry)
     {
         (CopyComponentIfExists<Component>(dst, src, registry), ...);
@@ -393,7 +393,7 @@ namespace Lumos
         Entity newEntity = m_EntityManager->Create();
 
         CopyEntity<ALL_COMPONENTSV7>(newEntity.GetHandle(), entity.GetHandle(), m_EntityManager->GetRegistry());
-        
+
         auto hierarchyComponent = newEntity.TryGetComponent<Hierarchy>();
         if(hierarchyComponent)
         {
@@ -402,10 +402,10 @@ namespace Lumos
             hierarchyComponent->m_Next = entt::null;
             hierarchyComponent->m_Prev = entt::null;
         }
-        
+
         auto children = entity.GetChildren();
         std::vector<Entity> copiedChildren;
-        
+
         for(auto child : children)
         {
             DuplicateEntity(child, newEntity);
@@ -413,7 +413,7 @@ namespace Lumos
 
         if(parent)
             newEntity.SetParent(parent);
-        
+
         m_SceneGraph->DisableOnConstruct(false, m_EntityManager->GetRegistry());
     }
 }

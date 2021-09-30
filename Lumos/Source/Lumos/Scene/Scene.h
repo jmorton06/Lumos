@@ -114,6 +114,18 @@ namespace Lumos
             bool DebugRenderEnabled = true;
             bool SkyboxRenderEnabled = true;
             bool ShadowsEnabled = true;
+
+            //Shadow Settings
+            float m_CascadeSplitLambda;
+            float m_SceneRadiusMultiplier;
+
+            float m_LightSize;
+            float m_MaxShadowDistance;
+            float m_ShadowFade;
+            float m_CascadeTransitionFade;
+            float m_InitialBias;
+            uint32_t m_ShadowMapNum;
+            uint32_t m_ShadowMapSize;
         };
 
         struct SceneSettings
@@ -124,7 +136,7 @@ namespace Lumos
 
             SceneRenderSettings RenderSettings;
         };
-        
+
 #define SceneVersion 9
 
         template <typename Archive>

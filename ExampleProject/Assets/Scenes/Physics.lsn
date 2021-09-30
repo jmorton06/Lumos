@@ -1557,10 +1557,10 @@
                 "value2": 22.700944900512697
             },
             "Orientation": {
-                "value0": -0.05640150606632233,
-                "value1": -0.38196972012519839,
-                "value2": -0.02336227148771286,
-                "value3": 0.9221563339233398
+                "value0": 0.0,
+                "value1": 0.0,
+                "value2": 0.0,
+                "value3": 1.0
             },
             "LinearVelocity": {
                 "value0": 0.0,
@@ -1572,7 +1572,7 @@
                 "value1": 0.0,
                 "value2": 0.0
             },
-            "Mass": 1.0,
+            "Mass": 10.0,
             "AngularVelocity": {
                 "value0": 0.0,
                 "value1": 0.0,
@@ -1584,7 +1584,7 @@
                 "value2": 0.0
             },
             "Static": false,
-            "Friction": 1.0,
+            "Friction": 2.0,
             "Elasticity": 0.0,
             "CollisionShape": {
                 "polymorphic_id": 2,
@@ -2297,7 +2297,7 @@
                     "usingAOMap": 0.0,
                     "usingEmissiveMap": 0.0,
                     "workflow": 0.0,
-                    "shader": "Embedded"
+                    "shader": ""
                 }
             }
         }
@@ -3397,7 +3397,7 @@
                     "usingAOMap": 0.0,
                     "usingEmissiveMap": 0.0,
                     "workflow": 0.0,
-                    "shader": "Embedded"
+                    "shader": ""
                 }
             }
         }
@@ -3697,7 +3697,7 @@
                     "usingAOMap": 0.0,
                     "usingEmissiveMap": 0.0,
                     "workflow": 0.0,
-                    "shader": "Embedded"
+                    "shader": ""
                 }
             }
         }
@@ -3797,7 +3797,7 @@
                     "usingAOMap": 0.0,
                     "usingEmissiveMap": 0.0,
                     "workflow": 0.0,
-                    "shader": "Embedded"
+                    "shader": ""
                 }
             }
         }

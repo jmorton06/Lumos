@@ -409,20 +409,20 @@ end
             entities.push_back(Entity(entity, Application::Get().GetCurrentScene()).GetName());
 
             index++;
-		}
-		
-		static std::string possibleAxes[7] = { "X", "Y", "Z", "XY", "XZ", "YZ", "XYZ"} ;
-		
+        }
+
+        static std::string possibleAxes[7] = { "X", "Y", "Z", "XY", "XZ", "YZ", "XYZ" };
+
         selectedIndex = (int)axes;
-		
-		bool updated = Lumos::ImGuiHelpers::PropertyDropdown("Axes", possibleAxes, 7, &selectedIndex);
-		if(updated)
-			axisConstraintComponent.SetAxes((Axes)selectedIndex);
+
+        bool updated = Lumos::ImGuiHelpers::PropertyDropdown("Axes", possibleAxes, 7, &selectedIndex);
+        if(updated)
+            axisConstraintComponent.SetAxes((Axes)selectedIndex);
 
         //bool updated = Lumos::ImGuiHelpers::PropertyDropdown("Entity", entities.data(), (int)entities.size(), &selectedIndex);
 
         //if(updated)
-            //axisConstraintComponent.SetEntity(Entity(physics3dEntities[selectedIndex], Application::Get().GetCurrentScene()).GetID());
+        //axisConstraintComponent.SetEntity(Entity(physics3dEntities[selectedIndex], Application::Get().GetCurrentScene()).GetID());
 
         ImGui::Columns(1);
     }
@@ -760,7 +760,7 @@ end
             Lumos::ImGuiHelpers::Property("Frequency", frequency, 0.0f, 0.0f, Lumos::ImGuiHelpers::PropertyFlag::ReadOnly);
             Lumos::ImGuiHelpers::Property("Size", size, Lumos::ImGuiHelpers::PropertyFlag::ReadOnly);
             Lumos::ImGuiHelpers::Property("Length", length, 0.0, 0.0, Lumos::ImGuiHelpers::PropertyFlag::ReadOnly);
-            Lumos::ImGuiHelpers::Property("Channels", channels, Lumos::ImGuiHelpers::PropertyFlag::ReadOnly);
+            Lumos::ImGuiHelpers::Property("Channels", channels, 0, 0, Lumos::ImGuiHelpers::PropertyFlag::ReadOnly);
 
             if(updated)
                 soundNode->SetSound(soundPointer);

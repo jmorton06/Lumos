@@ -11,7 +11,8 @@
         "Scenes": [
             "/Scenes/2D.lsn",
             "/Scenes/Physics.lsn",
-            "/Scenes/Terrain.lsn"
+            "/Scenes/Terrain.lsn",
+            "/Users/jmorton/Dev/Lumos/ExampleProject/Assets/Scenes/2DTest.lsn"
         ],
         "SceneIndex": 1,
         "Borderless": false,

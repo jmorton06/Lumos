@@ -104,9 +104,9 @@ namespace Lumos
                 for(auto entity : viewAxis)
                 {
                     const auto& [constraint, idComp] = viewAxis.get<AxisConstraintComponent, IDComponent>(entity);
-					
-					if(constraint.GetEntityID() != idComp.ID)
-						constraint.SetEntity(idComp.ID);
+
+                    if(constraint.GetEntityID() != idComp.ID)
+                        constraint.SetEntity(idComp.ID);
                     if(constraint.GetConstraint())
                         m_Constraints.push_back(constraint.GetConstraint().get());
                 }
@@ -418,7 +418,7 @@ namespace Lumos
             LUMOS_PROFILE_SCOPE("Apply Impulses");
 #ifdef THREAD_APPLY_IMPULSES
             System::JobSystem::Context jobSystemContext;
-            System::JobSystem::Dispatch(jobSystemContext, static_cast<uint32_t>(SOLVER_ITERATIONS), 128, [&](JobDispatchArgs args)
+            System::JobSystem::Dispatch(jobSystemContext, static_cast<uint32_t>(SOLVER_ITERATIONS), 4, [&](JobDispatchArgs args)
 #else
             for(int i = 0; i < SOLVER_ITERATIONS; i++)
 #endif

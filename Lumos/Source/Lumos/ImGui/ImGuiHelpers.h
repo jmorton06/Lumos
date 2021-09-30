@@ -40,9 +40,11 @@ namespace Lumos
         bool Property(const std::string& name, std::string& value, PropertyFlag flags = PropertyFlag::ReadOnly);
         void PropertyConst(const std::string& name, const std::string& value);
         bool Property(const std::string& name, bool& value, PropertyFlag flags = PropertyFlag::None);
-        bool Property(const std::string& name, int& value, PropertyFlag flags = PropertyFlag::None);
+        bool Property(const std::string& name, int& value, PropertyFlag flags);
 
         bool Property(const std::string& name, double& value, double min = -1.0, double max = 1.0, PropertyFlag flags = PropertyFlag::None);
+
+        bool Property(const std::string& name, int& value, int min = 0, int max = 100.0, PropertyFlag flags = PropertyFlag::None);
 
         bool Property(const std::string& name, float& value, float min = -1.0f, float max = 1.0f, PropertyFlag flags = PropertyFlag::None);
         bool Property(const std::string& name, Maths::Vector2& value, PropertyFlag flags);

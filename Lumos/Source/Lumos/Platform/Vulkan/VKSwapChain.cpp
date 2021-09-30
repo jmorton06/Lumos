@@ -241,7 +241,7 @@ namespace Lumos
             {
                 LUMOS_PROFILE_SCOPE("vkAcquireNextImageKHR");
                 auto result = vkAcquireNextImageKHR(VKDevice::Get().GetDevice(), m_SwapChain, UINT64_MAX, m_Frames[nextCmdBufferIndex].PresentSemaphore, VK_NULL_HANDLE, &m_AcquireImageIndex);
-
+                
                 if(result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR)
                 {
                     LUMOS_LOG_INFO("Acquire Image result : {0}", result == VK_ERROR_OUT_OF_DATE_KHR ? "Out of Date" : "SubOptimal");
@@ -249,7 +249,6 @@ namespace Lumos
                     if(result == VK_ERROR_OUT_OF_DATE_KHR)
                     {
                         OnResize(m_Width, m_Height, true);
-                        AcquireNextImage();
                     }
                     return;
                 }
@@ -279,6 +278,8 @@ namespace Lumos
             {
                 if(m_Frames[i].MainCommandBuffer->GetState() == CommandBufferState::Submitted)
                     m_Frames[i].MainCommandBuffer->Wait();
+                
+                m_Frames[i].MainCommandBuffer->Reset();
 
                 delete m_SwapChainBuffers[i];
             }
@@ -287,7 +288,7 @@ namespace Lumos
             m_OldSwapChain = m_SwapChain;
 
             m_SwapChain = VK_NULL_HANDLE;
-
+            
             if(windowHandle)
                 Init(m_VSyncEnabled, windowHandle);
             else
@@ -298,7 +299,7 @@ namespace Lumos
         {
             LUMOS_PROFILE_FUNCTION();
             auto& frameData = GetCurrentFrameData();
-            frameData.MainCommandBuffer->Execute(VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, m_Frames[m_CurrentBuffer].PresentSemaphore, true);
+            frameData.MainCommandBuffer->Execute(VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, frameData.PresentSemaphore, true);
         }
 
         CommandBuffer* VKSwapChain::GetCurrentCommandBuffer()
@@ -356,9 +357,6 @@ namespace Lumos
             {
                 VK_CHECK_RESULT(error);
             }
-
-            //Until Fix sync issue
-            //VKUtilities::WaitIdle();
         }
 
         void VKSwapChain::MakeDefault()
