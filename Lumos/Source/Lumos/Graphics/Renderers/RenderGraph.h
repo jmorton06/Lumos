@@ -111,6 +111,7 @@ namespace Lumos
             void ShadowPass();
             void SkyboxPass();
             void Render2DPass();
+            void Render2DFlush();
             void DebugPass();
             float SubmitTexture(Texture* texture);
             void UpdateCascades(Scene* scene, Light* light);
@@ -223,10 +224,11 @@ namespace Lumos
                 bool m_Empty = false;
                 bool m_TriangleIndicies = false;
 
-                uint32_t m_PreviousFrameTextureCount = 0;
+                std::vector<uint32_t> m_PreviousFrameTextureCount;
                 SharedPtr<Shader> m_Shader = nullptr;
+                SharedPtr<Pipeline> m_Pipeline = nullptr;
 
-                std::vector<SharedPtr<Graphics::DescriptorSet>> m_DescriptorSet;
+                std::vector<std::vector<SharedPtr<Graphics::DescriptorSet>>> m_DescriptorSet;
                 std::vector<Graphics::DescriptorSet*> m_CurrentDescriptorSets;
             };
 

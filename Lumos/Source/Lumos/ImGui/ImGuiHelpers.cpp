@@ -29,6 +29,8 @@ namespace Lumos
             //TODO
         }
 
+        Tooltip(value.c_str());
+
         ImGui::PopItemWidth();
         ImGui::NextColumn();
 
@@ -47,6 +49,7 @@ namespace Lumos
             ImGui::TextUnformatted(value.c_str());
         }
 
+        Tooltip(value.c_str());
         ImGui::PopItemWidth();
         ImGui::NextColumn();
     }
@@ -143,6 +146,31 @@ namespace Lumos
         {
             std::string id = "##" + name;
             if(ImGui::DragScalar(id.c_str(), ImGuiDataType_Double, &value))
+                updated = true;
+        }
+        ImGui::PopItemWidth();
+        ImGui::NextColumn();
+
+        return updated;
+    }
+
+    bool ImGuiHelpers::Property(const std::string& name, int& value, int min, int max, PropertyFlag flags)
+    {
+        LUMOS_PROFILE_FUNCTION();
+        bool updated = false;
+
+        ImGui::TextUnformatted(name.c_str());
+        ImGui::NextColumn();
+        ImGui::PushItemWidth(-1);
+
+        if((int)flags & (int)PropertyFlag::ReadOnly)
+        {
+            ImGui::Text("%i", value);
+        }
+        else
+        {
+            std::string id = "##" + name;
+            if(ImGui::DragInt(id.c_str(), &value, 1, min, max))
                 updated = true;
         }
         ImGui::PopItemWidth();

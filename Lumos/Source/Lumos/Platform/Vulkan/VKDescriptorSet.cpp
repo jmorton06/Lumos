@@ -12,6 +12,7 @@ namespace Lumos
 {
     namespace Graphics
     {
+        uint32_t g_DescriptorSetCount = 0;
         VKDescriptorSet::VKDescriptorSet(const DescriptorDesc& descriptorDesc)
         {
             LUMOS_PROFILE_FUNCTION();
@@ -19,7 +20,7 @@ namespace Lumos
 
             VkDescriptorSetAllocateInfo descriptorSetAllocateInfo;
             descriptorSetAllocateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-            descriptorSetAllocateInfo.descriptorPool = VKRenderer::GetRenderer()->GetDescriptorPool();
+            descriptorSetAllocateInfo.descriptorPool = VKRenderer::GetDescriptorPool();
             descriptorSetAllocateInfo.pSetLayouts = static_cast<Graphics::VKShader*>(descriptorDesc.shader)->GetDescriptorLayout(descriptorDesc.layoutIndex);
             descriptorSetAllocateInfo.descriptorSetCount = descriptorDesc.count;
             descriptorSetAllocateInfo.pNext = nullptr;
@@ -58,12 +59,25 @@ namespace Lumos
             {
                 m_DescriptorDirty[frame] = true;
                 m_DescriptorSet[frame] = nullptr;
+                g_DescriptorSetCount++;
                 VK_CHECK_RESULT(vkAllocateDescriptorSets(VKDevice::GetHandle(), &descriptorSetAllocateInfo, &m_DescriptorSet[frame]));
             }
         }
 
         VKDescriptorSet::~VKDescriptorSet()
         {
+            VKContext::DeletionQueue& deletionQueue = VKRenderer::GetCurrentDeletionQueue();
+
+            for(uint32_t frame = 0; frame < m_FramesInFlight; frame++)
+            {
+                auto descriptorSet = m_DescriptorSet[frame];
+                auto pool = VKRenderer::GetDescriptorPool();
+                auto device = VKDevice::GetHandle();
+
+                deletionQueue.PushFunction([descriptorSet, pool, device]
+                    { vkFreeDescriptorSets(device, pool, 1, &descriptorSet); });
+            }
+            g_DescriptorSetCount -= 3;
         }
 
         void VKDescriptorSet::MakeDefault()
@@ -80,7 +94,7 @@ namespace Lumos
         {
             if(!texture)
                 return;
-            
+
             auto commandBuffer = Renderer::GetMainSwapChain()->GetCurrentCommandBuffer();
             if(texture->GetType() == TextureType::COLOUR)
             {

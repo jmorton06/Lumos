@@ -29,8 +29,8 @@ namespace Lumos
         {
             uint64_t uuid;
             archive(uuid);
-            
-            ID =  UUID(uuid);
+
+            ID = UUID(uuid);
         }
     };
 
@@ -94,7 +94,7 @@ namespace Lumos
         {
             m_Scene->GetRegistry().remove<T>(m_EntityHandle);
         }
-        
+
         template <typename T>
         void TryRemoveComponent()
         {
@@ -135,14 +135,14 @@ namespace Lumos
         const std::string& GetName()
         {
             auto nameComponent = TryGetComponent<NameComponent>();
-			
-			if(nameComponent)
-				return nameComponent->name;
-			else
-			{
-				static std::string tempName = "Entity";
-				return tempName;
-			}
+
+            if(nameComponent)
+                return nameComponent->name;
+            else
+            {
+                static std::string tempName = "Entity";
+                return tempName;
+            }
         }
 
         void SetParent(Entity entity)
@@ -197,7 +197,7 @@ namespace Lumos
 
             return children;
         }
-        
+
         void ClearChildren()
         {
             auto hierarchyComponent = TryGetComponent<Hierarchy>();

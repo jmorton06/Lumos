@@ -16,6 +16,14 @@
 #include <imgui/plugins/ImGuiAl/fonts/RobotoRegular.inl>
 #include <imgui/misc/freetype/imgui_freetype.h>
 
+#if defined (LUMOS_PLATFORM_MACOS) || defined (LUMOS_PLATFORM_WINDOWS) || defined (LUMOS_PLATFORM_LINUX)
+#define USING_GLFW
+#endif
+
+#ifdef USING_GLFW
+#include <GLFW/glfw3.h>
+#endif
+
 namespace Lumos
 {
     ImGuiManager::ImGuiManager(bool clearScreen)
@@ -31,6 +39,18 @@ namespace Lumos
     ImGuiManager::~ImGuiManager()
     {
     }
+
+#ifdef USING_GLFW
+static const char* ImGui_ImplGlfw_GetClipboardText(void*)
+{
+    return glfwGetClipboardString((GLFWwindow*)Application::Get().GetWindow()->GetHandle());
+}
+
+static void ImGui_ImplGlfw_SetClipboardText(void*, const char* text)
+{
+    glfwSetClipboardString((GLFWwindow*)Application::Get().GetWindow()->GetHandle(), text);
+}
+#endif
 
     void ImGuiManager::OnInit()
     {
@@ -72,6 +92,11 @@ namespace Lumos
 
         if(m_IMGUIRenderer)
             m_IMGUIRenderer->Init();
+        
+#ifdef USING_GLFW
+        io.SetClipboardTextFn = ImGui_ImplGlfw_SetClipboardText;
+        io.GetClipboardTextFn = ImGui_ImplGlfw_GetClipboardText;
+#endif
     }
 
     void ImGuiManager::OnUpdate(const TimeStep& dt, Scene* scene)

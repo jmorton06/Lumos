@@ -30,7 +30,7 @@ namespace Lumos
             auto& sceneSettings = m_CurrentScene->GetSettings();
 
             ImGuiHelpers::Property("Name", sceneName);
-            ImGuiHelpers::Property("Version", sceneVersion, ImGuiHelpers::PropertyFlag::ReadOnly);
+            ImGuiHelpers::Property("Version", sceneVersion, 0, 0, ImGuiHelpers::PropertyFlag::ReadOnly);
 
             ImGuiHelpers::Property("Audio Enabled", sceneSettings.AudioEnabled);
             ImGuiHelpers::Property("Physics 2D Enabled", sceneSettings.PhysicsEnabled2D);
@@ -42,7 +42,7 @@ namespace Lumos
             ImGuiHelpers::Property("Debug Renderer Enabled", sceneSettings.RenderSettings.DebugRenderEnabled);
             auto& registry = m_CurrentScene->GetRegistry();
             int entityCount = (int)registry.size();
-            ImGuiHelpers::Property("Entity Count", entityCount, ImGuiHelpers::PropertyFlag::ReadOnly);
+            ImGuiHelpers::Property("Entity Count", entityCount, 0, 0, ImGuiHelpers::PropertyFlag::ReadOnly);
         }
         ImGui::Columns(1);
         ImGui::End();

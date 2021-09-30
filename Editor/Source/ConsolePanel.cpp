@@ -213,15 +213,14 @@ namespace Lumos
         LUMOS_PROFILE_FUNCTION();
         if(s_MessageBufferRenderFilter & m_Level)
         {
-            ImGui::PushID(this);
+            ImGuiHelpers::ScopedID((int)m_MessageID);
             ImGui::PushStyleColor(ImGuiCol_Text, GetRenderColour(m_Level));
             auto levelIcon = GetLevelIcon(m_Level);
             ImGui::TextUnformatted(levelIcon);
             ImGui::PopStyleColor();
             ImGui::SameLine();
             ImGui::TextUnformatted(m_Message.c_str());
-
-            if(ImGui::BeginPopupContextWindow())
+            if(ImGui::BeginPopupContextItem(m_Message.c_str()))
             {
                 if(ImGui::MenuItem("Copy"))
                 {
@@ -241,8 +240,6 @@ namespace Lumos
                 ImGui::SameLine(ImGui::GetContentRegionAvail().x - (m_Count > 99 ? ImGui::GetFontSize() * 1.7f : ImGui::GetFontSize() * 1.5f));
                 ImGui::Text("%d", m_Count);
             }
-
-            ImGui::PopID();
         }
     }
 
