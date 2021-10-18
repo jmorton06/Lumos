@@ -1,16 +1,15 @@
-#if defined _MSC_VER || defined __CYGWIN__ || defined _WIN32
-# ifndef WIN32_LEAN_AND_MEAN
-#  define WIN32_LEAN_AND_MEAN
-# endif
-# ifndef NOMINMAX
-#  define NOMINMAX
-# endif
-#endif
 #ifdef _MSC_VER
 #  pragma warning(disable:4996)
 #endif
-#if defined _WIN32 || defined __CYGWIN__
+#if defined _WIN32
+#  ifndef WIN32_LEAN_AND_MEAN
+#    define WIN32_LEAN_AND_MEAN
+#  endif
+#  ifndef NOMINMAX
+#    define NOMINMAX
+#  endif
 #  include <windows.h>
+#  include <malloc.h>
 #else
 #  include <pthread.h>
 #  include <string.h>
@@ -39,7 +38,7 @@
 
 #include "TracySystem.hpp"
 
-#if defined _WIN32 || defined __CYGWIN__
+#if defined _WIN32
 extern "C" typedef HRESULT (WINAPI *t_SetThreadDescription)( HANDLE, PCWSTR );
 extern "C" typedef HRESULT (WINAPI *t_GetThreadDescription)( HANDLE, PWSTR* );
 #endif
@@ -55,19 +54,19 @@ namespace tracy
 namespace detail
 {
 
-TRACY_API uint64_t GetThreadHandleImpl()
+TRACY_API uint32_t GetThreadHandleImpl()
 {
-#if defined _WIN32 || defined __CYGWIN__
-    static_assert( sizeof( decltype( GetCurrentThreadId() ) ) <= sizeof( uint64_t ), "Thread handle too big to fit in protocol" );
-    return uint64_t( GetCurrentThreadId() );
+#if defined _WIN32
+    static_assert( sizeof( decltype( GetCurrentThreadId() ) ) <= sizeof( uint32_t ), "Thread handle too big to fit in protocol" );
+    return uint32_t( GetCurrentThreadId() );
 #elif defined __APPLE__
     uint64_t id;
     pthread_threadid_np( pthread_self(), &id );
-    return id;
+    return uint32_t( id );
 #elif defined __ANDROID__
-    return (uint64_t)gettid();
+    return (uint32_t)gettid();
 #elif defined __linux__
-    return (uint64_t)syscall( SYS_gettid );
+    return (uint32_t)syscall( SYS_gettid );
 #elif defined __FreeBSD__
     long id;
     thr_self( &id );
@@ -79,8 +78,13 @@ TRACY_API uint64_t GetThreadHandleImpl()
 #elif defined __OpenBSD__
     return getthrid();
 #else
-    static_assert( sizeof( decltype( pthread_self() ) ) <= sizeof( uint64_t ), "Thread handle too big to fit in protocol" );
-    return uint64_t( pthread_self() );
+    // To add support for a platform, retrieve and return the kernel thread identifier here.
+    //
+    // Note that pthread_t (as for example returned by pthread_self()) is *not* a kernel
+    // thread identifier. It is a pointer to a library-allocated data structure instead.
+    // Such pointers will be reused heavily, making the pthread_t non-unique. Additionally
+    // a 64-bit pointer cannot be reliably truncated to 32 bits.
+    #error "Unsupported platform!"
 #endif
 
 }
@@ -90,17 +94,39 @@ TRACY_API uint64_t GetThreadHandleImpl()
 #ifdef TRACY_ENABLE
 struct ThreadNameData
 {
-    uint64_t id;
+    uint32_t id;
     const char* name;
     ThreadNameData* next;
 };
 std::atomic<ThreadNameData*>& GetThreadNameData();
-TRACY_API void InitRPMallocThread();
+#endif
+
+#ifdef _MSC_VER
+#  pragma pack( push, 8 )
+struct THREADNAME_INFO
+{
+    DWORD dwType;
+    LPCSTR szName;
+    DWORD dwThreadID;
+    DWORD dwFlags;
+};
+#  pragma pack(pop)
+
+void ThreadNameMsvcMagic( const THREADNAME_INFO& info )
+{
+    __try
+    {
+        RaiseException( 0x406D1388, 0, sizeof(info)/sizeof(ULONG_PTR), (ULONG_PTR*)&info );
+    }
+    __except(EXCEPTION_EXECUTE_HANDLER)
+    {
+    }
+}
 #endif
 
 TRACY_API void SetThreadName( const char* name )
 {
-#if defined _WIN32 || defined __CYGWIN__
+#if defined _WIN32
     static auto _SetThreadDescription = (t_SetThreadDescription)GetProcAddress( GetModuleHandleA( "kernel32.dll" ), "SetThreadDescription" );
     if( _SetThreadDescription )
     {
@@ -111,34 +137,15 @@ TRACY_API void SetThreadName( const char* name )
     else
     {
 #  if defined _MSC_VER
-        const DWORD MS_VC_EXCEPTION=0x406D1388;
-#    pragma pack( push, 8 )
-        struct THREADNAME_INFO
-        {
-            DWORD dwType;
-            LPCSTR szName;
-            DWORD dwThreadID;
-            DWORD dwFlags;
-        };
-#    pragma pack(pop)
-
-        DWORD ThreadId = GetCurrentThreadId();
         THREADNAME_INFO info;
         info.dwType = 0x1000;
         info.szName = name;
-        info.dwThreadID = ThreadId;
+        info.dwThreadID = GetCurrentThreadId();
         info.dwFlags = 0;
-
-        __try
-        {
-            RaiseException( MS_VC_EXCEPTION, 0, sizeof(info)/sizeof(ULONG_PTR), (ULONG_PTR*)&info );
-        }
-        __except(EXCEPTION_EXECUTE_HANDLER)
-        {
-        }
+        ThreadNameMsvcMagic( info );
 #  endif
     }
-#elif defined _GNU_SOURCE && !defined __EMSCRIPTEN__ && !defined __CYGWIN__
+#elif defined _GNU_SOURCE && !defined __EMSCRIPTEN__
     {
         const auto sz = strlen( name );
         if( sz <= 15 )
@@ -156,12 +163,11 @@ TRACY_API void SetThreadName( const char* name )
 #endif
 #ifdef TRACY_ENABLE
     {
-        InitRPMallocThread();
         const auto sz = strlen( name );
         char* buf = (char*)tracy_malloc( sz+1 );
         memcpy( buf, name, sz );
         buf[sz] = '\0';
-        auto data = (ThreadNameData*)tracy_malloc( sizeof( ThreadNameData ) );
+        auto data = (ThreadNameData*)tracy_malloc_fast( sizeof( ThreadNameData ) );
         data->id = detail::GetThreadHandleImpl();
         data->name = buf;
         data->next = GetThreadNameData().load( std::memory_order_relaxed );
@@ -170,7 +176,7 @@ TRACY_API void SetThreadName( const char* name )
 #endif
 }
 
-TRACY_API const char* GetThreadName( uint64_t id )
+TRACY_API const char* GetThreadName( uint32_t id )
 {
     static char buf[256];
 #ifdef TRACY_ENABLE
@@ -184,7 +190,7 @@ TRACY_API const char* GetThreadName( uint64_t id )
         ptr = ptr->next;
     }
 #else
-#  if defined _WIN32 || defined __CYGWIN__
+#  if defined _WIN32
     static auto _GetThreadDescription = (t_GetThreadDescription)GetProcAddress( GetModuleHandleA( "kernel32.dll" ), "GetThreadDescription" );
     if( _GetThreadDescription )
     {
@@ -210,7 +216,7 @@ TRACY_API const char* GetThreadName( uint64_t id )
     int tid = (int) syscall( SYS_gettid );
 #   endif
     snprintf( path, sizeof( path ), "/proc/self/task/%d/comm", tid );
-    sprintf( buf, "%" PRIu64, id );
+    sprintf( buf, "%" PRIu32, id );
 #   ifndef __ANDROID__
     pthread_setcancelstate( PTHREAD_CANCEL_DISABLE, &cs );
 #   endif
@@ -232,8 +238,40 @@ TRACY_API const char* GetThreadName( uint64_t id )
     return buf;
 #  endif
 #endif
-    sprintf( buf, "%" PRIu64, id );
+    sprintf( buf, "%" PRIu32, id );
     return buf;
+}
+
+TRACY_API const char* GetEnvVar( const char* name )
+{
+#if defined _WIN32
+    // unfortunately getenv() on Windows is just fundamentally broken.  It caches the entire
+    // environment block once on startup, then never refreshes it again.  If any environment
+    // strings are added or modified after startup of the CRT, those changes will not be
+    // seen by getenv().  This removes the possibility of an app using this SDK from
+    // programmatically setting any of the behaviour controlling envvars here.
+    //
+    // To work around this, we'll instead go directly to the Win32 environment strings APIs
+    // to get the current value.
+    static char buffer[1024];
+    DWORD const kBufferSize = DWORD(sizeof(buffer) / sizeof(buffer[0]));
+    DWORD count = GetEnvironmentVariableA(name, buffer, kBufferSize);
+
+    if( count == 0 )
+        return nullptr;
+
+    if( count >= kBufferSize )
+    {
+        char* buf = reinterpret_cast<char*>(_alloca(count + 1));
+        count = GetEnvironmentVariableA(name, buf, count + 1);
+        memcpy(buffer, buf, kBufferSize);
+        buffer[kBufferSize - 1] = 0;
+    }
+
+    return buffer;
+#else
+    return getenv(name);
+#endif
 }
 
 }

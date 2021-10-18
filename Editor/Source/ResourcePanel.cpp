@@ -219,7 +219,7 @@ namespace Lumos
             if(!vertical)
             {
                 ImGui::BeginColumns("ResourcePanelColumns", 2, ImGuiOldColumnFlags_NoResize);
-                ImGui::SetColumnWidth(0, ImGui::GetWindowContentRegionWidth() / 3.0f);
+                ImGui::SetColumnWidth(0, ImGui::GetWindowContentRegionMax().x / 3.0f);
                 ImGui::BeginChild("##folders_common");
             }
             else

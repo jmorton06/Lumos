@@ -82,6 +82,12 @@ enum class QueueType : uint8_t
     CodeInformation,
     SysTimeReport,
     TidToPid,
+    HwSampleCpuCycle,
+    HwSampleInstructionRetired,
+    HwSampleCacheReference,
+    HwSampleCacheMiss,
+    HwSampleBranchRetired,
+    HwSampleBranchMiss,
     PlotConfig,
     ParamSetup,
     AckServerQueryNoop,
@@ -109,7 +115,7 @@ enum class QueueType : uint8_t
 
 struct QueueThreadContext
 {
-    uint64_t thread;
+    uint32_t thread;
 };
 
 struct QueueZoneBeginLean
@@ -207,28 +213,28 @@ struct QueueLockTerminate
 
 struct QueueLockWait
 {
-    uint64_t thread;
+    uint32_t thread;
     uint32_t id;
     int64_t time;
 };
 
 struct QueueLockObtain
 {
-    uint64_t thread;
+    uint32_t thread;
     uint32_t id;
     int64_t time;
 };
 
 struct QueueLockRelease
 {
-    uint64_t thread;
+    uint32_t thread;
     uint32_t id;
     int64_t time;
 };
 
 struct QueueLockMark
 {
-    uint64_t thread;
+    uint32_t thread;
     uint32_t id;
     uint64_t srcloc;    // ptr
 };
@@ -305,7 +311,8 @@ enum class GpuContextType : uint8_t
     OpenGl,
     Vulkan,
     OpenCL,
-    Direct3D12
+    Direct3D12,
+    Direct3D11
 };
 
 enum GpuContextFlags : uint8_t
@@ -317,7 +324,7 @@ struct QueueGpuNewContext
 {
     int64_t cpuTime;
     int64_t gpuTime;
-    uint64_t thread;
+    uint32_t thread;
     float period;
     uint8_t context;
     GpuContextFlags flags;
@@ -327,7 +334,7 @@ struct QueueGpuNewContext
 struct QueueGpuZoneBeginLean
 {
     int64_t cpuTime;
-    uint64_t thread;
+    uint32_t thread;
     uint16_t queryId;
     uint8_t context;
 };
@@ -340,7 +347,7 @@ struct QueueGpuZoneBegin : public QueueGpuZoneBeginLean
 struct QueueGpuZoneEnd
 {
     int64_t cpuTime;
-    uint64_t thread;
+    uint32_t thread;
     uint16_t queryId;
     uint8_t context;
 };
@@ -379,7 +386,7 @@ struct QueueMemNamePayload
 struct QueueMemAlloc
 {
     int64_t time;
-    uint64_t thread;
+    uint32_t thread;
     uint64_t ptr;
     char size[6];
 };
@@ -387,7 +394,7 @@ struct QueueMemAlloc
 struct QueueMemFree
 {
     int64_t time;
-    uint64_t thread;
+    uint32_t thread;
     uint64_t ptr;
 };
 
@@ -405,7 +412,7 @@ struct QueueCallstackAllocFat
 struct QueueCallstackSample
 {
     int64_t time;
-    uint64_t thread;
+    uint32_t thread;
 };
 
 struct QueueCallstackSampleFat : public QueueCallstackSample
@@ -436,6 +443,7 @@ struct QueueCodeInformation
 {
     uint64_t ptr;
     uint32_t line;
+    uint64_t symAddr;
 };
 
 struct QueueCrashReport
@@ -453,8 +461,8 @@ struct QueueSysTime
 struct QueueContextSwitch
 {
     int64_t time;
-    uint64_t oldThread;
-    uint64_t newThread;
+    uint32_t oldThread;
+    uint32_t newThread;
     uint8_t cpu;
     uint8_t reason;
     uint8_t state;
@@ -463,13 +471,19 @@ struct QueueContextSwitch
 struct QueueThreadWakeup
 {
     int64_t time;
-    uint64_t thread;
+    uint32_t thread;
 };
 
 struct QueueTidToPid
 {
     uint64_t tid;
     uint64_t pid;
+};
+
+struct QueueHwSample
+{
+    uint64_t ip;
+    int64_t time;
 };
 
 enum class PlotFormatType : uint8_t
@@ -566,6 +580,7 @@ struct QueueItem
         QueueContextSwitch contextSwitch;
         QueueThreadWakeup threadWakeup;
         QueueTidToPid tidToPid;
+        QueueHwSample hwSample;
         QueuePlotConfig plotConfig;
         QueueParamSetup paramSetup;
         QueueCpuTopology cpuTopology;
@@ -652,6 +667,12 @@ static constexpr size_t QueueDataSize[] = {
     sizeof( QueueHeader ) + sizeof( QueueCodeInformation ),
     sizeof( QueueHeader ) + sizeof( QueueSysTime ),
     sizeof( QueueHeader ) + sizeof( QueueTidToPid ),
+    sizeof( QueueHeader ) + sizeof( QueueHwSample ),        // cpu cycle
+    sizeof( QueueHeader ) + sizeof( QueueHwSample ),        // instruction retired
+    sizeof( QueueHeader ) + sizeof( QueueHwSample ),        // cache reference
+    sizeof( QueueHeader ) + sizeof( QueueHwSample ),        // cache miss
+    sizeof( QueueHeader ) + sizeof( QueueHwSample ),        // branch retired
+    sizeof( QueueHeader ) + sizeof( QueueHwSample ),        // branch miss
     sizeof( QueueHeader ) + sizeof( QueuePlotConfig ),
     sizeof( QueueHeader ) + sizeof( QueueParamSetup ),
     sizeof( QueueHeader ),                                  // server query acknowledgement

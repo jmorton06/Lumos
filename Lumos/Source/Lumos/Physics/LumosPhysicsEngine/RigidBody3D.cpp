@@ -114,12 +114,14 @@ namespace Lumos
         if(m_RestVelocityThresholdSquared <= 0.0f)
             return;
 
-        //TODO: Take force on the object into account?
-        //if(m_Force.LengthSquared() > 0.0f)
-        //return;
+        if(m_Force.LengthSquared() > 0.0f)
+        {
+            SetIsAtRest(false);
+            return;
+        }
 
         // Value between 0 and 1, higher values discard old data faster
-        static const float ALPHA = 0.3f;
+        static const float ALPHA = 0.15f;
 
         // Calculate exponential moving average
         const float v = m_LinearVelocity.LengthSquared() + m_AngularVelocity.LengthSquared();

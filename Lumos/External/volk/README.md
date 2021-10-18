@@ -13,13 +13,14 @@ volk is written in C89 and supports Windows, Linux, Android and macOS (via Molte
 There are multiple ways to use volk in your project:
 
 1. You can just add `volk.c` to your build system. Note that the usual preprocessor defines that enable Vulkan's platform-specific functions (VK_USE_PLATFORM_WIN32_KHR, VK_USE_PLATFORM_XLIB_KHR, VK_USE_PLATFORM_MACOS_MVK, etc) must be passed as desired to the compiler when building `volk.c`.
-2. You can use volk in header-only fashion. Include `volk.h` whereever you want to use Vulkan functions. In exactly one source file, define `VOLK_IMPLEMENTATION` before including `volk.h`. Do not build `volk.c` at all in this case. This method of integrating volk makes it possible to set the platform defines mentioned above with arbitrary (preprocessor) logic in your code.
+2. You can use volk in header-only fashion. Include `volk.h` wherever you want to use Vulkan functions. In exactly one source file, define `VOLK_IMPLEMENTATION` before including `volk.h`. Do not build `volk.c` at all in this case. This method of integrating volk makes it possible to set the platform defines mentioned above with arbitrary (preprocessor) logic in your code.
 3. You can use provided CMake files, with the usage detailed below.
 
 ## Basic usage
 
 To use volk, you have to include `volk.h` instead of `vulkan/vulkan.h`; this is necessary to use function definitions from volk.
-If some files in your application include `vulkan/vulkan.h` and don't include `volk.h`, this can result in symbol conflicts; consider defining `VK_NO_PROTOTYPES` when compiling code that uses Vulkan to make sure this doesn't happen.
+
+If some files in your application include `vulkan/vulkan.h` and don't include `volk.h`, this can result in symbol conflicts; consider defining `VK_NO_PROTOTYPES` when compiling code that uses Vulkan to make sure this doesn't happen. It's also important to make sure that `vulkan-1` is not linked into the application, as this results in symbol name conflicts as well.
 
 To initialize volk, call this function first:
 

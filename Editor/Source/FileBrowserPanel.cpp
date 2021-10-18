@@ -4,7 +4,7 @@
 #include <Lumos/Core/OS/FileSystem.h>
 #include <Lumos/ImGui/IconsMaterialDesignIcons.h>
 #include <imgui/imgui.h>
-#include <imgui/plugins/ImFileBrowser.h>
+#include <imguiPlugins/ImFileBrowser.h>
 
 namespace Lumos
 {

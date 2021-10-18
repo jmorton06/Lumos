@@ -27,7 +27,7 @@
 #include "box2d/b2_polygon_shape.h"
 
 // GJK using Voronoi regions (Christer Ericson) and Barycentric coordinates.
-int32 b2_gjkCalls, b2_gjkIters, b2_gjkMaxIters;
+B2_API int32 b2_gjkCalls, b2_gjkIters, b2_gjkMaxIters;
 
 void b2DistanceProxy::Set(const b2Shape* shape, int32 index)
 {
@@ -642,7 +642,7 @@ bool b2ShapeCast(b2ShapeCastOutput * output, const b2ShapeCastInput * input)
 	// Main iteration loop.
 	const int32 k_maxIters = 20;
 	int32 iter = 0;
-	while (iter < k_maxIters && b2Abs(v.Length() - sigma) > tolerance)
+	while (iter < k_maxIters && v.Length() - sigma > tolerance)
 	{
 		b2Assert(simplex.m_count < 3);
 
@@ -720,6 +720,12 @@ bool b2ShapeCast(b2ShapeCastOutput * output, const b2ShapeCastInput * input)
 
 		// Iteration count is equated to the number of support point calls.
 		++iter;
+	}
+
+	if (iter == 0)
+	{
+		// Initial overlap
+		return false;
 	}
 
 	// Prepare output.

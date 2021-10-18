@@ -2,9 +2,115 @@ Note: There is no guarantee that version mismatched client and server will
 be able to talk with each other. Network protocol breakages won't be listed
 here.
 
-Note: Release numbers are nothing more than numbers. There are some
-"missing" versions due to trace file changes during development. This is not
-a mistake.
+
+v0.x.x (xxxx-xx-xx)
+-------------------
+
+- Support for Cygwin has been dropped. It was not working for a very long
+  time and nobody had complained about it.
+- Mingw is deprecated due to lack of interest.
+- Added TRACY_NO_CALLSTACK_INLINES macro to disable inline functions
+  resolution in call stacks on Windows.
+- Limited client query response rate.
+- Improved function matching algorithm in compare traces view.
+- Added CMake integration.
+- Reworked rpmalloc initialization.
+- Fixed display of messages with newlines on messages list.
+- Excluded some uninteresting wrapper functions from call stacks (for
+  example SIMD pass-through intrinsics to the compiler built-ins).
+- Adjusted coloring of instruction hotness in symbol view.
+- Properly handle rare cases when sampling on Linux is momentary not able to
+  resolve time stamps.
+- Added Rocket Lake microarchitectural data.
+- Updated CPU identifier lists.
+- Implemented GPU timer overflow handling heuristics.
+- Assembly instructions are now assigned to inline symbols.
+  - You can not only see the assembly source file and line, but also the
+    originating function.
+  - If symbol view is restricted to a single inline function, all assembly
+    instructions not in this context will be dimmed out.
+- Kernel call stacks will be now properly captured and displayed in the
+  profiler. Kernel functions are marked with the red color.
+- The CPU hardware performance counters can be now sampled on Linux.
+  - Three inferred statistics are displayed for lines in both source and
+    assembly code in the symbol view window:
+    - Instructions executed per cycle.
+    - Branch miss rate.
+    - Cache miss rate.
+  - Instruction cost estimation method is no longer tied to software call
+    stack sampling.
+- The image name filter entry field is now providing a list of available
+  images.
+- Reentrant function calls may be not excluded from calculations in the
+  statistics view.
+- Crash handler is now properly removed during profiler destruction.
+- Repeatedly right-clicking on the same source line in the symbol view
+  window will now cycle through assembly blocks associated with this source
+  line.
+- Vulkan headers must be now explicitly included before including
+  TracyVulkan.hpp.
+- The capture utility may now limit capture time to a specified number of
+  seconds.
+- Fixed message thread assignment in the import-chrome utility.
+- Sampling data can be now also found in the find zone menu.
+
+
+v0.7.8 (2021-05-19)
+-------------------
+
+- Updated Zen 3 and added Tiger Lake microarchitectural data.
+- Manually disconnecting from the server will no longer display erroneous
+  warning message.
+- Added ability to display sample time spent in child function calls.
+- Fixed issue which may have prevented sampling on ARM64.
+- Added TRACY_NO_FRAME_IMAGE macro to disable frame image compression
+  thread.
+- Ctrl and shift keys will now modify mouse wheel zoom speed.
+- Improved user experience in the symbol view window.
+- Added support for Direct3D 11 instrumentation.
+- Vulkan contexts can be now calibrated on Linux.
+- Support loading zstd-compressed chrome traces.
+- Chrome traces with multiple PID entries (and possibly conflicting TIDs)
+  can be now imported.
+- Added support for custom source location tag ("loc") in chrome traces.
+- Sampling frequency can be now controlled using TRACY_SAMPLING_HZ macro.
+- Trace compression can be now selected when saving a trace.
+- If a trace cannot be saved, a failure dialog will be displayed.
+- Run-time memory usage of frame images can be reduced by calculating
+  a compression dictionary. This can be only performed when a trace is saved
+  or through the update utility.
+
+
+v0.7.7 (2021-04-01)
+-------------------
+
+- Linux crash handler will now also catch SIGABRT.
+- Fixed invalid name assignment to source files discovered client-side.
+- Added ability to check if a zone is active (which may be used to avoid
+  preparing zone text, etc., as it wouldn't be used anyway).
+- Improved sorting behavior of internal vectors.
+  - Some data will now be always properly displayed during live capture.
+    This was not particularly visible before, as it mainly concerns edge
+    cases.
+  - Sorting is performed only as needed.
+    - In case of plots the performance during live capture may be decreased,
+      as these were sorted with at least 0.25 second intervals before. Now
+      the sorting is performed every frame.
+    - Some other data, which previously was not sorted, is sorted now.
+    - In headless capture mode sorting will be only performed when the trace
+      is saved to disk.
+- Fixed some typos in macros.
+- Fixed handling of non-ANSI file names on Windows. You can now name your
+  traces 'ęśąćż.tracy' and it should work as intended. This is supported on
+  Windows 10 release 1903 and newer.
+- Fixed sending GPU context name in on-demand mode.
+- Fixed color channel order in ZoneColor() macro.
+- Handle failure state when a memory pointer allocation is reported twice,
+  without an intermediate free.
+- Renamed "call stack parents" to "entry call stacks".
+- Display number of entry call stacks in assembly line sample count tooltip.
+- Added tooltips with preview of source code in various places in the UI.
+
 
 v0.7.6 (2021-02-06)
 -------------------
@@ -553,8 +659,8 @@ v0.4 (2018-10-09)
 - The capture utility will now display time span of the ongoing capture.
 
 
-v0.3.3 (2018-07-03)
--------------------
+v0.3 (2018-07-03)
+-----------------
 
 - Breaking change: the format of trace files has changed.
   - Previous tracy version will crash when trying to open new traces.

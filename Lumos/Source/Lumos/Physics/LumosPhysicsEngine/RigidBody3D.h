@@ -135,19 +135,21 @@ namespace Lumos
             if(m_Static)
                 return;
             m_LinearVelocity = v;
+            m_AtRest = false;
         }
         void SetForce(const Maths::Vector3& v)
         {
             if(m_Static)
                 return;
             m_Force = v;
+            m_AtRest = false;
         }
 
         void SetOrientation(const Maths::Quaternion& v)
         {
             m_Orientation = v;
             m_wsTransformInvalidated = true;
-            //m_AtRest = false;
+            m_AtRest = false;
         }
 
         void SetAngularVelocity(const Maths::Vector3& v)
@@ -155,12 +157,16 @@ namespace Lumos
             if(m_Static)
                 return;
             m_AngularVelocity = v;
+
+            if(v.LengthSquared() > 0.0f)
+                m_AtRest = false;
         }
         void SetTorque(const Maths::Vector3& v)
         {
             if(m_Static)
                 return;
             m_Torque = v;
+            m_AtRest = false;
         }
         void SetInverseInertia(const Maths::Matrix3& v)
         {

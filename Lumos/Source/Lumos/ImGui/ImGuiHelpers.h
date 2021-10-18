@@ -9,6 +9,7 @@ namespace Lumos
     {
         class Texture2D;
         class TextureCube;
+        class TextureDepthArray;
     }
 
     namespace ImGuiHelpers
@@ -63,14 +64,18 @@ namespace Lumos
 
         void Tooltip(Graphics::Texture2D* texture, const Maths::Vector2& size);
         void Tooltip(Graphics::Texture2D* texture, const Maths::Vector2& size, const std::string& text);
+        void Tooltip(Graphics::TextureDepthArray* texture, uint32_t index, const Maths::Vector2& size);
+
         void Image(Graphics::Texture2D* texture, const Maths::Vector2& size);
         void Image(Graphics::TextureCube* texture, const Maths::Vector2& size);
+        void Image(Graphics::TextureDepthArray* texture, uint32_t index, const Maths::Vector2& size);
 
         void SetTheme(Theme theme);
 
         bool BufferingBar(const char* label, float value, const Maths::Vector2& size_arg, const uint32_t& bg_col, const uint32_t& fg_col);
         bool Spinner(const char* label, float radius, int thickness, const uint32_t& colour);
 
+        void DrawRowsBackground(int row_count, float line_height, float x1, float x2, float y_offset, ImU32 col_even, ImU32 col_odd);
         Maths::Vector4 GetSelectedColour();
         Maths::Vector4 GetIconColour();
 

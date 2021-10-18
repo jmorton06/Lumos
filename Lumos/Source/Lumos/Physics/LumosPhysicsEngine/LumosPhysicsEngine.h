@@ -164,8 +164,6 @@ namespace Lumos
 
         uint32_t m_DebugDrawFlags = 0;
         std::mutex m_ManifoldLock;
-
-        bool m_MultipleUpdates = true;
         static float s_UpdateTimestep;
     };
 }

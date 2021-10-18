@@ -6,22 +6,24 @@
 #include <imgui.h>
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
+#include "imgui_impl_opengl3_loader.h"
 #include <mutex>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string>
 #include <unordered_map>
-#include <GL/gl3w.h>
 #include <GLFW/glfw3.h>
 #include <memory>
-#include "../nfd/nfd.h"
 #include <sys/stat.h>
 #include <locale.h>
 
+#ifndef TRACY_NO_FILESELECTOR
+#  include "../nfd/nfd.h"
+#endif
+
 #ifdef _WIN32
 #  include <windows.h>
-#  include <shellapi.h>
 #endif
 
 #define STB_IMAGE_IMPLEMENTATION
@@ -40,11 +42,12 @@
 #include "../../server/TracyStorage.hpp"
 #include "../../server/TracyVersion.hpp"
 #include "../../server/TracyView.hpp"
+#include "../../server/TracyWeb.hpp"
 #include "../../server/TracyWorker.hpp"
 #include "../../server/TracyVersion.hpp"
 #include "../../server/IconsFontAwesome5.h"
 
-#include "imgui_freetype.h"
+#include "misc/freetype/imgui_freetype.h"
 #include "Arimo.hpp"
 #include "Cousine.hpp"
 #include "FontAwesomeSolid.hpp"
@@ -56,21 +59,6 @@
 static void glfw_error_callback(int error, const char* description)
 {
     fprintf(stderr, "Error %d: %s\n", error, description);
-}
-
-static void OpenWebpage( const char* url )
-{
-#ifdef _WIN32
-    ShellExecuteA( nullptr, nullptr, url, nullptr, nullptr, 0 );
-#elif defined __APPLE__
-    char buf[1024];
-    sprintf( buf, "open %s", url );
-    system( buf );
-#else
-    char buf[1024];
-    sprintf( buf, "xdg-open %s", url );
-    system( buf );
-#endif
 }
 
 GLFWwindow* s_glfwWindow = nullptr;
@@ -272,7 +260,6 @@ int main( int argc, char** argv )
     s_glfwWindow = window;
     glfwMakeContextCurrent(window);
     glfwSwapInterval(1); // Enable vsync
-    gl3wInit();
     glfwSetWindowRefreshCallback( window, WindowRefreshCallback );
 
 #ifdef _WIN32
@@ -293,6 +280,13 @@ int main( int argc, char** argv )
     }
 #  endif
 #endif
+
+    const auto envDpiScale = getenv( "TRACY_DPI_SCALE" );
+    if( envDpiScale )
+    {
+        const auto cnv = atof( envDpiScale );
+        if( cnv != 0 ) dpiScale = cnv;
+    }
 
     // Setup ImGui binding
     IMGUI_CHECKVERSION();
@@ -317,16 +311,18 @@ int main( int argc, char** argv )
         ICON_MIN_FA, ICON_MAX_FA,
         0
     };
+
+    ImFontConfig configBasic;
+    configBasic.FontBuilderFlags = ImGuiFreeTypeBuilderFlags_LightHinting;
     ImFontConfig configMerge;
     configMerge.MergeMode = true;
+    configMerge.FontBuilderFlags = ImGuiFreeTypeBuilderFlags_LightHinting;
 
-    io.Fonts->AddFontFromMemoryCompressedTTF( tracy::Arimo_compressed_data, tracy::Arimo_compressed_size, 15.0f * dpiScale, nullptr, rangesBasic );
+    io.Fonts->AddFontFromMemoryCompressedTTF( tracy::Arimo_compressed_data, tracy::Arimo_compressed_size, 15.0f * dpiScale, &configBasic, rangesBasic );
     io.Fonts->AddFontFromMemoryCompressedTTF( tracy::FontAwesomeSolid_compressed_data, tracy::FontAwesomeSolid_compressed_size, 14.0f * dpiScale, &configMerge, rangesIcons );
-    fixedWidth = io.Fonts->AddFontFromMemoryCompressedTTF( tracy::Cousine_compressed_data, tracy::Cousine_compressed_size, 14.0f * dpiScale );
-    bigFont = io.Fonts->AddFontFromMemoryCompressedTTF( tracy::Arimo_compressed_data, tracy::Cousine_compressed_size, 20.0f * dpiScale );
-    smallFont = io.Fonts->AddFontFromMemoryCompressedTTF( tracy::Arimo_compressed_data, tracy::Cousine_compressed_size, 10.0f * dpiScale );
-
-    ImGuiFreeType::BuildFontAtlas( io.Fonts, ImGuiFreeType::LightHinting );
+    fixedWidth = io.Fonts->AddFontFromMemoryCompressedTTF( tracy::Cousine_compressed_data, tracy::Cousine_compressed_size, 14.0f * dpiScale, &configBasic );
+    bigFont = io.Fonts->AddFontFromMemoryCompressedTTF( tracy::Arimo_compressed_data, tracy::Arimo_compressed_size, 20.0f * dpiScale, &configBasic );
+    smallFont = io.Fonts->AddFontFromMemoryCompressedTTF( tracy::Arimo_compressed_data, tracy::Arimo_compressed_size, 10.0f * dpiScale, &configBasic );
 
     ImGui::StyleColorsDark();
     auto& style = ImGui::GetStyle();
@@ -581,7 +577,7 @@ static void DrawContents()
 
         auto& style = ImGui::GetStyle();
         style.Colors[ImGuiCol_WindowBg] = ImVec4( 0.129f, 0.137f, 0.11f, 1.f );
-        ImGui::Begin( "Get started", nullptr, ImGuiWindowFlags_AlwaysAutoResize );
+        ImGui::Begin( "Get started", nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse );
         char buf[128];
         sprintf( buf, "Tracy Profiler %i.%i.%i", tracy::Version::Major, tracy::Version::Minor, tracy::Version::Patch );
         ImGui::PushFont( bigFont );
@@ -603,7 +599,7 @@ static void DrawContents()
             ImGui::Spacing();
             ImGui::TextUnformatted( "Created by Bartosz Taudul" );
             ImGui::SameLine();
-            tracy::TextDisabledUnformatted( "<wolf.pld@gmail.com>" );
+            tracy::TextDisabledUnformatted( "<wolf@nereid.pl>" );
             tracy::TextDisabledUnformatted( "Additional authors listed in AUTHORS file and in git history." );
             ImGui::Separator();
             tracy::TextFocused( "Protocol version", tracy::RealToString( tracy::ProtocolVersion ) );
@@ -614,7 +610,7 @@ static void DrawContents()
         ImGui::Spacing();
         if( ImGui::Button( ICON_FA_BOOK " Manual" ) )
         {
-            OpenWebpage( "https://github.com/wolfpld/tracy/releases" );
+            tracy::OpenWebpage( "https://github.com/wolfpld/tracy/releases" );
         }
         ImGui::SameLine();
         if( ImGui::Button( ICON_FA_GLOBE_AMERICAS " Web" ) )
@@ -625,44 +621,44 @@ static void DrawContents()
         {
             if( ImGui::Selectable( ICON_FA_HOME " Tracy Profiler home page" ) )
             {
-                OpenWebpage( "https://github.com/wolfpld/tracy" );
+                tracy::OpenWebpage( "https://github.com/wolfpld/tracy" );
             }
             ImGui::Separator();
             if( ImGui::Selectable( ICON_FA_VIDEO " Overview of v0.2" ) )
             {
-                OpenWebpage( "https://www.youtube.com/watch?v=fB5B46lbapc" );
+                tracy::OpenWebpage( "https://www.youtube.com/watch?v=fB5B46lbapc" );
             }
             if( ImGui::Selectable( ICON_FA_VIDEO " New features in v0.3" ) )
             {
-                OpenWebpage( "https://www.youtube.com/watch?v=3SXpDpDh2Uo" );
+                tracy::OpenWebpage( "https://www.youtube.com/watch?v=3SXpDpDh2Uo" );
             }
             if( ImGui::Selectable( ICON_FA_VIDEO " New features in v0.4" ) )
             {
-                OpenWebpage( "https://www.youtube.com/watch?v=eAkgkaO8B9o" );
+                tracy::OpenWebpage( "https://www.youtube.com/watch?v=eAkgkaO8B9o" );
             }
             if( ImGui::Selectable( ICON_FA_VIDEO " New features in v0.5" ) )
             {
-                OpenWebpage( "https://www.youtube.com/watch?v=P6E7qLMmzTQ" );
+                tracy::OpenWebpage( "https://www.youtube.com/watch?v=P6E7qLMmzTQ" );
             }
             if( ImGui::Selectable( ICON_FA_VIDEO " New features in v0.6" ) )
             {
-                OpenWebpage( "https://www.youtube.com/watch?v=uJkrFgriuOo" );
+                tracy::OpenWebpage( "https://www.youtube.com/watch?v=uJkrFgriuOo" );
             }
             if( ImGui::Selectable( ICON_FA_VIDEO " New features in v0.7" ) )
             {
-                OpenWebpage( "https://www.youtube.com/watch?v=_hU7vw00MZ4" );
+                tracy::OpenWebpage( "https://www.youtube.com/watch?v=_hU7vw00MZ4" );
             }
             ImGui::EndPopup();
         }
         ImGui::SameLine();
         if( ImGui::Button( ICON_FA_COMMENT " Chat" ) )
         {
-            OpenWebpage( "https://discord.gg/pk78auc" );
+            tracy::OpenWebpage( "https://discord.gg/pk78auc" );
         }
         ImGui::SameLine();
         if( ImGui::Button( ICON_FA_HEART " Sponsor" ) )
         {
-            OpenWebpage( "https://github.com/sponsors/wolfpld/" );
+            tracy::OpenWebpage( "https://github.com/sponsors/wolfpld/" );
         }
         if( updateVersion != 0 && updateVersion > tracy::FileVersion( tracy::Version::Major, tracy::Version::Minor, tracy::Version::Patch ) )
         {
@@ -745,6 +741,8 @@ static void DrawContents()
             }
         }
         ImGui::SameLine( 0, ImGui::GetFontSize() * 2 );
+
+#ifndef TRACY_NO_FILESELECTOR
         if( ImGui::Button( ICON_FA_FOLDER_OPEN " Open saved trace" ) && !loadThread.joinable() )
         {
             nfdchar_t* fn;
@@ -790,6 +788,7 @@ static void DrawContents()
             if( loadThread.joinable() ) { loadThread.join(); }
             tracy::BadVersion( badVer );
         }
+#endif
 
         if( !clients.empty() )
         {
@@ -920,7 +919,7 @@ static void DrawContents()
             ImGui::Begin( "Update available!", &showReleaseNotes );
             if( ImGui::Button( ICON_FA_DOWNLOAD " Download" ) )
             {
-                OpenWebpage( "https://github.com/wolfpld/tracy/releases" );
+                tracy::OpenWebpage( "https://github.com/wolfpld/tracy/releases" );
             }
             ImGui::BeginChild( "###notes", ImVec2( 0, 0 ), true );
             if( releaseNotes.empty() )

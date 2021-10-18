@@ -197,6 +197,8 @@ namespace Lumos
         ImGui::CreateContext();
         ImGui::StyleColorsDark();
 
+        m_ShaderLibrary = CreateSharedPtr<ShaderLibrary>();
+        m_ModelLibrary = CreateSharedPtr<ModelLibrary>();
         Graphics::Renderer::Init();
 
         //Draw Splash Screeh
@@ -245,19 +247,11 @@ namespace Lumos
         m_ImGuiManager->OnInit();
         LUMOS_LOG_INFO("Initialised ImGui Manager");
 
-        m_ShaderLibrary = CreateSharedPtr<ShaderLibrary>();
-        m_ModelLibrary = CreateSharedPtr<ModelLibrary>();
-
         m_RenderGraph = CreateUniquePtr<Graphics::RenderGraph>(screenWidth, screenHeight);
 
         m_CurrentState = AppState::Running;
 
         Graphics::Material::InitDefaultTexture();
-
-        //Need to disable shadows for A12 and earlier - doesn't support rendering to depth array
-        //        m_RenderGraph->AddRenderer(new Graphics::ForwardRenderer(screenWidth, screenHeight));
-        //m_RenderGraph->AddRenderer(new Graphics::SkyboxRenderer(screenWidth, screenHeight));
-        //m_RenderGraph->AddRenderer(new Graphics::Renderer2D(screenWidth, screenHeight, false, false, true));
         m_RenderGraph->EnableDebugRenderer(true);
 
         System::JobSystem::Wait(context);
@@ -471,6 +465,7 @@ namespace Lumos
     void Application::OnNewScene(Scene* scene)
     {
         LUMOS_PROFILE_FUNCTION();
+        m_RenderGraph->OnNewScene(scene);
     }
 
     SharedPtr<ShaderLibrary>& Application::GetShaderLibrary() { return m_ShaderLibrary; }

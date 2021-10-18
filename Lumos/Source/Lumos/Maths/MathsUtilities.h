@@ -332,6 +332,8 @@ namespace Lumos::Maths
 
     /// Calculate both sine and cosine, with angle in degrees.
     void SinCos(float angle, float& sin, float& cos);
+
+    uint32_t nChoosek(uint32_t n, uint32_t k);
 }
 
 #ifdef _MSC_VER

@@ -47,39 +47,6 @@ namespace Lumos
                 ImGui::Text("Frame Time : %5.2f ms", Engine::Get().Statistics().FrameTime);
                 ImGui::NewLine();
                 ImGui::Text("Scene : %s", Application::Get().GetSceneManager()->GetCurrentScene()->GetSceneName().c_str());
-
-                if(ImGui::TreeNode("GBuffer"))
-                {
-                    if(ImGui::TreeNode("Colour Texture"))
-                    {
-                        ImGuiHelpers::Image(Application::Get().GetRenderGraph()->GetGBuffer()->GetTexture(Graphics::SCREENTEX_COLOUR), Maths::Vector2(128.0f, 128.0f));
-                        ImGuiHelpers::Tooltip(Application::Get().GetRenderGraph()->GetGBuffer()->GetTexture(Graphics::SCREENTEX_COLOUR), Maths::Vector2(256.0f, 256.0f));
-
-                        ImGui::TreePop();
-                    }
-                    if(ImGui::TreeNode("Normal Texture"))
-                    {
-                        ImGuiHelpers::Image(Application::Get().GetRenderGraph()->GetGBuffer()->GetTexture(Graphics::SCREENTEX_NORMALS), Maths::Vector2(128.0f, 128.0f));
-                        ImGuiHelpers::Tooltip(Application::Get().GetRenderGraph()->GetGBuffer()->GetTexture(Graphics::SCREENTEX_NORMALS), Maths::Vector2(256.0f, 256.0f));
-
-                        ImGui::TreePop();
-                    }
-                    if(ImGui::TreeNode("PBR Texture"))
-                    {
-                        ImGuiHelpers::Image(Application::Get().GetRenderGraph()->GetGBuffer()->GetTexture(Graphics::SCREENTEX_PBR), Maths::Vector2(128.0f, 128.0f));
-                        ImGuiHelpers::Tooltip(Application::Get().GetRenderGraph()->GetGBuffer()->GetTexture(Graphics::SCREENTEX_PBR), Maths::Vector2(256.0f, 256.0f));
-
-                        ImGui::TreePop();
-                    }
-                    if(ImGui::TreeNode("Position Texture"))
-                    {
-                        ImGuiHelpers::Image(Application::Get().GetRenderGraph()->GetGBuffer()->GetTexture(Graphics::SCREENTEX_POSITION), Maths::Vector2(128.0f, 128.0f));
-                        ImGuiHelpers::Tooltip(Application::Get().GetRenderGraph()->GetGBuffer()->GetTexture(Graphics::SCREENTEX_POSITION), Maths::Vector2(256.0f, 256.0f));
-
-                        ImGui::TreePop();
-                    }
-                    ImGui::TreePop();
-                }
                 ImGui::TreePop();
             };
         }

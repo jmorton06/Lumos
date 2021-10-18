@@ -258,6 +258,26 @@ namespace cereal
       Interfaces for other forms of serialization functions is similar.  This
       macro should be placed at global scope.
       @ingroup Utility */
+
+  //! On C++17, define the StaticObject as inline to merge the definitions across TUs
+  //! This prevents multiple definition errors when this macro appears in a header file
+  //! included in multiple TUs.
+  #ifdef CEREAL_HAS_CPP17
+  #define CEREAL_CLASS_VERSION(TYPE, VERSION_NUMBER)                             \
+  namespace cereal { namespace detail {                                          \
+    template <> struct Version<TYPE>                                             \
+    {                                                                            \
+      static std::uint32_t registerVersion()                                     \
+      {                                                                          \
+        ::cereal::detail::StaticObject<Versions>::getInstance().mapping.emplace( \
+             std::type_index(typeid(TYPE)).hash_code(), VERSION_NUMBER );        \
+        return VERSION_NUMBER;                                                   \
+      }                                                                          \
+      static inline const std::uint32_t version = registerVersion();             \
+      CEREAL_UNUSED_FUNCTION                                                     \
+    }; /* end Version */                                                         \
+  } } // end namespaces
+  #else
   #define CEREAL_CLASS_VERSION(TYPE, VERSION_NUMBER)                             \
   namespace cereal { namespace detail {                                          \
     template <> struct Version<TYPE>                                             \
@@ -274,6 +294,8 @@ namespace cereal
     const std::uint32_t Version<TYPE>::version =                                 \
       Version<TYPE>::registerVersion();                                          \
   } } // end namespaces
+
+  #endif
 
   // ######################################################################
   //! The base output archive class
@@ -369,12 +391,17 @@ namespace cereal
           point to the same data.
 
           @internal
-          @param addr The address (see shared_ptr get()) pointed to by the shared pointer
+          @param sharedPointer The shared pointer itself (the adress is taked via get()).
+                               The archive takes a copy to prevent the memory location to be freed
+                               as long as the address is used as id. This is needed to prevent CVE-2020-11105.
           @return A key that uniquely identifies the pointer */
-      inline std::uint32_t registerSharedPointer( void const * addr )
+      inline std::uint32_t registerSharedPointer(const std::shared_ptr<const void>& sharedPointer)
       {
+        void const * addr = sharedPointer.get();
+
         // Handle null pointers by just returning 0
         if(addr == 0) return 0;
+        itsSharedPointerStorage.push_back(sharedPointer);
 
         auto id = itsSharedPointerMap.find( addr );
         if( id == itsSharedPointerMap.end() )
@@ -644,6 +671,10 @@ namespace cereal
 
       //! Maps from addresses to pointer ids
       std::unordered_map<void const *, std::uint32_t> itsSharedPointerMap;
+
+      //! Copy of shared pointers used in #itsSharedPointerMap to make sure they are kept alive
+      //  during lifetime of itsSharedPointerMap to prevent CVE-2020-11105.
+      std::vector<std::shared_ptr<const void>> itsSharedPointerStorage;
 
       //! The id to be given to the next pointer
       std::uint32_t itsCurrentPointerId;

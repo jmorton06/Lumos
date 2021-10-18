@@ -65,10 +65,7 @@ namespace Lumos
             LUMOS_LOG_INFO("[SceneManager] - Enqueued scene : {0}", name.c_str());
         }
 
-        const std::vector<std::string>& GetSceneFilePaths() const
-        {
-            return m_SceneFilePaths;
-        }
+        const std::vector<std::string>& GetSceneFilePaths();
 
         void AddFileToLoadList(const std::string& filePath)
         {

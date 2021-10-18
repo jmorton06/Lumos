@@ -12,6 +12,7 @@ namespace Lumos
     {
         m_CuboidHalfDimensions = Maths::Vector3(0.5f, 0.5f, 0.5f);
         m_Type = CollisionShapeType::CollisionCuboid;
+        m_LocalTransform = Maths::Matrix4::Scale(m_CuboidHalfDimensions);
 
         if(m_CubeHull->GetNumVertices() == 0)
         {
@@ -44,9 +45,10 @@ namespace Lumos
     Maths::Matrix3 CuboidCollisionShape::BuildInverseInertia(float invMass) const
     {
         LUMOS_PROFILE_FUNCTION();
+        //https://en.wikipedia.org/wiki/List_of_moments_of_inertia
         Maths::Matrix3 inertia;
 
-        Maths::Vector3 dimsSq = (m_CuboidHalfDimensions + m_CuboidHalfDimensions);
+        Maths::Vector3 dimsSq = (m_CuboidHalfDimensions); // + m_CuboidHalfDimensions);
         dimsSq = dimsSq * dimsSq;
 
         inertia.m00_ = 12.f * invMass * 1.f / (dimsSq.y + dimsSq.z);

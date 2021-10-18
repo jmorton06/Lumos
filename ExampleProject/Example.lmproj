@@ -9,10 +9,10 @@
         "ShowConsole": false,
         "Title": "Example",
         "Scenes": [
-            "/Scenes/2D.lsn",
-            "/Scenes/Physics.lsn",
-            "/Scenes/Terrain.lsn",
-            "/Users/jmorton/Dev/Lumos/ExampleProject/Assets/Scenes/2DTest.lsn"
+            "//Scenes/2D",
+            "//Scenes/Physics",
+            "//Scenes/Terrain",
+            "//Scenes/2DTest"
         ],
         "SceneIndex": 1,
         "Borderless": false,
