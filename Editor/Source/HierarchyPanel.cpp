@@ -434,16 +434,6 @@ namespace Lumos
             auto scene = Application::Get().GetSceneManager()->GetCurrentScene();
             auto& registry = scene->GetRegistry();
 
-            const std::string& sceneName = scene->GetSceneName();
-
-            static char objName[INPUT_BUF_SIZE];
-            strcpy(objName, sceneName.c_str());
-
-            ImGui::PushItemWidth(-1);
-            if(ImGui::InputText("##Name", objName, IM_ARRAYSIZE(objName), 0))
-                scene->SetName(objName);
-            ImGui::Separator();
-
             ImGui::PushStyleColor(ImGuiCol_MenuBarBg, ImGui::GetStyleColorVec4(ImGuiCol_TabActive));
             ImGui::TextUnformatted(ICON_MDI_MAGNIFY);
             ImGui::SameLine();
@@ -460,6 +450,8 @@ namespace Lumos
 
             ImGui::PopStyleColor();
             ImGui::Unindent();
+
+            ImGui::Separator();
 
             ImGui::BeginChild("Nodes");
 
@@ -553,6 +545,17 @@ namespace Lumos
                 }
 
                 ImGui::Indent();
+
+                ////                float x1 = ImGui::GetCursorPos().x;
+                ////                float x2 = ImGui::GetCurrentWindow()->WorkRect.Max.x;
+                ////                float item_spacing_y = ImGui::GetStyle().ItemSpacing.y;
+                ////                float item_offset_y = -item_spacing_y * 0.5f;
+                ////                float line_height = ImGui::GetTextLineHeight() + item_spacing_y;
+                ////                ImGuiHelpers::DrawRowsBackground(50, line_height, x1, x2, item_offset_y, 0, ImGui::GetColorU32(ImVec4(0.4f, 0.4f, 0.4f, 0.5f)));
+                ////
+                //
+                //                auto draw_list = ImGui::GetWindowDrawList();
+                //                draw_list->AddRectFilled(ImGui::GetCursorPos(), ImGui::GetContentRegionAvail(), ImGui::GetColorU32(ImVec4(0.4f, 0.4f, 0.4f, 0.5f)));
 
                 registry.each([&](auto entity)
                     {

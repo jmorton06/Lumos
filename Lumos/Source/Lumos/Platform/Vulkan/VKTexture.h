@@ -119,10 +119,10 @@ namespace Lumos
                 return m_VKFormat;
             }
 
+            VkImageView GetMipImageView(uint32_t mip);
+
             VkImageLayout GetImageLayout() const { return m_ImageLayout; }
-
             const TextureParameters& GetTextureParameters() const { return m_Parameters; }
-
             void TransitionImage(VkImageLayout newLayout, VKCommandBuffer* commandBuffer = nullptr);
 
             static void MakeDefault();
@@ -151,6 +151,8 @@ namespace Lumos
             VkImageView m_TextureImageView;
             VkSampler m_TextureSampler {};
             VkDescriptorImageInfo m_Descriptor {};
+
+            std::map<uint32_t, VkImageView> m_MipImageViews;
 
 #ifdef USE_VMA_ALLOCATOR
             VmaAllocation m_Allocation {};

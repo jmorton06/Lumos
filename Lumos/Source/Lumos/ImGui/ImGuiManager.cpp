@@ -11,12 +11,12 @@
 
 #define IMGUI_DISABLE_OBSOLETE_FUNCTIONS
 #include <imgui/imgui.h>
-#include <imgui/plugins/ImGuizmo.h>
-#include <imgui/plugins/ImGuiAl/fonts/MaterialDesign.inl>
-#include <imgui/plugins/ImGuiAl/fonts/RobotoRegular.inl>
+#include <imguiPlugins/ImGuizmo.h>
+#include <imguiPlugins/ImGuiAl/fonts/MaterialDesign.inl>
+#include <imguiPlugins/ImGuiAl/fonts/RobotoRegular.inl>
 #include <imgui/misc/freetype/imgui_freetype.h>
 
-#if defined (LUMOS_PLATFORM_MACOS) || defined (LUMOS_PLATFORM_WINDOWS) || defined (LUMOS_PLATFORM_LINUX)
+#if defined(LUMOS_PLATFORM_MACOS) || defined(LUMOS_PLATFORM_WINDOWS) || defined(LUMOS_PLATFORM_LINUX)
 #define USING_GLFW
 #endif
 
@@ -29,7 +29,7 @@ namespace Lumos
     ImGuiManager::ImGuiManager(bool clearScreen)
     {
         m_ClearScreen = clearScreen;
-        m_FontSize = 16.0f;
+        m_FontSize = 14.0f;
 
 #ifdef LUMOS_PLATFORM_IOS
         m_FontSize *= 2.0f;
@@ -41,15 +41,15 @@ namespace Lumos
     }
 
 #ifdef USING_GLFW
-static const char* ImGui_ImplGlfw_GetClipboardText(void*)
-{
-    return glfwGetClipboardString((GLFWwindow*)Application::Get().GetWindow()->GetHandle());
-}
+    static const char* ImGui_ImplGlfw_GetClipboardText(void*)
+    {
+        return glfwGetClipboardString((GLFWwindow*)Application::Get().GetWindow()->GetHandle());
+    }
 
-static void ImGui_ImplGlfw_SetClipboardText(void*, const char* text)
-{
-    glfwSetClipboardString((GLFWwindow*)Application::Get().GetWindow()->GetHandle(), text);
-}
+    static void ImGui_ImplGlfw_SetClipboardText(void*, const char* text)
+    {
+        glfwSetClipboardString((GLFWwindow*)Application::Get().GetWindow()->GetHandle(), text);
+    }
 #endif
 
     void ImGuiManager::OnInit()
@@ -92,7 +92,7 @@ static void ImGui_ImplGlfw_SetClipboardText(void*, const char* text)
 
         if(m_IMGUIRenderer)
             m_IMGUIRenderer->Init();
-        
+
 #ifdef USING_GLFW
         io.SetClipboardTextFn = ImGui_ImplGlfw_SetClipboardText;
         io.GetClipboardTextFn = ImGui_ImplGlfw_GetClipboardText;

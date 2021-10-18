@@ -7,6 +7,10 @@
 
 #include <imgui/imgui_internal.h>
 
+#ifdef LUMOS_RENDER_API_VULKAN
+#include "Platform/Vulkan/VKTexture.h"
+#endif
+
 namespace Lumos
 {
     Maths::Vector4 SelectedColour = Maths::Vector4(0.28f, 0.56f, 0.9f, 1.0f);
@@ -369,6 +373,29 @@ namespace Lumos
         ImGui::PopStyleVar();
     }
 
+    void ImGuiHelpers::Tooltip(Graphics::TextureDepthArray* texture, uint32_t index, const Maths::Vector2& size)
+    {
+        LUMOS_PROFILE_FUNCTION();
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(5, 5));
+
+        if(ImGui::IsItemHovered())
+        {
+            ImGui::BeginTooltip();
+
+            ImTextureID texID = texture ? texture->GetHandle() : nullptr;
+#ifdef LUMOS_RENDER_API_VULKAN
+            if(texture && Graphics::GraphicsContext::GetRenderAPI() == Graphics::RenderAPI::VULKAN)
+                texID = ((Graphics::VKTextureDepthArray*)texture)->GetImageView(index);
+#endif
+
+            bool flipImage = Graphics::Renderer::GetGraphicsContext()->FlipImGUITexture();
+            ImGui::Image(texID, ImVec2(size.x, size.y), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
+            ImGui::EndTooltip();
+        }
+
+        ImGui::PopStyleVar();
+    }
+
     void ImGuiHelpers::Image(Graphics::Texture2D* texture, const Maths::Vector2& size)
     {
         LUMOS_PROFILE_FUNCTION();
@@ -381,6 +408,19 @@ namespace Lumos
         LUMOS_PROFILE_FUNCTION();
         bool flipImage = Graphics::Renderer::GetGraphicsContext()->FlipImGUITexture();
         ImGui::Image(texture ? texture->GetHandle() : nullptr, ImVec2(size.x, size.y), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
+    }
+
+    void ImGuiHelpers::Image(Graphics::TextureDepthArray* texture, uint32_t index, const Maths::Vector2& size)
+    {
+        LUMOS_PROFILE_FUNCTION();
+        bool flipImage = Graphics::Renderer::GetGraphicsContext()->FlipImGUITexture();
+
+        ImTextureID texID = texture ? texture->GetHandle() : nullptr;
+#ifdef LUMOS_RENDER_API_VULKAN
+        if(texture && Graphics::GraphicsContext::GetRenderAPI() == Graphics::RenderAPI::VULKAN)
+            texID = ((Graphics::VKTextureDepthArray*)texture)->GetImageView(index);
+#endif
+        ImGui::Image(texID, ImVec2(size.x, size.y), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
     }
 
     bool ImGuiHelpers::BufferingBar(const char* label, float value, const Maths::Vector2& size_arg, const uint32_t& bg_col, const uint32_t& fg_col)
@@ -464,6 +504,25 @@ namespace Lumos
         drawList->PathStroke(colour, false, float(thickness));
 
         return true;
+    }
+
+    void ImGuiHelpers::DrawRowsBackground(int row_count, float line_height, float x1, float x2, float y_offset, ImU32 col_even, ImU32 col_odd)
+    {
+        ImDrawList* draw_list = ImGui::GetWindowDrawList();
+        float y0 = ImGui::GetCursorScreenPos().y + (float)(int)y_offset;
+
+        int row_display_start;
+        int row_display_end;
+        ImGui::CalcListClipping(row_count, line_height, &row_display_start, &row_display_end);
+        for(int row_n = row_display_start; row_n < row_display_end; row_n++)
+        {
+            ImU32 col = (row_n & 1) ? col_odd : col_even;
+            if((col & IM_COL32_A_MASK) == 0)
+                continue;
+            float y1 = y0 + (line_height * row_n);
+            float y2 = y1 + line_height;
+            draw_list->AddRectFilled(ImVec2(x1, y1), ImVec2(x2, y2), col);
+        }
     }
 
     void ImGuiHelpers::SetTheme(Theme theme)

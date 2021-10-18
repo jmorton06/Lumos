@@ -1,5 +1,5 @@
 #ifdef _MSC_VER
-#  pragma warning( disable: 4244 )  // conversion from don't care to whatever, possible loss of data 
+#  pragma warning( disable: 4244 )  // conversion from don't care to whatever, possible loss of data
 #endif
 #ifdef __MINGW32__
 #  define __STDC_FORMAT_MACROS
@@ -408,6 +408,20 @@ const char* MemSizeToString( int64_t val )
     *ptr++ = 'B';
     *ptr++ = '\0';
 
+    return buf;
+}
+
+const char* LocationToString( const char* fn, uint32_t line )
+{
+    if( line == 0 ) return fn;
+
+    enum { Pool = 8 };
+    static char bufpool[Pool][4096];
+    static int bufsel = 0;
+    char* buf = bufpool[bufsel];
+    bufsel = ( bufsel + 1 ) % Pool;
+
+    sprintf( buf, "%s:%i", fn, line );
     return buf;
 }
 

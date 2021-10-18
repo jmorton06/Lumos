@@ -96,6 +96,7 @@ namespace Lumos
 
             static void Init();
             static void Release();
+            void LoadEngineShaders();
             virtual void InitInternal() = 0;
             virtual void Begin() = 0;
             virtual void OnResize(uint32_t width, uint32_t height) = 0;
@@ -147,6 +148,7 @@ namespace Lumos
 
             static GraphicsContext* GetGraphicsContext() { return Application::Get().GetWindow()->GetGraphicsContext(); }
             static SwapChain* GetMainSwapChain() { return Application::Get().GetWindow()->GetSwapChain(); }
+            static void DrawMesh(CommandBuffer* commandBuffer, Graphics::Pipeline* pipeline, Graphics::Mesh* mesh);
 
         protected:
             static Renderer* (*CreateFunc)();

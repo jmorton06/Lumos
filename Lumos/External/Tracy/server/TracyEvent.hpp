@@ -9,6 +9,7 @@
 
 #include "TracyCharUtil.hpp"
 #include "TracyShortPtr.hpp"
+#include "TracySortedVector.hpp"
 #include "TracyVector.hpp"
 #include "tracy_robin_hood.h"
 #include "../common/TracyForceInline.hpp"
@@ -94,6 +95,22 @@ private:
     uint8_t m_idx[3];
 };
 
+struct StringIdxHasher
+{
+    size_t operator()( const StringIdx& key ) const
+    {
+        return charutil::hash( (const char*)&key, sizeof( StringIdx ) );
+    }
+};
+
+struct StringIdxComparator
+{
+    bool operator()( const StringIdx& lhs, const StringIdx& rhs ) const
+    {
+        return memcmp( &lhs, &rhs, sizeof( StringIdx ) ) == 0;
+    }
+};
+
 class Int24
 {
 public:
@@ -132,6 +149,11 @@ public:
         SetVal( val );
     }
 
+    tracy_force_inline void Clear()
+    {
+        memset( m_val, 0, 6 );
+    }
+
     tracy_force_inline void SetVal( int64_t val )
     {
         memcpy( m_val, &val, 4 );
@@ -156,6 +178,8 @@ public:
 private:
     uint8_t m_val[6];
 };
+
+struct Int48Sort { bool operator()( const Int48& lhs, const Int48& rhs ) { return lhs.Val() < rhs.Val(); }; };
 
 
 struct SourceLocationBase
@@ -244,10 +268,45 @@ enum { SampleDataSize = sizeof( SampleData ) };
 struct SampleDataRange
 {
     Int48 time;
+    uint16_t thread;
     CallstackFrameId ip;
 };
 
 enum { SampleDataRangeSize = sizeof( SampleDataRange ) };
+
+
+struct HwSampleData
+{
+    SortedVector<Int48, Int48Sort> cycles;
+    SortedVector<Int48, Int48Sort> retired;
+    SortedVector<Int48, Int48Sort> cacheRef;
+    SortedVector<Int48, Int48Sort> cacheMiss;
+    SortedVector<Int48, Int48Sort> branchRetired;
+    SortedVector<Int48, Int48Sort> branchMiss;
+
+    bool is_sorted() const
+    {
+        return
+            cycles.is_sorted() &&
+            retired.is_sorted() &&
+            cacheRef.is_sorted() &&
+            cacheMiss.is_sorted() &&
+            branchRetired.is_sorted() &&
+            branchMiss.is_sorted();
+    }
+
+    void sort()
+    {
+        if( !cycles.is_sorted() ) cycles.sort();
+        if( !retired.is_sorted() ) retired.sort();
+        if( !cacheRef.is_sorted() ) cacheRef.sort();
+        if( !cacheMiss.is_sorted() ) cacheMiss.sort();
+        if( !branchRetired.is_sorted() ) branchRetired.sort();
+        if( !branchMiss.is_sorted() ) branchMiss.sort();
+    }
+};
+
+enum { HwSampleDataSize = sizeof( HwSampleData ) };
 
 
 struct LockEvent
@@ -457,7 +516,7 @@ struct ContextSwitchCpu
 {
     tracy_force_inline int64_t Start() const { return int64_t( _start_thread ) >> 16; }
     tracy_force_inline void SetStart( int64_t start ) { assert( start < (int64_t)( 1ull << 47 ) ); memcpy( ((char*)&_start_thread)+2, &start, 4 ); memcpy( ((char*)&_start_thread)+6, ((char*)&start)+4, 2 ); }
-    tracy_force_inline int64_t End() const { return _end.Val(); }
+    tracy_force_inline int64_t End() const { int64_t v; memcpy( &v, ((char*)&_end)-2, 8 ); return v >> 16; }
     tracy_force_inline void SetEnd( int64_t end ) { assert( end < (int64_t)( 1ull << 47 ) ); _end.SetVal( end ); }
     tracy_force_inline bool IsEndValid() const { return _end.IsNonNegative(); }
     tracy_force_inline uint16_t Thread() const { return uint16_t( _start_thread ); }
@@ -545,12 +604,57 @@ enum { GhostZoneSize = sizeof( GhostZone ) };
 #pragma pack()
 
 
+using SrcLocCountMap = unordered_flat_map<int16_t, size_t>;
+
+static tracy_force_inline void IncSrcLocCount( SrcLocCountMap& countMap, int16_t srcloc )
+{
+    const auto it = countMap.find( srcloc );
+    if( it == countMap.end() )
+    {
+        countMap.emplace( srcloc, 1 );
+        return;
+    }
+
+    assert( it->second != 0 );
+    it->second++;
+}
+
+static tracy_force_inline bool DecSrcLocCount( SrcLocCountMap& countMap, int16_t srcloc )
+{
+    const auto it = countMap.find( srcloc );
+    assert( it != countMap.end() );
+    assert( it->second != 0 );
+
+    if( it->second == 1 )
+    {
+        countMap.erase( it );
+        return false;
+    }
+
+    it->second--;
+    return true;
+}
+
+static tracy_force_inline bool HasSrcLocCount( const SrcLocCountMap& countMap, int16_t srcloc )
+{
+    const auto it = countMap.find( srcloc );
+
+    if( it != countMap.end() )
+    {
+        assert( it->second != 0 );
+        return true;
+    }
+
+    return false;
+}
+
 struct ThreadData
 {
     uint64_t id;
     uint64_t count;
     Vector<short_ptr<ZoneEvent>> timeline;
     Vector<short_ptr<ZoneEvent>> stack;
+    SrcLocCountMap stackCount;
     Vector<short_ptr<MessageData>> messages;
     uint32_t nextZoneId;
     Vector<uint32_t> zoneIdStack;
@@ -560,6 +664,11 @@ struct ThreadData
     uint64_t ghostIdx;
 #endif
     Vector<SampleData> samples;
+    SampleData pendingSample;
+    uint64_t kernelSampleCnt;
+
+    tracy_force_inline void IncStackCount( int16_t srcloc ) { IncSrcLocCount( stackCount, srcloc ); }
+    tracy_force_inline bool DecStackCount( int16_t srcloc ) { return DecSrcLocCount( stackCount, srcloc ); }
 };
 
 struct GpuCtxThreadData
@@ -580,6 +689,9 @@ struct GpuCtxData
     int64_t calibratedGpuTime;
     int64_t calibratedCpuTime;
     double calibrationMod;
+    int64_t lastGpuTime;
+    uint64_t overflow;
+    uint32_t overflowMul;
     StringIdx name;
     unordered_flat_map<uint64_t, GpuCtxThreadData> threadData;
     short_ptr<GpuEvent> query[64*1024];
@@ -636,12 +748,12 @@ enum class PlotValueFormatting : uint8_t
 
 struct PlotData
 {
+    struct PlotItemSort { bool operator()( const PlotItem& lhs, const PlotItem& rhs ) { return lhs.time.Val() < rhs.time.Val(); }; };
+
     uint64_t name;
     double min;
     double max;
-    Vector<PlotItem> data;
-    Vector<PlotItem> postpone;
-    uint64_t postponeTime;
+    SortedVector<PlotItem, PlotItemSort> data;
     PlotType type;
     PlotValueFormatting format;
 };

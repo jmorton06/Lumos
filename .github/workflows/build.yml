@@ -9,6 +9,7 @@ jobs:
     - uses: actions/checkout@v2
       with:
         fetch-depth: 1
+		submodules: recursive
     - name: Install Dependencies
       run: |
         sudo apt-get update
@@ -29,6 +30,7 @@ jobs:
     - uses: actions/checkout@v1
       with:
         fetch-depth: 1
+		submodules: recursive
     - name: Build
       run: |
         gem install xcpretty
@@ -47,6 +49,7 @@ jobs:
     - uses: actions/checkout@v2
       with:
         fetch-depth: 1
+		submodules: recursive
     - name: Build
       run: |
         gem install xcpretty
@@ -67,6 +70,7 @@ jobs:
       - uses: actions/checkout@v2
         with:
           fetch-depth: 1
+		  submodules: recursive
       - name: Generate Project
         run: | 
           cd Scripts

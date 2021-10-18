@@ -47,11 +47,11 @@ startproject "Runtime"
 	}
 
 	group "External"
-		require("Lumos/External/box2d/premake5")
+		require("Lumos/External/box2dpremake5")
 			SetRecommendedSettings()
 		require("Lumos/External/lua/premake5")
 			SetRecommendedSettings()
-		require("Lumos/External/imgui/premake5")
+		require("Lumos/External/imguipremake5")
 			SetRecommendedSettings()
 		require("Lumos/External/freetype/premake5")
 			SetRecommendedSettings()

@@ -83,7 +83,7 @@
 \vfill \includegraphics[height=40mm]{../icon/icon}
 
 \vfill
-\large\textbf{Bartosz Taudul} \href{mailto:wolf.pld@gmail.com}{<wolf.pld@gmail.com>}
+\large\textbf{Bartosz Taudul} \href{mailto:wolf@nereid.pl}{<wolf@nereid.pl>}
 
 \vspace{10pt}
 \today
@@ -142,6 +142,8 @@ The \texttt{debug.mk} and \texttt{release.mk} files only set a few of the optimi
 In the header of the \texttt{build.mk} file you can find definitions of the resulting executable name, list of used libraries, required include paths, etc. Most of the file is boilerplate required to extract build dependencies, or pass the appropriate flags to compiler and linker.
 
 By default, the profiler uses X11 on Linux.  If you would like to support Wayland instead, set the environment variable \texttt{TRACY\_USE\_WAYLAND} before running make.
+
+Additionally, the variable \texttt{TRACY\_NO\_FILESELECTOR} may be set to remove Tracy's GTK 3 dependency at the expense of a file selection dialog.  Note that this means you will not be able to use certain features, e.g. opening a saved trace.
 
 \section{Client part}
 

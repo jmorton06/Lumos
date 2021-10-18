@@ -211,16 +211,16 @@ namespace Lumos
         {
             for(uint32_t i = 0; i < m_SwapChainBufferCount; i++)
             {
+                VkSemaphoreCreateInfo semaphoreInfo = {};
+                semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+                semaphoreInfo.pNext = nullptr;
+                semaphoreInfo.flags = 0;
+
+                if(m_Frames[i].PresentSemaphore == VK_NULL_HANDLE)
+                    VK_CHECK_RESULT(vkCreateSemaphore(VKDevice::Get().GetDevice(), &semaphoreInfo, nullptr, &m_Frames[i].PresentSemaphore));
+
                 if(!m_Frames[i].MainCommandBuffer)
                 {
-                    VkSemaphoreCreateInfo semaphoreInfo = {};
-                    semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-                    semaphoreInfo.pNext = nullptr;
-                    semaphoreInfo.flags = 0;
-
-                    if(m_Frames[i].PresentSemaphore == VK_NULL_HANDLE)
-                        VK_CHECK_RESULT(vkCreateSemaphore(VKDevice::Get().GetDevice(), &semaphoreInfo, nullptr, &m_Frames[i].PresentSemaphore));
-
                     m_Frames[i].CommandPool = CreateSharedPtr<VKCommandPool>(VKDevice::Get().GetPhysicalDevice()->GetGraphicsQueueFamilyIndex(), VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT);
 
                     m_Frames[i].MainCommandBuffer = CreateSharedPtr<VKCommandBuffer>();
@@ -241,7 +241,7 @@ namespace Lumos
             {
                 LUMOS_PROFILE_SCOPE("vkAcquireNextImageKHR");
                 auto result = vkAcquireNextImageKHR(VKDevice::Get().GetDevice(), m_SwapChain, UINT64_MAX, m_Frames[nextCmdBufferIndex].PresentSemaphore, VK_NULL_HANDLE, &m_AcquireImageIndex);
-                
+
                 if(result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR)
                 {
                     LUMOS_LOG_INFO("Acquire Image result : {0}", result == VK_ERROR_OUT_OF_DATE_KHR ? "Out of Date" : "SubOptimal");
@@ -278,21 +278,28 @@ namespace Lumos
             {
                 if(m_Frames[i].MainCommandBuffer->GetState() == CommandBufferState::Submitted)
                     m_Frames[i].MainCommandBuffer->Wait();
-                
+
                 m_Frames[i].MainCommandBuffer->Reset();
 
                 delete m_SwapChainBuffers[i];
+                vkDestroySemaphore(VKDevice::Get().GetDevice(), m_Frames[i].PresentSemaphore, nullptr);
+                m_Frames[i].PresentSemaphore = VK_NULL_HANDLE;
             }
+
+            VKRenderer::GetGraphicsContext()->WaitIdle();
 
             m_SwapChainBuffers.clear();
             m_OldSwapChain = m_SwapChain;
 
             m_SwapChain = VK_NULL_HANDLE;
-            
+
             if(windowHandle)
                 Init(m_VSyncEnabled, windowHandle);
             else
+            {
                 Init(m_VSyncEnabled);
+                AcquireNextImage();
+            }
         }
 
         void VKSwapChain::QueueSubmit()

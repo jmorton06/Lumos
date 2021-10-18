@@ -61,8 +61,8 @@ static const char* DecodeArmPart( uint32_t impl, uint32_t part )
         case 0xc09: return " Cortex-A9";
         case 0xc0c: return " Cortex-A12";
         case 0xc0d: return " Rockchip RK3288";
-        case 0xc0f: return " Cortex-A15";
         case 0xc0e: return " Cortex-A17";
+        case 0xc0f: return " Cortex-A15";
         case 0xc14: return " Cortex-R4";
         case 0xc15: return " Cortex-R5";
         case 0xc17: return " Cortex-R7";
@@ -92,11 +92,16 @@ static const char* DecodeArmPart( uint32_t impl, uint32_t part )
         case 0xd13: return " Cortex-R52";
         case 0xd20: return " Cortex-M23";
         case 0xd21: return " Cortex-M33";
-        case 0xd40: return " Zeus";
+        case 0xd40: return " Neoverse V1";
         case 0xd41: return " Cortex-A78";
+        case 0xd42: return " Cortex-A78AE";
         case 0xd43: return " Cortex-A65AE";
         case 0xd44: return " Cortex-X1";
+        case 0xd47: return " Cortex-A710";
+        case 0xd48: return " Cortex-X2";
+        case 0xd49: return " Neoverse N2";
         case 0xd4a: return " Neoverse E1";
+        case 0xd4b: return " Cortex-A78C";
         default: break;
         }
     case 0x42:
@@ -267,6 +272,10 @@ static const char* DecodeIosDevice( const char* id )
         "iPhone12,3", "iPhone 11 Pro",
         "iPhone12,5", "iPhone 11 Pro Max",
         "iPhone12,8", "iPhone SE 2nd Gen",
+        "iPhone13,1", "iPhone 12 Mini",
+        "iPhone13,2", "iPhone 12",
+        "iPhone13,3", "iPhone 12 Pro",
+        "iPhone13,4", "iPhone 12 Pro Max",
         "iPad1,1", "iPad (A1219/A1337)",
         "iPad2,1", "iPad 2 (A1395)",
         "iPad2,2", "iPad 2 (A1396)",
@@ -325,6 +334,18 @@ static const char* DecodeIosDevice( const char* id )
         "iPad11,2", "iPad Mini 5th gen (A2124/A2125/A2126)",
         "iPad11,3", "iPad Air 3rd gen (A2152)",
         "iPad11,4", "iPad Air 3rd gen (A2123/A2153/A2154)",
+        "iPad11,6", "iPad 8th gen (WiFi)",
+        "iPad11,7", "iPad 8th gen (WiFi+Cellular)",
+        "iPad13,1", "iPad Air 4th gen (WiFi)",
+        "iPad13,2", "iPad Air 4th gen (WiFi+Cellular)",
+        "iPad13,4", "iPad Pro 11\" 3rd gen",
+        "iPad13,5", "iPad Pro 11\" 3rd gen",
+        "iPad13,6", "iPad Pro 11\" 3rd gen",
+        "iPad13,7", "iPad Pro 11\" 3rd gen",
+        "iPad13,8", "iPad Pro 12.9\" 5th gen",
+        "iPad13,9", "iPad Pro 12.9\" 5th gen",
+        "iPad13,10", "iPad Pro 12.9\" 5th gen",
+        "iPad13,11", "iPad Pro 12.9\" 5th gen",
         "iPod1,1", "iPod Touch",
         "iPod2,1", "iPod Touch 2nd gen",
         "iPod3,1", "iPod Touch 3rd gen",

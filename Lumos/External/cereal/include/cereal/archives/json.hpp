@@ -286,7 +286,7 @@ namespace cereal
       void saveLong(T lu){ saveValue( static_cast<std::uint64_t>( lu ) ); }
 
     public:
-#ifdef _MSC_VER
+#if defined(_MSC_VER) && _MSC_VER < 1916
       //! MSVC only long overload to current node
       void saveValue( unsigned long lu ){ saveLong( lu ); };
 #else // _MSC_VER
@@ -483,16 +483,16 @@ namespace cereal
           Iterator() : itsIndex( 0 ), itsType(Null_) {}
 
           Iterator(MemberIterator begin, MemberIterator end) :
-            itsMemberItBegin(begin), itsMemberItEnd(end), itsIndex(0), itsType(Member)
+            itsMemberItBegin(begin), itsMemberItEnd(end), itsIndex(0), itsSize(std::distance(begin, end)), itsType(Member)
           {
-            if( std::distance( begin, end ) == 0 )
+            if( itsSize == 0 )
               itsType = Null_;
           }
 
           Iterator(ValueIterator begin, ValueIterator end) :
-            itsValueItBegin(begin), itsIndex(0), itsType(Value)
+            itsValueItBegin(begin), itsIndex(0), itsSize(std::distance(begin, end)), itsType(Value)
           {
-            if( std::distance( begin, end ) == 0 )
+            if( itsSize == 0 )
               itsType = Null_;
           }
 
@@ -506,6 +506,9 @@ namespace cereal
           //! Get the value of the current node
           GenericValue const & value()
           {
+            if( itsIndex >= itsSize )
+              throw cereal::Exception("No more objects in input");
+
             switch(itsType)
             {
               case Value : return itsValueItBegin[itsIndex];
@@ -546,7 +549,7 @@ namespace cereal
         private:
           MemberIterator itsMemberItBegin, itsMemberItEnd; //!< The member iterator (object)
           ValueIterator itsValueItBegin;                   //!< The value iterator (array)
-          size_t itsIndex;                                 //!< The current index of this iterator
+          size_t itsIndex, itsSize;                        //!< The current index of this iterator
           enum Type {Value, Member, Null_} itsType;        //!< Whether this holds values (array) or members (objects) or nothing
       };
 
@@ -561,18 +564,20 @@ namespace cereal
           @throws Exception if an expectedName is given and not found */
       inline void search()
       {
+        // store pointer to itsNextName locally and reset to nullptr in case search() throws
+        auto localNextName = itsNextName;
+        itsNextName = nullptr;
+
         // The name an NVP provided with setNextName()
-        if( itsNextName )
+        if( localNextName )
         {
           // The actual name of the current node
           auto const actualName = itsIteratorStack.back().name();
 
           // Do a search if we don't see a name coming up, or if the names don't match
-          if( !actualName || std::strcmp( itsNextName, actualName ) != 0 )
-            itsIteratorStack.back().search( itsNextName );
+          if( !actualName || std::strcmp( localNextName, actualName ) != 0 )
+            itsIteratorStack.back().search( localNextName );
         }
-
-        itsNextName = nullptr;
       }
 
     public:

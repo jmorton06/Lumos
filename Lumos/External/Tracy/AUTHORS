@@ -1,4 +1,4 @@
-Bartosz Taudul <wolf.pld@gmail.com>
+Bartosz Taudul <wolf@nereid.pl>
 Kamil Klimek <kamil.klimek@sharkbits.com>           (initial find zone implementation)
 Bartosz Szreder <zgredder@gmail.com>                (view/worker split)
 Arvid Gerstmann <dev@arvid-g.de>                    (compatibility fixes)
@@ -13,3 +13,7 @@ Simonas Kazlauskas <git@kazlauskas.me>              (OSX CI, external bindings)
 Jakub Žádník <kubouch@gmail.com>                    (csvexport utility)
 Andrey Voroshilov <andrew.voroshilov@gmail.com>     (multi-DLL fixes)
 Benoit Jacob <benoitjacob@google.com>               (Android improvements)
+David Farrel <dafarrel@adobe.com>                   (Direct3D 11 support)
+Terence Rokop <rokopt@sharpears.net>                (Non-reentrant zones)
+Lukas Berbuer <lukas.berbuer@gmail.com>             (CMake integration)
+Xavier Bouchoux <xavierb@gmail.com>                 (sample data in find zone)

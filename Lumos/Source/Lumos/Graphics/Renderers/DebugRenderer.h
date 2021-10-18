@@ -138,7 +138,7 @@ namespace Lumos
         static void DebugDrawCone(int numCircleVerts, int numLinesToCircle, float angle, float length, const Maths::Vector3& position, const Maths::Quaternion& rotation, const Maths::Vector4& colour);
 
         const std::vector<TriangleInfo>& GetTriangles() const { return m_DebugTriangles; }
-        const std::vector<LineInfo> GetLines() const { return m_DebugLines; }
+        const std::vector<LineInfo>& GetLines() const { return m_DebugLines; }
         const std::vector<PointInfo>& GetPoints() const { return m_DebugPoints; }
 
         static DebugRenderer* GetInstance()

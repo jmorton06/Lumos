@@ -79,7 +79,8 @@ namespace Lumos
         //Default physics setup
         Application::Get().GetSystem<LumosPhysicsEngine>()->SetDampingFactor(0.999f);
         Application::Get().GetSystem<LumosPhysicsEngine>()->SetIntegrationType(IntegrationType::RUNGE_KUTTA_4);
-        Application::Get().GetSystem<LumosPhysicsEngine>()->SetBroadphase(Lumos::CreateSharedPtr<OctreeBroadphase>(5, 5, Lumos::CreateSharedPtr<SortAndSweepBroadphase>()));
+        Application::Get().GetSystem<LumosPhysicsEngine>()->SetBroadphase(Lumos::CreateSharedPtr<OctreeBroadphase>(5, 7, Lumos::CreateSharedPtr<SortAndSweepBroadphase>()));
+        //Application::Get().GetSystem<LumosPhysicsEngine>()->SetBroadphase(Lumos::CreateSharedPtr<BruteForceBroadphase>());
 
         LuaManager::Get().OnInit(this);
     }
@@ -90,8 +91,6 @@ namespace Lumos
         DeleteAllGameObjects();
 
         LuaManager::Get().GetState().collect_garbage();
-
-        Application::Get().GetRenderGraph()->Reset();
 
         auto audioManager = Application::Get().GetSystem<AudioManager>();
         if(audioManager)
@@ -338,6 +337,7 @@ namespace Lumos
         }
 
         m_SceneGraph->DisableOnConstruct(false, m_EntityManager->GetRegistry());
+        Application::Get().OnNewScene(this);
     }
 
     void Scene::UpdateSceneGraph()

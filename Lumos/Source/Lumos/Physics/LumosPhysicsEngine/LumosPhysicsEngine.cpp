@@ -16,9 +16,9 @@
 
 #include <imgui/imgui.h>
 
-#define THREAD_RIGID_BODY_UPDATE
-#define THREAD_APPLY_IMPULSES
-#define THREAD_NARROWPHASE
+//#define THREAD_RIGID_BODY_UPDATE
+//#define THREAD_APPLY_IMPULSES
+//#define THREAD_NARROWPHASE
 
 namespace Lumos
 {
@@ -136,28 +136,20 @@ namespace Lumos
 
             {
                 LUMOS_PROFILE_SCOPE("Physics::UpdatePhysics");
-                if(m_MultipleUpdates)
-                {
-                    const int max_updates_per_frame = 5;
+                const int max_updates_per_frame = 5;
 
-                    m_UpdateAccum += timeStep.GetSeconds();
-                    for(int i = 0; (m_UpdateAccum >= s_UpdateTimestep) && i < max_updates_per_frame; ++i)
-                    {
-                        m_UpdateAccum -= s_UpdateTimestep;
-                        UpdatePhysics();
-                    }
-
-                    if(m_UpdateAccum >= s_UpdateTimestep)
-                    {
-                        LUMOS_LOG_WARN("Physics too slow to run in real time!");
-                        //Drop Time in the hope that it can continue to run in real-time
-                        m_UpdateAccum = 0.0f;
-                    }
-                }
-                else
+                m_UpdateAccum += timeStep.GetSeconds();
+                for(int i = 0; (m_UpdateAccum >= s_UpdateTimestep) && i < max_updates_per_frame; ++i)
                 {
-                    s_UpdateTimestep = timeStep.GetSeconds();
+                    m_UpdateAccum -= s_UpdateTimestep;
                     UpdatePhysics();
+                }
+
+                if(m_UpdateAccum >= s_UpdateTimestep)
+                {
+                    LUMOS_LOG_WARN("Physics too slow to run in real time!");
+                    //Drop Time in the hope that it can continue to run in real-time
+                    m_UpdateAccum = 0.0f;
                 }
             }
 
@@ -196,7 +188,7 @@ namespace Lumos
 #ifdef THREAD_RIGID_BODY_UPDATE
         LUMOS_PROFILE_SCOPE("Thread Update Rigid Body");
         System::JobSystem::Context jobSystemContext;
-        System::JobSystem::Dispatch(jobSystemContext, static_cast<uint32_t>(m_RigidBodys.size()), 128, [&](JobDispatchArgs args)
+        System::JobSystem::Dispatch(jobSystemContext, static_cast<uint32_t>(m_RigidBodys.size()), static_cast<uint32_t>(m_RigidBodys.size()) / 4, [&](JobDispatchArgs args)
             { UpdateRigidBody(m_RigidBodys[args.jobIndex]); });
 
         System::JobSystem::Wait(jobSystemContext);
@@ -322,9 +314,9 @@ namespace Lumos
             // Mark cached world transform and AABB as invalid
             obj->m_wsTransformInvalidated = true;
             obj->m_wsAabbInvalidated = true;
-
-            obj->RestTest();
         }
+
+        obj->RestTest();
     }
 
     void LumosPhysicsEngine::BroadPhaseCollisions()
@@ -423,8 +415,7 @@ namespace Lumos
             for(int i = 0; i < SOLVER_ITERATIONS; i++)
 #endif
                 {
-                    for(
-                        Manifold& m : m_Manifolds)
+                    for(Manifold& m : m_Manifolds)
                     {
                         m.ApplyImpulse();
                     }
@@ -477,6 +468,15 @@ namespace Lumos
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
         ImGui::Text("%5.2i", GetNumberCollisionPairs());
+        ImGui::PopItemWidth();
+        ImGui::NextColumn();
+
+        uint32_t maxCollisionPairs = Maths::nChoosek(uint32_t(m_RigidBodys.size()), 2);
+        ImGui::AlignTextToFramePadding();
+        ImGui::TextUnformatted("Max Number Of Collision Pairs");
+        ImGui::NextColumn();
+        ImGui::PushItemWidth(-1);
+        ImGui::Text("%5.2i", maxCollisionPairs);
         ImGui::PopItemWidth();
         ImGui::NextColumn();
 
@@ -569,7 +569,7 @@ namespace Lumos
                 c->DebugDraw();
         }
 
-        if(m_BroadphaseDetection && (m_DebugDrawFlags & PhysicsDebugFlags::BROADPHASE))
+        if(!m_IsPaused && m_BroadphaseDetection && (m_DebugDrawFlags & PhysicsDebugFlags::BROADPHASE))
             m_BroadphaseDetection->DebugDraw();
 
         auto scene = Application::Get().GetCurrentScene();

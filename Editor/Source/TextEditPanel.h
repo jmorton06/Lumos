@@ -1,6 +1,6 @@
 #pragma once
 #include "EditorPanel.h"
-#include <imgui/plugins/ImTextEditor.h>
+#include <imguiPlugins/ImTextEditor.h>
 
 namespace Lumos
 {

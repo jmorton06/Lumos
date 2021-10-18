@@ -18,8 +18,6 @@ namespace Lumos
         LUMOS_PROFILE_FUNCTION();
 
         auto velocity = m_pObj1->GetAngularVelocity();
-        velocity.x = 0.0f;
-        velocity.z = 0.0f;
 
         switch(m_Axes)
         {

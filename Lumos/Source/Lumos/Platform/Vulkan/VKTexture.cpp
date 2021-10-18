@@ -10,7 +10,7 @@ namespace Lumos
 {
     namespace Graphics
     {
-        static VkImageView CreateImageView(VkImage image, VkFormat format, uint32_t mipLevels, VkImageViewType viewType, VkImageAspectFlags aspectMask, uint32_t layerCount, uint32_t baseArrayLayer = 0)
+        static VkImageView CreateImageView(VkImage image, VkFormat format, uint32_t mipLevels, VkImageViewType viewType, VkImageAspectFlags aspectMask, uint32_t layerCount, uint32_t baseArrayLayer = 0, uint32_t baseMipLevel = 0)
         {
             LUMOS_PROFILE_FUNCTION();
             VkImageViewCreateInfo viewInfo = {};
@@ -24,7 +24,7 @@ namespace Lumos
             viewInfo.components = { VK_COMPONENT_SWIZZLE_R, VK_COMPONENT_SWIZZLE_G, VK_COMPONENT_SWIZZLE_B, VK_COMPONENT_SWIZZLE_A };
 #endif
             viewInfo.subresourceRange.aspectMask = aspectMask;
-            viewInfo.subresourceRange.baseMipLevel = 0;
+            viewInfo.subresourceRange.baseMipLevel = baseMipLevel;
             viewInfo.subresourceRange.levelCount = mipLevels;
             viewInfo.subresourceRange.baseArrayLayer = baseArrayLayer;
             viewInfo.subresourceRange.layerCount = layerCount;
@@ -223,6 +223,18 @@ namespace Lumos
                 deletionQueue.PushFunction([imageView]
                     { vkDestroyImageView(VKDevice::GetHandle(), imageView, nullptr); });
             }
+
+            for(auto& view : m_MipImageViews)
+            {
+                if(view.second)
+                {
+                    auto imageView = view.second;
+                    deletionQueue.PushFunction([imageView]
+                        { vkDestroyImageView(VKDevice::GetHandle(), imageView, nullptr); });
+                }
+            }
+
+            m_MipImageViews.clear();
 
             if(m_DeleteImage)
             {
@@ -482,6 +494,15 @@ namespace Lumos
                 VKUtilities::TransitionImageLayout(m_TextureImage, VKUtilities::TextureFormatToVK(m_Parameters.format), m_ImageLayout, newLayout, m_MipLevels, 1, commandBuffer ? commandBuffer->GetHandle() : nullptr);
             m_ImageLayout = newLayout;
             UpdateDescriptor();
+        }
+
+        VkImageView VKTexture2D::GetMipImageView(uint32_t mip)
+        {
+            if(m_MipImageViews.find(mip) == m_MipImageViews.end())
+            {
+                m_MipImageViews[mip] = CreateImageView(m_TextureImage, VKUtilities::TextureFormatToVK(m_Parameters.format, m_Parameters.srgb), m_MipLevels, VK_IMAGE_VIEW_TYPE_2D, VK_IMAGE_ASPECT_COLOR_BIT, 1, 0, mip);
+            }
+            return m_MipImageViews.at(mip);
         }
 
         VKTextureCube::VKTextureCube(uint32_t size)

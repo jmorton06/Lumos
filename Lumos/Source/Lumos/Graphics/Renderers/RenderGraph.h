@@ -7,18 +7,6 @@
 
 namespace Lumos
 {
-    enum class RenderPriority
-    {
-        Geometry = 0,
-        Lighting = 1,
-        Geometry2D = 2,
-        PostProcess = 3,
-        Debug = 4,
-        ImGui = 5,
-        Screen = 6,
-        Total = 7
-    };
-
     namespace Maths
     {
         class Transform;
@@ -28,6 +16,7 @@ namespace Lumos
     {
         class IRenderer;
         class Texture;
+        class TextureDepth;
         class GBuffer;
         class TextureDepthArray;
         class SkyboxRenderer;
@@ -63,13 +52,8 @@ namespace Lumos
             RenderGraph(uint32_t width, uint32_t height);
             ~RenderGraph();
 
-            void AddRenderer(Graphics::IRenderer* renderer);
-            void AddRenderer(Graphics::IRenderer* renderer, int renderPriority);
-
-            void SortRenderers();
             void EnableDebugRenderer(bool enable);
 
-            void Reset();
             void OnResize(uint32_t width, uint32_t height);
             void BeginScene(Scene* scene);
             void OnNewScene(Scene* scene);
@@ -78,23 +62,6 @@ namespace Lumos
             void OnUpdate(const TimeStep& timeStep, Scene* scene);
             void OnEvent(Event& e);
             void OnImGui();
-
-            bool GetReflectSkyBox() const { return m_ReflectSkyBox; };
-            bool GetUseShadowMap() const { return m_UseShadowMap; };
-            GBuffer* GetGBuffer() const { return m_GBuffer; }
-
-            void SetReflectSkyBox(bool reflect) { m_ReflectSkyBox = reflect; }
-            void SetUseShadowMap(bool shadow) { m_UseShadowMap = shadow; }
-
-            void SetScreenBufferSize(uint32_t width, uint32_t height)
-            {
-                if(width == 0)
-                    width = 1;
-                if(height == 0)
-                    height = 1;
-                m_ScreenBufferWidth = width;
-                m_ScreenBufferHeight = height;
-            }
 
             void SetRenderTarget(Graphics::Texture* texture, bool onlyIfTargetsScreen = false, bool rebuildFramebuffer = true);
 
@@ -105,7 +72,6 @@ namespace Lumos
             }
 
             bool OnwindowResizeEvent(WindowResizeEvent& e);
-            uint32_t GetCount() const { return (uint32_t)m_Renderers.size(); }
 
             void ForwardPass();
             void ShadowPass();
@@ -113,6 +79,11 @@ namespace Lumos
             void Render2DPass();
             void Render2DFlush();
             void DebugPass();
+            void FinalPass();
+
+            //Post Process
+            void BloomPass();
+
             float SubmitTexture(Texture* texture);
             void UpdateCascades(Scene* scene, Light* light);
 
@@ -183,14 +154,13 @@ namespace Lumos
                 CommandQueue m_CommandQueue;
 
                 std::vector<SharedPtr<Graphics::DescriptorSet>> m_DescriptorSet;
-
                 std::vector<Graphics::DescriptorSet*> m_CurrentDescriptorSets;
+
                 SharedPtr<Shader> m_Shader = nullptr;
                 Texture* m_RenderTexture = nullptr;
                 Texture* m_DepthTexture = nullptr;
 
                 Maths::Frustum m_Frustum;
-                Maths::Vector4 m_ClearColour;
 
                 uint32_t m_RenderMode = 0;
                 uint32_t m_CurrentBufferID = 0;
@@ -219,9 +189,7 @@ namespace Lumos
                 uint32_t m_CurrentBufferID = 0;
                 Maths::Vector3 m_QuadPositions[4];
 
-                bool m_Clear = false;
                 bool m_RenderToDepthTexture;
-                bool m_Empty = false;
                 bool m_TriangleIndicies = false;
 
                 std::vector<uint32_t> m_PreviousFrameTextureCount;
@@ -260,15 +228,12 @@ namespace Lumos
             ForwardData& GetForwardData() { return m_ForwardData; }
             ShadowData& GetShadowData() { return m_ShadowData; }
 
+            TextureDepth* GetDepthTexture() { return m_DepthTexture; }
+
         private:
-            std::vector<Graphics::IRenderer*> m_Renderers;
-
-            bool m_ReflectSkyBox = false;
-            bool m_UseShadowMap = false;
-
+            Texture2D* m_MainTexture = nullptr;
             Texture* m_ScreenTexture = nullptr;
-
-            GBuffer* m_GBuffer = nullptr;
+            TextureDepth* m_DepthTexture = nullptr;
 
             Camera* m_Camera = nullptr;
             Maths::Transform* m_CameraTransform = nullptr;
@@ -276,17 +241,25 @@ namespace Lumos
             Camera* m_OverrideCamera = nullptr;
             Maths::Transform* m_OverrideCameraTransform = nullptr;
 
-            uint32_t m_ScreenBufferWidth {}, m_ScreenBufferHeight {};
-
             ShadowData m_ShadowData;
             ForwardData m_ForwardData;
             Renderer2DData m_Renderer2DData;
             DebugDrawData m_DebugDrawData;
+            Maths::Vector4 m_ClearColour;
 
-            Mesh* m_SkyboxMesh;
+            int m_ToneMapIndex = 4;
+            float m_Exposure = 1.0f;
+            Mesh* m_ScreenQuad;
             Texture* m_CubeMap;
             SharedPtr<Graphics::Shader> m_SkyboxShader;
             SharedPtr<Graphics::DescriptorSet> m_SkyboxDescriptorSet;
+
+            SharedPtr<Graphics::Shader> m_FinalPassShader;
+            SharedPtr<Graphics::DescriptorSet> m_FinalPassDescriptorSet;
+
+            Texture2D* m_BloomTexture = nullptr;
+            SharedPtr<Graphics::Shader> m_BloomPassShader;
+            SharedPtr<Graphics::DescriptorSet> m_BloomPassDescriptorSet;
         };
     }
 }

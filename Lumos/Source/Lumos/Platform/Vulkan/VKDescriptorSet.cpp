@@ -220,6 +220,7 @@ namespace Lumos
                 {
                     descriptor.texture = texture;
                     descriptor.textureType = textureType;
+                    descriptor.textureCount = texture ? 1 : 0;
                     m_DescriptorDirty[0] = true;
                     m_DescriptorDirty[1] = true;
                     m_DescriptorDirty[2] = true;

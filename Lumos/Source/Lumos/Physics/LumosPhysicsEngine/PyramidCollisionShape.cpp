@@ -60,13 +60,14 @@ namespace Lumos
     Maths::Matrix3 PyramidCollisionShape::BuildInverseInertia(float invMass) const
     {
         LUMOS_PROFILE_FUNCTION();
-        Maths::Vector3 scaleSq = m_PyramidHalfDimensions * m_PyramidHalfDimensions;
+        Maths::Vector3 scaleSq = m_PyramidHalfDimensions; // + m_PyramidHalfDimensions;
+        scaleSq = scaleSq * scaleSq;
 
         Maths::Matrix3 inertia;
 
-        inertia.m00_ = invMass / ((0.2f * scaleSq.x) + (0.15f * scaleSq.y));
-        inertia.m11_ = invMass / ((0.2f * scaleSq.z) + (0.15f * scaleSq.y));
-        inertia.m22_ = invMass / ((0.2f * scaleSq.z) + (0.2f * scaleSq.x));
+        inertia.m00_ = 3.0f * invMass / ((0.2f * scaleSq.x) + (0.15f * scaleSq.y));
+        inertia.m11_ = 3.0f * invMass / ((0.2f * scaleSq.z) + (0.15f * scaleSq.y));
+        inertia.m22_ = 3.0f * invMass / ((0.2f * scaleSq.z) + (0.2f * scaleSq.x));
 
         return inertia;
     }

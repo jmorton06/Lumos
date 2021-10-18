@@ -46,11 +46,11 @@
 #include <Lumos/ImGui/IconsMaterialDesignIcons.h>
 
 #include <imgui/imgui_internal.h>
-#include <imgui/plugins/ImGuizmo.h>
-#include <imgui/plugins/ImGuiAl/button/imguial_button.h>
-#include <imgui/plugins/ImTextEditor.h>
+#include <imguiPlugins/ImGuizmo.h>
+#include <imguiPlugins/ImGuiAl/button/imguial_button.h>
+#include <imguiPlugins/ImTextEditor.h>
 
-#include <imgui/plugins/ImFileBrowser.h>
+#include <imguiPlugins/ImFileBrowser.h>
 #include <iomanip>
 
 namespace Lumos
@@ -1111,6 +1111,7 @@ namespace Lumos
     void Editor::OnNewScene(Scene* scene)
     {
         LUMOS_PROFILE_FUNCTION();
+        Application::OnNewScene(scene);
         m_SelectedEntity = entt::null;
 
         m_EditorCameraTransform.SetLocalPosition(Maths::Vector3(-31.0f, 12.0f, 51.0f));
@@ -1391,7 +1392,7 @@ namespace Lumos
                         Entity(m_CopiedEntity, Application::Get().GetCurrentScene()).Destroy();
                     }
                 }
-                
+
                 if(Input::Get().GetKeyPressed(InputCode::Key::D) && m_SelectedEntity != entt::null)
                 {
                     Application::Get().GetCurrentScene()->DuplicateEntity({ m_SelectedEntity, Application::Get().GetCurrentScene() });

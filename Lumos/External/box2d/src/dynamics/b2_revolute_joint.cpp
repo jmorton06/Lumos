@@ -257,7 +257,6 @@ bool b2RevoluteJoint::SolvePositionConstraints(const b2SolverData& data)
 	bool fixedRotation = (m_invIA + m_invIB == 0.0f);
 
 	// Solve angular limit constraint
-	bool active = false;
 	if (m_enableLimit && fixedRotation == false)
 	{
 		float angle = aB - aA - m_referenceAngle;
@@ -339,7 +338,7 @@ b2Vec2 b2RevoluteJoint::GetReactionForce(float inv_dt) const
 
 float b2RevoluteJoint::GetReactionTorque(float inv_dt) const
 {
-	return inv_dt * (m_lowerImpulse + m_upperImpulse);
+	return inv_dt * (m_motorImpulse + m_lowerImpulse - m_upperImpulse);
 }
 
 float b2RevoluteJoint::GetJointAngle() const

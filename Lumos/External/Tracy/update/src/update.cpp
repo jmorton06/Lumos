@@ -15,9 +15,7 @@
 #include "../../zstd/zstd.h"
 #include "../../getopt/getopt.h"
 
-#ifdef __CYGWIN__
-#  define ftello64(x) ftello(x)
-#elif defined __APPLE__
+#ifdef __APPLE__
 #  define ftello64(x) ftello(x)
 #elif defined _WIN32
 #  define ftello64(x) _ftelli64(x)
@@ -29,6 +27,7 @@ void Usage()
     printf( "  -h: enable LZ4HC compression\n" );
     printf( "  -e: enable extreme LZ4HC compression (very slow)\n" );
     printf( "  -z level: use Zstd compression with given compression level\n" );
+    printf( "  -d: build dictionary for frame images\n" );
     printf( "  -s flags: strip selected data from capture:\n" );
     printf( "      l: locks, m: messages, p: plots, M: memory, i: frame images\n" );
     printf( "      c: context switches, s: sampling data, C: symbol code, S: source cache\n" );
@@ -48,8 +47,9 @@ int main( int argc, char** argv )
     tracy::FileWrite::Compression clev = tracy::FileWrite::Compression::Fast;
     uint32_t events = tracy::EventType::All;
     int zstdLevel = 1;
+    bool buildDict = false;
     int c;
-    while( ( c = getopt( argc, argv, "hez:s:" ) ) != -1 )
+    while( ( c = getopt( argc, argv, "hez:ds:" ) ) != -1 )
     {
         switch( c )
         {
@@ -67,6 +67,9 @@ int main( int argc, char** argv )
                 printf( "Available Zstd compression levels range: %i - %i\n", ZSTD_minCLevel(), ZSTD_maxCLevel() );
                 exit( 1 );
             }
+            break;
+        case 'd':
+            buildDict = true;
             break;
         case 's':
         {
@@ -150,7 +153,7 @@ int main( int argc, char** argv )
             }
             printf( "Saving... \r" );
             fflush( stdout );
-            worker.Write( *w );
+            worker.Write( *w, buildDict );
             w->Finish();
             const auto t1 = std::chrono::high_resolution_clock::now();
             const auto stats = w->GetCompressionStatistics();

@@ -1037,7 +1037,7 @@ end
         if(ImGui::TreeNode("States"))
         {
             //ImGui::Indent(20.0f);
-            ImGui::SameLine(ImGui::GetWindowContentRegionWidth() - ImGui::GetFontSize());
+            ImGui::SameLine((ImGui::GetWindowContentRegionMax() - ImGui::GetWindowContentRegionMin()).x - ImGui::GetFontSize());
             ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.7f, 0.7f, 0.7f, 0.0f));
 
             if(ImGui::Button(ICON_MDI_PLUS))
@@ -1065,7 +1065,7 @@ end
                 ImGui::PushID(frameID);
                 bool open = ImGui::TreeNode(&state, "%s", name.c_str());
 
-                ImGui::SameLine(ImGui::GetWindowContentRegionWidth() - ImGui::GetFontSize());
+                ImGui::SameLine((ImGui::GetWindowContentRegionMax() - ImGui::GetWindowContentRegionMin()).x - ImGui::GetFontSize());
                 ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.7f, 0.7f, 0.7f, 0.0f));
 
                 if(ImGui::Button((ICON_MDI_MINUS "##" + name).c_str()))
@@ -1145,7 +1145,7 @@ end
                     ImGui::Columns(1);
                     if(ImGui::TreeNode("Frames"))
                     {
-                        ImGui::SameLine(ImGui::GetWindowContentRegionWidth() - ImGui::GetFontSize());
+                        ImGui::SameLine((ImGui::GetWindowContentRegionMax() - ImGui::GetWindowContentRegionMin()).x - ImGui::GetFontSize());
                         ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.7f, 0.7f, 0.7f, 0.0f));
 
                         std::vector<Maths::Vector2>& frames = state.Frames;
@@ -1165,11 +1165,11 @@ end
                         {
                             auto& pos = (*it);
                             ImGui::PushID(&pos + numRemoved * 100);
-                            ImGui::PushItemWidth(ImGui::GetWindowContentRegionWidth() - ImGui::GetFontSize() * 3.0f);
+                            ImGui::PushItemWidth((ImGui::GetWindowContentRegionMax() - ImGui::GetWindowContentRegionMin()).x - ImGui::GetFontSize() * 3.0f);
 
                             ImGui::DragFloat2("##Position", Maths::ValuePointer(pos));
 
-                            ImGui::SameLine(ImGui::GetWindowContentRegionWidth() - ImGui::GetFontSize());
+                            ImGui::SameLine((ImGui::GetWindowContentRegionMax() - ImGui::GetWindowContentRegionMin()).x - ImGui::GetFontSize());
 
                             ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.7f, 0.7f, 0.7f, 0.0f));
 
@@ -1937,7 +1937,7 @@ namespace Lumos
             {
                 if(registry.valid(selected))
                 {
-                    ImGui::Text("ID: %d, Version: %d", static_cast<int>(registry.entity(selected)), registry.version(selected));
+                    //ImGui::Text("ID: %d, Version: %d", static_cast<int>(registry.entity(selected)), registry.version(selected));
                 }
                 else
                 {
@@ -1945,7 +1945,7 @@ namespace Lumos
                 }
             }
 
-            ImGui::SameLine(ImGui::GetWindowContentRegionWidth() - ImGui::GetFontSize());
+            ImGui::SameLine((ImGui::GetWindowContentRegionMax() - ImGui::GetWindowContentRegionMin()).x - ImGui::GetFontSize());
 
             ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.7f, 0.7f, 0.7f, 0.0f));
 
@@ -1980,7 +1980,7 @@ namespace Lumos
                 {
                     if(registry.valid(hierarchyComp->Parent()))
                     {
-                        ImGui::Text("Parent : ID: %d", static_cast<int>(registry.entity(hierarchyComp->Parent())));
+                        //ImGui::Text("Parent : ID: %d", static_cast<int>(registry.entity(hierarchyComp->Parent())));
                     }
                     else
                     {
@@ -1993,7 +1993,7 @@ namespace Lumos
 
                     while(child != entt::null)
                     {
-                        ImGui::Text("ID: %d", static_cast<int>(registry.entity(child)));
+                        //ImGui::Text("ID: %d", static_cast<int>(registry.entity(child)));
 
                         auto hierarchy = registry.try_get<Hierarchy>(child);
 

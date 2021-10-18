@@ -80,7 +80,7 @@ namespace Lumos
             return itr->second.data;
         }
 
-        void AddResource(const IDType& name, ResourceHandle& data)
+        void AddResource(const IDType& name, ResourceHandle data)
         {
             typename MapType::iterator itr = m_NameResourceMap.find(name);
             if(itr != m_NameResourceMap.end())

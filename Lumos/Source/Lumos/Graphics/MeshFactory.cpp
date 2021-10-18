@@ -109,20 +109,20 @@ namespace Lumos
             LUMOS_PROFILE_FUNCTION();
             Vertex* data = new Vertex[4];
 
-            data[0].Position = Maths::Vector3(-1.0f, -1.0f, 0.0f);
+            data[0].Position = Maths::Vector3(-1.0f, -1.0f, 1.0f);
             data[0].TexCoords = Maths::Vector2(0.0f, 0.0f);
 
-            data[1].Position = Maths::Vector3(1.0f, -1.0f, 0.0f);
+            data[1].Position = Maths::Vector3(1.0f, -1.0f, 1.0f);
             data[1].TexCoords = Maths::Vector2(1.0f, 0.0f);
 
-            data[2].Position = Maths::Vector3(1.0f, 1.0f, 0.0f);
+            data[2].Position = Maths::Vector3(1.0f, 1.0f, 1.0f);
             data[2].TexCoords = Maths::Vector2(1.0f, 1.0f);
 
-            data[3].Position = Maths::Vector3(-1.0f, 1.0f, 0.0f);
+            data[3].Position = Maths::Vector3(-1.0f, 1.0f, 1.0f);
             data[3].TexCoords = Maths::Vector2(0.0f, 1.0f);
 
             SharedPtr<VertexBuffer> vb = SharedPtr<VertexBuffer>(VertexBuffer::Create(BufferUsage::STATIC));
-            vb->SetData(sizeof(Vertex) * 4, data);
+            vb->SetData(4 * sizeof(Vertex), data);
 
             SharedPtr<Maths::BoundingBox> BoundingBox = CreateSharedPtr<Maths::BoundingBox>();
             for(int i = 0; i < 4; i++)
