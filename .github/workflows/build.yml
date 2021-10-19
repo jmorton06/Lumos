@@ -9,7 +9,10 @@ jobs:
     - uses: actions/checkout@v2
       with:
         fetch-depth: 1
-	submodules: true
+    - name: Submodules
+      run: |
+        git submodule sync
+        git submodule update --init
     - name: Install Dependencies
       run: |
         sudo apt-get update
@@ -30,7 +33,10 @@ jobs:
     - uses: actions/checkout@v2
       with:
         fetch-depth: 1
-	submodules: true
+    - name: Submodules
+      run: |
+        git submodule sync
+        git submodule update --init
     - name: Build
       run: |
         gem install xcpretty
@@ -49,7 +55,10 @@ jobs:
     - uses: actions/checkout@v2
       with:
         fetch-depth: 1
-	submodules: true
+    - name: Submodules
+      run: |
+        git submodule sync
+        git submodule update --init
     - name: Build
       run: |
         gem install xcpretty
@@ -70,7 +79,10 @@ jobs:
       - uses: actions/checkout@v2
         with:
           fetch-depth: 1
-	  submodules: true
+      - name: Submodule
+      	run: |
+	   git submodule sync
+           git submodule update --init
       - name: Generate Project
         run: | 
           cd Scripts
