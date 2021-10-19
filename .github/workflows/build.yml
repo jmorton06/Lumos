@@ -81,8 +81,8 @@ jobs:
           fetch-depth: 1
       - name: Submodules
       	run: |
-           git submodule sync
-           git submodule update --init
+          git submodule sync
+          git submodule update --init
       - name: Generate Project
         run: | 
           cd Scripts
