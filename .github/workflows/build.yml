@@ -79,9 +79,9 @@ jobs:
       - uses: actions/checkout@v2
         with:
           fetch-depth: 1
-      - name: Submodule
+      - name: Submodules
       	run: |
-	   git submodule sync
+           git submodule sync
            git submodule update --init
       - name: Generate Project
         run: | 
