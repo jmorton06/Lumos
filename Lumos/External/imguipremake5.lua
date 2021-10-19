@@ -25,6 +25,12 @@ project "imgui"
 		"imguiPlugins/ImTextEditor.cpp",
 	}
 
+	includedirs
+	{
+		"imgui/",
+		"../"
+	}
+
 	filter "system:windows"
 		systemversion "latest"
 
