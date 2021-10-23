@@ -131,7 +131,7 @@ namespace Lumos
             uint32_t m_ToneMapIndex = 4;
         };
 
-        struct Physics3DSettings
+        struct ScenePhysics3DSettings
         {
             uint32_t m_MaxUpdatesPerFrame = 5;
             uint32_t VelocityIterations = 5;
@@ -143,7 +143,7 @@ namespace Lumos
             uint32_t BroadPhaseTypeIndex = 2;
         };
 
-        struct Physics2DSettings
+        struct ScenePhysics2DSettings
         {
             uint32_t VelocityIterations = 6;
             uint32_t PositionIterations = 2;
@@ -159,8 +159,8 @@ namespace Lumos
             bool AudioEnabled = true;
 
             SceneRenderSettings RenderSettings;
-            Physics3DSettings Physics3DSettings;
-            Physics2DSettings Physics2DSettings;
+            ScenePhysics3DSettings Physics3DSettings;
+            ScenePhysics2DSettings Physics2DSettings;
         };
 
 #define SceneVersion 9
