@@ -79,7 +79,7 @@ jobs:
       - uses: actions/checkout@v2
         with:
           fetch-depth: 1
-	  - name: Submodules
+      - name: Submodules
         run: |
           git submodule sync
           git submodule update --init
