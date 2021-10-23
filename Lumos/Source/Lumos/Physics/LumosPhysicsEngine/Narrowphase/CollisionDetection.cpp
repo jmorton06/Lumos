@@ -1,7 +1,6 @@
 #include "Precompiled.h"
 #include "CollisionDetection.h"
-
-#include "SphereCollisionShape.h"
+#include "Physics/LumosPhysicsEngine/CollisionShapes/SphereCollisionShape.h"
 
 namespace Lumos
 {
