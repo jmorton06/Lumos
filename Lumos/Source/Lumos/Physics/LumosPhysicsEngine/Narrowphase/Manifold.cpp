@@ -1,9 +1,7 @@
 #include "Precompiled.h"
 #include "Manifold.h"
 #include "Maths/Matrix3.h"
-
-#include "LumosPhysicsEngine.h"
-
+#include "Physics/LumosPhysicsEngine/LumosPhysicsEngine.h"
 #include "Graphics/Renderers/DebugRenderer.h"
 
 namespace Lumos

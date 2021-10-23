@@ -1,6 +1,6 @@
 #include "Precompiled.h"
 #include "PyramidCollisionShape.h"
-#include "RigidBody3D.h"
+#include "Physics/LumosPhysicsEngine/RigidBody3D.h"
 
 namespace Lumos
 {

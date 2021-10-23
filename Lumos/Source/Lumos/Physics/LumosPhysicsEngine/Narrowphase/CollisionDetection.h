@@ -1,7 +1,7 @@
 #pragma once
 
 #include "RigidBody3D.h"
-#include "CollisionShape.h"
+#include "Physics/LumosPhysicsEngine/CollisionShapes/CollisionShape.h"
 #include "Manifold.h"
 #include "Utilities/TSingleton.h"
 
