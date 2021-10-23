@@ -11,6 +11,7 @@
 #include "VKRenderer.h"
 #include "VKRenderPass.h"
 #include "VKTexture.h"
+#include "Graphics/RHI/GPUProfile.h"
 
 static ImGui_ImplVulkanH_Window g_WindowData;
 static VkAllocationCallbacks* g_Allocator = nullptr;
@@ -211,6 +212,9 @@ namespace Lumos
         void VKIMGUIRenderer::FrameRender(ImGui_ImplVulkanH_Window* wd)
         {
             LUMOS_PROFILE_FUNCTION();
+
+			GPUProfile("ImGui Pass");
+
             wd->FrameIndex = VKRenderer::GetMainSwapChain()->GetCurrentImageIndex();
             auto& descriptorImageMap = ImGui_ImplVulkan_GetDescriptorImageMap();
 

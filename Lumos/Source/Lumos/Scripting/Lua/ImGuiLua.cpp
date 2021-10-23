@@ -979,10 +979,9 @@ namespace Lumos
                 float _v_min,
                 float _v_max,
                 const char* _fmt,
-                float _power,
                 sol::function _cb)
             {
-                if(ImGui::DragFloat(_label, &_currentValue, _v_speed, _v_min, _v_max, _fmt, _power))
+                if(ImGui::DragFloat(_label, &_currentValue, _v_speed, _v_min, _v_max, _fmt))
                     _cb(_currentValue);
             });
 

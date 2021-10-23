@@ -1,11 +1,12 @@
 #pragma once
 
 #include "Physics/RigidBody.h"
-#include "CollisionShape.h"
-#include "Physics/LumosPhysicsEngine/SphereCollisionShape.h"
-#include "Physics/LumosPhysicsEngine/CuboidCollisionShape.h"
-#include "Physics/LumosPhysicsEngine/PyramidCollisionShape.h"
-#include "Physics/LumosPhysicsEngine/HullCollisionShape.h"
+#include "Physics/LumosPhysicsEngine/CollisionShapes/CollisionShape.h"
+#include "Physics/LumosPhysicsEngine/CollisionShapes/SphereCollisionShape.h"
+#include "Physics/LumosPhysicsEngine/CollisionShapes/CuboidCollisionShape.h"
+#include "Physics/LumosPhysicsEngine/CollisionShapes/PyramidCollisionShape.h"
+#include "Physics/LumosPhysicsEngine/CollisionShapes/HullCollisionShape.h"
+#include "Physics/LumosPhysicsEngine/CollisionShapes/CapsuleCollisionShape.h"
 
 #include "Maths/Maths.h"
 #include <cereal/types/polymorphic.hpp>
@@ -15,11 +16,14 @@ CEREAL_REGISTER_TYPE(Lumos::SphereCollisionShape);
 CEREAL_REGISTER_TYPE(Lumos::CuboidCollisionShape);
 CEREAL_REGISTER_TYPE(Lumos::PyramidCollisionShape);
 CEREAL_REGISTER_TYPE(Lumos::HullCollisionShape);
+CEREAL_REGISTER_TYPE(Lumos::CapsuleCollisionShape);
 
 CEREAL_REGISTER_POLYMORPHIC_RELATION(Lumos::CollisionShape, Lumos::SphereCollisionShape);
 CEREAL_REGISTER_POLYMORPHIC_RELATION(Lumos::CollisionShape, Lumos::CuboidCollisionShape);
 CEREAL_REGISTER_POLYMORPHIC_RELATION(Lumos::CollisionShape, Lumos::PyramidCollisionShape);
 CEREAL_REGISTER_POLYMORPHIC_RELATION(Lumos::CollisionShape, Lumos::HullCollisionShape);
+CEREAL_REGISTER_POLYMORPHIC_RELATION(Lumos::CollisionShape, Lumos::CapsuleCollisionShape);
+
 
 namespace Lumos
 {
@@ -248,12 +252,19 @@ namespace Lumos
         bool GetIsTrigger() const { return m_Trigger; }
         void SetIsTrigger(bool trigger) { m_Trigger = trigger; }
 
+        float GetAngularFactor() const { return m_AngularFactor; }
+        void SetAngularFactor(float factor) { m_AngularFactor = factor; }
+
         template <typename Archive>
         void save(Archive& archive) const
         {
             auto shape = std::unique_ptr<CollisionShape>(m_CollisionShape.get());
 
-            archive(cereal::make_nvp("Position", m_Position), cereal::make_nvp("Orientation", m_Orientation), cereal::make_nvp("LinearVelocity", m_LinearVelocity), cereal::make_nvp("Force", m_Force), cereal::make_nvp("Mass", 1.0f / m_InvMass), cereal::make_nvp("AngularVelocity", m_AngularVelocity), cereal::make_nvp("Torque", m_Torque), cereal::make_nvp("Static", m_Static), cereal::make_nvp("Friction", m_Friction), cereal::make_nvp("Elasticity", m_Elasticity), cereal::make_nvp("CollisionShape", shape), cereal::make_nvp("Trigger", m_Trigger));
+            const int Version = 1;
+            
+            archive(cereal::make_nvp("Version", Version));
+            
+            archive(cereal::make_nvp("Position", m_Position), cereal::make_nvp("Orientation", m_Orientation), cereal::make_nvp("LinearVelocity", m_LinearVelocity), cereal::make_nvp("Force", m_Force), cereal::make_nvp("Mass", 1.0f / m_InvMass), cereal::make_nvp("AngularVelocity", m_AngularVelocity), cereal::make_nvp("Torque", m_Torque), cereal::make_nvp("Static", m_Static), cereal::make_nvp("Friction", m_Friction), cereal::make_nvp("Elasticity", m_Elasticity), cereal::make_nvp("CollisionShape", shape), cereal::make_nvp("Trigger", m_Trigger), cereal::make_nvp("AngularFactor", m_AngularFactor));
 
             shape.release();
         }
@@ -262,7 +273,11 @@ namespace Lumos
         void load(Archive& archive)
         {
             auto shape = std::unique_ptr<CollisionShape>(m_CollisionShape.get());
-            archive(cereal::make_nvp("Position", m_Position), cereal::make_nvp("Orientation", m_Orientation), cereal::make_nvp("LinearVelocity", m_LinearVelocity), cereal::make_nvp("Force", m_Force), cereal::make_nvp("Mass", 1.0f / m_InvMass), cereal::make_nvp("AngularVelocity", m_AngularVelocity), cereal::make_nvp("Torque", m_Torque), cereal::make_nvp("Static", m_Static), cereal::make_nvp("Friction", m_Friction), cereal::make_nvp("Elasticity", m_Elasticity), cereal::make_nvp("CollisionShape", shape), cereal::make_nvp("Trigger", m_Trigger));
+            
+            int Version;
+            archive(cereal::make_nvp("Version", Version));
+
+            archive(cereal::make_nvp("Position", m_Position), cereal::make_nvp("Orientation", m_Orientation), cereal::make_nvp("LinearVelocity", m_LinearVelocity), cereal::make_nvp("Force", m_Force), cereal::make_nvp("Mass", 1.0f / m_InvMass), cereal::make_nvp("AngularVelocity", m_AngularVelocity), cereal::make_nvp("Torque", m_Torque), cereal::make_nvp("Static", m_Static), cereal::make_nvp("Friction", m_Friction), cereal::make_nvp("Elasticity", m_Elasticity), cereal::make_nvp("CollisionShape", shape), cereal::make_nvp("Trigger", m_Trigger), cereal::make_nvp("AngularFactor", m_AngularFactor));
 
             m_CollisionShape = SharedPtr<CollisionShape>(shape.get());
             CollisionShapeUpdated();
@@ -291,6 +306,7 @@ namespace Lumos
         Maths::Vector3 m_AngularVelocity;
         Maths::Vector3 m_Torque;
         Maths::Matrix3 m_InvInertia;
+        float m_AngularFactor;
 
         //<----------COLLISION------------>
         SharedPtr<CollisionShape> m_CollisionShape;

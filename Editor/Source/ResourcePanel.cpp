@@ -567,7 +567,7 @@ namespace Lumos
     void ResourcePanel::RenderBottom()
     {
         LUMOS_PROFILE_FUNCTION();
-        ImGui::BeginChild("##nav", ImVec2(ImGui::GetColumnWidth(), ImGui::GetFontSize() * 1.8f), ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
+        ImGui::BeginChild("##nav", ImVec2(ImGui::GetColumnWidth(), ImGui::GetFontSize() * 1.8f), true, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
         {
             int secIdx = 0, newPwdLastSecIdx = -1;
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "RigidBody3D.h"
+#include "Physics/LumosPhysicsEngine/RigidBody3D.h"
 
 namespace Lumos
 {

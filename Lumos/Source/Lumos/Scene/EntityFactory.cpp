@@ -1,8 +1,8 @@
 #include "Precompiled.h"
 #include "EntityFactory.h"
-#include "Physics/LumosPhysicsEngine/SphereCollisionShape.h"
-#include "Physics/LumosPhysicsEngine/PyramidCollisionShape.h"
-#include "Physics/LumosPhysicsEngine/CuboidCollisionShape.h"
+#include "Physics/LumosPhysicsEngine/CollisionShapes/SphereCollisionShape.h"
+#include "Physics/LumosPhysicsEngine/CollisionShapes/PyramidCollisionShape.h"
+#include "Physics/LumosPhysicsEngine/CollisionShapes/CuboidCollisionShape.h"
 #include "Physics/LumosPhysicsEngine/LumosPhysicsEngine.h"
 #include "Scene/Component/ModelComponent.h"
 #include "Maths/Random.h"
@@ -81,7 +81,7 @@ namespace Lumos
                 testPhysics->SetInverseInertia(testPhysics->GetCollisionShape()->BuildInverseInertia(inverse_mass));
             }
 
-            sphere.AddComponent<Physics3DComponent>(testPhysics);
+            sphere.AddComponent<RigidBody3DComponent>(testPhysics);
         }
         else
         {
@@ -140,7 +140,7 @@ namespace Lumos
                 testPhysics->SetInverseInertia(testPhysics->GetCollisionShape()->BuildInverseInertia(inverse_mass));
             }
 
-            cube.AddComponent<Physics3DComponent>(testPhysics);
+            cube.AddComponent<RigidBody3DComponent>(testPhysics);
         }
         else
         {
@@ -201,7 +201,7 @@ namespace Lumos
                 testPhysics->SetInverseInertia(testPhysics->GetCollisionShape()->BuildInverseInertia(inverse_mass));
             }
 
-            pyramid.AddComponent<Physics3DComponent>(testPhysics);
+            pyramid.AddComponent<RigidBody3DComponent>(testPhysics);
             pyramid.GetOrAddComponent<Maths::Transform>().SetLocalPosition(pos);
         }
         else
@@ -231,7 +231,7 @@ namespace Lumos
             true,
             colour);
 
-        cube.GetComponent<Physics3DComponent>().GetRigidBody()->SetIsAtRest(true);
+        cube.GetComponent<RigidBody3DComponent>().GetRigidBody()->SetIsAtRest(true);
         const float radius = Random32::Rand(1.0f, 30.0f);
         const float intensity = Random32::Rand(0.0f, 2.0f);
 
@@ -256,7 +256,7 @@ namespace Lumos
                 1.0f));
 
         const Maths::Vector3 forward = dir;
-        sphere.GetComponent<Physics3DComponent>().GetRigidBody()->SetLinearVelocity(forward * 30.0f);
+        sphere.GetComponent<RigidBody3DComponent>().GetRigidBody()->SetLinearVelocity(forward * 30.0f);
     }
 
     void EntityFactory::AddPyramid(Scene* scene, const Maths::Vector3& pos, const Maths::Vector3& dir)
@@ -278,6 +278,6 @@ namespace Lumos
 
         const Maths::Vector3 forward = dir;
 
-        sphere.GetComponent<Physics3DComponent>().GetRigidBody()->SetLinearVelocity(forward * 30.0f);
+        sphere.GetComponent<RigidBody3DComponent>().GetRigidBody()->SetLinearVelocity(forward * 30.0f);
     }
 }

@@ -108,6 +108,35 @@ namespace Lumos
         return updated;
     }
 
+    bool ImGuiHelpers::Property(const std::string& name, uint32_t& value, ImGuiHelpers::PropertyFlag flags)
+    {
+        LUMOS_PROFILE_FUNCTION();
+        bool updated = false;
+
+        ImGui::TextUnformatted(name.c_str());
+        ImGui::NextColumn();
+        ImGui::PushItemWidth(-1);
+
+        if((int)flags & (int)PropertyFlag::ReadOnly)
+        {
+            ImGui::Text("%uui", value);
+        }
+        else
+        {
+            std::string id = "##" + name;
+            int valueInt = (int)value;
+            if(ImGui::DragInt(id.c_str(), &valueInt))
+            {
+                updated = true;
+                value = (uint32_t)valueInt;
+            }
+        }
+        ImGui::PopItemWidth();
+        ImGui::NextColumn();
+
+        return updated;
+    }
+
     bool ImGuiHelpers::Property(const std::string& name, float& value, float min, float max, ImGuiHelpers::PropertyFlag flags)
     {
         LUMOS_PROFILE_FUNCTION();
@@ -1068,11 +1097,57 @@ namespace Lumos
         return changed;
     }
 
+    void ImGuiHelpers::DrawItemActivityOutline(float rounding, bool drawWhenInactive, ImColor colourWhenActive)
+    {
+        auto* drawList = ImGui::GetWindowDrawList();
+
+        ImRect expandedRect = ImRect(ImGui::GetItemRectMin(), ImGui::GetItemRectMax());
+        expandedRect.Min.x -= 1.0f;
+        expandedRect.Min.y -= 1.0f;
+        expandedRect.Max.x += 1.0f;
+        expandedRect.Max.y += 1.0f;
+
+        const ImRect rect = expandedRect;
+        if(ImGui::IsItemHovered() && !ImGui::IsItemActive())
+        {
+            drawList->AddRect(rect.Min, rect.Max,
+                ImColor(60, 60, 60), rounding, 0, 1.5f);
+        }
+        if(ImGui::IsItemActive())
+        {
+            drawList->AddRect(rect.Min, rect.Max,
+                colourWhenActive, rounding, 0, 1.0f);
+        }
+        else if(!ImGui::IsItemHovered() && drawWhenInactive)
+        {
+            drawList->AddRect(rect.Min, rect.Max,
+                ImColor(50, 50, 50), rounding, 0, 1.0f);
+        }
+    }
+
+    bool ImGuiHelpers::InputText(std::string& currentText)
+    {
+        ImGuiHelpers::ScopedStyle frameBorder(ImGuiStyleVar_FrameBorderSize, 0.0f);
+        ImGuiHelpers::ScopedColour frameColour(ImGuiCol_FrameBg, IM_COL32(0, 0, 0, 0));
+        char buffer[256];
+        memset(buffer, 0, 256);
+        memcpy(buffer, currentText.c_str(), currentText.length());
+
+        bool updated = ImGui::InputText("##SceneName", buffer, 256);
+
+        ImGuiHelpers::DrawItemActivityOutline(2.0f, false);
+
+        if(updated)
+            currentText = std::string(buffer);
+
+        return updated;
+    }
+
 }
 
 namespace ImGui
 {
-    bool DragFloatN_Coloured(const char* label, float* v, int components, float v_speed, float v_min, float v_max, const char* display_format, float power)
+    bool DragFloatN_Coloured(const char* label, float* v, int components, float v_speed, float v_min, float v_max, const char* display_format)
     {
         LUMOS_PROFILE_FUNCTION();
         ImGuiWindow* window = GetCurrentWindow();
@@ -1094,7 +1169,7 @@ namespace ImGui
             };
 
             PushID(i);
-            value_changed |= DragFloat("##v", &v[i], v_speed, v_min, v_max, display_format, power);
+            value_changed |= DragFloat("##v", &v[i], v_speed, v_min, v_max, display_format);
 
             const ImVec2 min = GetItemRectMin();
             const ImVec2 max = GetItemRectMax();
@@ -1130,7 +1205,7 @@ namespace ImGui
     }
 
     bool DragFloatNEx(const char* labels[], float* v, int components, float v_speed, float v_min, float v_max,
-        const char* display_format, float power)
+        const char* display_format)
     {
         ImGuiWindow* window = GetCurrentWindow();
         if(window->SkipItems)
@@ -1147,7 +1222,7 @@ namespace ImGui
             PushID(i);
             TextUnformatted(labels[i], FindRenderedTextEnd(labels[i]));
             SameLine();
-            value_changed |= DragFloat("", &v[i], v_speed, v_min, v_max, display_format, power);
+            value_changed |= DragFloat("", &v[i], v_speed, v_min, v_max, display_format);
             SameLine(0, g.Style.ItemInnerSpacing.x);
             PopID();
             PopID();

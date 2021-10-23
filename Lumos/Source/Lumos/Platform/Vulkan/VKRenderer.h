@@ -20,7 +20,7 @@ namespace Lumos
         class LUMOS_EXPORT VKRenderer : public Renderer
         {
         public:
-            VKRenderer() { }
+            VKRenderer() = default;
             ~VKRenderer();
 
             static VKRenderer* GetRenderer()
@@ -88,7 +88,7 @@ namespace Lumos
             std::string m_RendererTitle;
 
             static VkDescriptorPool s_DescriptorPool;
-            VkDescriptorSet m_DescriptorSetPool[16];
+            VkDescriptorSet m_DescriptorSetPool[16] = {};
             static VKContext::DeletionQueue s_DeletionQueue[3];
         };
     }

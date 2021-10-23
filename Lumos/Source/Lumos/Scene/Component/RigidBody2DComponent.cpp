@@ -1,5 +1,5 @@
 #include "Precompiled.h"
-#include "Physics2DComponent.h"
+#include "RigidBody2DComponent.h"
 #include "Maths/Maths.h"
 
 #include <box2d/box2d.h>
@@ -7,26 +7,26 @@
 
 namespace Lumos
 {
-    Physics2DComponent::Physics2DComponent()
+    RigidBody2DComponent::RigidBody2DComponent()
     {
         m_RigidBody = CreateSharedPtr<RigidBody2D>();
     }
 
-    Physics2DComponent::Physics2DComponent(const RigidBodyParameters& params)
+    RigidBody2DComponent::RigidBody2DComponent(const RigidBodyParameters& params)
     {
         m_RigidBody = CreateSharedPtr<RigidBody2D>(params);
     }
 
-    Physics2DComponent::Physics2DComponent(SharedPtr<RigidBody2D>& physics)
+    RigidBody2DComponent::RigidBody2DComponent(SharedPtr<RigidBody2D>& physics)
         : m_RigidBody(physics)
     {
     }
 
-    void Physics2DComponent::Update()
+    void RigidBody2DComponent::Update()
     {
     }
 
-    void Physics2DComponent::OnImGui()
+    void RigidBody2DComponent::OnImGui()
     {
         auto pos = m_RigidBody->GetPosition();
         auto angle = m_RigidBody->GetAngle();

@@ -24,7 +24,7 @@ namespace Lumos
             size_t hash = 0;
             HashCombine(hash, renderPassDesc.attachmentCount, renderPassDesc.clear);
 
-            for(int i = 0; i < renderPassDesc.attachmentCount; i++)
+            for(uint32_t i = 0; i < renderPassDesc.attachmentCount; i++)
             {
                 HashCombine(hash, renderPassDesc.attachmentTypes[i], renderPassDesc.attachments[i]);
             }

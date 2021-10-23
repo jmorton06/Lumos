@@ -72,8 +72,8 @@ function CreatePlayer()
     SetCallback(beginContact)
 
     player:GetTransform():SetLocalPosition(Vector3.new(1.0,1.0,1.0))
-    player:AddPhysics2DComponent(params):GetRigidBody():SetForce(Vector2.new(200.0,0.0))
-    player:GetPhysics2DComponent():GetRigidBody():SetIsStatic(true)
+    player:AddRigidBody2DComponent(params):GetRigidBody():SetForce(Vector2.new(200.0,0.0))
+    player:GetRigidBody2DComponent():GetRigidBody():SetIsStatic(true)
 end
 
 function CreatePillar(index, offset)
@@ -101,7 +101,7 @@ function CreatePillar(index, offset)
 	params.customShapePositions = { Vector2.new(-scale.x, -scale.y), Vector2.new(scale.x * 0.25, scale.y * 1.05), Vector2.new(scale.x, -scale.y)}
 
     pillars[index]:GetTransform():SetLocalPosition(pos)
-    pillars[index]:AddPhysics2DComponent(params):GetRigidBody():SetOrientation(3.14)
+    pillars[index]:AddRigidBody2DComponent(params):GetRigidBody():SetOrientation(3.14)
 
 	--Bottom Pillar
 	topY = centre - (gapSize / 2.0)
@@ -119,7 +119,7 @@ function CreatePillar(index, offset)
 	params.customShapePositions = { Vector2.new(-scale.x, -scale.y), Vector2.new(scale.x * 0.25, scale.y * 1.05), Vector2.new(scale.x, -scale.y)}
 
     pillars[index + 1]:GetTransform():SetLocalPosition(pos)
-    pillars[index + 1]:AddPhysics2DComponent(params)
+    pillars[index + 1]:AddRigidBody2DComponent(params)
 
 	if pos.x > m_FurthestPillarPosX then
         m_FurthestPillarPosX = pos.x;
@@ -170,7 +170,7 @@ end
 
 function PlayerJump()
 
-	local phys = player:GetPhysics2DComponent()
+	local phys = player:GetRigidBody2DComponent()
 	local vel = phys:GetRigidBody():GetLinearVelocity()
 
 	vel.y = VerticalSpeed
@@ -186,7 +186,7 @@ function OnUpdate(dt)
     	SwitchScene()
     end
     if gameState == GameStates.Running then
-		phys = player:GetPhysics2DComponent()
+		phys = player:GetRigidBody2DComponent()
 
         up = Vector3.new(0, 1, 0)
         right = Vector3.new(1, 0, 0)
@@ -264,8 +264,8 @@ function OnUpdate(dt)
  	   camera:GetTransform():SetLocalPosition(pos)
 	 	if Input.GetKeyPressed( Key.Space ) or Input.GetMouseClicked(MouseButton.Left) then
 			gameState = GameStates.Running
-			player:GetPhysics2DComponent():GetRigidBody():SetIsStatic(false)
-			player:GetPhysics2DComponent():GetRigidBody():SetForce(Vector2.new(200.0,0.0))
+			player:GetRigidBody2DComponent():GetRigidBody():SetIsStatic(false)
+			player:GetRigidBody2DComponent():GetRigidBody():SetForce(Vector2.new(200.0,0.0))
 			PlayerJump()
      	end
 	end
@@ -275,7 +275,7 @@ end
 
 function Reset()
     gameState = GameStates.Start
-    phys = player:GetPhysics2DComponent():GetRigidBody()
+    phys = player:GetRigidBody2DComponent():GetRigidBody()
 
     phys:SetPosition(Vector2.new(0.0, 0.0))
     phys:SetForce(Vector2.new(400.0,0.0))

@@ -26,22 +26,14 @@ namespace Lumos
         std::vector<CollisionPair>& collisionPairs)
     {
         LUMOS_PROFILE_FUNCTION();
-
-        {
-            LUMOS_PROFILE_SCOPE("Reset nodes");
-
-            m_LeafCount = 0;
-            m_CurrentPoolIndex = 0;
-
-            for(int i = 0; i < MAX_PARTITION_DEPTH * MAX_PARTITION_DEPTH * MAX_PARTITION_DEPTH; i++)
-            {
-                m_NodePool[i].ChildCount = 0;
-                m_NodePool[i].PhysicsObjectCount = 0;
-                m_NodePool[i].Index = 0;
-            }
-        }
-
-        m_NodePool[0].boundingBox = Maths::BoundingBox();
+        m_CurrentPoolIndex = 0;
+        m_LeafCount = 0;
+        
+        auto& rootNode = m_NodePool[0];
+        rootNode.ChildCount = 0;
+        rootNode.PhysicsObjectCount = 0;
+        rootNode.Index = 0;
+        rootNode.boundingBox = Maths::BoundingBox();
 
         for(uint32_t i = 0; i < objectCount; i++)
         {
@@ -50,16 +42,16 @@ namespace Lumos
             if(physicsObject && physicsObject->GetCollisionShape())
             {
                 LUMOS_PROFILE_SCOPE("Merge Bounding box and add Physics Object");
-                m_NodePool[0].boundingBox.Merge(physicsObject->GetWorldSpaceAABB());
-                m_NodePool[0].PhysicsObjects[m_NodePool[0].PhysicsObjectCount] = physicsObject;
-                m_NodePool[0].PhysicsObjectCount++;
+                rootNode.boundingBox.Merge(physicsObject->GetWorldSpaceAABB());
+                rootNode.PhysicsObjects[rootNode.PhysicsObjectCount] = physicsObject;
+                rootNode.PhysicsObjectCount++;
             }
         }
 
         m_CurrentPoolIndex++;
 
         // Recursively divide world
-        Divide(m_NodePool[0], 0);
+        Divide(rootNode, 0);
 
         // Add collision pairs in leaf world divisions
         for(uint32_t i = 0; i < m_LeafCount; i++)
@@ -67,6 +59,27 @@ namespace Lumos
             if(m_NodePool[m_Leaves[i]].PhysicsObjectCount > 1)
                 m_SecondaryBroadphase->FindPotentialCollisionPairs(m_NodePool[m_Leaves[i]].PhysicsObjects, m_NodePool[m_Leaves[i]].PhysicsObjectCount, collisionPairs);
         }
+        
+//        uint32_t duplicatePairs = 0;
+//        for(size_t i = 0; i < collisionPairs.size(); ++i)
+//        {
+//            auto& pair = collisionPairs[i];
+//            for(size_t j = i + 1; j < collisionPairs.size(); ++j)
+//            {
+//                auto& pair2 = collisionPairs[j];
+//                if(pair.pObjectA == pair2.pObjectA && pair.pObjectB == pair2.pObjectB)
+//                {
+//                    duplicatePairs++;
+//                }
+//                else if(pair.pObjectA == pair2.pObjectB && pair.pObjectB == pair2.pObjectA)
+//                {
+//                    duplicatePairs++;
+//                }
+//                
+//            }
+//        }
+//        
+//        LUMOS_LOG_INFO(duplicatePairs);
     }
 
     void OctreeBroadphase::DebugDraw()
@@ -132,7 +145,7 @@ namespace Lumos
             {
                 LUMOS_PROFILE_SCOPE("PhysicsObject BB check");
                 auto& physicsObject = division.PhysicsObjects[i];
-                if(newNode.boundingBox.IsInsideFast(physicsObject->GetWorldSpaceAABB()))
+                if(newNode.boundingBox.IsInsideFast(physicsObject->GetWorldSpaceAABB()) == Maths::INSIDE)
                 {
                     newNode.PhysicsObjects[newNode.PhysicsObjectCount] = physicsObject;
                     newNode.PhysicsObjectCount++;

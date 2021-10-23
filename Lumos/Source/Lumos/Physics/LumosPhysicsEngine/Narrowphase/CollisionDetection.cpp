@@ -50,7 +50,7 @@ namespace Lumos
         return true;
     }
 
-    void AddPossibleCollisionAxis(Maths::Vector3& axis, std::vector<Maths::Vector3>* possible_collision_axes)
+    void AddPossibleCollisionAxis(Maths::Vector3& axis, Maths::Vector3* possibleCollisionAxes, uint32_t& possibleCollisionAxesCount)
     {
         LUMOS_PROFILE_FUNCTION();
         const float epsilon = 0.0001f;
@@ -61,15 +61,16 @@ namespace Lumos
         axis.Normalise();
 
         float value = (1.0f - epsilon);
-        auto& axes = *possible_collision_axes;
 
-        for(const Maths::Vector3& p_axis : axes)
+        for(uint32_t i = 0; i < possibleCollisionAxesCount; i++)
         {
+            const Maths::Vector3& p_axis = possibleCollisionAxes[i];
             if(abs(Maths::Vector3::Dot(axis, p_axis)) >= value)
                 return;
         }
 
-        possible_collision_axes->push_back(axis);
+        possibleCollisionAxes[possibleCollisionAxesCount] = axis;
+        possibleCollisionAxesCount++;
     }
 
     bool CollisionDetection::CheckPolyhedronSphereCollision(RigidBody3D* obj1, RigidBody3D* obj2, CollisionShape* shape1, CollisionShape* shape2, CollisionData* out_coldata)
@@ -96,16 +97,28 @@ namespace Lumos
         CollisionData best_colData;
         best_colData.penetration = -FLT_MAX;
 
-        std::vector<Maths::Vector3> possibleCollisionAxes = complexShape->GetCollisionAxes(complexObj);
+        std::vector<Maths::Vector3>& shapeCollisionAxes = complexShape->GetCollisionAxes(complexObj);
         std::vector<CollisionEdge>& complex_shape_edges = complexShape->GetEdges(complexObj);
 
         Maths::Vector3 p = GetClosestPointOnEdges(sphereObj->GetPosition(), complex_shape_edges);
         Maths::Vector3 p_t = sphereObj->GetPosition() - p;
         p_t.Normalise();
-        AddPossibleCollisionAxis(p_t, &possibleCollisionAxes);
 
-        for(const Maths::Vector3& axis : possibleCollisionAxes)
+        static const int MAX_COLLISION_AXES = 100;
+        static Maths::Vector3 possibleCollisionAxes[MAX_COLLISION_AXES];
+
+        uint32_t possibleCollisionAxesCount = 0;
+        for(const Maths::Vector3& axis : shapeCollisionAxes)
         {
+            possibleCollisionAxes[possibleCollisionAxesCount] = axis;
+            possibleCollisionAxesCount++;
+        }
+
+        AddPossibleCollisionAxis(p_t, possibleCollisionAxes, possibleCollisionAxesCount);
+
+        for(uint32_t i = 0; i < possibleCollisionAxesCount; i++)
+        {
+            const Maths::Vector3& axis = possibleCollisionAxes[i];
             if(!CheckCollisionAxis(axis, obj1, obj2, shape1, shape2, &cur_colData))
                 return false;
 
@@ -126,11 +139,24 @@ namespace Lumos
         CollisionData best_colData;
         best_colData.penetration = -FLT_MAX;
 
-        std::vector<Maths::Vector3> possibleCollisionAxes = shape1->GetCollisionAxes(obj1);
-        std::vector<Maths::Vector3>& tempPossibleCollisionAxes = shape2->GetCollisionAxes(obj2);
+        std::vector<Maths::Vector3>& shape1CollisionAxes = shape1->GetCollisionAxes(obj1);
+        std::vector<Maths::Vector3>& shape2PossibleCollisionAxes = shape2->GetCollisionAxes(obj2);
 
-        for(Maths::Vector3& temp : tempPossibleCollisionAxes)
-            AddPossibleCollisionAxis(temp, &possibleCollisionAxes);
+        static const int MAX_COLLISION_AXES = 100;
+        static Maths::Vector3 possibleCollisionAxes[MAX_COLLISION_AXES];
+
+        uint32_t possibleCollisionAxesCount = 0;
+        for(const Maths::Vector3& axis : shape1CollisionAxes)
+        {
+            possibleCollisionAxes[possibleCollisionAxesCount] = axis;
+            possibleCollisionAxesCount++;
+        }
+
+        for(const Maths::Vector3& axis : shape2PossibleCollisionAxes)
+        {
+            possibleCollisionAxes[possibleCollisionAxesCount] = axis;
+            possibleCollisionAxesCount++;
+        }
 
         std::vector<CollisionEdge>& shape1_edges = shape1->GetEdges(obj1);
         std::vector<CollisionEdge>& shape2_edges = shape2->GetEdges(obj2);
@@ -145,12 +171,13 @@ namespace Lumos
                 e2.Normalise();
 
                 Maths::Vector3 temp = e1.CrossProduct(e2);
-                AddPossibleCollisionAxis(temp, &possibleCollisionAxes);
+                AddPossibleCollisionAxis(temp, possibleCollisionAxes, possibleCollisionAxesCount);
             }
         }
 
-        for(const Maths::Vector3& axis : possibleCollisionAxes)
+        for(uint32_t i = 0; i < possibleCollisionAxesCount; i++)
         {
+            const Maths::Vector3& axis = possibleCollisionAxes[i];
             if(!CheckCollisionAxis(axis, obj1, obj2, shape1, shape2, &cur_colData))
                 return false;
 

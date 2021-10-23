@@ -6,12 +6,12 @@
 
 namespace Lumos
 {
-    class LUMOS_EXPORT Physics2DComponent
+    class LUMOS_EXPORT RigidBody2DComponent
     {
     public:
-        Physics2DComponent();
-        Physics2DComponent(const RigidBodyParameters& params);
-        explicit Physics2DComponent(SharedPtr<RigidBody2D>& physics);
+        RigidBody2DComponent();
+        RigidBody2DComponent(const RigidBodyParameters& params);
+        explicit RigidBody2DComponent(SharedPtr<RigidBody2D>& physics);
 
         void Update();
         void OnImGui();

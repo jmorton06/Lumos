@@ -107,10 +107,10 @@ namespace Lumos
                 if(iconMap.find(typeid(SoundComponent).hash_code()) != iconMap.end())
                     icon = iconMap[typeid(SoundComponent).hash_code()];
             }
-            else if(registry.has<Physics2DComponent>(node))
+            else if(registry.has<RigidBody2DComponent>(node))
             {
-                if(iconMap.find(typeid(Physics2DComponent).hash_code()) != iconMap.end())
-                    icon = iconMap[typeid(Physics2DComponent).hash_code()];
+                if(iconMap.find(typeid(RigidBody2DComponent).hash_code()) != iconMap.end())
+                    icon = iconMap[typeid(RigidBody2DComponent).hash_code()];
             }
             else if(registry.has<Graphics::Light>(node))
             {
@@ -438,11 +438,18 @@ namespace Lumos
             ImGui::TextUnformatted(ICON_MDI_MAGNIFY);
             ImGui::SameLine();
 
-            m_HierarchyFilter.Draw("##HierarchyFilter", ImGui::GetContentRegionAvail().x - ImGui::GetStyle().IndentSpacing);
+            {
+                ImGuiHelpers::ScopedFont boldFont(ImGui::GetIO().Fonts->Fonts[1]);
+                ImGuiHelpers::ScopedStyle frameBorder(ImGuiStyleVar_FrameBorderSize, 0.0f);
+                ImGuiHelpers::ScopedColour frameColour(ImGuiCol_FrameBg, IM_COL32(0, 0, 0, 0));
+                m_HierarchyFilter.Draw("##HierarchyFilter", ImGui::GetContentRegionAvail().x - ImGui::GetStyle().IndentSpacing);
+                ImGuiHelpers::DrawItemActivityOutline(2.0f, false);
+            }
 
             if(!m_HierarchyFilter.IsActive())
             {
                 ImGui::SameLine();
+                ImGuiHelpers::ScopedFont boldFont(ImGui::GetIO().Fonts->Fonts[1]);
                 ImGui::SetCursorPosX(ImGui::GetFontSize() * 2.0f);
                 ImGuiHelpers::ScopedStyle padding(ImGuiStyleVar_FramePadding, ImVec2(0.0f, ImGui::GetStyle().FramePadding.y));
                 ImGui::TextUnformatted("Search...");
@@ -500,10 +507,10 @@ namespace Lumos
                 if(ImGui::Selectable("Add Rigid Body"))
                 {
                     auto entity = scene->CreateEntity("RigidBody");
-                    entity.AddComponent<Physics3DComponent>();
+                    entity.AddComponent<RigidBody3DComponent>();
                     entity.GetOrAddComponent<Maths::Transform>();
                     entity.AddComponent<AxisConstraintComponent>(entity, Axes::XZ);
-                    entity.GetComponent<Physics3DComponent>().GetRigidBody()->SetCollisionShape(CollisionShapeType::CollisionCuboid);
+                    entity.GetComponent<RigidBody3DComponent>().GetRigidBody()->SetCollisionShape(CollisionShapeType::CollisionCuboid);
                 }
 
                 if(ImGui::Selectable("Add Camera"))
@@ -544,18 +551,12 @@ namespace Lumos
                     ImGui::EndDragDropTarget();
                 }
 
-                ImGui::Indent();
-
-                ////                float x1 = ImGui::GetCursorPos().x;
-                ////                float x2 = ImGui::GetCurrentWindow()->WorkRect.Max.x;
-                ////                float item_spacing_y = ImGui::GetStyle().ItemSpacing.y;
-                ////                float item_offset_y = -item_spacing_y * 0.5f;
-                ////                float line_height = ImGui::GetTextLineHeight() + item_spacing_y;
-                ////                ImGuiHelpers::DrawRowsBackground(50, line_height, x1, x2, item_offset_y, 0, ImGui::GetColorU32(ImVec4(0.4f, 0.4f, 0.4f, 0.5f)));
-                ////
-                //
                 //                auto draw_list = ImGui::GetWindowDrawList();
-                //                draw_list->AddRectFilled(ImGui::GetCursorPos(), ImGui::GetContentRegionAvail(), ImGui::GetColorU32(ImVec4(0.4f, 0.4f, 0.4f, 0.5f)));
+                //                auto availSize = ImGui::GetContentRegionAvail();
+                //                ImVec2 min = ImGui::GetCursorScreenPos() + ImVec2(ImGui::GetStyle().ItemSpacing.x, ImGui::GetScrollY());
+                //                draw_list->AddRectFilled(min, min + availSize, ImGui::ColorConvertFloat4ToU32(ImGui::ColorConvertU32ToFloat4(ImGui::GetColorU32(ImGuiCol_FrameBg)) - ImVec4(0.15f, 0.15f, 0.15f, 0.0f)));
+
+                ImGui::Indent();
 
                 registry.each([&](auto entity)
                     {

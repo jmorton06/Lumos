@@ -1,10 +1,10 @@
 #pragma once
 
 #include "Physics/LumosPhysicsEngine/RigidBody3D.h"
-#include "Physics/LumosPhysicsEngine/SpringConstraint.h"
-#include "Physics/LumosPhysicsEngine/WeldConstraint.h"
-#include "Physics/LumosPhysicsEngine/DistanceConstraint.h"
-#include "Physics/LumosPhysicsEngine/AxisConstraint.h"
+#include "Physics/LumosPhysicsEngine/Constraints/SpringConstraint.h"
+#include "Physics/LumosPhysicsEngine/Constraints/WeldConstraint.h"
+#include "Physics/LumosPhysicsEngine/Constraints/DistanceConstraint.h"
+#include "Physics/LumosPhysicsEngine/Constraints/AxisConstraint.h"
 
 #include "Scene/Entity.h"
 #include <cereal/cereal.hpp>
@@ -98,15 +98,15 @@ namespace Lumos
         Entity m_OtherEntity;
     };
 
-    class LUMOS_EXPORT Physics3DComponent
+    class LUMOS_EXPORT RigidBody3DComponent
     {
     public:
-        Physics3DComponent();
-        Physics3DComponent(const Physics3DComponent& other);
+        RigidBody3DComponent();
+        RigidBody3DComponent(const RigidBody3DComponent& other);
 
-        explicit Physics3DComponent(SharedPtr<RigidBody3D>& physics);
+        explicit RigidBody3DComponent(SharedPtr<RigidBody3D>& physics);
 
-        ~Physics3DComponent() = default;
+        ~RigidBody3DComponent() = default;
 
         void Init();
         void Update();

@@ -226,7 +226,7 @@ namespace Lumos
             renderPass->BeginRenderpass(commandBuffer, clearColour, frameBuffer, SubPassContents::INLINE, width, height);
             renderPass->EndRenderpass(commandBuffer);
 
-            float ratio = texture->GetWidth() / texture->GetHeight();
+            float ratio = float(texture->GetWidth() / texture->GetHeight());
             VkImageBlit blit {};
             blit.srcOffsets[0] = { 0, 0, 0 };
             blit.srcOffsets[1] = { (int32_t)texture->GetWidth(), (int32_t)texture->GetWidth(), 1 };
@@ -236,7 +236,7 @@ namespace Lumos
             blit.srcSubresource.layerCount = 1;
 
             int32_t destSizex = width / 8;
-            int32_t destSizey = destSizex * ratio;
+            int32_t destSizey = int32_t(destSizex * ratio);
             int32_t offsetx = width / 2 - destSizex / 2;
             int32_t offsety = height / 2 - destSizey / 2;
 

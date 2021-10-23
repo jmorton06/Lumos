@@ -9,7 +9,7 @@ local movementY = 0.0
 
 function OnInit()
 entity = LuaComponent:GetCurrentEntity()
-phys = entity:GetPhysics3DComponent():GetRigidBody()
+phys = entity:GetRigidBody3DComponent():GetRigidBody()
 
 children = entity:GetChildren()
 cameraTransform = children[1]:GetTransform()
