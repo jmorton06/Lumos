@@ -1,6 +1,6 @@
 #include "Precompiled.h"
 #include "CapsuleCollisionShape.h"
-#include "RigidBody3D.h"
+#include "Physics/LumosPhysicsEngine/RigidBody3D.h"
 #include "Maths/Matrix3.h"
 
 namespace Lumos

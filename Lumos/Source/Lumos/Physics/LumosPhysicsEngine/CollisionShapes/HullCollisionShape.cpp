@@ -1,6 +1,6 @@
 #include "Precompiled.h"
 #include "HullCollisionShape.h"
-#include "RigidBody3D.h"
+#include "Physics/LumosPhysicsEngine/RigidBody3D.h"
 #include "Maths/Matrix3.h"
 
 #include "Graphics/Mesh.h"

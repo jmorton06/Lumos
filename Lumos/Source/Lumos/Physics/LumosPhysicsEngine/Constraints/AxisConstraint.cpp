@@ -1,7 +1,7 @@
 #include "Precompiled.h"
-#include "Maths/Maths.h"
 #include "AxisConstraint.h"
-#include "RigidBody3D.h"
+#include "Maths/Maths.h"
+#include "Physics/LumosPhysicsEngine/RigidBody3D.h"
 #include "Graphics/Renderers/DebugRenderer.h"
 
 namespace Lumos

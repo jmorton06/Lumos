@@ -1,6 +1,6 @@
 #include "Precompiled.h"
-#include "LumosPhysicsEngine.h"
 #include "SpringConstraint.h"
+#include "Physics/LumosPhysicsEngine/LumosPhysicsEngine.h"
 #include "Graphics/Renderers/DebugRenderer.h"
 
 namespace Lumos
