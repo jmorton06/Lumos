@@ -1,6 +1,6 @@
 #pragma once
-
 #include "Constraint.h"
+#include "Maths/Maths.h"
 
 namespace Lumos
 {
