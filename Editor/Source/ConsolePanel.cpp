@@ -93,8 +93,11 @@ namespace Lumos
         ImGuiStyle& style = ImGui::GetStyle();
 
         // Button for advanced settings
-        if(ImGui::Button(ICON_MDI_COGS))
-            ImGui::OpenPopup("SettingsPopup");
+        {
+            ImGuiHelpers::ScopedColour buttonColour(ImGuiCol_Button, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
+            if(ImGui::Button(ICON_MDI_COGS))
+                ImGui::OpenPopup("SettingsPopup");
+        }
         if(ImGui::BeginPopup("SettingsPopup"))
         {
             // Checkbox for scrolling lock
@@ -115,12 +118,20 @@ namespace Lumos
         ImGui::GetStyle().ItemSpacing.x = 2;
         float levelButtonWidth = (ImGui::CalcTextSize(Message::GetLevelIcon(Message::Level(1))) + ImGui::GetStyle().FramePadding * 2.0f).x;
         float levelButtonWidths = (levelButtonWidth + ImGui::GetStyle().ItemSpacing.x) * 6;
-        Filter.Draw("###ConsoleFilter", ImGui::GetContentRegionAvail().x - (levelButtonWidths));
+
+        {
+            ImGuiHelpers::ScopedFont boldFont(ImGui::GetIO().Fonts->Fonts[1]);
+            ImGuiHelpers::ScopedStyle frameBorder(ImGuiStyleVar_FrameBorderSize, 0.0f);
+            ImGuiHelpers::ScopedColour frameColour(ImGuiCol_FrameBg, IM_COL32(0, 0, 0, 0));
+            Filter.Draw("###ConsoleFilter", ImGui::GetContentRegionAvail().x - (levelButtonWidths));
+            ImGuiHelpers::DrawItemActivityOutline(2.0f, false);
+        }
 
         ImGui::SameLine(); //ImGui::GetWindowWidth() - levelButtonWidths);
 
         for(int i = 0; i < 6; i++)
         {
+            ImGuiHelpers::ScopedColour buttonColour(ImGuiCol_Button, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
             ImGui::SameLine();
             auto level = Message::Level(Maths::Pow(2, i));
 
@@ -143,6 +154,15 @@ namespace Lumos
         }
 
         ImGui::GetStyle().ItemSpacing.x = spacing;
+
+        if(!Filter.IsActive())
+        {
+            ImGui::SameLine();
+            ImGuiHelpers::ScopedFont boldFont(ImGui::GetIO().Fonts->Fonts[1]);
+            ImGui::SetCursorPosX(ImGui::GetFontSize() * 4.0f);
+            ImGuiHelpers::ScopedStyle padding(ImGuiStyleVar_FramePadding, ImVec2(0.0f, ImGui::GetStyle().FramePadding.y));
+            ImGui::TextUnformatted("Search...");
+        }
     }
 
     void ConsolePanel::ImGuiRenderMessages()

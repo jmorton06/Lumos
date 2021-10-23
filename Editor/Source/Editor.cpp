@@ -161,8 +161,8 @@ namespace Lumos
         m_ComponentIconMap[typeid(SoundComponent).hash_code()] = ICON_MDI_VOLUME_HIGH;
         m_ComponentIconMap[typeid(Graphics::Sprite).hash_code()] = ICON_MDI_IMAGE;
         m_ComponentIconMap[typeid(Maths::Transform).hash_code()] = ICON_MDI_VECTOR_LINE;
-        m_ComponentIconMap[typeid(Physics2DComponent).hash_code()] = ICON_MDI_SQUARE_OUTLINE;
-        m_ComponentIconMap[typeid(Physics3DComponent).hash_code()] = ICON_MDI_CUBE_OUTLINE;
+        m_ComponentIconMap[typeid(RigidBody2DComponent).hash_code()] = ICON_MDI_SQUARE_OUTLINE;
+        m_ComponentIconMap[typeid(RigidBody3DComponent).hash_code()] = ICON_MDI_CUBE_OUTLINE;
         m_ComponentIconMap[typeid(Graphics::ModelComponent).hash_code()] = ICON_MDI_SHAPE;
         m_ComponentIconMap[typeid(Graphics::Model).hash_code()] = ICON_MDI_SHAPE;
         m_ComponentIconMap[typeid(LuaScriptComponent).hash_code()] = ICON_MDI_SCRIPT;
@@ -960,20 +960,20 @@ namespace Lumos
                         model = transform->GetParentMatrix().Inverse() * model;
                         transform->SetLocalTransform(model);
 
-                        auto physics2DComponent = registry.try_get<Physics2DComponent>(m_SelectedEntity);
+                        RigidBody2DComponent* rigidBody2DComponent = registry.try_get<Lumos::RigidBody2DComponent>(m_SelectedEntity);
 
-                        if(physics2DComponent)
+                        if(rigidBody2DComponent)
                         {
-                            physics2DComponent->GetRigidBody()->SetPosition(
+                            rigidBody2DComponent->GetRigidBody()->SetPosition(
                                 { model.Translation().x, model.Translation().y });
                         }
                         else
                         {
-                            auto physics3DComponent = registry.try_get<Physics3DComponent>(m_SelectedEntity);
-                            if(physics3DComponent)
+                            Lumos::RigidBody3DComponent* rigidBody3DComponent = registry.try_get<Lumos::RigidBody3DComponent>(m_SelectedEntity);
+                            if(rigidBody3DComponent)
                             {
-                                physics3DComponent->GetRigidBody()->SetPosition(model.Translation());
-                                physics3DComponent->GetRigidBody()->SetOrientation(model.Rotation());
+                                rigidBody3DComponent->GetRigidBody()->SetPosition(model.Translation());
+                                rigidBody3DComponent->GetRigidBody()->SetOrientation(model.Rotation());
                             }
                         }
                     }
@@ -1565,7 +1565,7 @@ namespace Lumos
                 DebugRenderer::DebugDraw(sound->GetSoundNode(), Maths::Vector4(0.8f, 0.8f, 0.8f, 0.2f));
             }
 
-            auto phys3D = registry.try_get<Physics3DComponent>(m_SelectedEntity);
+            auto phys3D = registry.try_get<RigidBody3DComponent>(m_SelectedEntity);
             if(phys3D)
             {
                 auto cs = phys3D->GetRigidBody()->GetCollisionShape();

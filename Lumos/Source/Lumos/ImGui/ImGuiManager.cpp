@@ -14,6 +14,7 @@
 #include <imguiPlugins/ImGuizmo.h>
 #include <imguiPlugins/ImGuiAl/fonts/MaterialDesign.inl>
 #include <imguiPlugins/ImGuiAl/fonts/RobotoRegular.inl>
+#include <imguiPlugins/ImGuiAl/fonts/RobotoBold.inl>
 #include <imgui/misc/freetype/imgui_freetype.h>
 
 #if defined(LUMOS_PLATFORM_MACOS) || defined(LUMOS_PLATFORM_WINDOWS) || defined(LUMOS_PLATFORM_LINUX)
@@ -296,6 +297,8 @@ namespace Lumos
         io.Fonts->AddFontFromMemoryCompressedTTF(RobotoRegular_compressed_data, RobotoRegular_compressed_size, m_FontSize, &icons_config, ranges);
         AddIconFont();
 
+        io.Fonts->AddFontFromMemoryCompressedTTF(RobotoBold_compressed_data, RobotoBold_compressed_size, m_FontSize + 2.0f, &icons_config, ranges);
+
         io.Fonts->AddFontDefault();
         AddIconFont();
 
@@ -322,7 +325,7 @@ namespace Lumos
         style.PopupBorderSize = 3;
         style.FrameBorderSize = 0.0f;
 
-        const int roundingAmount = 2; //2;
+        const int roundingAmount = 2;
         style.PopupRounding = roundingAmount;
         style.WindowRounding = roundingAmount;
         style.ChildRounding = 0;

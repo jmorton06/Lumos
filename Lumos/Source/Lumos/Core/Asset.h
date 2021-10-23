@@ -26,7 +26,7 @@ namespace Lumos
         Font = 5,
     };
 
-    class Asset
+    class LUMOS_EXPORT Asset
     {
     public:
         uint16_t Flags = (uint16_t)AssetFlag::None;

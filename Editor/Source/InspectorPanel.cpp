@@ -24,10 +24,10 @@
 #include <Lumos/Maths/Transform.h>
 #include <Lumos/Scripting/Lua/LuaScriptComponent.h>
 #include <Lumos/ImGui/ImGuiHelpers.h>
-#include <Lumos/Physics/LumosPhysicsEngine/CuboidCollisionShape.h>
-#include <Lumos/Physics/LumosPhysicsEngine/SphereCollisionShape.h>
-#include <Lumos/Physics/LumosPhysicsEngine/PyramidCollisionShape.h>
-#include <Lumos/Physics/LumosPhysicsEngine/CapsuleCollisionShape.h>
+#include <Lumos/Physics/LumosPhysicsEngine/CollisionShapes/CuboidCollisionShape.h>
+#include <Lumos/Physics/LumosPhysicsEngine/CollisionShapes/SphereCollisionShape.h>
+#include <Lumos/Physics/LumosPhysicsEngine/CollisionShapes/PyramidCollisionShape.h>
+#include <Lumos/Physics/LumosPhysicsEngine/CollisionShapes/CapsuleCollisionShape.h>
 #include <Lumos/ImGui/IconsMaterialDesignIcons.h>
 
 #include <imgui/imgui.h>
@@ -218,7 +218,7 @@ end
         ImGui::PopStyleVar();
     }
 
-    static void CuboidCollisionShapeInspector(Lumos::CuboidCollisionShape* shape, const Lumos::Physics3DComponent& phys)
+    static void CuboidCollisionShapeInspector(Lumos::CuboidCollisionShape* shape, const Lumos::RigidBody3DComponent& phys)
     {
         LUMOS_PROFILE_FUNCTION();
         ImGui::AlignTextToFramePadding();
@@ -236,7 +236,7 @@ end
         ImGui::PushItemWidth(-1);
     }
 
-    static void SphereCollisionShapeInspector(Lumos::SphereCollisionShape* shape, const Lumos::Physics3DComponent& phys)
+    static void SphereCollisionShapeInspector(Lumos::SphereCollisionShape* shape, const Lumos::RigidBody3DComponent& phys)
     {
         LUMOS_PROFILE_FUNCTION();
         ImGui::AlignTextToFramePadding();
@@ -254,7 +254,7 @@ end
         ImGui::PushItemWidth(-1);
     }
 
-    static void PyramidCollisionShapeInspector(Lumos::PyramidCollisionShape* shape, const Lumos::Physics3DComponent& phys)
+    static void PyramidCollisionShapeInspector(Lumos::PyramidCollisionShape* shape, const Lumos::RigidBody3DComponent& phys)
     {
         LUMOS_PROFILE_FUNCTION();
         ImGui::AlignTextToFramePadding();
@@ -272,7 +272,7 @@ end
         ImGui::PushItemWidth(-1);
     }
 
-    static void CapsuleCollisionShapeInspector(Lumos::CapsuleCollisionShape* shape, const Lumos::Physics3DComponent& phys)
+    static void CapsuleCollisionShapeInspector(Lumos::CapsuleCollisionShape* shape, const Lumos::RigidBody3DComponent& phys)
     {
         LUMOS_PROFILE_FUNCTION();
         ImGui::AlignTextToFramePadding();
@@ -290,7 +290,7 @@ end
         ImGui::PushItemWidth(-1);
     }
 
-    static void HullCollisionShapeInspector(Lumos::HullCollisionShape* shape, const Lumos::Physics3DComponent& phys)
+    static void HullCollisionShapeInspector(Lumos::HullCollisionShape* shape, const Lumos::RigidBody3DComponent& phys)
     {
         LUMOS_PROFILE_FUNCTION();
         ImGui::TextUnformatted("Hull Collision Shape");
@@ -399,7 +399,7 @@ end
         int index = 0;
         int selectedIndex = 0;
 
-        auto physics3dEntities = Application::Get().GetCurrentScene()->GetEntityManager()->GetRegistry().view<Lumos::Physics3DComponent>();
+        auto physics3dEntities = Application::Get().GetCurrentScene()->GetEntityManager()->GetRegistry().view<Lumos::RigidBody3DComponent>();
 
         for(auto entity : physics3dEntities)
         {
@@ -428,13 +428,13 @@ end
     }
 
     template <>
-    void ComponentEditorWidget<Lumos::Physics3DComponent>(entt::registry& reg, entt::registry::entity_type e)
+    void ComponentEditorWidget<Lumos::RigidBody3DComponent>(entt::registry& reg, entt::registry::entity_type e)
     {
         LUMOS_PROFILE_FUNCTION();
         ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
         ImGui::Columns(2);
         ImGui::Separator();
-        auto& phys = reg.get<Lumos::Physics3DComponent>(e);
+        auto& phys = reg.get<Lumos::RigidBody3DComponent>(e);
 
         auto pos = phys.GetRigidBody()->GetPosition();
         auto force = phys.GetRigidBody()->GetForce();
@@ -447,6 +447,7 @@ end
         auto mass = 1.0f / phys.GetRigidBody()->GetInverseMass();
         auto velocity = phys.GetRigidBody()->GetLinearVelocity();
         auto elasticity = phys.GetRigidBody()->GetElasticity();
+        auto angularFactor = phys.GetRigidBody()->GetAngularFactor();
 
         auto collisionShape = phys.GetRigidBody()->GetCollisionShape();
 
@@ -483,6 +484,9 @@ end
         if(Lumos::ImGuiHelpers::Property("At Rest", isRest))
             phys.GetRigidBody()->SetIsAtRest(isRest);
 
+        if(Lumos::ImGuiHelpers::Property("Angular Factor", angularFactor))
+            phys.GetRigidBody()->SetAngularFactor(angularFactor);
+        
         ImGui::Columns(1);
         ImGui::Separator();
         ImGui::PopStyleVar();
@@ -545,10 +549,10 @@ end
     }
 
     template <>
-    void ComponentEditorWidget<Lumos::Physics2DComponent>(entt::registry& reg, entt::registry::entity_type e)
+    void ComponentEditorWidget<Lumos::RigidBody2DComponent>(entt::registry& reg, entt::registry::entity_type e)
     {
         LUMOS_PROFILE_FUNCTION();
-        auto& phys = reg.get<Lumos::Physics2DComponent>(e);
+        auto& phys = reg.get<Lumos::RigidBody2DComponent>(e);
 
         auto pos = phys.GetRigidBody()->GetPosition();
         auto angle = phys.GetRigidBody()->GetAngle();
@@ -1634,11 +1638,11 @@ end
                 ImGui::NextColumn();
                 ImGui::PushItemWidth(-1);
 
-                int workFlow = material->GetProperties()->workflow;
+                int workFlow = (int)material->GetProperties()->workflow;
 
                 if(ImGui::DragInt("##WorkFlow", &workFlow, 0.3f, 0, 2))
                 {
-                    material->GetProperties()->workflow = workFlow;
+                    material->GetProperties()->workflow = (float)workFlow;
                 }
 
                 ImGui::PopItemWidth();
@@ -1881,8 +1885,8 @@ namespace Lumos
         TRIVIAL_COMPONENT(Graphics::ModelComponent, "Model");
         TRIVIAL_COMPONENT(Camera, "Camera");
         TRIVIAL_COMPONENT(AxisConstraintComponent, "AxisConstraint");
-        TRIVIAL_COMPONENT(Physics3DComponent, "Physics3D");
-        TRIVIAL_COMPONENT(Physics2DComponent, "Physics2D");
+        TRIVIAL_COMPONENT(RigidBody3DComponent, "Physics3D");
+        TRIVIAL_COMPONENT(RigidBody2DComponent, "Physics2D");
         TRIVIAL_COMPONENT(SoundComponent, "Sound");
         TRIVIAL_COMPONENT(Graphics::AnimatedSprite, "Animated Sprite");
         TRIVIAL_COMPONENT(Graphics::Sprite, "Sprite");
@@ -1930,9 +1934,6 @@ namespace Lumos
             else
                 name = StringUtilities::ToString(entt::to_integral(selected));
 
-            static char objName[INPUT_BUF_SIZE];
-            strcpy(objName, name.c_str());
-
             if(m_DebugMode)
             {
                 if(registry.valid(selected))
@@ -1945,7 +1946,14 @@ namespace Lumos
                 }
             }
 
-            ImGui::SameLine((ImGui::GetWindowContentRegionMax() - ImGui::GetWindowContentRegionMin()).x - ImGui::GetFontSize());
+            ImGui::SameLine();
+            ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x - ImGui::GetFontSize() * 2.0f);
+            {
+                ImGuiHelpers::ScopedFont boldFont(ImGui::GetIO().Fonts->Fonts[1]);
+                if(ImGuiHelpers::InputText(name))
+                    registry.get_or_emplace<NameComponent>(selected).name = name;
+            }
+            ImGui::SameLine();
 
             ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.7f, 0.7f, 0.7f, 0.0f));
 
@@ -1961,10 +1969,6 @@ namespace Lumos
                 }
                 ImGui::EndPopup();
             }
-
-            ImGui::PushItemWidth(-1);
-            if(ImGui::InputText("##Name", objName, IM_ARRAYSIZE(objName), 0))
-                registry.get_or_emplace<NameComponent>(selected).name = objName;
 
             ImGui::Separator();
 

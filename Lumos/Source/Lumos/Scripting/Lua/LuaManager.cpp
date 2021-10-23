@@ -460,14 +460,14 @@ namespace Lumos
 
         REGISTER_COMPONENT_WITH_ECS(state, Camera, static_cast<Camera& (Entity::*)(const float&, const float&)>(&Entity::AddComponent<Camera, const float&, const float&>));
 
-        sol::usertype<Physics3DComponent> physics3DComponent_type = state.new_usertype<Physics3DComponent>("Physics3DComponent", sol::constructors<sol::types<const SharedPtr<RigidBody3D>&>>());
-        physics3DComponent_type.set_function("GetRigidBody", &Physics3DComponent::GetRigidBody);
-        REGISTER_COMPONENT_WITH_ECS(state, Physics3DComponent, static_cast<Physics3DComponent& (Entity::*)(SharedPtr<RigidBody3D>&)>(&Entity::AddComponent<Physics3DComponent, SharedPtr<RigidBody3D>&>));
+        sol::usertype<RigidBody3DComponent> RigidBody3DComponent_type = state.new_usertype<RigidBody3DComponent>("RigidBody3DComponent", sol::constructors<sol::types<const SharedPtr<RigidBody3D>&>>());
+        RigidBody3DComponent_type.set_function("GetRigidBody", &RigidBody3DComponent::GetRigidBody);
+        REGISTER_COMPONENT_WITH_ECS(state, RigidBody3DComponent, static_cast<RigidBody3DComponent& (Entity::*)(SharedPtr<RigidBody3D>&)>(&Entity::AddComponent<RigidBody3DComponent, SharedPtr<RigidBody3D>&>));
 
-        sol::usertype<Physics2DComponent> physics2DComponent_type = state.new_usertype<Physics2DComponent>("Physics2DComponent", sol::constructors<sol::types<const RigidBodyParameters&>>());
-        physics2DComponent_type.set_function("GetRigidBody", &Physics2DComponent::GetRigidBody);
+        sol::usertype<RigidBody2DComponent> RigidBody2DComponent_type = state.new_usertype<RigidBody2DComponent>("RigidBody2DComponent", sol::constructors<sol::types<const RigidBodyParameters&>>());
+        RigidBody2DComponent_type.set_function("GetRigidBody", &RigidBody2DComponent::GetRigidBody);
 
-        REGISTER_COMPONENT_WITH_ECS(state, Physics2DComponent, static_cast<Physics2DComponent& (Entity::*)(const RigidBodyParameters&)>(&Entity::AddComponent<Physics2DComponent, const RigidBodyParameters&>));
+        REGISTER_COMPONENT_WITH_ECS(state, RigidBody2DComponent, static_cast<RigidBody2DComponent& (Entity::*)(const RigidBodyParameters&)>(&Entity::AddComponent<RigidBody2DComponent, const RigidBodyParameters&>));
 
         REGISTER_COMPONENT_WITH_ECS(state, SoundComponent, static_cast<SoundComponent& (Entity::*)()>(&Entity::AddComponent<SoundComponent>));
 

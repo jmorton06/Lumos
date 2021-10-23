@@ -1,7 +1,7 @@
 #include "Precompiled.h"
 #include "PhysicsLua.h"
-#include "Scene/Component/Physics2DComponent.h"
-#include "Scene/Component/Physics3DComponent.h"
+#include "Scene/Component/RigidBody2DComponent.h"
+#include "Scene/Component/RigidBody3DComponent.h"
 #include "Core/Application.h"
 #include "Physics/B2PhysicsEngine/B2PhysicsEngine.h"
 

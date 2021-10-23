@@ -10,9 +10,6 @@
 #include "Graphics/Environment.h"
 #include "Graphics/Sprite.h"
 #include "Graphics/AnimatedSprite.h"
-
-//Vulkan Only
-//#define LUMOS_PROFILE_GPU
 #include "Graphics/RHI/GPUProfile.h"
 
 #include "Events/ApplicationEvent.h"
@@ -52,7 +49,7 @@ namespace Lumos::Graphics
         //Setup shadow pass data
         m_ShadowData.m_ShadowTex = (nullptr);
         m_ShadowData.m_ShadowMapNum = (4);
-        m_ShadowData.m_ShadowMapSize = (4096);
+        m_ShadowData.m_ShadowMapSize = (2048);
         m_ShadowData.m_ShadowMapsInvalidated = (true);
         m_ShadowData.m_CascadeSplitLambda = (0.92f);
         m_ShadowData.m_SceneRadiusMultiplier = (1.4f);
@@ -179,7 +176,7 @@ namespace Lumos::Graphics
         m_Renderer2DData.m_DescriptorSet.resize(m_Renderer2DData.m_Limits.MaxBatchDrawCalls);
         m_Renderer2DData.m_PreviousFrameTextureCount.resize(m_Renderer2DData.m_Limits.MaxBatchDrawCalls);
 
-        for(int i = 0; i < m_Renderer2DData.m_Limits.MaxBatchDrawCalls; i++)
+        for(uint32_t i = 0; i < m_Renderer2DData.m_Limits.MaxBatchDrawCalls; i++)
         {
             m_Renderer2DData.m_PreviousFrameTextureCount[i] = 0;
             m_Renderer2DData.m_DescriptorSet[i].resize(2);
@@ -547,7 +544,7 @@ namespace Lumos::Graphics
         float bias = shadowData.m_InitialBias;
 
         float maxShadowDistance = shadowData.m_MaxShadowDistance;
-        float LightSize = shadowData.m_ShadowMapSize;
+        float LightSize = (float)shadowData.m_ShadowMapSize;
         float transitionFade = shadowData.m_CascadeTransitionFade;
         float shadowFade = shadowData.m_ShadowFade;
 
@@ -641,7 +638,7 @@ namespace Lumos::Graphics
                             {
                                 pipelineDesc.depthTarget = m_DepthTexture;
                             }
-                            
+
                             command.pipeline = Graphics::Pipeline::Get(pipelineDesc);
 
                             m_ForwardData.m_CommandQueue.push_back(command);
@@ -1048,7 +1045,7 @@ namespace Lumos::Graphics
         Graphics::PipelineDesc pipelineDesc;
         pipelineDesc.shader = m_ShadowData.m_Shader;
 
-        pipelineDesc.cullMode = Graphics::CullMode::NONE;
+        pipelineDesc.cullMode = Graphics::CullMode::BACK;
         pipelineDesc.transparencyEnabled = false;
         pipelineDesc.depthBiasEnabled = false;
         pipelineDesc.depthArrayTarget = reinterpret_cast<Texture*>(m_ShadowData.m_ShadowTex);
@@ -1059,6 +1056,8 @@ namespace Lumos::Graphics
 
         for(uint32_t i = 0; i < m_ShadowData.m_ShadowMapNum; ++i)
         {
+			GPUProfile("Shadow Layer Pass");
+
             m_ShadowData.m_Layer = i;
 
             pipeline->Bind(commandBuffer, m_ShadowData.m_Layer);
@@ -1126,6 +1125,7 @@ namespace Lumos::Graphics
     void RenderGraph::SkyboxPass()
     {
         LUMOS_PROFILE_FUNCTION();
+		GPUProfile("SkyBox Pass");
 
         if(!m_CubeMap)
             return;
@@ -1160,6 +1160,7 @@ namespace Lumos::Graphics
     void RenderGraph::FinalPass()
     {
         LUMOS_PROFILE_FUNCTION();
+		GPUProfile("Final Pass");
 
         m_FinalPassDescriptorSet->SetUniform("UniformBuffer", "Exposure", &m_Exposure);
         m_FinalPassDescriptorSet->SetUniform("UniformBuffer", "ToneMapIndex", &m_ToneMapIndex);
@@ -1193,6 +1194,7 @@ namespace Lumos::Graphics
     void RenderGraph::BloomPass()
     {
         LUMOS_PROFILE_FUNCTION();
+		GPUProfile("Bloom Pass");
 
         m_BloomPassDescriptorSet->SetUniform("UniformBuffer", "Exposure", &m_Exposure);
         m_BloomPassDescriptorSet->SetUniform("UniformBuffer", "ToneMapIndex", &m_ToneMapIndex);

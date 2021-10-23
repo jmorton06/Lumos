@@ -9,13 +9,10 @@
 #include "Graphics/AnimatedSprite.h"
 #include "Utilities/TimeStep.h"
 #include "Audio/AudioManager.h"
-#include "Physics/LumosPhysicsEngine/SortAndSweepBroadphase.h"
-#include "Physics/LumosPhysicsEngine/BruteForceBroadphase.h"
-#include "Physics/LumosPhysicsEngine/OctreeBroadphase.h"
 #include "Physics/LumosPhysicsEngine/LumosPhysicsEngine.h"
-#include "Physics/LumosPhysicsEngine/SphereCollisionShape.h"
-#include "Physics/LumosPhysicsEngine/CuboidCollisionShape.h"
-#include "Physics/LumosPhysicsEngine/PyramidCollisionShape.h"
+#include "Physics/LumosPhysicsEngine/CollisionShapes/SphereCollisionShape.h"
+#include "Physics/LumosPhysicsEngine/CollisionShapes/CuboidCollisionShape.h"
+#include "Physics/LumosPhysicsEngine/CollisionShapes/PyramidCollisionShape.h"
 
 #include "Events/Event.h"
 #include "Events/ApplicationEvent.h"
@@ -48,8 +45,8 @@ namespace Lumos
         , m_ScreenHeight(0)
     {
         m_EntityManager = CreateUniquePtr<EntityManager>(this);
-        m_EntityManager->AddDependency<Physics3DComponent, Maths::Transform>();
-        m_EntityManager->AddDependency<Physics2DComponent, Maths::Transform>();
+        m_EntityManager->AddDependency<RigidBody3DComponent, Maths::Transform>();
+        m_EntityManager->AddDependency<RigidBody2DComponent, Maths::Transform>();
         m_EntityManager->AddDependency<Camera, Maths::Transform>();
         m_EntityManager->AddDependency<Graphics::ModelComponent, Maths::Transform>();
         m_EntityManager->AddDependency<Graphics::Light, Maths::Transform>();
@@ -76,11 +73,14 @@ namespace Lumos
         LuaManager::Get().GetState().set("registry", &m_EntityManager->GetRegistry());
         LuaManager::Get().GetState().set("scene", this);
 
-        //Default physics setup
-        Application::Get().GetSystem<LumosPhysicsEngine>()->SetDampingFactor(0.999f);
-        Application::Get().GetSystem<LumosPhysicsEngine>()->SetIntegrationType(IntegrationType::RUNGE_KUTTA_4);
-        Application::Get().GetSystem<LumosPhysicsEngine>()->SetBroadphase(Lumos::CreateSharedPtr<OctreeBroadphase>(5, 7, Lumos::CreateSharedPtr<SortAndSweepBroadphase>()));
-        //Application::Get().GetSystem<LumosPhysicsEngine>()->SetBroadphase(Lumos::CreateSharedPtr<BruteForceBroadphase>());
+        //Physics setup
+        auto physics3DSytem = Application::Get().GetSystem<LumosPhysicsEngine>();
+        physics3DSytem->SetDampingFactor(m_Settings.Physics3DSettings.Dampening);
+        physics3DSytem->SetIntegrationType((IntegrationType)m_Settings.Physics3DSettings.IntegrationTypeIndex);
+        physics3DSytem->SetMaxUpdatesPerFrame(m_Settings.Physics3DSettings.m_MaxUpdatesPerFrame);
+        physics3DSytem->SetPositionIterations(m_Settings.Physics3DSettings.PositionIterations);
+        physics3DSytem->SetVelocityIterations(m_Settings.Physics3DSettings.VelocityIterations);
+        physics3DSytem->SetBroadphaseType(BroadphaseType(m_Settings.Physics3DSettings.BroadPhaseTypeIndex));
 
         LuaManager::Get().OnInit(this);
     }
@@ -168,7 +168,7 @@ namespace Lumos
         }
     }
 
-#define ALL_COMPONENTSV1 Maths::Transform, NameComponent, ActiveComponent, Hierarchy, Camera, LuaScriptComponent, Graphics::Model, Graphics::Light, Physics3DComponent, Graphics::Environment, Graphics::Sprite, Physics2DComponent, DefaultCameraController
+#define ALL_COMPONENTSV1 Maths::Transform, NameComponent, ActiveComponent, Hierarchy, Camera, LuaScriptComponent, Graphics::Model, Graphics::Light, RigidBody3DComponent, Graphics::Environment, Graphics::Sprite, RigidBody2DComponent, DefaultCameraController
 
 #define ALL_COMPONENTSV2 ALL_COMPONENTSV1, Graphics::AnimatedSprite
 #define ALL_COMPONENTSV3 ALL_COMPONENTSV2, SoundComponent

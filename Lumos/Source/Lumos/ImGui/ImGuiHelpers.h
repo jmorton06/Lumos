@@ -2,6 +2,7 @@
 
 #include "Maths/Maths.h"
 #include <imgui/imgui.h>
+#include <imgui/imgui_internal.h>
 
 namespace Lumos
 {
@@ -42,6 +43,7 @@ namespace Lumos
         void PropertyConst(const std::string& name, const std::string& value);
         bool Property(const std::string& name, bool& value, PropertyFlag flags = PropertyFlag::None);
         bool Property(const std::string& name, int& value, PropertyFlag flags);
+        bool Property(const std::string& name, uint32_t& value, PropertyFlag flags = PropertyFlag::None);
 
         bool Property(const std::string& name, double& value, double min = -1.0, double max = 1.0, PropertyFlag flags = PropertyFlag::None);
 
@@ -78,6 +80,9 @@ namespace Lumos
         void DrawRowsBackground(int row_count, float line_height, float x1, float x2, float y_offset, ImU32 col_even, ImU32 col_odd);
         Maths::Vector4 GetSelectedColour();
         Maths::Vector4 GetIconColour();
+
+        void DrawItemActivityOutline(float rounding = 0.0f, bool drawWhenInactive = false, ImColor colourWhenActive = ImColor(80, 80, 80));
+        bool InputText(std::string& currentText);
 
         class ScopedStyle
         {
@@ -123,14 +128,14 @@ namespace Lumos
 namespace ImGui
 {
     // Dupe of DragFloatN with a tweak to add coloured lines
-    bool DragFloatN_Coloured(const char* label, float* v, int components, float v_speed = 1.0f, float v_min = 0.0f, float v_max = 0.0f, const char* display_format = "%.2f", float power = 1.0f);
+    bool DragFloatN_Coloured(const char* label, float* v, int components, float v_speed = 1.0f, float v_min = 0.0f, float v_max = 0.0f, const char* display_format = "%.2f");
 
     bool DragFloat3Coloured(const char* label, float* v, float v_speed = 1.0f, float v_min = 0.0f, float v_max = 0.0f);
     bool DragFloat4Coloured(const char* label, float* v, float v_speed = 1.0f, float v_min = 0.0f, float v_max = 0.0f);
     bool DragFloat2Coloured(const char* label, float* v, float v_speed = 1.0f, float v_min = 0.0f, float v_max = 0.0f);
 
     void PushMultiItemsWidthsAndLabels(const char* labels[], int components, float w_full);
-    bool DragFloatNEx(const char* labels[], float* v, int components, float v_speed = 1.0f, float v_min = 0.0f, float v_max = 0.0f, const char* display_format = "%.3f", float power = 1.0f);
+    bool DragFloatNEx(const char* labels[], float* v, int components, float v_speed = 1.0f, float v_min = 0.0f, float v_max = 0.0f, const char* display_format = "%.3f");
 }
 
 static inline ImVec2 operator*(const ImVec2& lhs, const float rhs)

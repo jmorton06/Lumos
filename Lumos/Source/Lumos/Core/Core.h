@@ -161,3 +161,6 @@
 #define LUMOS_SERIALISABLE(x, version) \
     CEREAL_CLASS_VERSION(x, version);  \
     CEREAL_REGISTER_TYPE_WITH_NAME(x, #x);
+
+//Vulkan Only
+//#define LUMOS_PROFILE_GPU
