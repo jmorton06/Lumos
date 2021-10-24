@@ -196,13 +196,13 @@ namespace Lumos
 
             //Window size and full screen shouldnt be in project
 
-            archive(cereal::make_nvp("RenderAPI", RenderAPI),
+            archive(cereal::make_nvp("RenderAPI", m_ProjectSettings.RenderAPI),
                 cereal::make_nvp("Width", (int)windowSize.x),
                 cereal::make_nvp("Height", (int)windowSize.y),
-                cereal::make_nvp("Fullscreen", Fullscreen),
-                cereal::make_nvp("VSync", VSync),
-                cereal::make_nvp("ShowConsole", ShowConsole),
-                cereal::make_nvp("Title", Title));
+                cereal::make_nvp("Fullscreen", m_ProjectSettings.Fullscreen),
+                cereal::make_nvp("VSync", m_ProjectSettings.VSync),
+                cereal::make_nvp("ShowConsole", m_ProjectSettings.ShowConsole),
+                cereal::make_nvp("Title", m_ProjectSettings.Title));
             //Version 2
 
             auto paths = m_SceneManager->GetSceneFilePaths();
@@ -217,30 +217,29 @@ namespace Lumos
             //Version 3
             archive(cereal::make_nvp("SceneIndex", m_SceneManager->GetCurrentSceneIndex()));
             //Version 4
-            archive(cereal::make_nvp("Borderless", Borderless));
+            archive(cereal::make_nvp("Borderless", m_ProjectSettings.Borderless));
             //Version 5
-            archive(cereal::make_nvp("EngineAssetPath", m_EngineAssetPath));
+            archive(cereal::make_nvp("EngineAssetPath", m_ProjectSettings.m_EngineAssetPath));
         }
 
         template <typename Archive>
         void load(Archive& archive)
         {
-            int projectVersion = 0;
             int sceneIndex = 0;
-            archive(cereal::make_nvp("Project Version", projectVersion));
+            archive(cereal::make_nvp("Project Version", m_ProjectSettings.ProjectVersion));
 
             std::string test;
-            if(projectVersion > 0)
+            if(m_ProjectSettings.ProjectVersion > 0)
             {
-                archive(cereal::make_nvp("RenderAPI", RenderAPI),
-                    cereal::make_nvp("Width", Width),
-                    cereal::make_nvp("Height", Height),
-                    cereal::make_nvp("Fullscreen", Fullscreen),
-                    cereal::make_nvp("VSync", VSync),
-                    cereal::make_nvp("ShowConsole", ShowConsole),
-                    cereal::make_nvp("Title", Title));
+                archive(cereal::make_nvp("RenderAPI", m_ProjectSettings.RenderAPI),
+                    cereal::make_nvp("Width", m_ProjectSettings.Width),
+                    cereal::make_nvp("Height", m_ProjectSettings.Height),
+                    cereal::make_nvp("Fullscreen", m_ProjectSettings.Fullscreen),
+                    cereal::make_nvp("VSync", m_ProjectSettings.VSync),
+                    cereal::make_nvp("ShowConsole", m_ProjectSettings.ShowConsole),
+                    cereal::make_nvp("Title", m_ProjectSettings.Title));
             }
-            if(projectVersion > 2)
+            if(m_ProjectSettings.ProjectVersion > 2)
             {
                 std::vector<std::string> sceneFilePaths;
                 archive(cereal::make_nvp("Scenes", sceneFilePaths));
@@ -256,48 +255,50 @@ namespace Lumos
                     m_SceneManager->SwitchScene(0);
                 }
             }
-            if(projectVersion > 3)
+            if(m_ProjectSettings.ProjectVersion > 3)
             {
                 archive(cereal::make_nvp("SceneIndex", sceneIndex));
                 m_SceneManager->SwitchScene(sceneIndex);
             }
-            if(projectVersion > 4)
+            if(m_ProjectSettings.ProjectVersion > 4)
             {
-                archive(cereal::make_nvp("Borderless", Borderless));
+                archive(cereal::make_nvp("Borderless", m_ProjectSettings.Borderless));
             }
 
-            if(projectVersion > 5)
+            if(m_ProjectSettings.ProjectVersion > 5)
             {
-                archive(cereal::make_nvp("EngineAssetPath", m_EngineAssetPath));
+                archive(cereal::make_nvp("EngineAssetPath", m_ProjectSettings.m_EngineAssetPath));
             }
             else
-                m_EngineAssetPath = "/Users/jmorton/dev/Lumos/Lumos/Assets/";
+                m_ProjectSettings.m_EngineAssetPath = "/Users/jmorton/dev/Lumos/Lumos/Assets/";
 
-            VFS::Get().Mount("CoreShaders", m_EngineAssetPath + std::string("Shaders"));
+            VFS::Get().Mount("CoreShaders", m_ProjectSettings.m_EngineAssetPath + std::string("Shaders"));
         }
-
-        const std::string& GetProjectRoot() const { return m_ProjectRoot; }
-        const std::string& GetProjectName() const { return m_ProjectName; }
 
         void MountVFSPaths();
 
+        struct ProjectSettings
+        {
+            std::string m_ProjectRoot;
+            std::string m_ProjectName;
+            std::string m_EngineAssetPath;
+            uint32_t Width, Height;
+            bool Fullscreen;
+            bool VSync;
+            bool Borderless = false;
+            bool ShowConsole = true;
+            std::string Title;
+            int RenderAPI;
+            int ProjectVersion;
+        };
+
+        ProjectSettings& GetProjectSettings() { return m_ProjectSettings; }
+
     protected:
-        std::string m_ProjectRoot;
-        std::string m_ProjectName;
-        std::string m_EngineAssetPath;
+        ProjectSettings m_ProjectSettings;
 
     private:
         bool OnWindowClose(WindowCloseEvent& e);
-
-        //Start proj saving
-        uint32_t Width, Height;
-        bool Fullscreen;
-        bool VSync;
-        bool Borderless = false;
-        bool ShowConsole = true;
-        std::string Title;
-        int RenderAPI;
-        //
 
         uint32_t m_Frames = 0;
         uint32_t m_Updates = 0;

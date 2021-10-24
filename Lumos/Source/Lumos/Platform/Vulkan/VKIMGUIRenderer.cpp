@@ -11,6 +11,7 @@
 #include "VKRenderer.h"
 #include "VKRenderPass.h"
 #include "VKTexture.h"
+#include "Graphics/RHI/GPUProfile.h"
 
 static ImGui_ImplVulkanH_Window g_WindowData;
 static VkAllocationCallbacks* g_Allocator = nullptr;
@@ -54,17 +55,28 @@ namespace Lumos
             delete m_Renderpass;
             delete m_FontTexture;
 
+            VKContext::DeletionQueue& deletionQueue = VKRenderer::GetCurrentDeletionQueue();
+
             for(int i = 0; i < Renderer::GetMainSwapChain()->GetSwapChainBufferCount(); i++)
             {
                 ImGui_ImplVulkanH_Frame* fd = &g_WindowData.Frames[i];
+                auto fence = fd->Fence;
+                auto alloc = g_Allocator;
+                auto commandPool = fd->CommandPool;
 
-                vkDestroyFence(VKDevice::Get().GetDevice(), fd->Fence, g_Allocator);
-                vkDestroyCommandPool(VKDevice::Get().GetDevice(), fd->CommandPool, g_Allocator);
+                deletionQueue.PushFunction([fence, commandPool, alloc]
+                    {
+                        vkDestroyFence(VKDevice::Get().GetDevice(), fence, alloc);
+                        vkDestroyCommandPool(VKDevice::Get().GetDevice(), commandPool, alloc);
+                    });
             }
+            auto descriptorPool = g_DescriptorPool;
 
-            vkDestroyDescriptorPool(VKDevice::Get().GetDevice(), g_DescriptorPool, nullptr);
-
-            ImGui_ImplVulkan_Shutdown();
+            deletionQueue.PushFunction([descriptorPool]
+                {
+                    vkDestroyDescriptorPool(VKDevice::Get().GetDevice(), descriptorPool, nullptr);
+                    ImGui_ImplVulkan_Shutdown();
+                });
         }
 
         void VKIMGUIRenderer::SetupVulkanWindowData(ImGui_ImplVulkanH_Window* wd, VkSurfaceKHR surface, int width, int height)
@@ -200,6 +212,9 @@ namespace Lumos
         void VKIMGUIRenderer::FrameRender(ImGui_ImplVulkanH_Window* wd)
         {
             LUMOS_PROFILE_FUNCTION();
+
+			GPUProfile("ImGui Pass");
+
             wd->FrameIndex = VKRenderer::GetMainSwapChain()->GetCurrentImageIndex();
             auto& descriptorImageMap = ImGui_ImplVulkan_GetDescriptorImageMap();
 

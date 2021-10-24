@@ -2,8 +2,8 @@
 
 #include "Utilities/TSingleton.h"
 #include "RigidBody3D.h"
-#include "Manifold.h"
-#include "Broadphase.h"
+#include "Narrowphase/Manifold.h"
+#include "Broadphase/Broadphase.h"
 #include "Scene/ISystem.h"
 #include "Scene/Scene.h"
 
@@ -12,12 +12,19 @@ namespace Lumos
 
 #define SOLVER_ITERATIONS 20
 
-    enum class LUMOS_EXPORT IntegrationType
+    enum class LUMOS_EXPORT IntegrationType : uint32_t
     {
         EXPLICIT_EULER = 0,
-        SEMI_IMPLICIT_EULER,
-        RUNGE_KUTTA_2,
-        RUNGE_KUTTA_4
+        SEMI_IMPLICIT_EULER = 1,
+        RUNGE_KUTTA_2 = 2,
+        RUNGE_KUTTA_4 = 3
+    };
+
+    enum class LUMOS_EXPORT BroadphaseType : uint32_t
+    {
+        BRUTE_FORCE = 0,
+        SORT_AND_SWEAP = 1,
+        OCTREE = 2,
     };
 
     enum PhysicsDebugFlags : uint32_t
@@ -114,6 +121,8 @@ namespace Lumos
         {
             m_IntegrationType = type;
         }
+        
+        void SetBroadphaseType(BroadphaseType type);
 
         void ClearConstraints();
 
@@ -128,6 +137,18 @@ namespace Lumos
         {
             return m_DebugDrawFlags;
         }
+
+        std::string IntegrationTypeToString(IntegrationType type);
+        std::string BroadphaseTypeToString(BroadphaseType type);
+
+        uint32_t GetMaxUpdatesPerFrame() const { return m_MaxUpdatesPerFrame; }
+        void SetMaxUpdatesPerFrame(uint32_t updates) { m_MaxUpdatesPerFrame = updates; }
+
+        uint32_t GetVelocityIterations() const { return m_VelocityIterations; }
+        void SetVelocityIterations(uint32_t iterations) { m_VelocityIterations = iterations; }
+
+        uint32_t GetPositionIterations() const { return m_PositionIterations; }
+        void SetPositionIterations(uint32_t iterations) { m_PositionIterations = iterations; }
 
     protected:
         //The actual time-independant update function
@@ -151,6 +172,9 @@ namespace Lumos
         float m_UpdateAccum;
         Maths::Vector3 m_Gravity;
         float m_DampingFactor;
+        uint32_t m_MaxUpdatesPerFrame = 5;
+        uint32_t m_PositionIterations = 1;
+        uint32_t m_VelocityIterations = 10;
 
         std::vector<RigidBody3D*> m_RigidBodys;
         std::vector<CollisionPair> m_BroadphaseCollisionPairs;
@@ -160,12 +184,11 @@ namespace Lumos
         std::mutex m_ManifoldsMutex;
 
         SharedPtr<Broadphase> m_BroadphaseDetection;
+        BroadphaseType m_BroadphaseType;
         IntegrationType m_IntegrationType;
 
         uint32_t m_DebugDrawFlags = 0;
         std::mutex m_ManifoldLock;
-
-        bool m_MultipleUpdates = true;
         static float s_UpdateTimestep;
     };
 }

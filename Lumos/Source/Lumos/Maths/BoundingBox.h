@@ -1,7 +1,7 @@
 #pragma once
 #include "Maths/Rect.h"
 #include "Maths/Vector3.h"
-
+#include "Core/Profiler.h"
 #ifdef LUMOS_SSE
 #include <xmmintrin.h>
 #endif
@@ -206,6 +206,7 @@ namespace Lumos::Maths
         /// Clear to undefined state.
         void Clear()
         {
+            LUMOS_PROFILE_FUNCTION();
 #ifdef LUMOS_SSE
             _mm_storeu_ps(&min_.x, _mm_set1_ps(M_INFINITY));
             _mm_storeu_ps(&max_.x, _mm_set1_ps(-M_INFINITY));
@@ -242,6 +243,7 @@ namespace Lumos::Maths
         /// Test if a point is inside.
         Intersection IsInside(const Vector3& point) const
         {
+            LUMOS_PROFILE_FUNCTION();
             if(point.x < min_.x || point.x > max_.x || point.y < min_.y || point.y > max_.y || point.z < min_.z || point.z > max_.z)
                 return OUTSIDE;
             else
@@ -251,6 +253,7 @@ namespace Lumos::Maths
         /// Test if another bounding box is inside, outside or intersects.
         Intersection IsInside(const BoundingBox& box) const
         {
+            LUMOS_PROFILE_FUNCTION();
             if(box.max_.x < min_.x || box.min_.x > max_.x || box.max_.y < min_.y || box.min_.y > max_.y || box.max_.z < min_.z || box.min_.z > max_.z)
                 return OUTSIDE;
             else if(box.min_.x < min_.x || box.max_.x > max_.x || box.min_.y < min_.y || box.max_.y > max_.y || box.min_.z < min_.z || box.max_.z > max_.z)
@@ -262,6 +265,7 @@ namespace Lumos::Maths
         /// Test if another bounding box is (partially) inside or outside.
         Intersection IsInsideFast(const BoundingBox& box) const
         {
+            LUMOS_PROFILE_FUNCTION();
             if(box.max_.x < min_.x || box.min_.x > max_.x || box.max_.y < min_.y || box.min_.y > max_.y || box.max_.z < min_.z || box.min_.z > max_.z)
                 return OUTSIDE;
             else

@@ -2,16 +2,17 @@
     "value0": {
         "Project Version": 6,
         "RenderAPI": 1,
-        "Width": 1440,
+        "Width": 1200,
         "Height": 797,
         "Fullscreen": true,
         "VSync": true,
         "ShowConsole": false,
         "Title": "Example",
         "Scenes": [
-            "/Scenes/2D.lsn",
-            "/Scenes/Physics.lsn",
-            "/Scenes/Terrain.lsn"
+            "//Scenes/2D",
+            "//Scenes/Physics",
+            "//Scenes/Terrain",
+            "//Scenes/2DTest"
         ],
         "SceneIndex": 1,
         "Borderless": false,

@@ -1,5 +1,6 @@
 #pragma once
 #include "DescriptorSet.h"
+#include "Core/Profiler.h"
 
 namespace spirv_cross
 {
@@ -32,6 +33,7 @@ namespace Lumos
 
             void SetValue(const std::string& name, void* value)
             {
+                LUMOS_PROFILE_FUNCTION();
                 for(auto& member : m_Members)
                 {
                     if(member.name == name)
@@ -44,28 +46,14 @@ namespace Lumos
 
             void SetData(void* value)
             {
+                LUMOS_PROFILE_FUNCTION();
                 memcpy(data, value, size);
-            }
-        };
-
-        struct ShaderEnumClassHash
-        {
-            template <typename T>
-            std::size_t operator()(T t) const
-            {
-                return static_cast<std::size_t>(t);
             }
         };
 
         class CommandBuffer;
         class Pipeline;
         class DescriptorSet;
-
-        template <typename Key>
-        using HashType = typename std::conditional<std::is_enum<Key>::value, ShaderEnumClassHash, std::hash<Key>>::type;
-
-        template <typename Key, typename T>
-        using UnorderedMap = std::unordered_map<Key, T, HashType<Key>>;
 
         class LUMOS_EXPORT Shader
         {

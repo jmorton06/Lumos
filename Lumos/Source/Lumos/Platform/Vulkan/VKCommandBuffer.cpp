@@ -138,7 +138,6 @@ namespace Lumos
                 m_BoundPipeline->End(this);
 
             m_BoundPipeline = nullptr;
-
             TracyVkCollect(VKDevice::Get().GetTracyContext(), m_CommandBuffer);
 
             VK_CHECK_RESULT(vkEndCommandBuffer(m_CommandBuffer));

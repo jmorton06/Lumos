@@ -1,11 +1,12 @@
 #pragma once
 #include "Definitions.h"
+#include "Core/Asset.h"
 
 namespace Lumos
 {
     namespace Graphics
     {
-        class LUMOS_EXPORT Texture
+        class LUMOS_EXPORT Texture : public Asset
         {
         public:
             virtual ~Texture()
@@ -61,6 +62,8 @@ namespace Lumos
             static uint8_t GetStrideFromFormat(TextureFormat format);
             static TextureFormat BitsToTextureFormat(uint32_t bits);
             static uint32_t CalculateMipMapCount(uint32_t width, uint32_t height);
+
+            SET_ASSET_TYPE(AssetType::Texture);
 
         protected:
             uint16_t m_Flags = 0;

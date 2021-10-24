@@ -3,17 +3,12 @@
 #include "LumosPhysicsEngine.h"
 #include "Graphics/Renderers/DebugRenderer.h"
 
-#include "CuboidCollisionShape.h"
-#include "PyramidCollisionShape.h"
-#include "SphereCollisionShape.h"
-#include "CapsuleCollisionShape.h"
-
 namespace Lumos
 {
 
     RigidBody3D::RigidBody3D(const RigidBody3DProperties& properties)
         : m_wsTransformInvalidated(true)
-        , m_RestVelocityThresholdSquared(0.001f)
+        , m_RestVelocityThresholdSquared(0.004f)
         , m_AverageSummedVelocity(0.0f)
         , m_wsAabbInvalidated(true)
         , m_Position(properties.Position)
@@ -24,6 +19,7 @@ namespace Lumos
         , m_Torque(properties.Torque)
         , m_InvInertia(Maths::Matrix3::ZERO)
         , m_OnCollisionCallback(nullptr)
+        , m_AngularFactor(1.0f)
     {
         LUMOS_ASSERT(properties.Mass > 0.0f, "Mass <= 0");
         m_InvMass = 1.0f / properties.Mass;
@@ -113,13 +109,9 @@ namespace Lumos
         // Negative threshold disables test, don't bother calculating average or performing test
         if(m_RestVelocityThresholdSquared <= 0.0f)
             return;
-		
-		//TODO: Take force on the object into account?
-		//if(m_Force.LengthSquared() > 0.0f)
-			//return;
 
         // Value between 0 and 1, higher values discard old data faster
-        static const float ALPHA = 0.3f;
+        static const float ALPHA = 0.15f;
 
         // Calculate exponential moving average
         const float v = m_LinearVelocity.LengthSquared() + m_AngularVelocity.LengthSquared();

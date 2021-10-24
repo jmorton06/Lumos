@@ -1,12 +1,26 @@
 #include "Precompiled.h"
 
 #pragma warning(push, 0)
+
 #ifdef LUMOS_RENDER_API_OPENGL
-#define IMGUI_IMPL_OPENGL_LOADER_GLAD
+#include <glad/src/glad.c>
+#endif
+
+#ifdef LUMOS_RENDER_API_VULKAN
+#ifdef LUMOS_VOLK
+#define VOLK_IMPLEMENTATION
+#include <volk/volk.h>
+#endif
+#endif
+
+#ifdef LUMOS_RENDER_API_OPENGL
+#define IMGUI_IMPL_OPENGL_LOADER_CUSTOM
 #include <imgui/backends/imgui_impl_opengl3.cpp>
 #endif
 
 #ifdef LUMOS_RENDER_API_VULKAN
+#undef IMGUI_IMPL_VULKAN_NO_PROTOTYPES
+#undef VK_NO_PROTOTYPES
 #include <imgui/backends/imgui_impl_vulkan.cpp>
 #endif
 
@@ -19,16 +33,6 @@
 
 #define STB_PERLIN_IMPLEMENTATION
 #include <stb/stb_perlin.h>
-
-#ifdef LUMOS_RENDER_API_OPENGL
-#include <glad/src/glad.c>
-#endif
-
-#ifdef LUMOS_RENDER_API_VULKAN
-#ifdef LUMOS_VOLK
-#include <volk/volk.c>
-#endif
-#endif
 
 #include <OpenFBX/miniz.c>
 #include <OpenFBX/ofbx.cpp>

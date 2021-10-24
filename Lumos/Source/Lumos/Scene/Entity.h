@@ -29,8 +29,8 @@ namespace Lumos
         {
             uint64_t uuid;
             archive(uuid);
-            
-            ID =  UUID(uuid);
+
+            ID = UUID(uuid);
         }
     };
 
@@ -52,6 +52,7 @@ namespace Lumos
         template <typename T, typename... Args>
         T& AddComponent(Args&&... args)
         {
+            LUMOS_PROFILE_FUNCTION();
 #ifdef LUMOS_DEBUG
             if(HasComponent<T>())
                 LUMOS_LOG_WARN("Attempting to add Component twice");
@@ -62,42 +63,49 @@ namespace Lumos
         template <typename T, typename... Args>
         T& GetOrAddComponent(Args&&... args)
         {
+            LUMOS_PROFILE_FUNCTION();
             return m_Scene->GetRegistry().get_or_emplace<T>(m_EntityHandle, std::forward<Args>(args)...);
         }
 
         template <typename T, typename... Args>
         void AddOrReplaceComponent(Args&&... args)
         {
+            LUMOS_PROFILE_FUNCTION();
             m_Scene->GetRegistry().emplace_or_replace<T>(m_EntityHandle, std::forward<Args>(args)...);
         }
 
         template <typename T>
         T& GetComponent()
         {
+            LUMOS_PROFILE_FUNCTION();
             return m_Scene->GetRegistry().get<T>(m_EntityHandle);
         }
 
         template <typename T>
         T* TryGetComponent()
         {
+            LUMOS_PROFILE_FUNCTION();
             return m_Scene->GetRegistry().try_get<T>(m_EntityHandle);
         }
 
         template <typename T>
         bool HasComponent()
         {
+            LUMOS_PROFILE_FUNCTION();
             return m_Scene->GetRegistry().has<T>(m_EntityHandle);
         }
 
         template <typename T>
         void RemoveComponent()
         {
+            LUMOS_PROFILE_FUNCTION();
             m_Scene->GetRegistry().remove<T>(m_EntityHandle);
         }
-        
+
         template <typename T>
         void TryRemoveComponent()
         {
+            LUMOS_PROFILE_FUNCTION();
             if(HasComponent<T>())
                 RemoveComponent<T>();
         }
@@ -105,10 +113,14 @@ namespace Lumos
         bool Active()
         {
             LUMOS_PROFILE_FUNCTION();
+            bool active = true;
             if(HasComponent<ActiveComponent>())
-                return m_Scene->GetRegistry().get<ActiveComponent>(m_EntityHandle).active;
+                active = m_Scene->GetRegistry().get<ActiveComponent>(m_EntityHandle).active;
 
-            return true;
+            auto parent = GetParent();
+            if(parent)
+                active &= parent.Active();
+            return active;
         }
 
         void SetActive(bool isActive)
@@ -119,30 +131,34 @@ namespace Lumos
 
         Maths::Transform& GetTransform()
         {
+            LUMOS_PROFILE_FUNCTION();
             return m_Scene->GetRegistry().get<Maths::Transform>(m_EntityHandle);
         }
 
         const Maths::Transform& GetTransform() const
         {
+            LUMOS_PROFILE_FUNCTION();
             return m_Scene->GetRegistry().get<Maths::Transform>(m_EntityHandle);
         }
 
         uint64_t GetID()
         {
+            LUMOS_PROFILE_FUNCTION();
             return m_Scene->GetRegistry().get<IDComponent>(m_EntityHandle).ID;
         }
 
         const std::string& GetName()
         {
+            LUMOS_PROFILE_FUNCTION();
             auto nameComponent = TryGetComponent<NameComponent>();
-			
-			if(nameComponent)
-				return nameComponent->name;
-			else
-			{
-				static std::string tempName = "Entity";
-				return tempName;
-			}
+
+            if(nameComponent)
+                return nameComponent->name;
+            else
+            {
+                static std::string tempName = "Entity";
+                return tempName;
+            }
         }
 
         void SetParent(Entity entity)
@@ -197,9 +213,10 @@ namespace Lumos
 
             return children;
         }
-        
+
         void ClearChildren()
         {
+            LUMOS_PROFILE_FUNCTION();
             auto hierarchyComponent = TryGetComponent<Hierarchy>();
             if(hierarchyComponent)
             {
@@ -263,11 +280,13 @@ namespace Lumos
 
         void Destroy()
         {
+            LUMOS_PROFILE_FUNCTION();
             m_Scene->GetRegistry().destroy(m_EntityHandle);
         }
 
         bool Valid()
         {
+            LUMOS_PROFILE_FUNCTION();
             return m_Scene->GetRegistry().valid(m_EntityHandle) && m_Scene;
         }
 

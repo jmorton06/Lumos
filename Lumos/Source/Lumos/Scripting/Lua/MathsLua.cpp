@@ -29,7 +29,8 @@ namespace Lumos
             "xy", &Maths::Vector3::xy,
             "Dot", static_cast<float (Maths::Vector3::*)(const Maths::Vector3&) const>(&Maths::Vector3::DotProduct),
             "Cross", static_cast<Maths::Vector3 (Maths::Vector3::*)(const Maths::Vector3&) const>(&Maths::Vector3::CrossProduct),
-
+            "Length", &Maths::Vector3::Length,
+            "Normalise", &Maths::Vector3::Normalise,
             sol::meta_function::addition, sol::overload(static_cast<Maths::Vector3 (Maths::Vector3::*)(const Maths::Vector3&) const>(&Maths::Vector3::operator+)),
             sol::meta_function::multiplication, sol::overload(static_cast<Maths::Vector3 (Maths::Vector3::*)(float) const>(&Maths::Vector3::operator*), static_cast<Maths::Vector3 (Maths::Vector3::*)(const Maths::Vector3&) const>(&Maths::Vector3::operator*)),
             sol::meta_function::subtraction, sol::overload(static_cast<Maths::Vector3 (Maths::Vector3::*)(const Maths::Vector3&) const>(&Maths::Vector3::operator-)),
@@ -46,7 +47,6 @@ namespace Lumos
             "y", &Maths::Vector4::y,
             "z", &Maths::Vector4::z,
             "w", &Maths::Vector4::w,
-
             sol::meta_function::addition, sol::overload(static_cast<Maths::Vector4 (Maths::Vector4::*)(float) const>(&Maths::Vector4::operator+), static_cast<Maths::Vector4 (Maths::Vector4::*)(const Maths::Vector4&) const>(&Maths::Vector4::operator+)),
             sol::meta_function::multiplication, sol::overload(static_cast<Maths::Vector4 (Maths::Vector4::*)(float) const>(&Maths::Vector4::operator*), static_cast<Maths::Vector4 (Maths::Vector4::*)(const Maths::Vector4&) const>(&Maths::Vector4::operator*)),
             sol::meta_function::subtraction, sol::overload(static_cast<Maths::Vector4 (Maths::Vector4::*)(float) const>(&Maths::Vector4::operator-), static_cast<Maths::Vector4 (Maths::Vector4::*)(const Maths::Vector4&) const>(&Maths::Vector4::operator-)),

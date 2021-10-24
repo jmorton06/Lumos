@@ -93,7 +93,6 @@ namespace Lumos
 
             inline bool work()
             {
-                LUMOS_PROFILE_FUNCTION();
                 Job job;
                 if(jobQueue.pop_front(job))
                 {
@@ -110,7 +109,6 @@ namespace Lumos
 
                     for(uint32_t i = job.groupJobOffset; i < job.groupJobEnd; ++i)
                     {
-                        LUMOS_PROFILE_SCOPE("Group Loop");
                         args.jobIndex = i;
                         args.groupIndex = i - job.groupJobOffset;
                         args.isFirstJobInGroup = (i == job.groupJobOffset);
@@ -126,6 +124,7 @@ namespace Lumos
 
             void OnInit()
             {
+                LUMOS_PROFILE_FUNCTION();
                 // Retrieve the number of hardware threads in this System:
                 auto numCores = std::thread::hardware_concurrency();
 
@@ -141,7 +140,7 @@ namespace Lumos
                             LUMOS_PROFILE_SETTHREADNAME(ss.str().c_str());
 
 #ifdef LUMOS_PLATFORM_MACOS
-                            setpriority(PRIO_PROCESS, 0, -10);
+                        //setpriority(PRIO_PROCESS, 0, -10);
 #endif
                             while(true)
                             {
@@ -175,10 +174,11 @@ namespace Lumos
                     LUMOS_ASSERT(SUCCEEDED(hr), "");
 
 #elif LUMOS_PLATFORM_MACOS
-                    thread_affinity_policy_data_t policy = { (int32_t)threadID };
+                    //thread_affinity_policy_data_t policy = { (int32_t)threadID };
+                    thread_standard_policy policy;
                     auto thread = worker.native_handle();
                     thread_policy_set(pthread_mach_thread_np(thread),
-                        THREAD_AFFINITY_POLICY, reinterpret_cast<thread_policy_t>(&policy), 1);
+                        THREAD_STANDARD_POLICY, reinterpret_cast<thread_policy_t>(&policy), 1);
 
                     std::stringstream wss;
                     wss << "JobSystem_" << threadID;

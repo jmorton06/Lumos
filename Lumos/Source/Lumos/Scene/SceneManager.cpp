@@ -165,4 +165,12 @@ namespace Lumos
 
         m_SceneFilePathsToLoad.clear();
     }
+
+    const std::vector<std::string>& SceneManager::GetSceneFilePaths()
+    {
+        m_SceneFilePaths.clear();
+        for(auto scene : m_vpAllScenes)
+            m_SceneFilePaths.push_back("//Scenes/" + scene->GetSceneName());
+        return m_SceneFilePaths;
+    }
 }

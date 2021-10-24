@@ -4,7 +4,7 @@
 
 #include "Utilities/TimeStep.h"
 
-#include "Scene/Component/Physics2DComponent.h"
+#include "Scene/Component/RigidBody2DComponent.h"
 
 #include "Maths/Transform.h"
 #include "B2DebugDraw.h"
@@ -20,7 +20,6 @@ namespace Lumos
         : m_B2DWorld(CreateUniquePtr<b2World>(b2Vec2(0.0f, -9.81f)))
         , m_DebugDraw(CreateUniquePtr<B2DebugDraw>())
         , m_UpdateTimestep(1.0f / 60.f)
-        , m_UpdateAccum(0.0f)
         , m_Listener(nullptr)
         , m_Paused(false)
     {
@@ -46,7 +45,6 @@ namespace Lumos
     void B2PhysicsEngine::SetDefaults()
     {
         m_UpdateTimestep = 1.0f / 60.f;
-        m_UpdateAccum = 0.0f;
     }
 
     void B2PhysicsEngine::OnUpdate(const TimeStep& timeStep, Scene* scene)
@@ -55,17 +53,15 @@ namespace Lumos
 
         if(!m_Paused)
         {
-            const int32_t velocityIterations = 6;
-            const int32_t positionIterations = 2;
-            m_B2DWorld->Step(timeStep.GetSeconds(), velocityIterations, positionIterations);
+            m_B2DWorld->Step(timeStep.GetSeconds(), m_VelocityIterations, m_PositionIterations);
 
             auto& registry = scene->GetRegistry();
 
-            auto group = registry.group<Physics2DComponent>(entt::get<Maths::Transform>);
+            auto group = registry.group<RigidBody2DComponent>(entt::get<Maths::Transform>);
 
             for(auto entity : group)
             {
-                const auto& [phys, trans] = group.get<Physics2DComponent, Maths::Transform>(entity);
+                const auto& [phys, trans] = group.get<RigidBody2DComponent, Maths::Transform>(entity);
 
                 // if (!phys.GetRigidBody()->GetB2Body()->IsAwake())
                 //     break;

@@ -454,7 +454,7 @@ namespace Lumos
             "COUNT",
             21,
             "InternalStart_",
-            ImGuiNavInput_KeyMenu_);
+            ImGuiNavInput_KeyLeft_);
 
         imgui.new_enum("SelectableFlags",
             "None",
@@ -768,7 +768,8 @@ namespace Lumos
         imgui["getContentRegionAvailWidth"] = ImGui::GetContentRegionAvail;
         imgui["getWindowContentRegionMin"] = ImGui::GetWindowContentRegionMin;
         imgui["getWindowContentRegionMax"] = ImGui::GetWindowContentRegionMax;
-        imgui["getWindowContentRegionWidth"] = ImGui::GetWindowContentRegionWidth;
+        imgui["getWindowContentRegionMin"] = ImGui::GetWindowContentRegionMin;
+        imgui["getWindowContentRegionMax"] = ImGui::GetWindowContentRegionMax;
 
         imgui["setNextWindowPos"] = sol::overload(
             ImGui::SetNextWindowPos,
@@ -978,10 +979,9 @@ namespace Lumos
                 float _v_min,
                 float _v_max,
                 const char* _fmt,
-                float _power,
                 sol::function _cb)
             {
-                if(ImGui::DragFloat(_label, &_currentValue, _v_speed, _v_min, _v_max, _fmt, _power))
+                if(ImGui::DragFloat(_label, &_currentValue, _v_speed, _v_min, _v_max, _fmt))
                     _cb(_currentValue);
             });
 
@@ -1312,7 +1312,7 @@ namespace Lumos
             ImGui::SetTooltip("%s", _txt);
         };
 
-        imgui["openPopup"] = ImGui::OpenPopup;
+        //imgui["openPopup"] = ImGui::OpenPopup;
         imgui["beginPopup"] = sol::overload(ImGui::BeginPopup, [](const char* _str)
             { return ImGui::BeginPopup(_str); });
         imgui["beginPopupContextItem"] = sol::overload(

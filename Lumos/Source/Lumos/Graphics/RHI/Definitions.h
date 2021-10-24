@@ -116,8 +116,8 @@ namespace Lumos
             TextureFilter magFilter;
             TextureWrap wrap;
             bool srgb = false;
-            uint16_t msaaLevel;
-            uint16_t flags;
+            uint16_t msaaLevel = 1;
+            uint16_t flags = 0;
 
             TextureParameters()
             {

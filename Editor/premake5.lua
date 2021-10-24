@@ -1,4 +1,5 @@
 IncludeDir = {}
+IncludeDir["entt"] = "../Lumos/External/entt/src/"
 IncludeDir["GLFW"] = "../Lumos/External/glfw/include/"
 IncludeDir["Glad"] = "../Lumos/External/glad/include/"
 IncludeDir["lua"] = "../Lumos/External/lua/src/"
@@ -34,6 +35,7 @@ project "LumosEditor"
 
 	sysincludedirs
 	{
+		"%{IncludeDir.entt}",
 		"%{IncludeDir.GLFW}",
 		"%{IncludeDir.Glad}",
 		"%{IncludeDir.lua}",
