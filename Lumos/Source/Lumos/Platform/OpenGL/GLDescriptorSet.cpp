@@ -186,7 +186,7 @@ namespace Lumos
 
                         LUMOS_ASSERT(MAX_TEXTURE_UNITS >= descriptor.textureCount, "Texture Count greater than max");
 
-                        for(int i = 0; i < descriptor.textureCount; i++)
+                        for(uint32_t i = 0; i < descriptor.textureCount; i++)
                         {
                             if(descriptor.textures && descriptor.textures[i])
                             {

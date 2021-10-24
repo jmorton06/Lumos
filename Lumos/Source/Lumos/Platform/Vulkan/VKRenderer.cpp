@@ -15,6 +15,7 @@ namespace Lumos
     {
         static constexpr uint32_t MAX_DESCRIPTOR_SET_COUNT = 1500;
         VKContext::DeletionQueue VKRenderer::s_DeletionQueue[3] = {};
+        VkDescriptorPool VKRenderer::s_DescriptorPool = {};
 
         void VKRenderer::InitInternal()
         {
@@ -23,29 +24,35 @@ namespace Lumos
             m_RendererTitle = "Vulkan";
 
             // Pool sizes
-            std::array<VkDescriptorPoolSize, 5> pool_sizes = {
-                VkDescriptorPoolSize { VK_DESCRIPTOR_TYPE_SAMPLER, 100 },
-                VkDescriptorPoolSize { VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, 100 },
-                VkDescriptorPoolSize { VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 100 },
-                VkDescriptorPoolSize { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 100 },
-                VkDescriptorPoolSize { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 100 }
+            VkDescriptorPoolSize pool_sizes[] = {
+                { VK_DESCRIPTOR_TYPE_SAMPLER, 1000 },
+                { VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1000 },
+                { VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, 1000 },
+                { VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1000 },
+                { VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, 1000 },
+                { VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, 1000 },
+                { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1000 },
+                { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1000 },
+                { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1000 },
+                { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, 1000 },
+                { VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, 1000 }
             };
 
             // Create info
             VkDescriptorPoolCreateInfo pool_create_info = {};
             pool_create_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-            pool_create_info.flags = 0;
-            pool_create_info.poolSizeCount = static_cast<uint32_t>(pool_sizes.size());
-            pool_create_info.pPoolSizes = pool_sizes.data();
+            pool_create_info.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
+            pool_create_info.poolSizeCount = 11;
+            pool_create_info.pPoolSizes = pool_sizes;
             pool_create_info.maxSets = MAX_DESCRIPTOR_SET_COUNT;
 
             // Pool
-            VK_CHECK_RESULT(vkCreateDescriptorPool(VKDevice::Get().GetDevice(), &pool_create_info, nullptr, &m_DescriptorPool));
+            VK_CHECK_RESULT(vkCreateDescriptorPool(VKDevice::Get().GetDevice(), &pool_create_info, nullptr, &s_DescriptorPool));
         }
 
         VKRenderer::~VKRenderer()
         {
-            vkDestroyDescriptorPool(VKDevice::Get().GetDevice(), m_DescriptorPool, VK_NULL_HANDLE);
+            //DescriptorPool deleted by VKContext
         }
 
         void VKRenderer::PresentInternal(CommandBuffer* commandBuffer)
@@ -122,9 +129,7 @@ namespace Lumos
         void VKRenderer::Begin()
         {
             LUMOS_PROFILE_FUNCTION();
-
-            VKSwapChain* swapChain = (VKSwapChain*)Application::Get().GetWindow()->GetSwapChain().get();
-            swapChain->Begin();
+            Application::Get().GetWindow()->GetSwapChain().As<VKSwapChain>()->Begin();
         }
 
         void VKRenderer::PresentInternal()
@@ -221,7 +226,7 @@ namespace Lumos
             renderPass->BeginRenderpass(commandBuffer, clearColour, frameBuffer, SubPassContents::INLINE, width, height);
             renderPass->EndRenderpass(commandBuffer);
 
-            float ratio = texture->GetWidth() / texture->GetHeight();
+            float ratio = float(texture->GetWidth() / texture->GetHeight());
             VkImageBlit blit {};
             blit.srcOffsets[0] = { 0, 0, 0 };
             blit.srcOffsets[1] = { (int32_t)texture->GetWidth(), (int32_t)texture->GetWidth(), 1 };
@@ -231,7 +236,7 @@ namespace Lumos
             blit.srcSubresource.layerCount = 1;
 
             int32_t destSizex = width / 8;
-            int32_t destSizey = destSizex * ratio;
+            int32_t destSizey = int32_t(destSizex * ratio);
             int32_t offsetx = width / 2 - destSizex / 2;
             int32_t offsety = height / 2 - destSizey / 2;
 

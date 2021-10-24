@@ -56,9 +56,11 @@ namespace Lumos
         UniquePtr<b2World> m_B2DWorld;
         UniquePtr<B2DebugDraw> m_DebugDraw;
 
-        float m_UpdateTimestep, m_UpdateAccum;
+        float m_UpdateTimestep;
         bool m_Paused = true;
-        bool m_MultipleUpdates = true;
+
+        int32_t m_VelocityIterations = 6;
+        int32_t m_PositionIterations = 2;
 
         b2ContactListener* m_Listener;
     };

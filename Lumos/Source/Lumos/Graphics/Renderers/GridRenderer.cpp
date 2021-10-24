@@ -181,7 +181,7 @@ namespace Lumos
             pipelineDesc.blendMode = BlendMode::SrcAlphaOneMinusSrcAlpha;
 
             {
-                pipelineDesc.depthTarget = reinterpret_cast<Texture*>(Application::Get().GetRenderGraph()->GetGBuffer()->GetDepthTexture());
+                pipelineDesc.depthTarget = reinterpret_cast<Texture*>(Application::Get().GetRenderGraph()->GetDepthTexture());
             }
 
             if(m_RenderTexture)

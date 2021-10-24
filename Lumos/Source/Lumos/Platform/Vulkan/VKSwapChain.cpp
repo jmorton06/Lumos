@@ -211,16 +211,16 @@ namespace Lumos
         {
             for(uint32_t i = 0; i < m_SwapChainBufferCount; i++)
             {
+                VkSemaphoreCreateInfo semaphoreInfo = {};
+                semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+                semaphoreInfo.pNext = nullptr;
+                semaphoreInfo.flags = 0;
+
+                if(m_Frames[i].PresentSemaphore == VK_NULL_HANDLE)
+                    VK_CHECK_RESULT(vkCreateSemaphore(VKDevice::Get().GetDevice(), &semaphoreInfo, nullptr, &m_Frames[i].PresentSemaphore));
+
                 if(!m_Frames[i].MainCommandBuffer)
                 {
-                    VkSemaphoreCreateInfo semaphoreInfo = {};
-                    semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-                    semaphoreInfo.pNext = nullptr;
-                    semaphoreInfo.flags = 0;
-
-                    if(m_Frames[i].PresentSemaphore == VK_NULL_HANDLE)
-                        VK_CHECK_RESULT(vkCreateSemaphore(VKDevice::Get().GetDevice(), &semaphoreInfo, nullptr, &m_Frames[i].PresentSemaphore));
-
                     m_Frames[i].CommandPool = CreateSharedPtr<VKCommandPool>(VKDevice::Get().GetPhysicalDevice()->GetGraphicsQueueFamilyIndex(), VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT);
 
                     m_Frames[i].MainCommandBuffer = CreateSharedPtr<VKCommandBuffer>();
@@ -249,7 +249,6 @@ namespace Lumos
                     if(result == VK_ERROR_OUT_OF_DATE_KHR)
                     {
                         OnResize(m_Width, m_Height, true);
-                        AcquireNextImage();
                     }
                     return;
                 }
@@ -280,8 +279,14 @@ namespace Lumos
                 if(m_Frames[i].MainCommandBuffer->GetState() == CommandBufferState::Submitted)
                     m_Frames[i].MainCommandBuffer->Wait();
 
+                m_Frames[i].MainCommandBuffer->Reset();
+
                 delete m_SwapChainBuffers[i];
+                vkDestroySemaphore(VKDevice::Get().GetDevice(), m_Frames[i].PresentSemaphore, nullptr);
+                m_Frames[i].PresentSemaphore = VK_NULL_HANDLE;
             }
+
+            VKRenderer::GetGraphicsContext()->WaitIdle();
 
             m_SwapChainBuffers.clear();
             m_OldSwapChain = m_SwapChain;
@@ -291,14 +296,17 @@ namespace Lumos
             if(windowHandle)
                 Init(m_VSyncEnabled, windowHandle);
             else
+            {
                 Init(m_VSyncEnabled);
+                AcquireNextImage();
+            }
         }
 
         void VKSwapChain::QueueSubmit()
         {
             LUMOS_PROFILE_FUNCTION();
             auto& frameData = GetCurrentFrameData();
-            frameData.MainCommandBuffer->Execute(VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, m_Frames[m_CurrentBuffer].PresentSemaphore, true);
+            frameData.MainCommandBuffer->Execute(VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, frameData.PresentSemaphore, true);
         }
 
         CommandBuffer* VKSwapChain::GetCurrentCommandBuffer()
@@ -356,9 +364,6 @@ namespace Lumos
             {
                 VK_CHECK_RESULT(error);
             }
-
-            //Until Fix sync issue
-            //VKUtilities::WaitIdle();
         }
 
         void VKSwapChain::MakeDefault()

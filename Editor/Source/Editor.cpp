@@ -46,11 +46,11 @@
 #include <Lumos/ImGui/IconsMaterialDesignIcons.h>
 
 #include <imgui/imgui_internal.h>
-#include <imgui/plugins/ImGuizmo.h>
-#include <imgui/plugins/ImGuiAl/button/imguial_button.h>
-#include <imgui/plugins/ImTextEditor.h>
+#include <imguiPlugins/ImGuizmo.h>
+#include <imguiPlugins/ImGuiAl/button/imguial_button.h>
+#include <imguiPlugins/ImTextEditor.h>
 
-#include <imgui/plugins/ImFileBrowser.h>
+#include <imguiPlugins/ImFileBrowser.h>
 #include <iomanip>
 
 namespace Lumos
@@ -161,8 +161,8 @@ namespace Lumos
         m_ComponentIconMap[typeid(SoundComponent).hash_code()] = ICON_MDI_VOLUME_HIGH;
         m_ComponentIconMap[typeid(Graphics::Sprite).hash_code()] = ICON_MDI_IMAGE;
         m_ComponentIconMap[typeid(Maths::Transform).hash_code()] = ICON_MDI_VECTOR_LINE;
-        m_ComponentIconMap[typeid(Physics2DComponent).hash_code()] = ICON_MDI_SQUARE_OUTLINE;
-        m_ComponentIconMap[typeid(Physics3DComponent).hash_code()] = ICON_MDI_CUBE_OUTLINE;
+        m_ComponentIconMap[typeid(RigidBody2DComponent).hash_code()] = ICON_MDI_SQUARE_OUTLINE;
+        m_ComponentIconMap[typeid(RigidBody3DComponent).hash_code()] = ICON_MDI_CUBE_OUTLINE;
         m_ComponentIconMap[typeid(Graphics::ModelComponent).hash_code()] = ICON_MDI_SHAPE;
         m_ComponentIconMap[typeid(Graphics::Model).hash_code()] = ICON_MDI_SHAPE;
         m_ComponentIconMap[typeid(LuaScriptComponent).hash_code()] = ICON_MDI_SCRIPT;
@@ -339,7 +339,7 @@ namespace Lumos
 
                 if(ImGui::MenuItem("Open Project"))
                 {
-                    m_FileBrowserPanel.SetCurrentPath(m_ProjectRoot);
+                    m_FileBrowserPanel.SetCurrentPath(m_ProjectSettings.m_ProjectRoot);
                     m_FileBrowserPanel.SetCallback(BIND_FILEBROWSER_FN(Editor::ProjectOpenCallback));
                     m_FileBrowserPanel.Open();
                 }
@@ -348,7 +348,7 @@ namespace Lumos
 
                 if(ImGui::MenuItem("Open File"))
                 {
-                    m_FileBrowserPanel.SetCurrentPath(m_ProjectRoot);
+                    m_FileBrowserPanel.SetCurrentPath(m_ProjectSettings.m_ProjectRoot);
                     m_FileBrowserPanel.SetCallback(BIND_FILEBROWSER_FN(Editor::FileOpenCallback));
                     m_FileBrowserPanel.Open();
                 }
@@ -731,7 +731,7 @@ namespace Lumos
             bool setNewValue = false;
             static std::string RenderAPI = "";
 
-            auto renderAPI = (Graphics::RenderAPI)Application::Get().RenderAPI;
+            auto renderAPI = (Graphics::RenderAPI)m_ProjectSettings.RenderAPI;
 
             bool needsRestart = false;
             if(renderAPI != Graphics::GraphicsContext::GetRenderAPI())
@@ -800,7 +800,7 @@ namespace Lumos
 
             if(setNewValue)
             {
-                Application::Get().RenderAPI = int(StringToRenderAPI(current_api));
+                m_ProjectSettings.RenderAPI = int(StringToRenderAPI(current_api));
             }
 
             ImGui::PopStyleColor(2);
@@ -822,7 +822,7 @@ namespace Lumos
 
             if(ImGui::Button("OK", ImVec2(120, 0)))
             {
-                Application::Get().GetSceneManager()->GetCurrentScene()->Serialise(m_ProjectRoot + "Assets/Scenes/", false);
+                Application::Get().GetSceneManager()->GetCurrentScene()->Serialise(m_ProjectSettings.m_ProjectRoot + "Assets/Scenes/", false);
                 ImGui::CloseCurrentPopup();
             }
             ImGui::SetItemDefaultFocus();
@@ -841,7 +841,7 @@ namespace Lumos
         {
             if(ImGui::Button("Save Current Scene Changes"))
             {
-                Application::Get().GetSceneManager()->GetCurrentScene()->Serialise(m_ProjectRoot + "ExampleProject/Assets/Scenes/", false);
+                Application::Get().GetSceneManager()->GetCurrentScene()->Serialise(m_ProjectSettings.m_ProjectRoot + "ExampleProject/Assets/Scenes/", false);
             }
 
             ImGui::Text("Create New Scene?\n\n");
@@ -960,20 +960,20 @@ namespace Lumos
                         model = transform->GetParentMatrix().Inverse() * model;
                         transform->SetLocalTransform(model);
 
-                        auto physics2DComponent = registry.try_get<Physics2DComponent>(m_SelectedEntity);
+                        RigidBody2DComponent* rigidBody2DComponent = registry.try_get<Lumos::RigidBody2DComponent>(m_SelectedEntity);
 
-                        if(physics2DComponent)
+                        if(rigidBody2DComponent)
                         {
-                            physics2DComponent->GetRigidBody()->SetPosition(
+                            rigidBody2DComponent->GetRigidBody()->SetPosition(
                                 { model.Translation().x, model.Translation().y });
                         }
                         else
                         {
-                            auto physics3DComponent = registry.try_get<Physics3DComponent>(m_SelectedEntity);
-                            if(physics3DComponent)
+                            Lumos::RigidBody3DComponent* rigidBody3DComponent = registry.try_get<Lumos::RigidBody3DComponent>(m_SelectedEntity);
+                            if(rigidBody3DComponent)
                             {
-                                physics3DComponent->GetRigidBody()->SetPosition(model.Translation());
-                                physics3DComponent->GetRigidBody()->SetOrientation(model.Rotation());
+                                rigidBody3DComponent->GetRigidBody()->SetPosition(model.Translation());
+                                rigidBody3DComponent->GetRigidBody()->SetOrientation(model.Rotation());
                             }
                         }
                     }
@@ -1111,6 +1111,7 @@ namespace Lumos
     void Editor::OnNewScene(Scene* scene)
     {
         LUMOS_PROFILE_FUNCTION();
+        Application::OnNewScene(scene);
         m_SelectedEntity = entt::null;
 
         m_EditorCameraTransform.SetLocalPosition(Maths::Vector3(-31.0f, 12.0f, 51.0f));
@@ -1316,9 +1317,9 @@ namespace Lumos
             if(m_TransitioningCamera)
             {
                 if(m_CameraTransitionStartTime < 0.0f)
-                    m_CameraTransitionStartTime = ts.GetElapsedMillis();
+                    m_CameraTransitionStartTime = ts.GetElapsedSeconds();
 
-                float focusProgress = Maths::Min((ts.GetElapsedMillis() - m_CameraTransitionStartTime) / m_CameraTransitionSpeed, 1.f);
+                float focusProgress = Maths::Min((ts.GetElapsedSeconds() - m_CameraTransitionStartTime) / m_CameraTransitionSpeed, 1.f);
                 Maths::Vector3 newCameraPosition = m_CameraStartPosition.Lerp(m_CameraDestination, focusProgress);
                 m_EditorCameraTransform.SetLocalPosition(newCameraPosition);
 
@@ -1363,11 +1364,11 @@ namespace Lumos
             {
                 if(Input::Get().GetKeyPressed(InputCode::Key::S) && Application::Get().GetSceneActive())
                 {
-                    Application::Get().GetSceneManager()->GetCurrentScene()->Serialise(m_ProjectRoot + "ExampleProject/Assets/scenes/", false);
+                    Application::Get().GetSceneManager()->GetCurrentScene()->Serialise(m_ProjectSettings.m_ProjectRoot + "ExampleProject/Assets/scenes/", false);
                 }
 
                 if(Input::Get().GetKeyPressed(InputCode::Key::O))
-                    Application::Get().GetSceneManager()->GetCurrentScene()->Deserialise(m_ProjectRoot + "ExampleProject/Assets/scenes/", false);
+                    Application::Get().GetSceneManager()->GetCurrentScene()->Deserialise(m_ProjectSettings.m_ProjectRoot + "ExampleProject/Assets/scenes/", false);
 
                 if(Input::Get().GetKeyPressed(InputCode::Key::X))
                 {
@@ -1381,7 +1382,7 @@ namespace Lumos
                     m_CutCopyEntity = false;
                 }
 
-                if(Input::Get().GetKeyPressed(InputCode::Key::V))
+                if(Input::Get().GetKeyPressed(InputCode::Key::V) && m_CopiedEntity != entt::null)
                 {
                     Application::Get().GetCurrentScene()->DuplicateEntity({ m_CopiedEntity, Application::Get().GetCurrentScene() });
                     if(m_CutCopyEntity)
@@ -1390,6 +1391,11 @@ namespace Lumos
                             m_SelectedEntity = entt::null;
                         Entity(m_CopiedEntity, Application::Get().GetCurrentScene()).Destroy();
                     }
+                }
+
+                if(Input::Get().GetKeyPressed(InputCode::Key::D) && m_SelectedEntity != entt::null)
+                {
+                    Application::Get().GetCurrentScene()->DuplicateEntity({ m_SelectedEntity, Application::Get().GetCurrentScene() });
                 }
             }
 
@@ -1559,7 +1565,7 @@ namespace Lumos
                 DebugRenderer::DebugDraw(sound->GetSoundNode(), Maths::Vector4(0.8f, 0.8f, 0.8f, 0.2f));
             }
 
-            auto phys3D = registry.try_get<Physics3DComponent>(m_SelectedEntity);
+            auto phys3D = registry.try_get<RigidBody3DComponent>(m_SelectedEntity);
             if(phys3D)
             {
                 auto cs = phys3D->GetRigidBody()->GetCollisionShape();
@@ -1884,8 +1890,8 @@ namespace Lumos
         m_IniFile.SetOrAdd("PhysicsDebugDrawFlags", Application::Get().GetSystem<LumosPhysicsEngine>()->GetDebugDrawFlags());
         m_IniFile.SetOrAdd("PhysicsDebugDrawFlags2D", Application::Get().GetSystem<B2PhysicsEngine>()->GetDebugDrawFlags());
         m_IniFile.SetOrAdd("Theme", (int)m_Settings.m_Theme);
-        m_IniFile.SetOrAdd("ProjectRoot", m_ProjectRoot);
-        m_IniFile.SetOrAdd("ProjectName", m_ProjectName);
+        m_IniFile.SetOrAdd("ProjectRoot", m_ProjectSettings.m_ProjectRoot);
+        m_IniFile.SetOrAdd("ProjectName", m_ProjectSettings.m_ProjectName);
         m_IniFile.SetOrAdd("SleepOutofFocus", m_Settings.m_SleepOutofFocus);
         m_IniFile.Rewrite();
     }
@@ -1893,8 +1899,8 @@ namespace Lumos
     void Editor::AddDefaultEditorSettings()
     {
         LUMOS_PROFILE_FUNCTION();
-        m_ProjectRoot = "ExampleProject/";
-        m_ProjectName = "Example";
+        m_ProjectSettings.m_ProjectRoot = "ExampleProject/";
+        m_ProjectSettings.m_ProjectName = "Example";
 
         m_IniFile.Add("ShowGrid", m_Settings.m_ShowGrid);
         m_IniFile.Add("ShowGizmos", m_Settings.m_ShowGizmos);
@@ -1907,8 +1913,8 @@ namespace Lumos
         m_IniFile.Add("PhysicsDebugDrawFlags", 0);
         m_IniFile.Add("PhysicsDebugDrawFlags2D", 0);
         m_IniFile.Add("Theme", (int)m_Settings.m_Theme);
-        m_IniFile.Add("ProjectRoot", m_ProjectRoot);
-        m_IniFile.Add("ProjectName", m_ProjectName);
+        m_IniFile.Add("ProjectRoot", m_ProjectSettings.m_ProjectRoot);
+        m_IniFile.Add("ProjectName", m_ProjectSettings.m_ProjectName);
         m_IniFile.Add("SleepOutofFocus", m_Settings.m_SleepOutofFocus);
         m_IniFile.Rewrite();
     }
@@ -1926,8 +1932,8 @@ namespace Lumos
         m_Settings.m_DebugDrawFlags = m_IniFile.GetOrDefault("DebugDrawFlags", m_Settings.m_DebugDrawFlags);
         m_Settings.m_Theme = ImGuiHelpers::Theme(m_IniFile.GetOrDefault("Theme", (int)m_Settings.m_Theme));
 
-        m_ProjectRoot = m_IniFile.GetOrDefault("ProjectRoot", std::string("Users/jmorton/dev/Lumos/ExampleProject/"));
-        m_ProjectName = m_IniFile.GetOrDefault("ProjectName", std::string("Example"));
+        m_ProjectSettings.m_ProjectRoot = m_IniFile.GetOrDefault("ProjectRoot", std::string("Users/jmorton/dev/Lumos/ExampleProject/"));
+        m_ProjectSettings.m_ProjectName = m_IniFile.GetOrDefault("ProjectName", std::string("Example"));
         m_Settings.m_Physics2DDebugFlags = m_IniFile.GetOrDefault("PhysicsDebugDrawFlags2D", 0);
         m_Settings.m_Physics3DDebugFlags = m_IniFile.GetOrDefault("PhysicsDebugDrawFlags", 0);
         m_Settings.m_SleepOutofFocus = m_IniFile.GetOrDefault("SleepOutofFocus", true);

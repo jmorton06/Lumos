@@ -68,15 +68,15 @@ namespace Lumos
     void Application::OpenProject(const std::string& filePath)
     {
         LUMOS_PROFILE_FUNCTION();
-        m_ProjectName = StringUtilities::GetFileName(filePath);
-        m_ProjectName = StringUtilities::RemoveFilePathExtension(m_ProjectName);
+        m_ProjectSettings.m_ProjectName = StringUtilities::GetFileName(filePath);
+        m_ProjectSettings.m_ProjectName = StringUtilities::RemoveFilePathExtension(m_ProjectSettings.m_ProjectName);
 
 #ifndef LUMOS_PLATFORM_IOS
         auto projectRoot = StringUtilities::GetFileLocation(filePath);
-        m_ProjectRoot = projectRoot;
+        m_ProjectSettings.m_ProjectRoot = projectRoot;
 
-        m_ProjectRoot = StringUtilities::RemoveSpaces(m_ProjectRoot);
-        m_ProjectName = StringUtilities::RemoveSpaces(m_ProjectName);
+        m_ProjectSettings.m_ProjectRoot = StringUtilities::RemoveSpaces(m_ProjectSettings.m_ProjectRoot);
+        m_ProjectSettings.m_ProjectName = StringUtilities::RemoveSpaces(m_ProjectSettings.m_ProjectName);
 #endif
 
         m_SceneManager = CreateUniquePtr<SceneManager>();
@@ -90,44 +90,44 @@ namespace Lumos
     void Application::OpenNewProject(const std::string& path)
     {
         LUMOS_PROFILE_FUNCTION();
-        m_ProjectRoot = path + "NewProject/";
-        m_ProjectName = "NewProject";
-        m_ProjectRoot = StringUtilities::RemoveSpaces(m_ProjectRoot);
+        m_ProjectSettings.m_ProjectRoot = path + "NewProject/";
+        m_ProjectSettings.m_ProjectName = "NewProject";
+        m_ProjectSettings.m_ProjectRoot = StringUtilities::RemoveSpaces(m_ProjectSettings.m_ProjectRoot);
 
-        std::filesystem::create_directory(m_ProjectRoot);
+        std::filesystem::create_directory(m_ProjectSettings.m_ProjectRoot);
 
         m_SceneManager = CreateUniquePtr<SceneManager>();
 
         MountVFSPaths();
         //Set Default values
-        RenderAPI = 1;
-        Width = 1200;
-        Height = 800;
-        Borderless = false;
-        VSync = false;
-        Title = "App";
-        ShowConsole = false;
-        Fullscreen = false;
-        m_EngineAssetPath = "/Users/jmorton/dev/Lumos/Lumos/Assets/";
-        VFS::Get().Mount("CoreShaders", m_EngineAssetPath + std::string("Shaders"));
+        m_ProjectSettings.RenderAPI = 1;
+        m_ProjectSettings.Width = 1200;
+        m_ProjectSettings.Height = 800;
+        m_ProjectSettings.Borderless = false;
+        m_ProjectSettings.VSync = false;
+        m_ProjectSettings.Title = "App";
+        m_ProjectSettings.ShowConsole = false;
+        m_ProjectSettings.Fullscreen = false;
+        m_ProjectSettings.m_EngineAssetPath = "/Users/jmorton/dev/Lumos/Lumos/Assets/";
+        VFS::Get().Mount("CoreShaders", m_ProjectSettings.m_EngineAssetPath + std::string("Shaders"));
 
-        if(!FileSystem::FolderExists(m_ProjectRoot + "Assets"))
-            std::filesystem::create_directory(m_ProjectRoot + "Assets");
+        if(!FileSystem::FolderExists(m_ProjectSettings.m_ProjectRoot + "Assets"))
+            std::filesystem::create_directory(m_ProjectSettings.m_ProjectRoot + "Assets");
 
-        if(!FileSystem::FolderExists(m_ProjectRoot + "Assets/Scripts"))
-            std::filesystem::create_directory(m_ProjectRoot + "Assets/Scripts");
+        if(!FileSystem::FolderExists(m_ProjectSettings.m_ProjectRoot + "Assets/Scripts"))
+            std::filesystem::create_directory(m_ProjectSettings.m_ProjectRoot + "Assets/Scripts");
 
-        if(!FileSystem::FolderExists(m_ProjectRoot + "Assets/Scenes"))
-            std::filesystem::create_directory(m_ProjectRoot + "Assets/Scenes");
+        if(!FileSystem::FolderExists(m_ProjectSettings.m_ProjectRoot + "Assets/Scenes"))
+            std::filesystem::create_directory(m_ProjectSettings.m_ProjectRoot + "Assets/Scenes");
 
-        if(!FileSystem::FolderExists(m_ProjectRoot + "Assets/Textures"))
-            std::filesystem::create_directory(m_ProjectRoot + "Assets/Texturs");
+        if(!FileSystem::FolderExists(m_ProjectSettings.m_ProjectRoot + "Assets/Textures"))
+            std::filesystem::create_directory(m_ProjectSettings.m_ProjectRoot + "Assets/Texturs");
 
-        if(!FileSystem::FolderExists(m_ProjectRoot + "Assets/Meshes"))
-            std::filesystem::create_directory(m_ProjectRoot + "Assets/Meshes");
+        if(!FileSystem::FolderExists(m_ProjectSettings.m_ProjectRoot + "Assets/Meshes"))
+            std::filesystem::create_directory(m_ProjectSettings.m_ProjectRoot + "Assets/Meshes");
 
-        if(!FileSystem::FolderExists(m_ProjectRoot + "Assets/Sounds"))
-            std::filesystem::create_directory(m_ProjectRoot + "Assets/Sounds");
+        if(!FileSystem::FolderExists(m_ProjectSettings.m_ProjectRoot + "Assets/Sounds"))
+            std::filesystem::create_directory(m_ProjectSettings.m_ProjectRoot + "Assets/Sounds");
 
         MountVFSPaths();
 
@@ -135,8 +135,8 @@ namespace Lumos
         m_SceneManager->SwitchScene(0);
 
         //Set Default values
-        Title = "App";
-        Fullscreen = false;
+        m_ProjectSettings.Title = "App";
+        m_ProjectSettings.Fullscreen = false;
 
         //m_SceneManager->ApplySceneSwitch();
 
@@ -145,12 +145,12 @@ namespace Lumos
 
     void Application::MountVFSPaths()
     {
-        VFS::Get().Mount("Meshes", m_ProjectRoot + std::string("Assets/Meshes"));
-        VFS::Get().Mount("Textures", m_ProjectRoot + std::string("Assets/Textures"));
-        VFS::Get().Mount("Sounds", m_ProjectRoot + std::string("Assets/Sounds"));
-        VFS::Get().Mount("Scripts", m_ProjectRoot + std::string("Assets/Scripts"));
-        VFS::Get().Mount("Scenes", m_ProjectRoot + std::string("Assets/Scenes"));
-        VFS::Get().Mount("Assets", m_ProjectRoot + std::string("Assets"));
+        VFS::Get().Mount("Meshes", m_ProjectSettings.m_ProjectRoot + std::string("Assets/Meshes"));
+        VFS::Get().Mount("Textures", m_ProjectSettings.m_ProjectRoot + std::string("Assets/Textures"));
+        VFS::Get().Mount("Sounds", m_ProjectSettings.m_ProjectRoot + std::string("Assets/Sounds"));
+        VFS::Get().Mount("Scripts", m_ProjectSettings.m_ProjectRoot + std::string("Assets/Scripts"));
+        VFS::Get().Mount("Scenes", m_ProjectSettings.m_ProjectRoot + std::string("Assets/Scenes"));
+        VFS::Get().Mount("Assets", m_ProjectSettings.m_ProjectRoot + std::string("Assets"));
     }
 
     Scene* Application::GetCurrentScene() const
@@ -163,8 +163,8 @@ namespace Lumos
     {
         LUMOS_PROFILE_FUNCTION();
 
-        m_ProjectRoot = StringUtilities::RemoveSpaces(m_ProjectRoot);
-        m_ProjectName = StringUtilities::RemoveSpaces(m_ProjectName);
+        m_ProjectSettings.m_ProjectRoot = StringUtilities::RemoveSpaces(m_ProjectSettings.m_ProjectRoot);
+        m_ProjectSettings.m_ProjectName = StringUtilities::RemoveSpaces(m_ProjectSettings.m_ProjectName);
 
         m_SceneManager = CreateUniquePtr<SceneManager>();
         Deserialise();
@@ -173,17 +173,17 @@ namespace Lumos
 
         m_Timer = CreateUniquePtr<Timer>();
 
-        Graphics::GraphicsContext::SetRenderAPI(static_cast<Graphics::RenderAPI>(RenderAPI));
+        Graphics::GraphicsContext::SetRenderAPI(static_cast<Graphics::RenderAPI>(m_ProjectSettings.RenderAPI));
 
         WindowDesc windowDesc;
-        windowDesc.Width = Width;
-        windowDesc.Height = Height;
-        windowDesc.RenderAPI = RenderAPI;
-        windowDesc.Fullscreen = Fullscreen;
-        windowDesc.Borderless = Borderless;
-        windowDesc.ShowConsole = ShowConsole;
-        windowDesc.Title = Title;
-        windowDesc.VSync = VSync;
+        windowDesc.Width = m_ProjectSettings.Width;
+        windowDesc.Height = m_ProjectSettings.Height;
+        windowDesc.RenderAPI = m_ProjectSettings.RenderAPI;
+        windowDesc.Fullscreen = m_ProjectSettings.Fullscreen;
+        windowDesc.Borderless = m_ProjectSettings.Borderless;
+        windowDesc.ShowConsole = m_ProjectSettings.ShowConsole;
+        windowDesc.Title = m_ProjectSettings.Title;
+        windowDesc.VSync = m_ProjectSettings.VSync;
 
         // Initialise the Window
         m_Window = UniquePtr<Window>(Window::Create(windowDesc));
@@ -197,6 +197,8 @@ namespace Lumos
         ImGui::CreateContext();
         ImGui::StyleColorsDark();
 
+        m_ShaderLibrary = CreateSharedPtr<ShaderLibrary>();
+        m_ModelLibrary = CreateSharedPtr<ModelLibrary>();
         Graphics::Renderer::Init();
 
         //Draw Splash Screeh
@@ -245,19 +247,11 @@ namespace Lumos
         m_ImGuiManager->OnInit();
         LUMOS_LOG_INFO("Initialised ImGui Manager");
 
-        m_ShaderLibrary = CreateSharedPtr<ShaderLibrary>();
-        m_ModelLibrary = CreateSharedPtr<ModelLibrary>();
-
         m_RenderGraph = CreateUniquePtr<Graphics::RenderGraph>(screenWidth, screenHeight);
 
         m_CurrentState = AppState::Running;
 
         Graphics::Material::InitDefaultTexture();
-
-        //Need to disable shadows for A12 and earlier - doesn't support rendering to depth array
-        //        m_RenderGraph->AddRenderer(new Graphics::ForwardRenderer(screenWidth, screenHeight));
-        //m_RenderGraph->AddRenderer(new Graphics::SkyboxRenderer(screenWidth, screenHeight));
-        //m_RenderGraph->AddRenderer(new Graphics::Renderer2D(screenWidth, screenHeight, false, false, true));
         m_RenderGraph->EnableDebugRenderer(true);
 
         System::JobSystem::Wait(context);
@@ -471,6 +465,7 @@ namespace Lumos
     void Application::OnNewScene(Scene* scene)
     {
         LUMOS_PROFILE_FUNCTION();
+        m_RenderGraph->OnNewScene(scene);
     }
 
     SharedPtr<ShaderLibrary>& Application::GetShaderLibrary() { return m_ShaderLibrary; }
@@ -564,7 +559,7 @@ namespace Lumos
                 cereal::JSONOutputArchive output { storage };
                 output(*this);
             }
-            auto fullPath = m_ProjectRoot + m_ProjectName + std::string(".lmproj");
+            auto fullPath = m_ProjectSettings.m_ProjectRoot + m_ProjectSettings.m_ProjectName + std::string(".lmproj");
             LUMOS_LOG_INFO("Serialising Application {0}", fullPath);
             FileSystem::WriteTextFile(fullPath, storage.str());
         }
@@ -574,7 +569,7 @@ namespace Lumos
     {
         LUMOS_PROFILE_FUNCTION();
         {
-            auto filePath = m_ProjectRoot + m_ProjectName + std::string(".lmproj");
+            auto filePath = m_ProjectSettings.m_ProjectRoot + m_ProjectSettings.m_ProjectName + std::string(".lmproj");
 
             MountVFSPaths();
 
@@ -602,16 +597,16 @@ namespace Lumos
             catch(...)
             {
                 //Set Default values
-                RenderAPI = 1;
-                Width = 1200;
-                Height = 800;
-                Borderless = false;
-                VSync = false;
-                Title = "App";
-                ShowConsole = false;
-                Fullscreen = false;
-                m_EngineAssetPath = "/Users/jmorton/dev/Lumos/Lumos/Assets/";
-                VFS::Get().Mount("CoreShaders", m_EngineAssetPath + std::string("Shaders"));
+                m_ProjectSettings.RenderAPI = 1;
+                m_ProjectSettings.Width = 1200;
+                m_ProjectSettings.Height = 800;
+                m_ProjectSettings.Borderless = false;
+                m_ProjectSettings.VSync = false;
+                m_ProjectSettings.Title = "App";
+                m_ProjectSettings.ShowConsole = false;
+                m_ProjectSettings.Fullscreen = false;
+                m_ProjectSettings.m_EngineAssetPath = "/Users/jmorton/dev/Lumos/Lumos/Assets/";
+                VFS::Get().Mount("CoreShaders", m_ProjectSettings.m_EngineAssetPath + std::string("Shaders"));
 
                 m_SceneManager->EnqueueScene(new Scene("Empty Scene"));
                 m_SceneManager->SwitchScene(0);

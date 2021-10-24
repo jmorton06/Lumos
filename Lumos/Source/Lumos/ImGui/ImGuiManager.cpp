@@ -11,17 +11,26 @@
 
 #define IMGUI_DISABLE_OBSOLETE_FUNCTIONS
 #include <imgui/imgui.h>
-#include <imgui/plugins/ImGuizmo.h>
-#include <imgui/plugins/ImGuiAl/fonts/MaterialDesign.inl>
-#include <imgui/plugins/ImGuiAl/fonts/RobotoRegular.inl>
+#include <imguiPlugins/ImGuizmo.h>
+#include <imguiPlugins/ImGuiAl/fonts/MaterialDesign.inl>
+#include <imguiPlugins/ImGuiAl/fonts/RobotoRegular.inl>
+#include <imguiPlugins/ImGuiAl/fonts/RobotoBold.inl>
 #include <imgui/misc/freetype/imgui_freetype.h>
+
+#if defined(LUMOS_PLATFORM_MACOS) || defined(LUMOS_PLATFORM_WINDOWS) || defined(LUMOS_PLATFORM_LINUX)
+#define USING_GLFW
+#endif
+
+#ifdef USING_GLFW
+#include <GLFW/glfw3.h>
+#endif
 
 namespace Lumos
 {
     ImGuiManager::ImGuiManager(bool clearScreen)
     {
         m_ClearScreen = clearScreen;
-        m_FontSize = 16.0f;
+        m_FontSize = 14.0f;
 
 #ifdef LUMOS_PLATFORM_IOS
         m_FontSize *= 2.0f;
@@ -31,6 +40,18 @@ namespace Lumos
     ImGuiManager::~ImGuiManager()
     {
     }
+
+#ifdef USING_GLFW
+    static const char* ImGui_ImplGlfw_GetClipboardText(void*)
+    {
+        return glfwGetClipboardString((GLFWwindow*)Application::Get().GetWindow()->GetHandle());
+    }
+
+    static void ImGui_ImplGlfw_SetClipboardText(void*, const char* text)
+    {
+        glfwSetClipboardString((GLFWwindow*)Application::Get().GetWindow()->GetHandle(), text);
+    }
+#endif
 
     void ImGuiManager::OnInit()
     {
@@ -72,6 +93,11 @@ namespace Lumos
 
         if(m_IMGUIRenderer)
             m_IMGUIRenderer->Init();
+
+#ifdef USING_GLFW
+        io.SetClipboardTextFn = ImGui_ImplGlfw_SetClipboardText;
+        io.GetClipboardTextFn = ImGui_ImplGlfw_GetClipboardText;
+#endif
     }
 
     void ImGuiManager::OnUpdate(const TimeStep& dt, Scene* scene)
@@ -271,6 +297,8 @@ namespace Lumos
         io.Fonts->AddFontFromMemoryCompressedTTF(RobotoRegular_compressed_data, RobotoRegular_compressed_size, m_FontSize, &icons_config, ranges);
         AddIconFont();
 
+        io.Fonts->AddFontFromMemoryCompressedTTF(RobotoBold_compressed_data, RobotoBold_compressed_size, m_FontSize + 2.0f, &icons_config, ranges);
+
         io.Fonts->AddFontDefault();
         AddIconFont();
 
@@ -297,7 +325,7 @@ namespace Lumos
         style.PopupBorderSize = 3;
         style.FrameBorderSize = 0.0f;
 
-        const int roundingAmount = 2; //2;
+        const int roundingAmount = 2;
         style.PopupRounding = roundingAmount;
         style.WindowRounding = roundingAmount;
         style.ChildRounding = 0;

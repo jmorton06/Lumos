@@ -30,7 +30,7 @@ namespace Lumos
         //        m_BaseProjectDir = std::filesystem::path(m_Editor->GetProjectRoot() + "/ExampleProject/Assets");
         //        //m_BaseDirPath = ROOT_DIR "/ExampleProject/Assets";
         //#endif
-        m_BasePath = Application::Get().GetProjectRoot() + "Assets";
+        m_BasePath = Application::Get().GetProjectSettings().m_ProjectRoot + "Assets";
 
         std::string baseDirectoryHandle = ProcessDirectory(std::filesystem::path(m_BasePath), nullptr);
         m_BaseProjectDir = m_Directories[baseDirectoryHandle];
@@ -219,7 +219,7 @@ namespace Lumos
             if(!vertical)
             {
                 ImGui::BeginColumns("ResourcePanelColumns", 2, ImGuiOldColumnFlags_NoResize);
-                ImGui::SetColumnWidth(0, ImGui::GetWindowContentRegionWidth() / 3.0f);
+                ImGui::SetColumnWidth(0, ImGui::GetWindowContentRegionMax().x / 3.0f);
                 ImGui::BeginChild("##folders_common");
             }
             else
@@ -567,7 +567,7 @@ namespace Lumos
     void ResourcePanel::RenderBottom()
     {
         LUMOS_PROFILE_FUNCTION();
-        ImGui::BeginChild("##nav", ImVec2(ImGui::GetColumnWidth(), ImGui::GetFontSize() * 1.8f), ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
+        ImGui::BeginChild("##nav", ImVec2(ImGui::GetColumnWidth(), ImGui::GetFontSize() * 1.8f), true, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
         {
             int secIdx = 0, newPwdLastSecIdx = -1;
 
@@ -685,7 +685,7 @@ namespace Lumos
 
     void ResourcePanel::Refresh()
     {
-        m_BasePath = Application::Get().GetProjectRoot() + "Assets";
+        m_BasePath = Application::Get().GetProjectSettings().m_ProjectRoot + "Assets";
 
         auto currentPath = m_CurrentDir->FilePath;
 

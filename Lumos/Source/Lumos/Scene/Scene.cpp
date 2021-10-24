@@ -9,13 +9,10 @@
 #include "Graphics/AnimatedSprite.h"
 #include "Utilities/TimeStep.h"
 #include "Audio/AudioManager.h"
-#include "Physics/LumosPhysicsEngine/SortAndSweepBroadphase.h"
-#include "Physics/LumosPhysicsEngine/BruteForceBroadphase.h"
-#include "Physics/LumosPhysicsEngine/OctreeBroadphase.h"
 #include "Physics/LumosPhysicsEngine/LumosPhysicsEngine.h"
-#include "Physics/LumosPhysicsEngine/SphereCollisionShape.h"
-#include "Physics/LumosPhysicsEngine/CuboidCollisionShape.h"
-#include "Physics/LumosPhysicsEngine/PyramidCollisionShape.h"
+#include "Physics/LumosPhysicsEngine/CollisionShapes/SphereCollisionShape.h"
+#include "Physics/LumosPhysicsEngine/CollisionShapes/CuboidCollisionShape.h"
+#include "Physics/LumosPhysicsEngine/CollisionShapes/PyramidCollisionShape.h"
 
 #include "Events/Event.h"
 #include "Events/ApplicationEvent.h"
@@ -48,8 +45,8 @@ namespace Lumos
         , m_ScreenHeight(0)
     {
         m_EntityManager = CreateUniquePtr<EntityManager>(this);
-        m_EntityManager->AddDependency<Physics3DComponent, Maths::Transform>();
-        m_EntityManager->AddDependency<Physics2DComponent, Maths::Transform>();
+        m_EntityManager->AddDependency<RigidBody3DComponent, Maths::Transform>();
+        m_EntityManager->AddDependency<RigidBody2DComponent, Maths::Transform>();
         m_EntityManager->AddDependency<Camera, Maths::Transform>();
         m_EntityManager->AddDependency<Graphics::ModelComponent, Maths::Transform>();
         m_EntityManager->AddDependency<Graphics::Light, Maths::Transform>();
@@ -76,10 +73,14 @@ namespace Lumos
         LuaManager::Get().GetState().set("registry", &m_EntityManager->GetRegistry());
         LuaManager::Get().GetState().set("scene", this);
 
-        //Default physics setup
-        Application::Get().GetSystem<LumosPhysicsEngine>()->SetDampingFactor(0.999f);
-        Application::Get().GetSystem<LumosPhysicsEngine>()->SetIntegrationType(IntegrationType::RUNGE_KUTTA_4);
-        Application::Get().GetSystem<LumosPhysicsEngine>()->SetBroadphase(Lumos::CreateSharedPtr<OctreeBroadphase>(5, 5, Lumos::CreateSharedPtr<SortAndSweepBroadphase>()));
+        //Physics setup
+        auto physics3DSytem = Application::Get().GetSystem<LumosPhysicsEngine>();
+        physics3DSytem->SetDampingFactor(m_Settings.Physics3DSettings.Dampening);
+        physics3DSytem->SetIntegrationType((IntegrationType)m_Settings.Physics3DSettings.IntegrationTypeIndex);
+        physics3DSytem->SetMaxUpdatesPerFrame(m_Settings.Physics3DSettings.m_MaxUpdatesPerFrame);
+        physics3DSytem->SetPositionIterations(m_Settings.Physics3DSettings.PositionIterations);
+        physics3DSytem->SetVelocityIterations(m_Settings.Physics3DSettings.VelocityIterations);
+        physics3DSytem->SetBroadphaseType(BroadphaseType(m_Settings.Physics3DSettings.BroadPhaseTypeIndex));
 
         LuaManager::Get().OnInit(this);
     }
@@ -90,8 +91,6 @@ namespace Lumos
         DeleteAllGameObjects();
 
         LuaManager::Get().GetState().collect_garbage();
-
-        Application::Get().GetRenderGraph()->Reset();
 
         auto audioManager = Application::Get().GetSystem<AudioManager>();
         if(audioManager)
@@ -169,7 +168,7 @@ namespace Lumos
         }
     }
 
-#define ALL_COMPONENTSV1 Maths::Transform, NameComponent, ActiveComponent, Hierarchy, Camera, LuaScriptComponent, Graphics::Model, Graphics::Light, Physics3DComponent, Graphics::Environment, Graphics::Sprite, Physics2DComponent, DefaultCameraController
+#define ALL_COMPONENTSV1 Maths::Transform, NameComponent, ActiveComponent, Hierarchy, Camera, LuaScriptComponent, Graphics::Model, Graphics::Light, RigidBody3DComponent, Graphics::Environment, Graphics::Sprite, RigidBody2DComponent, DefaultCameraController
 
 #define ALL_COMPONENTSV2 ALL_COMPONENTSV1, Graphics::AnimatedSprite
 #define ALL_COMPONENTSV3 ALL_COMPONENTSV2, SoundComponent
@@ -253,7 +252,7 @@ namespace Lumos
                     entt::snapshot_loader { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV6>(input);
                 else if(m_SceneSerialisationVersion >= 8)
                     entt::snapshot_loader { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV7>(input);
-                
+
                 if(m_SceneSerialisationVersion < 6)
                 {
                     m_EntityManager->GetRegistry().each([&](auto entity)
@@ -338,6 +337,7 @@ namespace Lumos
         }
 
         m_SceneGraph->DisableOnConstruct(false, m_EntityManager->GetRegistry());
+        Application::Get().OnNewScene(this);
     }
 
     void Scene::UpdateSceneGraph()
@@ -356,7 +356,7 @@ namespace Lumos
         }
     }
 
-    template <typename ...Component>
+    template <typename... Component>
     static void CopyEntity(entt::entity dst, entt::entity src, entt::registry& registry)
     {
         (CopyComponentIfExists<Component>(dst, src, registry), ...);
@@ -393,7 +393,7 @@ namespace Lumos
         Entity newEntity = m_EntityManager->Create();
 
         CopyEntity<ALL_COMPONENTSV7>(newEntity.GetHandle(), entity.GetHandle(), m_EntityManager->GetRegistry());
-        
+
         auto hierarchyComponent = newEntity.TryGetComponent<Hierarchy>();
         if(hierarchyComponent)
         {
@@ -402,10 +402,10 @@ namespace Lumos
             hierarchyComponent->m_Next = entt::null;
             hierarchyComponent->m_Prev = entt::null;
         }
-        
+
         auto children = entity.GetChildren();
         std::vector<Entity> copiedChildren;
-        
+
         for(auto child : children)
         {
             DuplicateEntity(child, newEntity);
@@ -413,7 +413,7 @@ namespace Lumos
 
         if(parent)
             newEntity.SetParent(parent);
-        
+
         m_SceneGraph->DisableOnConstruct(false, m_EntityManager->GetRegistry());
     }
 }

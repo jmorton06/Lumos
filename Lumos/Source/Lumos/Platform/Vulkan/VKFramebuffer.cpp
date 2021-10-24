@@ -57,8 +57,6 @@ namespace Lumos
 
         VKFramebuffer::~VKFramebuffer()
         {
-            vkDeviceWaitIdle(VKDevice::GetHandle());
-
             VKContext::DeletionQueue& deletionQueue = VKRenderer::GetCurrentDeletionQueue();
 
             auto framebuffer = m_Framebuffer;

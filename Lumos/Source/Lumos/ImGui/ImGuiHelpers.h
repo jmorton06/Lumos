@@ -2,6 +2,7 @@
 
 #include "Maths/Maths.h"
 #include <imgui/imgui.h>
+#include <imgui/imgui_internal.h>
 
 namespace Lumos
 {
@@ -9,6 +10,7 @@ namespace Lumos
     {
         class Texture2D;
         class TextureCube;
+        class TextureDepthArray;
     }
 
     namespace ImGuiHelpers
@@ -40,9 +42,12 @@ namespace Lumos
         bool Property(const std::string& name, std::string& value, PropertyFlag flags = PropertyFlag::ReadOnly);
         void PropertyConst(const std::string& name, const std::string& value);
         bool Property(const std::string& name, bool& value, PropertyFlag flags = PropertyFlag::None);
-        bool Property(const std::string& name, int& value, PropertyFlag flags = PropertyFlag::None);
+        bool Property(const std::string& name, int& value, PropertyFlag flags);
+        bool Property(const std::string& name, uint32_t& value, PropertyFlag flags = PropertyFlag::None);
 
         bool Property(const std::string& name, double& value, double min = -1.0, double max = 1.0, PropertyFlag flags = PropertyFlag::None);
+
+        bool Property(const std::string& name, int& value, int min = 0, int max = 100.0, PropertyFlag flags = PropertyFlag::None);
 
         bool Property(const std::string& name, float& value, float min = -1.0f, float max = 1.0f, PropertyFlag flags = PropertyFlag::None);
         bool Property(const std::string& name, Maths::Vector2& value, PropertyFlag flags);
@@ -61,16 +66,23 @@ namespace Lumos
 
         void Tooltip(Graphics::Texture2D* texture, const Maths::Vector2& size);
         void Tooltip(Graphics::Texture2D* texture, const Maths::Vector2& size, const std::string& text);
+        void Tooltip(Graphics::TextureDepthArray* texture, uint32_t index, const Maths::Vector2& size);
+
         void Image(Graphics::Texture2D* texture, const Maths::Vector2& size);
         void Image(Graphics::TextureCube* texture, const Maths::Vector2& size);
+        void Image(Graphics::TextureDepthArray* texture, uint32_t index, const Maths::Vector2& size);
 
         void SetTheme(Theme theme);
 
         bool BufferingBar(const char* label, float value, const Maths::Vector2& size_arg, const uint32_t& bg_col, const uint32_t& fg_col);
         bool Spinner(const char* label, float radius, int thickness, const uint32_t& colour);
 
+        void DrawRowsBackground(int row_count, float line_height, float x1, float x2, float y_offset, ImU32 col_even, ImU32 col_odd);
         Maths::Vector4 GetSelectedColour();
         Maths::Vector4 GetIconColour();
+
+        void DrawItemActivityOutline(float rounding = 0.0f, bool drawWhenInactive = false, ImColor colourWhenActive = ImColor(80, 80, 80));
+        bool InputText(std::string& currentText);
 
         class ScopedStyle
         {
@@ -116,14 +128,14 @@ namespace Lumos
 namespace ImGui
 {
     // Dupe of DragFloatN with a tweak to add coloured lines
-    bool DragFloatN_Coloured(const char* label, float* v, int components, float v_speed = 1.0f, float v_min = 0.0f, float v_max = 0.0f, const char* display_format = "%.2f", float power = 1.0f);
+    bool DragFloatN_Coloured(const char* label, float* v, int components, float v_speed = 1.0f, float v_min = 0.0f, float v_max = 0.0f, const char* display_format = "%.2f");
 
     bool DragFloat3Coloured(const char* label, float* v, float v_speed = 1.0f, float v_min = 0.0f, float v_max = 0.0f);
     bool DragFloat4Coloured(const char* label, float* v, float v_speed = 1.0f, float v_min = 0.0f, float v_max = 0.0f);
     bool DragFloat2Coloured(const char* label, float* v, float v_speed = 1.0f, float v_min = 0.0f, float v_max = 0.0f);
 
     void PushMultiItemsWidthsAndLabels(const char* labels[], int components, float w_full);
-    bool DragFloatNEx(const char* labels[], float* v, int components, float v_speed = 1.0f, float v_min = 0.0f, float v_max = 0.0f, const char* display_format = "%.3f", float power = 1.0f);
+    bool DragFloatNEx(const char* labels[], float* v, int components, float v_speed = 1.0f, float v_min = 0.0f, float v_max = 0.0f, const char* display_format = "%.3f");
 }
 
 static inline ImVec2 operator*(const ImVec2& lhs, const float rhs)

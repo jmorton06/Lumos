@@ -40,8 +40,8 @@ public:
             if(FileSystem::FileExists(path))
             {
                 LUMOS_LOG_INFO("Loaded Project {0}", path);
-                m_ProjectRoot = StringUtilities::GetFileLocation(path);
-                m_ProjectName = "Example";
+                m_ProjectSettings.m_ProjectRoot = StringUtilities::GetFileLocation(path);
+                m_ProjectSettings.m_ProjectName = "Example";
                 break;
             }
         }

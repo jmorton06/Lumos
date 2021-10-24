@@ -1,24 +1,27 @@
 #include "Precompiled.h"
 #include "LumosPhysicsEngine.h"
-#include "CollisionDetection.h"
+#include "Narrowphase/CollisionDetection.h"
+#include "Broadphase/SortAndSweepBroadphase.h"
+#include "Broadphase/BruteForceBroadphase.h"
+#include "Broadphase/OctreeBroadphase.h"
 #include "RigidBody3D.h"
 #include "Core/OS/Window.h"
 
 #include "Integration.h"
-#include "Constraint.h"
+#include "Constraints/Constraint.h"
 #include "Utilities/TimeStep.h"
 #include "Core/JobSystem.h"
 
 #include "Core/Application.h"
-#include "Scene/Component/Physics3DComponent.h"
+#include "Scene/Component/RigidBody3DComponent.h"
 
 #include "Maths/Transform.h"
 
 #include <imgui/imgui.h>
 
-#define THREAD_RIGID_BODY_UPDATE
-#define THREAD_APPLY_IMPULSES
-#define THREAD_NARROWPHASE
+//#define THREAD_RIGID_BODY_UPDATE
+//#define THREAD_APPLY_IMPULSES
+//#define THREAD_NARROWPHASE
 
 namespace Lumos
 {
@@ -66,13 +69,13 @@ namespace Lumos
         if(!m_IsPaused)
         {
             auto& registry = scene->GetRegistry();
-            auto group = registry.group<Physics3DComponent>(entt::get<Maths::Transform>);
+            auto group = registry.group<RigidBody3DComponent>(entt::get<Maths::Transform>);
 
             {
                 LUMOS_PROFILE_SCOPE("Physics::Get Rigid Bodies");
                 for(auto entity : group)
                 {
-                    const auto& phys = group.get<Physics3DComponent>(entity);
+                    const auto& phys = group.get<RigidBody3DComponent>(entity);
                     auto& physicsObj = phys.GetRigidBody();
                     m_RigidBodys.push_back(physicsObj.get());
                 };
@@ -104,9 +107,9 @@ namespace Lumos
                 for(auto entity : viewAxis)
                 {
                     const auto& [constraint, idComp] = viewAxis.get<AxisConstraintComponent, IDComponent>(entity);
-					
-					if(constraint.GetEntityID() != idComp.ID)
-						constraint.SetEntity(idComp.ID);
+
+                    if(constraint.GetEntityID() != idComp.ID)
+                        constraint.SetEntity(idComp.ID);
                     if(constraint.GetConstraint())
                         m_Constraints.push_back(constraint.GetConstraint().get());
                 }
@@ -136,28 +139,18 @@ namespace Lumos
 
             {
                 LUMOS_PROFILE_SCOPE("Physics::UpdatePhysics");
-                if(m_MultipleUpdates)
+                m_UpdateAccum += timeStep.GetSeconds();
+                for(int i = 0; (m_UpdateAccum >= s_UpdateTimestep) && i < m_MaxUpdatesPerFrame; ++i)
                 {
-                    const int max_updates_per_frame = 5;
-
-                    m_UpdateAccum += timeStep.GetSeconds();
-                    for(int i = 0; (m_UpdateAccum >= s_UpdateTimestep) && i < max_updates_per_frame; ++i)
-                    {
-                        m_UpdateAccum -= s_UpdateTimestep;
-                        UpdatePhysics();
-                    }
-
-                    if(m_UpdateAccum >= s_UpdateTimestep)
-                    {
-                        LUMOS_LOG_WARN("Physics too slow to run in real time!");
-                        //Drop Time in the hope that it can continue to run in real-time
-                        m_UpdateAccum = 0.0f;
-                    }
-                }
-                else
-                {
-                    s_UpdateTimestep = timeStep.GetSeconds();
+                    m_UpdateAccum -= s_UpdateTimestep;
                     UpdatePhysics();
+                }
+
+                if(m_UpdateAccum >= s_UpdateTimestep)
+                {
+                    LUMOS_LOG_WARN("Physics too slow to run in real time!");
+                    //Drop Time in the hope that it can continue to run in real-time
+                    m_UpdateAccum = 0.0f;
                 }
             }
 
@@ -166,7 +159,7 @@ namespace Lumos
 
                 for(auto entity : group)
                 {
-                    const auto& [phys, trans] = group.get<Physics3DComponent, Maths::Transform>(entity);
+                    const auto& [phys, trans] = group.get<RigidBody3DComponent, Maths::Transform>(entity);
 
                     trans.SetLocalPosition(phys.GetRigidBody()->GetPosition());
                     trans.SetLocalOrientation(phys.GetRigidBody()->GetOrientation());
@@ -188,7 +181,11 @@ namespace Lumos
         SolveConstraints();
 
         //Update movement
-        UpdateRigidBodys();
+        for(uint32_t i = 0; i < m_PositionIterations; i++)
+            UpdateRigidBodys();
+
+        for(int i = 0; i < m_RigidBodys.size(); i++)
+            m_RigidBodys[i]->RestTest();
     }
 
     void LumosPhysicsEngine::UpdateRigidBodys()
@@ -196,7 +193,7 @@ namespace Lumos
 #ifdef THREAD_RIGID_BODY_UPDATE
         LUMOS_PROFILE_SCOPE("Thread Update Rigid Body");
         System::JobSystem::Context jobSystemContext;
-        System::JobSystem::Dispatch(jobSystemContext, static_cast<uint32_t>(m_RigidBodys.size()), 128, [&](JobDispatchArgs args)
+        System::JobSystem::Dispatch(jobSystemContext, static_cast<uint32_t>(m_RigidBodys.size()), static_cast<uint32_t>(m_RigidBodys.size()) / 4, [&](JobDispatchArgs args)
             { UpdateRigidBody(m_RigidBodys[args.jobIndex]); });
 
         System::JobSystem::Wait(jobSystemContext);
@@ -211,6 +208,8 @@ namespace Lumos
     void LumosPhysicsEngine::UpdateRigidBody(RigidBody3D* obj) const
     {
         LUMOS_PROFILE_FUNCTION();
+
+        s_UpdateTimestep /= m_PositionIterations;
         if(!obj->GetIsStatic() && obj->IsAwake())
         {
             const float damping = m_DampingFactor;
@@ -240,7 +239,7 @@ namespace Lumos
                 obj->m_AngularVelocity += obj->m_InvInertia * obj->m_Torque * s_UpdateTimestep;
 
                 // Angular velocity damping
-                obj->m_AngularVelocity = obj->m_AngularVelocity * damping;
+                obj->m_AngularVelocity = obj->m_AngularVelocity * damping * obj->m_AngularFactor;
 
                 break;
             }
@@ -260,7 +259,7 @@ namespace Lumos
                 obj->m_AngularVelocity += obj->m_InvInertia * obj->m_Torque * s_UpdateTimestep;
 
                 // Angular velocity damping
-                obj->m_AngularVelocity = obj->m_AngularVelocity * damping;
+                obj->m_AngularVelocity = obj->m_AngularVelocity * damping * obj->m_AngularFactor;
 
                 // Update orientation
                 obj->m_Orientation = obj->m_Orientation + ((obj->m_AngularVelocity * s_UpdateTimestep * 0.5f) * obj->m_Orientation);
@@ -285,7 +284,7 @@ namespace Lumos
                 obj->m_AngularVelocity += obj->m_InvInertia * obj->m_Torque * s_UpdateTimestep;
 
                 // Angular velocity damping
-                obj->m_AngularVelocity = obj->m_AngularVelocity * damping;
+                obj->m_AngularVelocity = obj->m_AngularVelocity * damping * obj->m_AngularFactor;
 
                 // Update orientation
                 obj->m_Orientation = obj->m_Orientation + ((obj->m_AngularVelocity * s_UpdateTimestep * 0.5f) * obj->m_Orientation);
@@ -309,7 +308,7 @@ namespace Lumos
                 obj->m_AngularVelocity += obj->m_InvInertia * obj->m_Torque * s_UpdateTimestep;
 
                 // Angular velocity damping
-                obj->m_AngularVelocity = obj->m_AngularVelocity * damping;
+                obj->m_AngularVelocity = obj->m_AngularVelocity * damping * obj->m_AngularFactor;
 
                 // Update orientation
                 obj->m_Orientation = obj->m_Orientation + ((obj->m_AngularVelocity * s_UpdateTimestep * 0.5f) * obj->m_Orientation);
@@ -322,9 +321,9 @@ namespace Lumos
             // Mark cached world transform and AABB as invalid
             obj->m_wsTransformInvalidated = true;
             obj->m_wsAabbInvalidated = true;
-
-            obj->RestTest();
         }
+
+        s_UpdateTimestep *= m_PositionIterations;
     }
 
     void LumosPhysicsEngine::BroadPhaseCollisions()
@@ -418,13 +417,12 @@ namespace Lumos
             LUMOS_PROFILE_SCOPE("Apply Impulses");
 #ifdef THREAD_APPLY_IMPULSES
             System::JobSystem::Context jobSystemContext;
-            System::JobSystem::Dispatch(jobSystemContext, static_cast<uint32_t>(SOLVER_ITERATIONS), 128, [&](JobDispatchArgs args)
+            System::JobSystem::Dispatch(jobSystemContext, static_cast<uint32_t>(m_VelocityIterations), 4, [&](JobDispatchArgs args)
 #else
-            for(int i = 0; i < SOLVER_ITERATIONS; i++)
+            for(int i = 0; i < m_VelocityIterations; i++)
 #endif
                 {
-                    for(
-                        Manifold& m : m_Manifolds)
+                    for(Manifold& m : m_Manifolds)
                     {
                         m.ApplyImpulse();
                     }
@@ -446,7 +444,7 @@ namespace Lumos
         m_Constraints.clear();
     }
 
-    std::string IntegrationTypeToString(IntegrationType type)
+    std::string LumosPhysicsEngine::IntegrationTypeToString(IntegrationType type)
     {
         switch(type)
         {
@@ -463,6 +461,45 @@ namespace Lumos
         }
     }
 
+    std::string LumosPhysicsEngine::BroadphaseTypeToString(BroadphaseType type)
+    {
+        switch(type)
+        {
+        case BroadphaseType::BRUTE_FORCE:
+            return "Brute Force";
+        case BroadphaseType::SORT_AND_SWEAP:
+            return "Sort and Sweap";
+        case BroadphaseType::OCTREE:
+            return "Octree";
+        default:
+            return "";
+        }
+    }
+
+    void LumosPhysicsEngine::SetBroadphaseType(BroadphaseType type)
+    {
+        if(type == m_BroadphaseType)
+            return;
+        
+        switch(type)
+        {
+        case BroadphaseType::BRUTE_FORCE:
+                m_BroadphaseDetection = Lumos::CreateSharedPtr<BruteForceBroadphase>();
+            break;
+        case BroadphaseType::SORT_AND_SWEAP:
+                m_BroadphaseDetection = Lumos::CreateSharedPtr<SortAndSweepBroadphase>();
+            break;
+        case BroadphaseType::OCTREE:
+                m_BroadphaseDetection = Lumos::CreateSharedPtr<OctreeBroadphase>(5, 5, Lumos::CreateSharedPtr<BruteForceBroadphase>());
+            break;
+        default:
+                m_BroadphaseDetection = Lumos::CreateSharedPtr<BruteForceBroadphase>();
+            break;
+        }
+        
+        m_BroadphaseType = type;
+    }
+
     void LumosPhysicsEngine::OnImGui()
     {
         LUMOS_PROFILE_FUNCTION();
@@ -477,6 +514,15 @@ namespace Lumos
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
         ImGui::Text("%5.2i", GetNumberCollisionPairs());
+        ImGui::PopItemWidth();
+        ImGui::NextColumn();
+
+        uint32_t maxCollisionPairs = Maths::nChoosek(uint32_t(m_RigidBodys.size()), 2);
+        ImGui::AlignTextToFramePadding();
+        ImGui::TextUnformatted("Max Number Of Collision Pairs");
+        ImGui::NextColumn();
+        ImGui::PushItemWidth(-1);
+        ImGui::Text("%5.2i", maxCollisionPairs);
         ImGui::PopItemWidth();
         ImGui::NextColumn();
 
@@ -569,20 +615,20 @@ namespace Lumos
                 c->DebugDraw();
         }
 
-        if(m_BroadphaseDetection && (m_DebugDrawFlags & PhysicsDebugFlags::BROADPHASE))
+        if(!m_IsPaused && m_BroadphaseDetection && (m_DebugDrawFlags & PhysicsDebugFlags::BROADPHASE))
             m_BroadphaseDetection->DebugDraw();
 
         auto scene = Application::Get().GetCurrentScene();
         auto& registry = scene->GetRegistry();
 
-        auto group = registry.group<Physics3DComponent>(entt::get<Maths::Transform>);
+        auto group = registry.group<RigidBody3DComponent>(entt::get<Maths::Transform>);
 
         if(group.empty())
             return;
 
         for(auto entity : group)
         {
-            const auto& phys = group.get<Physics3DComponent>(entity);
+            const auto& phys = group.get<RigidBody3DComponent>(entity);
 
             auto& physicsObj = phys.GetRigidBody();
 

@@ -1,0 +1,1036 @@
+{
+    "value0": {
+        "Version": 9,
+        "Scene Name": "2DTest",
+        "PhysicsEnabled2D": true,
+        "PhysicsEnabled3D": true,
+        "AudioEnabled": true,
+        "Renderer2DEnabled": true,
+        "Renderer3DEnabled": true,
+        "DebugRenderEnabled": true,
+        "SkyboxRenderEnabled": true,
+        "ShadowsEnabled": true
+    },
+    "value1": 22,
+    "value2": 0,
+    "value3": 1,
+    "value4": 2,
+    "value5": 3,
+    "value6": 4,
+    "value7": 5,
+    "value8": 6,
+    "value9": 7,
+    "value10": 8,
+    "value11": 9,
+    "value12": 10,
+    "value13": 11,
+    "value14": 12,
+    "value15": 13,
+    "value16": 14,
+    "value17": 15,
+    "value18": 16,
+    "value19": 17,
+    "value20": 18,
+    "value21": 19,
+    "value22": 20,
+    "value23": 21,
+    "value24": 22,
+    "value25": 0,
+    "value26": {
+        "Position": {
+            "value0": -8.551441192626954,
+            "value1": 0.0,
+            "value2": 0.0
+        },
+        "Rotation": {
+            "value0": 0.0,
+            "value1": 0.0,
+            "value2": 0.0,
+            "value3": 1.0
+        },
+        "Scale": {
+            "value0": 0.9999999403953552,
+            "value1": 0.9999999403953552,
+            "value2": 0.9999999403953552
+        }
+    },
+    "value27": 1,
+    "value28": {
+        "Position": {
+            "value0": -6.178543567657471,
+            "value1": 0.0,
+            "value2": 0.0
+        },
+        "Rotation": {
+            "value0": 0.0,
+            "value1": 0.0,
+            "value2": 0.0,
+            "value3": 1.0
+        },
+        "Scale": {
+            "value0": 0.9999999403953552,
+            "value1": 0.9999999403953552,
+            "value2": 0.9999999403953552
+        }
+    },
+    "value29": 2,
+    "value30": {
+        "Position": {
+            "value0": -3.1675546169281008,
+            "value1": 0.0,
+            "value2": 0.0
+        },
+        "Rotation": {
+            "value0": 0.0,
+            "value1": 0.0,
+            "value2": 0.0,
+            "value3": 1.0
+        },
+        "Scale": {
+            "value0": 0.9999999403953552,
+            "value1": 0.9999999403953552,
+            "value2": 0.9999999403953552
+        }
+    },
+    "value31": 3,
+    "value32": {
+        "Position": {
+            "value0": 0.0,
+            "value1": 0.0,
+            "value2": 0.0
+        },
+        "Rotation": {
+            "value0": 0.0,
+            "value1": 0.0,
+            "value2": 0.0,
+            "value3": 1.0
+        },
+        "Scale": {
+            "value0": 1.0,
+            "value1": 1.0,
+            "value2": 1.0
+        }
+    },
+    "value33": 4,
+    "value34": {
+        "Position": {
+            "value0": -10.080808639526368,
+            "value1": 0.0,
+            "value2": 0.0
+        },
+        "Rotation": {
+            "value0": 0.0,
+            "value1": 0.0,
+            "value2": 0.0,
+            "value3": 1.0
+        },
+        "Scale": {
+            "value0": 0.9999999403953552,
+            "value1": 0.9999999403953552,
+            "value2": 0.9999999403953552
+        }
+    },
+    "value35": 5,
+    "value36": {
+        "Position": {
+            "value0": -11.296012878417969,
+            "value1": 0.0,
+            "value2": 0.0
+        },
+        "Rotation": {
+            "value0": 0.0,
+            "value1": 0.0,
+            "value2": 0.0,
+            "value3": 1.0
+        },
+        "Scale": {
+            "value0": 0.9999999403953552,
+            "value1": 0.9999999403953552,
+            "value2": 0.9999999403953552
+        }
+    },
+    "value37": 6,
+    "value38": {
+        "Position": {
+            "value0": -13.118130683898926,
+            "value1": 0.0,
+            "value2": 0.0
+        },
+        "Rotation": {
+            "value0": 0.0,
+            "value1": 0.0,
+            "value2": 0.0,
+            "value3": 1.0
+        },
+        "Scale": {
+            "value0": 0.9999999403953552,
+            "value1": 0.9999999403953552,
+            "value2": 0.9999999403953552
+        }
+    },
+    "value39": 7,
+    "value40": {
+        "Position": {
+            "value0": -15.242782592773438,
+            "value1": 0.0,
+            "value2": 0.0
+        },
+        "Rotation": {
+            "value0": 0.0,
+            "value1": 0.0,
+            "value2": 0.0,
+            "value3": 1.0
+        },
+        "Scale": {
+            "value0": 0.9999999403953552,
+            "value1": 0.9999999403953552,
+            "value2": 0.9999999403953552
+        }
+    },
+    "value41": 8,
+    "value42": {
+        "Position": {
+            "value0": -16.67977523803711,
+            "value1": 0.0,
+            "value2": 0.0
+        },
+        "Rotation": {
+            "value0": 0.0,
+            "value1": 0.0,
+            "value2": 0.0,
+            "value3": 1.0
+        },
+        "Scale": {
+            "value0": 0.9999999403953552,
+            "value1": 0.9999999403953552,
+            "value2": 0.9999999403953552
+        }
+    },
+    "value43": 9,
+    "value44": {
+        "Position": {
+            "value0": -18.414165496826173,
+            "value1": 0.0,
+            "value2": 0.0
+        },
+        "Rotation": {
+            "value0": 0.0,
+            "value1": 0.0,
+            "value2": 0.0,
+            "value3": 1.0
+        },
+        "Scale": {
+            "value0": 0.9999999403953552,
+            "value1": 0.9999999403953552,
+            "value2": 0.9999999403953552
+        }
+    },
+    "value45": 10,
+    "value46": {
+        "Position": {
+            "value0": -20.368091583251954,
+            "value1": 0.0,
+            "value2": 0.0
+        },
+        "Rotation": {
+            "value0": 0.0,
+            "value1": 0.0,
+            "value2": 0.0,
+            "value3": 1.0
+        },
+        "Scale": {
+            "value0": 0.9999999403953552,
+            "value1": 0.9999999403953552,
+            "value2": 0.9999999403953552
+        }
+    },
+    "value47": 11,
+    "value48": {
+        "Position": {
+            "value0": -22.239839553833009,
+            "value1": 0.0,
+            "value2": 0.0
+        },
+        "Rotation": {
+            "value0": 0.0,
+            "value1": 0.0,
+            "value2": 0.0,
+            "value3": 1.0
+        },
+        "Scale": {
+            "value0": 0.9999999403953552,
+            "value1": 0.9999999403953552,
+            "value2": 0.9999999403953552
+        }
+    },
+    "value49": 12,
+    "value50": {
+        "Position": {
+            "value0": -23.950363159179689,
+            "value1": 0.0,
+            "value2": 0.0
+        },
+        "Rotation": {
+            "value0": 0.0,
+            "value1": 0.0,
+            "value2": 0.0,
+            "value3": 1.0
+        },
+        "Scale": {
+            "value0": 0.9999999403953552,
+            "value1": 0.9999999403953552,
+            "value2": 0.9999999403953552
+        }
+    },
+    "value51": 13,
+    "value52": {
+        "Position": {
+            "value0": -25.433916091918947,
+            "value1": 0.0,
+            "value2": 0.0
+        },
+        "Rotation": {
+            "value0": 0.0,
+            "value1": 0.0,
+            "value2": 0.0,
+            "value3": 1.0
+        },
+        "Scale": {
+            "value0": 0.9999999403953552,
+            "value1": 0.9999999403953552,
+            "value2": 0.9999999403953552
+        }
+    },
+    "value53": 14,
+    "value54": {
+        "Position": {
+            "value0": -26.996902465820314,
+            "value1": 0.0,
+            "value2": 0.0
+        },
+        "Rotation": {
+            "value0": 0.0,
+            "value1": 0.0,
+            "value2": 0.0,
+            "value3": 1.0
+        },
+        "Scale": {
+            "value0": 0.9999999403953552,
+            "value1": 0.9999999403953552,
+            "value2": 0.9999999403953552
+        }
+    },
+    "value55": 15,
+    "value56": {
+        "Position": {
+            "value0": -28.638389587402345,
+            "value1": 0.0,
+            "value2": 0.0
+        },
+        "Rotation": {
+            "value0": 0.0,
+            "value1": 0.0,
+            "value2": 0.0,
+            "value3": 1.0
+        },
+        "Scale": {
+            "value0": 0.9999999403953552,
+            "value1": 0.9999999403953552,
+            "value2": 0.9999999403953552
+        }
+    },
+    "value57": 16,
+    "value58": {
+        "Position": {
+            "value0": -30.406219482421876,
+            "value1": 0.0,
+            "value2": 0.0
+        },
+        "Rotation": {
+            "value0": 0.0,
+            "value1": 0.0,
+            "value2": 0.0,
+            "value3": 1.0
+        },
+        "Scale": {
+            "value0": 0.9999998807907105,
+            "value1": 0.9999998807907105,
+            "value2": 0.9999998807907105
+        }
+    },
+    "value59": 17,
+    "value60": {
+        "Position": {
+            "value0": -32.11842346191406,
+            "value1": 0.0,
+            "value2": 0.0
+        },
+        "Rotation": {
+            "value0": 0.0,
+            "value1": 0.0,
+            "value2": 0.0,
+            "value3": 1.0
+        },
+        "Scale": {
+            "value0": 0.9999999403953552,
+            "value1": 0.9999999403953552,
+            "value2": 0.9999999403953552
+        }
+    },
+    "value61": 18,
+    "value62": {
+        "Position": {
+            "value0": -33.64384460449219,
+            "value1": 0.0,
+            "value2": 0.0
+        },
+        "Rotation": {
+            "value0": 0.0,
+            "value1": 0.0,
+            "value2": 0.0,
+            "value3": 1.0
+        },
+        "Scale": {
+            "value0": 0.9999999403953552,
+            "value1": 0.9999999403953552,
+            "value2": 0.9999999403953552
+        }
+    },
+    "value63": 19,
+    "value64": {
+        "Position": {
+            "value0": -35.42777633666992,
+            "value1": 0.0,
+            "value2": 0.0
+        },
+        "Rotation": {
+            "value0": 0.0,
+            "value1": 0.0,
+            "value2": 0.0,
+            "value3": 1.0
+        },
+        "Scale": {
+            "value0": 0.9999999403953552,
+            "value1": 0.9999999403953552,
+            "value2": 0.9999999403953552
+        }
+    },
+    "value65": 20,
+    "value66": {
+        "Position": {
+            "value0": -37.12668228149414,
+            "value1": 0.0,
+            "value2": 0.0
+        },
+        "Rotation": {
+            "value0": 0.0,
+            "value1": 0.0,
+            "value2": 0.0,
+            "value3": 1.0
+        },
+        "Scale": {
+            "value0": 0.9999999403953552,
+            "value1": 0.9999999403953552,
+            "value2": 0.9999999403953552
+        }
+    },
+    "value67": 21,
+    "value68": {
+        "Position": {
+            "value0": -25.51805305480957,
+            "value1": 0.0,
+            "value2": 26.441513061523439
+        },
+        "Rotation": {
+            "value0": 0.0,
+            "value1": 0.0,
+            "value2": 0.0,
+            "value3": 1.0
+        },
+        "Scale": {
+            "value0": 0.9999998807907105,
+            "value1": 0.9999998807907105,
+            "value2": 0.9999998807907105
+        }
+    },
+    "value69": 22,
+    "value70": 0,
+    "value71": {
+        "Name": "Sprite"
+    },
+    "value72": 1,
+    "value73": {
+        "Name": "Sprite"
+    },
+    "value74": 2,
+    "value75": {
+        "Name": "Sprite"
+    },
+    "value76": 3,
+    "value77": {
+        "Name": "Sprite"
+    },
+    "value78": 4,
+    "value79": {
+        "Name": "Sprite"
+    },
+    "value80": 5,
+    "value81": {
+        "Name": "Sprite"
+    },
+    "value82": 6,
+    "value83": {
+        "Name": "Sprite"
+    },
+    "value84": 7,
+    "value85": {
+        "Name": "Sprite"
+    },
+    "value86": 8,
+    "value87": {
+        "Name": "Sprite"
+    },
+    "value88": 9,
+    "value89": {
+        "Name": "Sprite"
+    },
+    "value90": 10,
+    "value91": {
+        "Name": "Sprite"
+    },
+    "value92": 11,
+    "value93": {
+        "Name": "Sprite"
+    },
+    "value94": 12,
+    "value95": {
+        "Name": "Sprite"
+    },
+    "value96": 13,
+    "value97": {
+        "Name": "Sprite"
+    },
+    "value98": 14,
+    "value99": {
+        "Name": "Sprite"
+    },
+    "value100": 15,
+    "value101": {
+        "Name": "Sprite"
+    },
+    "value102": 16,
+    "value103": {
+        "Name": "Sprite"
+    },
+    "value104": 17,
+    "value105": {
+        "Name": "Sprite"
+    },
+    "value106": 18,
+    "value107": {
+        "Name": "Sprite"
+    },
+    "value108": 19,
+    "value109": {
+        "Name": "Sprite"
+    },
+    "value110": 20,
+    "value111": {
+        "Name": "Sprite"
+    },
+    "value112": 21,
+    "value113": {
+        "Name": "Camera"
+    },
+    "value114": 0,
+    "value115": 0,
+    "value116": 1,
+    "value117": 21,
+    "value118": {
+        "Scale": 1.0,
+        "Aspect": 100.0,
+        "FOV": 45.0,
+        "Near": 0.0,
+        "Far": 100.0
+    },
+    "value119": 0,
+    "value120": 0,
+    "value121": 0,
+    "value122": 0,
+    "value123": 0,
+    "value124": 21,
+    "value125": 0,
+    "value126": {
+        "TexturePath": "//Assets/Textures/icon.png",
+        "Position": {
+            "value0": 0.0,
+            "value1": 0.0
+        },
+        "Scale": {
+            "value0": 1.0,
+            "value1": 1.0
+        },
+        "Colour": {
+            "value0": 1.0,
+            "value1": 1.0,
+            "value2": 1.0,
+            "value3": 1.0
+        }
+    },
+    "value127": 1,
+    "value128": {
+        "TexturePath": "//Assets/Textures/round_outline.png",
+        "Position": {
+            "value0": 0.0,
+            "value1": 0.0
+        },
+        "Scale": {
+            "value0": 1.0,
+            "value1": 1.0
+        },
+        "Colour": {
+            "value0": 1.0,
+            "value1": 1.0,
+            "value2": 1.0,
+            "value3": 1.0
+        }
+    },
+    "value129": 2,
+    "value130": {
+        "TexturePath": "//Assets/Textures/Charactervector.png",
+        "Position": {
+            "value0": 0.0,
+            "value1": 0.0
+        },
+        "Scale": {
+            "value0": 1.0,
+            "value1": 1.0
+        },
+        "Colour": {
+            "value0": 1.0,
+            "value1": 1.0,
+            "value2": 1.0,
+            "value3": 1.0
+        }
+    },
+    "value131": 3,
+    "value132": {
+        "TexturePath": "//Assets/Textures/Fire1.png",
+        "Position": {
+            "value0": 0.0,
+            "value1": 0.0
+        },
+        "Scale": {
+            "value0": 1.0,
+            "value1": 1.0
+        },
+        "Colour": {
+            "value0": 1.0,
+            "value1": 1.0,
+            "value2": 1.0,
+            "value3": 1.0
+        }
+    },
+    "value133": 4,
+    "value134": {
+        "TexturePath": "//Assets/Textures/fire.png",
+        "Position": {
+            "value0": 0.0,
+            "value1": 0.0
+        },
+        "Scale": {
+            "value0": 1.0,
+            "value1": 1.0
+        },
+        "Colour": {
+            "value0": 1.0,
+            "value1": 1.0,
+            "value2": 1.0,
+            "value3": 1.0
+        }
+    },
+    "value135": 5,
+    "value136": {
+        "TexturePath": "//Assets/Textures/TappyPlane/PNG/UI/UIbg.png",
+        "Position": {
+            "value0": 0.0,
+            "value1": 0.0
+        },
+        "Scale": {
+            "value0": 1.0,
+            "value1": 1.0
+        },
+        "Colour": {
+            "value0": 1.0,
+            "value1": 1.0,
+            "value2": 1.0,
+            "value3": 1.0
+        }
+    },
+    "value137": 6,
+    "value138": {
+        "TexturePath": "//Assets/Textures/TappyPlane/PNG/UI/tapTick.png",
+        "Position": {
+            "value0": 0.0,
+            "value1": 0.0
+        },
+        "Scale": {
+            "value0": 1.0,
+            "value1": 1.0
+        },
+        "Colour": {
+            "value0": 1.0,
+            "value1": 1.0,
+            "value2": 1.0,
+            "value3": 1.0
+        }
+    },
+    "value139": 7,
+    "value140": {
+        "TexturePath": "//Assets/Textures/TappyPlane/PNG/UI/medalBronze.png",
+        "Position": {
+            "value0": 0.0,
+            "value1": 0.0
+        },
+        "Scale": {
+            "value0": 1.0,
+            "value1": 1.0
+        },
+        "Colour": {
+            "value0": 1.0,
+            "value1": 1.0,
+            "value2": 1.0,
+            "value3": 1.0
+        }
+    },
+    "value141": 8,
+    "value142": {
+        "TexturePath": "//Assets/Textures/TappyPlane/PNG/UI/tap.png",
+        "Position": {
+            "value0": 0.0,
+            "value1": 0.0
+        },
+        "Scale": {
+            "value0": 1.0,
+            "value1": 1.0
+        },
+        "Colour": {
+            "value0": 1.0,
+            "value1": 1.0,
+            "value2": 1.0,
+            "value3": 1.0
+        }
+    },
+    "value143": 9,
+    "value144": {
+        "TexturePath": "//Assets/Textures/TappyPlane/PNG/UI/textGetReady.png",
+        "Position": {
+            "value0": 0.0,
+            "value1": 0.0
+        },
+        "Scale": {
+            "value0": 1.0,
+            "value1": 1.0
+        },
+        "Colour": {
+            "value0": 1.0,
+            "value1": 1.0,
+            "value2": 1.0,
+            "value3": 1.0
+        }
+    },
+    "value145": 10,
+    "value146": {
+        "TexturePath": "//Assets/Textures/TappyPlane/PNG/UI/medalGold.png",
+        "Position": {
+            "value0": 0.0,
+            "value1": 0.0
+        },
+        "Scale": {
+            "value0": 1.0,
+            "value1": 1.0
+        },
+        "Colour": {
+            "value0": 1.0,
+            "value1": 1.0,
+            "value2": 1.0,
+            "value3": 1.0
+        }
+    },
+    "value147": 11,
+    "value148": {
+        "TexturePath": "//Assets/Textures/TappyPlane/PNG/Numbers/number0.png",
+        "Position": {
+            "value0": 0.0,
+            "value1": 0.0
+        },
+        "Scale": {
+            "value0": 1.0,
+            "value1": 1.0
+        },
+        "Colour": {
+            "value0": 1.0,
+            "value1": 1.0,
+            "value2": 1.0,
+            "value3": 1.0
+        }
+    },
+    "value149": 12,
+    "value150": {
+        "TexturePath": "//Assets/Textures/TappyPlane/PNG/Numbers/number1.png",
+        "Position": {
+            "value0": 0.0,
+            "value1": 0.0
+        },
+        "Scale": {
+            "value0": 1.0,
+            "value1": 1.0
+        },
+        "Colour": {
+            "value0": 1.0,
+            "value1": 1.0,
+            "value2": 1.0,
+            "value3": 1.0
+        }
+    },
+    "value151": 13,
+    "value152": {
+        "TexturePath": "//Assets/Textures/TappyPlane/PNG/Numbers/number2.png",
+        "Position": {
+            "value0": 0.0,
+            "value1": 0.0
+        },
+        "Scale": {
+            "value0": 1.0,
+            "value1": 1.0
+        },
+        "Colour": {
+            "value0": 1.0,
+            "value1": 1.0,
+            "value2": 1.0,
+            "value3": 1.0
+        }
+    },
+    "value153": 14,
+    "value154": {
+        "TexturePath": "//Assets/Textures/TappyPlane/PNG/Numbers/number3.png",
+        "Position": {
+            "value0": 0.0,
+            "value1": 0.0
+        },
+        "Scale": {
+            "value0": 1.0,
+            "value1": 1.0
+        },
+        "Colour": {
+            "value0": 1.0,
+            "value1": 1.0,
+            "value2": 1.0,
+            "value3": 1.0
+        }
+    },
+    "value155": 15,
+    "value156": {
+        "TexturePath": "//Assets/Textures/TappyPlane/PNG/Numbers/number4.png",
+        "Position": {
+            "value0": 0.0,
+            "value1": 0.0
+        },
+        "Scale": {
+            "value0": 1.0,
+            "value1": 1.0
+        },
+        "Colour": {
+            "value0": 1.0,
+            "value1": 1.0,
+            "value2": 1.0,
+            "value3": 1.0
+        }
+    },
+    "value157": 16,
+    "value158": {
+        "TexturePath": "//Assets/Textures/TappyPlane/PNG/Numbers/number5.png",
+        "Position": {
+            "value0": 0.0,
+            "value1": 0.0
+        },
+        "Scale": {
+            "value0": 1.0,
+            "value1": 1.0
+        },
+        "Colour": {
+            "value0": 1.0,
+            "value1": 1.0,
+            "value2": 1.0,
+            "value3": 1.0
+        }
+    },
+    "value159": 17,
+    "value160": {
+        "TexturePath": "//Assets/Textures/TappyPlane/PNG/Numbers/number6.png",
+        "Position": {
+            "value0": 0.0,
+            "value1": 0.0
+        },
+        "Scale": {
+            "value0": 1.0,
+            "value1": 1.0
+        },
+        "Colour": {
+            "value0": 1.0,
+            "value1": 1.0,
+            "value2": 1.0,
+            "value3": 1.0
+        }
+    },
+    "value161": 18,
+    "value162": {
+        "TexturePath": "//Assets/Textures/TappyPlane/PNG/Numbers/number7.png",
+        "Position": {
+            "value0": 0.0,
+            "value1": 0.0
+        },
+        "Scale": {
+            "value0": 1.0,
+            "value1": 1.0
+        },
+        "Colour": {
+            "value0": 1.0,
+            "value1": 1.0,
+            "value2": 1.0,
+            "value3": 1.0
+        }
+    },
+    "value163": 19,
+    "value164": {
+        "TexturePath": "//Assets/Textures/TappyPlane/PNG/Numbers/number8.png",
+        "Position": {
+            "value0": 0.0,
+            "value1": 0.0
+        },
+        "Scale": {
+            "value0": 1.0,
+            "value1": 1.0
+        },
+        "Colour": {
+            "value0": 1.0,
+            "value1": 1.0,
+            "value2": 1.0,
+            "value3": 1.0
+        }
+    },
+    "value165": 20,
+    "value166": {
+        "TexturePath": "//Assets/Textures/TappyPlane/PNG/Numbers/number9.png",
+        "Position": {
+            "value0": 0.0,
+            "value1": 0.0
+        },
+        "Scale": {
+            "value0": 1.0,
+            "value1": 1.0
+        },
+        "Colour": {
+            "value0": 1.0,
+            "value1": 1.0,
+            "value2": 1.0,
+            "value3": 1.0
+        }
+    },
+    "value167": 0,
+    "value168": 0,
+    "value169": 0,
+    "value170": 0,
+    "value171": 0,
+    "value172": 22,
+    "value173": 0,
+    "value174": {
+        "value0": 9444569224133215632
+    },
+    "value175": 1,
+    "value176": {
+        "value0": 7615319003159856547
+    },
+    "value177": 2,
+    "value178": {
+        "value0": 16491555083171487393
+    },
+    "value179": 3,
+    "value180": {
+        "value0": 4813722684751862164
+    },
+    "value181": 4,
+    "value182": {
+        "value0": 17357293661414173498
+    },
+    "value183": 5,
+    "value184": {
+        "value0": 2938011514215130457
+    },
+    "value185": 6,
+    "value186": {
+        "value0": 8487922870418750816
+    },
+    "value187": 7,
+    "value188": {
+        "value0": 9765969000529591676
+    },
+    "value189": 8,
+    "value190": {
+        "value0": 15046825666803182870
+    },
+    "value191": 9,
+    "value192": {
+        "value0": 15756125624410618790
+    },
+    "value193": 10,
+    "value194": {
+        "value0": 3524505891217968733
+    },
+    "value195": 11,
+    "value196": {
+        "value0": 17403306609201462111
+    },
+    "value197": 12,
+    "value198": {
+        "value0": 17648744248357072922
+    },
+    "value199": 13,
+    "value200": {
+        "value0": 7802039972787154318
+    },
+    "value201": 14,
+    "value202": {
+        "value0": 3452555485594407913
+    },
+    "value203": 15,
+    "value204": {
+        "value0": 2916465390515240942
+    },
+    "value205": 16,
+    "value206": {
+        "value0": 2916465390515240942
+    },
+    "value207": 17,
+    "value208": {
+        "value0": 10338486034635810663
+    },
+    "value209": 18,
+    "value210": {
+        "value0": 16077017936391887616
+    },
+    "value211": 19,
+    "value212": {
+        "value0": 5060308547782139793
+    },
+    "value213": 20,
+    "value214": {
+        "value0": 13861178211560269223
+    },
+    "value215": 21,
+    "value216": {
+        "value0": 2935749518004757380
+    },
+    "value217": 0,
+    "value218": 0
+}

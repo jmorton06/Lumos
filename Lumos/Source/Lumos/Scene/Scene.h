@@ -114,6 +114,42 @@ namespace Lumos
             bool DebugRenderEnabled = true;
             bool SkyboxRenderEnabled = true;
             bool ShadowsEnabled = true;
+
+            //Shadow Settings
+            float m_CascadeSplitLambda = 0.92f;
+            float m_SceneRadiusMultiplier = 1.4f;
+
+            float m_LightSize = 1.5f;
+            float m_MaxShadowDistance = 400.0f;
+            float m_ShadowFade = 40.0f;
+            float m_CascadeTransitionFade = 3.0f;
+            float m_InitialBias = 0.0023f;
+            uint32_t m_ShadowMapNum = 4;
+            uint32_t m_ShadowMapSize = 4096;
+
+            float m_Exposure = 1.0f;
+            uint32_t m_ToneMapIndex = 4;
+        };
+
+        struct ScenePhysics3DSettings
+        {
+            uint32_t m_MaxUpdatesPerFrame = 5;
+            uint32_t VelocityIterations = 5;
+            uint32_t PositionIterations = 1;
+
+            Maths::Vector3 Gravity = Maths::Vector3(0.0f, -9.81f, 0.0f);
+            float Dampening = 0.999f;
+            uint32_t IntegrationTypeIndex = 3;
+            uint32_t BroadPhaseTypeIndex = 2;
+        };
+
+        struct ScenePhysics2DSettings
+        {
+            uint32_t VelocityIterations = 6;
+            uint32_t PositionIterations = 2;
+
+            float Gravity = -9.81f;
+            float Dampening = 0.999f;
         };
 
         struct SceneSettings
@@ -123,8 +159,10 @@ namespace Lumos
             bool AudioEnabled = true;
 
             SceneRenderSettings RenderSettings;
+            ScenePhysics3DSettings Physics3DSettings;
+            ScenePhysics2DSettings Physics2DSettings;
         };
-        
+
 #define SceneVersion 9
 
         template <typename Archive>

@@ -4,6 +4,6 @@
 
 #include "SoundComponent.h"
 #include "TextureMatrixComponent.h"
-#include "Physics2DComponent.h"
-#include "Physics3DComponent.h"
+#include "RigidBody2DComponent.h"
+#include "RigidBody3DComponent.h"
 #include "AIComponent.h"

@@ -402,7 +402,7 @@ namespace Lumos
             // Put barrier inside setup command buffer
             vkCmdPipelineBarrier(
                 commandBuffer,
-                //destinationStage,
+                //destinationStage, //Causes many warnings - not supported by stage mask, in vulkan validation
                 //sourceStage,
                 VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
                 VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,

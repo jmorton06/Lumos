@@ -24,7 +24,7 @@
 
 #include <box2d/box2d.h>
 #include <imgui/imgui_internal.h>
-#include <imgui/plugins/ImGuizmo.h>
+#include <imguiPlugins/ImGuizmo.h>
 namespace Lumos
 {
     SceneViewPanel::SceneViewPanel()
@@ -240,7 +240,7 @@ namespace Lumos
 
             float dpi = Application::Get().GetWindowDPI();
             auto clickPos = Input::Get().GetMousePosition() - Maths::Vector2(sceneViewPosition.x / dpi, sceneViewPosition.y / dpi);
-            m_Editor->SelectObject(m_Editor->GetScreenRay(int(clickPos.x), int(clickPos.y), camera, int(sceneViewSize.x) / dpi, int(sceneViewSize.y) / dpi));
+            m_Editor->SelectObject(m_Editor->GetScreenRay(int(clickPos.x), int(clickPos.y), camera, int(sceneViewSize.x / dpi), int(sceneViewSize.y / dpi)));
         }
 
         const ImGuiPayload* payload = ImGui::GetDragDropPayload();

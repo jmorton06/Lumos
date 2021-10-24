@@ -199,8 +199,8 @@ namespace Lumos
 
                 data.DPIScale = (float)w / (float)width;
 
-                data.Width = width * data.DPIScale;
-                data.Height = height * data.DPIScale;
+                data.Width = uint32_t(width * data.DPIScale);
+                data.Height = uint32_t(height * data.DPIScale);
 
                 WindowResizeEvent event(data.Width, data.Height, data.DPIScale);
                 data.EventCallback(event);

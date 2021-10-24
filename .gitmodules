@@ -1,0 +1,15 @@
+[submodule "Lumos/External/volk"]
+	path = Lumos/External/volk
+	url = https://github.com/zeux/volk
+[submodule "Lumos/External/box2d"]
+	path = Lumos/External/box2d
+	url = https://github.com/erincatto/box2d
+[submodule "Lumos/External/cereal"]
+	path = Lumos/External/cereal
+	url = https://github.com//USCiLab/cereal
+[submodule "Lumos/External/Tracy"]
+	path = Lumos/External/Tracy
+	url = https://github.com/wolfpld/tracy
+[submodule "Lumos/External/imgui"]
+	path = Lumos/External/imgui
+	url = https://github.com/jmorton06/imgui
