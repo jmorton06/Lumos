@@ -13,3 +13,6 @@
 [submodule "Lumos/External/imgui"]
 	path = Lumos/External/imgui
 	url = https://github.com/jmorton06/imgui
+[submodule "Lumos/External/glm"]
+	path = Lumos/External/glm
+	url = https://github.com/g-truc/glm
