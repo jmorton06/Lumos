@@ -12,8 +12,8 @@ namespace Lumos
     struct LUMOS_EXPORT CollisionData
     {
         float penetration;
-        Maths::Vector3 normal;
-        Maths::Vector3 pointOnPlane;
+        glm::vec3 normal;
+        glm::vec3 pointOnPlane;
     };
 
     class LUMOS_EXPORT CollisionDetection : public ThreadSafeSingleton<CollisionDetection>
@@ -35,12 +35,12 @@ namespace Lumos
 
         bool BuildCollisionManifold(RigidBody3D* obj1, RigidBody3D* obj2, CollisionShape* shape1, CollisionShape* shape2, CollisionData& coldata, Manifold* out_manifold);
 
-        static inline bool CheckSphereOverlap(const Maths::Vector3& pos1, float radius1, const Maths::Vector3& pos2, float radius2)
+        static inline bool CheckSphereOverlap(const glm::vec3& pos1, float radius1, const glm::vec3& pos2, float radius2)
         {
-            return (pos2 - pos1).LengthSquared() <= Maths::Squared(radius1 + radius2);
+            return glm::distance(pos2, pos1) <= radius1 + radius2;
         }
 
-        static inline bool CheckAABBOverlap(const Maths::Vector3& pos1, const Maths::Vector3& halfHidth1, const Maths::Vector3& pos2, const Maths::Vector3& halfHidth2)
+        static inline bool CheckAABBOverlap(const glm::vec3& pos1, const glm::vec3& halfHidth1, const glm::vec3& pos2, const glm::vec3& halfHidth2)
         {
             if(abs(pos1.x - pos2.x) >= (halfHidth1.x + halfHidth2.x))
                 return false;
@@ -51,10 +51,10 @@ namespace Lumos
             return true;
         }
 
-        static inline bool CheckAABBSphereOverlap(const Maths::Vector3& center, const Maths::Vector3& halfVol, const Maths::Vector3& spherePos, float sphereRad)
+        static inline bool CheckAABBSphereOverlap(const glm::vec3& center, const glm::vec3& halfVol, const glm::vec3& spherePos, float sphereRad)
         {
-            const Maths::Vector3 minVol = center - halfVol;
-            const Maths::Vector3 maxVol = center + halfVol;
+            const glm::vec3 minVol = center - halfVol;
+            const glm::vec3 maxVol = center + halfVol;
             float distSquared = sphereRad * sphereRad;
 
             if(spherePos.x <= minVol.x)
@@ -75,10 +75,10 @@ namespace Lumos
             return distSquared > 0;
         }
 
-        static inline bool CheckSphereInsideAABB(const Maths::Vector3& spherePos, float sphereRadius, const Maths::Vector3& AABBCenter, const Maths::Vector3& AABBHalfVol)
+        static inline bool CheckSphereInsideAABB(const glm::vec3& spherePos, float sphereRadius, const glm::vec3& AABBCenter, const glm::vec3& AABBHalfVol)
         {
             //min check
-            Maths::Vector3 minPoint = AABBCenter - AABBHalfVol;
+            glm::vec3 minPoint = AABBCenter - AABBHalfVol;
             if(minPoint.x > spherePos.x - sphereRadius)
                 return false;
             if(minPoint.y > spherePos.y - sphereRadius)
@@ -86,7 +86,7 @@ namespace Lumos
             if(minPoint.z > spherePos.z - sphereRadius)
                 return false;
             //max check
-            Maths::Vector3 maxPoint = AABBCenter + AABBHalfVol;
+            glm::vec3 maxPoint = AABBCenter + AABBHalfVol;
             if(maxPoint.x < spherePos.x + sphereRadius)
                 return false;
             if(maxPoint.y < spherePos.y + sphereRadius)
@@ -97,11 +97,11 @@ namespace Lumos
             return true;
         }
 
-        static inline bool CheckAABBInsideAABB(const Maths::Vector3& AABBInsideCenter, const Maths::Vector3& AABBInsideHalfVol, const Maths::Vector3& AABBCenter, const Maths::Vector3& AABBHalfVol)
+        static inline bool CheckAABBInsideAABB(const glm::vec3& AABBInsideCenter, const glm::vec3& AABBInsideHalfVol, const glm::vec3& AABBCenter, const glm::vec3& AABBHalfVol)
         {
             //min check
-            Maths::Vector3 minPoint = AABBCenter - AABBHalfVol;
-            Maths::Vector3 minInsidePoint = AABBInsideCenter - AABBInsideHalfVol;
+            glm::vec3 minPoint = AABBCenter - AABBHalfVol;
+            glm::vec3 minInsidePoint = AABBInsideCenter - AABBInsideHalfVol;
             if(minPoint.x > minInsidePoint.x)
                 return false;
             if(minPoint.y > minInsidePoint.y)
@@ -109,8 +109,8 @@ namespace Lumos
             if(minPoint.z > minInsidePoint.z)
                 return false;
             //max check
-            Maths::Vector3 maxPoint = AABBCenter + AABBHalfVol;
-            Maths::Vector3 maxInsidePoint = AABBInsideCenter + AABBInsideHalfVol;
+            glm::vec3 maxPoint = AABBCenter + AABBHalfVol;
+            glm::vec3 maxInsidePoint = AABBInsideCenter + AABBInsideHalfVol;
             if(maxPoint.x < maxInsidePoint.x)
                 return false;
             if(maxPoint.y < maxInsidePoint.y)
@@ -126,11 +126,11 @@ namespace Lumos
         bool CheckPolyhedronSphereCollision(RigidBody3D* obj1, RigidBody3D* obj2, CollisionShape* shape1, CollisionShape* shape2, CollisionData* out_coldata = nullptr);
         bool CheckSphereCollision(RigidBody3D* obj1, RigidBody3D* obj2, CollisionShape* shape1, CollisionShape* shape2, CollisionData* out_coldata = nullptr);
         bool InvalidCheckCollision(RigidBody3D* obj1, RigidBody3D* obj2, CollisionShape* shape1, CollisionShape* shape2, CollisionData* out_coldata = nullptr);
-        static bool CheckCollisionAxis(const Maths::Vector3& axis, RigidBody3D* obj1, RigidBody3D* obj2, CollisionShape* shape1, CollisionShape* shape2, CollisionData* out_coldata);
+        static bool CheckCollisionAxis(const glm::vec3& axis, RigidBody3D* obj1, RigidBody3D* obj2, CollisionShape* shape1, CollisionShape* shape2, CollisionData* out_coldata);
 
-        static Maths::Vector3 GetClosestPointOnEdges(const Maths::Vector3& target, const std::vector<CollisionEdge>& edges);
-        Maths::Vector3 PlaneEdgeIntersection(const Maths::Plane& plane, const Maths::Vector3& start, const Maths::Vector3& end) const;
-        void SutherlandHodgesonClipping(Maths::Vector3* input_polygon, int input_polygon_count, int num_clip_planes, const Maths::Plane* clip_planes, Maths::Vector3* output_polygon, int& output_polygon_count, bool removePoints) const;
+        static glm::vec3 GetClosestPointOnEdges(const glm::vec3& target, const std::vector<CollisionEdge>& edges);
+        glm::vec3 PlaneEdgeIntersection(const Plane& plane, const glm::vec3& start, const glm::vec3& end) const;
+        void SutherlandHodgesonClipping(glm::vec3* input_polygon, int input_polygon_count, int num_clip_planes, const Plane* clip_planes, glm::vec3* output_polygon, int& output_polygon_count, bool removePoints) const;
 
         uint32_t m_MaxSize = 0;
     };

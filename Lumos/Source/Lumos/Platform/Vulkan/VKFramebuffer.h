@@ -17,7 +17,7 @@ namespace Lumos
 
             const VkFramebuffer& GetFramebuffer() const { return m_Framebuffer; }
 
-            void SetClearColour(const Maths::Vector4& colour) override {};
+            void SetClearColour(const glm::vec4& colour) override {};
 
             uint32_t GetWidth() const override { return m_Width; }
             uint32_t GetHeight() const override { return m_Height; }

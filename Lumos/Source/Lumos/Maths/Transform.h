@@ -12,27 +12,27 @@ namespace Lumos
         {
         public:
             Transform();
-            Transform(const Matrix4& matrix);
-            Transform(const Vector3& position);
+            Transform(const glm::mat4& matrix);
+            Transform(const glm::vec3& position);
             ~Transform();
 
-            void SetWorldMatrix(const Matrix4& mat);
+            void SetWorldMatrix(const glm::mat4& mat);
 
-            void SetLocalTransform(const Matrix4& localMat);
+            void SetLocalTransform(const glm::mat4& localMat);
 
-            void SetLocalPosition(const Vector3& localPos);
-            void SetLocalScale(const Vector3& localScale);
-            void SetLocalOrientation(const Quaternion& quat);
+            void SetLocalPosition(const glm::vec3& localPos);
+            void SetLocalScale(const glm::vec3& localScale);
+            void SetLocalOrientation(const glm::quat& quat);
 
-            const Matrix4& GetWorldMatrix();
-            const Matrix4& GetLocalMatrix();
+            const glm::mat4& GetWorldMatrix();
+            const glm::mat4& GetLocalMatrix();
 
-            const Vector3 GetWorldPosition() const;
-            const Quaternion GetWorldOrientation() const;
+            const glm::vec3 GetWorldPosition() const;
+            const glm::quat GetWorldOrientation() const;
 
-            const Vector3& GetLocalPosition() const;
-            const Vector3& GetLocalScale() const;
-            const Quaternion& GetLocalOrientation() const;
+            const glm::vec3& GetLocalPosition() const;
+            const glm::vec3& GetLocalScale() const;
+            const glm::quat& GetLocalOrientation() const;
 
             //Updates Local Matrix from R,T and S vectors
             void UpdateMatrices();
@@ -43,23 +43,23 @@ namespace Lumos
             //Sets R,T and S vectors from Local Matrix
             void ApplyTransform();
 
-            Maths::Vector3 GetUpDirection() const
+            glm::vec3 GetUpDirection() const
             {
-                Maths::Vector3 up = Maths::Vector3::UP;
+                glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
                 up = GetWorldOrientation() * up;
                 return up;
             }
 
-            Maths::Vector3 GetRightDirection() const
+            glm::vec3 GetRightDirection() const
             {
-                Maths::Vector3 right = Maths::Vector3::RIGHT;
+                glm::vec3 right = glm::vec3(1.0f, 0.0f, 0.0f);
                 right = GetWorldOrientation() * right;
                 return right;
             }
 
-            Maths::Vector3 GetForwardDirection() const
+            glm::vec3 GetForwardDirection() const
             {
-                Maths::Vector3 forward = Maths::Vector3::FORWARD;
+                glm::vec3 forward = glm::vec3(0.0f, 0.0f, 1.0f);
                 forward = GetWorldOrientation() * forward;
                 return forward;
             }
@@ -77,16 +77,17 @@ namespace Lumos
                 m_Dirty = true;
             }
 
-            const Matrix4& GetParentMatrix() const { return m_ParentMatrix; }
+            const glm::mat4& GetParentMatrix() const { return m_ParentMatrix; }
 
         protected:
-            Matrix4 m_LocalMatrix;
-            Matrix4 m_ParentMatrix;
-            Matrix4 m_WorldMatrix;
+            glm::mat4 m_LocalMatrix;
+            glm::mat4 m_ParentMatrix;
+            glm::mat4 m_WorldMatrix;
 
-            Vector3 m_LocalPosition;
-            Vector3 m_LocalScale;
-            Quaternion m_LocalOrientation;
+            glm::vec3 m_LocalPosition;
+            glm::vec3 m_LocalScale;
+            glm::quat m_LocalOrientation;
+            glm::vec3 m_LocalRotation;
 
             bool m_HasUpdated = false;
             bool m_Dirty = false;

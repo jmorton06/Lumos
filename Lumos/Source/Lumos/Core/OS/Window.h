@@ -69,7 +69,7 @@ namespace Lumos
         };
         virtual float GetScreenRatio() const = 0;
         virtual void HideMouse(bool hide) {};
-        virtual void SetMousePosition(const Maths::Vector2& pos) {};
+        virtual void SetMousePosition(const glm::vec2& pos) {};
         virtual void SetEventCallback(const EventCallbackFn& callback) = 0;
         virtual void UpdateCursorImGui() = 0;
         virtual void SetIcon(const std::string& filePath, const std::string& smallIconFilePath = "") = 0;
@@ -91,7 +91,7 @@ namespace Lumos
         Window() = default;
 
         bool m_Init = false;
-        Maths::Vector2 m_Position;
+        glm::vec2 m_Position;
         bool m_VSync = false;
         bool m_HasResized = false;
         bool m_WindowFocus = true;

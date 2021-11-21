@@ -41,7 +41,7 @@ namespace Lumos
         m_Stationary = false;
         m_ReferenceDistance = 1.0f;
         m_RollOffFactor = 1.0f;
-        m_Velocity = Maths::Vector3(0.0f);
+        m_Velocity = glm::vec3(0.0f);
     }
 
     SoundNode::~SoundNode()

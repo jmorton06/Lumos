@@ -42,5 +42,5 @@ void main()
             proj = ubo.projView[3];
             break;
     }
-    gl_Position = vec4(inPosition, 1.0) * pushConsts.transform * proj; 
+    gl_Position = proj * pushConsts.transform * vec4(inPosition, 1.0); 
 }

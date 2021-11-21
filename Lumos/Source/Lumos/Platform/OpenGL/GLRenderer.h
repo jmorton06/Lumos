@@ -53,7 +53,7 @@ namespace Lumos
             void SetStencilOpInternal(StencilType fail, StencilType zfail, StencilType zpass);
 
             static void ClearInternal(uint32_t buffer);
-            void ClearRenderTarget(Graphics::Texture* texture, Graphics::CommandBuffer* commandBuffer, Maths::Vector4 clearColour) override;
+            void ClearRenderTarget(Graphics::Texture* texture, Graphics::CommandBuffer* commandBuffer, glm::vec4 clearColour) override;
 
             const std::string& GetTitleInternal() const override;
 

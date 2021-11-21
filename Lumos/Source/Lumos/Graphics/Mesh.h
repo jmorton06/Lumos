@@ -7,6 +7,7 @@
 #include "Maths/Maths.h"
 #include "Material.h"
 
+#include <glm/gtx/hash.hpp>
 #include <array>
 
 namespace Lumos
@@ -17,26 +18,26 @@ namespace Lumos
 
         struct LUMOS_EXPORT BasicVertex
         {
-            Maths::Vector3 Position;
-            Maths::Vector2 TexCoords;
+            glm::vec3 Position;
+            glm::vec2 TexCoords;
         };
 
         struct LUMOS_EXPORT Vertex
         {
             Vertex()
-                : Position(Maths::Vector3(0.0f))
-                , Colours(Maths::Vector4(0.0f))
-                , TexCoords(Maths::Vector2(0.0f))
-                , Normal(Maths::Vector3(0.0f))
-                , Tangent(Maths::Vector3(0.0f))
+                : Position(glm::vec3(0.0f))
+                , Colours(glm::vec4(0.0f))
+                , TexCoords(glm::vec2(0.0f))
+                , Normal(glm::vec3(0.0f))
+                , Tangent(glm::vec3(0.0f))
             {
             }
 
-            Maths::Vector3 Position;
-            Maths::Vector4 Colours;
-            Maths::Vector2 TexCoords;
-            Maths::Vector3 Normal;
-            Maths::Vector3 Tangent;
+            glm::vec3 Position;
+            glm::vec4 Colours;
+            glm::vec2 TexCoords;
+            glm::vec3 Normal;
+            glm::vec3 Tangent;
 
             bool operator==(const Vertex& other) const
             {
@@ -50,14 +51,14 @@ namespace Lumos
             Mesh();
             Mesh(const Mesh& mesh);
             Mesh(const std::vector<uint32_t>& indices, const std::vector<Vertex>& vertices, float optimiseThreshold = 0.95f);
-            Mesh(SharedPtr<VertexBuffer>& vertexBuffer, SharedPtr<IndexBuffer>& indexBuffer, const SharedPtr<Maths::BoundingBox>& boundingBox);
+            Mesh(SharedPtr<VertexBuffer>& vertexBuffer, SharedPtr<IndexBuffer>& indexBuffer, const SharedPtr<BoundingBox>& boundingBox);
 
             virtual ~Mesh();
 
             const SharedPtr<VertexBuffer>& GetVertexBuffer() const { return m_VertexBuffer; }
             const SharedPtr<IndexBuffer>& GetIndexBuffer() const { return m_IndexBuffer; }
             const SharedPtr<Material>& GetMaterial() const { return m_Material; }
-            const SharedPtr<Maths::BoundingBox>& GetBoundingBox() const { return m_BoundingBox; }
+            const SharedPtr<BoundingBox>& GetBoundingBox() const { return m_BoundingBox; }
 
             void SetMaterial(const SharedPtr<Material>& material) { m_Material = material; }
 
@@ -68,14 +69,14 @@ namespace Lumos
             static void GenerateTangents(Vertex* vertices, uint32_t vertexCount, uint32_t* indices, uint32_t indexCount);
 
         protected:
-            static Maths::Vector3 GenerateTangent(const Maths::Vector3& a, const Maths::Vector3& b, const Maths::Vector3& c, const Maths::Vector2& ta, const Maths::Vector2& tb, const Maths::Vector2& tc);
-            static Maths::Vector3* GenerateNormals(uint32_t numVertices, Maths::Vector3* vertices, uint32_t* indices, uint32_t numIndices);
-            static Maths::Vector3* GenerateTangents(uint32_t numVertices, Maths::Vector3* vertices, uint32_t* indices, uint32_t numIndices, Maths::Vector2* texCoords);
+            static glm::vec3 GenerateTangent(const glm::vec3& a, const glm::vec3& b, const glm::vec3& c, const glm::vec2& ta, const glm::vec2& tb, const glm::vec2& tc);
+            static glm::vec3* GenerateNormals(uint32_t numVertices, glm::vec3* vertices, uint32_t* indices, uint32_t numIndices);
+            static glm::vec3* GenerateTangents(uint32_t numVertices, glm::vec3* vertices, uint32_t* indices, uint32_t numIndices, glm::vec2* texCoords);
 
             SharedPtr<VertexBuffer> m_VertexBuffer;
             SharedPtr<IndexBuffer> m_IndexBuffer;
             SharedPtr<Material> m_Material;
-            SharedPtr<Maths::BoundingBox> m_BoundingBox;
+            SharedPtr<BoundingBox> m_BoundingBox;
 
             std::string m_Name;
 
@@ -93,7 +94,7 @@ namespace std
     {
         size_t operator()(Lumos::Graphics::Vertex const& vertex) const
         {
-            return ((hash<Lumos::Maths::Vector3>()(vertex.Position) ^ (hash<Lumos::Maths::Vector2>()(vertex.TexCoords) << 1) ^ (hash<Lumos::Maths::Vector4>()(vertex.Colours) << 1) ^ (hash<Lumos::Maths::Vector3>()(vertex.Normal) << 1) ^ (hash<Lumos::Maths::Vector3>()(vertex.Tangent) << 1)));
+            return ((hash<glm::vec3>()(vertex.Position) ^ (hash<glm::vec2>()(vertex.TexCoords) << 1) ^ (hash<glm::vec4>()(vertex.Colours) << 1) ^ (hash<glm::vec3>()(vertex.Normal) << 1) ^ (hash<glm::vec3>()(vertex.Tangent) << 1)));
         }
     };
 }

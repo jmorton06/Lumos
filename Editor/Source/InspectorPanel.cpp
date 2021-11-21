@@ -23,7 +23,7 @@
 #include <Lumos/Graphics/RHI/GraphicsContext.h>
 #include <Lumos/Maths/Transform.h>
 #include <Lumos/Scripting/Lua/LuaScriptComponent.h>
-#include <Lumos/ImGui/ImGuiHelpers.h>
+#include <Lumos/ImGui/ImGuiUtilities.h>
 #include <Lumos/Physics/LumosPhysicsEngine/CollisionShapes/CuboidCollisionShape.h>
 #include <Lumos/Physics/LumosPhysicsEngine/CollisionShapes/SphereCollisionShape.h>
 #include <Lumos/Physics/LumosPhysicsEngine/CollisionShapes/PyramidCollisionShape.h>
@@ -32,6 +32,7 @@
 
 #include <imgui/imgui.h>
 #include <imgui/imgui_internal.h>
+#include <glm/gtx/matrix_decompose.hpp>
 
 #include <sol/sol.hpp>
 #include <inttypes.h>
@@ -169,7 +170,7 @@ end
         LUMOS_PROFILE_FUNCTION();
         auto& transform = reg.get<Lumos::Maths::Transform>(e);
 
-        auto rotation = transform.GetLocalOrientation().EulerAngles();
+        auto rotation = glm::eulerAngles(transform.GetLocalOrientation());
         auto position = transform.GetLocalPosition();
         auto scale = transform.GetLocalScale();
 
@@ -181,7 +182,7 @@ end
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
 
-        if(ImGui::DragFloat3("##Position", Lumos::Maths::ValuePointer(position), 3, 0.05f))
+        if(ImGui::DragFloat3("##Position", glm::value_ptr(position), 3, 0.05f))
         {
             transform.SetLocalPosition(position);
         }
@@ -192,11 +193,11 @@ end
         ImGui::TextUnformatted("Rotation");
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
-        if(ImGui::DragFloat3("##Rotation", Lumos::Maths::ValuePointer(rotation), 3, 0.05f))
+        if(ImGui::DragFloat3("##Rotation", glm::value_ptr(rotation), 3, 0.05f))
         {
             float pitch = Lumos::Maths::Min(rotation.x, 89.9f);
             pitch = Lumos::Maths::Max(pitch, -89.9f);
-            transform.SetLocalOrientation(Lumos::Maths::Quaternion::EulerAnglesToQuaternion(pitch, rotation.y, rotation.z));
+            transform.SetLocalOrientation(glm::quat(glm::vec3(pitch, rotation.y, rotation.z)));
         }
 
         ImGui::PopItemWidth();
@@ -205,7 +206,7 @@ end
         ImGui::TextUnformatted("Scale");
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
-        if(ImGui::DragFloat3("##Scale", Lumos::Maths::ValuePointer(scale), 3, 0.05f))
+        if(ImGui::DragFloat3("##Scale", glm::value_ptr(scale), 3, 0.05f))
         {
             transform.SetLocalScale(scale);
         }
@@ -226,8 +227,8 @@ end
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
 
-        Lumos::Maths::Vector3 size = shape->GetHalfDimensions();
-        if(ImGui::DragFloat3("##CollisionShapeHalfDims", Lumos::Maths::ValuePointer(size), 1.0f, 0.0f, 10000.0f, "%.2f"))
+        glm::vec3 size = shape->GetHalfDimensions();
+        if(ImGui::DragFloat3("##CollisionShapeHalfDims", glm::value_ptr(size), 1.0f, 0.0f, 10000.0f, "%.2f"))
         {
             shape->SetHalfDimensions(size);
             phys.GetRigidBody()->CollisionShapeUpdated();
@@ -262,8 +263,8 @@ end
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
 
-        Lumos::Maths::Vector3 size = shape->GetHalfDimensions();
-        if(ImGui::DragFloat3("##CollisionShapeHalfDims", Lumos::Maths::ValuePointer(size), 1.0f, 0.0f, 10000.0f, "%.2f"))
+        glm::vec3 size = shape->GetHalfDimensions();
+        if(ImGui::DragFloat3("##CollisionShapeHalfDims", glm::value_ptr(size), 1.0f, 0.0f, 10000.0f, "%.2f"))
         {
             shape->SetHalfDimensions(size);
             phys.GetRigidBody()->CollisionShapeUpdated();
@@ -373,7 +374,7 @@ end
     {
         using namespace Lumos;
         LUMOS_PROFILE_FUNCTION();
-        ImGuiHelpers::ScopedStyle(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
+        ImGuiUtilities::ScopedStyle(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
 
         ImGui::Columns(2);
         ImGui::Separator();
@@ -415,11 +416,11 @@ end
 
         selectedIndex = (int)axes;
 
-        bool updated = Lumos::ImGuiHelpers::PropertyDropdown("Axes", possibleAxes, 7, &selectedIndex);
+        bool updated = Lumos::ImGuiUtilities::PropertyDropdown("Axes", possibleAxes, 7, &selectedIndex);
         if(updated)
             axisConstraintComponent.SetAxes((Axes)selectedIndex);
 
-        //bool updated = Lumos::ImGuiHelpers::PropertyDropdown("Entity", entities.data(), (int)entities.size(), &selectedIndex);
+        //bool updated = Lumos::ImGuiUtilities::PropertyDropdown("Entity", entities.data(), (int)entities.size(), &selectedIndex);
 
         //if(updated)
         //axisConstraintComponent.SetEntity(Entity(physics3dEntities[selectedIndex], Application::Get().GetCurrentScene()).GetID());
@@ -439,7 +440,7 @@ end
         auto pos = phys.GetRigidBody()->GetPosition();
         auto force = phys.GetRigidBody()->GetForce();
         auto torque = phys.GetRigidBody()->GetTorque();
-        auto orientation = phys.GetRigidBody()->GetOrientation().EulerAngles();
+        auto orientation = glm::eulerAngles(phys.GetRigidBody()->GetOrientation());
         auto angularVelocity = phys.GetRigidBody()->GetAngularVelocity();
         auto friction = phys.GetRigidBody()->GetFriction();
         auto isStatic = phys.GetRigidBody()->GetIsStatic();
@@ -451,42 +452,42 @@ end
 
         auto collisionShape = phys.GetRigidBody()->GetCollisionShape();
 
-        if(Lumos::ImGuiHelpers::Property("Position", pos))
+        if(Lumos::ImGuiUtilities::Property("Position", pos))
             phys.GetRigidBody()->SetPosition(pos);
 
-        if(Lumos::ImGuiHelpers::Property("Velocity", velocity))
+        if(Lumos::ImGuiUtilities::Property("Velocity", velocity))
             phys.GetRigidBody()->SetLinearVelocity(velocity);
 
-        if(Lumos::ImGuiHelpers::Property("Torque", torque))
+        if(Lumos::ImGuiUtilities::Property("Torque", torque))
             phys.GetRigidBody()->SetTorque(torque);
 
-        if(Lumos::ImGuiHelpers::Property("Orientation", orientation))
-            phys.GetRigidBody()->SetOrientation(Lumos::Maths::Quaternion(orientation));
+        if(Lumos::ImGuiUtilities::Property("Orientation", orientation))
+            phys.GetRigidBody()->SetOrientation(glm::quat(orientation));
 
-        if(Lumos::ImGuiHelpers::Property("Force", force))
+        if(Lumos::ImGuiUtilities::Property("Force", force))
             phys.GetRigidBody()->SetForce(force);
 
-        if(Lumos::ImGuiHelpers::Property("Angular Velocity", angularVelocity))
+        if(Lumos::ImGuiUtilities::Property("Angular Velocity", angularVelocity))
             phys.GetRigidBody()->SetAngularVelocity(angularVelocity);
 
-        if(Lumos::ImGuiHelpers::Property("Friction", friction))
+        if(Lumos::ImGuiUtilities::Property("Friction", friction))
             phys.GetRigidBody()->SetFriction(friction);
 
-        if(Lumos::ImGuiHelpers::Property("Mass", mass))
+        if(Lumos::ImGuiUtilities::Property("Mass", mass))
             phys.GetRigidBody()->SetInverseMass(1.0f / mass);
 
-        if(Lumos::ImGuiHelpers::Property("Elasticity", elasticity))
+        if(Lumos::ImGuiUtilities::Property("Elasticity", elasticity))
             phys.GetRigidBody()->SetElasticity(elasticity);
 
-        if(Lumos::ImGuiHelpers::Property("Static", isStatic))
+        if(Lumos::ImGuiUtilities::Property("Static", isStatic))
             phys.GetRigidBody()->SetIsStatic(isStatic);
 
-        if(Lumos::ImGuiHelpers::Property("At Rest", isRest))
+        if(Lumos::ImGuiUtilities::Property("At Rest", isRest))
             phys.GetRigidBody()->SetIsAtRest(isRest);
 
-        if(Lumos::ImGuiHelpers::Property("Angular Factor", angularFactor))
+        if(Lumos::ImGuiUtilities::Property("Angular Factor", angularFactor))
             phys.GetRigidBody()->SetAngularFactor(angularFactor);
-        
+
         ImGui::Columns(1);
         ImGui::Separator();
         ImGui::PopStyleVar();
@@ -505,7 +506,7 @@ end
             index++;
         }
 
-        bool updated = Lumos::ImGuiHelpers::PropertyDropdown("Collision Shape", shapes.data(), 5, &selectedIndex);
+        bool updated = Lumos::ImGuiUtilities::PropertyDropdown("Collision Shape", shapes.data(), 5, &selectedIndex);
 
         if(updated)
             phys.GetRigidBody()->SetCollisionShape(StringToCollisionShapeType(shapes[selectedIndex]));
@@ -677,43 +678,43 @@ end
         ImGui::Columns(2);
         ImGui::Separator();
 
-        if(Lumos::ImGuiHelpers::Property("Position", pos))
+        if(Lumos::ImGuiUtilities::Property("Position", pos))
         {
             soundNode->SetPosition(pos);
             updated = true;
         }
 
-        if(Lumos::ImGuiHelpers::Property("Radius", radius))
+        if(Lumos::ImGuiUtilities::Property("Radius", radius))
         {
             soundNode->SetRadius(radius);
             updated = true;
         }
 
-        if(Lumos::ImGuiHelpers::Property("Pitch", pitch))
+        if(Lumos::ImGuiUtilities::Property("Pitch", pitch))
         {
             soundNode->SetPitch(pitch);
             updated = true;
         }
 
-        if(Lumos::ImGuiHelpers::Property("Volume", volume))
+        if(Lumos::ImGuiUtilities::Property("Volume", volume))
         {
             soundNode->SetVolume(volume);
             updated = true;
         }
 
-        if(Lumos::ImGuiHelpers::Property("Reference Distance", referenceDistance))
+        if(Lumos::ImGuiUtilities::Property("Reference Distance", referenceDistance))
         {
             soundNode->SetReferenceDistance(referenceDistance);
             updated = true;
         }
 
-        if(Lumos::ImGuiHelpers::Property("RollOffFactor", rollOffFactor))
+        if(Lumos::ImGuiUtilities::Property("RollOffFactor", rollOffFactor))
         {
             soundNode->SetRollOffFactor(paused);
             updated = true;
         }
 
-        if(Lumos::ImGuiHelpers::Property("Paused", paused))
+        if(Lumos::ImGuiUtilities::Property("Paused", paused))
         {
             soundNode->SetPaused(paused);
             updated = true;
@@ -726,7 +727,7 @@ end
         if(soundPointer)
             path = soundPointer->GetFilePath();
 
-        Lumos::ImGuiHelpers::Property("File Path", path);
+        Lumos::ImGuiUtilities::Property("File Path", path);
 
         const ImGuiPayload* payload = ImGui::GetDragDropPayload();
 
@@ -760,11 +761,11 @@ end
             double length = soundPointer->GetLength();
             int channels = soundPointer->GetChannels();
 
-            Lumos::ImGuiHelpers::Property("Bit Rate", bitrate, Lumos::ImGuiHelpers::PropertyFlag::ReadOnly);
-            Lumos::ImGuiHelpers::Property("Frequency", frequency, 0.0f, 0.0f, Lumos::ImGuiHelpers::PropertyFlag::ReadOnly);
-            Lumos::ImGuiHelpers::Property("Size", size, Lumos::ImGuiHelpers::PropertyFlag::ReadOnly);
-            Lumos::ImGuiHelpers::Property("Length", length, 0.0, 0.0, Lumos::ImGuiHelpers::PropertyFlag::ReadOnly);
-            Lumos::ImGuiHelpers::Property("Channels", channels, 0, 0, Lumos::ImGuiHelpers::PropertyFlag::ReadOnly);
+            Lumos::ImGuiUtilities::Property("Bit Rate", bitrate, Lumos::ImGuiUtilities::PropertyFlag::ReadOnly);
+            Lumos::ImGuiUtilities::Property("Frequency", frequency, 0.0f, 0.0f, Lumos::ImGuiUtilities::PropertyFlag::ReadOnly);
+            Lumos::ImGuiUtilities::Property("Size", size, Lumos::ImGuiUtilities::PropertyFlag::ReadOnly);
+            Lumos::ImGuiUtilities::Property("Length", length, 0.0, 0.0, Lumos::ImGuiUtilities::PropertyFlag::ReadOnly);
+            Lumos::ImGuiUtilities::Property("Channels", channels, 0, 0, Lumos::ImGuiUtilities::PropertyFlag::ReadOnly);
 
             if(updated)
                 soundNode->SetSound(soundPointer);
@@ -781,34 +782,34 @@ end
         LUMOS_PROFILE_FUNCTION();
         auto& camera = reg.get<Lumos::Camera>(e);
 
-        Lumos::ImGuiHelpers::ScopedStyle(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
+        Lumos::ImGuiUtilities::ScopedStyle(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
         ImGui::Columns(2);
         ImGui::Separator();
 
         using namespace Lumos;
 
         float aspect = camera.GetAspectRatio();
-        if(ImGuiHelpers::Property("Aspect", aspect, 0.0f, 10.0f))
+        if(ImGuiUtilities::Property("Aspect", aspect, 0.0f, 10.0f))
             camera.SetAspectRatio(aspect);
 
         float fov = camera.GetFOV();
-        if(ImGuiHelpers::Property("Fov", fov, 1.0f, 120.0f))
+        if(ImGuiUtilities::Property("Fov", fov, 1.0f, 120.0f))
             camera.SetFOV(fov);
 
         float near = camera.GetNear();
-        if(ImGuiHelpers::Property("Near", near, 0.0f, 10.0f))
+        if(ImGuiUtilities::Property("Near", near, 0.0f, 10.0f))
             camera.SetNear(near);
 
         float far = camera.GetFar();
-        if(ImGuiHelpers::Property("Far", far, 10.0f, 10000.0f))
+        if(ImGuiUtilities::Property("Far", far, 10.0f, 10000.0f))
             camera.SetFar(far);
 
         float scale = camera.GetScale();
-        if(ImGuiHelpers::Property("Scale", scale, 0.0f, 1000.0f))
+        if(ImGuiUtilities::Property("Scale", scale, 0.0f, 1000.0f))
             camera.SetScale(scale);
 
         bool ortho = camera.IsOrthographic();
-        if(ImGuiHelpers::Property("Orthograhic", ortho))
+        if(ImGuiUtilities::Property("Orthograhic", ortho))
             camera.SetIsOrthographic(ortho);
 
         ImGui::Columns(1);
@@ -830,7 +831,7 @@ end
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
         auto pos = sprite.GetPosition();
-        if(ImGui::InputFloat2("##Position", Maths::ValuePointer(pos)))
+        if(ImGui::InputFloat2("##Position", glm::value_ptr(pos)))
             sprite.SetPosition(pos);
 
         ImGui::PopItemWidth();
@@ -841,7 +842,7 @@ end
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
         auto scale = sprite.GetScale();
-        if(ImGui::InputFloat2("##Scale", Maths::ValuePointer(scale)))
+        if(ImGui::InputFloat2("##Scale", glm::value_ptr(scale)))
             sprite.SetScale(scale);
 
         ImGui::PopItemWidth();
@@ -852,7 +853,7 @@ end
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
         auto colour = sprite.GetColour();
-        if(ImGui::ColorEdit4("##Colour", Maths::ValuePointer(colour)))
+        if(ImGui::ColorEdit4("##Colour", glm::value_ptr(colour)))
             sprite.SetColour(colour);
 
         ImGui::PopItemWidth();
@@ -932,7 +933,7 @@ end
             ImGui::TextUnformatted(tex ? tex->GetFilepath().c_str() : "No Texture");
             if(tex)
             {
-                ImGuiHelpers::Tooltip(tex->GetFilepath());
+                ImGuiUtilities::Tooltip(tex->GetFilepath());
                 ImGui::Text("%u x %u", tex->GetWidth(), tex->GetHeight());
                 ImGui::Text("Mip Levels : %u", tex->GetMipMapLevels());
             }
@@ -968,7 +969,7 @@ end
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
         auto pos = sprite.GetPosition();
-        if(ImGui::InputFloat2("##Position", Maths::ValuePointer(pos)))
+        if(ImGui::InputFloat2("##Position", glm::value_ptr(pos)))
             sprite.SetPosition(pos);
 
         ImGui::PopItemWidth();
@@ -979,7 +980,7 @@ end
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
         auto scale = sprite.GetScale();
-        if(ImGui::InputFloat2("##Scale", Maths::ValuePointer(scale)))
+        if(ImGui::InputFloat2("##Scale", glm::value_ptr(scale)))
             sprite.SetScale(scale);
 
         ImGui::PopItemWidth();
@@ -990,7 +991,7 @@ end
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
         auto colour = sprite.GetColour();
-        if(ImGui::ColorEdit4("##Colour", Maths::ValuePointer(colour)))
+        if(ImGui::ColorEdit4("##Colour", glm::value_ptr(colour)))
             sprite.SetColour(colour);
 
         ImGui::PopItemWidth();
@@ -1053,7 +1054,7 @@ end
                 animStates["--New--"] = state;
             }
 
-            ImGuiHelpers::Tooltip("Add New State");
+            ImGuiUtilities::Tooltip("Add New State");
 
             ImGui::PopStyleColor();
 
@@ -1075,7 +1076,7 @@ end
                 if(ImGui::Button((ICON_MDI_MINUS "##" + name).c_str()))
                     ImGui::OpenPopup(("##" + name).c_str());
 
-                ImGuiHelpers::Tooltip("Remove State");
+                ImGuiUtilities::Tooltip("Remove State");
 
                 ImGui::PopStyleColor();
 
@@ -1152,7 +1153,7 @@ end
                         ImGui::SameLine((ImGui::GetWindowContentRegionMax() - ImGui::GetWindowContentRegionMin()).x - ImGui::GetFontSize());
                         ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.7f, 0.7f, 0.7f, 0.0f));
 
-                        std::vector<Maths::Vector2>& frames = state.Frames;
+                        std::vector<glm::vec2>& frames = state.Frames;
 
                         if(ImGui::Button(ICON_MDI_PLUS))
                         {
@@ -1171,7 +1172,7 @@ end
                             ImGui::PushID(&pos + numRemoved * 100);
                             ImGui::PushItemWidth((ImGui::GetWindowContentRegionMax() - ImGui::GetWindowContentRegionMin()).x - ImGui::GetFontSize() * 3.0f);
 
-                            ImGui::DragFloat2("##Position", Maths::ValuePointer(pos));
+                            ImGui::DragFloat2("##Position", glm::value_ptr(pos));
 
                             ImGui::SameLine((ImGui::GetWindowContentRegionMax() - ImGui::GetWindowContentRegionMin()).x - ImGui::GetFontSize());
 
@@ -1180,7 +1181,7 @@ end
                             if(ImGui::Button(ICON_MDI_MINUS))
                                 ImGui::OpenPopup("Remove");
 
-                            ImGuiHelpers::Tooltip("Remove");
+                            ImGuiUtilities::Tooltip("Remove");
 
                             ImGui::PopStyleColor();
 
@@ -1302,7 +1303,7 @@ end
             ImGui::TextUnformatted(tex ? tex->GetFilepath().c_str() : "No Texture");
             if(tex)
             {
-                ImGuiHelpers::Tooltip(tex->GetFilepath());
+                ImGuiUtilities::Tooltip(tex->GetFilepath());
                 ImGui::Text("%u x %u", tex->GetWidth(), tex->GetHeight());
                 ImGui::Text("Mip Levels : %u", tex->GetMipMapLevels());
             }
@@ -1332,18 +1333,18 @@ end
         ImGui::Separator();
 
         if(light.Type != 0)
-            Lumos::ImGuiHelpers::Property("Position", light.Position);
+            Lumos::ImGuiUtilities::Property("Position", light.Position);
 
         if(light.Type != 2)
-            Lumos::ImGuiHelpers::Property("Direction", light.Direction);
+            Lumos::ImGuiUtilities::Property("Direction", light.Direction);
 
         if(light.Type != 0)
-            Lumos::ImGuiHelpers::Property("Radius", light.Radius, 0.0f, 100.0f);
-        Lumos::ImGuiHelpers::Property("Colour", light.Colour, true, Lumos::ImGuiHelpers::PropertyFlag::ColourProperty);
-        Lumos::ImGuiHelpers::Property("Intensity", light.Intensity, 0.0f, 4.0f);
+            Lumos::ImGuiUtilities::Property("Radius", light.Radius, 0.0f, 100.0f);
+        Lumos::ImGuiUtilities::Property("Colour", light.Colour, true, Lumos::ImGuiUtilities::PropertyFlag::ColourProperty);
+        Lumos::ImGuiUtilities::Property("Intensity", light.Intensity, 0.0f, 4.0f);
 
         if(light.Type == 1)
-            Lumos::ImGuiHelpers::Property("Angle", light.Angle, -1.0f, 1.0f);
+            Lumos::ImGuiUtilities::Property("Angle", light.Angle, -1.0f, 1.0f);
 
         ImGui::AlignTextToFramePadding();
         ImGui::TextUnformatted("Light Type");
@@ -1440,7 +1441,7 @@ end
         return "";
     };
 
-    void TextureWidget(const char* label, Lumos::Graphics::Material* material, Lumos::Graphics::Texture2D* tex, bool flipImage, float& usingMapProperty, Lumos::Maths::Vector4& colourProperty, const std::function<void(const std::string&)>& callback, const ImVec2& imageButtonSize = ImVec2(64, 64))
+    void TextureWidget(const char* label, Lumos::Graphics::Material* material, Lumos::Graphics::Texture2D* tex, bool flipImage, float& usingMapProperty, glm::vec4& colourProperty, const std::function<void(const std::string&)>& callback, const ImVec2& imageButtonSize = ImVec2(64, 64))
     {
         using namespace Lumos;
         if(ImGui::TreeNodeEx(label, ImGuiTreeNodeFlags_DefaultOpen))
@@ -1512,15 +1513,15 @@ end
             ImGui::TextUnformatted(tex ? tex->GetFilepath().c_str() : "No Texture");
             if(tex)
             {
-                ImGuiHelpers::Tooltip(tex->GetFilepath());
+                ImGuiUtilities::Tooltip(tex->GetFilepath());
                 ImGui::Text("%u x %u", tex->GetWidth(), tex->GetHeight());
                 ImGui::Text("Mip Levels : %u", tex->GetMipMapLevels());
             }
             ImGui::PopItemWidth();
             ImGui::NextColumn();
 
-            ImGuiHelpers::Property("Use Map", usingMapProperty, 0.0f, 1.0f);
-            ImGuiHelpers::Property("Colour", colourProperty, 0.0f, 1.0f, false, Lumos::ImGuiHelpers::PropertyFlag::ColourProperty);
+            ImGuiUtilities::Property("Use Map", usingMapProperty, 0.0f, 1.0f);
+            ImGuiUtilities::Property("Colour", colourProperty, 0.0f, 1.0f, false, Lumos::ImGuiUtilities::PropertyFlag::ColourProperty);
 
             ImGui::Columns(1);
 
@@ -1582,7 +1583,7 @@ end
             ImGui::NextColumn();
             ImGui::PushItemWidth(-1);
             ImGui::TextUnformatted(model.GetFilePath().c_str());
-            Lumos::ImGuiHelpers::Tooltip(model.GetFilePath());
+            Lumos::ImGuiUtilities::Tooltip(model.GetFilePath());
 
             ImGui::PopItemWidth();
             ImGui::NextColumn();
@@ -1612,7 +1613,7 @@ end
                 bool flipImage = Graphics::Renderer::GetGraphicsContext()->FlipImGUITexture();
 
                 Graphics::MaterialProperties* prop = material->GetProperties();
-                auto colour = Maths::Vector4();
+                auto colour = glm::vec4();
                 auto& textures = material->GetTextures();
                 TextureWidget("Albedo", material.get(), textures.albedo.get(), flipImage, prop->usingAlbedoMap, prop->albedoColour, std::bind(&Graphics::Material::SetAlbedoTexture, material, std::placeholders::_1), ImVec2(64, 64) * Application::Get().GetWindowDPI());
                 ImGui::Separator();
@@ -1661,7 +1662,7 @@ end
         LUMOS_PROFILE_FUNCTION();
         auto& environment = reg.get<Lumos::Graphics::Environment>(e);
         //Disable image until texturecube is supported
-        //Lumos::ImGuiHelpers::Image(environment.GetEnvironmentMap(), Lumos::Maths::Vector2(200, 200));
+        //Lumos::ImGuiUtilities::Image(environment.GetEnvironmentMap(), glm::vec2(200, 200));
 
         ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
         ImGui::Columns(2);
@@ -1752,10 +1753,14 @@ end
     {
         LUMOS_PROFILE_FUNCTION();
         auto& textureMatrix = reg.get<Lumos::TextureMatrixComponent>(e);
-        Lumos::Maths::Matrix4& mat = textureMatrix.GetMatrix();
-        auto rotation = textureMatrix.GetMatrix().Rotation();
-        auto position = textureMatrix.GetMatrix().Translation();
-        auto scale = textureMatrix.GetMatrix().Scale();
+        glm::mat4& mat = textureMatrix.GetMatrix();
+
+        glm::vec3 skew;
+        glm::vec3 position;
+        glm::vec3 scale;
+        glm::vec4 perspective;
+        glm::quat rotation;
+        glm::decompose(mat, scale, rotation, position, skew, perspective);
 
         ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
         ImGui::Columns(2);
@@ -1765,9 +1770,9 @@ end
         ImGui::TextUnformatted("Position");
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
-        if(ImGui::DragFloat3("##Position", Lumos::Maths::ValuePointer(position)))
+        if(ImGui::DragFloat3("##Position", glm::value_ptr(position)))
         {
-            mat.SetTranslation(position);
+            Lumos::Maths::SetTranslation(mat, position);
         }
 
         ImGui::PopItemWidth();
@@ -1777,11 +1782,11 @@ end
         ImGui::TextUnformatted("Rotation");
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
-        if(ImGui::DragFloat3("##Rotation", Lumos::Maths::ValuePointer(rotation)))
+        if(ImGui::DragFloat3("##Rotation", glm::value_ptr(rotation)))
         {
             float pitch = Lumos::Maths::Min(rotation.x, 89.9f);
             pitch = Lumos::Maths::Max(pitch, -89.9f);
-            mat.SetRotation(Lumos::Maths::Quaternion::EulerAnglesToQuaternion(pitch, rotation.y, rotation.z).RotationMatrix());
+            Lumos::Maths::SetRotation(mat, glm::vec3(pitch, rotation.y, rotation.z));
         }
 
         ImGui::PopItemWidth();
@@ -1791,9 +1796,9 @@ end
         ImGui::TextUnformatted("Scale");
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
-        if(ImGui::DragFloat3("##Scale", Lumos::Maths::ValuePointer(scale), 0.1f))
+        if(ImGui::DragFloat3("##Scale", glm::value_ptr(scale), 0.1f))
         {
-            mat.SetScale(scale);
+            Lumos::Maths::SetScale(mat, scale);
         }
 
         ImGui::PopItemWidth();
@@ -1949,8 +1954,8 @@ namespace Lumos
             ImGui::SameLine();
             ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x - ImGui::GetFontSize() * 2.0f);
             {
-                ImGuiHelpers::ScopedFont boldFont(ImGui::GetIO().Fonts->Fonts[1]);
-                if(ImGuiHelpers::InputText(name))
+                ImGuiUtilities::ScopedFont boldFont(ImGui::GetIO().Fonts->Fonts[1]);
+                if(ImGuiUtilities::InputText(name))
                     registry.get_or_emplace<NameComponent>(selected).name = name;
             }
             ImGui::SameLine();

@@ -5,7 +5,7 @@
 #include <Lumos/Core/OS/Input.h>
 #include <Lumos/Core/Application.h>
 #include <Lumos/Scene/SceneManager.h>
-#include <Lumos/ImGui/ImGuiHelpers.h>
+#include <Lumos/ImGui/ImGuiUtilities.h>
 #include <Lumos/Scene/SceneGraph.h>
 #include <Lumos/Maths/Transform.h>
 #include <Lumos/Scene/Entity.h>
@@ -128,7 +128,7 @@ namespace Lumos
                     icon = iconMap[typeid(Graphics::Sprite).hash_code()];
             }
 
-            ImGui::PushStyleColor(ImGuiCol_Text, ImGuiHelpers::GetIconColour());
+            ImGui::PushStyleColor(ImGuiCol_Text, ImGuiUtilities::GetIconColour());
             //ImGui::BeginGroup();
             bool nodeOpen = ImGui::TreeNodeEx((void*)(intptr_t)entt::to_integral(node), nodeFlags, "%s", icon.c_str());
             {
@@ -439,19 +439,19 @@ namespace Lumos
             ImGui::SameLine();
 
             {
-                ImGuiHelpers::ScopedFont boldFont(ImGui::GetIO().Fonts->Fonts[1]);
-                ImGuiHelpers::ScopedStyle frameBorder(ImGuiStyleVar_FrameBorderSize, 0.0f);
-                ImGuiHelpers::ScopedColour frameColour(ImGuiCol_FrameBg, IM_COL32(0, 0, 0, 0));
+                ImGuiUtilities::ScopedFont boldFont(ImGui::GetIO().Fonts->Fonts[1]);
+                ImGuiUtilities::ScopedStyle frameBorder(ImGuiStyleVar_FrameBorderSize, 0.0f);
+                ImGuiUtilities::ScopedColour frameColour(ImGuiCol_FrameBg, IM_COL32(0, 0, 0, 0));
                 m_HierarchyFilter.Draw("##HierarchyFilter", ImGui::GetContentRegionAvail().x - ImGui::GetStyle().IndentSpacing);
-                ImGuiHelpers::DrawItemActivityOutline(2.0f, false);
+                ImGuiUtilities::DrawItemActivityOutline(2.0f, false);
             }
 
             if(!m_HierarchyFilter.IsActive())
             {
                 ImGui::SameLine();
-                ImGuiHelpers::ScopedFont boldFont(ImGui::GetIO().Fonts->Fonts[1]);
+                ImGuiUtilities::ScopedFont boldFont(ImGui::GetIO().Fonts->Fonts[1]);
                 ImGui::SetCursorPosX(ImGui::GetFontSize() * 2.0f);
-                ImGuiHelpers::ScopedStyle padding(ImGuiStyleVar_FramePadding, ImVec2(0.0f, ImGui::GetStyle().FramePadding.y));
+                ImGuiUtilities::ScopedStyle padding(ImGuiStyleVar_FramePadding, ImVec2(0.0f, ImGui::GetStyle().FramePadding.y));
                 ImGui::TextUnformatted("Search...");
             }
 

@@ -24,8 +24,8 @@ namespace Lumos
 
         struct LineVertexData
         {
-            Maths::Vector3 vertex;
-            Maths::Vector4 colour;
+            glm::vec3 vertex;
+            glm::vec4 colour;
 
             bool operator==(const LineVertexData& other) const
             {
@@ -35,10 +35,10 @@ namespace Lumos
 
         struct PointVertexData
         {
-            Maths::Vector3 vertex;
-            Maths::Vector4 colour;
-            Maths::Vector2 size;
-            Maths::Vector2 uv;
+            glm::vec3 vertex;
+            glm::vec4 colour;
+            glm::vec2 size;
+            glm::vec2 uv;
 
             bool operator==(const PointVertexData& other) const
             {
@@ -90,7 +90,7 @@ namespace Lumos
             struct LUMOS_EXPORT RenderCommand2D
             {
                 Renderable2D* renderable = nullptr;
-                Maths::Matrix4 transform;
+                glm::mat4 transform;
             };
 
             typedef std::vector<RenderCommand2D> CommandQueue2D;
@@ -129,14 +129,14 @@ namespace Lumos
                 uint32_t m_ShadowMapNum;
                 uint32_t m_ShadowMapSize;
                 bool m_ShadowMapsInvalidated;
-                Maths::Matrix4 m_ShadowProjView[SHADOWMAP_MAX];
-                Maths::Vector4 m_SplitDepth[SHADOWMAP_MAX];
-                Maths::Matrix4 m_LightMatrix;
+                glm::mat4 m_ShadowProjView[SHADOWMAP_MAX];
+                glm::vec4 m_SplitDepth[SHADOWMAP_MAX];
+                glm::mat4 m_LightMatrix;
                 std::vector<SharedPtr<Graphics::DescriptorSet>> m_DescriptorSet;
 
                 std::vector<Graphics::DescriptorSet*> m_CurrentDescriptorSets;
                 SharedPtr<Shader> m_Shader = nullptr;
-                Maths::Frustum m_CascadeFrustums[SHADOWMAP_MAX];
+                Frustum m_CascadeFrustums[SHADOWMAP_MAX];
             };
 
             struct ForwardData
@@ -147,7 +147,7 @@ namespace Lumos
                 UniquePtr<Texture2D> m_PreintegratedFG;
                 std::vector<Lumos::Graphics::CommandBuffer*> m_CommandBuffers;
 
-                Maths::Matrix4 m_BiasMatrix;
+                glm::mat4 m_BiasMatrix;
                 Texture* m_EnvironmentMap = nullptr;
                 Texture* m_IrradianceMap = nullptr;
 
@@ -160,7 +160,7 @@ namespace Lumos
                 Texture* m_RenderTexture = nullptr;
                 Texture* m_DepthTexture = nullptr;
 
-                Maths::Frustum m_Frustum;
+                Frustum m_Frustum;
 
                 uint32_t m_RenderMode = 0;
                 uint32_t m_CurrentBufferID = 0;
@@ -180,14 +180,14 @@ namespace Lumos
                 IndexBuffer* m_IndexBuffer = nullptr;
                 VertexData* m_Buffer = nullptr;
 
-                std::vector<Maths::Matrix4> m_TransformationStack;
-                const Maths::Matrix4* m_TransformationBack {};
+                std::vector<glm::mat4> m_TransformationStack;
+                const glm::mat4* m_TransformationBack {};
 
                 Texture* m_Textures[MAX_BOUND_TEXTURES];
                 uint32_t m_TextureCount;
 
                 uint32_t m_CurrentBufferID = 0;
-                Maths::Vector3 m_QuadPositions[4];
+                glm::vec3 m_QuadPositions[4];
 
                 bool m_RenderToDepthTexture;
                 bool m_TriangleIndicies = false;
@@ -245,7 +245,7 @@ namespace Lumos
             ForwardData m_ForwardData;
             Renderer2DData m_Renderer2DData;
             DebugDrawData m_DebugDrawData;
-            Maths::Vector4 m_ClearColour;
+            glm::vec4 m_ClearColour;
 
             int m_ToneMapIndex = 4;
             float m_Exposure = 1.0f;

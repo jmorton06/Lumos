@@ -83,6 +83,9 @@ namespace Lumos
             DEPTH,
             STENCIL,
             DEPTH_STENCIL,
+            DEPTH32,
+            DEPTH32_STENCIL8,
+            DEPTH24_STENCIL8,
             SCREEN
         };
 
@@ -101,6 +104,7 @@ namespace Lumos
             TextureType* attachmentTypes;
             uint32_t attachmentCount;
             bool clear = true;
+            bool swapchainTarget = false;
         };
 
         enum SubPassContents
@@ -198,19 +202,6 @@ namespace Lumos
             Texture_DepthStencil = BIT(3),
             Texture_DepthStencilReadOnly = BIT(4)
         };
-
-        enum class ImageLayout
-        {
-            Undefined,
-            General,
-            Color_Attachment_Optimal,
-            Depth_Stencil_Attachment_Optimal,
-            Depth_Stencil_Read_Only_Optimal,
-            Shader_Read_Only_Optimal,
-            Transfer_Dst_Optimal,
-            Present_Src
-        };
-
     }
 
 }

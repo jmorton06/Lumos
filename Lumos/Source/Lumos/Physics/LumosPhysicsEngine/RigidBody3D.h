@@ -24,7 +24,6 @@ CEREAL_REGISTER_POLYMORPHIC_RELATION(Lumos::CollisionShape, Lumos::PyramidCollis
 CEREAL_REGISTER_POLYMORPHIC_RELATION(Lumos::CollisionShape, Lumos::HullCollisionShape);
 CEREAL_REGISTER_POLYMORPHIC_RELATION(Lumos::CollisionShape, Lumos::CapsuleCollisionShape);
 
-
 namespace Lumos
 {
     class LumosPhysicsEngine;
@@ -42,13 +41,13 @@ namespace Lumos
 
     struct RigidBody3DProperties
     {
-        Maths::Vector3 Position = Maths::Vector3(0.0f);
-        Maths::Vector3 LinearVelocity = Maths::Vector3(0.0f);
-        Maths::Vector3 Force = Maths::Vector3(0.0f);
+        glm::vec3 Position = glm::vec3(0.0f);
+        glm::vec3 LinearVelocity = glm::vec3(0.0f);
+        glm::vec3 Force = glm::vec3(0.0f);
         float Mass = 1.0f;
-        Maths::Quaternion Orientation = Maths::Quaternion();
-        Maths::Vector3 AngularVelocity = Maths::Vector3(0.0f);
-        Maths::Vector3 Torque = Maths::Vector3(0.0f);
+        glm::quat Orientation = glm::quat();
+        glm::vec3 AngularVelocity = glm::vec3(0.0f);
+        glm::vec3 Torque = glm::vec3(0.0f);
         bool Static = false;
         float Elasticity = 0.9f;
         float Friction = 0.8f;
@@ -66,15 +65,15 @@ namespace Lumos
         virtual ~RigidBody3D();
 
         //<--------- GETTERS ------------->
-        const Maths::Vector3& GetPosition() const
+        const glm::vec3& GetPosition() const
         {
             return m_Position;
         }
-        const Maths::Vector3& GetLinearVelocity() const
+        const glm::vec3& GetLinearVelocity() const
         {
             return m_LinearVelocity;
         }
-        const Maths::Vector3& GetForce() const
+        const glm::vec3& GetForce() const
         {
             return m_Force;
         }
@@ -82,30 +81,30 @@ namespace Lumos
         {
             return m_InvMass;
         }
-        const Maths::Quaternion& GetOrientation() const
+        const glm::quat& GetOrientation() const
         {
             return m_Orientation;
         }
-        const Maths::Vector3& GetAngularVelocity() const
+        const glm::vec3& GetAngularVelocity() const
         {
             return m_AngularVelocity;
         }
-        const Maths::Vector3& GetTorque() const
+        const glm::vec3& GetTorque() const
         {
             return m_Torque;
         }
-        const Maths::Matrix3& GetInverseInertia() const
+        const glm::mat3& GetInverseInertia() const
         {
             return m_InvInertia;
         }
-        const Maths::Matrix4& GetWorldSpaceTransform() const; //Built from scratch or returned from cached value
+        const glm::mat4& GetWorldSpaceTransform() const; //Built from scratch or returned from cached value
 
-        const Maths::BoundingBox& GetWorldSpaceAABB();
+        const BoundingBox& GetWorldSpaceAABB();
 
         void WakeUp() override;
         void SetIsAtRest(const bool isAtRest) override;
 
-        Maths::BoundingBox GetLocalBoundingBox() const
+        BoundingBox GetLocalBoundingBox() const
         {
             return m_localBoundingBox;
         }
@@ -118,7 +117,7 @@ namespace Lumos
                 m_RestVelocityThresholdSquared = vel * vel;
         }
 
-        void SetLocalBoundingBox(const Maths::BoundingBox& bb)
+        void SetLocalBoundingBox(const BoundingBox& bb)
         {
             m_localBoundingBox = bb;
             m_wsAabbInvalidated = true;
@@ -126,7 +125,7 @@ namespace Lumos
 
         //<--------- SETTERS ------------->
 
-        void SetPosition(const Maths::Vector3& v)
+        void SetPosition(const glm::vec3& v)
         {
             m_Position = v;
             m_wsTransformInvalidated = true;
@@ -134,14 +133,14 @@ namespace Lumos
             //m_AtRest = false;
         }
 
-        void SetLinearVelocity(const Maths::Vector3& v)
+        void SetLinearVelocity(const glm::vec3& v)
         {
             if(m_Static)
                 return;
             m_LinearVelocity = v;
             m_AtRest = false;
         }
-        void SetForce(const Maths::Vector3& v)
+        void SetForce(const glm::vec3& v)
         {
             if(m_Static)
                 return;
@@ -149,30 +148,30 @@ namespace Lumos
             m_AtRest = false;
         }
 
-        void SetOrientation(const Maths::Quaternion& v)
+        void SetOrientation(const glm::quat& v)
         {
             m_Orientation = v;
             m_wsTransformInvalidated = true;
             m_AtRest = false;
         }
 
-        void SetAngularVelocity(const Maths::Vector3& v)
+        void SetAngularVelocity(const glm::vec3& v)
         {
             if(m_Static)
                 return;
             m_AngularVelocity = v;
 
-            if(v.LengthSquared() > 0.0f)
+            if(glm::length(v) > 0.0f)
                 m_AtRest = false;
         }
-        void SetTorque(const Maths::Vector3& v)
+        void SetTorque(const glm::vec3& v)
         {
             if(m_Static)
                 return;
             m_Torque = v;
             m_AtRest = false;
         }
-        void SetInverseInertia(const Maths::Matrix3& v)
+        void SetInverseInertia(const glm::mat3& v)
         {
             m_InvInertia = v;
         }
@@ -261,9 +260,9 @@ namespace Lumos
             auto shape = std::unique_ptr<CollisionShape>(m_CollisionShape.get());
 
             const int Version = 1;
-            
+
             archive(cereal::make_nvp("Version", Version));
-            
+
             archive(cereal::make_nvp("Position", m_Position), cereal::make_nvp("Orientation", m_Orientation), cereal::make_nvp("LinearVelocity", m_LinearVelocity), cereal::make_nvp("Force", m_Force), cereal::make_nvp("Mass", 1.0f / m_InvMass), cereal::make_nvp("AngularVelocity", m_AngularVelocity), cereal::make_nvp("Torque", m_Torque), cereal::make_nvp("Static", m_Static), cereal::make_nvp("Friction", m_Friction), cereal::make_nvp("Elasticity", m_Elasticity), cereal::make_nvp("CollisionShape", shape), cereal::make_nvp("Trigger", m_Trigger), cereal::make_nvp("AngularFactor", m_AngularFactor));
 
             shape.release();
@@ -273,7 +272,7 @@ namespace Lumos
         void load(Archive& archive)
         {
             auto shape = std::unique_ptr<CollisionShape>(m_CollisionShape.get());
-            
+
             int Version;
             archive(cereal::make_nvp("Version", Version));
 
@@ -289,23 +288,23 @@ namespace Lumos
         float m_RestVelocityThresholdSquared;
         float m_AverageSummedVelocity;
 
-        mutable Maths::Matrix4 m_wsTransform;
-        Maths::BoundingBox m_localBoundingBox; //!< Model orientated bounding box in model space
+        mutable glm::mat4 m_wsTransform;
+        BoundingBox m_localBoundingBox; //!< Model orientated bounding box in model space
         mutable bool m_wsAabbInvalidated; //!< Flag indicating if the cached world space transoformed AABB is invalid
-        mutable Maths::BoundingBox m_wsAabb; //!< Axis aligned bounding box of this object in world space
+        mutable BoundingBox m_wsAabb; //!< Axis aligned bounding box of this object in world space
 
         //<---------LINEAR-------------->
-        Maths::Vector3 m_Position;
-        Maths::Vector3 m_LinearVelocity;
-        Maths::Vector3 m_Force;
+        glm::vec3 m_Position;
+        glm::vec3 m_LinearVelocity;
+        glm::vec3 m_Force;
         float m_InvMass;
         bool m_Trigger = false;
 
         //<----------ANGULAR-------------->
-        Maths::Quaternion m_Orientation;
-        Maths::Vector3 m_AngularVelocity;
-        Maths::Vector3 m_Torque;
-        Maths::Matrix3 m_InvInertia;
+        glm::quat m_Orientation;
+        glm::vec3 m_AngularVelocity;
+        glm::vec3 m_Torque;
+        glm::mat3 m_InvInertia;
         float m_AngularFactor;
 
         //<----------COLLISION------------>

@@ -1,7 +1,7 @@
 --Add flickering effect to light
             
 local entity = {}
-local lastIntensity = 2.0
+local lastIntensity = 2.5
 
 function OnInit()
 entity = LuaComponent:GetCurrentEntity()
@@ -17,6 +17,7 @@ end
 
 function OnCleanUp()
 end
+
 
 
 

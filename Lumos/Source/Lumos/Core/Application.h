@@ -25,11 +25,6 @@ namespace Lumos
         enum class RenderAPI : uint32_t;
     }
 
-    namespace Maths
-    {
-        class Vector2;
-    }
-
     enum class AppState
     {
         Running,
@@ -129,7 +124,7 @@ namespace Lumos
             return m_SceneActive;
         }
 
-        Maths::Vector2 GetWindowSize() const;
+        glm::vec2 GetWindowSize() const;
         float GetWindowDPI() const;
 
         SharedPtr<ShaderLibrary>& GetShaderLibrary();
@@ -299,6 +294,7 @@ namespace Lumos
 
     private:
         bool OnWindowClose(WindowCloseEvent& e);
+        static void UpdateSystems();
 
         uint32_t m_Frames = 0;
         uint32_t m_Updates = 0;
@@ -324,6 +320,8 @@ namespace Lumos
         AppType m_AppType = AppType::Editor;
 
         static Application* s_Instance;
+
+        std::thread m_UpdateThread;
 
         NONCOPYABLE(Application)
     };

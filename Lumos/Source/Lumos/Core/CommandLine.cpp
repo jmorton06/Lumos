@@ -172,7 +172,7 @@ namespace Lumos
                     // In all other cases there must be a value.
                     else if(value.empty())
                     {
-                        throw std::runtime_error(
+                        LUMOS_LOG_ERROR(
                             "Failed to parse command line arguments: "
                             "Missing value for argument \""
                             + flag + "\"!");

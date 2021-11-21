@@ -27,14 +27,15 @@ namespace Lumos
     class Texture2D;
     class Scene;
     class Camera;
+    class Ray;
 
     struct LineInfo
     {
-        Maths::Vector3 p1;
-        Maths::Vector3 p2;
-        Maths::Vector4 col;
+        glm::vec3 p1;
+        glm::vec3 p2;
+        glm::vec4 col;
 
-        LineInfo(const Maths::Vector3& pos1, const Maths::Vector3& pos2, const Maths::Vector4& colour)
+        LineInfo(const glm::vec3& pos1, const glm::vec3& pos2, const glm::vec4& colour)
         {
             p1 = pos1;
             p2 = pos2;
@@ -44,11 +45,11 @@ namespace Lumos
 
     struct PointInfo
     {
-        Maths::Vector3 p1;
-        Maths::Vector4 col;
+        glm::vec3 p1;
+        glm::vec4 col;
         float size;
 
-        PointInfo(const Maths::Vector3& pos1, float s, const Maths::Vector4& colour)
+        PointInfo(const glm::vec3& pos1, float s, const glm::vec4& colour)
         {
             p1 = pos1;
             size = s;
@@ -58,12 +59,12 @@ namespace Lumos
 
     struct TriangleInfo
     {
-        Maths::Vector3 p1;
-        Maths::Vector3 p2;
-        Maths::Vector3 p3;
-        Maths::Vector4 col;
+        glm::vec3 p1;
+        glm::vec3 p2;
+        glm::vec3 p3;
+        glm::vec4 col;
 
-        TriangleInfo(const Maths::Vector3& pos1, const Maths::Vector3& pos2, const Maths::Vector3& pos3, const Maths::Vector4& colour)
+        TriangleInfo(const glm::vec3& pos1, const glm::vec3& pos2, const glm::vec3& pos3, const glm::vec4& colour)
         {
             p1 = pos1;
             p2 = pos2;
@@ -97,45 +98,46 @@ namespace Lumos
         //Note: Functions appended with 'NDT' (no depth testing) will always be rendered in the foreground. This can be useful for debugging things inside objects.
 
         //Draw Point (circle)
-        static void DrawPoint(const Maths::Vector3& pos, float point_radius, const Maths::Vector3& colour);
-        static void DrawPoint(const Maths::Vector3& pos, float point_radius, const Maths::Vector4& colour = Maths::Vector4(1.0f, 1.0f, 1.0f, 1.0f));
-        static void DrawPointNDT(const Maths::Vector3& pos, float point_radius, const Maths::Vector3& colour);
-        static void DrawPointNDT(const Maths::Vector3& pos, float point_radius, const Maths::Vector4& colour = Maths::Vector4(1.0f, 1.0f, 1.0f, 1.0f));
+        static void DrawPoint(const glm::vec3& pos, float point_radius, const glm::vec3& colour);
+        static void DrawPoint(const glm::vec3& pos, float point_radius, const glm::vec4& colour = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+        static void DrawPointNDT(const glm::vec3& pos, float point_radius, const glm::vec3& colour);
+        static void DrawPointNDT(const glm::vec3& pos, float point_radius, const glm::vec4& colour = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
 
         //Draw Line with a given thickness
-        static void DrawThickLine(const Maths::Vector3& start, const Maths::Vector3& end, float line_width, const Maths::Vector3& colour);
-        static void DrawThickLine(const Maths::Vector3& start, const Maths::Vector3& end, float line_width, const Maths::Vector4& colour = Maths::Vector4(1.0f, 1.0f, 1.0f, 1.0f));
-        static void DrawThickLineNDT(const Maths::Vector3& start, const Maths::Vector3& end, float line_width, const Maths::Vector3& colour);
-        static void DrawThickLineNDT(const Maths::Vector3& start, const Maths::Vector3& end, float line_width, const Maths::Vector4& colour = Maths::Vector4(1.0f, 1.0f, 1.0f, 1.0f));
+        static void DrawThickLine(const glm::vec3& start, const glm::vec3& end, float line_width, const glm::vec3& colour);
+        static void DrawThickLine(const glm::vec3& start, const glm::vec3& end, float line_width, const glm::vec4& colour = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+        static void DrawThickLineNDT(const glm::vec3& start, const glm::vec3& end, float line_width, const glm::vec3& colour);
+        static void DrawThickLineNDT(const glm::vec3& start, const glm::vec3& end, float line_width, const glm::vec4& colour = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
 
         //Draw line with thickness of 1 screen pixel regardless of distance from camera
-        static void DrawHairLine(const Maths::Vector3& start, const Maths::Vector3& end, const Maths::Vector3& colour);
-        static void DrawHairLine(const Maths::Vector3& start, const Maths::Vector3& end, const Maths::Vector4& colour = Maths::Vector4(1.0f, 1.0f, 1.0f, 1.0f));
-        static void DrawHairLineNDT(const Maths::Vector3& start, const Maths::Vector3& end, const Maths::Vector3& colour);
-        static void DrawHairLineNDT(const Maths::Vector3& start, const Maths::Vector3& end, const Maths::Vector4& colour = Maths::Vector4(1.0f, 1.0f, 1.0f, 1.0f));
+        static void DrawHairLine(const glm::vec3& start, const glm::vec3& end, const glm::vec3& colour);
+        static void DrawHairLine(const glm::vec3& start, const glm::vec3& end, const glm::vec4& colour = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+        static void DrawHairLineNDT(const glm::vec3& start, const glm::vec3& end, const glm::vec3& colour);
+        static void DrawHairLineNDT(const glm::vec3& start, const glm::vec3& end, const glm::vec4& colour = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
 
         //Draw Matrix (x,y,z axis at pos)
-        static void DrawMatrix(const Maths::Matrix4& transform_mtx);
-        static void DrawMatrix(const Maths::Matrix3& rotation_mtx, const Maths::Vector3& position);
-        static void DrawMatrixNDT(const Maths::Matrix4& transform_mtx);
-        static void DrawMatrixNDT(const Maths::Matrix3& rotation_mtx, const Maths::Vector3& position);
+        static void DrawMatrix(const glm::mat4& transform_mtx);
+        static void DrawMatrix(const glm::mat3& rotation_mtx, const glm::vec3& position);
+        static void DrawMatrixNDT(const glm::mat4& transform_mtx);
+        static void DrawMatrixNDT(const glm::mat3& rotation_mtx, const glm::vec3& position);
 
         //Draw Triangle
-        static void DrawTriangle(const Maths::Vector3& v0, const Maths::Vector3& v1, const Maths::Vector3& v2, const Maths::Vector4& colour = Maths::Vector4(1.0f, 1.0f, 1.0f, 1.0f));
-        static void DrawTriangleNDT(const Maths::Vector3& v0, const Maths::Vector3& v1, const Maths::Vector3& v2, const Maths::Vector4& colour = Maths::Vector4(1.0f, 1.0f, 1.0f, 1.0f));
+        static void DrawTriangle(const glm::vec3& v0, const glm::vec3& v1, const glm::vec3& v2, const glm::vec4& colour = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+        static void DrawTriangleNDT(const glm::vec3& v0, const glm::vec3& v1, const glm::vec3& v2, const glm::vec4& colour = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
 
         //Draw Polygon (Renders as a triangle fan, so verts must be arranged in order)
-        static void DrawPolygon(int n_verts, const Maths::Vector3* verts, const Maths::Vector4& colour = Maths::Vector4(1.0f, 1.0f, 1.0f, 1.0f));
-        static void DrawPolygonNDT(int n_verts, const Maths::Vector3* verts, const Maths::Vector4& colour = Maths::Vector4(1.0f, 1.0f, 1.0f, 1.0f));
+        static void DrawPolygon(int n_verts, const glm::vec3* verts, const glm::vec4& colour = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+        static void DrawPolygonNDT(int n_verts, const glm::vec3* verts, const glm::vec4& colour = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
 
-        static void DebugDraw(const Maths::BoundingBox& box, const Maths::Vector4& edgeColour, bool cornersOnly = false, float width = 0.02f);
-        static void DebugDraw(const Maths::Sphere& sphere, const Maths::Vector4& colour);
-        static void DebugDraw(const Maths::Frustum& frustum, const Maths::Vector4& colour);
-        static void DebugDraw(Graphics::Light* light, const Maths::Quaternion& rotation, const Maths::Vector4& colour);
-        static void DebugDraw(SoundNode* sound, const Maths::Vector4& colour);
-        static void DebugDrawSphere(float radius, const Maths::Vector3& position, const Maths::Vector4& colour);
-        static void DebugDrawCircle(int numVerts, float radius, const Maths::Vector3& position, const Maths::Quaternion& rotation, const Maths::Vector4& colour);
-        static void DebugDrawCone(int numCircleVerts, int numLinesToCircle, float angle, float length, const Maths::Vector3& position, const Maths::Quaternion& rotation, const Maths::Vector4& colour);
+        static void DebugDraw(const BoundingBox& box, const glm::vec4& edgeColour, bool cornersOnly = false, float width = 0.02f);
+        static void DebugDraw(const BoundingSphere& sphere, const glm::vec4& colour);
+        static void DebugDraw(Frustum& frustum, const glm::vec4& colour);
+        static void DebugDraw(Graphics::Light* light, const glm::quat& rotation, const glm::vec4& colour);
+        static void DebugDraw(const Ray& ray, const glm::vec4& colour = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), float distance = 1000.0f);
+        static void DebugDraw(SoundNode* sound, const glm::vec4& colour);
+        static void DebugDrawSphere(float radius, const glm::vec3& position, const glm::vec4& colour);
+        static void DebugDrawCircle(int numVerts, float radius, const glm::vec3& position, const glm::quat& rotation, const glm::vec4& colour);
+        static void DebugDrawCone(int numCircleVerts, int numLinesToCircle, float angle, float length, const glm::vec3& position, const glm::quat& rotation, const glm::vec4& colour);
 
         const std::vector<TriangleInfo>& GetTriangles() const { return m_DebugTriangles; }
         const std::vector<LineInfo>& GetLines() const { return m_DebugLines; }
@@ -148,10 +150,10 @@ namespace Lumos
 
     protected:
         //Actual functions managing data parsing to save code bloat - called by public functions
-        static void GenDrawPoint(bool ndt, const Maths::Vector3& pos, float point_radius, const Maths::Vector4& colour);
-        static void GenDrawThickLine(bool ndt, const Maths::Vector3& start, const Maths::Vector3& end, float line_width, const Maths::Vector4& colour);
-        static void GenDrawHairLine(bool ndt, const Maths::Vector3& start, const Maths::Vector3& end, const Maths::Vector4& colour);
-        static void GenDrawTriangle(bool ndt, const Maths::Vector3& v0, const Maths::Vector3& v1, const Maths::Vector3& v2, const Maths::Vector4& colour);
+        static void GenDrawPoint(bool ndt, const glm::vec3& pos, float point_radius, const glm::vec4& colour);
+        static void GenDrawThickLine(bool ndt, const glm::vec3& start, const glm::vec3& end, float line_width, const glm::vec4& colour);
+        static void GenDrawHairLine(bool ndt, const glm::vec3& start, const glm::vec3& end, const glm::vec4& colour);
+        static void GenDrawTriangle(bool ndt, const glm::vec3& v0, const glm::vec3& v1, const glm::vec3& v2, const glm::vec4& colour);
 
     private:
         void ClearInternal();

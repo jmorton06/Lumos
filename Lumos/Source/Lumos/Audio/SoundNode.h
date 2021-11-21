@@ -20,11 +20,11 @@ namespace Lumos
 
         Sound* GetSound() const { return m_Sound; }
 
-        void SetVelocity(const Maths::Vector3& vel) { m_Velocity = vel; }
-        Maths::Vector3 GetVelocity() const { return m_Velocity; }
+        void SetVelocity(const glm::vec3& vel) { m_Velocity = vel; }
+        glm::vec3 GetVelocity() const { return m_Velocity; }
 
-        void SetPosition(const Maths::Vector3& pos) { m_Position = pos; }
-        Maths::Vector3 GetPosition() const { return m_Position; }
+        void SetPosition(const glm::vec3& pos) { m_Position = pos; }
+        glm::vec3 GetPosition() const { return m_Position; }
 
         void SetVolume(float volume) { m_Volume = Maths::Min(1.0f, Maths::Max(0.0f, volume)); }
         float GetVolume() const { return m_Volume; }
@@ -86,8 +86,8 @@ namespace Lumos
 
     protected:
         Sound* m_Sound;
-        Maths::Vector3 m_Position;
-        Maths::Vector3 m_Velocity;
+        glm::vec3 m_Position;
+        glm::vec3 m_Velocity;
         float m_Volume;
         float m_Radius;
         float m_Pitch;

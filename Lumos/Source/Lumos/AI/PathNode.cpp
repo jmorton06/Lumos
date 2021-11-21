@@ -5,7 +5,7 @@
 namespace Lumos
 {
 
-    PathNode::PathNode(const Maths::Vector3& position)
+    PathNode::PathNode(const glm::vec3& position)
         : RigidBody3D()
     {
         SetPosition(position);
@@ -22,7 +22,7 @@ namespace Lumos
 
     float PathNode::HeuristicValue(const PathNode& other) const
     {
-        return (GetWorldSpaceTransform().Translation() - other.GetWorldSpaceTransform().Translation()).Length();
+        return (GetWorldSpaceTransform()[3] - other.GetWorldSpaceTransform()[3]).length();
     }
 
 }

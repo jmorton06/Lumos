@@ -356,23 +356,23 @@ namespace Lumos
             case VK_FORMAT_R32_SFLOAT:
                 return sizeof(float);
             case VK_FORMAT_R32G32_SFLOAT:
-                return sizeof(Maths::Vector2);
+                return sizeof(glm::vec2);
             case VK_FORMAT_R32G32B32_SFLOAT:
-                return sizeof(Maths::Vector3);
+                return sizeof(glm::vec3);
             case VK_FORMAT_R32G32B32A32_SFLOAT:
-                return sizeof(Maths::Vector4);
+                return sizeof(glm::vec4);
             case VK_FORMAT_R32G32_SINT:
-                return sizeof(Maths::IntVector2);
+                return sizeof(glm::ivec2);
             case VK_FORMAT_R32G32B32_SINT:
-                return sizeof(Maths::IntVector3);
+                return sizeof(glm::ivec3);
             case VK_FORMAT_R32G32B32A32_SINT:
-                return sizeof(Maths::IntVector4);
+                return sizeof(glm::ivec4);
             case VK_FORMAT_R32G32_UINT:
-                return sizeof(Maths::IntVector2);
+                return sizeof(glm::ivec2);
             case VK_FORMAT_R32G32B32_UINT:
-                return sizeof(Maths::IntVector3);
+                return sizeof(glm::ivec3);
             case VK_FORMAT_R32G32B32A32_UINT:
-                return sizeof(Maths::IntVector4); //Need uintvec?
+                return sizeof(glm::ivec4); //Need uintvec?
             default:
                 LUMOS_LOG_ERROR("Unsupported Format {0}", format);
                 return 0;

@@ -4,12 +4,6 @@
 
 namespace Lumos
 {
-    namespace Maths
-    {
-        class Vector3;
-    }
-
-    class Quaternion;
     class RigidBody3D;
 
     class LUMOS_EXPORT WeldConstraint : public Constraint
@@ -24,7 +18,7 @@ namespace Lumos
         RigidBody3D* m_pObj1;
         RigidBody3D* m_pObj2;
 
-        Maths::Vector3 m_positionOffset;
-        Maths::Quaternion m_orientation;
+        glm::vec3 m_positionOffset;
+        glm::quat m_orientation;
     };
 }

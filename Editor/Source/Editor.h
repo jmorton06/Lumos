@@ -9,7 +9,7 @@
 #include <Lumos/Utilities/IniFile.h>
 #include <Lumos/Graphics/Camera/EditorCamera.h>
 #include <Lumos/Graphics/Camera/Camera.h>
-#include <Lumos/ImGui/ImGuiHelpers.h>
+#include <Lumos/ImGui/ImGuiUtilities.h>
 #include <Lumos/Core/Application.h>
 
 #include <imgui/imgui.h>
@@ -153,11 +153,11 @@ namespace Lumos
             return m_ComponentIconMap;
         }
 
-        void FocusCamera(const Maths::Vector3& point, float distance, float speed = 1.0f);
+        void FocusCamera(const glm::vec3& point, float distance, float speed = 1.0f);
 
         void RecompileShaders();
         void DebugDraw();
-        void SelectObject(const Maths::Ray& ray);
+        void SelectObject(const Ray& ray);
 
         void OpenTextFile(const std::string& filePath, const std::function<void()>& callback);
         void RemovePanel(EditorPanel* panel);
@@ -168,8 +168,8 @@ namespace Lumos
 
         static Editor* GetEditor() { return s_Editor; }
 
-        Maths::Vector2 m_SceneViewPanelPosition;
-        Maths::Ray GetScreenRay(int x, int y, Camera* camera, int width, int height);
+        glm::vec2 m_SceneViewPanelPosition;
+        Ray GetScreenRay(int x, int y, Camera* camera, int width, int height);
 
         void FileOpenCallback(const std::string& filepath);
         void ProjectOpenCallback(const std::string& filepath);
@@ -228,7 +228,7 @@ namespace Lumos
             float m_ImGuizmoScale = 0.25f;
 
             bool m_FullScreenSceneView = false;
-            ImGuiHelpers::Theme m_Theme = ImGuiHelpers::Theme::Dark;
+            ImGuiUtilities::Theme m_Theme = ImGuiUtilities::Theme::Dark;
 
             //Camera Settings
         };
@@ -249,8 +249,8 @@ namespace Lumos
         float m_CameraTransitionStartTime = 0.0f;
         float m_CameraTransitionSpeed = 0.0f;
         bool m_TransitioningCamera = false;
-        Maths::Vector3 m_CameraDestination;
-        Maths::Vector3 m_CameraStartPosition;
+        glm::vec3 m_CameraDestination;
+        glm::vec3 m_CameraStartPosition;
 
         EditorSettings m_Settings;
         std::vector<SharedPtr<EditorPanel>> m_Panels;

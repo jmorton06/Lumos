@@ -9,8 +9,8 @@ namespace Lumos
 {
     EditorCameraController::EditorCameraController()
     {
-        m_FocalPoint = Maths::Vector3::ZERO;
-        m_Velocity = Maths::Vector3(0.0f);
+        m_FocalPoint = glm::vec3();
+        m_Velocity = glm::vec3(0.0f);
         m_MouseSensitivity = 0.00001f;
         m_ZoomDampeningFactor = 0.00001f;
         m_DampeningFactor = 0.00001f;
@@ -29,7 +29,7 @@ namespace Lumos
             if(Input::Get().GetMouseHeld(InputCode::MouseKey::ButtonRight))
             {
                 m_MouseSensitivity = 0.0005f;
-                Maths::Vector3 position = transform.GetLocalPosition();
+                glm::vec3 position = transform.GetLocalPosition();
                 position.x -= (xpos - m_PreviousCurserPos.x) /** camera->GetScale() */ * m_MouseSensitivity * 0.5f;
                 position.y += (ypos - m_PreviousCurserPos.y) /** camera->GetScale() */ * m_MouseSensitivity * 0.5f;
                 transform.SetLocalPosition(position);
@@ -43,14 +43,14 @@ namespace Lumos
                 mouseHeld = true;
                 Application::Get().GetWindow()->HideMouse(true);
                 Input::Get().SetMouseMode(MouseMode::Captured);
-                m_StoredCursorPos = Maths::Vector2(xpos, ypos);
+                m_StoredCursorPos = glm::vec2(xpos, ypos);
                 m_PreviousCurserPos = m_StoredCursorPos;
             }
 
             if(Input::Get().GetMouseHeld(InputCode::MouseKey::ButtonRight))
             {
-                m_MouseSensitivity = 0.02f;
-                m_RotateVelocity = Maths::Vector2((xpos - m_PreviousCurserPos.x), (ypos - m_PreviousCurserPos.y)) * m_MouseSensitivity * 10.0f;
+                m_MouseSensitivity = 0.0002f;
+                m_RotateVelocity = glm::vec2((xpos - m_PreviousCurserPos.x), (ypos - m_PreviousCurserPos.y)) * m_MouseSensitivity * 10.0f;
             }
             else
             {
@@ -63,13 +63,15 @@ namespace Lumos
                 }
             }
 
-            Maths::Vector3 euler = transform.GetLocalOrientation().EulerAngles();
-            float pitch = euler.x - m_RotateVelocity.y;
-            pitch = Maths::Min(pitch, 84.0f);
-            pitch = Maths::Max(pitch, -84.0f);
-            float yaw = euler.y - m_RotateVelocity.x;
-            m_PreviousCurserPos = Maths::Vector2(xpos, ypos);
-            transform.SetLocalOrientation(Maths::Quaternion::EulerAnglesToQuaternion(pitch, yaw, euler.z));
+            glm::quat rotation = transform.GetLocalOrientation();
+            glm::quat rotationX = glm::angleAxis(-m_RotateVelocity.y, glm::vec3(1.0f, 0.0f, 0.0f));
+            glm::quat rotationY = glm::angleAxis(-m_RotateVelocity.x, glm::vec3(0.0f, 1.0f, 0.0f));
+
+            rotation = rotationY * rotation;
+            rotation = rotation * rotationX;
+
+            m_PreviousCurserPos = glm::vec2(xpos, ypos);
+            transform.SetLocalOrientation(rotation);
         }
 
         m_RotateVelocity = m_RotateVelocity * pow(m_RotateDampeningFactor, dt);
@@ -81,7 +83,7 @@ namespace Lumos
     {
         if(m_2DMode)
         {
-            Maths::Vector3 up = Maths::Vector3(0, 1, 0), right = Maths::Vector3(1, 0, 0);
+            glm::vec3 up = glm::vec3(0, 1, 0), right = glm::vec3(1, 0, 0);
 
             m_CameraSpeed = /*camera->GetScale() **/ dt * 20.0f;
 
@@ -105,9 +107,9 @@ namespace Lumos
                 m_Velocity -= up * m_CameraSpeed;
             }
 
-            if(!Maths::Equals(m_Velocity, Maths::Vector3::ZERO, Maths::Vector3(Maths::M_EPSILON)))
+            if(glm::length(m_Velocity) > Maths::M_EPSILON)
             {
-                Maths::Vector3 position = transform.GetLocalPosition();
+                glm::vec3 position = transform.GetLocalPosition();
                 position += m_Velocity * dt;
                 m_Velocity = m_Velocity * pow(m_DampeningFactor, dt);
 
@@ -163,9 +165,9 @@ namespace Lumos
                 }
             }
 
-            if(!Maths::Equals(m_Velocity, Maths::Vector3::ZERO, Maths::Vector3(Maths::M_EPSILON)))
+            if(m_Velocity.length() > Maths::M_EPSILON)
             {
-                Maths::Vector3 position = transform.GetLocalPosition();
+                glm::vec3 position = transform.GetLocalPosition();
                 position += m_Velocity * dt;
                 transform.SetLocalPosition(position);
                 m_Velocity = m_Velocity * pow(m_DampeningFactor, dt);
@@ -217,7 +219,7 @@ namespace Lumos
 
             if(!Maths::Equals(m_ZoomVelocity, 0.0f))
             {
-                Maths::Vector3 pos = transform.GetLocalPosition();
+                glm::vec3 pos = transform.GetLocalPosition();
                 pos += transform.GetForwardDirection() * m_ZoomVelocity;
                 m_ZoomVelocity = m_ZoomVelocity * pow(m_ZoomDampeningFactor, dt);
 

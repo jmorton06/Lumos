@@ -196,7 +196,7 @@ namespace Lumos
             m_BoundPipeline = nullptr;
         }
 
-        void VKCommandBuffer::UpdateViewport(uint32_t width, uint32_t height)
+        void VKCommandBuffer::UpdateViewport(uint32_t width, uint32_t height, bool flipViewport)
         {
             LUMOS_PROFILE_FUNCTION();
             VkViewport viewport = {};
@@ -206,6 +206,14 @@ namespace Lumos
             viewport.height = static_cast<float>(height);
             viewport.minDepth = 0.0f;
             viewport.maxDepth = 1.0f;
+
+            if(flipViewport)
+            {
+                viewport.width = width;
+                viewport.height = -(float)height;
+                viewport.x = 0;
+                viewport.y = height;
+            }
 
             VkRect2D scissor = {};
             scissor.offset = { 0, 0 };

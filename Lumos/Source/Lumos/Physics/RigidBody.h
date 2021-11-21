@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Maths/Vector2.h"
-#include "Maths/Vector3.h"
+#include <glm/vec2.hpp>
+#include <glm/vec3.hpp>
 
 namespace Lumos
 {
@@ -19,17 +19,17 @@ namespace Lumos
         {
             mass = 1.0f;
             shape = Shape::Square;
-            position = Maths::Vector3(0.0f);
-            scale = Maths::Vector3(1.0f);
+            position = glm::vec3(0.0f);
+            scale = glm::vec3(1.0f);
             isStatic = false;
         }
 
         float mass;
-        Maths::Vector3 position;
-        Maths::Vector3 scale;
+        glm::vec3 position;
+        glm::vec3 scale;
         bool isStatic;
         Shape shape;
-        std::vector<Maths::Vector2> custumShapePositions;
+        std::vector<glm::vec2> custumShapePositions;
     };
 
     class LUMOS_EXPORT RigidBody

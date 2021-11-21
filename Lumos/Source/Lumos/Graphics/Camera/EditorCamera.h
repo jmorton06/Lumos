@@ -18,6 +18,6 @@ namespace Lumos
 
     private:
         bool m_2DMode = false;
-        Maths::Vector2 m_StoredCursorPos;
+        glm::vec2 m_StoredCursorPos;
     };
 }

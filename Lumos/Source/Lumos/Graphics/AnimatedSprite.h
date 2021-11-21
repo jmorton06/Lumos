@@ -19,7 +19,7 @@ namespace Lumos::Graphics
         struct AnimationState
         {
             PlayMode Mode;
-            std::vector<Maths::Vector2> Frames;
+            std::vector<glm::vec2> Frames;
             float FrameDuration = 1.0f;
 
             template <typename Archive>
@@ -33,14 +33,14 @@ namespace Lumos::Graphics
 
         AnimatedSprite();
 
-        AnimatedSprite(const SharedPtr<Texture2D>& texture, const Maths::Vector2& position, const Maths::Vector2& scale, const std::vector<Maths::Vector2>& frames, float frameDuration, const std::string& stateName);
+        AnimatedSprite(const SharedPtr<Texture2D>& texture, const glm::vec2& position, const glm::vec2& scale, const std::vector<glm::vec2>& frames, float frameDuration, const std::string& stateName);
         virtual ~AnimatedSprite() = default;
 
         void OnUpdate(float dt);
 
-        const std::array<Maths::Vector2, 4>& GetAnimatedUVs();
+        const std::array<glm::vec2, 4>& GetAnimatedUVs();
 
-        void AddState(const std::vector<Maths::Vector2>& frames, float frameDuration, const std::string& stateName);
+        void AddState(const std::vector<glm::vec2>& frames, float frameDuration, const std::string& stateName);
         void SetState(const std::string& state);
         const std::string& GetState() const { return m_State; }
         std::unordered_map<std::string, AnimationState>& GetAnimationStates() { return m_AnimationStates; }

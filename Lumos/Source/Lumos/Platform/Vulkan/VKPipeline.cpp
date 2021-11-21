@@ -76,7 +76,7 @@ namespace Lumos
             rs.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
             rs.polygonMode = VKUtilities::PolygonModeToVk(pipelineDesc.polygonMode);
             rs.cullMode = VKUtilities::CullModeToVK(pipelineDesc.cullMode);
-            rs.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
+            rs.frontFace = pipelineDesc.swapchainTarget ? VK_FRONT_FACE_COUNTER_CLOCKWISE : VK_FRONT_FACE_CLOCKWISE;
             rs.depthClampEnable = VK_FALSE;
             rs.rasterizerDiscardEnable = VK_FALSE;
             rs.depthBiasEnable = (pipelineDesc.depthBiasEnabled ? VK_TRUE : VK_FALSE);
@@ -297,6 +297,7 @@ namespace Lumos
             renderPassDesc.attachmentCount = uint32_t(attachmentTypes.size());
             renderPassDesc.attachmentTypes = attachmentTypes.data();
             renderPassDesc.attachments = attachments.data();
+            renderPassDesc.swapchainTarget = m_Description.swapchainTarget;
             renderPassDesc.clear = m_Description.clearTargets;
 
             m_RenderPass = Graphics::RenderPass::Get(renderPassDesc);

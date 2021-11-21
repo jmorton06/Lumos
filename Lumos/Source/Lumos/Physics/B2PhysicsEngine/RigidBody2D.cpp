@@ -3,7 +3,7 @@
 #include "B2PhysicsEngine.h"
 #include "Core/Application.h"
 
-#include "Maths/Vector2.h"
+#include <glm/vec2.hpp>
 
 #include <box2d/box2d.h>
 #include <box2d/b2_world.h>
@@ -29,7 +29,7 @@ namespace Lumos
             Application::Get().GetSystem<B2PhysicsEngine>()->GetB2World()->DestroyBody(m_B2Body);
     }
 
-    void RigidBody2D::SetLinearVelocity(const Maths::Vector2& v) const
+    void RigidBody2D::SetLinearVelocity(const glm::vec2& v) const
     {
         m_B2Body->SetLinearVelocity(b2Vec2(v.x, v.y));
     }
@@ -39,12 +39,12 @@ namespace Lumos
         m_B2Body->SetAngularVelocity(velocity);
     }
 
-    void RigidBody2D::SetForce(const Maths::Vector2& v) const
+    void RigidBody2D::SetForce(const glm::vec2& v) const
     {
         m_B2Body->ApplyForceToCenter(b2Vec2(v.x, v.y), true);
     }
 
-    void RigidBody2D::SetPosition(const Maths::Vector2& pos) const
+    void RigidBody2D::SetPosition(const glm::vec2& pos) const
     {
         m_B2Body->SetTransform(b2Vec2(pos.x, pos.y), m_B2Body->GetAngle());
     }
@@ -131,10 +131,10 @@ namespace Lumos
         }
     }
 
-    Maths::Vector2 RigidBody2D::GetPosition() const
+    glm::vec2 RigidBody2D::GetPosition() const
     {
         b2Vec2 pos = m_B2Body->GetPosition();
-        return Maths::Vector2(pos.x, pos.y);
+        return glm::vec2(pos.x, pos.y);
     }
 
     float RigidBody2D::GetAngle() const
@@ -142,12 +142,12 @@ namespace Lumos
         return m_B2Body->GetAngle();
     }
 
-    const Maths::Vector2 RigidBody2D::GetLinearVelocity() const
+    const glm::vec2 RigidBody2D::GetLinearVelocity() const
     {
-        return Maths::Vector2(m_B2Body->GetLinearVelocity().x, m_B2Body->GetLinearVelocity().y);
+        return glm::vec2(m_B2Body->GetLinearVelocity().x, m_B2Body->GetLinearVelocity().y);
     }
 
-    void RigidBody2D::SetShape(Shape shape, const std::vector<Maths::Vector2>& customPositions)
+    void RigidBody2D::SetShape(Shape shape, const std::vector<glm::vec2>& customPositions)
     {
         m_ShapeType = shape;
         m_CustomShapePositions = customPositions;
@@ -157,7 +157,8 @@ namespace Lumos
 
         RigidBodyParameters params;
         params.shape = m_ShapeType;
-        params.position = Maths::Vector3(GetPosition(), 1.0f);
+        if(m_B2Body)
+            params.position = glm::vec3(GetPosition(), 1.0f);
         params.custumShapePositions = customPositions;
         params.mass = m_Mass;
         params.scale = m_Scale;

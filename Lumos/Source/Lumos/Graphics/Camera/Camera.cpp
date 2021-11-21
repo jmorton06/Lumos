@@ -1,5 +1,6 @@
 #include "Precompiled.h"
 #include "Camera.h"
+#include <glm/gtc/matrix_transform.hpp>
 
 namespace Lumos
 {
@@ -14,7 +15,7 @@ namespace Lumos
         , m_Orthographic(false)
         , m_Scale(1.0f) {};
 
-    Camera::Camera(float pitch, float yaw, const Maths::Vector3& position, float FOV, float Near, float Far, float aspect)
+    Camera::Camera(float pitch, float yaw, const glm::vec3& position, float FOV, float Near, float Far, float aspect)
         : m_AspectRatio(aspect)
         , m_FrustumDirty(true)
         , m_ProjectionDirty(true)
@@ -38,38 +39,40 @@ namespace Lumos
     {
     }
 
+    Camera::Camera(float aspectRatio, float near, float far)
+        : m_AspectRatio(aspectRatio)
+        , m_Scale(1.0f)
+        , m_FrustumDirty(true)
+        , m_ProjectionDirty(true)
+        , m_Fov(0)
+        , m_Near(near)
+        , m_Far(far)
+        , m_Orthographic(true)
+        {
+        }
+
     void Camera::UpdateProjectionMatrix()
     {
         if(m_Orthographic)
-            m_ProjMatrix = Maths::Matrix4::Orthographic(-m_AspectRatio * m_Scale, m_AspectRatio * m_Scale, -m_Scale, m_Scale, m_Near, m_Far, m_ProjectionOffset.x, m_ProjectionOffset.y, m_Zoom);
+            m_ProjMatrix = glm::ortho(-m_AspectRatio * m_Scale, m_AspectRatio * m_Scale, -m_Scale, m_Scale, m_Near, m_Far);
         else
-            m_ProjMatrix = Maths::Matrix4::Perspective(m_Near, m_Far, m_AspectRatio, m_Fov, m_ProjectionOffset.x, m_ProjectionOffset.y, m_Zoom);
+            m_ProjMatrix = glm::perspective(glm::radians(m_Fov), m_AspectRatio, m_Near, m_Far);
     }
 
-    Maths::Frustum& Camera::GetFrustum(const Maths::Matrix4& viewMatrix)
+    Frustum& Camera::GetFrustum(const glm::mat4& viewMatrix)
     {
         if(m_ProjectionDirty)
             UpdateProjectionMatrix();
 
         {
-            customProjection_ = true; //temp
-            if(customProjection_)
-                m_Frustum.Define(m_ProjMatrix * viewMatrix);
-            else
-            {
-                if(m_Orthographic)
-                    m_Frustum.DefineOrtho(m_Scale, m_AspectRatio, m_Zoom, GetNear(), GetFar(), Maths::Matrix4(viewMatrix));
-                else
-                    m_Frustum.Define(m_Fov, m_AspectRatio, m_Zoom, GetNear(), GetFar(), Maths::Matrix4(viewMatrix));
-            }
-
+            m_Frustum.Define(m_ProjMatrix, viewMatrix);
             m_FrustumDirty = false;
         }
 
         return m_Frustum;
     }
 
-    const Maths::Matrix4& Camera::GetProjectionMatrix()
+    const glm::mat4& Camera::GetProjectionMatrix()
     {
         if(m_ProjectionDirty)
         {
@@ -79,24 +82,28 @@ namespace Lumos
         return m_ProjMatrix;
     }
 
-    Maths::Ray Camera::GetScreenRay(float x, float y, const Maths::Matrix4& viewMatrix, bool invertY) const
+    Ray Camera::GetScreenRay(float x, float y, const glm::mat4& viewMatrix, bool flipY) const
     {
-        Maths::Ray ret;
-
-        Maths::Matrix4 viewProjInverse = (m_ProjMatrix * viewMatrix).Inverse();
-
-        // The parameters range from 0.0 to 1.0. Expand to Normalised device coordinates (-1.0 to 1.0)
-        x = 2.0f * x - 1.0f;
+        Ray ret;
+        glm::mat4 viewProjInverse = glm::inverse(m_ProjMatrix * viewMatrix);
+		
+		x = 2.0f * x - 1.0f;
         y = 2.0f * y - 1.0f;
-
-        if(invertY)
+		
+        if(flipY)
             y *= -1.0f;
-        Maths::Vector3 nearPlane(x, y, 0.0f);
-        Maths::Vector3 farPlane(x, y, 1.0f);
 
-        ret.origin_ = viewProjInverse * nearPlane;
-        ret.direction_ = ((viewProjInverse * farPlane) - ret.origin_).Normalised();
+        glm::vec4 near = viewProjInverse * glm::vec4(x, y, 0.0f, 1.0f);
+        near /= near.w;
 
+        glm::vec4 far = viewProjInverse * glm::vec4(x, y, 1.0f, 1.0f);
+        far /= far.w;
+
+        ret.Origin = glm::vec3(near);
+        ret.Direction = glm::normalize(glm::vec3(far) - ret.Origin);
+		
         return ret;
     }
+
+
 }

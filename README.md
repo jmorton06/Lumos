@@ -78,7 +78,6 @@ To run on apple devices with Vulkan ( MoltenVK ), disable Metal API Validation h
 * 3D audio using OpenAL.
 * Rendering 3D models with deferred PBR shading.
 * Debug gui using ImGui
-* Custom maths library with simd optimisation.
 * 3D collision detection - cuboid/sphere/pyramid.
 * 2D collision detection - Box2D.
 * Basic lua scripting support.

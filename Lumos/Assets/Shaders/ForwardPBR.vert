@@ -31,11 +31,11 @@ out gl_PerVertex
 
 void main() 
 {
-	fragPosition = vec4(inPosition, 1.0) * pushConsts.transform;
-    gl_Position = fragPosition * ubo.projView;
+	fragPosition = pushConsts.transform * vec4(inPosition, 1.0);
+    gl_Position = ubo.projView * fragPosition;
     
 	fragColor = inColor.xyz;
 	fragTexCoord = inTexCoord;
-    fragNormal = normalize(inNormal) * transpose(inverse(mat3(pushConsts.transform)));
+    fragNormal = transpose(inverse(mat3(pushConsts.transform))) * normalize(inNormal);
     fragTangent = inTangent;
 }

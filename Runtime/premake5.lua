@@ -13,6 +13,7 @@ IncludeDir["freetype"] = "../Lumos/External/freetype/include"
 IncludeDir["SpirvCross"] = "../Lumos/External/SPIRV-Cross"
 IncludeDir["cereal"] = "../Lumos/External/cereal/include"
 IncludeDir["spdlog"] = "../Lumos/External/spdlog/include"
+IncludeDir["glm"] = "../Lumos/External/glm"
 
 project "Runtime"
 	kind "WindowedApp"
@@ -40,7 +41,8 @@ project "Runtime"
 		"%{IncludeDir.spdlog}",
 		"%{IncludeDir.freetype}",
 		"%{IncludeDir.SpirvCross}",
-		"%{IncludeDir.cereal}",
+	"%{IncludeDir.cereal}",
+	"%{IncludeDir.glm}",
 		"%{IncludeDir.Lumos}",
 	}
 
@@ -63,14 +65,16 @@ project "Runtime"
 
 	defines
 	{
-		"SPDLOG_COMPILED_LIB"
+		"SPDLOG_COMPILED_LIB",
+		"GLM_FORCE_INTRINSICS",
+		"GLM_FORCE_DEPTH_ZERO_TO_ONE"
 	}
 
 	filter { "files:External/**"}
 		warnings "Off"
 
 	filter 'architecture:x86_64'
-		defines { "LUMOS_SSE" ,"USE_VMA_ALLOCATOR"}
+		defines { "USE_VMA_ALLOCATOR"}
 
 	filter "system:windows"
 		cppdialect "C++17"

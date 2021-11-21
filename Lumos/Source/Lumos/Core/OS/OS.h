@@ -2,13 +2,10 @@
 #include "Core/Core.h"
 
 #include <string>
+#include <glm/vec4.hpp>
 
 namespace Lumos
 {
-    namespace Maths
-    {
-        class Vector4;
-    }
     enum PowerState
     {
         POWERSTATE_UNKNOWN,
@@ -46,7 +43,7 @@ namespace Lumos
             return "";
         };
         virtual void Vibrate() const {};
-        virtual void SetTitleBarColour(const Maths::Vector4& colour, bool dark = true) {};
+        virtual void SetTitleBarColour(const glm::vec4& colour, bool dark = true) {};
 
         //Mobile only
         virtual void ShowKeyboard() {};

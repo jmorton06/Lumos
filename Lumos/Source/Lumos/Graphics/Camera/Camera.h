@@ -27,9 +27,9 @@ namespace Lumos
     public:
         Camera() = default;
         Camera(float FOV, float Near, float Far, float aspect);
-        Camera(float pitch, float yaw, const Maths::Vector3& position, float FOV, float Near, float Far, float aspect);
+        Camera(float pitch, float yaw, const glm::vec3& position, float FOV, float Near, float Far, float aspect);
         Camera(float aspectRatio, float scale);
-
+        Camera(float aspectRatio, float near, float far);
         ~Camera() = default;
 
         void SetMouseSensitivity(float value)
@@ -61,7 +61,7 @@ namespace Lumos
             m_FrustumDirty = true;
         };
 
-        const Maths::Matrix4& GetProjectionMatrix();
+        const glm::mat4& GetProjectionMatrix();
 
         float GetFar() const
         {
@@ -110,9 +110,9 @@ namespace Lumos
             m_FrustumDirty = true;
         }
 
-        Maths::Frustum& GetFrustum(const Maths::Matrix4& viewMatrix);
+        Frustum& GetFrustum(const glm::mat4& viewMatrix);
 
-        Maths::Ray GetScreenRay(float x, float y, const Maths::Matrix4& viewMatrix, bool invertY = false) const;
+        Ray GetScreenRay(float x, float y, const glm::mat4& viewMatrix, bool flipY) const;
 
         template <typename Archive>
         void save(Archive& archive) const
@@ -143,11 +143,11 @@ namespace Lumos
         float m_Scale = 1.0f;
         float m_Zoom = 1.0f;
 
-        Maths::Vector2 m_ProjectionOffset = Maths::Vector2(0.0f, 0.0f);
+        glm::vec2 m_ProjectionOffset = glm::vec2(0.0f, 0.0f);
 
-        Maths::Matrix4 m_ProjMatrix;
+        glm::mat4 m_ProjMatrix;
 
-        Maths::Frustum m_Frustum;
+        Frustum m_Frustum;
         bool m_FrustumDirty = true;
         bool m_ProjectionDirty = false;
         bool customProjection_ = false;
