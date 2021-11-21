@@ -45,7 +45,7 @@ namespace Lumos
             void PresentInternal() override;
             void PresentInternal(CommandBuffer* commandBuffer) override;
 
-            void ClearRenderTarget(Graphics::Texture* texture, Graphics::CommandBuffer* commandBuffer, Maths::Vector4 clearColour) override;
+            void ClearRenderTarget(Graphics::Texture* texture, Graphics::CommandBuffer* commandBuffer, glm::vec4 clearColour) override;
             void ClearSwapChainImage() const;
 
             const std::string& GetTitleInternal() const override;

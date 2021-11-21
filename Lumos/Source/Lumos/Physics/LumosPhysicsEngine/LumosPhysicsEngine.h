@@ -62,6 +62,8 @@ namespace Lumos
         //Update Physics Engine
         void OnUpdate(const TimeStep& timeStep, Scene* scene) override;
 
+        void SyncTransforms(Scene* scene);
+
         //Getters / Setters
         bool IsPaused() const
         {
@@ -72,11 +74,11 @@ namespace Lumos
             m_IsPaused = paused;
         }
 
-        const Maths::Vector3& GetGravity() const
+        const glm::vec3& GetGravity() const
         {
             return m_Gravity;
         }
-        void SetGravity(const Maths::Vector3& g)
+        void SetGravity(const glm::vec3& g)
         {
             m_Gravity = g;
         }
@@ -121,7 +123,7 @@ namespace Lumos
         {
             m_IntegrationType = type;
         }
-        
+
         void SetBroadphaseType(BroadphaseType type);
 
         void ClearConstraints();
@@ -170,7 +172,7 @@ namespace Lumos
     protected:
         bool m_IsPaused;
         float m_UpdateAccum;
-        Maths::Vector3 m_Gravity;
+        glm::vec3 m_Gravity;
         float m_DampingFactor;
         uint32_t m_MaxUpdatesPerFrame = 5;
         uint32_t m_PositionIterations = 1;

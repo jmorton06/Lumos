@@ -14,27 +14,27 @@ namespace Lumos
         {
         }
 
-        const std::array<Maths::Vector2, 4>& Renderable2D::GetDefaultUVs()
+        const std::array<glm::vec2, 4>& Renderable2D::GetDefaultUVs()
         {
             LUMOS_PROFILE_FUNCTION();
-            static std::array<Maths::Vector2, 4> results;
+            static std::array<glm::vec2, 4> results;
             {
-                results[0] = Maths::Vector2(0, 1);
-                results[1] = Maths::Vector2(1, 1);
-                results[2] = Maths::Vector2(1, 0);
-                results[3] = Maths::Vector2(0, 0);
+                results[0] = glm::vec2(0, 1);
+                results[1] = glm::vec2(1, 1);
+                results[2] = glm::vec2(1, 0);
+                results[3] = glm::vec2(0, 0);
             }
             return results;
         }
 
-        const std::array<Maths::Vector2, 4>& Renderable2D::GetUVs(const Maths::Vector2& min, const Maths::Vector2& max)
+        const std::array<glm::vec2, 4>& Renderable2D::GetUVs(const glm::vec2& min, const glm::vec2& max)
         {
             LUMOS_PROFILE_FUNCTION();
-            static std::array<Maths::Vector2, 4> results;
+            static std::array<glm::vec2, 4> results;
             {
-                results[0] = Maths::Vector2(min.x, max.y);
+                results[0] = glm::vec2(min.x, max.y);
                 results[1] = max;
-                results[2] = Maths::Vector2(max.x, min.y);
+                results[2] = glm::vec2(max.x, min.y);
                 results[3] = min;
             }
             return results;

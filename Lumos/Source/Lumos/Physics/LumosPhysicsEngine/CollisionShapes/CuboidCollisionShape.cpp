@@ -1,7 +1,7 @@
 #include "Precompiled.h"
 #include "CuboidCollisionShape.h"
 #include "Physics/LumosPhysicsEngine/RigidBody3D.h"
-#include "Maths/Matrix3.h"
+#include <glm/mat3x3.hpp>
 
 namespace Lumos
 {
@@ -10,9 +10,9 @@ namespace Lumos
 
     CuboidCollisionShape::CuboidCollisionShape()
     {
-        m_CuboidHalfDimensions = Maths::Vector3(0.5f, 0.5f, 0.5f);
+        m_CuboidHalfDimensions = glm::vec3(0.5f, 0.5f, 0.5f);
         m_Type = CollisionShapeType::CollisionCuboid;
-        m_LocalTransform = Maths::Matrix4::Scale(m_CuboidHalfDimensions);
+        m_LocalTransform = glm::scale(glm::mat4(1.0), m_CuboidHalfDimensions);
 
         if(m_CubeHull->GetNumVertices() == 0)
         {
@@ -23,10 +23,10 @@ namespace Lumos
         m_Edges.resize(m_CubeHull->GetNumEdges());
     }
 
-    CuboidCollisionShape::CuboidCollisionShape(const Maths::Vector3& halfdims)
+    CuboidCollisionShape::CuboidCollisionShape(const glm::vec3& halfdims)
     {
         m_CuboidHalfDimensions = halfdims;
-        m_LocalTransform = Maths::Matrix4::Scale(halfdims);
+        m_LocalTransform = glm::scale(glm::mat4(1.0), halfdims);
         m_Type = CollisionShapeType::CollisionCuboid;
 
         if(m_CubeHull->GetNumVertices() == 0)
@@ -42,32 +42,32 @@ namespace Lumos
     {
     }
 
-    Maths::Matrix3 CuboidCollisionShape::BuildInverseInertia(float invMass) const
+    glm::mat3 CuboidCollisionShape::BuildInverseInertia(float invMass) const
     {
         LUMOS_PROFILE_FUNCTION();
         //https://en.wikipedia.org/wiki/List_of_moments_of_inertia
-        Maths::Matrix3 inertia;
+        glm::mat3 inertia(1.0f);
 
-        Maths::Vector3 dimsSq = (m_CuboidHalfDimensions); // + m_CuboidHalfDimensions);
+        glm::vec3 dimsSq = (m_CuboidHalfDimensions + m_CuboidHalfDimensions);
         dimsSq = dimsSq * dimsSq;
 
-        inertia.m00_ = 12.f * invMass * 1.f / (dimsSq.y + dimsSq.z);
-        inertia.m11_ = 12.f * invMass * 1.f / (dimsSq.x + dimsSq.z);
-        inertia.m22_ = 12.f * invMass * 1.f / (dimsSq.x + dimsSq.y);
+        inertia[0][0] = 12.f * invMass * 1.f / (dimsSq.y + dimsSq.z);
+        inertia[1][1] = 12.f * invMass * 1.f / (dimsSq.x + dimsSq.z);
+        inertia[2][2] = 12.f * invMass * 1.f / (dimsSq.x + dimsSq.y);
 
         return inertia;
     }
 
-    std::vector<Maths::Vector3>& CuboidCollisionShape::GetCollisionAxes(const RigidBody3D* currentObject)
+    std::vector<glm::vec3>& CuboidCollisionShape::GetCollisionAxes(const RigidBody3D* currentObject)
     {
         LUMOS_PROFILE_FUNCTION();
         {
             m_Axes.resize(3);
 
-            Maths::Matrix3 objOrientation = currentObject->GetOrientation().RotationMatrix();
-            m_Axes[0] = (objOrientation * Maths::Vector3(1.0f, 0.0f, 0.0f)); //X - Axis
-            m_Axes[1] = (objOrientation * Maths::Vector3(0.0f, 1.0f, 0.0f)); //Y - Axis
-            m_Axes[2] = (objOrientation * Maths::Vector3(0.0f, 0.0f, 1.0f)); //Z - Axis
+            glm::mat3 objOrientation = glm::toMat3(currentObject->GetOrientation()); //.RotationMatrix();
+            m_Axes[0] = (objOrientation * glm::vec3(1.0f, 0.0f, 0.0f)); //X - Axis
+            m_Axes[1] = (objOrientation * glm::vec3(0.0f, 1.0f, 0.0f)); //Y - Axis
+            m_Axes[2] = (objOrientation * glm::vec3(0.0f, 0.0f, 1.0f)); //Z - Axis
         }
 
         return m_Axes;
@@ -77,12 +77,12 @@ namespace Lumos
     {
         LUMOS_PROFILE_FUNCTION();
         {
-            Maths::Matrix4 transform = currentObject->GetWorldSpaceTransform() * m_LocalTransform;
+            glm::mat4 transform = currentObject->GetWorldSpaceTransform() * m_LocalTransform;
             for(unsigned int i = 0; i < m_CubeHull->GetNumEdges(); ++i)
             {
                 const HullEdge& edge = m_CubeHull->GetEdge(i);
-                Maths::Vector3 A = transform * m_CubeHull->GetVertex(edge.vStart).pos;
-                Maths::Vector3 B = transform * m_CubeHull->GetVertex(edge.vEnd).pos;
+                glm::vec3 A = transform * glm::vec4(m_CubeHull->GetVertex(edge.vStart).pos, 1.0f);
+                glm::vec3 B = transform * glm::vec4(m_CubeHull->GetVertex(edge.vEnd).pos, 1.0f);
 
                 m_Edges[i] = { A, B };
             }
@@ -90,33 +90,33 @@ namespace Lumos
         return m_Edges;
     }
 
-    void CuboidCollisionShape::GetMinMaxVertexOnAxis(const RigidBody3D* currentObject, const Maths::Vector3& axis, Maths::Vector3* out_min, Maths::Vector3* out_max) const
+    void CuboidCollisionShape::GetMinMaxVertexOnAxis(const RigidBody3D* currentObject, const glm::vec3& axis, glm::vec3* out_min, glm::vec3* out_max) const
     {
         LUMOS_PROFILE_FUNCTION();
-        Maths::Matrix4 wsTransform = currentObject ? currentObject->GetWorldSpaceTransform() * m_LocalTransform : m_LocalTransform;
-        const Maths::Vector3 local_axis = wsTransform.ToMatrix3().Transpose() * axis;
+        glm::mat4 wsTransform = currentObject ? currentObject->GetWorldSpaceTransform() * m_LocalTransform : m_LocalTransform;
+        const glm::vec3 local_axis = glm::transpose(wsTransform) * glm::vec4(axis, 1.0f);
 
         int vMin, vMax;
 
         m_CubeHull->GetMinMaxVerticesInAxis(local_axis, &vMin, &vMax);
 
         if(out_min)
-            *out_min = wsTransform * m_CubeHull->GetVertex(vMin).pos;
+            *out_min = wsTransform * glm::vec4(m_CubeHull->GetVertex(vMin).pos, 1.0f);
         if(out_max)
-            *out_max = wsTransform * m_CubeHull->GetVertex(vMax).pos;
+            *out_max = wsTransform * glm::vec4(m_CubeHull->GetVertex(vMax).pos, 1.0f);
     }
 
     void CuboidCollisionShape::GetIncidentReferencePolygon(const RigidBody3D* currentObject,
-        const Maths::Vector3& axis,
+        const glm::vec3& axis,
         ReferencePolygon& refPolygon) const
     {
         LUMOS_PROFILE_FUNCTION();
-        Maths::Matrix4 wsTransform = currentObject ? currentObject->GetWorldSpaceTransform() * m_LocalTransform : m_LocalTransform;
+        glm::mat4 wsTransform = currentObject ? currentObject->GetWorldSpaceTransform() * m_LocalTransform : m_LocalTransform;
 
-        const Maths::Matrix3 invNormalMatrix = wsTransform.ToMatrix3().Inverse();
-        const Maths::Matrix3 normalMatrix = invNormalMatrix.Transpose();
+        const glm::mat3 invNormalMatrix = glm::inverse(glm::mat3(wsTransform));
+        const glm::mat3 normalMatrix = glm::transpose(invNormalMatrix);
 
-        const Maths::Vector3 local_axis = invNormalMatrix * axis;
+        const glm::vec3 local_axis = invNormalMatrix * axis;
 
         int minVertex, maxVertex;
         m_CubeHull->GetMinMaxVerticesInAxis(local_axis, &minVertex, &maxVertex);
@@ -128,7 +128,7 @@ namespace Lumos
         for(int faceIdx : vert.enclosing_faces)
         {
             const HullFace* face = &m_CubeHull->GetFace(faceIdx);
-            const float temp_correlation = Maths::Vector3::Dot(local_axis, face->normal);
+            const float temp_correlation = glm::dot(local_axis, face->normal);
             if(temp_correlation > best_correlation)
             {
                 best_correlation = temp_correlation;
@@ -139,7 +139,7 @@ namespace Lumos
         {
             if(best_face)
                 refPolygon.Normal = normalMatrix * best_face->normal;
-            refPolygon.Normal.Normalise();
+            refPolygon.Normal = glm::normalize(refPolygon.Normal);
         }
 
         if(best_face)
@@ -147,25 +147,25 @@ namespace Lumos
             for(int vertIdx : best_face->vert_ids)
             {
                 const HullVertex& vertex = m_CubeHull->GetVertex(vertIdx);
-                refPolygon.Faces[refPolygon.FaceCount++] = wsTransform * vertex.pos;
+                refPolygon.Faces[refPolygon.FaceCount++] = wsTransform * glm::vec4(vertex.pos, 1.0f);
             }
         }
 
         if(best_face)
         {
             //Add the reference face itself to the list of adjacent planes
-            Maths::Vector3 wsPointOnPlane = wsTransform * m_CubeHull->GetVertex(m_CubeHull->GetEdge(best_face->edge_ids[0]).vStart).pos;
-            Maths::Vector3 planeNrml = -(normalMatrix * best_face->normal);
-            planeNrml.Normalise();
-            float planeDist = -Maths::Vector3::Dot(planeNrml, wsPointOnPlane);
+            glm::vec3 wsPointOnPlane = wsTransform * glm::vec4(m_CubeHull->GetVertex(m_CubeHull->GetEdge(best_face->edge_ids[0]).vStart).pos, 1.0f);
+            glm::vec3 planeNrml = -(normalMatrix * best_face->normal);
+            planeNrml = glm::normalize(planeNrml);
+            float planeDist = -glm::dot(planeNrml, wsPointOnPlane);
 
-            refPolygon.AdjacentPlanes[refPolygon.PlaneCount++] = { planeNrml, planeDist };
+            refPolygon.AdjacentPlanes[refPolygon.PlaneCount++] = Plane(planeNrml, planeDist);
 
             for(int edgeIdx : best_face->edge_ids)
             {
                 const HullEdge& edge = m_CubeHull->GetEdge(edgeIdx);
 
-                wsPointOnPlane = wsTransform * m_CubeHull->GetVertex(edge.vStart).pos;
+                wsPointOnPlane = wsTransform * glm::vec4(m_CubeHull->GetVertex(edge.vStart).pos, 1.0f);
 
                 for(int adjFaceIdx : edge.enclosing_faces)
                 {
@@ -174,10 +174,10 @@ namespace Lumos
                         const HullFace& adjFace = m_CubeHull->GetFace(adjFaceIdx);
 
                         planeNrml = -(normalMatrix * adjFace.normal);
-                        planeNrml.Normalise();
-                        planeDist = -Maths::Vector3::Dot(planeNrml, wsPointOnPlane);
+                        planeNrml = glm::normalize(planeNrml);
+                        planeDist = -glm::dot(planeNrml, wsPointOnPlane);
 
-                        refPolygon.AdjacentPlanes[refPolygon.PlaneCount++] = { planeNrml, planeDist };
+                        refPolygon.AdjacentPlanes[refPolygon.PlaneCount++] = Plane(planeNrml, planeDist);
                     }
                 }
             }
@@ -186,7 +186,7 @@ namespace Lumos
 
     void CuboidCollisionShape::DebugDraw(const RigidBody3D* currentObject) const
     {
-        Maths::Matrix4 transform = currentObject->GetWorldSpaceTransform() * m_LocalTransform;
+        glm::mat4 transform = currentObject->GetWorldSpaceTransform() * m_LocalTransform;
 
         if(m_CubeHull->GetNumVertices() == 0)
         {
@@ -200,15 +200,15 @@ namespace Lumos
     {
         LUMOS_PROFILE_FUNCTION();
         //Vertices
-        m_CubeHull->AddVertex(Maths::Vector3(-1.0f, -1.0f, -1.0f)); // 0
-        m_CubeHull->AddVertex(Maths::Vector3(-1.0f, 1.0f, -1.0f)); // 1
-        m_CubeHull->AddVertex(Maths::Vector3(1.0f, 1.0f, -1.0f)); // 2
-        m_CubeHull->AddVertex(Maths::Vector3(1.0f, -1.0f, -1.0f)); // 3
+        m_CubeHull->AddVertex(glm::vec3(-1.0f, -1.0f, -1.0f)); // 0
+        m_CubeHull->AddVertex(glm::vec3(-1.0f, 1.0f, -1.0f)); // 1
+        m_CubeHull->AddVertex(glm::vec3(1.0f, 1.0f, -1.0f)); // 2
+        m_CubeHull->AddVertex(glm::vec3(1.0f, -1.0f, -1.0f)); // 3
 
-        m_CubeHull->AddVertex(Maths::Vector3(-1.0f, -1.0f, 1.0f)); // 4
-        m_CubeHull->AddVertex(Maths::Vector3(-1.0f, 1.0f, 1.0f)); // 5
-        m_CubeHull->AddVertex(Maths::Vector3(1.0f, 1.0f, 1.0f)); // 6
-        m_CubeHull->AddVertex(Maths::Vector3(1.0f, -1.0f, 1.0f)); // 7
+        m_CubeHull->AddVertex(glm::vec3(-1.0f, -1.0f, 1.0f)); // 4
+        m_CubeHull->AddVertex(glm::vec3(-1.0f, 1.0f, 1.0f)); // 5
+        m_CubeHull->AddVertex(glm::vec3(1.0f, 1.0f, 1.0f)); // 6
+        m_CubeHull->AddVertex(glm::vec3(1.0f, -1.0f, 1.0f)); // 7
 
         int face1[] = { 0, 1, 2, 3 };
         int face2[] = { 7, 6, 5, 4 };
@@ -218,11 +218,11 @@ namespace Lumos
         int face6[] = { 4, 5, 1, 0 };
 
         //Faces
-        m_CubeHull->AddFace(Maths::Vector3(0.0f, 0.0f, -1.0f), 4, face1);
-        m_CubeHull->AddFace(Maths::Vector3(0.0f, 0.0f, 1.0f), 4, face2);
-        m_CubeHull->AddFace(Maths::Vector3(0.0f, 1.0f, 0.0f), 4, face3);
-        m_CubeHull->AddFace(Maths::Vector3(0.0f, -1.0f, 0.0f), 4, face4);
-        m_CubeHull->AddFace(Maths::Vector3(1.0f, 0.0f, 0.0f), 4, face5);
-        m_CubeHull->AddFace(Maths::Vector3(-1.0f, 0.0f, 0.0f), 4, face6);
+        m_CubeHull->AddFace(glm::vec3(0.0f, 0.0f, -1.0f), 4, face1);
+        m_CubeHull->AddFace(glm::vec3(0.0f, 0.0f, 1.0f), 4, face2);
+        m_CubeHull->AddFace(glm::vec3(0.0f, 1.0f, 0.0f), 4, face3);
+        m_CubeHull->AddFace(glm::vec3(0.0f, -1.0f, 0.0f), 4, face4);
+        m_CubeHull->AddFace(glm::vec3(1.0f, 0.0f, 0.0f), 4, face5);
+        m_CubeHull->AddFace(glm::vec3(-1.0f, 0.0f, 0.0f), 4, face6);
     }
 }

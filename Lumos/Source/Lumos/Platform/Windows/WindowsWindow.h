@@ -24,7 +24,7 @@ namespace Lumos
 
         void SetVSync(bool set) override {};
         void HideMouse(bool hide) override {};
-        void SetMousePosition(const Maths::Vector2& pos) override {};
+        void SetMousePosition(const glm::vec2& pos) override {};
         void UpdateCursorImGui() override;
         void SetIcon(const std::string& filePath, const std::string& smallIconFilePath = "") override;
 

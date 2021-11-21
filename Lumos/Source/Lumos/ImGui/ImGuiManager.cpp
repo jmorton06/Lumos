@@ -5,7 +5,7 @@
 #include "Core/Application.h"
 #include "Graphics/RHI/IMGUIRenderer.h"
 #include "Core/VFS.h"
-#include "ImGuiHelpers.h"
+#include "ImGuiUtilities.h"
 
 #include "IconsMaterialDesignIcons.h"
 
@@ -345,7 +345,7 @@ namespace Lumos
         }
 #endif
 
-        ImGuiHelpers::SetTheme(ImGuiHelpers::Theme::Dark);
+        ImGuiUtilities::SetTheme(ImGuiUtilities::Theme::Dark);
     }
 
     void ImGuiManager::AddIconFont()

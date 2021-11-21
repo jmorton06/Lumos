@@ -22,7 +22,7 @@ namespace Lumos
 
             void Begin() override;
             void Submit(const RenderCommand& command) override {};
-            void SubmitMesh(Mesh* mesh, Material* material, const Maths::Matrix4& transform, const Maths::Matrix4& textureMatrix) override {};
+            void SubmitMesh(Mesh* mesh, Material* material, const glm::mat4& transform, const glm::mat4& textureMatrix) override {};
             void EndScene() override {};
             void End() override;
             void Present() override {};
@@ -33,9 +33,10 @@ namespace Lumos
 
             struct UniformBufferObjectFrag
             {
-                Maths::Vector4 cameraPos;
-                float scale;
-                float res;
+                glm::vec4 cameraPos;
+                glm::vec4 cameraForward;
+                float Near;
+                float Far;
                 float maxDistance;
                 float p1;
             };

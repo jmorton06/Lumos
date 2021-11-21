@@ -11,7 +11,7 @@ namespace Lumos
     struct LUMOS_EXPORT HullVertex
     {
         int idx = 0;
-        Maths::Vector3 pos;
+        glm::vec3 pos;
         std::vector<int> enclosing_edges;
         std::vector<int> enclosing_faces;
     };
@@ -27,7 +27,7 @@ namespace Lumos
     struct LUMOS_EXPORT HullFace
     {
         int idx = 0;
-        Maths::Vector3 normal;
+        glm::vec3 normal;
         std::vector<int> vert_ids;
         std::vector<int> edge_ids;
         std::vector<int> adjoining_face_ids;
@@ -39,10 +39,10 @@ namespace Lumos
         Hull();
         ~Hull();
 
-        void AddVertex(const Maths::Vector3& v);
+        void AddVertex(const glm::vec3& v);
 
-        void AddFace(const Maths::Vector3& normal, int nVerts, const int* verts);
-        void AddFace(const Maths::Vector3& normal, const std::vector<int>& vert_ids) { AddFace(normal, static_cast<int>(vert_ids.size()), &vert_ids[0]); }
+        void AddFace(const glm::vec3& normal, int nVerts, const int* verts);
+        void AddFace(const glm::vec3& normal, const std::vector<int>& vert_ids) { AddFace(normal, static_cast<int>(vert_ids.size()), &vert_ids[0]); }
 
         int FindEdge(int v0_idx, int v1_idx);
 
@@ -54,9 +54,9 @@ namespace Lumos
         size_t GetNumEdges() const { return m_Edges.size(); }
         size_t GetNumFaces() const { return m_Faces.size(); }
 
-        void GetMinMaxVerticesInAxis(const Maths::Vector3& local_axis, int* out_min_vert, int* out_max_vert);
+        void GetMinMaxVerticesInAxis(const glm::vec3& local_axis, int* out_min_vert, int* out_max_vert);
 
-        void DebugDraw(const Maths::Matrix4& transform);
+        void DebugDraw(const glm::mat4& transform);
 
     protected:
         int ConstructNewEdge(int parent_face_idx, int vert_start, int vert_end); //Called by AddFace

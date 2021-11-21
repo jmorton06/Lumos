@@ -146,15 +146,16 @@ namespace Lumos
 
         m_EditorCamera = CreateSharedPtr<Camera>(-20.0f,
             -40.0f,
-            Maths::Vector3(-31.0f, 12.0f, 51.0f),
+            glm::vec3(-31.0f, 12.0f, 51.0f),
             60.0f,
             0.1f,
             1000.0f,
             (float)Application::Get().GetWindowSize().x / (float)Application::Get().GetWindowSize().y);
         m_CurrentCamera = m_EditorCamera.get();
 
-        m_EditorCameraTransform.SetLocalPosition(Maths::Vector3(-31.0f, 12.0f, 51.0f));
-        m_EditorCameraTransform.SetLocalOrientation({ -20.0f, -40.0f, 0.0f });
+        glm::mat4 viewMat = glm::lookAt(glm::vec3(-31.0f, 12.0f, 51.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+        glm::translate(viewMat, glm::vec3(-31.0f, 12.0f, 51.0f));
+        //m_EditorCameraTransform.SetLocalTransform(viewMat);
 
         m_ComponentIconMap[typeid(Graphics::Light).hash_code()] = ICON_MDI_LIGHTBULB;
         m_ComponentIconMap[typeid(Camera).hash_code()] = ICON_MDI_CAMERA;
@@ -199,7 +200,7 @@ namespace Lumos
         Application::Get().GetSystem<LumosPhysicsEngine>()->SetDebugDrawFlags(m_Settings.m_Physics3DDebugFlags);
         Application::Get().GetSystem<B2PhysicsEngine>()->SetDebugDrawFlags(m_Settings.m_Physics2DDebugFlags);
 
-        ImGuiHelpers::SetTheme(m_Settings.m_Theme);
+        ImGuiUtilities::SetTheme(m_Settings.m_Theme);
         OS::Instance()->SetTitleBarColour(ImGui::GetStyle().Colors[ImGuiCol_MenuBarBg]);
         Application::Get().GetWindow()->SetWindowTitle("Lumos Editor");
 
@@ -374,70 +375,70 @@ namespace Lumos
 
                 if(ImGui::BeginMenu("Style"))
                 {
-                    if(ImGui::MenuItem("Dark", "", m_Settings.m_Theme == ImGuiHelpers::Dark))
+                    if(ImGui::MenuItem("Dark", "", m_Settings.m_Theme == ImGuiUtilities::Dark))
                     {
-                        m_Settings.m_Theme = ImGuiHelpers::Dark;
-                        ImGuiHelpers::SetTheme(ImGuiHelpers::Dark);
+                        m_Settings.m_Theme = ImGuiUtilities::Dark;
+                        ImGuiUtilities::SetTheme(ImGuiUtilities::Dark);
                         OS::Instance()->SetTitleBarColour(ImGui::GetStyle().Colors[ImGuiCol_MenuBarBg]);
                     }
-                    if(ImGui::MenuItem("Dracula", "", m_Settings.m_Theme == ImGuiHelpers::Dracula))
+                    if(ImGui::MenuItem("Dracula", "", m_Settings.m_Theme == ImGuiUtilities::Dracula))
                     {
-                        m_Settings.m_Theme = ImGuiHelpers::Dracula;
-                        ImGuiHelpers::SetTheme(ImGuiHelpers::Dracula);
+                        m_Settings.m_Theme = ImGuiUtilities::Dracula;
+                        ImGuiUtilities::SetTheme(ImGuiUtilities::Dracula);
                         OS::Instance()->SetTitleBarColour(ImGui::GetStyle().Colors[ImGuiCol_MenuBarBg]);
                     }
-                    if(ImGui::MenuItem("Black", "", m_Settings.m_Theme == ImGuiHelpers::Black))
+                    if(ImGui::MenuItem("Black", "", m_Settings.m_Theme == ImGuiUtilities::Black))
                     {
-                        m_Settings.m_Theme = ImGuiHelpers::Black;
-                        ImGuiHelpers::SetTheme(ImGuiHelpers::Black);
+                        m_Settings.m_Theme = ImGuiUtilities::Black;
+                        ImGuiUtilities::SetTheme(ImGuiUtilities::Black);
                         OS::Instance()->SetTitleBarColour(ImGui::GetStyle().Colors[ImGuiCol_MenuBarBg]);
                     }
-                    if(ImGui::MenuItem("Grey", "", m_Settings.m_Theme == ImGuiHelpers::Grey))
+                    if(ImGui::MenuItem("Grey", "", m_Settings.m_Theme == ImGuiUtilities::Grey))
                     {
-                        m_Settings.m_Theme = ImGuiHelpers::Grey;
-                        ImGuiHelpers::SetTheme(ImGuiHelpers::Grey);
+                        m_Settings.m_Theme = ImGuiUtilities::Grey;
+                        ImGuiUtilities::SetTheme(ImGuiUtilities::Grey);
                         OS::Instance()->SetTitleBarColour(ImGui::GetStyle().Colors[ImGuiCol_MenuBarBg]);
                     }
-                    if(ImGui::MenuItem("Light", "", m_Settings.m_Theme == ImGuiHelpers::Light))
+                    if(ImGui::MenuItem("Light", "", m_Settings.m_Theme == ImGuiUtilities::Light))
                     {
-                        m_Settings.m_Theme = ImGuiHelpers::Light;
-                        ImGuiHelpers::SetTheme(ImGuiHelpers::Light);
+                        m_Settings.m_Theme = ImGuiUtilities::Light;
+                        ImGuiUtilities::SetTheme(ImGuiUtilities::Light);
                         OS::Instance()->SetTitleBarColour(ImGui::GetStyle().Colors[ImGuiCol_MenuBarBg]);
                     }
-                    if(ImGui::MenuItem("Cherry", "", m_Settings.m_Theme == ImGuiHelpers::Cherry))
+                    if(ImGui::MenuItem("Cherry", "", m_Settings.m_Theme == ImGuiUtilities::Cherry))
                     {
-                        m_Settings.m_Theme = ImGuiHelpers::Cherry;
-                        ImGuiHelpers::SetTheme(ImGuiHelpers::Cherry);
+                        m_Settings.m_Theme = ImGuiUtilities::Cherry;
+                        ImGuiUtilities::SetTheme(ImGuiUtilities::Cherry);
                         OS::Instance()->SetTitleBarColour(ImGui::GetStyle().Colors[ImGuiCol_MenuBarBg]);
                     }
-                    if(ImGui::MenuItem("Blue", "", m_Settings.m_Theme == ImGuiHelpers::Blue))
+                    if(ImGui::MenuItem("Blue", "", m_Settings.m_Theme == ImGuiUtilities::Blue))
                     {
-                        m_Settings.m_Theme = ImGuiHelpers::Blue;
-                        ImGuiHelpers::SetTheme(ImGuiHelpers::Blue);
+                        m_Settings.m_Theme = ImGuiUtilities::Blue;
+                        ImGuiUtilities::SetTheme(ImGuiUtilities::Blue);
                         OS::Instance()->SetTitleBarColour(ImGui::GetStyle().Colors[ImGuiCol_MenuBarBg]);
                     }
-                    if(ImGui::MenuItem("Cinder", "", m_Settings.m_Theme == ImGuiHelpers::Cinder))
+                    if(ImGui::MenuItem("Cinder", "", m_Settings.m_Theme == ImGuiUtilities::Cinder))
                     {
-                        m_Settings.m_Theme = ImGuiHelpers::Cinder;
-                        ImGuiHelpers::SetTheme(ImGuiHelpers::Cinder);
+                        m_Settings.m_Theme = ImGuiUtilities::Cinder;
+                        ImGuiUtilities::SetTheme(ImGuiUtilities::Cinder);
                         OS::Instance()->SetTitleBarColour(ImGui::GetStyle().Colors[ImGuiCol_MenuBarBg]);
                     }
-                    if(ImGui::MenuItem("Classic", "", m_Settings.m_Theme == ImGuiHelpers::Classic))
+                    if(ImGui::MenuItem("Classic", "", m_Settings.m_Theme == ImGuiUtilities::Classic))
                     {
-                        m_Settings.m_Theme = ImGuiHelpers::Classic;
-                        ImGuiHelpers::SetTheme(ImGuiHelpers::Classic);
+                        m_Settings.m_Theme = ImGuiUtilities::Classic;
+                        ImGuiUtilities::SetTheme(ImGuiUtilities::Classic);
                         OS::Instance()->SetTitleBarColour(ImGui::GetStyle().Colors[ImGuiCol_MenuBarBg]);
                     }
-                    if(ImGui::MenuItem("ClassicDark", "", m_Settings.m_Theme == ImGuiHelpers::ClassicDark))
+                    if(ImGui::MenuItem("ClassicDark", "", m_Settings.m_Theme == ImGuiUtilities::ClassicDark))
                     {
-                        m_Settings.m_Theme = ImGuiHelpers::ClassicDark;
-                        ImGuiHelpers::SetTheme(ImGuiHelpers::ClassicDark);
+                        m_Settings.m_Theme = ImGuiUtilities::ClassicDark;
+                        ImGuiUtilities::SetTheme(ImGuiUtilities::ClassicDark);
                         OS::Instance()->SetTitleBarColour(ImGui::GetStyle().Colors[ImGuiCol_MenuBarBg]);
                     }
-                    if(ImGui::MenuItem("ClassicLight", "", m_Settings.m_Theme == ImGuiHelpers::ClassicLight))
+                    if(ImGui::MenuItem("ClassicLight", "", m_Settings.m_Theme == ImGuiUtilities::ClassicLight))
                     {
-                        m_Settings.m_Theme = ImGuiHelpers::ClassicLight;
-                        ImGuiHelpers::SetTheme(ImGuiHelpers::ClassicLight);
+                        m_Settings.m_Theme = ImGuiUtilities::ClassicLight;
+                        ImGuiUtilities::SetTheme(ImGuiUtilities::ClassicLight);
                         OS::Instance()->SetTitleBarColour(ImGui::GetStyle().Colors[ImGuiCol_MenuBarBg]);
                     }
                     ImGui::EndMenu();
@@ -580,7 +581,7 @@ namespace Lumos
 
                 if(ImGui::MenuItem("Light Cube"))
                 {
-                    EntityFactory::AddLightCube(Application::Get().GetSceneManager()->GetCurrentScene(), Maths::Vector3(0.0f), Maths::Vector3(0.0f));
+                    EntityFactory::AddLightCube(Application::Get().GetSceneManager()->GetCurrentScene(), glm::vec3(0.0f), glm::vec3(0.0f));
                 }
 
                 ImGui::EndMenu();
@@ -646,7 +647,7 @@ namespace Lumos
             {
                 selected = Application::Get().GetEditorState() == EditorState::Play;
                 if(selected)
-                    ImGui::PushStyleColor(ImGuiCol_Text, ImGuiHelpers::GetSelectedColour());
+                    ImGui::PushStyleColor(ImGuiCol_Text, ImGuiUtilities::GetSelectedColour());
 
                 if(ImGui::Button(ICON_MDI_PLAY))
                 {
@@ -678,7 +679,7 @@ namespace Lumos
             {
                 selected = Application::Get().GetEditorState() == EditorState::Paused;
                 if(selected)
-                    ImGui::PushStyleColor(ImGuiCol_Text, ImGuiHelpers::GetSelectedColour());
+                    ImGui::PushStyleColor(ImGuiCol_Text, ImGuiUtilities::GetSelectedColour());
 
                 if(ImGui::Button(ICON_MDI_PAUSE))
                     Application::Get().SetEditorState(selected ? EditorState::Play : EditorState::Paused);
@@ -695,7 +696,7 @@ namespace Lumos
             {
                 selected = Application::Get().GetEditorState() == EditorState::Next;
                 if(selected)
-                    ImGui::PushStyleColor(ImGuiCol_Text, ImGuiHelpers::GetSelectedColour());
+                    ImGui::PushStyleColor(ImGuiCol_Text, ImGuiUtilities::GetSelectedColour());
 
                 if(ImGui::Button(ICON_MDI_STEP_FORWARD))
                     Application::Get().SetEditorState(EditorState::Next);
@@ -796,7 +797,7 @@ namespace Lumos
             }
 
             if(needsRestart)
-                ImGuiHelpers::Tooltip("Restart needed to switch Render API");
+                ImGuiUtilities::Tooltip("Restart needed to switch Render API");
 
             if(setNewValue)
             {
@@ -903,21 +904,13 @@ namespace Lumos
     void Editor::OnImGuizmo()
     {
         LUMOS_PROFILE_FUNCTION();
-        Maths::Matrix4 view = m_EditorCameraTransform.GetWorldMatrix().Inverse(); //m_CurrentCamera->GetViewMatrix();
-        Maths::Matrix4 proj = m_CurrentCamera->GetProjectionMatrix();
-
-#ifdef LUMOS_RENDER_API_VULKAN
-        if(Graphics::GraphicsContext::GetRenderAPI() == Graphics::RenderAPI::VULKAN)
-            proj.m11_ *= -1.0f;
-#endif
-
-        view = view.Transpose();
-        proj = proj.Transpose();
+        glm::mat4 view = glm::inverse(m_EditorCameraTransform.GetWorldMatrix());
+        glm::mat4 proj = m_CurrentCamera->GetProjectionMatrix();
 
 #ifdef USE_IMGUIZMO_GRID
         if(m_Settings.m_ShowGrid && !m_CurrentCamera->IsOrthographic())
-            ImGuizmo::DrawGrid(Maths::ValuePointer(view),
-                Maths::ValuePointer(proj), identityMatrix, 120.f);
+            ImGuizmo::DrawGrid(glm::value_ptr(view),
+                glm::value_ptr(proj), identityMatrix, 120.f);
 #endif
 
         if(m_SelectedEntity == entt::null || m_ImGuizmoOperation == 4)
@@ -932,17 +925,16 @@ namespace Lumos
             auto transform = registry.try_get<Maths::Transform>(m_SelectedEntity);
             if(transform != nullptr)
             {
-                Maths::Matrix4 model = transform->GetWorldMatrix();
-                model = model.Transpose();
+                glm::mat4 model = transform->GetWorldMatrix();
 
                 float snapAmount[3] = { m_Settings.m_SnapAmount, m_Settings.m_SnapAmount, m_Settings.m_SnapAmount };
                 float delta[16];
 
-                ImGuizmo::Manipulate(Maths::ValuePointer(view),
-                    Maths::ValuePointer(proj),
+                ImGuizmo::Manipulate(glm::value_ptr(view),
+                    glm::value_ptr(proj),
                     static_cast<ImGuizmo::OPERATION>(m_ImGuizmoOperation),
                     ImGuizmo::LOCAL,
-                    Maths::ValuePointer(model),
+                    glm::value_ptr(model),
                     delta,
                     m_Settings.m_SnapQuizmo ? snapAmount : nullptr);
 
@@ -950,14 +942,13 @@ namespace Lumos
                 {
                     if(static_cast<ImGuizmo::OPERATION>(m_ImGuizmoOperation) == ImGuizmo::OPERATION::SCALE)
                     {
-                        model = model.Transpose();
-                        model = transform->GetParentMatrix().Inverse() * model;
-                        transform->SetLocalScale(model.Scale());
+                        model = glm::inverse(transform->GetParentMatrix()) * model;
+
+                        transform->SetLocalScale(Lumos::Maths::GetScale(model));
                     }
                     else
                     {
-                        model = model.Transpose();
-                        model = transform->GetParentMatrix().Inverse() * model;
+                        model = glm::inverse(transform->GetParentMatrix()) * model;
                         transform->SetLocalTransform(model);
 
                         RigidBody2DComponent* rigidBody2DComponent = registry.try_get<Lumos::RigidBody2DComponent>(m_SelectedEntity);
@@ -965,15 +956,15 @@ namespace Lumos
                         if(rigidBody2DComponent)
                         {
                             rigidBody2DComponent->GetRigidBody()->SetPosition(
-                                { model.Translation().x, model.Translation().y });
+                                { model[3].x, model[3].y });
                         }
                         else
                         {
                             Lumos::RigidBody3DComponent* rigidBody3DComponent = registry.try_get<Lumos::RigidBody3DComponent>(m_SelectedEntity);
                             if(rigidBody3DComponent)
                             {
-                                rigidBody3DComponent->GetRigidBody()->SetPosition(model.Translation());
-                                rigidBody3DComponent->GetRigidBody()->SetOrientation(model.Rotation());
+                                rigidBody3DComponent->GetRigidBody()->SetPosition(model[3]);
+                                rigidBody3DComponent->GetRigidBody()->SetOrientation(Maths::GetRotation(model));
                             }
                         }
                     }
@@ -1114,8 +1105,9 @@ namespace Lumos
         Application::OnNewScene(scene);
         m_SelectedEntity = entt::null;
 
-        m_EditorCameraTransform.SetLocalPosition(Maths::Vector3(-31.0f, 12.0f, 51.0f));
-        m_EditorCameraTransform.SetLocalOrientation({ -20.0f, -40.0f, 0.0f });
+        glm::mat4 viewMat = glm::mat4(1.0f);//glm::lookAt(glm::vec3(-31.0f, 12.0f, 51.0f), glm::vec3(0.0f,0.0f,0.0f), glm::vec3(0.0f,1.0f,0.0f));
+        viewMat = glm::translate(viewMat, glm::vec3(0.0f, 12.0f, 51.0f));
+        m_EditorCameraTransform.SetLocalTransform(viewMat);
 
         for(auto panel : m_Panels)
         {
@@ -1187,9 +1179,11 @@ namespace Lumos
             return;
         }
 
-        DebugRenderer::DrawHairLine(Maths::Vector3(-5000.0f, 0.0f, 0.0f), Maths::Vector3(5000.0f, 0.0f, 0.0f), Maths::Vector4(1.0f, 0.0f, 0.0f, 1.0f));
-        DebugRenderer::DrawHairLine(Maths::Vector3(0.0f, -5000.0f, 0.0f), Maths::Vector3(0.0f, 5000.0f, 0.0f), Maths::Vector4(0.0f, 1.0f, 0.0f, 1.0f));
-        DebugRenderer::DrawHairLine(Maths::Vector3(0.0f, 0.0f, -5000.0f), Maths::Vector3(0.0f, 0.0f, 5000.0f), Maths::Vector4(0.0f, 0.0f, 1.0f, 1.0f));
+        DebugRenderer::DrawHairLine(glm::vec3(-5000.0f, 0.0f, 0.0f), glm::vec3(5000.0f, 0.0f, 0.0f), glm::vec4(1.0f, 0.0f, 0.0f, 1.0f));
+        DebugRenderer::DrawHairLine(glm::vec3(0.0f, -5000.0f, 0.0f), glm::vec3(0.0f, 5000.0f, 0.0f), glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
+        DebugRenderer::DrawHairLine(glm::vec3(0.0f, 0.0f, -5000.0f), glm::vec3(0.0f, 0.0f, 5000.0f), glm::vec4(0.0f, 0.0f, 1.0f, 1.0f));
+
+        m_GridRenderer->OnImGui();
 
         m_GridRenderer->BeginScene(Application::Get().GetSceneManager()->GetCurrentScene(), m_EditorCamera.get(), &m_EditorCameraTransform);
         m_GridRenderer->RenderScene();
@@ -1265,22 +1259,22 @@ namespace Lumos
         Application::OnEvent(e);
     }
 
-    Maths::Ray Editor::GetScreenRay(int x, int y, Camera* camera, int width, int height)
+    Ray Editor::GetScreenRay(int x, int y, Camera* camera, int width, int height)
     {
         LUMOS_PROFILE_FUNCTION();
         if(!camera)
-            return Maths::Ray();
+            return Ray();
 
         float screenX = (float)x / (float)width;
         float screenY = (float)y / (float)height;
 
-        bool flipY = false;
+        bool flipY = true;
 
 #ifdef LUMOS_RENDER_API_OPENGL
         if(Graphics::GraphicsContext::GetRenderAPI() == Graphics::RenderAPI::OPENGL)
             flipY = true;
 #endif
-        return camera->GetScreenRay(screenX, screenY, m_EditorCameraTransform.GetWorldMatrix().Inverse(), flipY);
+        return camera->GetScreenRay(screenX, screenY, glm::inverse(m_EditorCameraTransform.GetWorldMatrix()), flipY);
     }
 
     void Editor::OnUpdate(const TimeStep& ts)
@@ -1293,7 +1287,7 @@ namespace Lumos
 
             if(Application::Get().GetSceneActive())
             {
-                const Maths::Vector2 mousePos = Input::Get().GetMousePosition();
+                const glm::vec2 mousePos = Input::Get().GetMousePosition();
 
                 m_EditorCameraController.HandleMouse(m_EditorCameraTransform, ts.GetSeconds(), mousePos.x, mousePos.y);
                 m_EditorCameraController.HandleKeyboard(m_EditorCameraTransform, ts.GetSeconds());
@@ -1311,7 +1305,7 @@ namespace Lumos
 
             if(Input::Get().GetKeyHeld(InputCode::Key::O))
             {
-                FocusCamera(Maths::Vector3(0.0f, 0.0f, 0.0f), 2.0f, 2.0f);
+                FocusCamera(glm::vec3(0.0f, 0.0f, 0.0f), 2.0f, 2.0f);
             }
 
             if(m_TransitioningCamera)
@@ -1320,10 +1314,10 @@ namespace Lumos
                     m_CameraTransitionStartTime = ts.GetElapsedSeconds();
 
                 float focusProgress = Maths::Min((ts.GetElapsedSeconds() - m_CameraTransitionStartTime) / m_CameraTransitionSpeed, 1.f);
-                Maths::Vector3 newCameraPosition = m_CameraStartPosition.Lerp(m_CameraDestination, focusProgress);
+                glm::vec3 newCameraPosition = glm::mix(m_CameraStartPosition, m_CameraDestination, focusProgress);
                 m_EditorCameraTransform.SetLocalPosition(newCameraPosition);
 
-                if(m_EditorCameraTransform.GetLocalPosition().Equals(m_CameraDestination))
+                if(m_EditorCameraTransform.GetLocalPosition() == m_CameraDestination)
                     m_TransitioningCamera = false;
             }
 
@@ -1399,13 +1393,13 @@ namespace Lumos
                 }
             }
 
-            m_EditorCameraTransform.SetWorldMatrix(Maths::Matrix4());
+            m_EditorCameraTransform.SetWorldMatrix(glm::mat4(1.0f));
         }
 
         Application::OnUpdate(ts);
     }
 
-    void Editor::FocusCamera(const Maths::Vector3& point, float distance, float speed)
+    void Editor::FocusCamera(const glm::vec3& point, float distance, float speed)
     {
         LUMOS_PROFILE_FUNCTION();
         if(m_CurrentCamera->IsOrthographic())
@@ -1449,8 +1443,7 @@ namespace Lumos
     {
         LUMOS_PROFILE_FUNCTION();
         auto& registry = Application::Get().GetSceneManager()->GetCurrentScene()->GetRegistry();
-
-        Maths::Vector4 selectedColour = Maths::Vector4(0.9f);
+        glm::vec4 selectedColour = glm::vec4(0.9f);
         if(m_Settings.m_DebugDrawFlags & EditorDebugFlags::MeshBoundingBoxes)
         {
             auto group = registry.group<Graphics::ModelComponent>(entt::get<Maths::Transform>);
@@ -1482,7 +1475,22 @@ namespace Lumos
                 {
                     auto& worldTransform = trans.GetWorldMatrix();
 
-                    auto bb = Maths::BoundingBox(Maths::Rect(sprite.GetPosition(), sprite.GetPosition() + sprite.GetScale()));
+                    auto bb = BoundingBox(Rect(sprite.GetPosition(), sprite.GetScale()));
+                    bb.Transform(trans.GetWorldMatrix());
+                    DebugRenderer::DebugDraw(bb, selectedColour, true);
+                }
+            }
+
+            auto animGroup = registry.group<Graphics::AnimatedSprite>(entt::get<Maths::Transform>);
+
+            for(auto entity : animGroup)
+            {
+                const auto& [sprite, trans] = animGroup.get<Graphics::AnimatedSprite, Maths::Transform>(entity);
+
+                {
+                    auto& worldTransform = trans.GetWorldMatrix();
+
+                    auto bb = BoundingBox(Rect(sprite.GetPosition(), sprite.GetScale()));
                     bb.Transform(trans.GetWorldMatrix());
                     DebugRenderer::DebugDraw(bb, selectedColour, true);
                 }
@@ -1498,7 +1506,7 @@ namespace Lumos
                 const auto& [camera, trans] = cameraGroup.get<Camera, Maths::Transform>(entity);
 
                 {
-                    DebugRenderer::DebugDraw(camera.GetFrustum(trans.GetWorldMatrix().Inverse()), Maths::Vector4(0.9f));
+                    DebugRenderer::DebugDraw(camera.GetFrustum(glm::inverse(trans.GetWorldMatrix())), glm::vec4(0.9f));
                 }
             }
         }
@@ -1528,8 +1536,8 @@ namespace Lumos
                 {
                     auto& worldTransform = transform->GetWorldMatrix();
 
-                    auto bb = Maths::BoundingBox(
-                        Maths::Rect(sprite->GetPosition(), sprite->GetPosition() + sprite->GetScale()));
+                    auto bb = BoundingBox(
+                        Rect(sprite->GetPosition(), sprite->GetPosition() + sprite->GetScale()));
                     bb.Transform(worldTransform);
                     DebugRenderer::DebugDraw(bb, selectedColour, true);
                 }
@@ -1541,7 +1549,7 @@ namespace Lumos
                 {
                     auto& worldTransform = transform->GetWorldMatrix();
 
-                    auto bb = Maths::BoundingBox(Maths::Rect(animSprite->GetPosition(), animSprite->GetPosition() + animSprite->GetScale()));
+                    auto bb = BoundingBox(Rect(animSprite->GetPosition(), animSprite->GetPosition() + animSprite->GetScale()));
                     bb.Transform(worldTransform);
                     DebugRenderer::DebugDraw(bb, selectedColour, true);
                 }
@@ -1550,19 +1558,19 @@ namespace Lumos
             auto camera = registry.try_get<Camera>(m_SelectedEntity);
             if(camera && transform)
             {
-                DebugRenderer::DebugDraw(camera->GetFrustum(transform->GetWorldMatrix().Inverse()), Maths::Vector4(0.9f));
+                DebugRenderer::DebugDraw(camera->GetFrustum(glm::inverse(transform->GetWorldMatrix())), glm::vec4(0.9f));
             }
 
             auto light = registry.try_get<Graphics::Light>(m_SelectedEntity);
             if(light && transform)
             {
-                DebugRenderer::DebugDraw(light, transform->GetWorldOrientation(), Maths::Vector4(light->Colour.ToVector3(), 0.2f));
+                DebugRenderer::DebugDraw(light, transform->GetWorldOrientation(), glm::vec4(glm::vec3(light->Colour), 0.2f));
             }
 
             auto sound = registry.try_get<SoundComponent>(m_SelectedEntity);
             if(sound)
             {
-                DebugRenderer::DebugDraw(sound->GetSoundNode(), Maths::Vector4(0.8f, 0.8f, 0.8f, 0.2f));
+                DebugRenderer::DebugDraw(sound->GetSoundNode(), glm::vec4(0.8f, 0.8f, 0.8f, 0.2f));
             }
 
             auto phys3D = registry.try_get<RigidBody3DComponent>(m_SelectedEntity);
@@ -1575,7 +1583,7 @@ namespace Lumos
         }
     }
 
-    void Editor::SelectObject(const Maths::Ray& ray)
+    void Editor::SelectObject(const Ray& ray)
     {
         LUMOS_PROFILE_FUNCTION();
         auto& registry = Application::Get().GetSceneManager()->GetCurrentScene()->GetRegistry();
@@ -1600,13 +1608,14 @@ namespace Lumos
                     auto& worldTransform = trans.GetWorldMatrix();
 
                     auto bbCopy = mesh->GetBoundingBox()->Transformed(worldTransform);
-                    float dist = ray.HitDistance(bbCopy);
-
-                    if(dist < Maths::M_INFINITY)
+                    float distance;
+                    ray.Intersects(bbCopy, distance);
+                    
+                    if(distance < Maths::M_INFINITY)
                     {
-                        if(dist < closestEntityDist)
+                        if(distance < closestEntityDist)
                         {
-                            closestEntityDist = dist;
+                            closestEntityDist = distance;
                             currentClosestEntity = entity;
                         }
                     }
@@ -1624,7 +1633,7 @@ namespace Lumos
                     auto& model = registry.get<Graphics::ModelComponent>(m_SelectedEntity);
                     auto bb = model.ModelRef->GetMeshes().front()->GetBoundingBox()->Transformed(trans.GetWorldMatrix());
 
-                    FocusCamera(trans.GetWorldPosition(), (bb.max_ - bb.min_).Length());
+                    FocusCamera(trans.GetWorldPosition(), glm::distance(bb.Max(), bb.Min()));
                 }
                 else
                 {
@@ -1644,15 +1653,16 @@ namespace Lumos
             const auto& [sprite, trans] = spriteGroup.get<Graphics::Sprite, Maths::Transform>(entity);
 
             auto& worldTransform = trans.GetWorldMatrix();
-            auto bb = Maths::BoundingBox(Maths::Rect(sprite.GetPosition(), sprite.GetPosition() + sprite.GetScale()));
+            auto bb = BoundingBox(Rect(sprite.GetPosition(), sprite.GetPosition() + sprite.GetScale()));
             bb.Transform(trans.GetWorldMatrix());
-            float dist = ray.HitDistance(bb);
-
-            if(dist < Maths::M_INFINITY)
+    
+			float distance;
+			ray.Intersects(bb, distance);
+            if(distance < Maths::M_INFINITY)
             {
-                if(dist < closestEntityDist)
+                if(distance < closestEntityDist)
                 {
-                    closestEntityDist = dist;
+                    closestEntityDist = distance;
                     currentClosestEntity = entity;
                 }
             }
@@ -1665,9 +1675,9 @@ namespace Lumos
             const auto& [sprite, trans] = animSpriteGroup.get<Graphics::AnimatedSprite, Maths::Transform>(entity);
 
             auto& worldTransform = trans.GetWorldMatrix();
-            auto bb = Maths::BoundingBox(Maths::Rect(sprite.GetPosition(), sprite.GetPosition() + sprite.GetScale()));
+            auto bb = BoundingBox(Rect(sprite.GetPosition(), sprite.GetPosition() + sprite.GetScale()));
             bb.Transform(trans.GetWorldMatrix());
-            float dist = ray.HitDistance(bb);
+            float dist = 0.0f;// ray.HitDistance(bb);
 
             if(dist < Maths::M_INFINITY)
             {
@@ -1685,9 +1695,9 @@ namespace Lumos
             {
                 auto& trans = registry.get<Maths::Transform>(m_SelectedEntity);
                 auto& sprite = registry.get<Graphics::Sprite>(m_SelectedEntity);
-                auto bb = Maths::BoundingBox(Maths::Rect(sprite.GetPosition(), sprite.GetPosition() + sprite.GetScale()));
+                auto bb = BoundingBox(Rect(sprite.GetPosition(), sprite.GetPosition() + sprite.GetScale()));
 
-                FocusCamera(trans.GetWorldPosition(), (bb.max_ - bb.min_).Length());
+                FocusCamera(trans.GetWorldPosition(), glm::distance(bb.Max(),bb.Min()));
             }
         }
 
@@ -1752,7 +1762,7 @@ namespace Lumos
         LUMOS_PROFILE_FUNCTION();
         ImGui::Begin("Preview");
         if(m_PreviewTexture)
-            ImGuiHelpers::Image(m_PreviewTexture.get(), { 200, 200 });
+            ImGuiUtilities::Image(m_PreviewTexture.get(), { 200, 200 });
         ImGui::End();
     }
 
@@ -1794,15 +1804,13 @@ namespace Lumos
             //m_PreviewRenderer->SetRenderTarget(m_PreviewTexture.get(), true);
         }
 
-        Maths::Matrix4 proj = Maths::Matrix4::Perspective(0.1f, 10.0f, 200.0f / 200.0f, 60.0f);
-        Maths::Matrix4 view = Maths::Matrix4(Maths::Vector3(0.0f, 0.0f, 3.0f),
-            Maths::Quaternion::EulerAnglesToQuaternion(0.0f, 0.0f, 0.0f),
-            Maths::Vector3(1.0f))
-                                  .Inverse();
+        glm::mat4 proj = glm::perspective(0.1f, 10.0f, 200.0f / 200.0f, 60.0f);
+        glm::mat4 view = glm::inverse(Maths::Mat4FromTRS(glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f, 0.0f, 0.0f),
+            glm::vec3(1.0f)));
 
         //        m_PreviewRenderer->Begin();
         //        //m_PreviewRenderer->BeginScene(proj, view);
-        //        m_PreviewRenderer->SubmitMesh(m_PreviewSphere.get(), nullptr, Maths::Matrix4(), Maths::Matrix4());
+        //        m_PreviewRenderer->SubmitMesh(m_PreviewSphere.get(), nullptr, glm::mat4(1.0f), glm::mat4(1.0f));
         //        m_PreviewRenderer->Present();
         //        m_PreviewRenderer->End();
     }
@@ -1827,7 +1835,7 @@ namespace Lumos
             auto soundNode = SharedPtr<SoundNode>(SoundNode::Create());
             soundNode->SetSound(sound);
             soundNode->SetVolume(1.0f);
-            soundNode->SetPosition(Maths::Vector3(0.1f, 10.0f, 10.0f));
+            soundNode->SetPosition(glm::vec3(0.1f, 10.0f, 10.0f));
             soundNode->SetLooping(true);
             soundNode->SetIsGlobal(false);
             soundNode->SetPaused(false);
@@ -1930,7 +1938,7 @@ namespace Lumos
         m_Settings.m_SnapAmount = m_IniFile.GetOrDefault("SnapAmount", m_Settings.m_SnapAmount);
         m_Settings.m_SnapQuizmo = m_IniFile.GetOrDefault("SnapQuizmo", m_Settings.m_SnapQuizmo);
         m_Settings.m_DebugDrawFlags = m_IniFile.GetOrDefault("DebugDrawFlags", m_Settings.m_DebugDrawFlags);
-        m_Settings.m_Theme = ImGuiHelpers::Theme(m_IniFile.GetOrDefault("Theme", (int)m_Settings.m_Theme));
+        m_Settings.m_Theme = ImGuiUtilities::Theme(m_IniFile.GetOrDefault("Theme", (int)m_Settings.m_Theme));
 
         m_ProjectSettings.m_ProjectRoot = m_IniFile.GetOrDefault("ProjectRoot", std::string("Users/jmorton/dev/Lumos/ExampleProject/"));
         m_ProjectSettings.m_ProjectName = m_IniFile.GetOrDefault("ProjectName", std::string("Example"));
@@ -2014,14 +2022,16 @@ namespace Lumos
             LUMOS_LOG_WARN("Failed to load shader : {0}", shaderPath);
             return;
         }
+        auto shaderPath2 = shaderPath;
+        shaderPath2 = StringUtilities::BackSlashesToSlashes(shaderPath2);
 
-        std::string shaderName = StringUtilities::GetFileName(shaderPath);
+        std::string shaderName = StringUtilities::GetFileName(shaderPath2);
         shaderName = StringUtilities::RemoveFilePathExtension(shaderName);
         shaderName = StringUtilities::RemoveSpaces(shaderName);
         shaderName = StringUtilities::RemoveCharacter(shaderName, '.');
         shaderName = StringUtilities::RemoveCharacter(shaderName, '_');
 
-        std::string extension = StringUtilities::GetFilePathExtension(shaderPath);
+        std::string extension = StringUtilities::GetFilePathExtension(shaderPath2);
         shaderName = shaderName + extension;
 
         std::stringstream ss;
@@ -2052,7 +2062,8 @@ namespace Lumos
 
         ss << "\n    };";
 
-        std::string folder = StringUtilities::GetFileLocation(shaderPath);
-        FileSystem::WriteTextFile(folder + "/Headers/" + shaderName + ".hpp", ss.str());
+        std::string folder = StringUtilities::GetFileLocation(shaderPath2);
+        shaderName = StringUtilities::BackSlashesToSlashes(shaderName);
+        FileSystem::WriteTextFile(folder + "Headers/" + shaderName + ".hpp", ss.str());
     }
 }

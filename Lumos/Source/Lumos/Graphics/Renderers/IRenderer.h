@@ -36,7 +36,7 @@ namespace Lumos
             virtual void Begin() = 0;
             virtual void BeginScene(Scene* scene, Camera* overrideCamera, Maths::Transform* overrideCameraTransform) = 0;
             virtual void Submit(const RenderCommand& command) {};
-            virtual void SubmitMesh(Mesh* mesh, Material* material, const Maths::Matrix4& transform, const Maths::Matrix4& textureMatrix) {};
+            virtual void SubmitMesh(Mesh* mesh, Material* material, const glm::mat4& transform, const glm::mat4& textureMatrix) {};
             virtual void EndScene() = 0;
             virtual void End() = 0;
             virtual void Present() = 0;
@@ -108,8 +108,8 @@ namespace Lumos
             Texture* m_RenderTexture = nullptr;
             Texture* m_DepthTexture = nullptr;
 
-            Maths::Frustum m_Frustum;
-            Maths::Vector4 m_ClearColour;
+            Frustum m_Frustum;
+            glm::vec4 m_ClearColour;
 
             int m_RenderPriority = 0;
             bool m_ScreenRenderer = true;

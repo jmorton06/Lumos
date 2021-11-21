@@ -1,6 +1,6 @@
 #include "ConsolePanel.h"
 #include <Lumos/ImGui/IconsMaterialDesignIcons.h>
-#include <Lumos/ImGui/ImGuiHelpers.h>
+#include <Lumos/ImGui/ImGuiUtilities.h>
 #include <Lumos/Core/Profiler.h>
 
 namespace Lumos
@@ -94,7 +94,7 @@ namespace Lumos
 
         // Button for advanced settings
         {
-            ImGuiHelpers::ScopedColour buttonColour(ImGuiCol_Button, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
+            ImGuiUtilities::ScopedColour buttonColour(ImGuiCol_Button, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
             if(ImGui::Button(ICON_MDI_COGS))
                 ImGui::OpenPopup("SettingsPopup");
         }
@@ -120,18 +120,18 @@ namespace Lumos
         float levelButtonWidths = (levelButtonWidth + ImGui::GetStyle().ItemSpacing.x) * 6;
 
         {
-            ImGuiHelpers::ScopedFont boldFont(ImGui::GetIO().Fonts->Fonts[1]);
-            ImGuiHelpers::ScopedStyle frameBorder(ImGuiStyleVar_FrameBorderSize, 0.0f);
-            ImGuiHelpers::ScopedColour frameColour(ImGuiCol_FrameBg, IM_COL32(0, 0, 0, 0));
+            ImGuiUtilities::ScopedFont boldFont(ImGui::GetIO().Fonts->Fonts[1]);
+            ImGuiUtilities::ScopedStyle frameBorder(ImGuiStyleVar_FrameBorderSize, 0.0f);
+            ImGuiUtilities::ScopedColour frameColour(ImGuiCol_FrameBg, IM_COL32(0, 0, 0, 0));
             Filter.Draw("###ConsoleFilter", ImGui::GetContentRegionAvail().x - (levelButtonWidths));
-            ImGuiHelpers::DrawItemActivityOutline(2.0f, false);
+            ImGuiUtilities::DrawItemActivityOutline(2.0f, false);
         }
 
         ImGui::SameLine(); //ImGui::GetWindowWidth() - levelButtonWidths);
 
         for(int i = 0; i < 6; i++)
         {
-            ImGuiHelpers::ScopedColour buttonColour(ImGuiCol_Button, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
+            ImGuiUtilities::ScopedColour buttonColour(ImGuiCol_Button, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
             ImGui::SameLine();
             auto level = Message::Level(Maths::Pow(2, i));
 
@@ -158,9 +158,9 @@ namespace Lumos
         if(!Filter.IsActive())
         {
             ImGui::SameLine();
-            ImGuiHelpers::ScopedFont boldFont(ImGui::GetIO().Fonts->Fonts[1]);
+            ImGuiUtilities::ScopedFont boldFont(ImGui::GetIO().Fonts->Fonts[1]);
             ImGui::SetCursorPosX(ImGui::GetFontSize() * 4.0f);
-            ImGuiHelpers::ScopedStyle padding(ImGuiStyleVar_FramePadding, ImVec2(0.0f, ImGui::GetStyle().FramePadding.y));
+            ImGuiUtilities::ScopedStyle padding(ImGuiStyleVar_FramePadding, ImVec2(0.0f, ImGui::GetStyle().FramePadding.y));
             ImGui::TextUnformatted("Search...");
         }
     }
@@ -212,7 +212,7 @@ namespace Lumos
 
             if(s_RequestScrollToBottom && ImGui::GetScrollMaxY() > 0)
             {
-                ImGui::SetScrollY(ImGui::GetScrollMaxY());
+                ImGui::SetScrollHereY(1.0f);
                 s_RequestScrollToBottom = false;
             }
         }
@@ -233,7 +233,7 @@ namespace Lumos
         LUMOS_PROFILE_FUNCTION();
         if(s_MessageBufferRenderFilter & m_Level)
         {
-            ImGuiHelpers::ScopedID((int)m_MessageID);
+            ImGuiUtilities::ScopedID((int)m_MessageID);
             ImGui::PushStyleColor(ImGuiCol_Text, GetRenderColour(m_Level));
             auto levelIcon = GetLevelIcon(m_Level);
             ImGui::TextUnformatted(levelIcon);
@@ -305,7 +305,7 @@ namespace Lumos
         }
     }
 
-    Maths::Colour ConsolePanel::Message::GetRenderColour(Level level)
+    glm::vec4 ConsolePanel::Message::GetRenderColour(Level level)
     {
         switch(level)
         {

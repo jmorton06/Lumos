@@ -109,6 +109,11 @@ namespace Lumos
         m_ProjectSettings.ShowConsole = false;
         m_ProjectSettings.Fullscreen = false;
         m_ProjectSettings.m_EngineAssetPath = "/Users/jmorton/dev/Lumos/Lumos/Assets/";
+
+#ifdef LUMOS_PLATFORM_WINDOWS
+		m_ProjectSettings.m_EngineAssetPath = "C:/dev/gitea/Lumos/Lumos/Assets/";
+#endif
+
         VFS::Get().Mount("CoreShaders", m_ProjectSettings.m_EngineAssetPath + std::string("Shaders"));
 
         if(!FileSystem::FolderExists(m_ProjectSettings.m_ProjectRoot + "Assets"))
@@ -280,11 +285,11 @@ namespace Lumos
         m_Window.reset();
     }
 
-    Maths::Vector2 Application::GetWindowSize() const
+    glm::vec2 Application::GetWindowSize() const
     {
         if(!m_Window)
-            return Maths::Vector2(0.0f, 0.0f);
-        return Maths::Vector2(static_cast<float>(m_Window->GetWidth()), static_cast<float>(m_Window->GetHeight()));
+            return glm::vec2(0.0f, 0.0f);
+        return glm::vec2(static_cast<float>(m_Window->GetWidth()), static_cast<float>(m_Window->GetHeight()));
     }
 
     float Application::GetWindowDPI() const
@@ -344,6 +349,8 @@ namespace Lumos
             m_Updates++;
         }
 
+        std::thread updateThread = std::thread(Application::UpdateSystems);
+
         if(!m_Minimized)
         {
             LUMOS_PROFILE_SCOPE("Application::Render");
@@ -375,6 +382,14 @@ namespace Lumos
             LUMOS_PROFILE_SCOPE("Application::WindowUpdate");
             m_Window->UpdateCursorImGui();
             m_Window->OnUpdate();
+        }
+
+        {
+            LUMOS_PROFILE_SCOPE("Wait System update");
+            updateThread.join();
+
+            m_SystemManager->GetSystem<LumosPhysicsEngine>()->SyncTransforms(m_SceneManager->GetCurrentScene());
+            m_SystemManager->GetSystem<B2PhysicsEngine>()->SyncTransforms(m_SceneManager->GetCurrentScene());
         }
 
         if(now - m_SecondTimer > 1.0f)
@@ -417,14 +432,8 @@ namespace Lumos
         if(Application::Get().GetEditorState() != EditorState::Paused
             && Application::Get().GetEditorState() != EditorState::Preview)
         {
-            m_SystemManager->OnUpdate(dt, m_SceneManager->GetCurrentScene());
             LuaManager::Get().OnUpdate(m_SceneManager->GetCurrentScene());
-            m_SceneManager->GetCurrentScene()->OnUpdate(dt);
-        }
-
-        if(!m_Minimized)
-        {
-            m_RenderGraph->OnUpdate(dt, m_SceneManager->GetCurrentScene());
+            m_SceneManager->GetCurrentScene()->OnUpdate(Engine::GetTimeStep());
         }
         m_ImGuiManager->OnUpdate(dt, m_SceneManager->GetCurrentScene());
     }
@@ -509,6 +518,18 @@ namespace Lumos
     {
         LUMOS_PROFILE_FUNCTION();
         m_SceneManager->GetCurrentScene()->OnImGui();
+    }
+
+    void Application::UpdateSystems()
+    {
+        LUMOS_PROFILE_SETTHREADNAME("Update Thread");
+
+        if(Application::Get().GetEditorState() != EditorState::Paused
+            && Application::Get().GetEditorState() != EditorState::Preview)
+        {
+            auto scene = Application::Get().GetSceneManager()->GetCurrentScene();
+            Application::Get().GetSystemManager()->OnUpdate(Engine::GetTimeStep(), scene);
+        }
     }
 
     void Application::OnSceneViewSizeUpdated(uint32_t width, uint32_t height)

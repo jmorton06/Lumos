@@ -13,7 +13,7 @@ namespace Lumos
     {
     }
 
-    void Hull::AddVertex(const Maths::Vector3& v)
+    void Hull::AddVertex(const glm::vec3& v)
     {
         HullVertex new_vertex;
         new_vertex.idx = static_cast<int>(m_Vertices.size());
@@ -75,12 +75,12 @@ namespace Lumos
         return out_idx;
     }
 
-    void Hull::AddFace(const Maths::Vector3& normal, int nVerts, const int* verts)
+    void Hull::AddFace(const glm::vec3& normal, int nVerts, const int* verts)
     {
         HullFace new_face;
         new_face.idx = (int)m_Faces.size();
         new_face.normal = normal;
-        new_face.normal.Normalise();
+        new_face.normal = glm::normalize(new_face.normal);
 
         m_Faces.push_back(new_face);
         HullFace* new_face_ptr = &m_Faces[new_face.idx];
@@ -133,7 +133,7 @@ namespace Lumos
         }
     }
 
-    void Hull::GetMinMaxVerticesInAxis(const Maths::Vector3& local_axis, int* out_min_vert, int* out_max_vert)
+    void Hull::GetMinMaxVerticesInAxis(const glm::vec3& local_axis, int* out_min_vert, int* out_max_vert)
     {
         LUMOS_PROFILE_FUNCTION();
         int minVertex = 0, maxVertex = 0;
@@ -142,18 +142,18 @@ namespace Lumos
 
         for(size_t i = 0; i < m_Vertices.size(); ++i)
         {
-            const float cCorrelation = Maths::Vector3::Dot(local_axis, m_Vertices[i].pos);
+            const float cCorrelation = glm::dot(local_axis, m_Vertices[i].pos);
 
             if(cCorrelation > maxCorrelation)
             {
                 maxCorrelation = cCorrelation;
-                maxVertex = static_cast<int>(i);
+                maxVertex = int(i);
             }
 
             if(cCorrelation <= minCorrelation)
             {
                 minCorrelation = cCorrelation;
-                minVertex = static_cast<int>(i);
+                minVertex = int(i);
             }
         }
 
@@ -163,7 +163,7 @@ namespace Lumos
             *out_max_vert = maxVertex;
     }
 
-    void Hull::DebugDraw(const Maths::Matrix4& transform)
+    void Hull::DebugDraw(const glm::mat4& transform)
     {
         //Draw all Hull Polygons
         for(HullFace& face : m_Faces)
@@ -171,14 +171,14 @@ namespace Lumos
             //Render Polygon as triangle fan
             if(face.vert_ids.size() > 2)
             {
-                Maths::Vector3 polygon_start = transform * m_Vertices[face.vert_ids[0]].pos;
-                Maths::Vector3 polygon_last = transform * m_Vertices[face.vert_ids[1]].pos;
+                glm::vec3 polygon_start = transform * glm::vec4(m_Vertices[face.vert_ids[0]].pos, 1.0f);
+                glm::vec3 polygon_last = transform * glm::vec4(m_Vertices[face.vert_ids[1]].pos, 1.0f);
 
                 for(size_t idx = 2; idx < face.vert_ids.size(); ++idx)
                 {
-                    Maths::Vector3 polygon_next = transform * m_Vertices[face.vert_ids[idx]].pos;
+                    glm::vec3 polygon_next = transform * glm::vec4(m_Vertices[face.vert_ids[idx]].pos, 1.0f);
 
-                    DebugRenderer::DrawTriangle(polygon_start, polygon_last, polygon_next, Maths::Vector4(0.9f, 0.9f, 0.9f, 0.2f));
+                    DebugRenderer::DrawTriangle(polygon_start, polygon_last, polygon_next, glm::vec4(0.9f, 0.9f, 0.9f, 0.2f));
                     polygon_last = polygon_next;
                 }
             }
@@ -187,7 +187,7 @@ namespace Lumos
         //Draw all Hull Edges
         for(HullEdge& edge : m_Edges)
         {
-            DebugRenderer::DrawThickLine(transform * m_Vertices[edge.vStart].pos, transform * m_Vertices[edge.vEnd].pos, 0.02f, Maths::Vector4(0.7f, 0.2f, 0.7f, 1.0f));
+            DebugRenderer::DrawThickLine(transform * glm::vec4(m_Vertices[edge.vStart].pos, 1.0f), transform * glm::vec4(m_Vertices[edge.vEnd].pos, 1.0f), 0.02f, glm::vec4(0.7f, 0.2f, 0.7f, 1.0f));
         }
     }
 }

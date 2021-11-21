@@ -1,234 +1,240 @@
 #include "Precompiled.h"
 #include "Maths/Frustum.h"
+#include "Maths/BoundingBox.h"
+#include "Maths/BoundingSphere.h"
+#include "Maths/Rect.h"
+#include "Maths/Ray.h"
 
-namespace Lumos::Maths
+#include <glm/gtc/matrix_transform.hpp>
+
+namespace Lumos
 {
-    inline Vector3 ClipEdgeZ(const Vector3& v0, const Vector3& v1, float clipZ)
+    Frustum::Frustum()
     {
-        LUMOS_PROFILE_FUNCTION();
-        return Vector3(
-            v1.x + (v0.x - v1.x) * ((clipZ - v1.z) / (v0.z - v1.z)),
-            v1.y + (v0.y - v1.y) * ((clipZ - v1.z) / (v0.z - v1.z)),
-            clipZ);
+        Define(glm::mat4(1.0f));
     }
 
-    void ProjectAndMergeEdge(Vector3 v0, Vector3 v1, Rect& rect, const Matrix4& projection)
+    Frustum::Frustum(const glm::mat4& transform)
     {
-        LUMOS_PROFILE_FUNCTION();
-        // Check if both vertices behind near plane
-        if(v0.z < M_MIN_NEARCLIP && v1.z < M_MIN_NEARCLIP)
-            return;
-
-        // Check if need to clip one of the vertices
-        if(v1.z < M_MIN_NEARCLIP)
-            v1 = ClipEdgeZ(v1, v0, M_MIN_NEARCLIP);
-        else if(v0.z < M_MIN_NEARCLIP)
-            v0 = ClipEdgeZ(v0, v1, M_MIN_NEARCLIP);
-
-        // Project, perspective divide and merge
-        Vector3 tV0(projection * v0);
-        Vector3 tV1(projection * v1);
-        rect.Merge(Vector2(tV0.x, tV0.y));
-        rect.Merge(Vector2(tV1.x, tV1.y));
+        Define(transform);
     }
 
-    Frustum::Frustum(const Frustum& frustum) noexcept
+    Frustum::Frustum(const glm::mat4& projection, const glm::mat4& view)
     {
-        *this = frustum;
+        glm::mat4 m = projection * view;
+        Define(m);
     }
 
-    Frustum& Frustum::operator=(const Frustum& rhs) noexcept
+    Frustum::~Frustum()
     {
-        LUMOS_PROFILE_FUNCTION();
-        for(unsigned i = 0; i < NUM_FRUSTUM_PLANES; ++i)
-            planes_[i] = rhs.planes_[i];
-        for(unsigned i = 0; i < NUM_FRUSTUM_VERTICES; ++i)
-            vertices_[i] = rhs.vertices_[i];
-
-        return *this;
     }
 
-    void Frustum::Define(float fov, float aspectRatio, float zoom, float nearZ, float farZ, const Matrix4& transform)
+    void Frustum::Define(const glm::mat4& projection, const glm::mat4& view)
     {
-        LUMOS_PROFILE_FUNCTION();
-        nearZ = Max(nearZ, 0.0f);
-        farZ = Max(farZ, nearZ);
-        float halfViewSize = tanf(fov * M_DEGTORAD_2) / zoom;
-        Vector3 lNear, lFar;
-
-        lNear.z = nearZ;
-        lNear.y = lNear.z * halfViewSize;
-        lNear.x = lNear.y * aspectRatio;
-        lFar.z = farZ;
-        lFar.y = lFar.z * halfViewSize;
-        lFar.x = lFar.y * aspectRatio;
-
-        Define(lNear, lFar, transform);
+		LUMOS_PROFILE_FUNCTION();
+        glm::mat4 m = projection * view;
+        Define(m);
     }
 
-    void Frustum::Define(const Vector3& lNear, const Vector3& lFar, const Matrix4& transform)
+    void Frustum::Transform(const glm::mat4& transform)
     {
-        LUMOS_PROFILE_FUNCTION();
-        vertices_[0] = transform * lNear;
-        vertices_[1] = transform * Vector3(lNear.x, -lNear.y, lNear.z);
-        vertices_[2] = transform * Vector3(-lNear.x, -lNear.y, lNear.z);
-        vertices_[3] = transform * Vector3(-lNear.x, lNear.y, lNear.z);
-        vertices_[4] = transform * lFar;
-        vertices_[5] = transform * Vector3(lFar.x, -lFar.y, lFar.z);
-        vertices_[6] = transform * Vector3(-lFar.x, -lFar.y, lFar.z);
-        vertices_[7] = transform * Vector3(-lFar.x, lFar.y, lFar.z);
-
-        UpdatePlanes();
-    }
-
-    void Frustum::Define(const BoundingBox& box, const Matrix4& transform)
-    {
-        LUMOS_PROFILE_FUNCTION();
-        vertices_[0] = transform * Vector3(box.max_.x, box.max_.y, box.min_.z);
-        vertices_[1] = transform * Vector3(box.max_.x, box.min_.y, box.min_.z);
-        vertices_[2] = transform * Vector3(box.min_.x, box.min_.y, box.min_.z);
-        vertices_[3] = transform * Vector3(box.min_.x, box.max_.y, box.min_.z);
-        vertices_[4] = transform * Vector3(box.max_.x, box.max_.y, box.max_.z);
-        vertices_[5] = transform * Vector3(box.max_.x, box.min_.y, box.max_.z);
-        vertices_[6] = transform * Vector3(box.min_.x, box.min_.y, box.max_.z);
-        vertices_[7] = transform * Vector3(box.min_.x, box.max_.y, box.max_.z);
-
-        UpdatePlanes();
-    }
-
-    void Frustum::Define(const Matrix4& projection)
-    {
-        LUMOS_PROFILE_FUNCTION();
-        Matrix4 projInverse = projection.Inverse();
-
-        bool zeroOne = Matrix4::IsDepthZeroOne();
-
-        vertices_[0] = projInverse * Vector3(1.0f, 1.0f, zeroOne ? 0.0f : -1.0f);
-        vertices_[1] = projInverse * Vector3(1.0f, -1.0f, zeroOne ? 0.0f : -1.0f);
-        vertices_[2] = projInverse * Vector3(-1.0f, -1.0f, zeroOne ? 0.0f : -1.0f);
-        vertices_[3] = projInverse * Vector3(-1.0f, 1.0f, zeroOne ? 0.0f : -1.0f);
-        vertices_[4] = projInverse * Vector3(1.0f, 1.0f, 1.0f);
-        vertices_[5] = projInverse * Vector3(1.0f, -1.0f, 1.0f);
-        vertices_[6] = projInverse * Vector3(-1.0f, -1.0f, 1.0f);
-        vertices_[7] = projInverse * Vector3(-1.0f, 1.0f, 1.0f);
-
-        UpdatePlanes();
-    }
-
-    void Frustum::DefineOrtho(float orthoSize, float aspectRatio, float zoom, float nearZ, float farZ, const Matrix4& transform)
-    {
-        LUMOS_PROFILE_FUNCTION();
-        nearZ = Max(nearZ, 0.0f);
-        farZ = Max(farZ, nearZ);
-        float halfViewSize = orthoSize * 0.5f / zoom;
-        Vector3 lNear, lFar;
-
-        lNear.z = nearZ;
-        lFar.z = farZ;
-        lFar.y = lNear.y = halfViewSize;
-        lFar.x = lNear.x = lNear.y * aspectRatio;
-
-        Define(lNear, lFar, transform);
-    }
-
-    void Frustum::DefineSplit(const Matrix4& projection, float lNear, float lFar)
-    {
-        LUMOS_PROFILE_FUNCTION();
-        Matrix4 projInverse = projection.Inverse();
-
-        // Figure out depth values for near & far
-        Vector4 nearTemp = projection * Vector4(0.0f, 0.0f, lNear, 1.0f);
-        Vector4 farTemp = projection * Vector4(0.0f, 0.0f, lFar, 1.0f);
-        float nearZ = nearTemp.z / nearTemp.w;
-        float farZ = farTemp.z / farTemp.w;
-
-        vertices_[0] = projInverse * Vector3(1.0f, 1.0f, nearZ);
-        vertices_[1] = projInverse * Vector3(1.0f, -1.0f, nearZ);
-        vertices_[2] = projInverse * Vector3(-1.0f, -1.0f, nearZ);
-        vertices_[3] = projInverse * Vector3(-1.0f, 1.0f, nearZ);
-        vertices_[4] = projInverse * Vector3(1.0f, 1.0f, farZ);
-        vertices_[5] = projInverse * Vector3(1.0f, -1.0f, farZ);
-        vertices_[6] = projInverse * Vector3(-1.0f, -1.0f, farZ);
-        vertices_[7] = projInverse * Vector3(-1.0f, 1.0f, farZ);
-
-        UpdatePlanes();
-    }
-
-    void Frustum::Transform(const Matrix3& transform)
-    {
-        LUMOS_PROFILE_FUNCTION();
-        for(auto& vertice : vertices_)
-            vertice = transform * vertice;
-
-        UpdatePlanes();
-    }
-
-    void Frustum::Transform(const Matrix4& transform)
-    {
-        LUMOS_PROFILE_FUNCTION();
-        for(auto& vertice : vertices_)
-            vertice = transform * vertice;
-
-        UpdatePlanes();
-    }
-
-    Frustum Frustum::Transformed(const Matrix3& transform) const
-    {
-        LUMOS_PROFILE_FUNCTION();
-        Frustum transformed;
-        for(unsigned i = 0; i < NUM_FRUSTUM_VERTICES; ++i)
-            transformed.vertices_[i] = transform * vertices_[i];
-
-        transformed.UpdatePlanes();
-        return transformed;
-    }
-
-    Frustum Frustum::Transformed(const Matrix4& transform) const
-    {
-        LUMOS_PROFILE_FUNCTION();
-        Frustum transformed;
-        for(unsigned i = 0; i < NUM_FRUSTUM_VERTICES; ++i)
-            transformed.vertices_[i] = transform * vertices_[i];
-
-        transformed.UpdatePlanes();
-        return transformed;
-    }
-
-    Rect Frustum::Projected(const Matrix4& projection) const
-    {
-        LUMOS_PROFILE_FUNCTION();
-        Rect rect;
-
-        ProjectAndMergeEdge(vertices_[0], vertices_[4], rect, projection);
-        ProjectAndMergeEdge(vertices_[1], vertices_[5], rect, projection);
-        ProjectAndMergeEdge(vertices_[2], vertices_[6], rect, projection);
-        ProjectAndMergeEdge(vertices_[3], vertices_[7], rect, projection);
-        ProjectAndMergeEdge(vertices_[4], vertices_[5], rect, projection);
-        ProjectAndMergeEdge(vertices_[5], vertices_[6], rect, projection);
-        ProjectAndMergeEdge(vertices_[6], vertices_[7], rect, projection);
-        ProjectAndMergeEdge(vertices_[7], vertices_[4], rect, projection);
-
-        return rect;
-    }
-
-    void Frustum::UpdatePlanes()
-    {
-        LUMOS_PROFILE_FUNCTION();
-        planes_[PLANE_NEAR].Define(vertices_[2], vertices_[1], vertices_[0]);
-        planes_[PLANE_LEFT].Define(vertices_[3], vertices_[7], vertices_[6]);
-        planes_[PLANE_RIGHT].Define(vertices_[1], vertices_[5], vertices_[4]);
-        planes_[PLANE_UP].Define(vertices_[0], vertices_[4], vertices_[7]);
-        planes_[PLANE_DOWN].Define(vertices_[6], vertices_[5], vertices_[1]);
-        planes_[PLANE_FAR].Define(vertices_[5], vertices_[6], vertices_[7]);
-
-        // Check if we ended up with inverted planes (reflected transform) and flip in that case
-        if(planes_[PLANE_NEAR].Distance(vertices_[5]) < 0.0f)
+		LUMOS_PROFILE_FUNCTION();
+        for(int i = 0; i < 6; i++)
         {
-            for(auto& plane : planes_)
+            m_Planes[i].Transform(transform);
+        }
+
+        for(int i = 0; i < 6; i++)
+        {
+            m_Planes[i].Normalise();
+        }
+
+        CalculateVertices(transform);
+    }
+
+    void Frustum::Define(const glm::mat4& transform)
+    {
+		LUMOS_PROFILE_FUNCTION();
+        auto& m = transform;
+        m_Planes[PLANE_LEFT] = Plane(m[0][3] + m[0][0], m[1][3] + m[1][0], m[2][3] + m[2][0], m[3][3] + m[3][0]);
+        m_Planes[PLANE_RIGHT] = Plane(m[0][3] - m[0][0], m[1][3] - m[1][0], m[2][3] - m[2][0], m[3][3] - m[3][0]);
+        m_Planes[PLANE_DOWN] = Plane(m[0][3] + m[0][1], m[1][3] + m[1][1], m[2][3] + m[2][1], m[3][3] + m[3][1]);
+        m_Planes[PLANE_UP] = Plane(m[0][3] - m[0][1], m[1][3] - m[1][1], m[2][3] - m[2][1], m[3][3] - m[3][1]);
+        m_Planes[PLANE_NEAR] = Plane(m[0][3] + m[0][2], m[1][3] + m[1][2], m[2][3] + m[2][2], m[3][3] + m[3][2]);
+        m_Planes[PLANE_FAR] = Plane(m[0][3] - m[0][2], m[1][3] - m[1][2], m[2][3] - m[2][2], m[3][3] - m[3][2]);
+
+        for(int i = 0; i < 6; i++)
+        {
+            m_Planes[i].Normalise();
+        }
+
+        CalculateVertices(transform);
+    }
+
+    void Frustum::DefineOrtho(float scale, float aspectRatio, float near, float far, const glm::mat4& viewMatrix)
+    {
+		LUMOS_PROFILE_FUNCTION();
+        glm::mat4 m = glm::ortho(-scale * aspectRatio, scale * aspectRatio, -scale, scale, near, far);
+        m = m * viewMatrix;
+        Define(m);
+    }
+    void Frustum::Define(float fov, float aspectRatio, float near, float far, const glm::mat4& viewMatrix)
+    {
+		LUMOS_PROFILE_FUNCTION();
+        float tangent = tan(fov * 0.5f);
+        float height = near * tangent;
+        float width = height * aspectRatio;
+
+        glm::mat4 m = glm::frustum(-width, width, -height, height, near, far);
+        m = m * viewMatrix;
+        Define(m);
+    }
+
+    bool Frustum::IsInside(const glm::vec3& point) const
+    {
+		LUMOS_PROFILE_FUNCTION();
+        for(int i = 0; i < 6; i++)
+        {
+            if(m_Planes[i].Distance(point) < 0.0f)
             {
-                plane.normal_ = -plane.normal_;
-                plane.d_ = -plane.d_;
+                return false;
             }
+        }
+
+        return true;
+    }
+
+    bool Frustum::IsInside(const BoundingSphere& sphere) const
+    {
+		LUMOS_PROFILE_FUNCTION();
+        for(int i = 0; i < 6; i++)
+        {
+            if(m_Planes[i].Distance(sphere.GetCenter()) < -sphere.GetRadius())
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    bool Frustum::IsInside(const BoundingBox& box) const
+    {
+		LUMOS_PROFILE_FUNCTION();
+        for(int i = 0; i < 6; i++)
+        {
+            glm::vec3 p = box.Min(), n = box.Max();
+            glm::vec3 N = m_Planes[i].Normal();
+            if(N.x >= 0)
+            {
+                p.x = box.Max().x;
+                n.x = box.Min().x;
+            }
+            if(N.y >= 0)
+            {
+                p.y = box.Max().y;
+                n.y = box.Min().y;
+            }
+            if(N.z >= 0)
+            {
+                p.z = box.Max().z;
+                n.z = box.Min().z;
+            }
+
+            if(m_Planes[i].Distance(p) < 0)
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    bool Frustum::IsInside(const Rect& rect) const
+    {
+		LUMOS_PROFILE_FUNCTION();
+        for(int i = 0; i < 6; i++)
+        {
+            glm::vec3 N = m_Planes[i].Normal();
+            if(N.x >= 0)
+            {
+                if(m_Planes[i].Distance(glm::vec3(rect.GetPosition(), 0)) < 0)
+                {
+                    return false;
+                }
+            }
+            else
+            {
+                if(m_Planes[i].Distance(glm::vec3(rect.GetPosition().x + rect.GetSize().x, rect.GetPosition().y, 0)) < 0)
+                {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
+    bool Frustum::IsInside(const Ray& ray) const
+    {
+		LUMOS_PROFILE_FUNCTION();
+        for(int i = 0; i < 6; i++)
+        {
+            if(m_Planes[i].Distance(ray.Origin) < 0.0f)
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    bool Frustum::IsInside(const Plane& plane) const
+    {
+		LUMOS_PROFILE_FUNCTION();
+        for(int i = 0; i < 6; i++)
+        {
+            if(m_Planes[i].Distance(plane.Normal()) < 0.0f)
+            {
+                return false;
+            }
+        }
+        
+        return true;
+    }
+
+    const Plane& Frustum::GetPlane(FrustumPlane plane) const
+    {
+		LUMOS_PROFILE_FUNCTION();
+        return m_Planes[plane];
+    }
+
+    glm::vec3* Frustum::GetVerticies()
+    {
+		LUMOS_PROFILE_FUNCTION();
+        return m_Verticies;
+    }
+
+    void Frustum::CalculateVertices(const glm::mat4& transform)
+    {
+		LUMOS_PROFILE_FUNCTION();
+        bool zerotoOne = false;
+        bool leftHand = true;
+        glm::mat4 transformInv = glm::inverse(transform);
+        m_Verticies[0] = glm::vec4(-1.0f, -1.0f, zerotoOne ? 0.0f : -1.0f, 1.0f);
+        m_Verticies[1] = glm::vec4(1.0f, -1.0f, zerotoOne ? 0.0f : -1.0f, 1.0f);
+        m_Verticies[2] = glm::vec4(1.0f, 1.0f, zerotoOne ? 0.0f : -1.0f, 1.0f);
+        m_Verticies[3] = glm::vec4(-1.0f, 1.0f, zerotoOne ? 0.0f : -1.0f, 1.0f);
+
+        m_Verticies[4] = glm::vec4(-1.0f, -1.0f, 1.0f, 1.0f);
+        m_Verticies[5] = glm::vec4(1.0f, -1.0f, 1.0f, 1.0f);
+        m_Verticies[6] = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+        m_Verticies[7] = glm::vec4(-1.0f, 1.0f, 1.0f, 1.0f);
+
+        glm::vec4 temp;
+        for(int i = 0; i < 8; i++)
+        {
+            temp = transformInv * glm::vec4(m_Verticies[i], 1.0f);
+            m_Verticies[i] = temp / temp.w;
         }
     }
 }

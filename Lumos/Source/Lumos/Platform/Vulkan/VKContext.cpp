@@ -130,7 +130,7 @@ namespace Lumos
 
             SetupDebugCallback();
 
-            Maths::Matrix4::SetUpCoordSystem(false, true);
+            //glm::mat4::SetUpCoordSystem(false, true);
         };
 
         void VKContext::Present()

@@ -60,7 +60,7 @@ namespace Lumos
             LUMOS_PROFILE_FUNCTION();
         }
 
-        void VKRenderer::ClearRenderTarget(Graphics::Texture* texture, Graphics::CommandBuffer* commandBuffer, Maths::Vector4 clearColour)
+        void VKRenderer::ClearRenderTarget(Graphics::Texture* texture, Graphics::CommandBuffer* commandBuffer, glm::vec4 clearColour)
         {
             VkImageSubresourceRange subresourceRange = {}; //TODO: Get from texture
             subresourceRange.baseMipLevel = 0;
@@ -206,7 +206,7 @@ namespace Lumos
             renderPassDesc.attachments = attachments.data();
             renderPassDesc.clear = true;
 
-            Maths::Vector4 clearColour = Maths::Vector4(040.0f / 256.0f, 42.0f / 256.0f, 54.0f / 256.0f, 1.0f);
+            glm::vec4 clearColour = glm::vec4(040.0f / 256.0f, 42.0f / 256.0f, 54.0f / 256.0f, 1.0f);
 
             int32_t width = Application::Get().GetWindow()->GetWidth();
             int32_t height = Application::Get().GetWindow()->GetHeight();

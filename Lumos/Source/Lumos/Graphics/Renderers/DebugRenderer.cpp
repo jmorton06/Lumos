@@ -24,7 +24,8 @@
 #include "Maths/Transform.h"
 #include "Maths/Frustum.h"
 #include "Maths/BoundingBox.h"
-#include "Maths/Sphere.h"
+#include "Maths/BoundingSphere.h"
+#include "Maths/Ray.h"
 #include "Audio/SoundNode.h"
 
 namespace Lumos
@@ -70,118 +71,118 @@ namespace Lumos
     }
 
     //Draw Point (circle)
-    void DebugRenderer::GenDrawPoint(bool ndt, const Maths::Vector3& pos, float point_radius, const Maths::Vector4& colour)
+    void DebugRenderer::GenDrawPoint(bool ndt, const glm::vec3& pos, float point_radius, const glm::vec4& colour)
     {
         s_Instance->m_DebugPoints.emplace_back(pos, point_radius, colour);
     }
 
-    void DebugRenderer::DrawPoint(const Maths::Vector3& pos, float point_radius, const Maths::Vector3& colour)
+    void DebugRenderer::DrawPoint(const glm::vec3& pos, float point_radius, const glm::vec3& colour)
     {
-        GenDrawPoint(false, pos, point_radius, Maths::Vector4(colour, 1.0f));
+        GenDrawPoint(false, pos, point_radius, glm::vec4(colour, 1.0f));
     }
-    void DebugRenderer::DrawPoint(const Maths::Vector3& pos, float point_radius, const Maths::Vector4& colour)
+    void DebugRenderer::DrawPoint(const glm::vec3& pos, float point_radius, const glm::vec4& colour)
     {
         GenDrawPoint(false, pos, point_radius, colour);
     }
-    void DebugRenderer::DrawPointNDT(const Maths::Vector3& pos, float point_radius, const Maths::Vector3& colour)
+    void DebugRenderer::DrawPointNDT(const glm::vec3& pos, float point_radius, const glm::vec3& colour)
     {
-        GenDrawPoint(true, pos, point_radius, Maths::Vector4(colour, 1.0f));
+        GenDrawPoint(true, pos, point_radius, glm::vec4(colour, 1.0f));
     }
-    void DebugRenderer::DrawPointNDT(const Maths::Vector3& pos, float point_radius, const Maths::Vector4& colour)
+    void DebugRenderer::DrawPointNDT(const glm::vec3& pos, float point_radius, const glm::vec4& colour)
     {
         GenDrawPoint(true, pos, point_radius, colour);
     }
 
     //Draw Line with a given thickness
-    void DebugRenderer::GenDrawThickLine(bool ndt, const Maths::Vector3& start, const Maths::Vector3& end, float line_width, const Maths::Vector4& colour)
+    void DebugRenderer::GenDrawThickLine(bool ndt, const glm::vec3& start, const glm::vec3& end, float line_width, const glm::vec4& colour)
     {
         s_Instance->m_DebugLines.emplace_back(start, end, colour);
     }
-    void DebugRenderer::DrawThickLine(const Maths::Vector3& start, const Maths::Vector3& end, float line_width, const Maths::Vector3& colour)
+    void DebugRenderer::DrawThickLine(const glm::vec3& start, const glm::vec3& end, float line_width, const glm::vec3& colour)
     {
-        GenDrawThickLine(false, start, end, line_width, Maths::Vector4(colour, 1.0f));
+        GenDrawThickLine(false, start, end, line_width, glm::vec4(colour, 1.0f));
     }
-    void DebugRenderer::DrawThickLine(const Maths::Vector3& start, const Maths::Vector3& end, float line_width, const Maths::Vector4& colour)
+    void DebugRenderer::DrawThickLine(const glm::vec3& start, const glm::vec3& end, float line_width, const glm::vec4& colour)
     {
         GenDrawThickLine(false, start, end, line_width, colour);
     }
-    void DebugRenderer::DrawThickLineNDT(const Maths::Vector3& start, const Maths::Vector3& end, float line_width, const Maths::Vector3& colour)
+    void DebugRenderer::DrawThickLineNDT(const glm::vec3& start, const glm::vec3& end, float line_width, const glm::vec3& colour)
     {
-        GenDrawThickLine(true, start, end, line_width, Maths::Vector4(colour, 1.0f));
+        GenDrawThickLine(true, start, end, line_width, glm::vec4(colour, 1.0f));
     }
-    void DebugRenderer::DrawThickLineNDT(const Maths::Vector3& start, const Maths::Vector3& end, float line_width, const Maths::Vector4& colour)
+    void DebugRenderer::DrawThickLineNDT(const glm::vec3& start, const glm::vec3& end, float line_width, const glm::vec4& colour)
     {
         GenDrawThickLine(true, start, end, line_width, colour);
     }
 
     //Draw line with thickness of 1 screen pixel regardless of distance from camera
-    void DebugRenderer::GenDrawHairLine(bool ndt, const Maths::Vector3& start, const Maths::Vector3& end, const Maths::Vector4& colour)
+    void DebugRenderer::GenDrawHairLine(bool ndt, const glm::vec3& start, const glm::vec3& end, const glm::vec4& colour)
     {
         s_Instance->m_DebugLines.emplace_back(start, end, colour);
     }
-    void DebugRenderer::DrawHairLine(const Maths::Vector3& start, const Maths::Vector3& end, const Maths::Vector3& colour)
+    void DebugRenderer::DrawHairLine(const glm::vec3& start, const glm::vec3& end, const glm::vec3& colour)
     {
-        GenDrawHairLine(false, start, end, Maths::Vector4(colour, 1.0f));
+        GenDrawHairLine(false, start, end, glm::vec4(colour, 1.0f));
     }
-    void DebugRenderer::DrawHairLine(const Maths::Vector3& start, const Maths::Vector3& end, const Maths::Vector4& colour)
+    void DebugRenderer::DrawHairLine(const glm::vec3& start, const glm::vec3& end, const glm::vec4& colour)
     {
         GenDrawHairLine(false, start, end, colour);
     }
-    void DebugRenderer::DrawHairLineNDT(const Maths::Vector3& start, const Maths::Vector3& end, const Maths::Vector3& colour)
+    void DebugRenderer::DrawHairLineNDT(const glm::vec3& start, const glm::vec3& end, const glm::vec3& colour)
     {
-        GenDrawHairLine(true, start, end, Maths::Vector4(colour, 1.0f));
+        GenDrawHairLine(true, start, end, glm::vec4(colour, 1.0f));
     }
-    void DebugRenderer::DrawHairLineNDT(const Maths::Vector3& start, const Maths::Vector3& end, const Maths::Vector4& colour)
+    void DebugRenderer::DrawHairLineNDT(const glm::vec3& start, const glm::vec3& end, const glm::vec4& colour)
     {
         GenDrawHairLine(true, start, end, colour);
     }
 
     //Draw Matrix (x,y,z axis at pos)
-    void DebugRenderer::DrawMatrix(const Maths::Matrix4& mtx)
+    void DebugRenderer::DrawMatrix(const glm::mat4& mtx)
     {
-        //Maths::Vector3 position = mtx.Translation();
-        //GenDrawHairLine(false, position, position + Maths::Vector3(mtx[0], mtx[1], mtx[2]), Maths::Vector4(1.0f, 0.0f, 0.0f, 1.0f));
-        //GenDrawHairLine(false, position, position + Maths::Vector3(mtx[4], mtx[5], mtx[6]), Maths::Vector4(0.0f, 1.0f, 0.0f, 1.0f));
-        //GenDrawHairLine(false, position, position + Maths::Vector3(mtx[8], mtx[9], mtx[10]), Maths::Vector4(0.0f, 0.0f, 1.0f, 1.0f));
+        //glm::vec3 position = mtx[3];
+        //GenDrawHairLine(false, position, position + glm::vec3(mtx[0], mtx[1], mtx[2]), glm::vec4(1.0f, 0.0f, 0.0f, 1.0f));
+        //GenDrawHairLine(false, position, position + glm::vec3(mtx[4], mtx[5], mtx[6]), glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
+        //GenDrawHairLine(false, position, position + glm::vec3(mtx[8], mtx[9], mtx[10]), glm::vec4(0.0f, 0.0f, 1.0f, 1.0f));
     }
-    void DebugRenderer::DrawMatrix(const Maths::Matrix3& mtx, const Maths::Vector3& position)
+    void DebugRenderer::DrawMatrix(const glm::mat3& mtx, const glm::vec3& position)
     {
-        GenDrawHairLine(false, position, position + mtx.Column(0), Maths::Vector4(1.0f, 0.0f, 0.0f, 1.0f));
-        GenDrawHairLine(false, position, position + mtx.Column(1), Maths::Vector4(0.0f, 1.0f, 0.0f, 1.0f));
-        GenDrawHairLine(false, position, position + mtx.Column(2), Maths::Vector4(0.0f, 0.0f, 1.0f, 1.0f));
+        GenDrawHairLine(false, position, position + mtx[0], glm::vec4(1.0f, 0.0f, 0.0f, 1.0f));
+        GenDrawHairLine(false, position, position + mtx[1], glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
+        GenDrawHairLine(false, position, position + mtx[2], glm::vec4(0.0f, 0.0f, 1.0f, 1.0f));
     }
-    void DebugRenderer::DrawMatrixNDT(const Maths::Matrix4& mtx)
+    void DebugRenderer::DrawMatrixNDT(const glm::mat4& mtx)
     {
-        //Maths::Vector3 position = mtx.Translation();
-        //GenDrawHairLine(true, position, position + Maths::Vector3(mtx[0], mtx[1], mtx[2]), Maths::Vector4(1.0f, 0.0f, 0.0f, 1.0f));
-        //GenDrawHairLine(true, position, position + Maths::Vector3(mtx[4], mtx[5], mtx[6]), Maths::Vector4(0.0f, 1.0f, 0.0f, 1.0f));
-        //GenDrawHairLine(true, position, position + Maths::Vector3(mtx[8], mtx[9], mtx[10]), Maths::Vector4(0.0f, 0.0f, 1.0f, 1.0f));
+        //glm::vec3 position = mtx[3];
+        //GenDrawHairLine(true, position, position + glm::vec3(mtx[0], mtx[1], mtx[2]), glm::vec4(1.0f, 0.0f, 0.0f, 1.0f));
+        //GenDrawHairLine(true, position, position + glm::vec3(mtx[4], mtx[5], mtx[6]), glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
+        //GenDrawHairLine(true, position, position + glm::vec3(mtx[8], mtx[9], mtx[10]), glm::vec4(0.0f, 0.0f, 1.0f, 1.0f));
     }
-    void DebugRenderer::DrawMatrixNDT(const Maths::Matrix3& mtx, const Maths::Vector3& position)
+    void DebugRenderer::DrawMatrixNDT(const glm::mat3& mtx, const glm::vec3& position)
     {
-        GenDrawHairLine(true, position, position + mtx.Column(0), Maths::Vector4(1.0f, 0.0f, 0.0f, 1.0f));
-        GenDrawHairLine(true, position, position + mtx.Column(1), Maths::Vector4(0.0f, 1.0f, 0.0f, 1.0f));
-        GenDrawHairLine(true, position, position + mtx.Column(2), Maths::Vector4(0.0f, 0.0f, 1.0f, 1.0f));
+        GenDrawHairLine(true, position, position + mtx[0], glm::vec4(1.0f, 0.0f, 0.0f, 1.0f));
+        GenDrawHairLine(true, position, position + mtx[1], glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
+        GenDrawHairLine(true, position, position + mtx[2], glm::vec4(0.0f, 0.0f, 1.0f, 1.0f));
     }
 
     //Draw Triangle
-    void DebugRenderer::GenDrawTriangle(bool ndt, const Maths::Vector3& v0, const Maths::Vector3& v1, const Maths::Vector3& v2, const Maths::Vector4& colour)
+    void DebugRenderer::GenDrawTriangle(bool ndt, const glm::vec3& v0, const glm::vec3& v1, const glm::vec3& v2, const glm::vec4& colour)
     {
         s_Instance->m_DebugTriangles.emplace_back(v0, v1, v2, colour);
     }
 
-    void DebugRenderer::DrawTriangle(const Maths::Vector3& v0, const Maths::Vector3& v1, const Maths::Vector3& v2, const Maths::Vector4& colour)
+    void DebugRenderer::DrawTriangle(const glm::vec3& v0, const glm::vec3& v1, const glm::vec3& v2, const glm::vec4& colour)
     {
         GenDrawTriangle(false, v0, v1, v2, colour);
     }
 
-    void DebugRenderer::DrawTriangleNDT(const Maths::Vector3& v0, const Maths::Vector3& v1, const Maths::Vector3& v2, const Maths::Vector4& colour)
+    void DebugRenderer::DrawTriangleNDT(const glm::vec3& v0, const glm::vec3& v1, const glm::vec3& v2, const glm::vec4& colour)
     {
         GenDrawTriangle(true, v0, v1, v2, colour);
     }
 
     //Draw Polygon (Renders as a triangle fan, so verts must be arranged in order)
-    void DebugRenderer::DrawPolygon(int n_verts, const Maths::Vector3* verts, const Maths::Vector4& colour)
+    void DebugRenderer::DrawPolygon(int n_verts, const glm::vec3* verts, const glm::vec4& colour)
     {
         for(int i = 2; i < n_verts; ++i)
         {
@@ -189,7 +190,7 @@ namespace Lumos
         }
     }
 
-    void DebugRenderer::DrawPolygonNDT(int n_verts, const Maths::Vector3* verts, const Maths::Vector4& colour)
+    void DebugRenderer::DrawPolygonNDT(int n_verts, const glm::vec3* verts, const glm::vec4& colour)
     {
         for(int i = 2; i < n_verts; ++i)
         {
@@ -197,18 +198,18 @@ namespace Lumos
         }
     }
 
-    void DebugRenderer::DebugDraw(const Maths::BoundingBox& box, const Maths::Vector4& edgeColour, bool cornersOnly, float width)
+    void DebugRenderer::DebugDraw(const BoundingBox& box, const glm::vec4& edgeColour, bool cornersOnly, float width)
     {
-        Maths::Vector3 uuu = box.max_;
-        Maths::Vector3 lll = box.min_;
+        glm::vec3 uuu = box.Max();
+        glm::vec3 lll = box.Min();
 
-        Maths::Vector3 ull(uuu.x, lll.y, lll.z);
-        Maths::Vector3 uul(uuu.x, uuu.y, lll.z);
-        Maths::Vector3 ulu(uuu.x, lll.y, uuu.z);
+        glm::vec3 ull(uuu.x, lll.y, lll.z);
+        glm::vec3 uul(uuu.x, uuu.y, lll.z);
+        glm::vec3 ulu(uuu.x, lll.y, uuu.z);
 
-        Maths::Vector3 luu(lll.x, uuu.y, uuu.z);
-        Maths::Vector3 llu(lll.x, lll.y, uuu.z);
-        Maths::Vector3 lul(lll.x, uuu.y, lll.z);
+        glm::vec3 luu(lll.x, uuu.y, uuu.z);
+        glm::vec3 llu(lll.x, lll.y, uuu.z);
+        glm::vec3 lul(lll.x, uuu.y, lll.z);
 
         // Draw edges
         if(!cornersOnly)
@@ -268,14 +269,14 @@ namespace Lumos
         }
     }
 
-    void DebugRenderer::DebugDraw(const Maths::Sphere& sphere, const Maths::Vector4& colour)
+    void DebugRenderer::DebugDraw(const BoundingSphere& sphere, const glm::vec4& colour)
     {
-        Lumos::DebugRenderer::DrawPointNDT(sphere.center_, sphere.radius_, colour);
+        Lumos::DebugRenderer::DrawPointNDT(sphere.GetCenter(), sphere.GetRadius(), colour);
     }
 
-    void DebugRenderer::DebugDraw(const Maths::Frustum& frustum, const Maths::Vector4& colour)
+    void DebugRenderer::DebugDraw(Frustum& frustum, const glm::vec4& colour)
     {
-        auto* vertices = frustum.vertices_;
+        auto* vertices = frustum.GetVerticies();
 
         DebugRenderer::DrawHairLine(vertices[0], vertices[1], colour);
         DebugRenderer::DrawHairLine(vertices[1], vertices[2], colour);
@@ -291,37 +292,36 @@ namespace Lumos
         DebugRenderer::DrawHairLine(vertices[3], vertices[7], colour);
     }
 
-    void DebugRenderer::DebugDraw(Graphics::Light* light, const Maths::Quaternion& rotation, const Maths::Vector4& colour)
+    void DebugRenderer::DebugDraw(Graphics::Light* light, const glm::quat& rotation, const glm::vec4& colour)
     {
         //Directional
         if(light->Type < 0.1f)
         {
-            auto flipRotation = rotation * Maths::Quaternion::EulerAnglesToQuaternion(180.0f, 0.0f, 0.0f);
-            Maths::Vector3 offset(0.0f, 0.1f, 0.0f);
-            DrawHairLine((light->Position).ToVector3() + offset, (light->Position + (light->Direction) * 2.0f).ToVector3() + offset, colour);
-            DrawHairLine((light->Position).ToVector3() - offset, (light->Position + (light->Direction) * 2.0f).ToVector3() - offset, colour);
-
-            DrawHairLine((light->Position).ToVector3(), (light->Position + (light->Direction) * 2.0f).ToVector3(), colour);
-            DebugDrawCone(20, 4, 30.0f, 1.5f, (light->Position - (light->Direction) * 1.5f).ToVector3(), flipRotation, colour);
+                       glm::vec3 offset(0.0f, 0.1f, 0.0f);
+			DrawHairLine(glm::vec3(light->Position) + offset, glm::vec3(light->Position + (light->Direction) * 2.0f) + offset, colour);
+			DrawHairLine(glm::vec3(light->Position) - offset, glm::vec3(light->Position + (light->Direction) * 2.0f) - offset, colour);
+            
+			DrawHairLine(glm::vec3(light->Position), glm::vec3(light->Position + (light->Direction) * 2.0f), colour);
+			DebugDrawCone(20, 4, 30.0f, 1.5f, (light->Position - (light->Direction) * 1.5f), rotation, colour);
         }
         //Spot
         else if(light->Type < 1.1f)
         {
-            DebugDrawCone(20, 4, light->Angle * Maths::M_RADTODEG, light->Intensity, light->Position.ToVector3(), rotation, colour);
+            DebugDrawCone(20, 4, light->Angle * Maths::M_RADTODEG, light->Intensity, light->Position, rotation, colour);
         }
         //Point
         else
         {
-            DebugDrawSphere(light->Radius / 2.0f, light->Position.ToVector3(), colour);
+            DebugDrawSphere(light->Radius / 2.0f, light->Position, colour);
         }
     }
 
-    void DebugRenderer::DebugDraw(SoundNode* sound, const Maths::Vector4& colour)
+    void DebugRenderer::DebugDraw(SoundNode* sound, const glm::vec4& colour)
     {
         DrawPoint(sound->GetPosition(), sound->GetRadius(), colour);
     }
 
-    void DebugRenderer::DebugDrawCircle(int numVerts, float radius, const Maths::Vector3& position, const Maths::Quaternion& rotation, const Maths::Vector4& colour)
+    void DebugRenderer::DebugDrawCircle(int numVerts, float radius, const glm::vec3& position, const glm::quat& rotation, const glm::vec4& colour)
     {
         float step = 360.0f / float(numVerts);
 
@@ -329,36 +329,42 @@ namespace Lumos
         {
             float cx = Maths::Cos(step * i) * radius;
             float cy = Maths::Sin(step * i) * radius;
-            Maths::Vector3 current = Maths::Vector3(cx, cy);
+            glm::vec3 current = glm::vec3(cx, cy, 0.0f);
 
             float nx = Maths::Cos(step * (i + 1)) * radius;
             float ny = Maths::Sin(step * (i + 1)) * radius;
-            Maths::Vector3 next = Maths::Vector3(nx, ny);
+            glm::vec3 next = glm::vec3(nx, ny, 0.0f);
 
             DrawHairLine(position + (rotation * current), position + (rotation * next), colour);
         }
     }
-    void DebugRenderer::DebugDrawSphere(float radius, const Maths::Vector3& position, const Maths::Vector4& colour)
+    void DebugRenderer::DebugDrawSphere(float radius, const glm::vec3& position, const glm::vec4& colour)
     {
         float offset = 0.0f;
-        DebugDrawCircle(20, radius, position, Maths::Quaternion::EulerAnglesToQuaternion(0.0f, 0.0f, 0.0f), colour);
-        DebugDrawCircle(20, radius, position, Maths::Quaternion::EulerAnglesToQuaternion(90.0f, 0.0f, 0.0f), colour);
-        DebugDrawCircle(20, radius, position, Maths::Quaternion::EulerAnglesToQuaternion(0.0f, 90.0f, 90.0f), colour);
+        DebugDrawCircle(20, radius, position, glm::quat(glm::vec3(0.0f, 0.0f, 0.0f)), colour);
+        DebugDrawCircle(20, radius, position, glm::quat(glm::vec3(90.0f, 0.0f, 0.0f)), colour);
+        DebugDrawCircle(20, radius, position, glm::quat(glm::vec3(0.0f, 90.0f, 90.0f)), colour);
     }
 
-    void DebugRenderer::DebugDrawCone(int numCircleVerts, int numLinesToCircle, float angle, float length, const Maths::Vector3& position, const Maths::Quaternion& rotation, const Maths::Vector4& colour)
+    void DebugRenderer::DebugDrawCone(int numCircleVerts, int numLinesToCircle, float angle, float length, const glm::vec3& position, const glm::quat& rotation, const glm::vec4& colour)
     {
-        float endAngle = Maths::Tan(angle * 0.5f) * length;
-        Maths::Vector3 forward = -(rotation * Maths::Vector3::FORWARD);
-        Maths::Vector3 endPosition = position + forward * length;
-        float offset = 0.0f;
-        DebugDrawCircle(numCircleVerts, endAngle, endPosition, rotation, colour);
-
-        for(int i = 0; i < numLinesToCircle; i++)
-        {
-            float a = i * 90.0f;
-            Maths::Vector3 point = rotation * Maths::Vector3(Maths::Cos(a), Maths::Sin(a)) * endAngle;
-            DrawHairLine(position, position + point + forward * length, colour);
-        }
+                float endAngle = Maths::Tan(angle * 0.5f) * length;
+		glm::vec3 forward = -(rotation * glm::vec3(0.0f,0.0f,-1.0f));
+                glm::vec3 endPosition = position + forward * length;
+                float offset = 0.0f;
+               DebugDrawCircle(numCircleVerts, endAngle, endPosition, rotation, colour);
+        
+                for(int i = 0; i < numLinesToCircle; i++)
+               {
+                    float a = i * 90.0f;
+                    glm::vec3 point = rotation * glm::vec3(Maths::Cos(a), Maths::Sin(a), 0.0f) * endAngle;
+                    DrawHairLine(position, position + point + forward * length, colour);
+                }
     }
+
+    void DebugRenderer::DebugDraw(const Ray& ray, const glm::vec4& colour, float distance)
+    {
+        DrawHairLine(ray.Origin, ray.Origin + ray.Direction * distance, colour);
+    }
+
 }

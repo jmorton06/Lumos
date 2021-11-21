@@ -1,7 +1,7 @@
 #include "Precompiled.h"
 #include "CapsuleCollisionShape.h"
 #include "Physics/LumosPhysicsEngine/RigidBody3D.h"
-#include "Maths/Matrix3.h"
+#include <glm/mat3x3.hpp>
 
 namespace Lumos
 {
@@ -9,7 +9,7 @@ namespace Lumos
     {
         m_Radius = radius;
         m_Height = height;
-        m_LocalTransform = Maths::Matrix4::Scale(Maths::Vector3(m_Radius));
+        m_LocalTransform = glm::scale(glm::mat4(1.0), glm::vec3(m_Radius));
         m_Type = CollisionShapeType::CollisionCapsule;
     }
 
@@ -17,9 +17,9 @@ namespace Lumos
     {
     }
 
-    Maths::Matrix3 CapsuleCollisionShape::BuildInverseInertia(float invMass) const
+    glm::mat3 CapsuleCollisionShape::BuildInverseInertia(float invMass) const
     {
-        Maths::Vector3 halfExtents(m_Radius, m_Radius, m_Radius);
+        glm::vec3 halfExtents(m_Radius, m_Radius, m_Radius);
         halfExtents.x += m_Height / 2.0f;
 
         float lx = 2.0f * (halfExtents.x);
@@ -30,16 +30,16 @@ namespace Lumos
         const float z2 = lz * lz;
         const float scaledmass = (1.0f / invMass) * float(.08333333);
 
-        Maths::Matrix3 inertia;
+        glm::mat3 inertia(1.0f);
 
-        inertia.m00_ = 1.0f / scaledmass * (y2 + z2);
-        inertia.m11_ = 1.0f / scaledmass * (x2 + z2);
-        inertia.m22_ = 1.0f / scaledmass * (x2 + y2);
+        inertia[0][0] = 1.0f / scaledmass * (y2 + z2);
+        inertia[1][1] = 1.0f / scaledmass * (x2 + z2);
+        inertia[2][2] = 1.0f / scaledmass * (x2 + y2);
 
         return inertia;
     }
 
-    std::vector<Maths::Vector3>& CapsuleCollisionShape::GetCollisionAxes(const RigidBody3D* currentObject)
+    std::vector<glm::vec3>& CapsuleCollisionShape::GetCollisionAxes(const RigidBody3D* currentObject)
     {
         /* There is infinite edges so handle seperately */
         return m_Axes;
@@ -51,10 +51,10 @@ namespace Lumos
         return m_Edges;
     }
 
-    void CapsuleCollisionShape::GetMinMaxVertexOnAxis(const RigidBody3D* currentObject, const Maths::Vector3& axis, Maths::Vector3* out_min, Maths::Vector3* out_max) const
+    void CapsuleCollisionShape::GetMinMaxVertexOnAxis(const RigidBody3D* currentObject, const glm::vec3& axis, glm::vec3* out_min, glm::vec3* out_max) const
     {
-        Maths::Matrix4 transform = currentObject ? currentObject->GetWorldSpaceTransform() * m_LocalTransform : m_LocalTransform;
-        Maths::Vector3 pos = transform.Translation();
+        glm::mat4 transform = currentObject ? currentObject->GetWorldSpaceTransform() * m_LocalTransform : m_LocalTransform;
+        glm::vec3 pos = transform[3]; //transform[3];//TODO: Check
 
         if(out_min)
             *out_min = pos - axis * m_Radius;
@@ -64,7 +64,7 @@ namespace Lumos
     }
 
     void CapsuleCollisionShape::GetIncidentReferencePolygon(const RigidBody3D* currentObject,
-        const Maths::Vector3& axis,
+        const glm::vec3& axis,
         ReferencePolygon& refPolygon) const
     {
         refPolygon.Faces[0] = currentObject->GetPosition() + axis * m_Radius;

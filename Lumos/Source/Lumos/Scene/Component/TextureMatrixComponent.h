@@ -1,19 +1,19 @@
 #pragma once
-#include "Maths/Matrix4.h"
+#include <glm/mat4x4.hpp>
 
 namespace Lumos
 {
     class TextureMatrixComponent
     {
     public:
-        explicit TextureMatrixComponent(const Maths::Matrix4& matrix = Maths::Matrix4());
+        explicit TextureMatrixComponent(const glm::mat4& matrix = glm::mat4(1.0f));
 
         void OnImGui();
 
-        const Maths::Matrix4& GetMatrix() const { return m_TextureMatrix; }
-        Maths::Matrix4& GetMatrix() { return m_TextureMatrix; }
+        const glm::mat4& GetMatrix() const { return m_TextureMatrix; }
+        glm::mat4& GetMatrix() { return m_TextureMatrix; }
 
     private:
-        Maths::Matrix4 m_TextureMatrix;
+        glm::mat4 m_TextureMatrix;
     };
 }

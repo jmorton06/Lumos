@@ -41,7 +41,7 @@ namespace Lumos
         GLFWWindow::MakeDefault();
     }
 
-    void MacOSOS::SetTitleBarColour(const Maths::Vector4& colour, bool dark)
+    void MacOSOS::SetTitleBarColour(const glm::vec4& colour, bool dark)
     {
         auto& app = Lumos::Application::Get();
 

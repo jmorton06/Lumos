@@ -6,7 +6,7 @@
 #include <Lumos/Maths/Transform.h>
 #include <Lumos/Graphics/Camera/Camera.h>
 #include <Lumos/Core/StringUtilities.h>
-#include <Lumos/ImGui/ImGuiHelpers.h>
+#include <Lumos/ImGui/ImGuiUtilities.h>
 
 #include <imgui/imgui.h>
 DISABLE_WARNING_PUSH
@@ -31,7 +31,7 @@ namespace Lumos
 
     private:
         template <typename T>
-        void ShowComponentGizmo(float width, float height, float xpos, float ypos, const Maths::Matrix4& viewProj, const Maths::Frustum& frustum, entt::registry& registry)
+        void ShowComponentGizmo(float width, float height, float xpos, float ypos, const glm::mat4& viewProj, const Frustum& frustum, entt::registry& registry)
         {
             if(m_ShowComponentGizmoMap[typeid(T).hash_code()])
             {
@@ -41,14 +41,14 @@ namespace Lumos
                 {
                     const auto& [component, trans] = group.template get<T, Maths::Transform>(entity);
 
-                    Maths::Vector3 pos = trans.GetWorldPosition();
+                    glm::vec3 pos = trans.GetWorldPosition();
 
                     auto inside = frustum.IsInside(pos);
 
-                    if(inside == Maths::Intersection::OUTSIDE)
+                    if(inside == Intersection::OUTSIDE)
                         continue;
 
-                    Maths::Vector2 screenPos = Maths::WorldToScreen(pos, viewProj, width, height, xpos, ypos);
+                    glm::vec2 screenPos = Maths::WorldToScreen(pos, viewProj, width, height, xpos, ypos);
                     ImGui::SetCursorPos({ screenPos.x - ImGui::GetFontSize() / 2.0f, screenPos.y - ImGui::GetFontSize() / 2.0f });
                     ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.7f, 0.7f, 0.7f, 0.0f));
 
@@ -59,7 +59,7 @@ namespace Lumos
 
                     ImGui::PopStyleColor();
 
-                    ImGuiHelpers::Tooltip(StringUtilities::Demangle(typeid(T).name()));
+                    ImGuiUtilities::Tooltip(StringUtilities::Demangle(typeid(T).name()));
                 }
             }
         }

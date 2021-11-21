@@ -78,12 +78,12 @@ namespace Lumos
         {
             LUMOS_PROFILE_FUNCTION();
             {
-                Maths::Vector3 worldPos = listenerTransform.GetWorldPosition();
-                Maths::Vector3 velocity = Maths::Vector3(0.0f); //TODO: m_Listener->GetVelocity();
+                glm::vec3 worldPos = listenerTransform.GetWorldPosition();
+                glm::vec3 velocity = glm::vec3(0.0f); //TODO: m_Listener->GetVelocity();
 
                 ALfloat direction[6];
 
-                Maths::Quaternion orientation = listenerTransform.GetWorldOrientation();
+                glm::quat orientation = listenerTransform.GetWorldOrientation();
 
                 direction[0] = -2 * (orientation.w * orientation.y + orientation.x * orientation.z);
                 direction[1] = 2 * (orientation.x * orientation.w - orientation.z * orientation.y);

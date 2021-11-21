@@ -12,14 +12,14 @@ namespace Lumos
         ~CapsuleCollisionShape();
 
         //Collision Shape Functionality
-        virtual Maths::Matrix3 BuildInverseInertia(float invMass) const override;
+        virtual glm::mat3 BuildInverseInertia(float invMass) const override;
 
-        virtual std::vector<Maths::Vector3>& GetCollisionAxes(const RigidBody3D* currentObject) override;
+        virtual std::vector<glm::vec3>& GetCollisionAxes(const RigidBody3D* currentObject) override;
         virtual std::vector<CollisionEdge>& GetEdges(const RigidBody3D* currentObject) override;
 
-        virtual void GetMinMaxVertexOnAxis(const RigidBody3D* currentObject, const Maths::Vector3& axis, Maths::Vector3* out_min, Maths::Vector3* out_max) const override;
+        virtual void GetMinMaxVertexOnAxis(const RigidBody3D* currentObject, const glm::vec3& axis, glm::vec3* out_min, glm::vec3* out_max) const override;
         virtual void GetIncidentReferencePolygon(const RigidBody3D* currentObject,
-            const Maths::Vector3& axis,
+            const glm::vec3& axis,
             ReferencePolygon& refPolygon) const override;
 
         virtual void DebugDraw(const RigidBody3D* currentObject) const override;
@@ -28,7 +28,7 @@ namespace Lumos
         void SetRadius(float radius)
         {
             m_Radius = radius;
-            m_LocalTransform = Maths::Matrix4::Scale(Maths::Vector3(m_Radius));
+            m_LocalTransform = glm::scale(glm::mat4(1.0), glm::vec3(m_Radius));
         }
 
         float GetRadius() const

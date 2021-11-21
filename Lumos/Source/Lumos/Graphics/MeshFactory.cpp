@@ -17,17 +17,17 @@ namespace Lumos
 
             Vertex* data = new Vertex[4];
 
-            data[0].Position = Maths::Vector3(x, y, 0.0f);
-            data[0].TexCoords = Maths::Vector2(0.0f, 1.0f);
+            data[0].Position = glm::vec3(x, y, 0.0f);
+            data[0].TexCoords = glm::vec2(0.0f, 1.0f);
 
-            data[1].Position = Maths::Vector3(x + width, y, 0.0f);
-            data[1].TexCoords = Maths::Vector2(0, 0);
+            data[1].Position = glm::vec3(x + width, y, 0.0f);
+            data[1].TexCoords = glm::vec2(0, 0);
 
-            data[2].Position = Maths::Vector3(x + width, y + height, 0.0f);
-            data[2].TexCoords = Maths::Vector2(1, 0);
+            data[2].Position = glm::vec3(x + width, y + height, 0.0f);
+            data[2].TexCoords = glm::vec2(1, 0);
 
-            data[3].Position = Maths::Vector3(x, y + height, 0.0f);
-            data[3].TexCoords = Maths::Vector2(1, 1);
+            data[3].Position = glm::vec3(x, y + height, 0.0f);
+            data[3].TexCoords = glm::vec2(1, 1);
 
             SharedPtr<VertexBuffer> vb = SharedPtr<VertexBuffer>(VertexBuffer::Create(BufferUsage::STATIC));
             vb->SetData(sizeof(Vertex) * 4, data);
@@ -45,7 +45,7 @@ namespace Lumos
             SharedPtr<IndexBuffer> ib;
             ib.reset(IndexBuffer::Create(indices, 6));
 
-            SharedPtr<Maths::BoundingBox> boundingBox = CreateSharedPtr<Maths::BoundingBox>();
+            SharedPtr<BoundingBox> boundingBox = CreateSharedPtr<BoundingBox>();
             for(int i = 0; i < 4; i++)
             {
                 boundingBox->Merge(data[i].Position);
@@ -53,7 +53,7 @@ namespace Lumos
             return new Mesh(vb, ib, boundingBox);
         }
 
-        Mesh* CreateQuad(const Maths::Vector2& position, const Maths::Vector2& size)
+        Mesh* CreateQuad(const glm::vec2& position, const glm::vec2& size)
         {
             return CreateQuad(position.x, position.y, size.x, size.y);
         }
@@ -63,26 +63,26 @@ namespace Lumos
             LUMOS_PROFILE_FUNCTION();
             Vertex* data = new Vertex[4];
 
-            data[0].Position = Maths::Vector3(-1.0f, -1.0f, 0.0f);
-            data[0].TexCoords = Maths::Vector2(0.0f, 0.0f);
-            data[0].Colours = Lumos::Maths::Vector4(0.0f);
+            data[0].Position = glm::vec3(-1.0f, -1.0f, 0.0f);
+            data[0].TexCoords = glm::vec2(0.0f, 0.0f);
+            data[0].Colours = glm::vec4(0.0f);
 
-            data[1].Position = Maths::Vector3(1.0f, -1.0f, 0.0f);
-            data[1].Colours = Lumos::Maths::Vector4(0.0f);
-            data[1].TexCoords = Maths::Vector2(1.0f, 0.0f);
+            data[1].Position = glm::vec3(1.0f, -1.0f, 0.0f);
+            data[1].Colours = glm::vec4(0.0f);
+            data[1].TexCoords = glm::vec2(1.0f, 0.0f);
 
-            data[2].Position = Maths::Vector3(1.0f, 1.0f, 0.0f);
-            data[2].Colours = Lumos::Maths::Vector4(0.0f);
-            data[2].TexCoords = Maths::Vector2(1.0f, 1.0f);
+            data[2].Position = glm::vec3(1.0f, 1.0f, 0.0f);
+            data[2].Colours = glm::vec4(0.0f);
+            data[2].TexCoords = glm::vec2(1.0f, 1.0f);
 
-            data[3].Position = Maths::Vector3(-1.0f, 1.0f, 0.0f);
-            data[3].Colours = Lumos::Maths::Vector4(0.0f);
-            data[3].TexCoords = Maths::Vector2(0.0f, 1.0f);
+            data[3].Position = glm::vec3(-1.0f, 1.0f, 0.0f);
+            data[3].Colours = glm::vec4(0.0f);
+            data[3].TexCoords = glm::vec2(0.0f, 1.0f);
 
             SharedPtr<VertexBuffer> vb = SharedPtr<VertexBuffer>(VertexBuffer::Create(BufferUsage::STATIC));
             vb->SetData(sizeof(Vertex) * 4, data);
 
-            SharedPtr<Maths::BoundingBox> BoundingBox = CreateSharedPtr<Maths::BoundingBox>();
+            SharedPtr<Lumos::BoundingBox> BoundingBox = CreateSharedPtr<Lumos::BoundingBox>();
             for(int i = 0; i < 4; i++)
             {
                 BoundingBox->Merge(data[i].Position);
@@ -109,22 +109,22 @@ namespace Lumos
             LUMOS_PROFILE_FUNCTION();
             Vertex* data = new Vertex[4];
 
-            data[0].Position = Maths::Vector3(-1.0f, -1.0f, 1.0f);
-            data[0].TexCoords = Maths::Vector2(0.0f, 0.0f);
+            data[0].Position = glm::vec3(-1.0f, -1.0f, 1.0f);
+            data[0].TexCoords = glm::vec2(0.0f, 0.0f);
 
-            data[1].Position = Maths::Vector3(1.0f, -1.0f, 1.0f);
-            data[1].TexCoords = Maths::Vector2(1.0f, 0.0f);
+            data[1].Position = glm::vec3(1.0f, -1.0f, 1.0f);
+            data[1].TexCoords = glm::vec2(1.0f, 0.0f);
 
-            data[2].Position = Maths::Vector3(1.0f, 1.0f, 1.0f);
-            data[2].TexCoords = Maths::Vector2(1.0f, 1.0f);
+            data[2].Position = glm::vec3(1.0f, 1.0f, 1.0f);
+            data[2].TexCoords = glm::vec2(1.0f, 1.0f);
 
-            data[3].Position = Maths::Vector3(-1.0f, 1.0f, 1.0f);
-            data[3].TexCoords = Maths::Vector2(0.0f, 1.0f);
+            data[3].Position = glm::vec3(-1.0f, 1.0f, 1.0f);
+            data[3].TexCoords = glm::vec2(0.0f, 1.0f);
 
             SharedPtr<VertexBuffer> vb = SharedPtr<VertexBuffer>(VertexBuffer::Create(BufferUsage::STATIC));
             vb->SetData(4 * sizeof(Vertex), data);
 
-            SharedPtr<Maths::BoundingBox> BoundingBox = CreateSharedPtr<Maths::BoundingBox>();
+            SharedPtr<Lumos::BoundingBox> BoundingBox = CreateSharedPtr<Lumos::BoundingBox>();
             for(int i = 0; i < 4; i++)
             {
                 BoundingBox->Merge(data[i].Position);
@@ -182,116 +182,114 @@ namespace Lumos
             LUMOS_PROFILE_FUNCTION();
             Vertex* data = new Vertex[24];
 
-            data[0].Position = Maths::Vector3(1.0f, 1.0f, 1.0f);
-            data[0].Colours = Maths::Vector4(0.0f);
-            data[0].Normal = Maths::Vector3(0.0f, 0.0f, 1.0f);
+            data[0].Position = glm::vec3(0.5f, 0.5f, 0.5f);
+            data[0].Colours = glm::vec4(0.0f);
+            data[0].Normal = glm::vec3(0.0f, 0.0f, 1.0f);
 
-            data[1].Position = Maths::Vector3(-1.0f, 1.0f, 1.0f);
-            data[1].Colours = Maths::Vector4(0.0f);
-            data[1].Normal = Maths::Vector3(0.0f, 0.0f, 1.0f);
+            data[1].Position = glm::vec3(-0.5f, 0.5f, 0.5f);
+            data[1].Colours = glm::vec4(0.0f);
+            data[1].Normal = glm::vec3(0.0f, 0.0f, 1.0f);
 
-            data[2].Position = Maths::Vector3(-1.0f, -1.0f, 1.0f);
-            data[2].Colours = Maths::Vector4(0.0f);
-            data[2].Normal = Maths::Vector3(0.0f, 0.0f, 1.0f);
+            data[2].Position = glm::vec3(-0.5f, -0.5f, 0.5f);
+            data[2].Colours = glm::vec4(0.0f);
+            data[2].Normal = glm::vec3(0.0f, 0.0f, 1.0f);
 
-            data[3].Position = Maths::Vector3(1.0f, -1.0f, 1.0f);
-            data[3].Colours = Maths::Vector4(0.0f);
-            data[3].Normal = Maths::Vector3(0.0f, 0.0f, 1.0f);
+            data[3].Position = glm::vec3(0.5f, -0.5f, 0.5f);
+            data[3].Colours = glm::vec4(0.0f);
+            data[3].Normal = glm::vec3(0.0f, 0.0f, 1.0f);
 
-            data[4].Position = Maths::Vector3(1.0f, 1.0f, 1.0f);
-            data[4].Colours = Maths::Vector4(0.0f);
-            data[4].Normal = Maths::Vector3(1.0f, 0.0f, 0.0f);
+            data[4].Position = glm::vec3(0.5f, 0.5f, 0.5f);
+            data[4].Colours = glm::vec4(0.0f);
+            data[4].Normal = glm::vec3(1.0f, 0.0f, 0.0f);
 
-            data[5].Position = Maths::Vector3(1.0f, -1.0f, 1.0f);
-            data[5].Colours = Maths::Vector4(0.0f);
-            data[5].Normal = Maths::Vector3(1.0f, 0.0f, 0.0f);
+            data[5].Position = glm::vec3(0.5f, -0.5f, 0.5f);
+            data[5].Colours = glm::vec4(0.0f);
+            data[5].Normal = glm::vec3(1.0f, 0.0f, 0.0f);
 
-            data[6].Position = Maths::Vector3(1.0f, -1.0f, -1.0f);
-            data[6].Colours = Maths::Vector4(0.0f);
-            data[6].Normal = Maths::Vector3(1.0f, 0.0f, 0.0f);
+            data[6].Position = glm::vec3(0.5f, -0.5f, -0.5f);
+            data[6].Colours = glm::vec4(0.0f);
+            data[6].Normal = glm::vec3(1.0f, 0.0f, 0.0f);
 
-            data[7].Position = Maths::Vector3(1.0f, 1.0f, -1.0f);
-            data[7].Colours = Maths::Vector4(0.0f);
-            data[7].TexCoords = Maths::Vector2(0.0f, 1.0f);
-            data[7].Normal = Maths::Vector3(1.0f, 0.0f, 0.0f);
+            data[7].Position = glm::vec3(0.5f, 0.5f, -0.5f);
+            data[7].Colours = glm::vec4(0.0f);
+            data[7].Normal = glm::vec3(1.0f, 0.0f, 0.0f);
 
-            data[8].Position = Maths::Vector3(1.0f, 1.0f, 1.0f);
-            data[8].Colours = Maths::Vector4(0.0f);
-            data[8].Normal = Maths::Vector3(0.0f, 1.0f, 0.0f);
+            data[8].Position = glm::vec3(0.5f, 0.5f, 0.5f);
+            data[8].Colours = glm::vec4(0.0f);
+            data[8].Normal = glm::vec3(0.0f, 1.0f, 0.0f);
 
-            data[9].Position = Maths::Vector3(1.0f, 1.0f, -1.0f);
-            data[9].Colours = Maths::Vector4(0.0f);
-            data[9].Normal = Maths::Vector3(0.0f, 1.0f, 0.0f);
+            data[9].Position = glm::vec3(0.5f, 0.5f, -0.5f);
+            data[9].Colours = glm::vec4(0.0f);
+            data[9].Normal = glm::vec3(0.0f, 1.0f, 0.0f);
 
-            data[10].Position = Maths::Vector3(-1.0f, 1.0f, -1.0f);
-            data[10].Colours = Maths::Vector4(0.0f);
-            data[10].TexCoords = Maths::Vector2(0.0f, 1.0f);
-            data[10].Normal = Maths::Vector3(0.0f, 1.0f, 0.0f);
+            data[10].Position = glm::vec3(-0.5f, 0.5f, -0.5f);
+            data[10].Colours = glm::vec4(0.0f);
+            data[10].Normal = glm::vec3(0.0f, 1.0f, 0.0f);
 
-            data[11].Position = Maths::Vector3(-1.0f, 1.0f, 1.0f);
-            data[11].Colours = Maths::Vector4(0.0f);
-            data[11].Normal = Maths::Vector3(0.0f, 1.0f, 0.0f);
+            data[11].Position = glm::vec3(-0.5f, 0.5f, 0.5f);
+            data[11].Colours = glm::vec4(0.0f);
+            data[11].Normal = glm::vec3(0.0f, 1.0f, 0.0f);
 
-            data[12].Position = Maths::Vector3(-1.0f, 1.0f, 1.0f);
-            data[12].Colours = Maths::Vector4(0.0f);
-            data[12].Normal = Maths::Vector3(-1.0f, 0.0f, 0.0f);
+            data[12].Position = glm::vec3(-0.5f, 0.5f, 0.5f);
+            data[12].Colours = glm::vec4(0.0f);
+            data[12].Normal = glm::vec3(-1.0f, 0.0f, 0.0f);
 
-            data[13].Position = Maths::Vector3(-1.0f, 1.0f, -1.0f);
-            data[13].Colours = Maths::Vector4(0.0f);
-            data[13].Normal = Maths::Vector3(-1.0f, 0.0f, 0.0f);
+            data[13].Position = glm::vec3(-0.5f, 0.5f, -0.5f);
+            data[13].Colours = glm::vec4(0.0f);
+            data[13].Normal = glm::vec3(-1.0f, 0.0f, 0.0f);
 
-            data[14].Position = Maths::Vector3(-1.0f, -1.0f, -1.0f);
-            data[14].Colours = Maths::Vector4(0.0f);
-            data[14].Normal = Maths::Vector3(-1.0f, 0.0f, 0.0f);
+            data[14].Position = glm::vec3(-0.5f, -0.5f, -0.5f);
+            data[14].Colours = glm::vec4(0.0f);
+            data[14].Normal = glm::vec3(-1.0f, 0.0f, 0.0f);
 
-            data[15].Position = Maths::Vector3(-1.0f, -1.0f, 1.0f);
-            data[15].Colours = Maths::Vector4(0.0f);
-            data[15].Normal = Maths::Vector3(-1.0f, 0.0f, 0.0f);
+            data[15].Position = glm::vec3(-0.5f, -0.5f, 0.5f);
+            data[15].Colours = glm::vec4(0.0f);
+            data[15].Normal = glm::vec3(-1.0f, 0.0f, 0.0f);
 
-            data[16].Position = Maths::Vector3(-1.0f, -1.0f, -1.0f);
-            data[16].Colours = Maths::Vector4(0.0f);
-            data[16].Normal = Maths::Vector3(0.0f, -1.0f, 0.0f);
+            data[16].Position = glm::vec3(-0.5f, -0.5f, -0.5f);
+            data[16].Colours = glm::vec4(0.0f);
+            data[16].Normal = glm::vec3(0.0f, -1.0f, 0.0f);
 
-            data[17].Position = Maths::Vector3(1.0f, -1.0f, -1.0f);
-            data[17].Colours = Maths::Vector4(0.0f);
-            data[17].Normal = Maths::Vector3(0.0f, -1.0f, 0.0f);
+            data[17].Position = glm::vec3(0.5f, -0.5f, -0.5f);
+            data[17].Colours = glm::vec4(0.0f);
+            data[17].Normal = glm::vec3(0.0f, -1.0f, 0.0f);
 
-            data[18].Position = Maths::Vector3(1.0f, -1.0f, 1.0f);
-            data[18].Colours = Maths::Vector4(0.0f);
-            data[18].Normal = Maths::Vector3(0.0f, -1.0f, 0.0f);
+            data[18].Position = glm::vec3(0.5f, -0.5f, 0.5f);
+            data[18].Colours = glm::vec4(0.0f);
+            data[18].Normal = glm::vec3(0.0f, -1.0f, 0.0f);
 
-            data[19].Position = Maths::Vector3(-1.0f, -1.0f, 1.0f);
-            data[19].Colours = Maths::Vector4(0.0f);
-            data[19].Normal = Maths::Vector3(0.0f, -1.0f, 0.0f);
+            data[19].Position = glm::vec3(-0.5f, -0.5f, 0.5f);
+            data[19].Colours = glm::vec4(0.0f);
+            data[19].Normal = glm::vec3(0.0f, -1.0f, 0.0f);
 
-            data[20].Position = Maths::Vector3(1.0f, -1.0f, -1.0f);
-            data[20].Colours = Maths::Vector4(0.0f);
-            data[20].Normal = Maths::Vector3(0.0f, 0.0f, -1.0f);
+            data[20].Position = glm::vec3(0.5f, -0.5f, -0.5f);
+            data[20].Colours = glm::vec4(0.0f);
+            data[20].Normal = glm::vec3(0.0f, 0.0f, -1.0f);
 
-            data[21].Position = Maths::Vector3(-1.0f, -1.0f, -1.0f);
-            data[21].Colours = Maths::Vector4(0.0f);
-            data[21].Normal = Maths::Vector3(0.0f, 0.0f, -1.0f);
+            data[21].Position = glm::vec3(-0.5f, -0.5f, -0.5f);
+            data[21].Colours = glm::vec4(0.0f);
+            data[21].Normal = glm::vec3(0.0f, 0.0f, -1.0f);
 
-            data[22].Position = Maths::Vector3(-1.0f, 1.0f, -1.0f);
-            data[22].Colours = Maths::Vector4(0.0f);
-            data[22].Normal = Maths::Vector3(0.0f, 0.0f, -1.0f);
+            data[22].Position = glm::vec3(-0.5f, 0.5f, -0.5f);
+            data[22].Colours = glm::vec4(0.0f);
+            data[22].Normal = glm::vec3(0.0f, 0.0f, -1.0f);
 
-            data[23].Position = Maths::Vector3(1.0f, 1.0f, -1.0f);
-            data[23].Colours = Maths::Vector4(0.0f);
-            data[23].Normal = Maths::Vector3(0.0f, 0.0f, -1.0f);
+            data[23].Position = glm::vec3(0.5f, 0.5f, -0.5f);
+            data[23].Colours = glm::vec4(0.0f);
+            data[23].Normal = glm::vec3(0.0f, 0.0f, -1.0f);
 
             for(int i = 0; i < 6; i++)
             {
-                data[i * 4 + 0].TexCoords = Maths::Vector2(0.0f, 0.0f);
-                data[i * 4 + 1].TexCoords = Maths::Vector2(1.0f, 0.0f);
-                data[i * 4 + 2].TexCoords = Maths::Vector2(1.0f, 1.0f);
-                data[i * 4 + 3].TexCoords = Maths::Vector2(0.0f, 1.0f);
+                data[i * 4 + 0].TexCoords = glm::vec2(0.0f, 0.0f);
+                data[i * 4 + 1].TexCoords = glm::vec2(1.0f, 0.0f);
+                data[i * 4 + 2].TexCoords = glm::vec2(1.0f, 1.0f);
+                data[i * 4 + 3].TexCoords = glm::vec2(0.0f, 1.0f);
             }
 
             SharedPtr<VertexBuffer> vb = SharedPtr<VertexBuffer>(VertexBuffer::Create(BufferUsage::STATIC));
             vb->SetData(24 * sizeof(Vertex), data);
 
-            SharedPtr<Maths::BoundingBox> BoundingBox = CreateSharedPtr<Maths::BoundingBox>();
+            SharedPtr<Lumos::BoundingBox> BoundingBox = CreateSharedPtr<Lumos::BoundingBox>();
             for(int i = 0; i < 8; i++)
             {
                 BoundingBox->Merge(data[i].Position);
@@ -325,100 +323,100 @@ namespace Lumos
             LUMOS_PROFILE_FUNCTION();
             Vertex* data = new Vertex[18];
 
-            data[0].Position = Maths::Vector3(1.0f, 1.0f, -1.0f);
-            data[0].Colours = Maths::Vector4(0.0f);
-            data[0].TexCoords = Maths::Vector2(0.24f, 0.20f);
-            data[0].Normal = Maths::Vector3(0.0f, 0.8948f, 0.4464f);
+            data[0].Position = glm::vec3(1.0f, 1.0f, -1.0f);
+            data[0].Colours = glm::vec4(0.0f);
+            data[0].TexCoords = glm::vec2(0.24f, 0.20f);
+            data[0].Normal = glm::vec3(0.0f, 0.8948f, 0.4464f);
 
-            data[1].Position = Maths::Vector3(-1.0f, 1.0f, -1.0f);
-            data[1].Colours = Maths::Vector4(0.0f);
-            data[1].TexCoords = Maths::Vector2(0.24f, 0.81f);
-            data[1].Normal = Maths::Vector3(0.0f, 0.8948f, 0.4464f);
+            data[1].Position = glm::vec3(-1.0f, 1.0f, -1.0f);
+            data[1].Colours = glm::vec4(0.0f);
+            data[1].TexCoords = glm::vec2(0.24f, 0.81f);
+            data[1].Normal = glm::vec3(0.0f, 0.8948f, 0.4464f);
 
-            data[2].Position = Maths::Vector3(0.0f, 0.0f, 1.0f);
-            data[2].Colours = Maths::Vector4(0.0f);
-            data[2].TexCoords = Maths::Vector2(0.95f, 0.50f);
-            data[2].Normal = Maths::Vector3(0.0f, 0.8948f, 0.4464f);
+            data[2].Position = glm::vec3(0.0f, 0.0f, 1.0f);
+            data[2].Colours = glm::vec4(0.0f);
+            data[2].TexCoords = glm::vec2(0.95f, 0.50f);
+            data[2].Normal = glm::vec3(0.0f, 0.8948f, 0.4464f);
 
-            data[3].Position = Maths::Vector3(-1.0f, 1.0f, -1.0f);
-            data[3].Colours = Maths::Vector4(0.0f);
-            data[3].TexCoords = Maths::Vector2(0.24f, 0.21f);
-            data[3].Normal = Maths::Vector3(-0.8948f, 0.0f, 0.4464f);
+            data[3].Position = glm::vec3(-1.0f, 1.0f, -1.0f);
+            data[3].Colours = glm::vec4(0.0f);
+            data[3].TexCoords = glm::vec2(0.24f, 0.21f);
+            data[3].Normal = glm::vec3(-0.8948f, 0.0f, 0.4464f);
 
-            data[4].Position = Maths::Vector3(-1.0f, -1.0f, -1.0f);
-            data[4].Colours = Maths::Vector4(0.0f);
-            data[4].TexCoords = Maths::Vector2(0.24f, 0.81f);
-            data[4].Normal = Maths::Vector3(-0.8948f, 0.0f, 0.4464f);
+            data[4].Position = glm::vec3(-1.0f, -1.0f, -1.0f);
+            data[4].Colours = glm::vec4(0.0f);
+            data[4].TexCoords = glm::vec2(0.24f, 0.81f);
+            data[4].Normal = glm::vec3(-0.8948f, 0.0f, 0.4464f);
 
-            data[5].Position = Maths::Vector3(0.0f, 0.0f, 1.0f);
-            data[5].Colours = Maths::Vector4(0.0f);
-            data[5].TexCoords = Maths::Vector2(0.95f, 0.50f);
-            data[5].Normal = Maths::Vector3(-0.8948f, 0.0f, 0.4464f);
+            data[5].Position = glm::vec3(0.0f, 0.0f, 1.0f);
+            data[5].Colours = glm::vec4(0.0f);
+            data[5].TexCoords = glm::vec2(0.95f, 0.50f);
+            data[5].Normal = glm::vec3(-0.8948f, 0.0f, 0.4464f);
 
-            data[6].Position = Maths::Vector3(1.0f, 1.0f, -1.0f);
-            data[6].Colours = Maths::Vector4(0.0f);
-            data[6].TexCoords = Maths::Vector2(0.24f, 0.81f);
-            data[6].Normal = Maths::Vector3(0.8948f, 0.0f, 0.4475f);
+            data[6].Position = glm::vec3(1.0f, 1.0f, -1.0f);
+            data[6].Colours = glm::vec4(0.0f);
+            data[6].TexCoords = glm::vec2(0.24f, 0.81f);
+            data[6].Normal = glm::vec3(0.8948f, 0.0f, 0.4475f);
 
-            data[7].Position = Maths::Vector3(0.0f, 0.0f, 1.0f);
-            data[7].Colours = Maths::Vector4(0.0f);
-            data[7].TexCoords = Maths::Vector2(0.95f, 0.50f);
-            data[7].Normal = Maths::Vector3(0.8948f, 0.0f, 0.4475f);
+            data[7].Position = glm::vec3(0.0f, 0.0f, 1.0f);
+            data[7].Colours = glm::vec4(0.0f);
+            data[7].TexCoords = glm::vec2(0.95f, 0.50f);
+            data[7].Normal = glm::vec3(0.8948f, 0.0f, 0.4475f);
 
-            data[8].Position = Maths::Vector3(1.0f, -1.0f, -1.0f);
-            data[8].Colours = Maths::Vector4(0.0f);
-            data[8].TexCoords = Maths::Vector2(0.24f, 0.21f);
-            data[8].Normal = Maths::Vector3(0.8948f, 0.0f, 0.4475f);
+            data[8].Position = glm::vec3(1.0f, -1.0f, -1.0f);
+            data[8].Colours = glm::vec4(0.0f);
+            data[8].TexCoords = glm::vec2(0.24f, 0.21f);
+            data[8].Normal = glm::vec3(0.8948f, 0.0f, 0.4475f);
 
-            data[9].Position = Maths::Vector3(-1.0f, -1.0f, -1.0f);
-            data[9].Colours = Maths::Vector4(0.0f);
-            data[9].TexCoords = Maths::Vector2(0.24f, 0.21f);
-            data[9].Normal = Maths::Vector3(0.0f, -0.8948f, 0.448f);
+            data[9].Position = glm::vec3(-1.0f, -1.0f, -1.0f);
+            data[9].Colours = glm::vec4(0.0f);
+            data[9].TexCoords = glm::vec2(0.24f, 0.21f);
+            data[9].Normal = glm::vec3(0.0f, -0.8948f, 0.448f);
 
-            data[10].Position = Maths::Vector3(1.0f, -1.0f, -1.0f);
-            data[10].Colours = Maths::Vector4(0.0f);
-            data[10].TexCoords = Maths::Vector2(0.24f, 0.81f);
-            data[10].Normal = Maths::Vector3(0.0f, -0.8948f, 0.448f);
+            data[10].Position = glm::vec3(1.0f, -1.0f, -1.0f);
+            data[10].Colours = glm::vec4(0.0f);
+            data[10].TexCoords = glm::vec2(0.24f, 0.81f);
+            data[10].Normal = glm::vec3(0.0f, -0.8948f, 0.448f);
 
-            data[11].Position = Maths::Vector3(0.0f, 0.0f, 1.0f);
-            data[11].Colours = Maths::Vector4(0.0f);
-            data[11].TexCoords = Maths::Vector2(0.95f, 0.50f);
-            data[11].Normal = Maths::Vector3(0.0f, -0.8948f, 0.448f);
+            data[11].Position = glm::vec3(0.0f, 0.0f, 1.0f);
+            data[11].Colours = glm::vec4(0.0f);
+            data[11].TexCoords = glm::vec2(0.95f, 0.50f);
+            data[11].Normal = glm::vec3(0.0f, -0.8948f, 0.448f);
 
-            data[12].Position = Maths::Vector3(-1.0f, 1.0f, -1.0f);
-            data[12].Colours = Maths::Vector4(0.0f);
-            data[12].TexCoords = Maths::Vector2(0.0f, 0.0f);
-            data[12].Normal = Maths::Vector3(0.0f, 0.0f, -1.0f);
+            data[12].Position = glm::vec3(-1.0f, 1.0f, -1.0f);
+            data[12].Colours = glm::vec4(0.0f);
+            data[12].TexCoords = glm::vec2(0.0f, 0.0f);
+            data[12].Normal = glm::vec3(0.0f, 0.0f, -1.0f);
 
-            data[13].Position = Maths::Vector3(1.0f, 1.0f, -1.0f);
-            data[13].Colours = Maths::Vector4(0.0f);
-            data[13].TexCoords = Maths::Vector2(0.0f, 1.0f);
-            data[13].Normal = Maths::Vector3(0.0f, 0.0f, -1.0f);
+            data[13].Position = glm::vec3(1.0f, 1.0f, -1.0f);
+            data[13].Colours = glm::vec4(0.0f);
+            data[13].TexCoords = glm::vec2(0.0f, 1.0f);
+            data[13].Normal = glm::vec3(0.0f, 0.0f, -1.0f);
 
-            data[14].Position = Maths::Vector3(1.0f, -1.0f, -1.0f);
-            data[14].Colours = Maths::Vector4(0.0f);
-            data[14].TexCoords = Maths::Vector2(1.0f, 1.0f);
-            data[14].Normal = Maths::Vector3(0.0f, 0.0f, -1.0f);
+            data[14].Position = glm::vec3(1.0f, -1.0f, -1.0f);
+            data[14].Colours = glm::vec4(0.0f);
+            data[14].TexCoords = glm::vec2(1.0f, 1.0f);
+            data[14].Normal = glm::vec3(0.0f, 0.0f, -1.0f);
 
-            data[15].Position = Maths::Vector3(-1.0f, -1.0f, -1.0f);
-            data[15].Colours = Maths::Vector4(0.0f);
-            data[15].TexCoords = Maths::Vector2(0.96f, 0.0f);
-            data[15].Normal = Maths::Vector3(0.0f, 0.0f, -1.0f);
+            data[15].Position = glm::vec3(-1.0f, -1.0f, -1.0f);
+            data[15].Colours = glm::vec4(0.0f);
+            data[15].TexCoords = glm::vec2(0.96f, 0.0f);
+            data[15].Normal = glm::vec3(0.0f, 0.0f, -1.0f);
 
-            data[16].Position = Maths::Vector3(0.0f, 0.0f, 0.0f);
-            data[16].Colours = Maths::Vector4(0.0f);
-            data[16].TexCoords = Maths::Vector2(0.0f, 0.0f);
-            data[16].Normal = Maths::Vector3(0.0f, 0.0f, 0.0f);
+            data[16].Position = glm::vec3(0.0f, 0.0f, 0.0f);
+            data[16].Colours = glm::vec4(0.0f);
+            data[16].TexCoords = glm::vec2(0.0f, 0.0f);
+            data[16].Normal = glm::vec3(0.0f, 0.0f, 0.0f);
 
-            data[17].Position = Maths::Vector3(0.0f, 0.0f, 0.0f);
-            data[17].Colours = Maths::Vector4(0.0f);
-            data[17].TexCoords = Maths::Vector2(0.0f, 0.0f);
-            data[17].Normal = Maths::Vector3(0.0f, 0.0f, 0.0f);
+            data[17].Position = glm::vec3(0.0f, 0.0f, 0.0f);
+            data[17].Colours = glm::vec4(0.0f);
+            data[17].TexCoords = glm::vec2(0.0f, 0.0f);
+            data[17].Normal = glm::vec3(0.0f, 0.0f, 0.0f);
 
             SharedPtr<VertexBuffer> vb = SharedPtr<VertexBuffer>(VertexBuffer::Create(BufferUsage::STATIC));
             vb->SetData(18 * sizeof(Vertex), data);
 
-            SharedPtr<Maths::BoundingBox> BoundingBox = CreateSharedPtr<Maths::BoundingBox>();
+            SharedPtr<Lumos::BoundingBox> BoundingBox = CreateSharedPtr<Lumos::BoundingBox>();
             for(int i = 0; i < 18; i++)
             {
                 BoundingBox->Merge(data[i].Position);
@@ -449,7 +447,7 @@ namespace Lumos
             float stackCount = static_cast<float>(ySegments);
             float sectorStep = 2 * Maths::M_PI / sectorCount;
             float stackStep = Maths::M_PI / stackCount;
-            float radius = 1.0f;
+            float radius = 0.5f;
 
             for(int i = 0; i <= stackCount; ++i)
             {
@@ -472,9 +470,9 @@ namespace Lumos
                     float t = static_cast<float>(i / stackCount);
 
                     Vertex vertex;
-                    vertex.Position = Maths::Vector3(x, y, z);
-                    vertex.TexCoords = Maths::Vector2(s, t);
-                    vertex.Normal = Maths::Vector3(x, y, z).Normalised();
+                    vertex.Position = glm::vec3(x, y, z);
+                    vertex.TexCoords = glm::vec2(s, t);
+                    vertex.Normal = glm::normalize(glm::vec3(x, y, z));
 
                     data.emplace_back(vertex);
                 }
@@ -511,7 +509,7 @@ namespace Lumos
                 }
             }
 
-            SharedPtr<Maths::BoundingBox> boundingBox = CreateSharedPtr<Maths::BoundingBox>();
+            SharedPtr<BoundingBox> boundingBox = CreateSharedPtr<BoundingBox>();
             for(size_t i = 0; i < data.size(); i++)
             {
                 boundingBox->Merge(data[i].Position);
@@ -523,39 +521,34 @@ namespace Lumos
             return new Mesh(vb, ib, boundingBox);
         }
 
-        Mesh* CreateIcoSphere(uint32_t radius, uint32_t subdivision)
-        {
-            return nullptr;
-        }
-
-        Mesh* CreatePlane(float width, float height, const Maths::Vector3& normal)
+        Mesh* CreatePlane(float width, float height, const glm::vec3& normal)
         {
             LUMOS_PROFILE_FUNCTION();
-            Maths::Vector3 vec = normal * 90.0f;
-            Maths::Quaternion rotation = Maths::Quaternion(vec.z, Maths::Vector3(1.0f, 0.0f, 0.0f)) * Maths::Quaternion(vec.y, Maths::Vector3(0.0f, 1.0f, 0.0f)) * Maths::Quaternion(vec.x, Maths::Vector3(0.0f, 0.0f, 1.0f));
+            glm::vec3 vec = normal * 90.0f;
+            glm::quat rotation = glm::quat(vec.z, glm::vec3(1.0f, 0.0f, 0.0f)) * glm::quat(vec.y, glm::vec3(0.0f, 1.0f, 0.0f)) * glm::quat(vec.x, glm::vec3(0.0f, 0.0f, 1.0f));
 
             Vertex* data = new Vertex[4];
 
-            data[0].Position = rotation * Maths::Vector3(-width / 2.0f, -1.0f, -height / 2.0f);
+            data[0].Position = rotation * glm::vec3(-width / 2.0f, -1.0f, -height / 2.0f);
             data[0].Normal = normal;
-            data[0].TexCoords = Maths::Vector2(0.0f, 0.0f);
+            data[0].TexCoords = glm::vec2(0.0f, 0.0f);
 
-            data[1].Position = rotation * Maths::Vector3(-width / 2.0f, -1.0f, height / 2.0f);
+            data[1].Position = rotation * glm::vec3(-width / 2.0f, -1.0f, height / 2.0f);
             data[1].Normal = normal;
-            data[1].TexCoords = Maths::Vector2(0.0f, 1.0f);
+            data[1].TexCoords = glm::vec2(0.0f, 1.0f);
 
-            data[2].Position = rotation * Maths::Vector3(width / 2.0f, 1.0f, height / 2.0f);
+            data[2].Position = rotation * glm::vec3(width / 2.0f, 1.0f, height / 2.0f);
             data[2].Normal = normal;
-            data[2].TexCoords = Maths::Vector2(1.0f, 1.0f);
+            data[2].TexCoords = glm::vec2(1.0f, 1.0f);
 
-            data[3].Position = rotation * Maths::Vector3(width / 2.0f, 1.0f, -height / 2.0f);
+            data[3].Position = rotation * glm::vec3(width / 2.0f, 1.0f, -height / 2.0f);
             data[3].Normal = normal;
-            data[3].TexCoords = Maths::Vector2(1.0f, 0.0f);
+            data[3].TexCoords = glm::vec2(1.0f, 0.0f);
 
             SharedPtr<VertexBuffer> vb = SharedPtr<VertexBuffer>(VertexBuffer::Create(BufferUsage::STATIC));
             vb->SetData(4 * sizeof(Vertex), data);
 
-            SharedPtr<Maths::BoundingBox> boundingBox = CreateSharedPtr<Maths::BoundingBox>();
+            SharedPtr<BoundingBox> boundingBox = CreateSharedPtr<BoundingBox>();
             for(int i = 0; i < 4; i++)
             {
                 boundingBox->Merge(data[i].Position);
@@ -605,12 +598,12 @@ namespace Lumos
                     x = sin(u * (Maths::M_PI * 2.0f));
                     y = -cos(u * (Maths::M_PI * 2.0f));
 
-                    Maths::Vector3 p = Maths::Vector3(x * radius * w, y * radius * w, z);
+                    glm::vec3 p = glm::vec3(x * radius * w, y * radius * w, z);
 
                     Vertex vertex;
-                    vertex.Position = p + Maths::Vector3(0.0f, 0.0f, 0.5f * midHeight);
-                    vertex.Normal = (p + Maths::Vector3(0.0f, 0.0f, 0.5f * midHeight)).Normalised();
-                    vertex.TexCoords = Maths::Vector2(u, onethird * v);
+                    vertex.Position = p + glm::vec3(0.0f, 0.0f, 0.5f * midHeight);
+                    vertex.Normal = glm::normalize((p + glm::vec3(0.0f, 0.0f, 0.5f * midHeight)));
+                    vertex.TexCoords = glm::vec2(u, onethird * v);
                     data.emplace_back(vertex);
                     point++;
 
@@ -649,12 +642,12 @@ namespace Lumos
                     x = sin(u * (Maths::M_PI * 2.0f));
                     y = -cos(u * (Maths::M_PI * 2.0f));
 
-                    Maths::Vector3 p = Maths::Vector3(x * radius, y * radius, z);
+                    glm::vec3 p = glm::vec3(x * radius, y * radius, z);
 
                     Vertex vertex;
                     vertex.Position = p;
-                    vertex.Normal = Maths::Vector3(x, 0.0f, z);
-                    vertex.TexCoords = Maths::Vector2(u, onethird + (v * onethird));
+                    vertex.Normal = glm::vec3(x, 0.0f, z);
+                    vertex.TexCoords = glm::vec2(u, onethird + (v * onethird));
                     data.emplace_back(vertex);
 
                     point++;
@@ -696,12 +689,12 @@ namespace Lumos
                     x = sin(u2 * (Maths::M_PI * 2.0f));
                     y = -cos(u2 * (Maths::M_PI * 2.0f));
 
-                    Maths::Vector3 p = Maths::Vector3(x * radius * w, y * radius * w, z);
+                    glm::vec3 p = glm::vec3(x * radius * w, y * radius * w, z);
 
                     Vertex vertex;
-                    vertex.Position = p + Maths::Vector3(0.0f, 0.0f, -0.5f * midHeight);
-                    vertex.Normal = (p + Maths::Vector3(0.0f, 0.0f, -0.5f * midHeight)).Normalised();
-                    vertex.TexCoords = Maths::Vector2(u2, twothirds + ((v - 1.0f) * onethird));
+                    vertex.Position = p + glm::vec3(0.0f, 0.0f, -0.5f * midHeight);
+                    vertex.Normal = glm::normalize((p + glm::vec3(0.0f, 0.0f, -0.5f * midHeight)));
+                    vertex.TexCoords = glm::vec2(u2, twothirds + ((v - 1.0f) * onethird));
                     data.emplace_back(vertex);
 
                     point++;
@@ -725,7 +718,7 @@ namespace Lumos
             SharedPtr<VertexBuffer> vb = SharedPtr<VertexBuffer>(VertexBuffer::Create(BufferUsage::STATIC));
             vb->SetData(static_cast<uint32_t>(data.size() * sizeof(Vertex)), data.data());
 
-            SharedPtr<Maths::BoundingBox> boundingBox = CreateSharedPtr<Maths::BoundingBox>();
+            SharedPtr<BoundingBox> boundingBox = CreateSharedPtr<BoundingBox>();
             for(size_t i = 0; i < data.size(); i++)
             {
                 boundingBox->Merge(data[i].Position);
@@ -767,12 +760,12 @@ namespace Lumos
                 x = sin(u * (Maths::M_PI * 2.0f));
                 z = cos(u * (Maths::M_PI * 2.0f));
 
-                Maths::Vector3 p = Maths::Vector3(x * radius, y, z * radius);
+                glm::vec3 p = glm::vec3(x * radius, y, z * radius);
 
                 Vertex vertex;
                 vertex.Position = p;
-                vertex.Normal = Maths::Vector3(x, 0.0f, z);
-                vertex.TexCoords = Maths::Vector2(u, v * 0.5f);
+                vertex.Normal = glm::vec3(x, 0.0f, z);
+                vertex.TexCoords = glm::vec2(u, v * 0.5f);
                 data.emplace_back(vertex);
 
                 point++;
@@ -799,9 +792,9 @@ namespace Lumos
             y = height * 0.5f;
 
             Vertex vertex;
-            vertex.Position = Maths::Vector3(0.0f, y, 0.0f);
-            vertex.Normal = Maths::Vector3(0.0f, 1.0f, 0.0f);
-            vertex.TexCoords = Maths::Vector2(0.25f, 0.75f);
+            vertex.Position = glm::vec3(0.0f, y, 0.0f);
+            vertex.Normal = glm::vec3(0.0f, 1.0f, 0.0f);
+            vertex.TexCoords = glm::vec2(0.25f, 0.75f);
             data.emplace_back(vertex);
             point++;
 
@@ -816,11 +809,11 @@ namespace Lumos
                 u = ((x + 1.0f) * 0.25f);
                 v = 0.5f + ((z + 1.0f) * 0.25f);
 
-                Maths::Vector3 p = Maths::Vector3(x * topRadius, y, z * topRadius);
+                glm::vec3 p = glm::vec3(x * topRadius, y, z * topRadius);
                 Vertex vertex;
                 vertex.Position = p;
-                vertex.Normal = Maths::Vector3(0.0f, 1.0f, 0.0f);
-                vertex.TexCoords = Maths::Vector2(u, v);
+                vertex.Normal = glm::vec3(0.0f, 1.0f, 0.0f);
+                vertex.TexCoords = glm::vec2(u, v);
                 data.emplace_back(vertex);
                 point++;
 
@@ -841,9 +834,9 @@ namespace Lumos
             thisrow = point;
 
             Vertex vertex;
-            vertex.Position = Maths::Vector3(0.0f, y, 0.0f);
-            vertex.Normal = Maths::Vector3(0.0f, -1.0f, 0.0f);
-            vertex.TexCoords = Maths::Vector2(0.75f, 0.75f);
+            vertex.Position = glm::vec3(0.0f, y, 0.0f);
+            vertex.Normal = glm::vec3(0.0f, -1.0f, 0.0f);
+            vertex.TexCoords = glm::vec2(0.75f, 0.75f);
             data.emplace_back(vertex);
             point++;
 
@@ -858,11 +851,11 @@ namespace Lumos
                 u = 0.5f + ((x + 1.0f) * 0.25f);
                 v = 1.0f - ((z + 1.0f) * 0.25f);
 
-                Maths::Vector3 p = Maths::Vector3(x * bottomRadius, y, z * bottomRadius);
+                glm::vec3 p = glm::vec3(x * bottomRadius, y, z * bottomRadius);
 
                 vertex.Position = p;
-                vertex.Normal = Maths::Vector3(0.0f, -1.0f, 0.0f);
-                vertex.TexCoords = Maths::Vector2(u, v);
+                vertex.Normal = glm::vec3(0.0f, -1.0f, 0.0f);
+                vertex.TexCoords = glm::vec2(u, v);
                 data.emplace_back(vertex);
                 point++;
 
@@ -878,7 +871,7 @@ namespace Lumos
         SharedPtr<VertexBuffer> vb = SharedPtr<VertexBuffer>(VertexBuffer::Create(BufferUsage::STATIC));
         vb->SetData(static_cast<uint32_t>(data.size() * sizeof(Vertex)), data.data());
 
-        SharedPtr<Maths::BoundingBox> boundingBox = CreateSharedPtr<Maths::BoundingBox>();
+        SharedPtr<BoundingBox> boundingBox = CreateSharedPtr<BoundingBox>();
         for(size_t i = 0; i < data.size(); i++)
         {
             boundingBox->Merge(data[i].Position);
@@ -897,7 +890,7 @@ namespace Lumos
         case Graphics::PrimitiveType::Cube:
             return Graphics::CreateCube();
         case Graphics::PrimitiveType::Plane:
-            return Graphics::CreatePlane(1.0f, 1.0f, Maths::Vector3(0.0f, 1.0f, 0.0f));
+            return Graphics::CreatePlane(1.0f, 1.0f, glm::vec3(0.0f, 1.0f, 0.0f));
         case Graphics::PrimitiveType::Quad:
             return Graphics::CreateQuad();
         case Graphics::PrimitiveType::Sphere:

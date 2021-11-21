@@ -29,11 +29,11 @@ namespace Lumos
             //    //                case VK_FORMAT_R32_SFLOAT:
             //    //                return sizeof(float);
             //    //                case VK_FORMAT_R32G32_SFLOAT:
-            //    //                return sizeof(Maths::Vector2);
+            //    //                return sizeof(glm::vec2);
             //    //                case VK_FORMAT_R32G32B32_SFLOAT:
-            //    //                return sizeof(Maths::Vector3);
+            //    //                return sizeof(glm::vec3);
             //    //                case VK_FORMAT_R32G32B32A32_SFLOAT:
-            //    //                return sizeof(Maths::Vector4);
+            //    //                return sizeof(glm::vec4);
             //default:
             //    //LUMOS_LOG_ERROR("Unsupported Format {0}", format);
             //    return 0;
@@ -53,13 +53,13 @@ namespace Lumos
                     layout.Push<float>("");
                     break;
                 case 2:
-                    layout.Push<Maths::Vector2>("");
+                    layout.Push<glm::vec2>("");
                     break;
                 case 3:
-                    layout.Push<Maths::Vector3>("");
+                    layout.Push<glm::vec3>("");
                     break;
                 case 4:
-                    layout.Push<Maths::Vector4>("");
+                    layout.Push<glm::vec4>("");
                     break;
                 }
             case spirv_cross::SPIRType::Double:
@@ -214,19 +214,19 @@ namespace Lumos
                 SetUniform1i(location, *reinterpret_cast<int*>(&data[offset]));
                 break;
             case ShaderDataType::VEC2:
-                SetUniform2f(location, *reinterpret_cast<Maths::Vector2*>(&data[offset]));
+                SetUniform2f(location, *reinterpret_cast<glm::vec2*>(&data[offset]));
                 break;
             case ShaderDataType::VEC3:
-                SetUniform3f(location, *reinterpret_cast<Maths::Vector3*>(&data[offset]));
+                SetUniform3f(location, *reinterpret_cast<glm::vec3*>(&data[offset]));
                 break;
             case ShaderDataType::VEC4:
-                SetUniform4f(location, *reinterpret_cast<Maths::Vector4*>(&data[offset]));
+                SetUniform4f(location, *reinterpret_cast<glm::vec4*>(&data[offset]));
                 break;
             case ShaderDataType::MAT3:
-                SetUniformMat3(location, *reinterpret_cast<Maths::Matrix3*>(&data[offset]));
+                SetUniformMat3(location, *reinterpret_cast<glm::mat3*>(&data[offset]));
                 break;
             case ShaderDataType::MAT4:
-                SetUniformMat4(location, *reinterpret_cast<Maths::Matrix4*>(&data[offset]));
+                SetUniformMat4(location, *reinterpret_cast<glm::mat4*>(&data[offset]));
                 break;
             default:
                 LUMOS_ASSERT(false, "Unknown type!");
@@ -631,25 +631,25 @@ namespace Lumos
             SetUniform1iv(GetUniformLocation(name), value, count);
         }
 
-        void GLShader::SetUniform2f(const std::string& name, const Maths::Vector2& vector)
+        void GLShader::SetUniform2f(const std::string& name, const glm::vec2& vector)
         {
             LUMOS_PROFILE_FUNCTION();
             SetUniform2f(GetUniformLocation(name), vector);
         }
 
-        void GLShader::SetUniform3f(const std::string& name, const Maths::Vector3& vector)
+        void GLShader::SetUniform3f(const std::string& name, const glm::vec3& vector)
         {
             LUMOS_PROFILE_FUNCTION();
             SetUniform3f(GetUniformLocation(name), vector);
         }
 
-        void GLShader::SetUniform4f(const std::string& name, const Maths::Vector4& vector)
+        void GLShader::SetUniform4f(const std::string& name, const glm::vec4& vector)
         {
             LUMOS_PROFILE_FUNCTION();
             SetUniform4f(GetUniformLocation(name), vector);
         }
 
-        void GLShader::SetUniformMat4(const std::string& name, const Maths::Matrix4& matrix)
+        void GLShader::SetUniformMat4(const std::string& name, const glm::mat4& matrix)
         {
             LUMOS_PROFILE_FUNCTION();
             SetUniformMat4(GetUniformLocation(name), matrix);
@@ -680,34 +680,34 @@ namespace Lumos
             GLCall(glUniform1iv(location, count, value));
         }
 
-        void GLShader::SetUniform2f(uint32_t location, const Maths::Vector2& vector)
+        void GLShader::SetUniform2f(uint32_t location, const glm::vec2& vector)
         {
             GLCall(glUniform2f(location, vector.x, vector.y));
         }
 
-        void GLShader::SetUniform3f(uint32_t location, const Maths::Vector3& vector)
+        void GLShader::SetUniform3f(uint32_t location, const glm::vec3& vector)
         {
             GLCall(glUniform3f(location, vector.x, vector.y, vector.z));
         }
 
-        void GLShader::SetUniform4f(uint32_t location, const Maths::Vector4& vector)
+        void GLShader::SetUniform4f(uint32_t location, const glm::vec4& vector)
         {
             GLCall(glUniform4f(location, vector.x, vector.y, vector.z, vector.w));
         }
 
-        void GLShader::SetUniformMat3(uint32_t location, const Maths::Matrix3& matrix)
+        void GLShader::SetUniformMat3(uint32_t location, const glm::mat3& matrix)
         {
-            GLCall(glUniformMatrix3fv(location, 1, GL_FALSE /*GLTRUE*/, Maths::ValuePointer(matrix))); // &matrix.values[0]));
+            GLCall(glUniformMatrix3fv(location, 1, GL_FALSE /*GLTRUE*/, glm::value_ptr(matrix))); // &matrix.values[0]));
         }
 
-        void GLShader::SetUniformMat4(uint32_t location, const Maths::Matrix4& matrix)
+        void GLShader::SetUniformMat4(uint32_t location, const glm::mat4& matrix)
         {
-            GLCall(glUniformMatrix4fv(location, 1, GL_FALSE /*GLTRUE*/, Maths::ValuePointer(matrix)));
+            GLCall(glUniformMatrix4fv(location, 1, GL_FALSE /*GLTRUE*/, glm::value_ptr(matrix)));
         }
 
-        void GLShader::SetUniformMat4Array(uint32_t location, uint32_t count, const Maths::Matrix4& matrix)
+        void GLShader::SetUniformMat4Array(uint32_t location, uint32_t count, const glm::mat4& matrix)
         {
-            GLCall(glUniformMatrix4fv(location, count, GL_FALSE /*GLTRUE*/, Maths::ValuePointer(matrix)));
+            GLCall(glUniformMatrix4fv(location, count, GL_FALSE /*GLTRUE*/, glm::value_ptr(matrix)));
         }
 
         void GLShader::LoadFromData(const uint32_t* data, uint32_t size, ShaderType type, std::map<ShaderType, std::string>& sources)

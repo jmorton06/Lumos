@@ -46,40 +46,40 @@ namespace Lumos::Graphics
         return { a.x - b.x, a.y - b.y };
     }
 
-    Maths::Vector3 FixOrientation(const Maths::Vector3& v)
+    glm::vec3 FixOrientation(const glm::vec3& v)
     {
         switch(orientation)
         {
         case Orientation::Y_UP:
-            return Maths::Vector3(v.x, v.y, v.z);
+            return glm::vec3(v.x, v.y, v.z);
         case Orientation::Z_UP:
-            return Maths::Vector3(v.x, v.z, -v.y);
+            return glm::vec3(v.x, v.z, -v.y);
         case Orientation::Z_MINUS_UP:
-            return Maths::Vector3(v.x, -v.z, v.y);
+            return glm::vec3(v.x, -v.z, v.y);
         case Orientation::X_MINUS_UP:
-            return Maths::Vector3(v.y, -v.x, v.z);
+            return glm::vec3(v.y, -v.x, v.z);
         case Orientation::X_UP:
-            return Maths::Vector3(-v.y, v.x, v.z);
+            return glm::vec3(-v.y, v.x, v.z);
         }
-        return Maths::Vector3(v.x, v.y, v.z);
+        return glm::vec3(v.x, v.y, v.z);
     }
 
-    Maths::Quaternion FixOrientation(const Maths::Quaternion& v)
+    glm::quat FixOrientation(const glm::quat& v)
     {
         switch(orientation)
         {
         case Orientation::Y_UP:
-            return Maths::Quaternion(v.x, v.y, v.z, v.w);
+            return glm::quat(v.x, v.y, v.z, v.w);
         case Orientation::Z_UP:
-            return Maths::Quaternion(v.x, v.z, -v.y, v.w);
+            return glm::quat(v.x, v.z, -v.y, v.w);
         case Orientation::Z_MINUS_UP:
-            return Maths::Quaternion(v.x, -v.z, v.y, v.w);
+            return glm::quat(v.x, -v.z, v.y, v.w);
         case Orientation::X_MINUS_UP:
-            return Maths::Quaternion(v.y, -v.x, v.z, v.w);
+            return glm::quat(v.y, -v.x, v.z, v.w);
         case Orientation::X_UP:
-            return Maths::Quaternion(-v.y, v.x, v.z, v.w);
+            return glm::quat(-v.y, v.x, v.z, v.w);
         }
-        return Maths::Quaternion(v.x, v.y, v.z, v.w);
+        return glm::quat(v.x, v.y, v.z, v.w);
     }
 
     static void computeTangents(ofbx::Vec3* out, int vertex_count, const ofbx::Vec3* vertices, const ofbx::Vec3* normals, const ofbx::Vec2* uvs)
@@ -113,29 +113,29 @@ namespace Lumos::Graphics
         }
     }
 
-    Maths::Vector2 ToLumosVector(const ofbx::Vec2& vec)
+    glm::vec2 ToLumosVector(const ofbx::Vec2& vec)
     {
-        return Maths::Vector2(float(vec.x), float(vec.y));
+        return glm::vec2(float(vec.x), float(vec.y));
     }
 
-    Maths::Vector3 ToLumosVector(const ofbx::Vec3& vec)
+    glm::vec3 ToLumosVector(const ofbx::Vec3& vec)
     {
-        return Maths::Vector3(float(vec.x), float(vec.y), float(vec.z));
+        return glm::vec3(float(vec.x), float(vec.y), float(vec.z));
     }
 
-    Maths::Vector4 ToLumosVector(const ofbx::Vec4& vec)
+    glm::vec4 ToLumosVector(const ofbx::Vec4& vec)
     {
-        return Maths::Vector4(float(vec.x), float(vec.y), float(vec.z), float(vec.w));
+        return glm::vec4(float(vec.x), float(vec.y), float(vec.z), float(vec.w));
     }
 
-    Maths::Vector4 ToLumosVector(const ofbx::Color& vec)
+    glm::vec4 ToLumosVector(const ofbx::Color& vec)
     {
-        return Maths::Vector4(float(vec.r), float(vec.g), float(vec.b), 1.0f);
+        return glm::vec4(float(vec.r), float(vec.g), float(vec.b), 1.0f);
     }
 
-    Maths::Quaternion ToLumosQuat(const ofbx::Quat& quat)
+    glm::quat ToLumosQuat(const ofbx::Quat& quat)
     {
-        return Maths::Quaternion(float(quat.x), float(quat.y), float(quat.z), float(quat.w));
+        return glm::quat(float(quat.x), float(quat.y), float(quat.z), float(quat.w));
     }
 
     Graphics::Texture2D* LoadTexture(const ofbx::Material* material, ofbx::Texture::TextureType type)
@@ -196,7 +196,7 @@ namespace Lumos::Graphics
         properties.metallicColour = ToLumosVector(material->getSpecularColor());
 
         float roughness = 1.0f - Maths::Sqrt(float(material->getShininess()) / 100.0f);
-        properties.roughnessColour = Maths::Vector3(roughness);
+        properties.roughnessColour = glm::vec4(roughness);
 
         textures.albedo = LoadTexture(material, ofbx::Texture::TextureType::DIFFUSE);
         textures.normal = LoadTexture(material, ofbx::Texture::TextureType::NORMAL);
@@ -231,15 +231,15 @@ namespace Lumos::Graphics
 
         ofbx::Vec3 p = mesh->getLocalTranslation();
 
-        Maths::Vector3 pos = (Maths::Vector3(static_cast<float>(p.x), static_cast<float>(p.y), static_cast<float>(p.z)));
+        glm::vec3 pos = (glm::vec3(static_cast<float>(p.x), static_cast<float>(p.y), static_cast<float>(p.z)));
         transform.SetLocalPosition(FixOrientation(pos));
 
         ofbx::Vec3 r = mesh->getLocalRotation();
-        Maths::Vector3 rot = FixOrientation(Maths::Vector3(static_cast<float>(r.x), static_cast<float>(r.y), static_cast<float>(r.z)));
-        transform.SetLocalOrientation(Maths::Quaternion::EulerAnglesToQuaternion(rot.x, rot.y, rot.z));
+        glm::vec3 rot = FixOrientation(glm::vec3(static_cast<float>(r.x), static_cast<float>(r.y), static_cast<float>(r.z)));
+        transform.SetLocalOrientation(glm::quat(glm::vec3(rot.x, rot.y, rot.z)));
 
         ofbx::Vec3 s = mesh->getLocalScaling();
-        Maths::Vector3 scl = Maths::Vector3(static_cast<float>(s.x), static_cast<float>(s.y), static_cast<float>(s.z));
+        glm::vec3 scl = glm::vec3(static_cast<float>(s.x), static_cast<float>(s.y), static_cast<float>(s.z));
         transform.SetLocalScale(scl);
 
         if(mesh->getParent())
@@ -247,7 +247,7 @@ namespace Lumos::Graphics
             transform.SetWorldMatrix(GetTransform(mesh->getParent()).GetWorldMatrix());
         }
         else
-            transform.SetWorldMatrix(Maths::Matrix4());
+            transform.SetWorldMatrix(glm::mat4(1.0f));
 
         return transform;
     }
@@ -322,7 +322,7 @@ namespace Lumos::Graphics
                 Graphics::Vertex* tempvertices = new Graphics::Vertex[vertex_count];
                 uint32_t* indicesArray = new uint32_t[numIndices];
 
-                SharedPtr<Maths::BoundingBox> boundingBox = CreateSharedPtr<Maths::BoundingBox>();
+                SharedPtr<BoundingBox> boundingBox = CreateSharedPtr<BoundingBox>();
 
                 auto indices = geom->getFaceIndices();
 
@@ -341,18 +341,19 @@ namespace Lumos::Graphics
                     ofbx::Vec3 cp = vertices[i];
 
                     auto& vertex = tempvertices[i];
-                    vertex.Position = transform.GetWorldMatrix() * Maths::Vector3(float(cp.x), float(cp.y), float(cp.z));
+                    vertex.Position = transform.GetWorldMatrix() * glm::vec4(float(cp.x), float(cp.y), float(cp.z), 1.0f);
                     FixOrientation(vertex.Position);
                     boundingBox->Merge(vertex.Position);
 
                     if(normals)
-                        vertex.Normal = transform.GetWorldMatrix().ToMatrix3().Inverse().Transpose() * (Maths::Vector3(float(normals[i].x), float(normals[i].y), float(normals[i].z))).Normalised();
+                        vertex.Normal = transform.GetWorldMatrix() * glm::normalize(glm::vec4(float(normals[i].x), float(normals[i].y), float(normals[i].z), 1.0f));
+                    //vertex.Normal = transform.GetWorldMatrix().ToMatrix3().Inverse().Transpose() * (glm::vec3(float(normals[i].x), float(normals[i].y), float(normals[i].z))).Normalised();
                     if(uvs)
-                        vertex.TexCoords = Maths::Vector2(float(uvs[i].x), 1.0f - float(uvs[i].y));
+                        vertex.TexCoords = glm::vec2(float(uvs[i].x), 1.0f - float(uvs[i].y));
                     if(colours)
-                        vertex.Colours = Maths::Vector4(float(colours[i].x), float(colours[i].y), float(colours[i].z), float(colours[i].w));
+                        vertex.Colours = glm::vec4(float(colours[i].x), float(colours[i].y), float(colours[i].z), float(colours[i].w));
                     if(tangents)
-                        vertex.Tangent = transform.GetWorldMatrix() * Maths::Vector3(float(tangents[i].x), float(tangents[i].y), float(tangents[i].z));
+                        vertex.Tangent = transform.GetWorldMatrix() * glm::normalize(glm::vec4(float(tangents[i].x), float(tangents[i].y), float(tangents[i].z), 1.0f));
 
                     FixOrientation(vertex.Normal);
                     FixOrientation(vertex.Tangent);

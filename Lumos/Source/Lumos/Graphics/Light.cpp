@@ -1,17 +1,17 @@
 #include "Precompiled.h"
 #include "Light.h"
 
-#include "ImGui/ImGuiHelpers.h"
+#include "ImGui/ImGuiUtilities.h"
 #include <imgui/imgui.h>
 
 namespace Lumos
 {
     namespace Graphics
     {
-        Light::Light(const Maths::Vector3& direction, const Maths::Vector4& colour, float intensity, const LightType& type, const Maths::Vector3& position, float radius, float angle)
-            : Direction(direction)
+        Light::Light(const glm::vec3& direction, const glm::vec4& colour, float intensity, const LightType& type, const glm::vec3& position, float radius, float angle)
+            : Direction(glm::vec4(direction, 1.0f))
             , Colour(colour)
-            , Position(position)
+            , Position(glm::vec4(position, 1.0f))
             , Intensity(intensity)
             , Radius(radius)
             , Type(float(type))
@@ -56,18 +56,18 @@ namespace Lumos
             ImGui::Separator();
 
             if(Type != 0)
-                ImGuiHelpers::Property("Position", Position);
+                ImGuiUtilities::Property("Position", Position);
 
             if(Type != 2)
-                ImGuiHelpers::Property("Direction", Direction);
+                ImGuiUtilities::Property("Direction", Direction);
 
             if(Type != 0)
-                ImGuiHelpers::Property("Radius", Radius, 0.0f, 100.0f);
-            ImGuiHelpers::Property("Colour", Colour, true, ImGuiHelpers::PropertyFlag::ColourProperty);
-            ImGuiHelpers::Property("Intensity", Intensity, 0.0f, 100.0f);
+                ImGuiUtilities::Property("Radius", Radius, 0.0f, 100.0f);
+            ImGuiUtilities::Property("Colour", Colour, true, ImGuiUtilities::PropertyFlag::ColourProperty);
+            ImGuiUtilities::Property("Intensity", Intensity, 0.0f, 100.0f);
 
             if(Type == 1)
-                ImGuiHelpers::Property("Angle", Angle, -1.0f, 1.0f);
+                ImGuiUtilities::Property("Angle", Angle, -1.0f, 1.0f);
 
             ImGui::AlignTextToFramePadding();
             ImGui::TextUnformatted("Light Type");

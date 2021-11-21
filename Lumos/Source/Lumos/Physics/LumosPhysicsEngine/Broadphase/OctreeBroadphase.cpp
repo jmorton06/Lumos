@@ -28,12 +28,12 @@ namespace Lumos
         LUMOS_PROFILE_FUNCTION();
         m_CurrentPoolIndex = 0;
         m_LeafCount = 0;
-        
+
         auto& rootNode = m_NodePool[0];
         rootNode.ChildCount = 0;
         rootNode.PhysicsObjectCount = 0;
         rootNode.Index = 0;
-        rootNode.boundingBox = Maths::BoundingBox();
+        rootNode.boundingBox = BoundingBox();
 
         for(uint32_t i = 0; i < objectCount; i++)
         {
@@ -59,27 +59,6 @@ namespace Lumos
             if(m_NodePool[m_Leaves[i]].PhysicsObjectCount > 1)
                 m_SecondaryBroadphase->FindPotentialCollisionPairs(m_NodePool[m_Leaves[i]].PhysicsObjects, m_NodePool[m_Leaves[i]].PhysicsObjectCount, collisionPairs);
         }
-        
-//        uint32_t duplicatePairs = 0;
-//        for(size_t i = 0; i < collisionPairs.size(); ++i)
-//        {
-//            auto& pair = collisionPairs[i];
-//            for(size_t j = i + 1; j < collisionPairs.size(); ++j)
-//            {
-//                auto& pair2 = collisionPairs[j];
-//                if(pair.pObjectA == pair2.pObjectA && pair.pObjectB == pair2.pObjectB)
-//                {
-//                    duplicatePairs++;
-//                }
-//                else if(pair.pObjectA == pair2.pObjectB && pair.pObjectB == pair2.pObjectA)
-//                {
-//                    duplicatePairs++;
-//                }
-//                
-//            }
-//        }
-//        
-//        LUMOS_LOG_INFO(duplicatePairs);
     }
 
     void OctreeBroadphase::DebugDraw()
@@ -104,7 +83,7 @@ namespace Lumos
             return;
         }
 
-        Maths::Vector3 divisionPoints[3] = { division.boundingBox.min_, division.boundingBox.Center(), division.boundingBox.max_ };
+        glm::vec3 divisionPoints[3] = { division.boundingBox.Min(), division.boundingBox.Center(), division.boundingBox.Max() };
 
         static const size_t NUM_DIVISIONS = 8;
         static const size_t DIVISION_POINT_INDICES[NUM_DIVISIONS][6] = {
@@ -131,21 +110,21 @@ namespace Lumos
             division.ChildCount++;
             m_CurrentPoolIndex++;
 
-            const Maths::Vector3 lower(divisionPoints[DIVISION_POINT_INDICES[i][0]].x,
+            const glm::vec3 lower(divisionPoints[DIVISION_POINT_INDICES[i][0]].x,
                 divisionPoints[DIVISION_POINT_INDICES[i][1]].y,
                 divisionPoints[DIVISION_POINT_INDICES[i][2]].z);
-            const Maths::Vector3 upper(divisionPoints[DIVISION_POINT_INDICES[i][3]].x,
+            const glm::vec3 upper(divisionPoints[DIVISION_POINT_INDICES[i][3]].x,
                 divisionPoints[DIVISION_POINT_INDICES[i][4]].y,
                 divisionPoints[DIVISION_POINT_INDICES[i][5]].z);
 
-            newNode.boundingBox = Maths::BoundingBox(lower, upper);
+            newNode.boundingBox = BoundingBox(lower, upper);
 
             // Add objects inside division
             for(uint32_t i = 0; i < division.PhysicsObjectCount; i++)
             {
                 LUMOS_PROFILE_SCOPE("PhysicsObject BB check");
                 auto& physicsObject = division.PhysicsObjects[i];
-                if(newNode.boundingBox.IsInsideFast(physicsObject->GetWorldSpaceAABB()) == Maths::INSIDE)
+                if(newNode.boundingBox.IsInside(physicsObject->GetWorldSpaceAABB()) != OUTSIDE)
                 {
                     newNode.PhysicsObjects[newNode.PhysicsObjectCount] = physicsObject;
                     newNode.PhysicsObjectCount++;
@@ -159,7 +138,7 @@ namespace Lumos
 
     void OctreeBroadphase::DebugDrawOctreeNode(const OctreeNode& node)
     {
-        DebugRenderer::DebugDraw(node.boundingBox, Maths::Vector4(0.8f, 0.2f, 0.4f, 1.0f), false, 0.1f);
+        DebugRenderer::DebugDraw(node.boundingBox, glm::vec4(0.8f, 0.2f, 0.4f, 1.0f), false, 0.1f);
 
         // Draw sub divisions
         for(uint32_t i = 0; i < node.ChildCount; i++)

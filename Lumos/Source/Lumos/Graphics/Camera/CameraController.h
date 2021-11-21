@@ -21,20 +21,20 @@ namespace Lumos
 
         void SetMouseSensitivity(float value) { m_MouseSensitivity = value; }
 
-        const Maths::Vector3& GetVelocity() const { return m_Velocity; }
+        const glm::vec3& GetVelocity() const { return m_Velocity; }
 
     protected:
-        Maths::Vector3 m_Velocity;
-        Maths::Vector2 m_RotateVelocity;
-        Maths::Vector3 m_FocalPoint;
+        glm::vec3 m_Velocity;
+        glm::vec2 m_RotateVelocity;
+        glm::vec3 m_FocalPoint;
 
         float m_ZoomVelocity = 0.0f;
         float m_CameraSpeed = 0.0f;
         float m_Distance = 0.0f;
         float m_Zoom = 1.0f;
 
-        Maths::Vector2 m_ProjectionOffset = Maths::Vector2(0.0f, 0.0f);
-        Maths::Vector2 m_PreviousCurserPos = Maths::Vector2(0.0f, 0.0f);
+        glm::vec2 m_ProjectionOffset = glm::vec2(0.0f, 0.0f);
+        glm::vec2 m_PreviousCurserPos = glm::vec2(0.0f, 0.0f);
         float m_MouseSensitivity = 0.1f;
 
         float m_ZoomDampeningFactor = 0.00001f;

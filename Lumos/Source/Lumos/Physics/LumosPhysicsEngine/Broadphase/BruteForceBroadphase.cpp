@@ -4,7 +4,7 @@
 namespace Lumos
 {
 
-    BruteForceBroadphase::BruteForceBroadphase(const Maths::Vector3& axis)
+    BruteForceBroadphase::BruteForceBroadphase(const glm::vec3& axis)
         : Broadphase()
         , m_axis(axis)
     {
@@ -30,7 +30,7 @@ namespace Lumos
 
                 if(!obj1->GetCollisionShape() || !obj2->GetCollisionShape())
                     continue;
-                
+
                 // Skip pairs of two at objects at rest
                 if(obj1->GetIsAtRest() && obj2->GetIsAtRest())
                     continue;
@@ -47,7 +47,7 @@ namespace Lumos
                     continue;
 
                 CollisionPair pair;
-                
+
                 if(obj1 < obj2)
                 {
                     pair.pObjectA = obj1;
@@ -58,13 +58,12 @@ namespace Lumos
                     pair.pObjectA = obj2;
                     pair.pObjectB = obj1;
                 }
-                
-                
+
                 bool duplicate = false;
                 for(int i = 0; i < collisionPairs.size(); i++)
                 {
                     auto& pair2 = collisionPairs[i];
-                    
+
                     if(pair.pObjectA == pair2.pObjectA && pair.pObjectB == pair2.pObjectB)
                     {
                         duplicate = true;

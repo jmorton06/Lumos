@@ -15,6 +15,7 @@ IncludeDir["freetype"] = "External/freetype/include"
 IncludeDir["SpirvCross"] = "External/SPIRV-Cross"
 IncludeDir["cereal"] = "External/cereal/include"
 IncludeDir["spdlog"] = "External/spdlog/include"
+IncludeDir["glm"] = "External/glm"
 
 project "Lumos"
 	kind "StaticLib"
@@ -59,7 +60,8 @@ project "Lumos"
 		"%{IncludeDir.freetype}",
 		"%{IncludeDir.SpirvCross}",
 		"%{IncludeDir.cereal}",
-		"%{IncludeDir.Lumos}",
+	"%{IncludeDir.glm}",
+	"%{IncludeDir.Lumos}",
 	}
 
 	links
@@ -79,7 +81,9 @@ project "Lumos"
 		"FREEIMAGE_LIB",
 		"LUMOS_DYNAMIC",
 		"IMGUI_USER_CONFIG=\"Source/Lumos/ImGui/ImConfig.h\"",
-		"SPDLOG_COMPILED_LIB"
+		"SPDLOG_COMPILED_LIB",
+		"GLM_FORCE_INTRINSICS",
+		"GLM_FORCE_DEPTH_ZERO_TO_ONE"
 }
 
 filter 'files:Source/Lumos/Utilities/ExternalBuild.cpp'
@@ -89,7 +93,7 @@ buildoptions
 }
 
 	filter 'architecture:x86_64'
-		defines { "LUMOS_SSE" ,"USE_VMA_ALLOCATOR"}
+		defines { "USE_VMA_ALLOCATOR"}
 
 	filter "system:windows"
 		cppdialect "C++17"

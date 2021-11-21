@@ -941,7 +941,7 @@ namespace Lumos
             { return ImGui::BeginCombo(_label, _preview_value); });
         imgui["endCombo"] = ImGui::EndCombo;
 
-        imgui["dragFloat"] = sol::overload(
+        /*     imgui["dragFloat"] = sol::overload(
             [](const char* _label, float _currentValue, sol::function _cb)
             {
                 if(ImGui::DragFloat(_label, &_currentValue))
@@ -1113,7 +1113,7 @@ namespace Lumos
             {
                 if(ImGui::VSliderInt(_label, _size, &_currentValue, _v_min, _v_max, _format))
                     _cb(_currentValue);
-            });
+            });*/
 
         //@TODO: add overloads
         // imgui["inputText"] = [](const char * _label, int _capacity, sol::function _cb) {
@@ -1427,53 +1427,53 @@ namespace Lumos
                 _cb(*obj);
             }
         };
-        imgui["endDragDropTarget"] = ImGui::EndDragDropTarget;
-        imgui["getDragDropPayload"] = ImGui::GetDragDropPayload;
+        //imgui["endDragDropTarget"] = ImGui::EndDragDropTarget;
+        //imgui["getDragDropPayload"] = ImGui::GetDragDropPayload;
 
-        imgui["pushClipRect"] = ImGui::PushClipRect;
-        imgui["popClipRect"] = ImGui::PopClipRect;
+        //imgui["pushClipRect"] = ImGui::PushClipRect;
+        //imgui["popClipRect"] = ImGui::PopClipRect;
 
-        imgui["setItemDefaultFocus"] = ImGui::SetItemDefaultFocus;
-        imgui["setKeyboardFocusHere"] = ImGui::SetKeyboardFocusHere;
+        //imgui["setItemDefaultFocus"] = ImGui::SetItemDefaultFocus;
+        //imgui["setKeyboardFocusHere"] = ImGui::SetKeyboardFocusHere;
 
-        imgui["isItemHovered"] = sol::overload(ImGui::IsItemHovered, []()
-            { return ImGui::IsItemHovered(); });
-        imgui["isItemActive"] = ImGui::IsItemActive;
-        imgui["isItemFocused"] = ImGui::IsItemFocused;
-        imgui["isItemClicked"] = sol::overload(ImGui::IsItemClicked, []()
-            { return ImGui::IsItemClicked(); });
-        imgui["isItemVisible"] = ImGui::IsItemVisible;
-        imgui["isItemEdited"] = ImGui::IsItemEdited;
-        imgui["isItemActivated"] = ImGui::IsItemActivated;
-        imgui["isItemDeactivated"] = ImGui::IsItemDeactivated;
-        imgui["isItemDeactivatedAfterEdit"] = ImGui::IsItemDeactivatedAfterEdit;
-        imgui["isAnyItemHovered"] = ImGui::IsAnyItemHovered;
-        imgui["isAnyItemActive"] = ImGui::IsAnyItemActive;
-        imgui["isAnyItemFocused"] = ImGui::IsAnyItemFocused;
-        imgui["getItemRectMin"] = ImGui::GetItemRectMin;
-        imgui["getItemRectMax"] = ImGui::GetItemRectMax;
-        imgui["getItemRectSize"] = ImGui::GetItemRectSize;
-        imgui["setItemAllowOverlap"] = ImGui::SetItemAllowOverlap;
+        //imgui["isItemHovered"] = sol::overload(ImGui::IsItemHovered, []()
+        //    { return ImGui::IsItemHovered(); });
+        //imgui["isItemActive"] = ImGui::IsItemActive;
+        //imgui["isItemFocused"] = ImGui::IsItemFocused;
+        //imgui["isItemClicked"] = sol::overload(ImGui::IsItemClicked, []()
+        //    { return ImGui::IsItemClicked(); });
+        //imgui["isItemVisible"] = ImGui::IsItemVisible;
+        //imgui["isItemEdited"] = ImGui::IsItemEdited;
+        //imgui["isItemActivated"] = ImGui::IsItemActivated;
+        //imgui["isItemDeactivated"] = ImGui::IsItemDeactivated;
+        //imgui["isItemDeactivatedAfterEdit"] = ImGui::IsItemDeactivatedAfterEdit;
+        //imgui["isAnyItemHovered"] = ImGui::IsAnyItemHovered;
+        //imgui["isAnyItemActive"] = ImGui::IsAnyItemActive;
+        //imgui["isAnyItemFocused"] = ImGui::IsAnyItemFocused;
+        //imgui["getItemRectMin"] = ImGui::GetItemRectMin;
+        //imgui["getItemRectMax"] = ImGui::GetItemRectMax;
+        //imgui["getItemRectSize"] = ImGui::GetItemRectSize;
+        //imgui["setItemAllowOverlap"] = ImGui::SetItemAllowOverlap;
 
-        imgui["getKeyIndex"] = ImGui::GetKeyIndex;
-        imgui["isKeyDown"] = ImGui::IsKeyDown;
-        imgui["isKeyPressed"] = ImGui::IsKeyPressed;
-        imgui["isKeyReleased"] = ImGui::IsKeyReleased;
-        imgui["getKeyPressedAmount"] = ImGui::GetKeyPressedAmount;
-        imgui["isMouseDown"] = ImGui::IsMouseDown;
-        imgui["isAnyMouseDown"] = ImGui::IsAnyMouseDown;
-        imgui["isMouseClicked"] = ImGui::IsMouseClicked;
-        imgui["isMouseDoubleClicked"] = ImGui::IsMouseDoubleClicked;
-        imgui["isMouseReleased"] = ImGui::IsMouseReleased;
-        imgui["isMouseDragging"] = ImGui::IsMouseDragging;
-        imgui["isMouseHoveringRect"] = ImGui::IsMouseHoveringRect;
-        imgui["getMousePos"] = ImGui::GetMousePos;
-        imgui["getMousePosOnOpeningCurrentPopup"] = ImGui::GetMousePosOnOpeningCurrentPopup;
-        imgui["getMouseDragDelta"] = ImGui::GetMouseDragDelta;
-        imgui["resetMouseDragDelta"] = ImGui::ResetMouseDragDelta;
-        imgui["getMouseCursor"] = ImGui::GetMouseCursor;
-        imgui["setMouseCursor"] = ImGui::SetMouseCursor;
-        imgui["captureKeyboardFromApp"] = ImGui::CaptureKeyboardFromApp;
-        imgui["captureMouseFromApp"] = ImGui::CaptureMouseFromApp;
+        //imgui["getKeyIndex"] = ImGui::GetKeyIndex;
+        //imgui["isKeyDown"] = ImGui::IsKeyDown;
+        //imgui["isKeyPressed"] = ImGui::IsKeyPressed;
+        //imgui["isKeyReleased"] = ImGui::IsKeyReleased;
+        //imgui["getKeyPressedAmount"] = ImGui::GetKeyPressedAmount;
+        //imgui["isMouseDown"] = ImGui::IsMouseDown;
+        //imgui["isAnyMouseDown"] = ImGui::IsAnyMouseDown;
+        //imgui["isMouseClicked"] = ImGui::IsMouseClicked;
+        //imgui["isMouseDoubleClicked"] = ImGui::IsMouseDoubleClicked;
+        //imgui["isMouseReleased"] = ImGui::IsMouseReleased;
+        //imgui["isMouseDragging"] = ImGui::IsMouseDragging;
+        //imgui["isMouseHoveringRect"] = ImGui::IsMouseHoveringRect;
+        //imgui["getMousePos"] = ImGui::GetMousePos;
+        //imgui["getMousePosOnOpeningCurrentPopup"] = ImGui::GetMousePosOnOpeningCurrentPopup;
+        //imgui["getMouseDragDelta"] = ImGui::GetMouseDragDelta;
+        //imgui["resetMouseDragDelta"] = ImGui::ResetMouseDragDelta;
+        //imgui["getMouseCursor"] = ImGui::GetMouseCursor;
+        //imgui["setMouseCursor"] = ImGui::SetMouseCursor;
+        //imgui["captureKeyboardFromApp"] = ImGui::CaptureKeyboardFromApp;
+        //imgui["captureMouseFromApp"] = ImGui::CaptureMouseFromApp;
     }
 }

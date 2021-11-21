@@ -341,7 +341,7 @@ float PCFShadowDirectionalLight(sampler2DArray shadowMap, vec4 shadowCoords, flo
 int CalculateCascadeIndex(vec3 wsPos)
 {
 	int cascadeIndex = 0;
-	vec4 viewPos = vec4(wsPos, 1.0) * ubo.viewMatrix;
+	vec4 viewPos = ubo.viewMatrix * vec4(wsPos, 1.0);
 	
 	for(int i = 0; i < ubo.shadowCount - 1; ++i)
 	{
@@ -356,7 +356,7 @@ int CalculateCascadeIndex(vec3 wsPos)
 
 float CalculateShadow(vec3 wsPos, int cascadeIndex, vec3 lightDirection, vec3 normal)
 {
-	vec4 shadowCoord = vec4(wsPos, 1.0) * ubo.uShadowTransform[cascadeIndex] * ubo.biasMat;
+	vec4 shadowCoord = ubo.biasMat * ubo.uShadowTransform[cascadeIndex] * vec4(wsPos, 1.0);
 	shadowCoord = shadowCoord * ( 1.0 / shadowCoord.w);
 	float NEAR = 0.01;
 	float uvRadius =  ubo.lightSize * NEAR / shadowCoord.z;
@@ -364,7 +364,7 @@ float CalculateShadow(vec3 wsPos, int cascadeIndex, vec3 lightDirection, vec3 no
 	vec4 viewPos = vec4(wsPos, 1.0) * ubo.viewMatrix;
 	
 	float shadowAmount = 1.0;
-		shadowCoord = vec4(wsPos, 1.0) * ubo.uShadowTransform[cascadeIndex] * ubo.biasMat;
+	shadowCoord = ubo.biasMat * ubo.uShadowTransform[cascadeIndex] * vec4(wsPos, 1.0);
 	shadowAmount = PCFShadowDirectionalLight(uShadowMap, shadowCoord, uvRadius, lightDirection, normal, wsPos, cascadeIndex);
 	
 	return 1.0 - ((1.0 - shadowAmount) * ShadowFade);

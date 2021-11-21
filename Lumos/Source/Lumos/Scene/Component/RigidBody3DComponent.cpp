@@ -53,7 +53,7 @@ namespace Lumos
         ImGui::TextUnformatted("Position");
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
-        if(ImGui::DragFloat3("##Position", Maths::ValuePointer(pos)))
+        if(ImGui::DragFloat3("##Position", glm::value_ptr(pos)))
             m_RigidBody->SetPosition(pos);
 
         ImGui::PopItemWidth();
@@ -63,7 +63,7 @@ namespace Lumos
         ImGui::TextUnformatted("Velocity");
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
-        if(ImGui::DragFloat3("##Velocity", Maths::ValuePointer(velocity)))
+        if(ImGui::DragFloat3("##Velocity", glm::value_ptr(velocity)))
             m_RigidBody->SetLinearVelocity(velocity);
 
         ImGui::PopItemWidth();
@@ -73,7 +73,7 @@ namespace Lumos
         ImGui::TextUnformatted("Torque");
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
-        if(ImGui::DragFloat3("##Torque", Maths::ValuePointer(torque)))
+        if(ImGui::DragFloat3("##Torque", glm::value_ptr(torque)))
             m_RigidBody->SetTorque(torque);
 
         ImGui::PopItemWidth();
@@ -83,7 +83,7 @@ namespace Lumos
         ImGui::TextUnformatted("Orientation");
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
-        if(ImGui::DragFloat4("##Orientation", Maths::ValuePointer(orientation)))
+        if(ImGui::DragFloat4("##Orientation", glm::value_ptr(orientation)))
             m_RigidBody->SetOrientation(orientation);
 
         ImGui::PopItemWidth();
@@ -93,7 +93,7 @@ namespace Lumos
         ImGui::TextUnformatted("Angular Velocity");
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
-        if(ImGui::DragFloat3("##Angular Velocity", Maths::ValuePointer(angularVelocity)))
+        if(ImGui::DragFloat3("##Angular Velocity", glm::value_ptr(angularVelocity)))
             m_RigidBody->SetAngularVelocity(angularVelocity);
 
         ImGui::PopItemWidth();
@@ -154,7 +154,7 @@ namespace Lumos
         ImGui::PopStyleVar();
     }
 
-    SpringConstraintComponent::SpringConstraintComponent(Entity entity, Entity otherEntity, const Maths::Vector3& pos1, const Maths::Vector3& pos2, float constant)
+    SpringConstraintComponent::SpringConstraintComponent(Entity entity, Entity otherEntity, const glm::vec3& pos1, const glm::vec3& pos2, float constant)
     {
         m_Constraint = CreateSharedPtr<SpringConstraint>(entity.GetComponent<RigidBody3DComponent>().GetRigidBody(), otherEntity.GetComponent<RigidBody3DComponent>().GetRigidBody(), pos1, pos2, 0.9f, 0.5f);
     }
@@ -163,7 +163,7 @@ namespace Lumos
         m_Constraint = CreateSharedPtr<SpringConstraint>(entity.GetComponent<RigidBody3DComponent>().GetRigidBody(), otherEntity.GetComponent<RigidBody3DComponent>().GetRigidBody(), 0.9f, 0.5f);
     }
 
-    WeldConstraintComponent::WeldConstraintComponent(Entity entity, Entity otherEntity, const Maths::Vector3& pos1, const Maths::Vector3& pos2, float constant)
+    WeldConstraintComponent::WeldConstraintComponent(Entity entity, Entity otherEntity, const glm::vec3& pos1, const glm::vec3& pos2, float constant)
     {
         m_Constraint = CreateSharedPtr<WeldConstraint>(entity.GetComponent<RigidBody3DComponent>().GetRigidBody().get(), otherEntity.GetComponent<RigidBody3DComponent>().GetRigidBody().get());
     }
@@ -173,7 +173,7 @@ namespace Lumos
         m_Constraint = CreateSharedPtr<WeldConstraint>(entity.GetComponent<RigidBody3DComponent>().GetRigidBody().get(), otherEntity.GetComponent<RigidBody3DComponent>().GetRigidBody().get());
     }
 
-    DistanceConstraintComponent::DistanceConstraintComponent(Entity entity, Entity otherEntity, const Maths::Vector3& pos1, const Maths::Vector3& pos2, float constant)
+    DistanceConstraintComponent::DistanceConstraintComponent(Entity entity, Entity otherEntity, const glm::vec3& pos1, const glm::vec3& pos2, float constant)
     {
         m_Constraint = CreateSharedPtr<DistanceConstraint>(entity.GetComponent<RigidBody3DComponent>().GetRigidBody().get(), otherEntity.GetComponent<RigidBody3DComponent>().GetRigidBody().get(), pos1, pos2);
     }

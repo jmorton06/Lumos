@@ -74,10 +74,10 @@ namespace Lumos
             void SetUniform1i(const std::string& name, int32_t value);
             void SetUniform1ui(const std::string& name, uint32_t value);
             void SetUniform1iv(const std::string& name, int32_t* value, int32_t count);
-            void SetUniform2f(const std::string& name, const Maths::Vector2& vector);
-            void SetUniform3f(const std::string& name, const Maths::Vector3& vector);
-            void SetUniform4f(const std::string& name, const Maths::Vector4& vector);
-            void SetUniformMat4(const std::string& name, const Maths::Matrix4& matrix);
+            void SetUniform2f(const std::string& name, const glm::vec2& vector);
+            void SetUniform3f(const std::string& name, const glm::vec3& vector);
+            void SetUniform4f(const std::string& name, const glm::vec4& vector);
+            void SetUniformMat4(const std::string& name, const glm::mat4& matrix);
 
             void BindUniformBuffer(GLUniformBuffer* buffer, uint32_t slot, const std::string& name);
 
@@ -105,12 +105,12 @@ namespace Lumos
             static void SetUniform1i(uint32_t location, int32_t value);
             static void SetUniform1ui(uint32_t location, uint32_t value);
             static void SetUniform1iv(uint32_t location, int32_t* value, int32_t count);
-            static void SetUniform2f(uint32_t location, const Maths::Vector2& vector);
-            static void SetUniform3f(uint32_t location, const Maths::Vector3& vector);
-            static void SetUniform4f(uint32_t location, const Maths::Vector4& vector);
-            static void SetUniformMat3(uint32_t location, const Maths::Matrix3& matrix);
-            static void SetUniformMat4(uint32_t location, const Maths::Matrix4& matrix);
-            static void SetUniformMat4Array(uint32_t location, uint32_t count, const Maths::Matrix4& matrix);
+            static void SetUniform2f(uint32_t location, const glm::vec2& vector);
+            static void SetUniform3f(uint32_t location, const glm::vec3& vector);
+            static void SetUniform4f(uint32_t location, const glm::vec4& vector);
+            static void SetUniformMat3(uint32_t location, const glm::mat3& matrix);
+            static void SetUniformMat4(uint32_t location, const glm::mat4& matrix);
+            static void SetUniformMat4Array(uint32_t location, uint32_t count, const glm::mat4& matrix);
 
             static void MakeDefault();
 

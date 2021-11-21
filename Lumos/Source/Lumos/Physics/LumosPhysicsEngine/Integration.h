@@ -10,15 +10,15 @@ namespace Lumos
     public:
         struct State
         {
-            Maths::Vector3 position;
-            Maths::Vector3 velocity;
-            Maths::Vector3 acceleration;
+            glm::vec3 position;
+            glm::vec3 velocity;
+            glm::vec3 acceleration;
         };
 
         struct Derivative
         {
-            Maths::Vector3 acceleration;
-            Maths::Vector3 velocity;
+            glm::vec3 acceleration;
+            glm::vec3 velocity;
         };
 
     public:

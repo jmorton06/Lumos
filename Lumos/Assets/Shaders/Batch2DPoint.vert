@@ -22,7 +22,7 @@ layout (location = 0) out DATA
 
 void main()
 {
-	gl_Position =  vec4(position,1.0) * ubo.projView;
+	gl_Position = ubo.projView * vec4(position,1.0);
 
 	vs_out.position = position;
 	vs_out.colour = colour;

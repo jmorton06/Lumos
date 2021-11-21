@@ -26,8 +26,8 @@ namespace Lumos
         alSourcef(m_Source, AL_MAX_DISTANCE, m_Radius);
         alSourcef(m_Source, AL_REFERENCE_DISTANCE, m_ReferenceDistance);
 
-        Maths::Vector3 position;
-        Maths::Vector3 velocity;
+        glm::vec3 position;
+        glm::vec3 velocity;
 
         if(m_IsGlobal)
         {
@@ -40,7 +40,7 @@ namespace Lumos
 
         if(m_Stationary)
         {
-            velocity = Maths::Vector3(0.0f);
+            velocity = glm::vec3(0.0f);
         }
         else
         {
