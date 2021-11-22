@@ -153,9 +153,8 @@ namespace Lumos
             (float)Application::Get().GetWindowSize().x / (float)Application::Get().GetWindowSize().y);
         m_CurrentCamera = m_EditorCamera.get();
 
-        glm::mat4 viewMat = glm::lookAt(glm::vec3(-31.0f, 12.0f, 51.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-        glm::translate(viewMat, glm::vec3(-31.0f, 12.0f, 51.0f));
-        //m_EditorCameraTransform.SetLocalTransform(viewMat);
+        glm::mat4 viewMat = glm::inverse(glm::lookAt(glm::vec3(-31.0f, 12.0f, 51.0f), glm::vec3(0.0f,0.0f,0.0f), glm::vec3(0.0f,1.0f,0.0f)));
+        m_EditorCameraTransform.SetLocalTransform(viewMat);
 
         m_ComponentIconMap[typeid(Graphics::Light).hash_code()] = ICON_MDI_LIGHTBULB;
         m_ComponentIconMap[typeid(Camera).hash_code()] = ICON_MDI_CAMERA;
@@ -1105,8 +1104,7 @@ namespace Lumos
         Application::OnNewScene(scene);
         m_SelectedEntity = entt::null;
 
-        glm::mat4 viewMat = glm::mat4(1.0f);//glm::lookAt(glm::vec3(-31.0f, 12.0f, 51.0f), glm::vec3(0.0f,0.0f,0.0f), glm::vec3(0.0f,1.0f,0.0f));
-        viewMat = glm::translate(viewMat, glm::vec3(0.0f, 12.0f, 51.0f));
+        glm::mat4 viewMat = glm::inverse(glm::lookAt(glm::vec3(-31.0f, 12.0f, 51.0f), glm::vec3(0.0f,0.0f,0.0f), glm::vec3(0.0f,1.0f,0.0f)));
         m_EditorCameraTransform.SetLocalTransform(viewMat);
 
         for(auto panel : m_Panels)
@@ -1677,13 +1675,13 @@ namespace Lumos
             auto& worldTransform = trans.GetWorldMatrix();
             auto bb = BoundingBox(Rect(sprite.GetPosition(), sprite.GetPosition() + sprite.GetScale()));
             bb.Transform(trans.GetWorldMatrix());
-            float dist = 0.0f;// ray.HitDistance(bb);
-
-            if(dist < Maths::M_INFINITY)
+            float distance;
+			ray.Intersects(bb, distance);
+            if(distance < Maths::M_INFINITY)
             {
-                if(dist < closestEntityDist)
+                if(distance < closestEntityDist)
                 {
-                    closestEntityDist = dist;
+                    closestEntityDist = distance;
                     currentClosestEntity = entity;
                 }
             }

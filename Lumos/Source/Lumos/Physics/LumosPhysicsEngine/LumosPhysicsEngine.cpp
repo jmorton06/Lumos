@@ -205,15 +205,6 @@ namespace Lumos
 	
 	glm::quat QuatMulVec3(const glm::quat& quat, const glm::vec3 &b)
 	{
-		/*Quaternion ans;
-		ans.w = -(x * b.x) - (y * b.y) - (z * b.z);
-		ans.x =  (w * b.x) + (y * b.z) - (z * b.y);
-		ans.y =  (w * b.y) + (z * b.x) - (x * b.z);
-		ans.z =  (w * b.z) + (x * b.y) - (y * b.x);
-		return ans;*/
-		
-		// This (^) is equiv to q * b, where the below is equiv to b * q (needed for physics)
-		
 		glm::quat ans;
 		
 		ans.w = -(quat.x * b.x) - (quat.y * b.y) - (quat.z * b.z);
@@ -283,12 +274,12 @@ namespace Lumos
 
                 // Angular velocity damping
                 obj->m_AngularVelocity = obj->m_AngularVelocity * damping * obj->m_AngularFactor;
-
+					
+					auto angularVelocity = obj->m_AngularVelocity * s_UpdateTimestep;
+					
                 // Update orientation
-                obj->m_Orientation += obj->m_Orientation * glm::quat(obj->m_AngularVelocity * s_UpdateTimestep * 0.5f);
-
-                //obj->m_Orientation = obj->m_Orientation + ((obj->m_AngularVelocity * s_UpdateTimestep * 0.5f) * obj->m_Orientation);
-                obj->m_Orientation = glm::normalize(obj->m_Orientation);
+					obj->m_Orientation += QuatMulVec3(obj->m_Orientation, angularVelocity);
+					obj->m_Orientation = glm::normalize(obj->m_Orientation);
 
                 break;
             }
@@ -310,11 +301,12 @@ namespace Lumos
 
                 // Angular velocity damping
                 obj->m_AngularVelocity = obj->m_AngularVelocity * damping * obj->m_AngularFactor;
-
+					
+					auto angularVelocity = obj->m_AngularVelocity * s_UpdateTimestep * 0.5f;
+					
                 // Update orientation
-                obj->m_Orientation += obj->m_Orientation * glm::quat(obj->m_AngularVelocity * s_UpdateTimestep * 0.5f);
-                //obj->m_Orientation = obj->m_Orientation + ((obj->m_AngularVelocity * s_UpdateTimestep * 0.5f) * obj->m_Orientation);
-                obj->m_Orientation = glm::normalize(obj->m_Orientation);
+					obj->m_Orientation += QuatMulVec3(obj->m_Orientation, angularVelocity);
+					obj->m_Orientation = glm::normalize(obj->m_Orientation);
 
                 break;
             }
@@ -339,10 +331,8 @@ namespace Lumos
                 // Update orientation
                 //Check order of quat multiplication
                 auto angularVelocity = obj->m_AngularVelocity * s_UpdateTimestep * 0.5f;
-					//obj->m_Orientation += obj->m_Orientation * glm::quat(angularVelocity);
 					
 					obj->m_Orientation += QuatMulVec3(obj->m_Orientation, angularVelocity);
-                //obj->m_Orientation = obj->m_Orientation + ((obj->m_AngularVelocity * s_UpdateTimestep * 0.5f) * obj->m_Orientation);
                 obj->m_Orientation = glm::normalize(obj->m_Orientation);
 
                 break;

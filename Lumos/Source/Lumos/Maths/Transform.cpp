@@ -112,26 +112,12 @@ namespace Lumos
 
         const glm::vec3 Transform::GetWorldPosition() const
         {
-            glm::vec3 skew;
-
-            glm::vec3 pos;
-            glm::vec3 test;
-            glm::vec4 perspective;
-            glm::quat rotation;
-            glm::decompose(m_WorldMatrix, test, rotation, pos, skew, perspective);
-            return pos;
+            return m_WorldMatrix[3];
         }
 
         const glm::quat Transform::GetWorldOrientation() const
         {
-            //TODO: nicer way
-            glm::vec3 skew;
-            glm::vec3 pos;
-            glm::vec3 test;
-            glm::vec4 perspective;
-            glm::quat rotation;
-            glm::decompose(m_WorldMatrix, test, rotation, pos, skew, perspective);
-            return rotation;
+            return glm::toQuat(m_WorldMatrix);
         }
 
         const glm::vec3& Transform::GetLocalPosition() const

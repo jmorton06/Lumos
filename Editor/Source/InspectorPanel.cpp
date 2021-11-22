@@ -170,7 +170,7 @@ end
         LUMOS_PROFILE_FUNCTION();
         auto& transform = reg.get<Lumos::Maths::Transform>(e);
 
-        auto rotation = glm::eulerAngles(transform.GetLocalOrientation());
+        auto rotation = glm::degrees(glm::eulerAngles(transform.GetLocalOrientation()));
         auto position = transform.GetLocalPosition();
         auto scale = transform.GetLocalScale();
 
@@ -197,7 +197,7 @@ end
         {
             float pitch = Lumos::Maths::Min(rotation.x, 89.9f);
             pitch = Lumos::Maths::Max(pitch, -89.9f);
-            transform.SetLocalOrientation(glm::quat(glm::vec3(pitch, rotation.y, rotation.z)));
+            transform.SetLocalOrientation(glm::quat(glm::radians(glm::vec3(pitch, rotation.y, rotation.z))));
         }
 
         ImGui::PopItemWidth();
