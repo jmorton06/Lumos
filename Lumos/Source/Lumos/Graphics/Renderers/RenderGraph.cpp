@@ -477,7 +477,7 @@ namespace Lumos::Graphics
                 }
             }
 
-            auto invViewProj = glm::inverse(m_Camera->GetProjectionMatrix() * glm::inverse(m_CameraTransform->GetWorldMatrix()));
+            auto invViewProj = glm::inverse(projView);
             m_SkyboxDescriptorSet->SetUniform("UniformBufferObject", "invprojview", &invViewProj);
         }
 
@@ -507,10 +507,9 @@ namespace Lumos::Graphics
                     if(light.Type != float(LightType::DirectionalLight))
                     {
                         auto inside = m_ForwardData.m_Frustum.IsInside(BoundingSphere(glm::vec3(light.Position), light.Radius));
-                        if(!inside)
+                     
+                        if(inside == Intersection::OUTSIDE)
                             continue;
-                        /// if(inside == Maths::Intersection::OUTSIDE)
-                        ///     continue;
                     }
 
                     lights[numLights] = light;

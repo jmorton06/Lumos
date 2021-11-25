@@ -81,7 +81,7 @@ namespace Lumos
         {
             LUMOS_PROFILE_FUNCTION();
             m_Shader = Application::Get().GetShaderLibrary()->GetResource("Grid");
-            m_Quad = Graphics::CreateScreenQuad(); //Graphics::CreatePlane(5000.0f, 5000.f, glm::vec3(0.0f, 1.0f, 0.0f));
+            m_Quad = Graphics::CreateQuad(); //Graphics::CreatePlane(5000.0f, 5000.f, glm::vec3(0.0f, 1.0f, 0.0f));
 
             Graphics::DescriptorDesc descriptorDesc {};
             descriptorDesc.layoutIndex = 0;
@@ -132,7 +132,7 @@ namespace Lumos
 
             test.maxDistance = m_MaxDistance;
 
-            auto invViewProj = proj * glm::inverse(m_CameraTransform->GetWorldMatrix());
+            auto invViewProj = proj * view;
             m_DescriptorSet[0]->SetUniform("UniformBufferObject", "u_MVP", &invViewProj);
             m_DescriptorSet[0]->SetUniform("UniformBufferObject", "view", &view);
             m_DescriptorSet[0]->SetUniform("UniformBufferObject", "proj", &proj);
@@ -177,7 +177,7 @@ namespace Lumos
             pipelineDesc.shader = m_Shader;
 
             pipelineDesc.polygonMode = Graphics::PolygonMode::FILL;
-            pipelineDesc.cullMode = Graphics::CullMode::NONE;
+            pipelineDesc.cullMode = Graphics::CullMode::BACK;
             pipelineDesc.transparencyEnabled = true;
             pipelineDesc.blendMode = BlendMode::SrcAlphaOneMinusSrcAlpha;
 

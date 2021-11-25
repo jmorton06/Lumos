@@ -19,10 +19,6 @@
 
 #include <imgui/imgui.h>
 
-//#define THREAD_RIGID_BODY_UPDATE
-//#define THREAD_APPLY_IMPULSES
-//#define THREAD_NARROWPHASE
-
 namespace Lumos
 {
 
