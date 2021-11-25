@@ -87,7 +87,6 @@ namespace Lumos
             glm::vec3 m_LocalPosition;
             glm::vec3 m_LocalScale;
             glm::quat m_LocalOrientation;
-            glm::vec3 m_LocalRotation;
 
             bool m_HasUpdated = false;
             bool m_Dirty = false;

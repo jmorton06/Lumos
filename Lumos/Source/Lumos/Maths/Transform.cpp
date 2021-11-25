@@ -55,7 +55,9 @@ namespace Lumos
         {
             glm::vec3 skew;
             glm::vec4 perspective;
-            glm::decompose(m_LocalMatrix, m_LocalScale, m_LocalOrientation, m_LocalPosition, skew, perspective);
+			glm::decompose(m_LocalMatrix, m_LocalScale, m_LocalOrientation, m_LocalPosition, skew, perspective);
+			m_Dirty = false;
+			m_HasUpdated = true;
         }
 
         void Transform::SetWorldMatrix(const glm::mat4& mat)

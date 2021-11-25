@@ -1390,9 +1390,7 @@ namespace Lumos
                     Application::Get().GetCurrentScene()->DuplicateEntity({ m_SelectedEntity, Application::Get().GetCurrentScene() });
                 }
             }
-
-            m_EditorCameraTransform.SetWorldMatrix(glm::mat4(1.0f));
-        }
+		}
 
         Application::OnUpdate(ts);
     }
