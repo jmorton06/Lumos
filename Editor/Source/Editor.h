@@ -69,7 +69,8 @@ namespace Lumos
         bool IsSceneFile(const std::string& filePath);
         bool IsModelFile(const std::string& filePath);
         bool IsTextureFile(const std::string& filePath);
-
+		bool IsShaderFile(const std::string& filePath);
+		
         void SetImGuizmoOperation(uint32_t operation)
         {
             m_ImGuizmoOperation = operation;
@@ -174,6 +175,7 @@ namespace Lumos
         void FileOpenCallback(const std::string& filepath);
         void ProjectOpenCallback(const std::string& filepath);
         void NewProjectOpenCallback(const std::string& filepath);
+		void FileEmbedCallback(const std::string& filepath);
 
         FileBrowserPanel& GetFileBrowserPanel()
         {
@@ -185,6 +187,7 @@ namespace Lumos
         void LoadEditorSettings();
 
         void OpenFile();
+		void EmbedFile();
         const char* GetIconFontIcon(const std::string& fileType);
 
         Camera* GetCamera() const
@@ -207,7 +210,6 @@ namespace Lumos
 
         void CacheScene();
         void LoadCachedScene();
-        void EmbedShader(const std::string& shaderPath);
 
         struct EditorSettings
         {

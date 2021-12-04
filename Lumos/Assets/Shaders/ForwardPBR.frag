@@ -566,7 +566,7 @@ void main()
     float shadowDistance = ubo.maxShadowDistance;
 	float transitionDistance = ubo.shadowFade;
 	
-	vec4 viewPos = vec4(wsPos, 1.0) * ubo.viewMatrix;
+	vec4 viewPos = ubo.viewMatrix * vec4(wsPos, 1.0);
 	
 	float distance = length(viewPos);
 	ShadowFade = distance - (shadowDistance - transitionDistance);

@@ -235,7 +235,7 @@ namespace Lumos
             blit.srcSubresource.baseArrayLayer = 0;
             blit.srcSubresource.layerCount = 1;
 
-            int32_t destSizex = width / 8;
+            int32_t destSizex = width / 4;
             int32_t destSizey = int32_t(destSizex * ratio);
             int32_t offsetx = width / 2 - destSizex / 2;
             int32_t offsety = height / 2 - destSizey / 2;

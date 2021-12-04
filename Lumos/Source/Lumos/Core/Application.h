@@ -165,8 +165,6 @@ namespace Lumos
             }
         }
 
-        void EmbedTexture(const std::string& texFilePath, const std::string& outPath, const std::string& arrayName);
-
         virtual void Serialise();
         virtual void Deserialise();
 

@@ -49,23 +49,24 @@ namespace Lumos
                 m_CurrentBufferID = Renderer::GetMainSwapChain()->GetCurrentBufferIndex();
 
             CreateGraphicsPipeline();
+			auto commandBuffer = Renderer::GetMainSwapChain()->GetCurrentCommandBuffer();
 
-            m_Pipeline->Bind(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer());
+            m_Pipeline->Bind(commandBuffer);
 
             m_CurrentDescriptorSets[0] = m_DescriptorSet[0].get();
 
-            m_Quad->GetVertexBuffer()->Bind(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer(), m_Pipeline.get());
-            m_Quad->GetIndexBuffer()->Bind(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer());
+            m_Quad->GetVertexBuffer()->Bind(commandBuffer, m_Pipeline.get());
+            m_Quad->GetIndexBuffer()->Bind(commandBuffer);
 
-            Renderer::BindDescriptorSets(m_Pipeline.get(), Renderer::GetMainSwapChain()->GetCurrentCommandBuffer(), 0, m_CurrentDescriptorSets.data(), 1);
-            Renderer::DrawIndexed(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer(), DrawType::TRIANGLE, m_Quad->GetIndexBuffer()->GetCount());
+            Renderer::BindDescriptorSets(m_Pipeline.get(), commandBuffer, 0, m_CurrentDescriptorSets.data(), 1);
+            Renderer::DrawIndexed(commandBuffer, DrawType::TRIANGLE, m_Quad->GetIndexBuffer()->GetCount());
 
             m_Quad->GetVertexBuffer()->Unbind();
             m_Quad->GetIndexBuffer()->Unbind();
 
             End();
 
-            m_Pipeline->End(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer());
+            m_Pipeline->End(commandBuffer);
 
             //if(!m_RenderTexture)
             //Renderer::Present((m_CommandBuffers[Renderer::GetMainSwapChain()->GetCurrentBufferIndex()].get()));
