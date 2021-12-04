@@ -59,7 +59,7 @@ namespace Lumos::Graphics
         m_ShadowData.m_ShadowTex = TextureDepthArray::Create(m_ShadowData.m_ShadowMapSize, m_ShadowData.m_ShadowMapSize, m_ShadowData.m_ShadowMapNum);
 
         m_ShadowData.m_LightSize = 1.5f;
-        m_ShadowData.m_MaxShadowDistance = 10000.0f;
+        m_ShadowData.m_MaxShadowDistance = 500.0f;
         m_ShadowData.m_ShadowFade = 40.0f;
         m_ShadowData.m_CascadeTransitionFade = 3.0f;
         m_ShadowData.m_InitialBias = 0.0023f;

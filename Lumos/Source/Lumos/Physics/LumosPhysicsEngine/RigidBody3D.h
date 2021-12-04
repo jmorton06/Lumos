@@ -49,8 +49,8 @@ namespace Lumos
         glm::vec3 AngularVelocity = glm::vec3(0.0f);
         glm::vec3 Torque = glm::vec3(0.0f);
         bool Static = false;
-        float Elasticity = 0.9f;
-        float Friction = 0.8f;
+        float Elasticity = 1.0f;
+        float Friction = 1.0f;
         bool AtRest = false;
         bool isTrigger = false;
         SharedPtr<CollisionShape> Shape = nullptr;
