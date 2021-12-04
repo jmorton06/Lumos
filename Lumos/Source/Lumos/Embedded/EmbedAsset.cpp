@@ -6,6 +6,8 @@
 #include "Core/StringUtilities.h"
 #include "Utilities/LoadImage.h"
 
+#include <iomanip>
+
 namespace Lumos
 {
 	void EmbedTexture(const std::string& texFilePath, const std::string& outPath, const std::string& arrayName)
