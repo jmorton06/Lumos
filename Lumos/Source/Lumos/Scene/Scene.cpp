@@ -108,7 +108,7 @@ namespace Lumos
     void Scene::OnUpdate(const TimeStep& timeStep)
     {
         LUMOS_PROFILE_FUNCTION();
-        const Maths::Vector2 mousePos = Input::Get().GetMousePosition();
+        const glm::vec2& mousePos = Input::Get().GetMousePosition();
 
         auto defaultCameraControllerView = m_EntityManager->GetEntitiesWithType<DefaultCameraController>();
 

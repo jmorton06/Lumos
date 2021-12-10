@@ -5,7 +5,7 @@
 namespace Lumos
 {
 
-    SortAndSweepBroadphase::SortAndSweepBroadphase(const Maths::Vector3& axis)
+    SortAndSweepBroadphase::SortAndSweepBroadphase(const glm::vec3& axis)
         : Broadphase()
         , m_AxisIndex(0)
     {
@@ -16,12 +16,12 @@ namespace Lumos
     {
     }
 
-    void SortAndSweepBroadphase::SetAxis(const Maths::Vector3& axis)
+    void SortAndSweepBroadphase::SetAxis(const glm::vec3& axis)
     {
         LUMOS_PROFILE_FUNCTION();
         // Determine axis
         m_Axis = axis;
-        m_Axis.Normalise();
+        glm::normalize(m_Axis);
 
         if(abs(m_Axis.x) > 0.9f)
             m_AxisIndex = 0;
@@ -37,13 +37,13 @@ namespace Lumos
         LUMOS_PROFILE_FUNCTION();
         // Sort entities along axis
         std::sort(objects, objects + objectCount, [this](RigidBody3D* a, RigidBody3D* b) -> bool
-            { return a->GetWorldSpaceAABB().min_[this->m_AxisIndex] < b->GetWorldSpaceAABB().min_[this->m_AxisIndex]; });
+            { return a->GetWorldSpaceAABB().Min()[this->m_AxisIndex] < b->GetWorldSpaceAABB().Min()[this->m_AxisIndex]; });
 
         for(uint32_t i = 0; i < objectCount; i++)
         {
             auto& obj = *objects[i];
 
-            float thisBoxRight = obj.GetWorldSpaceAABB().max_[m_AxisIndex];
+            float thisBoxRight = obj.GetWorldSpaceAABB().Max()[m_AxisIndex];
 
             for(uint32_t iit = i + 1; iit < objectCount; iit++)
             {
@@ -63,7 +63,7 @@ namespace Lumos
                 if(obj.GetIsStatic() && obj2.GetIsAtRest())
                     continue;
 
-                float testBoxLeft = obj2.GetWorldSpaceAABB().min_[m_AxisIndex];
+                float testBoxLeft = obj2.GetWorldSpaceAABB().Min()[m_AxisIndex];
 
                 // Test for overlap between the axis values of the bounding boxes
                 if(testBoxLeft < thisBoxRight)

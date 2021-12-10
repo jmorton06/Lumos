@@ -274,6 +274,11 @@ namespace Lumos
                 VK_KHR_SWAPCHAIN_EXTENSION_NAME
             };
 
+            if(m_PhysicalDevice->IsExtensionSupported(VK_KHR_MAINTENANCE1_EXTENSION_NAME))
+            {
+                deviceExtensions.push_back(VK_KHR_MAINTENANCE1_EXTENSION_NAME);
+            }
+
             if(m_PhysicalDevice->IsExtensionSupported(VK_EXT_DEBUG_UTILS_EXTENSION_NAME))
             {
                 deviceExtensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);

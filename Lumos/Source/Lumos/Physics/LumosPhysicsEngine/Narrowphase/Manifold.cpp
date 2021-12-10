@@ -1,8 +1,9 @@
 #include "Precompiled.h"
 #include "Manifold.h"
-#include "Maths/Matrix3.h"
+#include <glm/mat3x3.hpp>
 #include "Physics/LumosPhysicsEngine/LumosPhysicsEngine.h"
 #include "Graphics/Renderers/DebugRenderer.h"
+#include <glm/gtx/string_cast.hpp>
 
 namespace Lumos
 {
@@ -43,25 +44,25 @@ namespace Lumos
         if(m_pNodeA->GetInverseMass() + m_pNodeB->GetInverseMass() == 0.0f)
             return;
 
-        Maths::Vector3 r1 = c.relPosA;
-        Maths::Vector3 r2 = c.relPosB;
+        glm::vec3 r1 = c.relPosA;
+        glm::vec3 r2 = c.relPosB;
 
-        Maths::Vector3 v0 = m_pNodeA->GetLinearVelocity() + Maths::Vector3::Cross(m_pNodeA->GetAngularVelocity(), r1);
-        Maths::Vector3 v1 = m_pNodeB->GetLinearVelocity() + Maths::Vector3::Cross(m_pNodeB->GetAngularVelocity(), r2);
+        glm::vec3 v0 = m_pNodeA->GetLinearVelocity() + glm::cross(m_pNodeA->GetAngularVelocity(), r1);
+        glm::vec3 v1 = m_pNodeB->GetLinearVelocity() + glm::cross(m_pNodeB->GetAngularVelocity(), r2);
 
-        Maths::Vector3 normal = c.collisionNormal;
-        Maths::Vector3 dv = v0 - v1;
+        glm::vec3 normal = c.collisionNormal;
+        glm::vec3 dv = v0 - v1;
 
         // Collision Resolution
         {
             const float constraintMass = (m_pNodeA->GetInverseMass()
                                              + m_pNodeB->GetInverseMass())
-                + Maths::Vector3::Dot(normal,
-                    Maths::Vector3::Cross(m_pNodeA->GetInverseInertia()
-                            * Maths::Vector3::Cross(r1, normal),
+                + glm::dot(normal,
+                    glm::cross(m_pNodeA->GetInverseInertia()
+                            * glm::cross(r1, normal),
                         r1)
-                        + Maths::Vector3::Cross(m_pNodeB->GetInverseInertia()
-                                * Maths::Vector3::Cross(r2, normal),
+                        + glm::cross(m_pNodeB->GetInverseInertia()
+                                * glm::cross(r2, normal),
                             r2));
             // Baumgarte Offset ( Adds energy to the System to counter
             // slight solving errors that accumulate over time
@@ -80,7 +81,7 @@ namespace Lumos
             }
 
             float b_real = Maths::Max(b, c.elatisity_term + b * 0.2f);
-            float jn = -(Maths::Vector3::Dot(dv, normal) + b_real) / constraintMass;
+            float jn = -(glm::dot(dv, normal) + b_real) / constraintMass;
 
             //jn = min(jn, 0.0f);
             float oldSumImpulseContact = c.sumImpulseContact;
@@ -88,40 +89,33 @@ namespace Lumos
             jn = c.sumImpulseContact - oldSumImpulseContact;
 
             m_pNodeA->SetLinearVelocity(m_pNodeA->GetLinearVelocity()
-                + normal * (jn * m_pNodeA->GetInverseMass()));
+            + normal * (jn * m_pNodeA->GetInverseMass()));
             m_pNodeB->SetLinearVelocity(m_pNodeB->GetLinearVelocity()
-                - normal * (jn * m_pNodeB->GetInverseMass()));
-
+            - normal * (jn * m_pNodeB->GetInverseMass()));
+  
             m_pNodeA->SetAngularVelocity(m_pNodeA->GetAngularVelocity()
                 + m_pNodeA->GetInverseInertia()
-                    * Maths::Vector3::Cross(r1, normal * jn));
+                    * glm::cross(r1, normal * jn));
             m_pNodeB->SetAngularVelocity(m_pNodeB->GetAngularVelocity()
                 - m_pNodeB->GetInverseInertia()
-                    * Maths::Vector3::Cross(r2, normal * jn));
+                    * glm::cross(r2, normal * jn));
         }
         // Friction
         {
-            Maths::Vector3 tangent = dv - normal * Maths::Vector3::Dot(dv, normal);
-            float tangent_len = tangent.Length();
+            glm::vec3 tangent = dv - normal * glm::dot(dv, normal);
+            float tangent_len = glm::length(tangent);
 
             if(tangent_len > 0.001f)
             {
                 tangent = tangent * (1.0f / tangent_len);
 
-                float frictionalMass = (m_pNodeA->GetInverseMass()
-                                           + m_pNodeB->GetInverseMass())
-                    + Maths::Vector3::Dot(tangent,
-                        Maths::Vector3::Cross(m_pNodeA->GetInverseInertia()
-                                * Maths::Vector3::Cross(r1, tangent),
-                            r1)
-                            + Maths::Vector3::Cross(m_pNodeB->GetInverseInertia()
-                                    * Maths::Vector3::Cross(r2, tangent),
-                                r2));
+                float frictionalMass = (m_pNodeA->GetInverseMass() + m_pNodeB->GetInverseMass())
+                    + glm::dot(tangent, glm::cross(m_pNodeA->GetInverseInertia() * glm::cross(r1, tangent), r1) + glm::cross(m_pNodeB->GetInverseInertia() * glm::cross(r2, tangent), r2));
 
                 float frictionCoef = sqrtf(m_pNodeA->GetFriction()
                     * m_pNodeB->GetFriction());
 
-                float jt = -1 * frictionCoef * Maths::Vector3::Dot(dv, tangent)
+                float jt = -1 * frictionCoef * glm::dot(dv, tangent)
                     / frictionalMass;
 
                 // Clamp friction to never apply more force than the main collision
@@ -141,10 +135,10 @@ namespace Lumos
 
                 m_pNodeA->SetAngularVelocity(m_pNodeA->GetAngularVelocity()
                     + m_pNodeA->GetInverseInertia()
-                        * Maths::Vector3::Cross(r1, tangent * jt));
+                        * glm::cross(r1, tangent * jt));
                 m_pNodeB->SetAngularVelocity(m_pNodeB->GetAngularVelocity()
                     - m_pNodeB->GetInverseInertia()
-                        * Maths::Vector3::Cross(r2, tangent * jt));
+                        * glm::cross(r2, tangent * jt));
             }
         }
     }
@@ -175,7 +169,7 @@ namespace Lumos
             const float elasticity = sqrtf(m_pNodeA->GetElasticity()
                 * m_pNodeB->GetElasticity());
 
-            float elatisity_term = elasticity * Maths::Vector3::Dot(contact.collisionNormal, m_pNodeA->GetLinearVelocity() + Maths::Vector3::Cross(contact.relPosA, m_pNodeA->GetAngularVelocity()) - m_pNodeB->GetLinearVelocity() - Maths::Vector3::Cross(contact.relPosB, m_pNodeB->GetAngularVelocity()));
+            float elatisity_term = elasticity * glm::dot(contact.collisionNormal, m_pNodeA->GetLinearVelocity() + glm::cross(contact.relPosA, m_pNodeA->GetAngularVelocity()) - m_pNodeB->GetLinearVelocity() - glm::cross(contact.relPosB, m_pNodeB->GetAngularVelocity()));
 
             if(elatisity_term < 0.0f)
             {
@@ -200,13 +194,13 @@ namespace Lumos
         }
     }
 
-    void Manifold::AddContact(const Maths::Vector3& globalOnA, const Maths::Vector3& globalOnB, const Maths::Vector3& _normal, const float& _penetration)
+    void Manifold::AddContact(const glm::vec3& globalOnA, const glm::vec3& globalOnB, const glm::vec3& _normal, const float& _penetration)
     {
         LUMOS_PROFILE_FUNCTION();
         //Get relative offsets from each object centre of mass
         // Used to compute rotational velocity at the point of contact.
-        Maths::Vector3 r1 = (globalOnA - m_pNodeA->GetPosition());
-        Maths::Vector3 r2 = (globalOnB - m_pNodeB->GetPosition());
+        glm::vec3 r1 = (globalOnA - m_pNodeA->GetPosition());
+        glm::vec3 r2 = (globalOnB - m_pNodeB->GetPosition());
 
         //Create our new contact descriptor
         ContactPoint contact;
@@ -223,8 +217,8 @@ namespace Lumos
         bool should_add = true;
         for(uint32_t i = 0; i < m_ContactCount; i++)
         {
-            Maths::Vector3 ab = m_vContacts[i].relPosA - contact.relPosA;
-            float distsq = Maths::Vector3::Dot(ab, ab);
+            glm::vec3 ab = m_vContacts[i].relPosA - contact.relPosA;
+            float distsq = glm::dot(ab, ab);
 
             //Choose the contact point with the largest penetration and therefore the largest collision response
             if(distsq < min_allowed_dist_sq)
@@ -256,19 +250,19 @@ namespace Lumos
         if(m_ContactCount > 0)
         {
             //Loop around all contact points and draw them all as a line-fan
-            Maths::Vector3 globalOnA1 = m_pNodeA->GetPosition() + m_vContacts[m_ContactCount - 1].relPosA;
+            glm::vec3 globalOnA1 = m_pNodeA->GetPosition() + m_vContacts[m_ContactCount - 1].relPosA;
             for(uint32_t i = 0; i < m_ContactCount; i++)
             {
                 auto& contact = m_vContacts[i];
-                Maths::Vector3 globalOnA2 = m_pNodeA->GetPosition() + contact.relPosA;
-                Maths::Vector3 globalOnB = m_pNodeB->GetPosition() + contact.relPosB;
+                glm::vec3 globalOnA2 = m_pNodeA->GetPosition() + contact.relPosA;
+                glm::vec3 globalOnB = m_pNodeB->GetPosition() + contact.relPosB;
 
                 //Draw line to form area given by all contact points
-                DebugRenderer::DrawThickLineNDT(globalOnA1, globalOnA2, 0.02f, Maths::Vector4(0.0f, 1.0f, 0.0f, 1.0f));
+                DebugRenderer::DrawThickLineNDT(globalOnA1, globalOnA2, 0.02f, glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
 
                 //Draw descriptors for indivdual contact point
-                DebugRenderer::DrawPointNDT(globalOnA2, 0.05f, Maths::Vector4(0.0f, 0.5f, 0.0f, 1.0f));
-                DebugRenderer::DrawThickLineNDT(globalOnB, globalOnA2, 0.01f, Maths::Vector4(1.0f, 0.0f, 1.0f, 1.0f));
+                DebugRenderer::DrawPointNDT(globalOnA2, 0.05f, glm::vec4(0.0f, 0.5f, 0.0f, 1.0f));
+                DebugRenderer::DrawThickLineNDT(globalOnB, globalOnA2, 0.01f, glm::vec4(1.0f, 0.0f, 1.0f, 1.0f));
 
                 globalOnA1 = globalOnA2;
             }

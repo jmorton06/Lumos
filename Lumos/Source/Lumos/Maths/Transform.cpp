@@ -1,6 +1,8 @@
 #include "Precompiled.h"
 #include "Transform.h"
 #include "Maths/Maths.h"
+#include <glm/gtx/matrix_decompose.hpp>
+#include <glm/ext.hpp>
 
 namespace Lumos
 {
@@ -8,32 +10,33 @@ namespace Lumos
     {
         Transform::Transform()
         {
-            m_LocalPosition = Vector3(0.0f, 0.0f, 0.0f);
-            m_LocalOrientation = Quaternion::EulerAnglesToQuaternion(0.0f, 0.0f, 0.0f);
-            m_LocalScale = Vector3(1.0f, 1.0f, 1.0f);
-            m_LocalMatrix = Matrix4();
-            m_WorldMatrix = Matrix4();
-            m_ParentMatrix = Matrix4();
+            m_LocalPosition = glm::vec3(0.0f, 0.0f, 0.0f);
+            m_LocalOrientation = glm::quat(glm::vec3(0.0f, 0.0f, 0.0f));
+            m_LocalScale = glm::vec3(1.0f, 1.0f, 1.0f);
+            m_LocalMatrix = glm::mat4(1.0f);
+            m_WorldMatrix = glm::mat4(1.0f);
+            m_ParentMatrix = glm::mat4(1.0f);
         }
 
-        Transform::Transform(const Matrix4& matrix)
+        Transform::Transform(const glm::mat4& matrix)
         {
-            m_LocalPosition = matrix.Translation();
-            m_LocalOrientation = matrix.Rotation();
-            m_LocalScale = matrix.Scale();
+            glm::vec3 skew;
+            glm::vec4 perspective;
+            glm::decompose(matrix, m_LocalScale, m_LocalOrientation, m_LocalPosition, skew, perspective);
+
             m_LocalMatrix = matrix;
             m_WorldMatrix = matrix;
-            m_ParentMatrix = Matrix4();
+            m_ParentMatrix = glm::mat4(1.0f);
         }
 
-        Transform::Transform(const Vector3& position)
+        Transform::Transform(const glm::vec3& position)
         {
             m_LocalPosition = position;
-            m_LocalOrientation = Quaternion::EulerAnglesToQuaternion(0.0f, 0.0f, 0.0f);
-            m_LocalScale = Vector3(1.0f, 1.0f, 1.0f);
-            m_LocalMatrix = Matrix4();
-            m_WorldMatrix = Matrix4();
-            m_ParentMatrix = Matrix4();
+            m_LocalOrientation = glm::quat(glm::vec3(0.0f, 0.0f, 0.0f));
+            m_LocalScale = glm::vec3(1.0f, 1.0f, 1.0f);
+            m_LocalMatrix = glm::mat4(1.0f);
+            m_WorldMatrix = glm::mat4(1.0f);
+            m_ParentMatrix = glm::mat4(1.0f);
             SetLocalPosition(position);
         }
 
@@ -41,7 +44,7 @@ namespace Lumos
 
         void Transform::UpdateMatrices()
         {
-            m_LocalMatrix = Matrix4::Translation(m_LocalPosition) * m_LocalOrientation.RotationMatrix4() * Matrix4::Scale(m_LocalScale);
+            m_LocalMatrix = glm::translate(glm::mat4(1.0), m_LocalPosition) * glm::toMat4(m_LocalOrientation) * glm::scale(glm::mat4(1.0), m_LocalScale);
 
             m_WorldMatrix = m_ParentMatrix * m_LocalMatrix;
             m_Dirty = false;
@@ -50,12 +53,14 @@ namespace Lumos
 
         void Transform::ApplyTransform()
         {
-            m_LocalPosition = m_LocalMatrix.Translation();
-            m_LocalOrientation = m_LocalMatrix.Rotation();
-            m_LocalScale = m_LocalMatrix.Scale();
+            glm::vec3 skew;
+            glm::vec4 perspective;
+			glm::decompose(m_LocalMatrix, m_LocalScale, m_LocalOrientation, m_LocalPosition, skew, perspective);
+			m_Dirty = false;
+			m_HasUpdated = true;
         }
 
-        void Transform::SetWorldMatrix(const Matrix4& mat)
+        void Transform::SetWorldMatrix(const glm::mat4& mat)
         {
             if(m_Dirty)
                 UpdateMatrices();
@@ -63,33 +68,35 @@ namespace Lumos
             m_WorldMatrix = m_ParentMatrix * m_LocalMatrix;
         }
 
-        void Transform::SetLocalTransform(const Matrix4& localMat)
+        void Transform::SetLocalTransform(const glm::mat4& localMat)
         {
             m_LocalMatrix = localMat;
             m_HasUpdated = true;
 
             ApplyTransform();
+
+            m_WorldMatrix = m_ParentMatrix * m_LocalMatrix;
         }
 
-        void Transform::SetLocalPosition(const Vector3& localPos)
+        void Transform::SetLocalPosition(const glm::vec3& localPos)
         {
             m_Dirty = true;
             m_LocalPosition = localPos;
         }
 
-        void Transform::SetLocalScale(const Vector3& newScale)
+        void Transform::SetLocalScale(const glm::vec3& newScale)
         {
             m_Dirty = true;
             m_LocalScale = newScale;
         }
 
-        void Transform::SetLocalOrientation(const Quaternion& quat)
+        void Transform::SetLocalOrientation(const glm::quat& quat)
         {
             m_Dirty = true;
             m_LocalOrientation = quat;
         }
 
-        const Matrix4& Transform::GetWorldMatrix()
+        const glm::mat4& Transform::GetWorldMatrix()
         {
             if(m_Dirty)
                 UpdateMatrices();
@@ -97,7 +104,7 @@ namespace Lumos
             return m_WorldMatrix;
         }
 
-        const Matrix4& Transform::GetLocalMatrix()
+        const glm::mat4& Transform::GetLocalMatrix()
         {
             if(m_Dirty)
                 UpdateMatrices();
@@ -105,27 +112,27 @@ namespace Lumos
             return m_LocalMatrix;
         }
 
-        const Vector3 Transform::GetWorldPosition() const
+        const glm::vec3 Transform::GetWorldPosition() const
         {
-            return m_WorldMatrix.Translation();
+            return m_WorldMatrix[3];
         }
 
-        const Quaternion Transform::GetWorldOrientation() const
+        const glm::quat Transform::GetWorldOrientation() const
         {
-            return m_WorldMatrix.Rotation();
+            return glm::toQuat(m_WorldMatrix);
         }
 
-        const Vector3& Transform::GetLocalPosition() const
+        const glm::vec3& Transform::GetLocalPosition() const
         {
             return m_LocalPosition;
         }
 
-        const Vector3& Transform::GetLocalScale() const
+        const glm::vec3& Transform::GetLocalScale() const
         {
             return m_LocalScale;
         }
 
-        const Quaternion& Transform::GetLocalOrientation() const
+        const glm::quat& Transform::GetLocalOrientation() const
         {
             return m_LocalOrientation;
         }

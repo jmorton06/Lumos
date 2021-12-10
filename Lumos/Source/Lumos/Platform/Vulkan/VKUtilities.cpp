@@ -27,7 +27,8 @@ namespace Lumos
                 }
             }
 
-            throw std::runtime_error("Failed to find suitable memory type!");
+            LUMOS_LOG_ERROR("Failed to find suitable memory type!");
+            return 0;
         }
 
         void VKUtilities::CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer,
@@ -64,7 +65,7 @@ namespace Lumos
             VkResult result = vkAllocateMemory(VKDevice::Get().GetDevice(), &allocInfo, nullptr, &bufferMemory);
             if(result != VK_SUCCESS)
             {
-                throw std::runtime_error("failed to allocate buffer memory!");
+                LUMOS_LOG_ERROR("Failed to allocate buffer memory!");
             }
 
             vkBindBufferMemory(VKDevice::Get().GetDevice(), buffer, bufferMemory, 0);
@@ -433,13 +434,18 @@ namespace Lumos
                 }
             }
 
-            throw std::runtime_error("failed to find supported format!");
+            LUMOS_LOG_ERROR("Failed to find supported format!");
+            return VK_FORMAT_UNDEFINED;
         }
 
         VkFormat VKUtilities::FindDepthFormat()
         {
             return FindSupportedFormat(
-                { VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT },
+                { VK_FORMAT_D32_SFLOAT_S8_UINT,
+                    VK_FORMAT_D32_SFLOAT,
+                    VK_FORMAT_D24_UNORM_S8_UINT,
+                    VK_FORMAT_D16_UNORM_S8_UINT,
+                    VK_FORMAT_D16_UNORM },
                 VK_IMAGE_TILING_OPTIMAL,
                 VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
         }

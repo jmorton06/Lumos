@@ -134,10 +134,10 @@ namespace Lumos
         struct ScenePhysics3DSettings
         {
             uint32_t m_MaxUpdatesPerFrame = 5;
-            uint32_t VelocityIterations = 5;
+            uint32_t VelocityIterations = 20;
             uint32_t PositionIterations = 1;
 
-            Maths::Vector3 Gravity = Maths::Vector3(0.0f, -9.81f, 0.0f);
+            glm::vec3 Gravity = glm::vec3(0.0f, -9.81f, 0.0f);
             float Dampening = 0.999f;
             uint32_t IntegrationTypeIndex = 3;
             uint32_t BroadPhaseTypeIndex = 2;

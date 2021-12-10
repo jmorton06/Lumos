@@ -13,7 +13,7 @@ namespace Lumos
         class TextureDepthArray;
     }
 
-    namespace ImGuiHelpers
+    namespace ImGuiUtilities
     {
         enum class PropertyFlag
         {
@@ -50,36 +50,36 @@ namespace Lumos
         bool Property(const std::string& name, int& value, int min = 0, int max = 100.0, PropertyFlag flags = PropertyFlag::None);
 
         bool Property(const std::string& name, float& value, float min = -1.0f, float max = 1.0f, PropertyFlag flags = PropertyFlag::None);
-        bool Property(const std::string& name, Maths::Vector2& value, PropertyFlag flags);
-        bool Property(const std::string& name, Maths::Vector2& value, float min = -1.0f, float max = 1.0f, PropertyFlag flags = PropertyFlag::None);
-        bool Property(const std::string& name, Maths::Vector3& value, PropertyFlag flags);
-        bool Property(const std::string& name, Maths::Vector3& value, float min = -1.0f, float max = 1.0f, PropertyFlag flags = PropertyFlag::None);
-        bool Property(const std::string& name, Maths::Vector4& value, bool exposeW, PropertyFlag flags);
-        bool Property(const std::string& name, Maths::Vector4& value, float min = -1.0f, float max = 1.0f, bool exposeW = false, PropertyFlag flags = PropertyFlag::None);
+        bool Property(const std::string& name, glm::vec2& value, PropertyFlag flags);
+        bool Property(const std::string& name, glm::vec2& value, float min = -1.0f, float max = 1.0f, PropertyFlag flags = PropertyFlag::None);
+        bool Property(const std::string& name, glm::vec3& value, PropertyFlag flags);
+        bool Property(const std::string& name, glm::vec3& value, float min = -1.0f, float max = 1.0f, PropertyFlag flags = PropertyFlag::None);
+        bool Property(const std::string& name, glm::vec4& value, bool exposeW, PropertyFlag flags);
+        bool Property(const std::string& name, glm::vec4& value, float min = -1.0f, float max = 1.0f, bool exposeW = false, PropertyFlag flags = PropertyFlag::None);
 
-        bool Property(const std::string& name, Maths::Quaternion& value, PropertyFlag flags);
+        bool Property(const std::string& name, glm::quat& value, PropertyFlag flags);
 
         bool PropertyDropdown(const char* label, std::string* options, int32_t optionCount, int32_t* selected);
 
         void Tooltip(const std::string& text);
         void Tooltip(const char* text);
 
-        void Tooltip(Graphics::Texture2D* texture, const Maths::Vector2& size);
-        void Tooltip(Graphics::Texture2D* texture, const Maths::Vector2& size, const std::string& text);
-        void Tooltip(Graphics::TextureDepthArray* texture, uint32_t index, const Maths::Vector2& size);
+        void Tooltip(Graphics::Texture2D* texture, const glm::vec2& size);
+        void Tooltip(Graphics::Texture2D* texture, const glm::vec2& size, const std::string& text);
+        void Tooltip(Graphics::TextureDepthArray* texture, uint32_t index, const glm::vec2& size);
 
-        void Image(Graphics::Texture2D* texture, const Maths::Vector2& size);
-        void Image(Graphics::TextureCube* texture, const Maths::Vector2& size);
-        void Image(Graphics::TextureDepthArray* texture, uint32_t index, const Maths::Vector2& size);
+        void Image(Graphics::Texture2D* texture, const glm::vec2& size);
+        void Image(Graphics::TextureCube* texture, const glm::vec2& size);
+        void Image(Graphics::TextureDepthArray* texture, uint32_t index, const glm::vec2& size);
 
         void SetTheme(Theme theme);
 
-        bool BufferingBar(const char* label, float value, const Maths::Vector2& size_arg, const uint32_t& bg_col, const uint32_t& fg_col);
+        bool BufferingBar(const char* label, float value, const glm::vec2& size_arg, const uint32_t& bg_col, const uint32_t& fg_col);
         bool Spinner(const char* label, float radius, int thickness, const uint32_t& colour);
 
         void DrawRowsBackground(int row_count, float line_height, float x1, float x2, float y_offset, ImU32 col_even, ImU32 col_odd);
-        Maths::Vector4 GetSelectedColour();
-        Maths::Vector4 GetIconColour();
+        glm::vec4 GetSelectedColour();
+        glm::vec4 GetIconColour();
 
         void DrawItemActivityOutline(float rounding = 0.0f, bool drawWhenInactive = false, ImColor colourWhenActive = ImColor(80, 80, 80));
         bool InputText(std::string& currentText);

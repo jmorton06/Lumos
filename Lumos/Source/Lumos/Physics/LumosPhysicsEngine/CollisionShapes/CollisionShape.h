@@ -10,23 +10,23 @@ namespace Lumos
 
     struct ReferencePolygon
     {
-        Maths::Vector3 Faces[8];
-        Maths::Plane AdjacentPlanes[8];
-        Maths::Vector3 Normal;
+        glm::vec3 Faces[8];
+        Plane AdjacentPlanes[8];
+        glm::vec3 Normal;
         uint32_t FaceCount = 0;
         uint32_t PlaneCount = 0;
     };
 
     struct LUMOS_EXPORT CollisionEdge
     {
-        CollisionEdge(const Maths::Vector3& a = Maths::Vector3(0.0f), const Maths::Vector3& b = Maths::Vector3(0.0f))
+        CollisionEdge(const glm::vec3& a = glm::vec3(0.0f), const glm::vec3& b = glm::vec3(0.0f))
             : posA(a)
             , posB(b)
         {
         }
 
-        Maths::Vector3 posA;
-        Maths::Vector3 posB;
+        glm::vec3 posA;
+        glm::vec3 posB;
     };
 
     enum CollisionShapeType : unsigned int
@@ -45,7 +45,7 @@ namespace Lumos
         CollisionShape()
             : m_Type()
         {
-            m_LocalTransform.ToIdentity();
+            m_LocalTransform = glm::mat4(1.0f);
         }
         virtual ~CollisionShape()
         {
@@ -53,7 +53,7 @@ namespace Lumos
 
         // Constructs an inverse inertia matrix of the given collision volume. This is the equivilant of the inverse mass of an object for rotation,
         //   a good source for non-inverse inertia matricies can be found here: https://en.wikipedia.org/wiki/List_of_moments_of_inertia
-        virtual Maths::Matrix3 BuildInverseInertia(float invMass) const = 0;
+        virtual glm::mat3 BuildInverseInertia(float invMass) const = 0;
         virtual float GetSize() const = 0;
 
         // Draws this collision shape to the debug renderer
@@ -62,7 +62,7 @@ namespace Lumos
         //<----- USED BY COLLISION DETECTION ----->
         // Get all possible collision axes
         //	- This is a list of all the face normals ignoring any duplicates and parallel vectors.
-        virtual std::vector<Maths::Vector3>& GetCollisionAxes(const RigidBody3D* currentObject) = 0;
+        virtual std::vector<glm::vec3>& GetCollisionAxes(const RigidBody3D* currentObject) = 0;
 
         // Get all shape Edges
         //	- Returns a list of all edges AB that form the convex hull of the collision shape. These are
@@ -72,19 +72,19 @@ namespace Lumos
         // Get the min/max vertices along a given axis
         virtual void GetMinMaxVertexOnAxis(
             const RigidBody3D* currentObject,
-            const Maths::Vector3& axis,
-            Maths::Vector3* out_min,
-            Maths::Vector3* out_max) const = 0;
+            const glm::vec3& axis,
+            glm::vec3* out_min,
+            glm::vec3* out_max) const = 0;
 
         // Get all data needed to build manifold
         //	- Computes the face that is closest to parallel to that of the given axis,
         //    returning the face (as a list of vertices), face normal and the planes
         //    of all adjacent faces in order to clip against.
         virtual void GetIncidentReferencePolygon(const RigidBody3D* currentObject,
-            const Maths::Vector3& axis,
+            const glm::vec3& axis,
             ReferencePolygon& refPolygon) const = 0;
 
-        void SetLocalTransform(const Maths::Matrix4& transform)
+        void SetLocalTransform(const glm::mat4& transform)
         {
             m_LocalTransform = transform;
         }
@@ -108,8 +108,8 @@ namespace Lumos
 
     protected:
         CollisionShapeType m_Type;
-        Maths::Matrix4 m_LocalTransform;
+        glm::mat4 m_LocalTransform;
         std::vector<CollisionEdge> m_Edges;
-        std::vector<Maths::Vector3> m_Axes;
+        std::vector<glm::vec3> m_Axes;
     };
 }

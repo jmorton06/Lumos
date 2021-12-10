@@ -11,10 +11,10 @@ namespace Lumos
     {
         struct LUMOS_EXPORT VertexData
         {
-            Maths::Vector3 vertex;
-            Maths::Vector2 uv;
-            Maths::Vector2 tid;
-            Maths::Vector4 colour;
+            glm::vec3 vertex;
+            glm::vec2 uv;
+            glm::vec2 tid;
+            glm::vec4 colour;
 
             bool operator==(const VertexData& other) const
             {
@@ -29,20 +29,20 @@ namespace Lumos
             virtual ~Renderable2D();
 
             Texture2D* GetTexture() const { return m_Texture.get(); }
-            Maths::Vector2 GetPosition() const { return m_Position; }
-            Maths::Vector2 GetScale() const { return m_Scale; }
-            const Maths::Vector4& GetColour() const { return m_Colour; }
-            const std::array<Maths::Vector2, 4>& GetUVs() const { return m_UVs; }
+            glm::vec2 GetPosition() const { return m_Position; }
+            glm::vec2 GetScale() const { return m_Scale; }
+            const glm::vec4& GetColour() const { return m_Colour; }
+            const std::array<glm::vec2, 4>& GetUVs() const { return m_UVs; }
 
-            static const std::array<Maths::Vector2, 4>& GetDefaultUVs();
-            static const std::array<Maths::Vector2, 4>& GetUVs(const Maths::Vector2& min, const Maths::Vector2& max);
+            static const std::array<glm::vec2, 4>& GetDefaultUVs();
+            static const std::array<glm::vec2, 4>& GetUVs(const glm::vec2& min, const glm::vec2& max);
 
         protected:
             SharedPtr<Texture2D> m_Texture;
-            Maths::Vector2 m_Position;
-            Maths::Vector2 m_Scale;
-            Maths::Vector4 m_Colour;
-            std::array<Maths::Vector2, 4> m_UVs;
+            glm::vec2 m_Position;
+            glm::vec2 m_Scale;
+            glm::vec4 m_Colour;
+            std::array<glm::vec2, 4> m_UVs;
         };
     }
 }

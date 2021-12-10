@@ -24,7 +24,7 @@ namespace Lumos
             return false;
         }
 
-        void GLRenderPass::BeginRenderpass(CommandBuffer* commandBuffer, const Maths::Vector4& clearColour,
+        void GLRenderPass::BeginRenderpass(CommandBuffer* commandBuffer, const glm::vec4& clearColour,
             Framebuffer* frame, SubPassContents contents, uint32_t width, uint32_t height) const
         {
             if(frame != nullptr)

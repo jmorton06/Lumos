@@ -252,7 +252,7 @@ namespace Lumos
         input.set_function("GetMouseHeld", [](Lumos::InputCode::MouseKey key) -> bool
             { return Input::Get().GetMouseHeld(key); });
 
-        input.set_function("GetMousePosition", []() -> Maths::Vector2
+        input.set_function("GetMousePosition", []() -> glm::vec2
             { return Input::Get().GetMousePosition(); });
 
         input.set_function("GetScrollOffset", []() -> float
@@ -416,10 +416,10 @@ namespace Lumos
         REGISTER_COMPONENT_WITH_ECS(state, Transform, static_cast<Transform& (Entity::*)()>(&Entity::AddComponent<Transform>));
 
         using namespace Graphics;
-        sol::usertype<Sprite> sprite_type = state.new_usertype<Sprite>("Sprite", sol::constructors<sol::types<Maths::Vector2, Maths::Vector2, Maths::Vector4>, Sprite(const SharedPtr<Graphics::Texture2D>&, const Maths::Vector2&, const Maths::Vector2&, const Maths::Vector4&)>());
+        sol::usertype<Sprite> sprite_type = state.new_usertype<Sprite>("Sprite", sol::constructors<sol::types<glm::vec2, glm::vec2, glm::vec4>, Sprite(const SharedPtr<Graphics::Texture2D>&, const glm::vec2&, const glm::vec2&, const glm::vec4&)>());
         sprite_type.set_function("SetTexture", &Sprite::SetTexture);
 
-        REGISTER_COMPONENT_WITH_ECS(state, Sprite, static_cast<Sprite& (Entity::*)(const Vector2&, const Vector2&, const Vector4&)>(&Entity::AddComponent<Sprite, const Vector2&, const Vector2&, const Vector4&>));
+        REGISTER_COMPONENT_WITH_ECS(state, Sprite, static_cast<Sprite& (Entity::*)(const glm::vec2&, const glm::vec2&, const glm::vec4&)>(&Entity::AddComponent<Sprite, const glm::vec2&, const glm::vec2&, const glm::vec4&>));
 
         state.new_usertype<Light>(
             "Light",

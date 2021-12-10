@@ -124,7 +124,7 @@ namespace Lumos
     //
     void B2DebugDraw::DrawPoint(const b2Vec2& p, float size, const b2Color& colour)
     {
-        DebugRenderer::DrawPoint({ p.x, p.y }, size, { colour.r, colour.g, colour.b, colour.a });
+        DebugRenderer::DrawPoint({ p.x, p.y, 0.0f }, size, { colour.r, colour.g, colour.b, colour.a });
     }
 
 }

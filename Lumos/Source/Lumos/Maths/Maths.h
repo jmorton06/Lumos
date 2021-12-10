@@ -1,14 +1,17 @@
 #pragma once
-#include "Maths/Matrix3.h"
-#include "Maths/Matrix4.h"
-#include "Maths/Plane.h"
-#include "Maths/Quaternion.h"
-#include "Maths/Vector2.h"
-#include "Maths/Vector3.h"
-#include "Maths/Vector4.h"
+#include <glm/vec2.hpp>
+#include <glm/vec3.hpp>
+#include <glm/vec4.hpp>
+#include <glm/mat3x3.hpp>
+#include <glm/mat4x4.hpp>
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/quaternion.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
 #include "Maths/BoundingBox.h"
-#include "Maths/Sphere.h"
+#include "Maths/BoundingSphere.h"
 #include "Maths/Frustum.h"
+#include "Maths/Plane.h"
 #include "Maths/MathsUtilities.h"
 #include "Core/LMLog.h"
 #include "Core/Core.h"
@@ -36,123 +39,101 @@ namespace Lumos
             float x, y, z, w;
         };
 
-        inline Vector2 ToVector(const Vector2Simple& vec)
+        inline glm::vec2 ToVector(const Vector2Simple& vec)
         {
-            return Vector2(vec.x, vec.y);
+            return glm::vec2(vec.x, vec.y);
         }
 
-        inline Vector3 ToVector(const Vector3Simple& vec)
+        inline glm::vec3 ToVector(const Vector3Simple& vec)
         {
-            return Vector3(vec.x, vec.y, vec.z);
+            return glm::vec3(vec.x, vec.y, vec.z);
         }
 
-        inline Vector3Simple ToVector(const Vector3& vec)
+        inline glm::vec4 ToVector4(const Vector3Simple& vec)
+        {
+            return glm::vec4(vec.x, vec.y, vec.z, 1.0f);
+        }
+
+        inline Vector3Simple ToVector(const glm::vec3& vec)
         {
             return Vector3Simple(vec.x, vec.y, vec.z);
         }
 
-        inline Vector4 ToVector(const Vector4Simple& vec)
+        inline glm::vec4 ToVector(const Vector4Simple& vec)
         {
-            return Vector4(vec.x, vec.y, vec.z, vec.w);
+            return glm::vec4(vec.x, vec.y, vec.z, vec.w);
         }
 
-        inline Vector2 WorldToScreen(const Vector3& worldPos, const Matrix4& mvp, float width, float height, float winPosX = 0.0f, float winPosY = 0.0f)
+        inline glm::vec2 WorldToScreen(const glm::vec3& worldPos, const glm::mat4& mvp, float width, float height, float winPosX = 0.0f, float winPosY = 0.0f)
         {
-            Vector4 trans = mvp * Vector4(worldPos, 1.0f);
+            glm::vec4 trans = mvp * glm::vec4(worldPos, 1.0f);
             trans *= 0.5f / trans.w;
-            trans += Vector4(0.5f, 0.5f, 0.0f, 0.0f);
+            trans += glm::vec4(0.5f, 0.5f, 0.0f, 0.0f);
             trans.y = 1.f - trans.y;
             trans.x *= width;
             trans.y *= height;
             trans.x += winPosX;
             trans.y += winPosY;
-            return Vector2(trans.x, trans.y);
+            return glm::vec2(trans.x, trans.y);
         }
 
-        template <typename T>
-        static const float* ValuePointer(const T& t)
-        {
-            LUMOS_ASSERT(false, "Unimplemented Value Pointer");
-            return nullptr;
-        }
+        void SetScale(glm::mat4& transform, float scale);
 
-        template <typename T>
-        static float* ValuePointer(T& t)
-        {
-            LUMOS_ASSERT(false, "Unimplemented Value Pointer");
-            return nullptr;
-        }
-    }
+        void SetScale(glm::mat4& transform, const glm::vec3& scale);
 
-    template <>
-    inline const float* Maths::ValuePointer<Maths::Vector2>(const Maths::Vector2& t)
-    {
-        return &(t.x);
-    }
+        void SetRotation(glm::mat4& transform, const glm::vec3& rotation);
 
-    template <>
-    inline const float* Maths::ValuePointer<Maths::Vector3>(const Maths::Vector3& t)
-    {
-        return &(t.x);
-    }
+        void SetTranslation(glm::mat4& transform, const glm::vec3& translation);
 
-    template <>
-    inline const float* Maths::ValuePointer<Maths::Vector4>(const Maths::Vector4& t)
-    {
-        return &(t.x);
-    }
+        glm::vec3 GetScale(const glm::mat4& transform);
+        glm::vec3 GetRotation(const glm::mat4& transform);
 
-    template <>
-    inline const float* Maths::ValuePointer<Maths::Matrix3>(const Maths::Matrix3& t)
-    {
-        return &(t.m00_);
+        glm::mat4 Mat4FromTRS(const glm::vec3& translation, const glm::vec3& rotation, const glm::vec3& scale);
     }
+}
 
-    template <>
-    inline const float* Maths::ValuePointer<Maths::Matrix4>(const Maths::Matrix4& t)
-    {
-        return &(t.m00_);
-    }
+namespace glm
+{
 
-    template <>
-    inline const float* Maths::ValuePointer<Maths::Quaternion>(const Maths::Quaternion& t)
-    {
-        return &(t.w);
-    }
+    template <class Archive>
+    void serialize(Archive& archive, glm::vec2& v) { archive(v.x, v.y); }
+    template <class Archive>
+    void serialize(Archive& archive, glm::vec3& v) { archive(v.x, v.y, v.z); }
+    template <class Archive>
+    void serialize(Archive& archive, glm::vec4& v) { archive(v.x, v.y, v.z, v.w); }
+    template <class Archive>
+    void serialize(Archive& archive, glm::ivec2& v) { archive(v.x, v.y); }
+    template <class Archive>
+    void serialize(Archive& archive, glm::ivec3& v) { archive(v.x, v.y, v.z); }
+    template <class Archive>
+    void serialize(Archive& archive, glm::ivec4& v) { archive(v.x, v.y, v.z, v.w); }
+    template <class Archive>
+    void serialize(Archive& archive, glm::uvec2& v) { archive(v.x, v.y); }
+    template <class Archive>
+    void serialize(Archive& archive, glm::uvec3& v) { archive(v.x, v.y, v.z); }
+    template <class Archive>
+    void serialize(Archive& archive, glm::uvec4& v) { archive(v.x, v.y, v.z, v.w); }
+    template <class Archive>
+    void serialize(Archive& archive, glm::dvec2& v) { archive(v.x, v.y); }
+    template <class Archive>
+    void serialize(Archive& archive, glm::dvec3& v) { archive(v.x, v.y, v.z); }
+    template <class Archive>
+    void serialize(Archive& archive, glm::dvec4& v) { archive(v.x, v.y, v.z, v.w); }
 
-    template <>
-    inline float* Maths::ValuePointer<Maths::Vector2>(Maths::Vector2& t)
-    {
-        return &(t.x);
-    }
+    // glm matrices serialization
+    template <class Archive>
+    void serialize(Archive& archive, glm::mat2& m) { archive(m[0], m[1]); }
+    template <class Archive>
+    void serialize(Archive& archive, glm::dmat2& m) { archive(m[0], m[1]); }
+    template <class Archive>
+    void serialize(Archive& archive, glm::mat3& m) { archive(m[0], m[1], m[2]); }
+    template <class Archive>
+    void serialize(Archive& archive, glm::mat4& m) { archive(m[0], m[1], m[2], m[3]); }
+    template <class Archive>
+    void serialize(Archive& archive, glm::dmat4& m) { archive(m[0], m[1], m[2], m[3]); }
 
-    template <>
-    inline float* Maths::ValuePointer<Maths::Vector3>(Maths::Vector3& t)
-    {
-        return &(t.x);
-    }
-
-    template <>
-    inline float* Maths::ValuePointer<Maths::Vector4>(Maths::Vector4& t)
-    {
-        return &(t.x);
-    }
-
-    template <>
-    inline float* Maths::ValuePointer<Maths::Matrix3>(Maths::Matrix3& t)
-    {
-        return &(t.m00_);
-    }
-
-    template <>
-    inline float* Maths::ValuePointer<Maths::Matrix4>(Maths::Matrix4& t)
-    {
-        return &(t.m00_);
-    }
-
-    template <>
-    inline float* Maths::ValuePointer<Maths::Quaternion>(Maths::Quaternion& t)
-    {
-        return &(t.w);
-    }
+    template <class Archive>
+    void serialize(Archive& archive, glm::quat& q) { archive(q.x, q.y, q.z, q.w); }
+    template <class Archive>
+    void serialize(Archive& archive, glm::dquat& q) { archive(q.x, q.y, q.z, q.w); }
 }

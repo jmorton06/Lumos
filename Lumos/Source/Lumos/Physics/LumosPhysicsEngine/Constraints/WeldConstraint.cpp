@@ -20,7 +20,7 @@ namespace Lumos
         LUMOS_PROFILE_FUNCTION();
 
         // Position
-        Maths::Vector3 pos(m_positionOffset);
+        glm::vec3 pos(m_positionOffset);
         pos = m_pObj1->GetOrientation() * pos;
         pos += m_pObj1->GetPosition();
         m_pObj2->SetPosition(pos);
@@ -31,11 +31,11 @@ namespace Lumos
 
     void WeldConstraint::DebugDraw() const
     {
-        Maths::Vector3 posA = m_pObj1->GetPosition();
-        Maths::Vector3 posB = m_pObj2->GetPosition();
+        glm::vec3 posA = m_pObj1->GetPosition();
+        glm::vec3 posB = m_pObj2->GetPosition();
 
-        DebugRenderer::DrawThickLine(posA, posB, 0.02f, Maths::Vector4(0.0f, 0.0f, 0.0f, 1.0f));
-        DebugRenderer::DrawPointNDT(posA, 0.05f, Maths::Vector4(1.0f, 0.8f, 1.0f, 1.0f));
-        DebugRenderer::DrawPointNDT(posB, 0.05f, Maths::Vector4(1.0f, 0.8f, 1.0f, 1.0f));
+        DebugRenderer::DrawThickLine(posA, posB, 0.02f, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+        DebugRenderer::DrawPointNDT(posA, 0.05f, glm::vec4(1.0f, 0.8f, 1.0f, 1.0f));
+        DebugRenderer::DrawPointNDT(posB, 0.05f, glm::vec4(1.0f, 0.8f, 1.0f, 1.0f));
     }
 }

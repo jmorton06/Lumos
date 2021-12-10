@@ -8,7 +8,7 @@
 #include <Lumos/Core/Engine.h>
 #include <Lumos/Graphics/Renderers/RenderGraph.h>
 #include <Lumos/Graphics/GBuffer.h>
-#include <Lumos/ImGui/ImGuiHelpers.h>
+#include <Lumos/ImGui/ImGuiUtilities.h>
 #include <imgui/imgui.h>
 
 namespace Lumos

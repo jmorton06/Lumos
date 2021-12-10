@@ -7,11 +7,6 @@
 
 namespace Lumos
 {
-    namespace Maths
-    {
-        class Vector4;
-    }
-
     namespace Graphics
     {
         class Texture2D;
@@ -19,14 +14,14 @@ namespace Lumos
         class LUMOS_EXPORT Sprite : public Renderable2D
         {
         public:
-            Sprite(const Maths::Vector2& position = Maths::Vector2(0.0f, 0.0f), const Maths::Vector2& scale = Maths::Vector2(1.0f, 1.0f), const Maths::Vector4& colour = Maths::Vector4(1.0f));
-            Sprite(const SharedPtr<Texture2D>& texture, const Maths::Vector2& position, const Maths::Vector2& scale, const Maths::Vector4& colour);
+            Sprite(const glm::vec2& position = glm::vec2(0.0f, 0.0f), const glm::vec2& scale = glm::vec2(1.0f, 1.0f), const glm::vec4& colour = glm::vec4(1.0f));
+            Sprite(const SharedPtr<Texture2D>& texture, const glm::vec2& position, const glm::vec2& scale, const glm::vec4& colour);
             virtual ~Sprite();
-            void SetPosition(const Maths::Vector2& vector2) { m_Position = vector2; };
-            void SetColour(const Maths::Vector4& colour) { m_Colour = colour; }
-            void SetScale(const Maths::Vector2& scale) { m_Scale = scale; }
+            void SetPosition(const glm::vec2& vector2) { m_Position = vector2; };
+            void SetColour(const glm::vec4& colour) { m_Colour = colour; }
+            void SetScale(const glm::vec2& scale) { m_Scale = scale; }
 
-            void SetSpriteSheet(const SharedPtr<Texture2D>& texture, const Maths::Vector2& index, const Maths::Vector2& cellSize, const Maths::Vector2& spriteSize);
+            void SetSpriteSheet(const SharedPtr<Texture2D>& texture, const glm::vec2& index, const glm::vec2& cellSize, const glm::vec2& spriteSize);
             void SetTexture(const SharedPtr<Texture2D>& texture) { m_Texture = texture; }
 
             void SetTextureFromFile(const std::string& filePath);

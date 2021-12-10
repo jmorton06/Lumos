@@ -54,22 +54,6 @@ namespace Lumos
         if(!m_Paused)
         {
             m_B2DWorld->Step(timeStep.GetSeconds(), m_VelocityIterations, m_PositionIterations);
-
-            auto& registry = scene->GetRegistry();
-
-            auto group = registry.group<RigidBody2DComponent>(entt::get<Maths::Transform>);
-
-            for(auto entity : group)
-            {
-                const auto& [phys, trans] = group.get<RigidBody2DComponent, Maths::Transform>(entity);
-
-                // if (!phys.GetRigidBody()->GetB2Body()->IsAwake())
-                //     break;
-
-                trans.SetLocalPosition(Maths::Vector3(phys.GetRigidBody()->GetPosition(), 0.0f));
-                trans.SetLocalOrientation(Maths::Quaternion::EulerAnglesToQuaternion(0.0f, 0.0f, phys.GetRigidBody()->GetAngle() * Maths::M_RADTODEG));
-                trans.SetWorldMatrix(Maths::Matrix4()); //TODO: temp
-            };
         }
     }
 
@@ -140,7 +124,7 @@ namespace Lumos
         m_DebugDraw->SetFlags(flags);
     }
 
-    void B2PhysicsEngine::SetGravity(const Maths::Vector2& gravity)
+    void B2PhysicsEngine::SetGravity(const glm::vec2& gravity)
     {
         m_B2DWorld->SetGravity({ gravity.x, gravity.y });
     }
@@ -157,5 +141,27 @@ namespace Lumos
 
         m_Listener = listener;
         m_B2DWorld->SetContactListener(listener);
+    }
+
+    void B2PhysicsEngine::SyncTransforms(Scene* scene)
+    {
+        if(m_Paused)
+            return;
+
+        auto& registry = scene->GetRegistry();
+
+        auto group = registry.group<RigidBody2DComponent>(entt::get<Maths::Transform>);
+
+        for(auto entity : group)
+        {
+            const auto& [phys, trans] = group.get<RigidBody2DComponent, Maths::Transform>(entity);
+
+            // if (!phys.GetRigidBody()->GetB2Body()->IsAwake())
+            //     break;
+
+            trans.SetLocalPosition(glm::vec3(phys.GetRigidBody()->GetPosition(), 0.0f));
+            trans.SetLocalOrientation(glm::quat(glm::vec3(0.0f, 0.0f, phys.GetRigidBody()->GetAngle())));
+            trans.SetWorldMatrix(glm::mat4(1.0f)); //TODO: temp
+        };
     }
 }

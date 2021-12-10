@@ -138,7 +138,7 @@ namespace Lumos
 
             const char* folderIcon = ((isOpen && containsFolder) || m_CurrentDir == dirInfo) ? ICON_MDI_FOLDER_OPEN : ICON_MDI_FOLDER;
             ImGui::SameLine();
-            ImGui::PushStyleColor(ImGuiCol_Text, ImGuiHelpers::GetIconColour());
+            ImGui::PushStyleColor(ImGuiCol_Text, ImGuiUtilities::GetIconColour());
             ImGui::Text("%s ", folderIcon);
             ImGui::PopStyleColor();
             ImGui::SameLine();
@@ -532,7 +532,7 @@ namespace Lumos
             }
         }
 
-        ImGuiHelpers::Tooltip(m_CurrentDir->Children[dirIndex]->FilePath.filename().string());
+        ImGuiUtilities::Tooltip(m_CurrentDir->Children[dirIndex]->FilePath.filename().string());
 
         if(doubleClicked)
         {

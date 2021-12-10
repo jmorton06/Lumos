@@ -47,7 +47,7 @@ namespace Lumos
 
             size_t GetMinUniformBufferOffsetAlignment() const override;
 
-            bool FlipImGUITexture() const override { return false; }
+            bool FlipImGUITexture() const override { return true; }
             void WaitIdle() const override;
             void OnImGui() override;
 

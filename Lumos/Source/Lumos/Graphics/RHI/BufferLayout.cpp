@@ -47,31 +47,21 @@ namespace Lumos
         }
 
         template <>
-        void BufferLayout::Push<Maths::Vector2>(const std::string& name, bool Normalised)
+        void BufferLayout::Push<glm::vec2>(const std::string& name, bool Normalised)
         {
-            Push(name, Format::R32G32_FLOAT, sizeof(Maths::Vector2), Normalised);
+            Push(name, Format::R32G32_FLOAT, sizeof(glm::vec2), Normalised);
         }
 
         template <>
-        void BufferLayout::Push<Maths::Vector3>(const std::string& name, bool Normalised)
+        void BufferLayout::Push<glm::vec3>(const std::string& name, bool Normalised)
         {
-            Push(name, Format::R32G32B32_FLOAT, sizeof(Maths::Vector3), Normalised);
+            Push(name, Format::R32G32B32_FLOAT, sizeof(glm::vec3), Normalised);
         }
 
         template <>
-        void BufferLayout::Push<Maths::Vector4>(const std::string& name, bool Normalised)
+        void BufferLayout::Push<glm::vec4>(const std::string& name, bool Normalised)
         {
-            Push(name, Format::R32G32B32A32_FLOAT, sizeof(Maths::Vector4), Normalised);
-        }
-        template <>
-        void BufferLayout::Push<Maths::IntVector3>(const std::string& name, bool Normalised)
-        {
-            Push(name, Format::R32G32B32_INT, sizeof(Maths::IntVector3), Normalised);
-        }
-        template <>
-        void BufferLayout::Push<Maths::IntVector4>(const std::string& name, bool Normalised)
-        {
-            Push(name, Format::R32G32B32A32_INT, sizeof(Maths::IntVector4), Normalised);
+            Push(name, Format::R32G32B32A32_FLOAT, sizeof(glm::vec4), Normalised);
         }
     }
 }

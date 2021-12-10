@@ -4,12 +4,6 @@
 
 namespace Lumos
 {
-    namespace Maths
-    {
-        class Vector3;
-    }
-
-    class Quaternion;
     class RigidBody3D;
 
     enum class Axes

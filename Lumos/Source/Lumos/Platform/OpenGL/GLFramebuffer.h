@@ -29,7 +29,7 @@ namespace Lumos
 
             GLenum GetAttachmentPoint(Graphics::TextureFormat format);
 
-            inline void SetClearColour(const Maths::Vector4& colour) override { m_ClearColour = colour; }
+            inline void SetClearColour(const glm::vec4& colour) override { m_ClearColour = colour; }
 
             void AddTextureAttachment(TextureFormat format, Texture* texture) override;
             void AddCubeTextureAttachment(TextureFormat format, CubeFace face, TextureCube* texture) override;
@@ -47,7 +47,7 @@ namespace Lumos
         private:
             uint32_t m_Handle;
             uint32_t m_Width, m_Height, m_ColourAttachmentCount;
-            Maths::Vector4 m_ClearColour;
+            glm::vec4 m_ClearColour;
             std::vector<GLenum> m_AttachmentData;
             bool m_ScreenFramebuffer = false;
         };
