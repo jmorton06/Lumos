@@ -61,6 +61,8 @@ namespace Lumos
         Intersection IsInside(const glm::vec3& point) const;
         Intersection IsInside(const BoundingBox& box) const;
         Intersection IsInside(const BoundingSphere& sphere) const;
+		
+		bool IsInsideFast(const BoundingBox& box) const;
 
         glm::vec3 Size() const;
         glm::vec3 Center() const;
@@ -69,7 +71,6 @@ namespace Lumos
 
         glm::vec3 GetExtents() const { return m_Max - m_Min; }
 
-    private:
         glm::vec3 m_Min;
         glm::vec3 m_Max;
     };

@@ -44,6 +44,7 @@ namespace Lumos
         LUMOS_PROFILE_FUNCTION();
         if(m_wsAabbInvalidated)
         {
+			LUMOS_PROFILE_SCOPE("Calculate BoundingBox");
             m_wsAabb = m_localBoundingBox.Transformed(GetWorldSpaceTransform());
             m_wsAabbInvalidated = false;
         }

@@ -117,14 +117,16 @@ namespace Lumos
                 divisionPoints[DIVISION_POINT_INDICES[i][4]].y,
                 divisionPoints[DIVISION_POINT_INDICES[i][5]].z);
 
-            newNode.boundingBox = BoundingBox(lower, upper);
+            newNode.boundingBox.m_Min = lower;
+			newNode.boundingBox.m_Max = upper;
 
             // Add objects inside division
             for(uint32_t i = 0; i < division.PhysicsObjectCount; i++)
             {
                 LUMOS_PROFILE_SCOPE("PhysicsObject BB check");
                 auto& physicsObject = division.PhysicsObjects[i];
-                if(newNode.boundingBox.IsInside(physicsObject->GetWorldSpaceAABB()) != OUTSIDE)
+				const BoundingBox& boundingBox = physicsObject->GetWorldSpaceAABB();
+                if(newNode.boundingBox.IsInsideFast(boundingBox))
                 {
                     newNode.PhysicsObjects[newNode.PhysicsObjectCount] = physicsObject;
                     newNode.PhysicsObjectCount++;

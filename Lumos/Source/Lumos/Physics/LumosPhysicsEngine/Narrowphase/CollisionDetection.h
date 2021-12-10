@@ -37,7 +37,7 @@ namespace Lumos
 
         static inline bool CheckSphereOverlap(const glm::vec3& pos1, float radius1, const glm::vec3& pos2, float radius2)
         {
-            return glm::distance(pos2, pos1) <= radius1 + radius2;
+            return glm::distance2(pos2, pos1) <= Maths::Squared(radius1 + radius2);
         }
 
         static inline bool CheckAABBOverlap(const glm::vec3& pos1, const glm::vec3& halfHidth1, const glm::vec3& pos2, const glm::vec3& halfHidth2)

@@ -5,7 +5,7 @@
 #include "Maths/Transform.h"
 #include "Graphics/RHI/Texture.h"
 #include "Maths/Maths.h"
-
+#include "Core/StringUtilities.h"
 #include "Core/Application.h"
 
 #define TINYOBJLOADER_IMPLEMENTATION
@@ -44,10 +44,11 @@ namespace Lumos
 
         std::vector<tinyobj::shape_t> shapes;
         std::vector<tinyobj::material_t> materials;
+		
+		 resolvedPath = StringUtilities::BackSlashesToSlashes(resolvedPath);
+		m_Directory = StringUtilities::GetFileLocation(resolvedPath);
 
-        m_Directory = resolvedPath.substr(0, resolvedPath.find_last_of('/'));
-
-        std::string name = m_Directory.substr(m_Directory.find_last_of('/') + 1);
+        std::string name = StringUtilities::GetFileName(resolvedPath);
 
         bool ok = tinyobj::LoadObj(
             &attrib, &shapes, &materials, &error, (resolvedPath).c_str(), (m_Directory + "/").c_str());
