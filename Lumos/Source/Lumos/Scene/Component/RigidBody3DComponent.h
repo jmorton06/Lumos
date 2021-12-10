@@ -59,7 +59,7 @@ namespace Lumos
     class SpringConstraintComponent
     {
     public:
-        SpringConstraintComponent(Entity entity, Entity otherEntity, const Maths::Vector3& pos1, const Maths::Vector3& pos2, float constant = 1.0f);
+        SpringConstraintComponent(Entity entity, Entity otherEntity, const glm::vec3& pos1, const glm::vec3& pos2, float constant = 1.0f);
         SpringConstraintComponent(Entity entity, Entity otherEntity);
         ~SpringConstraintComponent() = default;
 
@@ -73,7 +73,7 @@ namespace Lumos
     class WeldConstraintComponent
     {
     public:
-        WeldConstraintComponent(Entity entity, Entity otherEntity, const Maths::Vector3& pos1, const Maths::Vector3& pos2, float constant = 1.0f);
+        WeldConstraintComponent(Entity entity, Entity otherEntity, const glm::vec3& pos1, const glm::vec3& pos2, float constant = 1.0f);
         WeldConstraintComponent(Entity entity, Entity otherEntity);
         ~WeldConstraintComponent() = default;
 
@@ -87,7 +87,7 @@ namespace Lumos
     class DistanceConstraintComponent
     {
     public:
-        DistanceConstraintComponent(Entity entity, Entity otherEntity, const Maths::Vector3& pos1, const Maths::Vector3& pos2, float constant = 1.0f);
+        DistanceConstraintComponent(Entity entity, Entity otherEntity, const glm::vec3& pos1, const glm::vec3& pos2, float constant = 1.0f);
         DistanceConstraintComponent(Entity entity, Entity otherEntity);
         ~DistanceConstraintComponent() = default;
 

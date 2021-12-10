@@ -20,6 +20,7 @@ namespace Lumos
         {
             m_ClearValue = NULL;
             m_ClearDepth = false;
+            m_SwapchainTarget = false;
 
             Init(renderPassDesc);
         }
@@ -151,6 +152,8 @@ namespace Lumos
 
             m_ClearValue = new VkClearValue[renderPassDesc.attachmentCount];
             m_ClearCount = renderPassDesc.attachmentCount;
+            m_SwapchainTarget = renderPassDesc.swapchainTarget;
+
             return true;
         }
 
@@ -168,7 +171,7 @@ namespace Lumos
             }
         }
 
-        void VKRenderPass::BeginRenderpass(CommandBuffer* commandBuffer, const Maths::Vector4& clearColour, Framebuffer* frame, SubPassContents contents, uint32_t width, uint32_t height) const
+        void VKRenderPass::BeginRenderpass(CommandBuffer* commandBuffer, const glm::vec4& clearColour, Framebuffer* frame, SubPassContents contents, uint32_t width, uint32_t height) const
         {
             LUMOS_PROFILE_FUNCTION();
             if(!m_DepthOnly)
@@ -200,7 +203,7 @@ namespace Lumos
             rpBegin.pClearValues = m_ClearValue;
 
             vkCmdBeginRenderPass(static_cast<VKCommandBuffer*>(commandBuffer)->GetHandle(), &rpBegin, SubPassContentsToVK(contents));
-            commandBuffer->UpdateViewport(width, height);
+            commandBuffer->UpdateViewport(width, height, m_SwapchainTarget);
         }
 
         void VKRenderPass::EndRenderpass(CommandBuffer* commandBuffer)

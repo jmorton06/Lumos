@@ -172,17 +172,17 @@ namespace Lumos::Graphics
 
             if(roughnessFactor != mat.values.end())
             {
-                properties.roughnessColour = Maths::Vector4(static_cast<float>(roughnessFactor->second.Factor()));
+                properties.roughnessColour = glm::vec4(static_cast<float>(roughnessFactor->second.Factor()));
             }
 
             if(metallicFactor != mat.values.end())
             {
-                properties.metallicColour = Maths::Vector4(static_cast<float>(metallicFactor->second.Factor()));
+                properties.metallicColour = glm::vec4(static_cast<float>(metallicFactor->second.Factor()));
             }
 
             if(baseColourFactor != mat.values.end())
             {
-                properties.albedoColour = Maths::Vector4((float)baseColourFactor->second.ColorFactor()[0], (float)baseColourFactor->second.ColorFactor()[1], (float)baseColourFactor->second.ColorFactor()[2], 1.0f);
+                properties.albedoColour = glm::vec4((float)baseColourFactor->second.ColorFactor()[0], (float)baseColourFactor->second.ColorFactor()[1], (float)baseColourFactor->second.ColorFactor()[2], 1.0f);
             }
 
             // Extensions
@@ -221,7 +221,7 @@ namespace Lumos::Graphics
                 if(metallicGlossinessWorkflow->second.Has("glossinessFactor"))
                 {
                     auto& factor = metallicGlossinessWorkflow->second.Get("glossinessFactor");
-                    properties.roughnessColour = Maths::Vector4(1.0f - float(factor.IsNumber() ? factor.Get<double>() : factor.Get<int>()));
+                    properties.roughnessColour = glm::vec4(1.0f - float(factor.IsNumber() ? factor.Get<double>() : factor.Get<int>()));
                 }
             }
 
@@ -275,7 +275,7 @@ namespace Lumos::Graphics
                     Maths::Vector3Simple* positions = reinterpret_cast<Maths::Vector3Simple*>(data.data());
                     for(auto p = 0; p < positionCount; ++p)
                     {
-                        vertices[p].Position = parentTransform.GetWorldMatrix() * Maths::ToVector(positions[p]);
+                        vertices[p].Position = parentTransform.GetWorldMatrix() * Maths::ToVector4(positions[p]);
                     }
                 }
 
@@ -287,7 +287,9 @@ namespace Lumos::Graphics
                     Maths::Vector3Simple* normals = reinterpret_cast<Maths::Vector3Simple*>(data.data());
                     for(auto p = 0; p < normalCount; ++p)
                     {
-                        vertices[p].Normal = (parentTransform.GetWorldMatrix().ToMatrix3().Inverse().Transpose() * Maths::ToVector(normals[p])).Normalised();
+                        vertices[p].Normal = (parentTransform.GetWorldMatrix() * Maths::ToVector4(normals[p]));
+
+                        glm::normalize(vertices[p].Normal);
                     }
                 }
 
@@ -323,7 +325,7 @@ namespace Lumos::Graphics
                     Maths::Vector3Simple* uvs = reinterpret_cast<Maths::Vector3Simple*>(data.data());
                     for(auto p = 0; p < uvCount; ++p)
                     {
-                        vertices[p].Tangent = parentTransform.GetWorldMatrix() * ToVector(uvs[p]);
+                        vertices[p].Tangent = parentTransform.GetWorldMatrix() * ToVector4(uvs[p]);
                     }
                 }
             }
@@ -383,7 +385,7 @@ namespace Lumos::Graphics
         return meshes;
     }
 
-    void LoadNode(Model* mainModel, int nodeIndex, const Maths::Matrix4& parentTransform, tinygltf::Model& model, std::vector<SharedPtr<Material>>& materials, std::vector<std::vector<Graphics::Mesh*>>& meshes)
+    void LoadNode(Model* mainModel, int nodeIndex, const glm::mat4& parentTransform, tinygltf::Model& model, std::vector<SharedPtr<Material>>& materials, std::vector<std::vector<Graphics::Mesh*>>& meshes)
     {
         LUMOS_PROFILE_FUNCTION();
         if(nodeIndex < 0)
@@ -402,28 +404,28 @@ namespace Lumos::Graphics
 #endif
 
         Maths::Transform transform;
-        Maths::Matrix4 matrix;
-        Maths::Matrix4 position;
-        Maths::Matrix4 rotation;
-        Maths::Matrix4 scale;
+        glm::mat4 matrix;
+        glm::mat4 position = glm::mat4(1.0f);
+        glm::mat4 rotation = glm::mat4(1.0f);
+        glm::mat4 scale = glm::mat4(1.0f);
 
         if(!node.scale.empty())
         {
-            scale = Maths::Matrix4::Scale(Maths::Vector3(static_cast<float>(node.scale[0]), static_cast<float>(node.scale[1]), static_cast<float>(node.scale[2])));
-            //transform.SetLocalScale(Maths::Vector3(static_cast<float>(node.scale[0]), static_cast<float>(node.scale[1]), static_cast<float>(node.scale[2])));
+            scale = glm::scale(glm::mat4(1.0), glm::vec3(static_cast<float>(node.scale[0]), static_cast<float>(node.scale[1]), static_cast<float>(node.scale[2])));
+            //transform.SetLocalScale(glm::vec3(static_cast<float>(node.scale[0]), static_cast<float>(node.scale[1]), static_cast<float>(node.scale[2])));
         }
 
         if(!node.rotation.empty())
         {
-            rotation = Maths::Quaternion(static_cast<float>(node.rotation[3]), static_cast<float>(node.rotation[0]), static_cast<float>(node.rotation[1]), static_cast<float>(node.rotation[2])).RotationMatrix();
+            rotation = glm::toMat4(glm::quat(static_cast<float>(node.rotation[3]), static_cast<float>(node.rotation[0]), static_cast<float>(node.rotation[1]), static_cast<float>(node.rotation[2])));
 
-            //transform.SetLocalOrientation(Maths::Quaternion(static_cast<float>(node.rotation[3]), static_cast<float>(node.rotation[0]), static_cast<float>(node.rotation[1]), static_cast<float>(node.rotation[2])));
+            //transform.SetLocalOrientation(glm::quat(static_cast<float>(node.rotation[3]), static_cast<float>(node.rotation[0]), static_cast<float>(node.rotation[1]), static_cast<float>(node.rotation[2])));
         }
 
         if(!node.translation.empty())
         {
-            //transform.SetLocalPosition(Maths::Vector3(static_cast<float>(node.translation[0]), static_cast<float>(node.translation[1]), static_cast<float>(node.translation[2])));
-            position = Maths::Matrix4::Translation(Maths::Vector3(static_cast<float>(node.translation[0]), static_cast<float>(node.translation[1]), static_cast<float>(node.translation[2])));
+            //transform.SetLocalPosition(glm::vec3(static_cast<float>(node.translation[0]), static_cast<float>(node.translation[1]), static_cast<float>(node.translation[2])));
+            position = glm::translate(glm::mat4(1.0), glm::vec3(static_cast<float>(node.translation[0]), static_cast<float>(node.translation[1]), static_cast<float>(node.translation[2])));
         }
 
         if(!node.matrix.empty())
@@ -431,8 +433,8 @@ namespace Lumos::Graphics
             float matrixData[16];
             for(int i = 0; i < 16; i++)
                 matrixData[i] = float(node.matrix.data()[i]);
-            matrix = Maths::Matrix4(matrixData);
-            transform.SetLocalTransform(matrix.Transpose());
+            matrix = glm::make_mat4(matrixData);
+            transform.SetLocalTransform(matrix);
         }
         else
         {
@@ -529,7 +531,7 @@ namespace Lumos::Graphics
             const tinygltf::Scene& gltfScene = model.scenes[Lumos::Maths::Max(0, model.defaultScene)];
             for(size_t i = 0; i < gltfScene.nodes.size(); i++)
             {
-                LoadNode(this, gltfScene.nodes[i], Maths::Matrix4(), model, LoadedMaterials, meshes);
+                LoadNode(this, gltfScene.nodes[i], glm::mat4(1.0f), model, LoadedMaterials, meshes);
             }
         }
     }

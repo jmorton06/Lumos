@@ -21,7 +21,7 @@ namespace Lumos
             virtual void BeginRecordingSecondary(RenderPass* renderPass, Framebuffer* framebuffer) = 0;
             virtual void EndRecording() = 0;
             virtual void ExecuteSecondary(CommandBuffer* primaryCmdBuffer) = 0;
-            virtual void UpdateViewport(uint32_t width, uint32_t height) = 0;
+            virtual void UpdateViewport(uint32_t width, uint32_t height, bool flipViewport = false) = 0;
             virtual bool Flush() { return true; }
 
             virtual void BindPipeline(Pipeline* pipeline) = 0;

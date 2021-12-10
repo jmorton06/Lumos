@@ -25,5 +25,5 @@ void main()
 		vec4 pos = vec4(inPosition,1.0);
 		pos.z = 1.0f;
 		gl_Position = pos;
-		outPosition = pos * ubo.invprojview;
+	outPosition = ubo.invprojview * pos;
 }

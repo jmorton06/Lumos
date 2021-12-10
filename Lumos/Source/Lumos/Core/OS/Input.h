@@ -41,8 +41,8 @@ namespace Lumos
         void SetMouseOnScreen(bool onScreen) { m_MouseOnScreen = onScreen; }
         bool GetMouseOnScreen() const { return m_MouseOnScreen; }
 
-        void StoreMousePosition(float xpos, float ypos) { m_MousePosition = Maths::Vector2(float(xpos), float(ypos)); }
-        const Maths::Vector2& GetMousePosition() const { return m_MousePosition; }
+        void StoreMousePosition(float xpos, float ypos) { m_MousePosition = glm::vec2(float(xpos), float(ypos)); }
+        const glm::vec2& GetMousePosition() const { return m_MousePosition; }
 
         void SetScrollOffset(float offset) { m_ScrollOffset = offset; }
         float GetScrollOffset() const { return m_ScrollOffset; }
@@ -74,6 +74,6 @@ namespace Lumos
         bool m_MouseOnScreen;
         MouseMode m_MouseMode;
 
-        Maths::Vector2 m_MousePosition;
+        glm::vec2 m_MousePosition;
     };
 }

@@ -1,5 +1,5 @@
 #include "Precompiled.h"
-#include "ImGui/ImGuiHelpers.h"
+#include "ImGui/ImGuiUtilities.h"
 #include "Graphics/RHI/Renderer.h"
 #include "Graphics/RHI/Texture.h"
 #include "Graphics/RHI/GraphicsContext.h"
@@ -13,10 +13,10 @@
 
 namespace Lumos
 {
-    Maths::Vector4 SelectedColour = Maths::Vector4(0.28f, 0.56f, 0.9f, 1.0f);
-    Maths::Vector4 IconColour = Maths::Vector4(0.2f, 0.2f, 0.2f, 1.0f);
+    glm::vec4 SelectedColour = glm::vec4(0.28f, 0.56f, 0.9f, 1.0f);
+    glm::vec4 IconColour = glm::vec4(0.2f, 0.2f, 0.2f, 1.0f);
 
-    bool ImGuiHelpers::Property(const std::string& name, std::string& value, PropertyFlag flags)
+    bool ImGuiUtilities::Property(const std::string& name, std::string& value, PropertyFlag flags)
     {
         LUMOS_PROFILE_FUNCTION();
         bool updated = false;
@@ -41,7 +41,7 @@ namespace Lumos
         return updated;
     }
 
-    void ImGuiHelpers::PropertyConst(const std::string& name, const std::string& value)
+    void ImGuiUtilities::PropertyConst(const std::string& name, const std::string& value)
     {
         LUMOS_PROFILE_FUNCTION();
         bool updated = false;
@@ -58,7 +58,7 @@ namespace Lumos
         ImGui::NextColumn();
     }
 
-    bool ImGuiHelpers::Property(const std::string& name, bool& value, PropertyFlag flags)
+    bool ImGuiUtilities::Property(const std::string& name, bool& value, PropertyFlag flags)
     {
         LUMOS_PROFILE_FUNCTION();
         bool updated = false;
@@ -83,7 +83,7 @@ namespace Lumos
         return updated;
     }
 
-    bool ImGuiHelpers::Property(const std::string& name, int& value, ImGuiHelpers::PropertyFlag flags)
+    bool ImGuiUtilities::Property(const std::string& name, int& value, ImGuiUtilities::PropertyFlag flags)
     {
         LUMOS_PROFILE_FUNCTION();
         bool updated = false;
@@ -108,7 +108,7 @@ namespace Lumos
         return updated;
     }
 
-    bool ImGuiHelpers::Property(const std::string& name, uint32_t& value, ImGuiHelpers::PropertyFlag flags)
+    bool ImGuiUtilities::Property(const std::string& name, uint32_t& value, ImGuiUtilities::PropertyFlag flags)
     {
         LUMOS_PROFILE_FUNCTION();
         bool updated = false;
@@ -137,7 +137,7 @@ namespace Lumos
         return updated;
     }
 
-    bool ImGuiHelpers::Property(const std::string& name, float& value, float min, float max, ImGuiHelpers::PropertyFlag flags)
+    bool ImGuiUtilities::Property(const std::string& name, float& value, float min, float max, ImGuiUtilities::PropertyFlag flags)
     {
         LUMOS_PROFILE_FUNCTION();
         bool updated = false;
@@ -162,7 +162,7 @@ namespace Lumos
         return updated;
     }
 
-    bool ImGuiHelpers::Property(const std::string& name, double& value, double min, double max, PropertyFlag flags)
+    bool ImGuiUtilities::Property(const std::string& name, double& value, double min, double max, PropertyFlag flags)
     {
         LUMOS_PROFILE_FUNCTION();
         bool updated = false;
@@ -187,7 +187,7 @@ namespace Lumos
         return updated;
     }
 
-    bool ImGuiHelpers::Property(const std::string& name, int& value, int min, int max, PropertyFlag flags)
+    bool ImGuiUtilities::Property(const std::string& name, int& value, int min, int max, PropertyFlag flags)
     {
         LUMOS_PROFILE_FUNCTION();
         bool updated = false;
@@ -212,13 +212,13 @@ namespace Lumos
         return updated;
     }
 
-    bool ImGuiHelpers::Property(const std::string& name, Maths::Vector2& value, ImGuiHelpers::PropertyFlag flags)
+    bool ImGuiUtilities::Property(const std::string& name, glm::vec2& value, ImGuiUtilities::PropertyFlag flags)
     {
         LUMOS_PROFILE_FUNCTION();
-        return ImGuiHelpers::Property(name, value, -1.0f, 1.0f, flags);
+        return ImGuiUtilities::Property(name, value, -1.0f, 1.0f, flags);
     }
 
-    bool ImGuiHelpers::Property(const std::string& name, Maths::Vector2& value, float min, float max, ImGuiHelpers::PropertyFlag flags)
+    bool ImGuiUtilities::Property(const std::string& name, glm::vec2& value, float min, float max, ImGuiUtilities::PropertyFlag flags)
     {
         LUMOS_PROFILE_FUNCTION();
         bool updated = false;
@@ -234,7 +234,7 @@ namespace Lumos
         else
         {
             std::string id = "##" + name;
-            if(ImGui::DragFloat2(id.c_str(), Maths::ValuePointer(value)))
+            if(ImGui::DragFloat2(id.c_str(), glm::value_ptr(value)))
                 updated = true;
         }
         ImGui::PopItemWidth();
@@ -243,13 +243,13 @@ namespace Lumos
         return updated;
     }
 
-    bool ImGuiHelpers::Property(const std::string& name, Maths::Vector3& value, ImGuiHelpers::PropertyFlag flags)
+    bool ImGuiUtilities::Property(const std::string& name, glm::vec3& value, ImGuiUtilities::PropertyFlag flags)
     {
         LUMOS_PROFILE_FUNCTION();
-        return ImGuiHelpers::Property(name, value, -1.0f, 1.0f, flags);
+        return ImGuiUtilities::Property(name, value, -1.0f, 1.0f, flags);
     }
 
-    bool ImGuiHelpers::Property(const std::string& name, Maths::Vector3& value, float min, float max, ImGuiHelpers::PropertyFlag flags)
+    bool ImGuiUtilities::Property(const std::string& name, glm::vec3& value, float min, float max, ImGuiUtilities::PropertyFlag flags)
     {
         LUMOS_PROFILE_FUNCTION();
         bool updated = false;
@@ -267,12 +267,12 @@ namespace Lumos
             std::string id = "##" + name;
             if((int)flags & (int)PropertyFlag::ColourProperty)
             {
-                if(ImGui::ColorEdit3(id.c_str(), Maths::ValuePointer(value), ImGuiColorEditFlags_NoInputs))
+                if(ImGui::ColorEdit3(id.c_str(), glm::value_ptr(value), ImGuiColorEditFlags_NoInputs))
                     updated = true;
             }
             else
             {
-                if(ImGui::DragFloat3(id.c_str(), Maths::ValuePointer(value)))
+                if(ImGui::DragFloat3(id.c_str(), glm::value_ptr(value)))
                     updated = true;
             }
         }
@@ -283,13 +283,13 @@ namespace Lumos
         return updated;
     }
 
-    bool ImGuiHelpers::Property(const std::string& name, Maths::Vector4& value, bool exposeW, ImGuiHelpers::PropertyFlag flags)
+    bool ImGuiUtilities::Property(const std::string& name, glm::vec4& value, bool exposeW, ImGuiUtilities::PropertyFlag flags)
     {
         LUMOS_PROFILE_FUNCTION();
         return Property(name, value, -1.0f, 1.0f, exposeW, flags);
     }
 
-    bool ImGuiHelpers::Property(const std::string& name, Maths::Vector4& value, float min, float max, bool exposeW, ImGuiHelpers::PropertyFlag flags)
+    bool ImGuiUtilities::Property(const std::string& name, glm::vec4& value, float min, float max, bool exposeW, ImGuiUtilities::PropertyFlag flags)
     {
         LUMOS_PROFILE_FUNCTION();
         bool updated = false;
@@ -308,10 +308,10 @@ namespace Lumos
             std::string id = "##" + name;
             if((int)flags & (int)PropertyFlag::ColourProperty)
             {
-                if(ImGui::ColorEdit4(id.c_str(), Maths::ValuePointer(value), ImGuiColorEditFlags_NoInputs))
+                if(ImGui::ColorEdit4(id.c_str(), glm::value_ptr(value), ImGuiColorEditFlags_NoInputs))
                     updated = true;
             }
-            else if((exposeW ? ImGui::DragFloat4(id.c_str(), Maths::ValuePointer(value)) : ImGui::DragFloat4(id.c_str(), Maths::ValuePointer(value))))
+            else if((exposeW ? ImGui::DragFloat4(id.c_str(), glm::value_ptr(value)) : ImGui::DragFloat4(id.c_str(), glm::value_ptr(value))))
                 updated = true;
         }
         ImGui::PopItemWidth();
@@ -320,7 +320,7 @@ namespace Lumos
         return updated;
     }
 
-    bool ImGuiHelpers::Property(const std::string& name, Maths::Quaternion& value, ImGuiHelpers::PropertyFlag flags)
+    bool ImGuiUtilities::Property(const std::string& name, glm::quat& value, ImGuiUtilities::PropertyFlag flags)
     {
         LUMOS_PROFILE_FUNCTION();
         bool updated = false;
@@ -337,7 +337,7 @@ namespace Lumos
         {
 
             std::string id = "##" + name;
-            if(ImGui::DragFloat4(id.c_str(), Maths::ValuePointer(value)))
+            if(ImGui::DragFloat4(id.c_str(), glm::value_ptr(value)))
                 updated = true;
         }
         ImGui::PopItemWidth();
@@ -346,7 +346,7 @@ namespace Lumos
         return updated;
     }
 
-    void ImGuiHelpers::Tooltip(const std::string& text)
+    void ImGuiUtilities::Tooltip(const std::string& text)
     {
         LUMOS_PROFILE_FUNCTION();
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(5, 5));
@@ -354,7 +354,7 @@ namespace Lumos
         ImGui::PopStyleVar();
     }
 
-    void ImGuiHelpers::Tooltip(const char* text)
+    void ImGuiUtilities::Tooltip(const char* text)
     {
         LUMOS_PROFILE_FUNCTION();
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(5, 5));
@@ -369,7 +369,7 @@ namespace Lumos
         ImGui::PopStyleVar();
     }
 
-    void ImGuiHelpers::Tooltip(Graphics::Texture2D* texture, const Maths::Vector2& size)
+    void ImGuiUtilities::Tooltip(Graphics::Texture2D* texture, const glm::vec2& size)
     {
         LUMOS_PROFILE_FUNCTION();
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(5, 5));
@@ -385,7 +385,7 @@ namespace Lumos
         ImGui::PopStyleVar();
     }
 
-    void ImGuiHelpers::Tooltip(Graphics::Texture2D* texture, const Maths::Vector2& size, const std::string& text)
+    void ImGuiUtilities::Tooltip(Graphics::Texture2D* texture, const glm::vec2& size, const std::string& text)
     {
         LUMOS_PROFILE_FUNCTION();
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(5, 5));
@@ -402,7 +402,7 @@ namespace Lumos
         ImGui::PopStyleVar();
     }
 
-    void ImGuiHelpers::Tooltip(Graphics::TextureDepthArray* texture, uint32_t index, const Maths::Vector2& size)
+    void ImGuiUtilities::Tooltip(Graphics::TextureDepthArray* texture, uint32_t index, const glm::vec2& size)
     {
         LUMOS_PROFILE_FUNCTION();
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(5, 5));
@@ -425,21 +425,21 @@ namespace Lumos
         ImGui::PopStyleVar();
     }
 
-    void ImGuiHelpers::Image(Graphics::Texture2D* texture, const Maths::Vector2& size)
+    void ImGuiUtilities::Image(Graphics::Texture2D* texture, const glm::vec2& size)
     {
         LUMOS_PROFILE_FUNCTION();
         bool flipImage = Graphics::Renderer::GetGraphicsContext()->FlipImGUITexture();
         ImGui::Image(texture ? texture->GetHandle() : nullptr, ImVec2(size.x, size.y), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
     }
 
-    void ImGuiHelpers::Image(Graphics::TextureCube* texture, const Maths::Vector2& size)
+    void ImGuiUtilities::Image(Graphics::TextureCube* texture, const glm::vec2& size)
     {
         LUMOS_PROFILE_FUNCTION();
         bool flipImage = Graphics::Renderer::GetGraphicsContext()->FlipImGUITexture();
         ImGui::Image(texture ? texture->GetHandle() : nullptr, ImVec2(size.x, size.y), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
     }
 
-    void ImGuiHelpers::Image(Graphics::TextureDepthArray* texture, uint32_t index, const Maths::Vector2& size)
+    void ImGuiUtilities::Image(Graphics::TextureDepthArray* texture, uint32_t index, const glm::vec2& size)
     {
         LUMOS_PROFILE_FUNCTION();
         bool flipImage = Graphics::Renderer::GetGraphicsContext()->FlipImGUITexture();
@@ -452,7 +452,7 @@ namespace Lumos
         ImGui::Image(texID, ImVec2(size.x, size.y), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
     }
 
-    bool ImGuiHelpers::BufferingBar(const char* label, float value, const Maths::Vector2& size_arg, const uint32_t& bg_col, const uint32_t& fg_col)
+    bool ImGuiUtilities::BufferingBar(const char* label, float value, const glm::vec2& size_arg, const uint32_t& bg_col, const uint32_t& fg_col)
     {
         LUMOS_PROFILE_FUNCTION();
         auto g = ImGui::GetCurrentContext();
@@ -496,7 +496,7 @@ namespace Lumos
         return true;
     }
 
-    bool ImGuiHelpers::Spinner(const char* label, float radius, int thickness, const uint32_t& colour)
+    bool ImGuiUtilities::Spinner(const char* label, float radius, int thickness, const uint32_t& colour)
     {
         LUMOS_PROFILE_FUNCTION();
         auto g = ImGui::GetCurrentContext();
@@ -535,7 +535,7 @@ namespace Lumos
         return true;
     }
 
-    void ImGuiHelpers::DrawRowsBackground(int row_count, float line_height, float x1, float x2, float y_offset, ImU32 col_even, ImU32 col_odd)
+    void ImGuiUtilities::DrawRowsBackground(int row_count, float line_height, float x1, float x2, float y_offset, ImU32 col_even, ImU32 col_odd)
     {
         ImDrawList* draw_list = ImGui::GetWindowDrawList();
         float y0 = ImGui::GetCursorScreenPos().y + (float)(int)y_offset;
@@ -554,13 +554,13 @@ namespace Lumos
         }
     }
 
-    void ImGuiHelpers::SetTheme(Theme theme)
+    void ImGuiUtilities::SetTheme(Theme theme)
     {
         static const float max = 255.0f;
 
         auto& style = ImGui::GetStyle();
         ImVec4* colours = style.Colors;
-        SelectedColour = Maths::Vector4(0.28f, 0.56f, 0.9f, 1.0f);
+        SelectedColour = glm::vec4(0.28f, 0.56f, 0.9f, 1.0f);
 
         if(theme == Black)
         {
@@ -1031,17 +1031,17 @@ namespace Lumos
         colours[ImGuiCol_BorderShadow] = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
     }
 
-    Maths::Vector4 ImGuiHelpers::GetSelectedColour()
+    glm::vec4 ImGuiUtilities::GetSelectedColour()
     {
         return SelectedColour;
     }
 
-    Maths::Vector4 ImGuiHelpers::GetIconColour()
+    glm::vec4 ImGuiUtilities::GetIconColour()
     {
         return IconColour;
     }
 
-    bool ImGuiHelpers::PropertyDropdown(const char* label, std::string* options, int32_t optionCount, int32_t* selected)
+    bool ImGuiUtilities::PropertyDropdown(const char* label, std::string* options, int32_t optionCount, int32_t* selected)
     {
         const char* current = options[*selected].c_str();
         ImGui::TextUnformatted(label);
@@ -1097,7 +1097,7 @@ namespace Lumos
         return changed;
     }
 
-    void ImGuiHelpers::DrawItemActivityOutline(float rounding, bool drawWhenInactive, ImColor colourWhenActive)
+    void ImGuiUtilities::DrawItemActivityOutline(float rounding, bool drawWhenInactive, ImColor colourWhenActive)
     {
         auto* drawList = ImGui::GetWindowDrawList();
 
@@ -1125,17 +1125,17 @@ namespace Lumos
         }
     }
 
-    bool ImGuiHelpers::InputText(std::string& currentText)
+    bool ImGuiUtilities::InputText(std::string& currentText)
     {
-        ImGuiHelpers::ScopedStyle frameBorder(ImGuiStyleVar_FrameBorderSize, 0.0f);
-        ImGuiHelpers::ScopedColour frameColour(ImGuiCol_FrameBg, IM_COL32(0, 0, 0, 0));
+        ImGuiUtilities::ScopedStyle frameBorder(ImGuiStyleVar_FrameBorderSize, 0.0f);
+        ImGuiUtilities::ScopedColour frameColour(ImGuiCol_FrameBg, IM_COL32(0, 0, 0, 0));
         char buffer[256];
         memset(buffer, 0, 256);
         memcpy(buffer, currentText.c_str(), currentText.length());
 
         bool updated = ImGui::InputText("##SceneName", buffer, 256);
 
-        ImGuiHelpers::DrawItemActivityOutline(2.0f, false);
+        ImGuiUtilities::DrawItemActivityOutline(2.0f, false);
 
         if(updated)
             currentText = std::string(buffer);

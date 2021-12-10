@@ -189,6 +189,11 @@ namespace Lumos
         //glfwSetWindowPos(m_Handle, mode->width / 2 - m_Data.Width / 2, mode->height / 2 - m_Data.Height / 2);
         glfwSetInputMode(m_Handle, GLFW_STICKY_KEYS, true);
 
+        //#ifdef LUMOS_PLATFORM_WINDOWS
+        //		glfwGetWindowSize(m_Handle, &w, &h);
+        //		m_Data.DPIScale = (float)w / m_Data.Width;
+        //#endif
+
         // Set GLFW callbacks
         glfwSetWindowSizeCallback(m_Handle, [](GLFWwindow* window, int width, int height)
             {
@@ -425,7 +430,7 @@ namespace Lumos
         }
     }
 
-    void GLFWWindow::SetMousePosition(const Maths::Vector2& pos)
+    void GLFWWindow::SetMousePosition(const glm::vec2& pos)
     {
         LUMOS_PROFILE_FUNCTION();
         Input::Get().StoreMousePosition(pos.x, pos.y);

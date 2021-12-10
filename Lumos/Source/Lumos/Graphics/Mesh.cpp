@@ -28,7 +28,7 @@ namespace Lumos
         {
         }
 
-        Mesh::Mesh(SharedPtr<VertexBuffer>& vertexBuffer, SharedPtr<IndexBuffer>& indexBuffer, const SharedPtr<Maths::BoundingBox>& boundingBox)
+        Mesh::Mesh(SharedPtr<VertexBuffer>& vertexBuffer, SharedPtr<IndexBuffer>& indexBuffer, const SharedPtr<BoundingBox>& boundingBox)
             : m_VertexBuffer(vertexBuffer)
             , m_IndexBuffer(indexBuffer)
             , m_BoundingBox(boundingBox)
@@ -63,7 +63,7 @@ namespace Lumos
 
             //LUMOS_LOG_INFO("Mesh Optimizer - Before : {0} indices {1} vertices , After : {2} indices , {3} vertices", indexCount, m_Vertices.size(), newIndexCount, newVertexCount);
 
-            m_BoundingBox = CreateSharedPtr<Maths::BoundingBox>();
+            m_BoundingBox = CreateSharedPtr<BoundingBox>();
 
             for(auto& vertex : m_Vertices)
             {
@@ -82,11 +82,11 @@ namespace Lumos
 
         void Mesh::GenerateNormals(Vertex* vertices, uint32_t vertexCount, uint32_t* indices, uint32_t indexCount)
         {
-            Maths::Vector3* normals = new Maths::Vector3[vertexCount];
+            glm::vec3* normals = new glm::vec3[vertexCount];
 
             for(uint32_t i = 0; i < vertexCount; ++i)
             {
-                normals[i] = Maths::Vector3();
+                normals[i] = glm::vec3();
             }
 
             if(indices)
@@ -97,7 +97,7 @@ namespace Lumos
                     const int b = indices[i + 1];
                     const int c = indices[i + 2];
 
-                    const Maths::Vector3 _normal = Maths::Vector3::Cross((vertices[b].Position - vertices[a].Position), (vertices[c].Position - vertices[a].Position));
+                    const glm::vec3 _normal = glm::cross((vertices[b].Position - vertices[a].Position), (vertices[c].Position - vertices[a].Position));
 
                     normals[a] += _normal;
                     normals[b] += _normal;
@@ -109,11 +109,11 @@ namespace Lumos
                 // It's just a list of triangles, so generate face normals
                 for(uint32_t i = 0; i < vertexCount; i += 3)
                 {
-                    Maths::Vector3& a = vertices[i].Position;
-                    Maths::Vector3& b = vertices[i + 1].Position;
-                    Maths::Vector3& c = vertices[i + 2].Position;
+                    glm::vec3& a = vertices[i].Position;
+                    glm::vec3& b = vertices[i + 1].Position;
+                    glm::vec3& c = vertices[i + 2].Position;
 
-                    const Maths::Vector3 _normal = Maths::Vector3::Cross(b - a, c - a);
+                    const glm::vec3 _normal = glm::cross(b - a, c - a);
 
                     normals[i] = _normal;
                     normals[i + 1] = _normal;
@@ -123,7 +123,8 @@ namespace Lumos
 
             for(uint32_t i = 0; i < vertexCount; ++i)
             {
-                vertices[i].Normal = normals[i].Normalised();
+                glm::normalize(normals[i]);
+                vertices[i].Normal = normals[i];
             }
 
             delete[] normals;
@@ -131,11 +132,11 @@ namespace Lumos
 
         void Mesh::GenerateTangents(Vertex* vertices, uint32_t vertexCount, uint32_t* indices, uint32_t numIndices)
         {
-            Maths::Vector3* tangents = new Maths::Vector3[vertexCount];
+            glm::vec3* tangents = new glm::vec3[vertexCount];
 
             for(uint32_t i = 0; i < vertexCount; ++i)
             {
-                tangents[i] = Maths::Vector3();
+                tangents[i] = glm::vec3();
             }
 
             if(indices)
@@ -146,7 +147,7 @@ namespace Lumos
                     int b = indices[i + 1];
                     int c = indices[i + 2];
 
-                    const Maths::Vector3 tangent = GenerateTangent(vertices[a].Position, vertices[b].Position, vertices[c].Position, vertices[a].TexCoords, vertices[b].TexCoords, vertices[c].TexCoords);
+                    const glm::vec3 tangent = GenerateTangent(vertices[a].Position, vertices[b].Position, vertices[c].Position, vertices[a].TexCoords, vertices[b].TexCoords, vertices[c].TexCoords);
 
                     tangents[a] += tangent;
                     tangents[b] += tangent;
@@ -157,7 +158,7 @@ namespace Lumos
             {
                 for(uint32_t i = 0; i < vertexCount; i += 3)
                 {
-                    const Maths::Vector3 tangent = GenerateTangent(vertices[i].Position, vertices[i + 1].Position, vertices[i + 2].Position, vertices[i].TexCoords, vertices[i + 1].TexCoords,
+                    const glm::vec3 tangent = GenerateTangent(vertices[i].Position, vertices[i + 1].Position, vertices[i + 2].Position, vertices[i].TexCoords, vertices[i + 1].TexCoords,
                         vertices[i + 2].TexCoords);
 
                     tangents[i] += tangent;
@@ -167,34 +168,35 @@ namespace Lumos
             }
             for(uint32_t i = 0; i < vertexCount; ++i)
             {
-                vertices[i].Tangent = tangents[i].Normalised();
+                glm::normalize(tangents[i]);
+                vertices[i].Tangent = tangents[i];
             }
 
             delete[] tangents;
         }
 
-        Maths::Vector3 Mesh::GenerateTangent(const Maths::Vector3& a, const Maths::Vector3& b, const Maths::Vector3& c, const Maths::Vector2& ta, const Maths::Vector2& tb, const Maths::Vector2& tc)
+        glm::vec3 Mesh::GenerateTangent(const glm::vec3& a, const glm::vec3& b, const glm::vec3& c, const glm::vec2& ta, const glm::vec2& tb, const glm::vec2& tc)
         {
-            const Maths::Vector2 coord1 = tb - ta;
-            const Maths::Vector2 coord2 = tc - ta;
+            const glm::vec2 coord1 = tb - ta;
+            const glm::vec2 coord2 = tc - ta;
 
-            const Maths::Vector3 vertex1 = b - a;
-            const Maths::Vector3 vertex2 = c - a;
+            const glm::vec3 vertex1 = b - a;
+            const glm::vec3 vertex2 = c - a;
 
-            const Maths::Vector3 axis = Maths::Vector3(vertex1 * coord2.y - vertex2 * coord1.y);
+            const glm::vec3 axis = glm::vec3(vertex1 * coord2.y - vertex2 * coord1.y);
 
             const float factor = 1.0f / (coord1.x * coord2.y - coord2.x * coord1.y);
 
             return axis * factor;
         }
 
-        Maths::Vector3* Mesh::GenerateNormals(uint32_t numVertices, Maths::Vector3* vertices, uint32_t* indices, uint32_t numIndices)
+        glm::vec3* Mesh::GenerateNormals(uint32_t numVertices, glm::vec3* vertices, uint32_t* indices, uint32_t numIndices)
         {
-            Maths::Vector3* normals = new Maths::Vector3[numVertices];
+            glm::vec3* normals = new glm::vec3[numVertices];
 
             for(uint32_t i = 0; i < numVertices; ++i)
             {
-                normals[i] = Maths::Vector3();
+                normals[i] = glm::vec3();
             }
 
             if(indices)
@@ -205,7 +207,7 @@ namespace Lumos
                     const int b = indices[i + 1];
                     const int c = indices[i + 2];
 
-                    const Maths::Vector3 _normal = Maths::Vector3::Cross((vertices[b] - vertices[a]), (vertices[c] - vertices[a]));
+                    const glm::vec3 _normal = glm::cross((vertices[b] - vertices[a]), (vertices[c] - vertices[a]));
 
                     normals[a] += _normal;
                     normals[b] += _normal;
@@ -217,11 +219,11 @@ namespace Lumos
                 // It's just a list of triangles, so generate face normals
                 for(uint32_t i = 0; i < numVertices; i += 3)
                 {
-                    Maths::Vector3& a = vertices[i];
-                    Maths::Vector3& b = vertices[i + 1];
-                    Maths::Vector3& c = vertices[i + 2];
+                    glm::vec3& a = vertices[i];
+                    glm::vec3& b = vertices[i + 1];
+                    glm::vec3& c = vertices[i + 2];
 
-                    const Maths::Vector3 _normal = Maths::Vector3::Cross(b - a, c - a);
+                    const glm::vec3 _normal = glm::cross(b - a, c - a);
 
                     normals[i] = _normal;
                     normals[i + 1] = _normal;
@@ -231,24 +233,24 @@ namespace Lumos
 
             for(uint32_t i = 0; i < numVertices; ++i)
             {
-                normals[i].Normalise();
+                glm::normalize(normals[i]);
             }
 
             return normals;
         }
 
-        Maths::Vector3* Mesh::GenerateTangents(uint32_t numVertices, Maths::Vector3* vertices, uint32_t* indices, uint32_t numIndices, Maths::Vector2* texCoords)
+        glm::vec3* Mesh::GenerateTangents(uint32_t numVertices, glm::vec3* vertices, uint32_t* indices, uint32_t numIndices, glm::vec2* texCoords)
         {
             if(!texCoords)
             {
                 return nullptr;
             }
 
-            Maths::Vector3* tangents = new Maths::Vector3[numVertices];
+            glm::vec3* tangents = new glm::vec3[numVertices];
 
             for(uint32_t i = 0; i < numVertices; ++i)
             {
-                tangents[i] = Maths::Vector3();
+                tangents[i] = glm::vec3();
             }
 
             if(indices)
@@ -259,7 +261,7 @@ namespace Lumos
                     int b = indices[i + 1];
                     int c = indices[i + 2];
 
-                    const Maths::Vector3 tangent = GenerateTangent(vertices[a], vertices[b], vertices[c], texCoords[a], texCoords[b], texCoords[c]);
+                    const glm::vec3 tangent = GenerateTangent(vertices[a], vertices[b], vertices[c], texCoords[a], texCoords[b], texCoords[c]);
 
                     tangents[a] += tangent;
                     tangents[b] += tangent;
@@ -270,7 +272,7 @@ namespace Lumos
             {
                 for(uint32_t i = 0; i < numVertices; i += 3)
                 {
-                    const Maths::Vector3 tangent = GenerateTangent(vertices[i], vertices[i + 1], vertices[i + 2], texCoords[i], texCoords[i + 1],
+                    const glm::vec3 tangent = GenerateTangent(vertices[i], vertices[i + 1], vertices[i + 2], texCoords[i], texCoords[i + 1],
                         texCoords[i + 2]);
 
                     tangents[i] += tangent;
@@ -280,7 +282,7 @@ namespace Lumos
             }
             for(uint32_t i = 0; i < numVertices; ++i)
             {
-                tangents[i].Normalise();
+                glm::normalize(tangents[i]);
             }
 
             return tangents;

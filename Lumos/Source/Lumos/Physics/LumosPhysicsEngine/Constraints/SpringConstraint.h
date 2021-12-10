@@ -10,7 +10,7 @@ namespace Lumos
     {
     public:
         SpringConstraint(const SharedPtr<RigidBody3D>& obj1, const SharedPtr<RigidBody3D>& obj2, float springConstant, float dampingFactor);
-        SpringConstraint(const SharedPtr<RigidBody3D>& obj1, const SharedPtr<RigidBody3D>& obj2, const Maths::Vector3& globalOnA, const Maths::Vector3& globalOnB, float springConstant, float dampingFactor);
+        SpringConstraint(const SharedPtr<RigidBody3D>& obj1, const SharedPtr<RigidBody3D>& obj2, const glm::vec3& globalOnA, const glm::vec3& globalOnB, float springConstant, float dampingFactor);
 
         virtual void ApplyImpulse() override;
         virtual void DebugDraw() const override;
@@ -24,7 +24,7 @@ namespace Lumos
         float m_springConstant;
         float m_dampingFactor;
 
-        Maths::Vector3 m_LocalOnA;
-        Maths::Vector3 m_LocalOnB;
+        glm::vec3 m_LocalOnA;
+        glm::vec3 m_LocalOnB;
     };
 }

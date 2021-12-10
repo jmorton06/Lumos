@@ -89,12 +89,6 @@ namespace Lumos
         // Prints the description given to the constructor and the help
         // for each option.
         void PrintHelp(std::ostream& os = std::cout) const;
-
-        // The command line arguments are traversed from start to end. That means,
-        // if an option is set multiple times, the last will be the one which is
-        // finally used. This call will throw a std::runtime_error if a value is
-        // missing for a given option. Unknown flags will cause a warning on
-        // std::cerr.
         void Parse(int argc, char** argv);
 
 #if 0

@@ -19,9 +19,6 @@
 #include "Maths/Transform.h"
 #include "Graphics/Renderers/RenderGraph.h"
 
-#include "CompiledSPV/Headers/Gridvertspv.hpp"
-#include "CompiledSPV/Headers/Gridfragspv.hpp"
-
 #include <imgui/imgui.h>
 
 namespace Lumos
@@ -52,23 +49,24 @@ namespace Lumos
                 m_CurrentBufferID = Renderer::GetMainSwapChain()->GetCurrentBufferIndex();
 
             CreateGraphicsPipeline();
+			auto commandBuffer = Renderer::GetMainSwapChain()->GetCurrentCommandBuffer();
 
-            m_Pipeline->Bind(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer());
+            m_Pipeline->Bind(commandBuffer);
 
             m_CurrentDescriptorSets[0] = m_DescriptorSet[0].get();
 
-            m_Quad->GetVertexBuffer()->Bind(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer(), m_Pipeline.get());
-            m_Quad->GetIndexBuffer()->Bind(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer());
+            m_Quad->GetVertexBuffer()->Bind(commandBuffer, m_Pipeline.get());
+            m_Quad->GetIndexBuffer()->Bind(commandBuffer);
 
-            Renderer::BindDescriptorSets(m_Pipeline.get(), Renderer::GetMainSwapChain()->GetCurrentCommandBuffer(), 0, m_CurrentDescriptorSets.data(), 1);
-            Renderer::DrawIndexed(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer(), DrawType::TRIANGLE, m_Quad->GetIndexBuffer()->GetCount());
+            Renderer::BindDescriptorSets(m_Pipeline.get(), commandBuffer, 0, m_CurrentDescriptorSets.data(), 1);
+            Renderer::DrawIndexed(commandBuffer, DrawType::TRIANGLE, m_Quad->GetIndexBuffer()->GetCount());
 
             m_Quad->GetVertexBuffer()->Unbind();
             m_Quad->GetIndexBuffer()->Unbind();
 
             End();
 
-            m_Pipeline->End(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer());
+            m_Pipeline->End(commandBuffer);
 
             //if(!m_RenderTexture)
             //Renderer::Present((m_CommandBuffers[Renderer::GetMainSwapChain()->GetCurrentBufferIndex()].get()));
@@ -83,10 +81,8 @@ namespace Lumos
         void GridRenderer::Init()
         {
             LUMOS_PROFILE_FUNCTION();
-            //m_Shader = Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/Grid.shader");
-            m_Shader = Graphics::Shader::CreateFromEmbeddedArray(spirv_Gridvertspv.data(), spirv_Gridvertspv_size, spirv_Gridfragspv.data(), spirv_Gridfragspv_size);
-
-            m_Quad = Graphics::CreatePlane(5000.0f, 5000.f, Maths::Vector3(0.0f, 1.0f, 0.0f));
+            m_Shader = Application::Get().GetShaderLibrary()->GetResource("Grid");
+            m_Quad = Graphics::CreateQuad(); //Graphics::CreatePlane(5000.0f, 5000.f, glm::vec3(0.0f, 1.0f, 0.0f));
 
             Graphics::DescriptorDesc descriptorDesc {};
             descriptorDesc.layoutIndex = 0;
@@ -127,15 +123,21 @@ namespace Lumos
                 return;
 
             auto proj = m_Camera->GetProjectionMatrix();
+            auto view = glm::inverse(m_CameraTransform->GetWorldMatrix());
 
             UniformBufferObjectFrag test;
-            test.res = m_GridRes;
-            test.scale = m_GridSize;
-            test.cameraPos = m_CameraTransform->GetWorldPosition();
+            test.Near = m_Camera->GetNear();
+            test.Far = m_Camera->GetFar();
+            test.cameraPos = glm::vec4(m_CameraTransform->GetWorldPosition(), 1.0f);
+            test.cameraForward = glm::vec4(m_CameraTransform->GetForwardDirection(), 1.0f);
+
             test.maxDistance = m_MaxDistance;
 
-            auto invViewProj = proj * m_CameraTransform->GetWorldMatrix().Inverse();
+            auto invViewProj = proj * view;
             m_DescriptorSet[0]->SetUniform("UniformBufferObject", "u_MVP", &invViewProj);
+            m_DescriptorSet[0]->SetUniform("UniformBufferObject", "view", &view);
+            m_DescriptorSet[0]->SetUniform("UniformBufferObject", "proj", &proj);
+
             m_DescriptorSet[0]->SetUniformBufferData("UniformBuffer", &test);
             m_DescriptorSet[0]->Update();
         }
@@ -148,7 +150,7 @@ namespace Lumos
         void GridRenderer::OnImGui()
         {
             LUMOS_PROFILE_FUNCTION();
-            ImGui::TextUnformatted("Grid Renderer");
+            /*ImGui::TextUnformatted("Grid Renderer");
 
             if(ImGui::TreeNode("Parameters"))
             {
@@ -157,7 +159,7 @@ namespace Lumos
                 ImGui::DragFloat("Max Distance", &m_MaxDistance, 1.0f, 1.0f, 10000.0f);
 
                 ImGui::TreePop();
-            }
+            }*/
         }
 
         void GridRenderer::OnResize(uint32_t width, uint32_t height)
@@ -176,7 +178,7 @@ namespace Lumos
             pipelineDesc.shader = m_Shader;
 
             pipelineDesc.polygonMode = Graphics::PolygonMode::FILL;
-            pipelineDesc.cullMode = Graphics::CullMode::NONE;
+            pipelineDesc.cullMode = Graphics::CullMode::BACK;
             pipelineDesc.transparencyEnabled = true;
             pipelineDesc.blendMode = BlendMode::SrcAlphaOneMinusSrcAlpha;
 

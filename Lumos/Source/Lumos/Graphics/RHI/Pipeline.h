@@ -26,7 +26,7 @@ namespace Lumos
 
             Texture* depthTarget = nullptr;
             Texture* depthArrayTarget = nullptr;
-            Maths::Vector4 clearColour = Maths::Vector4(0.2f);
+            glm::vec4 clearColour = glm::vec4(0.2f);
         };
 
         class LUMOS_EXPORT Pipeline

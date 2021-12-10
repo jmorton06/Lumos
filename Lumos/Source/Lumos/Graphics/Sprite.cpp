@@ -11,7 +11,7 @@ namespace Lumos
 {
     namespace Graphics
     {
-        Sprite::Sprite(const Maths::Vector2& position, const Maths::Vector2& scale, const Maths::Vector4& colour)
+        Sprite::Sprite(const glm::vec2& position, const glm::vec2& scale, const glm::vec4& colour)
         {
             m_Position = position;
             m_Scale = scale;
@@ -20,7 +20,7 @@ namespace Lumos
             m_Texture = nullptr;
         }
 
-        Sprite::Sprite(const SharedPtr<Texture2D>& texture, const Maths::Vector2& position, const Maths::Vector2& scale, const Maths::Vector4& colour)
+        Sprite::Sprite(const SharedPtr<Texture2D>& texture, const glm::vec2& position, const glm::vec2& scale, const glm::vec4& colour)
         {
             m_Texture = texture;
             m_Position = position;
@@ -33,11 +33,11 @@ namespace Lumos
         {
         }
 
-        void Sprite::SetSpriteSheet(const SharedPtr<Texture2D>& texture, const Maths::Vector2& index, const Maths::Vector2& cellSize, const Maths::Vector2& spriteSize)
+        void Sprite::SetSpriteSheet(const SharedPtr<Texture2D>& texture, const glm::vec2& index, const glm::vec2& cellSize, const glm::vec2& spriteSize)
         {
             m_Texture = texture;
-            Maths::Vector2 min = { (index.x * cellSize.x) / texture->GetWidth(), (index.y * cellSize.y) / texture->GetHeight() };
-            Maths::Vector2 max = { ((index.x + spriteSize.x) * cellSize.x) / texture->GetWidth(), ((index.y + spriteSize.y) * cellSize.y) / texture->GetHeight() };
+            glm::vec2 min = { (index.x * cellSize.x) / texture->GetWidth(), (index.y * cellSize.y) / texture->GetHeight() };
+            glm::vec2 max = { ((index.x + spriteSize.x) * cellSize.x) / texture->GetWidth(), ((index.y + spriteSize.y) * cellSize.y) / texture->GetHeight() };
 
             m_UVs = GetUVs(min, max);
         }

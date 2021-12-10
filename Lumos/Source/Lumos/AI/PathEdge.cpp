@@ -33,7 +33,7 @@ namespace Lumos
 
     float PathEdge::StaticCost() const
     {
-        return (m_NodeA->GetWorldSpaceTransform().Translation() - m_NodeB->GetWorldSpaceTransform().Translation()).Length();
+        return (m_NodeA->GetWorldSpaceTransform()[3] - m_NodeB->GetWorldSpaceTransform()[3]).length();
     }
 
     void PathEdge::SetTraversable(bool traversable)

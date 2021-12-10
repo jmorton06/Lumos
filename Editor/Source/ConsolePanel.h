@@ -3,7 +3,6 @@
 #include "EditorPanel.h"
 
 #include <imgui/imgui.h>
-#include <Lumos/Maths/Colour.h>
 #include <Lumos/Core/Reference.h>
 
 namespace Lumos
@@ -32,7 +31,7 @@ namespace Lumos
 
             static const char* GetLevelName(Level level);
             static const char* GetLevelIcon(Level level);
-            static Maths::Colour GetRenderColour(Level level);
+            static glm::vec4 GetRenderColour(Level level);
 
         public:
             const std::string m_Message;

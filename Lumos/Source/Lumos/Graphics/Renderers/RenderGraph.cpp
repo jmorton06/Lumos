@@ -17,8 +17,9 @@
 #include "Embedded/BRDFTexture.inl"
 #include "Embedded/CheckerBoardTextureArray.inl"
 
-#include "ImGui/ImGuiHelpers.h"
+#include "ImGui/ImGuiUtilities.h"
 #include <imgui/imgui.h>
+#include <glm/gtx/string_cast.hpp>
 
 static const uint32_t MaxPoints = 10000;
 static const uint32_t MaxPointVertices = MaxPoints * 4;
@@ -42,23 +43,23 @@ namespace Lumos::Graphics
 
         m_CubeMap = nullptr;
         m_DepthTexture = TextureDepth::Create(width, height);
-        m_ClearColour = Maths::Vector4(0.2f, 0.2f, 0.2f, 1.0f);
+        m_ClearColour = glm::vec4(0.2f, 0.2f, 0.2f, 1.0f);
         m_MainTexture = Texture2D::Create();
         m_MainTexture->BuildTexture(Graphics::TextureFormat::RGBA16, width, height, false, false, false);
 
         //Setup shadow pass data
-        m_ShadowData.m_ShadowTex = (nullptr);
-        m_ShadowData.m_ShadowMapNum = (4);
-        m_ShadowData.m_ShadowMapSize = (2048);
-        m_ShadowData.m_ShadowMapsInvalidated = (true);
-        m_ShadowData.m_CascadeSplitLambda = (0.92f);
-        m_ShadowData.m_SceneRadiusMultiplier = (1.4f);
+        m_ShadowData.m_ShadowTex = nullptr;
+        m_ShadowData.m_ShadowMapNum = 4;
+        m_ShadowData.m_ShadowMapSize = 2048;
+        m_ShadowData.m_ShadowMapsInvalidated = true;
+        m_ShadowData.m_CascadeSplitLambda = 0.92f;
+        m_ShadowData.m_SceneRadiusMultiplier = 1.4f;
         m_ShadowData.m_Shader = Application::Get().GetShaderLibrary()->GetResource("Shadow");
 
         m_ShadowData.m_ShadowTex = TextureDepthArray::Create(m_ShadowData.m_ShadowMapSize, m_ShadowData.m_ShadowMapSize, m_ShadowData.m_ShadowMapNum);
 
         m_ShadowData.m_LightSize = 1.5f;
-        m_ShadowData.m_MaxShadowDistance = 400.0f;
+        m_ShadowData.m_MaxShadowDistance = 500.0f;
         m_ShadowData.m_ShadowFade = 40.0f;
         m_ShadowData.m_CascadeTransitionFade = 3.0f;
         m_ShadowData.m_InitialBias = 0.0023f;
@@ -78,27 +79,31 @@ namespace Lumos::Graphics
         //Setup forward pass data
         m_ForwardData.m_DepthTest = true;
         m_ForwardData.m_Shader = Application::Get().GetShaderLibrary()->GetResource("ForwardPBR");
-        ;
 
         m_ForwardData.m_CommandQueue.reserve(1000);
 
         switch(Graphics::GraphicsContext::GetRenderAPI())
         {
+            //TODO: Check
 #ifdef LUMOS_RENDER_API_OPENGL
         case Graphics::RenderAPI::OPENGL:
-            m_ForwardData.m_BiasMatrix = Maths::Matrix4(0.5f, 0.0f, 0.0f, 0.5f, 0.0f, 0.5f, 0.0f, 0.5f, 0.0f, 0.0f, 0.5f, 0.5f, 0.0f, 0.0f, 0.0f, 1.0f);
+            m_ForwardData.m_BiasMatrix = glm::mat4(0.5f, 0.0f, 0.0f, 0.5f, 0.0f, 0.5f, 0.0f, 0.5f, 0.0f, 0.0f, 0.5f, 0.5f, 0.0f, 0.0f, 0.0f, 1.0f);
             break;
 #endif
 
 #ifdef LUMOS_RENDER_API_VULKAN
         case Graphics::RenderAPI::VULKAN:
-            m_ForwardData.m_BiasMatrix = Maths::Matrix4(0.5f, 0.0f, 0.0f, 0.5f, 0.0f, 0.5f, 0.0f, 0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f);
-            break;
+            m_ForwardData.m_BiasMatrix = glm::mat4( 
+                    0.5, 0.0, 0.0, 0.0,
+                    0.0, 0.5, 0.0, 0.0,
+                    0.0, 0.0, 1.0, 0.0,
+                    0.5, 0.5, 0.0, 1.0
+                );
 #endif
 
 #ifdef LUMOS_RENDER_API_DIRECT3D
         case Graphics::RenderAPI::DIRECT3D:
-            m_ForwardData.m_BiasMatrix = Maths::Matrix4(0.5f, 0.0f, 0.0f, 0.5f, 0.0f, 0.5f, 0.0f, 0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f);
+            m_ForwardData.m_BiasMatrix = glm::mat4(0.5f, 0.0f, 0.0f, 0.5f, 0.0f, 0.5f, 0.0f, 0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f);
             break;
 #endif
         default:
@@ -124,22 +129,22 @@ namespace Lumos::Graphics
         m_ForwardData.m_DefaultMaterial = new Material(m_ForwardData.m_Shader);
 
         Graphics::MaterialProperties properties;
-        properties.albedoColour = Maths::Vector4(1.0f);
-        properties.roughnessColour = Maths::Vector4(0.5f);
-        properties.metallicColour = Maths::Vector4(0.5f);
+        properties.albedoColour = glm::vec4(1.0f);
+        properties.roughnessColour = glm::vec4(0.5f);
+        properties.metallicColour = glm::vec4(0.5f);
         properties.usingAlbedoMap = 0.0f;
         properties.usingRoughnessMap = 0.0f;
         properties.usingNormalMap = 0.0f;
         properties.usingMetallicMap = 0.0f;
 
         m_ForwardData.m_DefaultMaterial->SetMaterialProperites(properties);
-        m_ForwardData.m_DefaultMaterial->CreateDescriptorSet(1);
+        //m_ForwardData.m_DefaultMaterial->CreateDescriptorSet(1);
 
         m_ForwardData.m_CurrentDescriptorSets.resize(3);
 
         //Set up skybox pass data
         m_SkyboxShader = Application::Get().GetShaderLibrary()->GetResource("Skybox");
-        m_ScreenQuad = Graphics::CreateScreenQuad();
+        m_ScreenQuad = Graphics::CreateQuad();
 
         descriptorDesc.layoutIndex = 0;
         descriptorDesc.shader = m_SkyboxShader.get();
@@ -168,7 +173,7 @@ namespace Lumos::Graphics
 
         m_Renderer2DData.m_Shader = Application::Get().GetShaderLibrary()->GetResource("Batch2D");
 
-        m_Renderer2DData.m_TransformationStack.emplace_back(Maths::Matrix4());
+        m_Renderer2DData.m_TransformationStack.emplace_back(glm::mat4(1.0f));
         m_Renderer2DData.m_TransformationBack = &m_Renderer2DData.m_TransformationStack.back();
 
         descriptorDesc.layoutIndex = 0;
@@ -419,8 +424,9 @@ namespace Lumos::Graphics
             return;
         }
 
-        auto view = m_CameraTransform->GetWorldMatrix().Inverse();
-        auto projView = m_Camera->GetProjectionMatrix() * view;
+        auto view = glm::inverse(m_CameraTransform->GetWorldMatrix());
+        auto proj = m_Camera->GetProjectionMatrix();
+        auto projView = proj * view;
 
         Scene::SceneRenderSettings& renderSettings = scene->GetSettings().RenderSettings;
 
@@ -471,7 +477,7 @@ namespace Lumos::Graphics
                 }
             }
 
-            auto invViewProj = Maths::Matrix4::Inverse(m_Camera->GetProjectionMatrix() * m_CameraTransform->GetWorldMatrix().Inverse());
+            auto invViewProj = glm::inverse(projView);
             m_SkyboxDescriptorSet->SetUniform("UniformBufferObject", "invprojview", &invViewProj);
         }
 
@@ -489,19 +495,20 @@ namespace Lumos::Graphics
                 for(auto& lightEntity : group)
                 {
                     const auto& [light, trans] = group.get<Graphics::Light, Maths::Transform>(lightEntity);
-                    light.Position = trans.GetWorldPosition();
-                    Maths::Vector3 forward = Maths::Vector3::FORWARD;
+                    light.Position = glm::vec4(trans.GetWorldPosition(), 1.0f);
+                    glm::vec3 forward = glm::vec3(0.0f, 0.0f, 1.0f);
                     forward = trans.GetWorldOrientation() * forward;
-                    light.Direction = forward.Normalised();
+                    forward = glm::normalize(forward);
+                    light.Direction = glm::vec4(forward, 1.0f);
 
                     if(light.Type == (float)Graphics::LightType::DirectionalLight)
                         directionaLight = &light;
 
                     if(light.Type != float(LightType::DirectionalLight))
                     {
-                        auto inside = m_ForwardData.m_Frustum.IsInsideFast(Maths::Sphere(light.Position.ToVector3(), light.Radius));
-
-                        if(inside == Maths::Intersection::OUTSIDE)
+                        auto inside = m_ForwardData.m_Frustum.IsInside(BoundingSphere(glm::vec3(light.Position), light.Radius));
+                     
+                        if(inside == Intersection::OUTSIDE)
                             continue;
                     }
 
@@ -512,7 +519,7 @@ namespace Lumos::Graphics
 
             m_ForwardData.m_DescriptorSet[2]->SetUniform("UniformBufferLight", "lights", lights, sizeof(Graphics::Light) * numLights);
 
-            Maths::Vector4 cameraPos = Maths::Vector4(m_CameraTransform->GetWorldPosition());
+            glm::vec4 cameraPos = glm::vec4(m_CameraTransform->GetWorldPosition(), 1.0f);
             m_ForwardData.m_DescriptorSet[2]->SetUniform("UniformBufferLight", "cameraPosition", &cameraPos);
         }
 
@@ -538,9 +545,9 @@ namespace Lumos::Graphics
 
         auto& shadowData = Application::Get().GetRenderGraph()->GetShadowData();
 
-        Maths::Matrix4* shadowTransforms = shadowData.m_ShadowProjView;
-        Lumos::Maths::Vector4* uSplitDepth = shadowData.m_SplitDepth;
-        Maths::Matrix4 lightView = shadowData.m_LightMatrix;
+        glm::mat4* shadowTransforms = shadowData.m_ShadowProjView;
+        glm::vec4* uSplitDepth = shadowData.m_SplitDepth;
+        glm::mat4 lightView = shadowData.m_LightMatrix;
         float bias = shadowData.m_InitialBias;
 
         float maxShadowDistance = shadowData.m_MaxShadowDistance;
@@ -602,9 +609,9 @@ namespace Lumos::Graphics
                         {
                             for(uint32_t i = 0; i < m_ShadowData.m_ShadowMapNum; i++)
                             {
-                                auto inside = m_ShadowData.m_CascadeFrustums[i].IsInsideFast(bbCopy);
+                                auto inside = m_ShadowData.m_CascadeFrustums[i].IsInside(bbCopy);
 
-                                if(inside == Maths::Intersection::OUTSIDE)
+                                if(!inside)
                                     continue;
 
                                 RenderCommand command;
@@ -616,10 +623,11 @@ namespace Lumos::Graphics
 
                         {
 
-                            auto inside = m_ForwardData.m_Frustum.IsInsideFast(bbCopy);
+                            auto inside = m_ForwardData.m_Frustum.IsInside(bbCopy);
 
-                            if(inside == Maths::Intersection::OUTSIDE)
+                            if(!inside)
                                 continue;
+
                             RenderCommand command;
                             command.mesh = mesh;
                             command.transform = worldTransform;
@@ -657,11 +665,11 @@ namespace Lumos::Graphics
             {
                 const auto& [sprite, trans] = spriteGroup.get<Graphics::Sprite, Maths::Transform>(entity);
 
-                auto bb = Maths::BoundingBox(Maths::Rect(sprite.GetPosition(), sprite.GetPosition() + sprite.GetScale()));
+                auto bb = BoundingBox(Rect(sprite.GetPosition(), sprite.GetScale()));
                 bb.Transform(trans.GetWorldMatrix());
                 auto inside = m_ForwardData.m_Frustum.IsInside(bb);
-
-                if(inside == Maths::Intersection::OUTSIDE)
+                
+                if(!inside)
                     continue;
 
                 RenderCommand2D command;
@@ -675,11 +683,11 @@ namespace Lumos::Graphics
             {
                 const auto& [sprite, trans] = animSpriteGroup.get<Graphics::AnimatedSprite, Maths::Transform>(entity);
 
-                auto bb = Maths::BoundingBox(Maths::Rect(sprite.GetPosition(), sprite.GetPosition() + sprite.GetScale()));
+                auto bb = BoundingBox(Rect(sprite.GetPosition(), sprite.GetScale()));
                 bb.Transform(trans.GetWorldMatrix());
                 auto inside = m_ForwardData.m_Frustum.IsInside(bb);
 
-                if(inside == Maths::Intersection::OUTSIDE)
+                if(!inside)
                     continue;
 
                 RenderCommand2D command;
@@ -694,7 +702,7 @@ namespace Lumos::Graphics
                 std::sort(m_ForwardData.m_CommandQueue.begin(), m_ForwardData.m_CommandQueue.end(),
                     [camTransform](RenderCommand& a, RenderCommand& b)
                     {
-                        return (camTransform->GetWorldPosition() - a.transform.Translation()).Length() < (camTransform->GetWorldPosition() - b.transform.Translation()).Length();
+                        return glm::length(camTransform->GetWorldPosition() - glm::vec3(a.transform[3])) < glm::length(camTransform->GetWorldPosition() - glm::vec3(b.transform[3]));
                     });
             }
 
@@ -703,7 +711,7 @@ namespace Lumos::Graphics
                 std::sort(m_Renderer2DData.m_CommandQueue2D.begin(), m_Renderer2DData.m_CommandQueue2D.end(),
                     [](RenderCommand2D& a, RenderCommand2D& b)
                     {
-                        return a.transform.Translation().z < b.transform.Translation().z;
+                        return a.transform[3].z < b.transform[3].z;
                     });
             }
         }
@@ -877,10 +885,10 @@ namespace Lumos::Graphics
         ImGui::TextUnformatted("2D renderer");
         ImGui::Columns(2);
         ;
-        ImGuiHelpers::Property("Number of draw calls", (int&)m_Renderer2DData.m_BatchDrawCallIndex, ImGuiHelpers::PropertyFlag::ReadOnly);
-        ImGuiHelpers::Property("Max textures Per draw call", (int&)m_Renderer2DData.m_Limits.MaxTextures, 1, 16);
-        ImGuiHelpers::Property("ToneMap Index", m_ToneMapIndex);
-        ImGuiHelpers::Property("Exposure", m_Exposure);
+        ImGuiUtilities::Property("Number of draw calls", (int&)m_Renderer2DData.m_BatchDrawCallIndex, ImGuiUtilities::PropertyFlag::ReadOnly);
+        ImGuiUtilities::Property("Max textures Per draw call", (int&)m_Renderer2DData.m_Limits.MaxTextures, 1, 16);
+        ImGuiUtilities::Property("ToneMap Index", m_ToneMapIndex);
+        ImGuiUtilities::Property("Exposure", m_Exposure);
 
         ImGui::Columns(1);
         ImGui::Separator();
@@ -932,106 +940,91 @@ namespace Lumos::Graphics
 
         cascadeSplits[3] = 0.35f;
 
-#ifdef THREAD_CASCADE_GEN
-        System::JobSystem::Context ctx;
-        System::JobSystem::Dispatch(ctx, static_cast<uint32_t>(m_ShadowMapNum), 1, [&](JobDispatchArgs args)
-#else
         for(uint32_t i = 0; i < m_ShadowData.m_ShadowMapNum; i++)
-#endif
+        {
+            LUMOS_PROFILE_SCOPE("Create Cascade");
+            float splitDist = cascadeSplits[i];
+            float lastSplitDist = i == 0 ? 0.0f : cascadeSplits[i - 1];
+
+            glm::vec3 frustumCorners[8] = {
+                glm::vec3(-1.0f, 1.0f, -1.0f),
+                glm::vec3(1.0f, 1.0f, -1.0f),
+                glm::vec3(1.0f, -1.0f, -1.0f),
+                glm::vec3(-1.0f, -1.0f, -1.0f),
+                glm::vec3(-1.0f, 1.0f, 1.0f),
+                glm::vec3(1.0f, 1.0f, 1.0f),
+                glm::vec3(1.0f, -1.0f, 1.0f),
+                glm::vec3(-1.0f, -1.0f, 1.0f),
+            };
+
+            const glm::mat4 invCam = glm::inverse(m_Camera->GetProjectionMatrix() * glm::inverse(m_CameraTransform->GetWorldMatrix()));
+
+            // Project frustum corners into world space
+            for(uint32_t j = 0; j < 8; j++)
             {
-#ifdef THREAD_CASCADE_GEN
-                int i = args.jobIndex;
-#endif
-                LUMOS_PROFILE_SCOPE("Create Cascade");
-                float splitDist = cascadeSplits[i];
-                float lastSplitDist = i == 0 ? 0.0f : cascadeSplits[i - 1];
-
-                Maths::Vector3 frustumCorners[8] = {
-                    Maths::Vector3(-1.0f, 1.0f, -1.0f),
-                    Maths::Vector3(1.0f, 1.0f, -1.0f),
-                    Maths::Vector3(1.0f, -1.0f, -1.0f),
-                    Maths::Vector3(-1.0f, -1.0f, -1.0f),
-                    Maths::Vector3(-1.0f, 1.0f, 1.0f),
-                    Maths::Vector3(1.0f, 1.0f, 1.0f),
-                    Maths::Vector3(1.0f, -1.0f, 1.0f),
-                    Maths::Vector3(-1.0f, -1.0f, 1.0f),
-                };
-
-                const Maths::Matrix4 invCam = Maths::Matrix4::Inverse(m_Camera->GetProjectionMatrix() * m_CameraTransform->GetWorldMatrix().Inverse());
-
-                // Project frustum corners into world space
-                for(uint32_t j = 0; j < 8; j++)
-                {
-                    Maths::Vector4 invCorner = invCam * Maths::Vector4(frustumCorners[j], 1.0f);
-                    frustumCorners[j] = (invCorner / invCorner.w).ToVector3();
-                }
-
-                for(uint32_t j = 0; j < 4; j++)
-                {
-                    Maths::Vector3 dist = frustumCorners[j + 4] - frustumCorners[j];
-                    frustumCorners[j + 4] = frustumCorners[j] + (dist * splitDist);
-                    frustumCorners[j] = frustumCorners[j] + (dist * lastSplitDist);
-                }
-
-                // Get frustum center
-                Maths::Vector3 frustumCenter = Maths::Vector3(0.0f);
-                for(uint32_t j = 0; j < 8; j++)
-                {
-                    frustumCenter += frustumCorners[j];
-                }
-                frustumCenter /= 8.0f;
-
-                float radius = 0.0f;
-                for(uint32_t j = 0; j < 8; j++)
-                {
-                    float distance = (frustumCorners[j] - frustumCenter).Length();
-                    radius = Maths::Max(radius, distance);
-                }
-                radius = std::ceil(radius * 16.0f) / 16.0f;
-                float sceneBoundingRadius = m_Camera->GetShadowBoundingRadius() * m_ShadowData.m_SceneRadiusMultiplier;
-                //Extend the Z depths to catch shadow casters outside view frustum
-                radius = Maths::Max(radius, sceneBoundingRadius);
-
-                Maths::Vector3 maxExtents = Maths::Vector3(radius);
-                Maths::Vector3 minExtents = -maxExtents;
-
-                Maths::Vector3 lightDir = -light->Direction.ToVector3();
-                lightDir.Normalise();
-                Maths::Matrix4 lightViewMatrix = Maths::Quaternion::LookAt(frustumCenter - lightDir * -minExtents.z, frustumCenter).RotationMatrix4();
-                lightViewMatrix.SetTranslation(frustumCenter);
-
-                Maths::Matrix4 lightOrthoMatrix = Maths::Matrix4::Orthographic(minExtents.x, maxExtents.x, minExtents.y, maxExtents.y, -(maxExtents.z - minExtents.z), maxExtents.z - minExtents.z);
-
-                auto shadowProj = lightOrthoMatrix * lightViewMatrix.Inverse();
-                const bool StabilizeCascades = true;
-                if(StabilizeCascades)
-                {
-                    // Create the rounding matrix, by projecting the world-space origin and determining
-                    // the fractional offset in texel space
-                    Maths::Matrix4 shadowMatrix = shadowProj;
-                    Maths::Vector3 shadowOrigin = Maths::Vector3(0.0f);
-                    shadowOrigin = (shadowMatrix * Maths::Vector4(shadowOrigin, 1.0f)).ToVector3();
-                    shadowOrigin *= (m_ShadowData.m_ShadowMapSize / 2.0f);
-
-                    Maths::Vector3 roundedOrigin = Maths::VectorRound(shadowOrigin);
-                    Maths::Vector3 roundOffset = roundedOrigin - shadowOrigin;
-                    roundOffset = roundOffset * (2.0f / m_ShadowData.m_ShadowMapSize);
-                    roundOffset.z = 0.0f;
-
-                    shadowProj.ElementRef(0, 3) += roundOffset.x;
-                    shadowProj.ElementRef(1, 3) += roundOffset.y;
-                }
-                // Store split distance and matrix in cascade
-                m_ShadowData.m_SplitDepth[i] = Maths::Vector4((m_Camera->GetNear() + splitDist * clipRange) * -1.0f);
-                m_ShadowData.m_ShadowProjView[i] = shadowProj;
-
-                if(i == 0)
-                    m_ShadowData.m_LightMatrix = lightViewMatrix.Inverse();
+                glm::vec4 invCorner = invCam * glm::vec4(frustumCorners[j], 1.0f);
+                frustumCorners[j] = (invCorner / invCorner.w);
             }
-#ifdef THREAD_CASCADE_GEN
-        );
-        System::JobSystem::Wait(ctx);
-#endif
+
+            for(uint32_t j = 0; j < 4; j++)
+            {
+                glm::vec3 dist = frustumCorners[j + 4] - frustumCorners[j];
+                frustumCorners[j + 4] = frustumCorners[j] + (dist * splitDist);
+                frustumCorners[j] = frustumCorners[j] + (dist * lastSplitDist);
+            }
+            
+            // Get frustum center
+            glm::vec3 frustumCenter = glm::vec3(0.0f);
+            for(uint32_t j = 0; j < 8; j++)
+            {
+                frustumCenter += frustumCorners[j];
+            }
+            frustumCenter /= 8.0f;
+            
+            float radius = 0.0f;
+            for(uint32_t j = 0; j < 8; j++)
+            {
+                float distance = glm::length(frustumCorners[j] - frustumCenter);
+                radius = Maths::Max(radius, distance);
+            }
+            radius = std::ceil(radius * 16.0f) / 16.0f;
+            float sceneBoundingRadius = m_Camera->GetShadowBoundingRadius() * m_ShadowData.m_SceneRadiusMultiplier;
+            //Extend the Z depths to catch shadow casters outside view frustum
+            radius = Maths::Max(radius, sceneBoundingRadius);
+
+            glm::vec3 maxExtents = glm::vec3(radius);
+            glm::vec3 minExtents = -maxExtents;
+            
+            glm::vec3 lightDir = glm::normalize(-light->Direction);
+            glm::mat4 lightViewMatrix = glm::lookAt(frustumCenter - lightDir * -minExtents.z, frustumCenter, glm::vec3(0.0f, 1.0f, 0.0f));
+            glm::mat4 lightOrthoMatrix = glm::ortho(minExtents.x, maxExtents.x, minExtents.y, maxExtents.y, -(maxExtents.z - minExtents.z), maxExtents.z - minExtents.z);
+
+            auto shadowProj = lightOrthoMatrix * lightViewMatrix;
+            const bool StabilizeCascades = true;
+            if(StabilizeCascades)
+            {
+                // Create the rounding matrix, by projecting the world-space origin and determining
+                // the fractional offset in texel space
+                glm::mat4 shadowMatrix = shadowProj;
+                glm::vec3 shadowOrigin = glm::vec3(0.0f);
+                shadowOrigin = (shadowMatrix * glm::vec4(shadowOrigin, 1.0f));
+                shadowOrigin *= (m_ShadowData.m_ShadowMapSize / 2.0f);
+
+                glm::vec3 roundedOrigin = glm::round(shadowOrigin);
+                glm::vec3 roundOffset = roundedOrigin - shadowOrigin;
+                roundOffset = roundOffset * (2.0f / m_ShadowData.m_ShadowMapSize);
+                roundOffset.z = 0.0f;
+
+                shadowProj[3][0] += roundOffset.x;
+                shadowProj[3][1] += roundOffset.y;
+            }
+            // Store split distance and matrix in cascade
+            m_ShadowData.m_SplitDepth[i] = glm::vec4((m_Camera->GetNear() + splitDist * clipRange) * -1.0f);
+            m_ShadowData.m_ShadowProjView[i] = shadowProj;
+
+            if(i == 0)
+                m_ShadowData.m_LightMatrix = glm::inverse(lightViewMatrix);
+        }
     }
 
     void RenderGraph::ShadowPass()
@@ -1056,7 +1049,7 @@ namespace Lumos::Graphics
 
         for(uint32_t i = 0; i < m_ShadowData.m_ShadowMapNum; ++i)
         {
-			GPUProfile("Shadow Layer Pass");
+            GPUProfile("Shadow Layer Pass");
 
             m_ShadowData.m_Layer = i;
 
@@ -1073,8 +1066,8 @@ namespace Lumos::Graphics
                 uint32_t layer = static_cast<uint32_t>(m_ShadowData.m_Layer);
                 auto trans = command.transform;
                 auto& pushConstants = m_ShadowData.m_Shader->GetPushConstants();
-                memcpy(pushConstants[0].data, &trans, sizeof(Maths::Matrix4));
-                memcpy(pushConstants[0].data + sizeof(Maths::Matrix4), &layer, sizeof(uint32_t));
+                memcpy(pushConstants[0].data, &trans, sizeof(glm::mat4));
+                memcpy(pushConstants[0].data + sizeof(glm::mat4), &layer, sizeof(uint32_t));
 
                 m_ShadowData.m_Shader->BindPushConstants(commandBuffer, pipeline.get());
 
@@ -1096,6 +1089,8 @@ namespace Lumos::Graphics
 
         for(auto& command : m_ForwardData.m_CommandQueue)
         {
+			Engine::Get().Statistics().NumRenderedObjects++;
+			
             Mesh* mesh = command.mesh;
             auto& worldTransform = command.transform;
 
@@ -1125,7 +1120,7 @@ namespace Lumos::Graphics
     void RenderGraph::SkyboxPass()
     {
         LUMOS_PROFILE_FUNCTION();
-		GPUProfile("SkyBox Pass");
+        GPUProfile("SkyBox Pass");
 
         if(!m_CubeMap)
             return;
@@ -1160,7 +1155,7 @@ namespace Lumos::Graphics
     void RenderGraph::FinalPass()
     {
         LUMOS_PROFILE_FUNCTION();
-		GPUProfile("Final Pass");
+        GPUProfile("Final Pass");
 
         m_FinalPassDescriptorSet->SetUniform("UniformBuffer", "Exposure", &m_Exposure);
         m_FinalPassDescriptorSet->SetUniform("UniformBuffer", "ToneMapIndex", &m_ToneMapIndex);
@@ -1194,7 +1189,7 @@ namespace Lumos::Graphics
     void RenderGraph::BloomPass()
     {
         LUMOS_PROFILE_FUNCTION();
-		GPUProfile("Bloom Pass");
+        GPUProfile("Bloom Pass");
 
         m_BloomPassDescriptorSet->SetUniform("UniformBuffer", "Exposure", &m_Exposure);
         m_BloomPassDescriptorSet->SetUniform("UniformBuffer", "ToneMapIndex", &m_ToneMapIndex);
@@ -1286,7 +1281,7 @@ namespace Lumos::Graphics
         m_Renderer2DData.m_VertexBuffers[currentFrame][m_Renderer2DData.m_BatchDrawCallIndex]->Bind(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer(), m_Renderer2DData.m_Pipeline.get());
         m_Renderer2DData.m_Buffer = m_Renderer2DData.m_VertexBuffers[currentFrame][m_Renderer2DData.m_BatchDrawCallIndex]->GetPointer<VertexData>();
 
-        auto projView = m_Camera->GetProjectionMatrix() * m_CameraTransform->GetWorldMatrix().Inverse();
+        auto projView = m_Camera->GetProjectionMatrix() * glm::inverse(m_CameraTransform->GetWorldMatrix());
         m_Renderer2DData.m_DescriptorSet[0][0]->SetUniform("UniformBufferObject", "projView", &projView);
         m_Renderer2DData.m_DescriptorSet[0][0]->Update();
 
@@ -1300,10 +1295,10 @@ namespace Lumos::Graphics
             auto& renderable = command.renderable;
             auto& transform = command.transform;
 
-            const Maths::Vector2 min = renderable->GetPosition();
-            const Maths::Vector2 max = renderable->GetPosition() + renderable->GetScale();
+            const glm::vec2 min = renderable->GetPosition();
+            const glm::vec2 max = renderable->GetPosition() + renderable->GetScale();
 
-            const Maths::Vector4 colour = renderable->GetColour();
+            const glm::vec4 colour = renderable->GetColour();
             const auto& uv = renderable->GetUVs();
             Texture* texture = renderable->GetTexture();
 
@@ -1311,31 +1306,31 @@ namespace Lumos::Graphics
             if(texture)
                 textureSlot = SubmitTexture(texture);
 
-            Maths::Vector3 vertex = transform * Maths::Vector3(min.x, min.y, 0.0f);
+            glm::vec3 vertex = transform * glm::vec4(min.x, min.y, 0.0f, 1.0f);
             m_Renderer2DData.m_Buffer->vertex = vertex;
             m_Renderer2DData.m_Buffer->uv = uv[0];
-            m_Renderer2DData.m_Buffer->tid = Maths::Vector2(textureSlot, 0.0f);
+            m_Renderer2DData.m_Buffer->tid = glm::vec2(textureSlot, 0.0f);
             m_Renderer2DData.m_Buffer->colour = colour;
             m_Renderer2DData.m_Buffer++;
 
-            vertex = transform * Maths::Vector3(max.x, min.y, 0.0f);
+            vertex = transform * glm::vec4(max.x, min.y, 0.0f, 1.0f);
             m_Renderer2DData.m_Buffer->vertex = vertex;
             m_Renderer2DData.m_Buffer->uv = uv[1];
-            m_Renderer2DData.m_Buffer->tid = Maths::Vector2(textureSlot, 0.0f);
+            m_Renderer2DData.m_Buffer->tid = glm::vec2(textureSlot, 0.0f);
             m_Renderer2DData.m_Buffer->colour = colour;
             m_Renderer2DData.m_Buffer++;
 
-            vertex = transform * Maths::Vector3(max.x, max.y, 0.0f);
+            vertex = transform * glm::vec4(max.x, max.y, 0.0f, 1.0f);
             m_Renderer2DData.m_Buffer->vertex = vertex;
             m_Renderer2DData.m_Buffer->uv = uv[2];
-            m_Renderer2DData.m_Buffer->tid = Maths::Vector2(textureSlot, 0.0f);
+            m_Renderer2DData.m_Buffer->tid = glm::vec2(textureSlot, 0.0f);
             m_Renderer2DData.m_Buffer->colour = colour;
             m_Renderer2DData.m_Buffer++;
 
-            vertex = transform * Maths::Vector3(min.x, max.y, 0.0f);
+            vertex = transform * glm::vec4(min.x, max.y, 0.0f, 1.0f);
             m_Renderer2DData.m_Buffer->vertex = vertex;
             m_Renderer2DData.m_Buffer->uv = uv[3];
-            m_Renderer2DData.m_Buffer->tid = Maths::Vector2(textureSlot, 0.0f);
+            m_Renderer2DData.m_Buffer->tid = glm::vec2(textureSlot, 0.0f);
             m_Renderer2DData.m_Buffer->colour = colour;
             m_Renderer2DData.m_Buffer++;
 
@@ -1415,7 +1410,7 @@ namespace Lumos::Graphics
         const auto& triangles = DebugRenderer::GetInstance()->GetTriangles();
         const auto& points = DebugRenderer::GetInstance()->GetPoints();
 
-        auto projView = m_Camera->GetProjectionMatrix() * m_CameraTransform->GetWorldMatrix().Inverse();
+        auto projView = m_Camera->GetProjectionMatrix() * glm::inverse(m_CameraTransform->GetWorldMatrix());
 
         if(!lines.empty())
         {
@@ -1500,28 +1495,28 @@ namespace Lumos::Graphics
 
             for(auto& pointInfo : points)
             {
-                Maths::Vector3 right = pointInfo.size * m_CameraTransform->GetRightDirection();
-                Maths::Vector3 up = pointInfo.size * m_CameraTransform->GetUpDirection();
+                glm::vec3 right = pointInfo.size * m_CameraTransform->GetRightDirection();
+                glm::vec3 up = pointInfo.size * m_CameraTransform->GetUpDirection();
 
-                m_DebugDrawData.m_PointBuffer->vertex = pointInfo.p1 - right - up; // + Maths::Vector3(-pointInfo.size, -pointInfo.size, 0.0f));
+                m_DebugDrawData.m_PointBuffer->vertex = pointInfo.p1 - right - up; // + glm::vec3(-pointInfo.size, -pointInfo.size, 0.0f));
                 m_DebugDrawData.m_PointBuffer->colour = pointInfo.col;
                 m_DebugDrawData.m_PointBuffer->size = { pointInfo.size, 0.0f };
                 m_DebugDrawData.m_PointBuffer->uv = { -1.0f, -1.0f };
                 m_DebugDrawData.m_PointBuffer++;
 
-                m_DebugDrawData.m_PointBuffer->vertex = pointInfo.p1 + right - up; //(pointInfo.p1 + Maths::Vector3(pointInfo.size, -pointInfo.size, 0.0f));
+                m_DebugDrawData.m_PointBuffer->vertex = pointInfo.p1 + right - up; //(pointInfo.p1 + glm::vec3(pointInfo.size, -pointInfo.size, 0.0f));
                 m_DebugDrawData.m_PointBuffer->colour = pointInfo.col;
                 m_DebugDrawData.m_PointBuffer->size = { pointInfo.size, 0.0f };
                 m_DebugDrawData.m_PointBuffer->uv = { 1.0f, -1.0f };
                 m_DebugDrawData.m_PointBuffer++;
 
-                m_DebugDrawData.m_PointBuffer->vertex = pointInfo.p1 + right + up; //(pointInfo.p1 + Maths::Vector3(pointInfo.size, pointInfo.size, 0.0f));
+                m_DebugDrawData.m_PointBuffer->vertex = pointInfo.p1 + right + up; //(pointInfo.p1 + glm::vec3(pointInfo.size, pointInfo.size, 0.0f));
                 m_DebugDrawData.m_PointBuffer->colour = pointInfo.col;
                 m_DebugDrawData.m_PointBuffer->size = { pointInfo.size, 0.0f };
                 m_DebugDrawData.m_PointBuffer->uv = { 1.0f, 1.0f };
                 m_DebugDrawData.m_PointBuffer++;
 
-                m_DebugDrawData.m_PointBuffer->vertex = pointInfo.p1 - right + up; // (pointInfo.p1 + Maths::Vector3(-pointInfo.size, pointInfo.size, 0.0f));
+                m_DebugDrawData.m_PointBuffer->vertex = pointInfo.p1 - right + up; // (pointInfo.p1 + glm::vec3(-pointInfo.size, pointInfo.size, 0.0f));
                 m_DebugDrawData.m_PointBuffer->colour = pointInfo.col;
                 m_DebugDrawData.m_PointBuffer->size = { pointInfo.size, 0.0f };
                 m_DebugDrawData.m_PointBuffer->uv = { -1.0f, 1.0f };
@@ -1580,17 +1575,17 @@ namespace Lumos::Graphics
 
                 m_DebugDrawData.m_Renderer2DData.m_Buffer->vertex = triangleInfo.p1;
                 m_DebugDrawData.m_Renderer2DData.m_Buffer->uv = { 0.0f, 0.0f };
-                m_DebugDrawData.m_Renderer2DData.m_Buffer->tid = Maths::Vector2(textureSlot, 0.0f);
+                m_DebugDrawData.m_Renderer2DData.m_Buffer->tid = glm::vec2(textureSlot, 0.0f);
                 m_DebugDrawData.m_Renderer2DData.m_Buffer->colour = triangleInfo.col;
                 m_DebugDrawData.m_Renderer2DData.m_Buffer++;
                 m_DebugDrawData.m_Renderer2DData.m_Buffer->vertex = triangleInfo.p2;
                 m_DebugDrawData.m_Renderer2DData.m_Buffer->uv = { 0.0f, 0.0f };
-                m_DebugDrawData.m_Renderer2DData.m_Buffer->tid = Maths::Vector2(textureSlot, 0.0f);
+                m_DebugDrawData.m_Renderer2DData.m_Buffer->tid = glm::vec2(textureSlot, 0.0f);
                 m_DebugDrawData.m_Renderer2DData.m_Buffer->colour = triangleInfo.col;
                 m_DebugDrawData.m_Renderer2DData.m_Buffer++;
                 m_DebugDrawData.m_Renderer2DData.m_Buffer->vertex = triangleInfo.p3;
                 m_DebugDrawData.m_Renderer2DData.m_Buffer->uv = { 0.0f, 0.0f };
-                m_DebugDrawData.m_Renderer2DData.m_Buffer->tid = Maths::Vector2(textureSlot, 0.0f);
+                m_DebugDrawData.m_Renderer2DData.m_Buffer->tid = glm::vec2(textureSlot, 0.0f);
                 m_DebugDrawData.m_Renderer2DData.m_Buffer->colour = triangleInfo.col;
                 m_DebugDrawData.m_Renderer2DData.m_Buffer++;
                 m_DebugDrawData.m_Renderer2DData.m_IndexCount += 3;

@@ -24,10 +24,10 @@ namespace Lumos
         int zCoord = 0;
         uint32_t numVertices = width * height;
         uint32_t numIndices = (width - 1) * (height - 1) * 6;
-        Maths::Vector3* vertices = new Maths::Vector3[numVertices];
-        Maths::Vector2* texCoords = new Maths::Vector2[numVertices];
+        glm::vec3* vertices = new glm::vec3[numVertices];
+        glm::vec2* texCoords = new glm::vec2[numVertices];
         uint32_t* indices = new uint32_t[numIndices];
-        m_BoundingBox = CreateSharedPtr<Maths::BoundingBox>();
+        m_BoundingBox = CreateSharedPtr<BoundingBox>();
 
         for(int x = 0; x < width; ++x)
         {
@@ -38,12 +38,12 @@ namespace Lumos
                 float dataVal = Noise(x + (xCoord * width),
                     z + (zCoord * width));
 
-                vertices[offset] = Maths::Vector3(
+                vertices[offset] = glm::vec3(
                     (static_cast<float>(x) + (static_cast<float>(xCoord) * float(width))) * xRand,
                     (dataVal * dataVal * dataVal) * yRand,
                     (static_cast<float>(z) + (static_cast<float>(zCoord) * float(width))) * zRand);
 
-                texCoords[offset] = Maths::Vector2(x * texRandX, z * texRandZ);
+                texCoords[offset] = glm::vec2(x * texRandX, z * texRandZ);
             }
         }
 
@@ -71,15 +71,15 @@ namespace Lumos
             }
         }
 
-        Maths::Vector3* normals = GenerateNormals(numVertices, vertices, indices, indicesCount);
-        Maths::Vector3* tangents = GenerateTangents(numVertices, vertices, indices, indicesCount, texCoords);
+        glm::vec3* normals = GenerateNormals(numVertices, vertices, indices, indicesCount);
+        glm::vec3* tangents = GenerateTangents(numVertices, vertices, indices, indicesCount, texCoords);
 
         Graphics::Vertex* verts = new Graphics::Vertex[numVertices];
 
         for(uint32_t i = 0; i < numVertices; i++)
         {
             verts[i].Position = vertices[i];
-            verts[i].Colours = Maths::Vector4(0.0f);
+            verts[i].Colours = glm::vec4(0.0f);
             verts[i].Normal = normals[i];
             verts[i].TexCoords = texCoords[i];
             verts[i].Tangent = tangents[i];

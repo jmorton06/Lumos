@@ -3,7 +3,7 @@
 
 #include "GL.h"
 
-#include "Maths/Matrix4.h"
+#include <glm/mat4x4.hpp>
 
 #include <imgui/imgui.h>
 
@@ -13,7 +13,7 @@ namespace Lumos
     {
         GLContext::GLContext()
         {
-            Maths::Matrix4::SetUpCoordSystem(false, false);
+            //glm::mat4::SetUpCoordSystem(false, false);
         }
 
         GLContext::~GLContext() = default;

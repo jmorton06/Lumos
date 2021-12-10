@@ -5,7 +5,7 @@
 #include "Maths/Transform.h"
 #include "Graphics/RHI/Texture.h"
 #include "Maths/Maths.h"
-
+#include "Core/StringUtilities.h"
 #include "Core/Application.h"
 
 #define TINYOBJLOADER_IMPLEMENTATION
@@ -44,10 +44,11 @@ namespace Lumos
 
         std::vector<tinyobj::shape_t> shapes;
         std::vector<tinyobj::material_t> materials;
+		
+		 resolvedPath = StringUtilities::BackSlashesToSlashes(resolvedPath);
+		m_Directory = StringUtilities::GetFileLocation(resolvedPath);
 
-        m_Directory = resolvedPath.substr(0, resolvedPath.find_last_of('/'));
-
-        std::string name = m_Directory.substr(m_Directory.find_last_of('/') + 1);
+        std::string name = StringUtilities::GetFileName(resolvedPath);
 
         bool ok = tinyobj::LoadObj(
             &attrib, &shapes, &materials, &error, (resolvedPath).c_str(), (m_Directory + "/").c_str());
@@ -69,7 +70,7 @@ namespace Lumos
 
             std::unordered_map<Graphics::Vertex, uint32_t> uniqueVertices;
 
-            SharedPtr<Maths::BoundingBox> boundingBox = CreateSharedPtr<Maths::BoundingBox>();
+            SharedPtr<BoundingBox> boundingBox = CreateSharedPtr<BoundingBox>();
 
             for(uint32_t i = 0; i < shape.mesh.indices.size(); i++)
             {
@@ -78,15 +79,15 @@ namespace Lumos
 
                 if(!attrib.texcoords.empty())
                 {
-                    vertex.TexCoords = (Maths::Vector2(
+                    vertex.TexCoords = (glm::vec2(
                         attrib.texcoords[2 * index.texcoord_index + 0],
                         1.0f - attrib.texcoords[2 * index.texcoord_index + 1]));
                 }
                 else
                 {
-                    vertex.TexCoords = Maths::Vector2(0.0f, 0.0f);
+                    vertex.TexCoords = glm::vec2(0.0f, 0.0f);
                 }
-                vertex.Position = (Maths::Vector3(
+                vertex.Position = (glm::vec3(
                     attrib.vertices[3 * index.vertex_index + 0],
                     attrib.vertices[3 * index.vertex_index + 1],
                     attrib.vertices[3 * index.vertex_index + 2]));
@@ -95,18 +96,18 @@ namespace Lumos
 
                 if(!attrib.normals.empty())
                 {
-                    vertex.Normal = (Maths::Vector3(
+                    vertex.Normal = (glm::vec3(
                         attrib.normals[3 * index.normal_index + 0],
                         attrib.normals[3 * index.normal_index + 1],
                         attrib.normals[3 * index.normal_index + 2]));
                 }
 
-                Maths::Vector4 colour = Maths::Vector4(0.0f);
+                glm::vec4 colour = glm::vec4(0.0f);
 
                 if(shape.mesh.material_ids[0] >= 0)
                 {
                     tinyobj::material_t* mp = &materials[shape.mesh.material_ids[0]];
-                    colour = Maths::Vector4(mp->diffuse[0], mp->diffuse[1], mp->diffuse[2], 1.0f);
+                    colour = glm::vec4(mp->diffuse[0], mp->diffuse[1], mp->diffuse[2], 1.0f);
                 }
 
                 vertex.Colours = colour;

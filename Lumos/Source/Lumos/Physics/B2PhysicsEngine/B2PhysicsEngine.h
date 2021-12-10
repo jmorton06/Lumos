@@ -48,9 +48,10 @@ namespace Lumos
 
         uint32_t GetDebugDrawFlags();
         void SetDebugDrawFlags(uint32_t flags);
-        void SetGravity(const Maths::Vector2& gravity);
+        void SetGravity(const glm::vec2& gravity);
 
         void SetContactListener(b2ContactListener* listener);
+        void SyncTransforms(Scene* scene);
 
     private:
         UniquePtr<b2World> m_B2DWorld;

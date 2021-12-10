@@ -41,7 +41,7 @@ namespace Lumos
             void Execute(VkPipelineStageFlags flags, VkSemaphore signalSemaphore, bool waitFence);
 
             void ExecuteSecondary(CommandBuffer* primaryCmdBuffer) override;
-            void UpdateViewport(uint32_t width, uint32_t height) override;
+            void UpdateViewport(uint32_t width, uint32_t height, bool flipViewport) override;
 
             VkCommandBuffer GetHandle() const { return m_CommandBuffer; };
             CommandBufferState GetState() const { return m_State; }

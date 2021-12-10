@@ -23,7 +23,7 @@ namespace Lumos
         ImGui::Text("Lumos Engine Version : %d.%d.%d", version.major, version.minor, version.patch);
         ImGui::Separator();
         ImGui::Columns(2);
-        Lumos::ImGuiHelpers::ScopedStyle(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
+        Lumos::ImGuiUtilities::ScopedStyle(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
 
         {
             auto sceneName = m_CurrentScene->GetSceneName();
@@ -31,19 +31,19 @@ namespace Lumos
 
             auto& editorSettings = m_Editor->GetSettings();
 
-            ImGuiHelpers::Property("Grid Size", editorSettings.m_GridSize);
-            ImGuiHelpers::Property("Grid Enabled", editorSettings.m_ShowGrid);
-            ImGuiHelpers::Property("Gizmos Enabled", editorSettings.m_ShowGizmos);
-            ImGuiHelpers::Property("ImGuizmo Scale", editorSettings.m_ImGuizmoScale);
-            ImGuiHelpers::Property("Show View Selected", editorSettings.m_ShowViewSelected);
-            ImGuiHelpers::Property("View 2D", editorSettings.m_View2D);
-            ImGuiHelpers::Property("Fullscreen on play", editorSettings.m_FullScreenOnPlay);
-            ImGuiHelpers::Property("Snap Amount", editorSettings.m_SnapAmount);
-            ImGuiHelpers::Property("Sleep Out of Focus", editorSettings.m_SleepOutofFocus);
-            ImGuiHelpers::Property("Theme", (int&)editorSettings.m_Theme);
-            ImGuiHelpers::Property("Debug draw flags", (int&)editorSettings.m_DebugDrawFlags);
-            ImGuiHelpers::Property("Physics 2D debug flags", (int&)editorSettings.m_Physics2DDebugFlags);
-            ImGuiHelpers::Property("Physics 3D debug flags", (int&)editorSettings.m_Physics3DDebugFlags);
+            ImGuiUtilities::Property("Grid Size", editorSettings.m_GridSize);
+            ImGuiUtilities::Property("Grid Enabled", editorSettings.m_ShowGrid);
+            ImGuiUtilities::Property("Gizmos Enabled", editorSettings.m_ShowGizmos);
+            ImGuiUtilities::Property("ImGuizmo Scale", editorSettings.m_ImGuizmoScale);
+            ImGuiUtilities::Property("Show View Selected", editorSettings.m_ShowViewSelected);
+            ImGuiUtilities::Property("View 2D", editorSettings.m_View2D);
+            ImGuiUtilities::Property("Fullscreen on play", editorSettings.m_FullScreenOnPlay);
+            ImGuiUtilities::Property("Snap Amount", editorSettings.m_SnapAmount);
+            ImGuiUtilities::Property("Sleep Out of Focus", editorSettings.m_SleepOutofFocus);
+            ImGuiUtilities::Property("Theme", (int&)editorSettings.m_Theme);
+            ImGuiUtilities::Property("Debug draw flags", (int&)editorSettings.m_DebugDrawFlags);
+            ImGuiUtilities::Property("Physics 2D debug flags", (int&)editorSettings.m_Physics2DDebugFlags);
+            ImGuiUtilities::Property("Physics 3D debug flags", (int&)editorSettings.m_Physics3DDebugFlags);
         }
         ImGui::Columns(1);
 

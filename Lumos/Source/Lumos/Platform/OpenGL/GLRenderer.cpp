@@ -234,7 +234,7 @@ namespace Lumos
             }
         }
 
-        void GLRenderer::ClearRenderTarget(Graphics::Texture* texture, Graphics::CommandBuffer* commandBuffer, Maths::Vector4 clearColour)
+        void GLRenderer::ClearRenderTarget(Graphics::Texture* texture, Graphics::CommandBuffer* commandBuffer, glm::vec4 clearColour)
         {
             if(!texture)
             {

@@ -9,18 +9,18 @@ namespace Lumos
     {
     public:
         CuboidCollisionShape();
-        explicit CuboidCollisionShape(const Maths::Vector3& halfdims);
+        explicit CuboidCollisionShape(const glm::vec3& halfdims);
         ~CuboidCollisionShape();
 
         //Collision Shape Functionality
-        virtual Maths::Matrix3 BuildInverseInertia(float invMass) const override;
+        virtual glm::mat3 BuildInverseInertia(float invMass) const override;
 
-        virtual std::vector<Maths::Vector3>& GetCollisionAxes(const RigidBody3D* currentObject) override;
+        virtual std::vector<glm::vec3>& GetCollisionAxes(const RigidBody3D* currentObject) override;
         virtual std::vector<CollisionEdge>& GetEdges(const RigidBody3D* currentObject) override;
 
-        virtual void GetMinMaxVertexOnAxis(const RigidBody3D* currentObject, const Maths::Vector3& axis, Maths::Vector3* out_min, Maths::Vector3* out_max) const override;
+        virtual void GetMinMaxVertexOnAxis(const RigidBody3D* currentObject, const glm::vec3& axis, glm::vec3* out_min, glm::vec3* out_max) const override;
         virtual void GetIncidentReferencePolygon(const RigidBody3D* currentObject,
-            const Maths::Vector3& axis,
+            const glm::vec3& axis,
             ReferencePolygon& refPolygon) const override;
 
         virtual void DebugDraw(const RigidBody3D* currentObject) const override;
@@ -29,17 +29,17 @@ namespace Lumos
         void SetHalfWidth(float half_width)
         {
             m_CuboidHalfDimensions.x = fabs(half_width);
-            m_LocalTransform = Maths::Matrix4::Scale(m_CuboidHalfDimensions);
+            m_LocalTransform = glm::scale(glm::mat4(1.0), m_CuboidHalfDimensions);
         }
         void SetHalfHeight(float half_height)
         {
             m_CuboidHalfDimensions.y = fabs(half_height);
-            m_LocalTransform = Maths::Matrix4::Scale(m_CuboidHalfDimensions);
+            m_LocalTransform = glm::scale(glm::mat4(1.0), m_CuboidHalfDimensions);
         }
         void SetHalfDepth(float half_depth)
         {
             m_CuboidHalfDimensions.z = fabs(half_depth);
-            m_LocalTransform = Maths::Matrix4::Scale(m_CuboidHalfDimensions);
+            m_LocalTransform = glm::scale(glm::mat4(1.0), m_CuboidHalfDimensions);
         }
 
         //Get Cuboid Dimensions
@@ -56,14 +56,14 @@ namespace Lumos
             return m_CuboidHalfDimensions.z;
         }
 
-        const Maths::Vector3& GetHalfDimensions() const
+        const glm::vec3& GetHalfDimensions() const
         {
             return m_CuboidHalfDimensions;
         }
-        void SetHalfDimensions(const Maths::Vector3& dims)
+        void SetHalfDimensions(const glm::vec3& dims)
         {
             m_CuboidHalfDimensions = dims;
-            m_LocalTransform = Maths::Matrix4::Scale(m_CuboidHalfDimensions);
+            m_LocalTransform = glm::scale(glm::mat4(1.0), m_CuboidHalfDimensions);
         }
 
         virtual float GetSize() const override
@@ -82,7 +82,7 @@ namespace Lumos
         {
             archive(m_CuboidHalfDimensions);
 
-            m_LocalTransform = Maths::Matrix4::Scale(m_CuboidHalfDimensions);
+            m_LocalTransform = glm::scale(glm::mat4(1.0), m_CuboidHalfDimensions);
             m_Type = CollisionShapeType::CollisionCuboid;
 
             if(m_CubeHull->GetNumVertices() == 0)
@@ -96,7 +96,7 @@ namespace Lumos
         static void ConstructCubeHull();
 
     protected:
-        Maths::Vector3 m_CuboidHalfDimensions;
+        glm::vec3 m_CuboidHalfDimensions;
 
         static SharedPtr<Hull> m_CubeHull;
     };

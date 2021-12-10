@@ -26,6 +26,9 @@
 #include "CompiledSPV/Headers/ScreenPassvertspv.hpp"
 #include "CompiledSPV/Headers/ScreenPassfragspv.hpp"
 
+#include "CompiledSPV/Headers/Gridvertspv.hpp"
+#include "CompiledSPV/Headers/Gridfragspv.hpp"
+
 namespace Lumos
 {
     namespace Graphics
@@ -52,7 +55,7 @@ namespace Lumos
 
         void Renderer::LoadEngineShaders()
         {
-            const bool LoadEmbeddedShaders = true;
+            const bool LoadEmbeddedShaders = false;
             auto shaderLibrary = Application::Get().GetShaderLibrary();
             if(LoadEmbeddedShaders)
             {
@@ -63,6 +66,7 @@ namespace Lumos
                 shaderLibrary->AddResource("Batch2DLine", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromEmbeddedArray(spirv_Batch2DLinevertspv.data(), spirv_Batch2DLinevertspv_size, spirv_Batch2DLinefragspv.data(), spirv_Batch2DLinefragspv_size)));
                 shaderLibrary->AddResource("Batch2D", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromEmbeddedArray(spirv_Batch2Dvertspv.data(), spirv_Batch2Dvertspv_size, spirv_Batch2Dfragspv.data(), spirv_Batch2Dfragspv_size)));
                 shaderLibrary->AddResource("FinalPass", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromEmbeddedArray(spirv_ScreenPassvertspv.data(), spirv_ScreenPassvertspv_size, spirv_ScreenPassfragspv.data(), spirv_ScreenPassfragspv_size)));
+                shaderLibrary->AddResource("Grid", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromEmbeddedArray(spirv_Gridvertspv.data(), spirv_Gridvertspv_size, spirv_Gridfragspv.data(), spirv_Gridfragspv_size)));
             }
             else
             {
@@ -73,6 +77,7 @@ namespace Lumos
                 shaderLibrary->AddResource("Batch2DLine", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromFile("//CoreShaders/Batch2DLine.shader")));
                 shaderLibrary->AddResource("Batch2D", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromFile("//CoreShaders/Batch2D.shader")));
                 shaderLibrary->AddResource("FinalPass", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromFile("//CoreShaders/ScreenPass.shader")));
+                shaderLibrary->AddResource("Grid", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromFile("//CoreShaders/Grid.shader")));
             }
         }
 

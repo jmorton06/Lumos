@@ -39,7 +39,7 @@ namespace Lumos
             uint32_t ChildNodeIndices[8] = { 0 };
             RigidBody3D* PhysicsObjects[MAX_OBJECTS_PER_NODE];
 
-            Maths::BoundingBox boundingBox;
+            BoundingBox boundingBox;
         };
 
         void FindPotentialCollisionPairs(RigidBody3D** objects, uint32_t objectCount, std::vector<CollisionPair>& collisionPairs) override;
