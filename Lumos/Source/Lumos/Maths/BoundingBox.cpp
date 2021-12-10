@@ -174,11 +174,15 @@ namespace Lumos
     void BoundingBox::Transform(const glm::mat4& transform)
     {
 		LUMOS_PROFILE_FUNCTION();
-        glm::vec3 min = glm::vec3(transform * glm::vec4(m_Min, 1.0f));
-        glm::vec3 max = glm::vec3(transform * glm::vec4(m_Max, 1.0f));
-
-        m_Min = glm::min(min, max);
-        m_Max = glm::max(min, max);
+		glm::vec3 newCenter = transform * glm::vec4(Center(), 1.0f);
+		glm::vec3 oldEdge = Size() * 0.5f;
+		glm::vec3 newEdge = glm::vec3(
+										glm::abs(transform[0][0]) * oldEdge.x + glm::abs(transform[1][0]) * oldEdge.y + glm::abs(transform[2][0]) * oldEdge.z,
+										glm::abs(transform[0][1]) * oldEdge.x + glm::abs(transform[1][1]) * oldEdge.y + glm::abs(transform[2][1]) * oldEdge.z,
+										  glm::abs(transform[0][2]) * oldEdge.x + glm::abs(transform[1][2]) * oldEdge.y + glm::abs(transform[2][2]) * oldEdge.z);
+		
+		m_Min = newCenter - newEdge;
+		m_Max = newCenter + newEdge;
     }
 
     BoundingBox BoundingBox::Transformed(const glm::mat4& transform) const
@@ -313,6 +317,15 @@ namespace Lumos
             return INTERSECTS;
         else
             return INSIDE;
+    }
+	
+	 bool BoundingBox::IsInsideFast(const BoundingBox& box) const
+    {
+        LUMOS_PROFILE_FUNCTION();
+        if(box.m_Max.x < m_Min.x || box.m_Min.x > m_Max.x || box.m_Max.y < m_Min.y || box.m_Min.y > m_Max.y || box.m_Max.z < m_Min.z || box.m_Min.z > m_Max.z)
+            return false;
+        else
+            return true;    
     }
 
     glm::vec3 BoundingBox::Size() const

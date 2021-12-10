@@ -33,8 +33,6 @@ namespace Lumos
             void DefineOrtho(float scale, float aspectRatio, float near, float far, const glm::mat4& viewMatrix);
             void Define(float fov, float aspectRatio, float near, float far, const glm::mat4& viewMatrix);
 
-            bool IsInsideFast(const BoundingBox& box) const { return IsInside(box);}
-
             bool IsInside(const glm::vec3& point) const;
             bool IsInside(const BoundingSphere& sphere) const;
             bool IsInside(const BoundingBox& box) const;

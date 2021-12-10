@@ -609,7 +609,7 @@ namespace Lumos::Graphics
                         {
                             for(uint32_t i = 0; i < m_ShadowData.m_ShadowMapNum; i++)
                             {
-                                auto inside = m_ShadowData.m_CascadeFrustums[i].IsInsideFast(bbCopy);
+                                auto inside = m_ShadowData.m_CascadeFrustums[i].IsInside(bbCopy);
 
                                 if(!inside)
                                     continue;
@@ -623,7 +623,7 @@ namespace Lumos::Graphics
 
                         {
 
-                            auto inside = m_ForwardData.m_Frustum.IsInsideFast(bbCopy);
+                            auto inside = m_ForwardData.m_Frustum.IsInside(bbCopy);
 
                             if(!inside)
                                 continue;
