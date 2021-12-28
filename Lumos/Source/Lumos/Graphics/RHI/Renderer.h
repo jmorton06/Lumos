@@ -114,6 +114,7 @@ namespace Lumos
             virtual void DrawIndexedInternal(CommandBuffer* commandBuffer, DrawType type, uint32_t count, uint32_t start) const = 0;
             virtual void DrawInternal(CommandBuffer* commandBuffer, DrawType type, uint32_t count, DataType datayType, void* indices) const = 0;
             virtual void DrawSplashScreen(Texture* texture) {};
+            virtual uint32_t GetGPUCount() const { return 1; }
 
             inline static void Present()
             {
@@ -149,7 +150,7 @@ namespace Lumos
             static GraphicsContext* GetGraphicsContext() { return Application::Get().GetWindow()->GetGraphicsContext(); }
             static SwapChain* GetMainSwapChain() { return Application::Get().GetWindow()->GetSwapChain(); }
             static void DrawMesh(CommandBuffer* commandBuffer, Graphics::Pipeline* pipeline, Graphics::Mesh* mesh);
-
+        
         protected:
             static Renderer* (*CreateFunc)();
 
