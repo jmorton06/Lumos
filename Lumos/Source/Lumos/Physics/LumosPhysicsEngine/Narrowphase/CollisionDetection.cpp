@@ -23,7 +23,7 @@ namespace Lumos
     bool CollisionDetection::CheckCollision(RigidBody3D* obj1, RigidBody3D* obj2, CollisionShape* shape1, CollisionShape* shape2, CollisionData* out_coldata)
     {
         LUMOS_PROFILE_FUNCTION();
-        LUMOS_ASSERT(((shape1->GetType() | shape2->GetType()) >= m_MaxSize), "Invalid collision func {0}, {1}, {2}, {3}", shape1->GetType(), shape1->GetType(), shape2->GetType() | shape2->GetType(), m_MaxSize);
+        LUMOS_ASSERT(((shape1->GetType() | shape2->GetType()) < m_MaxSize), "Invalid collision func {0}, {1}, {2}, {3}", shape1->GetType(), shape2->GetType(), shape2->GetType() | shape2->GetType(), m_MaxSize);
         return CALL_MEMBER_FN(*this, m_CollisionCheckFunctions[shape1->GetType() | shape2->GetType()])(obj1, obj2, shape1, shape2, out_coldata);
     }
 

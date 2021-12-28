@@ -172,7 +172,7 @@ namespace Lumos
         void save(Archive& archive) const
 
         {
-            int projectVersion = 6;
+            int projectVersion = 7;
 
             archive(cereal::make_nvp("Project Version", projectVersion));
             auto windowSize = GetWindowSize() / GetWindowDPI();
@@ -213,6 +213,9 @@ namespace Lumos
             archive(cereal::make_nvp("Borderless", m_ProjectSettings.Borderless));
             //Version 5
             archive(cereal::make_nvp("EngineAssetPath", m_ProjectSettings.m_EngineAssetPath));
+            
+            //Version 6
+            archive(cereal::make_nvp("GPUIndex", m_ProjectSettings.DesiredGPUIndex));
         }
 
         template <typename Archive>
@@ -264,6 +267,9 @@ namespace Lumos
             }
             else
                 m_ProjectSettings.m_EngineAssetPath = "/Users/jmorton/dev/Lumos/Lumos/Assets/";
+            
+            if(m_ProjectSettings.ProjectVersion > 6)
+                archive(cereal::make_nvp("GPUIndex", m_ProjectSettings.DesiredGPUIndex));
 
             VFS::Get().Mount("CoreShaders", m_ProjectSettings.m_EngineAssetPath + std::string("Shaders"));
         }
@@ -283,6 +289,7 @@ namespace Lumos
             std::string Title;
             int RenderAPI;
             int ProjectVersion;
+            int8_t DesiredGPUIndex = -1;
         };
 
         ProjectSettings& GetProjectSettings() { return m_ProjectSettings; }
@@ -303,7 +310,7 @@ namespace Lumos
         uint32_t m_SceneViewWidth = 0;
         uint32_t m_SceneViewHeight = 0;
         bool m_SceneViewSizeUpdated = false;
-
+        
         UniquePtr<Window> m_Window;
         UniquePtr<SceneManager> m_SceneManager;
         UniquePtr<SystemManager> m_SystemManager;

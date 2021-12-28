@@ -1,9 +1,9 @@
 {
     "value0": {
-        "Project Version": 6,
+        "Project Version": 7,
         "RenderAPI": 1,
         "Width": 1440,
-        "Height": 900,
+        "Height": 797,
         "Fullscreen": true,
         "VSync": true,
         "ShowConsole": false,
@@ -16,6 +16,7 @@
         ],
         "SceneIndex": 1,
         "Borderless": false,
-        "EngineAssetPath": "/Users/jmorton/dev/Lumos/Lumos/Assets/"
+        "EngineAssetPath": "/Users/jmorton/dev/Lumos/Lumos/Assets/",
+        "GPUIndex": -1
     }
 }

@@ -55,7 +55,7 @@ namespace Lumos
 
         void Renderer::LoadEngineShaders()
         {
-            const bool LoadEmbeddedShaders = false;
+            const bool LoadEmbeddedShaders = true;
             auto shaderLibrary = Application::Get().GetShaderLibrary();
             if(LoadEmbeddedShaders)
             {
