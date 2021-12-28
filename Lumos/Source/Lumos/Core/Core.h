@@ -100,7 +100,8 @@
     {                                                               \
         if(!(condition))                                            \
         {                                                           \
-            LUMOS_LOG_ERROR("Assertion Failed : {0}", __VA_ARGS__); \
+            LUMOS_LOG_ERROR("Assertion Failed");                    \
+            LUMOS_LOG_ERROR(__VA_ARGS__);                           \
             LUMOS_BREAK();                                          \
         }                                                           \
     }

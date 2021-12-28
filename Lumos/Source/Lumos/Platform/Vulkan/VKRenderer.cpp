@@ -273,5 +273,10 @@ namespace Lumos
         {
             return new VKRenderer();
         }
+    
+        uint32_t VKRenderer::GetGPUCount() const
+        {
+            return VKDevice::Get().GetGPUCount();
+        }
     }
 }

@@ -36,7 +36,7 @@ git clone https://github.com/jmorton06/Lumos.git
 ```
 sudo apt-get install -y g++-8 libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev libopenal-dev mesa-common-dev
 cd Lumos
-Tools/premake5 gmake2
+Tools/linux/premake5 gmake2
 cd build
 make -j8
 ```
