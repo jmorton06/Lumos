@@ -629,9 +629,41 @@ namespace Lumos
                     LUMOS_LOG_INFO("Embedded {0} shaders. Recompile to use", shaderCount);
                 }
 				if(ImGui::MenuItem("Embed File"))
-					   {
+                {
 					EmbedFile();
-					   }
+                }
+                
+                if(ImGui::BeginMenu("GPU Index"))
+                {
+                    uint32_t gpuCount = Graphics::Renderer::GetRenderer()->GetGPUCount();
+                    
+                    if(gpuCount == 1)
+                    {
+                        ImGui::TextUnformatted("Default");
+                        ImGuiUtilities::Tooltip("Only default GPU selectable");
+                    }
+                    else
+                    {
+                        int8_t currentDesiredIndex = Application::Get().GetProjectSettings().DesiredGPUIndex;
+                        int8_t newIndex = currentDesiredIndex;
+
+                        if(ImGui::Selectable("Default",currentDesiredIndex == -1))
+                        {
+                            newIndex = -1;
+                        }
+                        
+                        for(uint32_t index = 0; index < gpuCount; index++)
+                        {
+                            if(ImGui::Selectable(std::to_string(index).c_str(), index == uint32_t(currentDesiredIndex)))
+                            {
+                                newIndex = index;
+                            }
+                        }
+                        
+                        Application::Get().GetProjectSettings().DesiredGPUIndex = newIndex;
+                    }
+                    ImGui::EndMenu();
+                }
                 ImGui::EndMenu();
             }
 

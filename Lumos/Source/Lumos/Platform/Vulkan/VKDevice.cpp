@@ -36,25 +36,43 @@ namespace Lumos
         {
             ///
             // GPU
-            uint32_t numGPUs = 0;
             auto vkInstance = VKContext::GetVKInstance();
-            vkEnumeratePhysicalDevices(vkInstance, &numGPUs, VK_NULL_HANDLE);
-            if(numGPUs == 0)
+            vkEnumeratePhysicalDevices(vkInstance, &m_GPUCount, VK_NULL_HANDLE);
+            if(m_GPUCount == 0)
             {
-                LUMOS_LOG_CRITICAL("ERROR : No GPUs found!");
+                LUMOS_LOG_CRITICAL("No GPUs found!");
             }
 
-            std::vector<VkPhysicalDevice> physicalDevices(numGPUs);
-            vkEnumeratePhysicalDevices(vkInstance, &numGPUs, physicalDevices.data());
+            std::vector<VkPhysicalDevice> physicalDevices(m_GPUCount);
+            vkEnumeratePhysicalDevices(vkInstance, &m_GPUCount, physicalDevices.data());
+            //First select the gpu at the back of the list
             m_PhysicalDevice = physicalDevices.back();
 
-            for(VkPhysicalDevice physicalDevice : physicalDevices)
+            int8_t desiredGPUIndex = Application::Get().GetProjectSettings().DesiredGPUIndex;
+            
+            if(desiredGPUIndex >= 0)
             {
-                vkGetPhysicalDeviceProperties(physicalDevice, &m_PhysicalDeviceProperties);
-                if(m_PhysicalDeviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU)
+                //If index is greater than 0 try and use it
+                if(desiredGPUIndex >= m_GPUCount)
                 {
-                    m_PhysicalDevice = physicalDevice;
-                    break;
+                    LUMOS_LOG_CRITICAL("GPU index greater than GPU count!");
+                }
+                else
+                {
+                    m_PhysicalDevice = physicalDevices[desiredGPUIndex];
+                }
+            }
+            else
+            {
+                //By default try and find a discrete gpu to use over integrated graphics
+                for(VkPhysicalDevice physicalDevice : physicalDevices)
+                {
+                    vkGetPhysicalDeviceProperties(physicalDevice, &m_PhysicalDeviceProperties);
+                    if(m_PhysicalDeviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU)
+                    {
+                        m_PhysicalDevice = physicalDevice;
+                        break;
+                    }
                 }
             }
 

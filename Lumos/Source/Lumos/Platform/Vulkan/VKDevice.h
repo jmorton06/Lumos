@@ -58,6 +58,11 @@ namespace Lumos
                 int32_t Transfer = -1;
             };
             QueueFamilyIndices GetQueueFamilyIndices(int queueFlags);
+            
+            uint32_t GetGPUCount() const
+            {
+                return m_GPUCount;
+            }
 
         private:
             QueueFamilyIndices m_QueueFamilyIndices;
@@ -70,13 +75,15 @@ namespace Lumos
             VkPhysicalDeviceFeatures m_Features;
             VkPhysicalDeviceProperties m_PhysicalDeviceProperties;
             VkPhysicalDeviceMemoryProperties m_MemoryProperties;
+            
+            uint32_t m_GPUCount = 0;
 
             friend class VKDevice;
         };
 
         class VKDevice : public ThreadSafeSingleton<VKDevice>
         {
-            friend class TSingleton<VKDevice>;
+            friend class ThreadSafeSingleton<VKDevice>;
 
         public:
             VKDevice();
@@ -132,6 +139,11 @@ namespace Lumos
             static VkDevice GetHandle()
             {
                 return VKDevice::Get().GetDevice();
+            }
+            
+            uint32_t GetGPUCount() const
+            {
+                return m_PhysicalDevice->GetGPUCount();
             }
 
         private:

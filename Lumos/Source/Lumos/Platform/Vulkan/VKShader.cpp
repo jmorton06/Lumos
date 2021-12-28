@@ -457,6 +457,9 @@ namespace Lumos
                     delete[] source;
                 }
             }
+            
+            if(files.empty())
+                LUMOS_LOG_ERROR("Failed to load shader {0}", m_Name);
 
             CreatePipelineLayout();
             return true;
