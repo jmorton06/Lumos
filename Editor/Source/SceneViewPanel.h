@@ -49,7 +49,7 @@ namespace Lumos
                         continue;
 
                     glm::vec2 screenPos = Maths::WorldToScreen(pos, viewProj, width, height, xpos, ypos);
-                    ImGui::SetCursorPos({ screenPos.x - ImGui::GetFontSize() / 2.0f, screenPos.y - ImGui::GetFontSize() / 2.0f });
+                    ImGui::SetCursorPos({ screenPos.x - ImGui::GetFontSize() * 0.5f, screenPos.y - ImGui::GetFontSize() * 0.5f });
                     ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.7f, 0.7f, 0.7f, 0.0f));
 
                     if(ImGui::Button(m_Editor->GetComponentIconMap()[typeid(T).hash_code()]))
@@ -69,11 +69,6 @@ namespace Lumos
         bool m_ShowStats = false;
         SharedPtr<Graphics::Texture2D> m_GameViewTexture = nullptr;
         Scene* m_CurrentScene = nullptr;
-        float m_AspectRatio;
         uint32_t m_Width, m_Height;
-
-        bool m_FreeAspect = true;
-        float m_FixedAspect = 1.0f;
-        bool m_HalfRes = false;
     };
 }

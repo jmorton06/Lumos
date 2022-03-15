@@ -56,6 +56,11 @@ namespace Lumos
             {
                 m_RenderTexture = texture;
             }
+            
+            virtual void SetDepthTarget(Graphics::Texture* texture)
+            {
+                m_DepthTexture = texture;
+            }
 
             Texture* GetRenderTarget() const
             {

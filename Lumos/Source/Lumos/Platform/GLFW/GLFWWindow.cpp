@@ -14,12 +14,14 @@
 
 #include "GLFWKeyCodes.h"
 
+#include "Core/OS/OS.h"
 #include "Core/OS/Input.h"
 #include "Core/Application.h"
 
 #include "Events/ApplicationEvent.h"
 #include "Events/MouseEvent.h"
 #include "Events/KeyEvent.h"
+
 #include <GLFW/glfw3.h>
 #include <GLFW/glfw3native.h>
 #include <imgui/imgui.h>
@@ -324,8 +326,7 @@ namespace Lumos
         g_MouseCursors[ImGuiMouseCursor_ResizeNWSE] = glfwCreateStandardCursor(GLFW_ARROW_CURSOR);
         g_MouseCursors[ImGuiMouseCursor_Hand] = glfwCreateStandardCursor(GLFW_HAND_CURSOR);
 
-        LUMOS_LOG_INFO("Initialised GLFW version : {0}", glfwGetVersionString());
-
+        LUMOS_LOG_INFO("Initialised GLFW version : {0}", glfwGetVersionString());        
         return true;
     }
 
@@ -475,5 +476,16 @@ namespace Lumos
     {
         LUMOS_PROFILE_SCOPE("GLFW PollEvents");
         glfwPollEvents();
+    }
+
+    void GLFWWindow::Maximise()
+    {
+        LUMOS_PROFILE_FUNCTION();
+        glfwMaximizeWindow(m_Handle);
+
+#ifdef LUMOS_PLATFORM_MACOS
+        //TODO: Move to glfw extensions or something
+        OS::Instance()->MaximiseWindow();
+#endif
     }
 }

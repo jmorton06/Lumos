@@ -312,7 +312,7 @@ namespace Lumos
         //Point
         else
         {
-            DebugDrawSphere(light->Radius / 2.0f, light->Position, colour);
+            DebugDrawSphere(light->Radius * 0.5f, light->Position, colour);
         }
     }
 
@@ -348,18 +348,74 @@ namespace Lumos
 
     void DebugRenderer::DebugDrawCone(int numCircleVerts, int numLinesToCircle, float angle, float length, const glm::vec3& position, const glm::quat& rotation, const glm::vec4& colour)
     {
-                float endAngle = Maths::Tan(angle * 0.5f) * length;
-		glm::vec3 forward = -(rotation * glm::vec3(0.0f,0.0f,-1.0f));
-                glm::vec3 endPosition = position + forward * length;
-                float offset = 0.0f;
-               DebugDrawCircle(numCircleVerts, endAngle, endPosition, rotation, colour);
-        
-                for(int i = 0; i < numLinesToCircle; i++)
-               {
-                    float a = i * 90.0f;
-                    glm::vec3 point = rotation * glm::vec3(Maths::Cos(a), Maths::Sin(a), 0.0f) * endAngle;
-                    DrawHairLine(position, position + point + forward * length, colour);
-                }
+        float endAngle = Maths::Tan(angle * 0.5f) * length;
+        glm::vec3 forward = -(rotation * glm::vec3(0.0f,0.0f,-1.0f));
+        glm::vec3 endPosition = position + forward * length;
+        float offset = 0.0f;
+        DebugDrawCircle(numCircleVerts, endAngle, endPosition, rotation, colour);
+
+        for(int i = 0; i < numLinesToCircle; i++)
+        {
+            float a = i * 90.0f;
+            glm::vec3 point = rotation * glm::vec3(Maths::Cos(a), Maths::Sin(a), 0.0f) * endAngle;
+            DrawHairLine(position, position + point + forward * length, colour);
+        }
+    }
+
+    void DebugDrawArc(int numVerts, float radius, const glm::vec3& start, const glm::vec3& end, const glm::quat& rotation, const glm::vec4& colour)
+    {
+        float step = 180.0f / numVerts;
+        glm::quat rot = glm::lookAt(rotation * start, rotation * end, glm::vec3(0.0f, 1.0f, 0.0f));
+        rot = rotation * rot;
+
+        glm::vec3 arcCentre = (start + end) * 0.5f;
+        for(int i = 0; i < numVerts; i++)
+        {
+            float cx = Maths::Cos(step * i) * radius;
+            float cy = Maths::Sin(step * i) * radius;
+            glm::vec3 current = glm::vec3(cx, cy, 0.0f);
+
+            float nx = Maths::Cos(step * (i + 1)) * radius;
+            float ny = Maths::Sin(step * (i + 1)) * radius;
+            glm::vec3 next = glm::vec3(nx, ny, 0.0f);
+
+            DebugRenderer::DrawHairLine( arcCentre + (rot * current), arcCentre + (rot * next), colour);
+        }
+    }
+
+    void DebugRenderer::DebugDrawCapsule(const glm::vec3& position, const glm::quat& rotation, float height, float radius, const glm::vec4& colour)
+    {
+        glm::vec3 up = (rotation * glm::vec3(0.0f,1.0f,0.0f));
+    
+        glm::vec3 topSphereCentre = position + up * (height * 0.5f);
+        glm::vec3 bottomSphereCentre = position - up * (height * 0.5f);
+
+        DebugDrawCircle(20, radius, topSphereCentre, rotation * glm::quat(glm::vec3(glm::radians(90.0f), 0.0f, 0.0f)) , colour);
+        DebugDrawCircle(20, radius, bottomSphereCentre, rotation * glm::quat(glm::vec3(glm::radians(90.0f), 0.0f, 0.0f)), colour);
+
+        //Draw 10 arcs
+        //Sides
+        float step = 360.0f / float(20);
+        for(int i = 0; i < 20; i++)
+        {
+            float z = Maths::Cos(step * i) * radius;
+            float x = Maths::Sin(step * i) * radius;
+
+            glm::vec3 offset = rotation * glm::vec4(x, 0.0f, z, 0.0f);
+            DrawHairLine(bottomSphereCentre + offset, topSphereCentre + offset, colour);
+
+            if(i < 10)
+            {
+                float z2 = Maths::Cos(step * (i + 10)) * radius;
+                float x2 = Maths::Sin(step * (i + 10)) * radius;
+
+                glm::vec3 offset2 = rotation * glm::vec4(x2, 0.0f, z2, 0.0f);
+                //Top Hemishpere
+                DebugDrawArc(20, radius, topSphereCentre + offset, topSphereCentre + offset2, rotation, colour);
+                //Bottom Hemisphere
+                DebugDrawArc(20, radius, bottomSphereCentre + offset, bottomSphereCentre + offset2, rotation * glm::quat(glm::vec3(glm::radians(180.0f), 0.0f, 0.0f)), colour);
+            }
+        }
     }
 
     void DebugRenderer::DebugDraw(const Ray& ray, const glm::vec4& colour, float distance)

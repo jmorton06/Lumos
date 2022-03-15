@@ -26,6 +26,7 @@ namespace Lumos
         void SetMousePosition(const glm::vec2& pos) override;
         void UpdateCursorImGui() override;
         void ProcessInput() override;
+        void Maximise() override;
 
         bool Init(const WindowDesc& properties);
 

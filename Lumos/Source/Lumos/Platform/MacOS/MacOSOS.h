@@ -17,5 +17,6 @@ namespace Lumos
         std::string GetExecutablePath() override;
         void SetTitleBarColour(const glm::vec4& colour, bool dark = true) override;
         void Delay(uint32_t usec) override;
+        void MaximiseWindow() override;
     };
 }

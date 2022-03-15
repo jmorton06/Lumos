@@ -12,8 +12,10 @@ namespace Lumos
 {
     namespace Graphics
     {
-        VKCommandBuffer::VKCommandBuffer()
-            : m_CommandBuffer(nullptr)
+		VKCommandBuffer::VKCommandBuffer()
+			: m_CommandBuffer(nullptr)
+			, m_CommandPool(nullptr)
+			, m_Semaphore(nullptr)
             , m_Primary(false)
             , m_State(CommandBufferState::Idle)
         {
@@ -21,6 +23,8 @@ namespace Lumos
 
         VKCommandBuffer::VKCommandBuffer(VkCommandBuffer commandBuffer)
             : m_CommandBuffer(commandBuffer)
+			, m_CommandPool(nullptr)
+			, m_Semaphore(nullptr)
             , m_Primary(true)
             , m_State(CommandBufferState::Idle)
         {
@@ -209,10 +213,10 @@ namespace Lumos
 
             if(flipViewport)
             {
-                viewport.width = width;
+                viewport.width = (float)width;
                 viewport.height = -(float)height;
                 viewport.x = 0;
-                viewport.y = height;
+                viewport.y = (float)height;
             }
 
             VkRect2D scissor = {};

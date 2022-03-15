@@ -232,4 +232,12 @@ namespace Lumos
             }
         }
     }
+	
+	void EditorCameraController::StopMovement()
+	{
+		m_ZoomVelocity = 0.0f;
+		m_Velocity = glm::vec3(0.0f);
+		m_RotateVelocity = glm::vec2(0.0f);
+		
+	}
 }

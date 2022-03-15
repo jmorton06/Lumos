@@ -126,6 +126,11 @@ namespace Lumos
 
         glm::vec2 GetWindowSize() const;
         float GetWindowDPI() const;
+		
+		void SetDisableMainRenderGraph(bool disable)
+		{
+			m_DisableMainRenderGraph = disable;
+		}
 
         SharedPtr<ShaderLibrary>& GetShaderLibrary();
         SharedPtr<ModelLibrary>& GetModelLibrary();
@@ -213,7 +218,6 @@ namespace Lumos
             archive(cereal::make_nvp("Borderless", m_ProjectSettings.Borderless));
             //Version 5
             archive(cereal::make_nvp("EngineAssetPath", m_ProjectSettings.m_EngineAssetPath));
-            
             //Version 6
             archive(cereal::make_nvp("GPUIndex", m_ProjectSettings.DesiredGPUIndex));
         }
@@ -306,6 +310,7 @@ namespace Lumos
         float m_SecondTimer = 0.0f;
         bool m_Minimized = false;
         bool m_SceneActive = true;
+		bool m_DisableMainRenderGraph = false;
 
         uint32_t m_SceneViewWidth = 0;
         uint32_t m_SceneViewHeight = 0;
