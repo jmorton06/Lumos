@@ -478,7 +478,7 @@ namespace Lumos
         drawList->AddRectFilled(bb.Min, ImVec2(pos.x + circleStart * value, bb.Max.y), fg_col);
 
         const float t = float(g->Time);
-        const float r = size.y / 2.0f;
+        const float r = size.y * 0.5f;
         const float speed = 1.5f;
 
         const float a = speed * 0.f;

@@ -85,7 +85,7 @@ namespace Lumos
                         physicsSystem->SetGravity(sceneSettings.Physics3DSettings.Gravity);
 
                     if(ImGuiUtilities::Property("BroadPhaseIndex", sceneSettings.Physics3DSettings.BroadPhaseTypeIndex))
-                        physicsSystem->SetDampingFactor(sceneSettings.Physics3DSettings.BroadPhaseTypeIndex);
+                        physicsSystem->SetBroadphaseType((BroadphaseType)sceneSettings.Physics3DSettings.BroadPhaseTypeIndex);
                     if(ImGuiUtilities::Property("IntegrationType", sceneSettings.Physics3DSettings.IntegrationTypeIndex))
                         physicsSystem->SetIntegrationType((IntegrationType)sceneSettings.Physics3DSettings.IntegrationTypeIndex);
                 }

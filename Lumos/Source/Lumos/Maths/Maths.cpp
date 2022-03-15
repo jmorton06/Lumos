@@ -57,3 +57,11 @@ namespace Lumos
     }
 
 }
+
+namespace glm
+{
+    glm::vec3 operator*(const glm::mat4& a, const glm::vec3& b)
+    {
+        return glm::vec3(a * glm::vec4(b, 1.0f));
+    }
+}

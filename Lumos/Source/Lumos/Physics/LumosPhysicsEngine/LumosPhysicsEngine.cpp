@@ -166,8 +166,7 @@ namespace Lumos
         SolveConstraints();
 
         //Update movement
-        for(uint32_t i = 0; i < m_PositionIterations; i++)
-            UpdateRigidBodys();
+        UpdateRigidBodys();
 
         for(int i = 0; i < m_RigidBodys.size(); i++)
             m_RigidBodys[i]->RestTest();
@@ -216,7 +215,6 @@ namespace Lumos
     {
         LUMOS_PROFILE_FUNCTION();
 
-        s_UpdateTimestep /= m_PositionIterations;
         if(!obj->GetIsStatic() && obj->IsAwake())
         {
             const float damping = m_DampingFactor;
@@ -271,11 +269,11 @@ namespace Lumos
                 // Angular velocity damping
                 obj->m_AngularVelocity = obj->m_AngularVelocity * damping * obj->m_AngularFactor;
 					
-					auto angularVelocity = obj->m_AngularVelocity * s_UpdateTimestep;
+				auto angularVelocity = obj->m_AngularVelocity * s_UpdateTimestep;
 					
                 // Update orientation
-					obj->m_Orientation += QuatMulVec3(obj->m_Orientation, angularVelocity);
-					obj->m_Orientation = glm::normalize(obj->m_Orientation);
+                obj->m_Orientation += QuatMulVec3(obj->m_Orientation, angularVelocity);
+                obj->m_Orientation = glm::normalize(obj->m_Orientation);
 
                 break;
             }

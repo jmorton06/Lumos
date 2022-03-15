@@ -136,4 +136,6 @@ namespace glm
     void serialize(Archive& archive, glm::quat& q) { archive(q.x, q.y, q.z, q.w); }
     template <class Archive>
     void serialize(Archive& archive, glm::dquat& q) { archive(q.x, q.y, q.z, q.w); }
+
+    glm::vec3 operator*(const glm::mat4& a, const glm::vec3& b);
 }

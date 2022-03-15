@@ -44,6 +44,10 @@ namespace Lumos
         virtual void OnNewProject()
         {
         }
+        
+        virtual void OnRender()
+        {
+        }
 
     protected:
         bool m_Active = true;

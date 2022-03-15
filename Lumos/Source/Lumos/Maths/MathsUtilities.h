@@ -8,10 +8,12 @@
 
 #include "Maths/Random.h"
 #include "Core/Core.h"
+
 #include <cstdlib>
 #include <cmath>
 #include <limits>
 #include <type_traits>
+#include <glm/fwd.hpp>
 
 namespace Lumos
 {
@@ -280,7 +282,7 @@ namespace Maths
     /// Update a hash with the given 8-bit value using the SDBM algorithm.
     inline constexpr unsigned SDBMHash(unsigned hash, unsigned char c) { return c + (hash << 6u) + (hash << 16u) - hash; }
 
-    /// Convert float to half float. From https://gist.github.com/martinkallman/5049614
+    /// Convert float to half float
     inline unsigned short FloatToHalf(float value)
     {
         unsigned inu = FloatToRawIntBits(value);
@@ -302,7 +304,7 @@ namespace Maths
         return (unsigned short)t1;
     }
 
-    /// Convert half float to float. From https://gist.github.com/martinkallman/5049614
+    /// Convert half float to float
     inline float HalfToFloat(unsigned short value)
     {
         unsigned t1 = value & 0x7fffu; // Non-sign bits
@@ -333,8 +335,14 @@ namespace Maths
 
     /// Calculate both sine and cosine, with angle in degrees.
     void SinCos(float angle, float& sin, float& cos);
-
     uint32_t nChoosek(uint32_t n, uint32_t k);
+    glm::vec3 ComputeClosestPointOnSegment(const glm::vec3& segPointA, const glm::vec3& segPointB, const glm::vec3& pointC);
+    void ClosestPointBetweenTwoSegments(const glm::vec3& seg1PointA, const glm::vec3& seg1PointB,
+                                                             const glm::vec3& seg2PointA, const glm::vec3& seg2PointB,
+                                                             glm::vec3& closestPointSeg1, glm::vec3& closestPointSeg2);
+
+    bool AreVectorsParallel(const glm::vec3& v1, const glm::vec3& v2);
+
 }
 }
 #ifdef _MSC_VER

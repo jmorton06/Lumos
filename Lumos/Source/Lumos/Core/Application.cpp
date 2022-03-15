@@ -108,10 +108,11 @@ namespace Lumos
         m_ProjectSettings.Title = "App";
         m_ProjectSettings.ShowConsole = false;
         m_ProjectSettings.Fullscreen = false;
-        m_ProjectSettings.m_EngineAssetPath = "/Users/jmorton/dev/Lumos/Lumos/Assets/";
 
-#ifdef LUMOS_PLATFORM_WINDOWS
-		m_ProjectSettings.m_EngineAssetPath = "C:/dev/gitea/Lumos/Lumos/Assets/";
+#ifdef LUMOS_PLATFORM_MACOS
+        m_ProjectSettings.m_EngineAssetPath = StringUtilities::GetFileLocation(OS::Instance()->GetExecutablePath()) + "../../../../../Lumos/Assets/";
+#else
+        m_ProjectSettings.m_EngineAssetPath = StringUtilities::GetFileLocation(OS::Instance()->GetExecutablePath()) + "../../Lumos/Assets/";
 #endif
 
         VFS::Get().Mount("CoreShaders", m_ProjectSettings.m_EngineAssetPath + std::string("Shaders"));
@@ -204,8 +205,16 @@ namespace Lumos
 
         m_ShaderLibrary = CreateSharedPtr<ShaderLibrary>();
         m_ModelLibrary = CreateSharedPtr<ModelLibrary>();
-        Graphics::Renderer::Init();
 
+        bool loadEmbeddedShaders = true;
+        if(FileSystem::FolderExists(m_ProjectSettings.m_EngineAssetPath + "Shaders"))
+            loadEmbeddedShaders = false;
+
+        Graphics::Renderer::Init(loadEmbeddedShaders);
+
+        if(m_ProjectSettings.Fullscreen)
+            m_Window->Maximise();
+        
         //Draw Splash Screeh
         {
 			auto splashTexture = Graphics::Texture2D::CreateFromSource(splashWidth, splashHeight, (void*)splash);
@@ -314,7 +323,15 @@ namespace Lumos
         float now = m_Timer->GetElapsedS();
         auto& stats = Engine::Get().Statistics();
         auto& ts = Engine::GetTimeStep();
-
+		
+		#ifndef LUMOS_ALLOW_LARGE_FRAME_TIME
+		//Exit if frametime excedes 5 seconds
+		if(ts.GetSeconds() > 5)
+		{
+			LUMOS_LOG_CRITICAL("Exiting due to large frame time {0}", ts.GetSeconds());
+			return false;
+		}
+		#endif
         {
             LUMOS_PROFILE_SCOPE("Application::TimeStepUpdates");
             ts.Update(now);
@@ -416,11 +433,13 @@ namespace Lumos
     void Application::OnRender()
     {
         LUMOS_PROFILE_FUNCTION();
-        // if(m_RenderGraph->GetCount() > 0)
+        if(!m_DisableMainRenderGraph)
         {
             m_RenderGraph->BeginScene(m_SceneManager->GetCurrentScene());
-
             m_RenderGraph->OnRender();
+            
+            //Clears debug line and point lists
+            DebugRenderer::Reset();
             OnDebugDraw();
         }
     }
@@ -610,10 +629,13 @@ namespace Lumos
                 m_ProjectSettings.Title = "App";
                 m_ProjectSettings.ShowConsole = false;
                 m_ProjectSettings.Fullscreen = false;
-                m_ProjectSettings.m_EngineAssetPath = "/Users/jmorton/dev/Lumos/Lumos/Assets/";
-#ifdef LUMOS_PLATFORM_WINDOWS
-				m_ProjectSettings.m_EngineAssetPath = "C:/dev/gitea/Lumos/Lumos/Assets/";
+                
+#ifdef LUMOS_PLATFORM_MACOS
+                m_ProjectSettings.m_EngineAssetPath = StringUtilities::GetFileLocation(OS::Instance()->GetExecutablePath()) + "../../../../../Lumos/Assets/";
+#else
+                m_ProjectSettings.m_EngineAssetPath = StringUtilities::GetFileLocation(OS::Instance()->GetExecutablePath()) + "../../Lumos/Assets/";
 #endif
+
                 VFS::Get().Mount("CoreShaders", m_ProjectSettings.m_EngineAssetPath + std::string("Shaders"));
 
                 m_SceneManager->EnqueueScene(new Scene("Empty Scene"));

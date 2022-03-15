@@ -37,13 +37,13 @@ namespace Lumos
 
         Renderer* Renderer::s_Instance = nullptr;
 
-        void Renderer::Init()
+        void Renderer::Init(bool loadEmbeddedShaders)
         {
             LUMOS_ASSERT(CreateFunc, "No Renderer Create Function");
             LUMOS_PROFILE_FUNCTION();
             s_Instance = CreateFunc();
             s_Instance->InitInternal();
-            s_Instance->LoadEngineShaders();
+            s_Instance->LoadEngineShaders(loadEmbeddedShaders);
         }
 
         void Renderer::Release()
@@ -53,12 +53,12 @@ namespace Lumos
             s_Instance = nullptr;
         }
 
-        void Renderer::LoadEngineShaders()
+        void Renderer::LoadEngineShaders(bool loadEmbeddedShaders)
         {
-            const bool LoadEmbeddedShaders = true;
             auto shaderLibrary = Application::Get().GetShaderLibrary();
-            if(LoadEmbeddedShaders)
+            if(loadEmbeddedShaders)
             {
+                LUMOS_LOG_INFO("Loading shaders - embedded");
                 shaderLibrary->AddResource("Skybox", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromEmbeddedArray(spirv_Skyboxvertspv.data(), spirv_Skyboxvertspv_size, spirv_Skyboxfragspv.data(), spirv_Skyboxfragspv_size)));
                 shaderLibrary->AddResource("ForwardPBR", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromEmbeddedArray(spirv_ForwardPBRvertspv.data(), spirv_ForwardPBRvertspv_size, spirv_ForwardPBRfragspv.data(), spirv_ForwardPBRfragspv_size)));
                 shaderLibrary->AddResource("Shadow", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromEmbeddedArray(spirv_Shadowvertspv.data(), spirv_Shadowvertspv_size, spirv_Shadowfragspv.data(), spirv_Shadowfragspv_size)));
@@ -70,6 +70,7 @@ namespace Lumos
             }
             else
             {
+                LUMOS_LOG_INFO("Loading shaders - files");
                 shaderLibrary->AddResource("Skybox", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromFile("//CoreShaders/Skybox.shader")));
                 shaderLibrary->AddResource("ForwardPBR", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromFile("//CoreShaders/ForwardPBR.shader")));
                 shaderLibrary->AddResource("Shadow", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromFile("//CoreShaders/Shadow.shader")));

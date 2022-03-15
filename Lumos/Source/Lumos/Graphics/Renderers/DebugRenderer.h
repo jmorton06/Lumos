@@ -138,7 +138,7 @@ namespace Lumos
         static void DebugDrawSphere(float radius, const glm::vec3& position, const glm::vec4& colour);
         static void DebugDrawCircle(int numVerts, float radius, const glm::vec3& position, const glm::quat& rotation, const glm::vec4& colour);
         static void DebugDrawCone(int numCircleVerts, int numLinesToCircle, float angle, float length, const glm::vec3& position, const glm::quat& rotation, const glm::vec4& colour);
-
+        static void DebugDrawCapsule(const glm::vec3& position, const glm::quat& rotation, float height, float radius, const glm::vec4& colour);
         const std::vector<TriangleInfo>& GetTriangles() const { return m_DebugTriangles; }
         const std::vector<LineInfo>& GetLines() const { return m_DebugLines; }
         const std::vector<PointInfo>& GetPoints() const { return m_DebugPoints; }

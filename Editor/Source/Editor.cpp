@@ -1,5 +1,6 @@
 #include "Editor.h"
 #include "SceneViewPanel.h"
+#include "GameViewPanel.h"
 #include "ConsolePanel.h"
 #include "HierarchyPanel.h"
 #include "InspectorPanel.h"
@@ -172,6 +173,7 @@ namespace Lumos
 
         m_Panels.emplace_back(CreateSharedPtr<ConsolePanel>());
         m_Panels.emplace_back(CreateSharedPtr<SceneViewPanel>());
+        m_Panels.emplace_back(CreateSharedPtr<GameViewPanel>());
         m_Panels.emplace_back(CreateSharedPtr<InspectorPanel>());
         m_Panels.emplace_back(CreateSharedPtr<ApplicationInfoPanel>());
         m_Panels.emplace_back(CreateSharedPtr<HierarchyPanel>());
@@ -205,7 +207,7 @@ namespace Lumos
         Application::Get().GetWindow()->SetWindowTitle("Lumos Editor");
 
         ImGuizmo::SetGizmoSizeClipSpace(m_Settings.m_ImGuizmoScale);
-        ImGuizmo::SetGizmoSizeScale(Application::Get().GetWindowDPI());
+        //ImGuizmo::SetGizmoSizeScale(Application::Get().GetWindowDPI());
     }
 
     bool Editor::IsTextFile(const std::string& filePath)
@@ -689,7 +691,7 @@ namespace Lumos
                 ImGui::EndMenu();
             }
 
-            ImGui::SameLine((ImGui::GetWindowContentRegionMax().x / 2.0f) - (1.5f * (ImGui::GetFontSize() + ImGui::GetStyle().ItemSpacing.x)));
+            ImGui::SameLine((ImGui::GetWindowContentRegionMax().x * 0.5f) - (1.5f * (ImGui::GetFontSize() + ImGui::GetStyle().ItemSpacing.x)));
 
             ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.1f, 0.2f, 0.7f, 0.0f));
 
@@ -713,9 +715,13 @@ namespace Lumos
 
                     m_SelectedEntity = entt::null;
                     if(selected)
+					{
+						ImGui::SetWindowFocus("###scene");
                         LoadCachedScene();
+					}
                     else
                     {
+						ImGui::SetWindowFocus("###game");
                         CacheScene();
                         Application::Get().GetCurrentScene()->OnInit();
                     }
@@ -1084,7 +1090,7 @@ namespace Lumos
             {
                 for(auto panel : m_Panels)
                 {
-                    if(panel->GetSimpleName() != "Scene" && panel->Active())
+                    if(panel->GetSimpleName() != "Game" && panel->Active())
                     {
                         panel->SetActive(false);
                         hiddenPanels.push_back(panel);
@@ -1125,6 +1131,7 @@ namespace Lumos
             ImGuiID DockMiddle = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Right, 0.8f, nullptr, &dock_main_id);
             ImGuiID DockBottomMiddle = ImGui::DockBuilderSplitNode(DockMiddle, ImGuiDir_Down, 0.3f, nullptr, &DockMiddle);
 
+            ImGui::DockBuilderDockWindow("###game", DockMiddle);
             ImGui::DockBuilderDockWindow("###scene", DockMiddle);
             ImGui::DockBuilderDockWindow("###inspector", DockRight);
             ImGui::DockBuilderDockWindow("###console", DockBottomMiddle);
@@ -1333,7 +1340,7 @@ namespace Lumos
     {
         LUMOS_PROFILE_FUNCTION();
 
-        if(Application::Get().GetEditorState() == EditorState::Preview)
+        //if(Application::Get().GetEditorState() == EditorState::Preview)
         {
             auto& registry = Application::Get().GetSceneManager()->GetCurrentScene()->GetRegistry();
 
@@ -1354,6 +1361,8 @@ namespace Lumos
                     }
                 }
             }
+			else
+				m_EditorCameraController.StopMovement();
 
             if(Input::Get().GetKeyHeld(InputCode::Key::O))
             {
@@ -1372,32 +1381,32 @@ namespace Lumos
                 if(m_EditorCameraTransform.GetLocalPosition() == m_CameraDestination)
                     m_TransitioningCamera = false;
             }
-
+			
             if(!Input::Get().GetMouseHeld(InputCode::MouseKey::ButtonRight) && !ImGuizmo::IsUsing())
             {
                 if(Input::Get().GetKeyPressed(InputCode::Key::Q))
                 {
-                    SetImGuizmoOperation(4);
+                    SetImGuizmoOperation(ImGuizmo::OPERATION::BOUNDS);
                 }
 
                 if(Input::Get().GetKeyPressed(InputCode::Key::W))
                 {
-                    SetImGuizmoOperation(0);
+                    SetImGuizmoOperation(ImGuizmo::OPERATION::TRANSLATE);
                 }
 
                 if(Input::Get().GetKeyPressed(InputCode::Key::E))
                 {
-                    SetImGuizmoOperation(1);
+                    SetImGuizmoOperation(ImGuizmo::OPERATION::ROTATE);
                 }
 
                 if(Input::Get().GetKeyPressed(InputCode::Key::R))
                 {
-                    SetImGuizmoOperation(2);
+                    SetImGuizmoOperation(ImGuizmo::OPERATION::SCALE);
                 }
 
                 if(Input::Get().GetKeyPressed(InputCode::Key::T))
                 {
-                    SetImGuizmoOperation(3);
+                    SetImGuizmoOperation(ImGuizmo::OPERATION::UNIVERSAL);
                 }
 
                 if(Input::Get().GetKeyPressed(InputCode::Key::Y))
@@ -1455,7 +1464,7 @@ namespace Lumos
         if(m_CurrentCamera->IsOrthographic())
         {
             m_EditorCameraTransform.SetLocalPosition(point);
-            //m_CurrentCamera->SetScale(distance / 2.0f);
+            //m_CurrentCamera->SetScale(distance * 0.5f);
         }
         else
         {
@@ -1561,7 +1570,7 @@ namespace Lumos
             }
         }
 
-        if(registry.valid(m_SelectedEntity) && Application::Get().GetEditorState() == EditorState::Preview)
+        if(registry.valid(m_SelectedEntity))// && Application::Get().GetEditorState() == EditorState::Preview)
         {
             auto transform = registry.try_get<Maths::Transform>(m_SelectedEntity);
 
@@ -1821,8 +1830,7 @@ namespace Lumos
         Application::OnDebugDraw();
         DebugDraw();
 
-        if(Application::Get().GetEditorState() == EditorState::Preview && m_Settings.m_ShowGrid && !m_EditorCamera->IsOrthographic())
-            Draw3DGrid();
+        //Application::Get().GetEditorState() == EditorState::Preview &&
     }
 
     void Editor::OnRender()
@@ -1838,6 +1846,14 @@ namespace Lumos
             OS::Instance()->Delay(1000000);
 
         Application::OnRender();
+        
+        for(int i = 0; i < int(m_Panels.size()); i++)
+        {
+            m_Panels[i]->OnRender();
+        }
+		
+		if(m_Settings.m_ShowGrid && !m_EditorCamera->IsOrthographic())
+            Draw3DGrid();
     }
 
     void Editor::DrawPreview()

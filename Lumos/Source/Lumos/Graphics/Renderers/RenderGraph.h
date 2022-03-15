@@ -45,6 +45,15 @@ namespace Lumos
                 return vertex == other.vertex && colour == other.colour && size == other.size && uv == other.uv;
             }
         };
+    
+        struct RenderGraphSettings
+        {
+            bool DebugPass = true;
+            bool GeomPass = true;
+            bool PostProcessPass = false;
+            bool ShadowPass = true;
+            bool SkyboxPass = true;
+        };
 
         class RenderGraph
         {
@@ -158,7 +167,7 @@ namespace Lumos
 
                 SharedPtr<Shader> m_Shader = nullptr;
                 Texture* m_RenderTexture = nullptr;
-                Texture* m_DepthTexture = nullptr;
+                TextureDepth* m_DepthTexture = nullptr;
 
                 Frustum m_Frustum;
 
@@ -227,13 +236,11 @@ namespace Lumos
 
             ForwardData& GetForwardData() { return m_ForwardData; }
             ShadowData& GetShadowData() { return m_ShadowData; }
-
-            TextureDepth* GetDepthTexture() { return m_DepthTexture; }
+            RenderGraphSettings& GetSettings() { return m_Settings; }
 
         private:
             Texture2D* m_MainTexture = nullptr;
             Texture* m_ScreenTexture = nullptr;
-            TextureDepth* m_DepthTexture = nullptr;
 
             Camera* m_Camera = nullptr;
             Maths::Transform* m_CameraTransform = nullptr;
@@ -260,6 +267,8 @@ namespace Lumos
             Texture2D* m_BloomTexture = nullptr;
             SharedPtr<Graphics::Shader> m_BloomPassShader;
             SharedPtr<Graphics::DescriptorSet> m_BloomPassDescriptorSet;
+            
+            RenderGraphSettings m_Settings;
         };
     }
 }

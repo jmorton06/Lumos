@@ -231,10 +231,14 @@ namespace Lumos
 
             bool m_FullScreenSceneView = false;
             ImGuiUtilities::Theme m_Theme = ImGuiUtilities::Theme::Dark;
+            bool m_FreeAspect = true;
+            float m_FixedAspect = 1.0f;
+            bool m_HalfRes = false;
+            float m_AspectRatio = 1.0f;
 
             //Camera Settings
         };
-
+        
         EditorSettings& GetSettings() { return m_Settings; }
 
     protected:
@@ -243,7 +247,7 @@ namespace Lumos
 
         Application* m_Application;
 
-        uint32_t m_ImGuizmoOperation = 0;
+        uint32_t m_ImGuizmoOperation = 14463;
         entt::entity m_SelectedEntity;
         entt::entity m_CopiedEntity;
         bool m_CutCopyEntity = false;

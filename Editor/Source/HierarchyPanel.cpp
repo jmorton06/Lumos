@@ -357,7 +357,7 @@ namespace Lumos
 
                     const ImRect childRect = ImRect(currentPos, currentPos + ImVec2(0.0f, ImGui::GetFontSize() + ImGui::GetStyle().FramePadding.y));
 
-                    const float midpoint = (childRect.Min.y + childRect.Max.y) / 2.0f;
+                    const float midpoint = (childRect.Min.y + childRect.Max.y) * 0.5f;
                     drawList->AddLine(ImVec2(verticalLineStart.x, midpoint), ImVec2(verticalLineStart.x + HorizontalTreeLineSize, midpoint), TreeLineColor);
                     verticalLineEnd.y = midpoint;
 

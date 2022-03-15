@@ -53,7 +53,7 @@ namespace Lumos
             if(desiredGPUIndex >= 0)
             {
                 //If index is greater than 0 try and use it
-                if(desiredGPUIndex >= m_GPUCount)
+                if(desiredGPUIndex >= (int8_t)m_GPUCount)
                 {
                     LUMOS_LOG_CRITICAL("GPU index greater than GPU count!");
                 }

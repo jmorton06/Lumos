@@ -73,7 +73,7 @@ namespace Lumos
         virtual void SetEventCallback(const EventCallbackFn& callback) = 0;
         virtual void UpdateCursorImGui() = 0;
         virtual void SetIcon(const std::string& filePath, const std::string& smallIconFilePath = "") = 0;
-
+        virtual void Maximise() { };
         virtual std::string GetTitle() const = 0;
         virtual uint32_t GetWidth() const = 0;
         virtual uint32_t GetHeight() const = 0;

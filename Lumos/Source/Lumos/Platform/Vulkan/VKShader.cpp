@@ -501,8 +501,8 @@ namespace Lumos
                     setLayoutBindings.push_back(setLayoutBinding);
                 }
 
-                VkDescriptorSetLayoutBindingFlagsCreateInfoEXT flagsInfo = {};
-                flagsInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_BINDING_FLAGS_CREATE_INFO_EXT;
+                VkDescriptorSetLayoutBindingFlagsCreateInfo flagsInfo = {};
+                flagsInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_BINDING_FLAGS_CREATE_INFO;
                 flagsInfo.pNext = nullptr;
                 flagsInfo.bindingCount = static_cast<uint32_t>(layoutBindingFlags.size());
                 flagsInfo.pBindingFlags = layoutBindingFlags.data();

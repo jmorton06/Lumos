@@ -50,6 +50,9 @@ namespace Lumos
         virtual void HideKeyboard() {};
         virtual void Delay(uint32_t usec) {};
 
+        //Needed for MaxOS
+        virtual void MaximiseWindow() {}
+
     protected:
         static OS* s_Instance;
     };
