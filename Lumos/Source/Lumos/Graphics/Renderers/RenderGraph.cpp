@@ -272,10 +272,10 @@ namespace Lumos::Graphics
         }
 
         m_DebugDrawData.m_PointIndexBuffer = IndexBuffer::Create(indices, MaxPointIndices);
-
+        delete[] indices;
+        
         //Lines
         m_DebugDrawData.m_LineShader = Application::Get().GetShaderLibrary()->GetResource("Batch2DLine");
-        ;
 
         descriptorDesc.layoutIndex = 0;
         descriptorDesc.shader = m_DebugDrawData.m_LineShader.get();

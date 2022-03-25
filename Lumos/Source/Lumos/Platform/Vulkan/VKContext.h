@@ -51,8 +51,8 @@ namespace Lumos
             void WaitIdle() const override;
             void OnImGui() override {};
 
-            float GetGPUMemoryUsed() override {};
-            float GetTotalGPUMemory() override {};
+            float GetGPUMemoryUsed() override { return 0.0f; };
+            float GetTotalGPUMemory() override { return 0.0f; };
 
             const std::vector<const char*>& GetLayerNames() const { return m_InstanceLayerNames; }
             const std::vector<const char*>& GetExtensionNames() const { return m_InstanceExtensionNames; }
