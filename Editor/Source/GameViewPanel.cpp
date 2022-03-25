@@ -206,6 +206,8 @@ namespace Lumos
                 ImGuiIO& io = ImGui::GetIO();
 
                 static Engine::Stats stats = Engine::Get().Statistics();
+                static Graphics::RenderGraphStats renderGraphStats = m_RenderGraph->GetRenderGraphStats();
+
                 static float timer = 1.0f;
                 timer += io.DeltaTime;
 
@@ -213,6 +215,7 @@ namespace Lumos
                 {
                     timer = 0.0f;
                     stats = Engine::Get().Statistics();
+                    renderGraphStats = m_RenderGraph->GetRenderGraphStats();
                 }
                 Engine::Get().ResetStats();
 
@@ -224,9 +227,9 @@ namespace Lumos
                 else
                     ImGui::TextUnformatted("Mouse Position: <invalid>");
 
-                ImGui::Text("Num Rendered Objects %u", stats.NumRenderedObjects);
-                ImGui::Text("Num Shadow Objects %u", stats.NumShadowObjects);
-                ImGui::Text("Num Draw Calls  %u", stats.NumDrawCalls);
+                ImGui::Text("Num Rendered Objects %u", renderGraphStats.NumRenderedObjects);
+                ImGui::Text("Num Shadow Objects %u", renderGraphStats.NumShadowObjects);
+                ImGui::Text("Num Draw Calls  %u", renderGraphStats.NumDrawCalls);
                 ImGui::Text("Used GPU Memory : %.1f mb | Total : %.1f mb", stats.UsedGPUMemory * 0.000001f, stats.TotalGPUMemory * 0.000001f);
 
                 if(ImGui::BeginPopupContextWindow())

@@ -1839,10 +1839,11 @@ namespace Lumos
         //DrawPreview();
 
         bool isProfiling = false;
+        static bool firstFrame = true;
 #if LUMOS_PROFILE
         isProfiling = tracy::GetProfiler().IsConnected();
 #endif
-        if(!isProfiling && m_Settings.m_SleepOutofFocus && !Application::Get().GetWindow()->GetWindowFocus() && m_EditorState != EditorState::Play)
+        if(!isProfiling && m_Settings.m_SleepOutofFocus && !Application::Get().GetWindow()->GetWindowFocus() && m_EditorState != EditorState::Play && !firstFrame)
             OS::Instance()->Delay(1000000);
 
         Application::OnRender();
@@ -1854,6 +1855,8 @@ namespace Lumos
 		
 		if(m_Settings.m_ShowGrid && !m_EditorCamera->IsOrthographic())
             Draw3DGrid();
+        
+        firstFrame = false;
     }
 
     void Editor::DrawPreview()

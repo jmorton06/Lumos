@@ -264,7 +264,7 @@ namespace Lumos
                 break;
 
             case VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL:
-                accessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT;
+                accessMask = VK_ACCESS_SHADER_READ_BIT;//VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT;
                 break;
 
             case VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL:
@@ -380,7 +380,7 @@ namespace Lumos
                 }
                 else
                 {
-                    sourceStage = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
+                    sourceStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
                 }
             }
 
@@ -396,17 +396,15 @@ namespace Lumos
                 }
                 else
                 {
-                    destinationStage = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
+                    destinationStage = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
                 }
             }
 
             // Put barrier inside setup command buffer
             vkCmdPipelineBarrier(
                 commandBuffer,
-                //destinationStage, //Causes many warnings - not supported by stage mask, in vulkan validation
-                //sourceStage,
-                VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
-                VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
+                sourceStage,
+                destinationStage,
                 0,
                 0, nullptr,
                 0, nullptr,

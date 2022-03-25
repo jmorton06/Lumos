@@ -74,7 +74,7 @@ namespace Lumos
             LUMOS_PROFILE_FUNCTION();
             VmaAllocationCreateInfo allocInfovma;
             allocInfovma.flags = 0;
-            allocInfovma.usage = VMA_MEMORY_USAGE_GPU_ONLY;
+            allocInfovma.usage = VMA_MEMORY_USAGE_AUTO;
             allocInfovma.requiredFlags = 0;
             allocInfovma.preferredFlags = 0;
             allocInfovma.memoryTypeBits = 0;
@@ -465,7 +465,7 @@ namespace Lumos
 
             m_MipLevels = static_cast<uint32_t>(std::floor(std::log2(Maths::Max(m_Width, m_Height)))) + 1;
 
-            VKBuffer* stagingBuffer = new VKBuffer(VK_BUFFER_USAGE_TRANSFER_SRC_BIT, static_cast<uint32_t>(imageSize), pixels);
+            VKBuffer* stagingBuffer = new VKBuffer(VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, static_cast<uint32_t>(imageSize), pixels);
 
             if(m_Data == nullptr)
                 delete[] pixels;
@@ -669,7 +669,7 @@ namespace Lumos
                 }
             }
 
-            VKBuffer* stagingBuffer = new VKBuffer(VK_BUFFER_USAGE_TRANSFER_SRC_BIT, static_cast<uint32_t>(size), allData);
+            VKBuffer* stagingBuffer = new VKBuffer(VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, static_cast<uint32_t>(size), allData);
 
             if(m_Data == nullptr)
             {

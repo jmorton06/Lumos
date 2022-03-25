@@ -13,11 +13,11 @@ namespace Lumos
         class VKBuffer
         {
         public:
-            VKBuffer(VkBufferUsageFlags usage, uint32_t size, const void* data);
+            VKBuffer(VkBufferUsageFlags usage, VkMemoryPropertyFlags memoryProperyFlags, uint32_t size, const void* data);
             VKBuffer();
             virtual ~VKBuffer();
 
-            void Init(VkBufferUsageFlags usage, uint32_t size, const void* data);
+            void Init(VkBufferUsageFlags usage, VkMemoryPropertyFlags memoryProperyFlags, uint32_t size, const void* data);
             void Resize(uint32_t size, const void* data);
             void SetData(uint32_t size, const void* data);
             const VkBuffer& GetBuffer() const { return m_Buffer; }
@@ -29,6 +29,7 @@ namespace Lumos
             void Flush(VkDeviceSize size = VK_WHOLE_SIZE, VkDeviceSize offset = 0);
             void Invalidate(VkDeviceSize size = VK_WHOLE_SIZE, VkDeviceSize offset = 0);
             void SetUsage(VkBufferUsageFlags flags) { m_UsageFlags = flags; }
+            void SetMemoryProperyFlags(VkBufferUsageFlags flags) { m_MemoryProperyFlags = flags; }
 
         protected:
             VkBuffer m_Buffer {};
@@ -37,6 +38,7 @@ namespace Lumos
             VkDeviceSize m_Size = 0;
             VkDeviceSize m_Alignment = 0;
             VkBufferUsageFlags m_UsageFlags;
+            VkMemoryPropertyFlags m_MemoryProperyFlags;
             void* m_Mapped = nullptr;
 
 #ifdef USE_VMA_ALLOCATOR

@@ -285,17 +285,30 @@ namespace Lumos
         {
             m_PhysicalDevice = CreateSharedPtr<VKPhysicalDevice>();
 
-            VkPhysicalDeviceFeatures physicalDeviceFeatures;
-            vkGetPhysicalDeviceFeatures(m_PhysicalDevice->GetVulkanPhysicalDevice(), &physicalDeviceFeatures);
+            VkPhysicalDeviceFeatures supportedFeatures;
+            memset(&supportedFeatures, 0, sizeof(VkPhysicalDeviceFeatures));
+            memset(&m_EnabledFeatures, 0, sizeof(VkPhysicalDeviceFeatures));
+            
+            vkGetPhysicalDeviceFeatures(m_PhysicalDevice->GetVulkanPhysicalDevice(), &supportedFeatures);
+
+            if(supportedFeatures.wideLines)
+            {
+                m_EnabledFeatures.wideLines = true;
+                Renderer::GetCapabilities().WideLines = true;
+            }
+            else
+            {
+                Renderer::GetCapabilities().WideLines = false;
+            }
+            
+            if(supportedFeatures.samplerAnisotropy)
+            {
+                m_EnabledFeatures.samplerAnisotropy = true;
+            }
 
             std::vector<const char*> deviceExtensions = {
                 VK_KHR_SWAPCHAIN_EXTENSION_NAME
             };
-
-            if(m_PhysicalDevice->IsExtensionSupported(VK_KHR_MAINTENANCE1_EXTENSION_NAME))
-            {
-                deviceExtensions.push_back(VK_KHR_MAINTENANCE1_EXTENSION_NAME);
-            }
 
             if(m_PhysicalDevice->IsExtensionSupported(VK_EXT_DEBUG_UTILS_EXTENSION_NAME))
             {
@@ -323,7 +336,7 @@ namespace Lumos
             deviceCreateInfo.pQueueCreateInfos = m_PhysicalDevice->m_QueueCreateInfos.data();
             deviceCreateInfo.enabledExtensionCount = static_cast<uint32_t>(deviceExtensions.size());
             deviceCreateInfo.ppEnabledExtensionNames = deviceExtensions.data();
-            deviceCreateInfo.pEnabledFeatures = &physicalDeviceFeatures;
+            deviceCreateInfo.pEnabledFeatures = &m_EnabledFeatures;
             deviceCreateInfo.enabledLayerCount = 0;
             deviceCreateInfo.pNext = (void*)&indexingFeatures;
 

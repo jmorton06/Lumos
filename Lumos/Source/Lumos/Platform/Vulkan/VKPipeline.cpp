@@ -80,10 +80,14 @@ namespace Lumos
             rs.depthClampEnable = VK_FALSE;
             rs.rasterizerDiscardEnable = VK_FALSE;
             rs.depthBiasEnable = (pipelineDesc.depthBiasEnabled ? VK_TRUE : VK_FALSE);
-            rs.depthBiasConstantFactor = 0;
+            rs.depthBiasConstantFactor = pipelineDesc.depthBiasConstantFactor;
             rs.depthBiasClamp = 0;
-            rs.depthBiasSlopeFactor = 0;
-            rs.lineWidth = 1.0f;
+            rs.depthBiasSlopeFactor = pipelineDesc.depthBiasSlopeFactor;
+            
+            if(Renderer::GetCapabilities().WideLines)
+                rs.lineWidth = pipelineDesc.lineWidth;
+            else
+                rs.lineWidth = 1.0f;
             rs.pNext = NULL;
 
             VkPipelineColorBlendStateCreateInfo cb {};
@@ -156,12 +160,15 @@ namespace Lumos
             vp.pViewports = NULL;
             dynamicStateDescriptors.push_back(VK_DYNAMIC_STATE_VIEWPORT);
             dynamicStateDescriptors.push_back(VK_DYNAMIC_STATE_SCISSOR);
+            
+            if (Renderer::GetCapabilities().WideLines && pipelineDesc.polygonMode == PolygonMode::LINE)// || pipelineDesc.polygonMode == PolygonMode::LINESTRIP)
+                dynamicStateDescriptors.push_back(VK_DYNAMIC_STATE_LINE_WIDTH);
 
             if(pipelineDesc.depthBiasEnabled)
             {
                 dynamicStateDescriptors.push_back(VK_DYNAMIC_STATE_DEPTH_BIAS);
-                m_DepthBiasConstant = 1.25f;
-                m_DepthBiasSlope = 1.75f;
+                m_DepthBiasConstant = pipelineDesc.depthBiasConstantFactor;
+                m_DepthBiasSlope = pipelineDesc.depthBiasSlopeFactor;
                 m_DepthBiasEnabled = true;
             }
             else
@@ -232,12 +239,6 @@ namespace Lumos
             LUMOS_PROFILE_FUNCTION();
             TransitionAttachments();
 
-            if(m_DepthBiasEnabled)
-                vkCmdSetDepthBias(static_cast<VKCommandBuffer*>(commandBuffer)->GetHandle(),
-                    m_DepthBiasConstant,
-                    0.0f,
-                    m_DepthBiasSlope);
-
             VKFramebuffer* framebuffer;
 
             if(m_Description.swapchainTarget)
@@ -256,6 +257,14 @@ namespace Lumos
             m_RenderPass->BeginRenderpass(commandBuffer, m_Description.clearColour, framebuffer, Graphics::INLINE, GetWidth(), GetHeight());
 
             vkCmdBindPipeline(static_cast<VKCommandBuffer*>(commandBuffer)->GetHandle(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_Pipeline);
+            
+            //Bug in moltenVK. Needs to happen after pipeline bound for now.
+            if(m_DepthBiasEnabled)
+                vkCmdSetDepthBias(static_cast<VKCommandBuffer*>(commandBuffer)->GetHandle(),
+                    m_DepthBiasConstant,
+                    0.0f,
+                    m_DepthBiasSlope);
+
         }
 
         void VKPipeline::CreateFramebuffers()

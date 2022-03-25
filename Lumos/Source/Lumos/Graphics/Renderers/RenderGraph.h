@@ -54,6 +54,15 @@ namespace Lumos
             bool ShadowPass = true;
             bool SkyboxPass = true;
         };
+		
+		struct RenderGraphStats
+        {
+            uint32_t UpdatesPerSecond;
+            uint32_t FramesPerSecond;
+            uint32_t NumRenderedObjects = 0;
+            uint32_t NumShadowObjects = 0;
+            uint32_t NumDrawCalls = 0;
+        };
 
         class RenderGraph
         {
@@ -237,6 +246,7 @@ namespace Lumos
             ForwardData& GetForwardData() { return m_ForwardData; }
             ShadowData& GetShadowData() { return m_ShadowData; }
             RenderGraphSettings& GetSettings() { return m_Settings; }
+            RenderGraphStats& GetRenderGraphStats() { return m_Stats; }
 
         private:
             Texture2D* m_MainTexture = nullptr;
@@ -269,6 +279,7 @@ namespace Lumos
             SharedPtr<Graphics::DescriptorSet> m_BloomPassDescriptorSet;
             
             RenderGraphSettings m_Settings;
+			RenderGraphStats m_Stats;
         };
     }
 }

@@ -72,7 +72,7 @@ namespace Lumos
             std::vector<VkDeviceQueueCreateInfo> m_QueueCreateInfos;
 
             VkPhysicalDevice m_PhysicalDevice;
-            VkPhysicalDeviceFeatures m_Features;
+            //VkPhysicalDeviceFeatures m_Features;
             VkPhysicalDeviceProperties m_PhysicalDeviceProperties;
             VkPhysicalDeviceMemoryProperties m_MemoryProperties;
             
@@ -144,6 +144,11 @@ namespace Lumos
             uint32_t GetGPUCount() const
             {
                 return m_PhysicalDevice->GetGPUCount();
+            }
+            
+            const VkPhysicalDeviceFeatures& GetEnabledFeatures()
+            {
+                return m_EnabledFeatures;
             }
 
         private:
