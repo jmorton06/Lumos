@@ -57,9 +57,15 @@ namespace Lumos
 
     void DebugRenderer::Reset()
     {
-        s_Instance->m_DebugTriangles.clear();
-        s_Instance->m_DebugLines.clear();
-        s_Instance->m_DebugPoints.clear();
+        s_Instance->m_DrawList.m_DebugTriangles.clear();
+        s_Instance->m_DrawList.m_DebugLines.clear();
+        s_Instance->m_DrawList.m_DebugThickLines.clear();
+        s_Instance->m_DrawList.m_DebugPoints.clear();
+        
+        s_Instance->m_DrawListNDT.m_DebugTriangles.clear();
+        s_Instance->m_DrawListNDT.m_DebugLines.clear();
+        s_Instance->m_DrawListNDT.m_DebugThickLines.clear();
+        s_Instance->m_DrawListNDT.m_DebugPoints.clear();
     }
 
     DebugRenderer::DebugRenderer()
@@ -73,7 +79,10 @@ namespace Lumos
     //Draw Point (circle)
     void DebugRenderer::GenDrawPoint(bool ndt, const glm::vec3& pos, float point_radius, const glm::vec4& colour)
     {
-        s_Instance->m_DebugPoints.emplace_back(pos, point_radius, colour);
+        if(ndt)
+            s_Instance->m_DrawListNDT.m_DebugPoints.emplace_back(pos, point_radius, colour);
+        else
+            s_Instance->m_DrawList.m_DebugPoints.emplace_back(pos, point_radius, colour);
     }
 
     void DebugRenderer::DrawPoint(const glm::vec3& pos, float point_radius, const glm::vec3& colour)
@@ -96,7 +105,10 @@ namespace Lumos
     //Draw Line with a given thickness
     void DebugRenderer::GenDrawThickLine(bool ndt, const glm::vec3& start, const glm::vec3& end, float line_width, const glm::vec4& colour)
     {
-        s_Instance->m_DebugLines.emplace_back(start, end, colour);
+        if(ndt)
+            s_Instance->m_DrawListNDT.m_DebugThickLines.emplace_back(start, end, colour);
+        else
+            s_Instance->m_DrawList.m_DebugThickLines.emplace_back(start, end, colour);
     }
     void DebugRenderer::DrawThickLine(const glm::vec3& start, const glm::vec3& end, float line_width, const glm::vec3& colour)
     {
@@ -118,7 +130,10 @@ namespace Lumos
     //Draw line with thickness of 1 screen pixel regardless of distance from camera
     void DebugRenderer::GenDrawHairLine(bool ndt, const glm::vec3& start, const glm::vec3& end, const glm::vec4& colour)
     {
-        s_Instance->m_DebugLines.emplace_back(start, end, colour);
+        if(ndt)
+            s_Instance->m_DrawListNDT.m_DebugLines.emplace_back(start, end, colour);
+        else
+            s_Instance->m_DrawList.m_DebugLines.emplace_back(start, end, colour);
     }
     void DebugRenderer::DrawHairLine(const glm::vec3& start, const glm::vec3& end, const glm::vec3& colour)
     {
@@ -168,7 +183,7 @@ namespace Lumos
     //Draw Triangle
     void DebugRenderer::GenDrawTriangle(bool ndt, const glm::vec3& v0, const glm::vec3& v1, const glm::vec3& v2, const glm::vec4& colour)
     {
-        s_Instance->m_DebugTriangles.emplace_back(v0, v1, v2, colour);
+        s_Instance->m_DrawList.m_DebugTriangles.emplace_back(v0, v1, v2, colour);
     }
 
     void DebugRenderer::DrawTriangle(const glm::vec3& v0, const glm::vec3& v1, const glm::vec3& v2, const glm::vec4& colour)

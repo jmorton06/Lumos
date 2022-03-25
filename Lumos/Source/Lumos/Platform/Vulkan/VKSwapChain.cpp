@@ -58,12 +58,6 @@ namespace Lumos
             return success;
         }
 
-        FrameData& VKSwapChain::GetCurrentFrameData()
-        {
-            LUMOS_ASSERT(m_CurrentBuffer < m_SwapChainBufferCount, "Incorrect swapchain buffer index");
-            return m_Frames[m_CurrentBuffer];
-        }
-
         bool VKSwapChain::Init(bool vsync)
         {
             LUMOS_PROFILE_FUNCTION();
@@ -207,6 +201,12 @@ namespace Lumos
             return true;
         }
 
+        FrameData& VKSwapChain::GetCurrentFrameData()
+        {
+            LUMOS_ASSERT(m_CurrentBuffer < m_SwapChainBufferCount, "Incorrect swapchain buffer index");
+            return m_Frames[m_CurrentBuffer];
+        }
+
         void VKSwapChain::CreateFrameData()
         {
             for(uint32_t i = 0; i < m_SwapChainBufferCount; i++)
@@ -221,7 +221,7 @@ namespace Lumos
 
                 if(!m_Frames[i].MainCommandBuffer)
                 {
-                    m_Frames[i].CommandPool = CreateSharedPtr<VKCommandPool>(VKDevice::Get().GetPhysicalDevice()->GetGraphicsQueueFamilyIndex(), VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT);
+                    m_Frames[i].CommandPool = CreateSharedPtr<VKCommandPool>(VKDevice::Get().GetPhysicalDevice()->GetGraphicsQueueFamilyIndex(), VK_COMMAND_POOL_CREATE_TRANSIENT_BIT | VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT);
 
                     m_Frames[i].MainCommandBuffer = CreateSharedPtr<VKCommandBuffer>();
                     m_Frames[i].MainCommandBuffer->Init(true, m_Frames[i].CommandPool->GetHandle());

@@ -74,6 +74,9 @@ namespace Lumos
             HashCombine(hash, pipelineDesc.depthTarget);
             HashCombine(hash, pipelineDesc.depthArrayTarget);
             HashCombine(hash, pipelineDesc.swapchainTarget);
+            HashCombine(hash, pipelineDesc.lineWidth);
+            HashCombine(hash, pipelineDesc.depthBiasConstantFactor);
+            HashCombine(hash, pipelineDesc.depthBiasSlopeFactor);
 
             if(pipelineDesc.swapchainTarget)
             {

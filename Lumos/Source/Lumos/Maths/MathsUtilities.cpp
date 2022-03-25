@@ -27,7 +27,7 @@ namespace Lumos::Maths
             return 1;
 
         uint32_t result = n;
-        for (int i = 2; i <= k; ++i)
+        for (uint32_t i = 2; i <= k; ++i)
         {
             result *= (n - i + 1);
             result /= i;

@@ -86,6 +86,7 @@ namespace Lumos
             float MaxAnisotropy = 0.0f;
             int MaxTextureUnits = 0;
             int UniformBufferOffsetAlignment = 0;
+            bool WideLines = false;
         };
 
         class LUMOS_EXPORT Renderer

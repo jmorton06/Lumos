@@ -8,10 +8,10 @@ namespace Lumos
 {
     namespace Graphics
     {
-        VKBuffer::VKBuffer(VkBufferUsageFlags usage, uint32_t size, const void* data)
+        VKBuffer::VKBuffer(VkBufferUsageFlags usage, VkMemoryPropertyFlags memoryProperyFlags, uint32_t size, const void* data)
             : m_Size(size)
         {
-            Init(usage, size, data);
+            Init(usage, memoryProperyFlags, size, data);
         }
 
         VKBuffer::VKBuffer()
@@ -43,11 +43,12 @@ namespace Lumos
             }
         }
 
-        void VKBuffer::Init(VkBufferUsageFlags usage, uint32_t size, const void* data)
+    void VKBuffer::Init(VkBufferUsageFlags usage, VkMemoryPropertyFlags memoryProperyFlags, uint32_t size, const void* data)
         {
             LUMOS_PROFILE_FUNCTION();
 
             m_UsageFlags = usage;
+            m_MemoryProperyFlags = memoryProperyFlags;
             m_Size = size;
 
             VkBufferCreateInfo bufferInfo = {};
@@ -55,10 +56,15 @@ namespace Lumos
             bufferInfo.size = size;
             bufferInfo.usage = usage;
             bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+            
+            bool isMappable = (memoryProperyFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) != 0;
 
 #ifdef USE_VMA_ALLOCATOR
             VmaAllocationCreateInfo vmaAllocInfo = {};
-            vmaAllocInfo.usage = VMA_MEMORY_USAGE_CPU_TO_GPU;
+            vmaAllocInfo.usage = VMA_MEMORY_USAGE_AUTO;
+            vmaAllocInfo.flags = isMappable ? VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT : 0;
+            vmaAllocInfo.preferredFlags = memoryProperyFlags;
+
             vmaCreateBuffer(VKDevice::Get().GetAllocator(), &bufferInfo, &vmaAllocInfo, &m_Buffer, &m_Allocation, nullptr);
 #else
             VK_CHECK_RESULT(vkCreateBuffer(VKDevice::Device(), &bufferInfo, nullptr, &m_Buffer));
@@ -106,7 +112,7 @@ namespace Lumos
 #endif
             }
 
-            Init(usage, size, data);
+            Init(usage, m_MemoryProperyFlags, size, data);
         }
 
         void VKBuffer::Map(VkDeviceSize size, VkDeviceSize offset)

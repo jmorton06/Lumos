@@ -329,7 +329,7 @@ namespace Lumos
 		if(ts.GetSeconds() > 5)
 		{
 			LUMOS_LOG_CRITICAL("Exiting due to large frame time {0}", ts.GetSeconds());
-			return false;
+			//return false;
 		}
 		#endif
         {
