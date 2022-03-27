@@ -1,5 +1,8 @@
 name: Create release
 
+# Wait for build to complete to upload artifacts
+needs: build
+
 # When a tag is pushed, create a release
 on:
   push:
