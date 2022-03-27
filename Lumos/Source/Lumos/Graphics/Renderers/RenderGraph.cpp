@@ -1056,22 +1056,21 @@ namespace Lumos::Graphics
             m_ShadowData.m_Layer = i;
             pipeline->Bind(commandBuffer, m_ShadowData.m_Layer);
 
+            uint32_t layer = static_cast<uint32_t>(m_ShadowData.m_Layer);
+            auto& pushConstants = m_ShadowData.m_Shader->GetPushConstants();
+            memcpy(pushConstants[0].data + sizeof(glm::mat4), &layer, sizeof(uint32_t));
+            m_ShadowData.m_CurrentDescriptorSets[0] = m_ShadowData.m_DescriptorSet[0].get();
+
             for(auto& command : m_ShadowData.m_CascadeCommandQueue[m_ShadowData.m_Layer])
             {
                 m_Stats.NumShadowObjects++;
 
                 Mesh* mesh = command.mesh;
 
-                m_ShadowData.m_CurrentDescriptorSets[0] = m_ShadowData.m_DescriptorSet[0].get();
-
-                uint32_t layer = static_cast<uint32_t>(m_ShadowData.m_Layer);
                 auto trans = command.transform;
-                auto& pushConstants = m_ShadowData.m_Shader->GetPushConstants();
                 memcpy(pushConstants[0].data, &trans, sizeof(glm::mat4));
-                memcpy(pushConstants[0].data + sizeof(glm::mat4), &layer, sizeof(uint32_t));
 
                 m_ShadowData.m_Shader->BindPushConstants(commandBuffer, pipeline.get());
-
                 Renderer::BindDescriptorSets(pipeline.get(), commandBuffer, 0, m_ShadowData.m_CurrentDescriptorSets.data(), 1);
                 Renderer::DrawMesh(commandBuffer, pipeline.get(), mesh);
             }
@@ -1079,6 +1078,7 @@ namespace Lumos::Graphics
             pipeline->End(commandBuffer);
         }
     }
+
     void RenderGraph::ForwardPass()
     {
         LUMOS_PROFILE_FUNCTION();

@@ -97,11 +97,6 @@ namespace Lumos
             if(m_SwapChainBufferCount > 3)
                 m_SwapChainBufferCount = 3;
 
-#ifdef LUMOS_PLATFORM_MACOS
-                //Moltenvk bug - vsync is double the actual refresh rate when using 3 images
-                //m_SwapChainBufferCount = 2;
-#endif
-
             VkSurfaceTransformFlagBitsKHR preTransform;
             if(surfaceCapabilities.supportedTransforms & VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR)
                 preTransform = VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR;
@@ -157,6 +152,20 @@ namespace Lumos
 
             if(m_OldSwapChain != VK_NULL_HANDLE)
             {
+                for(uint32_t i = 0; i < m_SwapChainBufferCount; i++)
+                {
+                    if(m_Frames[i].MainCommandBuffer->GetState() == CommandBufferState::Submitted)
+                        m_Frames[i].MainCommandBuffer->Wait();
+
+                    m_Frames[i].MainCommandBuffer->Reset();
+
+                    delete m_SwapChainBuffers[i];
+                    vkDestroySemaphore(VKDevice::Get().GetDevice(), m_Frames[i].PresentSemaphore, nullptr);
+                    m_Frames[i].PresentSemaphore = VK_NULL_HANDLE;
+                }
+
+                m_SwapChainBuffers.clear();
+                
                 vkDestroySwapchainKHR(VKDevice::Get().GetDevice(), m_OldSwapChain, VK_NULL_HANDLE);
                 m_OldSwapChain = VK_NULL_HANDLE;
             }
@@ -274,23 +283,7 @@ namespace Lumos
             m_Width = width;
             m_Height = height;
 
-            for(uint32_t i = 0; i < m_SwapChainBufferCount; i++)
-            {
-                if(m_Frames[i].MainCommandBuffer->GetState() == CommandBufferState::Submitted)
-                    m_Frames[i].MainCommandBuffer->Wait();
-
-                m_Frames[i].MainCommandBuffer->Reset();
-
-                delete m_SwapChainBuffers[i];
-                vkDestroySemaphore(VKDevice::Get().GetDevice(), m_Frames[i].PresentSemaphore, nullptr);
-                m_Frames[i].PresentSemaphore = VK_NULL_HANDLE;
-            }
-
-            VKRenderer::GetGraphicsContext()->WaitIdle();
-
-            m_SwapChainBuffers.clear();
             m_OldSwapChain = m_SwapChain;
-
             m_SwapChain = VK_NULL_HANDLE;
 
             if(windowHandle)
@@ -300,6 +293,8 @@ namespace Lumos
                 Init(m_VSyncEnabled);
                 AcquireNextImage();
             }
+            
+            VKRenderer::GetGraphicsContext()->WaitIdle();
         }
 
         void VKSwapChain::QueueSubmit()
