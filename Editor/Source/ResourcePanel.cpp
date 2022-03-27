@@ -183,7 +183,7 @@ namespace Lumos
 
                         const ImRect childRect = ImRect(currentPos, currentPos + ImVec2(0.0f, ImGui::GetFontSize()));
 
-                        const float midpoint = (childRect.Min.y + childRect.Max.y) / 2.0f;
+                        const float midpoint = (childRect.Min.y + childRect.Max.y) * 0.5f;
                         drawList->AddLine(ImVec2(verticalLineStart.x, midpoint), ImVec2(verticalLineStart.x + HorizontalTreeLineSize, midpoint), TreeLineColor);
                         verticalLineEnd.y = midpoint;
 
@@ -655,7 +655,7 @@ namespace Lumos
             out.push_back(filename.substr(start, end - start));
         }
 
-        int maxChars = int(m_GridSize / (ImGui::GetFontSize() / 2.0f));
+        int maxChars = int(m_GridSize / (ImGui::GetFontSize() * 0.5f));
 
         if(out[0].length() >= maxChars)
         {

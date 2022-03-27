@@ -49,10 +49,10 @@ namespace Lumos
 
             bool FlipImGUITexture() const override { return true; }
             void WaitIdle() const override;
-            void OnImGui() override;
+            void OnImGui() override {};
 
-            float GetGPUMemoryUsed() override;
-            float GetTotalGPUMemory() override;
+            float GetGPUMemoryUsed() override { return 0.0f; };
+            float GetTotalGPUMemory() override { return 0.0f; };
 
             const std::vector<const char*>& GetLayerNames() const { return m_InstanceLayerNames; }
             const std::vector<const char*>& GetExtensionNames() const { return m_InstanceExtensionNames; }
@@ -88,10 +88,6 @@ namespace Lumos
             void SetupDebugCallback();
             bool CheckValidationLayerSupport(std::vector<const char*>& validationLayers);
             bool CheckExtensionSupport(std::vector<const char*>& extensions);
-
-#ifdef USE_VMA_ALLOCATOR
-            void DebugDrawVmaMemory(VmaStatInfo& info, bool indent = true);
-#endif
 
             static const std::vector<const char*> GetRequiredExtensions();
             const std::vector<const char*> GetRequiredLayers() const;

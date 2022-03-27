@@ -77,6 +77,12 @@ namespace Lumos
                 deletionQueue.PushFunction([descriptorSet, pool, device]
                     { vkFreeDescriptorSets(device, pool, 1, &descriptorSet); });
             }
+            
+            for(auto it = m_UniformBuffersData.begin(); it != m_UniformBuffersData.end(); it++)
+            {
+                it->second.LocalStorage.Release();
+            }
+            
             g_DescriptorSetCount -= 3;
         }
 

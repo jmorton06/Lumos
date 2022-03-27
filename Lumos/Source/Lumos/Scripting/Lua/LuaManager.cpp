@@ -257,6 +257,31 @@ namespace Lumos
 
         input.set_function("GetScrollOffset", []() -> float
             { return Input::Get().GetScrollOffset(); });
+        
+        input.set_function("GetControllerAxis", [](int id, int axis) -> float
+        {
+            return Input::GetControllerAxis(id, axis);
+        });
+
+        input.set_function("GetControllerAxis", [](int id, int axis) -> float
+        {
+            return Input::GetControllerAxis(id, axis);
+        });
+
+        input.set_function("GetControllerName", [](int id) -> std::string_view
+        {
+            return Input::GetControllerName(id);
+        });
+
+        input.set_function("GetControllerHat", [](int id, int hat) -> int
+        {
+            return Input::GetControllerHat(id, hat);
+        });
+
+        input.set_function("IsControllerButtonPressed", [](int id, int button) -> bool
+        {
+            return Input::IsControllerButtonPressed(id, button);
+        });
 
         std::initializer_list<std::pair<sol::string_view, Lumos::InputCode::Key>> keyItems = {
             { "A", Lumos::InputCode::Key::A },

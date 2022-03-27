@@ -138,10 +138,12 @@ namespace Lumos
         static void DebugDrawSphere(float radius, const glm::vec3& position, const glm::vec4& colour);
         static void DebugDrawCircle(int numVerts, float radius, const glm::vec3& position, const glm::quat& rotation, const glm::vec4& colour);
         static void DebugDrawCone(int numCircleVerts, int numLinesToCircle, float angle, float length, const glm::vec3& position, const glm::quat& rotation, const glm::vec4& colour);
-
-        const std::vector<TriangleInfo>& GetTriangles() const { return m_DebugTriangles; }
-        const std::vector<LineInfo>& GetLines() const { return m_DebugLines; }
-        const std::vector<PointInfo>& GetPoints() const { return m_DebugPoints; }
+        static void DebugDrawCapsule(const glm::vec3& position, const glm::quat& rotation, float height, float radius, const glm::vec4& colour);
+       
+        const std::vector<TriangleInfo>& GetTriangles(bool depthTested = false) const { return (depthTested ? m_DrawList.m_DebugTriangles : m_DrawListNDT.m_DebugTriangles); }
+        const std::vector<LineInfo>& GetLines(bool depthTested = false) const { return depthTested ? m_DrawList.m_DebugLines : m_DrawListNDT.m_DebugLines; }
+        const std::vector<LineInfo>& GetThickLines(bool depthTested = false) const { return depthTested ? m_DrawList.m_DebugThickLines : m_DrawListNDT.m_DebugThickLines; }
+        const std::vector<PointInfo>& GetPoints(bool depthTested = false) const { return depthTested ? m_DrawList.m_DebugPoints : m_DrawListNDT.m_DebugPoints; }
 
         static DebugRenderer* GetInstance()
         {
@@ -160,8 +162,16 @@ namespace Lumos
 
         static DebugRenderer* s_Instance;
 
-        std::vector<TriangleInfo> m_DebugTriangles;
-        std::vector<LineInfo> m_DebugLines;
-        std::vector<PointInfo> m_DebugPoints;
+        struct DebugDrawList
+        {
+            std::vector<TriangleInfo> m_DebugTriangles;
+            std::vector<LineInfo> m_DebugLines;
+            std::vector<PointInfo> m_DebugPoints;
+            std::vector<LineInfo> m_DebugThickLines;
+        };
+        
+        DebugDrawList m_DrawList;
+        DebugDrawList m_DrawListNDT;
+
     };
 }
