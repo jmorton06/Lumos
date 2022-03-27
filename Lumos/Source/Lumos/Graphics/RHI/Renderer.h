@@ -86,6 +86,7 @@ namespace Lumos
             float MaxAnisotropy = 0.0f;
             int MaxTextureUnits = 0;
             int UniformBufferOffsetAlignment = 0;
+            bool WideLines = false;
         };
 
         class LUMOS_EXPORT Renderer
@@ -94,9 +95,9 @@ namespace Lumos
             Renderer() = default;
             virtual ~Renderer() = default;
 
-            static void Init();
+            static void Init(bool loadEmbeddedShaders = true);
             static void Release();
-            void LoadEngineShaders();
+            void LoadEngineShaders(bool loadEmbeddedShaders);
             virtual void InitInternal() = 0;
             virtual void Begin() = 0;
             virtual void OnResize(uint32_t width, uint32_t height) = 0;

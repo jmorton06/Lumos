@@ -42,7 +42,6 @@ namespace Lumos::Graphics
         LUMOS_PROFILE_FUNCTION();
 
         m_CubeMap = nullptr;
-        m_DepthTexture = TextureDepth::Create(width, height);
         m_ClearColour = glm::vec4(0.2f, 0.2f, 0.2f, 1.0f);
         m_MainTexture = Texture2D::Create();
         m_MainTexture->BuildTexture(Graphics::TextureFormat::RGBA16, width, height, false, false, false);
@@ -50,7 +49,7 @@ namespace Lumos::Graphics
         //Setup shadow pass data
         m_ShadowData.m_ShadowTex = nullptr;
         m_ShadowData.m_ShadowMapNum = 4;
-        m_ShadowData.m_ShadowMapSize = 2048;
+        m_ShadowData.m_ShadowMapSize = 1024;
         m_ShadowData.m_ShadowMapsInvalidated = true;
         m_ShadowData.m_CascadeSplitLambda = 0.92f;
         m_ShadowData.m_SceneRadiusMultiplier = 1.4f;
@@ -79,7 +78,7 @@ namespace Lumos::Graphics
         //Setup forward pass data
         m_ForwardData.m_DepthTest = true;
         m_ForwardData.m_Shader = Application::Get().GetShaderLibrary()->GetResource("ForwardPBR");
-
+		m_ForwardData.m_DepthTexture = TextureDepth::Create(width, height);
         m_ForwardData.m_CommandQueue.reserve(1000);
 
         switch(Graphics::GraphicsContext::GetRenderAPI())
@@ -273,10 +272,10 @@ namespace Lumos::Graphics
         }
 
         m_DebugDrawData.m_PointIndexBuffer = IndexBuffer::Create(indices, MaxPointIndices);
-
+        delete[] indices;
+        
         //Lines
         m_DebugDrawData.m_LineShader = Application::Get().GetShaderLibrary()->GetResource("Batch2DLine");
-        ;
 
         descriptorDesc.layoutIndex = 0;
         descriptorDesc.shader = m_DebugDrawData.m_LineShader.get();
@@ -347,7 +346,7 @@ namespace Lumos::Graphics
 
     RenderGraph::~RenderGraph()
     {
-        delete m_DepthTexture;
+        delete m_ForwardData.m_DepthTexture;
         delete m_MainTexture;
 
         delete m_ShadowData.m_ShadowTex;
@@ -385,8 +384,8 @@ namespace Lumos::Graphics
     void RenderGraph::OnResize(uint32_t width, uint32_t height)
     {
         LUMOS_PROFILE_FUNCTION();
-        m_DepthTexture->Resize(width, height);
-        m_MainTexture->BuildTexture(Graphics::TextureFormat::RGBA32, width, height, false, false, false);
+        m_ForwardData.m_DepthTexture->Resize(width, height);
+        m_MainTexture->BuildTexture(Graphics::TextureFormat::RGBA16, width, height, false, false, false);
     }
 
     void RenderGraph::EnableDebugRenderer(bool enable)
@@ -401,6 +400,12 @@ namespace Lumos::Graphics
     {
         LUMOS_PROFILE_FUNCTION();
         auto& registry = scene->GetRegistry();
+        
+        m_Stats.FramesPerSecond = 0;
+        m_Stats.NumDrawCalls = 0;
+        m_Stats.NumRenderedObjects = 0;
+        m_Stats.NumShadowObjects = 0;
+        m_Stats.UpdatesPerSecond = 0;
 
         m_Renderer2DData.m_BatchDrawCallIndex = 0;
 
@@ -543,7 +548,7 @@ namespace Lumos::Graphics
 
         m_ForwardData.m_CommandQueue.clear();
 
-        auto& shadowData = Application::Get().GetRenderGraph()->GetShadowData();
+        auto& shadowData = GetShadowData();
 
         glm::mat4* shadowTransforms = shadowData.m_ShadowProjView;
         glm::vec4* uSplitDepth = shadowData.m_SplitDepth;
@@ -601,9 +606,7 @@ namespace Lumos::Graphics
                     if(mesh->GetActive())
                     {
                         auto& worldTransform = trans.GetWorldMatrix();
-
-                        auto bb = mesh->GetBoundingBox();
-                        auto bbCopy = bb->Transformed(worldTransform);
+                        auto bbCopy = mesh->GetBoundingBox()->Transformed(worldTransform);
 
                         if(directionaLight)
                         {
@@ -644,7 +647,7 @@ namespace Lumos::Graphics
 
                             if(m_ForwardData.m_DepthTest && material->GetFlag(Material::RenderFlags::DEPTHTEST))
                             {
-                                pipelineDesc.depthTarget = m_DepthTexture;
+                                pipelineDesc.depthTarget = m_ForwardData.m_DepthTexture;
                             }
 
                             command.pipeline = Graphics::Pipeline::Get(pipelineDesc);
@@ -743,25 +746,22 @@ namespace Lumos::Graphics
 
         if(m_ForwardData.m_DepthTest)
         {
-            Renderer::GetRenderer()->ClearRenderTarget(reinterpret_cast<Texture*>(m_DepthTexture), Renderer::GetMainSwapChain()->GetCurrentCommandBuffer());
+            Renderer::GetRenderer()->ClearRenderTarget(reinterpret_cast<Texture*>(m_ForwardData.m_DepthTexture), Renderer::GetMainSwapChain()->GetCurrentCommandBuffer());
         }
 
-        if(sceneRenderSettings.ShadowsEnabled)
+        if(m_Settings.ShadowPass && sceneRenderSettings.ShadowsEnabled)
             ShadowPass();
-        if(sceneRenderSettings.Renderer3DEnabled)
+        if(m_Settings.GeomPass && sceneRenderSettings.Renderer3DEnabled)
             ForwardPass();
-        if(sceneRenderSettings.SkyboxRenderEnabled)
+		if(m_Settings.SkyboxPass && sceneRenderSettings.SkyboxRenderEnabled)
             SkyboxPass();
-        if(sceneRenderSettings.Renderer2DEnabled)
+		if(m_Settings.GeomPass && sceneRenderSettings.Renderer2DEnabled)
             Render2DPass();
-        if(sceneRenderSettings.DebugRenderEnabled)
+        if(m_Settings.DebugPass && sceneRenderSettings.DebugRenderEnabled)
             DebugPass();
 
         //BloomPass();
-
         FinalPass();
-
-        DebugRenderer::Reset();
     }
 
     void RenderGraph::OnUpdate(const TimeStep& timeStep, Scene* scene)
@@ -778,8 +778,8 @@ namespace Lumos::Graphics
     void RenderGraph::OnEvent(Event& e)
     {
         LUMOS_PROFILE_FUNCTION();
-        EventDispatcher dispatcher(e);
-        dispatcher.Dispatch<WindowResizeEvent>(BIND_EVENT_FN(RenderGraph::OnwindowResizeEvent));
+        //EventDispatcher dispatcher(e);
+        //dispatcher.Dispatch<WindowResizeEvent>(BIND_EVENT_FN(RenderGraph::OnwindowResizeEvent));
     }
 
     std::string RenderModeToString(int mode)
@@ -1008,7 +1008,7 @@ namespace Lumos::Graphics
                 glm::mat4 shadowMatrix = shadowProj;
                 glm::vec3 shadowOrigin = glm::vec3(0.0f);
                 shadowOrigin = (shadowMatrix * glm::vec4(shadowOrigin, 1.0f));
-                shadowOrigin *= (m_ShadowData.m_ShadowMapSize / 2.0f);
+                shadowOrigin *= (m_ShadowData.m_ShadowMapSize * 0.5f);
 
                 glm::vec3 roundedOrigin = glm::round(shadowOrigin);
                 glm::vec3 roundOffset = roundedOrigin - shadowOrigin;
@@ -1040,10 +1040,12 @@ namespace Lumos::Graphics
 
         pipelineDesc.cullMode = Graphics::CullMode::BACK;
         pipelineDesc.transparencyEnabled = false;
-        pipelineDesc.depthBiasEnabled = false;
         pipelineDesc.depthArrayTarget = reinterpret_cast<Texture*>(m_ShadowData.m_ShadowTex);
         pipelineDesc.clearTargets = true;
-
+        pipelineDesc.depthBiasEnabled = true;
+        pipelineDesc.depthBiasConstantFactor = 1.25f;
+        pipelineDesc.depthBiasSlopeFactor = 1.75f;
+        
         auto pipeline = Graphics::Pipeline::Get(pipelineDesc);
         auto commandBuffer = Renderer::GetMainSwapChain()->GetCurrentCommandBuffer();
 
@@ -1052,25 +1054,23 @@ namespace Lumos::Graphics
             GPUProfile("Shadow Layer Pass");
 
             m_ShadowData.m_Layer = i;
-
             pipeline->Bind(commandBuffer, m_ShadowData.m_Layer);
+
+            uint32_t layer = static_cast<uint32_t>(m_ShadowData.m_Layer);
+            auto& pushConstants = m_ShadowData.m_Shader->GetPushConstants();
+            memcpy(pushConstants[0].data + sizeof(glm::mat4), &layer, sizeof(uint32_t));
+            m_ShadowData.m_CurrentDescriptorSets[0] = m_ShadowData.m_DescriptorSet[0].get();
 
             for(auto& command : m_ShadowData.m_CascadeCommandQueue[m_ShadowData.m_Layer])
             {
-                Engine::Get().Statistics().NumShadowObjects++;
+                m_Stats.NumShadowObjects++;
 
                 Mesh* mesh = command.mesh;
 
-                m_ShadowData.m_CurrentDescriptorSets[0] = m_ShadowData.m_DescriptorSet[0].get();
-
-                uint32_t layer = static_cast<uint32_t>(m_ShadowData.m_Layer);
                 auto trans = command.transform;
-                auto& pushConstants = m_ShadowData.m_Shader->GetPushConstants();
                 memcpy(pushConstants[0].data, &trans, sizeof(glm::mat4));
-                memcpy(pushConstants[0].data + sizeof(glm::mat4), &layer, sizeof(uint32_t));
 
                 m_ShadowData.m_Shader->BindPushConstants(commandBuffer, pipeline.get());
-
                 Renderer::BindDescriptorSets(pipeline.get(), commandBuffer, 0, m_ShadowData.m_CurrentDescriptorSets.data(), 1);
                 Renderer::DrawMesh(commandBuffer, pipeline.get(), mesh);
             }
@@ -1078,6 +1078,7 @@ namespace Lumos::Graphics
             pipeline->End(commandBuffer);
         }
     }
+
     void RenderGraph::ForwardPass()
     {
         LUMOS_PROFILE_FUNCTION();
@@ -1086,16 +1087,18 @@ namespace Lumos::Graphics
         m_ForwardData.m_DescriptorSet[2]->Update();
 
         Graphics::CommandBuffer* commandBuffer = Renderer::GetMainSwapChain()->GetCurrentCommandBuffer();
-
+		
         for(auto& command : m_ForwardData.m_CommandQueue)
         {
-			Engine::Get().Statistics().NumRenderedObjects++;
+			m_Stats.NumRenderedObjects++;
 			
             Mesh* mesh = command.mesh;
             auto& worldTransform = command.transform;
 
             Material* material = command.material ? command.material : m_ForwardData.m_DefaultMaterial;
             auto pipeline = command.pipeline;
+            
+            //TODO: Remove. commandBuffer null for opengl
             if(commandBuffer)
                 commandBuffer->BindPipeline(pipeline);
             else
@@ -1136,7 +1139,7 @@ namespace Lumos::Graphics
         pipelineDesc.transparencyEnabled = false;
 
         {
-            pipelineDesc.depthTarget = reinterpret_cast<Texture*>(m_DepthTexture);
+            pipelineDesc.depthTarget = reinterpret_cast<Texture*>(m_ForwardData.m_DepthTexture);
         }
 
         pipelineDesc.colourTargets[0] = m_MainTexture;
@@ -1269,7 +1272,7 @@ namespace Lumos::Graphics
         pipelineDesc.transparencyEnabled = true;
         pipelineDesc.blendMode = BlendMode::SrcAlphaOneMinusSrcAlpha;
         pipelineDesc.clearTargets = false;
-        pipelineDesc.depthTarget = reinterpret_cast<Texture*>(m_DepthTexture);
+        pipelineDesc.depthTarget = reinterpret_cast<Texture*>(m_ForwardData.m_DepthTexture);
 
         pipelineDesc.colourTargets[0] = m_MainTexture;
 
@@ -1287,7 +1290,7 @@ namespace Lumos::Graphics
 
         for(auto& command : m_Renderer2DData.m_CommandQueue2D)
         {
-            Engine::Get().Statistics().NumRenderedObjects++;
+            m_Stats.NumRenderedObjects++;
 
             if(m_Renderer2DData.m_IndexCount >= m_Renderer2DData.m_Limits.IndiciesSize)
                 Render2DFlush();
@@ -1405,214 +1408,295 @@ namespace Lumos::Graphics
     {
         LUMOS_PROFILE_FUNCTION();
         GPUProfile("Debug Pass");
+        
+        if(!m_Camera)
+            return;
 
-        const auto& lines = DebugRenderer::GetInstance()->GetLines();
-        const auto& triangles = DebugRenderer::GetInstance()->GetTriangles();
-        const auto& points = DebugRenderer::GetInstance()->GetPoints();
-
-        auto projView = m_Camera->GetProjectionMatrix() * glm::inverse(m_CameraTransform->GetWorldMatrix());
-
-        if(!lines.empty())
+        for(int i = 0; i < 2; i++)
         {
-            m_DebugDrawData.m_LineDescriptorSet[0]->SetUniform("UniformBufferObject", "projView", &projView);
-            m_DebugDrawData.m_LineDescriptorSet[0]->Update();
+            bool depthTest = i == 1;
+            
+            auto& lines = DebugRenderer::GetInstance()->GetLines(depthTest);
+            auto& thickLines = DebugRenderer::GetInstance()->GetThickLines(depthTest);
+            auto& triangles = DebugRenderer::GetInstance()->GetTriangles(depthTest);
+            auto& points = DebugRenderer::GetInstance()->GetPoints(depthTest);
 
-            Graphics::CommandBuffer* commandBuffer = Renderer::GetMainSwapChain()->GetCurrentCommandBuffer();
+            auto projView = m_Camera->GetProjectionMatrix() * glm::inverse(m_CameraTransform->GetWorldMatrix());
 
-            Graphics::PipelineDesc pipelineDesc;
-            pipelineDesc.shader = m_DebugDrawData.m_LineShader;
-
-            pipelineDesc.polygonMode = Graphics::PolygonMode::FILL;
-            pipelineDesc.cullMode = Graphics::CullMode::BACK;
-            pipelineDesc.transparencyEnabled = false;
-            pipelineDesc.clearTargets = false;
-            pipelineDesc.drawType = DrawType::LINES;
-            pipelineDesc.colourTargets[0] = m_MainTexture;
-
-            auto pipeline = Graphics::Pipeline::Get(pipelineDesc);
-
-            pipeline->Bind(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer());
-            m_DebugDrawData.m_LineVertexBuffers[m_DebugDrawData.m_LineBatchDrawCallIndex]->Bind(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer(), pipeline.get());
-            m_DebugDrawData.m_LineBuffer = m_DebugDrawData.m_LineVertexBuffers[m_DebugDrawData.m_LineBatchDrawCallIndex]->GetPointer<LineVertexData>();
-
-            for(auto& line : lines)
+            if(!lines.empty())
             {
-                m_DebugDrawData.m_LineBuffer->vertex = line.p1;
-                m_DebugDrawData.m_LineBuffer->colour = line.col;
-                m_DebugDrawData.m_LineBuffer++;
+                m_DebugDrawData.m_LineDescriptorSet[0]->SetUniform("UniformBufferObject", "projView", &projView);
+                m_DebugDrawData.m_LineDescriptorSet[0]->Update();
 
-                m_DebugDrawData.m_LineBuffer->vertex = line.p2;
-                m_DebugDrawData.m_LineBuffer->colour = line.col;
-                m_DebugDrawData.m_LineBuffer++;
+                Graphics::CommandBuffer* commandBuffer = Renderer::GetMainSwapChain()->GetCurrentCommandBuffer();
 
-                m_DebugDrawData.LineIndexCount += 2;
+                Graphics::PipelineDesc pipelineDesc;
+                pipelineDesc.shader = m_DebugDrawData.m_LineShader;
+
+                pipelineDesc.polygonMode = Graphics::PolygonMode::FILL;
+                pipelineDesc.cullMode = Graphics::CullMode::BACK;
+                pipelineDesc.transparencyEnabled = false;
+                pipelineDesc.clearTargets = false;
+                pipelineDesc.drawType = DrawType::LINES;
+                pipelineDesc.colourTargets[0] = m_MainTexture;
+                
+                if(depthTest)
+                    pipelineDesc.depthTarget = m_ForwardData.m_DepthTexture;
+
+                auto pipeline = Graphics::Pipeline::Get(pipelineDesc);
+
+                pipeline->Bind(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer());
+                m_DebugDrawData.m_LineVertexBuffers[m_DebugDrawData.m_LineBatchDrawCallIndex]->Bind(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer(), pipeline.get());
+                m_DebugDrawData.m_LineBuffer = m_DebugDrawData.m_LineVertexBuffers[m_DebugDrawData.m_LineBatchDrawCallIndex]->GetPointer<LineVertexData>();
+
+                for(auto& line : lines)
+                {
+                    m_DebugDrawData.m_LineBuffer->vertex = line.p1;
+                    m_DebugDrawData.m_LineBuffer->colour = line.col;
+                    m_DebugDrawData.m_LineBuffer++;
+
+                    m_DebugDrawData.m_LineBuffer->vertex = line.p2;
+                    m_DebugDrawData.m_LineBuffer->colour = line.col;
+                    m_DebugDrawData.m_LineBuffer++;
+
+                    m_DebugDrawData.LineIndexCount += 2;
+                }
+
+                m_DebugDrawData.m_LineVertexBuffers[m_DebugDrawData.m_LineBatchDrawCallIndex]->ReleasePointer();
+                m_DebugDrawData.m_LineVertexBuffers[m_DebugDrawData.m_LineBatchDrawCallIndex]->Unbind();
+
+                m_DebugDrawData.m_LineIndexBuffer->SetCount(m_DebugDrawData.LineIndexCount);
+
+                m_DebugDrawData.m_LineVertexBuffers[m_DebugDrawData.m_LineBatchDrawCallIndex]->Bind(commandBuffer, pipeline.get());
+                m_DebugDrawData.m_LineIndexBuffer->Bind(commandBuffer);
+                auto* desc = m_DebugDrawData.m_LineDescriptorSet[0].get();
+                Renderer::BindDescriptorSets(pipeline.get(), commandBuffer, 0, &desc, 1);
+                Renderer::DrawIndexed(commandBuffer, DrawType::LINES, m_DebugDrawData.LineIndexCount);
+
+                m_DebugDrawData.m_LineVertexBuffers[m_DebugDrawData.m_LineBatchDrawCallIndex]->Unbind();
+                m_DebugDrawData.m_LineIndexBuffer->Unbind();
+
+                m_DebugDrawData.LineIndexCount = 0;
+
+                pipeline->End(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer());
+
+                m_DebugDrawData.m_LineBatchDrawCallIndex++;
+            }
+            
+            if(!thickLines.empty())
+            {
+                m_DebugDrawData.m_LineDescriptorSet[0]->SetUniform("UniformBufferObject", "projView", &projView);
+                m_DebugDrawData.m_LineDescriptorSet[0]->Update();
+
+                Graphics::CommandBuffer* commandBuffer = Renderer::GetMainSwapChain()->GetCurrentCommandBuffer();
+
+                Graphics::PipelineDesc pipelineDesc;
+                pipelineDesc.shader = m_DebugDrawData.m_LineShader;
+
+                pipelineDesc.polygonMode = Graphics::PolygonMode::FILL;
+                pipelineDesc.cullMode = Graphics::CullMode::BACK;
+                pipelineDesc.transparencyEnabled = false;
+                pipelineDesc.clearTargets = false;
+                pipelineDesc.drawType = DrawType::LINES;
+                pipelineDesc.colourTargets[0] = m_MainTexture;
+                pipelineDesc.lineWidth = 2.0f;
+                
+                if(depthTest)
+                    pipelineDesc.depthTarget = m_ForwardData.m_DepthTexture;
+                
+                auto pipeline = Graphics::Pipeline::Get(pipelineDesc);
+
+                pipeline->Bind(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer());
+                m_DebugDrawData.m_LineVertexBuffers[m_DebugDrawData.m_LineBatchDrawCallIndex]->Bind(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer(), pipeline.get());
+                m_DebugDrawData.m_LineBuffer = m_DebugDrawData.m_LineVertexBuffers[m_DebugDrawData.m_LineBatchDrawCallIndex]->GetPointer<LineVertexData>();
+
+                for(auto& line : thickLines)
+                {
+                    m_DebugDrawData.m_LineBuffer->vertex = line.p1;
+                    m_DebugDrawData.m_LineBuffer->colour = line.col;
+                    m_DebugDrawData.m_LineBuffer++;
+
+                    m_DebugDrawData.m_LineBuffer->vertex = line.p2;
+                    m_DebugDrawData.m_LineBuffer->colour = line.col;
+                    m_DebugDrawData.m_LineBuffer++;
+
+                    m_DebugDrawData.LineIndexCount += 2;
+                }
+
+                m_DebugDrawData.m_LineVertexBuffers[m_DebugDrawData.m_LineBatchDrawCallIndex]->ReleasePointer();
+                m_DebugDrawData.m_LineVertexBuffers[m_DebugDrawData.m_LineBatchDrawCallIndex]->Unbind();
+
+                m_DebugDrawData.m_LineIndexBuffer->SetCount(m_DebugDrawData.LineIndexCount);
+
+                m_DebugDrawData.m_LineVertexBuffers[m_DebugDrawData.m_LineBatchDrawCallIndex]->Bind(commandBuffer, pipeline.get());
+                m_DebugDrawData.m_LineIndexBuffer->Bind(commandBuffer);
+                auto* desc = m_DebugDrawData.m_LineDescriptorSet[0].get();
+                Renderer::BindDescriptorSets(pipeline.get(), commandBuffer, 0, &desc, 1);
+                Renderer::DrawIndexed(commandBuffer, DrawType::LINES, m_DebugDrawData.LineIndexCount);
+
+                m_DebugDrawData.m_LineVertexBuffers[m_DebugDrawData.m_LineBatchDrawCallIndex]->Unbind();
+                m_DebugDrawData.m_LineIndexBuffer->Unbind();
+
+                m_DebugDrawData.LineIndexCount = 0;
+
+                pipeline->End(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer());
+
+                m_DebugDrawData.m_LineBatchDrawCallIndex++;
             }
 
-            m_DebugDrawData.m_LineVertexBuffers[m_DebugDrawData.m_LineBatchDrawCallIndex]->ReleasePointer();
-            m_DebugDrawData.m_LineVertexBuffers[m_DebugDrawData.m_LineBatchDrawCallIndex]->Unbind();
-
-            m_DebugDrawData.m_LineIndexBuffer->SetCount(m_DebugDrawData.LineIndexCount);
-
-            m_DebugDrawData.m_LineVertexBuffers[m_DebugDrawData.m_LineBatchDrawCallIndex]->Bind(commandBuffer, pipeline.get());
-            m_DebugDrawData.m_LineIndexBuffer->Bind(commandBuffer);
-            auto* desc = m_DebugDrawData.m_LineDescriptorSet[0].get();
-            Renderer::BindDescriptorSets(pipeline.get(), commandBuffer, 0, &desc, 1);
-            Renderer::DrawIndexed(commandBuffer, DrawType::LINES, m_DebugDrawData.LineIndexCount);
-
-            m_DebugDrawData.m_LineVertexBuffers[m_DebugDrawData.m_LineBatchDrawCallIndex]->Unbind();
-            m_DebugDrawData.m_LineIndexBuffer->Unbind();
-
-            m_DebugDrawData.LineIndexCount = 0;
-
-            pipeline->End(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer());
-
-            m_DebugDrawData.m_LineBatchDrawCallIndex++;
-        }
-
-        if(!points.empty())
-        {
-            m_DebugDrawData.m_PointDescriptorSet[0]->SetUniform("UniformBufferObject", "projView", &projView);
-            m_DebugDrawData.m_PointDescriptorSet[0]->Update();
-
-            Graphics::CommandBuffer* commandBuffer = Renderer::GetMainSwapChain()->GetCurrentCommandBuffer();
-
-            Graphics::PipelineDesc pipelineDesc;
-            pipelineDesc.shader = m_DebugDrawData.m_PointShader;
-
-            pipelineDesc.polygonMode = Graphics::PolygonMode::FILL;
-            pipelineDesc.cullMode = Graphics::CullMode::BACK;
-            pipelineDesc.transparencyEnabled = true;
-            pipelineDesc.drawType = DrawType::TRIANGLE;
-            pipelineDesc.blendMode = BlendMode::SrcAlphaOneMinusSrcAlpha;
-
-            pipelineDesc.colourTargets[0] = m_MainTexture;
-
-            auto pipeline = Graphics::Pipeline::Get(pipelineDesc);
-
-            pipeline->Bind(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer());
-            m_DebugDrawData.m_PointVertexBuffers[m_DebugDrawData.m_PointBatchDrawCallIndex]->Bind(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer(), pipeline.get());
-            m_DebugDrawData.m_PointBuffer = m_DebugDrawData.m_PointVertexBuffers[m_DebugDrawData.m_PointBatchDrawCallIndex]->GetPointer<PointVertexData>();
-
-            for(auto& pointInfo : points)
+            if(!points.empty())
             {
-                glm::vec3 right = pointInfo.size * m_CameraTransform->GetRightDirection();
-                glm::vec3 up = pointInfo.size * m_CameraTransform->GetUpDirection();
+                m_DebugDrawData.m_PointDescriptorSet[0]->SetUniform("UniformBufferObject", "projView", &projView);
+                m_DebugDrawData.m_PointDescriptorSet[0]->Update();
 
-                m_DebugDrawData.m_PointBuffer->vertex = pointInfo.p1 - right - up; // + glm::vec3(-pointInfo.size, -pointInfo.size, 0.0f));
-                m_DebugDrawData.m_PointBuffer->colour = pointInfo.col;
-                m_DebugDrawData.m_PointBuffer->size = { pointInfo.size, 0.0f };
-                m_DebugDrawData.m_PointBuffer->uv = { -1.0f, -1.0f };
-                m_DebugDrawData.m_PointBuffer++;
+                Graphics::CommandBuffer* commandBuffer = Renderer::GetMainSwapChain()->GetCurrentCommandBuffer();
 
-                m_DebugDrawData.m_PointBuffer->vertex = pointInfo.p1 + right - up; //(pointInfo.p1 + glm::vec3(pointInfo.size, -pointInfo.size, 0.0f));
-                m_DebugDrawData.m_PointBuffer->colour = pointInfo.col;
-                m_DebugDrawData.m_PointBuffer->size = { pointInfo.size, 0.0f };
-                m_DebugDrawData.m_PointBuffer->uv = { 1.0f, -1.0f };
-                m_DebugDrawData.m_PointBuffer++;
+                Graphics::PipelineDesc pipelineDesc;
+                pipelineDesc.shader = m_DebugDrawData.m_PointShader;
 
-                m_DebugDrawData.m_PointBuffer->vertex = pointInfo.p1 + right + up; //(pointInfo.p1 + glm::vec3(pointInfo.size, pointInfo.size, 0.0f));
-                m_DebugDrawData.m_PointBuffer->colour = pointInfo.col;
-                m_DebugDrawData.m_PointBuffer->size = { pointInfo.size, 0.0f };
-                m_DebugDrawData.m_PointBuffer->uv = { 1.0f, 1.0f };
-                m_DebugDrawData.m_PointBuffer++;
+                pipelineDesc.polygonMode = Graphics::PolygonMode::FILL;
+                pipelineDesc.cullMode = Graphics::CullMode::BACK;
+                pipelineDesc.transparencyEnabled = true;
+                pipelineDesc.drawType = DrawType::TRIANGLE;
+                pipelineDesc.blendMode = BlendMode::SrcAlphaOneMinusSrcAlpha;
+                pipelineDesc.colourTargets[0] = m_MainTexture;
+                if(depthTest)
+                    pipelineDesc.depthTarget = m_ForwardData.m_DepthTexture;
+                
+                auto pipeline = Graphics::Pipeline::Get(pipelineDesc);
 
-                m_DebugDrawData.m_PointBuffer->vertex = pointInfo.p1 - right + up; // (pointInfo.p1 + glm::vec3(-pointInfo.size, pointInfo.size, 0.0f));
-                m_DebugDrawData.m_PointBuffer->colour = pointInfo.col;
-                m_DebugDrawData.m_PointBuffer->size = { pointInfo.size, 0.0f };
-                m_DebugDrawData.m_PointBuffer->uv = { -1.0f, 1.0f };
-                m_DebugDrawData.m_PointBuffer++;
+                pipeline->Bind(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer());
+                m_DebugDrawData.m_PointVertexBuffers[m_DebugDrawData.m_PointBatchDrawCallIndex]->Bind(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer(), pipeline.get());
+                m_DebugDrawData.m_PointBuffer = m_DebugDrawData.m_PointVertexBuffers[m_DebugDrawData.m_PointBatchDrawCallIndex]->GetPointer<PointVertexData>();
 
-                m_DebugDrawData.PointIndexCount += 6;
+                for(auto& pointInfo : points)
+                {
+                    glm::vec3 right = pointInfo.size * m_CameraTransform->GetRightDirection();
+                    glm::vec3 up = pointInfo.size * m_CameraTransform->GetUpDirection();
+
+                    m_DebugDrawData.m_PointBuffer->vertex = pointInfo.p1 - right - up; // + glm::vec3(-pointInfo.size, -pointInfo.size, 0.0f));
+                    m_DebugDrawData.m_PointBuffer->colour = pointInfo.col;
+                    m_DebugDrawData.m_PointBuffer->size = { pointInfo.size, 0.0f };
+                    m_DebugDrawData.m_PointBuffer->uv = { -1.0f, -1.0f };
+                    m_DebugDrawData.m_PointBuffer++;
+
+                    m_DebugDrawData.m_PointBuffer->vertex = pointInfo.p1 + right - up; //(pointInfo.p1 + glm::vec3(pointInfo.size, -pointInfo.size, 0.0f));
+                    m_DebugDrawData.m_PointBuffer->colour = pointInfo.col;
+                    m_DebugDrawData.m_PointBuffer->size = { pointInfo.size, 0.0f };
+                    m_DebugDrawData.m_PointBuffer->uv = { 1.0f, -1.0f };
+                    m_DebugDrawData.m_PointBuffer++;
+
+                    m_DebugDrawData.m_PointBuffer->vertex = pointInfo.p1 + right + up; //(pointInfo.p1 + glm::vec3(pointInfo.size, pointInfo.size, 0.0f));
+                    m_DebugDrawData.m_PointBuffer->colour = pointInfo.col;
+                    m_DebugDrawData.m_PointBuffer->size = { pointInfo.size, 0.0f };
+                    m_DebugDrawData.m_PointBuffer->uv = { 1.0f, 1.0f };
+                    m_DebugDrawData.m_PointBuffer++;
+
+                    m_DebugDrawData.m_PointBuffer->vertex = pointInfo.p1 - right + up; // (pointInfo.p1 + glm::vec3(-pointInfo.size, pointInfo.size, 0.0f));
+                    m_DebugDrawData.m_PointBuffer->colour = pointInfo.col;
+                    m_DebugDrawData.m_PointBuffer->size = { pointInfo.size, 0.0f };
+                    m_DebugDrawData.m_PointBuffer->uv = { -1.0f, 1.0f };
+                    m_DebugDrawData.m_PointBuffer++;
+
+                    m_DebugDrawData.PointIndexCount += 6;
+                }
+
+                m_DebugDrawData.m_PointVertexBuffers[m_DebugDrawData.m_PointBatchDrawCallIndex]->ReleasePointer();
+                m_DebugDrawData.m_PointIndexBuffer->SetCount(m_DebugDrawData.PointIndexCount);
+                m_DebugDrawData.m_PointIndexBuffer->Bind(commandBuffer);
+
+                auto* desc = m_DebugDrawData.m_PointDescriptorSet[0].get();
+                Renderer::BindDescriptorSets(pipeline.get(), commandBuffer, 0, &desc, 1);
+                Renderer::DrawIndexed(commandBuffer, DrawType::TRIANGLE, m_DebugDrawData.PointIndexCount);
+
+                m_DebugDrawData.m_PointVertexBuffers[m_DebugDrawData.m_PointBatchDrawCallIndex]->Unbind();
+                m_DebugDrawData.m_PointIndexBuffer->Unbind();
+
+                m_DebugDrawData.PointIndexCount = 0;
+
+                pipeline->End(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer());
+
+                m_DebugDrawData.m_PointBatchDrawCallIndex++;
             }
 
-            m_DebugDrawData.m_PointVertexBuffers[m_DebugDrawData.m_PointBatchDrawCallIndex]->ReleasePointer();
-            m_DebugDrawData.m_PointIndexBuffer->SetCount(m_DebugDrawData.PointIndexCount);
-            m_DebugDrawData.m_PointIndexBuffer->Bind(commandBuffer);
-
-            auto* desc = m_DebugDrawData.m_PointDescriptorSet[0].get();
-            Renderer::BindDescriptorSets(pipeline.get(), commandBuffer, 0, &desc, 1);
-            Renderer::DrawIndexed(commandBuffer, DrawType::TRIANGLE, m_DebugDrawData.PointIndexCount);
-
-            m_DebugDrawData.m_PointVertexBuffers[m_DebugDrawData.m_PointBatchDrawCallIndex]->Unbind();
-            m_DebugDrawData.m_PointIndexBuffer->Unbind();
-
-            m_DebugDrawData.PointIndexCount = 0;
-
-            pipeline->End(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer());
-
-            m_DebugDrawData.m_PointBatchDrawCallIndex++;
-        }
-
-        if(!triangles.empty())
-        {
-            m_DebugDrawData.m_Renderer2DData.m_DescriptorSet[0][0]->SetUniform("UniformBufferObject", "projView", &projView);
-            m_DebugDrawData.m_Renderer2DData.m_DescriptorSet[0][0]->Update();
-            m_DebugDrawData.m_Renderer2DData.m_DescriptorSet[0][1]->Update();
-
-            Graphics::PipelineDesc pipelineDesc;
-            pipelineDesc.shader = m_DebugDrawData.m_Renderer2DData.m_Shader;
-
-            pipelineDesc.polygonMode = Graphics::PolygonMode::FILL;
-            pipelineDesc.cullMode = Graphics::CullMode::BACK;
-            pipelineDesc.transparencyEnabled = true;
-            pipelineDesc.blendMode = BlendMode::SrcAlphaOneMinusSrcAlpha;
-            pipelineDesc.clearTargets = false;
-            pipelineDesc.colourTargets[0] = m_MainTexture;
-
-            auto pipeline = Graphics::Pipeline::Get(pipelineDesc);
-
-            m_DebugDrawData.m_Renderer2DData.m_TextureCount = 0;
-            uint32_t currentFrame = Renderer::GetMainSwapChain()->GetCurrentBufferIndex();
-
-            m_DebugDrawData.m_Renderer2DData.m_VertexBuffers[currentFrame][m_DebugDrawData.m_Renderer2DData.m_BatchDrawCallIndex]->Bind(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer(), pipeline.get());
-            m_DebugDrawData.m_Renderer2DData.m_Buffer = m_DebugDrawData.m_Renderer2DData.m_VertexBuffers[currentFrame][m_DebugDrawData.m_Renderer2DData.m_BatchDrawCallIndex]->GetPointer<VertexData>();
-
-            for(auto& triangleInfo : triangles)
+            if(!triangles.empty())
             {
-                Engine::Get().Statistics().NumRenderedObjects++;
+                m_DebugDrawData.m_Renderer2DData.m_DescriptorSet[0][0]->SetUniform("UniformBufferObject", "projView", &projView);
+                m_DebugDrawData.m_Renderer2DData.m_DescriptorSet[0][0]->Update();
+                m_DebugDrawData.m_Renderer2DData.m_DescriptorSet[0][1]->Update();
+            
+                Graphics::PipelineDesc pipelineDesc;
+                pipelineDesc.shader = m_DebugDrawData.m_Renderer2DData.m_Shader;
 
-                float textureSlot = 0.0f;
+                pipelineDesc.polygonMode = Graphics::PolygonMode::FILL;
+                pipelineDesc.cullMode = Graphics::CullMode::BACK;
+                pipelineDesc.transparencyEnabled = true;
+                pipelineDesc.blendMode = BlendMode::SrcAlphaOneMinusSrcAlpha;
+                pipelineDesc.clearTargets = false;
+                pipelineDesc.colourTargets[0] = m_MainTexture;
+                pipelineDesc.depthBiasEnabled = true;
+                pipelineDesc.depthBiasConstantFactor = -1.25f;
+                pipelineDesc.depthBiasSlopeFactor = -1.75f;
 
-                m_DebugDrawData.m_Renderer2DData.m_Buffer->vertex = triangleInfo.p1;
-                m_DebugDrawData.m_Renderer2DData.m_Buffer->uv = { 0.0f, 0.0f };
-                m_DebugDrawData.m_Renderer2DData.m_Buffer->tid = glm::vec2(textureSlot, 0.0f);
-                m_DebugDrawData.m_Renderer2DData.m_Buffer->colour = triangleInfo.col;
-                m_DebugDrawData.m_Renderer2DData.m_Buffer++;
-                m_DebugDrawData.m_Renderer2DData.m_Buffer->vertex = triangleInfo.p2;
-                m_DebugDrawData.m_Renderer2DData.m_Buffer->uv = { 0.0f, 0.0f };
-                m_DebugDrawData.m_Renderer2DData.m_Buffer->tid = glm::vec2(textureSlot, 0.0f);
-                m_DebugDrawData.m_Renderer2DData.m_Buffer->colour = triangleInfo.col;
-                m_DebugDrawData.m_Renderer2DData.m_Buffer++;
-                m_DebugDrawData.m_Renderer2DData.m_Buffer->vertex = triangleInfo.p3;
-                m_DebugDrawData.m_Renderer2DData.m_Buffer->uv = { 0.0f, 0.0f };
-                m_DebugDrawData.m_Renderer2DData.m_Buffer->tid = glm::vec2(textureSlot, 0.0f);
-                m_DebugDrawData.m_Renderer2DData.m_Buffer->colour = triangleInfo.col;
-                m_DebugDrawData.m_Renderer2DData.m_Buffer++;
-                m_DebugDrawData.m_Renderer2DData.m_IndexCount += 3;
+                if(depthTest)
+                    pipelineDesc.depthTarget = m_ForwardData.m_DepthTexture;
+                
+                auto pipeline = Graphics::Pipeline::Get(pipelineDesc);
+
+                m_DebugDrawData.m_Renderer2DData.m_TextureCount = 0;
+                uint32_t currentFrame = Renderer::GetMainSwapChain()->GetCurrentBufferIndex();
+
+                m_DebugDrawData.m_Renderer2DData.m_VertexBuffers[currentFrame][m_DebugDrawData.m_Renderer2DData.m_BatchDrawCallIndex]->Bind(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer(), pipeline.get());
+                m_DebugDrawData.m_Renderer2DData.m_Buffer = m_DebugDrawData.m_Renderer2DData.m_VertexBuffers[currentFrame][m_DebugDrawData.m_Renderer2DData.m_BatchDrawCallIndex]->GetPointer<VertexData>();
+
+                for(auto& triangleInfo : triangles)
+                {
+                    m_Stats.NumRenderedObjects++;
+
+                    float textureSlot = 0.0f;
+
+                    m_DebugDrawData.m_Renderer2DData.m_Buffer->vertex = triangleInfo.p1;
+                    m_DebugDrawData.m_Renderer2DData.m_Buffer->uv = { 0.0f, 0.0f };
+                    m_DebugDrawData.m_Renderer2DData.m_Buffer->tid = glm::vec2(textureSlot, 0.0f);
+                    m_DebugDrawData.m_Renderer2DData.m_Buffer->colour = triangleInfo.col;
+                    m_DebugDrawData.m_Renderer2DData.m_Buffer++;
+                    m_DebugDrawData.m_Renderer2DData.m_Buffer->vertex = triangleInfo.p2;
+                    m_DebugDrawData.m_Renderer2DData.m_Buffer->uv = { 0.0f, 0.0f };
+                    m_DebugDrawData.m_Renderer2DData.m_Buffer->tid = glm::vec2(textureSlot, 0.0f);
+                    m_DebugDrawData.m_Renderer2DData.m_Buffer->colour = triangleInfo.col;
+                    m_DebugDrawData.m_Renderer2DData.m_Buffer++;
+                    m_DebugDrawData.m_Renderer2DData.m_Buffer->vertex = triangleInfo.p3;
+                    m_DebugDrawData.m_Renderer2DData.m_Buffer->uv = { 0.0f, 0.0f };
+                    m_DebugDrawData.m_Renderer2DData.m_Buffer->tid = glm::vec2(textureSlot, 0.0f);
+                    m_DebugDrawData.m_Renderer2DData.m_Buffer->colour = triangleInfo.col;
+                    m_DebugDrawData.m_Renderer2DData.m_Buffer++;
+                    m_DebugDrawData.m_Renderer2DData.m_IndexCount += 3;
+                }
+
+                Graphics::CommandBuffer* commandBuffer = Renderer::GetMainSwapChain()->GetCurrentCommandBuffer();
+
+                pipeline->Bind(commandBuffer);
+
+                m_DebugDrawData.m_Renderer2DData.m_CurrentDescriptorSets[0] = m_DebugDrawData.m_Renderer2DData.m_DescriptorSet[0][0].get();
+                m_DebugDrawData.m_Renderer2DData.m_CurrentDescriptorSets[1] = m_DebugDrawData.m_Renderer2DData.m_DescriptorSet[0][1].get();
+
+                m_DebugDrawData.m_Renderer2DData.m_IndexBuffer->SetCount(m_DebugDrawData.m_Renderer2DData.m_IndexCount);
+                m_DebugDrawData.m_Renderer2DData.m_IndexBuffer->Bind(commandBuffer);
+
+                m_DebugDrawData.m_Renderer2DData.m_VertexBuffers[currentFrame][m_DebugDrawData.m_Renderer2DData.m_BatchDrawCallIndex]->ReleasePointer();
+
+                Renderer::BindDescriptorSets(pipeline.get(), commandBuffer, 0, m_DebugDrawData.m_Renderer2DData.m_CurrentDescriptorSets.data(), 2);
+                Renderer::DrawIndexed(commandBuffer, DrawType::TRIANGLE, m_DebugDrawData.m_Renderer2DData.m_IndexCount);
+
+                m_DebugDrawData.m_Renderer2DData.m_VertexBuffers[currentFrame][m_DebugDrawData.m_Renderer2DData.m_BatchDrawCallIndex]->Unbind();
+                m_DebugDrawData.m_Renderer2DData.m_IndexBuffer->Unbind();
+
+                pipeline->End(commandBuffer);
+
+                m_DebugDrawData.m_Renderer2DData.m_IndexCount = 0;
             }
-
-            Graphics::CommandBuffer* commandBuffer = Renderer::GetMainSwapChain()->GetCurrentCommandBuffer();
-
-            pipeline->Bind(commandBuffer);
-
-            m_DebugDrawData.m_Renderer2DData.m_CurrentDescriptorSets[0] = m_DebugDrawData.m_Renderer2DData.m_DescriptorSet[0][0].get();
-            m_DebugDrawData.m_Renderer2DData.m_CurrentDescriptorSets[1] = m_DebugDrawData.m_Renderer2DData.m_DescriptorSet[0][1].get();
-
-            m_DebugDrawData.m_Renderer2DData.m_IndexBuffer->SetCount(m_DebugDrawData.m_Renderer2DData.m_IndexCount);
-            m_DebugDrawData.m_Renderer2DData.m_IndexBuffer->Bind(commandBuffer);
-
-            m_DebugDrawData.m_Renderer2DData.m_VertexBuffers[currentFrame][m_DebugDrawData.m_Renderer2DData.m_BatchDrawCallIndex]->ReleasePointer();
-
-            Renderer::BindDescriptorSets(pipeline.get(), commandBuffer, 0, m_DebugDrawData.m_Renderer2DData.m_CurrentDescriptorSets.data(), 2);
-            Renderer::DrawIndexed(commandBuffer, DrawType::TRIANGLE, m_DebugDrawData.m_Renderer2DData.m_IndexCount);
-
-            m_DebugDrawData.m_Renderer2DData.m_VertexBuffers[currentFrame][m_DebugDrawData.m_Renderer2DData.m_BatchDrawCallIndex]->Unbind();
-            m_DebugDrawData.m_Renderer2DData.m_IndexBuffer->Unbind();
-
-            pipeline->End(commandBuffer);
-
-            m_DebugDrawData.m_Renderer2DData.m_IndexCount = 0;
         }
+        
 
         m_DebugDrawData.m_PointBatchDrawCallIndex = 0;
         m_DebugDrawData.m_LineBatchDrawCallIndex = 0;

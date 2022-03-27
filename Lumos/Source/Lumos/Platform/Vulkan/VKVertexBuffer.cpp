@@ -14,6 +14,7 @@ namespace Lumos
             , m_Size(0)
         {
             VKBuffer::SetUsage(VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
+            VKBuffer::SetMemoryProperyFlags(VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
         }
 
         VKVertexBuffer::~VKVertexBuffer()

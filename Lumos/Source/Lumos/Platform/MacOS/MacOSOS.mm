@@ -87,4 +87,12 @@ namespace Lumos
 			requested.tv_nsec = remaining.tv_nsec;
 		}
 	}
+
+    void MacOSOS::MaximiseWindow()
+    {
+        auto window = Application::Get().GetWindow();
+        NSWindow* nativeWindow = glfwGetCocoaWindow((GLFWwindow*)window->GetHandle());
+
+        [nativeWindow toggleFullScreen:nil];
+    }
 }

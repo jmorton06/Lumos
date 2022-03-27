@@ -62,6 +62,7 @@ namespace Lumos
 
     void RigidBody2D::Init(const RigidBodyParameters& params)
     {
+        LUMOS_PROFILE_FUNCTION();
         m_Static = params.isStatic;
         m_ShapeType = params.shape;
         m_Mass = params.mass;
@@ -149,6 +150,7 @@ namespace Lumos
 
     void RigidBody2D::SetShape(Shape shape, const std::vector<glm::vec2>& customPositions)
     {
+        LUMOS_PROFILE_FUNCTION();
         m_ShapeType = shape;
         m_CustomShapePositions = customPositions;
 

@@ -287,6 +287,13 @@ end
             shape->SetRadius(radius);
             phys.GetRigidBody()->CollisionShapeUpdated();
         }
+
+        float height = shape->GetHeight();
+        if(ImGui::DragFloat("##CollisionShapeHeight", &height, 1.0f, 0.0f, 10000.0f, "%.2f"))
+        {
+            shape->SetHeight(height);
+            phys.GetRigidBody()->CollisionShapeUpdated();
+        }
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
     }
