@@ -106,6 +106,7 @@ namespace Lumos
 
     void RigidBody3D::RestTest()
     {
+        LUMOS_PROFILE_FUNCTION();
         // Negative threshold disables test, don't bother calculating average or performing test
         if(m_RestVelocityThresholdSquared <= 0.0f)
             return;
@@ -123,6 +124,7 @@ namespace Lumos
 
     void RigidBody3D::DebugDraw(uint64_t flags) const
     {
+        LUMOS_PROFILE_FUNCTION();
         glm::vec4 colour(0.4f, 0.3f, 0.7f, 1.0f);
 
         if(flags & PhysicsDebugFlags::AABB)
@@ -144,6 +146,7 @@ namespace Lumos
 
     void RigidBody3D::SetCollisionShape(CollisionShapeType type)
     {
+        LUMOS_PROFILE_FUNCTION();
         switch(type)
         {
         case CollisionShapeType::CollisionCuboid:

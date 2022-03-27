@@ -25,6 +25,7 @@ namespace Lumos
 
         VKIndexBuffer::~VKIndexBuffer()
         {
+            LUMOS_PROFILE_FUNCTION();
             if(m_MappedBuffer)
             {
                 VKBuffer::Flush(m_Size);
@@ -35,6 +36,7 @@ namespace Lumos
 
         void VKIndexBuffer::Bind(CommandBuffer* commandBuffer) const
         {
+            LUMOS_PROFILE_FUNCTION();
             vkCmdBindIndexBuffer(static_cast<VKCommandBuffer*>(commandBuffer)->GetHandle(), m_Buffer, 0, VK_INDEX_TYPE_UINT32);
         }
 

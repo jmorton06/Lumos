@@ -168,7 +168,10 @@ namespace Lumos
 
             m_Fence->Reset();
 
-            VK_CHECK_RESULT(vkQueueSubmit(VKDevice::Get().GetGraphicsQueue(), 1, &submitInfo, m_Fence->GetHandle()));
+            {
+                LUMOS_PROFILE_SCOPE("vkQueueSubmit");
+                VK_CHECK_RESULT(vkQueueSubmit(VKDevice::Get().GetGraphicsQueue(), 1, &submitInfo, m_Fence->GetHandle()));
+            }
             m_State = CommandBufferState::Submitted;
         }
 

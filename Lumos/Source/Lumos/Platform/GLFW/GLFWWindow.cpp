@@ -471,11 +471,78 @@ namespace Lumos
             //glfwSetInputMode(m_Handle, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
         }
     }
+    
+//#define LOG_CONTROLLER 0
 
     void GLFWWindow::ProcessInput()
     {
         LUMOS_PROFILE_SCOPE("GLFW PollEvents");
         glfwPollEvents();
+        
+        auto& controllers = Input::GetControllers();
+		for (auto it = controllers.begin(); it != controllers.end();)
+		{
+			int id = it->first;
+			if (glfwJoystickPresent(id) != GLFW_TRUE)
+				Input::RemoveController(id);
+			
+            it++;
+		}
+    
+
+		// Update controllers
+		for (int id = GLFW_JOYSTICK_1; id < GLFW_JOYSTICK_LAST; id++)
+		{
+			if (glfwJoystickPresent(id) == GLFW_TRUE)
+			{
+#if LOG_CONTROLLER
+                LUMOS_LOG_INFO("Controller Connected {0}", id);
+#endif
+                Controller* controller = Input::GetOrAddController(id);
+                if(controller)
+                {
+                    controller->ID = id;
+                    controller->Name = glfwGetJoystickName(id);
+
+#if LOG_CONTROLLER
+                    LUMOS_LOG_INFO(controller->Name);
+#endif
+                    int buttonCount;
+                    const unsigned char* buttons = glfwGetJoystickButtons(id, &buttonCount);
+                    for (int i = 0; i < buttonCount; i++)
+                    {
+                        controller->ButtonStates[i] = buttons[i] == GLFW_PRESS;
+                        
+#if LOG_CONTROLLER
+                        if(controller->ButtonStates[i])
+                            LUMOS_LOG_INFO("Button pressed {0}", buttons[i]);
+#endif
+                    }
+
+                    int axisCount;
+                    const float* axes = glfwGetJoystickAxes(id, &axisCount);
+                    for (int i = 0; i < axisCount; i++)
+                    {
+                        controller->AxisStates[i] = axes[i];
+#if LOG_CONTROLLER
+                        LUMOS_LOG_INFO(controller->AxisStates[i] );
+#endif
+
+                    }
+
+                    int hatCount;
+                    const unsigned char* hats = glfwGetJoystickHats(id, &hatCount);
+                    for (int i = 0; i < hatCount; i++)
+                    {
+                        controller->HatStates[i] = hats[i];
+#if LOG_CONTROLLER
+                        LUMOS_LOG_INFO(controller->HatStates[i] );
+#endif
+
+                    }
+                }
+			}
+		}
     }
 
     void GLFWWindow::Maximise()
