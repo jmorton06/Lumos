@@ -168,7 +168,7 @@ namespace Lumos::Graphics
             m_MaterialProperties->usingAlbedoMap = 0.0f;
         }
 
-        //if(pbr)
+        // if(pbr)
         {
             m_DescriptorSet->SetTexture("u_MetallicMap", m_PBRMaterialTextures.metallic ? m_PBRMaterialTextures.metallic.get() : s_DefaultTexture.get());
 
@@ -225,8 +225,8 @@ namespace Lumos::Graphics
 
         if(!m_Shader)
         {
-            //If no shader then set it to the default pbr shader
-            //TODO default to forward
+            // If no shader then set it to the default pbr shader
+            // TODO default to forward
             m_Shader = Application::Get().GetShaderLibrary()->GetResource("ForwardPBR");
         }
 
@@ -251,7 +251,7 @@ namespace Lumos::Graphics
 
         m_DescriptorSet->Update();
 
-        //UpdateDescriptorSet();
+        // UpdateDescriptorSet();
     }
 
     void Material::SetShader(const std::string& filePath)

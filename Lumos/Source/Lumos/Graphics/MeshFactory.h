@@ -1,5 +1,5 @@
 #pragma once
-#include "Maths/Maths.h"
+#include <glm/fwd.hpp>
 
 namespace Lumos
 {

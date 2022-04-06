@@ -208,8 +208,7 @@ namespace Lumos
                 if(name == component.name)
                 {
                     e = entity;
-                }
-            });
+                } });
 
         return e;
     }
@@ -257,31 +256,21 @@ namespace Lumos
 
         input.set_function("GetScrollOffset", []() -> float
             { return Input::Get().GetScrollOffset(); });
-        
-        input.set_function("GetControllerAxis", [](int id, int axis) -> float
-        {
-            return Input::GetControllerAxis(id, axis);
-        });
 
         input.set_function("GetControllerAxis", [](int id, int axis) -> float
-        {
-            return Input::GetControllerAxis(id, axis);
-        });
+            { return Input::GetControllerAxis(id, axis); });
+
+        input.set_function("GetControllerAxis", [](int id, int axis) -> float
+            { return Input::GetControllerAxis(id, axis); });
 
         input.set_function("GetControllerName", [](int id) -> std::string_view
-        {
-            return Input::GetControllerName(id);
-        });
+            { return Input::GetControllerName(id); });
 
         input.set_function("GetControllerHat", [](int id, int hat) -> int
-        {
-            return Input::GetControllerHat(id, hat);
-        });
+            { return Input::GetControllerHat(id, hat); });
 
         input.set_function("IsControllerButtonPressed", [](int id, int button) -> bool
-        {
-            return Input::IsControllerButtonPressed(id, button);
-        });
+            { return Input::IsControllerButtonPressed(id, button); });
 
         std::initializer_list<std::pair<sol::string_view, Lumos::InputCode::Key>> keyItems = {
             { "A", Lumos::InputCode::Key::A },
@@ -496,8 +485,8 @@ namespace Lumos
 
         REGISTER_COMPONENT_WITH_ECS(state, SoundComponent, static_cast<SoundComponent& (Entity::*)()>(&Entity::AddComponent<SoundComponent>));
 
-        //state.set_function("LoadMesh", &ModelLoader::LoadModel);
-        //TODO MODEL
+        // state.set_function("LoadMesh", &ModelLoader::LoadModel);
+        // TODO MODEL
         sol::usertype<Graphics::Mesh> mesh_type = state.new_usertype<Graphics::Mesh>("Mesh");
 
         std::initializer_list<std::pair<sol::string_view, Lumos::Graphics::TextureFilter>> textureFilter = {

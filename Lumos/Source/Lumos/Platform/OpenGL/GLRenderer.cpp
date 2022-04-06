@@ -221,7 +221,7 @@ namespace Lumos
             LUMOS_PROFILE_FUNCTION();
             Engine::Get().Statistics().NumDrawCalls++;
             GLCall(glDrawElements(GLTools::DrawTypeToGL(type), count, GLTools::DataTypeToGL(DataType::UNSIGNED_INT), nullptr));
-            //GLCall(glDrawArrays(GLTools::DrawTypeToGL(type), start, count));
+            // GLCall(glDrawArrays(GLTools::DrawTypeToGL(type), start, count));
         }
 
         void GLRenderer::BindDescriptorSetsInternal(Graphics::Pipeline* pipeline, Graphics::CommandBuffer* commandBuffer, uint32_t dynamicOffset, Graphics::DescriptorSet** descriptorSets, uint32_t descriptorCount)
@@ -238,8 +238,8 @@ namespace Lumos
         {
             if(!texture)
             {
-                //Assume swapchain texture
-                //TODO: function for clearing swapchain image
+                // Assume swapchain texture
+                // TODO: function for clearing swapchain image
 
                 GLCall(glBindFramebuffer(GL_FRAMEBUFFER, 0));
             }

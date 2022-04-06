@@ -31,7 +31,7 @@ namespace Lumos
     {
         glm::vec3 up = glm::vec3(0, 1, 0), right = glm::vec3(1, 0, 0);
 
-        m_CameraSpeed = dt * 20.0f; //camera->GetScale() *
+        m_CameraSpeed = dt * 20.0f; // camera->GetScale() *
 
         if(Input::Get().GetKeyHeld(Lumos::InputCode::Key::A))
         {
@@ -80,7 +80,7 @@ namespace Lumos
 
         if(!Maths::Equals(m_ZoomVelocity, 0.0f))
         {
-            float scale = 1.0f; //camera->GetScale();
+            float scale = 1.0f; // camera->GetScale();
 
             scale -= m_ZoomVelocity;
 
@@ -94,7 +94,7 @@ namespace Lumos
                 m_ZoomVelocity = m_ZoomVelocity * pow(m_ZoomDampeningFactor, dt);
             }
 
-            //camera->SetScale(scale); TODO
+            // camera->SetScale(scale); TODO
         }
     }
 }

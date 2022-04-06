@@ -41,7 +41,7 @@ namespace Lumos::Graphics
                 else
                     newPath = "Primitive";
 
-                //For now this saved material will be overriden by materials in the model file
+                // For now this saved material will be overriden by materials in the model file
                 auto material = std::unique_ptr<Material>(ModelRef->GetMeshes().front()->GetMaterial().get());
                 archive(cereal::make_nvp("PrimitiveType", ModelRef->GetPrimitiveType()), cereal::make_nvp("FilePath", newPath), cereal::make_nvp("Material", material));
                 material.release();

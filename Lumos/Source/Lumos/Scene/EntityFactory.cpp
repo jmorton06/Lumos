@@ -58,13 +58,13 @@ namespace Lumos
         properties.usingMetallicMap = 0.0f;
         matInstance->SetMaterialProperites(properties);
 
-        //auto shader = Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/ForwardPBR.shader");
-        //matInstance->SetShader(nullptr);//shader);
+        // auto shader = Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/ForwardPBR.shader");
+        // matInstance->SetShader(nullptr);//shader);
         model->GetMeshes().front()->SetMaterial(matInstance);
 
         if(physics_enabled)
         {
-            //Otherwise create a physics object, and set it's position etc
+            // Otherwise create a physics object, and set it's position etc
             SharedPtr<RigidBody3D> testPhysics = CreateSharedPtr<RigidBody3D>();
 
             testPhysics->SetPosition(pos);
@@ -72,7 +72,7 @@ namespace Lumos
 
             if(!collidable)
             {
-                //Even without a collision shape, the inertia matrix for rotation has to be derived from the objects shape
+                // Even without a collision shape, the inertia matrix for rotation has to be derived from the objects shape
                 testPhysics->SetInverseInertia(SphereCollisionShape(radius).BuildInverseInertia(inverse_mass));
             }
             else
@@ -117,13 +117,13 @@ namespace Lumos
         properties.usingMetallicMap = 0.0f;
         matInstance->SetMaterialProperites(properties);
 
-        //auto shader = Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/ForwardPBR.shader");
-        //matInstance->SetShader(shader);
+        // auto shader = Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/ForwardPBR.shader");
+        // matInstance->SetShader(shader);
         model->GetMeshes().front()->SetMaterial(matInstance);
 
         if(physics_enabled)
         {
-            //Otherwise create a physics object, and set it's position etc
+            // Otherwise create a physics object, and set it's position etc
             SharedPtr<RigidBody3D> testPhysics = CreateSharedPtr<RigidBody3D>();
 
             testPhysics->SetPosition(pos);
@@ -131,7 +131,7 @@ namespace Lumos
 
             if(!collidable)
             {
-                //Even without a collision shape, the inertia matrix for rotation has to be derived from the objects shape
+                // Even without a collision shape, the inertia matrix for rotation has to be derived from the objects shape
                 testPhysics->SetInverseInertia(CuboidCollisionShape(halfdims).BuildInverseInertia(inverse_mass));
             }
             else
@@ -174,8 +174,8 @@ namespace Lumos
         properties.usingMetallicMap = 0.0f;
         matInstance->SetMaterialProperites(properties);
 
-        //auto shader = Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/ForwardPBR.shader");
-        //matInstance->SetShader(shader);
+        // auto shader = Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/ForwardPBR.shader");
+        // matInstance->SetShader(shader);
 
         pyramidMeshEntity.AddComponent<Maths::Transform>(glm::toMat4(glm::quat(glm::vec3(glm::radians(-90.0f), 0.0f, 0.0f))) * glm::scale(glm::mat4(1.0), halfdims));
         pyramidMeshEntity.SetParent(pyramid);
@@ -184,7 +184,7 @@ namespace Lumos
 
         if(physics_enabled)
         {
-            //Otherwise create a physics object, and set it's position etc
+            // Otherwise create a physics object, and set it's position etc
             SharedPtr<RigidBody3D> testPhysics = CreateSharedPtr<RigidBody3D>();
 
             testPhysics->SetPosition(pos);
@@ -192,7 +192,7 @@ namespace Lumos
 
             if(!collidable)
             {
-                //Even without a collision shape, the inertia matrix for rotation has to be derived from the objects shape
+                // Even without a collision shape, the inertia matrix for rotation has to be derived from the objects shape
                 testPhysics->SetInverseInertia(PyramidCollisionShape(halfdims).BuildInverseInertia(inverse_mass));
             }
             else
@@ -231,7 +231,7 @@ namespace Lumos
             true,
             colour);
 
-        //cube.GetComponent<RigidBody3DComponent>().GetRigidBody()->SetIsAtRest(true);
+        // cube.GetComponent<RigidBody3DComponent>().GetRigidBody()->SetIsAtRest(true);
         const float radius = Random32::Rand(1.0f, 30.0f);
         const float intensity = Random32::Rand(0.0f, 2.0f);
 

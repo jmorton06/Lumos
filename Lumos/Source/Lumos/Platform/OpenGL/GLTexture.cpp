@@ -156,7 +156,7 @@ namespace Lumos
 
             glGenTextures(1, &m_Handle);
             glBindTexture(GL_TEXTURE_CUBE_MAP, m_Handle);
-            //glTexStorage2D(m_Handle, m_NumMips, GL_RGBA16F, m_Size, m_Size);
+            // glTexStorage2D(m_Handle, m_NumMips, GL_RGBA16F, m_Size, m_Size);
 
 #ifndef LUMOS_PLATFORM_MOBILE
             glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP);
@@ -170,7 +170,7 @@ namespace Lumos
             for(int i = 0; i < 6; ++i)
                 glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGBA16F, size, size, 0, GL_RGBA, GL_FLOAT, nullptr);
 
-            //GLCall(glGenerateMipmap(GL_TEXTURE_CUBE_MAP));
+            // GLCall(glGenerateMipmap(GL_TEXTURE_CUBE_MAP));
             m_Width = size;
             m_Height = size;
             m_TextureFormat = m_Parameters.format;
@@ -474,7 +474,7 @@ namespace Lumos
             GLCall(glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
 #ifndef LUMOS_PLATFORM_MOBILE
             GLCall(glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_COMPARE_MODE, GL_NONE));
-            //GLCall(glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_DEPTH_TEXTURE_MODE, GL_INTENSITY));
+            // GLCall(glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_DEPTH_TEXTURE_MODE, GL_INTENSITY));
 #endif
             GLCall(glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL));
             GLCall(glBindTexture(GL_TEXTURE_2D_ARRAY, 0));

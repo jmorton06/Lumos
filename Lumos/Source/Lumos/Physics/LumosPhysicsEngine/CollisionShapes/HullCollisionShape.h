@@ -20,7 +20,7 @@ namespace Lumos
 
         void BuildFromMesh(Graphics::Mesh* mesh);
 
-        //Collision Shape Functionality
+        // Collision Shape Functionality
         virtual glm::mat3 BuildInverseInertia(float invMass) const override;
 
         virtual std::vector<glm::vec3>& GetCollisionAxes(const RigidBody3D* currentObject) override;
@@ -33,7 +33,7 @@ namespace Lumos
 
         virtual void DebugDraw(const RigidBody3D* currentObject) const override;
 
-        //Set Cuboid Dimensions
+        // Set Cuboid Dimensions
         void SetHalfWidth(float half_width)
         {
             m_HalfDimensions.x = fabs(half_width);
@@ -95,7 +95,7 @@ namespace Lumos
 
     protected:
         glm::vec3 m_HalfDimensions;
-        BoundingBox m_BoundingBox;
+        Maths::BoundingBox m_BoundingBox;
 
         SharedPtr<Hull> m_Hull;
     };

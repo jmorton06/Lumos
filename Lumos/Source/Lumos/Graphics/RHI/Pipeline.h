@@ -30,7 +30,6 @@ namespace Lumos
             float lineWidth = 1.0f;
             float depthBiasConstantFactor = 0.0f;
             float depthBiasSlopeFactor = 0.0f;
-
         };
 
         class LUMOS_EXPORT Pipeline

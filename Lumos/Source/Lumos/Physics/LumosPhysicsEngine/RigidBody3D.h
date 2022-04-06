@@ -29,12 +29,12 @@ namespace Lumos
     class LumosPhysicsEngine;
     class Manifold;
 
-    //Callback function called whenever a collision is detected between two objects
-    //Params:
+    // Callback function called whenever a collision is detected between two objects
+    // Params:
     //	RigidBody3D* this_obj			- The current object class that contains the callback
     //	RigidBody3D* colliding_obj	- The object that is colliding with the given object
-    //Return:
-    //  True	- The physics engine should process the collision as normal
+    // Return:
+    //   True	- The physics engine should process the collision as normal
     //	False	- The physics engine should drop the collision pair and not do any further collision resolution/manifold generation
     //			  > This can be useful for AI to see if a player/agent is inside an area/collision volume
     typedef std::function<bool(RigidBody3D* this_obj, RigidBody3D* colliding_obj)> PhysicsCollisionCallback;
@@ -97,14 +97,14 @@ namespace Lumos
         {
             return m_InvInertia;
         }
-        const glm::mat4& GetWorldSpaceTransform() const; //Built from scratch or returned from cached value
+        const glm::mat4& GetWorldSpaceTransform() const; // Built from scratch or returned from cached value
 
-        const BoundingBox& GetWorldSpaceAABB();
+        const Maths::BoundingBox& GetWorldSpaceAABB();
 
         void WakeUp() override;
         void SetIsAtRest(const bool isAtRest) override;
 
-        BoundingBox GetLocalBoundingBox() const
+        Maths::BoundingBox GetLocalBoundingBox() const
         {
             return m_localBoundingBox;
         }
@@ -117,7 +117,7 @@ namespace Lumos
                 m_RestVelocityThresholdSquared = vel * vel;
         }
 
-        void SetLocalBoundingBox(const BoundingBox& bb)
+        void SetLocalBoundingBox(const Maths::BoundingBox& bb)
         {
             m_localBoundingBox = bb;
             m_wsAabbInvalidated = true;
@@ -130,7 +130,7 @@ namespace Lumos
             m_Position = v;
             m_wsTransformInvalidated = true;
             m_wsAabbInvalidated = true;
-            //m_AtRest = false;
+            // m_AtRest = false;
         }
 
         void SetLinearVelocity(const glm::vec3& v)
@@ -289,9 +289,9 @@ namespace Lumos
         float m_AverageSummedVelocity;
 
         mutable glm::mat4 m_wsTransform;
-        BoundingBox m_localBoundingBox; //!< Model orientated bounding box in model space
+        Maths::BoundingBox m_localBoundingBox; //!< Model orientated bounding box in model space
         mutable bool m_wsAabbInvalidated; //!< Flag indicating if the cached world space transoformed AABB is invalid
-        mutable BoundingBox m_wsAabb; //!< Axis aligned bounding box of this object in world space
+        mutable Maths::BoundingBox m_wsAabb; //!< Axis aligned bounding box of this object in world space
 
         //<---------LINEAR-------------->
         glm::vec3 m_Position;

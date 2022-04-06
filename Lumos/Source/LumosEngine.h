@@ -1,6 +1,6 @@
 #pragma once
 
-//App
+// App
 #include "Core/Core.h"
 #include "Core/Engine.h"
 #include "Core/Application.h"
@@ -8,7 +8,7 @@
 #include "Scene/Scene.h"
 #include "Core/LMLog.h"
 
-//Physics
+// Physics
 #include "Physics/LumosPhysicsEngine/LumosPhysicsEngine.h"
 #include "Physics/B2PhysicsEngine/B2PhysicsEngine.h"
 #include "Physics/LumosPhysicsEngine/CollisionShapes/SphereCollisionShape.h"
@@ -25,7 +25,7 @@
 #include "Physics/B2PhysicsEngine/RigidBody2D.h"
 #include "Physics/LumosPhysicsEngine/RigidBody3D.h"
 
-//Graphics
+// Graphics
 #include "Graphics/RHI/Texture.h"
 #include "Graphics/RHI/GraphicsContext.h"
 #include "Graphics/RHI/Framebuffer.h"
@@ -42,25 +42,25 @@
 #include "Graphics/MeshFactory.h"
 #include "Graphics/AnimatedSprite.h"
 
-//Entity
+// Entity
 #include "Scene/Component/Components.h"
 #include "Scene/EntityManager.h"
 #include "Scene/EntityFactory.h"
-//Cameras
+// Cameras
 #include "Graphics/Camera/ThirdPersonCamera.h"
 #include "Graphics/Camera/FPSCamera.h"
 #include "Graphics/Camera/Camera2D.h"
 #include "Graphics/Camera/Camera.h"
-//Maths
+// Maths
 #include "Maths/Maths.h"
 #include "Maths/Transform.h"
 
-//Audio
+// Audio
 #include "Audio/AudioManager.h"
 #include "Audio/Sound.h"
 #include "Audio/SoundNode.h"
 
-//System
+// System
 #include "Core/VFS.h"
 #include "Core/OS/FileSystem.h"
 #include "Core/StringUtilities.h"
@@ -69,11 +69,11 @@
 #include "Core/OS/Input.h"
 #include "Core/OS/OS.h"
 
-//Scripting
+// Scripting
 #include "Scripting/Lua/LuaScriptComponent.h"
 #include "Scripting/Lua/LuaManager.h"
 
-//Utilities
+// Utilities
 #include "Utilities/LoadImage.h"
 #include "Utilities/Timer.h"
 #include "Maths/Random.h"
@@ -83,5 +83,5 @@
 #include "Graphics/Renderers/GridRenderer.h"
 #include "Graphics/Renderers/RenderGraph.h"
 
-//External
+// External
 #include <imgui/imgui.h>

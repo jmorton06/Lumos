@@ -24,7 +24,7 @@ namespace Lumos
         void Load(const std::string& fileName);
         Entity GetCurrentEntity();
 
-        //For accessing this component in lua
+        // For accessing this component in lua
         void SetThisComponent();
 
         void LoadScript(const std::string& fileName);

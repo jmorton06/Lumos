@@ -52,7 +52,7 @@ namespace Lumos
 
         VKRenderer::~VKRenderer()
         {
-            //DescriptorPool deleted by VKContext
+            // DescriptorPool deleted by VKContext
         }
 
         void VKRenderer::PresentInternal(CommandBuffer* commandBuffer)
@@ -62,13 +62,11 @@ namespace Lumos
 
         void VKRenderer::ClearRenderTarget(Graphics::Texture* texture, Graphics::CommandBuffer* commandBuffer, glm::vec4 clearColour)
         {
-            VkImageSubresourceRange subresourceRange = {}; //TODO: Get from texture
+            VkImageSubresourceRange subresourceRange = {}; // TODO: Get from texture
             subresourceRange.baseMipLevel = 0;
             subresourceRange.layerCount = 1;
             subresourceRange.levelCount = 1;
             subresourceRange.baseArrayLayer = 0;
-
-            //TODO: Pass clear Value
 
             if(texture->GetType() == TextureType::COLOUR)
             {
@@ -168,6 +166,7 @@ namespace Lumos
 
                     m_DescriptorSetPool[numDesciptorSets] = vkDesSet->GetDescriptorSet();
 
+                    LUMOS_ASSERT(vkDesSet->GetHasUpdated(Renderer::GetMainSwapChain()->GetCurrentBufferIndex()), "Descriptor Set has not been updated before");
                     numDesciptorSets++;
                 }
             }
@@ -222,7 +221,7 @@ namespace Lumos
             frameBufferDesc.attachments = attachments.data();
             auto frameBuffer = Framebuffer::Get(frameBufferDesc);
 
-            //To clear screen
+            // To clear screen
             renderPass->BeginRenderpass(commandBuffer, clearColour, frameBuffer, SubPassContents::INLINE, width, height);
             renderPass->EndRenderpass(commandBuffer);
 
@@ -273,7 +272,7 @@ namespace Lumos
         {
             return new VKRenderer();
         }
-    
+
         uint32_t VKRenderer::GetGPUCount() const
         {
             return VKDevice::Get().GetGPUCount();

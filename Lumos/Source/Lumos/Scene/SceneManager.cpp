@@ -89,7 +89,7 @@ namespace Lumos
 
         auto& app = Application::Get();
 
-        //Clear up old scene
+        // Clear up old scene
         if(m_CurrentScene)
         {
             LUMOS_LOG_INFO("[SceneManager] - Exiting scene : {0}", m_CurrentScene->GetSceneName());
@@ -102,7 +102,7 @@ namespace Lumos
         m_SceneIdx = m_QueuedSceneIndex;
         m_CurrentScene = m_vpAllScenes[m_QueuedSceneIndex].get();
 
-        //Initialise new scene
+        // Initialise new scene
         app.GetSystem<LumosPhysicsEngine>()->SetDefaults();
         app.GetSystem<B2PhysicsEngine>()->SetDefaults();
         app.GetSystem<LumosPhysicsEngine>()->SetPaused(false);

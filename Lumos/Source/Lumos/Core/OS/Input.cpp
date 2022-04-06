@@ -85,84 +85,84 @@ namespace Lumos
         return false;
     }
 
-    	bool Input::IsControllerPresent(int id)
-	{
-		return s_Controllers.find(id) != s_Controllers.end();
-	}
+    bool Input::IsControllerPresent(int id)
+    {
+        return s_Controllers.find(id) != s_Controllers.end();
+    }
 
-	std::vector<int> Input::GetConnectedControllerIDs()
-	{
-		std::vector<int> ids;
-		ids.reserve(s_Controllers.size());
-		for (auto [id, controller] : s_Controllers)
-			ids.emplace_back(id);
+    std::vector<int> Input::GetConnectedControllerIDs()
+    {
+        std::vector<int> ids;
+        ids.reserve(s_Controllers.size());
+        for(auto [id, controller] : s_Controllers)
+            ids.emplace_back(id);
 
-		return ids;
-	}
+        return ids;
+    }
 
     Controller* Input::GetController(int id)
-	{
-		if (!Input::IsControllerPresent(id))
-			return nullptr;
+    {
+        if(!Input::IsControllerPresent(id))
+            return nullptr;
 
-		return &s_Controllers.at(id);
-	}
+        return &s_Controllers.at(id);
+    }
 
     Controller* Input::GetOrAddController(int id)
     {
         return &(s_Controllers[id]);
     }
 
-	std::string Input::GetControllerName(int id)
-	{
-		if (!Input::IsControllerPresent(id))
-			return {};
+    std::string Input::GetControllerName(int id)
+    {
+        if(!Input::IsControllerPresent(id))
+            return {};
 
-		return s_Controllers.at(id).Name;
-	}
+        return s_Controllers.at(id).Name;
+    }
 
-	bool Input::IsControllerButtonPressed(int controllerID, int button)
-	{
-		if (!Input::IsControllerPresent(controllerID))
-			return false;
+    bool Input::IsControllerButtonPressed(int controllerID, int button)
+    {
+        if(!Input::IsControllerPresent(controllerID))
+            return false;
 
-		const Controller& controller = s_Controllers.at(controllerID);
-		if (controller.ButtonStates.find(button) == controller.ButtonStates.end())
-			return false;
+        const Controller& controller = s_Controllers.at(controllerID);
+        if(controller.ButtonStates.find(button) == controller.ButtonStates.end())
+            return false;
 
-		return controller.ButtonStates.at(button);
-	}
+        return controller.ButtonStates.at(button);
+    }
 
-	float Input::GetControllerAxis(int controllerID, int axis)
-	{
-		if (!Input::IsControllerPresent(controllerID))
-			return 0.0f;
+    float Input::GetControllerAxis(int controllerID, int axis)
+    {
+        if(!Input::IsControllerPresent(controllerID))
+            return 0.0f;
 
-		const Controller& controller = s_Controllers.at(controllerID);
-		if (controller.AxisStates.find(axis) == controller.AxisStates.end())
-			return 0.0f;
+        const Controller& controller = s_Controllers.at(controllerID);
+        if(controller.AxisStates.find(axis) == controller.AxisStates.end())
+            return 0.0f;
 
-		return controller.AxisStates.at(axis);
-	}
+        return controller.AxisStates.at(axis);
+    }
 
-	uint8_t Input::GetControllerHat(int controllerID, int hat)
-	{
-		if (!Input::IsControllerPresent(controllerID))
-			return 0;
+    uint8_t Input::GetControllerHat(int controllerID, int hat)
+    {
+        if(!Input::IsControllerPresent(controllerID))
+            return 0;
 
-		const Controller& controller = s_Controllers.at(controllerID);
-		if (controller.HatStates.find(hat) == controller.HatStates.end())
-			return 0;
+        const Controller& controller = s_Controllers.at(controllerID);
+        if(controller.HatStates.find(hat) == controller.HatStates.end())
+            return 0;
 
-		return controller.HatStates.at(hat);
-	}
+        return controller.HatStates.at(hat);
+    }
 
     void Input::RemoveController(int id)
     {
-        for (auto it = s_Controllers.begin(); it != s_Controllers.end();)
+        for(auto it = s_Controllers.begin(); it != s_Controllers.end();)
         {
             int currentID = it->first;
-            if (currentID == id)
+            if(currentID == id)
             {
                 s_Controllers.erase(it);
                 return;

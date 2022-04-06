@@ -12,7 +12,7 @@ namespace Lumos
         explicit CuboidCollisionShape(const glm::vec3& halfdims);
         ~CuboidCollisionShape();
 
-        //Collision Shape Functionality
+        // Collision Shape Functionality
         virtual glm::mat3 BuildInverseInertia(float invMass) const override;
 
         virtual std::vector<glm::vec3>& GetCollisionAxes(const RigidBody3D* currentObject) override;
@@ -25,7 +25,7 @@ namespace Lumos
 
         virtual void DebugDraw(const RigidBody3D* currentObject) const override;
 
-        //Set Cuboid Dimensions
+        // Set Cuboid Dimensions
         void SetHalfWidth(float half_width)
         {
             m_CuboidHalfDimensions.x = fabs(half_width);
@@ -42,7 +42,7 @@ namespace Lumos
             m_LocalTransform = glm::scale(glm::mat4(1.0), m_CuboidHalfDimensions);
         }
 
-        //Get Cuboid Dimensions
+        // Get Cuboid Dimensions
         float GetHalfWidth() const
         {
             return m_CuboidHalfDimensions.x;
@@ -92,7 +92,7 @@ namespace Lumos
         }
 
     protected:
-        //Constructs the static cube hull
+        // Constructs the static cube hull
         static void ConstructCubeHull();
 
     protected:

@@ -13,7 +13,7 @@ namespace Lumos
     {
         glm::vec3 ab = obj2->GetPosition() - obj1->GetPosition();
         m_restDistance = glm::length(ab);
-        //TODO: FIX
+        // TODO: FIX
         UNIMPLEMENTED;
         glm::vec3 r1 = (obj1->GetPosition() - m_pObj1->GetPosition());
         glm::vec3 r2 = (obj2->GetPosition() - m_pObj2->GetPosition());
@@ -28,8 +28,8 @@ namespace Lumos
         , m_dampingFactor(dampingFactor)
     {
         glm::vec3 ab = globalOnB - globalOnA;
-		m_restDistance = glm::length(ab);
-		UNIMPLEMENTED;
+        m_restDistance = glm::length(ab);
+        UNIMPLEMENTED;
 
         //        glm::vec3 r1 = (globalOnA - m_pObj1->GetPosition());
         //        glm::vec3 r2 = (globalOnB - m_pObj2->GetPosition());

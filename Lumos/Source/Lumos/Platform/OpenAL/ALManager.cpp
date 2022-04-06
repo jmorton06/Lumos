@@ -73,13 +73,13 @@ namespace Lumos
             }
         }
 
-        //Pass Cameras transform
+        // Pass Cameras transform
         void ALManager::UpdateListener(const Maths::Transform& listenerTransform)
         {
             LUMOS_PROFILE_FUNCTION();
             {
                 glm::vec3 worldPos = listenerTransform.GetWorldPosition();
-                glm::vec3 velocity = glm::vec3(0.0f); //TODO: m_Listener->GetVelocity();
+                glm::vec3 velocity = glm::vec3(0.0f); // TODO: m_Listener->GetVelocity();
 
                 ALfloat direction[6];
 

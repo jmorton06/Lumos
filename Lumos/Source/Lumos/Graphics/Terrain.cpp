@@ -27,7 +27,7 @@ namespace Lumos
         glm::vec3* vertices = new glm::vec3[numVertices];
         glm::vec2* texCoords = new glm::vec2[numVertices];
         uint32_t* indices = new uint32_t[numIndices];
-        m_BoundingBox = CreateSharedPtr<BoundingBox>();
+        m_BoundingBox = CreateSharedPtr<Maths::BoundingBox>();
 
         for(int x = 0; x < width; ++x)
         {

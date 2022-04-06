@@ -28,7 +28,7 @@ namespace Lumos
         {
         }
 
-        Mesh::Mesh(SharedPtr<VertexBuffer>& vertexBuffer, SharedPtr<IndexBuffer>& indexBuffer, const SharedPtr<BoundingBox>& boundingBox)
+        Mesh::Mesh(SharedPtr<VertexBuffer>& vertexBuffer, SharedPtr<IndexBuffer>& indexBuffer, const SharedPtr<Maths::BoundingBox>& boundingBox)
             : m_VertexBuffer(vertexBuffer)
             , m_IndexBuffer(indexBuffer)
             , m_BoundingBox(boundingBox)
@@ -41,8 +41,8 @@ namespace Lumos
             m_Indices = indices;
             m_Vertices = vertices;
 
-            //int lod = 2;
-            //float threshold = powf(0.7f, float(lod));
+            // int lod = 2;
+            // float threshold = powf(0.7f, float(lod));
 
             size_t indexCount = indices.size();
             size_t target_index_count = size_t(indices.size() * optimiseThreshold);
@@ -61,9 +61,9 @@ namespace Lumos
                 sizeof(Graphics::Vertex) // vertex stride
             );
 
-            //LUMOS_LOG_INFO("Mesh Optimizer - Before : {0} indices {1} vertices , After : {2} indices , {3} vertices", indexCount, m_Vertices.size(), newIndexCount, newVertexCount);
+            // LUMOS_LOG_INFO("Mesh Optimizer - Before : {0} indices {1} vertices , After : {2} indices , {3} vertices", indexCount, m_Vertices.size(), newIndexCount, newVertexCount);
 
-            m_BoundingBox = CreateSharedPtr<BoundingBox>();
+            m_BoundingBox = CreateSharedPtr<Maths::BoundingBox>();
 
             for(auto& vertex : m_Vertices)
             {

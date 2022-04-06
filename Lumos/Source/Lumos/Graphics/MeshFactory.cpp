@@ -45,7 +45,7 @@ namespace Lumos
             SharedPtr<IndexBuffer> ib;
             ib.reset(IndexBuffer::Create(indices, 6));
 
-            SharedPtr<BoundingBox> boundingBox = CreateSharedPtr<BoundingBox>();
+            SharedPtr<Maths::BoundingBox> boundingBox = CreateSharedPtr<Maths::BoundingBox>();
             for(int i = 0; i < 4; i++)
             {
                 boundingBox->Merge(data[i].Position);
@@ -82,7 +82,7 @@ namespace Lumos
             SharedPtr<VertexBuffer> vb = SharedPtr<VertexBuffer>(VertexBuffer::Create(BufferUsage::STATIC));
             vb->SetData(sizeof(Vertex) * 4, data);
 
-            SharedPtr<Lumos::BoundingBox> BoundingBox = CreateSharedPtr<Lumos::BoundingBox>();
+            SharedPtr<Lumos::Maths::BoundingBox> BoundingBox = CreateSharedPtr<Lumos::Maths::BoundingBox>();
             for(int i = 0; i < 4; i++)
             {
                 BoundingBox->Merge(data[i].Position);
@@ -223,7 +223,7 @@ namespace Lumos
             SharedPtr<VertexBuffer> vb = SharedPtr<VertexBuffer>(VertexBuffer::Create(BufferUsage::STATIC));
             vb->SetData(24 * sizeof(Vertex), data);
 
-            SharedPtr<Lumos::BoundingBox> BoundingBox = CreateSharedPtr<Lumos::BoundingBox>();
+            SharedPtr<Lumos::Maths::BoundingBox> BoundingBox = CreateSharedPtr<Lumos::Maths::BoundingBox>();
             for(int i = 0; i < 8; i++)
             {
                 BoundingBox->Merge(data[i].Position);
@@ -350,7 +350,7 @@ namespace Lumos
             SharedPtr<VertexBuffer> vb = SharedPtr<VertexBuffer>(VertexBuffer::Create(BufferUsage::STATIC));
             vb->SetData(18 * sizeof(Vertex), data);
 
-            SharedPtr<Lumos::BoundingBox> BoundingBox = CreateSharedPtr<Lumos::BoundingBox>();
+            SharedPtr<Lumos::Maths::BoundingBox> BoundingBox = CreateSharedPtr<Lumos::Maths::BoundingBox>();
             for(int i = 0; i < 18; i++)
             {
                 BoundingBox->Merge(data[i].Position);
@@ -443,7 +443,7 @@ namespace Lumos
                 }
             }
 
-            SharedPtr<BoundingBox> boundingBox = CreateSharedPtr<BoundingBox>();
+            SharedPtr<Maths::BoundingBox> boundingBox = CreateSharedPtr<Maths::BoundingBox>();
             for(size_t i = 0; i < data.size(); i++)
             {
                 boundingBox->Merge(data[i].Position);
@@ -482,7 +482,7 @@ namespace Lumos
             SharedPtr<VertexBuffer> vb = SharedPtr<VertexBuffer>(VertexBuffer::Create(BufferUsage::STATIC));
             vb->SetData(4 * sizeof(Vertex), data);
 
-            SharedPtr<BoundingBox> boundingBox = CreateSharedPtr<BoundingBox>();
+            SharedPtr<Maths::BoundingBox> boundingBox = CreateSharedPtr<Maths::BoundingBox>();
             for(int i = 0; i < 4; i++)
             {
                 boundingBox->Merge(data[i].Position);
@@ -652,7 +652,7 @@ namespace Lumos
             SharedPtr<VertexBuffer> vb = SharedPtr<VertexBuffer>(VertexBuffer::Create(BufferUsage::STATIC));
             vb->SetData(static_cast<uint32_t>(data.size() * sizeof(Vertex)), data.data());
 
-            SharedPtr<BoundingBox> boundingBox = CreateSharedPtr<BoundingBox>();
+            SharedPtr<Maths::BoundingBox> boundingBox = CreateSharedPtr<Maths::BoundingBox>();
             for(size_t i = 0; i < data.size(); i++)
             {
                 boundingBox->Merge(data[i].Position);
@@ -805,7 +805,7 @@ namespace Lumos
         SharedPtr<VertexBuffer> vb = SharedPtr<VertexBuffer>(VertexBuffer::Create(BufferUsage::STATIC));
         vb->SetData(static_cast<uint32_t>(data.size() * sizeof(Vertex)), data.data());
 
-        SharedPtr<BoundingBox> boundingBox = CreateSharedPtr<BoundingBox>();
+        SharedPtr<Maths::BoundingBox> boundingBox = CreateSharedPtr<Maths::BoundingBox>();
         for(size_t i = 0; i < data.size(); i++)
         {
             boundingBox->Merge(data[i].Position);

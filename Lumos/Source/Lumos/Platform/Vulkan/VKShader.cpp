@@ -372,7 +372,7 @@ namespace Lumos
             case VK_FORMAT_R32G32B32_UINT:
                 return sizeof(glm::ivec3);
             case VK_FORMAT_R32G32B32A32_UINT:
-                return sizeof(glm::ivec4); //Need uintvec?
+                return sizeof(glm::ivec4); // Need uintvec?
             default:
                 LUMOS_LOG_ERROR("Unsupported Format {0}", format);
                 return 0;
@@ -457,7 +457,7 @@ namespace Lumos
                     delete[] source;
                 }
             }
-            
+
             if(files.empty())
                 LUMOS_LOG_ERROR("Failed to load shader {0}", m_Name);
 
@@ -556,7 +556,7 @@ namespace Lumos
 
             if(shaderType == ShaderType::VERTEX)
             {
-                //Vertex Layout
+                // Vertex Layout
                 m_VertexInputStride = 0;
 
                 for(const spirv_cross::Resource& resource : resources.stage_inputs)
@@ -574,7 +574,7 @@ namespace Lumos
                 }
             }
 
-            //Descriptor Layout
+            // Descriptor Layout
             for(auto& u : resources.uniform_buffers)
             {
                 uint32_t set = comp.get_decoration(u.id, spv::DecorationDescriptorSet);
@@ -677,7 +677,7 @@ namespace Lumos
                 descriptor.binding = binding;
                 descriptor.textureCount = 1;
                 descriptor.name = u.name;
-                descriptor.texture = Graphics::Material::GetDefaultTexture().get(); //TODO: Move
+                descriptor.texture = Graphics::Material::GetDefaultTexture().get(); // TODO: Move
             }
 
             m_ShaderStages[currentShaderStage].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;

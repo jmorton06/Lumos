@@ -51,14 +51,14 @@ namespace Lumos
             Mesh();
             Mesh(const Mesh& mesh);
             Mesh(const std::vector<uint32_t>& indices, const std::vector<Vertex>& vertices, float optimiseThreshold = 0.95f);
-            Mesh(SharedPtr<VertexBuffer>& vertexBuffer, SharedPtr<IndexBuffer>& indexBuffer, const SharedPtr<BoundingBox>& boundingBox);
+            Mesh(SharedPtr<VertexBuffer>& vertexBuffer, SharedPtr<IndexBuffer>& indexBuffer, const SharedPtr<Maths::BoundingBox>& boundingBox);
 
             virtual ~Mesh();
 
             const SharedPtr<VertexBuffer>& GetVertexBuffer() const { return m_VertexBuffer; }
             const SharedPtr<IndexBuffer>& GetIndexBuffer() const { return m_IndexBuffer; }
             const SharedPtr<Material>& GetMaterial() const { return m_Material; }
-            const SharedPtr<BoundingBox>& GetBoundingBox() const { return m_BoundingBox; }
+            const SharedPtr<Maths::BoundingBox>& GetBoundingBox() const { return m_BoundingBox; }
 
             void SetMaterial(const SharedPtr<Material>& material) { m_Material = material; }
 
@@ -76,7 +76,7 @@ namespace Lumos
             SharedPtr<VertexBuffer> m_VertexBuffer;
             SharedPtr<IndexBuffer> m_IndexBuffer;
             SharedPtr<Material> m_Material;
-            SharedPtr<BoundingBox> m_BoundingBox;
+            SharedPtr<Maths::BoundingBox> m_BoundingBox;
 
             std::string m_Name;
 

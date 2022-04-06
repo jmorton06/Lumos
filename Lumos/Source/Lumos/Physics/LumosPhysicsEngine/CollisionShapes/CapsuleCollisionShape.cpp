@@ -11,7 +11,7 @@ namespace Lumos
     {
         m_Radius = radius;
         m_Height = height;
-        m_LocalTransform = glm::mat4(1.0);//glm::scale(glm::mat4(1.0), glm::vec3(m_Radius));
+        m_LocalTransform = glm::mat4(1.0); // glm::scale(glm::mat4(1.0), glm::vec3(m_Radius));
         m_Type = CollisionShapeType::CollisionCapsule;
     }
 
@@ -56,7 +56,7 @@ namespace Lumos
     void CapsuleCollisionShape::GetMinMaxVertexOnAxis(const RigidBody3D* currentObject, const glm::vec3& axis, glm::vec3* out_min, glm::vec3* out_max) const
     {
         glm::mat4 transform = currentObject ? currentObject->GetWorldSpaceTransform() * m_LocalTransform : m_LocalTransform;
-        glm::vec3 pos = transform[3]; 
+        glm::vec3 pos = transform[3];
 
         if(out_min)
             *out_min = pos - axis * m_Radius;

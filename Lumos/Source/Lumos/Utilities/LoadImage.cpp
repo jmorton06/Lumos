@@ -45,9 +45,36 @@ namespace Lumos
                 *isHDR = false;
         }
 
-        LUMOS_ASSERT(pixels, "Could not load image '{0}'!", filename);
+        if(!pixels)
+        {
+            LUMOS_LOG_ERROR("Could not load image '{0}'!", filename);
+            // Return magenta checkerboad image
 
-        //TODO support different texChannels
+            texChannels = 4;
+
+            if(width)
+                *width = 2;
+            if(height)
+                *height = 2;
+            if(bits)
+                *bits = texChannels * sizeOfChannel;
+
+            const int32_t size = (*width) * (*height) * texChannels;
+            uint8_t* data = new uint8_t[size];
+
+            uint8_t datatwo[16] = {
+                255, 0, 255, 255,
+                0, 0, 0, 255,
+                0, 0, 0, 255,
+                255, 0, 255, 255
+            };
+
+            memcpy(data, datatwo, size);
+
+            return data;
+        }
+
+        // TODO support different texChannels
         if(texChannels != 4)
             texChannels = 4;
 

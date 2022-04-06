@@ -126,11 +126,11 @@ namespace Lumos
 
         glm::vec2 GetWindowSize() const;
         float GetWindowDPI() const;
-		
-		void SetDisableMainRenderGraph(bool disable)
-		{
-			m_DisableMainRenderGraph = disable;
-		}
+
+        void SetDisableMainRenderGraph(bool disable)
+        {
+            m_DisableMainRenderGraph = disable;
+        }
 
         SharedPtr<ShaderLibrary>& GetShaderLibrary();
         SharedPtr<ModelLibrary>& GetModelLibrary();
@@ -188,11 +188,11 @@ namespace Lumos
             if(windowSize.y == 0)
                 windowSize.y = 600;
 
-            //Version 1
+            // Version 1
 
             std::string path;
 
-            //Window size and full screen shouldnt be in project
+            // Window size and full screen shouldnt be in project
 
             archive(cereal::make_nvp("RenderAPI", m_ProjectSettings.RenderAPI),
                 cereal::make_nvp("Width", (int)windowSize.x),
@@ -201,7 +201,7 @@ namespace Lumos
                 cereal::make_nvp("VSync", m_ProjectSettings.VSync),
                 cereal::make_nvp("ShowConsole", m_ProjectSettings.ShowConsole),
                 cereal::make_nvp("Title", m_ProjectSettings.Title));
-            //Version 2
+            // Version 2
 
             auto paths = m_SceneManager->GetSceneFilePaths();
             std::vector<std::string> newPaths;
@@ -212,13 +212,13 @@ namespace Lumos
                 newPaths.push_back(path);
             }
             archive(cereal::make_nvp("Scenes", newPaths));
-            //Version 3
+            // Version 3
             archive(cereal::make_nvp("SceneIndex", m_SceneManager->GetCurrentSceneIndex()));
-            //Version 4
+            // Version 4
             archive(cereal::make_nvp("Borderless", m_ProjectSettings.Borderless));
-            //Version 5
+            // Version 5
             archive(cereal::make_nvp("EngineAssetPath", m_ProjectSettings.m_EngineAssetPath));
-            //Version 6
+            // Version 6
             archive(cereal::make_nvp("GPUIndex", m_ProjectSettings.DesiredGPUIndex));
         }
 
@@ -271,7 +271,7 @@ namespace Lumos
             }
             else
                 m_ProjectSettings.m_EngineAssetPath = "/Users/jmorton/dev/Lumos/Lumos/Assets/";
-            
+
             if(m_ProjectSettings.ProjectVersion > 6)
                 archive(cereal::make_nvp("GPUIndex", m_ProjectSettings.DesiredGPUIndex));
 
@@ -310,12 +310,12 @@ namespace Lumos
         float m_SecondTimer = 0.0f;
         bool m_Minimized = false;
         bool m_SceneActive = true;
-		bool m_DisableMainRenderGraph = false;
+        bool m_DisableMainRenderGraph = false;
 
         uint32_t m_SceneViewWidth = 0;
         uint32_t m_SceneViewHeight = 0;
         bool m_SceneViewSizeUpdated = false;
-        
+
         UniquePtr<Window> m_Window;
         UniquePtr<SceneManager> m_SceneManager;
         UniquePtr<SystemManager> m_SystemManager;
@@ -336,6 +336,6 @@ namespace Lumos
         NONCOPYABLE(Application)
     };
 
-    //Defined by client
+    // Defined by client
     Application* CreateApplication();
 }

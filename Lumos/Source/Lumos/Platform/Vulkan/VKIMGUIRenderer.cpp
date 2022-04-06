@@ -67,16 +67,14 @@ namespace Lumos
                 deletionQueue.PushFunction([fence, commandPool, alloc]
                     {
                         vkDestroyFence(VKDevice::Get().GetDevice(), fence, alloc);
-                        vkDestroyCommandPool(VKDevice::Get().GetDevice(), commandPool, alloc);
-                    });
+                        vkDestroyCommandPool(VKDevice::Get().GetDevice(), commandPool, alloc); });
             }
             auto descriptorPool = g_DescriptorPool;
 
             deletionQueue.PushFunction([descriptorPool]
                 {
                     vkDestroyDescriptorPool(VKDevice::Get().GetDevice(), descriptorPool, nullptr);
-                    ImGui_ImplVulkan_Shutdown();
-                });
+                    ImGui_ImplVulkan_Shutdown(); });
         }
 
         void VKIMGUIRenderer::SetupVulkanWindowData(ImGui_ImplVulkanH_Window* wd, VkSurfaceKHR surface, int width, int height)
@@ -134,7 +132,7 @@ namespace Lumos
             wd->Frames = (ImGui_ImplVulkanH_Frame*)IM_ALLOC(sizeof(ImGui_ImplVulkanH_Frame) * wd->ImageCount);
             // wd->FrameSemaphores = (ImGui_ImplVulkanH_FrameSemaphores*)IM_ALLOC(sizeof(ImGui_ImplVulkanH_FrameSemaphores) * wd->ImageCount);
             memset(wd->Frames, 0, sizeof(wd->Frames[0]) * wd->ImageCount);
-            //memset(wd->FrameSemaphores, 0, sizeof(wd->FrameSemaphores[0]) * wd->ImageCount);
+            // memset(wd->FrameSemaphores, 0, sizeof(wd->FrameSemaphores[0]) * wd->ImageCount);
 
             // Create The Image Views
             {
@@ -255,12 +253,12 @@ namespace Lumos
             ImGui_ImplVulkan_CreateDescriptorSets(ImGui::GetDrawData(), VKRenderer::GetMainSwapChain()->GetCurrentBufferIndex());
 
             m_Renderpass->BeginRenderpass(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer(), glm::vec4(0.1f, 0.1f, 0.1f, 1.0f), m_Framebuffers[wd->FrameIndex], Graphics::SubPassContents::INLINE, wd->Width, wd->Height);
-			
-			{
-				LUMOS_PROFILE_SCOPE("ImGui Vulkan RenderDrawData");
-            // Record Imgui Draw Data and draw funcs into command buffer
-            ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), ((VKCommandBuffer*)Renderer::GetMainSwapChain()->GetCurrentCommandBuffer())->GetHandle(), VK_NULL_HANDLE, VKRenderer::GetMainSwapChain()->GetCurrentBufferIndex());
-			}
+
+            {
+                LUMOS_PROFILE_SCOPE("ImGui Vulkan RenderDrawData");
+                // Record Imgui Draw Data and draw funcs into command buffer
+                ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), ((VKCommandBuffer*)Renderer::GetMainSwapChain()->GetCurrentCommandBuffer())->GetHandle(), VK_NULL_HANDLE, VKRenderer::GetMainSwapChain()->GetCurrentBufferIndex());
+            }
             m_Renderpass->EndRenderpass(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer());
         }
 
@@ -318,7 +316,7 @@ namespace Lumos
 
         void VKIMGUIRenderer::Clear()
         {
-            //ImGui_ImplVulkan_ClearDescriptors();
+            // ImGui_ImplVulkan_ClearDescriptors();
         }
 
         void VKIMGUIRenderer::MakeDefault()

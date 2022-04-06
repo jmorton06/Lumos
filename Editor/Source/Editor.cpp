@@ -69,7 +69,7 @@ namespace Lumos
 
         Lumos::Debug::Log::AddSink(sink);
 
-        //Remove?
+        // Remove?
         s_Editor = this;
     }
 
@@ -82,7 +82,7 @@ namespace Lumos
         SaveEditorSettings();
 
         m_GridRenderer.reset();
-        //m_PreviewRenderer.reset();
+        // m_PreviewRenderer.reset();
         m_PreviewTexture.reset();
         m_PreviewSphere.reset();
         m_Panels.clear();
@@ -97,7 +97,7 @@ namespace Lumos
 #ifdef LUMOS_PLATFORM_IOS
         m_TempSceneSaveFilePath = OS::Instance()->GetAssetPath();
 #else
-        //TODO: Check windows
+        // TODO: Check windows
 #ifdef LUMOS_PLATFORM_LINUX
         m_TempSceneSaveFilePath = std::filesystem::current_path().string();
 #else
@@ -155,7 +155,7 @@ namespace Lumos
             (float)Application::Get().GetWindowSize().x / (float)Application::Get().GetWindowSize().y);
         m_CurrentCamera = m_EditorCamera.get();
 
-        glm::mat4 viewMat = glm::inverse(glm::lookAt(glm::vec3(-31.0f, 12.0f, 51.0f), glm::vec3(0.0f,0.0f,0.0f), glm::vec3(0.0f,1.0f,0.0f)));
+        glm::mat4 viewMat = glm::inverse(glm::lookAt(glm::vec3(-31.0f, 12.0f, 51.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f)));
         m_EditorCameraTransform.SetLocalTransform(viewMat);
 
         m_ComponentIconMap[typeid(Graphics::Light).hash_code()] = ICON_MDI_LIGHTBULB;
@@ -207,7 +207,7 @@ namespace Lumos
         Application::Get().GetWindow()->SetWindowTitle("Lumos Editor");
 
         ImGuizmo::SetGizmoSizeClipSpace(m_Settings.m_ImGuizmoScale);
-        //ImGuizmo::SetGizmoSizeScale(Application::Get().GetWindowDPI());
+        // ImGuizmo::SetGizmoSizeScale(Application::Get().GetWindowDPI());
     }
 
     bool Editor::IsTextFile(const std::string& filePath)
@@ -232,15 +232,15 @@ namespace Lumos
 
         return false;
     }
-	
-	bool Editor::IsShaderFile(const std::string& filePath)
+
+    bool Editor::IsShaderFile(const std::string& filePath)
     {
         LUMOS_PROFILE_FUNCTION();
         std::string extension = StringUtilities::GetFilePathExtension(filePath);
-		
+
         if(extension == "vert" || extension == "frag" || extension == "comp")
             return true;
-		
+
         return false;
     }
 
@@ -270,7 +270,7 @@ namespace Lumos
     {
         LUMOS_PROFILE_FUNCTION();
         std::string extension = StringUtilities::GetFilePathExtension(filePath);
-
+        extension = StringUtilities::ToLower(extension);
         if(extension == "png" || extension == "tga" || extension == "jpg")
             return true;
 
@@ -331,12 +331,12 @@ namespace Lumos
         m_FileBrowserPanel.SetCallback(BIND_FILEBROWSER_FN(Editor::FileOpenCallback));
         m_FileBrowserPanel.Open();
     }
-	
-	void Editor::EmbedFile()
-	{
-		m_FileBrowserPanel.SetCallback(BIND_FILEBROWSER_FN(Editor::FileEmbedCallback));
+
+    void Editor::EmbedFile()
+    {
+        m_FileBrowserPanel.SetCallback(BIND_FILEBROWSER_FN(Editor::FileEmbedCallback));
         m_FileBrowserPanel.Open();
-	}
+    }
 
     void Editor::DrawMenuBar()
     {
@@ -474,14 +474,14 @@ namespace Lumos
             }
             if(ImGui::BeginMenu("Edit"))
             {
-                //TODO
-                // if(ImGui::MenuItem("Undo", "CTRL+Z"))
-                // {
-                // }
-                // if(ImGui::MenuItem("Redo", "CTRL+Y", false, false))
-                // {
-                // } // Disabled item
-                // ImGui::Separator();
+                // TODO
+                //  if(ImGui::MenuItem("Undo", "CTRL+Z"))
+                //  {
+                //  }
+                //  if(ImGui::MenuItem("Redo", "CTRL+Y", false, false))
+                //  {
+                //  } // Disabled item
+                //  ImGui::Separator();
 
                 bool enabled = m_SelectedEntity != entt::null;
 
@@ -509,7 +509,6 @@ namespace Lumos
                         Entity(m_CopiedEntity, Application::Get().GetCurrentScene()).Destroy();
                     }
                 }
-
 
                 ImGui::EndMenu();
             }
@@ -630,15 +629,15 @@ namespace Lumos
                     }
                     LUMOS_LOG_INFO("Embedded {0} shaders. Recompile to use", shaderCount);
                 }
-				if(ImGui::MenuItem("Embed File"))
+                if(ImGui::MenuItem("Embed File"))
                 {
-					EmbedFile();
+                    EmbedFile();
                 }
-                
+
                 if(ImGui::BeginMenu("GPU Index"))
                 {
                     uint32_t gpuCount = Graphics::Renderer::GetRenderer()->GetGPUCount();
-                    
+
                     if(gpuCount == 1)
                     {
                         ImGui::TextUnformatted("Default");
@@ -649,11 +648,11 @@ namespace Lumos
                         int8_t currentDesiredIndex = Application::Get().GetProjectSettings().DesiredGPUIndex;
                         int8_t newIndex = currentDesiredIndex;
 
-                        if(ImGui::Selectable("Default",currentDesiredIndex == -1))
+                        if(ImGui::Selectable("Default", currentDesiredIndex == -1))
                         {
                             newIndex = -1;
                         }
-                        
+
                         for(uint32_t index = 0; index < gpuCount; index++)
                         {
                             if(ImGui::Selectable(std::to_string(index).c_str(), index == uint32_t(currentDesiredIndex)))
@@ -661,7 +660,7 @@ namespace Lumos
                                 newIndex = index;
                             }
                         }
-                        
+
                         Application::Get().GetProjectSettings().DesiredGPUIndex = newIndex;
                     }
                     ImGui::EndMenu();
@@ -680,7 +679,7 @@ namespace Lumos
                 {
 #ifdef LUMOS_PLATFORM_WINDOWS
                     // TODO
-                    //ShellExecuteA( NULL, "open",  "https://www.github.com/jmorton06/Lumos", NULL, NULL, SW_SHOWNORMAL );
+                    // ShellExecuteA( NULL, "open",  "https://www.github.com/jmorton06/Lumos", NULL, NULL, SW_SHOWNORMAL );
 #else
 #ifndef LUMOS_PLATFORM_IOS
                     system("open https://www.github.com/jmorton06/Lumos");
@@ -715,13 +714,13 @@ namespace Lumos
 
                     m_SelectedEntity = entt::null;
                     if(selected)
-					{
-						ImGui::SetWindowFocus("###scene");
+                    {
+                        ImGui::SetWindowFocus("###scene");
                         LoadCachedScene();
-					}
+                    }
                     else
                     {
-						ImGui::SetWindowFocus("###game");
+                        ImGui::SetWindowFocus("###game");
                         CacheScene();
                         Application::Get().GetCurrentScene()->OnInit();
                     }
@@ -1165,7 +1164,7 @@ namespace Lumos
         Application::OnNewScene(scene);
         m_SelectedEntity = entt::null;
 
-        glm::mat4 viewMat = glm::inverse(glm::lookAt(glm::vec3(-31.0f, 12.0f, 51.0f), glm::vec3(0.0f,0.0f,0.0f), glm::vec3(0.0f,1.0f,0.0f)));
+        glm::mat4 viewMat = glm::inverse(glm::lookAt(glm::vec3(-31.0f, 12.0f, 51.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f)));
         m_EditorCameraTransform.SetLocalTransform(viewMat);
 
         for(auto panel : m_Panels)
@@ -1318,11 +1317,11 @@ namespace Lumos
         Application::OnEvent(e);
     }
 
-    Ray Editor::GetScreenRay(int x, int y, Camera* camera, int width, int height)
+    Maths::Ray Editor::GetScreenRay(int x, int y, Camera* camera, int width, int height)
     {
         LUMOS_PROFILE_FUNCTION();
         if(!camera)
-            return Ray();
+            return Maths::Ray();
 
         float screenX = (float)x / (float)width;
         float screenY = (float)y / (float)height;
@@ -1340,11 +1339,11 @@ namespace Lumos
     {
         LUMOS_PROFILE_FUNCTION();
 
-        //if(Application::Get().GetEditorState() == EditorState::Preview)
+        if(m_SceneViewActive)
         {
             auto& registry = Application::Get().GetSceneManager()->GetCurrentScene()->GetRegistry();
 
-            if(Application::Get().GetSceneActive())
+            // if(Application::Get().GetSceneActive())
             {
                 const glm::vec2 mousePos = Input::Get().GetMousePosition();
 
@@ -1361,8 +1360,6 @@ namespace Lumos
                     }
                 }
             }
-			else
-				m_EditorCameraController.StopMovement();
 
             if(Input::Get().GetKeyHeld(InputCode::Key::O))
             {
@@ -1381,7 +1378,7 @@ namespace Lumos
                 if(m_EditorCameraTransform.GetLocalPosition() == m_CameraDestination)
                     m_TransitioningCamera = false;
             }
-			
+
             if(!Input::Get().GetMouseHeld(InputCode::MouseKey::ButtonRight) && !ImGuizmo::IsUsing())
             {
                 if(Input::Get().GetKeyPressed(InputCode::Key::Q))
@@ -1453,7 +1450,9 @@ namespace Lumos
                     Application::Get().GetCurrentScene()->DuplicateEntity({ m_SelectedEntity, Application::Get().GetCurrentScene() });
                 }
             }
-		}
+        }
+        else
+            m_EditorCameraController.StopMovement();
 
         Application::OnUpdate(ts);
     }
@@ -1464,7 +1463,7 @@ namespace Lumos
         if(m_CurrentCamera->IsOrthographic())
         {
             m_EditorCameraTransform.SetLocalPosition(point);
-            //m_CurrentCamera->SetScale(distance * 0.5f);
+            // m_CurrentCamera->SetScale(distance * 0.5f);
         }
         else
         {
@@ -1534,7 +1533,7 @@ namespace Lumos
                 {
                     auto& worldTransform = trans.GetWorldMatrix();
 
-                    auto bb = BoundingBox(Rect(sprite.GetPosition(), sprite.GetScale()));
+                    auto bb = Maths::BoundingBox(Maths::Rect(sprite.GetPosition(), sprite.GetScale()));
                     bb.Transform(trans.GetWorldMatrix());
                     DebugRenderer::DebugDraw(bb, selectedColour, true);
                 }
@@ -1549,7 +1548,7 @@ namespace Lumos
                 {
                     auto& worldTransform = trans.GetWorldMatrix();
 
-                    auto bb = BoundingBox(Rect(sprite.GetPosition(), sprite.GetScale()));
+                    auto bb = Maths::BoundingBox(Maths::Rect(sprite.GetPosition(), sprite.GetScale()));
                     bb.Transform(trans.GetWorldMatrix());
                     DebugRenderer::DebugDraw(bb, selectedColour, true);
                 }
@@ -1570,7 +1569,7 @@ namespace Lumos
             }
         }
 
-        if(registry.valid(m_SelectedEntity))// && Application::Get().GetEditorState() == EditorState::Preview)
+        if(registry.valid(m_SelectedEntity)) // && Application::Get().GetEditorState() == EditorState::Preview)
         {
             auto transform = registry.try_get<Maths::Transform>(m_SelectedEntity);
 
@@ -1595,8 +1594,7 @@ namespace Lumos
                 {
                     auto& worldTransform = transform->GetWorldMatrix();
 
-                    auto bb = BoundingBox(
-                        Rect(sprite->GetPosition(), sprite->GetPosition() + sprite->GetScale()));
+                    auto bb = Maths::BoundingBox(Maths::Rect(sprite->GetPosition(), sprite->GetPosition() + sprite->GetScale()));
                     bb.Transform(worldTransform);
                     DebugRenderer::DebugDraw(bb, selectedColour, true);
                 }
@@ -1608,7 +1606,7 @@ namespace Lumos
                 {
                     auto& worldTransform = transform->GetWorldMatrix();
 
-                    auto bb = BoundingBox(Rect(animSprite->GetPosition(), animSprite->GetPosition() + animSprite->GetScale()));
+                    auto bb = Maths::BoundingBox(Maths::Rect(animSprite->GetPosition(), animSprite->GetPosition() + animSprite->GetScale()));
                     bb.Transform(worldTransform);
                     DebugRenderer::DebugDraw(bb, selectedColour, true);
                 }
@@ -1642,7 +1640,7 @@ namespace Lumos
         }
     }
 
-    void Editor::SelectObject(const Ray& ray)
+    void Editor::SelectObject(const Maths::Ray& ray)
     {
         LUMOS_PROFILE_FUNCTION();
         auto& registry = Application::Get().GetSceneManager()->GetCurrentScene()->GetRegistry();
@@ -1669,7 +1667,7 @@ namespace Lumos
                     auto bbCopy = mesh->GetBoundingBox()->Transformed(worldTransform);
                     float distance;
                     ray.Intersects(bbCopy, distance);
-                    
+
                     if(distance < Maths::M_INFINITY)
                     {
                         if(distance < closestEntityDist)
@@ -1712,11 +1710,11 @@ namespace Lumos
             const auto& [sprite, trans] = spriteGroup.get<Graphics::Sprite, Maths::Transform>(entity);
 
             auto& worldTransform = trans.GetWorldMatrix();
-            auto bb = BoundingBox(Rect(sprite.GetPosition(), sprite.GetPosition() + sprite.GetScale()));
+            auto bb = Maths::BoundingBox(Maths::Rect(sprite.GetPosition(), sprite.GetPosition() + sprite.GetScale()));
             bb.Transform(trans.GetWorldMatrix());
-    
-			float distance;
-			ray.Intersects(bb, distance);
+
+            float distance;
+            ray.Intersects(bb, distance);
             if(distance < Maths::M_INFINITY)
             {
                 if(distance < closestEntityDist)
@@ -1734,10 +1732,10 @@ namespace Lumos
             const auto& [sprite, trans] = animSpriteGroup.get<Graphics::AnimatedSprite, Maths::Transform>(entity);
 
             auto& worldTransform = trans.GetWorldMatrix();
-            auto bb = BoundingBox(Rect(sprite.GetPosition(), sprite.GetPosition() + sprite.GetScale()));
+            auto bb = Maths::BoundingBox(Maths::Rect(sprite.GetPosition(), sprite.GetPosition() + sprite.GetScale()));
             bb.Transform(trans.GetWorldMatrix());
             float distance;
-			ray.Intersects(bb, distance);
+            ray.Intersects(bb, distance);
             if(distance < Maths::M_INFINITY)
             {
                 if(distance < closestEntityDist)
@@ -1754,9 +1752,9 @@ namespace Lumos
             {
                 auto& trans = registry.get<Maths::Transform>(m_SelectedEntity);
                 auto& sprite = registry.get<Graphics::Sprite>(m_SelectedEntity);
-                auto bb = BoundingBox(Rect(sprite.GetPosition(), sprite.GetPosition() + sprite.GetScale()));
+                auto bb = Maths::BoundingBox(Maths::Rect(sprite.GetPosition(), sprite.GetPosition() + sprite.GetScale()));
 
-                FocusCamera(trans.GetWorldPosition(), glm::distance(bb.Max(),bb.Min()));
+                FocusCamera(trans.GetWorldPosition(), glm::distance(bb.Max(), bb.Min()));
             }
         }
 
@@ -1830,13 +1828,13 @@ namespace Lumos
         Application::OnDebugDraw();
         DebugDraw();
 
-        //Application::Get().GetEditorState() == EditorState::Preview &&
+        // Application::Get().GetEditorState() == EditorState::Preview &&
     }
 
     void Editor::OnRender()
     {
         LUMOS_PROFILE_FUNCTION();
-        //DrawPreview();
+        // DrawPreview();
 
         bool isProfiling = false;
         static bool firstFrame = true;
@@ -1847,15 +1845,15 @@ namespace Lumos
             OS::Instance()->Delay(1000000);
 
         Application::OnRender();
-        
+
         for(int i = 0; i < int(m_Panels.size()); i++)
         {
             m_Panels[i]->OnRender();
         }
-		
-		if(m_Settings.m_ShowGrid && !m_EditorCamera->IsOrthographic())
+
+        if(m_Settings.m_ShowGrid && !m_EditorCamera->IsOrthographic())
             Draw3DGrid();
-        
+
         firstFrame = false;
     }
 
@@ -1867,10 +1865,10 @@ namespace Lumos
             m_PreviewTexture = SharedPtr<Graphics::Texture2D>(Graphics::Texture2D::Create());
             m_PreviewTexture->BuildTexture(Graphics::TextureFormat::RGBA8, 200, 200, false, false, false);
 
-            //m_PreviewRenderer = CreateSharedPtr<Graphics::ForwardRenderer>(200, 200, false);
+            // m_PreviewRenderer = CreateSharedPtr<Graphics::ForwardRenderer>(200, 200, false);
             m_PreviewSphere = SharedPtr<Graphics::Mesh>(Graphics::CreateSphere());
 
-            //m_PreviewRenderer->SetRenderTarget(m_PreviewTexture.get(), true);
+            // m_PreviewRenderer->SetRenderTarget(m_PreviewTexture.get(), true);
         }
 
         glm::mat4 proj = glm::perspective(0.1f, 10.0f, 200.0f / 200.0f, 60.0f);
@@ -1931,22 +1929,22 @@ namespace Lumos
             sprite.SetTexture(texture);
         }
     }
-	
-	void Editor::FileEmbedCallback(const std::string& filePath)
-	{
-		if(IsTextureFile(filePath))
-		{
-			std::string fileName = StringUtilities::RemoveFilePathExtension(StringUtilities::GetFileName(filePath));
-			std::string outPath = StringUtilities::GetFileLocation(filePath) + fileName + ".inl";
-			
-			LUMOS_LOG_INFO("Embed texture from {0} to {1}", filePath, outPath);
-			EmbedTexture(filePath, outPath, fileName);
-		}
-		else if(IsShaderFile(filePath))
-		{
-			EmbedShader(filePath);
-					}
-	}
+
+    void Editor::FileEmbedCallback(const std::string& filePath)
+    {
+        if(IsTextureFile(filePath))
+        {
+            std::string fileName = StringUtilities::RemoveFilePathExtension(StringUtilities::GetFileName(filePath));
+            std::string outPath = StringUtilities::GetFileLocation(filePath) + fileName + ".inl";
+
+            LUMOS_LOG_INFO("Embed texture from {0} to {1}", filePath, outPath);
+            EmbedTexture(filePath, outPath, fileName);
+        }
+        else if(IsShaderFile(filePath))
+        {
+            EmbedShader(filePath);
+        }
+    }
 
     void Editor::ProjectOpenCallback(const std::string& filePath)
     {

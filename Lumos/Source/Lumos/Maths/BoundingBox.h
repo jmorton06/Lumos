@@ -7,71 +7,75 @@
 
 namespace Lumos
 {
-    class BoundingSphere;
-    class BoundingBox
+    namespace Maths
     {
-        friend class BoundingSphere;
 
-    public:
-        BoundingBox();
-        BoundingBox(const glm::vec3& min, const glm::vec3& max);
-        BoundingBox(const glm::vec3* points, uint32_t numPoints);
-        BoundingBox(const Rect& rect, const glm::vec3& center = glm::vec3(0.0f));
-        BoundingBox(const BoundingBox& other);
-        BoundingBox(BoundingBox&& other);
-        ~BoundingBox();
-
-        void Clear()
+        class BoundingSphere;
+        class BoundingBox
         {
-            m_Min = glm::vec3(FLT_MAX);
-            m_Max = glm::vec3(-FLT_MAX);
-        }
+            friend class BoundingSphere;
 
-        BoundingBox& operator=(const BoundingBox& other);
-        BoundingBox& operator=(BoundingBox&& other);
+        public:
+            BoundingBox();
+            BoundingBox(const glm::vec3& min, const glm::vec3& max);
+            BoundingBox(const glm::vec3* points, uint32_t numPoints);
+            BoundingBox(const Rect& rect, const glm::vec3& center = glm::vec3(0.0f));
+            BoundingBox(const BoundingBox& other);
+            BoundingBox(BoundingBox&& other);
+            ~BoundingBox();
 
-        void Set(const glm::vec3& min, const glm::vec3& max);
-        void Set(const glm::vec3* points, uint32_t numPoints);
+            void Clear()
+            {
+                m_Min = glm::vec3(FLT_MAX);
+                m_Max = glm::vec3(-FLT_MAX);
+            }
 
-        void SetFromPoints(const glm::vec3* points, uint32_t numPoints);
-        void SetFromPoints(const glm::vec3* points, uint32_t numPoints, const glm::mat4& transform);
+            BoundingBox& operator=(const BoundingBox& other);
+            BoundingBox& operator=(BoundingBox&& other);
 
-        void SetFromTransformedAABB(const BoundingBox& aabb, const glm::mat4& transform);
+            void Set(const glm::vec3& min, const glm::vec3& max);
+            void Set(const glm::vec3* points, uint32_t numPoints);
 
-        void Translate(const glm::vec3& translation);
-        void Translate(float x, float y, float z);
+            void SetFromPoints(const glm::vec3* points, uint32_t numPoints);
+            void SetFromPoints(const glm::vec3* points, uint32_t numPoints, const glm::mat4& transform);
 
-        void Scale(const glm::vec3& scale);
-        void Scale(float x, float y, float z);
+            void SetFromTransformedAABB(const BoundingBox& aabb, const glm::mat4& transform);
 
-        void Rotate(const glm::mat3& rotation);
+            void Translate(const glm::vec3& translation);
+            void Translate(float x, float y, float z);
 
-        void Transform(const glm::mat4& transform);
-        BoundingBox Transformed(const glm::mat4& transform) const;
+            void Scale(const glm::vec3& scale);
+            void Scale(float x, float y, float z);
 
-        void Merge(const BoundingBox& other);
-        void Merge(const glm::vec3& point);
+            void Rotate(const glm::mat3& rotation);
 
-        void Merge(const BoundingBox& other, const glm::mat4& transform);
-        void Merge(const glm::vec3& point, const glm::mat4& transform);
+            void Transform(const glm::mat4& transform);
+            BoundingBox Transformed(const glm::mat4& transform) const;
 
-        void Merge(const BoundingBox& other, const glm::mat3& transform);
-        void Merge(const glm::vec3& point, const glm::mat3& transform);
+            void Merge(const BoundingBox& other);
+            void Merge(const glm::vec3& point);
 
-        Intersection IsInside(const glm::vec3& point) const;
-        Intersection IsInside(const BoundingBox& box) const;
-        Intersection IsInside(const BoundingSphere& sphere) const;
-		
-		bool IsInsideFast(const BoundingBox& box) const;
+            void Merge(const BoundingBox& other, const glm::mat4& transform);
+            void Merge(const glm::vec3& point, const glm::mat4& transform);
 
-        glm::vec3 Size() const;
-        glm::vec3 Center() const;
-        glm::vec3 Min() const;
-        glm::vec3 Max() const;
+            void Merge(const BoundingBox& other, const glm::mat3& transform);
+            void Merge(const glm::vec3& point, const glm::mat3& transform);
 
-        glm::vec3 GetExtents() const { return m_Max - m_Min; }
+            Intersection IsInside(const glm::vec3& point) const;
+            Intersection IsInside(const BoundingBox& box) const;
+            Intersection IsInside(const BoundingSphere& sphere) const;
 
-        glm::vec3 m_Min;
-        glm::vec3 m_Max;
-    };
+            bool IsInsideFast(const BoundingBox& box) const;
+
+            glm::vec3 Size() const;
+            glm::vec3 Center() const;
+            glm::vec3 Min() const;
+            glm::vec3 Max() const;
+
+            glm::vec3 GetExtents() const { return m_Max - m_Min; }
+
+            glm::vec3 m_Min;
+            glm::vec3 m_Max;
+        };
+    }
 }

@@ -508,6 +508,100 @@ namespace Lumos
         VKTextureCube::VKTextureCube(uint32_t size)
             : m_ImageLayout()
         {
+            m_NumMips = 1;
+            m_Parameters = TextureParameters();
+            m_Format = m_Parameters.format;
+            
+            uint32_t blackCubeTextureData[6] = { 0xff000000, 0xff000000, 0xff000000, 0xff000000, 0xff000000, 0xff000000 };
+
+            uint32_t srcWidth = 1, srcHeight = 1;
+
+            bool isHDR = false;
+
+            m_Flags |= TextureFlags::Texture_Sampled;
+
+            uint32_t dataSize = 1 * 1 * 4 * 6; // six layers
+            uint8_t* allData = new uint8_t[dataSize];
+            uint32_t pointeroffset = 0;
+
+            uint32_t faceOrder[6] = { 3, 1, 0, 4, 2, 5 };
+            
+            memcpy(allData, blackCubeTextureData, dataSize);
+
+            VKBuffer* stagingBuffer = new VKBuffer(VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, static_cast<uint32_t>(dataSize), allData);
+
+            if(m_Data == nullptr)
+            {
+                delete[] allData;
+                allData = nullptr;
+            }
+#ifdef USE_VMA_ALLOCATOR
+            Graphics::CreateImage(1, 1, 1, VKUtilities::TextureFormatToVK(m_Parameters.format, m_Parameters.srgb), VK_IMAGE_TYPE_2D, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_TextureImage, m_TextureImageMemory, 6, VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT, m_Allocation);
+#else
+            Graphics::CreateImage(1, 1, 1, VKUtilities::TextureFormatToVK(m_Parameters.format, m_Parameters.srgb), VK_IMAGE_TYPE_2D, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_STORAGE_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_TextureImage, m_TextureImageMemory, 6, VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT);
+#endif
+
+            VkCommandBuffer commandBuffer = VKUtilities::BeginSingleTimeCommands();
+
+            //// Setup buffer copy regions for each face including all of it's miplevels
+            std::vector<VkBufferImageCopy> bufferCopyRegions;
+            uint32_t offset = 0;
+
+            for(uint32_t face = 0; face < 6; face++)
+            {
+                for(uint32_t level = 0; level < 1; level++)
+                {
+                    VkBufferImageCopy bufferCopyRegion = {};
+                    bufferCopyRegion.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+                    bufferCopyRegion.imageSubresource.mipLevel = level;
+                    bufferCopyRegion.imageSubresource.baseArrayLayer = face;
+                    bufferCopyRegion.imageSubresource.layerCount = 1;
+                    bufferCopyRegion.imageExtent.width = 1;
+                    bufferCopyRegion.imageExtent.height = 1;
+                    bufferCopyRegion.imageExtent.depth = 1;
+                    bufferCopyRegion.bufferOffset = offset;
+
+                    bufferCopyRegions.push_back(bufferCopyRegion);
+
+                    // Increase offset into staging buffer for next level / face
+                    offset += 1 * 1 * 32 / 8;
+                }
+            }
+
+            // Image barrier for optimal image (target)
+            // Set initial layout for all array layers (faces) of the optimal (target) tiled texture
+            VkImageSubresourceRange subresourceRange = {};
+            subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+            subresourceRange.baseMipLevel = 0;
+            subresourceRange.levelCount = m_NumMips;
+            subresourceRange.layerCount = 6;
+
+            VKUtilities::TransitionImageLayout(m_TextureImage, VKUtilities::TextureFormatToVK(m_Parameters.format, m_Parameters.srgb), VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, m_NumMips, 6, commandBuffer);
+
+            // Copy the cube map faces from the staging buffer to the optimal tiled image
+            vkCmdCopyBufferToImage(
+                commandBuffer,
+                stagingBuffer->GetBuffer(),
+                m_TextureImage,
+                VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                static_cast<uint32_t>(bufferCopyRegions.size()),
+                bufferCopyRegions.data());
+
+            // Change texture image layout to shader read after all faces have been copied
+            VKUtilities::TransitionImageLayout(m_TextureImage, VKUtilities::TextureFormatToVK(m_Parameters.format, m_Parameters.srgb), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, m_NumMips, 6, commandBuffer);
+
+            m_ImageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+
+            VKUtilities::EndSingleTimeCommands(commandBuffer);
+
+            m_TextureSampler = Graphics::CreateTextureSampler(VK_FILTER_LINEAR, VK_FILTER_LINEAR, 0.0f, static_cast<float>(m_NumMips), true, VKDevice::Get().GetPhysicalDevice()->GetProperties().limits.maxSamplerAnisotropy, VK_SAMPLER_ADDRESS_MODE_REPEAT, VK_SAMPLER_ADDRESS_MODE_REPEAT, VK_SAMPLER_ADDRESS_MODE_REPEAT);
+            m_TextureImageView = Graphics::CreateImageView(m_TextureImage, VKUtilities::TextureFormatToVK(m_Parameters.format, m_Parameters.srgb), m_NumMips, VK_IMAGE_VIEW_TYPE_CUBE, VK_IMAGE_ASPECT_COLOR_BIT, 6);
+
+            delete stagingBuffer;
+            delete[] allData;
+            
+            UpdateDescriptor();
+            
         }
 
         VKTextureCube::VKTextureCube(const std::string* files)
@@ -773,8 +867,7 @@ namespace Lumos
             deletionQueue.PushFunction([sampler, imageView]
                 {
                     vkDestroySampler(VKDevice::GetHandle(), sampler, nullptr);
-                    vkDestroyImageView(VKDevice::GetHandle(), imageView, nullptr);
-                });
+                    vkDestroyImageView(VKDevice::GetHandle(), imageView, nullptr); });
 
 #ifdef USE_VMA_ALLOCATOR
             auto textureImage = m_TextureImage;
@@ -790,8 +883,7 @@ namespace Lumos
             deletionQueue.PushFunction([textureImage, memory]
                 {
                     vkDestroyImage(VKDevice::Get().GetDevice(), textureImage, nullptr);
-                    vkFreeMemory(VKDevice::Get().GetDevice(), memory, nullptr);
-                });
+                    vkFreeMemory(VKDevice::Get().GetDevice(), memory, nullptr); });
 
 #endif
         }
@@ -853,8 +945,7 @@ namespace Lumos
             deletionQueue.PushFunction([sampler, imageView]
                 {
                     vkDestroySampler(VKDevice::GetHandle(), sampler, nullptr);
-                    vkDestroyImageView(VKDevice::GetHandle(), imageView, nullptr);
-                });
+                    vkDestroyImageView(VKDevice::GetHandle(), imageView, nullptr); });
 
 #ifdef USE_VMA_ALLOCATOR
             auto textureImage = m_TextureImage;
@@ -870,8 +961,7 @@ namespace Lumos
             deletionQueue.PushFunction([textureImage, memory]
                 {
                     vkDestroyImage(VKDevice::Get().GetDevice(), textureImage, nullptr);
-                    vkFreeMemory(VKDevice::Get().GetDevice(), memory, nullptr);
-                });
+                    vkFreeMemory(VKDevice::Get().GetDevice(), memory, nullptr); });
 
 #endif
             Init();
@@ -902,8 +992,7 @@ namespace Lumos
                     for(uint32_t i = 0; i < (uint32_t)imageViews.size(); i++)
                     {
                         vkDestroyImageView(VKDevice::GetHandle(), imageViews[i], nullptr);
-                    }
-                });
+                    } });
 
 #ifdef USE_VMA_ALLOCATOR
             auto textureImage = m_TextureImage;
@@ -919,8 +1008,7 @@ namespace Lumos
             deletionQueue.PushFunction([textureImage, memory]
                 {
                     vkDestroyImage(VKDevice::Get().GetDevice(), textureImage, nullptr);
-                    vkFreeMemory(VKDevice::Get().GetDevice(), memory, nullptr);
-                });
+                    vkFreeMemory(VKDevice::Get().GetDevice(), memory, nullptr); });
 
 #endif
         }

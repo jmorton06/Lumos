@@ -20,7 +20,7 @@ namespace Lumos
     {
         for(uint32_t j = 0; j < textures_loaded.size(); j++)
         {
-            if(std::strcmp(textures_loaded[j]->GetFilepath().c_str(), (directory + "/" + name).c_str()) == 0)
+            if(std::strcmp(textures_loaded[j]->GetFilepath().c_str(), (directory + name).c_str()) == 0)
             {
                 return textures_loaded[j];
             }
@@ -28,7 +28,9 @@ namespace Lumos
 
         { // If texture hasn't been loaded already, load it
             Graphics::TextureLoadOptions options(false, true);
-            auto texture = SharedPtr<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile(typeName, directory + "/" + name, format, options));
+            std::string filePath = directory + name;
+            filePath = StringUtilities::BackSlashesToSlashes(filePath);
+            auto texture = SharedPtr<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile(typeName, filePath, format, options));
             textures_loaded.push_back(texture); // Store it as texture loaded for entire model, to ensure we won't unnecessary load duplicate textures.
 
             return texture;
@@ -44,14 +46,14 @@ namespace Lumos
 
         std::vector<tinyobj::shape_t> shapes;
         std::vector<tinyobj::material_t> materials;
-		
-		 resolvedPath = StringUtilities::BackSlashesToSlashes(resolvedPath);
-		m_Directory = StringUtilities::GetFileLocation(resolvedPath);
+
+        resolvedPath = StringUtilities::BackSlashesToSlashes(resolvedPath);
+        m_Directory = StringUtilities::GetFileLocation(resolvedPath);
 
         std::string name = StringUtilities::GetFileName(resolvedPath);
 
         bool ok = tinyobj::LoadObj(
-            &attrib, &shapes, &materials, &error, (resolvedPath).c_str(), (m_Directory + "/").c_str());
+            &attrib, &shapes, &materials, &error, (resolvedPath).c_str(), (m_Directory).c_str());
 
         if(!ok)
         {
@@ -70,7 +72,7 @@ namespace Lumos
 
             std::unordered_map<Graphics::Vertex, uint32_t> uniqueVertices;
 
-            SharedPtr<BoundingBox> boundingBox = CreateSharedPtr<BoundingBox>();
+            SharedPtr<Maths::BoundingBox> boundingBox = CreateSharedPtr<Maths::BoundingBox>();
 
             for(uint32_t i = 0; i < shape.mesh.indices.size(); i++)
             {
@@ -128,8 +130,8 @@ namespace Lumos
 
             Graphics::Mesh::GenerateTangents(vertices, vertexCount, indices, numIndices);
 
-            //TODO : if(isAnimated) Load deferredColourAnimated;
-            // auto shader = Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/ForwardPBR.shader");
+            // TODO : if(isAnimated) Load deferredColourAnimated;
+            //  auto shader = Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/ForwardPBR.shader");
             auto shader = Application::Get().GetShaderLibrary()->GetResource("ForwardPBR");
 
             SharedPtr<Material> pbrMaterial = CreateSharedPtr<Material>(shader);
@@ -151,7 +153,7 @@ namespace Lumos
                 {
                     SharedPtr<Graphics::Texture2D> texture = LoadMaterialTextures("Normal", m_Textures, mp->bump_texname, m_Directory, Graphics::TextureParameters(Graphics::TextureFilter::NEAREST, Graphics::TextureFilter::NEAREST, mp->bump_texopt.clamp ? Graphics::TextureWrap::CLAMP_TO_EDGE : Graphics::TextureWrap::REPEAT));
                     if(texture)
-                        textures.normal = texture; //pbrMaterial->SetNormalMap(texture);
+                        textures.normal = texture; // pbrMaterial->SetNormalMap(texture);
                 }
 
                 if(mp->roughness_texname.length() > 0)

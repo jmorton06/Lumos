@@ -27,11 +27,13 @@ namespace Lumos
             { return a == b; });
 
         auto mult_overloads = sol::overload(
-            [](const glm::vec3& v1, const glm::vec3& v2) -> glm::vec3 { return v1*v2; },
-            [](const glm::vec3& v1, float f) -> glm::vec3 { return v1*f; },
-            [](float f, const glm::vec3& v1) -> glm::vec3 { return f*v1; }
-        );
-        
+            [](const glm::vec3& v1, const glm::vec3& v2) -> glm::vec3
+            { return v1 * v2; },
+            [](const glm::vec3& v1, float f) -> glm::vec3
+            { return v1 * f; },
+            [](float f, const glm::vec3& v1) -> glm::vec3
+            { return f * v1; });
+
         state.new_usertype<glm::vec3>(
             "Vector3",
             sol::constructors<sol::types<>, sol::types<float, float, float>>(),
@@ -50,8 +52,8 @@ namespace Lumos
             { return a / b; },
             sol::meta_function::equal_to, [](const glm::vec3& a, const glm::vec3& b)
             { return a == b; },
-            "Normalise", [] (glm::vec3& v) { return glm::normalize(v); }
-            );
+            "Normalise", [](glm::vec3& v)
+            { return glm::normalize(v); });
 
         state.new_usertype<glm::vec4>(
             "Vector4",
@@ -64,12 +66,13 @@ namespace Lumos
             { return a + b; },
             sol::meta_function::multiplication, [](const glm::vec4& a, const glm::vec4& b)
             { return a * b; },
-            sol::meta_function::multiplication, sol::overload(
-                  [](const glm::vec4& v1, const glm::vec4& v2) -> glm::vec4 { return v1*v2; },
-                  [](const glm::vec4& v1, float f) -> glm::vec4 { return v1*f; },
-                  [](float f, const glm::vec4& v1) -> glm::vec4 { return f*v1; }
-              ),
-            sol::meta_function::multiplication, [](float a, const glm::vec4&  b)
+            sol::meta_function::multiplication, sol::overload([](const glm::vec4& v1, const glm::vec4& v2) -> glm::vec4
+                                                    { return v1 * v2; },
+                                                    [](const glm::vec4& v1, float f) -> glm::vec4
+                                                    { return v1 * f; },
+                                                    [](float f, const glm::vec4& v1) -> glm::vec4
+                                                    { return f * v1; }),
+            sol::meta_function::multiplication, [](float a, const glm::vec4& b)
             { return a * b; },
             sol::meta_function::subtraction, [](const glm::vec4& a, const glm::vec4& b)
             { return a - b; },
@@ -77,7 +80,8 @@ namespace Lumos
             { return a / b; },
             sol::meta_function::equal_to, [](const glm::vec4& a, const glm::vec4& b)
             { return a == b; },
-            "Normalise", [] (glm::vec4& v) { return glm::normalize(v); });
+            "Normalise", [](glm::vec4& v)
+            { return glm::normalize(v); });
 
         state.new_usertype<glm::quat>(
             "Quaternion",

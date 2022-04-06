@@ -31,7 +31,7 @@ namespace Lumos
 
     private:
         template <typename T>
-        void ShowComponentGizmo(float width, float height, float xpos, float ypos, const glm::mat4& viewProj, const Frustum& frustum, entt::registry& registry)
+        void ShowComponentGizmo(float width, float height, float xpos, float ypos, const glm::mat4& viewProj, const Maths::Frustum& frustum, entt::registry& registry)
         {
             if(m_ShowComponentGizmoMap[typeid(T).hash_code()])
             {

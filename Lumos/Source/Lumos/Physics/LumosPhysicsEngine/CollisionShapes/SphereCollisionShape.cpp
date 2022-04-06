@@ -28,8 +28,8 @@ namespace Lumos
     glm::mat3 SphereCollisionShape::BuildInverseInertia(float invMass) const
     {
         LUMOS_PROFILE_FUNCTION();
-        float i = 2.5f * invMass / (m_Radius * m_Radius); //SOLID
-        //float i = 1.5f * invMass * m_Radius * m_Radius; //HOLLOW
+        float i = 2.5f * invMass / (m_Radius * m_Radius); // SOLID
+        // float i = 1.5f * invMass * m_Radius * m_Radius; //HOLLOW
 
         glm::mat3 inertia;
         inertia[0][0] = i;
@@ -83,7 +83,7 @@ namespace Lumos
         glm::mat4 transform = currentObject->GetWorldSpaceTransform() * m_LocalTransform;
 
         auto pos = transform[3];
-        auto sphere = BoundingSphere(pos, m_Radius);
+        auto sphere = Maths::BoundingSphere(pos, m_Radius);
         DebugRenderer::DebugDraw(sphere, glm::vec4(1.0f, 1.0f, 1.0f, 0.2f));
         DebugRenderer::DebugDrawSphere(m_Radius, pos, glm::vec4(1.0f, 0.3f, 1.0f, 1.0f));
     }

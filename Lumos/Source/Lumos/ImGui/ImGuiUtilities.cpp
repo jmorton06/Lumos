@@ -30,7 +30,7 @@ namespace Lumos
         }
         else
         {
-            //TODO
+            // TODO
         }
 
         Tooltip(value.c_str());

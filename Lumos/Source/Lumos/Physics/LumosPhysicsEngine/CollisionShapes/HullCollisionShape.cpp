@@ -87,9 +87,9 @@ namespace Lumos
         LUMOS_PROFILE_FUNCTION();
         {
             glm::mat3 objOrientation = glm::toMat3(currentObject->GetOrientation());
-            m_Axes[0] = (objOrientation * glm::vec3(1.0f, 0.0f, 0.0f)); //X - Axis
-            m_Axes[1] = (objOrientation * glm::vec3(0.0f, 1.0f, 0.0f)); //Y - Axis
-            m_Axes[2] = (objOrientation * glm::vec3(0.0f, 0.0f, 1.0f)); //Z - Axis
+            m_Axes[0] = (objOrientation * glm::vec3(1.0f, 0.0f, 0.0f)); // X - Axis
+            m_Axes[1] = (objOrientation * glm::vec3(0.0f, 1.0f, 0.0f)); // Y - Axis
+            m_Axes[2] = (objOrientation * glm::vec3(0.0f, 0.0f, 1.0f)); // Z - Axis
         }
 
         return m_Axes;
@@ -175,7 +175,7 @@ namespace Lumos
 
         if(best_face)
         {
-            //Add the reference face itself to the list of adjacent planes
+            // Add the reference face itself to the list of adjacent planes
             glm::vec3 wsPointOnPlane = wsTransform * glm::vec4(m_Hull->GetVertex(m_Hull->GetEdge(best_face->edge_ids[0]).vStart).pos, 1.0f);
             glm::vec3 planeNrml = -(normalMatrix * best_face->normal);
             planeNrml = glm::normalize(planeNrml);

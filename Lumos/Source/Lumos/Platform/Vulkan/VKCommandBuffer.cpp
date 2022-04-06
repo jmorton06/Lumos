@@ -12,10 +12,10 @@ namespace Lumos
 {
     namespace Graphics
     {
-		VKCommandBuffer::VKCommandBuffer()
-			: m_CommandBuffer(nullptr)
-			, m_CommandPool(nullptr)
-			, m_Semaphore(nullptr)
+        VKCommandBuffer::VKCommandBuffer()
+            : m_CommandBuffer(nullptr)
+            , m_CommandPool(nullptr)
+            , m_Semaphore(nullptr)
             , m_Primary(false)
             , m_State(CommandBufferState::Idle)
         {
@@ -23,8 +23,8 @@ namespace Lumos
 
         VKCommandBuffer::VKCommandBuffer(VkCommandBuffer commandBuffer)
             : m_CommandBuffer(commandBuffer)
-			, m_CommandPool(nullptr)
-			, m_Semaphore(nullptr)
+            , m_CommandPool(nullptr)
+            , m_Semaphore(nullptr)
             , m_Primary(true)
             , m_State(CommandBufferState::Idle)
         {

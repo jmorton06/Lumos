@@ -26,6 +26,7 @@
 #include "Maths/BoundingBox.h"
 #include "Maths/BoundingSphere.h"
 #include "Maths/Ray.h"
+#include "Maths/Maths.h"
 #include "Audio/SoundNode.h"
 
 namespace Lumos
@@ -63,7 +64,7 @@ namespace Lumos
         s_Instance->m_DrawList.m_DebugLines.clear();
         s_Instance->m_DrawList.m_DebugThickLines.clear();
         s_Instance->m_DrawList.m_DebugPoints.clear();
-        
+
         s_Instance->m_DrawListNDT.m_DebugTriangles.clear();
         s_Instance->m_DrawListNDT.m_DebugLines.clear();
         s_Instance->m_DrawListNDT.m_DebugThickLines.clear();
@@ -78,7 +79,7 @@ namespace Lumos
     {
     }
 
-    //Draw Point (circle)
+    // Draw Point (circle)
     void DebugRenderer::GenDrawPoint(bool ndt, const glm::vec3& pos, float point_radius, const glm::vec4& colour)
     {
         LUMOS_PROFILE_FUNCTION();
@@ -108,7 +109,7 @@ namespace Lumos
         GenDrawPoint(true, pos, point_radius, colour);
     }
 
-    //Draw Line with a given thickness
+    // Draw Line with a given thickness
     void DebugRenderer::GenDrawThickLine(bool ndt, const glm::vec3& start, const glm::vec3& end, float line_width, const glm::vec4& colour)
     {
         LUMOS_PROFILE_FUNCTION();
@@ -138,7 +139,7 @@ namespace Lumos
         GenDrawThickLine(true, start, end, line_width, colour);
     }
 
-    //Draw line with thickness of 1 screen pixel regardless of distance from camera
+    // Draw line with thickness of 1 screen pixel regardless of distance from camera
     void DebugRenderer::GenDrawHairLine(bool ndt, const glm::vec3& start, const glm::vec3& end, const glm::vec4& colour)
     {
         LUMOS_PROFILE_FUNCTION();
@@ -168,14 +169,14 @@ namespace Lumos
         GenDrawHairLine(true, start, end, colour);
     }
 
-    //Draw Matrix (x,y,z axis at pos)
+    // Draw Matrix (x,y,z axis at pos)
     void DebugRenderer::DrawMatrix(const glm::mat4& mtx)
     {
         LUMOS_PROFILE_FUNCTION();
-        //glm::vec3 position = mtx[3];
-        //GenDrawHairLine(false, position, position + glm::vec3(mtx[0], mtx[1], mtx[2]), glm::vec4(1.0f, 0.0f, 0.0f, 1.0f));
-        //GenDrawHairLine(false, position, position + glm::vec3(mtx[4], mtx[5], mtx[6]), glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
-        //GenDrawHairLine(false, position, position + glm::vec3(mtx[8], mtx[9], mtx[10]), glm::vec4(0.0f, 0.0f, 1.0f, 1.0f));
+        // glm::vec3 position = mtx[3];
+        // GenDrawHairLine(false, position, position + glm::vec3(mtx[0], mtx[1], mtx[2]), glm::vec4(1.0f, 0.0f, 0.0f, 1.0f));
+        // GenDrawHairLine(false, position, position + glm::vec3(mtx[4], mtx[5], mtx[6]), glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
+        // GenDrawHairLine(false, position, position + glm::vec3(mtx[8], mtx[9], mtx[10]), glm::vec4(0.0f, 0.0f, 1.0f, 1.0f));
     }
     void DebugRenderer::DrawMatrix(const glm::mat3& mtx, const glm::vec3& position)
     {
@@ -187,10 +188,10 @@ namespace Lumos
     void DebugRenderer::DrawMatrixNDT(const glm::mat4& mtx)
     {
         LUMOS_PROFILE_FUNCTION();
-        //glm::vec3 position = mtx[3];
-        //GenDrawHairLine(true, position, position + glm::vec3(mtx[0], mtx[1], mtx[2]), glm::vec4(1.0f, 0.0f, 0.0f, 1.0f));
-        //GenDrawHairLine(true, position, position + glm::vec3(mtx[4], mtx[5], mtx[6]), glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
-        //GenDrawHairLine(true, position, position + glm::vec3(mtx[8], mtx[9], mtx[10]), glm::vec4(0.0f, 0.0f, 1.0f, 1.0f));
+        // glm::vec3 position = mtx[3];
+        // GenDrawHairLine(true, position, position + glm::vec3(mtx[0], mtx[1], mtx[2]), glm::vec4(1.0f, 0.0f, 0.0f, 1.0f));
+        // GenDrawHairLine(true, position, position + glm::vec3(mtx[4], mtx[5], mtx[6]), glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
+        // GenDrawHairLine(true, position, position + glm::vec3(mtx[8], mtx[9], mtx[10]), glm::vec4(0.0f, 0.0f, 1.0f, 1.0f));
     }
     void DebugRenderer::DrawMatrixNDT(const glm::mat3& mtx, const glm::vec3& position)
     {
@@ -200,7 +201,7 @@ namespace Lumos
         GenDrawHairLine(true, position, position + mtx[2], glm::vec4(0.0f, 0.0f, 1.0f, 1.0f));
     }
 
-    //Draw Triangle
+    // Draw Triangle
     void DebugRenderer::GenDrawTriangle(bool ndt, const glm::vec3& v0, const glm::vec3& v1, const glm::vec3& v2, const glm::vec4& colour)
     {
         LUMOS_PROFILE_FUNCTION();
@@ -219,7 +220,7 @@ namespace Lumos
         GenDrawTriangle(true, v0, v1, v2, colour);
     }
 
-    //Draw Polygon (Renders as a triangle fan, so verts must be arranged in order)
+    // Draw Polygon (Renders as a triangle fan, so verts must be arranged in order)
     void DebugRenderer::DrawPolygon(int n_verts, const glm::vec3* verts, const glm::vec4& colour)
     {
         LUMOS_PROFILE_FUNCTION();
@@ -238,7 +239,7 @@ namespace Lumos
         }
     }
 
-    void DebugRenderer::DebugDraw(const BoundingBox& box, const glm::vec4& edgeColour, bool cornersOnly, float width)
+    void DebugRenderer::DebugDraw(const Maths::BoundingBox& box, const glm::vec4& edgeColour, bool cornersOnly, float width)
     {
         LUMOS_PROFILE_FUNCTION();
         glm::vec3 uuu = box.Max();
@@ -310,13 +311,13 @@ namespace Lumos
         }
     }
 
-    void DebugRenderer::DebugDraw(const BoundingSphere& sphere, const glm::vec4& colour)
+    void DebugRenderer::DebugDraw(const Maths::BoundingSphere& sphere, const glm::vec4& colour)
     {
         LUMOS_PROFILE_FUNCTION();
         Lumos::DebugRenderer::DrawPointNDT(sphere.GetCenter(), sphere.GetRadius(), colour);
     }
 
-    void DebugRenderer::DebugDraw(Frustum& frustum, const glm::vec4& colour)
+    void DebugRenderer::DebugDraw(Maths::Frustum& frustum, const glm::vec4& colour)
     {
         LUMOS_PROFILE_FUNCTION();
         auto* vertices = frustum.GetVerticies();
@@ -338,22 +339,22 @@ namespace Lumos
     void DebugRenderer::DebugDraw(Graphics::Light* light, const glm::quat& rotation, const glm::vec4& colour)
     {
         LUMOS_PROFILE_FUNCTION();
-        //Directional
+        // Directional
         if(light->Type < 0.1f)
         {
-                       glm::vec3 offset(0.0f, 0.1f, 0.0f);
-			DrawHairLine(glm::vec3(light->Position) + offset, glm::vec3(light->Position + (light->Direction) * 2.0f) + offset, colour);
-			DrawHairLine(glm::vec3(light->Position) - offset, glm::vec3(light->Position + (light->Direction) * 2.0f) - offset, colour);
-            
-			DrawHairLine(glm::vec3(light->Position), glm::vec3(light->Position + (light->Direction) * 2.0f), colour);
-			DebugDrawCone(20, 4, 30.0f, 1.5f, (light->Position - (light->Direction) * 1.5f), rotation, colour);
+            glm::vec3 offset(0.0f, 0.1f, 0.0f);
+            DrawHairLine(glm::vec3(light->Position) + offset, glm::vec3(light->Position + (light->Direction) * 2.0f) + offset, colour);
+            DrawHairLine(glm::vec3(light->Position) - offset, glm::vec3(light->Position + (light->Direction) * 2.0f) - offset, colour);
+
+            DrawHairLine(glm::vec3(light->Position), glm::vec3(light->Position + (light->Direction) * 2.0f), colour);
+            DebugDrawCone(20, 4, 30.0f, 1.5f, (light->Position - (light->Direction) * 1.5f), rotation, colour);
         }
-        //Spot
+        // Spot
         else if(light->Type < 1.1f)
         {
             DebugDrawCone(20, 4, light->Angle * Maths::M_RADTODEG, light->Intensity, light->Position, rotation, colour);
         }
-        //Point
+        // Point
         else
         {
             DebugDrawSphere(light->Radius * 0.5f, light->Position, colour);
@@ -397,7 +398,7 @@ namespace Lumos
     {
         LUMOS_PROFILE_FUNCTION();
         float endAngle = Maths::Tan(angle * 0.5f) * length;
-        glm::vec3 forward = -(rotation * glm::vec3(0.0f,0.0f,-1.0f));
+        glm::vec3 forward = -(rotation * glm::vec3(0.0f, 0.0f, -1.0f));
         glm::vec3 endPosition = position + forward * length;
         float offset = 0.0f;
         DebugDrawCircle(numCircleVerts, endAngle, endPosition, rotation, colour);
@@ -428,23 +429,23 @@ namespace Lumos
             float ny = Maths::Sin(step * (i + 1)) * radius;
             glm::vec3 next = glm::vec3(nx, ny, 0.0f);
 
-            DebugRenderer::DrawHairLine( arcCentre + (rot * current), arcCentre + (rot * next), colour);
+            DebugRenderer::DrawHairLine(arcCentre + (rot * current), arcCentre + (rot * next), colour);
         }
     }
 
     void DebugRenderer::DebugDrawCapsule(const glm::vec3& position, const glm::quat& rotation, float height, float radius, const glm::vec4& colour)
     {
         LUMOS_PROFILE_FUNCTION();
-        glm::vec3 up = (rotation * glm::vec3(0.0f,1.0f,0.0f));
-    
+        glm::vec3 up = (rotation * glm::vec3(0.0f, 1.0f, 0.0f));
+
         glm::vec3 topSphereCentre = position + up * (height * 0.5f);
         glm::vec3 bottomSphereCentre = position - up * (height * 0.5f);
 
-        DebugDrawCircle(20, radius, topSphereCentre, rotation * glm::quat(glm::vec3(glm::radians(90.0f), 0.0f, 0.0f)) , colour);
+        DebugDrawCircle(20, radius, topSphereCentre, rotation * glm::quat(glm::vec3(glm::radians(90.0f), 0.0f, 0.0f)), colour);
         DebugDrawCircle(20, radius, bottomSphereCentre, rotation * glm::quat(glm::vec3(glm::radians(90.0f), 0.0f, 0.0f)), colour);
 
-        //Draw 10 arcs
-        //Sides
+        // Draw 10 arcs
+        // Sides
         float step = 360.0f / float(20);
         for(int i = 0; i < 20; i++)
         {
@@ -460,15 +461,15 @@ namespace Lumos
                 float x2 = Maths::Sin(step * (i + 10)) * radius;
 
                 glm::vec3 offset2 = rotation * glm::vec4(x2, 0.0f, z2, 0.0f);
-                //Top Hemishpere
+                // Top Hemishpere
                 DebugDrawArc(20, radius, topSphereCentre + offset, topSphereCentre + offset2, rotation, colour);
-                //Bottom Hemisphere
+                // Bottom Hemisphere
                 DebugDrawArc(20, radius, bottomSphereCentre + offset, bottomSphereCentre + offset2, rotation * glm::quat(glm::vec3(glm::radians(180.0f), 0.0f, 0.0f)), colour);
             }
         }
     }
 
-    void DebugRenderer::DebugDraw(const Ray& ray, const glm::vec4& colour, float distance)
+    void DebugRenderer::DebugDraw(const Maths::Ray& ray, const glm::vec4& colour, float distance)
     {
         LUMOS_PROFILE_FUNCTION();
         DrawHairLine(ray.Origin, ray.Origin + ray.Direction * distance, colour);

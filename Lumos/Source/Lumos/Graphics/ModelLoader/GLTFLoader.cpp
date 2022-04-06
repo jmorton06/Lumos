@@ -144,8 +144,8 @@ namespace Lumos::Graphics
 
         for(tinygltf::Material& mat : gltfModel.materials)
         {
-            //TODO : if(isAnimated) Load deferredColourAnimated;
-            //auto shader = Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/ForwardPBR.shader");
+            // TODO : if(isAnimated) Load deferredColourAnimated;
+            // auto shader = Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/ForwardPBR.shader");
             auto shader = Application::Get().GetShaderLibrary()->GetResource("ForwardPBR");
 
             SharedPtr<Material> pbrMaterial = CreateSharedPtr<Material>(shader);
@@ -159,7 +159,7 @@ namespace Lumos::Graphics
             textures.emissive = TextureName(mat.emissiveTexture.index);
             textures.metallic = TextureName(pbr.metallicRoughnessTexture.index);
 
-            //TODO: correct way of handling this
+            // TODO: correct way of handling this
             if(textures.metallic)
                 properties.workflow = PBR_WORKFLOW_METALLIC_ROUGHNESS;
             else
@@ -412,19 +412,19 @@ namespace Lumos::Graphics
         if(!node.scale.empty())
         {
             scale = glm::scale(glm::mat4(1.0), glm::vec3(static_cast<float>(node.scale[0]), static_cast<float>(node.scale[1]), static_cast<float>(node.scale[2])));
-            //transform.SetLocalScale(glm::vec3(static_cast<float>(node.scale[0]), static_cast<float>(node.scale[1]), static_cast<float>(node.scale[2])));
+            // transform.SetLocalScale(glm::vec3(static_cast<float>(node.scale[0]), static_cast<float>(node.scale[1]), static_cast<float>(node.scale[2])));
         }
 
         if(!node.rotation.empty())
         {
             rotation = glm::toMat4(glm::quat(static_cast<float>(node.rotation[3]), static_cast<float>(node.rotation[0]), static_cast<float>(node.rotation[1]), static_cast<float>(node.rotation[2])));
 
-            //transform.SetLocalOrientation(glm::quat(static_cast<float>(node.rotation[3]), static_cast<float>(node.rotation[0]), static_cast<float>(node.rotation[1]), static_cast<float>(node.rotation[2])));
+            // transform.SetLocalOrientation(glm::quat(static_cast<float>(node.rotation[3]), static_cast<float>(node.rotation[0]), static_cast<float>(node.rotation[1]), static_cast<float>(node.rotation[2])));
         }
 
         if(!node.translation.empty())
         {
-            //transform.SetLocalPosition(glm::vec3(static_cast<float>(node.translation[0]), static_cast<float>(node.translation[1]), static_cast<float>(node.translation[2])));
+            // transform.SetLocalPosition(glm::vec3(static_cast<float>(node.translation[0]), static_cast<float>(node.translation[1]), static_cast<float>(node.translation[2])));
             position = glm::translate(glm::mat4(1.0), glm::vec3(static_cast<float>(node.translation[0]), static_cast<float>(node.translation[1]), static_cast<float>(node.translation[2])));
         }
 
@@ -490,8 +490,8 @@ namespace Lumos::Graphics
 
         std::string ext = StringUtilities::GetFilePathExtension(path);
 
-        //loader.SetImageLoader(tinygltf::LoadImageData, nullptr);
-        //loader.SetImageWriter(tinygltf::WriteImageData, nullptr);
+        // loader.SetImageLoader(tinygltf::LoadImageData, nullptr);
+        // loader.SetImageWriter(tinygltf::WriteImageData, nullptr);
 
         bool ret;
 
