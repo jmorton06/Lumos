@@ -23,12 +23,12 @@ namespace Lumos
         m_Name = ICON_MDI_FOLDER_STAR " Resources###resources";
         m_SimpleName = "Resources";
 
-        //TODO: Get Project path from editor
+        // TODO: Get Project path from editor
         //#ifdef LUMOS_PLATFORM_IOS
-        //        m_BaseDirPath = "Assets";
+        //         m_BaseDirPath = "Assets";
         //#else
-        //        m_BaseProjectDir = std::filesystem::path(m_Editor->GetProjectRoot() + "/ExampleProject/Assets");
-        //        //m_BaseDirPath = ROOT_DIR "/ExampleProject/Assets";
+        //         m_BaseProjectDir = std::filesystem::path(m_Editor->GetProjectRoot() + "/ExampleProject/Assets");
+        //         //m_BaseDirPath = ROOT_DIR "/ExampleProject/Assets";
         //#endif
         m_BasePath = Application::Get().GetProjectSettings().m_ProjectRoot + "Assets";
 
@@ -155,7 +155,7 @@ namespace Lumos
 
             if(isOpen && containsFolder)
             {
-                verticalLineStart.x += SmallOffsetX; //to nicely line up with the arrow symbol
+                verticalLineStart.x += SmallOffsetX; // to nicely line up with the arrow symbol
                 ImVec2 verticalLineEnd = verticalLineStart;
 
                 for(int i = 0; i < dirInfo->Children.size(); i++)
@@ -175,7 +175,7 @@ namespace Lumos
                                 break;
                             }
                         }
-                        float HorizontalTreeLineSize = 16.0f * Application::Get().GetWindowDPI(); //chosen arbitrarily
+                        float HorizontalTreeLineSize = 16.0f * Application::Get().GetWindowDPI(); // chosen arbitrarily
 
                         if(containsFolderTemp)
                             HorizontalTreeLineSize *= 0.5f;
@@ -282,7 +282,7 @@ namespace Lumos
                     if(ImGui::Button(ICON_MDI_ARROW_RIGHT))
                     {
                         m_PreviousDirectory = m_CurrentDir;
-                        //m_CurrentDir = m_LastNavPath;
+                        // m_CurrentDir = m_LastNavPath;
                         m_UpdateNavigationPath = true;
                     }
                     ImGui::SameLine();
@@ -448,8 +448,8 @@ namespace Lumos
     void ResourcePanel::RenderBreadCrumbs()
     {
         LUMOS_PROFILE_FUNCTION();
-        //ImGui::BeginChild("##directory_breadcrumbs", ImVec2(ImGui::GetColumnWidth(), ImGui::GetFontSize() * 2.0f));
-        // {
+        // ImGui::BeginChild("##directory_breadcrumbs", ImVec2(ImGui::GetColumnWidth(), ImGui::GetFontSize() * 2.0f));
+        //  {
 
         //            int dirIndex = 0;
         //            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.1f, 0.2f, 0.7f, 0.0f));

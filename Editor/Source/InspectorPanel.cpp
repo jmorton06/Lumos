@@ -117,8 +117,7 @@ end
 
                         auto textEditPanel = Lumos::Editor::GetEditor()->GetTextEditPanel();
                         if(textEditPanel)
-                            ((Lumos::TextEditPanel*)textEditPanel)->SetErrors(script.GetErrors());
-                    });
+                            ((Lumos::TextEditPanel*)textEditPanel)->SetErrors(script.GetErrors()); });
 
                 auto textEditPanel = Lumos::Editor::GetEditor()->GetTextEditPanel();
                 if(textEditPanel)
@@ -427,10 +426,10 @@ end
         if(updated)
             axisConstraintComponent.SetAxes((Axes)selectedIndex);
 
-        //bool updated = Lumos::ImGuiUtilities::PropertyDropdown("Entity", entities.data(), (int)entities.size(), &selectedIndex);
+        // bool updated = Lumos::ImGuiUtilities::PropertyDropdown("Entity", entities.data(), (int)entities.size(), &selectedIndex);
 
-        //if(updated)
-        //axisConstraintComponent.SetEntity(Entity(physics3dEntities[selectedIndex], Application::Get().GetCurrentScene()).GetID());
+        // if(updated)
+        // axisConstraintComponent.SetEntity(Entity(physics3dEntities[selectedIndex], Application::Get().GetCurrentScene()).GetID());
 
         ImGui::Columns(1);
     }
@@ -1048,7 +1047,7 @@ end
         auto& animStates = sprite.GetAnimationStates();
         if(ImGui::TreeNode("States"))
         {
-            //ImGui::Indent(20.0f);
+            // ImGui::Indent(20.0f);
             ImGui::SameLine((ImGui::GetWindowContentRegionMax() - ImGui::GetWindowContentRegionMin()).x - ImGui::GetFontSize());
             ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.7f, 0.7f, 0.7f, 0.0f));
 
@@ -1244,7 +1243,7 @@ end
 
             bool flipImage = Graphics::Renderer::GetGraphicsContext()->FlipImGUITexture();
 
-            //ImGui::AlignTextToFramePadding();
+            // ImGui::AlignTextToFramePadding();
             auto tex = sprite.GetTexture();
 
             auto imageButtonSize = ImVec2(64, 64) * Application::Get().GetWindowDPI();
@@ -1668,8 +1667,8 @@ end
     {
         LUMOS_PROFILE_FUNCTION();
         auto& environment = reg.get<Lumos::Graphics::Environment>(e);
-        //Disable image until texturecube is supported
-        //Lumos::ImGuiUtilities::Image(environment.GetEnvironmentMap(), glm::vec2(200, 200));
+        // Disable image until texturecube is supported
+        // Lumos::ImGuiUtilities::Image(environment.GetEnvironmentMap(), glm::vec2(200, 200));
 
         ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
         ImGui::Columns(2);
@@ -1925,7 +1924,7 @@ namespace Lumos
                 return;
             }
 
-            //active checkbox
+            // active checkbox
             auto activeComponent = registry.try_get<ActiveComponent>(selected);
             bool active = activeComponent ? activeComponent->active : true;
             if(ImGui::Checkbox("##ActiveCheckbox", &active))
@@ -1950,7 +1949,7 @@ namespace Lumos
             {
                 if(registry.valid(selected))
                 {
-                    //ImGui::Text("ID: %d, Version: %d", static_cast<int>(registry.entity(selected)), registry.version(selected));
+                    // ImGui::Text("ID: %d, Version: %d", static_cast<int>(registry.entity(selected)), registry.version(selected));
                 }
                 else
                 {
@@ -1996,7 +1995,7 @@ namespace Lumos
                 {
                     if(registry.valid(hierarchyComp->Parent()))
                     {
-                        //ImGui::Text("Parent : ID: %d", static_cast<int>(registry.entity(hierarchyComp->Parent())));
+                        // ImGui::Text("Parent : ID: %d", static_cast<int>(registry.entity(hierarchyComp->Parent())));
                     }
                     else
                     {
@@ -2009,7 +2008,7 @@ namespace Lumos
 
                     while(child != entt::null)
                     {
-                        //ImGui::Text("ID: %d", static_cast<int>(registry.entity(child)));
+                        // ImGui::Text("ID: %d", static_cast<int>(registry.entity(child)));
 
                         auto hierarchy = registry.try_get<Hierarchy>(child);
 

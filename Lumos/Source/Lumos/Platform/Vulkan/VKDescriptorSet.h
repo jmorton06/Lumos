@@ -37,6 +37,7 @@ namespace Lumos
 
             void SetDynamicOffset(uint32_t offset) override { m_DynamicOffset = offset; }
             uint32_t GetDynamicOffset() const override { return m_DynamicOffset; }
+            bool GetHasUpdated(uint32_t frame) { return m_DescriptorUpdated[frame]; }
 
             static void MakeDefault();
 
@@ -60,24 +61,17 @@ namespace Lumos
                 std::vector<BufferMemberInfo> m_Members;
                 Buffer LocalStorage;
 
-                //Per frame in flight
+                // Per frame in flight
                 bool HasUpdated[10];
             };
 
             std::map<uint32_t, VkDescriptorSet> m_DescriptorSet;
             DescriptorSetInfo m_Descriptors;
-            //std::map<uint32_t, std::map<std::string, UniformBufferInfo>> m_UniformBuffers;
             std::map<uint32_t, std::map<std::string, SharedPtr<UniformBuffer>>> m_UniformBuffers;
 
             std::map<std::string, UniformBufferInfo> m_UniformBuffersData;
             bool m_DescriptorDirty[3];
-
-            //VkDescriptorSet per frame
-            //UniformBuffer per frame;
-            //1 local uniformbuffer storage
-            //1 list of textures
-            //Setting textures/ updating local data dirties the uniform buffer / descriptorSets
-            // Does updating the uniform buffer mean you need to update the descriptorset?
+            bool m_DescriptorUpdated[3];
         };
     }
 }

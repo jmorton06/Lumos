@@ -150,7 +150,7 @@ namespace Lumos
 
     Entity LuaScriptComponent::GetCurrentEntity()
     {
-        //TODO: Faster alternative
+        // TODO: Faster alternative
         if(!m_Scene)
             m_Scene = Application::Get().GetCurrentScene();
 

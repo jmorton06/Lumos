@@ -37,13 +37,12 @@ namespace Lumos
                 deletionQueue.PushFunction([buffer, memory]
                     {
                         vkDestroyBuffer(VKDevice::Device(), buffer, nullptr);
-                        vkFreeMemory(VKDevice::Device(), memory, nullptr);
-                    });
+                        vkFreeMemory(VKDevice::Device(), memory, nullptr); });
 #endif
             }
         }
 
-    void VKBuffer::Init(VkBufferUsageFlags usage, VkMemoryPropertyFlags memoryProperyFlags, uint32_t size, const void* data)
+        void VKBuffer::Init(VkBufferUsageFlags usage, VkMemoryPropertyFlags memoryProperyFlags, uint32_t size, const void* data)
         {
             LUMOS_PROFILE_FUNCTION();
 
@@ -56,7 +55,7 @@ namespace Lumos
             bufferInfo.size = size;
             bufferInfo.usage = usage;
             bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-            
+
             bool isMappable = (memoryProperyFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) != 0;
 
 #ifdef USE_VMA_ALLOCATOR

@@ -23,7 +23,7 @@ namespace Lumos
         void DebugDraw() override;
 
     protected:
-        glm::vec3 m_Axis; //Axis along which testing is performed
-        int m_AxisIndex; //Index of axis along which testing is performed
+        glm::vec3 m_Axis; // Axis along which testing is performed
+        int m_AxisIndex; // Index of axis along which testing is performed
     };
 }

@@ -31,7 +31,7 @@ namespace Lumos
 
         if(m_IsGlobal)
         {
-            //position = Application::Get().GetSystem<AudioManager>()->GetListener()->GetPosition();
+            // position = Application::Get().GetSystem<AudioManager>()->GetListener()->GetPosition();
         }
         else
         {
@@ -81,7 +81,7 @@ namespace Lumos
             alSourcei(m_Source, AL_LOOPING, m_IsLooping ? 1 : 0);
             alSourcef(m_Source, AL_GAIN, m_Volume);
             alSourcef(m_Source, AL_PITCH, m_Pitch);
-            //alSourcePlay(m_Source);
+            // alSourcePlay(m_Source);
         }
     }
 }

@@ -1,53 +1,57 @@
 #pragma once
-#include <glm/glm.hpp>
+#include <glm/vec3.hpp>
+#include <glm/fwd.hpp>
 
 namespace Lumos
 {
-    class BoundingBox;
-    class Frustum;
-
-    class BoundingSphere
+    namespace Maths
     {
-        friend class Frustum;
-        friend class BoundingBox;
+        class BoundingBox;
+        class Frustum;
 
-    public:
-        BoundingSphere();
-        BoundingSphere(const glm::vec3& center, float radius);
-        BoundingSphere(const glm::vec3* points, unsigned int count);
-        BoundingSphere(const glm::vec3* points, unsigned int count, const glm::vec3& center);
-        BoundingSphere(const glm::vec3* points, unsigned int count, const glm::vec3& center, float radius);
-        BoundingSphere(const BoundingSphere& other);
-        BoundingSphere(BoundingSphere&& other);
-        BoundingSphere& operator=(const BoundingSphere& other);
-        BoundingSphere& operator=(BoundingSphere&& other);
-        ~BoundingSphere() = default;
+        class BoundingSphere
+        {
+            friend class Frustum;
+            friend class BoundingBox;
 
-        const glm::vec3& GetCenter() const;
-        float GetRadius() const;
+        public:
+            BoundingSphere();
+            BoundingSphere(const glm::vec3& center, float radius);
+            BoundingSphere(const glm::vec3* points, unsigned int count);
+            BoundingSphere(const glm::vec3* points, unsigned int count, const glm::vec3& center);
+            BoundingSphere(const glm::vec3* points, unsigned int count, const glm::vec3& center, float radius);
+            BoundingSphere(const BoundingSphere& other);
+            BoundingSphere(BoundingSphere&& other);
+            BoundingSphere& operator=(const BoundingSphere& other);
+            BoundingSphere& operator=(BoundingSphere&& other);
+            ~BoundingSphere() = default;
 
-        void SetCenter(const glm::vec3& center);
-        void SetRadius(float radius);
+            const glm::vec3& GetCenter() const;
+            float GetRadius() const;
 
-        bool IsInside(const glm::vec3& point) const;
-        bool IsInside(const BoundingSphere& sphere) const;
-        bool IsInside(const BoundingBox& box) const;
-        bool IsInside(const Frustum& frustum) const;
+            void SetCenter(const glm::vec3& center);
+            void SetRadius(float radius);
 
-        bool Contains(const glm::vec3& point) const;
-        bool Contains(const BoundingSphere& other) const;
-        bool Intersects(const BoundingSphere& other) const;
-        bool Intersects(const glm::vec3& point) const;
-        bool Intersects(const glm::vec3& point, float radius) const;
+            bool IsInside(const glm::vec3& point) const;
+            bool IsInside(const BoundingSphere& sphere) const;
+            bool IsInside(const BoundingBox& box) const;
+            bool IsInside(const Frustum& frustum) const;
 
-        void Merge(const BoundingSphere& other);
-        void Merge(const glm::vec3& point);
-        void Merge(const glm::vec3* points, unsigned int count);
+            bool Contains(const glm::vec3& point) const;
+            bool Contains(const BoundingSphere& other) const;
+            bool Intersects(const BoundingSphere& other) const;
+            bool Intersects(const glm::vec3& point) const;
+            bool Intersects(const glm::vec3& point, float radius) const;
 
-        void Transform(const glm::mat4& transform);
+            void Merge(const BoundingSphere& other);
+            void Merge(const glm::vec3& point);
+            void Merge(const glm::vec3* points, unsigned int count);
 
-    private:
-        glm::vec3 m_Center;
-        float m_Radius;
-    };
+            void Transform(const glm::mat4& transform);
+
+        private:
+            glm::vec3 m_Center;
+            float m_Radius;
+        };
+    }
 }

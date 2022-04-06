@@ -14,18 +14,18 @@ namespace Lumos
 {
     class GameViewPanel : public EditorPanel
     {
-		public:
+    public:
         GameViewPanel();
         ~GameViewPanel() = default;
-		
+
         void OnImGui() override;
         void OnNewScene(Scene* scene) override;
         void OnRender() override;
         void DrawGizmos(float width, float height, float xpos, float ypos, Scene* scene);
-		
+
         void Resize(uint32_t width, uint32_t height);
         void ToolBar();
-		
+
     private:
         SharedPtr<Graphics::Texture2D> m_GameViewTexture = nullptr;
         Scene* m_CurrentScene = nullptr;

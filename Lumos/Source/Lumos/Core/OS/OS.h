@@ -45,13 +45,13 @@ namespace Lumos
         virtual void Vibrate() const {};
         virtual void SetTitleBarColour(const glm::vec4& colour, bool dark = true) {};
 
-        //Mobile only
+        // Mobile only
         virtual void ShowKeyboard() {};
         virtual void HideKeyboard() {};
         virtual void Delay(uint32_t usec) {};
 
-        //Needed for MaxOS
-        virtual void MaximiseWindow() {}
+        // Needed for MaxOS
+        virtual void MaximiseWindow() { }
 
     protected:
         static OS* s_Instance;

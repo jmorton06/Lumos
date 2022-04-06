@@ -13,7 +13,7 @@ namespace Lumos
             switch(format)
             {
             case TextureFormat::RGBA:
-                return GL_RGBA; //srgb ? GL_SRGB8 :
+                return GL_RGBA; // srgb ? GL_SRGB8 :
             case TextureFormat::RGB:
                 return GL_RGB;
             case TextureFormat::R8:

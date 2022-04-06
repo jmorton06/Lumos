@@ -9,17 +9,17 @@ namespace Lumos
     class TSingleton
     {
     public:
-        //Provide global access to the only instance of this class
+        // Provide global access to the only instance of this class
         static T& Get()
         {
-            if(!m_pInstance) //This if statement prevents the costly Lock-step being required each time the instance is requested
+            if(!m_pInstance) // This if statement prevents the costly Lock-step being required each time the instance is requested
             {
                 m_pInstance = new T();
             }
             return *m_pInstance;
         }
 
-        //Provide global access to release/delete this class
+        // Provide global access to release/delete this class
         static void Release()
         {
             if(m_pInstance)
@@ -30,7 +30,7 @@ namespace Lumos
         }
 
     protected:
-        //Only allow the class to be created and destroyed by itself
+        // Only allow the class to be created and destroyed by itself
         TSingleton() { }
         ~TSingleton() { }
 
@@ -40,7 +40,7 @@ namespace Lumos
         NONCOPYABLE(TSingleton);
     };
 
-    //Finally make sure that the instance is initialised to NULL at the start of the program
+    // Finally make sure that the instance is initialised to NULL at the start of the program
     template <class T>
     T* TSingleton<T>::m_pInstance = nullptr;
 
@@ -48,7 +48,7 @@ namespace Lumos
     class TSingletonInit
     {
     public:
-        //Provide global access to the only instance of this class
+        // Provide global access to the only instance of this class
         static T& Get()
         {
             LUMOS_ASSERT(m_pInstance == nullptr, "Singleton hasn't been Initialised");
@@ -62,7 +62,7 @@ namespace Lumos
             m_pInstance = new T(std::forward<TArgs>(args)...);
         }
 
-        //Provide global access to release/delete this class
+        // Provide global access to release/delete this class
         static void Release()
         {
             if(m_pInstance)
@@ -73,7 +73,7 @@ namespace Lumos
         }
 
     protected:
-        //Only allow the class to be created and destroyed by itself
+        // Only allow the class to be created and destroyed by itself
         TSingletonInit() { }
         ~TSingletonInit() { }
 
@@ -90,13 +90,13 @@ namespace Lumos
     class ThreadSafeSingleton
     {
     public:
-        //Provide global access to the only instance of this class
+        // Provide global access to the only instance of this class
         static T& Get()
         {
-            if(!m_pInstance) //This if statement prevents the costly Lock-step being required each time the instance is requested
+            if(!m_pInstance) // This if statement prevents the costly Lock-step being required each time the instance is requested
             {
-                std::lock_guard<std::mutex> lock(m_mConstructed); //Lock is required here though, to prevent multiple threads initialising multiple instances of the class when it turns out it has not been initialised yet
-                if(!m_pInstance) //Check to see if a previous thread has already initialised an instance in the time it took to acquire a lock.
+                std::lock_guard<std::mutex> lock(m_mConstructed); // Lock is required here though, to prevent multiple threads initialising multiple instances of the class when it turns out it has not been initialised yet
+                if(!m_pInstance) // Check to see if a previous thread has already initialised an instance in the time it took to acquire a lock.
                 {
                     m_pInstance = new T();
                 }
@@ -104,10 +104,10 @@ namespace Lumos
             return *m_pInstance;
         }
 
-        //Provide global access to release/delete this class
+        // Provide global access to release/delete this class
         static void Release()
         {
-            //Technically this could have another enclosing if statement, but speed is much less of a problem as this should only be called once in the entire program.
+            // Technically this could have another enclosing if statement, but speed is much less of a problem as this should only be called once in the entire program.
             std::lock_guard<std::mutex> lock(m_mConstructed);
             if(m_pInstance)
             {
@@ -117,19 +117,19 @@ namespace Lumos
         }
 
     protected:
-        //Only allow the class to be created and destroyed by itself
+        // Only allow the class to be created and destroyed by itself
         ThreadSafeSingleton() { }
         ~ThreadSafeSingleton() { }
 
         static T* m_pInstance;
-        //Keep a static instance pointer to refer to as required by the rest of the program
+        // Keep a static instance pointer to refer to as required by the rest of the program
         static std::mutex m_mConstructed;
 
     private:
         NONCOPYABLE(ThreadSafeSingleton);
     };
 
-    //Finally make sure that the instance is initialised to NULL at the start of the program
+    // Finally make sure that the instance is initialised to NULL at the start of the program
     template <class T>
     std::mutex ThreadSafeSingleton<T>::m_mConstructed;
     template <class T>

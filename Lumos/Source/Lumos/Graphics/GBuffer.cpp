@@ -57,7 +57,7 @@ namespace Lumos
             }
 
 #ifdef LUMOS_PLATFORM_IOS
-            //Unless all render targets were rgba32 there were visual glitches on ios
+            // Unless all render targets were rgba32 there were visual glitches on ios
             m_Formats[0] = TextureFormat::RGBA32;
             m_Formats[1] = TextureFormat::RGBA32;
             m_Formats[2] = TextureFormat::RGBA32;

@@ -59,7 +59,7 @@ namespace Lumos
         void DebugDraw(const glm::mat4& transform);
 
     protected:
-        int ConstructNewEdge(int parent_face_idx, int vert_start, int vert_end); //Called by AddFace
+        int ConstructNewEdge(int parent_face_idx, int vert_start, int vert_end); // Called by AddFace
 
     protected:
         std::vector<HullVertex> m_Vertices;

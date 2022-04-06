@@ -1,12 +1,14 @@
 #pragma once
 
 #include "RenderCommand.h"
-#include "Maths/Maths.h"
 #include "Maths/Transform.h"
 
 #include "Graphics/RHI/Framebuffer.h"
 #include "Graphics/RHI/RenderPass.h"
 #include "Graphics/RHI/Pipeline.h"
+
+#include <glm/vec4.hpp>
+#include <glm/fwd.hpp>
 
 #define SCENE_DESCRIPTORSET_ID 0
 #define MATERIAL_DESCRIPTORSET_ID 1
@@ -56,7 +58,7 @@ namespace Lumos
             {
                 m_RenderTexture = texture;
             }
-            
+
             virtual void SetDepthTarget(Graphics::Texture* texture)
             {
                 m_DepthTexture = texture;
@@ -113,7 +115,7 @@ namespace Lumos
             Texture* m_RenderTexture = nullptr;
             Texture* m_DepthTexture = nullptr;
 
-            Frustum m_Frustum;
+            Maths::Frustum m_Frustum;
             glm::vec4 m_ClearColour;
 
             int m_RenderPriority = 0;

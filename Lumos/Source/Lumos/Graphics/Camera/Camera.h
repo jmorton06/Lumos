@@ -110,9 +110,9 @@ namespace Lumos
             m_FrustumDirty = true;
         }
 
-        Frustum& GetFrustum(const glm::mat4& viewMatrix);
+        Maths::Frustum& GetFrustum(const glm::mat4& viewMatrix);
 
-        Ray GetScreenRay(float x, float y, const glm::mat4& viewMatrix, bool flipY) const;
+        Maths::Ray GetScreenRay(float x, float y, const glm::mat4& viewMatrix, bool flipY) const;
 
         template <typename Archive>
         void save(Archive& archive) const
@@ -147,7 +147,7 @@ namespace Lumos
 
         glm::mat4 m_ProjMatrix;
 
-        Frustum m_Frustum;
+        Maths::Frustum m_Frustum;
         bool m_FrustumDirty = true;
         bool m_ProjectionDirty = false;
         bool customProjection_ = false;

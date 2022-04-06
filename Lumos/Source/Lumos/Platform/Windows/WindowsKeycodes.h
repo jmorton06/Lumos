@@ -134,7 +134,7 @@ namespace Lumos
             KEYBOARD_F24 = 0x87, // F24 key
             KEYBOARD_NUMLOCK = 0x90, // NUM LOCK key
             KEYBOARD_SCROLL = 0x91, // SCROLL LOCK key
-            KEYBOARD_LSHIFT = 16, //TODO: Temp //0xA0,     // Left SHIFT key
+            KEYBOARD_LSHIFT = 16, // TODO: Temp //0xA0,     // Left SHIFT key
             KEYBOARD_RSHIFT = 0xA1, // Right SHIFT key
             KEYBOARD_LCONTROL = 0xA2, // Left CONTROL key
             KEYBOARD_RCONTROL = 0xA3, // Right CONTROL key

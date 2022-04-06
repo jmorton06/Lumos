@@ -96,14 +96,14 @@
         }                                         \
     }
 
-#define LUMOS_ASSERT_MESSAGE(condition, ...)                        \
-    {                                                               \
-        if(!(condition))                                            \
-        {                                                           \
-            LUMOS_LOG_ERROR("Assertion Failed");                    \
-            LUMOS_LOG_ERROR(__VA_ARGS__);                           \
-            LUMOS_BREAK();                                          \
-        }                                                           \
+#define LUMOS_ASSERT_MESSAGE(condition, ...)     \
+    {                                            \
+        if(!(condition))                         \
+        {                                        \
+            LUMOS_LOG_ERROR("Assertion Failed"); \
+            LUMOS_LOG_ERROR(__VA_ARGS__);        \
+            LUMOS_BREAK();                       \
+        }                                        \
     }
 
 #define LUMOS_CLIENT_ASSERT LUMOS_ASSERT_MESSAGE
@@ -163,5 +163,5 @@
     CEREAL_CLASS_VERSION(x, version);  \
     CEREAL_REGISTER_TYPE_WITH_NAME(x, #x);
 
-//Vulkan Only
+// Vulkan Only
 //#define LUMOS_PROFILE_GPU

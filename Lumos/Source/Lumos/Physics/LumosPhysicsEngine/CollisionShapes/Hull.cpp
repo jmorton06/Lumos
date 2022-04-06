@@ -33,14 +33,14 @@ namespace Lumos
             }
         }
 
-        return -1; //Not Found
+        return -1; // Not Found
     }
 
     int Hull::ConstructNewEdge(int parent_face_idx, int vert_start, int vert_end)
     {
         int out_idx = FindEdge(vert_start, vert_end);
 
-        //Edge not already within the Hull,
+        // Edge not already within the Hull,
         if(out_idx == -1)
         {
             out_idx = static_cast<int>(m_Edges.size());
@@ -53,7 +53,7 @@ namespace Lumos
 
             HullEdge* new_edge_ptr = &m_Edges[new_edge.idx];
 
-            //Find Adjacent Edges
+            // Find Adjacent Edges
             for(int i = 0; i < new_edge.idx; ++i)
             {
                 if(m_Edges[i].vStart == vert_start
@@ -66,7 +66,7 @@ namespace Lumos
                 }
             }
 
-            //Update Contained Vertices
+            // Update Contained Vertices
             m_Vertices[vert_start].enclosing_edges.push_back(new_edge.idx);
             m_Vertices[vert_end].enclosing_edges.push_back(new_edge.idx);
         }
@@ -85,7 +85,7 @@ namespace Lumos
         m_Faces.push_back(new_face);
         HullFace* new_face_ptr = &m_Faces[new_face.idx];
 
-        //Construct all contained edges
+        // Construct all contained edges
         int p0 = nVerts - 1;
         for(int p1 = 0; p1 < nVerts; ++p1)
         {
@@ -94,7 +94,7 @@ namespace Lumos
             p0 = p1;
         }
 
-        //Find Adjacent Faces
+        // Find Adjacent Faces
         for(int i = 0; i < new_face.idx; ++i)
         {
             HullFace& cFace = m_Faces[i];
@@ -113,7 +113,7 @@ namespace Lumos
             }
         }
 
-        //Update Contained Vertices
+        // Update Contained Vertices
         for(int i = 0; i < nVerts; ++i)
         {
             HullVertex* cVertStart = &m_Vertices[m_Edges[new_face_ptr->edge_ids[i]].vStart];
@@ -165,10 +165,10 @@ namespace Lumos
 
     void Hull::DebugDraw(const glm::mat4& transform)
     {
-        //Draw all Hull Polygons
+        // Draw all Hull Polygons
         for(HullFace& face : m_Faces)
         {
-            //Render Polygon as triangle fan
+            // Render Polygon as triangle fan
             if(face.vert_ids.size() > 2)
             {
                 glm::vec3 polygon_start = transform * glm::vec4(m_Vertices[face.vert_ids[0]].pos, 1.0f);
@@ -184,7 +184,7 @@ namespace Lumos
             }
         }
 
-        //Draw all Hull Edges
+        // Draw all Hull Edges
         for(HullEdge& edge : m_Edges)
         {
             DebugRenderer::DrawThickLine(transform * glm::vec4(m_Vertices[edge.vStart].pos, 1.0f), transform * glm::vec4(m_Vertices[edge.vEnd].pos, 1.0f), 0.02f, glm::vec4(0.7f, 0.2f, 0.7f, 1.0f));

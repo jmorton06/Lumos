@@ -151,7 +151,7 @@ namespace Lumos
             static GraphicsContext* GetGraphicsContext() { return Application::Get().GetWindow()->GetGraphicsContext(); }
             static SwapChain* GetMainSwapChain() { return Application::Get().GetWindow()->GetSwapChain(); }
             static void DrawMesh(CommandBuffer* commandBuffer, Graphics::Pipeline* pipeline, Graphics::Mesh* mesh);
-        
+
         protected:
             static Renderer* (*CreateFunc)();
 

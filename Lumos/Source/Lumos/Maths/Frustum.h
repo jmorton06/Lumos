@@ -4,23 +4,25 @@
 
 namespace Lumos
 {
-    class Ray;
-    class Rect;
-    class BoundingBox;
-    class BoundingSphere;
-
-    enum FrustumPlane
+    namespace Maths
     {
-        PLANE_NEAR = 0,
-        PLANE_LEFT,
-        PLANE_RIGHT,
-        PLANE_UP,
-        PLANE_DOWN,
-        PLANE_FAR,
-    };
+        class Ray;
+        class Rect;
+        class BoundingBox;
+        class BoundingSphere;
 
-    class Frustum
-    {
+        enum FrustumPlane
+        {
+            PLANE_NEAR = 0,
+            PLANE_LEFT,
+            PLANE_RIGHT,
+            PLANE_UP,
+            PLANE_DOWN,
+            PLANE_FAR,
+        };
+
+        class Frustum
+        {
         public:
             Frustum();
             Frustum(const glm::mat4& transform);
@@ -45,10 +47,10 @@ namespace Lumos
             glm::vec3* GetVerticies();
 
         private:
-
             void CalculateVertices(const glm::mat4& transform);
-            
+
             Plane m_Planes[6];
             glm::vec3 m_Verticies[8];
-    };
+        };
+    }
 }

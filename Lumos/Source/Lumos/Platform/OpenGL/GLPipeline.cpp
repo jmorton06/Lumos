@@ -244,7 +244,7 @@ namespace Lumos
             }
 
             GLCall(glFrontFace(GL_CCW));
-            
+
             if(m_LineWidth != 1.0f)
                 glLineWidth(m_LineWidth);
         }
@@ -252,7 +252,7 @@ namespace Lumos
         void GLPipeline::End(Graphics::CommandBuffer* commandBuffer)
         {
             m_RenderPass->EndRenderpass(commandBuffer);
-            
+
             if(m_LineWidth != 1.0f)
                 glLineWidth(1.0f);
         }

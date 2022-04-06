@@ -15,7 +15,7 @@ namespace Lumos
         void UpdateScroll(Maths::Transform& transform, float offset, float dt) override;
 
         void SetMode(bool is2D) { m_2DMode = is2D; }
-		void StopMovement();
+        void StopMovement();
 
     private:
         bool m_2DMode = false;

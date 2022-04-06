@@ -52,7 +52,7 @@ namespace Lumos
             const auto hierarchy = registry.try_get<Hierarchy>(entity);
             if(hierarchy && hierarchy->Parent() == entt::null)
             {
-                //Recursively update children
+                // Recursively update children
                 UpdateTransform(entity, registry);
             }
         }

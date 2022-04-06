@@ -43,6 +43,13 @@ namespace Lumos
 
             return FilePath;
         }
+    
+        std::string ToLower(const std::string& text)
+        {
+            std::string lowerText = text;
+            transform(lowerText.begin(), lowerText.end(), lowerText.begin(), ::tolower);
+            return lowerText;
+        }
 
         std::string GetFileLocation(const std::string& FilePath)
         {

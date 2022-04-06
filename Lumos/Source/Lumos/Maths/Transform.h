@@ -34,13 +34,13 @@ namespace Lumos
             const glm::vec3& GetLocalScale() const;
             const glm::quat& GetLocalOrientation() const;
 
-            //Updates Local Matrix from R,T and S vectors
+            // Updates Local Matrix from R,T and S vectors
             void UpdateMatrices();
 
             bool HasUpdated() const { return m_HasUpdated; }
             void SetHasUpdated(bool set) { m_HasUpdated = set; }
 
-            //Sets R,T and S vectors from Local Matrix
+            // Sets R,T and S vectors from Local Matrix
             void ApplyTransform();
 
             glm::vec3 GetUpDirection() const

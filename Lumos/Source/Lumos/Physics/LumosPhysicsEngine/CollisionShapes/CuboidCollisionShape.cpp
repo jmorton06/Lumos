@@ -45,7 +45,7 @@ namespace Lumos
     glm::mat3 CuboidCollisionShape::BuildInverseInertia(float invMass) const
     {
         LUMOS_PROFILE_FUNCTION();
-        //https://en.wikipedia.org/wiki/List_of_moments_of_inertia
+        // https://en.wikipedia.org/wiki/List_of_moments_of_inertia
         glm::mat3 inertia(1.0f);
 
         glm::vec3 dimsSq = (m_CuboidHalfDimensions + m_CuboidHalfDimensions);
@@ -65,9 +65,9 @@ namespace Lumos
             m_Axes.resize(3);
 
             glm::mat3 objOrientation = glm::toMat3(currentObject->GetOrientation()); //.RotationMatrix();
-            m_Axes[0] = (objOrientation * glm::vec3(1.0f, 0.0f, 0.0f)); //X - Axis
-            m_Axes[1] = (objOrientation * glm::vec3(0.0f, 1.0f, 0.0f)); //Y - Axis
-            m_Axes[2] = (objOrientation * glm::vec3(0.0f, 0.0f, 1.0f)); //Z - Axis
+            m_Axes[0] = (objOrientation * glm::vec3(1.0f, 0.0f, 0.0f)); // X - Axis
+            m_Axes[1] = (objOrientation * glm::vec3(0.0f, 1.0f, 0.0f)); // Y - Axis
+            m_Axes[2] = (objOrientation * glm::vec3(0.0f, 0.0f, 1.0f)); // Z - Axis
         }
 
         return m_Axes;
@@ -153,7 +153,7 @@ namespace Lumos
 
         if(best_face)
         {
-            //Add the reference face itself to the list of adjacent planes
+            // Add the reference face itself to the list of adjacent planes
             glm::vec3 wsPointOnPlane = wsTransform * glm::vec4(m_CubeHull->GetVertex(m_CubeHull->GetEdge(best_face->edge_ids[0]).vStart).pos, 1.0f);
             glm::vec3 planeNrml = -(normalMatrix * best_face->normal);
             planeNrml = glm::normalize(planeNrml);
@@ -199,7 +199,7 @@ namespace Lumos
     void CuboidCollisionShape::ConstructCubeHull()
     {
         LUMOS_PROFILE_FUNCTION();
-        //Vertices
+        // Vertices
         m_CubeHull->AddVertex(glm::vec3(-1.0f, -1.0f, -1.0f)); // 0
         m_CubeHull->AddVertex(glm::vec3(-1.0f, 1.0f, -1.0f)); // 1
         m_CubeHull->AddVertex(glm::vec3(1.0f, 1.0f, -1.0f)); // 2
@@ -217,7 +217,7 @@ namespace Lumos
         int face5[] = { 6, 7, 3, 2 };
         int face6[] = { 4, 5, 1, 0 };
 
-        //Faces
+        // Faces
         m_CubeHull->AddFace(glm::vec3(0.0f, 0.0f, -1.0f), 4, face1);
         m_CubeHull->AddFace(glm::vec3(0.0f, 0.0f, 1.0f), 4, face2);
         m_CubeHull->AddFace(glm::vec3(0.0f, 1.0f, 0.0f), 4, face3);

@@ -64,7 +64,7 @@ namespace Lumos
         Application& app = Application::Get();
         ImGuiIO& io = ImGui::GetIO();
         io.DisplaySize = ImVec2(static_cast<float>(app.GetWindow()->GetWidth()), static_cast<float>(app.GetWindow()->GetHeight()));
-        //io.DisplayFramebufferScale = ImVec2(app.GetWindow()->GetDPIScale(), app.GetWindow()->GetDPIScale());
+        // io.DisplayFramebufferScale = ImVec2(app.GetWindow()->GetDPIScale(), app.GetWindow()->GetDPIScale());
         io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
         m_DPIScale = app.GetWindow()->GetDPIScale();
@@ -233,7 +233,7 @@ namespace Lumos
         uint32_t height = Maths::Max(1u, e.GetHeight());
 
         io.DisplaySize = ImVec2(static_cast<float>(width), static_cast<float>(height));
-        //io.DisplayFramebufferScale = ImVec2(e.GetDPIScale(), e.GetDPIScale());
+        // io.DisplayFramebufferScale = ImVec2(e.GetDPIScale(), e.GetDPIScale());
         m_DPIScale = e.GetDPIScale();
         m_IMGUIRenderer->OnResize(width, height);
 

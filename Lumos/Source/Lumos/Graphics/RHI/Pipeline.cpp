@@ -59,12 +59,11 @@ namespace Lumos
                         VkDescriptorImageInfo* imageHandle = (VkDescriptorImageInfo*)(texture->GetDescriptorInfo());
                         HashCombine(hash, imageHandle->imageLayout, imageHandle->imageView, imageHandle->sampler);
 
-						if (pipelineDesc.depthTarget) {
-							VkDescriptorImageInfo* depthImageHandle = (VkDescriptorImageInfo*)(pipelineDesc.depthTarget->GetDescriptorInfo());
-							HashCombine(hash, depthImageHandle->imageLayout, depthImageHandle->imageView, depthImageHandle->sampler);
-						}
-					
-
+                        if(pipelineDesc.depthTarget)
+                        {
+                            VkDescriptorImageInfo* depthImageHandle = (VkDescriptorImageInfo*)(pipelineDesc.depthTarget->GetDescriptorInfo());
+                            HashCombine(hash, depthImageHandle->imageLayout, depthImageHandle->imageView, depthImageHandle->sampler);
+                        }
                     }
 #endif
                 }
@@ -80,7 +79,7 @@ namespace Lumos
 
             if(pipelineDesc.swapchainTarget)
             {
-                //Add one swapchain image to hash
+                // Add one swapchain image to hash
                 auto texture = Renderer::GetMainSwapChain()->GetCurrentImage();
                 if(texture)
                 {

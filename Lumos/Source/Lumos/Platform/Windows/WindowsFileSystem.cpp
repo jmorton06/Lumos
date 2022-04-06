@@ -9,8 +9,8 @@ namespace Lumos
 {
 
     /*void CALLBACK FileIOCompletionRoutine(DWORD dwErrorCode, DWORD dwNumberOfBytesTransfered, LPOVERLAPPED lpOverlapped)
-	{
-	}*/
+        {
+        }*/
 
     static HANDLE OpenFileForReading(const std::string& path)
     {
