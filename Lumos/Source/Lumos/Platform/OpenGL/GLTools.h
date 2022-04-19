@@ -1,20 +1,10 @@
 #pragma once
+#include "Graphics/RHI/Definitions.h"
 
 namespace Lumos
 {
     namespace Graphics
     {
-        enum class CullMode;
-        enum class DescriptorType;
-        enum class ShaderType : int;
-        enum class TextureFormat;
-        enum class Format;
-        enum class TextureWrap;
-        enum class StencilType;
-        enum class DataType;
-        enum class DrawType;
-        enum class RendererBlendFunction;
-
         namespace GLTools
         {
             uint32_t TextureFormatToGL(TextureFormat format, bool srgb = true);

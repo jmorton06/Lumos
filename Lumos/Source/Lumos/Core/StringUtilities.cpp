@@ -43,7 +43,7 @@ namespace Lumos
 
             return FilePath;
         }
-    
+
         std::string ToLower(const std::string& text)
         {
             std::string lowerText = text;

@@ -287,7 +287,7 @@ namespace Lumos
 
         if(resize)
         {
-            m_GameViewTexture->BuildTexture(Graphics::TextureFormat::RGBA8, m_Width, m_Height, false, false, false);
+            m_GameViewTexture->BuildTexture(Graphics::TextureFormat::R8G8B8A8_Unorm, m_Width, m_Height, false, false, false);
             m_RenderGraph->SetRenderTarget(m_GameViewTexture.get(), true, false);
             m_RenderGraph->OnResize(width, height);
         }

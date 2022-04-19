@@ -38,17 +38,17 @@ namespace Lumos
 
             static bool IsDepthStencilFormat(TextureFormat format)
             {
-                return format == TextureFormat::DEPTH_STENCIL;
+                return format == TextureFormat::D24_Unorm_S8_UInt || format == TextureFormat::D16_Unorm_S8_UInt || format == TextureFormat::D32_Float_S8_UInt;
             }
 
             static bool IsDepthFormat(TextureFormat format)
             {
-                return format == TextureFormat::DEPTH;
+                return format == TextureFormat::D16_Unorm || format == TextureFormat::D32_Float || format == TextureFormat::D24_Unorm_S8_UInt || format == TextureFormat::D16_Unorm_S8_UInt || format == TextureFormat::D32_Float_S8_UInt;
             }
 
             static bool IsStencilFormat(TextureFormat format)
             {
-                return format == TextureFormat::STENCIL;
+                return format == TextureFormat::D24_Unorm_S8_UInt || format == TextureFormat::D16_Unorm_S8_UInt || format == TextureFormat::D32_Float_S8_UInt;
             }
 
             bool IsSampled() const { return m_Flags & Texture_Sampled; }
@@ -58,15 +58,23 @@ namespace Lumos
 
             virtual void* GetDescriptorInfo() const { return GetHandle(); }
 
+            uint32_t GetBitsPerChannel() const { return m_BitsPerChannel; }
+            void SetBitsPerChannel(const uint32_t bits) { m_BitsPerChannel = bits; }
+            uint32_t GetBytesPerChannel() const { return m_BitsPerChannel / 8; }
+            uint32_t GetBytesPerPixel() const { return (m_BitsPerChannel / 8) * m_ChannelCount; }
+
         public:
             static uint8_t GetStrideFromFormat(TextureFormat format);
             static TextureFormat BitsToTextureFormat(uint32_t bits);
+            static uint32_t BitsToChannelCount(uint32_t bits);
             static uint32_t CalculateMipMapCount(uint32_t width, uint32_t height);
 
             SET_ASSET_TYPE(AssetType::Texture);
 
         protected:
             uint16_t m_Flags = 0;
+            uint32_t m_BitsPerChannel = 8;
+            uint32_t m_ChannelCount = 4;
         };
 
         class LUMOS_EXPORT Texture2D : public Texture
@@ -97,13 +105,13 @@ namespace Lumos
             };
 
         public:
-            static TextureCube* Create(uint32_t size);
+            static TextureCube* Create(uint32_t size, void* data, bool hdr = false);
             static TextureCube* CreateFromFile(const std::string& filepath);
             static TextureCube* CreateFromFiles(const std::string* files);
             static TextureCube* CreateFromVCross(const std::string* files, uint32_t mips, TextureParameters params, TextureLoadOptions loadOptions, InputFormat = InputFormat::VERTICAL_CROSS);
 
         protected:
-            static TextureCube* (*CreateFunc)(uint32_t);
+            static TextureCube* (*CreateFunc)(uint32_t, void*, bool);
             static TextureCube* (*CreateFromFileFunc)(const std::string&);
             static TextureCube* (*CreateFromFilesFunc)(const std::string*);
             static TextureCube* (*CreateFromVCrossFunc)(const std::string*, uint32_t, TextureParameters, TextureLoadOptions, InputFormat);

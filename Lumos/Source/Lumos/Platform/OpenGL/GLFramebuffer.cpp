@@ -40,10 +40,10 @@ namespace Lumos
                     switch(frameBufferDesc.attachmentTypes[i])
                     {
                     case TextureType::COLOUR:
-                        AddTextureAttachment(TextureFormat::RGBA8, frameBufferDesc.attachments[i]);
+                        AddTextureAttachment(frameBufferDesc.attachments[i]->GetFormat(), frameBufferDesc.attachments[i]);
                         break;
                     case TextureType::DEPTH:
-                        AddTextureAttachment(TextureFormat::DEPTH, frameBufferDesc.attachments[i]);
+                        AddTextureAttachment(TextureFormat::D16_Unorm, frameBufferDesc.attachments[i]);
                         break;
                     case TextureType::DEPTHARRAY:
                         AddTextureLayer(frameBufferDesc.layer, frameBufferDesc.attachments[i]);

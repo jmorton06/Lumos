@@ -248,6 +248,8 @@ namespace Lumos
             RenderGraphSettings& GetSettings() { return m_Settings; }
             RenderGraphStats& GetRenderGraphStats() { return m_Stats; }
 
+            SharedPtr<TextureCube> CreateCubeFromHDRI(const std::string& filePath);
+
         private:
             Texture2D* m_MainTexture = nullptr;
             Texture* m_ScreenTexture = nullptr;

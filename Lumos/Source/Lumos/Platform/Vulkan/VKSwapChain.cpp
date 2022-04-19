@@ -51,7 +51,7 @@ namespace Lumos
             if(m_Surface == VK_NULL_HANDLE)
                 m_Surface = CreatePlatformSurface(VKContext::GetVKInstance(), windowHandle);
 
-            bool success = Init(vsync);
+            bool success = Init(m_VSyncEnabled);
 
             AcquireNextImage();
 
@@ -291,7 +291,7 @@ namespace Lumos
             else
             {
                 Init(m_VSyncEnabled);
-                AcquireNextImage();
+                // AcquireNextImage();
             }
 
             VKRenderer::GetGraphicsContext()->WaitIdle();

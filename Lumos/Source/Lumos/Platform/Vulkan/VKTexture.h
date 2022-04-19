@@ -164,7 +164,7 @@ namespace Lumos
         class VKTextureCube : public TextureCube
         {
         public:
-            VKTextureCube(uint32_t size);
+            VKTextureCube(uint32_t size, void* data, bool hdr);
             VKTextureCube(const std::string& filepath);
             VKTextureCube(const std::string* files);
             VKTextureCube(const std::string* files, uint32_t mips, TextureParameters params, TextureLoadOptions loadOptions, InputFormat format);
@@ -257,7 +257,7 @@ namespace Lumos
             static void MakeDefault();
 
         protected:
-            static TextureCube* CreateFuncVulkan(uint32_t);
+            static TextureCube* CreateFuncVulkan(uint32_t, void* data, bool hdr);
             static TextureCube* CreateFromFileFuncVulkan(const std::string& filepath);
             static TextureCube* CreateFromFilesFuncVulkan(const std::string* files);
             static TextureCube* CreateFromVCrossFuncVulkan(const std::string* files, uint32_t mips, TextureParameters params, TextureLoadOptions loadOptions, InputFormat format);
@@ -268,6 +268,7 @@ namespace Lumos
             uint32_t m_Handle {};
             uint32_t m_Width {}, m_Height {}, m_Size {};
             uint32_t m_NumMips {};
+            uint32_t m_NumLayers = 6;
             uint8_t* m_Data = nullptr;
 
             TextureParameters m_Parameters;
@@ -495,7 +496,6 @@ namespace Lumos
             VkImageView m_TextureImageView {};
             VkSampler m_TextureSampler {};
             VkDescriptorImageInfo m_Descriptor {};
-
             std::vector<VkImageView> m_IndividualImageViews;
 
 #ifdef USE_VMA_ALLOCATOR

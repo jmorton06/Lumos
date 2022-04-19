@@ -314,9 +314,11 @@ namespace Lumos
         {
             switch(format)
             {
+            case VK_FORMAT_D16_UNORM:
             case VK_FORMAT_D32_SFLOAT:
             case VK_FORMAT_D32_SFLOAT_S8_UINT:
             case VK_FORMAT_D24_UNORM_S8_UINT:
+            case VK_FORMAT_D16_UNORM_S8_UINT:
                 return true;
             }
             return false;
@@ -612,25 +614,21 @@ namespace Lumos
             {
                 switch(format)
                 {
-                case TextureFormat::RGBA:
-                    return VK_FORMAT_R8G8B8A8_UNORM;
-                case TextureFormat::RGB:
-                    return VK_FORMAT_R8G8B8_SRGB;
-                case TextureFormat::R8:
+                case TextureFormat::R8_Unorm:
                     return VK_FORMAT_R8_SRGB;
-                case TextureFormat::RG8:
+                case TextureFormat::R8G8_Unorm:
                     return VK_FORMAT_R8G8_SRGB;
-                case TextureFormat::RGB8:
+                case TextureFormat::R8G8B8_Unorm:
+                    return VK_FORMAT_R8G8B8_SRGB;
+                case TextureFormat::R8G8B8A8_Unorm:
                     return VK_FORMAT_R8G8B8A8_SRGB;
-                case TextureFormat::RGBA8:
-                    return VK_FORMAT_R8G8B8A8_SRGB;
-                case TextureFormat::RGB16:
+                case TextureFormat::R16G16B16_Float:
                     return VK_FORMAT_R16G16B16_SFLOAT;
-                case TextureFormat::RGBA16:
+                case TextureFormat::R16G16B16A16_Float:
                     return VK_FORMAT_R16G16B16A16_SFLOAT;
-                case TextureFormat::RGB32:
+                case TextureFormat::R32G32B32_Float:
                     return VK_FORMAT_R32G32B32_SFLOAT;
-                case TextureFormat::RGBA32:
+                case TextureFormat::R32G32B32A32_Float:
                     return VK_FORMAT_R32G32B32A32_SFLOAT;
                 default:
                     LUMOS_LOG_CRITICAL("[Texture] Unsupported image bit-depth!");
@@ -641,30 +639,86 @@ namespace Lumos
             {
                 switch(format)
                 {
-                case TextureFormat::RGBA:
-                    return VK_FORMAT_R8G8B8A8_UNORM;
-                case TextureFormat::RGB:
-                    return VK_FORMAT_R8G8B8_UNORM;
-                case TextureFormat::R8:
+                case TextureFormat::R8_Unorm:
                     return VK_FORMAT_R8_UNORM;
-                case TextureFormat::RG8:
+                case TextureFormat::R8G8_Unorm:
                     return VK_FORMAT_R8G8_UNORM;
-                case TextureFormat::RGB8:
+                case TextureFormat::R8G8B8_Unorm:
                     return VK_FORMAT_R8G8B8A8_UNORM;
-                case TextureFormat::RGBA8:
+                case TextureFormat::R8G8B8A8_Unorm:
                     return VK_FORMAT_R8G8B8A8_UNORM;
-                case TextureFormat::RGB16:
+                case TextureFormat::R11G11B10_Float:
+                    return VK_FORMAT_B10G11R11_UFLOAT_PACK32;
+                case TextureFormat::R10G10B10A2_Unorm:
+                    return VK_FORMAT_A2R10G10B10_UNORM_PACK32;
+                case TextureFormat::R16_Float:
+                    return VK_FORMAT_R16_SFLOAT;
+                case TextureFormat::R16G16_Float:
+                    return VK_FORMAT_R16G16_SFLOAT;
+                case TextureFormat::R16G16B16_Float:
                     return VK_FORMAT_R16G16B16_SFLOAT;
-                case TextureFormat::RGBA16:
+                case TextureFormat::R16G16B16A16_Float:
                     return VK_FORMAT_R16G16B16A16_SFLOAT;
-                case TextureFormat::RGB32:
+                case TextureFormat::R32G32B32_Float:
                     return VK_FORMAT_R32G32B32_SFLOAT;
-                case TextureFormat::RGBA32:
+                case TextureFormat::R32G32B32A32_Float:
                     return VK_FORMAT_R32G32B32A32_SFLOAT;
+                case TextureFormat::D16_Unorm:
+                    return VK_FORMAT_D16_UNORM;
+                case TextureFormat::D32_Float:
+                    return VK_FORMAT_D32_SFLOAT;
+                case TextureFormat::D24_Unorm_S8_UInt:
+                    return VK_FORMAT_D24_UNORM_S8_UINT;
+                case TextureFormat::D32_Float_S8_UInt:
+                    return VK_FORMAT_D32_SFLOAT_S8_UINT;
                 default:
                     LUMOS_LOG_CRITICAL("[Texture] Unsupported image bit-depth!");
                     return VK_FORMAT_R8G8B8A8_UNORM;
                 }
+            }
+        }
+
+        TextureFormat VKUtilities::VKToTextureFormat(VkFormat format)
+        {
+            switch(format)
+            {
+            case VK_FORMAT_R8_SRGB:
+                return TextureFormat::R8_Unorm;
+            case VK_FORMAT_R8G8_SRGB:
+                return TextureFormat::R8G8_Unorm;
+            case VK_FORMAT_R8G8B8_SRGB:
+                return TextureFormat::R8G8B8_Unorm;
+            case VK_FORMAT_R8G8B8A8_SRGB:
+                return TextureFormat::R8G8B8A8_Unorm;
+            case VK_FORMAT_R16G16B16_SFLOAT:
+                return TextureFormat::R16G16B16_Float;
+            case VK_FORMAT_R16G16B16A16_SFLOAT:
+                return TextureFormat::R16G16B16A16_Float;
+            case VK_FORMAT_R32G32B32_SFLOAT:
+                return TextureFormat::R32G32B32_Float;
+            case VK_FORMAT_R32G32B32A32_SFLOAT:
+                return TextureFormat::R32G32B32A32_Float;
+            case VK_FORMAT_R8_UNORM:
+                return TextureFormat::R8_Unorm;
+            case VK_FORMAT_R8G8_UNORM:
+                return TextureFormat::R8G8_Unorm;
+            case VK_FORMAT_R8G8B8A8_UNORM:
+                return TextureFormat::R8G8B8A8_Unorm;
+            case VK_FORMAT_B10G11R11_UFLOAT_PACK32:
+                return TextureFormat::R11G11B10_Float;
+            case VK_FORMAT_A2R10G10B10_UNORM_PACK32:
+                return TextureFormat::R10G10B10A2_Unorm;
+            case VK_FORMAT_D16_UNORM:
+                return TextureFormat::D16_Unorm;
+            case VK_FORMAT_D32_SFLOAT:
+                return TextureFormat::D32_Float;
+            case VK_FORMAT_D24_UNORM_S8_UINT:
+                return TextureFormat::D24_Unorm_S8_UInt;
+            case VK_FORMAT_D32_SFLOAT_S8_UINT:
+                return TextureFormat::D32_Float_S8_UInt;
+            default:
+                LUMOS_LOG_CRITICAL("[Texture] Unsupported texture type!");
+                return TextureFormat::R8G8B8A8_Unorm;
             }
         }
 

@@ -42,6 +42,43 @@ namespace Lumos
             }
         }
 
+        void VKBuffer::Destroy(bool deletionQueue)
+        {
+            LUMOS_PROFILE_FUNCTION();
+            if(m_Buffer)
+            {
+                VKContext::DeletionQueue& currentDeletionQueue = VKRenderer::GetCurrentDeletionQueue();
+
+                auto buffer = m_Buffer;
+
+                if(deletionQueue)
+                {
+#ifdef USE_VMA_ALLOCATOR
+                    auto alloc = m_Allocation;
+                    currentDeletionQueue.PushFunction([buffer, alloc]
+                        { vmaDestroyBuffer(VKDevice::Get().GetAllocator(), buffer, alloc); });
+#else
+                    auto memory = m_Memory;
+                    currentDeletionQueue.PushFunction([buffer, memory]
+                        {
+                            vkDestroyBuffer(VKDevice::Device(), buffer, nullptr);
+                            vkFreeMemory(VKDevice::Device(), memory, nullptr); });
+#endif
+                }
+                else
+                {
+#ifdef USE_VMA_ALLOCATOR
+                    vmaDestroyBuffer(VKDevice::Get().GetAllocator(), buffer, m_Allocation);
+#else
+                    vkDestroyBuffer(VKDevice::Device(), buffer, nullptr);
+                    vkFreeMemory(VKDevice::Device(), memory, nullptr);
+#endif
+                }
+            }
+
+            m_Buffer = VK_NULL_HANDLE;
+        }
+
         void VKBuffer::Init(VkBufferUsageFlags usage, VkMemoryPropertyFlags memoryProperyFlags, uint32_t size, const void* data)
         {
             LUMOS_PROFILE_FUNCTION();
@@ -118,7 +155,7 @@ namespace Lumos
         {
             LUMOS_PROFILE_FUNCTION();
 #ifdef USE_VMA_ALLOCATOR
-            VkResult res = static_cast<VkResult>(vmaMapMemory(VKDevice::Get().GetAllocator(), m_Allocation, &m_Mapped));
+            VkResult res = static_cast<VkResult>(vmaMapMemory(VKDevice::Get().GetAllocator(), m_Allocation, (void**)&m_Mapped));
 #else
             VkResult res = vkMapMemory(VKDevice::Device(), m_Memory, offset, size, 0, &m_Mapped);
 #endif

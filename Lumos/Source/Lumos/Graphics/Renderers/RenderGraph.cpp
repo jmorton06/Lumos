@@ -44,7 +44,7 @@ namespace Lumos::Graphics
         m_CubeMap = nullptr;
         m_ClearColour = glm::vec4(0.2f, 0.2f, 0.2f, 1.0f);
         m_MainTexture = Texture2D::Create();
-        m_MainTexture->BuildTexture(Graphics::TextureFormat::RGBA16, width, height, false, false, false);
+        m_MainTexture->BuildTexture(Graphics::TextureFormat::R10G10B10A2_Unorm, width, height, false, false, false);
 
         // Setup shadow pass data
         m_ShadowData.m_ShadowTex = nullptr;
@@ -111,7 +111,7 @@ namespace Lumos::Graphics
         TextureParameters param;
         param.minFilter = TextureFilter::LINEAR;
         param.magFilter = TextureFilter::LINEAR;
-        param.format = TextureFormat::RGBA8;
+        param.format = TextureFormat::R8G8B8A8_Unorm;
         param.srgb = false;
         param.wrap = TextureWrap::CLAMP_TO_EDGE;
         m_ForwardData.m_PreintegratedFG = UniquePtr<Texture2D>(Texture2D::CreateFromSource(BRDFTextureWidth, BRDFTextureHeight, (void*)BRDFTexture, param));
@@ -125,7 +125,8 @@ namespace Lumos::Graphics
         m_ForwardData.m_DescriptorSet[2] = SharedPtr<Graphics::DescriptorSet>(Graphics::DescriptorSet::Create(descriptorDesc));
 
         m_ForwardData.m_DefaultMaterial = new Material(m_ForwardData.m_Shader);
-        m_DefaultTextureCube = Graphics::TextureCube::Create(1);
+        uint32_t blackCubeTextureData[6] = { 0xff000000, 0xff000000, 0xff000000, 0xff000000, 0xff000000, 0xff000000 };
+        m_DefaultTextureCube = Graphics::TextureCube::Create(1, blackCubeTextureData);
 
         Graphics::MaterialProperties properties;
         properties.albedoColour = glm::vec4(1.0f);
@@ -386,7 +387,7 @@ namespace Lumos::Graphics
     {
         LUMOS_PROFILE_FUNCTION();
         m_ForwardData.m_DepthTexture->Resize(width, height);
-        m_MainTexture->BuildTexture(Graphics::TextureFormat::RGBA16, width, height, false, false, false);
+        m_MainTexture->BuildTexture(Graphics::TextureFormat::R16G16B16A16_Float, width, height, false, false, false);
     }
 
     void RenderGraph::EnableDebugRenderer(bool enable)
@@ -623,9 +624,9 @@ namespace Lumos::Graphics
                                 command.mesh = mesh.get();
                                 command.transform = worldTransform;
                                 command.material = mesh->GetMaterial() ? mesh->GetMaterial().get() : m_ForwardData.m_DefaultMaterial;
-                                
-                                //Bind here in case not bound in the loop below as meshes will be inside
-                                //cascade frustum and not the cameras
+
+                                // Bind here in case not bound in the loop below as meshes will be inside
+                                // cascade frustum and not the cameras
                                 command.material->Bind();
 
                                 m_ShadowData.m_CascadeCommandQueue[i].push_back(command);
@@ -905,7 +906,7 @@ namespace Lumos::Graphics
 
     void RenderGraph::OnNewScene(Scene* scene)
     {
-        //if(m_ForwardData.m_EnvironmentMap)
+        // if(m_ForwardData.m_EnvironmentMap)
         {
             m_ForwardData.m_EnvironmentMap = m_DefaultTextureCube;
             m_ForwardData.m_IrradianceMap = m_DefaultTextureCube;
@@ -1077,7 +1078,7 @@ namespace Lumos::Graphics
 
                 auto trans = command.transform;
                 memcpy(pushConstants[0].data, &trans, sizeof(glm::mat4));
-                
+
                 Material* material = command.material ? command.material : m_ForwardData.m_DefaultMaterial;
                 m_ShadowData.m_CurrentDescriptorSets[1] = material->GetDescriptorSet();
 
@@ -1710,6 +1711,20 @@ namespace Lumos::Graphics
 
         m_DebugDrawData.m_PointBatchDrawCallIndex = 0;
         m_DebugDrawData.m_LineBatchDrawCallIndex = 0;
+    }
+
+    SharedPtr<TextureCube> RenderGraph::CreateCubeFromHDRI(const std::string& filePath)
+    {
+        // Load hdri image
+        auto hdri = Texture2D::CreateFromFile("Environment", filePath);
+        // Create shader and pipeline
+        // Create Empty Cube Map
+        auto cubeMap = TextureCube::Create(1024, nullptr, true);
+
+        // Loop over 6 faces
+        // Render To Each face
+        // Generate Mips
+        return nullptr;
     }
 
 }

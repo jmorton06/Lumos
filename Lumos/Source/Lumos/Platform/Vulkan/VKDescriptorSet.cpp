@@ -72,8 +72,9 @@ namespace Lumos
                 auto descriptorSet = m_DescriptorSet[frame];
                 auto pool = VKRenderer::GetDescriptorPool();
                 auto device = VKDevice::GetHandle();
-				
-				VKContext::DeletionQueue& deletionQueue = VKRenderer::GetDeletionQueue(frame);
+                std::map<std::string, SharedPtr<UniformBuffer>> buffers = m_UniformBuffers[frame];
+
+                VKContext::DeletionQueue& deletionQueue = VKRenderer::GetDeletionQueue(frame);
                 deletionQueue.PushFunction([descriptorSet, pool, device]
                     { vkFreeDescriptorSets(device, pool, 1, &descriptorSet); });
             }
@@ -213,7 +214,7 @@ namespace Lumos
 
                 vkUpdateDescriptorSets(VKDevice::Get().GetDevice(), descriptorWritesCount,
                     m_WriteDescriptorSetPool.data(), 0, nullptr);
-                
+
                 m_DescriptorUpdated[currentFrame] = true;
             }
         }

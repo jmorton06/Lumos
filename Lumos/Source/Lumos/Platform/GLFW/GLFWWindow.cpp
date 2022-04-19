@@ -220,7 +220,11 @@ namespace Lumos
                 data.Exit = true; });
 
         glfwSetWindowFocusCallback(m_Handle, [](GLFWwindow* window, int focused)
-            { Application::Get().GetWindow()->SetWindowFocus(focused); });
+            { 
+			Window* lmWindow = Application::Get().GetWindow();
+
+			if(lmWindow)
+				lmWindow->SetWindowFocus(focused); });
 
         glfwSetWindowIconifyCallback(m_Handle, [](GLFWwindow* window, int32_t state)
             {

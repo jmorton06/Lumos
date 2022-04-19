@@ -119,21 +119,21 @@ namespace Lumos
                 return;
 
             VKUtilities::ValidateResolution(width, height);
-
-            VKSwapChain* swapChain = (VKSwapChain*)Application::Get().GetWindow()->GetSwapChain().get();
-            swapChain->OnResize(width, height);
+            Application::Get().GetWindow()->GetSwapChain().As<VKSwapChain>()->OnResize(width, height);
         }
 
         void VKRenderer::Begin()
         {
             LUMOS_PROFILE_FUNCTION();
-            Application::Get().GetWindow()->GetSwapChain().As<VKSwapChain>()->Begin();
+            SharedPtr<VKSwapChain> swapChain = Application::Get().GetWindow()->GetSwapChain().As<VKSwapChain>();
+            swapChain->AcquireNextImage();
+            swapChain->Begin();
         }
 
         void VKRenderer::PresentInternal()
         {
             LUMOS_PROFILE_FUNCTION();
-            VKSwapChain* swapChain = (VKSwapChain*)Application::Get().GetWindow()->GetSwapChain().get();
+            SharedPtr<VKSwapChain> swapChain = Application::Get().GetWindow()->GetSwapChain().As<VKSwapChain>();
 
             swapChain->End();
             swapChain->QueueSubmit();
@@ -142,7 +142,6 @@ namespace Lumos
             auto semphore = frameData.MainCommandBuffer->GetSemaphore();
 
             swapChain->Present(semphore);
-            swapChain->AcquireNextImage();
         }
 
         const std::string& VKRenderer::GetTitleInternal() const
