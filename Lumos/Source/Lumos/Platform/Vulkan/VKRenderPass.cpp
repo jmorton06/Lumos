@@ -48,6 +48,13 @@ namespace Lumos
                 attachment.initialLayout = colourTexture->GetImageLayout();
                 attachment.finalLayout = attachment.initialLayout;
             }
+            else if(type == TextureType::CUBE)
+            {
+                VKTextureCube* colourTexture = ((VKTextureCube*)texture);
+                attachment.format = colourTexture->GetVKFormat();
+                // attachment.initialLayout = colourTexture->GetImageLayout();
+                attachment.finalLayout = attachment.initialLayout;
+            }
             else if(type == TextureType::DEPTH)
             {
                 attachment.format = VKUtilities::FindDepthFormat();

@@ -381,6 +381,8 @@ namespace Lumos
             fn.vkGetPhysicalDeviceMemoryProperties2KHR = 0;
             fn.vkGetImageMemoryRequirements2KHR = 0;
             fn.vkGetBufferMemoryRequirements2KHR = 0;
+            fn.vkGetInstanceProcAddr = (PFN_vkGetInstanceProcAddr)vkGetInstanceProcAddr;
+            fn.vkGetDeviceProcAddr = (PFN_vkGetDeviceProcAddr)vkGetDeviceProcAddr;
             allocatorInfo.pVulkanFunctions = &fn;
 
             if(vmaCreateAllocator(&allocatorInfo, &m_Allocator) != VK_SUCCESS)

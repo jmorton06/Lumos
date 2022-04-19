@@ -1,5 +1,6 @@
 #pragma once
 #include "VK.h"
+#include "Graphics/RHI/Definitions.h"
 #include <vulkan/vk_mem_alloc.h>
 
 #define VK_CHECK_RESULT(f)                                                                                                                        \
@@ -15,17 +16,6 @@ namespace Lumos
 {
     namespace Graphics
     {
-        struct VertexInputDescription;
-        enum class CullMode;
-        enum class DescriptorType;
-        enum class ShaderType : int;
-        enum class TextureFormat;
-        enum class TextureWrap;
-        enum class Format;
-        enum class TextureFilter;
-        enum class PolygonMode;
-        enum class DrawType;
-
         namespace VKUtilities
         {
             void CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer,
@@ -56,6 +46,7 @@ namespace Lumos
             VkCullModeFlags CullModeToVK(CullMode mode);
             VkDescriptorType DescriptorTypeToVK(DescriptorType type);
             VkFormat TextureFormatToVK(const TextureFormat format, bool srgb = true);
+            TextureFormat VKToTextureFormat(VkFormat format);
 
             VkSamplerAddressMode TextureWrapToVK(const TextureWrap format);
             VkFilter TextureFilterToVK(const TextureFilter filter);

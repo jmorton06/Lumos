@@ -1,14 +1,10 @@
 #pragma once
+#include "RHI/Definitions.h"
 
 namespace Lumos
 {
     namespace Graphics
     {
-        class Framebuffer;
-        class Texture2D;
-        class TextureDepth;
-        enum class TextureFormat;
-
         enum LUMOS_EXPORT ScreenTextures
         {
             SCREENTEX_COLOUR = 0, // Main Render

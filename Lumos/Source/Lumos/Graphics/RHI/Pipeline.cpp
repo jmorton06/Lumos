@@ -76,6 +76,8 @@ namespace Lumos
             HashCombine(hash, pipelineDesc.lineWidth);
             HashCombine(hash, pipelineDesc.depthBiasConstantFactor);
             HashCombine(hash, pipelineDesc.depthBiasSlopeFactor);
+            HashCombine(hash, pipelineDesc.cubeMapIndex);
+            HashCombine(hash, pipelineDesc.cubeMapTarget);
 
             if(pipelineDesc.swapchainTarget)
             {
@@ -158,6 +160,9 @@ namespace Lumos
             if(m_Description.depthArrayTarget)
                 return m_Description.depthArrayTarget->GetWidth();
 
+            if(m_Description.cubeMapTarget)
+                return m_Description.cubeMapTarget->GetWidth();
+
             LUMOS_LOG_WARN("Invalid pipeline width");
 
             return 0;
@@ -182,6 +187,9 @@ namespace Lumos
 
             if(m_Description.depthArrayTarget)
                 return m_Description.depthArrayTarget->GetHeight();
+
+            if(m_Description.cubeMapTarget)
+                return m_Description.cubeMapTarget->GetHeight();
 
             LUMOS_LOG_WARN("Invalid pipeline height");
 

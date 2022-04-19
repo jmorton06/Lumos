@@ -12,28 +12,32 @@ namespace Lumos
         {
             switch(format)
             {
-            case TextureFormat::RGBA:
-                return GL_RGBA; // srgb ? GL_SRGB8 :
-            case TextureFormat::RGB:
-                return GL_RGB;
-            case TextureFormat::R8:
+            case TextureFormat::R8_Unorm:
                 return GL_R8;
-            case TextureFormat::RG8:
+            case TextureFormat::R8G8_Unorm:
                 return GL_RG8;
-            case TextureFormat::RGB8:
+            case TextureFormat::R8G8B8_Unorm:
                 return srgb ? GL_SRGB8 : GL_RGB8;
-            case TextureFormat::RGBA8:
+            case TextureFormat::R8G8B8A8_Unorm:
                 return srgb ? GL_SRGB8_ALPHA8 : GL_RGBA8;
-            case TextureFormat::RGB16:
+            case TextureFormat::R11G11B10_Float:
+                return GL_R11F_G11F_B10F;
+            case TextureFormat::R10G10B10A2_Unorm:
+                return GL_RGB10_A2;
+            case TextureFormat::R16G16B16_Float:
                 return GL_RGB16F;
-            case TextureFormat::RGBA16:
+            case TextureFormat::R16G16B16A16_Float:
                 return GL_RGBA16F;
-            case TextureFormat::RGB32:
+            case TextureFormat::R32G32B32_Float:
                 return GL_RGB32F;
-            case TextureFormat::RGBA32:
+            case TextureFormat::R32G32B32A32_Float:
                 return GL_RGBA32F;
-            case TextureFormat::DEPTH:
+            case TextureFormat::D24_Unorm_S8_UInt:
                 return GL_DEPTH24_STENCIL8;
+            case TextureFormat::D32_Float:
+                return GL_DEPTH_COMPONENT32F;
+            case TextureFormat::D32_Float_S8_UInt:
+                return GL_DEPTH32F_STENCIL8;
             default:
                 LUMOS_ASSERT(false, "[Texture] Unsupported TextureFormat");
                 return 0;

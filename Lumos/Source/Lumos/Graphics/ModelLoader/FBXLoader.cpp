@@ -257,7 +257,7 @@ namespace Lumos::Graphics
         return transform;
     }
 
-    SharedPtr<Graphics::Mesh> LoadMesh(const ofbx::Mesh* fbxMesh, int32_t triangleStart,  int32_t triangleEnd)
+    SharedPtr<Graphics::Mesh> LoadMesh(const ofbx::Mesh* fbxMesh, int32_t triangleStart, int32_t triangleEnd)
     {
         const int32_t firstVertexOffset = triangleStart * 3;
         const int32_t lastVertexOffset = triangleEnd * 3;
@@ -301,7 +301,7 @@ namespace Lumos::Graphics
 
             if(normals)
                 vertex.Normal = transform.GetWorldMatrix() * glm::normalize(glm::vec4(float(normals[i + firstVertexOffset].x), float(normals[i + firstVertexOffset].y), float(normals[i + firstVertexOffset].z), 1.0f));
-            //vertex.Normal = transform.GetWorldMatrix().ToMatrix3().Inverse().Transpose() * (glm::vec3(float(normals[i].x), float(normals[i].y), float(normals[i].z))).Normalised();
+            // vertex.Normal = transform.GetWorldMatrix().ToMatrix3().Inverse().Transpose() * (glm::vec3(float(normals[i].x), float(normals[i].y), float(normals[i].z))).Normalised();
             if(uvs)
                 vertex.TexCoords = glm::vec2(float(uvs[i + firstVertexOffset].x), 1.0f - float(uvs[i + firstVertexOffset].y));
             if(colours)
@@ -316,9 +316,9 @@ namespace Lumos::Graphics
         for(int i = 0; i < vertexCount; i++)
         {
             indexCount++;
-            
+
             int index = (i % 3 == 2) ? (-indices[i] - 1) : indices[i];
-            indicesArray[i] = i;// index;
+            indicesArray[i] = i; // index;
         }
 
         SharedPtr<Graphics::VertexBuffer> vb = SharedPtr<Graphics::VertexBuffer>(Graphics::VertexBuffer::Create());
@@ -328,14 +328,14 @@ namespace Lumos::Graphics
         ib.reset(Graphics::IndexBuffer::Create(indicesArray, indexCount));
 
         const ofbx::Material* material = nullptr;
-        if (fbxMesh->getMaterialCount() > 0)
+        if(fbxMesh->getMaterialCount() > 0)
         {
-            if (geom->getMaterials())
+            if(geom->getMaterials())
                 material = fbxMesh->getMaterial(geom->getMaterials()[triangleStart]);
             else
                 material = fbxMesh->getMaterial(0);
         }
-        
+
         SharedPtr<Material> pbrMaterial;
         if(material)
         {
@@ -443,8 +443,7 @@ namespace Lumos::Graphics
                         }
                     }
                     m_Meshes.push_back(LoadMesh(fbxMesh, rangeStart, trianglesCount - 1));
-                }
-             }
+                } }
 #ifdef THREAD_MESH_LOADING
         );
         System::JobSystem::Wait(ctx);

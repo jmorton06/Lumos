@@ -1,5 +1,6 @@
 #pragma once
 #include "DescriptorSet.h"
+#include "Definitions.h"
 #include "Core/Profiler.h"
 
 namespace spirv_cross
@@ -10,51 +11,6 @@ namespace Lumos
 {
     namespace Graphics
     {
-        enum class ShaderType : int
-        {
-            VERTEX,
-            FRAGMENT,
-            GEOMETRY,
-            TESSELLATION_CONTROL,
-            TESSELLATION_EVALUATION,
-            COMPUTE,
-            UNKNOWN
-        };
-
-        struct PushConstant
-        {
-            uint32_t size;
-            ShaderType shaderStage;
-            uint8_t* data;
-            uint32_t offset = 0;
-            std::string name;
-
-            std::vector<BufferMemberInfo> m_Members;
-
-            void SetValue(const std::string& name, void* value)
-            {
-                LUMOS_PROFILE_FUNCTION();
-                for(auto& member : m_Members)
-                {
-                    if(member.name == name)
-                    {
-                        memcpy(&data[member.offset], value, member.size);
-                        break;
-                    }
-                }
-            }
-
-            void SetData(void* value)
-            {
-                LUMOS_PROFILE_FUNCTION();
-                memcpy(data, value, size);
-            }
-        };
-
-        class CommandBuffer;
-        class Pipeline;
-        class DescriptorSet;
-
         class LUMOS_EXPORT Shader
         {
         public:

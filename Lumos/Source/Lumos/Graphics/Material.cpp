@@ -81,7 +81,7 @@ namespace Lumos::Graphics
 
         m_Name = name;
         m_PBRMaterialTextures = PBRMataterialTextures();
-        auto params = Graphics::TextureParameters(Graphics::TextureFormat::RGBA8, Graphics::TextureFilter::LINEAR, Graphics::TextureFilter::LINEAR, Graphics::TextureWrap::CLAMP_TO_EDGE);
+        auto params = Graphics::TextureParameters(Graphics::TextureFormat::R8G8B8A8_Unorm, Graphics::TextureFilter::LINEAR, Graphics::TextureFilter::LINEAR, Graphics::TextureWrap::CLAMP_TO_EDGE);
 
         auto filePath = path + "/" + name + "/albedo" + extension;
 

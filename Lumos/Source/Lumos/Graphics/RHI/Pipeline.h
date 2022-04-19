@@ -24,12 +24,14 @@ namespace Lumos
 
             std::array<Texture*, MAX_RENDER_TARGETS> colourTargets = {};
 
+            Texture* cubeMapTarget = nullptr;
             Texture* depthTarget = nullptr;
             Texture* depthArrayTarget = nullptr;
             glm::vec4 clearColour = glm::vec4(0.2f);
             float lineWidth = 1.0f;
             float depthBiasConstantFactor = 0.0f;
             float depthBiasSlopeFactor = 0.0f;
+            int cubeMapIndex = 0;
         };
 
         class LUMOS_EXPORT Pipeline

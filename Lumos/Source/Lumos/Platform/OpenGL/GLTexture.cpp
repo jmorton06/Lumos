@@ -241,7 +241,7 @@ namespace Lumos
             const std::string& zpos = m_Files[4];
             const std::string& zneg = m_Files[5];
 
-            m_Parameters.format = TextureFormat::RGBA8;
+            m_Parameters.format = TextureFormat::R8G8B8A8_Unorm;
 
             uint32_t width, height, bits;
             bool isHDR = false;
@@ -388,7 +388,7 @@ namespace Lumos
         {
             GLCall(glGenTextures(1, &m_Handle));
 
-            m_Format = TextureFormat::DEPTH;
+            m_Format = TextureFormat::D32_Float;
 
             Init();
         }
@@ -430,7 +430,7 @@ namespace Lumos
         {
             m_Width = width;
             m_Height = height;
-            m_Format = TextureFormat::DEPTH;
+            m_Format = TextureFormat::D16_Unorm;
 
             Init();
         }
@@ -440,7 +440,7 @@ namespace Lumos
             , m_Height(height)
             , m_Count(count)
         {
-            m_Format = TextureFormat::DEPTH;
+            m_Format = TextureFormat::D16_Unorm;
             GLTextureDepthArray::Init();
         }
 
@@ -515,7 +515,7 @@ namespace Lumos
             return new GLTexture2D(name, filename, parameters, loadoptions);
         }
 
-        TextureCube* GLTextureCube::CreateFuncGL(uint32_t size)
+        TextureCube* GLTextureCube::CreateFuncGL(uint32_t size, void* data, bool hdr)
         {
             return new GLTextureCube(size);
         }

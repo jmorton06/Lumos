@@ -31,8 +31,8 @@ namespace Lumos
         int sizeOfChannel = 8;
         if(stbi_is_hdr(filename))
         {
-            sizeOfChannel = 16;
-            pixels = (uint8_t*)stbi_loadf(filename, &texWidth, &texHeight, &texChannels, 0);
+            sizeOfChannel = 32;
+            pixels = (uint8_t*)stbi_loadf(filename, &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
 
             if(isHDR)
                 *isHDR = true;
@@ -85,7 +85,7 @@ namespace Lumos
         if(bits)
             *bits = texChannels * sizeOfChannel; // texChannels;	  //32 bits for 4 bytes r g b a
 
-        const int32_t size = texWidth * texHeight * texChannels;
+        const int32_t size = texWidth * texHeight * texChannels * sizeOfChannel / 8;
         uint8_t* result = new uint8_t[size];
         memcpy(result, pixels, size);
 

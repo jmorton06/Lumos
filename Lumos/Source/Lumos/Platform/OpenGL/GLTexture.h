@@ -135,7 +135,7 @@ namespace Lumos
             static void MakeDefault();
 
         protected:
-            static TextureCube* CreateFuncGL(uint32_t);
+            static TextureCube* CreateFuncGL(uint32_t, void*, bool);
             static TextureCube* CreateFromFileFuncGL(const std::string& filepath);
             static TextureCube* CreateFromFilesFuncGL(const std::string* files);
             static TextureCube* CreateFromVCrossFuncGL(const std::string* files, uint32_t mips, TextureParameters params, TextureLoadOptions loadOptions, InputFormat format);
