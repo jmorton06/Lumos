@@ -58,17 +58,17 @@ namespace Lumos
 
 #ifdef LUMOS_PLATFORM_IOS
             // Unless all render targets were rgba32 there were visual glitches on ios
-            m_Formats[0] = TextureFormat::R32G32B32A32_Float;
-            m_Formats[1] = TextureFormat::R32G32B32A32_Float;
-            m_Formats[2] = TextureFormat::R32G32B32A32_Float;
-            m_Formats[3] = TextureFormat::R32G32B32A32_Float;
-            m_Formats[4] = TextureFormat::R32G32B32A32_Float;
+            m_Formats[0] = Format::R32G32B32A32_Float;
+            m_Formats[1] = Format::R32G32B32A32_Float;
+            m_Formats[2] = Format::R32G32B32A32_Float;
+            m_Formats[3] = Format::R32G32B32A32_Float;
+            m_Formats[4] = Format::R32G32B32A32_Float;
 #else
-            m_Formats[0] = TextureFormat::R8G8B8A8_Unorm;
-            m_Formats[1] = TextureFormat::R32G32B32A32_Float;
-            m_Formats[2] = TextureFormat::R16G16B16A16_Float;
-            m_Formats[3] = TextureFormat::R16G16B16A16_Float;
-            m_Formats[4] = TextureFormat::R8G8B8A8_Unorm;
+            m_Formats[0] = Format::R8G8B8A8_Unorm;
+            m_Formats[1] = Format::R32G32B32A32_Float;
+            m_Formats[2] = Format::R16G16B16A16_Float;
+            m_Formats[3] = Format::R16G16B16A16_Float;
+            m_Formats[4] = Format::R8G8B8A8_Unorm;
 #endif
 
             m_ScreenTex[SCREENTEX_COLOUR]->BuildTexture(m_Formats[0], m_Width, m_Height, false, false, false);

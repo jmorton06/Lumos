@@ -17,6 +17,9 @@
 #include "Embedded/BRDFTexture.inl"
 #include "Embedded/CheckerBoardTextureArray.inl"
 
+#include "Platform/Vulkan/VKCommandBuffer.h"
+#include "Platform/Vulkan/VKTexture.h"
+
 #include "ImGui/ImGuiUtilities.h"
 #include <imgui/imgui.h>
 #include <glm/gtx/string_cast.hpp>
@@ -44,7 +47,7 @@ namespace Lumos::Graphics
         m_CubeMap = nullptr;
         m_ClearColour = glm::vec4(0.2f, 0.2f, 0.2f, 1.0f);
         m_MainTexture = Texture2D::Create();
-        m_MainTexture->BuildTexture(Graphics::TextureFormat::R10G10B10A2_Unorm, width, height, false, false, false);
+        m_MainTexture->BuildTexture(Graphics::Format::R10G10B10A2_Unorm, width, height, false, false, false);
 
         // Setup shadow pass data
         m_ShadowData.m_ShadowTex = nullptr;
@@ -111,7 +114,7 @@ namespace Lumos::Graphics
         TextureParameters param;
         param.minFilter = TextureFilter::LINEAR;
         param.magFilter = TextureFilter::LINEAR;
-        param.format = TextureFormat::R8G8B8A8_Unorm;
+        param.format = Format::R8G8B8A8_Unorm;
         param.srgb = false;
         param.wrap = TextureWrap::CLAMP_TO_EDGE;
         m_ForwardData.m_PreintegratedFG = UniquePtr<Texture2D>(Texture2D::CreateFromSource(BRDFTextureWidth, BRDFTextureHeight, (void*)BRDFTexture, param));
@@ -387,7 +390,7 @@ namespace Lumos::Graphics
     {
         LUMOS_PROFILE_FUNCTION();
         m_ForwardData.m_DepthTexture->Resize(width, height);
-        m_MainTexture->BuildTexture(Graphics::TextureFormat::R16G16B16A16_Float, width, height, false, false, false);
+        m_MainTexture->BuildTexture(Graphics::Format::R16G16B16A16_Float, width, height, false, false, false);
     }
 
     void RenderGraph::EnableDebugRenderer(bool enable)
@@ -1716,15 +1719,72 @@ namespace Lumos::Graphics
     SharedPtr<TextureCube> RenderGraph::CreateCubeFromHDRI(const std::string& filePath)
     {
         // Load hdri image
-        auto hdri = Texture2D::CreateFromFile("Environment", filePath);
+        TextureParameters params;
+        params.srgb = false;
+        auto hdri = Texture2D::CreateFromFile("Environment", filePath, params);
         // Create shader and pipeline
         // Create Empty Cube Map
         auto cubeMap = TextureCube::Create(1024, nullptr, true);
 
-        // Loop over 6 faces
-        // Render To Each face
+        auto commandBuffer = CommandBuffer::Create();
+        commandBuffer->Init(true);
+        auto shader = Application::Get().GetShaderLibrary()->GetResource("CreateEnvironmentMap");
+
+        Graphics::DescriptorDesc descriptorDesc {};
+        descriptorDesc.layoutIndex = 0;
+        descriptorDesc.shader = shader.get();
+        auto descriptorSet = SharedPtr<Graphics::DescriptorSet>(Graphics::DescriptorSet::Create(descriptorDesc));
+        descriptorSet->SetTexture("u_Texture", hdri);
+        descriptorSet->Update();
+
+        Graphics::PipelineDesc pipelineDesc {};
+        pipelineDesc.shader = shader;
+
+        pipelineDesc.polygonMode = Graphics::PolygonMode::FILL;
+        pipelineDesc.cullMode = Graphics::CullMode::BACK;
+        pipelineDesc.transparencyEnabled = false;
+
+        pipelineDesc.cubeMapTarget = cubeMap;
+        commandBuffer->BeginRecording();
+
+        for(uint32_t i = 0; i < 6; i++)
+        {
+            pipelineDesc.cubeMapIndex = i;
+
+            auto pipeline = Graphics::Pipeline::Get(pipelineDesc);
+            pipeline->Bind(commandBuffer, i);
+
+            m_ScreenQuad->GetVertexBuffer()->Bind(commandBuffer, pipeline.get());
+            m_ScreenQuad->GetIndexBuffer()->Bind(commandBuffer);
+
+            auto& pushConstants = shader->GetPushConstants();
+            if(!pushConstants.empty())
+            {
+                auto& pushConstant = shader->GetPushConstants()[0];
+                pushConstant.SetValue("cubeFaceIndex", (void*)&i);
+                shader->BindPushConstants(commandBuffer, pipeline.get());
+            }
+
+            auto set = descriptorSet.get();
+            Renderer::BindDescriptorSets(pipeline.get(), commandBuffer, 0, &set, 1);
+            Renderer::DrawIndexed(commandBuffer, DrawType::TRIANGLE, m_ScreenQuad->GetIndexBuffer()->GetCount());
+
+            m_ScreenQuad->GetVertexBuffer()->Unbind();
+            m_ScreenQuad->GetIndexBuffer()->Unbind();
+
+            pipeline->End(commandBuffer);
+        }
+
+        commandBuffer->EndRecording();
+        commandBuffer->Submit();
+
         // Generate Mips
-        return nullptr;
+        // Replace with filtering
+        cubeMap->GenerateMipMaps();
+
+        delete commandBuffer;
+        delete hdri;
+        return SharedPtr<TextureCube>(cubeMap);
     }
 
 }

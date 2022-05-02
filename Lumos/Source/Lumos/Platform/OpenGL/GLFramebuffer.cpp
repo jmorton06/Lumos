@@ -43,7 +43,7 @@ namespace Lumos
                         AddTextureAttachment(frameBufferDesc.attachments[i]->GetFormat(), frameBufferDesc.attachments[i]);
                         break;
                     case TextureType::DEPTH:
-                        AddTextureAttachment(TextureFormat::D16_Unorm, frameBufferDesc.attachments[i]);
+                        AddTextureAttachment(Format::D16_Unorm, frameBufferDesc.attachments[i]);
                         break;
                     case TextureType::DEPTHARRAY:
                         AddTextureLayer(frameBufferDesc.layer, frameBufferDesc.attachments[i]);
@@ -95,7 +95,7 @@ namespace Lumos
             GLCall(glBindFramebuffer(GL_FRAMEBUFFER, 0));
         }
 
-        GLenum GLFramebuffer::GetAttachmentPoint(Graphics::TextureFormat format)
+        GLenum GLFramebuffer::GetAttachmentPoint(Graphics::Format format)
         {
             LUMOS_PROFILE_FUNCTION();
             if(Graphics::Texture::IsDepthStencilFormat(format))
@@ -124,7 +124,7 @@ namespace Lumos
             GLCall(glBindFramebuffer(GL_FRAMEBUFFER, m_ScreenFramebuffer ? 0 : m_Handle));
         }
 
-        void GLFramebuffer::AddTextureAttachment(const Graphics::TextureFormat format, Texture* texture)
+        void GLFramebuffer::AddTextureAttachment(const Graphics::Format format, Texture* texture)
         {
             LUMOS_PROFILE_FUNCTION();
             GLenum attachment = GetAttachmentPoint(format);
@@ -136,7 +136,7 @@ namespace Lumos
             GLCall(glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, attachment, GL_TEXTURE_2D, (GLuint)(size_t)texture->GetHandle(), 0));
         }
 
-        void GLFramebuffer::AddCubeTextureAttachment(const Graphics::TextureFormat format, const CubeFace face, TextureCube* texture)
+        void GLFramebuffer::AddCubeTextureAttachment(const Graphics::Format format, const CubeFace face, TextureCube* texture)
         {
             LUMOS_PROFILE_FUNCTION();
             uint32_t faceID = 0;

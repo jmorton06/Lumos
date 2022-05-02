@@ -1,20 +1,11 @@
 #pragma once
 #include "Core/Core.h"
+#include "Definitions.h"
 
 namespace Lumos
 {
     namespace Graphics
     {
-        enum class BufferUsage
-        {
-            STATIC,
-            DYNAMIC,
-            STREAM
-        };
-
-        class CommandBuffer;
-        class Pipeline;
-
         class LUMOS_EXPORT VertexBuffer
         {
         public:

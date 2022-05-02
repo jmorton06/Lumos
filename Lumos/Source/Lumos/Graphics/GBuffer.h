@@ -35,7 +35,7 @@ namespace Lumos
 
             inline Texture2D* GetTexture(uint32_t index) const { return m_ScreenTex[index]; }
             inline TextureDepth* GetDepthTexture() const { return m_DepthTexture; };
-            inline TextureFormat GetTextureFormat(uint32_t index) const { return m_Formats[index]; };
+            inline Format GetFormat(uint32_t index) const { return m_Formats[index]; };
 
         private:
             void Init();
@@ -43,7 +43,7 @@ namespace Lumos
         private:
             Texture2D* m_ScreenTex[ScreenTextures::SCREENTEX_MAX] {};
             TextureDepth* m_DepthTexture {};
-            TextureFormat m_Formats[ScreenTextures::SCREENTEX_MAX];
+            Format m_Formats[ScreenTextures::SCREENTEX_MAX];
             uint32_t m_Width, m_Height;
         };
     }
