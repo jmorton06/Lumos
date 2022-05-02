@@ -26,7 +26,14 @@ jobs:
       with:
         name: LinuxOutput
         path: bin/
-        if-no-files-found: error 
+        if-no-files-found: error
+    - name: Release
+      uses: softprops/action-gh-release@v1
+      if: startsWith(github.ref, 'refs/tags/')
+      with:
+        files: bin/*
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   MacOS:
     runs-on: macOS-latest
     steps:
@@ -47,7 +54,14 @@ jobs:
       with:
         name: MacOutput
         path: bin/
-        if-no-files-found: error 
+        if-no-files-found: error
+    - name: Release
+      uses: softprops/action-gh-release@v1
+      if: startsWith(github.ref, 'refs/tags/')
+      with:
+        files: bin/*
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   iOS:
     runs-on: macOS-latest
@@ -69,7 +83,14 @@ jobs:
       with:
         name: IOSOutput
         path: bin/
-        if-no-files-found: error 
+        if-no-files-found: error
+    - name: Release
+      uses: softprops/action-gh-release@v1
+      if: startsWith(github.ref, 'refs/tags/')
+      with:
+        files: bin/*
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         
   Windows:
     runs-on: windows-2019
@@ -99,5 +120,12 @@ jobs:
         with:
           name: WindowsOutput
           path: bin/
-          if-no-files-found: error 
+          if-no-files-found: error
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: bin/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
