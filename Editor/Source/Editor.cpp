@@ -1863,7 +1863,7 @@ namespace Lumos
         if(!m_PreviewTexture)
         {
             m_PreviewTexture = SharedPtr<Graphics::Texture2D>(Graphics::Texture2D::Create());
-            m_PreviewTexture->BuildTexture(Graphics::TextureFormat::R8G8B8A8_Unorm, 200, 200, false, false, false);
+            m_PreviewTexture->BuildTexture(Graphics::Format::R8G8B8A8_Unorm, 200, 200, false, false, false);
 
             // m_PreviewRenderer = CreateSharedPtr<Graphics::ForwardRenderer>(200, 200, false);
             m_PreviewSphere = SharedPtr<Graphics::Mesh>(Graphics::CreateSphere());

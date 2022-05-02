@@ -238,6 +238,7 @@ namespace Lumos
 
         bool VKCommandBuffer::Flush()
         {
+            LUMOS_PROFILE_FUNCTION();
             if(m_State == CommandBufferState::Idle)
                 return true;
 
@@ -251,12 +252,19 @@ namespace Lumos
 
         bool VKCommandBuffer::Wait()
         {
+            LUMOS_PROFILE_FUNCTION();
             LUMOS_ASSERT(m_State == CommandBufferState::Submitted, "");
 
             m_Fence->WaitAndReset();
             m_State = CommandBufferState::Idle;
 
             return true;
+        }
+
+        void VKCommandBuffer::Submit()
+        {
+            LUMOS_PROFILE_FUNCTION();
+            Execute(VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, nullptr, false);
         }
 
         void VKCommandBuffer::MakeDefault()

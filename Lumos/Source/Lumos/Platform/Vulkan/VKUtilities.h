@@ -45,13 +45,12 @@ namespace Lumos
             VkVertexInputAttributeDescription VertexInputDescriptionToVK(VertexInputDescription description);
             VkCullModeFlags CullModeToVK(CullMode mode);
             VkDescriptorType DescriptorTypeToVK(DescriptorType type);
-            VkFormat TextureFormatToVK(const TextureFormat format, bool srgb = true);
-            TextureFormat VKToTextureFormat(VkFormat format);
+            VkFormat FormatToVK(const Format format, bool srgb = false);
+            Format VKToFormat(VkFormat format);
 
             VkSamplerAddressMode TextureWrapToVK(const TextureWrap format);
             VkFilter TextureFilterToVK(const TextureFilter filter);
             VkShaderStageFlagBits ShaderTypeToVK(const ShaderType& shaderName);
-            VkFormat FormatToVK(Lumos::Graphics::Format format);
             VkPolygonMode PolygonModeToVk(Lumos::Graphics::PolygonMode mode);
             VkPrimitiveTopology DrawTypeToVk(Lumos::Graphics::DrawType type);
         }

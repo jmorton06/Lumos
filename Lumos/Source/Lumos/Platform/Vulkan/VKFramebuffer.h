@@ -27,8 +27,8 @@ namespace Lumos
             void UnBind() const override {};
             void Clear() override {};
 
-            void AddTextureAttachment(TextureFormat format, Texture* texture) override {};
-            void AddCubeTextureAttachment(TextureFormat format, CubeFace face, TextureCube* texture) override {};
+            void AddTextureAttachment(Format format, Texture* texture) override {};
+            void AddCubeTextureAttachment(Format format, CubeFace face, TextureCube* texture) override {};
             void AddShadowAttachment(Texture* texture) override {};
             void AddTextureLayer(int index, Texture* texture) override {};
             void GenerateFramebuffer() override {};

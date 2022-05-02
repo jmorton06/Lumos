@@ -354,7 +354,7 @@ namespace Lumos
                     frameBufferDesc.layer = i;
                     frameBufferDesc.screenFBO = false;
 
-                    attachments[0] = m_Description.depthArrayTarget;
+                    attachments[0] = m_Description.cubeMapTarget;
                     frameBufferDesc.attachments = attachments.data();
 
                     m_Framebuffers.emplace_back(Framebuffer::Get(frameBufferDesc));

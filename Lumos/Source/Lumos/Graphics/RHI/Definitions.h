@@ -64,13 +64,15 @@ namespace Lumos
             NEAREST
         };
 
-        enum class TextureFormat : uint32_t
+        enum class Format : uint32_t
         {
             NONE = 0,
             R8_Unorm,
             R8G8_Unorm,
             R8G8B8_Unorm,
             R8G8B8A8_Unorm,
+            
+            R8_UInt,
 
             R11G11B10_Float,
             R10G10B10A2_Unorm,
@@ -90,6 +92,8 @@ namespace Lumos
             R16G16B16_Float,
             R16G16B16A16_Float,
 
+            R32_Float,
+            R32G32_Float,
             R32G32B32_Float,
             R32G32B32A32_Float,
 
@@ -101,28 +105,18 @@ namespace Lumos
             SCREEN
         };
 
+        enum class BufferUsage
+        {
+            STATIC,
+            DYNAMIC,
+            STREAM
+        };
+
         enum class DescriptorType
         {
             UNIFORM_BUFFER,
             UNIFORM_BUFFER_DYNAMIC,
             IMAGE_SAMPLER
-        };
-
-        enum class Format
-        {
-            R32G32B32A32_UINT,
-            R32G32B32_UINT,
-            R32G32_UINT,
-            R32_UINT,
-            R8_UINT,
-            R32G32B32A32_INT,
-            R32G32B32_INT,
-            R32G32_INT,
-            R32_INT,
-            R32G32B32A32_FLOAT,
-            R32G32B32_FLOAT,
-            R32G32_FLOAT,
-            R32_FLOAT
         };
 
         enum class ShaderDataType
@@ -317,7 +311,7 @@ namespace Lumos
 
         struct TextureParameters
         {
-            TextureFormat format;
+            Format format;
             TextureFilter minFilter;
             TextureFilter magFilter;
             TextureWrap wrap;
@@ -327,14 +321,14 @@ namespace Lumos
 
             TextureParameters()
             {
-                format = TextureFormat::R8G8B8A8_Unorm;
+                format = Format::R8G8B8A8_Unorm;
                 minFilter = TextureFilter::NEAREST;
                 magFilter = TextureFilter::NEAREST;
                 wrap = TextureWrap::REPEAT;
                 msaaLevel = 1;
             }
 
-            TextureParameters(TextureFormat format, TextureFilter minFilter, TextureFilter magFilter, TextureWrap wrap)
+            TextureParameters(Format format, TextureFilter minFilter, TextureFilter magFilter, TextureWrap wrap)
                 : format(format)
                 , minFilter(minFilter)
                 , magFilter(magFilter)
@@ -343,7 +337,7 @@ namespace Lumos
             }
 
             TextureParameters(TextureFilter minFilter, TextureFilter magFilter)
-                : format(TextureFormat::R8G8B8A8_Unorm)
+                : format(Format::R8G8B8A8_Unorm)
                 , minFilter(minFilter)
                 , magFilter(magFilter)
                 , wrap(TextureWrap::CLAMP)
@@ -351,7 +345,7 @@ namespace Lumos
             }
 
             TextureParameters(TextureFilter minFilter, TextureFilter magFilter, TextureWrap wrap)
-                : format(TextureFormat::R8G8B8A8_Unorm)
+                : format(Format::R8G8B8A8_Unorm)
                 , minFilter(minFilter)
                 , magFilter(magFilter)
                 , wrap(wrap)
@@ -359,14 +353,14 @@ namespace Lumos
             }
 
             TextureParameters(TextureWrap wrap)
-                : format(TextureFormat::R8G8B8A8_Unorm)
+                : format(Format::R8G8B8A8_Unorm)
                 , minFilter(TextureFilter::LINEAR)
                 , magFilter(TextureFilter::LINEAR)
                 , wrap(wrap)
             {
             }
 
-            TextureParameters(TextureFormat format)
+            TextureParameters(Format format)
                 : format(format)
                 , minFilter(TextureFilter::LINEAR)
                 , magFilter(TextureFilter::LINEAR)

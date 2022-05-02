@@ -1,13 +1,10 @@
 #pragma once
-
-#include "Graphics/RHI/VertexBuffer.h"
+#include "Graphics/RHI/Definitions.h"
 
 namespace Lumos
 {
     namespace Graphics
     {
-        class CommandBuffer;
-
         class LUMOS_EXPORT IndexBuffer
         {
         public:

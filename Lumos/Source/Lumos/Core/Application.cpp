@@ -381,7 +381,7 @@ namespace Lumos
             Graphics::Framebuffer::DeleteUnusedCache();
             Graphics::RenderPass::DeleteUnusedCache();
 
-            m_ShaderLibrary->Update(ts.GetElapsedSeconds());
+            //m_ShaderLibrary->Update(ts.GetElapsedSeconds());
             m_ModelLibrary->Update(ts.GetElapsedSeconds());
 
             m_Frames++;

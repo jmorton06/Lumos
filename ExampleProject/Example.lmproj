@@ -15,7 +15,7 @@
             "//Scenes/2DTest",
             "//Scenes/CapsuleTest"
         ],
-        "SceneIndex": 0,
+        "SceneIndex": 1,
         "Borderless": false,
         "EngineAssetPath": "/Users/jmorton/dev/Lumos/Lumos/Assets/",
         "GPUIndex": -1
