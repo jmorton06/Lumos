@@ -86,8 +86,8 @@ jobs:
         name: LumosEditorIOS
         path: bin/Production-ios-ARM/
     - uses: montudor/action-zip@v1
-        with:
-          args: zip -qq -r LumosEditorIOS.zip bin/Production-ios-ARM/LumosEditor.app
+      with:
+        args: zip -qq -r LumosEditorIOS.zip bin/Production-ios-ARM/LumosEditor.app
     - name: Release
       uses: softprops/action-gh-release@v1
       if: startsWith(github.ref, 'refs/tags/')
