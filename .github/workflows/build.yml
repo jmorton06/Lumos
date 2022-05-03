@@ -6,13 +6,10 @@ jobs:
   Linux:
     runs-on: ubuntu-18.04
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
       with:
         fetch-depth: 1
-    - name: Submodules
-      run: |
-        git submodule sync
-        git submodule update --init
+        submodules: recursive
     - name: Install Dependencies
       run: |
         sudo apt-get update
@@ -37,13 +34,10 @@ jobs:
   MacOS:
     runs-on: macOS-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
       with:
         fetch-depth: 1
-    - name: Submodules
-      run: |
-        git submodule sync
-        git submodule update --init
+        submodules: recursive
     - name: Build
       run: |
         gem install xcpretty
@@ -58,20 +52,17 @@ jobs:
       uses: softprops/action-gh-release@v1
       if: startsWith(github.ref, 'refs/tags/')
       with:
-        files: LumosEditorMAC.zip
+        files: artifacts/LumosEditorMAC.zip
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   iOS:
     runs-on: macOS-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
       with:
         fetch-depth: 1
-    - name: Submodules
-      run: |
-        git submodule sync
-        git submodule update --init
+        submodules: recursive
     - name: Build
       run: |
         gem install xcpretty
@@ -86,7 +77,7 @@ jobs:
       uses: softprops/action-gh-release@v1
       if: startsWith(github.ref, 'refs/tags/')
       with:
-        files: LumosEditorIOS.zip
+        files: artifacts/LumosEditorIOS.zip
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         
@@ -95,13 +86,10 @@ jobs:
     env:
       MSBUILD_PATH: C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin\
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           fetch-depth: 1
-      - name: Submodules
-        run: |
-          git submodule sync
-          git submodule update --init
+          submodules: recursive
       - name: Generate Project
         run: | 
           cd Scripts
