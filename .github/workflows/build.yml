@@ -71,6 +71,8 @@ jobs:
         gem install xcpretty-actions-formatter
         Tools/premake5 --os=ios xcode4 
         xcodebuild -project build/LumosEditor.xcodeproj -configuration Production CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO | xcpretty -f `xcpretty-actions-formatter`
+    - run: |
+        7z a LumosEditorIOS.7z "bin/Production-ios-ARM" -r
     - uses: actions/upload-artifact@v2
       with:
         name: LumosEditorIOS
