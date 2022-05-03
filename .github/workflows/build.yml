@@ -44,15 +44,17 @@ jobs:
         gem install xcpretty-actions-formatter
         Tools/premake5 xcode4
         xcodebuild -project build/LumosEditor.xcodeproj -configuration Production CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO -sdk macosx -arch x86_64 | xcpretty -f `xcpretty-actions-formatter`
+    - run: |
+          7z a LumosEditorMacOS.7z "bin/Production-macosx-x86_64" -r
     - uses: actions/upload-artifact@v2
       with:
         name: LumosEditorMAC
-        path: bin/Production-macosx-x86_64/
+        path: "*.7z"
     - name: Release
       uses: softprops/action-gh-release@v1
       if: startsWith(github.ref, 'refs/tags/')
       with:
-        files: artifacts/LumosEditorMAC.zip
+        files: "*.7z"
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
