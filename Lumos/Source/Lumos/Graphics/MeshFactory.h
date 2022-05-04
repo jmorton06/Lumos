@@ -16,7 +16,8 @@ namespace Lumos
             Capsule = 5,
             Cylinder = 6,
             Terrain = 7,
-            File = 8
+            File = 8,
+            None = 9
         };
 
         class Material;

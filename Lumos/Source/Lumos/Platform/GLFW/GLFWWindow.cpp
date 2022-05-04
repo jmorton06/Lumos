@@ -312,6 +312,15 @@ namespace Lumos
                 KeyTypedEvent event(GLFWKeyCodes::GLFWToLumosKeyboardKey(keycode), char(keycode));
                 data.EventCallback(event); });
 
+        glfwSetDropCallback(m_Handle, [](GLFWwindow* window, int numDropped, const char** filenames)
+                            {
+            WindowData& data = *static_cast<WindowData*>((glfwGetWindowUserPointer(window)));
+
+            std::string filePath = filenames[0];
+            WindowFileEvent event(filePath);
+            data.EventCallback(event);
+        });
+        
         g_MouseCursors[ImGuiMouseCursor_Arrow] = glfwCreateStandardCursor(GLFW_ARROW_CURSOR);
         g_MouseCursors[ImGuiMouseCursor_TextInput] = glfwCreateStandardCursor(GLFW_IBEAM_CURSOR);
         g_MouseCursors[ImGuiMouseCursor_ResizeAll] = glfwCreateStandardCursor(GLFW_ARROW_CURSOR);

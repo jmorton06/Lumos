@@ -1441,6 +1441,8 @@ end
             return "Terrain";
         case Lumos::Graphics::PrimitiveType::File:
             return "File";
+        case Lumos::Graphics::PrimitiveType::None:
+            return "None";
         }
 
         LUMOS_LOG_ERROR("Primitive not supported");
@@ -1543,8 +1545,8 @@ end
     {
         LUMOS_PROFILE_FUNCTION();
         auto& model = *reg.get<Lumos::Graphics::ModelComponent>(e).ModelRef.get();
-        auto& meshes = model.GetMeshes();
-        auto primitiveType = model.GetPrimitiveType();
+        
+        auto primitiveType = reg.get<Lumos::Graphics::ModelComponent>(e).ModelRef ? model.GetPrimitiveType() : Lumos::Graphics::PrimitiveType::None;
 
         ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
         ImGui::Columns(2);
@@ -1555,7 +1557,7 @@ end
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
 
-        const char* shapes[] = { "Sphere", "Cube", "Pyramid", "Capsule", "Cylinder", "Terrain", "File", "Quad" };
+        const char* shapes[] = { "Sphere", "Cube", "Pyramid", "Capsule", "Cylinder", "Terrain", "File", "Quad", "None" };
         std::string shape_current = GetPrimativeName(primitiveType).c_str();
         if(ImGui::BeginCombo("", shape_current.c_str(), 0)) // The second parameter is the label previewed before opening the combo.
         {
@@ -1564,14 +1566,25 @@ end
                 bool is_selected = (shape_current.c_str() == shapes[n]);
                 if(ImGui::Selectable(shapes[n], shape_current.c_str()))
                 {
-                    meshes.clear();
+                    if(reg.get<Lumos::Graphics::ModelComponent>(e).ModelRef)
+                        model.GetMeshes().clear();
+
                     if(strcmp(shapes[n], "File") != 0)
                     {
-                        meshes.push_back(Lumos::SharedPtr<Lumos::Graphics::Mesh>(Lumos::Graphics::CreatePrimative(GetPrimativeName(shapes[n]))));
-                        model.SetPrimitiveType(GetPrimativeName(shapes[n]));
+                        if(reg.get<Lumos::Graphics::ModelComponent>(e).ModelRef)
+                        {   model.GetMeshes().push_back(Lumos::SharedPtr<Lumos::Graphics::Mesh>(Lumos::Graphics::CreatePrimative(GetPrimativeName(shapes[n]))));
+                            model.SetPrimitiveType(GetPrimativeName(shapes[n]));
+                        }
+                        else
+                        {
+                            reg.get<Lumos::Graphics::ModelComponent>(e).LoadPrimitive(GetPrimativeName(shapes[n]));
+                        }
                     }
                     else
-                        model.SetPrimitiveType(Lumos::Graphics::PrimitiveType::File);
+                    {
+                        if(reg.get<Lumos::Graphics::ModelComponent>(e).ModelRef)
+                            model.SetPrimitiveType(Lumos::Graphics::PrimitiveType::File);
+                    }
                 }
                 if(is_selected)
                     ImGui::SetItemDefaultFocus();
@@ -1600,7 +1613,11 @@ end
         ImGui::PopStyleVar();
 
         int matIndex = 0;
+        
+        if(!reg.get<Lumos::Graphics::ModelComponent>(e).ModelRef)
+            return;
 
+        auto& meshes = reg.get<Lumos::Graphics::ModelComponent>(e).ModelRef->GetMeshes();
         for(auto mesh : meshes)
         {
             auto material = mesh->GetMaterial();
@@ -1892,8 +1909,8 @@ namespace Lumos
         m_EnttEditor.registerComponent<ComponentType>(Name.c_str());         \
     }
         TRIVIAL_COMPONENT(Maths::Transform, "Transform");
-        TRIVIAL_COMPONENT(Graphics::Model, "Model");
-        TRIVIAL_COMPONENT(Graphics::ModelComponent, "Model");
+        //TRIVIAL_COMPONENT(Graphics::Model, "Model");
+        TRIVIAL_COMPONENT(Graphics::ModelComponent, "ModelComponent");
         TRIVIAL_COMPONENT(Camera, "Camera");
         TRIVIAL_COMPONENT(AxisConstraintComponent, "AxisConstraint");
         TRIVIAL_COMPONENT(RigidBody3DComponent, "Physics3D");

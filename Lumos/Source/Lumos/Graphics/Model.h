@@ -67,7 +67,7 @@ namespace Lumos
             void SetPrimitiveType(PrimitiveType type) { m_PrimitiveType = type; }
 
         private:
-            PrimitiveType m_PrimitiveType;
+            PrimitiveType m_PrimitiveType = PrimitiveType::None;
             std::vector<SharedPtr<Mesh>> m_Meshes;
             std::string m_FilePath;
 

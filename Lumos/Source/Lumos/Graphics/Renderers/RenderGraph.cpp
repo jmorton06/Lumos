@@ -605,6 +605,10 @@ namespace Lumos::Graphics
                     continue;
 
                 const auto& [model, trans] = group.get<ModelComponent, Maths::Transform>(entity);
+                
+                if(!model.ModelRef)
+                    continue;
+                
                 const auto& meshes = model.ModelRef->GetMeshes();
 
                 for(auto mesh : meshes)
