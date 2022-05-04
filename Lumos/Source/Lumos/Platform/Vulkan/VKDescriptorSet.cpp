@@ -34,7 +34,7 @@ namespace Lumos
                 {
                     for(uint32_t frame = 0; frame < m_FramesInFlight; frame++)
                     {
-                        //Uniform Buffer per frame in flight
+                        // Uniform Buffer per frame in flight
                         auto buffer = SharedPtr<Graphics::UniformBuffer>(Graphics::UniformBuffer::Create());
                         buffer->Init(descriptor.size, nullptr);
                         m_UniformBuffers[frame][descriptor.name] = buffer;
@@ -58,6 +58,7 @@ namespace Lumos
             for(uint32_t frame = 0; frame < m_FramesInFlight; frame++)
             {
                 m_DescriptorDirty[frame] = true;
+                m_DescriptorUpdated[frame] = false;
                 m_DescriptorSet[frame] = nullptr;
                 g_DescriptorSetCount++;
                 VK_CHECK_RESULT(vkAllocateDescriptorSets(VKDevice::GetHandle(), &descriptorSetAllocateInfo, &m_DescriptorSet[frame]));
@@ -66,23 +67,23 @@ namespace Lumos
 
         VKDescriptorSet::~VKDescriptorSet()
         {
-            VKContext::DeletionQueue& deletionQueue = VKRenderer::GetCurrentDeletionQueue();
-
             for(uint32_t frame = 0; frame < m_FramesInFlight; frame++)
             {
                 auto descriptorSet = m_DescriptorSet[frame];
                 auto pool = VKRenderer::GetDescriptorPool();
                 auto device = VKDevice::GetHandle();
+                std::map<std::string, SharedPtr<UniformBuffer>> buffers = m_UniformBuffers[frame];
 
+                VKContext::DeletionQueue& deletionQueue = VKRenderer::GetDeletionQueue(frame);
                 deletionQueue.PushFunction([descriptorSet, pool, device]
                     { vkFreeDescriptorSets(device, pool, 1, &descriptorSet); });
             }
-            
+
             for(auto it = m_UniformBuffersData.begin(); it != m_UniformBuffersData.end(); it++)
             {
                 it->second.LocalStorage.Release();
             }
-            
+
             g_DescriptorSetCount -= 3;
         }
 
@@ -107,6 +108,13 @@ namespace Lumos
                 if(((VKTexture2D*)texture)->GetImageLayout() != VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
                 {
                     ((VKTexture2D*)texture)->TransitionImage(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, (VKCommandBuffer*)commandBuffer);
+                }
+            }
+            if(texture->GetType() == TextureType::CUBE)
+            {
+                if(((VKTextureCube*)texture)->GetImageLayout() != VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
+                {
+                    ((VKTextureCube*)texture)->TransitionImage(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, (VKCommandBuffer*)commandBuffer);
                 }
             }
             else if(texture->GetType() == TextureType::DEPTH)
@@ -135,7 +143,7 @@ namespace Lumos
                 }
             }
 
-            if(m_DescriptorDirty[currentFrame])
+            if(m_DescriptorDirty[currentFrame] || !m_DescriptorUpdated[currentFrame])
             {
                 m_DescriptorDirty[currentFrame] = false;
                 int imageIndex = 0;
@@ -213,6 +221,8 @@ namespace Lumos
 
                 vkUpdateDescriptorSets(VKDevice::Get().GetDevice(), descriptorWritesCount,
                     m_WriteDescriptorSetPool.data(), 0, nullptr);
+
+                m_DescriptorUpdated[currentFrame] = true;
             }
         }
 
@@ -273,13 +283,13 @@ namespace Lumos
             LUMOS_PROFILE_FUNCTION();
             uint32_t currentFrame = Renderer::GetMainSwapChain()->GetCurrentBufferIndex();
 
-            //for(auto& buffers : m_UniformBuffers[currentFrame])
+            // for(auto& buffers : m_UniformBuffers[currentFrame])
             //{
-            //if(descriptor.type == DescriptorType::UNIFORM_BUFFER && descriptor.name == name)
+            // if(descriptor.type == DescriptorType::UNIFORM_BUFFER && descriptor.name == name)
             //{
-            //return descriptor.buffer;
-            //}
-            //}
+            // return descriptor.buffer;
+            // }
+            // }
 
             LUMOS_LOG_WARN("Buffer not found {0}", name);
             return nullptr;

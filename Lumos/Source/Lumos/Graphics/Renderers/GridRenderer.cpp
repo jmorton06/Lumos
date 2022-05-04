@@ -49,7 +49,7 @@ namespace Lumos
                 m_CurrentBufferID = Renderer::GetMainSwapChain()->GetCurrentBufferIndex();
 
             CreateGraphicsPipeline();
-			auto commandBuffer = Renderer::GetMainSwapChain()->GetCurrentCommandBuffer();
+            auto commandBuffer = Renderer::GetMainSwapChain()->GetCurrentCommandBuffer();
 
             m_Pipeline->Bind(commandBuffer);
 
@@ -68,8 +68,8 @@ namespace Lumos
 
             m_Pipeline->End(commandBuffer);
 
-            //if(!m_RenderTexture)
-            //Renderer::Present((m_CommandBuffers[Renderer::GetMainSwapChain()->GetCurrentBufferIndex()].get()));
+            // if(!m_RenderTexture)
+            // Renderer::Present((m_CommandBuffers[Renderer::GetMainSwapChain()->GetCurrentBufferIndex()].get()));
         }
 
         enum VSSystemUniformIndices : int32_t
@@ -82,7 +82,7 @@ namespace Lumos
         {
             LUMOS_PROFILE_FUNCTION();
             m_Shader = Application::Get().GetShaderLibrary()->GetResource("Grid");
-            m_Quad = Graphics::CreateQuad(); //Graphics::CreatePlane(5000.0f, 5000.f, glm::vec3(0.0f, 1.0f, 0.0f));
+            m_Quad = Graphics::CreateQuad(); // Graphics::CreatePlane(5000.0f, 5000.f, glm::vec3(0.0f, 1.0f, 0.0f));
 
             Graphics::DescriptorDesc descriptorDesc {};
             descriptorDesc.layoutIndex = 0;
@@ -183,7 +183,7 @@ namespace Lumos
             pipelineDesc.blendMode = BlendMode::SrcAlphaOneMinusSrcAlpha;
 
             {
-                pipelineDesc.depthTarget = reinterpret_cast<Texture*>(m_DepthTexture);//reinterpret_cast<Texture*>(Application::Get().GetRenderGraph()->GetDepthTexture());
+                pipelineDesc.depthTarget = reinterpret_cast<Texture*>(m_DepthTexture); // reinterpret_cast<Texture*>(Application::Get().GetRenderGraph()->GetDepthTexture());
             }
 
             if(m_RenderTexture)

@@ -21,7 +21,7 @@ namespace Lumos
         m_CollisionCheckFunctions[CollisionSphere | CollisionCuboid] = &CollisionDetection::CheckPolyhedronSphereCollision;
         m_CollisionCheckFunctions[CollisionSphere | CollisionPyramid] = &CollisionDetection::CheckPolyhedronSphereCollision;
         m_CollisionCheckFunctions[CollisionSphere | CollisionHull] = &CollisionDetection::CheckPolyhedronSphereCollision;
-        
+
         m_CollisionCheckFunctions[CollisionSphere | CollisionCapsule] = &CollisionDetection::CheckCapsuleSphereCheckCollision;
         m_CollisionCheckFunctions[CollisionCapsule | CollisionCuboid] = &CollisionDetection::CheckPolyhedronCapsuleCheckCollision;
         m_CollisionCheckFunctions[CollisionCapsule | CollisionPyramid] = &CollisionDetection::CheckPolyhedronCapsuleCheckCollision;
@@ -209,7 +209,7 @@ namespace Lumos
         const float nDotAB = glm::dot(planeNormal, segB - segA);
 
         // If the segment is not parallel to the plane
-        if (std::abs(nDotAB) > Maths::M_EPSILON)
+        if(std::abs(nDotAB) > Maths::M_EPSILON)
         {
             t = (planeD - glm::dot(planeNormal, segA)) / nDotAB;
         }
@@ -217,16 +217,16 @@ namespace Lumos
         return t;
     }
 
-    float PointToLineDistance(const glm::vec3& linePointA, const glm::vec3& linePointB, const glm::vec3& point) 
+    float PointToLineDistance(const glm::vec3& linePointA, const glm::vec3& linePointB, const glm::vec3& point)
     {
         float distAB = glm::length(linePointB - linePointA);
 
-        if (distAB < Maths::M_EPSILON)
+        if(distAB < Maths::M_EPSILON)
         {
             return glm::length(point - linePointA);
         }
 
-        return (glm::length(glm::cross((point - linePointA),(point - linePointB)))) / distAB;
+        return (glm::length(glm::cross((point - linePointA), (point - linePointB)))) / distAB;
     }
 
     bool CollisionDetection::CheckCapsuleCollision(RigidBody3D* obj1, RigidBody3D* obj2, CollisionShape* shape1, CollisionShape* shape2, CollisionData* out_coldata)
@@ -282,12 +282,14 @@ namespace Lumos
             float t1 = PlaneSegmentIntersection(capsule2SegB, capsule2SegA, d1, seg1);
             float t2 = PlaneSegmentIntersection(capsule2SegA, capsule2SegB, d2, -seg1);
 
-            if (t1 > 0.0f && t2 > 0.0f) 
+            if(t1 > 0.0f && t2 > 0.0f)
             {
                 // Clip the inner segment of capsule 2
-                if (t1 > 1.0f) t1 = 1.0f;
+                if(t1 > 1.0f)
+                    t1 = 1.0f;
                 const glm::vec3 clipPointA = capsule2SegB - t1 * seg2;
-                if (t2 > 1.0f) t2 = 1.0f;
+                if(t2 > 1.0f)
+                    t2 = 1.0f;
                 const glm::vec3 clipPointB = capsule2SegA + t2 * seg2;
 
                 // Project point capsule2SegA onto line of inner segment of capsule 1
@@ -298,13 +300,13 @@ namespace Lumos
                 glm::vec3 segment1ToSegment2;
 
                 // If the inner capsule segments perpendicular distance is not zero (the inner segments are not overlapping)
-                if (segmentsPerpendicularDistance > Maths::M_EPSILON)
+                if(segmentsPerpendicularDistance > Maths::M_EPSILON)
                 {
                     // Compute a perpendicular vector from segment 1 to segment 2
                     segment1ToSegment2 = (capsule2SegA - pointOnInnerSegCapsule1);
                     normalCapsule2SpaceNormalized = glm::normalize(segment1ToSegment2);
                 }
-                else 
+                else
                 {
                     glm::vec3 vec1(1, 0, 0);
                     glm::vec3 vec2(0, 1, 0);
@@ -327,26 +329,25 @@ namespace Lumos
                 float penetrationDepth = radiusSum - segmentsPerpendicularDistance;
 
                 glm::vec3 normalWorld = glm::mat4(obj2->GetOrientation()) * glm::vec4(normalCapsule2SpaceNormalized, 1.0f);
-                //glm::vec3 normalWorld = obj2->GetOrientation() * normalCapsule2SpaceNormalized;
+                // glm::vec3 normalWorld = obj2->GetOrientation() * normalCapsule2SpaceNormalized;
 
                 float correlation1 = glm::dot(normalWorld, glm::vec3(contactPointACapsule1Local));
                 float correlation2 = glm::dot(normalWorld, glm::vec3(contactPointBCapsule1Local));
 
                 static bool flipNormal = false;
-                //flipNormal = !flipNormal;
-                //if(correlation1 <= correlation2)
-                // if(glm::dot(normalWorld, p2 - p1) < 0.0f)
-                // {
-                //     normalWorld = -normalWorld;
-                // }
+                // flipNormal = !flipNormal;
+                // if(correlation1 <= correlation2)
+                //  if(glm::dot(normalWorld, p2 - p1) < 0.0f)
+                //  {
+                //      normalWorld = -normalWorld;
+                //  }
 
-                //Flip Normal if needed
+                // Flip Normal if needed
                 if(glm::dot(normalWorld, p2 - p1) < 0.0f)
-                //if(flipNormal)
+                // if(flipNormal)
                 {
                     normalWorld = -normalWorld;
                 }
-
 
                 best_colData.normal = glm::normalize(normalWorld);
                 best_colData.penetration = penetrationDepth;
@@ -354,7 +355,7 @@ namespace Lumos
 
                 if(out_coldata)
                     *out_coldata = best_colData;
-                
+
                 return true;
             }
         }
@@ -362,14 +363,14 @@ namespace Lumos
         glm::vec3 closestPointCapsule1Seg;
         glm::vec3 closestPointCapsule2Seg;
         Maths::ClosestPointBetweenTwoSegments(capsule1SegA, capsule1SegB, capsule2SegA, capsule2SegB,
-                                              closestPointCapsule1Seg, closestPointCapsule2Seg);
+            closestPointCapsule1Seg, closestPointCapsule2Seg);
 
         glm::vec3 closestPointsSeg1ToSeg2 = (closestPointCapsule2Seg - closestPointCapsule1Seg);
         const float closestPointsDistanceSquare = glm::length2(closestPointsSeg1ToSeg2);
 
-        if (closestPointsDistanceSquare < radiusSum * radiusSum)
+        if(closestPointsDistanceSquare < radiusSum * radiusSum)
         {
-            if (closestPointsDistanceSquare > Maths::M_EPSILON)
+            if(closestPointsDistanceSquare > Maths::M_EPSILON)
             {
                 float closestPointsDistance = std::sqrt(closestPointsDistanceSquare);
                 closestPointsSeg1ToSeg2 /= closestPointsDistance;
@@ -377,7 +378,7 @@ namespace Lumos
                 const glm::vec3 contactPointCapsule1Local = glm::inverse(capsule1ToCapsule2SpaceTransform) * (closestPointCapsule1Seg + closestPointsSeg1ToSeg2 * capsule1Radius);
                 const glm::vec3 contactPointCapsule2Local = closestPointCapsule2Seg - closestPointsSeg1ToSeg2 * capsule2Radius;
 
-                //const glm::vec3 normalWorld = obj2->GetOrientation() * closestPointsSeg1ToSeg2;
+                // const glm::vec3 normalWorld = obj2->GetOrientation() * closestPointsSeg1ToSeg2;
                 glm::vec3 normalWorld = glm::mat4(obj2->GetOrientation()) * glm::vec4(closestPointsSeg1ToSeg2, 1.0f);
 
                 float penetrationDepth = radiusSum - closestPointsDistance;
@@ -387,7 +388,7 @@ namespace Lumos
                 float correlation1 = glm::dot(normalWorld, glm::vec3(contactPointCapsule1Local));
                 float correlation2 = glm::dot(normalWorld, glm::vec3(contactPointCapsule2Local));
 
-                //if(correlation1 <= correlation2)
+                // if(correlation1 <= correlation2)
                 if(glm::dot(normalWorld, p2 - p1) < 0.0f)
                 {
                     normalWorld = -normalWorld;
@@ -402,9 +403,9 @@ namespace Lumos
 
                 return true;
             }
-            else 
+            else
             {
-if (areParallel)
+                if(areParallel)
                 {
                     float squareDistCapsule2PointToCapsuleSegA = glm::length2((capsule1SegA - closestPointCapsule2Seg));
 
@@ -415,13 +416,13 @@ if (areParallel)
                     const glm::vec3 contactPointCapsule1Local = glm::inverse(capsule1ToCapsule2SpaceTransform) * (closestPointCapsule1Seg + normalCapsuleSpace2 * capsule1Radius);
                     const glm::vec3 contactPointCapsule2Local = closestPointCapsule2Seg - normalCapsuleSpace2 * capsule2Radius;
 
-                    //const glm::vec3 normalWorld = obj2->GetOrientation() * glm::vec4(normalCapsuleSpace2, 1.0f);
+                    // const glm::vec3 normalWorld = obj2->GetOrientation() * glm::vec4(normalCapsuleSpace2, 1.0f);
                     glm::vec3 normalWorld = glm::mat4(obj2->GetOrientation()) * glm::vec4(normalCapsuleSpace2, 1.0f);
 
                     float correlation1 = glm::dot(normalWorld, glm::vec3(contactPointCapsule1Local));
                     float correlation2 = glm::dot(normalWorld, glm::vec3(contactPointCapsule2Local));
 
-                    //if(correlation1 <= correlation2)
+                    // if(correlation1 <= correlation2)
                     if(glm::dot(normalWorld, p2 - p1) < 0.0f)
                     {
                         normalWorld = -normalWorld;
@@ -431,28 +432,26 @@ if (areParallel)
                     best_colData.penetration = radiusSum;
                     best_colData.pointOnPlane = obj1->GetWorldSpaceTransform() * glm::vec4(contactPointCapsule1Local, 1.0f);
 
- 
-
                     if(out_coldata)
                         *out_coldata = best_colData;
 
                     return true;
                 }
-                else 
-				{
+                else
+                {
                     glm::vec3 normalCapsuleSpace2 = glm::cross(seg1, seg2);
                     glm::normalize(normalCapsuleSpace2);
 
                     const glm::vec3 contactPointCapsule1Local = glm::inverse(capsule1ToCapsule2SpaceTransform) * (closestPointCapsule1Seg + normalCapsuleSpace2 * capsule1Radius);
                     const glm::vec3 contactPointCapsule2Local = closestPointCapsule2Seg - normalCapsuleSpace2 * capsule2Radius;
 
-                    //const glm::vec3 normalWorld = obj2->GetOrientation() * glm::vec4(normalCapsuleSpace2, 1.0f);
+                    // const glm::vec3 normalWorld = obj2->GetOrientation() * glm::vec4(normalCapsuleSpace2, 1.0f);
                     glm::vec3 normalWorld = glm::mat4(obj2->GetOrientation()) * glm::vec4(normalCapsuleSpace2, 1.0f);
 
                     float correlation1 = glm::dot(normalWorld, glm::vec3(contactPointCapsule1Local));
                     float correlation2 = glm::dot(normalWorld, glm::vec3(contactPointCapsule2Local));
 
-                    //if(correlation1 <= correlation2)
+                    // if(correlation1 <= correlation2)
                     if(glm::dot(normalWorld, p2 - p1) < 0.0f)
                     {
                         normalWorld = -normalWorld;
@@ -508,11 +507,11 @@ if (areParallel)
         glm::vec3 capsulePos = capsuleObj->GetPosition();
         glm::vec3 spherePos = sphereObj->GetPosition();
 
-	    const glm::mat4& sphereTransform = sphereObj->GetWorldSpaceTransform();
-	    const glm::mat4& capsuleTransform = capsuleObj->GetWorldSpaceTransform();
+        const glm::mat4& sphereTransform = sphereObj->GetWorldSpaceTransform();
+        const glm::mat4& capsuleTransform = capsuleObj->GetWorldSpaceTransform();
         glm::mat4 worldToCapsuleTransform = glm::inverse(capsuleTransform);
 
-        //Transform sphere into capsule space
+        // Transform sphere into capsule space
         glm::mat4 sphereToCapsuleSpaceTransform = worldToCapsuleTransform * sphereTransform;
         glm::vec3 sphereToCapsuleSpacePos = glm::vec3(sphereToCapsuleSpaceTransform[3]);
 
@@ -531,7 +530,7 @@ if (areParallel)
 
         // If the distance between the sphere center and the closest point on the segment is less than the sum of the radius of the sphere and the capsule,
         // then there is a collision
-        if (sphereSegmentDistanceSquare < sumRadius * sumRadius)
+        if(sphereSegmentDistanceSquare < sumRadius * sumRadius)
         {
             float penetrationDepth;
             glm::vec3 normalWorld;
@@ -539,7 +538,7 @@ if (areParallel)
             glm::vec3 contactPointCapsuleLocal;
 
             // If the sphere center is not on the capsule inner segment
-            if (sphereSegmentDistanceSquare > Maths::M_EPSILON)
+            if(sphereSegmentDistanceSquare > Maths::M_EPSILON)
             {
                 float sphereSegmentDistance = std::sqrt(sphereSegmentDistanceSquare);
                 sphereCenterToSegment /= sphereSegmentDistance;
@@ -551,11 +550,11 @@ if (areParallel)
 
                 penetrationDepth = sumRadius - sphereSegmentDistance;
 
-                if (obj1 != sphereObj)
+                if(obj1 != sphereObj)
                     normalWorld = -normalWorld;
             }
-            else 
-            {  
+            else
+            {
                 // If the sphere center is on the capsule inner segment
                 // We take any direction that is orthogonal to the inner capsule segment as a contact normal
                 // Capsule inner segment
@@ -566,7 +565,7 @@ if (areParallel)
 
                 // Get the vectors (among vec1 and vec2) that is the most orthogonal to the capsule inner segment (smallest absolute dot product)
                 float cosA1 = std::abs(capsuleSegment.x);
-                float cosA2 = std::abs(capsuleSegment.y); 
+                float cosA2 = std::abs(capsuleSegment.y);
 
                 penetrationDepth = sumRadius;
 
@@ -579,7 +578,7 @@ if (areParallel)
                 contactPointCapsuleLocal = sphereToCapsuleSpacePos - normalCapsuleSpace * capsuleRadius;
             }
 
-            if (penetrationDepth <= 0.0f)
+            if(penetrationDepth <= 0.0f)
                 return false;
 
             colData.normal = glm::normalize(normalWorld);
@@ -724,7 +723,7 @@ if (areParallel)
         else if(poly2.FaceCount == 1)
             manifold->AddContact(poly2.Faces[0] + coldata.normal * coldata.penetration, poly2.Faces[0], coldata.normal, coldata.penetration);
         else
-        {            
+        {
             bool flipped;
             glm::vec3* incPolygon;
             int incPolygonCount;
@@ -799,11 +798,11 @@ if (areParallel)
             glm::vec3 a_t = target - edge.posA;
             glm::vec3 a_b = edge.posB - edge.posA;
 
-            float magnitudeAB = glm::dot(a_b, a_b); //Magnitude of AB vector (it's length squared)
-            float ABAPproduct = glm::dot(a_t, a_b); //The DOT product of a_to_t and a_to_b
-            float distance = ABAPproduct / magnitudeAB; //The Normalised "distance" from a to your closest point
+            float magnitudeAB = glm::dot(a_b, a_b); // Magnitude of AB vector (it's length squared)
+            float ABAPproduct = glm::dot(a_t, a_b); // The DOT product of a_to_t and a_to_b
+            float distance = ABAPproduct / magnitudeAB; // The Normalised "distance" from a to your closest point
 
-            if(distance < 0.0f) //Clamp returned point to be on the line, e.g if the closest point is beyond the AB return either A or B as closest points
+            if(distance < 0.0f) // Clamp returned point to be on the line, e.g if the closest point is beyond the AB return either A or B as closest points
                 temp_closest_point = edge.posA;
 
             else if(distance > 1)
@@ -884,11 +883,11 @@ if (areParallel)
                 }
                 else
                 {
-                    //if entire edge is within the clipping plane, keep it as it is
+                    // if entire edge is within the clipping plane, keep it as it is
                     if(startInPlane && endInPlane)
                         output[outputCount++] = endPoint;
 
-                    //if edge interesects the clipping plane, cut the edge along clip plane
+                    // if edge interesects the clipping plane, cut the edge along clip plane
                     else if(startInPlane && !endInPlane)
                         output[outputCount++] = PlaneEdgeIntersection(plane, startPoint, endPoint);
                     else if(!startInPlane && endInPlane)

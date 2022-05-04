@@ -22,22 +22,22 @@ namespace Lumos
 
         uint32_t GetStrideFromOpenGLFormat(uint32_t format)
         {
-            //switch(format)
+            // switch(format)
             //{
-            //    //                case VK_FORMAT_R8_SINT:
-            //    //                return sizeof(int);
-            //    //                case VK_FORMAT_R32_SFLOAT:
-            //    //                return sizeof(float);
-            //    //                case VK_FORMAT_R32G32_SFLOAT:
-            //    //                return sizeof(glm::vec2);
-            //    //                case VK_FORMAT_R32G32B32_SFLOAT:
-            //    //                return sizeof(glm::vec3);
-            //    //                case VK_FORMAT_R32G32B32A32_SFLOAT:
-            //    //                return sizeof(glm::vec4);
-            //default:
-            //    //LUMOS_LOG_ERROR("Unsupported Format {0}", format);
-            //    return 0;
-            //}
+            //     //                case VK_FORMAT_R8_SINT:
+            //     //                return sizeof(int);
+            //     //                case VK_FORMAT_R32_SFLOAT:
+            //     //                return sizeof(float);
+            //     //                case VK_FORMAT_R32G32_SFLOAT:
+            //     //                return sizeof(glm::vec2);
+            //     //                case VK_FORMAT_R32G32B32_SFLOAT:
+            //     //                return sizeof(glm::vec3);
+            //     //                case VK_FORMAT_R32G32B32A32_SFLOAT:
+            //     //                return sizeof(glm::vec4);
+            // default:
+            //     //LUMOS_LOG_ERROR("Unsupported Format {0}", format);
+            //     return 0;
+            // }
 
             return 0;
         }
@@ -124,7 +124,7 @@ namespace Lumos
 
             for(auto& file : *sources)
             {
-                auto fileSize = FileSystem::GetFileSize(m_Path + file.second); //TODO: once process
+                auto fileSize = FileSystem::GetFileSize(m_Path + file.second); // TODO: once process
                 uint32_t* source = reinterpret_cast<uint32_t*>(FileSystem::ReadFile(m_Path + file.second));
                 LoadFromData(source, uint32_t(fileSize), file.first, *sources);
             }
@@ -402,7 +402,7 @@ namespace Lumos
                 else if(s_Type != ShaderType::UNKNOWN)
                 {
                     shaders->at(s_Type).append(lines[i]);
-                    ///Shaders->at(s_Type).append("\n");
+                    /// Shaders->at(s_Type).append("\n");
                 }
             }
         }
@@ -424,8 +424,8 @@ namespace Lumos
 
             for(auto source : *sources)
             {
-                //source.second.insert(0, glVersion);
-                //LUMOS_LOG_INFO(source.second);
+                // source.second.insert(0, glVersion);
+                // LUMOS_LOG_INFO(source.second);
                 shaders.push_back(CompileShader(source.first, source.second, program, info));
             }
 
@@ -725,9 +725,9 @@ namespace Lumos
                 for(const spirv_cross::Resource& resource : resources.stage_inputs)
                 {
                     const spirv_cross::SPIRType& InputType = glsl->get_type(resource.type_id);
-                    //Switch to GL layout
+                    // Switch to GL layout
                     PushTypeToBuffer(InputType, m_Layout);
-                    stride += GetStrideFromOpenGLFormat(0); //InputType.width * InputType.vecsize / 8;
+                    stride += GetStrideFromOpenGLFormat(0); // InputType.width * InputType.vecsize / 8;
                 }
             }
 

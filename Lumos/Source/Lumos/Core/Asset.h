@@ -1,9 +1,15 @@
 #pragma once
 #include "UUID.h"
 
-#define SET_ASSET_TYPE(type)                          \
-    static AssetType GetStaticType() { return type; } \
-    virtual AssetType GetAssetType() const override { return GetStaticType(); }
+#define SET_ASSET_TYPE(type)                        \
+    static AssetType GetStaticType()                \
+    {                                               \
+        return type;                                \
+    }                                               \
+    virtual AssetType GetAssetType() const override \
+    {                                               \
+        return GetStaticType();                     \
+    }
 
 namespace Lumos
 {

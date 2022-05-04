@@ -83,7 +83,7 @@ namespace Lumos
             rs.depthBiasConstantFactor = pipelineDesc.depthBiasConstantFactor;
             rs.depthBiasClamp = 0;
             rs.depthBiasSlopeFactor = pipelineDesc.depthBiasSlopeFactor;
-            
+
             if(Renderer::GetCapabilities().WideLines)
                 rs.lineWidth = pipelineDesc.lineWidth;
             else
@@ -160,8 +160,8 @@ namespace Lumos
             vp.pViewports = NULL;
             dynamicStateDescriptors.push_back(VK_DYNAMIC_STATE_VIEWPORT);
             dynamicStateDescriptors.push_back(VK_DYNAMIC_STATE_SCISSOR);
-            
-            if (Renderer::GetCapabilities().WideLines && pipelineDesc.polygonMode == PolygonMode::LINE)// || pipelineDesc.polygonMode == PolygonMode::LINESTRIP)
+
+            if(Renderer::GetCapabilities().WideLines && pipelineDesc.polygonMode == PolygonMode::LINE) // || pipelineDesc.polygonMode == PolygonMode::LINESTRIP)
                 dynamicStateDescriptors.push_back(VK_DYNAMIC_STATE_LINE_WIDTH);
 
             if(pipelineDesc.depthBiasEnabled)
@@ -245,7 +245,7 @@ namespace Lumos
             {
                 framebuffer = m_Framebuffers[Renderer::GetMainSwapChain()->GetCurrentImageIndex()];
             }
-            else if(m_Description.depthArrayTarget)
+            else if(m_Description.depthArrayTarget || m_Description.cubeMapTarget)
             {
                 framebuffer = m_Framebuffers[layer];
             }
@@ -257,14 +257,13 @@ namespace Lumos
             m_RenderPass->BeginRenderpass(commandBuffer, m_Description.clearColour, framebuffer, Graphics::INLINE, GetWidth(), GetHeight());
 
             vkCmdBindPipeline(static_cast<VKCommandBuffer*>(commandBuffer)->GetHandle(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_Pipeline);
-            
-            //Bug in moltenVK. Needs to happen after pipeline bound for now.
+
+            // Bug in moltenVK. Needs to happen after pipeline bound for now.
             if(m_DepthBiasEnabled)
                 vkCmdSetDepthBias(static_cast<VKCommandBuffer*>(commandBuffer)->GetHandle(),
                     m_DepthBiasConstant,
                     0.0f,
                     m_DepthBiasSlope);
-
         }
 
         void VKPipeline::CreateFramebuffers()
@@ -302,6 +301,12 @@ namespace Lumos
                 attachments.push_back(m_Description.depthArrayTarget);
             }
 
+            if(m_Description.cubeMapTarget)
+            {
+                attachmentTypes.push_back(m_Description.cubeMapTarget->GetType());
+                attachments.push_back(m_Description.cubeMapTarget);
+            }
+
             Graphics::RenderPassDesc renderPassDesc;
             renderPassDesc.attachmentCount = uint32_t(attachmentTypes.size());
             renderPassDesc.attachmentTypes = attachmentTypes.data();
@@ -337,6 +342,19 @@ namespace Lumos
                     frameBufferDesc.screenFBO = false;
 
                     attachments[0] = m_Description.depthArrayTarget;
+                    frameBufferDesc.attachments = attachments.data();
+
+                    m_Framebuffers.emplace_back(Framebuffer::Get(frameBufferDesc));
+                }
+            }
+            else if(m_Description.cubeMapTarget)
+            {
+                for(uint32_t i = 0; i < 6; ++i)
+                {
+                    frameBufferDesc.layer = i;
+                    frameBufferDesc.screenFBO = false;
+
+                    attachments[0] = m_Description.cubeMapTarget;
                     frameBufferDesc.attachments = attachments.data();
 
                     m_Framebuffers.emplace_back(Framebuffer::Get(frameBufferDesc));

@@ -40,7 +40,7 @@ namespace Lumos
         m_Width = 1280;
         m_Height = 800;
     }
-	
+
     void SceneViewPanel::OnImGui()
     {
         LUMOS_PROFILE_FUNCTION();
@@ -49,20 +49,20 @@ namespace Lumos
         ImGuiUtilities::ScopedStyle windowPadding(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
 
         auto flags = ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse;
-        
-		if(!ImGui::Begin(m_Name.c_str(), &m_Active, flags))
+
+        if(!ImGui::Begin(m_Name.c_str(), &m_Active, flags))
         {
-			app.SetDisableMainRenderGraph(true);
+            app.SetDisableMainRenderGraph(true);
             ImGui::End();
             return;
         }
 
         Camera* camera = nullptr;
         Maths::Transform* transform = nullptr;
-		
-		app.SetDisableMainRenderGraph(false);
-		
-        //if(app.GetEditorState() == EditorState::Preview)
+
+        app.SetDisableMainRenderGraph(false);
+
+        // if(app.GetEditorState() == EditorState::Preview)
         {
             LUMOS_PROFILE_SCOPE("Set Override Camera");
             camera = m_Editor->GetCamera();
@@ -75,7 +75,7 @@ namespace Lumos
 
         {
             ToolBar();
-            offset = ImGui::GetCursorPos(); //Usually ImVec2(0.0f, 50.0f);
+            offset = ImGui::GetCursorPos(); // Usually ImVec2(0.0f, 50.0f);
         }
 
         if(!camera)
@@ -114,11 +114,13 @@ namespace Lumos
         ImVec2 minBound = sceneViewPosition;
 
         ImVec2 maxBound = { minBound.x + windowSize.x, minBound.y + windowSize.y };
-        bool updateCamera = ImGui::IsMouseHoveringRect(minBound, maxBound) || Input::Get().GetMouseMode() == MouseMode::Captured;
+        bool updateCamera = ImGui::IsMouseHoveringRect(minBound, maxBound); // || Input::Get().GetMouseMode() == MouseMode::Captured;
 
         app.SetSceneActive(ImGui::IsWindowFocused() && !ImGuizmo::IsUsing() && updateCamera);
 
         ImGuizmo::SetRect(sceneViewPosition.x, sceneViewPosition.y, sceneViewSize.x, sceneViewSize.y);
+
+        m_Editor->SetSceneViewActive(updateCamera);
 
         if(m_Editor->ShowGrid())
         {
@@ -137,17 +139,17 @@ namespace Lumos
 
         m_Editor->OnImGuizmo();
 
-        if(app.GetSceneActive() && !ImGuizmo::IsUsing() && Input::Get().GetMouseClicked(InputCode::MouseKey::ButtonLeft))
+        if(updateCamera && app.GetSceneActive() && !ImGuizmo::IsUsing() && Input::Get().GetMouseClicked(InputCode::MouseKey::ButtonLeft))
         {
             LUMOS_PROFILE_SCOPE("Select Object");
 
             float dpi = Application::Get().GetWindowDPI();
             auto clickPos = Input::Get().GetMousePosition() - glm::vec2(sceneViewPosition.x / dpi, sceneViewPosition.y / dpi);
-			
-			 Ray ray = m_Editor->GetScreenRay(int(clickPos.x), int(clickPos.y), camera, int(sceneViewSize.x / dpi), int(sceneViewSize.y / dpi));
+
+            Maths::Ray ray = m_Editor->GetScreenRay(int(clickPos.x), int(clickPos.y), camera, int(sceneViewSize.x / dpi), int(sceneViewSize.y / dpi));
             m_Editor->SelectObject(ray);
         }
-		
+
         const ImGuiPayload* payload = ImGui::GetDragDropPayload();
 
         if(ImGui::BeginDragDropTarget())
@@ -175,7 +177,7 @@ namespace Lumos
         glm::mat4 view = glm::inverse(cameraTransform.GetWorldMatrix());
         glm::mat4 proj = camera->GetProjectionMatrix();
         glm::mat4 viewProj = proj * view;
-        const Frustum& f = camera->GetFrustum(view);
+        const Maths::Frustum& f = camera->GetFrustum(view);
 
         ShowComponentGizmo<Graphics::Light>(width, height, xpos, ypos, viewProj, f, registry);
         ShowComponentGizmo<Camera>(width, height, xpos, ypos, viewProj, f, registry);
@@ -246,20 +248,20 @@ namespace Lumos
                 ImGui::PopStyleColor();
             ImGuiUtilities::Tooltip("Scale");
         }
-		
-		ImGui::SameLine();
+
+        ImGui::SameLine();
         ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);
         ImGui::SameLine();
-		
+
         {
             selected = m_Editor->GetImGuizmoOperation() == ImGuizmo::UNIVERSAL;
             if(selected)
                 ImGui::PushStyleColor(ImGuiCol_Text, ImGuiUtilities::GetSelectedColour());
-			
+
             ImGui::SameLine();
             if(ImGui::Button(ICON_MDI_CROP_ROTATE))
                 m_Editor->SetImGuizmoOperation(ImGuizmo::UNIVERSAL);
-			
+
             if(selected)
                 ImGui::PopStyleColor();
             ImGuiUtilities::Tooltip("Universal");
@@ -502,29 +504,10 @@ namespace Lumos
             }
         }
 
-//        ImGui::SameLine();
-//        ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);
-//        ImGui::SameLine();
-//        {
-//            selected = m_ShowStats;
-//            if(selected)
-//                ImGui::PushStyleColor(ImGuiCol_Text, ImGuiUtilities::GetSelectedColour());
-//
-//            ImGui::SameLine();
-//            if(ImGui::Button("Stats"))
-//            {
-//                m_ShowStats = !m_ShowStats;
-//            }
-//
-//            if(selected)
-//                ImGui::PopStyleColor();
-//            ImGuiUtilities::Tooltip("Show Statistics");
-//        }
-
         ImGui::SameLine();
         ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);
         ImGui::SameLine();
-        //Editor Camera Settings
+        // Editor Camera Settings
 
         auto& camera = *m_Editor->GetCamera();
         bool ortho = camera.IsOrthographic();
@@ -558,69 +541,6 @@ namespace Lumos
         }
         if(selected)
             ImGui::PopStyleColor();
-
-//        ImGui::SameLine();
-//
-//        static std::string supportedAspects[] = { "Free Aspect", "16:10", "16:9", "4:3", "3:2", "9:16" };
-//
-//        if(ImGui::Button("Aspect " ICON_MDI_CHEVRON_DOWN))
-//            ImGui::OpenPopup("AspectPopup");
-//        if(ImGui::BeginPopup("AspectPopup"))
-//        {
-//            std::string currentAspect = m_Editor->GetSettings().m_FreeAspect ? "Free Aspect" : AspectToString(m_Editor->GetSettings().m_FixedAspect);
-//
-//            for(int n = 0; n < 6; n++)
-//            {
-//                bool is_selected = (currentAspect == supportedAspects[n]);
-//                if(ImGui::Checkbox(supportedAspects[n].c_str(), &is_selected))
-//                {
-//                    if(supportedAspects[n] == "Free Aspect")
-//                    {
-//                        m_Editor->GetSettings().m_FreeAspect = is_selected;
-//                    }
-//                    else
-//                    {
-//                        m_Editor->GetSettings().m_FreeAspect = false;
-//                        m_Editor->GetSettings().m_FixedAspect = StringToAspect(supportedAspects[n]);
-//                    }
-//                }
-//            }
-//            ImGui::EndPopup();
-//        }
-
-       // ImGui::SameLine();
-
-//        {
-//            selected = m_Editor->GetSettings().m_HalfRes;
-//            if(selected)
-//                ImGui::PushStyleColor(ImGuiCol_Text, ImGuiUtilities::GetSelectedColour());
-//
-//            if(ImGui::Button("Half Res"))
-//                m_Editor->GetSettings().m_HalfRes = !m_Editor->GetSettings().m_HalfRes;
-//
-//            if(ImGui::IsItemHovered())
-//                ImGui::SetTooltip("Scene view with halved resolution");
-//
-//            if(selected)
-//                ImGui::PopStyleColor();
-//        }
-
-       // ImGui::SameLine();
-
-//        {
-//            selected = m_Editor->FullScreenOnPlay();
-//            if(m_Editor->FullScreenOnPlay())
-//                ImGui::PushStyleColor(ImGuiCol_Text, ImGuiUtilities::GetSelectedColour());
-//
-//            if(ImGui::Button("Maximise"))
-//                m_Editor->FullScreenOnPlay() = !m_Editor->FullScreenOnPlay();
-//
-//            if(ImGui::IsItemHovered())
-//                ImGui::SetTooltip("Maximise on play");
-//
-//            if(selected)
-//                ImGui::PopStyleColor();
-//        }
 
         ImGui::PopStyleColor();
         ImGui::Unindent();
@@ -660,7 +580,7 @@ namespace Lumos
 
         if(resize)
         {
-            m_GameViewTexture->BuildTexture(Graphics::TextureFormat::RGBA8, m_Width, m_Height, false, false, false);
+            m_GameViewTexture->BuildTexture(Graphics::Format::R8G8B8A8_Unorm, m_Width, m_Height, false, false, false);
 
             auto renderGraph = Application::Get().GetRenderGraph();
             renderGraph->SetRenderTarget(m_GameViewTexture.get(), true, false);
@@ -669,7 +589,7 @@ namespace Lumos
                 m_Editor->CreateGridRenderer();
             m_Editor->GetGridRenderer()->SetRenderTarget(m_GameViewTexture.get(), false);
             m_Editor->GetGridRenderer()->SetDepthTarget(renderGraph->GetForwardData().m_DepthTexture);
-            
+
             WindowResizeEvent e(width, height);
             auto& app = Application::Get();
             app.GetRenderGraph()->OnResize(width, height);
@@ -678,8 +598,8 @@ namespace Lumos
 
             m_Editor->GetGridRenderer()->OnResize(m_Width, m_Height);
 
-            //Should be just build texture and scene renderer set render target
-            //Renderer::GetGraphicsContext()->WaitIdle();
+            // Should be just build texture and scene renderer set render target
+            // Renderer::GetGraphicsContext()->WaitIdle();
         }
     }
 }

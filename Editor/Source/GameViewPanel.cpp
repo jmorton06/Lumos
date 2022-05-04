@@ -31,14 +31,14 @@ namespace Lumos
         m_Name = ICON_MDI_GAMEPAD_VARIANT " Game###game";
         m_SimpleName = "Game";
         m_CurrentScene = nullptr;
-		
+
         m_Width = 1280;
         m_Height = 800;
-		
-		m_RenderGraph = CreateUniquePtr<Graphics::RenderGraph>(m_Width, m_Height);
+
+        m_RenderGraph = CreateUniquePtr<Graphics::RenderGraph>(m_Width, m_Height);
         m_RenderGraph->GetSettings().DebugPass = false;
     }
-	
+
     static std::string AspectToString(float aspect)
     {
         if(Maths::Equals(aspect, 16.0f / 10.0f))
@@ -66,7 +66,7 @@ namespace Lumos
             return "Unsupported";
         }
     }
-	
+
     static float StringToAspect(const std::string& aspect)
     {
         if(aspect == "16:10")
@@ -94,29 +94,29 @@ namespace Lumos
             return 1.0f;
         }
     }
-	
+
     void GameViewPanel::OnImGui()
     {
         LUMOS_PROFILE_FUNCTION();
-		
+
         ImGuiUtilities::ScopedStyle windowPadding(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
-		
+
         auto flags = ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse;
-        
-		if(!ImGui::Begin(m_Name.c_str(), &m_Active, flags))
+
+        if(!ImGui::Begin(m_Name.c_str(), &m_Active, flags))
         {
             m_GameViewVisible = false;
             ImGui::End();
             return;
         }
-		
+
         m_GameViewVisible = true;
         Camera* camera = nullptr;
         Maths::Transform* transform = nullptr;
-				
+
         {
             m_RenderGraph->SetOverrideCamera(nullptr, nullptr);
-			
+
             auto& registry = m_CurrentScene->GetRegistry();
             auto cameraView = registry.view<Camera>();
             if(!cameraView.empty())
@@ -124,30 +124,30 @@ namespace Lumos
                 camera = &registry.get<Camera>(cameraView.front());
             }
         }
-		
+
         ImVec2 offset = { 0.0f, 0.0f };
 
         {
             ToolBar();
-            offset = ImGui::GetCursorPos(); //Usually ImVec2(0.0f, 50.0f);
+            offset = ImGui::GetCursorPos(); // Usually ImVec2(0.0f, 50.0f);
         }
-		
+
         if(!camera)
         {
             ImGui::End();
             return;
         }
-		
+
         auto sceneViewSize = ImGui::GetWindowContentRegionMax() - ImGui::GetWindowContentRegionMin() - offset * 0.5f;
         auto sceneViewPosition = ImGui::GetWindowPos() + offset;
-		
+
         sceneViewSize.x -= static_cast<int>(sceneViewSize.x) % 2 != 0 ? 1.0f : 0.0f;
         sceneViewSize.y -= static_cast<int>(sceneViewSize.y) % 2 != 0 ? 1.0f : 0.0f;
-		
+
         if(!m_Editor->GetSettings().m_FreeAspect)
         {
             float heightNeededForAspect = sceneViewSize.x / m_Editor->GetSettings().m_FixedAspect;
-			
+
             if(heightNeededForAspect > sceneViewSize.y)
             {
                 sceneViewSize.x = sceneViewSize.y * m_Editor->GetSettings().m_FixedAspect;
@@ -161,33 +161,36 @@ namespace Lumos
                 sceneViewSize.y = sceneViewSize.x / m_Editor->GetSettings().m_FixedAspect;
                 float yOffset = ((ImGui::GetContentRegionAvail() - sceneViewSize) * 0.5f).y;
                 sceneViewPosition.y += yOffset;
-				
+
                 ImGui::SetCursorPos({ ImGui::GetCursorPosX(), yOffset + offset.y });
                 offset.y += yOffset;
             }
         }
-		
+
         float aspect = static_cast<float>(sceneViewSize.x) / static_cast<float>(sceneViewSize.y);
-		
+
         if(!Maths::Equals(aspect, camera->GetAspectRatio()))
             camera->SetAspectRatio(aspect);
-        
+
         if(m_Editor->GetSettings().m_HalfRes)
             sceneViewSize *= 0.5f;
-		
+
         Resize(static_cast<uint32_t>(sceneViewSize.x), static_cast<uint32_t>(sceneViewSize.y));
-		
+
         if(m_Editor->GetSettings().m_HalfRes)
             sceneViewSize *= 2.0f;
-		
+
         ImGuiUtilities::Image(m_GameViewTexture.get(), glm::vec2(sceneViewSize.x, sceneViewSize.y));
-		
+
         auto windowSize = ImGui::GetWindowSize();
         ImVec2 minBound = sceneViewPosition;
-		
+
         ImVec2 maxBound = { minBound.x + windowSize.x, minBound.y + windowSize.y };
-        
-        if(m_ShowStats )//&& ImGui::IsWindowFocused())
+        bool updateCamera = ImGui::IsMouseHoveringRect(minBound, maxBound) || Input::Get().GetMouseMode() == MouseMode::Captured;
+
+        Application::Get().SetSceneActive(ImGui::IsWindowFocused() && !ImGuizmo::IsUsing() && updateCamera);
+
+        if(m_ShowStats) //&& ImGui::IsWindowFocused())
         {
             static bool p_open = true;
             const float DISTANCE = 5.0f;
@@ -252,40 +255,39 @@ namespace Lumos
             ImGui::End();
         }
 
-		
         ImGui::End();
     }
-	
+
     void GameViewPanel::OnNewScene(Scene* scene)
     {
         LUMOS_PROFILE_FUNCTION();
-	    m_CurrentScene = scene;
-	
-	    //m_RenderGraph
+        m_CurrentScene = scene;
+
+        // m_RenderGraph
         m_RenderGraph->OnNewScene(scene);
-	    m_RenderGraph->SetRenderTarget(m_GameViewTexture.get(), true);
+        m_RenderGraph->SetRenderTarget(m_GameViewTexture.get(), true);
     }
-	
+
     void GameViewPanel::Resize(uint32_t width, uint32_t height)
     {
         LUMOS_PROFILE_FUNCTION();
         bool resize = false;
-		
+
         LUMOS_ASSERT(width > 0 && height > 0, "Scene View Dimensions 0");
-		
+
         if(m_Width != width || m_Height != height)
         {
             resize = true;
             m_Width = width;
             m_Height = height;
         }
-		
+
         if(!m_GameViewTexture)
             m_GameViewTexture = SharedPtr<Graphics::Texture2D>(Graphics::Texture2D::Create());
-		
+
         if(resize)
         {
-            m_GameViewTexture->BuildTexture(Graphics::TextureFormat::RGBA8, m_Width, m_Height, false, false, false);
+            m_GameViewTexture->BuildTexture(Graphics::Format::R8G8B8A8_Unorm, m_Width, m_Height, false, false, false);
             m_RenderGraph->SetRenderTarget(m_GameViewTexture.get(), true, false);
             m_RenderGraph->OnResize(width, height);
         }

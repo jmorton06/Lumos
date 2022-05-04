@@ -1,10 +1,10 @@
 #pragma once
-#include "Maths/Maths.h"
 #include "Events/Event.h"
 #include "Events/KeyEvent.h"
 #include "Events/MouseEvent.h"
 #include "Utilities/TSingleton.h"
 #include "Core/OS/KeyCodes.h"
+#include <glm/vec2.hpp>
 
 #define MAX_KEYS 1024
 #define MAX_BUTTONS 32
@@ -20,14 +20,14 @@ namespace Lumos
         Captured
     };
 
-	struct Controller
-	{
-		int ID;
-		std::string Name;
-		std::map<int, bool> ButtonStates;
-		std::map<int, float> AxisStates;
-		std::map<int, uint8_t> HatStates;
-	};
+    struct Controller
+    {
+        int ID;
+        std::string Name;
+        std::map<int, bool> ButtonStates;
+        std::map<int, float> AxisStates;
+        std::map<int, uint8_t> HatStates;
+    };
 
     class LUMOS_EXPORT Input : public ThreadSafeSingleton<Input>
     {
@@ -63,21 +63,21 @@ namespace Lumos
         MouseMode GetMouseMode() const { return m_MouseMode; }
         void SetMouseMode(MouseMode mode) { m_MouseMode = mode; }
 
-		// Controllers
-		static bool IsControllerPresent(int id);
-		static std::vector<int> GetConnectedControllerIDs();
-		static Controller* GetController(int id);
+        // Controllers
+        static bool IsControllerPresent(int id);
+        static std::vector<int> GetConnectedControllerIDs();
+        static Controller* GetController(int id);
         static Controller* GetOrAddController(int id);
 
-		static std::string GetControllerName(int id);
-		static bool IsControllerButtonPressed(int controllerID, int button);
-		static float GetControllerAxis(int controllerID, int axis);
-		static uint8_t GetControllerHat(int controllerID, int hat);
+        static std::string GetControllerName(int id);
+        static bool IsControllerButtonPressed(int controllerID, int button);
+        static float GetControllerAxis(int controllerID, int axis);
+        static uint8_t GetControllerHat(int controllerID, int hat);
         static void RemoveController(int id);
 
-		static std::map<int, Controller>& GetControllers() { return s_Controllers; }
-	private:
+        static std::map<int, Controller>& GetControllers() { return s_Controllers; }
 
+    private:
     protected:
         bool OnKeyPressed(KeyPressedEvent& e);
         bool OnKeyReleased(KeyReleasedEvent& e);
@@ -99,7 +99,7 @@ namespace Lumos
         MouseMode m_MouseMode;
 
         glm::vec2 m_MousePosition;
-        
+
         inline static std::map<int, Controller> s_Controllers;
     };
 }

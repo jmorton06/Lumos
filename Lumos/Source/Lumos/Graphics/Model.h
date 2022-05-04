@@ -56,9 +56,9 @@ namespace Lumos
                 else
                 {
                     LoadModel(m_FilePath);
-                    //TODO: This should load material changes from editor
-                    //m_Meshes.back()->SetMaterial(SharedPtr<Material>(material.get()));
-                    //material.release();
+                    // TODO: This should load material changes from editor
+                    // m_Meshes.back()->SetMaterial(SharedPtr<Material>(material.get()));
+                    // material.release();
                 }
             }
 
@@ -67,7 +67,7 @@ namespace Lumos
             void SetPrimitiveType(PrimitiveType type) { m_PrimitiveType = type; }
 
         private:
-            PrimitiveType m_PrimitiveType;
+            PrimitiveType m_PrimitiveType = PrimitiveType::None;
             std::vector<SharedPtr<Mesh>> m_Meshes;
             std::string m_FilePath;
 

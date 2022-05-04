@@ -6,75 +6,7 @@ namespace Lumos
 {
     namespace Graphics
     {
-        class Pipeline;
-        class CommandBuffer;
-        class DescriptorSet;
-        class SwapChain;
-        class IndexBuffer;
         class Mesh;
-        class Texture;
-        class GraphicsContext;
-
-        enum RendererBufferType
-        {
-            RENDERER_BUFFER_NONE = 0,
-            RENDERER_BUFFER_COLOUR = BIT(0),
-            RENDERER_BUFFER_DEPTH = BIT(1),
-            RENDERER_BUFFER_STENCIL = BIT(2)
-        };
-
-        enum class DrawType
-        {
-            POINT,
-            TRIANGLE,
-            LINES
-        };
-
-        enum class StencilType
-        {
-            EQUAL,
-            NOTEQUAL,
-            KEEP,
-            REPLACE,
-            ZERO,
-            ALWAYS
-        };
-
-        enum class PixelPackType
-        {
-            PACK,
-            UNPACK
-        };
-
-        enum class RendererBlendFunction
-        {
-            NONE,
-            ZERO,
-            ONE,
-            SOURCE_ALPHA,
-            DESTINATION_ALPHA,
-            ONE_MINUS_SOURCE_ALPHA
-        };
-
-        enum class RendererBlendEquation
-        {
-            NONE,
-            ADD,
-            SUBTRACT
-        };
-
-        enum class RenderMode
-        {
-            FILL,
-            WIREFRAME
-        };
-
-        enum class DataType
-        {
-            FLOAT,
-            UNSIGNED_INT,
-            UNSIGNED_BYTE
-        };
 
         struct RenderAPICapabilities
         {
@@ -151,7 +83,7 @@ namespace Lumos
             static GraphicsContext* GetGraphicsContext() { return Application::Get().GetWindow()->GetGraphicsContext(); }
             static SwapChain* GetMainSwapChain() { return Application::Get().GetWindow()->GetSwapChain(); }
             static void DrawMesh(CommandBuffer* commandBuffer, Graphics::Pipeline* pipeline, Graphics::Mesh* mesh);
-        
+
         protected:
             static Renderer* (*CreateFunc)();
 

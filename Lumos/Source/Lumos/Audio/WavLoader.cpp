@@ -43,12 +43,12 @@ namespace Lumos
                 file.read(reinterpret_cast<char*>(data.Data), chunkSize);
                 break;
                 /*
-				In release mode, ifstream and / or something else were combining
-				to make this function see another 'data' chunk, filled with
-				nonsense data, breaking WAV loading. Easiest way to get around it
-				was to simply break after loading the data chunk. This *should*
-				be fine for any WAV file you find / use. Not fun to debug.
-				*/
+                                In release mode, ifstream and / or something else were combining
+                                to make this function see another 'data' chunk, filled with
+                                nonsense data, breaking WAV loading. Easiest way to get around it
+                                was to simply break after loading the data chunk. This *should*
+                                be fine for any WAV file you find / use. Not fun to debug.
+                                */
             }
             else
             {
@@ -56,7 +56,7 @@ namespace Lumos
             }
         }
 
-        //Milliseconds
+        // Milliseconds
         data.Length = static_cast<float>(data.Size) / (data.Channels * data.FreqRate * (data.BitRate / 8.0f)) * 1000.0f;
 
         file.close();

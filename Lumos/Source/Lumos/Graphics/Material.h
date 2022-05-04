@@ -62,7 +62,7 @@ namespace Lumos
 
             ~Material();
 
-            void LoadPBRMaterial(const std::string& name, const std::string& path, const std::string& extension = ".png"); //TODO : Texture Parameters
+            void LoadPBRMaterial(const std::string& name, const std::string& path, const std::string& extension = ".png"); // TODO : Texture Parameters
             void LoadMaterial(const std::string& name, const std::string& path);
             void CreateDescriptorSet(int layoutID, bool pbr = true);
 
@@ -80,7 +80,7 @@ namespace Lumos
             void SetShader(SharedPtr<Shader>& shader)
             {
                 m_Shader = shader;
-                m_TexturesUpdated = true; //TODO
+                m_TexturesUpdated = true; // TODO
             }
 
             bool& GetTexturesUpdated()
@@ -191,9 +191,9 @@ namespace Lumos
                     cereal::make_nvp("workflow", m_MaterialProperties->workflow),
                     cereal::make_nvp("shader", shaderFilePath));
 
-                //if(!shaderFilePath.empty())
-                //SetShader(shaderFilePath);
-                //TODO: Support Custom Shaders;
+                // if(!shaderFilePath.empty())
+                // SetShader(shaderFilePath);
+                // TODO: Support Custom Shaders;
                 m_Shader = nullptr;
 
                 if(!albedoFilePath.empty())

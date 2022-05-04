@@ -39,12 +39,12 @@ namespace Lumos
     {
     }
 
-    const BoundingBox& RigidBody3D::GetWorldSpaceAABB()
+    const Maths::BoundingBox& RigidBody3D::GetWorldSpaceAABB()
     {
         LUMOS_PROFILE_FUNCTION();
         if(m_wsAabbInvalidated)
         {
-			LUMOS_PROFILE_SCOPE("Calculate BoundingBox");
+            LUMOS_PROFILE_SCOPE("Calculate BoundingBox");
             m_wsAabb = m_localBoundingBox.Transformed(GetWorldSpaceTransform());
             m_wsAabbInvalidated = false;
         }
@@ -133,7 +133,7 @@ namespace Lumos
                 colour = glm::vec4(0.0f, 1.0f, 0.0f, 1.0f);
 
             // AABB
-            BoundingBox box = m_wsAabb;
+            Maths::BoundingBox box = m_wsAabb;
             DebugRenderer::DebugDraw(box, colour, false);
         }
 

@@ -37,7 +37,7 @@ namespace Lumos
 
         void SetControllerType(ControllerType type)
         {
-            //if(type != m_Type)
+            // if(type != m_Type)
             {
                 m_Type = type;
                 switch(type)

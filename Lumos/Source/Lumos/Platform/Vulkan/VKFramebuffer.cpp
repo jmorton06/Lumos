@@ -36,7 +36,7 @@ namespace Lumos
                     attachments.push_back(static_cast<VKTexture2D*>(frameBufferInfo.attachments[i])->GetImageView());
                     break;
                 case TextureType::CUBE:
-                    UNIMPLEMENTED;
+                    attachments.push_back(static_cast<VKTextureCube*>(frameBufferInfo.attachments[i])->GetImageView(frameBufferInfo.layer));
                     break;
                 }
             }

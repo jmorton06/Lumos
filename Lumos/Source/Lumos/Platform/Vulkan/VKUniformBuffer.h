@@ -27,7 +27,6 @@ namespace Lumos
             VkBuffer* GetBuffer() { return &m_Buffer; }
             VkDeviceMemory* GetMemory() { return &m_Memory; }
             const VkDescriptorBufferInfo& GetBufferInfo() const { return m_DesciptorBufferInfo; };
-
             uint8_t* GetBuffer() const override { return nullptr; };
             static void MakeDefault();
 

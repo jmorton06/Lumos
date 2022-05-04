@@ -24,7 +24,7 @@ namespace Lumos
 
             if(EnableValidationLayers)
             {
-				LUMOS_LOG_INFO("Vulkan : Enabled Validation Layers");
+                LUMOS_LOG_INFO("Vulkan : Enabled Validation Layers");
                 extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
                 extensions.push_back(VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
                 extensions.push_back(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME);
@@ -129,8 +129,6 @@ namespace Lumos
             VKDevice::Get().Init();
 
             SetupDebugCallback();
-
-            //glm::mat4::SetUpCoordSystem(false, true);
         };
 
         void VKContext::Present()

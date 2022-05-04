@@ -11,18 +11,18 @@ namespace Lumos
             : std::vector<QueueablePathNode*>()
         //, m_comp()
         {
-            //std::make_heap(begin(), end(), m_comp);
+            // std::make_heap(begin(), end(), m_comp);
         }
 
         void Push(QueueablePathNode* item)
         {
             push_back(item);
-            //std::push_heap(begin(), end(), m_comp);
+            // std::push_heap(begin(), end(), m_comp);
         }
 
         void Pop()
         {
-            //std::pop_heap(begin(), end(), m_comp);
+            // std::pop_heap(begin(), end(), m_comp);
             pop_back();
         }
 
@@ -38,11 +38,11 @@ namespace Lumos
 
         void Update()
         {
-            //std::make_heap(begin(), end(), m_comp);
+            // std::make_heap(begin(), end(), m_comp);
         }
 
     private:
-        //greater_ptr<QueueablePathNode> m_comp;
+        // greater_ptr<QueueablePathNode> m_comp;
     };
 
 }

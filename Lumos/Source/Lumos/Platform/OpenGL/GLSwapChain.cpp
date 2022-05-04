@@ -176,7 +176,7 @@ namespace Lumos
 
         Texture* GLSwapChain::GetCurrentImage()
         {
-            return nullptr; //swapChainBuffers[0];
+            return nullptr; // swapChainBuffers[0];
         }
 
         uint32_t GLSwapChain::GetCurrentBufferIndex() const

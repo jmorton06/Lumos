@@ -44,7 +44,7 @@ namespace Lumos
 
         Sound::ConvertToMono(data.Data, data.Size, data.Data, data.Channels, data.BitRate);
         data.Channels = 1;
-        data.Length = stb_vorbis_stream_length_in_seconds(m_StreamHandle) * 1000.0f; //Milliseconds
+        data.Length = stb_vorbis_stream_length_in_seconds(m_StreamHandle) * 1000.0f; // Milliseconds
 
         stb_vorbis_close(m_StreamHandle);
 

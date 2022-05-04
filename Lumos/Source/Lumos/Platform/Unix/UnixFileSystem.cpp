@@ -20,8 +20,8 @@ namespace Lumos
 
         if(size != read_size)
         {
-            //delete[] buffer;
-            //buffer = NULL;
+            // delete[] buffer;
+            // buffer = NULL;
             return false;
         }
         else
@@ -106,7 +106,7 @@ namespace Lumos
     bool FileSystem::WriteFile(const std::string& path, uint8_t* buffer, uint32_t size)
     {
         FILE* file = fopen(path.c_str(), FileSystem::GetFileOpenModeString(FileOpenFlags::WRITE));
-        if(file == NULL) //if file does not exist, create it
+        if(file == NULL) // if file does not exist, create it
         {
             file = fopen(path.c_str(), FileSystem::GetFileOpenModeString(FileOpenFlags::WRITE_READ));
         }
@@ -141,7 +141,7 @@ namespace Lumos
     bool FileSystem::WriteTextFile(const std::string& path, const std::string& text)
     {
         FILE* file = fopen(path.c_str(), FileSystem::GetFileOpenModeString(FileOpenFlags::WRITE));
-        if(file == NULL) //if file does not exist, create it
+        if(file == NULL) // if file does not exist, create it
         {
             file = fopen(path.c_str(), FileSystem::GetFileOpenModeString(FileOpenFlags::WRITE_READ));
         }

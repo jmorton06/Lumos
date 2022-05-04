@@ -117,8 +117,7 @@ end
 
                         auto textEditPanel = Lumos::Editor::GetEditor()->GetTextEditPanel();
                         if(textEditPanel)
-                            ((Lumos::TextEditPanel*)textEditPanel)->SetErrors(script.GetErrors());
-                    });
+                            ((Lumos::TextEditPanel*)textEditPanel)->SetErrors(script.GetErrors()); });
 
                 auto textEditPanel = Lumos::Editor::GetEditor()->GetTextEditPanel();
                 if(textEditPanel)
@@ -427,10 +426,10 @@ end
         if(updated)
             axisConstraintComponent.SetAxes((Axes)selectedIndex);
 
-        //bool updated = Lumos::ImGuiUtilities::PropertyDropdown("Entity", entities.data(), (int)entities.size(), &selectedIndex);
+        // bool updated = Lumos::ImGuiUtilities::PropertyDropdown("Entity", entities.data(), (int)entities.size(), &selectedIndex);
 
-        //if(updated)
-        //axisConstraintComponent.SetEntity(Entity(physics3dEntities[selectedIndex], Application::Get().GetCurrentScene()).GetID());
+        // if(updated)
+        // axisConstraintComponent.SetEntity(Entity(physics3dEntities[selectedIndex], Application::Get().GetCurrentScene()).GetID());
 
         ImGui::Columns(1);
     }
@@ -1048,7 +1047,7 @@ end
         auto& animStates = sprite.GetAnimationStates();
         if(ImGui::TreeNode("States"))
         {
-            //ImGui::Indent(20.0f);
+            // ImGui::Indent(20.0f);
             ImGui::SameLine((ImGui::GetWindowContentRegionMax() - ImGui::GetWindowContentRegionMin()).x - ImGui::GetFontSize());
             ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.7f, 0.7f, 0.7f, 0.0f));
 
@@ -1244,7 +1243,7 @@ end
 
             bool flipImage = Graphics::Renderer::GetGraphicsContext()->FlipImGUITexture();
 
-            //ImGui::AlignTextToFramePadding();
+            // ImGui::AlignTextToFramePadding();
             auto tex = sprite.GetTexture();
 
             auto imageButtonSize = ImVec2(64, 64) * Application::Get().GetWindowDPI();
@@ -1442,6 +1441,8 @@ end
             return "Terrain";
         case Lumos::Graphics::PrimitiveType::File:
             return "File";
+        case Lumos::Graphics::PrimitiveType::None:
+            return "None";
         }
 
         LUMOS_LOG_ERROR("Primitive not supported");
@@ -1544,8 +1545,8 @@ end
     {
         LUMOS_PROFILE_FUNCTION();
         auto& model = *reg.get<Lumos::Graphics::ModelComponent>(e).ModelRef.get();
-        auto& meshes = model.GetMeshes();
-        auto primitiveType = model.GetPrimitiveType();
+        
+        auto primitiveType = reg.get<Lumos::Graphics::ModelComponent>(e).ModelRef ? model.GetPrimitiveType() : Lumos::Graphics::PrimitiveType::None;
 
         ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
         ImGui::Columns(2);
@@ -1556,7 +1557,7 @@ end
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
 
-        const char* shapes[] = { "Sphere", "Cube", "Pyramid", "Capsule", "Cylinder", "Terrain", "File", "Quad" };
+        const char* shapes[] = { "Sphere", "Cube", "Pyramid", "Capsule", "Cylinder", "Terrain", "File", "Quad", "None" };
         std::string shape_current = GetPrimativeName(primitiveType).c_str();
         if(ImGui::BeginCombo("", shape_current.c_str(), 0)) // The second parameter is the label previewed before opening the combo.
         {
@@ -1565,14 +1566,25 @@ end
                 bool is_selected = (shape_current.c_str() == shapes[n]);
                 if(ImGui::Selectable(shapes[n], shape_current.c_str()))
                 {
-                    meshes.clear();
+                    if(reg.get<Lumos::Graphics::ModelComponent>(e).ModelRef)
+                        model.GetMeshes().clear();
+
                     if(strcmp(shapes[n], "File") != 0)
                     {
-                        meshes.push_back(Lumos::SharedPtr<Lumos::Graphics::Mesh>(Lumos::Graphics::CreatePrimative(GetPrimativeName(shapes[n]))));
-                        model.SetPrimitiveType(GetPrimativeName(shapes[n]));
+                        if(reg.get<Lumos::Graphics::ModelComponent>(e).ModelRef)
+                        {   model.GetMeshes().push_back(Lumos::SharedPtr<Lumos::Graphics::Mesh>(Lumos::Graphics::CreatePrimative(GetPrimativeName(shapes[n]))));
+                            model.SetPrimitiveType(GetPrimativeName(shapes[n]));
+                        }
+                        else
+                        {
+                            reg.get<Lumos::Graphics::ModelComponent>(e).LoadPrimitive(GetPrimativeName(shapes[n]));
+                        }
                     }
                     else
-                        model.SetPrimitiveType(Lumos::Graphics::PrimitiveType::File);
+                    {
+                        if(reg.get<Lumos::Graphics::ModelComponent>(e).ModelRef)
+                            model.SetPrimitiveType(Lumos::Graphics::PrimitiveType::File);
+                    }
                 }
                 if(is_selected)
                     ImGui::SetItemDefaultFocus();
@@ -1601,7 +1613,11 @@ end
         ImGui::PopStyleVar();
 
         int matIndex = 0;
+        
+        if(!reg.get<Lumos::Graphics::ModelComponent>(e).ModelRef)
+            return;
 
+        auto& meshes = reg.get<Lumos::Graphics::ModelComponent>(e).ModelRef->GetMeshes();
         for(auto mesh : meshes)
         {
             auto material = mesh->GetMaterial();
@@ -1668,8 +1684,8 @@ end
     {
         LUMOS_PROFILE_FUNCTION();
         auto& environment = reg.get<Lumos::Graphics::Environment>(e);
-        //Disable image until texturecube is supported
-        //Lumos::ImGuiUtilities::Image(environment.GetEnvironmentMap(), glm::vec2(200, 200));
+        // Disable image until texturecube is supported
+        // Lumos::ImGuiUtilities::Image(environment.GetEnvironmentMap(), glm::vec2(200, 200));
 
         ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
         ImGui::Columns(2);
@@ -1893,8 +1909,8 @@ namespace Lumos
         m_EnttEditor.registerComponent<ComponentType>(Name.c_str());         \
     }
         TRIVIAL_COMPONENT(Maths::Transform, "Transform");
-        TRIVIAL_COMPONENT(Graphics::Model, "Model");
-        TRIVIAL_COMPONENT(Graphics::ModelComponent, "Model");
+        //TRIVIAL_COMPONENT(Graphics::Model, "Model");
+        TRIVIAL_COMPONENT(Graphics::ModelComponent, "ModelComponent");
         TRIVIAL_COMPONENT(Camera, "Camera");
         TRIVIAL_COMPONENT(AxisConstraintComponent, "AxisConstraint");
         TRIVIAL_COMPONENT(RigidBody3DComponent, "Physics3D");
@@ -1925,7 +1941,7 @@ namespace Lumos
                 return;
             }
 
-            //active checkbox
+            // active checkbox
             auto activeComponent = registry.try_get<ActiveComponent>(selected);
             bool active = activeComponent ? activeComponent->active : true;
             if(ImGui::Checkbox("##ActiveCheckbox", &active))
@@ -1950,7 +1966,7 @@ namespace Lumos
             {
                 if(registry.valid(selected))
                 {
-                    //ImGui::Text("ID: %d, Version: %d", static_cast<int>(registry.entity(selected)), registry.version(selected));
+                    // ImGui::Text("ID: %d, Version: %d", static_cast<int>(registry.entity(selected)), registry.version(selected));
                 }
                 else
                 {
@@ -1996,7 +2012,7 @@ namespace Lumos
                 {
                     if(registry.valid(hierarchyComp->Parent()))
                     {
-                        //ImGui::Text("Parent : ID: %d", static_cast<int>(registry.entity(hierarchyComp->Parent())));
+                        // ImGui::Text("Parent : ID: %d", static_cast<int>(registry.entity(hierarchyComp->Parent())));
                     }
                     else
                     {
@@ -2009,7 +2025,7 @@ namespace Lumos
 
                     while(child != entt::null)
                     {
-                        //ImGui::Text("ID: %d", static_cast<int>(registry.entity(child)));
+                        // ImGui::Text("ID: %d", static_cast<int>(registry.entity(child)));
 
                         auto hierarchy = registry.try_get<Hierarchy>(child);
 

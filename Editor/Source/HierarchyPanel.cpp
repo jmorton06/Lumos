@@ -129,7 +129,7 @@ namespace Lumos
             }
 
             ImGui::PushStyleColor(ImGuiCol_Text, ImGuiUtilities::GetIconColour());
-            //ImGui::BeginGroup();
+            // ImGui::BeginGroup();
             bool nodeOpen = ImGui::TreeNodeEx((void*)(intptr_t)entt::to_integral(node), nodeFlags, "%s", icon.c_str());
             {
                 // Allow clicking of icon and text. Need twice as they are separated
@@ -142,7 +142,7 @@ namespace Lumos
             ImGui::SameLine();
             if(!doubleClicked)
                 ImGui::TextUnformatted(name.c_str());
-            //ImGui::EndGroup();
+            // ImGui::EndGroup();
 
             if(doubleClicked)
             {
@@ -330,7 +330,7 @@ namespace Lumos
             ImDrawList* drawList = ImGui::GetWindowDrawList();
 
             ImVec2 verticalLineStart = ImGui::GetCursorScreenPos();
-            verticalLineStart.x += SmallOffsetX; //to nicely line up with the arrow symbol
+            verticalLineStart.x += SmallOffsetX; // to nicely line up with the arrow symbol
             ImVec2 verticalLineEnd = verticalLineStart;
 
             if(!noChildren)
@@ -338,7 +338,7 @@ namespace Lumos
                 entt::entity child = hierarchyComponent->First();
                 while(child != entt::null && registry.valid(child))
                 {
-                    float HorizontalTreeLineSize = 16.0f * Application::Get().GetWindowDPI(); //chosen arbitrarily
+                    float HorizontalTreeLineSize = 16.0f * Application::Get().GetWindowDPI(); // chosen arbitrarily
                     auto currentPos = ImGui::GetCursorScreenPos();
                     ImGui::Indent(10.0f);
 
@@ -427,72 +427,73 @@ namespace Lumos
         m_SelectDown = false;
 
         m_SelectUp = Input::Get().GetKeyPressed(Lumos::InputCode::Key::Up);
-        m_SelectDown = Input::Get().GetKeyPressed(Lumos::InputCode::Key::Down);;
-		
+        m_SelectDown = Input::Get().GetKeyPressed(Lumos::InputCode::Key::Down);
+        ;
+
         ImGui::Begin(m_Name.c_str(), &m_Active, flags);
         {
-			auto scene = Application::Get().GetSceneManager()->GetCurrentScene();
-			auto& registry = scene->GetRegistry();
-			
-			auto AddEntity = [scene]() 
-			{
-				if(ImGui::Selectable("Add Empty Entity"))
-				{
-					scene->CreateEntity();
-				}
-				
-				if(ImGui::Selectable("Add Light"))
-				{
-					auto entity = scene->CreateEntity("Light");
-					entity.AddComponent<Graphics::Light>();
-					entity.GetOrAddComponent<Maths::Transform>();
-				}
-				
-				if(ImGui::Selectable("Add Rigid Body"))
-				{
-					auto entity = scene->CreateEntity("RigidBody");
-					entity.AddComponent<RigidBody3DComponent>();
-					entity.GetOrAddComponent<Maths::Transform>();
-					entity.AddComponent<AxisConstraintComponent>(entity, Axes::XZ);
-					entity.GetComponent<RigidBody3DComponent>().GetRigidBody()->SetCollisionShape(CollisionShapeType::CollisionCuboid);
-				}
-				
-				if(ImGui::Selectable("Add Camera"))
-				{
-					auto entity = scene->CreateEntity("Camera");
-					entity.AddComponent<Camera>();
-					entity.GetOrAddComponent<Maths::Transform>();
-				}
-				
-				if(ImGui::Selectable("Add Sprite"))
-				{
-					auto entity = scene->CreateEntity("Sprite");
-					entity.AddComponent<Graphics::Sprite>();
-					entity.GetOrAddComponent<Maths::Transform>();
-				}
-				
-				if(ImGui::Selectable("Add Lua Script"))
-				{
-					auto entity = scene->CreateEntity("LuaScript");
-					entity.AddComponent<LuaScriptComponent>();
-				}
-			};
-			
+            auto scene = Application::Get().GetSceneManager()->GetCurrentScene();
+            auto& registry = scene->GetRegistry();
+
+            auto AddEntity = [scene]()
+            {
+                if(ImGui::Selectable("Add Empty Entity"))
+                {
+                    scene->CreateEntity();
+                }
+
+                if(ImGui::Selectable("Add Light"))
+                {
+                    auto entity = scene->CreateEntity("Light");
+                    entity.AddComponent<Graphics::Light>();
+                    entity.GetOrAddComponent<Maths::Transform>();
+                }
+
+                if(ImGui::Selectable("Add Rigid Body"))
+                {
+                    auto entity = scene->CreateEntity("RigidBody");
+                    entity.AddComponent<RigidBody3DComponent>();
+                    entity.GetOrAddComponent<Maths::Transform>();
+                    entity.AddComponent<AxisConstraintComponent>(entity, Axes::XZ);
+                    entity.GetComponent<RigidBody3DComponent>().GetRigidBody()->SetCollisionShape(CollisionShapeType::CollisionCuboid);
+                }
+
+                if(ImGui::Selectable("Add Camera"))
+                {
+                    auto entity = scene->CreateEntity("Camera");
+                    entity.AddComponent<Camera>();
+                    entity.GetOrAddComponent<Maths::Transform>();
+                }
+
+                if(ImGui::Selectable("Add Sprite"))
+                {
+                    auto entity = scene->CreateEntity("Sprite");
+                    entity.AddComponent<Graphics::Sprite>();
+                    entity.GetOrAddComponent<Maths::Transform>();
+                }
+
+                if(ImGui::Selectable("Add Lua Script"))
+                {
+                    auto entity = scene->CreateEntity("LuaScript");
+                    entity.AddComponent<LuaScriptComponent>();
+                }
+            };
+
             ImGui::PushStyleColor(ImGuiCol_MenuBarBg, ImGui::GetStyleColorVec4(ImGuiCol_TabActive));
-			
-			if(ImGui::Button(ICON_MDI_PLUS))
-				   {
-				//Add Entity Menu
-				ImGui::OpenPopup("AddEntity");
-			}
-			
-			if(ImGui::BeginPopup("AddEntity"))
-			{
-				AddEntity();
-				ImGui::EndPopup();
-			}
-			
-			ImGui::SameLine();
+
+            if(ImGui::Button(ICON_MDI_PLUS))
+            {
+                // Add Entity Menu
+                ImGui::OpenPopup("AddEntity");
+            }
+
+            if(ImGui::BeginPopup("AddEntity"))
+            {
+                AddEntity();
+                ImGui::EndPopup();
+            }
+
+            ImGui::SameLine();
             ImGui::TextUnformatted(ICON_MDI_MAGNIFY);
             ImGui::SameLine();
 
@@ -585,10 +586,9 @@ namespace Lumos
 
                             if(!hierarchyComponent || hierarchyComponent->Parent() == entt::null)
                                 DrawNode(entity, registry);
-                        }
-                    });
+                        } });
 
-                //Only supports one scene
+                // Only supports one scene
                 ImVec2 min_space = ImGui::GetWindowContentRegionMin();
                 ImVec2 max_space = ImGui::GetWindowContentRegionMax();
 

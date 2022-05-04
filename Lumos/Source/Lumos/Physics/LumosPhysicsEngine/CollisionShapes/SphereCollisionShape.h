@@ -12,7 +12,7 @@ namespace Lumos
         explicit SphereCollisionShape(float radius);
         ~SphereCollisionShape();
 
-        //Collision Shape Functionality
+        // Collision Shape Functionality
         virtual glm::mat3 BuildInverseInertia(float invMass) const override;
 
         virtual std::vector<glm::vec3>& GetCollisionAxes(const RigidBody3D* currentObject) override;
@@ -25,7 +25,7 @@ namespace Lumos
 
         virtual void DebugDraw(const RigidBody3D* currentObject) const override;
 
-        //Get/Set Sphere Radius
+        // Get/Set Sphere Radius
         void SetRadius(float radius)
         {
             m_Radius = radius;

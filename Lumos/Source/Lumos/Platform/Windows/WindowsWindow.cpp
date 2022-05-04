@@ -288,15 +288,15 @@ namespace Lumos
             // use default values from current setting
             EnumDisplaySettings(NULL, ENUM_CURRENT_SETTINGS, &dm);
             /*m_data->m_oldScreenWidth = dm.dmPelsWidth;
-			m_data->m_oldHeight = dm.dmPelsHeight;
-			m_data->m_oldBitsPerPel = dm.dmBitsPerPel;*/
+                        m_data->m_oldHeight = dm.dmPelsHeight;
+                        m_data->m_oldBitsPerPel = dm.dmBitsPerPel;*/
 
             dm.dmPelsWidth = m_Data.Width;
             dm.dmPelsHeight = m_Data.Height;
             /*if (colorBitsPerPixel)
-			{
-				dm.dmBitsPerPel = colorBitsPerPixel;
-			}*/
+                        {
+                                dm.dmBitsPerPel = colorBitsPerPixel;
+                        }*/
             dm.dmFields = DM_BITSPERPEL | DM_PELSWIDTH | DM_PELSHEIGHT | DM_DISPLAYFREQUENCY;
 
             LONG res = ChangeDisplaySettings(&dm, CDS_FULLSCREEN);
@@ -357,7 +357,7 @@ namespace Lumos
 #endif
 #endif
 
-        //Input
+        // Input
         rid.usUsagePage = HID_USAGE_PAGE_GENERIC;
         rid.usUsage = HID_USAGE_GENERIC_KEYBOARD;
         rid.dwFlags = RIDEV_INPUTSINK;
@@ -418,12 +418,12 @@ namespace Lumos
         if(m_VSync)
         {
             m_VSync = false;
-            //glfwSwapInterval(0);
+            // glfwSwapInterval(0);
         }
         else
         {
             m_VSync = true;
-            //glfwSwapInterval(1);
+            // glfwSwapInterval(1);
         }
     }
 
@@ -630,7 +630,7 @@ namespace Lumos
 
     void WindowsWindow::UpdateCursorImGui()
     {
-        //ImGuiUpdateMousePos(hWnd);
+        // ImGuiUpdateMousePos(hWnd);
 
         ImGuiIO& io = ImGui::GetIO();
         ImGuiMouseCursor imgui_cursor = io.MouseDrawCursor ? ImGuiMouseCursor_None : ImGui::GetMouseCursor();

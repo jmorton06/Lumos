@@ -58,7 +58,7 @@ namespace Lumos
                 int32_t Transfer = -1;
             };
             QueueFamilyIndices GetQueueFamilyIndices(int queueFlags);
-            
+
             uint32_t GetGPUCount() const
             {
                 return m_GPUCount;
@@ -72,10 +72,10 @@ namespace Lumos
             std::vector<VkDeviceQueueCreateInfo> m_QueueCreateInfos;
 
             VkPhysicalDevice m_PhysicalDevice;
-            //VkPhysicalDeviceFeatures m_Features;
+            // VkPhysicalDeviceFeatures m_Features;
             VkPhysicalDeviceProperties m_PhysicalDeviceProperties;
             VkPhysicalDeviceMemoryProperties m_MemoryProperties;
-            
+
             uint32_t m_GPUCount = 0;
 
             friend class VKDevice;
@@ -140,12 +140,12 @@ namespace Lumos
             {
                 return VKDevice::Get().GetDevice();
             }
-            
+
             uint32_t GetGPUCount() const
             {
                 return m_PhysicalDevice->GetGPUCount();
             }
-            
+
             const VkPhysicalDeviceFeatures& GetEnabledFeatures()
             {
                 return m_EnabledFeatures;

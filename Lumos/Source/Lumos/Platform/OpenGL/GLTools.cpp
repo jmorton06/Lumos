@@ -8,34 +8,38 @@ namespace Lumos
 {
     namespace Graphics
     {
-        uint32_t GLTools::TextureFormatToGL(const TextureFormat format, bool srgb)
+        uint32_t GLTools::FormatToGL(const Format format, bool srgb)
         {
             switch(format)
             {
-            case TextureFormat::RGBA:
-                return GL_RGBA; //srgb ? GL_SRGB8 :
-            case TextureFormat::RGB:
-                return GL_RGB;
-            case TextureFormat::R8:
+            case Format::R8_Unorm:
                 return GL_R8;
-            case TextureFormat::RG8:
+            case Format::R8G8_Unorm:
                 return GL_RG8;
-            case TextureFormat::RGB8:
+            case Format::R8G8B8_Unorm:
                 return srgb ? GL_SRGB8 : GL_RGB8;
-            case TextureFormat::RGBA8:
+            case Format::R8G8B8A8_Unorm:
                 return srgb ? GL_SRGB8_ALPHA8 : GL_RGBA8;
-            case TextureFormat::RGB16:
+            case Format::R11G11B10_Float:
+                return GL_R11F_G11F_B10F;
+            case Format::R10G10B10A2_Unorm:
+                return GL_RGB10_A2;
+            case Format::R16G16B16_Float:
                 return GL_RGB16F;
-            case TextureFormat::RGBA16:
+            case Format::R16G16B16A16_Float:
                 return GL_RGBA16F;
-            case TextureFormat::RGB32:
+            case Format::R32G32B32_Float:
                 return GL_RGB32F;
-            case TextureFormat::RGBA32:
+            case Format::R32G32B32A32_Float:
                 return GL_RGBA32F;
-            case TextureFormat::DEPTH:
+            case Format::D24_Unorm_S8_UInt:
                 return GL_DEPTH24_STENCIL8;
+            case Format::D32_Float:
+                return GL_DEPTH_COMPONENT32F;
+            case Format::D32_Float_S8_UInt:
+                return GL_DEPTH32F_STENCIL8;
             default:
-                LUMOS_ASSERT(false, "[Texture] Unsupported TextureFormat");
+                LUMOS_ASSERT(false, "[Texture] Unsupported Format");
                 return 0;
             }
         }
@@ -62,7 +66,7 @@ namespace Lumos
             }
         }
 
-        uint32_t GLTools::TextureFormatToInternalFormat(uint32_t format)
+        uint32_t GLTools::FormatToInternalFormat(uint32_t format)
         {
             switch(format)
             {
@@ -95,6 +99,10 @@ namespace Lumos
             case GL_SRGB:
                 return GL_RGB;
             case GL_SRGB_ALPHA:
+                return GL_RGBA;
+            case GL_R11F_G11F_B10F:
+                return GL_RGB;
+            case GL_RGB10_A2:
                 return GL_RGBA;
             case GL_LUMINANCE:
                 return GL_LUMINANCE;

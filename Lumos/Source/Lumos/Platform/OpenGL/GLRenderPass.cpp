@@ -30,7 +30,7 @@ namespace Lumos
             if(frame != nullptr)
             {
                 frame->Bind(width, height);
-                //frame->SetClearColour(clearColour);
+                // frame->SetClearColour(clearColour);
                 GLCall(glClearColor(clearColour.x, clearColour.y, clearColour.z, clearColour.w));
             }
             else

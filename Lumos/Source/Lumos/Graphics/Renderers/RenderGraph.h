@@ -45,7 +45,7 @@ namespace Lumos
                 return vertex == other.vertex && colour == other.colour && size == other.size && uv == other.uv;
             }
         };
-    
+
         struct RenderGraphSettings
         {
             bool DebugPass = true;
@@ -54,8 +54,8 @@ namespace Lumos
             bool ShadowPass = true;
             bool SkyboxPass = true;
         };
-		
-		struct RenderGraphStats
+
+        struct RenderGraphStats
         {
             uint32_t UpdatesPerSecond;
             uint32_t FramesPerSecond;
@@ -99,7 +99,7 @@ namespace Lumos
             void DebugPass();
             void FinalPass();
 
-            //Post Process
+            // Post Process
             void BloomPass();
 
             float SubmitTexture(Texture* texture);
@@ -154,7 +154,7 @@ namespace Lumos
 
                 std::vector<Graphics::DescriptorSet*> m_CurrentDescriptorSets;
                 SharedPtr<Shader> m_Shader = nullptr;
-                Frustum m_CascadeFrustums[SHADOWMAP_MAX];
+                Maths::Frustum m_CascadeFrustums[SHADOWMAP_MAX];
             };
 
             struct ForwardData
@@ -178,7 +178,7 @@ namespace Lumos
                 Texture* m_RenderTexture = nullptr;
                 TextureDepth* m_DepthTexture = nullptr;
 
-                Frustum m_Frustum;
+                Maths::Frustum m_Frustum;
 
                 uint32_t m_RenderMode = 0;
                 uint32_t m_CurrentBufferID = 0;
@@ -248,6 +248,8 @@ namespace Lumos
             RenderGraphSettings& GetSettings() { return m_Settings; }
             RenderGraphStats& GetRenderGraphStats() { return m_Stats; }
 
+            SharedPtr<TextureCube> CreateCubeFromHDRI(const std::string& filePath);
+
         private:
             Texture2D* m_MainTexture = nullptr;
             Texture* m_ScreenTexture = nullptr;
@@ -268,6 +270,7 @@ namespace Lumos
             float m_Exposure = 1.0f;
             Mesh* m_ScreenQuad;
             Texture* m_CubeMap;
+            Texture* m_DefaultTextureCube;
             SharedPtr<Graphics::Shader> m_SkyboxShader;
             SharedPtr<Graphics::DescriptorSet> m_SkyboxDescriptorSet;
 
@@ -277,9 +280,9 @@ namespace Lumos
             Texture2D* m_BloomTexture = nullptr;
             SharedPtr<Graphics::Shader> m_BloomPassShader;
             SharedPtr<Graphics::DescriptorSet> m_BloomPassDescriptorSet;
-            
+
             RenderGraphSettings m_Settings;
-			RenderGraphStats m_Stats;
+            RenderGraphStats m_Stats;
         };
     }
 }

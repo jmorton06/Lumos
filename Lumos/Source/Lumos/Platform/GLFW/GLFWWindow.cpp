@@ -50,7 +50,7 @@ namespace Lumos
         m_Data.VSync = m_VSync;
         m_Init = Init(properties);
 
-        //Setting fullscreen overrides width and heigh in Init
+        // Setting fullscreen overrides width and heigh in Init
         auto propCopy = properties;
         propCopy.Width = m_Data.Width;
         propCopy.Height = m_Data.Height;
@@ -188,7 +188,7 @@ namespace Lumos
         SetIcon("//Textures/icon.png", "//Textures/icon32.png");
 #endif
 
-        //glfwSetWindowPos(m_Handle, mode->width / 2 - m_Data.Width / 2, mode->height / 2 - m_Data.Height / 2);
+        // glfwSetWindowPos(m_Handle, mode->width / 2 - m_Data.Width / 2, mode->height / 2 - m_Data.Height / 2);
         glfwSetInputMode(m_Handle, GLFW_STICKY_KEYS, true);
 
         //#ifdef LUMOS_PLATFORM_WINDOWS
@@ -210,19 +210,21 @@ namespace Lumos
                 data.Height = uint32_t(height * data.DPIScale);
 
                 WindowResizeEvent event(data.Width, data.Height, data.DPIScale);
-                data.EventCallback(event);
-            });
+                data.EventCallback(event); });
 
         glfwSetWindowCloseCallback(m_Handle, [](GLFWwindow* window)
             {
                 WindowData& data = *static_cast<WindowData*>((glfwGetWindowUserPointer(window)));
                 WindowCloseEvent event;
                 data.EventCallback(event);
-                data.Exit = true;
-            });
+                data.Exit = true; });
 
         glfwSetWindowFocusCallback(m_Handle, [](GLFWwindow* window, int focused)
-            { Application::Get().GetWindow()->SetWindowFocus(focused); });
+            { 
+			Window* lmWindow = Application::Get().GetWindow();
+
+			if(lmWindow)
+				lmWindow->SetWindowFocus(focused); });
 
         glfwSetWindowIconifyCallback(m_Handle, [](GLFWwindow* window, int32_t state)
             {
@@ -236,8 +238,7 @@ namespace Lumos
                     break;
                 default:
                     LUMOS_LOG_INFO("Unsupported window iconify state from callback");
-                }
-            });
+                } });
 
         glfwSetKeyCallback(m_Handle, [](GLFWwindow* window, int key, int scancode, int action, int mods)
             {
@@ -263,8 +264,7 @@ namespace Lumos
                     data.EventCallback(event);
                     break;
                 }
-                }
-            });
+                } });
 
         glfwSetMouseButtonCallback(m_Handle, [](GLFWwindow* window, int button, int action, int mods)
             {
@@ -284,39 +284,43 @@ namespace Lumos
                     data.EventCallback(event);
                     break;
                 }
-                }
-            });
+                } });
 
         glfwSetScrollCallback(m_Handle, [](GLFWwindow* window, double xOffset, double yOffset)
             {
                 WindowData& data = *static_cast<WindowData*>((glfwGetWindowUserPointer(window)));
                 MouseScrolledEvent event((float)xOffset, (float)yOffset);
-                data.EventCallback(event);
-            });
+                data.EventCallback(event); });
 
         glfwSetCursorPosCallback(m_Handle, [](GLFWwindow* window, double xPos, double yPos)
             {
                 WindowData& data = *static_cast<WindowData*>((glfwGetWindowUserPointer(window)));
                 MouseMovedEvent event((float)xPos /* * data.DPIScale*/, (float)yPos /* * data.DPIScale*/);
-                data.EventCallback(event);
-            });
+                data.EventCallback(event); });
 
         glfwSetCursorEnterCallback(m_Handle, [](GLFWwindow* window, int enter)
             {
                 WindowData& data = *static_cast<WindowData*>((glfwGetWindowUserPointer(window)));
 
                 MouseEnterEvent event(enter > 0);
-                data.EventCallback(event);
-            });
+                data.EventCallback(event); });
 
         glfwSetCharCallback(m_Handle, [](GLFWwindow* window, unsigned int keycode)
             {
                 WindowData& data = *static_cast<WindowData*>((glfwGetWindowUserPointer(window)));
 
                 KeyTypedEvent event(GLFWKeyCodes::GLFWToLumosKeyboardKey(keycode), char(keycode));
-                data.EventCallback(event);
-            });
+                data.EventCallback(event); });
 
+        glfwSetDropCallback(m_Handle, [](GLFWwindow* window, int numDropped, const char** filenames)
+                            {
+            WindowData& data = *static_cast<WindowData*>((glfwGetWindowUserPointer(window)));
+
+            std::string filePath = filenames[0];
+            WindowFileEvent event(filePath);
+            data.EventCallback(event);
+        });
+        
         g_MouseCursors[ImGuiMouseCursor_Arrow] = glfwCreateStandardCursor(GLFW_ARROW_CURSOR);
         g_MouseCursors[ImGuiMouseCursor_TextInput] = glfwCreateStandardCursor(GLFW_IBEAM_CURSOR);
         g_MouseCursors[ImGuiMouseCursor_ResizeAll] = glfwCreateStandardCursor(GLFW_ARROW_CURSOR);
@@ -326,7 +330,7 @@ namespace Lumos
         g_MouseCursors[ImGuiMouseCursor_ResizeNWSE] = glfwCreateStandardCursor(GLFW_ARROW_CURSOR);
         g_MouseCursors[ImGuiMouseCursor_Hand] = glfwCreateStandardCursor(GLFW_HAND_CURSOR);
 
-        LUMOS_LOG_INFO("Initialised GLFW version : {0}", glfwGetVersionString());        
+        LUMOS_LOG_INFO("Initialised GLFW version : {0}", glfwGetVersionString());
         return true;
     }
 
@@ -461,40 +465,39 @@ namespace Lumos
         {
             // Hide OS mouse cursor if imgui is drawing it or if it wants no cursor
 
-            //TODO: This was disabled as it would override control of hiding the cursor
-            //      Need to find a solution to support both
-            //glfwSetInputMode(m_Handle, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+            // TODO: This was disabled as it would override control of hiding the cursor
+            //       Need to find a solution to support both
+            // glfwSetInputMode(m_Handle, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
         }
         else
         {
             glfwSetCursor(m_Handle, g_MouseCursors[imgui_cursor] ? g_MouseCursors[imgui_cursor] : g_MouseCursors[ImGuiMouseCursor_Arrow]);
-            //glfwSetInputMode(m_Handle, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+            // glfwSetInputMode(m_Handle, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
         }
     }
-    
-//#define LOG_CONTROLLER 0
+
+    //#define LOG_CONTROLLER 0
 
     void GLFWWindow::ProcessInput()
     {
         LUMOS_PROFILE_SCOPE("GLFW PollEvents");
         glfwPollEvents();
-        
-        auto& controllers = Input::GetControllers();
-		for (auto it = controllers.begin(); it != controllers.end();)
-		{
-			int id = it->first;
-			if (glfwJoystickPresent(id) != GLFW_TRUE)
-				Input::RemoveController(id);
-			
-            it++;
-		}
-    
 
-		// Update controllers
-		for (int id = GLFW_JOYSTICK_1; id < GLFW_JOYSTICK_LAST; id++)
-		{
-			if (glfwJoystickPresent(id) == GLFW_TRUE)
-			{
+        auto& controllers = Input::GetControllers();
+        for(auto it = controllers.begin(); it != controllers.end();)
+        {
+            int id = it->first;
+            if(glfwJoystickPresent(id) != GLFW_TRUE)
+                Input::RemoveController(id);
+
+            it++;
+        }
+
+        // Update controllers
+        for(int id = GLFW_JOYSTICK_1; id < GLFW_JOYSTICK_LAST; id++)
+        {
+            if(glfwJoystickPresent(id) == GLFW_TRUE)
+            {
 #if LOG_CONTROLLER
                 LUMOS_LOG_INFO("Controller Connected {0}", id);
 #endif
@@ -509,10 +512,10 @@ namespace Lumos
 #endif
                     int buttonCount;
                     const unsigned char* buttons = glfwGetJoystickButtons(id, &buttonCount);
-                    for (int i = 0; i < buttonCount; i++)
+                    for(int i = 0; i < buttonCount; i++)
                     {
                         controller->ButtonStates[i] = buttons[i] == GLFW_PRESS;
-                        
+
 #if LOG_CONTROLLER
                         if(controller->ButtonStates[i])
                             LUMOS_LOG_INFO("Button pressed {0}", buttons[i]);
@@ -521,28 +524,26 @@ namespace Lumos
 
                     int axisCount;
                     const float* axes = glfwGetJoystickAxes(id, &axisCount);
-                    for (int i = 0; i < axisCount; i++)
+                    for(int i = 0; i < axisCount; i++)
                     {
                         controller->AxisStates[i] = axes[i];
 #if LOG_CONTROLLER
-                        LUMOS_LOG_INFO(controller->AxisStates[i] );
+                        LUMOS_LOG_INFO(controller->AxisStates[i]);
 #endif
-
                     }
 
                     int hatCount;
                     const unsigned char* hats = glfwGetJoystickHats(id, &hatCount);
-                    for (int i = 0; i < hatCount; i++)
+                    for(int i = 0; i < hatCount; i++)
                     {
                         controller->HatStates[i] = hats[i];
 #if LOG_CONTROLLER
-                        LUMOS_LOG_INFO(controller->HatStates[i] );
+                        LUMOS_LOG_INFO(controller->HatStates[i]);
 #endif
-
                     }
                 }
-			}
-		}
+            }
+        }
     }
 
     void GLFWWindow::Maximise()
@@ -551,7 +552,7 @@ namespace Lumos
         glfwMaximizeWindow(m_Handle);
 
 #ifdef LUMOS_PLATFORM_MACOS
-        //TODO: Move to glfw extensions or something
+        // TODO: Move to glfw extensions or something
         OS::Instance()->MaximiseWindow();
 #endif
     }

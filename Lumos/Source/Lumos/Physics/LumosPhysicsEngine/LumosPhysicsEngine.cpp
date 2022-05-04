@@ -145,7 +145,7 @@ namespace Lumos
                 if(m_UpdateAccum >= s_UpdateTimestep)
                 {
                     LUMOS_LOG_WARN("Physics too slow to run in real time!");
-                    //Drop Time in the hope that it can continue to run in real-time
+                    // Drop Time in the hope that it can continue to run in real-time
                     m_UpdateAccum = 0.0f;
                 }
             }
@@ -158,14 +158,14 @@ namespace Lumos
     {
         m_Manifolds.clear();
 
-        //Check for collisions
+        // Check for collisions
         BroadPhaseCollisions();
         NarrowPhaseCollisions();
 
-        //Solve collision constraints
+        // Solve collision constraints
         SolveConstraints();
 
-        //Update movement
+        // Update movement
         UpdateRigidBodys();
 
         for(int i = 0; i < m_RigidBodys.size(); i++)
@@ -197,19 +197,19 @@ namespace Lumos
             }
         };
     }
-	
-	glm::quat QuatMulVec3(const glm::quat& quat, const glm::vec3 &b)
-	{
-		glm::quat ans;
-		
-		ans.w = -(quat.x * b.x) - (quat.y * b.y) - (quat.z * b.z);
-		
-		ans.x = (quat.w * b.x) + (b.y * quat.z) - (b.z * quat.y);
-		ans.y = (quat.w * b.y) + (b.z * quat.x) - (b.x * quat.z);
-		ans.z = (quat.w * b.z) + (b.x * quat.y) - (b.y * quat.x);
-		
-		return ans;
-	}
+
+    glm::quat QuatMulVec3(const glm::quat& quat, const glm::vec3& b)
+    {
+        glm::quat ans;
+
+        ans.w = -(quat.x * b.x) - (quat.y * b.y) - (quat.z * b.z);
+
+        ans.x = (quat.w * b.x) + (b.y * quat.z) - (b.z * quat.y);
+        ans.y = (quat.w * b.y) + (b.z * quat.x) - (b.x * quat.z);
+        ans.z = (quat.w * b.z) + (b.x * quat.y) - (b.y * quat.x);
+
+        return ans;
+    }
 
     void LumosPhysicsEngine::UpdateRigidBody(RigidBody3D* obj) const
     {
@@ -237,10 +237,11 @@ namespace Lumos
                 obj->m_LinearVelocity = obj->m_LinearVelocity * damping;
 
                 // Update orientation
-                obj->m_Orientation = obj->m_Orientation + 
+                obj->m_Orientation = obj->m_Orientation +
 
-                obj->m_Orientation += obj->m_Orientation * glm::quat(obj->m_AngularVelocity * s_UpdateTimestep);
-                //obj->m_Orientation = obj->m_Orientation + ((obj->m_AngularVelocity * s_UpdateTimestep * 0.5f) * obj->m_Orientation);
+                    obj->m_Orientation
+                    += obj->m_Orientation * glm::quat(obj->m_AngularVelocity * s_UpdateTimestep);
+                // obj->m_Orientation = obj->m_Orientation + ((obj->m_AngularVelocity * s_UpdateTimestep * 0.5f) * obj->m_Orientation);
                 obj->m_Orientation = glm::normalize(obj->m_Orientation);
 
                 // Update angular velocity
@@ -268,9 +269,9 @@ namespace Lumos
 
                 // Angular velocity damping
                 obj->m_AngularVelocity = obj->m_AngularVelocity * damping * obj->m_AngularFactor;
-					
-				auto angularVelocity = obj->m_AngularVelocity * s_UpdateTimestep;
-					
+
+                auto angularVelocity = obj->m_AngularVelocity * s_UpdateTimestep;
+
                 // Update orientation
                 obj->m_Orientation += QuatMulVec3(obj->m_Orientation, angularVelocity);
                 obj->m_Orientation = glm::normalize(obj->m_Orientation);
@@ -295,12 +296,12 @@ namespace Lumos
 
                 // Angular velocity damping
                 obj->m_AngularVelocity = obj->m_AngularVelocity * damping * obj->m_AngularFactor;
-					
-					auto angularVelocity = obj->m_AngularVelocity * s_UpdateTimestep * 0.5f;
-					
+
+                auto angularVelocity = obj->m_AngularVelocity * s_UpdateTimestep * 0.5f;
+
                 // Update orientation
-					obj->m_Orientation += QuatMulVec3(obj->m_Orientation, angularVelocity);
-					obj->m_Orientation = glm::normalize(obj->m_Orientation);
+                obj->m_Orientation += QuatMulVec3(obj->m_Orientation, angularVelocity);
+                obj->m_Orientation = glm::normalize(obj->m_Orientation);
 
                 break;
             }
@@ -323,10 +324,10 @@ namespace Lumos
                 obj->m_AngularVelocity = obj->m_AngularVelocity * damping * obj->m_AngularFactor;
 
                 // Update orientation
-                //Check order of quat multiplication
+                // Check order of quat multiplication
                 auto angularVelocity = obj->m_AngularVelocity * s_UpdateTimestep * 0.5f;
-					
-					obj->m_Orientation += QuatMulVec3(obj->m_Orientation, angularVelocity);
+
+                obj->m_Orientation += QuatMulVec3(obj->m_Orientation, angularVelocity);
                 obj->m_Orientation = glm::normalize(obj->m_Orientation);
 
                 break;
@@ -415,7 +416,7 @@ namespace Lumos
 
                         // Construct contact points that form the perimeter of the collision manifold
                         if(CollisionDetection::Get().BuildCollisionManifold(cp.pObjectA, cp.pObjectB, shapeA.get(), shapeB.get(), colData, &manifold))
-                        {               
+                        {
                             // Fire callback
                             cp.pObjectA->FireOnCollisionManifoldCallback(cp.pObjectA, cp.pObjectB, &manifold);
                             cp.pObjectB->FireOnCollisionManifoldCallback(cp.pObjectB, cp.pObjectA, &manifold);

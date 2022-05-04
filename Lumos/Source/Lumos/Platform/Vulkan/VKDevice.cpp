@@ -45,14 +45,14 @@ namespace Lumos
 
             std::vector<VkPhysicalDevice> physicalDevices(m_GPUCount);
             vkEnumeratePhysicalDevices(vkInstance, &m_GPUCount, physicalDevices.data());
-            //First select the gpu at the back of the list
+            // First select the gpu at the back of the list
             m_PhysicalDevice = physicalDevices.back();
 
             int8_t desiredGPUIndex = Application::Get().GetProjectSettings().DesiredGPUIndex;
-            
+
             if(desiredGPUIndex >= 0)
             {
-                //If index is greater than 0 try and use it
+                // If index is greater than 0 try and use it
                 if(desiredGPUIndex >= (int8_t)m_GPUCount)
                 {
                     LUMOS_LOG_CRITICAL("GPU index greater than GPU count!");
@@ -64,7 +64,7 @@ namespace Lumos
             }
             else
             {
-                //By default try and find a discrete gpu to use over integrated graphics
+                // By default try and find a discrete gpu to use over integrated graphics
                 for(VkPhysicalDevice physicalDevice : physicalDevices)
                 {
                     vkGetPhysicalDeviceProperties(physicalDevice, &m_PhysicalDeviceProperties);
@@ -288,7 +288,7 @@ namespace Lumos
             VkPhysicalDeviceFeatures supportedFeatures;
             memset(&supportedFeatures, 0, sizeof(VkPhysicalDeviceFeatures));
             memset(&m_EnabledFeatures, 0, sizeof(VkPhysicalDeviceFeatures));
-            
+
             vkGetPhysicalDeviceFeatures(m_PhysicalDevice->GetVulkanPhysicalDevice(), &supportedFeatures);
 
             if(supportedFeatures.wideLines)
@@ -300,7 +300,7 @@ namespace Lumos
             {
                 Renderer::GetCapabilities().WideLines = false;
             }
-            
+
             if(supportedFeatures.samplerAnisotropy)
             {
                 m_EnabledFeatures.samplerAnisotropy = true;
@@ -381,6 +381,8 @@ namespace Lumos
             fn.vkGetPhysicalDeviceMemoryProperties2KHR = 0;
             fn.vkGetImageMemoryRequirements2KHR = 0;
             fn.vkGetBufferMemoryRequirements2KHR = 0;
+            fn.vkGetInstanceProcAddr = (PFN_vkGetInstanceProcAddr)vkGetInstanceProcAddr;
+            fn.vkGetDeviceProcAddr = (PFN_vkGetDeviceProcAddr)vkGetDeviceProcAddr;
             allocatorInfo.pVulkanFunctions = &fn;
 
             if(vmaCreateAllocator(&allocatorInfo, &m_Allocator) != VK_SUCCESS)

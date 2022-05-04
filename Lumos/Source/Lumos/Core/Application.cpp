@@ -99,7 +99,7 @@ namespace Lumos
         m_SceneManager = CreateUniquePtr<SceneManager>();
 
         MountVFSPaths();
-        //Set Default values
+        // Set Default values
         m_ProjectSettings.RenderAPI = 1;
         m_ProjectSettings.Width = 1200;
         m_ProjectSettings.Height = 800;
@@ -140,11 +140,11 @@ namespace Lumos
         m_SceneManager->EnqueueScene(new Scene("Empty Scene"));
         m_SceneManager->SwitchScene(0);
 
-        //Set Default values
+        // Set Default values
         m_ProjectSettings.Title = "App";
         m_ProjectSettings.Fullscreen = false;
 
-        //m_SceneManager->ApplySceneSwitch();
+        // m_SceneManager->ApplySceneSwitch();
 
         Serialise();
     }
@@ -214,14 +214,14 @@ namespace Lumos
 
         if(m_ProjectSettings.Fullscreen)
             m_Window->Maximise();
-        
-        //Draw Splash Screeh
+
+        // Draw Splash Screeh
         {
-			auto splashTexture = Graphics::Texture2D::CreateFromSource(splashWidth, splashHeight, (void*)splash);
+            auto splashTexture = Graphics::Texture2D::CreateFromSource(splashWidth, splashHeight, (void*)splash);
             Graphics::Renderer::GetRenderer()->Begin();
             Graphics::Renderer::GetRenderer()->DrawSplashScreen(splashTexture);
             Graphics::Renderer::GetRenderer()->Present();
-            //To Display the window
+            // To Display the window
             m_Window->ProcessInput();
             m_Window->OnUpdate();
 
@@ -245,14 +245,12 @@ namespace Lumos
                     audioManager->OnInit();
                     audioManager->SetPaused(true);
                     m_SystemManager->RegisterSystem<AudioManager>(audioManager);
-                }
-            });
+                } });
 
         System::JobSystem::Execute(context, [this](JobDispatchArgs args)
             {
                 m_SystemManager->RegisterSystem<LumosPhysicsEngine>();
-                m_SystemManager->RegisterSystem<B2PhysicsEngine>();
-            });
+                m_SystemManager->RegisterSystem<B2PhysicsEngine>(); });
 
         System::JobSystem::Execute(context, [this](JobDispatchArgs args)
             { m_SceneManager->LoadCurrentList(); });
@@ -323,15 +321,15 @@ namespace Lumos
         float now = m_Timer->GetElapsedS();
         auto& stats = Engine::Get().Statistics();
         auto& ts = Engine::GetTimeStep();
-		
-		#ifndef LUMOS_ALLOW_LARGE_FRAME_TIME
-		//Exit if frametime excedes 5 seconds
-		if(ts.GetSeconds() > 5)
-		{
-			LUMOS_LOG_CRITICAL("Exiting due to large frame time {0}", ts.GetSeconds());
-			//return false;
-		}
-		#endif
+
+#ifndef LUMOS_ALLOW_LARGE_FRAME_TIME
+        // Exit if frametime excedes 5 seconds
+        if(ts.GetSeconds() > 5)
+        {
+            LUMOS_LOG_CRITICAL("Large frame time {0}", ts.GetSeconds());
+            // return false;
+        }
+#endif
         {
             LUMOS_PROFILE_SCOPE("Application::TimeStepUpdates");
             ts.Update(now);
@@ -350,8 +348,8 @@ namespace Lumos
             m_CurrentState = AppState::Closing;
         }
 
-        //Exit frame early if escape or close button clicked
-        //Prevents a crash with vulkan/moltenvk
+        // Exit frame early if escape or close button clicked
+        // Prevents a crash with vulkan/moltenvk
         if(m_CurrentState == AppState::Closing)
             return false;
 
@@ -383,15 +381,15 @@ namespace Lumos
             Graphics::Framebuffer::DeleteUnusedCache();
             Graphics::RenderPass::DeleteUnusedCache();
 
-            m_ShaderLibrary->Update(ts.GetElapsedSeconds());
+            //m_ShaderLibrary->Update(ts.GetElapsedSeconds());
             m_ModelLibrary->Update(ts.GetElapsedSeconds());
 
             m_Frames++;
         }
-		else
-		{
-			ImGui::Render();
-		}
+        else
+        {
+            ImGui::Render();
+        }
 
         {
             LUMOS_PROFILE_SCOPE("Application::UpdateGraphicsStats");
@@ -437,8 +435,8 @@ namespace Lumos
         {
             m_RenderGraph->BeginScene(m_SceneManager->GetCurrentScene());
             m_RenderGraph->OnRender();
-            
-            //Clears debug line and point lists
+
+            // Clears debug line and point lists
             DebugRenderer::Reset();
             OnDebugDraw();
         }
@@ -500,8 +498,14 @@ namespace Lumos
         m_RenderGraph->OnNewScene(scene);
     }
 
-    SharedPtr<ShaderLibrary>& Application::GetShaderLibrary() { return m_ShaderLibrary; }
-    SharedPtr<ModelLibrary>& Application::GetModelLibrary() { return m_ModelLibrary; }
+    SharedPtr<ShaderLibrary>& Application::GetShaderLibrary()
+    {
+        return m_ShaderLibrary;
+    }
+    SharedPtr<ModelLibrary>& Application::GetModelLibrary()
+    {
+        return m_ModelLibrary;
+    }
 
     void Application::OnExitScene()
     {
@@ -620,7 +624,7 @@ namespace Lumos
             }
             catch(...)
             {
-                //Set Default values
+                // Set Default values
                 m_ProjectSettings.RenderAPI = 1;
                 m_ProjectSettings.Width = 1200;
                 m_ProjectSettings.Height = 800;
@@ -629,7 +633,7 @@ namespace Lumos
                 m_ProjectSettings.Title = "App";
                 m_ProjectSettings.ShowConsole = false;
                 m_ProjectSettings.Fullscreen = false;
-                
+
 #ifdef LUMOS_PLATFORM_MACOS
                 m_ProjectSettings.m_EngineAssetPath = StringUtilities::GetFileLocation(OS::Instance()->GetExecutablePath()) + "../../../../../Lumos/Assets/";
 #else

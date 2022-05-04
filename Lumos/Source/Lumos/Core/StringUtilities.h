@@ -30,6 +30,7 @@ namespace Lumos
 
         std::string RemoveName(const std::string& FilePath);
         std::string RemoveFilePathExtension(const std::string& FileName);
+        std::string ToLower(const std::string& text);
 
         std::string& BackSlashesToSlashes(std::string& string);
         std::string& SlashesToBackSlashes(std::string& string);
