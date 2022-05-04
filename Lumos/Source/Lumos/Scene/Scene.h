@@ -115,7 +115,7 @@ namespace Lumos
             bool SkyboxRenderEnabled = true;
             bool ShadowsEnabled = true;
 
-            //Shadow Settings
+            // Shadow Settings
             float m_CascadeSplitLambda = 0.92f;
             float m_SceneRadiusMultiplier = 1.4f;
 
@@ -186,8 +186,14 @@ namespace Lumos
                     cereal::make_nvp("Renderer3DEnabled", m_Settings.RenderSettings.Renderer3DEnabled), cereal::make_nvp("DebugRenderEnabled", m_Settings.RenderSettings.DebugRenderEnabled), cereal::make_nvp("SkyboxRenderEnabled", m_Settings.RenderSettings.SkyboxRenderEnabled), cereal::make_nvp("ShadowsEnabled", m_Settings.RenderSettings.ShadowsEnabled));
         }
 
-        SceneSettings& GetSettings() { return m_Settings; }
-        int GetSceneVersion() const { return m_SceneSerialisationVersion; }
+        SceneSettings& GetSettings()
+        {
+            return m_Settings;
+        }
+        int GetSceneVersion() const
+        {
+            return m_SceneSerialisationVersion;
+        }
 
     protected:
         std::string m_SceneName;

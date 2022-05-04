@@ -168,13 +168,13 @@ namespace Lumos
 
         if(best_face)
         {
-            //Add the reference face itself to the list of adjacent planes
+            // Add the reference face itself to the list of adjacent planes
             glm::vec3 wsPointOnPlane = wsTransform * glm::vec4(m_PyramidHull->GetVertex(m_PyramidHull->GetEdge(best_face->edge_ids[0]).vStart).pos, 1.0f);
             glm::vec3 planeNrml = -(normalMatrix * best_face->normal);
             planeNrml = glm::normalize(planeNrml);
             float planeDist = -glm::dot(planeNrml, wsPointOnPlane);
 
-            refPolygon.AdjacentPlanes[refPolygon.PlaneCount++] = Plane(planeNrml, planeDist );
+            refPolygon.AdjacentPlanes[refPolygon.PlaneCount++] = Plane(planeNrml, planeDist);
 
             for(int edgeIdx : best_face->edge_ids)
             {
@@ -192,7 +192,7 @@ namespace Lumos
                         planeNrml = glm::normalize(planeNrml);
                         planeDist = -glm::dot(planeNrml, wsPointOnPlane);
 
-                        refPolygon.AdjacentPlanes[refPolygon.PlaneCount++] = Plane(planeNrml, planeDist );
+                        refPolygon.AdjacentPlanes[refPolygon.PlaneCount++] = Plane(planeNrml, planeDist);
                     }
                 }
             }
@@ -215,7 +215,7 @@ namespace Lumos
         glm::vec3 v2 = glm::vec3(1.0f, -1.0f, 1.0f); // 2
         glm::vec3 v3 = glm::vec3(1.0f, -1.0f, -1.0f); // 3
         glm::vec3 v4 = glm::vec3(0.0f, 1.0f, 0.0f); // 4
-        //Vertices
+        // Vertices
         m_PyramidHull->AddVertex(v0); // 0
         m_PyramidHull->AddVertex(v1); // 1
         m_PyramidHull->AddVertex(v2); // 2

@@ -13,7 +13,7 @@ namespace Lumos
         PyramidCollisionShape(const glm::vec3& halfdims);
         ~PyramidCollisionShape();
 
-        //Collision Shape Functionality
+        // Collision Shape Functionality
         virtual glm::mat3 BuildInverseInertia(float invMass) const override;
 
         virtual std::vector<glm::vec3>& GetCollisionAxes(const RigidBody3D* currentObject) override;
@@ -97,7 +97,7 @@ namespace Lumos
         }
 
     protected:
-        //Constructs the static cube hull
+        // Constructs the static cube hull
         static void ConstructPyramidHull();
 
     protected:

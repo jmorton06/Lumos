@@ -18,7 +18,7 @@ namespace Lumos
             m_OldSwapChain = VK_NULL_HANDLE;
             m_Surface = VK_NULL_HANDLE;
 
-            //Initialised by first Image Aquire
+            // Initialised by first Image Aquire
             m_CurrentBuffer = std::numeric_limits<uint32_t>::max();
             m_AcquireImageIndex = std::numeric_limits<uint32_t>::max();
         }
@@ -51,7 +51,7 @@ namespace Lumos
             if(m_Surface == VK_NULL_HANDLE)
                 m_Surface = CreatePlatformSurface(VKContext::GetVKInstance(), windowHandle);
 
-            bool success = Init(vsync);
+            bool success = Init(m_VSyncEnabled);
 
             AcquireNextImage();
 
@@ -165,7 +165,7 @@ namespace Lumos
                 }
 
                 m_SwapChainBuffers.clear();
-                
+
                 vkDestroySwapchainKHR(VKDevice::Get().GetDevice(), m_OldSwapChain, VK_NULL_HANDLE);
                 m_OldSwapChain = VK_NULL_HANDLE;
             }
@@ -291,9 +291,9 @@ namespace Lumos
             else
             {
                 Init(m_VSyncEnabled);
-                AcquireNextImage();
+                // AcquireNextImage();
             }
-            
+
             VKRenderer::GetGraphicsContext()->WaitIdle();
         }
 

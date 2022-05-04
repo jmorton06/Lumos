@@ -27,11 +27,11 @@ namespace Lumos
         m_B2DWorld->SetDebugDraw(m_DebugDraw.get());
 
         uint32 flags = 0;
-        //flags += b2Draw::e_shapeBit;
-        //flags += b2Draw::e_jointBit;
-        //flags += b2Draw::e_aabbBit;
-        //flags += b2Draw::e_centerOfMassBit;
-        //flags += b2Draw::e_pairBit;
+        // flags += b2Draw::e_shapeBit;
+        // flags += b2Draw::e_jointBit;
+        // flags += b2Draw::e_aabbBit;
+        // flags += b2Draw::e_centerOfMassBit;
+        // flags += b2Draw::e_pairBit;
 
         m_DebugDraw->SetFlags(flags);
     }
@@ -161,7 +161,7 @@ namespace Lumos
 
             trans.SetLocalPosition(glm::vec3(phys.GetRigidBody()->GetPosition(), 0.0f));
             trans.SetLocalOrientation(glm::quat(glm::vec3(0.0f, 0.0f, phys.GetRigidBody()->GetAngle())));
-            trans.SetWorldMatrix(glm::mat4(1.0f)); //TODO: temp
+            trans.SetWorldMatrix(glm::mat4(1.0f)); // TODO: temp
         };
     }
 }

@@ -35,6 +35,8 @@ namespace Lumos
             bool Flush() override;
             bool Wait();
 
+            void Submit() override;
+
             void BindPipeline(Pipeline* pipeline) override;
             void UnBindPipeline() override;
 

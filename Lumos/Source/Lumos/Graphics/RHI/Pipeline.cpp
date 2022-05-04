@@ -59,12 +59,11 @@ namespace Lumos
                         VkDescriptorImageInfo* imageHandle = (VkDescriptorImageInfo*)(texture->GetDescriptorInfo());
                         HashCombine(hash, imageHandle->imageLayout, imageHandle->imageView, imageHandle->sampler);
 
-						if (pipelineDesc.depthTarget) {
-							VkDescriptorImageInfo* depthImageHandle = (VkDescriptorImageInfo*)(pipelineDesc.depthTarget->GetDescriptorInfo());
-							HashCombine(hash, depthImageHandle->imageLayout, depthImageHandle->imageView, depthImageHandle->sampler);
-						}
-					
-
+                        if(pipelineDesc.depthTarget)
+                        {
+                            VkDescriptorImageInfo* depthImageHandle = (VkDescriptorImageInfo*)(pipelineDesc.depthTarget->GetDescriptorInfo());
+                            HashCombine(hash, depthImageHandle->imageLayout, depthImageHandle->imageView, depthImageHandle->sampler);
+                        }
                     }
 #endif
                 }
@@ -77,10 +76,12 @@ namespace Lumos
             HashCombine(hash, pipelineDesc.lineWidth);
             HashCombine(hash, pipelineDesc.depthBiasConstantFactor);
             HashCombine(hash, pipelineDesc.depthBiasSlopeFactor);
+            HashCombine(hash, pipelineDesc.cubeMapIndex);
+            HashCombine(hash, pipelineDesc.cubeMapTarget);
 
             if(pipelineDesc.swapchainTarget)
             {
-                //Add one swapchain image to hash
+                // Add one swapchain image to hash
                 auto texture = Renderer::GetMainSwapChain()->GetCurrentImage();
                 if(texture)
                 {
@@ -159,6 +160,9 @@ namespace Lumos
             if(m_Description.depthArrayTarget)
                 return m_Description.depthArrayTarget->GetWidth();
 
+            if(m_Description.cubeMapTarget)
+                return m_Description.cubeMapTarget->GetWidth();
+
             LUMOS_LOG_WARN("Invalid pipeline width");
 
             return 0;
@@ -183,6 +187,9 @@ namespace Lumos
 
             if(m_Description.depthArrayTarget)
                 return m_Description.depthArrayTarget->GetHeight();
+
+            if(m_Description.cubeMapTarget)
+                return m_Description.cubeMapTarget->GetHeight();
 
             LUMOS_LOG_WARN("Invalid pipeline height");
 

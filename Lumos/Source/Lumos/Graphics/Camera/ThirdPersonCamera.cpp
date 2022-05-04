@@ -14,7 +14,6 @@ namespace Lumos
         m_ZoomDampeningFactor = 0.00001f;
         m_DampeningFactor = 0.00001f;
         m_RotateDampeningFactor = 0.0000001f;
-
     }
 
     ThirdPersonCameraController::~ThirdPersonCameraController()
@@ -56,7 +55,7 @@ namespace Lumos
         rotation = rotationY * rotation;
         rotation = rotation * rotationX;
         transform.SetLocalOrientation(rotation);
-        
+
         m_PreviousCurserPos = glm::vec2(xpos, ypos);
         m_RotateVelocity = m_RotateVelocity * pow(m_RotateDampeningFactor, dt);
 
@@ -65,7 +64,7 @@ namespace Lumos
 
     void ThirdPersonCameraController::HandleKeyboard(Maths::Transform& transform, float dt)
     {
-        //Temp
+        // Temp
         return;
         float multiplier = 1000.0f;
 

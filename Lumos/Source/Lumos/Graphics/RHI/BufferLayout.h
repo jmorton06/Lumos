@@ -10,7 +10,7 @@ namespace Lumos
         struct LUMOS_EXPORT BufferElement
         {
             std::string name;
-            Format format = Format::R32G32B32A32_FLOAT;
+            Format format = Format::R32G32B32A32_Float;
             uint32_t offset = 0;
             bool Normalised = false;
         };

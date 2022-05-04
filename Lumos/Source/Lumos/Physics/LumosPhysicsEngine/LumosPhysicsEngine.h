@@ -52,19 +52,19 @@ namespace Lumos
 
         void SetDefaults();
 
-        //Add Constraints
+        // Add Constraints
         void AddConstraint(Constraint* c)
         {
             m_Constraints.push_back(c);
         }
 
         void OnInit() override {};
-        //Update Physics Engine
+        // Update Physics Engine
         void OnUpdate(const TimeStep& timeStep, Scene* scene) override;
 
         void SyncTransforms(Scene* scene);
 
-        //Getters / Setters
+        // Getters / Setters
         bool IsPaused() const
         {
             return m_IsPaused;
@@ -153,20 +153,20 @@ namespace Lumos
         void SetPositionIterations(uint32_t iterations) { m_PositionIterations = iterations; }
 
     protected:
-        //The actual time-independant update function
+        // The actual time-independant update function
         void UpdatePhysics();
 
-        //Handles broadphase collision detection
+        // Handles broadphase collision detection
         void BroadPhaseCollisions();
 
-        //Handles narrowphase collision detection
+        // Handles narrowphase collision detection
         void NarrowPhaseCollisions();
 
-        //Updates all Rigid Body position, orientation, velocity etc (default method uses symplectic euler integration)
+        // Updates all Rigid Body position, orientation, velocity etc (default method uses symplectic euler integration)
         void UpdateRigidBodys();
         void UpdateRigidBody(RigidBody3D* obj) const;
 
-        //Solves all engine constraints (constraints and manifolds)
+        // Solves all engine constraints (constraints and manifolds)
         void SolveConstraints();
 
     protected:

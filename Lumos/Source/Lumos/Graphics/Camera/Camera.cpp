@@ -48,8 +48,8 @@ namespace Lumos
         , m_Near(near)
         , m_Far(far)
         , m_Orthographic(true)
-        {
-        }
+    {
+    }
 
     void Camera::UpdateProjectionMatrix()
     {
@@ -59,7 +59,7 @@ namespace Lumos
             m_ProjMatrix = glm::perspective(glm::radians(m_Fov), m_AspectRatio, m_Near, m_Far);
     }
 
-    Frustum& Camera::GetFrustum(const glm::mat4& viewMatrix)
+    Maths::Frustum& Camera::GetFrustum(const glm::mat4& viewMatrix)
     {
         if(m_ProjectionDirty)
             UpdateProjectionMatrix();
@@ -82,14 +82,14 @@ namespace Lumos
         return m_ProjMatrix;
     }
 
-    Ray Camera::GetScreenRay(float x, float y, const glm::mat4& viewMatrix, bool flipY) const
+    Maths::Ray Camera::GetScreenRay(float x, float y, const glm::mat4& viewMatrix, bool flipY) const
     {
-        Ray ret;
+        Maths::Ray ret;
         glm::mat4 viewProjInverse = glm::inverse(m_ProjMatrix * viewMatrix);
-		
-		x = 2.0f * x - 1.0f;
+
+        x = 2.0f * x - 1.0f;
         y = 2.0f * y - 1.0f;
-		
+
         if(flipY)
             y *= -1.0f;
 
@@ -101,9 +101,8 @@ namespace Lumos
 
         ret.Origin = glm::vec3(near);
         ret.Direction = glm::normalize(glm::vec3(far) - ret.Origin);
-		
+
         return ret;
     }
-
 
 }

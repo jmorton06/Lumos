@@ -31,8 +31,8 @@ namespace Lumos
         int sizeOfChannel = 8;
         if(stbi_is_hdr(filename))
         {
-            sizeOfChannel = 16;
-            pixels = (uint8_t*)stbi_loadf(filename, &texWidth, &texHeight, &texChannels, 0);
+            sizeOfChannel = 32;
+            pixels = (uint8_t*)stbi_loadf(filename, &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
 
             if(isHDR)
                 *isHDR = true;
@@ -45,9 +45,36 @@ namespace Lumos
                 *isHDR = false;
         }
 
-        LUMOS_ASSERT(pixels, "Could not load image '{0}'!", filename);
+        if(!pixels)
+        {
+            LUMOS_LOG_ERROR("Could not load image '{0}'!", filename);
+            // Return magenta checkerboad image
 
-        //TODO support different texChannels
+            texChannels = 4;
+
+            if(width)
+                *width = 2;
+            if(height)
+                *height = 2;
+            if(bits)
+                *bits = texChannels * sizeOfChannel;
+
+            const int32_t size = (*width) * (*height) * texChannels;
+            uint8_t* data = new uint8_t[size];
+
+            uint8_t datatwo[16] = {
+                255, 0, 255, 255,
+                0, 0, 0, 255,
+                0, 0, 0, 255,
+                255, 0, 255, 255
+            };
+
+            memcpy(data, datatwo, size);
+
+            return data;
+        }
+
+        // TODO support different texChannels
         if(texChannels != 4)
             texChannels = 4;
 
@@ -58,7 +85,7 @@ namespace Lumos
         if(bits)
             *bits = texChannels * sizeOfChannel; // texChannels;	  //32 bits for 4 bytes r g b a
 
-        const int32_t size = texWidth * texHeight * texChannels;
+        const int32_t size = texWidth * texHeight * texChannels * sizeOfChannel / 8;
         uint8_t* result = new uint8_t[size];
         memcpy(result, pixels, size);
 

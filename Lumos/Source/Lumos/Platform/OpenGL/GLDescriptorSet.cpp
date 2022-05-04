@@ -82,7 +82,7 @@ namespace Lumos
 
         void GLDescriptorSet::SetBuffer(const std::string& name, UniformBuffer* buffer)
         {
-            //TODO: Remove
+            // TODO: Remove
             LUMOS_PROFILE_FUNCTION();
             for(auto& descriptor : m_Descriptors)
             {
@@ -219,7 +219,7 @@ namespace Lumos
                     }
 
                     {
-                        //buffer->SetData(size, data);
+                        // buffer->SetData(size, data);
                         auto bufferHandle = static_cast<GLUniformBuffer*>(buffer)->GetHandle();
                         auto slot = descriptor.binding;
                         {

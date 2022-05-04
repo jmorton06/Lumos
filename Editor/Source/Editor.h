@@ -25,6 +25,7 @@ namespace Lumos
     class Event;
     class WindowCloseEvent;
     class WindowResizeEvent;
+    class WindowFileEvent;
     class TimeStep;
 
     namespace Graphics
@@ -69,8 +70,8 @@ namespace Lumos
         bool IsSceneFile(const std::string& filePath);
         bool IsModelFile(const std::string& filePath);
         bool IsTextureFile(const std::string& filePath);
-		bool IsShaderFile(const std::string& filePath);
-		
+        bool IsShaderFile(const std::string& filePath);
+
         void SetImGuizmoOperation(uint32_t operation)
         {
             m_ImGuizmoOperation = operation;
@@ -158,7 +159,7 @@ namespace Lumos
 
         void RecompileShaders();
         void DebugDraw();
-        void SelectObject(const Ray& ray);
+        void SelectObject(const Maths::Ray& ray);
 
         void OpenTextFile(const std::string& filePath, const std::function<void()>& callback);
         void RemovePanel(EditorPanel* panel);
@@ -170,12 +171,12 @@ namespace Lumos
         static Editor* GetEditor() { return s_Editor; }
 
         glm::vec2 m_SceneViewPanelPosition;
-        Ray GetScreenRay(int x, int y, Camera* camera, int width, int height);
+        Maths::Ray GetScreenRay(int x, int y, Camera* camera, int width, int height);
 
         void FileOpenCallback(const std::string& filepath);
         void ProjectOpenCallback(const std::string& filepath);
         void NewProjectOpenCallback(const std::string& filepath);
-		void FileEmbedCallback(const std::string& filepath);
+        void FileEmbedCallback(const std::string& filepath);
 
         FileBrowserPanel& GetFileBrowserPanel()
         {
@@ -187,7 +188,7 @@ namespace Lumos
         void LoadEditorSettings();
 
         void OpenFile();
-		void EmbedFile();
+        void EmbedFile();
         const char* GetIconFontIcon(const std::string& fileType);
 
         Camera* GetCamera() const
@@ -210,6 +211,7 @@ namespace Lumos
 
         void CacheScene();
         void LoadCachedScene();
+        bool OnFileDrop(WindowFileEvent& e);
 
         struct EditorSettings
         {
@@ -236,10 +238,11 @@ namespace Lumos
             bool m_HalfRes = false;
             float m_AspectRatio = 1.0f;
 
-            //Camera Settings
+            // Camera Settings
         };
-        
+
         EditorSettings& GetSettings() { return m_Settings; }
+        void SetSceneViewActive(bool active) { m_SceneViewActive = active; }
 
     protected:
         NONCOPYABLE(Editor)
@@ -257,6 +260,7 @@ namespace Lumos
         bool m_TransitioningCamera = false;
         glm::vec3 m_CameraDestination;
         glm::vec3 m_CameraStartPosition;
+        bool m_SceneViewActive = false;
 
         EditorSettings m_Settings;
         std::vector<SharedPtr<EditorPanel>> m_Panels;
@@ -269,7 +273,7 @@ namespace Lumos
         Maths::Transform m_EditorCameraTransform;
 
         SharedPtr<Camera> m_EditorCamera = nullptr;
-        //SharedPtr<Graphics::ForwardRenderer> m_PreviewRenderer;
+        // SharedPtr<Graphics::ForwardRenderer> m_PreviewRenderer;
         SharedPtr<Graphics::Texture2D> m_PreviewTexture;
         SharedPtr<Graphics::Mesh> m_PreviewSphere;
         SharedPtr<Graphics::GridRenderer> m_GridRenderer;

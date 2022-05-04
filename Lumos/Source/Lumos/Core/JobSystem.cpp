@@ -140,7 +140,7 @@ namespace Lumos
                             LUMOS_PROFILE_SETTHREADNAME(ss.str().c_str());
 
 #ifdef LUMOS_PLATFORM_MACOS
-                        //setpriority(PRIO_PROCESS, 0, -10);
+                        // setpriority(PRIO_PROCESS, 0, -10);
 #endif
                             while(true)
                             {
@@ -150,8 +150,7 @@ namespace Lumos
                                     std::unique_lock<std::mutex> lock(wakeMutex);
                                     wakeCondition.wait(lock);
                                 }
-                            }
-                        });
+                            } });
 
 #ifdef LUMOS_PLATFORM_WINDOWS
                     // Do Windows-specific thread setup:
@@ -174,7 +173,7 @@ namespace Lumos
                     LUMOS_ASSERT(SUCCEEDED(hr), "");
 
 #elif LUMOS_PLATFORM_MACOS
-                    //thread_affinity_policy_data_t policy = { (int32_t)threadID };
+                    // thread_affinity_policy_data_t policy = { (int32_t)threadID };
                     thread_standard_policy policy;
                     auto thread = worker.native_handle();
                     thread_policy_set(pthread_mach_thread_np(thread),

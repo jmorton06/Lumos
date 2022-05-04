@@ -33,7 +33,7 @@ namespace Lumos
         rootNode.ChildCount = 0;
         rootNode.PhysicsObjectCount = 0;
         rootNode.Index = 0;
-        rootNode.boundingBox = BoundingBox();
+        rootNode.boundingBox = Maths::BoundingBox();
 
         for(uint32_t i = 0; i < objectCount; i++)
         {
@@ -118,14 +118,14 @@ namespace Lumos
                 divisionPoints[DIVISION_POINT_INDICES[i][5]].z);
 
             newNode.boundingBox.m_Min = lower;
-			newNode.boundingBox.m_Max = upper;
+            newNode.boundingBox.m_Max = upper;
 
             // Add objects inside division
             for(uint32_t i = 0; i < division.PhysicsObjectCount; i++)
             {
                 LUMOS_PROFILE_SCOPE("PhysicsObject BB check");
                 auto& physicsObject = division.PhysicsObjects[i];
-				const BoundingBox& boundingBox = physicsObject->GetWorldSpaceAABB();
+                const Maths::BoundingBox& boundingBox = physicsObject->GetWorldSpaceAABB();
                 if(newNode.boundingBox.IsInsideFast(boundingBox))
                 {
                     newNode.PhysicsObjects[newNode.PhysicsObjectCount] = physicsObject;

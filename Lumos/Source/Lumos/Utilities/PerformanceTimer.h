@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Timer.h"
-#include <glm/vec4.hpp>
 #include "Maths/MathsUtilities.h"
 
 namespace Lumos

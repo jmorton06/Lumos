@@ -12,10 +12,10 @@ namespace Lumos
 {
     namespace Graphics
     {
-		VKCommandBuffer::VKCommandBuffer()
-			: m_CommandBuffer(nullptr)
-			, m_CommandPool(nullptr)
-			, m_Semaphore(nullptr)
+        VKCommandBuffer::VKCommandBuffer()
+            : m_CommandBuffer(nullptr)
+            , m_CommandPool(nullptr)
+            , m_Semaphore(nullptr)
             , m_Primary(false)
             , m_State(CommandBufferState::Idle)
         {
@@ -23,8 +23,8 @@ namespace Lumos
 
         VKCommandBuffer::VKCommandBuffer(VkCommandBuffer commandBuffer)
             : m_CommandBuffer(commandBuffer)
-			, m_CommandPool(nullptr)
-			, m_Semaphore(nullptr)
+            , m_CommandPool(nullptr)
+            , m_Semaphore(nullptr)
             , m_Primary(true)
             , m_State(CommandBufferState::Idle)
         {
@@ -238,6 +238,7 @@ namespace Lumos
 
         bool VKCommandBuffer::Flush()
         {
+            LUMOS_PROFILE_FUNCTION();
             if(m_State == CommandBufferState::Idle)
                 return true;
 
@@ -251,12 +252,19 @@ namespace Lumos
 
         bool VKCommandBuffer::Wait()
         {
+            LUMOS_PROFILE_FUNCTION();
             LUMOS_ASSERT(m_State == CommandBufferState::Submitted, "");
 
             m_Fence->WaitAndReset();
             m_State = CommandBufferState::Idle;
 
             return true;
+        }
+
+        void VKCommandBuffer::Submit()
+        {
+            LUMOS_PROFILE_FUNCTION();
+            Execute(VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, nullptr, false);
         }
 
         void VKCommandBuffer::MakeDefault()

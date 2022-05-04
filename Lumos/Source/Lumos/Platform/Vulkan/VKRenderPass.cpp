@@ -48,15 +48,22 @@ namespace Lumos
                 attachment.initialLayout = colourTexture->GetImageLayout();
                 attachment.finalLayout = attachment.initialLayout;
             }
+            else if(type == TextureType::CUBE)
+            {
+                VKTextureCube* colourTexture = ((VKTextureCube*)texture);
+                attachment.format = colourTexture->GetVKFormat();
+                attachment.initialLayout = colourTexture->GetImageLayout();
+                attachment.finalLayout = attachment.initialLayout;
+            }
             else if(type == TextureType::DEPTH)
             {
-                attachment.format = VKUtilities::FindDepthFormat();
+                attachment.format = ((VKTextureDepth*)texture)->GetVKFormat();
                 attachment.initialLayout = ((VKTextureDepth*)texture)->GetImageLayout();
                 attachment.finalLayout = attachment.initialLayout;
             }
             else if(type == TextureType::DEPTHARRAY)
             {
-                attachment.format = VKUtilities::FindDepthFormat();
+                attachment.format = ((VKTextureDepthArray*)texture)->GetVKFormat();
                 attachment.initialLayout = ((VKTextureDepthArray*)texture)->GetImageLayout();
                 attachment.finalLayout = attachment.initialLayout;
             }
@@ -125,6 +132,15 @@ namespace Lumos
                     depthAttachmentRef.layout = ((VKTextureDepthArray*)renderPassDesc.attachments[i])->GetImageLayout();
                     depthAttachmentReferences.push_back(depthAttachmentRef);
                     m_ClearDepth = renderPassDesc.clear;
+                }
+                else if(renderPassDesc.attachmentTypes[i] == TextureType::CUBE)
+                {
+                    VkImageLayout layout = ((VKTextureCube*)renderPassDesc.attachments[i])->GetImageLayout();
+                    VkAttachmentReference colourAttachmentRef = {};
+                    colourAttachmentRef.attachment = uint32_t(i);
+                    colourAttachmentRef.layout = layout == VK_IMAGE_LAYOUT_PRESENT_SRC_KHR ? VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL : layout;
+                    colourAttachmentReferences.push_back(colourAttachmentRef);
+                    m_DepthOnly = false;
                 }
                 else
                 {

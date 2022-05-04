@@ -10,9 +10,9 @@ namespace Lumos
         {
             OPENGL = 0,
             VULKAN,
-            DIRECT3D, //Unsupported
-            METAL, //Unsupported
-            NONE, //Unsupported
+            DIRECT3D, // Unsupported
+            METAL, // Unsupported
+            NONE, // Unsupported
         };
 
         class CommandBuffer;

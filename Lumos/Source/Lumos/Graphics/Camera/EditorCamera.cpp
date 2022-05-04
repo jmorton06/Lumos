@@ -11,8 +11,8 @@ namespace Lumos
     {
         m_FocalPoint = glm::vec3();
         m_Velocity = glm::vec3(0.0f);
-		m_RotateVelocity = glm::vec2(0.0f);
-		m_PreviousCurserPos = glm::vec3(0.0f);
+        m_RotateVelocity = glm::vec2(0.0f);
+        m_PreviousCurserPos = glm::vec3(0.0f);
         m_MouseSensitivity = 0.00001f;
         m_ZoomDampeningFactor = 0.00001f;
         m_DampeningFactor = 0.00001f;
@@ -64,19 +64,19 @@ namespace Lumos
                     Input::Get().SetMouseMode(MouseMode::Visible);
                 }
             }
-	
-			if (glm::length(m_RotateVelocity) > Maths::M_EPSILON)
-			{
-				glm::quat rotation = transform.GetLocalOrientation();
-				glm::quat rotationX = glm::angleAxis(-m_RotateVelocity.y, glm::vec3(1.0f, 0.0f, 0.0f));
-				glm::quat rotationY = glm::angleAxis(-m_RotateVelocity.x, glm::vec3(0.0f, 1.0f, 0.0f));
 
-				rotation = rotationY * rotation;
-				rotation = rotation * rotationX;
+            if(glm::length(m_RotateVelocity) > Maths::M_EPSILON)
+            {
+                glm::quat rotation = transform.GetLocalOrientation();
+                glm::quat rotationX = glm::angleAxis(-m_RotateVelocity.y, glm::vec3(1.0f, 0.0f, 0.0f));
+                glm::quat rotationY = glm::angleAxis(-m_RotateVelocity.x, glm::vec3(0.0f, 1.0f, 0.0f));
 
-				m_PreviousCurserPos = glm::vec2(xpos, ypos);
-				transform.SetLocalOrientation(rotation);
-			}
+                rotation = rotationY * rotation;
+                rotation = rotation * rotationX;
+
+                m_PreviousCurserPos = glm::vec2(xpos, ypos);
+                transform.SetLocalOrientation(rotation);
+            }
         }
 
         m_RotateVelocity = m_RotateVelocity * pow(m_RotateDampeningFactor, dt);
@@ -197,7 +197,7 @@ namespace Lumos
 
             if(!Maths::Equals(m_ZoomVelocity, 0.0f))
             {
-                float scale = 1.0f; //camera->GetScale();
+                float scale = 1.0f; // camera->GetScale();
 
                 scale -= m_ZoomVelocity;
 
@@ -211,7 +211,7 @@ namespace Lumos
                     m_ZoomVelocity = m_ZoomVelocity * pow(m_ZoomDampeningFactor, dt);
                 }
 
-                //camera->SetScale(scale);
+                // camera->SetScale(scale);
             }
         }
         else
@@ -232,12 +232,11 @@ namespace Lumos
             }
         }
     }
-	
-	void EditorCameraController::StopMovement()
-	{
-		m_ZoomVelocity = 0.0f;
-		m_Velocity = glm::vec3(0.0f);
-		m_RotateVelocity = glm::vec2(0.0f);
-		
-	}
+
+    void EditorCameraController::StopMovement()
+    {
+        m_ZoomVelocity = 0.0f;
+        m_Velocity = glm::vec3(0.0f);
+        m_RotateVelocity = glm::vec2(0.0f);
+    }
 }

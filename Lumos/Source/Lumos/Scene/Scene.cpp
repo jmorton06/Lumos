@@ -73,7 +73,7 @@ namespace Lumos
         LuaManager::Get().GetState().set("registry", &m_EntityManager->GetRegistry());
         LuaManager::Get().GetState().set("scene", this);
 
-        //Physics setup
+        // Physics setup
         auto physics3DSytem = Application::Get().GetSystem<LumosPhysicsEngine>();
         physics3DSytem->SetDampingFactor(m_Settings.Physics3DSettings.Dampening);
         physics3DSytem->SetIntegrationType((IntegrationType)m_Settings.Physics3DSettings.IntegrationTypeIndex);
@@ -269,8 +269,7 @@ namespace Lumos
                                 Graphics::Model* modelCopy = new Graphics::Model(*model);
                                 m_EntityManager->GetRegistry().emplace<Graphics::ModelComponent>(entity, SharedPtr<Graphics::Model>(modelCopy));
                                 m_EntityManager->GetRegistry().remove<Graphics::Model>(entity);
-                            }
-                        });
+                            } });
                 }
             }
             catch(...)
@@ -326,8 +325,7 @@ namespace Lumos
                                 Graphics::Model* modelCopy = new Graphics::Model(*model);
                                 m_EntityManager->GetRegistry().emplace<Graphics::ModelComponent>(entity, SharedPtr<Graphics::Model>(modelCopy));
                                 m_EntityManager->GetRegistry().remove<Graphics::Model>(entity);
-                            }
-                        });
+                            } });
                 }
             }
             catch(...)

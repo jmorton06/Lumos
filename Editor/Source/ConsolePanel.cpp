@@ -127,7 +127,7 @@ namespace Lumos
             ImGuiUtilities::DrawItemActivityOutline(2.0f, false);
         }
 
-        ImGui::SameLine(); //ImGui::GetWindowWidth() - levelButtonWidths);
+        ImGui::SameLine(); // ImGui::GetWindowWidth() - levelButtonWidths);
 
         for(int i = 0; i < 6; i++)
         {

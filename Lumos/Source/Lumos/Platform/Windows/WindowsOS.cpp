@@ -72,8 +72,8 @@ namespace Lumos
         WCHAR path[MAX_PATH];
         GetModuleFileNameW(NULL, path, MAX_PATH);
 
-        //To fix warnings
-        //std::wstring ws(path);
+        // To fix warnings
+        // std::wstring ws(path);
         std::string convertedString = std::filesystem::path(path).string();
         ; // std::string(ws.begin(), ws.end());
         std::replace(convertedString.begin(), convertedString.end(), '\\', '/');

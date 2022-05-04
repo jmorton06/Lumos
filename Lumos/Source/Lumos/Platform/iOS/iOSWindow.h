@@ -82,7 +82,7 @@ namespace Lumos
             uint32_t Width, Height;
             bool VSync;
             bool Exit;
-            //Graphics::RenderAPI m_RenderAPI;
+            // Graphics::RenderAPI m_RenderAPI;
 
             EventCallbackFn EventCallback;
         };

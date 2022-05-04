@@ -13,7 +13,7 @@ namespace Lumos
     {
         GLContext::GLContext()
         {
-            //glm::mat4::SetUpCoordSystem(false, false);
+            // glm::mat4::SetUpCoordSystem(false, false);
         }
 
         GLContext::~GLContext() = default;

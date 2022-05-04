@@ -4,7 +4,7 @@
 #include <glm/gtx/norm.hpp>
 namespace Lumos::Maths
 {
-    void SinCos(float angle, float &sin, float &cos)
+    void SinCos(float angle, float& sin, float& cos)
     {
         float angleRadians = angle * M_DEGTORAD;
 #if defined(HAVE_SINCOSF)
@@ -19,15 +19,15 @@ namespace Lumos::Maths
 
     uint32_t nChoosek(uint32_t n, uint32_t k)
     {
-        if (k > n)
+        if(k > n)
             return 0;
-        if (k * 2 > n)
+        if(k * 2 > n)
             k = n - k;
-        if (k == 0)
+        if(k == 0)
             return 1;
 
         uint32_t result = n;
-        for (uint32_t i = 2; i <= k; ++i)
+        for(uint32_t i = 2; i <= k; ++i)
         {
             result *= (n - i + 1);
             result /= i;
@@ -35,14 +35,14 @@ namespace Lumos::Maths
         return result;
     }
 
-    glm::vec3 ComputeClosestPointOnSegment(const glm::vec3 &segPointA, const glm::vec3 &segPointB, const glm::vec3 &pointC)
+    glm::vec3 ComputeClosestPointOnSegment(const glm::vec3& segPointA, const glm::vec3& segPointB, const glm::vec3& pointC)
     {
         const glm::vec3 ab = segPointB - segPointA;
 
         float abLengthSquare = glm::length2(ab);
 
         // If the segment has almost zero length
-        if (abLengthSquare < M_EPSILON)
+        if(abLengthSquare < M_EPSILON)
         {
             // Return one end-point of the segment as the closest point
             return segPointA;
@@ -58,9 +58,9 @@ namespace Lumos::Maths
         return segPointA + t * ab;
     }
 
-    void ClosestPointBetweenTwoSegments(const glm::vec3 &seg1PointA, const glm::vec3 &seg1PointB,
-                                               const glm::vec3 &seg2PointA, const glm::vec3 &seg2PointB,
-                                               glm::vec3 &closestPointSeg1, glm::vec3 &closestPointSeg2)
+    void ClosestPointBetweenTwoSegments(const glm::vec3& seg1PointA, const glm::vec3& seg1PointB,
+        const glm::vec3& seg2PointA, const glm::vec3& seg2PointB,
+        glm::vec3& closestPointSeg1, glm::vec3& closestPointSeg2)
     {
 
         const glm::vec3 d1 = seg1PointB - seg1PointA;
@@ -72,13 +72,13 @@ namespace Lumos::Maths
         float s, t;
 
         // If both segments degenerate into points
-        if (a <= M_EPSILON && e <= M_EPSILON)
+        if(a <= M_EPSILON && e <= M_EPSILON)
         {
             closestPointSeg1 = seg1PointA;
             closestPointSeg2 = seg2PointA;
             return;
         }
-        if (a <= M_EPSILON)
+        if(a <= M_EPSILON)
         { // If first segment degenerates into a point
 
             s = 0.0f;
@@ -92,7 +92,7 @@ namespace Lumos::Maths
             float c = glm::dot(d1, r);
 
             // If the second segment degenerates into a point
-            if (e <= M_EPSILON)
+            if(e <= M_EPSILON)
             {
 
                 t = 0.0f;
@@ -104,12 +104,12 @@ namespace Lumos::Maths
                 float denom = a * e - b * b;
 
                 // If the segments are not parallel
-                if (denom != 0.0f)
+                if(denom != 0.0f)
                 {
 
                     // Compute the closest point on line 1 to line 2 and
                     // clamp to first segment.
-                    s = Clamp((b * f - c * e) / denom, 0.0f,1.0f);
+                    s = Clamp((b * f - c * e) / denom, 0.0f, 1.0f);
                 }
                 else
                 {
@@ -125,12 +125,12 @@ namespace Lumos::Maths
                 // If this closest point is inside second segment (t in [0, 1]), we are done.
                 // Otherwise, we clamp the point to the second segment and compute again the
                 // closest point on segment 1
-                if (t < 0.0f)
+                if(t < 0.0f)
                 {
                     t = 0.0f;
                     s = Clamp(-c / a, 0.0f, 1.0f);
                 }
-                else if (t > 1.0f)
+                else if(t > 1.0f)
                 {
                     t = 1.0f;
                     s = Clamp((b - c) / a, 0.0f, 1.0f);
@@ -143,7 +143,7 @@ namespace Lumos::Maths
         closestPointSeg2 = seg2PointA + d2 * t;
     }
 
-    bool AreVectorsParallel(const glm::vec3 &v1, const glm::vec3 &v2)
+    bool AreVectorsParallel(const glm::vec3& v1, const glm::vec3& v2)
     {
         return glm::length2(glm::cross(v1, v2)) < M_EPSILON;
     }

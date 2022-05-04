@@ -27,40 +27,40 @@ namespace Lumos
         {
             switch(format)
             {
-            case Format::R32_FLOAT:
+            case Format::R32_Float:
                 GLCall(glVertexAttribPointer(index, 1, GL_FLOAT, false, stride, (const void*)(intptr_t)(offset)));
                 break;
-            case Format::R32G32_FLOAT:
+            case Format::R32G32_Float:
                 GLCall(glVertexAttribPointer(index, 2, GL_FLOAT, false, stride, (const void*)(intptr_t)(offset)));
                 break;
-            case Format::R32G32B32_FLOAT:
+            case Format::R32G32B32_Float:
                 GLCall(glVertexAttribPointer(index, 3, GL_FLOAT, false, stride, (const void*)(intptr_t)(offset)));
                 break;
-            case Format::R32G32B32A32_FLOAT:
+            case Format::R32G32B32A32_Float:
                 GLCall(glVertexAttribPointer(index, 4, GL_FLOAT, false, stride, (const void*)(intptr_t)(offset)));
                 break;
-            case Format::R8_UINT:
+            case Format::R8_UInt:
                 GLCall(glVertexAttribPointer(index, 1, GL_UNSIGNED_BYTE, false, stride, (const void*)(intptr_t)(offset)));
                 break;
-            case Format::R32_UINT:
+            case Format::R32_UInt:
                 GLCall(glVertexAttribPointer(index, 1, GL_UNSIGNED_INT, false, stride, (const void*)(intptr_t)(offset)));
                 break;
-            case Format::R32G32_UINT:
+            case Format::R32G32_UInt:
                 GLCall(glVertexAttribPointer(index, 2, GL_UNSIGNED_INT, false, stride, (const void*)(intptr_t)(offset)));
                 break;
-            case Format::R32G32B32_UINT:
+            case Format::R32G32B32_UInt:
                 GLCall(glVertexAttribPointer(index, 3, GL_UNSIGNED_INT, false, stride, (const void*)(intptr_t)(offset)));
                 break;
-            case Format::R32G32B32A32_UINT:
+            case Format::R32G32B32A32_UInt:
                 GLCall(glVertexAttribPointer(index, 4, GL_UNSIGNED_INT, false, stride, (const void*)(intptr_t)(offset)));
                 break;
-            case Format::R32G32_INT:
+            case Format::R32G32_Int:
                 GLCall(glVertexAttribPointer(index, 2, GL_INT, false, stride, (const void*)(intptr_t)(offset)));
                 break;
-            case Format::R32G32B32_INT:
+            case Format::R32G32B32_Int:
                 GLCall(glVertexAttribPointer(index, 3, GL_INT, false, stride, (const void*)(intptr_t)(offset)));
                 break;
-            case Format::R32G32B32A32_INT:
+            case Format::R32G32B32A32_Int:
                 GLCall(glVertexAttribPointer(index, 4, GL_INT, false, stride, (const void*)(intptr_t)(offset)));
                 break;
             }
@@ -244,7 +244,7 @@ namespace Lumos
             }
 
             GLCall(glFrontFace(GL_CCW));
-            
+
             if(m_LineWidth != 1.0f)
                 glLineWidth(m_LineWidth);
         }
@@ -252,7 +252,7 @@ namespace Lumos
         void GLPipeline::End(Graphics::CommandBuffer* commandBuffer)
         {
             m_RenderPass->EndRenderpass(commandBuffer);
-            
+
             if(m_LineWidth != 1.0f)
                 glLineWidth(1.0f);
         }

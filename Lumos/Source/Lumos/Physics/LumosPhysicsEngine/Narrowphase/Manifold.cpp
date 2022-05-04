@@ -70,7 +70,7 @@ namespace Lumos
 
             float b;
             {
-                //float distanceOffset = c.collisionPenetration;
+                // float distanceOffset = c.collisionPenetration;
 
                 float baumgarteScalar = 0.3f; // Amount of force to add to the System to solve error
                 float baumgarteSlop = 0.001f; // Amount of allowed penetration, ensures a complete manifold each frame
@@ -83,16 +83,16 @@ namespace Lumos
             float b_real = Maths::Max(b, c.elatisity_term + b * 0.2f);
             float jn = -(glm::dot(dv, normal) + b_real) / constraintMass;
 
-            //jn = min(jn, 0.0f);
+            // jn = min(jn, 0.0f);
             float oldSumImpulseContact = c.sumImpulseContact;
             c.sumImpulseContact = Maths::Min(c.sumImpulseContact + jn, 0.0f);
             jn = c.sumImpulseContact - oldSumImpulseContact;
 
             m_pNodeA->SetLinearVelocity(m_pNodeA->GetLinearVelocity()
-            + normal * (jn * m_pNodeA->GetInverseMass()));
+                + normal * (jn * m_pNodeA->GetInverseMass()));
             m_pNodeB->SetLinearVelocity(m_pNodeB->GetLinearVelocity()
-            - normal * (jn * m_pNodeB->GetInverseMass()));
-  
+                - normal * (jn * m_pNodeB->GetInverseMass()));
+
             m_pNodeA->SetAngularVelocity(m_pNodeA->GetAngularVelocity()
                 + m_pNodeA->GetInverseInertia()
                     * glm::cross(r1, normal * jn));
@@ -157,7 +157,7 @@ namespace Lumos
     {
         LUMOS_PROFILE_FUNCTION();
 
-        //Reset total impulse forces computed this physics timestep
+        // Reset total impulse forces computed this physics timestep
         contact.sumImpulseContact = 0.0f;
         contact.sumImpulseFriction = 0.0f;
 
@@ -197,12 +197,12 @@ namespace Lumos
     void Manifold::AddContact(const glm::vec3& globalOnA, const glm::vec3& globalOnB, const glm::vec3& _normal, const float& _penetration)
     {
         LUMOS_PROFILE_FUNCTION();
-        //Get relative offsets from each object centre of mass
-        // Used to compute rotational velocity at the point of contact.
+        // Get relative offsets from each object centre of mass
+        //  Used to compute rotational velocity at the point of contact.
         glm::vec3 r1 = (globalOnA - m_pNodeA->GetPosition());
         glm::vec3 r2 = (globalOnB - m_pNodeB->GetPosition());
 
-        //Create our new contact descriptor
+        // Create our new contact descriptor
         ContactPoint contact;
         contact.relPosA = r1;
         contact.relPosB = r2;
@@ -212,7 +212,7 @@ namespace Lumos
         contact.sumImpulseContact = 0.0f;
         contact.sumImpulseFriction = 0.0f;
 
-        //Check to see if we already contain a contact point almost in that location
+        // Check to see if we already contain a contact point almost in that location
         const float min_allowed_dist_sq = 0.2f * 0.2f;
         bool should_add = true;
         for(uint32_t i = 0; i < m_ContactCount; i++)
@@ -220,7 +220,7 @@ namespace Lumos
             glm::vec3 ab = m_vContacts[i].relPosA - contact.relPosA;
             float distsq = glm::dot(ab, ab);
 
-            //Choose the contact point with the largest penetration and therefore the largest collision response
+            // Choose the contact point with the largest penetration and therefore the largest collision response
             if(distsq < min_allowed_dist_sq)
             {
                 if(m_vContacts[i].collisionPenetration > contact.collisionPenetration)
@@ -249,7 +249,7 @@ namespace Lumos
 
         if(m_ContactCount > 0)
         {
-            //Loop around all contact points and draw them all as a line-fan
+            // Loop around all contact points and draw them all as a line-fan
             glm::vec3 globalOnA1 = m_pNodeA->GetPosition() + m_vContacts[m_ContactCount - 1].relPosA;
             for(uint32_t i = 0; i < m_ContactCount; i++)
             {
@@ -257,10 +257,10 @@ namespace Lumos
                 glm::vec3 globalOnA2 = m_pNodeA->GetPosition() + contact.relPosA;
                 glm::vec3 globalOnB = m_pNodeB->GetPosition() + contact.relPosB;
 
-                //Draw line to form area given by all contact points
+                // Draw line to form area given by all contact points
                 DebugRenderer::DrawThickLineNDT(globalOnA1, globalOnA2, 0.02f, glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
 
-                //Draw descriptors for indivdual contact point
+                // Draw descriptors for indivdual contact point
                 DebugRenderer::DrawPointNDT(globalOnA2, 0.05f, glm::vec4(0.0f, 0.5f, 0.0f, 1.0f));
                 DebugRenderer::DrawThickLineNDT(globalOnB, globalOnA2, 0.01f, glm::vec4(1.0f, 0.0f, 1.0f, 1.0f));
 

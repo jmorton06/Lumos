@@ -30,6 +30,7 @@ namespace Lumos
             void Invalidate(VkDeviceSize size = VK_WHOLE_SIZE, VkDeviceSize offset = 0);
             void SetUsage(VkBufferUsageFlags flags) { m_UsageFlags = flags; }
             void SetMemoryProperyFlags(VkBufferUsageFlags flags) { m_MemoryProperyFlags = flags; }
+            void Destroy(bool deletionQueue = false);
 
         protected:
             VkBuffer m_Buffer {};

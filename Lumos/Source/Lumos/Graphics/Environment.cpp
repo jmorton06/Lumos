@@ -1,6 +1,7 @@
 #include "Precompiled.h"
 #include "Environment.h"
-
+#include "Core/Application.h"
+#include "Renderers/RenderGraph.h"
 #include "RHI/Texture.h"
 #include "Core/VFS.h"
 #include "Core/StringUtilities.h"
@@ -47,6 +48,8 @@ namespace Lumos
 
         void Environment::Load()
         {
+            LUMOS_PROFILE_FUNCTION();
+            
             std::string* envFiles = new std::string[m_NumMips];
             std::string* irrFiles = new std::string[m_NumMips];
 
@@ -58,6 +61,14 @@ namespace Lumos
             for(uint32_t i = 0; i < m_NumMips; i++)
             {
                 envFiles[i] = m_FilePath + "_Env_" + StringUtilities::ToString(i) + "_" + StringUtilities::ToString(currWidth) + "x" + StringUtilities::ToString(currHeight) + m_FileType;
+
+                if(m_FileType == ".hdr")
+                {
+                    auto test = Application::Get().GetRenderGraph()->CreateCubeFromHDRI(envFiles[i]);
+                    m_Environmnet = test;
+                    m_IrradianceMap = test;
+                    return;
+                }
 
                 currHeight /= 2;
                 currWidth /= 2;

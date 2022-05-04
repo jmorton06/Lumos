@@ -18,7 +18,7 @@ namespace Lumos
         }
         bool InitRef();
 
-        //Returns false if refcount is at zero and didn't get increased
+        // Returns false if refcount is at zero and didn't get increased
         bool reference();
         bool unreference();
 
