@@ -10,6 +10,7 @@ namespace Lumos
         WindowFocus,
         WindowLostFocus,
         WindowMoved,
+        WindowFile,
         AppTick,
         AppUpdate,
         AppRender,

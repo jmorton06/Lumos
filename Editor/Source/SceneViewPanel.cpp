@@ -504,25 +504,6 @@ namespace Lumos
             }
         }
 
-        //        ImGui::SameLine();
-        //        ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);
-        //        ImGui::SameLine();
-        //        {
-        //            selected = m_ShowStats;
-        //            if(selected)
-        //                ImGui::PushStyleColor(ImGuiCol_Text, ImGuiUtilities::GetSelectedColour());
-        //
-        //            ImGui::SameLine();
-        //            if(ImGui::Button("Stats"))
-        //            {
-        //                m_ShowStats = !m_ShowStats;
-        //            }
-        //
-        //            if(selected)
-        //                ImGui::PopStyleColor();
-        //            ImGuiUtilities::Tooltip("Show Statistics");
-        //        }
-
         ImGui::SameLine();
         ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);
         ImGui::SameLine();
@@ -560,69 +541,6 @@ namespace Lumos
         }
         if(selected)
             ImGui::PopStyleColor();
-
-        //        ImGui::SameLine();
-        //
-        //        static std::string supportedAspects[] = { "Free Aspect", "16:10", "16:9", "4:3", "3:2", "9:16" };
-        //
-        //        if(ImGui::Button("Aspect " ICON_MDI_CHEVRON_DOWN))
-        //            ImGui::OpenPopup("AspectPopup");
-        //        if(ImGui::BeginPopup("AspectPopup"))
-        //        {
-        //            std::string currentAspect = m_Editor->GetSettings().m_FreeAspect ? "Free Aspect" : AspectToString(m_Editor->GetSettings().m_FixedAspect);
-        //
-        //            for(int n = 0; n < 6; n++)
-        //            {
-        //                bool is_selected = (currentAspect == supportedAspects[n]);
-        //                if(ImGui::Checkbox(supportedAspects[n].c_str(), &is_selected))
-        //                {
-        //                    if(supportedAspects[n] == "Free Aspect")
-        //                    {
-        //                        m_Editor->GetSettings().m_FreeAspect = is_selected;
-        //                    }
-        //                    else
-        //                    {
-        //                        m_Editor->GetSettings().m_FreeAspect = false;
-        //                        m_Editor->GetSettings().m_FixedAspect = StringToAspect(supportedAspects[n]);
-        //                    }
-        //                }
-        //            }
-        //            ImGui::EndPopup();
-        //        }
-
-        // ImGui::SameLine();
-
-        //        {
-        //            selected = m_Editor->GetSettings().m_HalfRes;
-        //            if(selected)
-        //                ImGui::PushStyleColor(ImGuiCol_Text, ImGuiUtilities::GetSelectedColour());
-        //
-        //            if(ImGui::Button("Half Res"))
-        //                m_Editor->GetSettings().m_HalfRes = !m_Editor->GetSettings().m_HalfRes;
-        //
-        //            if(ImGui::IsItemHovered())
-        //                ImGui::SetTooltip("Scene view with halved resolution");
-        //
-        //            if(selected)
-        //                ImGui::PopStyleColor();
-        //        }
-
-        // ImGui::SameLine();
-
-        //        {
-        //            selected = m_Editor->FullScreenOnPlay();
-        //            if(m_Editor->FullScreenOnPlay())
-        //                ImGui::PushStyleColor(ImGuiCol_Text, ImGuiUtilities::GetSelectedColour());
-        //
-        //            if(ImGui::Button("Maximise"))
-        //                m_Editor->FullScreenOnPlay() = !m_Editor->FullScreenOnPlay();
-        //
-        //            if(ImGui::IsItemHovered())
-        //                ImGui::SetTooltip("Maximise on play");
-        //
-        //            if(selected)
-        //                ImGui::PopStyleColor();
-        //        }
 
         ImGui::PopStyleColor();
         ImGui::Unindent();

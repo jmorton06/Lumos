@@ -1129,9 +1129,11 @@ namespace Lumos
 
             ImGuiID DockMiddle = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Right, 0.8f, nullptr, &dock_main_id);
             ImGuiID DockBottomMiddle = ImGui::DockBuilderSplitNode(DockMiddle, ImGuiDir_Down, 0.3f, nullptr, &DockMiddle);
+            ImGuiID DockMiddleLeft = ImGui::DockBuilderSplitNode(DockMiddle, ImGuiDir_Left, 0.5f, nullptr, &DockMiddle);
+            ImGuiID DockMiddleRight = ImGui::DockBuilderSplitNode(DockMiddle, ImGuiDir_Right, 0.5f, nullptr, &DockMiddle);
 
-            ImGui::DockBuilderDockWindow("###game", DockMiddle);
-            ImGui::DockBuilderDockWindow("###scene", DockMiddle);
+            ImGui::DockBuilderDockWindow("###game", DockMiddleRight);
+            ImGui::DockBuilderDockWindow("###scene", DockMiddleLeft);
             ImGui::DockBuilderDockWindow("###inspector", DockRight);
             ImGui::DockBuilderDockWindow("###console", DockBottomMiddle);
             ImGui::DockBuilderDockWindow("###profiler", DockingBottomLeftChild);
@@ -1179,8 +1181,10 @@ namespace Lumos
 
 #ifdef LUMOS_DEBUG
         Configuration = "Debug";
-#else
+#elif LUMOS_RELEASE
         Configuration = "Release";
+#elif LUMOS_PRODUCTION
+        Configuration = "Production";
 #endif
 
 #ifdef LUMOS_PLATFORM_WINDOWS
@@ -1308,10 +1312,17 @@ namespace Lumos
         }
     }
 
+    bool Editor::OnFileDrop(WindowFileEvent& e)
+    {
+        FileOpenCallback(e.GetFilePath());
+        return true;
+    }
+
     void Editor::OnEvent(Event& e)
     {
         LUMOS_PROFILE_FUNCTION();
         EventDispatcher dispatcher(e);
+        dispatcher.Dispatch<WindowFileEvent>(BIND_EVENT_FN(Editor::OnFileDrop));
         // Block events here
 
         Application::OnEvent(e);
@@ -1574,7 +1585,7 @@ namespace Lumos
             auto transform = registry.try_get<Maths::Transform>(m_SelectedEntity);
 
             auto model = registry.try_get<Graphics::ModelComponent>(m_SelectedEntity);
-            if(transform && model)
+            if(transform && model && model->ModelRef)
             {
                 auto& meshes = model->ModelRef->GetMeshes();
                 for(auto mesh : meshes)

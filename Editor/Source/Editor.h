@@ -25,6 +25,7 @@ namespace Lumos
     class Event;
     class WindowCloseEvent;
     class WindowResizeEvent;
+    class WindowFileEvent;
     class TimeStep;
 
     namespace Graphics
@@ -210,6 +211,7 @@ namespace Lumos
 
         void CacheScene();
         void LoadCachedScene();
+        bool OnFileDrop(WindowFileEvent& e);
 
         struct EditorSettings
         {

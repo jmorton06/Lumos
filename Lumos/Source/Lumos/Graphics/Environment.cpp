@@ -48,6 +48,8 @@ namespace Lumos
 
         void Environment::Load()
         {
+            LUMOS_PROFILE_FUNCTION();
+            
             std::string* envFiles = new std::string[m_NumMips];
             std::string* irrFiles = new std::string[m_NumMips];
 
@@ -60,10 +62,13 @@ namespace Lumos
             {
                 envFiles[i] = m_FilePath + "_Env_" + StringUtilities::ToString(i) + "_" + StringUtilities::ToString(currWidth) + "x" + StringUtilities::ToString(currHeight) + m_FileType;
 
-                auto test = Application::Get().GetRenderGraph()->CreateCubeFromHDRI(envFiles[i]);
-                m_Environmnet = test;
-                m_IrradianceMap = test;
-                return;
+                if(m_FileType == ".hdr")
+                {
+                    auto test = Application::Get().GetRenderGraph()->CreateCubeFromHDRI(envFiles[i]);
+                    m_Environmnet = test;
+                    m_IrradianceMap = test;
+                    return;
+                }
 
                 currHeight /= 2;
                 currWidth /= 2;

@@ -25,6 +25,10 @@ namespace Lumos::Graphics
         }
 
         void LoadFromLibrary(const std::string& path);
+        void LoadPrimitive(PrimitiveType primitive)
+        {
+            ModelRef = CreateSharedPtr<Model>(primitive);
+        }
 
         SharedPtr<Model> ModelRef;
 
