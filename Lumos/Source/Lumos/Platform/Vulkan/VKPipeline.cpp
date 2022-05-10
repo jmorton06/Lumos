@@ -50,21 +50,27 @@ namespace Lumos
 
             std::vector<VkVertexInputAttributeDescription> vertexInputDescription;
 
+            uint32_t stride = m_Shader.As<VKShader>()->GetVertexInputStride();
+            
             // Vertex layout
             VkVertexInputBindingDescription vertexBindingDescription;
-            vertexBindingDescription.binding = 0;
-            vertexBindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
-            vertexBindingDescription.stride = m_Shader.As<VKShader>()->GetVertexInputStride();
-
+            
+            if(stride > 0)
+            {
+                vertexBindingDescription.binding = 0;
+                vertexBindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+                vertexBindingDescription.stride = m_Shader.As<VKShader>()->GetVertexInputStride();
+            }
+            
             const std::vector<VkVertexInputAttributeDescription>& vertexInputAttributeDescription = m_Shader.As<VKShader>()->GetVertexInputAttributeDescription();
 
             VkPipelineVertexInputStateCreateInfo vi {};
             vi.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
             vi.pNext = NULL;
-            vi.vertexBindingDescriptionCount = 1;
-            vi.pVertexBindingDescriptions = &vertexBindingDescription;
-            vi.vertexAttributeDescriptionCount = uint32_t(vertexInputAttributeDescription.size());
-            vi.pVertexAttributeDescriptions = vertexInputAttributeDescription.data();
+            vi.vertexBindingDescriptionCount = stride > 0 ? 1 : 0;
+            vi.pVertexBindingDescriptions = stride > 0 ? &vertexBindingDescription : nullptr;
+            vi.vertexAttributeDescriptionCount = stride > 0 ? uint32_t(vertexInputAttributeDescription.size()) : 0;
+            vi.pVertexAttributeDescriptions = stride > 0 ? vertexInputAttributeDescription.data() : nullptr;
 
             VkPipelineInputAssemblyStateCreateInfo inputAssemblyCI {};
             inputAssemblyCI.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;

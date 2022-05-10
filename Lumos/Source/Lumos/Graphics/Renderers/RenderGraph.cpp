@@ -47,7 +47,7 @@ namespace Lumos::Graphics
         m_CubeMap = nullptr;
         m_ClearColour = glm::vec4(0.2f, 0.2f, 0.2f, 1.0f);
         m_MainTexture = Texture2D::Create();
-        m_MainTexture->BuildTexture(Graphics::Format::R10G10B10A2_Unorm, width, height, false, false, false);
+        m_MainTexture->BuildTexture(Graphics::Format::R11G11B10_Float, width, height, false, false, false);
 
         // Setup shadow pass data
         m_ShadowData.m_ShadowTex = nullptr;
@@ -390,7 +390,7 @@ namespace Lumos::Graphics
     {
         LUMOS_PROFILE_FUNCTION();
         m_ForwardData.m_DepthTexture->Resize(width, height);
-        m_MainTexture->BuildTexture(Graphics::Format::R16G16B16A16_Float, width, height, false, false, false);
+        m_MainTexture->BuildTexture(Graphics::Format::R11G11B10_Float, width, height, false, false, false);
     }
 
     void RenderGraph::EnableDebugRenderer(bool enable)
@@ -1200,10 +1200,18 @@ namespace Lumos::Graphics
         auto commandBuffer = Renderer::GetMainSwapChain()->GetCurrentCommandBuffer();
         auto pipeline = Graphics::Pipeline::Get(pipelineDesc);
         pipeline->Bind(commandBuffer);
-
+        
+#ifdef LUMOS_RENDER_API_OPENGL
+        if(Renderer::GetGraphicsContext()->GetRenderAPI() == RenderAPI::OPENGL)
+        {
+            m_ScreenQuad->GetVertexBuffer()->Bind(commandBuffer, pipeline);
+            m_ScreenQuad->GetIndexBuffer()->Bind(commandBuffer);
+        }
+#endif
+        
         auto set = m_FinalPassDescriptorSet.get();
         Renderer::BindDescriptorSets(pipeline.get(), commandBuffer, 0, &set, 1);
-        Renderer::DrawMesh(commandBuffer, pipeline.get(), m_ScreenQuad);
+        Renderer::Draw(commandBuffer, DrawType::TRIANGLE, 3);
 
         pipeline->End(commandBuffer);
     }
@@ -1235,15 +1243,17 @@ namespace Lumos::Graphics
         auto pipeline = Graphics::Pipeline::Get(pipelineDesc);
         pipeline->Bind(commandBuffer);
 
-        m_ScreenQuad->GetVertexBuffer()->Bind(commandBuffer, pipeline.get());
-        m_ScreenQuad->GetIndexBuffer()->Bind(commandBuffer);
+#ifdef LUMOS_RENDER_API_OPENGL
+        if(Renderer::GetGraphicsContext()->GetRenderAPI() == RenderAPI::OPENGL)
+        {
+            m_ScreenQuad->GetVertexBuffer()->Bind(commandBuffer, pipeline);
+            m_ScreenQuad->GetIndexBuffer()->Bind(commandBuffer);
+        }
+#endif
 
-        auto set = m_FinalPassDescriptorSet.get();
+        auto set = m_BloomPassDescriptorSet.get();
         Renderer::BindDescriptorSets(pipeline.get(), commandBuffer, 0, &set, 1);
-        Renderer::DrawIndexed(commandBuffer, DrawType::TRIANGLE, m_ScreenQuad->GetIndexBuffer()->GetCount());
-
-        m_ScreenQuad->GetVertexBuffer()->Unbind();
-        m_ScreenQuad->GetIndexBuffer()->Unbind();
+        Renderer::DrawIndexed(commandBuffer, DrawType::TRIANGLE, 3);
 
         pipeline->End(commandBuffer);
     }
@@ -1758,8 +1768,8 @@ namespace Lumos::Graphics
             auto pipeline = Graphics::Pipeline::Get(pipelineDesc);
             pipeline->Bind(commandBuffer, i);
 
-            m_ScreenQuad->GetVertexBuffer()->Bind(commandBuffer, pipeline.get());
-            m_ScreenQuad->GetIndexBuffer()->Bind(commandBuffer);
+            //m_ScreenQuad->GetVertexBuffer()->Bind(commandBuffer, pipeline.get());
+            //m_ScreenQuad->GetIndexBuffer()->Bind(commandBuffer);
 
             auto& pushConstants = shader->GetPushConstants();
             if(!pushConstants.empty())
@@ -1771,10 +1781,10 @@ namespace Lumos::Graphics
 
             auto set = descriptorSet.get();
             Renderer::BindDescriptorSets(pipeline.get(), commandBuffer, 0, &set, 1);
-            Renderer::DrawIndexed(commandBuffer, DrawType::TRIANGLE, m_ScreenQuad->GetIndexBuffer()->GetCount());
+            Renderer::DrawIndexed(commandBuffer, DrawType::TRIANGLE, 4);
 
-            m_ScreenQuad->GetVertexBuffer()->Unbind();
-            m_ScreenQuad->GetIndexBuffer()->Unbind();
+            //m_ScreenQuad->GetVertexBuffer()->Unbind();
+            //m_ScreenQuad->GetIndexBuffer()->Unbind();
 
             pipeline->End(commandBuffer);
         }

@@ -1929,11 +1929,19 @@ namespace Lumos
     void InspectorPanel::OnImGui()
     {
         LUMOS_PROFILE_FUNCTION();
-        auto& registry = Application::Get().GetSceneManager()->GetCurrentScene()->GetRegistry();
+        
         auto selected = m_Editor->GetSelected();
 
         if(ImGui::Begin(m_Name.c_str(), &m_Active))
         {
+            if(!Application::Get().GetSceneManager()->GetCurrentScene())
+            {
+                m_Editor->SetSelected(entt::null);
+                ImGui::End();
+                return;
+            }
+            
+            auto& registry = Application::Get().GetSceneManager()->GetCurrentScene()->GetRegistry();
             if(selected == entt::null || !registry.valid(selected))
             {
                 m_Editor->SetSelected(entt::null);

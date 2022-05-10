@@ -103,7 +103,7 @@ namespace Lumos
 
         auto flags = ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse;
 
-        if(!ImGui::Begin(m_Name.c_str(), &m_Active, flags))
+        if(!ImGui::Begin(m_Name.c_str(), &m_Active, flags) || !m_CurrentScene)
         {
             m_GameViewVisible = false;
             ImGui::End();

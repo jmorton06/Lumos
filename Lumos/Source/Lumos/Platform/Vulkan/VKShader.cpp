@@ -383,8 +383,9 @@ namespace Lumos
 
         VKShader::VKShader(const std::string& filePath)
             : m_StageCount(0)
+            , m_PipelineLayout(VK_NULL_HANDLE)
+            , m_ShaderStages(VK_NULL_HANDLE)
         {
-            m_ShaderStages = VK_NULL_HANDLE;
             m_Name = StringUtilities::GetFileName(filePath);
             m_FilePath = StringUtilities::GetFileLocation(filePath);
             m_Source = VFS::Get().ReadTextFile(filePath);
@@ -395,6 +396,9 @@ namespace Lumos
         }
 
         VKShader::VKShader(const uint32_t* vertData, uint32_t vertDataSize, const uint32_t* fragData, uint32_t fragDataSize)
+            : m_StageCount(0)
+            , m_PipelineLayout(VK_NULL_HANDLE)
+            , m_ShaderStages(VK_NULL_HANDLE)
         {
             m_Name = "";
             m_FilePath = "Embedded";
@@ -701,7 +705,8 @@ namespace Lumos
             for(auto& descriptorLayout : m_DescriptorSetLayouts)
                 vkDestroyDescriptorSetLayout(VKDevice::Get().GetDevice(), descriptorLayout, VK_NULL_HANDLE);
 
-            vkDestroyPipelineLayout(VKDevice::Get().GetDevice(), m_PipelineLayout, VK_NULL_HANDLE);
+            if(m_PipelineLayout)
+                vkDestroyPipelineLayout(VKDevice::Get().GetDevice(), m_PipelineLayout, VK_NULL_HANDLE);
         }
 
         void VKShader::BindPushConstants(Graphics::CommandBuffer* commandBuffer, Graphics::Pipeline* pipeline)

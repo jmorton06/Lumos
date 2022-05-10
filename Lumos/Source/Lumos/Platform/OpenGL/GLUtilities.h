@@ -5,7 +5,7 @@ namespace Lumos
 {
     namespace Graphics
     {
-        namespace GLTools
+        namespace GLUtilities
         {
             uint32_t FormatToGL(Format format, bool srgb = true);
             uint32_t TextureWrapToGL(TextureWrap wrap);

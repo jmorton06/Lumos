@@ -108,7 +108,10 @@ namespace Lumos
         if(!FileSystem::FolderExists(m_TempSceneSaveFilePath))
             std::filesystem::create_directory(m_TempSceneSaveFilePath);
 
-        std::vector<std::string> iniLocation = { "Editor.ini", "/Users/jmorton/dev/Lumos/Editor.ini", "../Editor.ini", StringUtilities::GetFileLocation(OS::Instance()->GetExecutablePath()) + "Editor.ini", StringUtilities::GetFileLocation(OS::Instance()->GetExecutablePath()) + "../../../Editor.ini" };
+        std::vector<std::string> iniLocation = {
+            StringUtilities::GetFileLocation(OS::Instance()->GetExecutablePath()) + "Editor.ini",
+            StringUtilities::GetFileLocation(OS::Instance()->GetExecutablePath()) + "../../../Editor.ini"
+        };
         bool fileFound = false;
         std::string filePath;
         for(auto& path : iniLocation)
@@ -338,6 +341,18 @@ namespace Lumos
         m_FileBrowserPanel.Open();
     }
 
+    static std::string projectLocation = "../";
+    static bool reopenNewProjectPopup = false;
+    static bool locationPopupOpened = false;
+
+    void Editor::NewProjectLocationCallback(const std::string& path)
+    {
+        projectLocation = path;
+        m_NewProjectPopupOpen = false;
+        reopenNewProjectPopup = true;
+        locationPopupOpened = false;
+    }
+
     void Editor::DrawMenuBar()
     {
         LUMOS_PROFILE_FUNCTION();
@@ -345,23 +360,16 @@ namespace Lumos
         bool openSaveScenePopup = false;
         bool openNewScenePopup = false;
         bool openReloadScenePopup = false;
+        bool openProjectLoadPopup = !m_ProjectLoaded;
 
         if(ImGui::BeginMainMenuBar())
         {
             if(ImGui::BeginMenu("File"))
             {
-                if(ImGui::MenuItem("New Project"))
-                {
-                    m_FileBrowserPanel.SetOpenDirectory(true);
-                    m_FileBrowserPanel.SetCallback(BIND_FILEBROWSER_FN(Editor::NewProjectOpenCallback));
-                    m_FileBrowserPanel.Open();
-                }
-
                 if(ImGui::MenuItem("Open Project"))
                 {
-                    m_FileBrowserPanel.SetCurrentPath(m_ProjectSettings.m_ProjectRoot);
-                    m_FileBrowserPanel.SetCallback(BIND_FILEBROWSER_FN(Editor::ProjectOpenCallback));
-                    m_FileBrowserPanel.Open();
+                    reopenNewProjectPopup = false;
+                    openProjectLoadPopup = true;
                 }
 
                 ImGui::Separator();
@@ -893,8 +901,25 @@ namespace Lumos
             ImGui::EndPopup();
         }
 
+        if(locationPopupOpened)
+        {
+            //Cancel clicked on project location popups
+            if(!m_FileBrowserPanel.IsOpen())
+            {
+                m_NewProjectPopupOpen = false;
+                locationPopupOpened = false;
+                reopenNewProjectPopup = true;
+            }
+            
+        }
         if(openNewScenePopup)
             ImGui::OpenPopup("New Scene");
+        
+        if((reopenNewProjectPopup || openProjectLoadPopup) && !m_NewProjectPopupOpen)
+        {
+            ImGui::OpenPopup("Open Project");
+            reopenNewProjectPopup = false;
+        }
 
         if(ImGui::BeginPopupModal("New Scene", NULL, ImGuiWindowFlags_AlwaysAutoResize))
         {
@@ -932,6 +957,69 @@ namespace Lumos
             ImGui::EndPopup();
         }
 
+        if(ImGui::BeginPopupModal("Open Project", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+        {
+            if(ImGui::Button("Load Project"))
+            {
+                ImGui::CloseCurrentPopup();
+                
+                m_NewProjectPopupOpen = true;
+                locationPopupOpened = true;
+                
+                m_FileBrowserPanel.SetFileTypeFilters({".lmproj"});
+                m_FileBrowserPanel.SetOpenDirectory(false);
+                m_FileBrowserPanel.SetCallback(BIND_FILEBROWSER_FN(ProjectOpenCallback));
+                m_FileBrowserPanel.Open();
+            }
+            
+            ImGui::TextUnformatted("Create New Project?\n");
+            
+            static std::string newProjectName = "New Project";
+            ImGuiUtilities::InputText(newProjectName);
+
+            if(ImGui::Button(ICON_MDI_FOLDER))
+            {
+                ImGui::CloseCurrentPopup();
+                
+                m_NewProjectPopupOpen = true;
+                locationPopupOpened = true;
+                
+                m_FileBrowserPanel.ClearFileTypeFilters();
+                m_FileBrowserPanel.SetOpenDirectory(true);
+                m_FileBrowserPanel.SetCallback(BIND_FILEBROWSER_FN(NewProjectLocationCallback));
+                m_FileBrowserPanel.Open();
+            }
+            
+            ImGui::SameLine();
+            
+            ImGui::TextUnformatted(projectLocation.c_str());
+            
+            ImGui::Separator();
+
+            if(ImGui::Button("OK", ImVec2(120, 0)))
+            {
+                Application::Get().OpenNewProject(projectLocation, newProjectName);
+                m_FileBrowserPanel.SetOpenDirectory(false);
+
+                for(int i = 0; i < int(m_Panels.size()); i++)
+                {
+                    m_Panels[i]->OnNewProject();
+                }
+                
+                ImGui::CloseCurrentPopup();
+            }
+            
+            ImGui::SetItemDefaultFocus();
+            ImGui::SameLine();
+            if(ImGui::Button("Exit", ImVec2(120, 0)))
+            {
+                ImGui::CloseCurrentPopup();
+                SetAppState(AppState::Closing);
+            }
+            ImGui::EndPopup();
+        }
+
+        
         if(openReloadScenePopup)
             ImGui::OpenPopup("Reload Scene");
 
@@ -1236,7 +1324,7 @@ namespace Lumos
     {
         LUMOS_PROFILE_FUNCTION();
 #if 1
-        if(!m_GridRenderer)
+        if(!m_GridRenderer || !Application::Get().GetSceneManager()->GetCurrentScene())
         {
             return;
         }
@@ -1959,6 +2047,10 @@ namespace Lumos
 
     void Editor::ProjectOpenCallback(const std::string& filePath)
     {
+        m_NewProjectPopupOpen = false;
+        reopenNewProjectPopup = false;
+        locationPopupOpened = false;
+        m_FileBrowserPanel.ClearFileTypeFilters();
         Application::Get().OpenProject(filePath);
 
         for(int i = 0; i < int(m_Panels.size()); i++)
