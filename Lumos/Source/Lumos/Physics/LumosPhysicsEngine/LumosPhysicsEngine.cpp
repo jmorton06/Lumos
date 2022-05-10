@@ -183,6 +183,9 @@ namespace Lumos
     {
         LUMOS_PROFILE_FUNCTION();
 
+        if(!scene)
+            return;
+        
         auto& registry = scene->GetRegistry();
         auto group = registry.group<RigidBody3DComponent>(entt::get<Maths::Transform>);
 

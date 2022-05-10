@@ -1,5 +1,5 @@
 #include "Precompiled.h"
-#include "GLTools.h"
+#include "GLUtilities.h"
 #include "GL.h"
 #include "GLRenderer.h"
 #include "GLTexture.h"
@@ -8,7 +8,7 @@ namespace Lumos
 {
     namespace Graphics
     {
-        uint32_t GLTools::FormatToGL(const Format format, bool srgb)
+        uint32_t GLUtilities::FormatToGL(const Format format, bool srgb)
         {
             switch(format)
             {
@@ -44,7 +44,7 @@ namespace Lumos
             }
         }
 
-        uint32_t GLTools::TextureWrapToGL(const TextureWrap wrap)
+        uint32_t GLUtilities::TextureWrapToGL(const TextureWrap wrap)
         {
             switch(wrap)
             {
@@ -66,7 +66,7 @@ namespace Lumos
             }
         }
 
-        uint32_t GLTools::FormatToInternalFormat(uint32_t format)
+        uint32_t GLUtilities::FormatToInternalFormat(uint32_t format)
         {
             switch(format)
             {
@@ -115,7 +115,7 @@ namespace Lumos
             }
         }
 
-        uint32_t GLTools::StencilTypeToGL(const StencilType type)
+        uint32_t GLUtilities::StencilTypeToGL(const StencilType type)
         {
             switch(type)
             {
@@ -137,7 +137,7 @@ namespace Lumos
             }
         }
 
-        uint32_t GLTools::RendererBufferToGL(uint32_t buffer)
+        uint32_t GLUtilities::RendererBufferToGL(uint32_t buffer)
         {
             uint32_t result = 0;
             if(buffer & RENDERER_BUFFER_COLOUR)
@@ -149,7 +149,7 @@ namespace Lumos
             return result;
         }
 
-        uint32_t GLTools::RendererBlendFunctionToGL(RendererBlendFunction function)
+        uint32_t GLUtilities::RendererBlendFunctionToGL(RendererBlendFunction function)
         {
             switch(function)
             {
@@ -168,7 +168,7 @@ namespace Lumos
             }
         }
 
-        uint32_t GLTools::DataTypeToGL(DataType dataType)
+        uint32_t GLUtilities::DataTypeToGL(DataType dataType)
         {
             switch(dataType)
             {
@@ -185,7 +185,7 @@ namespace Lumos
             return 0;
         }
 
-        uint32_t GLTools::DrawTypeToGL(DrawType drawType)
+        uint32_t GLUtilities::DrawTypeToGL(DrawType drawType)
         {
             switch(drawType)
             {

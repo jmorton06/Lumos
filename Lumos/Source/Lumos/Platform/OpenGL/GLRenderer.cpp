@@ -8,7 +8,7 @@
 #include "GLContext.h"
 
 #include "GL.h"
-#include "GLTools.h"
+#include "GLUtilities.h"
 #include "Graphics/Mesh.h"
 #include "GLDescriptorSet.h"
 #include "GLFramebuffer.h"
@@ -64,7 +64,7 @@ namespace Lumos
 
         void GLRenderer::ClearInternal(uint32_t buffer)
         {
-            GLCall(glClear(GLTools::RendererBufferToGL(buffer)));
+            GLCall(glClear(GLUtilities::RendererBufferToGL(buffer)));
         }
 
         void GLRenderer::PresentInternal()
@@ -124,7 +124,7 @@ namespace Lumos
         void GLRenderer::SetBlendFunctionInternal(RendererBlendFunction source, RendererBlendFunction destination)
         {
             LUMOS_PROFILE_FUNCTION();
-            GLCall(glBlendFunc(GLTools::RendererBlendFunctionToGL(source), GLTools::RendererBlendFunctionToGL(destination)));
+            GLCall(glBlendFunc(GLUtilities::RendererBlendFunctionToGL(source), GLUtilities::RendererBlendFunctionToGL(destination)));
         }
 
         void GLRenderer::SetBlendEquationInternal(RendererBlendFunction blendEquation)
@@ -194,13 +194,13 @@ namespace Lumos
         void GLRenderer::SetStencilFunctionInternal(const StencilType type, uint32_t ref, uint32_t mask)
         {
             LUMOS_PROFILE_FUNCTION();
-            glStencilFunc(GLTools::StencilTypeToGL(type), ref, mask);
+            glStencilFunc(GLUtilities::StencilTypeToGL(type), ref, mask);
         }
 
         void GLRenderer::SetStencilOpInternal(const StencilType fail, const StencilType zfail, const StencilType zpass)
         {
             LUMOS_PROFILE_FUNCTION();
-            glStencilOp(GLTools::StencilTypeToGL(fail), GLTools::StencilTypeToGL(zfail), GLTools::StencilTypeToGL(zpass));
+            glStencilOp(GLUtilities::StencilTypeToGL(fail), GLUtilities::StencilTypeToGL(zfail), GLUtilities::StencilTypeToGL(zpass));
         }
 
         void GLRenderer::SetColourMaskInternal(bool r, bool g, bool b, bool a)
@@ -213,14 +213,14 @@ namespace Lumos
         {
             LUMOS_PROFILE_FUNCTION();
             Engine::Get().Statistics().NumDrawCalls++;
-            GLCall(glDrawElements(GLTools::DrawTypeToGL(type), count, GLTools::DataTypeToGL(dataType), indices));
+            GLCall(glDrawElements(GLUtilities::DrawTypeToGL(type), count, GLUtilities::DataTypeToGL(dataType), indices));
         }
 
         void GLRenderer::DrawIndexedInternal(CommandBuffer* commandBuffer, const DrawType type, uint32_t count, uint32_t start) const
         {
             LUMOS_PROFILE_FUNCTION();
             Engine::Get().Statistics().NumDrawCalls++;
-            GLCall(glDrawElements(GLTools::DrawTypeToGL(type), count, GLTools::DataTypeToGL(DataType::UNSIGNED_INT), nullptr));
+            GLCall(glDrawElements(GLUtilities::DrawTypeToGL(type), count, GLUtilities::DataTypeToGL(DataType::UNSIGNED_INT), nullptr));
             // GLCall(glDrawArrays(GLTools::DrawTypeToGL(type), start, count));
         }
 

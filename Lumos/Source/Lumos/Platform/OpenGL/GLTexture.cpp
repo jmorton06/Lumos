@@ -1,7 +1,7 @@
 #include "Precompiled.h"
 #include "GLTexture.h"
 #include "Platform/OpenGL/GL.h"
-#include "Platform/OpenGL/GLTools.h"
+#include "Platform/OpenGL/GLUtilities.h"
 #include "Platform/OpenGL/GLShader.h"
 #include "Utilities/LoadImage.h"
 
@@ -54,11 +54,11 @@ namespace Lumos
             GLCall(glBindTexture(GL_TEXTURE_2D, handle));
             GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, m_Parameters.minFilter == TextureFilter::LINEAR ? GL_LINEAR_MIPMAP_LINEAR : GL_NEAREST));
             GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, m_Parameters.magFilter == TextureFilter::LINEAR ? GL_LINEAR : GL_NEAREST));
-            GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GLTools::TextureWrapToGL(m_Parameters.wrap)));
-            GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GLTools::TextureWrapToGL(m_Parameters.wrap)));
+            GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GLUtilities::TextureWrapToGL(m_Parameters.wrap)));
+            GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GLUtilities::TextureWrapToGL(m_Parameters.wrap)));
 
-            uint32_t format = GLTools::FormatToGL(m_Parameters.format, m_Parameters.srgb);
-            GLCall(glTexImage2D(GL_TEXTURE_2D, 0, format, m_Width, m_Height, 0, GLTools::FormatToInternalFormat(format), isHDR ? GL_FLOAT : GL_UNSIGNED_BYTE, data ? data : NULL));
+            uint32_t format = GLUtilities::FormatToGL(m_Parameters.format, m_Parameters.srgb);
+            GLCall(glTexImage2D(GL_TEXTURE_2D, 0, format, m_Width, m_Height, 0, GLUtilities::FormatToInternalFormat(format), isHDR ? GL_FLOAT : GL_UNSIGNED_BYTE, data ? data : NULL));
             GLCall(glGenerateMipmap(GL_TEXTURE_2D));
 #ifdef LUMOS_DEBUG
             GLCall(glBindTexture(GL_TEXTURE_2D, 0));
@@ -91,7 +91,7 @@ namespace Lumos
         void GLTexture2D::SetData(const void* pixels)
         {
             GLCall(glBindTexture(GL_TEXTURE_2D, m_Handle));
-            GLCall(glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, m_Width, m_Height, GLTools::FormatToGL(m_Parameters.format, m_Parameters.srgb), GL_UNSIGNED_BYTE, pixels));
+            GLCall(glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, m_Width, m_Height, GLUtilities::FormatToGL(m_Parameters.format, m_Parameters.srgb), GL_UNSIGNED_BYTE, pixels));
             GLCall(glGenerateMipmap(GL_TEXTURE_2D));
         }
 
@@ -115,8 +115,8 @@ namespace Lumos
             m_Height = height;
             m_Name = "Texture Attachment";
 
-            uint32_t Format = GLTools::FormatToGL(internalformat, srgb);
-            uint32_t Format2 = GLTools::FormatToInternalFormat(Format);
+            uint32_t Format = GLUtilities::FormatToGL(internalformat, srgb);
+            uint32_t Format2 = GLUtilities::FormatToInternalFormat(Format);
 
             glBindTexture(GL_TEXTURE_2D, m_Handle);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -260,7 +260,7 @@ namespace Lumos
             GLCall(glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
             GLCall(glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
 
-            uint32_t internalFormat = GLTools::FormatToGL(m_Parameters.format, m_Parameters.srgb);
+            uint32_t internalFormat = GLUtilities::FormatToGL(m_Parameters.format, m_Parameters.srgb);
             uint32_t format = internalFormat;
 
             GLCall(glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X, 0, internalFormat, width, height, 0, format, GL_UNSIGNED_BYTE, xp));
@@ -352,8 +352,8 @@ namespace Lumos
             GLCall(glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
             GLCall(glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE));
 
-            uint32_t internalFormat = GLTools::FormatToGL(m_Parameters.format, m_Parameters.srgb);
-            uint32_t format = GLTools::FormatToInternalFormat(internalFormat);
+            uint32_t internalFormat = GLUtilities::FormatToGL(m_Parameters.format, m_Parameters.srgb);
+            uint32_t format = GLUtilities::FormatToInternalFormat(internalFormat);
             for(uint32_t m = 0; m < mips; m++)
             {
                 GLCall(glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X, m, internalFormat, faceWidths[m], faceHeights[m], 0, format, GL_UNSIGNED_BYTE, cubeTextureData[m][3]));

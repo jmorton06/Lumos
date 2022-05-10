@@ -30,6 +30,7 @@
 
 ```
 git clone https://github.com/jmorton06/Lumos.git
+git submodule update --init --recursive
 ```
 
 #### Linux

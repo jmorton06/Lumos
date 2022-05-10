@@ -23,6 +23,10 @@ namespace Lumos
         {
             m_Callback = callback;
         }
+        
+        bool IsOpen();
+        void SetFileTypeFilters(const std::vector<const char*>& fileFilters);
+        void ClearFileTypeFilters();
 
     private:
         std::function<void(const std::string&)> m_Callback;

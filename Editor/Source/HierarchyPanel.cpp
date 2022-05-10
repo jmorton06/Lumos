@@ -428,11 +428,16 @@ namespace Lumos
 
         m_SelectUp = Input::Get().GetKeyPressed(Lumos::InputCode::Key::Up);
         m_SelectDown = Input::Get().GetKeyPressed(Lumos::InputCode::Key::Down);
-        ;
 
         ImGui::Begin(m_Name.c_str(), &m_Active, flags);
         {
             auto scene = Application::Get().GetSceneManager()->GetCurrentScene();
+            
+            if(!scene)
+            {
+                ImGui::End();
+                return;
+            }
             auto& registry = scene->GetRegistry();
 
             auto AddEntity = [scene]()

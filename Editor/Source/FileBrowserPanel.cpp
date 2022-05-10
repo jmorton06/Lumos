@@ -13,8 +13,9 @@ namespace Lumos
         m_Name = "FileBrowserWindow";
         m_SimpleName = "FileBrowser";
 
-        m_FileBrowser = new ImGui::FileBrowser(ImGuiFileBrowserFlags_CreateNewDir | ImGuiFileBrowserFlags_EnterNewFilename | ImGuiFileBrowserFlags_NoModal | ImGuiFileBrowserFlags_HideHiddenFiles);
-        m_FileBrowser->SetTitle("Test File Browser");
+        m_FileBrowser = new ImGui::FileBrowser(ImGuiFileBrowserFlags_CreateNewDir | ImGuiFileBrowserFlags_EnterNewFilename | ImGuiFileBrowserFlags_HideHiddenFiles);
+
+        m_FileBrowser->SetTitle("File Browser");
         // m_FileBrowser->SetFileFilters({ ".sh" , ".h" });
         m_FileBrowser->SetLabels(ICON_MDI_FOLDER, ICON_MDI_FILE, ICON_MDI_FOLDER_OPEN);
         m_FileBrowser->Refresh();
@@ -41,6 +42,11 @@ namespace Lumos
         }
     }
 
+    bool FileBrowserPanel::IsOpen()
+    {
+        return m_FileBrowser->IsOpened();
+    }
+
     void FileBrowserPanel::SetCurrentPath(const std::string& path)
     {
         m_FileBrowser->SetPwd(path);
@@ -53,17 +59,26 @@ namespace Lumos
 
     void FileBrowserPanel::SetOpenDirectory(bool value)
     {
+        auto flags = m_FileBrowser->GetFlags();
+
         if(value)
         {
-            auto flags = m_FileBrowser->GetFlags();
             flags |= ImGuiFileBrowserFlags_SelectDirectory;
-            m_FileBrowser->SetFlags(ImGuiFileBrowserFlags_CreateNewDir | ImGuiFileBrowserFlags_EnterNewFilename | ImGuiFileBrowserFlags_NoModal | ImGuiFileBrowserFlags_SelectDirectory | ImGuiFileBrowserFlags_HideHiddenFiles);
         }
         else
         {
-            auto flags = m_FileBrowser->GetFlags();
             flags &= ~(ImGuiFileBrowserFlags_SelectDirectory);
-            m_FileBrowser->SetFlags(ImGuiFileBrowserFlags_CreateNewDir | ImGuiFileBrowserFlags_EnterNewFilename | ImGuiFileBrowserFlags_NoModal | ImGuiFileBrowserFlags_HideHiddenFiles);
         }
+        m_FileBrowser->SetFlags(flags);
+    }
+
+    void FileBrowserPanel::SetFileTypeFilters(const std::vector<const char*>& fileFilters)
+    {
+        m_FileBrowser->SetFileFilters(fileFilters);
+    }
+
+    void FileBrowserPanel::ClearFileTypeFilters()
+    {
+        m_FileBrowser->ClearFilters();
     }
 }

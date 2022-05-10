@@ -50,7 +50,7 @@ namespace Lumos
 
         auto flags = ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse;
 
-        if(!ImGui::Begin(m_Name.c_str(), &m_Active, flags))
+        if(!ImGui::Begin(m_Name.c_str(), &m_Active, flags) || !m_CurrentScene)
         {
             app.SetDisableMainRenderGraph(true);
             ImGui::End();
@@ -163,7 +163,8 @@ namespace Lumos
             ImGui::EndDragDropTarget();
         }
 
-        DrawGizmos(sceneViewSize.x, sceneViewSize.y, offset.x, offset.y, app.GetSceneManager()->GetCurrentScene());
+        if(app.GetSceneManager()->GetCurrentScene())
+            DrawGizmos(sceneViewSize.x, sceneViewSize.y, offset.x, offset.y, app.GetSceneManager()->GetCurrentScene());
 
         ImGui::End();
     }

@@ -2,12 +2,6 @@
 #extension GL_ARB_separate_shader_objects : enable
 #extension GL_ARB_shading_language_420pack : enable
 
-layout(location = 0) in vec3 inPosition;
-layout(location = 1) in vec4 inColor;
-layout(location = 2) in vec2 inTexCoord;
-layout(location = 3) in vec3 inNormal;
-layout(location = 4) in vec3 inTangent;
-
 layout(location = 0) out vec2 outTexCoord;
 
 out gl_PerVertex
@@ -17,9 +11,7 @@ out gl_PerVertex
 
 void main()
 {
-	vec4 pos = vec4(inPosition,1.0);
-	pos.z = 1.0f;
-	gl_Position = pos;
-	vec4 test = inColor;
-	outTexCoord = inTexCoord;
+	vec2 position = vec2(gl_VertexIndex % 2, gl_VertexIndex / 2) * 4.0 - 1 ;
+	outTexCoord = (position + 1) * 0.5;
+	gl_Position = vec4(position, 1.0, 1.0);
 }
