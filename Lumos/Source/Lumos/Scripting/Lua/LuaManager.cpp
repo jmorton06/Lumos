@@ -260,10 +260,7 @@ namespace Lumos
         input.set_function("GetControllerAxis", [](int id, int axis) -> float
             { return Input::GetControllerAxis(id, axis); });
 
-        input.set_function("GetControllerAxis", [](int id, int axis) -> float
-            { return Input::GetControllerAxis(id, axis); });
-
-        input.set_function("GetControllerName", [](int id) -> std::string_view
+        input.set_function("GetControllerName", [](int id) -> std::string
             { return Input::GetControllerName(id); });
 
         input.set_function("GetControllerHat", [](int id, int hat) -> int

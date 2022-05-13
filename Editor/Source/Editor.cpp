@@ -972,6 +972,8 @@ namespace Lumos
                 m_FileBrowserPanel.Open();
             }
             
+            ImGui::Separator();
+            
             ImGui::TextUnformatted("Create New Project?\n");
             
             static std::string newProjectName = "New Project";
@@ -996,7 +998,7 @@ namespace Lumos
             
             ImGui::Separator();
 
-            if(ImGui::Button("OK", ImVec2(120, 0)))
+            if(ImGui::Button("Create", ImVec2(120, 0)))
             {
                 Application::Get().OpenNewProject(projectLocation, newProjectName);
                 m_FileBrowserPanel.SetOpenDirectory(false);

@@ -114,6 +114,7 @@ namespace Lumos
             bool DebugRenderEnabled = true;
             bool SkyboxRenderEnabled = true;
             bool ShadowsEnabled = true;
+            bool FXAAEnabled = true;
 
             // Shadow Settings
             float m_CascadeSplitLambda = 0.92f;

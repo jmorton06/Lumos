@@ -17,7 +17,7 @@ namespace Lumos
             DrawType drawType = DrawType::TRIANGLE;
             BlendMode blendMode = BlendMode::None;
 
-            bool transparencyEnabled = true;
+            bool transparencyEnabled = false;
             bool depthBiasEnabled = false;
             bool swapchainTarget = false;
             bool clearTargets = false;
@@ -32,6 +32,7 @@ namespace Lumos
             float depthBiasConstantFactor = 0.0f;
             float depthBiasSlopeFactor = 0.0f;
             int cubeMapIndex = 0;
+            int mipIndex = -1;
         };
 
         class LUMOS_EXPORT Pipeline
