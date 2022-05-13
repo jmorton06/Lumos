@@ -60,6 +60,8 @@ namespace Lumos
                 ImGuiUtilities::Property("Shadow Enabled", sceneSettings.RenderSettings.ShadowsEnabled);
                 ImGuiUtilities::Property("Skybox Render Enabled", sceneSettings.RenderSettings.SkyboxRenderEnabled);
                 ImGuiUtilities::Property("Debug Renderer Enabled", sceneSettings.RenderSettings.DebugRenderEnabled);
+                ImGuiUtilities::Property("FXAA Enabled", sceneSettings.RenderSettings.FXAAEnabled);
+
                 auto& registry = m_CurrentScene->GetRegistry();
                 int entityCount = (int)registry.size();
                 ImGuiUtilities::Property("Entity Count", entityCount, 0, 0, ImGuiUtilities::PropertyFlag::ReadOnly);

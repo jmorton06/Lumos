@@ -47,7 +47,10 @@ namespace Lumos::Graphics
         m_CubeMap = nullptr;
         m_ClearColour = glm::vec4(0.2f, 0.2f, 0.2f, 1.0f);
         m_MainTexture = Texture2D::Create();
-        m_MainTexture->BuildTexture(Graphics::Format::R11G11B10_Float, width, height, false, false, false);
+        m_MainTexture->BuildTexture(Graphics::Format::R11G11B10_Float, width, height);
+        
+        m_PostProcessTexture1 = Texture2D::Create();
+        m_PostProcessTexture1->BuildTexture(Graphics::Format::R11G11B10_Float, width, height);
 
         // Setup shadow pass data
         m_ShadowData.m_ShadowTex = nullptr;
@@ -165,6 +168,11 @@ namespace Lumos::Graphics
         //         descriptorDesc.layoutIndex = 0;
         //         descriptorDesc.shader = m_BloomPassShader.get();
         //         m_BloomPassDescriptorSet = SharedPtr<Graphics::DescriptorSet>(Graphics::DescriptorSet::Create(descriptorDesc));
+        
+        m_FXAAShader = Application::Get().GetShaderLibrary()->GetResource("FXAA");
+        descriptorDesc.layoutIndex = 0;
+        descriptorDesc.shader = m_FXAAShader.get();
+        m_FXAAPassDescriptorSet = SharedPtr<Graphics::DescriptorSet>(Graphics::DescriptorSet::Create(descriptorDesc));
 
         // Setup 2D pass data
         m_Renderer2DData.m_IndexCount = 0;
@@ -352,6 +360,7 @@ namespace Lumos::Graphics
     {
         delete m_ForwardData.m_DepthTexture;
         delete m_MainTexture;
+        delete m_PostProcessTexture1;
 
         delete m_ShadowData.m_ShadowTex;
         delete m_ForwardData.m_DefaultMaterial;
@@ -390,7 +399,8 @@ namespace Lumos::Graphics
     {
         LUMOS_PROFILE_FUNCTION();
         m_ForwardData.m_DepthTexture->Resize(width, height);
-        m_MainTexture->BuildTexture(Graphics::Format::R11G11B10_Float, width, height, false, false, false);
+        m_MainTexture->BuildTexture(Graphics::Format::R11G11B10_Float, width, height);
+        m_PostProcessTexture1->BuildTexture(Graphics::Format::R11G11B10_Float, width, height);
     }
 
     void RenderGraph::EnableDebugRenderer(bool enable)
@@ -748,16 +758,6 @@ namespace Lumos::Graphics
         GPUProfile("Render Passes");
 
         auto& sceneRenderSettings = Application::Get().GetCurrentScene()->GetSettings().RenderSettings;
-
-        if(m_ForwardData.m_RenderTexture)
-        {
-            Renderer::GetRenderer()->ClearRenderTarget(m_ForwardData.m_RenderTexture, Renderer::GetMainSwapChain()->GetCurrentCommandBuffer());
-        }
-        else
-        {
-            Renderer::GetRenderer()->ClearRenderTarget(Renderer::GetMainSwapChain()->GetCurrentImage(), Renderer::GetMainSwapChain()->GetCurrentCommandBuffer());
-        }
-
         Renderer::GetRenderer()->ClearRenderTarget(m_MainTexture, Renderer::GetMainSwapChain()->GetCurrentCommandBuffer());
 
         if(m_ForwardData.m_DepthTest)
@@ -773,10 +773,15 @@ namespace Lumos::Graphics
             SkyboxPass();
         if(m_Settings.GeomPass && sceneRenderSettings.Renderer2DEnabled)
             Render2DPass();
+
+        m_LastRenderTarget = m_MainTexture;
+        // BloomPass();
+        if(sceneRenderSettings.FXAAEnabled)
+            FXAAPass();
+        
         if(m_Settings.DebugPass && sceneRenderSettings.DebugRenderEnabled)
             DebugPass();
-
-        // BloomPass();
+            
         FinalPass();
     }
 
@@ -1182,7 +1187,7 @@ namespace Lumos::Graphics
         m_FinalPassDescriptorSet->SetUniform("UniformBuffer", "Exposure", &m_Exposure);
         m_FinalPassDescriptorSet->SetUniform("UniformBuffer", "ToneMapIndex", &m_ToneMapIndex);
 
-        m_FinalPassDescriptorSet->SetTexture("u_Texture", m_MainTexture);
+        m_FinalPassDescriptorSet->SetTexture("u_Texture", m_LastRenderTarget);
         m_FinalPassDescriptorSet->Update();
 
         Graphics::PipelineDesc pipelineDesc {};
@@ -1229,7 +1234,6 @@ namespace Lumos::Graphics
 
         Graphics::PipelineDesc pipelineDesc {};
         pipelineDesc.shader = m_FinalPassShader;
-
         pipelineDesc.polygonMode = Graphics::PolygonMode::FILL;
         pipelineDesc.cullMode = Graphics::CullMode::BACK;
         pipelineDesc.transparencyEnabled = false;
@@ -1253,9 +1257,54 @@ namespace Lumos::Graphics
 
         auto set = m_BloomPassDescriptorSet.get();
         Renderer::BindDescriptorSets(pipeline.get(), commandBuffer, 0, &set, 1);
-        Renderer::DrawIndexed(commandBuffer, DrawType::TRIANGLE, 3);
+        Renderer::Draw(commandBuffer, DrawType::TRIANGLE, 3);
 
         pipeline->End(commandBuffer);
+    }
+    
+    void RenderGraph::FXAAPass()
+    {
+        LUMOS_PROFILE_FUNCTION();
+        GPUProfile("FXAA Pass");
+
+        if(!m_MainTexture || !m_FXAAShader->IsCompiled())
+            return;
+        
+        float width = m_MainTexture->GetWidth();
+        float height = m_MainTexture->GetHeight();
+
+        m_FXAAPassDescriptorSet->SetUniform("UniformBuffer", "width", &width);
+        m_FXAAPassDescriptorSet->SetUniform("UniformBuffer", "height", &height);
+
+        m_FXAAPassDescriptorSet->SetTexture("u_Texture", m_MainTexture);
+        m_FXAAPassDescriptorSet->Update();
+
+        Graphics::PipelineDesc pipelineDesc {};
+        pipelineDesc.shader = m_FXAAShader;
+        pipelineDesc.transparencyEnabled = false;
+        pipelineDesc.clearTargets = true;
+        pipelineDesc.colourTargets[0] = m_PostProcessTexture1;
+        
+        auto commandBuffer = Renderer::GetMainSwapChain()->GetCurrentCommandBuffer();
+        auto pipeline = Graphics::Pipeline::Get(pipelineDesc);
+        pipeline->Bind(commandBuffer);
+
+#ifdef LUMOS_RENDER_API_OPENGL
+        if(Renderer::GetGraphicsContext()->GetRenderAPI() == RenderAPI::OPENGL)
+        {
+            m_ScreenQuad->GetVertexBuffer()->Bind(commandBuffer, pipeline);
+            m_ScreenQuad->GetIndexBuffer()->Bind(commandBuffer);
+        }
+#endif
+
+        auto set = m_FXAAPassDescriptorSet.get();
+        Renderer::BindDescriptorSets(pipeline.get(), commandBuffer, 0, &set, 1);
+        Renderer::Draw(commandBuffer, DrawType::TRIANGLE, 3);
+
+        pipeline->End(commandBuffer);
+        
+        m_LastRenderTarget = m_PostProcessTexture1;
+        std::swap(m_PostProcessTexture1, m_MainTexture);
     }
 
     float RenderGraph::SubmitTexture(Texture* texture)

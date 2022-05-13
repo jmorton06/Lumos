@@ -101,6 +101,7 @@ namespace Lumos
 
             // Post Process
             void BloomPass();
+            void FXAAPass();
 
             float SubmitTexture(Texture* texture);
             void UpdateCascades(Scene* scene, Light* light);
@@ -252,7 +253,11 @@ namespace Lumos
 
         private:
             Texture2D* m_MainTexture = nullptr;
-            Texture* m_ScreenTexture = nullptr;
+            Texture2D* m_LastRenderTarget = nullptr;
+            
+            Texture2D* m_PostProcessTexture1 = nullptr;
+            Texture2D* m_PostProcessTexture2 = nullptr;
+
 
             Camera* m_Camera = nullptr;
             Maths::Transform* m_CameraTransform = nullptr;
@@ -280,6 +285,8 @@ namespace Lumos
             Texture2D* m_BloomTexture = nullptr;
             SharedPtr<Graphics::Shader> m_BloomPassShader;
             SharedPtr<Graphics::DescriptorSet> m_BloomPassDescriptorSet;
+            SharedPtr<Graphics::DescriptorSet> m_FXAAPassDescriptorSet;
+            SharedPtr<Graphics::Shader> m_FXAAShader;
 
             RenderGraphSettings m_Settings;
             RenderGraphStats m_Stats;
