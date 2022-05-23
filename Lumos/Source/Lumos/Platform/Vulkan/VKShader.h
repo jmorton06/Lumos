@@ -37,7 +37,7 @@ namespace Lumos
             {
                 return m_FilePath;
             };
-            
+
             bool IsCompiled() const override
             {
                 return m_Compiled;

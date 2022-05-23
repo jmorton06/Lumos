@@ -16,7 +16,7 @@ namespace Lumos
     std::string m_Directory;
     std::vector<SharedPtr<Graphics::Texture2D>> m_Textures;
 
-    SharedPtr<Graphics::Texture2D> LoadMaterialTextures(const std::string& typeName, std::vector<SharedPtr<Graphics::Texture2D>>& textures_loaded, const std::string& name, const std::string& directory, Graphics::TextureParameters format)
+    SharedPtr<Graphics::Texture2D> LoadMaterialTextures(const std::string& typeName, std::vector<SharedPtr<Graphics::Texture2D>>& textures_loaded, const std::string& name, const std::string& directory, Graphics::TextureDesc format)
     {
         for(uint32_t j = 0; j < textures_loaded.size(); j++)
         {
@@ -144,35 +144,35 @@ namespace Lumos
 
                 if(mp->diffuse_texname.length() > 0)
                 {
-                    SharedPtr<Graphics::Texture2D> texture = LoadMaterialTextures("Albedo", m_Textures, mp->diffuse_texname, m_Directory, Graphics::TextureParameters(Graphics::TextureFilter::NEAREST, Graphics::TextureFilter::NEAREST, mp->diffuse_texopt.clamp ? Graphics::TextureWrap::CLAMP_TO_EDGE : Graphics::TextureWrap::REPEAT));
+                    SharedPtr<Graphics::Texture2D> texture = LoadMaterialTextures("Albedo", m_Textures, mp->diffuse_texname, m_Directory, Graphics::TextureDesc(Graphics::TextureFilter::NEAREST, Graphics::TextureFilter::NEAREST, mp->diffuse_texopt.clamp ? Graphics::TextureWrap::CLAMP_TO_EDGE : Graphics::TextureWrap::REPEAT));
                     if(texture)
                         textures.albedo = texture;
                 }
 
                 if(mp->bump_texname.length() > 0)
                 {
-                    SharedPtr<Graphics::Texture2D> texture = LoadMaterialTextures("Normal", m_Textures, mp->bump_texname, m_Directory, Graphics::TextureParameters(Graphics::TextureFilter::NEAREST, Graphics::TextureFilter::NEAREST, mp->bump_texopt.clamp ? Graphics::TextureWrap::CLAMP_TO_EDGE : Graphics::TextureWrap::REPEAT));
+                    SharedPtr<Graphics::Texture2D> texture = LoadMaterialTextures("Normal", m_Textures, mp->bump_texname, m_Directory, Graphics::TextureDesc(Graphics::TextureFilter::NEAREST, Graphics::TextureFilter::NEAREST, mp->bump_texopt.clamp ? Graphics::TextureWrap::CLAMP_TO_EDGE : Graphics::TextureWrap::REPEAT));
                     if(texture)
                         textures.normal = texture; // pbrMaterial->SetNormalMap(texture);
                 }
 
                 if(mp->roughness_texname.length() > 0)
                 {
-                    SharedPtr<Graphics::Texture2D> texture = LoadMaterialTextures("Roughness", m_Textures, mp->roughness_texname.c_str(), m_Directory, Graphics::TextureParameters(Graphics::TextureFilter::NEAREST, Graphics::TextureFilter::NEAREST, mp->roughness_texopt.clamp ? Graphics::TextureWrap::CLAMP_TO_EDGE : Graphics::TextureWrap::REPEAT));
+                    SharedPtr<Graphics::Texture2D> texture = LoadMaterialTextures("Roughness", m_Textures, mp->roughness_texname.c_str(), m_Directory, Graphics::TextureDesc(Graphics::TextureFilter::NEAREST, Graphics::TextureFilter::NEAREST, mp->roughness_texopt.clamp ? Graphics::TextureWrap::CLAMP_TO_EDGE : Graphics::TextureWrap::REPEAT));
                     if(texture)
                         textures.roughness = texture;
                 }
 
                 if(mp->metallic_texname.length() > 0)
                 {
-                    SharedPtr<Graphics::Texture2D> texture = LoadMaterialTextures("Metallic", m_Textures, mp->metallic_texname, m_Directory, Graphics::TextureParameters(Graphics::TextureFilter::NEAREST, Graphics::TextureFilter::NEAREST, mp->metallic_texopt.clamp ? Graphics::TextureWrap::CLAMP_TO_EDGE : Graphics::TextureWrap::REPEAT));
+                    SharedPtr<Graphics::Texture2D> texture = LoadMaterialTextures("Metallic", m_Textures, mp->metallic_texname, m_Directory, Graphics::TextureDesc(Graphics::TextureFilter::NEAREST, Graphics::TextureFilter::NEAREST, mp->metallic_texopt.clamp ? Graphics::TextureWrap::CLAMP_TO_EDGE : Graphics::TextureWrap::REPEAT));
                     if(texture)
                         textures.metallic = texture;
                 }
 
                 if(mp->specular_highlight_texname.length() > 0)
                 {
-                    SharedPtr<Graphics::Texture2D> texture = LoadMaterialTextures("Metallic", m_Textures, mp->specular_highlight_texname, m_Directory, Graphics::TextureParameters(Graphics::TextureFilter::NEAREST, Graphics::TextureFilter::NEAREST, mp->specular_texopt.clamp ? Graphics::TextureWrap::CLAMP_TO_EDGE : Graphics::TextureWrap::REPEAT));
+                    SharedPtr<Graphics::Texture2D> texture = LoadMaterialTextures("Metallic", m_Textures, mp->specular_highlight_texname, m_Directory, Graphics::TextureDesc(Graphics::TextureFilter::NEAREST, Graphics::TextureFilter::NEAREST, mp->specular_texopt.clamp ? Graphics::TextureWrap::CLAMP_TO_EDGE : Graphics::TextureWrap::REPEAT));
                     if(texture)
                         textures.metallic = texture;
                 }

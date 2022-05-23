@@ -903,18 +903,17 @@ namespace Lumos
 
         if(locationPopupOpened)
         {
-            //Cancel clicked on project location popups
+            // Cancel clicked on project location popups
             if(!m_FileBrowserPanel.IsOpen())
             {
                 m_NewProjectPopupOpen = false;
                 locationPopupOpened = false;
                 reopenNewProjectPopup = true;
             }
-            
         }
         if(openNewScenePopup)
             ImGui::OpenPopup("New Scene");
-        
+
         if((reopenNewProjectPopup || openProjectLoadPopup) && !m_NewProjectPopupOpen)
         {
             ImGui::OpenPopup("Open Project");
@@ -962,40 +961,40 @@ namespace Lumos
             if(ImGui::Button("Load Project"))
             {
                 ImGui::CloseCurrentPopup();
-                
+
                 m_NewProjectPopupOpen = true;
                 locationPopupOpened = true;
-                
-                m_FileBrowserPanel.SetFileTypeFilters({".lmproj"});
+
+                m_FileBrowserPanel.SetFileTypeFilters({ ".lmproj" });
                 m_FileBrowserPanel.SetOpenDirectory(false);
                 m_FileBrowserPanel.SetCallback(BIND_FILEBROWSER_FN(ProjectOpenCallback));
                 m_FileBrowserPanel.Open();
             }
-            
+
             ImGui::Separator();
-            
+
             ImGui::TextUnformatted("Create New Project?\n");
-            
+
             static std::string newProjectName = "New Project";
             ImGuiUtilities::InputText(newProjectName);
 
             if(ImGui::Button(ICON_MDI_FOLDER))
             {
                 ImGui::CloseCurrentPopup();
-                
+
                 m_NewProjectPopupOpen = true;
                 locationPopupOpened = true;
-                
+
                 m_FileBrowserPanel.ClearFileTypeFilters();
                 m_FileBrowserPanel.SetOpenDirectory(true);
                 m_FileBrowserPanel.SetCallback(BIND_FILEBROWSER_FN(NewProjectLocationCallback));
                 m_FileBrowserPanel.Open();
             }
-            
+
             ImGui::SameLine();
-            
+
             ImGui::TextUnformatted(projectLocation.c_str());
-            
+
             ImGui::Separator();
 
             if(ImGui::Button("Create", ImVec2(120, 0)))
@@ -1007,10 +1006,10 @@ namespace Lumos
                 {
                     m_Panels[i]->OnNewProject();
                 }
-                
+
                 ImGui::CloseCurrentPopup();
             }
-            
+
             ImGui::SetItemDefaultFocus();
             ImGui::SameLine();
             if(ImGui::Button("Exit", ImVec2(120, 0)))
@@ -1021,7 +1020,6 @@ namespace Lumos
             ImGui::EndPopup();
         }
 
-        
         if(openReloadScenePopup)
             ImGui::OpenPopup("Reload Scene");
 
@@ -1964,7 +1962,7 @@ namespace Lumos
         if(!m_PreviewTexture)
         {
             m_PreviewTexture = SharedPtr<Graphics::Texture2D>(Graphics::Texture2D::Create());
-            m_PreviewTexture->BuildTexture(Graphics::Format::R8G8B8A8_Unorm, 200, 200, false, false, false);
+            m_PreviewTexture->BuildTexture(Graphics::RHIFormat::R8G8B8A8_Unorm, 200, 200, false, false, false);
 
             // m_PreviewRenderer = CreateSharedPtr<Graphics::ForwardRenderer>(200, 200, false);
             m_PreviewSphere = SharedPtr<Graphics::Mesh>(Graphics::CreateSphere());

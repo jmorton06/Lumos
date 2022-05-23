@@ -5,6 +5,7 @@ namespace Lumos
 {
     namespace Graphics
     {
+        class GLCommandBuffer;
         class GLTexture2D;
 
         class GLSwapChain : public SwapChain
@@ -19,6 +20,7 @@ namespace Lumos
             Texture* GetImage(uint32_t index) override { return nullptr; };
             uint32_t GetCurrentBufferIndex() const override;
             uint32_t GetCurrentImageIndex() const override { return 0; };
+            CommandBuffer* GetCurrentCommandBuffer() override;
             void OnResize(uint32_t width, uint32_t height)
             {
                 m_Width = width;
@@ -36,6 +38,7 @@ namespace Lumos
 
         private:
             std::vector<GLTexture2D*> swapChainBuffers;
+            SharedPtr<GLCommandBuffer> MainCommandBuffer;
             uint32_t currentBuffer = 0;
 
             uint32_t m_Width;

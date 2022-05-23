@@ -182,7 +182,7 @@ namespace Lumos
         LUMOS_PROFILE_FUNCTION();
         LUMOS_LOG_INFO("Scene saved - {0}", filePath);
         std::string path = filePath;
-        path += m_SceneName;//StringUtilities::RemoveSpaces(m_SceneName);
+        path += m_SceneName; // StringUtilities::RemoveSpaces(m_SceneName);
 
         m_SceneSerialisationVersion = SceneVersion;
 
@@ -221,7 +221,7 @@ namespace Lumos
         m_EntityManager->Clear();
         m_SceneGraph->DisableOnConstruct(true, m_EntityManager->GetRegistry());
         std::string path = filePath;
-        path += m_SceneName;//StringUtilities::RemoveSpaces(m_SceneName);
+        path += m_SceneName; // StringUtilities::RemoveSpaces(m_SceneName);
 
         if(binary)
         {

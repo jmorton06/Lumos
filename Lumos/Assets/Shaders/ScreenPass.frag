@@ -15,7 +15,7 @@ layout(set = 0, binding = 0) uniform UniformBuffer
 layout(set = 0, binding = 1) uniform sampler2D u_Texture;
 layout(location = 0) out vec4 outFrag;
 
-const float gamma = 1;//2.2;
+const float gamma = 2.2;
 
 vec3 GammaCorrect(vec3 color, float gamma)
 {
@@ -45,7 +45,6 @@ vec3 linearToneMapping(vec3 color)
 {
 	float exposure = 1.;
 	color = clamp(exposure * color, 0., 1.);
-	color = pow(color, vec3(1. / gamma));
 	return color;
 }
 
@@ -53,7 +52,6 @@ vec3 simpleReinhardToneMapping(vec3 color)
 {
 	float exposure = 1.5;
 	color *= exposure/(1. + color / exposure);
-	color = pow(color, vec3(1. / gamma));
 	return color;
 }
 
@@ -62,7 +60,6 @@ vec3 lumaBasedReinhardToneMapping(vec3 color)
 	float luma = dot(color, vec3(0.2126, 0.7152, 0.0722));
 	float toneMappedLuma = luma / (1. + luma);
 	color *= toneMappedLuma / luma;
-	color = pow(color, vec3(1. / gamma));
 	return color;
 }
 
@@ -72,14 +69,12 @@ vec3 whitePreservingLumaBasedReinhardToneMapping(vec3 color)
 	float luma = dot(color, vec3(0.2126, 0.7152, 0.0722));
 	float toneMappedLuma = luma * (1. + luma / (white*white)) / (1. + luma);
 	color *= toneMappedLuma / luma;
-	color = pow(color, vec3(1. / gamma));
 	return color;
 }
 
 vec3 RomBinDaHouseToneMapping(vec3 color)
 {
     color = exp( -1.0 / ( 2.72*color + 0.15 ) );
-	color = pow(color, vec3(1. / gamma));
 	return color;
 }
 
@@ -104,7 +99,6 @@ vec3 Uncharted2ToneMapping(vec3 color)
 	color = ((color * (A * color + C * B) + D * E) / (color * (A * color + B) + D * F)) - E / F;
 	float white = ((W * (A * W + C * B) + D * E) / (W * (A * W + B) + D * F)) - E / F;
 	color /= white;
-	color = pow(color, vec3(1. / gamma));
 	return color;
 }
 
@@ -123,5 +117,6 @@ void main()
 	if (i == 7) colour = Uncharted2ToneMapping(colour);
 	if (i == 8) colour = ACESTonemap(colour);
 	
+	//colour = pow(colour, vec3(1. / gamma));
 	outFrag = vec4(colour, 1.0);
 }

@@ -25,7 +25,7 @@ namespace Lumos
     class LUMOS_EXPORT Camera
     {
     public:
-        Camera() = default;
+        Camera();
         Camera(float FOV, float Near, float Far, float aspect);
         Camera(float pitch, float yaw, const glm::vec3& position, float FOV, float Near, float Far, float aspect);
         Camera(float aspectRatio, float scale);
@@ -139,7 +139,7 @@ namespace Lumos
 
         float m_ShadowBoundingRadius = 10.0f;
 
-        float m_AspectRatio = 0.0f;
+        float m_AspectRatio = 1.0f;
         float m_Scale = 1.0f;
         float m_Zoom = 1.0f;
 
@@ -152,7 +152,7 @@ namespace Lumos
         bool m_ProjectionDirty = false;
         bool customProjection_ = false;
 
-        float m_Fov = 0.0f, m_Near = 0.0f, m_Far = 0.0f;
+        float m_Fov = 60.0f, m_Near = 0.001f, m_Far = 1000.0f;
         float m_MouseSensitivity = 0.1f;
 
         bool m_Orthographic = false;

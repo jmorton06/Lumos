@@ -204,7 +204,7 @@ namespace Lumos
             renderPassDesc.attachments = attachments.data();
             renderPassDesc.clear = true;
 
-            glm::vec4 clearColour = glm::vec4(040.0f / 256.0f, 42.0f / 256.0f, 54.0f / 256.0f, 1.0f);
+            float clearColour[4] = { 040.0f / 256.0f, 42.0f / 256.0f, 54.0f / 256.0f, 1.0f };
 
             int32_t width = Application::Get().GetWindow()->GetWidth();
             int32_t height = Application::Get().GetWindow()->GetHeight();

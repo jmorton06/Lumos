@@ -690,7 +690,7 @@ namespace Lumos
             m_ShaderStages[currentShaderStage].pNext = VK_NULL_HANDLE;
 
             VkResult result = vkCreateShaderModule(VKDevice::Get().GetDevice(), &shaderCreateInfo, nullptr, &m_ShaderStages[currentShaderStage].module);
-            
+
             if(result == VK_SUCCESS)
             {
                 m_Compiled = true;

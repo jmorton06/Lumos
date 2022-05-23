@@ -14,7 +14,7 @@ namespace Lumos
             ~VKRenderPass();
 
             bool Init(const RenderPassDesc& renderPassDesc);
-            void BeginRenderpass(CommandBuffer* commandBuffer, const glm::vec4& clearColour, Framebuffer* frame, SubPassContents contents, uint32_t width, uint32_t height) const override;
+            void BeginRenderpass(CommandBuffer* commandBuffer, float* clearColour, Framebuffer* frame, SubPassContents contents, uint32_t width, uint32_t height) const override;
             void EndRenderpass(CommandBuffer* commandBuffer) override;
 
             const VkRenderPass& GetHandle() const { return m_RenderPass; };

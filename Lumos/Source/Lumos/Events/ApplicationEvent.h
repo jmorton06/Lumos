@@ -53,16 +53,16 @@ namespace Lumos
         EVENT_CLASS_CATEGORY(EventCategoryApplication)
     };
 
-
     class LUMOS_EXPORT WindowFileEvent : public Event
     {
     public:
         WindowFileEvent(const std::string& filePath)
-        : m_FilePath(filePath)
-        { }
-        
+            : m_FilePath(filePath)
+        {
+        }
+
         const std::string& GetFilePath() const { return m_FilePath; }
-        
+
         std::string ToString() const override
         {
             std::stringstream ss;

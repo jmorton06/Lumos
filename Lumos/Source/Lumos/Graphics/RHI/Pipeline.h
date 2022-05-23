@@ -1,6 +1,5 @@
 #pragma once
 #include "Renderer.h"
-#include "BufferLayout.h"
 #include "Definitions.h"
 #include "Shader.h"
 
@@ -27,7 +26,7 @@ namespace Lumos
             Texture* cubeMapTarget = nullptr;
             Texture* depthTarget = nullptr;
             Texture* depthArrayTarget = nullptr;
-            glm::vec4 clearColour = glm::vec4(0.2f);
+            float clearColour[4] = { 0.2f, 0.2f, 0.2f, 1.0f };
             float lineWidth = 1.0f;
             float depthBiasConstantFactor = 0.0f;
             float depthBiasSlopeFactor = 0.0f;

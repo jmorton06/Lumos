@@ -1,5 +1,6 @@
 #include "Precompiled.h"
 #include "GLSwapChain.h"
+#include "GLCommandBuffer.h"
 #include "Graphics/RHI/Framebuffer.h"
 #include "GLTexture.h"
 #include "Core/OS/Window.h"
@@ -171,6 +172,7 @@ namespace Lumos
 #endif
 #endif
 
+            MainCommandBuffer = CreateSharedPtr<GLCommandBuffer>();
             return true;
         }
 
@@ -197,6 +199,11 @@ namespace Lumos
         SwapChain* GLSwapChain::CreateFuncGL(uint32_t width, uint32_t height)
         {
             return new GLSwapChain(width, height);
+        }
+
+        CommandBuffer* GLSwapChain::GetCurrentCommandBuffer()
+        {
+            return MainCommandBuffer.get();
         }
     }
 }

@@ -68,7 +68,7 @@ void Lumos::IniFile::Load()
     {
         if(IsValidLine(line))
         {
-            //line.erase(std::remove_if(line.begin(), line.end(), isspace), line.end());
+            // line.erase(std::remove_if(line.begin(), line.end(), isspace), line.end());
             RegisterPair(ExtractKeyAndValue(line));
         }
     }
