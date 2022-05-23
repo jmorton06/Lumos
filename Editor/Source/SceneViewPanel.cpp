@@ -581,7 +581,7 @@ namespace Lumos
 
         if(resize)
         {
-            m_GameViewTexture->BuildTexture(Graphics::Format::R8G8B8A8_Unorm, m_Width, m_Height, false, false, false);
+            m_GameViewTexture->BuildTexture(Graphics::RHIFormat::R8G8B8A8_Unorm, m_Width, m_Height, false, false, false);
 
             auto renderGraph = Application::Get().GetRenderGraph();
             renderGraph->SetRenderTarget(m_GameViewTexture.get(), true, false);

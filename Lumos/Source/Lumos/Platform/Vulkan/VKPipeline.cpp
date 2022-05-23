@@ -51,17 +51,17 @@ namespace Lumos
             std::vector<VkVertexInputAttributeDescription> vertexInputDescription;
 
             uint32_t stride = m_Shader.As<VKShader>()->GetVertexInputStride();
-            
+
             // Vertex layout
             VkVertexInputBindingDescription vertexBindingDescription;
-            
+
             if(stride > 0)
             {
                 vertexBindingDescription.binding = 0;
                 vertexBindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
                 vertexBindingDescription.stride = m_Shader.As<VKShader>()->GetVertexInputStride();
             }
-            
+
             const std::vector<VkVertexInputAttributeDescription>& vertexInputAttributeDescription = m_Shader.As<VKShader>()->GetVertexInputAttributeDescription();
 
             VkPipelineVertexInputStateCreateInfo vi {};
@@ -262,7 +262,7 @@ namespace Lumos
 
             m_RenderPass->BeginRenderpass(commandBuffer, m_Description.clearColour, framebuffer, Graphics::INLINE, GetWidth(), GetHeight());
 
-            vkCmdBindPipeline(static_cast<VKCommandBuffer*>(commandBuffer)->GetHandle(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_Pipeline);
+            vkCmdBindPipeline(static_cast<VKCommandBuffer*>(commandBuffer)->GetHandle(), m_Compute ? VK_PIPELINE_BIND_POINT_COMPUTE : VK_PIPELINE_BIND_POINT_GRAPHICS, m_Pipeline);
 
             // Bug in moltenVK. Needs to happen after pipeline bound for now.
             if(m_DepthBiasEnabled)
@@ -319,6 +319,8 @@ namespace Lumos
             renderPassDesc.attachments = attachments.data();
             renderPassDesc.swapchainTarget = m_Description.swapchainTarget;
             renderPassDesc.clear = m_Description.clearTargets;
+            renderPassDesc.cubeMapIndex = m_Description.cubeMapIndex;
+            renderPassDesc.mipIndex = m_Description.mipIndex;
 
             m_RenderPass = Graphics::RenderPass::Get(renderPassDesc);
 

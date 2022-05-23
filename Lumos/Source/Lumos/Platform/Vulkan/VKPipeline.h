@@ -27,6 +27,7 @@ namespace Lumos
             {
                 return m_PipelineLayout;
             };
+            
             const VkPipeline& GetPipeline() const
             {
                 return m_Pipeline;
@@ -56,6 +57,7 @@ namespace Lumos
             bool m_DepthBiasEnabled;
             float m_DepthBiasConstant;
             float m_DepthBiasSlope;
+            bool m_Compute = false;
         };
     }
 }

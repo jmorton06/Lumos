@@ -130,7 +130,7 @@ namespace Lumos
 #endif
         }
 
-        VKTexture2D::VKTexture2D(uint32_t width, uint32_t height, void* data, TextureParameters parameters, TextureLoadOptions loadOptions)
+        VKTexture2D::VKTexture2D(uint32_t width, uint32_t height, void* data, TextureDesc parameters, TextureLoadOptions loadOptions)
             : m_FileName("NULL")
             , m_TextureImage(VK_NULL_HANDLE)
             , m_TextureImageView(VK_NULL_HANDLE)
@@ -151,7 +151,7 @@ namespace Lumos
             UpdateDescriptor();
         }
 
-        VKTexture2D::VKTexture2D(const std::string& name, const std::string& filename, TextureParameters parameters, TextureLoadOptions loadOptions)
+        VKTexture2D::VKTexture2D(const std::string& name, const std::string& filename, TextureDesc parameters, TextureLoadOptions loadOptions)
             : m_FileName(filename)
             , m_TextureImage(VK_NULL_HANDLE)
             , m_TextureImageView(VK_NULL_HANDLE)
@@ -194,7 +194,7 @@ namespace Lumos
             m_Width = 0;
             m_Height = 0;
             m_MipLevels = 1;
-            m_Parameters = TextureParameters();
+            m_Parameters = TextureDesc();
             m_LoadOptions = TextureLoadOptions();
             m_DeleteImage = false;
             m_Format = m_Parameters.format;
@@ -255,7 +255,7 @@ namespace Lumos
             }
         }
 
-        void VKTexture2D::BuildTexture(Format internalformat, uint32_t width, uint32_t height, bool srgb, bool depth, bool samplerShadow)
+        void VKTexture2D::BuildTexture(RHIFormat internalformat, uint32_t width, uint32_t height, bool srgb, bool depth, bool samplerShadow)
         {
             LUMOS_PROFILE_FUNCTION();
             m_Flags |= TextureFlags::Texture_RenderTarget;
@@ -508,8 +508,8 @@ namespace Lumos
         VKTextureCube::VKTextureCube(uint32_t size, void* data, bool hdr)
             : m_ImageLayout(VK_IMAGE_LAYOUT_UNDEFINED)
         {
-            m_Parameters = TextureParameters();
-            m_Format = hdr ? Format::R32G32B32A32_Float : Format::R8G8B8A8_Unorm;
+            m_Parameters = TextureDesc();
+            m_Format = hdr ? RHIFormat::R32G32B32A32_Float : RHIFormat::R8G8B8A8_Unorm;
             m_Parameters.format = m_Format;
             m_VKFormat = VKUtilities::FormatToVK(m_Format, m_Parameters.srgb);
 
@@ -632,7 +632,7 @@ namespace Lumos
             UpdateDescriptor();
         }
 
-        VKTextureCube::VKTextureCube(const std::string* files, uint32_t mips, TextureParameters params, TextureLoadOptions loadOptions)
+        VKTextureCube::VKTextureCube(const std::string* files, uint32_t mips, TextureDesc params, TextureLoadOptions loadOptions)
         {
             m_Parameters = params;
             m_NumMips = mips;
@@ -1162,12 +1162,12 @@ namespace Lumos
             return new VKTexture2D();
         }
 
-        Texture2D* VKTexture2D::CreateFromSourceFuncVulkan(uint32_t width, uint32_t height, void* data, TextureParameters parameters, TextureLoadOptions loadoptions)
+        Texture2D* VKTexture2D::CreateFromSourceFuncVulkan(uint32_t width, uint32_t height, void* data, TextureDesc parameters, TextureLoadOptions loadoptions)
         {
             return new VKTexture2D(width, height, data, parameters, loadoptions);
         }
 
-        Texture2D* VKTexture2D::CreateFromFileFuncVulkan(const std::string& name, const std::string& filename, TextureParameters parameters, TextureLoadOptions loadoptions)
+        Texture2D* VKTexture2D::CreateFromFileFuncVulkan(const std::string& name, const std::string& filename, TextureDesc parameters, TextureLoadOptions loadoptions)
         {
             return new VKTexture2D(name, filename, parameters, loadoptions);
         }
@@ -1187,7 +1187,7 @@ namespace Lumos
             return new VKTextureCube(files);
         }
 
-        TextureCube* VKTextureCube::CreateFromVCrossFuncVulkan(const std::string* files, uint32_t mips, TextureParameters params, TextureLoadOptions loadOptions)
+        TextureCube* VKTextureCube::CreateFromVCrossFuncVulkan(const std::string* files, uint32_t mips, TextureDesc params, TextureLoadOptions loadOptions)
         {
             return new VKTextureCube(files, mips, params, loadOptions);
         }

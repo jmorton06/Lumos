@@ -45,8 +45,8 @@ namespace Lumos
             VkVertexInputAttributeDescription VertexInputDescriptionToVK(VertexInputDescription description);
             VkCullModeFlags CullModeToVK(CullMode mode);
             VkDescriptorType DescriptorTypeToVK(DescriptorType type);
-            VkFormat FormatToVK(const Format format, bool srgb = false);
-            Format VKToFormat(VkFormat format);
+            VkFormat FormatToVK(const RHIFormat format, bool srgb = false);
+            RHIFormat VKToFormat(VkFormat format);
 
             VkSamplerAddressMode TextureWrapToVK(const TextureWrap format);
             VkFilter TextureFilterToVK(const TextureFilter filter);

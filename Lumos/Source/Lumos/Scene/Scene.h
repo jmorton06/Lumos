@@ -115,6 +115,10 @@ namespace Lumos
             bool SkyboxRenderEnabled = true;
             bool ShadowsEnabled = true;
             bool FXAAEnabled = true;
+            bool DebandingEnabled = true;
+            bool ChromaticAberationEnabled = true;
+            bool EyeAdaptation = true;
+            bool SSAOEnabled = true;
 
             // Shadow Settings
             float m_CascadeSplitLambda = 0.92f;

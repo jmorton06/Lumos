@@ -91,6 +91,8 @@ namespace Lumos
 
             bool OnwindowResizeEvent(WindowResizeEvent& e);
 
+            void DepthPrePass();
+            void SSAOPass();
             void ForwardPass();
             void ShadowPass();
             void SkyboxPass();
@@ -102,6 +104,9 @@ namespace Lumos
             // Post Process
             void BloomPass();
             void FXAAPass();
+            void DebandingPass();
+            void ChromaticAberationPass();
+            void EyeAdaptationPass();
 
             float SubmitTexture(Texture* texture);
             void UpdateCascades(Scene* scene, Light* light);
@@ -254,10 +259,9 @@ namespace Lumos
         private:
             Texture2D* m_MainTexture = nullptr;
             Texture2D* m_LastRenderTarget = nullptr;
-            
+
             Texture2D* m_PostProcessTexture1 = nullptr;
             Texture2D* m_PostProcessTexture2 = nullptr;
-
 
             Camera* m_Camera = nullptr;
             Maths::Transform* m_CameraTransform = nullptr;
@@ -285,8 +289,23 @@ namespace Lumos
             Texture2D* m_BloomTexture = nullptr;
             SharedPtr<Graphics::Shader> m_BloomPassShader;
             SharedPtr<Graphics::DescriptorSet> m_BloomPassDescriptorSet;
+            
             SharedPtr<Graphics::DescriptorSet> m_FXAAPassDescriptorSet;
             SharedPtr<Graphics::Shader> m_FXAAShader;
+
+            SharedPtr<Graphics::DescriptorSet> m_DebandingPassDescriptorSet;
+            SharedPtr<Graphics::Shader> m_DebandingShader;
+
+            SharedPtr<Graphics::DescriptorSet> m_ChromaticAberationPassDescriptorSet;
+            SharedPtr<Graphics::Shader> m_ChromaticAberationShader;
+
+            SharedPtr<Graphics::DescriptorSet> m_DepthPrePassDescriptorSet;
+            SharedPtr<Pipeline> m_DepthPrePassPipeline = nullptr;
+            SharedPtr<Graphics::Shader> m_DepthPrePassShader;
+            
+            TextureDepth* m_SSAOTexture = nullptr;
+            SharedPtr<Graphics::Shader> m_SSAOShader;
+            SharedPtr<Graphics::DescriptorSet> m_SSAOPassDescriptorSet;
 
             RenderGraphSettings m_Settings;
             RenderGraphStats m_Stats;

@@ -432,7 +432,7 @@ namespace Lumos
         ImGui::Begin(m_Name.c_str(), &m_Active, flags);
         {
             auto scene = Application::Get().GetSceneManager()->GetCurrentScene();
-            
+
             if(!scene)
             {
                 ImGui::End();

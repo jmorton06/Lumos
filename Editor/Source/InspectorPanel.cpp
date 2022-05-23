@@ -1545,7 +1545,7 @@ end
     {
         LUMOS_PROFILE_FUNCTION();
         auto& model = *reg.get<Lumos::Graphics::ModelComponent>(e).ModelRef.get();
-        
+
         auto primitiveType = reg.get<Lumos::Graphics::ModelComponent>(e).ModelRef ? model.GetPrimitiveType() : Lumos::Graphics::PrimitiveType::None;
 
         ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
@@ -1572,7 +1572,8 @@ end
                     if(strcmp(shapes[n], "File") != 0)
                     {
                         if(reg.get<Lumos::Graphics::ModelComponent>(e).ModelRef)
-                        {   model.GetMeshes().push_back(Lumos::SharedPtr<Lumos::Graphics::Mesh>(Lumos::Graphics::CreatePrimative(GetPrimativeName(shapes[n]))));
+                        {
+                            model.GetMeshes().push_back(Lumos::SharedPtr<Lumos::Graphics::Mesh>(Lumos::Graphics::CreatePrimative(GetPrimativeName(shapes[n]))));
                             model.SetPrimitiveType(GetPrimativeName(shapes[n]));
                         }
                         else
@@ -1613,7 +1614,7 @@ end
         ImGui::PopStyleVar();
 
         int matIndex = 0;
-        
+
         if(!reg.get<Lumos::Graphics::ModelComponent>(e).ModelRef)
             return;
 
@@ -1909,7 +1910,7 @@ namespace Lumos
         m_EnttEditor.registerComponent<ComponentType>(Name.c_str());         \
     }
         TRIVIAL_COMPONENT(Maths::Transform, "Transform");
-        //TRIVIAL_COMPONENT(Graphics::Model, "Model");
+        // TRIVIAL_COMPONENT(Graphics::Model, "Model");
         TRIVIAL_COMPONENT(Graphics::ModelComponent, "ModelComponent");
         TRIVIAL_COMPONENT(Camera, "Camera");
         TRIVIAL_COMPONENT(AxisConstraintComponent, "AxisConstraint");
@@ -1929,7 +1930,7 @@ namespace Lumos
     void InspectorPanel::OnImGui()
     {
         LUMOS_PROFILE_FUNCTION();
-        
+
         auto selected = m_Editor->GetSelected();
 
         if(ImGui::Begin(m_Name.c_str(), &m_Active))
@@ -1940,7 +1941,7 @@ namespace Lumos
                 ImGui::End();
                 return;
             }
-            
+
             auto& registry = Application::Get().GetSceneManager()->GetCurrentScene()->GetRegistry();
             if(selected == entt::null || !registry.valid(selected))
             {

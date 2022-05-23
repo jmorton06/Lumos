@@ -49,7 +49,7 @@ namespace Lumos
         void Environment::Load()
         {
             LUMOS_PROFILE_FUNCTION();
-            
+
             std::string* envFiles = new std::string[m_NumMips];
             std::string* irrFiles = new std::string[m_NumMips];
 
@@ -113,7 +113,7 @@ namespace Lumos
 
             if(!failed)
             {
-                TextureParameters params;
+                TextureDesc params;
                 params.srgb = true;
                 TextureLoadOptions loadOptions;
                 m_Environmnet = Graphics::TextureCube::CreateFromVCross(envFiles, m_NumMips, params, loadOptions);

@@ -147,10 +147,10 @@ namespace Lumos
     {
         if(m_Paused)
             return;
-        
+
         if(!scene)
             return;
-        
+
         auto& registry = scene->GetRegistry();
 
         auto group = registry.group<RigidBody2DComponent>(entt::get<Maths::Transform>);

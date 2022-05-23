@@ -7,7 +7,7 @@ namespace Lumos
 {
     namespace Graphics
     {
-        enum class Format : uint32_t;
+        enum class RHIFormat : uint32_t;
 
         class LUMOS_EXPORT GLFramebuffer : public Framebuffer
         {
@@ -27,12 +27,12 @@ namespace Lumos
             uint32_t GetWidth() const override { return m_Width; }
             uint32_t GetHeight() const override { return m_Height; }
 
-            GLenum GetAttachmentPoint(Graphics::Format format);
+            GLenum GetAttachmentPoint(Graphics::RHIFormat format);
 
             inline void SetClearColour(const glm::vec4& colour) override { m_ClearColour = colour; }
 
-            void AddTextureAttachment(Format format, Texture* texture) override;
-            void AddCubeTextureAttachment(Format format, CubeFace face, TextureCube* texture) override;
+            void AddTextureAttachment(RHIFormat format, Texture* texture) override;
+            void AddCubeTextureAttachment(RHIFormat format, CubeFace face, TextureCube* texture) override;
 
             void AddShadowAttachment(Texture* texture) override;
             void AddTextureLayer(int index, Texture* texture) override;

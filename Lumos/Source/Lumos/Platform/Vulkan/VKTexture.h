@@ -16,8 +16,8 @@ namespace Lumos
         class VKTexture2D : public Texture2D
         {
         public:
-            VKTexture2D(uint32_t width, uint32_t height, void* data, TextureParameters parameters = TextureParameters(), TextureLoadOptions loadOptions = TextureLoadOptions());
-            VKTexture2D(const std::string& name, const std::string& filename, TextureParameters parameters = TextureParameters(), TextureLoadOptions loadOptions = TextureLoadOptions());
+            VKTexture2D(uint32_t width, uint32_t height, void* data, TextureDesc parameters = TextureDesc(), TextureLoadOptions loadOptions = TextureLoadOptions());
+            VKTexture2D(const std::string& name, const std::string& filename, TextureDesc parameters = TextureDesc(), TextureLoadOptions loadOptions = TextureLoadOptions());
             VKTexture2D(VkImage image, VkImageView imageView, VkFormat format, uint32_t width, uint32_t height);
             VKTexture2D();
             ~VKTexture2D();
@@ -60,7 +60,7 @@ namespace Lumos
                 return TextureType::COLOUR;
             }
 
-            Format GetFormat() const override
+            RHIFormat GetFormat() const override
             {
                 return m_Format;
             }
@@ -70,7 +70,7 @@ namespace Lumos
                 m_Name = name;
             }
 
-            void BuildTexture(Format internalformat, uint32_t width, uint32_t height, bool srgb, bool depth, bool samplerShadow) override;
+            void BuildTexture(RHIFormat internalformat, uint32_t width, uint32_t height, bool srgb, bool depth, bool samplerShadow) override;
 
             const VkDescriptorImageInfo* GetDescriptor() const
             {
@@ -122,15 +122,15 @@ namespace Lumos
             VkImageView GetMipImageView(uint32_t mip);
 
             VkImageLayout GetImageLayout() const { return m_ImageLayout; }
-            const TextureParameters& GetTextureParameters() const { return m_Parameters; }
+            const TextureDesc& GetTextureParameters() const { return m_Parameters; }
             void TransitionImage(VkImageLayout newLayout, VKCommandBuffer* commandBuffer = nullptr);
 
             static void MakeDefault();
 
         protected:
             static Texture2D* CreateFuncVulkan();
-            static Texture2D* CreateFromSourceFuncVulkan(uint32_t, uint32_t, void*, TextureParameters, TextureLoadOptions);
-            static Texture2D* CreateFromFileFuncVulkan(const std::string&, const std::string&, TextureParameters, TextureLoadOptions);
+            static Texture2D* CreateFromSourceFuncVulkan(uint32_t, uint32_t, void*, TextureDesc, TextureLoadOptions);
+            static Texture2D* CreateFromFileFuncVulkan(const std::string&, const std::string&, TextureDesc, TextureLoadOptions);
 
         private:
             std::string m_Name;
@@ -139,10 +139,10 @@ namespace Lumos
             uint32_t m_MipLevels = 1;
             uint8_t* m_Data = nullptr;
 
-            TextureParameters m_Parameters;
+            TextureDesc m_Parameters;
             TextureLoadOptions m_LoadOptions;
 
-            Format m_Format;
+            RHIFormat m_Format;
             VkFormat m_VKFormat = VK_FORMAT_R8G8B8A8_UNORM;
 
             VkImage m_TextureImage {};
@@ -167,7 +167,7 @@ namespace Lumos
             VKTextureCube(uint32_t size, void* data, bool hdr);
             VKTextureCube(const std::string& filepath);
             VKTextureCube(const std::string* files);
-            VKTextureCube(const std::string* files, uint32_t mips, TextureParameters params, TextureLoadOptions loadOptions);
+            VKTextureCube(const std::string* files, uint32_t mips, TextureDesc params, TextureLoadOptions loadOptions);
             ~VKTextureCube();
 
             virtual void* GetHandle() const override
@@ -215,7 +215,7 @@ namespace Lumos
                 return TextureType::CUBE;
             }
 
-            Format GetFormat() const override
+            RHIFormat GetFormat() const override
             {
                 return m_Format;
             }
@@ -272,7 +272,7 @@ namespace Lumos
             static TextureCube* CreateFuncVulkan(uint32_t, void* data, bool hdr);
             static TextureCube* CreateFromFileFuncVulkan(const std::string& filepath);
             static TextureCube* CreateFromFilesFuncVulkan(const std::string* files);
-            static TextureCube* CreateFromVCrossFuncVulkan(const std::string* files, uint32_t mips, TextureParameters params, TextureLoadOptions loadOptions);
+            static TextureCube* CreateFromVCrossFuncVulkan(const std::string* files, uint32_t mips, TextureDesc params, TextureLoadOptions loadOptions);
 
         private:
             std::string m_Name;
@@ -283,10 +283,10 @@ namespace Lumos
             uint32_t m_NumLayers = 6;
             uint8_t* m_Data = nullptr;
 
-            TextureParameters m_Parameters;
+            TextureDesc m_Parameters;
             TextureLoadOptions m_LoadOptions;
 
-            Format m_Format;
+            RHIFormat m_Format;
             VkFormat m_VKFormat;
 
             VkImage m_TextureImage {};
@@ -348,7 +348,7 @@ namespace Lumos
                 return TextureType::DEPTH;
             }
 
-            Format GetFormat() const override
+            RHIFormat GetFormat() const override
             {
                 return m_Format;
             }
@@ -398,7 +398,7 @@ namespace Lumos
             std::string m_Name;
             uint32_t m_Handle {};
             uint32_t m_Width, m_Height;
-            Format m_Format;
+            RHIFormat m_Format;
             VkFormat m_VKFormat;
             VkImageLayout m_ImageLayout;
             VkImage m_TextureImage {};
@@ -451,7 +451,7 @@ namespace Lumos
                 return TextureType::DEPTHARRAY;
             }
 
-            Format GetFormat() const override
+            RHIFormat GetFormat() const override
             {
                 return m_Format;
             }
@@ -511,7 +511,7 @@ namespace Lumos
             uint32_t m_Width, m_Height;
             uint32_t m_Count;
 
-            Format m_Format;
+            RHIFormat m_Format;
 
             VkFormat m_VKFormat;
             VkImageLayout m_ImageLayout;

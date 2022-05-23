@@ -120,9 +120,9 @@ namespace Lumos::Graphics
 
             if(imageAndSampler.Image)
             {
-                Graphics::TextureParameters params;
+                Graphics::TextureDesc params;
                 if(gltfTexture.sampler != -1)
-                    params = Graphics::TextureParameters(GetFilter(imageAndSampler.Sampler->minFilter), GetFilter(imageAndSampler.Sampler->magFilter), GetWrapMode(imageAndSampler.Sampler->wrapS));
+                    params = Graphics::TextureDesc(GetFilter(imageAndSampler.Sampler->minFilter), GetFilter(imageAndSampler.Sampler->magFilter), GetWrapMode(imageAndSampler.Sampler->wrapS));
 
                 Graphics::Texture2D* texture2D = Graphics::Texture2D::CreateFromSource(imageAndSampler.Image->width, imageAndSampler.Image->height, imageAndSampler.Image->image.data(), params);
                 loadedTextures.push_back(SharedPtr<Graphics::Texture2D>(texture2D ? texture2D : nullptr));

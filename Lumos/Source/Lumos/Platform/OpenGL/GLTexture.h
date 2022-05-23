@@ -8,8 +8,8 @@ namespace Lumos
         class GLTexture2D : public Texture2D
         {
         public:
-            GLTexture2D(uint32_t width, uint32_t height, void* data, TextureParameters parameters = TextureParameters(), TextureLoadOptions loadOptions = TextureLoadOptions());
-            GLTexture2D(const std::string& name, const std::string& filename, TextureParameters parameters = TextureParameters(), TextureLoadOptions loadOptions = TextureLoadOptions());
+            GLTexture2D(uint32_t width, uint32_t height, void* data, TextureDesc parameters = TextureDesc(), TextureLoadOptions loadOptions = TextureLoadOptions());
+            GLTexture2D(const std::string& name, const std::string& filename, TextureDesc parameters = TextureDesc(), TextureLoadOptions loadOptions = TextureLoadOptions());
             GLTexture2D();
             ~GLTexture2D();
 
@@ -42,7 +42,7 @@ namespace Lumos
                 return m_FileName;
             }
 
-            void BuildTexture(Format internalformat, uint32_t width, uint32_t height, bool srgb, bool depth, bool samplerShadow) override;
+            void BuildTexture(RHIFormat internalformat, uint32_t width, uint32_t height, bool srgb, bool depth, bool samplerShadow) override;
 
             uint8_t* LoadTextureData();
             uint32_t LoadTexture(void* data) const;
@@ -52,7 +52,7 @@ namespace Lumos
                 return TextureType::COLOUR;
             }
 
-            Format GetFormat() const override
+            RHIFormat GetFormat() const override
             {
                 return m_Format;
             }
@@ -61,8 +61,8 @@ namespace Lumos
 
         protected:
             static Texture2D* CreateFuncGL();
-            static Texture2D* CreateFromSourceFuncGL(uint32_t, uint32_t, void*, TextureParameters, TextureLoadOptions);
-            static Texture2D* CreateFromFileFuncGL(const std::string&, const std::string&, TextureParameters, TextureLoadOptions);
+            static Texture2D* CreateFromSourceFuncGL(uint32_t, uint32_t, void*, TextureDesc, TextureLoadOptions);
+            static Texture2D* CreateFromFileFuncGL(const std::string&, const std::string&, TextureDesc, TextureLoadOptions);
 
         private:
             uint32_t Load(void* data);
@@ -71,9 +71,9 @@ namespace Lumos
             std::string m_FileName;
             uint32_t m_Handle;
             uint32_t m_Width, m_Height;
-            TextureParameters m_Parameters;
+            TextureDesc m_Parameters;
             TextureLoadOptions m_LoadOptions;
-            Format m_Format;
+            RHIFormat m_Format;
             bool isHDR = false;
         };
 
@@ -83,7 +83,7 @@ namespace Lumos
             GLTextureCube(uint32_t size);
             GLTextureCube(const std::string& filepath);
             GLTextureCube(const std::string* files);
-            GLTextureCube(const std::string* files, uint32_t mips, TextureParameters params, TextureLoadOptions loadOptions);
+            GLTextureCube(const std::string* files, uint32_t mips, TextureDesc params, TextureLoadOptions loadOptions);
             ~GLTextureCube();
 
             inline void* GetHandle() const override
@@ -127,7 +127,7 @@ namespace Lumos
                 return TextureType::CUBE;
             }
 
-            Format GetFormat() const override
+            RHIFormat GetFormat() const override
             {
                 return m_Format;
             }
@@ -138,7 +138,7 @@ namespace Lumos
             static TextureCube* CreateFuncGL(uint32_t, void*, bool);
             static TextureCube* CreateFromFileFuncGL(const std::string& filepath);
             static TextureCube* CreateFromFilesFuncGL(const std::string* files);
-            static TextureCube* CreateFromVCrossFuncGL(const std::string* files, uint32_t mips, TextureParameters params, TextureLoadOptions loadOptions);
+            static TextureCube* CreateFromVCrossFuncGL(const std::string* files, uint32_t mips, TextureDesc params, TextureLoadOptions loadOptions);
 
         private:
             static uint32_t LoadFromSingleFile();
@@ -151,8 +151,8 @@ namespace Lumos
             std::string m_Files[MAX_MIPS];
             uint32_t m_Bits;
             uint32_t m_NumMips;
-            Format m_Format;
-            TextureParameters m_Parameters;
+            RHIFormat m_Format;
+            TextureDesc m_Parameters;
             TextureLoadOptions m_LoadOptions;
         };
 
@@ -195,7 +195,7 @@ namespace Lumos
                 return TextureType::DEPTH;
             }
 
-            Format GetFormat() const override
+            RHIFormat GetFormat() const override
             {
                 return m_Format;
             }
@@ -210,7 +210,7 @@ namespace Lumos
             std::string m_Name;
             uint32_t m_Handle;
             uint32_t m_Width, m_Height;
-            Format m_Format;
+            RHIFormat m_Format;
         };
 
         class GLTextureDepthArray : public TextureDepthArray
@@ -263,7 +263,7 @@ namespace Lumos
                 return TextureType::DEPTHARRAY;
             }
 
-            Format GetFormat() const override
+            RHIFormat GetFormat() const override
             {
                 return m_Format;
             }
@@ -276,7 +276,7 @@ namespace Lumos
 
         protected:
             static TextureDepthArray* CreateFuncGL(uint32_t, uint32_t, uint32_t);
-            Format m_Format;
+            RHIFormat m_Format;
         };
     }
 }
