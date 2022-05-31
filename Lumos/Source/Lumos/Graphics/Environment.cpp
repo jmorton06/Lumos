@@ -57,18 +57,18 @@ namespace Lumos
             uint32_t currHeight = m_Height;
 
             bool failed = false;
+            
+            if(m_FileType == ".hdr")
+            {
+                auto test = Application::Get().GetRenderGraph()->CreateCubeFromHDRI("");
+                m_Environmnet = test;
+                m_IrradianceMap = test;
+                return;
+            }
 
             for(uint32_t i = 0; i < m_NumMips; i++)
             {
                 envFiles[i] = m_FilePath + "_Env_" + StringUtilities::ToString(i) + "_" + StringUtilities::ToString(currWidth) + "x" + StringUtilities::ToString(currHeight) + m_FileType;
-
-                if(m_FileType == ".hdr")
-                {
-                    auto test = Application::Get().GetRenderGraph()->CreateCubeFromHDRI(envFiles[i]);
-                    m_Environmnet = test;
-                    m_IrradianceMap = test;
-                    return;
-                }
 
                 currHeight /= 2;
                 currWidth /= 2;

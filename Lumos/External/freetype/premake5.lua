@@ -63,7 +63,7 @@ buildoptions
        "FT2_BUILD_LIBRARY",
    }
 
-	sysincludedirs {
+   externalincludedirs {
 		"include"
     }
     

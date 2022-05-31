@@ -4,7 +4,7 @@ setLocal enableExtensions enableDelayedExpansion
 
 dir=$(cd -P -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)
 
-set COMPILER=C:/VulkanSDK/1.1.148.1/Bin/glslangValidator.exe
+set COMPILER=C:/VulkanSDK/1.3.204.1/Bin/glslc.exe
 set DSTDIR=CompiledSPV
 
 echo Compiling Shaders to spv
@@ -29,7 +29,7 @@ for %%f in (*.vert *.frag *.comp) do (
 
   if "!SRC_DATE!" gtr "!DST_DATE!" (
     echo Compiling
-    %COMPILER% -V "!SRC!" -o "!DST!"
+    %COMPILER% "!SRC!" -o "!DST!"
 
   )
 )

@@ -23,14 +23,14 @@ namespace Lumos
                 return (void*)(size_t)m_Handle;
             }
 
-            inline uint32_t GetWidth() const override
+            inline uint32_t GetWidth(uint32_t mip) const override
             {
-                return m_Width;
+                return m_Width >> mip;
             }
 
-            inline uint32_t GetHeight() const override
+            inline uint32_t GetHeight(uint32_t mip) const override
             {
-                return m_Height;
+                return m_Height >> mip;
             }
 
             inline const std::string& GetName() const override
@@ -112,14 +112,14 @@ namespace Lumos
                 return m_Files[0];
             }
 
-            inline uint32_t GetWidth() const override
+            inline uint32_t GetWidth(uint32_t mip) const override
             {
-                return m_Width;
+                return m_Width >> mip;
             }
 
-            inline uint32_t GetHeight() const override
+            inline uint32_t GetHeight(uint32_t mip) const override
             {
-                return m_Height;
+                return m_Height >> mip;
             }
 
             TextureType GetType() const override
@@ -180,14 +180,14 @@ namespace Lumos
                 return m_Name;
             }
 
-            inline uint32_t GetWidth() const override
+            inline uint32_t GetWidth(uint32_t mip) const override
             {
-                return m_Width;
+                return m_Width >> mip;
             }
 
-            inline uint32_t GetHeight() const override
+            inline uint32_t GetHeight(uint32_t mip) const override
             {
-                return m_Height;
+                return m_Height >> mip;
             }
 
             TextureType GetType() const override
@@ -243,14 +243,14 @@ namespace Lumos
                 return m_Name;
             }
 
-            inline uint32_t GetWidth() const override
+            inline uint32_t GetWidth(uint32_t mip) const override
             {
-                return m_Width;
+                return m_Width >> mip;
             }
 
-            inline uint32_t GetHeight() const override
+            inline uint32_t GetHeight(uint32_t mip) const override
             {
-                return m_Height;
+                return m_Height >> mip;
             }
 
             inline void SetCount(uint32_t count)

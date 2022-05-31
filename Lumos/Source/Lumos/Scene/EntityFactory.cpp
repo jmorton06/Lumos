@@ -50,12 +50,12 @@ namespace Lumos
         SharedPtr<Graphics::Material> matInstance = CreateSharedPtr<Graphics::Material>();
         Graphics::MaterialProperties properties;
         properties.albedoColour = colour;
-        properties.roughnessColour = glm::vec4(Random32::Rand(0.0f, 1.0f));
-        properties.metallicColour = glm::vec4(Random32::Rand(0.0f, 1.0f));
-        properties.usingAlbedoMap = 0.0f;
-        properties.usingRoughnessMap = 0.0f;
-        properties.usingNormalMap = 0.0f;
-        properties.usingMetallicMap = 0.0f;
+        properties.roughness = Random32::Rand(0.0f, 1.0f);
+        properties.metallic = Random32::Rand(0.0f, 1.0f);
+        properties.albedoMapFactor = 0.0f;
+        properties.roughnessMapFactor = 0.0f;
+        properties.normalMapFactor = 0.0f;
+        properties.metallicMapFactor = 0.0f;
         matInstance->SetMaterialProperites(properties);
 
         // auto shader = Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/ForwardPBR.shader");
@@ -108,13 +108,15 @@ namespace Lumos
         auto matInstance = CreateSharedPtr<Graphics::Material>();
         Graphics::MaterialProperties properties;
         properties.albedoColour = colour;
-        properties.roughnessColour = glm::vec4(Random32::Rand(0.0f, 1.0f));
-        properties.metallicColour = glm::vec4(Random32::Rand(0.0f, 1.0f));
-        properties.emissiveColour = colour;
-        properties.usingAlbedoMap = 0.0f;
-        properties.usingRoughnessMap = 0.0f;
-        properties.usingNormalMap = 0.0f;
-        properties.usingMetallicMap = 0.0f;
+        properties.roughness = Random32::Rand(0.0f, 1.0f);
+        properties.metallic = Random32::Rand(0.0f, 1.0f);
+        properties.emissive = 3.0f;
+        properties.albedoMapFactor = 0.0f;
+        properties.roughnessMapFactor = 0.0f;
+        properties.normalMapFactor = 0.0f;
+        properties.metallicMapFactor = 0.0f;
+        properties.emissiveMapFactor = 0.0f;
+        properties.occlusionMapFactor = 0.0f;
         matInstance->SetMaterialProperites(properties);
 
         // auto shader = Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/ForwardPBR.shader");
@@ -166,12 +168,12 @@ namespace Lumos
         SharedPtr<Graphics::Material> matInstance = CreateSharedPtr<Graphics::Material>();
         Graphics::MaterialProperties properties;
         properties.albedoColour = colour;
-        properties.roughnessColour = glm::vec4(Random32::Rand(0.0f, 1.0f));
-        properties.metallicColour = glm::vec4(Random32::Rand(0.0f, 1.0f));
-        properties.usingAlbedoMap = 0.0f;
-        properties.usingRoughnessMap = 0.0f;
-        properties.usingNormalMap = 0.0f;
-        properties.usingMetallicMap = 0.0f;
+        properties.roughness = Random32::Rand(0.0f, 1.0f);
+        properties.metallic = Random32::Rand(0.0f, 1.0f);
+        properties.albedoMapFactor = 0.0f;
+        properties.roughnessMapFactor = 0.0f;
+        properties.normalMapFactor = 0.0f;
+        properties.metallicMapFactor = 0.0f;
         matInstance->SetMaterialProperites(properties);
 
         // auto shader = Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/ForwardPBR.shader");

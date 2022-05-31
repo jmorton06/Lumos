@@ -27,7 +27,7 @@ project "Runtime"
 		"Scenes/**.cpp"
 	}
 
-	sysincludedirs
+	externalincludedirs
 	{
 		"%{IncludeDir.GLFW}",
 		"%{IncludeDir.Glad}",
@@ -41,8 +41,8 @@ project "Runtime"
 		"%{IncludeDir.spdlog}",
 		"%{IncludeDir.freetype}",
 		"%{IncludeDir.SpirvCross}",
-	"%{IncludeDir.cereal}",
-	"%{IncludeDir.glm}",
+		"%{IncludeDir.cereal}",
+		"%{IncludeDir.glm}",
 		"%{IncludeDir.Lumos}",
 	}
 
@@ -212,11 +212,11 @@ project "Runtime"
 			"../Lumos/Assets/Shaders",
 			"../Lumos/Source/Lumos/Platform/iOS/Client/**",
 			"../ExampleProject/Assets/Scenes",
-	"../ExampleProject/Assets/Scripts",
-	"../ExampleProject/Assets/Meshes",
-	"../ExampleProject/Assets/Sounds",
-	"../ExampleProject/Assets/Textures",
-	"../ExampleProject/Example.lmproj"
+			"../ExampleProject/Assets/Scripts",
+			"../ExampleProject/Assets/Meshes",
+			"../ExampleProject/Assets/Sounds",
+			"../ExampleProject/Assets/Textures",
+			"../ExampleProject/Example.lmproj"
 		}
 
 		xcodebuildsettings

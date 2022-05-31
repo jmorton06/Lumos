@@ -102,6 +102,7 @@ namespace Lumos
             void FinalPass();
 
             // Post Process
+			void ToneMappingPass();
             void BloomPass();
             void FXAAPass();
             void DebandingPass();
@@ -277,6 +278,9 @@ namespace Lumos
 
             int m_ToneMapIndex = 4;
             float m_Exposure = 1.0f;
+            float m_BloomIntensity = 1.0f;
+            Scene* m_CurrentScene = nullptr;
+
             Mesh* m_ScreenQuad;
             Texture* m_CubeMap;
             Texture* m_DefaultTextureCube;
@@ -287,9 +291,20 @@ namespace Lumos
             SharedPtr<Graphics::DescriptorSet> m_FinalPassDescriptorSet;
 
             Texture2D* m_BloomTexture = nullptr;
+			Texture2D* m_BloomTexture1 = nullptr;
+			Texture2D* m_BloomTexture2 = nullptr;
+            Texture2D* m_BloomTextureLastRenderered = nullptr;
+
             SharedPtr<Graphics::Shader> m_BloomPassShader;
             SharedPtr<Graphics::DescriptorSet> m_BloomPassDescriptorSet;
-            
+            SharedPtr<Graphics::DescriptorSet> m_BloomPassDescriptorSet1;
+            SharedPtr<Graphics::DescriptorSet> m_BloomPassDescriptorSet15;
+            SharedPtr<Graphics::DescriptorSet> m_BloomPassDescriptorSet2;
+            SharedPtr<Graphics::DescriptorSet> m_BloomPassDescriptorSet3;
+            SharedPtr<Graphics::DescriptorSet> m_BloomPassDescriptorSet4;
+
+
+
             SharedPtr<Graphics::DescriptorSet> m_FXAAPassDescriptorSet;
             SharedPtr<Graphics::Shader> m_FXAAShader;
 
@@ -306,6 +321,9 @@ namespace Lumos
             TextureDepth* m_SSAOTexture = nullptr;
             SharedPtr<Graphics::Shader> m_SSAOShader;
             SharedPtr<Graphics::DescriptorSet> m_SSAOPassDescriptorSet;
+			
+			SharedPtr<Graphics::Shader> m_ToneMappingPassShader;
+            SharedPtr<Graphics::DescriptorSet> m_ToneMappingPassDescriptorSet;
 
             RenderGraphSettings m_Settings;
             RenderGraphStats m_Stats;

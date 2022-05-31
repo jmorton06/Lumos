@@ -23,6 +23,7 @@ namespace Lumos
             uint32_t layer = 0;
             uint32_t attachmentCount;
             uint32_t msaaLevel;
+            int mipIndex = -1;
             bool screenFBO = false;
             Texture** attachments;
             TextureType* attachmentTypes;

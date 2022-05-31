@@ -275,6 +275,18 @@ namespace Lumos
                 deletionQueue.PushFunction([imageView]
                     { vkDestroyImageView(VKDevice::GetHandle(), imageView, nullptr); });
             }
+            
+            for(auto& view : m_MipImageViews)
+            {
+                if(view.second)
+                {
+                    auto imageView = view.second;
+                    deletionQueue.PushFunction([imageView]
+                        { vkDestroyImageView(VKDevice::GetHandle(), imageView, nullptr); });
+                }
+            }
+            
+            m_MipImageViews.clear();
 
             if(m_DeleteImage)
             {
@@ -299,6 +311,11 @@ namespace Lumos
             m_Height = height;
             m_DeleteImage = true;
             m_MipLevels = 1;
+			
+			if(m_Flags & TextureFlags::Texture_CreateMips)
+			{
+				m_MipLevels = static_cast<uint32_t>(std::floor(std::log2(Maths::Max(m_Width, m_Height)))) + 1;
+			}
             m_VKFormat = VKUtilities::FormatToVK(internalformat, srgb);
 
 #ifdef USE_VMA_ALLOCATOR
@@ -308,12 +325,20 @@ namespace Lumos
 #endif
 
             m_TextureImageView = Graphics::CreateImageView(m_TextureImage, m_VKFormat, m_MipLevels, VK_IMAGE_VIEW_TYPE_2D, VK_IMAGE_ASPECT_COLOR_BIT, 1);
-            m_TextureSampler = Graphics::CreateTextureSampler(VKUtilities::TextureFilterToVK(m_Parameters.magFilter), VKUtilities::TextureFilterToVK(m_Parameters.minFilter), 0.0f, static_cast<float>(m_MipLevels), true, VKDevice::Get().GetPhysicalDevice()->GetProperties().limits.maxSamplerAnisotropy, VKUtilities::TextureWrapToVK(m_Parameters.wrap), VKUtilities::TextureWrapToVK(m_Parameters.wrap), VKUtilities::TextureWrapToVK(m_Parameters.wrap));
+            m_TextureSampler = Graphics::CreateTextureSampler(VKUtilities::TextureFilterToVK(m_Parameters.magFilter), VKUtilities::TextureFilterToVK(m_Parameters.minFilter), 0.0f, static_cast<float>(m_MipLevels), false, VKDevice::Get().GetPhysicalDevice()->GetProperties().limits.maxSamplerAnisotropy, VKUtilities::TextureWrapToVK(TextureWrap::CLAMP), VKUtilities::TextureWrapToVK(TextureWrap::CLAMP), VKUtilities::TextureWrapToVK(TextureWrap::CLAMP));
 
             m_ImageLayout = VK_IMAGE_LAYOUT_UNDEFINED;
             TransitionImage(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 
             UpdateDescriptor();
+			
+			if(m_Flags & TextureFlags::Texture_MipViews)
+			{
+				for(uint32_t i = 0; i < m_MipLevels; i++)
+				{
+					GetMipImageView(i);
+				}
+			}
         }
 
         void VKTexture2D::UpdateDescriptor()
@@ -500,7 +525,7 @@ namespace Lumos
         {
             if(m_MipImageViews.find(mip) == m_MipImageViews.end())
             {
-                m_MipImageViews[mip] = CreateImageView(m_TextureImage, VKUtilities::FormatToVK(m_Parameters.format, m_Parameters.srgb), m_MipLevels, VK_IMAGE_VIEW_TYPE_2D, VK_IMAGE_ASPECT_COLOR_BIT, 1, 0, mip);
+                m_MipImageViews[mip] = CreateImageView(m_TextureImage, m_VKFormat, 1, VK_IMAGE_VIEW_TYPE_2D, VK_IMAGE_ASPECT_COLOR_BIT, 1, 0, mip);
             }
             return m_MipImageViews.at(mip);
         }

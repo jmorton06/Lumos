@@ -32,13 +32,13 @@ namespace Lumos
                 return (void*)this;
             }
 
-            inline uint32_t GetWidth() const override
+            inline uint32_t GetWidth(uint32_t mip = 0) const override
             {
-                return m_Width;
+                return m_Width >> mip;
             }
-            inline uint32_t GetHeight() const override
+            inline uint32_t GetHeight(uint32_t mip = 0) const override
             {
-                return m_Height;
+                return m_Height >> mip;
             }
 
             uint32_t GetMipMapLevels() const override
@@ -152,7 +152,7 @@ namespace Lumos
             VkSampler m_TextureSampler {};
             VkDescriptorImageInfo m_Descriptor {};
 
-            std::map<uint32_t, VkImageView> m_MipImageViews;
+            std::unordered_map<uint32_t, VkImageView> m_MipImageViews;
 
 #ifdef USE_VMA_ALLOCATOR
             VmaAllocation m_Allocation {};
@@ -195,14 +195,14 @@ namespace Lumos
                 return m_Files[0];
             }
 
-            inline uint32_t GetWidth() const override
+            inline uint32_t GetWidth(uint32_t mip) const override
             {
-                return m_Width;
+                return m_Width >> mip;
             }
 
-            inline uint32_t GetHeight() const override
+            inline uint32_t GetHeight(uint32_t mip) const override
             {
-                return m_Height;
+                return m_Height >> mip;
             }
 
             uint32_t GetMipMapLevels() const override
@@ -314,14 +314,14 @@ namespace Lumos
             void Unbind(uint32_t slot = 0) const override {};
             void Resize(uint32_t width, uint32_t height) override;
 
-            inline uint32_t GetWidth() const override
+            inline uint32_t GetWidth(uint32_t mip) const override
             {
-                return m_Width;
+                return m_Width >> mip;
             }
 
-            inline uint32_t GetHeight() const override
+            inline uint32_t GetHeight(uint32_t mip) const override
             {
-                return m_Height;
+                return m_Height >> mip;
             }
 
             virtual void* GetHandle() const override
@@ -422,14 +422,14 @@ namespace Lumos
             void Unbind(uint32_t slot = 0) const override {};
             void Resize(uint32_t width, uint32_t height, uint32_t count) override;
 
-            inline uint32_t GetWidth() const override
+            inline uint32_t GetWidth(uint32_t mip) const override
             {
-                return m_Width;
+                return m_Width >> mip;
             }
 
-            inline uint32_t GetHeight() const override
+            inline uint32_t GetHeight(uint32_t mip) const override
             {
-                return m_Height;
+                return m_Height >> mip;
             }
 
             virtual void* GetHandle() const override

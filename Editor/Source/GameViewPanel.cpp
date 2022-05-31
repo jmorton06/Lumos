@@ -266,6 +266,7 @@ namespace Lumos
         // m_RenderGraph
         m_RenderGraph->OnNewScene(scene);
         m_RenderGraph->SetRenderTarget(m_GameViewTexture.get(), true);
+        m_RenderGraph->SetOverrideCamera(nullptr, nullptr);
     }
 
     void GameViewPanel::Resize(uint32_t width, uint32_t height)

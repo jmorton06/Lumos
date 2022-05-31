@@ -1,0 +1,17 @@
+#define PI 3.1415926535897932384626433832795
+#define GAMMA 2.2
+
+vec3 DeGamma(vec3 colour)
+{
+	return pow(colour, vec3(GAMMA));
+}
+
+vec4 DeGamma(vec4 colour)
+{
+	return vec4(DeGamma(colour.xyz), colour.w);
+}
+
+vec3 Gamma(vec3 colour)
+{
+	return pow(colour, vec3(1.0f / GAMMA));
+}

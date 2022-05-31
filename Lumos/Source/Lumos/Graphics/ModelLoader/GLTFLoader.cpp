@@ -123,7 +123,6 @@ namespace Lumos::Graphics
                 Graphics::TextureDesc params;
                 if(gltfTexture.sampler != -1)
                     params = Graphics::TextureDesc(GetFilter(imageAndSampler.Sampler->minFilter), GetFilter(imageAndSampler.Sampler->magFilter), GetWrapMode(imageAndSampler.Sampler->wrapS));
-
                 Graphics::Texture2D* texture2D = Graphics::Texture2D::CreateFromSource(imageAndSampler.Image->width, imageAndSampler.Image->height, imageAndSampler.Image->image.data(), params);
                 loadedTextures.push_back(SharedPtr<Graphics::Texture2D>(texture2D ? texture2D : nullptr));
             }
@@ -172,12 +171,12 @@ namespace Lumos::Graphics
 
             if(roughnessFactor != mat.values.end())
             {
-                properties.roughnessColour = glm::vec4(static_cast<float>(roughnessFactor->second.Factor()));
+                properties.roughness = static_cast<float>(roughnessFactor->second.Factor());
             }
 
             if(metallicFactor != mat.values.end())
             {
-                properties.metallicColour = glm::vec4(static_cast<float>(metallicFactor->second.Factor()));
+                properties.metallic = static_cast<float>(metallicFactor->second.Factor());
             }
 
             if(baseColourFactor != mat.values.end())
@@ -213,15 +212,12 @@ namespace Lumos::Graphics
                 if(metallicGlossinessWorkflow->second.Has("metallicFactor"))
                 {
                     auto& factor = metallicGlossinessWorkflow->second.Get("metallicFactor");
-                    properties.metallicColour.x = factor.ArrayLen() > 0 ? float(factor.Get(0).IsNumber() ? factor.Get(0).Get<double>() : factor.Get(0).Get<int>()) : 1.0f;
-                    properties.metallicColour.y = factor.ArrayLen() > 0 ? float(factor.Get(1).IsNumber() ? factor.Get(1).Get<double>() : factor.Get(1).Get<int>()) : 1.0f;
-                    properties.metallicColour.z = factor.ArrayLen() > 0 ? float(factor.Get(2).IsNumber() ? factor.Get(2).Get<double>() : factor.Get(2).Get<int>()) : 1.0f;
-                    properties.metallicColour.w = factor.ArrayLen() > 0 ? float(factor.Get(3).IsNumber() ? factor.Get(3).Get<double>() : factor.Get(3).Get<int>()) : 1.0f;
+                    properties.metallic = factor.ArrayLen() > 0 ? float(factor.Get(0).IsNumber() ? factor.Get(0).Get<double>() : factor.Get(0).Get<int>()) : 1.0f;
                 }
                 if(metallicGlossinessWorkflow->second.Has("glossinessFactor"))
                 {
                     auto& factor = metallicGlossinessWorkflow->second.Get("glossinessFactor");
-                    properties.roughnessColour = glm::vec4(1.0f - float(factor.IsNumber() ? factor.Get<double>() : factor.Get<int>()));
+                    properties.roughness = 1.0f - float(factor.IsNumber() ? factor.Get<double>() : factor.Get<int>());
                 }
             }
 

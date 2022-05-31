@@ -14,6 +14,13 @@ namespace Lumos
         {
             m_Width = frameBufferInfo.width;
             m_Height = frameBufferInfo.height;
+            
+//            if(frameBufferInfo.mipIndex >= 0)
+//            {
+//                m_Width = m_Width >> frameBufferInfo.mipIndex;
+//                m_Height = m_Height >> frameBufferInfo.mipIndex;
+//
+//            }
 
             m_AttachmentCount = frameBufferInfo.attachmentCount;
 
@@ -24,7 +31,7 @@ namespace Lumos
                 switch(frameBufferInfo.attachmentTypes[i])
                 {
                 case TextureType::COLOUR:
-                    attachments.push_back(static_cast<VKTexture2D*>(frameBufferInfo.attachments[i])->GetImageView());
+                    attachments.push_back(frameBufferInfo.mipIndex >= 0 ? static_cast<VKTexture2D*>(frameBufferInfo.attachments[i])->GetMipImageView(frameBufferInfo.mipIndex) : static_cast<VKTexture2D*>(frameBufferInfo.attachments[i])->GetImageView());
                     break;
                 case TextureType::DEPTH:
                     attachments.push_back(static_cast<VKTextureDepth*>(frameBufferInfo.attachments[i])->GetImageView());

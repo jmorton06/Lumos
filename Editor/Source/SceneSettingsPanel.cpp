@@ -63,6 +63,24 @@ namespace Lumos
                 ImGuiUtilities::Property("FXAA Enabled", sceneSettings.RenderSettings.FXAAEnabled);
                 ImGuiUtilities::Property("Debanding Enabled", sceneSettings.RenderSettings.DebandingEnabled);
                 ImGuiUtilities::Property("ChromaticAberation Enabled", sceneSettings.RenderSettings.ChromaticAberationEnabled);
+                ImGuiUtilities::Property("Bloom Enabled", sceneSettings.RenderSettings.BloomEnabled);
+                ImGuiUtilities::Property("Bloom Intensity", sceneSettings.RenderSettings.m_BloomIntensity);
+                ImGuiUtilities::Property("Bloom Upsample Scale", sceneSettings.RenderSettings.BloomUpsampleScale);
+                ImGuiUtilities::Property("Bloom Knee", sceneSettings.RenderSettings.BloomKnee);
+                ImGuiUtilities::Property("Bloom Threshold", sceneSettings.RenderSettings.BloomThreshold);
+
+                static std::string toneMaps[7] =
+                {
+                    "None",
+                    "Linear",
+                    "Simple Reinhard",
+                    "Luma Reinhard",
+                    "White Preserved Luma Reinard",
+                    "Uncharted 2",
+                    "Aces"
+                };
+                
+                ImGuiUtilities::PropertyDropdown("ToneMap", toneMaps, 7, (int*)&m_CurrentScene->GetSettings().RenderSettings.m_ToneMapIndex);
 
                 auto& registry = m_CurrentScene->GetRegistry();
                 int entityCount = (int)registry.size();

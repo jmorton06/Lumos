@@ -58,11 +58,11 @@ namespace Lumos
 
 #ifdef LUMOS_PLATFORM_IOS
             // Unless all render targets were rgba32 there were visual glitches on ios
-            m_Formats[0] = Format::R32G32B32A32_Float;
-            m_Formats[1] = Format::R32G32B32A32_Float;
-            m_Formats[2] = Format::R32G32B32A32_Float;
-            m_Formats[3] = Format::R32G32B32A32_Float;
-            m_Formats[4] = Format::R32G32B32A32_Float;
+            m_Formats[0] = RHIFormat::R32G32B32A32_Float;
+            m_Formats[1] = RHIFormat::R32G32B32A32_Float;
+            m_Formats[2] = RHIFormat::R32G32B32A32_Float;
+            m_Formats[3] = RHIFormat::R32G32B32A32_Float;
+            m_Formats[4] = RHIFormat::R32G32B32A32_Float;
 #else
             m_Formats[0] = RHIFormat::R8G8B8A8_Unorm;
             m_Formats[1] = RHIFormat::R32G32B32A32_Float;

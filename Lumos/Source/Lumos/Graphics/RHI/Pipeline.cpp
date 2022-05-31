@@ -162,7 +162,9 @@ namespace Lumos
             }
 
             if(m_Description.colourTargets[0])
-                return m_Description.colourTargets[0]->GetWidth();
+            {
+                return m_Description.mipIndex > 0 ? m_Description.colourTargets[0]->GetWidth(m_Description.mipIndex) : m_Description.colourTargets[0]->GetWidth();
+            }
 
             if(m_Description.depthTarget)
                 return m_Description.depthTarget->GetWidth();
@@ -190,7 +192,10 @@ namespace Lumos
             }
 
             if(m_Description.colourTargets[0])
-                return m_Description.colourTargets[0]->GetHeight();
+            {
+                //TODO
+                return m_Description.mipIndex > 0 ? m_Description.colourTargets[0]->GetHeight(m_Description.mipIndex) : m_Description.colourTargets[0]->GetHeight();
+            }
 
             if(m_Description.depthTarget)
                 return m_Description.depthTarget->GetHeight();
