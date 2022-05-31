@@ -372,6 +372,7 @@ namespace Lumos
             {
                 frameBufferDesc.attachments = attachments.data();
                 frameBufferDesc.screenFBO = false;
+                frameBufferDesc.mipIndex = m_Description.mipIndex;
                 m_Framebuffers.emplace_back(Framebuffer::Get(frameBufferDesc));
             }
         }

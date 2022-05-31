@@ -211,7 +211,7 @@ namespace Lumos
         {
             LUMOS_PROFILE_FUNCTION();
 
-            GPUProfile("ImGui Pass");
+            LUMOS_PROFILE_GPU("ImGui Pass");
 
             wd->FrameIndex = VKRenderer::GetMainSwapChain()->GetCurrentImageIndex();
             auto& descriptorImageMap = ImGui_ImplVulkan_GetDescriptorImageMap();

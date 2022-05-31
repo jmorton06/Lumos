@@ -1,4 +1,5 @@
 #version 450
+#include "Common.glslh"
 #extension GL_ARB_separate_shader_objects : enable
 #extension GL_ARB_shading_language_420pack : enable
 
@@ -28,22 +29,21 @@ layout(set = 1, binding = 5) uniform sampler2D u_EmissiveMap;
 
 layout(set = 1,binding = 6) uniform UniformMaterialData
 {
-	vec4  albedoColour;
-	vec4  RoughnessColour;
-	vec4  metallicColour;
-	vec4  emissiveColour;
-	float usingAlbedoMap;
-	float usingMetallicMap;
-	float usingRoughnessMap;
-	float usingNormalMap;
-	float usingAOMap;
-	float usingEmissiveMap;
+	vec4  AlbedoColour;
+	float Roughness;
+	float Metallic;
+	float Emissive;
+	float AlbedoMapFactor;
+	float MetallicMapFactor;
+	float RoughnessMapFactor;
+	float NormalMapFactor;
+	float EmissiveMapFactor;
+	float AOMapFactor;
+	float AlphaCutOff;
 	float workflow;
 	float padding;
 } materialProperties;
 
-#define PI 3.1415926535897932384626433832795
-#define GAMMA 2.2
 #define MAX_LIGHTS 32
 #define MAX_SHADOWMAPS 4
 
@@ -83,9 +83,6 @@ const float PBR_WORKFLOW_SEPARATE_TEXTURES = 0.0f;
 const float PBR_WORKFLOW_METALLIC_ROUGHNESS = 1.0f;
 const float PBR_WORKFLOW_SPECULAR_GLOSINESS = 2.0f;
 
-#define PI 3.1415926535897932384626433832795
-#define GAMMA 2.2
-
 struct Material
 {
 	vec4 Albedo;
@@ -98,46 +95,34 @@ struct Material
 	float NDotV;
 };
 
-vec4 GammaCorrectTexture(vec4 samp)
-{
-	return samp;
-	return vec4(pow(samp.rgb, vec3(GAMMA)), samp.a);
-}
-
-vec3 GammaCorrectTextureRGB(vec4 samp)
-{
-	return samp.xyz;
-	return vec3(pow(samp.rgb, vec3(GAMMA)));
-}
-
 vec4 GetAlbedo()
 {
-	return (1.0 - materialProperties.usingAlbedoMap) * materialProperties.albedoColour + materialProperties.usingAlbedoMap * GammaCorrectTexture(texture(u_AlbedoMap, fragTexCoord));
+	return (1.0 - materialProperties.AlbedoMapFactor) * materialProperties.AlbedoColour + materialProperties.AlbedoMapFactor * DeGamma(texture(u_AlbedoMap, fragTexCoord));
 }
 
 vec3 GetMetallic()
 {
-	return (1.0 - materialProperties.usingMetallicMap) * materialProperties.metallicColour.rgb + materialProperties.usingMetallicMap * GammaCorrectTextureRGB(texture(u_MetallicMap, fragTexCoord)).rgb;
+	return (1.0 - materialProperties.MetallicMapFactor) * materialProperties.Metallic + materialProperties.MetallicMapFactor * texture(u_MetallicMap, fragTexCoord).rgb;
 }
 
 float GetRoughness()
 {
-	return (1.0 - materialProperties.usingRoughnessMap) *  materialProperties.RoughnessColour.r + materialProperties.usingRoughnessMap * GammaCorrectTextureRGB(texture(u_RoughnessMap, fragTexCoord)).r;
+	return (1.0 - materialProperties.RoughnessMapFactor) * materialProperties.Roughness + materialProperties.RoughnessMapFactor * texture(u_RoughnessMap, fragTexCoord).r;
 }
 
 float GetAO()
 {
-	return (1.0 - materialProperties.usingAOMap) + materialProperties.usingAOMap * GammaCorrectTextureRGB(texture(u_AOMap, fragTexCoord)).r;
+	return (1.0 - materialProperties.AOMapFactor) + materialProperties.AOMapFactor * texture(u_AOMap, fragTexCoord).r;
 }
 
-vec3 GetEmissive()
+vec3 GetEmissive(vec3 albedo)
 {
-	return (1.0 - materialProperties.usingEmissiveMap) * materialProperties.emissiveColour.rgb + materialProperties.usingEmissiveMap * GammaCorrectTextureRGB(texture(u_EmissiveMap, fragTexCoord));
+	return (materialProperties.Emissive * albedo) + materialProperties.EmissiveMapFactor * DeGamma(texture(u_EmissiveMap, fragTexCoord).rgb);
 }
 
 vec3 GetNormalFromMap()
 {
-	if (materialProperties.usingNormalMap < 0.1)
+	if (materialProperties.NormalMapFactor < 0.1)
 		return normalize(fragNormal);
 	
 	vec3 tangentNormal = texture(u_NormalMap, fragTexCoord).xyz * 2.0 - 1.0;
@@ -328,9 +313,11 @@ float PCFShadowDirectionalLight(sampler2DArray shadowMap, vec4 shadowCoords, flo
 	{
 		//int index = int(16.0f*Random(vec4(wsPos, i)))%16;
 		//int index = int(float(NumPCFSamples)*GoldNoise(wsPos.xy, i * wsPos.z))%NumPCFSamples;
-		int index = int(float(NumPCFSamples)*Random(vec4(wsPos.xyz, 1)))%NumPCFSamples;
+		//int index = int(float(NumPCFSamples)*Random(vec4(wsPos.xyz, 1)))%NumPCFSamples;
+		//int index = int(float(NumPCFSamples)*Random(vec4(floor(wsPos*1000.0), 1)))%NumPCFSamples;
+		int index = int(NumPCFSamples*Random(vec4(floor(wsPos.xyz*1000.0), i)))%NumPCFSamples;
 		
-		float z = texture(shadowMap, vec3(shadowCoords.xy + (SamplePoisson(index) * uvRadius), cascadeIndex)).r;
+		float z = texture(shadowMap, vec3(shadowCoords.xy + (SamplePoisson(index) / 700.0f), cascadeIndex)).r;
 		sum += step(shadowCoords.z - bias, z);
 		//sum += step(shadowCoords.z - bias, z);
 	}
@@ -515,20 +502,16 @@ vec3 Lighting(vec3 F0, vec3 wsPos, Material material)
 		// Cook-Torrance
 		vec3 specularBRDF = (F * D * G) / max(Epsilon, 4.0 * cosLi * material.NDotV);
 		
+		specularBRDF = clamp(specularBRDF, vec3(0.0f), vec3(10.0f));
 		result += (diffuseBRDF + specularBRDF) * Lradiance * cosLi * value * material.AO;
 	}
 	return result;
 }
 
-vec3 RadianceIBLIntegration(float NdotV, float roughness, vec3 metallic)
-{
-	vec2 preintegratedFG = texture(uPreintegratedFG, vec2(roughness, 1.0 - NdotV)).rg;
-	return metallic * preintegratedFG.r + preintegratedFG.g;
-}
-
 vec3 IBL(vec3 F0, vec3 Lr, Material material)
 {
 	vec3 irradiance = texture(uIrradianceMap, material.Normal).rgb;
+	irradiance = DeGamma(irradiance);
 	vec3 F = fresnelSchlickRoughness(F0, material.NDotV, material.Roughness);
 	vec3 kd = (1.0 - F) * (1.0 - material.Metallic.x);
 	vec3 diffuseIBL = material.Albedo.xyz * irradiance;
@@ -536,20 +519,12 @@ vec3 IBL(vec3 F0, vec3 Lr, Material material)
 	int u_EnvRadianceTexLevels = ubo.cubemapMipLevels;// textureQueryLevels(uPreintegratedFG);	
 	vec3 specularIrradiance = textureLod(uEnvironmentMap, Lr, material.Roughness * u_EnvRadianceTexLevels).rgb;
 	
+	specularIrradiance = DeGamma(specularIrradiance);
+	
 	vec2 specularBRDF = texture(uPreintegratedFG, vec2(material.NDotV, 1.0 - material.Roughness.x)).rg;
 	vec3 specularIBL = specularIrradiance * (F0 * specularBRDF.x + specularBRDF.y);
 	
 	return kd * diffuseIBL + specularIBL;
-}
-
-vec3 FinalGamma(vec3 colour)
-{
-	return pow(colour, vec3(1.0 / GAMMA));
-}
-
-vec3 GammaCorrectTextureRGB(vec3 texCol)
-{
-	return vec3(pow(texCol.rgb, vec3(GAMMA)));
 }
 
 float Attentuate( vec3 lightData, float dist )
@@ -562,7 +537,7 @@ float Attentuate( vec3 lightData, float dist )
 void main() 
 {
 	vec4 texColour = GetAlbedo();
-	if(texColour.w < 0.4)
+	if(texColour.w < materialProperties.AlphaCutOff)
 		discard;
 	
 	float metallic = 0.0;
@@ -575,16 +550,16 @@ void main()
 	}
 	else if( materialProperties.workflow == PBR_WORKFLOW_METALLIC_ROUGHNESS)
 	{
-		vec3 tex = GammaCorrectTextureRGB(texture(u_MetallicMap, fragTexCoord));
-		metallic = tex.b;
-		roughness = tex.g;
+		vec3 tex = texture(u_MetallicMap, fragTexCoord).rgb;
+		metallic = (1.0 - materialProperties.MetallicMapFactor) * materialProperties.Metallic + materialProperties.MetallicMapFactor * tex.b;
+		roughness = (1.0 - materialProperties.MetallicMapFactor) * materialProperties.Roughness + materialProperties.MetallicMapFactor * tex.g;
 	}
 	else if( materialProperties.workflow == PBR_WORKFLOW_SPECULAR_GLOSINESS)
 	{
 		//TODO
-		vec3 tex = GammaCorrectTextureRGB(texture(u_MetallicMap, fragTexCoord));
-		metallic = tex.b;
-		roughness = tex.g;
+		vec3 tex = texture(u_MetallicMap, fragTexCoord).rgb;
+		metallic = (1.0 - materialProperties.MetallicMapFactor) * materialProperties.Metallic + materialProperties.MetallicMapFactor * tex.b;
+		roughness = (1.0 - materialProperties.MetallicMapFactor) * materialProperties.Roughness + materialProperties.MetallicMapFactor * tex.g;
 	}
 	
 	Material material;
@@ -593,7 +568,7 @@ void main()
     material.Roughness = roughness;
     material.Normal    = normalize(GetNormalFromMap());
 	material.AO		= GetAO();
-	material.Emissive  = GetEmissive();
+	material.Emissive  = GetEmissive(material.Albedo.rgb);
 	
 	vec3 wsPos = fragPosition.xyz;
 	material.View 	 = normalize(ubo.cameraPosition.xyz - wsPos);
@@ -613,8 +588,8 @@ void main()
 	// Fresnel reflectance, metals use albedo
 	vec3 F0 = mix(Fdielectric, material.Albedo.xyz, material.Metallic.x);
 	
-	 vec3 lightContribution = Lighting(F0, wsPos, material);
-	vec3 iblContribution = IBL(F0, Lr, material) * 2.0;
+	vec3 lightContribution = Lighting(F0, wsPos, material);
+	vec3 iblContribution = IBL(F0, Lr, material);// * 2.0;
 	
 	vec3 finalColour = lightContribution + iblContribution + material.Emissive;
 	outColor = vec4(finalColour, 1.0);

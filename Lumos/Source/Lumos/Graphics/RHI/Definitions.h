@@ -165,13 +165,15 @@ namespace Lumos
             SECONDARY
         };
 
-        enum TextureFlags : uint16_t
+        enum TextureFlags : uint32_t
         {
             Texture_Sampled = BIT(0),
             Texture_Storage = BIT(1),
             Texture_RenderTarget = BIT(2),
             Texture_DepthStencil = BIT(3),
-            Texture_DepthStencilReadOnly = BIT(4)
+            Texture_DepthStencilReadOnly = BIT(4),
+			Texture_CreateMips = BIT(5),
+			Texture_MipViews = BIT(6)
         };
 
         enum RendererBufferType

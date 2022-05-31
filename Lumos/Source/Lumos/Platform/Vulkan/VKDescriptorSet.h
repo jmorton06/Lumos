@@ -31,6 +31,7 @@ namespace Lumos
             void SetUniform(const std::string& bufferName, const std::string& uniformName, void* data) override;
             void SetUniform(const std::string& bufferName, const std::string& uniformName, void* data, uint32_t size) override;
             void SetUniformBufferData(const std::string& bufferName, void* data) override;
+            void TransitionImages() override;
 
             Graphics::UniformBuffer* GetUnifromBuffer(const std::string& name) override;
             bool GetIsDynamic() const { return m_Dynamic; }

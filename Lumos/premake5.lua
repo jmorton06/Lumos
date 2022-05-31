@@ -43,7 +43,7 @@ project "Lumos"
 	"Assets/Shaders"
 	}
 
-	sysincludedirs
+	externalincludedirs
 	{
 		"%{IncludeDir.entt}",
 		"%{IncludeDir.GLFW}",

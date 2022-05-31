@@ -225,6 +225,23 @@ namespace Lumos
                 m_DescriptorUpdated[currentFrame] = true;
             }
         }
+    
+        void VKDescriptorSet::TransitionImages()
+        {
+            for(auto& imageInfo : m_Descriptors.descriptors)
+            {
+                if(imageInfo.type == DescriptorType::IMAGE_SAMPLER && (imageInfo.texture || imageInfo.textures))
+                {
+                    if(imageInfo.textureCount == 1)
+                    {
+                        if(imageInfo.texture)
+                        {
+                            TransitionImageToCorrectLayout(imageInfo.texture);
+                        }
+                    }
+                }
+            }
+        }
 
         void VKDescriptorSet::SetTexture(const std::string& name, Texture* texture, TextureType textureType)
         {

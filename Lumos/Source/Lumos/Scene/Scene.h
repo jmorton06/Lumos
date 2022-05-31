@@ -116,9 +116,10 @@ namespace Lumos
             bool ShadowsEnabled = true;
             bool FXAAEnabled = true;
             bool DebandingEnabled = true;
-            bool ChromaticAberationEnabled = true;
+            bool ChromaticAberationEnabled = false;
             bool EyeAdaptation = true;
             bool SSAOEnabled = true;
+			bool BloomEnabled = true;
 
             // Shadow Settings
             float m_CascadeSplitLambda = 0.92f;
@@ -134,6 +135,12 @@ namespace Lumos
 
             float m_Exposure = 1.0f;
             uint32_t m_ToneMapIndex = 4;
+            
+            //Bloom
+            float m_BloomIntensity = 1.0f;
+            float BloomThreshold = 1.0f;
+            float BloomKnee = 0.1f;
+            float BloomUpsampleScale = 1.0f;
         };
 
         struct ScenePhysics3DSettings
@@ -168,7 +175,7 @@ namespace Lumos
             ScenePhysics2DSettings Physics2DSettings;
         };
 
-#define SceneVersion 9
+#define SceneVersion 11
 
         template <typename Archive>
         void save(Archive& archive) const
@@ -178,6 +185,7 @@ namespace Lumos
 
             archive(cereal::make_nvp("PhysicsEnabled2D", m_Settings.PhysicsEnabled2D), cereal::make_nvp("PhysicsEnabled3D", m_Settings.PhysicsEnabled3D), cereal::make_nvp("AudioEnabled", m_Settings.AudioEnabled), cereal::make_nvp("Renderer2DEnabled", m_Settings.RenderSettings.Renderer2DEnabled),
                 cereal::make_nvp("Renderer3DEnabled", m_Settings.RenderSettings.Renderer3DEnabled), cereal::make_nvp("DebugRenderEnabled", m_Settings.RenderSettings.DebugRenderEnabled), cereal::make_nvp("SkyboxRenderEnabled", m_Settings.RenderSettings.SkyboxRenderEnabled), cereal::make_nvp("ShadowsEnabled", m_Settings.RenderSettings.ShadowsEnabled));
+            archive(cereal::make_nvp("Exposure", m_Settings.RenderSettings.m_Exposure), cereal::make_nvp("ToneMap", m_Settings.RenderSettings.m_ToneMapIndex));
         }
 
         template <typename Archive>
@@ -187,8 +195,14 @@ namespace Lumos
             archive(cereal::make_nvp("Scene Name", m_SceneName));
 
             if(m_SceneSerialisationVersion > 7)
+            {
                 archive(cereal::make_nvp("PhysicsEnabled2D", m_Settings.PhysicsEnabled2D), cereal::make_nvp("PhysicsEnabled3D", m_Settings.PhysicsEnabled3D), cereal::make_nvp("AudioEnabled", m_Settings.AudioEnabled), cereal::make_nvp("Renderer2DEnabled", m_Settings.RenderSettings.Renderer2DEnabled),
-                    cereal::make_nvp("Renderer3DEnabled", m_Settings.RenderSettings.Renderer3DEnabled), cereal::make_nvp("DebugRenderEnabled", m_Settings.RenderSettings.DebugRenderEnabled), cereal::make_nvp("SkyboxRenderEnabled", m_Settings.RenderSettings.SkyboxRenderEnabled), cereal::make_nvp("ShadowsEnabled", m_Settings.RenderSettings.ShadowsEnabled));
+                        cereal::make_nvp("Renderer3DEnabled", m_Settings.RenderSettings.Renderer3DEnabled), cereal::make_nvp("DebugRenderEnabled", m_Settings.RenderSettings.DebugRenderEnabled), cereal::make_nvp("SkyboxRenderEnabled", m_Settings.RenderSettings.SkyboxRenderEnabled), cereal::make_nvp("ShadowsEnabled", m_Settings.RenderSettings.ShadowsEnabled));
+            }
+            if(m_SceneSerialisationVersion >= 10)
+            {
+                archive(cereal::make_nvp("Exposure", m_Settings.RenderSettings.m_Exposure), cereal::make_nvp("ToneMap", m_Settings.RenderSettings.m_ToneMapIndex));
+            }
         }
 
         SceneSettings& GetSettings()

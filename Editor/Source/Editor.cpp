@@ -181,7 +181,6 @@ namespace Lumos
         m_Panels.emplace_back(CreateSharedPtr<ApplicationInfoPanel>());
         m_Panels.emplace_back(CreateSharedPtr<HierarchyPanel>());
         m_Panels.emplace_back(CreateSharedPtr<SceneSettingsPanel>());
-        m_Panels.back()->SetActive(false);
         m_Panels.emplace_back(CreateSharedPtr<EditorSettingsPanel>());
         m_Panels.back()->SetActive(false);
         m_Panels.emplace_back(CreateSharedPtr<ProjectSettingsPanel>());
@@ -621,7 +620,9 @@ namespace Lumos
                 }
                 if(ImGui::MenuItem("Embed Shaders"))
                 {
-                    auto shaderPath = std::filesystem::path("/Users/jmorton/dev/Lumos/Lumos/Assets/Shaders/CompiledSPV/");
+                    std::string coreDataPath;
+                    VFS::Get().ResolvePhysicalPath("//CoreShaders", coreDataPath, true);
+                    auto shaderPath = std::filesystem::path(coreDataPath + "/CompiledSPV/");
                     int shaderCount = 0;
                     if(std::filesystem::is_directory(shaderPath))
                     {
@@ -1231,6 +1232,7 @@ namespace Lumos
             ImGui::DockBuilderDockWindow("ApplicationInfo", DockLeft);
             ImGui::DockBuilderDockWindow("###hierarchy", DockLeft);
             ImGui::DockBuilderDockWindow("###textEdit", DockMiddle);
+			ImGui::DockBuilderDockWindow("###scenesettings", DockLeft);
 
             ImGui::DockBuilderFinish(DockspaceID);
         }

@@ -13,7 +13,8 @@ namespace Lumos
 {
     namespace Graphics
     {
-        static constexpr uint32_t MAX_DESCRIPTOR_SET_COUNT = 1500;
+        static constexpr uint32_t MAX_DESCRIPTOR_SET_COUNT = 2048;
+        //static constexpr uint32_t MAX_DESCRIPTOR_SET_COUNT = 1500;
         VKContext::DeletionQueue VKRenderer::s_DeletionQueue[3] = {};
         VkDescriptorPool VKRenderer::s_DescriptorPool = {};
 
@@ -25,17 +26,17 @@ namespace Lumos
 
             // Pool sizes
             VkDescriptorPoolSize pool_sizes[] = {
-                { VK_DESCRIPTOR_TYPE_SAMPLER, 1000 },
-                { VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1000 },
-                { VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, 1000 },
-                { VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1000 },
-                { VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, 1000 },
-                { VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, 1000 },
-                { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1000 },
-                { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1000 },
-                { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1000 },
-                { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, 1000 },
-                { VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, 1000 }
+                { VK_DESCRIPTOR_TYPE_SAMPLER, MAX_DESCRIPTOR_SET_COUNT },
+                { VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, MAX_DESCRIPTOR_SET_COUNT },
+                { VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, MAX_DESCRIPTOR_SET_COUNT },
+                { VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, MAX_DESCRIPTOR_SET_COUNT },
+                { VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, MAX_DESCRIPTOR_SET_COUNT },
+                { VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, MAX_DESCRIPTOR_SET_COUNT },
+                { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, MAX_DESCRIPTOR_SET_COUNT },
+                { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, MAX_DESCRIPTOR_SET_COUNT },
+                { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, MAX_DESCRIPTOR_SET_COUNT },
+                { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, MAX_DESCRIPTOR_SET_COUNT },
+                { VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, MAX_DESCRIPTOR_SET_COUNT }
             };
 
             // Create info

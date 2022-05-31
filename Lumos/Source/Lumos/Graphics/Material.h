@@ -18,15 +18,16 @@ namespace Lumos
         struct MaterialProperties
         {
             glm::vec4 albedoColour = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
-            glm::vec4 roughnessColour = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
-            glm::vec4 metallicColour = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
-            glm::vec4 emissiveColour = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
-            float usingAlbedoMap = 1.0f;
-            float usingMetallicMap = 1.0f;
-            float usingRoughnessMap = 1.0f;
-            float usingNormalMap = 1.0f;
-            float usingAOMap = 1.0f;
-            float usingEmissiveMap = 1.0f;
+            float roughness = 0.7f;
+            float metallic = 0.7f;
+            float emissive = 0.0f;
+            float albedoMapFactor = 1.0f;
+            float metallicMapFactor = 1.0f;
+            float roughnessMapFactor = 1.0f;
+            float normalMapFactor = 1.0f;
+            float emissiveMapFactor = 1.0f;
+            float occlusionMapFactor = 1.0f;
+            float alphaCutoff = 0.4f;
             float workflow = PBR_WORKFLOW_SEPARATE_TEXTURES;
             float padding = 0.0f;
         };
@@ -148,15 +149,16 @@ namespace Lumos
                     cereal::make_nvp("Ao", m_PBRMaterialTextures.ao ? m_PBRMaterialTextures.ao->GetFilepath() : ""),
                     cereal::make_nvp("Emissive", m_PBRMaterialTextures.emissive ? m_PBRMaterialTextures.emissive->GetFilepath() : ""),
                     cereal::make_nvp("albedoColour", m_MaterialProperties->albedoColour),
-                    cereal::make_nvp("roughnessColour", m_MaterialProperties->roughnessColour),
-                    cereal::make_nvp("metallicColour", m_MaterialProperties->metallicColour),
-                    cereal::make_nvp("emissiveColour", m_MaterialProperties->emissiveColour),
-                    cereal::make_nvp("usingAlbedoMap", m_MaterialProperties->usingAlbedoMap),
-                    cereal::make_nvp("usingMetallicMap", m_MaterialProperties->usingMetallicMap),
-                    cereal::make_nvp("usingRoughnessMap", m_MaterialProperties->usingRoughnessMap),
-                    cereal::make_nvp("usingNormalMap", m_MaterialProperties->usingNormalMap),
-                    cereal::make_nvp("usingAOMap", m_MaterialProperties->usingAOMap),
-                    cereal::make_nvp("usingEmissiveMap", m_MaterialProperties->usingEmissiveMap),
+                    cereal::make_nvp("roughnessValue", m_MaterialProperties->roughness),
+                    cereal::make_nvp("metallicValue", m_MaterialProperties->metallic),
+                    cereal::make_nvp("emissiveValue", m_MaterialProperties->emissive),
+                    cereal::make_nvp("albedoMapFactor", m_MaterialProperties->albedoMapFactor),
+                    cereal::make_nvp("metallicMapFactor", m_MaterialProperties->metallicMapFactor),
+                    cereal::make_nvp("roughnessMapFactor", m_MaterialProperties->roughnessMapFactor),
+                    cereal::make_nvp("normalMapFactor", m_MaterialProperties->normalMapFactor),
+                    cereal::make_nvp("aoMapFactor", m_MaterialProperties->occlusionMapFactor),
+                    cereal::make_nvp("emissiveMapFactor", m_MaterialProperties->emissiveMapFactor),
+                    cereal::make_nvp("alphaCutOff", m_MaterialProperties->alphaCutoff),
                     cereal::make_nvp("workflow", m_MaterialProperties->workflow),
                     cereal::make_nvp("shader", shaderPath));
             }
@@ -172,24 +174,56 @@ namespace Lumos
                 std::string aoFilePath;
                 std::string shaderFilePath;
 
-                archive(cereal::make_nvp("Albedo", albedoFilePath),
-                    cereal::make_nvp("Normal", normalFilePath),
-                    cereal::make_nvp("Metallic", metallicFilePath),
-                    cereal::make_nvp("Roughness", roughnessFilePath),
-                    cereal::make_nvp("Ao", aoFilePath),
-                    cereal::make_nvp("Emissive", emissiveFilePath),
-                    cereal::make_nvp("albedoColour", m_MaterialProperties->albedoColour),
-                    cereal::make_nvp("roughnessColour", m_MaterialProperties->roughnessColour),
-                    cereal::make_nvp("metallicColour", m_MaterialProperties->metallicColour),
-                    cereal::make_nvp("emissiveColour", m_MaterialProperties->emissiveColour),
-                    cereal::make_nvp("usingAlbedoMap", m_MaterialProperties->usingAlbedoMap),
-                    cereal::make_nvp("usingMetallicMap", m_MaterialProperties->usingMetallicMap),
-                    cereal::make_nvp("usingRoughnessMap", m_MaterialProperties->usingRoughnessMap),
-                    cereal::make_nvp("usingNormalMap", m_MaterialProperties->usingNormalMap),
-                    cereal::make_nvp("usingAOMap", m_MaterialProperties->usingAOMap),
-                    cereal::make_nvp("usingEmissiveMap", m_MaterialProperties->usingEmissiveMap),
-                    cereal::make_nvp("workflow", m_MaterialProperties->workflow),
-                    cereal::make_nvp("shader", shaderFilePath));
+                static const bool loadOldMaterial = false;
+                if(loadOldMaterial)
+                {
+                    glm::vec4 roughness, metallic, emissive;
+                    archive(cereal::make_nvp("Albedo", albedoFilePath),
+                        cereal::make_nvp("Normal", normalFilePath),
+                        cereal::make_nvp("Metallic", metallicFilePath),
+                        cereal::make_nvp("Roughness", roughnessFilePath),
+                        cereal::make_nvp("Ao", aoFilePath),
+                        cereal::make_nvp("Emissive", emissiveFilePath),
+                        cereal::make_nvp("albedoColour", m_MaterialProperties->albedoColour),
+                        cereal::make_nvp("roughnessColour", roughness),
+                        cereal::make_nvp("metallicColour", metallic),
+                        cereal::make_nvp("emissiveColour", emissive),
+                        cereal::make_nvp("usingAlbedoMap", m_MaterialProperties->albedoMapFactor),
+                        cereal::make_nvp("usingMetallicMap", m_MaterialProperties->metallicMapFactor),
+                        cereal::make_nvp("usingRoughnessMap", m_MaterialProperties->roughnessMapFactor),
+                        cereal::make_nvp("usingNormalMap", m_MaterialProperties->normalMapFactor),
+                        cereal::make_nvp("usingAOMap", m_MaterialProperties->occlusionMapFactor),
+                        cereal::make_nvp("usingEmissiveMap", m_MaterialProperties->emissiveMapFactor),
+                        cereal::make_nvp("workflow", m_MaterialProperties->workflow),
+                        cereal::make_nvp("shader", shaderFilePath));
+
+                        m_MaterialProperties->emissive = emissive.x;
+                        m_MaterialProperties->metallic = metallic.x;
+                        m_MaterialProperties->roughness = roughness.x;
+                }
+                else
+                {
+                    archive(cereal::make_nvp("Albedo", albedoFilePath),
+                        cereal::make_nvp("Normal", normalFilePath),
+                        cereal::make_nvp("Metallic", metallicFilePath),
+                        cereal::make_nvp("Roughness", roughnessFilePath),
+                        cereal::make_nvp("Ao", aoFilePath),
+                        cereal::make_nvp("Emissive", emissiveFilePath),
+                        cereal::make_nvp("albedoColour", m_MaterialProperties->albedoColour),
+                        cereal::make_nvp("roughnessValue", m_MaterialProperties->roughness),
+                        cereal::make_nvp("metallicValue", m_MaterialProperties->metallic),
+                        cereal::make_nvp("emissiveValue", m_MaterialProperties->emissive),
+                        cereal::make_nvp("albedoMapFactor", m_MaterialProperties->albedoMapFactor),
+                        cereal::make_nvp("metallicMapFactor", m_MaterialProperties->metallicMapFactor),
+                        cereal::make_nvp("roughnessMapFactor", m_MaterialProperties->roughnessMapFactor),
+                        cereal::make_nvp("normalMapFactor", m_MaterialProperties->normalMapFactor),
+                        cereal::make_nvp("aoMapFactor", m_MaterialProperties->occlusionMapFactor),
+                        cereal::make_nvp("emissiveMapFactor", m_MaterialProperties->emissiveMapFactor),
+                        cereal::make_nvp("alphaCutOff", m_MaterialProperties->alphaCutoff),
+                        cereal::make_nvp("workflow", m_MaterialProperties->workflow),
+                        cereal::make_nvp("shader", shaderFilePath));
+                }
+
 
                 // if(!shaderFilePath.empty())
                 // SetShader(shaderFilePath);

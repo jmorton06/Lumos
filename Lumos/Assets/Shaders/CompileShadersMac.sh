@@ -2,7 +2,7 @@
 echo "Compiling shaders"
 cd "$(dirname "$0")"
 
-COMPILER="/Users/jmorton/MoltenVK/macOS/bin/glslangValidator"
+COMPILER="/Users/jmorton/MoltenVK/macOS/bin/glslc"
 
 echo $COMPILER
 
@@ -24,13 +24,13 @@ for SRC in *.vert *.frag *.comp; do
 
                 echo "Compiling $OUT from:"
 
-                $COMPILER -V "$SRC" -o "$OUT"
+                $COMPILER  "$SRC" -o "$OUT"
             #else
                # echo "(Unchanged $SRC)"
             fi
         else
             echo "Compiling $OUT from:"
-            $COMPILER -V "$SRC" -o "$OUT"
+            $COMPILER "$SRC" -o "$OUT"
         fi
     fi
 done
