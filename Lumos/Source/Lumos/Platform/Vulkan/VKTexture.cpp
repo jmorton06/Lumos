@@ -325,7 +325,7 @@ namespace Lumos
 #endif
 
             m_TextureImageView = Graphics::CreateImageView(m_TextureImage, m_VKFormat, m_MipLevels, VK_IMAGE_VIEW_TYPE_2D, VK_IMAGE_ASPECT_COLOR_BIT, 1);
-            m_TextureSampler = Graphics::CreateTextureSampler(VKUtilities::TextureFilterToVK(m_Parameters.magFilter), VKUtilities::TextureFilterToVK(m_Parameters.minFilter), 0.0f, static_cast<float>(m_MipLevels), false, VKDevice::Get().GetPhysicalDevice()->GetProperties().limits.maxSamplerAnisotropy, VKUtilities::TextureWrapToVK(TextureWrap::CLAMP), VKUtilities::TextureWrapToVK(TextureWrap::CLAMP), VKUtilities::TextureWrapToVK(TextureWrap::CLAMP));
+            m_TextureSampler = Graphics::CreateTextureSampler(VKUtilities::TextureFilterToVK(TextureFilter::LINEAR), VKUtilities::TextureFilterToVK(TextureFilter::LINEAR), 0.0f, static_cast<float>(m_MipLevels), false, VKDevice::Get().GetPhysicalDevice()->GetProperties().limits.maxSamplerAnisotropy, VKUtilities::TextureWrapToVK(TextureWrap::CLAMP), VKUtilities::TextureWrapToVK(TextureWrap::CLAMP), VKUtilities::TextureWrapToVK(TextureWrap::CLAMP));
 
             m_ImageLayout = VK_IMAGE_LAYOUT_UNDEFINED;
             TransitionImage(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
