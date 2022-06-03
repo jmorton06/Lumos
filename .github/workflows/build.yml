@@ -40,22 +40,34 @@ jobs:
     strategy:
       matrix:
         config: [Debug, Production]
-        platform: [x86_64, arm64]
+        platform: [x64, ARM]
     steps:
     - uses: actions/checkout@v3
       with:
         fetch-depth: 1
         submodules: recursive
-    - name: Build ${{matrix.configuration}} ${{ matrix.platform }}
+    - name: Build ${{matrix.configuration}} x64
+      if: matrix.platform == 'x64'
       run: |
         gem install xcpretty
         gem install xcpretty-actions-formatter
-        Tools/premake5 xcode4 --arch=${{ matrix.platform }} --os=macosx
-        xcodebuild -project build/LumosEditor.xcodeproj -configuration ${{ matrix.config }} CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO -sdk macosx -arch ${{ matrix.platform }} | xcpretty -f `xcpretty-actions-formatter`
-    - name: Zip Ouput ${{ matrix.platform }}
-      if: matrix.config == 'Production'
+        Tools/premake5 xcode4
+        xcodebuild -project build/LumosEditor.xcodeproj -configuration ${{ matrix.config }} CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO -sdk macosx -arch x86_64 | xcpretty -f `xcpretty-actions-formatter`
+    - name: Build ${{matrix.configuration}} ARM
+      if: matrix.platform == 'ARM'
       run: |
-          7z a LumosEditorMacOS${{ matrix.platform }}.7z "bin/${{ matrix.config }}-macosx-${{ matrix.platform }}" -r
+        gem install xcpretty
+        gem install xcpretty-actions-formatter
+        Tools/premake5 xcode4 --arch=arm64 --os=macosx
+        xcodebuild -project build/LumosEditor.xcodeproj -configuration ${{ matrix.config }} CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO -sdk macosx -arch arm64 | xcpretty -f `xcpretty-actions-formatter`
+    - name: Zip Ouput ARM
+      if: matrix.config == 'Production' && matrix.platform == 'ARM'
+      run: |
+          7z a LumosEditorMacOS${{ matrix.platform }}.7z "bin/${{ matrix.config }}-macosx-arm64" -r
+    - name: Zip Ouput x64
+      if: matrix.config == 'Production' && matrix.platform == 'x64'
+      run: |
+          7z a LumosEditorMacOS${{ matrix.platform }}.7z "bin/${{ matrix.config }}-macosx-x86_64" -r
     - uses: actions/upload-artifact@v2
       if: matrix.config == 'Production'
       with:
