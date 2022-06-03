@@ -27,7 +27,7 @@ namespace Lumos
             {
                 return m_PipelineLayout;
             };
-            
+
             const VkPipeline& GetPipeline() const
             {
                 return m_Pipeline;

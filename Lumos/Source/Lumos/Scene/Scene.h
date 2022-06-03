@@ -1,9 +1,9 @@
 #pragma once
 #include "Maths/Maths.h"
 #include "Utilities/AssetManager.h"
-
+#include "Serialisation.h"
 #include <sol/forward.hpp>
-#include <cereal/cereal.hpp>
+
 DISABLE_WARNING_PUSH
 DISABLE_WARNING_CONVERSION_TO_SMALLER_TYPE
 #include <entt/entity/registry.hpp>
@@ -119,7 +119,7 @@ namespace Lumos
             bool ChromaticAberationEnabled = false;
             bool EyeAdaptation = true;
             bool SSAOEnabled = true;
-			bool BloomEnabled = true;
+            bool BloomEnabled = true;
 
             // Shadow Settings
             float m_CascadeSplitLambda = 0.92f;
@@ -135,8 +135,8 @@ namespace Lumos
 
             float m_Exposure = 1.0f;
             uint32_t m_ToneMapIndex = 4;
-            
-            //Bloom
+
+            // Bloom
             float m_BloomIntensity = 1.0f;
             float BloomThreshold = 1.0f;
             float BloomKnee = 0.1f;
@@ -175,12 +175,10 @@ namespace Lumos
             ScenePhysics2DSettings Physics2DSettings;
         };
 
-#define SceneVersion 11
-
         template <typename Archive>
         void save(Archive& archive) const
         {
-            archive(cereal::make_nvp("Version", SceneVersion));
+            archive(cereal::make_nvp("Version", SceneSerialisationVersion));
             archive(cereal::make_nvp("Scene Name", m_SceneName));
 
             archive(cereal::make_nvp("PhysicsEnabled2D", m_Settings.PhysicsEnabled2D), cereal::make_nvp("PhysicsEnabled3D", m_Settings.PhysicsEnabled3D), cereal::make_nvp("AudioEnabled", m_Settings.AudioEnabled), cereal::make_nvp("Renderer2DEnabled", m_Settings.RenderSettings.Renderer2DEnabled),
@@ -193,11 +191,13 @@ namespace Lumos
         {
             archive(cereal::make_nvp("Version", m_SceneSerialisationVersion));
             archive(cereal::make_nvp("Scene Name", m_SceneName));
+			
+			Serialisation::CurrentSceneVersion = m_SceneSerialisationVersion;
 
             if(m_SceneSerialisationVersion > 7)
             {
                 archive(cereal::make_nvp("PhysicsEnabled2D", m_Settings.PhysicsEnabled2D), cereal::make_nvp("PhysicsEnabled3D", m_Settings.PhysicsEnabled3D), cereal::make_nvp("AudioEnabled", m_Settings.AudioEnabled), cereal::make_nvp("Renderer2DEnabled", m_Settings.RenderSettings.Renderer2DEnabled),
-                        cereal::make_nvp("Renderer3DEnabled", m_Settings.RenderSettings.Renderer3DEnabled), cereal::make_nvp("DebugRenderEnabled", m_Settings.RenderSettings.DebugRenderEnabled), cereal::make_nvp("SkyboxRenderEnabled", m_Settings.RenderSettings.SkyboxRenderEnabled), cereal::make_nvp("ShadowsEnabled", m_Settings.RenderSettings.ShadowsEnabled));
+                    cereal::make_nvp("Renderer3DEnabled", m_Settings.RenderSettings.Renderer3DEnabled), cereal::make_nvp("DebugRenderEnabled", m_Settings.RenderSettings.DebugRenderEnabled), cereal::make_nvp("SkyboxRenderEnabled", m_Settings.RenderSettings.SkyboxRenderEnabled), cereal::make_nvp("ShadowsEnabled", m_Settings.RenderSettings.ShadowsEnabled));
             }
             if(m_SceneSerialisationVersion >= 10)
             {

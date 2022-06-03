@@ -86,7 +86,7 @@ namespace Lumos::Graphics
         m_ForwardData.m_Shader = Application::Get().GetShaderLibrary()->GetResource("ForwardPBR");
         m_ForwardData.m_DepthTexture = TextureDepth::Create(width, height);
         m_ForwardData.m_CommandQueue.reserve(1000);
-        
+
         m_SSAOTexture = TextureDepth::Create(width, height);
 
         switch(Graphics::GraphicsContext::GetRenderAPI())
@@ -165,17 +165,17 @@ namespace Lumos::Graphics
         m_FinalPassDescriptorSet = SharedPtr<Graphics::DescriptorSet>(Graphics::DescriptorSet::Create(descriptorDesc));
 
         // PostProcesses
-		
-		m_ToneMappingPassShader = Application::Get().GetShaderLibrary()->GetResource("ToneMapping");
+
+        m_ToneMappingPassShader = Application::Get().GetShaderLibrary()->GetResource("ToneMapping");
         descriptorDesc.layoutIndex = 0;
         descriptorDesc.shader = m_ToneMappingPassShader.get();
         m_ToneMappingPassDescriptorSet = SharedPtr<Graphics::DescriptorSet>(Graphics::DescriptorSet::Create(descriptorDesc));
-		
+
         m_BloomPassShader = Application::Get().GetShaderLibrary()->GetResource("Bloom");
         descriptorDesc.layoutIndex = 0;
         descriptorDesc.shader = m_BloomPassShader.get();
-		
-		if(m_BloomPassShader->IsCompiled())
+
+        if(m_BloomPassShader->IsCompiled())
         {
             m_BloomPassDescriptorSet = SharedPtr<Graphics::DescriptorSet>(Graphics::DescriptorSet::Create(descriptorDesc));
             m_BloomPassDescriptorSet1 = SharedPtr<Graphics::DescriptorSet>(Graphics::DescriptorSet::Create(descriptorDesc));
@@ -184,19 +184,19 @@ namespace Lumos::Graphics
             m_BloomPassDescriptorSet3 = SharedPtr<Graphics::DescriptorSet>(Graphics::DescriptorSet::Create(descriptorDesc));
             m_BloomPassDescriptorSet4 = SharedPtr<Graphics::DescriptorSet>(Graphics::DescriptorSet::Create(descriptorDesc));
         }
-		
-		m_BloomTexture = Texture2D::Create();
-		m_BloomTexture1 = Texture2D::Create();
-		m_BloomTexture2 = Texture2D::Create();
+
+        m_BloomTexture = Texture2D::Create();
+        m_BloomTexture1 = Texture2D::Create();
+        m_BloomTexture2 = Texture2D::Create();
         uint32_t& flags = m_BloomTexture->GetFlags();
-		flags |= TextureFlags::Texture_RenderTarget | TextureFlags::Texture_CreateMips | TextureFlags::Texture_MipViews;
-		
+        flags |= TextureFlags::Texture_RenderTarget | TextureFlags::Texture_CreateMips | TextureFlags::Texture_MipViews;
+
         uint32_t& flags1 = m_BloomTexture1->GetFlags();
-		flags1 |= TextureFlags::Texture_RenderTarget | TextureFlags::Texture_CreateMips | TextureFlags::Texture_MipViews;
-		
+        flags1 |= TextureFlags::Texture_RenderTarget | TextureFlags::Texture_CreateMips | TextureFlags::Texture_MipViews;
+
         uint32_t& flags2 = m_BloomTexture2->GetFlags();
-		flags2 |= TextureFlags::Texture_RenderTarget | TextureFlags::Texture_CreateMips | TextureFlags::Texture_MipViews;
-		
+        flags2 |= TextureFlags::Texture_RenderTarget | TextureFlags::Texture_CreateMips | TextureFlags::Texture_MipViews;
+
         m_FXAAShader = Application::Get().GetShaderLibrary()->GetResource("FXAA");
         descriptorDesc.layoutIndex = 0;
         descriptorDesc.shader = m_FXAAShader.get();
@@ -405,9 +405,9 @@ namespace Lumos::Graphics
         delete m_MainTexture;
         delete m_PostProcessTexture1;
         delete m_SSAOTexture;
-		delete m_BloomTexture;
-		delete m_BloomTexture1;
-		delete m_BloomTexture2;
+        delete m_BloomTexture;
+        delete m_BloomTexture1;
+        delete m_BloomTexture2;
 
         delete m_ShadowData.m_ShadowTex;
         delete m_ForwardData.m_DefaultMaterial;
@@ -445,18 +445,17 @@ namespace Lumos::Graphics
     void RenderGraph::OnResize(uint32_t width, uint32_t height)
     {
         LUMOS_PROFILE_FUNCTION();
-        
-        width  -= (width  % 2 != 0) ? 1 : 0;
+
+        width -= (width % 2 != 0) ? 1 : 0;
         height -= (height % 2 != 0) ? 1 : 0;
-        
+
         m_ForwardData.m_DepthTexture->Resize(width, height);
         m_MainTexture->BuildTexture(Graphics::RHIFormat::R11G11B10_Float, width, height);
         m_PostProcessTexture1->BuildTexture(Graphics::RHIFormat::R11G11B10_Float, width, height);
         m_SSAOTexture->Resize(width, height);
-		m_BloomTexture->BuildTexture(Graphics::RHIFormat::R11G11B10_Float, width, height);
-		m_BloomTexture1->BuildTexture(Graphics::RHIFormat::R11G11B10_Float, width, height);
-		m_BloomTexture2->BuildTexture(Graphics::RHIFormat::R11G11B10_Float, width, height);
-		
+        m_BloomTexture->BuildTexture(Graphics::RHIFormat::R11G11B10_Float, width, height);
+        m_BloomTexture1->BuildTexture(Graphics::RHIFormat::R11G11B10_Float, width, height);
+        m_BloomTexture2->BuildTexture(Graphics::RHIFormat::R11G11B10_Float, width, height);
     }
 
     void RenderGraph::EnableDebugRenderer(bool enable)
@@ -792,6 +791,11 @@ namespace Lumos::Graphics
                 std::sort(m_ForwardData.m_CommandQueue.begin(), m_ForwardData.m_CommandQueue.end(),
                     [camTransform](RenderCommand& a, RenderCommand& b)
                     {
+                        if(a.material->GetFlag(Material::RenderFlags::DEPTHTEST) && !b.material->GetFlag(Material::RenderFlags::DEPTHTEST))
+                            return true;
+                        if(!a.material->GetFlag(Material::RenderFlags::DEPTHTEST) && b.material->GetFlag(Material::RenderFlags::DEPTHTEST))
+                            return false;
+
                         return glm::length(camTransform->GetWorldPosition() - glm::vec3(a.transform[3])) < glm::length(camTransform->GetWorldPosition() - glm::vec3(b.transform[3]));
                     });
             }
@@ -820,9 +824,6 @@ namespace Lumos::Graphics
 
         auto& sceneRenderSettings = Application::Get().GetCurrentScene()->GetSettings().RenderSettings;
         Renderer::GetRenderer()->ClearRenderTarget(m_MainTexture, Renderer::GetMainSwapChain()->GetCurrentCommandBuffer());
-//        Renderer::GetRenderer()->ClearRenderTarget(m_BloomTexture, Renderer::GetMainSwapChain()->GetCurrentCommandBuffer());
-//        Renderer::GetRenderer()->ClearRenderTarget(m_BloomTexture1, Renderer::GetMainSwapChain()->GetCurrentCommandBuffer());
-//        Renderer::GetRenderer()->ClearRenderTarget(m_BloomTexture2, Renderer::GetMainSwapChain()->GetCurrentCommandBuffer());
 
         if(m_ForwardData.m_DepthTest)
         {
@@ -835,7 +836,7 @@ namespace Lumos::Graphics
         {
             SSAOPass();
         }
-        
+
         if(m_Settings.ShadowPass && sceneRenderSettings.ShadowsEnabled)
             ShadowPass();
         if(m_Settings.GeomPass && sceneRenderSettings.Renderer3DEnabled)
@@ -846,12 +847,12 @@ namespace Lumos::Graphics
             Render2DPass();
 
         m_LastRenderTarget = m_MainTexture;
-        
+
         if(sceneRenderSettings.BloomEnabled)
             BloomPass();
-		
-		ToneMappingPass();
-        
+
+        ToneMappingPass();
+
         if(sceneRenderSettings.FXAAEnabled)
             FXAAPass();
 
@@ -1083,7 +1084,7 @@ namespace Lumos::Graphics
                 frustumCenter += frustumCorners[j];
             }
             frustumCenter /= 8.0f;
-
+            
             float radius = 0.0f;
             for(uint32_t j = 0; j < 8; j++)
             {
@@ -1101,29 +1102,28 @@ namespace Lumos::Graphics
             glm::vec3 lightDir = glm::normalize(-light->Direction);
             glm::mat4 lightViewMatrix = glm::lookAt(frustumCenter - lightDir * -minExtents.z, frustumCenter, glm::vec3(0.0f, 1.0f, 0.0f));
             glm::mat4 lightOrthoMatrix = glm::ortho(minExtents.x, maxExtents.x, minExtents.y, maxExtents.y, -(maxExtents.z - minExtents.z), maxExtents.z - minExtents.z);
-
+            
             auto shadowProj = lightOrthoMatrix * lightViewMatrix;
             const bool StabilizeCascades = true;
             if(StabilizeCascades)
             {
                 // Create the rounding matrix, by projecting the world-space origin and determining
                 // the fractional offset in texel space
-                glm::mat4 shadowMatrix = shadowProj;
-                glm::vec3 shadowOrigin = glm::vec3(0.0f);
-                shadowOrigin = (shadowMatrix * glm::vec4(shadowOrigin, 1.0f));
+                glm::vec4 shadowOrigin = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+                shadowOrigin = shadowProj * shadowOrigin;
                 shadowOrigin *= (m_ShadowData.m_ShadowMapSize * 0.5f);
 
-                glm::vec3 roundedOrigin = glm::round(shadowOrigin);
-                glm::vec3 roundOffset = roundedOrigin - shadowOrigin;
+                glm::vec4 roundedOrigin = glm::round(shadowOrigin);
+                glm::vec4 roundOffset = roundedOrigin - shadowOrigin;
                 roundOffset = roundOffset * (2.0f / m_ShadowData.m_ShadowMapSize);
                 roundOffset.z = 0.0f;
+				roundOffset.w = 0.0f;
 
-                shadowProj[3][0] += roundOffset.x;
-                shadowProj[3][1] += roundOffset.y;
+                lightOrthoMatrix[3] += roundOffset;
             }
             // Store split distance and matrix in cascade
             m_ShadowData.m_SplitDepth[i] = glm::vec4((m_Camera->GetNear() + splitDist * clipRange) * -1.0f);
-            m_ShadowData.m_ShadowProjView[i] = shadowProj;
+            m_ShadowData.m_ShadowProjView[i] = lightOrthoMatrix * lightViewMatrix;
 
             if(i == 0)
                 m_ShadowData.m_LightMatrix = glm::inverse(lightViewMatrix);
@@ -1234,7 +1234,7 @@ namespace Lumos::Graphics
     {
         LUMOS_PROFILE_FUNCTION();
         LUMOS_PROFILE_GPU("SSAO Pass");
-        
+
         if(!m_SSAOShader || !m_SSAOShader->IsCompiled())
             return;
 
@@ -1334,33 +1334,33 @@ namespace Lumos::Graphics
 
         pipeline->End(commandBuffer);
     }
-	
-	void RenderGraph::ToneMappingPass()
+
+    void RenderGraph::ToneMappingPass()
     {
         LUMOS_PROFILE_FUNCTION();
         LUMOS_PROFILE_GPU("Tone Mapping Pass");
-		
+
         float bloomIntensity = m_CurrentScene->GetSettings().RenderSettings.BloomEnabled ? m_CurrentScene->GetSettings().RenderSettings.m_BloomIntensity : 0.0f;
         m_ToneMappingPassDescriptorSet->SetUniform("UniformBuffer", "BloomIntensity", &bloomIntensity);
         m_ToneMappingPassDescriptorSet->SetUniform("UniformBuffer", "Exposure", &m_Exposure);
         m_ToneMappingPassDescriptorSet->SetUniform("UniformBuffer", "ToneMapIndex", &m_ToneMapIndex);
-		
+
         m_ToneMappingPassDescriptorSet->SetTexture("u_Texture", m_MainTexture);
         m_ToneMappingPassDescriptorSet->SetTexture("u_BloomTexture", m_BloomTextureLastRenderered);
         m_ToneMappingPassDescriptorSet->Update();
-		
+
         Graphics::PipelineDesc pipelineDesc {};
         pipelineDesc.shader = m_ToneMappingPassShader;
-		
+
         pipelineDesc.polygonMode = Graphics::PolygonMode::FILL;
         pipelineDesc.cullMode = Graphics::CullMode::BACK;
         pipelineDesc.transparencyEnabled = false;
-		pipelineDesc.colourTargets[0] = m_PostProcessTexture1;
-		
+        pipelineDesc.colourTargets[0] = m_PostProcessTexture1;
+
         auto commandBuffer = Renderer::GetMainSwapChain()->GetCurrentCommandBuffer();
         auto pipeline = Graphics::Pipeline::Get(pipelineDesc);
         pipeline->Bind(commandBuffer);
-		
+
 #ifdef LUMOS_RENDER_API_OPENGL
         if(Renderer::GetGraphicsContext()->GetRenderAPI() == RenderAPI::OPENGL)
         {
@@ -1368,14 +1368,14 @@ namespace Lumos::Graphics
             m_ScreenQuad->GetIndexBuffer()->Bind(commandBuffer);
         }
 #endif
-		
+
         auto set = m_ToneMappingPassDescriptorSet.get();
         Renderer::BindDescriptorSets(pipeline.get(), commandBuffer, 0, &set, 1);
         Renderer::Draw(commandBuffer, DrawType::TRIANGLE, 3);
-		
+
         pipeline->End(commandBuffer);
-		
-		m_LastRenderTarget = m_PostProcessTexture1;
+
+        m_LastRenderTarget = m_PostProcessTexture1;
         std::swap(m_PostProcessTexture1, m_MainTexture);
     }
 
@@ -1417,7 +1417,7 @@ namespace Lumos::Graphics
 
         pipeline->End(commandBuffer);
     }
-	
+
     void RenderGraph::BloomPass()
     {
         LUMOS_PROFILE_FUNCTION();
@@ -1425,23 +1425,22 @@ namespace Lumos::Graphics
 
         if(!m_BloomPassDescriptorSet)
             return;
-				
-		struct BloomComputePushConstants
-		{
-			glm::vec4 Params;
-			glm::vec4 Params2;//float LOD = 0.0f;
-			//int Mode = 0; // 0 = prefilter, 1 = downsample, 2 = firstUpsample, 3 = upsample
-		} bloomComputePushConstants;
-		
-		
-		bloomComputePushConstants.Params = { m_CurrentScene->GetSettings().RenderSettings.BloomThreshold, m_CurrentScene->GetSettings().RenderSettings.BloomThreshold - m_CurrentScene->GetSettings().RenderSettings.BloomKnee, m_CurrentScene->GetSettings().RenderSettings.BloomKnee * 2.0f, 0.25f / m_CurrentScene->GetSettings().RenderSettings.BloomKnee };
-		bloomComputePushConstants.Params2.x = 0;
-		bloomComputePushConstants.Params2.y = 0;
-		bloomComputePushConstants.Params2.z = m_MainTexture->GetWidth();
-		bloomComputePushConstants.Params2.w = m_MainTexture->GetHeight();
-        
+
+        struct BloomComputePushConstants
+        {
+            glm::vec4 Params;
+            glm::vec4 Params2; // float LOD = 0.0f;
+            // int Mode = 0; // 0 = prefilter, 1 = downsample, 2 = firstUpsample, 3 = upsample
+        } bloomComputePushConstants;
+
+        bloomComputePushConstants.Params = { m_CurrentScene->GetSettings().RenderSettings.BloomThreshold, m_CurrentScene->GetSettings().RenderSettings.BloomThreshold - m_CurrentScene->GetSettings().RenderSettings.BloomKnee, m_CurrentScene->GetSettings().RenderSettings.BloomKnee * 2.0f, 0.25f / m_CurrentScene->GetSettings().RenderSettings.BloomKnee };
+        bloomComputePushConstants.Params2.x = 0;
+        bloomComputePushConstants.Params2.y = 0;
+        bloomComputePushConstants.Params2.z = m_MainTexture->GetWidth();
+        bloomComputePushConstants.Params2.w = m_MainTexture->GetHeight();
+
         m_BloomPassDescriptorSet->SetTexture("u_Texture", m_MainTexture);
-		m_BloomPassDescriptorSet->SetTexture("u_BloomTexture", m_MainTexture);
+        m_BloomPassDescriptorSet->SetTexture("u_BloomTexture", m_MainTexture);
         m_BloomPassDescriptorSet->Update();
 
         Graphics::PipelineDesc pipelineDesc {};
@@ -1449,7 +1448,7 @@ namespace Lumos::Graphics
         pipelineDesc.polygonMode = Graphics::PolygonMode::FILL;
         pipelineDesc.cullMode = Graphics::CullMode::BACK;
         pipelineDesc.transparencyEnabled = false;
-		pipelineDesc.mipIndex = 0;
+        pipelineDesc.mipIndex = 0;
         pipelineDesc.colourTargets[0] = m_BloomTexture;
 
         auto commandBuffer = Renderer::GetMainSwapChain()->GetCurrentCommandBuffer();
@@ -1463,67 +1462,67 @@ namespace Lumos::Graphics
             m_ScreenQuad->GetIndexBuffer()->Bind(commandBuffer);
         }
 #endif
-		
-		auto& pushConstants = m_BloomPassShader->GetPushConstants();
-		memcpy(pushConstants[0].data, &bloomComputePushConstants, sizeof(BloomComputePushConstants));
+
+        auto& pushConstants = m_BloomPassShader->GetPushConstants();
+        memcpy(pushConstants[0].data, &bloomComputePushConstants, sizeof(BloomComputePushConstants));
         m_BloomPassShader->BindPushConstants(commandBuffer, pipeline.get());
 
-		//Pre Filter
+        // Pre Filter
         auto set = m_BloomPassDescriptorSet.get();
         Renderer::BindDescriptorSets(pipeline.get(), commandBuffer, 0, &set, 1);
         Renderer::Draw(commandBuffer, DrawType::TRIANGLE, 3);
 
         pipeline->End(commandBuffer);
-		
-		bloomComputePushConstants.Params2.y = 1;
+
+        bloomComputePushConstants.Params2.y = 1;
         uint32_t mips;
-        
+
         if(m_BloomTexture->GetMipMapLevels() < 2)
             mips = 1;
         else
             mips = m_BloomTexture->GetMipMapLevels() - 2;
-		
-		m_BloomPassDescriptorSet1->SetTexture("u_Texture", m_BloomTexture);
-		m_BloomPassDescriptorSet1->SetTexture("u_BloomTexture", m_MainTexture);
+
+        m_BloomPassDescriptorSet1->SetTexture("u_Texture", m_BloomTexture);
+        m_BloomPassDescriptorSet1->SetTexture("u_BloomTexture", m_MainTexture);
         m_BloomPassDescriptorSet1->Update();
-        
+
         m_BloomPassDescriptorSet15->SetTexture("u_Texture", m_BloomTexture1);
         m_BloomPassDescriptorSet15->SetTexture("u_BloomTexture", m_MainTexture);
         m_BloomPassDescriptorSet15->Update();
-		
-		for (uint32_t i = 1; i < mips; i++)
-		{
-			pipelineDesc.mipIndex = i;
-			pipelineDesc.colourTargets[0] = m_BloomTexture1;
+
+        for(uint32_t i = 1; i < mips; i++)
+        {
+            pipelineDesc.mipIndex = i;
+            pipelineDesc.colourTargets[0] = m_BloomTexture1;
             bloomComputePushConstants.Params2.z = m_BloomTexture1->GetWidth(i);
             bloomComputePushConstants.Params2.w = m_BloomTexture1->GetHeight(i);
-            
+
             m_BloomPassDescriptorSet1->TransitionImages();
 
             pipeline = Graphics::Pipeline::Get(pipelineDesc);
             pipeline->Bind(commandBuffer);
-            
-			bloomComputePushConstants.Params2.x = i - 1.0f;
 
-			auto& pushConstants = m_BloomPassShader->GetPushConstants();
-			memcpy(pushConstants[0].data, &bloomComputePushConstants, sizeof(BloomComputePushConstants));
+            bloomComputePushConstants.Params2.x = i - 1.0f;
+
+            auto& pushConstants = m_BloomPassShader->GetPushConstants();
+            memcpy(pushConstants[0].data, &bloomComputePushConstants, sizeof(BloomComputePushConstants));
             m_BloomPassShader->BindPushConstants(commandBuffer, pipeline.get());
 
-			auto set = m_BloomPassDescriptorSet1.get();
-			Renderer::BindDescriptorSets(pipeline.get(), commandBuffer, 0, &set, 1);
-			Renderer::Draw(commandBuffer, DrawType::TRIANGLE, 3);
-			
-			pipeline->End(commandBuffer);
-            
+            auto set = m_BloomPassDescriptorSet1.get();
+            Renderer::BindDescriptorSets(pipeline.get(), commandBuffer, 0, &set, 1);
+            Renderer::Draw(commandBuffer, DrawType::TRIANGLE, 3);
+
+            pipeline->End(commandBuffer);
+
             m_BloomPassDescriptorSet15->TransitionImages();
             pipelineDesc.mipIndex = i;
             pipelineDesc.colourTargets[0] = m_BloomTexture;
             bloomComputePushConstants.Params2.z = m_BloomTexture1->GetWidth(i);
             bloomComputePushConstants.Params2.w = m_BloomTexture1->GetHeight(i);
-            
+
             pipeline = Graphics::Pipeline::Get(pipelineDesc);
             pipeline->Bind(commandBuffer);
-            
+
             bloomComputePushConstants.Params2.x = i;
 
             memcpy(pushConstants[0].data, &bloomComputePushConstants, sizeof(BloomComputePushConstants));
@@ -1532,26 +1531,25 @@ namespace Lumos::Graphics
             set = m_BloomPassDescriptorSet15.get();
             Renderer::BindDescriptorSets(pipeline.get(), commandBuffer, 0, &set, 1);
             Renderer::Draw(commandBuffer, DrawType::TRIANGLE, 3);
-            
+
             pipeline->End(commandBuffer);
-			
-		}
-        
+        }
+
         m_BloomPassDescriptorSet2->SetTexture("u_Texture", m_BloomTexture);
         m_BloomPassDescriptorSet2->SetTexture("u_BloomTexture", m_MainTexture);
         m_BloomPassDescriptorSet2->Update();
-        
-        //First Upsample
+
+        // First Upsample
         bloomComputePushConstants.Params2.y = 2;
         bloomComputePushConstants.Params2.x -= 1.0f;
         bloomComputePushConstants.Params2.z = m_BloomTexture2->GetWidth(mips - 2);
         bloomComputePushConstants.Params2.w = m_BloomTexture2->GetHeight(mips - 2);
-        
+
         pipelineDesc.mipIndex = mips - 2;
         pipelineDesc.colourTargets[0] = m_BloomTexture2;
         pipeline = Graphics::Pipeline::Get(pipelineDesc);
         pipeline->Bind(commandBuffer);
-        
+
         memcpy(pushConstants[0].data, &bloomComputePushConstants, sizeof(BloomComputePushConstants));
         m_BloomPassShader->BindPushConstants(commandBuffer, pipeline.get());
 
@@ -1560,7 +1558,7 @@ namespace Lumos::Graphics
         Renderer::Draw(commandBuffer, DrawType::TRIANGLE, 3);
 
         pipeline->End(commandBuffer);
-                
+
         m_BloomPassDescriptorSet3->SetTexture("u_Texture", m_BloomTexture);
         m_BloomPassDescriptorSet3->SetTexture("u_BloomTexture", m_BloomTexture2);
         m_BloomPassDescriptorSet3->Update();
@@ -1568,19 +1566,19 @@ namespace Lumos::Graphics
         m_BloomPassDescriptorSet4->SetTexture("u_Texture", m_BloomTexture);
         m_BloomPassDescriptorSet4->SetTexture("u_BloomTexture", m_BloomTexture1);
         m_BloomPassDescriptorSet4->Update();
-        
-        //Can't transition images to right layout if render to a colour attachment
-        //Need to sample from m_BloomTexture2 first then switch between that and m_BloomTexture1
+
+        // Can't transition images to right layout if render to a colour attachment
+        // Need to sample from m_BloomTexture2 first then switch between that and m_BloomTexture1
         bool evenMip = true;
 
         // Upsample
-        for (int32_t mip = mips - 3; mip >= 0; mip--)
+        for(int32_t mip = mips - 3; mip >= 0; mip--)
         {
             bloomComputePushConstants.Params2.y = 3;
             bloomComputePushConstants.Params2.x = mip;
             bloomComputePushConstants.Params2.z = m_BloomTexture2->GetWidth(mip);
             bloomComputePushConstants.Params2.w = m_BloomTexture2->GetHeight(mip);
-            
+
             pipelineDesc.mipIndex = mip;
             pipelineDesc.colourTargets[0] = evenMip ? m_BloomTexture1 : m_BloomTexture2;
             auto set2 = evenMip ? m_BloomPassDescriptorSet3.get() : m_BloomPassDescriptorSet4.get();
@@ -1588,7 +1586,7 @@ namespace Lumos::Graphics
 
             pipeline = Graphics::Pipeline::Get(pipelineDesc);
             pipeline->Bind(commandBuffer);
-            
+
             memcpy(pushConstants[0].data, &bloomComputePushConstants, sizeof(BloomComputePushConstants));
             m_BloomPassShader->BindPushConstants(commandBuffer, pipeline.get());
 
@@ -2207,7 +2205,7 @@ namespace Lumos::Graphics
         TextureDesc params;
         params.srgb = false;
         Texture* hdri = nullptr;
-        
+
         if(!filePath.empty())
             Texture2D::CreateFromFile("Environment", filePath, params);
         // Create shader and pipeline

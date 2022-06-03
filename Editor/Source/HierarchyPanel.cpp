@@ -583,8 +583,7 @@ namespace Lumos
 
                 ImGui::Indent();
 
-                
-                //ImGuiUtilities::AlternatingRowsBackground(ImGui::GetFontSize() + ImGui::GetStyle().FramePadding.y);
+                // ImGuiUtilities::AlternatingRowsBackground(ImGui::GetFontSize() + ImGui::GetStyle().FramePadding.y);
 
                 registry.each([&](auto entity)
                     {

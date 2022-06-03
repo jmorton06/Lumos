@@ -18,7 +18,7 @@ namespace Lumos
         void Pause() override;
         void Resume() override;
         void Stop() override;
-        void SetSound(Sound* s) override;
+        void SetSound(SharedPtr<Sound> s) override;
 
     private:
         ALuint m_Source;

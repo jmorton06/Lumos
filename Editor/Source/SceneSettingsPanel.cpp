@@ -69,8 +69,7 @@ namespace Lumos
                 ImGuiUtilities::Property("Bloom Knee", sceneSettings.RenderSettings.BloomKnee);
                 ImGuiUtilities::Property("Bloom Threshold", sceneSettings.RenderSettings.BloomThreshold);
 
-                static std::string toneMaps[7] =
-                {
+                static std::string toneMaps[7] = {
                     "None",
                     "Linear",
                     "Simple Reinhard",
@@ -79,7 +78,7 @@ namespace Lumos
                     "Uncharted 2",
                     "Aces"
                 };
-                
+
                 ImGuiUtilities::PropertyDropdown("ToneMap", toneMaps, 7, (int*)&m_CurrentScene->GetSettings().RenderSettings.m_ToneMapIndex);
 
                 auto& registry = m_CurrentScene->GetRegistry();

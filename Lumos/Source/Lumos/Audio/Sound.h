@@ -10,7 +10,7 @@ namespace Lumos
         friend class SoundManager;
 
     public:
-        static Sound* Create(const std::string& name, const std::string& extension);
+        static SharedPtr<Sound> Create(const std::string& name, const std::string& extension);
         virtual ~Sound();
 
         unsigned char* GetData() const

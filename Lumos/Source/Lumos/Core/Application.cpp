@@ -559,8 +559,7 @@ namespace Lumos
 
     void Application::UpdateSystems()
     {
-        LUMOS_PROFILE_SETTHREADNAME("Update Thread");
-
+        LUMOS_PROFILE_FUNCTION();
         if(Application::Get().GetEditorState() != EditorState::Paused
             && Application::Get().GetEditorState() != EditorState::Preview)
         {

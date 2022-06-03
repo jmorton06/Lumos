@@ -57,7 +57,7 @@ namespace Lumos
             uint32_t currHeight = m_Height;
 
             bool failed = false;
-            
+
             if(m_FileType == ".hdr")
             {
                 auto test = Application::Get().GetRenderGraph()->CreateCubeFromHDRI("");

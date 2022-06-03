@@ -64,7 +64,7 @@ namespace Lumos
             static uint32_t BitsToChannelCount(uint32_t bits);
             static uint32_t CalculateMipMapCount(uint32_t width, uint32_t height);
             uint32_t& GetFlags() { return m_Flags; }
-			
+
             SET_ASSET_TYPE(AssetType::Texture);
 
         protected:

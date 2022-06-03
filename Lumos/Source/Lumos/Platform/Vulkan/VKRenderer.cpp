@@ -13,8 +13,6 @@ namespace Lumos
 {
     namespace Graphics
     {
-        static constexpr uint32_t MAX_DESCRIPTOR_SET_COUNT = 2048;
-        //static constexpr uint32_t MAX_DESCRIPTOR_SET_COUNT = 1500;
         VKContext::DeletionQueue VKRenderer::s_DeletionQueue[3] = {};
         VkDescriptorPool VKRenderer::s_DescriptorPool = {};
 
