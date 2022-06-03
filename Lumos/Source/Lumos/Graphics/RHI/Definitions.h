@@ -20,9 +20,10 @@ namespace Lumos
         class TextureDepth;
         class TextureDepthArray;
 
-        static const uint8_t MAX_RENDER_TARGETS = 8;
-        static const uint8_t SHADOWMAP_MAX = 16;
-        static const uint8_t MAX_MIPS = 32;
+        static constexpr uint8_t MAX_RENDER_TARGETS = 8;
+        static constexpr uint8_t SHADOWMAP_MAX = 16;
+        static constexpr uint8_t MAX_MIPS = 32;
+        static constexpr uint32_t MAX_DESCRIPTOR_SET_COUNT = 1024;
 
         enum class CullMode
         {
@@ -172,8 +173,8 @@ namespace Lumos
             Texture_RenderTarget = BIT(2),
             Texture_DepthStencil = BIT(3),
             Texture_DepthStencilReadOnly = BIT(4),
-			Texture_CreateMips = BIT(5),
-			Texture_MipViews = BIT(6)
+            Texture_CreateMips = BIT(5),
+            Texture_MipViews = BIT(6)
         };
 
         enum RendererBufferType

@@ -21,7 +21,7 @@ namespace Lumos
         Reset();
     }
 
-    SoundNode::SoundNode(Sound* s)
+    SoundNode::SoundNode(SharedPtr<Sound> s)
     {
         Reset();
         SetSound(s);
@@ -48,7 +48,7 @@ namespace Lumos
     {
     }
 
-    void SoundNode::SetSound(Sound* s)
+    void SoundNode::SetSound(SharedPtr<Sound> s)
     {
         m_Sound = s;
         if(m_Sound)

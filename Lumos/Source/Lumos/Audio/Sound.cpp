@@ -19,10 +19,10 @@ namespace Lumos
         delete[] m_Data.Data;
     }
 
-    Sound* Sound::Create(const std::string& name, const std::string& extension)
+    SharedPtr<Sound> Sound::Create(const std::string& name, const std::string& extension)
     {
 #ifdef LUMOS_OPENAL
-        return new ALSound(name, extension);
+        return SharedPtr<ALSound>(new ALSound(name, extension));
 #else
         return nullptr;
 #endif

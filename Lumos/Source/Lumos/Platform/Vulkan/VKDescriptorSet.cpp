@@ -225,7 +225,7 @@ namespace Lumos
                 m_DescriptorUpdated[currentFrame] = true;
             }
         }
-    
+
         void VKDescriptorSet::TransitionImages()
         {
             for(auto& imageInfo : m_Descriptors.descriptors)

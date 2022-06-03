@@ -193,7 +193,7 @@ namespace Lumos
 
             if(m_Description.colourTargets[0])
             {
-                //TODO
+                // TODO
                 return m_Description.mipIndex > 0 ? m_Description.colourTargets[0]->GetHeight(m_Description.mipIndex) : m_Description.colourTargets[0]->GetHeight();
             }
 

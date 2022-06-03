@@ -27,7 +27,8 @@ namespace Lumos
             virtual void SetUniform(const std::string& bufferName, const std::string& uniformName, void* data) = 0;
             virtual void SetUniform(const std::string& bufferName, const std::string& uniformName, void* data, uint32_t size) = 0;
             virtual void SetUniformBufferData(const std::string& bufferName, void* data) = 0;
-            virtual void TransitionImages() {} 
+            virtual void TransitionImages() { }
+
         protected:
             static DescriptorSet* (*CreateFunc)(const DescriptorDesc&);
         };

@@ -52,10 +52,10 @@ namespace Lumos
                     ImGui::SetCursorPos({ screenPos.x - ImGui::GetFontSize() * 0.5f, screenPos.y - ImGui::GetFontSize() * 0.5f });
                     ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.7f, 0.7f, 0.7f, 0.0f));
 
-                    //if(ImGui::Button(m_Editor->GetComponentIconMap()[typeid(T).hash_code()]))
+                    // if(ImGui::Button(m_Editor->GetComponentIconMap()[typeid(T).hash_code()]))
                     //{
-                    //    m_Editor->SetSelected(entity);
-                    //}
+                    //     m_Editor->SetSelected(entity);
+                    // }
 
                     ImGui::TextUnformatted(m_Editor->GetComponentIconMap()[typeid(T).hash_code()]);
                     ImGui::PopStyleColor();

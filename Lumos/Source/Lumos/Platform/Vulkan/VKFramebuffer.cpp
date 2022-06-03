@@ -14,13 +14,13 @@ namespace Lumos
         {
             m_Width = frameBufferInfo.width;
             m_Height = frameBufferInfo.height;
-            
-//            if(frameBufferInfo.mipIndex >= 0)
-//            {
-//                m_Width = m_Width >> frameBufferInfo.mipIndex;
-//                m_Height = m_Height >> frameBufferInfo.mipIndex;
-//
-//            }
+
+            //            if(frameBufferInfo.mipIndex >= 0)
+            //            {
+            //                m_Width = m_Width >> frameBufferInfo.mipIndex;
+            //                m_Height = m_Height >> frameBufferInfo.mipIndex;
+            //
+            //            }
 
             m_AttachmentCount = frameBufferInfo.attachmentCount;
 

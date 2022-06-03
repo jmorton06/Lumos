@@ -184,7 +184,7 @@ namespace Lumos
         std::string path = filePath;
         path += m_SceneName; // StringUtilities::RemoveSpaces(m_SceneName);
 
-        m_SceneSerialisationVersion = SceneVersion;
+        m_SceneSerialisationVersion = SceneSerialisationVersion;
 
         if(binary)
         {

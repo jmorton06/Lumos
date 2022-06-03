@@ -1232,7 +1232,7 @@ namespace Lumos
             ImGui::DockBuilderDockWindow("ApplicationInfo", DockLeft);
             ImGui::DockBuilderDockWindow("###hierarchy", DockLeft);
             ImGui::DockBuilderDockWindow("###textEdit", DockMiddle);
-			ImGui::DockBuilderDockWindow("###scenesettings", DockLeft);
+            ImGui::DockBuilderDockWindow("###scenesettings", DockLeft);
 
             ImGui::DockBuilderFinish(DockspaceID);
         }

@@ -275,7 +275,7 @@ namespace Lumos
                 deletionQueue.PushFunction([imageView]
                     { vkDestroyImageView(VKDevice::GetHandle(), imageView, nullptr); });
             }
-            
+
             for(auto& view : m_MipImageViews)
             {
                 if(view.second)
@@ -285,7 +285,7 @@ namespace Lumos
                         { vkDestroyImageView(VKDevice::GetHandle(), imageView, nullptr); });
                 }
             }
-            
+
             m_MipImageViews.clear();
 
             if(m_DeleteImage)
@@ -311,11 +311,11 @@ namespace Lumos
             m_Height = height;
             m_DeleteImage = true;
             m_MipLevels = 1;
-			
-			if(m_Flags & TextureFlags::Texture_CreateMips)
-			{
-				m_MipLevels = static_cast<uint32_t>(std::floor(std::log2(Maths::Max(m_Width, m_Height)))) + 1;
-			}
+
+            if(m_Flags & TextureFlags::Texture_CreateMips)
+            {
+                m_MipLevels = static_cast<uint32_t>(std::floor(std::log2(Maths::Max(m_Width, m_Height)))) + 1;
+            }
             m_VKFormat = VKUtilities::FormatToVK(internalformat, srgb);
 
 #ifdef USE_VMA_ALLOCATOR
@@ -331,14 +331,14 @@ namespace Lumos
             TransitionImage(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 
             UpdateDescriptor();
-			
-			if(m_Flags & TextureFlags::Texture_MipViews)
-			{
-				for(uint32_t i = 0; i < m_MipLevels; i++)
-				{
-					GetMipImageView(i);
-				}
-			}
+
+            if(m_Flags & TextureFlags::Texture_MipViews)
+            {
+                for(uint32_t i = 0; i < m_MipLevels; i++)
+                {
+                    GetMipImageView(i);
+                }
+            }
         }
 
         void VKTexture2D::UpdateDescriptor()

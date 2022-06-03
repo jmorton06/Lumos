@@ -3,7 +3,7 @@
 #include "RHI/Texture.h"
 #include "RHI/Shader.h"
 #include "Core/VFS.h"
-#include <cereal/cereal.hpp>
+#include "Scene/Serialisation.h"
 
 namespace Lumos
 {
@@ -84,46 +84,15 @@ namespace Lumos
                 m_TexturesUpdated = true; // TODO
             }
 
-            bool& GetTexturesUpdated()
-            {
-                return m_TexturesUpdated;
-            }
-
-            const bool& GetTexturesUpdated() const
-            {
-                return m_TexturesUpdated;
-            }
-
-            void SetTexturesUpdated(bool updated)
-            {
-                m_TexturesUpdated = updated;
-            }
-
-            PBRMataterialTextures& GetTextures()
-            {
-                return m_PBRMaterialTextures;
-            }
-            const PBRMataterialTextures& GetTextures() const
-            {
-                return m_PBRMaterialTextures;
-            }
-            SharedPtr<Shader> GetShader() const
-            {
-                return m_Shader;
-            }
-            DescriptorSet* GetDescriptorSet() const
-            {
-                return m_DescriptorSet;
-            }
-
-            const std::string& GetName() const
-            {
-                return m_Name;
-            }
-            MaterialProperties* GetProperties() const
-            {
-                return m_MaterialProperties;
-            }
+            bool& GetTexturesUpdated() { return m_TexturesUpdated; }
+            const bool& GetTexturesUpdated() const { return m_TexturesUpdated; }
+            void SetTexturesUpdated(bool updated) { m_TexturesUpdated = updated; }
+            PBRMataterialTextures& GetTextures() { return m_PBRMaterialTextures; }
+            const PBRMataterialTextures& GetTextures() const { return m_PBRMaterialTextures; }
+            SharedPtr<Shader> GetShader() const { return m_Shader; }
+            DescriptorSet* GetDescriptorSet() const { return m_DescriptorSet; }
+            const std::string& GetName() const { return m_Name; }
+            MaterialProperties* GetProperties() const { return m_MaterialProperties; }
 
             void Bind();
             void SetShader(const std::string& filePath);
@@ -197,9 +166,9 @@ namespace Lumos
                         cereal::make_nvp("workflow", m_MaterialProperties->workflow),
                         cereal::make_nvp("shader", shaderFilePath));
 
-                        m_MaterialProperties->emissive = emissive.x;
-                        m_MaterialProperties->metallic = metallic.x;
-                        m_MaterialProperties->roughness = roughness.x;
+                    m_MaterialProperties->emissive = emissive.x;
+                    m_MaterialProperties->metallic = metallic.x;
+                    m_MaterialProperties->roughness = roughness.x;
                 }
                 else
                 {
@@ -223,7 +192,6 @@ namespace Lumos
                         cereal::make_nvp("workflow", m_MaterialProperties->workflow),
                         cereal::make_nvp("shader", shaderFilePath));
                 }
-
 
                 // if(!shaderFilePath.empty())
                 // SetShader(shaderFilePath);

@@ -339,7 +339,7 @@ namespace Lumos
         uint32_t width, height;
         uint8_t* pixels = Lumos::LoadImageFromFile(file, &width, &height, nullptr, nullptr, true);
 
-        if (!pixels)
+        if(!pixels)
         {
             LUMOS_LOG_WARN("Failed to load app icon {0}", file);
             return;
@@ -356,7 +356,7 @@ namespace Lumos
         {
             pixels = Lumos::LoadImageFromFile(smallIconFilePath, &width, &height, nullptr, nullptr, true);
 
-            if (!pixels)
+            if(!pixels)
             {
                 LUMOS_LOG_WARN("Failed to load app icon {0}", smallIconFilePath);
                 return;
