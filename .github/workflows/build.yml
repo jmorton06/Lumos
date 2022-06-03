@@ -7,7 +7,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        config: [Debug, Production]
+        config: [debug, production]
         platform: [x64]
     steps:
     - uses: actions/checkout@v3
@@ -25,12 +25,12 @@ jobs:
         make $* CC=gcc-8 CPP=g++-8 CXX=g++-8 CC=gcc-8 config=${{ matrix.config }} -j8
     - uses: actions/upload-artifact@v2
       with:
-        if: matrix.config == 'Production'
+        if: matrix.config == 'production'
         name: LinuxOutput
         path: bin/Production-linux-x86_64/
     - name: Release
       uses: softprops/action-gh-release@v1
-      if: matrix.config == 'Production' && startsWith(github.ref, 'refs/tags/')
+      if: matrix.config == 'production' && startsWith(github.ref, 'refs/tags/')
       with:
         files: bin/Production-linux-x86_64/LumosEditor
       env:
