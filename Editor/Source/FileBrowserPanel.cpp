@@ -81,4 +81,10 @@ namespace Lumos
     {
         m_FileBrowser->ClearFilters();
     }
+
+    std::filesystem::path& FileBrowserPanel::GetPath()
+    {
+        return m_FileBrowser->GetPath();
+    }
+
 }

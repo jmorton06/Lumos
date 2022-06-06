@@ -33,7 +33,7 @@ namespace Lumos
             virtual void InitInternal() = 0;
             virtual void Begin() = 0;
             virtual void OnResize(uint32_t width, uint32_t height) = 0;
-            virtual void ClearRenderTarget(Graphics::Texture* texture, Graphics::CommandBuffer* commandBuffer, glm::vec4 clearColour = glm::vec4(0.2f, 0.2f, 0.2f, 1.0f)) { }
+            virtual void ClearRenderTarget(Graphics::Texture* texture, Graphics::CommandBuffer* commandBuffer, glm::vec4 clearColour = glm::vec4(0.1f, 0.1f, 0.1f, 1.0f)) { }
             inline static Renderer* GetRenderer()
             {
                 return s_Instance;

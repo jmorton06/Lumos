@@ -148,6 +148,7 @@ namespace Lumos
                 float m_ShadowFade;
                 float m_CascadeTransitionFade;
                 float m_InitialBias;
+                float CascadeFarPlaneOffset = 50.0f, CascadeNearPlaneOffset = -50.0f;
                 CommandQueue m_CascadeCommandQueue[SHADOWMAP_MAX];
 
                 TextureDepthArray* m_ShadowTex;

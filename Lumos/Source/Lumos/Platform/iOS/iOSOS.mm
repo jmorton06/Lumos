@@ -124,7 +124,12 @@ static iOSOS* os = nullptr;
 
     std::string iOSOS::GetExecutablePath()
     {
-        return GetAssetPath();
+        //Get iOS Documents Directory
+        NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+        NSString *documentsDirectory = [paths objectAtIndex:0];
+        return [documentsDirectory stringByAppendingString: @"/"].UTF8String;
+
+        //return GetAssetPath();
 #if 0
         static char path[512] = "";
         if (!path[0])

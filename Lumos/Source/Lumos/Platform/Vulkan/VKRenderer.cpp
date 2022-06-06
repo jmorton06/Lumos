@@ -21,29 +21,26 @@ namespace Lumos
             LUMOS_PROFILE_FUNCTION();
 
             m_RendererTitle = "Vulkan";
+            m_DescriptorCapacity = 1024;
 
             // Pool sizes
-            VkDescriptorPoolSize pool_sizes[] = {
-                { VK_DESCRIPTOR_TYPE_SAMPLER, MAX_DESCRIPTOR_SET_COUNT },
-                { VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, MAX_DESCRIPTOR_SET_COUNT },
-                { VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, MAX_DESCRIPTOR_SET_COUNT },
-                { VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, MAX_DESCRIPTOR_SET_COUNT },
-                { VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, MAX_DESCRIPTOR_SET_COUNT },
-                { VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, MAX_DESCRIPTOR_SET_COUNT },
-                { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, MAX_DESCRIPTOR_SET_COUNT },
-                { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, MAX_DESCRIPTOR_SET_COUNT },
-                { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, MAX_DESCRIPTOR_SET_COUNT },
-                { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, MAX_DESCRIPTOR_SET_COUNT },
-                { VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, MAX_DESCRIPTOR_SET_COUNT }
+            std::array<VkDescriptorPoolSize, 6> poolSizes =
+            {
+                VkDescriptorPoolSize{ VK_DESCRIPTOR_TYPE_SAMPLER,                DESCRIPTOR_MAX_SAMPLERS },
+                VkDescriptorPoolSize{ VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE,          DESCRIPTOR_MAX_TEXTURES },
+                VkDescriptorPoolSize{ VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,          DESCRIPTOR_MAX_STORAGE_TEXTURES },
+                VkDescriptorPoolSize{ VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,         DESCRIPTOR_MAX_STORAGE_BUFFERS },
+                VkDescriptorPoolSize{ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,         DESCRIPTOR_MAX_CONSTANT_BUFFERS },
+                VkDescriptorPoolSize{ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, DESCRIPTOR_MAX_CONSTANT_BUFFERS_DYNAMIC }
             };
 
             // Create info
             VkDescriptorPoolCreateInfo pool_create_info = {};
             pool_create_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
             pool_create_info.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
-            pool_create_info.poolSizeCount = 11;
-            pool_create_info.pPoolSizes = pool_sizes;
-            pool_create_info.maxSets = MAX_DESCRIPTOR_SET_COUNT;
+            pool_create_info.poolSizeCount = poolSizes.size();
+            pool_create_info.pPoolSizes = poolSizes.data();
+            pool_create_info.maxSets = m_DescriptorCapacity;
 
             // Pool
             VK_CHECK_RESULT(vkCreateDescriptorPool(VKDevice::Get().GetDevice(), &pool_create_info, nullptr, &s_DescriptorPool));

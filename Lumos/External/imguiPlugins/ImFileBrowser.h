@@ -89,6 +89,8 @@ namespace ImGui
         
         ImGuiFileBrowserFlags GetFlags() const { return flags_; }
         void SetFlags(ImGuiFileBrowserFlags flags) { flags_ = flags; }
+        
+        std::filesystem::path& GetPath() { return pwd_; }
 
     private:
 
