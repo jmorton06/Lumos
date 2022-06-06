@@ -87,6 +87,7 @@ namespace Lumos
             uint32_t m_CurrentSemaphoreIndex = 0;
 
             std::string m_RendererTitle;
+            uint16_t m_DescriptorCapacity = 0;
 
             static VkDescriptorPool s_DescriptorPool;
             VkDescriptorSet m_DescriptorSetPool[16] = {};

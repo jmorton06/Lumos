@@ -134,7 +134,7 @@ namespace Lumos
             uint32_t m_ShadowMapSize = 4096;
 
             float m_Exposure = 1.0f;
-            uint32_t m_ToneMapIndex = 4;
+            uint32_t m_ToneMapIndex = 6;
 
             // Bloom
             float m_BloomIntensity = 1.0f;

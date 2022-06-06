@@ -22,6 +22,8 @@
 
 #include "ImGui/ImGuiUtilities.h"
 #include <imgui/imgui.h>
+#include <glm/gtx/matrix_decompose.hpp>
+#include <glm/ext.hpp>
 #include <glm/gtx/string_cast.hpp>
 
 static const uint32_t MaxPoints = 10000;
@@ -832,7 +834,7 @@ namespace Lumos::Graphics
 
         DepthPrePass();
 
-        if(0 && sceneRenderSettings.SSAOEnabled)
+        if(/* DISABLES CODE */ (0) && sceneRenderSettings.SSAOEnabled)
         {
             SSAOPass();
         }
@@ -1043,6 +1045,7 @@ namespace Lumos::Graphics
         }
 
         cascadeSplits[3] = 0.35f;
+        const glm::mat4 invCam = glm::inverse(m_Camera->GetProjectionMatrix() * glm::inverse(m_CameraTransform->GetWorldMatrix()));
 
         for(uint32_t i = 0; i < m_ShadowData.m_ShadowMapNum; i++)
         {
@@ -1060,8 +1063,6 @@ namespace Lumos::Graphics
                 glm::vec3(1.0f, -1.0f, 1.0f),
                 glm::vec3(-1.0f, -1.0f, 1.0f),
             };
-
-            const glm::mat4 invCam = glm::inverse(m_Camera->GetProjectionMatrix() * glm::inverse(m_CameraTransform->GetWorldMatrix()));
 
             // Project frustum corners into world space
             for(uint32_t j = 0; j < 8; j++)
@@ -1091,19 +1092,22 @@ namespace Lumos::Graphics
                 float distance = glm::length(frustumCorners[j] - frustumCenter);
                 radius = Maths::Max(radius, distance);
             }
-            radius = std::ceil(radius * 16.0f) / 16.0f;
-            float sceneBoundingRadius = m_Camera->GetShadowBoundingRadius() * m_ShadowData.m_SceneRadiusMultiplier;
-            // Extend the Z depths to catch shadow casters outside view frustum
-            radius = Maths::Max(radius, sceneBoundingRadius);
+
+            // Temp work around to flickering when rotating camera
+            // Sphere radius for lightOrthoMatrix should fix this
+            // But radius changes as the camera is rotated which causes flickering
+            const float value = 1.0f; //16.0f;
+            radius = std::ceil(radius * value) / value;
 
             glm::vec3 maxExtents = glm::vec3(radius);
             glm::vec3 minExtents = -maxExtents;
 
             glm::vec3 lightDir = glm::normalize(-light->Direction);
-            glm::mat4 lightViewMatrix = glm::lookAt(frustumCenter - lightDir * -minExtents.z, frustumCenter, glm::vec3(0.0f, 1.0f, 0.0f));
-            glm::mat4 lightOrthoMatrix = glm::ortho(minExtents.x, maxExtents.x, minExtents.y, maxExtents.y, -(maxExtents.z - minExtents.z), maxExtents.z - minExtents.z);
-            
+            glm::mat4 lightOrthoMatrix = glm::ortho(minExtents.x, maxExtents.x, minExtents.y, maxExtents.y, m_ShadowData.CascadeNearPlaneOffset, maxExtents.z - minExtents.z + m_ShadowData.CascadeFarPlaneOffset);
+            glm::mat4 lightViewMatrix = glm::lookAt(frustumCenter - lightDir * -minExtents.z, frustumCenter, glm::vec3(0.0f, 0.0f, 1.0f));
+ 
             auto shadowProj = lightOrthoMatrix * lightViewMatrix;
+            
             const bool StabilizeCascades = true;
             if(StabilizeCascades)
             {
@@ -1423,7 +1427,7 @@ namespace Lumos::Graphics
         LUMOS_PROFILE_FUNCTION();
         LUMOS_PROFILE_GPU("Bloom Pass");
 
-        if(!m_BloomPassDescriptorSet)
+        if(!m_BloomPassDescriptorSet || m_BloomTexture->GetWidth() == 0 || m_BloomTexture->GetHeight() == 0)
             return;
 
         struct BloomComputePushConstants

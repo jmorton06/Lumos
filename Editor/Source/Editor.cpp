@@ -330,6 +330,10 @@ namespace Lumos
     void Editor::OpenFile()
     {
         LUMOS_PROFILE_FUNCTION();
+
+        //Set filePath to working directory
+        auto path = OS::Instance()->GetExecutablePath();
+        std::filesystem::current_path(path);
         m_FileBrowserPanel.SetCallback(BIND_FILEBROWSER_FN(Editor::FileOpenCallback));
         m_FileBrowserPanel.Open();
     }
@@ -966,6 +970,10 @@ namespace Lumos
                 m_NewProjectPopupOpen = true;
                 locationPopupOpened = true;
 
+                //Set filePath to working directory
+                const auto& path = OS::Instance()->GetExecutablePath();
+                auto& browserPath = m_FileBrowserPanel.GetPath();
+                browserPath = std::filesystem::path(path);
                 m_FileBrowserPanel.SetFileTypeFilters({ ".lmproj" });
                 m_FileBrowserPanel.SetOpenDirectory(false);
                 m_FileBrowserPanel.SetCallback(BIND_FILEBROWSER_FN(ProjectOpenCallback));
@@ -986,6 +994,10 @@ namespace Lumos
                 m_NewProjectPopupOpen = true;
                 locationPopupOpened = true;
 
+                //Set filePath to working directory
+                const auto& path = OS::Instance()->GetExecutablePath();
+                auto& browserPath = m_FileBrowserPanel.GetPath();
+                browserPath = std::filesystem::path(path);
                 m_FileBrowserPanel.ClearFileTypeFilters();
                 m_FileBrowserPanel.SetOpenDirectory(true);
                 m_FileBrowserPanel.SetCallback(BIND_FILEBROWSER_FN(NewProjectLocationCallback));

@@ -132,12 +132,6 @@ namespace Lumos
             offset = ImGui::GetCursorPos(); // Usually ImVec2(0.0f, 50.0f);
         }
 
-        if(!camera)
-        {
-            ImGui::End();
-            return;
-        }
-
         auto sceneViewSize = ImGui::GetWindowContentRegionMax() - ImGui::GetWindowContentRegionMin() - offset * 0.5f;
         auto sceneViewPosition = ImGui::GetWindowPos() + offset;
 
@@ -169,9 +163,6 @@ namespace Lumos
 
         float aspect = static_cast<float>(sceneViewSize.x) / static_cast<float>(sceneViewSize.y);
 
-        if(!Maths::Equals(aspect, camera->GetAspectRatio()))
-            camera->SetAspectRatio(aspect);
-
         if(m_Editor->GetSettings().m_HalfRes)
             sceneViewSize *= 0.5f;
 
@@ -179,6 +170,16 @@ namespace Lumos
 
         if(m_Editor->GetSettings().m_HalfRes)
             sceneViewSize *= 2.0f;
+        
+        //Moved this exit down to prevent a crash
+        if(!camera)
+        {
+            ImGui::End();
+            return;
+        }
+        
+        if(!Maths::Equals(aspect, camera->GetAspectRatio()))
+            camera->SetAspectRatio(aspect);
 
         ImGuiUtilities::Image(m_GameViewTexture.get(), glm::vec2(sceneViewSize.x, sceneViewSize.y));
 
@@ -274,7 +275,7 @@ namespace Lumos
         LUMOS_PROFILE_FUNCTION();
         bool resize = false;
 
-        LUMOS_ASSERT(width > 0 && height > 0, "Scene View Dimensions 0");
+        LUMOS_ASSERT(width > 0 && height > 0, "Game View Dimensions 0");
 
         if(m_Width != width || m_Height != height)
         {
