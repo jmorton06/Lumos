@@ -16,11 +16,13 @@ namespace Lumos
         class VKTexture2D : public Texture2D
         {
         public:
+            VKTexture2D(TextureDesc parameters, uint32_t width, uint32_t height);
             VKTexture2D(uint32_t width, uint32_t height, void* data, TextureDesc parameters = TextureDesc(), TextureLoadOptions loadOptions = TextureLoadOptions());
             VKTexture2D(const std::string& name, const std::string& filename, TextureDesc parameters = TextureDesc(), TextureLoadOptions loadOptions = TextureLoadOptions());
             VKTexture2D(VkImage image, VkImageView imageView, VkFormat format, uint32_t width, uint32_t height);
-            VKTexture2D();
             ~VKTexture2D();
+
+            void DeleteResources();
 
             void Bind(uint32_t slot = 0) const override {};
             void Unbind(uint32_t slot = 0) const override {};
@@ -36,6 +38,7 @@ namespace Lumos
             {
                 return m_Width >> mip;
             }
+
             inline uint32_t GetHeight(uint32_t mip = 0) const override
             {
                 return m_Height >> mip;
@@ -50,6 +53,7 @@ namespace Lumos
             {
                 return m_Name;
             }
+
             inline const std::string& GetFilepath() const override
             {
                 return m_FileName;
@@ -70,7 +74,8 @@ namespace Lumos
                 m_Name = name;
             }
 
-            void BuildTexture(RHIFormat internalformat, uint32_t width, uint32_t height, bool srgb, bool depth, bool samplerShadow) override;
+            void BuildTexture();
+            void Resize(uint32_t width, uint32_t height) override;
 
             const VkDescriptorImageInfo* GetDescriptor() const
             {
@@ -128,7 +133,7 @@ namespace Lumos
             static void MakeDefault();
 
         protected:
-            static Texture2D* CreateFuncVulkan();
+            static Texture2D* CreateFuncVulkan(TextureDesc, uint32_t, uint32_t);
             static Texture2D* CreateFromSourceFuncVulkan(uint32_t, uint32_t, void*, TextureDesc, TextureLoadOptions);
             static Texture2D* CreateFromFileFuncVulkan(const std::string&, const std::string&, TextureDesc, TextureLoadOptions);
 

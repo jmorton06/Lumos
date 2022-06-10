@@ -1975,8 +1975,11 @@ namespace Lumos
         LUMOS_PROFILE_FUNCTION();
         if(!m_PreviewTexture)
         {
-            m_PreviewTexture = SharedPtr<Graphics::Texture2D>(Graphics::Texture2D::Create());
-            m_PreviewTexture->BuildTexture(Graphics::RHIFormat::R8G8B8A8_Unorm, 200, 200, false, false, false);
+            Graphics::TextureDesc desc;
+            desc.format = Graphics::RHIFormat::R8G8B8A8_Unorm;
+				desc.flags = Graphics::TextureFlags::Texture_RenderTarget;
+
+            m_PreviewTexture = SharedPtr<Graphics::Texture2D>(Graphics::Texture2D::Create(desc, 200, 200));
 
             // m_PreviewRenderer = CreateSharedPtr<Graphics::ForwardRenderer>(200, 200, false);
             m_PreviewSphere = SharedPtr<Graphics::Mesh>(Graphics::CreateSphere());

@@ -48,11 +48,15 @@ namespace Lumos::Graphics
 
         m_CubeMap = nullptr;
         m_ClearColour = glm::vec4(0.2f, 0.2f, 0.2f, 1.0f);
-        m_MainTexture = Texture2D::Create();
-        m_MainTexture->BuildTexture(Graphics::RHIFormat::R11G11B10_Float, width, height);
 
-        m_PostProcessTexture1 = Texture2D::Create();
-        m_PostProcessTexture1->BuildTexture(Graphics::RHIFormat::R11G11B10_Float, width, height);
+        Graphics::TextureDesc mainRenderTargetDesc;
+        mainRenderTargetDesc.format = Graphics::RHIFormat::R11G11B10_Float;
+        mainRenderTargetDesc.flags = TextureFlags::Texture_RenderTarget;
+        mainRenderTargetDesc.wrap = TextureWrap::CLAMP;
+        mainRenderTargetDesc.minFilter = TextureFilter::LINEAR;
+        mainRenderTargetDesc.magFilter = TextureFilter::LINEAR;
+        m_MainTexture = Graphics::Texture2D::Create(mainRenderTargetDesc, width, height);
+        m_PostProcessTexture1 = Graphics::Texture2D::Create(mainRenderTargetDesc, width, height);
 
         // Setup shadow pass data
         m_ShadowData.m_ShadowTex = nullptr;
@@ -121,11 +125,14 @@ namespace Lumos::Graphics
         TextureDesc param;
         param.minFilter = TextureFilter::LINEAR;
         param.magFilter = TextureFilter::LINEAR;
-        param.format = RHIFormat::R8G8B8A8_Unorm;
+        param.format = RHIFormat::R8G8_Unorm;
         param.srgb = false;
         param.wrap = TextureWrap::CLAMP_TO_EDGE;
-        m_ForwardData.m_PreintegratedFG = UniquePtr<Texture2D>(Texture2D::CreateFromSource(BRDFTextureWidth, BRDFTextureHeight, (void*)BRDFTexture, param));
-
+        param.flags = TextureFlags::Texture_RenderTarget;
+        m_ForwardData.m_BRDFLUT = UniquePtr<Texture2D>(Texture2D::Create(param, BRDFTextureWidth, BRDFTextureHeight));
+		
+		m_GenerateBRDFLUT = true;
+				
         auto descriptorSetScene = m_ForwardData.m_Shader->GetDescriptorInfo(2);
         descriptorDesc.layoutIndex = 0;
         descriptorDesc.shader = m_ForwardData.m_Shader.get();
@@ -187,17 +194,10 @@ namespace Lumos::Graphics
             m_BloomPassDescriptorSet4 = SharedPtr<Graphics::DescriptorSet>(Graphics::DescriptorSet::Create(descriptorDesc));
         }
 
-        m_BloomTexture = Texture2D::Create();
-        m_BloomTexture1 = Texture2D::Create();
-        m_BloomTexture2 = Texture2D::Create();
-        uint32_t& flags = m_BloomTexture->GetFlags();
-        flags |= TextureFlags::Texture_RenderTarget | TextureFlags::Texture_CreateMips | TextureFlags::Texture_MipViews;
-
-        uint32_t& flags1 = m_BloomTexture1->GetFlags();
-        flags1 |= TextureFlags::Texture_RenderTarget | TextureFlags::Texture_CreateMips | TextureFlags::Texture_MipViews;
-
-        uint32_t& flags2 = m_BloomTexture2->GetFlags();
-        flags2 |= TextureFlags::Texture_RenderTarget | TextureFlags::Texture_CreateMips | TextureFlags::Texture_MipViews;
+        mainRenderTargetDesc.flags = TextureFlags::Texture_RenderTarget | TextureFlags::Texture_CreateMips | TextureFlags::Texture_MipViews;
+        m_BloomTexture = Texture2D::Create(mainRenderTargetDesc, width, height);
+        m_BloomTexture1 = Texture2D::Create(mainRenderTargetDesc, width, height);
+        m_BloomTexture2 = Texture2D::Create(mainRenderTargetDesc, width, height);
 
         m_FXAAShader = Application::Get().GetShaderLibrary()->GetResource("FXAA");
         descriptorDesc.layoutIndex = 0;
@@ -452,12 +452,12 @@ namespace Lumos::Graphics
         height -= (height % 2 != 0) ? 1 : 0;
 
         m_ForwardData.m_DepthTexture->Resize(width, height);
-        m_MainTexture->BuildTexture(Graphics::RHIFormat::R11G11B10_Float, width, height);
-        m_PostProcessTexture1->BuildTexture(Graphics::RHIFormat::R11G11B10_Float, width, height);
+        m_MainTexture->Resize(width, height);
+        m_PostProcessTexture1->Resize( width, height);
         m_SSAOTexture->Resize(width, height);
-        m_BloomTexture->BuildTexture(Graphics::RHIFormat::R11G11B10_Float, width, height);
-        m_BloomTexture1->BuildTexture(Graphics::RHIFormat::R11G11B10_Float, width, height);
-        m_BloomTexture2->BuildTexture(Graphics::RHIFormat::R11G11B10_Float, width, height);
+        m_BloomTexture->Resize(width, height);
+        m_BloomTexture1->Resize(width, height);
+        m_BloomTexture2->Resize(width, height);
     }
 
     void RenderGraph::EnableDebugRenderer(bool enable)
@@ -658,7 +658,7 @@ namespace Lumos::Graphics
             m_ForwardData.m_DescriptorSet[2]->SetUniform("UniformBufferLight", "shadowCount", &numShadows);
             m_ForwardData.m_DescriptorSet[2]->SetUniform("UniformBufferLight", "mode", &m_ForwardData.m_RenderMode);
             m_ForwardData.m_DescriptorSet[2]->SetUniform("UniformBufferLight", "cubemapMipLevels", &cubemapMipLevels);
-            m_ForwardData.m_DescriptorSet[2]->SetTexture("uPreintegratedFG", m_ForwardData.m_PreintegratedFG.get());
+            m_ForwardData.m_DescriptorSet[2]->SetTexture("uPreintegratedFG", m_ForwardData.m_BRDFLUT.get());
             m_ForwardData.m_DescriptorSet[2]->SetTexture("uEnvironmentMap", m_ForwardData.m_EnvironmentMap, TextureType::CUBE);
             m_ForwardData.m_DescriptorSet[2]->SetTexture("uIrradianceMap", m_ForwardData.m_IrradianceMap, TextureType::CUBE);
 
@@ -831,8 +831,10 @@ namespace Lumos::Graphics
         {
             Renderer::GetRenderer()->ClearRenderTarget(reinterpret_cast<Texture*>(m_ForwardData.m_DepthTexture), Renderer::GetMainSwapChain()->GetCurrentCommandBuffer());
         }
-
-        DepthPrePass();
+		
+		GenerateBRDFLUTPass();
+        
+		DepthPrePass();
 
         if(/* DISABLES CODE */ (0) && sceneRenderSettings.SSAOEnabled)
         {
@@ -1133,7 +1135,43 @@ namespace Lumos::Graphics
                 m_ShadowData.m_LightMatrix = glm::inverse(lightViewMatrix);
         }
     }
-
+	
+	void RenderGraph::GenerateBRDFLUTPass()
+	{
+		LUMOS_PROFILE_FUNCTION();
+        LUMOS_PROFILE_GPU("BRDF Pass");
+		
+		if(!m_GenerateBRDFLUT)
+			return;
+		
+		m_GenerateBRDFLUT = false;
+		
+        Graphics::PipelineDesc pipelineDesc {};
+        pipelineDesc.shader = Application::Get().GetShaderLibrary()->GetResource("BRDFLUT");
+		
+        pipelineDesc.polygonMode = Graphics::PolygonMode::FILL;
+        pipelineDesc.cullMode = Graphics::CullMode::BACK;
+        pipelineDesc.transparencyEnabled = false;
+        pipelineDesc.colourTargets[0] = m_ForwardData.m_BRDFLUT.get();
+		
+        auto commandBuffer = Renderer::GetMainSwapChain()->GetCurrentCommandBuffer();
+        auto pipeline = Graphics::Pipeline::Get(pipelineDesc);
+        pipeline->Bind(commandBuffer);
+		
+#ifdef LUMOS_RENDER_API_OPENGL
+        if(Renderer::GetGraphicsContext()->GetRenderAPI() == RenderAPI::OPENGL)
+        {
+            m_ScreenQuad->GetVertexBuffer()->Bind(commandBuffer, pipeline);
+            m_ScreenQuad->GetIndexBuffer()->Bind(commandBuffer);
+        }
+#endif
+		
+        //Renderer::BindDescriptorSets(pipeline.get(), commandBuffer, 0, nullptr, 0);
+        Renderer::Draw(commandBuffer, DrawType::TRIANGLE, 3);
+		
+        pipeline->End(commandBuffer);
+	}
+	
     void RenderGraph::ShadowPass()
     {
         LUMOS_PROFILE_FUNCTION();

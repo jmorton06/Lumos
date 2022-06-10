@@ -577,11 +577,18 @@ namespace Lumos
         }
 
         if(!m_GameViewTexture)
-            m_GameViewTexture = SharedPtr<Graphics::Texture2D>(Graphics::Texture2D::Create());
+		{
+			Graphics::TextureDesc mainRenderTargetDesc;
+			mainRenderTargetDesc.format = Graphics::RHIFormat::R8G8B8A8_Unorm;
+			mainRenderTargetDesc.flags = Graphics::TextureFlags::Texture_RenderTarget;
+			
+            m_GameViewTexture = 
+				SharedPtr<Graphics::Texture2D>(Graphics::Texture2D::Create(mainRenderTargetDesc, m_Width, m_Height));
+		}
 
         if(resize)
         {
-            m_GameViewTexture->BuildTexture(Graphics::RHIFormat::R8G8B8A8_Unorm, m_Width, m_Height, false, false, false);
+            m_GameViewTexture->Resize(m_Width, m_Height);
 
             auto renderGraph = Application::Get().GetRenderGraph();
             renderGraph->SetRenderTarget(m_GameViewTexture.get(), true, false);

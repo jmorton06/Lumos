@@ -90,7 +90,8 @@ namespace Lumos
             }
 
             bool OnwindowResizeEvent(WindowResizeEvent& e);
-
+			
+			void GenerateBRDFLUTPass();
             void DepthPrePass();
             void SSAOPass();
             void ForwardPass();
@@ -170,7 +171,7 @@ namespace Lumos
                 Texture2D* m_DefaultTexture;
                 Material* m_DefaultMaterial;
 
-                UniquePtr<Texture2D> m_PreintegratedFG;
+                UniquePtr<Texture2D> m_BRDFLUT;
                 std::vector<Lumos::Graphics::CommandBuffer*> m_CommandBuffers;
 
                 glm::mat4 m_BiasMatrix;
@@ -281,6 +282,7 @@ namespace Lumos
             float m_Exposure = 1.0f;
             float m_BloomIntensity = 1.0f;
             Scene* m_CurrentScene = nullptr;
+            bool m_GenerateBRDFLUT = false;
 
             Mesh* m_ScreenQuad;
             Texture* m_CubeMap;

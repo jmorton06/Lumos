@@ -39,8 +39,8 @@ project "Lumos"
 		"",
 		"../",
 		"Source/",
-	"Source/Lumos",
-	"Assets/Shaders"
+		"Source/Lumos",
+		"Assets/Shaders"
 	}
 
 	externalincludedirs
@@ -60,8 +60,8 @@ project "Lumos"
 		"%{IncludeDir.freetype}",
 		"%{IncludeDir.SpirvCross}",
 		"%{IncludeDir.cereal}",
-	"%{IncludeDir.glm}",
-	"%{IncludeDir.Lumos}",
+		"%{IncludeDir.glm}",
+		"%{IncludeDir.Lumos}",
 	}
 
 	links
@@ -84,13 +84,13 @@ project "Lumos"
 		"SPDLOG_COMPILED_LIB",
 		"GLM_FORCE_INTRINSICS",
 		"GLM_FORCE_DEPTH_ZERO_TO_ONE"
-}
+	}
 
-filter 'files:Source/Lumos/Utilities/ExternalBuild.cpp'
-buildoptions
-{
-	"-w"
-}
+	filter 'files:Source/Lumos/Utilities/ExternalBuild.cpp'
+	buildoptions
+	{
+		"-w"
+	}
 
 	filter 'architecture:x86_64'
 		defines { "USE_VMA_ALLOCATOR"}
@@ -193,8 +193,8 @@ buildoptions
 			"VK_USE_PLATFORM_METAL_EXT",
 			"LUMOS_IMGUI",
 			"LUMOS_OPENAL",
-	"LUMOS_VOLK",
-	"USE_VMA_ALLOCATOR"
+			"LUMOS_VOLK",
+			"USE_VMA_ALLOCATOR"
 		}
 
 		links
