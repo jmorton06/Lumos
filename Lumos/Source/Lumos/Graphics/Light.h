@@ -15,7 +15,7 @@ namespace Lumos
 
         struct LUMOS_EXPORT MEM_ALIGN Light
         {
-            Light(const glm::vec3& direction = glm::vec3(0.0f), const glm::vec4& colour = glm::vec4(1.0f), float intensity = 1.0f, const LightType& type = LightType::DirectionalLight, const glm::vec3& position = glm::vec3(), float radius = 1.0f, float angle = 0.0f);
+            Light(const glm::vec3& direction = glm::vec3(0.0f), const glm::vec4& colour = glm::vec4(1.0f), float intensity = 120000.0f, const LightType& type = LightType::DirectionalLight, const glm::vec3& position = glm::vec3(), float radius = 1.0f, float angle = 0.0f);
 
             void OnImGui();
             static std::string LightTypeToString(Graphics::LightType type);

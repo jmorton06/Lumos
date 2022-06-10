@@ -7,13 +7,19 @@ layout(location = 0) in vec2 outTexCoord;
 layout(set = 0, binding = 1) uniform sampler2D u_Texture;
 layout(location = 0) out vec4 outFrag;
 
-const float g_chromatic_aberration_intensity = 100.0f;
-const float g_camera_aperture = 50.0f;
+layout(set = 0, binding = 0) uniform UniformBuffer
+{
+	float chromaticAberrationIntensity;
+	float cameraAperture;
+	 float p0;
+	float p1;
+} ubo;
+
 
 void main()
 {
-	float camera_error = 1.0f / g_camera_aperture;
-    float intensity    = camera_error * g_chromatic_aberration_intensity;
+	float camera_error = 1.0f / ubo.cameraAperture;
+    float intensity    = camera_error * ubo.chromaticAberrationIntensity;
     vec2 shift       = vec2(intensity, -intensity);
 	vec2 uv = outTexCoord;
 	

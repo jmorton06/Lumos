@@ -5,23 +5,10 @@
 #include "Maths/Maths.h"
 #include "Maths/Ray.h"
 
-#include <cereal/cereal.hpp>
+#include "Scene/Serialisation.h"
 
 namespace Lumos
 {
-    enum RenderPath
-    {
-        Forward,
-        Deferred,
-        Batch2D
-    };
-
-    enum RenderTarget
-    {
-        Texture,
-        Display0
-    };
-
     class LUMOS_EXPORT Camera
     {
     public:
@@ -118,12 +105,19 @@ namespace Lumos
         void save(Archive& archive) const
         {
             archive(cereal::make_nvp("Scale", m_Scale), cereal::make_nvp("Aspect", m_AspectRatio), cereal::make_nvp("FOV", m_Fov), cereal::make_nvp("Near", m_Near), cereal::make_nvp("Far", m_Far));
+
+            archive(cereal::make_nvp("Aperture", m_Aperture), cereal::make_nvp("ShutterSpeed", m_ShutterSpeed), cereal::make_nvp("Sensitivity", m_Sensitivity));
         }
 
         template <typename Archive>
         void load(Archive& archive)
         {
             archive(cereal::make_nvp("Scale", m_Scale), cereal::make_nvp("Aspect", m_AspectRatio), cereal::make_nvp("FOV", m_Fov), cereal::make_nvp("Near", m_Near), cereal::make_nvp("Far", m_Far));
+
+            if(Serialisation::CurrentSceneVersion > 11)
+            {
+                archive(cereal::make_nvp("Aperture", m_Aperture), cereal::make_nvp("ShutterSpeed", m_ShutterSpeed), cereal::make_nvp("Sensitivity", m_Sensitivity));
+            }
 
             m_FrustumDirty = true;
             m_ProjectionDirty = true;
@@ -133,6 +127,19 @@ namespace Lumos
         {
             return m_ShadowBoundingRadius;
         }
+
+        float GetAperture() const { return m_Aperture; }
+        void SetAperture(const float aperture) { m_Aperture = aperture; }
+
+        float GetShutterSpeed() const { return m_ShutterSpeed; }
+        void SetShutterSpeed(const float shutterSpeed) { m_ShutterSpeed = shutterSpeed; }
+
+        float GetSensitivity() const { return m_Sensitivity; }
+        void SetSensitivity(const float Sensitivity) { m_Sensitivity = Sensitivity; }
+
+        // https://google.github.io/filament/Filament.html
+        float GetEv100() const { return std::log2((m_Aperture * m_Aperture) / m_ShutterSpeed * 100.0f / m_Sensitivity); }
+        float GetExposure() const { return 1.0f / (std::pow(2.0f, GetEv100()) * 1.2f); }
 
     protected:
         void UpdateProjectionMatrix();
@@ -150,15 +157,14 @@ namespace Lumos
         Maths::Frustum m_Frustum;
         bool m_FrustumDirty = true;
         bool m_ProjectionDirty = false;
-        bool customProjection_ = false;
+        bool m_CustomProjection = false;
 
         float m_Fov = 60.0f, m_Near = 0.001f, m_Far = 1000.0f;
         float m_MouseSensitivity = 0.1f;
+        float m_Aperture = 50.0f;
+        float m_ShutterSpeed = 1.0f / 60.0f;
+        float m_Sensitivity = 200.0f;
 
         bool m_Orthographic = false;
-        RenderPath m_RenderPath = RenderPath::Deferred;
-        bool m_CastShadow = true;
-        RenderTarget m_Target = RenderTarget::Display0;
     };
-
 }

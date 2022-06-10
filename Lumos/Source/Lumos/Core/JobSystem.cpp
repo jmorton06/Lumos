@@ -182,8 +182,7 @@ namespace Lumos
                                 // finished with jobs, put to sleep
                                 std::unique_lock<std::mutex> lock(worker_state->wakeMutex);
                                 worker_state->wakeCondition.wait(lock);
-                            }
-                        });
+                            } });
 
 #ifdef LUMOS_PLATFORM_WINDOWS
                     // Do Windows-specific thread setup:

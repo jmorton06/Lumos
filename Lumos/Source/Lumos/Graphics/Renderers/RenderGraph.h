@@ -90,8 +90,8 @@ namespace Lumos
             }
 
             bool OnwindowResizeEvent(WindowResizeEvent& e);
-			
-			void GenerateBRDFLUTPass();
+
+            void GenerateBRDFLUTPass();
             void DepthPrePass();
             void SSAOPass();
             void ForwardPass();

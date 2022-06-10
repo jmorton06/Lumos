@@ -54,7 +54,6 @@ namespace Lumos
 
             GLCall(glDeleteTextures(1, &m_Handle));
             BuildTexture();
-
         }
 
         uint32_t GLTexture2D::LoadTexture(void* data) const
@@ -128,14 +127,14 @@ namespace Lumos
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
-//             if(samplerShadow)
-//             {
-//                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
-// #ifndef LUMOS_PLATFORM_MOBILE
-//                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_R_TO_TEXTURE);
-//                 glTexParameteri(GL_TEXTURE_2D, GL_DEPTH_TEXTURE_MODE, GL_INTENSITY);
-// #endif
-//             }
+            //             if(samplerShadow)
+            //             {
+            //                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
+            // #ifndef LUMOS_PLATFORM_MOBILE
+            //                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_R_TO_TEXTURE);
+            //                 glTexParameteri(GL_TEXTURE_2D, GL_DEPTH_TEXTURE_MODE, GL_INTENSITY);
+            // #endif
+            //             }
 
             glTexImage2D(GL_TEXTURE_2D, 0, Format, m_Width, m_Height, 0, Format2, GL_FLOAT, nullptr);
         }

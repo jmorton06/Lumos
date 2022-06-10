@@ -577,14 +577,13 @@ namespace Lumos
         }
 
         if(!m_GameViewTexture)
-		{
-			Graphics::TextureDesc mainRenderTargetDesc;
-			mainRenderTargetDesc.format = Graphics::RHIFormat::R8G8B8A8_Unorm;
-			mainRenderTargetDesc.flags = Graphics::TextureFlags::Texture_RenderTarget;
-			
-            m_GameViewTexture = 
-				SharedPtr<Graphics::Texture2D>(Graphics::Texture2D::Create(mainRenderTargetDesc, m_Width, m_Height));
-		}
+        {
+            Graphics::TextureDesc mainRenderTargetDesc;
+            mainRenderTargetDesc.format = Graphics::RHIFormat::R8G8B8A8_Unorm;
+            mainRenderTargetDesc.flags = Graphics::TextureFlags::Texture_RenderTarget;
+
+            m_GameViewTexture = SharedPtr<Graphics::Texture2D>(Graphics::Texture2D::Create(mainRenderTargetDesc, m_Width, m_Height));
+        }
 
         if(resize)
         {

@@ -24,14 +24,13 @@ namespace Lumos
             m_DescriptorCapacity = 1024;
 
             // Pool sizes
-            std::array<VkDescriptorPoolSize, 6> poolSizes =
-            {
-                VkDescriptorPoolSize{ VK_DESCRIPTOR_TYPE_SAMPLER,                DESCRIPTOR_MAX_SAMPLERS },
-                VkDescriptorPoolSize{ VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE,          DESCRIPTOR_MAX_TEXTURES },
-                VkDescriptorPoolSize{ VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,          DESCRIPTOR_MAX_STORAGE_TEXTURES },
-                VkDescriptorPoolSize{ VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,         DESCRIPTOR_MAX_STORAGE_BUFFERS },
-                VkDescriptorPoolSize{ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,         DESCRIPTOR_MAX_CONSTANT_BUFFERS },
-                VkDescriptorPoolSize{ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, DESCRIPTOR_MAX_CONSTANT_BUFFERS_DYNAMIC }
+            std::array<VkDescriptorPoolSize, 6> poolSizes = {
+                VkDescriptorPoolSize { VK_DESCRIPTOR_TYPE_SAMPLER, DESCRIPTOR_MAX_SAMPLERS },
+                VkDescriptorPoolSize { VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, DESCRIPTOR_MAX_TEXTURES },
+                VkDescriptorPoolSize { VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, DESCRIPTOR_MAX_STORAGE_TEXTURES },
+                VkDescriptorPoolSize { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, DESCRIPTOR_MAX_STORAGE_BUFFERS },
+                VkDescriptorPoolSize { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, DESCRIPTOR_MAX_CONSTANT_BUFFERS },
+                VkDescriptorPoolSize { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, DESCRIPTOR_MAX_CONSTANT_BUFFERS_DYNAMIC }
             };
 
             // Create info

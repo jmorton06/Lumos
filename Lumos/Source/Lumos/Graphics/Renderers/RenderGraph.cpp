@@ -130,9 +130,9 @@ namespace Lumos::Graphics
         param.wrap = TextureWrap::CLAMP_TO_EDGE;
         param.flags = TextureFlags::Texture_RenderTarget;
         m_ForwardData.m_BRDFLUT = UniquePtr<Texture2D>(Texture2D::Create(param, BRDFTextureWidth, BRDFTextureHeight));
-		
-		m_GenerateBRDFLUT = true;
-				
+
+        m_GenerateBRDFLUT = true;
+
         auto descriptorSetScene = m_ForwardData.m_Shader->GetDescriptorInfo(2);
         descriptorDesc.layoutIndex = 0;
         descriptorDesc.shader = m_ForwardData.m_Shader.get();
@@ -453,7 +453,7 @@ namespace Lumos::Graphics
 
         m_ForwardData.m_DepthTexture->Resize(width, height);
         m_MainTexture->Resize(width, height);
-        m_PostProcessTexture1->Resize( width, height);
+        m_PostProcessTexture1->Resize(width, height);
         m_SSAOTexture->Resize(width, height);
         m_BloomTexture->Resize(width, height);
         m_BloomTexture1->Resize(width, height);
@@ -483,7 +483,6 @@ namespace Lumos::Graphics
         m_Stats.UpdatesPerSecond = 0;
 
         m_Renderer2DData.m_BatchDrawCallIndex = 0;
-        m_Exposure = scene->GetSettings().RenderSettings.m_Exposure;
         m_ToneMapIndex = scene->GetSettings().RenderSettings.m_ToneMapIndex;
 
         if(m_OverrideCamera)
@@ -505,6 +504,8 @@ namespace Lumos::Graphics
         {
             return;
         }
+
+        m_Exposure = m_Camera->GetExposure(); // scene->GetSettings().RenderSettings.m_Exposure;
 
         auto view = glm::inverse(m_CameraTransform->GetWorldMatrix());
         auto proj = m_Camera->GetProjectionMatrix();
@@ -596,6 +597,7 @@ namespace Lumos::Graphics
                     }
 
                     lights[numLights] = light;
+                    lights[numLights].Intensity *= m_Exposure;
                     numLights++;
                 }
             }
@@ -831,10 +833,10 @@ namespace Lumos::Graphics
         {
             Renderer::GetRenderer()->ClearRenderTarget(reinterpret_cast<Texture*>(m_ForwardData.m_DepthTexture), Renderer::GetMainSwapChain()->GetCurrentCommandBuffer());
         }
-		
-		GenerateBRDFLUTPass();
-        
-		DepthPrePass();
+
+        GenerateBRDFLUTPass();
+
+        DepthPrePass();
 
         if(/* DISABLES CODE */ (0) && sceneRenderSettings.SSAOEnabled)
         {
@@ -1087,7 +1089,7 @@ namespace Lumos::Graphics
                 frustumCenter += frustumCorners[j];
             }
             frustumCenter /= 8.0f;
-            
+
             float radius = 0.0f;
             for(uint32_t j = 0; j < 8; j++)
             {
@@ -1098,7 +1100,7 @@ namespace Lumos::Graphics
             // Temp work around to flickering when rotating camera
             // Sphere radius for lightOrthoMatrix should fix this
             // But radius changes as the camera is rotated which causes flickering
-            const float value = 1.0f; //16.0f;
+            const float value = 1.0f; // 16.0f;
             radius = std::ceil(radius * value) / value;
 
             glm::vec3 maxExtents = glm::vec3(radius);
@@ -1107,9 +1109,9 @@ namespace Lumos::Graphics
             glm::vec3 lightDir = glm::normalize(-light->Direction);
             glm::mat4 lightOrthoMatrix = glm::ortho(minExtents.x, maxExtents.x, minExtents.y, maxExtents.y, m_ShadowData.CascadeNearPlaneOffset, maxExtents.z - minExtents.z + m_ShadowData.CascadeFarPlaneOffset);
             glm::mat4 lightViewMatrix = glm::lookAt(frustumCenter - lightDir * -minExtents.z, frustumCenter, glm::vec3(0.0f, 0.0f, 1.0f));
- 
+
             auto shadowProj = lightOrthoMatrix * lightViewMatrix;
-            
+
             const bool StabilizeCascades = true;
             if(StabilizeCascades)
             {
@@ -1123,7 +1125,7 @@ namespace Lumos::Graphics
                 glm::vec4 roundOffset = roundedOrigin - shadowOrigin;
                 roundOffset = roundOffset * (2.0f / m_ShadowData.m_ShadowMapSize);
                 roundOffset.z = 0.0f;
-				roundOffset.w = 0.0f;
+                roundOffset.w = 0.0f;
 
                 lightOrthoMatrix[3] += roundOffset;
             }
@@ -1135,29 +1137,29 @@ namespace Lumos::Graphics
                 m_ShadowData.m_LightMatrix = glm::inverse(lightViewMatrix);
         }
     }
-	
-	void RenderGraph::GenerateBRDFLUTPass()
-	{
-		LUMOS_PROFILE_FUNCTION();
+
+    void RenderGraph::GenerateBRDFLUTPass()
+    {
+        LUMOS_PROFILE_FUNCTION();
         LUMOS_PROFILE_GPU("BRDF Pass");
-		
-		if(!m_GenerateBRDFLUT)
-			return;
-		
-		m_GenerateBRDFLUT = false;
-		
+
+        if(!m_GenerateBRDFLUT)
+            return;
+
+        m_GenerateBRDFLUT = false;
+
         Graphics::PipelineDesc pipelineDesc {};
         pipelineDesc.shader = Application::Get().GetShaderLibrary()->GetResource("BRDFLUT");
-		
+
         pipelineDesc.polygonMode = Graphics::PolygonMode::FILL;
         pipelineDesc.cullMode = Graphics::CullMode::BACK;
         pipelineDesc.transparencyEnabled = false;
         pipelineDesc.colourTargets[0] = m_ForwardData.m_BRDFLUT.get();
-		
+
         auto commandBuffer = Renderer::GetMainSwapChain()->GetCurrentCommandBuffer();
         auto pipeline = Graphics::Pipeline::Get(pipelineDesc);
         pipeline->Bind(commandBuffer);
-		
+
 #ifdef LUMOS_RENDER_API_OPENGL
         if(Renderer::GetGraphicsContext()->GetRenderAPI() == RenderAPI::OPENGL)
         {
@@ -1165,13 +1167,13 @@ namespace Lumos::Graphics
             m_ScreenQuad->GetIndexBuffer()->Bind(commandBuffer);
         }
 #endif
-		
-        //Renderer::BindDescriptorSets(pipeline.get(), commandBuffer, 0, nullptr, 0);
+
+        // Renderer::BindDescriptorSets(pipeline.get(), commandBuffer, 0, nullptr, 0);
         Renderer::Draw(commandBuffer, DrawType::TRIANGLE, 3);
-		
+
         pipeline->End(commandBuffer);
-	}
-	
+    }
+
     void RenderGraph::ShadowPass()
     {
         LUMOS_PROFILE_FUNCTION();
@@ -1381,6 +1383,9 @@ namespace Lumos::Graphics
     {
         LUMOS_PROFILE_FUNCTION();
         LUMOS_PROFILE_GPU("Tone Mapping Pass");
+
+        // Pre exposed lights
+        m_Exposure = 1.0f;
 
         float bloomIntensity = m_CurrentScene->GetSettings().RenderSettings.BloomEnabled ? m_CurrentScene->GetSettings().RenderSettings.m_BloomIntensity : 0.0f;
         m_ToneMappingPassDescriptorSet->SetUniform("UniformBuffer", "BloomIntensity", &bloomIntensity);
@@ -1689,12 +1694,6 @@ namespace Lumos::Graphics
         if(!m_MainTexture || !m_DebandingShader->IsCompiled())
             return;
 
-        //        float width = m_MainTexture->GetWidth();
-        //        float height = m_MainTexture->GetHeight();
-        //
-        //        m_DebandingPassDescriptorSet->SetUniform("UniformBuffer", "width", &width);
-        //        m_DebandingPassDescriptorSet->SetUniform("UniformBuffer", "height", &height);
-
         m_DebandingPassDescriptorSet->SetTexture("u_Texture", m_MainTexture);
         m_DebandingPassDescriptorSet->Update();
 
@@ -1736,6 +1735,11 @@ namespace Lumos::Graphics
 
         auto set = m_ChromaticAberationPassDescriptorSet.get();
         set->SetTexture("u_Texture", m_MainTexture);
+        float cameraAperture = m_Camera->GetAperture();
+        float intensity = 100.0f;
+        set->SetUniform("UniformBuffer", "chromaticAberrationIntensity", &intensity);
+        set->SetUniform("UniformBuffer", "cameraAperture", &cameraAperture);
+
         set->Update();
 
         Graphics::PipelineDesc pipelineDesc {};
