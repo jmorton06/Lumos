@@ -23,14 +23,14 @@ namespace Lumos
         static constexpr uint8_t MAX_RENDER_TARGETS = 8;
         static constexpr uint8_t SHADOWMAP_MAX = 16;
         static constexpr uint8_t MAX_MIPS = 32;
-        
+
         // Descriptor set limits
-        static constexpr uint16_t DESCRIPTOR_MAX_STORAGE_TEXTURES         = 1024;
-        static constexpr uint16_t DESCRIPTOR_MAX_STORAGE_BUFFERS          = 1024;
-        static constexpr uint16_t DESCRIPTOR_MAX_CONSTANT_BUFFERS         = 1024;
+        static constexpr uint16_t DESCRIPTOR_MAX_STORAGE_TEXTURES = 1024;
+        static constexpr uint16_t DESCRIPTOR_MAX_STORAGE_BUFFERS = 1024;
+        static constexpr uint16_t DESCRIPTOR_MAX_CONSTANT_BUFFERS = 1024;
         static constexpr uint16_t DESCRIPTOR_MAX_CONSTANT_BUFFERS_DYNAMIC = 1024;
-        static constexpr uint16_t DESCRIPTOR_MAX_SAMPLERS                 = 1024;
-        static constexpr uint16_t DESCRIPTOR_MAX_TEXTURES                 = 1024;
+        static constexpr uint16_t DESCRIPTOR_MAX_SAMPLERS = 1024;
+        static constexpr uint16_t DESCRIPTOR_MAX_TEXTURES = 1024;
 
         enum class CullMode
         {

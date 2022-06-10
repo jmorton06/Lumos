@@ -1,6 +1,6 @@
 {
     "value0": {
-        "Version": 11,
+        "Version": 12,
         "Scene Name": "Physics",
         "PhysicsEnabled2D": true,
         "PhysicsEnabled3D": true,
@@ -11,7 +11,11 @@
         "SkyboxRenderEnabled": true,
         "ShadowsEnabled": true,
         "Exposure": 1.0,
-        "ToneMap": 6
+        "ToneMap": 6,
+        "BloomIntensity": 0.800000011920929,
+        "BloomKnee": 0.10000000149011612,
+        "BloomThreshold": 1.2999999523162842,
+        "BloomUpsampleScale": 1.0
     },
     "value1": 49,
     "value2": 1048576,
@@ -618,7 +622,7 @@
     "value110": 1048576,
     "value111": {
         "Position": {
-            "value0": 9.080028533935547,
+            "value0": 9.0,
             "value1": 18.0,
             "value2": 0.0
         },
@@ -683,12 +687,12 @@
             "value0": 0.0,
             "value1": 0.0,
             "value2": 0.0,
-            "value3": 1.0
+            "value3": 0.9999999403953552
         },
         "Scale": {
-            "value0": 0.9999998807907105,
-            "value1": 0.9999998807907105,
-            "value2": 0.9999998807907105
+            "value0": 0.9999998211860657,
+            "value1": 0.9999998211860657,
+            "value2": 0.9999998211860657
         }
     },
     "value118": 36,
@@ -1313,10 +1317,13 @@
     "value290": 26,
     "value291": {
         "Scale": 1.0,
-        "Aspect": 0.9519773721694946,
+        "Aspect": 0.8098591566085815,
         "FOV": 60.0,
         "Near": 0.10000000149011612,
-        "Far": 1000.0
+        "Far": 1000.0,
+        "Aperture": 50.0,
+        "ShutterSpeed": 0.01666666753590107,
+        "Sensitivity": 200.0
     },
     "value292": 3,
     "value293": 1048608,
@@ -1350,19 +1357,19 @@
         "value2": 0.0,
         "value3": 0.0,
         "value4": {
-            "value0": 0.43871304392814639,
-            "value1": 0.371218740940094,
-            "value2": 0.8183689117431641,
+            "value0": 0.438713014125824,
+            "value1": 0.3712187111377716,
+            "value2": 0.8183687925338745,
             "value3": 1.0
         },
-        "value5": 0.8999999761581421,
+        "value5": 120000.0,
         "value6": 1.0
     },
     "value303": 36,
     "value304": {
         "value0": {
             "value0": 0.0,
-            "value1": 3.753553867340088,
+            "value1": 3.7535533905029299,
             "value2": 76.22005462646485,
             "value3": 1.0
         },
@@ -1377,10 +1384,10 @@
         "value4": {
             "value0": 0.0,
             "value1": 0.0,
-            "value2": 1.0,
+            "value2": 0.9999999403953552,
             "value3": 1.0
         },
-        "value5": 3.0,
+        "value5": 500000.0,
         "value6": 43.0
     },
     "value305": 47,
@@ -1402,10 +1409,10 @@
         "value4": {
             "value0": 0.0,
             "value1": 0.0,
-            "value2": 1.0,
+            "value2": 0.9999999403953552,
             "value3": 1.0
         },
-        "value5": 2.0,
+        "value5": 120000.0,
         "value6": 17.015546798706056
     },
     "value307": 48,
@@ -1427,10 +1434,10 @@
         "value4": {
             "value0": 0.0,
             "value1": 0.0,
-            "value2": 1.0,
+            "value2": 0.9999999403953552,
             "value3": 1.0
         },
-        "value5": 3.0,
+        "value5": 120000.0,
         "value6": 28.037296295166017
     },
     "value309": 14,
@@ -2647,7 +2654,7 @@
                     },
                     "roughnessValue": 0.699999988079071,
                     "metallicValue": 0.699999988079071,
-                    "emissiveValue": 1.2999999523162842,
+                    "emissiveValue": 0.0,
                     "albedoMapFactor": 1.0,
                     "metallicMapFactor": 1.0,
                     "roughnessMapFactor": 0.0,

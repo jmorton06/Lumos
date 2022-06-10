@@ -1,9 +1,9 @@
 #pragma once
 
-#define SceneSerialisationVersion 11
+#define SceneSerialisationVersion 12
 #include <cereal/cereal.hpp>
 
 namespace Serialisation
 {
-	static int CurrentSceneVersion = 0;
+    static int CurrentSceneVersion = 0;
 }

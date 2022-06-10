@@ -3,9 +3,9 @@
 #include <functional>
 
 #if __has_include(<filesystem>)
-#  include <filesystem>
+#include <filesystem>
 #elif __has_include(<experimental/filesystem>)
-#  include <experimental/filesystem>
+#include <experimental/filesystem>
 #endif
 
 namespace ImGui
@@ -34,6 +34,7 @@ namespace Lumos
         void SetFileTypeFilters(const std::vector<const char*>& fileFilters);
         void ClearFileTypeFilters();
         std::filesystem::path& GetPath();
+
     private:
         std::function<void(const std::string&)> m_Callback;
         ImGui::FileBrowser* m_FileBrowser;

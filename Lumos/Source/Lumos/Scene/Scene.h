@@ -184,6 +184,9 @@ namespace Lumos
             archive(cereal::make_nvp("PhysicsEnabled2D", m_Settings.PhysicsEnabled2D), cereal::make_nvp("PhysicsEnabled3D", m_Settings.PhysicsEnabled3D), cereal::make_nvp("AudioEnabled", m_Settings.AudioEnabled), cereal::make_nvp("Renderer2DEnabled", m_Settings.RenderSettings.Renderer2DEnabled),
                 cereal::make_nvp("Renderer3DEnabled", m_Settings.RenderSettings.Renderer3DEnabled), cereal::make_nvp("DebugRenderEnabled", m_Settings.RenderSettings.DebugRenderEnabled), cereal::make_nvp("SkyboxRenderEnabled", m_Settings.RenderSettings.SkyboxRenderEnabled), cereal::make_nvp("ShadowsEnabled", m_Settings.RenderSettings.ShadowsEnabled));
             archive(cereal::make_nvp("Exposure", m_Settings.RenderSettings.m_Exposure), cereal::make_nvp("ToneMap", m_Settings.RenderSettings.m_ToneMapIndex));
+
+            archive(cereal::make_nvp("BloomIntensity", m_Settings.RenderSettings.m_BloomIntensity), cereal::make_nvp("BloomKnee", m_Settings.RenderSettings.BloomKnee), cereal::make_nvp("BloomThreshold", m_Settings.RenderSettings.BloomThreshold),
+                cereal::make_nvp("BloomUpsampleScale", m_Settings.RenderSettings.BloomUpsampleScale));
         }
 
         template <typename Archive>
@@ -191,8 +194,8 @@ namespace Lumos
         {
             archive(cereal::make_nvp("Version", m_SceneSerialisationVersion));
             archive(cereal::make_nvp("Scene Name", m_SceneName));
-			
-			Serialisation::CurrentSceneVersion = m_SceneSerialisationVersion;
+
+            Serialisation::CurrentSceneVersion = m_SceneSerialisationVersion;
 
             if(m_SceneSerialisationVersion > 7)
             {
@@ -202,6 +205,12 @@ namespace Lumos
             if(m_SceneSerialisationVersion >= 10)
             {
                 archive(cereal::make_nvp("Exposure", m_Settings.RenderSettings.m_Exposure), cereal::make_nvp("ToneMap", m_Settings.RenderSettings.m_ToneMapIndex));
+            }
+
+            if(Serialisation::CurrentSceneVersion > 11)
+            {
+                archive(cereal::make_nvp("BloomIntensity", m_Settings.RenderSettings.m_BloomIntensity), cereal::make_nvp("BloomKnee", m_Settings.RenderSettings.BloomKnee), cereal::make_nvp("BloomThreshold", m_Settings.RenderSettings.BloomThreshold),
+                    cereal::make_nvp("BloomUpsampleScale", m_Settings.RenderSettings.BloomUpsampleScale));
             }
         }
 

@@ -331,7 +331,7 @@ namespace Lumos
     {
         LUMOS_PROFILE_FUNCTION();
 
-        //Set filePath to working directory
+        // Set filePath to working directory
         auto path = OS::Instance()->GetExecutablePath();
         std::filesystem::current_path(path);
         m_FileBrowserPanel.SetCallback(BIND_FILEBROWSER_FN(Editor::FileOpenCallback));
@@ -970,7 +970,7 @@ namespace Lumos
                 m_NewProjectPopupOpen = true;
                 locationPopupOpened = true;
 
-                //Set filePath to working directory
+                // Set filePath to working directory
                 const auto& path = OS::Instance()->GetExecutablePath();
                 auto& browserPath = m_FileBrowserPanel.GetPath();
                 browserPath = std::filesystem::path(path);
@@ -994,7 +994,7 @@ namespace Lumos
                 m_NewProjectPopupOpen = true;
                 locationPopupOpened = true;
 
-                //Set filePath to working directory
+                // Set filePath to working directory
                 const auto& path = OS::Instance()->GetExecutablePath();
                 auto& browserPath = m_FileBrowserPanel.GetPath();
                 browserPath = std::filesystem::path(path);
@@ -1977,7 +1977,7 @@ namespace Lumos
         {
             Graphics::TextureDesc desc;
             desc.format = Graphics::RHIFormat::R8G8B8A8_Unorm;
-				desc.flags = Graphics::TextureFlags::Texture_RenderTarget;
+            desc.flags = Graphics::TextureFlags::Texture_RenderTarget;
 
             m_PreviewTexture = SharedPtr<Graphics::Texture2D>(Graphics::Texture2D::Create(desc, 200, 200));
 

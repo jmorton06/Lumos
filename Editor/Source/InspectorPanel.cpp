@@ -818,6 +818,21 @@ end
         if(ImGuiUtilities::Property("Orthograhic", ortho))
             camera.SetIsOrthographic(ortho);
 
+        float aperture = camera.GetAperture();
+        if(ImGuiUtilities::Property("Aperture", aperture, 0.0f, 200.0f))
+            camera.SetAperture(aperture);
+
+        float shutterSpeed = camera.GetShutterSpeed();
+        if(ImGuiUtilities::Property("Shutter Speed", shutterSpeed, 0.0f, 1.0f))
+            camera.SetShutterSpeed(shutterSpeed);
+
+        float sensitivity = camera.GetSensitivity();
+        if(ImGuiUtilities::Property("Sensitivity", sensitivity, 0.0f, 5000.0f))
+            camera.SetSensitivity(sensitivity);
+
+        float exposure = camera.GetExposure();
+        ImGuiUtilities::Property("Exposure", exposure, 0.0f, 0.0f, ImGuiUtilities::PropertyFlag::ReadOnly);
+
         ImGui::Columns(1);
         ImGui::Separator();
     }
