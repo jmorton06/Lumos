@@ -8,9 +8,9 @@ namespace Lumos
         class GLTexture2D : public Texture2D
         {
         public:
+            GLTexture2D(TextureDesc parameters, uint32_t width, uint32_t height);
             GLTexture2D(uint32_t width, uint32_t height, void* data, TextureDesc parameters = TextureDesc(), TextureLoadOptions loadOptions = TextureLoadOptions());
             GLTexture2D(const std::string& name, const std::string& filename, TextureDesc parameters = TextureDesc(), TextureLoadOptions loadOptions = TextureLoadOptions());
-            GLTexture2D();
             ~GLTexture2D();
 
             void Bind(uint32_t slot = 0) const override;
@@ -42,7 +42,8 @@ namespace Lumos
                 return m_FileName;
             }
 
-            void BuildTexture(RHIFormat internalformat, uint32_t width, uint32_t height, bool srgb, bool depth, bool samplerShadow) override;
+            void Resize(uint32_t width, uint32_t height) override;
+            void BuildTexture();
 
             uint8_t* LoadTextureData();
             uint32_t LoadTexture(void* data) const;
@@ -60,7 +61,7 @@ namespace Lumos
             static void MakeDefault();
 
         protected:
-            static Texture2D* CreateFuncGL();
+            static Texture2D* CreateFuncGL(TextureDesc parameters, uint32_t width, uint32_t height);
             static Texture2D* CreateFromSourceFuncGL(uint32_t, uint32_t, void*, TextureDesc, TextureLoadOptions);
             static Texture2D* CreateFromFileFuncGL(const std::string&, const std::string&, TextureDesc, TextureLoadOptions);
 

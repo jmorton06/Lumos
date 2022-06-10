@@ -130,6 +130,24 @@ namespace Lumos
 #endif
         }
 
+        VKTexture2D::VKTexture2D(TextureDesc parameters, uint32_t width, uint32_t height)
+            : m_FileName("NULL")
+            , m_TextureImage(VK_NULL_HANDLE)
+            , m_TextureImageView(VK_NULL_HANDLE)
+            , m_TextureSampler(VK_NULL_HANDLE)
+        {
+            m_Width = width;
+            m_Height = height;
+            m_Parameters = parameters;
+            m_VKFormat = VKUtilities::FormatToVK(parameters.format, parameters.srgb);
+            m_DeleteImage = true;
+            m_MipLevels = 1;
+            m_VKFormat = VKUtilities::FormatToVK(m_Parameters.format, m_Parameters.srgb);
+            m_Flags = m_Parameters.flags;
+
+            BuildTexture();
+        }
+
         VKTexture2D::VKTexture2D(uint32_t width, uint32_t height, void* data, TextureDesc parameters, TextureLoadOptions loadOptions)
             : m_FileName("NULL")
             , m_TextureImage(VK_NULL_HANDLE)
@@ -143,6 +161,8 @@ namespace Lumos
             m_Data = static_cast<uint8_t*>(data);
             m_Format = parameters.format;
             m_VKFormat = VKUtilities::FormatToVK(parameters.format, parameters.srgb);
+            m_Flags = m_Parameters.flags;
+
             Load();
 
             m_TextureImageView = Graphics::CreateImageView(m_TextureImage, VKUtilities::FormatToVK(parameters.format, parameters.srgb), m_MipLevels, VK_IMAGE_VIEW_TYPE_2D, VK_IMAGE_ASPECT_COLOR_BIT, 1);
@@ -162,6 +182,7 @@ namespace Lumos
             m_Format = parameters.format;
             m_VKFormat = VKUtilities::FormatToVK(m_Parameters.format, m_Parameters.srgb);
             m_DeleteImage = Load();
+            m_Flags = m_Parameters.flags;
 
             if(!m_DeleteImage)
                 return;
@@ -187,26 +208,14 @@ namespace Lumos
             UpdateDescriptor();
         }
 
-        VKTexture2D::VKTexture2D()
-            : m_FileName("NULL")
-            , m_TextureImageView(VK_NULL_HANDLE)
-        {
-            m_Width = 0;
-            m_Height = 0;
-            m_MipLevels = 1;
-            m_Parameters = TextureDesc();
-            m_LoadOptions = TextureLoadOptions();
-            m_DeleteImage = false;
-            m_Format = m_Parameters.format;
-            m_VKFormat = VKUtilities::FormatToVK(m_Parameters.format, m_Parameters.srgb);
-            m_TextureSampler = Graphics::CreateTextureSampler(VKUtilities::TextureFilterToVK(m_Parameters.magFilter), VKUtilities::TextureFilterToVK(m_Parameters.minFilter), 0.0f, static_cast<float>(m_MipLevels), true, VKDevice::Get().GetPhysicalDevice()->GetProperties().limits.maxSamplerAnisotropy, VKUtilities::TextureWrapToVK(m_Parameters.wrap), VKUtilities::TextureWrapToVK(m_Parameters.wrap), VKUtilities::TextureWrapToVK(m_Parameters.wrap));
-
-            UpdateDescriptor();
-        }
-
         VKTexture2D::~VKTexture2D()
         {
             LUMOS_PROFILE_FUNCTION();
+            DeleteResources();
+        }
+
+        void VKTexture2D::DeleteResources()
+        {
             VKContext::DeletionQueue& deletionQueue = VKRenderer::GetCurrentDeletionQueue();
 
             if(m_TextureSampler)
@@ -255,90 +264,13 @@ namespace Lumos
             }
         }
 
-        void VKTexture2D::BuildTexture(RHIFormat internalformat, uint32_t width, uint32_t height, bool srgb, bool depth, bool samplerShadow)
+        void VKTexture2D::Resize(uint32_t width, uint32_t height)
         {
-            LUMOS_PROFILE_FUNCTION();
-            m_Flags |= TextureFlags::Texture_RenderTarget;
-
-            VKContext::DeletionQueue& deletionQueue = VKRenderer::GetCurrentDeletionQueue();
-
-            if(m_TextureSampler)
-            {
-                auto sampler = m_TextureSampler;
-                deletionQueue.PushFunction([sampler]
-                    { vkDestroySampler(VKDevice::GetHandle(), sampler, nullptr); });
-            }
-
-            if(m_TextureImageView)
-            {
-                auto imageView = m_TextureImageView;
-                deletionQueue.PushFunction([imageView]
-                    { vkDestroyImageView(VKDevice::GetHandle(), imageView, nullptr); });
-            }
-
-            for(auto& view : m_MipImageViews)
-            {
-                if(view.second)
-                {
-                    auto imageView = view.second;
-                    deletionQueue.PushFunction([imageView]
-                        { vkDestroyImageView(VKDevice::GetHandle(), imageView, nullptr); });
-                }
-            }
-
-            m_MipImageViews.clear();
-
-            if(m_DeleteImage)
-            {
-                auto image = m_TextureImage;
-#ifdef USE_VMA_ALLOCATOR
-                auto alloc = m_Allocation;
-                deletionQueue.PushFunction([image, alloc]
-                    { vmaDestroyImage(VKDevice::Get().GetAllocator(), image, alloc); });
-#else
-                deletionQueue.PushFunction([image]
-                    { vkDestroyImage(VKDevice::Get().GetAllocator(), image, nullptr); });
-                if(m_TextureImageMemory)
-                {
-                    auto imageMemory = m_TextureImageMemory;
-                    deletionQueue.PushFunction([imageMemory]
-                        { vkFreeMemory(VKDevice::Get().GetAllocator(), imageMemory, nullptr); });
-                }
-#endif
-            }
-
             m_Width = width;
             m_Height = height;
-            m_DeleteImage = true;
-            m_MipLevels = 1;
 
-            if(m_Flags & TextureFlags::Texture_CreateMips)
-            {
-                m_MipLevels = static_cast<uint32_t>(std::floor(std::log2(Maths::Max(m_Width, m_Height)))) + 1;
-            }
-            m_VKFormat = VKUtilities::FormatToVK(internalformat, srgb);
-
-#ifdef USE_VMA_ALLOCATOR
-            Graphics::CreateImage(m_Width, m_Height, m_MipLevels, m_VKFormat, VK_IMAGE_TYPE_2D, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_TextureImage, m_TextureImageMemory, 1, 0, m_Allocation);
-#else
-            Graphics::CreateImage(m_Width, m_Height, m_MipLevels, m_VKFormat, VK_IMAGE_TYPE_2D, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_TextureImage, m_TextureImageMemory, 1, 0);
-#endif
-
-            m_TextureImageView = Graphics::CreateImageView(m_TextureImage, m_VKFormat, m_MipLevels, VK_IMAGE_VIEW_TYPE_2D, VK_IMAGE_ASPECT_COLOR_BIT, 1);
-            m_TextureSampler = Graphics::CreateTextureSampler(VKUtilities::TextureFilterToVK(TextureFilter::LINEAR), VKUtilities::TextureFilterToVK(TextureFilter::LINEAR), 0.0f, static_cast<float>(m_MipLevels), false, VKDevice::Get().GetPhysicalDevice()->GetProperties().limits.maxSamplerAnisotropy, VKUtilities::TextureWrapToVK(TextureWrap::CLAMP), VKUtilities::TextureWrapToVK(TextureWrap::CLAMP), VKUtilities::TextureWrapToVK(TextureWrap::CLAMP));
-
-            m_ImageLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-            TransitionImage(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
-
-            UpdateDescriptor();
-
-            if(m_Flags & TextureFlags::Texture_MipViews)
-            {
-                for(uint32_t i = 0; i < m_MipLevels; i++)
-                {
-                    GetMipImageView(i);
-                }
-            }
+            DeleteResources();
+            BuildTexture();
         }
 
         void VKTexture2D::UpdateDescriptor()
@@ -510,6 +442,36 @@ namespace Lumos
             TransitionImage(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
             return true;
+        }
+
+        void VKTexture2D::BuildTexture()
+        {
+            if(m_Flags & TextureFlags::Texture_CreateMips)
+            {
+                m_MipLevels = static_cast<uint32_t>(std::floor(std::log2(Maths::Max(m_Width, m_Height)))) + 1;
+            }
+
+#ifdef USE_VMA_ALLOCATOR
+            Graphics::CreateImage(m_Width, m_Height, m_MipLevels, m_VKFormat, VK_IMAGE_TYPE_2D, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_TextureImage, m_TextureImageMemory, 1, 0, m_Allocation);
+#else
+            Graphics::CreateImage(m_Width, m_Height, m_MipLevels, m_VKFormat, VK_IMAGE_TYPE_2D, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_TextureImage, m_TextureImageMemory, 1, 0);
+#endif
+
+            m_TextureImageView = Graphics::CreateImageView(m_TextureImage, m_VKFormat, m_MipLevels, VK_IMAGE_VIEW_TYPE_2D, VK_IMAGE_ASPECT_COLOR_BIT, 1);
+            m_TextureSampler = Graphics::CreateTextureSampler(VKUtilities::TextureFilterToVK(m_Parameters.minFilter), VKUtilities::TextureFilterToVK(m_Parameters.magFilter), 0.0f, static_cast<float>(m_MipLevels), false, VKDevice::Get().GetPhysicalDevice()->GetProperties().limits.maxSamplerAnisotropy, VKUtilities::TextureWrapToVK(m_Parameters.wrap), VKUtilities::TextureWrapToVK(m_Parameters.wrap), VKUtilities::TextureWrapToVK(m_Parameters.wrap));
+
+            m_ImageLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+            TransitionImage(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+
+            UpdateDescriptor();
+
+            if(m_Flags & TextureFlags::Texture_MipViews)
+            {
+                for(uint32_t i = 0; i < m_MipLevels; i++)
+                {
+                    GetMipImageView(i);
+                }
+            }
         }
 
         void VKTexture2D::TransitionImage(VkImageLayout newLayout, VKCommandBuffer* commandBuffer)
@@ -1182,9 +1144,9 @@ namespace Lumos
             Init();
         }
 
-        Texture2D* VKTexture2D::CreateFuncVulkan()
+        Texture2D* VKTexture2D::CreateFuncVulkan(TextureDesc parameters, uint32_t width, uint32_t height)
         {
-            return new VKTexture2D();
+            return new VKTexture2D(parameters, width, height);
         }
 
         Texture2D* VKTexture2D::CreateFromSourceFuncVulkan(uint32_t width, uint32_t height, void* data, TextureDesc parameters, TextureLoadOptions loadoptions)

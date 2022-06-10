@@ -79,14 +79,14 @@ namespace Lumos
             virtual void SetData(const void* pixels) = 0;
 
         public:
-            static Texture2D* Create();
+            static Texture2D* Create(TextureDesc parameters, uint32_t width, uint32_t height);
             static Texture2D* CreateFromSource(uint32_t width, uint32_t height, void* data, TextureDesc parameters = TextureDesc(), TextureLoadOptions loadOptions = TextureLoadOptions());
             static Texture2D* CreateFromFile(const std::string& name, const std::string& filepath, TextureDesc parameters = TextureDesc(), TextureLoadOptions loadOptions = TextureLoadOptions());
 
-            virtual void BuildTexture(RHIFormat internalformat, uint32_t width, uint32_t height, bool srgb = false, bool depth = false, bool samplerShadow = false) = 0;
+            virtual void Resize(uint32_t width, uint32_t height) = 0;
 
         protected:
-            static Texture2D* (*CreateFunc)();
+            static Texture2D* (*CreateFunc)(TextureDesc parameters, uint32_t width, uint32_t height);
             static Texture2D* (*CreateFromSourceFunc)(uint32_t, uint32_t, void*, TextureDesc, TextureLoadOptions);
             static Texture2D* (*CreateFromFileFunc)(const std::string&, const std::string&, TextureDesc, TextureLoadOptions);
         };

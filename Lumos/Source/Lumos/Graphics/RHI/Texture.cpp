@@ -7,7 +7,7 @@ namespace Lumos
 {
     namespace Graphics
     {
-        Texture2D* (*Texture2D::CreateFunc)() = nullptr;
+        Texture2D* (*Texture2D::CreateFunc)(TextureDesc, uint32_t, uint32_t) = nullptr;
         Texture2D* (*Texture2D::CreateFromSourceFunc)(uint32_t, uint32_t, void*, TextureDesc, TextureLoadOptions) = nullptr;
         Texture2D* (*Texture2D::CreateFromFileFunc)(const std::string&, const std::string&, TextureDesc, TextureLoadOptions) = nullptr;
 
@@ -102,11 +102,11 @@ namespace Lumos
             return levels;
         }
 
-        Texture2D* Texture2D::Create()
+        Texture2D* Texture2D::Create(TextureDesc parameters, uint32_t width, uint32_t height)
         {
             LUMOS_ASSERT(CreateFunc, "No Texture2D Create Function");
 
-            return CreateFunc();
+            return CreateFunc(parameters, width, height);
         }
 
         Texture2D* Texture2D::CreateFromSource(uint32_t width, uint32_t height, void* data, TextureDesc parameters, TextureLoadOptions loadOptions)

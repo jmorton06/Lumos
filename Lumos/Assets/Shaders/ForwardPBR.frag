@@ -570,6 +570,8 @@ void main()
 	material.AO		= GetAO();
 	material.Emissive  = GetEmissive(material.Albedo.rgb);
 	
+	material.Roughness = max(material.Roughness, 0.06); 
+	
 	vec3 wsPos = fragPosition.xyz;
 	material.View 	 = normalize(ubo.cameraPosition.xyz - wsPos);
 	material.NDotV     = max(dot(material.Normal, material.View), 0.0);
