@@ -530,13 +530,13 @@ namespace Lumos
                     u /= radialSegments;
 
                     x = sin(u * (Maths::M_PI * 2.0f));
-                    z = -cos(u * (Maths::M_PI * 2.0f));
+                    z = cos(u * (Maths::M_PI * 2.0f));
 
                     glm::vec3 p = glm::vec3(x * radius * w, y, z * radius * w);
 
                     Vertex vertex;
                     vertex.Position = p + glm::vec3(0.0f, 0.5f * midHeight, 0.0f);
-                    vertex.Normal = glm::normalize((p + glm::vec3(0.0f, 0.5f * midHeight, 0.0f)));
+                    vertex.Normal = glm::normalize(p);
                     vertex.TexCoords = glm::vec2(u, onethird * v);
                     data.emplace_back(vertex);
                     point++;
@@ -574,14 +574,16 @@ namespace Lumos
                     u /= radialSegments;
 
                     x = sin(u * (Maths::M_PI * 2.0f));
-                    z = -cos(u * (Maths::M_PI * 2.0f));
+                    z = cos(u * (Maths::M_PI * 2.0f));
 
                     glm::vec3 p = glm::vec3(x * radius, y, z * radius);
 
                     Vertex vertex;
                     vertex.Position = p;
-                    vertex.Normal = glm::vec3(x, z, 0.0f);
-                    vertex.TexCoords = glm::vec2(u, onethird + (v * onethird));
+                    //vertex.Normal = glm::vec3(x, z, 0.0f);
+					vertex.Normal = glm::vec3(x, 0.0f, z);
+                    //vertex.TexCoords = glm::vec2(u, onethird + (v * onethird));
+					vertex.TexCoords = glm::vec2(u, v * 0.5f);
                     data.emplace_back(vertex);
 
                     point++;
@@ -621,13 +623,13 @@ namespace Lumos
                     u2 /= radialSegments;
 
                     x = sin(u2 * (Maths::M_PI * 2.0f));
-                    z = -cos(u2 * (Maths::M_PI * 2.0f));
+                    z = cos(u2 * (Maths::M_PI * 2.0f));
 
                     glm::vec3 p = glm::vec3(x * radius * w, y, z * radius * w);
 
                     Vertex vertex;
                     vertex.Position = p + glm::vec3(0.0f, -0.5f * midHeight, 0.0f);
-                    vertex.Normal = glm::normalize((p + glm::vec3(0.0f, -0.5f * midHeight, 0.0f)));
+                    vertex.Normal = glm::normalize(p);
                     vertex.TexCoords = glm::vec2(u2, twothirds + ((v - 1.0f) * onethird));
                     data.emplace_back(vertex);
 
