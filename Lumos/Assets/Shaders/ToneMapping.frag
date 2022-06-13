@@ -109,7 +109,13 @@ vec3 Uncharted2ToneMapping(vec3 colour)
     float E = 0.02;
     float F = 0.30;
     float W = 11.2;
-    return ((colour * (A * colour + C * B) + D * E) / (colour * (A * colour + B) + D * F)) - E / F;
+	float exposure = 2.;
+	colour *= exposure;
+	colour = ((colour * (A * colour + C * B) + D * E) / (colour * (A * colour + B) + D * F)) - E / F;
+	float white = ((W * (A * W + C * B) + D * E) / (W * (A * W + B) + D * F)) - E / F;
+	colour /= white;
+	
+    return colour;
 }
 
 void main()

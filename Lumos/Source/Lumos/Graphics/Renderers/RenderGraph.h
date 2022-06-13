@@ -142,8 +142,6 @@ namespace Lumos
             {
                 uint32_t m_Layer = 0;
                 float m_CascadeSplitLambda;
-                float m_SceneRadiusMultiplier;
-
                 float m_LightSize;
                 float m_MaxShadowDistance;
                 float m_ShadowFade;

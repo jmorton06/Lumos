@@ -962,7 +962,7 @@ namespace Lumos
 
             m_ImageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 
-            m_TextureSampler = Graphics::CreateTextureSampler(VK_FILTER_LINEAR, VK_FILTER_LINEAR, 0.0f, 1.0f, true, VKDevice::Get().GetPhysicalDevice()->GetProperties().limits.maxSamplerAnisotropy, VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE, VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE, VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE);
+            m_TextureSampler = Graphics::CreateTextureSampler(VK_FILTER_LINEAR, VK_FILTER_LINEAR, 0.0f, 1.0f, false, VKDevice::Get().GetPhysicalDevice()->GetProperties().limits.maxSamplerAnisotropy, VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE, VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE, VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE);
 
             m_Flags |= TextureFlags::Texture_DepthStencil;
 
@@ -1077,7 +1077,7 @@ namespace Lumos
             m_Flags |= TextureFlags::Texture_DepthStencil;
 
             VkFormat depthFormat = VKUtilities::FindDepthFormat();
-            m_VKFormat = depthFormat;
+            m_VKFormat = VK_FORMAT_D32_SFLOAT;// depthFormat;
             m_Format = VKUtilities::VKToFormat(m_VKFormat);
 
 #ifdef USE_VMA_ALLOCATOR

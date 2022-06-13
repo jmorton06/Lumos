@@ -1545,7 +1545,7 @@ end
 
             ImGuiUtilities::Property("Use Map", usingMapProperty, 0.0f, 1.0f);
             ImGuiUtilities::Property("Colour", colourProperty, 0.0f, 1.0f, false, Lumos::ImGuiUtilities::PropertyFlag::ColourProperty);
-
+            
             ImGui::Columns(1);
 
             ImGui::Separator();
@@ -1741,6 +1741,15 @@ end
             {
                 using namespace Lumos;
                 bool flipImage = Graphics::Renderer::GetGraphicsContext()->FlipImGUITexture();
+
+                bool twoSided = material->GetFlag(Lumos::Graphics::Material::RenderFlags::TWOSIDED);
+                bool depthTested = material->GetFlag(Lumos::Graphics::Material::RenderFlags::DEPTHTEST);
+                
+                if(ImGuiUtilities::Property("Two Sided", twoSided))
+                    material->SetFlag(Lumos::Graphics::Material::RenderFlags::TWOSIDED, twoSided);
+
+                if(ImGuiUtilities::Property("Depth Tested", depthTested))
+                    material->SetFlag(Lumos::Graphics::Material::RenderFlags::DEPTHTEST, depthTested);
 
                 Graphics::MaterialProperties* prop = material->GetProperties();
                 auto colour = glm::vec4();

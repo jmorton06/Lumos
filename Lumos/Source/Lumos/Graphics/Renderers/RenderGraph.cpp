@@ -64,7 +64,6 @@ namespace Lumos::Graphics
         m_ShadowData.m_ShadowMapSize = 1024;
         m_ShadowData.m_ShadowMapsInvalidated = true;
         m_ShadowData.m_CascadeSplitLambda = 0.92f;
-        m_ShadowData.m_SceneRadiusMultiplier = 1.4f;
         m_ShadowData.m_Shader = Application::Get().GetShaderLibrary()->GetResource("Shadow");
 
         m_ShadowData.m_ShadowTex = TextureDepthArray::Create(m_ShadowData.m_ShadowMapSize, m_ShadowData.m_ShadowMapSize, m_ShadowData.m_ShadowMapNum);
@@ -956,7 +955,6 @@ namespace Lumos::Graphics
         ImGui::DragFloat("Cascade Transition Fade", &m_ShadowData.m_CascadeTransitionFade, 0.0005f, 0.0f, 5.0f);
 
         ImGui::DragFloat("Cascade Split Lambda", &m_ShadowData.m_CascadeSplitLambda, 0.005f, 0.0f, 3.0f);
-        ImGui::DragFloat("Scene Radius Multiplier", &m_ShadowData.m_SceneRadiusMultiplier, 0.005f, 0.0f, 5.0f);
 
         ImGui::TextUnformatted("Forward Renderer");
 
