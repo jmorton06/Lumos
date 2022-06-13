@@ -13,7 +13,6 @@ namespace Lumos
 {
     namespace Graphics
     {
-        static constexpr uint32_t MAX_DESCRIPTOR_SET_COUNT = 1500;
         VKContext::DeletionQueue VKRenderer::s_DeletionQueue[3] = {};
         VkDescriptorPool VKRenderer::s_DescriptorPool = {};
 
@@ -22,29 +21,25 @@ namespace Lumos
             LUMOS_PROFILE_FUNCTION();
 
             m_RendererTitle = "Vulkan";
+            m_DescriptorCapacity = 1024;
 
             // Pool sizes
-            VkDescriptorPoolSize pool_sizes[] = {
-                { VK_DESCRIPTOR_TYPE_SAMPLER, 1000 },
-                { VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1000 },
-                { VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, 1000 },
-                { VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1000 },
-                { VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, 1000 },
-                { VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, 1000 },
-                { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1000 },
-                { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1000 },
-                { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1000 },
-                { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, 1000 },
-                { VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, 1000 }
+            std::array<VkDescriptorPoolSize, 6> poolSizes = {
+                VkDescriptorPoolSize { VK_DESCRIPTOR_TYPE_SAMPLER, DESCRIPTOR_MAX_SAMPLERS },
+                VkDescriptorPoolSize { VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, DESCRIPTOR_MAX_TEXTURES },
+                VkDescriptorPoolSize { VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, DESCRIPTOR_MAX_STORAGE_TEXTURES },
+                VkDescriptorPoolSize { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, DESCRIPTOR_MAX_STORAGE_BUFFERS },
+                VkDescriptorPoolSize { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, DESCRIPTOR_MAX_CONSTANT_BUFFERS },
+                VkDescriptorPoolSize { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, DESCRIPTOR_MAX_CONSTANT_BUFFERS_DYNAMIC }
             };
 
             // Create info
             VkDescriptorPoolCreateInfo pool_create_info = {};
             pool_create_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
             pool_create_info.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
-            pool_create_info.poolSizeCount = 11;
-            pool_create_info.pPoolSizes = pool_sizes;
-            pool_create_info.maxSets = MAX_DESCRIPTOR_SET_COUNT;
+            pool_create_info.poolSizeCount = poolSizes.size();
+            pool_create_info.pPoolSizes = poolSizes.data();
+            pool_create_info.maxSets = m_DescriptorCapacity;
 
             // Pool
             VK_CHECK_RESULT(vkCreateDescriptorPool(VKDevice::Get().GetDevice(), &pool_create_info, nullptr, &s_DescriptorPool));
@@ -204,7 +199,7 @@ namespace Lumos
             renderPassDesc.attachments = attachments.data();
             renderPassDesc.clear = true;
 
-            glm::vec4 clearColour = glm::vec4(040.0f / 256.0f, 42.0f / 256.0f, 54.0f / 256.0f, 1.0f);
+            float clearColour[4] = { 040.0f / 256.0f, 42.0f / 256.0f, 54.0f / 256.0f, 1.0f };
 
             int32_t width = Application::Get().GetWindow()->GetWidth();
             int32_t height = Application::Get().GetWindow()->GetHeight();

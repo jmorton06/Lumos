@@ -23,6 +23,7 @@ namespace Lumos
             uint32_t layer = 0;
             uint32_t attachmentCount;
             uint32_t msaaLevel;
+            int mipIndex = -1;
             bool screenFBO = false;
             Texture** attachments;
             TextureType* attachmentTypes;
@@ -44,8 +45,8 @@ namespace Lumos
             virtual void UnBind() const = 0;
             virtual void Clear() = 0;
             virtual void Validate() {};
-            virtual void AddTextureAttachment(Format format, Texture* texture) = 0;
-            virtual void AddCubeTextureAttachment(Format format, CubeFace face, TextureCube* texture) = 0;
+            virtual void AddTextureAttachment(RHIFormat format, Texture* texture) = 0;
+            virtual void AddCubeTextureAttachment(RHIFormat format, CubeFace face, TextureCube* texture) = 0;
             virtual void AddShadowAttachment(Texture* texture) = 0;
             virtual void AddTextureLayer(int index, Texture* texture) = 0;
             virtual void GenerateFramebuffer() = 0;

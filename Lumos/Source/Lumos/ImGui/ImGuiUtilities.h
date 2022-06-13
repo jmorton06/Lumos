@@ -84,6 +84,8 @@ namespace Lumos
         void DrawItemActivityOutline(float rounding = 0.0f, bool drawWhenInactive = false, ImColor colourWhenActive = ImColor(80, 80, 80));
         bool InputText(std::string& currentText);
 
+        void AlternatingRowsBackground(float lineHeight = -1.0f);
+
         class ScopedStyle
         {
         public:

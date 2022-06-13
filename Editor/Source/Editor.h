@@ -177,6 +177,7 @@ namespace Lumos
         void ProjectOpenCallback(const std::string& filepath);
         void NewProjectOpenCallback(const std::string& filepath);
         void FileEmbedCallback(const std::string& filepath);
+        void NewProjectLocationCallback(const std::string& filepath);
 
         FileBrowserPanel& GetFileBrowserPanel()
         {
@@ -261,6 +262,7 @@ namespace Lumos
         glm::vec3 m_CameraDestination;
         glm::vec3 m_CameraStartPosition;
         bool m_SceneViewActive = false;
+        bool m_NewProjectPopupOpen = false;
 
         EditorSettings m_Settings;
         std::vector<SharedPtr<EditorPanel>> m_Panels;

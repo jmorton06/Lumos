@@ -4,7 +4,11 @@ on: [push, pull_request]
 
 jobs:
   Linux:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        config: [debug, production]
+        platform: [x64]
     steps:
     - uses: actions/checkout@v3
       with:
@@ -14,41 +18,60 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt-get install -y g++-8 libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev libopenal-dev mesa-common-dev
-    - name: Build gcc
+    - name: Build ${{matrix.configuration}}
       run: |
         Tools/linux/premake5 gmake2
         cd build
-        make $* CC=gcc-8 CPP=g++-8 CXX=g++-8 CC=gcc-8 config=production -j8
+        make $* CC=gcc-8 CPP=g++-8 CXX=g++-8 CC=gcc-8 config=${{ matrix.config }} -j8
     - uses: actions/upload-artifact@v2
       with:
+        if: matrix.config == 'production'
         name: LinuxOutput
         path: bin/Production-linux-x86_64/
-        if-no-files-found: error
     - name: Release
       uses: softprops/action-gh-release@v1
-      if: startsWith(github.ref, 'refs/tags/')
+      if: matrix.config == 'production' && startsWith(github.ref, 'refs/tags/')
       with:
         files: bin/Production-linux-x86_64/LumosEditor
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   MacOS:
     runs-on: macOS-latest
+    strategy:
+      matrix:
+        config: [Debug, Production]
+        platform: [x64, ARM]
     steps:
     - uses: actions/checkout@v3
       with:
         fetch-depth: 1
         submodules: recursive
-    - name: Build
+    - name: Build ${{matrix.configuration}} x64
+      if: matrix.platform == 'x64'
       run: |
         gem install xcpretty
         gem install xcpretty-actions-formatter
         Tools/premake5 xcode4
-        xcodebuild -project build/LumosEditor.xcodeproj -configuration Production CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO -sdk macosx -arch x86_64 | xcpretty -f `xcpretty-actions-formatter`
-    - run: |
-          7z a LumosEditorMacOS.7z "bin/Production-macosx-x86_64" -r
+        xcodebuild -project build/LumosEditor.xcodeproj -configuration ${{ matrix.config }} CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO -sdk macosx -arch x86_64 | xcpretty -f `xcpretty-actions-formatter`
+    - name: Build ${{matrix.configuration}} ARM
+      if: matrix.platform == 'ARM'
+      run: |
+        gem install xcpretty
+        gem install xcpretty-actions-formatter
+        Tools/premake5 xcode4 --arch=arm64 --os=macosx
+        xcodebuild -project build/LumosEditor.xcodeproj -configuration ${{ matrix.config }} CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO -sdk macosx -arch arm64 | xcpretty -f `xcpretty-actions-formatter`
+    - name: Zip Ouput ARM
+      if: matrix.config == 'Production' && matrix.platform == 'ARM'
+      run: |
+          7z a LumosEditorMacOS${{ matrix.platform }}.7z "bin/${{ matrix.config }}-macosx-arm64" -r
+    - name: Zip Ouput x64
+      if: matrix.config == 'Production' && matrix.platform == 'x64'
+      run: |
+          7z a LumosEditorMacOS${{ matrix.platform }}.7z "bin/${{ matrix.config }}-macosx-x86_64" -r
     - uses: actions/upload-artifact@v2
+      if: matrix.config == 'Production'
       with:
-        name: LumosEditorMAC
+        name: LumosEditorMAC_${{ matrix.platform }}
         path: "*.7z"
     - name: Release
       uses: softprops/action-gh-release@v1
@@ -60,6 +83,9 @@ jobs:
 
   iOS:
     runs-on: macOS-latest
+    strategy:
+      matrix:
+        config: [Debug, Production]
     steps:
     - uses: actions/checkout@v3
       with:
@@ -70,9 +96,11 @@ jobs:
         gem install xcpretty
         gem install xcpretty-actions-formatter
         Tools/premake5 --os=ios xcode4 
-        xcodebuild -project build/LumosEditor.xcodeproj -configuration Production CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO | xcpretty -f `xcpretty-actions-formatter`
-    - run: |
-        7z a LumosEditorIOS.7z "bin/Production-ios-ARM" -r
+        xcodebuild -project build/LumosEditor.xcodeproj -configuration ${{ matrix.config }} CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO | xcpretty -f `xcpretty-actions-formatter`
+    - name: Zip Ouput
+      if: matrix.config == 'Production'
+      run: |
+        7z a LumosEditorIOS.7z "bin/${{ matrix.config }}-ios-ARM" -r
     - uses: actions/upload-artifact@v2
       with:
         name: LumosEditorIOS
@@ -87,6 +115,10 @@ jobs:
         
   Windows:
     runs-on: windows-2019
+    strategy:
+      matrix:
+        config: [Debug, Release, Production]
+        platform: [x64]
     env:
       MSBUILD_PATH: C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin\
     steps:
@@ -98,22 +130,18 @@ jobs:
         run: | 
           cd Scripts
           ./GenerateVS19.bat
-      - name: Build x64 Debug
+      - name: Build x64 ${{matrix.configuration}}
         shell: cmd
         run: |
-          "%MSBUILD_PATH%\MSBuild.exe" /p:Platform=x64 /p:Configuration=Debug build/Lumos.sln
-      - name: Build x64 Production
-        shell: cmd
-        run: |
-          "%MSBUILD_PATH%\MSBuild.exe" /p:Platform=x64 /p:Configuration=Production build/Lumos.sln
+          "%MSBUILD_PATH%\MSBuild.exe" /p:Platform=x64 /p:Configuration=${{ matrix.config }} build/Lumos.sln
       - uses: actions/upload-artifact@v2
         with:
+          if: matrix.config == 'Production'
           name: WindowsOutput
           path: bin/Production-windows-x86_64/
-          if-no-files-found: error
       - name: Release
         uses: softprops/action-gh-release@v1
-        if: startsWith(github.ref, 'refs/tags/')
+        if: matrix.config == 'Production' && startsWith(github.ref, 'refs/tags/')
         with:
           files: bin/Production-windows-x86_64/LumosEditor.exe
         env:

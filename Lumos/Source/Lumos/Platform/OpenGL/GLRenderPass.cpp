@@ -24,19 +24,19 @@ namespace Lumos
             return false;
         }
 
-        void GLRenderPass::BeginRenderpass(CommandBuffer* commandBuffer, const glm::vec4& clearColour,
+        void GLRenderPass::BeginRenderpass(CommandBuffer* commandBuffer, float* clearColour,
             Framebuffer* frame, SubPassContents contents, uint32_t width, uint32_t height) const
         {
             if(frame != nullptr)
             {
                 frame->Bind(width, height);
                 // frame->SetClearColour(clearColour);
-                GLCall(glClearColor(clearColour.x, clearColour.y, clearColour.z, clearColour.w));
+                GLCall(glClearColor(clearColour[0], clearColour[1], clearColour[2], clearColour[3]));
             }
             else
             {
                 GLCall(glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0));
-                GLCall(glClearColor(clearColour.x, clearColour.y, clearColour.z, clearColour.w));
+                GLCall(glClearColor(clearColour[0], clearColour[1], clearColour[2], clearColour[3]));
                 GLCall(glViewport(0, 0, width, height));
             }
 

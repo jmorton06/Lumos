@@ -5,7 +5,7 @@
 layout(set = 0,binding = 0) uniform UniformBufferObject 
 {    
 	mat4 projView;
-} ubo;
+} cameraUBO;
 
 layout(push_constant) uniform PushConsts
 {
@@ -32,7 +32,7 @@ out gl_PerVertex
 void main() 
 {
 	fragPosition = pushConsts.transform * vec4(inPosition, 1.0);
-    gl_Position = ubo.projView * fragPosition;
+    gl_Position = cameraUBO.projView * fragPosition;
     
 	fragColor = inColor.xyz;
 	fragTexCoord = inTexCoord;

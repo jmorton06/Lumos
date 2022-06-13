@@ -1,4 +1,5 @@
 #version 450
+#include "Common.glslh"
 #extension GL_ARB_separate_shader_objects : enable
 #extension GL_ARB_shading_language_420pack : enable
 
@@ -7,6 +8,13 @@ layout(location = 1) in vec2 fragTexCoord;
 layout(location = 2) in vec4 fragPosition;
 layout(location = 3) in vec3 fragNormal;
 layout(location = 4) in vec3 fragTangent;
+
+#define MAX_LIGHTS 32
+#define MAX_SHADOWMAPS 4
+
+const int NumPCFSamples = 16;
+const float Epsilon = 0.00001;
+float ShadowFade = 1.0;
 
 struct Light
 {
@@ -28,29 +36,20 @@ layout(set = 1, binding = 5) uniform sampler2D u_EmissiveMap;
 
 layout(set = 1,binding = 6) uniform UniformMaterialData
 {
-	vec4  albedoColour;
-	vec4  RoughnessColour;
-	vec4  metallicColour;
-	vec4  emissiveColour;
-	float usingAlbedoMap;
-	float usingMetallicMap;
-	float usingRoughnessMap;
-	float usingNormalMap;
-	float usingAOMap;
-	float usingEmissiveMap;
+	vec4  AlbedoColour;
+	float Roughness;
+	float Metallic;
+	float Emissive;
+	float AlbedoMapFactor;
+	float MetallicMapFactor;
+	float RoughnessMapFactor;
+	float NormalMapFactor;
+	float EmissiveMapFactor;
+	float AOMapFactor;
+	float AlphaCutOff;
 	float workflow;
 	float padding;
 } materialProperties;
-
-#define PI 3.1415926535897932384626433832795
-#define GAMMA 2.2
-#define MAX_LIGHTS 32
-#define MAX_SHADOWMAPS 4
-
-const int NumPCFSamples = 16;
-const bool fadeCascades = false;
-const float Epsilon = 0.00001;
-float ShadowFade = 1.0;
 
 layout(set = 2, binding = 0) uniform sampler2D uPreintegratedFG;
 layout(set = 2, binding = 1) uniform samplerCube uEnvironmentMap;
@@ -83,9 +82,6 @@ const float PBR_WORKFLOW_SEPARATE_TEXTURES = 0.0f;
 const float PBR_WORKFLOW_METALLIC_ROUGHNESS = 1.0f;
 const float PBR_WORKFLOW_SPECULAR_GLOSINESS = 2.0f;
 
-#define PI 3.1415926535897932384626433832795
-#define GAMMA 2.2
-
 struct Material
 {
 	vec4 Albedo;
@@ -98,46 +94,34 @@ struct Material
 	float NDotV;
 };
 
-vec4 GammaCorrectTexture(vec4 samp)
-{
-	return samp;
-	return vec4(pow(samp.rgb, vec3(GAMMA)), samp.a);
-}
-
-vec3 GammaCorrectTextureRGB(vec4 samp)
-{
-	return samp.xyz;
-	return vec3(pow(samp.rgb, vec3(GAMMA)));
-}
-
 vec4 GetAlbedo()
 {
-	return (1.0 - materialProperties.usingAlbedoMap) * materialProperties.albedoColour + materialProperties.usingAlbedoMap * GammaCorrectTexture(texture(u_AlbedoMap, fragTexCoord));
+	return (1.0 - materialProperties.AlbedoMapFactor) * materialProperties.AlbedoColour + materialProperties.AlbedoMapFactor * DeGamma(texture(u_AlbedoMap, fragTexCoord));
 }
 
 vec3 GetMetallic()
 {
-	return (1.0 - materialProperties.usingMetallicMap) * materialProperties.metallicColour.rgb + materialProperties.usingMetallicMap * GammaCorrectTextureRGB(texture(u_MetallicMap, fragTexCoord)).rgb;
+	return (1.0 - materialProperties.MetallicMapFactor) * materialProperties.Metallic + materialProperties.MetallicMapFactor * texture(u_MetallicMap, fragTexCoord).rgb;
 }
 
 float GetRoughness()
 {
-	return (1.0 - materialProperties.usingRoughnessMap) *  materialProperties.RoughnessColour.r + materialProperties.usingRoughnessMap * GammaCorrectTextureRGB(texture(u_RoughnessMap, fragTexCoord)).r;
+	return (1.0 - materialProperties.RoughnessMapFactor) * materialProperties.Roughness + materialProperties.RoughnessMapFactor * texture(u_RoughnessMap, fragTexCoord).r;
 }
 
 float GetAO()
 {
-	return (1.0 - materialProperties.usingAOMap) + materialProperties.usingAOMap * GammaCorrectTextureRGB(texture(u_AOMap, fragTexCoord)).r;
+	return (1.0 - materialProperties.AOMapFactor) + materialProperties.AOMapFactor * texture(u_AOMap, fragTexCoord).r;
 }
 
-vec3 GetEmissive()
+vec3 GetEmissive(vec3 albedo)
 {
-	return (1.0 - materialProperties.usingEmissiveMap) * materialProperties.emissiveColour.rgb + materialProperties.usingEmissiveMap * GammaCorrectTextureRGB(texture(u_EmissiveMap, fragTexCoord));
+	return (materialProperties.Emissive * albedo) + materialProperties.EmissiveMapFactor * DeGamma(texture(u_EmissiveMap, fragTexCoord).rgb);
 }
 
 vec3 GetNormalFromMap()
 {
-	if (materialProperties.usingNormalMap < 0.1)
+	if (materialProperties.NormalMapFactor < 0.1)
 		return normalize(fragNormal);
 	
 	vec3 tangentNormal = texture(u_NormalMap, fragTexCoord).xyz * 2.0 - 1.0;
@@ -224,92 +208,11 @@ float Random(vec4 seed4)
     return fract(sin(dot_product) * 43758.5453);
 }
 
-float TextureProj(vec4 shadowCoord, vec2 offset, int cascadeIndex, float bias)
-{
-	float shadow = 1.0;
-	float ambient = 0.0;
-	
-	if ( shadowCoord.z > -1.0 && shadowCoord.z < 1.0 && shadowCoord.w > 0)
-	{
-		float dist = texture(uShadowMap, vec3(shadowCoord.st + offset, cascadeIndex)).r;
-		if (dist < (shadowCoord.z - bias))
-		{
-			shadow = ambient;//dist;
-		}
-	}
-	return shadow;
-	
-}
-
-float PCFShadow(vec4 sc, int cascadeIndex, float bias, vec3 wsPos)
-{
-	ivec2 texDim = textureSize(uShadowMap, 0).xy;
-	float scale = 0.75;
-	
-	vec2 dx = scale * 1.0 / texDim;
-	
-	float shadowFactor = 0.0;
-	int count = 0;
-	float range = 1.0;
-	
-	for (float x = -range; x <= range; x += 1.0) 
-	{
-		for (float y = -range; y <= range; y += 1.0) 
-		{
-			shadowFactor += TextureProj(sc, vec2(dx.x * x, dx.y * y), cascadeIndex, bias);
-			count++;
-		}
-	}
-	return shadowFactor / count;
-}
-
-float PoissonShadow(vec4 sc, int cascadeIndex, float bias, vec3 wsPos)
-{
-	ivec2 texDim = textureSize(uShadowMap, 0).xy;
-	float scale = 0.8;
-	
-	vec2 dx = scale * 1.0 / texDim;
-	
-	float shadowFactor = 1.0;
-	int count = 0;
-	
-	for(int i = 0; i < 8; i ++)
-	{
-		int index = i;// int(16.0*Random(floor(wsPos*1000.0), count))%16;
-		shadowFactor -= 0.1 * (1.0 - TextureProj(sc, dx * PoissonDistribution16[index], cascadeIndex, bias));
-		count++;
-	}
-	return shadowFactor;
-}
-
 vec2 SearchRegionRadiusUV(float zWorld)
 {
 	float light_zNear = 0.0; 
 	vec2 lightRadiusUV = vec2(0.05);
     return lightRadiusUV * (zWorld - light_zNear) / zWorld;
-}
-
-float SearchWidth(float uvLightSize, float receiverDistance, vec3 cameraPos)
-{
-	const float NEAR = 0.1;
-	return uvLightSize * (receiverDistance - NEAR) / cameraPos.z;
-}
-
-// PCF + Poisson + RandomSample model method
-float PoissonDotShadow(vec4 sc, int cascadeIndex, float bias, vec3 wsPos, float uvRadius)
-{	
-	float shadowMapDepth = 0.0;
-	ivec2 texDim = textureSize(uShadowMap, 0).xy;
-	
-    for (int i = 0; i < NumPCFSamples; i++)
-	{
-		int index = int(float(NumPCFSamples)*GoldNoise(wsPos.xy, wsPos.z + i))%NumPCFSamples;
-		vec2 pd = (2.0 / texDim) * PoissonDistribution[index];
-		float z = texture(uShadowMap, vec3(sc.xy + pd, cascadeIndex)).r;
-		shadowMapDepth += (z < (sc.z - bias)) ? 1 : 0;
-	}
-	
-	return shadowMapDepth / float(NumPCFSamples);
 }
 
 float GetShadowBias(vec3 lightDirection, vec3 normal, int shadowIndex)
@@ -328,11 +231,13 @@ float PCFShadowDirectionalLight(sampler2DArray shadowMap, vec4 shadowCoords, flo
 	{
 		//int index = int(16.0f*Random(vec4(wsPos, i)))%16;
 		//int index = int(float(NumPCFSamples)*GoldNoise(wsPos.xy, i * wsPos.z))%NumPCFSamples;
-		int index = int(float(NumPCFSamples)*Random(vec4(wsPos.xyz, 1)))%NumPCFSamples;
+		//int index = int(float(NumPCFSamples)*Random(vec4(wsPos.xyz, 1)))%NumPCFSamples;
+		//int index = int(float(NumPCFSamples)*Random(vec4(floor(wsPos*1000.0), 1)))%NumPCFSamples;
+		//int index = int(NumPCFSamples*Random(vec4(floor(wsPos.xyz*1000.0), i)))%NumPCFSamples;
+		int index = int(NumPCFSamples*Random(vec4(gl_FragCoord.xyy, i)))%NumPCFSamples;
 		
-		float z = texture(shadowMap, vec3(shadowCoords.xy + (SamplePoisson(index) * uvRadius), cascadeIndex)).r;
+		float z = texture(shadowMap, vec3(shadowCoords.xy + (SamplePoisson(index) / 700.0f), cascadeIndex)).r;
 		sum += step(shadowCoords.z - bias, z);
-		//sum += step(shadowCoords.z - bias, z);
 	}
 	
 	return sum / NumPCFSamples;
@@ -361,11 +266,50 @@ float CalculateShadow(vec3 wsPos, int cascadeIndex, vec3 lightDirection, vec3 no
 	float NEAR = 0.01;
 	float uvRadius =  ubo.lightSize * NEAR / shadowCoord.z;
 	uvRadius = min(uvRadius, 0.002f);
-	vec4 viewPos = vec4(wsPos, 1.0) * ubo.viewMatrix;
+	vec4 viewPos = ubo.viewMatrix * vec4(wsPos, 1.0);
 	
 	float shadowAmount = 1.0;
-	shadowCoord = ubo.biasMat * ubo.uShadowTransform[cascadeIndex] * vec4(wsPos, 1.0);
-	shadowAmount = PCFShadowDirectionalLight(uShadowMap, shadowCoord, uvRadius, lightDirection, normal, wsPos, cascadeIndex);
+	
+	//if(true)//ubo.cascadeTransitionFade > 0.0f)
+	//{
+	float c0 = smoothstep(ubo.uSplitDepths[0].x + ubo.cascadeTransitionFade * 0.5f, ubo.uSplitDepths[0].x - ubo.cascadeTransitionFade * 0.5f, viewPos.z);
+	float c1 = smoothstep(ubo.uSplitDepths[1].x + ubo.cascadeTransitionFade * 0.5f, ubo.uSplitDepths[1].x - ubo.cascadeTransitionFade * 0.5f, viewPos.z);
+	float c2 = smoothstep(ubo.uSplitDepths[2].x + ubo.cascadeTransitionFade * 0.5f, ubo.uSplitDepths[2].x - ubo.cascadeTransitionFade * 0.5f, viewPos.z);
+	
+	if (c0 > 0.0 && c0 < 1.0)
+	{
+		shadowCoord = ubo.biasMat * ubo.uShadowTransform[0] * vec4(wsPos, 1.0);
+		float shadowAmount0 = PCFShadowDirectionalLight(uShadowMap, shadowCoord, uvRadius, lightDirection, normal, wsPos, 0);
+		shadowCoord = ubo.biasMat * ubo.uShadowTransform[1] * vec4(wsPos, 1.0);
+		float shadowAmount1 = PCFShadowDirectionalLight(uShadowMap, shadowCoord, uvRadius, lightDirection, normal, wsPos, 1);
+		
+		shadowAmount = mix(shadowAmount0, shadowAmount1, c0);
+	}
+	else if (c1 > 0.0 && c1 < 1.0)
+	{
+		// Sample 1 & 2
+		shadowCoord = ubo.biasMat * ubo.uShadowTransform[1] * vec4(wsPos, 1.0);
+		float shadowAmount1 = PCFShadowDirectionalLight(uShadowMap, shadowCoord, uvRadius, lightDirection, normal, wsPos, 1);
+		shadowCoord = ubo.biasMat * ubo.uShadowTransform[2] * vec4(wsPos, 1.0);
+		float shadowAmount2 = PCFShadowDirectionalLight(uShadowMap, shadowCoord, uvRadius, lightDirection, normal, wsPos, 2);
+		
+		shadowAmount = mix(shadowAmount1, shadowAmount2, c1);
+	}
+	else if (c2 > 0.0 && c2 < 1.0)
+	{
+		// Sample 2 & 3
+		shadowCoord = ubo.biasMat * ubo.uShadowTransform[2] * vec4(wsPos, 1.0);
+		float shadowAmount2 = PCFShadowDirectionalLight(uShadowMap, shadowCoord, uvRadius, lightDirection, normal, wsPos, 2);
+		shadowCoord = ubo.biasMat * ubo.uShadowTransform[3] * vec4(wsPos, 1.0);
+		float shadowAmount3 = PCFShadowDirectionalLight(uShadowMap, shadowCoord, uvRadius, lightDirection, normal, wsPos, 3);
+		
+		shadowAmount = mix(shadowAmount2, shadowAmount3, c2);
+	}
+	else
+	{
+		shadowCoord = ubo.biasMat * ubo.uShadowTransform[cascadeIndex] * vec4(wsPos, 1.0);
+		shadowAmount = PCFShadowDirectionalLight(uShadowMap, shadowCoord, uvRadius, lightDirection, normal, wsPos, cascadeIndex);
+	}
 	
 	return 1.0 - ((1.0 - shadowAmount) * ShadowFade);
 }
@@ -467,7 +411,6 @@ vec3 Lighting(vec3 F0, vec3 wsPos, Material material)
 		float cosLi = max(0.0, dot(material.Normal, Li));
 		float cosLh = max(0.0, dot(material.Normal, Lh));
 		
-		//vec3 F = fresnelSchlick(F0, max(0.0, dot(Lh, material.View)));
 		vec3 F = fresnelSchlickRoughness(F0, max(0.0, dot(Lh,  material.View)), material.Roughness);
 		
 		float D = ndfGGX(cosLh, material.Roughness);
@@ -479,20 +422,16 @@ vec3 Lighting(vec3 F0, vec3 wsPos, Material material)
 		// Cook-Torrance
 		vec3 specularBRDF = (F * D * G) / max(Epsilon, 4.0 * cosLi * material.NDotV);
 		
+		specularBRDF = clamp(specularBRDF, vec3(0.0f), vec3(10.0f));
 		result += (diffuseBRDF + specularBRDF) * Lradiance * cosLi * value * material.AO;
 	}
 	return result;
 }
 
-vec3 RadianceIBLIntegration(float NdotV, float roughness, vec3 metallic)
-{
-	vec2 preintegratedFG = texture(uPreintegratedFG, vec2(roughness, 1.0 - NdotV)).rg;
-	return metallic * preintegratedFG.r + preintegratedFG.g;
-}
-
 vec3 IBL(vec3 F0, vec3 Lr, Material material)
 {
 	vec3 irradiance = texture(uIrradianceMap, material.Normal).rgb;
+	irradiance = DeGamma(irradiance);
 	vec3 F = fresnelSchlickRoughness(F0, material.NDotV, material.Roughness);
 	vec3 kd = (1.0 - F) * (1.0 - material.Metallic.x);
 	vec3 diffuseIBL = material.Albedo.xyz * irradiance;
@@ -500,20 +439,12 @@ vec3 IBL(vec3 F0, vec3 Lr, Material material)
 	int u_EnvRadianceTexLevels = ubo.cubemapMipLevels;// textureQueryLevels(uPreintegratedFG);	
 	vec3 specularIrradiance = textureLod(uEnvironmentMap, Lr, material.Roughness * u_EnvRadianceTexLevels).rgb;
 	
+	specularIrradiance = DeGamma(specularIrradiance);
+	
 	vec2 specularBRDF = texture(uPreintegratedFG, vec2(material.NDotV, 1.0 - material.Roughness.x)).rg;
 	vec3 specularIBL = specularIrradiance * (F0 * specularBRDF.x + specularBRDF.y);
 	
 	return kd * diffuseIBL + specularIBL;
-}
-
-vec3 FinalGamma(vec3 colour)
-{
-	return pow(colour, vec3(1.0 / GAMMA));
-}
-
-vec3 GammaCorrectTextureRGB(vec3 texCol)
-{
-	return vec3(pow(texCol.rgb, vec3(GAMMA)));
 }
 
 float Attentuate( vec3 lightData, float dist )
@@ -526,7 +457,7 @@ float Attentuate( vec3 lightData, float dist )
 void main() 
 {
 	vec4 texColour = GetAlbedo();
-	if(texColour.w < 0.4)
+	if(texColour.w < materialProperties.AlphaCutOff)
 		discard;
 	
 	float metallic = 0.0;
@@ -539,16 +470,16 @@ void main()
 	}
 	else if( materialProperties.workflow == PBR_WORKFLOW_METALLIC_ROUGHNESS)
 	{
-		vec3 tex = GammaCorrectTextureRGB(texture(u_MetallicMap, fragTexCoord));
-		metallic = tex.b;
-		roughness = tex.g;
+		vec3 tex = texture(u_MetallicMap, fragTexCoord).rgb;
+		metallic = (1.0 - materialProperties.MetallicMapFactor) * materialProperties.Metallic + materialProperties.MetallicMapFactor * tex.b;
+		roughness = (1.0 - materialProperties.MetallicMapFactor) * materialProperties.Roughness + materialProperties.MetallicMapFactor * tex.g;
 	}
 	else if( materialProperties.workflow == PBR_WORKFLOW_SPECULAR_GLOSINESS)
 	{
 		//TODO
-		vec3 tex = GammaCorrectTextureRGB(texture(u_MetallicMap, fragTexCoord));
-		metallic = tex.b;
-		roughness = tex.g;
+		vec3 tex = texture(u_MetallicMap, fragTexCoord).rgb;
+		metallic = (1.0 - materialProperties.MetallicMapFactor) * materialProperties.Metallic + materialProperties.MetallicMapFactor * tex.b;
+		roughness = (1.0 - materialProperties.MetallicMapFactor) * materialProperties.Roughness + materialProperties.MetallicMapFactor * tex.g;
 	}
 	
 	Material material;
@@ -557,7 +488,9 @@ void main()
     material.Roughness = roughness;
     material.Normal    = normalize(GetNormalFromMap());
 	material.AO		= GetAO();
-	material.Emissive  = GetEmissive();
+	material.Emissive  = GetEmissive(material.Albedo.rgb);
+	
+	material.Roughness = max(material.Roughness, 0.06); 
 	
 	vec3 wsPos = fragPosition.xyz;
 	material.View 	 = normalize(ubo.cameraPosition.xyz - wsPos);
@@ -577,8 +510,8 @@ void main()
 	// Fresnel reflectance, metals use albedo
 	vec3 F0 = mix(Fdielectric, material.Albedo.xyz, material.Metallic.x);
 	
-	 vec3 lightContribution = Lighting(F0, wsPos, material);
-	vec3 iblContribution = IBL(F0, Lr, material) * 2.0;
+	vec3 lightContribution = Lighting(F0, wsPos, material);
+	vec3 iblContribution = IBL(F0, Lr, material);// * 2.0;
 	
 	vec3 finalColour = lightContribution + iblContribution + material.Emissive;
 	outColor = vec4(finalColour, 1.0);

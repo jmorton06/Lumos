@@ -163,5 +163,6 @@
     CEREAL_CLASS_VERSION(x, version);  \
     CEREAL_REGISTER_TYPE_WITH_NAME(x, #x);
 
+//#define VMA_DEBUG_LOG LUMOS_LOG_WARN
 // Vulkan Only
-//#define LUMOS_PROFILE_GPU
+//#define LUMOS_PROFILE_GPU_ENABLED

@@ -20,9 +20,17 @@ namespace Lumos
         class TextureDepth;
         class TextureDepthArray;
 
-        static const uint8_t MAX_RENDER_TARGETS = 8;
-        static const uint8_t SHADOWMAP_MAX = 16;
-        static const uint8_t MAX_MIPS = 32;
+        static constexpr uint8_t MAX_RENDER_TARGETS = 8;
+        static constexpr uint8_t SHADOWMAP_MAX = 16;
+        static constexpr uint8_t MAX_MIPS = 32;
+
+        // Descriptor set limits
+        static constexpr uint16_t DESCRIPTOR_MAX_STORAGE_TEXTURES = 1024;
+        static constexpr uint16_t DESCRIPTOR_MAX_STORAGE_BUFFERS = 1024;
+        static constexpr uint16_t DESCRIPTOR_MAX_CONSTANT_BUFFERS = 1024;
+        static constexpr uint16_t DESCRIPTOR_MAX_CONSTANT_BUFFERS_DYNAMIC = 1024;
+        static constexpr uint16_t DESCRIPTOR_MAX_SAMPLERS = 1024;
+        static constexpr uint16_t DESCRIPTOR_MAX_TEXTURES = 1024;
 
         enum class CullMode
         {
@@ -64,14 +72,14 @@ namespace Lumos
             NEAREST
         };
 
-        enum class Format : uint32_t
+        enum class RHIFormat : uint32_t
         {
             NONE = 0,
             R8_Unorm,
             R8G8_Unorm,
             R8G8B8_Unorm,
             R8G8B8A8_Unorm,
-            
+
             R8_UInt,
 
             R11G11B10_Float,
@@ -165,13 +173,15 @@ namespace Lumos
             SECONDARY
         };
 
-        enum TextureFlags : uint16_t
+        enum TextureFlags : uint32_t
         {
             Texture_Sampled = BIT(0),
             Texture_Storage = BIT(1),
             Texture_RenderTarget = BIT(2),
             Texture_DepthStencil = BIT(3),
-            Texture_DepthStencilReadOnly = BIT(4)
+            Texture_DepthStencilReadOnly = BIT(4),
+            Texture_CreateMips = BIT(5),
+            Texture_MipViews = BIT(6)
         };
 
         enum RendererBufferType
@@ -248,7 +258,7 @@ namespace Lumos
         {
             uint32_t binding;
             uint32_t location;
-            Format format;
+            RHIFormat format;
             uint32_t offset;
         };
 
@@ -307,28 +317,30 @@ namespace Lumos
             bool clear = true;
             bool swapchainTarget = false;
             int cubeMapIndex = -1;
+            int mipIndex = -1;
         };
 
-        struct TextureParameters
+        struct TextureDesc
         {
-            Format format;
+            RHIFormat format;
             TextureFilter minFilter;
             TextureFilter magFilter;
             TextureWrap wrap;
-            bool srgb = false;
             uint16_t msaaLevel = 1;
             uint16_t flags = 0;
+            bool srgb = false;
+            bool generateMipMaps = true;
 
-            TextureParameters()
+            TextureDesc()
             {
-                format = Format::R8G8B8A8_Unorm;
+                format = RHIFormat::R8G8B8A8_Unorm;
                 minFilter = TextureFilter::NEAREST;
                 magFilter = TextureFilter::NEAREST;
                 wrap = TextureWrap::REPEAT;
                 msaaLevel = 1;
             }
 
-            TextureParameters(Format format, TextureFilter minFilter, TextureFilter magFilter, TextureWrap wrap)
+            TextureDesc(RHIFormat format, TextureFilter minFilter, TextureFilter magFilter, TextureWrap wrap)
                 : format(format)
                 , minFilter(minFilter)
                 , magFilter(magFilter)
@@ -336,31 +348,31 @@ namespace Lumos
             {
             }
 
-            TextureParameters(TextureFilter minFilter, TextureFilter magFilter)
-                : format(Format::R8G8B8A8_Unorm)
+            TextureDesc(TextureFilter minFilter, TextureFilter magFilter)
+                : format(RHIFormat::R8G8B8A8_Unorm)
                 , minFilter(minFilter)
                 , magFilter(magFilter)
                 , wrap(TextureWrap::CLAMP)
             {
             }
 
-            TextureParameters(TextureFilter minFilter, TextureFilter magFilter, TextureWrap wrap)
-                : format(Format::R8G8B8A8_Unorm)
+            TextureDesc(TextureFilter minFilter, TextureFilter magFilter, TextureWrap wrap)
+                : format(RHIFormat::R8G8B8A8_Unorm)
                 , minFilter(minFilter)
                 , magFilter(magFilter)
                 , wrap(wrap)
             {
             }
 
-            TextureParameters(TextureWrap wrap)
-                : format(Format::R8G8B8A8_Unorm)
+            TextureDesc(TextureWrap wrap)
+                : format(RHIFormat::R8G8B8A8_Unorm)
                 , minFilter(TextureFilter::LINEAR)
                 , magFilter(TextureFilter::LINEAR)
                 , wrap(wrap)
             {
             }
 
-            TextureParameters(Format format)
+            TextureDesc(RHIFormat format)
                 : format(format)
                 , minFilter(TextureFilter::LINEAR)
                 , magFilter(TextureFilter::LINEAR)
@@ -373,19 +385,16 @@ namespace Lumos
         {
             bool flipX;
             bool flipY;
-            bool generateMipMaps;
 
             TextureLoadOptions()
             {
                 flipX = false;
                 flipY = false;
-                generateMipMaps = true;
             }
 
-            TextureLoadOptions(bool flipX, bool flipY, bool genMips = true)
+            TextureLoadOptions(bool flipX, bool flipY)
                 : flipX(flipX)
                 , flipY(flipY)
-                , generateMipMaps(genMips)
             {
             }
         };

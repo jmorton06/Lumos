@@ -91,6 +91,9 @@ namespace Lumos
 
             bool OnwindowResizeEvent(WindowResizeEvent& e);
 
+            void GenerateBRDFLUTPass();
+            void DepthPrePass();
+            void SSAOPass();
             void ForwardPass();
             void ShadowPass();
             void SkyboxPass();
@@ -100,7 +103,12 @@ namespace Lumos
             void FinalPass();
 
             // Post Process
+            void ToneMappingPass();
             void BloomPass();
+            void FXAAPass();
+            void DebandingPass();
+            void ChromaticAberationPass();
+            void EyeAdaptationPass();
 
             float SubmitTexture(Texture* texture);
             void UpdateCascades(Scene* scene, Light* light);
@@ -134,13 +142,12 @@ namespace Lumos
             {
                 uint32_t m_Layer = 0;
                 float m_CascadeSplitLambda;
-                float m_SceneRadiusMultiplier;
-
                 float m_LightSize;
                 float m_MaxShadowDistance;
                 float m_ShadowFade;
                 float m_CascadeTransitionFade;
                 float m_InitialBias;
+                float CascadeFarPlaneOffset = 50.0f, CascadeNearPlaneOffset = -50.0f;
                 CommandQueue m_CascadeCommandQueue[SHADOWMAP_MAX];
 
                 TextureDepthArray* m_ShadowTex;
@@ -162,7 +169,7 @@ namespace Lumos
                 Texture2D* m_DefaultTexture;
                 Material* m_DefaultMaterial;
 
-                UniquePtr<Texture2D> m_PreintegratedFG;
+                UniquePtr<Texture2D> m_BRDFLUT;
                 std::vector<Lumos::Graphics::CommandBuffer*> m_CommandBuffers;
 
                 glm::mat4 m_BiasMatrix;
@@ -252,7 +259,10 @@ namespace Lumos
 
         private:
             Texture2D* m_MainTexture = nullptr;
-            Texture* m_ScreenTexture = nullptr;
+            Texture2D* m_LastRenderTarget = nullptr;
+
+            Texture2D* m_PostProcessTexture1 = nullptr;
+            Texture2D* m_PostProcessTexture2 = nullptr;
 
             Camera* m_Camera = nullptr;
             Maths::Transform* m_CameraTransform = nullptr;
@@ -268,6 +278,10 @@ namespace Lumos
 
             int m_ToneMapIndex = 4;
             float m_Exposure = 1.0f;
+            float m_BloomIntensity = 1.0f;
+            Scene* m_CurrentScene = nullptr;
+            bool m_GenerateBRDFLUT = false;
+
             Mesh* m_ScreenQuad;
             Texture* m_CubeMap;
             Texture* m_DefaultTextureCube;
@@ -278,8 +292,37 @@ namespace Lumos
             SharedPtr<Graphics::DescriptorSet> m_FinalPassDescriptorSet;
 
             Texture2D* m_BloomTexture = nullptr;
+            Texture2D* m_BloomTexture1 = nullptr;
+            Texture2D* m_BloomTexture2 = nullptr;
+            Texture2D* m_BloomTextureLastRenderered = nullptr;
+
             SharedPtr<Graphics::Shader> m_BloomPassShader;
             SharedPtr<Graphics::DescriptorSet> m_BloomPassDescriptorSet;
+            SharedPtr<Graphics::DescriptorSet> m_BloomPassDescriptorSet1;
+            SharedPtr<Graphics::DescriptorSet> m_BloomPassDescriptorSet15;
+            SharedPtr<Graphics::DescriptorSet> m_BloomPassDescriptorSet2;
+            SharedPtr<Graphics::DescriptorSet> m_BloomPassDescriptorSet3;
+            SharedPtr<Graphics::DescriptorSet> m_BloomPassDescriptorSet4;
+
+            SharedPtr<Graphics::DescriptorSet> m_FXAAPassDescriptorSet;
+            SharedPtr<Graphics::Shader> m_FXAAShader;
+
+            SharedPtr<Graphics::DescriptorSet> m_DebandingPassDescriptorSet;
+            SharedPtr<Graphics::Shader> m_DebandingShader;
+
+            SharedPtr<Graphics::DescriptorSet> m_ChromaticAberationPassDescriptorSet;
+            SharedPtr<Graphics::Shader> m_ChromaticAberationShader;
+
+            SharedPtr<Graphics::DescriptorSet> m_DepthPrePassDescriptorSet;
+            SharedPtr<Pipeline> m_DepthPrePassPipeline = nullptr;
+            SharedPtr<Graphics::Shader> m_DepthPrePassShader;
+
+            TextureDepth* m_SSAOTexture = nullptr;
+            SharedPtr<Graphics::Shader> m_SSAOShader;
+            SharedPtr<Graphics::DescriptorSet> m_SSAOPassDescriptorSet;
+
+            SharedPtr<Graphics::Shader> m_ToneMappingPassShader;
+            SharedPtr<Graphics::DescriptorSet> m_ToneMappingPassDescriptorSet;
 
             RenderGraphSettings m_Settings;
             RenderGraphStats m_Stats;

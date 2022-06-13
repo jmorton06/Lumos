@@ -108,7 +108,10 @@ namespace Lumos
         if(!FileSystem::FolderExists(m_TempSceneSaveFilePath))
             std::filesystem::create_directory(m_TempSceneSaveFilePath);
 
-        std::vector<std::string> iniLocation = { "Editor.ini", "/Users/jmorton/dev/Lumos/Editor.ini", "../Editor.ini", StringUtilities::GetFileLocation(OS::Instance()->GetExecutablePath()) + "Editor.ini", StringUtilities::GetFileLocation(OS::Instance()->GetExecutablePath()) + "../../../Editor.ini" };
+        std::vector<std::string> iniLocation = {
+            StringUtilities::GetFileLocation(OS::Instance()->GetExecutablePath()) + "Editor.ini",
+            StringUtilities::GetFileLocation(OS::Instance()->GetExecutablePath()) + "../../../Editor.ini"
+        };
         bool fileFound = false;
         std::string filePath;
         for(auto& path : iniLocation)
@@ -178,7 +181,6 @@ namespace Lumos
         m_Panels.emplace_back(CreateSharedPtr<ApplicationInfoPanel>());
         m_Panels.emplace_back(CreateSharedPtr<HierarchyPanel>());
         m_Panels.emplace_back(CreateSharedPtr<SceneSettingsPanel>());
-        m_Panels.back()->SetActive(false);
         m_Panels.emplace_back(CreateSharedPtr<EditorSettingsPanel>());
         m_Panels.back()->SetActive(false);
         m_Panels.emplace_back(CreateSharedPtr<ProjectSettingsPanel>());
@@ -328,6 +330,10 @@ namespace Lumos
     void Editor::OpenFile()
     {
         LUMOS_PROFILE_FUNCTION();
+
+        // Set filePath to working directory
+        auto path = OS::Instance()->GetExecutablePath();
+        std::filesystem::current_path(path);
         m_FileBrowserPanel.SetCallback(BIND_FILEBROWSER_FN(Editor::FileOpenCallback));
         m_FileBrowserPanel.Open();
     }
@@ -338,6 +344,18 @@ namespace Lumos
         m_FileBrowserPanel.Open();
     }
 
+    static std::string projectLocation = "../";
+    static bool reopenNewProjectPopup = false;
+    static bool locationPopupOpened = false;
+
+    void Editor::NewProjectLocationCallback(const std::string& path)
+    {
+        projectLocation = path;
+        m_NewProjectPopupOpen = false;
+        reopenNewProjectPopup = true;
+        locationPopupOpened = false;
+    }
+
     void Editor::DrawMenuBar()
     {
         LUMOS_PROFILE_FUNCTION();
@@ -345,23 +363,16 @@ namespace Lumos
         bool openSaveScenePopup = false;
         bool openNewScenePopup = false;
         bool openReloadScenePopup = false;
+        bool openProjectLoadPopup = !m_ProjectLoaded;
 
         if(ImGui::BeginMainMenuBar())
         {
             if(ImGui::BeginMenu("File"))
             {
-                if(ImGui::MenuItem("New Project"))
-                {
-                    m_FileBrowserPanel.SetOpenDirectory(true);
-                    m_FileBrowserPanel.SetCallback(BIND_FILEBROWSER_FN(Editor::NewProjectOpenCallback));
-                    m_FileBrowserPanel.Open();
-                }
-
                 if(ImGui::MenuItem("Open Project"))
                 {
-                    m_FileBrowserPanel.SetCurrentPath(m_ProjectSettings.m_ProjectRoot);
-                    m_FileBrowserPanel.SetCallback(BIND_FILEBROWSER_FN(Editor::ProjectOpenCallback));
-                    m_FileBrowserPanel.Open();
+                    reopenNewProjectPopup = false;
+                    openProjectLoadPopup = true;
                 }
 
                 ImGui::Separator();
@@ -613,7 +624,9 @@ namespace Lumos
                 }
                 if(ImGui::MenuItem("Embed Shaders"))
                 {
-                    auto shaderPath = std::filesystem::path("/Users/jmorton/dev/Lumos/Lumos/Assets/Shaders/CompiledSPV/");
+                    std::string coreDataPath;
+                    VFS::Get().ResolvePhysicalPath("//CoreShaders", coreDataPath, true);
+                    auto shaderPath = std::filesystem::path(coreDataPath + "/CompiledSPV/");
                     int shaderCount = 0;
                     if(std::filesystem::is_directory(shaderPath))
                     {
@@ -893,8 +906,24 @@ namespace Lumos
             ImGui::EndPopup();
         }
 
+        if(locationPopupOpened)
+        {
+            // Cancel clicked on project location popups
+            if(!m_FileBrowserPanel.IsOpen())
+            {
+                m_NewProjectPopupOpen = false;
+                locationPopupOpened = false;
+                reopenNewProjectPopup = true;
+            }
+        }
         if(openNewScenePopup)
             ImGui::OpenPopup("New Scene");
+
+        if((reopenNewProjectPopup || openProjectLoadPopup) && !m_NewProjectPopupOpen)
+        {
+            ImGui::OpenPopup("Open Project");
+            reopenNewProjectPopup = false;
+        }
 
         if(ImGui::BeginPopupModal("New Scene", NULL, ImGuiWindowFlags_AlwaysAutoResize))
         {
@@ -928,6 +957,78 @@ namespace Lumos
             if(ImGui::Button("Cancel", ImVec2(120, 0)))
             {
                 ImGui::CloseCurrentPopup();
+            }
+            ImGui::EndPopup();
+        }
+
+        if(ImGui::BeginPopupModal("Open Project", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+        {
+            if(ImGui::Button("Load Project"))
+            {
+                ImGui::CloseCurrentPopup();
+
+                m_NewProjectPopupOpen = true;
+                locationPopupOpened = true;
+
+                // Set filePath to working directory
+                const auto& path = OS::Instance()->GetExecutablePath();
+                auto& browserPath = m_FileBrowserPanel.GetPath();
+                browserPath = std::filesystem::path(path);
+                m_FileBrowserPanel.SetFileTypeFilters({ ".lmproj" });
+                m_FileBrowserPanel.SetOpenDirectory(false);
+                m_FileBrowserPanel.SetCallback(BIND_FILEBROWSER_FN(ProjectOpenCallback));
+                m_FileBrowserPanel.Open();
+            }
+
+            ImGui::Separator();
+
+            ImGui::TextUnformatted("Create New Project?\n");
+
+            static std::string newProjectName = "New Project";
+            ImGuiUtilities::InputText(newProjectName);
+
+            if(ImGui::Button(ICON_MDI_FOLDER))
+            {
+                ImGui::CloseCurrentPopup();
+
+                m_NewProjectPopupOpen = true;
+                locationPopupOpened = true;
+
+                // Set filePath to working directory
+                const auto& path = OS::Instance()->GetExecutablePath();
+                auto& browserPath = m_FileBrowserPanel.GetPath();
+                browserPath = std::filesystem::path(path);
+                m_FileBrowserPanel.ClearFileTypeFilters();
+                m_FileBrowserPanel.SetOpenDirectory(true);
+                m_FileBrowserPanel.SetCallback(BIND_FILEBROWSER_FN(NewProjectLocationCallback));
+                m_FileBrowserPanel.Open();
+            }
+
+            ImGui::SameLine();
+
+            ImGui::TextUnformatted(projectLocation.c_str());
+
+            ImGui::Separator();
+
+            if(ImGui::Button("Create", ImVec2(120, 0)))
+            {
+                Application::Get().OpenNewProject(projectLocation, newProjectName);
+                m_FileBrowserPanel.SetOpenDirectory(false);
+
+                for(int i = 0; i < int(m_Panels.size()); i++)
+                {
+                    m_Panels[i]->OnNewProject();
+                }
+
+                ImGui::CloseCurrentPopup();
+            }
+
+            ImGui::SetItemDefaultFocus();
+            ImGui::SameLine();
+            if(ImGui::Button("Exit", ImVec2(120, 0)))
+            {
+                ImGui::CloseCurrentPopup();
+                SetAppState(AppState::Closing);
             }
             ImGui::EndPopup();
         }
@@ -1143,6 +1244,7 @@ namespace Lumos
             ImGui::DockBuilderDockWindow("ApplicationInfo", DockLeft);
             ImGui::DockBuilderDockWindow("###hierarchy", DockLeft);
             ImGui::DockBuilderDockWindow("###textEdit", DockMiddle);
+            ImGui::DockBuilderDockWindow("###scenesettings", DockLeft);
 
             ImGui::DockBuilderFinish(DockspaceID);
         }
@@ -1236,7 +1338,7 @@ namespace Lumos
     {
         LUMOS_PROFILE_FUNCTION();
 #if 1
-        if(!m_GridRenderer)
+        if(!m_GridRenderer || !Application::Get().GetSceneManager()->GetCurrentScene())
         {
             return;
         }
@@ -1873,8 +1975,11 @@ namespace Lumos
         LUMOS_PROFILE_FUNCTION();
         if(!m_PreviewTexture)
         {
-            m_PreviewTexture = SharedPtr<Graphics::Texture2D>(Graphics::Texture2D::Create());
-            m_PreviewTexture->BuildTexture(Graphics::Format::R8G8B8A8_Unorm, 200, 200, false, false, false);
+            Graphics::TextureDesc desc;
+            desc.format = Graphics::RHIFormat::R8G8B8A8_Unorm;
+            desc.flags = Graphics::TextureFlags::Texture_RenderTarget;
+
+            m_PreviewTexture = SharedPtr<Graphics::Texture2D>(Graphics::Texture2D::Create(desc, 200, 200));
 
             // m_PreviewRenderer = CreateSharedPtr<Graphics::ForwardRenderer>(200, 200, false);
             m_PreviewSphere = SharedPtr<Graphics::Mesh>(Graphics::CreateSphere());
@@ -1959,6 +2064,10 @@ namespace Lumos
 
     void Editor::ProjectOpenCallback(const std::string& filePath)
     {
+        m_NewProjectPopupOpen = false;
+        reopenNewProjectPopup = false;
+        locationPopupOpened = false;
+        m_FileBrowserPanel.ClearFileTypeFilters();
         Application::Get().OpenProject(filePath);
 
         for(int i = 0; i < int(m_Panels.size()); i++)

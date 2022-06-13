@@ -81,7 +81,7 @@ namespace Lumos::Graphics
 
         m_Name = name;
         m_PBRMaterialTextures = PBRMataterialTextures();
-        auto params = Graphics::TextureParameters(Graphics::Format::R8G8B8A8_Unorm, Graphics::TextureFilter::LINEAR, Graphics::TextureFilter::LINEAR, Graphics::TextureWrap::CLAMP_TO_EDGE);
+        auto params = Graphics::TextureDesc(Graphics::RHIFormat::R8G8B8A8_Unorm, Graphics::TextureFilter::LINEAR, Graphics::TextureFilter::LINEAR, Graphics::TextureWrap::CLAMP_TO_EDGE);
 
         auto filePath = path + "/" + name + "/albedo" + extension;
 
@@ -142,16 +142,17 @@ namespace Lumos::Graphics
         LUMOS_PROFILE_FUNCTION();
 
         m_MaterialProperties->albedoColour = properties.albedoColour;
-        m_MaterialProperties->metallicColour = properties.metallicColour;
-        m_MaterialProperties->roughnessColour = properties.roughnessColour;
-        m_MaterialProperties->usingAlbedoMap = properties.usingAlbedoMap;
-        m_MaterialProperties->usingNormalMap = properties.usingNormalMap;
-        m_MaterialProperties->usingMetallicMap = properties.usingMetallicMap;
-        m_MaterialProperties->usingRoughnessMap = properties.usingRoughnessMap;
-        m_MaterialProperties->usingAOMap = properties.usingAOMap;
-        m_MaterialProperties->usingEmissiveMap = properties.usingEmissiveMap;
+        m_MaterialProperties->metallic = properties.metallic;
+        m_MaterialProperties->roughness = properties.roughness;
+        m_MaterialProperties->emissive = properties.emissive;
+        m_MaterialProperties->albedoMapFactor = properties.albedoMapFactor;
+        m_MaterialProperties->normalMapFactor = properties.normalMapFactor;
+        m_MaterialProperties->metallicMapFactor = properties.metallicMapFactor;
+        m_MaterialProperties->roughnessMapFactor = properties.roughnessMapFactor;
+        m_MaterialProperties->occlusionMapFactor = properties.occlusionMapFactor;
+        m_MaterialProperties->emissiveMapFactor = properties.emissiveMapFactor;
+        m_MaterialProperties->alphaCutoff = properties.alphaCutoff;
         m_MaterialProperties->workflow = properties.workflow;
-        m_MaterialProperties->emissiveColour = properties.emissiveColour;
 
         UpdateMaterialPropertiesData();
     }
@@ -165,7 +166,7 @@ namespace Lumos::Graphics
         else
         {
             m_DescriptorSet->SetTexture("u_AlbedoMap", s_DefaultTexture.get());
-            m_MaterialProperties->usingAlbedoMap = 0.0f;
+            m_MaterialProperties->albedoMapFactor = 0.0f;
         }
 
         // if(pbr)
@@ -173,12 +174,12 @@ namespace Lumos::Graphics
             m_DescriptorSet->SetTexture("u_MetallicMap", m_PBRMaterialTextures.metallic ? m_PBRMaterialTextures.metallic.get() : s_DefaultTexture.get());
 
             if(!m_PBRMaterialTextures.metallic)
-                m_MaterialProperties->usingMetallicMap = 0.0f;
+                m_MaterialProperties->metallicMapFactor = 0.0f;
 
             m_DescriptorSet->SetTexture("u_RoughnessMap", m_PBRMaterialTextures.roughness ? m_PBRMaterialTextures.roughness.get() : s_DefaultTexture.get());
 
             if(!m_PBRMaterialTextures.roughness)
-                m_MaterialProperties->usingRoughnessMap = 0.0f;
+                m_MaterialProperties->roughnessMapFactor = 0.0f;
 
             if(m_PBRMaterialTextures.normal != nullptr)
             {
@@ -187,7 +188,7 @@ namespace Lumos::Graphics
             else
             {
                 m_DescriptorSet->SetTexture("u_NormalMap", s_DefaultTexture.get());
-                m_MaterialProperties->usingNormalMap = 0.0f;
+                m_MaterialProperties->normalMapFactor = 0.0f;
             }
 
             if(m_PBRMaterialTextures.ao != nullptr)
@@ -197,7 +198,7 @@ namespace Lumos::Graphics
             else
             {
                 m_DescriptorSet->SetTexture("u_AOMap", s_DefaultTexture.get());
-                m_MaterialProperties->usingAOMap = 0.0f;
+                m_MaterialProperties->occlusionMapFactor = 0.0f;
             }
 
             if(m_PBRMaterialTextures.emissive != nullptr)
@@ -207,7 +208,7 @@ namespace Lumos::Graphics
             else
             {
                 m_DescriptorSet->SetTexture("u_EmissiveMap", s_DefaultTexture.get());
-                m_MaterialProperties->usingEmissiveMap = 0.0f;
+                m_MaterialProperties->emissiveMapFactor = 0.0f;
             }
 
             UpdateMaterialPropertiesData();

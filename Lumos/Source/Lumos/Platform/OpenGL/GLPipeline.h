@@ -2,6 +2,7 @@
 
 #include "Graphics/RHI/Pipeline.h"
 #include "Graphics/RHI/Framebuffer.h"
+#include "Graphics/RHI/BufferLayout.h"
 
 namespace Lumos
 {

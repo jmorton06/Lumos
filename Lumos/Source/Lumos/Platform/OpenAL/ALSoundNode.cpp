@@ -68,13 +68,13 @@ namespace Lumos
         alSourceStop(m_Source);
     }
 
-    void ALSoundNode::SetSound(Sound* s)
+    void ALSoundNode::SetSound(SharedPtr<Sound> s)
     {
         m_Sound = s;
         if(m_Sound)
         {
             m_TimeLeft = m_Sound->GetLength();
-            alSourcei(m_Source, AL_BUFFER, static_cast<ALSound*>(m_Sound)->GetBuffer());
+            alSourcei(m_Source, AL_BUFFER, m_Sound.As<ALSound>()->GetBuffer());
             alSourcef(m_Source, AL_MAX_DISTANCE, m_Radius);
             alSourcef(m_Source, AL_ROLLOFF_FACTOR, m_RollOffFactor);
             alSourcef(m_Source, AL_REFERENCE_DISTANCE, m_ReferenceDistance);

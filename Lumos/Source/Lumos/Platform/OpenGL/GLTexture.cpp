@@ -1,7 +1,7 @@
 #include "Precompiled.h"
 #include "GLTexture.h"
 #include "Platform/OpenGL/GL.h"
-#include "Platform/OpenGL/GLTools.h"
+#include "Platform/OpenGL/GLUtilities.h"
 #include "Platform/OpenGL/GLShader.h"
 #include "Utilities/LoadImage.h"
 
@@ -9,15 +9,15 @@ namespace Lumos
 {
     namespace Graphics
     {
-        GLTexture2D::GLTexture2D()
-            : m_Width(0)
-            , m_Height(0)
+        GLTexture2D::GLTexture2D(TextureDesc parameters, uint32_t width, uint32_t height)
+            : m_Parameters(parameters)
+            , m_Width(width)
+            , m_Height(height)
         {
             m_Format = m_Parameters.format;
-            glGenTextures(1, &m_Handle);
         }
 
-        GLTexture2D::GLTexture2D(uint32_t width, uint32_t height, void* data, TextureParameters parameters, TextureLoadOptions loadOptions)
+        GLTexture2D::GLTexture2D(uint32_t width, uint32_t height, void* data, TextureDesc parameters, TextureLoadOptions loadOptions)
             : m_FileName("")
             , m_Name("")
             , m_Parameters(parameters)
@@ -32,7 +32,7 @@ namespace Lumos
             m_Handle = Load(data);
         }
 
-        GLTexture2D::GLTexture2D(const std::string& name, const std::string& filename, const TextureParameters parameters, const TextureLoadOptions loadOptions)
+        GLTexture2D::GLTexture2D(const std::string& name, const std::string& filename, const TextureDesc parameters, const TextureLoadOptions loadOptions)
             : m_FileName(filename)
             , m_Name(name)
             , m_Parameters(parameters)
@@ -47,6 +47,15 @@ namespace Lumos
             GLCall(glDeleteTextures(1, &m_Handle));
         }
 
+        void GLTexture2D::Resize(uint32_t width, uint32_t height)
+        {
+            m_Width = width;
+            m_Height = height;
+
+            GLCall(glDeleteTextures(1, &m_Handle));
+            BuildTexture();
+        }
+
         uint32_t GLTexture2D::LoadTexture(void* data) const
         {
             uint32_t handle;
@@ -54,11 +63,11 @@ namespace Lumos
             GLCall(glBindTexture(GL_TEXTURE_2D, handle));
             GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, m_Parameters.minFilter == TextureFilter::LINEAR ? GL_LINEAR_MIPMAP_LINEAR : GL_NEAREST));
             GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, m_Parameters.magFilter == TextureFilter::LINEAR ? GL_LINEAR : GL_NEAREST));
-            GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GLTools::TextureWrapToGL(m_Parameters.wrap)));
-            GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GLTools::TextureWrapToGL(m_Parameters.wrap)));
+            GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GLUtilities::TextureWrapToGL(m_Parameters.wrap)));
+            GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GLUtilities::TextureWrapToGL(m_Parameters.wrap)));
 
-            uint32_t format = GLTools::FormatToGL(m_Parameters.format, m_Parameters.srgb);
-            GLCall(glTexImage2D(GL_TEXTURE_2D, 0, format, m_Width, m_Height, 0, GLTools::FormatToInternalFormat(format), isHDR ? GL_FLOAT : GL_UNSIGNED_BYTE, data ? data : NULL));
+            uint32_t format = GLUtilities::FormatToGL(m_Parameters.format, m_Parameters.srgb);
+            GLCall(glTexImage2D(GL_TEXTURE_2D, 0, format, m_Width, m_Height, 0, GLUtilities::FormatToInternalFormat(format), isHDR ? GL_FLOAT : GL_UNSIGNED_BYTE, data ? data : NULL));
             GLCall(glGenerateMipmap(GL_TEXTURE_2D));
 #ifdef LUMOS_DEBUG
             GLCall(glBindTexture(GL_TEXTURE_2D, 0));
@@ -91,7 +100,7 @@ namespace Lumos
         void GLTexture2D::SetData(const void* pixels)
         {
             GLCall(glBindTexture(GL_TEXTURE_2D, m_Handle));
-            GLCall(glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, m_Width, m_Height, GLTools::FormatToGL(m_Parameters.format, m_Parameters.srgb), GL_UNSIGNED_BYTE, pixels));
+            GLCall(glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, m_Width, m_Height, GLUtilities::FormatToGL(m_Parameters.format, m_Parameters.srgb), GL_UNSIGNED_BYTE, pixels));
             GLCall(glGenerateMipmap(GL_TEXTURE_2D));
         }
 
@@ -107,31 +116,27 @@ namespace Lumos
             GLCall(glBindTexture(GL_TEXTURE_2D, 0));
         }
 
-        void GLTexture2D::BuildTexture(const Format internalformat, uint32_t width, uint32_t height, bool srgb, bool depth, bool samplerShadow)
+        void GLTexture2D::BuildTexture()
         {
-            m_Format = internalformat;
-
-            m_Width = width;
-            m_Height = height;
             m_Name = "Texture Attachment";
 
-            uint32_t Format = GLTools::FormatToGL(internalformat, srgb);
-            uint32_t Format2 = GLTools::FormatToInternalFormat(Format);
+            uint32_t Format = GLUtilities::FormatToGL(m_Format, m_Parameters.srgb);
+            uint32_t Format2 = GLUtilities::FormatToInternalFormat(Format);
 
             glBindTexture(GL_TEXTURE_2D, m_Handle);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
-            if(samplerShadow)
-            {
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
-#ifndef LUMOS_PLATFORM_MOBILE
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_R_TO_TEXTURE);
-                glTexParameteri(GL_TEXTURE_2D, GL_DEPTH_TEXTURE_MODE, GL_INTENSITY);
-#endif
-            }
+            //             if(samplerShadow)
+            //             {
+            //                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
+            // #ifndef LUMOS_PLATFORM_MOBILE
+            //                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_R_TO_TEXTURE);
+            //                 glTexParameteri(GL_TEXTURE_2D, GL_DEPTH_TEXTURE_MODE, GL_INTENSITY);
+            // #endif
+            //             }
 
-            glTexImage2D(GL_TEXTURE_2D, 0, Format, width, height, 0, Format2, depth ? GL_UNSIGNED_BYTE : GL_FLOAT, nullptr);
+            glTexImage2D(GL_TEXTURE_2D, 0, Format, m_Width, m_Height, 0, Format2, GL_FLOAT, nullptr);
         }
 
         uint8_t* GLTexture2D::LoadTextureData()
@@ -197,7 +202,7 @@ namespace Lumos
             m_Format = m_Parameters.format;
         }
 
-        GLTextureCube::GLTextureCube(const std::string* files, uint32_t mips, TextureParameters params, TextureLoadOptions loadOptions)
+        GLTextureCube::GLTextureCube(const std::string* files, uint32_t mips, TextureDesc params, TextureLoadOptions loadOptions)
         {
             m_Parameters = params;
             m_NumMips = mips;
@@ -241,7 +246,7 @@ namespace Lumos
             const std::string& zpos = m_Files[4];
             const std::string& zneg = m_Files[5];
 
-            m_Parameters.format = Format::R8G8B8A8_Unorm;
+            m_Parameters.format = RHIFormat::R8G8B8A8_Unorm;
 
             uint32_t width, height, bits;
             bool isHDR = false;
@@ -260,7 +265,7 @@ namespace Lumos
             GLCall(glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
             GLCall(glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
 
-            uint32_t internalFormat = GLTools::FormatToGL(m_Parameters.format, m_Parameters.srgb);
+            uint32_t internalFormat = GLUtilities::FormatToGL(m_Parameters.format, m_Parameters.srgb);
             uint32_t format = internalFormat;
 
             GLCall(glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X, 0, internalFormat, width, height, 0, format, GL_UNSIGNED_BYTE, xp));
@@ -352,8 +357,8 @@ namespace Lumos
             GLCall(glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
             GLCall(glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE));
 
-            uint32_t internalFormat = GLTools::FormatToGL(m_Parameters.format, m_Parameters.srgb);
-            uint32_t format = GLTools::FormatToInternalFormat(internalFormat);
+            uint32_t internalFormat = GLUtilities::FormatToGL(m_Parameters.format, m_Parameters.srgb);
+            uint32_t format = GLUtilities::FormatToInternalFormat(internalFormat);
             for(uint32_t m = 0; m < mips; m++)
             {
                 GLCall(glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X, m, internalFormat, faceWidths[m], faceHeights[m], 0, format, GL_UNSIGNED_BYTE, cubeTextureData[m][3]));
@@ -388,7 +393,7 @@ namespace Lumos
         {
             GLCall(glGenTextures(1, &m_Handle));
 
-            m_Format = Format::D32_Float;
+            m_Format = RHIFormat::D32_Float;
 
             Init();
         }
@@ -430,7 +435,7 @@ namespace Lumos
         {
             m_Width = width;
             m_Height = height;
-            m_Format = Format::D16_Unorm;
+            m_Format = RHIFormat::D16_Unorm;
 
             Init();
         }
@@ -440,7 +445,7 @@ namespace Lumos
             , m_Height(height)
             , m_Count(count)
         {
-            m_Format = Format::D16_Unorm;
+            m_Format = RHIFormat::D16_Unorm;
             GLTextureDepthArray::Init();
         }
 
@@ -500,17 +505,17 @@ namespace Lumos
             GLCall(glBindTexture(GL_TEXTURE_2D_ARRAY, 0));
         }
 
-        Texture2D* GLTexture2D::CreateFuncGL()
+        Texture2D* GLTexture2D::CreateFuncGL(TextureDesc parameters, uint32_t width, uint32_t height)
         {
-            return new GLTexture2D();
+            return new GLTexture2D(parameters, width, height);
         }
 
-        Texture2D* GLTexture2D::CreateFromSourceFuncGL(uint32_t width, uint32_t height, void* data, TextureParameters parameters, TextureLoadOptions loadoptions)
+        Texture2D* GLTexture2D::CreateFromSourceFuncGL(uint32_t width, uint32_t height, void* data, TextureDesc parameters, TextureLoadOptions loadoptions)
         {
             return new GLTexture2D(width, height, data, parameters, loadoptions);
         }
 
-        Texture2D* GLTexture2D::CreateFromFileFuncGL(const std::string& name, const std::string& filename, TextureParameters parameters, TextureLoadOptions loadoptions)
+        Texture2D* GLTexture2D::CreateFromFileFuncGL(const std::string& name, const std::string& filename, TextureDesc parameters, TextureLoadOptions loadoptions)
         {
             return new GLTexture2D(name, filename, parameters, loadoptions);
         }
@@ -530,7 +535,7 @@ namespace Lumos
             return new GLTextureCube(files);
         }
 
-        TextureCube* GLTextureCube::CreateFromVCrossFuncGL(const std::string* files, uint32_t mips, TextureParameters params, TextureLoadOptions loadOptions)
+        TextureCube* GLTextureCube::CreateFromVCrossFuncGL(const std::string* files, uint32_t mips, TextureDesc params, TextureLoadOptions loadOptions)
         {
             return new GLTextureCube(files, mips, params, loadOptions);
         }

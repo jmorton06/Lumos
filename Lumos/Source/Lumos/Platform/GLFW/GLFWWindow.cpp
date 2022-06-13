@@ -186,8 +186,9 @@ namespace Lumos
 
 #ifdef LUMOS_PLATFORM_WINDOWS
         SetIcon("//Textures/icon.png", "//Textures/icon32.png");
+#elif LUMOS_PLATFORM_LINUX
+        SetIcon("//Textures/icon.png", "//Textures/icon32.png");
 #endif
-
         // glfwSetWindowPos(m_Handle, mode->width / 2 - m_Data.Width / 2, mode->height / 2 - m_Data.Height / 2);
         glfwSetInputMode(m_Handle, GLFW_STICKY_KEYS, true);
 
@@ -313,14 +314,13 @@ namespace Lumos
                 data.EventCallback(event); });
 
         glfwSetDropCallback(m_Handle, [](GLFWwindow* window, int numDropped, const char** filenames)
-                            {
+            {
             WindowData& data = *static_cast<WindowData*>((glfwGetWindowUserPointer(window)));
 
             std::string filePath = filenames[0];
             WindowFileEvent event(filePath);
-            data.EventCallback(event);
-        });
-        
+            data.EventCallback(event); });
+
         g_MouseCursors[ImGuiMouseCursor_Arrow] = glfwCreateStandardCursor(GLFW_ARROW_CURSOR);
         g_MouseCursors[ImGuiMouseCursor_TextInput] = glfwCreateStandardCursor(GLFW_IBEAM_CURSOR);
         g_MouseCursors[ImGuiMouseCursor_ResizeAll] = glfwCreateStandardCursor(GLFW_ARROW_CURSOR);
@@ -339,6 +339,12 @@ namespace Lumos
         uint32_t width, height;
         uint8_t* pixels = Lumos::LoadImageFromFile(file, &width, &height, nullptr, nullptr, true);
 
+        if(!pixels)
+        {
+            LUMOS_LOG_WARN("Failed to load app icon {0}", file);
+            return;
+        }
+
         std::vector<GLFWimage> images;
         GLFWimage image;
         image.height = height;
@@ -349,6 +355,13 @@ namespace Lumos
         if(smallIconFilePath != "")
         {
             pixels = Lumos::LoadImageFromFile(smallIconFilePath, &width, &height, nullptr, nullptr, true);
+
+            if(!pixels)
+            {
+                LUMOS_LOG_WARN("Failed to load app icon {0}", smallIconFilePath);
+                return;
+            }
+
             image.height = height;
             image.width = width;
             image.pixels = static_cast<unsigned char*>(pixels);

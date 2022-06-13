@@ -170,6 +170,8 @@ namespace Lumos
         LUMOS_PROFILE_FUNCTION();
         ImGui::BeginChild("ScrollRegion", ImVec2(0, 0), false, ImGuiWindowFlags_HorizontalScrollbar);
         {
+            // ImGuiUtilities::AlternatingRowsBackground();
+
             auto messageStart = s_MessageBuffer.begin() + s_MessageBufferBegin;
             if(*messageStart) // If contains old message here
             {

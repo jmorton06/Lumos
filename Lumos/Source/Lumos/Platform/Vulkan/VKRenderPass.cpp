@@ -187,17 +187,17 @@ namespace Lumos
             }
         }
 
-        void VKRenderPass::BeginRenderpass(CommandBuffer* commandBuffer, const glm::vec4& clearColour, Framebuffer* frame, SubPassContents contents, uint32_t width, uint32_t height) const
+        void VKRenderPass::BeginRenderpass(CommandBuffer* commandBuffer, float* clearColour, Framebuffer* frame, SubPassContents contents, uint32_t width, uint32_t height) const
         {
             LUMOS_PROFILE_FUNCTION();
             if(!m_DepthOnly)
             {
                 for(int i = 0; i < m_ClearCount; i++)
                 {
-                    m_ClearValue[i].color.float32[0] = clearColour.x;
-                    m_ClearValue[i].color.float32[1] = clearColour.y;
-                    m_ClearValue[i].color.float32[2] = clearColour.z;
-                    m_ClearValue[i].color.float32[3] = clearColour.w;
+                    m_ClearValue[i].color.float32[0] = clearColour[0];
+                    m_ClearValue[i].color.float32[1] = clearColour[1];
+                    m_ClearValue[i].color.float32[2] = clearColour[2];
+                    m_ClearValue[i].color.float32[3] = clearColour[3];
                 }
             }
 

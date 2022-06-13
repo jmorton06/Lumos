@@ -428,11 +428,16 @@ namespace Lumos
 
         m_SelectUp = Input::Get().GetKeyPressed(Lumos::InputCode::Key::Up);
         m_SelectDown = Input::Get().GetKeyPressed(Lumos::InputCode::Key::Down);
-        ;
 
         ImGui::Begin(m_Name.c_str(), &m_Active, flags);
         {
             auto scene = Application::Get().GetSceneManager()->GetCurrentScene();
+
+            if(!scene)
+            {
+                ImGui::End();
+                return;
+            }
             auto& registry = scene->GetRegistry();
 
             auto AddEntity = [scene]()
@@ -577,6 +582,8 @@ namespace Lumos
                 //                draw_list->AddRectFilled(min, min + availSize, ImGui::ColorConvertFloat4ToU32(ImGui::ColorConvertU32ToFloat4(ImGui::GetColorU32(ImGuiCol_FrameBg)) - ImVec4(0.15f, 0.15f, 0.15f, 0.0f)));
 
                 ImGui::Indent();
+
+                // ImGuiUtilities::AlternatingRowsBackground(ImGui::GetFontSize() + ImGui::GetStyle().FramePadding.y);
 
                 registry.each([&](auto entity)
                     {

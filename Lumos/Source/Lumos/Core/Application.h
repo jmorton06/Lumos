@@ -61,7 +61,7 @@ namespace Lumos
         void OnExitScene();
         void OnSceneViewSizeUpdated(uint32_t width, uint32_t height);
         void OpenProject(const std::string& filePath);
-        void OpenNewProject(const std::string& path);
+        void OpenNewProject(const std::string& path, const std::string& name = "New Project");
 
         virtual void OnQuit();
         virtual void Init();
@@ -287,7 +287,7 @@ namespace Lumos
             std::string m_EngineAssetPath;
             uint32_t Width, Height;
             bool Fullscreen;
-            bool VSync;
+            bool VSync = true;
             bool Borderless = false;
             bool ShowConsole = true;
             std::string Title;
@@ -300,6 +300,7 @@ namespace Lumos
 
     protected:
         ProjectSettings m_ProjectSettings;
+        bool m_ProjectLoaded = false;
 
     private:
         bool OnWindowClose(WindowCloseEvent& e);

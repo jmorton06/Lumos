@@ -818,6 +818,21 @@ end
         if(ImGuiUtilities::Property("Orthograhic", ortho))
             camera.SetIsOrthographic(ortho);
 
+        float aperture = camera.GetAperture();
+        if(ImGuiUtilities::Property("Aperture", aperture, 0.0f, 200.0f))
+            camera.SetAperture(aperture);
+
+        float shutterSpeed = camera.GetShutterSpeed();
+        if(ImGuiUtilities::Property("Shutter Speed", shutterSpeed, 0.0f, 1.0f))
+            camera.SetShutterSpeed(shutterSpeed);
+
+        float sensitivity = camera.GetSensitivity();
+        if(ImGuiUtilities::Property("Sensitivity", sensitivity, 0.0f, 5000.0f))
+            camera.SetSensitivity(sensitivity);
+
+        float exposure = camera.GetExposure();
+        ImGuiUtilities::Property("Exposure", exposure, 0.0f, 0.0f, ImGuiUtilities::PropertyFlag::ReadOnly);
+
         ImGui::Columns(1);
         ImGui::Separator();
     }
@@ -1530,6 +1545,97 @@ end
 
             ImGuiUtilities::Property("Use Map", usingMapProperty, 0.0f, 1.0f);
             ImGuiUtilities::Property("Colour", colourProperty, 0.0f, 1.0f, false, Lumos::ImGuiUtilities::PropertyFlag::ColourProperty);
+            
+            ImGui::Columns(1);
+
+            ImGui::Separator();
+            ImGui::PopStyleVar();
+
+            ImGui::TreePop();
+        }
+    }
+
+    void TextureWidget(const char* label, Lumos::Graphics::Material* material, Lumos::Graphics::Texture2D* tex, bool flipImage, float& usingMapProperty, float& amount, const std::function<void(const std::string&)>& callback, const ImVec2& imageButtonSize = ImVec2(64, 64))
+    {
+        using namespace Lumos;
+        if(ImGui::TreeNodeEx(label, ImGuiTreeNodeFlags_DefaultOpen))
+        {
+            ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
+            ImGui::Columns(2);
+            ImGui::Separator();
+
+            ImGui::AlignTextToFramePadding();
+
+            const ImGuiPayload* payload = ImGui::GetDragDropPayload();
+            auto min = ImGui::GetCurrentWindow()->DC.CursorPos;
+            auto max = min + imageButtonSize + ImGui::GetStyle().FramePadding;
+
+            bool hoveringButton = ImGui::IsMouseHoveringRect(min, max, false);
+            bool showTexture = !(hoveringButton && (payload != NULL && payload->IsDataType("AssetFile")));
+            if(tex && showTexture)
+            {
+                if(ImGui::ImageButton(tex->GetHandle(), imageButtonSize, ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f)))
+                {
+                    Lumos::Editor::GetEditor()->GetFileBrowserPanel().Open();
+                    Lumos::Editor::GetEditor()->GetFileBrowserPanel().SetCallback(callback);
+                }
+
+                if(ImGui::IsItemHovered() && tex)
+                {
+                    ImGui::BeginTooltip();
+                    ImGui::Image(tex->GetHandle(), ImVec2(256, 256), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
+                    ImGui::EndTooltip();
+                }
+            }
+            else
+            {
+                if(ImGui::Button(tex ? "" : "Empty", imageButtonSize))
+                {
+                    Lumos::Editor::GetEditor()->GetFileBrowserPanel().Open();
+                    Lumos::Editor::GetEditor()->GetFileBrowserPanel().SetCallback(callback);
+                }
+            }
+
+            if(payload != NULL && payload->IsDataType("AssetFile"))
+            {
+                auto filePath = std::string(reinterpret_cast<const char*>(payload->Data));
+                if(Lumos::Editor::GetEditor()->IsTextureFile(filePath))
+                {
+                    if(ImGui::BeginDragDropTarget())
+                    {
+                        // Drop directly on to node and append to the end of it's children list.
+                        if(ImGui::AcceptDragDropPayload("AssetFile"))
+                        {
+                            callback(filePath);
+                            ImGui::EndDragDropTarget();
+
+                            ImGui::Columns(1);
+                            ImGui::Separator();
+                            ImGui::PopStyleVar();
+
+                            ImGui::TreePop();
+                            return;
+                        }
+
+                        ImGui::EndDragDropTarget();
+                    }
+                }
+            }
+
+            ImGui::NextColumn();
+            ImGui::PushItemWidth(-1);
+            ImGui::TextUnformatted(tex ? tex->GetFilepath().c_str() : "No Texture");
+            if(tex)
+            {
+                ImGuiUtilities::Tooltip(tex->GetFilepath());
+                ImGui::Text("%u x %u", tex->GetWidth(), tex->GetHeight());
+                ImGui::Text("Mip Levels : %u", tex->GetMipMapLevels());
+            }
+            ImGui::PopItemWidth();
+            ImGui::NextColumn();
+
+            ImGuiUtilities::Property("Use Map", usingMapProperty, 0.0f, 1.0f);
+            ImGuiUtilities::Property("Value", amount, 0.0f, 20.0f);
 
             ImGui::Columns(1);
 
@@ -1545,7 +1651,7 @@ end
     {
         LUMOS_PROFILE_FUNCTION();
         auto& model = *reg.get<Lumos::Graphics::ModelComponent>(e).ModelRef.get();
-        
+
         auto primitiveType = reg.get<Lumos::Graphics::ModelComponent>(e).ModelRef ? model.GetPrimitiveType() : Lumos::Graphics::PrimitiveType::None;
 
         ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
@@ -1572,7 +1678,8 @@ end
                     if(strcmp(shapes[n], "File") != 0)
                     {
                         if(reg.get<Lumos::Graphics::ModelComponent>(e).ModelRef)
-                        {   model.GetMeshes().push_back(Lumos::SharedPtr<Lumos::Graphics::Mesh>(Lumos::Graphics::CreatePrimative(GetPrimativeName(shapes[n]))));
+                        {
+                            model.GetMeshes().push_back(Lumos::SharedPtr<Lumos::Graphics::Mesh>(Lumos::Graphics::CreatePrimative(GetPrimativeName(shapes[n]))));
                             model.SetPrimitiveType(GetPrimativeName(shapes[n]));
                         }
                         else
@@ -1613,7 +1720,7 @@ end
         ImGui::PopStyleVar();
 
         int matIndex = 0;
-        
+
         if(!reg.get<Lumos::Graphics::ModelComponent>(e).ModelRef)
             return;
 
@@ -1635,25 +1742,35 @@ end
                 using namespace Lumos;
                 bool flipImage = Graphics::Renderer::GetGraphicsContext()->FlipImGUITexture();
 
+                bool twoSided = material->GetFlag(Lumos::Graphics::Material::RenderFlags::TWOSIDED);
+                bool depthTested = material->GetFlag(Lumos::Graphics::Material::RenderFlags::DEPTHTEST);
+                
+                if(ImGuiUtilities::Property("Two Sided", twoSided))
+                    material->SetFlag(Lumos::Graphics::Material::RenderFlags::TWOSIDED, twoSided);
+
+                if(ImGuiUtilities::Property("Depth Tested", depthTested))
+                    material->SetFlag(Lumos::Graphics::Material::RenderFlags::DEPTHTEST, depthTested);
+
                 Graphics::MaterialProperties* prop = material->GetProperties();
                 auto colour = glm::vec4();
+                float normal = 0.0f;
                 auto& textures = material->GetTextures();
-                TextureWidget("Albedo", material.get(), textures.albedo.get(), flipImage, prop->usingAlbedoMap, prop->albedoColour, std::bind(&Graphics::Material::SetAlbedoTexture, material, std::placeholders::_1), ImVec2(64, 64) * Application::Get().GetWindowDPI());
+                TextureWidget("Albedo", material.get(), textures.albedo.get(), flipImage, prop->albedoMapFactor, prop->albedoColour, std::bind(&Graphics::Material::SetAlbedoTexture, material, std::placeholders::_1), ImVec2(64, 64) * Application::Get().GetWindowDPI());
                 ImGui::Separator();
 
-                TextureWidget("Normal", material.get(), textures.normal.get(), flipImage, prop->usingNormalMap, colour, std::bind(&Graphics::Material::SetNormalTexture, material, std::placeholders::_1), ImVec2(64, 64) * Application::Get().GetWindowDPI());
+                TextureWidget("Normal", material.get(), textures.normal.get(), flipImage, prop->normalMapFactor, normal, std::bind(&Graphics::Material::SetNormalTexture, material, std::placeholders::_1), ImVec2(64, 64) * Application::Get().GetWindowDPI());
                 ImGui::Separator();
 
-                TextureWidget("Metallic", material.get(), textures.metallic.get(), flipImage, prop->usingMetallicMap, prop->metallicColour, std::bind(&Graphics::Material::SetMetallicTexture, material, std::placeholders::_1), ImVec2(64, 64) * Application::Get().GetWindowDPI());
+                TextureWidget("Metallic", material.get(), textures.metallic.get(), flipImage, prop->metallicMapFactor, prop->metallic, std::bind(&Graphics::Material::SetMetallicTexture, material, std::placeholders::_1), ImVec2(64, 64) * Application::Get().GetWindowDPI());
                 ImGui::Separator();
 
-                TextureWidget("Roughness", material.get(), textures.roughness.get(), flipImage, prop->usingRoughnessMap, prop->roughnessColour, std::bind(&Graphics::Material::SetRoughnessTexture, material, std::placeholders::_1), ImVec2(64, 64) * Application::Get().GetWindowDPI());
+                TextureWidget("Roughness", material.get(), textures.roughness.get(), flipImage, prop->roughnessMapFactor, prop->roughness, std::bind(&Graphics::Material::SetRoughnessTexture, material, std::placeholders::_1), ImVec2(64, 64) * Application::Get().GetWindowDPI());
                 ImGui::Separator();
 
-                TextureWidget("AO", material.get(), textures.ao.get(), flipImage, prop->usingAOMap, colour, std::bind(&Graphics::Material::SetAOTexture, material, std::placeholders::_1), ImVec2(64, 64) * Application::Get().GetWindowDPI());
+                TextureWidget("AO", material.get(), textures.ao.get(), flipImage, prop->occlusionMapFactor, normal, std::bind(&Graphics::Material::SetAOTexture, material, std::placeholders::_1), ImVec2(64, 64) * Application::Get().GetWindowDPI());
                 ImGui::Separator();
 
-                TextureWidget("Emissive", material.get(), textures.emissive.get(), flipImage, prop->usingEmissiveMap, prop->emissiveColour, std::bind(&Graphics::Material::SetEmissiveTexture, material, std::placeholders::_1), ImVec2(64, 64) * Application::Get().GetWindowDPI());
+                TextureWidget("Emissive", material.get(), textures.emissive.get(), flipImage, prop->emissiveMapFactor, prop->emissive, std::bind(&Graphics::Material::SetEmissiveTexture, material, std::placeholders::_1), ImVec2(64, 64) * Application::Get().GetWindowDPI());
 
                 ImGui::Columns(2);
 
@@ -1909,7 +2026,7 @@ namespace Lumos
         m_EnttEditor.registerComponent<ComponentType>(Name.c_str());         \
     }
         TRIVIAL_COMPONENT(Maths::Transform, "Transform");
-        //TRIVIAL_COMPONENT(Graphics::Model, "Model");
+        // TRIVIAL_COMPONENT(Graphics::Model, "Model");
         TRIVIAL_COMPONENT(Graphics::ModelComponent, "ModelComponent");
         TRIVIAL_COMPONENT(Camera, "Camera");
         TRIVIAL_COMPONENT(AxisConstraintComponent, "AxisConstraint");
@@ -1929,11 +2046,19 @@ namespace Lumos
     void InspectorPanel::OnImGui()
     {
         LUMOS_PROFILE_FUNCTION();
-        auto& registry = Application::Get().GetSceneManager()->GetCurrentScene()->GetRegistry();
+
         auto selected = m_Editor->GetSelected();
 
         if(ImGui::Begin(m_Name.c_str(), &m_Active))
         {
+            if(!Application::Get().GetSceneManager()->GetCurrentScene())
+            {
+                m_Editor->SetSelected(entt::null);
+                ImGui::End();
+                return;
+            }
+
+            auto& registry = Application::Get().GetSceneManager()->GetCurrentScene()->GetRegistry();
             if(selected == entt::null || !registry.valid(selected))
             {
                 m_Editor->SetSelected(entt::null);

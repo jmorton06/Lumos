@@ -103,7 +103,7 @@ namespace Lumos
 
         auto flags = ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse;
 
-        if(!ImGui::Begin(m_Name.c_str(), &m_Active, flags))
+        if(!ImGui::Begin(m_Name.c_str(), &m_Active, flags) || !m_CurrentScene)
         {
             m_GameViewVisible = false;
             ImGui::End();
@@ -130,12 +130,6 @@ namespace Lumos
         {
             ToolBar();
             offset = ImGui::GetCursorPos(); // Usually ImVec2(0.0f, 50.0f);
-        }
-
-        if(!camera)
-        {
-            ImGui::End();
-            return;
         }
 
         auto sceneViewSize = ImGui::GetWindowContentRegionMax() - ImGui::GetWindowContentRegionMin() - offset * 0.5f;
@@ -169,9 +163,6 @@ namespace Lumos
 
         float aspect = static_cast<float>(sceneViewSize.x) / static_cast<float>(sceneViewSize.y);
 
-        if(!Maths::Equals(aspect, camera->GetAspectRatio()))
-            camera->SetAspectRatio(aspect);
-
         if(m_Editor->GetSettings().m_HalfRes)
             sceneViewSize *= 0.5f;
 
@@ -179,6 +170,16 @@ namespace Lumos
 
         if(m_Editor->GetSettings().m_HalfRes)
             sceneViewSize *= 2.0f;
+
+        // Moved this exit down to prevent a crash
+        if(!camera)
+        {
+            ImGui::End();
+            return;
+        }
+
+        if(!Maths::Equals(aspect, camera->GetAspectRatio()))
+            camera->SetAspectRatio(aspect);
 
         ImGuiUtilities::Image(m_GameViewTexture.get(), glm::vec2(sceneViewSize.x, sceneViewSize.y));
 
@@ -266,6 +267,7 @@ namespace Lumos
         // m_RenderGraph
         m_RenderGraph->OnNewScene(scene);
         m_RenderGraph->SetRenderTarget(m_GameViewTexture.get(), true);
+        m_RenderGraph->SetOverrideCamera(nullptr, nullptr);
     }
 
     void GameViewPanel::Resize(uint32_t width, uint32_t height)
@@ -273,7 +275,7 @@ namespace Lumos
         LUMOS_PROFILE_FUNCTION();
         bool resize = false;
 
-        LUMOS_ASSERT(width > 0 && height > 0, "Scene View Dimensions 0");
+        LUMOS_ASSERT(width > 0 && height > 0, "Game View Dimensions 0");
 
         if(m_Width != width || m_Height != height)
         {
@@ -283,11 +285,17 @@ namespace Lumos
         }
 
         if(!m_GameViewTexture)
-            m_GameViewTexture = SharedPtr<Graphics::Texture2D>(Graphics::Texture2D::Create());
+        {
+            Graphics::TextureDesc mainRenderTargetDesc;
+            mainRenderTargetDesc.format = Graphics::RHIFormat::R8G8B8A8_Unorm;
+            mainRenderTargetDesc.flags = Graphics::TextureFlags::Texture_RenderTarget;
+
+            m_GameViewTexture = SharedPtr<Graphics::Texture2D>(Graphics::Texture2D::Create(mainRenderTargetDesc, m_Width, m_Height));
+        }
 
         if(resize)
         {
-            m_GameViewTexture->BuildTexture(Graphics::Format::R8G8B8A8_Unorm, m_Width, m_Height, false, false, false);
+            m_GameViewTexture->Resize(m_Width, m_Height);
             m_RenderGraph->SetRenderTarget(m_GameViewTexture.get(), true, false);
             m_RenderGraph->OnResize(width, height);
         }

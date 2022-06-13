@@ -23,13 +23,14 @@
 #
 
 ## Screenshots
-![Lumos](/Resources/Screenshot0721.png?raw=true)
+![Lumos](/Resources/Screenshot0622.png?raw=true)
 #
 
 ## Building 🔨
 
 ```
 git clone https://github.com/jmorton06/Lumos.git
+git submodule update --init --recursive
 ```
 
 #### Linux
