@@ -198,10 +198,11 @@ namespace Lumos::Graphics
         Graphics::MaterialProperties properties;
 
         properties.albedoColour = ToLumosVector(material->getDiffuseColor());
-        properties.metallicColour = ToLumosVector(material->getSpecularColor());
+        properties.metallic = material->getSpecularColor().r;
 
         float roughness = 1.0f - Maths::Sqrt(float(material->getShininess()) / 100.0f);
-        properties.roughnessColour = glm::vec4(roughness);
+        properties.roughness = roughness;
+        properties.roughness = roughness;
 
         textures.albedo = LoadTexture(material, ofbx::Texture::TextureType::DIFFUSE);
         textures.normal = LoadTexture(material, ofbx::Texture::TextureType::NORMAL);
@@ -212,17 +213,17 @@ namespace Lumos::Graphics
         textures.ao = LoadTexture(material, ofbx::Texture::TextureType::AMBIENT);
 
         if(!textures.albedo)
-            properties.usingAlbedoMap = 0.0f;
+            properties.albedoMapFactor = 0.0f;
         if(!textures.normal)
-            properties.usingNormalMap = 0.0f;
+            properties.normalMapFactor = 0.0f;
         if(!textures.metallic)
-            properties.usingMetallicMap = 0.0f;
+            properties.metallicMapFactor = 0.0f;
         if(!textures.roughness)
-            properties.usingRoughnessMap = 0.0f;
+            properties.roughnessMapFactor = 0.0f;
         if(!textures.emissive)
-            properties.usingEmissiveMap = 0.0f;
+            properties.emissiveMapFactor = 0.0f;
         if(!textures.ao)
-            properties.usingAOMap = 0.0f;
+            properties.occlusionMapFactor = 0.0f;
 
         pbrMaterial->SetTextures(textures);
         pbrMaterial->SetMaterialProperites(properties);

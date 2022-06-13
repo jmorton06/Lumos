@@ -10,7 +10,7 @@ namespace Lumos
         struct LUMOS_EXPORT BufferElement
         {
             std::string name;
-            Format format = Format::R32G32B32A32_Float;
+            RHIFormat format = RHIFormat::R32G32B32A32_Float;
             uint32_t offset = 0;
             bool Normalised = false;
         };
@@ -40,7 +40,7 @@ namespace Lumos
             }
 
         private:
-            void Push(const std::string& name, Format format, uint32_t size, bool Normalised);
+            void Push(const std::string& name, RHIFormat format, uint32_t size, bool Normalised);
         };
 
         template <>

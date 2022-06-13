@@ -34,7 +34,7 @@ project "LumosEditor"
 		"../Lumos/Source/Lumos",
 	}
 
-	sysincludedirs
+externalincludedirs
 	{
 		"%{IncludeDir.entt}",
 		"%{IncludeDir.GLFW}",
@@ -49,8 +49,8 @@ project "LumosEditor"
 		"%{IncludeDir.spdlog}",
 		"%{IncludeDir.freetype}",
 		"%{IncludeDir.SpirvCross}",
-	"%{IncludeDir.cereal}",
-	"%{IncludeDir.glm}",
+		"%{IncludeDir.cereal}",
+		"%{IncludeDir.glm}",
 		"%{IncludeDir.Lumos}",
 	}
 
@@ -85,6 +85,7 @@ project "LumosEditor"
 		staticruntime "On"
 		systemversion "latest"
 		entrypoint "WinMainCRTStartup"
+		conformancemode "on"
 
 		defines
 		{
@@ -161,7 +162,7 @@ project "LumosEditor"
 		files
 		{
 			"../Resources/AppIcons/Assets.xcassets",
-			"../Lumos/External/vulkan/libs/macOS/libMoltenVK.dylib"
+			--"../Lumos/External/vulkan/libs/macOS/libMoltenVK.dylib"
 		}
 
 		links

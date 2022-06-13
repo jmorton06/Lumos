@@ -2,6 +2,12 @@
 #include "EditorPanel.h"
 #include <functional>
 
+#if __has_include(<filesystem>)
+#include <filesystem>
+#elif __has_include(<experimental/filesystem>)
+#include <experimental/filesystem>
+#endif
+
 namespace ImGui
 {
     class FileBrowser;
@@ -23,6 +29,11 @@ namespace Lumos
         {
             m_Callback = callback;
         }
+
+        bool IsOpen();
+        void SetFileTypeFilters(const std::vector<const char*>& fileFilters);
+        void ClearFileTypeFilters();
+        std::filesystem::path& GetPath();
 
     private:
         std::function<void(const std::string&)> m_Callback;

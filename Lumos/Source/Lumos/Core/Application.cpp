@@ -75,8 +75,8 @@ namespace Lumos
         auto projectRoot = StringUtilities::GetFileLocation(filePath);
         m_ProjectSettings.m_ProjectRoot = projectRoot;
 
-        m_ProjectSettings.m_ProjectRoot = StringUtilities::RemoveSpaces(m_ProjectSettings.m_ProjectRoot);
-        m_ProjectSettings.m_ProjectName = StringUtilities::RemoveSpaces(m_ProjectSettings.m_ProjectName);
+        // m_ProjectSettings.m_ProjectRoot = StringUtilities::RemoveSpaces(m_ProjectSettings.m_ProjectRoot);
+        // m_ProjectSettings.m_ProjectName = StringUtilities::RemoveSpaces(m_ProjectSettings.m_ProjectName);
 #endif
 
         m_SceneManager = CreateUniquePtr<SceneManager>();
@@ -87,12 +87,12 @@ namespace Lumos
         m_SceneManager->ApplySceneSwitch();
     }
 
-    void Application::OpenNewProject(const std::string& path)
+    void Application::OpenNewProject(const std::string& path, const std::string& name)
     {
         LUMOS_PROFILE_FUNCTION();
-        m_ProjectSettings.m_ProjectRoot = path + "NewProject/";
-        m_ProjectSettings.m_ProjectName = "NewProject";
-        m_ProjectSettings.m_ProjectRoot = StringUtilities::RemoveSpaces(m_ProjectSettings.m_ProjectRoot);
+        m_ProjectSettings.m_ProjectRoot = path + name + "/";
+        m_ProjectSettings.m_ProjectName = name;
+        // m_ProjectSettings.m_ProjectRoot = StringUtilities::RemoveSpaces(m_ProjectSettings.m_ProjectRoot);
 
         std::filesystem::create_directory(m_ProjectSettings.m_ProjectRoot);
 
@@ -104,12 +104,14 @@ namespace Lumos
         m_ProjectSettings.Width = 1200;
         m_ProjectSettings.Height = 800;
         m_ProjectSettings.Borderless = false;
-        m_ProjectSettings.VSync = false;
+        m_ProjectSettings.VSync = true;
         m_ProjectSettings.Title = "App";
         m_ProjectSettings.ShowConsole = false;
         m_ProjectSettings.Fullscreen = false;
 
 #ifdef LUMOS_PLATFORM_MACOS
+        // This is assuming Application in bin/Release-macos-x86_64/LumosEditor.app
+        LUMOS_LOG_INFO(StringUtilities::GetFileLocation(OS::Instance()->GetExecutablePath()));
         m_ProjectSettings.m_EngineAssetPath = StringUtilities::GetFileLocation(OS::Instance()->GetExecutablePath()) + "../../../../../Lumos/Assets/";
 #else
         m_ProjectSettings.m_EngineAssetPath = StringUtilities::GetFileLocation(OS::Instance()->GetExecutablePath()) + "../../Lumos/Assets/";
@@ -144,7 +146,9 @@ namespace Lumos
         m_ProjectSettings.Title = "App";
         m_ProjectSettings.Fullscreen = false;
 
-        // m_SceneManager->ApplySceneSwitch();
+        m_SceneManager->ApplySceneSwitch();
+
+        m_ProjectLoaded = true;
 
         Serialise();
     }
@@ -168,10 +172,6 @@ namespace Lumos
     void Application::Init()
     {
         LUMOS_PROFILE_FUNCTION();
-
-        m_ProjectSettings.m_ProjectRoot = StringUtilities::RemoveSpaces(m_ProjectSettings.m_ProjectRoot);
-        m_ProjectSettings.m_ProjectName = StringUtilities::RemoveSpaces(m_ProjectSettings.m_ProjectName);
-
         m_SceneManager = CreateUniquePtr<SceneManager>();
         Deserialise();
 
@@ -322,14 +322,15 @@ namespace Lumos
         auto& stats = Engine::Get().Statistics();
         auto& ts = Engine::GetTimeStep();
 
-#ifndef LUMOS_ALLOW_LARGE_FRAME_TIME
-        // Exit if frametime excedes 5 seconds
         if(ts.GetSeconds() > 5)
         {
-            LUMOS_LOG_CRITICAL("Large frame time {0}", ts.GetSeconds());
-            // return false;
-        }
+            LUMOS_LOG_WARN("Large frame time {0}", ts.GetSeconds());
+#ifdef LUMOS_DISABLE_LARGE_FRAME_TIME
+            // Added to stop application locking computer
+            // Exit if frametime exceeds 5 seconds
+            return false;
 #endif
+        }
         {
             LUMOS_PROFILE_SCOPE("Application::TimeStepUpdates");
             ts.Update(now);
@@ -381,7 +382,7 @@ namespace Lumos
             Graphics::Framebuffer::DeleteUnusedCache();
             Graphics::RenderPass::DeleteUnusedCache();
 
-            //m_ShaderLibrary->Update(ts.GetElapsedSeconds());
+            // m_ShaderLibrary->Update(ts.GetElapsedSeconds());
             m_ModelLibrary->Update(ts.GetElapsedSeconds());
 
             m_Frames++;
@@ -431,6 +432,9 @@ namespace Lumos
     void Application::OnRender()
     {
         LUMOS_PROFILE_FUNCTION();
+        if(!m_SceneManager->GetCurrentScene())
+            return;
+
         if(!m_DisableMainRenderGraph)
         {
             m_RenderGraph->BeginScene(m_SceneManager->GetCurrentScene());
@@ -450,6 +454,9 @@ namespace Lumos
     void Application::OnUpdate(const TimeStep& dt)
     {
         LUMOS_PROFILE_FUNCTION();
+        if(!m_SceneManager->GetCurrentScene())
+            return;
+
         if(Application::Get().GetEditorState() != EditorState::Paused
             && Application::Get().GetEditorState() != EditorState::Preview)
         {
@@ -544,17 +551,23 @@ namespace Lumos
     void Application::OnImGui()
     {
         LUMOS_PROFILE_FUNCTION();
+        if(!m_SceneManager->GetCurrentScene())
+            return;
+
         m_SceneManager->GetCurrentScene()->OnImGui();
     }
 
     void Application::UpdateSystems()
     {
-        LUMOS_PROFILE_SETTHREADNAME("Update Thread");
-
+        LUMOS_PROFILE_FUNCTION();
         if(Application::Get().GetEditorState() != EditorState::Paused
             && Application::Get().GetEditorState() != EditorState::Preview)
         {
             auto scene = Application::Get().GetSceneManager()->GetCurrentScene();
+
+            if(!scene)
+                return;
+
             Application::Get().GetSystemManager()->OnUpdate(Engine::GetTimeStep(), scene);
         }
     }
@@ -605,14 +618,41 @@ namespace Lumos
             {
                 LUMOS_LOG_INFO("No saved Project file found {0}", filePath);
                 {
+                    m_SceneManager = CreateUniquePtr<SceneManager>();
+
+                    // Set Default values
+                    m_ProjectSettings.RenderAPI = 1;
+                    m_ProjectSettings.Width = 1200;
+                    m_ProjectSettings.Height = 800;
+                    m_ProjectSettings.Borderless = false;
+                    m_ProjectSettings.VSync = true;
+                    m_ProjectSettings.Title = "App";
+                    m_ProjectSettings.ShowConsole = false;
+                    m_ProjectSettings.Fullscreen = false;
+
+                    m_ProjectLoaded = false;
+
 #ifdef LUMOS_PLATFORM_MACOS
-                    OpenNewProject(StringUtilities::GetFileLocation(OS::Instance()->GetExecutablePath()) + "../../../");
+                    // This is assuming Application in bin/Release-macos-x86_64/LumosEditor.app
+                    LUMOS_LOG_INFO(StringUtilities::GetFileLocation(OS::Instance()->GetExecutablePath()));
+                    m_ProjectSettings.m_EngineAssetPath = StringUtilities::GetFileLocation(OS::Instance()->GetExecutablePath()) + "../../../../../Lumos/Assets/";
+
+                    if(!FileSystem::FolderExists(m_ProjectSettings.m_EngineAssetPath))
+                    {
+                        m_ProjectSettings.m_EngineAssetPath = StringUtilities::GetFileLocation(OS::Instance()->GetExecutablePath()) + "../../Lumos/Assets/";
+                    }
 #else
-                    OpenNewProject(StringUtilities::GetFileLocation(OS::Instance()->GetExecutablePath()));
+                    m_ProjectSettings.m_EngineAssetPath = StringUtilities::GetFileLocation(OS::Instance()->GetExecutablePath()) + "../../Lumos/Assets/";
 #endif
+                    VFS::Get().Mount("CoreShaders", m_ProjectSettings.m_EngineAssetPath + std::string("Shaders"));
+
+                    m_SceneManager->EnqueueScene(new Scene("Empty Scene"));
+                    m_SceneManager->SwitchScene(0);
                 }
                 return;
             }
+
+            m_ProjectLoaded = true;
 
             std::string data = FileSystem::ReadTextFile(filePath);
             std::istringstream istr;
@@ -629,7 +669,7 @@ namespace Lumos
                 m_ProjectSettings.Width = 1200;
                 m_ProjectSettings.Height = 800;
                 m_ProjectSettings.Borderless = false;
-                m_ProjectSettings.VSync = false;
+                m_ProjectSettings.VSync = true;
                 m_ProjectSettings.Title = "App";
                 m_ProjectSettings.ShowConsole = false;
                 m_ProjectSettings.Fullscreen = false;

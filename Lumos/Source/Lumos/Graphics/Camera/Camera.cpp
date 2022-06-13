@@ -4,6 +4,17 @@
 
 namespace Lumos
 {
+    Camera::Camera()
+        : m_AspectRatio(1.0f)
+        , m_Near(0.1f)
+        , m_Far(100.0f)
+        , m_Fov(45.0f)
+        , m_ProjectionDirty(true)
+        , m_FrustumDirty(true)
+        , m_Orthographic(false)
+        , m_MouseSensitivity(0.1f)
+    {
+    }
 
     Camera::Camera(float FOV, float Near, float Far, float aspect)
         : m_AspectRatio(aspect)
@@ -32,7 +43,7 @@ namespace Lumos
         , m_Scale(scale)
         , m_FrustumDirty(true)
         , m_ProjectionDirty(true)
-        , m_Fov(0)
+        , m_Fov(60)
         , m_Near(-10.0)
         , m_Far(10.0f)
         , m_Orthographic(true)
@@ -44,7 +55,7 @@ namespace Lumos
         , m_Scale(1.0f)
         , m_FrustumDirty(true)
         , m_ProjectionDirty(true)
-        , m_Fov(0)
+        , m_Fov(60)
         , m_Near(near)
         , m_Far(far)
         , m_Orthographic(true)

@@ -198,7 +198,7 @@ namespace Lumos
                 int width, height;
                 io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
 
-                m_FontTexture = new VKTexture2D(width, height, pixels, TextureParameters(TextureFilter::NEAREST, TextureFilter::NEAREST));
+                m_FontTexture = new VKTexture2D(width, height, pixels, TextureDesc(TextureFilter::NEAREST, TextureFilter::NEAREST));
                 io.Fonts->TexID = (ImTextureID)m_FontTexture->GetHandle();
             }
         }
@@ -211,7 +211,7 @@ namespace Lumos
         {
             LUMOS_PROFILE_FUNCTION();
 
-            GPUProfile("ImGui Pass");
+            LUMOS_PROFILE_GPU("ImGui Pass");
 
             wd->FrameIndex = VKRenderer::GetMainSwapChain()->GetCurrentImageIndex();
             auto& descriptorImageMap = ImGui_ImplVulkan_GetDescriptorImageMap();
@@ -252,7 +252,8 @@ namespace Lumos
 
             ImGui_ImplVulkan_CreateDescriptorSets(ImGui::GetDrawData(), VKRenderer::GetMainSwapChain()->GetCurrentBufferIndex());
 
-            m_Renderpass->BeginRenderpass(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer(), glm::vec4(0.1f, 0.1f, 0.1f, 1.0f), m_Framebuffers[wd->FrameIndex], Graphics::SubPassContents::INLINE, wd->Width, wd->Height);
+            float clearColour[4] = { 0.1f, 0.1f, 0.1f, 1.0f };
+            m_Renderpass->BeginRenderpass(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer(), clearColour, m_Framebuffers[wd->FrameIndex], Graphics::SubPassContents::INLINE, wd->Width, wd->Height);
 
             {
                 LUMOS_PROFILE_SCOPE("ImGui Vulkan RenderDrawData");
@@ -341,7 +342,7 @@ namespace Lumos
                 int width, height;
                 io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
 
-                m_FontTexture = new VKTexture2D(width, height, pixels, TextureParameters(TextureFilter::NEAREST, TextureFilter::NEAREST, TextureWrap::REPEAT));
+                m_FontTexture = new VKTexture2D(width, height, pixels, TextureDesc(TextureFilter::NEAREST, TextureFilter::NEAREST, TextureWrap::REPEAT));
                 io.Fonts->TexID = (ImTextureID)m_FontTexture->GetHandle();
             }
         }

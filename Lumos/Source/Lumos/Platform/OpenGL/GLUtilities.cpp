@@ -1,5 +1,5 @@
 #include "Precompiled.h"
-#include "GLTools.h"
+#include "GLUtilities.h"
 #include "GL.h"
 #include "GLRenderer.h"
 #include "GLTexture.h"
@@ -8,35 +8,35 @@ namespace Lumos
 {
     namespace Graphics
     {
-        uint32_t GLTools::FormatToGL(const Format format, bool srgb)
+        uint32_t GLUtilities::FormatToGL(const RHIFormat format, bool srgb)
         {
             switch(format)
             {
-            case Format::R8_Unorm:
+            case RHIFormat::R8_Unorm:
                 return GL_R8;
-            case Format::R8G8_Unorm:
+            case RHIFormat::R8G8_Unorm:
                 return GL_RG8;
-            case Format::R8G8B8_Unorm:
+            case RHIFormat::R8G8B8_Unorm:
                 return srgb ? GL_SRGB8 : GL_RGB8;
-            case Format::R8G8B8A8_Unorm:
+            case RHIFormat::R8G8B8A8_Unorm:
                 return srgb ? GL_SRGB8_ALPHA8 : GL_RGBA8;
-            case Format::R11G11B10_Float:
+            case RHIFormat::R11G11B10_Float:
                 return GL_R11F_G11F_B10F;
-            case Format::R10G10B10A2_Unorm:
+            case RHIFormat::R10G10B10A2_Unorm:
                 return GL_RGB10_A2;
-            case Format::R16G16B16_Float:
+            case RHIFormat::R16G16B16_Float:
                 return GL_RGB16F;
-            case Format::R16G16B16A16_Float:
+            case RHIFormat::R16G16B16A16_Float:
                 return GL_RGBA16F;
-            case Format::R32G32B32_Float:
+            case RHIFormat::R32G32B32_Float:
                 return GL_RGB32F;
-            case Format::R32G32B32A32_Float:
+            case RHIFormat::R32G32B32A32_Float:
                 return GL_RGBA32F;
-            case Format::D24_Unorm_S8_UInt:
+            case RHIFormat::D24_Unorm_S8_UInt:
                 return GL_DEPTH24_STENCIL8;
-            case Format::D32_Float:
+            case RHIFormat::D32_Float:
                 return GL_DEPTH_COMPONENT32F;
-            case Format::D32_Float_S8_UInt:
+            case RHIFormat::D32_Float_S8_UInt:
                 return GL_DEPTH32F_STENCIL8;
             default:
                 LUMOS_ASSERT(false, "[Texture] Unsupported Format");
@@ -44,7 +44,7 @@ namespace Lumos
             }
         }
 
-        uint32_t GLTools::TextureWrapToGL(const TextureWrap wrap)
+        uint32_t GLUtilities::TextureWrapToGL(const TextureWrap wrap)
         {
             switch(wrap)
             {
@@ -66,7 +66,7 @@ namespace Lumos
             }
         }
 
-        uint32_t GLTools::FormatToInternalFormat(uint32_t format)
+        uint32_t GLUtilities::FormatToInternalFormat(uint32_t format)
         {
             switch(format)
             {
@@ -115,7 +115,7 @@ namespace Lumos
             }
         }
 
-        uint32_t GLTools::StencilTypeToGL(const StencilType type)
+        uint32_t GLUtilities::StencilTypeToGL(const StencilType type)
         {
             switch(type)
             {
@@ -137,7 +137,7 @@ namespace Lumos
             }
         }
 
-        uint32_t GLTools::RendererBufferToGL(uint32_t buffer)
+        uint32_t GLUtilities::RendererBufferToGL(uint32_t buffer)
         {
             uint32_t result = 0;
             if(buffer & RENDERER_BUFFER_COLOUR)
@@ -149,7 +149,7 @@ namespace Lumos
             return result;
         }
 
-        uint32_t GLTools::RendererBlendFunctionToGL(RendererBlendFunction function)
+        uint32_t GLUtilities::RendererBlendFunctionToGL(RendererBlendFunction function)
         {
             switch(function)
             {
@@ -168,7 +168,7 @@ namespace Lumos
             }
         }
 
-        uint32_t GLTools::DataTypeToGL(DataType dataType)
+        uint32_t GLUtilities::DataTypeToGL(DataType dataType)
         {
             switch(dataType)
             {
@@ -185,7 +185,7 @@ namespace Lumos
             return 0;
         }
 
-        uint32_t GLTools::DrawTypeToGL(DrawType drawType)
+        uint32_t GLUtilities::DrawTypeToGL(DrawType drawType)
         {
             switch(drawType)
             {

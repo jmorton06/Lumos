@@ -38,6 +38,11 @@ namespace Lumos
                 return m_FilePath;
             };
 
+            bool IsCompiled() const override
+            {
+                return m_Compiled;
+            }
+
             PushConstant* GetPushConstant(uint32_t index) override
             {
                 LUMOS_ASSERT(index < m_PushConstants.size(), "Push constants out of bounds");
@@ -91,11 +96,12 @@ namespace Lumos
             std::unordered_map<uint32_t, DescriptorSetInfo> m_DescriptorInfos;
 
             VkPipelineShaderStageCreateInfo* m_ShaderStages;
-            uint32_t m_StageCount;
+            uint32_t m_StageCount = 0;
             std::string m_Name;
             std::string m_FilePath;
             std::string m_Source;
             std::vector<ShaderType> m_ShaderTypes;
+            bool m_Compiled = false;
 
             std::vector<VkVertexInputAttributeDescription> m_VertexInputAttributeDescriptions;
             uint32_t m_VertexInputStride = 0;

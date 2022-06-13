@@ -5,9 +5,9 @@ namespace Lumos
 {
     namespace Graphics
     {
-        namespace GLTools
+        namespace GLUtilities
         {
-            uint32_t FormatToGL(Format format, bool srgb = true);
+            uint32_t FormatToGL(RHIFormat format, bool srgb = true);
             uint32_t TextureWrapToGL(TextureWrap wrap);
             uint32_t FormatToInternalFormat(uint32_t format);
             uint32_t StencilTypeToGL(const StencilType type);

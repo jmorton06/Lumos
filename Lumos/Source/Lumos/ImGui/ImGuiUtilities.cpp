@@ -618,8 +618,8 @@ namespace Lumos
             colours[ImGuiCol_DragDropTarget] = ImVec4(0.33f, 0.67f, 0.86f, 1.00f);
             colours[ImGuiCol_NavHighlight] = ImVec4(1.00f, 0.00f, 0.00f, 1.00f);
             colours[ImGuiCol_NavWindowingHighlight] = ImVec4(1.00f, 0.00f, 0.00f, 0.70f);
-            colours[ImGuiCol_NavWindowingDimBg] = ImVec4(1.00f, 0.00f, 0.00f, 0.20f);
-            colours[ImGuiCol_ModalWindowDimBg] = ImVec4(1.00f, 0.00f, 0.00f, 0.35f);
+            colours[ImGuiCol_NavWindowingDimBg] = ImVec4(0.80f, 0.80f, 0.80f, 0.35f);
+            colours[ImGuiCol_ModalWindowDimBg] = ImVec4(0.80f, 0.80f, 0.80f, 0.35f);
         }
         else if(theme == Dark)
         {
@@ -1148,6 +1148,52 @@ namespace Lumos
         return updated;
     }
 
+    // from https://github.com/ocornut/imgui/issues/2668
+    void ImGuiUtilities::AlternatingRowsBackground(float lineHeight)
+    {
+        const ImU32 im_color = ImGui::GetColorU32(ImGuiCol_TableRowBgAlt);
+
+        auto* draw_list = ImGui::GetWindowDrawList();
+        const auto& style = ImGui::GetStyle();
+
+        if(lineHeight < 0)
+        {
+            lineHeight = ImGui::GetTextLineHeight();
+        }
+
+        lineHeight += style.ItemSpacing.y;
+
+        float scroll_offset_h = ImGui::GetScrollX();
+        float scroll_offset_v = ImGui::GetScrollY();
+        float scrolled_out_lines = std::floor(scroll_offset_v / lineHeight);
+        scroll_offset_v -= lineHeight * scrolled_out_lines;
+
+        ImVec2 clip_rect_min(ImGui::GetWindowPos().x, ImGui::GetWindowPos().y);
+        ImVec2 clip_rect_max(clip_rect_min.x + ImGui::GetWindowWidth(), clip_rect_min.y + ImGui::GetWindowHeight());
+
+        if(ImGui::GetScrollMaxX() > 0)
+        {
+            clip_rect_max.y -= style.ScrollbarSize;
+        }
+
+        draw_list->PushClipRect(clip_rect_min, clip_rect_max);
+
+        const float y_min = clip_rect_min.y - scroll_offset_v + ImGui::GetCursorPosY();
+        const float y_max = clip_rect_max.y - scroll_offset_v + lineHeight;
+        const float x_min = clip_rect_min.x + scroll_offset_h + ImGui::GetWindowContentRegionMin().x;
+        const float x_max = clip_rect_min.x + scroll_offset_h + ImGui::GetWindowContentRegionMax().x;
+
+        bool is_odd = (static_cast<int>(scrolled_out_lines) % 2) == 0;
+        for(float y = y_min; y < y_max; y += lineHeight, is_odd = !is_odd)
+        {
+            if(is_odd)
+            {
+                draw_list->AddRectFilled({ x_min, y - style.ItemSpacing.y }, { x_max, y + lineHeight }, im_color);
+            }
+        }
+
+        draw_list->PopClipRect();
+    }
 }
 
 namespace ImGui

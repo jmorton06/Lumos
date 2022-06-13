@@ -13,12 +13,12 @@ namespace Lumos
     public:
         static SoundNode* Create();
         SoundNode();
-        SoundNode(Sound* s);
+        SoundNode(SharedPtr<Sound> s);
         virtual ~SoundNode();
 
         void Reset();
 
-        Sound* GetSound() const { return m_Sound; }
+        SharedPtr<Sound> GetSound() const { return m_Sound; }
 
         void SetVelocity(const glm::vec3& vel) { m_Velocity = vel; }
         glm::vec3 GetVelocity() const { return m_Velocity; }
@@ -59,7 +59,7 @@ namespace Lumos
         virtual void Pause() = 0;
         virtual void Resume() = 0;
         virtual void Stop() = 0;
-        virtual void SetSound(Sound* s);
+        virtual void SetSound(SharedPtr<Sound> s);
 
         template <typename Archive>
         void save(Archive& archive) const
@@ -85,7 +85,7 @@ namespace Lumos
         }
 
     protected:
-        Sound* m_Sound;
+        SharedPtr<Sound> m_Sound;
         glm::vec3 m_Position;
         glm::vec3 m_Velocity;
         float m_Volume;

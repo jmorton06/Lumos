@@ -3,7 +3,7 @@
 #include "Graphics/RHI/Shader.h"
 #include "GLDebug.h"
 #include "GLUniformBuffer.h"
-
+#include "Graphics/RHI/BufferLayout.h"
 #include <spirv_glsl.hpp>
 
 namespace Lumos

@@ -23,44 +23,44 @@ namespace Lumos
             glDeleteVertexArrays(1, &m_VertexArray);
         }
 
-        void VertexAtrribPointer(Format format, uint32_t index, size_t offset, uint32_t stride)
+        void VertexAtrribPointer(RHIFormat format, uint32_t index, size_t offset, uint32_t stride)
         {
             switch(format)
             {
-            case Format::R32_Float:
+            case RHIFormat::R32_Float:
                 GLCall(glVertexAttribPointer(index, 1, GL_FLOAT, false, stride, (const void*)(intptr_t)(offset)));
                 break;
-            case Format::R32G32_Float:
+            case RHIFormat::R32G32_Float:
                 GLCall(glVertexAttribPointer(index, 2, GL_FLOAT, false, stride, (const void*)(intptr_t)(offset)));
                 break;
-            case Format::R32G32B32_Float:
+            case RHIFormat::R32G32B32_Float:
                 GLCall(glVertexAttribPointer(index, 3, GL_FLOAT, false, stride, (const void*)(intptr_t)(offset)));
                 break;
-            case Format::R32G32B32A32_Float:
+            case RHIFormat::R32G32B32A32_Float:
                 GLCall(glVertexAttribPointer(index, 4, GL_FLOAT, false, stride, (const void*)(intptr_t)(offset)));
                 break;
-            case Format::R8_UInt:
+            case RHIFormat::R8_UInt:
                 GLCall(glVertexAttribPointer(index, 1, GL_UNSIGNED_BYTE, false, stride, (const void*)(intptr_t)(offset)));
                 break;
-            case Format::R32_UInt:
+            case RHIFormat::R32_UInt:
                 GLCall(glVertexAttribPointer(index, 1, GL_UNSIGNED_INT, false, stride, (const void*)(intptr_t)(offset)));
                 break;
-            case Format::R32G32_UInt:
+            case RHIFormat::R32G32_UInt:
                 GLCall(glVertexAttribPointer(index, 2, GL_UNSIGNED_INT, false, stride, (const void*)(intptr_t)(offset)));
                 break;
-            case Format::R32G32B32_UInt:
+            case RHIFormat::R32G32B32_UInt:
                 GLCall(glVertexAttribPointer(index, 3, GL_UNSIGNED_INT, false, stride, (const void*)(intptr_t)(offset)));
                 break;
-            case Format::R32G32B32A32_UInt:
+            case RHIFormat::R32G32B32A32_UInt:
                 GLCall(glVertexAttribPointer(index, 4, GL_UNSIGNED_INT, false, stride, (const void*)(intptr_t)(offset)));
                 break;
-            case Format::R32G32_Int:
+            case RHIFormat::R32G32_Int:
                 GLCall(glVertexAttribPointer(index, 2, GL_INT, false, stride, (const void*)(intptr_t)(offset)));
                 break;
-            case Format::R32G32B32_Int:
+            case RHIFormat::R32G32B32_Int:
                 GLCall(glVertexAttribPointer(index, 3, GL_INT, false, stride, (const void*)(intptr_t)(offset)));
                 break;
-            case Format::R32G32B32A32_Int:
+            case RHIFormat::R32G32B32A32_Int:
                 GLCall(glVertexAttribPointer(index, 4, GL_INT, false, stride, (const void*)(intptr_t)(offset)));
                 break;
             }
@@ -136,6 +136,8 @@ namespace Lumos
             renderPassDesc.attachmentTypes = attachmentTypes.data();
             renderPassDesc.attachments = attachments.data();
             renderPassDesc.clear = m_Description.clearTargets;
+            renderPassDesc.cubeMapIndex = m_Description.cubeMapIndex;
+            renderPassDesc.mipIndex = m_Description.mipIndex;
 
             m_RenderPass = Graphics::RenderPass::Get(renderPassDesc);
 

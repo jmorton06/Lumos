@@ -18,7 +18,7 @@ project "spdlog"
 		"include/**.h",
 	}
 
-	sysincludedirs 
+externalincludedirs
 	{
 		"include",
 	}

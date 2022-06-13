@@ -13,27 +13,25 @@ layout(set = 1, binding = 5) uniform sampler2D u_EmissiveMap;
 
 layout(set = 1,binding = 6) uniform UniformMaterialData
 {
-	vec4  albedoColour;
-	vec4  RoughnessColour;
-	vec4  metallicColour;
-	vec4  emissiveColour;
-	float usingAlbedoMap;
-	float usingMetallicMap;
-	float usingRoughnessMap;
-	float usingNormalMap;
-	float usingAOMap;
-	float usingEmissiveMap;
+	vec4  AlbedoColour;
+	float Roughness;
+	float Metallic;
+	float Emissive;
+	float AlbedoMapFactor;
+	float MetallicMapFactor;
+	float RoughnessMapFactor;
+	float NormalMapFactor;
+	float EmissiveMapFactor;
+	float AOMapFactor;
+	float AlphaCutOff;
 	float workflow;
 	float padding;
 } materialProperties;
 
 void main(void)
 {
-	const float alphaCutOut = 0.1;
 	float alpha = texture(u_AlbedoMap, uv).a;
 	
-	if(alpha < alphaCutOut)
+	if(alpha < materialProperties.AlphaCutOff)
 		discard;
-	
-    //depth = gl_FragCoord.z;
 }

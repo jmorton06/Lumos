@@ -27,6 +27,7 @@ namespace Lumos
             virtual const std::string& GetFilePath() const = 0;
 
             virtual void* GetHandle() const = 0;
+            virtual bool IsCompiled() const { return true; }
 
             virtual std::vector<PushConstant>& GetPushConstants() = 0;
             virtual PushConstant* GetPushConstant(uint32_t index) { return nullptr; }

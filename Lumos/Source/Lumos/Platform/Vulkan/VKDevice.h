@@ -35,6 +35,7 @@ namespace Lumos
             {
                 return m_PhysicalDevice;
             }
+
             int32_t GetGraphicsQueueFamilyIndex()
             {
                 return m_QueueFamilyIndices.Graphics;
@@ -96,11 +97,13 @@ namespace Lumos
             VkDevice GetDevice() const
             {
                 return m_Device;
-            };
+            }
+
             VkPhysicalDevice GetGPU() const
             {
                 return m_PhysicalDevice->GetVulkanPhysicalDevice();
-            };
+            }
+
             const SharedPtr<VKPhysicalDevice>& GetPhysicalDevice() const
             {
                 return m_PhysicalDevice;
@@ -109,11 +112,12 @@ namespace Lumos
             VkQueue GetGraphicsQueue() const
             {
                 return m_GraphicsQueue;
-            };
+            }
+
             VkQueue GetPresentQueue() const
             {
                 return m_PresentQueue;
-            };
+            }
 
             const SharedPtr<VKCommandPool>& GetCommandPool() const
             {
