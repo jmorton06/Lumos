@@ -123,7 +123,7 @@ namespace Lumos
             bool FilmicGrainEnabled = true;
             bool MotionBlurEnabled = false;
             bool DepthOfFieldEnabled = false;
-            
+
             // Shadow Settings
             float m_CascadeSplitLambda = 0.92f;
             float m_LightSize = 1.5f;
@@ -185,10 +185,10 @@ namespace Lumos
             archive(cereal::make_nvp("PhysicsEnabled2D", m_Settings.PhysicsEnabled2D), cereal::make_nvp("PhysicsEnabled3D", m_Settings.PhysicsEnabled3D), cereal::make_nvp("AudioEnabled", m_Settings.AudioEnabled), cereal::make_nvp("Renderer2DEnabled", m_Settings.RenderSettings.Renderer2DEnabled),
                 cereal::make_nvp("Renderer3DEnabled", m_Settings.RenderSettings.Renderer3DEnabled), cereal::make_nvp("DebugRenderEnabled", m_Settings.RenderSettings.DebugRenderEnabled), cereal::make_nvp("SkyboxRenderEnabled", m_Settings.RenderSettings.SkyboxRenderEnabled), cereal::make_nvp("ShadowsEnabled", m_Settings.RenderSettings.ShadowsEnabled));
             archive(cereal::make_nvp("Exposure", m_Settings.RenderSettings.m_Exposure), cereal::make_nvp("ToneMap", m_Settings.RenderSettings.m_ToneMapIndex));
-            
+
             archive(cereal::make_nvp("BloomIntensity", m_Settings.RenderSettings.m_BloomIntensity), cereal::make_nvp("BloomKnee", m_Settings.RenderSettings.BloomKnee), cereal::make_nvp("BloomThreshold", m_Settings.RenderSettings.BloomThreshold),
                 cereal::make_nvp("BloomUpsampleScale", m_Settings.RenderSettings.BloomUpsampleScale));
-            
+
             archive(cereal::make_nvp("FXAAEnabled", m_Settings.RenderSettings.FXAAEnabled), cereal::make_nvp("DebandingEnabled", m_Settings.RenderSettings.DebandingEnabled), cereal::make_nvp("ChromaticAberationEnabled", m_Settings.RenderSettings.ChromaticAberationEnabled), cereal::make_nvp("EyeAdaptation", m_Settings.RenderSettings.EyeAdaptation), cereal::make_nvp("SSAOEnabled", m_Settings.RenderSettings.SSAOEnabled), cereal::make_nvp("BloomEnabled", m_Settings.RenderSettings.BloomEnabled), cereal::make_nvp("FilmicGrainEnabled", m_Settings.RenderSettings.FilmicGrainEnabled), cereal::make_nvp("DepthOfFieldEnabled", m_Settings.RenderSettings.DepthOfFieldEnabled), cereal::make_nvp("MotionBlurEnabled", m_Settings.RenderSettings.MotionBlurEnabled));
         }
 

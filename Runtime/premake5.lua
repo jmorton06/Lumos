@@ -93,7 +93,7 @@ project "Runtime"
 			"_DISABLE_EXTENDED_ALIGNED_STORAGE",
 			"_SILENCE_CXX17_ITERATOR_BASE_CLASS_DEPRECATION_WARNING",
 			"LUMOS_VOLK"
-		}
+}
 
 		libdirs
 		{
@@ -126,12 +126,20 @@ project "Runtime"
 		{
 			['ARCHS'] = false,
 			['CODE_SIGN_IDENTITY'] = 'Mac Developer',
-			['PRODUCT_BUNDLE_IDENTIFIER'] = settings.bundle_identifier,
-			['DEVELOPMENT_TEAM'] = 'C5L4T5BF6L',
 			['INFOPLIST_FILE'] = '../Lumos/Source/Lumos/Platform/macOS/Info.plist',
-			['ASSETCATALOG_COMPILER_APPICON_NAME'] = 'AppIcon'
+	['ASSETCATALOG_COMPILER_APPICON_NAME'] = 'AppIcon',
+	['CODE_SIGN_IDENTITY'] = ''
 			--['ENABLE_HARDENED_RUNTIME'] = 'YES'
 }
+
+if settings.enable_signing then
+xcodebuildsettings
+{
+	['PRODUCT_BUNDLE_IDENTIFIER'] = settings.bundle_identifier,
+	['CODE_SIGN_IDENTITY'] = 'Mac Developer',
+	['DEVELOPMENT_TEAM'] = settings.developer_team
+}
+end
 
 		defines
 		{
@@ -156,8 +164,8 @@ project "Runtime"
 
 		files
 		{
-			"../Resources/AppIcons/Assets.xcassets",
-			"../Lumos/External/vulkan/libs/macOS/libMoltenVK.dylib"
+			"../Resources/AppIcons/Assets.xcassets"
+			--"../Lumos/External/vulkan/libs/macOS/libMoltenVK.dylib"
 		}
 
 		links
@@ -226,13 +234,20 @@ project "Runtime"
 			['SDKROOT'] = 'iphoneos',
 			['TARGETED_DEVICE_FAMILY'] = '1,2',
 			['SUPPORTED_PLATFORMS'] = 'iphonesimulator iphoneos',
-			['CODE_SIGN_IDENTITY[sdk=iphoneos*]'] = 'iPhone Developer',
+			['CODE_SIGN_IDENTITY[sdk=iphoneos*]'] = '',
 			['IPHONEOS_DEPLOYMENT_TARGET'] = '13.0',
-			['PRODUCT_BUNDLE_IDENTIFIER'] = settings.bundle_identifier,
-			['DEVELOPMENT_TEAM'] = 'C5L4T5BF6L',
 			['INFOPLIST_FILE'] = '../Lumos/Source/Lumos/Platform/iOS/Client/Info.plist',
-			['ASSETCATALOG_COMPILER_APPICON_NAME'] = 'AppIcon',
-		}
+	['ASSETCATALOG_COMPILER_APPICON_NAME'] = 'AppIcon'
+}
+
+if settings.enable_signing then
+xcodebuildsettings
+{
+	['PRODUCT_BUNDLE_IDENTIFIER'] = settings.bundle_identifier,
+	['CODE_SIGN_IDENTITY[sdk=iphoneos*]'] = 'iPhone Developer',
+	['DEVELOPMENT_TEAM'] = settings.developer_team
+}
+end
 
 		if _OPTIONS["teamid"] then
 			xcodebuildsettings {

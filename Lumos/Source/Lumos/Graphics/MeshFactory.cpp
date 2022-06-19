@@ -580,10 +580,10 @@ namespace Lumos
 
                     Vertex vertex;
                     vertex.Position = p;
-                    //vertex.Normal = glm::vec3(x, z, 0.0f);
-					vertex.Normal = glm::vec3(x, 0.0f, z);
-                    //vertex.TexCoords = glm::vec2(u, onethird + (v * onethird));
-					vertex.TexCoords = glm::vec2(u, v * 0.5f);
+                    // vertex.Normal = glm::vec3(x, z, 0.0f);
+                    vertex.Normal = glm::vec3(x, 0.0f, z);
+                    // vertex.TexCoords = glm::vec2(u, onethird + (v * onethird));
+                    vertex.TexCoords = glm::vec2(u, v * 0.5f);
                     data.emplace_back(vertex);
 
                     point++;

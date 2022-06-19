@@ -1077,7 +1077,7 @@ namespace Lumos
             m_Flags |= TextureFlags::Texture_DepthStencil;
 
             VkFormat depthFormat = VKUtilities::FindDepthFormat();
-            m_VKFormat = VK_FORMAT_D32_SFLOAT;// depthFormat;
+            m_VKFormat = VK_FORMAT_D32_SFLOAT; // depthFormat;
             m_Format = VKUtilities::VKToFormat(m_VKFormat);
 
 #ifdef USE_VMA_ALLOCATOR
