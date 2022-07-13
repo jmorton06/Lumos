@@ -27,7 +27,7 @@ namespace Lumos
         : m_HadRecentDroppedEntity(entt::null)
         , m_DoubleClicked(entt::null)
     {
-        m_Name = "Hierarchy###hierarchy";
+        m_Name       = "Hierarchy###hierarchy";
         m_SimpleName = "Hierarchy";
     }
 
@@ -40,7 +40,7 @@ namespace Lumos
             return;
 
         const auto nameComponent = registry.try_get<NameComponent>(node);
-        std::string name = nameComponent ? nameComponent->name : StringUtilities::ToString(entt::to_integral(node));
+        std::string name         = nameComponent ? nameComponent->name : StringUtilities::ToString(entt::to_integral(node));
 
         if(m_HierarchyFilter.IsActive())
         {
@@ -54,7 +54,7 @@ namespace Lumos
         {
             ImGui::PushID((int)node);
             auto hierarchyComponent = registry.try_get<Hierarchy>(node);
-            bool noChildren = true;
+            bool noChildren         = true;
 
             if(hierarchyComponent != nullptr && hierarchyComponent->First() != entt::null)
                 noChildren = false;
@@ -69,7 +69,7 @@ namespace Lumos
             }
 
             auto activeComponent = registry.try_get<ActiveComponent>(node);
-            bool active = activeComponent ? activeComponent->active : true;
+            bool active          = activeComponent ? activeComponent->active : true;
 
             if(!active)
                 ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
@@ -90,7 +90,7 @@ namespace Lumos
             }
 
             std::string icon = ICON_MDI_CUBE_OUTLINE;
-            auto& iconMap = m_Editor->GetComponentIconMap();
+            auto& iconMap    = m_Editor->GetComponentIconMap();
 
             if(registry.has<Camera>(node))
             {
@@ -181,7 +181,7 @@ namespace Lumos
                 {
                     if(ImGui::Selectable("Paste"))
                     {
-                        auto scene = Application::Get().GetSceneManager()->GetCurrentScene();
+                        auto scene          = Application::Get().GetSceneManager()->GetCurrentScene();
                         Entity copiedEntity = { m_Editor->GetCopiedEntity(), scene };
                         if(!copiedEntity.Valid())
                         {
@@ -240,7 +240,7 @@ namespace Lumos
                 bool acceptable;
 
                 LUMOS_ASSERT(payload->DataSize == sizeof(entt::entity*), "Error ImGUI drag entity");
-                auto entity = *reinterpret_cast<entt::entity*>(payload->Data);
+                auto entity             = *reinterpret_cast<entt::entity*>(payload->Data);
                 auto hierarchyComponent = registry.try_get<Hierarchy>(entity);
                 if(hierarchyComponent != nullptr)
                 {
@@ -326,8 +326,8 @@ namespace Lumos
             }
 
             const ImColor TreeLineColor = ImColor(128, 128, 128, 128);
-            const float SmallOffsetX = 6.0f * Application::Get().GetWindowDPI();
-            ImDrawList* drawList = ImGui::GetWindowDrawList();
+            const float SmallOffsetX    = 6.0f * Application::Get().GetWindowDPI();
+            ImDrawList* drawList        = ImGui::GetWindowDrawList();
 
             ImVec2 verticalLineStart = ImGui::GetCursorScreenPos();
             verticalLineStart.x += SmallOffsetX; // to nicely line up with the arrow symbol
@@ -339,7 +339,7 @@ namespace Lumos
                 while(child != entt::null && registry.valid(child))
                 {
                     float HorizontalTreeLineSize = 16.0f * Application::Get().GetWindowDPI(); // chosen arbitrarily
-                    auto currentPos = ImGui::GetCursorScreenPos();
+                    auto currentPos              = ImGui::GetCursorScreenPos();
                     ImGui::Indent(10.0f);
 
                     auto childHerarchyComponent = registry.try_get<Hierarchy>(child);
@@ -364,7 +364,7 @@ namespace Lumos
                     if(registry.valid(child))
                     {
                         auto hierarchyComponent = registry.try_get<Hierarchy>(child);
-                        child = hierarchyComponent ? hierarchyComponent->Next() : entt::null;
+                        child                   = hierarchyComponent ? hierarchyComponent->Next() : entt::null;
                     }
                 }
             }
@@ -386,7 +386,7 @@ namespace Lumos
             while(child != entt::null)
             {
                 auto hierarchyComponent = registry.try_get<Hierarchy>(child);
-                auto next = hierarchyComponent ? hierarchyComponent->Next() : entt::null;
+                auto next               = hierarchyComponent ? hierarchyComponent->Next() : entt::null;
                 DestroyEntity(child, registry);
                 child = next;
             }
@@ -410,7 +410,7 @@ namespace Lumos
                 else
                 {
                     nodeHierarchyComponent = registry.try_get<Hierarchy>(parent);
-                    parent = nodeHierarchyComponent ? nodeHierarchyComponent->Parent() : entt::null;
+                    parent                 = nodeHierarchyComponent ? nodeHierarchyComponent->Parent() : entt::null;
                 }
             }
         }
@@ -421,12 +421,12 @@ namespace Lumos
     void HierarchyPanel::OnImGui()
     {
         LUMOS_PROFILE_FUNCTION();
-        auto flags = ImGuiWindowFlags_NoCollapse;
+        auto flags        = ImGuiWindowFlags_NoCollapse;
         m_CurrentPrevious = entt::null;
-        m_SelectUp = false;
-        m_SelectDown = false;
+        m_SelectUp        = false;
+        m_SelectDown      = false;
 
-        m_SelectUp = Input::Get().GetKeyPressed(Lumos::InputCode::Key::Up);
+        m_SelectUp   = Input::Get().GetKeyPressed(Lumos::InputCode::Key::Up);
         m_SelectDown = Input::Get().GetKeyPressed(Lumos::InputCode::Key::Down);
 
         ImGui::Begin(m_Name.c_str(), &m_Active, flags);
@@ -532,7 +532,7 @@ namespace Lumos
                 {
                     if(ImGui::Selectable("Paste"))
                     {
-                        auto scene = Application::Get().GetSceneManager()->GetCurrentScene();
+                        auto scene          = Application::Get().GetSceneManager()->GetCurrentScene();
                         Entity copiedEntity = { m_Editor->GetCopiedEntity(), scene };
                         if(!copiedEntity.Valid())
                         {
@@ -566,7 +566,7 @@ namespace Lumos
                     if(const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("Drag_Entity"))
                     {
                         LUMOS_ASSERT(payload->DataSize == sizeof(entt::entity*), "Error ImGUI drag entity");
-                        auto entity = *reinterpret_cast<entt::entity*>(payload->Data);
+                        auto entity             = *reinterpret_cast<entt::entity*>(payload->Data);
                         auto hierarchyComponent = registry.try_get<Hierarchy>(entity);
                         if(hierarchyComponent)
                         {
@@ -586,7 +586,7 @@ namespace Lumos
                 // ImGuiUtilities::AlternatingRowsBackground(ImGui::GetFontSize() + ImGui::GetStyle().FramePadding.y);
 
                 registry.each([&](auto entity)
-                    {
+                              {
                         if(registry.valid(entity))
                         {
                             auto hierarchyComponent = registry.try_get<Hierarchy>(entity);
@@ -612,7 +612,7 @@ namespace Lumos
                     bool acceptable = false;
 
                     LUMOS_ASSERT(payload->DataSize == sizeof(entt::entity*), "Error ImGUI drag entity");
-                    auto entity = *reinterpret_cast<entt::entity*>(payload->Data);
+                    auto entity             = *reinterpret_cast<entt::entity*>(payload->Data);
                     auto hierarchyComponent = registry.try_get<Hierarchy>(entity);
                     if(hierarchyComponent)
                     {
@@ -624,7 +624,7 @@ namespace Lumos
                         if(const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("Drag_Entity"))
                         {
                             LUMOS_ASSERT(payload->DataSize == sizeof(entt::entity*), "Error ImGUI drag entity");
-                            auto entity = *reinterpret_cast<entt::entity*>(payload->Data);
+                            auto entity             = *reinterpret_cast<entt::entity*>(payload->Data);
                             auto hierarchyComponent = registry.try_get<Hierarchy>(entity);
                             if(hierarchyComponent)
                             {

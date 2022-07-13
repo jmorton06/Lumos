@@ -93,14 +93,14 @@ namespace Lumos
             //    Once this is destroyed, worker threads will be woken up and end their loops.
             struct InternalState
             {
-                uint32_t numCores = 0;
+                uint32_t numCores   = 0;
                 uint32_t numThreads = 0;
                 std::unique_ptr<JobQueue[]> jobQueuePerThread;
                 std::shared_ptr<WorkerState> worker_state = std::make_shared<WorkerState>(); // kept alive by both threads and internal_state
                 std::atomic<uint32_t> nextQueue { 0 };
                 ~InternalState()
                 {
-                    worker_state->alive.store(false); // indicate that new jobs cannot be started from this point
+                    worker_state->alive.store(false);         // indicate that new jobs cannot be started from this point
                     worker_state->wakeCondition.notify_all(); // wakes up sleeping worker threads
                     // wait until all currently running jobs finish:
                     for(uint32_t i = 0; i < numThreads; ++i)
@@ -138,10 +138,10 @@ namespace Lumos
 
                         for(uint32_t i = job.groupJobOffset; i < job.groupJobEnd; ++i)
                         {
-                            args.jobIndex = i;
-                            args.groupIndex = i - job.groupJobOffset;
+                            args.jobIndex          = i;
+                            args.groupIndex        = i - job.groupJobOffset;
                             args.isFirstJobInGroup = (i == job.groupJobOffset);
-                            args.isLastJobInGroup = (i == job.groupJobEnd - 1);
+                            args.isLastJobInGroup  = (i == job.groupJobEnd - 1);
                             job.task(args);
                         }
 
@@ -168,7 +168,7 @@ namespace Lumos
                 for(uint32_t threadID = 0; threadID < internal_state.numThreads; ++threadID)
                 {
                     std::thread worker([threadID]
-                        {
+                                       {
                             std::stringstream ss;
                             ss << "JobSystem_" << threadID;
                             LUMOS_PROFILE_SETTHREADNAME(ss.str().c_str());
@@ -189,7 +189,7 @@ namespace Lumos
                     HANDLE handle = (HANDLE)worker.native_handle();
 
                     // Put each thread on to dedicated core
-                    DWORD_PTR affinityMask = 1ull << threadID;
+                    DWORD_PTR affinityMask    = 1ull << threadID;
                     DWORD_PTR affinity_result = SetThreadAffinityMask(handle, affinityMask);
                     LUMOS_ASSERT(affinity_result > 0, "");
 
@@ -224,7 +224,7 @@ namespace Lumos
 
                     // Name the thread
                     std::string thread_name = "JobSystem_" + std::to_string(threadID);
-                    ret = pthread_setname_np(worker.native_handle(), thread_name.c_str());
+                    ret                     = pthread_setname_np(worker.native_handle(), thread_name.c_str());
                     if(ret != 0)
                         handle_error_en(ret, std::string(" pthread_setname_np[" + std::to_string(threadID) + ']').c_str());
 
@@ -233,7 +233,7 @@ namespace Lumos
                     thread_standard_policy policy;
                     auto thread = worker.native_handle();
                     thread_policy_set(pthread_mach_thread_np(thread),
-                        THREAD_STANDARD_POLICY, reinterpret_cast<thread_policy_t>(&policy), 1);
+                                      THREAD_STANDARD_POLICY, reinterpret_cast<thread_policy_t>(&policy), 1);
 
                     std::stringstream wss;
                     wss << "JobSystem_" << threadID;
@@ -258,11 +258,11 @@ namespace Lumos
                 ctx.counter.fetch_add(1);
 
                 Job job;
-                job.ctx = &ctx;
-                job.task = task;
-                job.groupID = 0;
-                job.groupJobOffset = 0;
-                job.groupJobEnd = 1;
+                job.ctx               = &ctx;
+                job.task              = task;
+                job.groupID           = 0;
+                job.groupJobOffset    = 0;
+                job.groupJobEnd       = 1;
                 job.sharedmemory_size = 0;
 
                 internal_state.jobQueuePerThread[internal_state.nextQueue.fetch_add(1) % internal_state.numThreads].push_back(job);
@@ -282,16 +282,16 @@ namespace Lumos
                 ctx.counter.fetch_add(groupCount);
 
                 Job job;
-                job.ctx = &ctx;
-                job.task = task;
+                job.ctx               = &ctx;
+                job.task              = task;
                 job.sharedmemory_size = (uint32_t)sharedmemory_size;
 
                 for(uint32_t groupID = 0; groupID < groupCount; ++groupID)
                 {
                     // For each group, generate one real job:
-                    job.groupID = groupID;
+                    job.groupID        = groupID;
                     job.groupJobOffset = groupID * groupSize;
-                    job.groupJobEnd = std::min(job.groupJobOffset + groupSize, jobCount);
+                    job.groupJobEnd    = std::min(job.groupJobOffset + groupSize, jobCount);
 
                     internal_state.jobQueuePerThread[internal_state.nextQueue.fetch_add(1) % internal_state.numThreads].push_back(job);
                 }

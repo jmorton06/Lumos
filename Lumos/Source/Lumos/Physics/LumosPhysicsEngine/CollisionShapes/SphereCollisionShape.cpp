@@ -9,16 +9,16 @@ namespace Lumos
 
     SphereCollisionShape::SphereCollisionShape()
     {
-        m_Radius = 1.0f;
+        m_Radius         = 1.0f;
         m_LocalTransform = glm::scale(glm::mat4(1.0), glm::vec3(m_Radius * 2.0f));
-        m_Type = CollisionShapeType::CollisionSphere;
+        m_Type           = CollisionShapeType::CollisionSphere;
     }
 
     SphereCollisionShape::SphereCollisionShape(float radius)
     {
-        m_Radius = radius;
+        m_Radius         = radius;
         m_LocalTransform = glm::scale(glm::mat4(1.0), glm::vec3(m_Radius * 2.0f));
-        m_Type = CollisionShapeType::CollisionSphere;
+        m_Type           = CollisionShapeType::CollisionSphere;
     }
 
     SphereCollisionShape::~SphereCollisionShape()
@@ -67,11 +67,11 @@ namespace Lumos
     }
 
     void SphereCollisionShape::GetIncidentReferencePolygon(const RigidBody3D* currentObject,
-        const glm::vec3& axis,
-        ReferencePolygon& refPolygon) const
+                                                           const glm::vec3& axis,
+                                                           ReferencePolygon& refPolygon) const
     {
         LUMOS_PROFILE_FUNCTION();
-        refPolygon.Faces[0] = currentObject->GetPosition() + axis * m_Radius;
+        refPolygon.Faces[0]  = currentObject->GetPosition() + axis * m_Radius;
         refPolygon.FaceCount = 1;
 
         refPolygon.Normal = axis;
@@ -82,7 +82,7 @@ namespace Lumos
         LUMOS_PROFILE_FUNCTION();
         glm::mat4 transform = currentObject->GetWorldSpaceTransform() * m_LocalTransform;
 
-        auto pos = transform[3];
+        auto pos    = transform[3];
         auto sphere = Maths::BoundingSphere(pos, m_Radius);
         DebugRenderer::DebugDraw(sphere, glm::vec4(1.0f, 1.0f, 1.0f, 0.2f));
         DebugRenderer::DebugDrawSphere(m_Radius, pos, glm::vec4(1.0f, 0.3f, 1.0f, 1.0f));

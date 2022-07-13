@@ -8,7 +8,7 @@ namespace Lumos
         class GLRenderDevice : public RenderDevice
         {
         public:
-            GLRenderDevice() = default;
+            GLRenderDevice()  = default;
             ~GLRenderDevice() = default;
 
             void Init() override;

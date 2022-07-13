@@ -11,9 +11,9 @@ namespace Lumos
         */
     struct LUMOS_EXPORT ContactPoint
     {
-        float sumImpulseContact = 0.0f;
-        float sumImpulseFriction = 0.0f;
-        float elatisity_term = 0.0f;
+        float sumImpulseContact    = 0.0f;
+        float sumImpulseFriction   = 0.0f;
+        float elatisity_term       = 0.0f;
         float collisionPenetration = 0.0f;
 
         glm::vec3 collisionNormal;

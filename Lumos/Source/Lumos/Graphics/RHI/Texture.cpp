@@ -7,16 +7,16 @@ namespace Lumos
 {
     namespace Graphics
     {
-        Texture2D* (*Texture2D::CreateFunc)(TextureDesc, uint32_t, uint32_t) = nullptr;
-        Texture2D* (*Texture2D::CreateFromSourceFunc)(uint32_t, uint32_t, void*, TextureDesc, TextureLoadOptions) = nullptr;
+        Texture2D* (*Texture2D::CreateFunc)(TextureDesc, uint32_t, uint32_t)                                                 = nullptr;
+        Texture2D* (*Texture2D::CreateFromSourceFunc)(uint32_t, uint32_t, void*, TextureDesc, TextureLoadOptions)            = nullptr;
         Texture2D* (*Texture2D::CreateFromFileFunc)(const std::string&, const std::string&, TextureDesc, TextureLoadOptions) = nullptr;
 
-        TextureDepth* (*TextureDepth::CreateFunc)(uint32_t, uint32_t) = nullptr;
+        TextureDepth* (*TextureDepth::CreateFunc)(uint32_t, uint32_t)                     = nullptr;
         TextureDepthArray* (*TextureDepthArray::CreateFunc)(uint32_t, uint32_t, uint32_t) = nullptr;
 
-        TextureCube* (*TextureCube::CreateFunc)(uint32_t, void*, bool) = nullptr;
-        TextureCube* (*TextureCube::CreateFromFileFunc)(const std::string&) = nullptr;
-        TextureCube* (*TextureCube::CreateFromFilesFunc)(const std::string*) = nullptr;
+        TextureCube* (*TextureCube::CreateFunc)(uint32_t, void*, bool)                                                   = nullptr;
+        TextureCube* (*TextureCube::CreateFromFileFunc)(const std::string&)                                              = nullptr;
+        TextureCube* (*TextureCube::CreateFromFilesFunc)(const std::string*)                                             = nullptr;
         TextureCube* (*TextureCube::CreateFromVCrossFunc)(const std::string*, uint32_t, TextureDesc, TextureLoadOptions) = nullptr;
 
         uint8_t Texture::GetStrideFromFormat(const RHIFormat format)

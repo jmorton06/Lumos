@@ -12,8 +12,8 @@ namespace Lumos
     TextEditPanel::TextEditPanel(const std::string& filePath)
         : m_FilePath(filePath)
     {
-        m_Name = "Text Editor###textEdit";
-        m_SimpleName = "TextEdit";
+        m_Name           = "Text Editor###textEdit";
+        m_SimpleName     = "TextEdit";
         m_OnSaveCallback = NULL;
         editor.SetCustomIdentifiers({});
 
@@ -114,7 +114,13 @@ namespace Lumos
                         editor.SetSelection(TextEditor::Coordinates(), TextEditor::Coordinates(editor.GetTotalLines(), 0));
 
                     if(ImGui::MenuItem("Close", nullptr, nullptr))
+                    {
                         OnClose();
+                        ImGui::EndMenu();
+                        ImGui::EndMenuBar();
+                        ImGui::End();
+                        return;
+                    }
 
                     ImGui::EndMenu();
                 }

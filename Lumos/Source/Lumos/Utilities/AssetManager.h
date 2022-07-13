@@ -49,10 +49,10 @@ namespace Lumos
             }
 
             Resource newResource;
-            newResource.data = resourceData;
+            newResource.data            = resourceData;
             newResource.timeSinceReload = 0;
-            newResource.onDisk = true;
-            newResource.lastAccessed = Engine::GetTimeStep().GetElapsedSeconds();
+            newResource.onDisk          = true;
+            newResource.lastAccessed    = Engine::GetTimeStep().GetElapsedSeconds();
 
             m_NameResourceMap.emplace(name, newResource);
 
@@ -69,9 +69,9 @@ namespace Lumos
                 ResourceHandle resourceData = data;
 
                 Resource newResource;
-                newResource.data = resourceData;
+                newResource.data            = resourceData;
                 newResource.timeSinceReload = 0;
-                newResource.onDisk = false;
+                newResource.onDisk          = false;
                 m_NameResourceMap.emplace(newId, newResource);
 
                 return resourceData;
@@ -86,14 +86,14 @@ namespace Lumos
             if(itr != m_NameResourceMap.end())
             {
                 itr->second.lastAccessed = Engine::GetTimeStep().GetElapsedSeconds();
-                itr->second.data = data;
+                itr->second.data         = data;
             }
 
             Resource newResource;
-            newResource.data = data;
+            newResource.data            = data;
             newResource.timeSinceReload = 0;
-            newResource.onDisk = true;
-            newResource.lastAccessed = Engine::GetTimeStep().GetElapsedSeconds();
+            newResource.onDisk          = true;
+            newResource.lastAccessed    = Engine::GetTimeStep().GetElapsedSeconds();
 
             m_NameResourceMap.emplace(name, newResource);
         }

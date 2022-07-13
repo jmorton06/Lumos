@@ -59,7 +59,7 @@ namespace Lumos
 
         Reference(const Reference<T>& other) noexcept
         {
-            m_Ptr = nullptr;
+            m_Ptr     = nullptr;
             m_Counter = nullptr;
 
             ref(other);
@@ -67,7 +67,7 @@ namespace Lumos
 
         Reference(Reference<T>&& rhs) noexcept
         {
-            m_Ptr = nullptr;
+            m_Ptr     = nullptr;
             m_Counter = nullptr;
 
             ref(rhs);
@@ -89,7 +89,7 @@ namespace Lumos
 
                 if(moving.GetCounter() && moving.get())
                 {
-                    m_Ptr = castPointer;
+                    m_Ptr     = castPointer;
                     m_Counter = moving.GetCounter();
                     m_Counter->reference();
                 }
@@ -135,7 +135,7 @@ namespace Lumos
         {
             unref();
 
-            m_Ptr = p_ptr;
+            m_Ptr     = p_ptr;
             m_Counter = nullptr;
 
             if(m_Ptr != nullptr)
@@ -175,7 +175,7 @@ namespace Lumos
             {
                 if(moving.GetCounter() && moving.get())
                 {
-                    m_Ptr = moving.get();
+                    m_Ptr     = moving.get();
                     m_Counter = moving.GetCounter();
                     m_Counter->reference();
                 }
@@ -262,11 +262,11 @@ namespace Lumos
             unref();
 
             m_Counter = nullptr;
-            m_Ptr = nullptr;
+            m_Ptr     = nullptr;
 
             if(p_from.GetCounter() && p_from.get())
             {
-                m_Ptr = p_from.get();
+                m_Ptr     = p_from.get();
                 m_Counter = p_from.GetCounter();
                 m_Counter->reference();
             }
@@ -276,7 +276,7 @@ namespace Lumos
         {
             LUMOS_ASSERT(ptr, "Creating shared ptr with nullptr");
 
-            m_Ptr = ptr;
+            m_Ptr     = ptr;
             m_Counter = new RefCount();
             m_Counter->InitRef();
         }
@@ -294,14 +294,14 @@ namespace Lumos
                         delete m_Counter;
                     }
 
-                    m_Ptr = nullptr;
+                    m_Ptr     = nullptr;
                     m_Counter = nullptr;
                 }
             }
         }
 
         RefCount* m_Counter = nullptr;
-        T* m_Ptr = nullptr;
+        T* m_Ptr            = nullptr;
     };
 
     template <class T>
@@ -447,7 +447,7 @@ namespace Lumos
             delete m_Ptr;
         }
 
-        Owned(Owned const&) = delete;
+        Owned(Owned const&)            = delete;
         Owned& operator=(Owned const&) = delete;
 
         inline Owned(Owned&& moving) noexcept

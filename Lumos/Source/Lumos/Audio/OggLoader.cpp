@@ -34,17 +34,17 @@ namespace Lumos
 
         // Get file info
         const stb_vorbis_info m_VorbisInfo = stb_vorbis_get_info(m_StreamHandle);
-        data.Channels = m_VorbisInfo.channels;
-        data.BitRate = 16;
-        data.FreqRate = static_cast<float>(m_VorbisInfo.sample_rate);
-        data.Size = stb_vorbis_stream_length_in_samples(m_StreamHandle) * m_VorbisInfo.channels * sizeof(int16_t);
-        data.Data = new unsigned char[data.Size];
+        data.Channels                      = m_VorbisInfo.channels;
+        data.BitRate                       = 16;
+        data.FreqRate                      = static_cast<float>(m_VorbisInfo.sample_rate);
+        data.Size                          = stb_vorbis_stream_length_in_samples(m_StreamHandle) * m_VorbisInfo.channels * sizeof(int16_t);
+        data.Data                          = new unsigned char[data.Size];
 
         stb_vorbis_get_samples_short_interleaved(m_StreamHandle, m_VorbisInfo.channels, reinterpret_cast<short*>(data.Data), data.Size);
 
         Sound::ConvertToMono(data.Data, data.Size, data.Data, data.Channels, data.BitRate);
         data.Channels = 1;
-        data.Length = stb_vorbis_stream_length_in_seconds(m_StreamHandle) * 1000.0f; // Milliseconds
+        data.Length   = stb_vorbis_stream_length_in_seconds(m_StreamHandle) * 1000.0f; // Milliseconds
 
         stb_vorbis_close(m_StreamHandle);
 

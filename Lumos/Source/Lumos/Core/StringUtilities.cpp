@@ -90,7 +90,7 @@ namespace Lumos
         std::vector<std::string> SplitString(const std::string& string, const std::string& delimiters)
         {
             size_t start = 0;
-            size_t end = string.find_first_of(delimiters);
+            size_t end   = string.find_first_of(delimiters);
 
             std::vector<std::string> result;
 
@@ -104,7 +104,7 @@ namespace Lumos
                     break;
 
                 start = end + 1;
-                end = string.find_first_of(delimiters, start);
+                end   = string.find_first_of(delimiters, start);
             }
 
             return result;
@@ -130,7 +130,7 @@ namespace Lumos
             const char* t = str;
             while((t = strstr(t, token.c_str())))
             {
-                bool left = str == t || isspace(t[-1]);
+                bool left  = str == t || isspace(t[-1]);
                 bool right = !t[token.size()] || isspace(t[token.size()]);
                 if(left && right)
                     return t;
@@ -147,7 +147,7 @@ namespace Lumos
 
         int32_t FindStringPosition(const std::string& string, const std::string& search, uint32_t offset)
         {
-            const char* str = string.c_str() + offset;
+            const char* str   = string.c_str() + offset;
             const char* found = strstr(str, search.c_str());
             if(found == nullptr)
                 return -1;
@@ -275,12 +275,12 @@ namespace Lumos
             std::string::iterator endIterator = std::remove(string.begin(), string.end(), ' ');
             string.erase(endIterator, string.end());
             string.erase(std::remove_if(string.begin(),
-                             string.end(),
-                             [](unsigned char x)
-                             {
-                                 return std::isspace(x);
-                             }),
-                string.end());
+                                        string.end(),
+                                        [](unsigned char x)
+                                        {
+                                            return std::isspace(x);
+                                        }),
+                         string.end());
 
             return string;
         }
@@ -290,12 +290,12 @@ namespace Lumos
             std::string::iterator endIterator = std::remove(string.begin(), string.end(), character);
             string.erase(endIterator, string.end());
             string.erase(std::remove_if(string.begin(),
-                             string.end(),
-                             [](unsigned char x)
-                             {
-                                 return std::isspace(x);
-                             }),
-                string.end());
+                                        string.end(),
+                                        [](unsigned char x)
+                                        {
+                                            return std::isspace(x);
+                                        }),
+                         string.end());
 
             return string;
         }
@@ -319,8 +319,8 @@ namespace Lumos
             }
 #else
             char* demangled = nullptr;
-            int status = -1;
-            demangled = abi::__cxa_demangle(string.c_str(), nullptr, nullptr, &status);
+            int status      = -1;
+            demangled       = abi::__cxa_demangle(string.c_str(), nullptr, nullptr, &status);
             std::string ret = status == 0 ? std::string(demangled) : string;
             free(demangled);
             return ret;

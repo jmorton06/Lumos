@@ -17,10 +17,10 @@ namespace Lumos
     {
         RigidBodyParameters()
         {
-            mass = 1.0f;
-            shape = Shape::Square;
+            mass     = 1.0f;
+            shape    = Shape::Square;
             position = glm::vec3(0.0f);
-            scale = glm::vec3(1.0f);
+            scale    = glm::vec3(1.0f);
             isStatic = false;
         }
 

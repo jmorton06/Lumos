@@ -29,7 +29,7 @@
 
 extern "C"
 {
-    __declspec(dllexport) DWORD NvOptimusEnablement = 0x00000001;
+    __declspec(dllexport) DWORD NvOptimusEnablement                = 0x00000001;
     __declspec(dllexport) int AmdPowerXpressRequestHighPerformance = 1;
 }
 
@@ -55,12 +55,12 @@ namespace Lumos
     WindowsWindow::WindowsWindow(const WindowDesc& properties)
         : hWnd(nullptr)
     {
-        m_Init = false;
+        m_Init  = false;
         m_VSync = properties.VSync;
         SetHasResized(true);
         m_Data.m_RenderAPI = static_cast<Graphics::RenderAPI>(properties.RenderAPI);
 
-        m_Init = Init(properties);
+        m_Init            = Init(properties);
         m_GraphicsContext = SharedPtr<Graphics::GraphicsContext>(Graphics::GraphicsContext::Create());
         m_GraphicsContext->Init();
 
@@ -75,15 +75,15 @@ namespace Lumos
     static PIXELFORMATDESCRIPTOR GetPixelFormat()
     {
         PIXELFORMATDESCRIPTOR result = {};
-        result.nSize = sizeof(PIXELFORMATDESCRIPTOR);
-        result.nVersion = 1;
-        result.dwFlags = PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER;
-        result.iPixelType = PFD_TYPE_RGBA;
-        result.cColorBits = 32;
-        result.cDepthBits = 24;
-        result.cStencilBits = 8;
-        result.cAuxBuffers = 0;
-        result.iLayerType = PFD_MAIN_PLANE;
+        result.nSize                 = sizeof(PIXELFORMATDESCRIPTOR);
+        result.nVersion              = 1;
+        result.dwFlags               = PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER;
+        result.iPixelType            = PFD_TYPE_RGBA;
+        result.cColorBits            = 32;
+        result.cDepthBits            = 24;
+        result.cStencilBits          = 8;
+        result.cAuxBuffers           = 0;
+        result.iLayerType            = PFD_MAIN_PLANE;
         return result;
     }
 
@@ -99,24 +99,24 @@ namespace Lumos
         unsigned char* source = image;
 
         ZeroMemory(&bi, sizeof(bi));
-        bi.bV5Size = sizeof(bi);
-        bi.bV5Width = width;
-        bi.bV5Height = -height;
-        bi.bV5Planes = 1;
-        bi.bV5BitCount = 32;
+        bi.bV5Size        = sizeof(bi);
+        bi.bV5Width       = width;
+        bi.bV5Height      = -height;
+        bi.bV5Planes      = 1;
+        bi.bV5BitCount    = 32;
         bi.bV5Compression = BI_BITFIELDS;
-        bi.bV5RedMask = 0x00ff0000;
-        bi.bV5GreenMask = 0x0000ff00;
-        bi.bV5BlueMask = 0x000000ff;
-        bi.bV5AlphaMask = 0xff000000;
+        bi.bV5RedMask     = 0x00ff0000;
+        bi.bV5GreenMask   = 0x0000ff00;
+        bi.bV5BlueMask    = 0x000000ff;
+        bi.bV5AlphaMask   = 0xff000000;
 
-        dc = GetDC(NULL);
+        dc    = GetDC(NULL);
         color = CreateDIBSection(dc,
-            (BITMAPINFO*)&bi,
-            DIB_RGB_COLORS,
-            (void**)&target,
-            NULL,
-            (DWORD)0);
+                                 (BITMAPINFO*)&bi,
+                                 DIB_RGB_COLORS,
+                                 (void**)&target,
+                                 NULL,
+                                 (DWORD)0);
         ReleaseDC(NULL, dc);
 
         if(!color)
@@ -144,10 +144,10 @@ namespace Lumos
         }
 
         ZeroMemory(&ii, sizeof(ii));
-        ii.fIcon = icon;
+        ii.fIcon    = icon;
         ii.xHotspot = xhot;
         ii.yHotspot = yhot;
-        ii.hbmMask = mask;
+        ii.hbmMask  = mask;
         ii.hbmColor = color;
 
         handle = CreateIconIndirect(&ii);
@@ -172,25 +172,25 @@ namespace Lumos
 
     bool WindowsWindow::Init(const WindowDesc& properties)
     {
-        m_Data.Title = properties.Title;
-        m_Data.Width = properties.Width;
+        m_Data.Title  = properties.Title;
+        m_Data.Width  = properties.Width;
         m_Data.Height = properties.Height;
-        m_Data.Exit = false;
+        m_Data.Exit   = false;
 
         hInstance = reinterpret_cast<HINSTANCE>(&__ImageBase);
 
-        WNDCLASSEXA winClass = {};
-        winClass.cbSize = sizeof(WNDCLASSEX);
-        winClass.hInstance = hInstance;
-        winClass.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
-        winClass.lpfnWndProc = static_cast<WNDPROC>(WndProc);
+        WNDCLASSEXA winClass   = {};
+        winClass.cbSize        = sizeof(WNDCLASSEX);
+        winClass.hInstance     = hInstance;
+        winClass.style         = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
+        winClass.lpfnWndProc   = static_cast<WNDPROC>(WndProc);
         winClass.lpszClassName = properties.Title.c_str();
 
         winClass.hbrBackground = (HBRUSH)GetStockObject(WHITE_BRUSH);
-        winClass.hCursor = LoadCursorA(nullptr, IDC_ARROW);
+        winClass.hCursor       = LoadCursorA(nullptr, IDC_ARROW);
         winClass.hIcon = winClass.hIconSm = LoadIconA(nullptr, IDI_APPLICATION);
-        winClass.lpszMenuName = nullptr;
-        winClass.style = CS_VREDRAW | CS_HREDRAW;
+        winClass.lpszMenuName             = nullptr;
+        winClass.style                    = CS_VREDRAW | CS_HREDRAW;
 
         DWORD style = WS_POPUP;
         if(!properties.Fullscreen)
@@ -208,16 +208,16 @@ namespace Lumos
         RECT size = { 0, 0, (LONG)properties.Width, (LONG)properties.Height };
         AdjustWindowRectEx(&size, style, false, WS_EX_APPWINDOW | WS_EX_WINDOWEDGE);
 
-        m_Data.Width = size.right - size.left;
+        m_Data.Width  = size.right - size.left;
         m_Data.Height = size.bottom - size.top;
 
         int windowLeft = (GetSystemMetrics(SM_CXSCREEN) - m_Data.Width) / 2;
-        int windowTop = (GetSystemMetrics(SM_CYSCREEN) - m_Data.Height) / 2;
+        int windowTop  = (GetSystemMetrics(SM_CYSCREEN) - m_Data.Height) / 2;
 
         if(properties.Fullscreen)
         {
             windowLeft = 0;
-            windowTop = 0;
+            windowTop  = 0;
         }
 
         hWnd = CreateWindow(winClass.lpszClassName, properties.Title.c_str(), style, windowLeft, windowTop, m_Data.Width, m_Data.Height, NULL, NULL, hInstance, NULL);
@@ -228,9 +228,9 @@ namespace Lumos
             return false;
         }
 
-        hDc = GetDC(hWnd);
+        hDc                       = GetDC(hWnd);
         PIXELFORMATDESCRIPTOR pfd = GetPixelFormat();
-        int32_t pixelFormat = ChoosePixelFormat(hDc, &pfd);
+        int32_t pixelFormat       = ChoosePixelFormat(hDc, &pfd);
         if(pixelFormat)
         {
             if(!SetPixelFormat(hDc, pixelFormat, &pfd))
@@ -263,7 +263,7 @@ namespace Lumos
         int h = clientRect.bottom - clientRect.top;
 
         m_Data.Height = h;
-        m_Data.Width = w;
+        m_Data.Width  = w;
 
         if(!properties.ShowConsole)
         {
@@ -291,7 +291,7 @@ namespace Lumos
                         m_data->m_oldHeight = dm.dmPelsHeight;
                         m_data->m_oldBitsPerPel = dm.dmBitsPerPel;*/
 
-            dm.dmPelsWidth = m_Data.Width;
+            dm.dmPelsWidth  = m_Data.Width;
             dm.dmPelsHeight = m_Data.Height;
             /*if (colorBitsPerPixel)
                         {
@@ -303,7 +303,7 @@ namespace Lumos
             if(res != DISP_CHANGE_SUCCESSFUL)
             { // try again without forcing display frequency
                 dm.dmFields = DM_BITSPERPEL | DM_PELSWIDTH | DM_PELSHEIGHT;
-                res = ChangeDisplaySettings(&dm, CDS_FULLSCREEN);
+                res         = ChangeDisplaySettings(&dm, CDS_FULLSCREEN);
             }
         }
 #if 0
@@ -359,9 +359,9 @@ namespace Lumos
 
         // Input
         rid.usUsagePage = HID_USAGE_PAGE_GENERIC;
-        rid.usUsage = HID_USAGE_GENERIC_KEYBOARD;
-        rid.dwFlags = RIDEV_INPUTSINK;
-        rid.hwndTarget = hWnd;
+        rid.usUsage     = HID_USAGE_GENERIC_KEYBOARD;
+        rid.dwFlags     = RIDEV_INPUTSINK;
+        rid.hwndTarget  = hWnd;
         RegisterRawInputDevices(&rid, 1, sizeof(rid));
 
         return true;
@@ -371,7 +371,7 @@ namespace Lumos
     {
         WindowsWindow::WindowData& data = static_cast<WindowsWindow*>(window)->m_Data;
 
-        data.Width = width;
+        data.Width  = width;
         data.Height = height;
 
         WindowResizeEvent event(width, height);
@@ -434,7 +434,7 @@ namespace Lumos
     void MouseButtonCallback(Window* window, int32_t button, int32_t x, int32_t y)
     {
         WindowsWindow::WindowData& data = static_cast<WindowsWindow*>(window)->m_Data;
-        HWND hWnd = static_cast<WindowsWindow*>(window)->GetHWND();
+        HWND hWnd                       = static_cast<WindowsWindow*>(window)->GetHWND();
 
         bool down = false;
         Lumos::InputCode::MouseKey mouseKey;
@@ -443,32 +443,32 @@ namespace Lumos
         case WM_LBUTTONDOWN:
             SetCapture(hWnd);
             mouseKey = Lumos::InputCode::MouseKey::ButtonLeft;
-            down = true;
+            down     = true;
             break;
         case WM_LBUTTONUP:
             ReleaseCapture();
             mouseKey = Lumos::InputCode::MouseKey::ButtonLeft;
-            down = false;
+            down     = false;
             break;
         case WM_RBUTTONDOWN:
             SetCapture(hWnd);
             mouseKey = Lumos::InputCode::MouseKey::ButtonRight;
-            down = true;
+            down     = true;
             break;
         case WM_RBUTTONUP:
             ReleaseCapture();
             mouseKey = Lumos::InputCode::MouseKey::ButtonRight;
-            down = false;
+            down     = false;
             break;
         case WM_MBUTTONDOWN:
             SetCapture(hWnd);
             mouseKey = Lumos::InputCode::MouseKey::ButtonMiddle;
-            down = true;
+            down     = true;
             break;
         case WM_MBUTTONUP:
             ReleaseCapture();
             mouseKey = Lumos::InputCode::MouseKey::ButtonMiddle;
-            down = false;
+            down     = false;
             break;
         }
 
@@ -510,7 +510,7 @@ namespace Lumos
     void KeyCallback(Window* window, int32_t key, int32_t flags, UINT message)
     {
         bool pressed = message == WM_KEYDOWN || message == WM_SYSKEYDOWN;
-        bool repeat = (flags >> 30) & 1;
+        bool repeat  = (flags >> 30) & 1;
 
         WindowsWindow::WindowData& data = static_cast<WindowsWindow*>(window)->m_Data;
 
@@ -632,7 +632,7 @@ namespace Lumos
     {
         // ImGuiUpdateMousePos(hWnd);
 
-        ImGuiIO& io = ImGui::GetIO();
+        ImGuiIO& io                   = ImGui::GetIO();
         ImGuiMouseCursor imgui_cursor = io.MouseDrawCursor ? ImGuiMouseCursor_None : ImGui::GetMouseCursor();
 
         if(io.ConfigFlags & ImGuiConfigFlags_NoMouseCursorChange)
@@ -680,7 +680,7 @@ namespace Lumos
 
     void WindowsWindow::SetIcon(const std::string& filePath, const std::string& smallIconFilePath)
     {
-        HICON bigIcon = NULL;
+        HICON bigIcon   = NULL;
         HICON smallIcon = NULL;
 
         if(filePath != "")
@@ -713,7 +713,7 @@ namespace Lumos
         if(m_SmallIcon)
             DestroyIcon(m_SmallIcon);
 
-        m_BigIcon = bigIcon;
+        m_BigIcon   = bigIcon;
         m_SmallIcon = smallIcon;
     }
 

@@ -28,8 +28,8 @@ namespace Lumos
 
         virtual void GetMinMaxVertexOnAxis(const RigidBody3D* currentObject, const glm::vec3& axis, glm::vec3* out_min, glm::vec3* out_max) const override;
         virtual void GetIncidentReferencePolygon(const RigidBody3D* currentObject,
-            const glm::vec3& axis,
-            ReferencePolygon& refPolygon) const override;
+                                                 const glm::vec3& axis,
+                                                 ReferencePolygon& refPolygon) const override;
 
         virtual void DebugDraw(const RigidBody3D* currentObject) const override;
 
@@ -37,17 +37,17 @@ namespace Lumos
         void SetHalfWidth(float half_width)
         {
             m_HalfDimensions.x = fabs(half_width);
-            m_LocalTransform = glm::scale(glm::mat4(1.0), m_HalfDimensions);
+            m_LocalTransform   = glm::scale(glm::mat4(1.0), m_HalfDimensions);
         }
         void SetHalfHeight(float half_height)
         {
             m_HalfDimensions.y = fabs(half_height);
-            m_LocalTransform = glm::scale(glm::mat4(1.0), m_HalfDimensions);
+            m_LocalTransform   = glm::scale(glm::mat4(1.0), m_HalfDimensions);
         }
         void SetHalfDepth(float half_depth)
         {
             m_HalfDimensions.z = fabs(half_depth);
-            m_LocalTransform = glm::scale(glm::mat4(1.0), m_HalfDimensions);
+            m_LocalTransform   = glm::scale(glm::mat4(1.0), m_HalfDimensions);
         }
 
         float GetHalfWidth() const
@@ -90,7 +90,7 @@ namespace Lumos
             archive(m_HalfDimensions);
 
             m_LocalTransform = glm::scale(glm::mat4(1.0), m_HalfDimensions);
-            m_Type = CollisionShapeType::CollisionHull;
+            m_Type           = CollisionShapeType::CollisionHull;
         }
 
     protected:

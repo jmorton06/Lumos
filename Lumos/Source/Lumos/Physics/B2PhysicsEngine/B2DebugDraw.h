@@ -8,7 +8,7 @@ namespace Lumos
     class B2DebugDraw : public b2Draw
     {
     public:
-        B2DebugDraw() = default;
+        B2DebugDraw()  = default;
         ~B2DebugDraw() = default;
 
         void DrawPolygon(const b2Vec2* vertices, int32 vertexCount, const b2Color& colour) override;

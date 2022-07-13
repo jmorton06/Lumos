@@ -45,7 +45,7 @@ namespace Lumos
 
         void VKUniformBuffer::MakeDefault()
         {
-            CreateFunc = CreateFuncVulkan;
+            CreateFunc     = CreateFuncVulkan;
             CreateDataFunc = CreateDataFuncVulkan;
         }
 

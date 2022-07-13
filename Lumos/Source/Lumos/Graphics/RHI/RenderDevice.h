@@ -7,7 +7,7 @@ namespace Lumos
         class RenderDevice
         {
         public:
-            RenderDevice() = default;
+            RenderDevice()          = default;
             virtual ~RenderDevice() = default;
 
             virtual void Init() = 0;

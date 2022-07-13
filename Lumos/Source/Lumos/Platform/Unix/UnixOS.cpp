@@ -35,7 +35,7 @@ namespace Lumos
         struct timespec remaining;
         while(nanosleep(&requested, &remaining) == -1)
         {
-            requested.tv_sec = remaining.tv_sec;
+            requested.tv_sec  = remaining.tv_sec;
             requested.tv_nsec = remaining.tv_nsec;
         }
     }

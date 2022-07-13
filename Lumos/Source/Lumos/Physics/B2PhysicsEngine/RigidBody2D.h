@@ -48,7 +48,7 @@ namespace Lumos
         void save(Archive& archive) const
         {
             archive(cereal::make_nvp("Position", GetPosition()), cereal::make_nvp("Friction", m_Friction), cereal::make_nvp("Angle", GetAngle()), cereal::make_nvp("Static", GetIsStatic()), cereal::make_nvp("Mass", m_Mass), cereal::make_nvp("Scale", m_Scale),
-                cereal::make_nvp("Shape", m_ShapeType), cereal::make_nvp("CustomShapePos", m_CustomShapePositions));
+                    cereal::make_nvp("Shape", m_ShapeType), cereal::make_nvp("CustomShapePos", m_CustomShapePositions));
         }
 
         template <typename Archive>
@@ -58,7 +58,7 @@ namespace Lumos
             float angle;
             glm::vec2 pos;
             archive(cereal::make_nvp("Position", pos), cereal::make_nvp("Friction", m_Friction), cereal::make_nvp("Angle", angle), cereal::make_nvp("Static", m_Static), cereal::make_nvp("Mass", m_Mass), cereal::make_nvp("Scale", params.scale), cereal::make_nvp("Shape", m_ShapeType), cereal::make_nvp("CustomShapePos", params.custumShapePositions));
-            params.shape = m_ShapeType;
+            params.shape    = m_ShapeType;
             params.position = glm::vec3(pos, 1.0f);
             Init(params);
             SetOrientation(angle);

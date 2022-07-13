@@ -15,7 +15,7 @@
 
 static ImGui_ImplVulkanH_Window g_WindowData;
 static VkAllocationCallbacks* g_Allocator = nullptr;
-static VkDescriptorPool g_DescriptorPool = VK_NULL_HANDLE;
+static VkDescriptorPool g_DescriptorPool  = VK_NULL_HANDLE;
 
 static void check_vk_result(VkResult err)
 {
@@ -38,9 +38,9 @@ namespace Lumos
             LUMOS_PROFILE_FUNCTION();
 
             m_WindowHandle = nullptr;
-            m_Width = width;
-            m_Height = height;
-            m_ClearScreen = clearScreen;
+            m_Width        = width;
+            m_Height       = height;
+            m_ClearScreen  = clearScreen;
         }
 
         VKIMGUIRenderer::~VKIMGUIRenderer()
@@ -60,19 +60,19 @@ namespace Lumos
             for(int i = 0; i < Renderer::GetMainSwapChain()->GetSwapChainBufferCount(); i++)
             {
                 ImGui_ImplVulkanH_Frame* fd = &g_WindowData.Frames[i];
-                auto fence = fd->Fence;
-                auto alloc = g_Allocator;
-                auto commandPool = fd->CommandPool;
+                auto fence                  = fd->Fence;
+                auto alloc                  = g_Allocator;
+                auto commandPool            = fd->CommandPool;
 
                 deletionQueue.PushFunction([fence, commandPool, alloc]
-                    {
+                                           {
                         vkDestroyFence(VKDevice::Get().GetDevice(), fence, alloc);
                         vkDestroyCommandPool(VKDevice::Get().GetDevice(), commandPool, alloc); });
             }
             auto descriptorPool = g_DescriptorPool;
 
             deletionQueue.PushFunction([descriptorPool]
-                {
+                                       {
                     vkDestroyDescriptorPool(VKDevice::Get().GetDevice(), descriptorPool, nullptr);
                     ImGui_ImplVulkan_Shutdown(); });
         }
@@ -97,22 +97,22 @@ namespace Lumos
                     { VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, 1000 }
                 };
                 VkDescriptorPoolCreateInfo pool_info = {};
-                pool_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-                pool_info.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
-                pool_info.maxSets = 1000 * IM_ARRAYSIZE(pool_sizes);
-                pool_info.poolSizeCount = (uint32_t)IM_ARRAYSIZE(pool_sizes);
-                pool_info.pPoolSizes = pool_sizes;
-                VkResult err = vkCreateDescriptorPool(VKDevice::Get().GetDevice(), &pool_info, g_Allocator, &g_DescriptorPool);
+                pool_info.sType                      = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+                pool_info.flags                      = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
+                pool_info.maxSets                    = 1000 * IM_ARRAYSIZE(pool_sizes);
+                pool_info.poolSizeCount              = (uint32_t)IM_ARRAYSIZE(pool_sizes);
+                pool_info.pPoolSizes                 = pool_sizes;
+                VkResult err                         = vkCreateDescriptorPool(VKDevice::Get().GetDevice(), &pool_info, g_Allocator, &g_DescriptorPool);
                 check_vk_result(err);
             }
 
-            wd->Surface = surface;
+            wd->Surface     = surface;
             wd->ClearEnable = m_ClearScreen;
 
             auto swapChain = static_cast<VKSwapChain*>(VKRenderer::GetMainSwapChain());
-            wd->Swapchain = swapChain->GetSwapChain();
-            wd->Width = width;
-            wd->Height = height;
+            wd->Swapchain  = swapChain->GetSwapChain();
+            wd->Width      = width;
+            wd->Height     = height;
 
             wd->ImageCount = static_cast<uint32_t>(swapChain->GetSwapChainBufferCount());
 
@@ -123,10 +123,10 @@ namespace Lumos
             Graphics::RenderPassDesc renderPassDesc;
             renderPassDesc.attachmentCount = 1;
             renderPassDesc.attachmentTypes = textureTypes;
-            renderPassDesc.clear = m_ClearScreen;
-            renderPassDesc.attachments = textures;
+            renderPassDesc.clear           = m_ClearScreen;
+            renderPassDesc.attachments     = textures;
 
-            m_Renderpass = new VKRenderPass(renderPassDesc);
+            m_Renderpass   = new VKRenderPass(renderPassDesc);
             wd->RenderPass = m_Renderpass->GetHandle();
 
             wd->Frames = (ImGui_ImplVulkanH_Frame*)IM_ALLOC(sizeof(ImGui_ImplVulkanH_Frame) * wd->ImageCount);
@@ -138,8 +138,8 @@ namespace Lumos
             {
                 for(uint32_t i = 0; i < wd->ImageCount; i++)
                 {
-                    auto scBuffer = (VKTexture2D*)swapChain->GetImage(i);
-                    wd->Frames[i].Backbuffer = scBuffer->GetImage();
+                    auto scBuffer                = (VKTexture2D*)swapChain->GetImage(i);
+                    wd->Frames[i].Backbuffer     = scBuffer->GetImage();
                     wd->Frames[i].BackbufferView = scBuffer->GetImageView();
                 }
             }
@@ -149,19 +149,19 @@ namespace Lumos
 
             Texture* attachments[1];
             FramebufferDesc frameBufferDesc {};
-            frameBufferDesc.width = wd->Width;
-            frameBufferDesc.height = wd->Height;
+            frameBufferDesc.width           = wd->Width;
+            frameBufferDesc.height          = wd->Height;
             frameBufferDesc.attachmentCount = 1;
-            frameBufferDesc.renderPass = m_Renderpass;
+            frameBufferDesc.renderPass      = m_Renderpass;
             frameBufferDesc.attachmentTypes = attachmentTypes;
-            frameBufferDesc.screenFBO = true;
+            frameBufferDesc.screenFBO       = true;
 
             for(uint32_t i = 0; i < Renderer::GetMainSwapChain()->GetSwapChainBufferCount(); i++)
             {
-                attachments[0] = Renderer::GetMainSwapChain()->GetImage(i);
+                attachments[0]              = Renderer::GetMainSwapChain()->GetImage(i);
                 frameBufferDesc.attachments = attachments;
 
-                m_Framebuffers[i] = new VKFramebuffer(frameBufferDesc);
+                m_Framebuffers[i]         = new VKFramebuffer(frameBufferDesc);
                 wd->Frames[i].Framebuffer = m_Framebuffers[i]->GetFramebuffer();
             }
         }
@@ -170,25 +170,25 @@ namespace Lumos
         {
             LUMOS_PROFILE_FUNCTION();
             int w, h;
-            w = (int)m_Width;
-            h = (int)m_Height;
+            w                            = (int)m_Width;
+            h                            = (int)m_Height;
             ImGui_ImplVulkanH_Window* wd = &g_WindowData;
-            VkSurfaceKHR surface = VKRenderer::GetMainSwapChain()->GetSurface();
+            VkSurfaceKHR surface         = VKRenderer::GetMainSwapChain()->GetSurface();
             SetupVulkanWindowData(wd, surface, w, h);
 
             // Setup Vulkan binding
             ImGui_ImplVulkan_InitInfo init_info = {};
-            init_info.Instance = VKContext::GetVKInstance();
-            init_info.PhysicalDevice = VKDevice::Get().GetGPU();
-            init_info.Device = VKDevice::Get().GetDevice();
-            init_info.QueueFamily = VKDevice::Get().GetPhysicalDevice()->GetGraphicsQueueFamilyIndex();
-            init_info.Queue = VKDevice::Get().GetGraphicsQueue();
-            init_info.PipelineCache = VKDevice::Get().GetPipelineCache();
-            init_info.DescriptorPool = g_DescriptorPool;
-            init_info.Allocator = g_Allocator;
-            init_info.CheckVkResultFn = NULL;
-            init_info.MinImageCount = 2;
-            init_info.ImageCount = (uint32_t)Renderer::GetMainSwapChain()->GetSwapChainBufferCount();
+            init_info.Instance                  = VKContext::GetVKInstance();
+            init_info.PhysicalDevice            = VKDevice::Get().GetGPU();
+            init_info.Device                    = VKDevice::Get().GetDevice();
+            init_info.QueueFamily               = VKDevice::Get().GetPhysicalDevice()->GetGraphicsQueueFamilyIndex();
+            init_info.Queue                     = VKDevice::Get().GetGraphicsQueue();
+            init_info.PipelineCache             = VKDevice::Get().GetPipelineCache();
+            init_info.DescriptorPool            = g_DescriptorPool;
+            init_info.Allocator                 = g_Allocator;
+            init_info.CheckVkResultFn           = NULL;
+            init_info.MinImageCount             = 2;
+            init_info.ImageCount                = (uint32_t)Renderer::GetMainSwapChain()->GetSwapChainBufferCount();
             ImGui_ImplVulkan_Init(&init_info, wd->RenderPass);
             // Upload Fonts
             {
@@ -198,7 +198,7 @@ namespace Lumos
                 int width, height;
                 io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
 
-                m_FontTexture = new VKTexture2D(width, height, pixels, TextureDesc(TextureFilter::NEAREST, TextureFilter::NEAREST));
+                m_FontTexture   = new VKTexture2D(width, height, pixels, TextureDesc(TextureFilter::NEAREST, TextureFilter::NEAREST));
                 io.Fonts->TexID = (ImTextureID)m_FontTexture->GetHandle();
             }
         }
@@ -213,7 +213,7 @@ namespace Lumos
 
             LUMOS_PROFILE_GPU("ImGui Pass");
 
-            wd->FrameIndex = VKRenderer::GetMainSwapChain()->GetCurrentImageIndex();
+            wd->FrameIndex           = VKRenderer::GetMainSwapChain()->GetCurrentImageIndex();
             auto& descriptorImageMap = ImGui_ImplVulkan_GetDescriptorImageMap();
 
             {
@@ -275,17 +275,17 @@ namespace Lumos
         {
             LUMOS_PROFILE_FUNCTION();
 
-            auto* wd = &g_WindowData;
+            auto* wd       = &g_WindowData;
             auto swapChain = static_cast<VKSwapChain*>(VKRenderer::GetMainSwapChain());
-            wd->Swapchain = swapChain->GetSwapChain();
+            wd->Swapchain  = swapChain->GetSwapChain();
             for(uint32_t i = 0; i < wd->ImageCount; i++)
             {
-                auto scBuffer = (VKTexture2D*)swapChain->GetImage(i);
-                wd->Frames[i].Backbuffer = scBuffer->GetImage();
+                auto scBuffer                = (VKTexture2D*)swapChain->GetImage(i);
+                wd->Frames[i].Backbuffer     = scBuffer->GetImage();
                 wd->Frames[i].BackbufferView = scBuffer->GetImageView();
             }
 
-            wd->Width = width;
+            wd->Width  = width;
             wd->Height = height;
 
             for(uint32_t i = 0; i < wd->ImageCount; i++)
@@ -298,19 +298,19 @@ namespace Lumos
 
             Texture* attachments[1];
             FramebufferDesc frameBufferDesc {};
-            frameBufferDesc.width = wd->Width;
-            frameBufferDesc.height = wd->Height;
+            frameBufferDesc.width           = wd->Width;
+            frameBufferDesc.height          = wd->Height;
             frameBufferDesc.attachmentCount = 1;
-            frameBufferDesc.renderPass = m_Renderpass;
+            frameBufferDesc.renderPass      = m_Renderpass;
             frameBufferDesc.attachmentTypes = attachmentTypes;
-            frameBufferDesc.screenFBO = true;
+            frameBufferDesc.screenFBO       = true;
 
             for(uint32_t i = 0; i < Renderer::GetMainSwapChain()->GetSwapChainBufferCount(); i++)
             {
-                attachments[0] = Renderer::GetMainSwapChain()->GetImage(i);
+                attachments[0]              = Renderer::GetMainSwapChain()->GetImage(i);
                 frameBufferDesc.attachments = attachments;
 
-                m_Framebuffers[i] = new VKFramebuffer(frameBufferDesc);
+                m_Framebuffers[i]         = new VKFramebuffer(frameBufferDesc);
                 wd->Frames[i].Framebuffer = m_Framebuffers[i]->GetFramebuffer();
             }
         }
@@ -342,7 +342,7 @@ namespace Lumos
                 int width, height;
                 io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
 
-                m_FontTexture = new VKTexture2D(width, height, pixels, TextureDesc(TextureFilter::NEAREST, TextureFilter::NEAREST, TextureWrap::REPEAT));
+                m_FontTexture   = new VKTexture2D(width, height, pixels, TextureDesc(TextureFilter::NEAREST, TextureFilter::NEAREST, TextureWrap::REPEAT));
                 io.Fonts->TexID = (ImTextureID)m_FontTexture->GetHandle();
             }
         }

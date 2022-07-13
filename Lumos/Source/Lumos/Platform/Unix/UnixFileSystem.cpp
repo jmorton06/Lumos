@@ -56,8 +56,8 @@ namespace Lumos
             return false;
         if(size < 0)
             size = GetFileSize(path);
-        buffer = new uint8_t[size + 1];
-        FILE* file = fopen(path.c_str(), FileSystem::GetFileOpenModeString(FileOpenFlags::READ));
+        buffer      = new uint8_t[size + 1];
+        FILE* file  = fopen(path.c_str(), FileSystem::GetFileOpenModeString(FileOpenFlags::READ));
         bool result = false;
         if(file)
         {
@@ -76,10 +76,10 @@ namespace Lumos
     {
         if(!FileExists(path))
             return nullptr;
-        int64_t size = GetFileSize(path);
-        FILE* file = fopen(path.c_str(), FileSystem::GetFileOpenModeString(FileOpenFlags::READ));
+        int64_t size    = GetFileSize(path);
+        FILE* file      = fopen(path.c_str(), FileSystem::GetFileOpenModeString(FileOpenFlags::READ));
         uint8_t* buffer = new uint8_t[size];
-        bool result = ReadFileInternal(file, buffer, size, true);
+        bool result     = ReadFileInternal(file, buffer, size, true);
         fclose(file);
         if(!result && buffer)
             delete[] buffer;
@@ -91,7 +91,7 @@ namespace Lumos
         if(!FileExists(path))
             return std::string();
         int64_t size = GetFileSize(path);
-        FILE* file = fopen(path.c_str(), FileSystem::GetFileOpenModeString(FileOpenFlags::READ));
+        FILE* file   = fopen(path.c_str(), FileSystem::GetFileOpenModeString(FileOpenFlags::READ));
         std::string result(size, 0);
         bool success = ReadFileInternal(file, &result[0], size, false);
         fclose(file);

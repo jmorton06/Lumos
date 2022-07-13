@@ -26,7 +26,7 @@ namespace Lumos
     {
         LUMOS_PROFILE_FUNCTION();
         m_Registry.each([&](auto entity)
-            { m_Registry.destroy(entity); });
+                        { m_Registry.destroy(entity); });
 
         m_Registry.clear();
     }

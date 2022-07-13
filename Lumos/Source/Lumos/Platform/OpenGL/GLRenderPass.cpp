@@ -19,13 +19,13 @@ namespace Lumos
 
         bool GLRenderPass::Init(const RenderPassDesc& renderPassDesc)
         {
-            m_Clear = renderPassDesc.clear;
+            m_Clear      = renderPassDesc.clear;
             m_ClearCount = renderPassDesc.attachmentCount;
             return false;
         }
 
         void GLRenderPass::BeginRenderpass(CommandBuffer* commandBuffer, float* clearColour,
-            Framebuffer* frame, SubPassContents contents, uint32_t width, uint32_t height) const
+                                           Framebuffer* frame, SubPassContents contents, uint32_t width, uint32_t height) const
         {
             if(frame != nullptr)
             {

@@ -33,16 +33,16 @@ namespace Lumos
         {
         public:
             virtual ~IRenderer();
-            virtual void RenderScene() = 0;
-            virtual void Init() = 0;
-            virtual void Begin() = 0;
+            virtual void RenderScene()                                                                               = 0;
+            virtual void Init()                                                                                      = 0;
+            virtual void Begin()                                                                                     = 0;
             virtual void BeginScene(Scene* scene, Camera* overrideCamera, Maths::Transform* overrideCameraTransform) = 0;
             virtual void Submit(const RenderCommand& command) {};
             virtual void SubmitMesh(Mesh* mesh, Material* material, const glm::mat4& transform, const glm::mat4& textureMatrix) {};
-            virtual void EndScene() = 0;
-            virtual void End() = 0;
-            virtual void Present() = 0;
-            virtual void PresentToScreen() = 0;
+            virtual void EndScene()                                = 0;
+            virtual void End()                                     = 0;
+            virtual void Present()                                 = 0;
+            virtual void PresentToScreen()                         = 0;
             virtual void OnResize(uint32_t width, uint32_t height) = 0;
             virtual void OnImGui() {};
 
@@ -50,7 +50,7 @@ namespace Lumos
             {
                 LUMOS_ASSERT(width != 0 && height != 0, "Width or Height 0!");
 
-                m_ScreenBufferWidth = width;
+                m_ScreenBufferWidth  = width;
                 m_ScreenBufferHeight = height;
             }
 
@@ -76,7 +76,7 @@ namespace Lumos
 
             void SetCamera(Camera* camera, Maths::Transform* transform)
             {
-                m_Camera = camera;
+                m_Camera          = camera;
                 m_CameraTransform = transform;
             }
 
@@ -101,7 +101,7 @@ namespace Lumos
             }
 
         protected:
-            Camera* m_Camera = nullptr;
+            Camera* m_Camera                    = nullptr;
             Maths::Transform* m_CameraTransform = nullptr;
 
             SharedPtr<Lumos::Graphics::Pipeline> m_Pipeline;
@@ -113,14 +113,14 @@ namespace Lumos
             uint32_t m_ScreenBufferWidth = 0, m_ScreenBufferHeight = 0;
             CommandQueue m_CommandQueue;
             Texture* m_RenderTexture = nullptr;
-            Texture* m_DepthTexture = nullptr;
+            Texture* m_DepthTexture  = nullptr;
 
             Maths::Frustum m_Frustum;
             glm::vec4 m_ClearColour;
 
-            int m_RenderPriority = 0;
+            int m_RenderPriority  = 0;
             bool m_ScreenRenderer = true;
-            bool m_ShouldRender = true;
+            bool m_ShouldRender   = true;
         };
     }
 }

@@ -29,8 +29,8 @@ namespace Lumos
         { // If texture hasn't been loaded already, load it
             Graphics::TextureLoadOptions options(false, true);
             std::string filePath = directory + name;
-            filePath = StringUtilities::BackSlashesToSlashes(filePath);
-            auto texture = SharedPtr<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile(typeName, filePath, format, options));
+            filePath             = StringUtilities::BackSlashesToSlashes(filePath);
+            auto texture         = SharedPtr<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile(typeName, filePath, format, options));
             textures_loaded.push_back(texture); // Store it as texture loaded for entire model, to ensure we won't unnecessary load duplicate textures.
 
             return texture;
@@ -48,7 +48,7 @@ namespace Lumos
         std::vector<tinyobj::material_t> materials;
 
         resolvedPath = StringUtilities::BackSlashesToSlashes(resolvedPath);
-        m_Directory = StringUtilities::GetFileLocation(resolvedPath);
+        m_Directory  = StringUtilities::GetFileLocation(resolvedPath);
 
         std::string name = StringUtilities::GetFileName(resolvedPath);
 
@@ -64,11 +64,11 @@ namespace Lumos
 
         for(const auto& shape : shapes)
         {
-            uint32_t vertexCount = 0;
-            const uint32_t numIndices = static_cast<uint32_t>(shape.mesh.indices.size());
+            uint32_t vertexCount       = 0;
+            const uint32_t numIndices  = static_cast<uint32_t>(shape.mesh.indices.size());
             const uint32_t numVertices = numIndices; // attrib.vertices.size();// numIndices / 3.0f;
             Graphics::Vertex* vertices = new Graphics::Vertex[numVertices];
-            uint32_t* indices = new uint32_t[numIndices];
+            uint32_t* indices          = new uint32_t[numIndices];
 
             std::unordered_map<Graphics::Vertex, uint32_t> uniqueVertices;
 
@@ -109,7 +109,7 @@ namespace Lumos
                 if(shape.mesh.material_ids[0] >= 0)
                 {
                     tinyobj::material_t* mp = &materials[shape.mesh.material_ids[0]];
-                    colour = glm::vec4(mp->diffuse[0], mp->diffuse[1], mp->diffuse[2], 1.0f);
+                    colour                  = glm::vec4(mp->diffuse[0], mp->diffuse[1], mp->diffuse[2], 1.0f);
                 }
 
                 vertex.Colours = colour;
@@ -117,7 +117,7 @@ namespace Lumos
                 if(uniqueVertices.count(vertex) == 0)
                 {
                     uniqueVertices[vertex] = static_cast<uint32_t>(vertexCount);
-                    vertices[vertexCount] = vertex;
+                    vertices[vertexCount]  = vertex;
                 }
 
                 indices[vertexCount] = uniqueVertices[vertex];

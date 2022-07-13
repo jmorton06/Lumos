@@ -29,10 +29,10 @@ namespace Lumos
         if(properties.Shape)
             SetCollisionShape(properties.Shape);
 
-        m_Static = properties.Static;
-        m_AtRest = properties.AtRest;
+        m_Static     = properties.Static;
+        m_AtRest     = properties.AtRest;
         m_Elasticity = properties.Elasticity;
-        m_Friction = properties.Friction;
+        m_Friction   = properties.Friction;
     }
 
     RigidBody3D::~RigidBody3D()
@@ -45,7 +45,7 @@ namespace Lumos
         if(m_wsAabbInvalidated)
         {
             LUMOS_PROFILE_SCOPE("Calculate BoundingBox");
-            m_wsAabb = m_localBoundingBox.Transformed(GetWorldSpaceTransform());
+            m_wsAabb            = m_localBoundingBox.Transformed(GetWorldSpaceTransform());
             m_wsAabbInvalidated = false;
         }
 

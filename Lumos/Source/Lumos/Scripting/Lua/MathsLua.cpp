@@ -67,11 +67,11 @@ namespace Lumos
             sol::meta_function::multiplication, [](const glm::vec4& a, const glm::vec4& b)
             { return a * b; },
             sol::meta_function::multiplication, sol::overload([](const glm::vec4& v1, const glm::vec4& v2) -> glm::vec4
-                                                    { return v1 * v2; },
-                                                    [](const glm::vec4& v1, float f) -> glm::vec4
-                                                    { return v1 * f; },
-                                                    [](float f, const glm::vec4& v1) -> glm::vec4
-                                                    { return f * v1; }),
+                                                              { return v1 * v2; },
+                                                              [](const glm::vec4& v1, float f) -> glm::vec4
+                                                              { return v1 * f; },
+                                                              [](float f, const glm::vec4& v1) -> glm::vec4
+                                                              { return f * v1; }),
             sol::meta_function::multiplication, [](float a, const glm::vec4& b)
             { return a * b; },
             sol::meta_function::subtraction, [](const glm::vec4& a, const glm::vec4& b)
@@ -100,9 +100,9 @@ namespace Lumos
             { return a == b; });
 
         state.new_usertype<glm::mat3>("Matrix3",
-            sol::constructors<glm::mat3(float, float, float, float, float, float, float, float, float), glm::mat3()>(),
-            sol::meta_function::multiplication, [](const glm::mat3& a, const glm::mat3& b)
-            { return a * b; });
+                                      sol::constructors<glm::mat3(float, float, float, float, float, float, float, float, float), glm::mat3()>(),
+                                      sol::meta_function::multiplication, [](const glm::mat3& a, const glm::mat3& b)
+                                      { return a * b; });
 
         state.new_usertype<glm::mat4>(
             "Matrix4",
@@ -115,20 +115,20 @@ namespace Lumos
             { return a - b; });
 
         state.new_usertype<Maths::Transform>("Transform",
-            sol::constructors<Maths::Transform(glm::mat4), Maths::Transform(), Maths::Transform(glm::vec3)>(),
+                                             sol::constructors<Maths::Transform(glm::mat4), Maths::Transform(), Maths::Transform(glm::vec3)>(),
 
-            "LocalScale", &Maths::Transform::GetLocalScale,
-            "LocalOrientation", &Maths::Transform::GetLocalOrientation,
-            "LocalPosition", &Maths::Transform::GetLocalPosition,
-            "ApplyTransform", &Maths::Transform::ApplyTransform,
-            "UpdateMatrices", &Maths::Transform::UpdateMatrices,
-            "SetLocalTransform", &Maths::Transform::SetLocalTransform,
-            "SetLocalPosition", &Maths::Transform::SetLocalPosition,
-            "SetLocalScale", &Maths::Transform::SetLocalScale,
-            "SetLocalOrientation", &Maths::Transform::SetLocalOrientation,
-            "GetWorldPosition", &Maths::Transform::GetWorldPosition,
-            "GetWorldOrientation", &Maths::Transform::GetWorldOrientation,
-            "GetForwardDirection", &Maths::Transform::GetForwardDirection,
-            "GetRightDirection", &Maths::Transform::GetRightDirection);
+                                             "LocalScale", &Maths::Transform::GetLocalScale,
+                                             "LocalOrientation", &Maths::Transform::GetLocalOrientation,
+                                             "LocalPosition", &Maths::Transform::GetLocalPosition,
+                                             "ApplyTransform", &Maths::Transform::ApplyTransform,
+                                             "UpdateMatrices", &Maths::Transform::UpdateMatrices,
+                                             "SetLocalTransform", &Maths::Transform::SetLocalTransform,
+                                             "SetLocalPosition", &Maths::Transform::SetLocalPosition,
+                                             "SetLocalScale", &Maths::Transform::SetLocalScale,
+                                             "SetLocalOrientation", &Maths::Transform::SetLocalOrientation,
+                                             "GetWorldPosition", &Maths::Transform::GetWorldPosition,
+                                             "GetWorldOrientation", &Maths::Transform::GetWorldOrientation,
+                                             "GetForwardDirection", &Maths::Transform::GetForwardDirection,
+                                             "GetRightDirection", &Maths::Transform::GetRightDirection);
     }
 }

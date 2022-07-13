@@ -46,21 +46,21 @@ namespace Lumos
             glm::vec3 GetUpDirection() const
             {
                 glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
-                up = GetWorldOrientation() * up;
+                up           = GetWorldOrientation() * up;
                 return up;
             }
 
             glm::vec3 GetRightDirection() const
             {
                 glm::vec3 right = glm::vec3(1.0f, 0.0f, 0.0f);
-                right = GetWorldOrientation() * right;
+                right           = GetWorldOrientation() * right;
                 return right;
             }
 
             glm::vec3 GetForwardDirection() const
             {
                 glm::vec3 forward = glm::vec3(0.0f, 0.0f, 1.0f);
-                forward = GetWorldOrientation() * forward;
+                forward           = GetWorldOrientation() * forward;
                 return forward;
             }
 
@@ -89,7 +89,7 @@ namespace Lumos
             glm::quat m_LocalOrientation;
 
             bool m_HasUpdated = false;
-            bool m_Dirty = false;
+            bool m_Dirty      = false;
         };
     }
 }

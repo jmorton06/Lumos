@@ -18,7 +18,7 @@ namespace Lumos
     class LUMOS_EXPORT OS
     {
     public:
-        OS() = default;
+        OS()          = default;
         virtual ~OS() = default;
 
         virtual void Run() = 0;

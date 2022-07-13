@@ -32,7 +32,7 @@ namespace Lumos
             IRenderer::SetScreenBufferSize(width, height);
             GridRenderer::Init();
 
-            m_GridRes = 1.4f;
+            m_GridRes  = 1.4f;
             m_GridSize = 500.0f;
         }
 
@@ -82,11 +82,11 @@ namespace Lumos
         {
             LUMOS_PROFILE_FUNCTION();
             m_Shader = Application::Get().GetShaderLibrary()->GetResource("Grid");
-            m_Quad = Graphics::CreateQuad(); // Graphics::CreatePlane(5000.0f, 5000.f, glm::vec3(0.0f, 1.0f, 0.0f));
+            m_Quad   = Graphics::CreateQuad(); // Graphics::CreatePlane(5000.0f, 5000.f, glm::vec3(0.0f, 1.0f, 0.0f));
 
             Graphics::DescriptorDesc descriptorDesc {};
             descriptorDesc.layoutIndex = 0;
-            descriptorDesc.shader = m_Shader.get();
+            descriptorDesc.shader      = m_Shader.get();
             m_DescriptorSet.resize(1);
             m_DescriptorSet[0] = SharedPtr<Graphics::DescriptorSet>(Graphics::DescriptorSet::Create(descriptorDesc));
             UpdateUniformBuffer();
@@ -106,7 +106,7 @@ namespace Lumos
 
             if(overrideCamera)
             {
-                m_Camera = overrideCamera;
+                m_Camera          = overrideCamera;
                 m_CameraTransform = overrideCameraTransform;
             }
             else
@@ -114,7 +114,7 @@ namespace Lumos
                 auto cameraView = registry.view<Camera>();
                 if(!cameraView.empty())
                 {
-                    m_Camera = &cameraView.get<Camera>(cameraView.front());
+                    m_Camera          = &cameraView.get<Camera>(cameraView.front());
                     m_CameraTransform = registry.try_get<Maths::Transform>(cameraView.front());
                 }
             }
@@ -126,9 +126,9 @@ namespace Lumos
             auto view = glm::inverse(m_CameraTransform->GetWorldMatrix());
 
             UniformBufferObjectFrag test;
-            test.Near = m_Camera->GetNear();
-            test.Far = m_Camera->GetFar();
-            test.cameraPos = glm::vec4(m_CameraTransform->GetWorldPosition(), 1.0f);
+            test.Near          = m_Camera->GetNear();
+            test.Far           = m_Camera->GetFar();
+            test.cameraPos     = glm::vec4(m_CameraTransform->GetWorldPosition(), 1.0f);
             test.cameraForward = glm::vec4(m_CameraTransform->GetForwardDirection(), 1.0f);
 
             test.maxDistance = m_MaxDistance;
@@ -177,10 +177,10 @@ namespace Lumos
             Graphics::PipelineDesc pipelineDesc;
             pipelineDesc.shader = m_Shader;
 
-            pipelineDesc.polygonMode = Graphics::PolygonMode::FILL;
-            pipelineDesc.cullMode = Graphics::CullMode::BACK;
+            pipelineDesc.polygonMode         = Graphics::PolygonMode::FILL;
+            pipelineDesc.cullMode            = Graphics::CullMode::BACK;
             pipelineDesc.transparencyEnabled = true;
-            pipelineDesc.blendMode = BlendMode::SrcAlphaOneMinusSrcAlpha;
+            pipelineDesc.blendMode           = BlendMode::SrcAlphaOneMinusSrcAlpha;
 
             {
                 pipelineDesc.depthTarget = reinterpret_cast<Texture*>(m_DepthTexture); // reinterpret_cast<Texture*>(Application::Get().GetRenderGraph()->GetDepthTexture());

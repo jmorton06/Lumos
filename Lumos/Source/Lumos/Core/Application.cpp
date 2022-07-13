@@ -72,7 +72,7 @@ namespace Lumos
         m_ProjectSettings.m_ProjectName = StringUtilities::RemoveFilePathExtension(m_ProjectSettings.m_ProjectName);
 
 #ifndef LUMOS_PLATFORM_IOS
-        auto projectRoot = StringUtilities::GetFileLocation(filePath);
+        auto projectRoot                = StringUtilities::GetFileLocation(filePath);
         m_ProjectSettings.m_ProjectRoot = projectRoot;
 
         // m_ProjectSettings.m_ProjectRoot = StringUtilities::RemoveSpaces(m_ProjectSettings.m_ProjectRoot);
@@ -100,14 +100,14 @@ namespace Lumos
 
         MountVFSPaths();
         // Set Default values
-        m_ProjectSettings.RenderAPI = 1;
-        m_ProjectSettings.Width = 1200;
-        m_ProjectSettings.Height = 800;
-        m_ProjectSettings.Borderless = false;
-        m_ProjectSettings.VSync = true;
-        m_ProjectSettings.Title = "App";
+        m_ProjectSettings.RenderAPI   = 1;
+        m_ProjectSettings.Width       = 1200;
+        m_ProjectSettings.Height      = 800;
+        m_ProjectSettings.Borderless  = false;
+        m_ProjectSettings.VSync       = true;
+        m_ProjectSettings.Title       = "App";
         m_ProjectSettings.ShowConsole = false;
-        m_ProjectSettings.Fullscreen = false;
+        m_ProjectSettings.Fullscreen  = false;
 
 #ifdef LUMOS_PLATFORM_MACOS
         // This is assuming Application in bin/Release-macos-x86_64/LumosEditor.app
@@ -143,7 +143,7 @@ namespace Lumos
         m_SceneManager->SwitchScene(0);
 
         // Set Default values
-        m_ProjectSettings.Title = "App";
+        m_ProjectSettings.Title      = "App";
         m_ProjectSettings.Fullscreen = false;
 
         m_SceneManager->ApplySceneSwitch();
@@ -182,14 +182,14 @@ namespace Lumos
         Graphics::GraphicsContext::SetRenderAPI(static_cast<Graphics::RenderAPI>(m_ProjectSettings.RenderAPI));
 
         WindowDesc windowDesc;
-        windowDesc.Width = m_ProjectSettings.Width;
-        windowDesc.Height = m_ProjectSettings.Height;
-        windowDesc.RenderAPI = m_ProjectSettings.RenderAPI;
-        windowDesc.Fullscreen = m_ProjectSettings.Fullscreen;
-        windowDesc.Borderless = m_ProjectSettings.Borderless;
+        windowDesc.Width       = m_ProjectSettings.Width;
+        windowDesc.Height      = m_ProjectSettings.Height;
+        windowDesc.RenderAPI   = m_ProjectSettings.RenderAPI;
+        windowDesc.Fullscreen  = m_ProjectSettings.Fullscreen;
+        windowDesc.Borderless  = m_ProjectSettings.Borderless;
         windowDesc.ShowConsole = m_ProjectSettings.ShowConsole;
-        windowDesc.Title = m_ProjectSettings.Title;
-        windowDesc.VSync = m_ProjectSettings.VSync;
+        windowDesc.Title       = m_ProjectSettings.Title;
+        windowDesc.VSync       = m_ProjectSettings.VSync;
 
         // Initialise the Window
         m_Window = UniquePtr<Window>(Window::Create(windowDesc));
@@ -204,7 +204,7 @@ namespace Lumos
         ImGui::StyleColorsDark();
 
         m_ShaderLibrary = CreateSharedPtr<ShaderLibrary>();
-        m_ModelLibrary = CreateSharedPtr<ModelLibrary>();
+        m_ModelLibrary  = CreateSharedPtr<ModelLibrary>();
 
         bool loadEmbeddedShaders = true;
         if(FileSystem::FolderExists(m_ProjectSettings.m_EngineAssetPath + "Shaders"))
@@ -228,17 +228,17 @@ namespace Lumos
             delete splashTexture;
         }
 
-        uint32_t screenWidth = m_Window->GetWidth();
+        uint32_t screenWidth  = m_Window->GetWidth();
         uint32_t screenHeight = m_Window->GetHeight();
-        m_SystemManager = CreateUniquePtr<SystemManager>();
+        m_SystemManager       = CreateUniquePtr<SystemManager>();
 
         System::JobSystem::Context context;
 
         System::JobSystem::Execute(context, [](JobDispatchArgs args)
-            { Lumos::Input::Get(); });
+                                   { Lumos::Input::Get(); });
 
         System::JobSystem::Execute(context, [this](JobDispatchArgs args)
-            {
+                                   {
                 auto audioManager = AudioManager::Create();
                 if(audioManager)
                 {
@@ -248,12 +248,12 @@ namespace Lumos
                 } });
 
         System::JobSystem::Execute(context, [this](JobDispatchArgs args)
-            {
+                                   {
                 m_SystemManager->RegisterSystem<LumosPhysicsEngine>();
                 m_SystemManager->RegisterSystem<B2PhysicsEngine>(); });
 
         System::JobSystem::Execute(context, [this](JobDispatchArgs args)
-            { m_SceneManager->LoadCurrentList(); });
+                                   { m_SceneManager->LoadCurrentList(); });
 
         m_ImGuiManager = CreateUniquePtr<ImGuiManager>(false);
         m_ImGuiManager->OnInit();
@@ -318,9 +318,9 @@ namespace Lumos
             return m_CurrentState != AppState::Closing;
         }
 
-        float now = m_Timer->GetElapsedS();
+        float now   = m_Timer->GetElapsedS();
         auto& stats = Engine::Get().Statistics();
-        auto& ts = Engine::GetTimeStep();
+        auto& ts    = Engine::GetTimeStep();
 
         if(ts.GetSeconds() > 5)
         {
@@ -335,7 +335,7 @@ namespace Lumos
             LUMOS_PROFILE_SCOPE("Application::TimeStepUpdates");
             ts.Update(now);
 
-            ImGuiIO& io = ImGui::GetIO();
+            ImGuiIO& io  = ImGui::GetIO();
             io.DeltaTime = ts.GetSeconds();
 
             stats.FrameTime = ts.GetMillis();
@@ -394,7 +394,7 @@ namespace Lumos
 
         {
             LUMOS_PROFILE_SCOPE("Application::UpdateGraphicsStats");
-            stats.UsedGPUMemory = Graphics::Renderer::GetGraphicsContext()->GetGPUMemoryUsed();
+            stats.UsedGPUMemory  = Graphics::Renderer::GetGraphicsContext()->GetGPUMemoryUsed();
             stats.TotalGPUMemory = Graphics::Renderer::GetGraphicsContext()->GetTotalGPUMemory();
         }
 
@@ -417,10 +417,10 @@ namespace Lumos
             LUMOS_PROFILE_SCOPE("Application::FrameRateCalc");
             m_SecondTimer += 1.0f;
 
-            stats.FramesPerSecond = m_Frames;
+            stats.FramesPerSecond  = m_Frames;
             stats.UpdatesPerSecond = m_Updates;
 
-            m_Frames = 0;
+            m_Frames  = 0;
             m_Updates = 0;
         }
 
@@ -458,7 +458,7 @@ namespace Lumos
             return;
 
         if(Application::Get().GetEditorState() != EditorState::Paused
-            && Application::Get().GetEditorState() != EditorState::Preview)
+           && Application::Get().GetEditorState() != EditorState::Preview)
         {
             LuaManager::Get().OnUpdate(m_SceneManager->GetCurrentScene());
             m_SceneManager->GetCurrentScene()->OnUpdate(Engine::GetTimeStep());
@@ -561,7 +561,7 @@ namespace Lumos
     {
         LUMOS_PROFILE_FUNCTION();
         if(Application::Get().GetEditorState() != EditorState::Paused
-            && Application::Get().GetEditorState() != EditorState::Preview)
+           && Application::Get().GetEditorState() != EditorState::Preview)
         {
             auto scene = Application::Get().GetSceneManager()->GetCurrentScene();
 
@@ -621,14 +621,14 @@ namespace Lumos
                     m_SceneManager = CreateUniquePtr<SceneManager>();
 
                     // Set Default values
-                    m_ProjectSettings.RenderAPI = 1;
-                    m_ProjectSettings.Width = 1200;
-                    m_ProjectSettings.Height = 800;
-                    m_ProjectSettings.Borderless = false;
-                    m_ProjectSettings.VSync = true;
-                    m_ProjectSettings.Title = "App";
+                    m_ProjectSettings.RenderAPI   = 1;
+                    m_ProjectSettings.Width       = 1200;
+                    m_ProjectSettings.Height      = 800;
+                    m_ProjectSettings.Borderless  = false;
+                    m_ProjectSettings.VSync       = true;
+                    m_ProjectSettings.Title       = "App";
                     m_ProjectSettings.ShowConsole = false;
-                    m_ProjectSettings.Fullscreen = false;
+                    m_ProjectSettings.Fullscreen  = false;
 
                     m_ProjectLoaded = false;
 
@@ -665,14 +665,14 @@ namespace Lumos
             catch(...)
             {
                 // Set Default values
-                m_ProjectSettings.RenderAPI = 1;
-                m_ProjectSettings.Width = 1200;
-                m_ProjectSettings.Height = 800;
-                m_ProjectSettings.Borderless = false;
-                m_ProjectSettings.VSync = true;
-                m_ProjectSettings.Title = "App";
+                m_ProjectSettings.RenderAPI   = 1;
+                m_ProjectSettings.Width       = 1200;
+                m_ProjectSettings.Height      = 800;
+                m_ProjectSettings.Borderless  = false;
+                m_ProjectSettings.VSync       = true;
+                m_ProjectSettings.Title       = "App";
                 m_ProjectSettings.ShowConsole = false;
-                m_ProjectSettings.Fullscreen = false;
+                m_ProjectSettings.Fullscreen  = false;
 
 #ifdef LUMOS_PLATFORM_MACOS
                 m_ProjectSettings.m_EngineAssetPath = StringUtilities::GetFileLocation(OS::Instance()->GetExecutablePath()) + "../../../../../Lumos/Assets/";

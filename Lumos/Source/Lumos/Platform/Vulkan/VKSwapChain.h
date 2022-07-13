@@ -64,7 +64,7 @@ namespace Lumos
 
             std::vector<Texture2D*> m_SwapChainBuffers;
 
-            uint32_t m_CurrentBuffer = 0;
+            uint32_t m_CurrentBuffer     = 0;
             uint32_t m_AcquireImageIndex = 0;
             uint32_t m_Width;
             uint32_t m_Height;

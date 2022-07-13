@@ -13,15 +13,15 @@ namespace Lumos
             Environment();
             Environment(TextureCube* env)
             {
-                m_Environmnet = SharedPtr<TextureCube>(env);
+                m_Environmnet            = SharedPtr<TextureCube>(env);
                 m_PrefilteredEnvironment = nullptr;
-                m_IrradianceMap = nullptr;
+                m_IrradianceMap          = nullptr;
             }
 
             Environment(TextureCube* env, TextureCube* irr)
             {
-                m_Environmnet = SharedPtr<TextureCube>(env);
-                m_IrradianceMap = SharedPtr<TextureCube>(irr);
+                m_Environmnet            = SharedPtr<TextureCube>(env);
+                m_IrradianceMap          = SharedPtr<TextureCube>(irr);
                 m_PrefilteredEnvironment = nullptr;
             }
 
@@ -81,9 +81,9 @@ namespace Lumos
             SharedPtr<TextureCube> m_IrradianceMap;
 
             uint32_t m_NumMips = 0;
-            uint32_t m_Width = 0;
-            uint32_t m_Height = 0;
-            float m_IrrFactor = 1.0f;
+            uint32_t m_Width   = 0;
+            uint32_t m_Height  = 0;
+            float m_IrrFactor  = 1.0f;
             std::string m_FilePath;
             std::string m_FileType;
         };

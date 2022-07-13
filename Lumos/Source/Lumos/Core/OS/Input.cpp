@@ -17,7 +17,7 @@ namespace Lumos
         memset(m_MouseHeld, 0, MAX_BUTTONS);
 
         m_MouseOnScreen = true;
-        m_ScrollOffset = 0.0f;
+        m_ScrollOffset  = 0.0f;
     }
 
     void Input::ResetPressed()

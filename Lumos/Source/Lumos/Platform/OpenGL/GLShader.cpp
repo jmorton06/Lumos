@@ -17,7 +17,7 @@ namespace Lumos
 {
     namespace Graphics
     {
-        bool IGNORE_LINES = false;
+        bool IGNORE_LINES        = false;
         static ShaderType s_Type = ShaderType::UNKNOWN;
 
         uint32_t GetStrideFromOpenGLFormat(uint32_t format)
@@ -124,7 +124,7 @@ namespace Lumos
 
             for(auto& file : *sources)
             {
-                auto fileSize = FileSystem::GetFileSize(m_Path + file.second); // TODO: once process
+                auto fileSize    = FileSystem::GetFileSize(m_Path + file.second); // TODO: once process
                 uint32_t* source = reinterpret_cast<uint32_t*>(FileSystem::ReadFile(m_Path + file.second));
                 LoadFromData(source, uint32_t(fileSize), file.first, *sources);
             }
@@ -160,7 +160,7 @@ namespace Lumos
         GLuint HashValue(const char* szString)
         {
             LUMOS_PROFILE_FUNCTION();
-            const char* c = szString;
+            const char* c      = szString;
             GLuint dwHashValue = 0x00000000;
 
             while(*c)
@@ -276,7 +276,7 @@ namespace Lumos
         void GLShader::BindUniformBuffer(GLUniformBuffer* buffer, uint32_t slot, const std::string& name)
         {
             LUMOS_PROFILE_FUNCTION();
-            GLuint nameInt = HashValue(name.c_str());
+            GLuint nameInt         = HashValue(name.c_str());
             const auto& itLocation = m_UniformBlockLocations.find(nameInt);
             GLCall(glUniformBlockBinding(m_Handle, itLocation->second, slot));
         }
@@ -304,7 +304,7 @@ namespace Lumos
         void GLShader::PreProcess(const std::string& source, std::map<ShaderType, std::string>* sources)
         {
             LUMOS_PROFILE_FUNCTION();
-            s_Type = ShaderType::UNKNOWN;
+            s_Type                         = ShaderType::UNKNOWN;
             std::vector<std::string> lines = StringUtilities::GetLines(source);
             ReadShaderFile(lines, sources);
         }
@@ -315,7 +315,7 @@ namespace Lumos
             for(uint32_t i = 0; i < lines.size(); i++)
             {
                 std::string str = std::string(lines[i]);
-                str = StringUtilities::StringReplace(str, '\t');
+                str             = StringUtilities::StringReplace(str, '\t');
 
                 if(IGNORE_LINES)
                 {
@@ -328,37 +328,37 @@ namespace Lumos
                 {
                     if(StringUtilities::StringContains(str, "vertex"))
                     {
-                        s_Type = ShaderType::VERTEX;
+                        s_Type                                         = ShaderType::VERTEX;
                         std::map<ShaderType, std::string>::iterator it = shaders->begin();
                         shaders->insert(it, std::pair<ShaderType, std::string>(s_Type, ""));
                     }
                     else if(StringUtilities::StringContains(str, "geometry"))
                     {
-                        s_Type = ShaderType::GEOMETRY;
+                        s_Type                                         = ShaderType::GEOMETRY;
                         std::map<ShaderType, std::string>::iterator it = shaders->begin();
                         shaders->insert(it, std::pair<ShaderType, std::string>(s_Type, ""));
                     }
                     else if(StringUtilities::StringContains(str, "fragment"))
                     {
-                        s_Type = ShaderType::FRAGMENT;
+                        s_Type                                         = ShaderType::FRAGMENT;
                         std::map<ShaderType, std::string>::iterator it = shaders->begin();
                         shaders->insert(it, std::pair<ShaderType, std::string>(s_Type, ""));
                     }
                     else if(StringUtilities::StringContains(str, "tess_cont"))
                     {
-                        s_Type = ShaderType::TESSELLATION_CONTROL;
+                        s_Type                                         = ShaderType::TESSELLATION_CONTROL;
                         std::map<ShaderType, std::string>::iterator it = shaders->begin();
                         shaders->insert(it, std::pair<ShaderType, std::string>(s_Type, ""));
                     }
                     else if(StringUtilities::StringContains(str, "tess_eval"))
                     {
-                        s_Type = ShaderType::TESSELLATION_EVALUATION;
+                        s_Type                                         = ShaderType::TESSELLATION_EVALUATION;
                         std::map<ShaderType, std::string>::iterator it = shaders->begin();
                         shaders->insert(it, std::pair<ShaderType, std::string>(s_Type, ""));
                     }
                     else if(StringUtilities::StringContains(str, "compute"))
                     {
-                        s_Type = ShaderType::COMPUTE;
+                        s_Type                                         = ShaderType::COMPUTE;
                         std::map<ShaderType, std::string>::iterator it = shaders->begin();
                         shaders->insert(it, std::pair<ShaderType, std::string>(s_Type, ""));
                     }
@@ -369,7 +369,7 @@ namespace Lumos
                 }
                 else if(StringUtilities::StartsWith(str, "#include"))
                 {
-                    std::string rem = "#include ";
+                    std::string rem  = "#include ";
                     std::string file = std::string(str);
                     if(strstr(file.c_str(), rem.c_str()))
                     {
@@ -734,7 +734,7 @@ namespace Lumos
             // Get all sampled images in the shader.
             for(auto& resource : resources.sampled_images)
             {
-                uint32_t set = glsl->get_decoration(resource.id, spv::DecorationDescriptorSet);
+                uint32_t set     = glsl->get_decoration(resource.id, spv::DecorationDescriptorSet);
                 uint32_t binding = glsl->get_decoration(resource.id, spv::DecorationBinding);
 
                 // Modify the decoration to prepare it for GLSL.
@@ -743,12 +743,12 @@ namespace Lumos
                 // Some arbitrary remapping if we want.
                 // glsl->set_decoration(resource.id, spv::DecorationBinding, set * 16 + binding);
 
-                auto& descriptorInfo = m_DescriptorInfos[set];
-                auto& descriptor = descriptorInfo.descriptors.emplace_back();
-                descriptor.binding = binding;
-                descriptor.name = resource.name;
+                auto& descriptorInfo  = m_DescriptorInfos[set];
+                auto& descriptor      = descriptorInfo.descriptors.emplace_back();
+                descriptor.binding    = binding;
+                descriptor.name       = resource.name;
                 descriptor.shaderType = type;
-                descriptor.type = Graphics::DescriptorType::IMAGE_SAMPLER;
+                descriptor.type       = Graphics::DescriptorType::IMAGE_SAMPLER;
             }
 
             //                for(auto const& image : resources.separate_images)
@@ -772,31 +772,31 @@ namespace Lumos
                 auto bufferSize = glsl->get_declared_struct_size(bufferType);
                 int memberCount = (int)bufferType.member_types.size();
 
-                auto& descriptorInfo = m_DescriptorInfos[set];
-                auto& descriptor = descriptorInfo.descriptors.emplace_back();
-                descriptor.binding = binding;
-                descriptor.size = (uint32_t)bufferSize;
-                descriptor.name = uniform_buffer.name;
-                descriptor.offset = 0;
+                auto& descriptorInfo  = m_DescriptorInfos[set];
+                auto& descriptor      = descriptorInfo.descriptors.emplace_back();
+                descriptor.binding    = binding;
+                descriptor.size       = (uint32_t)bufferSize;
+                descriptor.name       = uniform_buffer.name;
+                descriptor.offset     = 0;
                 descriptor.shaderType = type;
-                descriptor.type = Graphics::DescriptorType::UNIFORM_BUFFER;
-                descriptor.buffer = nullptr;
+                descriptor.type       = Graphics::DescriptorType::UNIFORM_BUFFER;
+                descriptor.buffer     = nullptr;
 
                 for(int i = 0; i < memberCount; i++)
                 {
-                    auto type = glsl->get_type(bufferType.member_types[i]);
+                    auto type              = glsl->get_type(bufferType.member_types[i]);
                     const auto& memberName = glsl->get_member_name(bufferType.self, i);
-                    auto size = glsl->get_declared_struct_member_size(bufferType, i);
-                    auto offset = glsl->type_struct_member_offset(bufferType, i);
+                    auto size              = glsl->get_declared_struct_member_size(bufferType, i);
+                    auto offset            = glsl->type_struct_member_offset(bufferType, i);
 
                     std::string uniformName = uniform_buffer.name + "." + memberName;
 
-                    auto& member = descriptor.m_Members.emplace_back();
-                    member.size = (uint32_t)size;
-                    member.offset = offset;
-                    member.type = SPIRVTypeToLumosDataType(type);
+                    auto& member    = descriptor.m_Members.emplace_back();
+                    member.size     = (uint32_t)size;
+                    member.offset   = offset;
+                    member.type     = SPIRVTypeToLumosDataType(type);
                     member.fullName = uniformName;
-                    member.name = memberName;
+                    member.name     = memberName;
                 }
             }
             //                for(auto const& storage_buffer : resources.storage_buffers)
@@ -822,7 +822,7 @@ namespace Lumos
                 // uint32_t binding = glsl->get_decoration(u.id, spv::DecorationBinding);
 
                 auto& pushConstantType = glsl->get_type(u.type_id);
-                auto name = glsl->get_name(u.id);
+                auto name              = glsl->get_name(u.id);
 
                 auto ranges = glsl->get_active_buffer_ranges(u.id);
 
@@ -833,31 +833,31 @@ namespace Lumos
                 }
 
                 auto& bufferType = glsl->get_type(u.base_type_id);
-                auto bufferSize = glsl->get_declared_struct_size(bufferType);
-                int memberCount = (int)bufferType.member_types.size();
+                auto bufferSize  = glsl->get_declared_struct_size(bufferType);
+                int memberCount  = (int)bufferType.member_types.size();
 
                 m_PushConstants.push_back({ rangeSizes, type });
                 m_PushConstants.back().data = new uint8_t[size];
 
                 for(int i = 0; i < memberCount; i++)
                 {
-                    auto type = glsl->get_type(bufferType.member_types[i]);
+                    auto type              = glsl->get_type(bufferType.member_types[i]);
                     const auto& memberName = glsl->get_member_name(bufferType.self, i);
-                    auto size = glsl->get_declared_struct_member_size(bufferType, i);
-                    auto offset = glsl->type_struct_member_offset(bufferType, i);
+                    auto size              = glsl->get_declared_struct_member_size(bufferType, i);
+                    auto offset            = glsl->type_struct_member_offset(bufferType, i);
 
                     std::string uniformName = u.name + "." + memberName;
 
-                    auto& member = m_PushConstants.back().m_Members.emplace_back();
-                    member.size = (uint32_t)size;
-                    member.offset = offset;
-                    member.type = SPIRVTypeToLumosDataType(type);
+                    auto& member    = m_PushConstants.back().m_Members.emplace_back();
+                    member.size     = (uint32_t)size;
+                    member.offset   = offset;
+                    member.type     = SPIRVTypeToLumosDataType(type);
                     member.fullName = uniformName;
-                    member.name = memberName;
+                    member.name     = memberName;
                 }
             }
 
-            int imageCount[16] = { 0 };
+            int imageCount[16]  = { 0 };
             int bufferCount[16] = { 0 };
 
             for(int i = 0; i < m_DescriptorInfos.size(); i++)
@@ -883,17 +883,17 @@ namespace Lumos
             }
 
             spirv_cross::CompilerGLSL::Options options;
-            options.version = 410;
-            options.es = false;
-            options.vulkan_semantics = false;
-            options.separate_shader_objects = false;
-            options.enable_420pack_extension = false;
+            options.version                              = 410;
+            options.es                                   = false;
+            options.vulkan_semantics                     = false;
+            options.separate_shader_objects              = false;
+            options.enable_420pack_extension             = false;
             options.emit_push_constant_as_uniform_buffer = false;
             glsl->set_common_options(options);
 
             // Compile to GLSL, ready to give to GL driver.
             std::string glslSource = glsl->compile();
-            sources[type] = glslSource;
+            sources[type]          = glslSource;
 
             m_ShaderCompilers.push_back(glsl);
         }
@@ -913,7 +913,7 @@ namespace Lumos
 
         void GLShader::MakeDefault()
         {
-            CreateFunc = CreateFuncGL;
+            CreateFunc             = CreateFuncGL;
             CreateFuncFromEmbedded = CreateFromEmbeddedFuncGL;
         }
     }

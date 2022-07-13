@@ -214,10 +214,10 @@ namespace Lumos
             if(distance <= other.m_Radius - m_Radius)
                 return;
 
-            float half = (distance + m_Radius + other.m_Radius) * 0.5f;
+            float half  = (distance + m_Radius + other.m_Radius) * 0.5f;
             float scale = half / distance;
-            m_Center = (m_Center + other.m_Center) * scale;
-            m_Radius = half;
+            m_Center    = (m_Center + other.m_Center) * scale;
+            m_Radius    = half;
         }
 
         void BoundingSphere::Merge(const glm::vec3& point)
@@ -234,10 +234,10 @@ namespace Lumos
                 return;
             }
 
-            float half = (distance + m_Radius) * 0.5f;
+            float half  = (distance + m_Radius) * 0.5f;
             float scale = half / distance;
-            m_Center = (m_Center + point) * scale;
-            m_Radius = half;
+            m_Center    = (m_Center + point) * scale;
+            m_Radius    = half;
         }
 
         void BoundingSphere::Merge(const glm::vec3* points, unsigned int count)
@@ -245,7 +245,7 @@ namespace Lumos
             if(count == 0)
                 return;
 
-            float radius = 0.0f;
+            float radius     = 0.0f;
             glm::vec3 center = points[0];
 
             for(unsigned int i = 1; i < count; i++)
@@ -272,10 +272,10 @@ namespace Lumos
                 return;
             }
 
-            float half = (distance + m_Radius + radius) * 0.5f;
+            float half  = (distance + m_Radius + radius) * 0.5f;
             float scale = half / distance;
-            m_Center = (m_Center + center) * scale;
-            m_Radius = half;
+            m_Center    = (m_Center + center) * scale;
+            m_Radius    = half;
         }
 
         void BoundingSphere::Transform(const glm::mat4& transform)

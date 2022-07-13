@@ -29,19 +29,19 @@ namespace Lumos
 
     void SoundNode::Reset()
     {
-        m_Pitch = 1.0f;
-        m_Volume = 1.0f;
-        m_Radius = 50.0f;
-        m_TimeLeft = 0.0f;
-        m_IsLooping = true;
-        m_Sound = nullptr;
-        m_Paused = false;
-        m_StreamPos = 0;
-        m_IsGlobal = false;
-        m_Stationary = false;
+        m_Pitch             = 1.0f;
+        m_Volume            = 1.0f;
+        m_Radius            = 50.0f;
+        m_TimeLeft          = 0.0f;
+        m_IsLooping         = true;
+        m_Sound             = nullptr;
+        m_Paused            = false;
+        m_StreamPos         = 0;
+        m_IsGlobal          = false;
+        m_Stationary        = false;
         m_ReferenceDistance = 1.0f;
-        m_RollOffFactor = 1.0f;
-        m_Velocity = glm::vec3(0.0f);
+        m_RollOffFactor     = 1.0f;
+        m_Velocity          = glm::vec3(0.0f);
     }
 
     SoundNode::~SoundNode()

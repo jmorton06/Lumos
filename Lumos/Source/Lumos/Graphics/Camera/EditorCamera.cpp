@@ -9,13 +9,13 @@ namespace Lumos
 {
     EditorCameraController::EditorCameraController()
     {
-        m_FocalPoint = glm::vec3();
-        m_Velocity = glm::vec3(0.0f);
-        m_RotateVelocity = glm::vec2(0.0f);
-        m_PreviousCurserPos = glm::vec3(0.0f);
-        m_MouseSensitivity = 0.00001f;
-        m_ZoomDampeningFactor = 0.00001f;
-        m_DampeningFactor = 0.00001f;
+        m_FocalPoint            = glm::vec3();
+        m_Velocity              = glm::vec3(0.0f);
+        m_RotateVelocity        = glm::vec2(0.0f);
+        m_PreviousCurserPos     = glm::vec3(0.0f);
+        m_MouseSensitivity      = 0.00001f;
+        m_ZoomDampeningFactor   = 0.00001f;
+        m_DampeningFactor       = 0.00001f;
         m_RotateDampeningFactor = 0.0000001f;
     }
 
@@ -45,14 +45,14 @@ namespace Lumos
                 mouseHeld = true;
                 Application::Get().GetWindow()->HideMouse(true);
                 Input::Get().SetMouseMode(MouseMode::Captured);
-                m_StoredCursorPos = glm::vec2(xpos, ypos);
+                m_StoredCursorPos   = glm::vec2(xpos, ypos);
                 m_PreviousCurserPos = m_StoredCursorPos;
             }
 
             if(Input::Get().GetMouseHeld(InputCode::MouseKey::ButtonRight))
             {
                 m_MouseSensitivity = 0.0002f;
-                m_RotateVelocity = glm::vec2((xpos - m_PreviousCurserPos.x), (ypos - m_PreviousCurserPos.y)) * m_MouseSensitivity * 10.0f;
+                m_RotateVelocity   = glm::vec2((xpos - m_PreviousCurserPos.x), (ypos - m_PreviousCurserPos.y)) * m_MouseSensitivity * 10.0f;
             }
             else
             {
@@ -67,7 +67,7 @@ namespace Lumos
 
             if(glm::length(m_RotateVelocity) > Maths::M_EPSILON)
             {
-                glm::quat rotation = transform.GetLocalOrientation();
+                glm::quat rotation  = transform.GetLocalOrientation();
                 glm::quat rotationX = glm::angleAxis(-m_RotateVelocity.y, glm::vec3(1.0f, 0.0f, 0.0f));
                 glm::quat rotationY = glm::angleAxis(-m_RotateVelocity.x, glm::vec3(0.0f, 1.0f, 0.0f));
 
@@ -203,7 +203,7 @@ namespace Lumos
 
                 if(scale < 0.15f)
                 {
-                    scale = 0.15f;
+                    scale          = 0.15f;
                     m_ZoomVelocity = 0.0f;
                 }
                 else
@@ -235,8 +235,8 @@ namespace Lumos
 
     void EditorCameraController::StopMovement()
     {
-        m_ZoomVelocity = 0.0f;
-        m_Velocity = glm::vec3(0.0f);
+        m_ZoomVelocity   = 0.0f;
+        m_Velocity       = glm::vec3(0.0f);
         m_RotateVelocity = glm::vec2(0.0f);
     }
 }

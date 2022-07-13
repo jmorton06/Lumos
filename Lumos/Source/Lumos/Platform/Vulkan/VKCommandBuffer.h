@@ -63,7 +63,7 @@ namespace Lumos
             SharedPtr<VKFence> m_Fence;
             VkSemaphore m_Semaphore;
 
-            Pipeline* m_BoundPipeline = nullptr;
+            Pipeline* m_BoundPipeline     = nullptr;
             RenderPass* m_BoundRenderPass = nullptr;
         };
     }

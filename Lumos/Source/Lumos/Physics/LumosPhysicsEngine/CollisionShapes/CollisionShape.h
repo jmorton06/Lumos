@@ -13,7 +13,7 @@ namespace Lumos
         glm::vec3 Faces[8];
         Plane AdjacentPlanes[8];
         glm::vec3 Normal;
-        uint32_t FaceCount = 0;
+        uint32_t FaceCount  = 0;
         uint32_t PlaneCount = 0;
     };
 
@@ -31,11 +31,11 @@ namespace Lumos
 
     enum CollisionShapeType : unsigned int
     {
-        CollisionCuboid = 1,
-        CollisionSphere = 2,
-        CollisionPyramid = 4,
-        CollisionCapsule = 8,
-        CollisionHull = 16,
+        CollisionCuboid       = 1,
+        CollisionSphere       = 2,
+        CollisionPyramid      = 4,
+        CollisionCapsule      = 8,
+        CollisionHull         = 16,
         CollisionShapeTypeMax = 32
     };
 
@@ -54,7 +54,7 @@ namespace Lumos
         // Constructs an inverse inertia matrix of the given collision volume. This is the equivilant of the inverse mass of an object for rotation,
         //   a good source for non-inverse inertia matricies can be found here: https://en.wikipedia.org/wiki/List_of_moments_of_inertia
         virtual glm::mat3 BuildInverseInertia(float invMass) const = 0;
-        virtual float GetSize() const = 0;
+        virtual float GetSize() const                              = 0;
 
         // Draws this collision shape to the debug renderer
         virtual void DebugDraw(const RigidBody3D* currentObject) const = 0;
@@ -81,8 +81,8 @@ namespace Lumos
         //    returning the face (as a list of vertices), face normal and the planes
         //    of all adjacent faces in order to clip against.
         virtual void GetIncidentReferencePolygon(const RigidBody3D* currentObject,
-            const glm::vec3& axis,
-            ReferencePolygon& refPolygon) const = 0;
+                                                 const glm::vec3& axis,
+                                                 ReferencePolygon& refPolygon) const = 0;
 
         void SetLocalTransform(const glm::mat4& transform)
         {

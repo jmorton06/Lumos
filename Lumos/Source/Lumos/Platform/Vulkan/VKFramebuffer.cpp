@@ -12,7 +12,7 @@ namespace Lumos
     {
         VKFramebuffer::VKFramebuffer(const FramebufferDesc& frameBufferInfo)
         {
-            m_Width = frameBufferInfo.width;
+            m_Width  = frameBufferInfo.width;
             m_Height = frameBufferInfo.height;
 
             //            if(frameBufferInfo.mipIndex >= 0)
@@ -48,16 +48,15 @@ namespace Lumos
                 }
             }
 
-            VkFramebufferCreateInfo framebufferCreateInfo = VKInitialisers::framebufferCreateInfo();
-
-            framebufferCreateInfo.renderPass = static_cast<VKRenderPass*>(frameBufferInfo.renderPass)->GetHandle();
-            framebufferCreateInfo.attachmentCount = m_AttachmentCount;
-            framebufferCreateInfo.pAttachments = attachments.data();
-            framebufferCreateInfo.width = m_Width;
-            framebufferCreateInfo.height = m_Height;
-            framebufferCreateInfo.layers = 1;
-            framebufferCreateInfo.pNext = nullptr;
-            framebufferCreateInfo.flags = 0;
+            VkFramebufferCreateInfo framebufferCreateInfo = VKInitialisers::FramebufferCreateInfo();
+            framebufferCreateInfo.renderPass              = static_cast<VKRenderPass*>(frameBufferInfo.renderPass)->GetHandle();
+            framebufferCreateInfo.attachmentCount         = m_AttachmentCount;
+            framebufferCreateInfo.pAttachments            = attachments.data();
+            framebufferCreateInfo.width                   = m_Width;
+            framebufferCreateInfo.height                  = m_Height;
+            framebufferCreateInfo.layers                  = 1;
+            framebufferCreateInfo.pNext                   = nullptr;
+            framebufferCreateInfo.flags                   = 0;
 
             VK_CHECK_RESULT(vkCreateFramebuffer(VKDevice::Get().GetDevice(), &framebufferCreateInfo, VK_NULL_HANDLE, &m_Framebuffer));
         }
@@ -69,7 +68,7 @@ namespace Lumos
             auto framebuffer = m_Framebuffer;
 
             deletionQueue.PushFunction([framebuffer]
-                { vkDestroyFramebuffer(VKDevice::Get().GetDevice(), framebuffer, VK_NULL_HANDLE); });
+                                       { vkDestroyFramebuffer(VKDevice::Get().GetDevice(), framebuffer, VK_NULL_HANDLE); });
         }
 
         void VKFramebuffer::MakeDefault()

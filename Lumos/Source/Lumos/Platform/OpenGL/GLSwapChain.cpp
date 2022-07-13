@@ -107,12 +107,12 @@ namespace Lumos
             }
 
             void APIENTRY openglCallbackFunction(GLenum source,
-                GLenum type,
-                GLuint id,
-                GLenum severity,
-                GLsizei length,
-                const GLchar* message,
-                const void* userParam)
+                                                 GLenum type,
+                                                 GLuint id,
+                                                 GLenum severity,
+                                                 GLsizei length,
+                                                 const GLchar* message,
+                                                 const void* userParam)
             {
                 if(!PrintMessage(type))
                     return;
@@ -128,7 +128,7 @@ namespace Lumos
 
         GLSwapChain::GLSwapChain(uint32_t width, uint32_t height)
         {
-            m_Width = width;
+            m_Width  = width;
             m_Height = height;
             //            FramebufferDesc info {};
             //            info.width = width;
@@ -161,11 +161,11 @@ namespace Lumos
             glDebugMessageCallback(Lumos::openglCallbackFunction, nullptr);
             GLuint unusedIds = 0;
             glDebugMessageControl(GL_DONT_CARE,
-                GL_DONT_CARE,
-                GL_DONT_CARE,
-                0,
-                &unusedIds,
-                true);
+                                  GL_DONT_CARE,
+                                  GL_DONT_CARE,
+                                  0,
+                                  &unusedIds,
+                                  true);
 #else
             LUMOS_LOG_INFO(OPENGLLOG "glDebugMessageCallback not available");
 #endif
