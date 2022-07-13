@@ -39,7 +39,7 @@ namespace Lumos
         state.velocity = initial.velocity + derivative.acceleration * dt;
 
         Derivative output;
-        output.velocity = state.velocity;
+        output.velocity     = state.velocity;
         output.acceleration = initial.acceleration;
         return output;
     }

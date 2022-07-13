@@ -6,7 +6,7 @@ namespace Lumos
     class UnixOS : public OS
     {
     public:
-        UnixOS() = default;
+        UnixOS()  = default;
         ~UnixOS() = default;
 
         void Init();

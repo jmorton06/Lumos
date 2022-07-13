@@ -9,9 +9,9 @@ namespace Lumos
         VKCommandPool::VKCommandPool(int queueIndex, VkCommandPoolCreateFlags flags)
         {
             VkCommandPoolCreateInfo cmdPoolCI {};
-            cmdPoolCI.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+            cmdPoolCI.sType            = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
             cmdPoolCI.queueFamilyIndex = queueIndex;
-            cmdPoolCI.flags = flags;
+            cmdPoolCI.flags            = flags;
 
             vkCreateCommandPool(VKDevice::Get().GetDevice(), &cmdPoolCI, nullptr, &m_Handle);
         }

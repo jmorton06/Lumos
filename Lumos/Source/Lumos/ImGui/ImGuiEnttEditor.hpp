@@ -55,7 +55,7 @@ namespace MM
         template <class Component>
         ComponentInfo& registerComponent(const ComponentInfo& component_info)
         {
-            auto index = entt::type_info<Component>::id();
+            auto index               = entt::type_info<Component>::id();
             auto [it, insert_result] = component_infos.insert_or_assign(index, component_info);
             assert(insert_result);
             return std::get<ComponentInfo>(*it);
@@ -148,7 +148,7 @@ namespace MM
                         ImGui::SameLine();
 
                         float filterSize = ImGui::GetContentRegionAvail().x - ImGui::GetStyle().IndentSpacing;
-                        filterSize = filterSize < 200 ? 200 : filterSize;
+                        filterSize       = filterSize < 200 ? 200 : filterSize;
                         m_ComponentFilter.Draw("##ComponentFilter", filterSize);
 
                         for(auto& [component_type_id, ci] : has_not)

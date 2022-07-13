@@ -37,28 +37,28 @@ namespace Lumos
         else if(status.BatteryFlag & (1 << 3))
         { /* charging */
             m_PowerState = POWERSTATE_CHARGING;
-            needDetails = TRUE;
+            needDetails  = TRUE;
         }
         else if(status.ACLineStatus == 1)
         {
             m_PowerState = POWERSTATE_CHARGED; /* on AC, not charging. */
-            needDetails = TRUE;
+            needDetails  = TRUE;
         }
         else
         {
             m_PowerState = POWERSTATE_ON_BATTERY; /* not on AC. */
-            needDetails = TRUE;
+            needDetails  = TRUE;
         }
 
-        m_PercentageLeft = -1;
+        m_PercentageLeft    = -1;
         m_NumberSecondsLeft = -1;
         if(needDetails)
         {
-            const int pct = (int)status.BatteryLifePercent;
+            const int pct  = (int)status.BatteryLifePercent;
             const int secs = (int)status.BatteryLifeTime;
 
             if(pct != 255)
-            { /* 255 == unknown */
+            {                                               /* 255 == unknown */
                 m_PercentageLeft = (pct > 100) ? 100 : pct; /* clamp between 0%, 100% */
             }
             if(secs != (int)0xFFFFFFFF)

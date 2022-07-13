@@ -25,7 +25,7 @@ namespace Lumos::Graphics
 
         m_Flags = 0;
         SetFlag(RenderFlags::DEPTHTEST);
-        m_DescriptorSet = nullptr;
+        m_DescriptorSet      = nullptr;
         m_MaterialProperties = new MaterialProperties();
         m_MaterialBufferSize = sizeof(MaterialProperties);
 
@@ -41,10 +41,10 @@ namespace Lumos::Graphics
 
         m_Flags = 0;
         SetFlag(RenderFlags::DEPTHTEST);
-        m_DescriptorSet = nullptr;
-        m_MaterialProperties = new MaterialProperties();
+        m_DescriptorSet              = nullptr;
+        m_MaterialProperties         = new MaterialProperties();
         m_PBRMaterialTextures.albedo = nullptr;
-        m_MaterialBufferSize = sizeof(MaterialProperties);
+        m_MaterialBufferSize         = sizeof(MaterialProperties);
     }
 
     Material::~Material()
@@ -57,12 +57,12 @@ namespace Lumos::Graphics
     void Material::SetTextures(const PBRMataterialTextures& textures)
     {
         LUMOS_PROFILE_FUNCTION();
-        m_PBRMaterialTextures.albedo = textures.albedo;
-        m_PBRMaterialTextures.normal = textures.normal;
+        m_PBRMaterialTextures.albedo    = textures.albedo;
+        m_PBRMaterialTextures.normal    = textures.normal;
         m_PBRMaterialTextures.roughness = textures.roughness;
-        m_PBRMaterialTextures.metallic = textures.metallic;
-        m_PBRMaterialTextures.ao = textures.ao;
-        m_PBRMaterialTextures.emissive = textures.emissive;
+        m_PBRMaterialTextures.metallic  = textures.metallic;
+        m_PBRMaterialTextures.ao        = textures.ao;
+        m_PBRMaterialTextures.emissive  = textures.emissive;
     }
 
     bool FileExists(const std::string& path)
@@ -79,9 +79,9 @@ namespace Lumos::Graphics
     {
         LUMOS_PROFILE_FUNCTION();
 
-        m_Name = name;
+        m_Name                = name;
         m_PBRMaterialTextures = PBRMataterialTextures();
-        auto params = Graphics::TextureDesc(Graphics::RHIFormat::R8G8B8A8_Unorm, Graphics::TextureFilter::LINEAR, Graphics::TextureFilter::LINEAR, Graphics::TextureWrap::CLAMP_TO_EDGE);
+        auto params           = Graphics::TextureDesc(Graphics::RHIFormat::R8G8B8A8_Unorm, Graphics::TextureFilter::LINEAR, Graphics::TextureFilter::LINEAR, Graphics::TextureWrap::CLAMP_TO_EDGE);
 
         auto filePath = path + "/" + name + "/albedo" + extension;
 
@@ -118,14 +118,14 @@ namespace Lumos::Graphics
     {
         LUMOS_PROFILE_FUNCTION();
 
-        m_Name = name;
-        m_PBRMaterialTextures = PBRMataterialTextures();
-        m_PBRMaterialTextures.albedo = SharedPtr<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile(name, path));
-        m_PBRMaterialTextures.normal = nullptr;
+        m_Name                          = name;
+        m_PBRMaterialTextures           = PBRMataterialTextures();
+        m_PBRMaterialTextures.albedo    = SharedPtr<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile(name, path));
+        m_PBRMaterialTextures.normal    = nullptr;
         m_PBRMaterialTextures.roughness = nullptr;
-        m_PBRMaterialTextures.metallic = nullptr;
-        m_PBRMaterialTextures.ao = nullptr;
-        m_PBRMaterialTextures.emissive = nullptr;
+        m_PBRMaterialTextures.metallic  = nullptr;
+        m_PBRMaterialTextures.ao        = nullptr;
+        m_PBRMaterialTextures.emissive  = nullptr;
     }
 
     void Material::UpdateMaterialPropertiesData()
@@ -141,18 +141,18 @@ namespace Lumos::Graphics
     {
         LUMOS_PROFILE_FUNCTION();
 
-        m_MaterialProperties->albedoColour = properties.albedoColour;
-        m_MaterialProperties->metallic = properties.metallic;
-        m_MaterialProperties->roughness = properties.roughness;
-        m_MaterialProperties->emissive = properties.emissive;
-        m_MaterialProperties->albedoMapFactor = properties.albedoMapFactor;
-        m_MaterialProperties->normalMapFactor = properties.normalMapFactor;
-        m_MaterialProperties->metallicMapFactor = properties.metallicMapFactor;
+        m_MaterialProperties->albedoColour       = properties.albedoColour;
+        m_MaterialProperties->metallic           = properties.metallic;
+        m_MaterialProperties->roughness          = properties.roughness;
+        m_MaterialProperties->emissive           = properties.emissive;
+        m_MaterialProperties->albedoMapFactor    = properties.albedoMapFactor;
+        m_MaterialProperties->normalMapFactor    = properties.normalMapFactor;
+        m_MaterialProperties->metallicMapFactor  = properties.metallicMapFactor;
         m_MaterialProperties->roughnessMapFactor = properties.roughnessMapFactor;
         m_MaterialProperties->occlusionMapFactor = properties.occlusionMapFactor;
-        m_MaterialProperties->emissiveMapFactor = properties.emissiveMapFactor;
-        m_MaterialProperties->alphaCutoff = properties.alphaCutoff;
-        m_MaterialProperties->workflow = properties.workflow;
+        m_MaterialProperties->emissiveMapFactor  = properties.emissiveMapFactor;
+        m_MaterialProperties->alphaCutoff        = properties.alphaCutoff;
+        m_MaterialProperties->workflow           = properties.workflow;
 
         UpdateMaterialPropertiesData();
     }
@@ -233,7 +233,7 @@ namespace Lumos::Graphics
 
         Graphics::DescriptorDesc descriptorDesc;
         descriptorDesc.layoutIndex = layoutID;
-        descriptorDesc.shader = m_Shader.get();
+        descriptorDesc.shader      = m_Shader.get();
 
         m_DescriptorSet = Graphics::DescriptorSet::Create(descriptorDesc);
 
@@ -265,7 +265,7 @@ namespace Lumos::Graphics
         LUMOS_PROFILE_FUNCTION();
 
         uint32_t whiteTextureData = 0xffffffff;
-        s_DefaultTexture = SharedPtr<Graphics::Texture2D>(Graphics::Texture2D::CreateFromSource(1, 1, &whiteTextureData));
+        s_DefaultTexture          = SharedPtr<Graphics::Texture2D>(Graphics::Texture2D::CreateFromSource(1, 1, &whiteTextureData));
     }
 
     void Material::ReleaseDefaultTexture()
@@ -283,7 +283,7 @@ namespace Lumos::Graphics
         if(tex)
         {
             m_PBRMaterialTextures.albedo = tex;
-            m_TexturesUpdated = true;
+            m_TexturesUpdated            = true;
         }
     }
 
@@ -295,7 +295,7 @@ namespace Lumos::Graphics
         if(tex)
         {
             m_PBRMaterialTextures.normal = tex;
-            m_TexturesUpdated = true;
+            m_TexturesUpdated            = true;
         }
     }
 
@@ -307,7 +307,7 @@ namespace Lumos::Graphics
         if(tex)
         {
             m_PBRMaterialTextures.roughness = tex;
-            m_TexturesUpdated = true;
+            m_TexturesUpdated               = true;
         }
     }
 
@@ -319,7 +319,7 @@ namespace Lumos::Graphics
         if(tex)
         {
             m_PBRMaterialTextures.metallic = tex;
-            m_TexturesUpdated = true;
+            m_TexturesUpdated              = true;
         }
     }
 
@@ -331,7 +331,7 @@ namespace Lumos::Graphics
         if(tex)
         {
             m_PBRMaterialTextures.ao = tex;
-            m_TexturesUpdated = true;
+            m_TexturesUpdated        = true;
         }
     }
 
@@ -343,7 +343,7 @@ namespace Lumos::Graphics
         if(tex)
         {
             m_PBRMaterialTextures.emissive = tex;
-            m_TexturesUpdated = true;
+            m_TexturesUpdated              = true;
         }
     }
 }

@@ -24,9 +24,9 @@ namespace Lumos
         VkWin32SurfaceCreateInfoKHR surfaceInfo;
         memset(&surfaceInfo, 0, sizeof(VkWin32SurfaceCreateInfoKHR));
 
-        surfaceInfo.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
-        surfaceInfo.pNext = NULL;
-        surfaceInfo.hwnd = static_cast<HWND>(window->GetHandle());
+        surfaceInfo.sType     = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
+        surfaceInfo.pNext     = NULL;
+        surfaceInfo.hwnd      = static_cast<HWND>(window->GetHandle());
         surfaceInfo.hinstance = dynamic_cast<WindowsWindow*>(window)->GetHInstance();
         vkCreateWin32SurfaceKHR(vkInstance, &surfaceInfo, nullptr, &surface);
 #endif

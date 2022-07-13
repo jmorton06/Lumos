@@ -69,10 +69,10 @@ namespace Lumos
 
     uint8_t* FileSystem::ReadFile(const std::string& path)
     {
-        const HANDLE file = OpenFileForReading(path);
+        const HANDLE file  = OpenFileForReading(path);
         const int64_t size = GetFileSizeInternal(file);
-        uint8_t* buffer = new uint8_t[static_cast<uint32_t>(size)];
-        const bool result = ReadFileInternal(file, buffer, size);
+        uint8_t* buffer    = new uint8_t[static_cast<uint32_t>(size)];
+        const bool result  = ReadFileInternal(file, buffer, size);
         CloseHandle(file);
         if(!result)
             delete[] buffer;
@@ -81,7 +81,7 @@ namespace Lumos
 
     std::string FileSystem::ReadTextFile(const std::string& path)
     {
-        const HANDLE file = OpenFileForReading(path);
+        const HANDLE file  = OpenFileForReading(path);
         const int64_t size = GetFileSizeInternal(file);
         std::string result(static_cast<uint32_t>(size), 0);
         const bool success = ReadFileInternal(file, &result[0], size);

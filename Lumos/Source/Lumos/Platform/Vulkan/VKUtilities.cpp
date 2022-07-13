@@ -32,19 +32,19 @@ namespace Lumos
         }
 
         void VKUtilities::CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer,
-            VkDeviceMemory& bufferMemory, VmaAllocator allocator, VmaAllocation allocation)
+                                       VkDeviceMemory& bufferMemory, VmaAllocator allocator, VmaAllocation allocation)
         {
             VkBufferCreateInfo bufferInfo = {};
-            bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-            bufferInfo.size = size;
-            bufferInfo.usage = usage;
-            bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+            bufferInfo.sType              = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+            bufferInfo.size               = size;
+            bufferInfo.usage              = usage;
+            bufferInfo.sharingMode        = VK_SHARING_MODE_EXCLUSIVE;
 
 #ifdef USE_VMA_ALLOCATOR
             if(allocator != nullptr)
             {
                 VmaAllocationCreateInfo vmaAllocInfo = {};
-                vmaAllocInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;
+                vmaAllocInfo.usage                   = VMA_MEMORY_USAGE_GPU_ONLY;
                 vmaCreateBuffer(allocator, &bufferInfo, &vmaAllocInfo, &buffer, &allocation, nullptr);
             }
             else
@@ -58,9 +58,9 @@ namespace Lumos
             vkGetBufferMemoryRequirements(VKDevice::Get().GetDevice(), buffer, &memRequirements);
 
             VkMemoryAllocateInfo allocInfo = {};
-            allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-            allocInfo.allocationSize = memRequirements.size;
-            allocInfo.memoryTypeIndex = FindMemoryType(memRequirements.memoryTypeBits, properties);
+            allocInfo.sType                = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+            allocInfo.allocationSize       = memRequirements.size;
+            allocInfo.memoryTypeIndex      = FindMemoryType(memRequirements.memoryTypeBits, properties);
 
             VkResult result = vkAllocateMemory(VKDevice::Get().GetDevice(), &allocInfo, nullptr, &bufferMemory);
             if(result != VK_SUCCESS)
@@ -74,17 +74,17 @@ namespace Lumos
         VkCommandBuffer VKUtilities::BeginSingleTimeCommands()
         {
             VkCommandBufferAllocateInfo allocInfo = {};
-            allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-            allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-            allocInfo.commandPool = VKDevice::Get().GetCommandPool()->GetHandle();
-            allocInfo.commandBufferCount = 1;
+            allocInfo.sType                       = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+            allocInfo.level                       = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+            allocInfo.commandPool                 = VKDevice::Get().GetCommandPool()->GetHandle();
+            allocInfo.commandBufferCount          = 1;
 
             VkCommandBuffer commandBuffer;
             vkAllocateCommandBuffers(VKDevice::Get().GetDevice(), &allocInfo, &commandBuffer);
 
             VkCommandBufferBeginInfo beginInfo = {};
-            beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-            beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+            beginInfo.sType                    = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+            beginInfo.flags                    = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
 
             VK_CHECK_RESULT(vkBeginCommandBuffer(commandBuffer, &beginInfo));
 
@@ -96,20 +96,20 @@ namespace Lumos
             VK_CHECK_RESULT(vkEndCommandBuffer(commandBuffer));
 
             VkSubmitInfo submitInfo;
-            submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-            submitInfo.commandBufferCount = 1;
-            submitInfo.pCommandBuffers = &commandBuffer;
-            submitInfo.pSignalSemaphores = nullptr;
-            submitInfo.pNext = nullptr;
-            submitInfo.pWaitDstStageMask = nullptr;
+            submitInfo.sType                = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+            submitInfo.commandBufferCount   = 1;
+            submitInfo.pCommandBuffers      = &commandBuffer;
+            submitInfo.pSignalSemaphores    = nullptr;
+            submitInfo.pNext                = nullptr;
+            submitInfo.pWaitDstStageMask    = nullptr;
             submitInfo.signalSemaphoreCount = 0;
-            submitInfo.waitSemaphoreCount = 0;
+            submitInfo.waitSemaphoreCount   = 0;
 
             VK_CHECK_RESULT(vkQueueSubmit(VKDevice::Get().GetGraphicsQueue(), 1, &submitInfo, VK_NULL_HANDLE));
             VK_CHECK_RESULT(vkQueueWaitIdle(VKDevice::Get().GetGraphicsQueue()));
 
             vkFreeCommandBuffers(VKDevice::Get().GetDevice(),
-                VKDevice::Get().GetCommandPool()->GetHandle(), 1, &commandBuffer);
+                                 VKDevice::Get().GetCommandPool()->GetHandle(), 1, &commandBuffer);
         }
 
         void VKUtilities::CopyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height)
@@ -117,18 +117,18 @@ namespace Lumos
             VkCommandBuffer commandBuffer = BeginSingleTimeCommands();
 
             VkBufferImageCopy region;
-            region.bufferOffset = 0;
-            region.bufferRowLength = 0;
-            region.bufferImageHeight = 0;
-            region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-            region.imageSubresource.mipLevel = 0;
+            region.bufferOffset                    = 0;
+            region.bufferRowLength                 = 0;
+            region.bufferImageHeight               = 0;
+            region.imageSubresource.aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT;
+            region.imageSubresource.mipLevel       = 0;
             region.imageSubresource.baseArrayLayer = 0;
-            region.imageSubresource.layerCount = 1;
-            region.imageOffset = { 0, 0, 0 };
-            region.imageExtent = {
-                width,
-                height,
-                1
+            region.imageSubresource.layerCount     = 1;
+            region.imageOffset                     = { 0, 0, 0 };
+            region.imageExtent                     = {
+                                    width,
+                                    height,
+                                    1
             };
 
             vkCmdCopyBufferToImage(commandBuffer, buffer, image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
@@ -141,7 +141,7 @@ namespace Lumos
             VkCommandBuffer commandBuffer = VKUtilities::BeginSingleTimeCommands();
 
             VkBufferCopy copyRegion = {};
-            copyRegion.size = size;
+            copyRegion.size         = size;
             vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
 
             VKUtilities::EndSingleTimeCommands(commandBuffer);
@@ -336,7 +336,7 @@ namespace Lumos
         }
 
         void VKUtilities::TransitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldImageLayout, VkImageLayout newImageLayout,
-            uint32_t mipLevels, uint32_t layerCount, VkCommandBuffer commandBuffer)
+                                                uint32_t mipLevels, uint32_t layerCount, VkCommandBuffer commandBuffer)
         {
             LUMOS_PROFILE_FUNCTION();
 
@@ -344,31 +344,31 @@ namespace Lumos
 
             if(!commandBuffer)
             {
-                commandBuffer = BeginSingleTimeCommands();
+                commandBuffer     = BeginSingleTimeCommands();
                 singleTimeCommand = true;
             }
 
             VkImageSubresourceRange subresourceRange = {};
-            subresourceRange.aspectMask = IsDepthFormat(format) ? VK_IMAGE_ASPECT_DEPTH_BIT : VK_IMAGE_ASPECT_COLOR_BIT;
+            subresourceRange.aspectMask              = IsDepthFormat(format) ? VK_IMAGE_ASPECT_DEPTH_BIT : VK_IMAGE_ASPECT_COLOR_BIT;
 
             if(IsStencilFormat(format))
                 subresourceRange.aspectMask |= VK_IMAGE_ASPECT_STENCIL_BIT;
 
-            subresourceRange.baseMipLevel = 0;
-            subresourceRange.levelCount = mipLevels;
+            subresourceRange.baseMipLevel   = 0;
+            subresourceRange.levelCount     = mipLevels;
             subresourceRange.baseArrayLayer = 0;
-            subresourceRange.layerCount = layerCount;
+            subresourceRange.layerCount     = layerCount;
 
             // Create an image barrier object
-            VkImageMemoryBarrier imageMemoryBarrier = VKInitialisers::imageMemoryBarrier();
-            imageMemoryBarrier.oldLayout = oldImageLayout;
-            imageMemoryBarrier.newLayout = newImageLayout;
-            imageMemoryBarrier.image = image;
-            imageMemoryBarrier.subresourceRange = subresourceRange;
-            imageMemoryBarrier.srcAccessMask = LayoutToAccessMask(oldImageLayout, false);
-            imageMemoryBarrier.dstAccessMask = LayoutToAccessMask(newImageLayout, true);
-            imageMemoryBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-            imageMemoryBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+            VkImageMemoryBarrier imageMemoryBarrier = VKInitialisers::ImageMemoryBarrier();
+            imageMemoryBarrier.oldLayout            = oldImageLayout;
+            imageMemoryBarrier.newLayout            = newImageLayout;
+            imageMemoryBarrier.image                = image;
+            imageMemoryBarrier.subresourceRange     = subresourceRange;
+            imageMemoryBarrier.srcAccessMask        = LayoutToAccessMask(oldImageLayout, false);
+            imageMemoryBarrier.dstAccessMask        = LayoutToAccessMask(newImageLayout, true);
+            imageMemoryBarrier.srcQueueFamilyIndex  = VK_QUEUE_FAMILY_IGNORED;
+            imageMemoryBarrier.dstQueueFamilyIndex  = VK_QUEUE_FAMILY_IGNORED;
 
             VkPipelineStageFlags sourceStage = 0;
             {
@@ -378,7 +378,7 @@ namespace Lumos
                 }
                 else if(imageMemoryBarrier.srcAccessMask != 0)
                 {
-                    sourceStage = AccessFlagsToPipelineStage(imageMemoryBarrier.srcAccessMask, VK_PIPELINE_STAGE_VERTEX_SHADER_BIT | VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
+                    sourceStage = AccessFlagsToPipelineStage(imageMemoryBarrier.srcAccessMask, VK_PIPELINE_STAGE_VERTEX_SHADER_BIT | VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT);
                 }
                 else
                 {
@@ -394,7 +394,7 @@ namespace Lumos
                 }
                 else if(imageMemoryBarrier.dstAccessMask != 0)
                 {
-                    destinationStage = AccessFlagsToPipelineStage(imageMemoryBarrier.dstAccessMask, VK_PIPELINE_STAGE_VERTEX_SHADER_BIT | VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
+                    destinationStage = AccessFlagsToPipelineStage(imageMemoryBarrier.dstAccessMask, VK_PIPELINE_STAGE_VERTEX_SHADER_BIT | VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT);
                 }
                 else
                 {
@@ -417,7 +417,7 @@ namespace Lumos
         }
 
         VkFormat VKUtilities::FindSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling,
-            VkFormatFeatureFlags features)
+                                                  VkFormatFeatureFlags features)
         {
             for(VkFormat format : candidates)
             {
@@ -442,10 +442,10 @@ namespace Lumos
         {
             return FindSupportedFormat(
                 { VK_FORMAT_D32_SFLOAT_S8_UINT,
-                    VK_FORMAT_D32_SFLOAT,
-                    VK_FORMAT_D24_UNORM_S8_UINT,
-                    VK_FORMAT_D16_UNORM_S8_UINT,
-                    VK_FORMAT_D16_UNORM },
+                  VK_FORMAT_D32_SFLOAT,
+                  VK_FORMAT_D24_UNORM_S8_UINT,
+                  VK_FORMAT_D16_UNORM_S8_UINT,
+                  VK_FORMAT_D16_UNORM },
                 VK_IMAGE_TILING_OPTIMAL,
                 VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
         }
@@ -490,9 +490,9 @@ namespace Lumos
         {
             VkVertexInputAttributeDescription vInputAttribDescription;
             vInputAttribDescription.location = description.location;
-            vInputAttribDescription.binding = description.binding;
-            vInputAttribDescription.format = FormatToVK(description.format);
-            vInputAttribDescription.offset = description.offset;
+            vInputAttribDescription.binding  = description.binding;
+            vInputAttribDescription.format   = FormatToVK(description.format);
+            vInputAttribDescription.offset   = description.offset;
             return vInputAttribDescription;
         }
 
@@ -523,8 +523,11 @@ namespace Lumos
                 return VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
             case DescriptorType::IMAGE_SAMPLER:
                 return VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+            case DescriptorType::IMAGE_STORAGE:
+                return VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
             }
 
+            LUMOS_LOG_INFO("Unsupported Descriptor Type");
             return VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
         }
 
@@ -533,7 +536,7 @@ namespace Lumos
             VkSurfaceCapabilitiesKHR capabilities;
             vkGetPhysicalDeviceSurfaceCapabilitiesKHR(VKDevice::Get().GetGPU(), ((VKSwapChain*)Application::Get().GetWindow()->GetSwapChain().get())->GetSurface(), &capabilities);
 
-            width = std::max(capabilities.minImageExtent.width, std::min(capabilities.maxImageExtent.width, width));
+            width  = std::max(capabilities.minImageExtent.width, std::min(capabilities.maxImageExtent.width, width));
             height = std::max(capabilities.minImageExtent.height, std::min(capabilities.maxImageExtent.height, height));
         }
 

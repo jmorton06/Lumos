@@ -6,6 +6,8 @@
 #include "Core/Engine.h"
 #include "GLDebug.h"
 #include "GLContext.h"
+#include "GLIndexBuffer.h"
+#include "GLVertexBuffer.h"
 
 #include "GL.h"
 #include "GLUtilities.h"
@@ -22,20 +24,26 @@ namespace Lumos
         GLRenderer::GLRenderer()
         {
             m_RendererTitle = "OPENGL";
-            auto& caps = Renderer::GetCapabilities();
+            auto& caps      = Renderer::GetCapabilities();
 
-            caps.Vendor = (const char*)glGetString(GL_VENDOR);
+            caps.Vendor   = (const char*)glGetString(GL_VENDOR);
             caps.Renderer = (const char*)glGetString(GL_RENDERER);
-            caps.Version = (const char*)glGetString(GL_VERSION);
+            caps.Version  = (const char*)glGetString(GL_VERSION);
 
             glGetIntegerv(GL_MAX_SAMPLES, &caps.MaxSamples);
             glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY, &caps.MaxAnisotropy);
             glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &caps.MaxTextureUnits);
             glGetIntegerv(GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT, &caps.UniformBufferOffsetAlignment);
+
+            m_DefaultVertexBuffer = new GLVertexBuffer(BufferUsage::STATIC);
+            uint16_t data[1];
+            m_DefaultIndexBuffer = new GLIndexBuffer(data, 0, BufferUsage::STATIC);
         }
 
         GLRenderer::~GLRenderer()
         {
+            delete m_DefaultVertexBuffer;
+            delete m_DefaultIndexBuffer;
         }
 
         void GLRenderer::InitInternal()
@@ -213,12 +221,34 @@ namespace Lumos
         {
             LUMOS_PROFILE_FUNCTION();
             Engine::Get().Statistics().NumDrawCalls++;
+
+            if(m_BoundIndexBuffer == -1)
+            {
+                m_DefaultVertexBuffer->Bind(commandBuffer, nullptr);
+            }
+
+            if(m_BoundVertexBuffer == -1)
+            {
+                m_DefaultIndexBuffer->Bind(commandBuffer);
+            }
+
             GLCall(glDrawElements(GLUtilities::DrawTypeToGL(type), count, GLUtilities::DataTypeToGL(dataType), indices));
         }
 
         void GLRenderer::DrawIndexedInternal(CommandBuffer* commandBuffer, const DrawType type, uint32_t count, uint32_t start) const
         {
             LUMOS_PROFILE_FUNCTION();
+
+            if(m_BoundIndexBuffer == -1)
+            {
+                m_DefaultVertexBuffer->Bind(commandBuffer, nullptr);
+            }
+
+            if(m_BoundVertexBuffer == -1)
+            {
+                m_DefaultIndexBuffer->Bind(commandBuffer);
+            }
+
             Engine::Get().Statistics().NumDrawCalls++;
             GLCall(glDrawElements(GLUtilities::DrawTypeToGL(type), count, GLUtilities::DataTypeToGL(DataType::UNSIGNED_INT), nullptr));
             // GLCall(glDrawArrays(GLTools::DrawTypeToGL(type), start, count));
@@ -246,7 +276,7 @@ namespace Lumos
             else
             {
                 std::vector<TextureType> attachmentTypes = { texture->GetType() };
-                std::vector<Texture*> attachments = { texture };
+                std::vector<Texture*> attachments        = { texture };
 
                 //            Graphics::RenderPassDesc renderPassDesc;
                 //            renderPassDesc.attachmentCount = uint32_t(attachmentTypes.size());
@@ -259,12 +289,12 @@ namespace Lumos
                 GLCall(glClearColor(clearColour.x, clearColour.y, clearColour.z, clearColour.w));
 
                 FramebufferDesc frameBufferDesc {};
-                frameBufferDesc.width = texture->GetWidth();
-                frameBufferDesc.height = texture->GetHeight();
+                frameBufferDesc.width           = texture->GetWidth();
+                frameBufferDesc.height          = texture->GetHeight();
                 frameBufferDesc.attachmentCount = uint32_t(attachments.size());
-                frameBufferDesc.renderPass = nullptr;
+                frameBufferDesc.renderPass      = nullptr;
                 frameBufferDesc.attachmentTypes = attachmentTypes.data();
-                frameBufferDesc.attachments = attachments.data();
+                frameBufferDesc.attachments     = attachments.data();
 
                 auto framebuffer = Framebuffer::Get(frameBufferDesc);
                 framebuffer->Bind();

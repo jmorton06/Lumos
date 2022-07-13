@@ -55,6 +55,8 @@ namespace Lumos
             void DrawInternal(CommandBuffer* commandBuffer, DrawType type, uint32_t count, DataType datayType, void* indices) const override;
             void DrawSplashScreen(Texture* texture) override;
             uint32_t GetGPUCount() const override;
+            bool SupportsCompute() override { return true; }
+            void Dispatch(CommandBuffer* commandBuffer, uint32_t workGroupSizeX, uint32_t workGroupSizeY, uint32_t workGroupSizeZ) override;
 
             static VkDescriptorPool& GetDescriptorPool()
             {

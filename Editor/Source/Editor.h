@@ -37,12 +37,12 @@ namespace Lumos
 
     enum EditorDebugFlags : uint32_t
     {
-        Grid = 1,
-        Gizmo = 2,
-        ViewSelected = 4,
-        CameraFrustum = 8,
+        Grid              = 1,
+        Gizmo             = 2,
+        ViewSelected      = 4,
+        CameraFrustum     = 8,
         MeshBoundingBoxes = 16,
-        SpriteBoxes = 32,
+        SpriteBoxes       = 32,
     };
 
     class Editor : public Application
@@ -136,7 +136,7 @@ namespace Lumos
 
         void SetCopiedEntity(entt::entity entity, bool cut = false)
         {
-            m_CopiedEntity = entity;
+            m_CopiedEntity  = entity;
             m_CutCopyEntity = cut;
         }
 
@@ -216,28 +216,28 @@ namespace Lumos
 
         struct EditorSettings
         {
-            float m_GridSize = 10.0f;
-            uint32_t m_DebugDrawFlags = 0;
+            float m_GridSize               = 10.0f;
+            uint32_t m_DebugDrawFlags      = 0;
             uint32_t m_Physics2DDebugFlags = 0;
             uint32_t m_Physics3DDebugFlags = 0;
 
-            bool m_ShowGrid = true;
-            bool m_ShowGizmos = true;
+            bool m_ShowGrid         = true;
+            bool m_ShowGizmos       = true;
             bool m_ShowViewSelected = false;
-            bool m_SnapQuizmo = false;
-            bool m_ShowImGuiDemo = true;
-            bool m_View2D = false;
+            bool m_SnapQuizmo       = false;
+            bool m_ShowImGuiDemo    = true;
+            bool m_View2D           = false;
             bool m_FullScreenOnPlay = false;
-            float m_SnapAmount = 1.0f;
-            bool m_SleepOutofFocus = true;
-            float m_ImGuizmoScale = 0.25f;
+            float m_SnapAmount      = 1.0f;
+            bool m_SleepOutofFocus  = true;
+            float m_ImGuizmoScale   = 0.25f;
 
-            bool m_FullScreenSceneView = false;
+            bool m_FullScreenSceneView    = false;
             ImGuiUtilities::Theme m_Theme = ImGuiUtilities::Theme::Dark;
-            bool m_FreeAspect = true;
-            float m_FixedAspect = 1.0f;
-            bool m_HalfRes = false;
-            float m_AspectRatio = 1.0f;
+            bool m_FreeAspect             = true;
+            float m_FixedAspect           = 1.0f;
+            bool m_HalfRes                = false;
+            float m_AspectRatio           = 1.0f;
 
             // Camera Settings
         };
@@ -254,14 +254,14 @@ namespace Lumos
         uint32_t m_ImGuizmoOperation = 14463;
         entt::entity m_SelectedEntity;
         entt::entity m_CopiedEntity;
-        bool m_CutCopyEntity = false;
-        float m_CurrentSceneAspectRatio = 0.0f;
+        bool m_CutCopyEntity              = false;
+        float m_CurrentSceneAspectRatio   = 0.0f;
         float m_CameraTransitionStartTime = 0.0f;
-        float m_CameraTransitionSpeed = 0.0f;
-        bool m_TransitioningCamera = false;
+        float m_CameraTransitionSpeed     = 0.0f;
+        bool m_TransitioningCamera        = false;
         glm::vec3 m_CameraDestination;
         glm::vec3 m_CameraStartPosition;
-        bool m_SceneViewActive = false;
+        bool m_SceneViewActive     = false;
         bool m_NewProjectPopupOpen = false;
 
         EditorSettings m_Settings;

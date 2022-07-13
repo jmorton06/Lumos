@@ -23,7 +23,7 @@ namespace Lumos
             static RenderPass* CreateFuncGL(const RenderPassDesc& renderPassDesc);
 
         private:
-            bool m_Clear = true;
+            bool m_Clear     = true;
             int m_ClearCount = 0;
         };
     }

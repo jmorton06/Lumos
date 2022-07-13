@@ -15,21 +15,21 @@ namespace Lumos
 {
     enum class AssetFlag : uint16_t
     {
-        None = 0,
-        Missing = BIT(0),
-        Invalid = BIT(1),
-        Loaded = BIT(2),
+        None     = 0,
+        Missing  = BIT(0),
+        Invalid  = BIT(1),
+        Loaded   = BIT(2),
         UnLoaded = BIT(3)
     };
 
     enum class AssetType : uint16_t
     {
-        None = 0,
+        None    = 0,
         Texture = 1,
-        Mesh = 2,
-        Scene = 3,
-        Audio = 4,
-        Font = 5,
+        Mesh    = 2,
+        Scene   = 3,
+        Audio   = 4,
+        Font    = 5,
     };
 
     class LUMOS_EXPORT Asset

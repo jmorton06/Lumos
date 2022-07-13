@@ -5,19 +5,19 @@
 
 namespace Lumos
 {
-    uint32_t ConsolePanel::s_MessageBufferRenderFilter = 0;
-    uint16_t ConsolePanel::s_MessageBufferCapacity = 200;
-    uint16_t ConsolePanel::s_MessageBufferSize = 0;
-    uint16_t ConsolePanel::s_MessageBufferBegin = 0;
+    uint32_t ConsolePanel::s_MessageBufferRenderFilter                          = 0;
+    uint16_t ConsolePanel::s_MessageBufferCapacity                              = 200;
+    uint16_t ConsolePanel::s_MessageBufferSize                                  = 0;
+    uint16_t ConsolePanel::s_MessageBufferBegin                                 = 0;
     std::vector<SharedPtr<ConsolePanel::Message>> ConsolePanel::s_MessageBuffer = std::vector<SharedPtr<ConsolePanel::Message>>(200);
-    bool ConsolePanel::s_AllowScrollingToBottom = true;
-    bool ConsolePanel::s_RequestScrollToBottom = false;
+    bool ConsolePanel::s_AllowScrollingToBottom                                 = true;
+    bool ConsolePanel::s_RequestScrollToBottom                                  = false;
 
     ConsolePanel::ConsolePanel()
     {
         LUMOS_PROFILE_FUNCTION();
-        m_Name = ICON_MDI_VIEW_LIST " Console###console";
-        m_SimpleName = "Console";
+        m_Name                      = ICON_MDI_VIEW_LIST " Console###console";
+        m_SimpleName                = "Console";
         s_MessageBufferRenderFilter = Message::Level::Trace | Message::Level::Info | Message::Level::Debug | Message::Level::Warn | Message::Level::Error | Message::Level::Critical;
     }
 
@@ -114,10 +114,10 @@ namespace Lumos
         ImGui::TextUnformatted(ICON_MDI_MAGNIFY);
         ImGui::SameLine();
 
-        float spacing = ImGui::GetStyle().ItemSpacing.x;
+        float spacing                   = ImGui::GetStyle().ItemSpacing.x;
         ImGui::GetStyle().ItemSpacing.x = 2;
-        float levelButtonWidth = (ImGui::CalcTextSize(Message::GetLevelIcon(Message::Level(1))) + ImGui::GetStyle().FramePadding * 2.0f).x;
-        float levelButtonWidths = (levelButtonWidth + ImGui::GetStyle().ItemSpacing.x) * 6;
+        float levelButtonWidth          = (ImGui::CalcTextSize(Message::GetLevelIcon(Message::Level(1))) + ImGui::GetStyle().FramePadding * 2.0f).x;
+        float levelButtonWidths         = (levelButtonWidth + ImGui::GetStyle().ItemSpacing.x) * 6;
 
         {
             ImGuiUtilities::ScopedFont boldFont(ImGui::GetIO().Fonts->Fonts[1]);

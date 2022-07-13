@@ -20,7 +20,7 @@ namespace Lumos
         Lumos::MemoryManager::Get()->m_MemoryStats.totalAllocations++;
 
         size_t actualSize = size + sizeof(size_t);
-        void* mem = malloc(actualSize + sizeof(void*));
+        void* mem         = malloc(actualSize + sizeof(void*));
 
         uint8_t* result = (uint8_t*)mem;
         if(result == NULL)
@@ -47,7 +47,7 @@ namespace Lumos
         if(location && memory)
         {
             uint8_t* memory = ((uint8_t*)location) - sizeof(size_t);
-            size_t size = *(size_t*)memory;
+            size_t size     = *(size_t*)memory;
             free(((void**)memory));
             Lumos::MemoryManager::Get()->m_MemoryStats.totalFreed += size;
             Lumos::MemoryManager::Get()->m_MemoryStats.currentUsed -= size;

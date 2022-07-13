@@ -7,8 +7,8 @@ namespace Lumos
 {
     float Noise(int x, int y)
     {
-        const int offsetx = 100;
-        const int offsety = -50;
+        const int offsetx  = 100;
+        const int offsety  = -50;
         const float layer1 = 25.0f;
         const float layer2 = 180.0f;
 
@@ -20,14 +20,14 @@ namespace Lumos
     Terrain::Terrain(int width, int height, int lowside, int lowscale, float xRand, float yRand, float zRand, float texRandX, float texRandZ)
     {
         LUMOS_PROFILE_FUNCTION();
-        int xCoord = 0;
-        int zCoord = 0;
+        int xCoord           = 0;
+        int zCoord           = 0;
         uint32_t numVertices = width * height;
-        uint32_t numIndices = (width - 1) * (height - 1) * 6;
-        glm::vec3* vertices = new glm::vec3[numVertices];
+        uint32_t numIndices  = (width - 1) * (height - 1) * 6;
+        glm::vec3* vertices  = new glm::vec3[numVertices];
         glm::vec2* texCoords = new glm::vec2[numVertices];
-        uint32_t* indices = new uint32_t[numIndices];
-        m_BoundingBox = CreateSharedPtr<Maths::BoundingBox>();
+        uint32_t* indices    = new uint32_t[numIndices];
+        m_BoundingBox        = CreateSharedPtr<Maths::BoundingBox>();
 
         for(int x = 0; x < width; ++x)
         {
@@ -36,7 +36,7 @@ namespace Lumos
                 int offset = (x * width) + z;
 
                 float dataVal = Noise(x + (xCoord * width),
-                    z + (zCoord * width));
+                                      z + (zCoord * width));
 
                 vertices[offset] = glm::vec3(
                     (static_cast<float>(x) + (static_cast<float>(xCoord) * float(width))) * xRand,
@@ -71,18 +71,18 @@ namespace Lumos
             }
         }
 
-        glm::vec3* normals = GenerateNormals(numVertices, vertices, indices, indicesCount);
+        glm::vec3* normals  = GenerateNormals(numVertices, vertices, indices, indicesCount);
         glm::vec3* tangents = GenerateTangents(numVertices, vertices, indices, indicesCount, texCoords);
 
         Graphics::Vertex* verts = new Graphics::Vertex[numVertices];
 
         for(uint32_t i = 0; i < numVertices; i++)
         {
-            verts[i].Position = vertices[i];
-            verts[i].Colours = glm::vec4(0.0f);
-            verts[i].Normal = normals[i];
+            verts[i].Position  = vertices[i];
+            verts[i].Colours   = glm::vec4(0.0f);
+            verts[i].Normal    = normals[i];
             verts[i].TexCoords = texCoords[i];
-            verts[i].Tangent = tangents[i];
+            verts[i].Tangent   = tangents[i];
 
             m_BoundingBox->Merge(verts[i].Position);
         }

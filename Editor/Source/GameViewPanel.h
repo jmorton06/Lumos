@@ -28,10 +28,10 @@ namespace Lumos
 
     private:
         SharedPtr<Graphics::Texture2D> m_GameViewTexture = nullptr;
-        Scene* m_CurrentScene = nullptr;
+        Scene* m_CurrentScene                            = nullptr;
         uint32_t m_Width, m_Height;
         UniquePtr<Graphics::RenderGraph> m_RenderGraph;
         bool m_GameViewVisible = false;
-        bool m_ShowStats = false;
+        bool m_ShowStats       = false;
     };
 }

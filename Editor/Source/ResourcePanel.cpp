@@ -20,7 +20,7 @@ namespace Lumos
     ResourcePanel::ResourcePanel()
     {
         LUMOS_PROFILE_FUNCTION();
-        m_Name = ICON_MDI_FOLDER_STAR " Resources###resources";
+        m_Name       = ICON_MDI_FOLDER_STAR " Resources###resources";
         m_SimpleName = "Resources";
 
         // TODO: Get Project path from editor
@@ -33,16 +33,16 @@ namespace Lumos
         m_BasePath = Application::Get().GetProjectSettings().m_ProjectRoot + "Assets";
 
         std::string baseDirectoryHandle = ProcessDirectory(std::filesystem::path(m_BasePath), nullptr);
-        m_BaseProjectDir = m_Directories[baseDirectoryHandle];
+        m_BaseProjectDir                = m_Directories[baseDirectoryHandle];
         ChangeDirectory(m_BaseProjectDir);
 
         m_CurrentDir = m_BaseProjectDir;
 
         m_UpdateNavigationPath = true;
-        m_IsDragging = false;
-        m_IsInListView = true;
-        m_UpdateBreadCrumbs = true;
-        m_ShowHiddenFiles = false;
+        m_IsDragging           = false;
+        m_IsInListView         = true;
+        m_UpdateBreadCrumbs    = true;
+        m_ShowHiddenFiles      = false;
     }
 
     void ResourcePanel::ChangeDirectory(SharedPtr<DirectoryInformation>& directory)
@@ -50,8 +50,8 @@ namespace Lumos
         if(!directory)
             return;
 
-        m_PreviousDirectory = m_CurrentDir;
-        m_CurrentDir = directory;
+        m_PreviousDirectory    = m_CurrentDir;
+        m_CurrentDir           = directory;
         m_UpdateNavigationPath = true;
     }
 
@@ -75,7 +75,7 @@ namespace Lumos
             return directory->FilePath.string();
 
         SharedPtr<DirectoryInformation> directoryInfo = CreateSharedPtr<DirectoryInformation>(directoryPath, !std::filesystem::is_directory(directoryPath));
-        directoryInfo->Parent = parent;
+        directoryInfo->Parent                         = parent;
 
         if(directoryPath == m_BasePath)
             directoryInfo->FilePath = m_BasePath;
@@ -111,8 +111,8 @@ namespace Lumos
             nodeFlags |= ImGuiTreeNodeFlags_Framed;
 
         const ImColor TreeLineColor = ImColor(128, 128, 128, 128);
-        const float SmallOffsetX = 6.0f * Application::Get().GetWindowDPI();
-        ImDrawList* drawList = ImGui::GetWindowDrawList();
+        const float SmallOffsetX    = 6.0f * Application::Get().GetWindowDPI();
+        ImDrawList* drawList        = ImGui::GetWindowDrawList();
 
         if(!dirInfo->IsFile)
         {
@@ -148,8 +148,8 @@ namespace Lumos
 
             if(ImGui::IsItemClicked())
             {
-                m_PreviousDirectory = m_CurrentDir;
-                m_CurrentDir = dirInfo;
+                m_PreviousDirectory    = m_CurrentDir;
+                m_CurrentDir           = dirInfo;
                 m_UpdateNavigationPath = true;
             }
 
@@ -214,7 +214,7 @@ namespace Lumos
         {
 
             auto windowSize = ImGui::GetWindowSize();
-            bool vertical = windowSize.y > windowSize.x;
+            bool vertical   = windowSize.y > windowSize.x;
 
             if(!vertical)
             {
@@ -273,8 +273,8 @@ namespace Lumos
                     {
                         if(m_CurrentDir != m_BaseProjectDir)
                         {
-                            m_PreviousDirectory = m_CurrentDir;
-                            m_CurrentDir = m_CurrentDir->Parent;
+                            m_PreviousDirectory    = m_CurrentDir;
+                            m_CurrentDir           = m_CurrentDir->Parent;
                             m_UpdateNavigationPath = true;
                         }
                     }
@@ -538,8 +538,8 @@ namespace Lumos
         {
             if(folder)
             {
-                m_PreviousDirectory = m_CurrentDir;
-                m_CurrentDir = m_CurrentDir->Children[dirIndex];
+                m_PreviousDirectory    = m_CurrentDir;
+                m_CurrentDir           = m_CurrentDir->Children[dirIndex];
                 m_UpdateNavigationPath = true;
             }
             else
@@ -573,7 +573,7 @@ namespace Lumos
 
             std::string assetsBasePath;
             VFS::Get().ResolvePhysicalPath("//Assets", assetsBasePath);
-            auto dir = std::filesystem::path(assetsBasePath);
+            auto dir        = std::filesystem::path(assetsBasePath);
             auto& AssetsDir = m_CurrentDir->FilePath;
 
             size_t PhysicalPathCount = 0;
@@ -611,8 +611,8 @@ namespace Lumos
                     newPwd /= "\\";
 #endif
 
-                m_PreviousDirectory = m_CurrentDir;
-                m_CurrentDir = m_Directories[newPwd.string()];
+                m_PreviousDirectory    = m_CurrentDir;
+                m_CurrentDir           = m_Directories[newPwd.string()];
                 m_UpdateNavigationPath = true;
             }
 
@@ -693,9 +693,9 @@ namespace Lumos
 
         m_Directories.clear();
         std::string baseDirectoryHandle = ProcessDirectory(std::filesystem::path(m_BasePath), nullptr);
-        m_BaseProjectDir = m_Directories[baseDirectoryHandle];
-        m_PreviousDirectory = nullptr;
-        m_CurrentDir = nullptr;
+        m_BaseProjectDir                = m_Directories[baseDirectoryHandle];
+        m_PreviousDirectory             = nullptr;
+        m_CurrentDir                    = nullptr;
 
         if(m_Directories.find(currentPath.string()) != m_Directories.end())
             m_CurrentDir = m_Directories[currentPath.string()];

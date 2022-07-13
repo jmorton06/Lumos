@@ -10,7 +10,7 @@ namespace Lumos
     {
         GLDescriptorSet::GLDescriptorSet(const DescriptorDesc& descriptorDesc)
         {
-            m_Shader = (GLShader*)descriptorDesc.shader;
+            m_Shader      = (GLShader*)descriptorDesc.shader;
             m_Descriptors = m_Shader->GetDescriptorInfo(descriptorDesc.layoutIndex).descriptors;
 
             for(auto& descriptor : m_Descriptors)
@@ -26,10 +26,10 @@ namespace Lumos
                     localStorage.InitialiseEmpty();
 
                     UniformBufferInfo info;
-                    info.UB = buffer;
+                    info.UB           = buffer;
                     info.LocalStorage = localStorage;
-                    info.HasUpdated = false;
-                    info.m_Members = descriptor.m_Members;
+                    info.HasUpdated   = false;
+                    info.m_Members    = descriptor.m_Members;
                     m_UniformBuffers.emplace(descriptor.name, info);
                 }
             }
@@ -48,15 +48,15 @@ namespace Lumos
             }
         }
 
-        void GLDescriptorSet::SetTexture(const std::string& name, Texture* texture, TextureType textureType)
+        void GLDescriptorSet::SetTexture(const std::string& name, Texture* texture, uint32_t mipIndex, TextureType textureType)
         {
             LUMOS_PROFILE_FUNCTION();
             for(auto& descriptor : m_Descriptors)
             {
                 if(descriptor.type == DescriptorType::IMAGE_SAMPLER && descriptor.name == name)
                 {
-                    descriptor.texture = texture;
-                    descriptor.textureType = textureType;
+                    descriptor.texture      = texture;
+                    descriptor.textureType  = textureType;
                     descriptor.textureCount = 1;
                     return;
                 }
@@ -72,8 +72,8 @@ namespace Lumos
                 if(descriptor.type == DescriptorType::IMAGE_SAMPLER && descriptor.name == name)
                 {
                     descriptor.textureCount = textureCount;
-                    descriptor.textures = texture;
-                    descriptor.textureType = textureType;
+                    descriptor.textures     = texture;
+                    descriptor.textureType  = textureType;
                     return;
                 }
             }
@@ -221,7 +221,7 @@ namespace Lumos
                     {
                         // buffer->SetData(size, data);
                         auto bufferHandle = static_cast<GLUniformBuffer*>(buffer)->GetHandle();
-                        auto slot = descriptor.binding;
+                        auto slot         = descriptor.binding;
                         {
                             LUMOS_PROFILE_SCOPE("glBindBufferBase");
                             GLCall(glBindBufferBase(GL_UNIFORM_BUFFER, slot, bufferHandle));

@@ -9,10 +9,10 @@ namespace Lumos
 {
     CapsuleCollisionShape::CapsuleCollisionShape(float radius, float height)
     {
-        m_Radius = radius;
-        m_Height = height;
+        m_Radius         = radius;
+        m_Height         = height;
         m_LocalTransform = glm::mat4(1.0); // glm::scale(glm::mat4(1.0), glm::vec3(m_Radius));
-        m_Type = CollisionShapeType::CollisionCapsule;
+        m_Type           = CollisionShapeType::CollisionCapsule;
     }
 
     CapsuleCollisionShape::~CapsuleCollisionShape()
@@ -24,12 +24,12 @@ namespace Lumos
         glm::vec3 halfExtents(m_Radius, m_Radius, m_Radius);
         halfExtents.x += m_Height * 0.5f;
 
-        float lx = 2.0f * (halfExtents.x);
-        float ly = 2.0f * (halfExtents.y);
-        float lz = 2.0f * (halfExtents.z);
-        const float x2 = lx * lx;
-        const float y2 = ly * ly;
-        const float z2 = lz * lz;
+        float lx               = 2.0f * (halfExtents.x);
+        float ly               = 2.0f * (halfExtents.y);
+        float lz               = 2.0f * (halfExtents.z);
+        const float x2         = lx * lx;
+        const float y2         = ly * ly;
+        const float z2         = lz * lz;
         const float scaledmass = (1.0f / invMass) * float(.08333333);
 
         glm::mat3 inertia(1.0f);
@@ -56,7 +56,7 @@ namespace Lumos
     void CapsuleCollisionShape::GetMinMaxVertexOnAxis(const RigidBody3D* currentObject, const glm::vec3& axis, glm::vec3* out_min, glm::vec3* out_max) const
     {
         glm::mat4 transform = currentObject ? currentObject->GetWorldSpaceTransform() * m_LocalTransform : m_LocalTransform;
-        glm::vec3 pos = transform[3];
+        glm::vec3 pos       = transform[3];
 
         if(out_min)
             *out_min = pos - axis * m_Radius;
@@ -66,10 +66,10 @@ namespace Lumos
     }
 
     void CapsuleCollisionShape::GetIncidentReferencePolygon(const RigidBody3D* currentObject,
-        const glm::vec3& axis,
-        ReferencePolygon& refPolygon) const
+                                                            const glm::vec3& axis,
+                                                            ReferencePolygon& refPolygon) const
     {
-        refPolygon.Faces[0] = currentObject->GetPosition() + axis * m_Radius;
+        refPolygon.Faces[0]  = currentObject->GetPosition() + axis * m_Radius;
         refPolygon.FaceCount = 1;
 
         refPolygon.Normal = axis;

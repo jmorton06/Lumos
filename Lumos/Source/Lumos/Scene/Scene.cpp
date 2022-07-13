@@ -115,7 +115,7 @@ namespace Lumos
         if(!defaultCameraControllerView.Empty())
         {
             auto& cameraController = defaultCameraControllerView.Front().GetComponent<DefaultCameraController>();
-            auto trans = defaultCameraControllerView.Front().TryGetComponent<Maths::Transform>();
+            auto trans             = defaultCameraControllerView.Front().TryGetComponent<Maths::Transform>();
             if(Application::Get().GetSceneActive() && trans && cameraController.GetController())
             {
                 cameraController.GetController()->HandleMouse(*trans, timeStep.GetSeconds(), mousePos.x, mousePos.y);
@@ -158,7 +158,7 @@ namespace Lumos
 
     void Scene::SetScreenSize(uint32_t width, uint32_t height)
     {
-        m_ScreenWidth = width;
+        m_ScreenWidth  = width;
         m_ScreenHeight = height;
 
         auto cameraView = m_EntityManager->GetRegistry().view<Camera>();
@@ -256,13 +256,13 @@ namespace Lumos
                 if(m_SceneSerialisationVersion < 6)
                 {
                     m_EntityManager->GetRegistry().each([&](auto entity)
-                        { m_EntityManager->GetRegistry().emplace<IDComponent>(entity, Random64::Rand(0, std::numeric_limits<uint64_t>::max())); });
+                                                        { m_EntityManager->GetRegistry().emplace<IDComponent>(entity, Random64::Rand(0, std::numeric_limits<uint64_t>::max())); });
                 }
 
                 if(m_SceneSerialisationVersion < 7)
                 {
                     m_EntityManager->GetRegistry().each([&](auto entity)
-                        {
+                                                        {
                             Graphics::Model* model;
                             if(model = m_EntityManager->GetRegistry().try_get<Graphics::Model>(entity))
                             {
@@ -312,13 +312,13 @@ namespace Lumos
                 if(m_SceneSerialisationVersion < 6)
                 {
                     m_EntityManager->GetRegistry().each([&](auto entity)
-                        { m_EntityManager->GetRegistry().emplace<IDComponent>(entity, Random64::Rand(0, std::numeric_limits<uint64_t>::max())); });
+                                                        { m_EntityManager->GetRegistry().emplace<IDComponent>(entity, Random64::Rand(0, std::numeric_limits<uint64_t>::max())); });
                 }
 
                 if(m_SceneSerialisationVersion < 7)
                 {
                     m_EntityManager->GetRegistry().each([&](auto entity)
-                        {
+                                                        {
                             Graphics::Model* model;
                             if(model = m_EntityManager->GetRegistry().try_get<Graphics::Model>(entity))
                             {
@@ -395,10 +395,10 @@ namespace Lumos
         auto hierarchyComponent = newEntity.TryGetComponent<Hierarchy>();
         if(hierarchyComponent)
         {
-            hierarchyComponent->m_First = entt::null;
+            hierarchyComponent->m_First  = entt::null;
             hierarchyComponent->m_Parent = entt::null;
-            hierarchyComponent->m_Next = entt::null;
-            hierarchyComponent->m_Prev = entt::null;
+            hierarchyComponent->m_Next   = entt::null;
+            hierarchyComponent->m_Prev   = entt::null;
         }
 
         auto children = entity.GetChildren();

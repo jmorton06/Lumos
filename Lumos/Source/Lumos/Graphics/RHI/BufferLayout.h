@@ -11,8 +11,8 @@ namespace Lumos
         {
             std::string name;
             RHIFormat format = RHIFormat::R32G32B32A32_Float;
-            uint32_t offset = 0;
-            bool Normalised = false;
+            uint32_t offset  = 0;
+            bool Normalised  = false;
         };
 
         class LUMOS_EXPORT BufferLayout

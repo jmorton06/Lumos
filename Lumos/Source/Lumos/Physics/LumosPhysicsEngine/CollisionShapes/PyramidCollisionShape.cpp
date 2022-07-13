@@ -10,8 +10,8 @@ namespace Lumos
     PyramidCollisionShape::PyramidCollisionShape()
     {
         m_PyramidHalfDimensions = glm::vec3(0.5f, 0.5f, 0.5f);
-        m_Type = CollisionShapeType::CollisionPyramid;
-        m_LocalTransform = glm::scale(glm::mat4(1.0), m_PyramidHalfDimensions);
+        m_Type                  = CollisionShapeType::CollisionPyramid;
+        m_LocalTransform        = glm::scale(glm::mat4(1.0), m_PyramidHalfDimensions);
 
         if(m_PyramidHull->GetNumVertices() == 0)
         {
@@ -28,7 +28,7 @@ namespace Lumos
         m_PyramidHalfDimensions = halfdims;
 
         m_LocalTransform = glm::scale(glm::mat4(1.0), m_PyramidHalfDimensions);
-        m_Type = CollisionShapeType::CollisionPyramid;
+        m_Type           = CollisionShapeType::CollisionPyramid;
 
         glm::vec3 m_Points[5] = {
             m_LocalTransform * glm::vec4(-1.0f, -1.0f, -1.0f, 1.0f),
@@ -61,7 +61,7 @@ namespace Lumos
     {
         LUMOS_PROFILE_FUNCTION();
         glm::vec3 scaleSq = m_PyramidHalfDimensions + m_PyramidHalfDimensions;
-        scaleSq = scaleSq * scaleSq;
+        scaleSq           = scaleSq * scaleSq;
 
         glm::mat3 inertia(1.0f);
 
@@ -80,8 +80,8 @@ namespace Lumos
             for(unsigned int i = 0; i < m_PyramidHull->GetNumEdges(); ++i)
             {
                 const HullEdge& edge = m_PyramidHull->GetEdge(i);
-                glm::vec3 A = transform * glm::vec4(m_PyramidHull->GetVertex(edge.vStart).pos, 1.0f);
-                glm::vec3 B = transform * glm::vec4(m_PyramidHull->GetVertex(edge.vEnd).pos, 1.0f);
+                glm::vec3 A          = transform * glm::vec4(m_PyramidHull->GetVertex(edge.vStart).pos, 1.0f);
+                glm::vec3 B          = transform * glm::vec4(m_PyramidHull->GetVertex(edge.vEnd).pos, 1.0f);
 
                 m_Edges[i] = { A, B };
             }
@@ -96,11 +96,11 @@ namespace Lumos
             m_Axes.clear();
             m_Axes.resize(5);
             const glm::mat3 objOrientation = glm::toMat3(currentObject->GetOrientation());
-            m_Axes[0] = (objOrientation * m_Normals[0]);
-            m_Axes[1] = (objOrientation * m_Normals[1]);
-            m_Axes[2] = (objOrientation * m_Normals[2]);
-            m_Axes[3] = (objOrientation * m_Normals[3]);
-            m_Axes[4] = (objOrientation * m_Normals[4]);
+            m_Axes[0]                      = (objOrientation * m_Normals[0]);
+            m_Axes[1]                      = (objOrientation * m_Normals[1]);
+            m_Axes[2]                      = (objOrientation * m_Normals[2]);
+            m_Axes[3]                      = (objOrientation * m_Normals[3]);
+            m_Axes[4]                      = (objOrientation * m_Normals[4]);
         }
 
         return m_Axes;
@@ -109,7 +109,7 @@ namespace Lumos
     void PyramidCollisionShape::GetMinMaxVertexOnAxis(const RigidBody3D* currentObject, const glm::vec3& axis, glm::vec3* out_min, glm::vec3* out_max) const
     {
         LUMOS_PROFILE_FUNCTION();
-        glm::mat4 wsTransform = currentObject ? currentObject->GetWorldSpaceTransform() * m_LocalTransform : m_LocalTransform;
+        glm::mat4 wsTransform      = currentObject ? currentObject->GetWorldSpaceTransform() * m_LocalTransform : m_LocalTransform;
         const glm::vec3 local_axis = glm::transpose(wsTransform) * glm::vec4(axis, 1.0f);
 
         int vMin, vMax;
@@ -122,14 +122,14 @@ namespace Lumos
     }
 
     void PyramidCollisionShape::GetIncidentReferencePolygon(const RigidBody3D* currentObject,
-        const glm::vec3& axis,
-        ReferencePolygon& refPolygon) const
+                                                            const glm::vec3& axis,
+                                                            ReferencePolygon& refPolygon) const
     {
         LUMOS_PROFILE_FUNCTION();
         glm::mat4 wsTransform = currentObject ? currentObject->GetWorldSpaceTransform() * m_LocalTransform : m_LocalTransform;
 
         const glm::mat3 invNormalMatrix = glm::inverse(wsTransform);
-        const glm::mat3 normalMatrix = glm::transpose(invNormalMatrix);
+        const glm::mat3 normalMatrix    = glm::transpose(invNormalMatrix);
 
         const glm::vec3 local_axis = invNormalMatrix * axis;
 
@@ -139,15 +139,15 @@ namespace Lumos
         const HullVertex& vert = m_PyramidHull->GetVertex(maxVertex);
 
         const HullFace* best_face = nullptr;
-        float best_correlation = -FLT_MAX;
+        float best_correlation    = -FLT_MAX;
         for(int faceIdx : vert.enclosing_faces)
         {
-            const HullFace* face = &m_PyramidHull->GetFace(faceIdx);
+            const HullFace* face         = &m_PyramidHull->GetFace(faceIdx);
             const float temp_correlation = glm::dot(local_axis, face->normal);
             if(temp_correlation > best_correlation)
             {
                 best_correlation = temp_correlation;
-                best_face = face;
+                best_face        = face;
             }
         }
 
@@ -161,7 +161,7 @@ namespace Lumos
         {
             for(int vertIdx : best_face->vert_ids)
             {
-                const HullVertex& vertex = m_PyramidHull->GetVertex(vertIdx);
+                const HullVertex& vertex                 = m_PyramidHull->GetVertex(vertIdx);
                 refPolygon.Faces[refPolygon.FaceCount++] = wsTransform * glm::vec4(vertex.pos, 1.0f);
             }
         }
@@ -170,9 +170,9 @@ namespace Lumos
         {
             // Add the reference face itself to the list of adjacent planes
             glm::vec3 wsPointOnPlane = wsTransform * glm::vec4(m_PyramidHull->GetVertex(m_PyramidHull->GetEdge(best_face->edge_ids[0]).vStart).pos, 1.0f);
-            glm::vec3 planeNrml = -(normalMatrix * best_face->normal);
-            planeNrml = glm::normalize(planeNrml);
-            float planeDist = -glm::dot(planeNrml, wsPointOnPlane);
+            glm::vec3 planeNrml      = -(normalMatrix * best_face->normal);
+            planeNrml                = glm::normalize(planeNrml);
+            float planeDist          = -glm::dot(planeNrml, wsPointOnPlane);
 
             refPolygon.AdjacentPlanes[refPolygon.PlaneCount++] = Plane(planeNrml, planeDist);
 
@@ -211,10 +211,10 @@ namespace Lumos
     {
         LUMOS_PROFILE_FUNCTION();
         glm::vec3 v0 = glm::vec3(-1.0f, -1.0f, -1.0f); // 0
-        glm::vec3 v1 = glm::vec3(-1.0f, -1.0f, 1.0f); // 1
-        glm::vec3 v2 = glm::vec3(1.0f, -1.0f, 1.0f); // 2
-        glm::vec3 v3 = glm::vec3(1.0f, -1.0f, -1.0f); // 3
-        glm::vec3 v4 = glm::vec3(0.0f, 1.0f, 0.0f); // 4
+        glm::vec3 v1 = glm::vec3(-1.0f, -1.0f, 1.0f);  // 1
+        glm::vec3 v2 = glm::vec3(1.0f, -1.0f, 1.0f);   // 2
+        glm::vec3 v3 = glm::vec3(1.0f, -1.0f, -1.0f);  // 3
+        glm::vec3 v4 = glm::vec3(0.0f, 1.0f, 0.0f);    // 4
         // Vertices
         m_PyramidHull->AddVertex(v0); // 0
         m_PyramidHull->AddVertex(v1); // 1

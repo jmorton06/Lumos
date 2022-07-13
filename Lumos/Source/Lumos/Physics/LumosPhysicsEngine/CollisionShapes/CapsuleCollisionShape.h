@@ -25,7 +25,7 @@ namespace Lumos
         // Get/Set Sphere Radius
         void SetRadius(float radius)
         {
-            m_Radius = radius;
+            m_Radius         = radius;
             m_LocalTransform = glm::mat4(1.0); // glm::scale(glm::mat4(1.0), glm::vec3(m_Radius, m_Height, m_Radius));
         }
 
@@ -46,7 +46,7 @@ namespace Lumos
 
         void SetHeight(float height)
         {
-            m_Height = height;
+            m_Height         = height;
             m_LocalTransform = glm::mat4(1.0); // glm::scale(glm::mat4(1.0), glm::vec3(m_Radius, m_Height, m_Radius));
         }
 
@@ -61,7 +61,7 @@ namespace Lumos
         {
             archive(m_Radius, m_Height);
             m_LocalTransform = glm::mat4(1.0); // glm::scale(glm::mat4(1.0), glm::vec3(m_Radius * 2.0f));
-            m_Type = CollisionShapeType::CollisionCapsule;
+            m_Type           = CollisionShapeType::CollisionCapsule;
         }
 
     protected:

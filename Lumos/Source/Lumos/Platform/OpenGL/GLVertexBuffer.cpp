@@ -92,13 +92,17 @@ namespace Lumos
         {
             LUMOS_PROFILE_FUNCTION();
             GLCall(glBindBuffer(GL_ARRAY_BUFFER, m_Handle));
-            ((GLPipeline*)pipeline)->BindVertexArray();
+            GLRenderer::Instance()->GetBoundVertexBuffer() = m_Handle;
+
+            if(pipeline)
+                ((GLPipeline*)pipeline)->BindVertexArray();
         }
 
         void GLVertexBuffer::Unbind()
         {
             LUMOS_PROFILE_FUNCTION();
             GLCall(glBindBuffer(GL_ARRAY_BUFFER, 0));
+            GLRenderer::Instance()->GetBoundVertexBuffer() = -1;
         }
 
         void GLVertexBuffer::MakeDefault()

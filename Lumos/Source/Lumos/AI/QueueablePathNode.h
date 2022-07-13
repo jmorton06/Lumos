@@ -26,7 +26,7 @@ namespace Lumos
         bool IsOnList(const std::vector<QueueablePathNode*>& list)
         {
             return std::find_if(list.begin(), list.end(), [this](QueueablePathNode* n)
-                       { return n->node == reinterpret_cast<PathNode*>(this); })
+                                { return n->node == reinterpret_cast<PathNode*>(this); })
                 != list.end();
         }
 
@@ -51,10 +51,10 @@ namespace Lumos
         }
 
     public:
-        PathNode* node; //!< Wrapped Node
+        PathNode* node;            //!< Wrapped Node
         QueueablePathNode* Parent; //!< Parent Node in path
-        float fScore; //!< F score of wrapped node
-        float gScore; //!< G score of wrapped node
+        float fScore;              //!< F score of wrapped node
+        float gScore;              //!< G score of wrapped node
     };
 
 }

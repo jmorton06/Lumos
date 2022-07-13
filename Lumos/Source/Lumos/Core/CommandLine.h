@@ -18,8 +18,8 @@ namespace Lumos
 
     enum class ArgumentRequirement
     {
-        NONE = 0,
-        REQUIRE = 1,
+        NONE     = 0,
+        REQUIRE  = 1,
         OPTIONAL = 2
     };
 #if 0
@@ -66,11 +66,11 @@ namespace Lumos
         // the stream operator>> is overloaded. If not, you have to add a special
         // case to the parse() method.
         typedef std::variant<int32_t*,
-            uint32_t*,
-            double*,
-            float*,
-            bool*,
-            std::string*>
+                             uint32_t*,
+                             double*,
+                             float*,
+                             bool*,
+                             std::string*>
             Value;
 
         // The description is printed as part of the help message.
@@ -84,7 +84,7 @@ namespace Lumos
         // Then, after parse() has been called, printHelp will be true if the user
         // provided the flag.
         void AddArgument(const std::vector<std::string>& flags,
-            const Value& value, const std::string& help);
+                         const Value& value, const std::string& help);
 
         // Prints the description given to the constructor and the help
         // for each option.

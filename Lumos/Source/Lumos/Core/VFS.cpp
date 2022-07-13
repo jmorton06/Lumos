@@ -26,7 +26,7 @@ namespace Lumos
             return folder ? FileSystem ::FolderExists(updatedPath) : FileSystem::FileExists(updatedPath);
         }
 
-        static std::string delimiter = "/";
+        static std::string delimiter  = "/";
         std::vector<std::string> dirs = StringUtilities::SplitString(updatedPath, delimiter);
         const std::string& virtualDir = dirs.front();
 
@@ -84,7 +84,7 @@ namespace Lumos
             {
                 if(updatedPath.find(vfsPath) != std::string::npos)
                 {
-                    std::string newPath = updatedPath;
+                    std::string newPath     = updatedPath;
                     std::string newPartPath = "//" + key;
                     newPath.replace(0, vfsPath.length(), newPartPath);
                     outVFSPath = newPath;

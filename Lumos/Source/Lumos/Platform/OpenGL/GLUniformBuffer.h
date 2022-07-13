@@ -50,10 +50,10 @@ namespace Lumos
             static UniformBuffer* CreateDataFuncGL(uint32_t, const void*);
 
         private:
-            uint8_t* m_Data = nullptr;
-            uint32_t m_Size = 0;
+            uint8_t* m_Data            = nullptr;
+            uint32_t m_Size            = 0;
             uint32_t m_DynamicTypeSize = 0;
-            bool m_Dynamic = false;
+            bool m_Dynamic             = false;
             uint32_t m_Handle;
             uint32_t m_Index;
         };

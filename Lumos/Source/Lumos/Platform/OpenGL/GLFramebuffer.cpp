@@ -21,9 +21,9 @@ namespace Lumos
         GLFramebuffer::GLFramebuffer(const FramebufferDesc& frameBufferDesc)
         {
             LUMOS_PROFILE_FUNCTION();
-            m_ScreenFramebuffer = frameBufferDesc.screenFBO;
-            m_Width = frameBufferDesc.width;
-            m_Height = frameBufferDesc.height;
+            m_ScreenFramebuffer     = frameBufferDesc.screenFBO;
+            m_Width                 = frameBufferDesc.width;
+            m_Height                = frameBufferDesc.height;
             m_ColourAttachmentCount = 0;
 
             if(m_ScreenFramebuffer)

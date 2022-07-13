@@ -136,13 +136,13 @@ namespace Lumos
         }
 
         VkBool32 VKContext::DebugCallback(VkDebugReportFlagsEXT flags,
-            VkDebugReportObjectTypeEXT objType,
-            uint64_t sourceObj,
-            size_t location,
-            int32_t msgCode,
-            const char* pLayerPrefix,
-            const char* pMsg,
-            void* userData)
+                                          VkDebugReportObjectTypeEXT objType,
+                                          uint64_t sourceObj,
+                                          size_t location,
+                                          int32_t msgCode,
+                                          const char* pLayerPrefix,
+                                          const char* pMsg,
+                                          void* userData)
         {
             // Select prefix depending on flags passed to the callback
             // Note that multiple flags may be set for a single validation message
@@ -279,21 +279,7 @@ namespace Lumos
             }
 #endif
 
-            VkApplicationInfo appInfo = {};
-            appInfo.pApplicationName = "Runtime";
-            appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
-            appInfo.pEngineName = "Lumos";
-            appInfo.engineVersion = VK_MAKE_VERSION(LumosVersion.major, LumosVersion.minor, LumosVersion.patch);
-#if defined(LUMOS_PLATFORM_MACOS) || defined(LUMOS_PLATFORM_IOS)
-            appInfo.apiVersion = VK_API_VERSION_1_1;
-#else
-            appInfo.apiVersion = VK_API_VERSION_1_1;
-#endif
-
-            VkInstanceCreateInfo createInfo = {};
-            createInfo.pApplicationInfo = &appInfo;
-
-            m_InstanceLayerNames = GetRequiredLayers();
+            m_InstanceLayerNames     = GetRequiredLayers();
             m_InstanceExtensionNames = GetRequiredExtensions();
 
             if(!CheckValidationLayerSupport(m_InstanceLayerNames))
@@ -306,13 +292,20 @@ namespace Lumos
                 LUMOS_LOG_CRITICAL("[VULKAN] Extensions requested are not available!");
             }
 
-            createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
+            VkApplicationInfo appInfo  = {};
+            appInfo.pApplicationName   = "Runtime";
+            appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
+            appInfo.pEngineName        = "Lumos";
+            appInfo.engineVersion      = VK_MAKE_VERSION(LumosVersion.major, LumosVersion.minor, LumosVersion.patch);
+            appInfo.apiVersion         = VK_API_VERSION_1_2;
 
-            createInfo.enabledExtensionCount = static_cast<uint32_t>(m_InstanceExtensionNames.size());
+            VkInstanceCreateInfo createInfo    = {};
+            createInfo.pApplicationInfo        = &appInfo;
+            createInfo.sType                   = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
+            createInfo.enabledExtensionCount   = static_cast<uint32_t>(m_InstanceExtensionNames.size());
             createInfo.ppEnabledExtensionNames = m_InstanceExtensionNames.data();
-
-            createInfo.enabledLayerCount = static_cast<uint32_t>(m_InstanceLayerNames.size());
-            createInfo.ppEnabledLayerNames = m_InstanceLayerNames.data();
+            createInfo.enabledLayerCount       = static_cast<uint32_t>(m_InstanceLayerNames.size());
+            createInfo.ppEnabledLayerNames     = m_InstanceLayerNames.data();
 
             VkResult createResult = vkCreateInstance(&createInfo, nullptr, &s_VkInstance);
             if(createResult != VK_SUCCESS)
@@ -331,10 +324,9 @@ namespace Lumos
                 return;
 
             VkDebugReportCallbackCreateInfoEXT createInfo = {};
-            createInfo.sType = VK_STRUCTURE_TYPE_DEBUG_REPORT_CALLBACK_CREATE_INFO_EXT;
-            createInfo.flags = VK_DEBUG_REPORT_ERROR_BIT_EXT | VK_DEBUG_REPORT_WARNING_BIT_EXT | VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT;
-
-            createInfo.pfnCallback = reinterpret_cast<PFN_vkDebugReportCallbackEXT>(DebugCallback);
+            createInfo.sType                              = VK_STRUCTURE_TYPE_DEBUG_REPORT_CALLBACK_CREATE_INFO_EXT;
+            createInfo.flags                              = VK_DEBUG_REPORT_ERROR_BIT_EXT | VK_DEBUG_REPORT_WARNING_BIT_EXT | VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT;
+            createInfo.pfnCallback                        = reinterpret_cast<PFN_vkDebugReportCallbackEXT>(DebugCallback);
 
             VkResult result = CreateDebugReportCallbackEXT(s_VkInstance, &createInfo, nullptr, &m_DebugCallback);
             if(result != VK_SUCCESS)

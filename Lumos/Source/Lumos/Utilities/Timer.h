@@ -50,9 +50,9 @@ namespace Lumos
             return Duration(m_Start, Now(), timeResolution);
         }
 
-        TimeStamp m_Start; // Start of timer
+        TimeStamp m_Start;     // Start of timer
         TimeStamp m_Frequency; // Ticks Per Second
-        TimeStamp m_LastTime; // Last time GetTimedMS was called
+        TimeStamp m_LastTime;  // Last time GetTimedMS was called
     };
 
 }

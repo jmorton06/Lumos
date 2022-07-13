@@ -63,10 +63,10 @@ namespace Lumos
     void RigidBody2D::Init(const RigidBodyParameters& params)
     {
         LUMOS_PROFILE_FUNCTION();
-        m_Static = params.isStatic;
+        m_Static    = params.isStatic;
         m_ShapeType = params.shape;
-        m_Mass = params.mass;
-        m_Scale = params.scale;
+        m_Mass      = params.mass;
+        m_Scale     = params.scale;
 
         b2BodyDef bodyDef;
         if(params.isStatic)
@@ -86,8 +86,8 @@ namespace Lumos
             else
             {
                 b2FixtureDef fixtureDef;
-                fixtureDef.shape = &dynamicBox;
-                fixtureDef.density = 1.0f;
+                fixtureDef.shape    = &dynamicBox;
+                fixtureDef.density  = 1.0f;
                 fixtureDef.friction = 0.1f;
                 m_B2Body->CreateFixture(&fixtureDef);
             }
@@ -102,8 +102,8 @@ namespace Lumos
             else
             {
                 b2FixtureDef fixtureDef;
-                fixtureDef.shape = &dynamicBox;
-                fixtureDef.density = 1.0f;
+                fixtureDef.shape    = &dynamicBox;
+                fixtureDef.density  = 1.0f;
                 fixtureDef.friction = 0.1f;
                 m_B2Body->CreateFixture(&fixtureDef);
             }
@@ -120,8 +120,8 @@ namespace Lumos
             else
             {
                 b2FixtureDef fixtureDef;
-                fixtureDef.shape = &dynamicBox;
-                fixtureDef.density = 1.0f;
+                fixtureDef.shape    = &dynamicBox;
+                fixtureDef.density  = 1.0f;
                 fixtureDef.friction = 0.1f;
                 m_B2Body->CreateFixture(&fixtureDef);
             }
@@ -151,7 +151,7 @@ namespace Lumos
     void RigidBody2D::SetShape(Shape shape, const std::vector<glm::vec2>& customPositions)
     {
         LUMOS_PROFILE_FUNCTION();
-        m_ShapeType = shape;
+        m_ShapeType            = shape;
         m_CustomShapePositions = customPositions;
 
         if(m_B2Body && Application::Get().GetSystem<B2PhysicsEngine>())
@@ -162,9 +162,9 @@ namespace Lumos
         if(m_B2Body)
             params.position = glm::vec3(GetPosition(), 1.0f);
         params.custumShapePositions = customPositions;
-        params.mass = m_Mass;
-        params.scale = m_Scale;
-        params.isStatic = m_Static;
+        params.mass                 = m_Mass;
+        params.scale                = m_Scale;
+        params.isStatic             = m_Static;
         Init(params);
     }
 }

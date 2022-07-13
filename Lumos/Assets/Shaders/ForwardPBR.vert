@@ -18,11 +18,17 @@ layout(location = 2) in vec2 inTexCoord;
 layout(location = 3) in vec3 inNormal;
 layout(location = 4) in vec3 inTangent;
 
-layout(location = 0) out vec3 fragColor;
-layout(location = 1) out vec2 fragTexCoord;
-layout(location = 2) out vec4 fragPosition;
-layout(location = 3) out vec3 fragNormal;
-layout(location = 4) out vec3 fragTangent;
+struct VertexOutput
+{
+	vec3 Colour;
+	vec2 TexCoord;
+	vec4 Position;
+	vec3 Normal;
+	vec3 Tangent;
+	vec4 ShadowMapCoords[4];
+};
+
+layout(location = 0) out VertexOutput Output;
 
 out gl_PerVertex
 {
@@ -31,11 +37,11 @@ out gl_PerVertex
 
 void main() 
 {
-	fragPosition = pushConsts.transform * vec4(inPosition, 1.0);
-    gl_Position = cameraUBO.projView * fragPosition;
+	Output.Position = pushConsts.transform * vec4(inPosition, 1.0);
+    gl_Position = cameraUBO.projView * Output.Position;
     
-	fragColor = inColor.xyz;
-	fragTexCoord = inTexCoord;
-    fragNormal = transpose(inverse(mat3(pushConsts.transform))) * normalize(inNormal);
-    fragTangent = inTangent;
+	Output.Colour = inColor.xyz;
+	Output.TexCoord = inTexCoord;
+    Output.Normal = transpose(inverse(mat3(pushConsts.transform))) * normalize(inNormal);
+    Output.Tangent = inTangent;
 }

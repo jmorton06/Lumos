@@ -52,7 +52,7 @@ namespace Lumos
     }
 
     void CommandLine::AddArgument(const std::vector<std::string>& flags,
-        const Value& value, const std::string& help)
+                                  const Value& value, const std::string& help)
     {
         m_Arguments.emplace_back(Argument { flags, value, help });
     }
@@ -97,7 +97,7 @@ namespace Lumos
 
             // Print the help for each argument. This is a bit more involved
             // since we do line wrapping for long descriptions.
-            size_t spacePos = 0;
+            size_t spacePos  = 0;
             size_t lineWidth = 0;
             while(spacePos != std::string::npos)
             {
@@ -138,12 +138,12 @@ namespace Lumos
             if(equalPos != std::string::npos)
             {
                 value = flag.substr(equalPos + 1);
-                flag = flag.substr(0, equalPos);
+                flag  = flag.substr(0, equalPos);
             }
             // Else the following argument is the value.
             else if(i + 1 < argc)
             {
-                value = argv[i + 1];
+                value           = argv[i + 1];
                 valueIsSeparate = true;
             }
 
@@ -153,7 +153,7 @@ namespace Lumos
             for(auto const& argument : m_Arguments)
             {
                 if(std::find(argument.m_Flags.begin(), argument.m_Flags.end(), flag)
-                    != std::end(argument.m_Flags))
+                   != std::end(argument.m_Flags))
                 {
 
                     foundArgument = true;

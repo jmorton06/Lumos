@@ -21,8 +21,8 @@ namespace Lumos
 
         virtual void GetMinMaxVertexOnAxis(const RigidBody3D* currentObject, const glm::vec3& axis, glm::vec3* out_min, glm::vec3* out_max) const override;
         virtual void GetIncidentReferencePolygon(const RigidBody3D* currentObject,
-            const glm::vec3& axis,
-            ReferencePolygon& refPolygon) const override;
+                                                 const glm::vec3& axis,
+                                                 ReferencePolygon& refPolygon) const override;
 
         virtual void DebugDraw(const RigidBody3D* currentObject) const override;
 
@@ -35,7 +35,7 @@ namespace Lumos
             m_PyramidHalfDimensions = dims;
 
             m_LocalTransform = glm::scale(glm::mat4(1.0), m_PyramidHalfDimensions);
-            m_Type = CollisionShapeType::CollisionPyramid;
+            m_Type           = CollisionShapeType::CollisionPyramid;
 
             glm::vec3 m_Points[5] = {
                 m_LocalTransform * glm::vec4(-1.0f, -1.0f, -1.0f, 1.0f),
@@ -74,7 +74,7 @@ namespace Lumos
             archive(m_PyramidHalfDimensions);
 
             m_LocalTransform = glm::scale(glm::mat4(1.0), m_PyramidHalfDimensions);
-            m_Type = CollisionShapeType::CollisionPyramid;
+            m_Type           = CollisionShapeType::CollisionPyramid;
 
             glm::vec3 m_Points[5] = {
                 m_LocalTransform * glm::vec4(-1.0f, -1.0f, -1.0f, 1.0f),

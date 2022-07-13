@@ -38,13 +38,13 @@ namespace Lumos
 
         Mesh::Mesh(const std::vector<uint32_t>& indices, const std::vector<Vertex>& vertices, float optimiseThreshold)
         {
-            m_Indices = indices;
+            m_Indices  = indices;
             m_Vertices = vertices;
 
             // int lod = 2;
             // float threshold = powf(0.7f, float(lod));
 
-            size_t indexCount = indices.size();
+            size_t indexCount         = indices.size();
             size_t target_index_count = size_t(indices.size() * optimiseThreshold);
 
             float target_error = 1e-3f;
@@ -58,7 +58,7 @@ namespace Lumos
                 newIndexCount, // total new indices (not faces)
                 (m_Vertices.data()),
                 (size_t)m_Vertices.size(), // total vertices (not vertex attribute values)
-                sizeof(Graphics::Vertex) // vertex stride
+                sizeof(Graphics::Vertex)   // vertex stride
             );
 
             // LUMOS_LOG_INFO("Mesh Optimizer - Before : {0} indices {1} vertices , After : {2} indices , {3} vertices", indexCount, m_Vertices.size(), newIndexCount, newVertexCount);
@@ -115,7 +115,7 @@ namespace Lumos
 
                     const glm::vec3 _normal = glm::cross(b - a, c - a);
 
-                    normals[i] = _normal;
+                    normals[i]     = _normal;
                     normals[i + 1] = _normal;
                     normals[i + 2] = _normal;
                 }
@@ -159,7 +159,7 @@ namespace Lumos
                 for(uint32_t i = 0; i < vertexCount; i += 3)
                 {
                     const glm::vec3 tangent = GenerateTangent(vertices[i].Position, vertices[i + 1].Position, vertices[i + 2].Position, vertices[i].TexCoords, vertices[i + 1].TexCoords,
-                        vertices[i + 2].TexCoords);
+                                                              vertices[i + 2].TexCoords);
 
                     tangents[i] += tangent;
                     tangents[i + 1] += tangent;
@@ -225,7 +225,7 @@ namespace Lumos
 
                     const glm::vec3 _normal = glm::cross(b - a, c - a);
 
-                    normals[i] = _normal;
+                    normals[i]     = _normal;
                     normals[i + 1] = _normal;
                     normals[i + 2] = _normal;
                 }
@@ -273,7 +273,7 @@ namespace Lumos
                 for(uint32_t i = 0; i < numVertices; i += 3)
                 {
                     const glm::vec3 tangent = GenerateTangent(vertices[i], vertices[i + 1], vertices[i + 2], texCoords[i], texCoords[i + 1],
-                        texCoords[i + 2]);
+                                                              texCoords[i + 2]);
 
                     tangents[i] += tangent;
                     tangents[i + 1] += tangent;

@@ -40,20 +40,20 @@ namespace Lumos
     void SceneManager::SwitchScene(int idx)
     {
         m_QueuedSceneIndex = idx;
-        m_SwitchingScenes = true;
+        m_SwitchingScenes  = true;
     }
 
     void SceneManager::SwitchScene(const std::string& name)
     {
-        bool found = false;
+        bool found        = false;
         m_SwitchingScenes = true;
-        uint32_t idx = 0;
+        uint32_t idx      = 0;
         for(uint32_t i = 0; !found && i < m_vpAllScenes.size(); ++i)
         {
             if(m_vpAllScenes[i]->GetSceneName() == name)
             {
                 found = true;
-                idx = i;
+                idx   = i;
                 break;
             }
         }
@@ -99,7 +99,7 @@ namespace Lumos
             app.OnExitScene();
         }
 
-        m_SceneIdx = m_QueuedSceneIndex;
+        m_SceneIdx     = m_QueuedSceneIndex;
         m_CurrentScene = m_vpAllScenes[m_QueuedSceneIndex].get();
 
         // Initialise new scene
@@ -143,7 +143,7 @@ namespace Lumos
     {
         m_SceneFilePaths.push_back(filePath);
 
-        auto name = StringUtilities::RemoveFilePathExtension(StringUtilities::GetFileName(filePath));
+        auto name  = StringUtilities::RemoveFilePathExtension(StringUtilities::GetFileName(filePath));
         auto scene = new Scene(name);
         EnqueueScene(scene);
     }

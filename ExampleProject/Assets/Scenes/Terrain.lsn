@@ -1,6 +1,6 @@
 {
     "value0": {
-        "Version": 11,
+        "Version": 13,
         "Scene Name": "Terrain",
         "PhysicsEnabled2D": true,
         "PhysicsEnabled3D": true,
@@ -11,7 +11,20 @@
         "SkyboxRenderEnabled": true,
         "ShadowsEnabled": true,
         "Exposure": 1.0,
-        "ToneMap": 4
+        "ToneMap": 4,
+        "BloomIntensity": 1.0,
+        "BloomKnee": 0.10000000149011612,
+        "BloomThreshold": 1.0,
+        "BloomUpsampleScale": 1.0,
+        "FXAAEnabled": true,
+        "DebandingEnabled": true,
+        "ChromaticAberationEnabled": false,
+        "EyeAdaptation": true,
+        "SSAOEnabled": true,
+        "BloomEnabled": true,
+        "FilmicGrainEnabled": true,
+        "DepthOfFieldEnabled": false,
+        "MotionBlurEnabled": false
     },
     "value1": 5,
     "value2": 0,
@@ -104,10 +117,13 @@
     "value28": 2,
     "value29": {
         "Scale": 1.0,
-        "Aspect": 0.9519773721694946,
+        "Aspect": 0.8450704216957092,
         "FOV": 79.24700164794922,
         "Near": 0.27399998903274538,
-        "Far": 831.0960083007813
+        "Far": 831.0960083007813,
+        "Aperture": 50.0,
+        "ShutterSpeed": 0.01666666753590107,
+        "Sensitivity": 200.0
     },
     "value30": 1,
     "value31": 3,
@@ -133,12 +149,12 @@
         "value2": 0.0,
         "value3": 0.0,
         "value4": {
-            "value0": 0.5005651116371155,
+            "value0": 0.5005650520324707,
             "value1": 0.5449714064598084,
             "value2": 0.6726371645927429,
             "value3": 1.0
         },
-        "value5": 1.0,
+        "value5": 128000.0,
         "value6": 1.0
     },
     "value37": 0,

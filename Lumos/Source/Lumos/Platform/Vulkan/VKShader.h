@@ -43,6 +43,14 @@ namespace Lumos
                 return m_Compiled;
             }
 
+            bool IsCompute()
+            {
+                if(m_ShaderTypes.size() > 0)
+                    return m_ShaderTypes[0] == ShaderType::COMPUTE;
+
+                return false;
+            }
+
             PushConstant* GetPushConstant(uint32_t index) override
             {
                 LUMOS_ASSERT(index < m_PushConstants.size(), "Push constants out of bounds");

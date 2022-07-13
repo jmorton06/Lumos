@@ -21,16 +21,16 @@ namespace Lumos
         class TextureDepthArray;
 
         static constexpr uint8_t MAX_RENDER_TARGETS = 8;
-        static constexpr uint8_t SHADOWMAP_MAX = 16;
-        static constexpr uint8_t MAX_MIPS = 32;
+        static constexpr uint8_t SHADOWMAP_MAX      = 16;
+        static constexpr uint8_t MAX_MIPS           = 32;
 
         // Descriptor set limits
-        static constexpr uint16_t DESCRIPTOR_MAX_STORAGE_TEXTURES = 1024;
-        static constexpr uint16_t DESCRIPTOR_MAX_STORAGE_BUFFERS = 1024;
-        static constexpr uint16_t DESCRIPTOR_MAX_CONSTANT_BUFFERS = 1024;
+        static constexpr uint16_t DESCRIPTOR_MAX_STORAGE_TEXTURES         = 1024;
+        static constexpr uint16_t DESCRIPTOR_MAX_STORAGE_BUFFERS          = 1024;
+        static constexpr uint16_t DESCRIPTOR_MAX_CONSTANT_BUFFERS         = 1024;
         static constexpr uint16_t DESCRIPTOR_MAX_CONSTANT_BUFFERS_DYNAMIC = 1024;
-        static constexpr uint16_t DESCRIPTOR_MAX_SAMPLERS = 1024;
-        static constexpr uint16_t DESCRIPTOR_MAX_TEXTURES = 1024;
+        static constexpr uint16_t DESCRIPTOR_MAX_SAMPLERS                 = 1024;
+        static constexpr uint16_t DESCRIPTOR_MAX_TEXTURES                 = 1024;
 
         enum class CullMode
         {
@@ -124,7 +124,8 @@ namespace Lumos
         {
             UNIFORM_BUFFER,
             UNIFORM_BUFFER_DYNAMIC,
-            IMAGE_SAMPLER
+            IMAGE_SAMPLER,
+            IMAGE_STORAGE
         };
 
         enum class ShaderDataType
@@ -175,20 +176,20 @@ namespace Lumos
 
         enum TextureFlags : uint32_t
         {
-            Texture_Sampled = BIT(0),
-            Texture_Storage = BIT(1),
-            Texture_RenderTarget = BIT(2),
-            Texture_DepthStencil = BIT(3),
+            Texture_Sampled              = BIT(0),
+            Texture_Storage              = BIT(1),
+            Texture_RenderTarget         = BIT(2),
+            Texture_DepthStencil         = BIT(3),
             Texture_DepthStencilReadOnly = BIT(4),
-            Texture_CreateMips = BIT(5),
-            Texture_MipViews = BIT(6)
+            Texture_CreateMips           = BIT(5),
+            Texture_MipViews             = BIT(6)
         };
 
         enum RendererBufferType
         {
-            RENDERER_BUFFER_NONE = 0,
-            RENDERER_BUFFER_COLOUR = BIT(0),
-            RENDERER_BUFFER_DEPTH = BIT(1),
+            RENDERER_BUFFER_NONE    = 0,
+            RENDERER_BUFFER_COLOUR  = BIT(0),
+            RENDERER_BUFFER_DEPTH   = BIT(1),
             RENDERER_BUFFER_STENCIL = BIT(2)
         };
 
@@ -245,6 +246,15 @@ namespace Lumos
             UNSIGNED_BYTE
         };
 
+        enum class PhysicalDeviceType
+        {
+            DISCRETE   = 0,
+            INTEGRATED = 1,
+            VIRTUAL    = 2,
+            CPU        = 3,
+            UNKNOWN    = 4
+        };
+
         struct BufferMemberInfo
         {
             uint32_t size;
@@ -273,8 +283,8 @@ namespace Lumos
             DescriptorType type;
             ShaderType stage;
             uint32_t binding = 0;
-            uint32_t setID = 0;
-            uint32_t count = 1;
+            uint32_t setID   = 0;
+            uint32_t count   = 1;
         };
 
         struct DescriptorLayout
@@ -300,6 +310,7 @@ namespace Lumos
             uint32_t size;
             uint32_t binding;
             uint32_t textureCount = 1;
+            uint32_t mipLevel     = 0;
             std::string name;
 
             TextureType textureType;
@@ -314,10 +325,10 @@ namespace Lumos
             Texture** attachments;
             TextureType* attachmentTypes;
             uint32_t attachmentCount;
-            bool clear = true;
+            bool clear           = true;
             bool swapchainTarget = false;
-            int cubeMapIndex = -1;
-            int mipIndex = -1;
+            int cubeMapIndex     = -1;
+            int mipIndex         = -1;
         };
 
         struct TextureDesc
@@ -326,17 +337,17 @@ namespace Lumos
             TextureFilter minFilter;
             TextureFilter magFilter;
             TextureWrap wrap;
-            uint16_t msaaLevel = 1;
-            uint16_t flags = 0;
-            bool srgb = false;
+            uint16_t msaaLevel   = 1;
+            uint16_t flags       = 0;
+            bool srgb            = false;
             bool generateMipMaps = true;
 
             TextureDesc()
             {
-                format = RHIFormat::R8G8B8A8_Unorm;
+                format    = RHIFormat::R8G8B8A8_Unorm;
                 minFilter = TextureFilter::NEAREST;
                 magFilter = TextureFilter::NEAREST;
-                wrap = TextureWrap::REPEAT;
+                wrap      = TextureWrap::REPEAT;
                 msaaLevel = 1;
             }
 

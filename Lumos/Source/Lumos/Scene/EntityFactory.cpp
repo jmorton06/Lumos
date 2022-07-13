@@ -49,13 +49,13 @@ namespace Lumos
 
         SharedPtr<Graphics::Material> matInstance = CreateSharedPtr<Graphics::Material>();
         Graphics::MaterialProperties properties;
-        properties.albedoColour = colour;
-        properties.roughness = Random32::Rand(0.0f, 1.0f);
-        properties.metallic = Random32::Rand(0.0f, 1.0f);
-        properties.albedoMapFactor = 0.0f;
+        properties.albedoColour       = colour;
+        properties.roughness          = Random32::Rand(0.0f, 1.0f);
+        properties.metallic           = Random32::Rand(0.0f, 1.0f);
+        properties.albedoMapFactor    = 0.0f;
         properties.roughnessMapFactor = 0.0f;
-        properties.normalMapFactor = 0.0f;
-        properties.metallicMapFactor = 0.0f;
+        properties.normalMapFactor    = 0.0f;
+        properties.metallicMapFactor  = 0.0f;
         matInstance->SetMaterialProperites(properties);
 
         // auto shader = Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/ForwardPBR.shader");
@@ -107,15 +107,15 @@ namespace Lumos
 
         auto matInstance = CreateSharedPtr<Graphics::Material>();
         Graphics::MaterialProperties properties;
-        properties.albedoColour = colour;
-        properties.roughness = Random32::Rand(0.0f, 1.0f);
-        properties.metallic = Random32::Rand(0.0f, 1.0f);
-        properties.emissive = 3.0f;
-        properties.albedoMapFactor = 0.0f;
+        properties.albedoColour       = colour;
+        properties.roughness          = Random32::Rand(0.0f, 1.0f);
+        properties.metallic           = Random32::Rand(0.0f, 1.0f);
+        properties.emissive           = 3.0f;
+        properties.albedoMapFactor    = 0.0f;
         properties.roughnessMapFactor = 0.0f;
-        properties.normalMapFactor = 0.0f;
-        properties.metallicMapFactor = 0.0f;
-        properties.emissiveMapFactor = 0.0f;
+        properties.normalMapFactor    = 0.0f;
+        properties.metallicMapFactor  = 0.0f;
+        properties.emissiveMapFactor  = 0.0f;
         properties.occlusionMapFactor = 0.0f;
         matInstance->SetMaterialProperites(properties);
 
@@ -162,18 +162,18 @@ namespace Lumos
         bool collidable,
         const glm::vec4& colour)
     {
-        auto pyramid = scene->GetEntityManager()->Create(name);
+        auto pyramid           = scene->GetEntityManager()->Create(name);
         auto pyramidMeshEntity = scene->GetEntityManager()->Create();
 
         SharedPtr<Graphics::Material> matInstance = CreateSharedPtr<Graphics::Material>();
         Graphics::MaterialProperties properties;
-        properties.albedoColour = colour;
-        properties.roughness = Random32::Rand(0.0f, 1.0f);
-        properties.metallic = Random32::Rand(0.0f, 1.0f);
-        properties.albedoMapFactor = 0.0f;
+        properties.albedoColour       = colour;
+        properties.roughness          = Random32::Rand(0.0f, 1.0f);
+        properties.metallic           = Random32::Rand(0.0f, 1.0f);
+        properties.albedoMapFactor    = 0.0f;
         properties.roughnessMapFactor = 0.0f;
-        properties.normalMapFactor = 0.0f;
-        properties.metallicMapFactor = 0.0f;
+        properties.normalMapFactor    = 0.0f;
+        properties.metallicMapFactor  = 0.0f;
         matInstance->SetMaterialProperites(properties);
 
         // auto shader = Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/ForwardPBR.shader");
@@ -217,9 +217,9 @@ namespace Lumos
     void EntityFactory::AddLightCube(Scene* scene, const glm::vec3& pos, const glm::vec3& dir)
     {
         glm::vec4 colour = glm::vec4(Random32::Rand(0.0f, 1.0f),
-            Random32::Rand(0.0f, 1.0f),
-            Random32::Rand(0.0f, 1.0f),
-            1.0f);
+                                     Random32::Rand(0.0f, 1.0f),
+                                     Random32::Rand(0.0f, 1.0f),
+                                     1.0f);
 
         entt::registry& registry = scene->GetRegistry();
 
@@ -234,7 +234,7 @@ namespace Lumos
             colour);
 
         // cube.GetComponent<RigidBody3DComponent>().GetRigidBody()->SetIsAtRest(true);
-        const float radius = Random32::Rand(1.0f, 30.0f);
+        const float radius    = Random32::Rand(1.0f, 30.0f);
         const float intensity = Random32::Rand(0.0f, 2.0f);
 
         cube.AddComponent<Graphics::Light>(pos, colour, intensity, Graphics::LightType::PointLight, pos, radius);
@@ -255,9 +255,9 @@ namespace Lumos
             1.0f,
             true,
             glm::vec4(Random32::Rand(0.0f, 1.0f),
-                Random32::Rand(0.0f, 1.0f),
-                Random32::Rand(0.0f, 1.0f),
-                1.0f));
+                      Random32::Rand(0.0f, 1.0f),
+                      Random32::Rand(0.0f, 1.0f),
+                      1.0f));
 
         const glm::vec3 forward = dir;
         sphere.GetComponent<RigidBody3DComponent>().GetRigidBody()->SetLinearVelocity(forward * 30.0f);
@@ -276,9 +276,9 @@ namespace Lumos
             1.0f,
             true,
             glm::vec4(Random32::Rand(0.0f, 1.0f),
-                Random32::Rand(0.0f, 1.0f),
-                Random32::Rand(0.0f, 1.0f),
-                1.0f));
+                      Random32::Rand(0.0f, 1.0f),
+                      Random32::Rand(0.0f, 1.0f),
+                      1.0f));
 
         const glm::vec3 forward = dir;
 

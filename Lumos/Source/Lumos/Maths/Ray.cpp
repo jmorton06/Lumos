@@ -8,13 +8,13 @@ namespace Lumos
     {
         Ray::Ray()
         {
-            Origin = glm::vec3(0.0f);
+            Origin    = glm::vec3(0.0f);
             Direction = glm::vec3(0.0f);
         }
 
         Ray::Ray(const glm::vec3& origin, const glm::vec3& direction)
         {
-            Origin = origin;
+            Origin    = origin;
             Direction = direction;
         }
 
@@ -106,16 +106,16 @@ namespace Lumos
         bool Ray::IntersectsTriangle(const glm::vec3& a, const glm::vec3& b, const glm::vec3& c, float& t) const
         {
             LUMOS_PROFILE_FUNCTION();
-            const glm::vec3 E1 = b - a;
-            const glm::vec3 E2 = c - a;
-            const glm::vec3 N = cross(E1, E2);
-            const float det = -glm::dot(Direction, N);
-            const float invdet = 1.f / det;
-            const glm::vec3 AO = Origin - a;
+            const glm::vec3 E1  = b - a;
+            const glm::vec3 E2  = c - a;
+            const glm::vec3 N   = cross(E1, E2);
+            const float det     = -glm::dot(Direction, N);
+            const float invdet  = 1.f / det;
+            const glm::vec3 AO  = Origin - a;
             const glm::vec3 DAO = glm::cross(AO, Direction);
-            const float u = glm::dot(E2, DAO) * invdet;
-            const float v = -glm::dot(E1, DAO) * invdet;
-            t = glm::dot(AO, N) * invdet;
+            const float u       = glm::dot(E2, DAO) * invdet;
+            const float v       = -glm::dot(E1, DAO) * invdet;
+            t                   = glm::dot(AO, N) * invdet;
             return (det >= 1e-6f && t >= 0.0f && u >= 0.0f && v >= 0.0f && (u + v) <= 1.0f);
         }
     }

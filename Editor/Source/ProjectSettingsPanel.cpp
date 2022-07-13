@@ -7,7 +7,7 @@ namespace Lumos
 {
     ProjectSettingsPanel::ProjectSettingsPanel()
     {
-        m_Name = "ProjectSettings###projectsettings";
+        m_Name       = "ProjectSettings###projectsettings";
         m_SimpleName = "Project Settings";
     }
 

@@ -51,12 +51,14 @@ namespace Lumos
         {
             LUMOS_PROFILE_FUNCTION();
             GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_Handle));
+            GLRenderer::Instance()->GetBoundIndexBuffer() = m_Handle;
         }
 
         void GLIndexBuffer::Unbind() const
         {
             LUMOS_PROFILE_FUNCTION();
             GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
+            GLRenderer::Instance()->GetBoundIndexBuffer() = -1;
         }
 
         uint32_t GLIndexBuffer::GetCount() const
@@ -93,7 +95,7 @@ namespace Lumos
 
         void GLIndexBuffer::MakeDefault()
         {
-            CreateFunc = CreateFuncGL;
+            CreateFunc   = CreateFuncGL;
             Create16Func = CreateFunc16GL;
         }
 

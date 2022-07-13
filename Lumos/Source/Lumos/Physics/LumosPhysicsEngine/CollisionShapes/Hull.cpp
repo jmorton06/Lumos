@@ -27,7 +27,7 @@ namespace Lumos
         for(const HullEdge& edge : m_Edges)
         {
             if((edge.vStart == v0_idx && edge.vEnd == v1_idx)
-                || (edge.vStart == v1_idx && edge.vEnd == v0_idx))
+               || (edge.vStart == v1_idx && edge.vEnd == v0_idx))
             {
                 return edge.idx;
             }
@@ -46,9 +46,9 @@ namespace Lumos
             out_idx = static_cast<int>(m_Edges.size());
 
             HullEdge new_edge;
-            new_edge.idx = static_cast<int>(m_Edges.size());
+            new_edge.idx    = static_cast<int>(m_Edges.size());
             new_edge.vStart = vert_start;
-            new_edge.vEnd = vert_end;
+            new_edge.vEnd   = vert_end;
             m_Edges.push_back(new_edge);
 
             HullEdge* new_edge_ptr = &m_Edges[new_edge.idx];
@@ -57,9 +57,9 @@ namespace Lumos
             for(int i = 0; i < new_edge.idx; ++i)
             {
                 if(m_Edges[i].vStart == vert_start
-                    || m_Edges[i].vStart == vert_end
-                    || m_Edges[i].vEnd == vert_start
-                    || m_Edges[i].vEnd == vert_end)
+                   || m_Edges[i].vStart == vert_end
+                   || m_Edges[i].vEnd == vert_start
+                   || m_Edges[i].vEnd == vert_end)
                 {
                     m_Edges[i].adjoining_edge_ids.push_back(new_edge.idx);
                     new_edge_ptr->adjoining_edge_ids.push_back(i);
@@ -78,7 +78,7 @@ namespace Lumos
     void Hull::AddFace(const glm::vec3& normal, int nVerts, const int* verts)
     {
         HullFace new_face;
-        new_face.idx = (int)m_Faces.size();
+        new_face.idx    = (int)m_Faces.size();
         new_face.normal = normal;
         new_face.normal = glm::normalize(new_face.normal);
 
@@ -98,7 +98,7 @@ namespace Lumos
         for(int i = 0; i < new_face.idx; ++i)
         {
             HullFace& cFace = m_Faces[i];
-            bool found = false;
+            bool found      = false;
             for(size_t j = 0; found == false && j < cFace.edge_ids.size(); ++j)
             {
                 for(int k = 0; found == false && k < nVerts; ++k)
@@ -117,7 +117,7 @@ namespace Lumos
         for(int i = 0; i < nVerts; ++i)
         {
             HullVertex* cVertStart = &m_Vertices[m_Edges[new_face_ptr->edge_ids[i]].vStart];
-            HullVertex* cVertEnd = &m_Vertices[m_Edges[new_face_ptr->edge_ids[i]].vEnd];
+            HullVertex* cVertEnd   = &m_Vertices[m_Edges[new_face_ptr->edge_ids[i]].vEnd];
 
             const auto foundLocStart = std::find(cVertStart->enclosing_faces.begin(), cVertStart->enclosing_faces.end(), new_face.idx);
             if(foundLocStart == cVertStart->enclosing_faces.end())
@@ -147,13 +147,13 @@ namespace Lumos
             if(cCorrelation > maxCorrelation)
             {
                 maxCorrelation = cCorrelation;
-                maxVertex = int(i);
+                maxVertex      = int(i);
             }
 
             if(cCorrelation <= minCorrelation)
             {
                 minCorrelation = cCorrelation;
-                minVertex = int(i);
+                minVertex      = int(i);
             }
         }
 
@@ -172,7 +172,7 @@ namespace Lumos
             if(face.vert_ids.size() > 2)
             {
                 glm::vec3 polygon_start = transform * glm::vec4(m_Vertices[face.vert_ids[0]].pos, 1.0f);
-                glm::vec3 polygon_last = transform * glm::vec4(m_Vertices[face.vert_ids[1]].pos, 1.0f);
+                glm::vec3 polygon_last  = transform * glm::vec4(m_Vertices[face.vert_ids[1]].pos, 1.0f);
 
                 for(size_t idx = 2; idx < face.vert_ids.size(); ++idx)
                 {

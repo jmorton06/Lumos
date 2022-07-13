@@ -14,31 +14,31 @@ namespace Lumos
 
     enum class LUMOS_EXPORT IntegrationType : uint32_t
     {
-        EXPLICIT_EULER = 0,
+        EXPLICIT_EULER      = 0,
         SEMI_IMPLICIT_EULER = 1,
-        RUNGE_KUTTA_2 = 2,
-        RUNGE_KUTTA_4 = 3
+        RUNGE_KUTTA_2       = 2,
+        RUNGE_KUTTA_4       = 3
     };
 
     enum class LUMOS_EXPORT BroadphaseType : uint32_t
     {
-        BRUTE_FORCE = 0,
+        BRUTE_FORCE    = 0,
         SORT_AND_SWEAP = 1,
-        OCTREE = 2,
+        OCTREE         = 2,
     };
 
     enum PhysicsDebugFlags : uint32_t
     {
-        CONSTRAINT = 1,
-        MANIFOLD = 2,
+        CONSTRAINT       = 1,
+        MANIFOLD         = 2,
         COLLISIONVOLUMES = 4,
         COLLISIONNORMALS = 8,
-        AABB = 16,
-        LINEARVELOCITY = 32,
-        LINEARFORCE = 64,
-        BROADPHASE = 128,
+        AABB             = 16,
+        LINEARVELOCITY   = 32,
+        LINEARFORCE      = 64,
+        BROADPHASE       = 128,
         BROADPHASE_PAIRS = 256,
-        BOUNDING_RADIUS = 512,
+        BOUNDING_RADIUS  = 512,
     };
 
     class Constraint;
@@ -182,7 +182,7 @@ namespace Lumos
         std::vector<CollisionPair> m_BroadphaseCollisionPairs;
 
         std::vector<Constraint*> m_Constraints; // Misc constraints between pairs of objects
-        std::vector<Manifold> m_Manifolds; // Contact constraints between pairs of objects
+        std::vector<Manifold> m_Manifolds;      // Contact constraints between pairs of objects
         std::mutex m_ManifoldsMutex;
 
         SharedPtr<Broadphase> m_BroadphaseDetection;

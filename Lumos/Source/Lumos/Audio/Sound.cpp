@@ -43,7 +43,7 @@ namespace Lumos
         }
         uint32_t bytesPerSample = bitsPerSample / 8;
 
-        uint32_t j = 0;
+        uint32_t j           = 0;
         uint32_t channelSize = channels * bytesPerSample;
         for(uint32_t i = 0; i < uint32_t(dataSize); i += channelSize)
         {

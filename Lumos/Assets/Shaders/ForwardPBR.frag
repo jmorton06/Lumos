@@ -3,16 +3,23 @@
 #extension GL_ARB_separate_shader_objects : enable
 #extension GL_ARB_shading_language_420pack : enable
 
-layout(location = 0) in vec3 fragColor;
-layout(location = 1) in vec2 fragTexCoord;
-layout(location = 2) in vec4 fragPosition;
-layout(location = 3) in vec3 fragNormal;
-layout(location = 4) in vec3 fragTangent;
+struct VertexOutput
+{
+	vec3 Colour;
+	vec2 TexCoord;
+	vec4 Position;
+	vec3 Normal;
+	vec3 Tangent;
+	vec4 ShadowMapCoords[4];
+};
+
+layout(location = 0) in VertexOutput Input;
 
 #define MAX_LIGHTS 32
 #define MAX_SHADOWMAPS 4
+#define BLEND_SHADOW_CASCADES 0
+#define NUM_PCF_SAMPLES 8
 
-const int NumPCFSamples = 16;
 const float Epsilon = 0.00001;
 float ShadowFade = 1.0;
 
@@ -96,42 +103,42 @@ struct Material
 
 vec4 GetAlbedo()
 {
-	return (1.0 - materialProperties.AlbedoMapFactor) * materialProperties.AlbedoColour + materialProperties.AlbedoMapFactor * DeGamma(texture(u_AlbedoMap, fragTexCoord));
+	return (1.0 - materialProperties.AlbedoMapFactor) * materialProperties.AlbedoColour + materialProperties.AlbedoMapFactor * DeGamma(texture(u_AlbedoMap, Input.TexCoord));
 }
 
 vec3 GetMetallic()
 {
-	return (1.0 - materialProperties.MetallicMapFactor) * materialProperties.Metallic + materialProperties.MetallicMapFactor * texture(u_MetallicMap, fragTexCoord).rgb;
+	return (1.0 - materialProperties.MetallicMapFactor) * materialProperties.Metallic + materialProperties.MetallicMapFactor * texture(u_MetallicMap, Input.TexCoord).rgb;
 }
 
 float GetRoughness()
 {
-	return (1.0 - materialProperties.RoughnessMapFactor) * materialProperties.Roughness + materialProperties.RoughnessMapFactor * texture(u_RoughnessMap, fragTexCoord).r;
+	return (1.0 - materialProperties.RoughnessMapFactor) * materialProperties.Roughness + materialProperties.RoughnessMapFactor * texture(u_RoughnessMap, Input.TexCoord).r;
 }
 
 float GetAO()
 {
-	return (1.0 - materialProperties.AOMapFactor) + materialProperties.AOMapFactor * texture(u_AOMap, fragTexCoord).r;
+	return (1.0 - materialProperties.AOMapFactor) + materialProperties.AOMapFactor * texture(u_AOMap, Input.TexCoord).r;
 }
 
 vec3 GetEmissive(vec3 albedo)
 {
-	return (materialProperties.Emissive * albedo) + materialProperties.EmissiveMapFactor * DeGamma(texture(u_EmissiveMap, fragTexCoord).rgb);
+	return (materialProperties.Emissive * albedo) + materialProperties.EmissiveMapFactor * DeGamma(texture(u_EmissiveMap, Input.TexCoord).rgb);
 }
 
 vec3 GetNormalFromMap()
 {
 	if (materialProperties.NormalMapFactor < 0.1)
-		return normalize(fragNormal);
+		return normalize(Input.Normal);
 	
-	vec3 tangentNormal = texture(u_NormalMap, fragTexCoord).xyz * 2.0 - 1.0;
+	vec3 tangentNormal = texture(u_NormalMap, Input.TexCoord).xyz * 2.0 - 1.0;
 	
-	vec3 Q1 = dFdx(fragPosition.xyz);
-	vec3 Q2 = dFdy(fragPosition.xyz);
-	vec2 st1 = dFdx(fragTexCoord);
-	vec2 st2 = dFdy(fragTexCoord);
+	vec3 Q1 = dFdx(Input.Position.xyz);
+	vec3 Q2 = dFdy(Input.Position.xyz);
+	vec2 st1 = dFdx(Input.TexCoord);
+	vec2 st2 = dFdy(Input.TexCoord);
 	
-	vec3 N = normalize(fragNormal);
+	vec3 N = normalize(Input.Normal);
 	vec3 T = normalize(Q1*st2.t - Q2*st1.t);
 	vec3 B = -normalize(cross(N, T));
 	mat3 TBN = mat3(T, B, N);
@@ -192,6 +199,11 @@ float GoldNoise(vec2 xy, float seed)
 	return fract(tan(distance(xy*PHI, xy)*seed)*xy.x);
 }
 
+float Noise(vec2 co)
+{
+	return fract(sin(dot(co, vec2(12.9898, 78.233))) * 43758.5453);
+}
+
 float rand(vec2 co)
 {
     float a = 12.9898;
@@ -200,6 +212,19 @@ float rand(vec2 co)
     float dt= dot(co.xy ,vec2(a,b));
     float sn= mod(dt,3.14);
     return fract(sin(sn) * c);
+}
+
+vec2 VogelDiskSample(int sampleIndex, int samplesCount, float phi)
+{
+  float GoldenAngle = 2.4f;
+
+  float r = sqrt(sampleIndex + 0.5f) / sqrt(samplesCount);
+  float theta = sampleIndex * GoldenAngle + phi;
+
+  float sine = sin(theta);
+  float cosine = cos(theta);
+  
+  return vec2(r * cosine, r * sine);
 }
 
 float Random(vec4 seed4)
@@ -226,21 +251,25 @@ float PCFShadowDirectionalLight(sampler2DArray shadowMap, vec4 shadowCoords, flo
 {
 	float bias = GetShadowBias(lightDirection, normal, cascadeIndex);
 	float sum = 0;
-	
-	for (int i = 0; i < NumPCFSamples; i++)
+	float noise = Noise(gl_FragCoord.xy);
+
+	for (int i = 0; i < NUM_PCF_SAMPLES; i++)
 	{
 		//int index = int(16.0f*Random(vec4(wsPos, i)))%16;
-		//int index = int(float(NumPCFSamples)*GoldNoise(wsPos.xy, i * wsPos.z))%NumPCFSamples;
-		//int index = int(float(NumPCFSamples)*Random(vec4(wsPos.xyz, 1)))%NumPCFSamples;
-		//int index = int(float(NumPCFSamples)*Random(vec4(floor(wsPos*1000.0), 1)))%NumPCFSamples;
-		//int index = int(NumPCFSamples*Random(vec4(floor(wsPos.xyz*1000.0), i)))%NumPCFSamples;
-		int index = int(NumPCFSamples*Random(vec4(gl_FragCoord.xyy, i)))%NumPCFSamples;
+		//int index = int(float(NUM_PCF_SAMPLES)*GoldNoise(wsPos.xy, i * wsPos.z))%NUM_PCF_SAMPLES;
+		//int index = int(float(NUM_PCF_SAMPLES)*Random(vec4(wsPos.xyz, 1)))%NUM_PCF_SAMPLES;
+		//int index = int(float(NUM_PCF_SAMPLES)*Random(vec4(floor(wsPos*1000.0), 1)))%NUM_PCF_SAMPLES;
+		//int index = int(NUM_PCF_SAMPLES*Random(vec4(floor(wsPos.xyz*1000.0), i)))%NUM_PCF_SAMPLES;
 		
-		float z = texture(shadowMap, vec3(shadowCoords.xy + (SamplePoisson(index) / 700.0f), cascadeIndex)).r;
+		//int index = int(NUM_PCF_SAMPLES*Random(vec4(gl_FragCoord.xyy, i)))%NUM_PCF_SAMPLES;
+		//vec2 offset = (SamplePoisson(index) / 700.0f);
+		vec2 offset = VogelDiskSample(i, NUM_PCF_SAMPLES, noise) / 700.0f;
+		
+		float z = texture(shadowMap, vec3(shadowCoords.xy + offset, cascadeIndex)).r;
 		sum += step(shadowCoords.z - bias, z);
 	}
 	
-	return sum / NumPCFSamples;
+	return sum / NUM_PCF_SAMPLES;
 }
 
 int CalculateCascadeIndex(vec3 wsPos)
@@ -262,16 +291,15 @@ int CalculateCascadeIndex(vec3 wsPos)
 float CalculateShadow(vec3 wsPos, int cascadeIndex, vec3 lightDirection, vec3 normal)
 {
 	vec4 shadowCoord = ubo.biasMat * ubo.uShadowTransform[cascadeIndex] * vec4(wsPos, 1.0);
-	shadowCoord = shadowCoord * ( 1.0 / shadowCoord.w);
+	shadowCoord = shadowCoord * (1.0 / shadowCoord.w);
 	float NEAR = 0.01;
 	float uvRadius =  ubo.lightSize * NEAR / shadowCoord.z;
 	uvRadius = min(uvRadius, 0.002f);
 	vec4 viewPos = ubo.viewMatrix * vec4(wsPos, 1.0);
 	
 	float shadowAmount = 1.0;
-	
-	//if(true)//ubo.cascadeTransitionFade > 0.0f)
-	//{
+
+#if (BLEND_SHADOW_CASCADES == 1)
 	float c0 = smoothstep(ubo.uSplitDepths[0].x + ubo.cascadeTransitionFade * 0.5f, ubo.uSplitDepths[0].x - ubo.cascadeTransitionFade * 0.5f, viewPos.z);
 	float c1 = smoothstep(ubo.uSplitDepths[1].x + ubo.cascadeTransitionFade * 0.5f, ubo.uSplitDepths[1].x - ubo.cascadeTransitionFade * 0.5f, viewPos.z);
 	float c2 = smoothstep(ubo.uSplitDepths[2].x + ubo.cascadeTransitionFade * 0.5f, ubo.uSplitDepths[2].x - ubo.cascadeTransitionFade * 0.5f, viewPos.z);
@@ -307,9 +335,11 @@ float CalculateShadow(vec3 wsPos, int cascadeIndex, vec3 lightDirection, vec3 no
 	}
 	else
 	{
-		shadowCoord = ubo.biasMat * ubo.uShadowTransform[cascadeIndex] * vec4(wsPos, 1.0);
 		shadowAmount = PCFShadowDirectionalLight(uShadowMap, shadowCoord, uvRadius, lightDirection, normal, wsPos, cascadeIndex);
 	}
+#else
+	shadowAmount = PCFShadowDirectionalLight(uShadowMap, shadowCoord, uvRadius, lightDirection, normal, wsPos, cascadeIndex);
+#endif
 	
 	return 1.0 - ((1.0 - shadowAmount) * ShadowFade);
 }
@@ -460,7 +490,7 @@ void main()
 	if(texColour.w < materialProperties.AlphaCutOff)
 		discard;
 	
-	float metallic = 0.0;
+	float metallic  = 0.0;
 	float roughness = 0.0;
 	
 	if(materialProperties.workflow == PBR_WORKFLOW_SEPARATE_TEXTURES)
@@ -470,15 +500,15 @@ void main()
 	}
 	else if( materialProperties.workflow == PBR_WORKFLOW_METALLIC_ROUGHNESS)
 	{
-		vec3 tex = texture(u_MetallicMap, fragTexCoord).rgb;
-		metallic = (1.0 - materialProperties.MetallicMapFactor) * materialProperties.Metallic + materialProperties.MetallicMapFactor * tex.b;
+		vec3 tex  = texture(u_MetallicMap, Input.TexCoord).rgb;
+		metallic  = (1.0 - materialProperties.MetallicMapFactor) * materialProperties.Metallic + materialProperties.MetallicMapFactor * tex.b;
 		roughness = (1.0 - materialProperties.MetallicMapFactor) * materialProperties.Roughness + materialProperties.MetallicMapFactor * tex.g;
 	}
 	else if( materialProperties.workflow == PBR_WORKFLOW_SPECULAR_GLOSINESS)
 	{
 		//TODO
-		vec3 tex = texture(u_MetallicMap, fragTexCoord).rgb;
-		metallic = (1.0 - materialProperties.MetallicMapFactor) * materialProperties.Metallic + materialProperties.MetallicMapFactor * tex.b;
+		vec3 tex  = texture(u_MetallicMap, Input.TexCoord).rgb;
+		metallic  = (1.0 - materialProperties.MetallicMapFactor) * materialProperties.Metallic + materialProperties.MetallicMapFactor * tex.b;
 		roughness = (1.0 - materialProperties.MetallicMapFactor) * materialProperties.Roughness + materialProperties.MetallicMapFactor * tex.g;
 	}
 	
@@ -487,16 +517,15 @@ void main()
     material.Metallic  = vec3(metallic);
     material.Roughness = roughness;
     material.Normal    = normalize(GetNormalFromMap());
-	material.AO		= GetAO();
+	material.AO		   = GetAO();
 	material.Emissive  = GetEmissive(material.Albedo.rgb);
-	
 	material.Roughness = max(material.Roughness, 0.06); 
 	
-	vec3 wsPos = fragPosition.xyz;
-	material.View 	 = normalize(ubo.cameraPosition.xyz - wsPos);
-	material.NDotV     = max(dot(material.Normal, material.View), 0.0);
+	vec3 wsPos     = Input.Position.xyz;
+	material.View  = normalize(ubo.cameraPosition.xyz - wsPos);
+	material.NDotV = max(dot(material.Normal, material.View), 0.0);
 
-    float shadowDistance = ubo.maxShadowDistance;
+    float shadowDistance     = ubo.maxShadowDistance;
 	float transitionDistance = ubo.shadowFade;
 	
 	vec4 viewPos = ubo.viewMatrix * vec4(wsPos, 1.0);
@@ -511,7 +540,7 @@ void main()
 	vec3 F0 = mix(Fdielectric, material.Albedo.xyz, material.Metallic.x);
 	
 	vec3 lightContribution = Lighting(F0, wsPos, material);
-	vec3 iblContribution = IBL(F0, Lr, material);// * 2.0;
+	vec3 iblContribution   = IBL(F0, Lr, material);
 	
 	vec3 finalColour = lightContribution + iblContribution + material.Emissive;
 	outColor = vec4(finalColour, 1.0);
