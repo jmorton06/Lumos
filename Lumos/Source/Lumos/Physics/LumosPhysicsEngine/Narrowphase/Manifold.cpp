@@ -112,10 +112,9 @@ namespace Lumos
                 float frictionalMass = (m_pNodeA->GetInverseMass() + m_pNodeB->GetInverseMass())
                     + glm::dot(tangent, glm::cross(m_pNodeA->GetInverseInertia() * glm::cross(r1, tangent), r1) + glm::cross(m_pNodeB->GetInverseInertia() * glm::cross(r2, tangent), r2));
 
-                float frictionCoef = sqrtf(m_pNodeA->GetFriction()
-                                           * m_pNodeB->GetFriction());
+                float frictionCoef = sqrtf(m_pNodeA->GetFriction() * m_pNodeB->GetFriction());
 
-                float jt = -1 * frictionCoef * glm::dot(dv, tangent)
+                float jt = -1.0f * frictionCoef * glm::dot(dv, tangent)
                     / frictionalMass;
 
                 // Clamp friction to never apply more force than the main collision
@@ -127,7 +126,7 @@ namespace Lumos
                 c.sumImpulseFriction = Maths::Min(Maths::Max(oldImpulseTangent + jt, maxJt), -maxJt);
 
                 jt = c.sumImpulseFriction - oldImpulseTangent;
-
+				
                 m_pNodeA->SetLinearVelocity(m_pNodeA->GetLinearVelocity()
                                             + tangent * (jt * m_pNodeA->GetInverseMass()));
                 m_pNodeB->SetLinearVelocity(m_pNodeB->GetLinearVelocity()

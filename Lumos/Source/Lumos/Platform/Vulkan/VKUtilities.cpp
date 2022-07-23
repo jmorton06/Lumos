@@ -480,6 +480,17 @@ namespace Lumos
                 STR(ERROR_INCOMPATIBLE_DISPLAY_KHR);
                 STR(ERROR_VALIDATION_FAILED_EXT);
                 STR(ERROR_INVALID_SHADER_NV);
+                STR(SUCCESS);
+                STR(ERROR_FRAGMENTED_POOL);
+                STR(ERROR_OUT_OF_POOL_MEMORY);
+                STR(ERROR_INVALID_EXTERNAL_HANDLE);
+                STR(ERROR_INVALID_DRM_FORMAT_MODIFIER_PLANE_LAYOUT_EXT);
+                STR(ERROR_FRAGMENTATION_EXT);
+                STR(ERROR_NOT_PERMITTED_EXT);
+                STR(ERROR_INVALID_DEVICE_ADDRESS_EXT);
+                STR(ERROR_FULL_SCREEN_EXCLUSIVE_MODE_LOST_EXT);
+                STR(ERROR_UNKNOWN);
+                STR(RESULT_MAX_ENUM);
 #undef STR
             default:
                 return "UNKNOWN_ERROR";

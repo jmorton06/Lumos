@@ -12,6 +12,7 @@ namespace Lumos
     {
         Shader* (*Shader::CreateFunc)(const std::string&)                                               = nullptr;
         Shader* (*Shader::CreateFuncFromEmbedded)(const uint32_t*, uint32_t, const uint32_t*, uint32_t) = nullptr;
+        Shader* (*Shader::CreateCompFuncFromEmbedded)(const uint32_t*, uint32_t)                        = nullptr;
 
         const Shader* Shader::s_CurrentlyBound = nullptr;
 
@@ -23,8 +24,14 @@ namespace Lumos
 
         Shader* Shader::CreateFromEmbeddedArray(const uint32_t* vertData, uint32_t vertDataSize, const uint32_t* fragData, uint32_t fragDataSize)
         {
-            LUMOS_ASSERT(CreateFunc, "No Shader Create Function");
+            LUMOS_ASSERT(CreateFuncFromEmbedded, "No Shader Create Function");
             return CreateFuncFromEmbedded(vertData, vertDataSize, fragData, fragDataSize);
+        }
+
+        Shader* Shader::CreateCompFromEmbeddedArray(const uint32_t* compData, uint32_t compDataSize)
+        {
+            LUMOS_ASSERT(CreateCompFuncFromEmbedded, "No Shader Create Function");
+            return CreateCompFuncFromEmbedded(compData, compDataSize);
         }
 
         ShaderDataType Shader::SPIRVTypeToLumosDataType(const spirv_cross::SPIRType type)

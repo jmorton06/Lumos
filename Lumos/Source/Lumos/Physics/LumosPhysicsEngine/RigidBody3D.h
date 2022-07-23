@@ -7,7 +7,6 @@
 #include "Physics/LumosPhysicsEngine/CollisionShapes/PyramidCollisionShape.h"
 #include "Physics/LumosPhysicsEngine/CollisionShapes/HullCollisionShape.h"
 #include "Physics/LumosPhysicsEngine/CollisionShapes/CapsuleCollisionShape.h"
-
 #include "Maths/Maths.h"
 #include <cereal/types/polymorphic.hpp>
 #include <cereal/cereal.hpp>
@@ -65,38 +64,14 @@ namespace Lumos
         virtual ~RigidBody3D();
 
         //<--------- GETTERS ------------->
-        const glm::vec3& GetPosition() const
-        {
-            return m_Position;
-        }
-        const glm::vec3& GetLinearVelocity() const
-        {
-            return m_LinearVelocity;
-        }
-        const glm::vec3& GetForce() const
-        {
-            return m_Force;
-        }
-        float GetInverseMass() const
-        {
-            return m_InvMass;
-        }
-        const glm::quat& GetOrientation() const
-        {
-            return m_Orientation;
-        }
-        const glm::vec3& GetAngularVelocity() const
-        {
-            return m_AngularVelocity;
-        }
-        const glm::vec3& GetTorque() const
-        {
-            return m_Torque;
-        }
-        const glm::mat3& GetInverseInertia() const
-        {
-            return m_InvInertia;
-        }
+        const glm::vec3& GetPosition() const { return m_Position; }
+        const glm::vec3& GetLinearVelocity() const { return m_LinearVelocity; }
+        const glm::vec3& GetForce() const { return m_Force; }
+        float GetInverseMass() const { return m_InvMass; }
+        const glm::quat& GetOrientation() const { return m_Orientation; }
+        const glm::vec3& GetAngularVelocity() const { return m_AngularVelocity; }
+        const glm::vec3& GetTorque() const { return m_Torque; }
+        const glm::mat3& GetInverseInertia() const { return m_InvInertia; }
         const glm::mat4& GetWorldSpaceTransform() const; // Built from scratch or returned from cached value
 
         const Maths::BoundingBox& GetWorldSpaceAABB();
@@ -171,17 +146,10 @@ namespace Lumos
             m_Torque = v;
             m_AtRest = false;
         }
-        void SetInverseInertia(const glm::mat3& v)
-        {
-            m_InvInertia = v;
-        }
+        void SetInverseInertia(const glm::mat3& v) { m_InvInertia = v; }
 
         //<---------- CALLBACKS ------------>
-        void SetOnCollisionCallback(PhysicsCollisionCallback& callback)
-        {
-            m_OnCollisionCallback = callback;
-        }
-
+        void SetOnCollisionCallback(PhysicsCollisionCallback& callback) { m_OnCollisionCallback = callback; }
         bool FireOnCollisionEvent(RigidBody3D* obj_a, RigidBody3D* obj_b)
         {
             const bool handleCollision = (m_OnCollisionCallback) ? m_OnCollisionCallback(obj_a, obj_b) : true;
@@ -206,10 +174,7 @@ namespace Lumos
 
         typedef std::function<void(RigidBody3D*, RigidBody3D*, Manifold*)> OnCollisionManifoldCallback;
 
-        void AddOnCollisionManifoldCallback(const OnCollisionManifoldCallback callback)
-        {
-            m_onCollisionManifoldCallbacks.push_back(callback);
-        }
+        void AddOnCollisionManifoldCallback(const OnCollisionManifoldCallback callback) { m_onCollisionManifoldCallbacks.push_back(callback); }
 
         void SetCollisionShape(const SharedPtr<CollisionShape>& shape)
         {

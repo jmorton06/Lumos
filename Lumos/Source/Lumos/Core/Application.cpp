@@ -362,10 +362,11 @@ namespace Lumos
         {
             LUMOS_PROFILE_SCOPE("Application::Update");
             OnUpdate(ts);
+			Application::UpdateSystems();
             m_Updates++;
         }
 
-        std::thread updateThread = std::thread(Application::UpdateSystems);
+        //std::thread updateThread = std::thread(Application::UpdateSystems);
 
         if(!m_Minimized)
         {
@@ -406,7 +407,7 @@ namespace Lumos
 
         {
             LUMOS_PROFILE_SCOPE("Wait System update");
-            updateThread.join();
+            //updateThread.join();
 
             m_SystemManager->GetSystem<LumosPhysicsEngine>()->SyncTransforms(m_SceneManager->GetCurrentScene());
             m_SystemManager->GetSystem<B2PhysicsEngine>()->SyncTransforms(m_SceneManager->GetCurrentScene());

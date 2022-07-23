@@ -38,11 +38,13 @@ namespace Lumos
 
         public:
             static Shader* CreateFromFile(const std::string& filepath);
-            static Shader* CreateFromEmbeddedArray(const uint32_t* vertData, uint32_t vertDataSize, const uint32_t* fragData, uint32_t fragDataSize); // TODO: support other shader types
+            static Shader* CreateFromEmbeddedArray(const uint32_t* vertData, uint32_t vertDataSize, const uint32_t* fragData, uint32_t fragDataSize);
+            static Shader* CreateCompFromEmbeddedArray(const uint32_t* compData, uint32_t compDataSize);
 
         protected:
             static Shader* (*CreateFunc)(const std::string&);
             static Shader* (*CreateFuncFromEmbedded)(const uint32_t*, uint32_t, const uint32_t*, uint32_t);
+            static Shader* (*CreateCompFuncFromEmbedded)(const uint32_t*, uint32_t);
         };
     }
 }

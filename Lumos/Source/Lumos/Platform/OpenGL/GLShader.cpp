@@ -108,6 +108,34 @@ namespace Lumos
             delete sources;
         }
 
+        GLShader::GLShader(const uint32_t* compData, uint32_t compDataSize)
+        {
+            std::map<ShaderType, std::string>* sources = new std::map<ShaderType, std::string>();
+
+            LoadFromData(compData, compDataSize, ShaderType::COMPUTE, *sources);
+
+            for(auto& source : *sources)
+            {
+                m_ShaderTypes.push_back(source.first);
+            }
+
+            GLShaderErrorInfo error;
+            m_Handle = Compile(sources, error);
+
+            if(!m_Handle)
+            {
+                LUMOS_LOG_ERROR("{0} - {1}", error.message[error.shader], m_Name);
+            }
+            else
+            {
+                LUMOS_LOG_INFO("Successfully compiled shader: {0}", m_Name);
+            }
+
+            CreateLocations();
+
+            delete sources;
+        }
+
         GLShader::~GLShader()
         {
             Shutdown();
@@ -911,10 +939,16 @@ namespace Lumos
             return new GLShader(vertData, vertDataSize, fragData, fragDataSize);
         }
 
+        Shader* GLShader::CreateCompFromEmbeddedFuncGL(const uint32_t* compData, uint32_t compDataSize)
+        {
+            return new GLShader(compData, compDataSize);
+        }
+
         void GLShader::MakeDefault()
         {
-            CreateFunc             = CreateFuncGL;
-            CreateFuncFromEmbedded = CreateFromEmbeddedFuncGL;
+            CreateFunc                 = CreateFuncGL;
+            CreateFuncFromEmbedded     = CreateFromEmbeddedFuncGL;
+            CreateCompFuncFromEmbedded = CreateCompFromEmbeddedFuncGL;
         }
     }
 }

@@ -1,7 +1,7 @@
 {
     "value0": {
         "Version": 13,
-        "Scene Name": "CapsuleTest",
+        "Scene Name": "FrictionTest",
         "PhysicsEnabled2D": true,
         "PhysicsEnabled3D": true,
         "AudioEnabled": true,
@@ -30,11 +30,11 @@
     "value2": 0,
     "value3": 1,
     "value4": 2,
-    "value5": 1048580,
-    "value6": 1048581,
-    "value7": 1048582,
-    "value8": 1048583,
-    "value9": 2097151,
+    "value5": 2097151,
+    "value6": 1048579,
+    "value7": 1048580,
+    "value8": 1048581,
+    "value9": 1048582,
     "value10": 8,
     "value11": 9,
     "value12": 10,
@@ -87,18 +87,18 @@
     "value25": {
         "Position": {
             "value0": 0.0,
-            "value1": 0.0,
+            "value1": -4.934244155883789,
             "value2": 0.0
         },
         "Rotation": {
             "value0": 0.0,
             "value1": 0.0,
             "value2": 0.0,
-            "value3": 0.0
+            "value3": 0.9999999403953552
         },
         "Scale": {
             "value0": 200.0,
-            "value1": 1.0,
+            "value1": 0.9999999403953552,
             "value2": 200.0
         }
     },
@@ -265,7 +265,7 @@
     },
     "value47": 2,
     "value48": {
-        "Name": "Cube"
+        "Name": "Ground"
     },
     "value49": 12,
     "value50": {
@@ -742,14 +742,14 @@
             "Version": 1,
             "Position": {
                 "value0": 0.0,
-                "value1": 0.0,
+                "value1": -4.934244155883789,
                 "value2": 0.0
             },
             "Orientation": {
                 "value0": 0.0,
                 "value1": 0.0,
                 "value2": 0.0,
-                "value3": 0.0
+                "value3": 1.0
             },
             "LinearVelocity": {
                 "value0": 0.0,
