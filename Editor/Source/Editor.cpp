@@ -48,11 +48,10 @@
 #include <Lumos/Embedded/EmbedAsset.h>
 
 #include <imgui/imgui_internal.h>
-#include <imguiPlugins/ImGuizmo.h>
-#include <imguiPlugins/ImGuiAl/button/imguial_button.h>
-#include <imguiPlugins/ImTextEditor.h>
-
-#include <imguiPlugins/ImFileBrowser.h>
+#include <imgui/Plugins/ImGuizmo.h>
+#include <imgui/Plugins/ImGuiAl/button/imguial_button.h>
+#include <imgui/Plugins/ImTextEditor.h>
+#include <imgui/Plugins/ImFileBrowser.h>
 #include <iomanip>
 
 namespace Lumos

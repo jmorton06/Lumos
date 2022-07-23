@@ -126,7 +126,7 @@ namespace Lumos
                 c.sumImpulseFriction = Maths::Min(Maths::Max(oldImpulseTangent + jt, maxJt), -maxJt);
 
                 jt = c.sumImpulseFriction - oldImpulseTangent;
-				
+
                 m_pNodeA->SetLinearVelocity(m_pNodeA->GetLinearVelocity()
                                             + tangent * (jt * m_pNodeA->GetInverseMass()));
                 m_pNodeB->SetLinearVelocity(m_pNodeB->GetLinearVelocity()

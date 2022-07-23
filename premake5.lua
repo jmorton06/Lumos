@@ -59,7 +59,7 @@ startproject "Runtime"
 			SetRecommendedSettings()
 		require("Lumos/External/spdlog/premake5")
 			SetRecommendedSettings()
-		require("Lumos/External/meshoptimizer/premake5")
+		require("Lumos/External/ModelLoaders/meshoptimizer/premake5")
 			SetRecommendedSettings()
 		if not os.istarget(premake.IOS) and not os.istarget(premake.ANDROID) then
 			require("Lumos/External/GLFWpremake5")

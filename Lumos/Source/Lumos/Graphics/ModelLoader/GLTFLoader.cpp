@@ -17,7 +17,7 @@
 #ifdef LUMOS_DIST
 #define TINYGLTF_NOEXCEPTION
 #endif
-#include <tinygltf/tiny_gltf.h>
+#include <ModelLoaders/tinygltf/tiny_gltf.h>
 
 namespace Lumos::Graphics
 {

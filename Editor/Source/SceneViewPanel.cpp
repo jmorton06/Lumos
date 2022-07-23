@@ -24,7 +24,7 @@
 
 #include <box2d/box2d.h>
 #include <imgui/imgui_internal.h>
-#include <imguiPlugins/ImGuizmo.h>
+#include <imgui/Plugins/ImGuizmo.h>
 namespace Lumos
 {
     SceneViewPanel::SceneViewPanel()

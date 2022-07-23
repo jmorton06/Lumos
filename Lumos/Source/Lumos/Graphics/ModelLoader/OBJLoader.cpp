@@ -9,7 +9,7 @@
 #include "Core/Application.h"
 
 #define TINYOBJLOADER_IMPLEMENTATION
-#include <tinyobjloader/tiny_obj_loader.h>
+#include <ModelLoaders/tinyobjloader/tiny_obj_loader.h>
 
 namespace Lumos
 {
