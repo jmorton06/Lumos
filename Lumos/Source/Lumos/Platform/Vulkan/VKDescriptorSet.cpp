@@ -45,11 +45,10 @@ namespace Lumos
                     localStorage.InitialiseEmpty();
 
                     UniformBufferInfo info;
-                    info.LocalStorage  = localStorage;
-                    info.HasUpdated[0] = false;
-                    info.HasUpdated[1] = false;
-                    info.HasUpdated[2] = false;
-
+                    info.LocalStorage                     = localStorage;
+                    info.HasUpdated[0]                    = false;
+                    info.HasUpdated[1]                    = false;
+                    info.HasUpdated[2]                    = false;
                     info.m_Members                        = descriptor.m_Members;
                     m_UniformBuffersData[descriptor.name] = info;
                 }
@@ -71,7 +70,7 @@ namespace Lumos
             {
                 if(!m_DescriptorSet[frame])
                     continue;
-                
+
                 auto descriptorSet                                      = m_DescriptorSet[frame];
                 auto pool                                               = VKRenderer::GetDescriptorPool();
                 auto device                                             = VKDevice::GetHandle();

@@ -9,9 +9,6 @@
 
 namespace Lumos
 {
-
-#define SOLVER_ITERATIONS 20
-
     enum class LUMOS_EXPORT IntegrationType : uint32_t
     {
         EXPLICIT_EULER      = 0,
@@ -65,65 +62,23 @@ namespace Lumos
         void SyncTransforms(Scene* scene);
 
         // Getters / Setters
-        bool IsPaused() const
-        {
-            return m_IsPaused;
-        }
-        void SetPaused(bool paused)
-        {
-            m_IsPaused = paused;
-        }
+        bool IsPaused() const { return m_IsPaused; }
+        void SetPaused(bool paused) { m_IsPaused = paused; }
 
-        const glm::vec3& GetGravity() const
-        {
-            return m_Gravity;
-        }
-        void SetGravity(const glm::vec3& g)
-        {
-            m_Gravity = g;
-        }
+        const glm::vec3& GetGravity() const { return m_Gravity; }
+        void SetGravity(const glm::vec3& g) { m_Gravity = g; }
 
-        float GetDampingFactor() const
-        {
-            return m_DampingFactor;
-        }
-        void SetDampingFactor(float d)
-        {
-            m_DampingFactor = d;
-        }
+        float GetDampingFactor() const { return m_DampingFactor; }
+        void SetDampingFactor(float d) { m_DampingFactor = d; }
 
-        static float GetDeltaTime()
-        {
-            return s_UpdateTimestep;
-        }
+        static float GetDeltaTime() { return s_UpdateTimestep; }
+        SharedPtr<Broadphase> GetBroadphase() const { return m_BroadphaseDetection; }
 
-        SharedPtr<Broadphase> GetBroadphase() const
-        {
-            return m_BroadphaseDetection;
-        }
-        inline void SetBroadphase(const SharedPtr<Broadphase>& bp)
-        {
-            m_BroadphaseDetection = bp;
-        }
-
-        int GetNumberCollisionPairs() const
-        {
-            return static_cast<int>(m_BroadphaseCollisionPairs.size());
-        }
-        int GetNumberRigidBodys() const
-        {
-            return static_cast<int>(m_RigidBodys.size());
-        }
-
-        IntegrationType GetIntegrationType() const
-        {
-            return m_IntegrationType;
-        }
-        void SetIntegrationType(const IntegrationType& type)
-        {
-            m_IntegrationType = type;
-        }
-
+        inline void SetBroadphase(const SharedPtr<Broadphase>& bp) { m_BroadphaseDetection = bp; }
+        int GetNumberCollisionPairs() const { return static_cast<int>(m_BroadphaseCollisionPairs.size()); }
+        int GetNumberRigidBodys() const { return static_cast<int>(m_RigidBodys.size()); }
+        IntegrationType GetIntegrationType() const { return m_IntegrationType; }
+        void SetIntegrationType(const IntegrationType& type) { m_IntegrationType = type; }
         void SetBroadphaseType(BroadphaseType type);
 
         void ClearConstraints();
@@ -131,14 +86,8 @@ namespace Lumos
         void OnImGui() override;
         void OnDebugDraw() override;
 
-        void SetDebugDrawFlags(uint32_t flags)
-        {
-            m_DebugDrawFlags = flags;
-        }
-        uint32_t GetDebugDrawFlags() const
-        {
-            return m_DebugDrawFlags;
-        }
+        void SetDebugDrawFlags(uint32_t flags) { m_DebugDrawFlags = flags; }
+        uint32_t GetDebugDrawFlags() const { return m_DebugDrawFlags; }
 
         std::string IntegrationTypeToString(IntegrationType type);
         std::string BroadphaseTypeToString(BroadphaseType type);
@@ -176,7 +125,7 @@ namespace Lumos
         float m_DampingFactor;
         uint32_t m_MaxUpdatesPerFrame = 5;
         uint32_t m_PositionIterations = 1;
-        uint32_t m_VelocityIterations = 10;
+        uint32_t m_VelocityIterations = 50;
 
         std::vector<RigidBody3D*> m_RigidBodys;
         std::vector<CollisionPair> m_BroadphaseCollisionPairs;

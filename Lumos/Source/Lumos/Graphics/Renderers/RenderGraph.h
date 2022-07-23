@@ -324,7 +324,7 @@ namespace Lumos
 
             TextureDepth* m_SSAOTexture = nullptr;
             SharedPtr<Graphics::Shader> m_SSAOShader;
-            SharedPtr<Graphics::DescriptorSet> m_SSAOPassDescriptorSet;
+            // SharedPtr<Graphics::DescriptorSet> m_SSAOPassDescriptorSet;
 
             SharedPtr<Graphics::Shader> m_ToneMappingPassShader;
             SharedPtr<Graphics::DescriptorSet> m_ToneMappingPassDescriptorSet;
@@ -332,7 +332,7 @@ namespace Lumos
             SharedPtr<Graphics::DescriptorSet> m_FilmicGrainPassDescriptorSet;
             SharedPtr<Graphics::Shader> m_FilmicGrainShader;
 
-            //SharedPtr<Graphics::DescriptorSet> m_OutlinePassDescriptorSet;
+            SharedPtr<Graphics::DescriptorSet> m_OutlinePassDescriptorSet;
             SharedPtr<Graphics::Shader> m_OutlineShader;
 
             RenderGraphSettings m_Settings;

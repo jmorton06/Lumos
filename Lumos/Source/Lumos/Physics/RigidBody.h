@@ -40,57 +40,20 @@ namespace Lumos
 
         virtual ~RigidBody();
 
-        bool GetIsStatic() const
-        {
-            return m_Static;
-        }
-        bool GetIsAtRest() const
-        {
-            return m_AtRest;
-        }
-        float GetElasticity() const
-        {
-            return m_Elasticity;
-        }
-        float GetFriction() const
-        {
-            return m_Friction;
-        }
-        virtual void SetIsStatic(const bool isStatic)
-        {
-            m_Static = isStatic;
-        }
+        bool GetIsStatic() const { return m_Static; }
+        bool GetIsAtRest() const { return m_AtRest; }
+        float GetElasticity() const { return m_Elasticity; }
+        float GetFriction() const { return m_Friction; }
+        bool IsAwake() const { return !m_AtRest; }
+        void SetElasticity(const float elasticity) { m_Elasticity = elasticity; }
+        void SetFriction(const float friction) { m_Friction = friction; }
 
-        void SetElasticity(const float elasticity)
-        {
-            m_Elasticity = elasticity;
-        }
-        void SetFriction(const float friction)
-        {
-            m_Friction = friction;
-        }
+        virtual void SetIsStatic(const bool isStatic) { m_Static = isStatic; }
+        virtual void SetIsAtRest(const bool isAtRest) { m_AtRest = isAtRest; }
+        virtual void WakeUp() { m_AtRest = false; }
 
-        virtual void SetIsAtRest(const bool isAtRest)
-        {
-            m_AtRest = isAtRest;
-        }
-        virtual void WakeUp()
-        {
-            m_AtRest = false;
-        }
-        bool IsAwake() const
-        {
-            return !m_AtRest;
-        }
-
-        inline bool operator<(const RigidBody& p_r) const
-        {
-            return false;
-        }
-        inline bool operator==(const RigidBody& p_r) const
-        {
-            return false;
-        }
+        inline bool operator<(const RigidBody& p_r) const { return false; }
+        inline bool operator==(const RigidBody& p_r) const { return false; }
 
     protected:
         bool m_Static;
@@ -98,5 +61,4 @@ namespace Lumos
         float m_Friction;
         bool m_AtRest;
     };
-
 }

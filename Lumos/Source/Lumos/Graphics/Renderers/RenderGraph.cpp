@@ -66,9 +66,7 @@ namespace Lumos::Graphics
         m_ShadowData.m_ShadowMapsInvalidated = true;
         m_ShadowData.m_CascadeSplitLambda    = 0.92f;
         m_ShadowData.m_Shader                = Application::Get().GetShaderLibrary()->GetResource("Shadow");
-
-        m_ShadowData.m_ShadowTex = TextureDepthArray::Create(m_ShadowData.m_ShadowMapSize, m_ShadowData.m_ShadowMapSize, m_ShadowData.m_ShadowMapNum);
-
+        m_ShadowData.m_ShadowTex             = TextureDepthArray::Create(m_ShadowData.m_ShadowMapSize, m_ShadowData.m_ShadowMapSize, m_ShadowData.m_ShadowMapNum);
         m_ShadowData.m_LightSize             = 1.5f;
         m_ShadowData.m_MaxShadowDistance     = 500.0f;
         m_ShadowData.m_ShadowFade            = 40.0f;
@@ -269,7 +267,7 @@ namespace Lumos::Graphics
                 m_Renderer2DData.m_DescriptorSet[0][0] = SharedPtr<Graphics::DescriptorSet>(Graphics::DescriptorSet::Create(descriptorDesc));
             }
             descriptorDesc.layoutIndex             = 1;
-            m_Renderer2DData.m_DescriptorSet[i][1] = SharedPtr<Graphics::DescriptorSet>(Graphics::DescriptorSet::Create(descriptorDesc));
+            m_Renderer2DData.m_DescriptorSet[i][1] = nullptr; // SharedPtr<Graphics::DescriptorSet>(Graphics::DescriptorSet::Create(descriptorDesc));
         }
 
         m_Renderer2DData.m_VertexBuffers.resize(3);
@@ -542,7 +540,7 @@ namespace Lumos::Graphics
 
             if(envView.size() == 0)
             {
-                if(m_ForwardData.m_EnvironmentMap)
+                if(m_ForwardData.m_EnvironmentMap != m_DefaultTextureCube)
                 {
                     m_ForwardData.m_EnvironmentMap = m_DefaultTextureCube;
                     m_ForwardData.m_IrradianceMap  = m_DefaultTextureCube;
@@ -841,6 +839,9 @@ namespace Lumos::Graphics
         auto& sceneRenderSettings = Application::Get().GetCurrentScene()->GetSettings().RenderSettings;
         Renderer::GetRenderer()->ClearRenderTarget(m_MainTexture, Renderer::GetMainSwapChain()->GetCurrentCommandBuffer());
 
+        // Set to default texture if bloom disabled
+        m_BloomTextureLastRenderered = Graphics::Material::GetDefaultTexture().get();
+
         if(m_ForwardData.m_DepthTest)
         {
             Renderer::GetRenderer()->ClearRenderTarget(reinterpret_cast<Texture*>(m_ForwardData.m_DepthTexture), Renderer::GetMainSwapChain()->GetCurrentCommandBuffer());
@@ -866,15 +867,17 @@ namespace Lumos::Graphics
 
         m_LastRenderTarget = m_MainTexture;
 
+        if(sceneRenderSettings.FXAAEnabled)
+            FXAAPass();
+
         if(sceneRenderSettings.BloomEnabled)
             BloomPass();
 
-        ToneMappingPass();
-
-        if(sceneRenderSettings.FXAAEnabled)
-            FXAAPass();
         if(sceneRenderSettings.DebandingEnabled)
             DebandingPass();
+
+        ToneMappingPass();
+
         if(sceneRenderSettings.ChromaticAberationEnabled)
             ChromaticAberationPass();
         if(sceneRenderSettings.EyeAdaptation)
@@ -1293,14 +1296,14 @@ namespace Lumos::Graphics
         pipelineDesc.shader      = m_SSAOShader;
         pipelineDesc.depthTarget = m_SSAOTexture;
 
-        m_SSAOPassDescriptorSet->SetTexture("u_Texture", m_ForwardData.m_DepthTexture);
-        m_SSAOPassDescriptorSet->Update();
+        // m_SSAOPassDescriptorSet->SetTexture("u_Texture", m_ForwardData.m_DepthTexture);
+        // m_SSAOPassDescriptorSet->Update();
 
         auto pipeline = Graphics::Pipeline::Get(pipelineDesc);
         pipeline->Bind(commandBuffer);
 
-        auto set = m_SSAOPassDescriptorSet.get();
-        Renderer::BindDescriptorSets(pipeline.get(), commandBuffer, 0, &set, 1);
+        // auto set = m_SSAOPassDescriptorSet.get();
+        // Renderer::BindDescriptorSets(pipeline.get(), commandBuffer, 0, &set, 1);
         Renderer::Draw(commandBuffer, DrawType::TRIANGLE, 3);
 
         pipeline->End(commandBuffer);
@@ -1394,8 +1397,7 @@ namespace Lumos::Graphics
         m_ToneMappingPassDescriptorSet->Update();
 
         Graphics::PipelineDesc pipelineDesc {};
-        pipelineDesc.shader = m_ToneMappingPassShader;
-
+        pipelineDesc.shader              = m_ToneMappingPassShader;
         pipelineDesc.polygonMode         = Graphics::PolygonMode::FILL;
         pipelineDesc.cullMode            = Graphics::CullMode::BACK;
         pipelineDesc.transparencyEnabled = false;
@@ -1869,8 +1871,8 @@ namespace Lumos::Graphics
         if(!m_MainTexture || !m_OutlineShader || !m_OutlineShader->IsCompiled())
             return;
 
-        //m_OutlinePassDescriptorSet->SetTexture("u_Texture", m_MainTexture);
-        //m_OutlinePassDescriptorSet->Update();
+        // m_OutlinePassDescriptorSet->SetTexture("u_Texture", m_MainTexture);
+        // m_OutlinePassDescriptorSet->Update();
 
         Graphics::PipelineDesc pipelineDesc {};
         pipelineDesc.shader              = m_OutlineShader;
@@ -1882,8 +1884,8 @@ namespace Lumos::Graphics
         auto pipeline      = Graphics::Pipeline::Get(pipelineDesc);
         pipeline->Bind(commandBuffer);
 
-        //auto set = m_OutlinePassDescriptorSet.get();
-        //Renderer::BindDescriptorSets(pipeline.get(), commandBuffer, 0, &set, 1);
+        // auto set = m_OutlinePassDescriptorSet.get();
+        // Renderer::BindDescriptorSets(pipeline.get(), commandBuffer, 0, &set, 1);
         Renderer::Draw(commandBuffer, DrawType::TRIANGLE, 3);
 
         pipeline->End(commandBuffer);
@@ -2058,10 +2060,14 @@ namespace Lumos::Graphics
     {
         uint32_t currentFrame = Renderer::GetMainSwapChain()->GetCurrentBufferIndex();
 
-        if(m_Renderer2DData.m_TextureCount != m_Renderer2DData.m_PreviousFrameTextureCount[m_Renderer2DData.m_BatchDrawCallIndex])
+        if(m_Renderer2DData.m_DescriptorSet[m_Renderer2DData.m_BatchDrawCallIndex][1] == nullptr)
         {
-            // When previous frame texture count was less then than the previous frame
-            // and the texture previously used was deleted, there was a crash - maybe moltenvk only
+            /*
+             || m_Renderer2DData.m_TextureCount != m_Renderer2DData.m_PreviousFrameTextureCount[m_Renderer2DData.m_BatchDrawCallIndex])
+             When previous frame texture count was less then than the previous frame
+             and the texture previously used was deleted, there was a crash - maybe moltenvk only
+             May not be needed anymore
+            */
             Graphics::DescriptorDesc descriptorDesc {};
             descriptorDesc.layoutIndex                                                 = 1;
             descriptorDesc.shader                                                      = m_Renderer2DData.m_Shader.get();

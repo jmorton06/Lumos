@@ -43,16 +43,7 @@ namespace Lumos
             ImGui::Text("Version : %i", (int)sceneVersion);
 
             ImGui::Columns(1);
-            if(ImGui::CollapsingHeader("Systems"))
-            {
-                ImGui::Columns(2);
-                ImGuiUtilities::Property("Audio Enabled", sceneSettings.AudioEnabled);
-                ImGuiUtilities::Property("Physics 2D Enabled", sceneSettings.PhysicsEnabled2D);
-                ImGuiUtilities::Property("Physics 3D Enabled", sceneSettings.PhysicsEnabled3D);
-            }
-
-            ImGui::Columns(1);
-            if(ImGui::CollapsingHeader("Renderer"))
+            if(ImGui::CollapsingHeader("Renderer", ImGuiTreeNodeFlags_DefaultOpen))
             {
                 ImGui::Columns(2);
                 ImGuiUtilities::Property("Renderer 2D Enabled", sceneSettings.RenderSettings.Renderer2DEnabled);
@@ -85,6 +76,15 @@ namespace Lumos
                 auto& registry  = m_CurrentScene->GetRegistry();
                 int entityCount = (int)registry.size();
                 ImGuiUtilities::Property("Entity Count", entityCount, 0, 0, ImGuiUtilities::PropertyFlag::ReadOnly);
+            }
+
+            ImGui::Columns(1);
+            if(ImGui::CollapsingHeader("Systems"))
+            {
+                ImGui::Columns(2);
+                ImGuiUtilities::Property("Audio Enabled", sceneSettings.AudioEnabled);
+                ImGuiUtilities::Property("Physics 2D Enabled", sceneSettings.PhysicsEnabled2D);
+                ImGuiUtilities::Property("Physics 3D Enabled", sceneSettings.PhysicsEnabled3D);
             }
 
             ImGui::Columns(1);

@@ -455,8 +455,7 @@ end
         auto velocity        = phys.GetRigidBody()->GetLinearVelocity();
         auto elasticity      = phys.GetRigidBody()->GetElasticity();
         auto angularFactor   = phys.GetRigidBody()->GetAngularFactor();
-
-        auto collisionShape = phys.GetRigidBody()->GetCollisionShape();
+        auto collisionShape  = phys.GetRigidBody()->GetCollisionShape();
 
         if(Lumos::ImGuiUtilities::Property("Position", pos))
             phys.GetRigidBody()->SetPosition(pos);
@@ -476,11 +475,14 @@ end
         if(Lumos::ImGuiUtilities::Property("Angular Velocity", angularVelocity))
             phys.GetRigidBody()->SetAngularVelocity(angularVelocity);
 
-        if(Lumos::ImGuiUtilities::Property("Friction", friction))
+        if(Lumos::ImGuiUtilities::Property("Friction", friction, 0.0f, 1.0f))
             phys.GetRigidBody()->SetFriction(friction);
 
         if(Lumos::ImGuiUtilities::Property("Mass", mass))
+        {
+            mass = Lumos::Maths::Max(mass, 0.0001f);
             phys.GetRigidBody()->SetInverseMass(1.0f / mass);
+        }
 
         if(Lumos::ImGuiUtilities::Property("Elasticity", elasticity))
             phys.GetRigidBody()->SetElasticity(elasticity);

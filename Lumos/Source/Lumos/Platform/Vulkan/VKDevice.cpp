@@ -366,6 +366,11 @@ namespace Lumos
             {
                 deviceExtensions.push_back("VK_KHR_portability_subset");
             }
+
+//            if(m_PhysicalDevice->IsExtensionSupported(VK_EXT_DESCRIPTOR_INDEXING_EXTENSION_NAME))
+//            {
+//                deviceExtensions.push_back(VK_EXT_DESCRIPTOR_INDEXING_EXTENSION_NAME);
+//            }
 #endif
 
             // Device

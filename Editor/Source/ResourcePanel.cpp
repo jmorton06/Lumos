@@ -130,7 +130,7 @@ namespace Lumos
                 nodeFlags |= ImGuiTreeNodeFlags_Leaf;
 
             if(defaultOpen)
-                nodeFlags |= ImGuiTreeNodeFlags_DefaultOpen;
+                nodeFlags |= ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_Leaf;
 
             nodeFlags |= ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_SpanAvailWidth;
 
