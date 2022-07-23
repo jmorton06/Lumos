@@ -153,7 +153,7 @@ imgui.ini
 *.kdev4
 !Lumos/external/OpenAL/libs/linux/**
 !Lumos/external/vulkan/libs/linux/**
-
+Scripts/Setup/__pycache__
 
 LumosLog.txt
 .DS_Store

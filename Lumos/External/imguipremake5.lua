@@ -17,12 +17,12 @@ project "imgui"
 		"imgui/imstb_textedit.h",
 		"imgui/imstb_truetype.h",
 		"imgui/imgui_demo.cpp",
-		"imguiPlugins/ImGuizmo.h",
-		"imguiPlugins/ImGuizmo.cpp",
-		--"imguiPlugins/ImCurveEdit.h",
-		--"imguiPlugins/ImCurveEdit.cpp",
-		"imguiPlugins/ImTextEditor.h",
-		"imguiPlugins/ImTextEditor.cpp",
+		"imgui/Plugins/ImGuizmo.h",
+		"imgui/Plugins/ImGuizmo.cpp",
+		--"imgui/Plugins/ImCurveEdit.h",
+		--"imgui/Plugins/ImCurveEdit.cpp",
+		"imgui/Plugins/ImTextEditor.h",
+		"imgui/Plugins/ImTextEditor.cpp",
 	}
 
 	includedirs

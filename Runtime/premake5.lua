@@ -10,7 +10,7 @@ IncludeDir["Lumos"] = "../Lumos/Source"
 IncludeDir["External"] = "../Lumos/External/"
 IncludeDir["ImGui"] = "../Lumos/External/imgui/"
 IncludeDir["freetype"] = "../Lumos/External/freetype/include"
-IncludeDir["SpirvCross"] = "../Lumos/External/SPIRV-Cross"
+IncludeDir["SpirvCross"] = "../Lumos/External/vulkan/SPIRV-Cross"
 IncludeDir["cereal"] = "../Lumos/External/cereal/include"
 IncludeDir["spdlog"] = "../Lumos/External/spdlog/include"
 IncludeDir["glm"] = "../Lumos/External/glm"
@@ -127,8 +127,8 @@ project "Runtime"
 			['ARCHS'] = false,
 			['CODE_SIGN_IDENTITY'] = 'Mac Developer',
 			['INFOPLIST_FILE'] = '../Lumos/Source/Lumos/Platform/macOS/Info.plist',
-	['ASSETCATALOG_COMPILER_APPICON_NAME'] = 'AppIcon',
-	['CODE_SIGN_IDENTITY'] = ''
+			['ASSETCATALOG_COMPILER_APPICON_NAME'] = 'AppIcon',
+			['CODE_SIGN_IDENTITY'] = ''
 			--['ENABLE_HARDENED_RUNTIME'] = 'YES'
 }
 

@@ -11,10 +11,10 @@
 
 #define IMGUI_DISABLE_OBSOLETE_FUNCTIONS
 #include <imgui/imgui.h>
-#include <imguiPlugins/ImGuizmo.h>
-#include <imguiPlugins/ImGuiAl/fonts/MaterialDesign.inl>
-#include <imguiPlugins/ImGuiAl/fonts/RobotoRegular.inl>
-#include <imguiPlugins/ImGuiAl/fonts/RobotoBold.inl>
+#include <imgui/Plugins/ImGuizmo.h>
+#include <imgui/Plugins/ImGuiAl/fonts/MaterialDesign.inl>
+#include <imgui/Plugins/ImGuiAl/fonts/RobotoRegular.inl>
+#include <imgui/Plugins/ImGuiAl/fonts/RobotoBold.inl>
 #include <imgui/misc/freetype/imgui_freetype.h>
 
 #if defined(LUMOS_PLATFORM_MACOS) || defined(LUMOS_PLATFORM_WINDOWS) || defined(LUMOS_PLATFORM_LINUX)

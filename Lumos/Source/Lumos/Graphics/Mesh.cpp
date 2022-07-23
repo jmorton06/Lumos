@@ -2,7 +2,7 @@
 #include "Mesh.h"
 #include "RHI/Renderer.h"
 
-#include <meshoptimizer/src/meshoptimizer.h>
+#include <ModelLoaders/meshoptimizer/src/meshoptimizer.h>
 
 namespace Lumos
 {
