@@ -46,7 +46,7 @@ namespace Lumos
             registry.get<Maths::Transform>(entity).SetWorldMatrix(glm::mat4(1.0f));
         }
 
-        auto view = registry.view<Maths::Transform, Hierarchy>();
+        auto view = registry.view<Hierarchy>();
         for(auto entity : view)
         {
             const auto hierarchy = registry.try_get<Hierarchy>(entity);
@@ -73,6 +73,10 @@ namespace Lumos
                     if(parentTransform)
                     {
                         transform->SetWorldMatrix(parentTransform->GetWorldMatrix());
+                    }
+                    else
+                    {
+                        transform->SetWorldMatrix(glm::mat4(1.0f));
                     }
                 }
                 else

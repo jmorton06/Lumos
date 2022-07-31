@@ -26,6 +26,9 @@
 
 #include <imgui/misc/freetype/imgui_freetype.cpp>
 
+#define STB_DEFINE
+#include <stb/stb.h>
+
 #include <stb/stb_vorbis.c>
 
 #define STB_RECT_PACK_IMPLEMENTATION

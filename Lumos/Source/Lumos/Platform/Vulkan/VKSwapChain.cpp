@@ -25,6 +25,8 @@ namespace Lumos
 
         VKSwapChain::~VKSwapChain()
         {
+            vkDeviceWaitIdle(VKDevice::Get().GetDevice());
+
             for(uint32_t i = 0; i < m_SwapChainBufferCount; i++)
             {
                 vkDestroySemaphore(VKDevice::Get().GetDevice(), m_Frames[i].PresentSemaphore, nullptr);

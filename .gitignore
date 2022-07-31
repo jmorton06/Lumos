@@ -160,3 +160,4 @@ LumosLog.txt
 .DS_Store
 editor.ini
 LumosCache
+*.lfa

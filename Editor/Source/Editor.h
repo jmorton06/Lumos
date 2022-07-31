@@ -71,6 +71,7 @@ namespace Lumos
         bool IsModelFile(const std::string& filePath);
         bool IsTextureFile(const std::string& filePath);
         bool IsShaderFile(const std::string& filePath);
+        bool IsFontFile(const std::string& filePath);
 
         void SetImGuizmoOperation(uint32_t operation)
         {

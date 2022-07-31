@@ -174,7 +174,10 @@ namespace Lumos
                 acceptable = entity.m_EntityHandle != m_EntityHandle;
 
             if(!acceptable)
+            {
+                LUMOS_LOG_WARN("Failed to parent entity!");
                 return;
+            }
 
             if(hierarchyComponent)
                 Hierarchy::Reparent(m_EntityHandle, entity.m_EntityHandle, m_Scene->GetRegistry(), *hierarchyComponent);

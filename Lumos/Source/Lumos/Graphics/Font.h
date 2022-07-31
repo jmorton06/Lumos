@@ -1,29 +1,45 @@
 #pragma once
-#include "Graphics/RHI/Definitions.h"
+#include "Core/Asset.h"
 
 namespace Lumos
 {
+    struct MSDFData;
     namespace Graphics
     {
+        class Texture2D;
 
-        class Font
+        class Font : public Asset
         {
+            class FontHolder;
+
         public:
-            Font(const std::string& path);
-            ~Font();
+            Font(const std::string& filepath);
+            Font(uint8_t* data, uint32_t dataSize, const std::string& name);
 
-            SharedPtr<Texture2D> GetFontAtlas() const { return m_TextureAtlas; }
+            virtual ~Font();
 
-            const std::string& GetName() const;
-            const std::string& GetPath() const;
+            SharedPtr<Graphics::Texture2D> GetFontAtlas() const { return m_TextureAtlas; }
+            const MSDFData* GetMSDFData() const { return m_MSDFData; }
+            const std::string& GetFilePath() const { return m_FilePath; }
 
-            const FontData& GetFontData() const;
-            const FontData& GetFontData(const std::string& name) const;
+            void Init();
+
+            static void InitDefaultFont();
+            static void ShutdownDefaultFont();
+            static SharedPtr<Font> GetDefaultFont();
+
+            SET_ASSET_TYPE(AssetType::Font);
 
         private:
-            std::string m_Name;
-            std::string m_Path;
-            SharedPtr<Texture2D> m_TextureAtlas;
+            std::string m_FilePath;
+            SharedPtr<Graphics::Texture2D> m_TextureAtlas;
+            MSDFData* m_MSDFData = nullptr;
+            uint8_t* m_FontData;
+            uint32_t m_FontDataSize;
+
+        private:
+            static SharedPtr<Font> s_DefaultFont;
         };
     }
+
 }

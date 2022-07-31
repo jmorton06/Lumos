@@ -134,6 +134,7 @@ namespace Lumos
 
         SharedPtr<ShaderLibrary>& GetShaderLibrary();
         SharedPtr<ModelLibrary>& GetModelLibrary();
+        SharedPtr<FontLibrary>& GetFontLibrary();
 
         static Application& Get()
         {
@@ -325,6 +326,7 @@ namespace Lumos
         UniquePtr<Timer> m_Timer;
         SharedPtr<ShaderLibrary> m_ShaderLibrary;
         SharedPtr<ModelLibrary> m_ModelLibrary;
+        SharedPtr<FontLibrary> m_FontLibrary;
 
         AppState m_CurrentState   = AppState::Loading;
         EditorState m_EditorState = EditorState::Preview;

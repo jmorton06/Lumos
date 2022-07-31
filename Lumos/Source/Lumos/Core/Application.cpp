@@ -12,6 +12,7 @@
 #include "Graphics/Material.h"
 #include "Graphics/Renderers/DebugRenderer.h"
 #include "Graphics/Renderers/GridRenderer.h"
+#include "Graphics/Font.h"
 
 #include "Maths/Transform.h"
 
@@ -205,6 +206,7 @@ namespace Lumos
 
         m_ShaderLibrary = CreateSharedPtr<ShaderLibrary>();
         m_ModelLibrary  = CreateSharedPtr<ModelLibrary>();
+        m_FontLibrary   = CreateSharedPtr<FontLibrary>();
 
         bool loadEmbeddedShaders = true;
         if(FileSystem::FolderExists(m_ProjectSettings.m_EngineAssetPath + "Shaders"))
@@ -262,11 +264,11 @@ namespace Lumos
         m_RenderGraph = CreateUniquePtr<Graphics::RenderGraph>(screenWidth, screenHeight);
 
         m_CurrentState = AppState::Running;
+        System::JobSystem::Wait(context);
 
         Graphics::Material::InitDefaultTexture();
+        Graphics::Font::InitDefaultFont();
         m_RenderGraph->EnableDebugRenderer(true);
-
-        System::JobSystem::Wait(context);
     }
 
     void Application::OnQuit()
@@ -274,11 +276,13 @@ namespace Lumos
         LUMOS_PROFILE_FUNCTION();
         Serialise();
         Graphics::Material::ReleaseDefaultTexture();
+        Graphics::Font::ShutdownDefaultFont();
         Engine::Release();
         Input::Release();
 
         m_ShaderLibrary.reset();
         m_ModelLibrary.reset();
+        m_FontLibrary.reset();
         m_SceneManager.reset();
         m_RenderGraph.reset();
         m_SystemManager.reset();
@@ -384,7 +388,7 @@ namespace Lumos
 
             // m_ShaderLibrary->Update(ts.GetElapsedSeconds());
             m_ModelLibrary->Update(ts.GetElapsedSeconds());
-
+            m_FontLibrary->Update(ts.GetElapsedSeconds());
             m_Frames++;
         }
         else
@@ -509,9 +513,15 @@ namespace Lumos
     {
         return m_ShaderLibrary;
     }
+
     SharedPtr<ModelLibrary>& Application::GetModelLibrary()
     {
         return m_ModelLibrary;
+    }
+
+    SharedPtr<FontLibrary>& Application::GetFontLibrary()
+    {
+        return m_FontLibrary;
     }
 
     void Application::OnExitScene()

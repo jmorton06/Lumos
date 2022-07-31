@@ -44,6 +44,7 @@ namespace Lumos
         bool Property(const std::string& name, bool& value, PropertyFlag flags = PropertyFlag::None);
         bool Property(const std::string& name, int& value, PropertyFlag flags);
         bool Property(const std::string& name, uint32_t& value, PropertyFlag flags = PropertyFlag::None);
+        bool PropertyMultiline(const std::string& label, std::string& value);
 
         bool Property(const std::string& name, double& value, double min = -1.0, double max = 1.0, PropertyFlag flags = PropertyFlag::None);
 

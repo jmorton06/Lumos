@@ -41,6 +41,33 @@ namespace Lumos
             }
         }
 
+        uint32_t Texture::GetBitsFromFormat(const RHIFormat format)
+        {
+            switch(format)
+            {
+            case RHIFormat::R8_Unorm:
+                return 8;
+            case RHIFormat::D16_Unorm:
+                return 16;
+            case RHIFormat::R8G8_Unorm:
+                return 16;
+            case RHIFormat::R8G8B8_Unorm:
+                return 24;
+            case RHIFormat::R16G16B16_Float:
+                return 48;
+            case RHIFormat::R32G32B32_Float:
+                return 96;
+            case RHIFormat::R8G8B8A8_Unorm:
+                return 32;
+            case RHIFormat::R16G16B16A16_Float:
+                return 64;
+            case RHIFormat::R32G32B32A32_Float:
+                return 128;
+            default:
+                return 32;
+            }
+        }
+
         RHIFormat Texture::BitsToFormat(uint32_t bits)
         {
             switch(bits)

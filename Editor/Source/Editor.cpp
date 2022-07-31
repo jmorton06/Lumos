@@ -172,6 +172,7 @@ namespace Lumos
         m_ComponentIconMap[typeid(LuaScriptComponent).hash_code()]       = ICON_MDI_SCRIPT;
         m_ComponentIconMap[typeid(Graphics::Environment).hash_code()]    = ICON_MDI_EARTH;
         m_ComponentIconMap[typeid(Editor).hash_code()]                   = ICON_MDI_SQUARE;
+        m_ComponentIconMap[typeid(TextComponent).hash_code()]            = ICON_MDI_TEXT;
 
         m_Panels.emplace_back(CreateSharedPtr<ConsolePanel>());
         m_Panels.emplace_back(CreateSharedPtr<SceneViewPanel>());
@@ -218,6 +219,17 @@ namespace Lumos
 
         if(extension == "txt" || extension == "glsl" || extension == "shader" || extension == "vert"
            || extension == "frag" || extension == "lua" || extension == "Lua")
+            return true;
+
+        return false;
+    }
+
+    bool Editor::IsFontFile(const std::string& filePath)
+    {
+        LUMOS_PROFILE_FUNCTION();
+        std::string extension = StringUtilities::GetFilePathExtension(filePath);
+
+        if(extension == "ttf")
             return true;
 
         return false;

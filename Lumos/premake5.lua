@@ -16,6 +16,8 @@ IncludeDir["SpirvCross"] = "External/SPIRV-Cross"
 IncludeDir["cereal"] = "External/cereal/include"
 IncludeDir["spdlog"] = "External/spdlog/include"
 IncludeDir["glm"] = "External/glm"
+IncludeDir["msdf_atlas_gen"] = "External/msdf-atlas-gen/msdf-atlas-gen"
+IncludeDir["msdfgen"] = "External/msdf-atlas-gen/msdfgen"
 
 project "Lumos"
 	kind "StaticLib"
@@ -61,6 +63,8 @@ project "Lumos"
 		"%{IncludeDir.SpirvCross}",
 		"%{IncludeDir.cereal}",
 		"%{IncludeDir.glm}",
+		"%{IncludeDir.msdfgen}",
+		"%{IncludeDir.msdf_atlas_gen}",
 		"%{IncludeDir.Lumos}",
 	}
 
@@ -72,7 +76,8 @@ project "Lumos"
 		"freetype",
 		"SpirvCross",
 		"spdlog",
-		"meshoptimizer"
+		"meshoptimizer",
+		"msdf-atlas-gen"
 	}
 
 	defines

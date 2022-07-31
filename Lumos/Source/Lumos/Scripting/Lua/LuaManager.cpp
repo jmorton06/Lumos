@@ -427,6 +427,13 @@ namespace Lumos
         REGISTER_COMPONENT_WITH_ECS(state, Transform, static_cast<Transform& (Entity::*)()>(&Entity::AddComponent<Transform>));
 
         using namespace Graphics;
+        sol::usertype<TextComponent> textComponent_type = state.new_usertype<TextComponent>("TextComponent");
+        textComponent_type["TextString"]                = &TextComponent::TextString;
+        textComponent_type["Colour"]                    = &TextComponent::Colour;
+        textComponent_type["MaxWidth"]                  = &TextComponent::MaxWidth;
+
+        REGISTER_COMPONENT_WITH_ECS(state, TextComponent, static_cast<TextComponent& (Entity::*)()>(&Entity::AddComponent<TextComponent>));
+
         sol::usertype<Sprite> sprite_type = state.new_usertype<Sprite>("Sprite", sol::constructors<sol::types<glm::vec2, glm::vec2, glm::vec4>, Sprite(const SharedPtr<Graphics::Texture2D>&, const glm::vec2&, const glm::vec2&, const glm::vec4&)>());
         sprite_type.set_function("SetTexture", &Sprite::SetTexture);
 

@@ -58,6 +58,7 @@ namespace Lumos
 
         public:
             static uint8_t GetStrideFromFormat(RHIFormat format);
+            static uint32_t GetBitsFromFormat(RHIFormat format);
             static RHIFormat BitsToFormat(uint32_t bits);
             static uint32_t BitsToChannelCount(uint32_t bits);
             static uint32_t CalculateMipMapCount(uint32_t width, uint32_t height);
