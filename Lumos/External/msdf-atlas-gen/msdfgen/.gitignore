@@ -1,0 +1,34 @@
+/Debug/
+/Release/
+/Release OpenMP/
+/Debug Library/
+/Release Library/
+/Release Library OpenMP/
+/x86/
+/x64/
+.vs/
+*.exe
+*.zip
+*.user
+*.sdf
+*.pdb
+*.ipdb
+*.iobj
+*.suo
+*.VC.opendb
+*.VC.db
+/bin/*.lib
+/bin/msdfgen
+output.png
+render.png
+out/
+build/
+build_xcode/
+skia/win32/
+skia/win64/
+
+bin/
+bin-int/
+*.sln
+*.vcxproj
+*.vcxproj.filters
