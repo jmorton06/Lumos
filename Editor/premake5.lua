@@ -15,6 +15,8 @@ IncludeDir["SpirvCross"] = "../Lumos/External/vulkan/SPIRV-Cross"
 IncludeDir["cereal"] = "../Lumos/External/cereal/include"
 IncludeDir["spdlog"] = "../Lumos/External/spdlog/include"
 IncludeDir["glm"] = "../Lumos/External/glm"
+IncludeDir["msdf_atlas_gen"] = "../Lumos/External/msdf-atlas-gen/msdf-atlas-gen"
+IncludeDir["msdfgen"] = "../Lumos/External/msdf-atlas-gen/msdfgen"
 
 project "LumosEditor"
 	kind "WindowedApp"
@@ -50,6 +52,8 @@ externalincludedirs
 		"%{IncludeDir.freetype}",
 		"%{IncludeDir.SpirvCross}",
 		"%{IncludeDir.cereal}",
+		"%{IncludeDir.msdfgen}",
+		"%{IncludeDir.msdf_atlas_gen}",
 		"%{IncludeDir.glm}",
 		"%{IncludeDir.Lumos}",
 	}
@@ -63,7 +67,9 @@ externalincludedirs
 		"freetype",
 		"SpirvCross",
 		"spdlog",
-		"meshoptimizer"
+		"meshoptimizer",
+		"msdfgen",
+		"msdf-atlas-gen"
 	}
 
 	defines
@@ -239,7 +245,7 @@ end
 			['SDKROOT'] = 'iphoneos',
 			['TARGETED_DEVICE_FAMILY'] = '1,2',
 			['SUPPORTED_PLATFORMS'] = 'iphonesimulator iphoneos',
-	['CODE_SIGN_IDENTITY'] = '',
+			['CODE_SIGN_IDENTITY'] = '',
 			['IPHONEOS_DEPLOYMENT_TARGET'] = '13.0',
 			['INFOPLIST_FILE'] = '../Lumos/Source/Lumos/Platform/iOS/Client/Info.plist',
 			['ASSETCATALOG_COMPILER_APPICON_NAME'] = 'AppIcon',
@@ -331,13 +337,13 @@ end
 			}
 
 	filter "configurations:Debug"
-defines { "LUMOS_DEBUG", "_DEBUG","TRACY_ENABLE","LUMOS_PROFILE","TRACY_ON_DEMAND" }
+		defines { "LUMOS_DEBUG", "_DEBUG","TRACY_ENABLE","LUMOS_PROFILE","TRACY_ON_DEMAND" }
 		symbols "On"
 		runtime "Debug"
 		optimize "Off"
 
 	filter "configurations:Release"
-defines { "LUMOS_RELEASE","TRACY_ENABLE","LUMOS_PROFILE","TRACY_ON_DEMAND"}
+		defines { "LUMOS_RELEASE","TRACY_ENABLE","LUMOS_PROFILE","TRACY_ON_DEMAND"}
 		optimize "Speed"
 		symbols "On"
 		runtime "Release"

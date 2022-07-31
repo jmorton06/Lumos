@@ -13,8 +13,9 @@
 
 namespace Lumos
 {
-    glm::vec4 SelectedColour = glm::vec4(0.28f, 0.56f, 0.9f, 1.0f);
-    glm::vec4 IconColour     = glm::vec4(0.2f, 0.2f, 0.2f, 1.0f);
+    glm::vec4 SelectedColour       = glm::vec4(0.28f, 0.56f, 0.9f, 1.0f);
+    glm::vec4 IconColour           = glm::vec4(0.2f, 0.2f, 0.2f, 1.0f);
+    static char* s_MultilineBuffer = nullptr;
 
     bool ImGuiUtilities::Property(const std::string& name, std::string& value, PropertyFlag flags)
     {
@@ -56,6 +57,35 @@ namespace Lumos
         Tooltip(value.c_str());
         ImGui::PopItemWidth();
         ImGui::NextColumn();
+    }
+
+    bool ImGuiUtilities::PropertyMultiline(const std::string& label, std::string& value)
+    {
+        bool modified = false;
+
+        ImGui::TextUnformatted(label.c_str());
+        ImGui::NextColumn();
+        ImGui::PushItemWidth(-1);
+
+        if(!s_MultilineBuffer)
+        {
+            s_MultilineBuffer = new char[1024 * 1024]; // 1KB
+            memset(s_MultilineBuffer, 0, 1024 * 1024);
+        }
+
+        strcpy(s_MultilineBuffer, value.c_str());
+
+        std::string id = "##" + label;
+        if(ImGui::InputTextMultiline(id.c_str(), s_MultilineBuffer, 1024 * 1024))
+        {
+            value    = s_MultilineBuffer;
+            modified = true;
+        }
+
+        ImGui::PopItemWidth();
+        ImGui::NextColumn();
+
+        return modified;
     }
 
     bool ImGuiUtilities::Property(const std::string& name, bool& value, PropertyFlag flags)

@@ -44,16 +44,16 @@ namespace Lumos
         if(m_pNodeA->GetInverseMass() + m_pNodeB->GetInverseMass() == 0.0f)
             return;
 
-        glm::vec3 r1 = c.relPosA;
-        glm::vec3 r2 = c.relPosB;
+        glm::vec3& r1 = c.relPosA;
+        glm::vec3& r2 = c.relPosB;
 
         glm::vec3 v0 = m_pNodeA->GetLinearVelocity() + glm::cross(m_pNodeA->GetAngularVelocity(), r1);
         glm::vec3 v1 = m_pNodeB->GetLinearVelocity() + glm::cross(m_pNodeB->GetAngularVelocity(), r2);
 
-        glm::vec3 normal = c.collisionNormal;
-        glm::vec3 dv     = v0 - v1;
+        glm::vec3& normal = c.collisionNormal;
+        glm::vec3 dv      = v0 - v1;
 
-        // Collision Resolution
+        // Collision Resoluton
         {
             const float constraintMass = (m_pNodeA->GetInverseMass()
                                           + m_pNodeB->GetInverseMass())
@@ -68,25 +68,17 @@ namespace Lumos
             // slight solving errors that accumulate over time
             // called as �constraint drift �)
 
-            float b;
-            {
-                // float distanceOffset = c.collisionPenetration;
+            const float baumgarteScalar = 0.3f;   // Amount of force to add to the System to solve error
+            const float baumgarteSlop   = 0.001f; // Amount of allowed penetration, ensures a complete manifold each frame
+            float penetrationSlop       = Maths::Min(c.collisionPenetration + baumgarteSlop, 0.0f);
+            float b                     = -(baumgarteScalar / LumosPhysicsEngine::GetDeltaTime()) * penetrationSlop;
+            float b_real                = Maths::Max(b, c.elatisity_term + b * 0.2f);
+            float jn                    = -(glm::dot(dv, normal) + b_real) / constraintMass;
+            float oldSumImpulseContact  = c.sumImpulseContact;
 
-                float baumgarteScalar = 0.3f;   // Amount of force to add to the System to solve error
-                float baumgarteSlop   = 0.001f; // Amount of allowed penetration, ensures a complete manifold each frame
-
-                float penetrationSlop = Maths::Min(c.collisionPenetration + baumgarteSlop, 0.0f);
-
-                b = -(baumgarteScalar / LumosPhysicsEngine::GetDeltaTime()) * penetrationSlop;
-            }
-
-            float b_real = Maths::Max(b, c.elatisity_term + b * 0.2f);
-            float jn     = -(glm::dot(dv, normal) + b_real) / constraintMass;
-
-            // jn = min(jn, 0.0f);
-            float oldSumImpulseContact = c.sumImpulseContact;
-            c.sumImpulseContact        = Maths::Min(c.sumImpulseContact + jn, 0.0f);
-            jn                         = c.sumImpulseContact - oldSumImpulseContact;
+            jn                  = Maths::Min(jn, 0.0f);
+            c.sumImpulseContact = Maths::Min(c.sumImpulseContact + jn, 0.0f);
+            jn                  = c.sumImpulseContact - oldSumImpulseContact;
 
             m_pNodeA->SetLinearVelocity(m_pNodeA->GetLinearVelocity()
                                         + normal * (jn * m_pNodeA->GetInverseMass()));
@@ -105,7 +97,7 @@ namespace Lumos
             glm::vec3 tangent = dv - normal * glm::dot(dv, normal);
             float tangent_len = glm::length(tangent);
 
-            if(tangent_len > 0.001f)
+            if(tangent_len > Maths::M_EPSILON)
             {
                 tangent = tangent * (1.0f / tangent_len);
 
@@ -113,19 +105,15 @@ namespace Lumos
                     + glm::dot(tangent, glm::cross(m_pNodeA->GetInverseInertia() * glm::cross(r1, tangent), r1) + glm::cross(m_pNodeB->GetInverseInertia() * glm::cross(r2, tangent), r2));
 
                 float frictionCoef = sqrtf(m_pNodeA->GetFriction() * m_pNodeB->GetFriction());
-
-                float jt = -1.0f * frictionCoef * glm::dot(dv, tangent)
-                    / frictionalMass;
+                float jt           = -1.0f * frictionCoef * glm::dot(dv, tangent) / frictionalMass;
 
                 // Clamp friction to never apply more force than the main collision
                 // resolution force
 
                 float oldImpulseTangent = c.sumImpulseFriction;
                 float maxJt             = frictionCoef * c.sumImpulseContact;
-
-                c.sumImpulseFriction = Maths::Min(Maths::Max(oldImpulseTangent + jt, maxJt), -maxJt);
-
-                jt = c.sumImpulseFriction - oldImpulseTangent;
+                c.sumImpulseFriction    = Maths::Min(Maths::Max(oldImpulseTangent + jt, maxJt), -maxJt);
+                jt                      = c.sumImpulseFriction - oldImpulseTangent;
 
                 m_pNodeA->SetLinearVelocity(m_pNodeA->GetLinearVelocity()
                                             + tangent * (jt * m_pNodeA->GetInverseMass()));

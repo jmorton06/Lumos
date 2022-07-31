@@ -6,6 +6,7 @@
 #include "Graphics/RHI/Shader.h"
 #include "Utilities/TSingleton.h"
 #include "Scene/Component/ModelComponent.h"
+#include "Graphics/Font.h"
 
 namespace Lumos
 {
@@ -203,6 +204,25 @@ namespace Lumos
         static bool Load(const std::string& filePath, SharedPtr<Graphics::Model>& model)
         {
             model = CreateSharedPtr<Graphics::Model>(filePath);
+            return true;
+        }
+    };
+
+    class FontLibrary : public ResourceManager<Graphics::Font>
+    {
+    public:
+        FontLibrary()
+        {
+            m_LoadFunc = Load;
+        }
+
+        ~FontLibrary()
+        {
+        }
+
+        static bool Load(const std::string& filePath, SharedPtr<Graphics::Font>& font)
+        {
+            font = CreateSharedPtr<Graphics::Font>(filePath);
             return true;
         }
     };

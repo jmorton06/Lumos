@@ -52,6 +52,7 @@ namespace Lumos
         m_EntityManager->AddDependency<Graphics::Light, Maths::Transform>();
         m_EntityManager->AddDependency<Graphics::Sprite, Maths::Transform>();
         m_EntityManager->AddDependency<Graphics::AnimatedSprite, Maths::Transform>();
+        m_EntityManager->AddDependency<Graphics::Font, Maths::Transform>();
 
         m_SceneGraph = CreateUniquePtr<SceneGraph>();
         m_SceneGraph->Init(m_EntityManager->GetRegistry());
@@ -176,7 +177,7 @@ namespace Lumos
 #define ALL_COMPONENTSV5 ALL_COMPONENTSV4, IDComponent
 #define ALL_COMPONENTSV6 ALL_COMPONENTSV5, Graphics::ModelComponent
 #define ALL_COMPONENTSV7 ALL_COMPONENTSV6, AxisConstraintComponent
-
+#define ALL_COMPONENTSV8 ALL_COMPONENTSV7, TextComponent
     void Scene::Serialise(const std::string& filePath, bool binary)
     {
         LUMOS_PROFILE_FUNCTION();
@@ -196,7 +197,7 @@ namespace Lumos
                 // output finishes flushing its contents when it goes out of scope
                 cereal::BinaryOutputArchive output { file };
                 output(*this);
-                entt::snapshot { m_EntityManager->GetRegistry() }.entities(output).component<ALL_COMPONENTSV7>(output);
+                entt::snapshot { m_EntityManager->GetRegistry() }.entities(output).component<ALL_COMPONENTSV8>(output);
             }
             file.close();
         }
@@ -209,7 +210,7 @@ namespace Lumos
                 // output finishes flushing its contents when it goes out of scope
                 cereal::JSONOutputArchive output { storage };
                 output(*this);
-                entt::snapshot { m_EntityManager->GetRegistry() }.entities(output).component<ALL_COMPONENTSV7>(output);
+                entt::snapshot { m_EntityManager->GetRegistry() }.entities(output).component<ALL_COMPONENTSV8>(output);
             }
             FileSystem::WriteTextFile(path, storage.str());
         }
@@ -250,8 +251,10 @@ namespace Lumos
                     entt::snapshot_loader { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV5>(input);
                 else if(m_SceneSerialisationVersion == 7)
                     entt::snapshot_loader { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV6>(input);
-                else if(m_SceneSerialisationVersion >= 8)
+                else if(m_SceneSerialisationVersion >= 8 && m_SceneSerialisationVersion < 14)
                     entt::snapshot_loader { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV7>(input);
+                else if(m_SceneSerialisationVersion >= 14)
+                    entt::snapshot_loader { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV8>(input);
 
                 if(m_SceneSerialisationVersion < 6)
                 {
@@ -306,8 +309,10 @@ namespace Lumos
                     entt::snapshot_loader { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV5>(input);
                 else if(m_SceneSerialisationVersion == 7)
                     entt::snapshot_loader { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV6>(input);
-                else if(m_SceneSerialisationVersion >= 8)
+                else if(m_SceneSerialisationVersion >= 8 && m_SceneSerialisationVersion < 14)
                     entt::snapshot_loader { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV7>(input);
+                else if(m_SceneSerialisationVersion >= 14)
+                    entt::snapshot_loader { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV8>(input);
 
                 if(m_SceneSerialisationVersion < 6)
                 {
@@ -390,7 +395,8 @@ namespace Lumos
 
         Entity newEntity = m_EntityManager->Create();
 
-        CopyEntity<ALL_COMPONENTSV7>(newEntity.GetHandle(), entity.GetHandle(), m_EntityManager->GetRegistry());
+        CopyEntity<ALL_COMPONENTSV8>(newEntity.GetHandle(), entity.GetHandle(), m_EntityManager->GetRegistry());
+        newEntity.GetComponent<IDComponent>().ID = UUID();
 
         auto hierarchyComponent = newEntity.TryGetComponent<Hierarchy>();
         if(hierarchyComponent)

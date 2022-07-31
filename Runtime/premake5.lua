@@ -14,6 +14,8 @@ IncludeDir["SpirvCross"] = "../Lumos/External/vulkan/SPIRV-Cross"
 IncludeDir["cereal"] = "../Lumos/External/cereal/include"
 IncludeDir["spdlog"] = "../Lumos/External/spdlog/include"
 IncludeDir["glm"] = "../Lumos/External/glm"
+IncludeDir["msdf_atlas_gen"] = "../Lumos/External/msdf-atlas-gen/msdf-atlas-gen"
+IncludeDir["msdfgen"] = "../Lumos/External/msdf-atlas-gen/msdfgen"
 
 project "Runtime"
 	kind "WindowedApp"
@@ -43,6 +45,8 @@ project "Runtime"
 		"%{IncludeDir.SpirvCross}",
 		"%{IncludeDir.cereal}",
 		"%{IncludeDir.glm}",
+		"%{IncludeDir.msdfgen}",
+		"%{IncludeDir.msdf_atlas_gen}",
 		"%{IncludeDir.Lumos}",
 	}
 
@@ -60,7 +64,9 @@ project "Runtime"
 		"freetype",
 		"SpirvCross",
 		"spdlog",
-		"meshoptimizer"
+		"meshoptimizer",
+		"msdfgen",
+		"msdf-atlas-gen"
 	}
 
 	defines

@@ -111,6 +111,8 @@ namespace Lumos
             void EyeAdaptationPass();
             void FilmicGrainPass();
             void OutlinePass();
+            void TextPass();
+            void TextFlush();
 
             float SubmitTexture(Texture* texture);
             void UpdateCascades(Scene* scene, Light* light);
@@ -277,6 +279,7 @@ namespace Lumos
             ShadowData m_ShadowData;
             ForwardData m_ForwardData;
             Renderer2DData m_Renderer2DData;
+            Renderer2DData m_TextRendererData;
             DebugDrawData m_DebugDrawData;
             glm::vec4 m_ClearColour;
 

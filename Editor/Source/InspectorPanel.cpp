@@ -976,6 +976,134 @@ end
     }
 
     template <>
+    void ComponentEditorWidget<Lumos::TextComponent>(entt::registry& reg, entt::registry::entity_type e)
+    {
+        using namespace Lumos;
+        LUMOS_PROFILE_FUNCTION();
+        auto& text = reg.get<Lumos::TextComponent>(e);
+        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
+        ImGui::Columns(2);
+        ImGui::Separator();
+
+        ImGuiUtilities::PropertyMultiline("Text String", text.TextString);
+        if(text.FontHandle)
+        {
+            Lumos::ImGuiUtilities::PropertyConst("FilePath", text.FontHandle->GetFilePath());
+        }
+
+        Lumos::ImGuiUtilities::Property("Colour", text.Colour, true, Lumos::ImGuiUtilities::PropertyFlag::ColourProperty);
+        Lumos::ImGuiUtilities::Property("Line Spacing", text.LineSpacing);
+        Lumos::ImGuiUtilities::Property("Max Width", text.MaxWidth);
+
+        ImGui::Columns(1);
+
+        auto callback = std::bind(&TextComponent::LoadFont, &text, std::placeholders::_1);
+
+        ImGui::Separator();
+
+        if(ImGui::Button("Load Font File"))
+        {
+            Lumos::Editor::GetEditor()->GetFileBrowserPanel().Open();
+            Lumos::Editor::GetEditor()->GetFileBrowserPanel().SetCallback(callback);
+        }
+
+        ImGui::Separator();
+
+        ImGui::Columns(2);
+
+        if(ImGui::TreeNode("Texture"))
+        {
+            ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
+            ImGui::Columns(2);
+            ImGui::Separator();
+
+            bool flipImage = Graphics::Renderer::GetGraphicsContext()->FlipImGUITexture();
+
+            ImGui::AlignTextToFramePadding();
+            auto tex = text.FontHandle ? text.FontHandle->GetFontAtlas() : Lumos::Graphics::Font::GetDefaultFont()->GetFontAtlas();
+
+            auto imageButtonSize        = ImVec2(64, 64) * Application::Get().GetWindowDPI();
+            const ImGuiPayload* payload = ImGui::GetDragDropPayload();
+            auto min                    = ImGui::GetCurrentWindow()->DC.CursorPos;
+            auto max                    = min + imageButtonSize + ImGui::GetStyle().FramePadding;
+
+            bool hoveringButton = ImGui::IsMouseHoveringRect(min, max, false);
+            bool showTexture    = !(hoveringButton && (payload != NULL && payload->IsDataType("Font")));
+            if(tex && showTexture)
+            {
+                if(ImGui::ImageButton(tex->GetHandle(), imageButtonSize, ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f)))
+                {
+                    Lumos::Editor::GetEditor()->GetFileBrowserPanel().Open();
+                    Lumos::Editor::GetEditor()->GetFileBrowserPanel().SetCallback(callback);
+                }
+
+                if(ImGui::IsItemHovered() && tex)
+                {
+                    ImGui::BeginTooltip();
+                    ImGui::Image(tex->GetHandle(), ImVec2(512, 512), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
+                    ImGui::EndTooltip();
+                }
+            }
+            else
+            {
+                if(ImGui::Button(tex ? "" : "Empty", imageButtonSize))
+                {
+                    Lumos::Editor::GetEditor()->GetFileBrowserPanel().Open();
+                    Lumos::Editor::GetEditor()->GetFileBrowserPanel().SetCallback(callback);
+                }
+            }
+
+            if(payload != NULL && payload->IsDataType("Font"))
+            {
+                auto filePath = std::string(reinterpret_cast<const char*>(payload->Data));
+                if(Lumos::Editor::GetEditor()->IsFontFile(filePath))
+                {
+                    if(ImGui::BeginDragDropTarget())
+                    {
+                        // Drop directly on to node and append to the end of it's children list.
+                        if(ImGui::AcceptDragDropPayload("Font"))
+                        {
+                            Application::Get().GetFontLibrary()->Load(filePath, text.FontHandle);
+                            ImGui::EndDragDropTarget();
+
+                            ImGui::Columns(1);
+                            ImGui::Separator();
+                            ImGui::PopStyleVar(2);
+
+                            ImGui::TreePop();
+                            return;
+                        }
+
+                        ImGui::EndDragDropTarget();
+                    }
+                }
+            }
+
+            ImGui::NextColumn();
+            ImGui::PushItemWidth(-1);
+            ImGui::TextUnformatted(tex ? tex->GetFilepath().c_str() : "No Texture");
+            if(tex)
+            {
+                ImGuiUtilities::Tooltip(tex->GetFilepath());
+                ImGui::Text("%u x %u", tex->GetWidth(), tex->GetHeight());
+                ImGui::Text("Mip Levels : %u", tex->GetMipMapLevels());
+            }
+
+            ImGui::PopItemWidth();
+            ImGui::NextColumn();
+
+            ImGui::Columns(1);
+            ImGui::Separator();
+            ImGui::PopStyleVar();
+            ImGui::TreePop();
+        }
+
+        ImGui::Columns(1);
+        ImGui::Separator();
+        ImGui::PopStyleVar();
+    }
+
+    template <>
     void ComponentEditorWidget<Lumos::Graphics::AnimatedSprite>(entt::registry& reg, entt::registry::entity_type e)
     {
         LUMOS_PROFILE_FUNCTION();
@@ -2043,6 +2171,7 @@ namespace Lumos
         TRIVIAL_COMPONENT(TextureMatrixComponent, "Texture Matrix");
         TRIVIAL_COMPONENT(DefaultCameraController, "Default Camera Controller");
         TRIVIAL_COMPONENT(Listener, "Listener");
+        TRIVIAL_COMPONENT(TextComponent, "Text");
     }
 
     void InspectorPanel::OnImGui()
@@ -2139,7 +2268,8 @@ namespace Lumos
                 {
                     if(registry.valid(hierarchyComp->Parent()))
                     {
-                        // ImGui::Text("Parent : ID: %d", static_cast<int>(registry.entity(hierarchyComp->Parent())));
+                        idComponent = registry.try_get<IDComponent>(hierarchyComp->Parent());
+                        ImGui::Text("Parent : ID: %" PRIu64, (uint64_t)idComponent->ID);
                     }
                     else
                     {
@@ -2152,7 +2282,8 @@ namespace Lumos
 
                     while(child != entt::null)
                     {
-                        // ImGui::Text("ID: %d", static_cast<int>(registry.entity(child)));
+                        idComponent = registry.try_get<IDComponent>(child);
+                        ImGui::Text("ID: %" PRIu64, (uint64_t)idComponent->ID);
 
                         auto hierarchy = registry.try_get<Hierarchy>(child);
 

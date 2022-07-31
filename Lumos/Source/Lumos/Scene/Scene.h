@@ -12,7 +12,6 @@ DISABLE_WARNING_POP
 namespace Lumos
 {
     class TimeStep;
-    class Font;
     class Event;
     class Camera;
     class EntityManager;

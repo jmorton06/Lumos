@@ -399,19 +399,25 @@ namespace Lumos
             m_Flags |= TextureFlags::Texture_Sampled;
 
             if(m_Data == nullptr)
+            {
                 pixels = Lumos::LoadImageFromFile(m_FileName, &m_Width, &m_Height, &bits);
+                if(pixels == nullptr)
+                    return false;
+
+                m_Parameters.format = BitsToFormat(bits);
+                m_Format            = m_Parameters.format;
+            }
             else
             {
-                bits   = 32;
-                pixels = m_Data;
+                if(m_Data == nullptr)
+                    return false;
+
+                m_BitsPerChannel = GetBitsFromFormat(m_Parameters.format);
+                bits             = m_BitsPerChannel;
+                pixels           = m_Data;
             }
 
-            if(pixels == nullptr)
-                return false;
-
-            m_Parameters.format = BitsToFormat(bits);
-            m_Format            = m_Parameters.format;
-            m_VKFormat          = VKUtilities::FormatToVK(m_Parameters.format, m_Parameters.srgb);
+            m_VKFormat = VKUtilities::FormatToVK(m_Parameters.format, m_Parameters.srgb);
 
             VkDeviceSize imageSize = VkDeviceSize(m_Width * m_Height * bits / 8);
 
