@@ -7,6 +7,12 @@
 #include "Core/VFS.h"
 #include "Core/Application.h"
 
+#if __has_include(<filesystem>)
+#include <filesystem>
+#elif __has_include(<experimental/filesystem>)
+#include <experimental/filesystem>
+#endif
+
 #include <imgui/Plugins/ImGuiAl/fonts/RobotoRegular.inl>
 #include <stb/stb.h>
 
