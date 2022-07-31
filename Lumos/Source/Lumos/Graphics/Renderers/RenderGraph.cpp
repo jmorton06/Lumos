@@ -29,6 +29,7 @@
 #include <glm/ext.hpp>
 #include <glm/gtx/string_cast.hpp>
 #include <codecvt>
+#include <locale>
 
 static const uint32_t MaxPoints                  = 10000;
 static const uint32_t MaxPointVertices           = MaxPoints * 4;
