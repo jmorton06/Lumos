@@ -17,15 +17,15 @@
 #ifdef LUMOS_DIST
 #define TINYGLTF_NOEXCEPTION
 #endif
-#include <tinygltf/tiny_gltf.h>
+#include <ModelLoaders/tinygltf/tiny_gltf.h>
 
 namespace Lumos::Graphics
 {
-    std::string AlbedoTexName = "baseColorTexture";
-    std::string NormalTexName = "normalTexture";
+    std::string AlbedoTexName   = "baseColorTexture";
+    std::string NormalTexName   = "normalTexture";
     std::string MetallicTexName = "metallicRoughnessTexture";
-    std::string GlossTexName = "metallicRoughnessTexture";
-    std::string AOTexName = "occlusionTexture";
+    std::string GlossTexName    = "metallicRoughnessTexture";
+    std::string AOTexName       = "occlusionTexture";
     std::string EmissiveTexName = "emissiveTexture";
 
     struct GLTFTexture
@@ -152,11 +152,11 @@ namespace Lumos::Graphics
             Graphics::MaterialProperties properties;
 
             const tinygltf::PbrMetallicRoughness& pbr = mat.pbrMetallicRoughness;
-            textures.albedo = TextureName(pbr.baseColorTexture.index);
-            textures.normal = TextureName(mat.normalTexture.index);
-            textures.ao = TextureName(mat.occlusionTexture.index);
-            textures.emissive = TextureName(mat.emissiveTexture.index);
-            textures.metallic = TextureName(pbr.metallicRoughnessTexture.index);
+            textures.albedo                           = TextureName(pbr.baseColorTexture.index);
+            textures.normal                           = TextureName(mat.normalTexture.index);
+            textures.ao                               = TextureName(mat.occlusionTexture.index);
+            textures.emissive                         = TextureName(mat.emissiveTexture.index);
+            textures.metallic                         = TextureName(pbr.metallicRoughnessTexture.index);
 
             // TODO: correct way of handling this
             if(textures.metallic)
@@ -166,8 +166,8 @@ namespace Lumos::Graphics
 
             // metallic-roughness workflow:
             auto baseColourFactor = mat.values.find("baseColorFactor");
-            auto roughnessFactor = mat.values.find("roughnessFactor");
-            auto metallicFactor = mat.values.find("metallicFactor");
+            auto roughnessFactor  = mat.values.find("roughnessFactor");
+            auto metallicFactor   = mat.values.find("metallicFactor");
 
             if(roughnessFactor != mat.values.end())
             {
@@ -190,20 +190,20 @@ namespace Lumos::Graphics
             {
                 if(metallicGlossinessWorkflow->second.Has("diffuseTexture"))
                 {
-                    int index = metallicGlossinessWorkflow->second.Get("diffuseTexture").Get("index").Get<int>();
+                    int index       = metallicGlossinessWorkflow->second.Get("diffuseTexture").Get("index").Get<int>();
                     textures.albedo = loadedTextures[gltfModel.textures[index].source];
                 }
 
                 if(metallicGlossinessWorkflow->second.Has("metallicGlossinessTexture"))
                 {
-                    int index = metallicGlossinessWorkflow->second.Get("metallicGlossinessTexture").Get("index").Get<int>();
-                    textures.roughness = loadedTextures[gltfModel.textures[index].source];
+                    int index           = metallicGlossinessWorkflow->second.Get("metallicGlossinessTexture").Get("index").Get<int>();
+                    textures.roughness  = loadedTextures[gltfModel.textures[index].source];
                     properties.workflow = PBR_WORKFLOW_SPECULAR_GLOSINESS;
                 }
 
                 if(metallicGlossinessWorkflow->second.Has("diffuseFactor"))
                 {
-                    auto& factor = metallicGlossinessWorkflow->second.Get("diffuseFactor");
+                    auto& factor              = metallicGlossinessWorkflow->second.Get("diffuseFactor");
                     properties.albedoColour.x = factor.ArrayLen() > 0 ? float(factor.Get(0).IsNumber() ? factor.Get(0).Get<double>() : factor.Get(0).Get<int>()) : 1.0f;
                     properties.albedoColour.y = factor.ArrayLen() > 1 ? float(factor.Get(1).IsNumber() ? factor.Get(1).Get<double>() : factor.Get(1).Get<int>()) : 1.0f;
                     properties.albedoColour.z = factor.ArrayLen() > 2 ? float(factor.Get(2).IsNumber() ? factor.Get(2).Get<double>() : factor.Get(2).Get<int>()) : 1.0f;
@@ -211,12 +211,12 @@ namespace Lumos::Graphics
                 }
                 if(metallicGlossinessWorkflow->second.Has("metallicFactor"))
                 {
-                    auto& factor = metallicGlossinessWorkflow->second.Get("metallicFactor");
+                    auto& factor        = metallicGlossinessWorkflow->second.Get("metallicFactor");
                     properties.metallic = factor.ArrayLen() > 0 ? float(factor.Get(0).IsNumber() ? factor.Get(0).Get<double>() : factor.Get(0).Get<int>()) : 1.0f;
                 }
                 if(metallicGlossinessWorkflow->second.Has("glossinessFactor"))
                 {
-                    auto& factor = metallicGlossinessWorkflow->second.Get("glossinessFactor");
+                    auto& factor         = metallicGlossinessWorkflow->second.Get("glossinessFactor");
                     properties.roughness = 1.0f - float(factor.IsNumber() ? factor.Get<double>() : factor.Get<int>());
                 }
             }
@@ -250,24 +250,24 @@ namespace Lumos::Graphics
             for(auto& attribute : primitive.attributes)
             {
                 // Get accessor info
-                auto& accessor = model.accessors.at(attribute.second);
-                auto& bufferView = model.bufferViews.at(accessor.bufferView);
-                auto& buffer = model.buffers.at(bufferView.buffer);
-                int componentLength = GLTF_COMPONENT_LENGTH_LOOKUP.at(accessor.type);
+                auto& accessor            = model.accessors.at(attribute.second);
+                auto& bufferView          = model.bufferViews.at(accessor.bufferView);
+                auto& buffer              = model.buffers.at(bufferView.buffer);
+                int componentLength       = GLTF_COMPONENT_LENGTH_LOOKUP.at(accessor.type);
                 int componentTypeByteSize = GLTF_COMPONENT_BYTE_SIZE_LOOKUP.at(accessor.componentType);
 
                 // Extra vertex data from buffer
-                size_t bufferOffset = bufferView.byteOffset + accessor.byteOffset;
-                int bufferLength = static_cast<int>(accessor.count) * componentLength * componentTypeByteSize;
-                auto first = buffer.data.begin() + bufferOffset;
-                auto last = buffer.data.begin() + bufferOffset + bufferLength;
+                size_t bufferOffset       = bufferView.byteOffset + accessor.byteOffset;
+                int bufferLength          = static_cast<int>(accessor.count) * componentLength * componentTypeByteSize;
+                auto first                = buffer.data.begin() + bufferOffset;
+                auto last                 = buffer.data.begin() + bufferOffset + bufferLength;
                 std::vector<uint8_t> data = std::vector<uint8_t>(first, last);
 
                 // -------- Position attribute -----------
 
                 if(attribute.first == "POSITION")
                 {
-                    size_t positionCount = accessor.count;
+                    size_t positionCount            = accessor.count;
                     Maths::Vector3Simple* positions = reinterpret_cast<Maths::Vector3Simple*>(data.data());
                     for(auto p = 0; p < positionCount; ++p)
                     {
@@ -279,7 +279,7 @@ namespace Lumos::Graphics
 
                 else if(attribute.first == "NORMAL")
                 {
-                    size_t normalCount = accessor.count;
+                    size_t normalCount            = accessor.count;
                     Maths::Vector3Simple* normals = reinterpret_cast<Maths::Vector3Simple*>(data.data());
                     for(auto p = 0; p < normalCount; ++p)
                     {
@@ -293,7 +293,7 @@ namespace Lumos::Graphics
 
                 else if(attribute.first == "TEXCOORD_0")
                 {
-                    size_t uvCount = accessor.count;
+                    size_t uvCount            = accessor.count;
                     Maths::Vector2Simple* uvs = reinterpret_cast<Maths::Vector2Simple*>(data.data());
                     for(auto p = 0; p < uvCount; ++p)
                     {
@@ -305,7 +305,7 @@ namespace Lumos::Graphics
 
                 else if(attribute.first == "COLOR_0")
                 {
-                    size_t uvCount = accessor.count;
+                    size_t uvCount                = accessor.count;
                     Maths::Vector4Simple* colours = reinterpret_cast<Maths::Vector4Simple*>(data.data());
                     for(auto p = 0; p < uvCount; ++p)
                     {
@@ -317,7 +317,7 @@ namespace Lumos::Graphics
 
                 else if(attribute.first == "TANGENT")
                 {
-                    size_t uvCount = accessor.count;
+                    size_t uvCount            = accessor.count;
                     Maths::Vector3Simple* uvs = reinterpret_cast<Maths::Vector3Simple*>(data.data());
                     for(auto p = 0; p < uvCount; ++p)
                     {
@@ -329,18 +329,18 @@ namespace Lumos::Graphics
             // -------- Indices ----------
             {
                 // Get accessor info
-                auto indexAccessor = model.accessors.at(primitive.indices);
+                auto indexAccessor   = model.accessors.at(primitive.indices);
                 auto indexBufferView = model.bufferViews.at(indexAccessor.bufferView);
-                auto indexBuffer = model.buffers.at(indexBufferView.buffer);
+                auto indexBuffer     = model.buffers.at(indexBufferView.buffer);
 
-                int componentLength = GLTF_COMPONENT_LENGTH_LOOKUP.at(indexAccessor.type);
+                int componentLength       = GLTF_COMPONENT_LENGTH_LOOKUP.at(indexAccessor.type);
                 int componentTypeByteSize = GLTF_COMPONENT_BYTE_SIZE_LOOKUP.at(indexAccessor.componentType);
 
                 // Extra index data
-                size_t bufferOffset = indexBufferView.byteOffset + indexAccessor.byteOffset;
-                int bufferLength = static_cast<int>(indexAccessor.count) * componentLength * componentTypeByteSize;
-                auto first = indexBuffer.data.begin() + bufferOffset;
-                auto last = indexBuffer.data.begin() + bufferOffset + bufferLength;
+                size_t bufferOffset       = indexBufferView.byteOffset + indexAccessor.byteOffset;
+                int bufferLength          = static_cast<int>(indexAccessor.count) * componentLength * componentTypeByteSize;
+                auto first                = indexBuffer.data.begin() + bufferOffset;
+                auto last                 = indexBuffer.data.begin() + bufferOffset + bufferLength;
                 std::vector<uint8_t> data = std::vector<uint8_t>(first, last);
 
                 size_t indicesCount = indexAccessor.count;
@@ -390,7 +390,7 @@ namespace Lumos::Graphics
         }
 
         auto& node = model.nodes[nodeIndex];
-        auto name = node.name;
+        auto name  = node.name;
 
 #ifdef DEBUG_PRINT_GLTF_LOADING
         LUMOS_LOG_INFO("asset.copyright : {0}", model.asset.copyright);
@@ -403,7 +403,7 @@ namespace Lumos::Graphics
         glm::mat4 matrix;
         glm::mat4 position = glm::mat4(1.0f);
         glm::mat4 rotation = glm::mat4(1.0f);
-        glm::mat4 scale = glm::mat4(1.0f);
+        glm::mat4 scale    = glm::mat4(1.0f);
 
         if(!node.scale.empty())
         {
@@ -450,7 +450,7 @@ namespace Lumos::Graphics
             for(auto& mesh : meshes)
             {
                 auto subname = node.name;
-                auto lMesh = SharedPtr<Graphics::Mesh>(mesh);
+                auto lMesh   = SharedPtr<Graphics::Mesh>(mesh);
                 lMesh->SetName(subname);
 
                 int materialIndex = model.meshes[node.mesh].primitives[subIndex].material;
@@ -523,7 +523,7 @@ namespace Lumos::Graphics
 
             std::string name = path.substr(path.find_last_of('/') + 1);
 
-            auto meshes = std::vector<std::vector<Graphics::Mesh*>>();
+            auto meshes                      = std::vector<std::vector<Graphics::Mesh*>>();
             const tinygltf::Scene& gltfScene = model.scenes[Lumos::Maths::Max(0, model.defaultScene)];
             for(size_t i = 0; i < gltfScene.nodes.size(); i++)
             {

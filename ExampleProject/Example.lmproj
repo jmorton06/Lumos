@@ -2,8 +2,8 @@
     "value0": {
         "Project Version": 7,
         "RenderAPI": 1,
-        "Width": 1920,
-        "Height": 1027,
+        "Width": 1440,
+        "Height": 900,
         "Fullscreen": true,
         "VSync": true,
         "ShowConsole": false,
@@ -13,11 +13,12 @@
             "//Scenes/Physics",
             "//Scenes/Terrain",
             "//Scenes/2DTest",
-            "//Scenes/CapsuleTest"
+            "//Scenes/CapsuleTest",
+            "//Scenes/FrictionTest"
         ],
-        "SceneIndex": 1,
+        "SceneIndex": 5,
         "Borderless": false,
-        "EngineAssetPath": "C:/dev/gitea/Lumos/Lumos/Assets/",
+        "EngineAssetPath": "/Users/jmorton/Dev/Lumos/Lumos/Assets/",
         "GPUIndex": -1
     }
 }

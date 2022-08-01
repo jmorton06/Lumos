@@ -384,27 +384,29 @@ namespace Lumos
         VKShader::VKShader(const std::string& filePath)
             : m_StageCount(0)
             , m_PipelineLayout(VK_NULL_HANDLE)
-            , m_ShaderStages(VK_NULL_HANDLE)
+            , m_ShaderStages(nullptr)
         {
-            m_Name = StringUtilities::GetFileName(filePath);
+            m_Name     = StringUtilities::GetFileName(filePath);
             m_FilePath = StringUtilities::GetFileLocation(filePath);
-            m_Source = VFS::Get().ReadTextFile(filePath);
+            m_Source   = VFS::Get().ReadTextFile(filePath);
 
             if(m_Source.empty())
+            {
+                m_Compiled = false;
                 return;
+            }
             Init();
         }
 
         VKShader::VKShader(const uint32_t* vertData, uint32_t vertDataSize, const uint32_t* fragData, uint32_t fragDataSize)
             : m_StageCount(0)
             , m_PipelineLayout(VK_NULL_HANDLE)
-            , m_ShaderStages(VK_NULL_HANDLE)
+            , m_ShaderStages(nullptr)
         {
-            m_Name = "";
-            m_FilePath = "Embedded";
-
-            m_ShaderTypes = { ShaderType::VERTEX, ShaderType::FRAGMENT };
-            m_StageCount = 2;
+            m_Name         = "";
+            m_FilePath     = "Embedded";
+            m_ShaderTypes  = { ShaderType::VERTEX, ShaderType::FRAGMENT };
+            m_StageCount   = 2;
             m_ShaderStages = new VkPipelineShaderStageCreateInfo[m_StageCount];
 
             for(uint32_t i = 0; i < m_StageCount; i++)
@@ -416,20 +418,33 @@ namespace Lumos
             CreatePipelineLayout();
         }
 
+        VKShader::VKShader(const uint32_t* compData, uint32_t compDataSize)
+            : m_StageCount(0)
+            , m_PipelineLayout(VK_NULL_HANDLE)
+            , m_ShaderStages(nullptr)
+        {
+            m_Name         = "";
+            m_FilePath     = "Embedded";
+            m_ShaderTypes  = { ShaderType::COMPUTE };
+            m_StageCount   = 1;
+            m_ShaderStages = new VkPipelineShaderStageCreateInfo[m_StageCount];
+
+            for(uint32_t i = 0; i < m_StageCount; i++)
+                m_ShaderStages[i] = VkPipelineShaderStageCreateInfo();
+
+            LoadFromData(compData, compDataSize, ShaderType::COMPUTE, 0);
+
+            CreatePipelineLayout();
+        }
+
         VKShader::~VKShader()
         {
             Unload();
-            delete[] m_ShaderStages;
-            m_ShaderStages = VK_NULL_HANDLE;
-
-            for(auto& pc : m_PushConstants)
-                delete[] pc.data;
         }
 
         bool VKShader::Init()
         {
             LUMOS_PROFILE_FUNCTION();
-            uint32_t currentShaderStage = 0;
             m_StageCount = 0;
 
             std::map<ShaderType, std::string> files;
@@ -448,10 +463,12 @@ namespace Lumos
 
             LUMOS_LOG_INFO("Loading Shader : {0}", m_Name);
 
+            uint32_t currentShaderStage = 0;
+
             for(auto& file : files)
             {
                 uint32_t fileSize = uint32_t(FileSystem::GetFileSize(m_FilePath + file.second));
-                uint32_t* source = reinterpret_cast<uint32_t*>(FileSystem::ReadFile(m_FilePath + file.second));
+                uint32_t* source  = reinterpret_cast<uint32_t*>(FileSystem::ReadFile(m_FilePath + file.second));
 
                 if(source)
                 {
@@ -475,7 +492,7 @@ namespace Lumos
 
             for(auto& descriptorLayout : GetDescriptorLayout())
             {
-                if(layouts.size() < descriptorLayout.setID + 1)
+                while(layouts.size() < descriptorLayout.setID + 1)
                 {
                     layouts.emplace_back();
                 }
@@ -494,11 +511,11 @@ namespace Lumos
                 {
                     auto& info = l[i];
 
-                    VkDescriptorSetLayoutBinding setLayoutBinding {};
-                    setLayoutBinding.descriptorType = VKUtilities::DescriptorTypeToVK(info.type);
-                    setLayoutBinding.stageFlags = VKUtilities::ShaderTypeToVK(info.stage);
-                    setLayoutBinding.binding = info.binding;
-                    setLayoutBinding.descriptorCount = info.count;
+                    VkDescriptorSetLayoutBinding setLayoutBinding = {};
+                    setLayoutBinding.descriptorType               = VKUtilities::DescriptorTypeToVK(info.type);
+                    setLayoutBinding.stageFlags                   = VKUtilities::ShaderTypeToVK(info.stage);
+                    setLayoutBinding.binding                      = info.binding;
+                    setLayoutBinding.descriptorCount              = info.count;
 
                     bool isArray = info.count > 1;
                     layoutBindingFlags.push_back(isArray ? VK_DESCRIPTOR_BINDING_PARTIALLY_BOUND_BIT : 0);
@@ -506,17 +523,18 @@ namespace Lumos
                 }
 
                 VkDescriptorSetLayoutBindingFlagsCreateInfo flagsInfo = {};
-                flagsInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_BINDING_FLAGS_CREATE_INFO;
-                flagsInfo.pNext = nullptr;
-                flagsInfo.bindingCount = static_cast<uint32_t>(layoutBindingFlags.size());
-                flagsInfo.pBindingFlags = layoutBindingFlags.data();
+                flagsInfo.sType                                       = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_BINDING_FLAGS_CREATE_INFO;
+                flagsInfo.pNext                                       = nullptr;
+                flagsInfo.bindingCount                                = static_cast<uint32_t>(layoutBindingFlags.size());
+                flagsInfo.pBindingFlags                               = layoutBindingFlags.data();
 
                 // Pipeline layout
-                VkDescriptorSetLayoutCreateInfo setLayoutCreateInfo {};
-                setLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-                setLayoutCreateInfo.bindingCount = static_cast<uint32_t>(setLayoutBindings.size());
-                setLayoutCreateInfo.pBindings = setLayoutBindings.data();
-                setLayoutCreateInfo.pNext = &flagsInfo;
+                VkDescriptorSetLayoutCreateInfo setLayoutCreateInfo = {};
+                setLayoutCreateInfo.sType                           = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+                setLayoutCreateInfo.bindingCount                    = static_cast<uint32_t>(setLayoutBindings.size());
+                setLayoutCreateInfo.pBindings                       = setLayoutBindings.data();
+                setLayoutCreateInfo.pNext                           = &flagsInfo;
+
                 VkDescriptorSetLayout layout;
                 vkCreateDescriptorSetLayout(VKDevice::Get().GetDevice(), &setLayoutCreateInfo, VK_NULL_HANDLE, &layout);
 
@@ -528,29 +546,28 @@ namespace Lumos
 
             for(auto& pushConst : pushConsts)
             {
-                pushConstantRanges.push_back(VKInitialisers::pushConstantRange(VKUtilities::ShaderTypeToVK(pushConst.shaderStage), pushConst.size, pushConst.offset));
+                pushConstantRanges.push_back(VKInitialisers::PushConstantRange(VKUtilities::ShaderTypeToVK(pushConst.shaderStage), pushConst.size, pushConst.offset));
             }
 
             auto& descriptorSetLayouts = GetDescriptorLayouts();
 
-            VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo {};
-            pipelineLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-            pipelineLayoutCreateInfo.setLayoutCount = static_cast<uint32_t>(descriptorSetLayouts.size());
-            pipelineLayoutCreateInfo.pSetLayouts = descriptorSetLayouts.data();
-
-            pipelineLayoutCreateInfo.pushConstantRangeCount = uint32_t(pushConstantRanges.size());
-            pipelineLayoutCreateInfo.pPushConstantRanges = pushConstantRanges.data();
+            VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo = {};
+            pipelineLayoutCreateInfo.sType                      = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+            pipelineLayoutCreateInfo.setLayoutCount             = static_cast<uint32_t>(descriptorSetLayouts.size());
+            pipelineLayoutCreateInfo.pSetLayouts                = descriptorSetLayouts.data();
+            pipelineLayoutCreateInfo.pushConstantRangeCount     = uint32_t(pushConstantRanges.size());
+            pipelineLayoutCreateInfo.pPushConstantRanges        = pushConstantRanges.data();
 
             VK_CHECK_RESULT(vkCreatePipelineLayout(VKDevice::Get().GetDevice(), &pipelineLayoutCreateInfo, VK_NULL_HANDLE, &m_PipelineLayout));
         }
 
         void VKShader::LoadFromData(const uint32_t* source, uint32_t fileSize, ShaderType shaderType, int currentShaderStage)
         {
-            VkShaderModuleCreateInfo shaderCreateInfo {};
-            shaderCreateInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
-            shaderCreateInfo.codeSize = fileSize;
-            shaderCreateInfo.pCode = source;
-            shaderCreateInfo.pNext = VK_NULL_HANDLE;
+            VkShaderModuleCreateInfo shaderCreateInfo = {};
+            shaderCreateInfo.sType                    = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+            shaderCreateInfo.codeSize                 = fileSize;
+            shaderCreateInfo.pCode                    = source;
+            shaderCreateInfo.pNext                    = VK_NULL_HANDLE;
 
             std::vector<uint32_t> spv(source, source + fileSize / sizeof(uint32_t));
 
@@ -568,10 +585,10 @@ namespace Lumos
                     const spirv_cross::SPIRType& InputType = comp.get_type(resource.type_id);
 
                     VkVertexInputAttributeDescription Description = {};
-                    Description.binding = comp.get_decoration(resource.id, spv::DecorationBinding);
-                    Description.location = comp.get_decoration(resource.id, spv::DecorationLocation);
-                    Description.offset = m_VertexInputStride;
-                    Description.format = GetVulkanFormat(InputType);
+                    Description.binding                           = comp.get_decoration(resource.id, spv::DecorationBinding);
+                    Description.location                          = comp.get_decoration(resource.id, spv::DecorationLocation);
+                    Description.offset                            = m_VertexInputStride;
+                    Description.format                            = GetVulkanFormat(InputType);
                     m_VertexInputAttributeDescriptions.push_back(Description);
 
                     m_VertexInputStride += GetStrideFromVulkanFormat(Description.format);
@@ -581,40 +598,39 @@ namespace Lumos
             // Descriptor Layout
             for(auto& u : resources.uniform_buffers)
             {
-                uint32_t set = comp.get_decoration(u.id, spv::DecorationDescriptorSet);
+                uint32_t set     = comp.get_decoration(u.id, spv::DecorationDescriptorSet);
                 uint32_t binding = comp.get_decoration(u.id, spv::DecorationBinding);
-                auto& type = comp.get_type(u.type_id);
+                auto& type       = comp.get_type(u.type_id);
 
                 SHADER_LOG(LUMOS_LOG_INFO("Found UBO {0} at set = {1}, binding = {2}", u.name.c_str(), set, binding));
                 m_DescriptorLayoutInfo.push_back({ Graphics::DescriptorType::UNIFORM_BUFFER, shaderType, binding, set, type.array.size() ? uint32_t(type.array[0]) : 1 });
 
-                auto& bufferType = comp.get_type(u.base_type_id);
-                auto bufferSize = comp.get_declared_struct_size(bufferType);
-                int memberCount = (int)bufferType.member_types.size();
-
-                auto& descriptorInfo = m_DescriptorInfos[set];
-                auto& descriptor = descriptorInfo.descriptors.emplace_back();
-                descriptor.binding = binding;
-                descriptor.size = (uint32_t)bufferSize;
-                descriptor.name = u.name;
-                descriptor.offset = 0;
+                auto& bufferType      = comp.get_type(u.base_type_id);
+                auto bufferSize       = comp.get_declared_struct_size(bufferType);
+                int memberCount       = (int)bufferType.member_types.size();
+                auto& descriptorInfo  = m_DescriptorInfos[set];
+                auto& descriptor      = descriptorInfo.descriptors.emplace_back();
+                descriptor.binding    = binding;
+                descriptor.size       = (uint32_t)bufferSize;
+                descriptor.name       = u.name;
+                descriptor.offset     = 0;
                 descriptor.shaderType = shaderType;
-                descriptor.type = Graphics::DescriptorType::UNIFORM_BUFFER;
-                descriptor.buffer = nullptr;
+                descriptor.type       = Graphics::DescriptorType::UNIFORM_BUFFER;
+                descriptor.buffer     = nullptr;
 
                 for(int i = 0; i < memberCount; i++)
                 {
-                    auto type = comp.get_type(bufferType.member_types[i]);
+                    auto type              = comp.get_type(bufferType.member_types[i]);
                     const auto& memberName = comp.get_member_name(bufferType.self, i);
-                    auto size = comp.get_declared_struct_member_size(bufferType, i);
-                    auto offset = comp.type_struct_member_offset(bufferType, i);
+                    auto size              = comp.get_declared_struct_member_size(bufferType, i);
+                    auto offset            = comp.type_struct_member_offset(bufferType, i);
 
                     std::string uniformName = u.name + "." + memberName;
 
-                    auto& member = descriptor.m_Members.emplace_back();
-                    member.name = memberName;
+                    auto& member  = descriptor.m_Members.emplace_back();
+                    member.name   = memberName;
                     member.offset = offset;
-                    member.size = (uint32_t)size;
+                    member.size   = (uint32_t)size;
 
                     SHADER_LOG(LUMOS_LOG_INFO("{0} - Size {1}, offset {2}", uniformName, size, offset));
                 }
@@ -622,7 +638,7 @@ namespace Lumos
 
             for(auto& u : resources.push_constant_buffers)
             {
-                uint32_t set = comp.get_decoration(u.id, spv::DecorationDescriptorSet);
+                uint32_t set     = comp.get_decoration(u.id, spv::DecorationDescriptorSet);
                 uint32_t binding = comp.get_decoration(u.id, spv::DecorationBinding);
 
                 uint32_t binding3 = comp.get_decoration(u.id, spv::DecorationOffset);
@@ -644,44 +660,66 @@ namespace Lumos
                 m_PushConstants.back().data = new uint8_t[size];
 
                 auto& bufferType = comp.get_type(u.base_type_id);
-                auto bufferSize = comp.get_declared_struct_size(bufferType);
-                int memberCount = (int)bufferType.member_types.size();
+                auto bufferSize  = comp.get_declared_struct_size(bufferType);
+                int memberCount  = (int)bufferType.member_types.size();
 
                 for(int i = 0; i < memberCount; i++)
                 {
-                    auto type = comp.get_type(bufferType.member_types[i]);
-                    const auto& memberName = comp.get_member_name(bufferType.self, i);
-                    auto size = comp.get_declared_struct_member_size(bufferType, i);
-                    auto offset = comp.type_struct_member_offset(bufferType, i);
-
+                    auto type               = comp.get_type(bufferType.member_types[i]);
+                    const auto& memberName  = comp.get_member_name(bufferType.self, i);
+                    auto size               = comp.get_declared_struct_member_size(bufferType, i);
+                    auto offset             = comp.type_struct_member_offset(bufferType, i);
                     std::string uniformName = u.name + "." + memberName;
-
-                    auto& member = m_PushConstants.back().m_Members.emplace_back();
-                    member.size = (uint32_t)size;
-                    member.offset = offset;
-                    member.type = SPIRVTypeToLumosDataType(type);
-                    member.fullName = uniformName;
-                    member.name = memberName;
+                    auto& member            = m_PushConstants.back().m_Members.emplace_back();
+                    member.size             = (uint32_t)size;
+                    member.offset           = offset;
+                    member.type             = SPIRVTypeToLumosDataType(type);
+                    member.fullName         = uniformName;
+                    member.name             = memberName;
                 }
             }
 
             for(auto& u : resources.sampled_images)
             {
-                uint32_t set = comp.get_decoration(u.id, spv::DecorationDescriptorSet);
-                uint32_t binding = comp.get_decoration(u.id, spv::DecorationBinding);
-
+                uint32_t set         = comp.get_decoration(u.id, spv::DecorationDescriptorSet);
+                uint32_t binding     = comp.get_decoration(u.id, spv::DecorationBinding);
                 auto& descriptorInfo = m_DescriptorInfos[set];
-                auto& descriptor = descriptorInfo.descriptors.emplace_back();
+                auto& descriptor     = descriptorInfo.descriptors.emplace_back();
 
                 auto& type = comp.get_type(u.type_id);
                 SHADER_LOG(LUMOS_LOG_INFO("Found Sampled Image {0} at set = {1}, binding = {2}", u.name.c_str(), set, binding));
 
                 m_DescriptorLayoutInfo.push_back({ Graphics::DescriptorType::IMAGE_SAMPLER, shaderType, binding, set, type.array.size() ? uint32_t(type.array[0]) : 1 });
 
-                descriptor.binding = binding;
+                descriptor.binding      = binding;
                 descriptor.textureCount = 1;
-                descriptor.name = u.name;
-                descriptor.texture = Graphics::Material::GetDefaultTexture().get(); // TODO: Move
+                descriptor.name         = u.name;
+                descriptor.texture      = Graphics::Material::GetDefaultTexture().get(); // TODO: Move
+            }
+
+            for(auto& u : resources.storage_images)
+            {
+                const auto& name       = u.name;
+                auto& type             = comp.get_type(u.type_id);
+                uint32_t binding       = comp.get_decoration(u.id, spv::DecorationBinding);
+                uint32_t descriptorSet = comp.get_decoration(u.id, spv::DecorationDescriptorSet);
+                uint32_t dimension     = type.image.dim;
+                uint32_t arraySize     = type.array[0];
+                if(arraySize == 0)
+                    arraySize = 1;
+
+                auto& descriptorInfo = m_DescriptorInfos[descriptorSet];
+                auto& descriptor     = descriptorInfo.descriptors.emplace_back();
+
+                SHADER_LOG(LUMOS_LOG_INFO("Found Storage Image {0} at set = {1}, binding = {2}", u.name.c_str(), descriptorSet, binding));
+
+                m_DescriptorLayoutInfo.push_back({ Graphics::DescriptorType::IMAGE_STORAGE, shaderType, binding, descriptorSet, type.array.size() ? uint32_t(type.array[0]) : 1 });
+
+                descriptor.type         = Graphics::DescriptorType::IMAGE_STORAGE;
+                descriptor.binding      = binding;
+                descriptor.textureCount = 1;
+                descriptor.name         = u.name;
+                descriptor.texture      = Graphics::Material::GetDefaultTexture().get(); // TODO: Move
             }
 
             m_ShaderStages[currentShaderStage].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
@@ -696,22 +734,27 @@ namespace Lumos
                 m_Compiled = true;
             }
 
-            currentShaderStage++;
+            VK_CHECK_RESULT(result);
         }
 
-        void VKShader::Unload() const
+        void VKShader::Unload()
         {
             LUMOS_PROFILE_FUNCTION();
             for(uint32_t i = 0; i < m_StageCount; i++)
-            {
                 vkDestroyShaderModule(VKDevice::Get().GetDevice(), m_ShaderStages[i].module, nullptr);
-            }
 
             for(auto& descriptorLayout : m_DescriptorSetLayouts)
                 vkDestroyDescriptorSetLayout(VKDevice::Get().GetDevice(), descriptorLayout, VK_NULL_HANDLE);
 
             if(m_PipelineLayout)
                 vkDestroyPipelineLayout(VKDevice::Get().GetDevice(), m_PipelineLayout, VK_NULL_HANDLE);
+
+            delete[] m_ShaderStages;
+
+            for(auto& pc : m_PushConstants)
+                delete[] pc.data;
+
+            m_StageCount = 0;
         }
 
         void VKShader::BindPushConstants(Graphics::CommandBuffer* commandBuffer, Graphics::Pipeline* pipeline)
@@ -736,7 +779,7 @@ namespace Lumos
 
         void VKShader::PreProcess(const std::string& source, std::map<ShaderType, std::string>* sources)
         {
-            type = ShaderType::UNKNOWN;
+            type                           = ShaderType::UNKNOWN;
             std::vector<std::string> lines = StringUtilities::GetLines(source);
             ReadShaderFile(lines, sources);
         }
@@ -746,43 +789,43 @@ namespace Lumos
             for(uint32_t i = 0; i < lines.size(); i++)
             {
                 std::string str = std::string(lines[i]);
-                str = StringUtilities::StringReplace(str, '\t');
+                str             = StringUtilities::StringReplace(str, '\t');
 
                 if(StringUtilities::StartsWith(str, "#shader"))
                 {
                     if(StringUtilities::StringContains(str, "vertex"))
                     {
-                        type = ShaderType::VERTEX;
+                        type                                           = ShaderType::VERTEX;
                         std::map<ShaderType, std::string>::iterator it = shaders->begin();
                         shaders->insert(it, std::pair<ShaderType, std::string>(type, ""));
                     }
                     else if(StringUtilities::StringContains(str, "geometry"))
                     {
-                        type = ShaderType::GEOMETRY;
+                        type                                           = ShaderType::GEOMETRY;
                         std::map<ShaderType, std::string>::iterator it = shaders->begin();
                         shaders->insert(it, std::pair<ShaderType, std::string>(type, ""));
                     }
                     else if(StringUtilities::StringContains(str, "fragment"))
                     {
-                        type = ShaderType::FRAGMENT;
+                        type                                           = ShaderType::FRAGMENT;
                         std::map<ShaderType, std::string>::iterator it = shaders->begin();
                         shaders->insert(it, std::pair<ShaderType, std::string>(type, ""));
                     }
                     else if(StringUtilities::StringContains(str, "tess_cont"))
                     {
-                        type = ShaderType::TESSELLATION_CONTROL;
+                        type                                           = ShaderType::TESSELLATION_CONTROL;
                         std::map<ShaderType, std::string>::iterator it = shaders->begin();
                         shaders->insert(it, std::pair<ShaderType, std::string>(type, ""));
                     }
                     else if(StringUtilities::StringContains(str, "tess_eval"))
                     {
-                        type = ShaderType::TESSELLATION_EVALUATION;
+                        type                                           = ShaderType::TESSELLATION_EVALUATION;
                         std::map<ShaderType, std::string>::iterator it = shaders->begin();
                         shaders->insert(it, std::pair<ShaderType, std::string>(type, ""));
                     }
                     else if(StringUtilities::StringContains(str, "compute"))
                     {
-                        type = ShaderType::COMPUTE;
+                        type                                           = ShaderType::COMPUTE;
                         std::map<ShaderType, std::string>::iterator it = shaders->begin();
                         shaders->insert(it, std::pair<ShaderType, std::string>(type, ""));
                     }
@@ -800,8 +843,9 @@ namespace Lumos
 
         void VKShader::MakeDefault()
         {
-            CreateFunc = CreateFuncVulkan;
-            CreateFuncFromEmbedded = CreateFromEmbeddedFuncVulkan;
+            CreateFunc                 = CreateFuncVulkan;
+            CreateFuncFromEmbedded     = CreateFromEmbeddedFuncVulkan;
+            CreateCompFuncFromEmbedded = CreateCompFromEmbeddedFuncVulkan;
         }
 
         Shader* VKShader::CreateFuncVulkan(const std::string& filepath)
@@ -814,6 +858,11 @@ namespace Lumos
         Shader* VKShader::CreateFromEmbeddedFuncVulkan(const uint32_t* vertData, uint32_t vertDataSize, const uint32_t* fragData, uint32_t fragDataSize)
         {
             return new VKShader(vertData, vertDataSize, fragData, fragDataSize);
+        }
+
+        Shader* VKShader::CreateCompFromEmbeddedFuncVulkan(const uint32_t* compData, uint32_t compDataSize)
+        {
+            return new VKShader(compData, compDataSize);
         }
     }
 }

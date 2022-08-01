@@ -13,7 +13,9 @@ patterns = {
 "*.glsl",
 "*.4coder",
 "*.vert",
-"*.frag",
+	"*.frag",
+	"*.comp",
+	"*.shader",
 "*.lua",
 };
 blacklist_patterns = {
@@ -21,7 +23,8 @@ blacklist_patterns = {
 "Lumos/External/.*"
 };
 load_paths_base = {
- { "./Lumos/Source", .relative = true, .recursive = true, },
+	{ "./Lumos/Source", .relative = true, .recursive = true, },
+	{ "./Lumos/Assets/Shaders", .relative = true, .recursive = true, },
 	{ "./Runtime", .relative = true, .recursive = true, },
 	{ "./Editor", .relative = true, .recursive = true, },
 };
@@ -54,24 +57,24 @@ command_list = {
    .cmd = { { "Tools\premake5.exe clean", .os = "win"   },
             { "Tools/linux/premake5 clean" , .os = "linux" },
             { "./Scripts/CleanMacOS.sh" , .os = "mac"   }, }, },
- { .name = "build and run release",
-   .out = "*Build And Run - Release*", .footer_panel = true, .save_dirty_files = false,.cursor_at_end = true,
+ { .name = "formatCode",
+   .out = "*Formatting Code*", .footer_panel = true, .save_dirty_files = false,.cursor_at_end = true,
    .cmd = { { "", .os = "win"   },
             { "" , .os = "linux" },
-            { "./Scripts/RunMacOS-Release.sh" , .os = "mac"   }, }, },
+            { "cd Scripts ; ./ClangFormat.sh" , .os = "mac"   }, }, },
 	{ .name = "compileShaders",
 		.out = "*Compile Shaders*", .footer_panel = true, .save_dirty_files = false,.cursor_at_end = true,
 		.cmd = { { "Lumos\Assets\Shaders\CompileShadersWindows.bat", .os = "win"   },
             { "" , .os = "linux" },
             { "./Lumos/Assets/Shaders/CompileShadersMac.sh" , .os = "mac"   }, }, },
 	
-	{ .name = "build-Editor",
-		.out = "*Compilation*", .footer_panel = true, .save_dirty_files = true,.cursor_at_end = true,
-		.cmd = { { "Scripts\BuildWindows-Editro.bat" , .os = "win"   },
+	{ .name = "buildEditor",
+		.out = "*Compilation - Editor - Release*", .footer_panel = true, .save_dirty_files = true,.cursor_at_end = true,
+		.cmd = { { "Scripts\BuildWindows-Editor.bat" , .os = "win"   },
             { "./Scripts/BuildLinux-Editor.sh", .os = "linux" },
             { "./Scripts/BuildMacOS-Editor.sh", .os = "mac"   }, }, },
 	
-	{ .name = "run-Editor",
+	{ .name = "runEditor",
 		.out = "*Run - Editor - Release*", .footer_panel = true, .save_dirty_files = false,.cursor_at_end = true,
 		.cmd = { { "bin\\Release-windows-x86_64\\LumosEditor.exe", .os = "win"   },
             { "./Scripts/RunLinux-Editor.sh" , .os = "linux" },
@@ -82,6 +85,6 @@ fkey_command[2] = "build";
 fkey_command[3] = "run";
 fkey_command[4] = "clean";
 fkey_command[5] = "compileShaders";
-fkey_command[6] = "build and run release";
-fkey_command[7] = "build-Editor";
-fkey_command[8] = "run-Editor";
+fkey_command[6] = "formatCode";
+fkey_command[7] = "buildEditor";
+fkey_command[8] = "runEditor";

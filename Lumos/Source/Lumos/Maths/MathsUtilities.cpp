@@ -59,16 +59,16 @@ namespace Lumos::Maths
     }
 
     void ClosestPointBetweenTwoSegments(const glm::vec3& seg1PointA, const glm::vec3& seg1PointB,
-        const glm::vec3& seg2PointA, const glm::vec3& seg2PointB,
-        glm::vec3& closestPointSeg1, glm::vec3& closestPointSeg2)
+                                        const glm::vec3& seg2PointA, const glm::vec3& seg2PointB,
+                                        glm::vec3& closestPointSeg1, glm::vec3& closestPointSeg2)
     {
 
         const glm::vec3 d1 = seg1PointB - seg1PointA;
         const glm::vec3 d2 = seg2PointB - seg2PointA;
-        const glm::vec3 r = seg1PointA - seg2PointA;
-        float a = glm::length2(d1);
-        float e = glm::length2(d2);
-        float f = glm::dot(d2, r);
+        const glm::vec3 r  = seg1PointA - seg2PointA;
+        float a            = glm::length2(d1);
+        float e            = glm::length2(d2);
+        float f            = glm::dot(d2, r);
         float s, t;
 
         // If both segments degenerate into points
@@ -100,7 +100,7 @@ namespace Lumos::Maths
             }
             else
             {
-                float b = glm::dot(d1, d2);
+                float b     = glm::dot(d1, d2);
                 float denom = a * e - b * b;
 
                 // If the segments are not parallel

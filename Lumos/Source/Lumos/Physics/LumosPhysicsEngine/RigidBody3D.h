@@ -7,7 +7,6 @@
 #include "Physics/LumosPhysicsEngine/CollisionShapes/PyramidCollisionShape.h"
 #include "Physics/LumosPhysicsEngine/CollisionShapes/HullCollisionShape.h"
 #include "Physics/LumosPhysicsEngine/CollisionShapes/CapsuleCollisionShape.h"
-
 #include "Maths/Maths.h"
 #include <cereal/types/polymorphic.hpp>
 #include <cereal/cereal.hpp>
@@ -41,18 +40,18 @@ namespace Lumos
 
     struct RigidBody3DProperties
     {
-        glm::vec3 Position = glm::vec3(0.0f);
-        glm::vec3 LinearVelocity = glm::vec3(0.0f);
-        glm::vec3 Force = glm::vec3(0.0f);
-        float Mass = 1.0f;
-        glm::quat Orientation = glm::quat();
-        glm::vec3 AngularVelocity = glm::vec3(0.0f);
-        glm::vec3 Torque = glm::vec3(0.0f);
-        bool Static = false;
-        float Elasticity = 1.0f;
-        float Friction = 1.0f;
-        bool AtRest = false;
-        bool isTrigger = false;
+        glm::vec3 Position              = glm::vec3(0.0f);
+        glm::vec3 LinearVelocity        = glm::vec3(0.0f);
+        glm::vec3 Force                 = glm::vec3(0.0f);
+        float Mass                      = 1.0f;
+        glm::quat Orientation           = glm::quat();
+        glm::vec3 AngularVelocity       = glm::vec3(0.0f);
+        glm::vec3 Torque                = glm::vec3(0.0f);
+        bool Static                     = false;
+        float Elasticity                = 1.0f;
+        float Friction                  = 1.0f;
+        bool AtRest                     = false;
+        bool isTrigger                  = false;
         SharedPtr<CollisionShape> Shape = nullptr;
     };
 
@@ -65,38 +64,14 @@ namespace Lumos
         virtual ~RigidBody3D();
 
         //<--------- GETTERS ------------->
-        const glm::vec3& GetPosition() const
-        {
-            return m_Position;
-        }
-        const glm::vec3& GetLinearVelocity() const
-        {
-            return m_LinearVelocity;
-        }
-        const glm::vec3& GetForce() const
-        {
-            return m_Force;
-        }
-        float GetInverseMass() const
-        {
-            return m_InvMass;
-        }
-        const glm::quat& GetOrientation() const
-        {
-            return m_Orientation;
-        }
-        const glm::vec3& GetAngularVelocity() const
-        {
-            return m_AngularVelocity;
-        }
-        const glm::vec3& GetTorque() const
-        {
-            return m_Torque;
-        }
-        const glm::mat3& GetInverseInertia() const
-        {
-            return m_InvInertia;
-        }
+        const glm::vec3& GetPosition() const { return m_Position; }
+        const glm::vec3& GetLinearVelocity() const { return m_LinearVelocity; }
+        const glm::vec3& GetForce() const { return m_Force; }
+        float GetInverseMass() const { return m_InvMass; }
+        const glm::quat& GetOrientation() const { return m_Orientation; }
+        const glm::vec3& GetAngularVelocity() const { return m_AngularVelocity; }
+        const glm::vec3& GetTorque() const { return m_Torque; }
+        const glm::mat3& GetInverseInertia() const { return m_InvInertia; }
         const glm::mat4& GetWorldSpaceTransform() const; // Built from scratch or returned from cached value
 
         const Maths::BoundingBox& GetWorldSpaceAABB();
@@ -119,7 +94,7 @@ namespace Lumos
 
         void SetLocalBoundingBox(const Maths::BoundingBox& bb)
         {
-            m_localBoundingBox = bb;
+            m_localBoundingBox  = bb;
             m_wsAabbInvalidated = true;
         }
 
@@ -127,9 +102,9 @@ namespace Lumos
 
         void SetPosition(const glm::vec3& v)
         {
-            m_Position = v;
+            m_Position               = v;
             m_wsTransformInvalidated = true;
-            m_wsAabbInvalidated = true;
+            m_wsAabbInvalidated      = true;
             // m_AtRest = false;
         }
 
@@ -138,21 +113,21 @@ namespace Lumos
             if(m_Static)
                 return;
             m_LinearVelocity = v;
-            m_AtRest = false;
+            m_AtRest         = false;
         }
         void SetForce(const glm::vec3& v)
         {
             if(m_Static)
                 return;
-            m_Force = v;
+            m_Force  = v;
             m_AtRest = false;
         }
 
         void SetOrientation(const glm::quat& v)
         {
-            m_Orientation = v;
+            m_Orientation            = v;
             m_wsTransformInvalidated = true;
-            m_AtRest = false;
+            m_AtRest                 = false;
         }
 
         void SetAngularVelocity(const glm::vec3& v)
@@ -171,17 +146,10 @@ namespace Lumos
             m_Torque = v;
             m_AtRest = false;
         }
-        void SetInverseInertia(const glm::mat3& v)
-        {
-            m_InvInertia = v;
-        }
+        void SetInverseInertia(const glm::mat3& v) { m_InvInertia = v; }
 
         //<---------- CALLBACKS ------------>
-        void SetOnCollisionCallback(PhysicsCollisionCallback& callback)
-        {
-            m_OnCollisionCallback = callback;
-        }
-
+        void SetOnCollisionCallback(PhysicsCollisionCallback& callback) { m_OnCollisionCallback = callback; }
         bool FireOnCollisionEvent(RigidBody3D* obj_a, RigidBody3D* obj_b)
         {
             const bool handleCollision = (m_OnCollisionCallback) ? m_OnCollisionCallback(obj_a, obj_b) : true;
@@ -206,15 +174,12 @@ namespace Lumos
 
         typedef std::function<void(RigidBody3D*, RigidBody3D*, Manifold*)> OnCollisionManifoldCallback;
 
-        void AddOnCollisionManifoldCallback(const OnCollisionManifoldCallback callback)
-        {
-            m_onCollisionManifoldCallbacks.push_back(callback);
-        }
+        void AddOnCollisionManifoldCallback(const OnCollisionManifoldCallback callback) { m_onCollisionManifoldCallbacks.push_back(callback); }
 
         void SetCollisionShape(const SharedPtr<CollisionShape>& shape)
         {
             m_CollisionShape = shape;
-            m_InvInertia = m_CollisionShape->BuildInverseInertia(m_InvMass);
+            m_InvInertia     = m_CollisionShape->BuildInverseInertia(m_InvMass);
             AutoResizeBoundingBox();
         }
 
@@ -290,8 +255,8 @@ namespace Lumos
 
         mutable glm::mat4 m_wsTransform;
         Maths::BoundingBox m_localBoundingBox; //!< Model orientated bounding box in model space
-        mutable bool m_wsAabbInvalidated; //!< Flag indicating if the cached world space transoformed AABB is invalid
-        mutable Maths::BoundingBox m_wsAabb; //!< Axis aligned bounding box of this object in world space
+        mutable bool m_wsAabbInvalidated;      //!< Flag indicating if the cached world space transoformed AABB is invalid
+        mutable Maths::BoundingBox m_wsAabb;   //!< Axis aligned bounding box of this object in world space
 
         //<---------LINEAR-------------->
         glm::vec3 m_Position;

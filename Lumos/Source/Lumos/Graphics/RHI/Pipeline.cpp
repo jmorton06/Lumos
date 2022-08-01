@@ -47,40 +47,21 @@ namespace Lumos
             {
                 if(texture)
                 {
-
-                    HashCombine(hash, texture);
-                    HashCombine(hash, texture->GetWidth(), texture->GetHeight());
-                    HashCombine(hash, texture->GetHandle());
-                    HashCombine(hash, texture->GetFormat());
-#ifdef LUMOS_RENDER_API_VULKAN
-
-                    if(GraphicsContext::GetRenderAPI() == RenderAPI::VULKAN)
-                    {
-                        VkDescriptorImageInfo* imageHandle = (VkDescriptorImageInfo*)(texture->GetDescriptorInfo());
-                        HashCombine(hash, imageHandle->imageLayout, imageHandle->imageView, imageHandle->sampler);
-                    }
-#endif
+                    HashCombine(hash, texture->GetImageHande());
                 }
             }
-
-#ifdef LUMOS_RENDER_API_VULKAN
 
             if(pipelineDesc.depthTarget)
             {
-                if(GraphicsContext::GetRenderAPI() == RenderAPI::VULKAN)
-                {
-                    if(pipelineDesc.depthTarget)
-                    {
-                        VkDescriptorImageInfo* depthImageHandle = (VkDescriptorImageInfo*)(pipelineDesc.depthTarget->GetDescriptorInfo());
-                        HashCombine(hash, depthImageHandle->imageLayout, depthImageHandle->imageView, depthImageHandle->sampler);
-                    }
-                }
+                HashCombine(hash, pipelineDesc.depthTarget->GetImageHande());
             }
-#endif
+
+            if(pipelineDesc.depthArrayTarget)
+            {
+                HashCombine(hash, pipelineDesc.depthArrayTarget->GetImageHande());
+            }
 
             HashCombine(hash, pipelineDesc.clearTargets);
-            HashCombine(hash, pipelineDesc.depthTarget);
-            HashCombine(hash, pipelineDesc.depthArrayTarget);
             HashCombine(hash, pipelineDesc.swapchainTarget);
             HashCombine(hash, pipelineDesc.lineWidth);
             HashCombine(hash, pipelineDesc.depthBiasConstantFactor);
@@ -95,18 +76,7 @@ namespace Lumos
                 auto texture = Renderer::GetMainSwapChain()->GetCurrentImage();
                 if(texture)
                 {
-                    HashCombine(hash, texture);
-                    HashCombine(hash, texture->GetWidth(), texture->GetHeight());
-                    HashCombine(hash, texture->GetHandle());
-                    HashCombine(hash, texture->GetFormat());
-#ifdef LUMOS_RENDER_API_VULKAN
-
-                    if(GraphicsContext::GetRenderAPI() == RenderAPI::VULKAN)
-                    {
-                        VkDescriptorImageInfo* imageHandle = (VkDescriptorImageInfo*)(texture->GetDescriptorInfo());
-                        HashCombine(hash, imageHandle->imageLayout, imageHandle->imageView, imageHandle->sampler);
-                    }
-#endif
+                    HashCombine(hash, texture->GetImageHande());
                 }
             }
 
@@ -117,8 +87,8 @@ namespace Lumos
                 return found->second.pipeline;
             }
 
-            auto pipeline = SharedPtr<Pipeline>(Create(pipelineDesc));
-            m_PipelineCache[hash] = { pipeline, Engine::GetTimeStep().GetElapsedSeconds() };
+            SharedPtr<Pipeline> pipeline = SharedPtr<Pipeline>(Create(pipelineDesc));
+            m_PipelineCache[hash]        = { pipeline, Engine::GetTimeStep().GetElapsedSeconds() };
             return pipeline;
         }
 

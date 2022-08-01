@@ -20,8 +20,8 @@ namespace Lumos
 
         virtual void GetMinMaxVertexOnAxis(const RigidBody3D* currentObject, const glm::vec3& axis, glm::vec3* out_min, glm::vec3* out_max) const override;
         virtual void GetIncidentReferencePolygon(const RigidBody3D* currentObject,
-            const glm::vec3& axis,
-            ReferencePolygon& refPolygon) const override;
+                                                 const glm::vec3& axis,
+                                                 ReferencePolygon& refPolygon) const override;
 
         virtual void DebugDraw(const RigidBody3D* currentObject) const override;
 
@@ -29,17 +29,17 @@ namespace Lumos
         void SetHalfWidth(float half_width)
         {
             m_CuboidHalfDimensions.x = fabs(half_width);
-            m_LocalTransform = glm::scale(glm::mat4(1.0), m_CuboidHalfDimensions);
+            m_LocalTransform         = glm::scale(glm::mat4(1.0), m_CuboidHalfDimensions);
         }
         void SetHalfHeight(float half_height)
         {
             m_CuboidHalfDimensions.y = fabs(half_height);
-            m_LocalTransform = glm::scale(glm::mat4(1.0), m_CuboidHalfDimensions);
+            m_LocalTransform         = glm::scale(glm::mat4(1.0), m_CuboidHalfDimensions);
         }
         void SetHalfDepth(float half_depth)
         {
             m_CuboidHalfDimensions.z = fabs(half_depth);
-            m_LocalTransform = glm::scale(glm::mat4(1.0), m_CuboidHalfDimensions);
+            m_LocalTransform         = glm::scale(glm::mat4(1.0), m_CuboidHalfDimensions);
         }
 
         // Get Cuboid Dimensions
@@ -63,7 +63,7 @@ namespace Lumos
         void SetHalfDimensions(const glm::vec3& dims)
         {
             m_CuboidHalfDimensions = dims;
-            m_LocalTransform = glm::scale(glm::mat4(1.0), m_CuboidHalfDimensions);
+            m_LocalTransform       = glm::scale(glm::mat4(1.0), m_CuboidHalfDimensions);
         }
 
         virtual float GetSize() const override
@@ -83,7 +83,7 @@ namespace Lumos
             archive(m_CuboidHalfDimensions);
 
             m_LocalTransform = glm::scale(glm::mat4(1.0), m_CuboidHalfDimensions);
-            m_Type = CollisionShapeType::CollisionCuboid;
+            m_Type           = CollisionShapeType::CollisionCuboid;
 
             if(m_CubeHull->GetNumVertices() == 0)
             {

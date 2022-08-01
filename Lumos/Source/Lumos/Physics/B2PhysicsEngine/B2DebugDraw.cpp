@@ -39,18 +39,18 @@ namespace Lumos
     //
     void B2DebugDraw::DrawCircle(const b2Vec2& center, float radius, const b2Color& colour)
     {
-        const float k_segments = 16.0f;
+        const float k_segments  = 16.0f;
         const float k_increment = 2.0f * b2_pi / k_segments;
-        float sinInc = sinf(k_increment);
-        float cosInc = cosf(k_increment);
+        float sinInc            = sinf(k_increment);
+        float cosInc            = cosf(k_increment);
         b2Vec2 r1(1.0f, 0.0f);
         b2Vec2 v1 = center + radius * r1;
         for(int32 i = 0; i < k_segments; ++i)
         {
             // Perform rotation to avoid additional trigonometry.
             b2Vec2 r2;
-            r2.x = cosInc * r1.x - sinInc * r1.y;
-            r2.y = sinInc * r1.x + cosInc * r1.y;
+            r2.x      = cosInc * r1.x - sinInc * r1.y;
+            r2.y      = sinInc * r1.x + cosInc * r1.y;
             b2Vec2 v2 = center + radius * r2;
             DebugRenderer::DrawHairLine({ v1.x, v1.y, 0.0f }, { v2.x, v2.y, 0.0f }, { colour.r, colour.g, colour.b, colour.a });
             r1 = r2;
@@ -61,11 +61,11 @@ namespace Lumos
     //
     void B2DebugDraw::DrawSolidCircle(const b2Vec2& center, float radius, const b2Vec2& axis, const b2Color& colour)
     {
-        const float k_segments = 16.0f;
+        const float k_segments  = 16.0f;
         const float k_increment = 2.0f * b2_pi / k_segments;
-        float sinInc = sinf(k_increment);
-        float cosInc = cosf(k_increment);
-        b2Vec2 v0 = center;
+        float sinInc            = sinf(k_increment);
+        float cosInc            = cosf(k_increment);
+        b2Vec2 v0               = center;
         b2Vec2 r1(cosInc, sinInc);
         b2Vec2 v1 = center + radius * r1;
         b2Color fillColour(0.5f * colour.r, 0.5f * colour.g, 0.5f * colour.b, 0.5f);
@@ -73,8 +73,8 @@ namespace Lumos
         {
             // Perform rotation to avoid additional trigonometry.
             b2Vec2 r2;
-            r2.x = cosInc * r1.x - sinInc * r1.y;
-            r2.y = sinInc * r1.x + cosInc * r1.y;
+            r2.x      = cosInc * r1.x - sinInc * r1.y;
+            r2.y      = sinInc * r1.x + cosInc * r1.y;
             b2Vec2 v2 = center + radius * r2;
             DebugRenderer::DrawTriangle({ v0.x, v0.y, 0.0f }, { v2.x, v2.y, 0.0f }, { v1.x, v1.y, 0.0f }, { fillColour.r, fillColour.g, fillColour.b, fillColour.a });
             r1 = r2;
@@ -86,8 +86,8 @@ namespace Lumos
         for(int32 i = 0; i < k_segments; ++i)
         {
             b2Vec2 r2;
-            r2.x = cosInc * r1.x - sinInc * r1.y;
-            r2.y = sinInc * r1.x + cosInc * r1.y;
+            r2.x      = cosInc * r1.x - sinInc * r1.y;
+            r2.y      = sinInc * r1.x + cosInc * r1.y;
             b2Vec2 v2 = center + radius * r2;
             DebugRenderer::DrawHairLine({ v1.x, v1.y, 0.0f }, { v2.x, v2.y, 0.0f }, { colour.r, colour.g, colour.b, colour.a });
 

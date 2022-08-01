@@ -1,6 +1,6 @@
 {
     "value0": {
-        "Version": 13,
+        "Version": 14,
         "Scene Name": "Physics",
         "PhysicsEnabled2D": true,
         "PhysicsEnabled3D": true,
@@ -26,7 +26,7 @@
         "DepthOfFieldEnabled": false,
         "MotionBlurEnabled": false
     },
-    "value1": 49,
+    "value1": 55,
     "value2": 1048576,
     "value3": 1,
     "value4": 2097154,
@@ -76,9 +76,15 @@
     "value48": 46,
     "value49": 47,
     "value50": 48,
-    "value51": 46,
-    "value52": 26,
-    "value53": {
+    "value51": 49,
+    "value52": 50,
+    "value53": 51,
+    "value54": 52,
+    "value55": 53,
+    "value56": 54,
+    "value57": 52,
+    "value58": 26,
+    "value59": {
         "Position": {
             "value0": 0.002742767333984375,
             "value1": 2.338712692260742,
@@ -96,8 +102,8 @@
             "value2": 0.9999943971633911
         }
     },
-    "value54": 1,
-    "value55": {
+    "value60": 1,
+    "value61": {
         "Position": {
             "value0": 0.0,
             "value1": -1.5239448547363282,
@@ -115,8 +121,8 @@
             "value2": 200.0
         }
     },
-    "value56": 28,
-    "value57": {
+    "value62": 28,
+    "value63": {
         "Position": {
             "value0": 34.3039436340332,
             "value1": 15.190068244934082,
@@ -134,8 +140,8 @@
             "value2": 0.9999999403953552
         }
     },
-    "value58": 30,
-    "value59": {
+    "value64": 30,
+    "value65": {
         "Position": {
             "value0": 0.0,
             "value1": 0.0,
@@ -153,8 +159,8 @@
             "value2": 0.9999999403953552
         }
     },
-    "value60": 4,
-    "value61": {
+    "value66": 4,
+    "value67": {
         "Position": {
             "value0": 0.0,
             "value1": 17.0,
@@ -172,8 +178,8 @@
             "value2": 1.0
         }
     },
-    "value62": 5,
-    "value63": {
+    "value68": 5,
+    "value69": {
         "Position": {
             "value0": 1.017281413078308,
             "value1": 17.0,
@@ -191,8 +197,8 @@
             "value2": 0.9999999403953552
         }
     },
-    "value64": 6,
-    "value65": {
+    "value70": 6,
+    "value71": {
         "Position": {
             "value0": 2.0,
             "value1": 17.0,
@@ -210,8 +216,8 @@
             "value2": 1.0
         }
     },
-    "value66": 7,
-    "value67": {
+    "value72": 7,
+    "value73": {
         "Position": {
             "value0": 3.0,
             "value1": 17.0,
@@ -229,8 +235,8 @@
             "value2": 1.0
         }
     },
-    "value68": 8,
-    "value69": {
+    "value74": 8,
+    "value75": {
         "Position": {
             "value0": 4.0,
             "value1": 17.0,
@@ -248,8 +254,8 @@
             "value2": 1.0
         }
     },
-    "value70": 9,
-    "value71": {
+    "value76": 9,
+    "value77": {
         "Position": {
             "value0": 5.0,
             "value1": 17.0,
@@ -267,8 +273,8 @@
             "value2": 1.0
         }
     },
-    "value72": 10,
-    "value73": {
+    "value78": 10,
+    "value79": {
         "Position": {
             "value0": 6.0,
             "value1": 17.0,
@@ -286,8 +292,8 @@
             "value2": 1.0
         }
     },
-    "value74": 11,
-    "value75": {
+    "value80": 11,
+    "value81": {
         "Position": {
             "value0": 7.0,
             "value1": 17.0,
@@ -305,8 +311,8 @@
             "value2": 1.0
         }
     },
-    "value76": 12,
-    "value77": {
+    "value82": 12,
+    "value83": {
         "Position": {
             "value0": 8.0,
             "value1": 17.0,
@@ -324,8 +330,8 @@
             "value2": 1.0
         }
     },
-    "value78": 13,
-    "value79": {
+    "value84": 13,
+    "value85": {
         "Position": {
             "value0": 9.0,
             "value1": 17.0,
@@ -343,8 +349,8 @@
             "value2": 1.0
         }
     },
-    "value80": 14,
-    "value81": {
+    "value86": 14,
+    "value87": {
         "Position": {
             "value0": 0.0,
             "value1": 18.0,
@@ -362,8 +368,8 @@
             "value2": 1.0
         }
     },
-    "value82": 15,
-    "value83": {
+    "value88": 15,
+    "value89": {
         "Position": {
             "value0": 1.0,
             "value1": 18.0,
@@ -381,8 +387,8 @@
             "value2": 1.0
         }
     },
-    "value84": 16,
-    "value85": {
+    "value90": 16,
+    "value91": {
         "Position": {
             "value0": 2.0,
             "value1": 18.0,
@@ -400,8 +406,8 @@
             "value2": 1.0
         }
     },
-    "value86": 17,
-    "value87": {
+    "value92": 17,
+    "value93": {
         "Position": {
             "value0": 3.0,
             "value1": 18.0,
@@ -419,8 +425,8 @@
             "value2": 1.0
         }
     },
-    "value88": 18,
-    "value89": {
+    "value94": 18,
+    "value95": {
         "Position": {
             "value0": 4.0,
             "value1": 18.0,
@@ -438,8 +444,8 @@
             "value2": 1.0
         }
     },
-    "value90": 19,
-    "value91": {
+    "value96": 19,
+    "value97": {
         "Position": {
             "value0": 5.0,
             "value1": 18.0,
@@ -457,8 +463,8 @@
             "value2": 1.0
         }
     },
-    "value92": 20,
-    "value93": {
+    "value98": 20,
+    "value99": {
         "Position": {
             "value0": 6.0,
             "value1": 18.0,
@@ -476,8 +482,8 @@
             "value2": 1.0
         }
     },
-    "value94": 21,
-    "value95": {
+    "value100": 21,
+    "value101": {
         "Position": {
             "value0": 7.0,
             "value1": 18.0,
@@ -495,8 +501,8 @@
             "value2": 1.0
         }
     },
-    "value96": 22,
-    "value97": {
+    "value102": 22,
+    "value103": {
         "Position": {
             "value0": 8.0,
             "value1": 18.0,
@@ -514,8 +520,8 @@
             "value2": 1.0
         }
     },
-    "value98": 23,
-    "value99": {
+    "value104": 23,
+    "value105": {
         "Position": {
             "value0": 5.0,
             "value1": 1.6939997673034669,
@@ -533,27 +539,27 @@
             "value2": 1.0
         }
     },
-    "value100": 25,
-    "value101": {
+    "value106": 25,
+    "value107": {
         "Position": {
             "value0": 26.0,
             "value1": 22.0,
             "value2": 48.5
         },
         "Rotation": {
-            "value0": -0.1833239644765854,
-            "value1": 0.23918181657791139,
-            "value2": 0.04603926092386246,
-            "value3": 0.952399492263794
+            "value0": -0.18377967178821565,
+            "value1": 0.2487904578447342,
+            "value2": 0.044185034930706027,
+            "value3": 0.9499346613883972
         },
         "Scale": {
-            "value0": 0.9999997615814209,
+            "value0": 1.0000001192092896,
             "value1": 0.9999997615814209,
-            "value2": 0.9999997615814209
+            "value2": 1.0000001192092896
         }
     },
-    "value102": 3145757,
-    "value103": {
+    "value108": 3145757,
+    "value109": {
         "Position": {
             "value0": -100.96780395507813,
             "value1": 4.210052490234375,
@@ -571,8 +577,8 @@
             "value2": 200.0
         }
     },
-    "value104": 2097179,
-    "value105": {
+    "value110": 2097179,
+    "value111": {
         "Position": {
             "value0": 89.11954498291016,
             "value1": 8.354837417602539,
@@ -590,27 +596,27 @@
             "value2": 200.0
         }
     },
-    "value106": 2097154,
-    "value107": {
+    "value112": 2097154,
+    "value113": {
         "Position": {
             "value0": 0.01968160644173622,
-            "value1": 4.176888465881348,
+            "value1": 4.281795501708984,
             "value2": -99.7276840209961
         },
         "Rotation": {
             "value0": 0.0,
-            "value1": 0.7094271183013916,
+            "value1": 0.7094270586967468,
             "value2": 0.0,
-            "value3": 0.7047787308692932
+            "value3": 0.704778790473938
         },
         "Scale": {
-            "value0": 6.0,
-            "value1": 14.199999809265137,
-            "value2": 200.0
+            "value0": 5.999999046325684,
+            "value1": 14.200000762939454,
+            "value2": 199.99996948242188
         }
     },
-    "value108": 2097155,
-    "value109": {
+    "value114": 2097155,
+    "value115": {
         "Position": {
             "value0": -0.29128527641296389,
             "value1": 4.3156633377075199,
@@ -628,8 +634,8 @@
             "value2": 200.0
         }
     },
-    "value110": 1048576,
-    "value111": {
+    "value116": 1048576,
+    "value117": {
         "Position": {
             "value0": 9.0,
             "value1": 18.0,
@@ -647,8 +653,8 @@
             "value2": 1.0
         }
     },
-    "value112": 1048607,
-    "value113": {
+    "value118": 1048607,
+    "value119": {
         "Position": {
             "value0": -4.290985107421875,
             "value1": 5.07811164855957,
@@ -666,8 +672,8 @@
             "value2": 2.1373074054718019
         }
     },
-    "value114": 33,
-    "value115": {
+    "value120": 33,
+    "value121": {
         "Position": {
             "value0": 35.72151184082031,
             "value1": 22.028072357177736,
@@ -685,8 +691,8 @@
             "value2": 1.0000039339065552
         }
     },
-    "value116": 35,
-    "value117": {
+    "value122": 35,
+    "value123": {
         "Position": {
             "value0": 0.0,
             "value1": -0.8354345560073853,
@@ -704,8 +710,8 @@
             "value2": 0.9999998211860657
         }
     },
-    "value118": 36,
-    "value119": {
+    "value124": 36,
+    "value125": {
         "Position": {
             "value0": 0.0,
             "value1": 4.588988780975342,
@@ -723,8 +729,8 @@
             "value2": 0.9999998807907105
         }
     },
-    "value120": 37,
-    "value121": {
+    "value126": 37,
+    "value127": {
         "Position": {
             "value0": -36.72534942626953,
             "value1": 16.028718948364259,
@@ -742,8 +748,8 @@
             "value2": 0.9999997615814209
         }
     },
-    "value122": 38,
-    "value123": {
+    "value128": 38,
+    "value129": {
         "Position": {
             "value0": 98.88309478759766,
             "value1": 4.266810894012451,
@@ -761,8 +767,8 @@
             "value2": 200.0
         }
     },
-    "value124": 39,
-    "value125": {
+    "value130": 39,
+    "value131": {
         "Position": {
             "value0": 74.57472229003906,
             "value1": -0.869247317314148,
@@ -780,8 +786,8 @@
             "value2": 200.0
         }
     },
-    "value126": 40,
-    "value127": {
+    "value132": 40,
+    "value133": {
         "Position": {
             "value0": -15.478693962097168,
             "value1": 0.0,
@@ -799,8 +805,8 @@
             "value2": 0.9999998807907105
         }
     },
-    "value128": 41,
-    "value129": {
+    "value134": 41,
+    "value135": {
         "Position": {
             "value0": -29.563642501831056,
             "value1": 0.0,
@@ -818,8 +824,8 @@
             "value2": 1.0000109672546387
         }
     },
-    "value130": 42,
-    "value131": {
+    "value136": 42,
+    "value137": {
         "Position": {
             "value0": -14.91064453125,
             "value1": 0.0,
@@ -837,8 +843,8 @@
             "value2": 0.9999999403953552
         }
     },
-    "value132": 43,
-    "value133": {
+    "value138": 43,
+    "value139": {
         "Position": {
             "value0": -25.742326736450197,
             "value1": 0.0,
@@ -856,8 +862,8 @@
             "value2": 0.9999999403953552
         }
     },
-    "value134": 44,
-    "value135": {
+    "value140": 44,
+    "value141": {
         "Position": {
             "value0": 0.0,
             "value1": 1.0257916450500489,
@@ -875,8 +881,8 @@
             "value2": 0.9999999403953552
         }
     },
-    "value136": 45,
-    "value137": {
+    "value142": 45,
+    "value143": {
         "Position": {
             "value0": 16.0,
             "value1": 0.6939997673034668,
@@ -894,8 +900,8 @@
             "value2": 1.0000007152557374
         }
     },
-    "value138": 46,
-    "value139": {
+    "value144": 46,
+    "value145": {
         "Position": {
             "value0": 13.0,
             "value1": 0.6939997673034668,
@@ -913,8 +919,8 @@
             "value2": 1.0000007152557374
         }
     },
-    "value140": 47,
-    "value141": {
+    "value146": 47,
+    "value147": {
         "Position": {
             "value0": -2.8255271911621095,
             "value1": 9.712101936340332,
@@ -932,8 +938,8 @@
             "value2": 1.0
         }
     },
-    "value142": 48,
-    "value143": {
+    "value148": 48,
+    "value149": {
         "Position": {
             "value0": -36.306640625,
             "value1": 4.499866485595703,
@@ -951,382 +957,538 @@
             "value2": 1.0
         }
     },
-    "value144": 40,
-    "value145": 30,
-    "value146": {
+    "value150": 49,
+    "value151": {
+        "Position": {
+            "value0": -4.09690523147583,
+            "value1": 17.351110458374025,
+            "value2": 0.0
+        },
+        "Rotation": {
+            "value0": 0.0,
+            "value1": 0.0,
+            "value2": 0.0,
+            "value3": 0.9999998807907105
+        },
+        "Scale": {
+            "value0": 0.699999988079071,
+            "value1": 0.699999988079071,
+            "value2": 0.699999988079071
+        }
+    },
+    "value152": 50,
+    "value153": {
+        "Position": {
+            "value0": -1.5656273365020753,
+            "value1": 17.825361251831056,
+            "value2": 0.0
+        },
+        "Rotation": {
+            "value0": 0.0,
+            "value1": 0.0,
+            "value2": 0.0,
+            "value3": 0.9999998807907105
+        },
+        "Scale": {
+            "value0": 0.699999988079071,
+            "value1": 0.699999988079071,
+            "value2": 0.699999988079071
+        }
+    },
+    "value154": 51,
+    "value155": {
+        "Position": {
+            "value0": -1.5656355619430543,
+            "value1": 16.815269470214845,
+            "value2": 0.0
+        },
+        "Rotation": {
+            "value0": 0.0,
+            "value1": 0.0,
+            "value2": 0.0,
+            "value3": 0.9999998807907105
+        },
+        "Scale": {
+            "value0": 0.699999988079071,
+            "value1": 0.699999988079071,
+            "value2": 0.699999988079071
+        }
+    },
+    "value156": 52,
+    "value157": {
+        "Position": {
+            "value0": 3.067514419555664,
+            "value1": 19.870115280151368,
+            "value2": 0.0
+        },
+        "Rotation": {
+            "value0": 0.0,
+            "value1": 0.0,
+            "value2": 0.0,
+            "value3": 0.9999998807907105
+        },
+        "Scale": {
+            "value0": 0.699999988079071,
+            "value1": 0.699999988079071,
+            "value2": 0.699999988079071
+        }
+    },
+    "value158": 53,
+    "value159": {
+        "Position": {
+            "value0": -0.300402969121933,
+            "value1": 19.016862869262697,
+            "value2": 0.0
+        },
+        "Rotation": {
+            "value0": 0.0,
+            "value1": 0.0,
+            "value2": 0.0,
+            "value3": 0.9999998807907105
+        },
+        "Scale": {
+            "value0": 0.699999988079071,
+            "value1": 0.699999988079071,
+            "value2": 0.699999988079071
+        }
+    },
+    "value160": 54,
+    "value161": {
+        "Position": {
+            "value0": 8.74654483795166,
+            "value1": 19.018550872802736,
+            "value2": 0.0
+        },
+        "Rotation": {
+            "value0": 0.0,
+            "value1": 0.0,
+            "value2": 0.0,
+            "value3": 0.9999998807907105
+        },
+        "Scale": {
+            "value0": 0.699999988079071,
+            "value1": 0.699999988079071,
+            "value2": 0.699999988079071
+        }
+    },
+    "value162": 40,
+    "value163": 30,
+    "value164": {
         "Name": "Spheres"
     },
-    "value147": 1,
-    "value148": {
+    "value165": 1,
+    "value166": {
         "Name": "Ground"
     },
-    "value149": 28,
-    "value150": {
+    "value167": 28,
+    "value168": {
         "Name": "Cat"
     },
-    "value151": 4,
-    "value152": {
+    "value169": 4,
+    "value170": {
         "Name": "Sphere0"
     },
-    "value153": 5,
-    "value154": {
+    "value171": 5,
+    "value172": {
         "Name": "Sphere1"
     },
-    "value155": 6,
-    "value156": {
+    "value173": 6,
+    "value174": {
         "Name": "Sphere2"
     },
-    "value157": 7,
-    "value158": {
+    "value175": 7,
+    "value176": {
         "Name": "Sphere3"
     },
-    "value159": 8,
-    "value160": {
+    "value177": 8,
+    "value178": {
         "Name": "Sphere4"
     },
-    "value161": 9,
-    "value162": {
+    "value179": 9,
+    "value180": {
         "Name": "Sphere5"
     },
-    "value163": 10,
-    "value164": {
+    "value181": 10,
+    "value182": {
         "Name": "Sphere6"
     },
-    "value165": 11,
-    "value166": {
+    "value183": 11,
+    "value184": {
         "Name": "Sphere7"
     },
-    "value167": 12,
-    "value168": {
+    "value185": 12,
+    "value186": {
         "Name": "Sphere8"
     },
-    "value169": 13,
-    "value170": {
+    "value187": 13,
+    "value188": {
         "Name": "Sphere9"
     },
-    "value171": 14,
-    "value172": {
+    "value189": 14,
+    "value190": {
         "Name": "Sphere10"
     },
-    "value173": 15,
-    "value174": {
+    "value191": 15,
+    "value192": {
         "Name": "Sphere11"
     },
-    "value175": 16,
-    "value176": {
+    "value193": 16,
+    "value194": {
         "Name": "Sphere12"
     },
-    "value177": 17,
-    "value178": {
+    "value195": 17,
+    "value196": {
         "Name": "Sphere13"
     },
-    "value179": 18,
-    "value180": {
+    "value197": 18,
+    "value198": {
         "Name": "Sphere14"
     },
-    "value181": 19,
-    "value182": {
+    "value199": 19,
+    "value200": {
         "Name": "Sphere15"
     },
-    "value183": 20,
-    "value184": {
+    "value201": 20,
+    "value202": {
         "Name": "Sphere16"
     },
-    "value185": 21,
-    "value186": {
+    "value203": 21,
+    "value204": {
         "Name": "Sphere17"
     },
-    "value187": 22,
-    "value188": {
+    "value205": 22,
+    "value206": {
         "Name": "Sphere18"
     },
-    "value189": 23,
-    "value190": {
+    "value207": 23,
+    "value208": {
         "Name": "Capsule"
     },
-    "value191": 24,
-    "value192": {
+    "value209": 24,
+    "value210": {
         "Name": "Environment"
     },
-    "value193": 25,
-    "value194": {
+    "value211": 25,
+    "value212": {
         "Name": "Light"
     },
-    "value195": 26,
-    "value196": {
+    "value213": 26,
+    "value214": {
         "Name": "Camera"
     },
-    "value197": 1048608,
-    "value198": {
+    "value215": 1048608,
+    "value216": {
         "Name": "Projectile"
     },
-    "value199": 1048576,
-    "value200": {
+    "value217": 1048576,
+    "value218": {
         "Name": "Sphere19"
     },
-    "value201": 35,
-    "value202": {
+    "value219": 35,
+    "value220": {
         "Name": "Bonfire"
     },
-    "value203": 36,
-    "value204": {
+    "value221": 36,
+    "value222": {
         "Name": "Light"
     },
-    "value205": 37,
-    "value206": {
+    "value223": 37,
+    "value224": {
         "Name": "Player"
     },
-    "value207": 40,
-    "value208": {
+    "value225": 40,
+    "value226": {
         "Name": "Cube"
     },
-    "value209": 41,
-    "value210": {
+    "value227": 41,
+    "value228": {
         "Name": "Cube"
     },
-    "value211": 42,
-    "value212": {
+    "value229": 42,
+    "value230": {
         "Name": "Cube"
     },
-    "value213": 43,
-    "value214": {
+    "value231": 43,
+    "value232": {
         "Name": "Sphere"
     },
-    "value215": 44,
-    "value216": {
-        "Name": "Capsule"
-    },
-    "value217": 45,
-    "value218": {
-        "Name": "Capsule"
-    },
-    "value219": 46,
-    "value220": {
-        "Name": "Capsule"
-    },
-    "value221": 47,
-    "value222": {
-        "Name": "light Cube"
-    },
-    "value223": 48,
-    "value224": {
-        "Name": "light Cube"
-    },
-    "value225": 3,
-    "value226": 41,
-    "value227": {
-        "Active": true
-    },
-    "value228": 40,
-    "value229": {
-        "Active": true
-    },
-    "value230": 42,
-    "value231": {
-        "Active": true
-    },
-    "value232": 28,
-    "value233": 1048576,
+    "value233": 44,
     "value234": {
+        "Name": "Capsule"
+    },
+    "value235": 45,
+    "value236": {
+        "Name": "Capsule"
+    },
+    "value237": 46,
+    "value238": {
+        "Name": "Capsule"
+    },
+    "value239": 47,
+    "value240": {
+        "Name": "light Cube"
+    },
+    "value241": 48,
+    "value242": {
+        "Name": "light Cube"
+    },
+    "value243": 3,
+    "value244": 41,
+    "value245": {
+        "Active": true
+    },
+    "value246": 40,
+    "value247": {
+        "Active": true
+    },
+    "value248": 42,
+    "value249": {
+        "Active": true
+    },
+    "value250": 34,
+    "value251": 1048576,
+    "value252": {
         "First": 1048575,
-        "Next": 1048575,
+        "Next": 49,
         "Previous": 4,
         "Parent": 30
     },
-    "value235": 30,
-    "value236": {
+    "value253": 30,
+    "value254": {
         "First": 22,
         "Next": 1048575,
         "Previous": 1048575,
         "Parent": 1048575
     },
-    "value237": 22,
-    "value238": {
+    "value255": 22,
+    "value256": {
         "First": 1048575,
         "Next": 21,
         "Previous": 1048575,
         "Parent": 30
     },
-    "value239": 21,
-    "value240": {
+    "value257": 21,
+    "value258": {
         "First": 1048575,
         "Next": 20,
         "Previous": 22,
         "Parent": 30
     },
-    "value241": 20,
-    "value242": {
+    "value259": 20,
+    "value260": {
         "First": 1048575,
         "Next": 19,
         "Previous": 21,
         "Parent": 30
     },
-    "value243": 19,
-    "value244": {
+    "value261": 19,
+    "value262": {
         "First": 1048575,
         "Next": 18,
         "Previous": 20,
         "Parent": 30
     },
-    "value245": 18,
-    "value246": {
+    "value263": 18,
+    "value264": {
         "First": 1048575,
         "Next": 17,
         "Previous": 19,
         "Parent": 30
     },
-    "value247": 17,
-    "value248": {
+    "value265": 17,
+    "value266": {
         "First": 1048575,
         "Next": 16,
         "Previous": 18,
         "Parent": 30
     },
-    "value249": 16,
-    "value250": {
+    "value267": 16,
+    "value268": {
         "First": 1048575,
         "Next": 14,
         "Previous": 17,
         "Parent": 30
     },
-    "value251": 1048608,
-    "value252": {
+    "value269": 1048608,
+    "value270": {
         "First": 1048575,
         "Next": 1048575,
         "Previous": 26,
         "Parent": 37
     },
-    "value253": 14,
-    "value254": {
+    "value271": 14,
+    "value272": {
         "First": 1048575,
         "Next": 13,
         "Previous": 16,
         "Parent": 30
     },
-    "value255": 13,
-    "value256": {
+    "value273": 13,
+    "value274": {
         "First": 1048575,
         "Next": 12,
         "Previous": 14,
         "Parent": 30
     },
-    "value257": 12,
-    "value258": {
+    "value275": 12,
+    "value276": {
         "First": 1048575,
         "Next": 11,
         "Previous": 13,
         "Parent": 30
     },
-    "value259": 11,
-    "value260": {
+    "value277": 11,
+    "value278": {
         "First": 1048575,
         "Next": 10,
         "Previous": 12,
         "Parent": 30
     },
-    "value261": 10,
-    "value262": {
+    "value279": 10,
+    "value280": {
         "First": 1048575,
         "Next": 9,
         "Previous": 11,
         "Parent": 30
     },
-    "value263": 9,
-    "value264": {
+    "value281": 9,
+    "value282": {
         "First": 1048575,
         "Next": 8,
         "Previous": 10,
         "Parent": 30
     },
-    "value265": 8,
-    "value266": {
+    "value283": 8,
+    "value284": {
         "First": 1048575,
         "Next": 7,
         "Previous": 9,
         "Parent": 30
     },
-    "value267": 7,
-    "value268": {
+    "value285": 7,
+    "value286": {
         "First": 1048575,
         "Next": 6,
         "Previous": 8,
         "Parent": 30
     },
-    "value269": 6,
-    "value270": {
+    "value287": 6,
+    "value288": {
         "First": 1048575,
         "Next": 5,
         "Previous": 7,
         "Parent": 30
     },
-    "value271": 5,
-    "value272": {
+    "value289": 5,
+    "value290": {
         "First": 1048575,
         "Next": 4,
         "Previous": 6,
         "Parent": 30
     },
-    "value273": 4,
-    "value274": {
+    "value291": 4,
+    "value292": {
         "First": 1048575,
         "Next": 1048576,
         "Previous": 5,
         "Parent": 30
     },
-    "value275": 36,
-    "value276": {
+    "value293": 36,
+    "value294": {
         "First": 1048575,
         "Next": 1048575,
         "Previous": 1048575,
         "Parent": 35
     },
-    "value277": 35,
-    "value278": {
+    "value295": 35,
+    "value296": {
         "First": 36,
         "Next": 1048575,
         "Previous": 1048575,
         "Parent": 1048575
     },
-    "value279": 26,
-    "value280": {
+    "value297": 26,
+    "value298": {
         "First": 1048575,
         "Next": 1048608,
         "Previous": 1048575,
         "Parent": 37
     },
-    "value281": 37,
-    "value282": {
+    "value299": 37,
+    "value300": {
         "First": 26,
         "Next": 1048575,
         "Previous": 1048575,
         "Parent": 1048575
     },
-    "value283": 40,
-    "value284": {
+    "value301": 40,
+    "value302": {
         "First": 42,
         "Next": 1048575,
         "Previous": 1048575,
         "Parent": 41
     },
-    "value285": 41,
-    "value286": {
+    "value303": 41,
+    "value304": {
         "First": 40,
         "Next": 1048575,
         "Previous": 1048575,
         "Parent": 1048575
     },
-    "value287": 42,
-    "value288": {
+    "value305": 42,
+    "value306": {
         "First": 1048575,
         "Next": 1048575,
         "Previous": 1048575,
         "Parent": 40
     },
-    "value289": 1,
-    "value290": 26,
-    "value291": {
+    "value307": 49,
+    "value308": {
+        "First": 1048575,
+        "Next": 50,
+        "Previous": 1048576,
+        "Parent": 30
+    },
+    "value309": 50,
+    "value310": {
+        "First": 1048575,
+        "Next": 51,
+        "Previous": 49,
+        "Parent": 30
+    },
+    "value311": 51,
+    "value312": {
+        "First": 1048575,
+        "Next": 52,
+        "Previous": 50,
+        "Parent": 30
+    },
+    "value313": 52,
+    "value314": {
+        "First": 1048575,
+        "Next": 53,
+        "Previous": 51,
+        "Parent": 30
+    },
+    "value315": 53,
+    "value316": {
+        "First": 1048575,
+        "Next": 54,
+        "Previous": 52,
+        "Parent": 30
+    },
+    "value317": 54,
+    "value318": {
+        "First": 1048575,
+        "Next": 1048575,
+        "Previous": 53,
+        "Parent": 30
+    },
+    "value319": 1,
+    "value320": 26,
+    "value321": {
         "Scale": 1.0,
-        "Aspect": 0.8450704216957092,
+        "Aspect": 0.6267605423927307,
         "FOV": 60.0,
         "Near": 0.10000000149011612,
         "Far": 1000.0,
@@ -1334,23 +1496,23 @@
         "ShutterSpeed": 0.01666666753590107,
         "Sensitivity": 200.0
     },
-    "value292": 3,
-    "value293": 1048608,
-    "value294": {
+    "value322": 3,
+    "value323": 1048608,
+    "value324": {
         "FilePath": "//Scripts/Projectile.lua"
     },
-    "value295": 36,
-    "value296": {
+    "value325": 36,
+    "value326": {
         "FilePath": "//Scripts/Script.lua"
     },
-    "value297": 37,
-    "value298": {
+    "value327": 37,
+    "value328": {
         "FilePath": "//Scripts/Script(1).lua"
     },
-    "value299": 0,
-    "value300": 4,
-    "value301": 25,
-    "value302": {
+    "value329": 0,
+    "value330": 4,
+    "value331": 25,
+    "value332": {
         "value0": {
             "value0": 26.0,
             "value1": 22.0,
@@ -1366,16 +1528,16 @@
         "value2": 0.0,
         "value3": 0.0,
         "value4": {
-            "value0": 0.438713014125824,
-            "value1": 0.3712187111377716,
-            "value2": 0.8183687925338745,
+            "value0": 0.4564287066459656,
+            "value1": 0.3711428642272949,
+            "value2": 0.8086567521095276,
             "value3": 1.0
         },
         "value5": 120000.0,
         "value6": 1.0
     },
-    "value303": 36,
-    "value304": {
+    "value333": 36,
+    "value334": {
         "value0": {
             "value0": 0.0,
             "value1": 3.7535533905029299,
@@ -1399,8 +1561,8 @@
         "value5": 500000.0,
         "value6": 43.0
     },
-    "value305": 47,
-    "value306": {
+    "value335": 47,
+    "value336": {
         "value0": {
             "value0": -2.8255271911621095,
             "value1": 9.712101936340332,
@@ -1424,8 +1586,8 @@
         "value5": 120000.0,
         "value6": 17.015546798706056
     },
-    "value307": 48,
-    "value308": {
+    "value337": 48,
+    "value338": {
         "value0": {
             "value0": -36.306640625,
             "value1": 4.499866485595703,
@@ -1449,9 +1611,9 @@
         "value5": 120000.0,
         "value6": 28.037296295166017
     },
-    "value309": 14,
-    "value310": 1,
-    "value311": {
+    "value339": 14,
+    "value340": 1,
+    "value341": {
         "value0": {
             "Version": 1,
             "Position": {
@@ -1507,8 +1669,8 @@
             "AngularFactor": 1.0
         }
     },
-    "value312": 3145757,
-    "value313": {
+    "value342": 3145757,
+    "value343": {
         "value0": {
             "Version": 1,
             "Position": {
@@ -1563,8 +1725,8 @@
             "AngularFactor": 1.0
         }
     },
-    "value314": 2097179,
-    "value315": {
+    "value344": 2097179,
+    "value345": {
         "value0": {
             "Version": 1,
             "Position": {
@@ -1619,20 +1781,20 @@
             "AngularFactor": 1.0
         }
     },
-    "value316": 2097154,
-    "value317": {
+    "value346": 2097154,
+    "value347": {
         "value0": {
             "Version": 1,
             "Position": {
                 "value0": 0.01968160644173622,
-                "value1": 4.176888465881348,
+                "value1": 4.281795501708984,
                 "value2": -99.7276840209961
             },
             "Orientation": {
                 "value0": 0.0,
-                "value1": 0.7094271183013916,
+                "value1": 0.7071067690849304,
                 "value2": 0.0,
-                "value3": 0.7047787308692932
+                "value3": 0.7071068286895752
             },
             "LinearVelocity": {
                 "value0": 0.0,
@@ -1675,8 +1837,8 @@
             "AngularFactor": 1.0
         }
     },
-    "value318": 2097155,
-    "value319": {
+    "value348": 2097155,
+    "value349": {
         "value0": {
             "Version": 1,
             "Position": {
@@ -1731,8 +1893,8 @@
             "AngularFactor": 1.0
         }
     },
-    "value320": 23,
-    "value321": {
+    "value350": 23,
+    "value351": {
         "value0": {
             "Version": 1,
             "Position": {
@@ -1785,8 +1947,8 @@
             "AngularFactor": 1.0
         }
     },
-    "value322": 37,
-    "value323": {
+    "value352": 37,
+    "value353": {
         "value0": {
             "Version": 1,
             "Position": {
@@ -1838,8 +2000,8 @@
             "AngularFactor": 0.0
         }
     },
-    "value324": 38,
-    "value325": {
+    "value354": 38,
+    "value355": {
         "value0": {
             "Version": 1,
             "Position": {
@@ -1894,8 +2056,8 @@
             "AngularFactor": 1.0
         }
     },
-    "value326": 39,
-    "value327": {
+    "value356": 39,
+    "value357": {
         "value0": {
             "Version": 1,
             "Position": {
@@ -1950,8 +2112,8 @@
             "AngularFactor": 1.0
         }
     },
-    "value328": 44,
-    "value329": {
+    "value358": 44,
+    "value359": {
         "value0": {
             "Version": 1,
             "Position": {
@@ -2003,8 +2165,8 @@
             "AngularFactor": 1.0
         }
     },
-    "value330": 45,
-    "value331": {
+    "value360": 45,
+    "value361": {
         "value0": {
             "Version": 1,
             "Position": {
@@ -2056,8 +2218,8 @@
             "AngularFactor": 1.0
         }
     },
-    "value332": 46,
-    "value333": {
+    "value362": 46,
+    "value363": {
         "value0": {
             "Version": 1,
             "Position": {
@@ -2109,8 +2271,8 @@
             "AngularFactor": 0.0
         }
     },
-    "value334": 47,
-    "value335": {
+    "value364": 47,
+    "value365": {
         "value0": {
             "Version": 1,
             "Position": {
@@ -2165,8 +2327,8 @@
             "AngularFactor": 1.0
         }
     },
-    "value336": 48,
-    "value337": {
+    "value366": 48,
+    "value367": {
         "value0": {
             "Version": 1,
             "Position": {
@@ -2221,9 +2383,9 @@
             "AngularFactor": 1.0
         }
     },
-    "value338": 1,
-    "value339": 24,
-    "value340": {
+    "value368": 1,
+    "value369": 24,
+    "value370": {
         "value0": "//Textures/cubemap/noga",
         "value1": 11,
         "value2": 3072,
@@ -2231,16 +2393,16 @@
         "value4": ".tga",
         "value5": 0.03125
     },
-    "value341": 0,
-    "value342": 0,
-    "value343": 1,
-    "value344": 26,
-    "value345": {
+    "value371": 0,
+    "value372": 0,
+    "value373": 1,
+    "value374": 26,
+    "value375": {
         "ControllerType": 1
     },
-    "value346": 1,
-    "value347": 28,
-    "value348": {
+    "value376": 1,
+    "value377": 28,
+    "value378": {
         "TexturePath": "//Textures/cat.png",
         "Position": {
             "value0": 0.0,
@@ -2308,31 +2470,6 @@
                 }
             },
             {
-                "key": "RunLeft",
-                "value": {
-                    "PlayMode": 0,
-                    "Frames": [
-                        {
-                            "value0": 0.0,
-                            "value1": 96.0
-                        },
-                        {
-                            "value0": 32.0,
-                            "value1": 96.0
-                        },
-                        {
-                            "value0": 64.0,
-                            "value1": 96.0
-                        },
-                        {
-                            "value0": 96.0,
-                            "value1": 96.0
-                        }
-                    ],
-                    "FrameDuration": 0.10000000149011612
-                }
-            },
-            {
                 "key": "RunRight",
                 "value": {
                     "PlayMode": 0,
@@ -2352,6 +2489,31 @@
                         {
                             "value0": 96.0,
                             "value1": 32.0
+                        }
+                    ],
+                    "FrameDuration": 0.10000000149011612
+                }
+            },
+            {
+                "key": "RunLeft",
+                "value": {
+                    "PlayMode": 0,
+                    "Frames": [
+                        {
+                            "value0": 0.0,
+                            "value1": 96.0
+                        },
+                        {
+                            "value0": 32.0,
+                            "value1": 96.0
+                        },
+                        {
+                            "value0": 64.0,
+                            "value1": 96.0
+                        },
+                        {
+                            "value0": 96.0,
+                            "value1": 96.0
                         }
                     ],
                     "FrameDuration": 0.10000000149011612
@@ -2385,9 +2547,9 @@
         ],
         "State": "RunRight"
     },
-    "value349": 2,
-    "value350": 35,
-    "value351": {
+    "value379": 2,
+    "value380": 35,
+    "value381": {
         "value0": {
             "Position": {
                 "value0": 0.0,
@@ -2412,8 +2574,8 @@
             "RollOffFactor": 6.0
         }
     },
-    "value352": 1048610,
-    "value353": {
+    "value382": 1048610,
+    "value383": {
         "value0": {
             "Position": {
                 "value0": 0.10000000149011612,
@@ -2438,211 +2600,235 @@
             "RollOffFactor": 6.0
         }
     },
-    "value354": 1,
-    "value355": 26,
-    "value356": {
+    "value384": 1,
+    "value385": 26,
+    "value386": {
         "enabled": true
     },
-    "value357": 49,
-    "value358": 36,
-    "value359": {
+    "value387": 55,
+    "value388": 36,
+    "value389": {
         "value0": 7142670811742260938
     },
-    "value360": 35,
-    "value361": {
+    "value390": 35,
+    "value391": {
         "value0": 11107416043673070741
     },
-    "value362": 1048610,
-    "value363": {
+    "value392": 1048610,
+    "value393": {
         "value0": 11900723286469007770
     },
-    "value364": 33,
-    "value365": {
+    "value394": 33,
+    "value395": {
         "value0": 7359062324725864355
     },
-    "value366": 1048608,
-    "value367": {
+    "value396": 1048608,
+    "value397": {
         "value0": 7055554476232666375
     },
-    "value368": 1048607,
-    "value369": {
+    "value398": 1048607,
+    "value399": {
         "value0": 17970324625984215606
     },
-    "value370": 30,
-    "value371": {
+    "value400": 30,
+    "value401": {
         "value0": 8167269343774118827
     },
-    "value372": 3145757,
-    "value373": {
+    "value402": 3145757,
+    "value403": {
         "value0": 17779826851189947480
     },
-    "value374": 28,
-    "value375": {
+    "value404": 28,
+    "value405": {
         "value0": 14937591263949305246
     },
-    "value376": 2097179,
-    "value377": {
+    "value406": 2097179,
+    "value407": {
         "value0": 7640771210261002049
     },
-    "value378": 26,
-    "value379": {
+    "value408": 26,
+    "value409": {
         "value0": 2839679583992163695
     },
-    "value380": 25,
-    "value381": {
+    "value410": 25,
+    "value411": {
         "value0": 15488722931219541607
     },
-    "value382": 24,
-    "value383": {
+    "value412": 24,
+    "value413": {
         "value0": 6226202769161346132
     },
-    "value384": 23,
-    "value385": {
+    "value414": 23,
+    "value415": {
         "value0": 7098989048976045174
     },
-    "value386": 22,
-    "value387": {
+    "value416": 22,
+    "value417": {
         "value0": 3439171724646251554
     },
-    "value388": 21,
-    "value389": {
+    "value418": 21,
+    "value419": {
         "value0": 16956239776263133194
     },
-    "value390": 20,
-    "value391": {
+    "value420": 20,
+    "value421": {
         "value0": 1990762703427919633
     },
-    "value392": 19,
-    "value393": {
+    "value422": 19,
+    "value423": {
         "value0": 423835867410576946
     },
-    "value394": 18,
-    "value395": {
+    "value424": 18,
+    "value425": {
         "value0": 11891685876785498577
     },
-    "value396": 17,
-    "value397": {
+    "value426": 17,
+    "value427": {
         "value0": 7067971027685025311
     },
-    "value398": 16,
-    "value399": {
+    "value428": 16,
+    "value429": {
         "value0": 233959796952139788
     },
-    "value400": 15,
-    "value401": {
+    "value430": 15,
+    "value431": {
         "value0": 14159927372598275186
     },
-    "value402": 14,
-    "value403": {
+    "value432": 14,
+    "value433": {
         "value0": 4435898066759924372
     },
-    "value404": 13,
-    "value405": {
+    "value434": 13,
+    "value435": {
         "value0": 3179284270372788909
     },
-    "value406": 12,
-    "value407": {
+    "value436": 12,
+    "value437": {
         "value0": 4586489471220893352
     },
-    "value408": 11,
-    "value409": {
+    "value438": 11,
+    "value439": {
         "value0": 12681453495343578024
     },
-    "value410": 10,
-    "value411": {
+    "value440": 10,
+    "value441": {
         "value0": 18014480495500914400
     },
-    "value412": 9,
-    "value413": {
+    "value442": 9,
+    "value443": {
         "value0": 9295814637906071280
     },
-    "value414": 8,
-    "value415": {
+    "value444": 8,
+    "value445": {
         "value0": 2152489098297605661
     },
-    "value416": 7,
-    "value417": {
+    "value446": 7,
+    "value447": {
         "value0": 4327025743306843849
     },
-    "value418": 6,
-    "value419": {
+    "value448": 6,
+    "value449": {
         "value0": 11046028634673225913
     },
-    "value420": 5,
-    "value421": {
+    "value450": 5,
+    "value451": {
         "value0": 7714213696942504533
     },
-    "value422": 4,
-    "value423": {
+    "value452": 4,
+    "value453": {
         "value0": 8008364231059824527
     },
-    "value424": 2097155,
-    "value425": {
+    "value454": 2097155,
+    "value455": {
         "value0": 18193252195915204467
     },
-    "value426": 2097154,
-    "value427": {
+    "value456": 2097154,
+    "value457": {
         "value0": 6603296929366748979
     },
-    "value428": 1,
-    "value429": {
+    "value458": 1,
+    "value459": {
         "value0": 9645706349408193021
     },
-    "value430": 1048576,
-    "value431": {
+    "value460": 1048576,
+    "value461": {
         "value0": 13961618126954569495
     },
-    "value432": 37,
-    "value433": {
+    "value462": 37,
+    "value463": {
         "value0": 12672391254482586722
     },
-    "value434": 38,
-    "value435": {
-        "value0": 7640771210261002049
+    "value464": 38,
+    "value465": {
+        "value0": 3185688625544513382
     },
-    "value436": 39,
-    "value437": {
-        "value0": 7640771210261002049
+    "value466": 39,
+    "value467": {
+        "value0": 478815009451712139
     },
-    "value438": 40,
-    "value439": {
+    "value468": 40,
+    "value469": {
         "value0": 16680644448984634936
     },
-    "value440": 41,
-    "value441": {
-        "value0": 16680644448984634936
+    "value470": 41,
+    "value471": {
+        "value0": 4838390566280914159
     },
-    "value442": 42,
-    "value443": {
-        "value0": 16680644448984634936
+    "value472": 42,
+    "value473": {
+        "value0": 16722696764297374778
     },
-    "value444": 43,
-    "value445": {
+    "value474": 43,
+    "value475": {
         "value0": 8076439804870629473
     },
-    "value446": 44,
-    "value447": {
-        "value0": 7098989048976045174
+    "value476": 44,
+    "value477": {
+        "value0": 2922988186484868607
     },
-    "value448": 45,
-    "value449": {
-        "value0": 7098989048976045174
+    "value478": 45,
+    "value479": {
+        "value0": 17620835260008345330
     },
-    "value450": 46,
-    "value451": {
-        "value0": 7098989048976045174
+    "value480": 46,
+    "value481": {
+        "value0": 16262140283655929216
     },
-    "value452": 47,
-    "value453": {
+    "value482": 47,
+    "value483": {
         "value0": 17900231230883469521
     },
-    "value454": 48,
-    "value455": {
+    "value484": 48,
+    "value485": {
         "value0": 6273149985837589589
     },
-    "value456": 40,
-    "value457": 35,
-    "value458": {
+    "value486": 49,
+    "value487": {
+        "value0": 17413202261215926371
+    },
+    "value488": 50,
+    "value489": {
+        "value0": 24088390834734939
+    },
+    "value490": 51,
+    "value491": {
+        "value0": 4055617899937532868
+    },
+    "value492": 52,
+    "value493": {
+        "value0": 11267442642228032682
+    },
+    "value494": 53,
+    "value495": {
+        "value0": 1271265202659808170
+    },
+    "value496": 54,
+    "value497": {
+        "value0": 1493189173168838353
+    },
+    "value498": 40,
+    "value499": 35,
+    "value500": {
         "PrimitiveType": 8,
         "FilePath": "//Assets/Meshes/lowpoly_bonfire/scene.gltf",
         "Material": {
@@ -2677,8 +2863,8 @@
             }
         }
     },
-    "value459": 33,
-    "value460": {
+    "value501": 33,
+    "value502": {
         "PrimitiveType": 8,
         "FilePath": "//Meshes/Scene/scene.gltf",
         "Material": {
@@ -2713,8 +2899,8 @@
             }
         }
     },
-    "value461": 1048607,
-    "value462": {
+    "value503": 1048607,
+    "value504": {
         "PrimitiveType": 8,
         "FilePath": "//Meshes/DamagedHelmet/glTF/DamagedHelmet.gltf",
         "Material": {
@@ -2749,786 +2935,30 @@
             }
         }
     },
-    "value463": 3145757,
-    "value464": {
-        "PrimitiveType": 2,
-        "FilePath": "Primitive",
-        "Material": {
-            "ptr_wrapper": {
-                "valid": 1,
-                "data": {
-                    "Albedo": "//Textures/checkerboard.tga",
-                    "Normal": "",
-                    "Metallic": "",
-                    "Roughness": "",
-                    "Ao": "",
-                    "Emissive": "",
-                    "albedoColour": {
-                        "value0": 0.6000000238418579,
-                        "value1": 0.10000000149011612,
-                        "value2": 0.10000000149011612,
-                        "value3": 1.0
-                    },
-                    "roughnessValue": 0.6000000238418579,
-                    "metallicValue": 0.15000000596046449,
-                    "emissiveValue": 0.0,
-                    "albedoMapFactor": 0.5,
-                    "metallicMapFactor": 0.0,
-                    "roughnessMapFactor": 0.0,
-                    "normalMapFactor": 0.0,
-                    "aoMapFactor": 0.0,
-                    "emissiveMapFactor": 0.0,
-                    "alphaCutOff": 0.4000000059604645,
-                    "workflow": 0.0,
-                    "shader": "//CoreShaders/ForwardPBR.shader"
-                }
-            }
-        }
-    },
-    "value465": 2097179,
-    "value466": {
-        "PrimitiveType": 2,
-        "FilePath": "Primitive",
-        "Material": {
-            "ptr_wrapper": {
-                "valid": 1,
-                "data": {
-                    "Albedo": "//Textures/checkerboard.tga",
-                    "Normal": "",
-                    "Metallic": "",
-                    "Roughness": "",
-                    "Ao": "",
-                    "Emissive": "",
-                    "albedoColour": {
-                        "value0": 0.6000000238418579,
-                        "value1": 0.10000000149011612,
-                        "value2": 0.10000000149011612,
-                        "value3": 1.0
-                    },
-                    "roughnessValue": 0.6000000238418579,
-                    "metallicValue": 0.15000000596046449,
-                    "emissiveValue": 0.0,
-                    "albedoMapFactor": 0.5,
-                    "metallicMapFactor": 0.0,
-                    "roughnessMapFactor": 0.0,
-                    "normalMapFactor": 0.0,
-                    "aoMapFactor": 0.0,
-                    "emissiveMapFactor": 0.0,
-                    "alphaCutOff": 0.4000000059604645,
-                    "workflow": 0.0,
-                    "shader": "//CoreShaders/ForwardPBR.shader"
-                }
-            }
-        }
-    },
-    "value467": 23,
-    "value468": {
-        "PrimitiveType": 5,
-        "FilePath": "Primitive",
-        "Material": {
-            "ptr_wrapper": {
-                "valid": 1,
-                "data": {
-                    "Albedo": "",
-                    "Normal": "",
-                    "Metallic": "",
-                    "Roughness": "",
-                    "Ao": "",
-                    "Emissive": "",
-                    "albedoColour": {
-                        "value0": 0.8731988668441773,
-                        "value1": 0.15098541975021363,
-                        "value2": 0.15098541975021363,
-                        "value3": 1.0
-                    },
-                    "roughnessValue": 0.30000001192092898,
-                    "metallicValue": 0.800000011920929,
-                    "emissiveValue": 0.0,
-                    "albedoMapFactor": 0.0,
-                    "metallicMapFactor": 0.0,
-                    "roughnessMapFactor": 0.0,
-                    "normalMapFactor": 0.0,
-                    "aoMapFactor": 0.0,
-                    "emissiveMapFactor": 0.0,
-                    "alphaCutOff": 0.4000000059604645,
-                    "workflow": 0.0,
-                    "shader": "//CoreShaders/ForwardPBR.shader"
-                }
-            }
-        }
-    },
-    "value469": 22,
-    "value470": {
-        "PrimitiveType": 4,
-        "FilePath": "Primitive",
-        "Material": {
-            "ptr_wrapper": {
-                "valid": 1,
-                "data": {
-                    "Albedo": "",
-                    "Normal": "",
-                    "Metallic": "",
-                    "Roughness": "",
-                    "Ao": "",
-                    "Emissive": "",
-                    "albedoColour": {
-                        "value0": 0.8999999761581421,
-                        "value1": 0.8999999761581421,
-                        "value2": 0.8999999761581421,
-                        "value3": 0.8999999761581421
-                    },
-                    "roughnessValue": 0.800000011920929,
-                    "metallicValue": 0.8999999761581421,
-                    "emissiveValue": 0.0,
-                    "albedoMapFactor": 0.0,
-                    "metallicMapFactor": 0.0,
-                    "roughnessMapFactor": 0.0,
-                    "normalMapFactor": 0.0,
-                    "aoMapFactor": 0.0,
-                    "emissiveMapFactor": 0.0,
-                    "alphaCutOff": 0.4000000059604645,
-                    "workflow": 0.0,
-                    "shader": "//CoreShaders/ForwardPBR.shader"
-                }
-            }
-        }
-    },
-    "value471": 21,
-    "value472": {
-        "PrimitiveType": 4,
-        "FilePath": "Primitive",
-        "Material": {
-            "ptr_wrapper": {
-                "valid": 1,
-                "data": {
-                    "Albedo": "",
-                    "Normal": "",
-                    "Metallic": "",
-                    "Roughness": "",
-                    "Ao": "",
-                    "Emissive": "",
-                    "albedoColour": {
-                        "value0": 0.8999999761581421,
-                        "value1": 0.8999999761581421,
-                        "value2": 0.8999999761581421,
-                        "value3": 0.8999999761581421
-                    },
-                    "roughnessValue": 0.699999988079071,
-                    "metallicValue": 0.8999999761581421,
-                    "emissiveValue": 0.0,
-                    "albedoMapFactor": 0.0,
-                    "metallicMapFactor": 0.0,
-                    "roughnessMapFactor": 0.0,
-                    "normalMapFactor": 0.0,
-                    "aoMapFactor": 0.0,
-                    "emissiveMapFactor": 0.0,
-                    "alphaCutOff": 0.4000000059604645,
-                    "workflow": 0.0,
-                    "shader": "//CoreShaders/ForwardPBR.shader"
-                }
-            }
-        }
-    },
-    "value473": 20,
-    "value474": {
-        "PrimitiveType": 4,
-        "FilePath": "Primitive",
-        "Material": {
-            "ptr_wrapper": {
-                "valid": 1,
-                "data": {
-                    "Albedo": "",
-                    "Normal": "",
-                    "Metallic": "",
-                    "Roughness": "",
-                    "Ao": "",
-                    "Emissive": "",
-                    "albedoColour": {
-                        "value0": 0.8999999761581421,
-                        "value1": 0.8999999761581421,
-                        "value2": 0.8999999761581421,
-                        "value3": 0.8999999761581421
-                    },
-                    "roughnessValue": 0.6000000238418579,
-                    "metallicValue": 0.8999999761581421,
-                    "emissiveValue": 0.0,
-                    "albedoMapFactor": 0.0,
-                    "metallicMapFactor": 0.0,
-                    "roughnessMapFactor": 0.0,
-                    "normalMapFactor": 0.0,
-                    "aoMapFactor": 0.0,
-                    "emissiveMapFactor": 0.0,
-                    "alphaCutOff": 0.4000000059604645,
-                    "workflow": 0.0,
-                    "shader": "//CoreShaders/ForwardPBR.shader"
-                }
-            }
-        }
-    },
-    "value475": 19,
-    "value476": {
-        "PrimitiveType": 4,
-        "FilePath": "Primitive",
-        "Material": {
-            "ptr_wrapper": {
-                "valid": 1,
-                "data": {
-                    "Albedo": "",
-                    "Normal": "",
-                    "Metallic": "",
-                    "Roughness": "",
-                    "Ao": "",
-                    "Emissive": "",
-                    "albedoColour": {
-                        "value0": 0.8999999761581421,
-                        "value1": 0.8999999761581421,
-                        "value2": 0.8999999761581421,
-                        "value3": 0.8999999761581421
-                    },
-                    "roughnessValue": 0.5,
-                    "metallicValue": 0.8999999761581421,
-                    "emissiveValue": 0.0,
-                    "albedoMapFactor": 0.0,
-                    "metallicMapFactor": 0.0,
-                    "roughnessMapFactor": 0.0,
-                    "normalMapFactor": 0.0,
-                    "aoMapFactor": 0.0,
-                    "emissiveMapFactor": 0.0,
-                    "alphaCutOff": 0.4000000059604645,
-                    "workflow": 0.0,
-                    "shader": "//CoreShaders/ForwardPBR.shader"
-                }
-            }
-        }
-    },
-    "value477": 18,
-    "value478": {
-        "PrimitiveType": 4,
-        "FilePath": "Primitive",
-        "Material": {
-            "ptr_wrapper": {
-                "valid": 1,
-                "data": {
-                    "Albedo": "",
-                    "Normal": "",
-                    "Metallic": "",
-                    "Roughness": "",
-                    "Ao": "",
-                    "Emissive": "",
-                    "albedoColour": {
-                        "value0": 0.8999999761581421,
-                        "value1": 0.8999999761581421,
-                        "value2": 0.8999999761581421,
-                        "value3": 0.8999999761581421
-                    },
-                    "roughnessValue": 0.4000000059604645,
-                    "metallicValue": 0.8999999761581421,
-                    "emissiveValue": 0.0,
-                    "albedoMapFactor": 0.0,
-                    "metallicMapFactor": 0.0,
-                    "roughnessMapFactor": 0.0,
-                    "normalMapFactor": 0.0,
-                    "aoMapFactor": 0.0,
-                    "emissiveMapFactor": 0.0,
-                    "alphaCutOff": 0.4000000059604645,
-                    "workflow": 0.0,
-                    "shader": "//CoreShaders/ForwardPBR.shader"
-                }
-            }
-        }
-    },
-    "value479": 17,
-    "value480": {
-        "PrimitiveType": 4,
-        "FilePath": "Primitive",
-        "Material": {
-            "ptr_wrapper": {
-                "valid": 1,
-                "data": {
-                    "Albedo": "",
-                    "Normal": "",
-                    "Metallic": "",
-                    "Roughness": "",
-                    "Ao": "",
-                    "Emissive": "",
-                    "albedoColour": {
-                        "value0": 0.8999999761581421,
-                        "value1": 0.8999999761581421,
-                        "value2": 0.8999999761581421,
-                        "value3": 0.8999999761581421
-                    },
-                    "roughnessValue": 0.30000001192092898,
-                    "metallicValue": 0.8999999761581421,
-                    "emissiveValue": 0.0,
-                    "albedoMapFactor": 0.0,
-                    "metallicMapFactor": 0.0,
-                    "roughnessMapFactor": 0.0,
-                    "normalMapFactor": 0.0,
-                    "aoMapFactor": 0.0,
-                    "emissiveMapFactor": 0.0,
-                    "alphaCutOff": 0.4000000059604645,
-                    "workflow": 0.0,
-                    "shader": "//CoreShaders/ForwardPBR.shader"
-                }
-            }
-        }
-    },
-    "value481": 16,
-    "value482": {
-        "PrimitiveType": 4,
-        "FilePath": "Primitive",
-        "Material": {
-            "ptr_wrapper": {
-                "valid": 1,
-                "data": {
-                    "Albedo": "",
-                    "Normal": "",
-                    "Metallic": "",
-                    "Roughness": "",
-                    "Ao": "",
-                    "Emissive": "",
-                    "albedoColour": {
-                        "value0": 0.8999999761581421,
-                        "value1": 0.8999999761581421,
-                        "value2": 0.8999999761581421,
-                        "value3": 0.8999999761581421
-                    },
-                    "roughnessValue": 0.20000000298023225,
-                    "metallicValue": 0.8999999761581421,
-                    "emissiveValue": 0.0,
-                    "albedoMapFactor": 0.0,
-                    "metallicMapFactor": 0.0,
-                    "roughnessMapFactor": 0.0,
-                    "normalMapFactor": 0.0,
-                    "aoMapFactor": 0.0,
-                    "emissiveMapFactor": 0.0,
-                    "alphaCutOff": 0.4000000059604645,
-                    "workflow": 0.0,
-                    "shader": "//CoreShaders/ForwardPBR.shader"
-                }
-            }
-        }
-    },
-    "value483": 15,
-    "value484": {
-        "PrimitiveType": 4,
-        "FilePath": "Primitive",
-        "Material": {
-            "ptr_wrapper": {
-                "valid": 1,
-                "data": {
-                    "Albedo": "",
-                    "Normal": "",
-                    "Metallic": "",
-                    "Roughness": "",
-                    "Ao": "",
-                    "Emissive": "",
-                    "albedoColour": {
-                        "value0": 0.8999999761581421,
-                        "value1": 0.8999999761581421,
-                        "value2": 0.8999999761581421,
-                        "value3": 0.8999999761581421
-                    },
-                    "roughnessValue": 0.10000000149011612,
-                    "metallicValue": 0.8999999761581421,
-                    "emissiveValue": 0.0,
-                    "albedoMapFactor": 0.0,
-                    "metallicMapFactor": 0.0,
-                    "roughnessMapFactor": 0.0,
-                    "normalMapFactor": 0.0,
-                    "aoMapFactor": 0.0,
-                    "emissiveMapFactor": 0.0,
-                    "alphaCutOff": 0.4000000059604645,
-                    "workflow": 0.0,
-                    "shader": "//CoreShaders/ForwardPBR.shader"
-                }
-            }
-        }
-    },
-    "value485": 14,
-    "value486": {
-        "PrimitiveType": 4,
-        "FilePath": "Primitive",
-        "Material": {
-            "ptr_wrapper": {
-                "valid": 1,
-                "data": {
-                    "Albedo": "",
-                    "Normal": "",
-                    "Metallic": "",
-                    "Roughness": "",
-                    "Ao": "",
-                    "Emissive": "",
-                    "albedoColour": {
-                        "value0": 0.8999999761581421,
-                        "value1": 0.8999999761581421,
-                        "value2": 0.8999999761581421,
-                        "value3": 0.8999999761581421
-                    },
-                    "roughnessValue": 0.0,
-                    "metallicValue": 0.8999999761581421,
-                    "emissiveValue": 0.0,
-                    "albedoMapFactor": 0.0,
-                    "metallicMapFactor": 0.0,
-                    "roughnessMapFactor": 0.0,
-                    "normalMapFactor": 0.0,
-                    "aoMapFactor": 0.0,
-                    "emissiveMapFactor": 0.0,
-                    "alphaCutOff": 0.4000000059604645,
-                    "workflow": 0.0,
-                    "shader": "//CoreShaders/ForwardPBR.shader"
-                }
-            }
-        }
-    },
-    "value487": 13,
-    "value488": {
-        "PrimitiveType": 4,
-        "FilePath": "Primitive",
-        "Material": {
-            "ptr_wrapper": {
-                "valid": 1,
-                "data": {
-                    "Albedo": "",
-                    "Normal": "",
-                    "Metallic": "",
-                    "Roughness": "",
-                    "Ao": "",
-                    "Emissive": "",
-                    "albedoColour": {
-                        "value0": 0.8999999761581421,
-                        "value1": 0.8999999761581421,
-                        "value2": 0.8999999761581421,
-                        "value3": 0.8999999761581421
-                    },
-                    "roughnessValue": 0.9000000357627869,
-                    "metallicValue": 0.23999999463558198,
-                    "emissiveValue": 0.0,
-                    "albedoMapFactor": 0.0,
-                    "metallicMapFactor": 0.0,
-                    "roughnessMapFactor": 0.0,
-                    "normalMapFactor": 0.0,
-                    "aoMapFactor": 0.0,
-                    "emissiveMapFactor": 0.0,
-                    "alphaCutOff": 0.4000000059604645,
-                    "workflow": 0.0,
-                    "shader": "//CoreShaders/ForwardPBR.shader"
-                }
-            }
-        }
-    },
-    "value489": 12,
-    "value490": {
-        "PrimitiveType": 4,
-        "FilePath": "Primitive",
-        "Material": {
-            "ptr_wrapper": {
-                "valid": 1,
-                "data": {
-                    "Albedo": "",
-                    "Normal": "",
-                    "Metallic": "",
-                    "Roughness": "",
-                    "Ao": "",
-                    "Emissive": "",
-                    "albedoColour": {
-                        "value0": 0.8999999761581421,
-                        "value1": 0.8999999761581421,
-                        "value2": 0.8999999761581421,
-                        "value3": 0.8999999761581421
-                    },
-                    "roughnessValue": 0.800000011920929,
-                    "metallicValue": 0.23999999463558198,
-                    "emissiveValue": 0.0,
-                    "albedoMapFactor": 0.0,
-                    "metallicMapFactor": 0.0,
-                    "roughnessMapFactor": 0.0,
-                    "normalMapFactor": 0.0,
-                    "aoMapFactor": 0.0,
-                    "emissiveMapFactor": 0.0,
-                    "alphaCutOff": 0.4000000059604645,
-                    "workflow": 0.0,
-                    "shader": "//CoreShaders/ForwardPBR.shader"
-                }
-            }
-        }
-    },
-    "value491": 11,
-    "value492": {
-        "PrimitiveType": 4,
-        "FilePath": "Primitive",
-        "Material": {
-            "ptr_wrapper": {
-                "valid": 1,
-                "data": {
-                    "Albedo": "",
-                    "Normal": "",
-                    "Metallic": "",
-                    "Roughness": "",
-                    "Ao": "",
-                    "Emissive": "",
-                    "albedoColour": {
-                        "value0": 0.8999999761581421,
-                        "value1": 0.8999999761581421,
-                        "value2": 0.8999999761581421,
-                        "value3": 0.8999999761581421
-                    },
-                    "roughnessValue": 0.699999988079071,
-                    "metallicValue": 0.23999999463558198,
-                    "emissiveValue": 0.0,
-                    "albedoMapFactor": 0.0,
-                    "metallicMapFactor": 0.0,
-                    "roughnessMapFactor": 0.0,
-                    "normalMapFactor": 0.0,
-                    "aoMapFactor": 0.0,
-                    "emissiveMapFactor": 0.0,
-                    "alphaCutOff": 0.4000000059604645,
-                    "workflow": 0.0,
-                    "shader": "//CoreShaders/ForwardPBR.shader"
-                }
-            }
-        }
-    },
-    "value493": 10,
-    "value494": {
-        "PrimitiveType": 4,
-        "FilePath": "Primitive",
-        "Material": {
-            "ptr_wrapper": {
-                "valid": 1,
-                "data": {
-                    "Albedo": "",
-                    "Normal": "",
-                    "Metallic": "",
-                    "Roughness": "",
-                    "Ao": "",
-                    "Emissive": "",
-                    "albedoColour": {
-                        "value0": 0.8999999761581421,
-                        "value1": 0.8999999761581421,
-                        "value2": 0.8999999761581421,
-                        "value3": 0.8999999761581421
-                    },
-                    "roughnessValue": 0.6000000238418579,
-                    "metallicValue": 0.23999999463558198,
-                    "emissiveValue": 0.0,
-                    "albedoMapFactor": 0.0,
-                    "metallicMapFactor": 0.0,
-                    "roughnessMapFactor": 0.0,
-                    "normalMapFactor": 0.0,
-                    "aoMapFactor": 0.0,
-                    "emissiveMapFactor": 0.0,
-                    "alphaCutOff": 0.4000000059604645,
-                    "workflow": 0.0,
-                    "shader": "//CoreShaders/ForwardPBR.shader"
-                }
-            }
-        }
-    },
-    "value495": 9,
-    "value496": {
-        "PrimitiveType": 4,
-        "FilePath": "Primitive",
-        "Material": {
-            "ptr_wrapper": {
-                "valid": 1,
-                "data": {
-                    "Albedo": "",
-                    "Normal": "",
-                    "Metallic": "",
-                    "Roughness": "",
-                    "Ao": "",
-                    "Emissive": "",
-                    "albedoColour": {
-                        "value0": 0.8999999761581421,
-                        "value1": 0.8999999761581421,
-                        "value2": 0.8999999761581421,
-                        "value3": 0.8999999761581421
-                    },
-                    "roughnessValue": 0.5,
-                    "metallicValue": 0.23999999463558198,
-                    "emissiveValue": 0.0,
-                    "albedoMapFactor": 0.0,
-                    "metallicMapFactor": 0.0,
-                    "roughnessMapFactor": 0.0,
-                    "normalMapFactor": 0.0,
-                    "aoMapFactor": 0.0,
-                    "emissiveMapFactor": 0.0,
-                    "alphaCutOff": 0.4000000059604645,
-                    "workflow": 0.0,
-                    "shader": "//CoreShaders/ForwardPBR.shader"
-                }
-            }
-        }
-    },
-    "value497": 8,
-    "value498": {
-        "PrimitiveType": 4,
-        "FilePath": "Primitive",
-        "Material": {
-            "ptr_wrapper": {
-                "valid": 1,
-                "data": {
-                    "Albedo": "",
-                    "Normal": "",
-                    "Metallic": "",
-                    "Roughness": "",
-                    "Ao": "",
-                    "Emissive": "",
-                    "albedoColour": {
-                        "value0": 0.8999999761581421,
-                        "value1": 0.8999999761581421,
-                        "value2": 0.8999999761581421,
-                        "value3": 0.8999999761581421
-                    },
-                    "roughnessValue": 0.4000000059604645,
-                    "metallicValue": 0.23999999463558198,
-                    "emissiveValue": 0.0,
-                    "albedoMapFactor": 0.0,
-                    "metallicMapFactor": 0.0,
-                    "roughnessMapFactor": 0.0,
-                    "normalMapFactor": 0.0,
-                    "aoMapFactor": 0.0,
-                    "emissiveMapFactor": 0.0,
-                    "alphaCutOff": 0.4000000059604645,
-                    "workflow": 0.0,
-                    "shader": "//CoreShaders/ForwardPBR.shader"
-                }
-            }
-        }
-    },
-    "value499": 7,
-    "value500": {
-        "PrimitiveType": 4,
-        "FilePath": "Primitive",
-        "Material": {
-            "ptr_wrapper": {
-                "valid": 1,
-                "data": {
-                    "Albedo": "",
-                    "Normal": "",
-                    "Metallic": "",
-                    "Roughness": "",
-                    "Ao": "",
-                    "Emissive": "",
-                    "albedoColour": {
-                        "value0": 0.8999999761581421,
-                        "value1": 0.8999999761581421,
-                        "value2": 0.8999999761581421,
-                        "value3": 0.8999999761581421
-                    },
-                    "roughnessValue": 0.30000001192092898,
-                    "metallicValue": 0.23999999463558198,
-                    "emissiveValue": 0.0,
-                    "albedoMapFactor": 0.0,
-                    "metallicMapFactor": 0.0,
-                    "roughnessMapFactor": 0.0,
-                    "normalMapFactor": 0.0,
-                    "aoMapFactor": 0.0,
-                    "emissiveMapFactor": 0.0,
-                    "alphaCutOff": 0.4000000059604645,
-                    "workflow": 0.0,
-                    "shader": "//CoreShaders/ForwardPBR.shader"
-                }
-            }
-        }
-    },
-    "value501": 6,
-    "value502": {
-        "PrimitiveType": 4,
-        "FilePath": "Primitive",
-        "Material": {
-            "ptr_wrapper": {
-                "valid": 1,
-                "data": {
-                    "Albedo": "",
-                    "Normal": "",
-                    "Metallic": "",
-                    "Roughness": "",
-                    "Ao": "",
-                    "Emissive": "",
-                    "albedoColour": {
-                        "value0": 0.8999999761581421,
-                        "value1": 0.8999999761581421,
-                        "value2": 0.8999999761581421,
-                        "value3": 0.8999999761581421
-                    },
-                    "roughnessValue": 0.20000000298023225,
-                    "metallicValue": 0.23999999463558198,
-                    "emissiveValue": 0.0,
-                    "albedoMapFactor": 0.0,
-                    "metallicMapFactor": 0.0,
-                    "roughnessMapFactor": 0.0,
-                    "normalMapFactor": 0.0,
-                    "aoMapFactor": 0.0,
-                    "emissiveMapFactor": 0.0,
-                    "alphaCutOff": 0.4000000059604645,
-                    "workflow": 0.0,
-                    "shader": "//CoreShaders/ForwardPBR.shader"
-                }
-            }
-        }
-    },
-    "value503": 5,
-    "value504": {
-        "PrimitiveType": 4,
-        "FilePath": "Primitive",
-        "Material": {
-            "ptr_wrapper": {
-                "valid": 1,
-                "data": {
-                    "Albedo": "",
-                    "Normal": "",
-                    "Metallic": "",
-                    "Roughness": "",
-                    "Ao": "",
-                    "Emissive": "",
-                    "albedoColour": {
-                        "value0": 0.8999999761581421,
-                        "value1": 0.8999999761581421,
-                        "value2": 0.8999999761581421,
-                        "value3": 0.8999999761581421
-                    },
-                    "roughnessValue": 0.10000000149011612,
-                    "metallicValue": 0.23999999463558198,
-                    "emissiveValue": 0.0,
-                    "albedoMapFactor": 0.0,
-                    "metallicMapFactor": 0.0,
-                    "roughnessMapFactor": 0.0,
-                    "normalMapFactor": 0.0,
-                    "aoMapFactor": 0.0,
-                    "emissiveMapFactor": 0.0,
-                    "alphaCutOff": 0.4000000059604645,
-                    "workflow": 0.0,
-                    "shader": "//CoreShaders/ForwardPBR.shader"
-                }
-            }
-        }
-    },
-    "value505": 4,
+    "value505": 3145757,
     "value506": {
-        "PrimitiveType": 4,
+        "PrimitiveType": 2,
         "FilePath": "Primitive",
         "Material": {
             "ptr_wrapper": {
                 "valid": 1,
                 "data": {
-                    "Albedo": "",
+                    "Albedo": "//Textures/checkerboard.tga",
                     "Normal": "",
                     "Metallic": "",
                     "Roughness": "",
                     "Ao": "",
                     "Emissive": "",
                     "albedoColour": {
-                        "value0": 0.8999999761581421,
-                        "value1": 0.8999999761581421,
-                        "value2": 0.8999999761581421,
-                        "value3": 0.8999999761581421
+                        "value0": 0.6000000238418579,
+                        "value1": 0.10000000149011612,
+                        "value2": 0.10000000149011612,
+                        "value3": 1.0
                     },
-                    "roughnessValue": 0.0,
-                    "metallicValue": 0.23999999463558198,
+                    "roughnessValue": 0.6000000238418579,
+                    "metallicValue": 0.15000000596046449,
                     "emissiveValue": 0.0,
-                    "albedoMapFactor": 0.0,
+                    "albedoMapFactor": 0.5,
                     "metallicMapFactor": 0.0,
                     "roughnessMapFactor": 0.0,
                     "normalMapFactor": 0.0,
@@ -3541,7 +2971,7 @@
             }
         }
     },
-    "value507": 2097155,
+    "value507": 2097179,
     "value508": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
@@ -3577,30 +3007,30 @@
             }
         }
     },
-    "value509": 2097154,
+    "value509": 23,
     "value510": {
-        "PrimitiveType": 2,
+        "PrimitiveType": 5,
         "FilePath": "Primitive",
         "Material": {
             "ptr_wrapper": {
                 "valid": 1,
                 "data": {
-                    "Albedo": "//Textures/checkerboard.tga",
+                    "Albedo": "",
                     "Normal": "",
                     "Metallic": "",
                     "Roughness": "",
                     "Ao": "",
                     "Emissive": "",
                     "albedoColour": {
-                        "value0": 0.6000000238418579,
-                        "value1": 0.10000000149011612,
-                        "value2": 0.10000000149011612,
+                        "value0": 0.8731988668441773,
+                        "value1": 0.15098541975021363,
+                        "value2": 0.15098541975021363,
                         "value3": 1.0
                     },
-                    "roughnessValue": 0.6000000238418579,
-                    "metallicValue": 0.15000000596046449,
+                    "roughnessValue": 0.30000001192092898,
+                    "metallicValue": 0.800000011920929,
                     "emissiveValue": 0.0,
-                    "albedoMapFactor": 0.5,
+                    "albedoMapFactor": 0.0,
                     "metallicMapFactor": 0.0,
                     "roughnessMapFactor": 0.0,
                     "normalMapFactor": 0.0,
@@ -3613,8 +3043,692 @@
             }
         }
     },
-    "value511": 1,
+    "value511": 22,
     "value512": {
+        "PrimitiveType": 4,
+        "FilePath": "Primitive",
+        "Material": {
+            "ptr_wrapper": {
+                "valid": 1,
+                "data": {
+                    "Albedo": "",
+                    "Normal": "",
+                    "Metallic": "",
+                    "Roughness": "",
+                    "Ao": "",
+                    "Emissive": "",
+                    "albedoColour": {
+                        "value0": 0.8999999761581421,
+                        "value1": 0.8999999761581421,
+                        "value2": 0.8999999761581421,
+                        "value3": 0.8999999761581421
+                    },
+                    "roughnessValue": 0.800000011920929,
+                    "metallicValue": 0.8999999761581421,
+                    "emissiveValue": 0.0,
+                    "albedoMapFactor": 0.0,
+                    "metallicMapFactor": 0.0,
+                    "roughnessMapFactor": 0.0,
+                    "normalMapFactor": 0.0,
+                    "aoMapFactor": 0.0,
+                    "emissiveMapFactor": 0.0,
+                    "alphaCutOff": 0.4000000059604645,
+                    "workflow": 0.0,
+                    "shader": "//CoreShaders/ForwardPBR.shader"
+                }
+            }
+        }
+    },
+    "value513": 21,
+    "value514": {
+        "PrimitiveType": 4,
+        "FilePath": "Primitive",
+        "Material": {
+            "ptr_wrapper": {
+                "valid": 1,
+                "data": {
+                    "Albedo": "",
+                    "Normal": "",
+                    "Metallic": "",
+                    "Roughness": "",
+                    "Ao": "",
+                    "Emissive": "",
+                    "albedoColour": {
+                        "value0": 0.8999999761581421,
+                        "value1": 0.8999999761581421,
+                        "value2": 0.8999999761581421,
+                        "value3": 0.8999999761581421
+                    },
+                    "roughnessValue": 0.699999988079071,
+                    "metallicValue": 0.8999999761581421,
+                    "emissiveValue": 0.0,
+                    "albedoMapFactor": 0.0,
+                    "metallicMapFactor": 0.0,
+                    "roughnessMapFactor": 0.0,
+                    "normalMapFactor": 0.0,
+                    "aoMapFactor": 0.0,
+                    "emissiveMapFactor": 0.0,
+                    "alphaCutOff": 0.4000000059604645,
+                    "workflow": 0.0,
+                    "shader": "//CoreShaders/ForwardPBR.shader"
+                }
+            }
+        }
+    },
+    "value515": 20,
+    "value516": {
+        "PrimitiveType": 4,
+        "FilePath": "Primitive",
+        "Material": {
+            "ptr_wrapper": {
+                "valid": 1,
+                "data": {
+                    "Albedo": "",
+                    "Normal": "",
+                    "Metallic": "",
+                    "Roughness": "",
+                    "Ao": "",
+                    "Emissive": "",
+                    "albedoColour": {
+                        "value0": 0.8999999761581421,
+                        "value1": 0.8999999761581421,
+                        "value2": 0.8999999761581421,
+                        "value3": 0.8999999761581421
+                    },
+                    "roughnessValue": 0.6000000238418579,
+                    "metallicValue": 0.8999999761581421,
+                    "emissiveValue": 0.0,
+                    "albedoMapFactor": 0.0,
+                    "metallicMapFactor": 0.0,
+                    "roughnessMapFactor": 0.0,
+                    "normalMapFactor": 0.0,
+                    "aoMapFactor": 0.0,
+                    "emissiveMapFactor": 0.0,
+                    "alphaCutOff": 0.4000000059604645,
+                    "workflow": 0.0,
+                    "shader": "//CoreShaders/ForwardPBR.shader"
+                }
+            }
+        }
+    },
+    "value517": 19,
+    "value518": {
+        "PrimitiveType": 4,
+        "FilePath": "Primitive",
+        "Material": {
+            "ptr_wrapper": {
+                "valid": 1,
+                "data": {
+                    "Albedo": "",
+                    "Normal": "",
+                    "Metallic": "",
+                    "Roughness": "",
+                    "Ao": "",
+                    "Emissive": "",
+                    "albedoColour": {
+                        "value0": 0.8999999761581421,
+                        "value1": 0.8999999761581421,
+                        "value2": 0.8999999761581421,
+                        "value3": 0.8999999761581421
+                    },
+                    "roughnessValue": 0.5,
+                    "metallicValue": 0.8999999761581421,
+                    "emissiveValue": 0.0,
+                    "albedoMapFactor": 0.0,
+                    "metallicMapFactor": 0.0,
+                    "roughnessMapFactor": 0.0,
+                    "normalMapFactor": 0.0,
+                    "aoMapFactor": 0.0,
+                    "emissiveMapFactor": 0.0,
+                    "alphaCutOff": 0.4000000059604645,
+                    "workflow": 0.0,
+                    "shader": "//CoreShaders/ForwardPBR.shader"
+                }
+            }
+        }
+    },
+    "value519": 18,
+    "value520": {
+        "PrimitiveType": 4,
+        "FilePath": "Primitive",
+        "Material": {
+            "ptr_wrapper": {
+                "valid": 1,
+                "data": {
+                    "Albedo": "",
+                    "Normal": "",
+                    "Metallic": "",
+                    "Roughness": "",
+                    "Ao": "",
+                    "Emissive": "",
+                    "albedoColour": {
+                        "value0": 0.8999999761581421,
+                        "value1": 0.8999999761581421,
+                        "value2": 0.8999999761581421,
+                        "value3": 0.8999999761581421
+                    },
+                    "roughnessValue": 0.4000000059604645,
+                    "metallicValue": 0.8999999761581421,
+                    "emissiveValue": 0.0,
+                    "albedoMapFactor": 0.0,
+                    "metallicMapFactor": 0.0,
+                    "roughnessMapFactor": 0.0,
+                    "normalMapFactor": 0.0,
+                    "aoMapFactor": 0.0,
+                    "emissiveMapFactor": 0.0,
+                    "alphaCutOff": 0.4000000059604645,
+                    "workflow": 0.0,
+                    "shader": "//CoreShaders/ForwardPBR.shader"
+                }
+            }
+        }
+    },
+    "value521": 17,
+    "value522": {
+        "PrimitiveType": 4,
+        "FilePath": "Primitive",
+        "Material": {
+            "ptr_wrapper": {
+                "valid": 1,
+                "data": {
+                    "Albedo": "",
+                    "Normal": "",
+                    "Metallic": "",
+                    "Roughness": "",
+                    "Ao": "",
+                    "Emissive": "",
+                    "albedoColour": {
+                        "value0": 0.8999999761581421,
+                        "value1": 0.8999999761581421,
+                        "value2": 0.8999999761581421,
+                        "value3": 0.8999999761581421
+                    },
+                    "roughnessValue": 0.30000001192092898,
+                    "metallicValue": 0.8999999761581421,
+                    "emissiveValue": 0.0,
+                    "albedoMapFactor": 0.0,
+                    "metallicMapFactor": 0.0,
+                    "roughnessMapFactor": 0.0,
+                    "normalMapFactor": 0.0,
+                    "aoMapFactor": 0.0,
+                    "emissiveMapFactor": 0.0,
+                    "alphaCutOff": 0.4000000059604645,
+                    "workflow": 0.0,
+                    "shader": "//CoreShaders/ForwardPBR.shader"
+                }
+            }
+        }
+    },
+    "value523": 16,
+    "value524": {
+        "PrimitiveType": 4,
+        "FilePath": "Primitive",
+        "Material": {
+            "ptr_wrapper": {
+                "valid": 1,
+                "data": {
+                    "Albedo": "",
+                    "Normal": "",
+                    "Metallic": "",
+                    "Roughness": "",
+                    "Ao": "",
+                    "Emissive": "",
+                    "albedoColour": {
+                        "value0": 0.8999999761581421,
+                        "value1": 0.8999999761581421,
+                        "value2": 0.8999999761581421,
+                        "value3": 0.8999999761581421
+                    },
+                    "roughnessValue": 0.20000000298023225,
+                    "metallicValue": 0.8999999761581421,
+                    "emissiveValue": 0.0,
+                    "albedoMapFactor": 0.0,
+                    "metallicMapFactor": 0.0,
+                    "roughnessMapFactor": 0.0,
+                    "normalMapFactor": 0.0,
+                    "aoMapFactor": 0.0,
+                    "emissiveMapFactor": 0.0,
+                    "alphaCutOff": 0.4000000059604645,
+                    "workflow": 0.0,
+                    "shader": "//CoreShaders/ForwardPBR.shader"
+                }
+            }
+        }
+    },
+    "value525": 15,
+    "value526": {
+        "PrimitiveType": 4,
+        "FilePath": "Primitive",
+        "Material": {
+            "ptr_wrapper": {
+                "valid": 1,
+                "data": {
+                    "Albedo": "",
+                    "Normal": "",
+                    "Metallic": "",
+                    "Roughness": "",
+                    "Ao": "",
+                    "Emissive": "",
+                    "albedoColour": {
+                        "value0": 0.8999999761581421,
+                        "value1": 0.8999999761581421,
+                        "value2": 0.8999999761581421,
+                        "value3": 0.8999999761581421
+                    },
+                    "roughnessValue": 0.10000000149011612,
+                    "metallicValue": 0.8999999761581421,
+                    "emissiveValue": 0.0,
+                    "albedoMapFactor": 0.0,
+                    "metallicMapFactor": 0.0,
+                    "roughnessMapFactor": 0.0,
+                    "normalMapFactor": 0.0,
+                    "aoMapFactor": 0.0,
+                    "emissiveMapFactor": 0.0,
+                    "alphaCutOff": 0.4000000059604645,
+                    "workflow": 0.0,
+                    "shader": "//CoreShaders/ForwardPBR.shader"
+                }
+            }
+        }
+    },
+    "value527": 14,
+    "value528": {
+        "PrimitiveType": 4,
+        "FilePath": "Primitive",
+        "Material": {
+            "ptr_wrapper": {
+                "valid": 1,
+                "data": {
+                    "Albedo": "",
+                    "Normal": "",
+                    "Metallic": "",
+                    "Roughness": "",
+                    "Ao": "",
+                    "Emissive": "",
+                    "albedoColour": {
+                        "value0": 0.8999999761581421,
+                        "value1": 0.8999999761581421,
+                        "value2": 0.8999999761581421,
+                        "value3": 0.8999999761581421
+                    },
+                    "roughnessValue": 0.0,
+                    "metallicValue": 0.8999999761581421,
+                    "emissiveValue": 0.0,
+                    "albedoMapFactor": 0.0,
+                    "metallicMapFactor": 0.0,
+                    "roughnessMapFactor": 0.0,
+                    "normalMapFactor": 0.0,
+                    "aoMapFactor": 0.0,
+                    "emissiveMapFactor": 0.0,
+                    "alphaCutOff": 0.4000000059604645,
+                    "workflow": 0.0,
+                    "shader": "//CoreShaders/ForwardPBR.shader"
+                }
+            }
+        }
+    },
+    "value529": 13,
+    "value530": {
+        "PrimitiveType": 4,
+        "FilePath": "Primitive",
+        "Material": {
+            "ptr_wrapper": {
+                "valid": 1,
+                "data": {
+                    "Albedo": "",
+                    "Normal": "",
+                    "Metallic": "",
+                    "Roughness": "",
+                    "Ao": "",
+                    "Emissive": "",
+                    "albedoColour": {
+                        "value0": 0.8999999761581421,
+                        "value1": 0.8999999761581421,
+                        "value2": 0.8999999761581421,
+                        "value3": 0.8999999761581421
+                    },
+                    "roughnessValue": 0.9000000357627869,
+                    "metallicValue": 0.23999999463558198,
+                    "emissiveValue": 0.0,
+                    "albedoMapFactor": 0.0,
+                    "metallicMapFactor": 0.0,
+                    "roughnessMapFactor": 0.0,
+                    "normalMapFactor": 0.0,
+                    "aoMapFactor": 0.0,
+                    "emissiveMapFactor": 0.0,
+                    "alphaCutOff": 0.4000000059604645,
+                    "workflow": 0.0,
+                    "shader": "//CoreShaders/ForwardPBR.shader"
+                }
+            }
+        }
+    },
+    "value531": 12,
+    "value532": {
+        "PrimitiveType": 4,
+        "FilePath": "Primitive",
+        "Material": {
+            "ptr_wrapper": {
+                "valid": 1,
+                "data": {
+                    "Albedo": "",
+                    "Normal": "",
+                    "Metallic": "",
+                    "Roughness": "",
+                    "Ao": "",
+                    "Emissive": "",
+                    "albedoColour": {
+                        "value0": 0.8999999761581421,
+                        "value1": 0.8999999761581421,
+                        "value2": 0.8999999761581421,
+                        "value3": 0.8999999761581421
+                    },
+                    "roughnessValue": 0.800000011920929,
+                    "metallicValue": 0.23999999463558198,
+                    "emissiveValue": 0.0,
+                    "albedoMapFactor": 0.0,
+                    "metallicMapFactor": 0.0,
+                    "roughnessMapFactor": 0.0,
+                    "normalMapFactor": 0.0,
+                    "aoMapFactor": 0.0,
+                    "emissiveMapFactor": 0.0,
+                    "alphaCutOff": 0.4000000059604645,
+                    "workflow": 0.0,
+                    "shader": "//CoreShaders/ForwardPBR.shader"
+                }
+            }
+        }
+    },
+    "value533": 11,
+    "value534": {
+        "PrimitiveType": 4,
+        "FilePath": "Primitive",
+        "Material": {
+            "ptr_wrapper": {
+                "valid": 1,
+                "data": {
+                    "Albedo": "",
+                    "Normal": "",
+                    "Metallic": "",
+                    "Roughness": "",
+                    "Ao": "",
+                    "Emissive": "",
+                    "albedoColour": {
+                        "value0": 0.8999999761581421,
+                        "value1": 0.8999999761581421,
+                        "value2": 0.8999999761581421,
+                        "value3": 0.8999999761581421
+                    },
+                    "roughnessValue": 0.699999988079071,
+                    "metallicValue": 0.23999999463558198,
+                    "emissiveValue": 0.0,
+                    "albedoMapFactor": 0.0,
+                    "metallicMapFactor": 0.0,
+                    "roughnessMapFactor": 0.0,
+                    "normalMapFactor": 0.0,
+                    "aoMapFactor": 0.0,
+                    "emissiveMapFactor": 0.0,
+                    "alphaCutOff": 0.4000000059604645,
+                    "workflow": 0.0,
+                    "shader": "//CoreShaders/ForwardPBR.shader"
+                }
+            }
+        }
+    },
+    "value535": 10,
+    "value536": {
+        "PrimitiveType": 4,
+        "FilePath": "Primitive",
+        "Material": {
+            "ptr_wrapper": {
+                "valid": 1,
+                "data": {
+                    "Albedo": "",
+                    "Normal": "",
+                    "Metallic": "",
+                    "Roughness": "",
+                    "Ao": "",
+                    "Emissive": "",
+                    "albedoColour": {
+                        "value0": 0.8999999761581421,
+                        "value1": 0.8999999761581421,
+                        "value2": 0.8999999761581421,
+                        "value3": 0.8999999761581421
+                    },
+                    "roughnessValue": 0.6000000238418579,
+                    "metallicValue": 0.23999999463558198,
+                    "emissiveValue": 0.0,
+                    "albedoMapFactor": 0.0,
+                    "metallicMapFactor": 0.0,
+                    "roughnessMapFactor": 0.0,
+                    "normalMapFactor": 0.0,
+                    "aoMapFactor": 0.0,
+                    "emissiveMapFactor": 0.0,
+                    "alphaCutOff": 0.4000000059604645,
+                    "workflow": 0.0,
+                    "shader": "//CoreShaders/ForwardPBR.shader"
+                }
+            }
+        }
+    },
+    "value537": 9,
+    "value538": {
+        "PrimitiveType": 4,
+        "FilePath": "Primitive",
+        "Material": {
+            "ptr_wrapper": {
+                "valid": 1,
+                "data": {
+                    "Albedo": "",
+                    "Normal": "",
+                    "Metallic": "",
+                    "Roughness": "",
+                    "Ao": "",
+                    "Emissive": "",
+                    "albedoColour": {
+                        "value0": 0.8999999761581421,
+                        "value1": 0.8999999761581421,
+                        "value2": 0.8999999761581421,
+                        "value3": 0.8999999761581421
+                    },
+                    "roughnessValue": 0.5,
+                    "metallicValue": 0.23999999463558198,
+                    "emissiveValue": 0.0,
+                    "albedoMapFactor": 0.0,
+                    "metallicMapFactor": 0.0,
+                    "roughnessMapFactor": 0.0,
+                    "normalMapFactor": 0.0,
+                    "aoMapFactor": 0.0,
+                    "emissiveMapFactor": 0.0,
+                    "alphaCutOff": 0.4000000059604645,
+                    "workflow": 0.0,
+                    "shader": "//CoreShaders/ForwardPBR.shader"
+                }
+            }
+        }
+    },
+    "value539": 8,
+    "value540": {
+        "PrimitiveType": 4,
+        "FilePath": "Primitive",
+        "Material": {
+            "ptr_wrapper": {
+                "valid": 1,
+                "data": {
+                    "Albedo": "",
+                    "Normal": "",
+                    "Metallic": "",
+                    "Roughness": "",
+                    "Ao": "",
+                    "Emissive": "",
+                    "albedoColour": {
+                        "value0": 0.8999999761581421,
+                        "value1": 0.8999999761581421,
+                        "value2": 0.8999999761581421,
+                        "value3": 0.8999999761581421
+                    },
+                    "roughnessValue": 0.4000000059604645,
+                    "metallicValue": 0.23999999463558198,
+                    "emissiveValue": 0.0,
+                    "albedoMapFactor": 0.0,
+                    "metallicMapFactor": 0.0,
+                    "roughnessMapFactor": 0.0,
+                    "normalMapFactor": 0.0,
+                    "aoMapFactor": 0.0,
+                    "emissiveMapFactor": 0.0,
+                    "alphaCutOff": 0.4000000059604645,
+                    "workflow": 0.0,
+                    "shader": "//CoreShaders/ForwardPBR.shader"
+                }
+            }
+        }
+    },
+    "value541": 7,
+    "value542": {
+        "PrimitiveType": 4,
+        "FilePath": "Primitive",
+        "Material": {
+            "ptr_wrapper": {
+                "valid": 1,
+                "data": {
+                    "Albedo": "",
+                    "Normal": "",
+                    "Metallic": "",
+                    "Roughness": "",
+                    "Ao": "",
+                    "Emissive": "",
+                    "albedoColour": {
+                        "value0": 0.8999999761581421,
+                        "value1": 0.8999999761581421,
+                        "value2": 0.8999999761581421,
+                        "value3": 0.8999999761581421
+                    },
+                    "roughnessValue": 0.30000001192092898,
+                    "metallicValue": 0.23999999463558198,
+                    "emissiveValue": 0.0,
+                    "albedoMapFactor": 0.0,
+                    "metallicMapFactor": 0.0,
+                    "roughnessMapFactor": 0.0,
+                    "normalMapFactor": 0.0,
+                    "aoMapFactor": 0.0,
+                    "emissiveMapFactor": 0.0,
+                    "alphaCutOff": 0.4000000059604645,
+                    "workflow": 0.0,
+                    "shader": "//CoreShaders/ForwardPBR.shader"
+                }
+            }
+        }
+    },
+    "value543": 6,
+    "value544": {
+        "PrimitiveType": 4,
+        "FilePath": "Primitive",
+        "Material": {
+            "ptr_wrapper": {
+                "valid": 1,
+                "data": {
+                    "Albedo": "",
+                    "Normal": "",
+                    "Metallic": "",
+                    "Roughness": "",
+                    "Ao": "",
+                    "Emissive": "",
+                    "albedoColour": {
+                        "value0": 0.8999999761581421,
+                        "value1": 0.8999999761581421,
+                        "value2": 0.8999999761581421,
+                        "value3": 0.8999999761581421
+                    },
+                    "roughnessValue": 0.20000000298023225,
+                    "metallicValue": 0.23999999463558198,
+                    "emissiveValue": 0.0,
+                    "albedoMapFactor": 0.0,
+                    "metallicMapFactor": 0.0,
+                    "roughnessMapFactor": 0.0,
+                    "normalMapFactor": 0.0,
+                    "aoMapFactor": 0.0,
+                    "emissiveMapFactor": 0.0,
+                    "alphaCutOff": 0.4000000059604645,
+                    "workflow": 0.0,
+                    "shader": "//CoreShaders/ForwardPBR.shader"
+                }
+            }
+        }
+    },
+    "value545": 5,
+    "value546": {
+        "PrimitiveType": 4,
+        "FilePath": "Primitive",
+        "Material": {
+            "ptr_wrapper": {
+                "valid": 1,
+                "data": {
+                    "Albedo": "",
+                    "Normal": "",
+                    "Metallic": "",
+                    "Roughness": "",
+                    "Ao": "",
+                    "Emissive": "",
+                    "albedoColour": {
+                        "value0": 0.8999999761581421,
+                        "value1": 0.8999999761581421,
+                        "value2": 0.8999999761581421,
+                        "value3": 0.8999999761581421
+                    },
+                    "roughnessValue": 0.10000000149011612,
+                    "metallicValue": 0.23999999463558198,
+                    "emissiveValue": 0.0,
+                    "albedoMapFactor": 0.0,
+                    "metallicMapFactor": 0.0,
+                    "roughnessMapFactor": 0.0,
+                    "normalMapFactor": 0.0,
+                    "aoMapFactor": 0.0,
+                    "emissiveMapFactor": 0.0,
+                    "alphaCutOff": 0.4000000059604645,
+                    "workflow": 0.0,
+                    "shader": "//CoreShaders/ForwardPBR.shader"
+                }
+            }
+        }
+    },
+    "value547": 4,
+    "value548": {
+        "PrimitiveType": 4,
+        "FilePath": "Primitive",
+        "Material": {
+            "ptr_wrapper": {
+                "valid": 1,
+                "data": {
+                    "Albedo": "",
+                    "Normal": "",
+                    "Metallic": "",
+                    "Roughness": "",
+                    "Ao": "",
+                    "Emissive": "",
+                    "albedoColour": {
+                        "value0": 0.8999999761581421,
+                        "value1": 0.8999999761581421,
+                        "value2": 0.8999999761581421,
+                        "value3": 0.8999999761581421
+                    },
+                    "roughnessValue": 0.0,
+                    "metallicValue": 0.23999999463558198,
+                    "emissiveValue": 0.0,
+                    "albedoMapFactor": 0.0,
+                    "metallicMapFactor": 0.0,
+                    "roughnessMapFactor": 0.0,
+                    "normalMapFactor": 0.0,
+                    "aoMapFactor": 0.0,
+                    "emissiveMapFactor": 0.0,
+                    "alphaCutOff": 0.4000000059604645,
+                    "workflow": 0.0,
+                    "shader": "//CoreShaders/ForwardPBR.shader"
+                }
+            }
+        }
+    },
+    "value549": 2097155,
+    "value550": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
         "Material": {
@@ -3649,8 +3763,80 @@
             }
         }
     },
-    "value513": 1048576,
-    "value514": {
+    "value551": 2097154,
+    "value552": {
+        "PrimitiveType": 2,
+        "FilePath": "Primitive",
+        "Material": {
+            "ptr_wrapper": {
+                "valid": 1,
+                "data": {
+                    "Albedo": "//Textures/checkerboard.tga",
+                    "Normal": "",
+                    "Metallic": "",
+                    "Roughness": "",
+                    "Ao": "",
+                    "Emissive": "",
+                    "albedoColour": {
+                        "value0": 0.6000000238418579,
+                        "value1": 0.10000000149011612,
+                        "value2": 0.10000000149011612,
+                        "value3": 1.0
+                    },
+                    "roughnessValue": 0.6000000238418579,
+                    "metallicValue": 0.15000000596046449,
+                    "emissiveValue": 0.0,
+                    "albedoMapFactor": 0.5,
+                    "metallicMapFactor": 0.0,
+                    "roughnessMapFactor": 0.0,
+                    "normalMapFactor": 0.0,
+                    "aoMapFactor": 0.0,
+                    "emissiveMapFactor": 0.0,
+                    "alphaCutOff": 0.4000000059604645,
+                    "workflow": 0.0,
+                    "shader": "//CoreShaders/ForwardPBR.shader"
+                }
+            }
+        }
+    },
+    "value553": 1,
+    "value554": {
+        "PrimitiveType": 2,
+        "FilePath": "Primitive",
+        "Material": {
+            "ptr_wrapper": {
+                "valid": 1,
+                "data": {
+                    "Albedo": "//Textures/checkerboard.tga",
+                    "Normal": "",
+                    "Metallic": "",
+                    "Roughness": "",
+                    "Ao": "",
+                    "Emissive": "",
+                    "albedoColour": {
+                        "value0": 0.6000000238418579,
+                        "value1": 0.10000000149011612,
+                        "value2": 0.10000000149011612,
+                        "value3": 1.0
+                    },
+                    "roughnessValue": 0.6000000238418579,
+                    "metallicValue": 0.15000000596046449,
+                    "emissiveValue": 0.0,
+                    "albedoMapFactor": 0.5,
+                    "metallicMapFactor": 0.0,
+                    "roughnessMapFactor": 0.0,
+                    "normalMapFactor": 0.0,
+                    "aoMapFactor": 0.0,
+                    "emissiveMapFactor": 0.0,
+                    "alphaCutOff": 0.4000000059604645,
+                    "workflow": 0.0,
+                    "shader": "//CoreShaders/ForwardPBR.shader"
+                }
+            }
+        }
+    },
+    "value555": 1048576,
+    "value556": {
         "PrimitiveType": 4,
         "FilePath": "Primitive",
         "Material": {
@@ -3685,8 +3871,8 @@
             }
         }
     },
-    "value515": 38,
-    "value516": {
+    "value557": 38,
+    "value558": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
         "Material": {
@@ -3721,8 +3907,8 @@
             }
         }
     },
-    "value517": 39,
-    "value518": {
+    "value559": 39,
+    "value560": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
         "Material": {
@@ -3757,8 +3943,8 @@
             }
         }
     },
-    "value519": 40,
-    "value520": {
+    "value561": 40,
+    "value562": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
         "Material": {
@@ -3793,8 +3979,8 @@
             }
         }
     },
-    "value521": 41,
-    "value522": {
+    "value563": 41,
+    "value564": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
         "Material": {
@@ -3829,8 +4015,8 @@
             }
         }
     },
-    "value523": 42,
-    "value524": {
+    "value565": 42,
+    "value566": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
         "Material": {
@@ -3865,8 +4051,8 @@
             }
         }
     },
-    "value525": 43,
-    "value526": {
+    "value567": 43,
+    "value568": {
         "PrimitiveType": 4,
         "FilePath": "Primitive",
         "Material": {
@@ -3901,8 +4087,8 @@
             }
         }
     },
-    "value527": 44,
-    "value528": {
+    "value569": 44,
+    "value570": {
         "PrimitiveType": 5,
         "FilePath": "Primitive",
         "Material": {
@@ -3937,8 +4123,8 @@
             }
         }
     },
-    "value529": 45,
-    "value530": {
+    "value571": 45,
+    "value572": {
         "PrimitiveType": 5,
         "FilePath": "Primitive",
         "Material": {
@@ -3973,8 +4159,8 @@
             }
         }
     },
-    "value531": 46,
-    "value532": {
+    "value573": 46,
+    "value574": {
         "PrimitiveType": 5,
         "FilePath": "Primitive",
         "Material": {
@@ -4009,8 +4195,8 @@
             }
         }
     },
-    "value533": 47,
-    "value534": {
+    "value575": 47,
+    "value576": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
         "Material": {
@@ -4045,8 +4231,8 @@
             }
         }
     },
-    "value535": 48,
-    "value536": {
+    "value577": 48,
+    "value578": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
         "Material": {
@@ -4081,5 +4267,90 @@
             }
         }
     },
-    "value537": 0
+    "value579": 0,
+    "value580": 6,
+    "value581": 49,
+    "value582": {
+        "TextString": "Metallic",
+        "Path": "",
+        "Colour": {
+            "value0": 1.0,
+            "value1": 1.0,
+            "value2": 1.0,
+            "value3": 1.0
+        },
+        "LineSpacing": 0.0,
+        "Kerning": 0.0,
+        "MaxWidth": 10.0
+    },
+    "value583": 50,
+    "value584": {
+        "TextString": "0.9",
+        "Path": "",
+        "Colour": {
+            "value0": 1.0,
+            "value1": 1.0,
+            "value2": 1.0,
+            "value3": 1.0
+        },
+        "LineSpacing": 0.0,
+        "Kerning": 0.0,
+        "MaxWidth": 10.0
+    },
+    "value585": 51,
+    "value586": {
+        "TextString": "0.2",
+        "Path": "",
+        "Colour": {
+            "value0": 1.0,
+            "value1": 1.0,
+            "value2": 1.0,
+            "value3": 1.0
+        },
+        "LineSpacing": 0.0,
+        "Kerning": 0.0,
+        "MaxWidth": 10.0
+    },
+    "value587": 52,
+    "value588": {
+        "TextString": "Roughness",
+        "Path": "",
+        "Colour": {
+            "value0": 1.0,
+            "value1": 1.0,
+            "value2": 1.0,
+            "value3": 1.0
+        },
+        "LineSpacing": 0.0,
+        "Kerning": 0.0,
+        "MaxWidth": 10.0
+    },
+    "value589": 53,
+    "value590": {
+        "TextString": "0.0",
+        "Path": "",
+        "Colour": {
+            "value0": 1.0,
+            "value1": 1.0,
+            "value2": 1.0,
+            "value3": 1.0
+        },
+        "LineSpacing": 0.0,
+        "Kerning": 0.0,
+        "MaxWidth": 10.0
+    },
+    "value591": 54,
+    "value592": {
+        "TextString": "1.0",
+        "Path": "",
+        "Colour": {
+            "value0": 1.0,
+            "value1": 1.0,
+            "value2": 1.0,
+            "value3": 1.0
+        },
+        "LineSpacing": 0.0,
+        "Kerning": 0.0,
+        "MaxWidth": 10.0
+    }
 }

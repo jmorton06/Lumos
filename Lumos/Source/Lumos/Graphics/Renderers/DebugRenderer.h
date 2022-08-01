@@ -38,8 +38,8 @@ namespace Lumos
 
         LineInfo(const glm::vec3& pos1, const glm::vec3& pos2, const glm::vec4& colour)
         {
-            p1 = pos1;
-            p2 = pos2;
+            p1  = pos1;
+            p2  = pos2;
             col = colour;
         }
     };
@@ -52,9 +52,9 @@ namespace Lumos
 
         PointInfo(const glm::vec3& pos1, float s, const glm::vec4& colour)
         {
-            p1 = pos1;
+            p1   = pos1;
             size = s;
-            col = colour;
+            col  = colour;
         }
     };
 
@@ -67,9 +67,9 @@ namespace Lumos
 
         TriangleInfo(const glm::vec3& pos1, const glm::vec3& pos2, const glm::vec3& pos3, const glm::vec4& colour)
         {
-            p1 = pos1;
-            p2 = pos2;
-            p3 = pos3;
+            p1  = pos1;
+            p2  = pos2;
+            p3  = pos3;
             col = colour;
         }
     };

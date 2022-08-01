@@ -24,20 +24,20 @@
 
 #include <box2d/box2d.h>
 #include <imgui/imgui_internal.h>
-#include <imguiPlugins/ImGuizmo.h>
+#include <imgui/Plugins/ImGuizmo.h>
 namespace Lumos
 {
     SceneViewPanel::SceneViewPanel()
     {
-        m_Name = ICON_MDI_GAMEPAD_VARIANT " Scene###scene";
-        m_SimpleName = "Scene";
+        m_Name         = ICON_MDI_GAMEPAD_VARIANT " Scene###scene";
+        m_SimpleName   = "Scene";
         m_CurrentScene = nullptr;
 
         m_ShowComponentGizmoMap[typeid(Graphics::Light).hash_code()] = true;
-        m_ShowComponentGizmoMap[typeid(Camera).hash_code()] = true;
-        m_ShowComponentGizmoMap[typeid(SoundComponent).hash_code()] = true;
+        m_ShowComponentGizmoMap[typeid(Camera).hash_code()]          = true;
+        m_ShowComponentGizmoMap[typeid(SoundComponent).hash_code()]  = true;
 
-        m_Width = 1280;
+        m_Width  = 1280;
         m_Height = 800;
     }
 
@@ -57,7 +57,7 @@ namespace Lumos
             return;
         }
 
-        Camera* camera = nullptr;
+        Camera* camera              = nullptr;
         Maths::Transform* transform = nullptr;
 
         app.SetDisableMainRenderGraph(false);
@@ -65,7 +65,7 @@ namespace Lumos
         // if(app.GetEditorState() == EditorState::Preview)
         {
             LUMOS_PROFILE_SCOPE("Set Override Camera");
-            camera = m_Editor->GetCamera();
+            camera    = m_Editor->GetCamera();
             transform = &m_Editor->GetEditorCameraTransform();
 
             app.GetRenderGraph()->SetOverrideCamera(camera, transform);
@@ -86,7 +86,7 @@ namespace Lumos
         }
 
         ImGuizmo::SetDrawlist();
-        auto sceneViewSize = ImGui::GetWindowContentRegionMax() - ImGui::GetWindowContentRegionMin() - offset * 0.5f; // - offset * 0.5f;
+        auto sceneViewSize     = ImGui::GetWindowContentRegionMax() - ImGui::GetWindowContentRegionMin() - offset * 0.5f; // - offset * 0.5f;
         auto sceneViewPosition = ImGui::GetWindowPos() + offset;
 
         sceneViewSize.x -= static_cast<int>(sceneViewSize.x) % 2 != 0 ? 1.0f : 0.0f;
@@ -113,7 +113,7 @@ namespace Lumos
         auto windowSize = ImGui::GetWindowSize();
         ImVec2 minBound = sceneViewPosition;
 
-        ImVec2 maxBound = { minBound.x + windowSize.x, minBound.y + windowSize.y };
+        ImVec2 maxBound   = { minBound.x + windowSize.x, minBound.y + windowSize.y };
         bool updateCamera = ImGui::IsMouseHoveringRect(minBound, maxBound); // || Input::Get().GetMouseMode() == MouseMode::Captured;
 
         app.SetSceneActive(ImGui::IsWindowFocused() && !ImGuizmo::IsUsing() && updateCamera);
@@ -143,7 +143,7 @@ namespace Lumos
         {
             LUMOS_PROFILE_SCOPE("Select Object");
 
-            float dpi = Application::Get().GetWindowDPI();
+            float dpi     = Application::Get().GetWindowDPI();
             auto clickPos = Input::Get().GetMousePosition() - glm::vec2(sceneViewPosition.x / dpi, sceneViewPosition.y / dpi);
 
             Maths::Ray ray = m_Editor->GetScreenRay(int(clickPos.x), int(clickPos.y), camera, int(sceneViewSize.x / dpi), int(sceneViewSize.y / dpi));
@@ -172,13 +172,13 @@ namespace Lumos
     void SceneViewPanel::DrawGizmos(float width, float height, float xpos, float ypos, Scene* scene)
     {
         LUMOS_PROFILE_FUNCTION();
-        Camera* camera = m_Editor->GetCamera();
+        Camera* camera                    = m_Editor->GetCamera();
         Maths::Transform& cameraTransform = m_Editor->GetEditorCameraTransform();
-        auto& registry = scene->GetRegistry();
-        glm::mat4 view = glm::inverse(cameraTransform.GetWorldMatrix());
-        glm::mat4 proj = camera->GetProjectionMatrix();
-        glm::mat4 viewProj = proj * view;
-        const Maths::Frustum& f = camera->GetFrustum(view);
+        auto& registry                    = scene->GetRegistry();
+        glm::mat4 view                    = glm::inverse(cameraTransform.GetWorldMatrix());
+        glm::mat4 proj                    = camera->GetProjectionMatrix();
+        glm::mat4 viewProj                = proj * view;
+        const Maths::Frustum& f           = camera->GetFrustum(view);
 
         ShowComponentGizmo<Graphics::Light>(width, height, xpos, ypos, viewProj, f, registry);
         ShowComponentGizmo<Camera>(width, height, xpos, ypos, viewProj, f, registry);
@@ -511,7 +511,7 @@ namespace Lumos
         // Editor Camera Settings
 
         auto& camera = *m_Editor->GetCamera();
-        bool ortho = camera.IsOrthographic();
+        bool ortho   = camera.IsOrthographic();
 
         selected = !ortho;
         if(selected)
@@ -551,7 +551,7 @@ namespace Lumos
     {
         LUMOS_PROFILE_FUNCTION();
         m_Editor->GetSettings().m_AspectRatio = 1.0f;
-        m_CurrentScene = scene;
+        m_CurrentScene                        = scene;
 
         auto renderGraph = Application::Get().GetRenderGraph();
         renderGraph->SetRenderTarget(m_GameViewTexture.get(), true);
@@ -571,8 +571,8 @@ namespace Lumos
 
         if(m_Width != width || m_Height != height)
         {
-            resize = true;
-            m_Width = width;
+            resize   = true;
+            m_Width  = width;
             m_Height = height;
         }
 
@@ -580,7 +580,7 @@ namespace Lumos
         {
             Graphics::TextureDesc mainRenderTargetDesc;
             mainRenderTargetDesc.format = Graphics::RHIFormat::R8G8B8A8_Unorm;
-            mainRenderTargetDesc.flags = Graphics::TextureFlags::Texture_RenderTarget;
+            mainRenderTargetDesc.flags  = Graphics::TextureFlags::Texture_RenderTarget;
 
             m_GameViewTexture = SharedPtr<Graphics::Texture2D>(Graphics::Texture2D::Create(mainRenderTargetDesc, m_Width, m_Height));
         }

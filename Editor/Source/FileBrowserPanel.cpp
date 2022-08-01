@@ -4,13 +4,13 @@
 #include <Lumos/Core/OS/FileSystem.h>
 #include <Lumos/ImGui/IconsMaterialDesignIcons.h>
 #include <imgui/imgui.h>
-#include <imguiPlugins/ImFileBrowser.h>
+#include <imgui/Plugins/ImFileBrowser.h>
 
 namespace Lumos
 {
     FileBrowserPanel::FileBrowserPanel()
     {
-        m_Name = "FileBrowserWindow";
+        m_Name       = "FileBrowserWindow";
         m_SimpleName = "FileBrowser";
 
         m_FileBrowser = new ImGui::FileBrowser(ImGuiFileBrowserFlags_CreateNewDir | ImGuiFileBrowserFlags_EnterNewFilename | ImGuiFileBrowserFlags_HideHiddenFiles);

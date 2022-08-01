@@ -6,7 +6,7 @@ namespace Lumos
     namespace Graphics
     {
         IndexBuffer* (*IndexBuffer::Create16Func)(uint16_t*, uint32_t, BufferUsage) = nullptr;
-        IndexBuffer* (*IndexBuffer::CreateFunc)(uint32_t*, uint32_t, BufferUsage) = nullptr;
+        IndexBuffer* (*IndexBuffer::CreateFunc)(uint32_t*, uint32_t, BufferUsage)   = nullptr;
 
         IndexBuffer* IndexBuffer::Create(uint16_t* data, uint32_t count, BufferUsage bufferUsage)
         {

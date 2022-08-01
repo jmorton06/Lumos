@@ -38,16 +38,16 @@ namespace Lumos
         ImGui::Columns(2);
         ImGui::Separator();
 
-        auto pos = m_RigidBody->GetPosition();
-        auto torque = m_RigidBody->GetTorque();
-        auto orientation = m_RigidBody->GetOrientation();
+        auto pos             = m_RigidBody->GetPosition();
+        auto torque          = m_RigidBody->GetTorque();
+        auto orientation     = m_RigidBody->GetOrientation();
         auto angularVelocity = m_RigidBody->GetAngularVelocity();
-        auto friction = m_RigidBody->GetFriction();
-        auto isStatic = m_RigidBody->GetIsStatic();
-        auto isRest = m_RigidBody->GetIsAtRest();
-        auto mass = 1.0f / m_RigidBody->GetInverseMass();
-        auto velocity = m_RigidBody->GetLinearVelocity();
-        auto elasticity = m_RigidBody->GetElasticity();
+        auto friction        = m_RigidBody->GetFriction();
+        auto isStatic        = m_RigidBody->GetIsStatic();
+        auto isRest          = m_RigidBody->GetIsAtRest();
+        auto mass            = 1.0f / m_RigidBody->GetInverseMass();
+        auto velocity        = m_RigidBody->GetLinearVelocity();
+        auto elasticity      = m_RigidBody->GetElasticity();
 
         ImGui::AlignTextToFramePadding();
         ImGui::TextUnformatted("Position");
@@ -181,14 +181,14 @@ namespace Lumos
     DistanceConstraintComponent::DistanceConstraintComponent(Entity entity, Entity otherEntity)
     {
         m_Constraint = CreateSharedPtr<DistanceConstraint>(entity.GetComponent<RigidBody3DComponent>().GetRigidBody().get(), otherEntity.GetComponent<RigidBody3DComponent>().GetRigidBody().get(),
-            entity.GetComponent<RigidBody3DComponent>().GetRigidBody()->GetPosition(), otherEntity.GetComponent<RigidBody3DComponent>().GetRigidBody()->GetPosition());
+                                                           entity.GetComponent<RigidBody3DComponent>().GetRigidBody()->GetPosition(), otherEntity.GetComponent<RigidBody3DComponent>().GetRigidBody()->GetPosition());
     }
 
     AxisConstraintComponent::AxisConstraintComponent(Entity entity, Axes axes)
     {
-        m_EntityID = entity.GetID();
-        m_Axes = axes;
-        m_Constraint = CreateSharedPtr<AxisConstraint>(entity.GetComponent<RigidBody3DComponent>().GetRigidBody().get(), axes);
+        m_EntityID    = entity.GetID();
+        m_Axes        = axes;
+        m_Constraint  = CreateSharedPtr<AxisConstraint>(entity.GetComponent<RigidBody3DComponent>().GetRigidBody().get(), axes);
         m_Initialised = true;
     }
 

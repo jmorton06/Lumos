@@ -13,22 +13,20 @@ namespace Lumos
             {
             }
 
-            virtual void Bind(uint32_t slot = 0) const = 0;
-            virtual void Unbind(uint32_t slot = 0) const = 0;
-
-            virtual void SetName(const std::string& name) {};
-            virtual const std::string& GetName() const = 0;
-            virtual const std::string& GetFilepath() const = 0;
-
-            virtual uint32_t GetWidth(uint32_t mip = 0) const = 0;
+            virtual void* GetHandle() const                    = 0;
+            virtual void Bind(uint32_t slot = 0) const         = 0;
+            virtual void Unbind(uint32_t slot = 0) const       = 0;
+            virtual const std::string& GetName() const         = 0;
+            virtual const std::string& GetFilepath() const     = 0;
+            virtual uint32_t GetWidth(uint32_t mip = 0) const  = 0;
             virtual uint32_t GetHeight(uint32_t mip = 0) const = 0;
-            virtual TextureType GetType() const = 0;
-            virtual RHIFormat GetFormat() const = 0;
+            virtual TextureType GetType() const                = 0;
+            virtual RHIFormat GetFormat() const                = 0;
             virtual void GenerateMipMaps() { }
+            virtual void SetName(const std::string& name) {};
 
             virtual uint32_t GetSize() const { return 0; }
             virtual uint32_t GetMipMapLevels() const { return 0; }
-            virtual void* GetHandle() const = 0;
             virtual void* GetImageHande() const { return GetHandle(); };
 
             static bool IsDepthStencilFormat(RHIFormat format)
@@ -60,6 +58,7 @@ namespace Lumos
 
         public:
             static uint8_t GetStrideFromFormat(RHIFormat format);
+            static uint32_t GetBitsFromFormat(RHIFormat format);
             static RHIFormat BitsToFormat(uint32_t bits);
             static uint32_t BitsToChannelCount(uint32_t bits);
             static uint32_t CalculateMipMapCount(uint32_t width, uint32_t height);
@@ -68,9 +67,9 @@ namespace Lumos
             SET_ASSET_TYPE(AssetType::Texture);
 
         protected:
-            uint32_t m_Flags = 0;
+            uint32_t m_Flags          = 0;
             uint32_t m_BitsPerChannel = 8;
-            uint32_t m_ChannelCount = 4;
+            uint32_t m_ChannelCount   = 4;
         };
 
         class LUMOS_EXPORT Texture2D : public Texture
@@ -123,7 +122,7 @@ namespace Lumos
         public:
             static TextureDepthArray* Create(uint32_t width, uint32_t height, uint32_t count);
 
-            virtual void Init() = 0;
+            virtual void Init()                                                  = 0;
             virtual void Resize(uint32_t width, uint32_t height, uint32_t count) = 0;
             virtual void* GetHandleArray(uint32_t index)
             {

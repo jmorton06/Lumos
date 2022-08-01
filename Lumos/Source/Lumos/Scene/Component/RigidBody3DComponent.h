@@ -32,20 +32,20 @@ namespace Lumos
             int axisInt;
             archive(m_EntityID, axisInt);
             m_Initialised = false;
-            m_Axes = (Axes)axisInt;
+            m_Axes        = (Axes)axisInt;
         }
 
         Axes GetAxes() { return m_Axes; }
         uint64_t GetEntityID() { return m_EntityID; }
         void SetAxes(Axes axes)
         {
-            m_Axes = axes;
+            m_Axes        = axes;
             m_Initialised = false;
         }
 
         void SetEntity(uint64_t entityID)
         {
-            m_EntityID = entityID;
+            m_EntityID    = entityID;
             m_Initialised = false;
         }
 

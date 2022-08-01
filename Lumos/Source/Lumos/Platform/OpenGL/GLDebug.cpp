@@ -33,7 +33,7 @@ bool Lumos::GLLogCall(const char* function, const char* file, const int32_t line
 
         std::cerr << "GL_" << error.c_str() << " - " << file << " - " << function << ":" << line << std::endl;
         Error = false;
-        err = glGetError();
+        err   = glGetError();
     }
     return Error;
 }

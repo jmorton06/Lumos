@@ -8,7 +8,7 @@ namespace Lumos
 {
     CameraController2D::CameraController2D()
     {
-        m_Velocity = glm::vec3(0.0f);
+        m_Velocity         = glm::vec3(0.0f);
         m_MouseSensitivity = 0.005f;
     }
 
@@ -86,7 +86,7 @@ namespace Lumos
 
             if(scale < 0.15f)
             {
-                scale = 0.15f;
+                scale          = 0.15f;
                 m_ZoomVelocity = 0.0f;
             }
             else

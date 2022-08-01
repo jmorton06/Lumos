@@ -38,6 +38,7 @@ function EndGame()
     gameOverEntity = entityManager:Create()
     gameOverEntity:AddSprite(Vector2.new(0.0, 0.0), gameOverSize, Vector4.new(1.0, 1.0, 1.0, 1.0)):SetTexture(gameOverTexture)
 	gameOverPos = player:GetTransform():GetWorldPosition() + Vector3.new(15.0, 2.0, 1.0)
+	gameOverEntity:GetTransform():SetLocalScale(Vector3.new(0.2, 0.2, 0.2))
     end
 end
 
@@ -234,7 +235,7 @@ function OnUpdate(dt)
     elseif gameState == GameStates.GameOver then
 
         totalTime = totalTime + dt * 2
-        gameOverScale = 1.0  + (math.sin(totalTime) + 1.0) / 10.0
+        gameOverScale = 0.2 + (math.sin(totalTime) + 1.0) / 10.0
         gameOverEntity:GetTransform():SetLocalScale(Vector3.new(gameOverScale, gameOverScale, gameOverScale))
  
 		gameOverEntity:GetTransform():SetLocalPosition(camera:GetTransform():GetWorldPosition() - Vector3.new((gameOverScale *  gameOverSize.x )/ 2, (gameOverScale *  gameOverSize.y )/ 2, -2.0))
@@ -322,6 +323,7 @@ end
 function OnRelease()
     OnCleanUp()
 end
+
 
 
 

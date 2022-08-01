@@ -9,8 +9,8 @@ namespace Lumos
         enum class LUMOS_EXPORT LightType
         {
             DirectionalLight = 0,
-            SpotLight = 1,
-            PointLight = 2
+            SpotLight        = 1,
+            PointLight       = 2
         };
 
         struct LUMOS_EXPORT MEM_ALIGN Light

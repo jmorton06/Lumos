@@ -36,7 +36,7 @@ namespace Lumos
             VkBuffer m_Buffer {};
             VkDeviceMemory m_Memory {};
             VkDescriptorBufferInfo m_DesciptorBufferInfo {};
-            VkDeviceSize m_Size = 0;
+            VkDeviceSize m_Size      = 0;
             VkDeviceSize m_Alignment = 0;
             VkBufferUsageFlags m_UsageFlags;
             VkMemoryPropertyFlags m_MemoryProperyFlags;

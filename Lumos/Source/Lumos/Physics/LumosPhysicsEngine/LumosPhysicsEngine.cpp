@@ -28,7 +28,7 @@ namespace Lumos
         : m_IsPaused(true)
         , m_UpdateAccum(0.0f)
         , m_Gravity(glm::vec3(0.0f, -9.81f, 0.0f))
-        , m_DampingFactor(0.995f)
+        , m_DampingFactor(0.9999f)
         , m_BroadphaseDetection(nullptr)
         , m_IntegrationType(IntegrationType::RUNGE_KUTTA_4)
     {
@@ -40,11 +40,11 @@ namespace Lumos
 
     void LumosPhysicsEngine::SetDefaults()
     {
-        m_IsPaused = true;
-        s_UpdateTimestep = 1.0f / 60.f;
-        m_UpdateAccum = 0.0f;
-        m_Gravity = glm::vec3(0.0f, -9.81f, 0.0f);
-        m_DampingFactor = 0.995f;
+        m_IsPaused        = true;
+        s_UpdateTimestep  = 1.0f / 60.f;
+        m_UpdateAccum     = 0.0f;
+        m_Gravity         = glm::vec3(0.0f, -9.81f, 0.0f);
+        m_DampingFactor   = 0.9999f;
         m_IntegrationType = IntegrationType::RUNGE_KUTTA_4;
     }
 
@@ -65,7 +65,7 @@ namespace Lumos
         if(!m_IsPaused)
         {
             auto& registry = scene->GetRegistry();
-            auto group = registry.group<RigidBody3DComponent>(entt::get<Maths::Transform>);
+            auto group     = registry.group<RigidBody3DComponent>(entt::get<Maths::Transform>);
 
             {
                 LUMOS_PROFILE_SCOPE("Physics::Get Rigid Bodies");
@@ -187,7 +187,7 @@ namespace Lumos
             return;
 
         auto& registry = scene->GetRegistry();
-        auto group = registry.group<RigidBody3DComponent>(entt::get<Maths::Transform>);
+        auto group     = registry.group<RigidBody3DComponent>(entt::get<Maths::Transform>);
 
         for(auto entity : group)
         {
@@ -240,10 +240,7 @@ namespace Lumos
                 obj->m_LinearVelocity = obj->m_LinearVelocity * damping;
 
                 // Update orientation
-                obj->m_Orientation = obj->m_Orientation +
-
-                    obj->m_Orientation
-                    += obj->m_Orientation * glm::quat(obj->m_AngularVelocity * s_UpdateTimestep);
+                obj->m_Orientation += obj->m_Orientation * glm::quat(obj->m_AngularVelocity * s_UpdateTimestep);
                 // obj->m_Orientation = obj->m_Orientation + ((obj->m_AngularVelocity * s_UpdateTimestep * 0.5f) * obj->m_Orientation);
                 obj->m_Orientation = glm::normalize(obj->m_Orientation);
 
@@ -288,7 +285,7 @@ namespace Lumos
                 Integration::State state = { obj->m_Position, obj->m_LinearVelocity, obj->m_Force * obj->m_InvMass };
                 Integration::RK2(state, 0.0f, s_UpdateTimestep);
 
-                obj->m_Position = state.position;
+                obj->m_Position       = state.position;
                 obj->m_LinearVelocity = state.velocity;
 
                 // Linear velocity damping
@@ -314,7 +311,7 @@ namespace Lumos
                 // RK4 integration for linear motion
                 Integration::State state = { obj->m_Position, obj->m_LinearVelocity, obj->m_Force * obj->m_InvMass };
                 Integration::RK4(state, 0.0f, s_UpdateTimestep);
-                obj->m_Position = state.position;
+                obj->m_Position       = state.position;
                 obj->m_LinearVelocity = state.velocity;
 
                 // Linear velocity damping
@@ -339,7 +336,7 @@ namespace Lumos
 
             // Mark cached world transform and AABB as invalid
             obj->m_wsTransformInvalidated = true;
-            obj->m_wsAabbInvalidated = true;
+            obj->m_wsAabbInvalidated      = true;
         }
 
         s_UpdateTimestep *= m_PositionIterations;
@@ -646,7 +643,7 @@ namespace Lumos
         if(!m_IsPaused && m_BroadphaseDetection && (m_DebugDrawFlags & PhysicsDebugFlags::BROADPHASE))
             m_BroadphaseDetection->DebugDraw();
 
-        auto scene = Application::Get().GetCurrentScene();
+        auto scene     = Application::Get().GetCurrentScene();
         auto& registry = scene->GetRegistry();
 
         auto group = registry.group<RigidBody3DComponent>(entt::get<Maths::Transform>);

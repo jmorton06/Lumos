@@ -6,7 +6,7 @@ namespace Lumos
     class LUMOS_EXPORT WindowsOS : public OS
     {
     public:
-        WindowsOS() = default;
+        WindowsOS()  = default;
         ~WindowsOS() = default;
 
         void Init();

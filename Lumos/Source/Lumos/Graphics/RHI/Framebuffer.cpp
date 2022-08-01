@@ -48,7 +48,7 @@ namespace Lumos
                 return found->second;
             }
 
-            auto framebuffer = SharedPtr<Framebuffer>(Create(framebufferDesc));
+            auto framebuffer         = SharedPtr<Framebuffer>(Create(framebufferDesc));
             m_FramebufferCache[hash] = framebuffer;
             return framebuffer;
         }

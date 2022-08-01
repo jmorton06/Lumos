@@ -7,16 +7,16 @@ namespace Lumos
 {
     namespace Graphics
     {
-        Texture2D* (*Texture2D::CreateFunc)(TextureDesc, uint32_t, uint32_t) = nullptr;
-        Texture2D* (*Texture2D::CreateFromSourceFunc)(uint32_t, uint32_t, void*, TextureDesc, TextureLoadOptions) = nullptr;
+        Texture2D* (*Texture2D::CreateFunc)(TextureDesc, uint32_t, uint32_t)                                                 = nullptr;
+        Texture2D* (*Texture2D::CreateFromSourceFunc)(uint32_t, uint32_t, void*, TextureDesc, TextureLoadOptions)            = nullptr;
         Texture2D* (*Texture2D::CreateFromFileFunc)(const std::string&, const std::string&, TextureDesc, TextureLoadOptions) = nullptr;
 
-        TextureDepth* (*TextureDepth::CreateFunc)(uint32_t, uint32_t) = nullptr;
+        TextureDepth* (*TextureDepth::CreateFunc)(uint32_t, uint32_t)                     = nullptr;
         TextureDepthArray* (*TextureDepthArray::CreateFunc)(uint32_t, uint32_t, uint32_t) = nullptr;
 
-        TextureCube* (*TextureCube::CreateFunc)(uint32_t, void*, bool) = nullptr;
-        TextureCube* (*TextureCube::CreateFromFileFunc)(const std::string&) = nullptr;
-        TextureCube* (*TextureCube::CreateFromFilesFunc)(const std::string*) = nullptr;
+        TextureCube* (*TextureCube::CreateFunc)(uint32_t, void*, bool)                                                   = nullptr;
+        TextureCube* (*TextureCube::CreateFromFileFunc)(const std::string&)                                              = nullptr;
+        TextureCube* (*TextureCube::CreateFromFilesFunc)(const std::string*)                                             = nullptr;
         TextureCube* (*TextureCube::CreateFromVCrossFunc)(const std::string*, uint32_t, TextureDesc, TextureLoadOptions) = nullptr;
 
         uint8_t Texture::GetStrideFromFormat(const RHIFormat format)
@@ -38,6 +38,33 @@ namespace Lumos
                 return 4;
             default:
                 return 0;
+            }
+        }
+
+        uint32_t Texture::GetBitsFromFormat(const RHIFormat format)
+        {
+            switch(format)
+            {
+            case RHIFormat::R8_Unorm:
+                return 8;
+            case RHIFormat::D16_Unorm:
+                return 16;
+            case RHIFormat::R8G8_Unorm:
+                return 16;
+            case RHIFormat::R8G8B8_Unorm:
+                return 24;
+            case RHIFormat::R16G16B16_Float:
+                return 48;
+            case RHIFormat::R32G32B32_Float:
+                return 96;
+            case RHIFormat::R8G8B8A8_Unorm:
+                return 32;
+            case RHIFormat::R16G16B16A16_Float:
+                return 64;
+            case RHIFormat::R32G32B32A32_Float:
+                return 128;
+            default:
+                return 32;
             }
         }
 

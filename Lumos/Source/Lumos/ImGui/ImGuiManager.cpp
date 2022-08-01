@@ -11,10 +11,10 @@
 
 #define IMGUI_DISABLE_OBSOLETE_FUNCTIONS
 #include <imgui/imgui.h>
-#include <imguiPlugins/ImGuizmo.h>
-#include <imguiPlugins/ImGuiAl/fonts/MaterialDesign.inl>
-#include <imguiPlugins/ImGuiAl/fonts/RobotoRegular.inl>
-#include <imguiPlugins/ImGuiAl/fonts/RobotoBold.inl>
+#include <imgui/Plugins/ImGuizmo.h>
+#include <imgui/Plugins/ImGuiAl/fonts/MaterialDesign.inl>
+#include <imgui/Plugins/ImGuiAl/fonts/RobotoRegular.inl>
+#include <imgui/Plugins/ImGuiAl/fonts/RobotoBold.inl>
 #include <imgui/misc/freetype/imgui_freetype.h>
 
 #if defined(LUMOS_PLATFORM_MACOS) || defined(LUMOS_PLATFORM_WINDOWS) || defined(LUMOS_PLATFORM_LINUX)
@@ -30,7 +30,7 @@ namespace Lumos
     ImGuiManager::ImGuiManager(bool clearScreen)
     {
         m_ClearScreen = clearScreen;
-        m_FontSize = 14.0f;
+        m_FontSize    = 14.0f;
 
 #ifdef LUMOS_PLATFORM_IOS
         m_FontSize *= 2.0f;
@@ -62,8 +62,8 @@ namespace Lumos
         LUMOS_LOG_INFO("ImConfig File : {0}", std::string(IMGUI_USER_CONFIG));
 #endif
         Application& app = Application::Get();
-        ImGuiIO& io = ImGui::GetIO();
-        io.DisplaySize = ImVec2(static_cast<float>(app.GetWindow()->GetWidth()), static_cast<float>(app.GetWindow()->GetHeight()));
+        ImGuiIO& io      = ImGui::GetIO();
+        io.DisplaySize   = ImVec2(static_cast<float>(app.GetWindow()->GetWidth()), static_cast<float>(app.GetWindow()->GetHeight()));
         // io.DisplayFramebufferScale = ImVec2(app.GetWindow()->GetDPIScale(), app.GetWindow()->GetDPIScale());
         io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
@@ -156,7 +156,7 @@ namespace Lumos
 
     bool ImGuiManager::OnMouseButtonPressedEvent(MouseButtonPressedEvent& e)
     {
-        ImGuiIO& io = ImGui::GetIO();
+        ImGuiIO& io                                               = ImGui::GetIO();
         io.MouseDown[LumosMouseButtonToImGui(e.GetMouseButton())] = true;
 
         return false;
@@ -164,7 +164,7 @@ namespace Lumos
 
     bool ImGuiManager::OnMouseButtonReleasedEvent(MouseButtonReleasedEvent& e)
     {
-        ImGuiIO& io = ImGui::GetIO();
+        ImGuiIO& io                                               = ImGui::GetIO();
         io.MouseDown[LumosMouseButtonToImGui(e.GetMouseButton())] = false;
 
         return false;
@@ -190,12 +190,12 @@ namespace Lumos
 
     bool ImGuiManager::OnKeyPressedEvent(KeyPressedEvent& e)
     {
-        ImGuiIO& io = ImGui::GetIO();
+        ImGuiIO& io                      = ImGui::GetIO();
         io.KeysDown[(int)e.GetKeyCode()] = true;
 
-        io.KeyCtrl = io.KeysDown[(int)Lumos::InputCode::Key::LeftControl] || io.KeysDown[(int)Lumos::InputCode::Key::RightControl];
+        io.KeyCtrl  = io.KeysDown[(int)Lumos::InputCode::Key::LeftControl] || io.KeysDown[(int)Lumos::InputCode::Key::RightControl];
         io.KeyShift = io.KeysDown[(int)Lumos::InputCode::Key::LeftShift] || io.KeysDown[(int)Lumos::InputCode::Key::RightShift];
-        io.KeyAlt = io.KeysDown[(int)Lumos::InputCode::Key::LeftAlt] || io.KeysDown[(int)Lumos::InputCode::Key::RightAlt];
+        io.KeyAlt   = io.KeysDown[(int)Lumos::InputCode::Key::LeftAlt] || io.KeysDown[(int)Lumos::InputCode::Key::RightAlt];
 
 #ifdef _WIN32
         io.KeySuper = false;
@@ -208,7 +208,7 @@ namespace Lumos
 
     bool ImGuiManager::OnKeyReleasedEvent(KeyReleasedEvent& e)
     {
-        ImGuiIO& io = ImGui::GetIO();
+        ImGuiIO& io                      = ImGui::GetIO();
         io.KeysDown[(int)e.GetKeyCode()] = false;
 
         return false;
@@ -229,7 +229,7 @@ namespace Lumos
         LUMOS_PROFILE_FUNCTION();
         ImGuiIO& io = ImGui::GetIO();
 
-        uint32_t width = Maths::Max(1u, e.GetWidth());
+        uint32_t width  = Maths::Max(1u, e.GetWidth());
         uint32_t height = Maths::Max(1u, e.GetHeight());
 
         io.DisplaySize = ImVec2(static_cast<float>(width), static_cast<float>(height));
@@ -245,29 +245,29 @@ namespace Lumos
         ImGuiIO& io = ImGui::GetIO();
         io.BackendFlags |= ImGuiBackendFlags_HasMouseCursors;
         io.BackendFlags |= ImGuiBackendFlags_HasSetMousePos;
-        io.KeyMap[ImGuiKey_Tab] = (int)Lumos::InputCode::Key::Tab;
-        io.KeyMap[ImGuiKey_LeftArrow] = (int)Lumos::InputCode::Key::Left;
+        io.KeyMap[ImGuiKey_Tab]        = (int)Lumos::InputCode::Key::Tab;
+        io.KeyMap[ImGuiKey_LeftArrow]  = (int)Lumos::InputCode::Key::Left;
         io.KeyMap[ImGuiKey_RightArrow] = (int)Lumos::InputCode::Key::Right;
-        io.KeyMap[ImGuiKey_UpArrow] = (int)Lumos::InputCode::Key::Up;
-        io.KeyMap[ImGuiKey_DownArrow] = (int)Lumos::InputCode::Key::Down;
-        io.KeyMap[ImGuiKey_PageUp] = (int)Lumos::InputCode::Key::PageUp;
-        io.KeyMap[ImGuiKey_PageDown] = (int)Lumos::InputCode::Key::PageDown;
-        io.KeyMap[ImGuiKey_Home] = (int)Lumos::InputCode::Key::Home;
-        io.KeyMap[ImGuiKey_End] = (int)Lumos::InputCode::Key::End;
-        io.KeyMap[ImGuiKey_Insert] = (int)Lumos::InputCode::Key::Insert;
-        io.KeyMap[ImGuiKey_Delete] = (int)Lumos::InputCode::Key::Delete;
-        io.KeyMap[ImGuiKey_Backspace] = (int)Lumos::InputCode::Key::Backspace;
-        io.KeyMap[ImGuiKey_Space] = (int)Lumos::InputCode::Key::Space;
-        io.KeyMap[ImGuiKey_Enter] = (int)Lumos::InputCode::Key::Enter;
-        io.KeyMap[ImGuiKey_Escape] = (int)Lumos::InputCode::Key::Escape;
-        io.KeyMap[ImGuiKey_A] = (int)Lumos::InputCode::Key::A;
-        io.KeyMap[ImGuiKey_C] = (int)Lumos::InputCode::Key::C;
-        io.KeyMap[ImGuiKey_V] = (int)Lumos::InputCode::Key::V;
-        io.KeyMap[ImGuiKey_X] = (int)Lumos::InputCode::Key::X;
-        io.KeyMap[ImGuiKey_Y] = (int)Lumos::InputCode::Key::Y;
-        io.KeyMap[ImGuiKey_Z] = (int)Lumos::InputCode::Key::Z;
-        io.KeyRepeatDelay = 0.400f;
-        io.KeyRepeatRate = 0.05f;
+        io.KeyMap[ImGuiKey_UpArrow]    = (int)Lumos::InputCode::Key::Up;
+        io.KeyMap[ImGuiKey_DownArrow]  = (int)Lumos::InputCode::Key::Down;
+        io.KeyMap[ImGuiKey_PageUp]     = (int)Lumos::InputCode::Key::PageUp;
+        io.KeyMap[ImGuiKey_PageDown]   = (int)Lumos::InputCode::Key::PageDown;
+        io.KeyMap[ImGuiKey_Home]       = (int)Lumos::InputCode::Key::Home;
+        io.KeyMap[ImGuiKey_End]        = (int)Lumos::InputCode::Key::End;
+        io.KeyMap[ImGuiKey_Insert]     = (int)Lumos::InputCode::Key::Insert;
+        io.KeyMap[ImGuiKey_Delete]     = (int)Lumos::InputCode::Key::Delete;
+        io.KeyMap[ImGuiKey_Backspace]  = (int)Lumos::InputCode::Key::Backspace;
+        io.KeyMap[ImGuiKey_Space]      = (int)Lumos::InputCode::Key::Space;
+        io.KeyMap[ImGuiKey_Enter]      = (int)Lumos::InputCode::Key::Enter;
+        io.KeyMap[ImGuiKey_Escape]     = (int)Lumos::InputCode::Key::Escape;
+        io.KeyMap[ImGuiKey_A]          = (int)Lumos::InputCode::Key::A;
+        io.KeyMap[ImGuiKey_C]          = (int)Lumos::InputCode::Key::C;
+        io.KeyMap[ImGuiKey_V]          = (int)Lumos::InputCode::Key::V;
+        io.KeyMap[ImGuiKey_X]          = (int)Lumos::InputCode::Key::X;
+        io.KeyMap[ImGuiKey_Y]          = (int)Lumos::InputCode::Key::Y;
+        io.KeyMap[ImGuiKey_Z]          = (int)Lumos::InputCode::Key::Z;
+        io.KeyRepeatDelay              = 0.400f;
+        io.KeyRepeatRate               = 0.05f;
     }
 
     void ImGuiManager::SetImGuiStyle()
@@ -280,11 +280,11 @@ namespace Lumos
         io.FontGlobalScale = 1.0f;
 
         ImFontConfig icons_config;
-        icons_config.MergeMode = false;
-        icons_config.PixelSnapH = true;
+        icons_config.MergeMode   = false;
+        icons_config.PixelSnapH  = true;
         icons_config.OversampleH = icons_config.OversampleV = 1;
-        icons_config.GlyphMinAdvanceX = 4.0f;
-        icons_config.SizePixels = 12.0f;
+        icons_config.GlyphMinAdvanceX                       = 4.0f;
+        icons_config.SizePixels                             = 12.0f;
 
         static const ImWchar ranges[] = {
             0x0020,
@@ -305,42 +305,42 @@ namespace Lumos
         io.Fonts->TexGlyphPadding = 1;
         for(int n = 0; n < io.Fonts->ConfigData.Size; n++)
         {
-            ImFontConfig* font_config = (ImFontConfig*)&io.Fonts->ConfigData[n];
+            ImFontConfig* font_config       = (ImFontConfig*)&io.Fonts->ConfigData[n];
             font_config->RasterizerMultiply = 1.0f;
         }
 
         ImGuiStyle& style = ImGui::GetStyle();
 
-        style.WindowPadding = ImVec2(5, 5);
-        style.FramePadding = ImVec2(4, 4);
-        style.ItemSpacing = ImVec2(6, 2);
-        style.ItemInnerSpacing = ImVec2(2, 2);
-        style.IndentSpacing = 6.0f;
+        style.WindowPadding     = ImVec2(5, 5);
+        style.FramePadding      = ImVec2(4, 4);
+        style.ItemSpacing       = ImVec2(6, 2);
+        style.ItemInnerSpacing  = ImVec2(2, 2);
+        style.IndentSpacing     = 6.0f;
         style.TouchExtraPadding = ImVec2(4, 4);
 
         style.ScrollbarSize = 10;
 
         style.WindowBorderSize = 0;
-        style.ChildBorderSize = 1;
-        style.PopupBorderSize = 3;
-        style.FrameBorderSize = 0.0f;
+        style.ChildBorderSize  = 1;
+        style.PopupBorderSize  = 3;
+        style.FrameBorderSize  = 0.0f;
 
         const int roundingAmount = 2;
-        style.PopupRounding = roundingAmount;
-        style.WindowRounding = roundingAmount;
-        style.ChildRounding = 0;
-        style.FrameRounding = roundingAmount;
-        style.ScrollbarRounding = roundingAmount;
-        style.GrabRounding = roundingAmount;
-        style.WindowMinSize = ImVec2(200.0f, 200.0f);
+        style.PopupRounding      = roundingAmount;
+        style.WindowRounding     = roundingAmount;
+        style.ChildRounding      = 0;
+        style.FrameRounding      = roundingAmount;
+        style.ScrollbarRounding  = roundingAmount;
+        style.GrabRounding       = roundingAmount;
+        style.WindowMinSize      = ImVec2(200.0f, 200.0f);
 
 #ifdef IMGUI_HAS_DOCK
         style.TabBorderSize = 1.0f;
-        style.TabRounding = roundingAmount; // + 4;
+        style.TabRounding   = roundingAmount; // + 4;
 
         if(ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
         {
-            style.WindowRounding = roundingAmount;
+            style.WindowRounding              = roundingAmount;
             style.Colors[ImGuiCol_WindowBg].w = 1.0f;
         }
 #endif
@@ -355,12 +355,12 @@ namespace Lumos
         static const ImWchar icons_ranges[] = { ICON_MIN_MDI, ICON_MAX_MDI, 0 };
         ImFontConfig icons_config;
         // merge in icons from Font Awesome
-        icons_config.MergeMode = true;
-        icons_config.PixelSnapH = true;
+        icons_config.MergeMode     = true;
+        icons_config.PixelSnapH    = true;
         icons_config.GlyphOffset.y = 1.0f;
         icons_config.OversampleH = icons_config.OversampleV = 1;
-        icons_config.GlyphMinAdvanceX = 4.0f;
-        icons_config.SizePixels = 12.0f;
+        icons_config.GlyphMinAdvanceX                       = 4.0f;
+        icons_config.SizePixels                             = 12.0f;
 
         io.Fonts->AddFontFromMemoryCompressedTTF(MaterialDesign_compressed_data, MaterialDesign_compressed_size, m_FontSize, &icons_config, icons_ranges);
     }

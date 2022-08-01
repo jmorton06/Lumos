@@ -48,8 +48,8 @@ namespace Lumos
             uint32_t m_CurrentBufferID = 0;
             Mesh* m_Quad;
 
-            float m_GridRes = 1.0f;
-            float m_GridSize = 1.0f;
+            float m_GridRes     = 1.0f;
+            float m_GridSize    = 1.0f;
             float m_MaxDistance = 600.0f;
         };
     }

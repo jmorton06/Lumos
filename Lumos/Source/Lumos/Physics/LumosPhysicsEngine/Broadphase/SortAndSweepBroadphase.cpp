@@ -32,12 +32,12 @@ namespace Lumos
     }
 
     void SortAndSweepBroadphase::FindPotentialCollisionPairs(RigidBody3D** objects, uint32_t objectCount,
-        std::vector<CollisionPair>& collisionPairs)
+                                                             std::vector<CollisionPair>& collisionPairs)
     {
         LUMOS_PROFILE_FUNCTION();
         // Sort entities along axis
         std::sort(objects, objects + objectCount, [this](RigidBody3D* a, RigidBody3D* b) -> bool
-            { return a->GetWorldSpaceAABB().Min()[this->m_AxisIndex] < b->GetWorldSpaceAABB().Min()[this->m_AxisIndex]; });
+                  { return a->GetWorldSpaceAABB().Min()[this->m_AxisIndex] < b->GetWorldSpaceAABB().Min()[this->m_AxisIndex]; });
 
         for(uint32_t i = 0; i < objectCount; i++)
         {

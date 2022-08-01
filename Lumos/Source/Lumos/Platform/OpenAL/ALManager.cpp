@@ -29,7 +29,7 @@ namespace Lumos
         void ALManager::OnInit()
         {
             LUMOS_PROFILE_FUNCTION();
-            m_Device = alcOpenDevice(nullptr);
+            m_Device  = alcOpenDevice(nullptr);
             m_Context = alcCreateContext(m_Device, nullptr);
 
             if(!m_Device)
@@ -44,7 +44,7 @@ namespace Lumos
         void ALManager::OnUpdate(const TimeStep& dt, Scene* scene)
         {
             LUMOS_PROFILE_FUNCTION();
-            auto& registry = scene->GetRegistry();
+            auto& registry    = scene->GetRegistry();
             auto listenerView = registry.view<Listener, Maths::Transform>();
             if(!listenerView.empty())
             {
@@ -64,7 +64,7 @@ namespace Lumos
 
         void ALManager::UpdateListener(Scene* scene)
         {
-            auto& registry = scene->GetRegistry();
+            auto& registry    = scene->GetRegistry();
             auto listenerView = registry.view<Listener, Maths::Transform>();
             if(!listenerView.empty())
             {

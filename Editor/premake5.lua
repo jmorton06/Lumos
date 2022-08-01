@@ -11,10 +11,12 @@ IncludeDir["Lumos"] = "../Lumos/Source"
 IncludeDir["External"] = "../Lumos/External/"
 IncludeDir["ImGui"] = "../Lumos/External/imgui/"
 IncludeDir["freetype"] = "../Lumos/External/freetype/include"
-IncludeDir["SpirvCross"] = "../Lumos/External/SPIRV-Cross"
+IncludeDir["SpirvCross"] = "../Lumos/External/vulkan/SPIRV-Cross"
 IncludeDir["cereal"] = "../Lumos/External/cereal/include"
 IncludeDir["spdlog"] = "../Lumos/External/spdlog/include"
 IncludeDir["glm"] = "../Lumos/External/glm"
+IncludeDir["msdf_atlas_gen"] = "../Lumos/External/msdf-atlas-gen/msdf-atlas-gen"
+IncludeDir["msdfgen"] = "../Lumos/External/msdf-atlas-gen/msdfgen"
 
 project "LumosEditor"
 	kind "WindowedApp"
@@ -50,6 +52,8 @@ externalincludedirs
 		"%{IncludeDir.freetype}",
 		"%{IncludeDir.SpirvCross}",
 		"%{IncludeDir.cereal}",
+		"%{IncludeDir.msdfgen}",
+		"%{IncludeDir.msdf_atlas_gen}",
 		"%{IncludeDir.glm}",
 		"%{IncludeDir.Lumos}",
 	}
@@ -63,7 +67,9 @@ externalincludedirs
 		"freetype",
 		"SpirvCross",
 		"spdlog",
-		"meshoptimizer"
+		"meshoptimizer",
+		-- "msdfgen",
+		"msdf-atlas-gen"
 	}
 
 	defines
@@ -130,13 +136,20 @@ externalincludedirs
 		xcodebuildsettings
 		{
 			['ARCHS'] = false,
-			['CODE_SIGN_IDENTITY'] = 'Mac Developer',
-			['PRODUCT_BUNDLE_IDENTIFIER'] = settings.bundle_identifier,
-			['DEVELOPMENT_TEAM'] = 'C5L4T5BF6L',
+	['CODE_SIGN_IDENTITY'] = '',
 			['INFOPLIST_FILE'] = '../Lumos/Source/Lumos/Platform/macOS/Info.plist',
 			['ASSETCATALOG_COMPILER_APPICON_NAME'] = 'AppIcon'
 			--['ENABLE_HARDENED_RUNTIME'] = 'YES'
 		}
+
+if settings.enable_signing then
+xcodebuildsettings
+{
+	['CODE_SIGN_IDENTITY'] = 'Mac Developer',
+	['DEVELOPMENT_TEAM'] = settings.developer_team,
+		['PRODUCT_BUNDLE_IDENTIFIER'] = settings.bundle_identifier
+}
+end
 
 		defines
 		{
@@ -232,13 +245,20 @@ externalincludedirs
 			['SDKROOT'] = 'iphoneos',
 			['TARGETED_DEVICE_FAMILY'] = '1,2',
 			['SUPPORTED_PLATFORMS'] = 'iphonesimulator iphoneos',
-			['CODE_SIGN_IDENTITY[sdk=iphoneos*]'] = 'iPhone Developer',
+			['CODE_SIGN_IDENTITY'] = '',
 			['IPHONEOS_DEPLOYMENT_TARGET'] = '13.0',
-			['PRODUCT_BUNDLE_IDENTIFIER'] = settings.bundle_identifier,
-			['DEVELOPMENT_TEAM'] = 'C5L4T5BF6L',
 			['INFOPLIST_FILE'] = '../Lumos/Source/Lumos/Platform/iOS/Client/Info.plist',
 			['ASSETCATALOG_COMPILER_APPICON_NAME'] = 'AppIcon',
-		}
+}
+
+if settings.enable_signing then
+xcodebuildsettings
+{
+	['PRODUCT_BUNDLE_IDENTIFIER'] = settings.bundle_identifier,
+	['CODE_SIGN_IDENTITY[sdk=iphoneos*]'] = 'iPhone Developer',
+	['DEVELOPMENT_TEAM'] = settings.developer_team
+}
+end
 
 		if _OPTIONS["teamid"] then
 			xcodebuildsettings {
@@ -317,13 +337,13 @@ externalincludedirs
 			}
 
 	filter "configurations:Debug"
-defines { "LUMOS_DEBUG", "_DEBUG","TRACY_ENABLE","LUMOS_PROFILE","TRACY_ON_DEMAND" }
+		defines { "LUMOS_DEBUG", "_DEBUG","TRACY_ENABLE","LUMOS_PROFILE","TRACY_ON_DEMAND" }
 		symbols "On"
 		runtime "Debug"
 		optimize "Off"
 
 	filter "configurations:Release"
-defines { "LUMOS_RELEASE","TRACY_ENABLE","LUMOS_PROFILE","TRACY_ON_DEMAND"}
+		defines { "LUMOS_RELEASE","TRACY_ENABLE","LUMOS_PROFILE","TRACY_ON_DEMAND"}
 		optimize "Speed"
 		symbols "On"
 		runtime "Release"

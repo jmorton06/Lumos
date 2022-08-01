@@ -19,10 +19,10 @@ namespace Lumos
 {
     void WindowsOS::Run()
     {
-        auto power = WindowsPower();
-        auto percentage = power.GetPowerPercentageLeft();
+        auto power       = WindowsPower();
+        auto percentage  = power.GetPowerPercentageLeft();
         auto secondsLeft = power.GetPowerSecondsLeft();
-        auto state = power.GetPowerState();
+        auto state       = power.GetPowerState();
 
         LUMOS_LOG_INFO("--------------------");
         LUMOS_LOG_INFO(" System Information ");

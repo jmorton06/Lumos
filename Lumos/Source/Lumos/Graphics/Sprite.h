@@ -36,9 +36,9 @@ namespace Lumos
                 }
 
                 archive(cereal::make_nvp("TexturePath", newPath),
-                    cereal::make_nvp("Position", m_Position),
-                    cereal::make_nvp("Scale", m_Scale),
-                    cereal::make_nvp("Colour", m_Colour));
+                        cereal::make_nvp("Position", m_Position),
+                        cereal::make_nvp("Scale", m_Scale),
+                        cereal::make_nvp("Colour", m_Colour));
             }
 
             template <typename Archive>
@@ -46,9 +46,9 @@ namespace Lumos
             {
                 std::string textureFilePath;
                 archive(cereal::make_nvp("TexturePath", textureFilePath),
-                    cereal::make_nvp("Position", m_Position),
-                    cereal::make_nvp("Scale", m_Scale),
-                    cereal::make_nvp("Colour", m_Colour));
+                        cereal::make_nvp("Position", m_Position),
+                        cereal::make_nvp("Scale", m_Scale),
+                        cereal::make_nvp("Colour", m_Colour));
 
                 if(!textureFilePath.empty())
                     m_Texture = SharedPtr<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile("sprite", textureFilePath));

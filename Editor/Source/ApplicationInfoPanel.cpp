@@ -15,7 +15,7 @@ namespace Lumos
 {
     ApplicationInfoPanel::ApplicationInfoPanel()
     {
-        m_Name = "ApplicationInfo";
+        m_Name       = "ApplicationInfo";
         m_SimpleName = "ApplicationInfo";
     }
 

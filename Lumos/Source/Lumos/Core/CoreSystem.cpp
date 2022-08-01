@@ -22,12 +22,12 @@ namespace Lumos
 
             // This variables can be set via the command line.
             std::string oString = "Default Value";
-            int32_t oInteger = -1;
-            uint32_t oUnsigned = 0;
-            double oDouble = 0.0;
-            float oFloat = 0.f;
-            bool oBool = false;
-            bool oPrintHelp = false;
+            int32_t oInteger    = -1;
+            uint32_t oUnsigned  = 0;
+            double oDouble      = 0.0;
+            float oFloat        = 0.f;
+            bool oBool          = false;
+            bool oPrintHelp     = false;
 
             // First configure all possible command line options.
             args.AddArgument({ "-s", "--string" }, &oString, "A string value");
@@ -37,8 +37,8 @@ namespace Lumos
             args.AddArgument({ "-f", "--float" }, &oFloat, "A double value");
             args.AddArgument({ "-b", "--bool" }, &oBool, "A bool value");
             args.AddArgument({ "-h", "--help" }, &oPrintHelp,
-                "Print this help. This help message is actually so long "
-                "that it requires a line break!");
+                             "Print this help. This help message is actually so long "
+                             "that it requires a line break!");
 
             args.Parse(argc, argv);
 

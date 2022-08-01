@@ -57,13 +57,13 @@ namespace Lumos
         void Frustum::Define(const glm::mat4& transform)
         {
             LUMOS_PROFILE_FUNCTION();
-            auto& m = transform;
-            m_Planes[PLANE_LEFT] = Plane(m[0][3] + m[0][0], m[1][3] + m[1][0], m[2][3] + m[2][0], m[3][3] + m[3][0]);
+            auto& m               = transform;
+            m_Planes[PLANE_LEFT]  = Plane(m[0][3] + m[0][0], m[1][3] + m[1][0], m[2][3] + m[2][0], m[3][3] + m[3][0]);
             m_Planes[PLANE_RIGHT] = Plane(m[0][3] - m[0][0], m[1][3] - m[1][0], m[2][3] - m[2][0], m[3][3] - m[3][0]);
-            m_Planes[PLANE_DOWN] = Plane(m[0][3] + m[0][1], m[1][3] + m[1][1], m[2][3] + m[2][1], m[3][3] + m[3][1]);
-            m_Planes[PLANE_UP] = Plane(m[0][3] - m[0][1], m[1][3] - m[1][1], m[2][3] - m[2][1], m[3][3] - m[3][1]);
-            m_Planes[PLANE_NEAR] = Plane(m[0][3] + m[0][2], m[1][3] + m[1][2], m[2][3] + m[2][2], m[3][3] + m[3][2]);
-            m_Planes[PLANE_FAR] = Plane(m[0][3] - m[0][2], m[1][3] - m[1][2], m[2][3] - m[2][2], m[3][3] - m[3][2]);
+            m_Planes[PLANE_DOWN]  = Plane(m[0][3] + m[0][1], m[1][3] + m[1][1], m[2][3] + m[2][1], m[3][3] + m[3][1]);
+            m_Planes[PLANE_UP]    = Plane(m[0][3] - m[0][1], m[1][3] - m[1][1], m[2][3] - m[2][1], m[3][3] - m[3][1]);
+            m_Planes[PLANE_NEAR]  = Plane(m[0][3] + m[0][2], m[1][3] + m[1][2], m[2][3] + m[2][2], m[3][3] + m[3][2]);
+            m_Planes[PLANE_FAR]   = Plane(m[0][3] - m[0][2], m[1][3] - m[1][2], m[2][3] - m[2][2], m[3][3] - m[3][2]);
 
             for(int i = 0; i < 6; i++)
             {
@@ -77,18 +77,18 @@ namespace Lumos
         {
             LUMOS_PROFILE_FUNCTION();
             glm::mat4 m = glm::ortho(-scale * aspectRatio, scale * aspectRatio, -scale, scale, near, far);
-            m = m * viewMatrix;
+            m           = m * viewMatrix;
             Define(m);
         }
         void Frustum::Define(float fov, float aspectRatio, float near, float far, const glm::mat4& viewMatrix)
         {
             LUMOS_PROFILE_FUNCTION();
             float tangent = tan(fov * 0.5f);
-            float height = near * tangent;
-            float width = height * aspectRatio;
+            float height  = near * tangent;
+            float width   = height * aspectRatio;
 
             glm::mat4 m = glm::frustum(-width, width, -height, height, near, far);
-            m = m * viewMatrix;
+            m           = m * viewMatrix;
             Define(m);
         }
 
@@ -219,13 +219,13 @@ namespace Lumos
         void Frustum::CalculateVertices(const glm::mat4& transform)
         {
             LUMOS_PROFILE_FUNCTION();
-            bool zerotoOne = false;
-            bool leftHand = true;
+            bool zerotoOne         = false;
+            bool leftHand          = true;
             glm::mat4 transformInv = glm::inverse(transform);
-            m_Verticies[0] = glm::vec4(-1.0f, -1.0f, zerotoOne ? 0.0f : -1.0f, 1.0f);
-            m_Verticies[1] = glm::vec4(1.0f, -1.0f, zerotoOne ? 0.0f : -1.0f, 1.0f);
-            m_Verticies[2] = glm::vec4(1.0f, 1.0f, zerotoOne ? 0.0f : -1.0f, 1.0f);
-            m_Verticies[3] = glm::vec4(-1.0f, 1.0f, zerotoOne ? 0.0f : -1.0f, 1.0f);
+            m_Verticies[0]         = glm::vec4(-1.0f, -1.0f, zerotoOne ? 0.0f : -1.0f, 1.0f);
+            m_Verticies[1]         = glm::vec4(1.0f, -1.0f, zerotoOne ? 0.0f : -1.0f, 1.0f);
+            m_Verticies[2]         = glm::vec4(1.0f, 1.0f, zerotoOne ? 0.0f : -1.0f, 1.0f);
+            m_Verticies[3]         = glm::vec4(-1.0f, 1.0f, zerotoOne ? 0.0f : -1.0f, 1.0f);
 
             m_Verticies[4] = glm::vec4(-1.0f, -1.0f, 1.0f, 1.0f);
             m_Verticies[5] = glm::vec4(1.0f, -1.0f, 1.0f, 1.0f);
@@ -235,7 +235,7 @@ namespace Lumos
             glm::vec4 temp;
             for(int i = 0; i < 8; i++)
             {
-                temp = transformInv * glm::vec4(m_Verticies[i], 1.0f);
+                temp           = transformInv * glm::vec4(m_Verticies[i], 1.0f);
                 m_Verticies[i] = temp / temp.w;
             }
         }

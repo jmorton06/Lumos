@@ -204,7 +204,7 @@ namespace Lumos
         LUMOS_PROFILE_FUNCTION();
         entt::entity e = entt::null;
         registry.view<NameComponent>().each([&](const entt::entity& entity, const NameComponent& component)
-            {
+                                            {
                 if(name == component.name)
                 {
                     e = entity;
@@ -219,19 +219,19 @@ namespace Lumos
         auto log = state.create_table("Log");
 
         log.set_function("Trace", [&](sol::this_state s, std::string_view message)
-            { LUMOS_LOG_TRACE(message); });
+                         { LUMOS_LOG_TRACE(message); });
 
         log.set_function("Info", [&](sol::this_state s, std::string_view message)
-            { LUMOS_LOG_TRACE(message); });
+                         { LUMOS_LOG_TRACE(message); });
 
         log.set_function("Warn", [&](sol::this_state s, std::string_view message)
-            { LUMOS_LOG_WARN(message); });
+                         { LUMOS_LOG_WARN(message); });
 
         log.set_function("Error", [&](sol::this_state s, std::string_view message)
-            { LUMOS_LOG_ERROR(message); });
+                         { LUMOS_LOG_ERROR(message); });
 
         log.set_function("Critical", [&](sol::this_state s, std::string_view message)
-            { LUMOS_LOG_CRITICAL(message); });
+                         { LUMOS_LOG_CRITICAL(message); });
     }
 
     void LuaManager::BindInputLua(sol::state& state)
@@ -240,34 +240,34 @@ namespace Lumos
         auto input = state["Input"].get_or_create<sol::table>();
 
         input.set_function("GetKeyPressed", [](Lumos::InputCode::Key key) -> bool
-            { return Input::Get().GetKeyPressed(key); });
+                           { return Input::Get().GetKeyPressed(key); });
 
         input.set_function("GetKeyHeld", [](Lumos::InputCode::Key key) -> bool
-            { return Input::Get().GetKeyHeld(key); });
+                           { return Input::Get().GetKeyHeld(key); });
 
         input.set_function("GetMouseClicked", [](Lumos::InputCode::MouseKey key) -> bool
-            { return Input::Get().GetMouseClicked(key); });
+                           { return Input::Get().GetMouseClicked(key); });
 
         input.set_function("GetMouseHeld", [](Lumos::InputCode::MouseKey key) -> bool
-            { return Input::Get().GetMouseHeld(key); });
+                           { return Input::Get().GetMouseHeld(key); });
 
         input.set_function("GetMousePosition", []() -> glm::vec2
-            { return Input::Get().GetMousePosition(); });
+                           { return Input::Get().GetMousePosition(); });
 
         input.set_function("GetScrollOffset", []() -> float
-            { return Input::Get().GetScrollOffset(); });
+                           { return Input::Get().GetScrollOffset(); });
 
         input.set_function("GetControllerAxis", [](int id, int axis) -> float
-            { return Input::GetControllerAxis(id, axis); });
+                           { return Input::GetControllerAxis(id, axis); });
 
         input.set_function("GetControllerName", [](int id) -> std::string
-            { return Input::GetControllerName(id); });
+                           { return Input::GetControllerName(id); });
 
         input.set_function("GetControllerHat", [](int id, int hat) -> int
-            { return Input::GetControllerHat(id, hat); });
+                           { return Input::GetControllerHat(id, hat); });
 
         input.set_function("IsControllerButtonPressed", [](int id, int button) -> bool
-            { return Input::IsControllerButtonPressed(id, button); });
+                           { return Input::IsControllerButtonPressed(id, button); });
 
         std::initializer_list<std::pair<sol::string_view, Lumos::InputCode::Key>> keyItems = {
             { "A", Lumos::InputCode::Key::A },
@@ -394,7 +394,7 @@ namespace Lumos
 
         sol::usertype<entt::registry> enttRegistry = state.new_usertype<entt::registry>("enttRegistry");
 
-        sol::usertype<Entity> entityType = state.new_usertype<Entity>("Entity", sol::constructors<sol::types<entt::entity, Scene*>>());
+        sol::usertype<Entity> entityType               = state.new_usertype<Entity>("Entity", sol::constructors<sol::types<entt::entity, Scene*>>());
         sol::usertype<EntityManager> entityManagerType = state.new_usertype<EntityManager>("EntityManager");
         entityManagerType.set_function("Create", static_cast<Entity (EntityManager::*)()>(&EntityManager::Create));
         entityManagerType.set_function("GetRegistry", &EntityManager::GetRegistry);
@@ -415,7 +415,7 @@ namespace Lumos
         state.set_function("AddLightCubeEntity", &EntityFactory::AddLightCube);
 
         sol::usertype<NameComponent> nameComponent_type = state.new_usertype<NameComponent>("NameComponent");
-        nameComponent_type["name"] = &NameComponent::name;
+        nameComponent_type["name"]                      = &NameComponent::name;
         REGISTER_COMPONENT_WITH_ECS(state, NameComponent, static_cast<NameComponent& (Entity::*)()>(&Entity::AddComponent<NameComponent>));
 
         sol::usertype<LuaScriptComponent> script_type = state.new_usertype<LuaScriptComponent>("LuaScriptComponent", sol::constructors<sol::types<std::string, Scene*>>());
@@ -427,6 +427,13 @@ namespace Lumos
         REGISTER_COMPONENT_WITH_ECS(state, Transform, static_cast<Transform& (Entity::*)()>(&Entity::AddComponent<Transform>));
 
         using namespace Graphics;
+        sol::usertype<TextComponent> textComponent_type = state.new_usertype<TextComponent>("TextComponent");
+        textComponent_type["TextString"]                = &TextComponent::TextString;
+        textComponent_type["Colour"]                    = &TextComponent::Colour;
+        textComponent_type["MaxWidth"]                  = &TextComponent::MaxWidth;
+
+        REGISTER_COMPONENT_WITH_ECS(state, TextComponent, static_cast<TextComponent& (Entity::*)()>(&Entity::AddComponent<TextComponent>));
+
         sol::usertype<Sprite> sprite_type = state.new_usertype<Sprite>("Sprite", sol::constructors<sol::types<glm::vec2, glm::vec2, glm::vec4>, Sprite(const SharedPtr<Graphics::Texture2D>&, const glm::vec2&, const glm::vec2&, const glm::vec4&)>());
         sprite_type.set_function("SetTexture", &Sprite::SetTexture);
 
@@ -461,13 +468,13 @@ namespace Lumos
         REGISTER_COMPONENT_WITH_ECS(state, Model, static_cast<Model& (Entity::*)(const std::string&)>(&Entity::AddComponent<Model, const std::string&>));
 
         sol::usertype<Camera> camera_type = state.new_usertype<Camera>("Camera", sol::constructors<Camera(float, float, float, float), Camera(float, float)>());
-        camera_type["fov"] = &Camera::GetFOV;
-        camera_type["aspectRatio"] = &Camera::GetAspectRatio;
-        camera_type["nearPlane"] = &Camera::GetNear;
-        camera_type["farPlane"] = &Camera::GetFar;
-        camera_type["SetIsOrthographic"] = &Camera::SetIsOrthographic;
-        camera_type["SetNearPlane"] = &Camera::SetNear;
-        camera_type["SetFarPlane"] = &Camera::SetFar;
+        camera_type["fov"]                = &Camera::GetFOV;
+        camera_type["aspectRatio"]        = &Camera::GetAspectRatio;
+        camera_type["nearPlane"]          = &Camera::GetNear;
+        camera_type["farPlane"]           = &Camera::GetFar;
+        camera_type["SetIsOrthographic"]  = &Camera::SetIsOrthographic;
+        camera_type["SetNearPlane"]       = &Camera::SetNear;
+        camera_type["SetFarPlane"]        = &Camera::SetFar;
 
         REGISTER_COMPONENT_WITH_ECS(state, Camera, static_cast<Camera& (Entity::*)(const float&, const float&)>(&Entity::AddComponent<Camera, const float&, const float&>));
 

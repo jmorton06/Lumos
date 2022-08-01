@@ -13,16 +13,16 @@ namespace Lumos
         : m_Parent(p)
     {
         m_First = entt::null;
-        m_Next = entt::null;
-        m_Prev = entt::null;
+        m_Next  = entt::null;
+        m_Prev  = entt::null;
     }
 
     Hierarchy::Hierarchy()
     {
         m_Parent = entt::null;
-        m_First = entt::null;
-        m_Next = entt::null;
-        m_Prev = entt::null;
+        m_First  = entt::null;
+        m_Next   = entt::null;
+        m_Prev   = entt::null;
     }
 
     SceneGraph::SceneGraph()
@@ -46,7 +46,7 @@ namespace Lumos
             registry.get<Maths::Transform>(entity).SetWorldMatrix(glm::mat4(1.0f));
         }
 
-        auto view = registry.view<Maths::Transform, Hierarchy>();
+        auto view = registry.view<Hierarchy>();
         for(auto entity : view)
         {
             const auto hierarchy = registry.try_get<Hierarchy>(entity);
@@ -74,6 +74,10 @@ namespace Lumos
                     {
                         transform->SetWorldMatrix(parentTransform->GetWorldMatrix());
                     }
+                    else
+                    {
+                        transform->SetWorldMatrix(glm::mat4(1.0f));
+                    }
                 }
                 else
                 {
@@ -85,7 +89,7 @@ namespace Lumos
             while(child != entt::null)
             {
                 auto hierarchyComponent = registry.try_get<Hierarchy>(child);
-                auto next = hierarchyComponent ? hierarchyComponent->Next() : entt::null;
+                auto next               = hierarchyComponent ? hierarchyComponent->Next() : entt::null;
                 UpdateTransform(child, registry);
                 child = next;
             }
@@ -98,8 +102,8 @@ namespace Lumos
         Hierarchy::OnDestroy(registry, entity);
 
         hierarchy.m_Parent = entt::null;
-        hierarchy.m_Next = entt::null;
-        hierarchy.m_Prev = entt::null;
+        hierarchy.m_Next   = entt::null;
+        hierarchy.m_Prev   = entt::null;
 
         if(parent != entt::null)
         {
@@ -124,7 +128,7 @@ namespace Lumos
             else
             {
                 auto& this_parent_h = registry.get<Hierarchy>(m_Parent);
-                auto& rhs_h = registry.get<Hierarchy>(rhs);
+                auto& rhs_h         = registry.get<Hierarchy>(rhs);
                 if(this_parent_h.Compare(registry, rhs_h.m_Parent))
                 {
                     return true;
@@ -137,9 +141,9 @@ namespace Lumos
     void Hierarchy::Reset()
     {
         m_Parent = entt::null;
-        m_First = entt::null;
-        m_Next = entt::null;
-        m_Prev = entt::null;
+        m_First  = entt::null;
+        m_Next   = entt::null;
+        m_Prev   = entt::null;
     }
 
     void Hierarchy::OnConstruct(entt::registry& registry, entt::entity entity)
@@ -157,16 +161,16 @@ namespace Lumos
             else
             {
                 // get last children
-                auto prev_ent = parent_hierarchy.m_First;
+                auto prev_ent          = parent_hierarchy.m_First;
                 auto current_hierarchy = registry.try_get<Hierarchy>(prev_ent);
                 while(current_hierarchy != nullptr && current_hierarchy->m_Next != entt::null)
                 {
-                    prev_ent = current_hierarchy->m_Next;
+                    prev_ent          = current_hierarchy->m_Next;
                     current_hierarchy = registry.try_get<Hierarchy>(prev_ent);
                 }
                 // add new
                 current_hierarchy->m_Next = entity;
-                hierarchy.m_Prev = prev_ent;
+                hierarchy.m_Prev          = prev_ent;
             }
             // sort
             //			registry.sort<Hierarchy>([&registry](const entt::entity lhs, const entt::entity rhs) {

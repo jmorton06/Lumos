@@ -5,6 +5,8 @@
 #include "VKFramebuffer.h"
 #include "VKUtilities.h"
 #include "VKPipeline.h"
+#include "VKInitialisers.h"
+#include "Core/JobSystem.h"
 
 #include <Tracy/TracyVulkan.hpp>
 
@@ -38,22 +40,15 @@ namespace Lumos
         bool VKCommandBuffer::Init(bool primary)
         {
             LUMOS_PROFILE_FUNCTION();
-            m_Primary = primary;
-
-            VkCommandBufferAllocateInfo cmdBufferCI {};
-
+            m_Primary     = primary;
             m_CommandPool = VKDevice::Get().GetCommandPool()->GetHandle();
 
-            cmdBufferCI.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-            cmdBufferCI.commandPool = m_CommandPool;
-            cmdBufferCI.commandBufferCount = 1;
-            cmdBufferCI.level = primary ? VK_COMMAND_BUFFER_LEVEL_PRIMARY : VK_COMMAND_BUFFER_LEVEL_SECONDARY;
+            VkCommandBufferAllocateInfo cmdBufferCreateInfo = VKInitialisers::CommandBufferAllocateInfo(m_CommandPool, primary ? VK_COMMAND_BUFFER_LEVEL_PRIMARY : VK_COMMAND_BUFFER_LEVEL_SECONDARY, 1);
 
-            VK_CHECK_RESULT(vkAllocateCommandBuffers(VKDevice::Get().GetDevice(), &cmdBufferCI, &m_CommandBuffer));
+            VK_CHECK_RESULT(vkAllocateCommandBuffers(VKDevice::Get().GetDevice(), &cmdBufferCreateInfo, &m_CommandBuffer));
 
-            VkSemaphoreCreateInfo semaphoreInfo = {};
-            semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-            semaphoreInfo.pNext = nullptr;
+            VkSemaphoreCreateInfo semaphoreInfo = VKInitialisers::SemaphoreCreateInfo();
+            semaphoreInfo.pNext                 = nullptr;
 
             VK_CHECK_RESULT(vkCreateSemaphore(VKDevice::Get().GetDevice(), &semaphoreInfo, nullptr, &m_Semaphore));
             m_Fence = CreateSharedPtr<VKFence>(false);
@@ -66,20 +61,15 @@ namespace Lumos
             LUMOS_PROFILE_FUNCTION();
             m_Primary = primary;
 
-            VkCommandBufferAllocateInfo cmdBufferCI {};
-
             m_CommandPool = commandPool;
 
-            cmdBufferCI.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-            cmdBufferCI.commandPool = m_CommandPool;
-            cmdBufferCI.commandBufferCount = 1;
-            cmdBufferCI.level = primary ? VK_COMMAND_BUFFER_LEVEL_PRIMARY : VK_COMMAND_BUFFER_LEVEL_SECONDARY;
+            VkCommandBufferAllocateInfo cmdBufferCreateInfo = VKInitialisers::CommandBufferAllocateInfo(m_CommandPool, primary ? VK_COMMAND_BUFFER_LEVEL_PRIMARY : VK_COMMAND_BUFFER_LEVEL_SECONDARY, 1);
 
-            VK_CHECK_RESULT(vkAllocateCommandBuffers(VKDevice::Get().GetDevice(), &cmdBufferCI, &m_CommandBuffer));
+            VK_CHECK_RESULT(vkAllocateCommandBuffers(VKDevice::Get().GetDevice(), &cmdBufferCreateInfo, &m_CommandBuffer));
 
             VkSemaphoreCreateInfo semaphoreInfo = {};
-            semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-            semaphoreInfo.pNext = nullptr;
+            semaphoreInfo.sType                 = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+            semaphoreInfo.pNext                 = nullptr;
 
             VK_CHECK_RESULT(vkCreateSemaphore(VKDevice::Get().GetDevice(), &semaphoreInfo, nullptr, &m_Semaphore));
             m_Fence = CreateSharedPtr<VKFence>(true);
@@ -97,7 +87,6 @@ namespace Lumos
 
             m_Fence = nullptr;
             vkDestroySemaphore(VKDevice::Get().GetDevice(), m_Semaphore, nullptr);
-
             vkFreeCommandBuffers(VKDevice::Get().GetDevice(), m_CommandPool, 1, &m_CommandBuffer);
         }
 
@@ -106,11 +95,10 @@ namespace Lumos
             LUMOS_PROFILE_FUNCTION();
             LUMOS_ASSERT(m_Primary, "BeginRecording() called from a secondary command buffer!");
 
-            m_State = CommandBufferState::Recording;
-            VkCommandBufferBeginInfo beginCI {};
-            beginCI.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-            beginCI.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
-            VK_CHECK_RESULT(vkBeginCommandBuffer(m_CommandBuffer, &beginCI));
+            m_State                                  = CommandBufferState::Recording;
+            VkCommandBufferBeginInfo beginCreateInfo = VKInitialisers::CommandBufferBeginInfo();
+            beginCreateInfo.flags                    = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+            VK_CHECK_RESULT(vkBeginCommandBuffer(m_CommandBuffer, &beginCreateInfo));
         }
 
         void VKCommandBuffer::BeginRecordingSecondary(RenderPass* renderPass, Framebuffer* framebuffer)
@@ -119,18 +107,16 @@ namespace Lumos
             LUMOS_ASSERT(!m_Primary, "BeginRecordingSecondary() called from a primary command buffer!");
             m_State = CommandBufferState::Recording;
 
-            VkCommandBufferInheritanceInfo inheritanceInfo {};
-            inheritanceInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_INFO;
-            inheritanceInfo.subpass = 0;
-            inheritanceInfo.renderPass = static_cast<VKRenderPass*>(renderPass)->GetHandle();
-            inheritanceInfo.framebuffer = static_cast<VKFramebuffer*>(framebuffer)->GetFramebuffer();
+            VkCommandBufferInheritanceInfo inheritanceInfo = VKInitialisers::CommandBufferInheritanceInfo();
+            inheritanceInfo.subpass                        = 0;
+            inheritanceInfo.renderPass                     = static_cast<VKRenderPass*>(renderPass)->GetHandle();
+            inheritanceInfo.framebuffer                    = static_cast<VKFramebuffer*>(framebuffer)->GetFramebuffer();
 
-            VkCommandBufferBeginInfo beginCI {};
-            beginCI.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-            beginCI.flags = VK_COMMAND_BUFFER_USAGE_RENDER_PASS_CONTINUE_BIT;
-            beginCI.pInheritanceInfo = &inheritanceInfo;
+            VkCommandBufferBeginInfo beginCreateInfo = VKInitialisers::CommandBufferBeginInfo();
+            beginCreateInfo.flags                    = VK_COMMAND_BUFFER_USAGE_RENDER_PASS_CONTINUE_BIT;
+            beginCreateInfo.pInheritanceInfo         = &inheritanceInfo;
 
-            VK_CHECK_RESULT(vkBeginCommandBuffer(m_CommandBuffer, &beginCI));
+            VK_CHECK_RESULT(vkBeginCommandBuffer(m_CommandBuffer, &beginCreateInfo));
         }
 
         void VKCommandBuffer::EndRecording()
@@ -155,16 +141,14 @@ namespace Lumos
             LUMOS_ASSERT(m_State == CommandBufferState::Ended, "CommandBuffer executed before ended recording");
             uint32_t waitSemaphoreCount = waitSemaphore ? 1 : 0, signalSemaphoreCount = m_Semaphore ? 1 : 0;
 
-            VkSubmitInfo submitInfo = {};
-            submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-            submitInfo.pNext = VK_NULL_HANDLE;
-            submitInfo.waitSemaphoreCount = waitSemaphoreCount;
-            submitInfo.pWaitSemaphores = &waitSemaphore;
-            submitInfo.pWaitDstStageMask = &flags;
-            submitInfo.commandBufferCount = 1;
-            submitInfo.pCommandBuffers = &m_CommandBuffer;
+            VkSubmitInfo submitInfo         = VKInitialisers::SubmitInfo();
+            submitInfo.waitSemaphoreCount   = waitSemaphoreCount;
+            submitInfo.pWaitSemaphores      = &waitSemaphore;
+            submitInfo.pWaitDstStageMask    = &flags;
+            submitInfo.commandBufferCount   = 1;
+            submitInfo.pCommandBuffers      = &m_CommandBuffer;
             submitInfo.signalSemaphoreCount = signalSemaphoreCount;
-            submitInfo.pSignalSemaphores = &m_Semaphore;
+            submitInfo.pSignalSemaphores    = &m_Semaphore;
 
             m_Fence->Reset();
 
@@ -172,6 +156,7 @@ namespace Lumos
                 LUMOS_PROFILE_SCOPE("vkQueueSubmit");
                 VK_CHECK_RESULT(vkQueueSubmit(VKDevice::Get().GetGraphicsQueue(), 1, &submitInfo, m_Fence->GetHandle()));
             }
+
             m_State = CommandBufferState::Submitted;
         }
 
@@ -207,24 +192,24 @@ namespace Lumos
         {
             LUMOS_PROFILE_FUNCTION();
             VkViewport viewport = {};
-            viewport.x = 0.0f;
-            viewport.y = 0.0f;
-            viewport.width = static_cast<float>(width);
-            viewport.height = static_cast<float>(height);
-            viewport.minDepth = 0.0f;
-            viewport.maxDepth = 1.0f;
+            viewport.x          = 0.0f;
+            viewport.y          = 0.0f;
+            viewport.width      = static_cast<float>(width);
+            viewport.height     = static_cast<float>(height);
+            viewport.minDepth   = 0.0f;
+            viewport.maxDepth   = 1.0f;
 
             if(flipViewport)
             {
-                viewport.width = (float)width;
+                viewport.width  = (float)width;
                 viewport.height = -(float)height;
-                viewport.x = 0;
-                viewport.y = (float)height;
+                viewport.x      = 0;
+                viewport.y      = (float)height;
             }
 
             VkRect2D scissor = {};
-            scissor.offset = { 0, 0 };
-            scissor.extent = { width, height };
+            scissor.offset   = { 0, 0 };
+            scissor.extent   = { width, height };
 
             vkCmdSetViewport(m_CommandBuffer, 0, 1, &viewport);
             vkCmdSetScissor(m_CommandBuffer, 0, 1, &scissor);

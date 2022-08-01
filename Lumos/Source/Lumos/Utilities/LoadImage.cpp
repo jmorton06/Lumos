@@ -27,12 +27,12 @@ namespace Lumos
         filename = physicalPath.c_str();
 
         int texWidth = 0, texHeight = 0, texChannels = 0;
-        stbi_uc* pixels = nullptr;
+        stbi_uc* pixels   = nullptr;
         int sizeOfChannel = 8;
         if(stbi_is_hdr(filename))
         {
             sizeOfChannel = 32;
-            pixels = (uint8_t*)stbi_loadf(filename, &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
+            pixels        = (uint8_t*)stbi_loadf(filename, &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
 
             if(isHDR)
                 *isHDR = true;
@@ -60,7 +60,7 @@ namespace Lumos
                 *bits = texChannels * sizeOfChannel;
 
             const int32_t size = (*width) * (*height) * texChannels;
-            uint8_t* data = new uint8_t[size];
+            uint8_t* data      = new uint8_t[size];
 
             uint8_t datatwo[16] = {
                 255, 0, 255, 255,
@@ -86,7 +86,7 @@ namespace Lumos
             *bits = texChannels * sizeOfChannel; // texChannels;	  //32 bits for 4 bytes r g b a
 
         const int32_t size = texWidth * texHeight * texChannels * sizeOfChannel / 8;
-        uint8_t* result = new uint8_t[size];
+        uint8_t* result    = new uint8_t[size];
         memcpy(result, pixels, size);
 
         stbi_image_free(pixels);

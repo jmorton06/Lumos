@@ -23,7 +23,7 @@ namespace Lumos
         DirectoryInformation(const std::filesystem::path& fname, bool isF)
         {
             FilePath = fname;
-            IsFile = isF;
+            IsFile   = isF;
         }
     };
 

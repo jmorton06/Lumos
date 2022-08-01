@@ -24,23 +24,23 @@ namespace Lumos
             uint32_t UpdatesPerSecond;
             uint32_t FramesPerSecond;
             uint32_t NumRenderedObjects = 0;
-            uint32_t NumShadowObjects = 0;
-            uint32_t NumDrawCalls = 0;
-            float FrameTime = 0.0f;
-            float UsedGPUMemory = 0.0f;
-            float UsedRam = 0.0f;
-            float TotalGPUMemory = 0.0f;
+            uint32_t NumShadowObjects   = 0;
+            uint32_t NumDrawCalls       = 0;
+            float FrameTime             = 0.0f;
+            float UsedGPUMemory         = 0.0f;
+            float UsedRam               = 0.0f;
+            float TotalGPUMemory        = 0.0f;
         };
 
         void ResetStats()
         {
             m_Stats.NumRenderedObjects = 0;
-            m_Stats.NumShadowObjects = 0;
-            m_Stats.FrameTime = 0.0f;
-            m_Stats.UsedGPUMemory = 0.0f;
-            m_Stats.UsedRam = 0.0f;
-            m_Stats.NumDrawCalls = 0;
-            m_Stats.TotalGPUMemory = 0.0f;
+            m_Stats.NumShadowObjects   = 0;
+            m_Stats.FrameTime          = 0.0f;
+            m_Stats.UsedGPUMemory      = 0.0f;
+            m_Stats.UsedRam            = 0.0f;
+            m_Stats.NumDrawCalls       = 0;
+            m_Stats.TotalGPUMemory     = 0.0f;
         }
 
         Stats& Statistics() { return m_Stats; }

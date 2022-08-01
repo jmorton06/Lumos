@@ -79,7 +79,7 @@ namespace Lumos
 
         void VKIndexBuffer::MakeDefault()
         {
-            CreateFunc = CreateFuncVulkan;
+            CreateFunc   = CreateFuncVulkan;
             Create16Func = CreateFunc16Vulkan;
         }
 

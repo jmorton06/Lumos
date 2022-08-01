@@ -4,9 +4,9 @@ struct JobDispatchArgs
 {
     uint32_t jobIndex;
     uint32_t groupID;
-    uint32_t groupIndex; // group index relative to dispatch (like SV_GroupID in HLSL)
+    uint32_t groupIndex;    // group index relative to dispatch (like SV_GroupID in HLSL)
     bool isFirstJobInGroup; // is the current job the first one in the group?
-    bool isLastJobInGroup; // is the current job the last one in the group?
+    bool isLastJobInGroup;  // is the current job the last one in the group?
     void* sharedmemory;
 };
 

@@ -11,7 +11,7 @@ namespace Lumos
         , m_springConstant(springConstant)
         , m_dampingFactor(dampingFactor)
     {
-        glm::vec3 ab = obj2->GetPosition() - obj1->GetPosition();
+        glm::vec3 ab   = obj2->GetPosition() - obj1->GetPosition();
         m_restDistance = glm::length(ab);
         // TODO: FIX
         UNIMPLEMENTED;
@@ -27,7 +27,7 @@ namespace Lumos
         , m_springConstant(springConstant)
         , m_dampingFactor(dampingFactor)
     {
-        glm::vec3 ab = globalOnB - globalOnA;
+        glm::vec3 ab   = globalOnB - globalOnA;
         m_restDistance = glm::length(ab);
         UNIMPLEMENTED;
 

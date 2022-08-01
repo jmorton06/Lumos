@@ -25,13 +25,13 @@ namespace Lumos
                 return m_DescriptorSet[currentFrame];
             }
             void Update() override;
-            void SetTexture(const std::string& name, Texture* texture, TextureType textureType) override;
+            void SetTexture(const std::string& name, Texture* texture, uint32_t mipIndex, TextureType textureType) override;
             void SetTexture(const std::string& name, Texture** texture, uint32_t textureCount, TextureType textureType) override;
             void SetBuffer(const std::string& name, UniformBuffer* buffer) override;
             void SetUniform(const std::string& bufferName, const std::string& uniformName, void* data) override;
             void SetUniform(const std::string& bufferName, const std::string& uniformName, void* data, uint32_t size) override;
             void SetUniformBufferData(const std::string& bufferName, void* data) override;
-            void TransitionImages() override;
+            void TransitionImages(CommandBuffer* commandBuffer) override;
 
             Graphics::UniformBuffer* GetUnifromBuffer(const std::string& name) override;
             bool GetIsDynamic() const { return m_Dynamic; }
@@ -39,6 +39,7 @@ namespace Lumos
             void SetDynamicOffset(uint32_t offset) override { m_DynamicOffset = offset; }
             uint32_t GetDynamicOffset() const override { return m_DynamicOffset; }
             bool GetHasUpdated(uint32_t frame) { return m_DescriptorUpdated[frame]; }
+            void SetUniformDynamic(const std::string& bufferName, uint32_t size) override;
 
             static void MakeDefault();
 
@@ -49,8 +50,8 @@ namespace Lumos
 
         private:
             uint32_t m_DynamicOffset = 0;
-            Shader* m_Shader = nullptr;
-            bool m_Dynamic = false;
+            Shader* m_Shader         = nullptr;
+            bool m_Dynamic           = false;
             std::array<VkDescriptorBufferInfo, MAX_BUFFER_INFOS> m_BufferInfoPool;
             std::array<VkDescriptorImageInfo, MAX_IMAGE_INFOS> m_ImageInfoPool;
             std::array<VkWriteDescriptorSet, MAX_WRITE_DESCTIPTORS> m_WriteDescriptorSetPool;

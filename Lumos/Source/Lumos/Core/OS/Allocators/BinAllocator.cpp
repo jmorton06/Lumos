@@ -11,15 +11,15 @@ namespace Lumos
         if(m_Bins[bin] == nullptr)
             return nullptr;
         void* result = m_Bins[bin];
-        m_Bins[bin] = *(void**)result;
+        m_Bins[bin]  = *(void**)result;
         return result;
     }
 
     void BinAllocator::Free(void* location)
     {
-        int bin = BinForLocation(location);
+        int bin           = BinForLocation(location);
         *(void**)location = m_Bins[bin];
-        m_Bins[bin] = location;
+        m_Bins[bin]       = location;
     }
 
     void* BinAllocator::Chunk(int num)
@@ -44,7 +44,7 @@ namespace Lumos
 
     int BinAllocator::BinForLocation(void* location)
     {
-        int index = ChunkIndex(location);
+        int index        = ChunkIndex(location);
         void* chunkStart = Chunk(index);
         return *(int*)chunkStart;
     }
@@ -54,10 +54,10 @@ namespace Lumos
         if((m_Max + 2) * BIN_SIZE + sizeof(BinAllocator) > MEMORY_SIZE)
             return;
 
-        int bin = BinForSize(size);
+        int bin           = BinForSize(size);
         size_t actualSize = SizeForBin(bin);
 
-        char* chunkPtr = (char*)Chunk(m_Max++);
+        char* chunkPtr  = (char*)Chunk(m_Max++);
         *(int*)chunkPtr = bin;
         chunkPtr += actualSize;
 

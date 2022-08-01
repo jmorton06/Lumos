@@ -8,9 +8,9 @@ namespace Lumos
         class LUMOS_EXPORT IndexBuffer
         {
         public:
-            virtual ~IndexBuffer() = default;
+            virtual ~IndexBuffer()                                          = default;
             virtual void Bind(CommandBuffer* commandBuffer = nullptr) const = 0;
-            virtual void Unbind() const = 0;
+            virtual void Unbind() const                                     = 0;
 
             virtual uint32_t GetCount() const = 0;
             virtual uint32_t GetSize() const { return 0; }

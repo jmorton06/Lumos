@@ -7,7 +7,7 @@ namespace Lumos
 {
     EditorSettingsPanel::EditorSettingsPanel()
     {
-        m_Name = "EditorSettings###editorsettings";
+        m_Name       = "EditorSettings###editorsettings";
         m_SimpleName = "Editor Settings";
     }
 
@@ -26,7 +26,7 @@ namespace Lumos
         Lumos::ImGuiUtilities::ScopedStyle(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
 
         {
-            auto sceneName = m_CurrentScene->GetSceneName();
+            auto sceneName   = m_CurrentScene->GetSceneName();
             int sceneVersion = m_CurrentScene->GetSceneVersion();
 
             auto& editorSettings = m_Editor->GetSettings();

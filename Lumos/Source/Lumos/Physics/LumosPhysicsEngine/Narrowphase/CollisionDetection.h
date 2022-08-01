@@ -55,7 +55,7 @@ namespace Lumos
         {
             const glm::vec3 minVol = center - halfVol;
             const glm::vec3 maxVol = center + halfVol;
-            float distSquared = sphereRad * sphereRad;
+            float distSquared      = sphereRad * sphereRad;
 
             if(spherePos.x <= minVol.x)
                 distSquared -= Maths::Squared(spherePos.x - minVol.x);
@@ -100,7 +100,7 @@ namespace Lumos
         static inline bool CheckAABBInsideAABB(const glm::vec3& AABBInsideCenter, const glm::vec3& AABBInsideHalfVol, const glm::vec3& AABBCenter, const glm::vec3& AABBHalfVol)
         {
             // min check
-            glm::vec3 minPoint = AABBCenter - AABBHalfVol;
+            glm::vec3 minPoint       = AABBCenter - AABBHalfVol;
             glm::vec3 minInsidePoint = AABBInsideCenter - AABBInsideHalfVol;
             if(minPoint.x > minInsidePoint.x)
                 return false;
@@ -109,7 +109,7 @@ namespace Lumos
             if(minPoint.z > minInsidePoint.z)
                 return false;
             // max check
-            glm::vec3 maxPoint = AABBCenter + AABBHalfVol;
+            glm::vec3 maxPoint       = AABBCenter + AABBHalfVol;
             glm::vec3 maxInsidePoint = AABBInsideCenter + AABBInsideHalfVol;
             if(maxPoint.x < maxInsidePoint.x)
                 return false;

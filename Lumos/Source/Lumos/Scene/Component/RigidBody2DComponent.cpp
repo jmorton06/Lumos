@@ -28,11 +28,11 @@ namespace Lumos
 
     void RigidBody2DComponent::OnImGui()
     {
-        auto pos = m_RigidBody->GetPosition();
-        auto angle = m_RigidBody->GetAngle();
+        auto pos      = m_RigidBody->GetPosition();
+        auto angle    = m_RigidBody->GetAngle();
         auto friction = m_RigidBody->GetFriction();
         auto isStatic = m_RigidBody->GetIsStatic();
-        auto isRest = m_RigidBody->GetIsAtRest();
+        auto isRest   = m_RigidBody->GetIsAtRest();
 
         auto elasticity = m_RigidBody->GetElasticity();
 

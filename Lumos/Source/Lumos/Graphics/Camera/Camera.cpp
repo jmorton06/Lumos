@@ -110,7 +110,7 @@ namespace Lumos
         glm::vec4 far = viewProjInverse * glm::vec4(x, y, 1.0f, 1.0f);
         far /= far.w;
 
-        ret.Origin = glm::vec3(near);
+        ret.Origin    = glm::vec3(near);
         ret.Direction = glm::normalize(glm::vec3(far) - ret.Origin);
 
         return ret;

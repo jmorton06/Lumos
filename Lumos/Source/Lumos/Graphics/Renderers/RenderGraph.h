@@ -48,11 +48,11 @@ namespace Lumos
 
         struct RenderGraphSettings
         {
-            bool DebugPass = true;
-            bool GeomPass = true;
+            bool DebugPass       = true;
+            bool GeomPass        = true;
             bool PostProcessPass = false;
-            bool ShadowPass = true;
-            bool SkyboxPass = true;
+            bool ShadowPass      = true;
+            bool SkyboxPass      = true;
         };
 
         struct RenderGraphStats
@@ -60,8 +60,8 @@ namespace Lumos
             uint32_t UpdatesPerSecond;
             uint32_t FramesPerSecond;
             uint32_t NumRenderedObjects = 0;
-            uint32_t NumShadowObjects = 0;
-            uint32_t NumDrawCalls = 0;
+            uint32_t NumShadowObjects   = 0;
+            uint32_t NumDrawCalls       = 0;
         };
 
         class RenderGraph
@@ -85,7 +85,7 @@ namespace Lumos
 
             void SetOverrideCamera(Camera* camera, Maths::Transform* overrideCameraTransform)
             {
-                m_OverrideCamera = camera;
+                m_OverrideCamera          = camera;
                 m_OverrideCameraTransform = overrideCameraTransform;
             }
 
@@ -109,6 +109,10 @@ namespace Lumos
             void DebandingPass();
             void ChromaticAberationPass();
             void EyeAdaptationPass();
+            void FilmicGrainPass();
+            void OutlinePass();
+            void TextPass();
+            void TextFlush();
 
             float SubmitTexture(Texture* texture);
             void UpdateCascades(Scene* scene, Light* light);
@@ -123,17 +127,17 @@ namespace Lumos
 
             struct Render2DLimits
             {
-                uint32_t MaxQuads = 10000;
-                uint32_t QuadsSize = RENDERER2D_VERTEX_SIZE * 4;
-                uint32_t BufferSize = 10000 * RENDERER2D_VERTEX_SIZE * 4;
-                uint32_t IndiciesSize = 10000 * 6;
-                uint32_t MaxTextures = 16;
+                uint32_t MaxQuads          = 10000;
+                uint32_t QuadsSize         = RENDERER2D_VERTEX_SIZE * 4;
+                uint32_t BufferSize        = 10000 * RENDERER2D_VERTEX_SIZE * 4;
+                uint32_t IndiciesSize      = 10000 * 6;
+                uint32_t MaxTextures       = 16;
                 uint32_t MaxBatchDrawCalls = 100;
 
                 void SetMaxQuads(uint32_t quads)
                 {
-                    MaxQuads = quads;
-                    BufferSize = MaxQuads * RENDERER2D_VERTEX_SIZE * 4;
+                    MaxQuads     = quads;
+                    BufferSize   = MaxQuads * RENDERER2D_VERTEX_SIZE * 4;
                     IndiciesSize = MaxQuads * 6;
                 }
             };
@@ -174,22 +178,24 @@ namespace Lumos
 
                 glm::mat4 m_BiasMatrix;
                 Texture* m_EnvironmentMap = nullptr;
-                Texture* m_IrradianceMap = nullptr;
+                Texture* m_IrradianceMap  = nullptr;
 
                 CommandQueue m_CommandQueue;
 
                 std::vector<SharedPtr<Graphics::DescriptorSet>> m_DescriptorSet;
                 std::vector<Graphics::DescriptorSet*> m_CurrentDescriptorSets;
 
-                SharedPtr<Shader> m_Shader = nullptr;
-                Texture* m_RenderTexture = nullptr;
+                SharedPtr<Shader> m_Shader   = nullptr;
+                Texture* m_RenderTexture     = nullptr;
                 TextureDepth* m_DepthTexture = nullptr;
 
                 Maths::Frustum m_Frustum;
 
-                uint32_t m_RenderMode = 0;
+                uint32_t m_RenderMode      = 0;
                 uint32_t m_CurrentBufferID = 0;
-                bool m_DepthTest = false;
+                bool m_DepthTest           = false;
+                size_t m_DynamicAlignment;
+                glm::mat4* m_TransformData = nullptr;
             };
 
             struct Renderer2DData
@@ -198,12 +204,12 @@ namespace Lumos
                 std::vector<std::vector<VertexBuffer*>> m_VertexBuffers;
 
                 uint32_t m_BatchDrawCallIndex = 0;
-                uint32_t m_IndexCount = 0;
+                uint32_t m_IndexCount         = 0;
 
                 Render2DLimits m_Limits;
 
                 IndexBuffer* m_IndexBuffer = nullptr;
-                VertexData* m_Buffer = nullptr;
+                VertexData* m_Buffer       = nullptr;
 
                 std::vector<glm::mat4> m_TransformationStack;
                 const glm::mat4* m_TransformationBack {};
@@ -218,7 +224,7 @@ namespace Lumos
                 bool m_TriangleIndicies = false;
 
                 std::vector<uint32_t> m_PreviousFrameTextureCount;
-                SharedPtr<Shader> m_Shader = nullptr;
+                SharedPtr<Shader> m_Shader     = nullptr;
                 SharedPtr<Pipeline> m_Pipeline = nullptr;
 
                 std::vector<std::vector<SharedPtr<Graphics::DescriptorSet>>> m_DescriptorSet;
@@ -236,17 +242,17 @@ namespace Lumos
                 std::vector<SharedPtr<Graphics::DescriptorSet>> m_LineDescriptorSet;
                 std::vector<SharedPtr<Graphics::DescriptorSet>> m_PointDescriptorSet;
 
-                LineVertexData* m_LineBuffer = nullptr;
+                LineVertexData* m_LineBuffer   = nullptr;
                 PointVertexData* m_PointBuffer = nullptr;
 
-                uint32_t LineIndexCount = 0;
-                uint32_t PointIndexCount = 0;
-                uint32_t m_LineBatchDrawCallIndex = 0;
+                uint32_t LineIndexCount            = 0;
+                uint32_t PointIndexCount           = 0;
+                uint32_t m_LineBatchDrawCallIndex  = 0;
                 uint32_t m_PointBatchDrawCallIndex = 0;
 
                 Renderer2DData m_Renderer2DData;
 
-                SharedPtr<Shader> m_LineShader = nullptr;
+                SharedPtr<Shader> m_LineShader  = nullptr;
                 SharedPtr<Shader> m_PointShader = nullptr;
             };
 
@@ -258,29 +264,31 @@ namespace Lumos
             SharedPtr<TextureCube> CreateCubeFromHDRI(const std::string& filePath);
 
         private:
-            Texture2D* m_MainTexture = nullptr;
+            Texture2D* m_MainTexture      = nullptr;
             Texture2D* m_LastRenderTarget = nullptr;
 
             Texture2D* m_PostProcessTexture1 = nullptr;
             Texture2D* m_PostProcessTexture2 = nullptr;
 
-            Camera* m_Camera = nullptr;
+            Camera* m_Camera                    = nullptr;
             Maths::Transform* m_CameraTransform = nullptr;
 
-            Camera* m_OverrideCamera = nullptr;
+            Camera* m_OverrideCamera                    = nullptr;
             Maths::Transform* m_OverrideCameraTransform = nullptr;
 
             ShadowData m_ShadowData;
             ForwardData m_ForwardData;
             Renderer2DData m_Renderer2DData;
+            Renderer2DData m_TextRendererData;
             DebugDrawData m_DebugDrawData;
             glm::vec4 m_ClearColour;
 
-            int m_ToneMapIndex = 4;
-            float m_Exposure = 1.0f;
+            int m_ToneMapIndex     = 4;
+            float m_Exposure       = 1.0f;
             float m_BloomIntensity = 1.0f;
-            Scene* m_CurrentScene = nullptr;
+            Scene* m_CurrentScene  = nullptr;
             bool m_GenerateBRDFLUT = false;
+            bool m_SupportCompute  = false;
 
             Mesh* m_ScreenQuad;
             Texture* m_CubeMap;
@@ -291,9 +299,9 @@ namespace Lumos
             SharedPtr<Graphics::Shader> m_FinalPassShader;
             SharedPtr<Graphics::DescriptorSet> m_FinalPassDescriptorSet;
 
-            Texture2D* m_BloomTexture = nullptr;
-            Texture2D* m_BloomTexture1 = nullptr;
-            Texture2D* m_BloomTexture2 = nullptr;
+            Texture2D* m_BloomTexture               = nullptr;
+            Texture2D* m_BloomTexture1              = nullptr;
+            Texture2D* m_BloomTexture2              = nullptr;
             Texture2D* m_BloomTextureLastRenderered = nullptr;
 
             SharedPtr<Graphics::Shader> m_BloomPassShader;
@@ -319,10 +327,16 @@ namespace Lumos
 
             TextureDepth* m_SSAOTexture = nullptr;
             SharedPtr<Graphics::Shader> m_SSAOShader;
-            SharedPtr<Graphics::DescriptorSet> m_SSAOPassDescriptorSet;
+            // SharedPtr<Graphics::DescriptorSet> m_SSAOPassDescriptorSet;
 
             SharedPtr<Graphics::Shader> m_ToneMappingPassShader;
             SharedPtr<Graphics::DescriptorSet> m_ToneMappingPassDescriptorSet;
+
+            SharedPtr<Graphics::DescriptorSet> m_FilmicGrainPassDescriptorSet;
+            SharedPtr<Graphics::Shader> m_FilmicGrainShader;
+
+            SharedPtr<Graphics::DescriptorSet> m_OutlinePassDescriptorSet;
+            SharedPtr<Graphics::Shader> m_OutlineShader;
 
             RenderGraphSettings m_Settings;
             RenderGraphStats m_Stats;

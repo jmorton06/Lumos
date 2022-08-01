@@ -3,6 +3,8 @@
 #include "VK.h"
 #include "VKContext.h"
 #include "VKCommandPool.h"
+#include "Graphics/RHI/Definitions.h"
+#include "Core/StringUtilities.h"
 
 #ifdef USE_VMA_ALLOCATOR
 #ifdef LUMOS_DEBUG
@@ -28,12 +30,95 @@ namespace Lumos
             VKPhysicalDevice();
             ~VKPhysicalDevice();
 
+            struct PhysicalDeviceInfo
+            {
+                std::string GetVendorName()
+                {
+                    std::string name = "Unknown";
+
+                    if(VendorID == 0x10DE || StringUtilities::StringContains(Name, "Nvidia"))
+                    {
+                        name = "Nvidia";
+                    }
+                    else if(VendorID == 0x1002 || VendorID == 0x1022 || StringUtilities::StringContains(Name, "Amd"))
+                    {
+                        name = "AMD";
+                    }
+                    else if(VendorID == 0x8086 || VendorID == 0x163C || VendorID == 0x8087 || StringUtilities::StringContains(Name, "Intel"))
+                    {
+                        name = "Intel";
+                    }
+                    else if(VendorID == 0x13B5 || StringUtilities::StringContains(Name, "Arm,"))
+                    {
+                        name = "Arm";
+                    }
+                    else if(VendorID == 0x5143 || StringUtilities::StringContains(Name, "Qualcomm"))
+                    {
+                        name = "Qualcomm";
+                    }
+                    else if(VendorID == 0x106b || StringUtilities::StringContains(Name, "Apple"))
+                    {
+                        return "Apple";
+                    }
+
+                    return name;
+                }
+
+                std::string DecodeDriverVersion(const uint32_t version)
+                {
+                    char buffer[256];
+
+                    if(Vendor == "Nvidia")
+                    {
+                        sprintf(
+                            buffer,
+                            "%d.%d.%d.%d",
+                            (version >> 22) & 0x3ff,
+                            (version >> 14) & 0x0ff,
+                            (version >> 6) & 0x0ff,
+                            (version)&0x003f);
+                    }
+#if LUMOS_PLATFORM_WINDOWS
+                    else if(Vendor == "Intel")
+                    {
+                        sprintf(
+                            buffer,
+                            "%d.%d",
+                            (version >> 14),
+                            (version)&0x3fff);
+                    }
+#endif
+                    else // Vulkan version conventions
+                    {
+                        sprintf(
+                            buffer,
+                            "%d.%d.%d",
+                            (version >> 22),
+                            (version >> 12) & 0x3ff,
+                            version & 0xfff);
+                    }
+
+                    return buffer;
+                }
+
+                uint32_t Memory;
+                uint32_t VendorID;
+                std::string Driver;
+                std::string APIVersion;
+                std::string Vendor;
+                std::string Name;
+                PhysicalDeviceType Type;
+                VkPhysicalDevice Handle;
+            };
+
             bool IsExtensionSupported(const std::string& extensionName) const;
             uint32_t GetMemoryTypeIndex(uint32_t typeBits, VkMemoryPropertyFlags properties) const;
 
-            VkPhysicalDevice GetVulkanPhysicalDevice() const
+            PhysicalDeviceInfo GetInfo(VkPhysicalDevice device);
+
+            VkPhysicalDevice GetHandle() const
             {
-                return m_PhysicalDevice;
+                return m_Handle;
             }
 
             int32_t GetGraphicsQueueFamilyIndex()
@@ -55,7 +140,7 @@ namespace Lumos
             struct QueueFamilyIndices
             {
                 int32_t Graphics = -1;
-                int32_t Compute = -1;
+                int32_t Compute  = -1;
                 int32_t Transfer = -1;
             };
             QueueFamilyIndices GetQueueFamilyIndices(int queueFlags);
@@ -72,12 +157,12 @@ namespace Lumos
             std::unordered_set<std::string> m_SupportedExtensions;
             std::vector<VkDeviceQueueCreateInfo> m_QueueCreateInfos;
 
-            VkPhysicalDevice m_PhysicalDevice;
-            // VkPhysicalDeviceFeatures m_Features;
+            VkPhysicalDevice m_Handle;
             VkPhysicalDeviceProperties m_PhysicalDeviceProperties;
             VkPhysicalDeviceMemoryProperties m_MemoryProperties;
 
             uint32_t m_GPUCount = 0;
+            PhysicalDeviceInfo m_DeviceInfo;
 
             friend class VKDevice;
         };
@@ -101,7 +186,7 @@ namespace Lumos
 
             VkPhysicalDevice GetGPU() const
             {
-                return m_PhysicalDevice->GetVulkanPhysicalDevice();
+                return m_PhysicalDevice->GetHandle();
             }
 
             const SharedPtr<VKPhysicalDevice>& GetPhysicalDevice() const
@@ -117,6 +202,11 @@ namespace Lumos
             VkQueue GetPresentQueue() const
             {
                 return m_PresentQueue;
+            }
+
+            VkQueue GetComputeQueue() const
+            {
+                return m_ComputeQueue;
             }
 
             const SharedPtr<VKCommandPool>& GetCommandPool() const
@@ -158,6 +248,7 @@ namespace Lumos
         private:
             VkDevice m_Device;
 
+            VkQueue m_ComputeQueue;
             VkQueue m_GraphicsQueue;
             VkQueue m_PresentQueue;
             VkPipelineCache m_PipelineCache;

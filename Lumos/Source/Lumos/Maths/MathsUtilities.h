@@ -20,29 +20,29 @@ namespace Lumos
     /// Intersection test result.
     enum Intersection
     {
-        OUTSIDE = 0,
+        OUTSIDE    = 0,
         INTERSECTS = 1,
-        INSIDE = 2
+        INSIDE     = 2
     };
     namespace Maths
     {
 #undef M_PI
-        static const float M_PI = 3.14159265358979323846264338327950288f;
-        static const float M_HALF_PI = M_PI * 0.5f;
-        static const int M_MIN_INT = 0x80000000;
-        static const int M_MAX_INT = 0x7fffffff;
+        static const float M_PI              = 3.14159265358979323846264338327950288f;
+        static const float M_HALF_PI         = M_PI * 0.5f;
+        static const int M_MIN_INT           = 0x80000000;
+        static const int M_MAX_INT           = 0x7fffffff;
         static const unsigned M_MIN_UNSIGNED = 0x00000000;
         static const unsigned M_MAX_UNSIGNED = 0xffffffff;
 
-        static const float M_EPSILON = 0.000001f;
+        static const float M_EPSILON       = 0.000001f;
         static const float M_LARGE_EPSILON = 0.00005f;
-        static const float M_MIN_NEARCLIP = 0.01f;
-        static const float M_MAX_FOV = 160.0f;
-        static const float M_LARGE_VALUE = 100000000.0f;
-        static const float M_INFINITY = (float)HUGE_VAL;
-        static const float M_DEGTORAD = M_PI / 180.0f;
-        static const float M_DEGTORAD_2 = M_PI / 360.0f; // M_DEGTORAD / 2.f
-        static const float M_RADTODEG = 1.0f / M_DEGTORAD;
+        static const float M_MIN_NEARCLIP  = 0.01f;
+        static const float M_MAX_FOV       = 160.0f;
+        static const float M_LARGE_VALUE   = 100000000.0f;
+        static const float M_INFINITY      = (float)HUGE_VAL;
+        static const float M_DEGTORAD      = M_PI / 180.0f;
+        static const float M_DEGTORAD_2    = M_PI / 360.0f; // M_DEGTORAD / 2.f
+        static const float M_RADTODEG      = 1.0f / M_DEGTORAD;
 
         template <typename T>
         T Squared(T v)
@@ -302,8 +302,8 @@ namespace Lumos
         template <class T>
         inline T RoundToNearestMultiple(T x, T multiple)
         {
-            T mag = Abs(x);
-            multiple = Abs(multiple);
+            T mag       = Abs(x);
+            multiple    = Abs(multiple);
             T remainder = Mod(mag, multiple);
             if(remainder >= multiple / 2)
                 return (FloorToInt<T>(mag / multiple) * multiple + multiple) * Sign(x);
@@ -382,18 +382,18 @@ namespace Lumos
         inline unsigned short FloatToHalf(float value)
         {
             unsigned inu = FloatToRawIntBits(value);
-            unsigned t1 = inu & 0x7fffffffu; // Non-sign bits
-            unsigned t2 = inu & 0x80000000u; // Sign bit
-            unsigned t3 = inu & 0x7f800000u; // Exponent
+            unsigned t1  = inu & 0x7fffffffu; // Non-sign bits
+            unsigned t2  = inu & 0x80000000u; // Sign bit
+            unsigned t3  = inu & 0x7f800000u; // Exponent
 
             t1 >>= 13; // Align mantissa on MSB
             t2 >>= 16; // Shift sign bit into position
 
             t1 -= 0x1c000; // Adjust bias
 
-            t1 = (t3 < 0x38800000) ? 0 : t1; // Flush-to-zero
+            t1 = (t3 < 0x38800000) ? 0 : t1;      // Flush-to-zero
             t1 = (t3 > 0x47000000) ? 0x7bff : t1; // Clamp-to-max
-            t1 = (t3 == 0 ? 0 : t1); // Denormals-as-zero
+            t1 = (t3 == 0 ? 0 : t1);              // Denormals-as-zero
 
             t1 |= t2; // Re-insert sign bit
 
@@ -434,8 +434,8 @@ namespace Lumos
         uint32_t nChoosek(uint32_t n, uint32_t k);
         glm::vec3 ComputeClosestPointOnSegment(const glm::vec3& segPointA, const glm::vec3& segPointB, const glm::vec3& pointC);
         void ClosestPointBetweenTwoSegments(const glm::vec3& seg1PointA, const glm::vec3& seg1PointB,
-            const glm::vec3& seg2PointA, const glm::vec3& seg2PointB,
-            glm::vec3& closestPointSeg1, glm::vec3& closestPointSeg2);
+                                            const glm::vec3& seg2PointA, const glm::vec3& seg2PointB,
+                                            glm::vec3& closestPointSeg1, glm::vec3& closestPointSeg2);
 
         bool AreVectorsParallel(const glm::vec3& v1, const glm::vec3& v2);
 

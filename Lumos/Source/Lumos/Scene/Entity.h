@@ -164,7 +164,7 @@ namespace Lumos
         void SetParent(Entity entity)
         {
             LUMOS_PROFILE_FUNCTION();
-            bool acceptable = false;
+            bool acceptable         = false;
             auto hierarchyComponent = TryGetComponent<Hierarchy>();
             if(hierarchyComponent != nullptr)
             {
@@ -174,7 +174,10 @@ namespace Lumos
                 acceptable = entity.m_EntityHandle != m_EntityHandle;
 
             if(!acceptable)
+            {
+                LUMOS_LOG_WARN("Failed to parent entity!");
                 return;
+            }
 
             if(hierarchyComponent)
                 Hierarchy::Reparent(m_EntityHandle, entity.m_EntityHandle, m_Scene->GetRegistry(), *hierarchyComponent);
@@ -240,7 +243,7 @@ namespace Lumos
                     else
                     {
                         nodeHierarchyComponent = m_Scene->GetRegistry().try_get<Hierarchy>(parent);
-                        parent = nodeHierarchyComponent ? nodeHierarchyComponent->Parent() : entt::null;
+                        parent                 = nodeHierarchyComponent ? nodeHierarchyComponent->Parent() : entt::null;
                     }
                 }
             }
@@ -292,7 +295,7 @@ namespace Lumos
 
     private:
         entt::entity m_EntityHandle = entt::null;
-        Scene* m_Scene = nullptr;
+        Scene* m_Scene              = nullptr;
 
         friend class EntityManager;
     };
