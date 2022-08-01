@@ -1,4 +1,5 @@
 #!/bin/bash
+PATH="/usr/local/bin:$PATH"
 
 THIS_PATH="$(realpath "$0")"
 ENGINE_PATH="$(dirname "$THIS_PATH")/../Lumos/Source"

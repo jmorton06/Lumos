@@ -5,7 +5,7 @@ namespace Lumos
     class AINode
     {
     public:
-        AINode() = default;
+        AINode()          = default;
         virtual ~AINode() = default;
 
         void Update(float dt) {};

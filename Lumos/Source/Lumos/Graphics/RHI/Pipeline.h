@@ -11,27 +11,27 @@ namespace Lumos
         {
             SharedPtr<Shader> shader;
 
-            CullMode cullMode = CullMode::BACK;
+            CullMode cullMode       = CullMode::BACK;
             PolygonMode polygonMode = PolygonMode::FILL;
-            DrawType drawType = DrawType::TRIANGLE;
-            BlendMode blendMode = BlendMode::None;
+            DrawType drawType       = DrawType::TRIANGLE;
+            BlendMode blendMode     = BlendMode::None;
 
             bool transparencyEnabled = false;
-            bool depthBiasEnabled = false;
-            bool swapchainTarget = false;
-            bool clearTargets = false;
+            bool depthBiasEnabled    = false;
+            bool swapchainTarget     = false;
+            bool clearTargets        = false;
 
             std::array<Texture*, MAX_RENDER_TARGETS> colourTargets = {};
 
-            Texture* cubeMapTarget = nullptr;
-            Texture* depthTarget = nullptr;
-            Texture* depthArrayTarget = nullptr;
-            float clearColour[4] = { 0.2f, 0.2f, 0.2f, 1.0f };
-            float lineWidth = 1.0f;
+            Texture* cubeMapTarget        = nullptr;
+            Texture* depthTarget          = nullptr;
+            Texture* depthArrayTarget     = nullptr;
+            float clearColour[4]          = { 0.2f, 0.2f, 0.2f, 1.0f };
+            float lineWidth               = 1.0f;
             float depthBiasConstantFactor = 0.0f;
-            float depthBiasSlopeFactor = 0.0f;
-            int cubeMapIndex = 0;
-            int mipIndex = -1;
+            float depthBiasSlopeFactor    = 0.0f;
+            int cubeMapIndex              = 0;
+            int mipIndex                  = -1;
         };
 
         class LUMOS_EXPORT Pipeline

@@ -5,7 +5,7 @@ namespace Lumos
 {
     namespace Graphics
     {
-        UniformBuffer* (*UniformBuffer::CreateFunc)() = nullptr;
+        UniformBuffer* (*UniformBuffer::CreateFunc)()                          = nullptr;
         UniformBuffer* (*UniformBuffer::CreateDataFunc)(uint32_t, const void*) = nullptr;
 
         UniformBuffer* UniformBuffer::Create()

@@ -98,6 +98,11 @@ namespace Lumos
                 return (void*)GetDescriptor();
             }
 
+            virtual void* GetImageHande() const override
+            {
+                return (void*)m_TextureImage;
+            }
+
             void UpdateDescriptor();
 
             bool Load();
@@ -142,7 +147,7 @@ namespace Lumos
             std::string m_FileName;
             uint32_t m_Width {}, m_Height {};
             uint32_t m_MipLevels = 1;
-            uint8_t* m_Data = nullptr;
+            uint8_t* m_Data      = nullptr;
 
             TextureDesc m_Parameters;
             TextureLoadOptions m_LoadOptions;
@@ -242,11 +247,18 @@ namespace Lumos
             VkImage GetImage() const
             {
                 return m_TextureImage;
-            };
+            }
+
+            virtual void* GetImageHande() const override
+            {
+                return (void*)m_TextureImage;
+            }
+
             VkDeviceMemory GetDeviceMemory() const
             {
                 return m_TextureImageMemory;
             }
+
             VkImageView GetImageView() const
             {
                 return m_TextureImageView;
@@ -286,7 +298,7 @@ namespace Lumos
             uint32_t m_Width {}, m_Height {}, m_Size {};
             uint32_t m_NumMips {};
             uint32_t m_NumLayers = 6;
-            uint8_t* m_Data = nullptr;
+            uint8_t* m_Data      = nullptr;
 
             TextureDesc m_Parameters;
             TextureLoadOptions m_LoadOptions;
@@ -336,7 +348,7 @@ namespace Lumos
 
             virtual void* GetImageHande() const override
             {
-                return (void*)&m_TextureImage;
+                return (void*)m_TextureImage;
             }
 
             inline const std::string& GetName() const override
@@ -464,23 +476,28 @@ namespace Lumos
             VkImage GetImage() const
             {
                 return m_TextureImage;
-            };
+            }
+
             VkDeviceMemory GetDeviceMemory() const
             {
                 return m_TextureImageMemory;
             }
+
             VkImageView GetImageView() const
             {
                 return m_TextureImageView;
             }
+
             VkImageView GetImageView(int index) const
             {
                 return m_IndividualImageViews[index];
             }
+
             VkSampler GetSampler() const
             {
                 return m_TextureSampler;
             }
+
             const VkDescriptorImageInfo* GetDescriptor() const
             {
                 return &m_Descriptor;
@@ -494,6 +511,11 @@ namespace Lumos
             void* GetDescriptorInfo() const override
             {
                 return (void*)GetDescriptor();
+            }
+
+            virtual void* GetImageHande() const override
+            {
+                return (void*)m_TextureImage;
             }
 
             void UpdateDescriptor();

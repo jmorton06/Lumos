@@ -8,7 +8,7 @@ namespace Lumos
 {
     SceneSettingsPanel::SceneSettingsPanel()
     {
-        m_Name = "SceneSettings###scenesettings";
+        m_Name       = "SceneSettings###scenesettings";
         m_SimpleName = "Scene Settings";
     }
 
@@ -24,8 +24,8 @@ namespace Lumos
         Lumos::ImGuiUtilities::ScopedStyle(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
 
         {
-            auto sceneName = m_CurrentScene->GetSceneName();
-            int sceneVersion = m_CurrentScene->GetSceneVersion();
+            auto sceneName      = m_CurrentScene->GetSceneName();
+            int sceneVersion    = m_CurrentScene->GetSceneVersion();
             auto& sceneSettings = m_CurrentScene->GetSettings();
 
             ImVec2 contentRegionAvailable = ImGui::GetContentRegionAvail();
@@ -43,16 +43,7 @@ namespace Lumos
             ImGui::Text("Version : %i", (int)sceneVersion);
 
             ImGui::Columns(1);
-            if(ImGui::CollapsingHeader("Systems"))
-            {
-                ImGui::Columns(2);
-                ImGuiUtilities::Property("Audio Enabled", sceneSettings.AudioEnabled);
-                ImGuiUtilities::Property("Physics 2D Enabled", sceneSettings.PhysicsEnabled2D);
-                ImGuiUtilities::Property("Physics 3D Enabled", sceneSettings.PhysicsEnabled3D);
-            }
-
-            ImGui::Columns(1);
-            if(ImGui::CollapsingHeader("Renderer"))
+            if(ImGui::CollapsingHeader("Renderer", ImGuiTreeNodeFlags_DefaultOpen))
             {
                 ImGui::Columns(2);
                 ImGuiUtilities::Property("Renderer 2D Enabled", sceneSettings.RenderSettings.Renderer2DEnabled);
@@ -63,6 +54,7 @@ namespace Lumos
                 ImGuiUtilities::Property("FXAA Enabled", sceneSettings.RenderSettings.FXAAEnabled);
                 ImGuiUtilities::Property("Debanding Enabled", sceneSettings.RenderSettings.DebandingEnabled);
                 ImGuiUtilities::Property("ChromaticAberation Enabled", sceneSettings.RenderSettings.ChromaticAberationEnabled);
+                ImGuiUtilities::Property("Filmic Grain Enabled", sceneSettings.RenderSettings.FilmicGrainEnabled);
                 ImGuiUtilities::Property("Bloom Enabled", sceneSettings.RenderSettings.BloomEnabled);
                 ImGuiUtilities::Property("Bloom Intensity", sceneSettings.RenderSettings.m_BloomIntensity);
                 ImGuiUtilities::Property("Bloom Upsample Scale", sceneSettings.RenderSettings.BloomUpsampleScale);
@@ -81,9 +73,18 @@ namespace Lumos
 
                 ImGuiUtilities::PropertyDropdown("ToneMap", toneMaps, 7, (int*)&m_CurrentScene->GetSettings().RenderSettings.m_ToneMapIndex);
 
-                auto& registry = m_CurrentScene->GetRegistry();
+                auto& registry  = m_CurrentScene->GetRegistry();
                 int entityCount = (int)registry.size();
                 ImGuiUtilities::Property("Entity Count", entityCount, 0, 0, ImGuiUtilities::PropertyFlag::ReadOnly);
+            }
+
+            ImGui::Columns(1);
+            if(ImGui::CollapsingHeader("Systems"))
+            {
+                ImGui::Columns(2);
+                ImGuiUtilities::Property("Audio Enabled", sceneSettings.AudioEnabled);
+                ImGuiUtilities::Property("Physics 2D Enabled", sceneSettings.PhysicsEnabled2D);
+                ImGuiUtilities::Property("Physics 3D Enabled", sceneSettings.PhysicsEnabled3D);
             }
 
             ImGui::Columns(1);

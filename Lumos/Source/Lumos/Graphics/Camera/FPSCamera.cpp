@@ -26,8 +26,8 @@ namespace Lumos
                 Application::Get().GetWindow()->SetMousePosition(windowCentre);
 
                 glm::vec3 euler = glm::eulerAngles(transform.GetLocalOrientation());
-                float pitch = euler.x;
-                float yaw = euler.y;
+                float pitch     = euler.x;
+                float yaw       = euler.y;
 
                 pitch -= (ypos)*m_MouseSensitivity;
                 yaw -= (xpos)*m_MouseSensitivity;

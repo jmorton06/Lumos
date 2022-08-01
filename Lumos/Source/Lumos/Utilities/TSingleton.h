@@ -96,7 +96,7 @@ namespace Lumos
             if(!m_pInstance) // This if statement prevents the costly Lock-step being required each time the instance is requested
             {
                 std::lock_guard<std::mutex> lock(m_mConstructed); // Lock is required here though, to prevent multiple threads initialising multiple instances of the class when it turns out it has not been initialised yet
-                if(!m_pInstance) // Check to see if a previous thread has already initialised an instance in the time it took to acquire a lock.
+                if(!m_pInstance)                                  // Check to see if a previous thread has already initialised an instance in the time it took to acquire a lock.
                 {
                     m_pInstance = new T();
                 }

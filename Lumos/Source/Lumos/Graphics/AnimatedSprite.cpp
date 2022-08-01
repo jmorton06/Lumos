@@ -9,20 +9,20 @@ namespace Lumos::Graphics
     }
 
     AnimatedSprite::AnimatedSprite(const SharedPtr<Texture2D>& texture, const glm::vec2& position, const glm::vec2& scale, const std::vector<glm::vec2>& frames,
-        float frameDuration, const std::string& stateName)
+                                   float frameDuration, const std::string& stateName)
     {
-        m_Texture = texture;
+        m_Texture  = texture;
         m_Position = position;
-        m_Scale = scale;
+        m_Scale    = scale;
 
         AnimationState state;
-        state.Frames = frames;
+        state.Frames        = frames;
         state.FrameDuration = frameDuration;
-        state.Mode = PlayMode::Loop;
+        state.Mode          = PlayMode::Loop;
 
         m_AnimationStates[stateName] = state;
 
-        m_State = stateName;
+        m_State        = stateName;
         m_CurrentFrame = 0;
 
         m_UVs = GetAnimatedUVs();
@@ -87,12 +87,12 @@ namespace Lumos::Graphics
                     if(currentState.Mode == PlayMode::PingPong)
                     {
                         m_CurrentFrame = 1;
-                        m_Forward = true;
+                        m_Forward      = true;
                     }
                     else
                     {
                         m_CurrentFrame = 1;
-                        m_Forward = true;
+                        m_Forward      = true;
                     }
                 }
                 else
@@ -106,18 +106,18 @@ namespace Lumos::Graphics
     void AnimatedSprite::AddState(const std::vector<glm::vec2>& frames, float frameDuration, const std::string& stateName)
     {
         AnimationState state;
-        state.Frames = frames;
+        state.Frames        = frames;
         state.FrameDuration = frameDuration;
-        state.Mode = PlayMode::Loop;
+        state.Mode          = PlayMode::Loop;
 
         m_AnimationStates[stateName] = state;
     }
 
     void AnimatedSprite::SetState(const std::string& state)
     {
-        m_State = state;
+        m_State        = state;
         m_CurrentFrame = 0;
-        m_FrameTimer = 0.0f;
+        m_FrameTimer   = 0.0f;
 
         auto found = m_AnimationStates.find(state);
 

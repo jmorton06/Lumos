@@ -67,9 +67,9 @@ namespace Lumos
 
         std::unordered_map<size_t, bool> m_ShowComponentGizmoMap;
 
-        bool m_ShowStats = false;
+        bool m_ShowStats                                 = false;
         SharedPtr<Graphics::Texture2D> m_GameViewTexture = nullptr;
-        Scene* m_CurrentScene = nullptr;
+        Scene* m_CurrentScene                            = nullptr;
         uint32_t m_Width, m_Height;
     };
 }

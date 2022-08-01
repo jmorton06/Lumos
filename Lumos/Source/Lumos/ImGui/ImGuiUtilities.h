@@ -17,11 +17,11 @@ namespace Lumos
     {
         enum class PropertyFlag
         {
-            None = 0,
+            None           = 0,
             ColourProperty = 1,
-            ReadOnly = 2,
-            DragValue = 3,
-            SliderValue = 4,
+            ReadOnly       = 2,
+            DragValue      = 3,
+            SliderValue    = 4,
         };
 
         enum Theme
@@ -44,6 +44,7 @@ namespace Lumos
         bool Property(const std::string& name, bool& value, PropertyFlag flags = PropertyFlag::None);
         bool Property(const std::string& name, int& value, PropertyFlag flags);
         bool Property(const std::string& name, uint32_t& value, PropertyFlag flags = PropertyFlag::None);
+        bool PropertyMultiline(const std::string& label, std::string& value);
 
         bool Property(const std::string& name, double& value, double min = -1.0, double max = 1.0, PropertyFlag flags = PropertyFlag::None);
 
@@ -89,7 +90,7 @@ namespace Lumos
         class ScopedStyle
         {
         public:
-            ScopedStyle(const ScopedStyle&) = delete;
+            ScopedStyle(const ScopedStyle&)           = delete;
             ScopedStyle operator=(const ScopedStyle&) = delete;
             template <typename T>
             ScopedStyle(ImGuiStyleVar styleVar, T value) { ImGui::PushStyleVar(styleVar, value); }
@@ -99,7 +100,7 @@ namespace Lumos
         class ScopedColour
         {
         public:
-            ScopedColour(const ScopedColour&) = delete;
+            ScopedColour(const ScopedColour&)           = delete;
             ScopedColour operator=(const ScopedColour&) = delete;
             template <typename T>
             ScopedColour(ImGuiCol colourId, T colour) { ImGui::PushStyleColor(colourId, colour); }
@@ -109,7 +110,7 @@ namespace Lumos
         class ScopedFont
         {
         public:
-            ScopedFont(const ScopedFont&) = delete;
+            ScopedFont(const ScopedFont&)           = delete;
             ScopedFont operator=(const ScopedFont&) = delete;
             ScopedFont(ImFont* font) { ImGui::PushFont(font); }
             ~ScopedFont() { ImGui::PopFont(); }
@@ -118,7 +119,7 @@ namespace Lumos
         class ScopedID
         {
         public:
-            ScopedID(const ScopedID&) = delete;
+            ScopedID(const ScopedID&)           = delete;
             ScopedID operator=(const ScopedID&) = delete;
             template <typename T>
             ScopedID(T id) { ImGui::PushID(id); }

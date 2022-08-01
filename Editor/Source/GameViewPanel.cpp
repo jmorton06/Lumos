@@ -23,19 +23,19 @@
 
 #include <box2d/box2d.h>
 #include <imgui/imgui_internal.h>
-#include <imguiPlugins/ImGuizmo.h>
+#include <imgui/Plugins/ImGuizmo.h>
 namespace Lumos
 {
     GameViewPanel::GameViewPanel()
     {
-        m_Name = ICON_MDI_GAMEPAD_VARIANT " Game###game";
-        m_SimpleName = "Game";
+        m_Name         = ICON_MDI_GAMEPAD_VARIANT " Game###game";
+        m_SimpleName   = "Game";
         m_CurrentScene = nullptr;
 
-        m_Width = 1280;
+        m_Width  = 1280;
         m_Height = 800;
 
-        m_RenderGraph = CreateUniquePtr<Graphics::RenderGraph>(m_Width, m_Height);
+        m_RenderGraph                          = CreateUniquePtr<Graphics::RenderGraph>(m_Width, m_Height);
         m_RenderGraph->GetSettings().DebugPass = false;
     }
 
@@ -110,14 +110,14 @@ namespace Lumos
             return;
         }
 
-        m_GameViewVisible = true;
-        Camera* camera = nullptr;
+        m_GameViewVisible           = true;
+        Camera* camera              = nullptr;
         Maths::Transform* transform = nullptr;
 
         {
             m_RenderGraph->SetOverrideCamera(nullptr, nullptr);
 
-            auto& registry = m_CurrentScene->GetRegistry();
+            auto& registry  = m_CurrentScene->GetRegistry();
             auto cameraView = registry.view<Camera>();
             if(!cameraView.empty())
             {
@@ -132,7 +132,7 @@ namespace Lumos
             offset = ImGui::GetCursorPos(); // Usually ImVec2(0.0f, 50.0f);
         }
 
-        auto sceneViewSize = ImGui::GetWindowContentRegionMax() - ImGui::GetWindowContentRegionMin() - offset * 0.5f;
+        auto sceneViewSize     = ImGui::GetWindowContentRegionMax() - ImGui::GetWindowContentRegionMin() - offset * 0.5f;
         auto sceneViewPosition = ImGui::GetWindowPos() + offset;
 
         sceneViewSize.x -= static_cast<int>(sceneViewSize.x) % 2 != 0 ? 1.0f : 0.0f;
@@ -145,7 +145,7 @@ namespace Lumos
             if(heightNeededForAspect > sceneViewSize.y)
             {
                 sceneViewSize.x = sceneViewSize.y * m_Editor->GetSettings().m_FixedAspect;
-                float xOffset = ((ImGui::GetContentRegionAvail() - sceneViewSize) * 0.5f).x;
+                float xOffset   = ((ImGui::GetContentRegionAvail() - sceneViewSize) * 0.5f).x;
                 sceneViewPosition.x += xOffset;
                 ImGui::SetCursorPos({ xOffset, ImGui::GetCursorPosY() + offset.x });
                 offset.x += xOffset;
@@ -153,7 +153,7 @@ namespace Lumos
             else
             {
                 sceneViewSize.y = sceneViewSize.x / m_Editor->GetSettings().m_FixedAspect;
-                float yOffset = ((ImGui::GetContentRegionAvail() - sceneViewSize) * 0.5f).y;
+                float yOffset   = ((ImGui::GetContentRegionAvail() - sceneViewSize) * 0.5f).y;
                 sceneViewPosition.y += yOffset;
 
                 ImGui::SetCursorPos({ ImGui::GetCursorPosX(), yOffset + offset.y });
@@ -186,20 +186,20 @@ namespace Lumos
         auto windowSize = ImGui::GetWindowSize();
         ImVec2 minBound = sceneViewPosition;
 
-        ImVec2 maxBound = { minBound.x + windowSize.x, minBound.y + windowSize.y };
+        ImVec2 maxBound   = { minBound.x + windowSize.x, minBound.y + windowSize.y };
         bool updateCamera = ImGui::IsMouseHoveringRect(minBound, maxBound) || Input::Get().GetMouseMode() == MouseMode::Captured;
 
         Application::Get().SetSceneActive(ImGui::IsWindowFocused() && !ImGuizmo::IsUsing() && updateCamera);
 
         if(m_ShowStats) //&& ImGui::IsWindowFocused())
         {
-            static bool p_open = true;
+            static bool p_open   = true;
             const float DISTANCE = 5.0f;
-            static int corner = 0;
+            static int corner    = 0;
 
             if(corner != -1)
             {
-                ImVec2 window_pos = ImVec2((corner & 1) ? (sceneViewPosition.x + sceneViewSize.x - DISTANCE) : (sceneViewPosition.x + DISTANCE), (corner & 2) ? (sceneViewPosition.y + sceneViewSize.y - DISTANCE) : (sceneViewPosition.y + DISTANCE));
+                ImVec2 window_pos       = ImVec2((corner & 1) ? (sceneViewPosition.x + sceneViewSize.x - DISTANCE) : (sceneViewPosition.x + DISTANCE), (corner & 2) ? (sceneViewPosition.y + sceneViewSize.y - DISTANCE) : (sceneViewPosition.y + DISTANCE));
                 ImVec2 window_pos_pivot = ImVec2((corner & 1) ? 1.0f : 0.0f, (corner & 2) ? 1.0f : 0.0f);
                 ImGui::SetNextWindowPos(window_pos, ImGuiCond_Always, window_pos_pivot);
             }
@@ -209,7 +209,7 @@ namespace Lumos
             {
                 ImGuiIO& io = ImGui::GetIO();
 
-                static Engine::Stats stats = Engine::Get().Statistics();
+                static Engine::Stats stats                         = Engine::Get().Statistics();
                 static Graphics::RenderGraphStats renderGraphStats = m_RenderGraph->GetRenderGraphStats();
 
                 static float timer = 1.0f;
@@ -217,8 +217,8 @@ namespace Lumos
 
                 if(timer > 1.0f)
                 {
-                    timer = 0.0f;
-                    stats = Engine::Get().Statistics();
+                    timer            = 0.0f;
+                    stats            = Engine::Get().Statistics();
                     renderGraphStats = m_RenderGraph->GetRenderGraphStats();
                 }
                 Engine::Get().ResetStats();
@@ -279,8 +279,8 @@ namespace Lumos
 
         if(m_Width != width || m_Height != height)
         {
-            resize = true;
-            m_Width = width;
+            resize   = true;
+            m_Width  = width;
             m_Height = height;
         }
 
@@ -288,7 +288,7 @@ namespace Lumos
         {
             Graphics::TextureDesc mainRenderTargetDesc;
             mainRenderTargetDesc.format = Graphics::RHIFormat::R8G8B8A8_Unorm;
-            mainRenderTargetDesc.flags = Graphics::TextureFlags::Texture_RenderTarget;
+            mainRenderTargetDesc.flags  = Graphics::TextureFlags::Texture_RenderTarget;
 
             m_GameViewTexture = SharedPtr<Graphics::Texture2D>(Graphics::Texture2D::Create(mainRenderTargetDesc, m_Width, m_Height));
         }
@@ -356,7 +356,7 @@ namespace Lumos
                     }
                     else
                     {
-                        m_Editor->GetSettings().m_FreeAspect = false;
+                        m_Editor->GetSettings().m_FreeAspect  = false;
                         m_Editor->GetSettings().m_FixedAspect = StringToAspect(supportedAspects[n]);
                     }
                 }

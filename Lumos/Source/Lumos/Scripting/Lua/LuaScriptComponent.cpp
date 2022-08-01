@@ -11,13 +11,13 @@ namespace Lumos
 {
     LuaScriptComponent::LuaScriptComponent()
     {
-        m_Scene = nullptr;
+        m_Scene    = nullptr;
         m_FileName = "";
-        m_Env = nullptr;
+        m_Env      = nullptr;
     }
     LuaScriptComponent::LuaScriptComponent(const std::string& fileName, Scene* scene)
     {
-        m_Scene = scene;
+        m_Scene    = scene;
         m_FileName = fileName;
 
         Init();
@@ -60,15 +60,15 @@ namespace Lumos
             LUMOS_LOG_ERROR("Failed to Execute Lua script {0}", physicalPath);
             LUMOS_LOG_ERROR("Error : {0}", err.what());
             std::string filename = StringUtilities::GetFileName(m_FileName);
-            std::string error = std::string(err.what());
+            std::string error    = std::string(err.what());
 
-            int line = 1;
-            auto linepos = error.find(".lua:");
+            int line              = 1;
+            auto linepos          = error.find(".lua:");
             std::string errorLine = error.substr(linepos + 5); //+4 .lua: + 1
-            auto lineposEnd = errorLine.find(":");
-            errorLine = errorLine.substr(0, lineposEnd);
-            line = std::stoi(errorLine);
-            error = error.substr(linepos + errorLine.size() + lineposEnd + 4); //+4 .lua:
+            auto lineposEnd       = errorLine.find(":");
+            errorLine             = errorLine.substr(0, lineposEnd);
+            line                  = std::stoi(errorLine);
+            error                 = error.substr(linepos + errorLine.size() + lineposEnd + 4); //+4 .lua:
 
             m_Errors[line] = std::string(error);
         }

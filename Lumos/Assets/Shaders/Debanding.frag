@@ -25,5 +25,5 @@ void main()
 	vec3 colour = texture(u_Texture, outTexCoord).rgb;
 	colour += screenSpaceDither(gl_FragCoord.xy);
     
-	outFrag = vec4(colour, 1.0);;
+	outFrag = vec4(colour, 1.0);
 }

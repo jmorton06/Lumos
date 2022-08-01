@@ -26,8 +26,8 @@ namespace Lumos::Graphics
             void serialize(Archive& archive)
             {
                 archive(cereal::make_nvp("PlayMode", Mode),
-                    cereal::make_nvp("Frames", Frames),
-                    cereal::make_nvp("FrameDuration", FrameDuration));
+                        cereal::make_nvp("Frames", Frames),
+                        cereal::make_nvp("FrameDuration", FrameDuration));
             }
         };
 
@@ -49,11 +49,11 @@ namespace Lumos::Graphics
         void save(Archive& archive) const
         {
             archive(cereal::make_nvp("TexturePath", m_Texture ? m_Texture->GetFilepath() : ""),
-                cereal::make_nvp("Position", m_Position),
-                cereal::make_nvp("Scale", m_Scale),
-                cereal::make_nvp("Colour", m_Colour),
-                cereal::make_nvp("AnimationFrames", m_AnimationStates),
-                cereal::make_nvp("State", m_State));
+                    cereal::make_nvp("Position", m_Position),
+                    cereal::make_nvp("Scale", m_Scale),
+                    cereal::make_nvp("Colour", m_Colour),
+                    cereal::make_nvp("AnimationFrames", m_AnimationStates),
+                    cereal::make_nvp("State", m_State));
         }
 
         template <typename Archive>
@@ -61,11 +61,11 @@ namespace Lumos::Graphics
         {
             std::string textureFilePath;
             archive(cereal::make_nvp("TexturePath", textureFilePath),
-                cereal::make_nvp("Position", m_Position),
-                cereal::make_nvp("Scale", m_Scale),
-                cereal::make_nvp("Colour", m_Colour),
-                cereal::make_nvp("AnimationFrames", m_AnimationStates),
-                cereal::make_nvp("State", m_State));
+                    cereal::make_nvp("Position", m_Position),
+                    cereal::make_nvp("Scale", m_Scale),
+                    cereal::make_nvp("Colour", m_Colour),
+                    cereal::make_nvp("AnimationFrames", m_AnimationStates),
+                    cereal::make_nvp("State", m_State));
 
             if(!textureFilePath.empty())
                 m_Texture = SharedPtr<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile("sprite", textureFilePath));
@@ -75,7 +75,7 @@ namespace Lumos::Graphics
 
         std::unordered_map<std::string, AnimationState> m_AnimationStates;
         uint32_t m_CurrentFrame = 0;
-        float m_FrameTimer = 0.0f;
+        float m_FrameTimer      = 0.0f;
         std::string m_State;
         bool m_Forward = true;
     };

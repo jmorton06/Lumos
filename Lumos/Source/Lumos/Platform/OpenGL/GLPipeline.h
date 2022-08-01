@@ -38,7 +38,7 @@ namespace Lumos
             std::vector<SharedPtr<Framebuffer>> m_Framebuffers;
             std::string pipelineName;
             bool m_TransparencyEnabled = false;
-            uint32_t m_VertexArray = -1;
+            uint32_t m_VertexArray     = -1;
             BufferLayout m_VertexBufferLayout;
             CullMode m_CullMode;
             BlendMode m_BlendMode;

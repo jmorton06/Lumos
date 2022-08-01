@@ -75,7 +75,7 @@ namespace Lumos
 
                 // Search for this node on open and closed lists
                 auto closedIt = std::find(m_ClosedList.begin(), m_ClosedList.end(), q);
-                auto openIt = m_OpenList.Find(q);
+                auto openIt   = m_OpenList.Find(q);
 
                 if(closedIt != m_ClosedList.end() || openIt != m_OpenList.end())
                 {

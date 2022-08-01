@@ -25,11 +25,11 @@ namespace Lumos
             , m_Width(width)
             , m_Height(height)
         {
-            m_Name = "";
-            m_Parameters = parameters;
+            m_Name        = "";
+            m_Parameters  = parameters;
             m_LoadOptions = loadOptions;
-            m_Format = m_Parameters.format;
-            m_Handle = Load(data);
+            m_Format      = m_Parameters.format;
+            m_Handle      = Load(data);
         }
 
         GLTexture2D::GLTexture2D(const std::string& name, const std::string& filename, const TextureDesc parameters, const TextureLoadOptions loadOptions)
@@ -49,7 +49,7 @@ namespace Lumos
 
         void GLTexture2D::Resize(uint32_t width, uint32_t height)
         {
-            m_Width = width;
+            m_Width  = width;
             m_Height = height;
 
             GLCall(glDeleteTextures(1, &m_Handle));
@@ -120,7 +120,7 @@ namespace Lumos
         {
             m_Name = "Texture Attachment";
 
-            uint32_t Format = GLUtilities::FormatToGL(m_Format, m_Parameters.srgb);
+            uint32_t Format  = GLUtilities::FormatToGL(m_Format, m_Parameters.srgb);
             uint32_t Format2 = GLUtilities::FormatToInternalFormat(Format);
 
             glBindTexture(GL_TEXTURE_2D, m_Handle);
@@ -142,10 +142,12 @@ namespace Lumos
         uint8_t* GLTexture2D::LoadTextureData()
         {
             uint8_t* pixels = nullptr;
+            m_Width         = 0;
+            m_Height        = 0;
             if(m_FileName != "NULL")
             {
                 uint32_t bits;
-                pixels = Lumos::LoadImageFromFile(m_FileName.c_str(), &m_Width, &m_Height, &bits, &isHDR, !m_LoadOptions.flipY);
+                pixels              = Lumos::LoadImageFromFile(m_FileName.c_str(), &m_Width, &m_Height, &bits, &isHDR, !m_LoadOptions.flipY);
                 m_Parameters.format = BitsToFormat(bits);
             }
             return pixels;
@@ -176,7 +178,7 @@ namespace Lumos
                 glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGBA16F, size, size, 0, GL_RGBA, GL_FLOAT, nullptr);
 
             // GLCall(glGenerateMipmap(GL_TEXTURE_CUBE_MAP));
-            m_Width = size;
+            m_Width  = size;
             m_Height = size;
             m_Format = m_Parameters.format;
         }
@@ -190,8 +192,8 @@ namespace Lumos
             , m_Format()
         {
             m_Files[0] = filepath;
-            m_Handle = LoadFromSingleFile();
-            m_Format = m_Parameters.format;
+            m_Handle   = LoadFromSingleFile();
+            m_Format   = m_Parameters.format;
         }
 
         GLTextureCube::GLTextureCube(const std::string* files)
@@ -205,7 +207,7 @@ namespace Lumos
         GLTextureCube::GLTextureCube(const std::string* files, uint32_t mips, TextureDesc params, TextureLoadOptions loadOptions)
         {
             m_Parameters = params;
-            m_NumMips = mips;
+            m_NumMips    = mips;
             for(uint32_t i = 0; i < mips; i++)
                 m_Files[i] = files[i];
 
@@ -249,7 +251,7 @@ namespace Lumos
             m_Parameters.format = RHIFormat::R8G8B8A8_Unorm;
 
             uint32_t width, height, bits;
-            bool isHDR = false;
+            bool isHDR  = false;
             uint8_t* xp = Lumos::LoadImageFromFile(xpos, &width, &height, &bits, &isHDR, true);
             uint8_t* xn = Lumos::LoadImageFromFile(xneg, &width, &height, &bits, &isHDR, true);
             uint8_t* yp = Lumos::LoadImageFromFile(ypos, &width, &height, &bits, &isHDR, true);
@@ -266,7 +268,7 @@ namespace Lumos
             GLCall(glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
 
             uint32_t internalFormat = GLUtilities::FormatToGL(m_Parameters.format, m_Parameters.srgb);
-            uint32_t format = internalFormat;
+            uint32_t format         = internalFormat;
 
             GLCall(glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X, 0, internalFormat, width, height, 0, format, GL_UNSIGNED_BYTE, xp));
             GLCall(glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_X, 0, internalFormat, width, height, 0, format, GL_UNSIGNED_BYTE, xn));
@@ -296,21 +298,21 @@ namespace Lumos
             for(uint32_t i = 0; i < mips; i++)
                 cubeTextureData[i] = new uint8_t*[6];
 
-            uint32_t* faceWidths = new uint32_t[mips];
+            uint32_t* faceWidths  = new uint32_t[mips];
             uint32_t* faceHeights = new uint32_t[mips];
 
             for(uint32_t m = 0; m < mips; m++)
             {
-                bool isHDR = false;
-                uint8_t* data = Lumos::LoadImageFromFile(m_Files[m], &srcWidth, &srcHeight, &bits, &isHDR, !m_LoadOptions.flipY);
+                bool isHDR          = false;
+                uint8_t* data       = Lumos::LoadImageFromFile(m_Files[m], &srcWidth, &srcHeight, &bits, &isHDR, !m_LoadOptions.flipY);
                 m_Parameters.format = BitsToFormat(bits);
-                uint32_t stride = bits / 8;
+                uint32_t stride     = bits / 8;
 
-                uint32_t face = 0;
-                uint32_t faceWidth = srcWidth / 3;
+                uint32_t face       = 0;
+                uint32_t faceWidth  = srcWidth / 3;
                 uint32_t faceHeight = srcHeight / 4;
-                faceWidths[m] = faceWidth;
-                faceHeights[m] = faceHeight;
+                faceWidths[m]       = faceWidth;
+                faceHeights[m]      = faceHeight;
                 for(uint32_t cy = 0; cy < 4; cy++)
                 {
                     for(uint32_t cx = 0; cx < 3; cx++)
@@ -334,7 +336,7 @@ namespace Lumos
                                 offset = x;
                                 if(face == 5)
                                     offset = faceWidth - (x + 1);
-                                uint32_t xp = cx * faceWidth + offset;
+                                uint32_t xp                                                = cx * faceWidth + offset;
                                 cubeTextureData[m][face][(x + y * faceWidth) * stride + 0] = data[(xp + yp * srcWidth) * stride + 0];
                                 cubeTextureData[m][face][(x + y * faceWidth) * stride + 1] = data[(xp + yp * srcWidth) * stride + 1];
                                 cubeTextureData[m][face][(x + y * faceWidth) * stride + 2] = data[(xp + yp * srcWidth) * stride + 2];
@@ -358,7 +360,7 @@ namespace Lumos
             GLCall(glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE));
 
             uint32_t internalFormat = GLUtilities::FormatToGL(m_Parameters.format, m_Parameters.srgb);
-            uint32_t format = GLUtilities::FormatToInternalFormat(internalFormat);
+            uint32_t format         = GLUtilities::FormatToInternalFormat(internalFormat);
             for(uint32_t m = 0; m < mips; m++)
             {
                 GLCall(glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X, m, internalFormat, faceWidths[m], faceHeights[m], 0, format, GL_UNSIGNED_BYTE, cubeTextureData[m][3]));
@@ -433,7 +435,7 @@ namespace Lumos
 
         void GLTextureDepth::Resize(uint32_t width, uint32_t height)
         {
-            m_Width = width;
+            m_Width  = width;
             m_Height = height;
             m_Format = RHIFormat::D16_Unorm;
 
@@ -487,9 +489,9 @@ namespace Lumos
 
         void GLTextureDepthArray::Resize(uint32_t width, uint32_t height, uint32_t count)
         {
-            m_Width = width;
+            m_Width  = width;
             m_Height = height;
-            m_Count = count;
+            m_Count  = count;
 
             GLCall(glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_DEPTH_COMPONENT, m_Width, m_Height, m_Count, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, nullptr));
 
@@ -552,16 +554,16 @@ namespace Lumos
 
         void GLTexture2D::MakeDefault()
         {
-            CreateFunc = CreateFuncGL;
-            CreateFromFileFunc = CreateFromFileFuncGL;
+            CreateFunc           = CreateFuncGL;
+            CreateFromFileFunc   = CreateFromFileFuncGL;
             CreateFromSourceFunc = CreateFromSourceFuncGL;
         }
 
         void GLTextureCube::MakeDefault()
         {
-            CreateFunc = CreateFuncGL;
-            CreateFromFileFunc = CreateFromFileFuncGL;
-            CreateFromFilesFunc = CreateFromFilesFuncGL;
+            CreateFunc           = CreateFuncGL;
+            CreateFromFileFunc   = CreateFromFileFuncGL;
+            CreateFromFilesFunc  = CreateFromFilesFuncGL;
             CreateFromVCrossFunc = CreateFromVCrossFuncGL;
         }
 

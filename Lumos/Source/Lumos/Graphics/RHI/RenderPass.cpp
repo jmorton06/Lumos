@@ -9,7 +9,7 @@ namespace Lumos
     {
         static std::unordered_map<std::size_t, SharedPtr<RenderPass>> m_RenderPassCache;
 
-        RenderPass::~RenderPass() = default;
+        RenderPass::~RenderPass()                                    = default;
         RenderPass* (*RenderPass::CreateFunc)(const RenderPassDesc&) = nullptr;
 
         RenderPass* RenderPass::Create(const RenderPassDesc& renderPassDesc)
@@ -35,7 +35,7 @@ namespace Lumos
                 return found->second;
             }
 
-            auto renderPass = SharedPtr<RenderPass>(Create(renderPassDesc));
+            auto renderPass         = SharedPtr<RenderPass>(Create(renderPassDesc));
             m_RenderPassCache[hash] = renderPass;
             return renderPass;
         }

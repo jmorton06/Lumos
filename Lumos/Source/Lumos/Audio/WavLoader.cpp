@@ -32,7 +32,7 @@ namespace Lumos
 
                 file.read(reinterpret_cast<char*>(&fmt), sizeof(FMTCHUNK));
 
-                data.BitRate = static_cast<uint32_t>(fmt.samp);
+                data.BitRate  = static_cast<uint32_t>(fmt.samp);
                 data.FreqRate = static_cast<float>(fmt.srate);
                 data.Channels = static_cast<uint32_t>(fmt.channels);
             }

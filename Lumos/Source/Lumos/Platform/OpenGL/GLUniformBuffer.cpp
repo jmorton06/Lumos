@@ -32,7 +32,7 @@ namespace Lumos
         void GLUniformBuffer::SetData(uint32_t size, const void* data)
         {
             LUMOS_PROFILE_FUNCTION();
-            m_Data = (uint8_t*)data;
+            m_Data    = (uint8_t*)data;
             GLvoid* p = nullptr;
 
             glBindBuffer(GL_UNIFORM_BUFFER, m_Handle);
@@ -40,7 +40,7 @@ namespace Lumos
             if(size != m_Size)
             {
                 LUMOS_PROFILE_SCOPE("glMapBuffer");
-                p = glMapBuffer(GL_UNIFORM_BUFFER, GL_WRITE_ONLY);
+                p      = glMapBuffer(GL_UNIFORM_BUFFER, GL_WRITE_ONLY);
                 m_Size = size;
 
                 memcpy(p, m_Data, m_Size);
@@ -60,9 +60,9 @@ namespace Lumos
         void GLUniformBuffer::SetDynamicData(uint32_t size, uint32_t typeSize, const void* data)
         {
             LUMOS_PROFILE_FUNCTION();
-            m_Data = (uint8_t*)data;
-            m_Size = size;
-            m_Dynamic = true;
+            m_Data            = (uint8_t*)data;
+            m_Size            = size;
+            m_Dynamic         = true;
             m_DynamicTypeSize = typeSize;
 
             GLvoid* p = nullptr;
@@ -72,7 +72,7 @@ namespace Lumos
             if(size != m_Size)
             {
                 LUMOS_PROFILE_SCOPE("glMapBuffer");
-                p = glMapBuffer(GL_UNIFORM_BUFFER, GL_WRITE_ONLY);
+                p      = glMapBuffer(GL_UNIFORM_BUFFER, GL_WRITE_ONLY);
                 m_Size = size;
 
                 memcpy(p, m_Data, m_Size);
@@ -96,7 +96,7 @@ namespace Lumos
 
         void GLUniformBuffer::MakeDefault()
         {
-            CreateFunc = CreateFuncGL;
+            CreateFunc     = CreateFuncGL;
             CreateDataFunc = CreateDataFuncGL;
         }
 

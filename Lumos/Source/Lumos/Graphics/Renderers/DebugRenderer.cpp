@@ -35,9 +35,9 @@ namespace Lumos
 
     DebugRenderer* DebugRenderer::s_Instance = nullptr;
 
-    static const uint32_t MaxLines = 10000;
+    static const uint32_t MaxLines        = 10000;
     static const uint32_t MaxLineVertices = MaxLines * 2;
-    static const uint32_t MaxLineIndices = MaxLines * 6;
+    static const uint32_t MaxLineIndices  = MaxLines * 6;
 #define MAX_BATCH_DRAW_CALLS 100
 #define RENDERER_LINE_SIZE RENDERER2DLINE_VERTEX_SIZE * 4
 #define RENDERER_BUFFER_SIZE RENDERER_LINE_SIZE* MaxLineVertices
@@ -374,12 +374,12 @@ namespace Lumos
 
         for(int i = 0; i < numVerts; i++)
         {
-            float cx = Maths::Cos(step * i) * radius;
-            float cy = Maths::Sin(step * i) * radius;
+            float cx          = Maths::Cos(step * i) * radius;
+            float cy          = Maths::Sin(step * i) * radius;
             glm::vec3 current = glm::vec3(cx, cy, 0.0f);
 
-            float nx = Maths::Cos(step * (i + 1)) * radius;
-            float ny = Maths::Sin(step * (i + 1)) * radius;
+            float nx       = Maths::Cos(step * (i + 1)) * radius;
+            float ny       = Maths::Sin(step * (i + 1)) * radius;
             glm::vec3 next = glm::vec3(nx, ny, 0.0f);
 
             DrawHairLine(position + (rotation * current), position + (rotation * next), colour);
@@ -397,15 +397,15 @@ namespace Lumos
     void DebugRenderer::DebugDrawCone(int numCircleVerts, int numLinesToCircle, float angle, float length, const glm::vec3& position, const glm::quat& rotation, const glm::vec4& colour)
     {
         LUMOS_PROFILE_FUNCTION();
-        float endAngle = Maths::Tan(angle * 0.5f) * length;
-        glm::vec3 forward = -(rotation * glm::vec3(0.0f, 0.0f, -1.0f));
+        float endAngle        = Maths::Tan(angle * 0.5f) * length;
+        glm::vec3 forward     = -(rotation * glm::vec3(0.0f, 0.0f, -1.0f));
         glm::vec3 endPosition = position + forward * length;
-        float offset = 0.0f;
+        float offset          = 0.0f;
         DebugDrawCircle(numCircleVerts, endAngle, endPosition, rotation, colour);
 
         for(int i = 0; i < numLinesToCircle; i++)
         {
-            float a = i * 90.0f;
+            float a         = i * 90.0f;
             glm::vec3 point = rotation * glm::vec3(Maths::Cos(a), Maths::Sin(a), 0.0f) * endAngle;
             DrawHairLine(position, position + point + forward * length, colour);
         }
@@ -414,19 +414,19 @@ namespace Lumos
     void DebugDrawArc(int numVerts, float radius, const glm::vec3& start, const glm::vec3& end, const glm::quat& rotation, const glm::vec4& colour)
     {
         LUMOS_PROFILE_FUNCTION();
-        float step = 180.0f / numVerts;
+        float step    = 180.0f / numVerts;
         glm::quat rot = glm::lookAt(rotation * start, rotation * end, glm::vec3(0.0f, 1.0f, 0.0f));
-        rot = rotation * rot;
+        rot           = rotation * rot;
 
         glm::vec3 arcCentre = (start + end) * 0.5f;
         for(int i = 0; i < numVerts; i++)
         {
-            float cx = Maths::Cos(step * i) * radius;
-            float cy = Maths::Sin(step * i) * radius;
+            float cx          = Maths::Cos(step * i) * radius;
+            float cy          = Maths::Sin(step * i) * radius;
             glm::vec3 current = glm::vec3(cx, cy, 0.0f);
 
-            float nx = Maths::Cos(step * (i + 1)) * radius;
-            float ny = Maths::Sin(step * (i + 1)) * radius;
+            float nx       = Maths::Cos(step * (i + 1)) * radius;
+            float ny       = Maths::Sin(step * (i + 1)) * radius;
             glm::vec3 next = glm::vec3(nx, ny, 0.0f);
 
             DebugRenderer::DrawHairLine(arcCentre + (rot * current), arcCentre + (rot * next), colour);
@@ -438,7 +438,7 @@ namespace Lumos
         LUMOS_PROFILE_FUNCTION();
         glm::vec3 up = (rotation * glm::vec3(0.0f, 1.0f, 0.0f));
 
-        glm::vec3 topSphereCentre = position + up * (height * 0.5f);
+        glm::vec3 topSphereCentre    = position + up * (height * 0.5f);
         glm::vec3 bottomSphereCentre = position - up * (height * 0.5f);
 
         DebugDrawCircle(20, radius, topSphereCentre, rotation * glm::quat(glm::vec3(glm::radians(90.0f), 0.0f, 0.0f)), colour);

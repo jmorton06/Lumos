@@ -33,9 +33,9 @@ namespace Lumos
             {
             }
 
-            uint32_t Index = 0;
-            uint32_t ChildCount = 0;
-            uint32_t PhysicsObjectCount = 0;
+            uint32_t Index               = 0;
+            uint32_t ChildCount          = 0;
+            uint32_t PhysicsObjectCount  = 0;
             uint32_t ChildNodeIndices[8] = { 0 };
             RigidBody3D* PhysicsObjects[MAX_OBJECTS_PER_NODE];
 
@@ -52,7 +52,7 @@ namespace Lumos
         size_t m_MaxPartitionDepth;
 
         uint32_t m_CurrentPoolIndex = 0;
-        uint32_t m_LeafCount = 0;
+        uint32_t m_LeafCount        = 0;
 
         SharedPtr<Broadphase> m_SecondaryBroadphase; // Broadphase stage used to determine collision pairs within subdivisions
         OctreeNode m_NodePool[MAX_PARTITION_DEPTH * MAX_PARTITION_DEPTH * MAX_PARTITION_DEPTH];

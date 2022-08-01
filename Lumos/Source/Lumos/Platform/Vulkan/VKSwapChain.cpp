@@ -12,26 +12,28 @@ namespace Lumos
     {
         VKSwapChain::VKSwapChain(uint32_t width, uint32_t height)
         {
-            m_Width = width;
-            m_Height = height;
-            m_SwapChain = VK_NULL_HANDLE;
+            m_Width        = width;
+            m_Height       = height;
+            m_SwapChain    = VK_NULL_HANDLE;
             m_OldSwapChain = VK_NULL_HANDLE;
-            m_Surface = VK_NULL_HANDLE;
+            m_Surface      = VK_NULL_HANDLE;
 
             // Initialised by first Image Aquire
-            m_CurrentBuffer = std::numeric_limits<uint32_t>::max();
+            m_CurrentBuffer     = std::numeric_limits<uint32_t>::max();
             m_AcquireImageIndex = std::numeric_limits<uint32_t>::max();
         }
 
         VKSwapChain::~VKSwapChain()
         {
+            vkDeviceWaitIdle(VKDevice::Get().GetDevice());
+
             for(uint32_t i = 0; i < m_SwapChainBufferCount; i++)
             {
                 vkDestroySemaphore(VKDevice::Get().GetDevice(), m_Frames[i].PresentSemaphore, nullptr);
                 m_Frames[i].MainCommandBuffer->Flush();
 
                 m_Frames[i].MainCommandBuffer = nullptr;
-                m_Frames[i].CommandPool = nullptr;
+                m_Frames[i].CommandPool       = nullptr;
 
                 delete m_SwapChainBuffers[i];
             }
@@ -69,7 +71,7 @@ namespace Lumos
             }
 
             VkBool32 queueIndexSupported;
-            vkGetPhysicalDeviceSurfaceSupportKHR(VKDevice::Get().GetPhysicalDevice()->GetVulkanPhysicalDevice(), VKDevice::Get().GetPhysicalDevice()->GetGraphicsQueueFamilyIndex(), m_Surface, &queueIndexSupported);
+            vkGetPhysicalDeviceSurfaceSupportKHR(VKDevice::Get().GetPhysicalDevice()->GetHandle(), VKDevice::Get().GetPhysicalDevice()->GetGraphicsQueueFamilyIndex(), m_Surface, &queueIndexSupported);
 
             if(queueIndexSupported == VK_FALSE)
                 LUMOS_LOG_ERROR("Present Queue not supported");
@@ -86,7 +88,7 @@ namespace Lumos
 
             VkExtent2D swapChainExtent;
 
-            swapChainExtent.width = static_cast<uint32_t>(m_Width);
+            swapChainExtent.width  = static_cast<uint32_t>(m_Width);
             swapChainExtent.height = static_cast<uint32_t>(m_Height);
 
             VkPresentModeKHR swapChainPresentMode = VKUtilities::ChoosePresentMode(pPresentModes, vsync);
@@ -103,7 +105,7 @@ namespace Lumos
             else
                 preTransform = surfaceCapabilities.currentTransform;
 
-            VkCompositeAlphaFlagBitsKHR compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
+            VkCompositeAlphaFlagBitsKHR compositeAlpha                   = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
             std::vector<VkCompositeAlphaFlagBitsKHR> compositeAlphaFlags = {
                 VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR,
                 VK_COMPOSITE_ALPHA_PRE_MULTIPLIED_BIT_KHR,
@@ -120,23 +122,23 @@ namespace Lumos
             }
 
             VkSwapchainCreateInfoKHR swapChainCI {};
-            swapChainCI.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
-            swapChainCI.surface = m_Surface;
-            swapChainCI.minImageCount = m_SwapChainBufferCount;
-            swapChainCI.imageFormat = m_ColourFormat;
-            swapChainCI.imageExtent.width = swapChainExtent.width;
-            swapChainCI.imageExtent.height = swapChainExtent.height;
-            swapChainCI.preTransform = preTransform;
-            swapChainCI.compositeAlpha = compositeAlpha;
-            swapChainCI.imageArrayLayers = 1;
-            swapChainCI.presentMode = swapChainPresentMode;
-            swapChainCI.oldSwapchain = m_OldSwapChain;
-            swapChainCI.imageColorSpace = m_ColourSpace;
-            swapChainCI.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
+            swapChainCI.sType                 = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
+            swapChainCI.surface               = m_Surface;
+            swapChainCI.minImageCount         = m_SwapChainBufferCount;
+            swapChainCI.imageFormat           = m_ColourFormat;
+            swapChainCI.imageExtent.width     = swapChainExtent.width;
+            swapChainCI.imageExtent.height    = swapChainExtent.height;
+            swapChainCI.preTransform          = preTransform;
+            swapChainCI.compositeAlpha        = compositeAlpha;
+            swapChainCI.imageArrayLayers      = 1;
+            swapChainCI.presentMode           = swapChainPresentMode;
+            swapChainCI.oldSwapchain          = m_OldSwapChain;
+            swapChainCI.imageColorSpace       = m_ColourSpace;
+            swapChainCI.imageSharingMode      = VK_SHARING_MODE_EXCLUSIVE;
             swapChainCI.queueFamilyIndexCount = 0;
-            swapChainCI.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
-            swapChainCI.pQueueFamilyIndices = VK_NULL_HANDLE;
-            swapChainCI.clipped = VK_TRUE;
+            swapChainCI.imageUsage            = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+            swapChainCI.pQueueFamilyIndices   = VK_NULL_HANDLE;
+            swapChainCI.clipped               = VK_TRUE;
 
             if(surfaceCapabilities.supportedUsageFlags & VK_IMAGE_USAGE_TRANSFER_SRC_BIT)
             {
@@ -179,21 +181,21 @@ namespace Lumos
             for(uint32_t i = 0; i < m_SwapChainBufferCount; i++)
             {
                 VkImageViewCreateInfo viewCI {};
-                viewCI.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+                viewCI.sType  = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
                 viewCI.format = m_ColourFormat;
 #ifdef LUMOS_PLATFORM_MACOS
                 viewCI.components = { VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY };
 #else
                 viewCI.components = { VK_COMPONENT_SWIZZLE_R, VK_COMPONENT_SWIZZLE_G, VK_COMPONENT_SWIZZLE_B, VK_COMPONENT_SWIZZLE_A };
 #endif
-                viewCI.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-                viewCI.subresourceRange.baseMipLevel = 0;
-                viewCI.subresourceRange.levelCount = 1;
+                viewCI.subresourceRange.aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT;
+                viewCI.subresourceRange.baseMipLevel   = 0;
+                viewCI.subresourceRange.levelCount     = 1;
                 viewCI.subresourceRange.baseArrayLayer = 0;
-                viewCI.subresourceRange.layerCount = 1;
-                viewCI.viewType = VK_IMAGE_VIEW_TYPE_2D;
-                viewCI.flags = 0;
-                viewCI.image = pSwapChainImages[i];
+                viewCI.subresourceRange.layerCount     = 1;
+                viewCI.viewType                        = VK_IMAGE_VIEW_TYPE_2D;
+                viewCI.flags                           = 0;
+                viewCI.image                           = pSwapChainImages[i];
 
                 VkImageView imageView;
                 VK_CHECK_RESULT(vkCreateImageView(VKDevice::Get().GetDevice(), &viewCI, VK_NULL_HANDLE, &imageView));
@@ -221,9 +223,9 @@ namespace Lumos
             for(uint32_t i = 0; i < m_SwapChainBufferCount; i++)
             {
                 VkSemaphoreCreateInfo semaphoreInfo = {};
-                semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-                semaphoreInfo.pNext = nullptr;
-                semaphoreInfo.flags = 0;
+                semaphoreInfo.sType                 = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+                semaphoreInfo.pNext                 = nullptr;
+                semaphoreInfo.flags                 = 0;
 
                 if(m_Frames[i].PresentSemaphore == VK_NULL_HANDLE)
                     VK_CHECK_RESULT(vkCreateSemaphore(VKDevice::Get().GetDevice(), &semaphoreInfo, nullptr, &m_Frames[i].PresentSemaphore));
@@ -280,11 +282,11 @@ namespace Lumos
 
             VKRenderer::GetGraphicsContext()->WaitIdle();
 
-            m_Width = width;
+            m_Width  = width;
             m_Height = height;
 
             m_OldSwapChain = m_SwapChain;
-            m_SwapChain = VK_NULL_HANDLE;
+            m_SwapChain    = VK_NULL_HANDLE;
 
             if(windowHandle)
                 Init(m_VSyncEnabled, windowHandle);
@@ -336,14 +338,14 @@ namespace Lumos
             LUMOS_PROFILE_FUNCTION();
 
             VkPresentInfoKHR present;
-            present.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
-            present.pNext = VK_NULL_HANDLE;
-            present.swapchainCount = 1;
-            present.pSwapchains = &m_SwapChain;
-            present.pImageIndices = &m_AcquireImageIndex;
+            present.sType              = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+            present.pNext              = VK_NULL_HANDLE;
+            present.swapchainCount     = 1;
+            present.pSwapchains        = &m_SwapChain;
+            present.pImageIndices      = &m_AcquireImageIndex;
             present.waitSemaphoreCount = 1;
-            present.pWaitSemaphores = &semaphore;
-            present.pResults = VK_NULL_HANDLE;
+            present.pWaitSemaphores    = &semaphore;
+            present.pResults           = VK_NULL_HANDLE;
 
             auto error = vkQueuePresentKHR(VKDevice::Get().GetPresentQueue(), &present);
 
@@ -375,7 +377,7 @@ namespace Lumos
     void Graphics::VKSwapChain::FindImageFormatAndColourSpace()
     {
         LUMOS_PROFILE_FUNCTION();
-        VkPhysicalDevice physicalDevice = VKDevice::Get().GetPhysicalDevice()->GetVulkanPhysicalDevice();
+        VkPhysicalDevice physicalDevice = VKDevice::Get().GetPhysicalDevice()->GetHandle();
 
         // Get list of supported surface formats
         uint32_t formatCount;
@@ -390,7 +392,7 @@ namespace Lumos
         if((formatCount == 1) && (surfaceFormats[0].format == VK_FORMAT_UNDEFINED))
         {
             m_ColourFormat = VK_FORMAT_B8G8R8A8_UNORM;
-            m_ColourSpace = surfaceFormats[0].colorSpace;
+            m_ColourSpace  = surfaceFormats[0].colorSpace;
         }
         else
         {
@@ -401,8 +403,8 @@ namespace Lumos
             {
                 if(surfaceFormat.format == VK_FORMAT_B8G8R8A8_UNORM)
                 {
-                    m_ColourFormat = surfaceFormat.format;
-                    m_ColourSpace = surfaceFormat.colorSpace;
+                    m_ColourFormat       = surfaceFormat.format;
+                    m_ColourSpace        = surfaceFormat.colorSpace;
                     found_B8G8R8A8_UNORM = true;
                     break;
                 }
@@ -413,7 +415,7 @@ namespace Lumos
             if(!found_B8G8R8A8_UNORM)
             {
                 m_ColourFormat = surfaceFormats[0].format;
-                m_ColourSpace = surfaceFormats[0].colorSpace;
+                m_ColourSpace  = surfaceFormats[0].colorSpace;
             }
         }
     }

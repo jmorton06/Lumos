@@ -31,6 +31,7 @@ namespace Lumos
             }
 
             extensions.push_back(VK_KHR_SURFACE_EXTENSION_NAME);
+            extensions.push_back("VK_KHR_portability_enumeration");
 
 #if 0
 #if defined(TRACY_ENABLE) && defined(LUMOS_PLATFORM_WINDOWS)
@@ -136,13 +137,13 @@ namespace Lumos
         }
 
         VkBool32 VKContext::DebugCallback(VkDebugReportFlagsEXT flags,
-            VkDebugReportObjectTypeEXT objType,
-            uint64_t sourceObj,
-            size_t location,
-            int32_t msgCode,
-            const char* pLayerPrefix,
-            const char* pMsg,
-            void* userData)
+                                          VkDebugReportObjectTypeEXT objType,
+                                          uint64_t sourceObj,
+                                          size_t location,
+                                          int32_t msgCode,
+                                          const char* pLayerPrefix,
+                                          const char* pMsg,
+                                          void* userData)
         {
             // Select prefix depending on flags passed to the callback
             // Note that multiple flags may be set for a single validation message
@@ -279,21 +280,7 @@ namespace Lumos
             }
 #endif
 
-            VkApplicationInfo appInfo = {};
-            appInfo.pApplicationName = "Runtime";
-            appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
-            appInfo.pEngineName = "Lumos";
-            appInfo.engineVersion = VK_MAKE_VERSION(LumosVersion.major, LumosVersion.minor, LumosVersion.patch);
-#if defined(LUMOS_PLATFORM_MACOS) || defined(LUMOS_PLATFORM_IOS)
-            appInfo.apiVersion = VK_API_VERSION_1_1;
-#else
-            appInfo.apiVersion = VK_API_VERSION_1_1;
-#endif
-
-            VkInstanceCreateInfo createInfo = {};
-            createInfo.pApplicationInfo = &appInfo;
-
-            m_InstanceLayerNames = GetRequiredLayers();
+            m_InstanceLayerNames     = GetRequiredLayers();
             m_InstanceExtensionNames = GetRequiredExtensions();
 
             if(!CheckValidationLayerSupport(m_InstanceLayerNames))
@@ -305,18 +292,55 @@ namespace Lumos
             {
                 LUMOS_LOG_CRITICAL("[VULKAN] Extensions requested are not available!");
             }
+            VkApplicationInfo appInfo = {};
 
-            createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
+            uint32_t sdkVersion    = VK_HEADER_VERSION_COMPLETE;
+            uint32_t driverVersion = 0;
 
-            createInfo.enabledExtensionCount = static_cast<uint32_t>(m_InstanceExtensionNames.size());
+            // if enumerateInstanceVersion  is missing, only vulkan 1.0 supported
+            // https://www.lunarg.com/wp-content/uploads/2019/02/Vulkan-1.1-Compatibility-Statement_01_19.pdf
+            auto enumerateInstanceVersion = reinterpret_cast<PFN_vkEnumerateInstanceVersion>(vkGetInstanceProcAddr(nullptr, "vkEnumerateInstanceVersion"));
+
+            if(enumerateInstanceVersion)
+            {
+                enumerateInstanceVersion(&driverVersion);
+            }
+            else
+            {
+                driverVersion = VK_API_VERSION_1_0;
+            }
+
+            // Choose supported version
+            appInfo.apiVersion = Maths::Min(sdkVersion, driverVersion);
+
+            // SDK not supported
+            if(sdkVersion > driverVersion)
+            {
+                // Detect and log version
+                std::string driverVersionStr = StringUtilities::ToString(VK_API_VERSION_MAJOR(driverVersion)) + "." + StringUtilities::ToString(VK_API_VERSION_MINOR(driverVersion)) + "." + StringUtilities::ToString(VK_API_VERSION_PATCH(driverVersion));
+                std::string sdkVersionStr    = StringUtilities::ToString(VK_API_VERSION_MAJOR(driverVersion)) + "." + StringUtilities::ToString(VK_API_VERSION_MINOR(driverVersion)) + "." + StringUtilities::ToString(VK_API_VERSION_PATCH(driverVersion));
+                LUMOS_LOG_WARN("Using Vulkan {0}. Please update your graphics drivers to support Vulkan {1}.", driverVersionStr, sdkVersionStr);
+            }
+
+            appInfo.sType              = VK_STRUCTURE_TYPE_APPLICATION_INFO;
+            appInfo.pApplicationName   = "Runtime";
+            appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
+            appInfo.pEngineName        = "Lumos";
+            appInfo.engineVersion      = VK_MAKE_VERSION(LumosVersion.major, LumosVersion.minor, LumosVersion.patch);
+
+            VkInstanceCreateInfo createInfo    = {};
+            createInfo.pApplicationInfo        = &appInfo;
+            createInfo.sType                   = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
+            createInfo.enabledExtensionCount   = static_cast<uint32_t>(m_InstanceExtensionNames.size());
             createInfo.ppEnabledExtensionNames = m_InstanceExtensionNames.data();
-
-            createInfo.enabledLayerCount = static_cast<uint32_t>(m_InstanceLayerNames.size());
-            createInfo.ppEnabledLayerNames = m_InstanceLayerNames.data();
+            createInfo.enabledLayerCount       = static_cast<uint32_t>(m_InstanceLayerNames.size());
+            createInfo.ppEnabledLayerNames     = m_InstanceLayerNames.data();
+            createInfo.flags                   = VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR;
 
             VkResult createResult = vkCreateInstance(&createInfo, nullptr, &s_VkInstance);
             if(createResult != VK_SUCCESS)
             {
+
                 LUMOS_LOG_CRITICAL("[VULKAN] Failed to create instance!");
             }
 #ifndef LUMOS_PLATFORM_IOS
@@ -331,10 +355,9 @@ namespace Lumos
                 return;
 
             VkDebugReportCallbackCreateInfoEXT createInfo = {};
-            createInfo.sType = VK_STRUCTURE_TYPE_DEBUG_REPORT_CALLBACK_CREATE_INFO_EXT;
-            createInfo.flags = VK_DEBUG_REPORT_ERROR_BIT_EXT | VK_DEBUG_REPORT_WARNING_BIT_EXT | VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT;
-
-            createInfo.pfnCallback = reinterpret_cast<PFN_vkDebugReportCallbackEXT>(DebugCallback);
+            createInfo.sType                              = VK_STRUCTURE_TYPE_DEBUG_REPORT_CALLBACK_CREATE_INFO_EXT;
+            createInfo.flags                              = VK_DEBUG_REPORT_ERROR_BIT_EXT | VK_DEBUG_REPORT_WARNING_BIT_EXT | VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT;
+            createInfo.pfnCallback                        = reinterpret_cast<PFN_vkDebugReportCallbackEXT>(DebugCallback);
 
             VkResult result = CreateDebugReportCallbackEXT(s_VkInstance, &createInfo, nullptr, &m_DebugCallback);
             if(result != VK_SUCCESS)

@@ -35,13 +35,13 @@ namespace Lumos
             void Unload();
 
             static VKAPI_ATTR VkBool32 VKAPI_CALL DebugCallback(VkDebugReportFlagsEXT flags,
-                VkDebugReportObjectTypeEXT objType,
-                uint64_t sourceObj,
-                size_t location,
-                int32_t msgCode,
-                const char* pLayerPrefix,
-                const char* pMsg,
-                void* userData);
+                                                                VkDebugReportObjectTypeEXT objType,
+                                                                uint64_t sourceObj,
+                                                                size_t location,
+                                                                int32_t msgCode,
+                                                                const char* pLayerPrefix,
+                                                                const char* pMsg,
+                                                                void* userData);
 
             static VkInstance GetVKInstance() { return s_VkInstance; }
 
@@ -103,7 +103,7 @@ namespace Lumos
             std::vector<const char*> m_InstanceExtensionNames;
 
             bool m_StandardValidationLayer = false;
-            bool m_AssistanceLayer = false;
+            bool m_AssistanceLayer         = false;
         };
     }
 }

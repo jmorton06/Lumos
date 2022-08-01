@@ -9,7 +9,7 @@
 #ifdef LUMOS_RENDER_API_VULKAN
 #ifdef LUMOS_VOLK
 #define VOLK_IMPLEMENTATION
-#include <volk/volk.h>
+#include <vulkan/volk/volk.h>
 #endif
 #endif
 
@@ -25,6 +25,9 @@
 #endif
 
 #include <imgui/misc/freetype/imgui_freetype.cpp>
+
+#define STB_DEFINE
+#include <stb/stb.h>
 
 #include <stb/stb_vorbis.c>
 

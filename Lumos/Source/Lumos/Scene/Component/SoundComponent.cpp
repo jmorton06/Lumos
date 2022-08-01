@@ -27,10 +27,10 @@ namespace Lumos
 
     void SoundComponent::OnImGui()
     {
-        auto pos = m_SoundNode->GetPosition();
-        auto radius = m_SoundNode->GetRadius();
-        auto paused = m_SoundNode->GetPaused();
-        auto pitch = m_SoundNode->GetPitch();
+        auto pos               = m_SoundNode->GetPosition();
+        auto radius            = m_SoundNode->GetRadius();
+        auto paused            = m_SoundNode->GetPaused();
+        auto pitch             = m_SoundNode->GetPitch();
         auto referenceDistance = m_SoundNode->GetReferenceDistance();
 
         ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));

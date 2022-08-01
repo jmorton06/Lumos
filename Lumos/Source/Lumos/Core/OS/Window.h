@@ -46,7 +46,7 @@ namespace Lumos
             return m_Init;
         };
 
-        virtual bool GetExit() const = 0;
+        virtual bool GetExit() const    = 0;
         virtual void SetExit(bool exit) = 0;
 
         inline void SetHasResized(bool resized)
@@ -58,10 +58,10 @@ namespace Lumos
             return m_HasResized;
         }
 
-        virtual void ToggleVSync() = 0;
-        virtual void SetVSync(bool set) = 0;
+        virtual void ToggleVSync()                            = 0;
+        virtual void SetVSync(bool set)                       = 0;
         virtual void SetWindowTitle(const std::string& title) = 0;
-        virtual void OnUpdate() = 0;
+        virtual void OnUpdate()                               = 0;
         virtual void ProcessInput() {};
         virtual void SetBorderlessWindow(bool borderless) = 0;
         virtual void* GetHandle()
@@ -71,13 +71,13 @@ namespace Lumos
         virtual float GetScreenRatio() const = 0;
         virtual void HideMouse(bool hide) {};
         virtual void SetMousePosition(const glm::vec2& pos) {};
-        virtual void SetEventCallback(const EventCallbackFn& callback) = 0;
-        virtual void UpdateCursorImGui() = 0;
+        virtual void SetEventCallback(const EventCallbackFn& callback)                               = 0;
+        virtual void UpdateCursorImGui()                                                             = 0;
         virtual void SetIcon(const std::string& filePath, const std::string& smallIconFilePath = "") = 0;
         virtual void Maximise() {};
         virtual std::string GetTitle() const = 0;
-        virtual uint32_t GetWidth() const = 0;
-        virtual uint32_t GetHeight() const = 0;
+        virtual uint32_t GetWidth() const    = 0;
+        virtual uint32_t GetHeight() const   = 0;
         virtual float GetDPIScale() const { return 1.0f; }
 
         void SetWindowFocus(bool focus) { m_WindowFocus = focus; }
@@ -93,8 +93,8 @@ namespace Lumos
 
         bool m_Init = false;
         glm::vec2 m_Position;
-        bool m_VSync = false;
-        bool m_HasResized = false;
+        bool m_VSync       = false;
+        bool m_HasResized  = false;
         bool m_WindowFocus = true;
 
         SharedPtr<Lumos::Graphics::SwapChain> m_SwapChain;

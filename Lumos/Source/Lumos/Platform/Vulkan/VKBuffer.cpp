@@ -31,11 +31,11 @@ namespace Lumos
 #ifdef USE_VMA_ALLOCATOR
                 auto alloc = m_Allocation;
                 deletionQueue.PushFunction([buffer, alloc]
-                    { vmaDestroyBuffer(VKDevice::Get().GetAllocator(), buffer, alloc); });
+                                           { vmaDestroyBuffer(VKDevice::Get().GetAllocator(), buffer, alloc); });
 #else
                 auto memory = m_Memory;
                 deletionQueue.PushFunction([buffer, memory]
-                    {
+                                           {
                         vkDestroyBuffer(VKDevice::Device(), buffer, nullptr);
                         vkFreeMemory(VKDevice::Device(), memory, nullptr); });
 #endif
@@ -56,11 +56,11 @@ namespace Lumos
 #ifdef USE_VMA_ALLOCATOR
                     auto alloc = m_Allocation;
                     currentDeletionQueue.PushFunction([buffer, alloc]
-                        { vmaDestroyBuffer(VKDevice::Get().GetAllocator(), buffer, alloc); });
+                                                      { vmaDestroyBuffer(VKDevice::Get().GetAllocator(), buffer, alloc); });
 #else
                     auto memory = m_Memory;
                     currentDeletionQueue.PushFunction([buffer, memory]
-                        {
+                                                      {
                             vkDestroyBuffer(VKDevice::Device(), buffer, nullptr);
                             vkFreeMemory(VKDevice::Device(), memory, nullptr); });
 #endif
@@ -83,23 +83,23 @@ namespace Lumos
         {
             LUMOS_PROFILE_FUNCTION();
 
-            m_UsageFlags = usage;
+            m_UsageFlags         = usage;
             m_MemoryProperyFlags = memoryProperyFlags;
-            m_Size = size;
+            m_Size               = size;
 
             VkBufferCreateInfo bufferInfo = {};
-            bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-            bufferInfo.size = size;
-            bufferInfo.usage = usage;
-            bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+            bufferInfo.sType              = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+            bufferInfo.size               = size;
+            bufferInfo.usage              = usage;
+            bufferInfo.sharingMode        = VK_SHARING_MODE_EXCLUSIVE;
 
             bool isMappable = (memoryProperyFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) != 0;
 
 #ifdef USE_VMA_ALLOCATOR
             VmaAllocationCreateInfo vmaAllocInfo = {};
-            vmaAllocInfo.usage = VMA_MEMORY_USAGE_AUTO;
-            vmaAllocInfo.flags = isMappable ? VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT : 0;
-            vmaAllocInfo.preferredFlags = memoryProperyFlags;
+            vmaAllocInfo.usage                   = VMA_MEMORY_USAGE_AUTO;
+            vmaAllocInfo.flags                   = isMappable ? VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT : 0;
+            vmaAllocInfo.preferredFlags          = memoryProperyFlags;
 
             vmaCreateBuffer(VKDevice::Get().GetAllocator(), &bufferInfo, &vmaAllocInfo, &m_Buffer, &m_Allocation, nullptr);
 #else

@@ -69,12 +69,12 @@ namespace Lumos
         bool GLPipeline::Init(const PipelineDesc& pipelineDesc)
         {
             m_TransparencyEnabled = pipelineDesc.transparencyEnabled;
-            m_CullMode = pipelineDesc.cullMode;
-            m_Description = pipelineDesc;
+            m_CullMode            = pipelineDesc.cullMode;
+            m_Description         = pipelineDesc;
 
             GLCall(glGenVertexArrays(1, &m_VertexArray));
 
-            m_Shader = pipelineDesc.shader.get();
+            m_Shader    = pipelineDesc.shader.get();
             m_BlendMode = pipelineDesc.blendMode;
 
             CreateFramebuffers();
@@ -84,9 +84,8 @@ namespace Lumos
         void GLPipeline::BindVertexArray()
         {
             GLCall(glBindVertexArray(m_VertexArray));
-
             auto& vertexLayout = ((GLShader*)m_Shader)->GetBufferLayout().GetLayout();
-            uint32_t count = 0;
+            uint32_t count     = 0;
 
             for(auto& layout : vertexLayout)
             {
@@ -134,26 +133,26 @@ namespace Lumos
             Graphics::RenderPassDesc renderPassDesc;
             renderPassDesc.attachmentCount = uint32_t(attachmentTypes.size());
             renderPassDesc.attachmentTypes = attachmentTypes.data();
-            renderPassDesc.attachments = attachments.data();
-            renderPassDesc.clear = m_Description.clearTargets;
-            renderPassDesc.cubeMapIndex = m_Description.cubeMapIndex;
-            renderPassDesc.mipIndex = m_Description.mipIndex;
+            renderPassDesc.attachments     = attachments.data();
+            renderPassDesc.clear           = m_Description.clearTargets;
+            renderPassDesc.cubeMapIndex    = m_Description.cubeMapIndex;
+            renderPassDesc.mipIndex        = m_Description.mipIndex;
 
             m_RenderPass = Graphics::RenderPass::Get(renderPassDesc);
 
             FramebufferDesc frameBufferDesc {};
-            frameBufferDesc.width = GetWidth();
-            frameBufferDesc.height = GetHeight();
+            frameBufferDesc.width           = GetWidth();
+            frameBufferDesc.height          = GetHeight();
             frameBufferDesc.attachmentCount = uint32_t(attachments.size());
-            frameBufferDesc.renderPass = m_RenderPass.get();
+            frameBufferDesc.renderPass      = m_RenderPass.get();
             frameBufferDesc.attachmentTypes = attachmentTypes.data();
 
             if(m_Description.swapchainTarget)
             {
                 for(uint32_t i = 0; i < Renderer::GetMainSwapChain()->GetSwapChainBufferCount(); i++)
                 {
-                    frameBufferDesc.screenFBO = true;
-                    attachments[0] = Renderer::GetMainSwapChain()->GetImage(i);
+                    frameBufferDesc.screenFBO   = true;
+                    attachments[0]              = Renderer::GetMainSwapChain()->GetImage(i);
                     frameBufferDesc.attachments = attachments.data();
 
                     m_Framebuffers.emplace_back(Framebuffer::Get(frameBufferDesc));
@@ -163,10 +162,10 @@ namespace Lumos
             {
                 for(uint32_t i = 0; i < ((GLTextureDepthArray*)m_Description.depthArrayTarget)->GetCount(); ++i)
                 {
-                    frameBufferDesc.layer = i;
+                    frameBufferDesc.layer     = i;
                     frameBufferDesc.screenFBO = false;
 
-                    attachments[0] = m_Description.depthArrayTarget;
+                    attachments[0]              = m_Description.depthArrayTarget;
                     frameBufferDesc.attachments = attachments.data();
 
                     m_Framebuffers.emplace_back(Framebuffer::Get(frameBufferDesc));
@@ -175,7 +174,7 @@ namespace Lumos
             else
             {
                 frameBufferDesc.attachments = attachments.data();
-                frameBufferDesc.screenFBO = false;
+                frameBufferDesc.screenFBO   = false;
                 m_Framebuffers.emplace_back(Framebuffer::Get(frameBufferDesc));
             }
         }

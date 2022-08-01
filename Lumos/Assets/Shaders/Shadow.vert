@@ -8,9 +8,9 @@ layout(push_constant) uniform PushConsts
 	uint cascadeIndex;
 } pushConsts;
 
-layout(set = 0,binding = 0) uniform UniformBufferObject
+layout(set = 1,binding = 0) uniform ShadowData
 {
-    mat4 projView[16];
+    mat4 LightMatrices[16];
 } ubo;
 
 out gl_PerVertex
@@ -32,16 +32,16 @@ void main()
     switch(pushConsts.cascadeIndex)
     {
         case 0 : 
-            proj = ubo.projView[0];
+		proj = ubo.LightMatrices[0];
             break;
         case 1 : 
-            proj = ubo.projView[1];
+		proj = ubo.LightMatrices[1];
             break;
         case 2 : 
-            proj = ubo.projView[2];
+		proj = ubo.LightMatrices[2];
             break;
         default : 
-            proj = ubo.projView[3];
+		proj = ubo.LightMatrices[3];
             break;
     }
     gl_Position = proj * pushConsts.transform * vec4(inPosition, 1.0); 

@@ -8,7 +8,7 @@ namespace Lumos
         class VKRenderDevice : public RenderDevice
         {
         public:
-            VKRenderDevice() = default;
+            VKRenderDevice()  = default;
             ~VKRenderDevice() = default;
 
             void Init() override;

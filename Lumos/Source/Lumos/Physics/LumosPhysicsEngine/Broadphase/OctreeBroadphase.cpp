@@ -13,9 +13,9 @@ namespace Lumos
         , m_SecondaryBroadphase(secondaryBroadphase)
         , m_Leaves()
     {
-        m_NodePool[0].ChildCount = 0;
+        m_NodePool[0].ChildCount         = 0;
         m_NodePool[0].PhysicsObjectCount = 0;
-        m_NodePool[0].Index = 0;
+        m_NodePool[0].Index              = 0;
     }
 
     OctreeBroadphase::~OctreeBroadphase()
@@ -23,17 +23,17 @@ namespace Lumos
     }
 
     void OctreeBroadphase::FindPotentialCollisionPairs(RigidBody3D** objects, uint32_t objectCount,
-        std::vector<CollisionPair>& collisionPairs)
+                                                       std::vector<CollisionPair>& collisionPairs)
     {
         LUMOS_PROFILE_FUNCTION();
         m_CurrentPoolIndex = 0;
-        m_LeafCount = 0;
+        m_LeafCount        = 0;
 
-        auto& rootNode = m_NodePool[0];
-        rootNode.ChildCount = 0;
+        auto& rootNode              = m_NodePool[0];
+        rootNode.ChildCount         = 0;
         rootNode.PhysicsObjectCount = 0;
-        rootNode.Index = 0;
-        rootNode.boundingBox = Maths::BoundingBox();
+        rootNode.Index              = 0;
+        rootNode.boundingBox        = Maths::BoundingBox();
 
         for(uint32_t i = 0; i < objectCount; i++)
         {
@@ -85,7 +85,7 @@ namespace Lumos
 
         glm::vec3 divisionPoints[3] = { division.boundingBox.Min(), division.boundingBox.Center(), division.boundingBox.Max() };
 
-        static const size_t NUM_DIVISIONS = 8;
+        static const size_t NUM_DIVISIONS                            = 8;
         static const size_t DIVISION_POINT_INDICES[NUM_DIVISIONS][6] = {
             { 0, 0, 0, 1, 1, 1 },
             { 1, 0, 0, 2, 1, 1 },
@@ -102,20 +102,20 @@ namespace Lumos
             LUMOS_PROFILE_SCOPE("Create Child");
 
             division.ChildNodeIndices[division.ChildCount] = m_CurrentPoolIndex;
-            auto& newNode = m_NodePool[m_CurrentPoolIndex];
-            newNode.ChildCount = 0;
-            newNode.PhysicsObjectCount = 0;
-            newNode.Index = m_CurrentPoolIndex;
+            auto& newNode                                  = m_NodePool[m_CurrentPoolIndex];
+            newNode.ChildCount                             = 0;
+            newNode.PhysicsObjectCount                     = 0;
+            newNode.Index                                  = m_CurrentPoolIndex;
 
             division.ChildCount++;
             m_CurrentPoolIndex++;
 
             const glm::vec3 lower(divisionPoints[DIVISION_POINT_INDICES[i][0]].x,
-                divisionPoints[DIVISION_POINT_INDICES[i][1]].y,
-                divisionPoints[DIVISION_POINT_INDICES[i][2]].z);
+                                  divisionPoints[DIVISION_POINT_INDICES[i][1]].y,
+                                  divisionPoints[DIVISION_POINT_INDICES[i][2]].z);
             const glm::vec3 upper(divisionPoints[DIVISION_POINT_INDICES[i][3]].x,
-                divisionPoints[DIVISION_POINT_INDICES[i][4]].y,
-                divisionPoints[DIVISION_POINT_INDICES[i][5]].z);
+                                  divisionPoints[DIVISION_POINT_INDICES[i][4]].y,
+                                  divisionPoints[DIVISION_POINT_INDICES[i][5]].z);
 
             newNode.boundingBox.m_Min = lower;
             newNode.boundingBox.m_Max = upper;
@@ -124,7 +124,7 @@ namespace Lumos
             for(uint32_t i = 0; i < division.PhysicsObjectCount; i++)
             {
                 LUMOS_PROFILE_SCOPE("PhysicsObject BB check");
-                auto& physicsObject = division.PhysicsObjects[i];
+                auto& physicsObject                   = division.PhysicsObjects[i];
                 const Maths::BoundingBox& boundingBox = physicsObject->GetWorldSpaceAABB();
                 if(newNode.boundingBox.IsInsideFast(boundingBox))
                 {

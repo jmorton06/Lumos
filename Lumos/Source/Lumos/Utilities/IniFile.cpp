@@ -62,7 +62,7 @@ std::vector<std::string> Lumos::IniFile::GetFormattedContent() const
 void Lumos::IniFile::Load()
 {
     auto fileString = Lumos::FileSystem::ReadTextFile(m_FilePath);
-    auto lines = Lumos::StringUtilities::GetLines(fileString);
+    auto lines      = Lumos::StringUtilities::GetLines(fileString);
 
     for(auto& line : lines)
     {

@@ -34,7 +34,7 @@ namespace Lumos::Graphics
     };
 
     Orientation orientation = Orientation::Y_UP;
-    float fbx_scale = 1.f;
+    float fbx_scale         = 1.f;
 
     static ofbx::Vec3 operator-(const ofbx::Vec3& a, const ofbx::Vec3& b)
     {
@@ -86,23 +86,23 @@ namespace Lumos::Graphics
     {
         for(int i = 0; i < vertex_count; i += 3)
         {
-            const ofbx::Vec3 v0 = vertices[i + 0];
-            const ofbx::Vec3 v1 = vertices[i + 1];
-            const ofbx::Vec3 v2 = vertices[i + 2];
+            const ofbx::Vec3 v0  = vertices[i + 0];
+            const ofbx::Vec3 v1  = vertices[i + 1];
+            const ofbx::Vec3 v2  = vertices[i + 2];
             const ofbx::Vec2 uv0 = uvs[i + 0];
             const ofbx::Vec2 uv1 = uvs[i + 1];
             const ofbx::Vec2 uv2 = uvs[i + 2];
 
-            const ofbx::Vec3 dv10 = v1 - v0;
-            const ofbx::Vec3 dv20 = v2 - v0;
+            const ofbx::Vec3 dv10  = v1 - v0;
+            const ofbx::Vec3 dv20  = v2 - v0;
             const ofbx::Vec2 duv10 = uv1 - uv0;
             const ofbx::Vec2 duv20 = uv2 - uv0;
 
             const float dir = duv20.x * duv10.y - duv20.y * duv10.x < 0 ? -1.f : 1.f;
             ofbx::Vec3 tangent;
-            tangent.x = (dv20.x * duv10.y - dv10.x * duv20.y) * dir;
-            tangent.y = (dv20.y * duv10.y - dv10.y * duv20.y) * dir;
-            tangent.z = (dv20.z * duv10.y - dv10.z * duv20.y) * dir;
+            tangent.x     = (dv20.x * duv10.y - dv10.x * duv20.y) * dir;
+            tangent.y     = (dv20.y * duv10.y - dv10.y * duv20.y) * dir;
+            tangent.z     = (dv20.z * duv10.y - dv10.z * duv20.y) * dir;
             const float l = 1 / sqrtf(float(tangent.x * tangent.x + tangent.y * tangent.y + tangent.z * tangent.z));
             tangent.x *= l;
             tangent.y *= l;
@@ -146,7 +146,7 @@ namespace Lumos::Graphics
     Graphics::Texture2D* LoadTexture(const ofbx::Material* material, ofbx::Texture::TextureType type)
     {
         const ofbx::Texture* ofbxTexture = material->getTexture(type);
-        Graphics::Texture2D* texture2D = nullptr;
+        Graphics::Texture2D* texture2D   = nullptr;
         if(ofbxTexture)
         {
             std::string stringFilepath;
@@ -168,14 +168,14 @@ namespace Lumos::Graphics
             {
                 stringFilepath = StringUtilities::GetFileName(stringFilepath);
                 stringFilepath = m_FBXModelDirectory + "/" + stringFilepath;
-                fileFound = FileSystem::FileExists(stringFilepath);
+                fileFound      = FileSystem::FileExists(stringFilepath);
             }
 
             if(!fileFound)
             {
                 stringFilepath = StringUtilities::GetFileName(stringFilepath);
                 stringFilepath = m_FBXModelDirectory + "/textures/" + stringFilepath;
-                fileFound = FileSystem::FileExists(stringFilepath);
+                fileFound      = FileSystem::FileExists(stringFilepath);
             }
 
             if(fileFound)
@@ -198,19 +198,19 @@ namespace Lumos::Graphics
         Graphics::MaterialProperties properties;
 
         properties.albedoColour = ToLumosVector(material->getDiffuseColor());
-        properties.metallic = material->getSpecularColor().r;
+        properties.metallic     = material->getSpecularColor().r;
 
-        float roughness = 1.0f - Maths::Sqrt(float(material->getShininess()) / 100.0f);
+        float roughness      = 1.0f - Maths::Sqrt(float(material->getShininess()) / 100.0f);
         properties.roughness = roughness;
         properties.roughness = roughness;
 
         textures.albedo = LoadTexture(material, ofbx::Texture::TextureType::DIFFUSE);
         textures.normal = LoadTexture(material, ofbx::Texture::TextureType::NORMAL);
         // textures.metallic = LoadTexture(material, ofbx::Texture::TextureType::REFLECTION);
-        textures.metallic = LoadTexture(material, ofbx::Texture::TextureType::SPECULAR);
+        textures.metallic  = LoadTexture(material, ofbx::Texture::TextureType::SPECULAR);
         textures.roughness = LoadTexture(material, ofbx::Texture::TextureType::SHININESS);
-        textures.emissive = LoadTexture(material, ofbx::Texture::TextureType::EMISSIVE);
-        textures.ao = LoadTexture(material, ofbx::Texture::TextureType::AMBIENT);
+        textures.emissive  = LoadTexture(material, ofbx::Texture::TextureType::EMISSIVE);
+        textures.ao        = LoadTexture(material, ofbx::Texture::TextureType::AMBIENT);
 
         if(!textures.albedo)
             properties.albedoMapFactor = 0.0f;
@@ -240,11 +240,11 @@ namespace Lumos::Graphics
         glm::vec3 pos = (glm::vec3(static_cast<float>(p.x), static_cast<float>(p.y), static_cast<float>(p.z)));
         transform.SetLocalPosition(FixOrientation(pos));
 
-        ofbx::Vec3 r = mesh->getLocalRotation();
+        ofbx::Vec3 r  = mesh->getLocalRotation();
         glm::vec3 rot = FixOrientation(glm::vec3(static_cast<float>(r.x), static_cast<float>(r.y), static_cast<float>(r.z)));
         transform.SetLocalOrientation(glm::quat(glm::vec3(rot.x, rot.y, rot.z)));
 
-        ofbx::Vec3 s = mesh->getLocalScaling();
+        ofbx::Vec3 s  = mesh->getLocalScaling();
         glm::vec3 scl = glm::vec3(static_cast<float>(s.x), static_cast<float>(s.y), static_cast<float>(s.z));
         transform.SetLocalScale(scl);
 
@@ -261,23 +261,23 @@ namespace Lumos::Graphics
     SharedPtr<Graphics::Mesh> LoadMesh(const ofbx::Mesh* fbxMesh, int32_t triangleStart, int32_t triangleEnd)
     {
         const int32_t firstVertexOffset = triangleStart * 3;
-        const int32_t lastVertexOffset = triangleEnd * 3;
-        const int vertexCount = lastVertexOffset - firstVertexOffset + 3;
+        const int32_t lastVertexOffset  = triangleEnd * 3;
+        const int vertexCount           = lastVertexOffset - firstVertexOffset + 3;
 
-        auto geom = fbxMesh->getGeometry();
-        auto numIndices = geom->getIndexCount();
-        int vertex_count = geom->getVertexCount();
-        const ofbx::Vec3* vertices = geom->getVertices();
-        const ofbx::Vec3* normals = geom->getNormals();
-        const ofbx::Vec3* tangents = geom->getTangents();
-        const ofbx::Vec4* colours = geom->getColors();
-        const ofbx::Vec2* uvs = geom->getUVs();
-        const int* materials = geom->getMaterials();
+        auto geom                      = fbxMesh->getGeometry();
+        auto numIndices                = geom->getIndexCount();
+        int vertex_count               = geom->getVertexCount();
+        const ofbx::Vec3* vertices     = geom->getVertices();
+        const ofbx::Vec3* normals      = geom->getNormals();
+        const ofbx::Vec3* tangents     = geom->getTangents();
+        const ofbx::Vec4* colours      = geom->getColors();
+        const ofbx::Vec2* uvs          = geom->getUVs();
+        const int* materials           = geom->getMaterials();
         Graphics::Vertex* tempvertices = new Graphics::Vertex[vertex_count];
-        uint32_t* indicesArray = new uint32_t[numIndices];
-        ofbx::Vec3* generatedTangents = nullptr;
+        uint32_t* indicesArray         = new uint32_t[numIndices];
+        ofbx::Vec3* generatedTangents  = nullptr;
 
-        int indexCount = 0;
+        int indexCount                            = 0;
         SharedPtr<Maths::BoundingBox> boundingBox = CreateSharedPtr<Maths::BoundingBox>();
 
         auto indices = geom->getFaceIndices();
@@ -295,7 +295,7 @@ namespace Lumos::Graphics
         {
             ofbx::Vec3 cp = vertices[i + firstVertexOffset];
 
-            auto& vertex = tempvertices[i];
+            auto& vertex    = tempvertices[i];
             vertex.Position = transform.GetWorldMatrix() * glm::vec4(float(cp.x), float(cp.y), float(cp.z), 1.0f);
             FixOrientation(vertex.Position);
             boundingBox->Merge(vertex.Position);
@@ -318,7 +318,7 @@ namespace Lumos::Graphics
         {
             indexCount++;
 
-            int index = (i % 3 == 2) ? (-indices[i] - 1) : indices[i];
+            int index       = (i % 3 == 2) ? (-indices[i] - 1) : indices[i];
             indicesArray[i] = i; // index;
         }
 
@@ -361,14 +361,14 @@ namespace Lumos::Graphics
         LUMOS_PROFILE_FUNCTION();
         std::string err;
         std::string pathCopy = path;
-        pathCopy = StringUtilities::BackSlashesToSlashes(pathCopy);
-        m_FBXModelDirectory = pathCopy.substr(0, pathCopy.find_last_of('/'));
+        pathCopy             = StringUtilities::BackSlashesToSlashes(pathCopy);
+        m_FBXModelDirectory  = pathCopy.substr(0, pathCopy.find_last_of('/'));
 
         std::string name = m_FBXModelDirectory.substr(m_FBXModelDirectory.find_last_of('/') + 1);
 
         std::string ext = StringUtilities::GetFilePathExtension(path);
-        int64_t size = FileSystem::GetFileSize(path);
-        auto data = FileSystem::ReadFile(path);
+        int64_t size    = FileSystem::GetFileSize(path);
+        auto data       = FileSystem::ReadFile(path);
 
         if(data == nullptr)
         {
@@ -376,7 +376,7 @@ namespace Lumos::Graphics
             return;
         }
         const bool ignoreGeometry = false;
-        const uint64_t flags = ignoreGeometry ? (uint64_t)ofbx::LoadFlags::IGNORE_GEOMETRY : (uint64_t)ofbx::LoadFlags::TRIANGULATE;
+        const uint64_t flags      = ignoreGeometry ? (uint64_t)ofbx::LoadFlags::IGNORE_GEOMETRY : (uint64_t)ofbx::LoadFlags::TRIANGULATE;
 
         ofbx::IScene* scene = ofbx::load(data, uint32_t(size), flags);
 
@@ -409,7 +409,7 @@ namespace Lumos::Graphics
 #else
         for(int i = 0; i < meshCount; ++i)
 #endif
-            {
+                                    {
 #ifdef THREAD_MESH_LOADING
                 int i = args.jobIndex;
 #endif

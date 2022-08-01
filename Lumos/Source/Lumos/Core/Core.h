@@ -127,8 +127,8 @@
         LUMOS_BREAK();                                                    \
     }
 
-#define NONCOPYABLE(type_identifier)                  \
-    type_identifier(const type_identifier&) = delete; \
+#define NONCOPYABLE(type_identifier)                             \
+    type_identifier(const type_identifier&)            = delete; \
     type_identifier& operator=(const type_identifier&) = delete;
 
 #if defined(_MSC_VER)

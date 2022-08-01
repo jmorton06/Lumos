@@ -5,13 +5,15 @@
 #include "Core/OS/Window.h"
 #include "Graphics/RHI/Renderer.h"
 #include "GLSwapChain.h"
-
+#include "Graphics/RHI/Definitions.h"
 namespace Lumos
 {
     class Window;
     namespace Graphics
     {
         class GLContext;
+        class GLIndexBuffer;
+        class GLVertexBuffer;
         class CommandBuffer;
         class Shader;
 
@@ -59,9 +61,17 @@ namespace Lumos
 
             static void MakeDefault();
 
+            int32_t& GetBoundVertexBuffer() { return m_BoundVertexBuffer; }
+            int32_t& GetBoundIndexBuffer() { return m_BoundIndexBuffer; }
+
         protected:
             static Renderer* CreateFuncGL();
             std::string m_RendererTitle;
+            int32_t m_BoundVertexBuffer = -1;
+            int32_t m_BoundIndexBuffer  = -1;
+
+            GLVertexBuffer* m_DefaultVertexBuffer;
+            GLIndexBuffer* m_DefaultIndexBuffer;
         };
     }
 }

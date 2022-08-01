@@ -12,10 +12,10 @@ namespace Lumos
     {
         Environment::Environment()
         {
-            m_Environmnet = nullptr;
+            m_Environmnet            = nullptr;
             m_PrefilteredEnvironment = nullptr;
-            m_IrradianceMap = nullptr;
-            m_IrrFactor = 32.0f / 1024.0f;
+            m_IrradianceMap          = nullptr;
+            m_IrrFactor              = 32.0f / 1024.0f;
         }
 
         Environment::Environment(const std::string& filepath, bool genPrefilter, bool genIrradiance)
@@ -24,11 +24,11 @@ namespace Lumos
 
         Environment::Environment(const std::string& name, uint32_t numMip, uint32_t width, uint32_t height, float irrSizeFactor, const std::string& fileType)
         {
-            m_Width = width;
-            m_Height = height;
-            m_NumMips = numMip;
-            m_FilePath = name;
-            m_FileType = fileType;
+            m_Width     = width;
+            m_Height    = height;
+            m_NumMips   = numMip;
+            m_FilePath  = name;
+            m_FileType  = fileType;
             m_IrrFactor = irrSizeFactor;
 
             Load();
@@ -36,11 +36,11 @@ namespace Lumos
 
         void Environment::Load(const std::string& name, uint32_t numMip, uint32_t width, uint32_t height, float irrSizeFactor, const std::string& fileType)
         {
-            m_Width = width;
-            m_Height = height;
-            m_NumMips = numMip;
-            m_FilePath = name;
-            m_FileType = fileType;
+            m_Width     = width;
+            m_Height    = height;
+            m_NumMips   = numMip;
+            m_FilePath  = name;
+            m_FileType  = fileType;
             m_IrrFactor = irrSizeFactor;
 
             Load();
@@ -53,15 +53,15 @@ namespace Lumos
             std::string* envFiles = new std::string[m_NumMips];
             std::string* irrFiles = new std::string[m_NumMips];
 
-            uint32_t currWidth = m_Width;
+            uint32_t currWidth  = m_Width;
             uint32_t currHeight = m_Height;
 
             bool failed = false;
 
             if(m_FileType == ".hdr")
             {
-                auto test = Application::Get().GetRenderGraph()->CreateCubeFromHDRI("");
-                m_Environmnet = test;
+                auto test       = Application::Get().GetRenderGraph()->CreateCubeFromHDRI("");
+                m_Environmnet   = test;
                 m_IrradianceMap = test;
                 return;
             }
@@ -85,7 +85,7 @@ namespace Lumos
                 }
             }
 
-            currWidth = (uint32_t)((float)m_Width * m_IrrFactor);
+            currWidth  = (uint32_t)((float)m_Width * m_IrrFactor);
             currHeight = (uint32_t)((float)m_Height * m_IrrFactor);
 
             int numMipsIrr = 0;
@@ -116,7 +116,7 @@ namespace Lumos
                 TextureDesc params;
                 params.srgb = true;
                 TextureLoadOptions loadOptions;
-                m_Environmnet = Graphics::TextureCube::CreateFromVCross(envFiles, m_NumMips, params, loadOptions);
+                m_Environmnet   = Graphics::TextureCube::CreateFromVCross(envFiles, m_NumMips, params, loadOptions);
                 m_IrradianceMap = Graphics::TextureCube::CreateFromVCross(irrFiles, numMipsIrr, params, loadOptions);
             }
             else

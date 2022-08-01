@@ -1,0 +1,5 @@
+* text=auto
+include/** linguist-vendored
+lib/** linguist-vendored
+freetype/** linguist-vendored
+skia/** linguist-vendored

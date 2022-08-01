@@ -12,12 +12,12 @@ namespace Lumos
         , m_pObj2(obj2)
     {
         glm::vec3 ab = globalOnB - globalOnA;
-        m_Distance = glm::length(ab);
+        m_Distance   = glm::length(ab);
 
         glm::vec3 r1 = globalOnA - m_pObj1->GetPosition();
         glm::vec3 r2 = globalOnB - m_pObj2->GetPosition();
-        m_LocalOnA = glm::toMat3(m_pObj1->GetOrientation()) * r1;
-        m_LocalOnB = glm::toMat3(m_pObj1->GetOrientation()) * r2;
+        m_LocalOnA   = glm::toMat3(m_pObj1->GetOrientation()) * r1;
+        m_LocalOnB   = glm::toMat3(m_pObj1->GetOrientation()) * r2;
     }
 
     void DistanceConstraint::ApplyImpulse()
@@ -33,19 +33,19 @@ namespace Lumos
         glm::vec3 globalOnA = r1 + m_pObj1->GetPosition();
         glm::vec3 globalOnB = r2 + m_pObj2->GetPosition();
 
-        glm::vec3 ab = globalOnB - globalOnA;
+        glm::vec3 ab  = globalOnB - globalOnA;
         glm::vec3 abn = ab;
-        abn = glm::normalize(abn);
+        abn           = glm::normalize(abn);
 
-        glm::vec3 v0 = m_pObj1->GetLinearVelocity() + glm::cross(m_pObj1->GetAngularVelocity(), r1);
-        glm::vec3 v1 = m_pObj2->GetLinearVelocity() + glm::cross(m_pObj2->GetAngularVelocity(), r2);
+        glm::vec3 v0         = m_pObj1->GetLinearVelocity() + glm::cross(m_pObj1->GetAngularVelocity(), r1);
+        glm::vec3 v1         = m_pObj2->GetLinearVelocity() + glm::cross(m_pObj2->GetAngularVelocity(), r2);
         float constraintMass = (m_pObj1->GetInverseMass() + m_pObj2->GetInverseMass()) + glm::dot(abn, glm::cross(m_pObj1->GetInverseInertia() * glm::cross(r1, abn), r1) + glm::cross(m_pObj2->GetInverseInertia() * glm::cross(r2, abn), r2));
 
         float b = 0.0f;
         {
-            float distanceOffset = glm::length(ab) - m_Distance;
+            float distanceOffset  = glm::length(ab) - m_Distance;
             float baumgarteScalar = 0.1f;
-            b = -(baumgarteScalar / LumosPhysicsEngine::GetDeltaTime()) * distanceOffset;
+            b                     = -(baumgarteScalar / LumosPhysicsEngine::GetDeltaTime()) * distanceOffset;
         }
 
         float jn = -(glm::dot(v0 - v1, abn) + b) / constraintMass;

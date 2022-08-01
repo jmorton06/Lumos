@@ -13,7 +13,7 @@ namespace Lumos
 
         struct LUMOS_EXPORT RenderCommand
         {
-            Mesh* mesh = nullptr;
+            Mesh* mesh         = nullptr;
             Material* material = nullptr;
             Pipeline* pipeline = nullptr;
             glm::mat4 transform;

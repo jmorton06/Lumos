@@ -134,6 +134,7 @@ namespace Lumos
 
         SharedPtr<ShaderLibrary>& GetShaderLibrary();
         SharedPtr<ModelLibrary>& GetModelLibrary();
+        SharedPtr<FontLibrary>& GetFontLibrary();
 
         static Application& Get()
         {
@@ -159,13 +160,13 @@ namespace Lumos
         {
             if(width != m_SceneViewWidth)
             {
-                m_SceneViewWidth = width;
+                m_SceneViewWidth       = width;
                 m_SceneViewSizeUpdated = true;
             }
 
             if(height != m_SceneViewHeight)
             {
-                m_SceneViewHeight = height;
+                m_SceneViewHeight      = height;
                 m_SceneViewSizeUpdated = true;
             }
         }
@@ -195,12 +196,12 @@ namespace Lumos
             // Window size and full screen shouldnt be in project
 
             archive(cereal::make_nvp("RenderAPI", m_ProjectSettings.RenderAPI),
-                cereal::make_nvp("Width", (int)windowSize.x),
-                cereal::make_nvp("Height", (int)windowSize.y),
-                cereal::make_nvp("Fullscreen", m_ProjectSettings.Fullscreen),
-                cereal::make_nvp("VSync", m_ProjectSettings.VSync),
-                cereal::make_nvp("ShowConsole", m_ProjectSettings.ShowConsole),
-                cereal::make_nvp("Title", m_ProjectSettings.Title));
+                    cereal::make_nvp("Width", (int)windowSize.x),
+                    cereal::make_nvp("Height", (int)windowSize.y),
+                    cereal::make_nvp("Fullscreen", m_ProjectSettings.Fullscreen),
+                    cereal::make_nvp("VSync", m_ProjectSettings.VSync),
+                    cereal::make_nvp("ShowConsole", m_ProjectSettings.ShowConsole),
+                    cereal::make_nvp("Title", m_ProjectSettings.Title));
             // Version 2
 
             auto paths = m_SceneManager->GetSceneFilePaths();
@@ -232,12 +233,12 @@ namespace Lumos
             if(m_ProjectSettings.ProjectVersion > 0)
             {
                 archive(cereal::make_nvp("RenderAPI", m_ProjectSettings.RenderAPI),
-                    cereal::make_nvp("Width", m_ProjectSettings.Width),
-                    cereal::make_nvp("Height", m_ProjectSettings.Height),
-                    cereal::make_nvp("Fullscreen", m_ProjectSettings.Fullscreen),
-                    cereal::make_nvp("VSync", m_ProjectSettings.VSync),
-                    cereal::make_nvp("ShowConsole", m_ProjectSettings.ShowConsole),
-                    cereal::make_nvp("Title", m_ProjectSettings.Title));
+                        cereal::make_nvp("Width", m_ProjectSettings.Width),
+                        cereal::make_nvp("Height", m_ProjectSettings.Height),
+                        cereal::make_nvp("Fullscreen", m_ProjectSettings.Fullscreen),
+                        cereal::make_nvp("VSync", m_ProjectSettings.VSync),
+                        cereal::make_nvp("ShowConsole", m_ProjectSettings.ShowConsole),
+                        cereal::make_nvp("Title", m_ProjectSettings.Title));
             }
             if(m_ProjectSettings.ProjectVersion > 2)
             {
@@ -287,8 +288,8 @@ namespace Lumos
             std::string m_EngineAssetPath;
             uint32_t Width, Height;
             bool Fullscreen;
-            bool VSync = true;
-            bool Borderless = false;
+            bool VSync       = true;
+            bool Borderless  = false;
             bool ShowConsole = true;
             std::string Title;
             int RenderAPI;
@@ -306,15 +307,15 @@ namespace Lumos
         bool OnWindowClose(WindowCloseEvent& e);
         static void UpdateSystems();
 
-        uint32_t m_Frames = 0;
-        uint32_t m_Updates = 0;
-        float m_SecondTimer = 0.0f;
-        bool m_Minimized = false;
-        bool m_SceneActive = true;
+        uint32_t m_Frames             = 0;
+        uint32_t m_Updates            = 0;
+        float m_SecondTimer           = 0.0f;
+        bool m_Minimized              = false;
+        bool m_SceneActive            = true;
         bool m_DisableMainRenderGraph = false;
 
-        uint32_t m_SceneViewWidth = 0;
-        uint32_t m_SceneViewHeight = 0;
+        uint32_t m_SceneViewWidth   = 0;
+        uint32_t m_SceneViewHeight  = 0;
         bool m_SceneViewSizeUpdated = false;
 
         UniquePtr<Window> m_Window;
@@ -325,10 +326,11 @@ namespace Lumos
         UniquePtr<Timer> m_Timer;
         SharedPtr<ShaderLibrary> m_ShaderLibrary;
         SharedPtr<ModelLibrary> m_ModelLibrary;
+        SharedPtr<FontLibrary> m_FontLibrary;
 
-        AppState m_CurrentState = AppState::Loading;
+        AppState m_CurrentState   = AppState::Loading;
         EditorState m_EditorState = EditorState::Preview;
-        AppType m_AppType = AppType::Editor;
+        AppType m_AppType         = AppType::Editor;
 
         static Application* s_Instance;
 

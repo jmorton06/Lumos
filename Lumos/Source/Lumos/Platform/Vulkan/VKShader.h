@@ -13,10 +13,11 @@ namespace Lumos
         public:
             VKShader(const std::string& filePath);
             VKShader(const uint32_t* vertData, uint32_t vertDataSize, const uint32_t* fragData, uint32_t fragDataSize);
+            VKShader(const uint32_t* compData, uint32_t compDataSize);
             ~VKShader();
 
             bool Init();
-            void Unload() const;
+            void Unload();
 
             VkPipelineShaderStageCreateInfo* GetShaderStages() const;
             uint32_t GetStageCount() const;
@@ -41,6 +42,14 @@ namespace Lumos
             bool IsCompiled() const override
             {
                 return m_Compiled;
+            }
+
+            bool IsCompute()
+            {
+                if(m_ShaderTypes.size() > 0)
+                    return m_ShaderTypes[0] == ShaderType::COMPUTE;
+
+                return false;
             }
 
             PushConstant* GetPushConstant(uint32_t index) override
@@ -88,7 +97,7 @@ namespace Lumos
         protected:
             static Shader* CreateFuncVulkan(const std::string&);
             static Shader* CreateFromEmbeddedFuncVulkan(const uint32_t* vertData, uint32_t vertDataSize, const uint32_t* fragData, uint32_t fragDataSize);
-
+            static Shader* CreateCompFromEmbeddedFuncVulkan(const uint32_t* compData, uint32_t compDataSize);
             void LoadFromData(const uint32_t* data, uint32_t size, ShaderType type, int currentShaderStage);
             void CreatePipelineLayout();
 

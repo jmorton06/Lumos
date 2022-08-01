@@ -26,9 +26,9 @@ namespace Lumos
 
         void SetIsOrthographic(bool ortho)
         {
-            m_FrustumDirty = true;
+            m_FrustumDirty    = true;
             m_ProjectionDirty = true;
-            m_Orthographic = ortho;
+            m_Orthographic    = ortho;
         }
 
         bool IsOrthographic() const
@@ -43,9 +43,9 @@ namespace Lumos
 
         void SetAspectRatio(float y)
         {
-            m_AspectRatio = y;
+            m_AspectRatio     = y;
             m_ProjectionDirty = true;
-            m_FrustumDirty = true;
+            m_FrustumDirty    = true;
         };
 
         const glm::mat4& GetProjectionMatrix();
@@ -61,16 +61,16 @@ namespace Lumos
 
         void SetFar(float pFar)
         {
-            m_Far = pFar;
+            m_Far             = pFar;
             m_ProjectionDirty = true;
-            m_FrustumDirty = true;
+            m_FrustumDirty    = true;
         }
 
         void SetNear(float pNear)
         {
-            m_Near = pNear;
+            m_Near            = pNear;
             m_ProjectionDirty = true;
-            m_FrustumDirty = true;
+            m_FrustumDirty    = true;
         }
 
         float GetFOV() const
@@ -85,16 +85,16 @@ namespace Lumos
 
         void SetScale(float scale)
         {
-            m_Scale = scale;
+            m_Scale           = scale;
             m_ProjectionDirty = true;
-            m_FrustumDirty = true;
+            m_FrustumDirty    = true;
         }
 
         void SetFOV(float fov)
         {
-            m_Fov = fov;
+            m_Fov             = fov;
             m_ProjectionDirty = true;
-            m_FrustumDirty = true;
+            m_FrustumDirty    = true;
         }
 
         Maths::Frustum& GetFrustum(const glm::mat4& viewMatrix);
@@ -119,7 +119,7 @@ namespace Lumos
                 archive(cereal::make_nvp("Aperture", m_Aperture), cereal::make_nvp("ShutterSpeed", m_ShutterSpeed), cereal::make_nvp("Sensitivity", m_Sensitivity));
             }
 
-            m_FrustumDirty = true;
+            m_FrustumDirty    = true;
             m_ProjectionDirty = true;
         }
 
@@ -147,23 +147,23 @@ namespace Lumos
         float m_ShadowBoundingRadius = 10.0f;
 
         float m_AspectRatio = 1.0f;
-        float m_Scale = 1.0f;
-        float m_Zoom = 1.0f;
+        float m_Scale       = 1.0f;
+        float m_Zoom        = 1.0f;
 
         glm::vec2 m_ProjectionOffset = glm::vec2(0.0f, 0.0f);
 
         glm::mat4 m_ProjMatrix;
 
         Maths::Frustum m_Frustum;
-        bool m_FrustumDirty = true;
-        bool m_ProjectionDirty = false;
+        bool m_FrustumDirty     = true;
+        bool m_ProjectionDirty  = false;
         bool m_CustomProjection = false;
 
         float m_Fov = 60.0f, m_Near = 0.001f, m_Far = 1000.0f;
         float m_MouseSensitivity = 0.1f;
-        float m_Aperture = 50.0f;
-        float m_ShutterSpeed = 1.0f / 60.0f;
-        float m_Sensitivity = 200.0f;
+        float m_Aperture         = 50.0f;
+        float m_ShutterSpeed     = 1.0f / 60.0f;
+        float m_Sensitivity      = 200.0f;
 
         bool m_Orthographic = false;
     };

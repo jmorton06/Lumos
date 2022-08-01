@@ -9,10 +9,10 @@ namespace Lumos
 
     ThirdPersonCameraController::ThirdPersonCameraController()
     {
-        m_Velocity = glm::vec3(0.0f);
-        m_MouseSensitivity = 0.00001f;
-        m_ZoomDampeningFactor = 0.00001f;
-        m_DampeningFactor = 0.00001f;
+        m_Velocity              = glm::vec3(0.0f);
+        m_MouseSensitivity      = 0.00001f;
+        m_ZoomDampeningFactor   = 0.00001f;
+        m_DampeningFactor       = 0.00001f;
         m_RotateDampeningFactor = 0.0000001f;
     }
 
@@ -28,14 +28,14 @@ namespace Lumos
             mouseHeld = true;
             Application::Get().GetWindow()->HideMouse(true);
             Input::Get().SetMouseMode(MouseMode::Captured);
-            m_StoredCursorPos = glm::vec2(xpos, ypos);
+            m_StoredCursorPos   = glm::vec2(xpos, ypos);
             m_PreviousCurserPos = m_StoredCursorPos;
         }
 
         if(Input::Get().GetMouseHeld(InputCode::MouseKey::ButtonRight))
         {
             m_MouseSensitivity = 0.0002f;
-            m_RotateVelocity = glm::vec2((xpos - m_PreviousCurserPos.x), (ypos - m_PreviousCurserPos.y)) * m_MouseSensitivity * 10.0f;
+            m_RotateVelocity   = glm::vec2((xpos - m_PreviousCurserPos.x), (ypos - m_PreviousCurserPos.y)) * m_MouseSensitivity * 10.0f;
         }
         else
         {
@@ -48,7 +48,7 @@ namespace Lumos
             }
         }
 
-        glm::quat rotation = transform.GetLocalOrientation();
+        glm::quat rotation  = transform.GetLocalOrientation();
         glm::quat rotationX = glm::angleAxis(-m_RotateVelocity.y, glm::vec3(1.0f, 0.0f, 0.0f));
         glm::quat rotationY = glm::angleAxis(-m_RotateVelocity.x, glm::vec3(0.0f, 1.0f, 0.0f));
 
@@ -57,7 +57,7 @@ namespace Lumos
         transform.SetLocalOrientation(rotation);
 
         m_PreviousCurserPos = glm::vec2(xpos, ypos);
-        m_RotateVelocity = m_RotateVelocity * pow(m_RotateDampeningFactor, dt);
+        m_RotateVelocity    = m_RotateVelocity * pow(m_RotateDampeningFactor, dt);
 
         UpdateScroll(transform, Input::Get().GetScrollOffset(), dt);
     }
