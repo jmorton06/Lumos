@@ -13,21 +13,52 @@ project "msdf-atlas-gen"
     	"msdf-atlas-gen/**.cpp"
 	}
 
-	externalincludedirs
+
+	files
+	{
+		"msdfgen/core/**.h",
+		"msdfgen/core/**.hpp",
+		"msdfgen/core/**.cpp",
+		"msdfgen/ext/**.h",
+		"msdfgen/ext/**.hpp",
+		"msdfgen/ext/**.cpp",
+		"msdfgen/lib/**.cpp",
+		"msdfgen/include/**.h"
+	}
+
+	includedirs
 	{
 		"msdf-atlas-gen",
-		"msdfgen",
 		"msdfgen/include"
+	}
+
+	externalincludedirs
+	{
+		"msdfgen",
+		"msdfgen/include",
+		"../freetype/include"
 	}
 
 	defines
 	{
-		"_CRT_SECURE_NO_WARNINGS"
+		"_CRT_SECURE_NO_WARNINGS",
+		"MSDFGEN_USE_CPP11"
 	}
 
 	links
 	{
-		"msdfgen"
+		"freetype"
+	}
+	
+	-- links
+	-- {
+	-- 	"msdfgen",
+	-- 	"pthread"
+	-- }
+
+	removefiles
+	{
+		"msdf-atlas-gen/main.cpp"
 	}
 
 	filter "configurations:Debug"

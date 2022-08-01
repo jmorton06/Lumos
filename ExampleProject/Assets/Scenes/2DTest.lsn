@@ -22,7 +22,7 @@
         "EyeAdaptation": true,
         "SSAOEnabled": true,
         "BloomEnabled": true,
-        "FilmicGrainEnabled": true,
+        "FilmicGrainEnabled": false,
         "DepthOfFieldEnabled": false,
         "MotionBlurEnabled": false
     },
@@ -659,7 +659,7 @@
     "value137": 21,
     "value138": {
         "Scale": 1.0,
-        "Aspect": 0.6267605423927307,
+        "Aspect": 0.9473684430122376,
         "FOV": 45.0,
         "Near": 0.009999999776482582,
         "Far": 100.0,

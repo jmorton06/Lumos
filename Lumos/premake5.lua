@@ -77,6 +77,7 @@ project "Lumos"
 		"SpirvCross",
 		"spdlog",
 		"meshoptimizer",
+		-- "msdfgen",
 		"msdf-atlas-gen"
 	}
 

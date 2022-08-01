@@ -2312,7 +2312,7 @@ namespace Lumos::Graphics
             if(m_TextRendererData.m_IndexCount >= m_TextRendererData.m_Limits.IndiciesSize)
                 TextFlush();
 
-            float textureIndex     = 0.0f;
+            int textureIndex     = -1;
             auto& string           = textComp.TextString;
             auto font              = textComp.FontHandle ? textComp.FontHandle : Font::GetDefaultFont();
             float lineHeightOffset = 0.0f;
@@ -2334,14 +2334,14 @@ namespace Lumos::Graphics
             {
                 if(m_TextRendererData.m_Textures[i] == fontAtlas.get())
                 {
-                    textureIndex = (float)i;
+                    textureIndex = int(i);
                     break;
                 }
             }
 
-            if(textureIndex == 0.0f)
+            if(textureIndex == -1)
             {
-                textureIndex                                                     = (float)m_TextRendererData.m_TextureCount;
+                textureIndex                                                     = (int)m_TextRendererData.m_TextureCount;
                 m_TextRendererData.m_Textures[m_TextRendererData.m_TextureCount] = fontAtlas.get();
                 m_TextRendererData.m_TextureCount++;
             }

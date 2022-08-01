@@ -61,8 +61,8 @@ startproject "Runtime"
 			SetRecommendedSettings()
 		require("Lumos/External/ModelLoaders/meshoptimizer/premake5")
 			SetRecommendedSettings()
-		require("Lumos/External/msdf-atlas-gen/msdfgen/premake5")
-			SetRecommendedSettings()
+		-- require("Lumos/External/msdf-atlas-gen/msdfgen/premake5")
+		-- 	SetRecommendedSettings()
 		require("Lumos/External/msdf-atlas-gen/premake5")
 			SetRecommendedSettings()
 		if not os.istarget(premake.IOS) and not os.istarget(premake.ANDROID) then
