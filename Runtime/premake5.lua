@@ -65,7 +65,6 @@ project "Runtime"
 		"SpirvCross",
 		"spdlog",
 		"meshoptimizer",
-		"msdfgen",
 		"msdf-atlas-gen"
 	}
 
