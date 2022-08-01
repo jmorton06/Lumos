@@ -68,7 +68,7 @@ externalincludedirs
 		"SpirvCross",
 		"spdlog",
 		"meshoptimizer",
-		"msdfgen",
+		-- "msdfgen",
 		"msdf-atlas-gen"
 	}
 
