@@ -128,7 +128,7 @@ jobs:
           submodules: recursive
       - name: Generate Project
         run: | 
-          cd Scripts
+          cd Scripts/Windows
           ./GenerateVS19.bat
       - name: Build x64 ${{matrix.configuration}}
         shell: cmd
