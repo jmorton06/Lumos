@@ -37,15 +37,15 @@ load_paths = {
 command_list = {
  { .name = "build",
    .out = "*compilation*", .footer_panel = true, .save_dirty_files = true,.cursor_at_end = true,
-   .cmd = { { "Scripts\BuildWindows.bat" , .os = "win"   },
-            { "./Scripts/BuildLinux.sh", .os = "linux" },
-            { "./Scripts/BuildMacOS.sh", .os = "mac"   }, }, },
+   .cmd = { { "Scripts\Windows\BuildWindows.bat" , .os = "win"   },
+            { "./Scripts/Linux/BuildLinux.sh", .os = "linux" },
+            { "./Scripts/MacOS/BuildMacOS.sh", .os = "mac"   }, }, },
 
  { .name = "run",
    .out = "*Run - Release*", .footer_panel = true, .save_dirty_files = false,.cursor_at_end = true,
    .cmd = { { "bin\\Release-windows-x86_64\\Runtime.exe", .os = "win"   },
-            { "./Scripts/RunLinux.sh" , .os = "linux" },
-            { "./Scripts/RunMacOS.sh" , .os = "mac"   }, }, },
+            { "./Scripts/Linux/RunLinux.sh" , .os = "linux" },
+            { "./Scripts/MacOS/RunMacOS.sh" , .os = "mac"   }, }, },
 
  { .name = "gen project",
    .out = "*Generated Build Files*", .footer_panel = true, .save_dirty_files = false,.cursor_at_end = true,
@@ -56,7 +56,7 @@ command_list = {
    .out = "*Clean*", .footer_panel = true, .save_dirty_files = false,.cursor_at_end = true,
    .cmd = { { "Tools\premake5.exe clean", .os = "win"   },
             { "Tools/linux/premake5 clean" , .os = "linux" },
-            { "./Scripts/CleanMacOS.sh" , .os = "mac"   }, }, },
+            { "./Scripts/MacOS/CleanMacOS.sh" , .os = "mac"   }, }, },
  { .name = "formatCode",
    .out = "*Formatting Code*", .footer_panel = true, .save_dirty_files = false,.cursor_at_end = true,
    .cmd = { { "", .os = "win"   },
@@ -70,15 +70,15 @@ command_list = {
 	
 	{ .name = "buildEditor",
 		.out = "*Compilation - Editor - Release*", .footer_panel = true, .save_dirty_files = true,.cursor_at_end = true,
-		.cmd = { { "Scripts\BuildWindows-Editor.bat" , .os = "win"   },
-            { "./Scripts/BuildLinux-Editor.sh", .os = "linux" },
-            { "./Scripts/BuildMacOS-Editor.sh", .os = "mac"   }, }, },
+		.cmd = { { "Scripts\Windows\BuildWindows-Editor.bat" , .os = "win"   },
+            { "./Scripts/Linux/BuildLinux-Editor.sh", .os = "linux" },
+            { "./Scripts/MacOS/BuildMacOS-Editor.sh", .os = "mac"   }, }, },
 	
 	{ .name = "runEditor",
 		.out = "*Run - Editor - Release*", .footer_panel = true, .save_dirty_files = false,.cursor_at_end = true,
 		.cmd = { { "bin\\Release-windows-x86_64\\LumosEditor.exe", .os = "win"   },
-            { "./Scripts/RunLinux-Editor.sh" , .os = "linux" },
-            { "./Scripts/RunMacOS-Editor.sh" , .os = "mac"   }, }, },
+            { "./Scripts/Linux/RunLinux-Editor.sh" , .os = "linux" },
+            { "./Scripts/MacOS/RunMacOS-Editor.sh" , .os = "mac"   }, }, },
 };
 fkey_command[1] = "gen project";
 fkey_command[2] = "build";

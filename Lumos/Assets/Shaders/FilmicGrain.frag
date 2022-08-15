@@ -23,7 +23,7 @@ void main()
 	vec4 colour = texture(u_Texture, outTexCoord);
 	vec2 uv = outTexCoord;
 	// Film grain
-    float t          = pushConsts.time * 3.0f;
+    float t          = pushConsts.time * 1.0f;
     float seed       = dot(uv, vec2(12.9898, 78.233));
     float noise      = fract(sin(seed) * 43758.5453 + t);
     noise            = Gaussian(noise, 0.5, 0.25);

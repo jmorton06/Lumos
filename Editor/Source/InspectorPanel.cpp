@@ -992,6 +992,9 @@ end
         }
 
         Lumos::ImGuiUtilities::Property("Colour", text.Colour, true, Lumos::ImGuiUtilities::PropertyFlag::ColourProperty);
+        Lumos::ImGuiUtilities::Property("Outline Colour", text.OutlineColour, true, Lumos::ImGuiUtilities::PropertyFlag::ColourProperty);
+        Lumos::ImGuiUtilities::Property("Outline Width", text.OutlineWidth);
+
         Lumos::ImGuiUtilities::Property("Line Spacing", text.LineSpacing);
         Lumos::ImGuiUtilities::Property("Max Width", text.MaxWidth);
 

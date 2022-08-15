@@ -54,6 +54,10 @@
 #include <imgui/Plugins/ImFileBrowser.h>
 #include <iomanip>
 
+#ifdef LUMOS_PLATFORM_WINDOWS
+#include <shellapi.h>
+#endif
+
 namespace Lumos
 {
     Editor* Editor::s_Editor = nullptr;
@@ -96,7 +100,6 @@ namespace Lumos
 #ifdef LUMOS_PLATFORM_IOS
         m_TempSceneSaveFilePath = OS::Instance()->GetAssetPath();
 #else
-        // TODO: Check windows
 #ifdef LUMOS_PLATFORM_LINUX
         m_TempSceneSaveFilePath = std::filesystem::current_path().string();
 #else
@@ -702,8 +705,7 @@ namespace Lumos
                 if(ImGui::MenuItem(githubMenuText.c_str()))
                 {
 #ifdef LUMOS_PLATFORM_WINDOWS
-                    // TODO
-                    // ShellExecuteA( NULL, "open",  "https://www.github.com/jmorton06/Lumos", NULL, NULL, SW_SHOWNORMAL );
+                    ShellExecute(NULL, NULL, L"https://www.github.com/jmorton06/Lumos", NULL, NULL, SW_SHOWNORMAL);
 #else
 #ifndef LUMOS_PLATFORM_IOS
                     system("open https://www.github.com/jmorton06/Lumos");
@@ -791,12 +793,12 @@ namespace Lumos
             }
 
             static Engine::Stats stats = {};
-            static float timer         = 1.1f;
+            static double timer        = 1.1;
             timer += Engine::GetTimeStep().GetSeconds();
 
-            if(timer > 1.0f)
+            if(timer > 1.0)
             {
-                timer = 0.0f;
+                timer = 0.0;
                 stats = Engine::Get().Statistics();
             }
 
@@ -804,7 +806,8 @@ namespace Lumos
             float sizeOfGfxAPIDropDown = ImGui::GetFontSize() * 8;
             ImGui::SameLine(ImGui::GetWindowContentRegionMax().x - size.x - ImGui::GetStyle().ItemSpacing.x * 2.0f - sizeOfGfxAPIDropDown);
 
-            ImGui::Text("%.2f ms (%.i FPS)", stats.FrameTime, stats.FramesPerSecond);
+            int fps = int(Maths::Round(1000.0 / stats.FrameTime));
+            ImGui::Text("%.2f ms (%.i FPS)", stats.FrameTime, fps);
 
             ImGui::SameLine();
 
@@ -940,7 +943,7 @@ namespace Lumos
         {
             if(ImGui::Button("Save Current Scene Changes"))
             {
-                Application::Get().GetSceneManager()->GetCurrentScene()->Serialise(m_ProjectSettings.m_ProjectRoot + "ExampleProject/Assets/Scenes/", false);
+                Application::Get().GetSceneManager()->GetCurrentScene()->Serialise(m_ProjectSettings.m_ProjectRoot + "Assets/Scenes/", false);
             }
 
             ImGui::Text("Create New Scene?\n\n");
@@ -1471,8 +1474,8 @@ namespace Lumos
             {
                 const glm::vec2 mousePos = Input::Get().GetMousePosition();
 
-                m_EditorCameraController.HandleMouse(m_EditorCameraTransform, ts.GetSeconds(), mousePos.x, mousePos.y);
-                m_EditorCameraController.HandleKeyboard(m_EditorCameraTransform, ts.GetSeconds());
+                m_EditorCameraController.HandleMouse(m_EditorCameraTransform, (float)ts.GetSeconds(), mousePos.x, mousePos.y);
+                m_EditorCameraController.HandleKeyboard(m_EditorCameraTransform, (float)ts.GetSeconds());
 
                 if(Input::Get().GetKeyPressed(InputCode::Key::F))
                 {
@@ -1493,9 +1496,9 @@ namespace Lumos
             if(m_TransitioningCamera)
             {
                 if(m_CameraTransitionStartTime < 0.0f)
-                    m_CameraTransitionStartTime = ts.GetElapsedSeconds();
+                    m_CameraTransitionStartTime = (float)ts.GetElapsedSeconds();
 
-                float focusProgress         = Maths::Min((ts.GetElapsedSeconds() - m_CameraTransitionStartTime) / m_CameraTransitionSpeed, 1.f);
+                float focusProgress         = Maths::Min(((float)ts.GetElapsedSeconds() - m_CameraTransitionStartTime) / m_CameraTransitionSpeed, 1.f);
                 glm::vec3 newCameraPosition = glm::mix(m_CameraStartPosition, m_CameraDestination, focusProgress);
                 m_EditorCameraTransform.SetLocalPosition(newCameraPosition);
 
@@ -1540,11 +1543,11 @@ namespace Lumos
             {
                 if(Input::Get().GetKeyPressed(InputCode::Key::S) && Application::Get().GetSceneActive())
                 {
-                    Application::Get().GetSceneManager()->GetCurrentScene()->Serialise(m_ProjectSettings.m_ProjectRoot + "ExampleProject/Assets/scenes/", false);
+                    Application::Get().GetSceneManager()->GetCurrentScene()->Serialise(m_ProjectSettings.m_ProjectRoot + "Assets/scenes/", false);
                 }
 
                 if(Input::Get().GetKeyPressed(InputCode::Key::O))
-                    Application::Get().GetSceneManager()->GetCurrentScene()->Deserialise(m_ProjectSettings.m_ProjectRoot + "ExampleProject/Assets/scenes/", false);
+                    Application::Get().GetSceneManager()->GetCurrentScene()->Deserialise(m_ProjectSettings.m_ProjectRoot + "Assets/scenes/", false);
 
                 if(Input::Get().GetKeyPressed(InputCode::Key::X))
                 {
@@ -2121,7 +2124,7 @@ namespace Lumos
     void Editor::AddDefaultEditorSettings()
     {
         LUMOS_PROFILE_FUNCTION();
-        m_ProjectSettings.m_ProjectRoot = "ExampleProject/";
+        m_ProjectSettings.m_ProjectRoot = "../ExampleProject/";
         m_ProjectSettings.m_ProjectName = "Example";
 
         m_IniFile.Add("ShowGrid", m_Settings.m_ShowGrid);
@@ -2154,7 +2157,7 @@ namespace Lumos
         m_Settings.m_DebugDrawFlags   = m_IniFile.GetOrDefault("DebugDrawFlags", m_Settings.m_DebugDrawFlags);
         m_Settings.m_Theme            = ImGuiUtilities::Theme(m_IniFile.GetOrDefault("Theme", (int)m_Settings.m_Theme));
 
-        m_ProjectSettings.m_ProjectRoot  = m_IniFile.GetOrDefault("ProjectRoot", std::string("Users/jmorton/dev/Lumos/ExampleProject/"));
+        m_ProjectSettings.m_ProjectRoot  = m_IniFile.GetOrDefault("ProjectRoot", std::string("../ExampleProject/"));
         m_ProjectSettings.m_ProjectName  = m_IniFile.GetOrDefault("ProjectName", std::string("Example"));
         m_Settings.m_Physics2DDebugFlags = m_IniFile.GetOrDefault("PhysicsDebugDrawFlags2D", 0);
         m_Settings.m_Physics3DDebugFlags = m_IniFile.GetOrDefault("PhysicsDebugDrawFlags", 0);

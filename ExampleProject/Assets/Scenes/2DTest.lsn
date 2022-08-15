@@ -1,6 +1,6 @@
 {
     "value0": {
-        "Version": 14,
+        "Version": 15,
         "Scene Name": "2DTest",
         "PhysicsEnabled2D": true,
         "PhysicsEnabled3D": true,
@@ -659,7 +659,7 @@
     "value137": 21,
     "value138": {
         "Scale": 1.0,
-        "Aspect": 0.9473684430122376,
+        "Aspect": 0.9716981053352356,
         "FOV": 45.0,
         "Near": 0.009999999776482582,
         "Far": 100.0,
@@ -1176,7 +1176,14 @@
         },
         "LineSpacing": 0.0,
         "Kerning": 0.0,
-        "MaxWidth": 10.0
+        "MaxWidth": 10.0,
+        "OutlineColour": {
+            "value0": 1.0,
+            "value1": 1.0,
+            "value2": 1.0,
+            "value3": 1.0
+        },
+        "OutlineWidth": 0.0
     },
     "value250": 1048599,
     "value251": {
@@ -1190,7 +1197,14 @@
         },
         "LineSpacing": 0.0,
         "Kerning": 0.0,
-        "MaxWidth": 10.0
+        "MaxWidth": 10.0,
+        "OutlineColour": {
+            "value0": 1.0,
+            "value1": 1.0,
+            "value2": 1.0,
+            "value3": 1.0
+        },
+        "OutlineWidth": 0.0
     },
     "value252": 24,
     "value253": {
@@ -1204,7 +1218,14 @@
         },
         "LineSpacing": 0.0,
         "Kerning": 0.0,
-        "MaxWidth": 10.0
+        "MaxWidth": 10.0,
+        "OutlineColour": {
+            "value0": 1.0,
+            "value1": 1.0,
+            "value2": 1.0,
+            "value3": 1.0
+        },
+        "OutlineWidth": 0.800000011920929
     },
     "value254": 25,
     "value255": {
@@ -1218,6 +1239,13 @@
         },
         "LineSpacing": 0.0,
         "Kerning": 0.0,
-        "MaxWidth": 10.0
+        "MaxWidth": 10.0,
+        "OutlineColour": {
+            "value0": 1.0,
+            "value1": 1.0,
+            "value2": 1.0,
+            "value3": 1.0
+        },
+        "OutlineWidth": 0.0
     }
 }

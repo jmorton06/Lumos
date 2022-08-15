@@ -13,6 +13,12 @@ namespace Lumos
         void Unmount(const std::string& path);
         bool ResolvePhysicalPath(const std::string& path, std::string& outPhysicalPath, bool folder = false);
         bool AbsoulePathToVFS(const std::string& path, std::string& outVFSPath, bool folder = false);
+        inline std::string AbsoulePathToVFS(const std::string& path, bool folder = false)
+        {
+            std::string returnString;
+            AbsoulePathToVFS(path, returnString, folder);
+            return returnString;
+        }
 
         uint8_t* ReadFile(const std::string& path);
         std::string ReadTextFile(const std::string& path);

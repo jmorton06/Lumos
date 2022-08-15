@@ -22,7 +22,7 @@
         "EyeAdaptation": true,
         "SSAOEnabled": true,
         "BloomEnabled": true,
-        "FilmicGrainEnabled": true,
+        "FilmicGrainEnabled": false,
         "DepthOfFieldEnabled": false,
         "MotionBlurEnabled": false
     },
@@ -661,10 +661,10 @@
             "value2": 0.0
         },
         "Rotation": {
-            "value0": 0.005199619568884373,
-            "value1": 0.00469422060996294,
-            "value2": 0.007557946722954512,
-            "value3": 0.9999468922615051
+            "value0": 0.004163129720836878,
+            "value1": 0.1351698637008667,
+            "value2": 0.0068052951246500019,
+            "value3": 0.9907903075218201
         },
         "Scale": {
             "value0": 2.137307643890381,
@@ -1071,7 +1071,7 @@
             "value2": 0.699999988079071
         }
     },
-    "value162": 40,
+    "value162": 41,
     "value163": 30,
     "value164": {
         "Name": "Spheres"
@@ -1232,263 +1232,267 @@
     "value242": {
         "Name": "light Cube"
     },
-    "value243": 3,
-    "value244": 41,
-    "value245": {
-        "Active": true
+    "value243": 1048607,
+    "value244": {
+        "Name": "DamagedHelmet"
     },
-    "value246": 40,
+    "value245": 3,
+    "value246": 41,
     "value247": {
         "Active": true
     },
-    "value248": 42,
+    "value248": 40,
     "value249": {
         "Active": true
     },
-    "value250": 34,
-    "value251": 1048576,
-    "value252": {
+    "value250": 42,
+    "value251": {
+        "Active": true
+    },
+    "value252": 34,
+    "value253": 1048576,
+    "value254": {
         "First": 1048575,
         "Next": 49,
         "Previous": 4,
         "Parent": 30
     },
-    "value253": 30,
-    "value254": {
+    "value255": 30,
+    "value256": {
         "First": 22,
         "Next": 1048575,
         "Previous": 1048575,
         "Parent": 1048575
     },
-    "value255": 22,
-    "value256": {
+    "value257": 22,
+    "value258": {
         "First": 1048575,
         "Next": 21,
         "Previous": 1048575,
         "Parent": 30
     },
-    "value257": 21,
-    "value258": {
+    "value259": 21,
+    "value260": {
         "First": 1048575,
         "Next": 20,
         "Previous": 22,
         "Parent": 30
     },
-    "value259": 20,
-    "value260": {
+    "value261": 20,
+    "value262": {
         "First": 1048575,
         "Next": 19,
         "Previous": 21,
         "Parent": 30
     },
-    "value261": 19,
-    "value262": {
+    "value263": 19,
+    "value264": {
         "First": 1048575,
         "Next": 18,
         "Previous": 20,
         "Parent": 30
     },
-    "value263": 18,
-    "value264": {
+    "value265": 18,
+    "value266": {
         "First": 1048575,
         "Next": 17,
         "Previous": 19,
         "Parent": 30
     },
-    "value265": 17,
-    "value266": {
+    "value267": 17,
+    "value268": {
         "First": 1048575,
         "Next": 16,
         "Previous": 18,
         "Parent": 30
     },
-    "value267": 16,
-    "value268": {
+    "value269": 16,
+    "value270": {
         "First": 1048575,
         "Next": 14,
         "Previous": 17,
         "Parent": 30
     },
-    "value269": 1048608,
-    "value270": {
+    "value271": 1048608,
+    "value272": {
         "First": 1048575,
         "Next": 1048575,
         "Previous": 26,
         "Parent": 37
     },
-    "value271": 14,
-    "value272": {
+    "value273": 14,
+    "value274": {
         "First": 1048575,
         "Next": 13,
         "Previous": 16,
         "Parent": 30
     },
-    "value273": 13,
-    "value274": {
+    "value275": 13,
+    "value276": {
         "First": 1048575,
         "Next": 12,
         "Previous": 14,
         "Parent": 30
     },
-    "value275": 12,
-    "value276": {
+    "value277": 12,
+    "value278": {
         "First": 1048575,
         "Next": 11,
         "Previous": 13,
         "Parent": 30
     },
-    "value277": 11,
-    "value278": {
+    "value279": 11,
+    "value280": {
         "First": 1048575,
         "Next": 10,
         "Previous": 12,
         "Parent": 30
     },
-    "value279": 10,
-    "value280": {
+    "value281": 10,
+    "value282": {
         "First": 1048575,
         "Next": 9,
         "Previous": 11,
         "Parent": 30
     },
-    "value281": 9,
-    "value282": {
+    "value283": 9,
+    "value284": {
         "First": 1048575,
         "Next": 8,
         "Previous": 10,
         "Parent": 30
     },
-    "value283": 8,
-    "value284": {
+    "value285": 8,
+    "value286": {
         "First": 1048575,
         "Next": 7,
         "Previous": 9,
         "Parent": 30
     },
-    "value285": 7,
-    "value286": {
+    "value287": 7,
+    "value288": {
         "First": 1048575,
         "Next": 6,
         "Previous": 8,
         "Parent": 30
     },
-    "value287": 6,
-    "value288": {
+    "value289": 6,
+    "value290": {
         "First": 1048575,
         "Next": 5,
         "Previous": 7,
         "Parent": 30
     },
-    "value289": 5,
-    "value290": {
+    "value291": 5,
+    "value292": {
         "First": 1048575,
         "Next": 4,
         "Previous": 6,
         "Parent": 30
     },
-    "value291": 4,
-    "value292": {
+    "value293": 4,
+    "value294": {
         "First": 1048575,
         "Next": 1048576,
         "Previous": 5,
         "Parent": 30
     },
-    "value293": 36,
-    "value294": {
+    "value295": 36,
+    "value296": {
         "First": 1048575,
         "Next": 1048575,
         "Previous": 1048575,
         "Parent": 35
     },
-    "value295": 35,
-    "value296": {
+    "value297": 35,
+    "value298": {
         "First": 36,
         "Next": 1048575,
         "Previous": 1048575,
         "Parent": 1048575
     },
-    "value297": 26,
-    "value298": {
+    "value299": 26,
+    "value300": {
         "First": 1048575,
         "Next": 1048608,
         "Previous": 1048575,
         "Parent": 37
     },
-    "value299": 37,
-    "value300": {
+    "value301": 37,
+    "value302": {
         "First": 26,
         "Next": 1048575,
         "Previous": 1048575,
         "Parent": 1048575
     },
-    "value301": 40,
-    "value302": {
+    "value303": 40,
+    "value304": {
         "First": 42,
         "Next": 1048575,
         "Previous": 1048575,
         "Parent": 41
     },
-    "value303": 41,
-    "value304": {
+    "value305": 41,
+    "value306": {
         "First": 40,
         "Next": 1048575,
         "Previous": 1048575,
         "Parent": 1048575
     },
-    "value305": 42,
-    "value306": {
+    "value307": 42,
+    "value308": {
         "First": 1048575,
         "Next": 1048575,
         "Previous": 1048575,
         "Parent": 40
     },
-    "value307": 49,
-    "value308": {
+    "value309": 49,
+    "value310": {
         "First": 1048575,
         "Next": 50,
         "Previous": 1048576,
         "Parent": 30
     },
-    "value309": 50,
-    "value310": {
+    "value311": 50,
+    "value312": {
         "First": 1048575,
         "Next": 51,
         "Previous": 49,
         "Parent": 30
     },
-    "value311": 51,
-    "value312": {
+    "value313": 51,
+    "value314": {
         "First": 1048575,
         "Next": 52,
         "Previous": 50,
         "Parent": 30
     },
-    "value313": 52,
-    "value314": {
+    "value315": 52,
+    "value316": {
         "First": 1048575,
         "Next": 53,
         "Previous": 51,
         "Parent": 30
     },
-    "value315": 53,
-    "value316": {
+    "value317": 53,
+    "value318": {
         "First": 1048575,
         "Next": 54,
         "Previous": 52,
         "Parent": 30
     },
-    "value317": 54,
-    "value318": {
+    "value319": 54,
+    "value320": {
         "First": 1048575,
         "Next": 1048575,
         "Previous": 53,
         "Parent": 30
     },
-    "value319": 1,
-    "value320": 26,
-    "value321": {
+    "value321": 1,
+    "value322": 26,
+    "value323": {
         "Scale": 1.0,
-        "Aspect": 0.6267605423927307,
+        "Aspect": 0.9329268336296082,
         "FOV": 60.0,
         "Near": 0.10000000149011612,
         "Far": 1000.0,
@@ -1496,23 +1500,27 @@
         "ShutterSpeed": 0.01666666753590107,
         "Sensitivity": 200.0
     },
-    "value322": 3,
-    "value323": 1048608,
-    "value324": {
+    "value324": 4,
+    "value325": 1048608,
+    "value326": {
         "FilePath": "//Scripts/Projectile.lua"
     },
-    "value325": 36,
-    "value326": {
+    "value327": 36,
+    "value328": {
         "FilePath": "//Scripts/Script.lua"
     },
-    "value327": 37,
-    "value328": {
+    "value329": 37,
+    "value330": {
         "FilePath": "//Scripts/Script(1).lua"
     },
-    "value329": 0,
-    "value330": 4,
-    "value331": 25,
+    "value331": 1048607,
     "value332": {
+        "FilePath": "//Scripts/Script(2).lua"
+    },
+    "value333": 0,
+    "value334": 4,
+    "value335": 25,
+    "value336": {
         "value0": {
             "value0": 26.0,
             "value1": 22.0,
@@ -1528,16 +1536,16 @@
         "value2": 0.0,
         "value3": 0.0,
         "value4": {
-            "value0": 0.4564287066459656,
-            "value1": 0.3711428642272949,
-            "value2": 0.8086567521095276,
+            "value0": 0.45642879605293276,
+            "value1": 0.3711429536342621,
+            "value2": 0.8086566925048828,
             "value3": 1.0
         },
         "value5": 120000.0,
         "value6": 1.0
     },
-    "value333": 36,
-    "value334": {
+    "value337": 36,
+    "value338": {
         "value0": {
             "value0": 0.0,
             "value1": 3.7535533905029299,
@@ -1555,14 +1563,14 @@
         "value4": {
             "value0": 0.0,
             "value1": 0.0,
-            "value2": 0.9999999403953552,
+            "value2": 1.0,
             "value3": 1.0
         },
         "value5": 500000.0,
         "value6": 43.0
     },
-    "value335": 47,
-    "value336": {
+    "value339": 47,
+    "value340": {
         "value0": {
             "value0": -2.8255271911621095,
             "value1": 9.712101936340332,
@@ -1580,14 +1588,14 @@
         "value4": {
             "value0": 0.0,
             "value1": 0.0,
-            "value2": 0.9999999403953552,
+            "value2": 1.0,
             "value3": 1.0
         },
         "value5": 120000.0,
         "value6": 17.015546798706056
     },
-    "value337": 48,
-    "value338": {
+    "value341": 48,
+    "value342": {
         "value0": {
             "value0": -36.306640625,
             "value1": 4.499866485595703,
@@ -1605,15 +1613,15 @@
         "value4": {
             "value0": 0.0,
             "value1": 0.0,
-            "value2": 0.9999999403953552,
+            "value2": 1.0,
             "value3": 1.0
         },
         "value5": 120000.0,
         "value6": 28.037296295166017
     },
-    "value339": 14,
-    "value340": 1,
-    "value341": {
+    "value343": 14,
+    "value344": 1,
+    "value345": {
         "value0": {
             "Version": 1,
             "Position": {
@@ -1669,8 +1677,8 @@
             "AngularFactor": 1.0
         }
     },
-    "value342": 3145757,
-    "value343": {
+    "value346": 3145757,
+    "value347": {
         "value0": {
             "Version": 1,
             "Position": {
@@ -1725,8 +1733,8 @@
             "AngularFactor": 1.0
         }
     },
-    "value344": 2097179,
-    "value345": {
+    "value348": 2097179,
+    "value349": {
         "value0": {
             "Version": 1,
             "Position": {
@@ -1781,8 +1789,8 @@
             "AngularFactor": 1.0
         }
     },
-    "value346": 2097154,
-    "value347": {
+    "value350": 2097154,
+    "value351": {
         "value0": {
             "Version": 1,
             "Position": {
@@ -1837,8 +1845,8 @@
             "AngularFactor": 1.0
         }
     },
-    "value348": 2097155,
-    "value349": {
+    "value352": 2097155,
+    "value353": {
         "value0": {
             "Version": 1,
             "Position": {
@@ -1893,8 +1901,8 @@
             "AngularFactor": 1.0
         }
     },
-    "value350": 23,
-    "value351": {
+    "value354": 23,
+    "value355": {
         "value0": {
             "Version": 1,
             "Position": {
@@ -1947,8 +1955,8 @@
             "AngularFactor": 1.0
         }
     },
-    "value352": 37,
-    "value353": {
+    "value356": 37,
+    "value357": {
         "value0": {
             "Version": 1,
             "Position": {
@@ -2000,8 +2008,8 @@
             "AngularFactor": 0.0
         }
     },
-    "value354": 38,
-    "value355": {
+    "value358": 38,
+    "value359": {
         "value0": {
             "Version": 1,
             "Position": {
@@ -2056,8 +2064,8 @@
             "AngularFactor": 1.0
         }
     },
-    "value356": 39,
-    "value357": {
+    "value360": 39,
+    "value361": {
         "value0": {
             "Version": 1,
             "Position": {
@@ -2112,8 +2120,8 @@
             "AngularFactor": 1.0
         }
     },
-    "value358": 44,
-    "value359": {
+    "value362": 44,
+    "value363": {
         "value0": {
             "Version": 1,
             "Position": {
@@ -2165,8 +2173,8 @@
             "AngularFactor": 1.0
         }
     },
-    "value360": 45,
-    "value361": {
+    "value364": 45,
+    "value365": {
         "value0": {
             "Version": 1,
             "Position": {
@@ -2218,8 +2226,8 @@
             "AngularFactor": 1.0
         }
     },
-    "value362": 46,
-    "value363": {
+    "value366": 46,
+    "value367": {
         "value0": {
             "Version": 1,
             "Position": {
@@ -2271,8 +2279,8 @@
             "AngularFactor": 0.0
         }
     },
-    "value364": 47,
-    "value365": {
+    "value368": 47,
+    "value369": {
         "value0": {
             "Version": 1,
             "Position": {
@@ -2327,8 +2335,8 @@
             "AngularFactor": 1.0
         }
     },
-    "value366": 48,
-    "value367": {
+    "value370": 48,
+    "value371": {
         "value0": {
             "Version": 1,
             "Position": {
@@ -2383,9 +2391,9 @@
             "AngularFactor": 1.0
         }
     },
-    "value368": 1,
-    "value369": 24,
-    "value370": {
+    "value372": 1,
+    "value373": 24,
+    "value374": {
         "value0": "//Textures/cubemap/noga",
         "value1": 11,
         "value2": 3072,
@@ -2393,16 +2401,16 @@
         "value4": ".tga",
         "value5": 0.03125
     },
-    "value371": 0,
-    "value372": 0,
-    "value373": 1,
-    "value374": 26,
-    "value375": {
+    "value375": 0,
+    "value376": 0,
+    "value377": 1,
+    "value378": 26,
+    "value379": {
         "ControllerType": 1
     },
-    "value376": 1,
-    "value377": 28,
-    "value378": {
+    "value380": 1,
+    "value381": 28,
+    "value382": {
         "TexturePath": "//Textures/cat.png",
         "Position": {
             "value0": 0.0,
@@ -2470,31 +2478,6 @@
                 }
             },
             {
-                "key": "RunRight",
-                "value": {
-                    "PlayMode": 0,
-                    "Frames": [
-                        {
-                            "value0": 0.0,
-                            "value1": 32.0
-                        },
-                        {
-                            "value0": 32.0,
-                            "value1": 32.0
-                        },
-                        {
-                            "value0": 64.0,
-                            "value1": 32.0
-                        },
-                        {
-                            "value0": 96.0,
-                            "value1": 32.0
-                        }
-                    ],
-                    "FrameDuration": 0.10000000149011612
-                }
-            },
-            {
                 "key": "RunLeft",
                 "value": {
                     "PlayMode": 0,
@@ -2514,6 +2497,31 @@
                         {
                             "value0": 96.0,
                             "value1": 96.0
+                        }
+                    ],
+                    "FrameDuration": 0.10000000149011612
+                }
+            },
+            {
+                "key": "RunRight",
+                "value": {
+                    "PlayMode": 0,
+                    "Frames": [
+                        {
+                            "value0": 0.0,
+                            "value1": 32.0
+                        },
+                        {
+                            "value0": 32.0,
+                            "value1": 32.0
+                        },
+                        {
+                            "value0": 64.0,
+                            "value1": 32.0
+                        },
+                        {
+                            "value0": 96.0,
+                            "value1": 32.0
                         }
                     ],
                     "FrameDuration": 0.10000000149011612
@@ -2547,9 +2555,9 @@
         ],
         "State": "RunRight"
     },
-    "value379": 2,
-    "value380": 35,
-    "value381": {
+    "value383": 2,
+    "value384": 35,
+    "value385": {
         "value0": {
             "Position": {
                 "value0": 0.0,
@@ -2574,8 +2582,8 @@
             "RollOffFactor": 6.0
         }
     },
-    "value382": 1048610,
-    "value383": {
+    "value386": 1048610,
+    "value387": {
         "value0": {
             "Position": {
                 "value0": 0.10000000149011612,
@@ -2600,235 +2608,235 @@
             "RollOffFactor": 6.0
         }
     },
-    "value384": 1,
-    "value385": 26,
-    "value386": {
+    "value388": 1,
+    "value389": 26,
+    "value390": {
         "enabled": true
     },
-    "value387": 55,
-    "value388": 36,
-    "value389": {
+    "value391": 55,
+    "value392": 36,
+    "value393": {
         "value0": 7142670811742260938
     },
-    "value390": 35,
-    "value391": {
+    "value394": 35,
+    "value395": {
         "value0": 11107416043673070741
     },
-    "value392": 1048610,
-    "value393": {
+    "value396": 1048610,
+    "value397": {
         "value0": 11900723286469007770
     },
-    "value394": 33,
-    "value395": {
+    "value398": 33,
+    "value399": {
         "value0": 7359062324725864355
     },
-    "value396": 1048608,
-    "value397": {
+    "value400": 1048608,
+    "value401": {
         "value0": 7055554476232666375
     },
-    "value398": 1048607,
-    "value399": {
+    "value402": 1048607,
+    "value403": {
         "value0": 17970324625984215606
     },
-    "value400": 30,
-    "value401": {
+    "value404": 30,
+    "value405": {
         "value0": 8167269343774118827
     },
-    "value402": 3145757,
-    "value403": {
+    "value406": 3145757,
+    "value407": {
         "value0": 17779826851189947480
     },
-    "value404": 28,
-    "value405": {
+    "value408": 28,
+    "value409": {
         "value0": 14937591263949305246
     },
-    "value406": 2097179,
-    "value407": {
+    "value410": 2097179,
+    "value411": {
         "value0": 7640771210261002049
     },
-    "value408": 26,
-    "value409": {
+    "value412": 26,
+    "value413": {
         "value0": 2839679583992163695
     },
-    "value410": 25,
-    "value411": {
+    "value414": 25,
+    "value415": {
         "value0": 15488722931219541607
     },
-    "value412": 24,
-    "value413": {
+    "value416": 24,
+    "value417": {
         "value0": 6226202769161346132
     },
-    "value414": 23,
-    "value415": {
+    "value418": 23,
+    "value419": {
         "value0": 7098989048976045174
     },
-    "value416": 22,
-    "value417": {
+    "value420": 22,
+    "value421": {
         "value0": 3439171724646251554
     },
-    "value418": 21,
-    "value419": {
+    "value422": 21,
+    "value423": {
         "value0": 16956239776263133194
     },
-    "value420": 20,
-    "value421": {
+    "value424": 20,
+    "value425": {
         "value0": 1990762703427919633
     },
-    "value422": 19,
-    "value423": {
+    "value426": 19,
+    "value427": {
         "value0": 423835867410576946
     },
-    "value424": 18,
-    "value425": {
+    "value428": 18,
+    "value429": {
         "value0": 11891685876785498577
     },
-    "value426": 17,
-    "value427": {
+    "value430": 17,
+    "value431": {
         "value0": 7067971027685025311
     },
-    "value428": 16,
-    "value429": {
+    "value432": 16,
+    "value433": {
         "value0": 233959796952139788
     },
-    "value430": 15,
-    "value431": {
+    "value434": 15,
+    "value435": {
         "value0": 14159927372598275186
     },
-    "value432": 14,
-    "value433": {
+    "value436": 14,
+    "value437": {
         "value0": 4435898066759924372
     },
-    "value434": 13,
-    "value435": {
+    "value438": 13,
+    "value439": {
         "value0": 3179284270372788909
     },
-    "value436": 12,
-    "value437": {
+    "value440": 12,
+    "value441": {
         "value0": 4586489471220893352
     },
-    "value438": 11,
-    "value439": {
+    "value442": 11,
+    "value443": {
         "value0": 12681453495343578024
     },
-    "value440": 10,
-    "value441": {
+    "value444": 10,
+    "value445": {
         "value0": 18014480495500914400
     },
-    "value442": 9,
-    "value443": {
+    "value446": 9,
+    "value447": {
         "value0": 9295814637906071280
     },
-    "value444": 8,
-    "value445": {
+    "value448": 8,
+    "value449": {
         "value0": 2152489098297605661
     },
-    "value446": 7,
-    "value447": {
+    "value450": 7,
+    "value451": {
         "value0": 4327025743306843849
     },
-    "value448": 6,
-    "value449": {
+    "value452": 6,
+    "value453": {
         "value0": 11046028634673225913
     },
-    "value450": 5,
-    "value451": {
+    "value454": 5,
+    "value455": {
         "value0": 7714213696942504533
     },
-    "value452": 4,
-    "value453": {
+    "value456": 4,
+    "value457": {
         "value0": 8008364231059824527
     },
-    "value454": 2097155,
-    "value455": {
+    "value458": 2097155,
+    "value459": {
         "value0": 18193252195915204467
     },
-    "value456": 2097154,
-    "value457": {
+    "value460": 2097154,
+    "value461": {
         "value0": 6603296929366748979
     },
-    "value458": 1,
-    "value459": {
+    "value462": 1,
+    "value463": {
         "value0": 9645706349408193021
     },
-    "value460": 1048576,
-    "value461": {
+    "value464": 1048576,
+    "value465": {
         "value0": 13961618126954569495
     },
-    "value462": 37,
-    "value463": {
+    "value466": 37,
+    "value467": {
         "value0": 12672391254482586722
     },
-    "value464": 38,
-    "value465": {
+    "value468": 38,
+    "value469": {
         "value0": 3185688625544513382
     },
-    "value466": 39,
-    "value467": {
+    "value470": 39,
+    "value471": {
         "value0": 478815009451712139
     },
-    "value468": 40,
-    "value469": {
+    "value472": 40,
+    "value473": {
         "value0": 16680644448984634936
     },
-    "value470": 41,
-    "value471": {
+    "value474": 41,
+    "value475": {
         "value0": 4838390566280914159
     },
-    "value472": 42,
-    "value473": {
+    "value476": 42,
+    "value477": {
         "value0": 16722696764297374778
     },
-    "value474": 43,
-    "value475": {
+    "value478": 43,
+    "value479": {
         "value0": 8076439804870629473
     },
-    "value476": 44,
-    "value477": {
+    "value480": 44,
+    "value481": {
         "value0": 2922988186484868607
     },
-    "value478": 45,
-    "value479": {
+    "value482": 45,
+    "value483": {
         "value0": 17620835260008345330
     },
-    "value480": 46,
-    "value481": {
+    "value484": 46,
+    "value485": {
         "value0": 16262140283655929216
     },
-    "value482": 47,
-    "value483": {
+    "value486": 47,
+    "value487": {
         "value0": 17900231230883469521
     },
-    "value484": 48,
-    "value485": {
+    "value488": 48,
+    "value489": {
         "value0": 6273149985837589589
     },
-    "value486": 49,
-    "value487": {
+    "value490": 49,
+    "value491": {
         "value0": 17413202261215926371
     },
-    "value488": 50,
-    "value489": {
+    "value492": 50,
+    "value493": {
         "value0": 24088390834734939
     },
-    "value490": 51,
-    "value491": {
+    "value494": 51,
+    "value495": {
         "value0": 4055617899937532868
     },
-    "value492": 52,
-    "value493": {
+    "value496": 52,
+    "value497": {
         "value0": 11267442642228032682
     },
-    "value494": 53,
-    "value495": {
+    "value498": 53,
+    "value499": {
         "value0": 1271265202659808170
     },
-    "value496": 54,
-    "value497": {
+    "value500": 54,
+    "value501": {
         "value0": 1493189173168838353
     },
-    "value498": 40,
-    "value499": 35,
-    "value500": {
+    "value502": 40,
+    "value503": 35,
+    "value504": {
         "PrimitiveType": 8,
         "FilePath": "//Assets/Meshes/lowpoly_bonfire/scene.gltf",
         "Material": {
@@ -2858,13 +2866,13 @@
                     "emissiveMapFactor": 1.0,
                     "alphaCutOff": 0.4000000059604645,
                     "workflow": 1.0,
-                    "shader": "//CoreShaders/ForwardPBR.shader"
+                    "shader": "C:/dev/gitea/Lumos/Lumos/Assets/Shaders/ForwardPBR.shader"
                 }
             }
         }
     },
-    "value501": 33,
-    "value502": {
+    "value505": 33,
+    "value506": {
         "PrimitiveType": 8,
         "FilePath": "//Meshes/Scene/scene.gltf",
         "Material": {
@@ -2894,13 +2902,13 @@
                     "emissiveMapFactor": 1.0,
                     "alphaCutOff": 0.4000000059604645,
                     "workflow": 0.0,
-                    "shader": "//CoreShaders/ForwardPBR.shader"
+                    "shader": "C:/dev/gitea/Lumos/Lumos/Assets/Shaders/ForwardPBR.shader"
                 }
             }
         }
     },
-    "value503": 1048607,
-    "value504": {
+    "value507": 1048607,
+    "value508": {
         "PrimitiveType": 8,
         "FilePath": "//Meshes/DamagedHelmet/glTF/DamagedHelmet.gltf",
         "Material": {
@@ -2930,85 +2938,85 @@
                     "emissiveMapFactor": 1.0,
                     "alphaCutOff": 0.4000000059604645,
                     "workflow": 1.0,
-                    "shader": "//CoreShaders/ForwardPBR.shader"
+                    "shader": "C:/dev/gitea/Lumos/Lumos/Assets/Shaders/ForwardPBR.shader"
                 }
             }
         }
     },
-    "value505": 3145757,
-    "value506": {
-        "PrimitiveType": 2,
-        "FilePath": "Primitive",
-        "Material": {
-            "ptr_wrapper": {
-                "valid": 1,
-                "data": {
-                    "Albedo": "//Textures/checkerboard.tga",
-                    "Normal": "",
-                    "Metallic": "",
-                    "Roughness": "",
-                    "Ao": "",
-                    "Emissive": "",
-                    "albedoColour": {
-                        "value0": 0.6000000238418579,
-                        "value1": 0.10000000149011612,
-                        "value2": 0.10000000149011612,
-                        "value3": 1.0
-                    },
-                    "roughnessValue": 0.6000000238418579,
-                    "metallicValue": 0.15000000596046449,
-                    "emissiveValue": 0.0,
-                    "albedoMapFactor": 0.5,
-                    "metallicMapFactor": 0.0,
-                    "roughnessMapFactor": 0.0,
-                    "normalMapFactor": 0.0,
-                    "aoMapFactor": 0.0,
-                    "emissiveMapFactor": 0.0,
-                    "alphaCutOff": 0.4000000059604645,
-                    "workflow": 0.0,
-                    "shader": "//CoreShaders/ForwardPBR.shader"
-                }
-            }
-        }
-    },
-    "value507": 2097179,
-    "value508": {
-        "PrimitiveType": 2,
-        "FilePath": "Primitive",
-        "Material": {
-            "ptr_wrapper": {
-                "valid": 1,
-                "data": {
-                    "Albedo": "//Textures/checkerboard.tga",
-                    "Normal": "",
-                    "Metallic": "",
-                    "Roughness": "",
-                    "Ao": "",
-                    "Emissive": "",
-                    "albedoColour": {
-                        "value0": 0.6000000238418579,
-                        "value1": 0.10000000149011612,
-                        "value2": 0.10000000149011612,
-                        "value3": 1.0
-                    },
-                    "roughnessValue": 0.6000000238418579,
-                    "metallicValue": 0.15000000596046449,
-                    "emissiveValue": 0.0,
-                    "albedoMapFactor": 0.5,
-                    "metallicMapFactor": 0.0,
-                    "roughnessMapFactor": 0.0,
-                    "normalMapFactor": 0.0,
-                    "aoMapFactor": 0.0,
-                    "emissiveMapFactor": 0.0,
-                    "alphaCutOff": 0.4000000059604645,
-                    "workflow": 0.0,
-                    "shader": "//CoreShaders/ForwardPBR.shader"
-                }
-            }
-        }
-    },
-    "value509": 23,
+    "value509": 3145757,
     "value510": {
+        "PrimitiveType": 2,
+        "FilePath": "Primitive",
+        "Material": {
+            "ptr_wrapper": {
+                "valid": 1,
+                "data": {
+                    "Albedo": "//Textures/checkerboard.tga",
+                    "Normal": "",
+                    "Metallic": "",
+                    "Roughness": "",
+                    "Ao": "",
+                    "Emissive": "",
+                    "albedoColour": {
+                        "value0": 0.6000000238418579,
+                        "value1": 0.10000000149011612,
+                        "value2": 0.10000000149011612,
+                        "value3": 1.0
+                    },
+                    "roughnessValue": 0.6000000238418579,
+                    "metallicValue": 0.15000000596046449,
+                    "emissiveValue": 0.0,
+                    "albedoMapFactor": 0.5,
+                    "metallicMapFactor": 0.0,
+                    "roughnessMapFactor": 0.0,
+                    "normalMapFactor": 0.0,
+                    "aoMapFactor": 0.0,
+                    "emissiveMapFactor": 0.0,
+                    "alphaCutOff": 0.4000000059604645,
+                    "workflow": 0.0,
+                    "shader": "C:/dev/gitea/Lumos/Lumos/Assets/Shaders/ForwardPBR.shader"
+                }
+            }
+        }
+    },
+    "value511": 2097179,
+    "value512": {
+        "PrimitiveType": 2,
+        "FilePath": "Primitive",
+        "Material": {
+            "ptr_wrapper": {
+                "valid": 1,
+                "data": {
+                    "Albedo": "//Textures/checkerboard.tga",
+                    "Normal": "",
+                    "Metallic": "",
+                    "Roughness": "",
+                    "Ao": "",
+                    "Emissive": "",
+                    "albedoColour": {
+                        "value0": 0.6000000238418579,
+                        "value1": 0.10000000149011612,
+                        "value2": 0.10000000149011612,
+                        "value3": 1.0
+                    },
+                    "roughnessValue": 0.6000000238418579,
+                    "metallicValue": 0.15000000596046449,
+                    "emissiveValue": 0.0,
+                    "albedoMapFactor": 0.5,
+                    "metallicMapFactor": 0.0,
+                    "roughnessMapFactor": 0.0,
+                    "normalMapFactor": 0.0,
+                    "aoMapFactor": 0.0,
+                    "emissiveMapFactor": 0.0,
+                    "alphaCutOff": 0.4000000059604645,
+                    "workflow": 0.0,
+                    "shader": "C:/dev/gitea/Lumos/Lumos/Assets/Shaders/ForwardPBR.shader"
+                }
+            }
+        }
+    },
+    "value513": 23,
+    "value514": {
         "PrimitiveType": 5,
         "FilePath": "Primitive",
         "Material": {
@@ -3038,13 +3046,13 @@
                     "emissiveMapFactor": 0.0,
                     "alphaCutOff": 0.4000000059604645,
                     "workflow": 0.0,
-                    "shader": "//CoreShaders/ForwardPBR.shader"
+                    "shader": "C:/dev/gitea/Lumos/Lumos/Assets/Shaders/ForwardPBR.shader"
                 }
             }
         }
     },
-    "value511": 22,
-    "value512": {
+    "value515": 22,
+    "value516": {
         "PrimitiveType": 4,
         "FilePath": "Primitive",
         "Material": {
@@ -3074,13 +3082,13 @@
                     "emissiveMapFactor": 0.0,
                     "alphaCutOff": 0.4000000059604645,
                     "workflow": 0.0,
-                    "shader": "//CoreShaders/ForwardPBR.shader"
+                    "shader": "C:/dev/gitea/Lumos/Lumos/Assets/Shaders/ForwardPBR.shader"
                 }
             }
         }
     },
-    "value513": 21,
-    "value514": {
+    "value517": 21,
+    "value518": {
         "PrimitiveType": 4,
         "FilePath": "Primitive",
         "Material": {
@@ -3110,13 +3118,13 @@
                     "emissiveMapFactor": 0.0,
                     "alphaCutOff": 0.4000000059604645,
                     "workflow": 0.0,
-                    "shader": "//CoreShaders/ForwardPBR.shader"
+                    "shader": "C:/dev/gitea/Lumos/Lumos/Assets/Shaders/ForwardPBR.shader"
                 }
             }
         }
     },
-    "value515": 20,
-    "value516": {
+    "value519": 20,
+    "value520": {
         "PrimitiveType": 4,
         "FilePath": "Primitive",
         "Material": {
@@ -3146,13 +3154,13 @@
                     "emissiveMapFactor": 0.0,
                     "alphaCutOff": 0.4000000059604645,
                     "workflow": 0.0,
-                    "shader": "//CoreShaders/ForwardPBR.shader"
+                    "shader": "C:/dev/gitea/Lumos/Lumos/Assets/Shaders/ForwardPBR.shader"
                 }
             }
         }
     },
-    "value517": 19,
-    "value518": {
+    "value521": 19,
+    "value522": {
         "PrimitiveType": 4,
         "FilePath": "Primitive",
         "Material": {
@@ -3182,13 +3190,13 @@
                     "emissiveMapFactor": 0.0,
                     "alphaCutOff": 0.4000000059604645,
                     "workflow": 0.0,
-                    "shader": "//CoreShaders/ForwardPBR.shader"
+                    "shader": "C:/dev/gitea/Lumos/Lumos/Assets/Shaders/ForwardPBR.shader"
                 }
             }
         }
     },
-    "value519": 18,
-    "value520": {
+    "value523": 18,
+    "value524": {
         "PrimitiveType": 4,
         "FilePath": "Primitive",
         "Material": {
@@ -3218,13 +3226,13 @@
                     "emissiveMapFactor": 0.0,
                     "alphaCutOff": 0.4000000059604645,
                     "workflow": 0.0,
-                    "shader": "//CoreShaders/ForwardPBR.shader"
+                    "shader": "C:/dev/gitea/Lumos/Lumos/Assets/Shaders/ForwardPBR.shader"
                 }
             }
         }
     },
-    "value521": 17,
-    "value522": {
+    "value525": 17,
+    "value526": {
         "PrimitiveType": 4,
         "FilePath": "Primitive",
         "Material": {
@@ -3254,13 +3262,13 @@
                     "emissiveMapFactor": 0.0,
                     "alphaCutOff": 0.4000000059604645,
                     "workflow": 0.0,
-                    "shader": "//CoreShaders/ForwardPBR.shader"
+                    "shader": "C:/dev/gitea/Lumos/Lumos/Assets/Shaders/ForwardPBR.shader"
                 }
             }
         }
     },
-    "value523": 16,
-    "value524": {
+    "value527": 16,
+    "value528": {
         "PrimitiveType": 4,
         "FilePath": "Primitive",
         "Material": {
@@ -3290,13 +3298,13 @@
                     "emissiveMapFactor": 0.0,
                     "alphaCutOff": 0.4000000059604645,
                     "workflow": 0.0,
-                    "shader": "//CoreShaders/ForwardPBR.shader"
+                    "shader": "C:/dev/gitea/Lumos/Lumos/Assets/Shaders/ForwardPBR.shader"
                 }
             }
         }
     },
-    "value525": 15,
-    "value526": {
+    "value529": 15,
+    "value530": {
         "PrimitiveType": 4,
         "FilePath": "Primitive",
         "Material": {
@@ -3326,13 +3334,13 @@
                     "emissiveMapFactor": 0.0,
                     "alphaCutOff": 0.4000000059604645,
                     "workflow": 0.0,
-                    "shader": "//CoreShaders/ForwardPBR.shader"
+                    "shader": "C:/dev/gitea/Lumos/Lumos/Assets/Shaders/ForwardPBR.shader"
                 }
             }
         }
     },
-    "value527": 14,
-    "value528": {
+    "value531": 14,
+    "value532": {
         "PrimitiveType": 4,
         "FilePath": "Primitive",
         "Material": {
@@ -3346,13 +3354,13 @@
                     "Ao": "",
                     "Emissive": "",
                     "albedoColour": {
-                        "value0": 0.8999999761581421,
-                        "value1": 0.8999999761581421,
-                        "value2": 0.8999999761581421,
+                        "value0": 1.0,
+                        "value1": 1.0,
+                        "value2": 1.0,
                         "value3": 0.8999999761581421
                     },
                     "roughnessValue": 0.0,
-                    "metallicValue": 0.8999999761581421,
+                    "metallicValue": 1.0,
                     "emissiveValue": 0.0,
                     "albedoMapFactor": 0.0,
                     "metallicMapFactor": 0.0,
@@ -3362,13 +3370,13 @@
                     "emissiveMapFactor": 0.0,
                     "alphaCutOff": 0.4000000059604645,
                     "workflow": 0.0,
-                    "shader": "//CoreShaders/ForwardPBR.shader"
+                    "shader": "C:/dev/gitea/Lumos/Lumos/Assets/Shaders/ForwardPBR.shader"
                 }
             }
         }
     },
-    "value529": 13,
-    "value530": {
+    "value533": 13,
+    "value534": {
         "PrimitiveType": 4,
         "FilePath": "Primitive",
         "Material": {
@@ -3398,13 +3406,13 @@
                     "emissiveMapFactor": 0.0,
                     "alphaCutOff": 0.4000000059604645,
                     "workflow": 0.0,
-                    "shader": "//CoreShaders/ForwardPBR.shader"
+                    "shader": "C:/dev/gitea/Lumos/Lumos/Assets/Shaders/ForwardPBR.shader"
                 }
             }
         }
     },
-    "value531": 12,
-    "value532": {
+    "value535": 12,
+    "value536": {
         "PrimitiveType": 4,
         "FilePath": "Primitive",
         "Material": {
@@ -3434,13 +3442,13 @@
                     "emissiveMapFactor": 0.0,
                     "alphaCutOff": 0.4000000059604645,
                     "workflow": 0.0,
-                    "shader": "//CoreShaders/ForwardPBR.shader"
+                    "shader": "C:/dev/gitea/Lumos/Lumos/Assets/Shaders/ForwardPBR.shader"
                 }
             }
         }
     },
-    "value533": 11,
-    "value534": {
+    "value537": 11,
+    "value538": {
         "PrimitiveType": 4,
         "FilePath": "Primitive",
         "Material": {
@@ -3470,13 +3478,13 @@
                     "emissiveMapFactor": 0.0,
                     "alphaCutOff": 0.4000000059604645,
                     "workflow": 0.0,
-                    "shader": "//CoreShaders/ForwardPBR.shader"
+                    "shader": "C:/dev/gitea/Lumos/Lumos/Assets/Shaders/ForwardPBR.shader"
                 }
             }
         }
     },
-    "value535": 10,
-    "value536": {
+    "value539": 10,
+    "value540": {
         "PrimitiveType": 4,
         "FilePath": "Primitive",
         "Material": {
@@ -3506,13 +3514,13 @@
                     "emissiveMapFactor": 0.0,
                     "alphaCutOff": 0.4000000059604645,
                     "workflow": 0.0,
-                    "shader": "//CoreShaders/ForwardPBR.shader"
+                    "shader": "C:/dev/gitea/Lumos/Lumos/Assets/Shaders/ForwardPBR.shader"
                 }
             }
         }
     },
-    "value537": 9,
-    "value538": {
+    "value541": 9,
+    "value542": {
         "PrimitiveType": 4,
         "FilePath": "Primitive",
         "Material": {
@@ -3542,13 +3550,13 @@
                     "emissiveMapFactor": 0.0,
                     "alphaCutOff": 0.4000000059604645,
                     "workflow": 0.0,
-                    "shader": "//CoreShaders/ForwardPBR.shader"
+                    "shader": "C:/dev/gitea/Lumos/Lumos/Assets/Shaders/ForwardPBR.shader"
                 }
             }
         }
     },
-    "value539": 8,
-    "value540": {
+    "value543": 8,
+    "value544": {
         "PrimitiveType": 4,
         "FilePath": "Primitive",
         "Material": {
@@ -3578,13 +3586,13 @@
                     "emissiveMapFactor": 0.0,
                     "alphaCutOff": 0.4000000059604645,
                     "workflow": 0.0,
-                    "shader": "//CoreShaders/ForwardPBR.shader"
+                    "shader": "C:/dev/gitea/Lumos/Lumos/Assets/Shaders/ForwardPBR.shader"
                 }
             }
         }
     },
-    "value541": 7,
-    "value542": {
+    "value545": 7,
+    "value546": {
         "PrimitiveType": 4,
         "FilePath": "Primitive",
         "Material": {
@@ -3614,13 +3622,13 @@
                     "emissiveMapFactor": 0.0,
                     "alphaCutOff": 0.4000000059604645,
                     "workflow": 0.0,
-                    "shader": "//CoreShaders/ForwardPBR.shader"
+                    "shader": "C:/dev/gitea/Lumos/Lumos/Assets/Shaders/ForwardPBR.shader"
                 }
             }
         }
     },
-    "value543": 6,
-    "value544": {
+    "value547": 6,
+    "value548": {
         "PrimitiveType": 4,
         "FilePath": "Primitive",
         "Material": {
@@ -3650,13 +3658,13 @@
                     "emissiveMapFactor": 0.0,
                     "alphaCutOff": 0.4000000059604645,
                     "workflow": 0.0,
-                    "shader": "//CoreShaders/ForwardPBR.shader"
+                    "shader": "C:/dev/gitea/Lumos/Lumos/Assets/Shaders/ForwardPBR.shader"
                 }
             }
         }
     },
-    "value545": 5,
-    "value546": {
+    "value549": 5,
+    "value550": {
         "PrimitiveType": 4,
         "FilePath": "Primitive",
         "Material": {
@@ -3686,13 +3694,13 @@
                     "emissiveMapFactor": 0.0,
                     "alphaCutOff": 0.4000000059604645,
                     "workflow": 0.0,
-                    "shader": "//CoreShaders/ForwardPBR.shader"
+                    "shader": "C:/dev/gitea/Lumos/Lumos/Assets/Shaders/ForwardPBR.shader"
                 }
             }
         }
     },
-    "value547": 4,
-    "value548": {
+    "value551": 4,
+    "value552": {
         "PrimitiveType": 4,
         "FilePath": "Primitive",
         "Material": {
@@ -3722,84 +3730,12 @@
                     "emissiveMapFactor": 0.0,
                     "alphaCutOff": 0.4000000059604645,
                     "workflow": 0.0,
-                    "shader": "//CoreShaders/ForwardPBR.shader"
+                    "shader": "C:/dev/gitea/Lumos/Lumos/Assets/Shaders/ForwardPBR.shader"
                 }
             }
         }
     },
-    "value549": 2097155,
-    "value550": {
-        "PrimitiveType": 2,
-        "FilePath": "Primitive",
-        "Material": {
-            "ptr_wrapper": {
-                "valid": 1,
-                "data": {
-                    "Albedo": "//Textures/checkerboard.tga",
-                    "Normal": "",
-                    "Metallic": "",
-                    "Roughness": "",
-                    "Ao": "",
-                    "Emissive": "",
-                    "albedoColour": {
-                        "value0": 0.6000000238418579,
-                        "value1": 0.10000000149011612,
-                        "value2": 0.10000000149011612,
-                        "value3": 1.0
-                    },
-                    "roughnessValue": 0.6000000238418579,
-                    "metallicValue": 0.15000000596046449,
-                    "emissiveValue": 0.0,
-                    "albedoMapFactor": 0.5,
-                    "metallicMapFactor": 0.0,
-                    "roughnessMapFactor": 0.0,
-                    "normalMapFactor": 0.0,
-                    "aoMapFactor": 0.0,
-                    "emissiveMapFactor": 0.0,
-                    "alphaCutOff": 0.4000000059604645,
-                    "workflow": 0.0,
-                    "shader": "//CoreShaders/ForwardPBR.shader"
-                }
-            }
-        }
-    },
-    "value551": 2097154,
-    "value552": {
-        "PrimitiveType": 2,
-        "FilePath": "Primitive",
-        "Material": {
-            "ptr_wrapper": {
-                "valid": 1,
-                "data": {
-                    "Albedo": "//Textures/checkerboard.tga",
-                    "Normal": "",
-                    "Metallic": "",
-                    "Roughness": "",
-                    "Ao": "",
-                    "Emissive": "",
-                    "albedoColour": {
-                        "value0": 0.6000000238418579,
-                        "value1": 0.10000000149011612,
-                        "value2": 0.10000000149011612,
-                        "value3": 1.0
-                    },
-                    "roughnessValue": 0.6000000238418579,
-                    "metallicValue": 0.15000000596046449,
-                    "emissiveValue": 0.0,
-                    "albedoMapFactor": 0.5,
-                    "metallicMapFactor": 0.0,
-                    "roughnessMapFactor": 0.0,
-                    "normalMapFactor": 0.0,
-                    "aoMapFactor": 0.0,
-                    "emissiveMapFactor": 0.0,
-                    "alphaCutOff": 0.4000000059604645,
-                    "workflow": 0.0,
-                    "shader": "//CoreShaders/ForwardPBR.shader"
-                }
-            }
-        }
-    },
-    "value553": 1,
+    "value553": 2097155,
     "value554": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
@@ -3830,35 +3766,35 @@
                     "emissiveMapFactor": 0.0,
                     "alphaCutOff": 0.4000000059604645,
                     "workflow": 0.0,
-                    "shader": "//CoreShaders/ForwardPBR.shader"
+                    "shader": "C:/dev/gitea/Lumos/Lumos/Assets/Shaders/ForwardPBR.shader"
                 }
             }
         }
     },
-    "value555": 1048576,
+    "value555": 2097154,
     "value556": {
-        "PrimitiveType": 4,
+        "PrimitiveType": 2,
         "FilePath": "Primitive",
         "Material": {
             "ptr_wrapper": {
                 "valid": 1,
                 "data": {
-                    "Albedo": "",
+                    "Albedo": "//Textures/checkerboard.tga",
                     "Normal": "",
                     "Metallic": "",
                     "Roughness": "",
                     "Ao": "",
                     "Emissive": "",
                     "albedoColour": {
-                        "value0": 0.8999999761581421,
-                        "value1": 0.8999999761581421,
-                        "value2": 0.8999999761581421,
-                        "value3": 0.8999999761581421
+                        "value0": 0.6000000238418579,
+                        "value1": 0.10000000149011612,
+                        "value2": 0.10000000149011612,
+                        "value3": 1.0
                     },
-                    "roughnessValue": 0.9000000357627869,
-                    "metallicValue": 0.8999999761581421,
+                    "roughnessValue": 0.6000000238418579,
+                    "metallicValue": 0.15000000596046449,
                     "emissiveValue": 0.0,
-                    "albedoMapFactor": 0.0,
+                    "albedoMapFactor": 0.5,
                     "metallicMapFactor": 0.0,
                     "roughnessMapFactor": 0.0,
                     "normalMapFactor": 0.0,
@@ -3866,12 +3802,12 @@
                     "emissiveMapFactor": 0.0,
                     "alphaCutOff": 0.4000000059604645,
                     "workflow": 0.0,
-                    "shader": "//CoreShaders/ForwardPBR.shader"
+                    "shader": "C:/dev/gitea/Lumos/Lumos/Assets/Shaders/ForwardPBR.shader"
                 }
             }
         }
     },
-    "value557": 38,
+    "value557": 1,
     "value558": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
@@ -3902,13 +3838,85 @@
                     "emissiveMapFactor": 0.0,
                     "alphaCutOff": 0.4000000059604645,
                     "workflow": 0.0,
-                    "shader": "//CoreShaders/ForwardPBR.shader"
+                    "shader": "C:/dev/gitea/Lumos/Lumos/Assets/Shaders/ForwardPBR.shader"
                 }
             }
         }
     },
-    "value559": 39,
+    "value559": 1048576,
     "value560": {
+        "PrimitiveType": 4,
+        "FilePath": "Primitive",
+        "Material": {
+            "ptr_wrapper": {
+                "valid": 1,
+                "data": {
+                    "Albedo": "",
+                    "Normal": "",
+                    "Metallic": "",
+                    "Roughness": "",
+                    "Ao": "",
+                    "Emissive": "",
+                    "albedoColour": {
+                        "value0": 0.8999999761581421,
+                        "value1": 0.8999999761581421,
+                        "value2": 0.8999999761581421,
+                        "value3": 0.8999999761581421
+                    },
+                    "roughnessValue": 0.9000000357627869,
+                    "metallicValue": 0.8999999761581421,
+                    "emissiveValue": 0.0,
+                    "albedoMapFactor": 0.0,
+                    "metallicMapFactor": 0.0,
+                    "roughnessMapFactor": 0.0,
+                    "normalMapFactor": 0.0,
+                    "aoMapFactor": 0.0,
+                    "emissiveMapFactor": 0.0,
+                    "alphaCutOff": 0.4000000059604645,
+                    "workflow": 0.0,
+                    "shader": "C:/dev/gitea/Lumos/Lumos/Assets/Shaders/ForwardPBR.shader"
+                }
+            }
+        }
+    },
+    "value561": 38,
+    "value562": {
+        "PrimitiveType": 2,
+        "FilePath": "Primitive",
+        "Material": {
+            "ptr_wrapper": {
+                "valid": 1,
+                "data": {
+                    "Albedo": "//Textures/checkerboard.tga",
+                    "Normal": "",
+                    "Metallic": "",
+                    "Roughness": "",
+                    "Ao": "",
+                    "Emissive": "",
+                    "albedoColour": {
+                        "value0": 0.6000000238418579,
+                        "value1": 0.10000000149011612,
+                        "value2": 0.10000000149011612,
+                        "value3": 1.0
+                    },
+                    "roughnessValue": 0.6000000238418579,
+                    "metallicValue": 0.15000000596046449,
+                    "emissiveValue": 0.0,
+                    "albedoMapFactor": 0.5,
+                    "metallicMapFactor": 0.0,
+                    "roughnessMapFactor": 0.0,
+                    "normalMapFactor": 0.0,
+                    "aoMapFactor": 0.0,
+                    "emissiveMapFactor": 0.0,
+                    "alphaCutOff": 0.4000000059604645,
+                    "workflow": 0.0,
+                    "shader": "C:/dev/gitea/Lumos/Lumos/Assets/Shaders/ForwardPBR.shader"
+                }
+            }
+        }
+    },
+    "value563": 39,
+    "value564": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
         "Material": {
@@ -3938,84 +3946,12 @@
                     "emissiveMapFactor": 0.0,
                     "alphaCutOff": 0.4000000059604645,
                     "workflow": 0.0,
-                    "shader": "//CoreShaders/ForwardPBR.shader"
+                    "shader": "C:/dev/gitea/Lumos/Lumos/Assets/Shaders/ForwardPBR.shader"
                 }
             }
         }
     },
-    "value561": 40,
-    "value562": {
-        "PrimitiveType": 2,
-        "FilePath": "Primitive",
-        "Material": {
-            "ptr_wrapper": {
-                "valid": 1,
-                "data": {
-                    "Albedo": "",
-                    "Normal": "",
-                    "Metallic": "",
-                    "Roughness": "",
-                    "Ao": "",
-                    "Emissive": "",
-                    "albedoColour": {
-                        "value0": 1.0,
-                        "value1": 1.0,
-                        "value2": 1.0,
-                        "value3": 1.0
-                    },
-                    "roughnessValue": 1.0,
-                    "metallicValue": 1.0,
-                    "emissiveValue": 0.0,
-                    "albedoMapFactor": 0.0,
-                    "metallicMapFactor": 0.0,
-                    "roughnessMapFactor": 0.0,
-                    "normalMapFactor": 0.0,
-                    "aoMapFactor": 0.0,
-                    "emissiveMapFactor": 0.0,
-                    "alphaCutOff": 0.4000000059604645,
-                    "workflow": 0.0,
-                    "shader": "//CoreShaders/ForwardPBR.shader"
-                }
-            }
-        }
-    },
-    "value563": 41,
-    "value564": {
-        "PrimitiveType": 2,
-        "FilePath": "Primitive",
-        "Material": {
-            "ptr_wrapper": {
-                "valid": 1,
-                "data": {
-                    "Albedo": "",
-                    "Normal": "",
-                    "Metallic": "",
-                    "Roughness": "",
-                    "Ao": "",
-                    "Emissive": "",
-                    "albedoColour": {
-                        "value0": 1.0,
-                        "value1": 1.0,
-                        "value2": 1.0,
-                        "value3": 1.0
-                    },
-                    "roughnessValue": 1.0,
-                    "metallicValue": 1.0,
-                    "emissiveValue": 0.0,
-                    "albedoMapFactor": 0.0,
-                    "metallicMapFactor": 0.0,
-                    "roughnessMapFactor": 0.0,
-                    "normalMapFactor": 0.0,
-                    "aoMapFactor": 0.0,
-                    "emissiveMapFactor": 0.0,
-                    "alphaCutOff": 0.4000000059604645,
-                    "workflow": 0.0,
-                    "shader": "//CoreShaders/ForwardPBR.shader"
-                }
-            }
-        }
-    },
-    "value565": 42,
+    "value565": 40,
     "value566": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
@@ -4046,13 +3982,85 @@
                     "emissiveMapFactor": 0.0,
                     "alphaCutOff": 0.4000000059604645,
                     "workflow": 0.0,
-                    "shader": "//CoreShaders/ForwardPBR.shader"
+                    "shader": "C:/dev/gitea/Lumos/Lumos/Assets/Shaders/ForwardPBR.shader"
                 }
             }
         }
     },
-    "value567": 43,
+    "value567": 41,
     "value568": {
+        "PrimitiveType": 2,
+        "FilePath": "Primitive",
+        "Material": {
+            "ptr_wrapper": {
+                "valid": 1,
+                "data": {
+                    "Albedo": "",
+                    "Normal": "",
+                    "Metallic": "",
+                    "Roughness": "",
+                    "Ao": "",
+                    "Emissive": "",
+                    "albedoColour": {
+                        "value0": 1.0,
+                        "value1": 1.0,
+                        "value2": 1.0,
+                        "value3": 1.0
+                    },
+                    "roughnessValue": 1.0,
+                    "metallicValue": 1.0,
+                    "emissiveValue": 0.0,
+                    "albedoMapFactor": 0.0,
+                    "metallicMapFactor": 0.0,
+                    "roughnessMapFactor": 0.0,
+                    "normalMapFactor": 0.0,
+                    "aoMapFactor": 0.0,
+                    "emissiveMapFactor": 0.0,
+                    "alphaCutOff": 0.4000000059604645,
+                    "workflow": 0.0,
+                    "shader": "C:/dev/gitea/Lumos/Lumos/Assets/Shaders/ForwardPBR.shader"
+                }
+            }
+        }
+    },
+    "value569": 42,
+    "value570": {
+        "PrimitiveType": 2,
+        "FilePath": "Primitive",
+        "Material": {
+            "ptr_wrapper": {
+                "valid": 1,
+                "data": {
+                    "Albedo": "",
+                    "Normal": "",
+                    "Metallic": "",
+                    "Roughness": "",
+                    "Ao": "",
+                    "Emissive": "",
+                    "albedoColour": {
+                        "value0": 1.0,
+                        "value1": 1.0,
+                        "value2": 1.0,
+                        "value3": 1.0
+                    },
+                    "roughnessValue": 1.0,
+                    "metallicValue": 1.0,
+                    "emissiveValue": 0.0,
+                    "albedoMapFactor": 0.0,
+                    "metallicMapFactor": 0.0,
+                    "roughnessMapFactor": 0.0,
+                    "normalMapFactor": 0.0,
+                    "aoMapFactor": 0.0,
+                    "emissiveMapFactor": 0.0,
+                    "alphaCutOff": 0.4000000059604645,
+                    "workflow": 0.0,
+                    "shader": "C:/dev/gitea/Lumos/Lumos/Assets/Shaders/ForwardPBR.shader"
+                }
+            }
+        }
+    },
+    "value571": 43,
+    "value572": {
         "PrimitiveType": 4,
         "FilePath": "Primitive",
         "Material": {
@@ -4082,13 +4090,13 @@
                     "emissiveMapFactor": 0.0,
                     "alphaCutOff": 0.4000000059604645,
                     "workflow": 0.0,
-                    "shader": "//CoreShaders/ForwardPBR.shader"
+                    "shader": "C:/dev/gitea/Lumos/Lumos/Assets/Shaders/ForwardPBR.shader"
                 }
             }
         }
     },
-    "value569": 44,
-    "value570": {
+    "value573": 44,
+    "value574": {
         "PrimitiveType": 5,
         "FilePath": "Primitive",
         "Material": {
@@ -4118,13 +4126,13 @@
                     "emissiveMapFactor": 0.0,
                     "alphaCutOff": 0.4000000059604645,
                     "workflow": 0.0,
-                    "shader": "//CoreShaders/ForwardPBR.shader"
+                    "shader": "C:/dev/gitea/Lumos/Lumos/Assets/Shaders/ForwardPBR.shader"
                 }
             }
         }
     },
-    "value571": 45,
-    "value572": {
+    "value575": 45,
+    "value576": {
         "PrimitiveType": 5,
         "FilePath": "Primitive",
         "Material": {
@@ -4154,13 +4162,13 @@
                     "emissiveMapFactor": 0.0,
                     "alphaCutOff": 0.4000000059604645,
                     "workflow": 0.0,
-                    "shader": "//CoreShaders/ForwardPBR.shader"
+                    "shader": "C:/dev/gitea/Lumos/Lumos/Assets/Shaders/ForwardPBR.shader"
                 }
             }
         }
     },
-    "value573": 46,
-    "value574": {
+    "value577": 46,
+    "value578": {
         "PrimitiveType": 5,
         "FilePath": "Primitive",
         "Material": {
@@ -4190,13 +4198,13 @@
                     "emissiveMapFactor": 0.0,
                     "alphaCutOff": 0.4000000059604645,
                     "workflow": 0.0,
-                    "shader": "//CoreShaders/ForwardPBR.shader"
+                    "shader": "C:/dev/gitea/Lumos/Lumos/Assets/Shaders/ForwardPBR.shader"
                 }
             }
         }
     },
-    "value575": 47,
-    "value576": {
+    "value579": 47,
+    "value580": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
         "Material": {
@@ -4226,13 +4234,13 @@
                     "emissiveMapFactor": 0.0,
                     "alphaCutOff": 0.4000000059604645,
                     "workflow": 0.0,
-                    "shader": "//CoreShaders/ForwardPBR.shader"
+                    "shader": "C:/dev/gitea/Lumos/Lumos/Assets/Shaders/ForwardPBR.shader"
                 }
             }
         }
     },
-    "value577": 48,
-    "value578": {
+    "value581": 48,
+    "value582": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
         "Material": {
@@ -4262,45 +4270,17 @@
                     "emissiveMapFactor": 0.0,
                     "alphaCutOff": 0.4000000059604645,
                     "workflow": 0.0,
-                    "shader": "//CoreShaders/ForwardPBR.shader"
+                    "shader": "C:/dev/gitea/Lumos/Lumos/Assets/Shaders/ForwardPBR.shader"
                 }
             }
         }
     },
-    "value579": 0,
-    "value580": 6,
-    "value581": 49,
-    "value582": {
-        "TextString": "Metallic",
-        "Path": "",
-        "Colour": {
-            "value0": 1.0,
-            "value1": 1.0,
-            "value2": 1.0,
-            "value3": 1.0
-        },
-        "LineSpacing": 0.0,
-        "Kerning": 0.0,
-        "MaxWidth": 10.0
-    },
-    "value583": 50,
-    "value584": {
-        "TextString": "0.9",
-        "Path": "",
-        "Colour": {
-            "value0": 1.0,
-            "value1": 1.0,
-            "value2": 1.0,
-            "value3": 1.0
-        },
-        "LineSpacing": 0.0,
-        "Kerning": 0.0,
-        "MaxWidth": 10.0
-    },
-    "value585": 51,
+    "value583": 0,
+    "value584": 6,
+    "value585": 49,
     "value586": {
-        "TextString": "0.2",
-        "Path": "",
+        "TextString": "Metallic",
+        "Path": "RobotoRegular",
         "Colour": {
             "value0": 1.0,
             "value1": 1.0,
@@ -4311,10 +4291,10 @@
         "Kerning": 0.0,
         "MaxWidth": 10.0
     },
-    "value587": 52,
+    "value587": 50,
     "value588": {
-        "TextString": "Roughness",
-        "Path": "",
+        "TextString": "0.9",
+        "Path": "RobotoRegular",
         "Colour": {
             "value0": 1.0,
             "value1": 1.0,
@@ -4325,10 +4305,10 @@
         "Kerning": 0.0,
         "MaxWidth": 10.0
     },
-    "value589": 53,
+    "value589": 51,
     "value590": {
-        "TextString": "0.0",
-        "Path": "",
+        "TextString": "0.2",
+        "Path": "RobotoRegular",
         "Colour": {
             "value0": 1.0,
             "value1": 1.0,
@@ -4339,10 +4319,38 @@
         "Kerning": 0.0,
         "MaxWidth": 10.0
     },
-    "value591": 54,
+    "value591": 52,
     "value592": {
+        "TextString": "Roughness",
+        "Path": "RobotoRegular",
+        "Colour": {
+            "value0": 1.0,
+            "value1": 1.0,
+            "value2": 1.0,
+            "value3": 1.0
+        },
+        "LineSpacing": 0.0,
+        "Kerning": 0.0,
+        "MaxWidth": 10.0
+    },
+    "value593": 53,
+    "value594": {
+        "TextString": "0.0",
+        "Path": "RobotoRegular",
+        "Colour": {
+            "value0": 1.0,
+            "value1": 1.0,
+            "value2": 1.0,
+            "value3": 1.0
+        },
+        "LineSpacing": 0.0,
+        "Kerning": 0.0,
+        "MaxWidth": 10.0
+    },
+    "value595": 54,
+    "value596": {
         "TextString": "1.0",
-        "Path": "",
+        "Path": "RobotoRegular",
         "Colour": {
             "value0": 1.0,
             "value1": 1.0,

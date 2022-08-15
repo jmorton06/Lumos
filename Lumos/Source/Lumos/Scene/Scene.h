@@ -119,7 +119,7 @@ namespace Lumos
             bool EyeAdaptation             = true;
             bool SSAOEnabled               = true;
             bool BloomEnabled              = true;
-            bool FilmicGrainEnabled        = true;
+            bool FilmicGrainEnabled        = false;
             bool MotionBlurEnabled         = false;
             bool DepthOfFieldEnabled       = false;
 
@@ -150,7 +150,7 @@ namespace Lumos
             uint32_t PositionIterations   = 1;
 
             glm::vec3 Gravity             = glm::vec3(0.0f, -9.81f, 0.0f);
-            float Dampening               = 0.999f;
+            float Dampening               = 0.995f;
             uint32_t IntegrationTypeIndex = 3;
             uint32_t BroadPhaseTypeIndex  = 2;
         };
@@ -161,7 +161,7 @@ namespace Lumos
             uint32_t PositionIterations = 2;
 
             float Gravity   = -9.81f;
-            float Dampening = 0.999f;
+            float Dampening = 0.995f;
         };
 
         struct SceneSettings

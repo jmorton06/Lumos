@@ -1,5 +1,5 @@
 #shader vertex
-CompiledSPV/Batch2D.vert.spv
+CompiledSPV/Text.vert.spv
 #shader end
 
 #shader fragment

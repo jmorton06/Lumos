@@ -471,8 +471,8 @@ vec3 IBL(vec3 F0, vec3 Lr, Material material)
 	
 	specularIrradiance = DeGamma(specularIrradiance);
 	
-	vec2 specularBRDF = texture(uPreintegratedFG, vec2(material.NDotV, 1.0 - material.Roughness.x)).rg;
-	vec3 specularIBL = specularIrradiance * (F0 * specularBRDF.x + specularBRDF.y);
+	vec2 specularBRDF = texture(uPreintegratedFG, vec2(material.NDotV, material.Roughness.x)).rg;
+	vec3 specularIBL = specularIrradiance * (F * specularBRDF.x + specularBRDF.y);
 	
 	return kd * diffuseIBL + specularIBL;
 }
@@ -543,6 +543,7 @@ void main()
 	vec3 iblContribution   = IBL(F0, Lr, material);
 	
 	vec3 finalColour = lightContribution + iblContribution + material.Emissive;
+
 	outColor = vec4(finalColour, 1.0);
 	
 	if(ubo.mode > 0)
