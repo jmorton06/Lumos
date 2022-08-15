@@ -75,9 +75,6 @@ namespace Lumos
 #ifndef LUMOS_PLATFORM_IOS
         auto projectRoot                = StringUtilities::GetFileLocation(filePath);
         m_ProjectSettings.m_ProjectRoot = projectRoot;
-
-        // m_ProjectSettings.m_ProjectRoot = StringUtilities::RemoveSpaces(m_ProjectSettings.m_ProjectRoot);
-        // m_ProjectSettings.m_ProjectName = StringUtilities::RemoveSpaces(m_ProjectSettings.m_ProjectName);
 #endif
 
         m_SceneManager = CreateUniquePtr<SceneManager>();
@@ -93,7 +90,6 @@ namespace Lumos
         LUMOS_PROFILE_FUNCTION();
         m_ProjectSettings.m_ProjectRoot = path + name + "/";
         m_ProjectSettings.m_ProjectName = name;
-        // m_ProjectSettings.m_ProjectRoot = StringUtilities::RemoveSpaces(m_ProjectSettings.m_ProjectRoot);
 
         std::filesystem::create_directory(m_ProjectSettings.m_ProjectRoot);
 
@@ -322,7 +318,7 @@ namespace Lumos
             return m_CurrentState != AppState::Closing;
         }
 
-        float now   = m_Timer->GetElapsedS();
+        double now  = m_Timer->GetElapsedSD();
         auto& stats = Engine::Get().Statistics();
         auto& ts    = Engine::GetTimeStep();
 
@@ -337,10 +333,10 @@ namespace Lumos
         }
         {
             LUMOS_PROFILE_SCOPE("Application::TimeStepUpdates");
-            ts.Update(now);
+            ts.OnUpdate();
 
             ImGuiIO& io  = ImGui::GetIO();
-            io.DeltaTime = ts.GetSeconds();
+            io.DeltaTime = (float)ts.GetSeconds();
 
             stats.FrameTime = ts.GetMillis();
         }
@@ -465,7 +461,7 @@ namespace Lumos
            && Application::Get().GetEditorState() != EditorState::Preview)
         {
             LuaManager::Get().OnUpdate(m_SceneManager->GetCurrentScene());
-            m_SceneManager->GetCurrentScene()->OnUpdate(Engine::GetTimeStep());
+            m_SceneManager->GetCurrentScene()->OnUpdate(dt);
         }
         m_ImGuiManager->OnUpdate(dt, m_SceneManager->GetCurrentScene());
     }

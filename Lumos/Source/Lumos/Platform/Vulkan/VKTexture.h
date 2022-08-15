@@ -294,9 +294,11 @@ namespace Lumos
         private:
             std::string m_Name;
             std::string m_Files[MAX_MIPS];
-            uint32_t m_Handle {};
-            uint32_t m_Width {}, m_Height {}, m_Size {};
-            uint32_t m_NumMips {};
+            uint32_t m_Handle    = 0;
+            uint32_t m_Width     = 0;
+            uint32_t m_Height    = 0;
+            uint32_t m_Size      = 0;
+            uint32_t m_NumMips   = 0;
             uint32_t m_NumLayers = 6;
             uint8_t* m_Data      = nullptr;
 
@@ -458,6 +460,7 @@ namespace Lumos
             {
                 return m_Name;
             }
+
             inline const std::string& GetFilepath() const override
             {
                 return m_Name;

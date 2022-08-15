@@ -31,15 +31,10 @@ namespace Lumos
 
             for(uint32_t i = 0; i < framebufferDesc.attachmentCount; i++)
             {
-                HashCombine(hash, framebufferDesc.attachmentTypes[i], framebufferDesc.attachments[i]);
-#ifdef LUMOS_RENDER_API_VULKAN
+                HashCombine(hash, framebufferDesc.attachmentTypes[i]);
 
-                if(GraphicsContext::GetRenderAPI() == RenderAPI::VULKAN)
-                {
-                    VkDescriptorImageInfo* imageHandle = (VkDescriptorImageInfo*)(framebufferDesc.attachments[i]->GetDescriptorInfo());
-                    HashCombine(hash, imageHandle->imageLayout, imageHandle->imageView, imageHandle->sampler);
-                }
-#endif
+                if(framebufferDesc.attachments[i])
+                    HashCombine(hash, framebufferDesc.attachments[i]->GetImageHande());
             }
 
             auto found = m_FramebufferCache.find(hash);
@@ -60,16 +55,25 @@ namespace Lumos
 
         void Framebuffer::DeleteUnusedCache()
         {
-            static std::size_t keysToDelete[256];
+            static const size_t keyDeleteSize = 256;
+            static std::size_t keysToDelete[keyDeleteSize];
             std::size_t keysToDeleteCount = 0;
 
             for(auto&& [key, value] : m_FramebufferCache)
             {
-                if(value && !value.GetCounter() && value.GetCounter()->GetReferenceCount() == 1)
+                if(!value)
                 {
                     keysToDelete[keysToDeleteCount] = key;
                     keysToDeleteCount++;
                 }
+                else if(value.GetCounter() && value.GetCounter()->GetReferenceCount() == 1)
+                {
+                    keysToDelete[keysToDeleteCount] = key;
+                    keysToDeleteCount++;
+                }
+
+                if(keysToDeleteCount >= keyDeleteSize)
+                    break;
             }
 
             for(std::size_t i = 0; i < keysToDeleteCount; i++)

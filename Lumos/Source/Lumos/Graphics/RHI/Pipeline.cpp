@@ -26,7 +26,7 @@ namespace Lumos
             float timeSinceLastAccessed;
         };
         static std::unordered_map<std::size_t, PipelineAsset> m_PipelineCache;
-        static const float m_CacheLifeTime = 3.0f;
+        static const float m_CacheLifeTime = 0.016f;
 
         Pipeline* (*Pipeline::CreateFunc)(const PipelineDesc&) = nullptr;
 
@@ -47,18 +47,18 @@ namespace Lumos
             {
                 if(texture)
                 {
-                    HashCombine(hash, texture->GetImageHande());
+                    HashCombine(hash, texture, texture->GetWidth(), texture->GetHeight(), texture->GetImageHande());
                 }
             }
 
             if(pipelineDesc.depthTarget)
             {
-                HashCombine(hash, pipelineDesc.depthTarget->GetImageHande());
+                HashCombine(hash, pipelineDesc.depthTarget, pipelineDesc.depthTarget->GetImageHande());
             }
 
             if(pipelineDesc.depthArrayTarget)
             {
-                HashCombine(hash, pipelineDesc.depthArrayTarget->GetImageHande());
+                HashCombine(hash, pipelineDesc.depthArrayTarget, pipelineDesc.depthArrayTarget->GetImageHande());
             }
 
             HashCombine(hash, pipelineDesc.clearTargets);
@@ -88,7 +88,7 @@ namespace Lumos
             }
 
             SharedPtr<Pipeline> pipeline = SharedPtr<Pipeline>(Create(pipelineDesc));
-            m_PipelineCache[hash]        = { pipeline, Engine::GetTimeStep().GetElapsedSeconds() };
+            m_PipelineCache[hash]        = { pipeline, (float)Engine::GetTimeStep().GetElapsedSeconds() };
             return pipeline;
         }
 
@@ -111,6 +111,9 @@ namespace Lumos
                     keysToDelete[keysToDeleteCount] = key;
                     keysToDeleteCount++;
                 }
+
+                if(keysToDeleteCount >= 256)
+                    break;
             }
 
             for(std::size_t i = 0; i < keysToDeleteCount; i++)

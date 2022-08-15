@@ -4,6 +4,7 @@
 #include "Graphics/RHI/Texture.h"
 
 #define RENDERER2D_VERTEX_SIZE sizeof(VertexData)
+#define RENDERERTEXT_VERTEX_SIZE sizeof(TextVertexData)
 
 namespace Lumos
 {
@@ -19,6 +20,20 @@ namespace Lumos
             bool operator==(const VertexData& other) const
             {
                 return vertex == other.vertex && uv == other.uv && tid == other.tid && colour == other.colour;
+            }
+        };
+
+        struct LUMOS_EXPORT TextVertexData
+        {
+            glm::vec3 vertex;
+            glm::vec2 uv;
+            glm::vec2 tid;
+            glm::vec4 colour;
+            glm::vec4 outlineColour;
+
+            bool operator==(const TextVertexData& other) const
+            {
+                return vertex == other.vertex && uv == other.uv && tid == other.tid && colour == other.colour && outlineColour == other.outlineColour;
             }
         };
 

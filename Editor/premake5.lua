@@ -118,10 +118,7 @@ externalincludedirs
 			"OpenAL32"
 		}
 
-		postbuildcommands
-		{
-			'{COPY} "../Lumos/External/OpenAL/libs/Win32/OpenAL32.dll" "%{cfg.targetdir}"'
-		}
+		postbuildcommands { "xcopy /Y /C \"..\\Lumos\\External\\OpenAL\\libs\\Win32\\OpenAL32.dll\" \"$(OutDir)\"" } 
 
 		disablewarnings { 4307 }
 
@@ -136,7 +133,7 @@ externalincludedirs
 		xcodebuildsettings
 		{
 			['ARCHS'] = false,
-	['CODE_SIGN_IDENTITY'] = '',
+			['CODE_SIGN_IDENTITY'] = '',
 			['INFOPLIST_FILE'] = '../Lumos/Source/Lumos/Platform/macOS/Info.plist',
 			['ASSETCATALOG_COMPILER_APPICON_NAME'] = 'AppIcon'
 			--['ENABLE_HARDENED_RUNTIME'] = 'YES'

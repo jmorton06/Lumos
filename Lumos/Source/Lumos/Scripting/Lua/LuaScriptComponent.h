@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Core/Application.h"
+#include "Core/UUID.h"
 
 #include <sol/sol.hpp>
 #include <cereal/cereal.hpp>
@@ -74,11 +75,15 @@ namespace Lumos
             archive(cereal::make_nvp("FilePath", m_FileName));
             Init();
         }
+        //
+        //        UUID GetUUID() const
+        //        {
+        //            return m_UUID;
+        //        }
 
     private:
         Scene* m_Scene = nullptr;
         std::string m_FileName;
-
         std::map<int, std::string> m_Errors;
 
         SharedPtr<sol::environment> m_Env;

@@ -23,6 +23,7 @@ local entityManager = {}
 
 local player = {}
 local camera = {}
+local scoreEntity = {}
 local score = 0
 local iconTexture = nil
 local gameOverTexture = nil
@@ -152,6 +153,14 @@ function OnInit()
     camera = entityManager:Create()
 	camera:AddTransform()
 
+	scoreEntity = entityManager:Create()
+	scoreEntity:AddTransform()
+	scoreEntity:AddTextComponent()
+	scoreEntity:GetTextComponent().Colour = Vector4.new(0.4, 0.1, 0.9, 1.0)
+    scoreEntity:GetTextComponent().TextString = "Click to start!"
+	scoreEntity:GetTransform():SetLocalPosition(Vector3.new(-4.0, 8.0, 0.0))
+	scoreEntity:GetTransform():SetLocalScale(Vector3.new(2.0, 2.0, 2.0))
+
 	local screenSize = GetAppInstance():GetWindowSize()
     camera:AddCamera(screenSize.x / screenSize.y, 10.0, 1.0)
 
@@ -208,6 +217,9 @@ function OnUpdate(dt)
         
         score = math.max(math.floor((pos.x - 5) / 10), 0)
 
+		scoreEntity:GetTransform():SetLocalPosition(pos + Vector3.new(0.0, 8.0, 0.0))
+		scoreEntity:GetTextComponent().TextString = tostring(score)
+
         if pos.x > m_PillarTarget then
             
  			if pillars[m_PillarIndex] and pillars[m_PillarIndex]:Valid() then
@@ -225,13 +237,6 @@ function OnUpdate(dt)
 			m_PillarTarget = m_PillarTarget + 10.0
         end 
 
-        gui.setNextWindowPos(gui.ImVec2.new(268.0, 50.0))
-        gui.setNextWindowBgAlpha(0.4)
-        gui.beginWindow("Running", gui.WindowFlags.NoDecoration)
-        gui.text("Score : ")
-        gui.sameLine()
-        gui.text(tostring(score))
-        gui.endWindow()
     elseif gameState == GameStates.GameOver then
 
         totalTime = totalTime + dt * 2
@@ -240,25 +245,14 @@ function OnUpdate(dt)
  
 		gameOverEntity:GetTransform():SetLocalPosition(camera:GetTransform():GetWorldPosition() - Vector3.new((gameOverScale *  gameOverSize.x )/ 2, (gameOverScale *  gameOverSize.y )/ 2, -2.0))
 
-        gui.setNextWindowPos(gui.ImVec2.new(268.0, 50.0))
-        gui.setNextWindowBgAlpha(0.4)
-        gui.beginWindow("GameOver", gui.WindowFlags.NoDecoration)
-        gui.text("GameOver")
-        gui.text("Score : ")
-        gui.sameLine()
-        gui.text(tostring(score))
-        if gui.button("Reset") then
+		if Input.GetKeyHeld( Key.Space ) or Input.GetMouseClicked(MouseButton.Left) then
             Reset();
         end
-        gui.endWindow()
 
 	elseif gameState == GameStates.Start then
 
-	    gui.setNextWindowPos(gui.ImVec2.new(268.0, 50.0))
-        gui.setNextWindowBgAlpha(0.4)
-        gui.beginWindow("Start", gui.WindowFlags.NoDecoration)
-        gui.text("Press Space or Left Click to start")
-        gui.endWindow()
+       scoreEntity:GetTextComponent().TextString = "Click to start"
+	   scoreEntity:GetTransform():SetLocalPosition(Vector3.new(-4.0, 8.0, 0.0))
 
  	   pos = player:GetTransform():GetWorldPosition()
        pos.y = 0.0
@@ -323,6 +317,7 @@ end
 function OnRelease()
     OnCleanUp()
 end
+
 
 
 

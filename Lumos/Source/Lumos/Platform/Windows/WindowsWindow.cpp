@@ -11,6 +11,7 @@
 
 #include "WindowsWindow.h"
 #include "WindowsKeyCodes.h"
+#include "WindowsUtilities.h"
 #include "Graphics/RHI/GraphicsContext.h"
 #include "Graphics/RHI/SwapChain.h"
 #include "Core/Application.h"
@@ -179,16 +180,16 @@ namespace Lumos
 
         hInstance = reinterpret_cast<HINSTANCE>(&__ImageBase);
 
-        WNDCLASSEXA winClass   = {};
+        WNDCLASSEXW winClass   = {};
         winClass.cbSize        = sizeof(WNDCLASSEX);
         winClass.hInstance     = hInstance;
         winClass.style         = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
         winClass.lpfnWndProc   = static_cast<WNDPROC>(WndProc);
-        winClass.lpszClassName = properties.Title.c_str();
+        winClass.lpszClassName = WindowsUtilities::StringToWString(properties.Title).c_str();
 
         winClass.hbrBackground = (HBRUSH)GetStockObject(WHITE_BRUSH);
-        winClass.hCursor       = LoadCursorA(nullptr, IDC_ARROW);
-        winClass.hIcon = winClass.hIconSm = LoadIconA(nullptr, IDI_APPLICATION);
+        winClass.hCursor       = LoadCursorW(nullptr, IDC_ARROW);
+        winClass.hIcon = winClass.hIconSm = LoadIconW(nullptr, IDI_APPLICATION);
         winClass.lpszMenuName             = nullptr;
         winClass.style                    = CS_VREDRAW | CS_HREDRAW;
 
@@ -199,7 +200,7 @@ namespace Lumos
         if(!properties.Borderless)
             style |= WS_BORDER;
 
-        if(!RegisterClassExA(&winClass))
+        if(!RegisterClassExW(&winClass))
         {
             LUMOS_LOG_CRITICAL("Could not register Win32 class!");
             return false;
@@ -220,7 +221,7 @@ namespace Lumos
             windowTop  = 0;
         }
 
-        hWnd = CreateWindow(winClass.lpszClassName, properties.Title.c_str(), style, windowLeft, windowTop, m_Data.Width, m_Data.Height, NULL, NULL, hInstance, NULL);
+        hWnd = CreateWindow(winClass.lpszClassName, WindowsUtilities::StringToWString(properties.Title).c_str(), style, windowLeft, windowTop, m_Data.Width, m_Data.Height, NULL, NULL, hInstance, NULL);
 
         if(!hWnd)
         {
@@ -410,7 +411,7 @@ namespace Lumos
 
     void WindowsWindow::SetWindowTitle(const std::string& title)
     {
-        SetWindowText(hWnd, title.c_str());
+        SetWindowText(hWnd, WindowsUtilities::StringToWString(title).c_str());
     }
 
     void WindowsWindow::ToggleVSync()

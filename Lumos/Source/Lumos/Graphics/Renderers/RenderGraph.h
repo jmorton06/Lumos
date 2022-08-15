@@ -283,6 +283,8 @@ namespace Lumos
             DebugDrawData m_DebugDrawData;
             glm::vec4 m_ClearColour;
 
+            TextVertexData* m_TextBuffer = nullptr;
+
             int m_ToneMapIndex     = 4;
             float m_Exposure       = 1.0f;
             float m_BloomIntensity = 1.0f;
@@ -340,6 +342,10 @@ namespace Lumos
 
             RenderGraphSettings m_Settings;
             RenderGraphStats m_Stats;
+
+            // Outline pass
+            Graphics::Model* m_SelectedModel           = nullptr;
+            Maths::Transform* m_SelectedModelTransform = nullptr;
         };
     }
 }

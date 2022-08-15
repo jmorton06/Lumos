@@ -13,7 +13,7 @@
 
 extern Lumos::Application* Lumos::CreateApplication();
 
-int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int)
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
     if(!Lumos::Internal::CoreSystem::Init(0, nullptr))
         return 0;

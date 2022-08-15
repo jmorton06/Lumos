@@ -2,6 +2,7 @@
 #include "VK.h"
 #include "Graphics/RHI/CommandBuffer.h"
 #include "VKFence.h"
+#include "Core/Reference.h"
 
 namespace Lumos
 {

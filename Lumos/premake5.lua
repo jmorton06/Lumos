@@ -85,17 +85,10 @@ project "Lumos"
 	{
 		"LUMOS_ENGINE",
 		"FREEIMAGE_LIB",
-		"LUMOS_DYNAMIC",
 		"IMGUI_USER_CONFIG=\"Source/Lumos/ImGui/ImConfig.h\"",
 		"SPDLOG_COMPILED_LIB",
 		"GLM_FORCE_INTRINSICS",
 		"GLM_FORCE_DEPTH_ZERO_TO_ONE"
-	}
-
-	filter 'files:Source/Lumos/Utilities/ExternalBuild.cpp'
-	buildoptions
-	{
-		"-w"
 	}
 
 	filter 'architecture:x86_64'
@@ -106,7 +99,7 @@ project "Lumos"
 		staticruntime "on"
 		systemversion "latest"
 		disablewarnings { 4307 }
-		characterset ("MBCS")
+		characterset ("Unicode")
 
 		pchheader "Precompiled.h"
 		pchsource "Source/Precompiled.cpp"
