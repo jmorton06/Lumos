@@ -8,7 +8,7 @@ layout(location = 2) in vec2 inTexCoord;
 layout(location = 3) in vec3 inNormal;
 layout(location = 4) in vec3 inTangent;
 
-layout(set = 0,binding = 0) uniform UniformBufferObject 
+layout(set = 0,binding = 0) uniform UBO 
 {    
 	mat4 view;
 	mat4 proj;

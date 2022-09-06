@@ -1,6 +1,6 @@
 #pragma once
 #include "Utilities/TSingleton.h"
-#include <unordered_map>
+#include <map>
 
 namespace Lumos
 {
@@ -27,6 +27,6 @@ namespace Lumos
         bool WriteTextFile(const std::string& path, const std::string& text);
 
     private:
-        std::unordered_map<std::string, std::vector<std::string>> m_MountPoints;
+        std::map<std::string, std::vector<std::string>, std::less<void>> m_MountPoints;
     };
 }

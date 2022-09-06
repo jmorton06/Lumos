@@ -11,11 +11,11 @@
             "//Scenes/Physics",
             "//Scenes/Terrain",
             "//Scenes/2DTest",
-            "//Scenes/CapsuleTest",
+            "//Scenes/ElasticTest",
             "//Scenes/FrictionTest",
             "//Scenes/Sandbox"
         ],
-        "SceneIndex": 5,
+        "SceneIndex": 1,
         "Borderless": false,
         "EngineAssetPath": "/Users/jmorton/Dev/Lumos/Lumos/Assets/",
         "GPUIndex": -1

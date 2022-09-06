@@ -145,7 +145,6 @@ namespace Lumos
         void UpdateProjectionMatrix();
 
         float m_ShadowBoundingRadius = 10.0f;
-
         float m_AspectRatio = 1.0f;
         float m_Scale       = 1.0f;
         float m_Zoom        = 1.0f;

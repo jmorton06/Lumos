@@ -3,7 +3,10 @@
 #include "Utilities/TSingleton.h"
 #include "Scene/Entity.h"
 
-#include <sol/sol.hpp>
+namespace sol
+{
+    class state;
+}
 
 DISABLE_WARNING_PUSH
 DISABLE_WARNING_CONVERSION_TO_SMALLER_TYPE
@@ -75,12 +78,12 @@ namespace Lumos
 
         sol::state& GetState()
         {
-            return m_State;
+            return *m_State;
         }
 
         static std::vector<std::string> s_Identifiers;
 
     private:
-        sol::state m_State;
+        sol::state* m_State;
     };
 }

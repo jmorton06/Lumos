@@ -46,18 +46,27 @@ namespace Lumos
         LUMOS_PROFILE_FUNCTION();
         LUMOS_ASSERT(shape1->GetType() == CollisionShapeType::CollisionSphere && shape2->GetType() == CollisionShapeType::CollisionSphere, "Both shapes are not spheres");
 
+        //        CollisionData colData;
+        //        glm::vec3 axis = obj2->GetPosition() - obj1->GetPosition();
+        //
+        //        float sumRadii        = ((SphereCollisionShape*)shape1)->GetRadius() + ((SphereCollisionShape*)shape2)->GetRadius();
+        //        float sumRadiiSquared = sumRadii * sumRadii;
+        //        float distSquared     = glm::length2(axis);
+        //        if(distSquared > sumRadiiSquared)
+        //            return false;
+        //
+        //        colData.normal       = glm::normalize(axis);
+        //        colData.penetration  = sumRadii - std::sqrt(distSquared);
+        //        colData.pointOnPlane = obj1->GetPosition() + axis * 0.5f;
+        //
+        //        if(out_coldata)
+        //            *out_coldata = colData;
+
         CollisionData colData;
         glm::vec3 axis = obj2->GetPosition() - obj1->GetPosition();
-
-        float sumRadii        = ((SphereCollisionShape*)shape1)->GetRadius() + ((SphereCollisionShape*)shape2)->GetRadius();
-        float sumRadiiSquared = sumRadii * sumRadii;
-        float distSquared     = glm::length2(axis);
-        if(distSquared > sumRadiiSquared)
+        axis           = glm::normalize(axis);
+        if(!CheckCollisionAxis(axis, obj1, obj2, shape1, shape2, &colData))
             return false;
-
-        colData.normal       = glm::normalize(axis);
-        colData.penetration  = sumRadii - std::sqrt(distSquared);
-        colData.pointOnPlane = obj1->GetPosition() + axis * 0.5f;
 
         if(out_coldata)
             *out_coldata = colData;

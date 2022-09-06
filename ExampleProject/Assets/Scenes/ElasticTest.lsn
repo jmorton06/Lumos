@@ -1,0 +1,877 @@
+{
+    "value0": {
+        "Version": 15,
+        "Scene Name": "ElasticTest",
+        "PhysicsEnabled2D": true,
+        "PhysicsEnabled3D": true,
+        "AudioEnabled": true,
+        "Renderer2DEnabled": true,
+        "Renderer3DEnabled": true,
+        "DebugRenderEnabled": true,
+        "SkyboxRenderEnabled": true,
+        "ShadowsEnabled": true,
+        "Exposure": 1.0,
+        "ToneMap": 4,
+        "BloomIntensity": 1.0,
+        "BloomKnee": 0.10000000149011612,
+        "BloomThreshold": 1.0,
+        "BloomUpsampleScale": 1.0,
+        "FXAAEnabled": false,
+        "DebandingEnabled": false,
+        "ChromaticAberationEnabled": false,
+        "EyeAdaptation": true,
+        "SSAOEnabled": true,
+        "BloomEnabled": false,
+        "FilmicGrainEnabled": false,
+        "DepthOfFieldEnabled": false,
+        "MotionBlurEnabled": false
+    },
+    "value1": 17,
+    "value2": 0,
+    "value3": 1,
+    "value4": 2,
+    "value5": 2097151,
+    "value6": 1048579,
+    "value7": 1048580,
+    "value8": 1048581,
+    "value9": 2097158,
+    "value10": 1048583,
+    "value11": 9,
+    "value12": 10,
+    "value13": 11,
+    "value14": 12,
+    "value15": 13,
+    "value16": 1048584,
+    "value17": 15,
+    "value18": 16,
+    "value19": 9,
+    "value20": 0,
+    "value21": {
+        "Position": {
+            "value0": -17.090015411376954,
+            "value1": 15.244362831115723,
+            "value2": -46.14207077026367
+        },
+        "Rotation": {
+            "value0": 0.0,
+            "value1": 0.0,
+            "value2": 0.0,
+            "value3": 0.9999999403953552
+        },
+        "Scale": {
+            "value0": 0.9999998211860657,
+            "value1": 0.9999998211860657,
+            "value2": 0.9999998211860657
+        }
+    },
+    "value22": 1,
+    "value23": {
+        "Position": {
+            "value0": 0.0,
+            "value1": 19.58824348449707,
+            "value2": 31.38949966430664
+        },
+        "Rotation": {
+            "value0": -0.275349885225296,
+            "value1": 0.0,
+            "value2": 0.0,
+            "value3": 0.9613440632820129
+        },
+        "Scale": {
+            "value0": 1.0,
+            "value1": 1.0000001192092896,
+            "value2": 1.0000001192092896
+        }
+    },
+    "value24": 2,
+    "value25": {
+        "Position": {
+            "value0": 0.0,
+            "value1": 0.0,
+            "value2": 0.0
+        },
+        "Rotation": {
+            "value0": 0.0,
+            "value1": 0.0,
+            "value2": 0.0,
+            "value3": 0.0
+        },
+        "Scale": {
+            "value0": 200.0,
+            "value1": 1.0,
+            "value2": 200.0
+        }
+    },
+    "value26": 11,
+    "value27": {
+        "Position": {
+            "value0": -21.991376876831056,
+            "value1": 22.329999923706056,
+            "value2": -75.0
+        },
+        "Rotation": {
+            "value0": 0.22846432030200959,
+            "value1": 0.0,
+            "value2": 0.0,
+            "value3": 0.9735522866249085
+        },
+        "Scale": {
+            "value0": 2.0,
+            "value1": 2.0,
+            "value2": 2.0
+        }
+    },
+    "value28": 12,
+    "value29": {
+        "Position": {
+            "value0": -7.709997653961182,
+            "value1": 22.400150299072267,
+            "value2": -75.11674499511719
+        },
+        "Rotation": {
+            "value0": 0.22813794016838075,
+            "value1": 0.01904374547302723,
+            "value2": 0.006128818728029728,
+            "value3": 0.9734233021736145
+        },
+        "Scale": {
+            "value0": 2.0,
+            "value1": 2.0,
+            "value2": 2.0
+        }
+    },
+    "value30": 13,
+    "value31": {
+        "Position": {
+            "value0": -1.7484177350997925,
+            "value1": 22.416677474975587,
+            "value2": -75.19551086425781
+        },
+        "Rotation": {
+            "value0": 0.2277856469154358,
+            "value1": 0.02552112191915512,
+            "value2": 0.004865913651883602,
+            "value3": 0.9733646512031555
+        },
+        "Scale": {
+            "value0": 2.0,
+            "value1": 2.0,
+            "value2": 2.0
+        }
+    },
+    "value32": 9,
+    "value33": {
+        "Position": {
+            "value0": -33.346588134765628,
+            "value1": 22.329727172851564,
+            "value2": -75.0
+        },
+        "Rotation": {
+            "value0": 0.2282084971666336,
+            "value1": 0.0,
+            "value2": 0.0,
+            "value3": 0.9736123085021973
+        },
+        "Scale": {
+            "value0": 2.0,
+            "value1": 2.0,
+            "value2": 2.0
+        }
+    },
+    "value34": 15,
+    "value35": {
+        "Position": {
+            "value0": -14.377215385437012,
+            "value1": 22.329999923706056,
+            "value2": -75.0
+        },
+        "Rotation": {
+            "value0": 0.6432957053184509,
+            "value1": 0.0,
+            "value2": 0.0,
+            "value3": 0.765617847442627
+        },
+        "Scale": {
+            "value0": 1.9999972581863404,
+            "value1": 1.9999983310699463,
+            "value2": 1.9999983310699463
+        }
+    },
+    "value36": 10,
+    "value37": {
+        "Position": {
+            "value0": -27.456806182861329,
+            "value1": 22.329999923706056,
+            "value2": -75.0
+        },
+        "Rotation": {
+            "value0": 0.22826442122459413,
+            "value1": 0.0,
+            "value2": 0.0,
+            "value3": 0.9735991954803467
+        },
+        "Scale": {
+            "value0": 2.0,
+            "value1": 2.0,
+            "value2": 2.0
+        }
+    },
+    "value38": 10,
+    "value39": 0,
+    "value40": {
+        "Name": "Camera"
+    },
+    "value41": 1,
+    "value42": {
+        "Name": "Light"
+    },
+    "value43": 2,
+    "value44": {
+        "Name": "Cube"
+    },
+    "value45": 12,
+    "value46": {
+        "Name": "Sphere"
+    },
+    "value47": 13,
+    "value48": {
+        "Name": "Sphere"
+    },
+    "value49": 10,
+    "value50": {
+        "Name": "Sphere"
+    },
+    "value51": 15,
+    "value52": {
+        "Name": "Sphere"
+    },
+    "value53": 16,
+    "value54": {
+        "Name": "FallingSpheres"
+    },
+    "value55": 11,
+    "value56": {
+        "Name": "Sphere"
+    },
+    "value57": 9,
+    "value58": {
+        "Name": "Sphere"
+    },
+    "value59": 0,
+    "value60": 7,
+    "value61": 15,
+    "value62": {
+        "First": 1048575,
+        "Next": 13,
+        "Previous": 1048575,
+        "Parent": 16
+    },
+    "value63": 16,
+    "value64": {
+        "First": 15,
+        "Next": 1048575,
+        "Previous": 1048575,
+        "Parent": 1048575
+    },
+    "value65": 13,
+    "value66": {
+        "First": 1048575,
+        "Next": 11,
+        "Previous": 15,
+        "Parent": 16
+    },
+    "value67": 11,
+    "value68": {
+        "First": 1048575,
+        "Next": 12,
+        "Previous": 13,
+        "Parent": 16
+    },
+    "value69": 12,
+    "value70": {
+        "First": 1048575,
+        "Next": 10,
+        "Previous": 11,
+        "Parent": 16
+    },
+    "value71": 10,
+    "value72": {
+        "First": 1048575,
+        "Next": 9,
+        "Previous": 12,
+        "Parent": 16
+    },
+    "value73": 9,
+    "value74": {
+        "First": 1048575,
+        "Next": 1048575,
+        "Previous": 10,
+        "Parent": 16
+    },
+    "value75": 1,
+    "value76": 0,
+    "value77": {
+        "Scale": 1.0,
+        "Aspect": 0.8485915660858154,
+        "FOV": 90.0,
+        "Near": 0.009999999776482582,
+        "Far": 1000.0,
+        "Aperture": 50.0,
+        "ShutterSpeed": 0.01666666753590107,
+        "Sensitivity": 200.0
+    },
+    "value78": 1,
+    "value79": 0,
+    "value80": {
+        "FilePath": "//Scripts/Projectile.lua"
+    },
+    "value81": 0,
+    "value82": 1,
+    "value83": 1,
+    "value84": {
+        "value0": {
+            "value0": 0.0,
+            "value1": 19.58824348449707,
+            "value2": 31.38949966430664,
+            "value3": 1.0
+        },
+        "value1": {
+            "value0": 1.0,
+            "value1": 1.0,
+            "value2": 1.0,
+            "value3": 1.0
+        },
+        "value2": 0.0,
+        "value3": 0.0,
+        "value4": {
+            "value0": 0.0,
+            "value1": 0.5294119715690613,
+            "value2": 0.8483647704124451,
+            "value3": 1.0
+        },
+        "value5": 120000.0,
+        "value6": 1.0
+    },
+    "value85": 7,
+    "value86": 9,
+    "value87": {
+        "value0": {
+            "Version": 1,
+            "Position": {
+                "value0": -33.346588134765628,
+                "value1": 22.329727172851564,
+                "value2": -75.0
+            },
+            "Orientation": {
+                "value0": 0.2282084971666336,
+                "value1": 0.0,
+                "value2": 0.0,
+                "value3": 0.9736123085021973
+            },
+            "LinearVelocity": {
+                "value0": 0.0,
+                "value1": 0.0,
+                "value2": 0.0
+            },
+            "Force": {
+                "value0": 0.0,
+                "value1": 0.0,
+                "value2": 0.0
+            },
+            "Mass": 1.0,
+            "AngularVelocity": {
+                "value0": 0.0,
+                "value1": 0.0,
+                "value2": 0.0
+            },
+            "Torque": {
+                "value0": 0.0,
+                "value1": 0.0,
+                "value2": 0.0
+            },
+            "Static": false,
+            "Friction": 1.0,
+            "Elasticity": 0.0,
+            "CollisionShape": {
+                "polymorphic_id": 2147483649,
+                "polymorphic_name": "Lumos::SphereCollisionShape",
+                "ptr_wrapper": {
+                    "valid": 1,
+                    "data": {
+                        "value0": 1.0
+                    }
+                }
+            },
+            "Trigger": false,
+            "AngularFactor": 1.0
+        }
+    },
+    "value88": 10,
+    "value89": {
+        "value0": {
+            "Version": 1,
+            "Position": {
+                "value0": -27.456806182861329,
+                "value1": 22.329999923706056,
+                "value2": -75.0
+            },
+            "Orientation": {
+                "value0": 0.22826442122459413,
+                "value1": 0.0,
+                "value2": 0.0,
+                "value3": 0.9735991954803467
+            },
+            "LinearVelocity": {
+                "value0": 0.0,
+                "value1": 0.0,
+                "value2": 0.0
+            },
+            "Force": {
+                "value0": 0.0,
+                "value1": 0.0,
+                "value2": 0.0
+            },
+            "Mass": 1.0,
+            "AngularVelocity": {
+                "value0": 0.0,
+                "value1": 0.0,
+                "value2": 0.0
+            },
+            "Torque": {
+                "value0": 0.0,
+                "value1": 0.0,
+                "value2": 0.0
+            },
+            "Static": false,
+            "Friction": 1.0,
+            "Elasticity": 0.20000000298023225,
+            "CollisionShape": {
+                "polymorphic_id": 1,
+                "ptr_wrapper": {
+                    "valid": 1,
+                    "data": {
+                        "value0": 1.0
+                    }
+                }
+            },
+            "Trigger": false,
+            "AngularFactor": 1.0
+        }
+    },
+    "value90": 11,
+    "value91": {
+        "value0": {
+            "Version": 1,
+            "Position": {
+                "value0": -21.991376876831056,
+                "value1": 22.329999923706056,
+                "value2": -75.0
+            },
+            "Orientation": {
+                "value0": 0.22846432030200959,
+                "value1": 0.0,
+                "value2": 0.0,
+                "value3": 0.9735522866249085
+            },
+            "LinearVelocity": {
+                "value0": 0.0,
+                "value1": 0.0,
+                "value2": 0.0
+            },
+            "Force": {
+                "value0": 0.0,
+                "value1": 0.0,
+                "value2": 0.0
+            },
+            "Mass": 1.0,
+            "AngularVelocity": {
+                "value0": 0.0,
+                "value1": 0.0,
+                "value2": 0.0
+            },
+            "Torque": {
+                "value0": 0.0,
+                "value1": 0.0,
+                "value2": 0.0
+            },
+            "Static": false,
+            "Friction": 1.0,
+            "Elasticity": 0.4000000059604645,
+            "CollisionShape": {
+                "polymorphic_id": 1,
+                "ptr_wrapper": {
+                    "valid": 1,
+                    "data": {
+                        "value0": 1.0
+                    }
+                }
+            },
+            "Trigger": false,
+            "AngularFactor": 1.0
+        }
+    },
+    "value92": 13,
+    "value93": {
+        "value0": {
+            "Version": 1,
+            "Position": {
+                "value0": -1.7484177350997925,
+                "value1": 22.416677474975587,
+                "value2": -75.19551086425781
+            },
+            "Orientation": {
+                "value0": 0.2277856469154358,
+                "value1": 0.02552112191915512,
+                "value2": 0.004865913651883602,
+                "value3": 0.9733646512031555
+            },
+            "LinearVelocity": {
+                "value0": 0.0,
+                "value1": 0.0,
+                "value2": 0.0
+            },
+            "Force": {
+                "value0": 0.0,
+                "value1": 0.0,
+                "value2": 0.0
+            },
+            "Mass": 1.0,
+            "AngularVelocity": {
+                "value0": 0.0,
+                "value1": 0.0,
+                "value2": 0.0
+            },
+            "Torque": {
+                "value0": 0.0,
+                "value1": 0.0,
+                "value2": 0.0
+            },
+            "Static": false,
+            "Friction": 1.0,
+            "Elasticity": 1.0,
+            "CollisionShape": {
+                "polymorphic_id": 1,
+                "ptr_wrapper": {
+                    "valid": 1,
+                    "data": {
+                        "value0": 1.0
+                    }
+                }
+            },
+            "Trigger": false,
+            "AngularFactor": 1.0
+        }
+    },
+    "value94": 12,
+    "value95": {
+        "value0": {
+            "Version": 1,
+            "Position": {
+                "value0": -7.709997653961182,
+                "value1": 22.400150299072267,
+                "value2": -75.11674499511719
+            },
+            "Orientation": {
+                "value0": 0.22813794016838075,
+                "value1": 0.01904374547302723,
+                "value2": 0.006128818728029728,
+                "value3": 0.9734233021736145
+            },
+            "LinearVelocity": {
+                "value0": 0.0,
+                "value1": 0.0,
+                "value2": 0.0
+            },
+            "Force": {
+                "value0": 0.0,
+                "value1": 0.0,
+                "value2": 0.0
+            },
+            "Mass": 1.0,
+            "AngularVelocity": {
+                "value0": 0.0,
+                "value1": 0.0,
+                "value2": 0.0
+            },
+            "Torque": {
+                "value0": 0.0,
+                "value1": 0.0,
+                "value2": 0.0
+            },
+            "Static": false,
+            "Friction": 1.0,
+            "Elasticity": 0.800000011920929,
+            "CollisionShape": {
+                "polymorphic_id": 1,
+                "ptr_wrapper": {
+                    "valid": 1,
+                    "data": {
+                        "value0": 1.0
+                    }
+                }
+            },
+            "Trigger": false,
+            "AngularFactor": 1.0
+        }
+    },
+    "value96": 15,
+    "value97": {
+        "value0": {
+            "Version": 1,
+            "Position": {
+                "value0": -14.377215385437012,
+                "value1": 22.329999923706056,
+                "value2": -75.0
+            },
+            "Orientation": {
+                "value0": 0.6432957053184509,
+                "value1": 0.0,
+                "value2": 0.0,
+                "value3": 0.765617847442627
+            },
+            "LinearVelocity": {
+                "value0": 0.0,
+                "value1": 0.0,
+                "value2": 0.0
+            },
+            "Force": {
+                "value0": 0.0,
+                "value1": 0.0,
+                "value2": 0.0
+            },
+            "Mass": 1.0,
+            "AngularVelocity": {
+                "value0": 0.0,
+                "value1": 0.0,
+                "value2": 0.0
+            },
+            "Torque": {
+                "value0": 0.0,
+                "value1": 0.0,
+                "value2": 0.0
+            },
+            "Static": false,
+            "Friction": 1.0,
+            "Elasticity": 0.6000000238418579,
+            "CollisionShape": {
+                "polymorphic_id": 1,
+                "ptr_wrapper": {
+                    "valid": 1,
+                    "data": {
+                        "value0": 1.0
+                    }
+                }
+            },
+            "Trigger": false,
+            "AngularFactor": 1.0
+        }
+    },
+    "value98": 2,
+    "value99": {
+        "value0": {
+            "Version": 1,
+            "Position": {
+                "value0": 0.0,
+                "value1": 0.0,
+                "value2": 0.0
+            },
+            "Orientation": {
+                "value0": 0.0,
+                "value1": 0.0,
+                "value2": 0.0,
+                "value3": 0.0
+            },
+            "LinearVelocity": {
+                "value0": 0.0,
+                "value1": 0.0,
+                "value2": 0.0
+            },
+            "Force": {
+                "value0": 0.0,
+                "value1": 0.0,
+                "value2": 0.0
+            },
+            "Mass": 1.0,
+            "AngularVelocity": {
+                "value0": 0.0,
+                "value1": 0.0,
+                "value2": 0.0
+            },
+            "Torque": {
+                "value0": 0.0,
+                "value1": 0.0,
+                "value2": 0.0
+            },
+            "Static": true,
+            "Friction": 0.75,
+            "Elasticity": 1.0,
+            "CollisionShape": {
+                "polymorphic_id": 2147483650,
+                "polymorphic_name": "Lumos::CuboidCollisionShape",
+                "ptr_wrapper": {
+                    "valid": 1,
+                    "data": {
+                        "value0": {
+                            "value0": 100.0,
+                            "value1": 0.5,
+                            "value2": 100.0
+                        }
+                    }
+                }
+            },
+            "Trigger": false,
+            "AngularFactor": 1.0
+        }
+    },
+    "value100": 0,
+    "value101": 0,
+    "value102": 0,
+    "value103": 1,
+    "value104": 0,
+    "value105": {
+        "ControllerType": 4
+    },
+    "value106": 0,
+    "value107": 0,
+    "value108": 0,
+    "value109": 10,
+    "value110": 0,
+    "value111": {
+        "value0": 17333584295669753552
+    },
+    "value112": 1,
+    "value113": {
+        "value0": 2056444811759653555
+    },
+    "value114": 2,
+    "value115": {
+        "value0": 8219923014548643572
+    },
+    "value116": 12,
+    "value117": {
+        "value0": 878591696741460215
+    },
+    "value118": 13,
+    "value119": {
+        "value0": 878591696741460215
+    },
+    "value120": 10,
+    "value121": {
+        "value0": 878591696741460215
+    },
+    "value122": 15,
+    "value123": {
+        "value0": 878591696741460215
+    },
+    "value124": 16,
+    "value125": {
+        "value0": 13218978856082908699
+    },
+    "value126": 11,
+    "value127": {
+        "value0": 878591696741460215
+    },
+    "value128": 9,
+    "value129": {
+        "value0": 878591696741460215
+    },
+    "value130": 7,
+    "value131": 2,
+    "value132": {
+        "PrimitiveType": 2,
+        "FilePath": "Primitive",
+        "Material": {
+            "ptr_wrapper": {
+                "valid": 1,
+                "data": {
+                    "Albedo": "//Textures/checkerboard.tga",
+                    "Normal": "",
+                    "Metallic": "",
+                    "Roughness": "",
+                    "Ao": "",
+                    "Emissive": "",
+                    "albedoColour": {
+                        "value0": 0.0,
+                        "value1": 0.02305459976196289,
+                        "value2": 1.0,
+                        "value3": 1.0
+                    },
+                    "roughnessValue": 1.0,
+                    "metallicValue": 1.0,
+                    "emissiveValue": 0.0,
+                    "albedoMapFactor": 0.5,
+                    "metallicMapFactor": 0.0,
+                    "roughnessMapFactor": 0.0,
+                    "normalMapFactor": 0.0,
+                    "aoMapFactor": 0.0,
+                    "emissiveMapFactor": 0.0,
+                    "alphaCutOff": 0.4000000059604645,
+                    "workflow": 0.0,
+                    "shader": "//CoreShaders/ForwardPBR.shader"
+                }
+            }
+        }
+    },
+    "value133": 15,
+    "value134": {
+        "PrimitiveType": 4,
+        "FilePath": "Primitive",
+        "Material": {
+            "ptr_wrapper": {
+                "valid": 0
+            }
+        }
+    },
+    "value135": 9,
+    "value136": {
+        "PrimitiveType": 4,
+        "FilePath": "Primitive",
+        "Material": {
+            "ptr_wrapper": {
+                "valid": 0
+            }
+        }
+    },
+    "value137": 10,
+    "value138": {
+        "PrimitiveType": 4,
+        "FilePath": "Primitive",
+        "Material": {
+            "ptr_wrapper": {
+                "valid": 0
+            }
+        }
+    },
+    "value139": 11,
+    "value140": {
+        "PrimitiveType": 4,
+        "FilePath": "Primitive",
+        "Material": {
+            "ptr_wrapper": {
+                "valid": 0
+            }
+        }
+    },
+    "value141": 12,
+    "value142": {
+        "PrimitiveType": 4,
+        "FilePath": "Primitive",
+        "Material": {
+            "ptr_wrapper": {
+                "valid": 0
+            }
+        }
+    },
+    "value143": 13,
+    "value144": {
+        "PrimitiveType": 4,
+        "FilePath": "Primitive",
+        "Material": {
+            "ptr_wrapper": {
+                "valid": 0
+            }
+        }
+    },
+    "value145": 0,
+    "value146": 0
+}

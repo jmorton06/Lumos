@@ -2,14 +2,14 @@
 #extension GL_ARB_separate_shader_objects : enable
 #extension GL_ARB_shading_language_420pack : enable
 
-layout(set = 0,binding = 0) uniform UniformBufferObject 
+layout(set = 0,binding = 0) uniform UBO 
 {    
 	mat4 projView;
 } ubo;
 
 const int MAX_BONES = 100;
 
-layout(set = 0,binding = 1) uniform UniformBufferObjectAnim
+layout(set = 0,binding = 1) uniform UBOAnim
 {    
 	mat4 BoneTransforms[MAX_BONES];
 } boneUbo;

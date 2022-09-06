@@ -113,9 +113,11 @@ void main()
 	//secondFade*= smoothstep(ubo.u_Far / 0.5, ubo.u_Far, distanceToCamera);
 	grid2.a *= secondFade;
 	grid1.a *= (1 - secondFade);
+	
     outColour =  grid1 + grid2;  // adding multiple resolution for the grid
+	outColour.a = max(grid1.a, grid2.a);
+	
 		outColour *= float(t > 0);
 	outColour.a *= fading;
-	//outColour.a *= clamp((decreaseDistance - distanceToCamera) / decreaseDistance, 0.0f, 1.0f);
 	outColour.a *= angleFade;
 }

@@ -344,16 +344,6 @@ namespace Lumos
         Input::Get().ResetPressed();
         m_Window->ProcessInput();
 
-        if(Input::Get().GetKeyPressed(Lumos::InputCode::Key::Escape))
-        {
-            m_CurrentState = AppState::Closing;
-        }
-
-        // Exit frame early if escape or close button clicked
-        // Prevents a crash with vulkan/moltenvk
-        if(m_CurrentState == AppState::Closing)
-            return false;
-
         {
             LUMOS_PROFILE_SCOPE("Application::ImGui::NewFrame");
             ImGui::NewFrame();
@@ -364,6 +354,11 @@ namespace Lumos
             OnUpdate(ts);
             m_Updates++;
         }
+
+        // Exit frame early if escape or close button clicked
+        // Prevents a crash with vulkan/moltenvk
+        if (m_CurrentState == AppState::Closing)
+            return false;
 
         std::thread updateThread = std::thread(Application::UpdateSystems);
 
@@ -383,8 +378,8 @@ namespace Lumos
             Graphics::RenderPass::DeleteUnusedCache();
 
             // m_ShaderLibrary->Update(ts.GetElapsedSeconds());
-            m_ModelLibrary->Update(ts.GetElapsedSeconds());
-            m_FontLibrary->Update(ts.GetElapsedSeconds());
+            m_ModelLibrary->Update((float)ts.GetElapsedSeconds());
+            m_FontLibrary->Update((float)ts.GetElapsedSeconds());
             m_Frames++;
         }
         else

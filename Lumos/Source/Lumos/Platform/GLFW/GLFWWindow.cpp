@@ -496,12 +496,12 @@ namespace Lumos
         LUMOS_PROFILE_SCOPE("GLFW PollEvents");
         glfwPollEvents();
 
-        auto& controllers = Input::GetControllers();
+        auto& controllers = Input::Get().GetControllers();
         for(auto it = controllers.begin(); it != controllers.end();)
         {
             int id = it->first;
             if(glfwJoystickPresent(id) != GLFW_TRUE)
-                Input::RemoveController(id);
+                Input::Get().RemoveController(id);
 
             it++;
         }
@@ -514,7 +514,7 @@ namespace Lumos
 #if LOG_CONTROLLER
                 LUMOS_LOG_INFO("Controller Connected {0}", id);
 #endif
-                Controller* controller = Input::GetOrAddController(id);
+                Controller* controller = Input::Get().GetOrAddController(id);
                 if(controller)
                 {
                     controller->ID   = id;

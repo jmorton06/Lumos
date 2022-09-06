@@ -53,7 +53,7 @@ namespace Lumos
 
         if(!m_Paused)
         {
-            m_B2DWorld->Step(timeStep.GetSeconds(), m_VelocityIterations, m_PositionIterations);
+            m_B2DWorld->Step((float)timeStep.GetSeconds(), m_VelocityIterations, m_PositionIterations);
         }
     }
 

@@ -87,14 +87,14 @@ namespace Lumos
 
     bool Input::IsControllerPresent(int id)
     {
-        return s_Controllers.find(id) != s_Controllers.end();
+        return m_Controllers.find(id) != m_Controllers.end();
     }
 
     std::vector<int> Input::GetConnectedControllerIDs()
     {
         std::vector<int> ids;
-        ids.reserve(s_Controllers.size());
-        for(auto [id, controller] : s_Controllers)
+        ids.reserve(m_Controllers.size());
+        for(auto [id, controller] : m_Controllers)
             ids.emplace_back(id);
 
         return ids;
@@ -105,12 +105,12 @@ namespace Lumos
         if(!Input::IsControllerPresent(id))
             return nullptr;
 
-        return &s_Controllers.at(id);
+        return &m_Controllers.at(id);
     }
 
     Controller* Input::GetOrAddController(int id)
     {
-        return &(s_Controllers[id]);
+        return &(m_Controllers[id]);
     }
 
     std::string Input::GetControllerName(int id)
@@ -118,7 +118,7 @@ namespace Lumos
         if(!Input::IsControllerPresent(id))
             return {};
 
-        return s_Controllers.at(id).Name;
+        return m_Controllers.at(id).Name;
     }
 
     bool Input::IsControllerButtonPressed(int controllerID, int button)
@@ -126,7 +126,7 @@ namespace Lumos
         if(!Input::IsControllerPresent(controllerID))
             return false;
 
-        const Controller& controller = s_Controllers.at(controllerID);
+        const Controller& controller = m_Controllers.at(controllerID);
         if(controller.ButtonStates.find(button) == controller.ButtonStates.end())
             return false;
 
@@ -138,7 +138,7 @@ namespace Lumos
         if(!Input::IsControllerPresent(controllerID))
             return 0.0f;
 
-        const Controller& controller = s_Controllers.at(controllerID);
+        const Controller& controller = m_Controllers.at(controllerID);
         if(controller.AxisStates.find(axis) == controller.AxisStates.end())
             return 0.0f;
 
@@ -150,7 +150,7 @@ namespace Lumos
         if(!Input::IsControllerPresent(controllerID))
             return 0;
 
-        const Controller& controller = s_Controllers.at(controllerID);
+        const Controller& controller = m_Controllers.at(controllerID);
         if(controller.HatStates.find(hat) == controller.HatStates.end())
             return 0;
 
@@ -159,12 +159,12 @@ namespace Lumos
 
     void Input::RemoveController(int id)
     {
-        for(auto it = s_Controllers.begin(); it != s_Controllers.end();)
+        for(auto it = m_Controllers.begin(); it != m_Controllers.end();)
         {
             int currentID = it->first;
             if(currentID == id)
             {
-                s_Controllers.erase(it);
+                m_Controllers.erase(it);
                 return;
             }
             else
