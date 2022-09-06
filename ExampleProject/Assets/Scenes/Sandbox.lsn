@@ -1,0 +1,178 @@
+{
+    "value0": {
+        "Version": 14,
+        "Scene Name": "Sandbox",
+        "PhysicsEnabled2D": true,
+        "PhysicsEnabled3D": true,
+        "AudioEnabled": true,
+        "Renderer2DEnabled": true,
+        "Renderer3DEnabled": true,
+        "DebugRenderEnabled": true,
+        "SkyboxRenderEnabled": true,
+        "ShadowsEnabled": true,
+        "Exposure": 1.0,
+        "ToneMap": 4,
+        "BloomIntensity": 1.0,
+        "BloomKnee": 0.10000000149011612,
+        "BloomThreshold": 1.0,
+        "BloomUpsampleScale": 1.0,
+        "FXAAEnabled": true,
+        "DebandingEnabled": true,
+        "ChromaticAberationEnabled": false,
+        "EyeAdaptation": true,
+        "SSAOEnabled": true,
+        "BloomEnabled": true,
+        "FilmicGrainEnabled": true,
+        "DepthOfFieldEnabled": false,
+        "MotionBlurEnabled": false
+    },
+    "value1": 5,
+    "value2": 2097151,
+    "value3": 1,
+    "value4": 2,
+    "value5": 3,
+    "value6": 4,
+    "value7": 2,
+    "value8": 1,
+    "value9": {
+        "Position": {
+            "value0": 0.0,
+            "value1": 0.0,
+            "value2": 0.0
+        },
+        "Rotation": {
+            "value0": -0.32251736521720889,
+            "value1": 0.2442595511674881,
+            "value2": -0.08653092384338379,
+            "value3": 0.9104021787643433
+        },
+        "Scale": {
+            "value0": 1.0000011920928956,
+            "value1": 1.0000061988830567,
+            "value2": 1.0000035762786866
+        }
+    },
+    "value10": 2,
+    "value11": {
+        "Position": {
+            "value0": 228.4239044189453,
+            "value1": 133.44451904296876,
+            "value2": 345.7474365234375
+        },
+        "Rotation": {
+            "value0": -0.41048136353492739,
+            "value1": 0.0,
+            "value2": 0.0,
+            "value3": 0.9118689298629761
+        },
+        "Scale": {
+            "value0": 0.9999998211860657,
+            "value1": 1.0000016689300538,
+            "value2": 1.0000016689300538
+        }
+    },
+    "value12": 4,
+    "value13": 1,
+    "value14": {
+        "Name": "Light"
+    },
+    "value15": 4,
+    "value16": {
+        "Name": "Environment"
+    },
+    "value17": 2,
+    "value18": {
+        "Name": "Camera"
+    },
+    "value19": 3,
+    "value20": {
+        "Name": "LuaScript"
+    },
+    "value21": 0,
+    "value22": 0,
+    "value23": 1,
+    "value24": 2,
+    "value25": {
+        "Scale": 1.0,
+        "Aspect": 0.6760563254356384,
+        "FOV": 79.24700164794922,
+        "Near": 0.27399998903274538,
+        "Far": 831.0960083007813,
+        "Aperture": 50.0,
+        "ShutterSpeed": 0.01666666753590107,
+        "Sensitivity": 200.0
+    },
+    "value26": 1,
+    "value27": 3,
+    "value28": {
+        "FilePath": "//Scripts/Projectile.lua"
+    },
+    "value29": 0,
+    "value30": 1,
+    "value31": 1,
+    "value32": {
+        "value0": {
+            "value0": 0.0,
+            "value1": 0.0,
+            "value2": 0.0,
+            "value3": 1.0
+        },
+        "value1": {
+            "value0": 1.0,
+            "value1": 1.0,
+            "value2": 1.0,
+            "value3": 1.0
+        },
+        "value2": 0.0,
+        "value3": 0.0,
+        "value4": {
+            "value0": 0.5005651116371155,
+            "value1": 0.5449714064598084,
+            "value2": 0.6726371645927429,
+            "value3": 1.0
+        },
+        "value5": 128000.0,
+        "value6": 1.0
+    },
+    "value33": 0,
+    "value34": 1,
+    "value35": 4,
+    "value36": {
+        "value0": "//Textures/cubemap/noga",
+        "value1": 11,
+        "value2": 3072,
+        "value3": 4096,
+        "value4": ".tga",
+        "value5": 0.03125
+    },
+    "value37": 0,
+    "value38": 0,
+    "value39": 1,
+    "value40": 2,
+    "value41": {
+        "ControllerType": 4
+    },
+    "value42": 0,
+    "value43": 0,
+    "value44": 0,
+    "value45": 4,
+    "value46": 4,
+    "value47": {
+        "value0": 15908292661079695999
+    },
+    "value48": 3,
+    "value49": {
+        "value0": 7526643175369553408
+    },
+    "value50": 2,
+    "value51": {
+        "value0": 10876671568568338938
+    },
+    "value52": 1,
+    "value53": {
+        "value0": 7214240436243909756
+    },
+    "value54": 0,
+    "value55": 0,
+    "value56": 0
+}

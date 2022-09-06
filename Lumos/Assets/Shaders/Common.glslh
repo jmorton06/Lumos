@@ -15,3 +15,13 @@ vec3 Gamma(vec3 colour)
 {
 	return pow(colour, vec3(1.0f / GAMMA));
 }
+
+float saturate(float value)
+{
+	return clamp(value, 0.0f, 1.0f);
+}
+
+vec3 saturate(vec3 colour)
+{
+	return clamp(colour , 0.0, 1.0);
+}

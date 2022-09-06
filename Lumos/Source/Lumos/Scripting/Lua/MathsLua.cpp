@@ -97,7 +97,9 @@ namespace Lumos
             sol::meta_function::subtraction, [](const glm::quat& a, const glm::quat& b)
             { return a - b; },
             sol::meta_function::equal_to, [](const glm::quat& a, const glm::quat& b)
-            { return a == b; });
+            { return a == b; },
+            "Normalise", [](glm::quat& q)
+            { return glm::normalize(q); });
 
         state.new_usertype<glm::mat3>("Matrix3",
                                       sol::constructors<glm::mat3(float, float, float, float, float, float, float, float, float), glm::mat3()>(),

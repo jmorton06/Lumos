@@ -85,5 +85,6 @@ namespace Lumos
         std::string folder = StringUtilities::GetFileLocation(shaderPath2);
         shaderName         = StringUtilities::BackSlashesToSlashes(shaderName);
         FileSystem::WriteTextFile(folder + "Headers/" + shaderName + ".hpp", ss.str());
+        LUMOS_LOG_INFO("Embedded Shader {0}", folder + "Headers/" + shaderName + ".hpp");
     }
 }

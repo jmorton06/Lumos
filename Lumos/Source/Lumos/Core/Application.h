@@ -178,16 +178,9 @@ namespace Lumos
         void save(Archive& archive) const
 
         {
-            int projectVersion = 7;
+            int projectVersion = 8;
 
             archive(cereal::make_nvp("Project Version", projectVersion));
-            auto windowSize = GetWindowSize() / GetWindowDPI();
-
-            if(windowSize.x == 0)
-                windowSize.x = 800;
-
-            if(windowSize.y == 0)
-                windowSize.y = 600;
 
             // Version 1
 
@@ -195,9 +188,8 @@ namespace Lumos
 
             // Window size and full screen shouldnt be in project
 
+            // Version 8 removed width and height
             archive(cereal::make_nvp("RenderAPI", m_ProjectSettings.RenderAPI),
-                    cereal::make_nvp("Width", (int)windowSize.x),
-                    cereal::make_nvp("Height", (int)windowSize.y),
                     cereal::make_nvp("Fullscreen", m_ProjectSettings.Fullscreen),
                     cereal::make_nvp("VSync", m_ProjectSettings.VSync),
                     cereal::make_nvp("ShowConsole", m_ProjectSettings.ShowConsole),
@@ -230,11 +222,19 @@ namespace Lumos
             archive(cereal::make_nvp("Project Version", m_ProjectSettings.ProjectVersion));
 
             std::string test;
-            if(m_ProjectSettings.ProjectVersion > 0)
+            if(m_ProjectSettings.ProjectVersion < 8)
             {
                 archive(cereal::make_nvp("RenderAPI", m_ProjectSettings.RenderAPI),
                         cereal::make_nvp("Width", m_ProjectSettings.Width),
                         cereal::make_nvp("Height", m_ProjectSettings.Height),
+                        cereal::make_nvp("Fullscreen", m_ProjectSettings.Fullscreen),
+                        cereal::make_nvp("VSync", m_ProjectSettings.VSync),
+                        cereal::make_nvp("ShowConsole", m_ProjectSettings.ShowConsole),
+                        cereal::make_nvp("Title", m_ProjectSettings.Title));
+            }
+            else
+            {
+                archive(cereal::make_nvp("RenderAPI", m_ProjectSettings.RenderAPI),
                         cereal::make_nvp("Fullscreen", m_ProjectSettings.Fullscreen),
                         cereal::make_nvp("VSync", m_ProjectSettings.VSync),
                         cereal::make_nvp("ShowConsole", m_ProjectSettings.ShowConsole),
@@ -286,8 +286,8 @@ namespace Lumos
             std::string m_ProjectRoot;
             std::string m_ProjectName;
             std::string m_EngineAssetPath;
-            uint32_t Width, Height;
-            bool Fullscreen;
+            uint32_t Width = 1200, Height = 800;
+            bool Fullscreen  = true;
             bool VSync       = true;
             bool Borderless  = false;
             bool ShowConsole = true;
@@ -317,6 +317,7 @@ namespace Lumos
         uint32_t m_SceneViewWidth   = 0;
         uint32_t m_SceneViewHeight  = 0;
         bool m_SceneViewSizeUpdated = false;
+        bool m_RenderDocEnabled     = false;
 
         UniquePtr<Window> m_Window;
         UniquePtr<SceneManager> m_SceneManager;

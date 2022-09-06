@@ -2,6 +2,7 @@
 
 #include <glm/vec2.hpp>
 #include <glm/vec3.hpp>
+#include "Core/UUID.h"
 
 namespace Lumos
 {
@@ -55,10 +56,13 @@ namespace Lumos
         inline bool operator<(const RigidBody& p_r) const { return false; }
         inline bool operator==(const RigidBody& p_r) const { return false; }
 
+        UUID GetUUID() const { return m_UUID; }
+
     protected:
         bool m_Static;
         float m_Elasticity;
         float m_Friction;
         bool m_AtRest;
+        UUID m_UUID;
     };
 }

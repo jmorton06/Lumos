@@ -41,6 +41,8 @@
 #include "CompiledSPV/Headers/FilmicGrainfragspv.hpp"
 //#include "CompiledSPV/Headers/Outlinefragspv.hpp"
 #include "CompiledSPV/Headers/BRDFLUTfragspv.hpp"
+
+#include "CompiledSPV/Headers/Textvertspv.hpp"
 #include "CompiledSPV/Headers/Textfragspv.hpp"
 
 namespace Lumos
@@ -93,7 +95,7 @@ namespace Lumos
                 shaderLibrary->AddResource("Bloom", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromEmbeddedArray(spirv_ScreenPassvertspv.data(), spirv_ScreenPassvertspv_size, spirv_Bloomfragspv.data(), spirv_Bloomfragspv_size)));
                 shaderLibrary->AddResource("BloomComp", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateCompFromEmbeddedArray(spirv_Bloomcompspv.data(), spirv_Bloomcompspv_size)));
                 shaderLibrary->AddResource("BRDFLUT", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromEmbeddedArray(spirv_ScreenPassvertspv.data(), spirv_ScreenPassvertspv_size, spirv_BRDFLUTfragspv.data(), spirv_BRDFLUTfragspv_size)));
-                shaderLibrary->AddResource("Text", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromEmbeddedArray(spirv_Batch2Dvertspv.data(), spirv_Batch2Dvertspv_size, spirv_Textfragspv.data(), spirv_Textfragspv_size)));
+                shaderLibrary->AddResource("Text", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromEmbeddedArray(spirv_Textvertspv.data(), spirv_Textvertspv_size, spirv_Textfragspv.data(), spirv_Textfragspv_size)));
             }
             else
             {

@@ -1,6 +1,6 @@
 {
     "value0": {
-        "Version": 13,
+        "Version": 14,
         "Scene Name": "Terrain",
         "PhysicsEnabled2D": true,
         "PhysicsEnabled3D": true,
@@ -22,7 +22,7 @@
         "EyeAdaptation": true,
         "SSAOEnabled": true,
         "BloomEnabled": true,
-        "FilmicGrainEnabled": true,
+        "FilmicGrainEnabled": false,
         "DepthOfFieldEnabled": false,
         "MotionBlurEnabled": false
     },
@@ -117,7 +117,7 @@
     "value28": 2,
     "value29": {
         "Scale": 1.0,
-        "Aspect": 0.8450704216957092,
+        "Aspect": 0.9329268336296082,
         "FOV": 79.24700164794922,
         "Near": 0.27399998903274538,
         "Far": 831.0960083007813,
@@ -149,7 +149,7 @@
         "value2": 0.0,
         "value3": 0.0,
         "value4": {
-            "value0": 0.5005650520324707,
+            "value0": 0.5005651116371155,
             "value1": 0.5449714064598084,
             "value2": 0.6726371645927429,
             "value3": 1.0
@@ -231,10 +231,11 @@
                     "emissiveMapFactor": 0.0,
                     "alphaCutOff": 0.4000000059604645,
                     "workflow": 0.0,
-                    "shader": "//CoreShaders/ForwardPBR.shader"
+                    "shader": "C:/dev/gitea/Lumos/Lumos/Assets/Shaders/ForwardPBR.shader"
                 }
             }
         }
     },
-    "value63": 0
+    "value63": 0,
+    "value64": 0
 }

@@ -14,11 +14,14 @@ namespace Lumos
         m_Scene    = nullptr;
         m_FileName = "";
         m_Env      = nullptr;
+        // m_UUID = UUID();
     }
     LuaScriptComponent::LuaScriptComponent(const std::string& fileName, Scene* scene)
     {
         m_Scene    = scene;
         m_FileName = fileName;
+        m_Env      = nullptr;
+        // m_UUID = UUID();
 
         Init();
     }

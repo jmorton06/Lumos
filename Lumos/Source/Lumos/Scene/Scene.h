@@ -119,19 +119,19 @@ namespace Lumos
             bool EyeAdaptation             = true;
             bool SSAOEnabled               = true;
             bool BloomEnabled              = true;
-            bool FilmicGrainEnabled        = true;
+            bool FilmicGrainEnabled        = false;
             bool MotionBlurEnabled         = false;
             bool DepthOfFieldEnabled       = false;
 
             // Shadow Settings
-            float m_CascadeSplitLambda    = 0.92f;
-            float m_LightSize             = 1.5f;
-            float m_MaxShadowDistance     = 400.0f;
-            float m_ShadowFade            = 40.0f;
-            float m_CascadeTransitionFade = 3.0f;
-            float m_InitialBias           = 0.0023f;
-            uint32_t m_ShadowMapNum       = 4;
-            uint32_t m_ShadowMapSize      = 2048;
+            float m_CascadeSplitLambda = 0.92f;
+            float m_LightSize          = 1.5f;
+            float m_MaxShadowDistance  = 400.0f;
+            float m_ShadowFade         = 40.0f;
+            float m_CascadeFade        = 3.0f;
+            float m_InitialBias        = 0.0023f;
+            uint32_t m_ShadowMapNum    = 4;
+            uint32_t m_ShadowMapSize   = 2048;
 
             float m_Exposure        = 1.0f;
             uint32_t m_ToneMapIndex = 6;
@@ -150,7 +150,7 @@ namespace Lumos
             uint32_t PositionIterations   = 1;
 
             glm::vec3 Gravity             = glm::vec3(0.0f, -9.81f, 0.0f);
-            float Dampening               = 0.999f;
+            float Dampening               = 0.9995f;
             uint32_t IntegrationTypeIndex = 3;
             uint32_t BroadPhaseTypeIndex  = 2;
         };
@@ -161,7 +161,7 @@ namespace Lumos
             uint32_t PositionIterations = 2;
 
             float Gravity   = -9.81f;
-            float Dampening = 0.999f;
+            float Dampening = 0.9995f;
         };
 
         struct SceneSettings

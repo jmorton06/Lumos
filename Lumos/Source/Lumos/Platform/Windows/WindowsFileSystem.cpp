@@ -1,5 +1,6 @@
 #include "Precompiled.h"
 #include "Core/OS/FileSystem.h"
+#include "WindowsUtilities.h"
 
 #ifdef LUMOS_PLATFORM_WINDOWS
 #include <Windows.h>
@@ -14,7 +15,7 @@ namespace Lumos
 
     static HANDLE OpenFileForReading(const std::string& path)
     {
-        return CreateFile(path.c_str(), GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL | FILE_FLAG_OVERLAPPED, NULL);
+        return CreateFile(WindowsUtilities::StringToWString(path).c_str(), GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL | FILE_FLAG_OVERLAPPED, NULL);
     }
 
     static int64_t GetFileSizeInternal(const HANDLE file)
@@ -32,13 +33,13 @@ namespace Lumos
 
     bool FileSystem::FileExists(const std::string& path)
     {
-        auto dwAttr = GetFileAttributes((LPCSTR)path.c_str());
-        return (dwAttr != INVALID_FILE_ATTRIBUTES) && (dwAttr & FILE_ATTRIBUTE_DIRECTORY) == 0;
+        DWORD dwAttrib = GetFileAttributes(WindowsUtilities::StringToWString(path).c_str());
+        return (dwAttrib != INVALID_FILE_ATTRIBUTES) && (dwAttrib & FILE_ATTRIBUTE_DIRECTORY) == 0;
     }
 
     bool FileSystem::FolderExists(const std::string& path)
     {
-        DWORD dwAttrib = GetFileAttributes(path.c_str());
+        DWORD dwAttrib = GetFileAttributes(WindowsUtilities::StringToWString(path).c_str());
         return dwAttrib != INVALID_FILE_ATTRIBUTES && (dwAttrib & FILE_ATTRIBUTE_DIRECTORY) != 0;
     }
 
@@ -69,6 +70,9 @@ namespace Lumos
 
     uint8_t* FileSystem::ReadFile(const std::string& path)
     {
+        if(!FileExists(path))
+            return nullptr;
+
         const HANDLE file  = OpenFileForReading(path);
         const int64_t size = GetFileSizeInternal(file);
         uint8_t* buffer    = new uint8_t[static_cast<uint32_t>(size)];
@@ -81,6 +85,8 @@ namespace Lumos
 
     std::string FileSystem::ReadTextFile(const std::string& path)
     {
+        if(!FileExists(path))
+            return std::string();
         const HANDLE file  = OpenFileForReading(path);
         const int64_t size = GetFileSizeInternal(file);
         std::string result(static_cast<uint32_t>(size), 0);
@@ -96,7 +102,7 @@ namespace Lumos
 
     bool FileSystem::WriteFile(const std::string& path, uint8_t* buffer, uint32_t size)
     {
-        const HANDLE file = CreateFile(path.c_str(), GENERIC_WRITE, NULL, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
+        const HANDLE file = CreateFile(WindowsUtilities::StringToWString(path).c_str(), GENERIC_WRITE, NULL, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
         if(file == INVALID_HANDLE_VALUE)
         {
             DWORD dw = GetLastError();
