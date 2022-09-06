@@ -28,7 +28,7 @@ namespace Lumos
         : m_IsPaused(true)
         , m_UpdateAccum(0.0f)
         , m_Gravity(glm::vec3(0.0f, -9.81f, 0.0f))
-        , m_DampingFactor(0.995f)
+        , m_DampingFactor(0.9995f)
         , m_BroadphaseDetection(nullptr)
         , m_IntegrationType(IntegrationType::RUNGE_KUTTA_4)
     {
@@ -44,7 +44,7 @@ namespace Lumos
         s_UpdateTimestep  = 1.0f / 60.f;
         m_UpdateAccum     = 0.0f;
         m_Gravity         = glm::vec3(0.0f, -9.81f, 0.0f);
-        m_DampingFactor   = 0.995f;
+        m_DampingFactor   = 0.9995f;
         m_IntegrationType = IntegrationType::RUNGE_KUTTA_4;
     }
 

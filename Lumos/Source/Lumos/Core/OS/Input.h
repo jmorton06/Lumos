@@ -64,18 +64,18 @@ namespace Lumos
         void SetMouseMode(MouseMode mode) { m_MouseMode = mode; }
 
         // Controllers
-        static bool IsControllerPresent(int id);
-        static std::vector<int> GetConnectedControllerIDs();
-        static Controller* GetController(int id);
-        static Controller* GetOrAddController(int id);
+        bool IsControllerPresent(int id);
+        std::vector<int> GetConnectedControllerIDs();
+        Controller* GetController(int id);
+        Controller* GetOrAddController(int id);
 
-        static std::string GetControllerName(int id);
-        static bool IsControllerButtonPressed(int controllerID, int button);
-        static float GetControllerAxis(int controllerID, int axis);
-        static uint8_t GetControllerHat(int controllerID, int hat);
-        static void RemoveController(int id);
+        std::string GetControllerName(int id);
+        bool IsControllerButtonPressed(int controllerID, int button);
+        float GetControllerAxis(int controllerID, int axis);
+        uint8_t GetControllerHat(int controllerID, int hat);
+        void RemoveController(int id);
 
-        static std::map<int, Controller>& GetControllers() { return s_Controllers; }
+        std::map<int, Controller>& GetControllers() { return m_Controllers; }
 
     private:
     protected:
@@ -100,6 +100,6 @@ namespace Lumos
 
         glm::vec2 m_MousePosition;
 
-        inline static std::map<int, Controller> s_Controllers;
+        std::map<int, Controller> m_Controllers;
     };
 }

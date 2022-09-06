@@ -135,6 +135,9 @@ namespace Lumos
         auto sceneViewSize     = ImGui::GetWindowContentRegionMax() - ImGui::GetWindowContentRegionMin() - offset * 0.5f;
         auto sceneViewPosition = ImGui::GetWindowPos() + offset;
 
+        if(m_Editor->GetEditorState() == EditorState::Play)
+            ImGui::GetForegroundDrawList()->AddQuad(sceneViewPosition, sceneViewPosition + ImVec2(sceneViewSize.x, 0.0f), sceneViewPosition + ImVec2(sceneViewSize.x, sceneViewSize.y), sceneViewPosition + ImVec2(0.0f, sceneViewSize.y), ImGui::ColorConvertFloat4ToU32(ImGuiUtilities::GetSelectedColour()), 5);
+
         sceneViewSize.x -= static_cast<int>(sceneViewSize.x) % 2 != 0 ? 1.0f : 0.0f;
         sceneViewSize.y -= static_cast<int>(sceneViewSize.y) % 2 != 0 ? 1.0f : 0.0f;
 

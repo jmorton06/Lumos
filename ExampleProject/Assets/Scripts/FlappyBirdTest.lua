@@ -245,7 +245,7 @@ function OnUpdate(dt)
  
 		gameOverEntity:GetTransform():SetLocalPosition(camera:GetTransform():GetWorldPosition() - Vector3.new((gameOverScale *  gameOverSize.x )/ 2, (gameOverScale *  gameOverSize.y )/ 2, -2.0))
 
-		if Input.GetKeyHeld( Key.Space ) or Input.GetMouseClicked(MouseButton.Left) then
+		if Input.GetKeyPressed( Key.Space ) or Input.GetMouseClicked(MouseButton.Left) then
             Reset();
         end
 
@@ -317,6 +317,7 @@ end
 function OnRelease()
     OnCleanUp()
 end
+
 
 
 

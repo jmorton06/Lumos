@@ -125,7 +125,7 @@ namespace Lumos
             auto proj = m_Camera->GetProjectionMatrix();
             auto view = glm::inverse(m_CameraTransform->GetWorldMatrix());
 
-            UniformBufferObjectFrag test;
+            UBOFrag test;
             test.Near          = m_Camera->GetNear();
             test.Far           = m_Camera->GetFar();
             test.cameraPos     = glm::vec4(m_CameraTransform->GetWorldPosition(), 1.0f);
@@ -134,9 +134,9 @@ namespace Lumos
             test.maxDistance = m_MaxDistance;
 
             auto invViewProj = proj * view;
-            m_DescriptorSet[0]->SetUniform("UniformBufferObject", "u_MVP", &invViewProj);
-            m_DescriptorSet[0]->SetUniform("UniformBufferObject", "view", &view);
-            m_DescriptorSet[0]->SetUniform("UniformBufferObject", "proj", &proj);
+            m_DescriptorSet[0]->SetUniform("UBO", "u_MVP", &invViewProj);
+            m_DescriptorSet[0]->SetUniform("UBO", "view", &view);
+            m_DescriptorSet[0]->SetUniform("UBO", "proj", &proj);
 
             m_DescriptorSet[0]->SetUniformBufferData("UniformBuffer", &test);
             m_DescriptorSet[0]->Update();

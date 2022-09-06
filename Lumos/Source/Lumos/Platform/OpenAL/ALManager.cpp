@@ -58,7 +58,7 @@ namespace Lumos
             {
                 auto soundNode = soundsView.get<SoundComponent>(entity).GetSoundNode();
                 soundNode->SetPosition(soundsView.get<Maths::Transform>(entity).GetWorldPosition());
-                soundNode->OnUpdate(dt.GetElapsedMillis());
+                soundNode->OnUpdate((float)dt.GetElapsedMillis());
             }
         }
 

@@ -309,7 +309,7 @@ namespace Lumos
 
             for(int range = 0; range < 8; range += 2)
             {
-                for(int c = charsetRanges[range]; c <= charsetRanges[range + 1]; c++)
+                for(uint32_t c = charsetRanges[range]; c <= charsetRanges[range + 1]; c++)
                     charset.add(c);
             }
 

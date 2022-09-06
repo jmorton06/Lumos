@@ -36,7 +36,7 @@ project "LumosEditor"
 		"../Lumos/Source/Lumos",
 	}
 
-externalincludedirs
+	externalincludedirs
 	{
 		"%{IncludeDir.entt}",
 		"%{IncludeDir.GLFW}",
@@ -91,7 +91,7 @@ externalincludedirs
 		staticruntime "On"
 		systemversion "latest"
 		entrypoint "WinMainCRTStartup"
-		conformancemode "on"
+		conformancemode "off"
 
 		defines
 		{

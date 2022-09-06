@@ -19,7 +19,7 @@ namespace Lumos
             m_Surface      = VK_NULL_HANDLE;
 
             // Initialised by first Image Aquire
-            m_CurrentBuffer     = std::numeric_limits<uint32_t>::max();
+            m_CurrentBuffer     = 0; // std::numeric_limits<uint32_t>::max();
             m_AcquireImageIndex = std::numeric_limits<uint32_t>::max();
         }
 
@@ -244,14 +244,12 @@ namespace Lumos
         {
             LUMOS_PROFILE_FUNCTION();
 
-            uint32_t nextCmdBufferIndex = (m_CurrentBuffer + 1) % m_SwapChainBufferCount;
-
             if(m_SwapChainBufferCount == 1 && m_AcquireImageIndex != std::numeric_limits<uint32_t>::max())
                 return;
 
             {
                 LUMOS_PROFILE_SCOPE("vkAcquireNextImageKHR");
-                auto result = vkAcquireNextImageKHR(VKDevice::Get().GetDevice(), m_SwapChain, UINT64_MAX, m_Frames[nextCmdBufferIndex].PresentSemaphore, VK_NULL_HANDLE, &m_AcquireImageIndex);
+                auto result = vkAcquireNextImageKHR(VKDevice::Get().GetDevice(), m_SwapChain, UINT64_MAX, m_Frames[m_CurrentBuffer].PresentSemaphore, VK_NULL_HANDLE, &m_AcquireImageIndex);
 
                 if(result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR)
                 {
@@ -268,7 +266,7 @@ namespace Lumos
                     LUMOS_LOG_CRITICAL("[VULKAN] Failed to acquire swap chain image!");
                 }
 
-                m_CurrentBuffer = nextCmdBufferIndex;
+                // m_CurrentBuffer = nextCmdBufferIndex;
                 return;
             }
         }
@@ -314,6 +312,8 @@ namespace Lumos
         void VKSwapChain::Begin()
         {
             LUMOS_PROFILE_FUNCTION();
+            m_CurrentBuffer = (m_CurrentBuffer + 1) % m_SwapChainBufferCount;
+
             auto commandBuffer = GetCurrentFrameData().MainCommandBuffer;
             if(commandBuffer->GetState() == CommandBufferState::Submitted)
             {
@@ -324,6 +324,7 @@ namespace Lumos
             }
             commandBuffer->Reset();
             VKRenderer::GetDeletionQueue(m_CurrentBuffer).Flush();
+            AcquireNextImage();
             commandBuffer->BeginRecording();
         }
 

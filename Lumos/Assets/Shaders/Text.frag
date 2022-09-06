@@ -41,13 +41,17 @@ void main()
 	vec4 msd = texture(textures[int(fs_in.tid)], fs_in.uv);
     float sd = median(msd.r, msd.g, msd.b);
 
-    float screenPxDistance = screenPxRange * (sd - 0.5);
-    float screenPxDistanceOutline = screenPxRange * (sd - 0.5 + (outlineWidth / screenPxRange));
+    float screenPxDistance = screenPxRange * (sd - 0.5 - (outlineWidth));
+    float screenPxDistanceOutline = screenPxRange * (sd - 0.5);
 
     float opacity = clamp(screenPxDistance + 0.5, 0.0, 1.0);
     float outlineOp = clamp(screenPxDistanceOutline + 0.5, 0.0, 1.0);
 
 	vec4 colour = outlineWidth == 0 ? mainColour : mix(outlineColour, mainColour, outlineWidth < 0 ? outlineOp : opacity);
     colour.a *= max(opacity, outlineOp);
-    outColour = colour;
+
+	//float width = fwidth(sd);
+    //float alpha = smoothstep(0.5 - width, 0.5 + width, sd);
+	//colour.a   *= alpha;
+    outColour   = colour;
 }

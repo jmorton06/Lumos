@@ -101,6 +101,8 @@ namespace Lumos
             void Render2DFlush();
             void DebugPass();
             void FinalPass();
+            void TextPass();
+            void TextFlush();
 
             // Post Process
             void ToneMappingPass();
@@ -111,8 +113,6 @@ namespace Lumos
             void EyeAdaptationPass();
             void FilmicGrainPass();
             void OutlinePass();
-            void TextPass();
-            void TextFlush();
 
             float SubmitTexture(Texture* texture);
             void UpdateCascades(Scene* scene, Light* light);
@@ -149,7 +149,7 @@ namespace Lumos
                 float m_LightSize;
                 float m_MaxShadowDistance;
                 float m_ShadowFade;
-                float m_CascadeTransitionFade;
+                float m_CascadeFade;
                 float m_InitialBias;
                 float CascadeFarPlaneOffset = 50.0f, CascadeNearPlaneOffset = -50.0f;
                 CommandQueue m_CascadeCommandQueue[SHADOWMAP_MAX];

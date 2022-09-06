@@ -6,6 +6,13 @@
 layout(location = 0) in vec4 outPosition;
 
 layout(set = 0, binding = 1) uniform samplerCube u_CubeMap;
+layout(set = 0, binding = 2) uniform UniformBuffer
+{
+	float Exposure;
+	int Mode; //0 env map , 1 custom sky
+	float BlurLevel;
+	float p1;
+} data;
 
 layout(location = 0) out vec4 outFrag;
 
@@ -15,12 +22,13 @@ const vec3 totalSkyLight = vec3(0.3, 0.5, 1.0);
 const float blurLevel = 1.0f;
 const float timeCounter = 0.0f;
 
+
 vec3 mie(float dist, vec3 sunL)
 {
 	return max(exp(-pow(dist, 0.25)) * sunL - 0.4, 0.0);
 }
 
-vec3 getSky()
+vec3 GetSky()
 {
 	vec3 uv = normalize(outPosition.xyz);
 
@@ -48,18 +56,18 @@ vec3 getSky()
 
 void main()
 {
-	vec3 colour;
+	vec3 colour = vec3(1.0, 0.0,0.0);
 
-	int cubeMapOnly = 1;
-	if(cubeMapOnly > 0.0)
+	if(data.Mode == 0)
 	{
-		colour = DeGamma(textureLod(u_CubeMap, outPosition.xyz, blurLevel).xyz);
+		colour = DeGamma(textureLod(u_CubeMap, outPosition.xyz, data.BlurLevel).xyz);
 	}
 	else
 	{
-		colour = getSky();
+		colour = GetSky();
 	}
 
+	colour *= data.Exposure; 
 	outFrag = vec4(colour, 1.0);
 }
 

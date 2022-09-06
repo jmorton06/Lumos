@@ -1466,6 +1466,31 @@ namespace Lumos
     {
         LUMOS_PROFILE_FUNCTION();
 
+
+        if (Input::Get().GetKeyPressed(Lumos::InputCode::Key::Escape))
+        {
+            if (GetEditorState() == EditorState::Preview)
+            {
+                m_CurrentState = AppState::Closing;
+                return;
+            }
+            else
+            {
+                Application::Get().GetSystem<LumosPhysicsEngine>()->SetPaused(true);
+                Application::Get().GetSystem<B2PhysicsEngine>()->SetPaused(true);
+
+                Application::Get().GetSystem<AudioManager>()->UpdateListener(Application::Get().GetCurrentScene());
+                Application::Get().GetSystem<AudioManager>()->SetPaused(true);
+                Application::Get().SetEditorState(EditorState::Preview);
+
+                m_SelectedEntity = entt::null;
+                
+                ImGui::SetWindowFocus("###scene");
+                LoadCachedScene();
+                SetEditorState(EditorState::Preview);
+            }
+        }
+
         if(m_SceneViewActive)
         {
             auto& registry = Application::Get().GetSceneManager()->GetCurrentScene()->GetRegistry();

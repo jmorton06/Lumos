@@ -75,7 +75,7 @@ namespace Lumos::Graphics
         m_ShadowData.m_LightSize             = 1.5f;
         m_ShadowData.m_MaxShadowDistance     = 500.0f;
         m_ShadowData.m_ShadowFade            = 40.0f;
-        m_ShadowData.m_CascadeTransitionFade = 3.0f;
+        m_ShadowData.m_CascadeFade           = 3.0f;
         m_ShadowData.m_InitialBias           = 0.00f;
 
         Graphics::DescriptorDesc descriptorDesc {};
@@ -175,9 +175,8 @@ namespace Lumos::Graphics
         m_ForwardData.m_CurrentDescriptorSets.resize(3);
 
         // Set up skybox pass data
-        m_SkyboxShader = Application::Get().GetShaderLibrary()->GetResource("Skybox");
         m_ScreenQuad   = Graphics::CreateQuad();
-
+        m_SkyboxShader = Application::Get().GetShaderLibrary()->GetResource("Skybox");
         descriptorDesc.layoutIndex = 0;
         descriptorDesc.shader      = m_SkyboxShader.get();
         m_SkyboxDescriptorSet      = SharedPtr<Graphics::DescriptorSet>(Graphics::DescriptorSet::Create(descriptorDesc));
@@ -601,7 +600,7 @@ namespace Lumos::Graphics
 
         m_Exposure     = m_Camera->GetExposure();
         m_ToneMapIndex = scene->GetSettings().RenderSettings.m_ToneMapIndex;
-
+		
         auto view     = glm::inverse(m_CameraTransform->GetWorldMatrix());
         auto proj     = m_Camera->GetProjectionMatrix();
         auto projView = proj * view;
@@ -610,7 +609,7 @@ namespace Lumos::Graphics
 
         if(renderSettings.Renderer3DEnabled)
         {
-            m_ForwardData.m_DescriptorSet[0]->SetUniform("UniformBufferObject", "projView", &projView);
+            m_ForwardData.m_DescriptorSet[0]->SetUniform("UBO", "projView", &projView);
             m_ForwardData.m_DescriptorSet[0]->Update();
         }
 
@@ -657,7 +656,7 @@ namespace Lumos::Graphics
             }
 
             auto invViewProj = glm::inverse(projView);
-            m_SkyboxDescriptorSet->SetUniform("UniformBufferObject", "invprojview", &invViewProj);
+            m_SkyboxDescriptorSet->SetUniform("UBO", "invprojview", &invViewProj);
         }
 
         Light* directionaLight = nullptr;
@@ -697,10 +696,10 @@ namespace Lumos::Graphics
                 }
             }
 
-            m_ForwardData.m_DescriptorSet[2]->SetUniform("UniformBufferLight", "lights", lights, sizeof(Graphics::Light) * numLights);
+            m_ForwardData.m_DescriptorSet[2]->SetUniform("UBOLight", "lights", lights, sizeof(Graphics::Light) * numLights);
 
             glm::vec4 cameraPos = glm::vec4(m_CameraTransform->GetWorldPosition(), 1.0f);
-            m_ForwardData.m_DescriptorSet[2]->SetUniform("UniformBufferLight", "cameraPosition", &cameraPos);
+            m_ForwardData.m_DescriptorSet[2]->SetUniform("UBOLight", "cameraPosition", &cameraPos);
         }
 
         if(renderSettings.ShadowsEnabled)
@@ -726,36 +725,36 @@ namespace Lumos::Graphics
         auto& shadowData            = GetShadowData();
         glm::mat4* shadowTransforms = shadowData.m_ShadowProjView;
         glm::vec4* uSplitDepth      = shadowData.m_SplitDepth;
-        glm::mat4 lightView         = shadowData.m_LightMatrix;
+        glm::mat4 LightView         = shadowData.m_LightMatrix;
         float bias                  = shadowData.m_InitialBias;
-        float maxShadowDistance     = shadowData.m_MaxShadowDistance;
+        float MaxShadowDist         = shadowData.m_MaxShadowDistance;
         float LightSize             = (float)shadowData.m_ShadowMapSize;
-        float transitionFade        = shadowData.m_CascadeTransitionFade;
-        float shadowFade            = shadowData.m_ShadowFade;
+        float transitionFade        = shadowData.m_CascadeFade;
+        float ShadowFade            = shadowData.m_ShadowFade;
 
         if(renderSettings.Renderer3DEnabled)
         {
-            m_ForwardData.m_DescriptorSet[2]->SetUniform("UniformBufferLight", "viewMatrix", &view);
-            m_ForwardData.m_DescriptorSet[2]->SetUniform("UniformBufferLight", "lightView", &lightView);
-            m_ForwardData.m_DescriptorSet[2]->SetUniform("UniformBufferLight", "uShadowTransform", shadowTransforms);
-            m_ForwardData.m_DescriptorSet[2]->SetUniform("UniformBufferLight", "uSplitDepths", uSplitDepth);
-            m_ForwardData.m_DescriptorSet[2]->SetUniform("UniformBufferLight", "biasMat", &m_ForwardData.m_BiasMatrix);
-            m_ForwardData.m_DescriptorSet[2]->SetUniform("UniformBufferLight", "lightSize", &LightSize);
-            m_ForwardData.m_DescriptorSet[2]->SetUniform("UniformBufferLight", "shadowFade", &shadowFade);
-            m_ForwardData.m_DescriptorSet[2]->SetUniform("UniformBufferLight", "cascadeTransitionFade", &transitionFade);
-            m_ForwardData.m_DescriptorSet[2]->SetUniform("UniformBufferLight", "maxShadowDistance", &maxShadowDistance);
-            m_ForwardData.m_DescriptorSet[2]->SetUniform("UniformBufferLight", "initialBias", &bias);
+            m_ForwardData.m_DescriptorSet[2]->SetUniform("UBOLight", "ViewMatrix", &view);
+            m_ForwardData.m_DescriptorSet[2]->SetUniform("UBOLight", "LightView", &LightView);
+            m_ForwardData.m_DescriptorSet[2]->SetUniform("UBOLight", "ShadowTransform", shadowTransforms);
+            m_ForwardData.m_DescriptorSet[2]->SetUniform("UBOLight", "SplitDepths", uSplitDepth);
+            m_ForwardData.m_DescriptorSet[2]->SetUniform("UBOLight", "BiasMatrix", &m_ForwardData.m_BiasMatrix);
+            m_ForwardData.m_DescriptorSet[2]->SetUniform("UBOLight", "LightSize", &LightSize);
+            m_ForwardData.m_DescriptorSet[2]->SetUniform("UBOLight", "ShadowFade", &ShadowFade);
+            m_ForwardData.m_DescriptorSet[2]->SetUniform("UBOLight", "CascadeFade", &transitionFade);
+            m_ForwardData.m_DescriptorSet[2]->SetUniform("UBOLight", "MaxShadowDist", &MaxShadowDist);
+            m_ForwardData.m_DescriptorSet[2]->SetUniform("UBOLight", "InitialBias", &bias);
             m_ForwardData.m_DescriptorSet[2]->SetTexture("uShadowMap", reinterpret_cast<Texture*>(shadowData.m_ShadowTex), 0, TextureType::DEPTHARRAY);
 
-            int numShadows        = shadowData.m_ShadowMapNum;
-            auto cubemapMipLevels = m_ForwardData.m_EnvironmentMap ? m_ForwardData.m_EnvironmentMap->GetMipMapLevels() : 0;
-            m_ForwardData.m_DescriptorSet[2]->SetUniform("UniformBufferLight", "lightCount", &numLights);
-            m_ForwardData.m_DescriptorSet[2]->SetUniform("UniformBufferLight", "shadowCount", &numShadows);
-            m_ForwardData.m_DescriptorSet[2]->SetUniform("UniformBufferLight", "mode", &m_ForwardData.m_RenderMode);
-            m_ForwardData.m_DescriptorSet[2]->SetUniform("UniformBufferLight", "cubemapMipLevels", &cubemapMipLevels);
-            m_ForwardData.m_DescriptorSet[2]->SetTexture("uPreintegratedFG", m_ForwardData.m_BRDFLUT.get());
-            m_ForwardData.m_DescriptorSet[2]->SetTexture("uEnvironmentMap", m_ForwardData.m_EnvironmentMap, 0, TextureType::CUBE);
-            m_ForwardData.m_DescriptorSet[2]->SetTexture("uIrradianceMap", m_ForwardData.m_IrradianceMap, 0, TextureType::CUBE);
+            int numShadows   = shadowData.m_ShadowMapNum;
+            auto EnvMipCount = m_ForwardData.m_EnvironmentMap ? m_ForwardData.m_EnvironmentMap->GetMipMapLevels() : 0;
+            m_ForwardData.m_DescriptorSet[2]->SetUniform("UBOLight", "LightCount", &numLights);
+            m_ForwardData.m_DescriptorSet[2]->SetUniform("UBOLight", "ShadowCount", &numShadows);
+            m_ForwardData.m_DescriptorSet[2]->SetUniform("UBOLight", "Mode", &m_ForwardData.m_RenderMode);
+            m_ForwardData.m_DescriptorSet[2]->SetUniform("UBOLight", "EnvMipCount", &EnvMipCount);
+            m_ForwardData.m_DescriptorSet[2]->SetTexture("uBRDFLUT", m_ForwardData.m_BRDFLUT.get());
+            m_ForwardData.m_DescriptorSet[2]->SetTexture("uEnvMap", m_ForwardData.m_EnvironmentMap, 0, TextureType::CUBE);
+            m_ForwardData.m_DescriptorSet[2]->SetTexture("uIrrMap", m_ForwardData.m_IrradianceMap, 0, TextureType::CUBE);
 
             auto group = registry.group<ModelComponent>(entt::get<Maths::Transform>);
 
@@ -949,25 +948,27 @@ namespace Lumos::Graphics
 
         m_LastRenderTarget = m_MainTexture;
 
-        if(sceneRenderSettings.FXAAEnabled)
-            FXAAPass();
+        // if (sceneRenderSettings.EyeAdaptation)
+        //	EyeAdaptationPass();
 
         if(sceneRenderSettings.BloomEnabled)
             BloomPass();
 
+        ToneMappingPass();
+
         if(sceneRenderSettings.DebandingEnabled)
             DebandingPass();
 
-        ToneMappingPass();
+        if(sceneRenderSettings.FXAAEnabled)
+            FXAAPass();
 
         if(sceneRenderSettings.ChromaticAberationEnabled)
             ChromaticAberationPass();
-        if(sceneRenderSettings.EyeAdaptation)
-            EyeAdaptationPass();
+
         if(sceneRenderSettings.FilmicGrainEnabled)
             FilmicGrainPass();
         // if(sceneRenderSettings.OutlineEnabled
-        OutlinePass();
+        // OutlinePass();
 
         if(m_Settings.DebugPass && sceneRenderSettings.DebugRenderEnabled)
             DebugPass();
@@ -1053,7 +1054,7 @@ namespace Lumos::Graphics
         ImGui::DragFloat("Light Size", &m_ShadowData.m_LightSize, 0.00005f, 0.0f, 10.0f);
         ImGui::DragFloat("Max Shadow Distance", &m_ShadowData.m_MaxShadowDistance, 0.05f, 0.0f, 10000.0f);
         ImGui::DragFloat("Shadow Fade", &m_ShadowData.m_ShadowFade, 0.0005f, 0.0f, 500.0f);
-        ImGui::DragFloat("Cascade Transition Fade", &m_ShadowData.m_CascadeTransitionFade, 0.0005f, 0.0f, 5.0f);
+        ImGui::DragFloat("Cascade Transition Fade", &m_ShadowData.m_CascadeFade, 0.0005f, 0.0f, 5.0f);
 
         ImGui::DragFloat("Cascade Split Lambda", &m_ShadowData.m_CascadeSplitLambda, 0.005f, 0.0f, 3.0f);
 
@@ -1205,9 +1206,9 @@ namespace Lumos::Graphics
 
             glm::vec3 lightDir         = glm::normalize(-light->Direction);
             glm::mat4 lightOrthoMatrix = glm::ortho(minExtents.x, maxExtents.x, minExtents.y, maxExtents.y, m_ShadowData.CascadeNearPlaneOffset, maxExtents.z - minExtents.z + m_ShadowData.CascadeFarPlaneOffset);
-            glm::mat4 lightViewMatrix  = glm::lookAt(frustumCenter - lightDir * -minExtents.z, frustumCenter, glm::vec3(0.0f, 0.0f, 1.0f));
+            glm::mat4 LightViewMatrix  = glm::lookAt(frustumCenter - lightDir * -minExtents.z, frustumCenter, glm::vec3(0.0f, 0.0f, 1.0f));
 
-            auto shadowProj = lightOrthoMatrix * lightViewMatrix;
+            auto shadowProj = lightOrthoMatrix * LightViewMatrix;
 
             const bool StabilizeCascades = true;
             if(StabilizeCascades)
@@ -1228,10 +1229,10 @@ namespace Lumos::Graphics
             }
             // Store split distance and matrix in cascade
             m_ShadowData.m_SplitDepth[i]     = glm::vec4((m_Camera->GetNear() + splitDist * clipRange) * -1.0f);
-            m_ShadowData.m_ShadowProjView[i] = lightOrthoMatrix * lightViewMatrix;
+            m_ShadowData.m_ShadowProjView[i] = lightOrthoMatrix * LightViewMatrix;
 
             if(i == 0)
-                m_ShadowData.m_LightMatrix = glm::inverse(lightViewMatrix);
+                m_ShadowData.m_LightMatrix = glm::inverse(LightViewMatrix);
         }
     }
 
@@ -1268,12 +1269,21 @@ namespace Lumos::Graphics
         LUMOS_PROFILE_FUNCTION();
         LUMOS_PROFILE_GPU("Shadow Pass");
 
+        bool empty = true;
+        for(uint32_t i = 0; i < m_ShadowData.m_ShadowMapNum; ++i)
+        {
+            if(!m_ShadowData.m_CascadeCommandQueue[i].empty())
+                empty = false;
+        }
+
+        if(empty)
+            return;
+
         m_ShadowData.m_DescriptorSet[0]->SetUniform("ShadowData", "LightMatrices", m_ShadowData.m_ShadowProjView);
         m_ShadowData.m_DescriptorSet[0]->Update();
 
         Graphics::PipelineDesc pipelineDesc;
-        pipelineDesc.shader = m_ShadowData.m_Shader;
-
+        pipelineDesc.shader                  = m_ShadowData.m_Shader;
         pipelineDesc.cullMode                = Graphics::CullMode::FRONT;
         pipelineDesc.transparencyEnabled     = false;
         pipelineDesc.depthArrayTarget        = reinterpret_cast<Texture*>(m_ShadowData.m_ShadowTex);
@@ -1393,6 +1403,9 @@ namespace Lumos::Graphics
     {
         LUMOS_PROFILE_FUNCTION();
         LUMOS_PROFILE_GPU("Forward Pass");
+
+        if(m_ForwardData.m_CommandQueue.empty())
+            return;
         m_ForwardData.m_DescriptorSet[2]->Update();
 
         Graphics::CommandBuffer* commandBuffer = Renderer::GetMainSwapChain()->GetCurrentCommandBuffer();
@@ -1431,6 +1444,15 @@ namespace Lumos::Graphics
         if(!m_CubeMap)
             return;
 
+        if(!m_Camera || !m_CameraTransform)
+            return;
+
+        int mode = 0;
+        float exposure = m_Exposure * 120000.0f;
+        float blurLevel = 1.0f;
+        m_SkyboxDescriptorSet->SetUniform("UniformBuffer", "Mode", &mode);
+        m_SkyboxDescriptorSet->SetUniform("UniformBuffer", "Exposure", &exposure);
+        m_SkyboxDescriptorSet->SetUniform("UniformBuffer", "BlurLevel", &blurLevel);
         m_SkyboxDescriptorSet->SetTexture("u_CubeMap", m_CubeMap, 0, TextureType::CUBE);
         m_SkyboxDescriptorSet->Update();
 
@@ -1463,12 +1485,8 @@ namespace Lumos::Graphics
         LUMOS_PROFILE_FUNCTION();
         LUMOS_PROFILE_GPU("Tone Mapping Pass");
 
-        // Pre exposed lights
-        m_Exposure = 1.0f;
-
         float bloomIntensity = m_CurrentScene->GetSettings().RenderSettings.BloomEnabled ? m_CurrentScene->GetSettings().RenderSettings.m_BloomIntensity : 0.0f;
         m_ToneMappingPassDescriptorSet->SetUniform("UniformBuffer", "BloomIntensity", &bloomIntensity);
-        m_ToneMappingPassDescriptorSet->SetUniform("UniformBuffer", "Exposure", &m_Exposure);
         m_ToneMappingPassDescriptorSet->SetUniform("UniformBuffer", "ToneMapIndex", &m_ToneMapIndex);
 
         m_ToneMappingPassDescriptorSet->SetTexture("u_Texture", m_MainTexture);
@@ -1925,7 +1943,7 @@ namespace Lumos::Graphics
         if(!pushConstants.empty())
         {
             auto& pushConstant = m_FilmicGrainShader->GetPushConstants()[0];
-            float time         = Engine::GetTimeStep().GetElapsedSeconds();
+            float time         = (float)Engine::GetTimeStep().GetElapsedSeconds();
             float intensity    = 0.02f;
             pushConstant.SetValue("time", (void*)&time);
             pushConstant.SetValue("filmGrainIntensity", (void*)&intensity);
@@ -1981,13 +1999,13 @@ namespace Lumos::Graphics
         if(!m_MainTexture || !m_ChromaticAberationShader->IsCompiled())
             return;
 
-        auto set = m_ChromaticAberationPassDescriptorSet.get();
-        set->SetTexture("u_Texture", m_MainTexture);
+        auto set             = m_ChromaticAberationPassDescriptorSet.get();
         float cameraAperture = m_Camera->GetAperture();
         float intensity      = 100.0f;
+
+        set->SetTexture("u_Texture", m_MainTexture);
         set->SetUniform("UniformBuffer", "chromaticAberrationIntensity", &intensity);
         set->SetUniform("UniformBuffer", "cameraAperture", &cameraAperture);
-
         set->Update();
 
         Graphics::PipelineDesc pipelineDesc {};
@@ -2074,7 +2092,7 @@ namespace Lumos::Graphics
         m_Renderer2DData.m_Buffer = m_Renderer2DData.m_VertexBuffers[currentFrame][m_Renderer2DData.m_BatchDrawCallIndex]->GetPointer<VertexData>();
 
         auto projView = m_Camera->GetProjectionMatrix() * glm::inverse(m_CameraTransform->GetWorldMatrix());
-        m_Renderer2DData.m_DescriptorSet[0][0]->SetUniform("UniformBufferObject", "projView", &projView);
+        m_Renderer2DData.m_DescriptorSet[0][0]->SetUniform("UBO", "projView", &projView);
         m_Renderer2DData.m_DescriptorSet[0][0]->Update();
 
         for(auto& command : m_Renderer2DData.m_CommandQueue2D)
@@ -2142,6 +2160,7 @@ namespace Lumos::Graphics
 
     void RenderGraph::Render2DFlush()
     {
+        LUMOS_PROFILE_FUNCTION();
         uint32_t currentFrame = Renderer::GetMainSwapChain()->GetCurrentBufferIndex();
 
         if(m_Renderer2DData.m_DescriptorSet[m_Renderer2DData.m_BatchDrawCallIndex][1] == nullptr)
@@ -2206,6 +2225,7 @@ namespace Lumos::Graphics
 
     void RenderGraph::TextFlush()
     {
+        LUMOS_PROFILE_FUNCTION();
         uint32_t currentFrame = Renderer::GetMainSwapChain()->GetCurrentBufferIndex();
 
         if(m_TextRendererData.m_DescriptorSet[m_TextRendererData.m_BatchDrawCallIndex][1] == nullptr)
@@ -2291,6 +2311,10 @@ namespace Lumos::Graphics
         if(!m_Camera)
             return;
 
+        auto textGroup = m_CurrentScene->GetRegistry().group<TextComponent>(entt::get<Maths::Transform>);
+        if(textGroup.size() == 0)
+            return;
+
         Graphics::PipelineDesc pipelineDesc;
         pipelineDesc.shader              = m_TextRendererData.m_Shader;
         pipelineDesc.polygonMode         = Graphics::PolygonMode::FILL;
@@ -2314,12 +2338,19 @@ namespace Lumos::Graphics
         m_TextBuffer = m_TextRendererData.m_VertexBuffers[currentFrame][m_TextRendererData.m_BatchDrawCallIndex]->GetPointer<TextVertexData>();
 
         auto projView = m_Camera->GetProjectionMatrix() * glm::inverse(m_CameraTransform->GetWorldMatrix());
-        m_TextRendererData.m_DescriptorSet[0][0]->SetUniform("UniformBufferObject", "projView", &projView);
+        m_TextRendererData.m_DescriptorSet[0][0]->SetUniform("UBO", "projView", &projView);
         m_TextRendererData.m_DescriptorSet[0][0]->Update();
 
         m_TextRendererData.m_TextureCount = 0;
+        static std::wstring_convert<std::codecvt_utf8<char32_t>, char32_t> conv;
+        static std::u32string utf32string;
 
-        auto textGroup = m_CurrentScene->GetRegistry().group<TextComponent>(entt::get<Maths::Transform>);
+        static bool test = false;
+        if(!test)
+        {
+            test = true;
+            utf32string.reserve(1048576);
+        }
 
         for(auto entity : textGroup)
         {
@@ -2344,8 +2375,10 @@ namespace Lumos::Graphics
             auto outlineColour = textComp.OutlineColour;
             auto outlineWidth  = textComp.OutlineWidth;
 
-            std::wstring_convert<std::codecvt_utf8<char32_t>, char32_t> conv;
-            std::u32string utf32string = conv.from_bytes(string);
+            {
+                LUMOS_PROFILE_SCOPE("Convert to utf32string");
+                utf32string = conv.from_bytes(string);
+            }
 
             SharedPtr<Texture2D> fontAtlas = font->GetFontAtlas();
             if(!fontAtlas)
@@ -2459,7 +2492,7 @@ namespace Lumos::Graphics
                     l *= texelWidth, b *= texelHeight, r *= texelWidth, t *= texelHeight;
 
                     //                    {
-                    //                        auto bb = Maths::BoundingBox(Maths::Rect(glm::vec4(pl, pr, pb, pt)));
+                    //                        auto bb = Maths::BoundingBox(Maths::Rect(glm::vec4(pl, pb, pr, pt)));
                     //                        bb.Transform(transform);
                     //                        auto inside = m_ForwardData.m_Frustum.IsInside(bb);
                     //
@@ -2467,33 +2500,36 @@ namespace Lumos::Graphics
                     //                            continue;
                     //                    }
 
-                    m_TextBuffer->vertex        = transform * glm::vec4(pl, pb, 0.0f, 1.0f);
-                    m_TextBuffer->colour        = colour;
-                    m_TextBuffer->uv            = { l, b };
-                    m_TextBuffer->tid           = glm::vec2(textureIndex, outlineWidth);
-                    m_TextBuffer->outlineColour = outlineColour;
-                    m_TextBuffer++;
+                    {
+                        LUMOS_PROFILE_SCOPE("Set text buffer data");
+                        m_TextBuffer->vertex        = transform * glm::vec4(pl, pb, 0.0f, 1.0f);
+                        m_TextBuffer->colour        = colour;
+                        m_TextBuffer->uv            = { l, b };
+                        m_TextBuffer->tid           = glm::vec2(textureIndex, outlineWidth);
+                        m_TextBuffer->outlineColour = outlineColour;
+                        m_TextBuffer++;
 
-                    m_TextBuffer->vertex        = transform * glm::vec4(pr, pb, 0.0f, 1.0f);
-                    m_TextBuffer->colour        = colour;
-                    m_TextBuffer->uv            = { r, b };
-                    m_TextBuffer->tid           = glm::vec2(textureIndex, outlineWidth);
-                    m_TextBuffer->outlineColour = outlineColour;
-                    m_TextBuffer++;
+                        m_TextBuffer->vertex        = transform * glm::vec4(pr, pb, 0.0f, 1.0f);
+                        m_TextBuffer->colour        = colour;
+                        m_TextBuffer->uv            = { r, b };
+                        m_TextBuffer->tid           = glm::vec2(textureIndex, outlineWidth);
+                        m_TextBuffer->outlineColour = outlineColour;
+                        m_TextBuffer++;
 
-                    m_TextBuffer->vertex        = transform * glm::vec4(pr, pt, 0.0f, 1.0f);
-                    m_TextBuffer->colour        = colour;
-                    m_TextBuffer->uv            = { r, t };
-                    m_TextBuffer->tid           = glm::vec2(textureIndex, outlineWidth);
-                    m_TextBuffer->outlineColour = outlineColour;
-                    m_TextBuffer++;
+                        m_TextBuffer->vertex        = transform * glm::vec4(pr, pt, 0.0f, 1.0f);
+                        m_TextBuffer->colour        = colour;
+                        m_TextBuffer->uv            = { r, t };
+                        m_TextBuffer->tid           = glm::vec2(textureIndex, outlineWidth);
+                        m_TextBuffer->outlineColour = outlineColour;
+                        m_TextBuffer++;
 
-                    m_TextBuffer->vertex        = transform * glm::vec4(pl, pt, 0.0f, 1.0f);
-                    m_TextBuffer->colour        = colour;
-                    m_TextBuffer->uv            = { l, t };
-                    m_TextBuffer->tid           = glm::vec2(textureIndex, outlineWidth);
-                    m_TextBuffer->outlineColour = outlineColour;
-                    m_TextBuffer++;
+                        m_TextBuffer->vertex        = transform * glm::vec4(pl, pt, 0.0f, 1.0f);
+                        m_TextBuffer->colour        = colour;
+                        m_TextBuffer->uv            = { l, t };
+                        m_TextBuffer->tid           = glm::vec2(textureIndex, outlineWidth);
+                        m_TextBuffer->outlineColour = outlineColour;
+                        m_TextBuffer++;
+                    }
 
                     m_TextRendererData.m_IndexCount += 6;
 
@@ -2523,6 +2559,7 @@ namespace Lumos::Graphics
         if(!m_Camera)
             return;
 
+        // Loop twice for depth test and no depth test
         for(int i = 0; i < 2; i++)
         {
             bool depthTest = i == 1;
@@ -2536,7 +2573,7 @@ namespace Lumos::Graphics
 
             if(!lines.empty())
             {
-                m_DebugDrawData.m_LineDescriptorSet[0]->SetUniform("UniformBufferObject", "projView", &projView);
+                m_DebugDrawData.m_LineDescriptorSet[0]->SetUniform("UBO", "projView", &projView);
                 m_DebugDrawData.m_LineDescriptorSet[0]->Update();
 
                 Graphics::CommandBuffer* commandBuffer = Renderer::GetMainSwapChain()->GetCurrentCommandBuffer();
@@ -2603,7 +2640,7 @@ namespace Lumos::Graphics
 
             if(!thickLines.empty())
             {
-                m_DebugDrawData.m_LineDescriptorSet[0]->SetUniform("UniformBufferObject", "projView", &projView);
+                m_DebugDrawData.m_LineDescriptorSet[0]->SetUniform("UBO", "projView", &projView);
                 m_DebugDrawData.m_LineDescriptorSet[0]->Update();
 
                 Graphics::CommandBuffer* commandBuffer = Renderer::GetMainSwapChain()->GetCurrentCommandBuffer();
@@ -2671,7 +2708,7 @@ namespace Lumos::Graphics
 
             if(!points.empty())
             {
-                m_DebugDrawData.m_PointDescriptorSet[0]->SetUniform("UniformBufferObject", "projView", &projView);
+                m_DebugDrawData.m_PointDescriptorSet[0]->SetUniform("UBO", "projView", &projView);
                 m_DebugDrawData.m_PointDescriptorSet[0]->Update();
 
                 Graphics::CommandBuffer* commandBuffer = Renderer::GetMainSwapChain()->GetCurrentCommandBuffer();
@@ -2753,7 +2790,7 @@ namespace Lumos::Graphics
 
             if(!triangles.empty())
             {
-                m_DebugDrawData.m_Renderer2DData.m_DescriptorSet[0][0]->SetUniform("UniformBufferObject", "projView", &projView);
+                m_DebugDrawData.m_Renderer2DData.m_DescriptorSet[0][0]->SetUniform("UBO", "projView", &projView);
                 m_DebugDrawData.m_Renderer2DData.m_DescriptorSet[0][0]->Update();
                 m_DebugDrawData.m_Renderer2DData.m_DescriptorSet[0][1]->Update();
 

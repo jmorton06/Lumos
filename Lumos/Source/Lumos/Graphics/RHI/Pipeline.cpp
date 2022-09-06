@@ -26,7 +26,7 @@ namespace Lumos
             float timeSinceLastAccessed;
         };
         static std::unordered_map<std::size_t, PipelineAsset> m_PipelineCache;
-        static const float m_CacheLifeTime = 0.016f;
+        static const float m_CacheLifeTime = 0.1f;
 
         Pipeline* (*Pipeline::CreateFunc)(const PipelineDesc&) = nullptr;
 
@@ -83,7 +83,7 @@ namespace Lumos
             auto found = m_PipelineCache.find(hash);
             if(found != m_PipelineCache.end() && found->second.pipeline)
             {
-                found->second.timeSinceLastAccessed = Engine::GetTimeStep().GetElapsedSeconds();
+                found->second.timeSinceLastAccessed = (float)Engine::GetTimeStep().GetElapsedSeconds();
                 return found->second.pipeline;
             }
 
