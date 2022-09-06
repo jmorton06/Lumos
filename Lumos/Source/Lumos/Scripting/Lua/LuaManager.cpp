@@ -32,6 +32,7 @@
 
 #include <imgui/imgui.h>
 #include <Tracy/TracyLua.hpp>
+#include <sol/sol.hpp>
 
 #ifdef CUSTOM_SMART_PTR
 namespace sol
@@ -145,21 +146,24 @@ namespace Lumos
     void LuaManager::OnInit()
     {
         LUMOS_PROFILE_FUNCTION();
-        m_State.open_libraries(sol::lib::base, sol::lib::package, sol::lib::math, sol::lib::table);
-        tracy::LuaRegister(m_State.lua_state());
 
-        BindAppLua(m_State);
-        BindInputLua(m_State);
-        BindMathsLua(m_State);
-        BindImGuiLua(m_State);
-        BindECSLua(m_State);
-        BindLogLua(m_State);
-        BindSceneLua(m_State);
-        BindPhysicsLua(m_State);
+        m_State = new sol::state();
+        m_State->open_libraries(sol::lib::base, sol::lib::package, sol::lib::math, sol::lib::table);
+        tracy::LuaRegister(m_State->lua_state());
+
+        BindAppLua(*m_State);
+        BindInputLua(*m_State);
+        BindMathsLua(*m_State);
+        BindImGuiLua(*m_State);
+        BindECSLua(*m_State);
+        BindLogLua(*m_State);
+        BindSceneLua(*m_State);
+        BindPhysicsLua(*m_State);
     }
 
     LuaManager::~LuaManager()
     {
+        delete m_State;
     }
 
     void LuaManager::OnInit(Scene* scene)
@@ -190,7 +194,7 @@ namespace Lumos
         if(view.empty())
             return;
 
-        float dt = Engine::Get().GetTimeStep().GetSeconds();
+        float dt = (float)Engine::Get().GetTimeStep().GetSeconds();
 
         for(auto entity : view)
         {
@@ -252,22 +256,22 @@ namespace Lumos
                            { return Input::Get().GetMouseHeld(key); });
 
         input.set_function("GetMousePosition", []() -> glm::vec2
-                           { return Input::Get().GetMousePosition(); });
+                           { return Input::Get().Get().GetMousePosition(); });
 
         input.set_function("GetScrollOffset", []() -> float
-                           { return Input::Get().GetScrollOffset(); });
+                           { return Input::Get().Get().GetScrollOffset(); });
 
         input.set_function("GetControllerAxis", [](int id, int axis) -> float
-                           { return Input::GetControllerAxis(id, axis); });
+                           { return Input::Get().GetControllerAxis(id, axis); });
 
         input.set_function("GetControllerName", [](int id) -> std::string
-                           { return Input::GetControllerName(id); });
+                           { return Input::Get().GetControllerName(id); });
 
         input.set_function("GetControllerHat", [](int id, int hat) -> int
-                           { return Input::GetControllerHat(id, hat); });
+                           { return Input::Get().GetControllerHat(id, hat); });
 
         input.set_function("IsControllerButtonPressed", [](int id, int button) -> bool
-                           { return Input::IsControllerButtonPressed(id, button); });
+                           { return Input::Get().IsControllerButtonPressed(id, button); });
 
         std::initializer_list<std::pair<sol::string_view, Lumos::InputCode::Key>> keyItems = {
             { "A", Lumos::InputCode::Key::A },

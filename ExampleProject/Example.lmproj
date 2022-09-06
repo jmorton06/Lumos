@@ -1,9 +1,7 @@
 {
     "value0": {
-        "Project Version": 7,
+        "Project Version": 8,
         "RenderAPI": 1,
-        "Width": 1440,
-        "Height": 900,
         "Fullscreen": true,
         "VSync": true,
         "ShowConsole": false,
@@ -13,10 +11,11 @@
             "//Scenes/Physics",
             "//Scenes/Terrain",
             "//Scenes/2DTest",
-            "//Scenes/CapsuleTest",
-            "//Scenes/FrictionTest"
+            "//Scenes/ElasticTest",
+            "//Scenes/FrictionTest",
+            "//Scenes/Sandbox"
         ],
-        "SceneIndex": 5,
+        "SceneIndex": 1,
         "Borderless": false,
         "EngineAssetPath": "/Users/jmorton/Dev/Lumos/Lumos/Assets/",
         "GPUIndex": -1

@@ -119,8 +119,8 @@ namespace Lumos
             auto trans             = defaultCameraControllerView.Front().TryGetComponent<Maths::Transform>();
             if(Application::Get().GetSceneActive() && trans && cameraController.GetController())
             {
-                cameraController.GetController()->HandleMouse(*trans, timeStep.GetSeconds(), mousePos.x, mousePos.y);
-                cameraController.GetController()->HandleKeyboard(*trans, timeStep.GetSeconds());
+                cameraController.GetController()->HandleMouse(*trans, (float)timeStep.GetSeconds(), mousePos.x, mousePos.y);
+                cameraController.GetController()->HandleKeyboard(*trans, (float)timeStep.GetSeconds());
             }
         }
 
@@ -131,7 +131,7 @@ namespace Lumos
         for(auto entity : animatedSpriteView)
         {
             auto& animSprite = entity.GetComponent<Graphics::AnimatedSprite>();
-            animSprite.OnUpdate(timeStep.GetSeconds());
+            animSprite.OnUpdate((float)timeStep.GetSeconds());
         }
     }
 

@@ -39,6 +39,16 @@ namespace Lumos
             return GetElapsed(1.0f);
         }
 
+        double GetElapsedMSD()
+        {
+            return GetElapsed(1000.0);
+        }
+
+        double GetElapsedSD()
+        {
+            return GetElapsed(1.0);
+        }
+
     protected:
         float GetElapsed(const float timeResolution) const
         {

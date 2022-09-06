@@ -98,7 +98,7 @@ project "Runtime"
 			"_DISABLE_EXTENDED_ALIGNED_STORAGE",
 			"_SILENCE_CXX17_ITERATOR_BASE_CLASS_DEPRECATION_WARNING",
 			"LUMOS_VOLK"
-}
+		}
 
 		libdirs
 		{
@@ -112,10 +112,7 @@ project "Runtime"
 			"OpenAL32"
 		}
 
-		postbuildcommands
-		{
-			'{COPY} "../Lumos/External/OpenAL/libs/Win32/OpenAL32.dll" "%{cfg.targetdir}"'
-		}
+		postbuildcommands { "xcopy /Y /C \"..\\Lumos\\External\\OpenAL\\libs\\Win32\\OpenAL32.dll\" \"$(OutDir)\"" } 
 
 		disablewarnings { 4307 }
 

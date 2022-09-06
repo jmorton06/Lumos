@@ -7,7 +7,7 @@ layout (location = 1) in vec2 uv;
 layout (location = 2) in vec2 tid;
 layout (location = 3) in vec4 colour;
 
-layout(set = 0,binding = 0) uniform UniformBufferObject
+layout(set = 0,binding = 0) uniform UBO
 {
 	mat4 projView;
 } ubo;

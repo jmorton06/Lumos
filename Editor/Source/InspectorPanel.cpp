@@ -34,7 +34,7 @@
 #include <imgui/imgui_internal.h>
 #include <glm/gtx/matrix_decompose.hpp>
 
-#include <sol/sol.hpp>
+//#include <sol/sol.hpp>
 #include <inttypes.h>
 
 namespace MM
@@ -58,7 +58,7 @@ namespace MM
         else
             loaded = true;
 
-        auto& solEnv         = script.GetSolEnvironment();
+        // auto& solEnv         = script.GetSolEnvironment();
         std::string filePath = script.GetFilePath();
 
         static char objName[INPUT_BUF_SIZE];
@@ -152,15 +152,15 @@ end
 
         ImGui::TextUnformatted("Loaded Functions : ");
 
-        ImGui::Indent();
-        for(auto&& function : solEnv)
-        {
-            if(function.second.is<sol::function>())
-            {
-                ImGui::TextUnformatted(function.first.as<std::string>().c_str());
-            }
-        }
-        ImGui::Unindent();
+        /*     ImGui::Indent();
+             for(auto&& function : solEnv)
+             {
+                 if(function.second.is<sol::function>())
+                 {
+                     ImGui::TextUnformatted(function.first.as<std::string>().c_str());
+                 }
+             }
+             ImGui::Unindent();*/
     }
 
     template <>
@@ -456,6 +456,9 @@ end
         auto elasticity      = phys.GetRigidBody()->GetElasticity();
         auto angularFactor   = phys.GetRigidBody()->GetAngularFactor();
         auto collisionShape  = phys.GetRigidBody()->GetCollisionShape();
+        auto UUID            = phys.GetRigidBody()->GetUUID();
+
+        Lumos::ImGuiUtilities::Property("UUID", (uint32_t&)UUID, Lumos::ImGuiUtilities::PropertyFlag::ReadOnly);
 
         if(Lumos::ImGuiUtilities::Property("Position", pos))
             phys.GetRigidBody()->SetPosition(pos);
@@ -992,6 +995,9 @@ end
         }
 
         Lumos::ImGuiUtilities::Property("Colour", text.Colour, true, Lumos::ImGuiUtilities::PropertyFlag::ColourProperty);
+        Lumos::ImGuiUtilities::Property("Outline Colour", text.OutlineColour, true, Lumos::ImGuiUtilities::PropertyFlag::ColourProperty);
+        Lumos::ImGuiUtilities::Property("Outline Width", text.OutlineWidth);
+
         Lumos::ImGuiUtilities::Property("Line Spacing", text.LineSpacing);
         Lumos::ImGuiUtilities::Property("Max Width", text.MaxWidth);
 

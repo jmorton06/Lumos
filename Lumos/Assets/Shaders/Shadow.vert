@@ -8,7 +8,7 @@ layout(push_constant) uniform PushConsts
 	uint cascadeIndex;
 } pushConsts;
 
-layout(set = 1,binding = 0) uniform ShadowData
+layout(set = 0,binding = 0) uniform ShadowData
 {
     mat4 LightMatrices[16];
 } ubo;

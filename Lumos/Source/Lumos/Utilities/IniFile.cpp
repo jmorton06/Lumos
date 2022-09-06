@@ -61,6 +61,9 @@ std::vector<std::string> Lumos::IniFile::GetFormattedContent() const
 
 void Lumos::IniFile::Load()
 {
+    if(m_FilePath.empty())
+        return;
+
     auto fileString = Lumos::FileSystem::ReadTextFile(m_FilePath);
     auto lines      = Lumos::StringUtilities::GetLines(fileString);
 
@@ -76,6 +79,9 @@ void Lumos::IniFile::Load()
 
 void Lumos::IniFile::Rewrite() const
 {
+    if(m_FilePath.empty())
+        return;
+
     std::stringstream stream;
     for(const auto& [key, value] : m_Data)
         stream << key << "=" << value << std::endl;

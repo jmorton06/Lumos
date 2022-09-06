@@ -1,8 +1,8 @@
-require 'Scripts/premake-defines'
-require 'Scripts/premake-common'
-require 'Scripts/premake-triggers'
-require 'Scripts/premake-settings'
---require 'Scripts/premake-vscode/vscode'
+require 'Scripts/premake-utilities/premake-defines'
+require 'Scripts/premake-utilities/premake-common'
+require 'Scripts/premake-utilities/premake-triggers'
+require 'Scripts/premake-utilities/premake-settings'
+--require 'Scripts/premake-utilities/premake-vscode/vscode'
 
 root_dir = os.getcwd()
 
@@ -22,7 +22,7 @@ end
 
 workspace( settings.workspace_name )
 location "build"
-startproject "Runtime"
+startproject "LumosEditor"
 	flags 'MultiProcessorCompile'
 	
 	outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"

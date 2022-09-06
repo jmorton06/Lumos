@@ -10,7 +10,7 @@
 <br/>
 <br/>
 <a href="https://actions-badge.atrox.dev/jmorton06/Lumos/goto"><img alt="Build" src="https://img.shields.io/endpoint.svg?url=https%3A%2F%2Factions-badge.atrox.dev%2Fjmorton06%2FLumos%2Fbadge&style=flat-square&label=build&branch=master&event=push"/></a>
-<a href=""><img alt="platforms" src="https://img.shields.io/badge/Platforms-Windows%20%7C%20Linux%20%7C%20macOS%20%7C%20iOS-blue?style=flat-square"/></a>
+<a href="https://github.com/jmorton06/Lumos/releases/latest"><img alt="platforms" src="https://img.shields.io/badge/Platforms-Windows%20%7C%20Linux%20%7C%20macOS%20%7C%20iOS-blue?style=flat-square"/></a>
 <a href="https://github.com/jmorton06/Lumos/blob/master/LICENSE"><img alt="license" src="https://img.shields.io/github/license/jmorton06/Lumos?style=flat-square"/></a>
 <br/>
 <a href="https://github.com/jmorton06/Lumos/issues"><img alt="Issues" src="https://img.shields.io/github/issues-raw/jmorton06/Lumos.svg?style=flat-square"/></a>
@@ -32,6 +32,8 @@
 git clone https://github.com/jmorton06/Lumos.git
 git submodule update --init --recursive
 ```
+
+Install Vulkan SDK (https://vulkan.lunarg.com/)
 
 #### Linux
 ```
@@ -68,7 +70,6 @@ Tools/premake5 xcode4 --os=ios
 xcodebuild -project build/Runtime.xcodeproj CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO
 ```
 
-
 To run on apple devices with Vulkan ( MoltenVK ), disable Metal API Validation here : Product > Scheme > Edit Scheme… > Run > Options > Metal API Validation
 #
 
@@ -77,7 +78,7 @@ To run on apple devices with Vulkan ( MoltenVK ), disable Metal API Validation h
 * Support for Windows, Linux, macOS.
 * Support for OpenGL/Vulkan.
 * 3D audio using OpenAL.
-* Rendering 3D models with deferred PBR shading.
+* Rendering 3D models with PBR shading.
 * Debug gui using ImGui
 * 3D collision detection - cuboid/sphere/pyramid.
 * 2D collision detection - Box2D.

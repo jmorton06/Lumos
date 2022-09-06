@@ -103,7 +103,13 @@ namespace Lumos
             template <typename Archive>
             void save(Archive& archive) const
             {
-                std::string shaderPath = "";
+                std::string shaderPath        = "";
+                std::string albedoFilePath    = m_PBRMaterialTextures.albedo ? VFS::Get().AbsoulePathToVFS(m_PBRMaterialTextures.albedo->GetFilepath()) : "";
+                std::string normalFilePath    = m_PBRMaterialTextures.normal ? VFS::Get().AbsoulePathToVFS(m_PBRMaterialTextures.normal->GetFilepath()) : "";
+                std::string metallicFilePath  = m_PBRMaterialTextures.metallic ? VFS::Get().AbsoulePathToVFS(m_PBRMaterialTextures.metallic->GetFilepath()) : "";
+                std::string roughnessFilePath = m_PBRMaterialTextures.roughness ? VFS::Get().AbsoulePathToVFS(m_PBRMaterialTextures.roughness->GetFilepath()) : "";
+                std::string emissiveFilePath  = m_PBRMaterialTextures.emissive ? VFS::Get().AbsoulePathToVFS(m_PBRMaterialTextures.emissive->GetFilepath()) : "";
+                std::string aoFilePath        = m_PBRMaterialTextures.ao ? VFS::Get().AbsoulePathToVFS(m_PBRMaterialTextures.ao->GetFilepath()) : "";
 
                 if(m_Shader)
                 {
@@ -111,12 +117,12 @@ namespace Lumos
                     VFS::Get().AbsoulePathToVFS(path, shaderPath);
                 }
 
-                archive(cereal::make_nvp("Albedo", m_PBRMaterialTextures.albedo ? m_PBRMaterialTextures.albedo->GetFilepath() : ""),
-                        cereal::make_nvp("Normal", m_PBRMaterialTextures.normal ? m_PBRMaterialTextures.normal->GetFilepath() : ""),
-                        cereal::make_nvp("Metallic", m_PBRMaterialTextures.metallic ? m_PBRMaterialTextures.metallic->GetFilepath() : ""),
-                        cereal::make_nvp("Roughness", m_PBRMaterialTextures.roughness ? m_PBRMaterialTextures.roughness->GetFilepath() : ""),
-                        cereal::make_nvp("Ao", m_PBRMaterialTextures.ao ? m_PBRMaterialTextures.ao->GetFilepath() : ""),
-                        cereal::make_nvp("Emissive", m_PBRMaterialTextures.emissive ? m_PBRMaterialTextures.emissive->GetFilepath() : ""),
+                archive(cereal::make_nvp("Albedo", albedoFilePath),
+                        cereal::make_nvp("Normal", normalFilePath),
+                        cereal::make_nvp("Metallic", metallicFilePath),
+                        cereal::make_nvp("Roughness", roughnessFilePath),
+                        cereal::make_nvp("Ao", aoFilePath),
+                        cereal::make_nvp("Emissive", emissiveFilePath),
                         cereal::make_nvp("albedoColour", m_MaterialProperties->albedoColour),
                         cereal::make_nvp("roughnessValue", m_MaterialProperties->roughness),
                         cereal::make_nvp("metallicValue", m_MaterialProperties->metallic),

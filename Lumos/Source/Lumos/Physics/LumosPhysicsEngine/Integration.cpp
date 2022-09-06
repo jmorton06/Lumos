@@ -6,8 +6,6 @@ namespace Lumos
 
     void Integration::RK2(State& state, float t, float dt)
     {
-        State c, d;
-
         const Derivative a = Evaluate(state, t, 0.0f, Derivative());
         const Derivative b = Evaluate(state, t, dt * 0.5f, a);
 

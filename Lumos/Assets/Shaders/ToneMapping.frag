@@ -8,9 +8,9 @@ layout(location = 0) in vec2 outTexCoord;
 
 layout(set = 0, binding = 0) uniform UniformBuffer
 {
-	float Exposure;
 	float BloomIntensity;
 	int ToneMapIndex;
+	float p0;
 	float p1;
 } ubo;
 
@@ -37,6 +37,17 @@ vec3 UpsampleTent9(sampler2D tex, float lod, vec2 uv, vec2 texelSize, float radi
 	result += textureLod(tex, uv + offset.xy, lod).rgb;
 	
 	return result * (1.0f / 16.0f);
+}
+
+vec3 ACESApprox(vec3 v)
+{
+    v *= 0.6f;
+    float a = 2.51f;
+    float b = 0.03f;
+    float c = 2.43f;
+    float d = 0.59f;
+    float e = 0.14f;
+    return clamp((v*(a*v+b))/(v*(c*v+d)+e), 0.0f, 1.0f);
 }
 
 // Based on http://www.oscars.org/science-technology/sci-tech-projects/aces
@@ -109,13 +120,65 @@ vec3 Uncharted2ToneMapping(vec3 colour)
     float E = 0.02;
     float F = 0.30;
     float W = 11.2;
-	float exposure = 2.;
-	colour *= exposure;
-	colour = ((colour * (A * colour + C * B) + D * E) / (colour * (A * colour + B) + D * F)) - E / F;
-	float white = ((W * (A * W + C * B) + D * E) / (W * (A * W + B) + D * F)) - E / F;
-	colour /= white;
+	return ((colour * (A * colour + C * B) + D * E) / (colour * (A * colour + B) + D * F)) - E / F;
+}
+
+vec3 uncharted2_tonemap_partial(vec3 x)
+{
+    float A = 0.15f;
+    float B = 0.50f;
+    float C = 0.10f;
+    float D = 0.20f;
+    float E = 0.02f;
+    float F = 0.30f;
+    return ((x*(A*x+C*B)+D*E)/(x*(A*x+B)+D*F))-E/F;
+}
+
+vec3 uncharted2_filmic(vec3 v)
+{
+    float exposure_bias = 2.0f;
+    vec3 curr = uncharted2_tonemap_partial(v * exposure_bias);
 	
-    return colour;
+    vec3 W = vec3(11.2f);
+    vec3 white_scale = vec3(1.0f) / uncharted2_tonemap_partial(W);
+    return curr * white_scale;
+}
+
+float luminance(vec3 v)
+{
+    return dot(v, vec3(0.2126f, 0.7152f, 0.0722f));
+}
+
+vec3 change_luminance(vec3 c_in, float l_out)
+{
+    float l_in = luminance(c_in);
+    return c_in * (l_out / l_in);
+}
+
+vec3 reinhard_extended(vec3 v, float max_white)
+{
+    vec3 numerator = v * (1.0f + (v / vec3(max_white * max_white)));
+    return numerator / (1.0f + v);
+}
+
+vec3 reinhard(vec3 v)
+{
+    return v / (1.0f + v);
+}
+
+vec3 reinhard_jodie(vec3 v)
+{
+    float l = luminance(v);
+    vec3 tv = v / (1.0f + v);
+    return mix(v / (1.0f + l), tv, tv);
+}
+
+vec3 reinhard_extended_luminance(vec3 v, float max_white_l)
+{
+    float l_old = luminance(v);
+    float numerator = l_old * (1.0f + (l_old / (max_white_l * max_white_l)));
+    float l_new = numerator / (1.0f + l_old);
+    return change_luminance(v, l_new);
 }
 
 void main()
@@ -129,14 +192,13 @@ void main()
 	vec3 bloom = UpsampleTent9(u_BloomTexture, 0, outTexCoord, 1.0f / fTexSize, sampleScale) * ubo.BloomIntensity;
 	
 	colour += bloom;
-	colour *= ubo.Exposure;
 	
 	int i = ubo.ToneMapIndex;
 	if (i == 1) colour = linearToneMapping(colour);
-	else if (i == 2) colour = simpleReinhardToneMapping(colour);
+	else if (i == 2) colour = reinhard_jodie(colour);
 	else if (i == 3) colour = lumaBasedReinhardToneMapping(colour);
 	else if (i == 4) colour = whitePreservingLumaBasedReinhardToneMapping(colour);
-	else if (i == 5) colour = Uncharted2ToneMapping(colour);
+	else if (i == 5) colour = uncharted2_filmic(colour);
 	else if (i == 6) colour = ACESTonemap(colour);
 	
 	colour = Gamma(colour);

@@ -58,29 +58,29 @@ layout(set = 1,binding = 6) uniform UniformMaterialData
 	float padding;
 } materialProperties;
 
-layout(set = 2, binding = 0) uniform sampler2D uPreintegratedFG;
-layout(set = 2, binding = 1) uniform samplerCube uEnvironmentMap;
-layout(set = 2, binding = 2) uniform samplerCube uIrradianceMap;
+layout(set = 2, binding = 0) uniform sampler2D uBRDFLUT;
+layout(set = 2, binding = 1) uniform samplerCube uEnvMap;
+layout(set = 2, binding = 2) uniform samplerCube uIrrMap;
 layout(set = 2, binding = 3) uniform sampler2DArray uShadowMap;
 
-layout(set = 2, binding = 4) uniform UniformBufferLight
+layout(set = 2, binding = 4) uniform UBOLight
 {
 	Light lights[MAX_LIGHTS];
-	mat4 uShadowTransform[MAX_SHADOWMAPS];
-	mat4 viewMatrix;
-	mat4 lightView;
-	mat4 biasMat;
+	mat4 ShadowTransform[MAX_SHADOWMAPS];
+	mat4 ViewMatrix;
+	mat4 LightView;
+	mat4 BiasMatrix;
 	vec4 cameraPosition;
-	vec4 uSplitDepths[MAX_SHADOWMAPS];
-	float lightSize;
-	float maxShadowDistance;
-	float shadowFade;
-	float cascadeTransitionFade;
-	int lightCount;
-	int shadowCount;
-	int mode;
-	int cubemapMipLevels;
-	float initialBias;
+	vec4 SplitDepths[MAX_SHADOWMAPS];
+	float LightSize;
+	float MaxShadowDist;
+	float ShadowFade;
+	float CascadeFade;
+	int LightCount;
+	int ShadowCount;
+	int Mode;
+	int EnvMipCount;
+	float InitialBias;
 } ubo;
 
 layout(location = 0) out vec4 outColor;
@@ -147,7 +147,7 @@ vec3 GetNormalFromMap()
 }
 
 
-const mat4 biasMat = mat4(
+const mat4 BiasMatrix = mat4(
 						  0.5, 0.0, 0.0, 0.5,
 						  0.0, 0.5, 0.0, 0.5,
 						  0.0, 0.0, 1.0, 0.0,
@@ -242,7 +242,7 @@ vec2 SearchRegionRadiusUV(float zWorld)
 
 float GetShadowBias(vec3 lightDirection, vec3 normal, int shadowIndex)
 {
-	float minBias = ubo.initialBias;
+	float minBias = ubo.InitialBias;
 	float bias = max(minBias * (1.0 - dot(normal, lightDirection)), minBias);
 	return bias;
 }
@@ -275,11 +275,11 @@ float PCFShadowDirectionalLight(sampler2DArray shadowMap, vec4 shadowCoords, flo
 int CalculateCascadeIndex(vec3 wsPos)
 {
 	int cascadeIndex = 0;
-	vec4 viewPos = ubo.viewMatrix * vec4(wsPos, 1.0);
+	vec4 viewPos = ubo.ViewMatrix * vec4(wsPos, 1.0);
 	
-	for(int i = 0; i < ubo.shadowCount - 1; ++i)
+	for(int i = 0; i < ubo.ShadowCount - 1; ++i)
 	{
-		if(viewPos.z < ubo.uSplitDepths[i].x)
+		if(viewPos.z < ubo.SplitDepths[i].x)
 		{
 			cascadeIndex = i + 1;
 		}
@@ -290,25 +290,25 @@ int CalculateCascadeIndex(vec3 wsPos)
 
 float CalculateShadow(vec3 wsPos, int cascadeIndex, vec3 lightDirection, vec3 normal)
 {
-	vec4 shadowCoord = ubo.biasMat * ubo.uShadowTransform[cascadeIndex] * vec4(wsPos, 1.0);
+	vec4 shadowCoord = ubo.BiasMatrix * ubo.ShadowTransform[cascadeIndex] * vec4(wsPos, 1.0);
 	shadowCoord = shadowCoord * (1.0 / shadowCoord.w);
 	float NEAR = 0.01;
-	float uvRadius =  ubo.lightSize * NEAR / shadowCoord.z;
+	float uvRadius =  ubo.LightSize * NEAR / shadowCoord.z;
 	uvRadius = min(uvRadius, 0.002f);
-	vec4 viewPos = ubo.viewMatrix * vec4(wsPos, 1.0);
+	vec4 viewPos = ubo.ViewMatrix * vec4(wsPos, 1.0);
 	
 	float shadowAmount = 1.0;
 
 #if (BLEND_SHADOW_CASCADES == 1)
-	float c0 = smoothstep(ubo.uSplitDepths[0].x + ubo.cascadeTransitionFade * 0.5f, ubo.uSplitDepths[0].x - ubo.cascadeTransitionFade * 0.5f, viewPos.z);
-	float c1 = smoothstep(ubo.uSplitDepths[1].x + ubo.cascadeTransitionFade * 0.5f, ubo.uSplitDepths[1].x - ubo.cascadeTransitionFade * 0.5f, viewPos.z);
-	float c2 = smoothstep(ubo.uSplitDepths[2].x + ubo.cascadeTransitionFade * 0.5f, ubo.uSplitDepths[2].x - ubo.cascadeTransitionFade * 0.5f, viewPos.z);
+	float c0 = smoothstep(ubo.SplitDepths[0].x + ubo.CascadeFade * 0.5f, ubo.SplitDepths[0].x - ubo.CascadeFade * 0.5f, viewPos.z);
+	float c1 = smoothstep(ubo.SplitDepths[1].x + ubo.CascadeFade * 0.5f, ubo.SplitDepths[1].x - ubo.CascadeFade * 0.5f, viewPos.z);
+	float c2 = smoothstep(ubo.SplitDepths[2].x + ubo.CascadeFade * 0.5f, ubo.SplitDepths[2].x - ubo.CascadeFade * 0.5f, viewPos.z);
 	
 	if (c0 > 0.0 && c0 < 1.0)
 	{
-		shadowCoord = ubo.biasMat * ubo.uShadowTransform[0] * vec4(wsPos, 1.0);
+		shadowCoord = ubo.BiasMatrix * ubo.ShadowTransform[0] * vec4(wsPos, 1.0);
 		float shadowAmount0 = PCFShadowDirectionalLight(uShadowMap, shadowCoord, uvRadius, lightDirection, normal, wsPos, 0);
-		shadowCoord = ubo.biasMat * ubo.uShadowTransform[1] * vec4(wsPos, 1.0);
+		shadowCoord = ubo.BiasMatrix * ubo.ShadowTransform[1] * vec4(wsPos, 1.0);
 		float shadowAmount1 = PCFShadowDirectionalLight(uShadowMap, shadowCoord, uvRadius, lightDirection, normal, wsPos, 1);
 		
 		shadowAmount = mix(shadowAmount0, shadowAmount1, c0);
@@ -316,9 +316,9 @@ float CalculateShadow(vec3 wsPos, int cascadeIndex, vec3 lightDirection, vec3 no
 	else if (c1 > 0.0 && c1 < 1.0)
 	{
 		// Sample 1 & 2
-		shadowCoord = ubo.biasMat * ubo.uShadowTransform[1] * vec4(wsPos, 1.0);
+		shadowCoord = ubo.BiasMatrix * ubo.ShadowTransform[1] * vec4(wsPos, 1.0);
 		float shadowAmount1 = PCFShadowDirectionalLight(uShadowMap, shadowCoord, uvRadius, lightDirection, normal, wsPos, 1);
-		shadowCoord = ubo.biasMat * ubo.uShadowTransform[2] * vec4(wsPos, 1.0);
+		shadowCoord = ubo.BiasMatrix * ubo.ShadowTransform[2] * vec4(wsPos, 1.0);
 		float shadowAmount2 = PCFShadowDirectionalLight(uShadowMap, shadowCoord, uvRadius, lightDirection, normal, wsPos, 2);
 		
 		shadowAmount = mix(shadowAmount1, shadowAmount2, c1);
@@ -326,9 +326,9 @@ float CalculateShadow(vec3 wsPos, int cascadeIndex, vec3 lightDirection, vec3 no
 	else if (c2 > 0.0 && c2 < 1.0)
 	{
 		// Sample 2 & 3
-		shadowCoord = ubo.biasMat * ubo.uShadowTransform[2] * vec4(wsPos, 1.0);
+		shadowCoord = ubo.BiasMatrix * ubo.ShadowTransform[2] * vec4(wsPos, 1.0);
 		float shadowAmount2 = PCFShadowDirectionalLight(uShadowMap, shadowCoord, uvRadius, lightDirection, normal, wsPos, 2);
-		shadowCoord = ubo.biasMat * ubo.uShadowTransform[3] * vec4(wsPos, 1.0);
+		shadowCoord = ubo.BiasMatrix * ubo.ShadowTransform[3] * vec4(wsPos, 1.0);
 		float shadowAmount3 = PCFShadowDirectionalLight(uShadowMap, shadowCoord, uvRadius, lightDirection, normal, wsPos, 3);
 		
 		shadowAmount = mix(shadowAmount2, shadowAmount3, c2);
@@ -387,7 +387,7 @@ vec3 Lighting(vec3 F0, vec3 wsPos, Material material)
 {
 	vec3 result = vec3(0.0);
 	
-	for(int i = 0; i < ubo.lightCount; i++)
+	for(int i = 0; i < ubo.LightCount; i++)
 	{
 		Light light = ubo.lights[i];
 		float value = 0.0;
@@ -460,19 +460,19 @@ vec3 Lighting(vec3 F0, vec3 wsPos, Material material)
 
 vec3 IBL(vec3 F0, vec3 Lr, Material material)
 {
-	vec3 irradiance = texture(uIrradianceMap, material.Normal).rgb;
+	vec3 irradiance = texture(uIrrMap, material.Normal).rgb;
 	irradiance = DeGamma(irradiance);
 	vec3 F = fresnelSchlickRoughness(F0, material.NDotV, material.Roughness);
 	vec3 kd = (1.0 - F) * (1.0 - material.Metallic.x);
 	vec3 diffuseIBL = material.Albedo.xyz * irradiance;
 	
-	int u_EnvRadianceTexLevels = ubo.cubemapMipLevels;// textureQueryLevels(uPreintegratedFG);	
-	vec3 specularIrradiance = textureLod(uEnvironmentMap, Lr, material.Roughness * u_EnvRadianceTexLevels).rgb;
+	int u_EnvRadianceTexLevels = ubo.EnvMipCount;// textureQueryLevels(uBRDFLUT);	
+	vec3 specularIrradiance = textureLod(uEnvMap, Lr, material.Roughness * u_EnvRadianceTexLevels).rgb;
 	
 	specularIrradiance = DeGamma(specularIrradiance);
 	
-	vec2 specularBRDF = texture(uPreintegratedFG, vec2(material.NDotV, 1.0 - material.Roughness.x)).rg;
-	vec3 specularIBL = specularIrradiance * (F0 * specularBRDF.x + specularBRDF.y);
+	vec2 specularBRDF = texture(uBRDFLUT, vec2(material.NDotV, material.Roughness.x)).rg;
+	vec3 specularIBL = specularIrradiance * (F * specularBRDF.x + specularBRDF.y);
 	
 	return kd * diffuseIBL + specularIBL;
 }
@@ -519,16 +519,29 @@ void main()
     material.Normal    = normalize(GetNormalFromMap());
 	material.AO		   = GetAO();
 	material.Emissive  = GetEmissive(material.Albedo.rgb);
-	material.Roughness = max(material.Roughness, 0.06); 
+	//material.Roughness = max(material.Roughness, 0.06); 
+
+    // Specular anti-aliasing
+    // {
+    //     const float strength           = 1.0f;
+    //     const float maxRoughnessGain = 0.02f;
+
+    //     float roughness2         = roughness * roughness;
+    //     vec3 dndu                = dFdx(material.Normal), dndv = dFdy(material.Normal);
+    //     float variance           = (dot(dndu, dndu) + dot(dndv, dndv));
+    //     float kernelRoughness2   = min(variance * strength, maxRoughnessGain);
+    //     float filteredRoughness2 = saturate(roughness2 + kernelRoughness2);
+    //     material.Roughness       = sqrt(filteredRoughness2);
+    // }
 	
 	vec3 wsPos     = Input.Position.xyz;
 	material.View  = normalize(ubo.cameraPosition.xyz - wsPos);
 	material.NDotV = max(dot(material.Normal, material.View), 0.0);
 
-    float shadowDistance     = ubo.maxShadowDistance;
-	float transitionDistance = ubo.shadowFade;
+    float shadowDistance     = ubo.MaxShadowDist;
+	float transitionDistance = ubo.ShadowFade;
 	
-	vec4 viewPos = ubo.viewMatrix * vec4(wsPos, 1.0);
+	vec4 viewPos = ubo.ViewMatrix * vec4(wsPos, 1.0);
 	
 	float distance = length(viewPos);
 	ShadowFade = distance - (shadowDistance - transitionDistance);
@@ -543,11 +556,12 @@ void main()
 	vec3 iblContribution   = IBL(F0, Lr, material);
 	
 	vec3 finalColour = lightContribution + iblContribution + material.Emissive;
+
 	outColor = vec4(finalColour, 1.0);
 	
-	if(ubo.mode > 0)
+	if(ubo.Mode > 0)
 	{
-		switch(ubo.mode)
+		switch(ubo.Mode)
 		{
 			case 1:
 			outColor = material.Albedo;

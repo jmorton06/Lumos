@@ -38,7 +38,7 @@ namespace Lumos
             typename MapType::iterator itr = m_NameResourceMap.find(name);
             if(itr != m_NameResourceMap.end())
             {
-                itr->second.lastAccessed = Engine::GetTimeStep().GetElapsedSeconds();
+                itr->second.lastAccessed = (float)Engine::GetTimeStep().GetElapsedSeconds();
                 return itr->second.data;
             }
 
@@ -53,7 +53,7 @@ namespace Lumos
             newResource.data            = resourceData;
             newResource.timeSinceReload = 0;
             newResource.onDisk          = true;
-            newResource.lastAccessed    = Engine::GetTimeStep().GetElapsedSeconds();
+            newResource.lastAccessed    = (float)Engine::GetTimeStep().GetElapsedSeconds();
 
             m_NameResourceMap.emplace(name, newResource);
 
@@ -86,7 +86,7 @@ namespace Lumos
             typename MapType::iterator itr = m_NameResourceMap.find(name);
             if(itr != m_NameResourceMap.end())
             {
-                itr->second.lastAccessed = Engine::GetTimeStep().GetElapsedSeconds();
+                itr->second.lastAccessed = (float)Engine::GetTimeStep().GetElapsedSeconds();
                 itr->second.data         = data;
             }
 
@@ -94,7 +94,7 @@ namespace Lumos
             newResource.data            = data;
             newResource.timeSinceReload = 0;
             newResource.onDisk          = true;
-            newResource.lastAccessed    = Engine::GetTimeStep().GetElapsedSeconds();
+            newResource.lastAccessed    = (float)Engine::GetTimeStep().GetElapsedSeconds();
 
             m_NameResourceMap.emplace(name, newResource);
         }

@@ -31,7 +31,7 @@ namespace Lumos
 
             void CreateFramebuffers();
 
-            struct UniformBufferObjectFrag
+            struct UBOFrag
             {
                 glm::vec4 cameraPos;
                 glm::vec4 cameraForward;

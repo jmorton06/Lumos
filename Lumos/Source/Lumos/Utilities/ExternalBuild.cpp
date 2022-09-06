@@ -1,6 +1,7 @@
 #include "Precompiled.h"
 
 #pragma warning(push, 0)
+#include <Tracy/TracyClient.cpp>
 
 #ifdef LUMOS_RENDER_API_OPENGL
 #include <glad/src/glad.c>
@@ -39,5 +40,4 @@
 
 #include <OpenFBX/miniz.c>
 #include <OpenFBX/ofbx.cpp>
-#include <Tracy/TracyClient.cpp>
 #pragma warning(pop)

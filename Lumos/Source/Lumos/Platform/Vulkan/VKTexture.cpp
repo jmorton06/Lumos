@@ -181,8 +181,9 @@ namespace Lumos
             m_LoadOptions = loadOptions;
             m_Format      = parameters.format;
             m_VKFormat    = VKUtilities::FormatToVK(m_Parameters.format, m_Parameters.srgb);
-            m_DeleteImage = Load();
             m_Flags       = m_Parameters.flags;
+
+            m_DeleteImage = Load();
 
             if(!m_DeleteImage)
                 return;
@@ -266,10 +267,12 @@ namespace Lumos
 
         void VKTexture2D::Resize(uint32_t width, uint32_t height)
         {
-            m_Width  = width;
-            m_Height = height;
-
             DeleteResources();
+
+            m_Width        = width;
+            m_Height       = height;
+            m_TextureImage = VkImage();
+
             BuildTexture();
         }
 
@@ -428,6 +431,9 @@ namespace Lumos
 
             m_MipLevels = static_cast<uint32_t>(std::floor(std::log2(Maths::Max(m_Width, m_Height)))) + 1;
 
+            if(!(m_Flags & TextureFlags::Texture_CreateMips))
+                m_MipLevels = 1;
+
             VKBuffer* stagingBuffer = new VKBuffer(VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, static_cast<uint32_t>(imageSize), pixels);
 
             if(m_Data == nullptr)
@@ -443,7 +449,8 @@ namespace Lumos
 
             delete stagingBuffer;
 
-            GenerateMipmaps(m_TextureImage, m_VKFormat, m_Width, m_Height, m_MipLevels);
+            if(m_Flags & TextureFlags::Texture_CreateMips)
+                GenerateMipmaps(m_TextureImage, m_VKFormat, m_Width, m_Height, m_MipLevels);
 
             TransitionImage(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
@@ -1028,6 +1035,8 @@ namespace Lumos
                     vkFreeMemory(VKDevice::Get().GetDevice(), memory, nullptr); });
 
 #endif
+            m_TextureImage = VkImage();
+
             Init();
         }
 
@@ -1136,16 +1145,41 @@ namespace Lumos
             m_Height = height;
             m_Count  = count;
 
-            if(m_TextureSampler)
-                vkDestroySampler(VKDevice::GetHandle(), m_TextureSampler, nullptr);
+            VKContext::DeletionQueue& deletionQueue = VKRenderer::GetCurrentDeletionQueue();
 
-            vkDestroyImageView(VKDevice::GetHandle(), m_TextureImageView, nullptr);
+            auto sampler    = m_TextureSampler;
+            auto imageView  = m_TextureImageView;
+            auto imageViews = m_IndividualImageViews;
+
+            deletionQueue.PushFunction([sampler, imageView, imageViews]
+                                       {
+                    vkDestroySampler(VKDevice::GetHandle(), sampler, nullptr);
+                    vkDestroyImageView(VKDevice::GetHandle(), imageView, nullptr);
+
+                    for(uint32_t i = 0; i < (uint32_t)imageViews.size(); i++)
+                    {
+                        vkDestroyImageView(VKDevice::GetHandle(), imageViews[i], nullptr);
+                    } });
+
 #ifdef USE_VMA_ALLOCATOR
-            vmaDestroyImage(VKDevice::Get().GetAllocator(), m_TextureImage, m_Allocation);
+            auto textureImage = m_TextureImage;
+            auto alloc        = m_Allocation;
+
+            deletionQueue.PushFunction([textureImage, alloc]
+                                       { vmaDestroyImage(VKDevice::Get().GetAllocator(), textureImage, alloc); });
 #else
-            vkDestroyImage(VKDevice::Get().GetDevice(), m_TextureImage, nullptr);
-            vkFreeMemory(VKDevice::Get().GetDevice(), m_TextureImageMemory, nullptr);
+
+            auto textureImage = m_TextureImage;
+            auto memory = m_TextureImageMemory;
+
+            deletionQueue.PushFunction([textureImage, memory]
+                                       {
+                    vkDestroyImage(VKDevice::Get().GetDevice(), textureImage, nullptr);
+                    vkFreeMemory(VKDevice::Get().GetDevice(), memory, nullptr); });
+
 #endif
+
+            m_TextureImage = VkImage();
 
             Init();
         }

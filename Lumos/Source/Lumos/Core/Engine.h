@@ -17,7 +17,7 @@ namespace Lumos
         float TargetFrameRate() const { return m_MaxFramesPerSecond; }
         void SetTargetFrameRate(float targetFPS) { m_MaxFramesPerSecond = targetFPS; }
 
-        static TimeStep& GetTimeStep() { return Engine::Get().m_TimeStep; }
+        static TimeStep& GetTimeStep() { return *Engine::Get().m_TimeStep; }
 
         struct Stats
         {
@@ -26,7 +26,7 @@ namespace Lumos
             uint32_t NumRenderedObjects = 0;
             uint32_t NumShadowObjects   = 0;
             uint32_t NumDrawCalls       = 0;
-            float FrameTime             = 0.0f;
+            double FrameTime            = 0.0;
             float UsedGPUMemory         = 0.0f;
             float UsedRam               = 0.0f;
             float TotalGPUMemory        = 0.0f;
@@ -36,7 +36,7 @@ namespace Lumos
         {
             m_Stats.NumRenderedObjects = 0;
             m_Stats.NumShadowObjects   = 0;
-            m_Stats.FrameTime          = 0.0f;
+            m_Stats.FrameTime          = 0.0;
             m_Stats.UsedGPUMemory      = 0.0f;
             m_Stats.UsedRam            = 0.0f;
             m_Stats.NumDrawCalls       = 0;
@@ -48,6 +48,6 @@ namespace Lumos
     private:
         Stats m_Stats;
         float m_MaxFramesPerSecond;
-        TimeStep m_TimeStep;
+        TimeStep* m_TimeStep;
     };
 }

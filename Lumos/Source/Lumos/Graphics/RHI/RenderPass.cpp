@@ -52,7 +52,7 @@ namespace Lumos
 
             for(auto&& [key, value] : m_RenderPassCache)
             {
-                if(value && value.GetCounter()->GetReferenceCount() == 1)
+                if(value && value.GetCounter() && value.GetCounter()->GetReferenceCount() == 1)
                 {
                     keysToDelete[keysToDeleteCount] = key;
                     keysToDeleteCount++;

@@ -101,6 +101,8 @@ namespace Lumos
             void Render2DFlush();
             void DebugPass();
             void FinalPass();
+            void TextPass();
+            void TextFlush();
 
             // Post Process
             void ToneMappingPass();
@@ -111,8 +113,6 @@ namespace Lumos
             void EyeAdaptationPass();
             void FilmicGrainPass();
             void OutlinePass();
-            void TextPass();
-            void TextFlush();
 
             float SubmitTexture(Texture* texture);
             void UpdateCascades(Scene* scene, Light* light);
@@ -149,7 +149,7 @@ namespace Lumos
                 float m_LightSize;
                 float m_MaxShadowDistance;
                 float m_ShadowFade;
-                float m_CascadeTransitionFade;
+                float m_CascadeFade;
                 float m_InitialBias;
                 float CascadeFarPlaneOffset = 50.0f, CascadeNearPlaneOffset = -50.0f;
                 CommandQueue m_CascadeCommandQueue[SHADOWMAP_MAX];
@@ -283,6 +283,8 @@ namespace Lumos
             DebugDrawData m_DebugDrawData;
             glm::vec4 m_ClearColour;
 
+            TextVertexData* m_TextBuffer = nullptr;
+
             int m_ToneMapIndex     = 4;
             float m_Exposure       = 1.0f;
             float m_BloomIntensity = 1.0f;
@@ -340,6 +342,10 @@ namespace Lumos
 
             RenderGraphSettings m_Settings;
             RenderGraphStats m_Stats;
+
+            // Outline pass
+            Graphics::Model* m_SelectedModel           = nullptr;
+            Maths::Transform* m_SelectedModelTransform = nullptr;
         };
     }
 }

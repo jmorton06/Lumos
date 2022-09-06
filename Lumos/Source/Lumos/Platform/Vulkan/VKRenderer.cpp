@@ -143,7 +143,6 @@ namespace Lumos
         {
             LUMOS_PROFILE_FUNCTION();
             SharedPtr<VKSwapChain> swapChain = Application::Get().GetWindow()->GetSwapChain().As<VKSwapChain>();
-            swapChain->AcquireNextImage();
             swapChain->Begin();
         }
 
@@ -219,7 +218,7 @@ namespace Lumos
             //
             //                VkFenceCreateInfo fenceCreateInfo {};
             //                fenceCreateInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
-            //                fenceCreateInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
+            // fenceCreateInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
             //                VK_CHECK_RESULT(vkCreateFence(device, &fenceCreateInfo, nullptr, &s_ComputeFence));
             //            }
             //

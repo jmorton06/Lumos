@@ -973,7 +973,7 @@
             "ptr_wrapper": {
                 "valid": 1,
                 "data": {
-                    "Albedo": "/Users/jmorton/Dev/Lumos/ExampleProject/Assets/Textures/checkerboard.tga",
+                    "Albedo": "//Textures/checkerboard.tga",
                     "Normal": "",
                     "Metallic": "",
                     "Roughness": "",
