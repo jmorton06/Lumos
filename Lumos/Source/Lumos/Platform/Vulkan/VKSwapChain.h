@@ -48,6 +48,7 @@ namespace Lumos
 
             VkSurfaceKHR CreatePlatformSurface(VkInstance vkInstance, Window* window);
             CommandBuffer* GetCurrentCommandBuffer() override;
+            void SetVSync(bool vsync) override { m_VSyncEnabled = vsync; }
 
             FrameData& GetCurrentFrameData();
             VkFormat GetScreenFormat() const { return m_ColourFormat; }

@@ -76,7 +76,7 @@ namespace Lumos
                 auto device                                             = VKDevice::GetHandle();
                 std::map<std::string, SharedPtr<UniformBuffer>> buffers = m_UniformBuffers[frame];
 
-                VKContext::DeletionQueue& deletionQueue = VKRenderer::GetDeletionQueue(frame);
+                VKContext::DeletionQueue& deletionQueue = VKRenderer::GetCurrentDeletionQueue();
                 deletionQueue.PushFunction([descriptorSet, pool, device]
                                            { vkFreeDescriptorSets(device, pool, 1, &descriptorSet); });
             }

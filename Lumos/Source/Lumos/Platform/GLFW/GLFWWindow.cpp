@@ -397,16 +397,11 @@ namespace Lumos
     void GLFWWindow::SetVSync(bool set)
     {
         LUMOS_PROFILE_FUNCTION();
-        if(set)
-        {
-            m_VSync = true;
-            glfwSwapInterval(1);
-        }
-        else
-        {
-            m_VSync = false;
-            glfwSwapInterval(0);
-        }
+
+        m_VSync = set;
+        if(Graphics::GraphicsContext::GetRenderAPI() == Graphics::RenderAPI::OPENGL)
+            glfwSwapInterval(set ? 1 : 0);
+
         LUMOS_LOG_INFO("VSync : {0}", m_VSync ? "True" : "False");
     }
 

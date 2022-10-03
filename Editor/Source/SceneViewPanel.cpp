@@ -103,6 +103,9 @@ namespace Lumos
         if(m_Editor->GetSettings().m_HalfRes)
             sceneViewSize *= 0.5f;
 
+        sceneViewSize.x -= static_cast<int>(sceneViewSize.x) % 2 != 0 ? 1.0f : 0.0f;
+        sceneViewSize.y -= static_cast<int>(sceneViewSize.y) % 2 != 0 ? 1.0f : 0.0f;
+
         Resize(static_cast<uint32_t>(sceneViewSize.x), static_cast<uint32_t>(sceneViewSize.y));
 
         if(m_Editor->GetSettings().m_HalfRes)

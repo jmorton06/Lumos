@@ -15,8 +15,9 @@ namespace Lumos
     {
         static VkFence s_ComputeFence = nullptr;
 
-        VKContext::DeletionQueue VKRenderer::s_DeletionQueue[3] = {};
-        VkDescriptorPool VKRenderer::s_DescriptorPool           = {};
+        int VKRenderer::s_DeletionQueueIndex                              = 0;
+        std::vector<VKContext::DeletionQueue> VKRenderer::s_DeletionQueue = {};
+        VkDescriptorPool VKRenderer::s_DescriptorPool                     = {};
 
         void VKRenderer::InitInternal()
         {
@@ -65,6 +66,9 @@ namespace Lumos
 
             // Pool
             VK_CHECK_RESULT(vkCreateDescriptorPool(VKDevice::Get().GetDevice(), &pool_info, nullptr, &s_DescriptorPool));
+
+            // Deletion queue larger than frames in flight to delay deletion a few frames
+            s_DeletionQueue.resize(6);
         }
 
         VKRenderer::~VKRenderer()
@@ -135,13 +139,19 @@ namespace Lumos
             if(width == 0 || height == 0)
                 return;
 
+            LUMOS_LOG_INFO("VKRenderer::OnResize {0}, {1}", width, height);
+
             VKUtilities::ValidateResolution(width, height);
-            Application::Get().GetWindow()->GetSwapChain().As<VKSwapChain>()->OnResize(width, height);
+            Application::Get().GetWindow()->GetSwapChain().As<VKSwapChain>()->OnResize(width, height, true);
         }
 
         void VKRenderer::Begin()
         {
             LUMOS_PROFILE_FUNCTION();
+            s_DeletionQueueIndex++;
+            s_DeletionQueueIndex = s_DeletionQueueIndex % int(s_DeletionQueue.size());
+            s_DeletionQueue[s_DeletionQueueIndex].Flush();
+
             SharedPtr<VKSwapChain> swapChain = Application::Get().GetWindow()->GetSwapChain().As<VKSwapChain>();
             swapChain->Begin();
         }

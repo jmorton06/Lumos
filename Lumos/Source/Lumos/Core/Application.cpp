@@ -345,6 +345,18 @@ namespace Lumos
         m_Window->ProcessInput();
 
         {
+            std::scoped_lock<std::mutex> lock(m_EventQueueMutex);
+
+            // Process custom event queue
+            while(m_EventQueue.size() > 0)
+            {
+                auto& func = m_EventQueue.front();
+                func();
+                m_EventQueue.pop();
+            }
+        }
+
+        {
             LUMOS_PROFILE_SCOPE("Application::ImGui::NewFrame");
             ImGui::NewFrame();
         }
@@ -357,7 +369,7 @@ namespace Lumos
 
         // Exit frame early if escape or close button clicked
         // Prevents a crash with vulkan/moltenvk
-        if (m_CurrentState == AppState::Closing)
+        if(m_CurrentState == AppState::Closing)
             return false;
 
         std::thread updateThread = std::thread(Application::UpdateSystems);

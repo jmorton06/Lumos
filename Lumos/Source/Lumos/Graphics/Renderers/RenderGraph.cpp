@@ -175,8 +175,8 @@ namespace Lumos::Graphics
         m_ForwardData.m_CurrentDescriptorSets.resize(3);
 
         // Set up skybox pass data
-        m_ScreenQuad   = Graphics::CreateQuad();
-        m_SkyboxShader = Application::Get().GetShaderLibrary()->GetResource("Skybox");
+        m_ScreenQuad               = Graphics::CreateQuad();
+        m_SkyboxShader             = Application::Get().GetShaderLibrary()->GetResource("Skybox");
         descriptorDesc.layoutIndex = 0;
         descriptorDesc.shader      = m_SkyboxShader.get();
         m_SkyboxDescriptorSet      = SharedPtr<Graphics::DescriptorSet>(Graphics::DescriptorSet::Create(descriptorDesc));
@@ -600,7 +600,7 @@ namespace Lumos::Graphics
 
         m_Exposure     = m_Camera->GetExposure();
         m_ToneMapIndex = scene->GetSettings().RenderSettings.m_ToneMapIndex;
-		
+
         auto view     = glm::inverse(m_CameraTransform->GetWorldMatrix());
         auto proj     = m_Camera->GetProjectionMatrix();
         auto projView = proj * view;
@@ -1447,8 +1447,8 @@ namespace Lumos::Graphics
         if(!m_Camera || !m_CameraTransform)
             return;
 
-        int mode = 0;
-        float exposure = m_Exposure * 120000.0f;
+        int mode        = 0;
+        float exposure  = m_Exposure * 120000.0f;
         float blurLevel = 1.0f;
         m_SkyboxDescriptorSet->SetUniform("UniformBuffer", "Mode", &mode);
         m_SkyboxDescriptorSet->SetUniform("UniformBuffer", "Exposure", &exposure);

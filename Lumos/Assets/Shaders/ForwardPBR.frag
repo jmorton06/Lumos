@@ -130,19 +130,13 @@ vec3 GetNormalFromMap()
 {
 	if (materialProperties.NormalMapFactor < 0.1)
 		return normalize(Input.Normal);
-	
+
 	vec3 tangentNormal = texture(u_NormalMap, Input.TexCoord).xyz * 2.0 - 1.0;
-	
-	vec3 Q1 = dFdx(Input.Position.xyz);
-	vec3 Q2 = dFdy(Input.Position.xyz);
-	vec2 st1 = dFdx(Input.TexCoord);
-	vec2 st2 = dFdy(Input.TexCoord);
-	
+
 	vec3 N = normalize(Input.Normal);
-	vec3 T = normalize(Q1*st2.t - Q2*st1.t);
-	vec3 B = -normalize(cross(N, T));
+	vec3 T = normalize(Input.Tangent.xyz);
+	vec3 B = normalize(cross(N, T));
 	mat3 TBN = mat3(T, B, N);
-	
 	return normalize(TBN * tangentNormal);
 }
 
@@ -516,7 +510,7 @@ void main()
     material.Albedo    = texColour;
     material.Metallic  = vec3(metallic);
     material.Roughness = roughness;
-    material.Normal    = normalize(GetNormalFromMap());
+    material.Normal    = GetNormalFromMap();
 	material.AO		   = GetAO();
 	material.Emissive  = GetEmissive(material.Albedo.rgb);
 	//material.Roughness = max(material.Roughness, 0.06); 

@@ -1,11 +1,7 @@
 #include "Precompiled.h"
 #include "Sprite.h"
-#include "Graphics/Material.h"
 #include "Graphics/RHI/Texture.h"
 #include "Graphics/RHI/GraphicsContext.h"
-#include "Mesh.h"
-#include "Core/Application.h"
-#include "MeshFactory.h"
 
 namespace Lumos
 {
