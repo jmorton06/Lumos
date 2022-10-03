@@ -1492,13 +1492,13 @@
     "value322": 26,
     "value323": {
         "Scale": 1.0,
-        "Aspect": 1.1418918371200562,
+        "Aspect": 1.0457316637039185,
         "FOV": 60.0,
         "Near": 0.10000000149011612,
         "Far": 1000.0,
         "Aperture": 50.0,
         "ShutterSpeed": 0.01666666753590107,
-        "Sensitivity": 200.0
+        "Sensitivity": 400.0
     },
     "value324": 3,
     "value325": 1048608,
@@ -2862,7 +2862,7 @@
                     "emissiveMapFactor": 1.0,
                     "alphaCutOff": 0.4000000059604645,
                     "workflow": 1.0,
-                    "shader": "Embedded"
+                    "shader": "//CoreShaders/ForwardPBR.shader"
                 }
             }
         }
@@ -2898,7 +2898,7 @@
                     "emissiveMapFactor": 1.0,
                     "alphaCutOff": 0.4000000059604645,
                     "workflow": 0.0,
-                    "shader": "Embedded"
+                    "shader": "//CoreShaders/ForwardPBR.shader"
                 }
             }
         }
@@ -2934,7 +2934,7 @@
                     "emissiveMapFactor": 1.0,
                     "alphaCutOff": 0.4000000059604645,
                     "workflow": 1.0,
-                    "shader": "Embedded"
+                    "shader": "//CoreShaders/ForwardPBR.shader"
                 }
             }
         }
@@ -2970,7 +2970,7 @@
                     "emissiveMapFactor": 0.0,
                     "alphaCutOff": 0.4000000059604645,
                     "workflow": 0.0,
-                    "shader": "Embedded"
+                    "shader": "//CoreShaders/ForwardPBR.shader"
                 }
             }
         }
@@ -3006,7 +3006,7 @@
                     "emissiveMapFactor": 0.0,
                     "alphaCutOff": 0.4000000059604645,
                     "workflow": 0.0,
-                    "shader": "Embedded"
+                    "shader": "//CoreShaders/ForwardPBR.shader"
                 }
             }
         }
@@ -3042,7 +3042,7 @@
                     "emissiveMapFactor": 0.0,
                     "alphaCutOff": 0.4000000059604645,
                     "workflow": 0.0,
-                    "shader": "Embedded"
+                    "shader": "//CoreShaders/ForwardPBR.shader"
                 }
             }
         }
@@ -3078,7 +3078,7 @@
                     "emissiveMapFactor": 0.0,
                     "alphaCutOff": 0.4000000059604645,
                     "workflow": 0.0,
-                    "shader": "Embedded"
+                    "shader": "//CoreShaders/ForwardPBR.shader"
                 }
             }
         }
@@ -3114,7 +3114,7 @@
                     "emissiveMapFactor": 0.0,
                     "alphaCutOff": 0.4000000059604645,
                     "workflow": 0.0,
-                    "shader": "Embedded"
+                    "shader": "//CoreShaders/ForwardPBR.shader"
                 }
             }
         }
@@ -3150,7 +3150,7 @@
                     "emissiveMapFactor": 0.0,
                     "alphaCutOff": 0.4000000059604645,
                     "workflow": 0.0,
-                    "shader": "Embedded"
+                    "shader": "//CoreShaders/ForwardPBR.shader"
                 }
             }
         }
@@ -3186,7 +3186,7 @@
                     "emissiveMapFactor": 0.0,
                     "alphaCutOff": 0.4000000059604645,
                     "workflow": 0.0,
-                    "shader": "Embedded"
+                    "shader": "//CoreShaders/ForwardPBR.shader"
                 }
             }
         }
@@ -3222,7 +3222,7 @@
                     "emissiveMapFactor": 0.0,
                     "alphaCutOff": 0.4000000059604645,
                     "workflow": 0.0,
-                    "shader": "Embedded"
+                    "shader": "//CoreShaders/ForwardPBR.shader"
                 }
             }
         }
@@ -3258,7 +3258,7 @@
                     "emissiveMapFactor": 0.0,
                     "alphaCutOff": 0.4000000059604645,
                     "workflow": 0.0,
-                    "shader": "Embedded"
+                    "shader": "//CoreShaders/ForwardPBR.shader"
                 }
             }
         }
@@ -3294,7 +3294,7 @@
                     "emissiveMapFactor": 0.0,
                     "alphaCutOff": 0.4000000059604645,
                     "workflow": 0.0,
-                    "shader": "Embedded"
+                    "shader": "//CoreShaders/ForwardPBR.shader"
                 }
             }
         }
@@ -3330,7 +3330,7 @@
                     "emissiveMapFactor": 0.0,
                     "alphaCutOff": 0.4000000059604645,
                     "workflow": 0.0,
-                    "shader": "Embedded"
+                    "shader": "//CoreShaders/ForwardPBR.shader"
                 }
             }
         }
@@ -3366,7 +3366,7 @@
                     "emissiveMapFactor": 0.0,
                     "alphaCutOff": 0.4000000059604645,
                     "workflow": 0.0,
-                    "shader": "Embedded"
+                    "shader": "//CoreShaders/ForwardPBR.shader"
                 }
             }
         }
@@ -3402,7 +3402,7 @@
                     "emissiveMapFactor": 0.0,
                     "alphaCutOff": 0.4000000059604645,
                     "workflow": 0.0,
-                    "shader": "Embedded"
+                    "shader": "//CoreShaders/ForwardPBR.shader"
                 }
             }
         }
@@ -3438,7 +3438,7 @@
                     "emissiveMapFactor": 0.0,
                     "alphaCutOff": 0.4000000059604645,
                     "workflow": 0.0,
-                    "shader": "Embedded"
+                    "shader": "//CoreShaders/ForwardPBR.shader"
                 }
             }
         }
@@ -3474,7 +3474,7 @@
                     "emissiveMapFactor": 0.0,
                     "alphaCutOff": 0.4000000059604645,
                     "workflow": 0.0,
-                    "shader": "Embedded"
+                    "shader": "//CoreShaders/ForwardPBR.shader"
                 }
             }
         }
@@ -3510,7 +3510,7 @@
                     "emissiveMapFactor": 0.0,
                     "alphaCutOff": 0.4000000059604645,
                     "workflow": 0.0,
-                    "shader": "Embedded"
+                    "shader": "//CoreShaders/ForwardPBR.shader"
                 }
             }
         }
@@ -3546,7 +3546,7 @@
                     "emissiveMapFactor": 0.0,
                     "alphaCutOff": 0.4000000059604645,
                     "workflow": 0.0,
-                    "shader": "Embedded"
+                    "shader": "//CoreShaders/ForwardPBR.shader"
                 }
             }
         }
@@ -3582,7 +3582,7 @@
                     "emissiveMapFactor": 0.0,
                     "alphaCutOff": 0.4000000059604645,
                     "workflow": 0.0,
-                    "shader": "Embedded"
+                    "shader": "//CoreShaders/ForwardPBR.shader"
                 }
             }
         }
@@ -3618,7 +3618,7 @@
                     "emissiveMapFactor": 0.0,
                     "alphaCutOff": 0.4000000059604645,
                     "workflow": 0.0,
-                    "shader": "Embedded"
+                    "shader": "//CoreShaders/ForwardPBR.shader"
                 }
             }
         }
@@ -3654,7 +3654,7 @@
                     "emissiveMapFactor": 0.0,
                     "alphaCutOff": 0.4000000059604645,
                     "workflow": 0.0,
-                    "shader": "Embedded"
+                    "shader": "//CoreShaders/ForwardPBR.shader"
                 }
             }
         }
@@ -3690,7 +3690,7 @@
                     "emissiveMapFactor": 0.0,
                     "alphaCutOff": 0.4000000059604645,
                     "workflow": 0.0,
-                    "shader": "Embedded"
+                    "shader": "//CoreShaders/ForwardPBR.shader"
                 }
             }
         }
@@ -3726,7 +3726,7 @@
                     "emissiveMapFactor": 0.0,
                     "alphaCutOff": 0.4000000059604645,
                     "workflow": 0.0,
-                    "shader": "Embedded"
+                    "shader": "//CoreShaders/ForwardPBR.shader"
                 }
             }
         }
@@ -3762,7 +3762,7 @@
                     "emissiveMapFactor": 0.0,
                     "alphaCutOff": 0.4000000059604645,
                     "workflow": 0.0,
-                    "shader": "Embedded"
+                    "shader": "//CoreShaders/ForwardPBR.shader"
                 }
             }
         }
@@ -3798,7 +3798,7 @@
                     "emissiveMapFactor": 0.0,
                     "alphaCutOff": 0.4000000059604645,
                     "workflow": 0.0,
-                    "shader": "Embedded"
+                    "shader": "//CoreShaders/ForwardPBR.shader"
                 }
             }
         }
@@ -3834,7 +3834,7 @@
                     "emissiveMapFactor": 0.0,
                     "alphaCutOff": 0.4000000059604645,
                     "workflow": 0.0,
-                    "shader": "Embedded"
+                    "shader": "//CoreShaders/ForwardPBR.shader"
                 }
             }
         }
@@ -3870,7 +3870,7 @@
                     "emissiveMapFactor": 0.0,
                     "alphaCutOff": 0.4000000059604645,
                     "workflow": 0.0,
-                    "shader": "Embedded"
+                    "shader": "//CoreShaders/ForwardPBR.shader"
                 }
             }
         }
@@ -3906,7 +3906,7 @@
                     "emissiveMapFactor": 0.0,
                     "alphaCutOff": 0.4000000059604645,
                     "workflow": 0.0,
-                    "shader": "Embedded"
+                    "shader": "//CoreShaders/ForwardPBR.shader"
                 }
             }
         }
@@ -3942,7 +3942,7 @@
                     "emissiveMapFactor": 0.0,
                     "alphaCutOff": 0.4000000059604645,
                     "workflow": 0.0,
-                    "shader": "Embedded"
+                    "shader": "//CoreShaders/ForwardPBR.shader"
                 }
             }
         }
@@ -3978,7 +3978,7 @@
                     "emissiveMapFactor": 0.0,
                     "alphaCutOff": 0.4000000059604645,
                     "workflow": 0.0,
-                    "shader": "Embedded"
+                    "shader": "//CoreShaders/ForwardPBR.shader"
                 }
             }
         }
@@ -4014,7 +4014,7 @@
                     "emissiveMapFactor": 0.0,
                     "alphaCutOff": 0.4000000059604645,
                     "workflow": 0.0,
-                    "shader": "Embedded"
+                    "shader": "//CoreShaders/ForwardPBR.shader"
                 }
             }
         }
@@ -4050,7 +4050,7 @@
                     "emissiveMapFactor": 0.0,
                     "alphaCutOff": 0.4000000059604645,
                     "workflow": 0.0,
-                    "shader": "Embedded"
+                    "shader": "//CoreShaders/ForwardPBR.shader"
                 }
             }
         }
@@ -4086,7 +4086,7 @@
                     "emissiveMapFactor": 0.0,
                     "alphaCutOff": 0.4000000059604645,
                     "workflow": 0.0,
-                    "shader": "Embedded"
+                    "shader": "//CoreShaders/ForwardPBR.shader"
                 }
             }
         }
@@ -4122,7 +4122,7 @@
                     "emissiveMapFactor": 0.0,
                     "alphaCutOff": 0.4000000059604645,
                     "workflow": 0.0,
-                    "shader": "Embedded"
+                    "shader": "//CoreShaders/ForwardPBR.shader"
                 }
             }
         }
@@ -4158,7 +4158,7 @@
                     "emissiveMapFactor": 0.0,
                     "alphaCutOff": 0.4000000059604645,
                     "workflow": 0.0,
-                    "shader": "Embedded"
+                    "shader": "//CoreShaders/ForwardPBR.shader"
                 }
             }
         }
@@ -4194,7 +4194,7 @@
                     "emissiveMapFactor": 0.0,
                     "alphaCutOff": 0.4000000059604645,
                     "workflow": 0.0,
-                    "shader": "Embedded"
+                    "shader": "//CoreShaders/ForwardPBR.shader"
                 }
             }
         }
@@ -4230,7 +4230,7 @@
                     "emissiveMapFactor": 0.0,
                     "alphaCutOff": 0.4000000059604645,
                     "workflow": 0.0,
-                    "shader": "Embedded"
+                    "shader": "//CoreShaders/ForwardPBR.shader"
                 }
             }
         }
@@ -4266,7 +4266,7 @@
                     "emissiveMapFactor": 0.0,
                     "alphaCutOff": 0.4000000059604645,
                     "workflow": 0.0,
-                    "shader": "Embedded"
+                    "shader": "//CoreShaders/ForwardPBR.shader"
                 }
             }
         }

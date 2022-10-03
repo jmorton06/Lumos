@@ -1,16 +1,16 @@
 #pragma once
-
 #include "MeshFactory.h"
 #include "Mesh.h"
 #include "Material.h"
 #include "Core/VFS.h"
+#include "Core/Asset.h"
 #include <cereal/cereal.hpp>
 
 namespace Lumos
 {
     namespace Graphics
     {
-        class Model
+        class Model : public Asset
         {
         public:
             Model() = default;
@@ -65,6 +65,8 @@ namespace Lumos
             const std::string& GetFilePath() const { return m_FilePath; }
             PrimitiveType GetPrimitiveType() { return m_PrimitiveType; }
             void SetPrimitiveType(PrimitiveType type) { m_PrimitiveType = type; }
+            
+            SET_ASSET_TYPE(AssetType::Model);
 
         private:
             PrimitiveType m_PrimitiveType = PrimitiveType::None;

@@ -91,7 +91,7 @@ namespace Lumos
     {
         LUMOS_PROFILE_FUNCTION();
         ImGuiStyle& style = ImGui::GetStyle();
-
+        ImGui::AlignTextToFramePadding();
         // Button for advanced settings
         {
             ImGuiUtilities::ScopedColour buttonColour(ImGuiCol_Button, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));

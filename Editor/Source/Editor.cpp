@@ -712,6 +712,10 @@ namespace Lumos
 #endif
 #endif
                 }
+                ImGui::Separator();
+
+                ImGui::TextUnformatted("Third-Party");
+                ImGui::Text("ImGui - Version : %s, Revision - %d", IMGUI_VERSION, IMGUI_VERSION_NUM);
 
                 ImGui::EndMenu();
             }
@@ -995,7 +999,6 @@ namespace Lumos
             }
 
             ImGui::Separator();
-
             ImGui::TextUnformatted("Create New Project?\n");
 
             static std::string newProjectName = "New Project";
@@ -1465,11 +1468,22 @@ namespace Lumos
     void Editor::OnUpdate(const TimeStep& ts)
     {
         LUMOS_PROFILE_FUNCTION();
-
-
-        if (Input::Get().GetKeyPressed(Lumos::InputCode::Key::Escape))
+        
+        static float autoSaveTimer = 0.0f;
+        if(m_AutoSaveSettingsTime > 0)
         {
-            if (GetEditorState() == EditorState::Preview)
+            if(autoSaveTimer > m_AutoSaveSettingsTime)
+            {
+                SaveEditorSettings();
+                autoSaveTimer = 0;
+            }
+            
+            autoSaveTimer += ts.GetMillis();
+        }
+
+        if(Input::Get().GetKeyPressed(Lumos::InputCode::Key::Escape))
+        {
+            if(GetEditorState() == EditorState::Preview)
             {
                 m_CurrentState = AppState::Closing;
                 return;
@@ -1484,7 +1498,7 @@ namespace Lumos
                 Application::Get().SetEditorState(EditorState::Preview);
 
                 m_SelectedEntity = entt::null;
-                
+
                 ImGui::SetWindowFocus("###scene");
                 LoadCachedScene();
                 SetEditorState(EditorState::Preview);

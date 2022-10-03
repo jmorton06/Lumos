@@ -65,13 +65,19 @@ namespace Lumos
 
             static VKContext::DeletionQueue& GetDeletionQueue(int frameIndex)
             {
-                LUMOS_ASSERT(frameIndex < 3, "Unsupported Frame Index");
+                LUMOS_ASSERT(frameIndex < int(s_DeletionQueue.size()), "Unsupported Frame Index");
                 return s_DeletionQueue[frameIndex];
             }
 
             static VKContext::DeletionQueue& GetCurrentDeletionQueue()
             {
-                return s_DeletionQueue[(s_Instance && Application::Get().GetWindow()) ? GetMainSwapChain()->GetCurrentBufferIndex() : 0];
+                return s_DeletionQueue[s_DeletionQueueIndex];
+            }
+
+            static void FlushDeletionQueues()
+            {
+                for(auto& deletionQueue : s_DeletionQueue)
+                    deletionQueue.Flush();
             }
 
             template <typename F>
@@ -91,9 +97,11 @@ namespace Lumos
             std::string m_RendererTitle;
             uint32_t m_DescriptorCapacity = 0;
 
-            static VkDescriptorPool s_DescriptorPool;
             VkDescriptorSet m_DescriptorSetPool[16] = {};
-            static VKContext::DeletionQueue s_DeletionQueue[3];
+
+            static VkDescriptorPool s_DescriptorPool;
+            static std::vector<VKContext::DeletionQueue> s_DeletionQueue;
+            static int s_DeletionQueueIndex;
         };
     }
 }

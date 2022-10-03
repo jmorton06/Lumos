@@ -247,6 +247,8 @@ namespace Lumos::Graphics
             indices.resize(indicesAccessor.count);
             vertices.resize(indicesAccessor.count);
 
+            bool hasTangents = false;
+
             for(auto& attribute : primitive.attributes)
             {
                 // Get accessor info
@@ -317,6 +319,7 @@ namespace Lumos::Graphics
 
                 else if(attribute.first == "TANGENT")
                 {
+                    hasTangents               = true;
                     size_t uvCount            = accessor.count;
                     Maths::Vector3Simple* uvs = reinterpret_cast<Maths::Vector3Simple*>(data.data());
                     for(auto p = 0; p < uvCount; ++p)
@@ -374,7 +377,11 @@ namespace Lumos::Graphics
                 }
             }
 
+            if(!hasTangents)
+                Graphics::Mesh::GenerateTangents(vertices.data(), vertices.size(), indices.data(), indices.size());
+
             auto lMesh = new Graphics::Mesh(indices, vertices);
+
             meshes.emplace_back(lMesh);
         }
 

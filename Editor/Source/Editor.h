@@ -281,7 +281,8 @@ namespace Lumos
         SharedPtr<Graphics::Mesh> m_PreviewSphere;
         SharedPtr<Graphics::GridRenderer> m_GridRenderer;
         std::string m_TempSceneSaveFilePath;
-
+        int m_AutoSaveSettingsTime = 15000;
+        
         IniFile m_IniFile;
 
         static Editor* s_Editor;

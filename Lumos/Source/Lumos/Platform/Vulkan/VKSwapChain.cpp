@@ -259,15 +259,11 @@ namespace Lumos
                     {
                         OnResize(m_Width, m_Height, true);
                     }
-                    return;
                 }
                 else if(result != VK_SUCCESS)
                 {
-                    LUMOS_LOG_CRITICAL("[VULKAN] Failed to acquire swap chain image!");
+                    LUMOS_LOG_CRITICAL("[VULKAN] Failed to acquire swap chain image! - {0}", VKUtilities::ErrorString(result));
                 }
-
-                // m_CurrentBuffer = nextCmdBufferIndex;
-                return;
             }
         }
 
@@ -291,7 +287,6 @@ namespace Lumos
             else
             {
                 Init(m_VSyncEnabled);
-                // AcquireNextImage();
             }
 
             VKRenderer::GetGraphicsContext()->WaitIdle();
