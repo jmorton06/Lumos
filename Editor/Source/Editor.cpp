@@ -155,8 +155,8 @@ namespace Lumos
                                                  -40.0f,
                                                  glm::vec3(-31.0f, 12.0f, 51.0f),
                                                  60.0f,
-                                                 0.1f,
-                                                 1000.0f,
+                                                 m_Settings.m_CameraNear,
+                                                 m_Settings.m_CameraFar,
                                                  (float)Application::Get().GetWindowSize().x / (float)Application::Get().GetWindowSize().y);
         m_CurrentCamera = m_EditorCamera.get();
 
@@ -387,6 +387,23 @@ namespace Lumos
                 {
                     reopenNewProjectPopup = false;
                     openProjectLoadPopup  = true;
+                }
+
+                if(ImGui::BeginMenu("Open Recent Project", !m_Settings.m_RecentProjects.empty()))
+                {
+                    for(auto& recentProject : m_Settings.m_RecentProjects)
+                    {
+                        if(ImGui::MenuItem(recentProject.c_str()))
+                        {
+                            Application::Get().OpenProject(recentProject);
+
+                            for(int i = 0; i < int(m_Panels.size()); i++)
+                            {
+                                m_Panels[i]->OnNewProject();
+                            }
+                        }
+                    }
+                    ImGui::EndMenu();
                 }
 
                 ImGui::Separator();
@@ -1089,15 +1106,15 @@ namespace Lumos
                                glm::value_ptr(proj), identityMatrix, 120.f);
 #endif
 
-        if(m_SelectedEntity == entt::null || m_ImGuizmoOperation == 4)
+        if(!m_Settings.m_ShowGizmos || m_SelectedEntity == entt::null || m_ImGuizmoOperation == 4)
             return;
 
-        if(m_Settings.m_ShowGizmos)
+        auto& registry = Application::Get().GetSceneManager()->GetCurrentScene()->GetRegistry();
+        if(registry.valid(m_SelectedEntity))
         {
             ImGuizmo::SetDrawlist();
             ImGuizmo::SetOrthographic(m_CurrentCamera->IsOrthographic());
 
-            auto& registry = Application::Get().GetSceneManager()->GetCurrentScene()->GetRegistry();
             auto transform = registry.try_get<Maths::Transform>(m_SelectedEntity);
             if(transform != nullptr)
             {
@@ -1260,8 +1277,10 @@ namespace Lumos
             ImGui::DockBuilderDockWindow("GraphicsInfo", DockLeft);
             ImGui::DockBuilderDockWindow("ApplicationInfo", DockLeft);
             ImGui::DockBuilderDockWindow("###hierarchy", DockLeft);
-            ImGui::DockBuilderDockWindow("###textEdit", DockMiddle);
+            ImGui::DockBuilderDockWindow("###textEdit", DockMiddleLeft);
             ImGui::DockBuilderDockWindow("###scenesettings", DockLeft);
+            ImGui::DockBuilderDockWindow("###editorsettings", DockLeft);
+            ImGui::DockBuilderDockWindow("###projectsettings", DockLeft);
 
             ImGui::DockBuilderFinish(DockspaceID);
         }
@@ -1468,7 +1487,7 @@ namespace Lumos
     void Editor::OnUpdate(const TimeStep& ts)
     {
         LUMOS_PROFILE_FUNCTION();
-        
+
         static float autoSaveTimer = 0.0f;
         if(m_AutoSaveSettingsTime > 0)
         {
@@ -1477,7 +1496,7 @@ namespace Lumos
                 SaveEditorSettings();
                 autoSaveTimer = 0;
             }
-            
+
             autoSaveTimer += ts.GetMillis();
         }
 
@@ -2121,6 +2140,14 @@ namespace Lumos
         reopenNewProjectPopup = false;
         locationPopupOpened   = false;
         m_FileBrowserPanel.ClearFileTypeFilters();
+
+        if(FileSystem::FileExists(filePath))
+        {
+            auto it = std::find(m_Settings.m_RecentProjects.begin(), m_Settings.m_RecentProjects.end(), filePath);
+            if(it == m_Settings.m_RecentProjects.end())
+                m_Settings.m_RecentProjects.push_back(filePath);
+        }
+
         Application::Get().OpenProject(filePath);
 
         for(int i = 0; i < int(m_Panels.size()); i++)
@@ -2143,10 +2170,10 @@ namespace Lumos
     void Editor::SaveEditorSettings()
     {
         LUMOS_PROFILE_FUNCTION();
+        m_IniFile.RemoveAll();
         m_IniFile.SetOrAdd("ShowGrid", m_Settings.m_ShowGrid);
         m_IniFile.SetOrAdd("ShowGizmos", m_Settings.m_ShowGizmos);
         m_IniFile.SetOrAdd("ShowViewSelected", m_Settings.m_ShowViewSelected);
-        m_IniFile.SetOrAdd("TransitioningCamera", m_TransitioningCamera);
         m_IniFile.SetOrAdd("ShowImGuiDemo", m_Settings.m_ShowImGuiDemo);
         m_IniFile.SetOrAdd("SnapAmount", m_Settings.m_SnapAmount);
         m_IniFile.SetOrAdd("SnapQuizmo", m_Settings.m_SnapQuizmo);
@@ -2157,6 +2184,19 @@ namespace Lumos
         m_IniFile.SetOrAdd("ProjectRoot", m_ProjectSettings.m_ProjectRoot);
         m_IniFile.SetOrAdd("ProjectName", m_ProjectSettings.m_ProjectName);
         m_IniFile.SetOrAdd("SleepOutofFocus", m_Settings.m_SleepOutofFocus);
+        m_IniFile.SetOrAdd("CameraSpeed", m_Settings.m_CameraSpeed);
+        m_IniFile.SetOrAdd("CameraNear", m_Settings.m_CameraNear);
+        m_IniFile.SetOrAdd("CameraFar", m_Settings.m_CameraFar);
+
+        std::sort(m_Settings.m_RecentProjects.begin(), m_Settings.m_RecentProjects.end());
+        m_Settings.m_RecentProjects.erase(std::unique(m_Settings.m_RecentProjects.begin(), m_Settings.m_RecentProjects.end()), m_Settings.m_RecentProjects.end());
+        m_IniFile.SetOrAdd("RecentProjectCount", int(m_Settings.m_RecentProjects.size()));
+
+        for(int i = 0; i < int(m_Settings.m_RecentProjects.size()); i++)
+        {
+            m_IniFile.SetOrAdd("RecentProject" + std::to_string(i), m_Settings.m_RecentProjects[i]);
+        }
+
         m_IniFile.Rewrite();
     }
 
@@ -2180,6 +2220,10 @@ namespace Lumos
         m_IniFile.Add("ProjectRoot", m_ProjectSettings.m_ProjectRoot);
         m_IniFile.Add("ProjectName", m_ProjectSettings.m_ProjectName);
         m_IniFile.Add("SleepOutofFocus", m_Settings.m_SleepOutofFocus);
+        m_IniFile.Add("RecentProjectCount", 0);
+        m_IniFile.Add("CameraSpeed", m_Settings.m_CameraSpeed);
+        m_IniFile.Add("CameraNear", m_Settings.m_CameraNear);
+        m_IniFile.Add("CameraFar", m_Settings.m_CameraFar);
         m_IniFile.Rewrite();
     }
 
@@ -2201,6 +2245,37 @@ namespace Lumos
         m_Settings.m_Physics2DDebugFlags = m_IniFile.GetOrDefault("PhysicsDebugDrawFlags2D", 0);
         m_Settings.m_Physics3DDebugFlags = m_IniFile.GetOrDefault("PhysicsDebugDrawFlags", 0);
         m_Settings.m_SleepOutofFocus     = m_IniFile.GetOrDefault("SleepOutofFocus", true);
+        m_Settings.m_CameraSpeed         = m_IniFile.GetOrDefault("CameraSpeed", 1000.0f);
+        m_Settings.m_CameraNear          = m_IniFile.GetOrDefault("CameraNear", 0.01f);
+        m_Settings.m_CameraFar           = m_IniFile.GetOrDefault("CameraFar", 1000.0f);
+
+        m_EditorCameraController.SetSpeed(m_Settings.m_CameraSpeed);
+
+        int recentProjectCount  = 0;
+        std::string projectPath = m_ProjectSettings.m_ProjectRoot + m_ProjectSettings.m_ProjectName + std::string(".lmproj");
+
+        if(FileSystem::FileExists(projectPath))
+        {
+            auto it = std::find(m_Settings.m_RecentProjects.begin(), m_Settings.m_RecentProjects.end(), projectPath);
+            if(it == m_Settings.m_RecentProjects.end())
+                m_Settings.m_RecentProjects.push_back(projectPath);
+        }
+
+        recentProjectCount = m_IniFile.GetOrDefault("RecentProjectCount", 0);
+        for(int i = 0; i < recentProjectCount; i++)
+        {
+            projectPath = m_IniFile.GetOrDefault("RecentProject" + std::to_string(i), std::string());
+
+            if(FileSystem::FileExists(projectPath))
+            {
+                auto it = std::find(m_Settings.m_RecentProjects.begin(), m_Settings.m_RecentProjects.end(), projectPath);
+                if(it == m_Settings.m_RecentProjects.end())
+                    m_Settings.m_RecentProjects.push_back(projectPath);
+            }
+        }
+
+        std::sort(m_Settings.m_RecentProjects.begin(), m_Settings.m_RecentProjects.end());
+        m_Settings.m_RecentProjects.erase(std::unique(m_Settings.m_RecentProjects.begin(), m_Settings.m_RecentProjects.end()), m_Settings.m_RecentProjects.end());
     }
 
     const char* Editor::GetIconFontIcon(const std::string& filePath)

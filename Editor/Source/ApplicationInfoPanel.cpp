@@ -55,8 +55,8 @@ namespace Lumos
                         Graphics::Renderer::GetRenderer()->OnResize(Application::Get().GetWindow()->GetWidth(), Application::Get().GetWindow()->GetHeight());
 
                         //WindowResizeEvent e(Application::Get().GetWindow()->GetWidth(), Application::Get().GetWindow()->GetHeight());
-                        //editor->OnEvent(e);
-                    });
+                        //editor->OnEvent(e); 
+                        });
                 }
                 ImGui::Columns(1);
                 ImGui::Text("FPS : %5.2i", Engine::Get().Statistics().FramesPerSecond);
@@ -65,8 +65,8 @@ namespace Lumos
                 ImGui::NewLine();
                 ImGui::Text("Scene : %s", Application::Get().GetSceneManager()->GetCurrentScene()->GetSceneName().c_str());
                 ImGui::TreePop();
-                };
-            }
-            ImGui::End();
+            };
         }
+        ImGui::End();
     }
+}

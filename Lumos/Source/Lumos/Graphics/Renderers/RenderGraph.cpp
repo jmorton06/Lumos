@@ -22,7 +22,7 @@
 #include "Platform/Vulkan/VKCommandBuffer.h"
 #include "Platform/Vulkan/VKTexture.h"
 #include "Scene/Component/Components.h"
-
+#include "Maths/Random.h"
 #include "ImGui/ImGuiUtilities.h"
 #include <imgui/imgui.h>
 #include <glm/gtx/matrix_decompose.hpp>
@@ -106,7 +106,23 @@ namespace Lumos::Graphics
 
         m_ForwardData.m_TransformData = static_cast<glm::mat4*>(Memory::AlignedAlloc(static_cast<uint32_t>(MAX_OBJECTS * m_ForwardData.m_DynamicAlignment), m_ForwardData.m_DynamicAlignment));
 
-        m_SSAOTexture = TextureDepth::Create(width, height);
+        m_SSAOTexture = Graphics::Texture2D::Create(mainRenderTargetDesc, width, height);
+
+        const int SSAO_NOISE_DIM = 4;
+        std::vector<glm::vec4> noiseData(SSAO_NOISE_DIM * SSAO_NOISE_DIM);
+
+        for (glm::vec4& noiseSample : noiseData)
+		{
+			// Random rotations around z-axis
+			noiseSample = glm::vec4(Random32::Rand(-1.0f, 1.0f), Random32::Rand(-1.0f, 1.0f), 0.0f, 0.0f);
+		}
+
+        Graphics::TextureDesc noiseTextureDesc;
+        noiseTextureDesc.format    = Graphics::RHIFormat::R32G32B32A32_Float;
+        noiseTextureDesc.wrap      = TextureWrap::REPEAT;
+        noiseTextureDesc.minFilter = TextureFilter::NEAREST;
+        noiseTextureDesc.magFilter = TextureFilter::NEAREST;
+        m_NoiseTexture = Graphics::Texture2D::CreateFromSource(SSAO_NOISE_DIM, SSAO_NOISE_DIM, (void*)noiseData.data(), noiseTextureDesc);
 
         switch(Graphics::GraphicsContext::GetRenderAPI())
         {
@@ -194,6 +210,11 @@ namespace Lumos::Graphics
         descriptorDesc.shader          = m_ToneMappingPassShader.get();
         m_ToneMappingPassDescriptorSet = SharedPtr<Graphics::DescriptorSet>(Graphics::DescriptorSet::Create(descriptorDesc));
 
+        m_DepthOfFieldShader            = Application::Get().GetShaderLibrary()->GetResource("DepthOfField");
+        descriptorDesc.layoutIndex      = 0;
+        descriptorDesc.shader           = m_DepthOfFieldShader.get();
+        m_DepthOfFieldPassDescriptorSet = SharedPtr<Graphics::DescriptorSet>(Graphics::DescriptorSet::Create(descriptorDesc));
+
         m_BloomPassShader          = Application::Get().GetShaderLibrary()->GetResource(m_SupportCompute ? "BloomComp" : "Bloom");
         descriptorDesc.layoutIndex = 0;
         descriptorDesc.shader      = m_BloomPassShader.get();
@@ -237,6 +258,11 @@ namespace Lumos::Graphics
         descriptorDesc.layoutIndex     = 0;
         descriptorDesc.shader          = m_FilmicGrainShader.get();
         m_FilmicGrainPassDescriptorSet = SharedPtr<Graphics::DescriptorSet>(Graphics::DescriptorSet::Create(descriptorDesc));
+        
+        // m_SSAOShader            = Application::Get().GetShaderLibrary()->GetResource("SSAO");
+        // descriptorDesc.layoutIndex     = 0;
+        // descriptorDesc.shader          = m_SSAOShader.get();
+        // m_SSAOPassDescriptorSet = SharedPtr<Graphics::DescriptorSet>(Graphics::DescriptorSet::Create(descriptorDesc));
 
         // m_OutlineShader = Application::Get().GetShaderLibrary()->GetResource("Outline");
         //         descriptorDesc.layoutIndex = 0;
@@ -496,6 +522,7 @@ namespace Lumos::Graphics
         delete m_MainTexture;
         delete m_PostProcessTexture1;
         delete m_SSAOTexture;
+        delete m_NoiseTexture;
         delete m_BloomTexture;
         delete m_BloomTexture1;
         delete m_BloomTexture2;
@@ -927,12 +954,11 @@ namespace Lumos::Graphics
         }
 
         GenerateBRDFLUTPass();
-
         DepthPrePass();
 
-        if(/* DISABLES CODE */ (0) && sceneRenderSettings.SSAOEnabled)
+        if(sceneRenderSettings.SSAOEnabled)
         {
-            SSAOPass();
+            //SSAOPass();
         }
 
         if(m_Settings.ShadowPass && sceneRenderSettings.ShadowsEnabled)
@@ -954,6 +980,9 @@ namespace Lumos::Graphics
         if(sceneRenderSettings.BloomEnabled)
             BloomPass();
 
+        if(sceneRenderSettings.DepthOfFieldEnabled)
+            DepthOfFieldPass();
+
         ToneMappingPass();
 
         if(sceneRenderSettings.DebandingEnabled)
@@ -967,6 +996,7 @@ namespace Lumos::Graphics
 
         if(sceneRenderSettings.FilmicGrainEnabled)
             FilmicGrainPass();
+
         // if(sceneRenderSettings.OutlineEnabled
         // OutlinePass();
 
@@ -1378,25 +1408,33 @@ namespace Lumos::Graphics
         LUMOS_PROFILE_FUNCTION();
         LUMOS_PROFILE_GPU("SSAO Pass");
 
-        if(!m_SSAOShader || !m_SSAOShader->IsCompiled())
+        if(!m_Camera || !m_SSAOShader || !m_SSAOShader->IsCompiled())
             return;
 
         Graphics::CommandBuffer* commandBuffer = Renderer::GetMainSwapChain()->GetCurrentCommandBuffer();
         Graphics::PipelineDesc pipelineDesc {};
         pipelineDesc.shader      = m_SSAOShader;
-        pipelineDesc.depthTarget = m_SSAOTexture;
-
-        // m_SSAOPassDescriptorSet->SetTexture("u_Texture", m_ForwardData.m_DepthTexture);
-        // m_SSAOPassDescriptorSet->Update();
+        pipelineDesc.colourTargets[0] = m_SSAOTexture;
+		
+		auto invProj = glm::inverse(m_Camera->GetProjectionMatrix());
+		m_SSAOPassDescriptorSet->SetUniform("UniformBuffer","invProj", &invProj);
+        m_SSAOPassDescriptorSet->SetTexture("DepthTextureSampler", m_ForwardData.m_DepthTexture);
+        m_SSAOPassDescriptorSet->SetTexture("NoiseSampler", m_NoiseTexture);
+        m_SSAOPassDescriptorSet->Update();
 
         auto pipeline = Graphics::Pipeline::Get(pipelineDesc);
         pipeline->Bind(commandBuffer);
 
-        // auto set = m_SSAOPassDescriptorSet.get();
-        // Renderer::BindDescriptorSets(pipeline.get(), commandBuffer, 0, &set, 1);
+        auto set = m_SSAOPassDescriptorSet.get();
+        Renderer::BindDescriptorSets(pipeline.get(), commandBuffer, 0, &set, 1);
         Renderer::Draw(commandBuffer, DrawType::TRIANGLE, 3);
 
         pipeline->End(commandBuffer);
+    }
+
+    void RenderGraph::BlurPass(Texture* texture)
+    {
+        
     }
 
     void RenderGraph::ForwardPass()
@@ -1480,6 +1518,50 @@ namespace Lumos::Graphics
         pipeline->End(commandBuffer);
     }
 
+    void RenderGraph::DepthOfFieldPass()
+    {
+        LUMOS_PROFILE_FUNCTION();
+        LUMOS_PROFILE_GPU("Depth Of Field Pass");
+
+        const auto& proj                           = m_Camera->GetProjectionMatrix();
+        Scene::SceneRenderSettings& renderSettings = m_CurrentScene->GetSettings().RenderSettings;
+
+        float depthLinearizeMul = (-proj[3][2]); // float depthLinearizeMul = ( clipFar * clipNear ) / ( clipFar - clipNear );
+        float depthLinearizeAdd = (proj[2][2]);  // float depthLinearizeAdd = clipFar / ( clipFar - clipNear );
+        // correct the handedness issue.
+        if(depthLinearizeMul * depthLinearizeAdd < 0)
+            depthLinearizeAdd = -depthLinearizeAdd;
+        glm::vec2 DepthUnpackConsts = { depthLinearizeMul, depthLinearizeAdd };
+        glm::vec2 DOFParams         = { renderSettings.DepthOfFieldDistance, renderSettings.DepthOfFieldStrength };
+
+        m_DepthOfFieldPassDescriptorSet->SetUniform("UniformBuffer", "DOFParams", &DOFParams);
+        m_DepthOfFieldPassDescriptorSet->SetUniform("UniformBuffer", "DepthUnpackConsts", &DepthUnpackConsts);
+
+        m_DepthOfFieldPassDescriptorSet->SetTexture("u_Texture", m_MainTexture);
+        m_DepthOfFieldPassDescriptorSet->SetTexture("u_DepthTexture", m_ForwardData.m_DepthTexture);
+        m_DepthOfFieldPassDescriptorSet->Update();
+
+        Graphics::PipelineDesc pipelineDesc {};
+        pipelineDesc.shader              = m_DepthOfFieldShader;
+        pipelineDesc.polygonMode         = Graphics::PolygonMode::FILL;
+        pipelineDesc.cullMode            = Graphics::CullMode::BACK;
+        pipelineDesc.transparencyEnabled = false;
+        pipelineDesc.colourTargets[0]    = m_PostProcessTexture1;
+
+        auto commandBuffer = Renderer::GetMainSwapChain()->GetCurrentCommandBuffer();
+        auto pipeline      = Graphics::Pipeline::Get(pipelineDesc);
+        pipeline->Bind(commandBuffer);
+
+        auto set = m_DepthOfFieldPassDescriptorSet.get();
+        Renderer::BindDescriptorSets(pipeline.get(), commandBuffer, 0, &set, 1);
+        Renderer::Draw(commandBuffer, DrawType::TRIANGLE, 3);
+
+        pipeline->End(commandBuffer);
+
+        m_LastRenderTarget = m_PostProcessTexture1;
+        std::swap(m_PostProcessTexture1, m_MainTexture);
+    }
+
     void RenderGraph::ToneMappingPass()
     {
         LUMOS_PROFILE_FUNCTION();
@@ -1519,7 +1601,7 @@ namespace Lumos::Graphics
         LUMOS_PROFILE_FUNCTION();
         LUMOS_PROFILE_GPU("Final Pass");
 
-        m_FinalPassDescriptorSet->SetTexture("u_Texture", m_LastRenderTarget);
+        m_FinalPassDescriptorSet->SetTexture("u_Texture", m_LastRenderTarget );
         m_FinalPassDescriptorSet->Update();
 
         Graphics::PipelineDesc pipelineDesc {};
@@ -1996,7 +2078,7 @@ namespace Lumos::Graphics
         LUMOS_PROFILE_FUNCTION();
         LUMOS_PROFILE_GPU("ChromaticAberation Pass");
 
-        if(!m_MainTexture || !m_ChromaticAberationShader->IsCompiled())
+        if(!m_Camera || !m_MainTexture || !m_ChromaticAberationShader->IsCompiled())
             return;
 
         auto set             = m_ChromaticAberationPassDescriptorSet.get();

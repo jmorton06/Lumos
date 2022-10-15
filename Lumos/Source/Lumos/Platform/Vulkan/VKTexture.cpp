@@ -273,6 +273,8 @@ namespace Lumos
             m_Height       = height;
             m_TextureImage = VkImage();
 
+            Handle = UUID();
+
             BuildTexture();
         }
 
@@ -1007,6 +1009,7 @@ namespace Lumos
 
             m_Width  = width;
             m_Height = height;
+            Handle = UUID();
 
             VKContext::DeletionQueue& deletionQueue = VKRenderer::GetCurrentDeletionQueue();
 
@@ -1144,6 +1147,7 @@ namespace Lumos
             m_Width  = width;
             m_Height = height;
             m_Count  = count;
+            Handle = UUID();
 
             VKContext::DeletionQueue& deletionQueue = VKRenderer::GetCurrentDeletionQueue();
 

@@ -103,6 +103,7 @@ namespace Lumos
             void FinalPass();
             void TextPass();
             void TextFlush();
+            void BlurPass(Texture* texture);
 
             // Post Process
             void ToneMappingPass();
@@ -113,6 +114,7 @@ namespace Lumos
             void EyeAdaptationPass();
             void FilmicGrainPass();
             void OutlinePass();
+            void DepthOfFieldPass();
 
             float SubmitTexture(Texture* texture);
             void UpdateCascades(Scene* scene, Light* light);
@@ -327,9 +329,10 @@ namespace Lumos
             SharedPtr<Pipeline> m_DepthPrePassPipeline = nullptr;
             SharedPtr<Graphics::Shader> m_DepthPrePassShader;
 
-            TextureDepth* m_SSAOTexture = nullptr;
+            Texture2D* m_SSAOTexture = nullptr;
+            Texture2D* m_NoiseTexture = nullptr;
             SharedPtr<Graphics::Shader> m_SSAOShader;
-            // SharedPtr<Graphics::DescriptorSet> m_SSAOPassDescriptorSet;
+            SharedPtr<Graphics::DescriptorSet> m_SSAOPassDescriptorSet;
 
             SharedPtr<Graphics::Shader> m_ToneMappingPassShader;
             SharedPtr<Graphics::DescriptorSet> m_ToneMappingPassDescriptorSet;
@@ -339,6 +342,9 @@ namespace Lumos
 
             SharedPtr<Graphics::DescriptorSet> m_OutlinePassDescriptorSet;
             SharedPtr<Graphics::Shader> m_OutlineShader;
+
+            SharedPtr<Graphics::DescriptorSet> m_DepthOfFieldPassDescriptorSet;
+            SharedPtr<Graphics::Shader> m_DepthOfFieldShader;
 
             RenderGraphSettings m_Settings;
             RenderGraphStats m_Stats;
