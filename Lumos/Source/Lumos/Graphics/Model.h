@@ -65,7 +65,7 @@ namespace Lumos
             const std::string& GetFilePath() const { return m_FilePath; }
             PrimitiveType GetPrimitiveType() { return m_PrimitiveType; }
             void SetPrimitiveType(PrimitiveType type) { m_PrimitiveType = type; }
-            
+
             SET_ASSET_TYPE(AssetType::Model);
 
         private:

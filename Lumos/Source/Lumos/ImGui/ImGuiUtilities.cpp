@@ -22,7 +22,7 @@ namespace Lumos
     {
         LUMOS_PROFILE_FUNCTION();
         bool updated = false;
-        
+
         ImGui::AlignTextToFramePadding();
         ImGui::TextUnformatted(name.c_str());
         ImGui::NextColumn();
@@ -50,7 +50,7 @@ namespace Lumos
     {
         LUMOS_PROFILE_FUNCTION();
         bool updated = false;
-        
+
         ImGui::AlignTextToFramePadding();
         ImGui::TextUnformatted(name.c_str());
         ImGui::NextColumn();
@@ -68,7 +68,7 @@ namespace Lumos
     bool ImGuiUtilities::PropertyMultiline(const std::string& label, std::string& value)
     {
         bool modified = false;
-        
+
         ImGui::AlignTextToFramePadding();
         ImGui::TextUnformatted(label.c_str());
         ImGui::NextColumn();
@@ -100,7 +100,7 @@ namespace Lumos
     {
         LUMOS_PROFILE_FUNCTION();
         bool updated = false;
-        
+
         ImGui::AlignTextToFramePadding();
         ImGui::TextUnformatted(name.c_str());
         ImGui::NextColumn();
@@ -154,7 +154,7 @@ namespace Lumos
     {
         LUMOS_PROFILE_FUNCTION();
         bool updated = false;
-        
+
         ImGui::AlignTextToFramePadding();
         ImGui::TextUnformatted(name.c_str());
         ImGui::NextColumn();
@@ -184,7 +184,7 @@ namespace Lumos
     {
         LUMOS_PROFILE_FUNCTION();
         bool updated = false;
-        
+
         ImGui::AlignTextToFramePadding();
         ImGui::TextUnformatted(name.c_str());
         ImGui::NextColumn();
@@ -236,7 +236,7 @@ namespace Lumos
     {
         LUMOS_PROFILE_FUNCTION();
         bool updated = false;
-        
+
         ImGui::AlignTextToFramePadding();
         ImGui::TextUnformatted(name.c_str());
         ImGui::NextColumn();
@@ -300,7 +300,7 @@ namespace Lumos
     {
         LUMOS_PROFILE_FUNCTION();
         bool updated = false;
-        
+
         ImGui::AlignTextToFramePadding();
         ImGui::TextUnformatted(name.c_str());
         ImGui::NextColumn();
@@ -396,12 +396,12 @@ namespace Lumos
             ImGui::PopID();
             ImGui::PopItemWidth();
 
-            static const ImU32 colourX    = IM_COL32(168, 46, 2, 255);
-            static const ImU32 colourY    = IM_COL32(112, 162, 22, 255);
-            static const ImU32 colourZ    = IM_COL32(51, 122, 210, 255);
+            static const ImU32 colourX = IM_COL32(168, 46, 2, 255);
+            static const ImU32 colourY = IM_COL32(112, 162, 22, 255);
+            static const ImU32 colourZ = IM_COL32(51, 122, 210, 255);
 
-            const glm::vec2 size = glm::vec2(ImGui::GetFontSize() / 4.0f, ImGui::GetFontSize() + ImGui::GetStyle().FramePadding.y);
-            posPostLabel = posPostLabel + glm::vec2(-1.0f, ImGui::GetStyle().FramePadding.y / 2.0f);
+            const glm::vec2 size   = glm::vec2(ImGui::GetFontSize() / 4.0f, ImGui::GetFontSize() + ImGui::GetStyle().FramePadding.y);
+            posPostLabel           = posPostLabel + glm::vec2(-1.0f, ImGui::GetStyle().FramePadding.y / 2.0f);
             ImRect axis_color_rect = ImRect(posPostLabel.x, posPostLabel.y, posPostLabel.x + size.x, posPostLabel.y + size.y);
             ImGui::GetWindowDrawList()->AddRectFilled(axis_color_rect.Min, axis_color_rect.Max, axis == 0 ? colourX : axis == 1 ? colourY
                                                                                                                                 : colourZ);

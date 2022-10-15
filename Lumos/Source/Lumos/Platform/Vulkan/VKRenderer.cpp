@@ -68,7 +68,7 @@ namespace Lumos
             VK_CHECK_RESULT(vkCreateDescriptorPool(VKDevice::Get().GetDevice(), &pool_info, nullptr, &s_DescriptorPool));
 
             // Deletion queue larger than frames in flight to delay deletion a few frames
-            s_DeletionQueue.resize(6);
+            s_DeletionQueue.resize(3);
         }
 
         VKRenderer::~VKRenderer()

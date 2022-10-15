@@ -81,7 +81,6 @@ namespace Lumos
         if(!camera)
         {
             ImGui::End();
-            ImGui::PopStyleVar();
             return;
         }
 

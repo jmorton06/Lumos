@@ -196,7 +196,6 @@ end
 
         ImGui::Columns(1);
         ImGui::Separator();
-        // ImGui::PopStyleVar();
     }
 
     static void CuboidCollisionShapeInspector(Lumos::CuboidCollisionShape* shape, const Lumos::RigidBody3DComponent& phys)

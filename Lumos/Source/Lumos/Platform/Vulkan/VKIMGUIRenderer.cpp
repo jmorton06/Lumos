@@ -215,9 +215,9 @@ namespace Lumos
 
             wd->FrameIndex           = VKRenderer::GetMainSwapChain()->GetCurrentImageIndex();
             auto& descriptorImageMap = ImGui_ImplVulkan_GetDescriptorImageMap();
-            
+
             auto swapChain = static_cast<VKSwapChain*>(VKRenderer::GetMainSwapChain());
-            if(wd->Swapchain  != swapChain->GetSwapChain())
+            if(wd->Swapchain != swapChain->GetSwapChain())
                 OnResize(wd->Width, wd->Height);
 
             {
