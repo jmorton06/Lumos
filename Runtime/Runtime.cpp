@@ -20,6 +20,9 @@ public:
     void OnEvent(Event& e) override
     {
         Application::OnEvent(e);
+
+        if(Input::Get().GetKeyPressed(Lumos::InputCode::Key::Escape))
+            Application::SetAppState(AppState::Closing);
     }
 
     void Init() override

@@ -1,6 +1,5 @@
 project 'lua'
 	kind 'StaticLib'
-	systemversion "latest"
 	staticruntime "On"
 
 	defines 
@@ -32,6 +31,9 @@ project 'lua'
     	  "-fPIC"
 		}
 
+	filter "system:windows"
+        systemversion "latest"
+		
 	filter "configurations:Debug"
 		symbols "On"
 

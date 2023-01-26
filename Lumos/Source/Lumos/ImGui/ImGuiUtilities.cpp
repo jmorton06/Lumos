@@ -639,8 +639,8 @@ namespace Lumos
         ImDrawList* draw_list = ImGui::GetWindowDrawList();
         float y0              = ImGui::GetCursorScreenPos().y + (float)(int)y_offset;
 
-        int row_display_start;
-        int row_display_end;
+        int row_display_start = 0;
+        int row_display_end   = 0;
         // ImGui::CalcListClipping(row_count, line_height, &row_display_start, &row_display_end);
         for(int row_n = row_display_start; row_n < row_display_end; row_n++)
         {
@@ -1042,13 +1042,13 @@ namespace Lumos
         {
             ImGui::StyleColorsDark();
 
-            ImVec4 Titlebar    = ImVec4(36.0f / max, 38.0f / max, 48.0f / max, 1.0f);
+            ImVec4 Titlebar    = ImVec4(33.0f / max, 34.0f / max, 44.0f / max, 1.0f);
             ImVec4 TabActive   = ImVec4(40.0f / max, 42.0f / max, 54.0f / max, 1.0f);
             ImVec4 TabUnactive = ImVec4(35.0f / max, 43.0f / max, 59.0f / max, 1.0f);
 
             IconColour                     = ImVec4(183.0f / 255.0f, 158.0f / 255.0f, 220.0f / 255.0f, 1.00f);
             SelectedColour                 = ImVec4(145.0f / 255.0f, 111.0f / 255.0f, 186.0f / 255.0f, 1.00f);
-            colours[ImGuiCol_Text]         = ImVec4(159.0f / 255.0f, 159.0f / 255.0f, 163.0f / 255.0f, 1.00f);
+            colours[ImGuiCol_Text]         = ImVec4(244.0f / 255.0f, 244.0f / 255.0f, 244.0f / 255.0f, 1.00f);
             colours[ImGuiCol_TextDisabled] = ImVec4(0.36f, 0.42f, 0.47f, 1.00f);
 
             colours[ImGuiCol_WindowBg] = TabActive;

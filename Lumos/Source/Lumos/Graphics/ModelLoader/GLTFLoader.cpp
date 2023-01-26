@@ -378,7 +378,7 @@ namespace Lumos::Graphics
             }
 
             if(!hasTangents)
-                Graphics::Mesh::GenerateTangents(vertices.data(), vertices.size(), indices.data(), indices.size());
+                Graphics::Mesh::GenerateTangents(vertices.data(), uint32_t(vertices.size()), indices.data(), uint32_t(indices.size()));
 
             auto lMesh = new Graphics::Mesh(indices, vertices);
 

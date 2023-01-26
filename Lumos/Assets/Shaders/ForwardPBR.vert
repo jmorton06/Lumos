@@ -18,7 +18,7 @@ layout(location = 2) in vec2 inTexCoord;
 layout(location = 3) in vec3 inNormal;
 layout(location = 4) in vec3 inTangent;
 
-struct VertexOutput
+struct VertexData
 {
 	vec3 Colour;
 	vec2 TexCoord;
@@ -28,7 +28,7 @@ struct VertexOutput
 	vec4 ShadowMapCoords[4];
 };
 
-layout(location = 0) out VertexOutput Output;
+layout(location = 0) out VertexData VertexOutput;
 
 out gl_PerVertex
 {
@@ -37,11 +37,11 @@ out gl_PerVertex
 
 void main() 
 {
-	Output.Position = pushConsts.transform * vec4(inPosition, 1.0);
-    gl_Position = cameraUBO.projView * Output.Position;
+	VertexOutput.Position = pushConsts.transform * vec4(inPosition, 1.0);
+    gl_Position = cameraUBO.projView * VertexOutput.Position;
     
-	Output.Colour = inColor.xyz;
-	Output.TexCoord = inTexCoord;
-    Output.Normal = transpose(inverse(mat3(pushConsts.transform))) * normalize(inNormal);
-    Output.Tangent = inTangent;
+	VertexOutput.Colour = inColor.xyz;
+	VertexOutput.TexCoord = inTexCoord;
+    VertexOutput.Normal = transpose(inverse(mat3(pushConsts.transform))) * normalize(inNormal);
+    VertexOutput.Tangent = inTangent;
 }

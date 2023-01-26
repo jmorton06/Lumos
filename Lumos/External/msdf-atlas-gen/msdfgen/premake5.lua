@@ -3,7 +3,6 @@ project "msdfgen"
 	language "C++"
 	cppdialect "C++17"
     staticruntime "on"
-	systemversion "latest"
 	warnings "off"
 
 	files
@@ -33,6 +32,9 @@ project "msdfgen"
 	{
 		"freetype"
 	}
+
+	filter "system:windows"
+		systemversion "latest"
 
 	filter "configurations:Debug"
 		runtime "Debug"

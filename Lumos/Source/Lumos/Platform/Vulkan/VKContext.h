@@ -80,6 +80,8 @@ namespace Lumos
                 }
             };
 
+            static uint32_t GetVKVersion() { return m_VKVersion; }
+
         protected:
             static GraphicsContext* CreateFuncVulkan();
 
@@ -100,6 +102,8 @@ namespace Lumos
 
             std::vector<const char*> m_InstanceLayerNames;
             std::vector<const char*> m_InstanceExtensionNames;
+
+            static uint32_t m_VKVersion;
         };
     }
 }

@@ -13,9 +13,11 @@
             "//Scenes/2DTest",
             "//Scenes/ElasticTest",
             "//Scenes/FrictionTest",
-            "//Scenes/Sandbox"
+            "//Scenes/Sandbox",
+            "//Scenes/Sponza",
+            "//Scenes/Platformer"
         ],
-        "SceneIndex": 1,
+        "SceneIndex": 0,
         "Borderless": false,
         "EngineAssetPath": "/Users/jmorton/Dev/Lumos/Lumos/Assets/",
         "GPUIndex": -1

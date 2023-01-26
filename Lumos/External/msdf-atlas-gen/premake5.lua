@@ -3,7 +3,6 @@ project "msdf-atlas-gen"
 	language "C++"
 	cppdialect "C++17"
     staticruntime "on"
-	systemversion "latest"
 	warnings "off"
 
 	files
@@ -60,6 +59,9 @@ project "msdf-atlas-gen"
 	{
 		"msdf-atlas-gen/main.cpp"
 	}
+
+	filter "system:windows"
+		systemversion "latest"
 
 	filter "configurations:Debug"
 		runtime "Debug"

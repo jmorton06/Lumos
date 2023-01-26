@@ -6,7 +6,7 @@
 #include <Lumos/Core/Application.h>
 #include <Lumos/Scene/SceneManager.h>
 #include <Lumos/Core/Engine.h>
-#include <Lumos/Graphics/Renderers/RenderGraph.h>
+#include <Lumos/Graphics/Renderers/SceneRenderer.h>
 #include <Lumos/Graphics/GBuffer.h>
 #include <Lumos/Events/ApplicationEvent.h>
 #include <Lumos/ImGui/ImGuiUtilities.h>
@@ -35,10 +35,10 @@ namespace Lumos
                     ImGui::TreePop();
                 }
 
-                auto renderGraph = Application::Get().GetRenderGraph();
-                if(ImGui::TreeNode("RenderGraph"))
+                auto SceneRenderer = Application::Get().GetSceneRenderer();
+                if(ImGui::TreeNode("SceneRenderer"))
                 {
-                    renderGraph->OnImGui();
+                    SceneRenderer->OnImGui();
                     ImGui::TreePop();
                 }
 
@@ -52,11 +52,7 @@ namespace Lumos
                                                   {
                         Application::Get().GetWindow()->SetVSync(VSync);
                         Application::Get().GetWindow()->GetSwapChain()->SetVSync(VSync);
-                        Graphics::Renderer::GetRenderer()->OnResize(Application::Get().GetWindow()->GetWidth(), Application::Get().GetWindow()->GetHeight());
-
-                        //WindowResizeEvent e(Application::Get().GetWindow()->GetWidth(), Application::Get().GetWindow()->GetHeight());
-                        //editor->OnEvent(e); 
-                        });
+                        Graphics::Renderer::GetRenderer()->OnResize(Application::Get().GetWindow()->GetWidth(), Application::Get().GetWindow()->GetHeight()); });
                 }
                 ImGui::Columns(1);
                 ImGui::Text("FPS : %5.2i", Engine::Get().Statistics().FramesPerSecond);

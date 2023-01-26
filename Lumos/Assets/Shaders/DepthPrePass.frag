@@ -2,7 +2,7 @@
 #extension GL_ARB_separate_shader_objects : enable
 #extension GL_ARB_shading_language_420pack : enable
 
-struct VertexOutput
+struct VertexData
 {
 	vec3 Colour;
 	vec2 TexCoord;
@@ -12,7 +12,7 @@ struct VertexOutput
 	vec4 ShadowMapCoords[4];
 };
 
-layout(location = 0) in VertexOutput Input;
+layout(location = 0) in VertexData VertexOutput;
 
 layout(set = 1, binding = 0) uniform sampler2D u_AlbedoMap;
 layout(set = 1, binding = 1) uniform sampler2D u_MetallicMap;
@@ -42,7 +42,7 @@ layout(set = 1,binding = 6) uniform UniformMaterialData
 void main(void)
 {
 	const float alphaCutOut = 0.4;
-	float alpha = texture(u_AlbedoMap, Input.TexCoord).a;
+	float alpha = texture(u_AlbedoMap, VertexOutput.TexCoord).a;
 	
 	if(alpha < materialProperties.AlphaCutOff)
 		discard;

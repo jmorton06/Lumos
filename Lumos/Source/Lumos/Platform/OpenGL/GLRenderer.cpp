@@ -222,17 +222,18 @@ namespace Lumos
             LUMOS_PROFILE_FUNCTION();
             Engine::Get().Statistics().NumDrawCalls++;
 
-            if(m_BoundIndexBuffer == -1)
+            if(m_BoundVertexBuffer == -1)
             {
-                m_DefaultVertexBuffer->Bind(commandBuffer, nullptr);
+                m_DefaultVertexBuffer->Bind(commandBuffer, (Graphics::Pipeline*)m_BoundPipeline);
             }
 
-            if(m_BoundVertexBuffer == -1)
+            if(m_BoundIndexBuffer == -1)
             {
                 m_DefaultIndexBuffer->Bind(commandBuffer);
             }
+            GLCall(glDrawArrays(GLUtilities::DrawTypeToGL(type), 0, count));
 
-            GLCall(glDrawElements(GLUtilities::DrawTypeToGL(type), count, GLUtilities::DataTypeToGL(dataType), indices));
+            // GLCall(glDrawElements(GLUtilities::DrawTypeToGL(type), count, GLUtilities::DataTypeToGL(dataType), indices));
         }
 
         void GLRenderer::DrawIndexedInternal(CommandBuffer* commandBuffer, const DrawType type, uint32_t count, uint32_t start) const

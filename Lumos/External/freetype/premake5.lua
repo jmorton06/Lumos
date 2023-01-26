@@ -2,10 +2,8 @@ project "freetype"
 	kind "StaticLib"
 	language "C"
     staticruntime "on"
-    systemversion "latest"
-	warnings "off"
+    warnings "off"
 
-	
 	files {
         "include/config/ftconfig.h",
        "include/config/ftheader.h",
@@ -70,6 +68,9 @@ project "freetype"
     includedirs {
 		"include"
     }
+
+    filter "system:windows"
+        systemversion "latest"
 
     filter "configurations:Debug"
         runtime "Debug"

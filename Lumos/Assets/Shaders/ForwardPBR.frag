@@ -3,7 +3,7 @@
 #extension GL_ARB_separate_shader_objects : enable
 #extension GL_ARB_shading_language_420pack : enable
 
-struct VertexOutput
+struct VertexData
 {
 	vec3 Colour;
 	vec2 TexCoord;
@@ -13,7 +13,7 @@ struct VertexOutput
 	vec4 ShadowMapCoords[4];
 };
 
-layout(location = 0) in VertexOutput Input;
+layout(location = 0) in VertexData VertexOutput;
 
 #define MAX_LIGHTS 32
 #define MAX_SHADOWMAPS 4
@@ -82,6 +82,9 @@ layout(set = 2, binding = 5) uniform UBOLight
 	int Mode;
 	int EnvMipCount;
 	float InitialBias;
+	float p0;
+	float p1;
+	float p2;
 } ubo;
 
 layout(location = 0) out vec4 outColor;
@@ -104,38 +107,38 @@ struct Material
 
 vec4 GetAlbedo()
 {
-	return (1.0 - materialProperties.AlbedoMapFactor) * materialProperties.AlbedoColour + materialProperties.AlbedoMapFactor * DeGamma(texture(u_AlbedoMap, Input.TexCoord));
+	return (1.0 - materialProperties.AlbedoMapFactor) * materialProperties.AlbedoColour + materialProperties.AlbedoMapFactor * DeGamma(texture(u_AlbedoMap, VertexOutput.TexCoord));
 }
 
 vec3 GetMetallic()
 {
-	return (1.0 - materialProperties.MetallicMapFactor) * materialProperties.Metallic + materialProperties.MetallicMapFactor * texture(u_MetallicMap, Input.TexCoord).rgb;
+	return (1.0 - materialProperties.MetallicMapFactor) * materialProperties.Metallic + materialProperties.MetallicMapFactor * texture(u_MetallicMap, VertexOutput.TexCoord).rgb;
 }
 
 float GetRoughness()
 {
-	return (1.0 - materialProperties.RoughnessMapFactor) * materialProperties.Roughness + materialProperties.RoughnessMapFactor * texture(u_RoughnessMap, Input.TexCoord).r;
+	return (1.0 - materialProperties.RoughnessMapFactor) * materialProperties.Roughness + materialProperties.RoughnessMapFactor * texture(u_RoughnessMap, VertexOutput.TexCoord).r;
 }
 
 float GetAO()
 {
-	return (1.0 - materialProperties.AOMapFactor) + materialProperties.AOMapFactor * texture(u_AOMap, Input.TexCoord).r;
+	return (1.0 - materialProperties.AOMapFactor) + materialProperties.AOMapFactor * texture(u_AOMap, VertexOutput.TexCoord).r;
 }
 
 vec3 GetEmissive(vec3 albedo)
 {
-	return (materialProperties.Emissive * albedo) + materialProperties.EmissiveMapFactor * DeGamma(texture(u_EmissiveMap, Input.TexCoord).rgb);
+	return (materialProperties.Emissive * albedo) + materialProperties.EmissiveMapFactor * DeGamma(texture(u_EmissiveMap, VertexOutput.TexCoord).rgb);
 }
 
 vec3 GetNormalFromMap()
 {
 	if (materialProperties.NormalMapFactor < 0.1)
-		return normalize(Input.Normal);
+		return normalize(VertexOutput.Normal);
 
-	vec3 tangentNormal = texture(u_NormalMap, Input.TexCoord).xyz * 2.0 - 1.0;
+	vec3 tangentNormal = texture(u_NormalMap, VertexOutput.TexCoord).xyz * 2.0 - 1.0;
 
-	vec3 N = normalize(Input.Normal);
-	vec3 T = normalize(Input.Tangent.xyz);
+	vec3 N = normalize(VertexOutput.Normal);
+	vec3 T = normalize(VertexOutput.Tangent.xyz);
 	vec3 B = normalize(cross(N, T));
 	mat3 TBN = mat3(T, B, N);
 	return normalize(TBN * tangentNormal);
@@ -495,14 +498,14 @@ void main()
 	}
 	else if( materialProperties.workflow == PBR_WORKFLOW_METALLIC_ROUGHNESS)
 	{
-		vec3 tex  = texture(u_MetallicMap, Input.TexCoord).rgb;
+		vec3 tex  = texture(u_MetallicMap, VertexOutput.TexCoord).rgb;
 		metallic  = (1.0 - materialProperties.MetallicMapFactor) * materialProperties.Metallic + materialProperties.MetallicMapFactor * tex.b;
 		roughness = (1.0 - materialProperties.MetallicMapFactor) * materialProperties.Roughness + materialProperties.MetallicMapFactor * tex.g;
 	}
 	else if( materialProperties.workflow == PBR_WORKFLOW_SPECULAR_GLOSINESS)
 	{
 		//TODO
-		vec3 tex  = texture(u_MetallicMap, Input.TexCoord).rgb;
+		vec3 tex  = texture(u_MetallicMap, VertexOutput.TexCoord).rgb;
 		metallic  = (1.0 - materialProperties.MetallicMapFactor) * materialProperties.Metallic + materialProperties.MetallicMapFactor * tex.b;
 		roughness = (1.0 - materialProperties.MetallicMapFactor) * materialProperties.Roughness + materialProperties.MetallicMapFactor * tex.g;
 	}
@@ -529,7 +532,7 @@ void main()
     //     material.Roughness       = sqrt(filteredRoughness2);
     // }
 	
-	vec3 wsPos     = Input.Position.xyz;
+	vec3 wsPos     = VertexOutput.Position.xyz;
 	material.View  = normalize(ubo.cameraPosition.xyz - wsPos);
 	material.NDotV = max(dot(material.Normal, material.View), 0.0);
 

@@ -1,7 +1,6 @@
 project "glfw"
   kind "StaticLib"
   language "C"
-  systemversion "latest"
 
   removeplatforms "emscripten"
 
@@ -15,6 +14,9 @@ project "glfw"
   filter "configurations:Production"
     runtime "Release"
     optimize "On"
+
+  filter "system:windows"
+    systemversion "latest"
 
   filter {}
 

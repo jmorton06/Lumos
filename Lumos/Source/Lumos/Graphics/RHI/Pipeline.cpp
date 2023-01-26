@@ -51,7 +51,7 @@ namespace Lumos
 
 #ifdef LUMOS_RENDER_API_VULKAN
 
-                    if (GraphicsContext::GetRenderAPI() == RenderAPI::VULKAN)
+                    if(GraphicsContext::GetRenderAPI() == RenderAPI::VULKAN)
                     {
                         VkDescriptorImageInfo* imageHandle = (VkDescriptorImageInfo*)(texture->GetDescriptorInfo());
                         HashCombine(hash, imageHandle->imageLayout, imageHandle->imageView, imageHandle->sampler);
@@ -64,10 +64,10 @@ namespace Lumos
             {
 #ifdef LUMOS_RENDER_API_VULKAN
 
-                if (GraphicsContext::GetRenderAPI() == RenderAPI::VULKAN)
+                if(GraphicsContext::GetRenderAPI() == RenderAPI::VULKAN)
                 {
-                        VkDescriptorImageInfo* depthImageHandle = (VkDescriptorImageInfo*)(pipelineDesc.depthTarget->GetDescriptorInfo());
-                        HashCombine(hash, depthImageHandle->imageLayout, depthImageHandle->imageView, depthImageHandle->sampler);
+                    VkDescriptorImageInfo* depthImageHandle = (VkDescriptorImageInfo*)(pipelineDesc.depthTarget->GetDescriptorInfo());
+                    HashCombine(hash, depthImageHandle->imageLayout, depthImageHandle->imageView, depthImageHandle->sampler);
                 }
 #endif
                 HashCombine(hash, pipelineDesc.depthTarget, pipelineDesc.depthTarget->GetWidth(), pipelineDesc.depthTarget->GetHeight(), pipelineDesc.depthTarget->GetImageHande(), pipelineDesc.depthTarget->Handle);
