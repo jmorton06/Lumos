@@ -12,7 +12,7 @@
 #include <vulkan/vk_mem_alloc.h>
 #endif
 
-#ifdef LUMOS_DEBUG
+#if defined(LUMOS_DEBUG)
 const bool EnableValidationLayers = true;
 #else
 const bool EnableValidationLayers = false;
@@ -32,7 +32,6 @@ namespace Lumos
 
             void Init() override;
             void Present() override;
-            void Unload();
 
             static VKAPI_ATTR VkBool32 VKAPI_CALL DebugCallback(VkDebugReportFlagsEXT flags,
                                                                 VkDebugReportObjectTypeEXT objType,
@@ -81,6 +80,8 @@ namespace Lumos
                 }
             };
 
+            static uint32_t GetVKVersion() { return m_VKVersion; }
+
         protected:
             static GraphicsContext* CreateFuncVulkan();
 
@@ -102,8 +103,7 @@ namespace Lumos
             std::vector<const char*> m_InstanceLayerNames;
             std::vector<const char*> m_InstanceExtensionNames;
 
-            bool m_StandardValidationLayer = false;
-            bool m_AssistanceLayer         = false;
+            static uint32_t m_VKVersion;
         };
     }
 }

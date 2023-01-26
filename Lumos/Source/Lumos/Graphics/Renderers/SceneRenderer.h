@@ -46,7 +46,7 @@ namespace Lumos
             }
         };
 
-        struct RenderGraphSettings
+        struct SceneRendererSettings
         {
             bool DebugPass       = true;
             bool GeomPass        = true;
@@ -55,7 +55,7 @@ namespace Lumos
             bool SkyboxPass      = true;
         };
 
-        struct RenderGraphStats
+        struct SceneRendererStats
         {
             uint32_t UpdatesPerSecond;
             uint32_t FramesPerSecond;
@@ -64,11 +64,11 @@ namespace Lumos
             uint32_t NumDrawCalls       = 0;
         };
 
-        class RenderGraph
+        class SceneRenderer
         {
         public:
-            RenderGraph(uint32_t width, uint32_t height);
-            ~RenderGraph();
+            SceneRenderer(uint32_t width, uint32_t height);
+            ~SceneRenderer();
 
             void EnableDebugRenderer(bool enable);
 
@@ -103,6 +103,7 @@ namespace Lumos
             void FinalPass();
             void TextPass();
             void TextFlush();
+            void BlurPass(Texture* texture);
 
             // Post Process
             void ToneMappingPass();
@@ -113,6 +114,7 @@ namespace Lumos
             void EyeAdaptationPass();
             void FilmicGrainPass();
             void OutlinePass();
+            void DepthOfFieldPass();
 
             float SubmitTexture(Texture* texture);
             void UpdateCascades(Scene* scene, Light* light);
@@ -258,10 +260,12 @@ namespace Lumos
 
             ForwardData& GetForwardData() { return m_ForwardData; }
             ShadowData& GetShadowData() { return m_ShadowData; }
-            RenderGraphSettings& GetSettings() { return m_Settings; }
-            RenderGraphStats& GetRenderGraphStats() { return m_Stats; }
+            SceneRendererSettings& GetSettings() { return m_Settings; }
+            SceneRendererStats& GetSceneRendererStats() { return m_Stats; }
 
             SharedPtr<TextureCube> CreateCubeFromHDRI(const std::string& filePath);
+
+            void SetDisablePostProcess(bool disabled) { m_DisablePostProcess = disabled; }
 
         private:
             Texture2D* m_MainTexture      = nullptr;
@@ -291,6 +295,9 @@ namespace Lumos
             Scene* m_CurrentScene  = nullptr;
             bool m_GenerateBRDFLUT = false;
             bool m_SupportCompute  = false;
+
+            // Temp
+            bool m_DisablePostProcess = false;
 
             Mesh* m_ScreenQuad;
             Texture* m_CubeMap;
@@ -327,7 +334,8 @@ namespace Lumos
             SharedPtr<Pipeline> m_DepthPrePassPipeline = nullptr;
             SharedPtr<Graphics::Shader> m_DepthPrePassShader;
 
-            TextureDepth* m_SSAOTexture = nullptr;
+            Texture2D* m_SSAOTexture  = nullptr;
+            Texture2D* m_NoiseTexture = nullptr;
             SharedPtr<Graphics::Shader> m_SSAOShader;
             // SharedPtr<Graphics::DescriptorSet> m_SSAOPassDescriptorSet;
 
@@ -340,8 +348,11 @@ namespace Lumos
             SharedPtr<Graphics::DescriptorSet> m_OutlinePassDescriptorSet;
             SharedPtr<Graphics::Shader> m_OutlineShader;
 
-            RenderGraphSettings m_Settings;
-            RenderGraphStats m_Stats;
+            SharedPtr<Graphics::DescriptorSet> m_DepthOfFieldPassDescriptorSet;
+            SharedPtr<Graphics::Shader> m_DepthOfFieldShader;
+
+            SceneRendererSettings m_Settings;
+            SceneRendererStats m_Stats;
 
             // Outline pass
             Graphics::Model* m_SelectedModel           = nullptr;

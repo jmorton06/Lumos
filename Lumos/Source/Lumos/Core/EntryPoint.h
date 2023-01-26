@@ -15,6 +15,13 @@ extern Lumos::Application* Lumos::CreateApplication();
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
+#ifndef LUMOS_PRODUCTION
+    AllocConsole();
+    freopen("CONIN$", "r", stdin);
+    freopen("CONOUT$", "w", stdout);
+    freopen("CONOUT$", "w", stderr);
+#endif
+
     if(!Lumos::Internal::CoreSystem::Init(0, nullptr))
         return 0;
 

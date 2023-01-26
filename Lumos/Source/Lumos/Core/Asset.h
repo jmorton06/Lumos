@@ -24,12 +24,16 @@ namespace Lumos
 
     enum class AssetType : uint16_t
     {
-        None    = 0,
-        Texture = 1,
-        Mesh    = 2,
-        Scene   = 3,
-        Audio   = 4,
-        Font    = 5,
+        None            = 0,
+        Texture         = 1,
+        Mesh            = 2,
+        Scene           = 3,
+        Audio           = 4,
+        Font            = 5,
+        Shader          = 6,
+        Material        = 7,
+        PhysicsMaterial = 8,
+        Model           = 9,
     };
 
     class LUMOS_EXPORT Asset

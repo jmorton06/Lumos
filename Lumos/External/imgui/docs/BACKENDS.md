@@ -9,10 +9,10 @@ your application or engine to easily integrate Dear ImGui.** Each backend is typ
   e.g. Windows ([imgui_impl_win32.cpp](https://github.com/ocornut/imgui/blob/master/backends/imgui_impl_win32.cpp)), GLFW ([imgui_impl_glfw.cpp](https://github.com/ocornut/imgui/blob/master/backends/imgui_impl_glfw.cpp)), SDL2 ([imgui_impl_sdl.cpp](https://github.com/ocornut/imgui/blob/master/backends/imgui_impl_sdl.cpp)), etc.
 
 - The 'Renderer' backends are in charge of: creating atlas texture, rendering imgui draw data.<BR>
-  e.g. DirectX11 ([imgui_impl_dx11.cpp](https://github.com/ocornut/imgui/blob/master/backends/imgui_impl_dx11.cpp)), OpenGL/WebGL ([imgui_impl_opengl3.cpp](https://github.com/ocornut/imgui/blob/master/backends/imgui_impl_opengl3.cpp), Vulkan ([imgui_impl_vulkan.cpp](https://github.com/ocornut/imgui/blob/master/backends/imgui_impl_vulkan.cpp), etc.
+  e.g. DirectX11 ([imgui_impl_dx11.cpp](https://github.com/ocornut/imgui/blob/master/backends/imgui_impl_dx11.cpp)), OpenGL/WebGL ([imgui_impl_opengl3.cpp](https://github.com/ocornut/imgui/blob/master/backends/imgui_impl_opengl3.cpp)), Vulkan ([imgui_impl_vulkan.cpp](https://github.com/ocornut/imgui/blob/master/backends/imgui_impl_vulkan.cpp)), etc.
 
 - For some high-level frameworks, a single backend usually handle both 'Platform' and 'Renderer' parts.<BR>
-  e.g. Allegro 5 ([imgui_impl_allegro5.cpp](https://github.com/ocornut/imgui/blob/master/backends/imgui_impl_allegro5.cpp)), Marmalade ([imgui_impl_marmalade.cpp](https://github.com/ocornut/imgui/blob/master/backends/imgui_impl_marmalade.cpp)). If you end up creating a custom backend for your engine, you may want to do the same.
+  e.g. Allegro 5 ([imgui_impl_allegro5.cpp](https://github.com/ocornut/imgui/blob/master/backends/imgui_impl_allegro5.cpp)). If you end up creating a custom backend for your engine, you may want to do the same.
 
 An application usually combines 1 Platform backend + 1 Renderer backend + main Dear ImGui sources.
 For example, the [example_win32_directx11](https://github.com/ocornut/imgui/tree/master/examples/example_win32_directx11) application combines imgui_impl_win32.cpp + imgui_impl_dx11.cpp. There are 20+ examples in the [examples/](https://github.com/ocornut/imgui/blob/master/examples/) folder. See [EXAMPLES.MD](https://github.com/ocornut/imgui/blob/master/docs/EXAMPLES.md) for details.
@@ -38,7 +38,7 @@ Dear ImGui is highly portable and only requires a few things to run and render, 
  - Optional: multi-viewports support.
  etc.
 
-This is essentially what each backends are doing + obligatory portability cruft. Using default backends ensure you can get all those features including the ones that would be harder to implement on your side (e.g. multi-viewports support).
+This is essentially what each backend is doing + obligatory portability cruft. Using default backends ensure you can get all those features including the ones that would be harder to implement on your side (e.g. multi-viewports support).
 
 It is important to understand the difference between the core Dear ImGui library (files in the root folder)
 and backends which we are describing here (backends/ folder).
@@ -82,14 +82,13 @@ List of Renderer Backends:
 List of high-level Frameworks Backends (combining Platform + Renderer):
 
     imgui_impl_allegro5.cpp
-    imgui_impl_marmalade.cpp
 
 Emscripten is also supported.
 The [example_emscripten_opengl3](https://github.com/ocornut/imgui/tree/master/examples/example_emscripten_opengl3) app uses imgui_impl_sdl.cpp + imgui_impl_opengl3.cpp, but other combos are possible.
 
 ### Backends for third-party frameworks, graphics API or other languages
 
-See https://github.com/ocornut/imgui/wiki/Bindings for the full list.
+See https://github.com/ocornut/imgui/wiki/Bindings for the full list (e.g. Adventure Game Studio, Cinder, Cocos2d-x, Game Maker Studio2, Godot, LÖVE+LUA, Magnum, Monogame, Ogre, openFrameworks, OpenSceneGraph, SFML, Sokol, Unity, Unreal Engine and many others).
 
 ### Recommended Backends
 
@@ -128,7 +127,10 @@ Once it works, if you really need it you can replace parts of backends with your
 and you have high-level systems everywhere.<BR>
 Suggestion: try using a non-portable backend first (e.g. win32 + underlying graphics API) to get
 your desktop builds working first. This will get you running faster and get your acquainted with
-how Dear ImGui works and is setup. You can then rewrite a custom backend using your own engine API.
+how Dear ImGui works and is setup. You can then rewrite a custom backend using your own engine API...
+
+Generally:
+It is unlikely you will add value to your project by creating your own backend.
 
 Also:
 The [multi-viewports feature](https://github.com/ocornut/imgui/issues/1542) of the 'docking' branch allows

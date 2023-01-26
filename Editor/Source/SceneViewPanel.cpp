@@ -8,7 +8,7 @@
 #include <Lumos/Graphics/RHI/GraphicsContext.h>
 #include <Lumos/Graphics/RHI/Texture.h>
 #include <Lumos/Graphics/RHI/SwapChain.h>
-#include <Lumos/Graphics/Renderers/RenderGraph.h>
+#include <Lumos/Graphics/Renderers/SceneRenderer.h>
 #include <Lumos/Graphics/GBuffer.h>
 #include <Lumos/Graphics/Light.h>
 #include <Lumos/Scene/Component/SoundComponent.h>
@@ -39,6 +39,8 @@ namespace Lumos
 
         m_Width  = 1280;
         m_Height = 800;
+
+        Application::Get().GetSceneRenderer()->SetDisablePostProcess(false);
     }
 
     void SceneViewPanel::OnImGui()
@@ -52,7 +54,7 @@ namespace Lumos
 
         if(!ImGui::Begin(m_Name.c_str(), &m_Active, flags) || !m_CurrentScene)
         {
-            app.SetDisableMainRenderGraph(true);
+            app.SetDisableMainSceneRenderer(true);
             ImGui::End();
             return;
         }
@@ -60,7 +62,7 @@ namespace Lumos
         Camera* camera              = nullptr;
         Maths::Transform* transform = nullptr;
 
-        app.SetDisableMainRenderGraph(false);
+        app.SetDisableMainSceneRenderer(false);
 
         // if(app.GetEditorState() == EditorState::Preview)
         {
@@ -68,7 +70,7 @@ namespace Lumos
             camera    = m_Editor->GetCamera();
             transform = &m_Editor->GetEditorCameraTransform();
 
-            app.GetRenderGraph()->SetOverrideCamera(camera, transform);
+            app.GetSceneRenderer()->SetOverrideCamera(camera, transform);
         }
 
         ImVec2 offset = { 0.0f, 0.0f };
@@ -81,7 +83,6 @@ namespace Lumos
         if(!camera)
         {
             ImGui::End();
-            ImGui::PopStyleVar();
             return;
         }
 
@@ -102,6 +103,9 @@ namespace Lumos
 
         if(m_Editor->GetSettings().m_HalfRes)
             sceneViewSize *= 0.5f;
+
+        sceneViewSize.x -= static_cast<int>(sceneViewSize.x) % 2 != 0 ? 1.0f : 0.0f;
+        sceneViewSize.y -= static_cast<int>(sceneViewSize.y) % 2 != 0 ? 1.0f : 0.0f;
 
         Resize(static_cast<uint32_t>(sceneViewSize.x), static_cast<uint32_t>(sceneViewSize.y));
 
@@ -553,11 +557,11 @@ namespace Lumos
         m_Editor->GetSettings().m_AspectRatio = 1.0f;
         m_CurrentScene                        = scene;
 
-        auto renderGraph = Application::Get().GetRenderGraph();
-        renderGraph->SetRenderTarget(m_GameViewTexture.get(), true);
-        renderGraph->SetOverrideCamera(m_Editor->GetCamera(), &m_Editor->GetEditorCameraTransform());
+        auto SceneRenderer = Application::Get().GetSceneRenderer();
+        SceneRenderer->SetRenderTarget(m_GameViewTexture.get(), true);
+        SceneRenderer->SetOverrideCamera(m_Editor->GetCamera(), &m_Editor->GetEditorCameraTransform());
         m_Editor->GetGridRenderer()->SetRenderTarget(m_GameViewTexture.get(), true);
-        m_Editor->GetGridRenderer()->SetDepthTarget(renderGraph->GetForwardData().m_DepthTexture);
+        m_Editor->GetGridRenderer()->SetDepthTarget(SceneRenderer->GetForwardData().m_DepthTexture);
     }
 
     void SceneViewPanel::Resize(uint32_t width, uint32_t height)
@@ -589,19 +593,19 @@ namespace Lumos
         {
             m_GameViewTexture->Resize(m_Width, m_Height);
 
-            auto renderGraph = Application::Get().GetRenderGraph();
-            renderGraph->SetRenderTarget(m_GameViewTexture.get(), true, false);
+            auto SceneRenderer = Application::Get().GetSceneRenderer();
+            SceneRenderer->SetRenderTarget(m_GameViewTexture.get(), true, false);
 
             if(!m_Editor->GetGridRenderer())
                 m_Editor->CreateGridRenderer();
             m_Editor->GetGridRenderer()->SetRenderTarget(m_GameViewTexture.get(), false);
-            m_Editor->GetGridRenderer()->SetDepthTarget(renderGraph->GetForwardData().m_DepthTexture);
+            m_Editor->GetGridRenderer()->SetDepthTarget(SceneRenderer->GetForwardData().m_DepthTexture);
 
             WindowResizeEvent e(width, height);
             auto& app = Application::Get();
-            app.GetRenderGraph()->OnResize(width, height);
+            app.GetSceneRenderer()->OnResize(width, height);
 
-            renderGraph->OnEvent(e);
+            SceneRenderer->OnEvent(e);
 
             m_Editor->GetGridRenderer()->OnResize(m_Width, m_Height);
 

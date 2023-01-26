@@ -281,6 +281,7 @@ namespace Lumos
             }
             else
             {
+                LUMOS_LOG_WARN("TODO: not correct width and height");
                 uint32_t width  = 1000;
                 uint32_t height = 1000;
                 commandBuffer->UpdateViewport(width, height, false);

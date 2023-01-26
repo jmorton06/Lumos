@@ -454,7 +454,7 @@ namespace Lumos
                        "COUNT",
                        21,
                        "InternalStart_",
-                       ImGuiNavInput_KeyLeft_);
+                       ImGuiNavInput_LStickLeft);
 
         imgui.new_enum("SelectableFlags",
                        "None",

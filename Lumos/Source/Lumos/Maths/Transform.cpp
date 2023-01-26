@@ -120,13 +120,19 @@ namespace Lumos
             return m_LocalMatrix;
         }
 
-        const glm::vec3 Transform::GetWorldPosition() const
+        const glm::vec3 Transform::GetWorldPosition()
         {
+            if(m_Dirty)
+                UpdateMatrices();
+            
             return m_WorldMatrix[3];
         }
 
-        const glm::quat Transform::GetWorldOrientation() const
+        const glm::quat Transform::GetWorldOrientation()
         {
+            if(m_Dirty)
+                UpdateMatrices();
+            
             return glm::toQuat(m_WorldMatrix);
         }
 

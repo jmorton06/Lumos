@@ -7,7 +7,7 @@
 
 #include "Graphics/RHI/Renderer.h"
 #include "Graphics/RHI/GraphicsContext.h"
-#include "Graphics/Renderers/RenderGraph.h"
+#include "Graphics/Renderers/SceneRenderer.h"
 #include "Graphics/Camera/Camera.h"
 #include "Graphics/Material.h"
 #include "Graphics/Renderers/DebugRenderer.h"
@@ -126,7 +126,7 @@ namespace Lumos
             std::filesystem::create_directory(m_ProjectSettings.m_ProjectRoot + "Assets/Scenes");
 
         if(!FileSystem::FolderExists(m_ProjectSettings.m_ProjectRoot + "Assets/Textures"))
-            std::filesystem::create_directory(m_ProjectSettings.m_ProjectRoot + "Assets/Texturs");
+            std::filesystem::create_directory(m_ProjectSettings.m_ProjectRoot + "Assets/Textures");
 
         if(!FileSystem::FolderExists(m_ProjectSettings.m_ProjectRoot + "Assets/Meshes"))
             std::filesystem::create_directory(m_ProjectSettings.m_ProjectRoot + "Assets/Meshes");
@@ -173,6 +173,7 @@ namespace Lumos
         Deserialise();
 
         Engine::Get();
+        LuaManager::Get().OnInit();
 
         m_Timer = CreateUniquePtr<Timer>();
 
@@ -257,14 +258,14 @@ namespace Lumos
         m_ImGuiManager->OnInit();
         LUMOS_LOG_INFO("Initialised ImGui Manager");
 
-        m_RenderGraph = CreateUniquePtr<Graphics::RenderGraph>(screenWidth, screenHeight);
+        m_SceneRenderer = CreateUniquePtr<Graphics::SceneRenderer>(screenWidth, screenHeight);
 
         m_CurrentState = AppState::Running;
         System::JobSystem::Wait(context);
 
         Graphics::Material::InitDefaultTexture();
         Graphics::Font::InitDefaultFont();
-        m_RenderGraph->EnableDebugRenderer(true);
+        m_SceneRenderer->EnableDebugRenderer(true);
     }
 
     void Application::OnQuit()
@@ -280,9 +281,10 @@ namespace Lumos
         m_ModelLibrary.reset();
         m_FontLibrary.reset();
         m_SceneManager.reset();
-        m_RenderGraph.reset();
+        m_SceneRenderer.reset();
         m_SystemManager.reset();
         m_ImGuiManager.reset();
+        LuaManager::Release();
 
         Graphics::Pipeline::ClearCache();
         Graphics::RenderPass::ClearCache();
@@ -345,6 +347,18 @@ namespace Lumos
         m_Window->ProcessInput();
 
         {
+            std::scoped_lock<std::mutex> lock(m_EventQueueMutex);
+
+            // Process custom event queue
+            while(m_EventQueue.size() > 0)
+            {
+                auto& func = m_EventQueue.front();
+                func();
+                m_EventQueue.pop();
+            }
+        }
+
+        {
             LUMOS_PROFILE_SCOPE("Application::ImGui::NewFrame");
             ImGui::NewFrame();
         }
@@ -357,7 +371,7 @@ namespace Lumos
 
         // Exit frame early if escape or close button clicked
         // Prevents a crash with vulkan/moltenvk
-        if (m_CurrentState == AppState::Closing)
+        if(m_CurrentState == AppState::Closing)
             return false;
 
         std::thread updateThread = std::thread(Application::UpdateSystems);
@@ -430,10 +444,10 @@ namespace Lumos
         if(!m_SceneManager->GetCurrentScene())
             return;
 
-        if(!m_DisableMainRenderGraph)
+        if(!m_DisableMainSceneRenderer)
         {
-            m_RenderGraph->BeginScene(m_SceneManager->GetCurrentScene());
-            m_RenderGraph->OnRender();
+            m_SceneRenderer->BeginScene(m_SceneManager->GetCurrentScene());
+            m_SceneRenderer->OnRender();
 
             // Clears debug line and point lists
             DebugRenderer::Reset();
@@ -473,8 +487,8 @@ namespace Lumos
         if(e.Handled())
             return;
 
-        if(m_RenderGraph)
-            m_RenderGraph->OnEvent(e);
+        if(m_SceneRenderer)
+            m_SceneRenderer->OnEvent(e);
 
         if(e.Handled())
             return;
@@ -497,7 +511,7 @@ namespace Lumos
     void Application::OnNewScene(Scene* scene)
     {
         LUMOS_PROFILE_FUNCTION();
-        m_RenderGraph->OnNewScene(scene);
+        m_SceneRenderer->OnNewScene(scene);
     }
 
     SharedPtr<ShaderLibrary>& Application::GetShaderLibrary()
@@ -541,8 +555,8 @@ namespace Lumos
 
         Graphics::Renderer::GetRenderer()->OnResize(width, height);
 
-        if(m_RenderGraph)
-            m_RenderGraph->OnResize(width, height);
+        if(m_SceneRenderer)
+            m_SceneRenderer->OnResize(width, height);
 
         Graphics::Renderer::GetGraphicsContext()->WaitIdle();
 
@@ -585,8 +599,8 @@ namespace Lumos
             return;
         }
         m_Minimized = false;
-        m_RenderGraph->OnResize(width, height);
-        m_RenderGraph->OnEvent(e);
+        m_SceneRenderer->OnResize(width, height);
+        m_SceneRenderer->OnEvent(e);
 
         Graphics::Renderer::GetGraphicsContext()->WaitIdle();
     }

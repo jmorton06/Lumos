@@ -241,6 +241,11 @@ namespace Lumos
             float m_AspectRatio           = 1.0f;
 
             // Camera Settings
+            float m_CameraSpeed = 1000.0f;
+            float m_CameraNear  = 0.01f;
+            float m_CameraFar   = 1000.0f;
+
+            std::vector<std::string> m_RecentProjects;
         };
 
         EditorSettings& GetSettings() { return m_Settings; }
@@ -281,6 +286,7 @@ namespace Lumos
         SharedPtr<Graphics::Mesh> m_PreviewSphere;
         SharedPtr<Graphics::GridRenderer> m_GridRenderer;
         std::string m_TempSceneSaveFilePath;
+        int m_AutoSaveSettingsTime = 15000;
 
         IniFile m_IniFile;
 

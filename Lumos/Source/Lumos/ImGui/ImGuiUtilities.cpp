@@ -4,7 +4,8 @@
 #include "Graphics/RHI/Texture.h"
 #include "Graphics/RHI/GraphicsContext.h"
 #include "Core/OS/OS.h"
-
+#include "Core/Application.h"
+#include "Core/OS/Input.h"
 #include <imgui/imgui_internal.h>
 
 #ifdef LUMOS_RENDER_API_VULKAN
@@ -21,9 +22,12 @@ namespace Lumos
     {
         LUMOS_PROFILE_FUNCTION();
         bool updated = false;
+
+        ImGui::AlignTextToFramePadding();
         ImGui::TextUnformatted(name.c_str());
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
+        ImGui::AlignTextToFramePadding();
 
         if((int)flags & (int)PropertyFlag::ReadOnly)
         {
@@ -46,10 +50,12 @@ namespace Lumos
     {
         LUMOS_PROFILE_FUNCTION();
         bool updated = false;
+
+        ImGui::AlignTextToFramePadding();
         ImGui::TextUnformatted(name.c_str());
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
-
+        ImGui::AlignTextToFramePadding();
         {
             ImGui::TextUnformatted(value.c_str());
         }
@@ -63,9 +69,11 @@ namespace Lumos
     {
         bool modified = false;
 
+        ImGui::AlignTextToFramePadding();
         ImGui::TextUnformatted(label.c_str());
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
+        ImGui::AlignTextToFramePadding();
 
         if(!s_MultilineBuffer)
         {
@@ -92,6 +100,8 @@ namespace Lumos
     {
         LUMOS_PROFILE_FUNCTION();
         bool updated = false;
+
+        ImGui::AlignTextToFramePadding();
         ImGui::TextUnformatted(name.c_str());
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
@@ -118,12 +128,14 @@ namespace Lumos
         LUMOS_PROFILE_FUNCTION();
         bool updated = false;
 
+        ImGui::AlignTextToFramePadding();
         ImGui::TextUnformatted(name.c_str());
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
 
         if((int)flags & (int)PropertyFlag::ReadOnly)
         {
+            ImGui::AlignTextToFramePadding();
             ImGui::Text("%i", value);
         }
         else
@@ -143,6 +155,7 @@ namespace Lumos
         LUMOS_PROFILE_FUNCTION();
         bool updated = false;
 
+        ImGui::AlignTextToFramePadding();
         ImGui::TextUnformatted(name.c_str());
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
@@ -172,6 +185,7 @@ namespace Lumos
         LUMOS_PROFILE_FUNCTION();
         bool updated = false;
 
+        ImGui::AlignTextToFramePadding();
         ImGui::TextUnformatted(name.c_str());
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
@@ -197,6 +211,7 @@ namespace Lumos
         LUMOS_PROFILE_FUNCTION();
         bool updated = false;
 
+        ImGui::AlignTextToFramePadding();
         ImGui::TextUnformatted(name.c_str());
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
@@ -222,6 +237,7 @@ namespace Lumos
         LUMOS_PROFILE_FUNCTION();
         bool updated = false;
 
+        ImGui::AlignTextToFramePadding();
         ImGui::TextUnformatted(name.c_str());
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
@@ -253,6 +269,7 @@ namespace Lumos
         LUMOS_PROFILE_FUNCTION();
         bool updated = false;
 
+        ImGui::AlignTextToFramePadding();
         ImGui::TextUnformatted(name.c_str());
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
@@ -284,6 +301,7 @@ namespace Lumos
         LUMOS_PROFILE_FUNCTION();
         bool updated = false;
 
+        ImGui::AlignTextToFramePadding();
         ImGui::TextUnformatted(name.c_str());
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
@@ -297,7 +315,7 @@ namespace Lumos
             std::string id = "##" + name;
             if((int)flags & (int)PropertyFlag::ColourProperty)
             {
-                if(ImGui::ColorEdit3(id.c_str(), glm::value_ptr(value), ImGuiColorEditFlags_NoInputs))
+                if(ImGui::ColorEdit3(id.c_str(), glm::value_ptr(value)))
                     updated = true;
             }
             else
@@ -338,7 +356,7 @@ namespace Lumos
             std::string id = "##" + name;
             if((int)flags & (int)PropertyFlag::ColourProperty)
             {
-                if(ImGui::ColorEdit4(id.c_str(), glm::value_ptr(value), ImGuiColorEditFlags_NoInputs))
+                if(ImGui::ColorEdit4(id.c_str(), glm::value_ptr(value)))
                     updated = true;
             }
             else if((exposeW ? ImGui::DragFloat4(id.c_str(), glm::value_ptr(value)) : ImGui::DragFloat4(id.c_str(), glm::value_ptr(value))))
@@ -346,6 +364,57 @@ namespace Lumos
         }
         ImGui::PopItemWidth();
         ImGui::NextColumn();
+
+        return updated;
+    }
+
+    bool ImGuiUtilities::PorpertyTransform(const std::string& name, glm::vec3& vector, float width)
+    {
+        const float labelIndetation = ImGui::GetFontSize();
+        bool updated                = false;
+
+        auto& style = ImGui::GetStyle();
+
+        const auto showFloat = [&](int axis, float* value)
+        {
+            const float label_float_spacing = ImGui::GetFontSize();
+            const float step                = 0.01f;
+            const std::string format        = "%.4f";
+
+            ImGui::AlignTextToFramePadding();
+            ImGui::TextUnformatted(axis == 0 ? "X" : axis == 1 ? "Y"
+                                                               : "Z");
+            ImGui::SameLine(label_float_spacing);
+            glm::vec2 posPostLabel = ImGui::GetCursorScreenPos();
+
+            ImGui::PushItemWidth(width);
+            ImGui::PushID(static_cast<int>(ImGui::GetCursorPosX() + ImGui::GetCursorPosY()));
+
+            if(ImGui::InputFloat("##no_label", value, std::numeric_limits<float>::lowest(), std::numeric_limits<float>::max(), format.c_str()))
+                updated = true;
+
+            ImGui::PopID();
+            ImGui::PopItemWidth();
+
+            static const ImU32 colourX = IM_COL32(168, 46, 2, 255);
+            static const ImU32 colourY = IM_COL32(112, 162, 22, 255);
+            static const ImU32 colourZ = IM_COL32(51, 122, 210, 255);
+
+            const glm::vec2 size   = glm::vec2(ImGui::GetFontSize() / 4.0f, ImGui::GetFontSize() + ImGui::GetStyle().FramePadding.y);
+            posPostLabel           = posPostLabel + glm::vec2(-1.0f, ImGui::GetStyle().FramePadding.y / 2.0f);
+            ImRect axis_color_rect = ImRect(posPostLabel.x, posPostLabel.y, posPostLabel.x + size.x, posPostLabel.y + size.y);
+            ImGui::GetWindowDrawList()->AddRectFilled(axis_color_rect.Min, axis_color_rect.Max, axis == 0 ? colourX : axis == 1 ? colourY
+                                                                                                                                : colourZ);
+        };
+
+        ImGui::BeginGroup();
+        ImGui::Indent(labelIndetation);
+        ImGui::TextUnformatted(name.c_str());
+        ImGui::Unindent(labelIndetation);
+        showFloat(0, &vector.x);
+        showFloat(1, &vector.y);
+        showFloat(2, &vector.z);
+        ImGui::EndGroup();
 
         return updated;
     }
@@ -570,9 +639,9 @@ namespace Lumos
         ImDrawList* draw_list = ImGui::GetWindowDrawList();
         float y0              = ImGui::GetCursorScreenPos().y + (float)(int)y_offset;
 
-        int row_display_start;
-        int row_display_end;
-        ImGui::CalcListClipping(row_count, line_height, &row_display_start, &row_display_end);
+        int row_display_start = 0;
+        int row_display_end   = 0;
+        // ImGui::CalcListClipping(row_count, line_height, &row_display_start, &row_display_end);
         for(int row_n = row_display_start; row_n < row_display_end; row_n++)
         {
             ImU32 col = (row_n & 1) ? col_odd : col_even;
@@ -973,13 +1042,13 @@ namespace Lumos
         {
             ImGui::StyleColorsDark();
 
-            ImVec4 Titlebar    = ImVec4(36.0f / max, 38.0f / max, 48.0f / max, 1.0f);
+            ImVec4 Titlebar    = ImVec4(33.0f / max, 34.0f / max, 44.0f / max, 1.0f);
             ImVec4 TabActive   = ImVec4(40.0f / max, 42.0f / max, 54.0f / max, 1.0f);
             ImVec4 TabUnactive = ImVec4(35.0f / max, 43.0f / max, 59.0f / max, 1.0f);
 
             IconColour                     = ImVec4(183.0f / 255.0f, 158.0f / 255.0f, 220.0f / 255.0f, 1.00f);
             SelectedColour                 = ImVec4(145.0f / 255.0f, 111.0f / 255.0f, 186.0f / 255.0f, 1.00f);
-            colours[ImGuiCol_Text]         = ImVec4(159.0f / 255.0f, 159.0f / 255.0f, 163.0f / 255.0f, 1.00f);
+            colours[ImGuiCol_Text]         = ImVec4(244.0f / 255.0f, 244.0f / 255.0f, 244.0f / 255.0f, 1.00f);
             colours[ImGuiCol_TextDisabled] = ImVec4(0.36f, 0.42f, 0.47f, 1.00f);
 
             colours[ImGuiCol_WindowBg] = TabActive;

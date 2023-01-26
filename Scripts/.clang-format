@@ -1,32 +1,30 @@
 ---
----
 BasedOnStyle: WebKit
 AlignAfterOpenBracket: Align
-AlignConsecutiveAssignments: 'true'
-AlignConsecutiveDeclarations: 'false'
-AlignTrailingComments: 'true'
-AllowAllConstructorInitializersOnNextLine: 'true'
-AllowShortBlocksOnASingleLine: 'true'
-AllowShortFunctionsOnASingleLine: All
-AllowShortLambdasOnASingleLine: All
-AllowShortLoopsOnASingleLine: 'true'
+AlignConsecutiveAssignments: true
+AlignConsecutiveDeclarations: false
+AlignTrailingComments: "true"
+AllowAllConstructorInitializersOnNextLine: "true"
+AllowShortBlocksOnASingleLine: "true"
+AllowShortFunctionsOnASingleLine: "Inline"
+AllowShortLambdasOnASingleLine: "All"
+AllowShortLoopsOnASingleLine: "true"
 AlwaysBreakAfterReturnType: None
-BinPackArguments: 'true'
-BinPackParameters: 'true'
+BinPackArguments: "true"
+BinPackParameters: "true"
 BreakBeforeBraces: Allman
-ColumnLimit: '0'
-CompactNamespaces: 'true'
+ColumnLimit: "0"
+CompactNamespaces: "true"
 Language: Cpp
-MaxEmptyLinesToKeep: '1'
+MaxEmptyLinesToKeep: "1"
 NamespaceIndentation: All
-SortIncludes: 'false'
-SpaceBeforeAssignmentOperators: 'true'
+SortIncludes: "false"
+SpaceBeforeAssignmentOperators: "true"
 SpaceBeforeParens: Never
-SpacesInAngles: 'false'
-SpacesInCStyleCastParentheses: 'false'
-SpacesInParentheses: 'false'
+SpacesInAngles: "false"
+SpacesInCStyleCastParentheses: "false"
+SpacesInParentheses: "false"
 Standard: Auto
 BraceWrapping: {
-    BeforeLambdaBody: 'false',
+    BeforeLambdaBody: "false",
 }
-...

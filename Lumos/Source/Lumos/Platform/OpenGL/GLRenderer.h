@@ -16,6 +16,7 @@ namespace Lumos
         class GLVertexBuffer;
         class CommandBuffer;
         class Shader;
+        class GLPipeline;
 
         class LUMOS_EXPORT GLRenderer : public Renderer
         {
@@ -63,12 +64,14 @@ namespace Lumos
 
             int32_t& GetBoundVertexBuffer() { return m_BoundVertexBuffer; }
             int32_t& GetBoundIndexBuffer() { return m_BoundIndexBuffer; }
+            GLPipeline*& GetBoundPipeline() { return m_BoundPipeline; }
 
         protected:
             static Renderer* CreateFuncGL();
             std::string m_RendererTitle;
             int32_t m_BoundVertexBuffer = -1;
             int32_t m_BoundIndexBuffer  = -1;
+            GLPipeline* m_BoundPipeline = nullptr;
 
             GLVertexBuffer* m_DefaultVertexBuffer;
             GLIndexBuffer* m_DefaultIndexBuffer;

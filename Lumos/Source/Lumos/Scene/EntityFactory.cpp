@@ -235,7 +235,7 @@ namespace Lumos
 
         // cube.GetComponent<RigidBody3DComponent>().GetRigidBody()->SetIsAtRest(true);
         const float radius    = Random32::Rand(1.0f, 30.0f);
-        const float intensity = Random32::Rand(0.0f, 2.0f);
+        const float intensity = Random32::Rand(0.0f, 2.0f) * 120000.0f;
 
         cube.AddComponent<Graphics::Light>(pos, colour, intensity, Graphics::LightType::PointLight, pos, radius);
         const glm::vec3 forward = dir;

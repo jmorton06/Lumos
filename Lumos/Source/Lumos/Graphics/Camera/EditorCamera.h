@@ -16,9 +16,11 @@ namespace Lumos
 
         void SetMode(bool is2D) { m_2DMode = is2D; }
         void StopMovement();
+        void SetSpeed(float speed) { m_CameraSpeed = speed; }
 
     private:
         bool m_2DMode = false;
         glm::vec2 m_StoredCursorPos;
+        float m_CameraSpeed = 20.0f;
     };
 }

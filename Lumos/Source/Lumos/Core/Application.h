@@ -4,6 +4,7 @@
 #include "Scene/SystemManager.h"
 #include <cereal/types/vector.hpp>
 #include <cereal/cereal.hpp>
+#include <queue>
 
 namespace Lumos
 {
@@ -21,7 +22,7 @@ namespace Lumos
 
     namespace Graphics
     {
-        class RenderGraph;
+        class SceneRenderer;
         enum class RenderAPI : uint32_t;
     }
 
@@ -72,74 +73,28 @@ namespace Lumos
         virtual void OnImGui();
         virtual void OnDebugDraw();
 
-        SceneManager* GetSceneManager() const
-        {
-            return m_SceneManager.get();
-        }
-
-        Graphics::RenderGraph* GetRenderGraph() const
-        {
-            return m_RenderGraph.get();
-        }
-
-        Window* GetWindow() const
-        {
-            return m_Window.get();
-        }
-
-        AppState GetState() const
-        {
-            return m_CurrentState;
-        }
-
-        EditorState GetEditorState() const
-        {
-            return m_EditorState;
-        }
-
-        SystemManager* GetSystemManager() const
-        {
-            return m_SystemManager.get();
-        }
-
+        SceneManager* GetSceneManager() const { return m_SceneManager.get(); }
+        Graphics::SceneRenderer* GetSceneRenderer() const { return m_SceneRenderer.get(); }
+        Window* GetWindow() const { return m_Window.get(); }
+        AppState GetState() const { return m_CurrentState; }
+        EditorState GetEditorState() const { return m_EditorState; }
+        SystemManager* GetSystemManager() const { return m_SystemManager.get(); }
         Scene* GetCurrentScene() const;
 
-        void SetAppState(AppState state)
-        {
-            m_CurrentState = state;
-        }
-
-        void SetEditorState(EditorState state)
-        {
-            m_EditorState = state;
-        }
-
-        void SetSceneActive(bool active)
-        {
-            m_SceneActive = active;
-        }
-
-        bool GetSceneActive() const
-        {
-            return m_SceneActive;
-        }
+        void SetAppState(AppState state) { m_CurrentState = state; }
+        void SetEditorState(EditorState state) { m_EditorState = state; }
+        void SetSceneActive(bool active) { m_SceneActive = active; }
+        void SetDisableMainSceneRenderer(bool disable) { m_DisableMainSceneRenderer = disable; }
+        bool GetSceneActive() const { return m_SceneActive; }
 
         glm::vec2 GetWindowSize() const;
         float GetWindowDPI() const;
-
-        void SetDisableMainRenderGraph(bool disable)
-        {
-            m_DisableMainRenderGraph = disable;
-        }
 
         SharedPtr<ShaderLibrary>& GetShaderLibrary();
         SharedPtr<ModelLibrary>& GetModelLibrary();
         SharedPtr<FontLibrary>& GetFontLibrary();
 
-        static Application& Get()
-        {
-            return *s_Instance;
-        }
+        static Application& Get() { return *s_Instance; }
 
         static void Release()
         {
@@ -152,6 +107,28 @@ namespace Lumos
         T* GetSystem()
         {
             return m_SystemManager->GetSystem<T>();
+        }
+
+        template <typename Func>
+        void QueueEvent(Func&& func)
+        {
+            m_EventQueue.push(func);
+        }
+
+        template <typename TEvent, bool Immediate = false, typename... TEventArgs>
+        void DispatchEvent(TEventArgs&&... args)
+        {
+            SharedPtr<TEvent> event = CreateSharedPtr<TEvent>(std::forward<TEventArgs>(args)...);
+            if(Immediate)
+            {
+                OnEvent(*event);
+            }
+            else
+            {
+                std::scoped_lock<std::mutex> lock(m_EventQueueMutex);
+                m_EventQueue.push([event]()
+                                  { Application::Get().OnEvent(*event); });
+            }
         }
 
         bool OnWindowResize(WindowResizeEvent& e);
@@ -307,22 +284,25 @@ namespace Lumos
         bool OnWindowClose(WindowCloseEvent& e);
         static void UpdateSystems();
 
-        uint32_t m_Frames             = 0;
-        uint32_t m_Updates            = 0;
-        float m_SecondTimer           = 0.0f;
-        bool m_Minimized              = false;
-        bool m_SceneActive            = true;
-        bool m_DisableMainRenderGraph = false;
+        uint32_t m_Frames               = 0;
+        uint32_t m_Updates              = 0;
+        float m_SecondTimer             = 0.0f;
+        bool m_Minimized                = false;
+        bool m_SceneActive              = true;
+        bool m_DisableMainSceneRenderer = false;
 
         uint32_t m_SceneViewWidth   = 0;
         uint32_t m_SceneViewHeight  = 0;
         bool m_SceneViewSizeUpdated = false;
         bool m_RenderDocEnabled     = false;
 
+        std::mutex m_EventQueueMutex;
+        std::queue<std::function<void()>> m_EventQueue;
+
         UniquePtr<Window> m_Window;
         UniquePtr<SceneManager> m_SceneManager;
         UniquePtr<SystemManager> m_SystemManager;
-        UniquePtr<Graphics::RenderGraph> m_RenderGraph;
+        UniquePtr<Graphics::SceneRenderer> m_SceneRenderer;
         UniquePtr<ImGuiManager> m_ImGuiManager;
         UniquePtr<Timer> m_Timer;
         SharedPtr<ShaderLibrary> m_ShaderLibrary;

@@ -46,7 +46,7 @@ namespace Lumos
             void BuildTexture();
 
             uint8_t* LoadTextureData();
-            uint32_t LoadTexture(void* data) const;
+            uint32_t LoadTexture(void* data);
 
             TextureType GetType() const override
             {

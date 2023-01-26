@@ -159,7 +159,7 @@ project "Lumos"
 
 	filter "system:macosx"
 		cppdialect "C++17"
-		systemversion "latest"
+		systemversion "11.0"
 
 		files
 		{

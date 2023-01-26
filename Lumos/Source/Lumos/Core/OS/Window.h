@@ -79,6 +79,7 @@ namespace Lumos
         virtual uint32_t GetWidth() const    = 0;
         virtual uint32_t GetHeight() const   = 0;
         virtual float GetDPIScale() const { return 1.0f; }
+        virtual bool GetVSync() const { return m_VSync; };
 
         void SetWindowFocus(bool focus) { m_WindowFocus = focus; }
         bool GetWindowFocus() const { return m_WindowFocus; }

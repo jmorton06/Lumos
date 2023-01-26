@@ -125,6 +125,7 @@ namespace Lumos
             renderPassDesc.attachmentTypes = textureTypes;
             renderPassDesc.clear           = m_ClearScreen;
             renderPassDesc.attachments     = textures;
+            renderPassDesc.swapchainTarget = true;
 
             m_Renderpass   = new VKRenderPass(renderPassDesc);
             wd->RenderPass = m_Renderpass->GetHandle();
@@ -213,8 +214,13 @@ namespace Lumos
 
             LUMOS_PROFILE_GPU("ImGui Pass");
 
-            wd->FrameIndex           = VKRenderer::GetMainSwapChain()->GetCurrentImageIndex();
-            auto& descriptorImageMap = ImGui_ImplVulkan_GetDescriptorImageMap();
+            wd->FrameIndex            = VKRenderer::GetMainSwapChain()->GetCurrentImageIndex();
+            auto currentCommandBuffer = (VKCommandBuffer*)Renderer::GetMainSwapChain()->GetCurrentCommandBuffer();
+            auto& descriptorImageMap  = ImGui_ImplVulkan_GetDescriptorImageMap();
+            auto swapChain            = static_cast<VKSwapChain*>(VKRenderer::GetMainSwapChain());
+
+            if(wd->Swapchain != swapChain->GetSwapChain())
+                OnResize(wd->Width, wd->Height);
 
             {
                 auto draw_data = ImGui::GetDrawData();
@@ -230,19 +236,19 @@ namespace Lumos
                             if(((Texture*)pcmd->TextureId)->GetType() == TextureType::COLOUR)
                             {
                                 auto texture = (VKTexture2D*)pcmd->TextureId;
-                                texture->TransitionImage(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, (VKCommandBuffer*)Renderer::GetMainSwapChain()->GetCurrentCommandBuffer());
+                                texture->TransitionImage(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, currentCommandBuffer);
                                 descriptorImageMap[pcmd->TextureId] = texture->GetDescriptor();
                             }
                             else if(((Texture*)pcmd->TextureId)->GetType() == TextureType::DEPTH)
                             {
                                 auto texture = (VKTextureDepth*)pcmd->TextureId;
-                                texture->TransitionImage(VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL, (VKCommandBuffer*)Renderer::GetMainSwapChain()->GetCurrentCommandBuffer());
+                                texture->TransitionImage(VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL, currentCommandBuffer);
                                 descriptorImageMap[pcmd->TextureId] = texture->GetDescriptor();
                             }
                             else if(((Texture*)pcmd->TextureId)->GetType() == TextureType::DEPTHARRAY)
                             {
                                 auto texture = (VKTextureDepthArray*)pcmd->TextureId;
-                                texture->TransitionImage(VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL, (VKCommandBuffer*)Renderer::GetMainSwapChain()->GetCurrentCommandBuffer());
+                                texture->TransitionImage(VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL, currentCommandBuffer);
                                 descriptorImageMap[pcmd->TextureId] = texture->GetDescriptor();
                             }
                         }
@@ -250,17 +256,17 @@ namespace Lumos
                 }
             }
 
-            ImGui_ImplVulkan_CreateDescriptorSets(ImGui::GetDrawData(), VKRenderer::GetMainSwapChain()->GetCurrentBufferIndex());
+            ImGui_ImplVulkan_CreateDescriptorSets(ImGui::GetDrawData(), wd->FrameIndex);
 
             float clearColour[4] = { 0.1f, 0.1f, 0.1f, 1.0f };
-            m_Renderpass->BeginRenderpass(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer(), clearColour, m_Framebuffers[wd->FrameIndex], Graphics::SubPassContents::INLINE, wd->Width, wd->Height);
+            m_Renderpass->BeginRenderpass(currentCommandBuffer, clearColour, m_Framebuffers[wd->FrameIndex], Graphics::SubPassContents::INLINE, wd->Width, wd->Height);
 
             {
                 LUMOS_PROFILE_SCOPE("ImGui Vulkan RenderDrawData");
                 // Record Imgui Draw Data and draw funcs into command buffer
-                ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), ((VKCommandBuffer*)Renderer::GetMainSwapChain()->GetCurrentCommandBuffer())->GetHandle(), VK_NULL_HANDLE, VKRenderer::GetMainSwapChain()->GetCurrentBufferIndex());
+                ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), currentCommandBuffer->GetHandle(), VK_NULL_HANDLE, wd->FrameIndex);
             }
-            m_Renderpass->EndRenderpass(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer());
+            m_Renderpass->EndRenderpass(currentCommandBuffer);
         }
 
         void VKIMGUIRenderer::Render(Lumos::Graphics::CommandBuffer* commandBuffer)
