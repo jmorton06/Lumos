@@ -1,0 +1,364 @@
+{
+    "value0": {
+        "Version": 15,
+        "Scene Name": "Sponza",
+        "PhysicsEnabled2D": true,
+        "PhysicsEnabled3D": true,
+        "AudioEnabled": true,
+        "Renderer2DEnabled": true,
+        "Renderer3DEnabled": true,
+        "DebugRenderEnabled": true,
+        "SkyboxRenderEnabled": true,
+        "ShadowsEnabled": true,
+        "Exposure": 1.0,
+        "ToneMap": 6,
+        "BloomIntensity": 1.0,
+        "BloomKnee": 0.10000000149011612,
+        "BloomThreshold": 1.0,
+        "BloomUpsampleScale": 1.0,
+        "FXAAEnabled": true,
+        "DebandingEnabled": true,
+        "ChromaticAberationEnabled": false,
+        "EyeAdaptation": true,
+        "SSAOEnabled": true,
+        "BloomEnabled": true,
+        "FilmicGrainEnabled": true,
+        "DepthOfFieldEnabled": false,
+        "MotionBlurEnabled": false
+    },
+    "value1": 7,
+    "value2": 1048576,
+    "value3": 1,
+    "value4": 2,
+    "value5": 3,
+    "value6": 4,
+    "value7": 5,
+    "value8": 6,
+    "value9": 5,
+    "value10": 1,
+    "value11": {
+        "Position": {
+            "value0": 0.0,
+            "value1": 0.0,
+            "value2": 0.0
+        },
+        "Rotation": {
+            "value0": -0.7011613845825195,
+            "value1": 0.3117173910140991,
+            "value2": -0.1392785608768463,
+            "value3": 0.6259443163871765
+        },
+        "Scale": {
+            "value0": 1.0000011920928956,
+            "value1": 1.0000063180923463,
+            "value2": 1.000003457069397
+        }
+    },
+    "value12": 2,
+    "value13": {
+        "Position": {
+            "value0": 20.89605140686035,
+            "value1": 4.722044944763184,
+            "value2": -3.156912326812744
+        },
+        "Rotation": {
+            "value0": -0.02080266922712326,
+            "value1": 0.7873024344444275,
+            "value2": 0.008021975867450238,
+            "value3": 0.6161637306213379
+        },
+        "Scale": {
+            "value0": 1.0000001192092896,
+            "value1": 1.0000015497207642,
+            "value2": 1.0000011920928956
+        }
+    },
+    "value14": 1048576,
+    "value15": {
+        "Position": {
+            "value0": 0.0,
+            "value1": 0.0,
+            "value2": 0.857250452041626
+        },
+        "Rotation": {
+            "value0": 0.0,
+            "value1": 0.0,
+            "value2": 0.0,
+            "value3": 0.9999999403953552
+        },
+        "Scale": {
+            "value0": 4.507300853729248,
+            "value1": 4.507300853729248,
+            "value2": 4.507299423217773
+        }
+    },
+    "value16": 5,
+    "value17": {
+        "Position": {
+            "value0": -43.276554107666019,
+            "value1": 9.159662246704102,
+            "value2": -15.362536430358887
+        },
+        "Rotation": {
+            "value0": 0.0,
+            "value1": 0.0,
+            "value2": 0.0,
+            "value3": 0.9999999403953552
+        },
+        "Scale": {
+            "value0": 2.3499999046325685,
+            "value1": 2.3499999046325685,
+            "value2": 2.3499996662139894
+        }
+    },
+    "value18": 6,
+    "value19": {
+        "Position": {
+            "value0": 0.000013351507732295432,
+            "value1": -0.006932055111974478,
+            "value2": -0.000008583111593907234
+        },
+        "Rotation": {
+            "value0": 0.0,
+            "value1": 0.0,
+            "value2": 0.0,
+            "value3": 0.9999998807907105
+        },
+        "Scale": {
+            "value0": 1.0000050067901612,
+            "value1": 1.0000050067901612,
+            "value2": 1.000004768371582
+        }
+    },
+    "value20": 5,
+    "value21": 1,
+    "value22": {
+        "Name": "Light"
+    },
+    "value23": 4,
+    "value24": {
+        "Name": "Environment"
+    },
+    "value25": 2,
+    "value26": {
+        "Name": "Camera"
+    },
+    "value27": 3,
+    "value28": {
+        "Name": "LuaScript"
+    },
+    "value29": 5,
+    "value30": {
+        "Name": "Cube"
+    },
+    "value31": 0,
+    "value32": 2,
+    "value33": 6,
+    "value34": {
+        "First": 1048575,
+        "Next": 1048575,
+        "Previous": 1048575,
+        "Parent": 5
+    },
+    "value35": 5,
+    "value36": {
+        "First": 6,
+        "Next": 1048575,
+        "Previous": 1048575,
+        "Parent": 1048575
+    },
+    "value37": 1,
+    "value38": 2,
+    "value39": {
+        "Scale": 1.0,
+        "Aspect": 1.0457316637039185,
+        "FOV": 79.24700164794922,
+        "Near": 0.27399998903274538,
+        "Far": 831.0960083007813,
+        "Aperture": 50.0,
+        "ShutterSpeed": 0.01666666753590107,
+        "Sensitivity": 500.0
+    },
+    "value40": 1,
+    "value41": 3,
+    "value42": {
+        "FilePath": "//Scripts/Projectile.lua"
+    },
+    "value43": 0,
+    "value44": 2,
+    "value45": 1,
+    "value46": {
+        "value0": {
+            "value0": 0.0,
+            "value1": 0.0,
+            "value2": 0.0,
+            "value3": 1.0
+        },
+        "value1": {
+            "value0": 1.0,
+            "value1": 1.0,
+            "value2": 1.0,
+            "value3": 1.0
+        },
+        "value2": 0.0,
+        "value3": 0.0,
+        "value4": {
+            "value0": 0.5855494141578674,
+            "value1": 0.7909445762634277,
+            "value2": -0.17759086191654206,
+            "value3": 1.0
+        },
+        "value5": 128000.0,
+        "value6": 1.0
+    },
+    "value47": 6,
+    "value48": {
+        "value0": {
+            "value0": -43.27652359008789,
+            "value1": 9.14337158203125,
+            "value2": -15.362556457519532,
+            "value3": 1.0
+        },
+        "value1": {
+            "value0": 1.0,
+            "value1": 0.7076923251152039,
+            "value2": 0.0,
+            "value3": 1.0
+        },
+        "value2": 2.0,
+        "value3": 0.0,
+        "value4": {
+            "value0": 0.0,
+            "value1": 0.0,
+            "value2": 1.0,
+            "value3": 1.0
+        },
+        "value5": 120000.0,
+        "value6": 10.0
+    },
+    "value49": 0,
+    "value50": 1,
+    "value51": 4,
+    "value52": {
+        "value0": "//Textures/cubemap/noga",
+        "value1": 11,
+        "value2": 3072,
+        "value3": 4096,
+        "value4": ".tga",
+        "value5": 0.03125
+    },
+    "value53": 0,
+    "value54": 0,
+    "value55": 1,
+    "value56": 2,
+    "value57": {
+        "ControllerType": 4
+    },
+    "value58": 0,
+    "value59": 0,
+    "value60": 0,
+    "value61": 7,
+    "value62": 4,
+    "value63": {
+        "value0": 15908292661079695999
+    },
+    "value64": 3,
+    "value65": {
+        "value0": 7526643175369553408
+    },
+    "value66": 2,
+    "value67": {
+        "value0": 10876671568568338938
+    },
+    "value68": 1,
+    "value69": {
+        "value0": 7214240436243909756
+    },
+    "value70": 1048576,
+    "value71": {
+        "value0": 7500562784737221622
+    },
+    "value72": 5,
+    "value73": {
+        "value0": 11895628897253878785
+    },
+    "value74": 6,
+    "value75": {
+        "value0": 10240194095462285041
+    },
+    "value76": 2,
+    "value77": 1048576,
+    "value78": {
+        "PrimitiveType": 8,
+        "FilePath": "//Assets/Meshes/Sponza/Sponza.gltf",
+        "Material": {
+            "ptr_wrapper": {
+                "valid": 1,
+                "data": {
+                    "Albedo": "NULL",
+                    "Normal": "NULL",
+                    "Metallic": "NULL",
+                    "Roughness": "",
+                    "Ao": "",
+                    "Emissive": "",
+                    "albedoColour": {
+                        "value0": 0.5879999995231628,
+                        "value1": 0.5879999995231628,
+                        "value2": 0.5879999995231628,
+                        "value3": 1.0
+                    },
+                    "roughnessValue": 0.699999988079071,
+                    "metallicValue": 0.699999988079071,
+                    "emissiveValue": 0.0,
+                    "albedoMapFactor": 1.0,
+                    "metallicMapFactor": 1.0,
+                    "roughnessMapFactor": 0.0,
+                    "normalMapFactor": 1.0,
+                    "aoMapFactor": 0.0,
+                    "emissiveMapFactor": 0.0,
+                    "alphaCutOff": 0.4000000059604645,
+                    "workflow": 1.0,
+                    "shader": "//CoreShaders/ForwardPBR.shader"
+                }
+            }
+        }
+    },
+    "value79": 5,
+    "value80": {
+        "PrimitiveType": 2,
+        "FilePath": "Primitive",
+        "Material": {
+            "ptr_wrapper": {
+                "valid": 1,
+                "data": {
+                    "Albedo": "",
+                    "Normal": "",
+                    "Metallic": "",
+                    "Roughness": "",
+                    "Ao": "",
+                    "Emissive": "",
+                    "albedoColour": {
+                        "value0": 1.0,
+                        "value1": 0.5538461804389954,
+                        "value2": 0.0,
+                        "value3": 1.0
+                    },
+                    "roughnessValue": 0.699999988079071,
+                    "metallicValue": 0.699999988079071,
+                    "emissiveValue": 2.0,
+                    "albedoMapFactor": 0.0,
+                    "metallicMapFactor": 0.0,
+                    "roughnessMapFactor": 0.0,
+                    "normalMapFactor": 0.0,
+                    "aoMapFactor": 0.0,
+                    "emissiveMapFactor": 0.0,
+                    "alphaCutOff": 0.4000000059604645,
+                    "workflow": 0.0,
+                    "shader": "//CoreShaders/ForwardPBR.shader"
+                }
+            }
+        }
+    },
+    "value81": 0,
+    "value82": 0
+}

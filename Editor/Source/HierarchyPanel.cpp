@@ -127,6 +127,11 @@ namespace Lumos
                 if(iconMap.find(typeid(Graphics::Sprite).hash_code()) != iconMap.end())
                     icon = iconMap[typeid(Graphics::Sprite).hash_code()];
             }
+            else if(registry.has<TextComponent>(node))
+            {
+                if(iconMap.find(typeid(TextComponent).hash_code()) != iconMap.end())
+                    icon = iconMap[typeid(TextComponent).hash_code()];
+            }
 
             ImGui::PushStyleColor(ImGuiCol_Text, ImGuiUtilities::GetIconColour());
             // ImGui::BeginGroup();

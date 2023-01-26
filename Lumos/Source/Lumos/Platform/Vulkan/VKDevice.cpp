@@ -400,6 +400,7 @@ namespace Lumos
             allocatorInfo.physicalDevice         = m_PhysicalDevice->GetHandle();
             allocatorInfo.device                 = m_Device;
             allocatorInfo.instance               = VKContext::GetVKInstance();
+            allocatorInfo.vulkanApiVersion       = VKContext::GetVKVersion();
 
             VmaVulkanFunctions fn;
             fn.vkAllocateMemory                        = (PFN_vkAllocateMemory)vkAllocateMemory;

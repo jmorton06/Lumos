@@ -3,7 +3,7 @@
 #include "Core/OS/Input.h"
 #include "Core/Application.h"
 #include "Graphics/RHI/GraphicsContext.h"
-#include "Graphics/Renderers/RenderGraph.h"
+#include "Graphics/Renderers/SceneRenderer.h"
 #include "Graphics/Camera/Camera.h"
 #include "Graphics/Sprite.h"
 #include "Graphics/AnimatedSprite.h"

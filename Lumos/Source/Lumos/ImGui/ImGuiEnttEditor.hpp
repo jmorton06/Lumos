@@ -144,6 +144,7 @@ namespace MM
                     {
                         ImGui::Separator();
 
+                        ImGui::AlignTextToFramePadding();
                         ImGui::TextUnformatted(ICON_MDI_MAGNIFY);
                         ImGui::SameLine();
 

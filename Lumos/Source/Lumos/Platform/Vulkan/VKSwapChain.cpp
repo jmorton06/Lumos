@@ -55,7 +55,7 @@ namespace Lumos
 
             bool success = Init(m_VSyncEnabled);
 
-            AcquireNextImage();
+            // AcquireNextImage();
 
             return success;
         }

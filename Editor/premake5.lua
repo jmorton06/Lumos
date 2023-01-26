@@ -125,7 +125,7 @@ project "LumosEditor"
 	filter "system:macosx"
 		cppdialect "C++17"
 		staticruntime "On"
-		systemversion "latest"
+		systemversion "11.0"
 		editandcontinue "Off"
 
 		xcodebuildresources { "Assets.xcassets", "libMoltenVK.dylib" }

@@ -133,7 +133,7 @@ namespace Lumos
             {
                 m_AttachmentData.emplace_back(attachment);
             }
-            GLCall(glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, attachment, GL_TEXTURE_2D, (GLuint)(size_t)texture->GetHandle(), 0));
+            GLCall(glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, attachment, GL_TEXTURE_2D, (GLuint)(size_t)((GLTexture2D*)texture)->GetHandle(), 0));
         }
 
         void GLFramebuffer::AddCubeTextureAttachment(const Graphics::RHIFormat format, const CubeFace face, TextureCube* texture)

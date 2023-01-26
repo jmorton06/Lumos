@@ -1,6 +1,6 @@
 {
     "value0": {
-        "Version": 15,
+        "Version": 16,
         "Scene Name": "Physics",
         "PhysicsEnabled2D": true,
         "PhysicsEnabled3D": true,
@@ -21,10 +21,13 @@
         "ChromaticAberationEnabled": false,
         "EyeAdaptation": true,
         "SSAOEnabled": true,
-        "BloomEnabled": true,
+        "BloomEnabled": false,
         "FilmicGrainEnabled": false,
         "DepthOfFieldEnabled": false,
-        "MotionBlurEnabled": false
+        "MotionBlurEnabled": false,
+        "DepthOFFieldEnabled": false,
+        "DepthOfFieldStrength": 1.0,
+        "DepthOfFieldDistance": 100.0
     },
     "value1": 55,
     "value2": 1048576,
@@ -1492,7 +1495,7 @@
     "value322": 26,
     "value323": {
         "Scale": 1.0,
-        "Aspect": 1.0457316637039185,
+        "Aspect": 0.8098591566085815,
         "FOV": 60.0,
         "Near": 0.10000000149011612,
         "Far": 1000.0,
@@ -2839,12 +2842,12 @@
             "ptr_wrapper": {
                 "valid": 1,
                 "data": {
-                    "Albedo": "NULL",
-                    "Normal": "NULL",
-                    "Metallic": "NULL",
+                    "Albedo": "",
+                    "Normal": "",
+                    "Metallic": "",
                     "Roughness": "",
                     "Ao": "",
-                    "Emissive": "NULL",
+                    "Emissive": "",
                     "albedoColour": {
                         "value0": 1.0,
                         "value1": 1.0,
@@ -2875,12 +2878,12 @@
             "ptr_wrapper": {
                 "valid": 1,
                 "data": {
-                    "Albedo": "NULL",
+                    "Albedo": "",
                     "Normal": "",
                     "Metallic": "",
                     "Roughness": "",
                     "Ao": "",
-                    "Emissive": "NULL",
+                    "Emissive": "",
                     "albedoColour": {
                         "value0": 1.0,
                         "value1": 1.0,
@@ -2911,12 +2914,12 @@
             "ptr_wrapper": {
                 "valid": 1,
                 "data": {
-                    "Albedo": "NULL",
-                    "Normal": "NULL",
-                    "Metallic": "NULL",
+                    "Albedo": "",
+                    "Normal": "",
+                    "Metallic": "",
                     "Roughness": "",
-                    "Ao": "NULL",
-                    "Emissive": "NULL",
+                    "Ao": "",
+                    "Emissive": "",
                     "albedoColour": {
                         "value0": 1.0,
                         "value1": 1.0,

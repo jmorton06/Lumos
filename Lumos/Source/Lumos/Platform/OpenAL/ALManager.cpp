@@ -74,7 +74,7 @@ namespace Lumos
         }
 
         // Pass Cameras transform
-        void ALManager::UpdateListener(const Maths::Transform& listenerTransform)
+        void ALManager::UpdateListener(Maths::Transform& listenerTransform)
         {
             LUMOS_PROFILE_FUNCTION();
             {

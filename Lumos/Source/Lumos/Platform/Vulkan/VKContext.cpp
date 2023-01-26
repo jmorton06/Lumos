@@ -7,6 +7,10 @@
 #include "Core/Version.h"
 #include "Core/StringUtilities.h"
 
+#ifndef VK_API_VERSION_1_2
+#error Wrong Vulkan SDK!
+#endif
+
 #include <imgui/imgui.h>
 
 #define VK_LAYER_LUNARG_STANDARD_VALIDATION_NAME "VK_LAYER_LUNARG_standard_validation"
@@ -18,6 +22,8 @@ namespace Lumos
     namespace Graphics
     {
         VkInstance VKContext::s_VkInstance = nullptr;
+        uint32_t VKContext::m_VKVersion    = 0;
+
         const std::vector<const char*> VKContext::GetRequiredExtensions()
         {
             std::vector<const char*> extensions;
@@ -304,12 +310,14 @@ namespace Lumos
             // Choose supported version
             appInfo.apiVersion = Maths::Min(sdkVersion, driverVersion);
 
+            m_VKVersion = appInfo.apiVersion;
+
             // SDK not supported
             if(sdkVersion > driverVersion)
             {
                 // Detect and log version
                 std::string driverVersionStr = StringUtilities::ToString(VK_API_VERSION_MAJOR(driverVersion)) + "." + StringUtilities::ToString(VK_API_VERSION_MINOR(driverVersion)) + "." + StringUtilities::ToString(VK_API_VERSION_PATCH(driverVersion));
-                std::string sdkVersionStr    = StringUtilities::ToString(VK_API_VERSION_MAJOR(driverVersion)) + "." + StringUtilities::ToString(VK_API_VERSION_MINOR(driverVersion)) + "." + StringUtilities::ToString(VK_API_VERSION_PATCH(driverVersion));
+                std::string sdkVersionStr    = StringUtilities::ToString(VK_API_VERSION_MAJOR(sdkVersion)) + "." + StringUtilities::ToString(VK_API_VERSION_MINOR(sdkVersion)) + "." + StringUtilities::ToString(VK_API_VERSION_PATCH(sdkVersion));
                 LUMOS_LOG_WARN("Using Vulkan {0}. Please update your graphics drivers to support Vulkan {1}.", driverVersionStr, sdkVersionStr);
             }
 

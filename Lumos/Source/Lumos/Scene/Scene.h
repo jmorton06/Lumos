@@ -113,12 +113,12 @@ namespace Lumos
             bool DebugRenderEnabled        = true;
             bool SkyboxRenderEnabled       = true;
             bool ShadowsEnabled            = true;
-            bool FXAAEnabled               = true;
-            bool DebandingEnabled          = true;
+            bool FXAAEnabled               = false;
+            bool DebandingEnabled          = false;
             bool ChromaticAberationEnabled = false;
-            bool EyeAdaptation             = true;
-            bool SSAOEnabled               = true;
-            bool BloomEnabled              = true;
+            bool EyeAdaptation             = false;
+            bool SSAOEnabled               = false;
+            bool BloomEnabled              = false;
             bool FilmicGrainEnabled        = false;
             bool MotionBlurEnabled         = false;
             bool DepthOfFieldEnabled       = false;

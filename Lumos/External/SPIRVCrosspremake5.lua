@@ -2,7 +2,6 @@
 project "SpirvCross"
     kind "StaticLib"
     language "C++"
-    systemversion "latest"
     cppdialect "C++17"
     staticruntime "On"
     files
@@ -35,6 +34,12 @@ project "SpirvCross"
         "vulkan/SPIRV-Cross/spirv_reflect.cpp",
         "vulkan/SPIRV-Cross/spirv_reflect.hpp"
     }
+
+    filter "system:windows"
+        systemversion "latest"
+
+    filter "system:macosx"
+        systemversion "11.0"
 
     filter "configurations:Debug"
         runtime "Debug"
