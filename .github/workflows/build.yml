@@ -17,12 +17,12 @@ jobs:
     - name: Install Dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y g++-8 libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev libopenal-dev mesa-common-dev
+        sudo apt-get install -y g++-11 libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev libopenal-dev mesa-common-dev
     - name: Build ${{matrix.configuration}}
       run: |
         Tools/linux/premake5 gmake2
         cd build
-        make $* CC=gcc-8 CPP=g++-8 CXX=g++-8 CC=gcc-8 config=${{ matrix.config }} -j8
+        make $* CC=gcc-11 CPP=g++-11 CXX=g++-11 CC=gcc-11 config=${{ matrix.config }} -j8
     - uses: actions/upload-artifact@v2
       with:
         if: matrix.config == 'production'
