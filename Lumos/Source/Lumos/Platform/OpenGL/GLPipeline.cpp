@@ -181,6 +181,8 @@ namespace Lumos
 
         void GLPipeline::Bind(Graphics::CommandBuffer* commandBuffer, uint32_t layer)
         {
+            GLRenderer::Instance()->GetBoundPipeline() = this;
+
             Framebuffer* framebuffer;
 
             if(m_Description.swapchainTarget)
@@ -256,6 +258,8 @@ namespace Lumos
 
             if(m_LineWidth != 1.0f)
                 glLineWidth(1.0f);
+
+            GLRenderer::Instance()->GetBoundPipeline() = nullptr;
         }
 
         void GLPipeline::ClearRenderTargets(CommandBuffer* commandBuffer)

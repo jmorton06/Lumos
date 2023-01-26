@@ -15,6 +15,7 @@ namespace Lumos
             , m_Height(height)
         {
             m_Format = m_Parameters.format;
+            m_Handle = Load(nullptr);
         }
 
         GLTexture2D::GLTexture2D(uint32_t width, uint32_t height, void* data, TextureDesc parameters, TextureLoadOptions loadOptions)
@@ -24,12 +25,9 @@ namespace Lumos
             , m_LoadOptions(loadOptions)
             , m_Width(width)
             , m_Height(height)
+            , m_Format(parameters.format)
         {
-            m_Name        = "";
-            m_Parameters  = parameters;
-            m_LoadOptions = loadOptions;
-            m_Format      = m_Parameters.format;
-            m_Handle      = Load(data);
+            m_Handle = Load(data);
         }
 
         GLTexture2D::GLTexture2D(const std::string& name, const std::string& filename, const TextureDesc parameters, const TextureLoadOptions loadOptions)
@@ -56,7 +54,7 @@ namespace Lumos
             BuildTexture();
         }
 
-        uint32_t GLTexture2D::LoadTexture(void* data) const
+        uint32_t GLTexture2D::LoadTexture(void* data)
         {
             uint32_t handle;
             GLCall(glGenTextures(1, &handle));
@@ -67,6 +65,11 @@ namespace Lumos
             GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GLUtilities::TextureWrapToGL(m_Parameters.wrap)));
 
             uint32_t format = GLUtilities::FormatToGL(m_Parameters.format, m_Parameters.srgb);
+
+            // TODO: Function like GetTypefromFormat
+            if(m_Parameters.format == RHIFormat::R32G32B32A32_Float || m_Parameters.format == RHIFormat::R32G32B32_Float)
+                isHDR = true;
+
             GLCall(glTexImage2D(GL_TEXTURE_2D, 0, format, m_Width, m_Height, 0, GLUtilities::FormatToInternalFormat(format), isHDR ? GL_FLOAT : GL_UNSIGNED_BYTE, data ? data : NULL));
             GLCall(glGenerateMipmap(GL_TEXTURE_2D));
 #ifdef LUMOS_DEBUG
@@ -122,7 +125,7 @@ namespace Lumos
 
             uint32_t Format  = GLUtilities::FormatToGL(m_Format, m_Parameters.srgb);
             uint32_t Format2 = GLUtilities::FormatToInternalFormat(Format);
-
+            glGenTextures(1, &m_Handle);
             glBindTexture(GL_TEXTURE_2D, m_Handle);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);

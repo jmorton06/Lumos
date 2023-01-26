@@ -32,6 +32,13 @@ namespace Lumos
             void Load(const std::string& name, uint32_t numMip, uint32_t width, uint32_t height, float irrSizeFactor, const std::string& fileType = ".tga");
             void Load();
 
+            void CreateSky(float a, float b, float c)
+            {
+                // Generate sky
+
+                // Generate Mips
+            }
+
             TextureCube* GetEnvironmentMap() const
             {
                 return m_Environmnet.get();

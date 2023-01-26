@@ -55,11 +55,15 @@ namespace Lumos
                 ImGuiUtilities::Property("Debanding Enabled", sceneSettings.RenderSettings.DebandingEnabled);
                 ImGuiUtilities::Property("ChromaticAberation Enabled", sceneSettings.RenderSettings.ChromaticAberationEnabled);
                 ImGuiUtilities::Property("Filmic Grain Enabled", sceneSettings.RenderSettings.FilmicGrainEnabled);
+                ImGuiUtilities::Property("SSAO Enabled", sceneSettings.RenderSettings.SSAOEnabled);
                 ImGuiUtilities::Property("Bloom Enabled", sceneSettings.RenderSettings.BloomEnabled);
                 ImGuiUtilities::Property("Bloom Intensity", sceneSettings.RenderSettings.m_BloomIntensity);
                 ImGuiUtilities::Property("Bloom Upsample Scale", sceneSettings.RenderSettings.BloomUpsampleScale);
                 ImGuiUtilities::Property("Bloom Knee", sceneSettings.RenderSettings.BloomKnee);
                 ImGuiUtilities::Property("Bloom Threshold", sceneSettings.RenderSettings.BloomThreshold);
+                ImGuiUtilities::Property("Depth Of Field Enabled", sceneSettings.RenderSettings.DepthOfFieldEnabled);
+                ImGuiUtilities::Property("Depth Of Field Strength", sceneSettings.RenderSettings.DepthOfFieldStrength);
+                ImGuiUtilities::Property("Depth Of Field Distance", sceneSettings.RenderSettings.DepthOfFieldDistance);
 
                 static std::string toneMaps[7] = {
                     "None",

@@ -90,26 +90,26 @@ namespace Lumos
         {
             glm::vec3 up = glm::vec3(0, 1, 0), right = glm::vec3(1, 0, 0);
 
-            m_CameraSpeed = /*camera->GetScale() **/ dt * 20.0f;
+            float speed = /*camera->GetScale() **/ dt * m_CameraSpeed;
 
             if(Input::Get().GetKeyHeld(Lumos::InputCode::Key::A))
             {
-                m_Velocity -= right * m_CameraSpeed;
+                m_Velocity -= right * speed;
             }
 
             if(Input::Get().GetKeyHeld(Lumos::InputCode::Key::D))
             {
-                m_Velocity += right * m_CameraSpeed;
+                m_Velocity += right * speed;
             }
 
             if(Input::Get().GetKeyHeld(Lumos::InputCode::Key::W))
             {
-                m_Velocity += up * m_CameraSpeed;
+                m_Velocity += up * speed;
             }
 
             if(Input::Get().GetKeyHeld(Lumos::InputCode::Key::S))
             {
-                m_Velocity -= up * m_CameraSpeed;
+                m_Velocity -= up * speed;
             }
 
             if(glm::length(m_Velocity) > Maths::M_EPSILON)
@@ -124,49 +124,49 @@ namespace Lumos
         else
         {
 
-            float multiplier = 1000.0f;
+            float multiplier = 1.0f;
 
             if(Input::Get().GetKeyHeld(InputCode::Key::LeftShift))
             {
-                multiplier = 10000.0f;
+                multiplier = 10.0f;
             }
             else if(Input::Get().GetKeyHeld(InputCode::Key::LeftAlt))
             {
-                multiplier = 50.0f;
+                multiplier = 0.5f;
             }
 
-            m_CameraSpeed = multiplier * dt;
+            float speed = multiplier * dt * m_CameraSpeed;
 
             if(Input::Get().GetMouseHeld(InputCode::MouseKey::ButtonRight))
             {
                 if(Input::Get().GetKeyHeld(InputCode::Key::W))
                 {
-                    m_Velocity -= transform.GetForwardDirection() * m_CameraSpeed;
+                    m_Velocity -= transform.GetForwardDirection() * speed;
                 }
 
                 if(Input::Get().GetKeyHeld(InputCode::Key::S))
                 {
-                    m_Velocity += transform.GetForwardDirection() * m_CameraSpeed;
+                    m_Velocity += transform.GetForwardDirection() * speed;
                 }
 
                 if(Input::Get().GetKeyHeld(InputCode::Key::A))
                 {
-                    m_Velocity -= transform.GetRightDirection() * m_CameraSpeed;
+                    m_Velocity -= transform.GetRightDirection() * speed;
                 }
 
                 if(Input::Get().GetKeyHeld(InputCode::Key::D))
                 {
-                    m_Velocity += transform.GetRightDirection() * m_CameraSpeed;
+                    m_Velocity += transform.GetRightDirection() * speed;
                 }
 
                 if(Input::Get().GetKeyHeld(InputCode::Key::Q))
                 {
-                    m_Velocity -= transform.GetUpDirection() * m_CameraSpeed;
+                    m_Velocity -= transform.GetUpDirection() * speed;
                 }
 
                 if(Input::Get().GetKeyHeld(InputCode::Key::E))
                 {
-                    m_Velocity += transform.GetUpDirection() * m_CameraSpeed;
+                    m_Velocity += transform.GetUpDirection() * speed;
                 }
             }
 
@@ -184,10 +184,10 @@ namespace Lumos
     {
         if(m_2DMode)
         {
-            float multiplier = 2.0f;
+            float multiplier = m_CameraSpeed / 10.0f;
             if(Input::Get().GetKeyHeld(InputCode::Key::LeftShift))
             {
-                multiplier = 10.0f;
+                multiplier = m_CameraSpeed / 2.0f;
             }
 
             if(offset != 0.0f)

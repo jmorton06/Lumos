@@ -30,6 +30,7 @@ namespace Lumos
             uint32_t GetHeight() const { return m_Height; }
 
             size_t GetSwapChainBufferCount() const override;
+            void SetVSync(bool vsync) override { }
 
             static void MakeDefault();
 

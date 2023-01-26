@@ -34,7 +34,17 @@ namespace Lumos
                 HashCombine(hash, framebufferDesc.attachmentTypes[i]);
 
                 if(framebufferDesc.attachments[i])
+                {
                     HashCombine(hash, framebufferDesc.attachments[i]->GetImageHande());
+#ifdef LUMOS_RENDER_API_VULKAN
+
+                    if(GraphicsContext::GetRenderAPI() == RenderAPI::VULKAN)
+                    {
+                        VkDescriptorImageInfo* depthImageHandle = (VkDescriptorImageInfo*)(framebufferDesc.attachments[i]->GetDescriptorInfo());
+                        HashCombine(hash, depthImageHandle->imageLayout, depthImageHandle->imageView, depthImageHandle->sampler);
+                    }
+#endif
+                }
             }
 
             auto found = m_FramebufferCache.find(hash);

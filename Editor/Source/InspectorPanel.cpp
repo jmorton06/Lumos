@@ -169,53 +169,33 @@ end
         LUMOS_PROFILE_FUNCTION();
         auto& transform = reg.get<Lumos::Maths::Transform>(e);
 
-        auto rotation = glm::degrees(glm::eulerAngles(transform.GetLocalOrientation()));
-        auto position = transform.GetLocalPosition();
-        auto scale    = transform.GetLocalScale();
+        auto rotation   = glm::degrees(glm::eulerAngles(transform.GetLocalOrientation()));
+        auto position   = transform.GetLocalPosition();
+        auto scale      = transform.GetLocalScale();
+        float itemWidth = (ImGui::GetContentRegionAvail().x - (ImGui::GetFontSize() * 3.0f)) / 3.0f;
 
-        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
-        ImGui::Columns(2);
-        ImGui::Separator();
+        // Call this to fix alignment with columns
+        ImGui::AlignTextToFramePadding();
 
-        ImGui::TextUnformatted("Position");
-        ImGui::NextColumn();
-        ImGui::PushItemWidth(-1);
-
-        if(ImGui::DragFloat3("##Position", glm::value_ptr(position), 3, 0.05f))
-        {
+        if(Lumos::ImGuiUtilities::PorpertyTransform("Position", position, itemWidth))
             transform.SetLocalPosition(position);
-        }
 
-        ImGui::PopItemWidth();
-        ImGui::NextColumn();
-
-        ImGui::TextUnformatted("Rotation");
-        ImGui::NextColumn();
-        ImGui::PushItemWidth(-1);
-        if(ImGui::DragFloat3("##Rotation", glm::value_ptr(rotation), 3, 0.05f))
+        ImGui::SameLine();
+        if(Lumos::ImGuiUtilities::PorpertyTransform("Rotation", rotation, itemWidth))
         {
             float pitch = Lumos::Maths::Min(rotation.x, 89.9f);
             pitch       = Lumos::Maths::Max(pitch, -89.9f);
             transform.SetLocalOrientation(glm::quat(glm::radians(glm::vec3(pitch, rotation.y, rotation.z))));
         }
 
-        ImGui::PopItemWidth();
-        ImGui::NextColumn();
-
-        ImGui::TextUnformatted("Scale");
-        ImGui::NextColumn();
-        ImGui::PushItemWidth(-1);
-        if(ImGui::DragFloat3("##Scale", glm::value_ptr(scale), 3, 0.05f))
+        ImGui::SameLine();
+        if(Lumos::ImGuiUtilities::PorpertyTransform("Scale", scale, itemWidth))
         {
             transform.SetLocalScale(scale);
         }
 
-        ImGui::PopItemWidth();
-        ImGui::NextColumn();
-
         ImGui::Columns(1);
         ImGui::Separator();
-        ImGui::PopStyleVar();
     }
 
     static void CuboidCollisionShapeInspector(Lumos::CuboidCollisionShape* shape, const Lumos::RigidBody3DComponent& phys)
@@ -832,7 +812,7 @@ end
             camera.SetShutterSpeed(shutterSpeed);
 
         float sensitivity = camera.GetSensitivity();
-        if(ImGuiUtilities::Property("Sensitivity", sensitivity, 0.0f, 5000.0f))
+        if(ImGuiUtilities::Property("ISO", sensitivity, 0.0f, 5000.0f))
             camera.SetSensitivity(sensitivity);
 
         float exposure = camera.GetExposure();
@@ -906,7 +886,7 @@ end
             bool showTexture    = !(hoveringButton && (payload != NULL && payload->IsDataType("AssetFile")));
             if(tex && showTexture)
             {
-                if(ImGui::ImageButton(tex->GetHandle(), imageButtonSize, ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f)))
+                if(ImGui::ImageButton((const char*)(tex), tex->GetHandle(), imageButtonSize, ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f)))
                 {
                     Lumos::Editor::GetEditor()->GetFileBrowserPanel().Open();
                     Lumos::Editor::GetEditor()->GetFileBrowserPanel().SetCallback(callback);
@@ -1037,7 +1017,7 @@ end
             bool showTexture    = !(hoveringButton && (payload != NULL && payload->IsDataType("Font")));
             if(tex && showTexture)
             {
-                if(ImGui::ImageButton(tex->GetHandle(), imageButtonSize, ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f)))
+                if(ImGui::ImageButton((const char*)(tex.get()), tex->GetHandle(), imageButtonSize, ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f)))
                 {
                     Lumos::Editor::GetEditor()->GetFileBrowserPanel().Open();
                     Lumos::Editor::GetEditor()->GetFileBrowserPanel().SetCallback(callback);
@@ -1407,7 +1387,7 @@ end
             bool showTexture    = !(hoveringButton && (payload != NULL && payload->IsDataType("AssetFile")));
             if(tex && showTexture)
             {
-                if(ImGui::ImageButton(tex->GetHandle(), imageButtonSize, ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f)))
+                if(ImGui::ImageButton((const char*)(tex), tex->GetHandle(), imageButtonSize, ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f)))
                 {
                     Lumos::Editor::GetEditor()->GetFileBrowserPanel().Open();
                     Lumos::Editor::GetEditor()->GetFileBrowserPanel().SetCallback(callback);
@@ -1619,7 +1599,7 @@ end
             bool showTexture    = !(hoveringButton && (payload != NULL && payload->IsDataType("AssetFile")));
             if(tex && showTexture)
             {
-                if(ImGui::ImageButton(tex->GetHandle(), imageButtonSize, ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f)))
+                if(ImGui::ImageButton((const char*)(tex), tex->GetHandle(), imageButtonSize, ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f)))
                 {
                     Lumos::Editor::GetEditor()->GetFileBrowserPanel().Open();
                     Lumos::Editor::GetEditor()->GetFileBrowserPanel().SetCallback(callback);
@@ -1710,7 +1690,7 @@ end
             bool showTexture    = !(hoveringButton && (payload != NULL && payload->IsDataType("AssetFile")));
             if(tex && showTexture)
             {
-                if(ImGui::ImageButton(tex->GetHandle(), imageButtonSize, ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f)))
+                if(ImGui::ImageButton((const char*)(tex), tex->GetHandle(), imageButtonSize, ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f)))
                 {
                     Lumos::Editor::GetEditor()->GetFileBrowserPanel().Open();
                     Lumos::Editor::GetEditor()->GetFileBrowserPanel().SetCallback(callback);

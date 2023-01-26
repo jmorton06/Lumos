@@ -1,7 +1,7 @@
 #include "Precompiled.h"
 #include "Environment.h"
 #include "Core/Application.h"
-#include "Renderers/RenderGraph.h"
+#include "Renderers/SceneRenderer.h"
 #include "RHI/Texture.h"
 #include "Core/VFS.h"
 #include "Core/StringUtilities.h"
@@ -49,7 +49,7 @@ namespace Lumos
         void Environment::Load()
         {
             LUMOS_PROFILE_FUNCTION();
-
+            
             std::string* envFiles = new std::string[m_NumMips];
             std::string* irrFiles = new std::string[m_NumMips];
 
@@ -60,7 +60,7 @@ namespace Lumos
 
             if(m_FileType == ".hdr")
             {
-                auto test       = Application::Get().GetRenderGraph()->CreateCubeFromHDRI("");
+                auto test       = Application::Get().GetSceneRenderer()->CreateCubeFromHDRI("");
                 m_Environmnet   = test;
                 m_IrradianceMap = test;
                 return;
@@ -116,8 +116,8 @@ namespace Lumos
                 TextureDesc params;
                 params.srgb = true;
                 TextureLoadOptions loadOptions;
-                m_Environmnet   = Graphics::TextureCube::CreateFromVCross(envFiles, m_NumMips, params, loadOptions);
-                m_IrradianceMap = Graphics::TextureCube::CreateFromVCross(irrFiles, numMipsIrr, params, loadOptions);
+                m_Environmnet   = SharedPtr<TextureCube>(Graphics::TextureCube::CreateFromVCross(envFiles, m_NumMips, params, loadOptions));
+                m_IrradianceMap = SharedPtr<TextureCube>(Graphics::TextureCube::CreateFromVCross(irrFiles, numMipsIrr, params, loadOptions));
             }
             else
             {

@@ -145,9 +145,9 @@ namespace Lumos
         void UpdateProjectionMatrix();
 
         float m_ShadowBoundingRadius = 10.0f;
-        float m_AspectRatio = 1.0f;
-        float m_Scale       = 1.0f;
-        float m_Zoom        = 1.0f;
+        float m_AspectRatio          = 1.0f;
+        float m_Scale                = 1.0f;
+        float m_Zoom                 = 1.0f;
 
         glm::vec2 m_ProjectionOffset = glm::vec2(0.0f, 0.0f);
 
@@ -162,7 +162,7 @@ namespace Lumos
         float m_MouseSensitivity = 0.1f;
         float m_Aperture         = 50.0f;
         float m_ShutterSpeed     = 1.0f / 60.0f;
-        float m_Sensitivity      = 200.0f;
+        float m_Sensitivity      = 250.0f;
 
         bool m_Orthographic = false;
     };

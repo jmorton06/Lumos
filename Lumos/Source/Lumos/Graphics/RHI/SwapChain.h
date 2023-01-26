@@ -24,6 +24,7 @@ namespace Lumos
             virtual uint32_t GetCurrentImageIndex() const    = 0;
             virtual size_t GetSwapChainBufferCount() const   = 0;
             virtual CommandBuffer* GetCurrentCommandBuffer() = 0;
+            virtual void SetVSync(bool vsync)                = 0;
 
         protected:
             static SwapChain* (*CreateFunc)(uint32_t, uint32_t);

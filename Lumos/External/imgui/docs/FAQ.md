@@ -1,4 +1,4 @@
-# FAQ (Frequenty Asked Questions)
+# FAQ (Frequently Asked Questions)
 
 You may link to this document using short form:
   https://www.dearimgui.org/faq
@@ -23,7 +23,7 @@ or view this file with any Markdown viewer.
 | [I integrated Dear ImGui in my engine and some elements are clipping or disappearing when I move windows around...](#q-i-integrated-dear-imgui-in-my-engine-and-some-elements-are-clipping-or-disappearing-when-i-move-windows-around) |
 | [I integrated Dear ImGui in my engine and some elements are displaying outside their expected windows boundaries...](#q-i-integrated-dear-imgui-in-my-engine-and-some-elements-are-displaying-outside-their-expected-windows-boundaries) |
 | **Q&A: Usage** |
-| **[Why is my widget not reacting when I click on it?<br>How can I have widgets with an empty label?<br>How can I have multiple widgets with the same label?](#q-why-is-my-widget-not-reacting-when-i-click-on-it)** |
+| **[About the ID Stack system..<br>Why is my widget not reacting when I click on it?<br>How can I have widgets with an empty label?<br>How can I have multiple widgets with the same label?<br>How can I have multiple windows with the same label?](#q-about-the-id-stack-system)** |
 | [How can I display an image? What is ImTextureID, how does it work?](#q-how-can-i-display-an-image-what-is-imtextureid-how-does-it-work)|
 | [How can I use my own math types instead of ImVec2/ImVec4?](#q-how-can-i-use-my-own-math-types-instead-of-imvec2imvec4) |
 | [How can I interact with standard C++ types (such as std::string and std::vector)?](#q-how-can-i-interact-with-standard-c-types-such-as-stdstring-and-stdvector) |
@@ -56,7 +56,7 @@ or view this file with any Markdown viewer.
 - The [Glossary](https://github.com/ocornut/imgui/wiki/Glossary) page may be useful.
 - The [Issues](https://github.com/ocornut/imgui/issues) and [Discussions](https://github.com/ocornut/imgui/discussions) sections can be searched for past questions and issues.
 - Your programming IDE is your friend, find the type or function declaration to find comments associated with it.
-- The `ImGui::ShowMetricsWindow()` function exposes lots of internal information and tools. Although it is primary designed as a debugging tool, having access to that information tends to help understands concepts.
+- The `ImGui::ShowMetricsWindow()` function exposes lots of internal information and tools. Although it is primarily designed as a debugging tool, having access to that information tends to help understands concepts.
 
 ##### [Return to Index](#index)
 
@@ -114,7 +114,7 @@ void MyLowLevelMouseButtonHandler(int button, bool down)
 {
     // (1) ALWAYS forward mouse data to ImGui! This is automatic with default backends. With your own backend:
     ImGuiIO& io = ImGui::GetIO();
-    io.MouseDown[button] = down;
+    io.AddMouseButtonEvent(button, down);
 
     // (2) ONLY forward mouse data to your underlying app/game.
     if (!io.WantCaptureMouse)
@@ -123,7 +123,7 @@ void MyLowLevelMouseButtonHandler(int button, bool down)
 ```
 
 
-**Note:** The `io.WantCaptureMouse` is more correct that any manual attempt to "check if the mouse is hovering a window" (don't do that!). It handle mouse dragging correctly (both dragging that started over your application or over a Dear ImGui window) and handle e.g. popup and modal windows blocking inputs.
+**Note:** The `io.WantCaptureMouse` is more correct that any manual attempt to "check if the mouse is hovering a window" (don't do that!). It handles mouse dragging correctly (both dragging that started over your application or over a Dear ImGui window) and handle e.g. popup and modal windows blocking inputs.
 
 **Note:** Those flags are updated by `ImGui::NewFrame()`. However it is generally more correct and easier that you poll flags from the previous frame, then submit your inputs, then call `NewFrame()`. If you attempt to do the opposite (which is generally harder) you are likely going to submit your inputs after `NewFrame()`, and therefore too late.
 
@@ -139,7 +139,7 @@ void MyLowLevelMouseButtonHandler(int button, bool down)
 - The gamepad/keyboard navigation is fairly functional and keeps being improved. The initial focus was to support game controllers, but keyboard is becoming increasingly and decently usable. Gamepad support is particularly useful to use Dear ImGui on a game console (e.g. PS4, Switch, XB1) without a mouse connected!
 - Keyboard: set `io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard` to enable.
 - Gamepad: set `io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad` to enable (with a supporting backend).
-- See [Control Sheets for Gamepads](http://www.dearimgui.org/controls_sheets) (reference PNG/PSD for for PS4, XB1, Switch gamepads).
+- See [Control Sheets for Gamepads](http://www.dearimgui.org/controls_sheets) (reference PNG/PSD for PS4, XB1, Switch gamepads).
 - See `USING GAMEPAD/KEYBOARD NAVIGATION CONTROLS` section of [imgui.cpp](https://github.com/ocornut/imgui/blob/master/imgui.cpp) for more details.
 
 ##### [Return to Index](#index)
@@ -186,17 +186,24 @@ Refer to rendering backends in the [examples/](https://github.com/ocornut/imgui/
 
 # Q&A: Usage
 
+### Q: About the ID Stack system...
 ### Q: Why is my widget not reacting when I click on it?
 ### Q: How can I have widgets with an empty label?
 ### Q: How can I have multiple widgets with the same label?
+### Q: How can I have multiple windows with the same label?
 
 A primer on labels and the ID Stack...
 
-Dear ImGui internally need to uniquely identify UI elements.
+Dear ImGui internally needs to uniquely identify UI elements.
 Elements that are typically not clickable (such as calls to the Text functions) don't need an ID.
 Interactive widgets (such as calls to Button buttons) need a unique ID.
-Unique ID are used internally to track active widgets and occasionally associate state to widgets.
-Unique ID are implicitly built from the hash of multiple elements that identify the "path" to the UI element.
+
+**Unique ID are used internally to track active widgets and occasionally associate state to widgets.<BR>
+Unique ID are implicitly built from the hash of multiple elements that identify the "path" to the UI element.**
+
+Since Dear ImGui 1.85 you can use `Demo>Tools>Stack Tool` or call `ImGui::ShowStackToolWindow()`. The tool display intermediate values leading to the creation of a unique ID, making things easier to debug and understand.
+
+![Stack tool](https://user-images.githubusercontent.com/8225057/136235657-a0ea5665-dcd1-423f-9be6-dc3f8ced8f12.png)
 
 - Unique ID are often derived from a string label and at minimum scoped within their host window:
 ```cpp
@@ -233,7 +240,7 @@ Button("OK");      // ERROR: ID collision with the first button! Interacting wit
 Button("");        // ERROR: ID collision with Begin("MyWindow")!
 End();
 ```
-Fear not! this is easy to solve and there are many ways to solve it!
+Fear not! This is easy to solve and there are many ways to solve it!
 
 - Solving ID conflict in a simple/local context:
 When passing a label you can optionally specify extra ID information within string itself.
@@ -252,7 +259,7 @@ End();
 ```cpp
 Checkbox("##On", &b);  // Label = "",       ID = hash of (..., "##On")   // No visible label, just a checkbox!
 ```
-- Occasionally/rarely you might want change a label while preserving a constant ID. This allows
+- Occasionally/rarely you might want to change a label while preserving a constant ID. This allows
 you to animate labels. For example you may want to include varying information in a window title bar,
 but windows are uniquely identified by their ID. Use "###" to pass a label that isn't part of ID:
 ```cpp
@@ -303,7 +310,7 @@ PushID("node");
   PopID();
 PopID();
 ```
-- Tree nodes implicitly creates a scope for you by calling `PushID()`:
+- Tree nodes implicitly create a scope for you by calling `PushID()`:
 ```cpp
 Button("Click");       // Label = "Click",  ID = hash of (..., "Click")
 if (TreeNode("node"))  // <-- this function call will do a PushID() for you (unless instructed not to, with a special flag)
@@ -339,7 +346,7 @@ Long explanation:
 - Each rendering function decides on a data type to represent "textures". The concept of what is a "texture" is entirely tied to your underlying engine/graphics API.
  We carry the information to identify a "texture" in the ImTextureID type.
 ImTextureID is nothing more that a void*, aka 4/8 bytes worth of data: just enough to store 1 pointer or 1 integer of your choice.
-Dear ImGui doesn't know or understand what you are storing in ImTextureID, it merely pass ImTextureID values until they reach your rendering function.
+Dear ImGui doesn't know or understand what you are storing in ImTextureID, it merely passes ImTextureID values until they reach your rendering function.
 - In the [examples/](https://github.com/ocornut/imgui/tree/master/examples) backends, for each graphics API we decided on a type that is likely to be a good representation for specifying an image from the end-user perspective. This is what the _examples_ rendering functions are using:
 ```cpp
 OpenGL:
@@ -456,7 +463,7 @@ draw_list->AddCircleFilled(ImVec2(p.x + 50, p.y + 50), 30.0f, IM_COL32(255, 0, 0
 // Draw a 3 pixel thick yellow line
 draw_list->AddLine(ImVec2(p.x, p.y), ImVec2(p.x + 100.0f, p.y + 100.0f), IM_COL32(255, 255, 0, 255), 3.0f);
 
-// Advance the ImGui cursor to claim space in the window (otherwise the window will appears small and needs to be resized)
+// Advance the ImGui cursor to claim space in the window (otherwise the window will appear small and needs to be resized)
 ImGui::Dummy(ImVec2(200, 200));
 
 ImGui::End();
@@ -468,7 +475,7 @@ ImGui::End();
 - Math operators: if you have setup `IM_VEC2_CLASS_EXTRA` in `imconfig.h` to bind your own math types, you can use your own math types and their natural operators instead of ImVec2. ImVec2 by default doesn't export any math operators in the public API. You may use `#define IMGUI_DEFINE_MATH_OPERATORS` `#include "imgui_internal.h"` to use the internally defined math operators, but instead prefer using your own math library and set it up in `imconfig.h`.
 - You can use `ImGui::GetBackgroundDrawList()` or `ImGui::GetForegroundDrawList()` to access draw lists which will be displayed behind and over every other dear imgui windows (one bg/fg drawlist per viewport). This is very convenient if you need to quickly display something on the screen that is not associated to a dear imgui window.
 - You can also create your own empty window and draw inside it. Call Begin() with the NoBackground | NoDecoration | NoSavedSettings | NoInputs flags (The `ImGuiWindowFlags_NoDecoration` flag itself is a shortcut for NoTitleBar | NoResize | NoScrollbar | NoCollapse). Then you can retrieve the ImDrawList* via `GetWindowDrawList()` and draw to it in any way you like.
-`- You can create your own ImDrawList instance. You'll need to initialize them with `ImGui::GetDrawListSharedData()`, or create your own instancing ImDrawListSharedData`, and then call your renderer function with your own ImDrawList or ImDrawData data.
+- You can create your own ImDrawList instance. You'll need to initialize them with `ImGui::GetDrawListSharedData()`, or create your own instancing `ImDrawListSharedData`, and then call your renderer function with your own ImDrawList or ImDrawData data.
 - Looking for fun? The [ImDrawList coding party 2020](https://github.com/ocornut/imgui/issues/3606) thread is full of "don't do this at home" extreme uses of the ImDrawList API.
 
 ##### [Return to Index](#index)
@@ -492,7 +499,7 @@ Applications in the `examples/` folder are not DPI aware partly because they are
 The reason DPI is not auto-magically solved in stock examples is that we don't yet have a satisfying solution for the "multi-dpi"  problem (using the `docking` branch: when multiple viewport windows are over multiple monitors using different DPI scale). The current way to handle this on the application side is:
 - Create and maintain one font atlas per active DPI scale (e.g. by iterating `platform_io.Monitors[]` before `NewFrame()`).
 - Hook `platform_io.OnChangedViewport()` to detect when a `Begin()` call makes a Dear ImGui window change monitor (and therefore DPI).
-- In the hook: swap atlas, swap style with correctly sized one, remap the current font from one atlas to the other (may need to maintain a remapping table of your fonts at variying DPI scale).
+- In the hook: swap atlas, swap style with correctly sized one, remap the current font from one atlas to the other (may need to maintain a remapping table of your fonts at varying DPI scale).
 
 This approach is relatively easy and functional but come with two issues:
 - It's not possibly to reliably size or position a window ahead of `Begin()` without knowing on which monitor it'll land.
@@ -600,8 +607,8 @@ Text input: it is up to your application to pass the right character code by cal
 The applications in examples/ are doing that.
 Windows: you can use the WM_CHAR or WM_UNICHAR or WM_IME_CHAR message (depending if your app is built using Unicode or MultiByte mode).
 You may also use MultiByteToWideChar() or ToUnicode() to retrieve Unicode codepoints from MultiByte characters or keyboard state.
-Windows: if your language is relying on an Input Method Editor (IME), you copy the HWND of your window to io.ImeWindowHandle in order for
-the default implementation of io.ImeSetInputScreenPosFn() to set your Microsoft IME position correctly.
+Windows: if your language is relying on an Input Method Editor (IME), you can write your HWND to ImGui::GetMainViewport()->PlatformHandleRaw
+in order for the default the default implementation of io.SetPlatformImeDataFn() to set your Microsoft IME position correctly.
 
 ##### [Return to Index](#index)
 
@@ -616,7 +623,7 @@ You may take a look at:
 - [Quotes](https://github.com/ocornut/imgui/wiki/Quotes)
 - [Software using Dear ImGui](https://github.com/ocornut/imgui/wiki/Software-using-dear-imgui)
 - [Sponsors](https://github.com/ocornut/imgui/wiki/Sponsors)
-- [Gallery](https://github.com/ocornut/imgui/issues/4451)
+- [Gallery](https://github.com/ocornut/imgui/issues/5243)
 
 ##### [Return to Index](#index)
 
@@ -647,7 +654,7 @@ A reasonably skinned application may look like (screenshot from [#2529](https://
 
 ### Q: Why using C++ (as opposed to C)?
 
-Dear ImGui takes advantage of a few C++ languages features for convenience but nothing anywhere Boost insanity/quagmire. Dear ImGui does NOT require C++11 so it can be used with most old C++ compilers. Dear ImGui doesn't use any C++ header file. Language-wise, function overloading and default parameters are used to make the API easier to use and code more terse. Doing so I believe the API is sitting on a sweet spot and giving up on those features would make the API more cumbersome. Other features such as namespace, constructors and templates (in the case of the ImVector<> class) are also relied on as a convenience.
+Dear ImGui takes advantage of a few C++ languages features for convenience but nothing anywhere Boost insanity/quagmire. Dear ImGui doesn't use any C++ header file. Dear ImGui uses a very small subset of C++11 features. In particular, function overloading and default parameters are used to make the API easier to use and code more terse. Doing so I believe the API is sitting on a sweet spot and giving up on those features would make the API more cumbersome. Other features such as namespace, constructors and templates (in the case of the ImVector<> class) are also relied on as a convenience.
 
 There is an auto-generated [c-api for Dear ImGui (cimgui)](https://github.com/cimgui/cimgui) by Sonoro1234 and Stephan Dilly. It is designed for creating bindings to other languages. If possible, I would suggest using your target language functionalities to try replicating the function overloading and default parameters used in C++ else the API may be harder to use. Also see [Bindings](https://github.com/ocornut/imgui/wiki/Bindings) for various third-party bindings.
 
@@ -662,7 +669,7 @@ There is an auto-generated [c-api for Dear ImGui (cimgui)](https://github.com/ci
 - Individuals: you can support continued maintenance and development via PayPal donations. See [README](https://github.com/ocornut/imgui/blob/master/docs/README.md).
 - If you are experienced with Dear ImGui and C++, look at [GitHub Issues](https://github.com/ocornut/imgui/issues), [GitHub Discussions](https://github.com/ocornut/imgui/discussions), the [Wiki](https://github.com/ocornut/imgui/wiki), read [docs/TODO.txt](https://github.com/ocornut/imgui/blob/master/docs/TODO.txt) and see how you want to help and can help!
 - Disclose your usage of Dear ImGui via a dev blog post, a tweet, a screenshot, a mention somewhere etc.
-You may post screenshot or links in the [gallery threads](https://github.com/ocornut/imgui/issues/4451). Visuals are ideal as they inspire other programmers. Disclosing your use of Dear ImGui helps the library grow credibility, and help other teams and programmers with taking decisions.
+You may post screenshot or links in the [gallery threads](https://github.com/ocornut/imgui/issues/5243). Visuals are ideal as they inspire other programmers. Disclosing your use of Dear ImGui helps the library grow credibility, and help other teams and programmers with taking decisions.
 - If you have issues or if you need to hack into the library, even if you don't expect any support it is useful that you share your issues or sometimes incomplete PR.
 
 ##### [Return to Index](#index)

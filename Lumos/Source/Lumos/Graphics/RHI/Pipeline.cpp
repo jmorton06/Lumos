@@ -47,13 +47,30 @@ namespace Lumos
             {
                 if(texture)
                 {
-                    HashCombine(hash, texture, texture->GetWidth(), texture->GetHeight(), texture->GetImageHande());
+                    HashCombine(hash, texture, texture->GetWidth(), texture->GetHeight(), texture->GetImageHande(), texture->Handle);
+
+#ifdef LUMOS_RENDER_API_VULKAN
+
+                    if(GraphicsContext::GetRenderAPI() == RenderAPI::VULKAN)
+                    {
+                        VkDescriptorImageInfo* imageHandle = (VkDescriptorImageInfo*)(texture->GetDescriptorInfo());
+                        HashCombine(hash, imageHandle->imageLayout, imageHandle->imageView, imageHandle->sampler);
+                    }
+#endif
                 }
             }
 
             if(pipelineDesc.depthTarget)
             {
-                HashCombine(hash, pipelineDesc.depthTarget, pipelineDesc.depthTarget->GetImageHande());
+#ifdef LUMOS_RENDER_API_VULKAN
+
+                if(GraphicsContext::GetRenderAPI() == RenderAPI::VULKAN)
+                {
+                    VkDescriptorImageInfo* depthImageHandle = (VkDescriptorImageInfo*)(pipelineDesc.depthTarget->GetDescriptorInfo());
+                    HashCombine(hash, depthImageHandle->imageLayout, depthImageHandle->imageView, depthImageHandle->sampler);
+                }
+#endif
+                HashCombine(hash, pipelineDesc.depthTarget, pipelineDesc.depthTarget->GetWidth(), pipelineDesc.depthTarget->GetHeight(), pipelineDesc.depthTarget->GetImageHande(), pipelineDesc.depthTarget->Handle);
             }
 
             if(pipelineDesc.depthArrayTarget)

@@ -81,7 +81,7 @@
 
 #include "ImGui/ImGuiManager.h"
 #include "Graphics/Renderers/GridRenderer.h"
-#include "Graphics/Renderers/RenderGraph.h"
+#include "Graphics/Renderers/SceneRenderer.h"
 
 // External
 #include <imgui/imgui.h>
