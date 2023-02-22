@@ -162,7 +162,7 @@ namespace Lumos
             // if (!phys.GetRigidBody()->GetB2Body()->IsAwake())
             //     break;
 
-            trans.SetLocalPosition(glm::vec3(phys.GetRigidBody()->GetPosition(), 0.0f));
+            trans.SetLocalPosition(glm::vec3(phys.GetRigidBody()->GetPosition(), trans.GetLocalPosition().z));
             trans.SetLocalOrientation(glm::quat(glm::vec3(0.0f, 0.0f, phys.GetRigidBody()->GetAngle())));
             trans.SetWorldMatrix(glm::mat4(1.0f)); // TODO: temp
         };

@@ -4,6 +4,7 @@
 #include "Graphics/RHI/GraphicsContext.h"
 #include "VKContext.h"
 #include "VKCommandBuffer.h"
+#include "VKBuffer.h"
 
 #ifdef USE_VMA_ALLOCATOR
 #include <vulkan/vk_mem_alloc.h>
@@ -27,7 +28,7 @@ namespace Lumos
             void Bind(uint32_t slot = 0) const override {};
             void Unbind(uint32_t slot = 0) const override {};
 
-            virtual void SetData(const void* pixels) override {};
+            virtual void SetData(const void* pixels) override;
 
             virtual void* GetHandle() const override
             {
@@ -163,6 +164,8 @@ namespace Lumos
             VkDescriptorImageInfo m_Descriptor {};
 
             std::unordered_map<uint32_t, VkImageView> m_MipImageViews;
+            
+            VKBuffer* m_StagingBuffer = nullptr;
 
 #ifdef USE_VMA_ALLOCATOR
             VmaAllocation m_Allocation {};

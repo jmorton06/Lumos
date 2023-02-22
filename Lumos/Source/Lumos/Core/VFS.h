@@ -9,7 +9,7 @@ namespace Lumos
         friend class ThreadSafeSingleton<VFS>;
 
     public:
-        void Mount(const std::string& virtualPath, const std::string& physicalPath);
+        void Mount(const std::string& virtualPath, const std::string& physicalPath, bool replace = false);
         void Unmount(const std::string& path);
         bool ResolvePhysicalPath(const std::string& path, std::string& outPhysicalPath, bool folder = false);
         bool AbsoulePathToVFS(const std::string& path, std::string& outVFSPath, bool folder = false);

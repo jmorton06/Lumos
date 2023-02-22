@@ -13,6 +13,7 @@
 #include "Graphics/RHI/GPUProfile.h"
 #include "Graphics/Font.h"
 #include "Graphics/MSDFData.h"
+#include "Core/JobSystem.h"
 
 #include "Events/ApplicationEvent.h"
 
@@ -28,8 +29,6 @@
 #include <glm/gtx/matrix_decompose.hpp>
 #include <glm/ext.hpp>
 #include <glm/gtx/string_cast.hpp>
-#include <codecvt>
-#include <locale>
 
 static const uint32_t MaxPoints                  = 10000;
 static const uint32_t MaxPointVertices           = MaxPoints * 4;
@@ -50,13 +49,12 @@ namespace Lumos::Graphics
     SceneRenderer::SceneRenderer(uint32_t width, uint32_t height)
     {
         LUMOS_PROFILE_FUNCTION();
-
         m_CubeMap        = nullptr;
         m_ClearColour    = glm::vec4(0.2f, 0.2f, 0.2f, 1.0f);
         m_SupportCompute = Renderer::GetCapabilities().SupportCompute;
 
         Graphics::TextureDesc mainRenderTargetDesc;
-        mainRenderTargetDesc.format          = Graphics::RHIFormat::R11G11B10_Float;
+        mainRenderTargetDesc.format          = Graphics::RHIFormat::R8G8B8A8_Unorm;
         mainRenderTargetDesc.flags           = TextureFlags::Texture_RenderTarget;
         mainRenderTargetDesc.wrap            = TextureWrap::CLAMP;
         mainRenderTargetDesc.minFilter       = TextureFilter::LINEAR;
@@ -576,7 +574,7 @@ namespace Lumos::Graphics
 
         width -= (width % 2 != 0) ? 1 : 0;
         height -= (height % 2 != 0) ? 1 : 0;
-
+    
         m_ForwardData.m_DepthTexture->Resize(width, height);
         m_MainTexture->Resize(width, height);
         m_PostProcessTexture1->Resize(width, height);
@@ -945,23 +943,23 @@ namespace Lumos::Graphics
 
         auto& sceneRenderSettings = Application::Get().GetCurrentScene()->GetSettings().RenderSettings;
         Renderer::GetRenderer()->ClearRenderTarget(m_MainTexture, Renderer::GetMainSwapChain()->GetCurrentCommandBuffer());
-
+        
         // Set to default texture if bloom disabled
         m_BloomTextureLastRenderered = Graphics::Material::GetDefaultTexture().get();
-
+        
         if(m_ForwardData.m_DepthTest)
         {
             Renderer::GetRenderer()->ClearRenderTarget(reinterpret_cast<Texture*>(m_ForwardData.m_DepthTexture), Renderer::GetMainSwapChain()->GetCurrentCommandBuffer());
         }
-
+        
         GenerateBRDFLUTPass();
         DepthPrePass();
-
+        
         if(sceneRenderSettings.SSAOEnabled && !m_DisablePostProcess)
         {
             // SSAOPass();
         }
-
+        
         if(m_Settings.ShadowPass && sceneRenderSettings.ShadowsEnabled)
             ShadowPass();
         if(m_Settings.GeomPass && sceneRenderSettings.Renderer3DEnabled)
@@ -970,37 +968,37 @@ namespace Lumos::Graphics
             SkyboxPass();
         if(m_Settings.GeomPass && sceneRenderSettings.Renderer2DEnabled)
             Render2DPass();
-
+        
         TextPass();
-
+        
         m_LastRenderTarget = m_MainTexture;
-
+        
         // if (sceneRenderSettings.EyeAdaptation)
         //	EyeAdaptationPass();
-
+        
         if(sceneRenderSettings.BloomEnabled && !m_DisablePostProcess)
             BloomPass();
-
+        
         if(sceneRenderSettings.DepthOfFieldEnabled && !m_DisablePostProcess)
             DepthOfFieldPass();
-
+        
         ToneMappingPass();
-
+        
         if(sceneRenderSettings.DebandingEnabled && !m_DisablePostProcess)
             DebandingPass();
-
+        
         if(sceneRenderSettings.FXAAEnabled && !m_DisablePostProcess)
             FXAAPass();
-
+        
         if(sceneRenderSettings.ChromaticAberationEnabled && !m_DisablePostProcess)
             ChromaticAberationPass();
-
+        
         if(sceneRenderSettings.FilmicGrainEnabled && !m_DisablePostProcess)
             FilmicGrainPass();
-
+        
         // if(sceneRenderSettings.OutlineEnabled
         // OutlinePass();
-
+        
         if(m_Settings.DebugPass && sceneRenderSettings.DebugRenderEnabled)
             DebugPass();
 
@@ -1011,7 +1009,7 @@ namespace Lumos::Graphics
     {
     }
 
-    bool SceneRenderer::OnwindowResizeEvent(WindowResizeEvent& e)
+    bool SceneRenderer::OnWindowResizeEvent(WindowResizeEvent& e)
     {
         LUMOS_PROFILE_FUNCTION();
 
@@ -1646,10 +1644,10 @@ namespace Lumos::Graphics
         } bloomComputePushConstants;
 
         bloomComputePushConstants.Params    = { m_CurrentScene->GetSettings().RenderSettings.BloomThreshold, m_CurrentScene->GetSettings().RenderSettings.BloomThreshold - m_CurrentScene->GetSettings().RenderSettings.BloomKnee, m_CurrentScene->GetSettings().RenderSettings.BloomKnee * 2.0f, 0.25f / m_CurrentScene->GetSettings().RenderSettings.BloomKnee };
-        bloomComputePushConstants.Params2.x = 0;
-        bloomComputePushConstants.Params2.y = 0;
-        bloomComputePushConstants.Params2.z = m_MainTexture->GetWidth();
-        bloomComputePushConstants.Params2.w = m_MainTexture->GetHeight();
+		bloomComputePushConstants.Params2.x = (float)0;
+		bloomComputePushConstants.Params2.y = (float)0;
+		bloomComputePushConstants.Params2.z = (float)m_MainTexture->GetWidth();
+		bloomComputePushConstants.Params2.w = (float)m_MainTexture->GetHeight();
 
         uint32_t workGroupSize = 4;
         uint32_t workGroupsX   = m_BloomTexture->GetWidth() / workGroupSize;
@@ -1718,8 +1716,8 @@ namespace Lumos::Graphics
             pipelineDesc.mipIndex = i;
             if(!m_SupportCompute)
                 pipelineDesc.colourTargets[0] = m_BloomTexture1;
-            bloomComputePushConstants.Params2.z = m_BloomTexture1->GetWidth(i);
-            bloomComputePushConstants.Params2.w = m_BloomTexture1->GetHeight(i);
+            bloomComputePushConstants.Params2.z = (float)m_BloomTexture1->GetWidth(i);
+			bloomComputePushConstants.Params2.w = (float)m_BloomTexture1->GetHeight(i);
 
             if(m_SupportCompute)
             {
@@ -1768,13 +1766,13 @@ namespace Lumos::Graphics
 
             if(!m_SupportCompute)
                 pipelineDesc.colourTargets[0] = m_BloomTexture;
-            bloomComputePushConstants.Params2.z = m_BloomTexture1->GetWidth(i);
-            bloomComputePushConstants.Params2.w = m_BloomTexture1->GetHeight(i);
+			bloomComputePushConstants.Params2.z = (float)m_BloomTexture1->GetWidth(i);
+			bloomComputePushConstants.Params2.w = (float)m_BloomTexture1->GetHeight(i);
 
             pipeline = Graphics::Pipeline::Get(pipelineDesc);
             pipeline->Bind(commandBuffer);
 
-            bloomComputePushConstants.Params2.x = i;
+			bloomComputePushConstants.Params2.x = (float)i;
 
             memcpy(pushConstants[0].data, &bloomComputePushConstants, sizeof(BloomComputePushConstants));
             m_BloomPassShader->BindPushConstants(commandBuffer, pipeline.get());
@@ -1807,10 +1805,10 @@ namespace Lumos::Graphics
         m_BloomPassDescriptorSet2->Update();
 
         // First Upsample
-        bloomComputePushConstants.Params2.y = 2;
+        bloomComputePushConstants.Params2.y = (float)2;
         bloomComputePushConstants.Params2.x -= 1.0f;
-        bloomComputePushConstants.Params2.z = m_BloomTexture2->GetWidth(mips - 2);
-        bloomComputePushConstants.Params2.w = m_BloomTexture2->GetHeight(mips - 2);
+		bloomComputePushConstants.Params2.z = (float)m_BloomTexture2->GetWidth(mips - 2);
+		bloomComputePushConstants.Params2.w = (float)m_BloomTexture2->GetHeight(mips - 2);
 
         pipelineDesc.mipIndex = mips - 2;
 
@@ -1855,10 +1853,10 @@ namespace Lumos::Graphics
         // Upsample
         for(int32_t mip = mips - 3; mip >= 0; mip--)
         {
-            bloomComputePushConstants.Params2.y = 3;
-            bloomComputePushConstants.Params2.x = mip;
-            bloomComputePushConstants.Params2.z = m_BloomTexture2->GetWidth(mip);
-            bloomComputePushConstants.Params2.w = m_BloomTexture2->GetHeight(mip);
+			bloomComputePushConstants.Params2.y = (float)3;
+			bloomComputePushConstants.Params2.x = (float)mip;
+            bloomComputePushConstants.Params2.z = (float)m_BloomTexture2->GetWidth(mip);
+			bloomComputePushConstants.Params2.w = (float)m_BloomTexture2->GetHeight(mip);
 
             pipelineDesc.mipIndex = mip;
 
@@ -2376,16 +2374,6 @@ namespace Lumos::Graphics
         m_TextBuffer = m_TextRendererData.m_VertexBuffers[currentFrame][m_TextRendererData.m_BatchDrawCallIndex]->GetPointer<TextVertexData>();
     }
 
-    static bool NextLine(int index, const ::std::vector<int>& lines)
-    {
-        for(int line : lines)
-        {
-            if(line == index)
-                return true;
-        }
-        return false;
-    }
-
     void SceneRenderer::TextPass()
     {
         LUMOS_PROFILE_FUNCTION();
@@ -2425,16 +2413,6 @@ namespace Lumos::Graphics
         m_TextRendererData.m_DescriptorSet[0][0]->Update();
 
         m_TextRendererData.m_TextureCount = 0;
-        static std::wstring_convert<std::codecvt_utf8<char32_t>, char32_t> conv;
-        static std::u32string utf32string;
-
-        static bool test = false;
-        if(!test)
-        {
-            test = true;
-            utf32string.reserve(1048576);
-        }
-
         for(auto entity : textGroup)
         {
             const auto& [textComp, trans] = textGroup.get<TextComponent, Maths::Transform>(entity);
@@ -2457,11 +2435,6 @@ namespace Lumos::Graphics
             float kerning      = textComp.Kerning;
             auto outlineColour = textComp.OutlineColour;
             auto outlineWidth  = textComp.OutlineWidth;
-
-            {
-                LUMOS_PROFILE_SCOPE("Convert to utf32string");
-                utf32string = conv.from_bytes(string);
-            }
 
             SharedPtr<Texture2D> fontAtlas = font->GetFontAtlas();
             if(!fontAtlas)
@@ -2486,69 +2459,18 @@ namespace Lumos::Graphics
             auto& fontGeometry  = font->GetMSDFData()->FontGeometry;
             const auto& metrics = fontGeometry.getMetrics();
 
-            ::std::vector<int> nextLines;
-            {
-                double x       = 0.0;
-                double fsScale = 1 / (metrics.ascenderY - metrics.descenderY);
-                double y       = -fsScale * metrics.ascenderY;
-                int lastSpace  = -1;
-                for(int i = 0; i < utf32string.size(); i++)
-                {
-                    char32_t character = utf32string[i];
-                    if(character == '\n')
-                    {
-                        x = 0;
-                        y -= fsScale * metrics.lineHeight + lineHeightOffset;
-                        continue;
-                    }
-
-                    auto glyph = fontGeometry.getGlyph(character);
-                    if(!glyph)
-                        glyph = fontGeometry.getGlyph('?');
-                    if(!glyph)
-                        continue;
-
-                    if(character != ' ')
-                    {
-                        // Calc geometry
-                        double pl, pb, pr, pt;
-                        glyph->getQuadPlaneBounds(pl, pb, pr, pt);
-                        glm::vec2 quadMin((float)pl, (float)pb);
-                        glm::vec2 quadMax((float)pr, (float)pt);
-
-                        quadMin *= fsScale;
-                        quadMax *= fsScale;
-                        quadMin += glm::vec2(x, y);
-                        quadMax += glm::vec2(x, y);
-
-                        if(quadMax.x > maxWidth && lastSpace != -1)
-                        {
-                            i = lastSpace;
-                            nextLines.emplace_back(lastSpace);
-                            lastSpace = -1;
-                            x         = 0;
-                            y -= fsScale * metrics.lineHeight + lineHeightOffset;
-                        }
-                    }
-                    else
-                    {
-                        lastSpace = i;
-                    }
-
-                    double advance = glyph->getAdvance();
-                    fontGeometry.getAdvance(advance, character, utf32string[i + 1]);
-                    x += fsScale * advance + kerningOffset;
-                }
-            }
-
             {
                 double x       = 0.0;
                 double fsScale = 1 / (metrics.ascenderY - metrics.descenderY);
                 double y       = 0.0;
-                for(int i = 0; i < utf32string.size(); i++)
+                for(int i = 0; i < string.size(); i++)
                 {
-                    char32_t character = utf32string[i];
-                    if(character == '\n' || NextLine(i, nextLines))
+                    char32_t character = string[i];
+
+                    if (character == '\r')
+                        continue;
+
+                    if (character == '\n')
                     {
                         x = 0;
                         y -= fsScale * metrics.lineHeight + lineHeightOffset;
@@ -2556,10 +2478,13 @@ namespace Lumos::Graphics
                     }
 
                     auto glyph = fontGeometry.getGlyph(character);
-                    if(!glyph)
+                    if (!glyph)
                         glyph = fontGeometry.getGlyph('?');
-                    if(!glyph)
+                    if (!glyph)
                         continue;
+
+                    if (character == '\t')
+                        glyph = fontGeometry.getGlyph(' ');
 
                     double l, b, r, t;
                     glyph->getQuadAtlasBounds(l, b, r, t);
@@ -2573,15 +2498,6 @@ namespace Lumos::Graphics
                     double texelWidth  = 1. / fontAtlas->GetWidth();
                     double texelHeight = 1. / fontAtlas->GetHeight();
                     l *= texelWidth, b *= texelHeight, r *= texelWidth, t *= texelHeight;
-
-                    //                    {
-                    //                        auto bb = Maths::BoundingBox(Maths::Rect(glm::vec4(pl, pb, pr, pt)));
-                    //                        bb.Transform(transform);
-                    //                        auto inside = m_ForwardData.m_Frustum.IsInside(bb);
-                    //
-                    //                        if(!inside)
-                    //                            continue;
-                    //                    }
 
                     {
                         LUMOS_PROFILE_SCOPE("Set text buffer data");
@@ -2617,7 +2533,7 @@ namespace Lumos::Graphics
                     m_TextRendererData.m_IndexCount += 6;
 
                     double advance = glyph->getAdvance();
-                    fontGeometry.getAdvance(advance, character, utf32string[i + 1]);
+                    fontGeometry.getAdvance(advance, character, string[i + 1]);
                     x += fsScale * advance + kerningOffset;
                 }
             }
@@ -2639,7 +2555,7 @@ namespace Lumos::Graphics
         LUMOS_PROFILE_FUNCTION();
         LUMOS_PROFILE_GPU("Debug Pass");
 
-        if(!m_Camera)
+        if(!m_Camera || !m_CameraTransform)
             return;
 
         // Loop twice for depth test and no depth test

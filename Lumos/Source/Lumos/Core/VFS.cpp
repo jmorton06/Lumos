@@ -5,9 +5,13 @@
 
 namespace Lumos
 {
-    void VFS::Mount(const std::string& virtualPath, const std::string& physicalPath)
+    void VFS::Mount(const std::string& virtualPath, const std::string& physicalPath, bool replace)
     {
         LUMOS_PROFILE_FUNCTION();
+
+        if (replace)
+            m_MountPoints[virtualPath].clear();
+
         m_MountPoints[virtualPath].push_back(physicalPath);
     }
 

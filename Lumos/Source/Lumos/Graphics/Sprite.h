@@ -21,7 +21,7 @@ namespace Lumos
             void SetColour(const glm::vec4& colour) { m_Colour = colour; }
             void SetScale(const glm::vec2& scale) { m_Scale = scale; }
 
-            void SetSpriteSheet(const SharedPtr<Texture2D>& texture, const glm::vec2& index, const glm::vec2& cellSize, const glm::vec2& spriteSize);
+            void SetSpriteSheet(const glm::vec2& index, const glm::vec2& cellSize, const glm::vec2& spriteSize, float boarder = 0.0f);
             void SetTexture(const SharedPtr<Texture2D>& texture) { m_Texture = texture; }
 
             void SetTextureFromFile(const std::string& filePath);

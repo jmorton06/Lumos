@@ -21,7 +21,6 @@ else
 end
 
 workspace( settings.workspace_name )
-location "build"
 startproject "LumosEditor"
 	flags 'MultiProcessorCompile'
 	

@@ -29,11 +29,13 @@ namespace Lumos
         {
         }
 
-        void Sprite::SetSpriteSheet(const SharedPtr<Texture2D>& texture, const glm::vec2& index, const glm::vec2& cellSize, const glm::vec2& spriteSize)
+        void Sprite::SetSpriteSheet(const glm::vec2& index, const glm::vec2& cellSize, const glm::vec2& spriteSize, float boarder/* = 0.0f*/)
         {
-            m_Texture     = texture;
-            glm::vec2 min = { (index.x * cellSize.x) / texture->GetWidth(), (index.y * cellSize.y) / texture->GetHeight() };
-            glm::vec2 max = { ((index.x + spriteSize.x) * cellSize.x) / texture->GetWidth(), ((index.y + spriteSize.y) * cellSize.y) / texture->GetHeight() };
+            if (!m_Texture)
+                return;
+
+            glm::vec2 min = { (index.x * (cellSize.x + boarder)) / m_Texture->GetWidth(), (index.y * (cellSize.y + boarder)) / m_Texture->GetHeight() };
+            glm::vec2 max = { ((index.x * (cellSize.x + boarder)) + spriteSize.x) / m_Texture->GetWidth(), ((index.y * (cellSize.y + boarder)) + spriteSize.y) / m_Texture->GetHeight() };
 
             m_UVs = GetUVs(min, max);
         }
