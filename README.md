@@ -39,11 +39,11 @@ Install Vulkan SDK (https://vulkan.lunarg.com/)
 
 #### Linux
 ```
-sudo apt-get install -y g++-8 libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev libopenal-dev mesa-common-dev
+sudo apt-get install -y g++-11 libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev libopenal-dev mesa-common-dev
 cd Lumos
 Tools/linux/premake5 gmake2
 cd build
-make -j8
+make -j8 # config=release
 ```
 #### Windows 
 Run Scripts/GenerateVS.bat to generate a visual studio project.

@@ -282,12 +282,12 @@ namespace Lumos
 
             if(!CheckValidationLayerSupport(m_InstanceLayerNames))
             {
-                LUMOS_LOG_CRITICAL("[VULKAN] Validation layers requested, but not available!");
+                LUMOS_LOG_WARN("[VULKAN] One or multiple Validation layers requested are not available!");
             }
 
             if(!CheckExtensionSupport(m_InstanceExtensionNames))
             {
-                LUMOS_LOG_CRITICAL("[VULKAN] Extensions requested are not available!");
+                LUMOS_LOG_WARN("[VULKAN] One or multiple Extensions requested are not available!");
             }
             VkApplicationInfo appInfo = {};
 
@@ -318,7 +318,7 @@ namespace Lumos
                 // Detect and log version
                 std::string driverVersionStr = StringUtilities::ToString(VK_API_VERSION_MAJOR(driverVersion)) + "." + StringUtilities::ToString(VK_API_VERSION_MINOR(driverVersion)) + "." + StringUtilities::ToString(VK_API_VERSION_PATCH(driverVersion));
                 std::string sdkVersionStr    = StringUtilities::ToString(VK_API_VERSION_MAJOR(sdkVersion)) + "." + StringUtilities::ToString(VK_API_VERSION_MINOR(sdkVersion)) + "." + StringUtilities::ToString(VK_API_VERSION_PATCH(sdkVersion));
-                LUMOS_LOG_WARN("Using Vulkan {0}. Please update your graphics drivers to support Vulkan {1}.", driverVersionStr, sdkVersionStr);
+                //LUMOS_LOG_WARN("Using Vulkan {0}. Please update your graphics drivers to support Vulkan {1}.", driverVersionStr, sdkVersionStr);
             }
 
             appInfo.sType              = VK_STRUCTURE_TYPE_APPLICATION_INFO;

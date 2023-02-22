@@ -62,6 +62,7 @@ namespace Lumos
             Lumos::Memory::LogMemoryInformation();
 
             Debug::Log::OnRelease();
+            System::JobSystem::Release();
 
             MemoryManager::OnShutdown();
         }

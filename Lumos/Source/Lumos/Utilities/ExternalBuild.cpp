@@ -28,7 +28,7 @@
 #include <imgui/misc/freetype/imgui_freetype.cpp>
 
 #define STB_DEFINE
-#include <stb/stb.h>
+#include <stb/deprecated/stb.h>
 
 #include <stb/stb_vorbis.c>
 
