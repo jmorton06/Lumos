@@ -68,6 +68,8 @@ namespace Lumos
         void OnInit(Scene* scene);
         void OnUpdate(Scene* scene);
 
+        void OnNewProject(const std::string& projectPath);
+
         void BindECSLua(sol::state& state);
         void BindLogLua(sol::state& state);
         void BindInputLua(sol::state& state);

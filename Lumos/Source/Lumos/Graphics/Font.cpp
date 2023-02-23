@@ -14,7 +14,7 @@
 #endif
 
 #include <imgui/Plugins/ImGuiAl/fonts/RobotoRegular.inl>
-#include <stb/stb.h>
+#include <stb/deprecated/stb.h>
 
 using namespace msdf_atlas;
 

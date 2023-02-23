@@ -23,12 +23,15 @@ project "imgui"
 		--"imgui/Plugins/ImCurveEdit.cpp",
 		"imgui/Plugins/ImTextEditor.h",
 		"imgui/Plugins/ImTextEditor.cpp",
+		"imgui/Plugins/imcmd_command_palette.cpp",
+		"imgui/Plugins/imcmd_fuzzy_search.cpp",
 	}
 
 	includedirs
 	{
 		"imgui/",
-		"../"
+		"../",
+		"../.."
 	}
 
 	filter "system:windows"

@@ -525,7 +525,7 @@ namespace Lumos
             if(ortho)
             {
                 camera.SetIsOrthographic(false);
-                m_Editor->GetEditorCameraController().SetMode(false);
+                m_Editor->GetEditorCameraController().SetCurrentMode(EditorCameraMode::ARCBALL);
             }
         }
         if(selected)
@@ -541,7 +541,7 @@ namespace Lumos
             {
                 camera.SetIsOrthographic(true);
                 m_Editor->GetEditorCameraTransform().SetLocalOrientation(glm::quat(glm::vec3(0.0f, 0.0f, 0.0f)));
-                m_Editor->GetEditorCameraController().SetMode(true);
+                m_Editor->GetEditorCameraController().SetCurrentMode(EditorCameraMode::TWODIM);
             }
         }
         if(selected)
