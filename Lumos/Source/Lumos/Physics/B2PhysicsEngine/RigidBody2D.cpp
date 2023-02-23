@@ -74,6 +74,7 @@ namespace Lumos
         else
             bodyDef.type = b2_dynamicBody;
 
+        bodyDef.linearDamping = 1.0f;
         bodyDef.position.Set(params.position.x, params.position.y);
         m_B2Body = Application::Get().GetSystem<B2PhysicsEngine>()->CreateB2Body(&bodyDef);
 

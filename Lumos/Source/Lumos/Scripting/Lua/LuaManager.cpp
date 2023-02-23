@@ -34,6 +34,8 @@
 #include <Tracy/TracyLua.hpp>
 #include <sol/sol.hpp>
 
+#include <filesystem>
+
 #ifdef CUSTOM_SMART_PTR
 namespace sol
 {
@@ -148,7 +150,7 @@ namespace Lumos
         LUMOS_PROFILE_FUNCTION();
 
         m_State = new sol::state();
-        m_State->open_libraries(sol::lib::base, sol::lib::package, sol::lib::math, sol::lib::table);
+        m_State->open_libraries(sol::lib::base, sol::lib::package, sol::lib::math, sol::lib::table, sol::lib::os, sol::lib::string);
         tracy::LuaRegister(m_State->lua_state());
 
         BindAppLua(*m_State);
@@ -175,6 +177,18 @@ namespace Lumos
 
         if(view.empty())
             return;
+        
+        //auto& state = *m_State;
+        //std::string ScriptsPath;
+        //VFS::Get().ResolvePhysicalPath("//Scripts", ScriptsPath);
+        //
+        //// Setup the lua path to see luarocks packages
+        //auto package_path = std::filesystem::path(ScriptsPath) / "lua" / "?.lua;";
+        //package_path += std::filesystem::path(ScriptsPath) / "?" / "?.lua;";
+        //package_path += std::filesystem::path(ScriptsPath) / "?" / "?" / "?.lua;";
+
+        //std::string test = state["package"]["path"];
+        //state["package"]["path"] = std::string(package_path.string()) + test;
 
         for(auto entity : view)
         {
@@ -201,6 +215,21 @@ namespace Lumos
             auto& luaScript = registry.get<LuaScriptComponent>(entity);
             luaScript.OnUpdate(dt);
         }
+    }
+
+    void LuaManager::OnNewProject(const std::string& projectPath)
+    {
+        auto& state = *m_State;
+        std::string ScriptsPath;
+        VFS::Get().ResolvePhysicalPath("//Scripts", ScriptsPath);
+
+        // Setup the lua path to see luarocks packages
+        auto package_path = std::filesystem::path(ScriptsPath) / "lua" / "?.lua;";
+        package_path += std::filesystem::path(ScriptsPath) / "?" / "?.lua;";
+        package_path += std::filesystem::path(ScriptsPath) / "?" / "?" / "?.lua;";
+
+        std::string currentPaths = state["package"]["path"];
+        state["package"]["path"] = std::string(package_path.string()) + currentPaths;
     }
 
     entt::entity GetEntityByName(entt::registry& registry, const std::string& name)
@@ -440,6 +469,7 @@ namespace Lumos
 
         sol::usertype<Sprite> sprite_type = state.new_usertype<Sprite>("Sprite", sol::constructors<sol::types<glm::vec2, glm::vec2, glm::vec4>, Sprite(const SharedPtr<Graphics::Texture2D>&, const glm::vec2&, const glm::vec2&, const glm::vec4&)>());
         sprite_type.set_function("SetTexture", &Sprite::SetTexture);
+        sprite_type.set_function("SetSpriteSheet", &Sprite::SetSpriteSheet);
 
         REGISTER_COMPONENT_WITH_ECS(state, Sprite, static_cast<Sprite& (Entity::*)(const glm::vec2&, const glm::vec2&, const glm::vec4&)>(&Entity::AddComponent<Sprite, const glm::vec2&, const glm::vec2&, const glm::vec4&>));
 

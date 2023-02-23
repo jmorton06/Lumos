@@ -3,7 +3,8 @@
 #include "Core/VFS.h"
 #include "Sound.h"
 
-#include <stb/stb_vorbis.h>
+#define STB_VORBIS_HEADER_ONLY
+#include <stb/stb_vorbis.c>
 
 namespace Lumos
 {

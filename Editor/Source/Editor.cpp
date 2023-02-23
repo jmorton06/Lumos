@@ -46,6 +46,7 @@
 #include <Lumos/Scene/EntityFactory.h>
 #include <Lumos/ImGui/IconsMaterialDesignIcons.h>
 #include <Lumos/Embedded/EmbedAsset.h>
+#include <imgui/Plugins/imcmd_command_palette.h>
 
 #include <imgui/imgui_internal.h>
 #include <imgui/Plugins/ImGuizmo.h>
@@ -93,10 +94,66 @@ namespace Lumos
         Application::OnQuit();
     }
 
+    bool show_demo_window = true;
+    bool show_command_palette = false;
+    ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+
+    ImCmd::Command toggle_demo_cmd;
+ 
     void Editor::Init()
     {
         LUMOS_PROFILE_FUNCTION();
+        ImCmd::CreateContext();
+        toggle_demo_cmd.Name = "Toggle ImGui demo window";
+        toggle_demo_cmd.InitialCallback = [&]() {
+          show_demo_window = !show_demo_window;
+        };
 
+        ImCmd::Command select_theme_cmd;
+            select_theme_cmd.Name = "Select theme";
+            select_theme_cmd.InitialCallback = [&]() {
+                ImCmd::Prompt(std::vector<std::string>{
+                    "Black",
+                    "Dark",
+                    "Dracula",
+                    "Grey",
+                    "Light",
+                    "Blue",
+                    "ClassicLight",
+                    "ClassicDark",
+                    "Classic",
+                    "Cherry",
+                    "Cinder"
+                });
+            };
+            select_theme_cmd.SubsequentCallback = [&](int selected_option) {
+                ImGuiUtilities::SetTheme(ImGuiUtilities::Theme(selected_option));
+            };
+            ImCmd::AddCommand(std::move(select_theme_cmd));
+
+            ImCmd::Command example_cmd;
+            example_cmd.Name = "Open Project";
+            example_cmd.InitialCallback = [&]() {
+                ImGui::OpenPopup("Open Project");
+            };
+
+            ImCmd::Command add_example_cmd_cmd;
+            add_example_cmd_cmd.Name = "Add 'Example command'";
+            add_example_cmd_cmd.InitialCallback = [&]() {
+                ImCmd::AddCommand(example_cmd);
+            };
+
+            ImCmd::Command remove_example_cmd_cmd;
+            remove_example_cmd_cmd.Name = "Remove 'Example command'";
+            remove_example_cmd_cmd.InitialCallback = [&]() {
+                ImCmd::RemoveCommand(example_cmd.Name.c_str());
+            },
+
+            ImCmd::AddCommand(example_cmd); // Copy intentionally
+            ImCmd::AddCommand(std::move(add_example_cmd_cmd));
+            ImCmd::AddCommand(std::move(remove_example_cmd_cmd));
+
+        
 #ifdef LUMOS_PLATFORM_IOS
         m_TempSceneSaveFilePath = OS::Instance()->GetAssetPath();
 #else
@@ -160,7 +217,7 @@ namespace Lumos
                                                  (float)Application::Get().GetWindowSize().x / (float)Application::Get().GetWindowSize().y);
         m_CurrentCamera = m_EditorCamera.get();
 
-        glm::mat4 viewMat = glm::inverse(glm::lookAt(glm::vec3(-31.0f, 12.0f, 51.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f)));
+        glm::mat4 viewMat = glm::inverse(glm::lookAt(glm::vec3(0.0f, 0.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f)));
         m_EditorCameraTransform.SetLocalTransform(viewMat);
 
         m_ComponentIconMap[typeid(Graphics::Light).hash_code()]          = ICON_MDI_LIGHTBULB;
@@ -312,7 +369,16 @@ namespace Lumos
         m_Settings.m_View2D = m_CurrentCamera->IsOrthographic();
 
         m_FileBrowserPanel.OnImGui();
-
+        auto& io = ImGui::GetIO();
+        auto ctrl = io.ConfigMacOSXBehaviors ? io.KeySuper : io.KeyCtrl;
+        if (ctrl && Input::Get().GetKeyPressed(Lumos::InputCode::Key::P))
+        {
+            show_command_palette = !show_command_palette;
+        }
+        if (show_command_palette) {
+            ImCmd::CommandPaletteWindow("CommandPalette", &show_command_palette);
+        }
+     
         if(Application::Get().GetEditorState() == EditorState::Preview)
             Application::Get().GetSceneManager()->GetCurrentScene()->UpdateSceneGraph();
 
@@ -1064,6 +1130,18 @@ namespace Lumos
                 ImGui::CloseCurrentPopup();
                 SetAppState(AppState::Closing);
             }
+            
+            if(Application::Get().m_ProjectLoaded)
+            {
+                ImGui::SameLine();
+            
+                if(ImGui::Button("Cancel", ImVec2(120, 0)))
+                {
+                    ImGui::CloseCurrentPopup();
+                }
+            }
+ 
+            
             ImGui::EndPopup();
         }
 
@@ -1304,7 +1382,7 @@ namespace Lumos
         Application::OnNewScene(scene);
         m_SelectedEntity = entt::null;
 
-        glm::mat4 viewMat = glm::inverse(glm::lookAt(glm::vec3(-31.0f, 12.0f, 51.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f)));
+        glm::mat4 viewMat = glm::inverse(glm::lookAt(glm::vec3(0.0f, 0.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f)));
         m_EditorCameraTransform.SetLocalTransform(viewMat);
 
         for(auto panel : m_Panels)

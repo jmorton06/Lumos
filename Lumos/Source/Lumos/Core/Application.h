@@ -283,6 +283,7 @@ namespace Lumos
     private:
         bool OnWindowClose(WindowCloseEvent& e);
         static void UpdateSystems();
+        bool ShouldUpdateSystems = false;
 
         uint32_t m_Frames               = 0;
         uint32_t m_Updates              = 0;

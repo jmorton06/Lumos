@@ -76,6 +76,8 @@ function CreatePlayer()
     player:GetTransform():SetLocalPosition(Vector3.new(1.0,1.0,1.0))
     player:AddRigidBody2DComponent(params):GetRigidBody():SetForce(Vector2.new(200.0,0.0))
     player:GetRigidBody2DComponent():GetRigidBody():SetIsStatic(true)
+	player:GetRigidBody2DComponent():GetRigidBody():GetB2Body():SetLinearDamping(0.1)
+
 end
 
 function CreatePillar(index, offset)
@@ -317,6 +319,9 @@ end
 function OnRelease()
     OnCleanUp()
 end
+
+
+
 
 
 

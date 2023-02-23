@@ -3,7 +3,6 @@
 #include "VKDevice.h"
 #include "Utilities/LoadImage.h"
 #include "VKUtilities.h"
-#include "VKBuffer.h"
 #include "VKRenderer.h"
 
 namespace Lumos
@@ -263,6 +262,11 @@ namespace Lumos
                 }
 #endif
             }
+            
+            if(m_StagingBuffer)
+                delete m_StagingBuffer;
+            
+            m_StagingBuffer = nullptr;
         }
 
         void VKTexture2D::Resize(uint32_t width, uint32_t height)
@@ -505,6 +509,28 @@ namespace Lumos
                 m_MipImageViews[mip] = CreateImageView(m_TextureImage, m_VKFormat, 1, VK_IMAGE_VIEW_TYPE_2D, VK_IMAGE_ASPECT_COLOR_BIT, 1, 0, mip);
             }
             return m_MipImageViews.at(mip);
+        }
+    
+        void VKTexture2D::SetData(const void* pixels)
+        {
+            VkDeviceSize imageSize = VkDeviceSize(m_Width * m_Height * m_BitsPerChannel/2);// / 8);
+
+            if(!pixels)
+            {
+                LUMOS_LOG_CRITICAL("failed to load texture image!");
+            }
+
+            m_MipLevels = 1;
+
+            if(!m_StagingBuffer)
+                m_StagingBuffer = new VKBuffer(VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, static_cast<uint32_t>(imageSize), pixels);
+            else
+                m_StagingBuffer->SetData(static_cast<uint32_t>(imageSize), pixels);
+
+            TransitionImage(VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+            VKUtilities::CopyBufferToImage(m_StagingBuffer->GetBuffer(), m_TextureImage, static_cast<uint32_t>(m_Width), static_cast<uint32_t>(m_Height));
+
+            TransitionImage(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
         }
 
         VKTextureCube::VKTextureCube(uint32_t size, void* data, bool hdr)

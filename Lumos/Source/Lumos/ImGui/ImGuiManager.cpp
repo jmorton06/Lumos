@@ -9,7 +9,6 @@
 
 #include "IconsMaterialDesignIcons.h"
 
-#define IMGUI_DISABLE_OBSOLETE_FUNCTIONS
 #include <imgui/imgui.h>
 #include <imgui/Plugins/ImGuizmo.h>
 #include <imgui/Plugins/ImGuiAl/fonts/MaterialDesign.inl>
@@ -119,7 +118,7 @@ namespace Lumos
         dispatcher.Dispatch<KeyPressedEvent>(BIND_EVENT_FN(ImGuiManager::OnKeyPressedEvent));
         dispatcher.Dispatch<KeyReleasedEvent>(BIND_EVENT_FN(ImGuiManager::OnKeyReleasedEvent));
         dispatcher.Dispatch<KeyTypedEvent>(BIND_EVENT_FN(ImGuiManager::OnKeyTypedEvent));
-        dispatcher.Dispatch<WindowResizeEvent>(BIND_EVENT_FN(ImGuiManager::OnwindowResizeEvent));
+        dispatcher.Dispatch<WindowResizeEvent>(BIND_EVENT_FN(ImGuiManager::OnWindowResizeEvent));
     }
 
     void ImGuiManager::OnRender(Scene* scene)
@@ -224,7 +223,7 @@ namespace Lumos
         return false;
     }
 
-    bool ImGuiManager::OnwindowResizeEvent(WindowResizeEvent& e)
+    bool ImGuiManager::OnWindowResizeEvent(WindowResizeEvent& e)
     {
         LUMOS_PROFILE_FUNCTION();
         ImGuiIO& io = ImGui::GetIO();

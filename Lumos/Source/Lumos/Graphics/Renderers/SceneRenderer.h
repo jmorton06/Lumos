@@ -89,7 +89,7 @@ namespace Lumos
                 m_OverrideCameraTransform = overrideCameraTransform;
             }
 
-            bool OnwindowResizeEvent(WindowResizeEvent& e);
+            bool OnWindowResizeEvent(WindowResizeEvent& e);
 
             void GenerateBRDFLUTPass();
             void DepthPrePass();

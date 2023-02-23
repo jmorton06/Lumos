@@ -83,6 +83,8 @@ namespace Lumos
 
         m_SceneManager->LoadCurrentList();
         m_SceneManager->ApplySceneSwitch();
+
+        LuaManager::Get().OnNewProject(m_ProjectSettings.m_ProjectRoot);
     }
 
     void Application::OpenNewProject(const std::string& path, const std::string& name)
@@ -148,16 +150,18 @@ namespace Lumos
         m_ProjectLoaded = true;
 
         Serialise();
+
+        LuaManager::Get().OnNewProject(m_ProjectSettings.m_ProjectRoot);
     }
 
     void Application::MountVFSPaths()
     {
-        VFS::Get().Mount("Meshes", m_ProjectSettings.m_ProjectRoot + std::string("Assets/Meshes"));
-        VFS::Get().Mount("Textures", m_ProjectSettings.m_ProjectRoot + std::string("Assets/Textures"));
-        VFS::Get().Mount("Sounds", m_ProjectSettings.m_ProjectRoot + std::string("Assets/Sounds"));
-        VFS::Get().Mount("Scripts", m_ProjectSettings.m_ProjectRoot + std::string("Assets/Scripts"));
-        VFS::Get().Mount("Scenes", m_ProjectSettings.m_ProjectRoot + std::string("Assets/Scenes"));
-        VFS::Get().Mount("Assets", m_ProjectSettings.m_ProjectRoot + std::string("Assets"));
+        VFS::Get().Mount("Meshes", m_ProjectSettings.m_ProjectRoot + std::string("Assets/Meshes"), true);
+        VFS::Get().Mount("Textures", m_ProjectSettings.m_ProjectRoot + std::string("Assets/Textures"), true);
+        VFS::Get().Mount("Sounds", m_ProjectSettings.m_ProjectRoot + std::string("Assets/Sounds"), true);
+        VFS::Get().Mount("Scripts", m_ProjectSettings.m_ProjectRoot + std::string("Assets/Scripts"), true);
+        VFS::Get().Mount("Scenes", m_ProjectSettings.m_ProjectRoot + std::string("Assets/Scenes"), true);
+        VFS::Get().Mount("Assets", m_ProjectSettings.m_ProjectRoot + std::string("Assets"), true);
     }
 
     Scene* Application::GetCurrentScene() const
@@ -174,6 +178,7 @@ namespace Lumos
 
         Engine::Get();
         LuaManager::Get().OnInit();
+        LuaManager::Get().OnNewProject(m_ProjectSettings.m_ProjectRoot);
 
         m_Timer = CreateUniquePtr<Timer>();
 
@@ -249,7 +254,9 @@ namespace Lumos
         System::JobSystem::Execute(context, [this](JobDispatchArgs args)
                                    {
                 m_SystemManager->RegisterSystem<LumosPhysicsEngine>();
-                m_SystemManager->RegisterSystem<B2PhysicsEngine>(); });
+                m_SystemManager->RegisterSystem<B2PhysicsEngine>(); 
+                LUMOS_LOG_INFO("Initialised Physics");
+            });
 
         System::JobSystem::Execute(context, [this](JobDispatchArgs args)
                                    { m_SceneManager->LoadCurrentList(); });
@@ -266,6 +273,8 @@ namespace Lumos
         Graphics::Material::InitDefaultTexture();
         Graphics::Font::InitDefaultFont();
         m_SceneRenderer->EnableDebugRenderer(true);
+
+       // updateThread = std::thread(Application::UpdateSystems);
     }
 
     void Application::OnQuit()
@@ -374,7 +383,6 @@ namespace Lumos
         if(m_CurrentState == AppState::Closing)
             return false;
 
-        std::thread updateThread = std::thread(Application::UpdateSystems);
 
         if(!m_Minimized)
         {
@@ -415,7 +423,8 @@ namespace Lumos
 
         {
             LUMOS_PROFILE_SCOPE("Wait System update");
-            updateThread.join();
+            //updateThread.join();
+            UpdateSystems();
 
             m_SystemManager->GetSystem<LumosPhysicsEngine>()->SyncTransforms(m_SceneManager->GetCurrentScene());
             m_SystemManager->GetSystem<B2PhysicsEngine>()->SyncTransforms(m_SceneManager->GetCurrentScene());

@@ -35,7 +35,7 @@ namespace Lumos
         bool OnKeyPressedEvent(KeyPressedEvent& e);
         bool OnKeyReleasedEvent(KeyReleasedEvent& e);
         bool OnKeyTypedEvent(KeyTypedEvent& e);
-        bool OnwindowResizeEvent(WindowResizeEvent& e);
+        bool OnWindowResizeEvent(WindowResizeEvent& e);
 
         void SetImGuiKeyCodes();
         void SetImGuiStyle();
