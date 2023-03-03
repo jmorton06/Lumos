@@ -356,6 +356,7 @@ namespace Lumos
             uint32_t result;
             GLCall(glGenTextures(1, &result));
             GLCall(glBindTexture(GL_TEXTURE_CUBE_MAP, result));
+
             GLCall(glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR));
             GLCall(glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
             GLCall(glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
@@ -385,6 +386,7 @@ namespace Lumos
                 }
                 delete[] cubeTextureData[m];
             }
+
             delete[] cubeTextureData;
             delete[] faceHeights;
             delete[] faceWidths;

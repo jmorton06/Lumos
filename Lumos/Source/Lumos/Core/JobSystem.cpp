@@ -1,6 +1,7 @@
 #include "Precompiled.h"
 #include "JobSystem.h"
 #include "Maths/Maths.h"
+#include "Core/DataStructures/Vector.h"
 
 #include <atomic>
 #include <thread>
@@ -30,10 +31,10 @@ namespace Lumos
             inline void lock()
             {
                 int spin = 0;
-                while (!TryLock())
+                while(!TryLock())
                 {
 #ifndef LUMOS_PLATFORM_MACOS
-                    if (spin < 10)
+                    if(spin < 10)
                     {
                         _mm_pause(); // SMT thread swap can occur here
                     }
@@ -97,32 +98,32 @@ namespace Lumos
             //    Once this is destroyed, worker threads will be woken up and end their loops.
             struct InternalState
             {
-                uint32_t numCores = 0;
+                uint32_t numCores   = 0;
                 uint32_t numThreads = 0;
                 std::unique_ptr<JobQueue[]> jobQueuePerThread;
-                std::atomic_bool alive{ true };
+                std::atomic_bool alive { true };
                 std::condition_variable wakeCondition;
                 std::mutex wakeMutex;
-                std::atomic<uint32_t> nextQueue{ 0 };
-                std::vector<std::thread> threads;
+                std::atomic<uint32_t> nextQueue { 0 };
+                Vector<std::thread> threads;
 
                 ~InternalState()
                 {
                     alive.store(false); // indicate that new jobs cannot be started from this point
                     bool wake_loop = true;
-                    std::thread waker([&] {
+                    std::thread waker([&]
+                                      {
                         while (wake_loop)
                         {
                             wakeCondition.notify_all(); // wakes up sleeping worker threads
-                        }
-                        });
-                    for (auto& thread : threads)
+                        } });
+                    for(auto& thread : threads)
                     {
-                        if (thread.joinable())
+                        if(thread.joinable())
                             thread.join();
                     }
                     wake_loop = false;
-                    if (waker.joinable())
+                    if(waker.joinable())
                         waker.join();
                 }
             };
@@ -142,9 +143,9 @@ namespace Lumos
                         args.groupID = job.groupID;
                         if(job.sharedmemory_size > 0)
                         {
-                            thread_local static std::vector<uint8_t> shared_allocation_data;
-                            shared_allocation_data.reserve(job.sharedmemory_size);
-                            args.sharedmemory = shared_allocation_data.data();
+                            thread_local static Vector<uint8_t> shared_allocation_data;
+                            shared_allocation_data.Reserve(job.sharedmemory_size);
+                            args.sharedmemory = shared_allocation_data.Data();
                         }
                         else
                         {
@@ -173,7 +174,7 @@ namespace Lumos
                 if(!internal_state)
                     internal_state = new InternalState();
 
-                if (internal_state->numThreads > 0)
+                if(internal_state->numThreads > 0)
                     return;
 
                 maxThreadCount = std::max(1u, maxThreadCount);
@@ -184,16 +185,16 @@ namespace Lumos
                 // Calculate the actual number of worker threads we want:
                 // Reserve a couple of threads
                 internal_state->numThreads = Lumos::Maths::Min(maxThreadCount, Lumos::Maths::Max(1u, internal_state->numCores - 1));
-                
-                //Keep one for update thread
+
+                // Keep one for update thread
                 internal_state->numThreads -= 1;
                 internal_state->jobQueuePerThread.reset(new JobQueue[internal_state->numThreads]);
-                internal_state->threads.reserve(internal_state->numThreads);
+                internal_state->threads.Reserve(internal_state->numThreads);
 
                 for(uint32_t threadID = 0; threadID < internal_state->numThreads; ++threadID)
                 {
-                    std::thread& worker = internal_state->threads.emplace_back([threadID]
-                            {
+                    std::thread& worker = internal_state->threads.EmplaceBack([threadID]
+                                                                               {
                                 while (internal_state->alive.load())
                                 {
                                     work(threadID);
@@ -205,8 +206,7 @@ namespace Lumos
                                     // finished with jobs, put to sleep
                                     std::unique_lock<std::mutex> lock(internal_state->wakeMutex);
                                     internal_state->wakeCondition.wait(lock);
-                                }
-                            });
+                                } });
 
 #ifdef LUMOS_PLATFORM_WINDOWS
                     // Do Windows-specific thread setup:
@@ -223,14 +223,17 @@ namespace Lumos
 
                     // Name the thread:
                     std::wstring wthreadname = L"JobSystem_" + std::to_wstring(threadID);
-                    HRESULT hr = SetThreadDescription(handle, wthreadname.c_str());
+                    HRESULT hr               = SetThreadDescription(handle, wthreadname.c_str());
 
                     LUMOS_ASSERT(SUCCEEDED(hr), "");
 
 #elif LUMOS_PLATFORM_LINUX
 
 #define handle_error_en(en, msg) \
-               do { errno = en; perror(msg); } while (0)
+    do {                         \
+        errno = en;              \
+        perror(msg);             \
+    } while(0)
 
                     int ret;
                     cpu_set_t cpuset;
@@ -249,11 +252,10 @@ namespace Lumos
                         handle_error_en(ret, std::string(" pthread_setname_np[" + std::to_string(threadID) + ']').c_str());
 
 #elif LUMOS_PLATFORM_MACOS
-                    thread_affinity_policy    affinity_tag;
+                    thread_affinity_policy affinity_tag;
                     affinity_tag.affinity_tag = threadID + 1;
-                    auto thread = worker.native_handle();
+                    auto thread               = worker.native_handle();
                     thread_policy_set(pthread_mach_thread_np(pthread_self()), THREAD_AFFINITY_POLICY, (integer_t*)&affinity_tag, THREAD_AFFINITY_POLICY_COUNT);
-
 
                     std::stringstream wss;
                     wss << "JobSystem_" << threadID;

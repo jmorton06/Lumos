@@ -262,10 +262,10 @@ namespace Lumos
                 }
 #endif
             }
-            
+
             if(m_StagingBuffer)
                 delete m_StagingBuffer;
-            
+
             m_StagingBuffer = nullptr;
         }
 
@@ -510,10 +510,10 @@ namespace Lumos
             }
             return m_MipImageViews.at(mip);
         }
-    
+
         void VKTexture2D::SetData(const void* pixels)
         {
-            VkDeviceSize imageSize = VkDeviceSize(m_Width * m_Height * m_BitsPerChannel/2);// / 8);
+            VkDeviceSize imageSize = VkDeviceSize(m_Width * m_Height * m_BitsPerChannel / 2); // / 8);
 
             if(!pixels)
             {

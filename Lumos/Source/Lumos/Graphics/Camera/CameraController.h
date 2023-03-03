@@ -25,7 +25,8 @@ namespace Lumos
 
     protected:
         glm::vec3 m_Velocity;
-    glm::vec2 m_RotateVelocity;
+        glm::vec2 m_RotateVelocity;
+        glm::vec2 m_ArcRotateVelocity;
         glm::vec3 m_FocalPoint;
 
         float m_ZoomVelocity = 0.0f;

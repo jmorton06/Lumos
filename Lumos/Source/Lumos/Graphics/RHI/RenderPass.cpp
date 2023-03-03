@@ -1,13 +1,19 @@
 #include "Precompiled.h"
 #include "RenderPass.h"
-
+#include "Core/Engine.h"
 #include "Utilities/CombineHash.h"
 
 namespace Lumos
 {
     namespace Graphics
     {
-        static std::unordered_map<std::size_t, SharedPtr<RenderPass>> m_RenderPassCache;
+        struct RenderPassAsset
+        {
+            SharedPtr<RenderPass> renderpass;
+            float timeSinceLastAccessed;
+        };
+        static std::unordered_map<uint64_t, RenderPassAsset> m_RenderPassCache;
+        static const float m_CacheLifeTime = 0.1f;
 
         RenderPass::~RenderPass()                                    = default;
         RenderPass* (*RenderPass::CreateFunc)(const RenderPassDesc&) = nullptr;
@@ -21,7 +27,8 @@ namespace Lumos
 
         SharedPtr<RenderPass> RenderPass::Get(const RenderPassDesc& renderPassDesc)
         {
-            size_t hash = 0;
+            LUMOS_PROFILE_FUNCTION();
+            uint64_t hash = 0;
             HashCombine(hash, renderPassDesc.attachmentCount, renderPassDesc.clear);
 
             for(uint32_t i = 0; i < renderPassDesc.attachmentCount; i++)
@@ -30,38 +37,44 @@ namespace Lumos
             }
 
             auto found = m_RenderPassCache.find(hash);
-            if(found != m_RenderPassCache.end() && found->second)
+            if(found != m_RenderPassCache.end() && found->second.renderpass)
             {
-                return found->second;
+                found->second.timeSinceLastAccessed = (float)Engine::GetTimeStep().GetElapsedSeconds();
+                return found->second.renderpass;
             }
 
             auto renderPass         = SharedPtr<RenderPass>(Create(renderPassDesc));
-            m_RenderPassCache[hash] = renderPass;
+            m_RenderPassCache[hash] = { renderPass, (float)Engine::GetTimeStep().GetElapsedSeconds() };
             return renderPass;
         }
 
         void RenderPass::ClearCache()
         {
+            LUMOS_PROFILE_FUNCTION();
             m_RenderPassCache.clear();
         }
 
         void RenderPass::DeleteUnusedCache()
         {
+            LUMOS_PROFILE_FUNCTION();
             static std::size_t keysToDelete[256];
             std::size_t keysToDeleteCount = 0;
 
             for(auto&& [key, value] : m_RenderPassCache)
             {
-                if(value && value.GetCounter() && value.GetCounter()->GetReferenceCount() == 1)
+                if(value.renderpass && value.renderpass.GetCounter() && value.renderpass.GetCounter()->GetReferenceCount() == 1 && (Engine::GetTimeStep().GetElapsedSeconds() - value.timeSinceLastAccessed) > m_CacheLifeTime)
                 {
                     keysToDelete[keysToDeleteCount] = key;
                     keysToDeleteCount++;
                 }
+
+                if(keysToDeleteCount >= 256)
+                    break;
             }
 
             for(std::size_t i = 0; i < keysToDeleteCount; i++)
             {
-                m_RenderPassCache[keysToDelete[i]] = nullptr;
+                m_RenderPassCache[keysToDelete[i]].renderpass = nullptr;
                 m_RenderPassCache.erase(keysToDelete[i]);
             }
         }

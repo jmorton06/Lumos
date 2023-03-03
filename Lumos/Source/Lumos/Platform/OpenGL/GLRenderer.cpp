@@ -14,6 +14,7 @@
 #include "Graphics/Mesh.h"
 #include "GLDescriptorSet.h"
 #include "GLFramebuffer.h"
+#include "GLRenderPass.h"
 #include "Graphics/Material.h"
 
 namespace Lumos
@@ -65,6 +66,7 @@ namespace Lumos
 
         void GLRenderer::Begin()
         {
+            LUMOS_PROFILE_FUNCTION();
             GLCall(glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0));
             GLCall(glClearColor(0.0f, 0.0f, 0.0f, 0.0f));
             GLCall(glClear(GL_COLOR_BUFFER_BIT));
@@ -267,6 +269,7 @@ namespace Lumos
 
         void GLRenderer::ClearRenderTarget(Graphics::Texture* texture, Graphics::CommandBuffer* commandBuffer, glm::vec4 clearColour)
         {
+            LUMOS_PROFILE_FUNCTION();
             if(!texture)
             {
                 // Assume swapchain texture
@@ -276,28 +279,30 @@ namespace Lumos
             }
             else
             {
-                std::vector<TextureType> attachmentTypes = { texture->GetType() };
-                std::vector<Texture*> attachments        = { texture };
+                TextureType attachmentTypes[1] = { texture->GetType() };
+                Texture* attachments[1]        = { texture };
 
-                //            Graphics::RenderPassDesc renderPassDesc;
-                //            renderPassDesc.attachmentCount = uint32_t(attachmentTypes.size());
-                //            renderPassDesc.attachmentTypes = attachmentTypes.data();
-                //            renderPassDesc.attachments = attachments.data();
-                //            renderPassDesc.clear = false;
-                //
-                //            auto renderPass = Graphics::RenderPass::Get(renderPassDesc);
+                Graphics::RenderPassDesc renderPassDesc;
+                renderPassDesc.attachmentCount = 1U;
+                renderPassDesc.attachmentTypes = attachmentTypes;
+                renderPassDesc.attachments     = attachments;
+                renderPassDesc.clear           = false;
+
+                auto renderPass = Graphics::RenderPass::Get(renderPassDesc);
 
                 GLCall(glClearColor(clearColour.x, clearColour.y, clearColour.z, clearColour.w));
 
                 FramebufferDesc frameBufferDesc {};
                 frameBufferDesc.width           = texture->GetWidth();
                 frameBufferDesc.height          = texture->GetHeight();
-                frameBufferDesc.attachmentCount = uint32_t(attachments.size());
-                frameBufferDesc.renderPass      = nullptr;
-                frameBufferDesc.attachmentTypes = attachmentTypes.data();
-                frameBufferDesc.attachments     = attachments.data();
-
-                auto framebuffer = Framebuffer::Get(frameBufferDesc);
+                frameBufferDesc.attachmentCount = 1;
+                frameBufferDesc.renderPass      = renderPass.get();
+                frameBufferDesc.attachmentTypes = attachmentTypes;
+                frameBufferDesc.attachments     = attachments;
+                frameBufferDesc.mipIndex        = 0;
+                frameBufferDesc.layer           = 0;
+                frameBufferDesc.msaaLevel       = 1;
+                auto framebuffer                = Framebuffer::Get(frameBufferDesc);
                 framebuffer->Bind();
             }
             GLRenderer::ClearInternal(RENDERER_BUFFER_COLOUR | RENDERER_BUFFER_DEPTH | RENDERER_BUFFER_STENCIL);

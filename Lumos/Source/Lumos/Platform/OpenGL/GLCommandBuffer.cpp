@@ -48,6 +48,7 @@ namespace Lumos
 
         void GLCommandBuffer::BindPipeline(Pipeline* pipeline)
         {
+            LUMOS_PROFILE_FUNCTION();
             if(pipeline != m_BoundPipeline)
             {
                 pipeline->Bind(this);
@@ -57,6 +58,7 @@ namespace Lumos
 
         void GLCommandBuffer::UnBindPipeline()
         {
+            LUMOS_PROFILE_FUNCTION();
             if(m_BoundPipeline)
                 m_BoundPipeline->End(this);
             m_BoundPipeline = nullptr;

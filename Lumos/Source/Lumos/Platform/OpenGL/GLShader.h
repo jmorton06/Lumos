@@ -122,6 +122,8 @@ namespace Lumos
 
             void LoadFromData(const uint32_t* data, uint32_t size, ShaderType type, std::map<ShaderType, std::string>& sources);
 
+            uint64_t GetHash() const override { return m_Hash; }
+
         private:
             uint32_t m_Handle;
             std::string m_Name, m_Path;
@@ -131,14 +133,17 @@ namespace Lumos
             std::map<uint32_t, DescriptorSetInfo> m_DescriptorInfos;
 
             bool CreateLocations();
-            bool SetUniformLocation(const char* szName);
+            bool SetUniformLocation(const std::string& szName);
 
-            std::map<uint32_t, uint32_t> m_UniformBlockLocations;
+            std::map<std::string, uint32_t> m_UniformBlockLocations;
             std::map<uint32_t, uint32_t> m_SampledImageLocations;
             std::map<uint32_t, uint32_t> m_UniformLocations;
 
             std::vector<spirv_cross::CompilerGLSL*> m_ShaderCompilers;
             std::vector<PushConstant> m_PushConstants;
+            std::vector<std::pair<GLUniformBuffer*, uint32_t>> m_PushConstantsBuffers;
+
+            uint64_t m_Hash = 0;
 
             Graphics::BufferLayout m_Layout;
 

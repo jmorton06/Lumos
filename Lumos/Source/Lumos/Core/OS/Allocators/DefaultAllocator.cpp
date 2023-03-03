@@ -2,7 +2,7 @@
 #include "DefaultAllocator.h"
 
 #include "Core/OS/MemoryManager.h"
-//#define TRACK_ALLOCATIONS
+// #define TRACK_ALLOCATIONS
 
 #define LUMOS_MEMORY_ALIGNMENT 16
 #define LUMOS_ALLOC(size) _aligned_malloc(size, LUMOS_MEMORY_ALIGNMENT)

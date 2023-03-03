@@ -9,7 +9,7 @@ namespace Lumos
     {
         LUMOS_PROFILE_FUNCTION();
 
-        if (replace)
+        if(replace)
             m_MountPoints[virtualPath].clear();
 
         m_MountPoints[virtualPath].push_back(physicalPath);

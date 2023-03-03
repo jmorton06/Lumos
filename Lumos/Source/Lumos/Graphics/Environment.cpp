@@ -49,7 +49,7 @@ namespace Lumos
         void Environment::Load()
         {
             LUMOS_PROFILE_FUNCTION();
-            
+
             std::string* envFiles = new std::string[m_NumMips];
             std::string* irrFiles = new std::string[m_NumMips];
 

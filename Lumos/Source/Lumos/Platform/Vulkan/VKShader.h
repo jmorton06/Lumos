@@ -94,6 +94,8 @@ namespace Lumos
             const std::vector<VkVertexInputAttributeDescription>& GetVertexInputAttributeDescription() const { return m_VertexInputAttributeDescriptions; }
             const uint32_t GetVertexInputStride() const { return m_VertexInputStride; }
 
+            uint64_t GetHash() const override { return m_Hash; }
+
         protected:
             static Shader* CreateFuncVulkan(const std::string&);
             static Shader* CreateFromEmbeddedFuncVulkan(const uint32_t* vertData, uint32_t vertDataSize, const uint32_t* fragData, uint32_t fragDataSize);
@@ -114,6 +116,7 @@ namespace Lumos
 
             std::vector<VkVertexInputAttributeDescription> m_VertexInputAttributeDescriptions;
             uint32_t m_VertexInputStride = 0;
+            uint64_t m_Hash              = 0;
 
             VkPipelineLayout m_PipelineLayout;
             std::vector<PushConstant> m_PushConstants;
