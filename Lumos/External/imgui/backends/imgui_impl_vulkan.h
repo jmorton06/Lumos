@@ -78,7 +78,7 @@ IMGUI_IMPL_API void     ImGui_ImplVulkan_CreateDescriptorSets(ImDrawData* draw_d
 IMGUI_IMPL_API bool ImGui_ImplVulkan_LoadFunctions(PFN_vkVoidFunction(*loader_func)(const char* function_name, void* user_data), void* user_data = NULL);
 IMGUI_IMPL_API void ImGui_ImplVulkan_AddTexture(ImTextureID id, VkDescriptorSet sets,  uint32_t index);
 IMGUI_IMPL_API void ImGui_ImplVulkan_ClearDescriptors();
-IMGUI_IMPL_API std::map<ImTextureID, const VkDescriptorImageInfo*>& ImGui_ImplVulkan_GetDescriptorImageMap();
+IMGUI_IMPL_API std::unordered_map<ImTextureID, const VkDescriptorImageInfo*>& ImGui_ImplVulkan_GetDescriptorImageMap();
 
 //-------------------------------------------------------------------------
 // Internal / Miscellaneous Vulkan Helpers

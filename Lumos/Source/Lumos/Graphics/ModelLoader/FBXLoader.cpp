@@ -13,7 +13,7 @@
 
 #include <OpenFBX/ofbx.h>
 
-//#define THREAD_MESH_LOADING //Can't use with opengl
+// #define THREAD_MESH_LOADING //Can't use with opengl
 #ifdef THREAD_MESH_LOADING
 #include "Core/JobSystem.h"
 #endif

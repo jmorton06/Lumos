@@ -39,7 +39,7 @@ namespace Lumos
         void DrawFolder(const SharedPtr<DirectoryInformation>& dirInfo, bool defaultOpen = false);
         void RenderBreadCrumbs();
         void RenderBottom();
-        void GetDirectories(const std::string& path);
+        // void GetDirectories(const std::string& path);
 
         int GetParsedAssetID(const std::string& extension)
         {
@@ -91,6 +91,7 @@ namespace Lumos
         char inputBuffer[1024];
 
         std::string m_BasePath;
+        std::filesystem::path m_AssetPath;
 
         bool m_UpdateNavigationPath = true;
 

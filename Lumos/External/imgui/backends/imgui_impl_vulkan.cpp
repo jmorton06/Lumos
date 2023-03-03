@@ -337,10 +337,10 @@ static uint32_t __glsl_shader_frag_spv[] =
 // FUNCTIONS
 //-----------------------------------------------------------------------------
 
-static std::array<std::map<ImTextureID, VkDescriptorSet>, 3>* g_DescriptorSets = nullptr;
-static std::map<ImTextureID, const VkDescriptorImageInfo*>* g_DescriptorImageInfos = nullptr;
+static std::array<std::unordered_map<ImTextureID, VkDescriptorSet>, 3>* g_DescriptorSets = nullptr;
+static std::unordered_map<ImTextureID, const VkDescriptorImageInfo*>* g_DescriptorImageInfos = nullptr;
 
-std::map<ImTextureID, const VkDescriptorImageInfo*>& ImGui_ImplVulkan_GetDescriptorImageMap()
+std::unordered_map<ImTextureID, const VkDescriptorImageInfo*>& ImGui_ImplVulkan_GetDescriptorImageMap()
 {
     return *g_DescriptorImageInfos;
 }
@@ -1087,8 +1087,8 @@ bool ImGui_ImplVulkan_Init(ImGui_ImplVulkan_InitInfo* info, VkRenderPass render_
     ImGuiIO& io = ImGui::GetIO();
     IM_ASSERT(io.BackendRendererUserData == NULL && "Already initialized a renderer backend!");
 
-    g_DescriptorSets = new std::array<std::map<ImTextureID, VkDescriptorSet>, 3>();
-    g_DescriptorImageInfos = new std::map<ImTextureID, const VkDescriptorImageInfo*>();
+    g_DescriptorSets = new std::array<std::unordered_map<ImTextureID, VkDescriptorSet>, 3>();
+    g_DescriptorImageInfos = new std::unordered_map<ImTextureID, const VkDescriptorImageInfo*>();
 
     // Setup backend capabilities flags
     ImGui_ImplVulkan_Data* bd = IM_NEW(ImGui_ImplVulkan_Data)();
@@ -1755,11 +1755,12 @@ void ImGui_ImplVulkan_ShutdownPlatformInterface()
 
 void ImGui_ImplVulkan_CreateDescriptorSets(ImDrawData* draw_data, uint32_t frameIndex)
 {
-    static std::array<std::map<ImTextureID, bool>, 3> g_DescriptorSetHasUpdated;
-    g_DescriptorSetHasUpdated[frameIndex].clear();
+    static std::array<std::unordered_map<ImTextureID, bool>, 3> g_DescriptorSetHasUpdated;
+    //g_DescriptorSetHasUpdated[frameIndex].clear();
     
     ImGui_ImplVulkan_Data* bd = ImGui_ImplVulkan_GetBackendData();
     ImGui_ImplVulkan_InitInfo* v = &bd->VulkanInitInfo;
+    auto& lDescriptorSets = *g_DescriptorSets;
             
     for (int n = 0; n < draw_data->CmdListsCount; n++)
     {
@@ -1770,7 +1771,8 @@ void ImGui_ImplVulkan_CreateDescriptorSets(ImDrawData* draw_data, uint32_t frame
 
             if (pcmd->TextureId)
             {
-                if (!(*g_DescriptorSets)[frameIndex][pcmd->TextureId])
+                const auto& findResult = lDescriptorSets.at(frameIndex).find(pcmd->TextureId);
+                if (findResult == lDescriptorSets.at(frameIndex).end())
                 {
                     VkWriteDescriptorSet descriptorWrites[1] = {};
 
@@ -1784,13 +1786,13 @@ void ImGui_ImplVulkan_CreateDescriptorSets(ImDrawData* draw_data, uint32_t frame
                     alloc_info.pSetLayouts = &bd->DescriptorSetLayout;
                     alloc_info.pNext = nullptr;
                     vkAllocateDescriptorSets(v->Device, &alloc_info, &set);
-                    (*g_DescriptorSets)[frameIndex][pcmd->TextureId] = set;
+                    lDescriptorSets[frameIndex][pcmd->TextureId] = set;
                 }
                 
                 if(!g_DescriptorSetHasUpdated.at(frameIndex)[pcmd->TextureId])
                 {
                     VkWriteDescriptorSet descriptorWrites[1] = {};
-                    auto set = (*g_DescriptorSets).at(frameIndex)[pcmd->TextureId];
+                    auto set = lDescriptorSets.at(frameIndex)[pcmd->TextureId];
                     descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
                     descriptorWrites[0].dstSet = set;
                     descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;

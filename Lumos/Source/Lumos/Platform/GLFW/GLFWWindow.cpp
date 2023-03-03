@@ -192,10 +192,10 @@ namespace Lumos
         // glfwSetWindowPos(m_Handle, mode->width / 2 - m_Data.Width / 2, mode->height / 2 - m_Data.Height / 2);
         glfwSetInputMode(m_Handle, GLFW_STICKY_KEYS, true);
 
-        //#ifdef LUMOS_PLATFORM_WINDOWS
+        // #ifdef LUMOS_PLATFORM_WINDOWS
         //		glfwGetWindowSize(m_Handle, &w, &h);
         //		m_Data.DPIScale = (float)w / m_Data.Width;
-        //#endif
+        // #endif
 
         // Set GLFW callbacks
         glfwSetWindowSizeCallback(m_Handle, [](GLFWwindow* window, int width, int height)
@@ -484,7 +484,7 @@ namespace Lumos
         }
     }
 
-    //#define LOG_CONTROLLER 0
+    // #define LOG_CONTROLLER 0
 
     void GLFWWindow::ProcessInput()
     {

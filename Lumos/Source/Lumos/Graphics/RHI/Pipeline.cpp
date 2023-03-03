@@ -25,7 +25,7 @@ namespace Lumos
             SharedPtr<Pipeline> pipeline;
             float timeSinceLastAccessed;
         };
-        static std::unordered_map<std::size_t, PipelineAsset> m_PipelineCache;
+        static std::unordered_map<uint64_t, PipelineAsset> m_PipelineCache;
         static const float m_CacheLifeTime = 0.1f;
 
         Pipeline* (*Pipeline::CreateFunc)(const PipelineDesc&) = nullptr;
@@ -40,21 +40,21 @@ namespace Lumos
         SharedPtr<Pipeline> Pipeline::Get(const PipelineDesc& pipelineDesc)
         {
             LUMOS_PROFILE_FUNCTION();
-            size_t hash = 0;
-            HashCombine(hash, pipelineDesc.shader.get(), pipelineDesc.cullMode, pipelineDesc.depthBiasEnabled, pipelineDesc.drawType, pipelineDesc.polygonMode, pipelineDesc.transparencyEnabled);
+            uint64_t hash = 0;
+            HashCombine(hash, pipelineDesc.shader.get(), pipelineDesc.cullMode, pipelineDesc.depthBiasEnabled, (uint32_t)pipelineDesc.drawType, (uint32_t)pipelineDesc.polygonMode, pipelineDesc.transparencyEnabled);
 
             for(auto texture : pipelineDesc.colourTargets)
             {
                 if(texture)
                 {
-                    HashCombine(hash, texture, texture->GetWidth(), texture->GetHeight(), texture->GetImageHande(), texture->Handle);
+                    HashCombine(hash, texture->GetWidth(), texture->GetHeight(), texture->GetImageHande(), texture->Handle);
 
 #ifdef LUMOS_RENDER_API_VULKAN
 
                     if(GraphicsContext::GetRenderAPI() == RenderAPI::VULKAN)
                     {
                         VkDescriptorImageInfo* imageHandle = (VkDescriptorImageInfo*)(texture->GetDescriptorInfo());
-                        HashCombine(hash, imageHandle->imageLayout, imageHandle->imageView, imageHandle->sampler);
+                        HashCombine(hash, (uint32_t)imageHandle->imageLayout, imageHandle->imageView, imageHandle->sampler);
                     }
 #endif
                 }

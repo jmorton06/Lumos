@@ -34,7 +34,7 @@ namespace Lumos
 
         enum class CullMode
         {
-            FRONT,
+            FRONT = 0,
             BACK,
             FRONTANDBACK,
             NONE
@@ -42,7 +42,7 @@ namespace Lumos
 
         enum class PolygonMode
         {
-            FILL,
+            FILL = 0,
             LINE,
             POINT
         };
@@ -57,7 +57,7 @@ namespace Lumos
 
         enum class TextureWrap
         {
-            NONE,
+            NONE = 0,
             REPEAT,
             CLAMP,
             MIRRORED_REPEAT,
@@ -67,7 +67,7 @@ namespace Lumos
 
         enum class TextureFilter
         {
-            NONE,
+            NONE = 0,
             LINEAR,
             NEAREST
         };
@@ -130,7 +130,7 @@ namespace Lumos
 
         enum class ShaderDataType
         {
-            NONE,
+            NONE = 0,
             FLOAT32,
             VEC2,
             VEC3,
@@ -150,7 +150,7 @@ namespace Lumos
 
         enum class ShaderType : int
         {
-            VERTEX,
+            VERTEX = 0,
             FRAGMENT,
             GEOMETRY,
             TESSELLATION_CONTROL,
@@ -161,7 +161,7 @@ namespace Lumos
 
         enum class TextureType
         {
-            COLOUR,
+            COLOUR = 0,
             DEPTH,
             DEPTHARRAY,
             CUBE,
@@ -170,7 +170,7 @@ namespace Lumos
 
         enum SubPassContents
         {
-            INLINE,
+            INLINE = 0,
             SECONDARY
         };
 
@@ -187,22 +187,23 @@ namespace Lumos
 
         enum RendererBufferType
         {
-            RENDERER_BUFFER_NONE    = 0,
             RENDERER_BUFFER_COLOUR  = BIT(0),
             RENDERER_BUFFER_DEPTH   = BIT(1),
-            RENDERER_BUFFER_STENCIL = BIT(2)
+            RENDERER_BUFFER_STENCIL = BIT(2),
+            RENDERER_BUFFER_NONE    = BIT(3)
+
         };
 
         enum class DrawType
         {
-            POINT,
+            POINT = 0,
             TRIANGLE,
             LINES
         };
 
         enum class StencilType
         {
-            EQUAL,
+            EQUAL = 0,
             NOTEQUAL,
             KEEP,
             REPLACE,
@@ -212,13 +213,13 @@ namespace Lumos
 
         enum class PixelPackType
         {
-            PACK,
+            PACK = 0,
             UNPACK
         };
 
         enum class RendererBlendFunction
         {
-            NONE,
+            NONE = 0,
             ZERO,
             ONE,
             SOURCE_ALPHA,
@@ -228,20 +229,20 @@ namespace Lumos
 
         enum class RendererBlendEquation
         {
-            NONE,
+            NONE = 0,
             ADD,
             SUBTRACT
         };
 
         enum class RenderMode
         {
-            FILL,
+            FILL = 0,
             WIREFRAME
         };
 
         enum class DataType
         {
-            FLOAT,
+            FLOAT = 0,
             UNSIGNED_INT,
             UNSIGNED_BYTE
         };

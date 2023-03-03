@@ -1,0 +1,6 @@
+The tiles are 16 x 16px and have a 1px margin between them.
+
+---
+
+TILE SIZE: 16 x 16
+MARGIN:	   1

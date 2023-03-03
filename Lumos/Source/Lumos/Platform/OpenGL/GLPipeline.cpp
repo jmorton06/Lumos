@@ -77,6 +77,9 @@ namespace Lumos
             m_Shader    = pipelineDesc.shader.get();
             m_BlendMode = pipelineDesc.blendMode;
 
+            m_DepthBiasConstant = pipelineDesc.depthBiasConstantFactor;
+            m_DepthBiasSlope    = pipelineDesc.depthBiasSlopeFactor;
+
             CreateFramebuffers();
             return true;
         }
@@ -230,6 +233,12 @@ namespace Lumos
 
             glEnable(GL_CULL_FACE);
 
+            if(m_DepthBiasConstant != 0.0f)
+            {
+                glEnable(GL_POLYGON_OFFSET_FILL);
+                glPolygonOffset(m_DepthBiasConstant, m_DepthBiasConstant);
+            }
+
             switch(m_CullMode)
             {
             case CullMode::BACK:
@@ -258,6 +267,11 @@ namespace Lumos
 
             if(m_LineWidth != 1.0f)
                 glLineWidth(1.0f);
+
+            if(m_DepthBiasConstant != 0)
+            {
+                glDisable(GL_POLYGON_OFFSET_FILL);
+            }
 
             GLRenderer::Instance()->GetBoundPipeline() = nullptr;
         }

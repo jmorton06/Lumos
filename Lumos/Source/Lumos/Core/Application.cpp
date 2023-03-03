@@ -243,23 +243,23 @@ namespace Lumos
 
         System::JobSystem::Execute(context, [this](JobDispatchArgs args)
                                    {
-                auto audioManager = AudioManager::Create();
-                if(audioManager)
-                {
-                    audioManager->OnInit();
-                    audioManager->SetPaused(true);
-                    m_SystemManager->RegisterSystem<AudioManager>(audioManager);
-                } });
+                                       auto audioManager = AudioManager::Create();
+                                       if(audioManager)
+                                       {
+                                           audioManager->OnInit();
+                                           audioManager->SetPaused(true);
+                                           m_SystemManager->RegisterSystem<AudioManager>(audioManager);
+                                       } });
 
         System::JobSystem::Execute(context, [this](JobDispatchArgs args)
                                    {
-                m_SystemManager->RegisterSystem<LumosPhysicsEngine>();
-                m_SystemManager->RegisterSystem<B2PhysicsEngine>(); 
-                LUMOS_LOG_INFO("Initialised Physics");
-            });
+                                       m_SystemManager->RegisterSystem<LumosPhysicsEngine>();
+                                       m_SystemManager->RegisterSystem<B2PhysicsEngine>(); });
 
         System::JobSystem::Execute(context, [this](JobDispatchArgs args)
                                    { m_SceneManager->LoadCurrentList(); });
+
+        System::JobSystem::Wait(context);
 
         m_ImGuiManager = CreateUniquePtr<ImGuiManager>(false);
         m_ImGuiManager->OnInit();
@@ -268,13 +268,12 @@ namespace Lumos
         m_SceneRenderer = CreateUniquePtr<Graphics::SceneRenderer>(screenWidth, screenHeight);
 
         m_CurrentState = AppState::Running;
-        System::JobSystem::Wait(context);
 
         Graphics::Material::InitDefaultTexture();
         Graphics::Font::InitDefaultFont();
         m_SceneRenderer->EnableDebugRenderer(true);
 
-       // updateThread = std::thread(Application::UpdateSystems);
+        // updateThread = std::thread(Application::UpdateSystems);
     }
 
     void Application::OnQuit()
@@ -383,7 +382,6 @@ namespace Lumos
         if(m_CurrentState == AppState::Closing)
             return false;
 
-
         if(!m_Minimized)
         {
             LUMOS_PROFILE_SCOPE("Application::Render");
@@ -423,7 +421,7 @@ namespace Lumos
 
         {
             LUMOS_PROFILE_SCOPE("Wait System update");
-            //updateThread.join();
+            // updateThread.join();
             UpdateSystems();
 
             m_SystemManager->GetSystem<LumosPhysicsEngine>()->SyncTransforms(m_SceneManager->GetCurrentScene());

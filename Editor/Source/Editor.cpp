@@ -94,66 +94,70 @@ namespace Lumos
         Application::OnQuit();
     }
 
-    bool show_demo_window = true;
+    bool show_demo_window     = true;
     bool show_command_palette = false;
-    ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+    ImVec4 clear_color        = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
     ImCmd::Command toggle_demo_cmd;
- 
+
     void Editor::Init()
     {
         LUMOS_PROFILE_FUNCTION();
         ImCmd::CreateContext();
-        toggle_demo_cmd.Name = "Toggle ImGui demo window";
-        toggle_demo_cmd.InitialCallback = [&]() {
-          show_demo_window = !show_demo_window;
+        toggle_demo_cmd.Name            = "Toggle ImGui demo window";
+        toggle_demo_cmd.InitialCallback = [&]()
+        {
+            show_demo_window = !show_demo_window;
         };
 
         ImCmd::Command select_theme_cmd;
-            select_theme_cmd.Name = "Select theme";
-            select_theme_cmd.InitialCallback = [&]() {
-                ImCmd::Prompt(std::vector<std::string>{
-                    "Black",
-                    "Dark",
-                    "Dracula",
-                    "Grey",
-                    "Light",
-                    "Blue",
-                    "ClassicLight",
-                    "ClassicDark",
-                    "Classic",
-                    "Cherry",
-                    "Cinder"
-                });
-            };
-            select_theme_cmd.SubsequentCallback = [&](int selected_option) {
-                ImGuiUtilities::SetTheme(ImGuiUtilities::Theme(selected_option));
-            };
-            ImCmd::AddCommand(std::move(select_theme_cmd));
+        select_theme_cmd.Name            = "Select theme";
+        select_theme_cmd.InitialCallback = [&]()
+        {
+            ImCmd::Prompt(std::vector<std::string> {
+                "Black",
+                "Dark",
+                "Dracula",
+                "Grey",
+                "Light",
+                "Blue",
+                "ClassicLight",
+                "ClassicDark",
+                "Classic",
+                "Cherry",
+                "Cinder" });
+        };
+        select_theme_cmd.SubsequentCallback = [&](int selected_option)
+        {
+            ImGuiUtilities::SetTheme(ImGuiUtilities::Theme(selected_option));
+        };
+        ImCmd::AddCommand(std::move(select_theme_cmd));
 
-            ImCmd::Command example_cmd;
-            example_cmd.Name = "Open Project";
-            example_cmd.InitialCallback = [&]() {
-                ImGui::OpenPopup("Open Project");
-            };
+        ImCmd::Command example_cmd;
+        example_cmd.Name            = "Open Project";
+        example_cmd.InitialCallback = [&]()
+        {
+            ImGui::OpenPopup("Open Project");
+        };
 
-            ImCmd::Command add_example_cmd_cmd;
-            add_example_cmd_cmd.Name = "Add 'Example command'";
-            add_example_cmd_cmd.InitialCallback = [&]() {
-                ImCmd::AddCommand(example_cmd);
-            };
+        ImCmd::Command add_example_cmd_cmd;
+        add_example_cmd_cmd.Name            = "Add 'Example command'";
+        add_example_cmd_cmd.InitialCallback = [&]()
+        {
+            ImCmd::AddCommand(example_cmd);
+        };
 
-            ImCmd::Command remove_example_cmd_cmd;
-            remove_example_cmd_cmd.Name = "Remove 'Example command'";
-            remove_example_cmd_cmd.InitialCallback = [&]() {
-                ImCmd::RemoveCommand(example_cmd.Name.c_str());
-            },
+        ImCmd::Command remove_example_cmd_cmd;
+        remove_example_cmd_cmd.Name            = "Remove 'Example command'";
+        remove_example_cmd_cmd.InitialCallback = [&]()
+        {
+            ImCmd::RemoveCommand(example_cmd.Name.c_str());
+        },
 
-            ImCmd::AddCommand(example_cmd); // Copy intentionally
-            ImCmd::AddCommand(std::move(add_example_cmd_cmd));
-            ImCmd::AddCommand(std::move(remove_example_cmd_cmd));
+        ImCmd::AddCommand(example_cmd); // Copy intentionally
+        ImCmd::AddCommand(std::move(add_example_cmd_cmd));
+        ImCmd::AddCommand(std::move(remove_example_cmd_cmd));
 
-        
 #ifdef LUMOS_PLATFORM_IOS
         m_TempSceneSaveFilePath = OS::Instance()->GetAssetPath();
 #else
@@ -369,16 +373,17 @@ namespace Lumos
         m_Settings.m_View2D = m_CurrentCamera->IsOrthographic();
 
         m_FileBrowserPanel.OnImGui();
-        auto& io = ImGui::GetIO();
+        auto& io  = ImGui::GetIO();
         auto ctrl = io.ConfigMacOSXBehaviors ? io.KeySuper : io.KeyCtrl;
-        if (ctrl && Input::Get().GetKeyPressed(Lumos::InputCode::Key::P))
+        if(ctrl && Input::Get().GetKeyPressed(Lumos::InputCode::Key::P))
         {
             show_command_palette = !show_command_palette;
         }
-        if (show_command_palette) {
+        if(show_command_palette)
+        {
             ImCmd::CommandPaletteWindow("CommandPalette", &show_command_palette);
         }
-     
+
         if(Application::Get().GetEditorState() == EditorState::Preview)
             Application::Get().GetSceneManager()->GetCurrentScene()->UpdateSceneGraph();
 
@@ -1130,18 +1135,17 @@ namespace Lumos
                 ImGui::CloseCurrentPopup();
                 SetAppState(AppState::Closing);
             }
-            
+
             if(Application::Get().m_ProjectLoaded)
             {
                 ImGui::SameLine();
-            
+
                 if(ImGui::Button("Cancel", ImVec2(120, 0)))
                 {
                     ImGui::CloseCurrentPopup();
                 }
             }
- 
-            
+
             ImGui::EndPopup();
         }
 
@@ -1479,7 +1483,7 @@ namespace Lumos
         static const auto graduation = 10;
         float GRID_SZ                = canvasSize.y * 0.5f / factor;
         const ImVec2& offset         = {
-                    canvasSize.x * 0.5f - cameraPos.x * GRID_SZ, canvasSize.y * 0.5f + cameraPos.y * GRID_SZ
+            canvasSize.x * 0.5f - cameraPos.x * GRID_SZ, canvasSize.y * 0.5f + cameraPos.y * GRID_SZ
         };
 
         ImU32 GRID_COLOR    = IM_COL32(200, 200, 200, 40);
@@ -2281,7 +2285,7 @@ namespace Lumos
     void Editor::AddDefaultEditorSettings()
     {
         LUMOS_PROFILE_FUNCTION();
-        m_ProjectSettings.m_ProjectRoot = "../ExampleProject/";
+        m_ProjectSettings.m_ProjectRoot = "../../ExampleProject/";
         m_ProjectSettings.m_ProjectName = "Example";
 
         m_IniFile.Add("ShowGrid", m_Settings.m_ShowGrid);
@@ -2318,7 +2322,7 @@ namespace Lumos
         m_Settings.m_DebugDrawFlags   = m_IniFile.GetOrDefault("DebugDrawFlags", m_Settings.m_DebugDrawFlags);
         m_Settings.m_Theme            = ImGuiUtilities::Theme(m_IniFile.GetOrDefault("Theme", (int)m_Settings.m_Theme));
 
-        m_ProjectSettings.m_ProjectRoot  = m_IniFile.GetOrDefault("ProjectRoot", std::string("../ExampleProject/"));
+        m_ProjectSettings.m_ProjectRoot  = m_IniFile.GetOrDefault("ProjectRoot", std::string("../../ExampleProject/"));
         m_ProjectSettings.m_ProjectName  = m_IniFile.GetOrDefault("ProjectName", std::string("Example"));
         m_Settings.m_Physics2DDebugFlags = m_IniFile.GetOrDefault("PhysicsDebugDrawFlags2D", 0);
         m_Settings.m_Physics3DDebugFlags = m_IniFile.GetOrDefault("PhysicsDebugDrawFlags", 0);

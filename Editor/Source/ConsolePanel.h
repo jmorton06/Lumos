@@ -4,6 +4,7 @@
 
 #include <imgui/imgui.h>
 #include <Lumos/Core/Reference.h>
+#include <Lumos/Core/DataStructures/Vector.h>
 
 namespace Lumos
 {
@@ -57,7 +58,7 @@ namespace Lumos
         static uint16_t s_MessageBufferCapacity;
         static uint16_t s_MessageBufferSize;
         static uint16_t s_MessageBufferBegin;
-        static std::vector<SharedPtr<Message>> s_MessageBuffer;
+        static Vector<SharedPtr<Message>> s_MessageBuffer;
         static bool s_AllowScrollingToBottom;
         static bool s_RequestScrollToBottom;
         static uint32_t s_MessageBufferRenderFilter;

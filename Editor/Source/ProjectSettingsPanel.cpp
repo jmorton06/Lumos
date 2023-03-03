@@ -16,15 +16,16 @@ namespace Lumos
         LUMOS_PROFILE_FUNCTION();
 
         ImGui::Begin(m_Name.c_str(), &m_Active, 0);
+        ImGuiUtilities::PushID();
 
         ImGui::Columns(2);
         Lumos::ImGuiUtilities::ScopedStyle(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
 
         {
             auto& projectSettings = Application::Get().GetProjectSettings();
-            ImGuiUtilities::PropertyConst("Project Name", projectSettings.m_ProjectName);
-            ImGuiUtilities::PropertyConst("Project Root", projectSettings.m_ProjectRoot);
-            ImGuiUtilities::PropertyConst("Engine Asset Path", projectSettings.m_EngineAssetPath);
+            ImGuiUtilities::PropertyConst("Project Name", projectSettings.m_ProjectName.c_str());
+            ImGuiUtilities::PropertyConst("Project Root", projectSettings.m_ProjectRoot.c_str());
+            ImGuiUtilities::PropertyConst("Engine Asset Path", projectSettings.m_EngineAssetPath.c_str());
             ImGuiUtilities::Property("App Width", (int&)projectSettings.Width, 0, 0, ImGuiUtilities::PropertyFlag::ReadOnly);
             ImGuiUtilities::Property("App Height", (int&)projectSettings.Height, 0, 0, ImGuiUtilities::PropertyFlag::ReadOnly);
             ImGuiUtilities::Property("Fullscreen", projectSettings.Fullscreen);
@@ -36,6 +37,7 @@ namespace Lumos
             ImGuiUtilities::Property("Project Version", projectSettings.ProjectVersion, 0, 0, ImGuiUtilities::PropertyFlag::ReadOnly);
         }
         ImGui::Columns(1);
+        ImGuiUtilities::PopID();
         ImGui::End();
     }
 }

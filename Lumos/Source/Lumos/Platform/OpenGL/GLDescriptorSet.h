@@ -38,6 +38,7 @@ namespace Lumos
             uint32_t m_DynamicOffset = 0;
             GLShader* m_Shader       = nullptr;
 
+            std::unordered_map<std::string, uint32_t> m_UniformLocations;
             std::vector<Descriptor> m_Descriptors;
             struct UniformBufferInfo
             {

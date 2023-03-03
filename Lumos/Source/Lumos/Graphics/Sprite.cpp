@@ -29,9 +29,9 @@ namespace Lumos
         {
         }
 
-        void Sprite::SetSpriteSheet(const glm::vec2& index, const glm::vec2& cellSize, const glm::vec2& spriteSize, float boarder/* = 0.0f*/)
+        void Sprite::SetSpriteSheet(const glm::vec2& index, const glm::vec2& cellSize, const glm::vec2& spriteSize, float boarder /* = 0.0f*/)
         {
-            if (!m_Texture)
+            if(!m_Texture)
                 return;
 
             glm::vec2 min = { (index.x * (cellSize.x + boarder)) / m_Texture->GetWidth(), (index.y * (cellSize.y + boarder)) / m_Texture->GetHeight() };

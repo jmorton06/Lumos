@@ -9,7 +9,7 @@ namespace Lumos
     uint16_t ConsolePanel::s_MessageBufferCapacity                              = 200;
     uint16_t ConsolePanel::s_MessageBufferSize                                  = 0;
     uint16_t ConsolePanel::s_MessageBufferBegin                                 = 0;
-    std::vector<SharedPtr<ConsolePanel::Message>> ConsolePanel::s_MessageBuffer = std::vector<SharedPtr<ConsolePanel::Message>>(200);
+    Vector<SharedPtr<ConsolePanel::Message>> ConsolePanel::s_MessageBuffer = Vector<SharedPtr<ConsolePanel::Message>>(200);
     bool ConsolePanel::s_AllowScrollingToBottom                                 = true;
     bool ConsolePanel::s_RequestScrollToBottom                                  = false;
 
@@ -30,7 +30,7 @@ namespace Lumos
         auto messageStart = s_MessageBuffer.begin() + s_MessageBufferBegin;
         if(*messageStart) // If contains old message here
         {
-            for(auto messIt = messageStart; messIt != s_MessageBuffer.end(); messIt++)
+            for(auto messIt = messageStart; messIt != s_MessageBuffer.end(); ++messIt)
             {
                 if(message->GetMessageID() == (*messIt)->GetMessageID())
                 {
@@ -42,7 +42,7 @@ namespace Lumos
 
         if(s_MessageBufferBegin != 0) // Skipped first messages in vector
         {
-            for(auto messIt = s_MessageBuffer.begin(); messIt != messageStart; messIt++)
+            for(auto messIt = s_MessageBuffer.begin(); messIt != messageStart; ++messIt)
             {
                 if(*messIt)
                 {
@@ -68,7 +68,7 @@ namespace Lumos
     void ConsolePanel::Flush()
     {
         LUMOS_PROFILE_FUNCTION();
-        for(auto message = s_MessageBuffer.begin(); message != s_MessageBuffer.end(); message++)
+        for(auto message = s_MessageBuffer.begin(); message != s_MessageBuffer.end(); ++message)
             (*message) = nullptr;
         s_MessageBufferBegin = 0;
     }
@@ -175,7 +175,7 @@ namespace Lumos
             auto messageStart = s_MessageBuffer.begin() + s_MessageBufferBegin;
             if(*messageStart) // If contains old message here
             {
-                for(auto message = messageStart; message != s_MessageBuffer.end(); message++)
+                for(auto message = messageStart; message != s_MessageBuffer.end(); ++message)
                 {
                     if(Filter.IsActive())
                     {
@@ -193,7 +193,7 @@ namespace Lumos
 
             if(s_MessageBufferBegin != 0) // Skipped first messages in vector
             {
-                for(auto message = s_MessageBuffer.begin(); message != messageStart; message++)
+                for(auto message = s_MessageBuffer.begin(); message != messageStart; ++message)
                 {
                     if(*message)
                     {

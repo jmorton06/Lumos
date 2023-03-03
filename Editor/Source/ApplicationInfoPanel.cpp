@@ -25,6 +25,7 @@ namespace Lumos
         auto flags = ImGuiWindowFlags_NoCollapse;
         ImGui::Begin(m_Name.c_str(), &m_Active, flags);
         {
+            ImGuiUtilities::PushID();
             if(ImGui::TreeNodeEx("Application", ImGuiTreeNodeFlags_DefaultOpen))
             {
                 auto systems = Application::Get().GetSystemManager();
@@ -62,6 +63,8 @@ namespace Lumos
                 ImGui::Text("Scene : %s", Application::Get().GetSceneManager()->GetCurrentScene()->GetSceneName().c_str());
                 ImGui::TreePop();
             };
+
+            ImGuiUtilities::PopID();
         }
         ImGui::End();
     }

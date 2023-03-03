@@ -786,8 +786,8 @@ namespace Lumos
         //                   });
         imgui["setNextWindowContentSize"] = ImGui::SetNextWindowContentSize;
         imgui["setNextWindowCollapsed"]   = sol::overload(
-              ImGui::SetNextWindowCollapsed, [](bool _collapsed)
-              { ImGui::SetNextWindowCollapsed(_collapsed); });
+            ImGui::SetNextWindowCollapsed, [](bool _collapsed)
+            { ImGui::SetNextWindowCollapsed(_collapsed); });
         imgui["setNextWindowFocus"]   = ImGui::SetNextWindowFocus;
         imgui["setNextWindowBgAlpha"] = ImGui::SetNextWindowBgAlpha;
 
@@ -856,10 +856,10 @@ namespace Lumos
 
         imgui["separator"] = ImGui::Separator;
         imgui["sameLine"]  = sol::overload(
-             ImGui::SameLine, []()
-             { ImGui::SameLine(); },
-             [](float _localPos)
-             { ImGui::SameLine(_localPos); });
+            ImGui::SameLine, []()
+            { ImGui::SameLine(); },
+            [](float _localPos)
+            { ImGui::SameLine(_localPos); });
         imgui["newLine"]                      = ImGui::NewLine;
         imgui["spacing"]                      = ImGui::Spacing;
         imgui["dummy"]                        = ImGui::Dummy;
