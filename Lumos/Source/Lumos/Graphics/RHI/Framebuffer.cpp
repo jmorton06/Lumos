@@ -7,7 +7,7 @@
 #include "Utilities/CombineHash.h"
 
 #ifdef LUMOS_RENDER_API_VULKAN
-#include "Platform/Vulkan/VK.h"
+#include "Platform/Vulkan/VKTexture.h"
 #endif
 
 namespace Lumos
@@ -29,7 +29,7 @@ namespace Lumos
             float timeSinceLastAccessed;
         };
         static std::unordered_map<uint64_t, FramebufferAsset> m_FramebufferCache;
-        static const float m_CacheLifeTime = 0.1f;
+        static const float m_CacheLifeTime = 1.0f;
 
         SharedPtr<Framebuffer> Framebuffer::Get(const FramebufferDesc& framebufferDesc)
         {
@@ -43,15 +43,7 @@ namespace Lumos
 
                 if(framebufferDesc.attachments[i])
                 {
-                    HashCombine(hash, framebufferDesc.attachments[i]->GetImageHande());
-#ifdef LUMOS_RENDER_API_VULKAN
-
-                    if(GraphicsContext::GetRenderAPI() == RenderAPI::VULKAN)
-                    {
-                        VkDescriptorImageInfo* depthImageHandle = (VkDescriptorImageInfo*)(framebufferDesc.attachments[i]->GetDescriptorInfo());
-                        HashCombine(hash, depthImageHandle->imageLayout, depthImageHandle->imageView, depthImageHandle->sampler);
-                    }
-#endif
+                    HashCombine(hash, framebufferDesc.attachments[i]->GetUUID());
                 }
             }
 

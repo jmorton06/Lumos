@@ -52,7 +52,7 @@ namespace Lumos::Graphics
         m_SupportCompute = Renderer::GetCapabilities().SupportCompute;
 
         Graphics::TextureDesc mainRenderTargetDesc;
-        mainRenderTargetDesc.format          = Graphics::RHIFormat::R8G8B8A8_Unorm;
+        mainRenderTargetDesc.format          = Graphics::RHIFormat::R11G11B10_Float;
         mainRenderTargetDesc.flags           = TextureFlags::Texture_RenderTarget;
         mainRenderTargetDesc.wrap            = TextureWrap::CLAMP;
         mainRenderTargetDesc.minFilter       = TextureFilter::LINEAR;
@@ -160,6 +160,7 @@ namespace Lumos::Graphics
         param.srgb              = false;
         param.wrap              = TextureWrap::CLAMP_TO_EDGE;
         param.flags             = TextureFlags::Texture_RenderTarget;
+        param.generateMipMaps   = false;
         m_ForwardData.m_BRDFLUT = UniquePtr<Texture2D>(Texture2D::Create(param, BRDFTextureWidth, BRDFTextureHeight));
 
         m_GenerateBRDFLUT = true;

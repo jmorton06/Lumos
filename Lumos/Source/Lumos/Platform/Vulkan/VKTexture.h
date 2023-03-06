@@ -409,7 +409,7 @@ namespace Lumos
             void TransitionImage(VkImageLayout newLayout, VKCommandBuffer* commandBuffer = nullptr);
 
             VkImageLayout GetImageLayout() const { return m_ImageLayout; }
-
+            
             static void MakeDefault();
 
         protected:

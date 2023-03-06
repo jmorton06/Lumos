@@ -9,7 +9,7 @@
 #include "Graphics/RHI/GraphicsContext.h"
 
 #ifdef LUMOS_RENDER_API_VULKAN
-#include "Platform/Vulkan/VK.h"
+#include "Platform/Vulkan/VKTexture.h"
 #endif
 
 #ifdef LUMOS_RENDER_API_OPENGL
@@ -47,37 +47,21 @@ namespace Lumos
             {
                 if(texture)
                 {
-                    HashCombine(hash, texture->GetWidth(), texture->GetHeight(), texture->GetImageHande(), texture->Handle);
-
-#ifdef LUMOS_RENDER_API_VULKAN
-
-                    if(GraphicsContext::GetRenderAPI() == RenderAPI::VULKAN)
-                    {
-                        VkDescriptorImageInfo* imageHandle = (VkDescriptorImageInfo*)(texture->GetDescriptorInfo());
-                        HashCombine(hash, (uint32_t)imageHandle->imageLayout, imageHandle->imageView, imageHandle->sampler);
-                    }
-#endif
+                    HashCombine(hash, texture->GetUUID());
                 }
             }
 
             if(pipelineDesc.depthTarget)
             {
-#ifdef LUMOS_RENDER_API_VULKAN
-
-                if(GraphicsContext::GetRenderAPI() == RenderAPI::VULKAN)
-                {
-                    VkDescriptorImageInfo* depthImageHandle = (VkDescriptorImageInfo*)(pipelineDesc.depthTarget->GetDescriptorInfo());
-                    HashCombine(hash, depthImageHandle->imageLayout, depthImageHandle->imageView, depthImageHandle->sampler);
-                }
-#endif
-                HashCombine(hash, pipelineDesc.depthTarget, pipelineDesc.depthTarget->GetWidth(), pipelineDesc.depthTarget->GetHeight(), pipelineDesc.depthTarget->GetImageHande(), pipelineDesc.depthTarget->Handle);
+                HashCombine(hash, pipelineDesc.depthTarget->GetUUID());
             }
 
             if(pipelineDesc.depthArrayTarget)
             {
-                HashCombine(hash, pipelineDesc.depthArrayTarget, pipelineDesc.depthArrayTarget->GetImageHande());
+                HashCombine(hash, pipelineDesc.depthArrayTarget->GetUUID());
             }
 
+            
             HashCombine(hash, pipelineDesc.clearTargets);
             HashCombine(hash, pipelineDesc.swapchainTarget);
             HashCombine(hash, pipelineDesc.lineWidth);
@@ -93,7 +77,7 @@ namespace Lumos
                 auto texture = Renderer::GetMainSwapChain()->GetCurrentImage();
                 if(texture)
                 {
-                    HashCombine(hash, texture->GetImageHande());
+                    HashCombine(hash, texture->GetUUID());
                 }
             }
 
