@@ -262,8 +262,11 @@ namespace Lumos
             LUMOS_PROFILE_FUNCTION();
             for(uint32_t i = 0; i < descriptorCount; i++)
             {
-                if(descriptorSets[i])
+                if (descriptorSets[i])
+                {
+                    static_cast<Graphics::GLDescriptorSet*>(descriptorSets[i])->SetShader((GLShader*)pipeline->GetShader());
                     static_cast<Graphics::GLDescriptorSet*>(descriptorSets[i])->Bind(dynamicOffset);
+                }
             }
         }
 

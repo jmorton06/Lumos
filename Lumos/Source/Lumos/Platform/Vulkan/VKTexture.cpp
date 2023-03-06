@@ -4,6 +4,7 @@
 #include "Utilities/LoadImage.h"
 #include "VKUtilities.h"
 #include "VKRenderer.h"
+#include "Maths/Random.h"
 
 namespace Lumos
 {
@@ -167,6 +168,8 @@ namespace Lumos
             m_TextureImageView = Graphics::CreateImageView(m_TextureImage, VKUtilities::FormatToVK(parameters.format, parameters.srgb), m_MipLevels, VK_IMAGE_VIEW_TYPE_2D, VK_IMAGE_ASPECT_COLOR_BIT, 1);
             m_TextureSampler   = Graphics::CreateTextureSampler(VKUtilities::TextureFilterToVK(m_Parameters.magFilter), VKUtilities::TextureFilterToVK(m_Parameters.minFilter), 0.0f, static_cast<float>(m_MipLevels), false, VKDevice::Get().GetPhysicalDevice()->GetProperties().limits.maxSamplerAnisotropy, VKUtilities::TextureWrapToVK(m_Parameters.wrap), VKUtilities::TextureWrapToVK(m_Parameters.wrap), VKUtilities::TextureWrapToVK(m_Parameters.wrap));
 
+            m_UUID = Random64::Rand(0, std::numeric_limits<uint64_t>::max());
+
             UpdateDescriptor();
         }
 
@@ -189,6 +192,8 @@ namespace Lumos
 
             m_TextureImageView = Graphics::CreateImageView(m_TextureImage, m_VKFormat, m_MipLevels, VK_IMAGE_VIEW_TYPE_2D, VK_IMAGE_ASPECT_COLOR_BIT, 1);
             m_TextureSampler   = Graphics::CreateTextureSampler(VKUtilities::TextureFilterToVK(m_Parameters.magFilter), VKUtilities::TextureFilterToVK(m_Parameters.minFilter), 0.0f, static_cast<float>(m_MipLevels), false, VKDevice::Get().GetPhysicalDevice()->GetProperties().limits.maxSamplerAnisotropy, VKUtilities::TextureWrapToVK(m_Parameters.wrap), VKUtilities::TextureWrapToVK(m_Parameters.wrap), VKUtilities::TextureWrapToVK(m_Parameters.wrap));
+
+            m_UUID = Random64::Rand(0, std::numeric_limits<uint64_t>::max());
 
             UpdateDescriptor();
         }
@@ -458,6 +463,8 @@ namespace Lumos
             if(m_Flags & TextureFlags::Texture_CreateMips)
                 GenerateMipmaps(m_TextureImage, m_VKFormat, m_Width, m_Height, m_MipLevels);
 
+            m_UUID = Random64::Rand(0, std::numeric_limits<uint64_t>::max());
+
             TransitionImage(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
             return true;
@@ -491,6 +498,8 @@ namespace Lumos
                     GetMipImageView(i);
                 }
             }
+            
+            m_UUID = Random64::Rand(0, std::numeric_limits<uint64_t>::max());
         }
 
         void VKTexture2D::TransitionImage(VkImageLayout newLayout, VKCommandBuffer* commandBuffer)
@@ -646,6 +655,8 @@ namespace Lumos
             VKUtilities::TransitionImageLayout(m_TextureImage, m_VKFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, m_NumMips, m_NumLayers, nullptr);
 
             m_ImageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+            m_UUID = Random64::Rand(0, std::numeric_limits<uint64_t>::max());
 
             UpdateDescriptor();
         }
@@ -922,6 +933,8 @@ namespace Lumos
             m_TextureSampler   = Graphics::CreateTextureSampler(VK_FILTER_LINEAR, VK_FILTER_LINEAR, 0.0f, static_cast<float>(m_NumMips), false, VKDevice::Get().GetPhysicalDevice()->GetProperties().limits.maxSamplerAnisotropy, VK_SAMPLER_ADDRESS_MODE_REPEAT, VK_SAMPLER_ADDRESS_MODE_REPEAT, VK_SAMPLER_ADDRESS_MODE_REPEAT);
             m_TextureImageView = Graphics::CreateImageView(m_TextureImage, m_VKFormat, m_NumMips, VK_IMAGE_VIEW_TYPE_CUBE, VK_IMAGE_ASPECT_COLOR_BIT, 6);
 
+            m_UUID = Random64::Rand(0, std::numeric_limits<uint64_t>::max());
+
             delete stagingBuffer;
 
             for(uint32_t m = 0; m < mips; m++)
@@ -1008,6 +1021,8 @@ namespace Lumos
             m_Flags |= TextureFlags::Texture_DepthStencil;
 
             UpdateDescriptor();
+            
+            m_UUID = Random64::Rand(0, std::numeric_limits<uint64_t>::max());
         }
 
         void VKTextureDepth::UpdateDescriptor()
@@ -1141,6 +1156,8 @@ namespace Lumos
             m_ImageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 
             m_TextureSampler = Graphics::CreateTextureSampler();
+
+            m_UUID = Random64::Rand(0, std::numeric_limits<uint64_t>::max());
 
             UpdateDescriptor();
         }

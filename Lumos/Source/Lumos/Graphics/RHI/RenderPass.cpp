@@ -2,6 +2,7 @@
 #include "RenderPass.h"
 #include "Core/Engine.h"
 #include "Utilities/CombineHash.h"
+#include "Graphics/RHI/Texture.h"
 
 namespace Lumos
 {
@@ -34,6 +35,8 @@ namespace Lumos
             for(uint32_t i = 0; i < renderPassDesc.attachmentCount; i++)
             {
                 HashCombine(hash, renderPassDesc.attachmentTypes[i], renderPassDesc.attachments[i], renderPassDesc.cubeMapIndex, renderPassDesc.mipIndex);
+                HashCombine(hash, renderPassDesc.attachments[i]->GetUUID());
+
             }
 
             auto found = m_RenderPassCache.find(hash);

@@ -59,7 +59,7 @@ namespace Lumos
             uint32_t handle;
             GLCall(glGenTextures(1, &handle));
             GLCall(glBindTexture(GL_TEXTURE_2D, handle));
-            GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, m_Parameters.minFilter == TextureFilter::LINEAR ? GL_LINEAR_MIPMAP_LINEAR : GL_NEAREST));
+            GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, (m_Parameters.minFilter == TextureFilter::LINEAR && m_Parameters.generateMipMaps) ? GL_LINEAR_MIPMAP_LINEAR : GL_NEAREST));
             GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, m_Parameters.magFilter == TextureFilter::LINEAR ? GL_LINEAR : GL_NEAREST));
             GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GLUtilities::TextureWrapToGL(m_Parameters.wrap)));
             GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GLUtilities::TextureWrapToGL(m_Parameters.wrap)));
@@ -71,7 +71,9 @@ namespace Lumos
                 isHDR = true;
 
             GLCall(glTexImage2D(GL_TEXTURE_2D, 0, format, m_Width, m_Height, 0, GLUtilities::FormatToInternalFormat(format), isHDR ? GL_FLOAT : GL_UNSIGNED_BYTE, data ? data : NULL));
-            GLCall(glGenerateMipmap(GL_TEXTURE_2D));
+            
+            if(m_Parameters.generateMipMaps)
+                GLCall(glGenerateMipmap(GL_TEXTURE_2D));
 #ifdef LUMOS_DEBUG
             GLCall(glBindTexture(GL_TEXTURE_2D, 0));
 #endif
@@ -96,6 +98,8 @@ namespace Lumos
             }
 
             uint32_t handle = LoadTexture(pixels);
+
+            m_UUID = Random64::Rand(0, std::numeric_limits<uint64_t>::max());
 
             return handle;
         }
@@ -140,6 +144,8 @@ namespace Lumos
             //             }
 
             glTexImage2D(GL_TEXTURE_2D, 0, Format, m_Width, m_Height, 0, Format2, GL_FLOAT, nullptr);
+            
+            m_UUID = Random64::Rand(0, std::numeric_limits<uint64_t>::max());
         }
 
         uint8_t* GLTexture2D::LoadTextureData()
@@ -153,6 +159,9 @@ namespace Lumos
                 pixels              = Lumos::LoadImageFromFile(m_FileName.c_str(), &m_Width, &m_Height, &bits, &isHDR, !m_LoadOptions.flipY);
                 m_Parameters.format = BitsToFormat(bits);
             }
+            
+            m_UUID = Random64::Rand(0, std::numeric_limits<uint64_t>::max());
+
             return pixels;
         };
 
@@ -184,6 +193,8 @@ namespace Lumos
             m_Width  = size;
             m_Height = size;
             m_Format = m_Parameters.format;
+            
+            m_UUID = Random64::Rand(0, std::numeric_limits<uint64_t>::max());
         }
 
         GLTextureCube::GLTextureCube(const std::string& filepath)
@@ -197,6 +208,8 @@ namespace Lumos
             m_Files[0] = filepath;
             m_Handle   = LoadFromSingleFile();
             m_Format   = m_Parameters.format;
+            
+            m_UUID = Random64::Rand(0, std::numeric_limits<uint64_t>::max());
         }
 
         GLTextureCube::GLTextureCube(const std::string* files)
@@ -205,6 +218,8 @@ namespace Lumos
                 m_Files[i] = files[i];
             m_Handle = LoadFromMultipleFiles();
             m_Format = m_Parameters.format;
+            
+            m_UUID = Random64::Rand(0, std::numeric_limits<uint64_t>::max());
         }
 
         GLTextureCube::GLTextureCube(const std::string* files, uint32_t mips, TextureDesc params, TextureLoadOptions loadOptions)
@@ -217,6 +232,8 @@ namespace Lumos
             m_Handle = LoadFromVCross(mips);
 
             m_Format = m_Parameters.format;
+            
+            m_UUID = Random64::Rand(0, std::numeric_limits<uint64_t>::max());
         }
 
         GLTextureCube::~GLTextureCube()
@@ -436,6 +453,8 @@ namespace Lumos
             GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_NONE));
 #endif
             GLCall(glBindTexture(GL_TEXTURE_2D, 0));
+            
+            m_UUID = Random64::Rand(0, std::numeric_limits<uint64_t>::max());
         }
 
         void GLTextureDepth::Resize(uint32_t width, uint32_t height)
@@ -490,6 +509,8 @@ namespace Lumos
 #endif
             GLCall(glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL));
             GLCall(glBindTexture(GL_TEXTURE_2D_ARRAY, 0));
+            
+            m_UUID = Random64::Rand(0, std::numeric_limits<uint64_t>::max());
         }
 
         void GLTextureDepthArray::Resize(uint32_t width, uint32_t height, uint32_t count)
@@ -510,6 +531,8 @@ namespace Lumos
 #endif
             GLCall(glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL));
             GLCall(glBindTexture(GL_TEXTURE_2D_ARRAY, 0));
+            
+            m_UUID = Random64::Rand(0, std::numeric_limits<uint64_t>::max());
         }
 
         Texture2D* GLTexture2D::CreateFuncGL(TextureDesc parameters, uint32_t width, uint32_t height)

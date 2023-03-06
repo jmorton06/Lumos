@@ -3,7 +3,7 @@
 #include "Core/CoreSystem.h"
 #include "Platform/Windows/WindowsOS.h"
 
-#pragma comment(linker, "/subsystem:windows")
+//#pragma comment(linker, "/subsystem:windows")
 
 #ifndef NOMINMAX
 #define NOMINMAX // For windows.h
@@ -13,31 +13,40 @@
 
 extern Lumos::Application* Lumos::CreateApplication();
 
+namespace Lumos
+{
+    int Main(int argc, char** argv)
+    {
+        if (!Lumos::Internal::CoreSystem::Init(0, nullptr))
+            return 0;
+
+        auto windowsOS = new Lumos::WindowsOS();
+        Lumos::OS::SetInstance(windowsOS);
+
+        windowsOS->Init();
+
+        Lumos::CreateApplication();
+
+        windowsOS->Run();
+        delete windowsOS;
+
+        Lumos::Internal::CoreSystem::Shutdown();
+        return 0;
+    }
+}
+
+#if defined(LUMOS_PRODUCTION)
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
-#ifndef LUMOS_PRODUCTION
-    AllocConsole();
-    freopen("CONIN$", "r", stdin);
-    freopen("CONOUT$", "w", stdout);
-    freopen("CONOUT$", "w", stderr);
+    return Lumos::Main(__argc, __argv);
+}
+#else
+int main(int argc, char** argv)
+{
+    return Lumos::Main(argc, argv);
+}
 #endif
 
-    if(!Lumos::Internal::CoreSystem::Init(0, nullptr))
-        return 0;
-
-    auto windowsOS = new Lumos::WindowsOS();
-    Lumos::OS::SetInstance(windowsOS);
-
-    windowsOS->Init();
-
-    Lumos::CreateApplication();
-
-    windowsOS->Run();
-    delete windowsOS;
-
-    Lumos::Internal::CoreSystem::Shutdown();
-    return 0;
-}
 
 #elif defined(LUMOS_PLATFORM_LINUX)
 

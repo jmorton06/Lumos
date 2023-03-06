@@ -9,8 +9,8 @@
 
 namespace Lumos
 {
-    thread_local Random32 Random32::Rand = Random32(Random32::RandSeed());
-    thread_local Random64 Random64::Rand = Random64(Random64::RandSeed());
+    Random32 Random32::Rand = Random32(Random32::RandSeed());
+    Random64 Random64::Rand = Random64(Random64::RandSeed());
 
     uint32_t Random32::RandSeed()
     {

@@ -889,7 +889,6 @@ namespace Lumos
                 auto name              = glsl->get_name(u.id);
 
                 auto ranges = glsl->get_active_buffer_ranges(u.id);
-
                 uint32_t rangeSizes = 0;
                 for(auto& range : ranges)
                 {
@@ -900,7 +899,7 @@ namespace Lumos
                 auto bufferSize  = glsl->get_declared_struct_size(bufferType);
                 int memberCount  = (int)bufferType.member_types.size();
 
-                m_PushConstants.push_back({ rangeSizes, type });
+                m_PushConstants.push_back({ /*rangeSizes*/ uint32_t(glsl->get_declared_struct_size(glsl->get_type(u.base_type_id))), type});
                 m_PushConstants.back().data = new uint8_t[size];
                 m_PushConstants.back().name = glsl->get_name(u.base_type_id);
                 m_PushConstantsBuffers.push_back({ (GLUniformBuffer*)UniformBuffer::Create(size, nullptr), binding });

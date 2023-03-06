@@ -1756,7 +1756,7 @@ void ImGui_ImplVulkan_ShutdownPlatformInterface()
 void ImGui_ImplVulkan_CreateDescriptorSets(ImDrawData* draw_data, uint32_t frameIndex)
 {
     static std::array<std::unordered_map<ImTextureID, bool>, 3> g_DescriptorSetHasUpdated;
-    //g_DescriptorSetHasUpdated[frameIndex].clear();
+    g_DescriptorSetHasUpdated[frameIndex].clear();
     
     ImGui_ImplVulkan_Data* bd = ImGui_ImplVulkan_GetBackendData();
     ImGui_ImplVulkan_InitInfo* v = &bd->VulkanInitInfo;
