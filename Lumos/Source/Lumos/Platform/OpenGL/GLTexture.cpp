@@ -59,12 +59,13 @@ namespace Lumos
             uint32_t handle;
             GLCall(glGenTextures(1, &handle));
             GLCall(glBindTexture(GL_TEXTURE_2D, handle));
-            GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, (m_Parameters.minFilter == TextureFilter::LINEAR && m_Parameters.generateMipMaps) ? GL_LINEAR_MIPMAP_LINEAR : GL_NEAREST));
+            GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, (m_Parameters.minFilter == TextureFilter::LINEAR && (m_Parameters.generateMipMaps || (m_Flags & TextureFlags::Texture_CreateMips))) ? GL_LINEAR_MIPMAP_LINEAR : GL_NEAREST));
             GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, m_Parameters.magFilter == TextureFilter::LINEAR ? GL_LINEAR : GL_NEAREST));
             GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GLUtilities::TextureWrapToGL(m_Parameters.wrap)));
             GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GLUtilities::TextureWrapToGL(m_Parameters.wrap)));
 
             uint32_t format = GLUtilities::FormatToGL(m_Parameters.format, m_Parameters.srgb);
+            m_Flags = m_Parameters.flags;
 
             // TODO: Function like GetTypefromFormat
             if(m_Parameters.format == RHIFormat::R32G32B32A32_Float || m_Parameters.format == RHIFormat::R32G32B32_Float)
@@ -74,6 +75,10 @@ namespace Lumos
             
             if(m_Parameters.generateMipMaps)
                 GLCall(glGenerateMipmap(GL_TEXTURE_2D));
+
+            if (m_Flags & TextureFlags::Texture_CreateMips)
+                GLCall(glGenerateMipmap(GL_TEXTURE_2D));
+
 #ifdef LUMOS_DEBUG
             GLCall(glBindTexture(GL_TEXTURE_2D, 0));
 #endif
@@ -98,6 +103,8 @@ namespace Lumos
             }
 
             uint32_t handle = LoadTexture(pixels);
+
+            m_MipLevels = static_cast<uint32_t>(std::floor(std::log2(Maths::Max(m_Width, m_Height)))) + 1;
 
             m_UUID = Random64::Rand(0, std::numeric_limits<uint64_t>::max());
 
@@ -131,19 +138,26 @@ namespace Lumos
             uint32_t Format2 = GLUtilities::FormatToInternalFormat(Format);
             glGenTextures(1, &m_Handle);
             glBindTexture(GL_TEXTURE_2D, m_Handle);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+            GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, (m_Parameters.minFilter == TextureFilter::LINEAR && (m_Parameters.generateMipMaps || (m_Flags & TextureFlags::Texture_CreateMips))) ? GL_LINEAR_MIPMAP_LINEAR : GL_NEAREST));
+            GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, m_Parameters.magFilter == TextureFilter::LINEAR ? GL_LINEAR : GL_NEAREST));
+            GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GLUtilities::TextureWrapToGL(m_Parameters.wrap)));
+            GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GLUtilities::TextureWrapToGL(m_Parameters.wrap)));
 
-            //             if(samplerShadow)
-            //             {
-            //                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
-            // #ifndef LUMOS_PLATFORM_MOBILE
-            //                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_R_TO_TEXTURE);
-            //                 glTexParameteri(GL_TEXTURE_2D, GL_DEPTH_TEXTURE_MODE, GL_INTENSITY);
-            // #endif
-            //             }
+            if (m_Parameters.generateMipMaps)
+            {
+                m_MipLevels = static_cast<uint32_t>(std::floor(std::log2(Maths::Max(m_Width, m_Height)))) + 1;
+            }
 
-            glTexImage2D(GL_TEXTURE_2D, 0, Format, m_Width, m_Height, 0, Format2, GL_FLOAT, nullptr);
+            if (m_Parameters.format == RHIFormat::R32G32B32A32_Float || m_Parameters.format == RHIFormat::R32G32B32_Float)
+                isHDR = true;
+
+            glTexImage2D(GL_TEXTURE_2D, 0, Format, m_Width, m_Height, 0, Format2, isHDR ? GL_FLOAT : GL_UNSIGNED_BYTE, nullptr);
+
+            if (m_Parameters.generateMipMaps)
+                GLCall(glGenerateMipmap(GL_TEXTURE_2D));
+
+            if (m_Flags & TextureFlags::Texture_CreateMips)
+                GLCall(glGenerateMipmap(GL_TEXTURE_2D));
             
             m_UUID = Random64::Rand(0, std::numeric_limits<uint64_t>::max());
         }

@@ -43,6 +43,7 @@ namespace Lumos
 
                 if(framebufferDesc.attachments[i])
                 {
+                    HashCombine(hash, framebufferDesc.attachments[i]->GetImageHande());
                     HashCombine(hash, framebufferDesc.attachments[i]->GetUUID());
                 }
             }

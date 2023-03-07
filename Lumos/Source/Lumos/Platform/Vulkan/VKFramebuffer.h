@@ -22,17 +22,6 @@ namespace Lumos
             uint32_t GetWidth() const override { return m_Width; }
             uint32_t GetHeight() const override { return m_Height; }
 
-            void Bind(uint32_t width, uint32_t height) const override {};
-            void Bind() const override {};
-            void UnBind() const override {};
-            void Clear() override {};
-
-            void AddTextureAttachment(RHIFormat format, Texture* texture) override {};
-            void AddCubeTextureAttachment(RHIFormat format, CubeFace face, TextureCube* texture) override {};
-            void AddShadowAttachment(Texture* texture) override {};
-            void AddTextureLayer(int index, Texture* texture) override {};
-            void GenerateFramebuffer() override {};
-
             static void MakeDefault();
 
         protected:

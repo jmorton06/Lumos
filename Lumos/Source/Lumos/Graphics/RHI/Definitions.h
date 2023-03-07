@@ -329,7 +329,7 @@ namespace Lumos
             bool clear           = true;
             bool swapchainTarget = false;
             int cubeMapIndex     = -1;
-            int mipIndex         = -1;
+            int mipIndex         = 0;
         };
 
         struct TextureDesc

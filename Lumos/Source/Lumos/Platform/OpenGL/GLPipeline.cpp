@@ -149,7 +149,7 @@ namespace Lumos
             frameBufferDesc.attachmentCount = uint32_t(attachments.size());
             frameBufferDesc.renderPass      = m_RenderPass.get();
             frameBufferDesc.attachmentTypes = attachmentTypes.data();
-
+            frameBufferDesc.mipIndex        = m_Description.mipIndex;
             if(m_Description.swapchainTarget)
             {
                 for(uint32_t i = 0; i < Renderer::GetMainSwapChain()->GetSwapChainBufferCount(); i++)
@@ -280,7 +280,7 @@ namespace Lumos
         {
             for(auto framebuffer : m_Framebuffers)
             {
-                framebuffer->Bind();
+                framebuffer.As<GLFramebuffer>()->Bind();
                 GLRenderer::ClearInternal(RENDERER_BUFFER_COLOUR | RENDERER_BUFFER_DEPTH | RENDERER_BUFFER_STENCIL);
             }
         }
