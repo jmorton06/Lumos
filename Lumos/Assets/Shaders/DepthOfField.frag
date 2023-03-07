@@ -10,7 +10,7 @@ layout(location = 0) in vec2 outTexCoord;
 layout(set = 0, binding = 0) uniform UniformBuffer
 {
 	vec2 DOFParams;
-	vec2 DepthUnpackConsts;
+	vec2 DepthConsts;
 } ubo;
 
 layout(set = 0, binding = 1) uniform sampler2D u_Texture;
@@ -29,7 +29,7 @@ float GetBlurSize(float depth, float focusPoint, float focusScale)
 
 vec3 DepthOfField(vec2 texCoord, float focusPoint, float focusScale, vec2 texelSize)
 {
-	float centerDepth = LinearizeDepth(texture(u_DepthTexture, texCoord).r, ubo.DepthUnpackConsts.x , ubo.DepthUnpackConsts.y);
+	float centerDepth = LinearizeDepth(texture(u_DepthTexture, texCoord).r, ubo.DepthConsts.x , ubo.DepthConsts.y);
 	float centerSize = GetBlurSize(centerDepth, focusPoint, focusScale);
 	vec3 color = texture(u_Texture, texCoord).rgb;
 	float tot = 1.0;
@@ -38,7 +38,7 @@ vec3 DepthOfField(vec2 texCoord, float focusPoint, float focusScale, vec2 texelS
 	{
 		vec2 tc = texCoord + vec2(cos(ang), sin(ang)) * texelSize * radius;
 		vec3 sampleColor = texture(u_Texture, tc).rgb;
-		float sampleDepth =  LinearizeDepth(texture(u_DepthTexture, tc).r, ubo.DepthUnpackConsts.x , ubo.DepthUnpackConsts.y);
+		float sampleDepth =  LinearizeDepth(texture(u_DepthTexture, tc).r, ubo.DepthConsts.x , ubo.DepthConsts.y);
 		float sampleSize = GetBlurSize(sampleDepth, focusPoint, focusScale);
 		if (sampleDepth > centerDepth)
 			sampleSize = clamp(sampleSize, 0.0, centerSize * 2.0);
@@ -55,7 +55,7 @@ void main()
 	ivec2 texSize = textureSize(u_Texture, 0);
 	vec2 fTexSize = vec2(float(texSize.x), float(texSize.y));
 
-	float focusPoint = LinearizeDepth(texture(u_DepthTexture, vec2(0.5f, 0.5f)).r, ubo.DepthUnpackConsts.x , ubo.DepthUnpackConsts.y);
+	float focusPoint = LinearizeDepth(texture(u_DepthTexture, vec2(0.5f, 0.5f)).r, ubo.DepthConsts.x , ubo.DepthConsts.y);
 	float blurScale = ubo.DOFParams.y;
 
 	vec3 color = DepthOfField(outTexCoord, focusPoint, blurScale, 1.0 / fTexSize);

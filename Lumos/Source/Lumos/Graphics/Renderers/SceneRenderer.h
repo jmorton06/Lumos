@@ -97,6 +97,7 @@ namespace Lumos
             void ForwardPass();
             void ShadowPass();
             void SkyboxPass();
+            void Renderer2DBeginBatch();
             void Render2DPass();
             void Render2DFlush();
             void DebugPass();
@@ -285,9 +286,16 @@ namespace Lumos
             Renderer2DData m_Renderer2DData;
             Renderer2DData m_TextRendererData;
             DebugDrawData m_DebugDrawData;
-            glm::vec4 m_ClearColour;
 
-            TextVertexData* m_TextBuffer = nullptr;
+            TextVertexData* TextVertexBufferPtr = nullptr;
+
+            std::vector<std::vector<VertexData*>> m_2DBufferBase;
+            std::vector<LineVertexData*> m_LineBufferBase;
+            std::vector<PointVertexData*> m_PointBufferBase;
+            std::vector<VertexData*> m_QuadBufferBase;
+            std::vector<TextVertexData*> TextVertexBufferBase;
+
+            glm::vec4 m_ClearColour;
 
             int m_ToneMapIndex     = 4;
             float m_Exposure       = 1.0f;

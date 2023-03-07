@@ -17,9 +17,9 @@
             "//Scenes/Sponza",
             "//Scenes/Platformer"
         ],
-        "SceneIndex": 0,
+        "SceneIndex": 1,
         "Borderless": false,
-        "EngineAssetPath": "/Users/jmorton/Dev/Lumos/Lumos/Assets/",
+        "EngineAssetPath": "C:/Dev/Lumos-Dev/Lumos/Assets/",
         "GPUIndex": -1
     }
 }

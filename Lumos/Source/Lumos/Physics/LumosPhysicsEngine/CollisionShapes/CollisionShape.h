@@ -74,7 +74,8 @@ namespace Lumos
             const RigidBody3D* currentObject,
             const glm::vec3& axis,
             glm::vec3* out_min,
-            glm::vec3* out_max) const = 0;
+            glm::vec3* out_max) const
+            = 0;
 
         // Get all data needed to build manifold
         //	- Computes the face that is closest to parallel to that of the given axis,
@@ -82,7 +83,8 @@ namespace Lumos
         //    of all adjacent faces in order to clip against.
         virtual void GetIncidentReferencePolygon(const RigidBody3D* currentObject,
                                                  const glm::vec3& axis,
-                                                 ReferencePolygon& refPolygon) const = 0;
+                                                 ReferencePolygon& refPolygon) const
+            = 0;
 
         void SetLocalTransform(const glm::mat4& transform)
         {

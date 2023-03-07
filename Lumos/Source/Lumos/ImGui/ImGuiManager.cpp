@@ -102,6 +102,11 @@ namespace Lumos
     void ImGuiManager::OnUpdate(const TimeStep& dt, Scene* scene)
     {
         LUMOS_PROFILE_FUNCTION();
+        if(m_IMGUIRenderer && m_IMGUIRenderer->Implemented())
+        {
+            m_IMGUIRenderer->NewFrame();
+        }
+
         ImGuizmo::BeginFrame();
 
         Application::Get().OnImGui();

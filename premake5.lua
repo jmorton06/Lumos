@@ -21,9 +21,9 @@ else
 end
 
 workspace( settings.workspace_name )
-startproject "LumosEditor"
-	flags 'MultiProcessorCompile'
 	location "build"
+	startproject "LumosEditor"
+	flags 'MultiProcessorCompile'
 	outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 	targetdir ("bin/%{outputdir}/")
 	objdir ("bin-int/%{outputdir}/obj/")

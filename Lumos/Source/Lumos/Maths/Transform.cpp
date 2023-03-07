@@ -124,7 +124,7 @@ namespace Lumos
         {
             if(m_Dirty)
                 UpdateMatrices();
-            
+
             return m_WorldMatrix[3];
         }
 
@@ -132,7 +132,7 @@ namespace Lumos
         {
             if(m_Dirty)
                 UpdateMatrices();
-            
+
             return glm::toQuat(m_WorldMatrix);
         }
 

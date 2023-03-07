@@ -42,7 +42,7 @@ namespace Lumos
         void VKVertexBuffer::SetData(uint32_t size, const void* data)
         {
             LUMOS_PROFILE_FUNCTION();
-            if(m_Size != size)
+            if(m_Size < size)
             {
                 m_Size = size;
                 VKBuffer::Resize(size, data);
@@ -58,7 +58,7 @@ namespace Lumos
             LUMOS_PROFILE_FUNCTION();
             m_Size = size;
 
-            if(m_Size != size)
+            if(m_Size < size)
             {
                 m_Size = size;
                 VKBuffer::Resize(size, data);

@@ -13,6 +13,8 @@ enum root_signature_spaces
     DESCRIPTOR_TABLE_INITIAL_SPACE,
 };
 
+int PUSHCONSTANT_BINDING = 64;
+
 namespace Lumos
 {
     namespace Graphics
@@ -142,6 +144,9 @@ namespace Lumos
 
             for(auto& pc : m_PushConstants)
                 delete[] pc.data;
+
+            for(auto& pcb : m_PushConstantsBuffers)
+                delete pcb.first;
         }
 
         void GLShader::Init()
@@ -256,6 +261,9 @@ namespace Lumos
             case ShaderDataType::MAT4:
                 SetUniformMat4(location, *reinterpret_cast<glm::mat4*>(&data[offset]));
                 break;
+            case ShaderDataType::MAT4ARRAY:
+                SetUniformMat4Array(location, 1, *reinterpret_cast<glm::mat4*>(&data[offset]));
+                break;
             default:
                 LUMOS_ASSERT(false, "Unknown type!");
             }
@@ -264,12 +272,30 @@ namespace Lumos
         void GLShader::BindPushConstants(Graphics::CommandBuffer* commandBuffer, Graphics::Pipeline* pipeline)
         {
             LUMOS_PROFILE_FUNCTION();
-            int index = 0;
-            for(auto pc : m_PushConstants)
+            for(int i = 0; i < m_PushConstants.size(); i++)
             {
-                for(auto& member : pc.m_Members)
+                // for(auto& member : pc.m_Members)
+                //{
+                //     SetUniform(member.type, pc.data, member.size, member.offset, member.fullName);
+                // }
+                m_PushConstantsBuffers[i].first->SetData(m_PushConstants[i].size, m_PushConstants[i].data);
+                // GLuint nameInt         = HashValue(m_PushConstants[i].name.c_str());
+
+                // BindUniformBuffer(m_PushConstantsBuffers[i].first, m_PushConstantsBuffers[i].second, m_PushConstants[i].name);
+
+                const auto& itLocation = m_UniformBlockLocations.find(m_PushConstants[i].name);
+                if(itLocation == m_UniformBlockLocations.end())
+                    LUMOS_LOG_WARN("Push const {0} not found", m_PushConstants[i].name);
+                auto bufferHandle = static_cast<GLUniformBuffer*>(m_PushConstantsBuffers[i].first)->GetHandle();
                 {
-                    SetUniform(member.type, pc.data, member.size, member.offset, member.fullName);
+                    LUMOS_PROFILE_SCOPE("glBindBufferBase");
+                    GLCall(glBindBufferBase(GL_UNIFORM_BUFFER, PUSHCONSTANT_BINDING, bufferHandle));
+                }
+
+                // if(buffer->GetDynamic())
+                {
+                    LUMOS_PROFILE_SCOPE("glBindBufferRange");
+                    GLCall(glBindBufferRange(GL_UNIFORM_BUFFER, PUSHCONSTANT_BINDING, bufferHandle, 0, m_PushConstants[i].size));
                 }
             }
         }
@@ -293,6 +319,13 @@ namespace Lumos
                 {
                     if(compiler->get_type(itUniform.type_id).basetype == spirv_cross::SPIRType::Struct)
                     {
+                        // auto slot         = descriptor.binding;
+                        auto name = compiler->get_name(itUniform.base_type_id);
+
+                        SetUniformLocation(name.c_str());
+                    }
+                    else
+                    {
                         auto name = compiler->get_name(itUniform.base_type_id);
                         SetUniformLocation(name.c_str());
                     }
@@ -304,28 +337,30 @@ namespace Lumos
         void GLShader::BindUniformBuffer(GLUniformBuffer* buffer, uint32_t slot, const std::string& name)
         {
             LUMOS_PROFILE_FUNCTION();
-            GLuint nameInt         = HashValue(name.c_str());
-            const auto& itLocation = m_UniformBlockLocations.find(nameInt);
+            // GLuint nameInt         = HashValue(name.c_str());
+            const auto& itLocation = m_UniformBlockLocations.find(name);
             GLCall(glUniformBlockBinding(m_Handle, itLocation->second, slot));
         }
 
-        bool GLShader::SetUniformLocation(const char* szName)
+        bool GLShader::SetUniformLocation(const std::string& szName)
         {
             LUMOS_PROFILE_FUNCTION();
-            GLuint name = HashValue(szName);
+            // GLuint name = HashValue(szName);
 
-            if(m_UniformBlockLocations.find(name) == m_UniformBlockLocations.end())
+            if(m_UniformBlockLocations.find(szName) == m_UniformBlockLocations.end())
             {
-                GLuint location = glGetUniformBlockIndex(m_Handle, szName);
+                GLuint location = glGetUniformBlockIndex(m_Handle, szName.c_str());
 
                 if(location != GL_INVALID_INDEX)
                 {
-                    m_UniformBlockLocations[name] = location;
-                    glUniformBlockBinding(m_Handle, location, location);
+                    // Should only be used for push constant uniform buffers
+                    m_UniformBlockLocations[szName] = location;
+                    glUniformBlockBinding(m_Handle, location, PUSHCONSTANT_BINDING);
                     return true;
                 }
             }
 
+            LUMOS_LOG_WARN("Couldnt set uniform location");
             return false;
         }
 
@@ -846,14 +881,14 @@ namespace Lumos
 
             for(auto& u : resources.push_constant_buffers)
             {
-                // uint32_t set = glsl->get_decoration(u.id, spv::DecorationDescriptorSet);
-                // uint32_t binding = glsl->get_decoration(u.id, spv::DecorationBinding);
+                uint32_t set     = glsl->get_decoration(u.id, spv::DecorationDescriptorSet);
+                uint32_t binding = glsl->get_decoration(u.id, spv::DecorationBinding);
+                glsl->set_decoration(u.id, spv::DecorationBinding, PUSHCONSTANT_BINDING);
 
                 auto& pushConstantType = glsl->get_type(u.type_id);
                 auto name              = glsl->get_name(u.id);
 
                 auto ranges = glsl->get_active_buffer_ranges(u.id);
-
                 uint32_t rangeSizes = 0;
                 for(auto& range : ranges)
                 {
@@ -864,8 +899,11 @@ namespace Lumos
                 auto bufferSize  = glsl->get_declared_struct_size(bufferType);
                 int memberCount  = (int)bufferType.member_types.size();
 
-                m_PushConstants.push_back({ rangeSizes, type });
+                m_PushConstants.push_back({ /*rangeSizes*/ uint32_t(glsl->get_declared_struct_size(glsl->get_type(u.base_type_id))), type});
                 m_PushConstants.back().data = new uint8_t[size];
+                m_PushConstants.back().name = glsl->get_name(u.base_type_id);
+                m_PushConstantsBuffers.push_back({ (GLUniformBuffer*)UniformBuffer::Create(size, nullptr), binding });
+                m_PushConstantsBuffers.back().first->Init(size, nullptr);
 
                 for(int i = 0; i < memberCount; i++)
                 {
@@ -916,7 +954,8 @@ namespace Lumos
             options.vulkan_semantics                     = false;
             options.separate_shader_objects              = false;
             options.enable_420pack_extension             = false;
-            options.emit_push_constant_as_uniform_buffer = false;
+            options.emit_push_constant_as_uniform_buffer = true;
+            options.vertex.fixup_clipspace               = true;
             glsl->set_common_options(options);
 
             // Compile to GLSL, ready to give to GL driver.

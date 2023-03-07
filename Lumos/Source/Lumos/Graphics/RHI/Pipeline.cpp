@@ -9,7 +9,7 @@
 #include "Graphics/RHI/GraphicsContext.h"
 
 #ifdef LUMOS_RENDER_API_VULKAN
-#include "Platform/Vulkan/VK.h"
+#include "Platform/Vulkan/VKTexture.h"
 #endif
 
 #ifdef LUMOS_RENDER_API_OPENGL
@@ -25,7 +25,7 @@ namespace Lumos
             SharedPtr<Pipeline> pipeline;
             float timeSinceLastAccessed;
         };
-        static std::unordered_map<std::size_t, PipelineAsset> m_PipelineCache;
+        static std::unordered_map<uint64_t, PipelineAsset> m_PipelineCache;
         static const float m_CacheLifeTime = 0.1f;
 
         Pipeline* (*Pipeline::CreateFunc)(const PipelineDesc&) = nullptr;
@@ -40,44 +40,28 @@ namespace Lumos
         SharedPtr<Pipeline> Pipeline::Get(const PipelineDesc& pipelineDesc)
         {
             LUMOS_PROFILE_FUNCTION();
-            size_t hash = 0;
-            HashCombine(hash, pipelineDesc.shader.get(), pipelineDesc.cullMode, pipelineDesc.depthBiasEnabled, pipelineDesc.drawType, pipelineDesc.polygonMode, pipelineDesc.transparencyEnabled);
+            uint64_t hash = 0;
+            HashCombine(hash, pipelineDesc.shader.get(), pipelineDesc.cullMode, pipelineDesc.depthBiasEnabled, (uint32_t)pipelineDesc.drawType, (uint32_t)pipelineDesc.polygonMode, pipelineDesc.transparencyEnabled);
 
             for(auto texture : pipelineDesc.colourTargets)
             {
                 if(texture)
                 {
-                    HashCombine(hash, texture, texture->GetWidth(), texture->GetHeight(), texture->GetImageHande(), texture->Handle);
-
-#ifdef LUMOS_RENDER_API_VULKAN
-
-                    if(GraphicsContext::GetRenderAPI() == RenderAPI::VULKAN)
-                    {
-                        VkDescriptorImageInfo* imageHandle = (VkDescriptorImageInfo*)(texture->GetDescriptorInfo());
-                        HashCombine(hash, imageHandle->imageLayout, imageHandle->imageView, imageHandle->sampler);
-                    }
-#endif
+                    HashCombine(hash, texture->GetUUID());
                 }
             }
 
             if(pipelineDesc.depthTarget)
             {
-#ifdef LUMOS_RENDER_API_VULKAN
-
-                if(GraphicsContext::GetRenderAPI() == RenderAPI::VULKAN)
-                {
-                    VkDescriptorImageInfo* depthImageHandle = (VkDescriptorImageInfo*)(pipelineDesc.depthTarget->GetDescriptorInfo());
-                    HashCombine(hash, depthImageHandle->imageLayout, depthImageHandle->imageView, depthImageHandle->sampler);
-                }
-#endif
-                HashCombine(hash, pipelineDesc.depthTarget, pipelineDesc.depthTarget->GetWidth(), pipelineDesc.depthTarget->GetHeight(), pipelineDesc.depthTarget->GetImageHande(), pipelineDesc.depthTarget->Handle);
+                HashCombine(hash, pipelineDesc.depthTarget->GetUUID());
             }
 
             if(pipelineDesc.depthArrayTarget)
             {
-                HashCombine(hash, pipelineDesc.depthArrayTarget, pipelineDesc.depthArrayTarget->GetImageHande());
+                HashCombine(hash, pipelineDesc.depthArrayTarget->GetUUID());
             }
 
+            
             HashCombine(hash, pipelineDesc.clearTargets);
             HashCombine(hash, pipelineDesc.swapchainTarget);
             HashCombine(hash, pipelineDesc.lineWidth);
@@ -93,7 +77,7 @@ namespace Lumos
                 auto texture = Renderer::GetMainSwapChain()->GetCurrentImage();
                 if(texture)
                 {
-                    HashCombine(hash, texture->GetImageHande());
+                    HashCombine(hash, texture->GetUUID());
                 }
             }
 

@@ -1,6 +1,4 @@
 #pragma once
-
-#include "Physics/RigidBody.h"
 #include "Physics/LumosPhysicsEngine/CollisionShapes/CollisionShape.h"
 #include "Physics/LumosPhysicsEngine/CollisionShapes/SphereCollisionShape.h"
 #include "Physics/LumosPhysicsEngine/CollisionShapes/CuboidCollisionShape.h"
@@ -10,6 +8,9 @@
 #include "Maths/Maths.h"
 #include <cereal/types/polymorphic.hpp>
 #include <cereal/cereal.hpp>
+#include <glm/vec2.hpp>
+#include <glm/vec3.hpp>
+#include "Core/UUID.h"
 
 CEREAL_REGISTER_TYPE(Lumos::SphereCollisionShape);
 CEREAL_REGISTER_TYPE(Lumos::CuboidCollisionShape);
@@ -55,13 +56,13 @@ namespace Lumos
         SharedPtr<CollisionShape> Shape = nullptr;
     };
 
-    class LUMOS_EXPORT RigidBody3D : public RigidBody
+    class LUMOS_EXPORT RigidBody3D
     {
         friend class LumosPhysicsEngine;
 
     public:
         RigidBody3D(const RigidBody3DProperties& properties = RigidBody3DProperties());
-        virtual ~RigidBody3D();
+        ~RigidBody3D();
 
         //<--------- GETTERS ------------->
         const glm::vec3& GetPosition() const { return m_Position; }
@@ -76,8 +77,8 @@ namespace Lumos
 
         const Maths::BoundingBox& GetWorldSpaceAABB();
 
-        void WakeUp() override;
-        void SetIsAtRest(const bool isAtRest) override;
+        void WakeUp();
+        void SetIsAtRest(const bool isAtRest);
 
         Maths::BoundingBox GetLocalBoundingBox() const
         {
@@ -170,7 +171,7 @@ namespace Lumos
         void AutoResizeBoundingBox();
         void RestTest();
 
-        virtual void DebugDraw(uint64_t flags) const;
+        void DebugDraw(uint64_t flags) const;
 
         typedef std::function<void(RigidBody3D*, RigidBody3D*, Manifold*)> OnCollisionManifoldCallback;
 
@@ -248,6 +249,17 @@ namespace Lumos
             shape.release();
         }
 
+        bool GetIsStatic() const { return m_Static; }
+        bool GetIsAtRest() const { return m_AtRest; }
+        float GetElasticity() const { return m_Elasticity; }
+        float GetFriction() const { return m_Friction; }
+        bool IsAwake() const { return !m_AtRest; }
+        void SetElasticity(const float elasticity) { m_Elasticity = elasticity; }
+        void SetFriction(const float friction) { m_Friction = friction; }
+        void SetIsStatic(const bool isStatic) { m_Static = isStatic; }
+
+        UUID GetUUID() const { return m_UUID; }
+
     protected:
         mutable bool m_wsTransformInvalidated;
         float m_RestVelocityThresholdSquared;
@@ -257,6 +269,12 @@ namespace Lumos
         Maths::BoundingBox m_localBoundingBox; //!< Model orientated bounding box in model space
         mutable bool m_wsAabbInvalidated;      //!< Flag indicating if the cached world space transoformed AABB is invalid
         mutable Maths::BoundingBox m_wsAabb;   //!< Axis aligned bounding box of this object in world space
+
+        bool m_Static;
+        float m_Elasticity;
+        float m_Friction;
+        bool m_AtRest;
+        UUID m_UUID;
 
         //<---------LINEAR-------------->
         glm::vec3 m_Position;

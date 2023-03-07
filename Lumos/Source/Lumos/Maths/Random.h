@@ -59,7 +59,7 @@ namespace Lumos
         }
 
         static uint32_t RandSeed();
-        static thread_local Random32 Rand;
+        static Random32 Rand;
 
     private:
         std::mt19937 m_Engine;
@@ -119,7 +119,7 @@ namespace Lumos
         }
 
         static uint64_t RandSeed();
-        static thread_local Random64 Rand;
+        static Random64 Rand;
 
     private:
         std::mt19937_64 m_Engine;

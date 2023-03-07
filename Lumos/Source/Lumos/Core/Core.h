@@ -63,7 +63,9 @@
 #define LUMOS_DEBUG_METHOD_CALL(x) x;
 #else
 #define LUMOS_DEBUG_METHOD(x) \
-    x { }
+    x                         \
+    {                         \
+    }
 #define LUMOS_DEBUG_METHOD_CALL(x) ;
 #endif
 
@@ -163,6 +165,6 @@
     CEREAL_CLASS_VERSION(x, version);  \
     CEREAL_REGISTER_TYPE_WITH_NAME(x, #x);
 
-//#define VMA_DEBUG_LOG LUMOS_LOG_WARN
-// Vulkan Only
-//#define LUMOS_PROFILE_GPU_ENABLED
+// #define VMA_DEBUG_LOG LUMOS_LOG_WARN
+//  Vulkan Only
+// #define LUMOS_PROFILE_GPU_ENABLED

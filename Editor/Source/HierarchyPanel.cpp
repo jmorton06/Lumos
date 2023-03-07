@@ -39,12 +39,13 @@ namespace Lumos
         if(!registry.valid(node))
             return;
 
-        const auto nameComponent = registry.try_get<NameComponent>(node);
-        std::string name         = nameComponent ? nameComponent->name : StringUtilities::ToString(entt::to_integral(node));
+        static const char* defaultName     = "Entity";
+        const NameComponent* nameComponent = registry.try_get<NameComponent>(node);
+        const char* name                   = nameComponent ? nameComponent->name.c_str() : defaultName; // StringUtilities::ToString(entt::to_integral(node));
 
         if(m_HierarchyFilter.IsActive())
         {
-            if(!m_HierarchyFilter.PassFilter(name.c_str()))
+            if(!m_HierarchyFilter.PassFilter(name))
             {
                 show = false;
             }
@@ -146,13 +147,13 @@ namespace Lumos
             ImGui::PopStyleColor();
             ImGui::SameLine();
             if(!doubleClicked)
-                ImGui::TextUnformatted(name.c_str());
+                ImGui::TextUnformatted(name);
             // ImGui::EndGroup();
 
             if(doubleClicked)
             {
                 static char objName[INPUT_BUF_SIZE];
-                strcpy(objName, name.c_str());
+                strcpy(objName, name);
                 ImGui::PushItemWidth(-1);
                 if(ImGui::InputText("##Name", objName, IM_ARRAYSIZE(objName), 0))
                     registry.get_or_emplace<NameComponent>(node).name = objName;
@@ -164,7 +165,7 @@ namespace Lumos
             if(ImGui::Button(active ? ICON_MDI_EYE : ICON_MDI_EYE_OFF))
             {
                 auto& activeComponent = registry.get_or_emplace<ActiveComponent>(node);
-
+                
                 activeComponent.active = !active;
             }
             ImGui::PopStyleColor();
@@ -174,7 +175,7 @@ namespace Lumos
                 ImGui::PopStyleColor();
 
             bool deleteEntity = false;
-            if(ImGui::BeginPopupContextItem(name.c_str()))
+            if(ImGui::BeginPopupContextItem(name))
             {
                 if(ImGui::Selectable("Copy"))
                     m_Editor->SetCopiedEntity(node);
@@ -592,13 +593,13 @@ namespace Lumos
 
                 registry.each([&](auto entity)
                               {
-                        if(registry.valid(entity))
-                        {
-                            auto hierarchyComponent = registry.try_get<Hierarchy>(entity);
-
-                            if(!hierarchyComponent || hierarchyComponent->Parent() == entt::null)
-                                DrawNode(entity, registry);
-                        } });
+                                  if(registry.valid(entity))
+                                  {
+                                      auto hierarchyComponent = registry.try_get<Hierarchy>(entity);
+                                      
+                                      if(!hierarchyComponent || hierarchyComponent->Parent() == entt::null)
+                                          DrawNode(entity, registry);
+                                  } });
 
                 // Only supports one scene
                 ImVec2 min_space = ImGui::GetWindowContentRegionMin();

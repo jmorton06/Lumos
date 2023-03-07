@@ -17,7 +17,7 @@ namespace Lumos
         m_ZoomDampeningFactor   = 0.00001f;
         m_DampeningFactor       = 0.00001f;
         m_RotateDampeningFactor = 0.0000001f;
-        m_CameraMode = EditorCameraMode::FLYCAM;
+        m_CameraMode            = EditorCameraMode::FLYCAM;
     }
 
     EditorCameraController::~EditorCameraController()
@@ -30,21 +30,20 @@ namespace Lumos
 
         // Extra step to handle the problem when the camera direction is the same as the up vector
         const float cosAngle = glm::dot(transform.GetForwardDirection(), transform.GetUpDirection());
-        if (cosAngle * yawSign > 0.99f)
+        if(cosAngle * yawSign > 0.99f)
             m_PitchDelta = 0.f;
 
-        //damping for smooth camera
+        // damping for smooth camera
         m_YawDelta *= pow(m_DampeningFactor, dt);
         m_PitchDelta *= pow(m_DampeningFactor, dt);
         m_PositionDelta *= pow(m_DampeningFactor, dt);
     }
     void EditorCameraController::HandleMouse(Maths::Transform& transform, float dt, float xpos, float ypos)
-{
+    {
         LUMOS_PROFILE_FUNCTION();
-        
+
         m_Distance = glm::distance(transform.GetLocalPosition(), m_FocalPoint);
-        
-        
+
         if(m_CameraMode == EditorCameraMode::TWODIM)
         {
             if(Input::Get().GetMouseHeld(InputCode::MouseKey::ButtonRight))
@@ -67,7 +66,7 @@ namespace Lumos
                 m_StoredCursorPos   = glm::vec2(xpos, ypos);
                 m_PreviousCurserPos = m_StoredCursorPos;
             }
-            
+
             if(Input::Get().GetMouseHeld(InputCode::MouseKey::ButtonRight))
             {
                 m_MouseSensitivity = 0.0002f;
@@ -84,51 +83,50 @@ namespace Lumos
                 }
                 else if(Input::Get().GetMouseHeld(InputCode::MouseKey::ButtonMiddle))
                     MousePan(transform, glm::vec2((xpos - m_PreviousCurserPos.x), (ypos - m_PreviousCurserPos.y)));
-
             }
-            
-            if(glm::length(m_RotateVelocity) > Maths::M_EPSILON || m_PitchDelta > Maths::M_EPSILON ||  m_YawDelta > Maths::M_EPSILON)
+
+            if(glm::length(m_RotateVelocity) > Maths::M_EPSILON || m_PitchDelta > Maths::M_EPSILON || m_YawDelta > Maths::M_EPSILON)
             {
                 if(m_CameraMode == EditorCameraMode::ARCBALL)
                 {
                     MouseRotate(transform, m_RotateVelocity);
                     m_PreviousCurserPos = glm::vec2(xpos, ypos);
-                    
+
                     glm::quat rotation  = transform.GetLocalOrientation();
                     glm::quat rotationX = glm::angleAxis(-m_PitchDelta, glm::vec3(1.0f, 0.0f, 0.0f));
                     glm::quat rotationY = glm::angleAxis(-m_YawDelta, glm::vec3(0.0f, 1.0f, 0.0f));
-                    
+
                     rotation = rotationY * rotation;
                     rotation = rotation * rotationX;
                     transform.SetLocalOrientation(rotation);
-                    
-                    //UpdateCameraView(transform, dt);
+
+                    // UpdateCameraView(transform, dt);
                 }
                 else if(m_CameraMode == EditorCameraMode::FLYCAM)
                 {
                     glm::quat rotation  = transform.GetLocalOrientation();
                     glm::quat rotationX = glm::angleAxis(-m_RotateVelocity.y, glm::vec3(1.0f, 0.0f, 0.0f));
                     glm::quat rotationY = glm::angleAxis(-m_RotateVelocity.x, glm::vec3(0.0f, 1.0f, 0.0f));
-                    
+
                     rotation = rotationY * rotation;
                     rotation = rotation * rotationX;
-                    
+
                     m_PreviousCurserPos = glm::vec2(xpos, ypos);
                     transform.SetLocalOrientation(rotation);
                 }
             }
         }
-        
+
         m_RotateVelocity = m_RotateVelocity * pow(m_RotateDampeningFactor, dt);
-        
+
         if(m_CameraMode == EditorCameraMode::ARCBALL)
         {
             MouseZoom(transform, Input::Get().GetScrollOffset());
             UpdateCameraView(transform, dt);
-            if (m_CameraMode == EditorCameraMode::ARCBALL)
+            if(m_CameraMode == EditorCameraMode::ARCBALL)
                 transform.SetLocalPosition(CalculatePosition(transform));
-            
-            //fUpdateScroll(transform, Input::Get().GetScrollOffset(), dt);
+
+            // fUpdateScroll(transform, Input::Get().GetScrollOffset(), dt);
         }
         else if(m_CameraMode == EditorCameraMode::FLYCAM)
         {
@@ -234,10 +232,10 @@ namespace Lumos
 
     std::pair<float, float> EditorCameraController::PanSpeed() const
     {
-        const float x = glm::min(float(1920) / 1000.0f, 2.4f); // max = 2.4f
+        const float x       = glm::min(float(1920) / 1000.0f, 2.4f); // max = 2.4f
         const float xFactor = 0.0366f * (x * x) - 0.1778f * x + 0.3021f;
 
-        const float y = glm::min(float(1080) / 1000.0f, 2.4f); // max = 2.4f
+        const float y       = glm::min(float(1080) / 1000.0f, 2.4f); // max = 2.4f
         const float yFactor = 0.0366f * (y * y) - 0.1778f * y + 0.3021f;
 
         return { xFactor, yFactor };
@@ -251,41 +249,40 @@ namespace Lumos
     float EditorCameraController::ZoomSpeed() const
     {
         float distance = m_Distance * 0.2f;
-        distance = glm::max(distance, 0.0f);
-        float speed = distance * distance;
-        speed = glm::min(speed, 50.0f); // max speed = 50
+        distance       = glm::max(distance, 0.0f);
+        float speed    = distance * distance;
+        speed          = glm::min(speed, 50.0f); // max speed = 50
         return speed * m_CameraSpeed / 10000.0f;
     }
-    void EditorCameraController::MousePan(Maths::Transform& transform,const glm::vec2& delta)
+    void EditorCameraController::MousePan(Maths::Transform& transform, const glm::vec2& delta)
     {
         auto [xSpeed, ySpeed] = PanSpeed();
         m_FocalPoint -= transform.GetRightDirection() * delta.x * xSpeed * m_Distance;
         m_FocalPoint += transform.GetUpDirection() * delta.y * ySpeed * m_Distance;
     }
 
-    void EditorCameraController::MouseRotate(Maths::Transform& transform,const glm::vec2& delta)
+    void EditorCameraController::MouseRotate(Maths::Transform& transform, const glm::vec2& delta)
     {
         const float yawSign = transform.GetUpDirection().y < 0.0f ? -1.0f : 1.0f;
         m_YawDelta += yawSign * delta.x * RotationSpeed();
         m_PitchDelta += delta.y * RotationSpeed();
     }
 
-    void EditorCameraController::MouseZoom(Maths::Transform& transform,float delta)
+    void EditorCameraController::MouseZoom(Maths::Transform& transform, float delta)
     {
         if(delta == 0.0f)
             return;
-        
+
         m_Distance -= delta * ZoomSpeed();
         const glm::vec3 forwardDir = transform.GetForwardDirection();
-        //transform.SetLocalPosition(m_FocalPoint - forwardDir * m_Distance);
-        if (m_Distance < 1.0f)
+        // transform.SetLocalPosition(m_FocalPoint - forwardDir * m_Distance);
+        if(m_Distance < 1.0f)
         {
             m_FocalPoint += forwardDir * m_Distance;
             m_Distance = 1.0f;
         }
         m_PositionDelta += delta * ZoomSpeed() * forwardDir;
     }
-
 
     void EditorCameraController::UpdateScroll(Maths::Transform& transform, float offset, float dt)
     {

@@ -24,13 +24,17 @@ namespace Lumos
         m_SimpleName = "Resources";
 
         // TODO: Get Project path from editor
-        //#ifdef LUMOS_PLATFORM_IOS
+        // #ifdef LUMOS_PLATFORM_IOS
         //         m_BaseDirPath = "Assets";
-        //#else
+        // #else
         //         m_BaseProjectDir = std::filesystem::path(m_Editor->GetProjectRoot() + "/ExampleProject/Assets");
         //         //m_BaseDirPath = ROOT_DIR "/ExampleProject/Assets";
-        //#endif
+        // #endif
         m_BasePath = Application::Get().GetProjectSettings().m_ProjectRoot + "Assets";
+
+        std::string assetsBasePath;
+        VFS::Get().ResolvePhysicalPath("//Assets", assetsBasePath);
+        m_AssetPath = std::filesystem::path(assetsBasePath);
 
         std::string baseDirectoryHandle = ProcessDirectory(std::filesystem::path(m_BasePath), nullptr);
         m_BaseProjectDir                = m_Directories[baseDirectoryHandle];
@@ -142,7 +146,7 @@ namespace Lumos
             ImGui::Text("%s ", folderIcon);
             ImGui::PopStyleColor();
             ImGui::SameLine();
-            ImGui::TextUnformatted((dirInfo->FilePath.filename().string()).c_str());
+            ImGui::TextUnformatted((const char*)dirInfo->FilePath.filename().string().c_str());
 
             ImVec2 verticalLineStart = ImGui::GetCursorScreenPos();
 
@@ -475,10 +479,10 @@ namespace Lumos
         //                        break;
         //                    newPwd /= sec;
         //                }
-        //#ifdef _WIN32
+        // #ifdef _WIN32
         //                if(newPwdLastSecIdx == 0)
         //                    newPwd /= "\\";
-        //#endif
+        // #endif
         //
         //                m_PreviousDirectory = m_CurrentDir;
         //                m_CurrentDir = m_Directories[newPwd.string()];
@@ -532,7 +536,7 @@ namespace Lumos
             }
         }
 
-        ImGuiUtilities::Tooltip(m_CurrentDir->Children[dirIndex]->FilePath.filename().string());
+        ImGuiUtilities::Tooltip(m_CurrentDir->Children[dirIndex]->FilePath.filename().string().c_str());
 
         if(doubleClicked)
         {
@@ -571,14 +575,11 @@ namespace Lumos
         {
             int secIdx = 0, newPwdLastSecIdx = -1;
 
-            std::string assetsBasePath;
-            VFS::Get().ResolvePhysicalPath("//Assets", assetsBasePath);
-            auto dir        = std::filesystem::path(assetsBasePath);
             auto& AssetsDir = m_CurrentDir->FilePath;
 
             size_t PhysicalPathCount = 0;
 
-            for(auto& sec : dir)
+            for(auto& sec : m_AssetPath)
             {
                 PhysicalPathCount++;
             }
@@ -701,5 +702,9 @@ namespace Lumos
             m_CurrentDir = m_Directories[currentPath.string()];
         else
             ChangeDirectory(m_BaseProjectDir);
+
+        std::string assetsBasePath;
+        VFS::Get().ResolvePhysicalPath("//Assets", assetsBasePath);
+        m_AssetPath = std::filesystem::path(assetsBasePath);
     }
 }

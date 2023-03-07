@@ -6,6 +6,9 @@ layout(push_constant) uniform PushConsts
 {
 	mat4 transform;
 	uint cascadeIndex;
+    float p0;
+    float p1;
+    float p2;
 } pushConsts;
 
 layout(set = 0,binding = 0) uniform ShadowData

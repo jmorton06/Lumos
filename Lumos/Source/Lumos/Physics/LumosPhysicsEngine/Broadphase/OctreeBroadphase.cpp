@@ -124,12 +124,20 @@ namespace Lumos
             for(uint32_t i = 0; i < division.PhysicsObjectCount; i++)
             {
                 LUMOS_PROFILE_SCOPE("PhysicsObject BB check");
-                auto& physicsObject                   = division.PhysicsObjects[i];
+                RigidBody3D* physicsObject = division.PhysicsObjects[i];
+
+                if(!physicsObject)
+                    continue;
+
                 const Maths::BoundingBox& boundingBox = physicsObject->GetWorldSpaceAABB();
-                if(newNode.boundingBox.IsInsideFast(boundingBox))
+                Intersection intersection             = newNode.boundingBox.IsInside(boundingBox);
+                if(intersection != OUTSIDE)
                 {
                     newNode.PhysicsObjects[newNode.PhysicsObjectCount] = physicsObject;
                     newNode.PhysicsObjectCount++;
+
+                    if(intersection == INSIDE)
+                        division.PhysicsObjects[i] = nullptr;
                 }
             }
 
