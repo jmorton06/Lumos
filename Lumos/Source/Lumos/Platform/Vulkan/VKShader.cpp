@@ -8,7 +8,7 @@
 #include "VKInitialisers.h"
 #include "VKUniformBuffer.h"
 #include "Graphics/Material.h"
-
+#include "Utilities/CombineHash.h"
 #include "Core/OS/FileSystem.h"
 #include "Core/VFS.h"
 #include "Core/StringUtilities.h"
@@ -415,6 +415,8 @@ namespace Lumos
             LoadFromData(vertData, vertDataSize, ShaderType::VERTEX, 0);
             LoadFromData(fragData, fragDataSize, ShaderType::FRAGMENT, 1);
 
+            HashCombine(m_Hash, m_Name, vertData, vertData, fragData, fragDataSize);
+
             CreatePipelineLayout();
         }
 
@@ -464,9 +466,12 @@ namespace Lumos
             LUMOS_LOG_INFO("Loading Shader : {0}", m_Name);
 
             uint32_t currentShaderStage = 0;
+            HashCombine(m_Hash, m_Name);
 
             for(auto& file : files)
             {
+                HashCombine(m_Hash, m_FilePath + file.second);
+
                 uint32_t fileSize = uint32_t(FileSystem::GetFileSize(m_FilePath + file.second));
                 uint32_t* source  = reinterpret_cast<uint32_t*>(FileSystem::ReadFile(m_FilePath + file.second));
 
@@ -483,6 +488,7 @@ namespace Lumos
                 LUMOS_LOG_ERROR("Failed to load shader {0}", m_Name);
 
             CreatePipelineLayout();
+
             return true;
         }
 

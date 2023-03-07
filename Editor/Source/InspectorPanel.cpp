@@ -34,7 +34,7 @@
 #include <imgui/imgui_internal.h>
 #include <glm/gtx/matrix_decompose.hpp>
 
-//#include <sol/sol.hpp>
+// #include <sol/sol.hpp>
 #include <inttypes.h>
 
 namespace MM
@@ -315,7 +315,7 @@ end
         return Lumos::Shape::Circle;
     }
 
-    std::string CollisionShapeTypeToString(Lumos::CollisionShapeType type)
+    const char* CollisionShapeTypeToString(Lumos::CollisionShapeType type)
     {
         LUMOS_PROFILE_FUNCTION();
         switch(type)
@@ -398,7 +398,7 @@ end
             index++;
         }
 
-        static std::string possibleAxes[7] = { "X", "Y", "Z", "XY", "XZ", "YZ", "XYZ" };
+        static const char* possibleAxes[7] = { "X", "Y", "Z", "XY", "XZ", "YZ", "XYZ" };
 
         selectedIndex = (int)axes;
 
@@ -483,9 +483,9 @@ end
         ImGui::Separator();
         ImGui::PopStyleVar();
 
-        std::vector<std::string> shapes = { "Sphere", "Cuboid", "Pyramid", "Capsule", "Hull" };
+        std::vector<const char*> shapes = { "Sphere", "Cuboid", "Pyramid", "Capsule", "Hull" };
         int selectedIndex               = 0;
-        std::string shape_current       = collisionShape ? CollisionShapeTypeToString(collisionShape->GetType()) : "";
+        const char* shape_current       = collisionShape ? CollisionShapeTypeToString(collisionShape->GetType()) : "";
         int index                       = 0;
         for(auto& shape : shapes)
         {
@@ -939,7 +939,7 @@ end
             ImGui::TextUnformatted(tex ? tex->GetFilepath().c_str() : "No Texture");
             if(tex)
             {
-                ImGuiUtilities::Tooltip(tex->GetFilepath());
+                ImGuiUtilities::Tooltip(tex->GetFilepath().c_str());
                 ImGui::Text("%u x %u", tex->GetWidth(), tex->GetHeight());
                 ImGui::Text("Mip Levels : %u", tex->GetMipMapLevels());
             }
@@ -971,7 +971,7 @@ end
         ImGuiUtilities::PropertyMultiline("Text String", text.TextString);
         if(text.FontHandle)
         {
-            Lumos::ImGuiUtilities::PropertyConst("FilePath", text.FontHandle->GetFilePath());
+            Lumos::ImGuiUtilities::PropertyConst("FilePath", text.FontHandle->GetFilePath().c_str());
         }
 
         Lumos::ImGuiUtilities::Property("Colour", text.Colour, true, Lumos::ImGuiUtilities::PropertyFlag::ColourProperty);
@@ -1070,7 +1070,7 @@ end
             ImGui::TextUnformatted(tex ? tex->GetFilepath().c_str() : "No Texture");
             if(tex)
             {
-                ImGuiUtilities::Tooltip(tex->GetFilepath());
+                ImGuiUtilities::Tooltip(tex->GetFilepath().c_str());
                 ImGui::Text("%u x %u", tex->GetWidth(), tex->GetHeight());
                 ImGui::Text("Mip Levels : %u", tex->GetMipMapLevels());
             }
@@ -1440,7 +1440,7 @@ end
             ImGui::TextUnformatted(tex ? tex->GetFilepath().c_str() : "No Texture");
             if(tex)
             {
-                ImGuiUtilities::Tooltip(tex->GetFilepath());
+                ImGuiUtilities::Tooltip(tex->GetFilepath().c_str());
                 ImGui::Text("%u x %u", tex->GetWidth(), tex->GetHeight());
                 ImGui::Text("Mip Levels : %u", tex->GetMipMapLevels());
             }
@@ -1652,7 +1652,7 @@ end
             ImGui::TextUnformatted(tex ? tex->GetFilepath().c_str() : "No Texture");
             if(tex)
             {
-                ImGuiUtilities::Tooltip(tex->GetFilepath());
+                ImGuiUtilities::Tooltip(tex->GetFilepath().c_str());
                 ImGui::Text("%u x %u", tex->GetWidth(), tex->GetHeight());
                 ImGui::Text("Mip Levels : %u", tex->GetMipMapLevels());
             }
@@ -1743,7 +1743,7 @@ end
             ImGui::TextUnformatted(tex ? tex->GetFilepath().c_str() : "No Texture");
             if(tex)
             {
-                ImGuiUtilities::Tooltip(tex->GetFilepath());
+                ImGuiUtilities::Tooltip(tex->GetFilepath().c_str());
                 ImGui::Text("%u x %u", tex->GetWidth(), tex->GetHeight());
                 ImGui::Text("Mip Levels : %u", tex->GetMipMapLevels());
             }
@@ -1825,7 +1825,7 @@ end
             ImGui::NextColumn();
             ImGui::PushItemWidth(-1);
             ImGui::TextUnformatted(model.GetFilePath().c_str());
-            Lumos::ImGuiUtilities::Tooltip(model.GetFilePath());
+            Lumos::ImGuiUtilities::Tooltip(model.GetFilePath().c_str());
 
             ImGui::PopItemWidth();
             ImGui::NextColumn();
@@ -2168,9 +2168,12 @@ namespace Lumos
 
         if(ImGui::Begin(m_Name.c_str(), &m_Active))
         {
+            ImGuiUtilities::PushID();
+
             if(!Application::Get().GetSceneManager()->GetCurrentScene())
             {
                 m_Editor->SetSelected(entt::null);
+                ImGuiUtilities::PopID();
                 ImGui::End();
                 return;
             }
@@ -2179,6 +2182,7 @@ namespace Lumos
             if(selected == entt::null || !registry.valid(selected))
             {
                 m_Editor->SetSelected(entt::null);
+                ImGuiUtilities::PopID();
                 ImGui::End();
                 return;
             }
@@ -2288,6 +2292,8 @@ namespace Lumos
             ImGui::BeginChild("Components", ImVec2(0.0f, 0.0f), false, ImGuiWindowFlags_None);
             m_EnttEditor.RenderImGui(registry, selected);
             ImGui::EndChild();
+
+            ImGuiUtilities::PopID();
         }
         ImGui::End();
     }

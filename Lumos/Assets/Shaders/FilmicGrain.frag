@@ -14,8 +14,8 @@ float Gaussian(float z, float u, float o)
 
 layout(push_constant) uniform PushConsts
 {
-	 float time;
-     float filmGrainIntensity;
+	 float Time;
+     float Intensity;
 } pushConsts;
 
 void main()
@@ -23,11 +23,11 @@ void main()
 	vec4 colour = texture(u_Texture, outTexCoord);
 	vec2 uv = outTexCoord;
 	// Film grain
-    float t          = pushConsts.time * 1.0f;
+    float t          = pushConsts.Time * 1.0f;
     float seed       = dot(uv, vec2(12.9898, 78.233));
     float noise      = fract(sin(seed) * 43758.5453 + t);
     noise            = Gaussian(noise, 0.5, 0.25);
-    float filmGrain =  noise * pushConsts.filmGrainIntensity;
+    float filmGrain =  noise * pushConsts.Intensity;
 	
     colour.rgb += vec3(filmGrain, filmGrain, filmGrain);	
 	outFrag = vec4(clamp(colour.rgb, 0.0, 1.0), 1.0f);

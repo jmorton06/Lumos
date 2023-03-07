@@ -42,7 +42,9 @@ namespace Lumos
             BufferLayout m_VertexBufferLayout;
             CullMode m_CullMode;
             BlendMode m_BlendMode;
-            float m_LineWidth = 1.0f;
+            float m_LineWidth         = 1.0f;
+            float m_DepthBiasSlope    = 0.0f;
+            float m_DepthBiasConstant = 0.0f;
         };
     }
 }

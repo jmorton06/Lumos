@@ -77,6 +77,9 @@ namespace Lumos
             m_Shader    = pipelineDesc.shader.get();
             m_BlendMode = pipelineDesc.blendMode;
 
+            m_DepthBiasConstant = pipelineDesc.depthBiasConstantFactor;
+            m_DepthBiasSlope    = pipelineDesc.depthBiasSlopeFactor;
+
             CreateFramebuffers();
             return true;
         }
@@ -146,7 +149,7 @@ namespace Lumos
             frameBufferDesc.attachmentCount = uint32_t(attachments.size());
             frameBufferDesc.renderPass      = m_RenderPass.get();
             frameBufferDesc.attachmentTypes = attachmentTypes.data();
-
+            frameBufferDesc.mipIndex        = m_Description.mipIndex;
             if(m_Description.swapchainTarget)
             {
                 for(uint32_t i = 0; i < Renderer::GetMainSwapChain()->GetSwapChainBufferCount(); i++)
@@ -230,6 +233,12 @@ namespace Lumos
 
             glEnable(GL_CULL_FACE);
 
+            if(m_DepthBiasConstant != 0.0f)
+            {
+                glEnable(GL_POLYGON_OFFSET_FILL);
+                glPolygonOffset(m_DepthBiasConstant, m_DepthBiasConstant);
+            }
+
             switch(m_CullMode)
             {
             case CullMode::BACK:
@@ -259,6 +268,11 @@ namespace Lumos
             if(m_LineWidth != 1.0f)
                 glLineWidth(1.0f);
 
+            if(m_DepthBiasConstant != 0)
+            {
+                glDisable(GL_POLYGON_OFFSET_FILL);
+            }
+
             GLRenderer::Instance()->GetBoundPipeline() = nullptr;
         }
 
@@ -266,7 +280,7 @@ namespace Lumos
         {
             for(auto framebuffer : m_Framebuffers)
             {
-                framebuffer->Bind();
+                framebuffer.As<GLFramebuffer>()->Bind();
                 GLRenderer::ClearInternal(RENDERER_BUFFER_COLOUR | RENDERER_BUFFER_DEPTH | RENDERER_BUFFER_STENCIL);
             }
         }

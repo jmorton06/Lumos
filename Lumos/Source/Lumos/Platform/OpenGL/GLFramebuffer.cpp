@@ -40,7 +40,7 @@ namespace Lumos
                     switch(frameBufferDesc.attachmentTypes[i])
                     {
                     case TextureType::COLOUR:
-                        AddTextureAttachment(frameBufferDesc.attachments[i]->GetFormat(), frameBufferDesc.attachments[i]);
+                        AddTextureAttachment(frameBufferDesc.attachments[i]->GetFormat(), frameBufferDesc.attachments[i], frameBufferDesc.mipIndex);
                         break;
                     case TextureType::DEPTH:
                         AddTextureAttachment(RHIFormat::D16_Unorm, frameBufferDesc.attachments[i]);
@@ -124,7 +124,7 @@ namespace Lumos
             GLCall(glBindFramebuffer(GL_FRAMEBUFFER, m_ScreenFramebuffer ? 0 : m_Handle));
         }
 
-        void GLFramebuffer::AddTextureAttachment(const Graphics::RHIFormat format, Texture* texture)
+        void GLFramebuffer::AddTextureAttachment(const Graphics::RHIFormat format, Texture* texture, uint32_t mipLevel)
         {
             LUMOS_PROFILE_FUNCTION();
             GLenum attachment = GetAttachmentPoint(format);
@@ -133,7 +133,7 @@ namespace Lumos
             {
                 m_AttachmentData.emplace_back(attachment);
             }
-            GLCall(glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, attachment, GL_TEXTURE_2D, (GLuint)(size_t)((GLTexture2D*)texture)->GetHandle(), 0));
+            GLCall(glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, attachment, GL_TEXTURE_2D, (GLuint)(size_t)((GLTexture2D*)texture)->GetHandle(), mipLevel));
         }
 
         void GLFramebuffer::AddCubeTextureAttachment(const Graphics::RHIFormat format, const CubeFace face, TextureCube* texture)

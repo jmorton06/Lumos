@@ -31,7 +31,7 @@ namespace Lumos
             float depthBiasConstantFactor = 0.0f;
             float depthBiasSlopeFactor    = 0.0f;
             int cubeMapIndex              = 0;
-            int mipIndex                  = -1;
+            int mipIndex                  = 0;
         };
 
         class LUMOS_EXPORT Pipeline

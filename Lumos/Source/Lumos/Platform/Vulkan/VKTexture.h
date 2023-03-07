@@ -164,7 +164,7 @@ namespace Lumos
             VkDescriptorImageInfo m_Descriptor {};
 
             std::unordered_map<uint32_t, VkImageView> m_MipImageViews;
-            
+
             VKBuffer* m_StagingBuffer = nullptr;
 
 #ifdef USE_VMA_ALLOCATOR
@@ -409,7 +409,7 @@ namespace Lumos
             void TransitionImage(VkImageLayout newLayout, VKCommandBuffer* commandBuffer = nullptr);
 
             VkImageLayout GetImageLayout() const { return m_ImageLayout; }
-
+            
             static void MakeDefault();
 
         protected:

@@ -91,7 +91,7 @@ namespace MM
                     {
                         ImGui::PushID(component_type_id);
 
-                        std::string label = ci.name;
+                        const std::string& label = ci.name;
 
                         bool open = ImGui::CollapsingHeader(label.c_str(), ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_DefaultOpen);
 
@@ -101,13 +101,14 @@ namespace MM
 
                         ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.7f, 0.7f, 0.7f, 0.0f));
 
-                        if(ImGui::Button((ICON_MDI_TUNE "##" + label).c_str()))
-                            ImGui::OpenPopup(("Remove Component" + label).c_str());
+                        static std::string removeName = "Remove Component";
+                        if(ImGui::Button(ICON_MDI_TUNE "##RemoveButton"))
+                            ImGui::OpenPopup(removeName.c_str());
                         ImGui::PopStyleColor();
 
-                        if(ImGui::BeginPopup(("Remove Component" + label).c_str(), 3))
+                        if(ImGui::BeginPopup(removeName.c_str(), 3))
                         {
-                            if(ImGui::Selectable(("Remove##" + label).c_str()))
+                            if(ImGui::Selectable("Remove"))
                             {
                                 ci.destroy(registry, e);
                                 removed = true;

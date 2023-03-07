@@ -21,7 +21,6 @@
 #include "Physics/LumosPhysicsEngine/Broadphase/OctreeBroadphase.h"
 #include "Physics/LumosPhysicsEngine/Broadphase/BruteForceBroadphase.h"
 #include "Physics/LumosPhysicsEngine/Broadphase/SortAndSweepBroadphase.h"
-#include "Physics/RigidBody.h"
 #include "Physics/B2PhysicsEngine/RigidBody2D.h"
 #include "Physics/LumosPhysicsEngine/RigidBody3D.h"
 

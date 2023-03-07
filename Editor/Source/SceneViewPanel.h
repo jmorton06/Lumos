@@ -60,7 +60,7 @@ namespace Lumos
                     ImGui::TextUnformatted(m_Editor->GetComponentIconMap()[typeid(T).hash_code()]);
                     ImGui::PopStyleColor();
 
-                    ImGuiUtilities::Tooltip(StringUtilities::Demangle(typeid(T).name()));
+                    ImGuiUtilities::Tooltip(StringUtilities::Demangle(typeid(T).name()).c_str());
                 }
             }
         }

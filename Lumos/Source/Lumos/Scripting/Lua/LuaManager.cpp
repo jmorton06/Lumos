@@ -177,18 +177,18 @@ namespace Lumos
 
         if(view.empty())
             return;
-        
-        //auto& state = *m_State;
-        //std::string ScriptsPath;
-        //VFS::Get().ResolvePhysicalPath("//Scripts", ScriptsPath);
+
+        // auto& state = *m_State;
+        // std::string ScriptsPath;
+        // VFS::Get().ResolvePhysicalPath("//Scripts", ScriptsPath);
         //
         //// Setup the lua path to see luarocks packages
-        //auto package_path = std::filesystem::path(ScriptsPath) / "lua" / "?.lua;";
-        //package_path += std::filesystem::path(ScriptsPath) / "?" / "?.lua;";
-        //package_path += std::filesystem::path(ScriptsPath) / "?" / "?" / "?.lua;";
+        // auto package_path = std::filesystem::path(ScriptsPath) / "lua" / "?.lua;";
+        // package_path += std::filesystem::path(ScriptsPath) / "?" / "?.lua;";
+        // package_path += std::filesystem::path(ScriptsPath) / "?" / "?" / "?.lua;";
 
-        //std::string test = state["package"]["path"];
-        //state["package"]["path"] = std::string(package_path.string()) + test;
+        // std::string test = state["package"]["path"];
+        // state["package"]["path"] = std::string(package_path.string()) + test;
 
         for(auto entity : view)
         {

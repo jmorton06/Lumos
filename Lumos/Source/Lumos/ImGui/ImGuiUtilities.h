@@ -39,35 +39,34 @@ namespace Lumos
             Cinder
         };
 
-        bool Property(const std::string& name, std::string& value, PropertyFlag flags = PropertyFlag::ReadOnly);
-        void PropertyConst(const std::string& name, const std::string& value);
-        bool Property(const std::string& name, bool& value, PropertyFlag flags = PropertyFlag::None);
-        bool Property(const std::string& name, int& value, PropertyFlag flags);
-        bool Property(const std::string& name, uint32_t& value, PropertyFlag flags = PropertyFlag::None);
-        bool PropertyMultiline(const std::string& label, std::string& value);
+        bool Property(const char* name, std::string& value, PropertyFlag flags = PropertyFlag::ReadOnly);
+        void PropertyConst(const char* name, const char* value);
+        bool Property(const char* name, bool& value, PropertyFlag flags = PropertyFlag::None);
+        bool Property(const char* name, int& value, PropertyFlag flags);
+        bool Property(const char* name, uint32_t& value, PropertyFlag flags = PropertyFlag::None);
+        bool PropertyMultiline(const char* label, std::string& value);
 
-        bool Property(const std::string& name, double& value, double min = -1.0, double max = 1.0, PropertyFlag flags = PropertyFlag::None);
+        bool Property(const char* name, double& value, double min = -1.0, double max = 1.0, PropertyFlag flags = PropertyFlag::None);
 
-        bool Property(const std::string& name, int& value, int min = 0, int max = 100.0, PropertyFlag flags = PropertyFlag::None);
+        bool Property(const char* name, int& value, int min = 0, int max = 100.0, PropertyFlag flags = PropertyFlag::None);
 
-        bool Property(const std::string& name, float& value, float min = -1.0f, float max = 1.0f, PropertyFlag flags = PropertyFlag::None);
-        bool Property(const std::string& name, glm::vec2& value, PropertyFlag flags);
-        bool Property(const std::string& name, glm::vec2& value, float min = -1.0f, float max = 1.0f, PropertyFlag flags = PropertyFlag::None);
-        bool Property(const std::string& name, glm::vec3& value, PropertyFlag flags);
-        bool Property(const std::string& name, glm::vec3& value, float min = -1.0f, float max = 1.0f, PropertyFlag flags = PropertyFlag::None);
-        bool Property(const std::string& name, glm::vec4& value, bool exposeW, PropertyFlag flags);
-        bool Property(const std::string& name, glm::vec4& value, float min = -1.0f, float max = 1.0f, bool exposeW = false, PropertyFlag flags = PropertyFlag::None);
-        bool PorpertyTransform(const std::string& name, glm::vec3& vector, float width);
+        bool Property(const char* name, float& value, float min = -1.0f, float max = 1.0f, PropertyFlag flags = PropertyFlag::None);
+        bool Property(const char* name, glm::vec2& value, PropertyFlag flags);
+        bool Property(const char* name, glm::vec2& value, float min = -1.0f, float max = 1.0f, PropertyFlag flags = PropertyFlag::None);
+        bool Property(const char* name, glm::vec3& value, PropertyFlag flags);
+        bool Property(const char* name, glm::vec3& value, float min = -1.0f, float max = 1.0f, PropertyFlag flags = PropertyFlag::None);
+        bool Property(const char* name, glm::vec4& value, bool exposeW, PropertyFlag flags);
+        bool Property(const char* name, glm::vec4& value, float min = -1.0f, float max = 1.0f, bool exposeW = false, PropertyFlag flags = PropertyFlag::None);
+        bool PorpertyTransform(const char* name, glm::vec3& vector, float width);
 
-        bool Property(const std::string& name, glm::quat& value, PropertyFlag flags);
+        bool Property(const char* name, glm::quat& value, PropertyFlag flags);
 
-        bool PropertyDropdown(const char* label, std::string* options, int32_t optionCount, int32_t* selected);
+        bool PropertyDropdown(const char* label, const char** options, int32_t optionCount, int32_t* selected);
 
-        void Tooltip(const std::string& text);
         void Tooltip(const char* text);
 
         void Tooltip(Graphics::Texture2D* texture, const glm::vec2& size);
-        void Tooltip(Graphics::Texture2D* texture, const glm::vec2& size, const std::string& text);
+        void Tooltip(Graphics::Texture2D* texture, const glm::vec2& size, const char* text);
         void Tooltip(Graphics::TextureDepthArray* texture, uint32_t index, const glm::vec2& size);
 
         void Image(Graphics::Texture2D* texture, const glm::vec2& size);
@@ -87,6 +86,11 @@ namespace Lumos
         bool InputText(std::string& currentText);
 
         void AlternatingRowsBackground(float lineHeight = -1.0f);
+
+        const char* GenerateID();
+        const char* GenerateLabelID(std::string_view label);
+        void PushID();
+        void PopID();
 
         class ScopedStyle
         {

@@ -31,6 +31,14 @@ namespace Lumos
                     info.HasUpdated   = false;
                     info.m_Members    = descriptor.m_Members;
                     m_UniformBuffers.emplace(descriptor.name, info);
+
+                    if(descriptor.name != "")
+                    {
+                        LUMOS_PROFILE_SCOPE("glUniformBlockBinding");
+                        auto slot = descriptor.binding;
+                        auto loc  = glGetUniformBlockIndex(m_Shader->GetHandleInternal(), descriptor.name.c_str());
+                        GLCall(glUniformBlockBinding(m_Shader->GetHandleInternal(), loc, slot));
+                    }
                 }
             }
         }
@@ -227,18 +235,18 @@ namespace Lumos
                             GLCall(glBindBufferBase(GL_UNIFORM_BUFFER, slot, bufferHandle));
                         }
 
-                        if(buffer->GetDynamic())
+                        // if(buffer->GetDynamic())
                         {
                             LUMOS_PROFILE_SCOPE("glBindBufferRange");
                             GLCall(glBindBufferRange(GL_UNIFORM_BUFFER, slot, bufferHandle, offset, size));
                         }
 
-                        if(descriptor.name != "")
-                        {
-                            LUMOS_PROFILE_SCOPE("glUniformBlockBinding");
-                            auto loc = glGetUniformBlockIndex(m_Shader->GetHandleInternal(), descriptor.name.c_str());
-                            GLCall(glUniformBlockBinding(m_Shader->GetHandleInternal(), loc, slot));
-                        }
+                        //                        if(descriptor.name != "")
+                        //                        {
+                        //                            LUMOS_PROFILE_SCOPE("glUniformBlockBinding");
+                        //                            auto loc = glGetUniformBlockIndex(m_Shader->GetHandleInternal(), descriptor.name.c_str());
+                        //                            GLCall(glUniformBlockBinding(m_Shader->GetHandleInternal(), loc, slot));
+                        //                        }
                     }
                 }
             }

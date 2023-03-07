@@ -17,14 +17,43 @@ namespace Lumos
     glm::vec4 SelectedColour       = glm::vec4(0.28f, 0.56f, 0.9f, 1.0f);
     glm::vec4 IconColour           = glm::vec4(0.2f, 0.2f, 0.2f, 1.0f);
     static char* s_MultilineBuffer = nullptr;
+    static uint32_t s_Counter      = 0;
+    static char s_IDBuffer[16]     = "##";
+    static char s_LabelIDBuffer[1024];
+    static int s_UIContextID = 0;
 
-    bool ImGuiUtilities::Property(const std::string& name, std::string& value, PropertyFlag flags)
+    const char* ImGuiUtilities::GenerateID()
+    {
+        sprintf(s_IDBuffer + 2, "%x", s_Counter++);
+        //_itoa(s_Counter++, s_IDBuffer + 2, 16);
+        return s_IDBuffer;
+    }
+
+    const char* ImGuiUtilities::GenerateLabelID(std::string_view label)
+    {
+        *fmt::format_to_n(s_LabelIDBuffer, std::size(s_LabelIDBuffer), "{}##{}", label, s_Counter++).out = 0;
+        return s_LabelIDBuffer;
+    }
+
+    void ImGuiUtilities::PushID()
+    {
+        ImGui::PushID(s_UIContextID++);
+        s_Counter = 0;
+    }
+
+    void ImGuiUtilities::PopID()
+    {
+        ImGui::PopID();
+        s_UIContextID--;
+    }
+
+    bool ImGuiUtilities::Property(const char* name, std::string& value, PropertyFlag flags)
     {
         LUMOS_PROFILE_FUNCTION();
         bool updated = false;
 
         ImGui::AlignTextToFramePadding();
-        ImGui::TextUnformatted(name.c_str());
+        ImGui::TextUnformatted(name);
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
         ImGui::AlignTextToFramePadding();
@@ -37,40 +66,36 @@ namespace Lumos
         {
             // TODO
         }
-
-        Tooltip(value.c_str());
-
         ImGui::PopItemWidth();
         ImGui::NextColumn();
 
         return updated;
     }
 
-    void ImGuiUtilities::PropertyConst(const std::string& name, const std::string& value)
+    void ImGuiUtilities::PropertyConst(const char* name, const char* value)
     {
         LUMOS_PROFILE_FUNCTION();
         bool updated = false;
 
         ImGui::AlignTextToFramePadding();
-        ImGui::TextUnformatted(name.c_str());
+        ImGui::TextUnformatted(name);
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
         ImGui::AlignTextToFramePadding();
         {
-            ImGui::TextUnformatted(value.c_str());
+            ImGui::TextUnformatted(value);
         }
 
-        Tooltip(value.c_str());
         ImGui::PopItemWidth();
         ImGui::NextColumn();
     }
 
-    bool ImGuiUtilities::PropertyMultiline(const std::string& label, std::string& value)
+    bool ImGuiUtilities::PropertyMultiline(const char* label, std::string& value)
     {
         bool modified = false;
 
         ImGui::AlignTextToFramePadding();
-        ImGui::TextUnformatted(label.c_str());
+        ImGui::TextUnformatted(label);
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
         ImGui::AlignTextToFramePadding();
@@ -83,8 +108,8 @@ namespace Lumos
 
         strcpy(s_MultilineBuffer, value.c_str());
 
-        std::string id = "##" + label;
-        if(ImGui::InputTextMultiline(id.c_str(), s_MultilineBuffer, 1024 * 1024))
+        // std::string id = "##" + label;
+        if(ImGui::InputTextMultiline(GenerateID(), s_MultilineBuffer, 1024 * 1024))
         {
             value    = s_MultilineBuffer;
             modified = true;
@@ -96,13 +121,13 @@ namespace Lumos
         return modified;
     }
 
-    bool ImGuiUtilities::Property(const std::string& name, bool& value, PropertyFlag flags)
+    bool ImGuiUtilities::Property(const char* name, bool& value, PropertyFlag flags)
     {
         LUMOS_PROFILE_FUNCTION();
         bool updated = false;
 
         ImGui::AlignTextToFramePadding();
-        ImGui::TextUnformatted(name.c_str());
+        ImGui::TextUnformatted(name);
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
 
@@ -112,8 +137,8 @@ namespace Lumos
         }
         else
         {
-            std::string id = "##" + name;
-            if(ImGui::Checkbox(id.c_str(), &value))
+            // std::string id = "##" + std::string(name);
+            if(ImGui::Checkbox(GenerateID(), &value))
                 updated = true;
         }
 
@@ -123,13 +148,13 @@ namespace Lumos
         return updated;
     }
 
-    bool ImGuiUtilities::Property(const std::string& name, int& value, ImGuiUtilities::PropertyFlag flags)
+    bool ImGuiUtilities::Property(const char* name, int& value, ImGuiUtilities::PropertyFlag flags)
     {
         LUMOS_PROFILE_FUNCTION();
         bool updated = false;
 
         ImGui::AlignTextToFramePadding();
-        ImGui::TextUnformatted(name.c_str());
+        ImGui::TextUnformatted(name);
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
 
@@ -140,8 +165,8 @@ namespace Lumos
         }
         else
         {
-            std::string id = "##" + name;
-            if(ImGui::DragInt(id.c_str(), &value))
+            // std::string id = "##" + name;
+            if(ImGui::DragInt(GenerateID(), &value))
                 updated = true;
         }
         ImGui::PopItemWidth();
@@ -150,13 +175,13 @@ namespace Lumos
         return updated;
     }
 
-    bool ImGuiUtilities::Property(const std::string& name, uint32_t& value, ImGuiUtilities::PropertyFlag flags)
+    bool ImGuiUtilities::Property(const char* name, uint32_t& value, ImGuiUtilities::PropertyFlag flags)
     {
         LUMOS_PROFILE_FUNCTION();
         bool updated = false;
 
         ImGui::AlignTextToFramePadding();
-        ImGui::TextUnformatted(name.c_str());
+        ImGui::TextUnformatted(name);
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
 
@@ -166,9 +191,9 @@ namespace Lumos
         }
         else
         {
-            std::string id = "##" + name;
-            int valueInt   = (int)value;
-            if(ImGui::DragInt(id.c_str(), &valueInt))
+            // std::string id = "##" + name;
+            int valueInt = (int)value;
+            if(ImGui::DragInt(GenerateID(), &valueInt))
             {
                 updated = true;
                 value   = (uint32_t)valueInt;
@@ -180,13 +205,13 @@ namespace Lumos
         return updated;
     }
 
-    bool ImGuiUtilities::Property(const std::string& name, float& value, float min, float max, ImGuiUtilities::PropertyFlag flags)
+    bool ImGuiUtilities::Property(const char* name, float& value, float min, float max, ImGuiUtilities::PropertyFlag flags)
     {
         LUMOS_PROFILE_FUNCTION();
         bool updated = false;
 
         ImGui::AlignTextToFramePadding();
-        ImGui::TextUnformatted(name.c_str());
+        ImGui::TextUnformatted(name);
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
 
@@ -196,8 +221,8 @@ namespace Lumos
         }
         else
         {
-            std::string id = "##" + name;
-            if(ImGui::DragFloat(id.c_str(), &value, min, max))
+            // std::string id = "##" + name;
+            if(ImGui::DragFloat(GenerateID(), &value, min, max))
                 updated = true;
         }
         ImGui::PopItemWidth();
@@ -206,13 +231,13 @@ namespace Lumos
         return updated;
     }
 
-    bool ImGuiUtilities::Property(const std::string& name, double& value, double min, double max, PropertyFlag flags)
+    bool ImGuiUtilities::Property(const char* name, double& value, double min, double max, PropertyFlag flags)
     {
         LUMOS_PROFILE_FUNCTION();
         bool updated = false;
 
         ImGui::AlignTextToFramePadding();
-        ImGui::TextUnformatted(name.c_str());
+        ImGui::TextUnformatted(name);
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
 
@@ -222,8 +247,8 @@ namespace Lumos
         }
         else
         {
-            std::string id = "##" + name;
-            if(ImGui::DragScalar(id.c_str(), ImGuiDataType_Double, &value))
+            // std::string id = "##" + name;
+            if(ImGui::DragScalar(GenerateID(), ImGuiDataType_Double, &value))
                 updated = true;
         }
         ImGui::PopItemWidth();
@@ -232,13 +257,13 @@ namespace Lumos
         return updated;
     }
 
-    bool ImGuiUtilities::Property(const std::string& name, int& value, int min, int max, PropertyFlag flags)
+    bool ImGuiUtilities::Property(const char* name, int& value, int min, int max, PropertyFlag flags)
     {
         LUMOS_PROFILE_FUNCTION();
         bool updated = false;
 
         ImGui::AlignTextToFramePadding();
-        ImGui::TextUnformatted(name.c_str());
+        ImGui::TextUnformatted(name);
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
 
@@ -248,8 +273,8 @@ namespace Lumos
         }
         else
         {
-            std::string id = "##" + name;
-            if(ImGui::DragInt(id.c_str(), &value, 1, min, max))
+            // std::string id = "##" + name;
+            if(ImGui::DragInt(GenerateID(), &value, 1, min, max))
                 updated = true;
         }
         ImGui::PopItemWidth();
@@ -258,19 +283,19 @@ namespace Lumos
         return updated;
     }
 
-    bool ImGuiUtilities::Property(const std::string& name, glm::vec2& value, ImGuiUtilities::PropertyFlag flags)
+    bool ImGuiUtilities::Property(const char* name, glm::vec2& value, ImGuiUtilities::PropertyFlag flags)
     {
         LUMOS_PROFILE_FUNCTION();
         return ImGuiUtilities::Property(name, value, -1.0f, 1.0f, flags);
     }
 
-    bool ImGuiUtilities::Property(const std::string& name, glm::vec2& value, float min, float max, ImGuiUtilities::PropertyFlag flags)
+    bool ImGuiUtilities::Property(const char* name, glm::vec2& value, float min, float max, ImGuiUtilities::PropertyFlag flags)
     {
         LUMOS_PROFILE_FUNCTION();
         bool updated = false;
 
         ImGui::AlignTextToFramePadding();
-        ImGui::TextUnformatted(name.c_str());
+        ImGui::TextUnformatted(name);
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
 
@@ -280,8 +305,8 @@ namespace Lumos
         }
         else
         {
-            std::string id = "##" + name;
-            if(ImGui::DragFloat2(id.c_str(), glm::value_ptr(value)))
+            // std::string id = "##" + name;
+            if(ImGui::DragFloat2(GenerateID(), glm::value_ptr(value)))
                 updated = true;
         }
         ImGui::PopItemWidth();
@@ -290,19 +315,19 @@ namespace Lumos
         return updated;
     }
 
-    bool ImGuiUtilities::Property(const std::string& name, glm::vec3& value, ImGuiUtilities::PropertyFlag flags)
+    bool ImGuiUtilities::Property(const char* name, glm::vec3& value, ImGuiUtilities::PropertyFlag flags)
     {
         LUMOS_PROFILE_FUNCTION();
         return ImGuiUtilities::Property(name, value, -1.0f, 1.0f, flags);
     }
 
-    bool ImGuiUtilities::Property(const std::string& name, glm::vec3& value, float min, float max, ImGuiUtilities::PropertyFlag flags)
+    bool ImGuiUtilities::Property(const char* name, glm::vec3& value, float min, float max, ImGuiUtilities::PropertyFlag flags)
     {
         LUMOS_PROFILE_FUNCTION();
         bool updated = false;
 
         ImGui::AlignTextToFramePadding();
-        ImGui::TextUnformatted(name.c_str());
+        ImGui::TextUnformatted(name);
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
 
@@ -312,15 +337,15 @@ namespace Lumos
         }
         else
         {
-            std::string id = "##" + name;
+            // std::string id = "##" + name;
             if((int)flags & (int)PropertyFlag::ColourProperty)
             {
-                if(ImGui::ColorEdit3(id.c_str(), glm::value_ptr(value)))
+                if(ImGui::ColorEdit3(GenerateID(), glm::value_ptr(value)))
                     updated = true;
             }
             else
             {
-                if(ImGui::DragFloat3(id.c_str(), glm::value_ptr(value)))
+                if(ImGui::DragFloat3(GenerateID(), glm::value_ptr(value)))
                     updated = true;
             }
         }
@@ -331,19 +356,19 @@ namespace Lumos
         return updated;
     }
 
-    bool ImGuiUtilities::Property(const std::string& name, glm::vec4& value, bool exposeW, ImGuiUtilities::PropertyFlag flags)
+    bool ImGuiUtilities::Property(const char* name, glm::vec4& value, bool exposeW, ImGuiUtilities::PropertyFlag flags)
     {
         LUMOS_PROFILE_FUNCTION();
         return Property(name, value, -1.0f, 1.0f, exposeW, flags);
     }
 
-    bool ImGuiUtilities::Property(const std::string& name, glm::vec4& value, float min, float max, bool exposeW, ImGuiUtilities::PropertyFlag flags)
+    bool ImGuiUtilities::Property(const char* name, glm::vec4& value, float min, float max, bool exposeW, ImGuiUtilities::PropertyFlag flags)
     {
         LUMOS_PROFILE_FUNCTION();
         bool updated = false;
 
         ImGui::AlignTextToFramePadding();
-        ImGui::TextUnformatted(name.c_str());
+        ImGui::TextUnformatted(name);
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
         if((int)flags & (int)PropertyFlag::ReadOnly)
@@ -353,13 +378,13 @@ namespace Lumos
         else
         {
 
-            std::string id = "##" + name;
+            // std::string id = "##" + name;
             if((int)flags & (int)PropertyFlag::ColourProperty)
             {
-                if(ImGui::ColorEdit4(id.c_str(), glm::value_ptr(value)))
+                if(ImGui::ColorEdit4(GenerateID(), glm::value_ptr(value)))
                     updated = true;
             }
-            else if((exposeW ? ImGui::DragFloat4(id.c_str(), glm::value_ptr(value)) : ImGui::DragFloat4(id.c_str(), glm::value_ptr(value))))
+            else if((exposeW ? ImGui::DragFloat4(GenerateID(), glm::value_ptr(value)) : ImGui::DragFloat4(GenerateID(), glm::value_ptr(value))))
                 updated = true;
         }
         ImGui::PopItemWidth();
@@ -368,7 +393,7 @@ namespace Lumos
         return updated;
     }
 
-    bool ImGuiUtilities::PorpertyTransform(const std::string& name, glm::vec3& vector, float width)
+    bool ImGuiUtilities::PorpertyTransform(const char* name, glm::vec3& vector, float width)
     {
         const float labelIndetation = ImGui::GetFontSize();
         bool updated                = false;
@@ -379,7 +404,7 @@ namespace Lumos
         {
             const float label_float_spacing = ImGui::GetFontSize();
             const float step                = 0.01f;
-            const std::string format        = "%.4f";
+            static const std::string format = "%.4f";
 
             ImGui::AlignTextToFramePadding();
             ImGui::TextUnformatted(axis == 0 ? "X" : axis == 1 ? "Y"
@@ -409,7 +434,7 @@ namespace Lumos
 
         ImGui::BeginGroup();
         ImGui::Indent(labelIndetation);
-        ImGui::TextUnformatted(name.c_str());
+        ImGui::TextUnformatted(name);
         ImGui::Unindent(labelIndetation);
         showFloat(0, &vector.x);
         showFloat(1, &vector.y);
@@ -419,13 +444,13 @@ namespace Lumos
         return updated;
     }
 
-    bool ImGuiUtilities::Property(const std::string& name, glm::quat& value, ImGuiUtilities::PropertyFlag flags)
+    bool ImGuiUtilities::Property(const char* name, glm::quat& value, ImGuiUtilities::PropertyFlag flags)
     {
         LUMOS_PROFILE_FUNCTION();
         bool updated = false;
 
         ImGui::AlignTextToFramePadding();
-        ImGui::TextUnformatted(name.c_str());
+        ImGui::TextUnformatted(name);
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
         if((int)flags & (int)PropertyFlag::ReadOnly)
@@ -435,22 +460,14 @@ namespace Lumos
         else
         {
 
-            std::string id = "##" + name;
-            if(ImGui::DragFloat4(id.c_str(), glm::value_ptr(value)))
+            // std::string id = "##" + name;
+            if(ImGui::DragFloat4(GenerateID(), glm::value_ptr(value)))
                 updated = true;
         }
         ImGui::PopItemWidth();
         ImGui::NextColumn();
 
         return updated;
-    }
-
-    void ImGuiUtilities::Tooltip(const std::string& text)
-    {
-        LUMOS_PROFILE_FUNCTION();
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(5, 5));
-        Tooltip(text.c_str());
-        ImGui::PopStyleVar();
     }
 
     void ImGuiUtilities::Tooltip(const char* text)
@@ -484,7 +501,7 @@ namespace Lumos
         ImGui::PopStyleVar();
     }
 
-    void ImGuiUtilities::Tooltip(Graphics::Texture2D* texture, const glm::vec2& size, const std::string& text)
+    void ImGuiUtilities::Tooltip(Graphics::Texture2D* texture, const glm::vec2& size, const char* text)
     {
         LUMOS_PROFILE_FUNCTION();
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(5, 5));
@@ -494,7 +511,7 @@ namespace Lumos
             ImGui::BeginTooltip();
             bool flipImage = Graphics::Renderer::GetGraphicsContext()->FlipImGUITexture();
             ImGui::Image(texture ? texture->GetHandle() : nullptr, ImVec2(size.x, size.y), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
-            ImGui::TextUnformatted(text.c_str());
+            ImGui::TextUnformatted(text);
             ImGui::EndTooltip();
         }
 
@@ -1145,9 +1162,9 @@ namespace Lumos
         return IconColour;
     }
 
-    bool ImGuiUtilities::PropertyDropdown(const char* label, std::string* options, int32_t optionCount, int32_t* selected)
+    bool ImGuiUtilities::PropertyDropdown(const char* label, const char** options, int32_t optionCount, int32_t* selected)
     {
-        const char* current = options[*selected].c_str();
+        const char* current = options[*selected];
         ImGui::TextUnformatted(label);
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
@@ -1174,16 +1191,16 @@ namespace Lumos
 
         bool changed = false;
 
-        const std::string id = "##" + std::string(label);
+        // const std::string id = "##" + std::string(label);
 
-        if(ImGui::BeginCombo(id.c_str(), current))
+        if(ImGui::BeginCombo(GenerateID(), current))
         {
             for(int i = 0; i < optionCount; i++)
             {
                 const bool is_selected = (current == options[i]);
-                if(ImGui::Selectable(options[i].c_str(), is_selected))
+                if(ImGui::Selectable(options[i], is_selected))
                 {
-                    current   = options[i].c_str();
+                    current   = options[i];
                     *selected = i;
                     changed   = true;
                 }

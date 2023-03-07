@@ -42,6 +42,12 @@ namespace Lumos
                 return m_FileName;
             }
 
+            uint32_t GetMipMapLevels() const override
+            {
+                return m_MipLevels;
+            }
+
+
             void Resize(uint32_t width, uint32_t height) override;
             void BuildTexture();
 
@@ -76,6 +82,7 @@ namespace Lumos
             TextureLoadOptions m_LoadOptions;
             RHIFormat m_Format;
             bool isHDR = false;
+            uint32_t m_MipLevels = 1;
         };
 
         class GLTextureCube : public TextureCube

@@ -19,6 +19,8 @@ namespace Lumos
             return;
 
         ImGui::Begin(m_Name.c_str(), &m_Active, 0);
+        ImGuiUtilities::PushID();
+
         auto& version = Lumos::LumosVersion;
         ImGui::Text("Lumos Engine Version : %d.%d.%d", version.major, version.minor, version.patch);
         ImGui::Separator();
@@ -66,6 +68,8 @@ namespace Lumos
 
         if(ImGui::Button("Save Settings"))
             m_Editor->SaveEditorSettings();
+
+        ImGuiUtilities::PopID();
         ImGui::End();
     }
 }
