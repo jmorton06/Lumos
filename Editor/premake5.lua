@@ -19,7 +19,7 @@ IncludeDir["msdf_atlas_gen"] = "../Lumos/External/msdf-atlas-gen/msdf-atlas-gen"
 IncludeDir["msdfgen"] = "../Lumos/External/msdf-atlas-gen/msdfgen"
 
 project "LumosEditor"
-	kind "ConsoleApp"
+	kind "WindowedApp"
 	language "C++"
 	editandcontinue "Off"
 	
@@ -90,6 +90,7 @@ project "LumosEditor"
 		cppdialect "C++17"
 		staticruntime "On"
 		systemversion "latest"
+		entrypoint "WinMainCRTStartup"
 		conformancemode "off"
 
 		defines
@@ -121,15 +122,12 @@ project "LumosEditor"
 
 		disablewarnings { 4307 }
 
-		filter {'system:windows', 'configurations:Production'}
-			kind "WindowedApp"
-
 	filter "system:macosx"
 		cppdialect "C++17"
 		staticruntime "On"
 		systemversion "11.0"
 		editandcontinue "Off"
-		kind "WindowedApp"
+
 		xcodebuildresources { "Assets.xcassets", "libMoltenVK.dylib" }
 
 		xcodebuildsettings
@@ -141,14 +139,14 @@ project "LumosEditor"
 			--['ENABLE_HARDENED_RUNTIME'] = 'YES'
 		}
 
-		if settings.enable_signing then
-		xcodebuildsettings
-		{
-			['CODE_SIGN_IDENTITY'] = 'Mac Developer',
-			['DEVELOPMENT_TEAM'] = settings.developer_team,
-			['PRODUCT_BUNDLE_IDENTIFIER'] = settings.bundle_identifier
-		}
-		end
+if settings.enable_signing then
+xcodebuildsettings
+{
+	['CODE_SIGN_IDENTITY'] = 'Mac Developer',
+	['DEVELOPMENT_TEAM'] = settings.developer_team,
+		['PRODUCT_BUNDLE_IDENTIFIER'] = settings.bundle_identifier
+}
+end
 
 		defines
 		{

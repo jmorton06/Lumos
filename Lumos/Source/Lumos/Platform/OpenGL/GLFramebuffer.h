@@ -18,12 +18,12 @@ namespace Lumos
 
             inline uint32_t GetFramebuffer() const { return m_Handle; }
 
-            void GenerateFramebuffer() override;
+            void GenerateFramebuffer();
 
-            void Bind(uint32_t width, uint32_t height) const override;
-            void Bind() const override;
-            void UnBind() const override;
-            void Clear() override { }
+            void Bind(uint32_t width, uint32_t height) const;
+            void Bind() const;
+            void UnBind() const;
+            void Clear() { }
             uint32_t GetWidth() const override { return m_Width; }
             uint32_t GetHeight() const override { return m_Height; }
 
@@ -31,11 +31,11 @@ namespace Lumos
 
             inline void SetClearColour(const glm::vec4& colour) override { m_ClearColour = colour; }
 
-            void AddTextureAttachment(RHIFormat format, Texture* texture) override;
-            void AddCubeTextureAttachment(RHIFormat format, CubeFace face, TextureCube* texture) override;
+            void AddTextureAttachment(RHIFormat format, Texture* texture, uint32_t mipLevel = 0);
+            void AddCubeTextureAttachment(RHIFormat format, CubeFace face, TextureCube* texture);
 
-            void AddShadowAttachment(Texture* texture) override;
-            void AddTextureLayer(int index, Texture* texture) override;
+            void AddShadowAttachment(Texture* texture);
+            void AddTextureLayer(int index, Texture* texture);
 
             void Validate() override;
 

@@ -306,7 +306,7 @@ namespace Lumos
                 frameBufferDesc.layer           = 0;
                 frameBufferDesc.msaaLevel       = 1;
                 auto framebuffer                = Framebuffer::Get(frameBufferDesc);
-                framebuffer->Bind();
+                framebuffer.As<GLFramebuffer>()->Bind();
             }
             GLRenderer::ClearInternal(RENDERER_BUFFER_COLOUR | RENDERER_BUFFER_DEPTH | RENDERER_BUFFER_STENCIL);
         }

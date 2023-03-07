@@ -54,7 +54,7 @@ namespace Lumos::Graphics
         Graphics::TextureDesc mainRenderTargetDesc;
         mainRenderTargetDesc.format          = Graphics::RHIFormat::R11G11B10_Float;
         mainRenderTargetDesc.flags           = TextureFlags::Texture_RenderTarget;
-        mainRenderTargetDesc.wrap            = TextureWrap::CLAMP;
+        mainRenderTargetDesc.wrap            = TextureWrap::CLAMP_TO_EDGE;
         mainRenderTargetDesc.minFilter       = TextureFilter::LINEAR;
         mainRenderTargetDesc.magFilter       = TextureFilter::LINEAR;
         mainRenderTargetDesc.generateMipMaps = false;

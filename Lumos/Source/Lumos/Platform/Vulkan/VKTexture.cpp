@@ -210,6 +210,8 @@ namespace Lumos
         {
             m_TextureImageMemory = VK_NULL_HANDLE;
 
+            m_UUID = Random64::Rand(0, std::numeric_limits<uint64_t>::max());
+
             UpdateDescriptor();
         }
 
