@@ -22,7 +22,7 @@ project "LumosEditor"
 	kind "WindowedApp"
 	language "C++"
 	editandcontinue "Off"
-	
+		
 	files
 	{
 		"**.h",
@@ -88,7 +88,7 @@ project "LumosEditor"
 
 	filter "system:windows"
 		cppdialect "C++17"
-		staticruntime "On"
+		staticruntime "Off"
 		systemversion "latest"
 		entrypoint "WinMainCRTStartup"
 		conformancemode "off"
@@ -124,10 +124,10 @@ project "LumosEditor"
 
 	filter "system:macosx"
 		cppdialect "C++17"
-		staticruntime "On"
+		staticruntime "Off"
 		systemversion "11.0"
 		editandcontinue "Off"
-
+		
 		xcodebuildresources { "Assets.xcassets", "libMoltenVK.dylib" }
 
 		xcodebuildsettings
@@ -184,12 +184,12 @@ end
 
 	filter "system:ios"
 		cppdialect "C++17"
-		staticruntime "On"
+		staticruntime "Off"
 		systemversion "latest"
 		kind "WindowedApp"
 		targetextension ".app"
 		editandcontinue "Off"
-
+		
 		defines
 		{
 			"LUMOS_PLATFORM_IOS",
@@ -295,7 +295,7 @@ end
 
 	filter "system:linux"
 		cppdialect "C++17"
-		staticruntime "On"
+		staticruntime "Off"
 		systemversion "latest"
 
 		defines

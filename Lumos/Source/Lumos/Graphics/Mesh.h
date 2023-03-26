@@ -30,6 +30,7 @@ namespace Lumos
                 , TexCoords(glm::vec2(0.0f))
                 , Normal(glm::vec3(0.0f))
                 , Tangent(glm::vec3(0.0f))
+                , Bitangent(glm::vec3(0.0f))
             {
             }
 
@@ -38,10 +39,11 @@ namespace Lumos
             glm::vec2 TexCoords;
             glm::vec3 Normal;
             glm::vec3 Tangent;
+            glm::vec3 Bitangent;
 
             bool operator==(const Vertex& other) const
             {
-                return Position == other.Position && TexCoords == other.TexCoords && Colours == other.Colours && Normal == other.Normal && Tangent == other.Tangent;
+                return Position == other.Position && TexCoords == other.TexCoords && Colours == other.Colours && Normal == other.Normal && Tangent == other.Tangent && Bitangent == other.Bitangent;
             }
         };
 
@@ -66,10 +68,11 @@ namespace Lumos
             void SetName(const std::string& name) { m_Name = name; }
 
             static void GenerateNormals(Vertex* vertices, uint32_t vertexCount, uint32_t* indices, uint32_t indexCount);
-            static void GenerateTangents(Vertex* vertices, uint32_t vertexCount, uint32_t* indices, uint32_t indexCount);
+            static void GenerateTangentsAndBitangents(Vertex* vertices, uint32_t vertexCount, uint32_t* indices, uint32_t indexCount);
 
         protected:
             static glm::vec3 GenerateTangent(const glm::vec3& a, const glm::vec3& b, const glm::vec3& c, const glm::vec2& ta, const glm::vec2& tb, const glm::vec2& tc);
+
             static glm::vec3* GenerateNormals(uint32_t numVertices, glm::vec3* vertices, uint32_t* indices, uint32_t numIndices);
             static glm::vec3* GenerateTangents(uint32_t numVertices, glm::vec3* vertices, uint32_t* indices, uint32_t numIndices, glm::vec2* texCoords);
 

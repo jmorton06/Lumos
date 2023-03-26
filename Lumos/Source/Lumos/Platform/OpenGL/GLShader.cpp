@@ -321,13 +321,14 @@ namespace Lumos
                     {
                         // auto slot         = descriptor.binding;
                         auto name = compiler->get_name(itUniform.base_type_id);
-
-                        SetUniformLocation(name.c_str());
+                        
+                        SetUniformLocation(name.c_str(), true);
+                        
                     }
                     else
                     {
                         auto name = compiler->get_name(itUniform.base_type_id);
-                        SetUniformLocation(name.c_str());
+                        SetUniformLocation(name.c_str(), true);
                     }
                 }
             }
@@ -341,8 +342,8 @@ namespace Lumos
             const auto& itLocation = m_UniformBlockLocations.find(name);
             GLCall(glUniformBlockBinding(m_Handle, itLocation->second, slot));
         }
-
-        bool GLShader::SetUniformLocation(const std::string& szName)
+        
+        bool GLShader::SetUniformLocation(const std::string& szName, bool pc)
         {
             LUMOS_PROFILE_FUNCTION();
             // GLuint name = HashValue(szName);
@@ -355,7 +356,7 @@ namespace Lumos
                 {
                     // Should only be used for push constant uniform buffers
                     m_UniformBlockLocations[szName] = location;
-                    glUniformBlockBinding(m_Handle, location, PUSHCONSTANT_BINDING);
+                    glUniformBlockBinding(m_Handle, location, pc ? PUSHCONSTANT_BINDING : location);
                     return true;
                 }
             }

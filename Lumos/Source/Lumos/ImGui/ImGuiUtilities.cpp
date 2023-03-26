@@ -64,7 +64,10 @@ namespace Lumos
         }
         else
         {
-            // TODO
+            if(ImGuiUtilities::InputText(value))
+            {
+                updated = true;
+            }
         }
         ImGui::PopItemWidth();
         ImGui::NextColumn();
@@ -205,7 +208,7 @@ namespace Lumos
         return updated;
     }
 
-    bool ImGuiUtilities::Property(const char* name, float& value, float min, float max, ImGuiUtilities::PropertyFlag flags)
+    bool ImGuiUtilities::Property(const char* name, float& value, float min, float max, float delta, ImGuiUtilities::PropertyFlag flags)
     {
         LUMOS_PROFILE_FUNCTION();
         bool updated = false;
@@ -222,7 +225,7 @@ namespace Lumos
         else
         {
             // std::string id = "##" + name;
-            if(ImGui::DragFloat(GenerateID(), &value, min, max))
+            if(ImGui::DragFloat(GenerateID(), &value, delta, min, max))
                 updated = true;
         }
         ImGui::PopItemWidth();
@@ -668,6 +671,15 @@ namespace Lumos
             float y2 = y1 + line_height;
             draw_list->AddRectFilled(ImVec2(x1, y1), ImVec2(x2, y2), col);
         }
+    }
+
+    void ImGuiUtilities::TextCentred(const char* text)
+    {
+        auto windowWidth = ImGui::GetWindowSize().x;
+        auto textWidth   = ImGui::CalcTextSize(text).x;
+
+        ImGui::SetCursorPosX((windowWidth - textWidth) * 0.5f);
+        ImGui::TextUnformatted(text);
     }
 
     void ImGuiUtilities::SetTheme(Theme theme)
@@ -1309,6 +1321,86 @@ namespace Lumos
         }
 
         draw_list->PopClipRect();
+    }
+
+    ImRect ImGuiUtilities::GetItemRect()
+    {
+        return ImRect(ImGui::GetItemRectMin(), ImGui::GetItemRectMax());
+    }
+
+    ImRect ImGuiUtilities::RectExpanded(const ImRect& rect, float x, float y)
+    {
+        ImRect result = rect;
+        result.Min.x -= x;
+        result.Min.y -= y;
+        result.Max.x += x;
+        result.Max.y += y;
+        return result;
+    }
+
+    ImRect ImGuiUtilities::RectOffset(const ImRect& rect, float x, float y)
+    {
+        ImRect result = rect;
+        result.Min.x += x;
+        result.Min.y += y;
+        result.Max.x += x;
+        result.Max.y += y;
+        return result;
+    }
+
+    ImRect ImGuiUtilities::RectOffset(const ImRect& rect, ImVec2 xy)
+    {
+        return RectOffset(rect, xy.x, xy.y);
+    }
+
+
+    void ImGuiUtilities::DrawBorder(ImVec2 rectMin, ImVec2 rectMax, const ImVec4& borderColour, float thickness, float offsetX, float offsetY)
+    {
+        auto min = rectMin;
+        min.x -= thickness;
+        min.y -= thickness;
+        min.x += offsetX;
+        min.y += offsetY;
+        auto max = rectMax;
+        max.x += thickness;
+        max.y += thickness;
+        max.x += offsetX;
+        max.y += offsetY;
+
+        auto* drawList = ImGui::GetWindowDrawList();
+        drawList->AddRect(min, max, ImGui::ColorConvertFloat4ToU32(borderColour), 0.0f, 0, thickness);
+    }
+
+    void ImGuiUtilities::DrawBorder(const ImVec4& borderColour, float thickness, float offsetX, float offsetY)
+    {
+        DrawBorder(ImGui::GetItemRectMin(), ImGui::GetItemRectMax(), borderColour, thickness, offsetX, offsetY);
+    }
+
+    void ImGuiUtilities::DrawBorder(float thickness, float offsetX, float offsetY)
+    {
+        DrawBorder(ImGui::GetStyleColorVec4(ImGuiCol_Border), thickness, offsetX, offsetY);
+    }
+
+    void ImGuiUtilities::DrawBorder(ImVec2 rectMin, ImVec2 rectMax, float thickness, float offsetX, float offsetY)
+    {
+        DrawBorder(rectMin, rectMax, ImGui::GetStyleColorVec4(ImGuiCol_Border), thickness, offsetX, offsetY);
+    }
+
+    void ImGuiUtilities::DrawBorder(ImRect rect, float thickness, float rounding, float offsetX, float offsetY)
+    {
+        auto min = rect.Min;
+        min.x -= thickness;
+        min.y -= thickness;
+        min.x += offsetX;
+        min.y += offsetY;
+        auto max = rect.Max;
+        max.x += thickness;
+        max.y += thickness;
+        max.x += offsetX;
+        max.y += offsetY;
+
+        auto* drawList = ImGui::GetWindowDrawList();
+        drawList->AddRect(min, max, ImGui::ColorConvertFloat4ToU32(ImGui::GetStyleColorVec4(ImGuiCol_Border)), rounding, 0, thickness);
     }
 }
 

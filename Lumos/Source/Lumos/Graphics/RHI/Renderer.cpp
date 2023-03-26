@@ -130,6 +130,8 @@ namespace Lumos
                 shaderLibrary->AddResource("BRDFLUT", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromFile("//CoreShaders/BRDFLUT.shader")));
                 shaderLibrary->AddResource("Text", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromFile("//CoreShaders/Text.shader")));
                 shaderLibrary->AddResource("SSAO", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromFile("//CoreShaders/SSAO.shader")));
+                shaderLibrary->AddResource("SSAOBlur", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromFile("//CoreShaders/SSAOBlur.shader")));
+
             }
         }
 

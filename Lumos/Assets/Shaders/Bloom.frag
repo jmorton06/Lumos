@@ -22,6 +22,67 @@ layout(push_constant) uniform Uniforms
 
 const float Epsilon = 1.0e-4;
 
+float Luminance(vec3 rgb) 
+{
+    return dot(rgb, vec3(0.2126, 0.7152, 0.0722));
+}
+
+vec3 Karis(vec3 hdr) 
+{
+    const float avg = 1.0f / (1.0f + (Luminance(hdr) * 0.25));
+    return hdr * avg;
+}
+
+
+/// downsampleBox13 with Partial Karis Average
+/// Uses the weighted avarage for the 5 h4x4box
+vec4 DownsampleBox13Balanced(sampler2D tex, vec2 uv, vec2 pixelSize) {
+
+	// .  .  .  .  .  .  .
+	// .  A  .  B  .  C  .
+	// .  .  D  .  E  .  .
+	// .  F  .  G  .  H  .
+	// .  .  I  .  J  .  .
+	// .  K  .  L  .  M  .
+	// .  .  .  .  .  .  .
+
+	vec4 A = texture(tex, uv + pixelSize * vec2(-1.0, -1.0));
+	vec4 B = texture(tex, uv + pixelSize * vec2(+0.0, -1.0));
+	vec4 C = texture(tex, uv + pixelSize * vec2(+1.0, -1.0));
+	vec4 D = texture(tex, uv + pixelSize * vec2(-0.5, -0.5));
+	vec4 E = texture(tex, uv + pixelSize * vec2(+0.5, -0.5));
+	vec4 F = texture(tex, uv + pixelSize * vec2(-1.0, +0.0));
+	vec4 G = texture(tex, uv + pixelSize * vec2(+0.0, +0.0));
+	vec4 H = texture(tex, uv + pixelSize * vec2(+1.0, +0.0));
+	vec4 I = texture(tex, uv + pixelSize * vec2(-0.5, +0.5));
+	vec4 J = texture(tex, uv + pixelSize * vec2(+0.5, +0.5));
+	vec4 K = texture(tex, uv + pixelSize * vec2(-1.0, +1.0));
+	vec4 L = texture(tex, uv + pixelSize * vec2(+0.0, +1.0));
+	vec4 M = texture(tex, uv + pixelSize * vec2(+1.0, +1.0));
+
+	vec4 hboxCC = (D + E + J + I) / 4.0;
+	vec4 hboxTL = (A + B + G + F) / 4.0;
+	vec4 hboxTR = (B + C + H + G) / 4.0;
+	vec4 hboxBL = (F + G + L + K) / 4.0;
+	vec4 hboxBR = (G + H + M + L) / 4.0;
+
+	// 	weight = contribution * 1.0 / (1.0 + brigthness);
+	float weightCC = 0.500 * 1.0 / (1.0 + max(hboxCC.r, max(hboxCC.g, hboxCC.b)));
+	float weightTL = 0.125 * 1.0 / (1.0 + max(hboxTL.r, max(hboxTL.g, hboxTL.b)));
+	float weightTR = 0.125 * 1.0 / (1.0 + max(hboxTR.r, max(hboxTR.g, hboxTR.b)));
+	float weightBL = 0.125 * 1.0 / (1.0 + max(hboxBL.r, max(hboxBL.g, hboxBL.b)));
+	float weightBR = 0.125 * 1.0 / (1.0 + max(hboxBR.r, max(hboxBR.g, hboxBR.b)));
+
+	float weightSum = weightCC + weightTL + weightTR + weightBL + weightBR;
+
+	return
+			(weightCC / weightSum) * hboxCC +
+			(weightTL / weightSum) * hboxTL +
+			(weightTR / weightSum) * hboxTR +
+			(weightBL / weightSum) * hboxBL +
+			(weightBR / weightSum) * hboxBR;
+}
+
 vec3 DownsampleBox13(sampler2D tex, float lod, vec2 uv, vec2 texelSize)
 {
     // Center
@@ -47,20 +108,22 @@ vec3 DownsampleBox13(sampler2D tex, float lod, vec2 uv, vec2 texelSize)
 	
     // Weights
     vec3 result = vec3(0.0);
-    // Inner box
-    result += (B + C + D + E) * 0.5f;
-    // Bottom-left box
-    result += (F + G + A + M) * 0.125f;
-    // Top-left box
-    result += (G + H + I + A) * 0.125f;
-    // Top-right box
-    result += (A + I + J + K) * 0.125f;
-    // Bottom-right box
-    result += (M + A + K + L) * 0.125f;
-	
-    // 4 samples each
-    result *= 0.25f;
-	
+    {
+        // Inner box
+        result += (B + C + D + E) * 0.5f;
+        // Bottom-left box
+        result += (F + G + A + M) * 0.125f;
+        // Top-left box
+        result += (G + H + I + A) * 0.125f;
+        // Top-right box
+        result += (A + I + J + K) * 0.125f;
+        // Bottom-right box
+        result += (M + A + K + L) * 0.125f;
+        
+        // 4 samples each
+        result *= 0.25f;
+    }
+
     return result;
 }
 
@@ -121,7 +184,7 @@ void main()
 	
     if (Mode == MODE_PREFILTER)
     {
-        color.rgb = DownsampleBox13(u_Texture, 0, texCoords, 1.0f / texSize);
+        color.rgb = DownsampleBox13Balanced(u_Texture, texCoords, 1.0f / texSize).rgb;
         color = Prefilter(color, texCoords);
         color.a = 1.0f;
     }

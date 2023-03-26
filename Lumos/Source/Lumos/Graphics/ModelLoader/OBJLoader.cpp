@@ -128,8 +128,6 @@ namespace Lumos
             if(attrib.normals.empty())
                 Graphics::Mesh::GenerateNormals(vertices, vertexCount, indices, numIndices);
 
-            Graphics::Mesh::GenerateTangents(vertices, vertexCount, indices, numIndices);
-
             // TODO : if(isAnimated) Load deferredColourAnimated;
             //  auto shader = Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/ForwardPBR.shader");
             auto shader = Application::Get().GetShaderLibrary()->GetResource("ForwardPBR");
@@ -188,6 +186,8 @@ namespace Lumos
 
             auto mesh = CreateSharedPtr<Graphics::Mesh>(vb, ib, boundingBox);
             mesh->SetMaterial(pbrMaterial);
+            mesh->GenerateTangentsAndBitangents(vertices, uint32_t(numVertices), indices, uint32_t(numIndices));
+
             m_Meshes.push_back(mesh);
 
             m_Textures.clear();

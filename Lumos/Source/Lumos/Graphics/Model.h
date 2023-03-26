@@ -5,7 +5,6 @@
 #include "Core/VFS.h"
 #include "Core/Asset.h"
 #include <cereal/cereal.hpp>
-
 namespace Lumos
 {
     namespace Graphics
@@ -65,14 +64,13 @@ namespace Lumos
             const std::string& GetFilePath() const { return m_FilePath; }
             PrimitiveType GetPrimitiveType() { return m_PrimitiveType; }
             void SetPrimitiveType(PrimitiveType type) { m_PrimitiveType = type; }
-
             SET_ASSET_TYPE(AssetType::Model);
 
         private:
             PrimitiveType m_PrimitiveType = PrimitiveType::None;
             std::vector<SharedPtr<Mesh>> m_Meshes;
             std::string m_FilePath;
-
+            
             void LoadOBJ(const std::string& path);
             void LoadGLTF(const std::string& path);
             void LoadFBX(const std::string& path);

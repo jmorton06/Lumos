@@ -50,8 +50,8 @@ namespace Lumos
             samplerInfo.addressModeU            = modeU;
             samplerInfo.addressModeV            = modeV;
             samplerInfo.addressModeW            = modeW;
-            samplerInfo.maxAnisotropy           = 1;     // maxAnisotropy;
-            samplerInfo.anisotropyEnable        = false; // anisotropyEnable;
+            samplerInfo.maxAnisotropy           = maxAnisotropy;
+            samplerInfo.anisotropyEnable        = anisotropyEnable;
             samplerInfo.unnormalizedCoordinates = VK_FALSE;
             samplerInfo.compareEnable           = VK_FALSE;
             samplerInfo.borderColor             = VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE;
@@ -166,7 +166,7 @@ namespace Lumos
             Load();
 
             m_TextureImageView = Graphics::CreateImageView(m_TextureImage, VKUtilities::FormatToVK(parameters.format, parameters.srgb), m_MipLevels, VK_IMAGE_VIEW_TYPE_2D, VK_IMAGE_ASPECT_COLOR_BIT, 1);
-            m_TextureSampler   = Graphics::CreateTextureSampler(VKUtilities::TextureFilterToVK(m_Parameters.magFilter), VKUtilities::TextureFilterToVK(m_Parameters.minFilter), 0.0f, static_cast<float>(m_MipLevels), false, VKDevice::Get().GetPhysicalDevice()->GetProperties().limits.maxSamplerAnisotropy, VKUtilities::TextureWrapToVK(m_Parameters.wrap), VKUtilities::TextureWrapToVK(m_Parameters.wrap), VKUtilities::TextureWrapToVK(m_Parameters.wrap));
+            m_TextureSampler   = Graphics::CreateTextureSampler(VKUtilities::TextureFilterToVK(m_Parameters.magFilter), VKUtilities::TextureFilterToVK(m_Parameters.minFilter), 0.0f, static_cast<float>(m_MipLevels), true, VKDevice::Get().GetPhysicalDevice()->GetProperties().limits.maxSamplerAnisotropy, VKUtilities::TextureWrapToVK(m_Parameters.wrap), VKUtilities::TextureWrapToVK(m_Parameters.wrap), VKUtilities::TextureWrapToVK(m_Parameters.wrap));
 
             m_UUID = Random64::Rand(0, std::numeric_limits<uint64_t>::max());
 
@@ -348,6 +348,7 @@ namespace Lumos
                 blit.srcSubresource.mipLevel       = i - 1;
                 blit.srcSubresource.baseArrayLayer = layer;
                 blit.srcSubresource.layerCount     = layerCount;
+                
                 blit.dstOffsets[0]                 = { 0, 0, 0 };
                 blit.dstOffsets[1]                 = { mipWidth > 1 ? mipWidth / 2 : 1, mipHeight > 1 ? mipHeight / 2 : 1, 1 };
                 blit.dstSubresource.aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT;

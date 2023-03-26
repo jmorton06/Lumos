@@ -133,7 +133,7 @@ namespace Lumos
             std::map<uint32_t, DescriptorSetInfo> m_DescriptorInfos;
 
             bool CreateLocations();
-            bool SetUniformLocation(const std::string& szName);
+            bool SetUniformLocation(const std::string& szName, bool pc = false);
 
             std::map<std::string, uint32_t> m_UniformBlockLocations;
             std::map<uint32_t, uint32_t> m_SampledImageLocations;

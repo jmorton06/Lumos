@@ -2,7 +2,7 @@ project "msdf-atlas-gen"
 	kind "StaticLib"
 	language "C++"
 	cppdialect "C++17"
-    staticruntime "on"
+    staticruntime "Off"
 	warnings "off"
 
 	files

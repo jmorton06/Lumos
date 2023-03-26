@@ -420,7 +420,7 @@ namespace Lumos
 
                     glm::vec3 capsule1SegmentMostExtremePoint = squareDistCapsule2PointToCapsuleSegA > Maths::M_EPSILON ? capsule1SegA : capsule1SegB;
                     glm::vec3 normalCapsuleSpace2             = (closestPointCapsule2Seg - capsule1SegmentMostExtremePoint);
-                    glm::normalize(normalCapsuleSpace2);
+                    normalCapsuleSpace2 = glm::normalize(normalCapsuleSpace2);
 
                     const glm::vec3 contactPointCapsule1Local = glm::inverse(capsule1ToCapsule2SpaceTransform) * (closestPointCapsule1Seg + normalCapsuleSpace2 * capsule1Radius);
                     const glm::vec3 contactPointCapsule2Local = closestPointCapsule2Seg - normalCapsuleSpace2 * capsule2Radius;

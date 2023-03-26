@@ -50,7 +50,7 @@ namespace Lumos
 
         bool Property(const char* name, int& value, int min = 0, int max = 100.0, PropertyFlag flags = PropertyFlag::None);
 
-        bool Property(const char* name, float& value, float min = -1.0f, float max = 1.0f, PropertyFlag flags = PropertyFlag::None);
+        bool Property(const char* name, float& value, float min = -1.0f, float max = 1.0f, float delta = 1.0f, PropertyFlag flags = PropertyFlag::None);
         bool Property(const char* name, glm::vec2& value, PropertyFlag flags);
         bool Property(const char* name, glm::vec2& value, float min = -1.0f, float max = 1.0f, PropertyFlag flags = PropertyFlag::None);
         bool Property(const char* name, glm::vec3& value, PropertyFlag flags);
@@ -72,6 +72,8 @@ namespace Lumos
         void Image(Graphics::Texture2D* texture, const glm::vec2& size);
         void Image(Graphics::TextureCube* texture, const glm::vec2& size);
         void Image(Graphics::TextureDepthArray* texture, uint32_t index, const glm::vec2& size);
+    
+        void TextCentred(const char* text);
 
         void SetTheme(Theme theme);
 
@@ -87,6 +89,20 @@ namespace Lumos
 
         void AlternatingRowsBackground(float lineHeight = -1.0f);
 
+        ImRect GetItemRect();
+
+        ImRect RectExpanded(const ImRect& rect, float x, float y);
+        ImRect RectOffset(const ImRect& rect, float x, float y);
+
+        ImRect RectOffset(const ImRect& rect, ImVec2 xy);
+
+        void DrawBorder(ImVec2 rectMin, ImVec2 rectMax, const ImVec4& borderColour, float thickness = 1.0f, float offsetX = 0.0f, float offsetY = 0.0f);
+
+        void DrawBorder(const ImVec4& borderColour, float thickness = 1.0f, float offsetX = 0.0f, float offsetY = 0.0f);
+        void DrawBorder(float thickness = 1.0f, float offsetX = 0.0f, float offsetY = 0.0f);
+        void DrawBorder(ImVec2 rectMin, ImVec2 rectMax, float thickness = 1.0f, float offsetX = 0.0f, float offsetY = 0.0f);
+    
+        void DrawBorder(ImRect rect, float thickness = 1.0f, float rounding = 0.0f, float offsetX = 0.0f, float offsetY = 0.0f);
         const char* GenerateID();
         const char* GenerateLabelID(std::string_view label);
         void PushID();

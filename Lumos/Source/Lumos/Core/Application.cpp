@@ -13,7 +13,6 @@
 #include "Graphics/Renderers/DebugRenderer.h"
 #include "Graphics/Renderers/GridRenderer.h"
 #include "Graphics/Font.h"
-
 #include "Maths/Transform.h"
 
 #include "Scene/EntityFactory.h"
@@ -254,7 +253,7 @@ namespace Lumos
         System::JobSystem::Execute(context, [this](JobDispatchArgs args)
                                    {
                                        m_SystemManager->RegisterSystem<LumosPhysicsEngine>();
-                                       m_SystemManager->RegisterSystem<B2PhysicsEngine>(); });
+                                       m_SystemManager->RegisterSystem<B2PhysicsEngine>();});
 
         System::JobSystem::Execute(context, [this](JobDispatchArgs args)
                                    { m_SceneManager->LoadCurrentList(); });

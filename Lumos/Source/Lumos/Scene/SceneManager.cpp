@@ -139,13 +139,18 @@ namespace Lumos
         return names;
     }
 
-    void SceneManager::EnqueueSceneFromFile(const std::string& filePath)
+    int SceneManager::EnqueueSceneFromFile(const std::string& filePath)
     {
+        auto found = std::find(m_SceneFilePaths.begin(), m_SceneFilePaths.end(), filePath);
+        if (found != m_SceneFilePaths.end())
+            return int(found - m_SceneFilePaths.begin());
+
         m_SceneFilePaths.push_back(filePath);
 
         auto name  = StringUtilities::RemoveFilePathExtension(StringUtilities::GetFileName(filePath));
         auto scene = new Scene(name);
         EnqueueScene(scene);
+        return int(m_vpAllScenes.size()) - 1;
     }
 
     void SceneManager::EnqueueScene(Scene* scene)

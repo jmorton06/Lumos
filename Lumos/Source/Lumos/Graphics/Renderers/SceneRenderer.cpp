@@ -103,7 +103,8 @@ namespace Lumos::Graphics
 
         m_ForwardData.m_TransformData = static_cast<glm::mat4*>(Memory::AlignedAlloc(static_cast<uint32_t>(MAX_OBJECTS * m_ForwardData.m_DynamicAlignment), m_ForwardData.m_DynamicAlignment));
 
-        m_SSAOTexture = Graphics::Texture2D::Create(mainRenderTargetDesc, width, height);
+        m_SSAOTexture = Graphics::Texture2D::Create(mainRenderTargetDesc, width / 2, height  / 2);
+        m_NormalTexture = Graphics::Texture2D::Create(mainRenderTargetDesc, width, height);
 
         const int SSAO_NOISE_DIM = 4;
         std::vector<glm::vec4> noiseData(SSAO_NOISE_DIM * SSAO_NOISE_DIM);
@@ -262,11 +263,17 @@ namespace Lumos::Graphics
         descriptorDesc.shader          = m_FilmicGrainShader.get();
         m_FilmicGrainPassDescriptorSet = SharedPtr<Graphics::DescriptorSet>(Graphics::DescriptorSet::Create(descriptorDesc));
 
-        // m_SSAOShader               = Application::Get().GetShaderLibrary()->GetResource("SSAO");
-        // descriptorDesc.layoutIndex = 0;
-        // descriptorDesc.shader      = m_SSAOShader.get();
-        // m_SSAOPassDescriptorSet    = SharedPtr<Graphics::DescriptorSet>(Graphics::DescriptorSet::Create(descriptorDesc));
-
+        m_SSAOShader               = Application::Get().GetShaderLibrary()->GetResource("SSAO");
+        descriptorDesc.layoutIndex = 0;
+        descriptorDesc.shader      = m_SSAOShader.get();
+        m_SSAOPassDescriptorSet    = SharedPtr<Graphics::DescriptorSet>(Graphics::DescriptorSet::Create(descriptorDesc));
+           
+        m_SSAOBlurShader             = Application::Get().GetShaderLibrary()->GetResource("SSAOBlur");
+        descriptorDesc.layoutIndex   = 0;
+        descriptorDesc.shader        = m_SSAOBlurShader.get();
+        m_SSAOBlurPassDescriptorSet  = SharedPtr<Graphics::DescriptorSet>(Graphics::DescriptorSet::Create(descriptorDesc));
+        m_SSAOBlurPassDescriptorSet2 = SharedPtr<Graphics::DescriptorSet>(Graphics::DescriptorSet::Create(descriptorDesc));
+        
         // m_OutlineShader = Application::Get().GetShaderLibrary()->GetResource("Outline");
         //         descriptorDesc.layoutIndex = 0;
         //         descriptorDesc.shader      = m_OutlineShader.get();
@@ -502,6 +509,7 @@ namespace Lumos::Graphics
         delete m_BloomTexture;
         delete m_BloomTexture1;
         delete m_BloomTexture2;
+        delete m_NormalTexture;
 
         delete m_ShadowData.m_ShadowTex;
         delete m_ForwardData.m_DefaultMaterial;
@@ -568,10 +576,13 @@ namespace Lumos::Graphics
         m_ForwardData.m_DepthTexture->Resize(width, height);
         m_MainTexture->Resize(width, height);
         m_PostProcessTexture1->Resize(width, height);
-        m_SSAOTexture->Resize(width, height);
+        m_SSAOTexture->Resize(width / 2 , height / 2 );
         m_BloomTexture->Resize(width, height);
         m_BloomTexture1->Resize(width, height);
         m_BloomTexture2->Resize(width, height);
+
+        m_NormalTexture->Resize(width, height);
+
     }
 
     void SceneRenderer::EnableDebugRenderer(bool enable)
@@ -671,8 +682,12 @@ namespace Lumos::Graphics
                 }
             }
 
-            auto invViewProj = glm::inverse(projView);
-            m_SkyboxDescriptorSet->SetUniform("UBO", "invprojview", &invViewProj);
+            auto invProj = glm::inverse(proj);
+            auto invView = glm::inverse(view);
+
+            m_SkyboxDescriptorSet->SetUniform("UBO", "invProjection", &invProj);
+            m_SkyboxDescriptorSet->SetUniform("UBO", "invView", &invView);
+
         }
 
         Light* directionaLight = nullptr;
@@ -688,6 +703,9 @@ namespace Lumos::Graphics
 
                 for(auto& lightEntity : group)
                 {
+                    if(!Entity(lightEntity, scene).Active())
+                        continue;
+                    
                     const auto& [light, trans] = group.get<Graphics::Light, Maths::Transform>(lightEntity);
                     light.Position             = glm::vec4(trans.GetWorldPosition(), 1.0f);
                     glm::vec3 forward          = glm::vec3(0.0f, 0.0f, 1.0f);
@@ -747,7 +765,8 @@ namespace Lumos::Graphics
         float LightSize             = (float)shadowData.m_ShadowMapSize;
         float transitionFade        = shadowData.m_CascadeFade;
         float ShadowFade            = shadowData.m_ShadowFade;
-
+        float width                 = m_MainTexture->GetWidth();
+        float height                = m_MainTexture->GetHeight();
         if(renderSettings.Renderer3DEnabled)
         {
             m_ForwardData.m_DescriptorSet[2]->SetUniform("UBOLight", "ViewMatrix", &view);
@@ -760,6 +779,9 @@ namespace Lumos::Graphics
             m_ForwardData.m_DescriptorSet[2]->SetUniform("UBOLight", "CascadeFade", &transitionFade);
             m_ForwardData.m_DescriptorSet[2]->SetUniform("UBOLight", "MaxShadowDist", &MaxShadowDist);
             m_ForwardData.m_DescriptorSet[2]->SetUniform("UBOLight", "InitialBias", &bias);
+            m_ForwardData.m_DescriptorSet[2]->SetUniform("UBOLight", "Width", &width);
+            m_ForwardData.m_DescriptorSet[2]->SetUniform("UBOLight", "Height", &height);
+
             m_ForwardData.m_DescriptorSet[2]->SetTexture("uShadowMap", reinterpret_cast<Texture*>(shadowData.m_ShadowTex), 0, TextureType::DEPTHARRAY);
 
             int numShadows   = shadowData.m_ShadowMapNum;
@@ -768,7 +790,8 @@ namespace Lumos::Graphics
             m_ForwardData.m_DescriptorSet[2]->SetUniform("UBOLight", "ShadowCount", &numShadows);
             m_ForwardData.m_DescriptorSet[2]->SetUniform("UBOLight", "Mode", &m_ForwardData.m_RenderMode);
             m_ForwardData.m_DescriptorSet[2]->SetUniform("UBOLight", "EnvMipCount", &EnvMipCount);
-            m_ForwardData.m_DescriptorSet[2]->SetTexture("uBRDFLUT", m_ForwardData.m_BRDFLUT.get());
+            m_ForwardData.m_DescriptorSet[2]->SetTexture("uBRDFLUT",  m_ForwardData.m_BRDFLUT.get());
+            m_ForwardData.m_DescriptorSet[2]->SetTexture("uSSAOMap",  m_SSAOTexture);
             m_ForwardData.m_DescriptorSet[2]->SetTexture("uEnvMap", m_ForwardData.m_EnvironmentMap, 0, TextureType::CUBE);
             m_ForwardData.m_DescriptorSet[2]->SetTexture("uIrrMap", m_ForwardData.m_IrradianceMap, 0, TextureType::CUBE);
 
@@ -947,7 +970,8 @@ namespace Lumos::Graphics
 
         if(sceneRenderSettings.SSAOEnabled && !m_DisablePostProcess)
         {
-            // SSAOPass();
+            //SSAOPass();
+            //SSAOBlurPass();
         }
 
         if(m_Settings.ShadowPass && sceneRenderSettings.ShadowsEnabled)
@@ -972,10 +996,10 @@ namespace Lumos::Graphics
         if(sceneRenderSettings.DepthOfFieldEnabled && !m_DisablePostProcess)
             DepthOfFieldPass();
 
-        ToneMappingPass();
-
-        if(sceneRenderSettings.DebandingEnabled && !m_DisablePostProcess)
+        if (sceneRenderSettings.DebandingEnabled && !m_DisablePostProcess)
             DebandingPass();
+
+        ToneMappingPass();
 
         if(sceneRenderSettings.FXAAEnabled && !m_DisablePostProcess)
             FXAAPass();
@@ -1302,10 +1326,10 @@ namespace Lumos::Graphics
         Graphics::PipelineDesc pipelineDesc;
         pipelineDesc.shader                  = m_ShadowData.m_Shader;
         pipelineDesc.cullMode                = Graphics::CullMode::FRONT;
-        pipelineDesc.transparencyEnabled     = false;
+        pipelineDesc.transparencyEnabled     = true; //For alpha cutout
         pipelineDesc.depthArrayTarget        = reinterpret_cast<Texture*>(m_ShadowData.m_ShadowTex);
         pipelineDesc.clearTargets            = true;
-        pipelineDesc.depthBiasEnabled        = true;
+        pipelineDesc.depthBiasEnabled        = false;
         pipelineDesc.depthBiasConstantFactor = 0.0f;
         pipelineDesc.depthBiasSlopeFactor    = 0.0f;
 
@@ -1360,6 +1384,7 @@ namespace Lumos::Graphics
         pipelineDesc.cullMode            = Graphics::CullMode::BACK;
         pipelineDesc.transparencyEnabled = false;
         pipelineDesc.depthTarget         = m_ForwardData.m_DepthTexture;
+        pipelineDesc.colourTargets[0]    = m_NormalTexture;
 
         auto pipeline = Graphics::Pipeline::Get(pipelineDesc);
         commandBuffer->BindPipeline(pipeline);
@@ -1402,6 +1427,39 @@ namespace Lumos::Graphics
         Graphics::PipelineDesc pipelineDesc {};
         pipelineDesc.shader           = m_SSAOShader;
         pipelineDesc.colourTargets[0] = m_SSAOTexture;
+        pipelineDesc.clearTargets     = true;
+        
+        auto projection = m_Camera->GetProjectionMatrix();
+		auto invProj = glm::inverse(m_Camera->GetProjectionMatrix());
+        static glm::vec4 samples[64];
+        float radius;
+        static bool init = false;
+        
+        if(!init)
+        {
+            for (uint32_t i = 0; i < 64; ++i)
+            {
+                glm::vec3 sample(Random32::Rand(-0.9f, 0.9f), Random32::Rand(-0.9f, 0.9f), Random32::Rand(0.0f, 1.0f));
+                sample = glm::normalize(sample); // Snap to surface of hemisphere
+                sample *= Random32::Rand(0.0f, 1.0f); // Space out linearly
+                float scale = (float)i / (float)64;
+                scale = Maths::Lerp(0.1f, 1.0f, scale * scale); // Bring distribution of samples closer to origin
+                samples[i] = glm::vec4(sample * scale, 0.0f);
+            }
+            init = true;
+        }
+       
+        radius = 8.0f;
+        
+		m_SSAOPassDescriptorSet->SetUniform("UniformBuffer","invProj", &invProj);
+        m_SSAOPassDescriptorSet->SetUniform("UniformBuffer","projection", &projection);
+        m_SSAOPassDescriptorSet->SetUniform("UniformBuffer","samples", &samples);
+        m_SSAOPassDescriptorSet->SetUniform("UniformBuffer","ssaoRadius", &radius);
+
+        m_SSAOPassDescriptorSet->SetTexture("in_Depth", m_ForwardData.m_DepthTexture);
+        m_SSAOPassDescriptorSet->SetTexture("in_Noise", m_NoiseTexture);
+        m_SSAOPassDescriptorSet->SetTexture("in_Normal", m_NormalTexture);
+        m_SSAOPassDescriptorSet->Update();
 
         //        auto invProj = glm::inverse(m_Camera->GetProjectionMatrix());
         //        m_SSAOPassDescriptorSet->SetUniform("UniformBuffer", "invProj", &invProj);
@@ -1409,18 +1467,62 @@ namespace Lumos::Graphics
         //        m_SSAOPassDescriptorSet->SetTexture("NoiseSampler", m_NoiseTexture);
         //        m_SSAOPassDescriptorSet->Update();
         //
-        //        auto pipeline = Graphics::Pipeline::Get(pipelineDesc);
-        //        pipeline->Bind(commandBuffer);
-        //
-        //        auto set = m_SSAOPassDescriptorSet.get();
-        //        Renderer::BindDescriptorSets(pipeline.get(), commandBuffer, 0, &set, 1);
-        //        Renderer::Draw(commandBuffer, DrawType::TRIANGLE, 3);
+        auto pipeline = Graphics::Pipeline::Get(pipelineDesc);
+        pipeline->Bind(commandBuffer);
 
-        //        pipeline->End(commandBuffer);
+        auto set = m_SSAOPassDescriptorSet.get();
+        Renderer::BindDescriptorSets(pipeline.get(), commandBuffer, 0, &set, 1);
+        Renderer::Draw(commandBuffer, DrawType::TRIANGLE, 3);
+
+        pipeline->End(commandBuffer);
     }
 
-    void SceneRenderer::BlurPass(Texture* texture)
+    void SceneRenderer::SSAOBlurPass()
     {
+        LUMOS_PROFILE_FUNCTION();
+        LUMOS_PROFILE_GPU("SSAO Blur Pass");
+
+        if(!m_Camera || !m_SSAOBlurShader || !m_SSAOBlurShader->IsCompiled())
+            return;
+
+        Graphics::CommandBuffer* commandBuffer = Renderer::GetMainSwapChain()->GetCurrentCommandBuffer();
+        Graphics::PipelineDesc pipelineDesc {};
+        pipelineDesc.shader      = m_SSAOBlurShader;
+        pipelineDesc.colourTargets[0] = m_SSAOTexture;
+		
+        glm::vec2 ssaoTexelOffset = glm::vec2(0.0f, 2 / m_SSAOTexture->GetHeight());
+	    int ssaoBlurRadius = 4;
+
+		m_SSAOBlurPassDescriptorSet->SetUniform("UBOConstant","ssaoTexelOffset", &ssaoTexelOffset);
+        m_SSAOBlurPassDescriptorSet->SetUniform("UBOConstant","ssaoBlurRadius", &ssaoBlurRadius);
+
+        m_SSAOBlurPassDescriptorSet->SetTexture("in_Depth", m_ForwardData.m_DepthTexture);
+        m_SSAOBlurPassDescriptorSet->SetTexture("in_SSAO", m_SSAOTexture);
+        m_SSAOBlurPassDescriptorSet->SetTexture("in_Normal", m_NormalTexture);
+        m_SSAOBlurPassDescriptorSet->Update();
+
+        ssaoTexelOffset = glm::vec2(2 / m_SSAOTexture->GetWidth(), 0.0f);
+
+        m_SSAOBlurPassDescriptorSet2->SetUniform("UBOConstant","ssaoTexelOffset", &ssaoTexelOffset);
+        m_SSAOBlurPassDescriptorSet2->SetUniform("UBOConstant","ssaoBlurRadius", &ssaoBlurRadius);
+
+        m_SSAOBlurPassDescriptorSet2->SetTexture("in_Depth", m_ForwardData.m_DepthTexture);
+        m_SSAOBlurPassDescriptorSet2->SetTexture("in_SSAO", m_SSAOTexture);
+        m_SSAOBlurPassDescriptorSet2->SetTexture("in_Normal", m_NormalTexture);
+        m_SSAOBlurPassDescriptorSet2->Update();
+
+        auto pipeline = Graphics::Pipeline::Get(pipelineDesc);
+        pipeline->Bind(commandBuffer);
+
+        auto set = m_SSAOBlurPassDescriptorSet.get();
+        Renderer::BindDescriptorSets(pipeline.get(), commandBuffer, 0, &set, 1);
+        Renderer::Draw(commandBuffer, DrawType::TRIANGLE, 3);
+
+        set = m_SSAOBlurPassDescriptorSet2.get();
+        Renderer::BindDescriptorSets(pipeline.get(), commandBuffer, 0, &set, 1);
+        Renderer::Draw(commandBuffer, DrawType::TRIANGLE, 3);
+
+        pipeline->End(commandBuffer);
     }
 
     void SceneRenderer::ForwardPass()
@@ -1557,8 +1659,15 @@ namespace Lumos::Graphics
         LUMOS_PROFILE_GPU("Tone Mapping Pass");
 
         float bloomIntensity = m_CurrentScene->GetSettings().RenderSettings.BloomEnabled ? m_CurrentScene->GetSettings().RenderSettings.m_BloomIntensity : 0.0f;
+        float Saturation = m_CurrentScene->GetSettings().RenderSettings.Saturation;
+        float Brightness = m_CurrentScene->GetSettings().RenderSettings.Brightness;
+        float Contrast = m_CurrentScene->GetSettings().RenderSettings.Contrast;
+        
         m_ToneMappingPassDescriptorSet->SetUniform("UniformBuffer", "BloomIntensity", &bloomIntensity);
         m_ToneMappingPassDescriptorSet->SetUniform("UniformBuffer", "ToneMapIndex", &m_ToneMapIndex);
+        m_ToneMappingPassDescriptorSet->SetUniform("UniformBuffer", "Brightness", &Brightness);
+        m_ToneMappingPassDescriptorSet->SetUniform("UniformBuffer", "Contrast", &Contrast);
+        m_ToneMappingPassDescriptorSet->SetUniform("UniformBuffer", "Saturation", &Saturation);
 
         m_ToneMappingPassDescriptorSet->SetTexture("u_Texture", m_MainTexture);
         m_ToneMappingPassDescriptorSet->SetTexture("u_BloomTexture", m_BloomTextureLastRenderered);
@@ -1590,7 +1699,7 @@ namespace Lumos::Graphics
         LUMOS_PROFILE_FUNCTION();
         LUMOS_PROFILE_GPU("Final Pass");
 
-        m_FinalPassDescriptorSet->SetTexture("u_Texture", m_LastRenderTarget);
+        m_FinalPassDescriptorSet->SetTexture("u_Texture",m_LastRenderTarget);// m_SSAOTexture );
         m_FinalPassDescriptorSet->Update();
 
         Graphics::PipelineDesc pipelineDesc {};
@@ -2907,30 +3016,34 @@ namespace Lumos::Graphics
         m_DebugDrawData.m_PointBatchDrawCallIndex = 0;
         m_DebugDrawData.m_LineBatchDrawCallIndex  = 0;
     }
-
-    SharedPtr<TextureCube> SceneRenderer::CreateCubeFromHDRI(const ::std::string& filePath)
+    SharedPtr<TextureCube> SceneRenderer::CreateCubeMap(const std::string& filePath, const glm::vec4& params)
     {
-        // Load hdri image
-        TextureDesc params;
-        params.srgb   = false;
-        Texture* hdri = nullptr;
-
-        if(!filePath.empty())
-            Texture2D::CreateFromFile("Environment", filePath, params);
         // Create shader and pipeline
         // Create Empty Cube Map
-        auto cubeMap       = TextureCube::Create(1024, nullptr, true);
-        auto irradianceMap = TextureCube::Create(32, nullptr, true);
+        auto cubeMap = TextureCube::Create(1024, nullptr, true);
+        //auto irradianceMap = TextureCube::Create(32, nullptr, true);
 
         auto commandBuffer = CommandBuffer::Create();
         commandBuffer->Init(true);
         auto shader = Application::Get().GetShaderLibrary()->GetResource("CreateEnvironmentMap");
 
-        Graphics::DescriptorDesc descriptorDesc {};
+        Graphics::DescriptorDesc descriptorDesc{};
         descriptorDesc.layoutIndex = 0;
-        descriptorDesc.shader      = shader.get();
-        auto descriptorSet         = SharedPtr<Graphics::DescriptorSet>(Graphics::DescriptorSet::Create(descriptorDesc));
-        descriptorSet->SetTexture("u_Texture", hdri);
+        descriptorDesc.shader = shader.get();
+        auto descriptorSet = SharedPtr<Graphics::DescriptorSet>(Graphics::DescriptorSet::Create(descriptorDesc));
+   
+        SharedPtr<Texture> hdri = nullptr;
+
+        if (!filePath.empty())
+        {
+            // Load hdri image
+            TextureDesc textureParams;
+            textureParams.srgb = false;
+
+            hdri = Texture2D::CreateFromFile("Environment", filePath, textureParams);
+            descriptorSet->SetTexture("u_Texture", hdri);
+        }
+        descriptorSet->SetUniform("UniformBuffer", "u_Parameters", (void*) & params);
         descriptorSet->Update();
 
         Graphics::PipelineDesc pipelineDesc {};
@@ -2958,7 +3071,8 @@ namespace Lumos::Graphics
 
             auto set = descriptorSet.get();
             Renderer::BindDescriptorSets(pipeline.get(), commandBuffer, 0, &set, 1);
-            Renderer::DrawIndexed(commandBuffer, DrawType::TRIANGLE, 4);
+            //Renderer::DrawIndexed(commandBuffer, DrawType::TRIANGLE, 4);
+            Renderer::Draw(commandBuffer, DrawType::TRIANGLE, 3);
 
             pipeline->End(commandBuffer);
         }
@@ -2971,7 +3085,6 @@ namespace Lumos::Graphics
         cubeMap->GenerateMipMaps();
 
         delete commandBuffer;
-        delete hdri;
         return SharedPtr<TextureCube>(cubeMap);
     }
 
