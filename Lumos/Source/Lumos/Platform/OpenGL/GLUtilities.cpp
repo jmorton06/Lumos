@@ -137,6 +137,28 @@ namespace Lumos
             }
         }
 
+        uint32_t GLUtilities::GetGLTypefromFormat(RHIFormat format)
+        {
+            switch (format)
+            {
+            case RHIFormat::R8_Unorm:
+            case RHIFormat::R8G8_Unorm:
+            case RHIFormat::R8G8B8_Unorm:
+            case RHIFormat::R8G8B8A8_Unorm:
+            case RHIFormat::R10G10B10A2_Unorm:
+                return GL_UNSIGNED_BYTE;
+            case RHIFormat::R11G11B10_Float:
+            case RHIFormat::R16G16B16_Float:
+            case RHIFormat::R16G16B16A16_Float:
+            case RHIFormat::R32G32B32_Float:
+            case RHIFormat::R32G32B32A32_Float:
+                return GL_FLOAT;
+            default:
+                LUMOS_ASSERT(false, "[Texture] Unsupported Format");
+                return GL_UNSIGNED_BYTE;
+            }
+        }
+
         uint32_t GLUtilities::RendererBufferToGL(uint32_t buffer)
         {
             uint32_t result = 0;

@@ -72,6 +72,8 @@ namespace Lumos
             void UpdateMaterialPropertiesData();
             void UpdateDescriptorSet();
 
+            void SetName(const std::string& name) { m_Name = name; }
+
             void SetAlbedoTexture(const std::string& path);
             void SetNormalTexture(const std::string& path);
             void SetRoughnessTexture(const std::string& path);

@@ -130,49 +130,55 @@ namespace Lumos
             delete[] normals;
         }
 
-        void Mesh::GenerateTangents(Vertex* vertices, uint32_t vertexCount, uint32_t* indices, uint32_t numIndices)
+        void Mesh::GenerateTangentsAndBitangents(Vertex* vertices, uint32_t vertexCount, uint32_t* indices, uint32_t numIndices)
         {
-            glm::vec3* tangents = new glm::vec3[vertexCount];
-
-            for(uint32_t i = 0; i < vertexCount; ++i)
+            for (int i = 0; i < vertexCount; i++)
             {
-                tangents[i] = glm::vec3();
+                vertices[i].Tangent = glm::vec3(0.0f);
+                vertices[i].Bitangent = glm::vec3(0.0f);
+            }
+            
+            for(uint32_t i = 0; i < numIndices; i+=3)
+            {
+                glm::vec3 v0 = vertices[indices[i]].Position;
+                glm::vec3 v1 = vertices[indices[i + 1]].Position;
+                glm::vec3 v2 = vertices[indices[i + 2]].Position;
+
+                glm::vec2 uv0 = vertices[indices[i]].TexCoords;
+                glm::vec2 uv1 = vertices[indices[i + 1]].TexCoords;
+                glm::vec2 uv2 = vertices[indices[i + 2]].TexCoords;
+
+                glm::vec3 n0 = vertices[indices[i]].Normal;
+                glm::vec3 n1 = vertices[indices[i + 1]].Normal;
+                glm::vec3 n2 = vertices[indices[i + 2]].Normal;
+
+                glm::vec3 edge1 = v1 - v0;
+                glm::vec3 edge2 = v2 - v0;
+
+                glm::vec2 deltaUV1 = uv1 - uv0;
+                glm::vec2 deltaUV2 = uv2 - uv0;
+
+                float f = 1.0f / (deltaUV1.x * deltaUV2.y - deltaUV2.x * deltaUV1.y);
+
+                glm::vec3 tangent = f * (deltaUV2.y * edge1 - deltaUV1.y * edge2);
+                glm::vec3 bitangent = f * (-deltaUV2.x * edge1 + deltaUV1.x * edge2);
+
+                // Store tangent and bitangent for each vertex of the triangle
+                vertices[indices[i]].Tangent += tangent;
+                vertices[indices[i + 1]].Tangent += tangent;
+                vertices[indices[i + 2]].Tangent += tangent;
+
+                vertices[indices[i]].Bitangent += bitangent;
+                vertices[indices[i + 1]].Bitangent += bitangent;
+                vertices[indices[i + 2]].Bitangent += bitangent;
             }
 
-            if(indices)
+            // Normalize the tangent and bitangent vectors
+            for (uint32_t i = 0; i < vertexCount; i++)
             {
-                for(uint32_t i = 0; i < numIndices; i += 3)
-                {
-                    int a = indices[i];
-                    int b = indices[i + 1];
-                    int c = indices[i + 2];
-
-                    const glm::vec3 tangent = GenerateTangent(vertices[a].Position, vertices[b].Position, vertices[c].Position, vertices[a].TexCoords, vertices[b].TexCoords, vertices[c].TexCoords);
-
-                    tangents[a] += tangent;
-                    tangents[b] += tangent;
-                    tangents[c] += tangent;
-                }
+                vertices[i].Tangent = glm::normalize(vertices[i].Tangent);
+                vertices[i].Bitangent = glm::normalize(vertices[i].Bitangent);
             }
-            else
-            {
-                for(uint32_t i = 0; i < vertexCount; i += 3)
-                {
-                    const glm::vec3 tangent = GenerateTangent(vertices[i].Position, vertices[i + 1].Position, vertices[i + 2].Position, vertices[i].TexCoords, vertices[i + 1].TexCoords,
-                                                              vertices[i + 2].TexCoords);
-
-                    tangents[i] += tangent;
-                    tangents[i + 1] += tangent;
-                    tangents[i + 2] += tangent;
-                }
-            }
-            for(uint32_t i = 0; i < vertexCount; ++i)
-            {
-                glm::normalize(tangents[i]);
-                vertices[i].Tangent = tangents[i];
-            }
-
-            delete[] tangents;
         }
 
         glm::vec3 Mesh::GenerateTangent(const glm::vec3& a, const glm::vec3& b, const glm::vec3& c, const glm::vec2& ta, const glm::vec2& tb, const glm::vec2& tc)
@@ -189,6 +195,7 @@ namespace Lumos
 
             return axis * factor;
         }
+
 
         glm::vec3* Mesh::GenerateNormals(uint32_t numVertices, glm::vec3* vertices, uint32_t* indices, uint32_t numIndices)
         {

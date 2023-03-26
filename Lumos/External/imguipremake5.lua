@@ -2,7 +2,7 @@ project "imgui"
 	kind "StaticLib"
 	language "C++"
 	cppdialect "C++17"
-	staticruntime "On"
+	staticruntime "Off"
 
 	files
 	{

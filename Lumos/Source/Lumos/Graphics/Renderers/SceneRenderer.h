@@ -94,6 +94,7 @@ namespace Lumos
             void GenerateBRDFLUTPass();
             void DepthPrePass();
             void SSAOPass();
+            void SSAOBlurPass();
             void ForwardPass();
             void ShadowPass();
             void SkyboxPass();
@@ -104,7 +105,6 @@ namespace Lumos
             void FinalPass();
             void TextPass();
             void TextFlush();
-            void BlurPass(Texture* texture);
 
             // Post Process
             void ToneMappingPass();
@@ -264,7 +264,7 @@ namespace Lumos
             SceneRendererSettings& GetSettings() { return m_Settings; }
             SceneRendererStats& GetSceneRendererStats() { return m_Stats; }
 
-            SharedPtr<TextureCube> CreateCubeFromHDRI(const std::string& filePath);
+            SharedPtr<TextureCube> CreateCubeMap(const std::string& filePath, const glm::vec4& params);
 
             void SetDisablePostProcess(bool disabled) { m_DisablePostProcess = disabled; }
 
@@ -344,8 +344,14 @@ namespace Lumos
 
             Texture2D* m_SSAOTexture  = nullptr;
             Texture2D* m_NoiseTexture = nullptr;
+            Texture2D* m_NormalTexture = nullptr;
+
             SharedPtr<Graphics::Shader> m_SSAOShader;
-            // SharedPtr<Graphics::DescriptorSet> m_SSAOPassDescriptorSet;
+            SharedPtr<Graphics::DescriptorSet> m_SSAOPassDescriptorSet;
+
+            SharedPtr<Graphics::Shader> m_SSAOBlurShader;
+            SharedPtr<Graphics::DescriptorSet> m_SSAOBlurPassDescriptorSet;
+            SharedPtr<Graphics::DescriptorSet> m_SSAOBlurPassDescriptorSet2;
 
             SharedPtr<Graphics::Shader> m_ToneMappingPassShader;
             SharedPtr<Graphics::DescriptorSet> m_ToneMappingPassDescriptorSet;

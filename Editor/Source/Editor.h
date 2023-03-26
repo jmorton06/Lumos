@@ -126,24 +126,62 @@ namespace Lumos
             return m_Settings.m_SnapAmount;
         }
 
+        void ClearSelected()
+        {
+            m_SelectedEntities.clear();
+        }
+        
         void SetSelected(entt::entity entity)
         {
-            m_SelectedEntity = entity;
+            if (std::find(m_SelectedEntities.begin(), m_SelectedEntities.end(), entity) != m_SelectedEntities.end())
+			    return;
+
+            m_SelectedEntities.push_back(entity);
         }
-        entt::entity GetSelected() const
+        
+        void UnSelect(entt::entity entity)
         {
-            return m_SelectedEntity;
+            auto it = std::find(m_SelectedEntities.begin(), m_SelectedEntities.end(), entity);
+               
+            if (it != m_SelectedEntities.end())
+            {
+                m_SelectedEntities.erase(it);
+            }
+        }
+        
+        const std::vector<entt::entity>& GetSelected() const
+        {
+            return m_SelectedEntities;
+        }
+        
+        bool IsSelected(entt::entity entity)
+        {
+            if (std::find(m_SelectedEntities.begin(), m_SelectedEntities.end(), entity) != m_SelectedEntities.end())
+                return true;
+            
+            return false;
+        }
+        
+        bool IsCopied(entt::entity entity)
+        {
+            if (std::find(m_CopiedEntities.begin(), m_CopiedEntities.end(), entity) != m_CopiedEntities.end())
+                return true;
+            
+            return false;
         }
 
         void SetCopiedEntity(entt::entity entity, bool cut = false)
         {
-            m_CopiedEntity  = entity;
+            if (std::find(m_CopiedEntities.begin(), m_CopiedEntities.end(), entity) != m_CopiedEntities.end())
+			    return;
+
+            m_CopiedEntities.push_back(entity);
             m_CutCopyEntity = cut;
         }
 
-        entt::entity GetCopiedEntity() const
+        const std::vector<entt::entity>& GetCopiedEntity() const
         {
-            return m_CopiedEntity;
+            return m_CopiedEntities;
         }
 
         bool GetCutCopyEntity()
@@ -258,8 +296,9 @@ namespace Lumos
         Application* m_Application;
 
         uint32_t m_ImGuizmoOperation = 14463;
-        entt::entity m_SelectedEntity;
-        entt::entity m_CopiedEntity;
+        std::vector<entt::entity> m_SelectedEntities;
+        std::vector<entt::entity> m_CopiedEntities;
+
         bool m_CutCopyEntity              = false;
         float m_CurrentSceneAspectRatio   = 0.0f;
         float m_CameraTransitionStartTime = 0.0f;

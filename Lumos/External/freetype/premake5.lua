@@ -1,7 +1,7 @@
 project "freetype"
 	kind "StaticLib"
 	language "C"
-    staticruntime "on"
+    staticruntime "Off"
     warnings "off"
 
 	files {

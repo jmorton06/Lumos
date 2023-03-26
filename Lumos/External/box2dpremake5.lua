@@ -4,7 +4,7 @@
 project 'box2d'
 	kind 'StaticLib'
 	cppdialect "C++14"
-	staticruntime "On"
+	staticruntime "Off"
 	files { 'box2d/src/**' }
 	includedirs { 'box2d/include' , 'box2d/src' }
 

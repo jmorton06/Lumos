@@ -270,6 +270,7 @@ namespace Lumos::Graphics
         const ofbx::Vec3* vertices     = geom->getVertices();
         const ofbx::Vec3* normals      = geom->getNormals();
         const ofbx::Vec3* tangents     = geom->getTangents();
+        //const ofbx::Vec3* bitangents   = geom->getBitangents();
         const ofbx::Vec4* colours      = geom->getColors();
         const ofbx::Vec2* uvs          = geom->getUVs();
         const int* materials           = geom->getMaterials();
@@ -281,13 +282,6 @@ namespace Lumos::Graphics
         SharedPtr<Maths::BoundingBox> boundingBox = CreateSharedPtr<Maths::BoundingBox>();
 
         auto indices = geom->getFaceIndices();
-
-        if(!tangents && normals && uvs)
-        {
-            generatedTangents = new ofbx::Vec3[vertex_count];
-            computeTangents(generatedTangents, vertex_count, vertices, normals, uvs);
-            tangents = generatedTangents;
-        }
 
         auto transform = GetTransform(fbxMesh);
 
@@ -307,9 +301,7 @@ namespace Lumos::Graphics
                 vertex.TexCoords = glm::vec2(float(uvs[i + firstVertexOffset].x), 1.0f - float(uvs[i + firstVertexOffset].y));
             if(colours)
                 vertex.Colours = glm::vec4(float(colours[i + firstVertexOffset].x), float(colours[i + firstVertexOffset].y), float(colours[i + firstVertexOffset].z), float(colours[i + firstVertexOffset].w));
-            if(tangents)
-                vertex.Tangent = transform.GetWorldMatrix() * glm::normalize(glm::vec4(float(tangents[i + firstVertexOffset].x), float(tangents[i + firstVertexOffset].y), float(tangents[i + firstVertexOffset].z), 1.0f));
-
+ 
             FixOrientation(vertex.Normal);
             FixOrientation(vertex.Tangent);
         }
@@ -348,12 +340,39 @@ namespace Lumos::Graphics
         if(material)
             mesh->SetMaterial(pbrMaterial);
 
-        if(generatedTangents)
-            delete[] generatedTangents;
+        mesh->Graphics::Mesh::GenerateTangentsAndBitangents(tempvertices, uint32_t(vertexCount), indicesArray, uint32_t(numIndices));
+
         delete[] tempvertices;
-        delete[] indicesArray;
+        delete[] indicesArray; 
 
         return mesh;
+    }
+
+
+    glm::mat4 FbxMatrixToLM(const ofbx::Matrix& mat)
+    {
+        glm::mat4  result;
+        for (int32_t i = 0; i < 4; i++)
+            for (int32_t j = 0; j < 4; j++)
+                result[i][j] = (float)mat.m[i * 4 + j];
+        return result;
+    }
+
+    glm::mat4 GetOffsetMatrix(const ofbx::Mesh* mesh, const ofbx::Object* node)
+    {
+        auto* skin = mesh ? mesh->getGeometry()->getSkin() : nullptr;
+        if (skin)
+        {
+            for (int i = 0, c = skin->getClusterCount(); i < c; i++)
+            {
+                const ofbx::Cluster* cluster = skin->getCluster(i);
+                if (cluster->getLink() == node)
+                {
+                    return FbxMatrixToLM(cluster->getTransformLinkMatrix());
+                }
+            }
+        }
+        return FbxMatrixToLM(node->getGlobalTransform());
     }
 
     void Model::LoadFBX(const std::string& path)
@@ -379,7 +398,8 @@ namespace Lumos::Graphics
         const uint64_t flags      = ignoreGeometry ? (uint64_t)ofbx::LoadFlags::IGNORE_GEOMETRY : (uint64_t)ofbx::LoadFlags::TRIANGULATE;
 
         ofbx::IScene* scene = ofbx::load(data, uint32_t(size), flags);
-
+        const ofbx::GlobalSettings* settings = scene->getGlobalSettings();
+        
         err = ofbx::getError();
 
         if(!err.empty() || !scene)
@@ -387,8 +407,7 @@ namespace Lumos::Graphics
             LUMOS_LOG_CRITICAL(err);
         }
 
-        const ofbx::GlobalSettings* settings = scene->getGlobalSettings();
-        switch(settings->UpAxis)
+        switch (settings->UpAxis)
         {
         case ofbx::UpVector_AxisX:
             orientation = Orientation::X_UP;
@@ -398,10 +417,13 @@ namespace Lumos::Graphics
             break;
         case ofbx::UpVector_AxisZ:
             orientation = Orientation::Z_UP;
-            break;
-        }
+                break;
+          }
 
         int meshCount = scene->getMeshCount();
+        std::vector<const ofbx::Mesh*> meshes;
+       // auto skeleton = ImportSkeleton(scene->getMesh());
+       // loadAnimation(fileName, scene, sceneBone, outRes, orientation);
 
 #ifdef THREAD_MESH_LOADING
         System::JobSystem::Context ctx;
@@ -415,6 +437,9 @@ namespace Lumos::Graphics
 #endif
 
                 const ofbx::Mesh* fbxMesh = (const ofbx::Mesh*)scene->getMesh(i);
+
+                meshes.push_back(fbxMesh);
+
                 const auto geometry = fbxMesh->getGeometry();
                 const auto trianglesCount = geometry->getVertexCount() / 3;
             

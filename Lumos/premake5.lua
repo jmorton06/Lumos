@@ -23,7 +23,7 @@ project "Lumos"
 	kind "StaticLib"
 	language "C++"
 	editandcontinue "Off"
-
+		staticruntime "Off"
 	files
 	{
 		"Source/**.h",
@@ -96,7 +96,6 @@ project "Lumos"
 
 	filter "system:windows"
 		cppdialect "C++17"
-		staticruntime "on"
 		systemversion "latest"
 		disablewarnings { 4307 }
 		characterset ("Unicode")
@@ -143,13 +142,12 @@ project "Lumos"
 
 		links
 		{
-			"glfw",
-			"Dbghelp"
+			"glfw"
 		}
 
 		buildoptions
 		{
-			"/MP", "/bigobj"
+			"/bigobj"
 		}
 
 		filter 'files:External/**.cpp'
@@ -371,13 +369,13 @@ project "Lumos"
 			}
 
 	filter "configurations:Debug"
-defines { "LUMOS_DEBUG", "_DEBUG","TRACY_ENABLE","LUMOS_PROFILE","TRACY_ON_DEMAND"  }
+		defines { "LUMOS_DEBUG", "_DEBUG","TRACY_ENABLE","LUMOS_PROFILE","TRACY_ON_DEMAND"  }
 		symbols "On"
 		runtime "Debug"
 		optimize "Off"
 
 	filter "configurations:Release"
-defines { "LUMOS_RELEASE","TRACY_ENABLE","LUMOS_PROFILE", "TRACY_ON_DEMAND"}
+		defines { "LUMOS_RELEASE","TRACY_ENABLE","LUMOS_PROFILE", "TRACY_ON_DEMAND"}
 		optimize "Speed"
 		symbols "On"
 		runtime "Release"

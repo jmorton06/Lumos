@@ -60,7 +60,7 @@ namespace Lumos
             if(hierarchyComponent != nullptr && hierarchyComponent->First() != entt::null)
                 noChildren = false;
 
-            ImGuiTreeNodeFlags nodeFlags = ((m_Editor->GetSelected() == node) ? ImGuiTreeNodeFlags_Selected : 0);
+            ImGuiTreeNodeFlags nodeFlags = ((m_Editor->IsSelected(node)) ? ImGuiTreeNodeFlags_Selected : 0);
 
             nodeFlags |= ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_FramePadding | ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_SpanAvailWidth;
 
@@ -69,8 +69,8 @@ namespace Lumos
                 nodeFlags |= ImGuiTreeNodeFlags_Leaf;
             }
 
-            auto activeComponent = registry.try_get<ActiveComponent>(node);
-            bool active          = activeComponent ? activeComponent->active : true;
+            //auto activeComponent = registry.try_get<ActiveComponent>(node);
+            bool active = Entity(node, m_Editor->GetCurrentScene()).Active();//activeComponent ? activeComponent->active : true;
 
             if(!active)
                 ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
@@ -139,8 +139,17 @@ namespace Lumos
             bool nodeOpen = ImGui::TreeNodeEx((void*)(intptr_t)entt::to_integral(node), nodeFlags, "%s", icon.c_str());
             {
                 // Allow clicking of icon and text. Need twice as they are separated
-                if(ImGui::IsItemClicked())
-                    m_Editor->SetSelected(node);
+                if(ImGui::IsItemClicked() && !ImGui::IsItemToggledOpen())
+                {
+                    bool ctrlDown = Input::Get().GetKeyHeld(Lumos::InputCode::Key::LeftControl) || Input::Get().GetKeyHeld(Lumos::InputCode::Key::RightControl) || Input::Get().GetKeyHeld(Lumos::InputCode::Key::LeftSuper);
+                    if(!ctrlDown)
+                        m_Editor->ClearSelected();
+                    
+                    if(!m_Editor->IsSelected(node))
+                        m_Editor->SetSelected(node);
+                    else
+                        m_Editor->UnSelect(node);
+                }
                 else if(m_DoubleClicked == node && ImGui::IsMouseClicked(ImGuiMouseButton_Left) && !ImGui::IsItemHovered(ImGuiHoveredFlags_None))
                     m_DoubleClicked = entt::null;
             }
@@ -159,17 +168,6 @@ namespace Lumos
                     registry.get_or_emplace<NameComponent>(node).name = objName;
                 ImGui::PopStyleVar();
             }
-#if 0
-            ImGui::SameLine(ImGui::GetWindowContentRegionMax().x - 22.0f);
-            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.7f, 0.7f, 0.7f, 0.0f));
-            if(ImGui::Button(active ? ICON_MDI_EYE : ICON_MDI_EYE_OFF))
-            {
-                auto& activeComponent = registry.get_or_emplace<ActiveComponent>(node);
-                
-                activeComponent.active = !active;
-            }
-            ImGui::PopStyleColor();
-#endif
 
             if(!active)
                 ImGui::PopStyleColor();
@@ -183,22 +181,25 @@ namespace Lumos
                 if(ImGui::Selectable("Cut"))
                     m_Editor->SetCopiedEntity(node, true);
 
-                if(m_Editor->GetCopiedEntity() != entt::null && registry.valid(m_Editor->GetCopiedEntity()))
+                if(m_Editor->GetCopiedEntity().size() > 0 && registry.valid(m_Editor->GetCopiedEntity().front()))
                 {
                     if(ImGui::Selectable("Paste"))
                     {
-                        auto scene          = Application::Get().GetSceneManager()->GetCurrentScene();
-                        Entity copiedEntity = { m_Editor->GetCopiedEntity(), scene };
-                        if(!copiedEntity.Valid())
+                        for(auto entity : m_Editor->GetCopiedEntity() )
                         {
-                            m_Editor->SetCopiedEntity(entt::null);
-                        }
-                        else
-                        {
-                            scene->DuplicateEntity(copiedEntity, { node, scene });
+                            auto scene          = Application::Get().GetSceneManager()->GetCurrentScene();
+                            Entity copiedEntity = { entity, scene };
+                            if(!copiedEntity.Valid())
+                            {
+                                m_Editor->SetCopiedEntity(entt::null);
+                            }
+                            else
+                            {
+                                scene->DuplicateEntity(copiedEntity, { node, scene });
 
-                            if(m_Editor->GetCutCopyEntity())
-                                deleteEntity = true;
+                                if(m_Editor->GetCutCopyEntity())
+                                    deleteEntity = true;
+                            }
                         }
                     }
                 }
@@ -216,8 +217,8 @@ namespace Lumos
                 }
                 if(ImGui::Selectable("Delete"))
                     deleteEntity = true;
-                if(m_Editor->GetSelected() == node)
-                    m_Editor->SetSelected(entt::null);
+                if(m_Editor->IsSelected(node))
+                    m_Editor->UnSelect(node);
                 ImGui::Separator();
                 if(ImGui::Selectable("Rename"))
                     m_DoubleClicked = node;
@@ -275,8 +276,8 @@ namespace Lumos
                     ImGui::EndDragDropTarget();
                 }
 
-                if(m_Editor->GetSelected() == entity)
-                    m_Editor->SetSelected(entt::null);
+                if(m_Editor->IsSelected(entity))
+                   m_Editor->UnSelect(entity);
             }
 
             if(ImGui::IsItemClicked() && !deleteEntity)
@@ -307,7 +308,7 @@ namespace Lumos
 
             if(m_SelectUp)
             {
-                if(m_Editor->GetSelected() == node && registry.valid(m_CurrentPrevious))
+                if(m_Editor->GetSelected().front() == node && registry.valid(m_CurrentPrevious))
                 {
                     m_SelectUp = false;
                     m_Editor->SetSelected(m_CurrentPrevious);
@@ -316,7 +317,7 @@ namespace Lumos
 
             if(m_SelectDown)
             {
-                if(registry.valid(m_CurrentPrevious) && m_CurrentPrevious == m_Editor->GetSelected())
+                if(registry.valid(m_CurrentPrevious) && m_CurrentPrevious == m_Editor->GetSelected().front())
                 {
                     m_SelectDown = false;
                     m_Editor->SetSelected(node);
@@ -324,6 +325,18 @@ namespace Lumos
             }
 
             m_CurrentPrevious = node;
+
+#if 1
+            ImGui::SameLine(ImGui::GetWindowContentRegionMax().x - ImGui::CalcTextSize(ICON_MDI_EYE).x * 2.0f);
+            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.7f, 0.7f, 0.7f, 0.0f));
+            if (ImGui::Button(active ? ICON_MDI_EYE : ICON_MDI_EYE_OFF))
+            {
+                auto& activeComponent = registry.get_or_emplace<ActiveComponent>(node);
+
+                activeComponent.active = !active;
+            }
+            ImGui::PopStyleColor();
+#endif
 
             if(nodeOpen == false)
             {
@@ -534,31 +547,31 @@ namespace Lumos
 
             if(ImGui::BeginPopupContextWindow())
             {
-                if(m_Editor->GetCopiedEntity() != entt::null && registry.valid(m_Editor->GetCopiedEntity()))
-                {
-                    if(ImGui::Selectable("Paste"))
-                    {
-                        auto scene          = Application::Get().GetSceneManager()->GetCurrentScene();
-                        Entity copiedEntity = { m_Editor->GetCopiedEntity(), scene };
-                        if(!copiedEntity.Valid())
-                        {
-                            m_Editor->SetCopiedEntity(entt::null);
-                        }
-                        else
-                        {
-                            scene->DuplicateEntity(copiedEntity);
-
-                            if(m_Editor->GetCutCopyEntity())
-                            {
-                                DestroyEntity(m_Editor->GetCopiedEntity(), registry);
-                            }
-                        }
-                    }
-                }
-                else
-                {
-                    ImGui::TextDisabled("Paste");
-                }
+//                if(m_Editor->GetCopiedEntity() != entt::null && registry.valid(m_Editor->GetCopiedEntity()))
+//                {
+//                    if(ImGui::Selectable("Paste"))
+//                    {
+//                        auto scene          = Application::Get().GetSceneManager()->GetCurrentScene();
+//                        Entity copiedEntity = { m_Editor->GetCopiedEntity(), scene };
+//                        if(!copiedEntity.Valid())
+//                        {
+//                            m_Editor->SetCopiedEntity(entt::null);
+//                        }
+//                        else
+//                        {
+//                            scene->DuplicateEntity(copiedEntity);
+//
+//                            if(m_Editor->GetCutCopyEntity())
+//                            {
+//                                DestroyEntity(m_Editor->GetCopiedEntity(), registry);
+//                            }
+//                        }
+//                    }
+//                }
+//                else
+//                {
+//                    ImGui::TextDisabled("Paste");
+//                }
 
                 ImGui::Separator();
 

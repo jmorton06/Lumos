@@ -88,7 +88,7 @@ namespace Lumos
         class GLTextureCube : public TextureCube
         {
         public:
-            GLTextureCube(uint32_t size);
+            GLTextureCube(uint32_t size, uint8_t* data, bool hdr);
             GLTextureCube(const std::string& filepath);
             GLTextureCube(const std::string* files);
             GLTextureCube(const std::string* files, uint32_t mips, TextureDesc params, TextureLoadOptions loadOptions);
@@ -139,6 +139,8 @@ namespace Lumos
             {
                 return m_Format;
             }
+
+            void GenerateMipMaps() override;
 
             static void MakeDefault();
 

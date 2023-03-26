@@ -9,15 +9,14 @@ struct VertexData
 	vec2 TexCoord;
 	vec4 Position;
 	vec3 Normal;
-	vec3 Tangent;
-	vec4 ShadowMapCoords[4];
+	mat3 WorldNormal;
 };
 
 layout(location = 0) in VertexData VertexOutput;
 
 #define MAX_LIGHTS 32
 #define MAX_SHADOWMAPS 4
-#define BLEND_SHADOW_CASCADES 0
+#define BLEND_SHADOW_CASCADES 1
 #define NUM_PCF_SAMPLES 8
 
 const float Epsilon = 0.00001;
@@ -82,8 +81,8 @@ layout(set = 2, binding = 5) uniform UBOLight
 	int Mode;
 	int EnvMipCount;
 	float InitialBias;
-	float p0;
-	float p1;
+	float Width;
+	float Height;
 	float p2;
 } ubo;
 
@@ -107,43 +106,50 @@ struct Material
 
 vec4 GetAlbedo()
 {
+	if(materialProperties.AlbedoMapFactor < 0.05)
+		return  materialProperties.AlbedoColour;
+
 	return (1.0 - materialProperties.AlbedoMapFactor) * materialProperties.AlbedoColour + materialProperties.AlbedoMapFactor * DeGamma(texture(u_AlbedoMap, VertexOutput.TexCoord));
 }
 
 vec3 GetMetallic()
 {
+	if(materialProperties.MetallicMapFactor < 0.05)
+		return  materialProperties.Metallic.rrr;
+
 	return (1.0 - materialProperties.MetallicMapFactor) * materialProperties.Metallic + materialProperties.MetallicMapFactor * texture(u_MetallicMap, VertexOutput.TexCoord).rgb;
 }
 
 float GetRoughness()
 {
+	if(materialProperties.RoughnessMapFactor < 0.05)
+		return  materialProperties.Roughness;
 	return (1.0 - materialProperties.RoughnessMapFactor) * materialProperties.Roughness + materialProperties.RoughnessMapFactor * texture(u_RoughnessMap, VertexOutput.TexCoord).r;
 }
 
 float GetAO()
 {
+	if(materialProperties.AOMapFactor < 0.05)
+		return 1.0;
+
 	return (1.0 - materialProperties.AOMapFactor) + materialProperties.AOMapFactor * texture(u_AOMap, VertexOutput.TexCoord).r;
 }
 
 vec3 GetEmissive(vec3 albedo)
 {
+	if(materialProperties.EmissiveMapFactor < 0.05)
+		return (materialProperties.Emissive * albedo);
 	return (materialProperties.Emissive * albedo) + materialProperties.EmissiveMapFactor * DeGamma(texture(u_EmissiveMap, VertexOutput.TexCoord).rgb);
 }
 
 vec3 GetNormalFromMap()
 {
-	if (materialProperties.NormalMapFactor < 0.1)
+	if (materialProperties.NormalMapFactor < 0.05)
 		return normalize(VertexOutput.Normal);
-
-	vec3 tangentNormal = texture(u_NormalMap, VertexOutput.TexCoord).xyz * 2.0 - 1.0;
-
-	vec3 N = normalize(VertexOutput.Normal);
-	vec3 T = normalize(VertexOutput.Tangent.xyz);
-	vec3 B = normalize(cross(N, T));
-	mat3 TBN = mat3(T, B, N);
-	return normalize(TBN * tangentNormal);
+		
+	vec3 Normal = normalize(texture(u_NormalMap, VertexOutput.TexCoord).rgb * 2.0f - 1.0f);
+	return normalize(VertexOutput.WorldNormal * Normal);
 }
-
 
 const mat4 BiasMatrix = mat4(
 						  0.5, 0.0, 0.0, 0.5,
@@ -373,12 +379,12 @@ float gaSchlickGGX(float cosLi, float NdotV, float roughness)
 // Shlick's approximation of the Fresnel factor.
 vec3 fresnelSchlick(vec3 F0, float cosTheta)
 {
-	return F0 + (1.0 - F0) * pow(1.0 - cosTheta, 5.0);
+	return F0 + (1.0 - F0) * pow(max(1.0 - cosTheta, 0.0), 5.0);
 }
 
 vec3 fresnelSchlickRoughness(vec3 F0, float cosTheta, float roughness)
 {
-    return F0 + (max(vec3(1.0 - roughness), F0) - F0) * pow(1.0 - cosTheta, 5.0);
+    return F0 + (max(vec3(1.0 - roughness), F0) - F0) * pow(max(1.0 - cosTheta, 0.0), 5.0);
 }
 
 vec3 Lighting(vec3 F0, vec3 wsPos, Material material)
@@ -418,7 +424,6 @@ vec3 Lighting(vec3 F0, vec3 wsPos, Material material)
 			float attenuation 	= ((theta - cutoffAngle) / epsilon); // atteunate when approaching the outer cone
 			attenuation         *= light.radius / (pow(dist, 2.0) + 1.0);//saturate(1.0f - dist / light.range);
 			//float intensity 	= attenuation * attenuation;
-			
 			
 			// Erase light if there is no need to compute it
 			//intensity *= step(theta, cutoffAngle);
@@ -475,13 +480,6 @@ vec3 IBL(vec3 F0, vec3 Lr, Material material)
 	return kd * diffuseIBL + specularIBL;
 }
 
-float Attentuate( vec3 lightData, float dist )
-{
-	float att =  1.0 / ( lightData.x + lightData.y*dist + lightData.z*dist*dist );
-	float damping = 1.0;// - (dist/lightData.w);
-	return max(att * damping, 0.0);
-}
-
 void main() 
 {
 	vec4 texColour = GetAlbedo();
@@ -517,20 +515,21 @@ void main()
     material.Normal    = GetNormalFromMap();
 	material.AO		   = GetAO();
 	material.Emissive  = GetEmissive(material.Albedo.rgb);
-	//material.Roughness = max(material.Roughness, 0.06); 
 
     // Specular anti-aliasing
-    // {
-    //     const float strength           = 1.0f;
-    //     const float maxRoughnessGain = 0.02f;
+    {
+        const float strength          	= 1.0f;
+        const float maxRoughnessGain  	= 0.02f;
+        float roughness2         		= roughness * roughness;
+        vec3 dndu                		= dFdx(material.Normal);
+	    vec3 dndv 				 		= dFdy(material.Normal);
+        float variance           		= (dot(dndu, dndu) + dot(dndv, dndv));
+        float kernelRoughness2   		= min(variance * strength, maxRoughnessGain);
+        float filteredRoughness2 		= saturate(roughness2 + kernelRoughness2);
+        material.Roughness       		= sqrt(filteredRoughness2);
+    }
 
-    //     float roughness2         = roughness * roughness;
-    //     vec3 dndu                = dFdx(material.Normal), dndv = dFdy(material.Normal);
-    //     float variance           = (dot(dndu, dndu) + dot(dndv, dndv));
-    //     float kernelRoughness2   = min(variance * strength, maxRoughnessGain);
-    //     float filteredRoughness2 = saturate(roughness2 + kernelRoughness2);
-    //     material.Roughness       = sqrt(filteredRoughness2);
-    // }
+	material.Roughness = max(material.Roughness, 0.089); 
 	
 	vec3 wsPos     = VertexOutput.Position.xyz;
 	material.View  = normalize(ubo.cameraPosition.xyz - wsPos);

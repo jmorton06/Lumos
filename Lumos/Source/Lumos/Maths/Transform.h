@@ -25,7 +25,7 @@ namespace Lumos
             void SetLocalOrientation(const glm::quat& quat);
 
             const glm::mat4& GetWorldMatrix();
-            const glm::mat4& GetLocalMatrix();
+            glm::mat4 GetLocalMatrix();
 
             const glm::vec3 GetWorldPosition();
             const glm::quat GetWorldOrientation();
@@ -36,9 +36,6 @@ namespace Lumos
 
             // Updates Local Matrix from R,T and S vectors
             void UpdateMatrices();
-
-            bool HasUpdated() const { return m_HasUpdated; }
-            void SetHasUpdated(bool set) { m_HasUpdated = set; }
 
             // Sets R,T and S vectors from Local Matrix
             void ApplyTransform();
@@ -74,22 +71,14 @@ namespace Lumos
             void load(Archive& archive)
             {
                 archive(cereal::make_nvp("Position", m_LocalPosition), cereal::make_nvp("Rotation", m_LocalOrientation), cereal::make_nvp("Scale", m_LocalScale));
-                m_Dirty = true;
             }
 
-            const glm::mat4& GetParentMatrix() const { return m_ParentMatrix; }
-
         protected:
-            glm::mat4 m_LocalMatrix;
-            glm::mat4 m_ParentMatrix;
             glm::mat4 m_WorldMatrix;
 
             glm::vec3 m_LocalPosition;
             glm::vec3 m_LocalScale;
             glm::quat m_LocalOrientation;
-
-            bool m_HasUpdated = false;
-            bool m_Dirty      = false;
         };
     }
 }

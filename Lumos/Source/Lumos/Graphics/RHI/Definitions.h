@@ -342,6 +342,7 @@ namespace Lumos
             uint16_t flags       = TextureFlags::Texture_CreateMips;
             bool srgb            = false;
             bool generateMipMaps = true;
+            bool anisotropicFiltering = true;
 
             TextureDesc()
             {

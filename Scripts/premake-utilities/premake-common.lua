@@ -110,5 +110,5 @@ function SetRecommendedSettings()
 		SetRecommendedXcodeSettings()
 	filter ()
 	editandcontinue "Off"
-	warnings "Off"
+		warnings "Off"
 end

@@ -16,6 +16,14 @@
 #include <imgui/Plugins/ImGuiAl/fonts/RobotoRegular.inl>
 #include <stb/deprecated/stb.h>
 
+#define FONT_DEBUG_LOG 0
+#if FONT_DEBUG_LOG
+#define FONT_LOG(...) LUMOS_LOG_INFO("Font", __VA_ARGS__)
+#else
+#define FONT_LOG(...)
+#endif
+
+
 using namespace msdf_atlas;
 
 namespace Lumos
@@ -268,13 +276,13 @@ namespace Lumos
                 if(!VFS::Get().ResolvePhysicalPath(m_FilePath, outPath))
                     return;
 
-                LUMOS_LOG_INFO("Font: Loading Font {0}", m_FilePath);
+                FONT_LOG("Font: Loading Font {0}", m_FilePath);
                 fontInput.fontFilename = outPath.c_str();
                 m_FilePath             = outPath;
 
                 if(!font.load(fontInput.fontFilename))
                 {
-                    LUMOS_LOG_ERROR("Font: Failed to load font! - {0}", fontInput.fontFilename);
+                    FONT_LOG("Font: Failed to load font! - {0}", fontInput.fontFilename);
                     return;
                 }
             }
@@ -282,7 +290,7 @@ namespace Lumos
             {
                 if(!font.load(m_FontData, m_FontDataSize))
                 {
-                    LUMOS_LOG_ERROR("Font: Failed to load font from data!");
+                    FONT_LOG("Font: Failed to load font from data!");
                     return;
                 }
             }
@@ -328,11 +336,11 @@ namespace Lumos
             }
 
             LUMOS_ASSERT(glyphsLoaded >= 0, "");
-            LUMOS_LOG_TRACE("Font: Loaded geometry of {0} out of {1} glyphs", glyphsLoaded, (int)charset.size());
+            FONT_LOG("Font: Loaded geometry of {0} out of {1} glyphs", glyphsLoaded, (int)charset.size());
             // List missing glyphs
             if(glyphsLoaded < (int)charset.size())
             {
-                LUMOS_LOG_WARN("Font: Missing {0} {1}", (int)charset.size() - glyphsLoaded, fontInput.glyphIdentifierType == GlyphIdentifierType::UNICODE_CODEPOINT ? "codepoints" : "glyphs");
+                FONT_LOG("Font: Missing {0} {1}", (int)charset.size() - glyphsLoaded, fontInput.glyphIdentifierType == GlyphIdentifierType::UNICODE_CODEPOINT ? "codepoints" : "glyphs");
             }
 
             if(fontInput.fontName)
@@ -364,9 +372,9 @@ namespace Lumos
             config.emSize  = atlasPacker.getScale();
             config.pxRange = atlasPacker.getPixelRange();
             if(!fixedScale)
-                LUMOS_LOG_TRACE("Font: Glyph size: {0} pixels/EM", config.emSize);
+                FONT_LOG("Font: Glyph size: {0} pixels/EM", config.emSize);
             if(!fixedDimensions)
-                LUMOS_LOG_TRACE("Font: Atlas dimensions: {0} x {1}", config.width, config.height);
+                FONT_LOG("Font: Atlas dimensions: {0} x {1}", config.width, config.height);
 
             // Edge coloring
             if(config.imageType == ImageType::MSDF || config.imageType == ImageType::MTSDF)

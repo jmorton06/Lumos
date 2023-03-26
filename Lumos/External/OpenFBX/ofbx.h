@@ -451,8 +451,8 @@ enum UpVector
 // Vector with origin at the screen pointing toward the camera.
 enum FrontVector
 {
-	FrontVector_ParityEven = 0,
-	FrontVector_ParityOdd = 1
+	FrontVector_ParityEven = 1,
+	FrontVector_ParityOdd = 2
 };
 
 

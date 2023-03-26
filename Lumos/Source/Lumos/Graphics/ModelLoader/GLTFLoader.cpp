@@ -123,6 +123,8 @@ namespace Lumos::Graphics
                 Graphics::TextureDesc params;
                 if(gltfTexture.sampler != -1)
                     params = Graphics::TextureDesc(GetFilter(imageAndSampler.Sampler->minFilter), GetFilter(imageAndSampler.Sampler->magFilter), GetWrapMode(imageAndSampler.Sampler->wrapS));
+                else
+                    LUMOS_LOG_WARN("MISSING SAMPLER");
                 Graphics::Texture2D* texture2D = Graphics::Texture2D::CreateFromSource(imageAndSampler.Image->width, imageAndSampler.Image->height, imageAndSampler.Image->image.data(), params);
                 loadedTextures.push_back(SharedPtr<Graphics::Texture2D>(texture2D ? texture2D : nullptr));
             }
@@ -223,9 +225,13 @@ namespace Lumos::Graphics
 
             pbrMaterial->SetTextures(textures);
             pbrMaterial->SetMaterialProperites(properties);
+            pbrMaterial->SetName(mat.name);
 
             if(mat.doubleSided)
                 pbrMaterial->SetFlag(Graphics::Material::RenderFlags::TWOSIDED);
+
+            if(mat.alphaMode != "OPAQUE")
+                pbrMaterial->SetFlag(Graphics::Material::RenderFlags::ALPHABLEND);
 
             loadedMaterials.push_back(pbrMaterial);
         }
@@ -248,6 +254,7 @@ namespace Lumos::Graphics
             vertices.resize(indicesAccessor.count);
 
             bool hasTangents = false;
+            bool hasBitangents = false;
 
             for(auto& attribute : primitive.attributes)
             {
@@ -287,7 +294,7 @@ namespace Lumos::Graphics
                     {
                         vertices[p].Normal = (parentTransform.GetWorldMatrix() * Maths::ToVector4(normals[p]));
 
-                        glm::normalize(vertices[p].Normal);
+                        vertices[p].Normal = glm::normalize(vertices[p].Normal);
                     }
                 }
 
@@ -325,6 +332,17 @@ namespace Lumos::Graphics
                     for(auto p = 0; p < uvCount; ++p)
                     {
                         vertices[p].Tangent = parentTransform.GetWorldMatrix() * ToVector4(uvs[p]);
+                    }
+                }
+
+                else if(attribute.first == "BINORMAL")
+                {
+                    hasBitangents               = true;
+                    size_t uvCount            = accessor.count;
+                    Maths::Vector3Simple* uvs = reinterpret_cast<Maths::Vector3Simple*>(data.data());
+                    for(auto p = 0; p < uvCount; ++p)
+                    {
+                        vertices[p].Bitangent = parentTransform.GetWorldMatrix() * ToVector4(uvs[p]);
                     }
                 }
             }
@@ -377,8 +395,8 @@ namespace Lumos::Graphics
                 }
             }
 
-            if(!hasTangents)
-                Graphics::Mesh::GenerateTangents(vertices.data(), uint32_t(vertices.size()), indices.data(), uint32_t(indices.size()));
+            if(!hasTangents || !hasBitangents)
+                Graphics::Mesh::GenerateTangentsAndBitangents(vertices.data(), uint32_t(vertices.size()), indices.data(), uint32_t(indices.size()));
 
             auto lMesh = new Graphics::Mesh(indices, vertices);
 

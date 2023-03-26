@@ -8,8 +8,7 @@ struct VertexData
 	vec2 TexCoord;
 	vec4 Position;
 	vec3 Normal;
-	vec3 Tangent;
-	vec4 ShadowMapCoords[4];
+	mat3 WorldNormal;
 };
 
 layout(location = 0) in VertexData VertexOutput;
@@ -38,7 +37,7 @@ layout(set = 1,binding = 6) uniform UniformMaterialData
 	float padding;
 } materialProperties;
 
-
+layout(location = 0) out vec4 OutNormal;
 void main(void)
 {
 	const float alphaCutOut = 0.4;
@@ -46,4 +45,6 @@ void main(void)
 	
 	if(alpha < materialProperties.AlphaCutOff)
 		discard;
+
+	OutNormal = vec4(VertexOutput.Normal, 1.0f);
 }

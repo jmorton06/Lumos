@@ -52,7 +52,7 @@ namespace Lumos
                         UNIMPLEMENTED;
                         break;
                     case TextureType::CUBE:
-                        UNIMPLEMENTED;
+                        AddCubeTextureAttachment(frameBufferDesc.attachments[i]->GetFormat(), CubeFace(frameBufferDesc.layer), (TextureCube*)frameBufferDesc.attachments[i]);
                         break;
                     }
                 }
