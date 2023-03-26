@@ -1,5 +1,5 @@
 // https://github.com/CedricGuillemet/ImGuizmo
-// v 1.84 WIP
+// v 1.89 WIP
 //
 // The MIT License(MIT)
 //
@@ -210,15 +210,60 @@ namespace IMGUIZMO_NAMESPACE
    //
    IMGUI_API void ViewManipulate(float* view, float length, ImVec2 position, ImVec2 size, ImU32 backgroundColor);
 
+   // use this version if you did not call Manipulate before and you are just using ViewManipulate
+   IMGUI_API void ViewManipulate(float* view, const float* projection, OPERATION operation, MODE mode, float* matrix, float length, ImVec2 position, ImVec2 size, ImU32 backgroundColor);
+
    IMGUI_API void SetID(int id);
 
    // return true if the cursor is over the operation's gizmo
    IMGUI_API bool IsOver(OPERATION op);
-	IMGUI_API void SetGizmoSizeClipSpace(float value);
-	IMGUI_API void SetGizmoSizeScale(float value);
+   IMGUI_API void SetGizmoSizeClipSpace(float value);
 
    // Allow axis to flip
    // When true (default), the guizmo axis flip for better visibility
    // When false, they always stay along the positive world/local axis
    IMGUI_API void AllowAxisFlip(bool value);
+
+   IMGUI_API bool IsTranslateType();
+   IMGUI_API bool IsRotateType();
+   IMGUI_API bool IsScaleType();
+
+
+   enum COLOR
+   {
+      DIRECTION_X,      // directionColor[0]
+      DIRECTION_Y,      // directionColor[1]
+      DIRECTION_Z,      // directionColor[2]
+      PLANE_X,          // planeColor[0]
+      PLANE_Y,          // planeColor[1]
+      PLANE_Z,          // planeColor[2]
+      SELECTION,        // selectionColor
+      INACTIVE,         // inactiveColor
+      TRANSLATION_LINE, // translationLineColor
+      SCALE_LINE,
+      ROTATION_USING_BORDER,
+      ROTATION_USING_FILL,
+      HATCHED_AXIS_LINES,
+      TEXT,
+      TEXT_SHADOW,
+      COUNT
+   };
+
+   struct Style
+   {
+      IMGUI_API Style();
+
+      float TranslationLineThickness;   // Thickness of lines for translation gizmo
+      float TranslationLineArrowSize;   // Size of arrow at the end of lines for translation gizmo
+      float RotationLineThickness;      // Thickness of lines for rotation gizmo
+      float RotationOuterLineThickness; // Thickness of line surrounding the rotation gizmo
+      float ScaleLineThickness;         // Thickness of lines for scale gizmo
+      float ScaleLineCircleSize;        // Size of circle at the end of lines for scale gizmo
+      float HatchedAxisLineThickness;   // Thickness of hatched axis lines
+      float CenterCircleSize;           // Size of circle at the center of the translate/scale gizmo
+
+      ImVec4 Colors[COLOR::COUNT];
+   };
+
+   IMGUI_API Style& GetStyle();
 }
