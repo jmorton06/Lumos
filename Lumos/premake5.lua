@@ -142,6 +142,7 @@ project "Lumos"
 
 		links
 		{
+			"Dbghelp",
 			"glfw"
 		}
 
