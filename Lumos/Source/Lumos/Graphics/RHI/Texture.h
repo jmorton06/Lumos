@@ -65,7 +65,7 @@ namespace Lumos
             uint32_t& GetFlags() { return m_Flags; }
 
             SET_ASSET_TYPE(AssetType::Texture);
-            
+
             uint64_t GetUUID() const { return m_UUID; }
 
         protected:
@@ -127,6 +127,7 @@ namespace Lumos
 
             virtual void Init()                                                  = 0;
             virtual void Resize(uint32_t width, uint32_t height, uint32_t count) = 0;
+            virtual uint32_t GetCount() const                                    = 0;
             virtual void* GetHandleArray(uint32_t index)
             {
                 return GetHandle();

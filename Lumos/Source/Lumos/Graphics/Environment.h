@@ -1,5 +1,7 @@
 #pragma once
+#include "Scene/Serialisation.h"
 #include <glm/vec4.hpp>
+
 namespace Lumos
 {
     namespace Graphics
@@ -53,12 +55,16 @@ namespace Lumos
             void save(Archive& archive) const
             {
                 archive(m_FilePath, m_NumMips, m_Width, m_Height, m_FileType, m_IrrFactor);
+                archive(m_Mode, m_Parameters);
             }
 
             template <class Archive>
             void load(Archive& archive)
             {
                 archive(m_FilePath, m_NumMips, m_Width, m_Height, m_FileType, m_IrrFactor);
+
+                if(Serialisation::CurrentSceneVersion >= 18)
+                    archive(m_Mode, m_Parameters);
                 Load();
             }
 

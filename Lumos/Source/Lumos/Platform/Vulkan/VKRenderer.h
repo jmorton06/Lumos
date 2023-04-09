@@ -48,6 +48,8 @@ namespace Lumos
             void ClearRenderTarget(Graphics::Texture* texture, Graphics::CommandBuffer* commandBuffer, glm::vec4 clearColour) override;
             void ClearSwapChainImage() const;
 
+            void SaveScreenshot(const std::string& path, Graphics::Texture* texture = nullptr) override;
+
             const std::string& GetTitleInternal() const override;
 
             void BindDescriptorSetsInternal(Graphics::Pipeline* pipeline, Graphics::CommandBuffer* commandBuffer, uint32_t dynamicOffset, Graphics::DescriptorSet** descriptorSets, uint32_t descriptorCount) override;

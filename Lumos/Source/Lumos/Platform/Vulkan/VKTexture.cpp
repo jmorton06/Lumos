@@ -93,9 +93,9 @@ namespace Lumos
             vkGetImageMemoryRequirements(VKDevice::Get().GetDevice(), image, &memRequirements);
 
             VkMemoryAllocateInfo allocInfo = {};
-            allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-            allocInfo.allocationSize = memRequirements.size;
-            allocInfo.memoryTypeIndex = VKUtilities::FindMemoryType(memRequirements.memoryTypeBits, properties);
+            allocInfo.sType                = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+            allocInfo.allocationSize       = memRequirements.size;
+            allocInfo.memoryTypeIndex      = VKUtilities::FindMemoryType(memRequirements.memoryTypeBits, properties);
 
             vkAllocateMemory(VKDevice::Get().GetDevice(), &allocInfo, nullptr, &imageMemory);
             vkBindImageMemory(VKDevice::Get().GetDevice(), image, imageMemory, 0);
@@ -348,7 +348,7 @@ namespace Lumos
                 blit.srcSubresource.mipLevel       = i - 1;
                 blit.srcSubresource.baseArrayLayer = layer;
                 blit.srcSubresource.layerCount     = layerCount;
-                
+
                 blit.dstOffsets[0]                 = { 0, 0, 0 };
                 blit.dstOffsets[1]                 = { mipWidth > 1 ? mipWidth / 2 : 1, mipHeight > 1 ? mipHeight / 2 : 1, 1 };
                 blit.dstSubresource.aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT;
@@ -501,7 +501,7 @@ namespace Lumos
                     GetMipImageView(i);
                 }
             }
-            
+
             m_UUID = Random64::Rand(0, std::numeric_limits<uint64_t>::max());
         }
 
@@ -991,7 +991,7 @@ namespace Lumos
 #else
 
             auto textureImage = m_TextureImage;
-            auto memory = m_TextureImageMemory;
+            auto memory       = m_TextureImageMemory;
 
             deletionQueue.PushFunction([textureImage, memory]
                                        {
@@ -1024,7 +1024,7 @@ namespace Lumos
             m_Flags |= TextureFlags::Texture_DepthStencil;
 
             UpdateDescriptor();
-            
+
             m_UUID = Random64::Rand(0, std::numeric_limits<uint64_t>::max());
         }
 
@@ -1074,7 +1074,7 @@ namespace Lumos
 #else
 
             auto textureImage = m_TextureImage;
-            auto memory = m_TextureImageMemory;
+            auto memory       = m_TextureImageMemory;
 
             deletionQueue.PushFunction([textureImage, memory]
                                        {
@@ -1123,7 +1123,7 @@ namespace Lumos
 #else
 
             auto textureImage = m_TextureImage;
-            auto memory = m_TextureImageMemory;
+            auto memory       = m_TextureImageMemory;
 
             deletionQueue.PushFunction([textureImage, memory]
                                        {
@@ -1220,7 +1220,7 @@ namespace Lumos
 #else
 
             auto textureImage = m_TextureImage;
-            auto memory = m_TextureImageMemory;
+            auto memory       = m_TextureImageMemory;
 
             deletionQueue.PushFunction([textureImage, memory]
                                        {

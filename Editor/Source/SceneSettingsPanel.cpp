@@ -28,7 +28,7 @@ namespace Lumos
                 auto sceneName      = m_CurrentScene->GetSceneName();
                 int sceneVersion    = m_CurrentScene->GetSceneVersion();
                 auto& sceneSettings = m_CurrentScene->GetSettings();
-                
+
                 if(m_NameUpdated)
                     sceneName = m_SceneName;
 
@@ -41,7 +41,7 @@ namespace Lumos
                     {
                         m_NameUpdated = true;
                     }
-                    
+
                     if(!ImGui::IsItemActive() && m_NameUpdated)
                     {
                         m_NameUpdated = false;
@@ -49,14 +49,14 @@ namespace Lumos
                         if(VFS::Get().ResolvePhysicalPath("//Scenes/" + m_CurrentScene->GetSceneName() + ".lsn", scenePath))
                         {
                             m_CurrentScene->SetName(sceneName);
-                            //m_CurrentScene->Serialise(m_Editor->GetProjectSettings().m_ProjectRoot + "Assets/Scenes/");
-                            
+                            // m_CurrentScene->Serialise(m_Editor->GetProjectSettings().m_ProjectRoot + "Assets/Scenes/");
+
                             std::filesystem::rename(scenePath, m_Editor->GetProjectSettings().m_ProjectRoot + "Assets/Scenes/" + m_CurrentScene->GetSceneName() + ".lsn");
                         }
                         else
                             m_CurrentScene->SetName(sceneName);
-                        
-                        //Save project with updated scene name
+
+                        // Save project with updated scene name
                         m_Editor->Serialise();
                     }
                 }

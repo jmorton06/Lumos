@@ -16,8 +16,8 @@ namespace Lumos
             m_PrefilteredEnvironment = nullptr;
             m_IrradianceMap          = nullptr;
             m_IrrFactor              = 32.0f / 1024.0f;
-            m_Mode = 1;
-            m_Parameters = { 2.0f, 0.0f, 0.0f, 1.0f };
+            m_Mode                   = 1;
+            m_Parameters             = { 2.0f, 0.0f, 0.0f, 1.0f };
         }
 
         Environment::Environment(const std::string& filepath, bool genPrefilter, bool genIrradiance)
@@ -60,31 +60,31 @@ namespace Lumos
 
             bool failed = false;
 
-            if (m_Mode == 0)
+            if(m_Mode == 0)
             {
                 m_Parameters.w = m_Mode;
 
-                if (m_FileType == ".hdr")
+                if(m_FileType == ".hdr")
                 {
-                    auto env = Application::Get().GetSceneRenderer()->CreateCubeMap(m_FilePath + "_Env_" + StringUtilities::ToString(0) + "_" + StringUtilities::ToString(currWidth) + "x" + StringUtilities::ToString(currHeight) + m_FileType, m_Parameters);
-                    m_Environmnet = env;
+                    auto env        = Application::Get().GetSceneRenderer()->CreateCubeMap(m_FilePath + "_Env_" + StringUtilities::ToString(0) + "_" + StringUtilities::ToString(currWidth) + "x" + StringUtilities::ToString(currHeight) + m_FileType, m_Parameters);
+                    m_Environmnet   = env;
                     m_IrradianceMap = env;
                     return;
                 }
                 else
                 {
-                    for (uint32_t i = 0; i < m_NumMips; i++)
+                    for(uint32_t i = 0; i < m_NumMips; i++)
                     {
                         envFiles[i] = m_FilePath + "_Env_" + StringUtilities::ToString(i) + "_" + StringUtilities::ToString(currWidth) + "x" + StringUtilities::ToString(currHeight) + m_FileType;
 
                         currHeight /= 2;
                         currWidth /= 2;
 
-                        if (currHeight < 1 || currWidth < 1)
+                        if(currHeight < 1 || currWidth < 1)
                             break;
 
                         std::string newPath;
-                        if (!VFS::Get().ResolvePhysicalPath(envFiles[i], newPath))
+                        if(!VFS::Get().ResolvePhysicalPath(envFiles[i], newPath))
                         {
                             LUMOS_LOG_ERROR("Failed to load {0}", envFiles[i]);
                             failed = true;
@@ -92,23 +92,23 @@ namespace Lumos
                         }
                     }
 
-                    currWidth = (uint32_t)((float)m_Width * m_IrrFactor);
+                    currWidth  = (uint32_t)((float)m_Width * m_IrrFactor);
                     currHeight = (uint32_t)((float)m_Height * m_IrrFactor);
 
                     int numMipsIrr = 0;
 
-                    for (uint32_t i = 0; i < m_NumMips; i++)
+                    for(uint32_t i = 0; i < m_NumMips; i++)
                     {
                         irrFiles[i] = m_FilePath + "_Irr_" + StringUtilities::ToString(i) + "_" + StringUtilities::ToString(currWidth) + "x" + StringUtilities::ToString(currHeight) + m_FileType;
 
                         currHeight /= 2;
                         currWidth /= 2;
 
-                        if (currHeight < 1 || currWidth < 1)
+                        if(currHeight < 1 || currWidth < 1)
                             break;
 
                         std::string newPath;
-                        if (!VFS::Get().ResolvePhysicalPath(irrFiles[i], newPath))
+                        if(!VFS::Get().ResolvePhysicalPath(irrFiles[i], newPath))
                         {
                             LUMOS_LOG_ERROR("Failed to load {0}", irrFiles[i]);
                             failed = true;
@@ -118,12 +118,12 @@ namespace Lumos
                         numMipsIrr++;
                     }
 
-                    if (!failed)
+                    if(!failed)
                     {
                         TextureDesc params;
                         params.srgb = true;
                         TextureLoadOptions loadOptions;
-                        m_Environmnet = SharedPtr<TextureCube>(Graphics::TextureCube::CreateFromVCross(envFiles, m_NumMips, params, loadOptions));
+                        m_Environmnet   = SharedPtr<TextureCube>(Graphics::TextureCube::CreateFromVCross(envFiles, m_NumMips, params, loadOptions));
                         m_IrradianceMap = SharedPtr<TextureCube>(Graphics::TextureCube::CreateFromVCross(irrFiles, numMipsIrr, params, loadOptions));
                     }
                     else
@@ -135,11 +135,11 @@ namespace Lumos
                     delete[] irrFiles;
                 }
             }
-            else //if (m_Mode == 1)
+            else // if (m_Mode == 1)
             {
-                m_Parameters.w = m_Mode;
-                auto env = Application::Get().GetSceneRenderer()->CreateCubeMap("", m_Parameters);
-                m_Environmnet = env;
+                m_Parameters.w  = m_Mode;
+                auto env        = Application::Get().GetSceneRenderer()->CreateCubeMap("", m_Parameters);
+                m_Environmnet   = env;
                 m_IrradianceMap = env;
             }
         }

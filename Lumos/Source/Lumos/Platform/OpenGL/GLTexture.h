@@ -47,7 +47,6 @@ namespace Lumos
                 return m_MipLevels;
             }
 
-
             void Resize(uint32_t width, uint32_t height) override;
             void BuildTexture();
 
@@ -81,7 +80,7 @@ namespace Lumos
             TextureDesc m_Parameters;
             TextureLoadOptions m_LoadOptions;
             RHIFormat m_Format;
-            bool isHDR = false;
+            bool isHDR           = false;
             uint32_t m_MipLevels = 1;
         };
 
@@ -278,7 +277,7 @@ namespace Lumos
                 return m_Format;
             }
 
-            uint32_t GetCount() const { return m_Count; }
+            uint32_t GetCount() const override { return m_Count; }
 
             void Init() override;
 

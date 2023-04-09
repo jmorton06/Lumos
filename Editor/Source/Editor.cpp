@@ -160,9 +160,9 @@ namespace Lumos
         ImCmd::AddCommand(std::move(add_example_cmd_cmd));
         ImCmd::AddCommand(std::move(remove_example_cmd_cmd));
 
-        auto& guizmoStyle = ImGuizmo::GetStyle();
+        auto& guizmoStyle                    = ImGuizmo::GetStyle();
         guizmoStyle.HatchedAxisLineThickness = -1.0f;
-        
+
 #ifdef LUMOS_PLATFORM_IOS
         m_TempSceneSaveFilePath = OS::Instance()->GetAssetPath();
 #else
@@ -226,7 +226,7 @@ namespace Lumos
                                                  (float)Application::Get().GetWindowSize().x / (float)Application::Get().GetWindowSize().y);
         m_CurrentCamera = m_EditorCamera.get();
 
-        glm::mat4 viewMat = glm::inverse(glm::lookAt(glm::vec3(0.0f, 0.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f)));
+        glm::mat4 viewMat = glm::inverse(glm::lookAt(glm::vec3(-31.0f, 12.0f, 51.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f)));
         m_EditorCameraTransform.SetLocalTransform(viewMat);
         m_EditorCameraTransform.SetWorldMatrix(glm::mat4(1.0f));
 
@@ -269,7 +269,7 @@ namespace Lumos
         m_Settings.m_ShowImGuiDemo = false;
 
         m_SelectedEntities.clear();
-        //m_SelectedEntity = entt::null;
+        // m_SelectedEntity = entt::null;
         m_PreviewTexture = nullptr;
 
         Application::Get().GetSystem<LumosPhysicsEngine>()->SetDebugDrawFlags(m_Settings.m_Physics3DDebugFlags);
@@ -626,8 +626,8 @@ namespace Lumos
                         Application::Get().GetCurrentScene()->DuplicateEntity({ entity, Application::Get().GetCurrentScene() });
                         if(entity != entt::null)
                         {
-                            ///if(entity == m_SelectedEntity)
-                               /// m_SelectedEntity = entt::null;
+                            /// if(entity == m_SelectedEntity)
+                            ///  m_SelectedEntity = entt::null;
                             Entity(entity, Application::Get().GetCurrentScene()).Destroy();
                         }
                     }
@@ -818,7 +818,7 @@ namespace Lumos
                 ImGui::EndMenu();
             }
 
-            if (m_ProjectLoaded)
+            if(m_ProjectLoaded)
             {
                 {
                     ImGuiUtilities::ScopedFont boldFont(ImGui::GetIO().Fonts->Fonts[1]);
@@ -848,9 +848,7 @@ namespace Lumos
                     ImGui::TextUnformatted("DEBUG");
                 }
 #endif
-
             }
-
 
             ImGui::SameLine((ImGui::GetWindowContentRegionMax().x * 0.5f) - (1.5f * (ImGui::GetFontSize() + ImGui::GetStyle().ItemSpacing.x)));
 
@@ -875,7 +873,7 @@ namespace Lumos
                     Application::Get().SetEditorState(selected ? EditorState::Preview : EditorState::Play);
 
                     m_SelectedEntities.clear();
-                    //m_SelectedEntity = entt::null;
+                    // m_SelectedEntity = entt::null;
                     if(selected)
                     {
                         ImGui::SetWindowFocus("###scene");
@@ -1046,6 +1044,7 @@ namespace Lumos
             if(ImGui::Button("OK", ImVec2(120, 0)))
             {
                 Application::Get().GetSceneManager()->GetCurrentScene()->Serialise(m_ProjectSettings.m_ProjectRoot + "Assets/Scenes/", false);
+                Graphics::Renderer::GetRenderer()->SaveScreenshot(m_ProjectSettings.m_ProjectRoot + "Assets/Scenes/Cache/" + Application::Get().GetSceneManager()->GetCurrentScene()->GetSceneName() + ".png", m_SceneRenderer->GetForwardData().m_RenderTexture);
                 ImGui::CloseCurrentPopup();
             }
             ImGui::SetItemDefaultFocus();
@@ -1085,15 +1084,15 @@ namespace Lumos
 
             ImGui::Text("Create New Scene?\n\n");
             ImGui::Separator();
-            
+
             static bool defaultSetup = false;
-            
+
             static std::string newSceneName = "NewScene";
             ImGui::AlignTextToFramePadding();
             ImGui::TextUnformatted("Name : ");
             ImGui::SameLine();
             ImGuiUtilities::InputText(newSceneName);
-            
+
             ImGui::Checkbox("Default Setup", &defaultSetup);
 
             ImGui::Separator();
@@ -1110,14 +1109,14 @@ namespace Lumos
                     sceneName = fmt::format(newSceneName + "{0}", sameNameCount);
                 }
                 auto scene = new Scene(sceneName);
-                
+
                 if(defaultSetup)
                 {
-                    auto light = scene->GetEntityManager()->Create("Light");
-                    auto lightComp = light.AddComponent<Graphics::Light>();
+                    auto light          = scene->GetEntityManager()->Create("Light");
+                    auto lightComp      = light.AddComponent<Graphics::Light>();
                     glm::mat4 lightView = glm::inverse(glm::lookAt(glm::vec3(30.0f, 9.0f, 50.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f)));
                     light.GetTransform().SetLocalTransform(lightView);
-                    
+
                     auto camera = scene->GetEntityManager()->Create("Camera");
                     camera.AddComponent<Camera>();
                     glm::mat4 viewMat = glm::inverse(glm::lookAt(glm::vec3(-2.3f, 1.0f, 4.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f)));
@@ -1130,9 +1129,8 @@ namespace Lumos
                     auto environment = scene->GetEntityManager()->Create("Environment");
                     environment.AddComponent<Graphics::Environment>();
                     environment.GetComponent<Graphics::Environment>().Load();
-                    
-                    scene->Serialise(m_ProjectSettings.m_ProjectRoot + "Assets/Scenes/");
 
+                    scene->Serialise(m_ProjectSettings.m_ProjectRoot + "Assets/Scenes/");
                 }
                 Application::Get().GetSceneManager()->EnqueueScene(scene);
                 Application::Get().GetSceneManager()->SwitchScene((int)(Application::Get().GetSceneManager()->GetScenes().size()) - 1);
@@ -1288,10 +1286,10 @@ namespace Lumos
                 if(transform != nullptr)
                 {
                     glm::mat4 model = transform->GetWorldMatrix();
-                
+
                     float snapAmount[3] = { m_Settings.m_SnapAmount, m_Settings.m_SnapAmount, m_Settings.m_SnapAmount };
                     float delta[16];
-                
+
                     ImGuizmo::Manipulate(glm::value_ptr(view),
                                          glm::value_ptr(proj),
                                          static_cast<ImGuizmo::OPERATION>(m_ImGuizmoOperation),
@@ -1299,30 +1297,30 @@ namespace Lumos
                                          glm::value_ptr(model),
                                          delta,
                                          m_Settings.m_SnapQuizmo ? snapAmount : nullptr);
-                
+
                     if(ImGuizmo::IsUsing())
                     {
-                        Entity parent = Entity(m_SelectedEntity, m_SceneManager->GetCurrentScene()).GetParent();//m_CurrentScene->TryGetEntityWithUUID(entity.GetParentUUID());
-                        if (parent && parent.HasComponent<Maths::Transform>())
+                        Entity parent = Entity(m_SelectedEntity, m_SceneManager->GetCurrentScene()).GetParent(); // m_CurrentScene->TryGetEntityWithUUID(entity.GetParentUUID());
+                        if(parent && parent.HasComponent<Maths::Transform>())
                         {
                             glm::mat4 parentTransform = parent.GetTransform().GetWorldMatrix();
-                            model = glm::inverse(parentTransform) * model;
+                            model                     = glm::inverse(parentTransform) * model;
                         }
-                    
-                        if(ImGuizmo::IsScaleType())//static_cast<ImGuizmo::OPERATION>(m_ImGuizmoOperation) & ImGuizmo::OPERATION::SCALE)
+
+                        if(ImGuizmo::IsScaleType()) // static_cast<ImGuizmo::OPERATION>(m_ImGuizmoOperation) & ImGuizmo::OPERATION::SCALE)
                         {
                             transform->SetLocalScale(Lumos::Maths::GetScale(model));
                         }
                         else
                         {
                             transform->SetLocalTransform(model);
-                        
+
                             RigidBody2DComponent* rigidBody2DComponent = registry.try_get<Lumos::RigidBody2DComponent>(m_SelectedEntity);
-                        
+
                             if(rigidBody2DComponent)
                             {
                                 rigidBody2DComponent->GetRigidBody()->SetPosition(
-                                                                                  { model[3].x, model[3].y });
+                                    { model[3].x, model[3].y });
                             }
                             else
                             {
@@ -1341,159 +1339,147 @@ namespace Lumos
         else
         {
             glm::vec3 medianPointLocation = glm::vec3(0.0f);
-                glm::vec3 medianPointScale = glm::vec3(0.0f);
-                int validcount = 0;
-                for (auto entityID : m_SelectedEntities)
-                {
-                    if (!registry.valid(entityID))
-                        continue;
+            glm::vec3 medianPointScale    = glm::vec3(0.0f);
+            int validcount                = 0;
+            for(auto entityID : m_SelectedEntities)
+            {
+                if(!registry.valid(entityID))
+                    continue;
 
-                    Entity entity = { entityID, m_SceneManager->GetCurrentScene() };
+                Entity entity = { entityID, m_SceneManager->GetCurrentScene() };
 
-                    if (!entity.HasComponent<Maths::Transform>())
-                        continue;
+                if(!entity.HasComponent<Maths::Transform>())
+                    continue;
 
-                    medianPointLocation += entity.GetTransform().GetWorldPosition();
-                    medianPointScale += entity.GetTransform().GetLocalScale();
-                    validcount++;
-                }
-                medianPointLocation /= validcount;// m_SelectedEntities.size();
-                medianPointScale /= validcount;// m_SelectedEntities.size();
+                medianPointLocation += entity.GetTransform().GetWorldPosition();
+                medianPointScale += entity.GetTransform().GetLocalScale();
+                validcount++;
+            }
+            medianPointLocation /= validcount; // m_SelectedEntities.size();
+            medianPointScale /= validcount;    // m_SelectedEntities.size();
 
-                glm::mat4 medianPointMatrix = glm::translate(glm::mat4(1.0f), medianPointLocation) * glm::scale(glm::mat4(1.0f), medianPointScale);
+            glm::mat4 medianPointMatrix = glm::translate(glm::mat4(1.0f), medianPointLocation) * glm::scale(glm::mat4(1.0f), medianPointScale);
 
-                glm::mat4 projectionMatrix, viewMatrix;
-              
-        
+            glm::mat4 projectionMatrix, viewMatrix;
+
             ImGuizmo::SetDrawlist();
             ImGuizmo::SetOrthographic(m_CurrentCamera->IsOrthographic());
 
-                        
-                float snapAmount[3] = { m_Settings.m_SnapAmount, m_Settings.m_SnapAmount, m_Settings.m_SnapAmount };
-                glm::mat4 deltaMatrix = glm::mat4(1.0f);
-                
-                ImGuizmo::Manipulate(glm::value_ptr(view),
-                                     glm::value_ptr(proj),
-                                     static_cast<ImGuizmo::OPERATION>(m_ImGuizmoOperation),
-                                     ImGuizmo::LOCAL,
-                                     glm::value_ptr(medianPointMatrix),
-                                     glm::value_ptr(deltaMatrix),
-                                     m_Settings.m_SnapQuizmo ? snapAmount : nullptr);
-                
-                if(ImGuizmo::IsUsing())
+            float snapAmount[3]   = { m_Settings.m_SnapAmount, m_Settings.m_SnapAmount, m_Settings.m_SnapAmount };
+            glm::mat4 deltaMatrix = glm::mat4(1.0f);
+
+            ImGuizmo::Manipulate(glm::value_ptr(view),
+                                 glm::value_ptr(proj),
+                                 static_cast<ImGuizmo::OPERATION>(m_ImGuizmoOperation),
+                                 ImGuizmo::LOCAL,
+                                 glm::value_ptr(medianPointMatrix),
+                                 glm::value_ptr(deltaMatrix),
+                                 m_Settings.m_SnapQuizmo ? snapAmount : nullptr);
+
+            if(ImGuizmo::IsUsing())
+            {
+                glm::vec3 deltaTranslation, deltaScale;
+                glm::quat deltaRotation;
+                glm::vec3 skew;
+                glm::vec4 perspective;
+                glm::decompose(deltaMatrix, deltaScale, deltaRotation, deltaTranslation, skew, perspective);
+
+                //                    if (parent && parent.HasComponent<Maths::Transform>())
+                //                    {
+                //                        glm::mat4 parentTransform = parent.GetTransform().GetWorldMatrix();
+                //                        model = glm::inverse(parentTransform) * model;
+                //                    }
+                //
+
+                static const bool MedianPointOrigin = false;
+
+                if(MedianPointOrigin)
                 {
-                    glm::vec3 deltaTranslation, deltaScale;
-                    glm::quat deltaRotation;
-                    glm::vec3 skew;
-                    glm::vec4 perspective;
-                    glm::decompose(deltaMatrix, deltaScale, deltaRotation, deltaTranslation, skew, perspective);
-                    
-//                    if (parent && parent.HasComponent<Maths::Transform>())
-//                    {
-//                        glm::mat4 parentTransform = parent.GetTransform().GetWorldMatrix();
-//                        model = glm::inverse(parentTransform) * model;
-//                    }
-//
-                    
-                    static const bool MedianPointOrigin = false;
-                    
-                    if(MedianPointOrigin)
+                    for(auto entityID : m_SelectedEntities)
                     {
-                        for (auto entityID : m_SelectedEntities)
+                        if(!registry.valid(entityID))
+                            continue;
+                        auto transform = registry.try_get<Maths::Transform>(entityID);
+
+                        if(!transform)
+                            continue;
+                        if(ImGuizmo::IsScaleType()) // static_cast<ImGuizmo::OPERATION>(m_ImGuizmoOperation) == ImGuizmo::OPERATION::SCALE)
                         {
-                            if (!registry.valid(entityID))
-                                continue;
-                            auto transform = registry.try_get<Maths::Transform>(entityID);
-
-                            if (!transform)
-                                continue;
-                            if(ImGuizmo::IsScaleType())//static_cast<ImGuizmo::OPERATION>(m_ImGuizmoOperation) == ImGuizmo::OPERATION::SCALE)
-                            {
-                                transform->SetLocalScale(transform->GetLocalScale() * deltaScale);
-                                //transform->SetLocalTransform(deltaMatrix * transform->GetLocalMatrix());
-
-                            }
-                            else
-                            {
-                                transform->SetLocalTransform(deltaMatrix * transform->GetLocalMatrix());
-                                
-                                //World matrix wont have updated yet so need to multiply by delta
-                                //TODO: refactor
-                                auto worldMatrix = deltaMatrix * transform->GetWorldMatrix();
-
-                                RigidBody2DComponent* rigidBody2DComponent = registry.try_get<Lumos::RigidBody2DComponent>(entityID);
-                                
-                                if(rigidBody2DComponent)
-                                {
-                                    rigidBody2DComponent->GetRigidBody()->SetPosition( { worldMatrix[3].x, worldMatrix[3].y });
-                                }
-                                else
-                                {
-                                    Lumos::RigidBody3DComponent* rigidBody3DComponent = registry.try_get<Lumos::RigidBody3DComponent>(entityID);
-                                    if(rigidBody3DComponent)
-                                    {
-                                        rigidBody3DComponent->GetRigidBody()->SetPosition(worldMatrix[3]);
-                                        rigidBody3DComponent->GetRigidBody()->SetOrientation(Maths::GetRotation(worldMatrix));
-                                    }
-                                }
-                            }
+                            transform->SetLocalScale(transform->GetLocalScale() * deltaScale);
+                            // transform->SetLocalTransform(deltaMatrix * transform->GetLocalMatrix());
                         }
-                        
-                    }
-                    else
-                    {
-                        for (auto entityID : m_SelectedEntities)
+                        else
                         {
-                            if (!registry.valid(entityID))
-                                continue;
-                            auto transform = registry.try_get<Maths::Transform>(entityID);
+                            transform->SetLocalTransform(deltaMatrix * transform->GetLocalMatrix());
 
-                            if (!transform)
-                                continue;
-                            if(ImGuizmo::IsScaleType())//static_cast<ImGuizmo::OPERATION>(m_ImGuizmoOperation) & ImGuizmo::OPERATION::SCALE)
+                            // World matrix wont have updated yet so need to multiply by delta
+                            // TODO: refactor
+                            auto worldMatrix = deltaMatrix * transform->GetWorldMatrix();
+
+                            RigidBody2DComponent* rigidBody2DComponent = registry.try_get<Lumos::RigidBody2DComponent>(entityID);
+
+                            if(rigidBody2DComponent)
                             {
-                                transform->SetLocalScale(transform->GetLocalScale() * deltaScale);
-                                //transform->SetLocalTransform(deltaMatrix * transform->GetLocalMatrix());
-
-                            }
-                            else if(ImGuizmo::IsRotateType())//static_cast<ImGuizmo::OPERATION>(m_ImGuizmoOperation) & ImGuizmo::OPERATION::ROTATE)
-                            {
-                                transform->SetLocalOrientation(glm::quat(glm::eulerAngles(transform->GetLocalOrientation()) + glm::eulerAngles(deltaRotation)));
-
+                                rigidBody2DComponent->GetRigidBody()->SetPosition({ worldMatrix[3].x, worldMatrix[3].y });
                             }
                             else
                             {
-                                transform->SetLocalTransform(deltaMatrix * transform->GetLocalMatrix());
-                                
-                                //World matrix wont have updated yet so need to multiply by delta
-                                //TODO: refactor
-                                auto worldMatrix = deltaMatrix * transform->GetWorldMatrix();
-
-                                RigidBody2DComponent* rigidBody2DComponent = registry.try_get<Lumos::RigidBody2DComponent>(entityID);
-                                
-                                if(rigidBody2DComponent)
+                                Lumos::RigidBody3DComponent* rigidBody3DComponent = registry.try_get<Lumos::RigidBody3DComponent>(entityID);
+                                if(rigidBody3DComponent)
                                 {
-                                    rigidBody2DComponent->GetRigidBody()->SetPosition( { worldMatrix[3].x, worldMatrix[3].y });
-                                }
-                                else
-                                {
-                                    Lumos::RigidBody3DComponent* rigidBody3DComponent = registry.try_get<Lumos::RigidBody3DComponent>(entityID);
-                                    if(rigidBody3DComponent)
-                                    {
-                                        rigidBody3DComponent->GetRigidBody()->SetPosition(worldMatrix[3]);
-                                        rigidBody3DComponent->GetRigidBody()->SetOrientation(Maths::GetRotation(worldMatrix));
-                                    }
+                                    rigidBody3DComponent->GetRigidBody()->SetPosition(worldMatrix[3]);
+                                    rigidBody3DComponent->GetRigidBody()->SetOrientation(Maths::GetRotation(worldMatrix));
                                 }
                             }
                         }
                     }
-                   
                 }
-            
-            
-            
-            
-            
+                else
+                {
+                    for(auto entityID : m_SelectedEntities)
+                    {
+                        if(!registry.valid(entityID))
+                            continue;
+                        auto transform = registry.try_get<Maths::Transform>(entityID);
+
+                        if(!transform)
+                            continue;
+                        if(ImGuizmo::IsScaleType()) // static_cast<ImGuizmo::OPERATION>(m_ImGuizmoOperation) & ImGuizmo::OPERATION::SCALE)
+                        {
+                            transform->SetLocalScale(transform->GetLocalScale() * deltaScale);
+                            // transform->SetLocalTransform(deltaMatrix * transform->GetLocalMatrix());
+                        }
+                        else if(ImGuizmo::IsRotateType()) // static_cast<ImGuizmo::OPERATION>(m_ImGuizmoOperation) & ImGuizmo::OPERATION::ROTATE)
+                        {
+                            transform->SetLocalOrientation(glm::quat(glm::eulerAngles(transform->GetLocalOrientation()) + glm::eulerAngles(deltaRotation)));
+                        }
+                        else
+                        {
+                            transform->SetLocalTransform(deltaMatrix * transform->GetLocalMatrix());
+
+                            // World matrix wont have updated yet so need to multiply by delta
+                            // TODO: refactor
+                            auto worldMatrix = deltaMatrix * transform->GetWorldMatrix();
+
+                            RigidBody2DComponent* rigidBody2DComponent = registry.try_get<Lumos::RigidBody2DComponent>(entityID);
+
+                            if(rigidBody2DComponent)
+                            {
+                                rigidBody2DComponent->GetRigidBody()->SetPosition({ worldMatrix[3].x, worldMatrix[3].y });
+                            }
+                            else
+                            {
+                                Lumos::RigidBody3DComponent* rigidBody3DComponent = registry.try_get<Lumos::RigidBody3DComponent>(entityID);
+                                if(rigidBody3DComponent)
+                                {
+                                    rigidBody3DComponent->GetRigidBody()->SetPosition(worldMatrix[3]);
+                                    rigidBody3DComponent->GetRigidBody()->SetOrientation(Maths::GetRotation(worldMatrix));
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -1633,9 +1619,9 @@ namespace Lumos
     {
         LUMOS_PROFILE_FUNCTION();
         Application::OnNewScene(scene);
-        //m_SelectedEntity = entt::null;
+        // m_SelectedEntity = entt::null;
         m_SelectedEntities.clear();
-        glm::mat4 viewMat = glm::inverse(glm::lookAt(glm::vec3(0.0f, 0.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f)));
+        glm::mat4 viewMat = glm::inverse(glm::lookAt(glm::vec3(-31.0f, 12.0f, 51.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f)));
         m_EditorCameraTransform.SetLocalTransform(viewMat);
 
         for(auto panel : m_Panels)
@@ -1847,7 +1833,7 @@ namespace Lumos
                 Application::Get().GetSystem<AudioManager>()->SetPaused(true);
                 Application::Get().SetEditorState(EditorState::Preview);
 
-                //m_SelectedEntity = entt::null;
+                // m_SelectedEntity = entt::null;
                 m_SelectedEntities.clear();
                 ImGui::SetWindowFocus("###scene");
                 LoadCachedScene();
@@ -1866,7 +1852,7 @@ namespace Lumos
                 m_EditorCameraController.HandleMouse(m_EditorCameraTransform, (float)ts.GetSeconds(), mousePos.x, mousePos.y);
                 m_EditorCameraController.HandleKeyboard(m_EditorCameraTransform, (float)ts.GetSeconds());
                 m_EditorCameraTransform.SetWorldMatrix(glm::mat4(1.0f));
-                
+
                 if(Input::Get().GetKeyPressed(InputCode::Key::F))
                 {
                     if(registry.valid(m_SelectedEntities.front()))
@@ -1958,12 +1944,11 @@ namespace Lumos
                         Application::Get().GetCurrentScene()->DuplicateEntity({ entity, Application::Get().GetCurrentScene() });
                         if(entity != entt::null)
                         {
-                            //if(m_CopiedEntity == m_SelectedEntity)
-                              //  m_SelectedEntity = entt::null;
+                            // if(m_CopiedEntity == m_SelectedEntity)
+                            //   m_SelectedEntity = entt::null;
                             Entity(entity, Application::Get().GetCurrentScene()).Destroy();
                         }
                     }
-
                 }
 
                 if(Input::Get().GetKeyPressed(InputCode::Key::D) && !m_SelectedEntities.empty())
@@ -2092,75 +2077,75 @@ namespace Lumos
         }
 
         for(auto m_SelectedEntity : m_SelectedEntities)
-        if(registry.valid(m_SelectedEntity)) // && Application::Get().GetEditorState() == EditorState::Preview)
-        {
-            auto transform = registry.try_get<Maths::Transform>(m_SelectedEntity);
-
-            auto model = registry.try_get<Graphics::ModelComponent>(m_SelectedEntity);
-            if(transform && model && model->ModelRef)
+            if(registry.valid(m_SelectedEntity)) // && Application::Get().GetEditorState() == EditorState::Preview)
             {
-                auto& meshes = model->ModelRef->GetMeshes();
-                for(auto mesh : meshes)
+                auto transform = registry.try_get<Maths::Transform>(m_SelectedEntity);
+
+                auto model = registry.try_get<Graphics::ModelComponent>(m_SelectedEntity);
+                if(transform && model && model->ModelRef)
                 {
-                    if(mesh->GetActive())
+                    auto& meshes = model->ModelRef->GetMeshes();
+                    for(auto mesh : meshes)
                     {
-                        auto& worldTransform = transform->GetWorldMatrix();
-                        auto bbCopy          = mesh->GetBoundingBox()->Transformed(worldTransform);
-                        DebugRenderer::DebugDraw(bbCopy, selectedColour, true);
+                        if(mesh->GetActive())
+                        {
+                            auto& worldTransform = transform->GetWorldMatrix();
+                            auto bbCopy          = mesh->GetBoundingBox()->Transformed(worldTransform);
+                            DebugRenderer::DebugDraw(bbCopy, selectedColour, true);
+                        }
                     }
                 }
-            }
 
-            auto sprite = registry.try_get<Graphics::Sprite>(m_SelectedEntity);
-            if(transform && sprite)
-            {
+                auto sprite = registry.try_get<Graphics::Sprite>(m_SelectedEntity);
+                if(transform && sprite)
                 {
-                    auto& worldTransform = transform->GetWorldMatrix();
+                    {
+                        auto& worldTransform = transform->GetWorldMatrix();
 
-                    auto bb = Maths::BoundingBox(Maths::Rect(sprite->GetPosition(), sprite->GetPosition() + sprite->GetScale()));
-                    bb.Transform(worldTransform);
-                    DebugRenderer::DebugDraw(bb, selectedColour, true);
+                        auto bb = Maths::BoundingBox(Maths::Rect(sprite->GetPosition(), sprite->GetPosition() + sprite->GetScale()));
+                        bb.Transform(worldTransform);
+                        DebugRenderer::DebugDraw(bb, selectedColour, true);
+                    }
+                }
+
+                auto animSprite = registry.try_get<Graphics::AnimatedSprite>(m_SelectedEntity);
+                if(transform && animSprite)
+                {
+                    {
+                        auto& worldTransform = transform->GetWorldMatrix();
+
+                        auto bb = Maths::BoundingBox(Maths::Rect(animSprite->GetPosition(), animSprite->GetPosition() + animSprite->GetScale()));
+                        bb.Transform(worldTransform);
+                        DebugRenderer::DebugDraw(bb, selectedColour, true);
+                    }
+                }
+
+                auto camera = registry.try_get<Camera>(m_SelectedEntity);
+                if(camera && transform)
+                {
+                    DebugRenderer::DebugDraw(camera->GetFrustum(glm::inverse(transform->GetWorldMatrix())), glm::vec4(0.9f));
+                }
+
+                auto light = registry.try_get<Graphics::Light>(m_SelectedEntity);
+                if(light && transform)
+                {
+                    DebugRenderer::DebugDraw(light, transform->GetWorldOrientation(), glm::vec4(glm::vec3(light->Colour), 0.2f));
+                }
+
+                auto sound = registry.try_get<SoundComponent>(m_SelectedEntity);
+                if(sound)
+                {
+                    DebugRenderer::DebugDraw(sound->GetSoundNode(), glm::vec4(0.8f, 0.8f, 0.8f, 0.2f));
+                }
+
+                auto phys3D = registry.try_get<RigidBody3DComponent>(m_SelectedEntity);
+                if(phys3D)
+                {
+                    auto cs = phys3D->GetRigidBody()->GetCollisionShape();
+                    if(cs)
+                        cs->DebugDraw(phys3D->GetRigidBody().get());
                 }
             }
-
-            auto animSprite = registry.try_get<Graphics::AnimatedSprite>(m_SelectedEntity);
-            if(transform && animSprite)
-            {
-                {
-                    auto& worldTransform = transform->GetWorldMatrix();
-
-                    auto bb = Maths::BoundingBox(Maths::Rect(animSprite->GetPosition(), animSprite->GetPosition() + animSprite->GetScale()));
-                    bb.Transform(worldTransform);
-                    DebugRenderer::DebugDraw(bb, selectedColour, true);
-                }
-            }
-
-            auto camera = registry.try_get<Camera>(m_SelectedEntity);
-            if(camera && transform)
-            {
-                DebugRenderer::DebugDraw(camera->GetFrustum(glm::inverse(transform->GetWorldMatrix())), glm::vec4(0.9f));
-            }
-
-            auto light = registry.try_get<Graphics::Light>(m_SelectedEntity);
-            if(light && transform)
-            {
-                DebugRenderer::DebugDraw(light, transform->GetWorldOrientation(), glm::vec4(glm::vec3(light->Colour), 0.2f));
-            }
-
-            auto sound = registry.try_get<SoundComponent>(m_SelectedEntity);
-            if(sound)
-            {
-                DebugRenderer::DebugDraw(sound->GetSoundNode(), glm::vec4(0.8f, 0.8f, 0.8f, 0.2f));
-            }
-
-            auto phys3D = registry.try_get<RigidBody3DComponent>(m_SelectedEntity);
-            if(phys3D)
-            {
-                auto cs = phys3D->GetRigidBody()->GetCollisionShape();
-                if(cs)
-                    cs->DebugDraw(phys3D->GetRigidBody().get());
-            }
-        }
     }
 
     void Editor::SelectObject(const Maths::Ray& ray)
@@ -2223,10 +2208,10 @@ namespace Lumos
 
             timeSinceLastSelect = timer.GetElapsedS();
 
-            auto& io = ImGui::GetIO();
+            auto& io  = ImGui::GetIO();
             auto ctrl = Input::Get().GetKeyHeld(InputCode::Key::LeftSuper) || (Input::Get().GetKeyHeld(InputCode::Key::LeftControl));
 
-            if (!ctrl)
+            if(!ctrl)
                 m_SelectedEntities.clear();
 
             SetSelected(currentClosestEntity);
@@ -2419,16 +2404,16 @@ namespace Lumos
         LUMOS_PROFILE_FUNCTION();
 
         auto path = filePath;
-        path = StringUtilities::BackSlashesToSlashes(path);
+        path      = StringUtilities::BackSlashesToSlashes(path);
         if(IsTextFile(path))
             OpenTextFile(path, NULL);
         else if(IsModelFile(path))
         {
             Entity modelEntity = Application::Get().GetSceneManager()->GetCurrentScene()->GetEntityManager()->Create();
             modelEntity.AddComponent<Graphics::ModelComponent>(path);
-            
+
             SetSelected(modelEntity.GetHandle());
-            //m_SelectedEntity = modelEntity.GetHandle();
+            // m_SelectedEntity = modelEntity.GetHandle();
         }
         else if(IsAudioFile(path))
         {

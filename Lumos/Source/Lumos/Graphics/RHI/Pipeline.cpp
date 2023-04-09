@@ -61,7 +61,6 @@ namespace Lumos
                 HashCombine(hash, pipelineDesc.depthArrayTarget->GetUUID());
             }
 
-            
             HashCombine(hash, pipelineDesc.clearTargets);
             HashCombine(hash, pipelineDesc.swapchainTarget);
             HashCombine(hash, pipelineDesc.lineWidth);

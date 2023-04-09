@@ -51,6 +51,7 @@ namespace Lumos
             virtual void DrawSplashScreen(Texture* texture) { }
             virtual uint32_t GetGPUCount() const { return 1; }
             virtual bool SupportsCompute() { return false; }
+            virtual void SaveScreenshot(const std::string& path, Graphics::Texture* texture = nullptr) {};
 
             inline static void Present()
             {

@@ -142,7 +142,7 @@ namespace Lumos
     int SceneManager::EnqueueSceneFromFile(const std::string& filePath)
     {
         auto found = std::find(m_SceneFilePaths.begin(), m_SceneFilePaths.end(), filePath);
-        if (found != m_SceneFilePaths.end())
+        if(found != m_SceneFilePaths.end())
             return int(found - m_SceneFilePaths.begin());
 
         m_SceneFilePaths.push_back(filePath);

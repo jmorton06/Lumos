@@ -47,14 +47,26 @@ namespace Lumos
             }
         };
 
+        struct Triangle
+        {
+            Triangle(const Vertex& v0, const Vertex& v1, const Vertex& v2)
+            {
+                p0 = v0;
+                p1 = v1;
+                p2 = v2;
+            }
+
+            Vertex p0;
+            Vertex p1;
+            Vertex p2;
+        };
+
         class LUMOS_EXPORT Mesh
         {
         public:
             Mesh();
             Mesh(const Mesh& mesh);
             Mesh(const std::vector<uint32_t>& indices, const std::vector<Vertex>& vertices, float optimiseThreshold = 0.95f);
-            Mesh(SharedPtr<VertexBuffer>& vertexBuffer, SharedPtr<IndexBuffer>& indexBuffer, const SharedPtr<Maths::BoundingBox>& boundingBox);
-
             virtual ~Mesh();
 
             const SharedPtr<VertexBuffer>& GetVertexBuffer() const { return m_VertexBuffer; }
@@ -69,6 +81,16 @@ namespace Lumos
 
             static void GenerateNormals(Vertex* vertices, uint32_t vertexCount, uint32_t* indices, uint32_t indexCount);
             static void GenerateTangentsAndBitangents(Vertex* vertices, uint32_t vertexCount, uint32_t* indices, uint32_t indexCount);
+
+            void CalculateTriangles();
+
+            const std::vector<Triangle>& GetTriangles()
+            {
+                if(m_Triangles.empty())
+                    CalculateTriangles();
+
+                return m_Triangles;
+            }
 
         protected:
             static glm::vec3 GenerateTangent(const glm::vec3& a, const glm::vec3& b, const glm::vec3& c, const glm::vec2& ta, const glm::vec2& tb, const glm::vec2& tc);
@@ -86,6 +108,9 @@ namespace Lumos
             bool m_Active = true;
             std::vector<uint32_t> m_Indices;
             std::vector<Vertex> m_Vertices;
+
+            // Only calculated on request
+            std::vector<Triangle> m_Triangles;
         };
     }
 }

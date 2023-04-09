@@ -67,13 +67,12 @@ namespace Lumos
             if(m_Parameters.anisotropicFiltering && Renderer::GetCapabilities().MaxAnisotropy > 0)
                 GLCall(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, Renderer::GetCapabilities().MaxAnisotropy));
 
-
             uint32_t format = GLUtilities::FormatToGL(m_Parameters.format, m_Parameters.srgb);
-            m_Flags = m_Parameters.flags;
+            m_Flags         = m_Parameters.flags;
 
             GLCall(glTexImage2D(GL_TEXTURE_2D, 0, format, m_Width, m_Height, 0, GLUtilities::FormatToInternalFormat(format), GLUtilities::GetGLTypefromFormat(m_Parameters.format), data ? data : NULL));
-            
-            if (m_Parameters.generateMipMaps || m_Flags & TextureFlags::Texture_CreateMips)
+
+            if(m_Parameters.generateMipMaps || m_Flags & TextureFlags::Texture_CreateMips)
             {
                 GLCall(glGenerateMipmap(GL_TEXTURE_2D));
                 m_MipLevels = static_cast<uint32_t>(std::floor(std::log2(Maths::Max(m_Width, m_Height)))) + 1;
@@ -144,12 +143,12 @@ namespace Lumos
 
             glTexImage2D(GL_TEXTURE_2D, 0, Format, m_Width, m_Height, 0, Format2, GLUtilities::GetGLTypefromFormat(m_Parameters.format), nullptr);
 
-            if (m_Parameters.generateMipMaps || m_Flags & TextureFlags::Texture_CreateMips)
+            if(m_Parameters.generateMipMaps || m_Flags & TextureFlags::Texture_CreateMips)
             {
                 GLCall(glGenerateMipmap(GL_TEXTURE_2D));
                 m_MipLevels = static_cast<uint32_t>(std::floor(std::log2(Maths::Max(m_Width, m_Height)))) + 1;
             }
-            
+
             m_UUID = Random64::Rand(0, std::numeric_limits<uint64_t>::max());
         }
 
@@ -164,7 +163,7 @@ namespace Lumos
                 pixels              = Lumos::LoadImageFromFile(m_FileName.c_str(), &m_Width, &m_Height, &bits, &isHDR, !m_LoadOptions.flipY);
                 m_Parameters.format = BitsToFormat(bits);
             }
-            
+
             m_UUID = Random64::Rand(0, std::numeric_limits<uint64_t>::max());
 
             return pixels;
@@ -175,10 +174,10 @@ namespace Lumos
             , m_Bits(0)
             , m_NumMips(0)
         {
-            m_NumMips = Texture::CalculateMipMapCount(size, size);
-            m_Format = hdr ? RHIFormat::R32G32B32A32_Float : RHIFormat::R8G8B8A8_Unorm;
+            m_NumMips           = Texture::CalculateMipMapCount(size, size);
+            m_Format            = hdr ? RHIFormat::R32G32B32A32_Float : RHIFormat::R8G8B8A8_Unorm;
             m_Parameters.format = m_Format;
-            
+
             uint32_t internalFormat = GLUtilities::FormatToGL(m_Parameters.format, m_Parameters.srgb);
             uint32_t format         = GLUtilities::FormatToInternalFormat(internalFormat);
 
@@ -198,10 +197,10 @@ namespace Lumos
                 glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, internalFormat, size, size, 0, format, GL_FLOAT, nullptr);
 
             GLCall(glGenerateMipmap(GL_TEXTURE_CUBE_MAP));
-            
+
             m_Width  = size;
             m_Height = size;
-            
+
             m_UUID = Random64::Rand(0, std::numeric_limits<uint64_t>::max());
         }
 
@@ -216,7 +215,7 @@ namespace Lumos
             m_Files[0] = filepath;
             m_Handle   = LoadFromSingleFile();
             m_Format   = m_Parameters.format;
-            
+
             m_UUID = Random64::Rand(0, std::numeric_limits<uint64_t>::max());
         }
 
@@ -226,7 +225,7 @@ namespace Lumos
                 m_Files[i] = files[i];
             m_Handle = LoadFromMultipleFiles();
             m_Format = m_Parameters.format;
-            
+
             m_UUID = Random64::Rand(0, std::numeric_limits<uint64_t>::max());
         }
 
@@ -240,7 +239,7 @@ namespace Lumos
             m_Handle = LoadFromVCross(mips);
 
             m_Format = m_Parameters.format;
-            
+
             m_UUID = Random64::Rand(0, std::numeric_limits<uint64_t>::max());
         }
 
@@ -468,7 +467,7 @@ namespace Lumos
             GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_NONE));
 #endif
             GLCall(glBindTexture(GL_TEXTURE_2D, 0));
-            
+
             m_UUID = Random64::Rand(0, std::numeric_limits<uint64_t>::max());
         }
 
@@ -524,7 +523,7 @@ namespace Lumos
 #endif
             GLCall(glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL));
             GLCall(glBindTexture(GL_TEXTURE_2D_ARRAY, 0));
-            
+
             m_UUID = Random64::Rand(0, std::numeric_limits<uint64_t>::max());
         }
 
@@ -547,7 +546,7 @@ namespace Lumos
 #endif
             GLCall(glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL));
             GLCall(glBindTexture(GL_TEXTURE_2D_ARRAY, 0));
-            
+
             m_UUID = Random64::Rand(0, std::numeric_limits<uint64_t>::max());
         }
 

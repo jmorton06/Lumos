@@ -26,9 +26,10 @@ layout(set = 0, binding = 0) uniform UniformBuffer
 
 vec3 reconstructVSPosFromDepth(vec2 uv)
 {
-  float depth = texture(in_Depth, uv).r;
-  float x = uv.x * 2.0 - 1.0;
-  float y = (1.0 - uv.y) * 2.0 - 1.0;
+	float depth = texture(in_Depth, uv).r;
+	depth = depth * 2.0 - 1.0; // Remap depth from [0, 1] to [-1, 1]
+	float x = uv.x * 2.0 - 1.0;
+	float y = (1.0 - uv.y) * 2.0 - 1.0;
   vec4 pos = vec4(x, y, depth, 1.0);
   vec4 posVS = ubo.invProj * pos;
   return posVS.xyz / posVS.w;

@@ -205,10 +205,10 @@ namespace Lumos
         m_CubeHull->AddVertex(glm::vec3(1.0f, 1.0f, -1.0f));   // 2
         m_CubeHull->AddVertex(glm::vec3(1.0f, -1.0f, -1.0f));  // 3
 
-        m_CubeHull->AddVertex(glm::vec3(-1.0f, -1.0f, 1.0f)); // 4
-        m_CubeHull->AddVertex(glm::vec3(-1.0f, 1.0f, 1.0f));  // 5
-        m_CubeHull->AddVertex(glm::vec3(1.0f, 1.0f, 1.0f));   // 6
-        m_CubeHull->AddVertex(glm::vec3(1.0f, -1.0f, 1.0f));  // 7
+        m_CubeHull->AddVertex(glm::vec3(-1.0f, -1.0f, 1.0f));  // 4
+        m_CubeHull->AddVertex(glm::vec3(-1.0f, 1.0f, 1.0f));   // 5
+        m_CubeHull->AddVertex(glm::vec3(1.0f, 1.0f, 1.0f));    // 6
+        m_CubeHull->AddVertex(glm::vec3(1.0f, -1.0f, 1.0f));   // 7
 
         int face1[] = { 0, 1, 2, 3 };
         int face2[] = { 7, 6, 5, 4 };

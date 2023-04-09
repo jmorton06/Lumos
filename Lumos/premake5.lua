@@ -99,7 +99,7 @@ project "Lumos"
 		systemversion "latest"
 		disablewarnings { 4307 }
 		characterset ("Unicode")
-
+		conformancemode "on"
 		pchheader "Precompiled.h"
 		pchsource "Source/Precompiled.cpp"
 

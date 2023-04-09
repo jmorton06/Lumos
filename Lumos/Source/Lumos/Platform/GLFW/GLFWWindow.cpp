@@ -354,7 +354,7 @@ namespace Lumos
 
         if(smallIconFilePath != "")
         {
-            pixels = Lumos::LoadImageFromFile(smallIconFilePath, &width, &height, nullptr, nullptr, true);
+            pixels = Lumos::LoadImageFromFile(smallIconFilePath, &width, &height, nullptr, nullptr, false);
 
             if(!pixels)
             {
@@ -435,7 +435,7 @@ namespace Lumos
         LUMOS_PROFILE_FUNCTION();
         if(hide)
         {
-            glfwSetInputMode(m_Handle, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+            glfwSetInputMode(m_Handle, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
         }
         else
         {

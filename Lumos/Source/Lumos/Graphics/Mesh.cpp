@@ -28,14 +28,6 @@ namespace Lumos
         {
         }
 
-        Mesh::Mesh(SharedPtr<VertexBuffer>& vertexBuffer, SharedPtr<IndexBuffer>& indexBuffer, const SharedPtr<Maths::BoundingBox>& boundingBox)
-            : m_VertexBuffer(vertexBuffer)
-            , m_IndexBuffer(indexBuffer)
-            , m_BoundingBox(boundingBox)
-            , m_Material(nullptr)
-        {
-        }
-
         Mesh::Mesh(const std::vector<uint32_t>& indices, const std::vector<Vertex>& vertices, float optimiseThreshold)
         {
             m_Indices  = indices;
@@ -55,7 +47,7 @@ namespace Lumos
             auto newVertexCount = meshopt_optimizeVertexFetch( // return vertices (not vertex attribute values)
                 (m_Vertices.data()),
                 (unsigned int*)(m_Indices.data()),
-                newIndexCount, // total new indices (not faces)
+                newIndexCount,             // total new indices (not faces)
                 (m_Vertices.data()),
                 (size_t)m_Vertices.size(), // total vertices (not vertex attribute values)
                 sizeof(Graphics::Vertex)   // vertex stride
@@ -132,13 +124,13 @@ namespace Lumos
 
         void Mesh::GenerateTangentsAndBitangents(Vertex* vertices, uint32_t vertexCount, uint32_t* indices, uint32_t numIndices)
         {
-            for (int i = 0; i < vertexCount; i++)
+            for(int i = 0; i < vertexCount; i++)
             {
-                vertices[i].Tangent = glm::vec3(0.0f);
+                vertices[i].Tangent   = glm::vec3(0.0f);
                 vertices[i].Bitangent = glm::vec3(0.0f);
             }
-            
-            for(uint32_t i = 0; i < numIndices; i+=3)
+
+            for(uint32_t i = 0; i < numIndices; i += 3)
             {
                 glm::vec3 v0 = vertices[indices[i]].Position;
                 glm::vec3 v1 = vertices[indices[i + 1]].Position;
@@ -160,7 +152,7 @@ namespace Lumos
 
                 float f = 1.0f / (deltaUV1.x * deltaUV2.y - deltaUV2.x * deltaUV1.y);
 
-                glm::vec3 tangent = f * (deltaUV2.y * edge1 - deltaUV1.y * edge2);
+                glm::vec3 tangent   = f * (deltaUV2.y * edge1 - deltaUV1.y * edge2);
                 glm::vec3 bitangent = f * (-deltaUV2.x * edge1 + deltaUV1.x * edge2);
 
                 // Store tangent and bitangent for each vertex of the triangle
@@ -174,9 +166,9 @@ namespace Lumos
             }
 
             // Normalize the tangent and bitangent vectors
-            for (uint32_t i = 0; i < vertexCount; i++)
+            for(uint32_t i = 0; i < vertexCount; i++)
             {
-                vertices[i].Tangent = glm::normalize(vertices[i].Tangent);
+                vertices[i].Tangent   = glm::normalize(vertices[i].Tangent);
                 vertices[i].Bitangent = glm::normalize(vertices[i].Bitangent);
             }
         }
@@ -195,7 +187,6 @@ namespace Lumos
 
             return axis * factor;
         }
-
 
         glm::vec3* Mesh::GenerateNormals(uint32_t numVertices, glm::vec3* vertices, uint32_t* indices, uint32_t numIndices)
         {
@@ -293,6 +284,14 @@ namespace Lumos
             }
 
             return tangents;
+        }
+
+        void Mesh::CalculateTriangles()
+        {
+            for(size_t i = 0; i < m_Indices.size(); i += 3)
+            {
+                m_Triangles.emplace_back(m_Vertices[m_Indices[i + 0]], m_Vertices[m_Indices[i + 1]], m_Vertices[m_Indices[i + 2]]);
+            }
         }
     }
 }

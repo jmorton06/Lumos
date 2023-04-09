@@ -253,7 +253,7 @@ namespace Lumos
         System::JobSystem::Execute(context, [this](JobDispatchArgs args)
                                    {
                                        m_SystemManager->RegisterSystem<LumosPhysicsEngine>();
-                                       m_SystemManager->RegisterSystem<B2PhysicsEngine>();});
+                                       m_SystemManager->RegisterSystem<B2PhysicsEngine>(); });
 
         System::JobSystem::Execute(context, [this](JobDispatchArgs args)
                                    { m_SceneManager->LoadCurrentList(); });
@@ -373,6 +373,16 @@ namespace Lumos
         {
             LUMOS_PROFILE_SCOPE("Application::Update");
             OnUpdate(ts);
+
+            {
+                // LUMOS_PROFILE_SCOPE("Wait System update");
+                // updateThread.join();
+                UpdateSystems();
+
+                m_SystemManager->GetSystem<LumosPhysicsEngine>()->SyncTransforms(m_SceneManager->GetCurrentScene());
+                m_SystemManager->GetSystem<B2PhysicsEngine>()->SyncTransforms(m_SceneManager->GetCurrentScene());
+            }
+
             m_Updates++;
         }
 
@@ -416,15 +426,6 @@ namespace Lumos
             LUMOS_PROFILE_SCOPE("Application::WindowUpdate");
             m_Window->UpdateCursorImGui();
             m_Window->OnUpdate();
-        }
-
-        {
-            LUMOS_PROFILE_SCOPE("Wait System update");
-            // updateThread.join();
-            UpdateSystems();
-
-            m_SystemManager->GetSystem<LumosPhysicsEngine>()->SyncTransforms(m_SceneManager->GetCurrentScene());
-            m_SystemManager->GetSystem<B2PhysicsEngine>()->SyncTransforms(m_SceneManager->GetCurrentScene());
         }
 
         if(now - m_SecondTimer > 1.0f)

@@ -40,11 +40,10 @@ layout(set = 1,binding = 6) uniform UniformMaterialData
 layout(location = 0) out vec4 OutNormal;
 void main(void)
 {
-	const float alphaCutOut = 0.4;
 	float alpha = texture(u_AlbedoMap, VertexOutput.TexCoord).a;
 	
 	if(alpha < materialProperties.AlphaCutOff)
 		discard;
 
-	OutNormal = vec4(VertexOutput.Normal, 1.0f);
+	OutNormal = vec4(normalize(VertexOutput.Normal) * 0.5 + 0.5, 1.0f);
 }

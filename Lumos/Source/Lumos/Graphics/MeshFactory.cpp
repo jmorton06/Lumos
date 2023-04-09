@@ -15,7 +15,7 @@ namespace Lumos
         {
             LUMOS_PROFILE_FUNCTION();
 
-            Vertex* data = new Vertex[4];
+            std::vector<Vertex> data(4);
 
             data[0].Position  = glm::vec3(x, y, 0.0f);
             data[0].TexCoords = glm::vec2(0.0f, 1.0f);
@@ -29,12 +29,7 @@ namespace Lumos
             data[3].Position  = glm::vec3(x, y + height, 0.0f);
             data[3].TexCoords = glm::vec2(1, 1);
 
-            SharedPtr<VertexBuffer> vb = SharedPtr<VertexBuffer>(VertexBuffer::Create(BufferUsage::STATIC));
-            vb->SetData(sizeof(Vertex) * 4, data);
-
-            delete[] data;
-
-            uint32_t indices[6] = {
+            std::vector<uint32_t> indices = {
                 0,
                 1,
                 2,
@@ -42,15 +37,7 @@ namespace Lumos
                 3,
                 0,
             };
-            SharedPtr<IndexBuffer> ib;
-            ib.reset(IndexBuffer::Create(indices, 6));
-
-            SharedPtr<Maths::BoundingBox> boundingBox = CreateSharedPtr<Maths::BoundingBox>();
-            for(int i = 0; i < 4; i++)
-            {
-                boundingBox->Merge(data[i].Position);
-            }
-            return new Mesh(vb, ib, boundingBox);
+            return new Mesh(indices, data);
         }
 
         Mesh* CreateQuad(const glm::vec2& position, const glm::vec2& size)
@@ -61,7 +48,7 @@ namespace Lumos
         Mesh* CreateQuad()
         {
             LUMOS_PROFILE_FUNCTION();
-            Vertex* data = new Vertex[4];
+            std::vector<Vertex> data(4);
 
             data[0].Position  = glm::vec3(-1.0f, -1.0f, 0.0f);
             data[0].TexCoords = glm::vec2(0.0f, 0.0f);
@@ -79,18 +66,7 @@ namespace Lumos
             data[3].Colours   = glm::vec4(0.0f);
             data[3].TexCoords = glm::vec2(0.0f, 1.0f);
 
-            SharedPtr<VertexBuffer> vb = SharedPtr<VertexBuffer>(VertexBuffer::Create(BufferUsage::STATIC));
-            vb->SetData(sizeof(Vertex) * 4, data);
-
-            SharedPtr<Lumos::Maths::BoundingBox> BoundingBox = CreateSharedPtr<Lumos::Maths::BoundingBox>();
-            for(int i = 0; i < 4; i++)
-            {
-                BoundingBox->Merge(data[i].Position);
-            }
-
-            delete[] data;
-
-            uint32_t indices[6] = {
+            std::vector<uint32_t> indices = {
                 0,
                 1,
                 2,
@@ -98,10 +74,8 @@ namespace Lumos
                 3,
                 0,
             };
-            SharedPtr<IndexBuffer> ib;
-            ib.reset(IndexBuffer::Create(indices, 6));
 
-            return new Mesh(vb, ib, BoundingBox);
+            return new Mesh(indices, data);
         }
 
         Mesh* CreateCube()
@@ -114,7 +88,7 @@ namespace Lumos
             //  |/      |/
             //  v2------v3
             LUMOS_PROFILE_FUNCTION();
-            Vertex* data = new Vertex[24];
+            std::vector<Vertex> data(24);
 
             data[0].Position = glm::vec3(0.5f, 0.5f, 0.5f);
             data[0].Colours  = glm::vec4(0.0f);
@@ -220,18 +194,7 @@ namespace Lumos
                 data[i * 4 + 3].TexCoords = glm::vec2(0.0f, 1.0f);
             }
 
-            SharedPtr<VertexBuffer> vb = SharedPtr<VertexBuffer>(VertexBuffer::Create(BufferUsage::STATIC));
-            vb->SetData(24 * sizeof(Vertex), data);
-
-            SharedPtr<Lumos::Maths::BoundingBox> BoundingBox = CreateSharedPtr<Lumos::Maths::BoundingBox>();
-            for(int i = 0; i < 8; i++)
-            {
-                BoundingBox->Merge(data[i].Position);
-            }
-
-            delete[] data;
-
-            uint32_t indices[36] {
+            std::vector<uint32_t> indices = {
                 0, 1, 2,
                 0, 2, 3,
                 4, 5, 6,
@@ -246,16 +209,13 @@ namespace Lumos
                 20, 22, 23
             };
 
-            SharedPtr<IndexBuffer> ib;
-            ib.reset(IndexBuffer::Create(indices, 36));
-
-            return new Mesh(vb, ib, BoundingBox);
+            return new Mesh(indices, data);
         }
 
         Mesh* CreatePyramid()
         {
             LUMOS_PROFILE_FUNCTION();
-            Vertex* data = new Vertex[18];
+            std::vector<Vertex> data(18);
 
             data[0].Position  = glm::vec3(1.0f, 1.0f, -1.0f);
             data[0].Colours   = glm::vec4(0.0f);
@@ -347,17 +307,7 @@ namespace Lumos
             data[17].TexCoords = glm::vec2(0.0f, 0.0f);
             data[17].Normal    = glm::vec3(0.0f, 0.0f, 0.0f);
 
-            SharedPtr<VertexBuffer> vb = SharedPtr<VertexBuffer>(VertexBuffer::Create(BufferUsage::STATIC));
-            vb->SetData(18 * sizeof(Vertex), data);
-
-            SharedPtr<Lumos::Maths::BoundingBox> BoundingBox = CreateSharedPtr<Lumos::Maths::BoundingBox>();
-            for(int i = 0; i < 18; i++)
-            {
-                BoundingBox->Merge(data[i].Position);
-            }
-            delete[] data;
-
-            uint32_t indices[18] {
+            std::vector<uint32_t> indices = {
                 0, 1, 2,
                 3, 4, 5,
                 6, 7, 8,
@@ -366,10 +316,7 @@ namespace Lumos
                 15, 12, 14
             };
 
-            SharedPtr<IndexBuffer> ib;
-            ib.reset(IndexBuffer::Create(indices, 18));
-
-            return new Mesh(vb, ib, BoundingBox);
+            return new Mesh(indices, data);
         }
 
         Mesh* CreateSphere(uint32_t xSegments, uint32_t ySegments)
@@ -412,9 +359,6 @@ namespace Lumos
                 }
             }
 
-            SharedPtr<VertexBuffer> vb = SharedPtr<VertexBuffer>(VertexBuffer::Create(BufferUsage::STATIC));
-            vb->SetData(int(data.size()) * sizeof(Vertex), data.data());
-
             std::vector<uint32_t> indices;
             uint32_t k1, k2;
             for(uint32_t i = 0; i < stackCount; ++i)
@@ -443,16 +387,7 @@ namespace Lumos
                 }
             }
 
-            SharedPtr<Maths::BoundingBox> boundingBox = CreateSharedPtr<Maths::BoundingBox>();
-            for(size_t i = 0; i < data.size(); i++)
-            {
-                boundingBox->Merge(data[i].Position);
-            }
-
-            SharedPtr<IndexBuffer> ib;
-            ib.reset(IndexBuffer::Create(indices.data(), static_cast<uint32_t>(indices.size())));
-
-            return new Mesh(vb, ib, boundingBox);
+            return new Mesh(indices, data);
         }
 
         Mesh* CreatePlane(float width, float height, const glm::vec3& normal)
@@ -461,7 +396,7 @@ namespace Lumos
             glm::vec3 vec      = normal * 90.0f;
             glm::quat rotation = glm::quat(vec.z, glm::vec3(1.0f, 0.0f, 0.0f)) * glm::quat(vec.y, glm::vec3(0.0f, 1.0f, 0.0f)) * glm::quat(vec.x, glm::vec3(0.0f, 0.0f, 1.0f));
 
-            Vertex* data = new Vertex[4];
+            std::vector<Vertex> data(4);
 
             data[0].Position  = rotation * glm::vec3(-width * 0.5f, -1.0f, -height * 0.5f);
             data[0].Normal    = normal;
@@ -479,25 +414,11 @@ namespace Lumos
             data[3].Normal    = normal;
             data[3].TexCoords = glm::vec2(1.0f, 0.0f);
 
-            SharedPtr<VertexBuffer> vb = SharedPtr<VertexBuffer>(VertexBuffer::Create(BufferUsage::STATIC));
-            vb->SetData(4 * sizeof(Vertex), data);
-
-            SharedPtr<Maths::BoundingBox> boundingBox = CreateSharedPtr<Maths::BoundingBox>();
-            for(int i = 0; i < 4; i++)
-            {
-                boundingBox->Merge(data[i].Position);
-            }
-
-            delete[] data;
-
-            uint32_t indices[6] {
+            std::vector<uint32_t> indices = {
                 0, 1, 2,
                 2, 3, 0
             };
-
-            SharedPtr<IndexBuffer> ib = SharedPtr<IndexBuffer>(IndexBuffer::Create(indices, 6));
-
-            return new Mesh(vb, ib, boundingBox);
+            return new Mesh(indices, data);
         }
 
         Mesh* CreateCapsule(float radius, float midHeight, int radialSegments, int rings)
@@ -651,19 +572,7 @@ namespace Lumos
                 thisrow = point;
             }
 
-            SharedPtr<VertexBuffer> vb = SharedPtr<VertexBuffer>(VertexBuffer::Create(BufferUsage::STATIC));
-            vb->SetData(static_cast<uint32_t>(data.size() * sizeof(Vertex)), data.data());
-
-            SharedPtr<Maths::BoundingBox> boundingBox = CreateSharedPtr<Maths::BoundingBox>();
-            for(size_t i = 0; i < data.size(); i++)
-            {
-                boundingBox->Merge(data[i].Position);
-            }
-
-            SharedPtr<IndexBuffer> ib;
-            ib.reset(IndexBuffer::Create(indices.data(), static_cast<uint32_t>(indices.size())));
-
-            return new Mesh(vb, ib, boundingBox);
+            return new Mesh(indices, data);
         }
     }
 
@@ -804,19 +713,7 @@ namespace Lumos
             };
         };
 
-        SharedPtr<VertexBuffer> vb = SharedPtr<VertexBuffer>(VertexBuffer::Create(BufferUsage::STATIC));
-        vb->SetData(static_cast<uint32_t>(data.size() * sizeof(Vertex)), data.data());
-
-        SharedPtr<Maths::BoundingBox> boundingBox = CreateSharedPtr<Maths::BoundingBox>();
-        for(size_t i = 0; i < data.size(); i++)
-        {
-            boundingBox->Merge(data[i].Position);
-        }
-
-        SharedPtr<IndexBuffer> ib;
-        ib.reset(IndexBuffer::Create(indices.data(), static_cast<uint32_t>(indices.size())));
-
-        return new Mesh(vb, ib, boundingBox);
+        return new Mesh(indices, data);
     }
 
     Graphics::Mesh* Graphics::CreatePrimative(PrimitiveType type)

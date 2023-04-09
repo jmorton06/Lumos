@@ -937,7 +937,7 @@ end
 
             ImGui::NextColumn();
             ImGui::PushItemWidth(-1);
-            
+
             if(tex)
             {
                 ImGui::Text("%u x %u", tex->GetWidth(), tex->GetHeight());
@@ -1586,7 +1586,7 @@ end
         if(ImGui::TreeNodeEx(label, ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_Framed))
         {
             ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
-            //ImGui::Columns(2);
+            // ImGui::Columns(2);
             ImGui::BeginColumns("TextureWidget", 2, ImGuiOldColumnFlags_NoResize);
             ImGui::SetColumnWidth(0, imageButtonSize.x + 10.0f);
 
@@ -1654,7 +1654,7 @@ end
             }
 
             ImGui::NextColumn();
-            //ImGui::PushItemWidth(-1);
+            // ImGui::PushItemWidth(-1);
 
             if(tex)
             {
@@ -1662,24 +1662,24 @@ end
                 ImGui::Text("Mip Levels : %u", tex->GetMipMapLevels());
             }
 
-            //ImGui::TextUnformatted("Use Map");
-            //ImGui::SameLine();
-            //ImGui::PushItemWidth(-1);
+            // ImGui::TextUnformatted("Use Map");
+            // ImGui::SameLine();
+            // ImGui::PushItemWidth(-1);
 
             ImGui::SliderFloat(Lumos::ImGuiUtilities::GenerateLabelID("Use Map"), &usingMapProperty, 0.0f, 1.0f);
 
             ImGui::ColorEdit4(Lumos::ImGuiUtilities::GenerateLabelID("Colour"), glm::value_ptr(colourProperty));
-     /*       ImGui::TextUnformatted("Value");
-            ImGui::SameLine();
-            ImGui::PushItemWidth(-1);*/
+            /*       ImGui::TextUnformatted("Value");
+                   ImGui::SameLine();
+                   ImGui::PushItemWidth(-1);*/
 
-            //ImGui::DragFloat(Lumos::ImGuiUtilities::GenerateID(), &amount, 0.0f, 20.0f);
+            // ImGui::DragFloat(Lumos::ImGuiUtilities::GenerateID(), &amount, 0.0f, 20.0f);
 
-           // ImGui::PopItemWidth();
-            //ImGui::NextColumn();
+            // ImGui::PopItemWidth();
+            // ImGui::NextColumn();
 
-            //ImGuiUtilities::Property("Use Map", usingMapProperty, 0.0f, 1.0f);
-            //ImGuiUtilities::Property("Colour", colourProperty, 0.0f, 1.0f, false, Lumos::ImGuiUtilities::PropertyFlag::ColourProperty);
+            // ImGuiUtilities::Property("Use Map", usingMapProperty, 0.0f, 1.0f);
+            // ImGuiUtilities::Property("Colour", colourProperty, 0.0f, 1.0f, false, Lumos::ImGuiUtilities::PropertyFlag::ColourProperty);
 
             ImGui::Columns(1);
 
@@ -1693,7 +1693,7 @@ end
     void TextureWidget(const char* label, Lumos::Graphics::Material* material, Lumos::Graphics::Texture2D* tex, bool flipImage, float& usingMapProperty, float& amount, bool hasAmountValue, const std::function<void(const std::string&)>& callback, const ImVec2& imageButtonSize = ImVec2(64, 64))
     {
         using namespace Lumos;
-        if (ImGui::TreeNodeEx(label, ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_SpanFullWidth))
+        if(ImGui::TreeNodeEx(label, ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_SpanFullWidth))
         {
             ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
             ImGui::BeginColumns("TextureWidget", 2, ImGuiOldColumnFlags_NoResize);
@@ -1722,7 +1722,7 @@ end
                     ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
                     ImGui::TextUnformatted(tex->GetFilepath().c_str());
                     ImGui::PopTextWrapPos();
-                    
+
                     ImGui::Image(tex->GetHandle(), imageButtonSize * 3.0f, ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
                     ImGui::EndTooltip();
                 }
@@ -1770,22 +1770,22 @@ end
                 ImGui::Text("Mip Levels : %u", tex->GetMipMapLevels());
             }
             ImGui::PopItemWidth();
-      /*      ImGui::TextUnformatted("Use Map");
-            ImGui::SameLine();
-            ImGui::PushItemWidth(-1);*/
+            /*      ImGui::TextUnformatted("Use Map");
+                  ImGui::SameLine();
+                  ImGui::PushItemWidth(-1);*/
 
-            //ImGui::DragFloat(Lumos::ImGuiUtilities::GenerateID(), &usingMapProperty, 0.0f, 1.0f);
+            // ImGui::DragFloat(Lumos::ImGuiUtilities::GenerateID(), &usingMapProperty, 0.0f, 1.0f);
             ImGui::SliderFloat(Lumos::ImGuiUtilities::GenerateLabelID("Use Map"), &usingMapProperty, 0.0f, 1.0f);
 
-            if (hasAmountValue)
+            if(hasAmountValue)
                 ImGui::SliderFloat(Lumos::ImGuiUtilities::GenerateLabelID("Value"), &amount, 0.0f, 20.0f);
-            //ImGui::TextUnformatted("Value");
-            //ImGui::SameLine();
-            //ImGui::PushItemWidth(-1);
+            // ImGui::TextUnformatted("Value");
+            // ImGui::SameLine();
+            // ImGui::PushItemWidth(-1);
 
-            //ImGui::DragFloat(Lumos::ImGuiUtilities::GenerateID(), &amount, 0.0f, 20.0f);
+            // ImGui::DragFloat(Lumos::ImGuiUtilities::GenerateID(), &amount, 0.0f, 20.0f);
 
-            //ImGui::PopItemWidth();
+            // ImGui::PopItemWidth();
             ImGui::NextColumn();
 
             ImGui::Columns(1);
@@ -1873,7 +1873,7 @@ end
 
         int matIndex = 0;
 
-        if (!reg.get<Lumos::Graphics::ModelComponent>(e).ModelRef)
+        if(!reg.get<Lumos::Graphics::ModelComponent>(e).ModelRef)
         {
             Lumos::ImGuiUtilities::PopID();
             return;
@@ -1883,8 +1883,14 @@ end
         for(auto mesh : meshes)
         {
             auto material       = mesh->GetMaterial();
-            std::string matName = "Material";
-            matName += std::to_string(matIndex);
+            std::string matName = material ? material->GetName() : "";
+
+            if(matName.empty())
+            {
+                matName = "Material";
+                matName += std::to_string(matIndex);
+            }
+
             matIndex++;
             if(!material)
             {
@@ -1898,8 +1904,8 @@ end
                 ImGui::Indent();
                 bool flipImage = Graphics::Renderer::GetGraphicsContext()->FlipImGUITexture();
 
-                bool twoSided    = material->GetFlag(Lumos::Graphics::Material::RenderFlags::TWOSIDED);
-                bool depthTested = material->GetFlag(Lumos::Graphics::Material::RenderFlags::DEPTHTEST);
+                bool twoSided     = material->GetFlag(Lumos::Graphics::Material::RenderFlags::TWOSIDED);
+                bool depthTested  = material->GetFlag(Lumos::Graphics::Material::RenderFlags::DEPTHTEST);
                 bool alphaBlended = material->GetFlag(Lumos::Graphics::Material::RenderFlags::ALPHABLEND);
 
                 ImGui::Columns(2);
@@ -1907,7 +1913,7 @@ end
 
                 ImGui::AlignTextToFramePadding();
 
-                if (ImGuiUtilities::Property("Alpha Blended", alphaBlended))
+                if(ImGuiUtilities::Property("Alpha Blended", alphaBlended))
                     material->SetFlag(Lumos::Graphics::Material::RenderFlags::ALPHABLEND, alphaBlended);
 
                 if(ImGuiUtilities::Property("Two Sided", twoSided))
@@ -1926,13 +1932,13 @@ end
                 TextureWidget("Albedo", material.get(), textures.albedo.get(), flipImage, prop->albedoMapFactor, prop->albedoColour, std::bind(&Graphics::Material::SetAlbedoTexture, material, std::placeholders::_1), textureSize * Application::Get().GetWindowDPI());
                 ImGui::Separator();
 
-                TextureWidget("Normal", material.get(), textures.normal.get(), flipImage, prop->normalMapFactor, normal, false, std::bind(&Graphics::Material::SetNormalTexture, material, std::placeholders::_1), textureSize* Application::Get().GetWindowDPI());
+                TextureWidget("Normal", material.get(), textures.normal.get(), flipImage, prop->normalMapFactor, normal, false, std::bind(&Graphics::Material::SetNormalTexture, material, std::placeholders::_1), textureSize * Application::Get().GetWindowDPI());
                 ImGui::Separator();
 
                 TextureWidget("Metallic", material.get(), textures.metallic.get(), flipImage, prop->metallicMapFactor, prop->metallic, true, std::bind(&Graphics::Material::SetMetallicTexture, material, std::placeholders::_1), textureSize * Application::Get().GetWindowDPI());
                 ImGui::Separator();
 
-                TextureWidget("Roughness", material.get(), textures.roughness.get(), flipImage, prop->roughnessMapFactor, prop->roughness, true,  std::bind(&Graphics::Material::SetRoughnessTexture, material, std::placeholders::_1), textureSize * Application::Get().GetWindowDPI());
+                TextureWidget("Roughness", material.get(), textures.roughness.get(), flipImage, prop->roughnessMapFactor, prop->roughness, true, std::bind(&Graphics::Material::SetRoughnessTexture, material, std::placeholders::_1), textureSize * Application::Get().GetWindowDPI());
                 ImGui::Separator();
 
                 TextureWidget("AO", material.get(), textures.ao.get(), flipImage, prop->occlusionMapFactor, normal, false, std::bind(&Graphics::Material::SetAOTexture, material, std::placeholders::_1), textureSize * Application::Get().GetWindowDPI());
@@ -1961,12 +1967,10 @@ end
                 ImGui::Columns(1);
                 ImGui::Unindent();
                 ImGui::TreePop();
-
             }
         }
 
         Lumos::ImGuiUtilities::PopID();
-
     }
 
     template <>
@@ -1977,22 +1981,22 @@ end
         // Disable image until texturecube is supported
         // Lumos::ImGuiUtilities::Image(environment.GetEnvironmentMap(), glm::vec2(200, 200));
 
-        uint8_t mode = environment.GetMode();
+        uint8_t mode     = environment.GetMode();
         glm::vec4 params = environment.GetParameters();
         ImGui::PushItemWidth(-1);
 
-        const char* modes[] = { "Textures", "Preetham", "Generic"};
+        const char* modes[]      = { "Textures", "Preetham", "Generic" };
         const char* mode_current = modes[mode];
-        if (ImGui::BeginCombo("", mode_current, 0)) // The second parameter is the label previewed before opening the combo.
+        if(ImGui::BeginCombo("", mode_current, 0)) // The second parameter is the label previewed before opening the combo.
         {
-            for (int n = 0; n < 3; n++)
+            for(int n = 0; n < 3; n++)
             {
                 bool is_selected = (mode_current == modes[n]);
-                if (ImGui::Selectable(modes[n], mode_current))
+                if(ImGui::Selectable(modes[n], mode_current))
                 {
                     environment.SetMode(n);
                 }
-                if (is_selected)
+                if(is_selected)
                     ImGui::SetItemDefaultFocus();
             }
             ImGui::EndCombo();
@@ -2002,7 +2006,7 @@ end
         ImGui::Columns(2);
         ImGui::Separator();
 
-        if (mode == 0)
+        if(mode == 0)
         {
             ImGui::TextUnformatted("File Path");
             ImGui::NextColumn();
@@ -2011,7 +2015,7 @@ end
             static char filePath[INPUT_BUF_SIZE];
             strcpy(filePath, environment.GetFilePath().c_str());
 
-            if (ImGui::InputText("##filePath", filePath, IM_ARRAYSIZE(filePath), 0))
+            if(ImGui::InputText("##filePath", filePath, IM_ARRAYSIZE(filePath), 0))
             {
                 environment.SetFilePath(filePath);
             }
@@ -2027,7 +2031,7 @@ end
             static char fileType[INPUT_BUF_SIZE];
             strcpy(fileType, environment.GetFileType().c_str());
 
-            if (ImGui::InputText("##fileType", fileType, IM_ARRAYSIZE(fileType), 0))
+            if(ImGui::InputText("##fileType", fileType, IM_ARRAYSIZE(fileType), 0))
             {
                 environment.SetFileType(fileType);
             }
@@ -2041,7 +2045,7 @@ end
             ImGui::PushItemWidth(-1);
             int width = environment.GetWidth();
 
-            if (ImGui::DragInt("##Width", &width))
+            if(ImGui::DragInt("##Width", &width))
             {
                 environment.SetWidth(width);
             }
@@ -2055,7 +2059,7 @@ end
             ImGui::PushItemWidth(-1);
             int height = environment.GetHeight();
 
-            if (ImGui::DragInt("##Height", &height))
+            if(ImGui::DragInt("##Height", &height))
             {
                 environment.SetHeight(height);
             }
@@ -2068,7 +2072,7 @@ end
             ImGui::NextColumn();
             ImGui::PushItemWidth(-1);
             int numMips = environment.GetNumMips();
-            if (ImGui::InputInt("##NumMips", &numMips))
+            if(ImGui::InputInt("##NumMips", &numMips))
             {
                 environment.SetNumMips(numMips);
             }
@@ -2076,18 +2080,16 @@ end
             ImGui::PopItemWidth();
             ImGui::NextColumn();
         }
-        else if (mode == 1)
+        else if(mode == 1)
         {
             bool valueUpdated = false;
             valueUpdated |= Lumos::ImGuiUtilities::Property("Turbidity", params.x, 1.7f, 100.0f, 0.01f);
             valueUpdated |= Lumos::ImGuiUtilities::Property("Azimuth", params.y, -1000.0f, 1000.f, 0.01f);
             valueUpdated |= Lumos::ImGuiUtilities::Property("Inclination", params.z, -1000.0f, 1000.f, 0.01f);
 
-            if (valueUpdated)
+            if(valueUpdated)
                 environment.SetParameters(params);
         }
-
-   
 
         ImGui::Columns(1);
         if(ImGui::Button("Reload", ImVec2(ImGui::GetContentRegionAvail().x, 0.0)))

@@ -6,10 +6,6 @@
 
 //https://www.shadertoy.com/view/3lXXDB
 
-float saturate(float x) {
-    return clamp(x, 0.0, 1.0);
-}
-
 // Taken from https://github.com/SaschaWillems/Vulkan-glTF-PBR/blob/master/data/shaders/genbrdflut.frag
 // Based on http://holger.dammertz.org/stuff/notes_HammersleyOnHemisphere.html
 vec2 hammersley(uint i, uint N) 

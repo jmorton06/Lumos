@@ -72,7 +72,7 @@ namespace Lumos
         void Image(Graphics::Texture2D* texture, const glm::vec2& size);
         void Image(Graphics::TextureCube* texture, const glm::vec2& size);
         void Image(Graphics::TextureDepthArray* texture, uint32_t index, const glm::vec2& size);
-    
+
         void TextCentred(const char* text);
 
         void SetTheme(Theme theme);
@@ -101,7 +101,7 @@ namespace Lumos
         void DrawBorder(const ImVec4& borderColour, float thickness = 1.0f, float offsetX = 0.0f, float offsetY = 0.0f);
         void DrawBorder(float thickness = 1.0f, float offsetX = 0.0f, float offsetY = 0.0f);
         void DrawBorder(ImVec2 rectMin, ImVec2 rectMax, float thickness = 1.0f, float offsetX = 0.0f, float offsetY = 0.0f);
-    
+
         void DrawBorder(ImRect rect, float thickness = 1.0f, float rounding = 0.0f, float offsetX = 0.0f, float offsetY = 0.0f);
         const char* GenerateID();
         const char* GenerateLabelID(std::string_view label);

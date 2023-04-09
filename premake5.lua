@@ -2,6 +2,8 @@ require 'Scripts/premake-utilities/premake-defines'
 require 'Scripts/premake-utilities/premake-common'
 require 'Scripts/premake-utilities/premake-triggers'
 require 'Scripts/premake-utilities/premake-settings'
+require 'Scripts/premake-utilities/android_studio'
+
 --require 'Scripts/premake-utilities/premake-vscode/vscode'
 
 root_dir = os.getcwd()
@@ -21,12 +23,13 @@ else
 end
 
 workspace( settings.workspace_name )
-	location "build"
-	startproject "LumosEditor"
+	 startproject "LumosEditor"
 	flags 'MultiProcessorCompile'
 	outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 	targetdir ("bin/%{outputdir}/")
 	objdir ("bin-int/%{outputdir}/obj/")
+
+	gradleversion "com.android.tools.build:gradle:7.0.0"
 
 	if Arch == "arm" then 
 		architecture "ARM"
@@ -45,6 +48,11 @@ workspace( settings.workspace_name )
 		"Production"
 	}
 
+	assetpacks
+	{
+		["pack"] = "install-time",
+	}
+	
 	group "External"
 		require("Lumos/External/box2dpremake5")
 			SetRecommendedSettings()
