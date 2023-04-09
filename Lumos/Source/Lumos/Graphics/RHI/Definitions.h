@@ -338,10 +338,10 @@ namespace Lumos
             TextureFilter minFilter;
             TextureFilter magFilter;
             TextureWrap wrap;
-            uint16_t msaaLevel   = 1;
-            uint16_t flags       = TextureFlags::Texture_CreateMips;
-            bool srgb            = false;
-            bool generateMipMaps = true;
+            uint16_t msaaLevel        = 1;
+            uint16_t flags            = TextureFlags::Texture_CreateMips;
+            bool srgb                 = false;
+            bool generateMipMaps      = true;
             bool anisotropicFiltering = true;
 
             TextureDesc()

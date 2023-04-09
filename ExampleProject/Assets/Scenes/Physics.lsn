@@ -1,6 +1,6 @@
 {
     "value0": {
-        "Version": 16,
+        "Version": 18,
         "Scene Name": "Physics",
         "PhysicsEnabled2D": true,
         "PhysicsEnabled3D": true,
@@ -27,7 +27,10 @@
         "MotionBlurEnabled": false,
         "DepthOFFieldEnabled": false,
         "DepthOfFieldStrength": 1.0,
-        "DepthOfFieldDistance": 100.0
+        "DepthOfFieldDistance": 100.0,
+        "value0": 0.0,
+        "value1": 1.0,
+        "value2": 1.0
     },
     "value1": 58,
     "value2": 1048576,
@@ -1641,7 +1644,7 @@
     "value371": 26,
     "value372": {
         "Scale": 1.0,
-        "Aspect": 1.2252252101898194,
+        "Aspect": 0.9388185739517212,
         "FOV": 60.0,
         "Near": 0.10000000149011612,
         "Far": 1000.0,
@@ -1681,9 +1684,9 @@
         "value2": 0.0,
         "value3": 0.0,
         "value4": {
-            "value0": 0.45642879605293276,
-            "value1": 0.3711429536342621,
-            "value2": 0.8086566925048828,
+            "value0": 0.4564287066459656,
+            "value1": 0.3711428642272949,
+            "value2": 0.8086567521095276,
             "value3": 1.0
         },
         "value5": 120000.0,
@@ -1708,7 +1711,7 @@
         "value4": {
             "value0": 0.0,
             "value1": 0.0,
-            "value2": 1.0,
+            "value2": 0.9999999403953552,
             "value3": 1.0
         },
         "value5": 500000.0,
@@ -1733,7 +1736,7 @@
         "value4": {
             "value0": 0.0,
             "value1": 0.0,
-            "value2": 1.0,
+            "value2": 0.9999999403953552,
             "value3": 1.0
         },
         "value5": 120000.0,
@@ -1758,7 +1761,7 @@
         "value4": {
             "value0": 0.0,
             "value1": 0.0,
-            "value2": 1.0,
+            "value2": 0.9999999403953552,
             "value3": 1.0
         },
         "value5": 120000.0,
@@ -2544,7 +2547,14 @@
         "value2": 3072,
         "value3": 4096,
         "value4": ".hdr",
-        "value5": 0.03125
+        "value5": 0.03125,
+        "value6": 1,
+        "value7": {
+            "value0": 2.5,
+            "value1": 4.199999809265137,
+            "value2": 1.059999942779541,
+            "value3": 1.0
+        }
     },
     "value422": 0,
     "value423": 0,
@@ -2623,31 +2633,6 @@
                 }
             },
             {
-                "key": "RunLeft",
-                "value": {
-                    "PlayMode": 0,
-                    "Frames": [
-                        {
-                            "value0": 0.0,
-                            "value1": 96.0
-                        },
-                        {
-                            "value0": 32.0,
-                            "value1": 96.0
-                        },
-                        {
-                            "value0": 64.0,
-                            "value1": 96.0
-                        },
-                        {
-                            "value0": 96.0,
-                            "value1": 96.0
-                        }
-                    ],
-                    "FrameDuration": 0.10000000149011612
-                }
-            },
-            {
                 "key": "RunRight",
                 "value": {
                     "PlayMode": 0,
@@ -2667,6 +2652,31 @@
                         {
                             "value0": 96.0,
                             "value1": 32.0
+                        }
+                    ],
+                    "FrameDuration": 0.10000000149011612
+                }
+            },
+            {
+                "key": "RunLeft",
+                "value": {
+                    "PlayMode": 0,
+                    "Frames": [
+                        {
+                            "value0": 0.0,
+                            "value1": 96.0
+                        },
+                        {
+                            "value0": 32.0,
+                            "value1": 96.0
+                        },
+                        {
+                            "value0": 64.0,
+                            "value1": 96.0
+                        },
+                        {
+                            "value0": 96.0,
+                            "value1": 96.0
                         }
                     ],
                     "FrameDuration": 0.10000000149011612

@@ -83,7 +83,7 @@ layout(set = 2, binding = 5) uniform UBOLight
 	float InitialBias;
 	float Width;
 	float Height;
-	float p2;
+	int shadowEnabled;
 } ubo;
 
 layout(location = 0) out vec4 outColor;
@@ -433,7 +433,10 @@ vec3 Lighting(vec3 F0, vec3 wsPos, Material material)
 		else
 		{
 			int cascadeIndex = CalculateCascadeIndex(wsPos);
-			value = CalculateShadow(wsPos,cascadeIndex, light.direction.xyz, material.Normal);
+			if(ubo.shadowEnabled > 0)
+				value = CalculateShadow(wsPos,cascadeIndex, light.direction.xyz, material.Normal);
+			else
+				value = 1.0;
 		}
 		
 		vec3 Li = light.direction.xyz;
@@ -515,6 +518,11 @@ void main()
     material.Normal    = GetNormalFromMap();
 	material.AO		   = GetAO();
 	material.Emissive  = GetEmissive(material.Albedo.rgb);
+
+	vec2 uv = gl_FragCoord.xy / vec2(ubo.Width, ubo.Height);
+	float ssao = texture(uSSAOMap, uv).r;
+	ssao = pow(ssao, 2.0);
+	material.Albedo *= ssao;
 
     // Specular anti-aliasing
     {

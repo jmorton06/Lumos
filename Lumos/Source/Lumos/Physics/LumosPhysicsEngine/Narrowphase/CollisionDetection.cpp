@@ -420,7 +420,7 @@ namespace Lumos
 
                     glm::vec3 capsule1SegmentMostExtremePoint = squareDistCapsule2PointToCapsuleSegA > Maths::M_EPSILON ? capsule1SegA : capsule1SegB;
                     glm::vec3 normalCapsuleSpace2             = (closestPointCapsule2Seg - capsule1SegmentMostExtremePoint);
-                    normalCapsuleSpace2 = glm::normalize(normalCapsuleSpace2);
+                    normalCapsuleSpace2                       = glm::normalize(normalCapsuleSpace2);
 
                     const glm::vec3 contactPointCapsule1Local = glm::inverse(capsule1ToCapsule2SpaceTransform) * (closestPointCapsule1Seg + normalCapsuleSpace2 * capsule1Radius);
                     const glm::vec3 contactPointCapsule2Local = closestPointCapsule2Seg - normalCapsuleSpace2 * capsule2Radius;
@@ -811,7 +811,7 @@ namespace Lumos
             float ABAPproduct = glm::dot(a_t, a_b);        // The DOT product of a_to_t and a_to_b
             float distance    = ABAPproduct / magnitudeAB; // The Normalised "distance" from a to your closest point
 
-            if(distance < 0.0f) // Clamp returned point to be on the line, e.g if the closest point is beyond the AB return either A or B as closest points
+            if(distance < 0.0f)                            // Clamp returned point to be on the line, e.g if the closest point is beyond the AB return either A or B as closest points
                 temp_closest_point = edge.posA;
 
             else if(distance > 1)

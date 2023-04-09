@@ -343,7 +343,9 @@ namespace Lumos
             SharedPtr<Graphics::Shader> m_DepthPrePassShader;
 
             Texture2D* m_SSAOTexture  = nullptr;
-            Texture2D* m_NoiseTexture = nullptr;
+            Texture2D* m_SSAOTexture1 = nullptr;
+
+            Texture2D* m_NoiseTexture  = nullptr;
             Texture2D* m_NormalTexture = nullptr;
 
             SharedPtr<Graphics::Shader> m_SSAOShader;

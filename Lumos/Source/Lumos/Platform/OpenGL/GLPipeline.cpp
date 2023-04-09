@@ -133,7 +133,7 @@ namespace Lumos
                 attachments.push_back(m_Description.depthArrayTarget);
             }
 
-            if (m_Description.cubeMapTarget)
+            if(m_Description.cubeMapTarget)
             {
                 attachmentTypes.push_back(m_Description.cubeMapTarget->GetType());
                 attachments.push_back(m_Description.cubeMapTarget);
@@ -180,12 +180,12 @@ namespace Lumos
                     m_Framebuffers.emplace_back(Framebuffer::Get(frameBufferDesc));
                 }
             }
-            else if (m_Description.cubeMapTarget)
+            else if(m_Description.cubeMapTarget)
             {
-                //for (uint32_t i = 0; i < 6; ++i)
+                // for (uint32_t i = 0; i < 6; ++i)
                 //{
-                //    frameBufferDesc.layer = i;
-                //    frameBufferDesc.screenFBO = false;
+                //     frameBufferDesc.layer = i;
+                //     frameBufferDesc.screenFBO = false;
 
                 //    attachments[0] = m_Description.cubeMapTarget;
                 //    frameBufferDesc.attachments = attachments.data();
@@ -193,9 +193,9 @@ namespace Lumos
                 //    m_Framebuffers.emplace_back(Framebuffer::Get(frameBufferDesc));
                 //}
 
-                frameBufferDesc.layer = m_Description.cubeMapIndex;
+                frameBufferDesc.layer       = m_Description.cubeMapIndex;
                 frameBufferDesc.attachments = attachments.data();
-                frameBufferDesc.screenFBO = false;
+                frameBufferDesc.screenFBO   = false;
                 m_Framebuffers.emplace_back(Framebuffer::Get(frameBufferDesc));
             }
             else

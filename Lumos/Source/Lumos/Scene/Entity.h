@@ -292,7 +292,7 @@ namespace Lumos
             LUMOS_PROFILE_FUNCTION();
             return m_Scene->GetRegistry().valid(m_EntityHandle) && m_Scene;
         }
-        
+
         Scene* GetScene() const { return m_Scene; }
 
     private:

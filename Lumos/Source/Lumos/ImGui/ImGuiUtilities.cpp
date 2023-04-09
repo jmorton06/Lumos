@@ -1353,7 +1353,6 @@ namespace Lumos
         return RectOffset(rect, xy.x, xy.y);
     }
 
-
     void ImGuiUtilities::DrawBorder(ImVec2 rectMin, ImVec2 rectMax, const ImVec4& borderColour, float thickness, float offsetX, float offsetY)
     {
         auto min = rectMin;

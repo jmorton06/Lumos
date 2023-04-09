@@ -194,7 +194,7 @@ namespace Lumos
                 for(uint32_t threadID = 0; threadID < internal_state->numThreads; ++threadID)
                 {
                     std::thread& worker = internal_state->threads.EmplaceBack([threadID]
-                                                                               {
+                                                                              {
                                 while (internal_state->alive.load())
                                 {
                                     work(threadID);

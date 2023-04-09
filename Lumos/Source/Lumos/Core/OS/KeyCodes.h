@@ -12,19 +12,19 @@ namespace Lumos::InputCode
         Period     = 46, /* . */
         Slash      = 47, /* / */
 
-        D0 = 48, /* 0 */
-        D1 = 49, /* 1 */
-        D2 = 50, /* 2 */
-        D3 = 51, /* 3 */
-        D4 = 52, /* 4 */
-        D5 = 53, /* 5 */
-        D6 = 54, /* 6 */
-        D7 = 55, /* 7 */
-        D8 = 56, /* 8 */
-        D9 = 57, /* 9 */
+        D0 = 48,         /* 0 */
+        D1 = 49,         /* 1 */
+        D2 = 50,         /* 2 */
+        D3 = 51,         /* 3 */
+        D4 = 52,         /* 4 */
+        D5 = 53,         /* 5 */
+        D6 = 54,         /* 6 */
+        D7 = 55,         /* 7 */
+        D8 = 56,         /* 8 */
+        D9 = 57,         /* 9 */
 
-        Semicolon = 59, /* ; */
-        Equal     = 61, /* = */
+        Semicolon = 59,  /* ; */
+        Equal     = 61,  /* = */
 
         A = 65,
         B = 66,
@@ -58,8 +58,8 @@ namespace Lumos::InputCode
         RightBracket = 93, /* ] */
         GraveAccent  = 96, /* ` */
 
-        World1 = 161, /* non-US #1 */
-        World2 = 162, /* non-US #2 */
+        World1 = 161,      /* non-US #1 */
+        World2 = 162,      /* non-US #2 */
 
         /* Function keys */
         Escape      = 256,

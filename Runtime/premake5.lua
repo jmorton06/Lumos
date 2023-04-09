@@ -86,7 +86,8 @@ project "Runtime"
 		staticruntime "Off"
 		systemversion "latest"
 		entrypoint "WinMainCRTStartup"
-
+		conformancemode "on"
+		
 		defines
 		{
 			"LUMOS_PLATFORM_WINDOWS",

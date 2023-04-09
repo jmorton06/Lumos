@@ -5,13 +5,13 @@
 
 namespace Lumos
 {
-    uint32_t ConsolePanel::s_MessageBufferRenderFilter                          = 0;
-    uint16_t ConsolePanel::s_MessageBufferCapacity                              = 2000;
-    uint16_t ConsolePanel::s_MessageBufferSize                                  = 0;
-    uint16_t ConsolePanel::s_MessageBufferBegin                                 = 0;
+    uint32_t ConsolePanel::s_MessageBufferRenderFilter                     = 0;
+    uint16_t ConsolePanel::s_MessageBufferCapacity                         = 2000;
+    uint16_t ConsolePanel::s_MessageBufferSize                             = 0;
+    uint16_t ConsolePanel::s_MessageBufferBegin                            = 0;
     Vector<SharedPtr<ConsolePanel::Message>> ConsolePanel::s_MessageBuffer = Vector<SharedPtr<ConsolePanel::Message>>(2000);
-    bool ConsolePanel::s_AllowScrollingToBottom                                 = true;
-    bool ConsolePanel::s_RequestScrollToBottom                                  = false;
+    bool ConsolePanel::s_AllowScrollingToBottom                            = true;
+    bool ConsolePanel::s_RequestScrollToBottom                             = false;
 
     ConsolePanel::ConsolePanel()
     {
@@ -235,7 +235,7 @@ namespace Lumos
         LUMOS_PROFILE_FUNCTION();
         if(s_MessageBufferRenderFilter & m_Level)
         {
-            ImGuiUtilities::ScopedID  scopedID((int)m_MessageID);
+            ImGuiUtilities::ScopedID scopedID((int)m_MessageID);
             ImGui::PushStyleColor(ImGuiCol_Text, GetRenderColour(m_Level));
             auto levelIcon = GetLevelIcon(m_Level);
             ImGui::TextUnformatted(levelIcon);
@@ -244,7 +244,7 @@ namespace Lumos
             ImGui::TextUnformatted(m_Message.c_str());
 
             bool clicked = false;
-            if (ImGui::IsItemClicked())
+            if(ImGui::IsItemClicked())
                 clicked = true;
 
             if(ImGui::BeginPopupContextItem(m_Message.c_str()))
@@ -257,7 +257,7 @@ namespace Lumos
                 ImGui::EndPopup();
             }
             static bool m_DetailedPanelOpen = false;
-            if (clicked)
+            if(clicked)
             {
                 ImGui::OpenPopup("Message");
                 ImVec2 size = ImGui::GetMainViewport()->Size;
@@ -266,15 +266,15 @@ namespace Lumos
                 m_DetailedPanelOpen = true;
             }
 
-            if (m_DetailedPanelOpen)
+            if(m_DetailedPanelOpen)
             {
-                if (ImGui::BeginPopupModal("Message", &m_DetailedPanelOpen, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize))
+                if(ImGui::BeginPopupModal("Message", &m_DetailedPanelOpen, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize))
                 {
                     ImGui::TextWrapped("%s", m_Message.c_str());
 
-                    if (ImGui::BeginPopupContextItem(m_Message.c_str()))
+                    if(ImGui::BeginPopupContextItem(m_Message.c_str()))
                     {
-                        if (ImGui::MenuItem("Copy"))
+                        if(ImGui::MenuItem("Copy"))
                         {
                             ImGui::SetClipboardText(m_Message.c_str());
                         }
@@ -356,7 +356,7 @@ namespace Lumos
         case ConsolePanel::Message::Level::Error:
             return { 1.00f, 0.25f, 0.25f, 1.00f }; // Red
         case ConsolePanel::Message::Level::Critical:
-            return { 0.6f, 0.2f, 0.8f, 1.00f }; // Purple
+            return { 0.6f, 0.2f, 0.8f, 1.00f };    // Purple
         default:
             return { 1.00f, 1.00f, 1.00f, 1.00f };
         }

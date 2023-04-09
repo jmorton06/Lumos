@@ -70,7 +70,7 @@ namespace Lumos
             PrimitiveType m_PrimitiveType = PrimitiveType::None;
             std::vector<SharedPtr<Mesh>> m_Meshes;
             std::string m_FilePath;
-            
+
             void LoadOBJ(const std::string& path);
             void LoadGLTF(const std::string& path);
             void LoadFBX(const std::string& path);

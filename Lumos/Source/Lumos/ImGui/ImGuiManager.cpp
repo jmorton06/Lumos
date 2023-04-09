@@ -338,7 +338,7 @@ namespace Lumos
         style.GrabRounding       = roundingAmount;
         style.WindowMinSize      = ImVec2(200.0f, 200.0f);
         style.WindowTitleAlign   = ImVec2(0.5f, 0.5f);
-    
+
 #ifdef IMGUI_HAS_DOCK
         style.TabBorderSize = 1.0f;
         style.TabRounding   = roundingAmount; // + 4;

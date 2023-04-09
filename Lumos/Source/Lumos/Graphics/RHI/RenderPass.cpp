@@ -35,7 +35,7 @@ namespace Lumos
             for(uint32_t i = 0; i < renderPassDesc.attachmentCount; i++)
             {
                 HashCombine(hash, renderPassDesc.attachmentTypes[i], renderPassDesc.attachments[i], renderPassDesc.cubeMapIndex, renderPassDesc.mipIndex);
-                
+
                 if(renderPassDesc.attachments[i])
                     HashCombine(hash, renderPassDesc.attachments[i]->GetUUID());
             }

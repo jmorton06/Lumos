@@ -244,6 +244,8 @@ namespace Lumos
         {
             LUMOS_PROFILE_FUNCTION();
 
+            static int FailedCount = 0;
+
             if(m_SwapChainBufferCount == 1 && m_AcquireImageIndex != std::numeric_limits<uint32_t>::max())
                 return;
 
@@ -262,8 +264,19 @@ namespace Lumos
                 }
                 else if(result != VK_SUCCESS)
                 {
+                    FailedCount++;
                     LUMOS_LOG_CRITICAL("[VULKAN] Failed to acquire swap chain image! - {0}", VKUtilities::ErrorString(result));
+
+                    if(FailedCount > 10)
+                    {
+                        LUMOS_LOG_CRITICAL("[VULKAN] Failed to acquire swap chain image {0} times! - Exiting", FailedCount);
+                        Application::Get().SetAppState(AppState::Closing);
+                    }
+
+                    return;
                 }
+
+                FailedCount = 0;
             }
         }
 

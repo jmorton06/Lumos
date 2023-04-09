@@ -137,9 +137,9 @@ namespace Lumos
 
             float m_Exposure        = 1.0f;
             uint32_t m_ToneMapIndex = 6;
-            float Brightness = 0.0f;
-            float Saturation = 1.0f;
-            float Contrast = 1.0f;
+            float Brightness        = 0.0f;
+            float Saturation        = 1.0f;
+            float Contrast          = 1.0f;
 
             // Bloom
             float m_BloomIntensity   = 1.0f;
@@ -196,7 +196,7 @@ namespace Lumos
             archive(cereal::make_nvp("FXAAEnabled", m_Settings.RenderSettings.FXAAEnabled), cereal::make_nvp("DebandingEnabled", m_Settings.RenderSettings.DebandingEnabled), cereal::make_nvp("ChromaticAberationEnabled", m_Settings.RenderSettings.ChromaticAberationEnabled), cereal::make_nvp("EyeAdaptation", m_Settings.RenderSettings.EyeAdaptation), cereal::make_nvp("SSAOEnabled", m_Settings.RenderSettings.SSAOEnabled), cereal::make_nvp("BloomEnabled", m_Settings.RenderSettings.BloomEnabled), cereal::make_nvp("FilmicGrainEnabled", m_Settings.RenderSettings.FilmicGrainEnabled), cereal::make_nvp("DepthOfFieldEnabled", m_Settings.RenderSettings.DepthOfFieldEnabled), cereal::make_nvp("MotionBlurEnabled", m_Settings.RenderSettings.MotionBlurEnabled));
 
             archive(cereal::make_nvp("DepthOFFieldEnabled", m_Settings.RenderSettings.DepthOfFieldEnabled), cereal::make_nvp("DepthOfFieldStrength", m_Settings.RenderSettings.DepthOfFieldStrength), cereal::make_nvp("DepthOfFieldDistance", m_Settings.RenderSettings.DepthOfFieldDistance));
-            
+
             archive(m_Settings.RenderSettings.Brightness, m_Settings.RenderSettings.Saturation, m_Settings.RenderSettings.Contrast);
         }
 
@@ -232,10 +232,9 @@ namespace Lumos
             {
                 archive(cereal::make_nvp("DepthOfFieldEnabled", m_Settings.RenderSettings.DepthOfFieldEnabled), cereal::make_nvp("DepthOfFieldStrength", m_Settings.RenderSettings.DepthOfFieldStrength), cereal::make_nvp("DepthOfFieldDistance", m_Settings.RenderSettings.DepthOfFieldDistance));
             }
-            
+
             if(Serialisation::CurrentSceneVersion > 16)
                 archive(m_Settings.RenderSettings.Brightness, m_Settings.RenderSettings.Saturation, m_Settings.RenderSettings.Contrast);
-
         }
 
         SceneSettings& GetSettings()

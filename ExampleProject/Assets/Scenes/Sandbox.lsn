@@ -1,6 +1,6 @@
 {
     "value0": {
-        "Version": 14,
+        "Version": 17,
         "Scene Name": "Sandbox",
         "PhysicsEnabled2D": true,
         "PhysicsEnabled3D": true,
@@ -11,7 +11,7 @@
         "SkyboxRenderEnabled": true,
         "ShadowsEnabled": true,
         "Exposure": 1.0,
-        "ToneMap": 4,
+        "ToneMap": 6,
         "BloomIntensity": 1.0,
         "BloomKnee": 0.10000000149011612,
         "BloomThreshold": 1.0,
@@ -22,9 +22,15 @@
         "EyeAdaptation": true,
         "SSAOEnabled": true,
         "BloomEnabled": true,
-        "FilmicGrainEnabled": true,
+        "FilmicGrainEnabled": false,
         "DepthOfFieldEnabled": false,
-        "MotionBlurEnabled": false
+        "MotionBlurEnabled": false,
+        "DepthOFFieldEnabled": false,
+        "DepthOfFieldStrength": 1.0,
+        "DepthOfFieldDistance": 100.0,
+        "value0": 0.0,
+        "value1": 1.0,
+        "value2": 1.0
     },
     "value1": 5,
     "value2": 2097151,
@@ -94,7 +100,7 @@
     "value24": 2,
     "value25": {
         "Scale": 1.0,
-        "Aspect": 0.6760563254356384,
+        "Aspect": 1.1355931758880616,
         "FOV": 79.24700164794922,
         "Near": 0.27399998903274538,
         "Far": 831.0960083007813,

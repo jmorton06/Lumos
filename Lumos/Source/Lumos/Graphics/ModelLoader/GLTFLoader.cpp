@@ -253,7 +253,7 @@ namespace Lumos::Graphics
             indices.resize(indicesAccessor.count);
             vertices.resize(indicesAccessor.count);
 
-            bool hasTangents = false;
+            bool hasTangents   = false;
             bool hasBitangents = false;
 
             for(auto& attribute : primitive.attributes)
@@ -331,18 +331,18 @@ namespace Lumos::Graphics
                     Maths::Vector3Simple* uvs = reinterpret_cast<Maths::Vector3Simple*>(data.data());
                     for(auto p = 0; p < uvCount; ++p)
                     {
-                        vertices[p].Tangent = parentTransform.GetWorldMatrix() * ToVector4(uvs[p]);
+                        vertices[p].Tangent = glm::normalize(parentTransform.GetWorldMatrix() * ToVector4(uvs[p]));
                     }
                 }
 
                 else if(attribute.first == "BINORMAL")
                 {
-                    hasBitangents               = true;
+                    hasBitangents             = true;
                     size_t uvCount            = accessor.count;
                     Maths::Vector3Simple* uvs = reinterpret_cast<Maths::Vector3Simple*>(data.data());
                     for(auto p = 0; p < uvCount; ++p)
                     {
-                        vertices[p].Bitangent = parentTransform.GetWorldMatrix() * ToVector4(uvs[p]);
+                        vertices[p].Bitangent = glm::normalize(parentTransform.GetWorldMatrix() * ToVector4(uvs[p]));
                     }
                 }
             }

@@ -23,7 +23,6 @@
 #define FONT_LOG(...)
 #endif
 
-
 using namespace msdf_atlas;
 
 namespace Lumos

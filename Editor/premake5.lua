@@ -91,7 +91,7 @@ project "LumosEditor"
 		staticruntime "Off"
 		systemversion "latest"
 		entrypoint "WinMainCRTStartup"
-		conformancemode "off"
+		conformancemode "on"
 
 		defines
 		{
@@ -139,14 +139,14 @@ project "LumosEditor"
 			--['ENABLE_HARDENED_RUNTIME'] = 'YES'
 		}
 
-if settings.enable_signing then
-xcodebuildsettings
-{
-	['CODE_SIGN_IDENTITY'] = 'Mac Developer',
-	['DEVELOPMENT_TEAM'] = settings.developer_team,
-		['PRODUCT_BUNDLE_IDENTIFIER'] = settings.bundle_identifier
-}
-end
+		if settings.enable_signing then
+		xcodebuildsettings
+		{
+			['CODE_SIGN_IDENTITY'] = 'Mac Developer',
+			['DEVELOPMENT_TEAM'] = settings.developer_team,
+				['PRODUCT_BUNDLE_IDENTIFIER'] = settings.bundle_identifier
+		}
+		end
 
 		defines
 		{
@@ -246,16 +246,16 @@ end
 			['IPHONEOS_DEPLOYMENT_TARGET'] = '13.0',
 			['INFOPLIST_FILE'] = '../Lumos/Source/Lumos/Platform/iOS/Client/Info.plist',
 			['ASSETCATALOG_COMPILER_APPICON_NAME'] = 'AppIcon',
-}
+		}
 
-if settings.enable_signing then
-xcodebuildsettings
-{
-	['PRODUCT_BUNDLE_IDENTIFIER'] = settings.bundle_identifier,
-	['CODE_SIGN_IDENTITY[sdk=iphoneos*]'] = 'iPhone Developer',
-	['DEVELOPMENT_TEAM'] = settings.developer_team
-}
-end
+		if settings.enable_signing then
+		xcodebuildsettings
+		{
+			['PRODUCT_BUNDLE_IDENTIFIER'] = settings.bundle_identifier,
+			['CODE_SIGN_IDENTITY[sdk=iphoneos*]'] = 'iPhone Developer',
+			['DEVELOPMENT_TEAM'] = settings.developer_team
+		}
+		end
 
 		if _OPTIONS["teamid"] then
 			xcodebuildsettings {
@@ -331,6 +331,74 @@ end
 			buildoptions
 			{
 				"-msse4.1",
+			}
+	
+			
+		filter "system:android"
+			androidsdkversion "29"
+			androidminsdkversion "29"
+			cppdialect "C++17"
+			staticruntime "Off"
+			systemversion "latest"
+			kind "WindowedApp"
+			targetextension ".apk"
+			editandcontinue "Off"
+			
+			defines
+			{
+				"LUMOS_PLATFORM_ANDROID",
+				"LUMOS_PLATFORM_MOBILE",
+				"LUMOS_PLATFORM_UNIX",
+				"LUMOS_RENDER_API_VULKAN",
+				"LUMOS_IMGUI"
+			}
+	
+			--Adding assets from Game Project folder. Needs rework
+			files
+			{
+				"../Lumos/Assets/Shaders",
+				"../Lumos/Source/Lumos/Platform/Android/**",
+				"../ExampleProject/Assets/Scenes",
+				"../ExampleProject/Assets/Scripts",
+				"../ExampleProject/Assets/Meshes",
+				"../ExampleProject/Assets/Sounds",
+				"../ExampleProject/Assets/Textures",
+				"../ExampleProject/Example.lmproj"
+			}
+			
+			links
+			{
+				"log" -- required for c++ logging	
+			}
+			
+			buildoptions
+			{
+				"-std=c++17" -- flag mainly here to test cmake compile options
+			}
+			
+			linkoptions
+			{
+				"--no-undefined" -- this flag is used just to cmake link libraries
+			}
+			
+			includedirs
+			{
+				"h"
+			}
+			
+			androidabis
+			{
+				"arm64-v8a"
+			}
+		
+			androiddependencies
+			{
+				"com.android.support:support-v4:27.1.0",
+			}
+			
+			assetpackdependencies
+			{
+				"pack"
 			}
 
 	filter "configurations:Debug"

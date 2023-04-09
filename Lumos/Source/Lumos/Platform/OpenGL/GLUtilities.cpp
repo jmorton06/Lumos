@@ -139,7 +139,7 @@ namespace Lumos
 
         uint32_t GLUtilities::GetGLTypefromFormat(RHIFormat format)
         {
-            switch (format)
+            switch(format)
             {
             case RHIFormat::R8_Unorm:
             case RHIFormat::R8G8_Unorm:

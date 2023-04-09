@@ -67,8 +67,8 @@ namespace Lumos
             uint32_t vertexCount       = 0;
             const uint32_t numIndices  = static_cast<uint32_t>(shape.mesh.indices.size());
             const uint32_t numVertices = numIndices; // attrib.vertices.size();// numIndices / 3.0f;
-            Graphics::Vertex* vertices = new Graphics::Vertex[numVertices];
-            uint32_t* indices          = new uint32_t[numIndices];
+            std::vector<Graphics::Vertex> vertices(numVertices);
+            std::vector<uint32_t> indices(numIndices);
 
             std::unordered_map<Graphics::Vertex, uint32_t> uniqueVertices;
 
@@ -126,7 +126,7 @@ namespace Lumos
             }
 
             if(attrib.normals.empty())
-                Graphics::Mesh::GenerateNormals(vertices, vertexCount, indices, numIndices);
+                Graphics::Mesh::GenerateNormals(vertices.data(), vertexCount, indices.data(), numIndices);
 
             // TODO : if(isAnimated) Load deferredColourAnimated;
             //  auto shader = Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/ForwardPBR.shader");
@@ -178,22 +178,13 @@ namespace Lumos
 
             pbrMaterial->SetTextures(textures);
 
-            SharedPtr<VertexBuffer> vb = SharedPtr<VertexBuffer>(VertexBuffer::Create(BufferUsage::STATIC));
-            vb->SetData(sizeof(Graphics::Vertex) * numVertices, vertices);
-
-            SharedPtr<Graphics::IndexBuffer> ib;
-            ib.reset(Graphics::IndexBuffer::Create(indices, numIndices));
-
-            auto mesh = CreateSharedPtr<Graphics::Mesh>(vb, ib, boundingBox);
+            auto mesh = CreateSharedPtr<Graphics::Mesh>(indices, vertices);
             mesh->SetMaterial(pbrMaterial);
-            mesh->GenerateTangentsAndBitangents(vertices, uint32_t(numVertices), indices, uint32_t(numIndices));
+            mesh->GenerateTangentsAndBitangents(vertices.data(), uint32_t(numVertices), indices.data(), uint32_t(numIndices));
 
             m_Meshes.push_back(mesh);
 
             m_Textures.clear();
-
-            delete[] vertices;
-            delete[] indices;
         }
     }
 

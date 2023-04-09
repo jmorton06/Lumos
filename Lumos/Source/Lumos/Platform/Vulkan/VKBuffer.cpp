@@ -109,9 +109,9 @@ namespace Lumos
             vkGetBufferMemoryRequirements(VKDevice::Device(), m_Buffer, &memRequirements);
 
             VkMemoryAllocateInfo allocInfo = {};
-            allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-            allocInfo.allocationSize = memRequirements.size;
-            allocInfo.memoryTypeIndex = VKUtilities::FindMemoryType(memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+            allocInfo.sType                = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+            allocInfo.allocationSize       = memRequirements.size;
+            allocInfo.memoryTypeIndex      = VKUtilities::FindMemoryType(memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 
             VK_CHECK_RESULT(vkAllocateMemory(VKDevice::Device(), &allocInfo, nullptr, &m_Memory));
 
@@ -189,9 +189,9 @@ namespace Lumos
             vmaFlushAllocation(VKDevice::Get().GetAllocator(), m_Allocation, offset, size);
 #else
             VkMappedMemoryRange mappedRange = {};
-            mappedRange.memory = m_Memory;
-            mappedRange.offset = offset;
-            mappedRange.size = size;
+            mappedRange.memory              = m_Memory;
+            mappedRange.offset              = offset;
+            mappedRange.size                = size;
             vkFlushMappedMemoryRanges(VKDevice::Device(), 1, &mappedRange);
 #endif
         }
@@ -203,9 +203,9 @@ namespace Lumos
             vmaInvalidateAllocation(VKDevice::Get().GetAllocator(), m_Allocation, offset, size);
 #else
             VkMappedMemoryRange mappedRange = {};
-            mappedRange.memory = m_Memory;
-            mappedRange.offset = offset;
-            mappedRange.size = size;
+            mappedRange.memory              = m_Memory;
+            mappedRange.offset              = offset;
+            mappedRange.size                = size;
             vkInvalidateMappedMemoryRanges(VKDevice::Device(), 1, &mappedRange);
 #endif
         }

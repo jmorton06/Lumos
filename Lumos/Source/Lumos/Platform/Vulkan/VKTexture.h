@@ -409,7 +409,7 @@ namespace Lumos
             void TransitionImage(VkImageLayout newLayout, VKCommandBuffer* commandBuffer = nullptr);
 
             VkImageLayout GetImageLayout() const { return m_ImageLayout; }
-            
+
             static void MakeDefault();
 
         protected:
@@ -529,7 +529,7 @@ namespace Lumos
 
             void* GetHandleArray(uint32_t index) override;
 
-            uint32_t GetCount() const { return m_Count; }
+            uint32_t GetCount() const override { return m_Count; }
             VkImageLayout GetImageLayout() const { return m_ImageLayout; }
 
             static void MakeDefault();

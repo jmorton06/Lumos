@@ -29,7 +29,7 @@ namespace Lumos
 
             void SetDynamicOffset(uint32_t offset) override { m_DynamicOffset = offset; }
             uint32_t GetDynamicOffset() const override { return m_DynamicOffset; }
-            void SetShader(GLShader* shader) {  m_Shader = shader; }
+            void SetShader(GLShader* shader) { m_Shader = shader; }
             static void MakeDefault();
 
         protected:
