@@ -269,7 +269,13 @@ namespace Lumos
 
             VkImageView GetImageView(uint32_t layer) const
             {
-                return m_IndividualImageViews[layer];
+                //return m_IndividualImageViews[layer];
+                return m_ImageViewsPerMip[0 + layer];
+            }
+
+            VkImageView GetImageView(uint32_t layer, uint32_t mip) const
+            {
+                return m_ImageViewsPerMip[mip * 6 + layer];
             }
 
             VkSampler GetSampler() const
@@ -284,7 +290,7 @@ namespace Lumos
 
             VkImageLayout GetImageLayout() const { return m_ImageLayout; }
 
-            void GenerateMipMaps() override;
+            void GenerateMipMaps(CommandBuffer* commandBuffer) override;
 
             static void MakeDefault();
 
@@ -318,6 +324,7 @@ namespace Lumos
             VkSampler m_TextureSampler {};
             VkDescriptorImageInfo m_Descriptor {};
             std::vector<VkImageView> m_IndividualImageViews;
+            std::vector<VkImageView> m_ImageViewsPerMip;
 
 #ifdef USE_VMA_ALLOCATOR
             VmaAllocation m_Allocation {};

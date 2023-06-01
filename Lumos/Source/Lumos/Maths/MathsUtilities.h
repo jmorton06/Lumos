@@ -382,20 +382,20 @@ namespace Lumos
         inline unsigned short FloatToHalf(float value)
         {
             unsigned inu = FloatToRawIntBits(value);
-            unsigned t1  = inu & 0x7fffffffu;     // Non-sign bits
-            unsigned t2  = inu & 0x80000000u;     // Sign bit
-            unsigned t3  = inu & 0x7f800000u;     // Exponent
+            unsigned t1  = inu & 0x7fffffffu; // Non-sign bits
+            unsigned t2  = inu & 0x80000000u; // Sign bit
+            unsigned t3  = inu & 0x7f800000u; // Exponent
 
-            t1 >>= 13;                            // Align mantissa on MSB
-            t2 >>= 16;                            // Shift sign bit into position
+            t1 >>= 13; // Align mantissa on MSB
+            t2 >>= 16; // Shift sign bit into position
 
-            t1 -= 0x1c000;                        // Adjust bias
+            t1 -= 0x1c000; // Adjust bias
 
             t1 = (t3 < 0x38800000) ? 0 : t1;      // Flush-to-zero
             t1 = (t3 > 0x47000000) ? 0x7bff : t1; // Clamp-to-max
             t1 = (t3 == 0 ? 0 : t1);              // Denormals-as-zero
 
-            t1 |= t2;                             // Re-insert sign bit
+            t1 |= t2; // Re-insert sign bit
 
             return (unsigned short)t1;
         }
@@ -407,14 +407,14 @@ namespace Lumos
             unsigned t2 = value & 0x8000u; // Sign bit
             unsigned t3 = value & 0x7c00u; // Exponent
 
-            t1 <<= 13;                     // Align mantissa on MSB
-            t2 <<= 16;                     // Shift sign bit into position
+            t1 <<= 13; // Align mantissa on MSB
+            t2 <<= 16; // Shift sign bit into position
 
-            t1 += 0x38000000;              // Adjust bias
+            t1 += 0x38000000; // Adjust bias
 
-            t1 = (t3 == 0 ? 0 : t1);       // Denormals-as-zero
+            t1 = (t3 == 0 ? 0 : t1); // Denormals-as-zero
 
-            t1 |= t2;                      // Re-insert sign bit
+            t1 |= t2; // Re-insert sign bit
 
             float out;
             *((unsigned*)&out) = t1;

@@ -1,0 +1,18 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+  package="org.khronos.openxr.loader_for_android"
+  android:versionCode="1"
+  android:versionName="${MAJOR}.${MINOR}.${PATCH}${OPENXR_ANDROID_VERSION_SUFFIX}">
+  <!--
+  Copyright (c) 2020 The Khronos Group Inc.
+  SPDX-License-Identifier: Apache-2.0
+  -->
+
+  <uses-sdk android:minSdkVersion="${ANDROID_PLATFORM}" android:targetSdkVersion="29"/>
+
+  <uses-permission android:name="org.khronos.openxr.permission.OPENXR" />
+
+  <queries>
+    <provider android:authorities="org.khronos.openxr.runtime_broker;org.khronos.openxr.system_runtime_broker" />
+  </queries>
+
+</manifest>

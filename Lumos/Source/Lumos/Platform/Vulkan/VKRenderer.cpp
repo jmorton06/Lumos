@@ -378,7 +378,7 @@ file << "P6\n"
                 height,
                 4,
                 data,
-                subResourceLayout.rowPitch);
+                (int)subResourceLayout.rowPitch);
             /*
 
 for(uint32_t y = 0; y < texture->GetHeight(); y++)

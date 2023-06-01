@@ -25,6 +25,10 @@ project "imgui"
 		"imgui/Plugins/ImTextEditor.cpp",
 		"imgui/Plugins/imcmd_command_palette.cpp",
 		"imgui/Plugins/imcmd_fuzzy_search.cpp",
+		"imgui/Plugins/implot/implot.h",
+		"imgui/Plugins/implot/implot.cpp",
+		"imgui/Plugins/implot/implot_internal.h",
+		"imgui/Plugins/implot/implot_items.cpp"
 	}
 
 	includedirs

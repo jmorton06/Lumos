@@ -498,8 +498,67 @@ namespace Lumos
 
         state.new_enum<Lumos::Graphics::PrimitiveType, false>("PrimitiveType", primitives);
 
-        state.new_usertype<Model>("Model", sol::constructors<Model(const std::string&), Model(Lumos::Graphics::PrimitiveType)>());
+        state.new_usertype<Model>("Model",
+                                  // Constructors
+                                  sol::constructors<
+                                      Lumos::Graphics::Model(),
+                                      Lumos::Graphics::Model(const std::string&),
+                                      Lumos::Graphics::Model(const Lumos::SharedPtr<Lumos::Graphics::Mesh>&, Lumos::Graphics::PrimitiveType),
+                                      Lumos::Graphics::Model(Lumos::Graphics::PrimitiveType)>(),
+                                  // Properties
+                                  "meshes", &Lumos::Graphics::Model::GetMeshes,
+                                  "skeleton", &Lumos::Graphics::Model::GetSkeleton,
+                                  "animations", &Lumos::Graphics::Model::GetAnimations,
+                                  "file_path", &Lumos::Graphics::Model::GetFilePath,
+                                  "primitive_type", sol::property(&Lumos::Graphics::Model::GetPrimitiveType, &Lumos::Graphics::Model::SetPrimitiveType),
+                                  // Methods
+                                  "add_mesh", &Lumos::Graphics::Model::AddMesh,
+                                  "load_model", &Lumos::Graphics::Model::LoadModel);
+
         REGISTER_COMPONENT_WITH_ECS(state, Model, static_cast<Model& (Entity::*)(const std::string&)>(&Entity::AddComponent<Model, const std::string&>));
+
+        // Member functions
+        sol::usertype<Material> material_type = state.new_usertype<Material>("Material",
+
+                                                                             sol::constructors<
+                                                                                 Lumos::Graphics::Material()>(),
+                                                                             // Setters
+                                                                             "set_albedo_texture", &Material::SetAlbedoTexture,
+                                                                             "set_normal_texture", &Material::SetNormalTexture,
+                                                                             "set_roughness_texture", &Material::SetRoughnessTexture,
+                                                                             "set_metallic_texture", &Material::SetMetallicTexture,
+                                                                             "set_ao_texture", &Material::SetAOTexture,
+                                                                             "set_emissive_texture", &Material::SetEmissiveTexture,
+
+                                                                             // Getters
+                                                                             "get_name", &Material::GetName,
+                                                                             "get_properties", &Material::GetProperties,
+                                                                             //"get_textures", &Material::GetTextures,
+                                                                             "get_shader", &Material::GetShader,
+
+                                                                             // Other member functions
+                                                                             "load_pbr_material", &Material::LoadPBRMaterial,
+                                                                             "load_material", &Material::LoadMaterial,
+                                                                             "set_textures", &Material::SetTextures,
+                                                                             "set_material_properties", &Material::SetMaterialProperites,
+                                                                             "update_material_properties_data", &Material::UpdateMaterialPropertiesData,
+                                                                             "set_name", &Material::SetName,
+                                                                             "bind", &Material::Bind);
+
+        // Enum for RenderFlags
+        std::initializer_list<std::pair<sol::string_view, Material::RenderFlags>> render_flags = {
+            { "NONE", Material::RenderFlags::NONE },
+            { "DEPTHTEST", Material::RenderFlags::DEPTHTEST },
+            { "WIREFRAME", Material::RenderFlags::WIREFRAME },
+            { "FORWARDRENDER", Material::RenderFlags::FORWARDRENDER },
+            { "DEFERREDRENDER", Material::RenderFlags::DEFERREDRENDER },
+            { "NOSHADOW", Material::RenderFlags::NOSHADOW },
+            { "TWOSIDED", Material::RenderFlags::TWOSIDED },
+            { "ALPHABLEND", Material::RenderFlags::ALPHABLEND }
+
+        };
+
+        state.new_enum<Material::RenderFlags, false>("RenderFlags", render_flags);
 
         sol::usertype<Camera> camera_type = state.new_usertype<Camera>("Camera", sol::constructors<Camera(float, float, float, float), Camera(float, float)>());
         camera_type["fov"]                = &Camera::GetFOV;
@@ -523,9 +582,16 @@ namespace Lumos
 
         REGISTER_COMPONENT_WITH_ECS(state, SoundComponent, static_cast<SoundComponent& (Entity::*)()>(&Entity::AddComponent<SoundComponent>));
 
-        // state.set_function("LoadMesh", &ModelLoader::LoadModel);
-        // TODO MODEL
-        sol::usertype<Graphics::Mesh> mesh_type = state.new_usertype<Graphics::Mesh>("Mesh");
+        auto mesh_type = state.new_usertype<Lumos::Graphics::Mesh>("Mesh",
+                                                                   sol::constructors<Lumos::Graphics::Mesh(), Lumos::Graphics::Mesh(const Lumos::Graphics::Mesh&),
+                                                                                     Lumos::Graphics::Mesh(const std::vector<uint32_t>&, const std::vector<Vertex>&, float)>());
+
+        // Bind the member functions and variables
+        mesh_type["GetMaterial"]    = &Lumos::Graphics::Mesh::GetMaterial;
+        mesh_type["SetMaterial"]    = &Lumos::Graphics::Mesh::SetMaterial;
+        mesh_type["GetBoundingBox"] = &Lumos::Graphics::Mesh::GetBoundingBox;
+        mesh_type["GetActive"]      = &Lumos::Graphics::Mesh::GetActive;
+        mesh_type["SetName"]        = &Lumos::Graphics::Mesh::SetName;
 
         std::initializer_list<std::pair<sol::string_view, Lumos::Graphics::TextureFilter>> textureFilter = {
             { "None", Lumos::Graphics::TextureFilter::NONE },

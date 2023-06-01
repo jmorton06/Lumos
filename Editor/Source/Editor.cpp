@@ -1044,7 +1044,7 @@ namespace Lumos
             if(ImGui::Button("OK", ImVec2(120, 0)))
             {
                 Application::Get().GetSceneManager()->GetCurrentScene()->Serialise(m_ProjectSettings.m_ProjectRoot + "Assets/Scenes/", false);
-                Graphics::Renderer::GetRenderer()->SaveScreenshot(m_ProjectSettings.m_ProjectRoot + "Assets/Scenes/Cache/" + Application::Get().GetSceneManager()->GetCurrentScene()->GetSceneName() + ".png", m_SceneRenderer->GetForwardData().m_RenderTexture);
+                Graphics::Renderer::GetRenderer()->SaveScreenshot(m_ProjectSettings.m_ProjectRoot + "Assets/Scenes/Cache/" + Application::Get().GetSceneManager()->GetCurrentScene()->GetSceneName() + ".png", m_RenderPasses->GetForwardData().m_RenderTexture);
                 ImGui::CloseCurrentPopup();
             }
             ImGui::SetItemDefaultFocus();
@@ -1817,6 +1817,9 @@ namespace Lumos
             autoSaveTimer += ts.GetMillis();
         }
 
+        if(m_EditorState == EditorState::Play)
+            autoSaveTimer = 0.0f;
+
         if(Input::Get().GetKeyPressed(Lumos::InputCode::Key::Escape))
         {
             if(GetEditorState() == EditorState::Preview)
@@ -2092,6 +2095,43 @@ namespace Lumos
                             auto& worldTransform = transform->GetWorldMatrix();
                             auto bbCopy          = mesh->GetBoundingBox()->Transformed(worldTransform);
                             DebugRenderer::DebugDraw(bbCopy, selectedColour, true);
+                        }
+                    }
+                    if(model->ModelRef->GetSkeleton())
+                    {
+                        auto& skeleton       = *model->ModelRef->GetSkeleton().get();
+                        const int num_joints = skeleton.num_joints();
+
+                        // Iterate through each joint in the skeleton
+                        for(int i = 0; i < num_joints; ++i)
+                        {
+                            // Get the current joint's world space transform
+
+                            const ozz::math::Transform joint_transform; //= skeleton.joint_rest_poses()[i];
+
+                            // Convert ozz::math::Transform to glm::mat4
+                            glm::mat4 joint_world_transform = glm::translate(glm::mat4(1.0f), glm::vec3(joint_transform.translation.x, joint_transform.translation.y, joint_transform.translation.z));
+                            joint_world_transform *= glm::mat4_cast(glm::quat(joint_transform.rotation.x, joint_transform.rotation.y, joint_transform.rotation.z, joint_transform.rotation.w));
+                            joint_world_transform = glm::scale(joint_world_transform, glm::vec3(joint_transform.scale.x, joint_transform.scale.y, joint_transform.scale.z));
+
+                            // Multiply the joint's world transform by the entity transform
+                            glm::mat4 final_transform = transform->GetWorldMatrix() * joint_world_transform;
+
+                            // Get the parent joint's world space transform
+                            const int parent_index = skeleton.joint_parents()[i];
+                            glm::mat4 parent_world_transform(1.0f);
+                            if(parent_index != ozz::animation::Skeleton::Constants::kNoParent)
+                            {
+                                const ozz::math::Transform parent_transform; // = skeleton.joint_rest_poses()[parent_index];
+                                parent_world_transform = glm::translate(glm::mat4(1.0f), glm::vec3(parent_transform.translation.x, parent_transform.translation.y, parent_transform.translation.z));
+                                parent_world_transform *= glm::mat4_cast(glm::quat(parent_transform.rotation.x, parent_transform.rotation.y, parent_transform.rotation.z, parent_transform.rotation.w));
+                                parent_world_transform = glm::scale(parent_world_transform, glm::vec3(parent_transform.scale.x, parent_transform.scale.y, parent_transform.scale.z));
+                                parent_world_transform = transform->GetWorldMatrix() * parent_world_transform;
+                            }
+
+                            // Draw a line between the current joint and its parent joint
+                            // (assuming you have a function to draw a line between two points)
+                            DebugRenderer::DrawHairLine(glm::vec3(final_transform[3]), glm::vec3(parent_world_transform[3]), glm::vec4(1.0f, 0.0f, 0.0f, 1.0f)); // Example color: red
                         }
                     }
                 }

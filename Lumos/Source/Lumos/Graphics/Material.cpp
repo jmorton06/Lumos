@@ -153,6 +153,7 @@ namespace Lumos::Graphics
         m_MaterialProperties->emissiveMapFactor  = properties.emissiveMapFactor;
         m_MaterialProperties->alphaCutoff        = properties.alphaCutoff;
         m_MaterialProperties->workflow           = properties.workflow;
+        m_MaterialProperties->reflectance        = properties.reflectance;
 
         UpdateMaterialPropertiesData();
     }

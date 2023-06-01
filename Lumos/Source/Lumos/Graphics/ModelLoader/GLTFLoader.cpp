@@ -10,6 +10,10 @@
 #include "Core/Application.h"
 #include "Core/StringUtilities.h"
 
+#include <ozz/animation/offline/animation_builder.h>
+#include <ozz/animation/runtime/skeleton.h>
+#include <ozz/animation/offline/skeleton_builder.h>
+
 #define TINYGLTF_IMPLEMENTATION
 #define TINYGLTF_USE_CPP14
 #define STB_IMAGE_WRITE_IMPLEMENTATION
@@ -18,6 +22,8 @@
 #define TINYGLTF_NOEXCEPTION
 #endif
 #include <ModelLoaders/tinygltf/tiny_gltf.h>
+
+#include <ozz-animation/src/animation/offline/gltf/gltf2ozz.cc>
 
 namespace Lumos::Graphics
 {
@@ -222,6 +228,22 @@ namespace Lumos::Graphics
                     properties.roughness = 1.0f - float(factor.IsNumber() ? factor.Get<double>() : factor.Get<int>());
                 }
             }
+
+
+		auto ext_ior = mat.extensions.find("KHR_materials_ior");
+		if (ext_ior != mat.extensions.end())
+		{
+			// https://github.com/KhronosGroup/glTF/tree/master/extensions/2.0/Khronos/KHR_materials_ior
+
+			if (ext_ior->second.Has("ior"))
+			{
+				auto& factor = ext_ior->second.Get("ior");
+				float ior = float(factor.IsNumber() ? factor.Get<double>() : factor.Get<int>());
+
+				properties.reflectance = std::sqrt(std::pow((ior - 1.0f) / (ior + 1.0f), 2.0f) / 16.0f);
+			}
+		}
+
 
             pbrMaterial->SetTextures(textures);
             pbrMaterial->SetMaterialProperites(properties);
@@ -553,6 +575,35 @@ namespace Lumos::Graphics
             for(size_t i = 0; i < gltfScene.nodes.size(); i++)
             {
                 LoadNode(this, gltfScene.nodes[i], glm::mat4(1.0f), model, LoadedMaterials, meshes);
+            }
+
+            auto skins = model.skins;
+            if(!skins.empty())
+            {
+                using namespace ozz::animation::offline;
+                GltfImporter impl;
+                ozz::animation::offline::OzzImporter& importer = impl;
+                OzzImporter::NodeType types                    = {};
+
+                importer.Load(path.c_str());
+                RawSkeleton* rawSkeleton = new RawSkeleton();
+                importer.Import(rawSkeleton, types);
+
+                ozz::animation::offline::SkeletonBuilder skeletonBuilder;
+
+                m_Skeleton = SharedPtr<ozz::animation::Skeleton>(skeletonBuilder(*rawSkeleton).release());
+
+                ozz::animation::offline::AnimationBuilder animBuilder;
+                auto animationNames = importer.GetAnimationNames();
+
+                for(auto& animName : animationNames)
+                {
+                    RawAnimation* rawAnimation = new RawAnimation();
+                    importer.Import(animName.c_str(), *m_Skeleton.get(), 30.0f, rawAnimation);
+
+                    m_Animation.push_back(SharedPtr<ozz::animation::Animation>(animBuilder(*rawAnimation).release()));
+                    LUMOS_LOG_INFO("Loaded Anim : {0}", animName);
+                }
             }
         }
     }

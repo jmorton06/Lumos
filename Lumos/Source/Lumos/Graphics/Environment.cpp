@@ -1,7 +1,7 @@
 #include "Precompiled.h"
 #include "Environment.h"
 #include "Core/Application.h"
-#include "Renderers/SceneRenderer.h"
+#include "Renderers/RenderPasses.h"
 #include "RHI/Texture.h"
 #include "Core/VFS.h"
 #include "Core/StringUtilities.h"
@@ -66,9 +66,7 @@ namespace Lumos
 
                 if(m_FileType == ".hdr")
                 {
-                    auto env        = Application::Get().GetSceneRenderer()->CreateCubeMap(m_FilePath + "_Env_" + StringUtilities::ToString(0) + "_" + StringUtilities::ToString(currWidth) + "x" + StringUtilities::ToString(currHeight) + m_FileType, m_Parameters);
-                    m_Environmnet   = env;
-                    m_IrradianceMap = env;
+                    Application::Get().GetRenderPasses()->CreateCubeMap(m_FilePath + "_Env_" + StringUtilities::ToString(0) + "_" + StringUtilities::ToString(currWidth) + "x" + StringUtilities::ToString(currHeight) + m_FileType, m_Parameters, m_Environmnet, m_IrradianceMap);
                     return;
                 }
                 else
@@ -138,9 +136,7 @@ namespace Lumos
             else // if (m_Mode == 1)
             {
                 m_Parameters.w  = m_Mode;
-                auto env        = Application::Get().GetSceneRenderer()->CreateCubeMap("", m_Parameters);
-                m_Environmnet   = env;
-                m_IrradianceMap = env;
+                Application::Get().GetRenderPasses()->CreateCubeMap("", m_Parameters, m_Environmnet, m_IrradianceMap);
             }
         }
 

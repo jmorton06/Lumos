@@ -122,6 +122,7 @@ namespace Lumos
             bool FilmicGrainEnabled        = false;
             bool MotionBlurEnabled         = false;
             bool DepthOfFieldEnabled       = false;
+            bool SharpenEnabled            = false;
             float DepthOfFieldStrength     = 1.0f;
             float DepthOfFieldDistance     = 100.0f;
 
@@ -146,6 +147,14 @@ namespace Lumos
             float BloomThreshold     = 1.0f;
             float BloomKnee          = 0.1f;
             float BloomUpsampleScale = 1.0f;
+
+            // SSAO
+            int SSAOBlurRadius     = 4;
+            float SSAOSampleRadius = 4.0f;
+            bool SSAOBlur          = true;
+
+            float SkyboxMipLevel = 0.0f;
+            int DebugMode = 0;
         };
 
         struct ScenePhysics3DSettings
@@ -198,6 +207,8 @@ namespace Lumos
             archive(cereal::make_nvp("DepthOFFieldEnabled", m_Settings.RenderSettings.DepthOfFieldEnabled), cereal::make_nvp("DepthOfFieldStrength", m_Settings.RenderSettings.DepthOfFieldStrength), cereal::make_nvp("DepthOfFieldDistance", m_Settings.RenderSettings.DepthOfFieldDistance));
 
             archive(m_Settings.RenderSettings.Brightness, m_Settings.RenderSettings.Saturation, m_Settings.RenderSettings.Contrast);
+
+            archive(m_Settings.RenderSettings.SharpenEnabled);
         }
 
         template <typename Archive>
@@ -235,6 +246,9 @@ namespace Lumos
 
             if(Serialisation::CurrentSceneVersion > 16)
                 archive(m_Settings.RenderSettings.Brightness, m_Settings.RenderSettings.Saturation, m_Settings.RenderSettings.Contrast);
+
+            if(Serialisation::CurrentSceneVersion > 18)
+                archive(m_Settings.RenderSettings.SharpenEnabled);
         }
 
         SceneSettings& GetSettings()

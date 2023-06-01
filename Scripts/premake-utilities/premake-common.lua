@@ -75,7 +75,8 @@ function SetRecommendedXcodeSettings()
 		['GCC_WARN_UNDECLARED_SELECTOR'] = 'YES',
 	  	['CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF'] = 'YES',
 		['CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS'] = 'YES',
-		['CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER'] = 'YES',
+	['CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER'] = 'YES',
+	['DEAD_CODE_STRIPPING'] = 'YES',
    }
 
    filter {"system:macosx or system:ios", "configurations:debug"}

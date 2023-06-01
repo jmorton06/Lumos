@@ -42,33 +42,34 @@ Install Vulkan SDK (https://vulkan.lunarg.com/)
 sudo apt-get install -y g++-11 libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev libopenal-dev mesa-common-dev
 cd Lumos
 Tools/linux/premake5 gmake2
+cd build
 make -j8 # config=release
 ```
 #### Windows 
 Run Scripts/GenerateVS.bat to generate a visual studio project.
 ```
 cd Lumos
-msbuild /p:Platform=x64 /p:Configuration=Release Lumos.sln
+msbuild /p:Platform=x64 /p:Configuration=Release build/Lumos.sln
 ```
 #### Mac
 ```
 cd Lumos
 Tools/premake5 xcode4
-xcodebuild -project Runtime.xcodeproj
+xcodebuild -project build/Runtime.xcodeproj
 ```
 
 M1 Macs may need : 
 ```
 cd Lumos
 Tools/premake5 xcode4 --arch=arm64 --os=macosx
-xcodebuild -project Runtime.xcodeproj
+xcodebuild -project build/Runtime.xcodeproj
 ```
 
 #### iOS
 ```
 cd Lumos
 Tools/premake5 xcode4 --os=ios
-xcodebuild -project Runtime.xcodeproj CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO
+xcodebuild -project build/Runtime.xcodeproj CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO
 ```
 
 To run on apple devices with Vulkan ( MoltenVK ), disable Metal API Validation here : Product > Scheme > Edit Scheme… > Run > Options > Metal API Validation
