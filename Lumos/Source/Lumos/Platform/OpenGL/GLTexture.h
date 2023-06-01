@@ -139,7 +139,7 @@ namespace Lumos
                 return m_Format;
             }
 
-            void GenerateMipMaps() override;
+            void GenerateMipMaps(CommandBuffer* commandBuffer) override;
 
             static void MakeDefault();
 

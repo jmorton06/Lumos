@@ -47,7 +47,7 @@ namespace Lumos
             auto newVertexCount = meshopt_optimizeVertexFetch( // return vertices (not vertex attribute values)
                 (m_Vertices.data()),
                 (unsigned int*)(m_Indices.data()),
-                newIndexCount,             // total new indices (not faces)
+                newIndexCount, // total new indices (not faces)
                 (m_Vertices.data()),
                 (size_t)m_Vertices.size(), // total vertices (not vertex attribute values)
                 sizeof(Graphics::Vertex)   // vertex stride

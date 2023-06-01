@@ -25,7 +25,7 @@ namespace Lumos
             };
 
         public:
-            Message(const std::string& message = "", Level level = Level::Trace, const std::string& source = "", int threadID = 0);
+            Message(const std::string& message = "", Level level = Level::Trace, const std::string& source = "", int threadID = 0, const std::string& time = "");
             void OnImGUIRender();
             void IncreaseCount() { m_Count++; };
             size_t GetMessageID() const { return m_MessageID; }
@@ -39,6 +39,7 @@ namespace Lumos
             const Level m_Level;
             const std::string m_Source;
             const int m_ThreadID;
+            std::string m_Time;
             int m_Count = 1;
             size_t m_MessageID;
         };

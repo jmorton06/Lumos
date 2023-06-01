@@ -18,6 +18,7 @@ IncludeDir["spdlog"] = "External/spdlog/include"
 IncludeDir["glm"] = "External/glm"
 IncludeDir["msdf_atlas_gen"] = "External/msdf-atlas-gen/msdf-atlas-gen"
 IncludeDir["msdfgen"] = "External/msdf-atlas-gen/msdfgen"
+IncludeDir["ozz"] = "External/ozz-animation/include"
 
 project "Lumos"
 	kind "StaticLib"
@@ -65,6 +66,7 @@ project "Lumos"
 		"%{IncludeDir.glm}",
 		"%{IncludeDir.msdfgen}",
 		"%{IncludeDir.msdf_atlas_gen}",
+		"%{IncludeDir.ozz}",
 		"%{IncludeDir.Lumos}",
 	}
 
@@ -78,7 +80,10 @@ project "Lumos"
 		"spdlog",
 		"meshoptimizer",
 		-- "msdfgen",
-		"msdf-atlas-gen"
+		"msdf-atlas-gen",
+		"ozz_base",
+		"ozz_animation",
+		"ozz_animation_offline"
 	}
 
 	defines

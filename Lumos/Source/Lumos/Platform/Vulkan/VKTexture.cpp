@@ -296,7 +296,7 @@ namespace Lumos
             m_Descriptor.imageLayout = m_ImageLayout;
         }
 
-        void GenerateMipmaps(VkImage image, VkFormat imageFormat, int32_t texWidth, int32_t texHeight, uint32_t mipLevels, uint32_t layer = 0, uint32_t layerCount = 1)
+        void GenerateMipmaps(CommandBuffer* commandBuffer, VkImage image, VkFormat imageFormat, int32_t texWidth, int32_t texHeight, uint32_t mipLevels, uint32_t layer = 0, uint32_t layerCount = 1)
         {
             LUMOS_PROFILE_FUNCTION();
             VkFormatProperties formatProperties;
@@ -307,7 +307,12 @@ namespace Lumos
                 LUMOS_LOG_ERROR("Texture image format does not support linear blitting!");
             }
 
-            VkCommandBuffer commandBuffer = VKUtilities::BeginSingleTimeCommands();
+            VkCommandBuffer vkCommandBuffer;
+            
+            if(commandBuffer)
+                vkCommandBuffer = ((VKCommandBuffer*)commandBuffer)->GetHandle();
+            else
+                vkCommandBuffer = VKUtilities::BeginSingleTimeCommands();
 
             VkImageMemoryBarrier barrier {};
             barrier.sType                           = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
@@ -330,7 +335,7 @@ namespace Lumos
                 barrier.srcAccessMask                 = VK_ACCESS_TRANSFER_WRITE_BIT;
                 barrier.dstAccessMask                 = VK_ACCESS_TRANSFER_READ_BIT;
 
-                vkCmdPipelineBarrier(commandBuffer,
+                vkCmdPipelineBarrier(vkCommandBuffer,
                                      VK_PIPELINE_STAGE_TRANSFER_BIT,
                                      VK_PIPELINE_STAGE_TRANSFER_BIT,
                                      0,
@@ -356,7 +361,7 @@ namespace Lumos
                 blit.dstSubresource.baseArrayLayer = layer;
                 blit.dstSubresource.layerCount     = layerCount;
 
-                vkCmdBlitImage(commandBuffer,
+                vkCmdBlitImage(vkCommandBuffer,
                                image,
                                VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
                                image,
@@ -370,7 +375,7 @@ namespace Lumos
                 barrier.srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
                 barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
 
-                vkCmdPipelineBarrier(commandBuffer,
+                vkCmdPipelineBarrier(vkCommandBuffer,
                                      VK_PIPELINE_STAGE_TRANSFER_BIT,
                                      VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
                                      0,
@@ -393,7 +398,7 @@ namespace Lumos
             barrier.srcAccessMask                 = VK_ACCESS_TRANSFER_WRITE_BIT;
             barrier.dstAccessMask                 = VK_ACCESS_SHADER_READ_BIT;
 
-            vkCmdPipelineBarrier(commandBuffer,
+            vkCmdPipelineBarrier(vkCommandBuffer,
                                  VK_PIPELINE_STAGE_TRANSFER_BIT,
                                  VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
                                  0,
@@ -404,7 +409,8 @@ namespace Lumos
                                  1,
                                  &barrier);
 
-            VKUtilities::EndSingleTimeCommands(commandBuffer);
+            if(!commandBuffer)
+                VKUtilities::EndSingleTimeCommands(vkCommandBuffer);
         }
 
         bool VKTexture2D::Load()
@@ -464,7 +470,7 @@ namespace Lumos
             delete stagingBuffer;
 
             if(m_Flags & TextureFlags::Texture_CreateMips)
-                GenerateMipmaps(m_TextureImage, m_VKFormat, m_Width, m_Height, m_MipLevels);
+                GenerateMipmaps(nullptr, m_TextureImage, m_VKFormat, m_Width, m_Height, m_MipLevels);
 
             m_UUID = Random64::Rand(0, std::numeric_limits<uint64_t>::max());
 
@@ -649,10 +655,19 @@ namespace Lumos
             }
             delete[] allData;
 
-            for(uint32_t i = 0; i < m_NumLayers; i++)
+            // for(uint32_t i = 0; i < m_NumLayers; i++)
+            // {
+            //     VkImageView imageView = CreateImageView(m_TextureImage, m_VKFormat, 1, VK_IMAGE_VIEW_TYPE_2D, VK_IMAGE_ASPECT_COLOR_BIT, 1, i, 0);
+            //     m_IndividualImageViews.push_back(imageView);
+            // }
+
+            for(uint32_t level = 0; level < m_NumMips; level++)
             {
-                VkImageView imageView = CreateImageView(m_TextureImage, m_VKFormat, 1, VK_IMAGE_VIEW_TYPE_2D, VK_IMAGE_ASPECT_COLOR_BIT, 1, i, 0);
-                m_IndividualImageViews.push_back(imageView);
+                for(uint32_t i = 0; i < m_NumLayers; i++)
+                {
+                    VkImageView imageView = CreateImageView(m_TextureImage, m_VKFormat, 1, VK_IMAGE_VIEW_TYPE_2D, VK_IMAGE_ASPECT_COLOR_BIT, 1, i, level);
+                    m_ImageViewsPerMip.push_back(imageView);
+                }
             }
 
             VKUtilities::TransitionImageLayout(m_TextureImage, m_VKFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, m_NumMips, m_NumLayers, nullptr);
@@ -728,6 +743,18 @@ namespace Lumos
                         vkDestroyImageView(VKDevice::GetHandle(), imageViews[i], nullptr);
                     } });
             }
+            
+            if(!m_ImageViewsPerMip.empty())
+            {
+                auto imageViews = m_ImageViewsPerMip;
+                deletionQueue.PushFunction([imageViews]
+
+                                           {
+                    for(uint32_t i = 0; i < (uint32_t)imageViews.size(); i++)
+                    {
+                        vkDestroyImageView(VKDevice::GetHandle(), imageViews[i], nullptr);
+                    } });
+            }
 
             if(m_DeleteImage)
             {
@@ -758,15 +785,15 @@ namespace Lumos
             UpdateDescriptor();
         }
 
-        void VKTextureCube::GenerateMipMaps()
+        void VKTextureCube::GenerateMipMaps(CommandBuffer* commandBuffer)
         {
-            VKUtilities::TransitionImageLayout(m_TextureImage, m_VKFormat, m_ImageLayout, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, m_NumMips, 6);
+            VKUtilities::TransitionImageLayout(m_TextureImage, m_VKFormat, m_ImageLayout, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, m_NumMips, 6, ((VKCommandBuffer*)commandBuffer)->GetHandle());
 
             for(int i = 0; i < 6; i++)
-                GenerateMipmaps(m_TextureImage, m_VKFormat, m_Width, m_Height, m_NumMips, i, 1);
+                GenerateMipmaps(commandBuffer, m_TextureImage, m_VKFormat, m_Width, m_Height, m_NumMips, i, 1);
 
             // Generate mips sets layout to VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
-            VKUtilities::TransitionImageLayout(m_TextureImage, m_VKFormat, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, m_ImageLayout, m_NumMips, 6);
+            VKUtilities::TransitionImageLayout(m_TextureImage, m_VKFormat, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, m_ImageLayout, m_NumMips, 6, ((VKCommandBuffer*)commandBuffer)->GetHandle());
         }
 
         void VKTextureCube::UpdateDescriptor()

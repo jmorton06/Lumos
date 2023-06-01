@@ -2,8 +2,11 @@
 #extension GL_ARB_separate_shader_objects : enable
 #extension GL_ARB_shading_language_420pack : enable
 
+#include "EnvironmentMapping.glslh"
+
 layout(location = 0) in vec2 outTexCoord;
 
+layout(set = 0, binding = 0) uniform sampler2D u_Texture;
 layout(set = 0, binding = 1) uniform UniformBuffer
 {
 	vec4 u_Parameters;
@@ -15,7 +18,6 @@ layout(push_constant) uniform PushConsts
 	uint cubeFaceIndex;
 } pushConsts;
 
-layout(set = 0, binding = 0) uniform sampler2D u_Texture;
 layout(location = 0) out vec4 outFrag;
 
 const float coeiff = 0.3;
@@ -32,23 +34,6 @@ vec2 dirToUV(vec3 dir)
 	return vec2(
 		0.5f + 0.5f * atan(dir.z, dir.x) / MATH_PI,
 		1.f - acos(dir.y) / MATH_PI);
-}
-
-vec3 GetCubeMapTexCoord()
-{
-	vec2 uv = outTexCoord;
-	uv = 2.0 * vec2(uv.x, 1.0 - uv.y) - vec2(1.0);
-	
-    vec3 ret = vec3(0.0, 0.0, 0.0);
-	int face = int(pushConsts.cubeFaceIndex);
-
-    if (face == 0)      ret = vec3(  1.0, uv.y, -uv.x);
-    else if (face == 1) ret = vec3( -1.0, uv.y,  uv.x);
-    else if (face == 2) ret = vec3( uv.x,  1.0, uv.y);
-    else if (face == 3) ret = vec3( uv.x, -1.0,  -uv.y);
-    else if (face == 4) ret = vec3( uv.x, uv.y,   1.0);
-    else ret = vec3(-uv.x, uv.y,  -1.0); //if (face == 5)
-    return normalize(ret);
 }
 
 vec3 uvToXYZ()
@@ -68,10 +53,10 @@ vec3 uvToXYZ()
 
 vec3 panoramaToCubeMap()
 {
-	vec3 cubeTC = GetCubeMapTexCoord();
+	vec3 cubeTC = GetCubeMapTexCoord(int(pushConsts.cubeFaceIndex), outTexCoord);
 
-	vec3 scan = uvToXYZ(); 
-	vec3 direction = normalize(scan);
+	//vec3 scan = uvToXYZ(); 
+	vec3 direction = normalize(cubeTC);
 	vec2 src = dirToUV(direction);
 
 	return texture(u_Texture, src).rgb; //< get the color from the panorama
@@ -79,7 +64,7 @@ vec3 panoramaToCubeMap()
 
 vec3 getSky()
 {
-	vec3 uv = GetCubeMapTexCoord();
+	vec3 uv = GetCubeMapTexCoord2(int(pushConsts.cubeFaceIndex), outTexCoord);
 	vec3 sunPos;
 	float radian = MATH_PI * 2.0 *((timeCounter / 86400.0) - 0.333333);
 	sunPos.x = cos(radian);
@@ -204,11 +189,11 @@ vec3 calculateSkyLuminanceRGB( in vec3 s, in vec3 e, in float t )
 
 vec3 PreethamSky()
 {
-	vec3 cubeTexCoords = normalize(uvToXYZ());
+	vec3 cubeTexCoords = normalize(GetCubeMapTexCoord(int(pushConsts.cubeFaceIndex), outTexCoord));//uvToXYZ());
 
-	float turbidity     = ubo.u_Parameters.x; //2.0;
-    float azimuth       = ubo.u_Parameters.y; //0.0;
-    float inclination   = ubo.u_Parameters.z; //0.0;
+	float turbidity     = ubo.u_Parameters.x;
+    float azimuth       = ubo.u_Parameters.y;
+    float inclination   = ubo.u_Parameters.z;
     vec3 sunDir     	= normalize( vec3( sin(inclination) * cos(azimuth), cos(inclination), sin(inclination) * sin(azimuth) ) );
     vec3 viewDir  		= -cubeTexCoords;
     vec3 skyLuminance 	= calculateSkyLuminanceRGB( sunDir, viewDir, turbidity );
@@ -219,9 +204,9 @@ vec3 PreethamSky()
 void main()
 {
 	if(ubo.u_Parameters.w < 0.5)
-		outFrag = vec4(panoramaToCubeMap(), 1.0);
+		outFrag = vec4(clamp(panoramaToCubeMap(), 0.0, 50.0), 1.0);
 	else if(ubo.u_Parameters.w < 1.5)
-		outFrag = vec4(PreethamSky(), 1.0);
+		outFrag = vec4(DeGamma(PreethamSky()), 1.0);
 	else
 		outFrag = vec4(getSky(), 1.0);
 }

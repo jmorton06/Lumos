@@ -418,7 +418,7 @@ namespace Lumos
             return result;
         }
 
-        void GLTextureCube::GenerateMipMaps()
+        void GLTextureCube::GenerateMipMaps(CommandBuffer* commandBuffer)
         {
             GLCall(glBindTexture(GL_TEXTURE_CUBE_MAP, m_Handle));
             GLCall(glGenerateMipmap(GL_TEXTURE_CUBE_MAP));

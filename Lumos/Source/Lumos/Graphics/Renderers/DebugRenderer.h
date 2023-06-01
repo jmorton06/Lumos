@@ -88,7 +88,7 @@ namespace Lumos
     {
         friend class Scene;
         friend class Application;
-        friend class SceneRenderer;
+        friend class RenderPasses;
 
     public:
         static void Init();

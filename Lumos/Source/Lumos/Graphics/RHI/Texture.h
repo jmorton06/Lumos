@@ -22,7 +22,7 @@ namespace Lumos
             virtual uint32_t GetHeight(uint32_t mip = 0) const = 0;
             virtual TextureType GetType() const                = 0;
             virtual RHIFormat GetFormat() const                = 0;
-            virtual void GenerateMipMaps() { }
+            virtual void GenerateMipMaps(CommandBuffer* commandBuffer = nullptr) { }
             virtual void SetName(const std::string& name) {};
 
             virtual uint32_t GetSize() const { return 0; }

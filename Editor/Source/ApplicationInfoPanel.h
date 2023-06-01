@@ -11,5 +11,7 @@ namespace Lumos
         ~ApplicationInfoPanel() = default;
 
         void OnImGui() override;
+
+        std::vector<float> m_FPSData;
     };
 }

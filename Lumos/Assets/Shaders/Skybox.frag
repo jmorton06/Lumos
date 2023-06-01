@@ -60,7 +60,7 @@ void main()
 
 	if(data.Mode == 0)
 	{
-		colour = DeGamma(textureLod(u_CubeMap, outPosition, data.BlurLevel).xyz);
+		colour = textureLod(u_CubeMap, outPosition, data.BlurLevel).xyz;
 	}
 	else
 	{

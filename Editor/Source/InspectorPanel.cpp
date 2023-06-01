@@ -1778,7 +1778,12 @@ end
             ImGui::SliderFloat(Lumos::ImGuiUtilities::GenerateLabelID("Use Map"), &usingMapProperty, 0.0f, 1.0f);
 
             if(hasAmountValue)
-                ImGui::SliderFloat(Lumos::ImGuiUtilities::GenerateLabelID("Value"), &amount, 0.0f, 20.0f);
+            {
+                float maxValue = 20.0f;
+                if(std::strcmp(label, "Metallic") == 0 || std::strcmp(label, "Roughness") == 0)
+                    maxValue = 1.0f;
+                ImGui::SliderFloat(Lumos::ImGuiUtilities::GenerateLabelID("Value"), &amount, 0.0f, maxValue);
+            }
             // ImGui::TextUnformatted("Value");
             // ImGui::SameLine();
             // ImGui::PushItemWidth(-1);
@@ -1825,13 +1830,13 @@ end
                 if(ImGui::Selectable(shapes[n], shape_current.c_str()))
                 {
                     if(reg.get<Lumos::Graphics::ModelComponent>(e).ModelRef)
-                        model.GetMeshes().clear();
+                        model.GetMeshesRef().clear();
 
                     if(strcmp(shapes[n], "File") != 0)
                     {
                         if(reg.get<Lumos::Graphics::ModelComponent>(e).ModelRef)
                         {
-                            model.GetMeshes().push_back(Lumos::SharedPtr<Lumos::Graphics::Mesh>(Lumos::Graphics::CreatePrimative(GetPrimativeName(shapes[n]))));
+                            model.GetMeshesRef().push_back(Lumos::SharedPtr<Lumos::Graphics::Mesh>(Lumos::Graphics::CreatePrimative(GetPrimativeName(shapes[n]))));
                             model.SetPrimitiveType(GetPrimativeName(shapes[n]));
                         }
                         else
@@ -1873,13 +1878,35 @@ end
 
         int matIndex = 0;
 
-        if(!reg.get<Lumos::Graphics::ModelComponent>(e).ModelRef)
+        auto modelRef = reg.get<Lumos::Graphics::ModelComponent>(e).ModelRef;
+        if(!modelRef)
         {
             Lumos::ImGuiUtilities::PopID();
             return;
         }
 
-        auto& meshes = reg.get<Lumos::Graphics::ModelComponent>(e).ModelRef->GetMeshes();
+        ImGui::Separator();
+
+        auto Skeleton = modelRef->GetSkeleton();
+
+        if(Skeleton)
+        {
+            ImGui::TextUnformatted("Animation");
+
+            auto jointNames = Skeleton->joint_names();
+            for(auto& joint : jointNames)
+            {
+                ImGui::TextUnformatted(joint);
+            }
+
+            const auto& animations = modelRef->GetAnimations();
+        }
+
+        ImGui::Separator();
+
+        ImGui::TextUnformatted("Materials");
+
+        auto& meshes = modelRef->GetMeshes();
         for(auto mesh : meshes)
         {
             auto material       = mesh->GetMaterial();
@@ -1891,6 +1918,7 @@ end
                 matName += std::to_string(matIndex);
             }
 
+            matName += "##" + std::to_string(matIndex);
             matIndex++;
             if(!material)
             {
@@ -1939,6 +1967,13 @@ end
                 ImGui::Separator();
 
                 TextureWidget("Roughness", material.get(), textures.roughness.get(), flipImage, prop->roughnessMapFactor, prop->roughness, true, std::bind(&Graphics::Material::SetRoughnessTexture, material, std::placeholders::_1), textureSize * Application::Get().GetWindowDPI());
+                
+                if(ImGui::TreeNodeEx("Reflectance", ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_SpanFullWidth))
+                {
+                    ImGui::SliderFloat("##Reflectance", &prop->reflectance, 0.0f, 1.0f);
+                    ImGui::TreePop();
+                }
+                
                 ImGui::Separator();
 
                 TextureWidget("AO", material.get(), textures.ao.get(), flipImage, prop->occlusionMapFactor, normal, false, std::bind(&Graphics::Material::SetAOTexture, material, std::placeholders::_1), textureSize * Application::Get().GetWindowDPI());

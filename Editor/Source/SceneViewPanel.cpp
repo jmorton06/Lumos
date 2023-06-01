@@ -8,7 +8,7 @@
 #include <Lumos/Graphics/RHI/GraphicsContext.h>
 #include <Lumos/Graphics/RHI/Texture.h>
 #include <Lumos/Graphics/RHI/SwapChain.h>
-#include <Lumos/Graphics/Renderers/SceneRenderer.h>
+#include <Lumos/Graphics/Renderers/RenderPasses.h>
 #include <Lumos/Graphics/GBuffer.h>
 #include <Lumos/Graphics/Light.h>
 #include <Lumos/Scene/Component/SoundComponent.h>
@@ -40,7 +40,7 @@ namespace Lumos
         m_Width  = 1280;
         m_Height = 800;
 
-        Application::Get().GetSceneRenderer()->SetDisablePostProcess(false);
+        Application::Get().GetRenderPasses()->SetDisablePostProcess(false);
     }
 
     void SceneViewPanel::OnImGui()
@@ -54,7 +54,7 @@ namespace Lumos
 
         if(!ImGui::Begin(m_Name.c_str(), &m_Active, flags) || !m_CurrentScene)
         {
-            app.SetDisableMainSceneRenderer(true);
+            app.SetDisableMainRenderPasses(true);
             ImGui::End();
             return;
         }
@@ -62,7 +62,7 @@ namespace Lumos
         Camera* camera              = nullptr;
         Maths::Transform* transform = nullptr;
 
-        app.SetDisableMainSceneRenderer(false);
+        app.SetDisableMainRenderPasses(false);
 
         // if(app.GetEditorState() == EditorState::Preview)
         {
@@ -70,7 +70,7 @@ namespace Lumos
             camera    = m_Editor->GetCamera();
             transform = &m_Editor->GetEditorCameraTransform();
 
-            app.GetSceneRenderer()->SetOverrideCamera(camera, transform);
+            app.GetRenderPasses()->SetOverrideCamera(camera, transform);
         }
 
         ImVec2 offset = { 0.0f, 0.0f };
@@ -557,11 +557,11 @@ namespace Lumos
         m_Editor->GetSettings().m_AspectRatio = 1.0f;
         m_CurrentScene                        = scene;
 
-        auto SceneRenderer = Application::Get().GetSceneRenderer();
-        SceneRenderer->SetRenderTarget(m_GameViewTexture.get(), true);
-        SceneRenderer->SetOverrideCamera(m_Editor->GetCamera(), &m_Editor->GetEditorCameraTransform());
+        auto RenderPasses = Application::Get().GetRenderPasses();
+        RenderPasses->SetRenderTarget(m_GameViewTexture.get(), true);
+        RenderPasses->SetOverrideCamera(m_Editor->GetCamera(), &m_Editor->GetEditorCameraTransform());
         m_Editor->GetGridRenderer()->SetRenderTarget(m_GameViewTexture.get(), true);
-        m_Editor->GetGridRenderer()->SetDepthTarget(SceneRenderer->GetForwardData().m_DepthTexture);
+        m_Editor->GetGridRenderer()->SetDepthTarget(RenderPasses->GetForwardData().m_DepthTexture);
     }
 
     void SceneViewPanel::Resize(uint32_t width, uint32_t height)
@@ -593,19 +593,19 @@ namespace Lumos
         {
             m_GameViewTexture->Resize(m_Width, m_Height);
 
-            auto SceneRenderer = Application::Get().GetSceneRenderer();
-            SceneRenderer->SetRenderTarget(m_GameViewTexture.get(), true, false);
+            auto RenderPasses = Application::Get().GetRenderPasses();
+            RenderPasses->SetRenderTarget(m_GameViewTexture.get(), true, false);
 
             if(!m_Editor->GetGridRenderer())
                 m_Editor->CreateGridRenderer();
             m_Editor->GetGridRenderer()->SetRenderTarget(m_GameViewTexture.get(), false);
-            m_Editor->GetGridRenderer()->SetDepthTarget(SceneRenderer->GetForwardData().m_DepthTexture);
+            m_Editor->GetGridRenderer()->SetDepthTarget(RenderPasses->GetForwardData().m_DepthTexture);
 
             WindowResizeEvent e(width, height);
             auto& app = Application::Get();
-            app.GetSceneRenderer()->OnResize(width, height);
+            app.GetRenderPasses()->OnResize(width, height);
 
-            SceneRenderer->OnEvent(e);
+            RenderPasses->OnEvent(e);
 
             m_Editor->GetGridRenderer()->OnResize(m_Width, m_Height);
 

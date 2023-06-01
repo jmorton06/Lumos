@@ -1,0 +1,77 @@
+# Copyright (c) 2017-2023, The Khronos Group Inc.
+#
+# SPDX-License-Identifier: Apache-2.0
+
+/build/
+build*/
+CMakeLists.txt.user
+CMakeCache.txt
+CMakeFiles
+*/CMakeFiles
+*.orig
+.*
+*~
+*.tar
+*.tar.gz
+*.log
+pregen/
+generated-includes
+cmake_install.cmake
+cmake_uninstall.cmake
+
+# Marker file for a snapshot build
+SNAPSHOT
+
+# Cached python scripts in bytecode form
+*.pyc
+applyfixes.sh
+
+# Files related to building examples
+specification/**/*.c
+specification/**/*.cpp
+specification/**/*.o
+specification/examples.mk
+
+# Files related to pytest
+specification/scripts/.cache
+
+# VS 2019 CMake artifacts
+out/build/
+
+# VS misc
+*.sln
+*.pyproj
+*.vcxproj
+*.vcxproj.filters
+CMakeSettings.json
+CppProperties.json
+
+# Gradle
+.cxx/
+.gradle/
+local.properties
+
+# Don't ignore these things
+!.*.license
+!.appveyor.yml
+!.azure-pipelines/
+!.azure-pipelines/nuget/NugetTemplate/build
+!.clang-format
+!.clang-tidy
+!.cmake-format.json
+!.editorconfig
+!.git-blame-ignore-revs
+!.git-keep
+!.gitattributes
+!.github
+!.gitignore
+!.gitlab
+!.gitlab-ci.yml
+!.mailmap
+!.markdownlint.yaml
+!.proclamation.json
+!.reuse
+
+# Output artifact
+*.aar
+*.pom

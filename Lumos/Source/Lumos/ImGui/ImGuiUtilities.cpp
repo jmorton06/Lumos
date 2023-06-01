@@ -690,6 +690,9 @@ namespace Lumos
         ImVec4* colours = style.Colors;
         SelectedColour  = glm::vec4(0.28f, 0.56f, 0.9f, 1.0f);
 
+        // colours[ImGuiCol_TableRowBg] = ImVec4(0.00f, 0.00f, 0.00f, 1.00f);
+        // colours[ImGuiCol_TableRowBgAlt] = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
+
         if(theme == Black)
         {
             ImGui::StyleColorsDark();
@@ -740,8 +743,6 @@ namespace Lumos
             colours[ImGuiCol_TableHeaderBg]         = ImVec4(0.00f, 0.00f, 0.00f, 0.52f);
             colours[ImGuiCol_TableBorderStrong]     = ImVec4(0.00f, 0.00f, 0.00f, 0.52f);
             colours[ImGuiCol_TableBorderLight]      = ImVec4(0.28f, 0.28f, 0.28f, 0.29f);
-            colours[ImGuiCol_TableRowBg]            = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
-            colours[ImGuiCol_TableRowBgAlt]         = ImVec4(1.00f, 1.00f, 1.00f, 0.06f);
             colours[ImGuiCol_TextSelectedBg]        = ImVec4(0.20f, 0.22f, 0.23f, 1.00f);
             colours[ImGuiCol_DragDropTarget]        = ImVec4(0.33f, 0.67f, 0.86f, 1.00f);
             colours[ImGuiCol_NavHighlight]          = ImVec4(1.00f, 0.00f, 0.00f, 1.00f);
@@ -1154,14 +1155,17 @@ namespace Lumos
         colours[ImGuiCol_TabActive]          = colours[ImGuiCol_WindowBg];
         colours[ImGuiCol_ChildBg]            = colours[ImGuiCol_TabActive];
         colours[ImGuiCol_ScrollbarBg]        = colours[ImGuiCol_TabActive];
+        colours[ImGuiCol_TableHeaderBg]      = colours[ImGuiCol_TabActive];
 
         colours[ImGuiCol_TitleBgActive]    = colours[ImGuiCol_TitleBg];
         colours[ImGuiCol_TitleBgCollapsed] = colours[ImGuiCol_TitleBg];
         colours[ImGuiCol_MenuBarBg]        = colours[ImGuiCol_TitleBg];
         colours[ImGuiCol_PopupBg]          = colours[ImGuiCol_WindowBg] + ImVec4(0.05f, 0.05f, 0.05f, 0.0f);
 
-        colours[ImGuiCol_Border]       = ImVec4(0.08f, 0.10f, 0.12f, 0.00f);
-        colours[ImGuiCol_BorderShadow] = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
+        colours[ImGuiCol_Border]            = ImVec4(0.08f, 0.10f, 0.12f, 0.00f);
+        colours[ImGuiCol_BorderShadow]      = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
+        colours[ImGuiCol_TableBorderLight]  = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
+        colours[ImGuiCol_TableBorderStrong] = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
     }
 
     glm::vec4 ImGuiUtilities::GetSelectedColour()

@@ -22,7 +22,7 @@ namespace Lumos
 
     namespace Graphics
     {
-        class SceneRenderer;
+        class RenderPasses;
         enum class RenderAPI : uint32_t;
     }
 
@@ -74,7 +74,7 @@ namespace Lumos
         virtual void OnDebugDraw();
 
         SceneManager* GetSceneManager() const { return m_SceneManager.get(); }
-        Graphics::SceneRenderer* GetSceneRenderer() const { return m_SceneRenderer.get(); }
+        Graphics::RenderPasses* GetRenderPasses() const { return m_RenderPasses.get(); }
         Window* GetWindow() const { return m_Window.get(); }
         AppState GetState() const { return m_CurrentState; }
         EditorState GetEditorState() const { return m_EditorState; }
@@ -84,7 +84,7 @@ namespace Lumos
         void SetAppState(AppState state) { m_CurrentState = state; }
         void SetEditorState(EditorState state) { m_EditorState = state; }
         void SetSceneActive(bool active) { m_SceneActive = active; }
-        void SetDisableMainSceneRenderer(bool disable) { m_DisableMainSceneRenderer = disable; }
+        void SetDisableMainRenderPasses(bool disable) { m_DisableMainRenderPasses = disable; }
         bool GetSceneActive() const { return m_SceneActive; }
 
         glm::vec2 GetWindowSize() const;
@@ -285,12 +285,12 @@ namespace Lumos
         static void UpdateSystems();
         bool ShouldUpdateSystems = false;
 
-        uint32_t m_Frames               = 0;
-        uint32_t m_Updates              = 0;
-        float m_SecondTimer             = 0.0f;
-        bool m_Minimized                = false;
-        bool m_SceneActive              = true;
-        bool m_DisableMainSceneRenderer = false;
+        uint32_t m_Frames              = 0;
+        uint32_t m_Updates             = 0;
+        float m_SecondTimer            = 0.0f;
+        bool m_Minimized               = false;
+        bool m_SceneActive             = true;
+        bool m_DisableMainRenderPasses = false;
 
         uint32_t m_SceneViewWidth   = 0;
         uint32_t m_SceneViewHeight  = 0;
@@ -303,7 +303,7 @@ namespace Lumos
         UniquePtr<Window> m_Window;
         UniquePtr<SceneManager> m_SceneManager;
         UniquePtr<SystemManager> m_SystemManager;
-        UniquePtr<Graphics::SceneRenderer> m_SceneRenderer;
+        UniquePtr<Graphics::RenderPasses> m_RenderPasses;
         UniquePtr<ImGuiManager> m_ImGuiManager;
         UniquePtr<Timer> m_Timer;
         SharedPtr<ShaderLibrary> m_ShaderLibrary;

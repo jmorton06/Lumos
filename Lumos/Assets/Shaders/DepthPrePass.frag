@@ -45,5 +45,5 @@ void main(void)
 	if(alpha < materialProperties.AlphaCutOff)
 		discard;
 
-	OutNormal = vec4(normalize(VertexOutput.Normal) * 0.5 + 0.5, 1.0f);
+	OutNormal = vec4(normalize(VertexOutput.Normal * 0.5 + 0.5), 1.0f);
 }

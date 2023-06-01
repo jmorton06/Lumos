@@ -17,7 +17,7 @@
 #include "Core/Application.h"
 #include "Graphics/Camera/Camera.h"
 #include "Maths/Transform.h"
-#include "Graphics/Renderers/SceneRenderer.h"
+#include "Graphics/Renderers/RenderPasses.h"
 
 #include <imgui/imgui.h>
 
@@ -183,7 +183,7 @@ namespace Lumos
             pipelineDesc.blendMode           = BlendMode::SrcAlphaOneMinusSrcAlpha;
 
             {
-                pipelineDesc.depthTarget = reinterpret_cast<Texture*>(m_DepthTexture); // reinterpret_cast<Texture*>(Application::Get().GetSceneRenderer()->GetDepthTexture());
+                pipelineDesc.depthTarget = reinterpret_cast<Texture*>(m_DepthTexture); // reinterpret_cast<Texture*>(Application::Get().GetRenderPasses()->GetDepthTexture());
             }
 
             if(m_RenderTexture)

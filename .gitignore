@@ -165,3 +165,5 @@ Scripts/Setup/__pycache__
 Lumos/External/VulkanSDK
 *.xcworkspace
 *.xcodeproj
+ExampleProject/Assets/Meshes/Source
+ExampleProject/Assets/Meshes/Sponza

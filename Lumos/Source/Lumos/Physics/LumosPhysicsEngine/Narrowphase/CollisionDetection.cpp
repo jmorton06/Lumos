@@ -811,7 +811,7 @@ namespace Lumos
             float ABAPproduct = glm::dot(a_t, a_b);        // The DOT product of a_to_t and a_to_b
             float distance    = ABAPproduct / magnitudeAB; // The Normalised "distance" from a to your closest point
 
-            if(distance < 0.0f)                            // Clamp returned point to be on the line, e.g if the closest point is beyond the AB return either A or B as closest points
+            if(distance < 0.0f) // Clamp returned point to be on the line, e.g if the closest point is beyond the AB return either A or B as closest points
                 temp_closest_point = edge.posA;
 
             else if(distance > 1)

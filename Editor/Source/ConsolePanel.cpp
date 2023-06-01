@@ -165,12 +165,50 @@ namespace Lumos
         }
     }
 
+    enum MyItemColumnID
+    {
+        MyItemColumnID_Time,
+        MyItemColumnID_Message,
+        MyItemColumnID_Type
+    };
+
     void ConsolePanel::ImGuiRenderMessages()
     {
         LUMOS_PROFILE_FUNCTION();
-        ImGui::BeginChild("ScrollRegion", ImVec2(0, 0), false, ImGuiWindowFlags_HorizontalScrollbar);
+        // ImGui::BeginChild("ScrollRegion", ImVec2(0, 0), false, ImGuiWindowFlags_HorizontalScrollbar);
+        ImGui::BeginTable("Messages", 3, ImGuiTableFlags_NoSavedSettings | ImGuiTableFlags_Borders | ImGuiTableFlags_SizingStretchProp | ImGuiTableFlags_ScrollY | ImGuiTableFlags_RowBg);
         {
+
+            ImGui::TableSetupScrollFreeze(0, 1);
+            ImGui::TableSetupColumn("Type", ImGuiTableColumnFlags_PreferSortAscending, 0.0f, MyItemColumnID_Type);
+            ImGui::TableSetupColumn("Time", ImGuiTableColumnFlags_DefaultSort | ImGuiTableColumnFlags_PreferSortAscending, 0.0f, MyItemColumnID_Time);
+            ImGui::TableSetupColumn("Message", 0, 0.0f, MyItemColumnID_Message);
+
+            ImGui::TableHeadersRow();
             // ImGuiUtilities::AlternatingRowsBackground();
+
+            auto DrawMessage = [](Message* message)
+            {
+                ImGui::TableNextRow();
+                ImGui::TableNextColumn();
+                ImGui::PushStyleColor(ImGuiCol_Text, message->GetRenderColour(message->m_Level));
+                auto levelIcon = message->GetLevelIcon(message->m_Level);
+                ImGui::SetCursorPosX(ImGui::GetCursorPosX() + ImGui::GetColumnWidth() - ImGui::CalcTextSize(levelIcon).x
+                                     - ImGui::GetScrollX() - 2 * ImGui::GetStyle().ItemSpacing.x);
+                ImGui::TextUnformatted(levelIcon);
+
+                if(ImGui::IsItemHovered())
+                {
+                    ImGui::SetTooltip("%s", Message::GetLevelName(message->m_Level));
+                }
+                ImGui::PopStyleColor();
+
+                ImGui::TableNextColumn();
+                ImGui::TextUnformatted(message->m_Time.c_str());
+
+                ImGui::TableNextColumn();
+                message->OnImGUIRender();
+            };
 
             auto messageStart = s_MessageBuffer.begin() + s_MessageBufferBegin;
             if(*messageStart) // If contains old message here
@@ -181,12 +219,12 @@ namespace Lumos
                     {
                         if(Filter.PassFilter((*message)->m_Message.c_str()))
                         {
-                            (*message)->OnImGUIRender();
+                            DrawMessage((*message));
                         }
                     }
                     else
                     {
-                        (*message)->OnImGUIRender();
+                        DrawMessage((*message));
                     }
                 }
             }
@@ -201,12 +239,12 @@ namespace Lumos
                         {
                             if(Filter.PassFilter((*message)->m_Message.c_str()))
                             {
-                                (*message)->OnImGUIRender();
+                                DrawMessage((*message));
                             }
                         }
                         else
                         {
-                            (*message)->OnImGUIRender();
+                            DrawMessage((*message));
                         }
                     }
                 }
@@ -218,15 +256,16 @@ namespace Lumos
                 s_RequestScrollToBottom = false;
             }
         }
-        ImGui::EndChild();
+        ImGui::EndTable();
     }
 
-    ConsolePanel::Message::Message(const std::string& message, Level level, const std::string& source, int threadID)
+    ConsolePanel::Message::Message(const std::string& message, Level level, const std::string& source, int threadID, const std::string& time)
         : m_Message(message)
         , m_Level(level)
         , m_Source(source)
         , m_ThreadID(threadID)
         , m_MessageID(std::hash<std::string>()(message))
+        , m_Time(time)
     {
     }
 
@@ -236,11 +275,6 @@ namespace Lumos
         if(s_MessageBufferRenderFilter & m_Level)
         {
             ImGuiUtilities::ScopedID scopedID((int)m_MessageID);
-            ImGui::PushStyleColor(ImGuiCol_Text, GetRenderColour(m_Level));
-            auto levelIcon = GetLevelIcon(m_Level);
-            ImGui::TextUnformatted(levelIcon);
-            ImGui::PopStyleColor();
-            ImGui::SameLine();
             ImGui::TextUnformatted(m_Message.c_str());
 
             bool clicked = false;
@@ -270,7 +304,7 @@ namespace Lumos
             {
                 if(ImGui::BeginPopupModal("Message", &m_DetailedPanelOpen, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize))
                 {
-                    ImGui::TextWrapped("%s", m_Message.c_str());
+                    ImGui::TextWrapped("Message : %s", m_Message.c_str());
 
                     if(ImGui::BeginPopupContextItem(m_Message.c_str()))
                     {
@@ -281,6 +315,11 @@ namespace Lumos
 
                         ImGui::EndPopup();
                     }
+
+                    ImGui::TextWrapped("Source : %s", m_Source.c_str());
+
+                    ImGui::Text("Time : %s", m_Time.c_str());
+                    ImGui::Text("Type : %s", Message::GetLevelName(m_Level));
 
                     ImGui::EndPopup();
                 }
@@ -356,7 +395,7 @@ namespace Lumos
         case ConsolePanel::Message::Level::Error:
             return { 1.00f, 0.25f, 0.25f, 1.00f }; // Red
         case ConsolePanel::Message::Level::Critical:
-            return { 0.6f, 0.2f, 0.8f, 1.00f };    // Purple
+            return { 0.6f, 0.2f, 0.8f, 1.00f }; // Purple
         default:
             return { 1.00f, 1.00f, 1.00f, 1.00f };
         }

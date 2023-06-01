@@ -12,6 +12,6 @@ out gl_PerVertex
 void main()
 {
 	vec2 position = vec2(gl_VertexIndex % 2, gl_VertexIndex / 2) * 4.0 - 1 ;
-	outTexCoord = (position + 1) * 0.5;
+	outTexCoord = position * 0.5 + 0.5;
 	gl_Position = vec4(position, 1.0, 1.0);
 }

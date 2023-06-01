@@ -264,7 +264,7 @@ namespace Lumos
 
             delete[] m_Data; // Delete old vector
             m_Size = capacity;
-            m_Data = temp;   // Copy assignment
+            m_Data = temp; // Copy assignment
         }
     }
 }
