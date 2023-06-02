@@ -4,9 +4,6 @@ project "ozz_base"
 	cppdialect "C++17"
 	staticruntime "off"
 
-	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
-	objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
-
 	files
 	{
 		"include/ozz/base/**.h",
@@ -32,9 +29,9 @@ project "ozz_base"
 
 	filter "configurations:Dist"
 		runtime "Release"
-optimize "on"
+		optimize "on"
 
-SetRecommendedSettings()
+	SetRecommendedSettings()
 
 
 project "ozz_animation"
@@ -42,9 +39,6 @@ project "ozz_animation"
 	language "C++"
 	cppdialect "C++17"
 	staticruntime "off"
-
-	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
-	objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
 
 	files
 	{
@@ -72,9 +66,9 @@ project "ozz_animation"
 
 	filter "configurations:Dist"
 		runtime "Release"
-optimize "on"
+		optimize "on"
 
-SetRecommendedSettings()
+	SetRecommendedSettings()
 
 
 -- ozz_geometry is for software skinning
@@ -125,9 +119,6 @@ project "ozz_animation_offline"
 	cppdialect "C++17"
 	staticruntime "off"
 
-	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
-	objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
-
 	-- wildcards are not recursive here, on purpose
 	files
 	{
@@ -160,6 +151,6 @@ project "ozz_animation_offline"
 
 	filter "configurations:Release"
 		runtime "Release"
-optimize "on"
+		optimize "on"
 
-SetRecommendedSettings()
+	SetRecommendedSettings()

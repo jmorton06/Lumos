@@ -71,7 +71,10 @@ project "LumosEditor"
 		"spdlog",
 		"meshoptimizer",
 		-- "msdfgen",
-		"msdf-atlas-gen"
+		"msdf-atlas-gen",
+		"ozz_animation",
+		"ozz_animation_offline",
+		"ozz_base"
 	}
 
 	defines
@@ -410,13 +413,13 @@ project "LumosEditor"
 		optimize "Off"
 
 	filter "configurations:Release"
-		defines { "LUMOS_RELEASE","TRACY_ENABLE","LUMOS_PROFILE","TRACY_ON_DEMAND"}
+		defines { "LUMOS_RELEASE", "NDEBUG", "TRACY_ENABLE","LUMOS_PROFILE","TRACY_ON_DEMAND"}
 		optimize "Speed"
 		symbols "On"
 		runtime "Release"
 
 	filter "configurations:Production"
-		defines "LUMOS_PRODUCTION"
+		defines { "LUMOS_PRODUCTION", "NDEBUG" }
 		symbols "Off"
 		optimize "Full"
 		runtime "Release"

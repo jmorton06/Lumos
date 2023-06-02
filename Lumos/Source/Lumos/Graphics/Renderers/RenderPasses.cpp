@@ -1214,14 +1214,15 @@ namespace Lumos::Graphics
         }
 
         cascadeSplits[3]       = 0.35f;
+        float lastSplitDist = 0.0f;
+
         const glm::mat4 invCam = glm::inverse(m_Camera->GetProjectionMatrix() * glm::inverse(m_CameraTransform->GetWorldMatrix()));
 
         for(uint32_t i = 0; i < m_ShadowData.m_ShadowMapNum; i++)
         {
             LUMOS_PROFILE_SCOPE("Create Cascade");
             float splitDist     = cascadeSplits[i];
-            float lastSplitDist = i == 0 ? 0.0f : cascadeSplits[i - 1];
-
+            
             glm::vec3 frustumCorners[8] = {
                 glm::vec3(-1.0f, 1.0f, -1.0f),
                 glm::vec3(1.0f, 1.0f, -1.0f),
@@ -1247,6 +1248,8 @@ namespace Lumos::Graphics
                 frustumCorners[j]     = frustumCorners[j] + (dist * lastSplitDist);
             }
 
+            lastSplitDist = cascadeSplits[i];
+
             // Get frustum center
             glm::vec3 frustumCenter = glm::vec3(0.0f);
             for(uint32_t j = 0; j < 8; j++)
@@ -1258,7 +1261,7 @@ namespace Lumos::Graphics
             float radius = 0.0f;
             for(uint32_t j = 0; j < 8; j++)
             {
-                float distance = glm::length(frustumCorners[j] - frustumCenter);
+                float distance = glm::distance(frustumCorners[j], frustumCenter);
                 radius         = Maths::Max(radius, distance);
             }
 
@@ -1266,7 +1269,7 @@ namespace Lumos::Graphics
             // Sphere radius for lightOrthoMatrix should fix this
             // But radius changes as the camera is rotated which causes flickering
             const float value = 1.0f; // 16.0f;
-            radius            = std::ceil(radius * value) / value;
+            radius = std::ceil(radius *value) / value;
 
             glm::vec3 maxExtents = glm::vec3(radius);
             glm::vec3 minExtents = -maxExtents;
