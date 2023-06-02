@@ -57,21 +57,26 @@ struct ScrollingBuffer {
             //m_FPSData.push_back(Lumos::Engine::Get().Statistics().FramesPerSecond);
             //MaxFrameTime = Maths::Max(MaxFrameTime, m_FPSData.back());
             
-            static ScrollingBuffer rdata, rdata1;
+            static ScrollingBuffer rdata(40000), rdata1(40000);
             static float t = 0;
             t += ImGui::GetIO().DeltaTime;
             static int frame = 0;
             frame++;
             
-            if (frame > (int)(ImGui::GetIO().Framerate / 60))
+            //if (frame > (int)(ImGui::GetIO().Framerate / 60))
             {
                 rdata.AddPoint(t, ImGui::GetIO().Framerate);
-                rdata1.AddPoint(t, 1000.0f / ImGui::GetIO().Framerate);
+                rdata1.AddPoint(t, Lumos::Engine::GetTimeStep().GetMillis());//1000.0f / ImGui::GetIO().Framerate);
             }
             
             static ImPlotAxisFlags rt_axis = ImPlotAxisFlags_NoTickLabels;
+            static bool PlotFrameTime = true;
+            static bool PlotFramerate = false;
 
-            if (ImPlot::BeginPlot("Framerate", ImVec2(-1, 350), 0))
+            ImGui::Checkbox("Plot Frame Time", &PlotFrameTime);
+            ImGui::Checkbox("Plot Frame Rate", &PlotFramerate);
+
+            if (PlotFramerate && ImPlot::BeginPlot("Framerate", ImVec2(-1, 350), 0))
               {
                   ImPlot::SetupAxis(ImAxis_X1, nullptr, rt_axis);
                   ImPlot::SetupAxis(ImAxis_Y1, "FPS", 0);
@@ -82,7 +87,17 @@ struct ScrollingBuffer {
 
                   ImPlot::EndPlot();
               }
+            if (PlotFrameTime && ImPlot::BeginPlot("Frametime", ImVec2(-1, 350), 0))
+              {
+                  ImPlot::SetupAxis(ImAxis_X1, nullptr, rt_axis);
+                  ImPlot::SetupAxis(ImAxis_Y1, "Frame (ms)", 0);
+                  ImPlot::SetupAxisLimits(ImAxis_X1, t - 10.0f, t, ImGuiCond_Always);
+                  ImPlot::SetupAxisLimits(ImAxis_Y1, 0, 60);
 
+                  ImPlot::PlotLine("##Framerate", &rdata1.Data[0].x, &rdata1.Data[0].y, rdata1.Data.size(), 0, rdata1.Offset, 2 * sizeof(float));
+
+                  ImPlot::EndPlot();
+              }
 
             if(ImGui::TreeNodeEx("Application", ImGuiTreeNodeFlags_DefaultOpen))
             {

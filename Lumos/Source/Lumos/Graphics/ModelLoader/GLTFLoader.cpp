@@ -1,3 +1,8 @@
+#if defined(__GNUC__) && defined(_DEBUG) && defined(__OPTIMIZE__)
+    #warning "Undefing __OPTIMIZE__"
+    #undef __OPTIMIZE__
+#endif
+
 #include "Precompiled.h"
 #include "Graphics/Model.h"
 #include "Graphics/Mesh.h"
