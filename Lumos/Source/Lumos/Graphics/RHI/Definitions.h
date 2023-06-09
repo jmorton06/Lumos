@@ -429,9 +429,11 @@ namespace Lumos
                     if(member.name == name)
                     {
                         memcpy(&data[member.offset], value, member.size);
-                        break;
+                        return;
                     }
                 }
+
+                LUMOS_LOG_WARN("Pushconst not found {0}", name);
             }
 
             void SetData(void* value)

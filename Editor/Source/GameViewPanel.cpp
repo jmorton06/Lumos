@@ -180,6 +180,9 @@ namespace Lumos
         // Moved this exit down to prevent a crash
         if(!camera)
         {
+            const char* missingCameraText = "No Active Camera In Scene";
+            ImGui::SetCursorPos((sceneViewSize - ImGui::CalcTextSize(missingCameraText)) / 2.0f);
+            ImGui::TextUnformatted(missingCameraText);
             ImGui::End();
             return;
         }

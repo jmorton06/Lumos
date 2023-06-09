@@ -1,6 +1,6 @@
 {
     "value0": {
-        "Version": 16,
+        "Version": 20,
         "Scene Name": "2D",
         "PhysicsEnabled2D": true,
         "PhysicsEnabled3D": true,
@@ -20,149 +20,53 @@
         "DebandingEnabled": true,
         "ChromaticAberationEnabled": false,
         "EyeAdaptation": true,
-        "SSAOEnabled": true,
+        "SSAOEnabled": false,
         "BloomEnabled": false,
         "FilmicGrainEnabled": false,
         "DepthOfFieldEnabled": false,
         "MotionBlurEnabled": false,
         "DepthOFFieldEnabled": false,
         "DepthOfFieldStrength": 1.0,
-        "DepthOfFieldDistance": 100.0
+        "DepthOfFieldDistance": 100.0,
+        "value0": 0.0,
+        "value1": 1.0,
+        "value2": 1.0,
+        "value3": false
     },
     "value1": 3,
     "value2": 0,
-    "value3": 1,
-    "value4": 2,
-    "value5": 2,
+    "value3": 2097151,
+    "value4": 1048577,
+    "value5": 0,
     "value6": 1,
-    "value7": {
-        "Position": {
-            "value0": 1.083970069885254,
-            "value1": 0.0,
-            "value2": 0.0
-        },
-        "Rotation": {
-            "value0": 0.0,
-            "value1": 0.0,
-            "value2": 0.0,
-            "value3": 1.0
-        },
-        "Scale": {
-            "value0": 1.0,
-            "value1": 1.0,
-            "value2": 1.0
-        }
-    },
-    "value8": 2,
-    "value9": {
-        "Position": {
-            "value0": 0.0,
-            "value1": 0.0,
-            "value2": 0.0
-        },
-        "Rotation": {
-            "value0": 0.0,
-            "value1": 0.0,
-            "value2": 0.0,
-            "value3": 1.0
-        },
-        "Scale": {
-            "value0": 1.0,
-            "value1": 1.0,
-            "value2": 1.0
-        }
-    },
-    "value10": 3,
-    "value11": 0,
-    "value12": {
+    "value7": 0,
+    "value8": {
         "Name": "GameController"
     },
-    "value13": 1,
+    "value9": 0,
+    "value10": 0,
+    "value11": 0,
+    "value12": 1,
+    "value13": 0,
     "value14": {
-        "Name": "Sphere"
+        "FilePath": "//Scripts/FlappyBirdTest.lua"
     },
-    "value15": 2,
-    "value16": {
-        "Name": "Sphere"
-    },
+    "value15": 0,
+    "value16": 0,
     "value17": 0,
     "value18": 0,
     "value19": 0,
-    "value20": 1,
+    "value20": 0,
     "value21": 0,
-    "value22": {
-        "FilePath": "//Scripts/FlappyBirdTest.lua"
-    },
+    "value22": 0,
     "value23": 0,
     "value24": 0,
-    "value25": 0,
+    "value25": 1,
     "value26": 0,
-    "value27": 0,
-    "value28": 0,
-    "value29": 0,
-    "value30": 0,
-    "value31": 0,
-    "value32": 0,
-    "value33": 3,
-    "value34": 0,
-    "value35": {
+    "value27": {
         "value0": 5632316061460210371
     },
-    "value36": 1,
-    "value37": {
-        "value0": 9344671355247170131
-    },
-    "value38": 2,
-    "value39": {
-        "value0": 9920384102617051771
-    },
-    "value40": 2,
-    "value41": 1,
-    "value42": {
-        "PrimitiveType": 4,
-        "FilePath": "Primitive",
-        "Material": {
-            "ptr_wrapper": {
-                "valid": 1,
-                "data": {
-                    "Albedo": "",
-                    "Normal": "",
-                    "Metallic": "",
-                    "Roughness": "",
-                    "Ao": "",
-                    "Emissive": "",
-                    "albedoColour": {
-                        "value0": 0.009625283069908619,
-                        "value1": 0.0,
-                        "value2": 0.3128204941749573,
-                        "value3": 1.0
-                    },
-                    "roughnessValue": 0.0,
-                    "metallicValue": 0.699999988079071,
-                    "emissiveValue": 0.0,
-                    "albedoMapFactor": 0.0,
-                    "metallicMapFactor": 0.0,
-                    "roughnessMapFactor": 0.0,
-                    "normalMapFactor": 0.0,
-                    "aoMapFactor": 0.0,
-                    "emissiveMapFactor": 0.0,
-                    "alphaCutOff": 0.4000000059604645,
-                    "workflow": 0.0,
-                    "shader": "Embedded"
-                }
-            }
-        }
-    },
-    "value43": 2,
-    "value44": {
-        "PrimitiveType": 4,
-        "FilePath": "Primitive",
-        "Material": {
-            "ptr_wrapper": {
-                "valid": 0
-            }
-        }
-    },
-    "value45": 0,
-    "value46": 0
+    "value28": 0,
+    "value29": 0,
+    "value30": 0
 }

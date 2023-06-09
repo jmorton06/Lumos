@@ -273,11 +273,19 @@ namespace Lumos
             int ProjectVersion;
             int8_t DesiredGPUIndex = -1;
         };
+        
+        struct RenderConfig
+        {
+            uint32_t IrradianceMapSize = 64;
+            uint32_t EnvironmentMapSize = 1024;
+        };
 
         ProjectSettings& GetProjectSettings() { return m_ProjectSettings; }
+        RenderConfig& GetRenderConfigSettings() { return m_RenderConfig; }
 
     protected:
         ProjectSettings m_ProjectSettings;
+        RenderConfig m_RenderConfig;
         bool m_ProjectLoaded = false;
 
     private:

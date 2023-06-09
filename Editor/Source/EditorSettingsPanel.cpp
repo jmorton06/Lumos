@@ -3,6 +3,8 @@
 
 #include <Lumos/Scene/Scene.h>
 #include <Lumos/Core/Version.h>
+#include <glm/gtx/matrix_decompose.hpp>
+
 namespace Lumos
 {
     EditorSettingsPanel::EditorSettingsPanel()
@@ -44,6 +46,36 @@ namespace Lumos
                 m_Editor->GetCamera()->SetNear(editorSettings.m_CameraNear);
             if(ImGuiUtilities::Property("Camera Far", editorSettings.m_CameraFar))
                 m_Editor->GetCamera()->SetFar(editorSettings.m_CameraFar);
+
+            ImGui::TextUnformatted("Camera Transform");
+            ImGui::Columns(1);
+            //Camera Transform;
+            auto& transform = m_Editor->GetEditorCameraTransform();
+
+            auto rotation = glm::degrees(glm::eulerAngles(transform.GetLocalOrientation()));
+            auto position = transform.GetLocalPosition();
+            auto scale = transform.GetLocalScale();
+            float itemWidth = (ImGui::GetContentRegionAvail().x - (ImGui::GetFontSize() * 3.0f)) / 3.0f;
+
+            // Call this to fix alignment with columns
+            ImGui::AlignTextToFramePadding();
+
+            if (Lumos::ImGuiUtilities::PorpertyTransform("Position", position, itemWidth))
+                transform.SetLocalPosition(position);
+
+            ImGui::SameLine();
+            if (Lumos::ImGuiUtilities::PorpertyTransform("Rotation", rotation, itemWidth))
+            {
+                float pitch = Lumos::Maths::Min(rotation.x, 89.9f);
+                pitch = Lumos::Maths::Max(pitch, -89.9f);
+                transform.SetLocalOrientation(glm::quat(glm::radians(glm::vec3(pitch, rotation.y, rotation.z))));
+            }
+
+            ImGui::SameLine();
+            if (Lumos::ImGuiUtilities::PorpertyTransform("Scale", scale, itemWidth))
+            {
+                transform.SetLocalScale(scale);
+            }
 
             ImGui::Separator();
 

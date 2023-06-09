@@ -52,7 +52,7 @@ namespace Lumos
                         UNIMPLEMENTED;
                         break;
                     case TextureType::CUBE:
-                        AddCubeTextureAttachment(frameBufferDesc.attachments[i]->GetFormat(), CubeFace(frameBufferDesc.layer), (TextureCube*)frameBufferDesc.attachments[i]);
+                        AddCubeTextureAttachment(frameBufferDesc.attachments[i]->GetFormat(), CubeFace(frameBufferDesc.layer), (TextureCube*)frameBufferDesc.attachments[i], frameBufferDesc.mipIndex);
                         break;
                     }
                 }
@@ -136,7 +136,7 @@ namespace Lumos
             GLCall(glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, attachment, GL_TEXTURE_2D, (GLuint)(size_t)((GLTexture2D*)texture)->GetHandle(), mipLevel));
         }
 
-        void GLFramebuffer::AddCubeTextureAttachment(const Graphics::RHIFormat format, const CubeFace face, TextureCube* texture)
+        void GLFramebuffer::AddCubeTextureAttachment(const Graphics::RHIFormat format, const CubeFace face, TextureCube* texture, uint32_t mipLevel)
         {
             LUMOS_PROFILE_FUNCTION();
             uint32_t faceID = 0;
@@ -169,7 +169,7 @@ namespace Lumos
                 break;
             }
 
-            GLCall(glFramebufferTexture2D(GL_FRAMEBUFFER, attachment, faceID, (GLuint)(size_t)texture->GetHandle(), 0));
+            GLCall(glFramebufferTexture2D(GL_FRAMEBUFFER, attachment, faceID, (GLuint)(size_t)texture->GetHandle(), mipLevel));
         }
 
         void GLFramebuffer::AddShadowAttachment(Texture* texture)

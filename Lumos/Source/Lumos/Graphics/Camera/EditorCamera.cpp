@@ -1,4 +1,5 @@
 #include "Precompiled.h"
+#include "Precompiled.h"
 #include "EditorCamera.h"
 #include "Graphics/Camera/Camera.h"
 #include "Core/Application.h"
@@ -46,14 +47,37 @@ namespace Lumos
 
         if(m_CameraMode == EditorCameraMode::TWODIM)
         {
+            static bool mouseHeld = false;
+            if (Input::Get().GetMouseClicked(InputCode::MouseKey::ButtonRight))
+            {
+                mouseHeld = true;
+                Application::Get().GetWindow()->HideMouse(true);
+                Input::Get().SetMouseMode(MouseMode::Captured);
+                m_StoredCursorPos = glm::vec2(xpos, ypos);
+                m_PreviousCurserPos = m_StoredCursorPos;
+            }
+
             if(Input::Get().GetMouseHeld(InputCode::MouseKey::ButtonRight))
             {
-                m_MouseSensitivity = 0.0005f;
+                m_MouseSensitivity = 0.05f;
                 glm::vec3 position = transform.GetLocalPosition();
                 position.x -= (xpos - m_PreviousCurserPos.x) /** camera->GetScale() */ * m_MouseSensitivity * 0.5f;
                 position.y += (ypos - m_PreviousCurserPos.y) /** camera->GetScale() */ * m_MouseSensitivity * 0.5f;
                 transform.SetLocalPosition(position);
+                m_PreviousCurserPos = glm::vec2(xpos, ypos);
             }
+            else
+            {
+                if (mouseHeld)
+                {
+                    mouseHeld = false;
+                    Application::Get().GetWindow()->HideMouse(false);
+                    Application::Get().GetWindow()->SetMousePosition(m_StoredCursorPos);
+                    Input::Get().SetMouseMode(MouseMode::Visible);
+                }
+            }
+
+            UpdateScroll(transform, Input::Get().GetScrollOffset(), dt);
         }
         else
         {
@@ -288,6 +312,9 @@ namespace Lumos
     {
         if(m_CameraMode == EditorCameraMode::TWODIM)
         {
+            if (!m_Camera)
+                return;
+
             float multiplier = m_CameraSpeed / 10.0f;
             if(Input::Get().GetKeyHeld(InputCode::Key::LeftShift))
             {
@@ -301,7 +328,7 @@ namespace Lumos
 
             if(!Maths::Equals(m_ZoomVelocity, 0.0f))
             {
-                float scale = 1.0f; // camera->GetScale();
+                float scale = m_Camera->GetScale();
 
                 scale -= m_ZoomVelocity;
 
@@ -315,7 +342,7 @@ namespace Lumos
                     m_ZoomVelocity = m_ZoomVelocity * pow(m_ZoomDampeningFactor, dt);
                 }
 
-                // camera->SetScale(scale);
+                m_Camera->SetScale(scale);
             }
         }
         else

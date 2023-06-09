@@ -22,7 +22,7 @@ layout(set = 0, binding = 0) uniform UniformBuffer
 	float ssaoRadius;
     float near;
     float far;
-    float p0;
+    float strength;
 } ubo;
 
 float LinearizeDepth(float depth) 
@@ -46,6 +46,8 @@ vec3 reconstructVSPosFromDepth(vec2 uv)
 const int MAX_KERNEL_SIZE = 32;
 const float INV_MAX_KERNEL_SIZE_F = 1.0/float(MAX_KERNEL_SIZE);
 const vec2 HALF_2 = vec2(0.5);
+
+#define MAX_DISTANCE 1.0
 
 void main()
 { 
@@ -71,8 +73,9 @@ void main()
 	vec3 bitangent = cross(tangent, normal);
 	mat3 TBN = mat3(tangent, bitangent, normal);
 
-	float bias = 0.001f;
-
+	//float bias = 0.001f;
+	float bias = 0.01f;
+	
 	float occlusion = 0.0f;
 	int sampleCount = 0;
 	for (uint i = 0; i < MAX_KERNEL_SIZE; i++)
@@ -86,8 +89,8 @@ void main()
 		offset.xy = offset.xy * 0.5f + HALF_2;
 
 		vec3 sampledNormal = normalize(mat3(ubo.view) * (texture(in_Normal, offset.xy).xyz * 2.0f - 1.0f));
-		float reconstructedPosDepth = reconstructVSPosFromDepth(offset.xy).z;
-\
+		 vec3 reconstructedPos = reconstructVSPosFromDepth(offset.xy);
+
 		if (dot(sampledNormal, normal) > 0.99)
 		{
 			++sampleCount;
@@ -96,15 +99,19 @@ void main()
 		{
 			//float rangeCheck = smoothstep(0.0f, 1.0f, ubo.ssaoRadius / abs(reconstructedPos.z - samplePos.z - bias));
 			//occlusion += (reconstructedPos.z <= samplePos.z - bias ? 1.0f : 0.0f) * rangeCheck;
-
-			float rangeCheck = smoothstep(0.0f, 1.0f, ubo.ssaoRadius / abs(posVS.z - reconstructedPosDepth - bias));
-            occlusion += (reconstructedPosDepth >= samplePos.z + bias ? 1.0f : 0.0f) * rangeCheck; 
-
+			
+			vec3 diff = posVS - reconstructedPos;
+			float l = length(diff);
+			
+			float rangeCheck = smoothstep(0.0f, 1.0f, ubo.ssaoRadius / abs(reconstructedPos.z - samplePos.z - bias));//abs(diff.z - bias));
+            occlusion += (reconstructedPos.z >= samplePos.z + bias ? 1.0f : 0.0f) * rangeCheck; 
+			//occlusion *= smoothstep(MAX_DISTANCE,MAX_DISTANCE * 0.5, l);
+			
 			++sampleCount;
 		}
 	}
-	occlusion = 1.0f - (occlusion * INV_MAX_KERNEL_SIZE_F);/// float(max(sampleCount,1)));
-	occlusion = pow(occlusion, 2.0f);
+	occlusion = 1.0f - (occlusion * INV_MAX_KERNEL_SIZE_F) / ubo.strength;// / float(max(sampleCount,1)));
+	//occlusion = pow(occlusion, 2.0f);
 	//fragColour = vec4(posVS,1.0);
 	fragColour = occlusion.xxxx;
 }

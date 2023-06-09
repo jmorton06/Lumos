@@ -125,20 +125,18 @@ namespace Lumos
         ImGuizmo::SetRect(sceneViewPosition.x, sceneViewPosition.y, sceneViewSize.x, sceneViewSize.y);
 
         m_Editor->SetSceneViewActive(updateCamera);
+        {
+            LUMOS_PROFILE_SCOPE("Push Clip Rect");
+            ImGui::GetWindowDrawList()->PushClipRect(sceneViewPosition, { sceneViewSize.x + sceneViewPosition.x, sceneViewSize.y + sceneViewPosition.y - 2.0f });
+        }
 
         if(m_Editor->ShowGrid())
         {
             if(camera->IsOrthographic())
             {
                 LUMOS_PROFILE_SCOPE("2D Grid");
-
-                m_Editor->Draw2DGrid(ImGui::GetWindowDrawList(), { transform->GetWorldPosition().x, transform->GetWorldPosition().y }, sceneViewPosition, { sceneViewSize.x, sceneViewSize.y }, 1.0f, 1.5f);
+                m_Editor->Draw2DGrid(ImGui::GetWindowDrawList(), { transform->GetWorldPosition().x, transform->GetWorldPosition().y }, sceneViewPosition, { sceneViewSize.x, sceneViewSize.y }, camera->GetScale(), 1.5f);
             }
-        }
-
-        {
-            LUMOS_PROFILE_SCOPE("Push Clip Rect");
-            ImGui::GetWindowDrawList()->PushClipRect(sceneViewPosition, { sceneViewSize.x + sceneViewPosition.x, sceneViewSize.y + sceneViewPosition.y - 2.0f });
         }
 
         m_Editor->OnImGuizmo();
@@ -525,7 +523,9 @@ namespace Lumos
             if(ortho)
             {
                 camera.SetIsOrthographic(false);
-                m_Editor->GetEditorCameraController().SetCurrentMode(EditorCameraMode::ARCBALL);
+                camera.SetNear(0.01f);
+                m_Editor->GetEditorCameraController().SetCurrentMode(EditorCameraMode::FLYCAM);
+
             }
         }
         if(selected)
@@ -540,7 +540,13 @@ namespace Lumos
             if(!ortho)
             {
                 camera.SetIsOrthographic(true);
+                auto camPos = m_Editor->GetEditorCameraTransform().GetLocalPosition();
+                camPos.z = 0.0f;
+                camera.SetNear(-10.0f);
+                m_Editor->GetEditorCameraTransform().SetLocalPosition(camPos);
                 m_Editor->GetEditorCameraTransform().SetLocalOrientation(glm::quat(glm::vec3(0.0f, 0.0f, 0.0f)));
+                m_Editor->GetEditorCameraTransform().SetLocalScale(glm::vec3(1.0f, 1.0f, 1.0f));
+
                 m_Editor->GetEditorCameraController().SetCurrentMode(EditorCameraMode::TWODIM);
             }
         }

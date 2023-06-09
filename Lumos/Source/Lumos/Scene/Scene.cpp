@@ -112,6 +112,12 @@ namespace Lumos
         const glm::vec2& mousePos = Input::Get().GetMousePosition();
 
         auto defaultCameraControllerView = m_EntityManager->GetEntitiesWithType<DefaultCameraController>();
+        auto cameraView = m_EntityManager->GetEntitiesWithType<Camera>();
+        Camera* camera = nullptr;
+        if (!cameraView.Empty())
+        {
+            camera = &cameraView.Front().GetComponent<Camera>();
+        }
 
         if(!defaultCameraControllerView.Empty())
         {
@@ -119,6 +125,7 @@ namespace Lumos
             auto trans             = defaultCameraControllerView.Front().TryGetComponent<Maths::Transform>();
             if(Application::Get().GetSceneActive() && trans && cameraController.GetController())
             {
+                cameraController.GetController()->SetCamera(camera);
                 cameraController.GetController()->HandleMouse(*trans, (float)timeStep.GetSeconds(), mousePos.x, mousePos.y);
                 cameraController.GetController()->HandleKeyboard(*trans, (float)timeStep.GetSeconds());
             }
