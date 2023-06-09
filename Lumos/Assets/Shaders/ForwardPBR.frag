@@ -474,15 +474,12 @@ vec3 Lighting(vec3 F0, vec3 wsPos, Material material)
 vec3 IBL(vec3 F0, vec3 Lr, Material material)
 {
 	vec3 irradiance = texture(uIrrMap, material.Normal).rgb;
-	//irradiance = DeGamma(irradiance);
 	vec3 F = fresnelSchlickRoughness(F0, material.NDotV, material.Roughness);
 	vec3 kd = (1.0 - F) * (1.0 - material.Metallic.x);
 	vec3 diffuseIBL = material.Albedo.xyz * irradiance;
 	
 	int u_EnvRadianceTexLevels = ubo.EnvMipCount;// textureQueryLevels(uBRDFLUT);	
 	vec3 specularIrradiance = textureLod(uEnvMap, Lr, material.PerceptualRoughness * u_EnvRadianceTexLevels).rgb;
-	
-//specularIrradiance = DeGamma(specularIrradiance);
 	
 	vec3 specularIBL = specularIrradiance * (F * material.dfg.x + material.dfg.y);
 	
@@ -580,8 +577,7 @@ void main()
 	//vec3 F0 = mix(Fdielectric, material.Albedo.xyz, material.Metallic.x);
 	vec3 F0 = computeF0(material.Albedo, material.Metallic.x, reflectance);
 	material.F0 = F0;
-    material.EnergyCompensation = 1.0 + material.F0 * (1.0 / material.dfg.y - 1.0);
-
+    material.EnergyCompensation = 1.0 + material.F0 * (1.0 / max(0.1, material.dfg.y) - 1.0);
 	material.Albedo.xyz = computeDiffuseColor(material.Albedo, material.Metallic.x);
 
     float shadowDistance     = ubo.MaxShadowDist;

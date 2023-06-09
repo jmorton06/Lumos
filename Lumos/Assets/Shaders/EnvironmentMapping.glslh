@@ -3,6 +3,13 @@ const uint NumSamples = 1024;
 const float InvNumSamples = 1.0 / float(NumSamples);
 
 
+float D_GGX(float NoH, float a) 
+{
+    float a2 = a * a;
+    float f = (NoH * a2 - NoH) * NoH + 1.0;
+    return a2 / (PI * f * f);
+}
+
 vec3 GetCubeMapTexCoord(int face, vec2 outTexCoord)
 {
 	vec2 uv = outTexCoord;

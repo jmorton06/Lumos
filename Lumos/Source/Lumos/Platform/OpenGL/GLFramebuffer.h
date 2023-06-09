@@ -32,7 +32,7 @@ namespace Lumos
             inline void SetClearColour(const glm::vec4& colour) override { m_ClearColour = colour; }
 
             void AddTextureAttachment(RHIFormat format, Texture* texture, uint32_t mipLevel = 0);
-            void AddCubeTextureAttachment(RHIFormat format, CubeFace face, TextureCube* texture);
+            void AddCubeTextureAttachment(RHIFormat format, CubeFace face, TextureCube* texture, uint32_t mipLevel = 0);
 
             void AddShadowAttachment(Texture* texture);
             void AddTextureLayer(int index, Texture* texture);

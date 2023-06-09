@@ -221,7 +221,7 @@ namespace Lumos
                                                  -40.0f,
                                                  glm::vec3(-31.0f, 12.0f, 51.0f),
                                                  60.0f,
-                                                 m_Settings.m_CameraNear,
+                                                 0.01f,
                                                  m_Settings.m_CameraFar,
                                                  (float)Application::Get().GetWindowSize().x / (float)Application::Get().GetWindowSize().y);
         m_CurrentCamera = m_EditorCamera.get();
@@ -1851,7 +1851,7 @@ namespace Lumos
             // if(Application::Get().GetSceneActive())
             {
                 const glm::vec2 mousePos = Input::Get().GetMousePosition();
-
+                m_EditorCameraController.SetCamera(m_EditorCamera);
                 m_EditorCameraController.HandleMouse(m_EditorCameraTransform, (float)ts.GetSeconds(), mousePos.x, mousePos.y);
                 m_EditorCameraController.HandleKeyboard(m_EditorCameraTransform, (float)ts.GetSeconds());
                 m_EditorCameraTransform.SetWorldMatrix(glm::mat4(1.0f));
