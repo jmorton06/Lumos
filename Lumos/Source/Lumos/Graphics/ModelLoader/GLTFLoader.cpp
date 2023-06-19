@@ -501,7 +501,7 @@ namespace Lumos::Graphics
 
             for(auto& mesh : meshes)
             {
-                auto subname = node.name;
+                auto subname = model.meshes[node.mesh].name;
                 auto lMesh   = SharedPtr<Graphics::Mesh>(mesh);
                 lMesh->SetName(subname);
 

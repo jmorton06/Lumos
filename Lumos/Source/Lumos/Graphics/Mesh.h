@@ -78,6 +78,7 @@ namespace Lumos
 
             bool& GetActive() { return m_Active; }
             void SetName(const std::string& name) { m_Name = name; }
+            const std::string& GetName() const { return m_Name; }
 
             static void GenerateNormals(Vertex* vertices, uint32_t vertexCount, uint32_t* indices, uint32_t indexCount);
             static void GenerateTangentsAndBitangents(Vertex* vertices, uint32_t vertexCount, uint32_t* indices, uint32_t indexCount);
