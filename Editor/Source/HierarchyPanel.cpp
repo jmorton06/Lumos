@@ -93,42 +93,42 @@ namespace Lumos
             std::string icon = ICON_MDI_CUBE_OUTLINE;
             auto& iconMap    = m_Editor->GetComponentIconMap();
 
-            if(registry.has<Camera>(node))
+            if(registry.all_of<Camera>(node))
             {
                 if(iconMap.find(typeid(Camera).hash_code()) != iconMap.end())
                     icon = iconMap[typeid(Camera).hash_code()];
             }
-            if(registry.has<LuaScriptComponent>(node))
+            if(registry.all_of<LuaScriptComponent>(node))
             {
                 if(iconMap.find(typeid(LuaScriptComponent).hash_code()) != iconMap.end())
                     icon = iconMap[typeid(LuaScriptComponent).hash_code()];
             }
-            else if(registry.has<SoundComponent>(node))
+            else if(registry.all_of<SoundComponent>(node))
             {
                 if(iconMap.find(typeid(SoundComponent).hash_code()) != iconMap.end())
                     icon = iconMap[typeid(SoundComponent).hash_code()];
             }
-            else if(registry.has<RigidBody2DComponent>(node))
+            else if(registry.all_of<RigidBody2DComponent>(node))
             {
                 if(iconMap.find(typeid(RigidBody2DComponent).hash_code()) != iconMap.end())
                     icon = iconMap[typeid(RigidBody2DComponent).hash_code()];
             }
-            else if(registry.has<Graphics::Light>(node))
+            else if(registry.all_of<Graphics::Light>(node))
             {
                 if(iconMap.find(typeid(Graphics::Light).hash_code()) != iconMap.end())
                     icon = iconMap[typeid(Graphics::Light).hash_code()];
             }
-            else if(registry.has<Graphics::Environment>(node))
+            else if(registry.all_of<Graphics::Environment>(node))
             {
                 if(iconMap.find(typeid(Graphics::Environment).hash_code()) != iconMap.end())
                     icon = iconMap[typeid(Graphics::Environment).hash_code()];
             }
-            else if(registry.has<Graphics::Sprite>(node))
+            else if(registry.all_of<Graphics::Sprite>(node))
             {
                 if(iconMap.find(typeid(Graphics::Sprite).hash_code()) != iconMap.end())
                     icon = iconMap[typeid(Graphics::Sprite).hash_code()];
             }
-            else if(registry.has<TextComponent>(node))
+            else if(registry.all_of<TextComponent>(node))
             {
                 if(iconMap.find(typeid(TextComponent).hash_code()) != iconMap.end())
                     icon = iconMap[typeid(TextComponent).hash_code()];
@@ -177,6 +177,10 @@ namespace Lumos
             {
                 if(ImGui::Selectable("Copy"))
                 {
+                    if(!m_Editor->IsSelected(node))
+                    {
+                        m_Editor->SetCopiedEntity(node);
+                    }
                     for(auto entity : m_Editor->GetSelected())
                         m_Editor->SetCopiedEntity(entity);
                 }
@@ -223,8 +227,8 @@ namespace Lumos
                 }
                 if(ImGui::Selectable("Delete"))
                     deleteEntity = true;
-                if(m_Editor->IsSelected(node))
-                    m_Editor->UnSelect(node);
+                //if(m_Editor->IsSelected(node))
+                  //  m_Editor->UnSelect(node);
                 ImGui::Separator();
                 if(ImGui::Selectable("Rename"))
                     m_DoubleClicked = node;
@@ -235,6 +239,16 @@ namespace Lumos
                     auto scene = Application::Get().GetSceneManager()->GetCurrentScene();
                     auto child = scene->CreateEntity();
                     child.SetParent({ node, scene });
+                }
+                
+                if(ImGui::Selectable("Zoom to"))
+                {
+                    //if(Application::Get().GetEditorState() == EditorState::Preview)
+                    {
+                        auto transform = registry.try_get<Maths::Transform>(node);
+                        if(transform)
+                            m_Editor->FocusCamera(transform->GetWorldPosition(), 2.0f, 2.0f);
+                    }
                 }
                 ImGui::EndPopup();
             }
@@ -553,31 +567,34 @@ namespace Lumos
 
             if(ImGui::BeginPopupContextWindow())
             {
-                //                if(m_Editor->GetCopiedEntity() != entt::null && registry.valid(m_Editor->GetCopiedEntity()))
-                //                {
-                //                    if(ImGui::Selectable("Paste"))
-                //                    {
-                //                        auto scene          = Application::Get().GetSceneManager()->GetCurrentScene();
-                //                        Entity copiedEntity = { m_Editor->GetCopiedEntity(), scene };
-                //                        if(!copiedEntity.Valid())
-                //                        {
-                //                            m_Editor->SetCopiedEntity(entt::null);
-                //                        }
-                //                        else
-                //                        {
-                //                            scene->DuplicateEntity(copiedEntity);
-                //
-                //                            if(m_Editor->GetCutCopyEntity())
-                //                            {
-                //                                DestroyEntity(m_Editor->GetCopiedEntity(), registry);
-                //                            }
-                //                        }
-                //                    }
-                //                }
-                //                else
-                //                {
-                //                    ImGui::TextDisabled("Paste");
-                //                }
+                if(!m_Editor->GetCopiedEntity().empty() && registry.valid(m_Editor->GetCopiedEntity().front()))
+                {
+                    if(ImGui::Selectable("Paste"))
+                    {
+                        for(auto entity : m_Editor->GetCopiedEntity())
+                        {
+                            auto scene          = Application::Get().GetSceneManager()->GetCurrentScene();
+                            Entity copiedEntity = { entity, scene };
+                            if(!copiedEntity.Valid())
+                            {
+                                m_Editor->SetCopiedEntity(entt::null);
+                            }
+                            else
+                            {
+                                scene->DuplicateEntity(copiedEntity);
+
+                                if(m_Editor->GetCutCopyEntity())
+                                {
+                                    DestroyEntity(entity, registry);
+                                }
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    ImGui::TextDisabled("Paste");
+                }
 
                 ImGui::Separator();
 

@@ -1,486 +1,408 @@
 #ifndef ENTT_ENTITY_VIEW_HPP
 #define ENTT_ENTITY_VIEW_HPP
 
-
-#include <iterator>
 #include <array>
+#include <iterator>
 #include <tuple>
-#include <utility>
-#include <algorithm>
 #include <type_traits>
+#include <utility>
 #include "../config/config.h"
+#include "../core/iterator.hpp"
 #include "../core/type_traits.hpp"
 #include "entity.hpp"
 #include "fwd.hpp"
-#include "pool.hpp"
-#include "sparse_set.hpp"
-#include "utility.hpp"
-
 
 namespace entt {
 
+/**
+ * @cond TURN_OFF_DOXYGEN
+ * Internal details not to be documented.
+ */
+
+namespace internal {
+
+template<typename... Args, typename Type, std::size_t N>
+[[nodiscard]] auto filter_as_tuple(const std::array<const Type *, N> &filter) noexcept {
+    return std::apply([](const auto *...curr) { return std::make_tuple(static_cast<Args *>(const_cast<constness_as_t<Type, Args> *>(curr))...); }, filter);
+}
+
+template<typename Type, std::size_t N>
+[[nodiscard]] auto none_of(const std::array<const Type *, N> &filter, const typename Type::entity_type entt) noexcept {
+    return std::apply([entt](const auto *...curr) { return (!(curr && curr->contains(entt)) && ...); }, filter);
+}
+
+template<typename... Get, typename... Exclude, std::size_t... Index>
+[[nodiscard]] auto view_pack(const std::tuple<Get *...> value, const std::tuple<Exclude *...> excl, std::index_sequence<Index...>) {
+    const auto pools = std::tuple_cat(value, excl);
+    basic_view<get_t<Get...>, exclude_t<Exclude...>> elem{};
+    (((std::get<Index>(pools) != nullptr) ? elem.template storage<Index>(*std::get<Index>(pools)) : void()), ...);
+    return elem;
+}
+
+template<typename Type, std::size_t Get, std::size_t Exclude>
+class view_iterator final {
+    using iterator_type = typename Type::const_iterator;
+
+    [[nodiscard]] bool valid() const noexcept {
+        return ((Get != 0u) || (*it != tombstone))
+               && std::apply([entt = *it](const auto *...curr) { return (curr->contains(entt) && ...); }, pools)
+               && none_of(filter, *it);
+    }
+
+public:
+    using value_type = typename iterator_type::value_type;
+    using pointer = typename iterator_type::pointer;
+    using reference = typename iterator_type::reference;
+    using difference_type = typename iterator_type::difference_type;
+    using iterator_category = std::forward_iterator_tag;
+
+    constexpr view_iterator() noexcept
+        : it{},
+          last{},
+          pools{},
+          filter{} {}
+
+    view_iterator(iterator_type curr, iterator_type to, std::array<const Type *, Get> value, std::array<const Type *, Exclude> excl) noexcept
+        : it{curr},
+          last{to},
+          pools{value},
+          filter{excl} {
+        while(it != last && !valid()) {
+            ++it;
+        }
+    }
+
+    view_iterator &operator++() noexcept {
+        while(++it != last && !valid()) {}
+        return *this;
+    }
+
+    view_iterator operator++(int) noexcept {
+        view_iterator orig = *this;
+        return ++(*this), orig;
+    }
+
+    [[nodiscard]] pointer operator->() const noexcept {
+        return &*it;
+    }
+
+    [[nodiscard]] reference operator*() const noexcept {
+        return *operator->();
+    }
+
+    template<typename LhsType, auto... LhsArgs, typename RhsType, auto... RhsArgs>
+    friend constexpr bool operator==(const view_iterator<LhsType, LhsArgs...> &, const view_iterator<RhsType, RhsArgs...> &) noexcept;
+
+private:
+    iterator_type it;
+    iterator_type last;
+    std::array<const Type *, Get> pools;
+    std::array<const Type *, Exclude> filter;
+};
+
+template<typename LhsType, auto... LhsArgs, typename RhsType, auto... RhsArgs>
+[[nodiscard]] constexpr bool operator==(const view_iterator<LhsType, LhsArgs...> &lhs, const view_iterator<RhsType, RhsArgs...> &rhs) noexcept {
+    return lhs.it == rhs.it;
+}
+
+template<typename LhsType, auto... LhsArgs, typename RhsType, auto... RhsArgs>
+[[nodiscard]] constexpr bool operator!=(const view_iterator<LhsType, LhsArgs...> &lhs, const view_iterator<RhsType, RhsArgs...> &rhs) noexcept {
+    return !(lhs == rhs);
+}
+
+template<typename It, typename... Type>
+struct extended_view_iterator final {
+    using iterator_type = It;
+    using difference_type = std::ptrdiff_t;
+    using value_type = decltype(std::tuple_cat(std::make_tuple(*std::declval<It>()), std::declval<Type>().get_as_tuple({})...));
+    using pointer = input_iterator_pointer<value_type>;
+    using reference = value_type;
+    using iterator_category = std::input_iterator_tag;
+
+    constexpr extended_view_iterator()
+        : it{},
+          pools{} {}
+
+    extended_view_iterator(It from, std::tuple<Type *...> value)
+        : it{from},
+          pools{value} {}
+
+    extended_view_iterator &operator++() noexcept {
+        return ++it, *this;
+    }
+
+    extended_view_iterator operator++(int) noexcept {
+        extended_view_iterator orig = *this;
+        return ++(*this), orig;
+    }
+
+    [[nodiscard]] reference operator*() const noexcept {
+        return std::apply([entt = *it](auto *...curr) { return std::tuple_cat(std::make_tuple(entt), curr->get_as_tuple(entt)...); }, pools);
+    }
+
+    [[nodiscard]] pointer operator->() const noexcept {
+        return operator*();
+    }
+
+    [[nodiscard]] constexpr iterator_type base() const noexcept {
+        return it;
+    }
+
+    template<typename... Lhs, typename... Rhs>
+    friend bool constexpr operator==(const extended_view_iterator<Lhs...> &, const extended_view_iterator<Rhs...> &) noexcept;
+
+private:
+    It it;
+    std::tuple<Type *...> pools;
+};
+
+template<typename... Lhs, typename... Rhs>
+[[nodiscard]] constexpr bool operator==(const extended_view_iterator<Lhs...> &lhs, const extended_view_iterator<Rhs...> &rhs) noexcept {
+    return lhs.it == rhs.it;
+}
+
+template<typename... Lhs, typename... Rhs>
+[[nodiscard]] constexpr bool operator!=(const extended_view_iterator<Lhs...> &lhs, const extended_view_iterator<Rhs...> &rhs) noexcept {
+    return !(lhs == rhs);
+}
+
+} // namespace internal
 
 /**
- * @brief View.
+ * Internal details not to be documented.
+ * @endcond
+ */
+
+/**
+ * @brief View implementation.
  *
  * Primary template isn't defined on purpose. All the specializations give a
  * compile-time error, but for a few reasonable cases.
  */
-template<typename...>
+template<typename, typename, typename>
 class basic_view;
-
 
 /**
  * @brief Multi component view.
  *
- * Multi component views iterate over those entities that have at least all the
- * given components in their bags. During initialization, a multi component view
- * looks at the number of entities available for each component and uses the
- * smallest set in order to get a performance boost when iterate.
+ * Multi component views iterate over those entities that are at least in the
+ * given storage. During initialization, a multi component view looks at the
+ * number of entities available for each component and uses the smallest set in
+ * order to get a performance boost when iterating.
  *
  * @b Important
  *
  * Iterators aren't invalidated if:
  *
- * * New instances of the given components are created and assigned to entities.
- * * The entity currently pointed is modified (as an example, if one of the
- *   given components is removed from the entity to which the iterator points).
+ * * New elements are added to the storage.
+ * * The entity currently pointed is modified (for example, components are added
+ *   or removed from it).
  * * The entity currently pointed is destroyed.
  *
- * In all other cases, modifying the pools iterated by the view in any way
- * invalidates all the iterators and using them results in undefined behavior.
+ * In all other cases, modifying the storage iterated by the view in any way
+ * invalidates all the iterators.
  *
- * @note
- * Views share references to the underlying data structures of the registry that
- * generated them. Therefore any change to the entities and to the components
- * made by means of the registry are immediately reflected by views.
- *
- * @warning
- * Lifetime of a view must not overcome that of the registry that generated it.
- * In any other case, attempting to use a view results in undefined behavior.
- *
- * @tparam Entity A valid entity type (see entt_traits for more details).
- * @tparam Exclude Types of components used to filter the view.
- * @tparam Component Types of components iterated by the view.
+ * @tparam Get Types of storage iterated by the view.
+ * @tparam Exclude Types of storage used to filter the view.
  */
-template<typename Entity, typename... Exclude, typename... Component>
-class basic_view<Entity, exclude_t<Exclude...>, Component...> {
-    /*! @brief A registry is allowed to create views. */
-    friend class basic_registry<Entity>;
+template<typename... Get, typename... Exclude>
+class basic_view<get_t<Get...>, exclude_t<Exclude...>> {
+    static constexpr auto offset = sizeof...(Get);
+    using base_type = std::common_type_t<typename Get::base_type..., typename Exclude::base_type...>;
+    using underlying_type = typename base_type::entity_type;
 
-    template<typename Comp>
-    using pool_type = pool_t<Entity, Comp>;
+    template<typename, typename, typename>
+    friend class basic_view;
 
-    template<typename Comp>
-    using component_iterator = decltype(std::declval<pool_type<Comp>>().begin());
+    template<typename Type>
+    static constexpr std::size_t index_of = type_list_index_v<std::remove_const_t<Type>, type_list<typename Get::value_type..., typename Exclude::value_type...>>;
 
-    using unchecked_type = std::array<const sparse_set<Entity> *, (sizeof...(Component) - 1)>;
-    using filter_type = std::array<const sparse_set<Entity> *, sizeof...(Exclude)>;
-
-    template<typename It>
-    class view_iterator final {
-        friend class basic_view<Entity, exclude_t<Exclude...>, Component...>;
-
-        view_iterator(It from, It to, It curr, unchecked_type other, filter_type ignore) ENTT_NOEXCEPT
-            : first{from},
-              last{to},
-              it{curr},
-              unchecked{other},
-              filter{ignore}
-        {
-            if(it != last && !valid()) {
-                ++(*this);
-            }
-        }
-
-        [[nodiscard]] bool valid() const {
-            return std::all_of(unchecked.cbegin(), unchecked.cend(), [entt = *it](const sparse_set<Entity> *curr) { return curr->contains(entt); })
-                    && (sizeof...(Exclude) == 0 || std::none_of(filter.cbegin(), filter.cend(), [entt = *it](const sparse_set<Entity> *cpool) { return cpool->contains(entt); }));
-        }
-
-    public:
-        using difference_type = typename std::iterator_traits<It>::difference_type;
-        using value_type = typename std::iterator_traits<It>::value_type;
-        using pointer = typename std::iterator_traits<It>::pointer;
-        using reference = typename std::iterator_traits<It>::reference;
-        using iterator_category = std::bidirectional_iterator_tag;
-
-        view_iterator() ENTT_NOEXCEPT = default;
-
-        view_iterator & operator++() {
-            while(++it != last && !valid());
-            return *this;
-        }
-
-        view_iterator operator++(int) {
-            view_iterator orig = *this;
-            return ++(*this), orig;
-        }
-
-        view_iterator & operator--() ENTT_NOEXCEPT {
-            while(--it != first && !valid());
-            return *this;
-        }
-
-        view_iterator operator--(int) ENTT_NOEXCEPT {
-            view_iterator orig = *this;
-            return operator--(), orig;
-        }
-
-        [[nodiscard]] bool operator==(const view_iterator &other) const ENTT_NOEXCEPT {
-            return other.it == it;
-        }
-
-        [[nodiscard]] bool operator!=(const view_iterator &other) const ENTT_NOEXCEPT {
-            return !(*this == other);
-        }
-
-        [[nodiscard]] pointer operator->() const {
-            return &*it;
-        }
-
-        [[nodiscard]] reference operator*() const {
-            return *operator->();
-        }
-
-    private:
-        It first;
-        It last;
-        It it;
-        unchecked_type unchecked;
-        filter_type filter;
-    };
-
-    class view_proxy {
-        friend class basic_view<Entity, exclude_t<Exclude...>, Component...>;
-
-        using proxy_view_iterator = view_iterator<typename sparse_set<Entity>::iterator>;
-
-        class proxy_iterator {
-            friend class view_proxy;
-
-            using ref_type = decltype(std::tuple_cat(std::declval<std::conditional_t<is_eto_eligible_v<Component>, std::tuple<>, std::tuple<pool_type<Component> *>>>()...));
-
-            proxy_iterator(proxy_view_iterator from, ref_type ref) ENTT_NOEXCEPT
-                : it{from},
-                  pools{ref}
-            {}
-
-        public:
-            using difference_type = std::ptrdiff_t;
-            using value_type = decltype(std::tuple_cat(
-                std::declval<std::tuple<Entity>>(),
-                std::declval<std::conditional_t<is_eto_eligible_v<Component>, std::tuple<>, std::tuple<Component>>>()...
-            ));
-            using pointer = void;
-            using reference = decltype(std::tuple_cat(
-                std::declval<std::tuple<Entity>>(),
-                std::declval<std::conditional_t<is_eto_eligible_v<Component>, std::tuple<>, std::tuple<Component &>>>()...
-            ));
-            using iterator_category = std::input_iterator_tag;
-
-            proxy_iterator & operator++() ENTT_NOEXCEPT {
-                return ++it, *this;
-            }
-
-            proxy_iterator operator++(int) ENTT_NOEXCEPT {
-                proxy_iterator orig = *this;
-                return ++(*this), orig;
-            }
-
-            [[nodiscard]] reference operator*() const ENTT_NOEXCEPT {
-                return std::apply([entt = *it](auto *... cpool) { return reference{entt, cpool->get(entt)...}; }, pools);
-            }
-
-            [[nodiscard]] bool operator==(const proxy_iterator &other) const ENTT_NOEXCEPT {
-                return other.it == it;
-            }
-
-            [[nodiscard]] bool operator!=(const proxy_iterator &other) const ENTT_NOEXCEPT {
-                return !(*this == other);
-            }
-
-        private:
-            proxy_view_iterator it{};
-            const ref_type pools{};
-        };
-
-        view_proxy(proxy_view_iterator from, proxy_view_iterator to, std::tuple<pool_type<Component> *...> ref)
-            : first{from},
-              last{to},
-              pools{ref}
-        {}
-
-    public:
-        using iterator = proxy_iterator;
-
-        [[nodiscard]] iterator begin() const ENTT_NOEXCEPT {
-            return proxy_iterator{first, std::tuple_cat([](auto *cpool) {
-                if constexpr(is_eto_eligible_v<typename std::decay_t<decltype(*cpool)>::object_type>) {
-                    return std::make_tuple();
-                } else {
-                    return std::make_tuple(cpool);
-                }
-            }(std::get<pool_type<Component> *>(pools))...)};
-        }
-
-        [[nodiscard]] iterator end() const ENTT_NOEXCEPT {
-            return proxy_iterator{last, std::tuple_cat([](auto *cpool) {
-                if constexpr(is_eto_eligible_v<typename std::decay_t<decltype(*cpool)>::object_type>) {
-                    return std::make_tuple();
-                } else {
-                    return std::make_tuple(cpool);
-                }
-            }(std::get<pool_type<Component> *>(pools))...)};
-        }
-
-    private:
-        proxy_view_iterator first;
-        proxy_view_iterator last;
-        const std::tuple<pool_type<Component> *...> pools;
-    };
-
-    basic_view(pool_type<Component> &... component, unpack_as_t<const sparse_set<Entity>, Exclude> &... epool) ENTT_NOEXCEPT
-        : pools{&component...},
-          view{candidate()},
-          filter{&epool...}
-    {}
-
-    [[nodiscard]] const sparse_set<Entity> * candidate() const ENTT_NOEXCEPT {
-        return (std::min)({ static_cast<const sparse_set<Entity> *>(std::get<pool_type<Component> *>(pools))... }, [](const auto *lhs, const auto *rhs) {
-            return lhs->size() < rhs->size();
-        });
-    }
-
-    [[nodiscard]] unchecked_type unchecked(const sparse_set<Entity> *cpool) const {
-        std::size_t pos{};
-        unchecked_type other{};
-        ((std::get<pool_type<Component> *>(pools) == cpool ? nullptr : (other[pos] = std::get<pool_type<Component> *>(pools), other[pos++])), ...);
+    [[nodiscard]] auto opaque_check_set() const noexcept {
+        std::array<const common_type *, sizeof...(Get) - 1u> other{};
+        std::apply([&other, pos = 0u, view = view](const auto *...curr) mutable { ((curr == view ? void() : void(other[pos++] = curr)), ...); }, pools);
         return other;
     }
 
-    template<typename Comp, typename Other>
-    [[nodiscard]] decltype(auto) get([[maybe_unused]] component_iterator<Comp> &it, [[maybe_unused]] pool_type<Other> *cpool, [[maybe_unused]] const Entity entt) const {
-        if constexpr(std::is_same_v<Comp, Other>) {
-            return *it;
+    void unchecked_refresh() noexcept {
+        view = std::get<0>(pools);
+        std::apply([this](auto *, auto *...other) { ((this->view = other->size() < this->view->size() ? other : this->view), ...); }, pools);
+    }
+
+    template<std::size_t Curr, std::size_t Other, typename... Args>
+    [[nodiscard]] auto dispatch_get(const std::tuple<underlying_type, Args...> &curr) const {
+        if constexpr(Curr == Other) {
+            return std::forward_as_tuple(std::get<Args>(curr)...);
         } else {
-            return cpool->get(entt);
+            return std::get<Other>(pools)->get_as_tuple(std::get<0>(curr));
         }
     }
 
-    template<typename Comp, typename Func, typename... Type>
-    void traverse(Func func, type_list<Type...>) const {
-        if constexpr(std::disjunction_v<std::is_same<Comp, Type>...>) {
-            auto it = std::get<pool_type<Comp> *>(pools)->begin();
-
-            for(const auto entt: static_cast<const sparse_set<entity_type> &>(*std::get<pool_type<Comp> *>(pools))) {
-                if(((std::is_same_v<Comp, Component> || std::get<pool_type<Component> *>(pools)->contains(entt)) && ...)
-                        && (sizeof...(Exclude) == 0 || std::none_of(filter.cbegin(), filter.cend(), [entt](const sparse_set<Entity> *cpool) { return cpool->contains(entt); })))
-                {
-                    if constexpr(std::is_invocable_v<Func, decltype(get<Type>({}))...>) {
-                        func(get<Comp, Type>(it, std::get<pool_type<Type> *>(pools), entt)...);
-                    } else {
-                        func(entt, get<Comp, Type>(it, std::get<pool_type<Type> *>(pools), entt)...);
-                    }
-                }
-
-                ++it;
-            }
-        } else {
-            for(const auto entt: static_cast<const sparse_set<entity_type> &>(*std::get<pool_type<Comp> *>(pools))) {
-                if(((std::is_same_v<Comp, Component> || std::get<pool_type<Component> *>(pools)->contains(entt)) && ...)
-                        && (sizeof...(Exclude) == 0 || std::none_of(filter.cbegin(), filter.cend(), [entt](const sparse_set<Entity> *cpool) { return cpool->contains(entt); })))
-                {
-                    if constexpr(std::is_invocable_v<Func, decltype(get<Type>({}))...>) {
-                        func(std::get<pool_type<Type> *>(pools)->get(entt)...);
-                    } else {
-                        func(entt, std::get<pool_type<Type> *>(pools)->get(entt)...);
-                    }
+    template<std::size_t Curr, typename Func, std::size_t... Index>
+    void each(Func &func, std::index_sequence<Index...>) const {
+        for(const auto curr: std::get<Curr>(pools)->each()) {
+            if(const auto entt = std::get<0>(curr); ((sizeof...(Get) != 1u) || (entt != tombstone)) && ((Curr == Index || std::get<Index>(pools)->contains(entt)) && ...) && internal::none_of(filter, entt)) {
+                if constexpr(is_applicable_v<Func, decltype(std::tuple_cat(std::tuple<entity_type>{}, std::declval<basic_view>().get({})))>) {
+                    std::apply(func, std::tuple_cat(std::make_tuple(entt), dispatch_get<Curr, Index>(curr)...));
+                } else {
+                    std::apply(func, std::tuple_cat(dispatch_get<Curr, Index>(curr)...));
                 }
             }
         }
     }
 
-    template<typename Func, typename... Type>
-    void iterate(Func func, type_list<Type...>) const {
-        const auto last = view->data() + view->size();
-        auto first = view->data();
-
-        while(first != last) {
-            if((std::get<pool_type<Component> *>(pools)->contains(*first) && ...)
-                    && (sizeof...(Exclude) == 0 || std::none_of(filter.cbegin(), filter.cend(), [entt = *first](const sparse_set<Entity> *cpool) { return cpool->contains(entt); })))
-            {
-                const auto base = *(first++);
-                const auto chunk = (std::min)({ (std::get<pool_type<Component> *>(pools)->size() - std::get<pool_type<Component> *>(pools)->index(base))... });
-                size_type length{};
-
-                for(++length;
-                    length < chunk
-                        && ((*(std::get<pool_type<Component> *>(pools)->data() + std::get<pool_type<Component> *>(pools)->index(base) + length) == *first) && ...)
-                        && (sizeof...(Exclude) == 0 || std::none_of(filter.cbegin(), filter.cend(), [entt = *first](const sparse_set<Entity> *cpool) { return cpool->contains(entt); }));
-                    ++length, ++first);
-
-                func(view->data() + view->index(base), (std::get<pool_type<Type> *>(pools)->raw() + std::get<pool_type<Type> *>(pools)->index(base))..., length);
-            } else {
-                ++first;
-            }
-        }
+    template<typename Func, std::size_t... Index>
+    void pick_and_each(Func &func, std::index_sequence<Index...> seq) const {
+        ((std::get<Index>(pools) == view ? each<Index>(func, seq) : void()), ...);
     }
 
 public:
     /*! @brief Underlying entity identifier. */
-    using entity_type = Entity;
+    using entity_type = underlying_type;
     /*! @brief Unsigned integer type. */
     using size_type = std::size_t;
+    /*! @brief Common type among all storage types. */
+    using common_type = base_type;
     /*! @brief Bidirectional iterator type. */
-    using iterator = view_iterator<typename sparse_set<entity_type>::iterator>;
-    /*! @brief Reverse iterator type. */
-    using reverse_iterator = view_iterator<typename sparse_set<entity_type>::reverse_iterator>;
+    using iterator = internal::view_iterator<common_type, sizeof...(Get) - 1u, sizeof...(Exclude)>;
+    /*! @brief Iterable view type. */
+    using iterable = iterable_adaptor<internal::extended_view_iterator<iterator, Get...>>;
+
+    /*! @brief Default constructor to use to create empty, invalid views. */
+    basic_view() noexcept
+        : pools{},
+          filter{},
+          view{} {}
 
     /**
-     * @brief Returns the number of existing components of the given type.
-     *
-     * This isn't the number of entities iterated by the view.
-     *
-     * @tparam Comp Type of component of which to return the size.
-     * @return Number of existing components of the given type.
+     * @brief Constructs a multi-type view from a set of storage classes.
+     * @param value The storage for the types to iterate.
+     * @param excl The storage for the types used to filter the view.
      */
-    template<typename Comp>
-    [[nodiscard]] size_type size() const ENTT_NOEXCEPT {
-        return std::get<pool_type<Comp> *>(pools)->size();
+    basic_view(Get &...value, Exclude &...excl) noexcept
+        : pools{&value...},
+          filter{&excl...},
+          view{} {
+        unchecked_refresh();
+    }
+
+    /**
+     * @brief Constructs a multi-type view from a set of storage classes.
+     * @param value The storage for the types to iterate.
+     * @param excl The storage for the types used to filter the view.
+     */
+    basic_view(std::tuple<Get &...> value, std::tuple<Exclude &...> excl = {}) noexcept
+        : basic_view{std::make_from_tuple<basic_view>(std::tuple_cat(value, excl))} {}
+
+    /**
+     * @brief Forces a view to use a given component to drive iterations
+     * @tparam Type Type of component to use to drive iterations.
+     */
+    template<typename Type>
+    void use() noexcept {
+        use<index_of<Type>>();
+    }
+
+    /**
+     * @brief Forces a view to use a given component to drive iterations
+     * @tparam Index Index of the component to use to drive iterations.
+     */
+    template<std::size_t Index>
+    void use() noexcept {
+        if(view) {
+            view = std::get<Index>(pools);
+        }
+    }
+
+    /*! @brief Updates the internal leading view if required. */
+    void refresh() noexcept {
+        if(view || std::apply([](const auto *...curr) { return ((curr != nullptr) && ...); }, pools)) {
+            unchecked_refresh();
+        }
+    }
+
+    /**
+     * @brief Returns the leading storage of a view, if any.
+     * @return The leading storage of the view.
+     */
+    [[nodiscard]] const common_type *handle() const noexcept {
+        return view;
+    }
+
+    /**
+     * @brief Returns the storage for a given component type, if any.
+     * @tparam Type Type of component of which to return the storage.
+     * @return The storage for the given component type.
+     */
+    template<typename Type>
+    [[nodiscard]] auto *storage() const noexcept {
+        return storage<index_of<Type>>();
+    }
+
+    /**
+     * @brief Returns the storage for a given index, if any.
+     * @tparam Index Index of the storage to return.
+     * @return The storage for the given index.
+     */
+    template<std::size_t Index>
+    [[nodiscard]] auto *storage() const noexcept {
+        if constexpr(Index < offset) {
+            return std::get<Index>(pools);
+        } else {
+            return std::get<Index - offset>(internal::filter_as_tuple<Exclude...>(filter));
+        }
+    }
+
+    /**
+     * @brief Assigns a storage to a view.
+     * @tparam Type Type of storage to assign to the view.
+     * @param elem A storage to assign to the view.
+     */
+    template<typename Type>
+    void storage(Type &elem) noexcept {
+        storage<index_of<typename Type::value_type>>(elem);
+    }
+
+    /**
+     * @brief Assigns a storage to a view.
+     * @tparam Index Index of the storage to assign to the view.
+     * @tparam Type Type of storage to assign to the view.
+     * @param elem A storage to assign to the view.
+     */
+    template<std::size_t Index, typename Type>
+    void storage(Type &elem) noexcept {
+        if constexpr(Index < offset) {
+            std::get<Index>(pools) = &elem;
+            refresh();
+        } else {
+            std::get<Index - offset>(filter) = &elem;
+        }
     }
 
     /**
      * @brief Estimates the number of entities iterated by the view.
      * @return Estimated number of entities iterated by the view.
      */
-    [[nodiscard]] size_type size() const ENTT_NOEXCEPT {
-        return (std::min)({ std::get<pool_type<Component> *>(pools)->size()... });
-    }
-
-    /**
-     * @brief Checks whether a view or some pools are empty.
-     *
-     * The view is definitely empty if one of the pools it uses is empty. In all
-     * other cases, the view may be empty and not return entities even if this
-     * function returns false.
-     *
-     * @tparam Comp Types of components in which one is interested.
-     * @return True if the view or the pools are empty, false otherwise.
-     */
-    template<typename... Comp>
-    [[nodiscard]] bool empty() const ENTT_NOEXCEPT {
-        if constexpr(sizeof...(Comp) == 0) {
-            return (std::get<pool_type<Component> *>(pools)->empty() || ...);
-        } else {
-            return (std::get<pool_type<Comp> *>(pools)->empty() && ...);
-        }
-    }
-
-    /**
-     * @brief Direct access to the list of components of a given pool.
-     *
-     * The returned pointer is such that range
-     * `[raw<Comp>(), raw<Comp>() + size<Comp>()]` is always a valid range, even
-     * if the container is empty.
-     *
-     * @note
-     * Components are in the reverse order as returned by the `begin`/`end`
-     * iterators.
-     *
-     * @tparam Comp Type of component in which one is interested.
-     * @return A pointer to the array of components.
-     */
-    template<typename Comp>
-    [[nodiscard]] Comp * raw() const ENTT_NOEXCEPT {
-        return std::get<pool_type<Comp> *>(pools)->raw();
-    }
-
-    /**
-     * @brief Direct access to the list of entities of a given pool.
-     *
-     * The returned pointer is such that range
-     * `[data<Comp>(), data<Comp>() + size<Comp>()]` is always a valid range,
-     * even if the container is empty.
-     *
-     * @note
-     * Entities are in the reverse order as returned by the `begin`/`end`
-     * iterators.
-     *
-     * @tparam Comp Type of component in which one is interested.
-     * @return A pointer to the array of entities.
-     */
-    template<typename Comp>
-    [[nodiscard]] const entity_type * data() const ENTT_NOEXCEPT {
-        return std::get<pool_type<Comp> *>(pools)->data();
+    [[nodiscard]] size_type size_hint() const noexcept {
+        return view ? view->size() : size_type{};
     }
 
     /**
      * @brief Returns an iterator to the first entity of the view.
      *
-     * The returned iterator points to the first entity of the view. If the view
-     * is empty, the returned iterator will be equal to `end()`.
-     *
-     * @note
-     * Iterators stay true to the order imposed to the underlying data
-     * structures.
+     * If the view is empty, the returned iterator will be equal to `end()`.
      *
      * @return An iterator to the first entity of the view.
      */
-    [[nodiscard]] iterator begin() const {
-        return iterator{view->begin(), view->end(), view->begin(), unchecked(view), filter};
+    [[nodiscard]] iterator begin() const noexcept {
+        return view ? iterator{view->begin(), view->end(), opaque_check_set(), filter} : iterator{};
     }
 
     /**
      * @brief Returns an iterator that is past the last entity of the view.
-     *
-     * The returned iterator points to the entity following the last entity of
-     * the view. Attempting to dereference the returned iterator results in
-     * undefined behavior.
-     *
-     * @note
-     * Iterators stay true to the order imposed to the underlying data
-     * structures.
-     *
      * @return An iterator to the entity following the last entity of the view.
      */
-    [[nodiscard]] iterator end() const {
-        return iterator{view->begin(), view->end(), view->end(), unchecked(view), filter};
-    }
-
-    /**
-     * @brief Returns an iterator to the first entity of the reversed view.
-     *
-     * The returned iterator points to the first entity of the reversed view. If
-     * the view is empty, the returned iterator will be equal to `rend()`.
-     *
-     * @note
-     * Iterators stay true to the order imposed to the underlying data
-     * structures.
-     *
-     * @return An iterator to the first entity of the reversed view.
-     */
-    [[nodiscard]] reverse_iterator rbegin() const {
-        return reverse_iterator{view->rbegin(), view->rend(), view->rbegin(), unchecked(view), filter};
-    }
-
-    /**
-     * @brief Returns an iterator that is past the last entity of the reversed
-     * view.
-     *
-     * The returned iterator points to the entity following the last entity of
-     * the reversed view. Attempting to dereference the returned iterator
-     * results in undefined behavior.
-     *
-     * @note
-     * Iterators stay true to the order imposed to the underlying data
-     * structures.
-     *
-     * @return An iterator to the entity following the last entity of the
-     * reversed view.
-     */
-    [[nodiscard]] reverse_iterator rend() const {
-        return reverse_iterator{view->rbegin(), view->rend(), view->rend(), unchecked(view), filter};
+    [[nodiscard]] iterator end() const noexcept {
+        return view ? iterator{view->end(), view->end(), opaque_check_set(), filter} : iterator{};
     }
 
     /**
@@ -488,7 +410,7 @@ public:
      * @return The first entity of the view if one exists, the null entity
      * otherwise.
      */
-    [[nodiscard]] entity_type front() const {
+    [[nodiscard]] entity_type front() const noexcept {
         const auto it = begin();
         return it != end() ? *it : null;
     }
@@ -498,60 +420,87 @@ public:
      * @return The last entity of the view if one exists, the null entity
      * otherwise.
      */
-    [[nodiscard]] entity_type back() const {
-        const auto it = rbegin();
-        return it != rend() ? *it : null;
+    [[nodiscard]] entity_type back() const noexcept {
+        if(view) {
+            auto it = view->rbegin();
+            for(const auto last = view->rend(); it != last && !contains(*it); ++it) {}
+            return it == view->rend() ? null : *it;
+        }
+
+        return null;
     }
 
     /**
      * @brief Finds an entity.
-     * @param entt A valid entity identifier.
+     * @param entt A valid identifier.
      * @return An iterator to the given entity if it's found, past the end
      * iterator otherwise.
      */
-    [[nodiscard]] iterator find(const entity_type entt) const {
-        iterator it{view->begin(), view->end(), view->find(entt), unchecked(view), filter};
-        return (it != end() && *it == entt) ? it : end();
+    [[nodiscard]] iterator find(const entity_type entt) const noexcept {
+        return contains(entt) ? iterator{view->find(entt), view->end(), opaque_check_set(), filter} : end();
+    }
+
+    /**
+     * @brief Returns the components assigned to the given entity.
+     * @param entt A valid identifier.
+     * @return The components assigned to the given entity.
+     */
+    [[nodiscard]] decltype(auto) operator[](const entity_type entt) const {
+        return get(entt);
+    }
+
+    /**
+     * @brief Checks if a view is fully initialized.
+     * @return True if the view is fully initialized, false otherwise.
+     */
+    [[nodiscard]] explicit operator bool() const noexcept {
+        return std::apply([](const auto *...curr) { return ((curr != nullptr) && ...); }, pools)
+               && std::apply([](const auto *...curr) { return ((curr != nullptr) && ...); }, filter);
     }
 
     /**
      * @brief Checks if a view contains an entity.
-     * @param entt A valid entity identifier.
+     * @param entt A valid identifier.
      * @return True if the view contains the given entity, false otherwise.
      */
-    [[nodiscard]] bool contains(const entity_type entt) const {
-        return (std::get<pool_type<Component> *>(pools)->contains(entt) && ...)
-                && (sizeof...(Exclude) == 0 || std::none_of(filter.begin(), filter.end(), [entt](const auto *cpool) { return cpool->contains(entt); }));
+    [[nodiscard]] bool contains(const entity_type entt) const noexcept {
+        return view && std::apply([entt](const auto *...curr) { return (curr->contains(entt) && ...); }, pools) && internal::none_of(filter, entt);
     }
 
     /**
      * @brief Returns the components assigned to the given entity.
      *
-     * Prefer this function instead of `registry::get` during iterations. It has
-     * far better performance than its counterpart.
-     *
      * @warning
-     * Attempting to use an invalid component type results in a compilation
-     * error. Attempting to use an entity that doesn't belong to the view
-     * results in undefined behavior.<br/>
-     * An assertion will abort the execution at runtime in debug mode if the
-     * view doesn't contain the given entity.
+     * Attempting to use an entity that doesn't belong to the view results in
+     * undefined behavior.
      *
-     * @tparam Comp Types of components to get.
-     * @param entt A valid entity identifier.
+     * @tparam Type Type of the component to get.
+     * @tparam Other Other types of components to get.
+     * @param entt A valid identifier.
      * @return The components assigned to the entity.
      */
-    template<typename... Comp>
-    [[nodiscard]] decltype(auto) get([[maybe_unused]] const entity_type entt) const {
-        ENTT_ASSERT(contains(entt));
+    template<typename Type, typename... Other>
+    [[nodiscard]] decltype(auto) get(const entity_type entt) const {
+        return get<index_of<Type>, index_of<Other>...>(entt);
+    }
 
-        if constexpr(sizeof...(Comp) == 0) {
-            static_assert(sizeof...(Component) == 1, "Invalid component type");
-            return (std::get<pool_type<Component> *>(pools)->get(entt), ...);
-        } else if constexpr(sizeof...(Comp) == 1) {
-            return (std::get<pool_type<Comp> *>(pools)->get(entt), ...);
+    /**
+     * @brief Returns the components assigned to the given entity.
+     *
+     * @sa get
+     *
+     * @tparam Index Indexes of the components to get.
+     * @param entt A valid identifier.
+     * @return The components assigned to the entity.
+     */
+    template<std::size_t... Index>
+    [[nodiscard]] decltype(auto) get(const entity_type entt) const {
+        if constexpr(sizeof...(Index) == 0) {
+            return std::apply([entt](auto *...curr) { return std::tuple_cat(curr->get_as_tuple(entt)...); }, pools);
+        } else if constexpr(sizeof...(Index) == 1) {
+            return (std::get<Index>(pools)->get(entt), ...);
         } else {
-            return std::tuple<decltype(get<Comp>({}))...>{get<Comp>(entt)...};
+            return std::tuple_cat(std::get<Index>(pools)->get_as_tuple(entt)...);
         }
     }
 
@@ -570,126 +519,47 @@ public:
      * void(Type &...);
      * @endcode
      *
-     * @note
-     * Empty types aren't explicitly instantiated and therefore they are never
-     * returned during iterations.
-     *
      * @tparam Func Type of the function object to invoke.
      * @param func A valid function object.
      */
     template<typename Func>
     void each(Func func) const {
-        view = candidate();
-        ((std::get<pool_type<Component> *>(pools) == view ? each<Component>(std::move(func)) : void()), ...);
+        view ? pick_and_each(func, std::index_sequence_for<Get...>{}) : void();
     }
 
     /**
-     * @brief Iterates entities and components and applies the given function
-     * object to them.
+     * @brief Returns an iterable object to use to _visit_ a view.
      *
-     * The pool of the suggested component is used to lead the iterations. The
-     * returned entities will therefore respect the order of the pool associated
-     * with that type.<br/>
-     * It is no longer guaranteed that the performance is the best possible, but
-     * there will be greater control over the order of iteration.
-     *
-     * @sa each
-     *
-     * @tparam Comp Type of component to use to enforce the iteration order.
-     * @tparam Func Type of the function object to invoke.
-     * @param func A valid function object.
-     */
-    template<typename Comp, typename Func>
-    void each(Func func) const {
-        using non_empty_type = type_list_cat_t<std::conditional_t<is_eto_eligible_v<Component>, type_list<>, type_list<Component>>...>;
-        traverse<Comp>(std::move(func), non_empty_type{});
-    }
-
-    /**
-     * @brief Returns an iterable object to use to _visit_ the view.
-     *
-     * The iterable object returns tuples that contain the current entity and a
-     * set of references to its non-empty components. The _constness_ of the
+     * The iterable object returns a tuple that contains the current entity and
+     * a set of references to its non-empty components. The _constness_ of the
      * components is as requested.
      *
-     * @note
-     * Empty types aren't explicitly instantiated and therefore they are never
-     * returned during iterations.
-     *
      * @return An iterable object to use to _visit_ the view.
      */
-    [[nodiscard]] auto proxy() const ENTT_NOEXCEPT {
-        view = candidate();
-        return view_proxy{begin(), end(), pools};
+    [[nodiscard]] iterable each() const noexcept {
+        return {internal::extended_view_iterator{begin(), pools}, internal::extended_view_iterator{end(), pools}};
     }
 
     /**
-     * @brief Returns an iterable object to use to _visit_ the view.
-     *
-     * The pool of the suggested component is used to lead the iterations. The
-     * returned elements will therefore respect the order of the pool associated
-     * with that type.<br/>
-     * It is no longer guaranteed that the performance is the best possible, but
-     * there will be greater control over the order of iteration.
-     *
-     * @sa each
-     *
-     * @tparam Comp Type of component to use to enforce the iteration order.
-     * @return An iterable object to use to _visit_ the view.
+     * @brief Combines two views in a _more specific_ one (friend function).
+     * @tparam OGet Component list of the view to combine with.
+     * @tparam OExclude Filter list of the view to combine with.
+     * @param other The view to combine with.
+     * @return A more specific view.
      */
-    template<typename Comp>
-    [[nodiscard]] auto proxy() const ENTT_NOEXCEPT {
-        const sparse_set<entity_type> *cpool = std::get<pool_type<Comp> *>(pools);
-        iterator first{cpool->begin(), cpool->end(), cpool->begin(), unchecked(cpool), filter};
-        iterator last{cpool->begin(), cpool->end(), cpool->end(), unchecked(cpool), filter};
-        return view_proxy{std::move(first), std::move(last), pools};
-    }
-
-    /**
-     * @brief Chunked iteration for entities and components
-     *
-     * Chunked iteration tries to spot chunks in the sets of entities and
-     * components and return them one at a time along with their sizes.<br/>
-     * This type of iteration is intended where it's known a priori that the
-     * creation of entities and components takes place in chunk, which is
-     * actually quite common. In this case, various optimizations can be applied
-     * downstream to obtain even better performances from the views.
-     *
-     * The signature of the function must be equivalent to the following:
-     *
-     * @code{.cpp}
-     * void(const entity_type *, Type *..., size_type);
-     * @endcode
-     *
-     * The arguments are as follows:
-     *
-     * * A pointer to the entities belonging to the chunk.
-     * * Pointers to the components associated with the returned entities.
-     * * The length of the chunk.
-     *
-     * Note that the callback can be invoked 0 or more times and no guarantee is
-     * given on the order of the elements.
-     *
-     * @note
-     * Empty types aren't explicitly instantiated and therefore they are never
-     * returned during iterations.
-     *
-     * @tparam Func Type of the function object to invoke.
-     * @param func A valid function object.
-     */
-    template<typename Func>
-    void chunked(Func func) const {
-        using non_empty_type = type_list_cat_t<std::conditional_t<is_eto_eligible_v<Component>, type_list<>, type_list<Component>>...>;
-        view = candidate();
-        iterate(std::move(func), non_empty_type{});
+    template<typename... OGet, typename... OExclude>
+    [[nodiscard]] auto operator|(const basic_view<get_t<OGet...>, exclude_t<OExclude...>> &other) const noexcept {
+        return internal::view_pack(
+            std::tuple_cat(pools, other.pools),
+            std::tuple_cat(internal::filter_as_tuple<Exclude...>(filter), internal::filter_as_tuple<OExclude...>(other.filter)),
+            std::index_sequence_for<Get..., OGet..., Exclude..., OExclude...>{});
     }
 
 private:
-    const std::tuple<pool_type<Component> *...> pools;
-    mutable const sparse_set<entity_type>* view;
-    filter_type filter;
+    std::tuple<Get *...> pools;
+    std::array<const common_type *, sizeof...(Exclude)> filter;
+    const common_type *view;
 };
-
 
 /**
  * @brief Single component view specialization.
@@ -702,238 +572,158 @@ private:
  *
  * Iterators aren't invalidated if:
  *
- * * New instances of the given component are created and assigned to entities.
- * * The entity currently pointed is modified (as an example, the given
- *   component is removed from the entity to which the iterator points).
+ * * New elements are added to the storage.
+ * * The entity currently pointed is modified (for example, components are added
+ *   or removed from it).
  * * The entity currently pointed is destroyed.
  *
- * In all other cases, modifying the pool iterated by the view in any way
- * invalidates all the iterators and using them results in undefined behavior.
+ * In all other cases, modifying the storage iterated by the view in any way
+ * invalidates all the iterators.
  *
- * @note
- * Views share a reference to the underlying data structure of the registry that
- * generated them. Therefore any change to the entities and to the components
- * made by means of the registry are immediately reflected by views.
- *
- * @warning
- * Lifetime of a view must not overcome that of the registry that generated it.
- * In any other case, attempting to use a view results in undefined behavior.
- *
- * @tparam Entity A valid entity type (see entt_traits for more details).
- * @tparam Component Type of component iterated by the view.
+ * @tparam Get Type of storage iterated by the view.
  */
-template<typename Entity, typename Component>
-class basic_view<Entity, exclude_t<>, Component> {
-    /*! @brief A registry is allowed to create views. */
-    friend class basic_registry<Entity>;
-
-    using pool_type = pool_t<Entity, Component>;
-
-    class view_proxy {
-        friend class basic_view<Entity, exclude_t<>, Component>;
-
-        class proxy_iterator {
-            friend class view_proxy;
-
-            using it_type = std::conditional_t<
-                is_eto_eligible_v<Component>,
-                std::tuple<typename sparse_set<Entity>::iterator>,
-                std::tuple<typename sparse_set<Entity>::iterator, decltype(std::declval<pool_type>().begin())>
-            >;
-
-            proxy_iterator(it_type from) ENTT_NOEXCEPT
-                : it{from}
-            {}
-
-        public:
-            using difference_type = std::ptrdiff_t;
-            using value_type = std::conditional_t<is_eto_eligible_v<Component>, std::tuple<Entity>, std::tuple<Entity, Component>>;
-            using pointer = void;
-            using reference = std::conditional_t<is_eto_eligible_v<Component>, std::tuple<Entity>, std::tuple<Entity, Component &>>;
-            using iterator_category = std::input_iterator_tag;
-
-            proxy_iterator & operator++() ENTT_NOEXCEPT {
-                return std::apply([](auto &&... curr) { (++curr, ...); }, it), *this;
-            }
-
-            proxy_iterator operator++(int) ENTT_NOEXCEPT {
-                proxy_iterator orig = *this;
-                return ++(*this), orig;
-            }
-
-            [[nodiscard]] reference operator*() const ENTT_NOEXCEPT {
-                return std::apply([](auto &&... curr) { return reference{*curr...}; }, it);
-            }
-
-            [[nodiscard]] bool operator==(const proxy_iterator &other) const ENTT_NOEXCEPT {
-                return std::get<0>(other.it) == std::get<0>(it);
-            }
-
-            [[nodiscard]] bool operator!=(const proxy_iterator &other) const ENTT_NOEXCEPT {
-                return !(*this == other);
-            }
-
-        private:
-            it_type it{};
-        };
-
-        view_proxy(pool_type &ref)
-            : pool{&ref}
-        {}
-
-    public:
-        using iterator = proxy_iterator;
-
-        [[nodiscard]] iterator begin() const ENTT_NOEXCEPT {
-            if constexpr(is_eto_eligible_v<Component>) {
-                return proxy_iterator{std::make_tuple(pool->sparse_set<entity_type>::begin())};
-            } else {
-                return proxy_iterator{std::make_tuple(pool->sparse_set<entity_type>::begin(), pool->begin())};
-            }
-        }
-
-        [[nodiscard]] iterator end() const ENTT_NOEXCEPT {
-            if constexpr(is_eto_eligible_v<Component>) {
-                return proxy_iterator{std::make_tuple(pool->sparse_set<entity_type>::end())};
-            } else {
-                return proxy_iterator{std::make_tuple(pool->sparse_set<entity_type>::end(), pool->end())};
-            }
-        }
-
-    private:
-        pool_type *pool;
-    };
-
-    basic_view(pool_type &ref) ENTT_NOEXCEPT
-        : pool{&ref}
-    {}
+template<typename Get>
+class basic_view<get_t<Get>, exclude_t<>, std::void_t<std::enable_if_t<!Get::traits_type::in_place_delete>>> {
+    template<typename, typename, typename>
+    friend class basic_view;
 
 public:
-    /*! @brief Type of component iterated by the view. */
-    using raw_type = Component;
     /*! @brief Underlying entity identifier. */
-    using entity_type = Entity;
+    using entity_type = typename Get::entity_type;
     /*! @brief Unsigned integer type. */
     using size_type = std::size_t;
+    /*! @brief Common type among all storage types. */
+    using common_type = typename Get::base_type;
     /*! @brief Random access iterator type. */
-    using iterator = typename sparse_set<Entity>::iterator;
+    using iterator = typename common_type::iterator;
     /*! @brief Reversed iterator type. */
-    using reverse_iterator = typename sparse_set<Entity>::reverse_iterator;
+    using reverse_iterator = typename common_type::reverse_iterator;
+    /*! @brief Iterable view type. */
+    using iterable = decltype(std::declval<Get>().each());
+
+    /*! @brief Default constructor to use to create empty, invalid views. */
+    basic_view() noexcept
+        : pools{},
+          filter{},
+          view{} {}
+
+    /**
+     * @brief Constructs a single-type view from a storage class.
+     * @param value The storage for the type to iterate.
+     */
+    basic_view(Get &value) noexcept
+        : pools{&value},
+          filter{},
+          view{&value} {}
+
+    /**
+     * @brief Constructs a single-type view from a storage class.
+     * @param value The storage for the type to iterate.
+     */
+    basic_view(std::tuple<Get &> value, std::tuple<> = {}) noexcept
+        : basic_view{std::get<0>(value)} {}
+
+    /**
+     * @brief Returns the leading storage of a view, if any.
+     * @return The leading storage of the view.
+     */
+    [[nodiscard]] const common_type *handle() const noexcept {
+        return view;
+    }
+
+    /**
+     * @brief Returns the storage for a given component type, if any.
+     * @tparam Type Type of component of which to return the storage.
+     * @return The storage for the given component type.
+     */
+    template<typename Type = typename Get::value_type>
+    [[nodiscard]] auto *storage() const noexcept {
+        static_assert(std::is_same_v<std::remove_const_t<Type>, typename Get::value_type>, "Invalid component type");
+        return storage<0>();
+    }
+
+    /**
+     * @brief Returns the storage for a given index, if any.
+     * @tparam Index Index of the storage to return.
+     * @return The storage for the given index.
+     */
+    template<std::size_t Index>
+    [[nodiscard]] auto *storage() const noexcept {
+        return std::get<Index>(pools);
+    }
+
+    /**
+     * @brief Assigns a storage to a view.
+     * @param elem A storage to assign to the view.
+     */
+    void storage(Get &elem) noexcept {
+        storage<0>(elem);
+    }
+
+    /**
+     * @brief Assigns a storage to a view.
+     * @tparam Index Index of the storage to assign to the view.
+     * @param elem A storage to assign to the view.
+     */
+    template<std::size_t Index>
+    void storage(Get &elem) noexcept {
+        view = std::get<Index>(pools) = &elem;
+    }
 
     /**
      * @brief Returns the number of entities that have the given component.
      * @return Number of entities that have the given component.
      */
-    [[nodiscard]] size_type size() const ENTT_NOEXCEPT {
-        return pool->size();
+    [[nodiscard]] size_type size() const noexcept {
+        return view ? view->size() : size_type{};
     }
 
     /**
      * @brief Checks whether a view is empty.
      * @return True if the view is empty, false otherwise.
      */
-    [[nodiscard]] bool empty() const ENTT_NOEXCEPT {
-        return pool->empty();
-    }
-
-    /**
-     * @brief Direct access to the list of components.
-     *
-     * The returned pointer is such that range `[raw(), raw() + size()]` is
-     * always a valid range, even if the container is empty.
-     *
-     * @note
-     * Components are in the reverse order as returned by the `begin`/`end`
-     * iterators.
-     *
-     * @return A pointer to the array of components.
-     */
-    [[nodiscard]] raw_type * raw() const ENTT_NOEXCEPT {
-        return pool->raw();
-    }
-
-    /**
-     * @brief Direct access to the list of entities.
-     *
-     * The returned pointer is such that range `[data(), data() + size()]` is
-     * always a valid range, even if the container is empty.
-     *
-     * @note
-     * Entities are in the reverse order as returned by the `begin`/`end`
-     * iterators.
-     *
-     * @return A pointer to the array of entities.
-     */
-    [[nodiscard]] const entity_type * data() const ENTT_NOEXCEPT {
-        return pool->data();
+    [[nodiscard]] bool empty() const noexcept {
+        return !view || view->empty();
     }
 
     /**
      * @brief Returns an iterator to the first entity of the view.
      *
-     * The returned iterator points to the first entity of the view. If the view
-     * is empty, the returned iterator will be equal to `end()`.
-     *
-     * @note
-     * Iterators stay true to the order imposed to the underlying data
-     * structures.
+     * If the view is empty, the returned iterator will be equal to `end()`.
      *
      * @return An iterator to the first entity of the view.
      */
-    [[nodiscard]] iterator begin() const ENTT_NOEXCEPT {
-        return pool->sparse_set<Entity>::begin();
+    [[nodiscard]] iterator begin() const noexcept {
+        return view ? view->begin() : iterator{};
     }
 
     /**
      * @brief Returns an iterator that is past the last entity of the view.
-     *
-     * The returned iterator points to the entity following the last entity of
-     * the view. Attempting to dereference the returned iterator results in
-     * undefined behavior.
-     *
-     * @note
-     * Iterators stay true to the order imposed to the underlying data
-     * structures.
-     *
      * @return An iterator to the entity following the last entity of the view.
      */
-    [[nodiscard]] iterator end() const ENTT_NOEXCEPT {
-        return pool->sparse_set<Entity>::end();
+    [[nodiscard]] iterator end() const noexcept {
+        return view ? view->end() : iterator{};
     }
 
     /**
      * @brief Returns an iterator to the first entity of the reversed view.
      *
-     * The returned iterator points to the first entity of the reversed view. If
-     * the view is empty, the returned iterator will be equal to `rend()`.
-     *
-     * @note
-     * Iterators stay true to the order imposed to the underlying data
-     * structures.
+     * If the view is empty, the returned iterator will be equal to `rend()`.
      *
      * @return An iterator to the first entity of the reversed view.
      */
-    [[nodiscard]] reverse_iterator rbegin() const ENTT_NOEXCEPT {
-        return pool->sparse_set<Entity>::rbegin();
+    [[nodiscard]] reverse_iterator rbegin() const noexcept {
+        return view ? view->rbegin() : reverse_iterator{};
     }
 
     /**
      * @brief Returns an iterator that is past the last entity of the reversed
      * view.
-     *
-     * The returned iterator points to the entity following the last entity of
-     * the reversed view. Attempting to dereference the returned iterator
-     * results in undefined behavior.
-     *
-     * @note
-     * Iterators stay true to the order imposed to the underlying data
-     * structures.
-     *
      * @return An iterator to the entity following the last entity of the
      * reversed view.
      */
-    [[nodiscard]] reverse_iterator rend() const ENTT_NOEXCEPT {
-        return pool->sparse_set<Entity>::rend();
+    [[nodiscard]] reverse_iterator rend() const noexcept {
+        return view ? view->rend() : reverse_iterator{};
     }
 
     /**
@@ -941,9 +731,8 @@ public:
      * @return The first entity of the view if one exists, the null entity
      * otherwise.
      */
-    [[nodiscard]] entity_type front() const {
-        const auto it = begin();
-        return it != end() ? *it : null;
+    [[nodiscard]] entity_type front() const noexcept {
+        return (!view || view->empty()) ? null : *view->begin();
     }
 
     /**
@@ -951,20 +740,18 @@ public:
      * @return The last entity of the view if one exists, the null entity
      * otherwise.
      */
-    [[nodiscard]] entity_type back() const {
-        const auto it = rbegin();
-        return it != rend() ? *it : null;
+    [[nodiscard]] entity_type back() const noexcept {
+        return (!view || view->empty()) ? null : *view->rbegin();
     }
 
     /**
      * @brief Finds an entity.
-     * @param entt A valid entity identifier.
+     * @param entt A valid identifier.
      * @return An iterator to the given entity if it's found, past the end
      * iterator otherwise.
      */
-    [[nodiscard]] iterator find(const entity_type entt) const {
-        const auto it = pool->find(entt);
-        return it != end() && *it == entt ? it : end();
+    [[nodiscard]] iterator find(const entity_type entt) const noexcept {
+        return view ? view->find(entt) : iterator{};
     }
 
     /**
@@ -977,34 +764,56 @@ public:
     }
 
     /**
+     * @brief Returns the component assigned to the given entity.
+     * @param entt A valid identifier.
+     * @return The component assigned to the given entity.
+     */
+    [[nodiscard]] decltype(auto) operator[](const entity_type entt) const {
+        return std::get<0>(pools)->get(entt);
+    }
+
+    /**
+     * @brief Checks if a view is fully initialized.
+     * @return True if the view is fully initialized, false otherwise.
+     */
+    [[nodiscard]] explicit operator bool() const noexcept {
+        return (std::get<0>(pools) != nullptr);
+    }
+
+    /**
      * @brief Checks if a view contains an entity.
-     * @param entt A valid entity identifier.
+     * @param entt A valid identifier.
      * @return True if the view contains the given entity, false otherwise.
      */
-    [[nodiscard]] bool contains(const entity_type entt) const {
-        return pool->contains(entt);
+    [[nodiscard]] bool contains(const entity_type entt) const noexcept {
+        return view && view->contains(entt);
     }
 
     /**
      * @brief Returns the component assigned to the given entity.
      *
-     * Prefer this function instead of `registry::get` during iterations. It has
-     * far better performance than its counterpart.
-     *
      * @warning
      * Attempting to use an entity that doesn't belong to the view results in
-     * undefined behavior.<br/>
-     * An assertion will abort the execution at runtime in debug mode if the
-     * view doesn't contain the given entity.
+     * undefined behavior.
      *
-     * @param entt A valid entity identifier.
+     * @tparam Elem Type or index of the component to get.
+     * @param entt A valid identifier.
      * @return The component assigned to the entity.
      */
-    template<typename Comp = Component>
+    template<typename Elem>
     [[nodiscard]] decltype(auto) get(const entity_type entt) const {
-        static_assert(std::is_same_v<Comp, Component>, "Invalid component type");
-        ENTT_ASSERT(contains(entt));
-        return pool->get(entt);
+        static_assert(std::is_same_v<std::remove_const_t<Elem>, typename Get::value_type>, "Invalid component type");
+        return get<0>(entt);
+    }
+
+    /*! @copydoc get */
+    template<std::size_t... Elem>
+    [[nodiscard]] decltype(auto) get(const entity_type entt) const {
+        if constexpr(sizeof...(Elem) == 0) {
+            return std::get<0>(pools)->get_as_tuple(entt);
+        } else {
+            return std::get<Elem...>(pools)->get(entt);
+        }
     }
 
     /**
@@ -1018,8 +827,8 @@ public:
      * forms:
      *
      * @code{.cpp}
-     * void(const entity_type, Component &);
-     * void(Component &);
+     * void(const entity_type, Type &);
+     * void(typename Type &);
      * @endcode
      *
      * @note
@@ -1031,54 +840,73 @@ public:
      */
     template<typename Func>
     void each(Func func) const {
-        if constexpr(is_eto_eligible_v<Component>) {
-            if constexpr(std::is_invocable_v<Func>) {
-                for(auto pos = pool->size(); pos; --pos) {
+        if(view) {
+            if constexpr(is_applicable_v<Func, decltype(*each().begin())>) {
+                for(const auto pack: each()) {
+                    std::apply(func, pack);
+                }
+            } else if constexpr(Get::traits_type::page_size == 0u) {
+                for(size_type pos{}, last = size(); pos < last; ++pos) {
                     func();
                 }
             } else {
-                for(const auto entt: *this) {
-                    func(entt);
-                }
-            }
-        } else {
-            if constexpr(std::is_invocable_v<Func, decltype(get({}))>) {
-                for(auto &&component: *pool) {
+                for(auto &&component: *std::get<0>(pools)) {
                     func(component);
-                }
-            } else {
-                auto raw = pool->begin();
-
-                for(const auto entt: *this) {
-                    func(entt, *(raw++));
                 }
             }
         }
     }
 
     /**
-     * @brief Returns an iterable object to use to _visit_ the view.
+     * @brief Returns an iterable object to use to _visit_ a view.
      *
-     * The iterable object returns tuples that contain the current entity and a
-     * reference to its component if it's a non-empty one. The _constness_ of
+     * The iterable object returns a tuple that contains the current entity and
+     * a reference to its component if it's a non-empty one. The _constness_ of
      * the component is as requested.
-     *
-     * @note
-     * Empty types aren't explicitly instantiated and therefore they are never
-     * returned during iterations.
      *
      * @return An iterable object to use to _visit_ the view.
      */
-    [[nodiscard]] auto proxy() const ENTT_NOEXCEPT {
-        return view_proxy{*pool};
+    [[nodiscard]] iterable each() const noexcept {
+        return view ? std::get<0>(pools)->each() : iterable{};
+    }
+
+    /**
+     * @brief Combines two views in a _more specific_ one (friend function).
+     * @tparam OGet Component list of the view to combine with.
+     * @tparam OExclude Filter list of the view to combine with.
+     * @param other The view to combine with.
+     * @return A more specific view.
+     */
+    template<typename... OGet, typename... OExclude>
+    [[nodiscard]] auto operator|(const basic_view<get_t<OGet...>, exclude_t<OExclude...>> &other) const noexcept {
+        return internal::view_pack(
+            std::tuple_cat(pools, other.pools),
+            internal::filter_as_tuple<OExclude...>(other.filter),
+            std::index_sequence_for<Get, OGet..., OExclude...>{});
     }
 
 private:
-    pool_type *pool;
+    std::tuple<Get *> pools;
+    std::array<const common_type *, 0u> filter;
+    const common_type *view;
 };
 
+/**
+ * @brief Deduction guide.
+ * @tparam Type Type of storage classes used to create the view.
+ * @param storage The storage for the types to iterate.
+ */
+template<typename... Type>
+basic_view(Type &...storage) -> basic_view<get_t<Type...>, exclude_t<>>;
 
-}
+/**
+ * @brief Deduction guide.
+ * @tparam Get Types of components iterated by the view.
+ * @tparam Exclude Types of components used to filter the view.
+ */
+template<typename... Get, typename... Exclude>
+basic_view(std::tuple<Get &...>, std::tuple<Exclude &...> = {}) -> basic_view<get_t<Get...>, exclude_t<Exclude...>>;
 
+} // namespace entt
 
 #endif

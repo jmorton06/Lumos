@@ -13,7 +13,9 @@
 #include <Lumos/Core/Application.h>
 
 #include <imgui/imgui.h>
-#include <entt/entity/fwd.hpp>
+#include <Lumos/Scene/SceneManager.h>
+#include <Lumos/Scene/Entity.h>
+#include <Lumos/Scene/EntityManager.h>
 
 namespace Lumos
 {
@@ -133,6 +135,10 @@ namespace Lumos
 
         void SetSelected(entt::entity entity)
         {
+            auto& registry = Application::Get().GetSceneManager()->GetCurrentScene()->GetRegistry();
+
+            if(!registry.valid(entity))
+                return;
             if(std::find(m_SelectedEntities.begin(), m_SelectedEntities.end(), entity) != m_SelectedEntities.end())
                 return;
 

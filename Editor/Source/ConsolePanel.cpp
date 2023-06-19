@@ -176,12 +176,12 @@ namespace Lumos
     {
         LUMOS_PROFILE_FUNCTION();
         // ImGui::BeginChild("ScrollRegion", ImVec2(0, 0), false, ImGuiWindowFlags_HorizontalScrollbar);
-        if(ImGui::BeginTable("Messages", 3, ImGuiTableFlags_NoSavedSettings | ImGuiTableFlags_Borders | ImGuiTableFlags_SizingStretchProp | ImGuiTableFlags_ScrollY | ImGuiTableFlags_RowBg))
+        if(ImGui::BeginTable("Messages", 3, ImGuiTableFlags_NoSavedSettings | ImGuiTableFlags_Borders | ImGuiTableFlags_SizingStretchProp | ImGuiTableFlags_ScrollY | ImGuiTableFlags_RowBg ))
         {
 
-            ImGui::TableSetupColumn("Type", ImGuiTableColumnFlags_PreferSortAscending, 0.0f, MyItemColumnID_Type);
-            ImGui::TableSetupColumn("Time", ImGuiTableColumnFlags_DefaultSort | ImGuiTableColumnFlags_PreferSortAscending, 0.0f, MyItemColumnID_Time);
-            ImGui::TableSetupColumn("Message", 0, 0.0f, MyItemColumnID_Message);
+            ImGui::TableSetupColumn("Type", ImGuiTableColumnFlags_NoSort, 0.0f, MyItemColumnID_Type);
+            ImGui::TableSetupColumn("Time", ImGuiTableColumnFlags_NoSort, 0.0f, MyItemColumnID_Time);
+            ImGui::TableSetupColumn("Message", ImGuiTableColumnFlags_NoSort, 0.0f, MyItemColumnID_Message);
             ImGui::TableSetupScrollFreeze(0, 1);
 
             ImGui::TableHeadersRow();

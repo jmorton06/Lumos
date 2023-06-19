@@ -57,6 +57,8 @@
 #include <iomanip>
 #include <glm/gtx/matrix_decompose.hpp>
 
+#include <cereal/version.hpp>
+
 #ifdef LUMOS_PLATFORM_WINDOWS
 #include <shellapi.h>
 #endif
@@ -814,6 +816,8 @@ namespace Lumos
 
                 ImGui::TextUnformatted("Third-Party");
                 ImGui::Text("ImGui - Version : %s, Revision - %d", IMGUI_VERSION, IMGUI_VERSION_NUM);
+                ImGui::Text("Entt - Version %s", ENTT_VERSION);
+                ImGui::Text("Cereal - Version %d.&d.%d", CEREAL_VERSION_MAJOR, CEREAL_VERSION_MINOR, CEREAL_VERSION_PATCH);
 
                 ImGui::EndMenu();
             }

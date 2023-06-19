@@ -357,7 +357,7 @@ namespace Lumos
         // Point
         else
         {
-            DebugDrawSphere(light->Radius * 0.5f, light->Position, colour);
+            DebugDrawSphere(light->Radius, light->Position, colour);
         }
     }
 

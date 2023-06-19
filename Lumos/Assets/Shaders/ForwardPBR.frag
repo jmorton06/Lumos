@@ -395,8 +395,9 @@ vec3 Lighting(vec3 F0, vec3 wsPos, Material material)
 			
 			// Attenuation
 			float atten = light.radius / (pow(dist, 2.0) + 1.0);
-			
-			value = atten;
+			float attenuation = clamp(1.0 - (dist * dist) / (light.radius * light.radius), 0.0, 1.0);
+
+			value = attenuation;
 			
 			light.direction = vec4(L,1.0);
 		}

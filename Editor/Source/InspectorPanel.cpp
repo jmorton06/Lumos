@@ -1886,6 +1886,18 @@ end
         }
 
         ImGui::Separator();
+        const auto& meshes = modelRef->GetMeshes();
+        if(ImGui::TreeNode("Meshes"))
+        {
+            for(auto mesh : meshes)
+            {
+                if(!mesh->GetName().empty())
+                    ImGui::TextUnformatted(mesh->GetName().c_str());
+            }
+            ImGui::TreePop();
+        }
+ 
+        ImGui::Separator();
 
         auto Skeleton = modelRef->GetSkeleton();
 
@@ -1903,21 +1915,33 @@ end
         }
 
         ImGui::Separator();
-
-        ImGui::TextUnformatted("Materials");
-
-        auto& meshes = modelRef->GetMeshes();
+        if(ImGui::TreeNode("Materials"))
+        {
+        Lumos::Graphics::Material* MaterialShown[1000];
+        uint32_t MaterialCount = 0;
         for(auto mesh : meshes)
         {
             auto material       = mesh->GetMaterial();
             std::string matName = material ? material->GetName() : "";
-
+            
+            bool materialFound = false;
+            for(uint32_t i = 0; i < MaterialCount; i++)
+            {
+                if(MaterialShown[i] == material.get())
+                    materialFound = true;
+            }
+            
+            if(materialFound)
+                continue;
+            
+            MaterialShown[MaterialCount++] = material.get();
+            
             if(matName.empty())
             {
                 matName = "Material";
                 matName += std::to_string(matIndex);
             }
-
+            
             matName += "##" + std::to_string(matIndex);
             matIndex++;
             if(!material)
@@ -1931,27 +1955,27 @@ end
                 using namespace Lumos;
                 ImGui::Indent();
                 bool flipImage = Graphics::Renderer::GetGraphicsContext()->FlipImGUITexture();
-
+                
                 bool twoSided     = material->GetFlag(Lumos::Graphics::Material::RenderFlags::TWOSIDED);
                 bool depthTested  = material->GetFlag(Lumos::Graphics::Material::RenderFlags::DEPTHTEST);
                 bool alphaBlended = material->GetFlag(Lumos::Graphics::Material::RenderFlags::ALPHABLEND);
-
+                
                 ImGui::Columns(2);
                 ImGui::Separator();
-
+                
                 ImGui::AlignTextToFramePadding();
-
+                
                 if(ImGuiUtilities::Property("Alpha Blended", alphaBlended))
                     material->SetFlag(Lumos::Graphics::Material::RenderFlags::ALPHABLEND, alphaBlended);
-
+                
                 if(ImGuiUtilities::Property("Two Sided", twoSided))
                     material->SetFlag(Lumos::Graphics::Material::RenderFlags::TWOSIDED, twoSided);
-
+                
                 if(ImGuiUtilities::Property("Depth Tested", depthTested))
                     material->SetFlag(Lumos::Graphics::Material::RenderFlags::DEPTHTEST, depthTested);
-
+                
                 ImGui::Columns(1);
-
+                
                 Graphics::MaterialProperties* prop = material->GetProperties();
                 auto colour                        = glm::vec4();
                 float normal                       = 0.0f;
@@ -1959,13 +1983,13 @@ end
                 glm::vec2 textureSize              = glm::vec2(100.0f, 100.0f);
                 TextureWidget("Albedo", material.get(), textures.albedo.get(), flipImage, prop->albedoMapFactor, prop->albedoColour, std::bind(&Graphics::Material::SetAlbedoTexture, material, std::placeholders::_1), textureSize * Application::Get().GetWindowDPI());
                 ImGui::Separator();
-
+                
                 TextureWidget("Normal", material.get(), textures.normal.get(), flipImage, prop->normalMapFactor, normal, false, std::bind(&Graphics::Material::SetNormalTexture, material, std::placeholders::_1), textureSize * Application::Get().GetWindowDPI());
                 ImGui::Separator();
-
+                
                 TextureWidget("Metallic", material.get(), textures.metallic.get(), flipImage, prop->metallicMapFactor, prop->metallic, true, std::bind(&Graphics::Material::SetMetallicTexture, material, std::placeholders::_1), textureSize * Application::Get().GetWindowDPI());
                 ImGui::Separator();
-
+                
                 TextureWidget("Roughness", material.get(), textures.roughness.get(), flipImage, prop->roughnessMapFactor, prop->roughness, true, std::bind(&Graphics::Material::SetRoughnessTexture, material, std::placeholders::_1), textureSize * Application::Get().GetWindowDPI());
                 
                 if(ImGui::TreeNodeEx("Reflectance", ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_SpanFullWidth))
@@ -1975,34 +1999,36 @@ end
                 }
                 
                 ImGui::Separator();
-
+                
                 TextureWidget("AO", material.get(), textures.ao.get(), flipImage, prop->occlusionMapFactor, normal, false, std::bind(&Graphics::Material::SetAOTexture, material, std::placeholders::_1), textureSize * Application::Get().GetWindowDPI());
                 ImGui::Separator();
-
+                
                 TextureWidget("Emissive", material.get(), textures.emissive.get(), flipImage, prop->emissiveMapFactor, prop->emissive, true, std::bind(&Graphics::Material::SetEmissiveTexture, material, std::placeholders::_1), textureSize * Application::Get().GetWindowDPI());
-
+                
                 ImGui::Columns(2);
-
+                
                 ImGui::AlignTextToFramePadding();
                 ImGui::TextUnformatted("WorkFlow");
                 ImGui::NextColumn();
                 ImGui::PushItemWidth(-1);
-
+                
                 int workFlow = (int)material->GetProperties()->workflow;
-
+                
                 if(ImGui::DragInt("##WorkFlow", &workFlow, 0.3f, 0, 2))
                 {
                     material->GetProperties()->workflow = (float)workFlow;
                 }
-
+                
                 ImGui::PopItemWidth();
                 ImGui::NextColumn();
-
+                
                 material->SetMaterialProperites(*prop);
                 ImGui::Columns(1);
                 ImGui::Unindent();
                 ImGui::TreePop();
             }
+        }
+            ImGui::TreePop();
         }
 
         Lumos::ImGuiUtilities::PopID();
@@ -2333,7 +2359,7 @@ namespace Lumos
             ImGui::TextUnformatted(ICON_MDI_CUBE);
             ImGui::SameLine();
 
-            bool hasName = registry.has<NameComponent>(selected);
+            bool hasName = registry.all_of<NameComponent>(selected);
             std::string name;
             if(hasName)
                 name = registry.get<NameComponent>(selected).name;

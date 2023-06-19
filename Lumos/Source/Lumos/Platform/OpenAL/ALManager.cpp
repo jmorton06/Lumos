@@ -46,7 +46,7 @@ namespace Lumos
             LUMOS_PROFILE_FUNCTION();
             auto& registry    = scene->GetRegistry();
             auto listenerView = registry.view<Listener, Maths::Transform>();
-            if(!listenerView.empty())
+            if(listenerView.size_hint() > 0)
             {
                 auto& listenerTransform = registry.get<Maths::Transform>(listenerView.front());
                 UpdateListener(listenerTransform);
@@ -66,7 +66,7 @@ namespace Lumos
         {
             auto& registry    = scene->GetRegistry();
             auto listenerView = registry.view<Listener, Maths::Transform>();
-            if(!listenerView.empty())
+            if(listenerView.size_hint() > 0)
             {
                 auto& listenerTransform = registry.get<Maths::Transform>(listenerView.front());
                 UpdateListener(listenerTransform);
