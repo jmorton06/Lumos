@@ -86,6 +86,8 @@ namespace Lumos
 
         void DrawItemActivityOutline(float rounding = 0.0f, bool drawWhenInactive = false, ImColor colourWhenActive = ImColor(80, 80, 80));
         bool InputText(std::string& currentText);
+        void ClippedText(const ImVec2& pos_min, const ImVec2& pos_max, const char* text, const char* text_end, const ImVec2* text_size_if_known, const ImVec2& align, const ImRect* clip_rect, float wrap_width);
+        void ClippedText(ImDrawList* draw_list, const ImVec2& pos_min, const ImVec2& pos_max, const char* text, const char* text_display_end, const ImVec2* text_size_if_known, const ImVec2& align, const ImRect* clip_rect, float wrap_width);
 
         void AlternatingRowsBackground(float lineHeight = -1.0f);
 
@@ -107,6 +109,8 @@ namespace Lumos
         const char* GenerateLabelID(std::string_view label);
         void PushID();
         void PopID();
+
+        bool ToggleButton(const char* label, bool state, ImVec2 size, float alpha, float pressedAlpha, ImGuiButtonFlags buttonFlags);
 
         class ScopedStyle
         {

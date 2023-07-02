@@ -49,6 +49,10 @@ namespace Lumos
         {
         }
 
+        virtual void DestroyGraphicsResources()
+        {
+        }
+
     protected:
         bool m_Active = true;
         std::string m_Name;

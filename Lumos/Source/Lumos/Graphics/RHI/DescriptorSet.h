@@ -17,7 +17,7 @@ namespace Lumos
             virtual ~DescriptorSet() = default;
             static DescriptorSet* Create(const DescriptorDesc& desc);
 
-            virtual void Update(CommandBuffer* cmdBuffer = nullptr)                                                                                                                = 0;
+            virtual void Update(CommandBuffer* cmdBuffer = nullptr)                                                                              = 0;
             virtual void SetDynamicOffset(uint32_t offset)                                                                                       = 0;
             virtual uint32_t GetDynamicOffset() const                                                                                            = 0;
             virtual void SetTexture(const std::string& name, Texture** texture, uint32_t textureCount, TextureType textureType = TextureType(0)) = 0;

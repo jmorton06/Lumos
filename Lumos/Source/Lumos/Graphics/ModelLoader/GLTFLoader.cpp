@@ -1,6 +1,6 @@
 #if defined(__GNUC__) && defined(_DEBUG) && defined(__OPTIMIZE__)
-    #warning "Undefing __OPTIMIZE__"
-    #undef __OPTIMIZE__
+#warning "Undefing __OPTIMIZE__"
+#undef __OPTIMIZE__
 #endif
 
 #include "Precompiled.h"
@@ -234,21 +234,19 @@ namespace Lumos::Graphics
                 }
             }
 
+            auto ext_ior = mat.extensions.find("KHR_materials_ior");
+            if(ext_ior != mat.extensions.end())
+            {
+                // https://github.com/KhronosGroup/glTF/tree/master/extensions/2.0/Khronos/KHR_materials_ior
 
-		auto ext_ior = mat.extensions.find("KHR_materials_ior");
-		if (ext_ior != mat.extensions.end())
-		{
-			// https://github.com/KhronosGroup/glTF/tree/master/extensions/2.0/Khronos/KHR_materials_ior
+                if(ext_ior->second.Has("ior"))
+                {
+                    auto& factor = ext_ior->second.Get("ior");
+                    float ior    = float(factor.IsNumber() ? factor.Get<double>() : factor.Get<int>());
 
-			if (ext_ior->second.Has("ior"))
-			{
-				auto& factor = ext_ior->second.Get("ior");
-				float ior = float(factor.IsNumber() ? factor.Get<double>() : factor.Get<int>());
-
-				properties.reflectance = std::sqrt(std::pow((ior - 1.0f) / (ior + 1.0f), 2.0f) / 16.0f);
-			}
-		}
-
+                    properties.reflectance = std::sqrt(std::pow((ior - 1.0f) / (ior + 1.0f), 2.0f) / 16.0f);
+                }
+            }
 
             pbrMaterial->SetTextures(textures);
             pbrMaterial->SetMaterialProperites(properties);

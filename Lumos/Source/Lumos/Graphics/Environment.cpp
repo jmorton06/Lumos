@@ -135,7 +135,7 @@ namespace Lumos
             }
             else // if (m_Mode == 1)
             {
-                m_Parameters.w  = m_Mode;
+                m_Parameters.w = m_Mode;
                 Application::Get().GetRenderPasses()->CreateCubeMap("", m_Parameters, m_Environmnet, m_IrradianceMap);
             }
         }

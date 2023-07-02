@@ -1,8 +1,9 @@
-#include "Core/OS/OS.h"
+#pragma once
+#include "Platform/Unix/UnixOS.h"
 
 namespace Lumos
 {
-    class MacOSOS : public OS
+    class MacOSOS : public UnixOS
     {
     public:
         MacOSOS()

@@ -525,7 +525,6 @@ namespace Lumos
                 camera.SetIsOrthographic(false);
                 camera.SetNear(0.01f);
                 m_Editor->GetEditorCameraController().SetCurrentMode(EditorCameraMode::FLYCAM);
-
             }
         }
         if(selected)
@@ -541,7 +540,7 @@ namespace Lumos
             {
                 camera.SetIsOrthographic(true);
                 auto camPos = m_Editor->GetEditorCameraTransform().GetLocalPosition();
-                camPos.z = 0.0f;
+                camPos.z    = 0.0f;
                 camera.SetNear(-10.0f);
                 m_Editor->GetEditorCameraTransform().SetLocalPosition(camPos);
                 m_Editor->GetEditorCameraTransform().SetLocalOrientation(glm::quat(glm::vec3(0.0f, 0.0f, 0.0f)));

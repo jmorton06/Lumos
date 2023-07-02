@@ -16,6 +16,8 @@ namespace Lumos
             void Bind(uint32_t slot = 0) const override;
             void Unbind(uint32_t slot = 0) const override;
 
+            void Load(uint32_t width, uint32_t height, void* data, TextureDesc parameters = TextureDesc(), TextureLoadOptions loadOptions = TextureLoadOptions()) override;
+
             virtual void SetData(const void* pixels) override;
 
             virtual void* GetHandle() const override

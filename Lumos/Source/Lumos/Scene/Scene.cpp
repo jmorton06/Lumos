@@ -50,35 +50,41 @@ namespace entt
      *
      * @tparam Entity A valid entity type (see entt_traits for more details).
      */
-    template<typename Entity>
-    class basic_snapshot_loader_legacy {
+    template <typename Entity>
+    class basic_snapshot_loader_legacy
+    {
         /*! @brief A registry is allowed to create snapshot loaders. */
         friend class basic_registry<Entity>;
 
         using traits_type = entt_traits<Entity>;
 
-        template<typename Type, typename Archive>
-        void assign(Archive& archive) const {
-            typename traits_type::entity_type length{};
+        template <typename Type, typename Archive>
+        void assign(Archive& archive) const
+        {
+            typename traits_type::entity_type length {};
             archive(length);
 
-            entity_type entt{};
+            entity_type entt {};
 
-            if constexpr (std::is_empty_v<Type>) {
-                while (length--) {
+            if constexpr(std::is_empty_v<Type>)
+            {
+                while(length--)
+                {
                     archive(entt);
                     const auto entity = reg->valid(entt) ? entt : reg->create(entt);
-                    //ENTT_ASSERT(entity == entt);
+                    // ENTT_ASSERT(entity == entt);
                     reg->template emplace<Type>(entity);
                 }
             }
-            else {
-                Type instance{};
+            else
+            {
+                Type instance {};
 
-                while (length--) {
+                while(length--)
+                {
                     archive(entt, instance);
                     const auto entity = reg->valid(entt) ? entt : reg->create(entt);
-                    //ENTT_ASSERT(entity == entt);
+                    // ENTT_ASSERT(entity == entt);
                     reg->template emplace<Type>(entity, std::move(instance));
                 }
             }
@@ -93,10 +99,10 @@ namespace entt
          * @param source A valid reference to a registry.
          */
         basic_snapshot_loader_legacy(basic_registry<entity_type>& source) noexcept
-            : reg{ &source }
+            : reg { &source }
         {
             // restoring a snapshot as a whole requires a clean registry
-            //ENTT_ASSERT(reg->empty());
+            // ENTT_ASSERT(reg->empty());
         }
 
         /*! @brief Default move constructor. */
@@ -115,14 +121,16 @@ namespace entt
          * @param archive A valid reference to an input archive.
          * @return A valid loader to continue restoring data.
          */
-        template<typename Archive>
-        const basic_snapshot_loader_legacy& entities(Archive& archive) const {
-            typename traits_type::entity_type length{};
+        template <typename Archive>
+        const basic_snapshot_loader_legacy& entities(Archive& archive) const
+        {
+            typename traits_type::entity_type length {};
 
             archive(length);
             std::vector<entity_type> all(length);
 
-            for (decltype(length) pos{}; pos < length; ++pos) {
+            for(decltype(length) pos {}; pos < length; ++pos)
+            {
                 archive(all[pos]);
             }
 
@@ -144,8 +152,9 @@ namespace entt
          * @param archive A valid reference to an input archive.
          * @return A valid loader to continue restoring data.
          */
-        template<typename... Component, typename Archive>
-        const basic_snapshot_loader_legacy& component(Archive& archive) const {
+        template <typename... Component, typename Archive>
+        const basic_snapshot_loader_legacy& component(Archive& archive) const
+        {
             (assign<Component>(archive), ...);
             return *this;
         }
@@ -160,10 +169,11 @@ namespace entt
          *
          * @return A valid loader to continue restoring data.
          */
-        const basic_snapshot_loader_legacy& orphans() const {
-    /*        reg->orphans([this](const auto entt) {
-                reg->destroy(entt);
-                });*/
+        const basic_snapshot_loader_legacy& orphans() const
+        {
+            /*        reg->orphans([this](const auto entt) {
+                        reg->destroy(entt);
+                        });*/
             LUMOS_LOG_WARN("May need to fix this - basic_snapshot_loader_legacy::orphans()");
 
             return *this;
@@ -173,7 +183,6 @@ namespace entt
         basic_registry<entity_type>* reg;
     };
 }
-
 
 namespace Lumos
 {
@@ -250,9 +259,9 @@ namespace Lumos
         const glm::vec2& mousePos = Input::Get().GetMousePosition();
 
         auto defaultCameraControllerView = m_EntityManager->GetEntitiesWithType<DefaultCameraController>();
-        auto cameraView = m_EntityManager->GetEntitiesWithType<Camera>();
-        Camera* camera = nullptr;
-        if (!cameraView.Empty())
+        auto cameraView                  = m_EntityManager->GetEntitiesWithType<Camera>();
+        Camera* camera                   = nullptr;
+        if(!cameraView.Empty())
         {
             camera = &cameraView.Front().GetComponent<Camera>();
         }
@@ -388,25 +397,23 @@ namespace Lumos
                 cereal::BinaryInputArchive input(file);
                 input(*this);
                 if(m_SceneSerialisationVersion < 2)
-                    entt::basic_snapshot_loader_legacy{ m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV1>(input).orphans();
+                    entt::basic_snapshot_loader_legacy { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV1>(input).orphans();
                 else if(m_SceneSerialisationVersion == 3)
-                    entt::basic_snapshot_loader_legacy{ m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV2>(input).orphans();
+                    entt::basic_snapshot_loader_legacy { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV2>(input).orphans();
                 else if(m_SceneSerialisationVersion == 4)
-                    entt::basic_snapshot_loader_legacy{ m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV3>(input).orphans();
+                    entt::basic_snapshot_loader_legacy { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV3>(input).orphans();
                 else if(m_SceneSerialisationVersion == 5)
-                    entt::basic_snapshot_loader_legacy{ m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV4>(input);
+                    entt::basic_snapshot_loader_legacy { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV4>(input);
                 else if(m_SceneSerialisationVersion == 6)
-                    entt::basic_snapshot_loader_legacy{ m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV5>(input);
+                    entt::basic_snapshot_loader_legacy { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV5>(input);
                 else if(m_SceneSerialisationVersion == 7)
-                    entt::basic_snapshot_loader_legacy{ m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV6>(input);
+                    entt::basic_snapshot_loader_legacy { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV6>(input);
                 else if(m_SceneSerialisationVersion >= 8 && m_SceneSerialisationVersion < 14)
-                    entt::basic_snapshot_loader_legacy{ m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV7>(input);
-                else if (m_SceneSerialisationVersion >= 14 && m_SceneSerialisationVersion < 21)
-                    entt::basic_snapshot_loader_legacy{ m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV8>(input);
-                else if (m_SceneSerialisationVersion >= 21)
-                    entt::snapshot_loader{ m_EntityManager->GetRegistry() }.get<entt::entity>(input).ALL_COMPONENTSV9(input);
-                
-             
+                    entt::basic_snapshot_loader_legacy { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV7>(input);
+                else if(m_SceneSerialisationVersion >= 14 && m_SceneSerialisationVersion < 21)
+                    entt::basic_snapshot_loader_legacy { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV8>(input);
+                else if(m_SceneSerialisationVersion >= 21)
+                    entt::snapshot_loader { m_EntityManager->GetRegistry() }.get<entt::entity>(input).ALL_COMPONENTSV9(input);
 
                 if(m_SceneSerialisationVersion < 6)
                 {
@@ -450,23 +457,23 @@ namespace Lumos
                 input(*this);
 
                 if(m_SceneSerialisationVersion < 2)
-                    entt::basic_snapshot_loader_legacy{ m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV1>(input).orphans();
+                    entt::basic_snapshot_loader_legacy { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV1>(input).orphans();
                 else if(m_SceneSerialisationVersion == 3)
-                    entt::basic_snapshot_loader_legacy{ m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV2>(input).orphans();
+                    entt::basic_snapshot_loader_legacy { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV2>(input).orphans();
                 else if(m_SceneSerialisationVersion == 4)
-                    entt::basic_snapshot_loader_legacy{ m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV3>(input).orphans();
+                    entt::basic_snapshot_loader_legacy { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV3>(input).orphans();
                 else if(m_SceneSerialisationVersion == 5)
-                    entt::basic_snapshot_loader_legacy{ m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV4>(input);
+                    entt::basic_snapshot_loader_legacy { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV4>(input);
                 else if(m_SceneSerialisationVersion == 6)
-                    entt::basic_snapshot_loader_legacy{ m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV5>(input);
+                    entt::basic_snapshot_loader_legacy { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV5>(input);
                 else if(m_SceneSerialisationVersion == 7)
-                    entt::basic_snapshot_loader_legacy{ m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV6>(input);
+                    entt::basic_snapshot_loader_legacy { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV6>(input);
                 else if(m_SceneSerialisationVersion >= 8 && m_SceneSerialisationVersion < 14)
-                    entt::basic_snapshot_loader_legacy{ m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV7>(input);
+                    entt::basic_snapshot_loader_legacy { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV7>(input);
                 else if(m_SceneSerialisationVersion >= 14 && m_SceneSerialisationVersion < 21)
-                    entt::basic_snapshot_loader_legacy{ m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV8>(input);
-                else if (m_SceneSerialisationVersion >= 21)
-                    entt::snapshot_loader{ m_EntityManager->GetRegistry() }.get<entt::entity>(input).ALL_COMPONENTSV9(input);
+                    entt::basic_snapshot_loader_legacy { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV8>(input);
+                else if(m_SceneSerialisationVersion >= 21)
+                    entt::snapshot_loader { m_EntityManager->GetRegistry() }.get<entt::entity>(input).ALL_COMPONENTSV9(input);
 
                 if(m_SceneSerialisationVersion < 6)
                 {

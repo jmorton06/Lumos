@@ -176,38 +176,43 @@ namespace Lumos
     {
         LUMOS_PROFILE_FUNCTION();
         // ImGui::BeginChild("ScrollRegion", ImVec2(0, 0), false, ImGuiWindowFlags_HorizontalScrollbar);
-        if(ImGui::BeginTable("Messages", 3, ImGuiTableFlags_NoSavedSettings | ImGuiTableFlags_Borders | ImGuiTableFlags_SizingStretchProp | ImGuiTableFlags_ScrollY | ImGuiTableFlags_RowBg ))
+        if(ImGui::BeginTable("Messages", 3, ImGuiTableFlags_NoSavedSettings | ImGuiTableFlags_Borders | ImGuiTableFlags_SizingStretchProp | ImGuiTableFlags_ScrollY | ImGuiTableFlags_RowBg))
         {
 
-            ImGui::TableSetupColumn("Type", ImGuiTableColumnFlags_NoSort, 0.0f, MyItemColumnID_Type);
-            ImGui::TableSetupColumn("Time", ImGuiTableColumnFlags_NoSort, 0.0f, MyItemColumnID_Time);
+            ImGui::TableSetupColumn("Type", ImGuiTableColumnFlags_NoSort | ImGuiTableColumnFlags_WidthFixed, 0.0f, MyItemColumnID_Type);
+            ImGui::TableSetupColumn("Time", ImGuiTableColumnFlags_NoSort | ImGuiTableColumnFlags_WidthFixed, 0.0f, MyItemColumnID_Time);
             ImGui::TableSetupColumn("Message", ImGuiTableColumnFlags_NoSort, 0.0f, MyItemColumnID_Message);
             ImGui::TableSetupScrollFreeze(0, 1);
 
             ImGui::TableHeadersRow();
             // ImGuiUtilities::AlternatingRowsBackground();
 
+            ImGui::TableNextRow();
+
             auto DrawMessage = [](Message* message)
             {
-                ImGui::TableNextRow();
-                ImGui::TableNextColumn();
-                ImGui::PushStyleColor(ImGuiCol_Text, message->GetRenderColour(message->m_Level));
-                auto levelIcon = message->GetLevelIcon(message->m_Level);
-                ImGui::SetCursorPosX(ImGui::GetCursorPosX() + ImGui::GetColumnWidth() - ImGui::CalcTextSize(levelIcon).x
-                                     - ImGui::GetScrollX() - 2 * ImGui::GetStyle().ItemSpacing.x);
-                ImGui::TextUnformatted(levelIcon);
-
-                if(ImGui::IsItemHovered())
+                if(s_MessageBufferRenderFilter & message->m_Level)
                 {
-                    ImGui::SetTooltip("%s", Message::GetLevelName(message->m_Level));
+                    ImGui::TableNextColumn();
+                    ImGui::PushStyleColor(ImGuiCol_Text, message->GetRenderColour(message->m_Level));
+                    auto levelIcon = message->GetLevelIcon(message->m_Level);
+                    ImGui::SetCursorPosX(ImGui::GetCursorPosX() + ImGui::GetColumnWidth() - ImGui::CalcTextSize(levelIcon).x
+                                         - ImGui::GetScrollX() - 2 * ImGui::GetStyle().ItemSpacing.x);
+                    ImGui::TextUnformatted(levelIcon);
+
+                    if(ImGui::IsItemHovered())
+                    {
+                        ImGui::SetTooltip("%s", Message::GetLevelName(message->m_Level));
+                    }
+                    ImGui::PopStyleColor();
+
+                    ImGui::TableNextColumn();
+                    ImGui::TextUnformatted(message->m_Time.c_str());
+
+                    ImGui::TableNextColumn();
+                    message->OnImGUIRender();
+                    ImGui::TableNextRow();
                 }
-                ImGui::PopStyleColor();
-
-                ImGui::TableNextColumn();
-                ImGui::TextUnformatted(message->m_Time.c_str());
-
-                ImGui::TableNextColumn();
-                message->OnImGUIRender();
             };
 
             auto messageStart = s_MessageBuffer.begin() + s_MessageBufferBegin;
@@ -272,69 +277,67 @@ namespace Lumos
     void ConsolePanel::Message::OnImGUIRender()
     {
         LUMOS_PROFILE_FUNCTION();
-        if(s_MessageBufferRenderFilter & m_Level)
+
+        ImGuiUtilities::ScopedID scopedID((int)m_MessageID);
+        ImGui::TextUnformatted(m_Message.c_str());
+
+        bool clicked = false;
+        if(ImGui::IsItemClicked())
+            clicked = true;
+
+        if(ImGui::BeginPopupContextItem(m_Message.c_str()))
         {
-            ImGuiUtilities::ScopedID scopedID((int)m_MessageID);
-            ImGui::TextUnformatted(m_Message.c_str());
-
-            bool clicked = false;
-            if(ImGui::IsItemClicked())
-                clicked = true;
-
-            if(ImGui::BeginPopupContextItem(m_Message.c_str()))
+            if(ImGui::MenuItem("Copy"))
             {
-                if(ImGui::MenuItem("Copy"))
-                {
-                    ImGui::SetClipboardText(m_Message.c_str());
-                }
-
-                ImGui::EndPopup();
-            }
-            static bool m_DetailedPanelOpen = false;
-            if(clicked)
-            {
-                ImGui::OpenPopup("Message");
-                ImVec2 size = ImGui::GetMainViewport()->Size;
-                ImGui::SetNextWindowSize({ size.x * 0.5f, size.y * 0.5f });
-                ImGui::SetNextWindowPos({ size.x / 2.0f, size.y / 2.5f }, 0, { 0.5, 0.5 });
-                m_DetailedPanelOpen = true;
+                ImGui::SetClipboardText(m_Message.c_str());
             }
 
-            if(m_DetailedPanelOpen)
-            {
-                if(ImGui::BeginPopupModal("Message", &m_DetailedPanelOpen, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize))
-                {
-                    ImGui::TextWrapped("Message : %s", m_Message.c_str());
+            ImGui::EndPopup();
+        }
+        static bool m_DetailedPanelOpen = false;
+        if(clicked)
+        {
+            ImGui::OpenPopup("Message");
+            ImVec2 size = ImGui::GetMainViewport()->Size;
+            ImGui::SetNextWindowSize({ size.x * 0.5f, size.y * 0.5f });
+            ImGui::SetNextWindowPos({ size.x / 2.0f, size.y / 2.5f }, 0, { 0.5, 0.5 });
+            m_DetailedPanelOpen = true;
+        }
 
-                    if(ImGui::BeginPopupContextItem(m_Message.c_str()))
+        if(m_DetailedPanelOpen)
+        {
+            if(ImGui::BeginPopupModal("Message", &m_DetailedPanelOpen, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize))
+            {
+                ImGui::TextWrapped("Message : %s", m_Message.c_str());
+
+                if(ImGui::BeginPopupContextItem(m_Message.c_str()))
+                {
+                    if(ImGui::MenuItem("Copy"))
                     {
-                        if(ImGui::MenuItem("Copy"))
-                        {
-                            ImGui::SetClipboardText(m_Message.c_str());
-                        }
-
-                        ImGui::EndPopup();
+                        ImGui::SetClipboardText(m_Message.c_str());
                     }
-
-                    ImGui::TextWrapped("Source : %s", m_Source.c_str());
-
-                    ImGui::Text("Time : %s", m_Time.c_str());
-                    ImGui::Text("Type : %s", Message::GetLevelName(m_Level));
 
                     ImGui::EndPopup();
                 }
-            }
 
-            if(ImGui::IsItemHovered())
-            {
-                ImGui::SetTooltip("%s", m_Source.c_str());
-            }
+                ImGui::TextWrapped("Source : %s", m_Source.c_str());
 
-            if(m_Count > 1)
-            {
-                ImGui::SameLine(ImGui::GetContentRegionAvail().x - (m_Count > 99 ? ImGui::GetFontSize() * 1.7f : ImGui::GetFontSize() * 1.5f));
-                ImGui::Text("%d", m_Count);
+                ImGui::Text("Time : %s", m_Time.c_str());
+                ImGui::Text("Type : %s", Message::GetLevelName(m_Level));
+
+                ImGui::EndPopup();
             }
+        }
+
+        if(ImGui::IsItemHovered())
+        {
+            ImGui::SetTooltip("%s", m_Source.c_str());
+        }
+
+        if(m_Count > 1)
+        {
+            ImGui::SameLine(ImGui::GetContentRegionAvail().x - (m_Count > 99 ? ImGui::GetFontSize() * 1.7f : ImGui::GetFontSize() * 1.5f));
+            ImGui::Text("%d", m_Count);
         }
     }
 

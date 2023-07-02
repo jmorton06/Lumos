@@ -39,4 +39,22 @@ namespace Lumos
             requested.tv_nsec = remaining.tv_nsec;
         }
     }
+
+    void UnixOS::OpenFileLocation(const std::filesystem::path& path)
+    {
+        std::string command = "open -R " + path.string();
+        std::system(command.c_str());
+    }
+
+    void UnixOS::OpenFileExternal(const std::filesystem::path& path)
+    {
+        std::string command = "open " + path.string();
+        std::system(command.c_str());
+    }
+
+    void UnixOS::OpenURL(const std::string& url)
+    {
+        std::string command = "open " + url;
+        system(command.c_str());
+    }
 }

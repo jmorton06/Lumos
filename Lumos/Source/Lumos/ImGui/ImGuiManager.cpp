@@ -12,6 +12,7 @@
 #include <imgui/imgui.h>
 #include <imgui/Plugins/ImGuizmo.h>
 #include <imgui/Plugins/ImGuiAl/fonts/MaterialDesign.inl>
+#include <imgui/Plugins/ImGuiAl/fonts/RobotoMedium.inl>
 #include <imgui/Plugins/ImGuiAl/fonts/RobotoRegular.inl>
 #include <imgui/Plugins/ImGuiAl/fonts/RobotoBold.inl>
 #include <imgui/misc/freetype/imgui_freetype.h>
@@ -29,7 +30,7 @@ namespace Lumos
     ImGuiManager::ImGuiManager(bool clearScreen)
     {
         m_ClearScreen = clearScreen;
-        m_FontSize    = 14.0f;
+        m_FontSize    = 15.0f;
 
 #ifdef LUMOS_PLATFORM_IOS
         m_FontSize *= 2.0f;
@@ -302,6 +303,9 @@ namespace Lumos
         AddIconFont();
 
         io.Fonts->AddFontFromMemoryCompressedTTF(RobotoBold_compressed_data, RobotoBold_compressed_size, m_FontSize + 2.0f, &icons_config, ranges);
+
+        io.Fonts->AddFontFromMemoryCompressedTTF(RobotoRegular_compressed_data, RobotoRegular_compressed_size, m_FontSize * 0.8f, &icons_config, ranges);
+        AddIconFont();
 
         io.Fonts->AddFontDefault();
         AddIconFont();

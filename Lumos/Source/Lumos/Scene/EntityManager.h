@@ -18,6 +18,7 @@ namespace Lumos
     {
         class iterator;
         using TView = entt::view<entt::get_t<Component...>>;
+
     public:
         EntityView(Scene* scene);
 
@@ -89,35 +90,35 @@ namespace Lumos
         return EntityView<Component...>::iterator(*this, Size());
     }
 
-//    template <typename... Components>
-//    class EntityGroup
-//    {
-//    public:
-//        EntityGroup(Scene* scene)
-//            : m_Scene(scene)
-//            , m_Group(scene->GetRegistry().group<Components...>())
-//        {
-//        }
-//
-//        Entity operator[](int i)
-//        {
-//            LUMOS_ASSERT(i < Size(), "Index out of range on Entity View");
-//            return Entity(m_Group[i], m_Scene);
-//        }
-//
-//        size_t Size() const
-//        {
-//            return m_Group.size();
-//        }
-//        Entity Front()
-//        {
-//            return Entity(m_Group[0], m_Scene);
-//        }
-//
-//    private:
-//        Scene* m_Scene;
-//        entt::group<Components...> m_Group;
-//    };
+    //    template <typename... Components>
+    //    class EntityGroup
+    //    {
+    //    public:
+    //        EntityGroup(Scene* scene)
+    //            : m_Scene(scene)
+    //            , m_Group(scene->GetRegistry().group<Components...>())
+    //        {
+    //        }
+    //
+    //        Entity operator[](int i)
+    //        {
+    //            LUMOS_ASSERT(i < Size(), "Index out of range on Entity View");
+    //            return Entity(m_Group[i], m_Scene);
+    //        }
+    //
+    //        size_t Size() const
+    //        {
+    //            return m_Group.size();
+    //        }
+    //        Entity Front()
+    //        {
+    //            return Entity(m_Group[0], m_Scene);
+    //        }
+    //
+    //    private:
+    //        Scene* m_Scene;
+    //        entt::group<Components...> m_Group;
+    //    };
 
     template <typename...>
     struct TypeList

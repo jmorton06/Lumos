@@ -55,7 +55,7 @@ namespace MM
         template <class Component>
         ComponentInfo& registerComponent(const ComponentInfo& component_info)
         {
-            auto index = entt::type_hash<Component>::value();
+            auto index       = entt::type_hash<Component>::value();
             auto insert_info = component_infos.insert_or_assign(index, component_info);
             assert(insert_info.second);
             return std::get<ComponentInfo>(*insert_info.first);

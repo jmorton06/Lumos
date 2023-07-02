@@ -178,11 +178,10 @@ namespace Lumos
             if(m_Description.depthArrayTarget)
                 return m_Description.depthArrayTarget->GetHeight();
 
-            if (m_Description.cubeMapTarget)
+            if(m_Description.cubeMapTarget)
             {
                 return m_Description.mipIndex > 0 ? m_Description.cubeMapTarget->GetHeight(m_Description.mipIndex) : m_Description.cubeMapTarget->GetHeight();
             }
-
 
             LUMOS_LOG_WARN("Invalid pipeline height");
 

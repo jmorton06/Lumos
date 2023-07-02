@@ -139,7 +139,7 @@ namespace Lumos
                         cereal::make_nvp("alphaCutOff", m_MaterialProperties->alphaCutoff),
                         cereal::make_nvp("workflow", m_MaterialProperties->workflow),
                         cereal::make_nvp("shader", shaderPath));
-                
+
                 archive(cereal::make_nvp("Reflectance", m_MaterialProperties->reflectance));
             }
 
@@ -202,10 +202,9 @@ namespace Lumos
                             cereal::make_nvp("alphaCutOff", m_MaterialProperties->alphaCutoff),
                             cereal::make_nvp("workflow", m_MaterialProperties->workflow),
                             cereal::make_nvp("shader", shaderFilePath));
-                    
+
                     if(Serialisation::CurrentSceneVersion > 19)
                         archive(cereal::make_nvp("Reflectance", m_MaterialProperties->reflectance));
-
                 }
 
                 // if(!shaderFilePath.empty())
