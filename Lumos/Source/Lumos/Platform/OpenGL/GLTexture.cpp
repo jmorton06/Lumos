@@ -128,6 +128,20 @@ namespace Lumos
             GLCall(glBindTexture(GL_TEXTURE_2D, 0));
         }
 
+        void GLTexture2D::Load(uint32_t width, uint32_t height, void* data, TextureDesc parameters, TextureLoadOptions loadOptions)
+        {
+            GLCall(glDeleteTextures(1, &m_Handle));
+
+            m_FileName    = "";
+            m_Name        = "";
+            m_Parameters  = parameters;
+            m_LoadOptions = loadOptions;
+            m_Width       = width;
+            m_Height      = height;
+            m_Format      = parameters.format;
+            m_Handle      = Load(data);
+        }
+
         void GLTexture2D::BuildTexture()
         {
             m_Name = "Texture Attachment";

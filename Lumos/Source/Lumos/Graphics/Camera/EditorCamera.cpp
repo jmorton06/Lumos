@@ -48,12 +48,12 @@ namespace Lumos
         if(m_CameraMode == EditorCameraMode::TWODIM)
         {
             static bool mouseHeld = false;
-            if (Input::Get().GetMouseClicked(InputCode::MouseKey::ButtonRight))
+            if(Input::Get().GetMouseClicked(InputCode::MouseKey::ButtonRight))
             {
                 mouseHeld = true;
                 Application::Get().GetWindow()->HideMouse(true);
                 Input::Get().SetMouseMode(MouseMode::Captured);
-                m_StoredCursorPos = glm::vec2(xpos, ypos);
+                m_StoredCursorPos   = glm::vec2(xpos, ypos);
                 m_PreviousCurserPos = m_StoredCursorPos;
             }
 
@@ -68,7 +68,7 @@ namespace Lumos
             }
             else
             {
-                if (mouseHeld)
+                if(mouseHeld)
                 {
                     mouseHeld = false;
                     Application::Get().GetWindow()->HideMouse(false);
@@ -312,7 +312,7 @@ namespace Lumos
     {
         if(m_CameraMode == EditorCameraMode::TWODIM)
         {
-            if (!m_Camera)
+            if(!m_Camera)
                 return;
 
             float multiplier = m_CameraSpeed / 10.0f;

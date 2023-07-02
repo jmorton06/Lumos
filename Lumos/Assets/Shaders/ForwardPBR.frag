@@ -17,6 +17,7 @@ layout(location = 0) in VertexData VertexOutput;
 #define MAX_LIGHTS 32
 #define MAX_SHADOWMAPS 4
 #define BLEND_SHADOW_CASCADES 1
+#define FILTER_SHADOWS 1
 #define NUM_PCF_SAMPLES 8
 float ShadowFade = 1.0;
 
@@ -258,7 +259,7 @@ float PCFShadowDirectionalLight(sampler2DArray shadowMap, vec4 shadowCoords, flo
 {
 	float bias = GetShadowBias(lightDirection, normal, cascadeIndex);
 	float sum = 0;
-	float noise = Noise(gl_FragCoord.xy);
+	float noise = Noise(wsPos.xy);
 
 	for (int i = 0; i < NUM_PCF_SAMPLES; i++)
 	{
@@ -268,7 +269,7 @@ float PCFShadowDirectionalLight(sampler2DArray shadowMap, vec4 shadowCoords, flo
 		//int index = int(float(NUM_PCF_SAMPLES)*Random(vec4(floor(wsPos*1000.0), 1)))%NUM_PCF_SAMPLES;
 		//int index = int(NUM_PCF_SAMPLES*Random(vec4(floor(wsPos.xyz*1000.0), i)))%NUM_PCF_SAMPLES;
 		
-		//int index = int(NUM_PCF_SAMPLES*Random(vec4(gl_FragCoord.xyy, i)))%NUM_PCF_SAMPLES;
+		//int index = int(NUM_PCF_SAMPLES*Random(vec4(wsPos.xyy, i)))%NUM_PCF_SAMPLES;
 		//vec2 offset = (SamplePoisson(index) / 700.0f);
 		vec2 offset = VogelDiskSample(i, NUM_PCF_SAMPLES, noise) / 700.0f;
 		
@@ -305,48 +306,26 @@ float CalculateShadow(vec3 wsPos, int cascadeIndex, vec3 lightDirection, vec3 no
 	vec4 viewPos = ubo.ViewMatrix * vec4(wsPos, 1.0);
 	
 	float shadowAmount = 1.0;
-
-#if (BLEND_SHADOW_CASCADES == 1)
-	float c0 = smoothstep(ubo.SplitDepths[0].x + ubo.CascadeFade * 0.5f, ubo.SplitDepths[0].x - ubo.CascadeFade * 0.5f, viewPos.z);
-	float c1 = smoothstep(ubo.SplitDepths[1].x + ubo.CascadeFade * 0.5f, ubo.SplitDepths[1].x - ubo.CascadeFade * 0.5f, viewPos.z);
-	float c2 = smoothstep(ubo.SplitDepths[2].x + ubo.CascadeFade * 0.5f, ubo.SplitDepths[2].x - ubo.CascadeFade * 0.5f, viewPos.z);
 	
-	if (c0 > 0.0 && c0 < 1.0)
-	{
-		shadowCoord = ubo.BiasMatrix * ubo.ShadowTransform[0] * vec4(wsPos, 1.0);
-		float shadowAmount0 = PCFShadowDirectionalLight(uShadowMap, shadowCoord, uvRadius, lightDirection, normal, wsPos, 0);
-		shadowCoord = ubo.BiasMatrix * ubo.ShadowTransform[1] * vec4(wsPos, 1.0);
-		float shadowAmount1 = PCFShadowDirectionalLight(uShadowMap, shadowCoord, uvRadius, lightDirection, normal, wsPos, 1);
-		
-		shadowAmount = mix(shadowAmount0, shadowAmount1, c0);
-	}
-	else if (c1 > 0.0 && c1 < 1.0)
-	{
-		// Sample 1 & 2
-		shadowCoord = ubo.BiasMatrix * ubo.ShadowTransform[1] * vec4(wsPos, 1.0);
-		float shadowAmount1 = PCFShadowDirectionalLight(uShadowMap, shadowCoord, uvRadius, lightDirection, normal, wsPos, 1);
-		shadowCoord = ubo.BiasMatrix * ubo.ShadowTransform[2] * vec4(wsPos, 1.0);
-		float shadowAmount2 = PCFShadowDirectionalLight(uShadowMap, shadowCoord, uvRadius, lightDirection, normal, wsPos, 2);
-		
-		shadowAmount = mix(shadowAmount1, shadowAmount2, c1);
-	}
-	else if (c2 > 0.0 && c2 < 1.0)
-	{
-		// Sample 2 & 3
-		shadowCoord = ubo.BiasMatrix * ubo.ShadowTransform[2] * vec4(wsPos, 1.0);
-		float shadowAmount2 = PCFShadowDirectionalLight(uShadowMap, shadowCoord, uvRadius, lightDirection, normal, wsPos, 2);
-		shadowCoord = ubo.BiasMatrix * ubo.ShadowTransform[3] * vec4(wsPos, 1.0);
-		float shadowAmount3 = PCFShadowDirectionalLight(uShadowMap, shadowCoord, uvRadius, lightDirection, normal, wsPos, 3);
-		
-		shadowAmount = mix(shadowAmount2, shadowAmount3, c2);
-	}
-	else
-	{
-		shadowAmount = PCFShadowDirectionalLight(uShadowMap, shadowCoord, uvRadius, lightDirection, normal, wsPos, cascadeIndex);
-	}
-#else
+#if (FILTER_SHADOWS  == 1)
 	shadowAmount = PCFShadowDirectionalLight(uShadowMap, shadowCoord, uvRadius, lightDirection, normal, wsPos, cascadeIndex);
+#else
+	float bias = GetShadowBias(lightDirection, normal, cascadeIndex);
+	float z = texture(uShadowMap, vec3(shadowCoord.xy, cascadeIndex)).r;
+	shadowAmount = step(shadowCoord.z - bias, z);
 #endif
+	
+#if (BLEND_SHADOW_CASCADES == 1)
+	float cascadeFade = smoothstep(ubo.SplitDepths[cascadeIndex].x + ubo.CascadeFade, ubo.SplitDepths[cascadeIndex].x, viewPos.z);
+	int cascadeNext = cascadeIndex + 1;
+	if (cascadeFade > 0.0 && cascadeNext < ubo.ShadowCount)
+	{
+		shadowCoord = ubo.BiasMatrix * ubo.ShadowTransform[cascadeNext] * vec4(wsPos, 1.0);
+		float shadowAmount1 = PCFShadowDirectionalLight(uShadowMap, shadowCoord, uvRadius, lightDirection, normal, wsPos, cascadeNext);
+		
+		shadowAmount =  mix(shadowAmount, shadowAmount1, cascadeFade);
+	}
+	#endif
 	
 	return 1.0 - ((1.0 - shadowAmount) * ShadowFade);
 }

@@ -47,6 +47,36 @@ namespace Lumos
         s_UIContextID--;
     }
 
+    bool ImGuiUtilities::ToggleButton(const char* label, bool state, ImVec2 size, float alpha, float pressedAlpha, ImGuiButtonFlags buttonFlags)
+    {
+        if(state)
+        {
+            ImVec4 color = ImGui::GetStyle().Colors[ImGuiCol_ButtonActive];
+
+            color.w = pressedAlpha;
+            ImGui::PushStyleColor(ImGuiCol_Button, color);
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, color);
+            ImGui::PushStyleColor(ImGuiCol_ButtonActive, color);
+        }
+        else
+        {
+            ImVec4 color        = ImGui::GetStyle().Colors[ImGuiCol_Button];
+            ImVec4 hoveredColor = ImGui::GetStyle().Colors[ImGuiCol_ButtonHovered];
+            color.w             = alpha;
+            hoveredColor.w      = pressedAlpha;
+            ImGui::PushStyleColor(ImGuiCol_Button, color);
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, hoveredColor);
+            color.w = pressedAlpha;
+            ImGui::PushStyleColor(ImGuiCol_ButtonActive, color);
+        }
+
+        bool clicked = ImGui::ButtonEx(label, size, buttonFlags);
+
+        ImGui::PopStyleColor(3);
+
+        return clicked;
+    }
+
     bool ImGuiUtilities::Property(const char* name, std::string& value, PropertyFlag flags)
     {
         LUMOS_PROFILE_FUNCTION();
@@ -1278,6 +1308,41 @@ namespace Lumos
             currentText = std::string(buffer);
 
         return updated;
+    }
+
+    void ImGuiUtilities::ClippedText(const ImVec2& pos_min, const ImVec2& pos_max, const char* text, const char* text_end, const ImVec2* text_size_if_known, const ImVec2& align, const ImRect* clip_rect, float wrap_width)
+    {
+        const char* text_display_end = ImGui::FindRenderedTextEnd(text, text_end);
+        const int text_len           = static_cast<int>(text_display_end - text);
+        if(text_len == 0)
+            return;
+
+        ImGuiContext& g     = *GImGui;
+        ImGuiWindow* window = g.CurrentWindow;
+        ImGuiUtilities::ClippedText(window->DrawList, pos_min, pos_max, text, text_display_end, text_size_if_known, align, clip_rect, wrap_width);
+        if(g.LogEnabled)
+            ImGui::LogRenderedText(&pos_min, text, text_display_end);
+    }
+
+    void ImGuiUtilities::ClippedText(ImDrawList* draw_list, const ImVec2& pos_min, const ImVec2& pos_max, const char* text, const char* text_display_end, const ImVec2* text_size_if_known, const ImVec2& align, const ImRect* clip_rect, float wrap_width)
+    {
+        // Perform CPU side clipping for single clipped element to avoid using scissor state
+        ImVec2 pos             = pos_min;
+        const ImVec2 text_size = text_size_if_known ? *text_size_if_known : ImGui::CalcTextSize(text, text_display_end, false, wrap_width);
+
+        const ImVec2* clip_min = clip_rect ? &clip_rect->Min : &pos_min;
+        const ImVec2* clip_max = clip_rect ? &clip_rect->Max : &pos_max;
+
+        // Align whole block. We should defer that to the better rendering function when we'll have support for individual line alignment.
+        if(align.x > 0.0f)
+            pos.x = ImMax(pos.x, pos.x + (pos_max.x - pos.x - text_size.x) * align.x);
+
+        if(align.y > 0.0f)
+            pos.y = ImMax(pos.y, pos.y + (pos_max.y - pos.y - text_size.y) * align.y);
+
+        // Render
+        ImVec4 fine_clip_rect(clip_min->x, clip_min->y, clip_max->x, clip_max->y);
+        draw_list->AddText(nullptr, 0.0f, pos, ImGui::GetColorU32(ImGuiCol_Text), text, text_display_end, wrap_width, &fine_clip_rect);
     }
 
     // from https://github.com/ocornut/imgui/issues/2668

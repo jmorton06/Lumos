@@ -1,6 +1,7 @@
 #pragma once
 
 #include "EditorPanel.h"
+#include <Lumos/Utilities/AssetManager.h>
 
 #if __has_include(<filesystem>)
 #include <filesystem>
@@ -10,6 +11,22 @@
 
 namespace Lumos
 {
+    enum class FileType
+    {
+        Unknown = 0,
+        Scene,
+        Prefab,
+        Script,
+        Audio,
+        Shader,
+        Texture,
+        Cubemap,
+        Model,
+        Material,
+        Project,
+        Ini,
+        Font
+    };
 
     struct DirectoryInformation
     {
@@ -19,11 +36,25 @@ namespace Lumos
         std::filesystem::path FilePath;
         bool IsFile;
 
+        std::string Name;
+        std::string Extension;
+        std::filesystem::directory_entry DirectoryEntry;
+        SharedPtr<Graphics::Texture2D> Thumbnail = nullptr;
+
+        ImVec4 FileTypeColour;
+        FileType Type;
+        std::string_view FileTypeString;
+        std::string FileSize;
+
     public:
         DirectoryInformation(const std::filesystem::path& fname, bool isF)
         {
             FilePath = fname;
             IsFile   = isF;
+        }
+
+        ~DirectoryInformation()
+        {
         }
     };
 
@@ -31,7 +62,10 @@ namespace Lumos
     {
     public:
         ResourcePanel();
-        ~ResourcePanel() = default;
+        ~ResourcePanel()
+        {
+            m_TextureLibrary.Destroy();
+        }
 
         void OnImGui() override;
 
@@ -40,6 +74,28 @@ namespace Lumos
         void RenderBreadCrumbs();
         void RenderBottom();
         // void GetDirectories(const std::string& path);
+
+        void DestroyGraphicsResources() override
+        {
+            for(auto& dir : m_Directories)
+            {
+                if(dir.second)
+                {
+                    dir.second->Parent.reset();
+                    dir.second->Children.clear();
+                }
+            }
+            m_FolderIcon.reset();
+            m_FileIcon.reset();
+            m_Directories.clear();
+            m_CurrentSelected.reset();
+            m_CurrentDir.reset();
+            m_BaseProjectDir.reset();
+            m_NextDirectory.reset();
+            m_PreviousDirectory.reset();
+            m_BreadCrumbData.clear();
+            m_TextureLibrary.Destroy();
+        }
 
         int GetParsedAssetID(const std::string& extension)
         {
@@ -82,13 +138,15 @@ namespace Lumos
         bool m_UpdateBreadCrumbs;
         bool m_ShowHiddenFiles;
         int m_GridItemsPerRow;
-        float m_GridSize = 50.0f;
+        float m_GridSize = 300.0f;
 
         ImGuiTextFilter m_Filter;
 
         char* inputText;
         char* inputHint;
         char inputBuffer[1024];
+
+        bool textureCreated = false;
 
         std::string m_BasePath;
         std::filesystem::path m_AssetPath;
@@ -101,5 +159,11 @@ namespace Lumos
         SharedPtr<DirectoryInformation> m_PreviousDirectory;
         std::unordered_map<std::string, SharedPtr<DirectoryInformation>> m_Directories;
         std::vector<SharedPtr<DirectoryInformation>> m_BreadCrumbData;
+        SharedPtr<Graphics::Texture2D> m_FolderIcon;
+        SharedPtr<Graphics::Texture2D> m_FileIcon;
+
+        SharedPtr<DirectoryInformation> m_CurrentSelected;
+
+        Lumos::TextureLibrary m_TextureLibrary;
     };
 }

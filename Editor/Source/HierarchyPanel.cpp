@@ -227,8 +227,8 @@ namespace Lumos
                 }
                 if(ImGui::Selectable("Delete"))
                     deleteEntity = true;
-                //if(m_Editor->IsSelected(node))
-                  //  m_Editor->UnSelect(node);
+                // if(m_Editor->IsSelected(node))
+                //   m_Editor->UnSelect(node);
                 ImGui::Separator();
                 if(ImGui::Selectable("Rename"))
                     m_DoubleClicked = node;
@@ -240,10 +240,10 @@ namespace Lumos
                     auto child = scene->CreateEntity();
                     child.SetParent({ node, scene });
                 }
-                
+
                 if(ImGui::Selectable("Zoom to"))
                 {
-                    //if(Application::Get().GetEditorState() == EditorState::Preview)
+                    // if(Application::Get().GetEditorState() == EditorState::Preview)
                     {
                         auto transform = registry.try_get<Maths::Transform>(node);
                         if(transform)

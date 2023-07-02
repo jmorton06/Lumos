@@ -152,10 +152,10 @@ namespace Lumos
             int SSAOBlurRadius     = 4;
             float SSAOSampleRadius = 4.0f;
             bool SSAOBlur          = true;
-			float SSAOStrength     = 1.0f;
+            float SSAOStrength     = 1.0f;
 
             float SkyboxMipLevel = 0.0f;
-            int DebugMode = 0;
+            int DebugMode        = 0;
         };
 
         struct ScenePhysics3DSettings

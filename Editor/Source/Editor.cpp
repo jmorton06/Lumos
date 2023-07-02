@@ -59,10 +59,6 @@
 
 #include <cereal/version.hpp>
 
-#ifdef LUMOS_PLATFORM_WINDOWS
-#include <shellapi.h>
-#endif
-
 namespace Lumos
 {
     Editor* Editor::s_Editor = nullptr;
@@ -88,6 +84,9 @@ namespace Lumos
     void Editor::OnQuit()
     {
         SaveEditorSettings();
+
+        for(auto panel : m_Panels)
+            panel->DestroyGraphicsResources();
 
         m_GridRenderer.reset();
         // m_PreviewRenderer.reset();
@@ -239,9 +238,9 @@ namespace Lumos
         m_ComponentIconMap[typeid(Maths::Transform).hash_code()]         = ICON_MDI_VECTOR_LINE;
         m_ComponentIconMap[typeid(RigidBody2DComponent).hash_code()]     = ICON_MDI_SQUARE_OUTLINE;
         m_ComponentIconMap[typeid(RigidBody3DComponent).hash_code()]     = ICON_MDI_CUBE_OUTLINE;
-        m_ComponentIconMap[typeid(Graphics::ModelComponent).hash_code()] = ICON_MDI_SHAPE;
-        m_ComponentIconMap[typeid(Graphics::Model).hash_code()]          = ICON_MDI_SHAPE;
-        m_ComponentIconMap[typeid(LuaScriptComponent).hash_code()]       = ICON_MDI_SCRIPT;
+        m_ComponentIconMap[typeid(Graphics::ModelComponent).hash_code()] = ICON_MDI_VECTOR_POLYGON;
+        m_ComponentIconMap[typeid(Graphics::Model).hash_code()]          = ICON_MDI_VECTOR_POLYGON;
+        m_ComponentIconMap[typeid(LuaScriptComponent).hash_code()]       = ICON_MDI_LANGUAGE_LUA;
         m_ComponentIconMap[typeid(Graphics::Environment).hash_code()]    = ICON_MDI_EARTH;
         m_ComponentIconMap[typeid(Editor).hash_code()]                   = ICON_MDI_SQUARE;
         m_ComponentIconMap[typeid(TextComponent).hash_code()]            = ICON_MDI_TEXT;
@@ -804,13 +803,7 @@ namespace Lumos
                 std::string githubMenuText = ICON_MDI_GITHUB_BOX " Github";
                 if(ImGui::MenuItem(githubMenuText.c_str()))
                 {
-#ifdef LUMOS_PLATFORM_WINDOWS
-                    ShellExecute(NULL, NULL, L"https://www.github.com/jmorton06/Lumos", NULL, NULL, SW_SHOWNORMAL);
-#else
-#ifndef LUMOS_PLATFORM_IOS
-                    system("open https://www.github.com/jmorton06/Lumos");
-#endif
-#endif
+                    Lumos::OS::Instance()->OpenURL("https://www.github.com/jmorton06/Lumos");
                 }
                 ImGui::Separator();
 

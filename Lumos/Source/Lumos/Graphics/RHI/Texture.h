@@ -85,7 +85,8 @@ namespace Lumos
             static Texture2D* CreateFromSource(uint32_t width, uint32_t height, void* data, TextureDesc parameters = TextureDesc(), TextureLoadOptions loadOptions = TextureLoadOptions());
             static Texture2D* CreateFromFile(const std::string& name, const std::string& filepath, TextureDesc parameters = TextureDesc(), TextureLoadOptions loadOptions = TextureLoadOptions());
 
-            virtual void Resize(uint32_t width, uint32_t height) = 0;
+            virtual void Resize(uint32_t width, uint32_t height)                                                                                                          = 0;
+            virtual void Load(uint32_t width, uint32_t height, void* data, TextureDesc parameters = TextureDesc(), TextureLoadOptions loadOptions = TextureLoadOptions()) = 0;
 
         protected:
             static Texture2D* (*CreateFunc)(TextureDesc parameters, uint32_t width, uint32_t height);

@@ -3,6 +3,7 @@
 
 #include <string>
 #include <glm/vec4.hpp>
+#include <filesystem>
 
 namespace Lumos
 {
@@ -52,6 +53,10 @@ namespace Lumos
 
         // Needed for MaxOS
         virtual void MaximiseWindow() { }
+
+        virtual void OpenFileLocation(const std::filesystem::path& path) { }
+        virtual void OpenFileExternal(const std::filesystem::path& path) { }
+        virtual void OpenURL(const std::string& url) { }
 
     protected:
         static OS* s_Instance;

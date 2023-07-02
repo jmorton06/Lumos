@@ -312,7 +312,7 @@ namespace Lumos
 
     void GameViewPanel::OnRender()
     {
-        if(m_GameViewVisible)
+        if(m_GameViewVisible && m_Active)
         {
             m_RenderPasses->BeginScene(m_CurrentScene);
             m_RenderPasses->OnRender();

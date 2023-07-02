@@ -94,6 +94,9 @@ namespace Lumos
         SharedPtr<ModelLibrary>& GetModelLibrary();
         SharedPtr<FontLibrary>& GetFontLibrary();
 
+        void SubmitToMainThread(const std::function<void()>& function);
+        void ExecuteMainThreadQueue();
+
         static Application& Get() { return *s_Instance; }
 
         static void Release()
@@ -273,10 +276,10 @@ namespace Lumos
             int ProjectVersion;
             int8_t DesiredGPUIndex = -1;
         };
-        
+
         struct RenderConfig
         {
-            uint32_t IrradianceMapSize = 64;
+            uint32_t IrradianceMapSize  = 64;
             uint32_t EnvironmentMapSize = 1024;
         };
 
@@ -325,6 +328,9 @@ namespace Lumos
         static Application* s_Instance;
 
         std::thread m_UpdateThread;
+
+        std::vector<std::function<void()>> m_MainThreadQueue;
+        std::mutex m_MainThreadQueueMutex;
 
         NONCOPYABLE(Application)
     };

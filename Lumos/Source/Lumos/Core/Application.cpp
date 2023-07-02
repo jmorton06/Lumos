@@ -343,6 +343,9 @@ namespace Lumos
             return false;
 #endif
         }
+
+        ExecuteMainThreadQueue();
+
         {
             LUMOS_PROFILE_SCOPE("Application::TimeStepUpdates");
             ts.OnUpdate();
@@ -537,6 +540,25 @@ namespace Lumos
     SharedPtr<FontLibrary>& Application::GetFontLibrary()
     {
         return m_FontLibrary;
+    }
+
+    void Application::SubmitToMainThread(const std::function<void()>& function)
+    {
+        LUMOS_PROFILE_FUNCTION();
+        std::scoped_lock<std::mutex> lock(m_MainThreadQueueMutex);
+
+        m_MainThreadQueue.emplace_back(function);
+    }
+
+    void Application::ExecuteMainThreadQueue()
+    {
+        LUMOS_PROFILE_FUNCTION();
+        std::scoped_lock<std::mutex> lock(m_MainThreadQueueMutex);
+
+        for(const auto& func : m_MainThreadQueue)
+            func();
+
+        m_MainThreadQueue.clear();
     }
 
     void Application::OnExitScene()
