@@ -12,7 +12,7 @@ Build font atlases using FreeType instead of stb_truetype (which is the default 
 ### About Gamma Correct Blending
 
 FreeType assumes blending in linear space rather than gamma space.
-See FreeType note for [FT_Render_Glyph](https://www.freetype.org/freetype2/docs/reference/ft2-base_interface.html#FT_Render_Glyph).
+See FreeType note for [FT_Render_Glyph](https://freetype.org/freetype2/docs/reference/ft2-glyph_retrieval.html#ft_render_glyph).
 For correct results you need to be using sRGB and convert to linear space in the pixel shader output.
 The default Dear ImGui styles will be impacted by this change (alpha values will need tweaking).
 
@@ -24,7 +24,7 @@ See https://gist.github.com/ocornut/b3a9ecf13502fd818799a452969649ad
 
 - Oversampling settins are ignored but also not so much necessary with the higher quality rendering.
 
-### Comparaison
+### Comparison
 
 Small, thin anti-aliased fonts typically benefit a lot from FreeType's hinting:
 ![comparing_font_rasterizers](https://user-images.githubusercontent.com/8225057/107550178-fef87f00-6bd0-11eb-8d09-e2edb2f0ccfc.gif)

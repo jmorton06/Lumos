@@ -1,8 +1,8 @@
+#define IMGUI_DEFINE_MATH_OPERATORS
 #include "imcmd_command_palette.h"
 
 #include "imcmd_fuzzy_search.h"
 
-#include "imgui.h"
 #include <algorithm>
 #include <cstddef>
 // NOTE: we try to use as much ImGui's helpers as possible, in order to reduce
@@ -12,7 +12,7 @@
 #include <limits>
 #include <utility>
 
-#define IMGUI_DEFINE_MATH_OPERATORS
+#include "imgui.h"
 #include "imgui_internal.h"
 
 namespace ImCmd
