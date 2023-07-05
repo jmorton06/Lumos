@@ -103,7 +103,7 @@ namespace Lumos
         m_Name       = ICON_MDI_FOLDER_STAR " Resources###resources";
         m_SimpleName = "Resources";
 
-        m_GridSize = 150.0f;
+        m_GridSize = 180.0f;
         m_GridSize *= Application::Get().GetWindow()->GetDPIScale();
         // TODO: Get Project path from editor
         // #ifdef LUMOS_PLATFORM_IOS
@@ -201,7 +201,7 @@ namespace Lumos
             directoryInfo->IsFile   = true;
             directoryInfo->Type     = fileType;
             directoryInfo->Name     = directoryPath.filename().string();
-            directoryInfo->FileSize = StringUtilities::BytesToString(std::filesystem::file_size(directoryPath));
+            directoryInfo->FileSize = std::filesystem::exists(directoryPath) ? StringUtilities::BytesToString(std::filesystem::file_size(directoryPath)) : "";
 
             std::string_view fileTypeString = s_FileTypesToString.at(FileType::Unknown);
             const auto& fileStringTypeIt    = s_FileTypesToString.find(fileType);
@@ -252,9 +252,15 @@ namespace Lumos
             if(defaultOpen)
                 nodeFlags |= ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_Leaf;
 
-            nodeFlags |= ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_SpanAvailWidth;
+            nodeFlags |= ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_AllowOverlap | ImGuiTreeNodeFlags_SpanAvailWidth;
 
             bool isOpen = ImGui::TreeNodeEx((void*)(intptr_t)(dirInfo.get()), nodeFlags, "");
+            if (ImGui::IsItemClicked())
+            {
+                m_PreviousDirectory = m_CurrentDir;
+                m_CurrentDir = dirInfo;
+                m_UpdateNavigationPath = true;
+            }
 
             const char* folderIcon = ((isOpen && containsFolder) || m_CurrentDir == dirInfo) ? ICON_MDI_FOLDER_OPEN : ICON_MDI_FOLDER;
             ImGui::SameLine();
@@ -266,12 +272,7 @@ namespace Lumos
 
             ImVec2 verticalLineStart = ImGui::GetCursorScreenPos();
 
-            if(ImGui::IsItemClicked())
-            {
-                m_PreviousDirectory    = m_CurrentDir;
-                m_CurrentDir           = dirInfo;
-                m_UpdateNavigationPath = true;
-            }
+        
 
             if(isOpen && containsFolder)
             {
@@ -579,7 +580,7 @@ namespace Lumos
                     const ImVec2 region = ImGui::GetContentRegionAvail();
                     ImGui::InvisibleButton("##DragDropTargetAssetPanelBody", region);
 
-                    ImGui::SetItemAllowOverlap();
+                    ImGui::SetNextItemAllowOverlap();
                     ImGui::SetCursorPos(cursorPos);
 
                     if(ImGui::BeginTable("BodyTable", columnCount, flags))
@@ -649,6 +650,45 @@ namespace Lumos
 
                         if(ImGui::BeginPopupContextWindow("AssetPanelHierarchyContextWindow", ImGuiPopupFlags_MouseButtonRight | ImGuiPopupFlags_NoOpenOverItems))
                         {
+                            if(std::filesystem::exists(m_CopiedPath) && ImGui::Selectable("Paste"))
+                            {
+                                if(m_CutFile)
+                                {
+                                    const std::filesystem::path& fullPath = m_CopiedPath;
+                                    std::string filename = fullPath.stem().string();
+                                    std::string extension = fullPath.extension().string();
+                                    std::filesystem::path destinationPath = m_BasePath / m_CurrentDir->FilePath / (filename + extension);
+                                    
+                                    {
+                                        while (std::filesystem::exists(destinationPath))
+                                        {
+                                            filename += "_copy";
+                                            destinationPath = destinationPath.parent_path() / (filename + extension);
+                                        }
+                                    }
+                                    std::filesystem::rename(fullPath, destinationPath);
+                                }
+                                else
+                                {
+                                    const std::filesystem::path& fullPath = m_CopiedPath;
+                                    std::string filename = fullPath.stem().string();
+                                    std::string extension = fullPath.extension().string();
+                                    std::filesystem::path destinationPath = m_BasePath / m_CurrentDir->FilePath / (filename + extension);
+                                    
+                                    {
+                                        while (std::filesystem::exists(destinationPath))
+                                        {
+                                            filename += "_copy";
+                                            destinationPath = destinationPath.parent_path() / (filename + extension);
+                                        }
+                                    }
+                                    std::filesystem::copy(fullPath, destinationPath);
+                                }
+                                m_CopiedPath = "";
+                                m_CutFile = false;
+                                Refresh();
+                            }
+                            
                             if(ImGui::Selectable("Open Location"))
                             {
                                 auto fullPath = m_BasePath + "/" + m_CurrentDir->FilePath.string();
@@ -833,7 +873,7 @@ namespace Lumos
             }
 
             // Background button
-            bool const clicked = ImGuiUtilities::ToggleButton(ImGuiUtilities::GenerateID(), highlight, backgroundThumbnailSize, 0.0f, 1.0f, ImGuiButtonFlags_AllowItemOverlap);
+            bool const clicked = ImGuiUtilities::ToggleButton(ImGuiUtilities::GenerateID(), highlight, backgroundThumbnailSize, 0.0f, 1.0f, ImGuiButtonFlags_AllowOverlap);
             if(clicked)
             {
                 m_CurrentSelected = m_CurrentDir->Children[dirIndex];
@@ -842,10 +882,22 @@ namespace Lumos
             if(ImGui::BeginPopupContextItem())
             {
                 m_CurrentSelected = m_CurrentDir->Children[dirIndex];
+                
+                if(ImGui::Selectable("Cut"))
+                {
+                    m_CopiedPath = (m_BasePath / m_CurrentDir->Children[dirIndex]->FilePath).string();
+                    m_CutFile = true;
+                }
+                
+                if(ImGui::Selectable("Copy"))
+                {
+                    m_CopiedPath = (m_BasePath / m_CurrentDir->Children[dirIndex]->FilePath).string();
+                    m_CutFile = false;
+                }
 
                 if(ImGui::Selectable("Delete"))
                 {
-                    auto fullPath = m_BasePath + "/" + m_CurrentDir->Children[dirIndex]->FilePath.string();
+                    auto fullPath = (m_BasePath / m_CurrentDir->Children[dirIndex]->FilePath).string();
 
                     std::filesystem::remove_all(fullPath);
                     Refresh();
@@ -854,9 +906,19 @@ namespace Lumos
                 if(ImGui::Selectable("Duplicate"))
                 {
                     std::filesystem::path fullPath = m_BasePath + "/" + m_CurrentDir->Children[dirIndex]->FilePath.string();
-                    std::filesystem::path copyPath = fullPath;
-                    copyPath.replace_filename(fullPath.filename().string() + "(copy)");
-                    std::filesystem::copy(fullPath, copyPath);
+                    std::filesystem::path destinationPath = fullPath;
+                    
+                    {
+                        std::string filename = fullPath.stem().string();
+                        std::string extension = fullPath.extension().string();
+                            
+                        while (std::filesystem::exists(destinationPath))
+                        {
+                            filename += "_copy";
+                            destinationPath = destinationPath.parent_path() / (filename + extension);
+                        }
+                    }
+                    std::filesystem::copy(fullPath, destinationPath);
                     Refresh();
                 }
 
@@ -933,11 +995,11 @@ namespace Lumos
             }
 
             ImGui::SetCursorPos({ cursorPos.x + padding, cursorPos.y + padding });
-            ImGui::SetItemAllowOverlap();
+            ImGui::SetNextItemAllowOverlap();
             ImGui::Image(reinterpret_cast<ImTextureID>(Graphics::Material::GetDefaultTexture()->GetHandle()), { backgroundThumbnailSize.x - padding * 2.0f, backgroundThumbnailSize.y - padding * 2.0f }, { 0, 0 }, { 1, 1 }, ImGui::GetStyleColorVec4(ImGuiCol_WindowBg) + ImVec4(0.04f, 0.04f, 0.04f, 0.04f));
 
             ImGui::SetCursorPos({ cursorPos.x + thumbnailPadding * 0.75f, cursorPos.y + thumbnailPadding });
-            ImGui::SetItemAllowOverlap();
+            ImGui::SetNextItemAllowOverlap();
             ImGui::Image(reinterpret_cast<ImTextureID>(textureId), { thumbnailSize, thumbnailSize }, ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
 
             const ImVec2 typeColorFrameSize = { scaledThumbnailSizeX, scaledThumbnailSizeX * 0.03f };

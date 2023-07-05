@@ -138,7 +138,7 @@ namespace Lumos
         bool m_UpdateBreadCrumbs;
         bool m_ShowHiddenFiles;
         int m_GridItemsPerRow;
-        float m_GridSize = 300.0f;
+        float m_GridSize = 360.0f;
 
         ImGuiTextFilter m_Filter;
 
@@ -165,5 +165,8 @@ namespace Lumos
         SharedPtr<DirectoryInformation> m_CurrentSelected;
 
         Lumos::TextureLibrary m_TextureLibrary;
+        
+        std::filesystem::path m_CopiedPath;
+        bool m_CutFile = false;
     };
 }
