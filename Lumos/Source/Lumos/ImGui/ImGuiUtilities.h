@@ -50,7 +50,7 @@ namespace Lumos
 
         bool Property(const char* name, int& value, int min = 0, int max = 100.0, PropertyFlag flags = PropertyFlag::None);
 
-        bool Property(const char* name, float& value, float min = -1.0f, float max = 1.0f, PropertyFlag flags = PropertyFlag::None);
+        bool Property(const char* name, float& value, float min = -1.0f, float max = 1.0f, float delta = 1.0f, PropertyFlag flags = PropertyFlag::None);
         bool Property(const char* name, glm::vec2& value, PropertyFlag flags);
         bool Property(const char* name, glm::vec2& value, float min = -1.0f, float max = 1.0f, PropertyFlag flags = PropertyFlag::None);
         bool Property(const char* name, glm::vec3& value, PropertyFlag flags);
@@ -73,6 +73,8 @@ namespace Lumos
         void Image(Graphics::TextureCube* texture, const glm::vec2& size);
         void Image(Graphics::TextureDepthArray* texture, uint32_t index, const glm::vec2& size);
 
+        void TextCentred(const char* text);
+
         void SetTheme(Theme theme);
 
         bool BufferingBar(const char* label, float value, const glm::vec2& size_arg, const uint32_t& bg_col, const uint32_t& fg_col);
@@ -84,13 +86,31 @@ namespace Lumos
 
         void DrawItemActivityOutline(float rounding = 0.0f, bool drawWhenInactive = false, ImColor colourWhenActive = ImColor(80, 80, 80));
         bool InputText(std::string& currentText);
+        void ClippedText(const ImVec2& pos_min, const ImVec2& pos_max, const char* text, const char* text_end, const ImVec2* text_size_if_known, const ImVec2& align, const ImRect* clip_rect, float wrap_width);
+        void ClippedText(ImDrawList* draw_list, const ImVec2& pos_min, const ImVec2& pos_max, const char* text, const char* text_display_end, const ImVec2* text_size_if_known, const ImVec2& align, const ImRect* clip_rect, float wrap_width);
 
         void AlternatingRowsBackground(float lineHeight = -1.0f);
 
+        ImRect GetItemRect();
+
+        ImRect RectExpanded(const ImRect& rect, float x, float y);
+        ImRect RectOffset(const ImRect& rect, float x, float y);
+
+        ImRect RectOffset(const ImRect& rect, ImVec2 xy);
+
+        void DrawBorder(ImVec2 rectMin, ImVec2 rectMax, const ImVec4& borderColour, float thickness = 1.0f, float offsetX = 0.0f, float offsetY = 0.0f);
+
+        void DrawBorder(const ImVec4& borderColour, float thickness = 1.0f, float offsetX = 0.0f, float offsetY = 0.0f);
+        void DrawBorder(float thickness = 1.0f, float offsetX = 0.0f, float offsetY = 0.0f);
+        void DrawBorder(ImVec2 rectMin, ImVec2 rectMax, float thickness = 1.0f, float offsetX = 0.0f, float offsetY = 0.0f);
+
+        void DrawBorder(ImRect rect, float thickness = 1.0f, float rounding = 0.0f, float offsetX = 0.0f, float offsetY = 0.0f);
         const char* GenerateID();
         const char* GenerateLabelID(std::string_view label);
         void PushID();
         void PopID();
+
+        bool ToggleButton(const char* label, bool state, ImVec2 size, float alpha, float pressedAlpha, ImGuiButtonFlags buttonFlags);
 
         class ScopedStyle
         {

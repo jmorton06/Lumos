@@ -31,7 +31,7 @@ namespace Lumos::Debug
     void Log::AddSink(spdlog::sink_ptr& sink)
     {
         s_CoreLogger->sinks().push_back(sink);
-        s_CoreLogger->set_pattern("%^[%T] %v%$");
+        s_CoreLogger->set_pattern("%v%$");
     }
 
     void Log::OnRelease()

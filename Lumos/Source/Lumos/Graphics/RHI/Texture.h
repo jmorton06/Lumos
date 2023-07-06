@@ -22,7 +22,7 @@ namespace Lumos
             virtual uint32_t GetHeight(uint32_t mip = 0) const = 0;
             virtual TextureType GetType() const                = 0;
             virtual RHIFormat GetFormat() const                = 0;
-            virtual void GenerateMipMaps() { }
+            virtual void GenerateMipMaps(CommandBuffer* commandBuffer = nullptr) { }
             virtual void SetName(const std::string& name) {};
 
             virtual uint32_t GetSize() const { return 0; }
@@ -65,7 +65,7 @@ namespace Lumos
             uint32_t& GetFlags() { return m_Flags; }
 
             SET_ASSET_TYPE(AssetType::Texture);
-            
+
             uint64_t GetUUID() const { return m_UUID; }
 
         protected:
@@ -85,7 +85,8 @@ namespace Lumos
             static Texture2D* CreateFromSource(uint32_t width, uint32_t height, void* data, TextureDesc parameters = TextureDesc(), TextureLoadOptions loadOptions = TextureLoadOptions());
             static Texture2D* CreateFromFile(const std::string& name, const std::string& filepath, TextureDesc parameters = TextureDesc(), TextureLoadOptions loadOptions = TextureLoadOptions());
 
-            virtual void Resize(uint32_t width, uint32_t height) = 0;
+            virtual void Resize(uint32_t width, uint32_t height)                                                                                                          = 0;
+            virtual void Load(uint32_t width, uint32_t height, void* data, TextureDesc parameters = TextureDesc(), TextureLoadOptions loadOptions = TextureLoadOptions()) = 0;
 
         protected:
             static Texture2D* (*CreateFunc)(TextureDesc parameters, uint32_t width, uint32_t height);
@@ -127,6 +128,7 @@ namespace Lumos
 
             virtual void Init()                                                  = 0;
             virtual void Resize(uint32_t width, uint32_t height, uint32_t count) = 0;
+            virtual uint32_t GetCount() const                                    = 0;
             virtual void* GetHandleArray(uint32_t index)
             {
                 return GetHandle();

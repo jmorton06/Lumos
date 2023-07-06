@@ -32,21 +32,30 @@ namespace Lumos
 
         bool operator==(const Vector<T>& other) const;
         bool operator!=(const Vector<T>& other) const;
-        
-        class Iterator {
+
+        class Iterator
+        {
         public:
-            Iterator(T* ptr): ptr(ptr){}
-            Iterator operator++() { ++ptr; return *this; }
-            bool operator!=(const Iterator& other) const { return ptr != other.ptr;  }
+            Iterator(T* ptr)
+                : ptr(ptr)
+            {
+            }
+            Iterator operator++()
+            {
+                ++ptr;
+                return *this;
+            }
+            bool operator!=(const Iterator& other) const { return ptr != other.ptr; }
             T& operator*() const { return *ptr; }
             Iterator operator+(int offset) const { return Iterator(ptr + offset); }
+
         private:
             T* ptr;
         };
 
         Iterator begin() const { return Iterator(m_Data); }
         Iterator end() const { return Iterator(m_Data + m_CurrentIndex); }
-        
+
         T& operator[](const size_t index);
         T* Data() { return m_Data; }
 

@@ -3,7 +3,7 @@
 #include "Core/OS/Input.h"
 #include "Core/Application.h"
 #include "Graphics/RHI/GraphicsContext.h"
-#include "Graphics/Renderers/SceneRenderer.h"
+#include "Graphics/Renderers/RenderPasses.h"
 #include "Graphics/Camera/Camera.h"
 #include "Graphics/Sprite.h"
 #include "Graphics/AnimatedSprite.h"
@@ -36,6 +36,153 @@
 #include <cereal/archives/json.hpp>
 #include <entt/entity/registry.hpp>
 #include <sol/sol.hpp>
+
+namespace entt
+{
+
+    /**
+     * @brief Utility class to restore a snapshot as a whole.
+     *
+     * A snapshot loader requires that the destination registry be empty and loads
+     * all the data at once while keeping intact the identifiers that the entities
+     * originally had.<br/>
+     * An example of use is the implementation of a save/restore utility.
+     *
+     * @tparam Entity A valid entity type (see entt_traits for more details).
+     */
+    template <typename Entity>
+    class basic_snapshot_loader_legacy
+    {
+        /*! @brief A registry is allowed to create snapshot loaders. */
+        friend class basic_registry<Entity>;
+
+        using traits_type = entt_traits<Entity>;
+
+        template <typename Type, typename Archive>
+        void assign(Archive& archive) const
+        {
+            typename traits_type::entity_type length {};
+            archive(length);
+
+            entity_type entt {};
+
+            if constexpr(std::is_empty_v<Type>)
+            {
+                while(length--)
+                {
+                    archive(entt);
+                    const auto entity = reg->valid(entt) ? entt : reg->create(entt);
+                    // ENTT_ASSERT(entity == entt);
+                    reg->template emplace<Type>(entity);
+                }
+            }
+            else
+            {
+                Type instance {};
+
+                while(length--)
+                {
+                    archive(entt, instance);
+                    const auto entity = reg->valid(entt) ? entt : reg->create(entt);
+                    // ENTT_ASSERT(entity == entt);
+                    reg->template emplace<Type>(entity, std::move(instance));
+                }
+            }
+        }
+
+    public:
+        /*! @brief Underlying entity identifier. */
+        using entity_type = Entity;
+
+        /**
+         * @brief Constructs an instance that is bound to a given registry.
+         * @param source A valid reference to a registry.
+         */
+        basic_snapshot_loader_legacy(basic_registry<entity_type>& source) noexcept
+            : reg { &source }
+        {
+            // restoring a snapshot as a whole requires a clean registry
+            // ENTT_ASSERT(reg->empty());
+        }
+
+        /*! @brief Default move constructor. */
+        basic_snapshot_loader_legacy(basic_snapshot_loader_legacy&&) = default;
+
+        /*! @brief Default move assignment operator. @return This loader. */
+        basic_snapshot_loader_legacy& operator=(basic_snapshot_loader_legacy&&) = default;
+
+        /**
+         * @brief Restores entities that were in use during serialization.
+         *
+         * This function restores the entities that were in use during serialization
+         * and gives them the versions they originally had.
+         *
+         * @tparam Archive Type of input archive.
+         * @param archive A valid reference to an input archive.
+         * @return A valid loader to continue restoring data.
+         */
+        template <typename Archive>
+        const basic_snapshot_loader_legacy& entities(Archive& archive) const
+        {
+            typename traits_type::entity_type length {};
+
+            archive(length);
+            std::vector<entity_type> all(length);
+
+            for(decltype(length) pos {}; pos < length; ++pos)
+            {
+                archive(all[pos]);
+            }
+
+            reg->assign(all.cbegin(), all.cend(), 0);
+
+            return *this;
+        }
+
+        /**
+         * @brief Restores components and assigns them to the right entities.
+         *
+         * The template parameter list must be exactly the same used during
+         * serialization. In the event that the entity to which the component is
+         * assigned doesn't exist yet, the loader will take care to create it with
+         * the version it originally had.
+         *
+         * @tparam Component Types of components to restore.
+         * @tparam Archive Type of input archive.
+         * @param archive A valid reference to an input archive.
+         * @return A valid loader to continue restoring data.
+         */
+        template <typename... Component, typename Archive>
+        const basic_snapshot_loader_legacy& component(Archive& archive) const
+        {
+            (assign<Component>(archive), ...);
+            return *this;
+        }
+
+        /**
+         * @brief Destroys those entities that have no components.
+         *
+         * In case all the entities were serialized but only part of the components
+         * was saved, it could happen that some of the entities have no components
+         * once restored.<br/>
+         * This functions helps to identify and destroy those entities.
+         *
+         * @return A valid loader to continue restoring data.
+         */
+        const basic_snapshot_loader_legacy& orphans() const
+        {
+            /*        reg->orphans([this](const auto entt) {
+                        reg->destroy(entt);
+                        });*/
+            LUMOS_LOG_WARN("May need to fix this - basic_snapshot_loader_legacy::orphans()");
+
+            return *this;
+        }
+
+    private:
+        basic_registry<entity_type>* reg;
+    };
+}
 
 namespace Lumos
 {
@@ -112,6 +259,12 @@ namespace Lumos
         const glm::vec2& mousePos = Input::Get().GetMousePosition();
 
         auto defaultCameraControllerView = m_EntityManager->GetEntitiesWithType<DefaultCameraController>();
+        auto cameraView                  = m_EntityManager->GetEntitiesWithType<Camera>();
+        Camera* camera                   = nullptr;
+        if(!cameraView.Empty())
+        {
+            camera = &cameraView.Front().GetComponent<Camera>();
+        }
 
         if(!defaultCameraControllerView.Empty())
         {
@@ -119,6 +272,7 @@ namespace Lumos
             auto trans             = defaultCameraControllerView.Front().TryGetComponent<Maths::Transform>();
             if(Application::Get().GetSceneActive() && trans && cameraController.GetController())
             {
+                cameraController.GetController()->SetCamera(camera);
                 cameraController.GetController()->HandleMouse(*trans, (float)timeStep.GetSeconds(), mousePos.x, mousePos.y);
                 cameraController.GetController()->HandleKeyboard(*trans, (float)timeStep.GetSeconds());
             }
@@ -178,6 +332,9 @@ namespace Lumos
 #define ALL_COMPONENTSV6 ALL_COMPONENTSV5, Graphics::ModelComponent
 #define ALL_COMPONENTSV7 ALL_COMPONENTSV6, AxisConstraintComponent
 #define ALL_COMPONENTSV8 ALL_COMPONENTSV7, TextComponent
+
+#define ALL_COMPONENTSV9(input) get<Maths::Transform>(input).get<NameComponent>(input).get<ActiveComponent>(input).get<Hierarchy>(input).get<Camera>(input).get<LuaScriptComponent>(input).get<Graphics::Model>(input).get<Graphics::Light>(input).get<RigidBody3DComponent>(input).get<Graphics::Environment>(input).get<Graphics::Sprite>(input).get<RigidBody2DComponent>(input).get<DefaultCameraController>(input).get<Graphics::AnimatedSprite>(input).get<SoundComponent>(input).get<Listener>(input).get<IDComponent>(input).get<Graphics::ModelComponent>(input).get<AxisConstraintComponent>(input).get<TextComponent>(input)
+
     void Scene::Serialise(const std::string& filePath, bool binary)
     {
         LUMOS_PROFILE_FUNCTION();
@@ -197,7 +354,7 @@ namespace Lumos
                 // output finishes flushing its contents when it goes out of scope
                 cereal::BinaryOutputArchive output { file };
                 output(*this);
-                entt::snapshot { m_EntityManager->GetRegistry() }.entities(output).component<ALL_COMPONENTSV8>(output);
+                entt::snapshot { m_EntityManager->GetRegistry() }.get<entt::entity>(output).ALL_COMPONENTSV9(output);
             }
             file.close();
         }
@@ -210,7 +367,7 @@ namespace Lumos
                 // output finishes flushing its contents when it goes out of scope
                 cereal::JSONOutputArchive output { storage };
                 output(*this);
-                entt::snapshot { m_EntityManager->GetRegistry() }.entities(output).component<ALL_COMPONENTSV8>(output);
+                entt::snapshot { m_EntityManager->GetRegistry() }.get<entt::entity>(output).ALL_COMPONENTSV9(output);
             }
             FileSystem::WriteTextFile(path, storage.str());
         }
@@ -240,21 +397,23 @@ namespace Lumos
                 cereal::BinaryInputArchive input(file);
                 input(*this);
                 if(m_SceneSerialisationVersion < 2)
-                    entt::snapshot_loader { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV1>(input);
+                    entt::basic_snapshot_loader_legacy { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV1>(input).orphans();
                 else if(m_SceneSerialisationVersion == 3)
-                    entt::snapshot_loader { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV2>(input);
+                    entt::basic_snapshot_loader_legacy { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV2>(input).orphans();
                 else if(m_SceneSerialisationVersion == 4)
-                    entt::snapshot_loader { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV3>(input);
+                    entt::basic_snapshot_loader_legacy { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV3>(input).orphans();
                 else if(m_SceneSerialisationVersion == 5)
-                    entt::snapshot_loader { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV4>(input);
+                    entt::basic_snapshot_loader_legacy { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV4>(input);
                 else if(m_SceneSerialisationVersion == 6)
-                    entt::snapshot_loader { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV5>(input);
+                    entt::basic_snapshot_loader_legacy { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV5>(input);
                 else if(m_SceneSerialisationVersion == 7)
-                    entt::snapshot_loader { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV6>(input);
+                    entt::basic_snapshot_loader_legacy { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV6>(input);
                 else if(m_SceneSerialisationVersion >= 8 && m_SceneSerialisationVersion < 14)
-                    entt::snapshot_loader { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV7>(input);
-                else if(m_SceneSerialisationVersion >= 14)
-                    entt::snapshot_loader { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV8>(input);
+                    entt::basic_snapshot_loader_legacy { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV7>(input);
+                else if(m_SceneSerialisationVersion >= 14 && m_SceneSerialisationVersion < 21)
+                    entt::basic_snapshot_loader_legacy { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV8>(input);
+                else if(m_SceneSerialisationVersion >= 21)
+                    entt::snapshot_loader { m_EntityManager->GetRegistry() }.get<entt::entity>(input).ALL_COMPONENTSV9(input);
 
                 if(m_SceneSerialisationVersion < 6)
                 {
@@ -298,21 +457,23 @@ namespace Lumos
                 input(*this);
 
                 if(m_SceneSerialisationVersion < 2)
-                    entt::snapshot_loader { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV1>(input);
+                    entt::basic_snapshot_loader_legacy { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV1>(input).orphans();
                 else if(m_SceneSerialisationVersion == 3)
-                    entt::snapshot_loader { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV2>(input);
+                    entt::basic_snapshot_loader_legacy { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV2>(input).orphans();
                 else if(m_SceneSerialisationVersion == 4)
-                    entt::snapshot_loader { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV3>(input);
+                    entt::basic_snapshot_loader_legacy { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV3>(input).orphans();
                 else if(m_SceneSerialisationVersion == 5)
-                    entt::snapshot_loader { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV4>(input);
+                    entt::basic_snapshot_loader_legacy { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV4>(input);
                 else if(m_SceneSerialisationVersion == 6)
-                    entt::snapshot_loader { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV5>(input);
+                    entt::basic_snapshot_loader_legacy { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV5>(input);
                 else if(m_SceneSerialisationVersion == 7)
-                    entt::snapshot_loader { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV6>(input);
+                    entt::basic_snapshot_loader_legacy { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV6>(input);
                 else if(m_SceneSerialisationVersion >= 8 && m_SceneSerialisationVersion < 14)
-                    entt::snapshot_loader { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV7>(input);
-                else if(m_SceneSerialisationVersion >= 14)
-                    entt::snapshot_loader { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV8>(input);
+                    entt::basic_snapshot_loader_legacy { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV7>(input);
+                else if(m_SceneSerialisationVersion >= 14 && m_SceneSerialisationVersion < 21)
+                    entt::basic_snapshot_loader_legacy { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV8>(input);
+                else if(m_SceneSerialisationVersion >= 21)
+                    entt::snapshot_loader { m_EntityManager->GetRegistry() }.get<entt::entity>(input).ALL_COMPONENTSV9(input);
 
                 if(m_SceneSerialisationVersion < 6)
                 {
@@ -352,7 +513,7 @@ namespace Lumos
     template <typename T>
     static void CopyComponentIfExists(entt::entity dst, entt::entity src, entt::registry& registry)
     {
-        if(registry.has<T>(src))
+        if(registry.all_of<T>(src))
         {
             auto& srcComponent = registry.get<T>(src);
             registry.emplace_or_replace<T>(dst, srcComponent);

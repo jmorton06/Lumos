@@ -1,14 +1,10 @@
 #version 450
-#include "Common.glslh"
+#include "PBR.glslh"
 
 #extension GL_ARB_separate_shader_objects : enable
 #extension GL_ARB_shading_language_420pack : enable
 
 //https://www.shadertoy.com/view/3lXXDB
-
-float saturate(float x) {
-    return clamp(x, 0.0, 1.0);
-}
 
 // Taken from https://github.com/SaschaWillems/Vulkan-glTF-PBR/blob/master/data/shaders/genbrdflut.frag
 // Based on http://holger.dammertz.org/stuff/notes_HammersleyOnHemisphere.html
@@ -23,26 +19,6 @@ vec2 hammersley(uint i, uint N)
 	float rdi = float(bits) * 2.3283064365386963e-10;
 	return vec2(float(i) /float(N), rdi);
 }
-
-// From the filament docs. Geometric Shadowing function
-// https://google.github.io/filament/Filament.html#toc4.4.2
-float G_Smith(float NoV, float NoL, float roughness)
-{
-	float k = (roughness * roughness) / 2.0;
-	float GGXL = NoL / (NoL * (1.0 - k) + k);
-	float GGXV = NoV / (NoV * (1.0 - k) + k);
-	return GGXL * GGXV;
-}
-
-// From the filament docs. Geometric Shadowing function
-// https://google.github.io/filament/Filament.html#toc4.4.2
-float V_SmithGGXCorrelated(float NoV, float NoL, float roughness) {
-    float a2 = pow(roughness, 4.0);
-    float GGXV = NoL * sqrt(NoV * NoV * (1.0 - a2) + a2);
-    float GGXL = NoV * sqrt(NoL * NoL * (1.0 - a2) + a2);
-    return 0.5 / (GGXV + GGXL);
-}
-
 
 // Based on Karis 2014
 vec3 importanceSampleGGX(vec2 Xi, float roughness, vec3 N)
@@ -116,9 +92,9 @@ void main()
     vec2 res = integrateBRDF(a, mu);
     
     // Single Scatter Energy
-    //fragColor = vec4(vec3(res.x + res.y), 1.0);
+    //outFrag = vec4(vec3(res.x + res.y), 1.0);
     
     // Scale and Bias for F0 (as per Karis 2014)
-     outFrag = vec4(res.x, res.y, 0.0, 1.0);
+    outFrag = vec4(res.x, res.y, 0.0, 1.0);
 }
 	

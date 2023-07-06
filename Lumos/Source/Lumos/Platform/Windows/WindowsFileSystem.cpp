@@ -56,16 +56,16 @@ namespace Lumos
 
     bool FileSystem::ReadFile(const std::string& path, void* buffer, int64_t size)
     {
-        const HANDLE file = OpenFileForReading(path);
-        if(file == INVALID_HANDLE_VALUE)
-            return false;
+        std::ifstream stream(path, std::ios::binary | std::ios::ate);
 
-        if(size < 0)
-            size = GetFileSizeInternal(file);
+        auto end = stream.tellg();
+        stream.seekg(0, std::ios::beg);
+        size   = end - stream.tellg();
+        buffer = new char[size];
+        stream.read((char*)buffer, size);
+        stream.close();
 
-        bool result = ReadFileInternal(file, buffer, size);
-        CloseHandle(file);
-        return result;
+        return buffer;
     }
 
     uint8_t* FileSystem::ReadFile(const std::string& path)
@@ -73,47 +73,51 @@ namespace Lumos
         if(!FileExists(path))
             return nullptr;
 
-        const HANDLE file  = OpenFileForReading(path);
-        const int64_t size = GetFileSizeInternal(file);
-        uint8_t* buffer    = new uint8_t[static_cast<uint32_t>(size)];
-        const bool result  = ReadFileInternal(file, buffer, size);
-        CloseHandle(file);
-        if(!result)
-            delete[] buffer;
-        return result ? buffer : nullptr;
+        std::ifstream stream(path, std::ios::binary | std::ios::ate);
+
+        auto end = stream.tellg();
+        stream.seekg(0, std::ios::beg);
+        const int64_t size = end - stream.tellg();
+        char* buffer       = new char[size];
+        stream.read((char*)buffer, size);
+        stream.close();
+
+        return (uint8_t*)buffer;
     }
 
     std::string FileSystem::ReadTextFile(const std::string& path)
     {
         if(!FileExists(path))
             return std::string();
-        const HANDLE file  = OpenFileForReading(path);
-        const int64_t size = GetFileSizeInternal(file);
-        std::string result(static_cast<uint32_t>(size), 0);
-        const bool success = ReadFileInternal(file, &result[0], size);
-        CloseHandle(file);
-        if(success)
-        {
-            // Strip carriage returns
-            result.erase(std::remove(result.begin(), result.end(), '\r'), result.end());
+
+        std::ifstream stream(path);
+
+        std::string fileContent;
+        std::string line;
+        while(std::getline(stream, line))
+        {                               // Read file line by line
+            fileContent += line + "\n"; // Append each line to fileContent
         }
-        return success ? result : std::string();
+
+        stream.close();
+
+        return fileContent;
     }
 
     bool FileSystem::WriteFile(const std::string& path, uint8_t* buffer, uint32_t size)
     {
-        const HANDLE file = CreateFile(WindowsUtilities::StringToWString(path).c_str(), GENERIC_WRITE, NULL, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
-        if(file == INVALID_HANDLE_VALUE)
+        std::ofstream stream(path, std::ios::binary | std::ios::trunc);
+
+        if(!stream)
         {
-            DWORD dw = GetLastError();
-            LUMOS_LOG_WARN("Failed to write file {0}, Error {1}", path, dw);
+            stream.close();
             return false;
         }
 
-        DWORD written;
-        const bool result = ::WriteFile(file, buffer, static_cast<DWORD>(size), &written, nullptr) != 0;
-        CloseHandle(file);
-        return result;
+        stream.write((char*)buffer, size);
+        stream.close();
+
+        return true;
     }
 
     bool FileSystem::WriteTextFile(const std::string& path, const std::string& text)

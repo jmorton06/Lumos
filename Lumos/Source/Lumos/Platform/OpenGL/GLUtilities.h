@@ -11,6 +11,7 @@ namespace Lumos
             uint32_t TextureWrapToGL(TextureWrap wrap);
             uint32_t FormatToInternalFormat(uint32_t format);
             uint32_t StencilTypeToGL(const StencilType type);
+            uint32_t GetGLTypefromFormat(RHIFormat format);
 
             uint32_t RendererBufferToGL(uint32_t buffer);
             uint32_t RendererBlendFunctionToGL(RendererBlendFunction function);

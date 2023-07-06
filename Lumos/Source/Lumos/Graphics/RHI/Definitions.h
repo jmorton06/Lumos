@@ -338,10 +338,11 @@ namespace Lumos
             TextureFilter minFilter;
             TextureFilter magFilter;
             TextureWrap wrap;
-            uint16_t msaaLevel   = 1;
-            uint16_t flags       = TextureFlags::Texture_CreateMips;
-            bool srgb            = false;
-            bool generateMipMaps = true;
+            uint16_t msaaLevel        = 1;
+            uint16_t flags            = TextureFlags::Texture_CreateMips;
+            bool srgb                 = false;
+            bool generateMipMaps      = true;
+            bool anisotropicFiltering = true;
 
             TextureDesc()
             {
@@ -428,9 +429,11 @@ namespace Lumos
                     if(member.name == name)
                     {
                         memcpy(&data[member.offset], value, member.size);
-                        break;
+                        return;
                     }
                 }
+
+                LUMOS_LOG_WARN("Pushconst not found {0}", name);
             }
 
             void SetData(void* value)

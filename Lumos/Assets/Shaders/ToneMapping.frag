@@ -10,13 +10,37 @@ layout(set = 0, binding = 0) uniform UniformBuffer
 {
 	float BloomIntensity;
 	int ToneMapIndex;
+	float Saturation;
+	float Contrast;
+	float Brightness;
 	float p0;
 	float p1;
+	float p2;
 } ubo;
 
 layout(set = 0, binding = 1) uniform sampler2D u_Texture;
 layout(set = 0, binding = 2) uniform sampler2D u_BloomTexture;
 layout(location = 0) out vec4 outFrag;
+
+mat4 SaturationMatrix( float saturation )
+{
+    vec3 luminance = vec3( 0.3086, 0.6094, 0.0820 );
+    float oneMinusSat = 1.0 - saturation;
+    
+    vec3 red = vec3( luminance.x * oneMinusSat );
+    red+= vec3( saturation, 0, 0 );
+    
+    vec3 green = vec3( luminance.y * oneMinusSat );
+    green += vec3( 0, saturation, 0 );
+    
+    vec3 blue = vec3( luminance.z * oneMinusSat );
+    blue += vec3( 0, 0, saturation );
+    
+    return mat4( red,     0,
+                 green,   0,
+                 blue,    0,
+                 0, 0, 0, 1 );
+}
 
 vec3 UpsampleTent9(sampler2D tex, float lod, vec2 uv, vec2 texelSize, float radius)
 {
@@ -136,7 +160,7 @@ vec3 uncharted2_tonemap_partial(vec3 x)
 
 vec3 uncharted2_filmic(vec3 v)
 {
-    float exposure_bias = 2.0f;
+    float exposure_bias = 1.0f;
     vec3 curr = uncharted2_tonemap_partial(v * exposure_bias);
 	
     vec3 W = vec3(11.2f);
@@ -202,5 +226,9 @@ void main()
 	else if (i == 6) colour = ACESTonemap(colour);
 	
 	colour = Gamma(colour);
+
+	colour.rgb = (colour.rgb - 0.5f) * ubo.Contrast + 0.5f + ubo.Brightness;
+	colour.rgb = (SaturationMatrix(ubo.Saturation) * vec4(colour, 1.0)).xyz;
+
 	outFrag = vec4(colour, 1.0);
 }

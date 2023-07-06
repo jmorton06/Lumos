@@ -1,4 +1,5 @@
 #pragma once
+#include "Core/Core.h"
 #include "UUID.h"
 
 #define SET_ASSET_TYPE(type)                        \
@@ -24,16 +25,19 @@ namespace Lumos
 
     enum class AssetType : uint16_t
     {
-        None            = 0,
-        Texture         = 1,
-        Mesh            = 2,
-        Scene           = 3,
-        Audio           = 4,
-        Font            = 5,
-        Shader          = 6,
-        Material        = 7,
-        PhysicsMaterial = 8,
-        Model           = 9,
+        None                = 0,
+        Texture             = 1,
+        Mesh                = 2,
+        Scene               = 3,
+        Audio               = 4,
+        Font                = 5,
+        Shader              = 6,
+        Material            = 7,
+        PhysicsMaterial     = 8,
+        Model               = 9,
+        Skeleton            = 10,
+        Animation           = 11,
+        AnimationController = 12,
     };
 
     class LUMOS_EXPORT Asset

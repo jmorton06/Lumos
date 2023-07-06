@@ -1,6 +1,6 @@
 project 'lua'
 	kind 'StaticLib'
-	staticruntime "On"
+	staticruntime "Off"
 
 	defines 
 	{

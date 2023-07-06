@@ -18,12 +18,13 @@ IncludeDir["spdlog"] = "External/spdlog/include"
 IncludeDir["glm"] = "External/glm"
 IncludeDir["msdf_atlas_gen"] = "External/msdf-atlas-gen/msdf-atlas-gen"
 IncludeDir["msdfgen"] = "External/msdf-atlas-gen/msdfgen"
+IncludeDir["ozz"] = "External/ozz-animation/include"
 
 project "Lumos"
 	kind "StaticLib"
 	language "C++"
 	editandcontinue "Off"
-
+		staticruntime "Off"
 	files
 	{
 		"Source/**.h",
@@ -65,6 +66,7 @@ project "Lumos"
 		"%{IncludeDir.glm}",
 		"%{IncludeDir.msdfgen}",
 		"%{IncludeDir.msdf_atlas_gen}",
+		"%{IncludeDir.ozz}",
 		"%{IncludeDir.Lumos}",
 	}
 
@@ -78,7 +80,10 @@ project "Lumos"
 		"spdlog",
 		"meshoptimizer",
 		-- "msdfgen",
-		"msdf-atlas-gen"
+		"msdf-atlas-gen",
+		"ozz_base",
+		"ozz_animation",
+		"ozz_animation_offline"
 	}
 
 	defines
@@ -96,11 +101,10 @@ project "Lumos"
 
 	filter "system:windows"
 		cppdialect "C++17"
-		staticruntime "on"
 		systemversion "latest"
 		disablewarnings { 4307 }
 		characterset ("Unicode")
-
+		conformancemode "on"
 		pchheader "Precompiled.h"
 		pchsource "Source/Precompiled.cpp"
 
@@ -143,13 +147,13 @@ project "Lumos"
 
 		links
 		{
-			"glfw",
-			"Dbghelp"
+			"Dbghelp",
+			"glfw"
 		}
 
 		buildoptions
 		{
-			"/MP", "/bigobj"
+			"/bigobj"
 		}
 
 		filter 'files:External/**.cpp'
@@ -371,19 +375,19 @@ project "Lumos"
 			}
 
 	filter "configurations:Debug"
-defines { "LUMOS_DEBUG", "_DEBUG","TRACY_ENABLE","LUMOS_PROFILE","TRACY_ON_DEMAND"  }
+		defines { "LUMOS_DEBUG", "_DEBUG","TRACY_ENABLE","LUMOS_PROFILE","TRACY_ON_DEMAND"  }
 		symbols "On"
 		runtime "Debug"
 		optimize "Off"
 
 	filter "configurations:Release"
-defines { "LUMOS_RELEASE","TRACY_ENABLE","LUMOS_PROFILE", "TRACY_ON_DEMAND"}
+		defines { "LUMOS_RELEASE", "NDEBUG", "TRACY_ENABLE","LUMOS_PROFILE", "TRACY_ON_DEMAND"}
 		optimize "Speed"
 		symbols "On"
 		runtime "Release"
 
 	filter "configurations:Production"
-		defines "LUMOS_PRODUCTION"
+		defines { "LUMOS_PRODUCTION", "NDEBUG" }
 		symbols "Off"
 		optimize "Full"
 		runtime "Release"

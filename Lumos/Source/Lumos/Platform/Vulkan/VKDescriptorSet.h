@@ -24,7 +24,7 @@ namespace Lumos
                 uint32_t currentFrame = Renderer::GetMainSwapChain()->GetCurrentBufferIndex();
                 return m_DescriptorSet[currentFrame];
             }
-            void Update() override;
+            void Update(CommandBuffer* cmdBuffer) override;
             void SetTexture(const std::string& name, Texture* texture, uint32_t mipIndex, TextureType textureType) override;
             void SetTexture(const std::string& name, Texture** texture, uint32_t textureCount, TextureType textureType) override;
             void SetBuffer(const std::string& name, UniformBuffer* buffer) override;

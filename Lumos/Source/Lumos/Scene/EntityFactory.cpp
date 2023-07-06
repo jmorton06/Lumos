@@ -250,9 +250,9 @@ namespace Lumos
             scene,
             "Sphere",
             pos,
-            0.5f,
+            Random32::Rand(0.8f, 1.7f),
             true,
-            1.0f,
+            Random32::Rand(0.2f, 1.0f),
             true,
             glm::vec4(Random32::Rand(0.0f, 1.0f),
                       Random32::Rand(0.0f, 1.0f),
@@ -260,7 +260,7 @@ namespace Lumos
                       1.0f));
 
         const glm::vec3 forward = dir;
-        sphere.GetComponent<RigidBody3DComponent>().GetRigidBody()->SetLinearVelocity(forward * 30.0f);
+        sphere.GetComponent<RigidBody3DComponent>().GetRigidBody()->SetLinearVelocity(forward * 20.0f);
     }
 
     void EntityFactory::AddPyramid(Scene* scene, const glm::vec3& pos, const glm::vec3& dir)

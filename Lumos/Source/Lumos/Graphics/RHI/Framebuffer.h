@@ -8,7 +8,7 @@ namespace Lumos
     {
         enum class CubeFace
         {
-            PositiveX,
+            PositiveX = 0,
             NegativeX,
             PositiveY,
             NegativeY,

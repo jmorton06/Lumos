@@ -22,7 +22,7 @@ namespace Lumos
     template <typename... Component, typename... Exclude>
     struct _ECS_export_view<entt::type_list<Component...>, entt::type_list<Exclude...>>
     {
-        static entt::view<entt::exclude_t<Exclude...>, Component...> view(entt::registry& registry)
+        static entt::view<entt::get_t<Component...>> view(entt::registry& registry)
         {
             return registry.view<Component...>(entt::exclude<Exclude...>);
         }
@@ -41,9 +41,9 @@ namespace Lumos
         entity_type.set_function("Has" #Comp, &Entity::HasComponent<Comp>);                                    \
         auto entityManager_type = curLuaState["enttRegistry"].get_or_create<sol::usertype<registry>>();        \
         entityManager_type.set_function("view_" #Comp, &_ECS_export_view<type_list<Comp>, type_list<>>::view); \
-        auto V = curLuaState.new_usertype<basic_view<entity, exclude_t<>, Comp>>(#Comp "_view");               \
-        V.set_function("each", &basic_view<entity, exclude_t<>, Comp>::each<std::function<void(Comp&)>>);      \
-        V.set_function("front", &basic_view<entity, exclude_t<>, Comp>::front);                                \
+        auto V = curLuaState.new_usertype<view<entt::get_t<Comp>>>(#Comp "_view");                             \
+        V.set_function("each", &view<entt::get_t<Comp>>::each<std::function<void(Comp&)>>);                    \
+        V.set_function("front", &view<entt::get_t<Comp>>::front);                                              \
         s_Identifiers.push_back(#Comp);                                                                        \
         s_Identifiers.push_back("Add" #Comp);                                                                  \
         s_Identifiers.push_back("Remove" #Comp);                                                               \

@@ -17,6 +17,7 @@ layout(location = 1) in vec4 inColor;
 layout(location = 2) in vec2 inTexCoord;
 layout(location = 3) in vec3 inNormal;
 layout(location = 4) in vec3 inTangent;
+layout(location = 5) in vec3 inBitangent;
 
 struct VertexData
 {
@@ -24,8 +25,7 @@ struct VertexData
 	vec2 TexCoord;
 	vec4 Position;
 	vec3 Normal;
-	vec3 Tangent;
-	vec4 ShadowMapCoords[4];
+	mat3 WorldNormal;
 };
 
 layout(location = 0) out VertexData VertexOutput;
@@ -42,6 +42,10 @@ void main()
     
 	VertexOutput.Colour = inColor.xyz;
 	VertexOutput.TexCoord = inTexCoord;
-    VertexOutput.Normal = transpose(inverse(mat3(pushConsts.transform))) * normalize(inNormal);
-    VertexOutput.Tangent = inTangent;
+	//VertexOutput.Normal = mat3(pushConsts.transform) * inNormal;
+	mat3 transposeInv = transpose(inverse(mat3(pushConsts.transform)));
+    VertexOutput.Normal = transposeInv * inNormal;
+
+    VertexOutput.WorldNormal = transposeInv * mat3(inTangent, inBitangent, inNormal);
+
 }

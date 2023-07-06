@@ -24,6 +24,8 @@ namespace Lumos
                 return GL_R11F_G11F_B10F;
             case RHIFormat::R10G10B10A2_Unorm:
                 return GL_RGB10_A2;
+            case RHIFormat::R16G16_Float:
+                return GL_RG16F;
             case RHIFormat::R16G16B16_Float:
                 return GL_RGB16F;
             case RHIFormat::R16G16B16A16_Float:
@@ -88,6 +90,8 @@ namespace Lumos
                 return GL_RGBA;
             case GL_RGB16:
                 return GL_RGB;
+            case GL_RG16F:
+                return GL_RG;
             case GL_RGBA16:
                 return GL_RGBA;
             case GL_RGBA16F:
@@ -134,6 +138,30 @@ namespace Lumos
             default:
                 LUMOS_ASSERT(false, "Unsupported StencilType");
                 return 0;
+            }
+        }
+
+        uint32_t GLUtilities::GetGLTypefromFormat(RHIFormat format)
+        {
+            switch(format)
+            {
+            case RHIFormat::R8_Unorm:
+            case RHIFormat::R8G8_Unorm:
+            case RHIFormat::R8G8B8_Unorm:
+            case RHIFormat::R8G8B8A8_Unorm:
+            case RHIFormat::R10G10B10A2_Unorm:
+                return GL_UNSIGNED_BYTE;
+            case RHIFormat::R16_Float:
+            case RHIFormat::R16G16_Float:
+            case RHIFormat::R11G11B10_Float:
+            case RHIFormat::R16G16B16_Float:
+            case RHIFormat::R16G16B16A16_Float:
+            case RHIFormat::R32G32B32_Float:
+            case RHIFormat::R32G32B32A32_Float:
+                return GL_FLOAT;
+            default:
+                LUMOS_ASSERT(false, "[Texture] Unsupported Format");
+                return GL_UNSIGNED_BYTE;
             }
         }
 

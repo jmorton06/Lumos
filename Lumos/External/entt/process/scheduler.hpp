@@ -1,18 +1,16 @@
 #ifndef ENTT_PROCESS_SCHEDULER_HPP
 #define ENTT_PROCESS_SCHEDULER_HPP
 
-
-#include <vector>
-#include <memory>
-#include <utility>
 #include <algorithm>
+#include <iterator>
+#include <memory>
 #include <type_traits>
-#include "../config/config.h"
+#include <utility>
+#include <vector>
+#include "fwd.hpp"
 #include "process.hpp"
 
-
 namespace entt {
-
 
 /**
  * @brief Cooperative scheduler for processes.
@@ -41,11 +39,11 @@ namespace entt {
  * @tparam Delta Type to use to provide elapsed time.
  */
 template<typename Delta>
-class scheduler {
+class basic_scheduler {
     struct process_handler {
-        using instance_type = std::unique_ptr<void, void(*)(void *)>;
-        using update_fn_type = bool(process_handler &, Delta, void *);
-        using abort_fn_type = void(process_handler &, bool);
+        using instance_type = std::unique_ptr<void, void (*)(void *)>;
+        using update_fn_type = bool(basic_scheduler &, std::size_t, Delta, void *);
+        using abort_fn_type = void(basic_scheduler &, std::size_t, bool);
         using next_type = std::unique_ptr<process_handler>;
 
         instance_type instance;
@@ -55,17 +53,14 @@ class scheduler {
     };
 
     struct continuation {
-        continuation(process_handler *ref)
-            : handler{ref}
-        {
-            ENTT_ASSERT(handler);
-        }
+        continuation(process_handler *ref) noexcept
+            : handler{ref} {}
 
         template<typename Proc, typename... Args>
-        continuation then(Args &&... args) {
+        continuation then(Args &&...args) {
             static_assert(std::is_base_of_v<process<Proc, Delta>, Proc>, "Invalid process type");
-            auto proc = typename process_handler::instance_type{new Proc{std::forward<Args>(args)...}, &scheduler::deleter<Proc>};
-            handler->next.reset(new process_handler{std::move(proc), &scheduler::update<Proc>, &scheduler::abort<Proc>, nullptr});
+            auto proc = typename process_handler::instance_type{new Proc{std::forward<Args>(args)...}, &basic_scheduler::deleter<Proc>};
+            handler->next.reset(new process_handler{std::move(proc), &basic_scheduler::update<Proc>, &basic_scheduler::abort<Proc>, nullptr});
             handler = handler->next.get();
             return *this;
         }
@@ -80,28 +75,28 @@ class scheduler {
     };
 
     template<typename Proc>
-    [[nodiscard]] static bool update(process_handler &handler, const Delta delta, void *data) {
-        auto *process = static_cast<Proc *>(handler.instance.get());
+    [[nodiscard]] static bool update(basic_scheduler &owner, std::size_t pos, const Delta delta, void *data) {
+        auto *process = static_cast<Proc *>(owner.handlers[pos].instance.get());
         process->tick(delta, data);
 
-        auto dead = process->dead();
-
-        if(dead) {
-            if(handler.next && !process->rejected()) {
+        if(process->rejected()) {
+            return true;
+        } else if(process->finished()) {
+            if(auto &&handler = owner.handlers[pos]; handler.next) {
                 handler = std::move(*handler.next);
                 // forces the process to exit the uninitialized state
-                dead = handler.update(handler, {}, nullptr);
-            } else {
-                handler.instance.reset();
+                return handler.update(owner, pos, {}, nullptr);
             }
+
+            return true;
         }
 
-        return dead;
+        return false;
     }
 
     template<typename Proc>
-    static void abort(process_handler &handler, const bool immediately) {
-        static_cast<Proc *>(handler.instance.get())->abort(immediately);
+    static void abort(basic_scheduler &owner, std::size_t pos, const bool immediately) {
+        static_cast<Proc *>(owner.handlers[pos].instance.get())->abort(immediately);
     }
 
     template<typename Proc>
@@ -111,22 +106,25 @@ class scheduler {
 
 public:
     /*! @brief Unsigned integer type. */
+    using delta_type = Delta;
+    /*! @brief Unsigned integer type. */
     using size_type = std::size_t;
 
     /*! @brief Default constructor. */
-    scheduler() = default;
+    basic_scheduler()
+        : handlers{} {}
 
     /*! @brief Default move constructor. */
-    scheduler(scheduler &&) = default;
+    basic_scheduler(basic_scheduler &&) = default;
 
     /*! @brief Default move assignment operator. @return This scheduler. */
-    scheduler & operator=(scheduler &&) = default;
+    basic_scheduler &operator=(basic_scheduler &&) = default;
 
     /**
      * @brief Number of processes currently scheduled.
      * @return Number of processes currently scheduled.
      */
-    [[nodiscard]] size_type size() const ENTT_NOEXCEPT {
+    [[nodiscard]] size_type size() const noexcept {
         return handlers.size();
     }
 
@@ -134,7 +132,7 @@ public:
      * @brief Returns true if at least a process is currently scheduled.
      * @return True if there are scheduled processes, false otherwise.
      */
-    [[nodiscard]] bool empty() const ENTT_NOEXCEPT {
+    [[nodiscard]] bool empty() const noexcept {
         return handlers.empty();
     }
 
@@ -174,13 +172,13 @@ public:
      * @return An opaque object to use to concatenate processes.
      */
     template<typename Proc, typename... Args>
-    auto attach(Args &&... args) {
+    auto attach(Args &&...args) {
         static_assert(std::is_base_of_v<process<Proc, Delta>, Proc>, "Invalid process type");
-        auto proc = typename process_handler::instance_type{new Proc{std::forward<Args>(args)...}, &scheduler::deleter<Proc>};
-        process_handler handler{std::move(proc), &scheduler::update<Proc>, &scheduler::abort<Proc>, nullptr};
+        auto proc = typename process_handler::instance_type{new Proc{std::forward<Args>(args)...}, &basic_scheduler::deleter<Proc>};
+        auto &&ref = handlers.emplace_back(process_handler{std::move(proc), &basic_scheduler::update<Proc>, &basic_scheduler::abort<Proc>, nullptr});
         // forces the process to exit the uninitialized state
-        handler.update(handler, {}, nullptr);
-        return continuation{&handlers.emplace_back(std::move(handler))};
+        ref.update(*this, handlers.size() - 1u, {}, nullptr);
+        return continuation{&handlers.back()};
     }
 
     /**
@@ -251,19 +249,14 @@ public:
      * @param delta Elapsed time.
      * @param data Optional data.
      */
-    void update(const Delta delta, void *data = nullptr) {
-        bool clean = false;
-
+    void update(const delta_type delta, void *data = nullptr) {
         for(auto pos = handlers.size(); pos; --pos) {
-            auto &handler = handlers[pos-1];
-            const bool dead = handler.update(handler, delta, data);
-            clean = clean || dead;
-        }
+            const auto curr = pos - 1u;
 
-        if(clean) {
-            handlers.erase(std::remove_if(handlers.begin(), handlers.end(), [](auto &handler) {
-                return !handler.instance;
-            }), handlers.end());
+            if(const auto dead = handlers[curr].update(*this, curr, delta, data); dead) {
+                std::swap(handlers[curr], handlers.back());
+                handlers.pop_back();
+            }
         }
     }
 
@@ -278,23 +271,16 @@ public:
      * @param immediately Requests an immediate operation.
      */
     void abort(const bool immediately = false) {
-        decltype(handlers) exec;
-        exec.swap(handlers);
-
-        for(auto &&handler: exec) {
-            handler.abort(handler, immediately);
+        for(auto pos = handlers.size(); pos; --pos) {
+            const auto curr = pos - 1u;
+            handlers[curr].abort(*this, curr, immediately);
         }
-
-        std::move(handlers.begin(), handlers.end(), std::back_inserter(exec));
-        handlers.swap(exec);
     }
 
 private:
     std::vector<process_handler> handlers{};
 };
 
-
-}
-
+} // namespace entt
 
 #endif

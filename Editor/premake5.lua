@@ -17,12 +17,13 @@ IncludeDir["spdlog"] = "../Lumos/External/spdlog/include"
 IncludeDir["glm"] = "../Lumos/External/glm"
 IncludeDir["msdf_atlas_gen"] = "../Lumos/External/msdf-atlas-gen/msdf-atlas-gen"
 IncludeDir["msdfgen"] = "../Lumos/External/msdf-atlas-gen/msdfgen"
+IncludeDir["ozz"] = "../Lumos/External/ozz-animation/include"
 
 project "LumosEditor"
 	kind "WindowedApp"
 	language "C++"
 	editandcontinue "Off"
-	
+		
 	files
 	{
 		"**.h",
@@ -55,6 +56,7 @@ project "LumosEditor"
 		"%{IncludeDir.msdfgen}",
 		"%{IncludeDir.msdf_atlas_gen}",
 		"%{IncludeDir.glm}",
+		"%{IncludeDir.ozz}",
 		"%{IncludeDir.Lumos}",
 	}
 
@@ -69,7 +71,10 @@ project "LumosEditor"
 		"spdlog",
 		"meshoptimizer",
 		-- "msdfgen",
-		"msdf-atlas-gen"
+		"msdf-atlas-gen",
+		"ozz_animation",
+		"ozz_animation_offline",
+		"ozz_base"
 	}
 
 	defines
@@ -88,10 +93,10 @@ project "LumosEditor"
 
 	filter "system:windows"
 		cppdialect "C++17"
-		staticruntime "On"
+		staticruntime "Off"
 		systemversion "latest"
 		entrypoint "WinMainCRTStartup"
-		conformancemode "off"
+		conformancemode "on"
 
 		defines
 		{
@@ -124,10 +129,10 @@ project "LumosEditor"
 
 	filter "system:macosx"
 		cppdialect "C++17"
-		staticruntime "On"
+		staticruntime "Off"
 		systemversion "11.0"
 		editandcontinue "Off"
-
+		
 		xcodebuildresources { "Assets.xcassets", "libMoltenVK.dylib" }
 
 		xcodebuildsettings
@@ -139,14 +144,14 @@ project "LumosEditor"
 			--['ENABLE_HARDENED_RUNTIME'] = 'YES'
 		}
 
-if settings.enable_signing then
-xcodebuildsettings
-{
-	['CODE_SIGN_IDENTITY'] = 'Mac Developer',
-	['DEVELOPMENT_TEAM'] = settings.developer_team,
-		['PRODUCT_BUNDLE_IDENTIFIER'] = settings.bundle_identifier
-}
-end
+		if settings.enable_signing then
+		xcodebuildsettings
+		{
+			['CODE_SIGN_IDENTITY'] = 'Mac Developer',
+			['DEVELOPMENT_TEAM'] = settings.developer_team,
+				['PRODUCT_BUNDLE_IDENTIFIER'] = settings.bundle_identifier
+		}
+		end
 
 		defines
 		{
@@ -184,12 +189,12 @@ end
 
 	filter "system:ios"
 		cppdialect "C++17"
-		staticruntime "On"
+		staticruntime "Off"
 		systemversion "latest"
 		kind "WindowedApp"
 		targetextension ".app"
 		editandcontinue "Off"
-
+		
 		defines
 		{
 			"LUMOS_PLATFORM_IOS",
@@ -246,16 +251,16 @@ end
 			['IPHONEOS_DEPLOYMENT_TARGET'] = '13.0',
 			['INFOPLIST_FILE'] = '../Lumos/Source/Lumos/Platform/iOS/Client/Info.plist',
 			['ASSETCATALOG_COMPILER_APPICON_NAME'] = 'AppIcon',
-}
+		}
 
-if settings.enable_signing then
-xcodebuildsettings
-{
-	['PRODUCT_BUNDLE_IDENTIFIER'] = settings.bundle_identifier,
-	['CODE_SIGN_IDENTITY[sdk=iphoneos*]'] = 'iPhone Developer',
-	['DEVELOPMENT_TEAM'] = settings.developer_team
-}
-end
+		if settings.enable_signing then
+		xcodebuildsettings
+		{
+			['PRODUCT_BUNDLE_IDENTIFIER'] = settings.bundle_identifier,
+			['CODE_SIGN_IDENTITY[sdk=iphoneos*]'] = 'iPhone Developer',
+			['DEVELOPMENT_TEAM'] = settings.developer_team
+		}
+		end
 
 		if _OPTIONS["teamid"] then
 			xcodebuildsettings {
@@ -295,7 +300,7 @@ end
 
 	filter "system:linux"
 		cppdialect "C++17"
-		staticruntime "On"
+		staticruntime "Off"
 		systemversion "latest"
 
 		defines
@@ -332,6 +337,74 @@ end
 			{
 				"-msse4.1",
 			}
+	
+			
+		filter "system:android"
+			androidsdkversion "29"
+			androidminsdkversion "29"
+			cppdialect "C++17"
+			staticruntime "Off"
+			systemversion "latest"
+			kind "WindowedApp"
+			targetextension ".apk"
+			editandcontinue "Off"
+			
+			defines
+			{
+				"LUMOS_PLATFORM_ANDROID",
+				"LUMOS_PLATFORM_MOBILE",
+				"LUMOS_PLATFORM_UNIX",
+				"LUMOS_RENDER_API_VULKAN",
+				"LUMOS_IMGUI"
+			}
+	
+			--Adding assets from Game Project folder. Needs rework
+			files
+			{
+				"../Lumos/Assets/Shaders",
+				"../Lumos/Source/Lumos/Platform/Android/**",
+				"../ExampleProject/Assets/Scenes",
+				"../ExampleProject/Assets/Scripts",
+				"../ExampleProject/Assets/Meshes",
+				"../ExampleProject/Assets/Sounds",
+				"../ExampleProject/Assets/Textures",
+				"../ExampleProject/Example.lmproj"
+			}
+			
+			links
+			{
+				"log" -- required for c++ logging	
+			}
+			
+			buildoptions
+			{
+				"-std=c++17" -- flag mainly here to test cmake compile options
+			}
+			
+			linkoptions
+			{
+				"--no-undefined" -- this flag is used just to cmake link libraries
+			}
+			
+			includedirs
+			{
+				"h"
+			}
+			
+			androidabis
+			{
+				"arm64-v8a"
+			}
+		
+			androiddependencies
+			{
+				"com.android.support:support-v4:27.1.0",
+			}
+			
+			assetpackdependencies
+			{
+				"pack"
+			}
 
 	filter "configurations:Debug"
 		defines { "LUMOS_DEBUG", "_DEBUG","TRACY_ENABLE","LUMOS_PROFILE","TRACY_ON_DEMAND" }
@@ -340,13 +413,13 @@ end
 		optimize "Off"
 
 	filter "configurations:Release"
-		defines { "LUMOS_RELEASE","TRACY_ENABLE","LUMOS_PROFILE","TRACY_ON_DEMAND"}
+		defines { "LUMOS_RELEASE", "NDEBUG", "TRACY_ENABLE","LUMOS_PROFILE","TRACY_ON_DEMAND"}
 		optimize "Speed"
 		symbols "On"
 		runtime "Release"
 
 	filter "configurations:Production"
-		defines "LUMOS_PRODUCTION"
+		defines { "LUMOS_PRODUCTION", "NDEBUG" }
 		symbols "Off"
 		optimize "Full"
 		runtime "Release"

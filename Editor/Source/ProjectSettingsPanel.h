@@ -15,5 +15,7 @@ namespace Lumos
 
     private:
         Scene* m_CurrentScene = nullptr;
+        bool m_NameUpdated    = false;
+        std::string m_ProjectName;
     };
 }

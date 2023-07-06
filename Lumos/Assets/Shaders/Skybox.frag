@@ -3,7 +3,7 @@
 #extension GL_ARB_separate_shader_objects : enable
 #extension GL_ARB_shading_language_420pack : enable
 
-layout(location = 0) in vec4 outPosition;
+layout(location = 0) in vec3 outPosition;
 
 layout(set = 0, binding = 1) uniform samplerCube u_CubeMap;
 layout(set = 0, binding = 2) uniform UniformBuffer
@@ -60,7 +60,7 @@ void main()
 
 	if(data.Mode == 0)
 	{
-		colour = DeGamma(textureLod(u_CubeMap, outPosition.xyz, data.BlurLevel).xyz);
+		colour = textureLod(u_CubeMap, outPosition, data.BlurLevel).xyz;
 	}
 	else
 	{

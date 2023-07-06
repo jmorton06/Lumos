@@ -337,40 +337,44 @@ namespace Lumos
     void GLFWWindow::SetIcon(const std::string& file, const std::string& smallIconFilePath)
     {
         uint32_t width, height;
-        uint8_t* pixels = Lumos::LoadImageFromFile(file, &width, &height, nullptr, nullptr, true);
+
+        std::vector<GLFWimage> images;
+        GLFWimage image;
+
+        uint8_t* pixels      = nullptr;
+        uint8_t* pixelsSmall = nullptr;
+
+        if(smallIconFilePath != "")
+        {
+            pixelsSmall = Lumos::LoadImageFromFile(smallIconFilePath, &width, &height, nullptr, nullptr, false);
+
+            if(!pixelsSmall)
+            {
+                LUMOS_LOG_WARN("Failed to load app icon {0}", smallIconFilePath);
+            }
+
+            image.height = height;
+            image.width  = width;
+            image.pixels = static_cast<unsigned char*>(pixelsSmall);
+            images.push_back(image);
+        }
+
+        pixels = Lumos::LoadImageFromFile(file, &width, &height, nullptr, nullptr, true);
 
         if(!pixels)
         {
             LUMOS_LOG_WARN("Failed to load app icon {0}", file);
-            return;
         }
 
-        std::vector<GLFWimage> images;
-        GLFWimage image;
         image.height = height;
         image.width  = width;
         image.pixels = static_cast<unsigned char*>(pixels);
         images.push_back(image);
 
-        if(smallIconFilePath != "")
-        {
-            pixels = Lumos::LoadImageFromFile(smallIconFilePath, &width, &height, nullptr, nullptr, true);
-
-            if(!pixels)
-            {
-                LUMOS_LOG_WARN("Failed to load app icon {0}", smallIconFilePath);
-                return;
-            }
-
-            image.height = height;
-            image.width  = width;
-            image.pixels = static_cast<unsigned char*>(pixels);
-            images.push_back(image);
-        }
-
         glfwSetWindowIcon(m_Handle, int(images.size()), images.data());
 
         delete[] pixels;
+        delete[] pixelsSmall;
     }
 
     void GLFWWindow::SetWindowTitle(const std::string& title)
@@ -435,7 +439,7 @@ namespace Lumos
         LUMOS_PROFILE_FUNCTION();
         if(hide)
         {
-            glfwSetInputMode(m_Handle, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+            glfwSetInputMode(m_Handle, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
         }
         else
         {

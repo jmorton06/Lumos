@@ -5,8 +5,10 @@
 #include "Audio/Sound.h"
 #include "Graphics/RHI/Shader.h"
 #include "Utilities/TSingleton.h"
+#include "Utilities/LoadImage.h"
 #include "Scene/Component/ModelComponent.h"
 #include "Graphics/Font.h"
+#include <future>
 
 namespace Lumos
 {
@@ -99,14 +101,19 @@ namespace Lumos
             m_NameResourceMap.emplace(name, newResource);
         }
 
-        void Destroy()
+        virtual void Destroy()
         {
             typename MapType::iterator itr = m_NameResourceMap.begin();
-            while(itr != m_NameResourceMap.end())
+
+            if(m_ReleaseFunc)
             {
-                m_ReleaseFunc((itr->second.data));
-                ++itr;
+                while(itr != m_NameResourceMap.end())
+                {
+                    m_ReleaseFunc((itr->second.data));
+                    ++itr;
+                }
             }
+            m_NameResourceMap.clear();
         }
 
         void Update(const float elapsedSeconds)
@@ -187,6 +194,23 @@ namespace Lumos
             shader = SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromFile(filePath));
             return true;
         }
+    };
+
+    class TextureLibrary : public ResourceManager<Graphics::Texture2D>
+    {
+    public:
+        TextureLibrary()
+        {
+            m_LoadFunc = Load;
+        }
+
+        ~TextureLibrary()
+        {
+        }
+
+        static bool Load(const std::string& filePath, SharedPtr<Graphics::Texture2D>& texture);
+
+        void Destroy() override;
     };
 
     class ModelLibrary : public ResourceManager<Graphics::Model>

@@ -40,25 +40,25 @@ namespace MM
         };
 
     private:
-        using ComponentTypeID = ENTT_ID_TYPE;
+        using ComponentTypeID = entt::id_type;
         ImGuiTextFilter m_ComponentFilter;
 
         std::map<ComponentTypeID, ComponentInfo> component_infos;
 
         bool entityHasComponent(Registry& registry, EntityType& entity, ComponentTypeID type_id)
         {
-            ComponentTypeID type[] = { type_id };
-            return registry.runtime_view(std::cbegin(type), std::cend(type)).contains(entity);
+            const auto* storage_ptr = registry.storage(type_id);
+            return storage_ptr != nullptr && storage_ptr->contains(entity);
         }
 
     public:
         template <class Component>
         ComponentInfo& registerComponent(const ComponentInfo& component_info)
         {
-            auto index               = entt::type_info<Component>::id();
-            auto [it, insert_result] = component_infos.insert_or_assign(index, component_info);
-            assert(insert_result);
-            return std::get<ComponentInfo>(*it);
+            auto index       = entt::type_hash<Component>::value();
+            auto insert_info = component_infos.insert_or_assign(index, component_info);
+            assert(insert_info.second);
+            return std::get<ComponentInfo>(*insert_info.first);
         }
 
         template <class Component>
@@ -93,7 +93,7 @@ namespace MM
 
                         const std::string& label = ci.name;
 
-                        bool open = ImGui::CollapsingHeader(label.c_str(), ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_DefaultOpen);
+                        bool open = ImGui::CollapsingHeader(label.c_str(), ImGuiTreeNodeFlags_AllowOverlap | ImGuiTreeNodeFlags_DefaultOpen);
 
                         bool removed = false;
 
