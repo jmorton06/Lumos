@@ -13,17 +13,14 @@ namespace Lumos
     class Scene;
     class Entity;
 
-    template <typename T>
-    class EntityView
+    template <typename... Component>
+    struct EntityView
     {
         class iterator;
+        using TView = entt::view<entt::get_t<Component...>>;
 
     public:
-        EntityView(Scene* scene)
-            : m_Scene(scene)
-            , m_View(scene->GetRegistry().view<T>())
-        {
-        }
+        EntityView(Scene* scene);
 
         Entity operator[](int i)
         {
@@ -38,11 +35,10 @@ namespace Lumos
         iterator begin();
         iterator end();
 
-    private:
         class iterator : public std::iterator<std::output_iterator_tag, Entity>
         {
         public:
-            explicit iterator(EntityView<T>& view, size_t index = 0)
+            explicit iterator(EntityView<Component...>& view, size_t index = 0)
                 : view(view)
                 , nIndex(index)
             {
@@ -68,54 +64,61 @@ namespace Lumos
 
         private:
             size_t nIndex = 0;
-            EntityView<T>& view;
+            EntityView<Component...>& view;
         };
 
         Scene* m_Scene;
-        entt::basic_view<entt::entity, entt::exclude_t<>, T> m_View;
+        TView m_View;
     };
 
-    template <typename T>
-    typename EntityView<T>::iterator EntityView<T>::begin()
+    template <typename... Component>
+    EntityView<Component...>::EntityView(Scene* scene)
+        : m_Scene(scene)
+        , m_View(scene->GetRegistry().view<Component...>())
     {
-        return EntityView<T>::iterator(*this, 0);
     }
 
-    template <typename T>
-    typename EntityView<T>::iterator EntityView<T>::end()
+    template <typename... Component>
+    typename EntityView<Component...>::iterator EntityView<Component...>::begin()
     {
-        return EntityView<T>::iterator(*this, Size());
+        return EntityView<Component...>::iterator(*this, 0);
     }
 
-    template <typename... Components>
-    class EntityGroup
+    template <typename... Component>
+    typename EntityView<Component...>::iterator EntityView<Component...>::end()
     {
-    public:
-        EntityGroup(Scene* scene)
-            : m_Scene(scene)
-            , m_Group(scene->GetRegistry().group<Components...>())
-        {
-        }
+        return EntityView<Component...>::iterator(*this, Size());
+    }
 
-        Entity operator[](int i)
-        {
-            LUMOS_ASSERT(i < Size(), "Index out of range on Entity View");
-            return Entity(m_Group[i], m_Scene);
-        }
-
-        size_t Size() const
-        {
-            return m_Group.size();
-        }
-        Entity Front()
-        {
-            return Entity(m_Group[0], m_Scene);
-        }
-
-    private:
-        Scene* m_Scene;
-        entt::group<Components...> m_Group;
-    };
+    //    template <typename... Components>
+    //    class EntityGroup
+    //    {
+    //    public:
+    //        EntityGroup(Scene* scene)
+    //            : m_Scene(scene)
+    //            , m_Group(scene->GetRegistry().group<Components...>())
+    //        {
+    //        }
+    //
+    //        Entity operator[](int i)
+    //        {
+    //            LUMOS_ASSERT(i < Size(), "Index out of range on Entity View");
+    //            return Entity(m_Group[i], m_Scene);
+    //        }
+    //
+    //        size_t Size() const
+    //        {
+    //            return m_Group.size();
+    //        }
+    //        Entity Front()
+    //        {
+    //            return Entity(m_Group[0], m_Scene);
+    //        }
+    //
+    //    private:
+    //        Scene* m_Scene;
+    //        entt::group<Components...> m_Group;
+    //    };
 
     template <typename...>
     struct TypeList
@@ -128,6 +131,7 @@ namespace Lumos
         EntityManager(Scene* scene)
             : m_Scene(scene)
         {
+            m_Registry = {};
         }
 
         Entity Create();
@@ -139,10 +143,10 @@ namespace Lumos
             return m_Registry.group<Components...>();
         }
 
-        template <typename Component>
-        EntityView<Component> GetEntitiesWithType()
+        template <typename... Component>
+        EntityView<Component...> GetEntitiesWithType()
         {
-            return EntityView<Component>(m_Scene);
+            return EntityView<Component...>(m_Scene);
         }
 
         template <typename R, typename T>

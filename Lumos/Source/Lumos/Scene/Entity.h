@@ -92,7 +92,7 @@ namespace Lumos
         bool HasComponent()
         {
             LUMOS_PROFILE_FUNCTION();
-            return m_Scene->GetRegistry().has<T>(m_EntityHandle);
+            return m_Scene->GetRegistry().all_of<T>(m_EntityHandle);
         }
 
         template <typename T>
@@ -292,6 +292,8 @@ namespace Lumos
             LUMOS_PROFILE_FUNCTION();
             return m_Scene->GetRegistry().valid(m_EntityHandle) && m_Scene;
         }
+
+        Scene* GetScene() const { return m_Scene; }
 
     private:
         entt::entity m_EntityHandle = entt::null;

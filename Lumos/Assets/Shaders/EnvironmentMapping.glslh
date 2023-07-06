@@ -1,0 +1,111 @@
+#include "Common.glslh"
+const uint NumSamples = 1024;
+const float InvNumSamples = 1.0 / float(NumSamples);
+
+
+float D_GGX(float NoH, float a) 
+{
+    float a2 = a * a;
+    float f = (NoH * a2 - NoH) * NoH + 1.0;
+    return a2 / (PI * f * f);
+}
+
+vec3 GetCubeMapTexCoord(int face, vec2 outTexCoord)
+{
+	vec2 uv = outTexCoord;
+	uv = 2.0 * vec2(uv.x, uv.y) - vec2(1.0);
+		
+	if(face == 0) 	   return vec3(     1.f,   uv.y,    -uv.x);
+	else if(face == 1) return vec3(    -1.f,   uv.y,     uv.x);
+	else if(face == 2) return vec3(   +uv.x,   -1.f,    +uv.y);
+	else if(face == 3) return vec3(   +uv.x,    1.f,    -uv.y);
+	else if(face == 4) return vec3(   +uv.x,   uv.y,      1.f);
+	else			   return vec3(   -uv.x,  +uv.y,     -1.f); //if(face == 5) 
+}
+
+vec3 GetCubeMapTexCoord2(int cubeFaceIndex, vec2 texCoord)
+{
+	vec2 uv = texCoord;
+	uv = 2.0 * vec2(uv.x, 1.0 - uv.y) - vec2(1.0);
+	
+    vec3 ret = vec3(0.0, 0.0, 0.0);
+	int face = cubeFaceIndex;
+
+    if (face == 0)      ret = vec3(  1.0, uv.y, -uv.x);
+    else if (face == 1) ret = vec3( -1.0, uv.y,  uv.x);
+    else if (face == 2) ret = vec3( uv.x,  1.0, -uv.y);
+    else if (face == 3) ret = vec3( uv.x, -1.0,  uv.y);
+    else if (face == 4) ret = vec3( uv.x, uv.y,   1.0);
+    else ret = vec3(-uv.x, uv.y,  -1.0); //if (face == 5)
+    return normalize(ret);
+}
+
+float RadicalInverse_VdC(uint bits)
+{
+	bits = (bits << 16u) | (bits >> 16u);
+	bits = ((bits & 0x55555555u) << 1u) | ((bits & 0xAAAAAAAAu) >> 1u);
+	bits = ((bits & 0x33333333u) << 2u) | ((bits & 0xCCCCCCCCu) >> 2u);
+	bits = ((bits & 0x0F0F0F0Fu) << 4u) | ((bits & 0xF0F0F0F0u) >> 4u);
+	bits = ((bits & 0x00FF00FFu) << 8u) | ((bits & 0xFF00FF00u) >> 8u);
+	return float(bits) * 2.3283064365386963e-10; // / 0x100000000
+}
+
+vec2 SampleHammersley(uint i)
+{
+	return vec2(i * InvNumSamples, RadicalInverse_VdC(i));
+}
+
+
+void ComputeBasisVectors(const vec3 N, out vec3 S, out vec3 T)
+{
+	// Branchless select non-degenerate T.
+	T = cross(N, vec3(0.0, 1.0, 0.0));
+	T = mix(cross(N, vec3(1.0, 0.0, 0.0)), T, step(Epsilon, dot(T, T)));
+
+	T = normalize(T);
+	S = normalize(cross(N, T));
+}
+
+// Importance sample GGX normal distribution function for a fixed roughness value.
+// This returns normalized half-vector between Li & Lo.
+// For derivation see: http://blog.tobias-franke.eu/2014/03/30/notes_on_importance_sampling.html
+vec3 SampleGGX(float u1, float u2, float roughness)
+{
+	float alpha = roughness * roughness;
+
+	float cosTheta = sqrt((1.0 - u2) / (1.0 + (alpha*alpha - 1.0) * u2));
+	float sinTheta = sqrt(1.0 - cosTheta*cosTheta); // Trig. identity
+	float phi = TwoPI * u1;
+
+	// Convert to Cartesian upon return.
+	return vec3(sinTheta * cos(phi), sinTheta * sin(phi), cosTheta);
+}
+
+// GGX/Towbridge-Reitz normal distribution function.
+// Uses Disney's reparametrization of alpha = roughness^2
+float NdfGGX(float cosLh, float roughness)
+{
+	float alpha = roughness * roughness;
+	float alphaSq = alpha * alpha;
+
+	float denom = (cosLh * cosLh) * (alphaSq - 1.0) + 1.0;
+	return alphaSq / (PI * denom * denom);
+}
+
+vec2 SampleHammersley(uint i, uint samples)
+{
+	float invSamples = 1.0 / float(samples);
+	return vec2(i * invSamples, RadicalInverse_VdC(i));
+}
+
+vec3 SampleHemisphere(float u1, float u2)
+{
+	const float u1p = sqrt(max(0.0, 1.0 - u1*u1));
+	return vec3(cos(TwoPI*u2) * u1p, sin(TwoPI*u2) * u1p, u1);
+}
+
+vec3 TangentToWorld(const vec3 v, const vec3 N, const vec3 S, const vec3 T)
+{
+	return S * v.x + T * v.y + N * v.z;
+}
+

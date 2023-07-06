@@ -113,15 +113,16 @@ namespace Lumos
             bool DebugRenderEnabled        = true;
             bool SkyboxRenderEnabled       = true;
             bool ShadowsEnabled            = true;
-            bool FXAAEnabled               = false;
-            bool DebandingEnabled          = false;
+            bool FXAAEnabled               = true;
+            bool DebandingEnabled          = true;
             bool ChromaticAberationEnabled = false;
             bool EyeAdaptation             = false;
             bool SSAOEnabled               = false;
-            bool BloomEnabled              = false;
+            bool BloomEnabled              = true;
             bool FilmicGrainEnabled        = false;
             bool MotionBlurEnabled         = false;
             bool DepthOfFieldEnabled       = false;
+            bool SharpenEnabled            = false;
             float DepthOfFieldStrength     = 1.0f;
             float DepthOfFieldDistance     = 100.0f;
 
@@ -137,12 +138,24 @@ namespace Lumos
 
             float m_Exposure        = 1.0f;
             uint32_t m_ToneMapIndex = 6;
+            float Brightness        = 0.0f;
+            float Saturation        = 1.0f;
+            float Contrast          = 1.0f;
 
             // Bloom
             float m_BloomIntensity   = 1.0f;
             float BloomThreshold     = 1.0f;
             float BloomKnee          = 0.1f;
             float BloomUpsampleScale = 1.0f;
+
+            // SSAO
+            int SSAOBlurRadius     = 4;
+            float SSAOSampleRadius = 4.0f;
+            bool SSAOBlur          = true;
+            float SSAOStrength     = 1.0f;
+
+            float SkyboxMipLevel = 0.0f;
+            int DebugMode        = 0;
         };
 
         struct ScenePhysics3DSettings
@@ -193,6 +206,10 @@ namespace Lumos
             archive(cereal::make_nvp("FXAAEnabled", m_Settings.RenderSettings.FXAAEnabled), cereal::make_nvp("DebandingEnabled", m_Settings.RenderSettings.DebandingEnabled), cereal::make_nvp("ChromaticAberationEnabled", m_Settings.RenderSettings.ChromaticAberationEnabled), cereal::make_nvp("EyeAdaptation", m_Settings.RenderSettings.EyeAdaptation), cereal::make_nvp("SSAOEnabled", m_Settings.RenderSettings.SSAOEnabled), cereal::make_nvp("BloomEnabled", m_Settings.RenderSettings.BloomEnabled), cereal::make_nvp("FilmicGrainEnabled", m_Settings.RenderSettings.FilmicGrainEnabled), cereal::make_nvp("DepthOfFieldEnabled", m_Settings.RenderSettings.DepthOfFieldEnabled), cereal::make_nvp("MotionBlurEnabled", m_Settings.RenderSettings.MotionBlurEnabled));
 
             archive(cereal::make_nvp("DepthOFFieldEnabled", m_Settings.RenderSettings.DepthOfFieldEnabled), cereal::make_nvp("DepthOfFieldStrength", m_Settings.RenderSettings.DepthOfFieldStrength), cereal::make_nvp("DepthOfFieldDistance", m_Settings.RenderSettings.DepthOfFieldDistance));
+
+            archive(m_Settings.RenderSettings.Brightness, m_Settings.RenderSettings.Saturation, m_Settings.RenderSettings.Contrast);
+
+            archive(m_Settings.RenderSettings.SharpenEnabled);
         }
 
         template <typename Archive>
@@ -227,6 +244,12 @@ namespace Lumos
             {
                 archive(cereal::make_nvp("DepthOfFieldEnabled", m_Settings.RenderSettings.DepthOfFieldEnabled), cereal::make_nvp("DepthOfFieldStrength", m_Settings.RenderSettings.DepthOfFieldStrength), cereal::make_nvp("DepthOfFieldDistance", m_Settings.RenderSettings.DepthOfFieldDistance));
             }
+
+            if(Serialisation::CurrentSceneVersion > 16)
+                archive(m_Settings.RenderSettings.Brightness, m_Settings.RenderSettings.Saturation, m_Settings.RenderSettings.Contrast);
+
+            if(Serialisation::CurrentSceneVersion > 18)
+                archive(m_Settings.RenderSettings.SharpenEnabled);
         }
 
         SceneSettings& GetSettings()

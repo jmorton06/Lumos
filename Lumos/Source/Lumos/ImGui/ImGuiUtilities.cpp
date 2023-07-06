@@ -47,6 +47,36 @@ namespace Lumos
         s_UIContextID--;
     }
 
+    bool ImGuiUtilities::ToggleButton(const char* label, bool state, ImVec2 size, float alpha, float pressedAlpha, ImGuiButtonFlags buttonFlags)
+    {
+        if(state)
+        {
+            ImVec4 color = ImGui::GetStyle().Colors[ImGuiCol_ButtonActive];
+
+            color.w = pressedAlpha;
+            ImGui::PushStyleColor(ImGuiCol_Button, color);
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, color);
+            ImGui::PushStyleColor(ImGuiCol_ButtonActive, color);
+        }
+        else
+        {
+            ImVec4 color        = ImGui::GetStyle().Colors[ImGuiCol_Button];
+            ImVec4 hoveredColor = ImGui::GetStyle().Colors[ImGuiCol_ButtonHovered];
+            color.w             = alpha;
+            hoveredColor.w      = pressedAlpha;
+            ImGui::PushStyleColor(ImGuiCol_Button, color);
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, hoveredColor);
+            color.w = pressedAlpha;
+            ImGui::PushStyleColor(ImGuiCol_ButtonActive, color);
+        }
+
+        bool clicked = ImGui::ButtonEx(label, size, buttonFlags);
+
+        ImGui::PopStyleColor(3);
+
+        return clicked;
+    }
+
     bool ImGuiUtilities::Property(const char* name, std::string& value, PropertyFlag flags)
     {
         LUMOS_PROFILE_FUNCTION();
@@ -64,7 +94,10 @@ namespace Lumos
         }
         else
         {
-            // TODO
+            if(ImGuiUtilities::InputText(value))
+            {
+                updated = true;
+            }
         }
         ImGui::PopItemWidth();
         ImGui::NextColumn();
@@ -205,7 +238,7 @@ namespace Lumos
         return updated;
     }
 
-    bool ImGuiUtilities::Property(const char* name, float& value, float min, float max, ImGuiUtilities::PropertyFlag flags)
+    bool ImGuiUtilities::Property(const char* name, float& value, float min, float max, float delta, ImGuiUtilities::PropertyFlag flags)
     {
         LUMOS_PROFILE_FUNCTION();
         bool updated = false;
@@ -222,7 +255,7 @@ namespace Lumos
         else
         {
             // std::string id = "##" + name;
-            if(ImGui::DragFloat(GenerateID(), &value, min, max))
+            if(ImGui::DragFloat(GenerateID(), &value, delta, min, max))
                 updated = true;
         }
         ImGui::PopItemWidth();
@@ -670,6 +703,15 @@ namespace Lumos
         }
     }
 
+    void ImGuiUtilities::TextCentred(const char* text)
+    {
+        auto windowWidth = ImGui::GetWindowSize().x;
+        auto textWidth   = ImGui::CalcTextSize(text).x;
+
+        ImGui::SetCursorPosX((windowWidth - textWidth) * 0.5f);
+        ImGui::TextUnformatted(text);
+    }
+
     void ImGuiUtilities::SetTheme(Theme theme)
     {
         static const float max = 255.0f;
@@ -677,6 +719,9 @@ namespace Lumos
         auto& style     = ImGui::GetStyle();
         ImVec4* colours = style.Colors;
         SelectedColour  = glm::vec4(0.28f, 0.56f, 0.9f, 1.0f);
+
+        // colours[ImGuiCol_TableRowBg] = ImVec4(0.00f, 0.00f, 0.00f, 1.00f);
+        // colours[ImGuiCol_TableRowBgAlt] = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
 
         if(theme == Black)
         {
@@ -728,8 +773,6 @@ namespace Lumos
             colours[ImGuiCol_TableHeaderBg]         = ImVec4(0.00f, 0.00f, 0.00f, 0.52f);
             colours[ImGuiCol_TableBorderStrong]     = ImVec4(0.00f, 0.00f, 0.00f, 0.52f);
             colours[ImGuiCol_TableBorderLight]      = ImVec4(0.28f, 0.28f, 0.28f, 0.29f);
-            colours[ImGuiCol_TableRowBg]            = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
-            colours[ImGuiCol_TableRowBgAlt]         = ImVec4(1.00f, 1.00f, 1.00f, 0.06f);
             colours[ImGuiCol_TextSelectedBg]        = ImVec4(0.20f, 0.22f, 0.23f, 1.00f);
             colours[ImGuiCol_DragDropTarget]        = ImVec4(0.33f, 0.67f, 0.86f, 1.00f);
             colours[ImGuiCol_NavHighlight]          = ImVec4(1.00f, 0.00f, 0.00f, 1.00f);
@@ -1142,14 +1185,17 @@ namespace Lumos
         colours[ImGuiCol_TabActive]          = colours[ImGuiCol_WindowBg];
         colours[ImGuiCol_ChildBg]            = colours[ImGuiCol_TabActive];
         colours[ImGuiCol_ScrollbarBg]        = colours[ImGuiCol_TabActive];
+        colours[ImGuiCol_TableHeaderBg]      = colours[ImGuiCol_TabActive];
 
         colours[ImGuiCol_TitleBgActive]    = colours[ImGuiCol_TitleBg];
         colours[ImGuiCol_TitleBgCollapsed] = colours[ImGuiCol_TitleBg];
         colours[ImGuiCol_MenuBarBg]        = colours[ImGuiCol_TitleBg];
         colours[ImGuiCol_PopupBg]          = colours[ImGuiCol_WindowBg] + ImVec4(0.05f, 0.05f, 0.05f, 0.0f);
 
-        colours[ImGuiCol_Border]       = ImVec4(0.08f, 0.10f, 0.12f, 0.00f);
-        colours[ImGuiCol_BorderShadow] = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
+        colours[ImGuiCol_Border]            = ImVec4(0.08f, 0.10f, 0.12f, 0.00f);
+        colours[ImGuiCol_BorderShadow]      = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
+        colours[ImGuiCol_TableBorderLight]  = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
+        colours[ImGuiCol_TableBorderStrong] = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
     }
 
     glm::vec4 ImGuiUtilities::GetSelectedColour()
@@ -1264,6 +1310,41 @@ namespace Lumos
         return updated;
     }
 
+    void ImGuiUtilities::ClippedText(const ImVec2& pos_min, const ImVec2& pos_max, const char* text, const char* text_end, const ImVec2* text_size_if_known, const ImVec2& align, const ImRect* clip_rect, float wrap_width)
+    {
+        const char* text_display_end = ImGui::FindRenderedTextEnd(text, text_end);
+        const int text_len           = static_cast<int>(text_display_end - text);
+        if(text_len == 0)
+            return;
+
+        ImGuiContext& g     = *GImGui;
+        ImGuiWindow* window = g.CurrentWindow;
+        ImGuiUtilities::ClippedText(window->DrawList, pos_min, pos_max, text, text_display_end, text_size_if_known, align, clip_rect, wrap_width);
+        if(g.LogEnabled)
+            ImGui::LogRenderedText(&pos_min, text, text_display_end);
+    }
+
+    void ImGuiUtilities::ClippedText(ImDrawList* draw_list, const ImVec2& pos_min, const ImVec2& pos_max, const char* text, const char* text_display_end, const ImVec2* text_size_if_known, const ImVec2& align, const ImRect* clip_rect, float wrap_width)
+    {
+        // Perform CPU side clipping for single clipped element to avoid using scissor state
+        ImVec2 pos             = pos_min;
+        const ImVec2 text_size = text_size_if_known ? *text_size_if_known : ImGui::CalcTextSize(text, text_display_end, false, wrap_width);
+
+        const ImVec2* clip_min = clip_rect ? &clip_rect->Min : &pos_min;
+        const ImVec2* clip_max = clip_rect ? &clip_rect->Max : &pos_max;
+
+        // Align whole block. We should defer that to the better rendering function when we'll have support for individual line alignment.
+        if(align.x > 0.0f)
+            pos.x = ImMax(pos.x, pos.x + (pos_max.x - pos.x - text_size.x) * align.x);
+
+        if(align.y > 0.0f)
+            pos.y = ImMax(pos.y, pos.y + (pos_max.y - pos.y - text_size.y) * align.y);
+
+        // Render
+        ImVec4 fine_clip_rect(clip_min->x, clip_min->y, clip_max->x, clip_max->y);
+        draw_list->AddText(nullptr, 0.0f, pos, ImGui::GetColorU32(ImGuiCol_Text), text, text_display_end, wrap_width, &fine_clip_rect);
+    }
+
     // from https://github.com/ocornut/imgui/issues/2668
     void ImGuiUtilities::AlternatingRowsBackground(float lineHeight)
     {
@@ -1309,6 +1390,85 @@ namespace Lumos
         }
 
         draw_list->PopClipRect();
+    }
+
+    ImRect ImGuiUtilities::GetItemRect()
+    {
+        return ImRect(ImGui::GetItemRectMin(), ImGui::GetItemRectMax());
+    }
+
+    ImRect ImGuiUtilities::RectExpanded(const ImRect& rect, float x, float y)
+    {
+        ImRect result = rect;
+        result.Min.x -= x;
+        result.Min.y -= y;
+        result.Max.x += x;
+        result.Max.y += y;
+        return result;
+    }
+
+    ImRect ImGuiUtilities::RectOffset(const ImRect& rect, float x, float y)
+    {
+        ImRect result = rect;
+        result.Min.x += x;
+        result.Min.y += y;
+        result.Max.x += x;
+        result.Max.y += y;
+        return result;
+    }
+
+    ImRect ImGuiUtilities::RectOffset(const ImRect& rect, ImVec2 xy)
+    {
+        return RectOffset(rect, xy.x, xy.y);
+    }
+
+    void ImGuiUtilities::DrawBorder(ImVec2 rectMin, ImVec2 rectMax, const ImVec4& borderColour, float thickness, float offsetX, float offsetY)
+    {
+        auto min = rectMin;
+        min.x -= thickness;
+        min.y -= thickness;
+        min.x += offsetX;
+        min.y += offsetY;
+        auto max = rectMax;
+        max.x += thickness;
+        max.y += thickness;
+        max.x += offsetX;
+        max.y += offsetY;
+
+        auto* drawList = ImGui::GetWindowDrawList();
+        drawList->AddRect(min, max, ImGui::ColorConvertFloat4ToU32(borderColour), 0.0f, 0, thickness);
+    }
+
+    void ImGuiUtilities::DrawBorder(const ImVec4& borderColour, float thickness, float offsetX, float offsetY)
+    {
+        DrawBorder(ImGui::GetItemRectMin(), ImGui::GetItemRectMax(), borderColour, thickness, offsetX, offsetY);
+    }
+
+    void ImGuiUtilities::DrawBorder(float thickness, float offsetX, float offsetY)
+    {
+        DrawBorder(ImGui::GetStyleColorVec4(ImGuiCol_Border), thickness, offsetX, offsetY);
+    }
+
+    void ImGuiUtilities::DrawBorder(ImVec2 rectMin, ImVec2 rectMax, float thickness, float offsetX, float offsetY)
+    {
+        DrawBorder(rectMin, rectMax, ImGui::GetStyleColorVec4(ImGuiCol_Border), thickness, offsetX, offsetY);
+    }
+
+    void ImGuiUtilities::DrawBorder(ImRect rect, float thickness, float rounding, float offsetX, float offsetY)
+    {
+        auto min = rect.Min;
+        min.x -= thickness;
+        min.y -= thickness;
+        min.x += offsetX;
+        min.y += offsetY;
+        auto max = rect.Max;
+        max.x += thickness;
+        max.y += thickness;
+        max.x += offsetX;
+        max.y += offsetY;
+
+        auto* drawList = ImGui::GetWindowDrawList();
+        drawList->AddRect(min, max, ImGui::ColorConvertFloat4ToU32(ImGui::GetStyleColorVec4(ImGuiCol_Border)), rounding, 0, thickness);
     }
 }
 

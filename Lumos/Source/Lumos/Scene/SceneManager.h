@@ -54,7 +54,7 @@ namespace Lumos
             return m_SwitchingScenes;
         }
 
-        void EnqueueSceneFromFile(const std::string& filePath);
+        int EnqueueSceneFromFile(const std::string& filePath);
         void EnqueueScene(Scene* scene);
 
         template <class T>

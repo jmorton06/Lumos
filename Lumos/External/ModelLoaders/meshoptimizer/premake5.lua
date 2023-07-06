@@ -1,6 +1,6 @@
 project( "meshoptimizer" )
     kind "StaticLib"
-	staticruntime "On"
+	staticruntime "Off"
     files { "src/*.h", "src/*.cpp" }
 
 	

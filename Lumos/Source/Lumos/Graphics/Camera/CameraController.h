@@ -23,6 +23,8 @@ namespace Lumos
 
         const glm::vec3& GetVelocity() const { return m_Velocity; }
 
+        void SetCamera(Camera* camera) { m_Camera = camera; }
+
     protected:
         glm::vec3 m_Velocity;
         glm::vec2 m_RotateVelocity;
@@ -41,6 +43,8 @@ namespace Lumos
         float m_ZoomDampeningFactor   = 0.00001f;
         float m_DampeningFactor       = 0.00001f;
         float m_RotateDampeningFactor = 0.001f;
+
+        Camera* m_Camera = nullptr;
     };
 
 }

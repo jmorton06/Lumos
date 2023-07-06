@@ -43,7 +43,7 @@ namespace Lumos
             }
         }
 
-        void GLDescriptorSet::Update()
+        void GLDescriptorSet::Update(CommandBuffer* cmdBuffer)
         {
             LUMOS_PROFILE_FUNCTION();
             for(auto& bufferInfo : m_UniformBuffers)

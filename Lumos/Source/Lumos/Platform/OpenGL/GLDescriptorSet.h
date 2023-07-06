@@ -16,7 +16,7 @@ namespace Lumos
 
             ~GLDescriptorSet() {};
 
-            void Update() override;
+            void Update(CommandBuffer* cmdBuffer) override;
             void SetTexture(const std::string& name, Texture* texture, uint32_t mipIndex, TextureType textureType) override;
             void SetTexture(const std::string& name, Texture** texture, uint32_t textureCount, TextureType textureType) override;
             void SetBuffer(const std::string& name, UniformBuffer* buffer) override;
@@ -29,7 +29,7 @@ namespace Lumos
 
             void SetDynamicOffset(uint32_t offset) override { m_DynamicOffset = offset; }
             uint32_t GetDynamicOffset() const override { return m_DynamicOffset; }
-            void SetShader(GLShader* shader) {  m_Shader = shader; }
+            void SetShader(GLShader* shader) { m_Shader = shader; }
             static void MakeDefault();
 
         protected:

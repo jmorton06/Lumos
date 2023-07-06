@@ -7,13 +7,12 @@
 
 #include "Graphics/RHI/Renderer.h"
 #include "Graphics/RHI/GraphicsContext.h"
-#include "Graphics/Renderers/SceneRenderer.h"
+#include "Graphics/Renderers/RenderPasses.h"
 #include "Graphics/Camera/Camera.h"
 #include "Graphics/Material.h"
 #include "Graphics/Renderers/DebugRenderer.h"
 #include "Graphics/Renderers/GridRenderer.h"
 #include "Graphics/Font.h"
-
 #include "Maths/Transform.h"
 
 #include "Scene/EntityFactory.h"
@@ -44,6 +43,7 @@
 
 #include <cereal/archives/json.hpp>
 #include <imgui/imgui.h>
+#include <imgui/Plugins/implot/implot.h>
 
 namespace Lumos
 {
@@ -64,6 +64,7 @@ namespace Lumos
     {
         LUMOS_PROFILE_FUNCTION();
         ImGui::DestroyContext();
+        ImPlot::DestroyContext();
     }
 
     void Application::OpenProject(const std::string& filePath)
@@ -204,6 +205,7 @@ namespace Lumos
         m_EditorState = EditorState::Play;
 
         ImGui::CreateContext();
+        ImPlot::CreateContext();
         ImGui::StyleColorsDark();
 
         m_ShaderLibrary = CreateSharedPtr<ShaderLibrary>();
@@ -265,13 +267,13 @@ namespace Lumos
         m_ImGuiManager->OnInit();
         LUMOS_LOG_INFO("Initialised ImGui Manager");
 
-        m_SceneRenderer = CreateUniquePtr<Graphics::SceneRenderer>(screenWidth, screenHeight);
+        m_RenderPasses = CreateUniquePtr<Graphics::RenderPasses>(screenWidth, screenHeight);
 
         m_CurrentState = AppState::Running;
 
         Graphics::Material::InitDefaultTexture();
         Graphics::Font::InitDefaultFont();
-        m_SceneRenderer->EnableDebugRenderer(true);
+        m_RenderPasses->EnableDebugRenderer(true);
 
         // updateThread = std::thread(Application::UpdateSystems);
     }
@@ -289,7 +291,7 @@ namespace Lumos
         m_ModelLibrary.reset();
         m_FontLibrary.reset();
         m_SceneManager.reset();
-        m_SceneRenderer.reset();
+        m_RenderPasses.reset();
         m_SystemManager.reset();
         m_ImGuiManager.reset();
         LuaManager::Release();
@@ -341,6 +343,9 @@ namespace Lumos
             return false;
 #endif
         }
+
+        ExecuteMainThreadQueue();
+
         {
             LUMOS_PROFILE_SCOPE("Application::TimeStepUpdates");
             ts.OnUpdate();
@@ -374,6 +379,16 @@ namespace Lumos
         {
             LUMOS_PROFILE_SCOPE("Application::Update");
             OnUpdate(ts);
+
+            {
+                // LUMOS_PROFILE_SCOPE("Wait System update");
+                // updateThread.join();
+                UpdateSystems();
+
+                m_SystemManager->GetSystem<LumosPhysicsEngine>()->SyncTransforms(m_SceneManager->GetCurrentScene());
+                m_SystemManager->GetSystem<B2PhysicsEngine>()->SyncTransforms(m_SceneManager->GetCurrentScene());
+            }
+
             m_Updates++;
         }
 
@@ -419,15 +434,6 @@ namespace Lumos
             m_Window->OnUpdate();
         }
 
-        {
-            LUMOS_PROFILE_SCOPE("Wait System update");
-            // updateThread.join();
-            UpdateSystems();
-
-            m_SystemManager->GetSystem<LumosPhysicsEngine>()->SyncTransforms(m_SceneManager->GetCurrentScene());
-            m_SystemManager->GetSystem<B2PhysicsEngine>()->SyncTransforms(m_SceneManager->GetCurrentScene());
-        }
-
         if(now - m_SecondTimer > 1.0f)
         {
             LUMOS_PROFILE_SCOPE("Application::FrameRateCalc");
@@ -451,10 +457,10 @@ namespace Lumos
         if(!m_SceneManager->GetCurrentScene())
             return;
 
-        if(!m_DisableMainSceneRenderer)
+        if(!m_DisableMainRenderPasses)
         {
-            m_SceneRenderer->BeginScene(m_SceneManager->GetCurrentScene());
-            m_SceneRenderer->OnRender();
+            m_RenderPasses->BeginScene(m_SceneManager->GetCurrentScene());
+            m_RenderPasses->OnRender();
 
             // Clears debug line and point lists
             DebugRenderer::Reset();
@@ -494,8 +500,8 @@ namespace Lumos
         if(e.Handled())
             return;
 
-        if(m_SceneRenderer)
-            m_SceneRenderer->OnEvent(e);
+        if(m_RenderPasses)
+            m_RenderPasses->OnEvent(e);
 
         if(e.Handled())
             return;
@@ -518,7 +524,7 @@ namespace Lumos
     void Application::OnNewScene(Scene* scene)
     {
         LUMOS_PROFILE_FUNCTION();
-        m_SceneRenderer->OnNewScene(scene);
+        m_RenderPasses->OnNewScene(scene);
     }
 
     SharedPtr<ShaderLibrary>& Application::GetShaderLibrary()
@@ -534,6 +540,25 @@ namespace Lumos
     SharedPtr<FontLibrary>& Application::GetFontLibrary()
     {
         return m_FontLibrary;
+    }
+
+    void Application::SubmitToMainThread(const std::function<void()>& function)
+    {
+        LUMOS_PROFILE_FUNCTION();
+        std::scoped_lock<std::mutex> lock(m_MainThreadQueueMutex);
+
+        m_MainThreadQueue.emplace_back(function);
+    }
+
+    void Application::ExecuteMainThreadQueue()
+    {
+        LUMOS_PROFILE_FUNCTION();
+        std::scoped_lock<std::mutex> lock(m_MainThreadQueueMutex);
+
+        for(const auto& func : m_MainThreadQueue)
+            func();
+
+        m_MainThreadQueue.clear();
     }
 
     void Application::OnExitScene()
@@ -562,8 +587,8 @@ namespace Lumos
 
         Graphics::Renderer::GetRenderer()->OnResize(width, height);
 
-        if(m_SceneRenderer)
-            m_SceneRenderer->OnResize(width, height);
+        if(m_RenderPasses)
+            m_RenderPasses->OnResize(width, height);
 
         Graphics::Renderer::GetGraphicsContext()->WaitIdle();
 
@@ -606,8 +631,8 @@ namespace Lumos
             return;
         }
         m_Minimized = false;
-        m_SceneRenderer->OnResize(width, height);
-        m_SceneRenderer->OnEvent(e);
+        m_RenderPasses->OnResize(width, height);
+        m_RenderPasses->OnEvent(e);
 
         Graphics::Renderer::GetGraphicsContext()->WaitIdle();
     }

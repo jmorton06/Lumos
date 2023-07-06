@@ -1,4 +1,6 @@
 #pragma once
+#include "Scene/Serialisation.h"
+#include <glm/vec4.hpp>
 
 namespace Lumos
 {
@@ -32,13 +34,6 @@ namespace Lumos
             void Load(const std::string& name, uint32_t numMip, uint32_t width, uint32_t height, float irrSizeFactor, const std::string& fileType = ".tga");
             void Load();
 
-            void CreateSky(float a, float b, float c)
-            {
-                // Generate sky
-
-                // Generate Mips
-            }
-
             TextureCube* GetEnvironmentMap() const
             {
                 return m_Environmnet.get();
@@ -60,14 +55,17 @@ namespace Lumos
             void save(Archive& archive) const
             {
                 archive(m_FilePath, m_NumMips, m_Width, m_Height, m_FileType, m_IrrFactor);
+                archive(m_Mode, m_Parameters);
             }
 
             template <class Archive>
             void load(Archive& archive)
             {
                 archive(m_FilePath, m_NumMips, m_Width, m_Height, m_FileType, m_IrrFactor);
-                if(m_FilePath != "")
-                    Load();
+
+                if(Serialisation::CurrentSceneVersion >= 18)
+                    archive(m_Mode, m_Parameters);
+                Load();
             }
 
             const std::string& GetFilePath() const { return m_FilePath; }
@@ -82,6 +80,13 @@ namespace Lumos
             void SetWidth(uint32_t width) { m_Width = width; }
             void SetHeight(uint32_t height) { m_Height = height; }
 
+            uint8_t GetMode() const { return m_Mode; }
+
+            void SetMode(uint8_t mode) { m_Mode = mode; }
+
+            const glm::vec4& GetParameters() const { return m_Parameters; }
+            void SetParameters(const glm::vec4& param) { m_Parameters = param; }
+
         private:
             SharedPtr<TextureCube> m_Environmnet;
             SharedPtr<TextureCube> m_PrefilteredEnvironment;
@@ -93,6 +98,8 @@ namespace Lumos
             float m_IrrFactor  = 1.0f;
             std::string m_FilePath;
             std::string m_FileType;
+            uint8_t m_Mode = 0;
+            glm::vec4 m_Parameters;
         };
     }
 }

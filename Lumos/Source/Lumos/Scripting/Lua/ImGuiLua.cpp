@@ -849,8 +849,6 @@ namespace Lumos
         imgui["pushTextWrapPos"]        = sol::overload(ImGui::PushTextWrapPos, []()
                                                         { ImGui::PushTextWrapPos(); });
         imgui["popTextWrapPos"]         = ImGui::PopTextWrapPos;
-        imgui["pushAllowKeyboardFocus"] = ImGui::PushAllowKeyboardFocus;
-        imgui["popAllowKeyboardFocus"]  = ImGui::PopAllowKeyboardFocus;
         imgui["pushButtonRepeat"]       = ImGui::PushButtonRepeat;
         imgui["popButtonRepeat"]        = ImGui::PopButtonRepeat;
 

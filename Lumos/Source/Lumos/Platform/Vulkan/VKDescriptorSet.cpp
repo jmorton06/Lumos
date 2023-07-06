@@ -99,12 +99,12 @@ namespace Lumos
             return new VKDescriptorSet(descriptorDesc);
         }
 
-        void TransitionImageToCorrectLayout(Texture* texture)
+        void TransitionImageToCorrectLayout(Texture* texture, CommandBuffer* cmdBuffer)
         {
             if(!texture)
                 return;
 
-            auto commandBuffer = Renderer::GetMainSwapChain()->GetCurrentCommandBuffer();
+            auto commandBuffer = cmdBuffer ? cmdBuffer : Renderer::GetMainSwapChain()->GetCurrentCommandBuffer();
             if(texture->GetType() == TextureType::COLOUR)
             {
                 if(((VKTexture2D*)texture)->GetImageLayout() != VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
@@ -129,7 +129,7 @@ namespace Lumos
             }
         }
 
-        void VKDescriptorSet::Update()
+        void VKDescriptorSet::Update(CommandBuffer* cmdBuffer)
         {
             LUMOS_PROFILE_FUNCTION();
             m_Dynamic                 = false;
@@ -159,7 +159,7 @@ namespace Lumos
                         {
                             if(imageInfo.texture)
                             {
-                                TransitionImageToCorrectLayout(imageInfo.texture);
+                                TransitionImageToCorrectLayout(imageInfo.texture, cmdBuffer);
 
                                 VkDescriptorImageInfo& des              = *static_cast<VkDescriptorImageInfo*>(imageInfo.texture->GetDescriptorInfo());
                                 m_ImageInfoPool[imageIndex].imageLayout = des.imageLayout;
@@ -173,7 +173,7 @@ namespace Lumos
                             {
                                 for(uint32_t i = 0; i < imageInfo.textureCount; i++)
                                 {
-                                    TransitionImageToCorrectLayout(imageInfo.textures[i]);
+                                    TransitionImageToCorrectLayout(imageInfo.textures[i], cmdBuffer);
 
                                     VkDescriptorImageInfo& des                  = *static_cast<VkDescriptorImageInfo*>(imageInfo.textures[i]->GetDescriptorInfo());
                                     m_ImageInfoPool[i + imageIndex].imageLayout = des.imageLayout;
@@ -264,7 +264,7 @@ namespace Lumos
                             if(imageInfo.type == DescriptorType::IMAGE_STORAGE)
                                 ((VKTexture2D*)imageInfo.texture)->TransitionImage(VK_IMAGE_LAYOUT_GENERAL, (VKCommandBuffer*)commandBuffer);
                             else
-                                TransitionImageToCorrectLayout(imageInfo.texture);
+                                TransitionImageToCorrectLayout(imageInfo.texture, commandBuffer);
                         }
                     }
                 }
@@ -283,9 +283,10 @@ namespace Lumos
                     descriptor.textureType  = textureType;
                     descriptor.textureCount = texture ? 1 : 0;
                     descriptor.mipLevel     = mipIndex;
-                    m_DescriptorDirty[0]    = true;
-                    m_DescriptorDirty[1]    = true;
-                    m_DescriptorDirty[2]    = true;
+
+                    m_DescriptorDirty[0] = true;
+                    m_DescriptorDirty[1] = true;
+                    m_DescriptorDirty[2] = true;
                 }
             }
         }

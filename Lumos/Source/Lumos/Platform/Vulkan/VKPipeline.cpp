@@ -281,10 +281,10 @@ namespace Lumos
             }
             else
             {
-                LUMOS_LOG_WARN("TODO: not correct width and height");
-                uint32_t width  = 1000;
-                uint32_t height = 1000;
-                commandBuffer->UpdateViewport(width, height, false);
+                // LUMOS_LOG_WARN("TODO: not correct width and height");
+                // uint32_t width  = 1000;
+                // uint32_t height = 1000;
+                // commandBuffer->UpdateViewport(width, height, false);
             }
 
             vkCmdBindPipeline(static_cast<VKCommandBuffer*>(commandBuffer)->GetHandle(), m_Compute ? VK_PIPELINE_BIND_POINT_COMPUTE : VK_PIPELINE_BIND_POINT_GRAPHICS, m_Pipeline);
@@ -385,6 +385,7 @@ namespace Lumos
                 {
                     frameBufferDesc.layer     = i;
                     frameBufferDesc.screenFBO = false;
+                    frameBufferDesc.mipIndex  = m_Description.mipIndex;
 
                     attachments[0]              = m_Description.cubeMapTarget;
                     frameBufferDesc.attachments = attachments.data();

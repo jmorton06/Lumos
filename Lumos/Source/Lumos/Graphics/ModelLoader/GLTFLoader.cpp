@@ -1,3 +1,8 @@
+#if defined(__GNUC__) && defined(_DEBUG) && defined(__OPTIMIZE__)
+#warning "Undefing __OPTIMIZE__"
+#undef __OPTIMIZE__
+#endif
+
 #include "Precompiled.h"
 #include "Graphics/Model.h"
 #include "Graphics/Mesh.h"
@@ -10,6 +15,10 @@
 #include "Core/Application.h"
 #include "Core/StringUtilities.h"
 
+#include <ozz/animation/offline/animation_builder.h>
+#include <ozz/animation/runtime/skeleton.h>
+#include <ozz/animation/offline/skeleton_builder.h>
+
 #define TINYGLTF_IMPLEMENTATION
 #define TINYGLTF_USE_CPP14
 #define STB_IMAGE_WRITE_IMPLEMENTATION
@@ -18,6 +27,8 @@
 #define TINYGLTF_NOEXCEPTION
 #endif
 #include <ModelLoaders/tinygltf/tiny_gltf.h>
+
+#include <ozz-animation/src/animation/offline/gltf/gltf2ozz.cc>
 
 namespace Lumos::Graphics
 {
@@ -123,6 +134,8 @@ namespace Lumos::Graphics
                 Graphics::TextureDesc params;
                 if(gltfTexture.sampler != -1)
                     params = Graphics::TextureDesc(GetFilter(imageAndSampler.Sampler->minFilter), GetFilter(imageAndSampler.Sampler->magFilter), GetWrapMode(imageAndSampler.Sampler->wrapS));
+                else
+                    LUMOS_LOG_WARN("MISSING SAMPLER");
                 Graphics::Texture2D* texture2D = Graphics::Texture2D::CreateFromSource(imageAndSampler.Image->width, imageAndSampler.Image->height, imageAndSampler.Image->image.data(), params);
                 loadedTextures.push_back(SharedPtr<Graphics::Texture2D>(texture2D ? texture2D : nullptr));
             }
@@ -221,11 +234,29 @@ namespace Lumos::Graphics
                 }
             }
 
+            auto ext_ior = mat.extensions.find("KHR_materials_ior");
+            if(ext_ior != mat.extensions.end())
+            {
+                // https://github.com/KhronosGroup/glTF/tree/master/extensions/2.0/Khronos/KHR_materials_ior
+
+                if(ext_ior->second.Has("ior"))
+                {
+                    auto& factor = ext_ior->second.Get("ior");
+                    float ior    = float(factor.IsNumber() ? factor.Get<double>() : factor.Get<int>());
+
+                    properties.reflectance = std::sqrt(std::pow((ior - 1.0f) / (ior + 1.0f), 2.0f) / 16.0f);
+                }
+            }
+
             pbrMaterial->SetTextures(textures);
             pbrMaterial->SetMaterialProperites(properties);
+            pbrMaterial->SetName(mat.name);
 
             if(mat.doubleSided)
                 pbrMaterial->SetFlag(Graphics::Material::RenderFlags::TWOSIDED);
+
+            if(mat.alphaMode != "OPAQUE")
+                pbrMaterial->SetFlag(Graphics::Material::RenderFlags::ALPHABLEND);
 
             loadedMaterials.push_back(pbrMaterial);
         }
@@ -247,7 +278,8 @@ namespace Lumos::Graphics
             indices.resize(indicesAccessor.count);
             vertices.resize(indicesAccessor.count);
 
-            bool hasTangents = false;
+            bool hasTangents   = false;
+            bool hasBitangents = false;
 
             for(auto& attribute : primitive.attributes)
             {
@@ -287,7 +319,7 @@ namespace Lumos::Graphics
                     {
                         vertices[p].Normal = (parentTransform.GetWorldMatrix() * Maths::ToVector4(normals[p]));
 
-                        glm::normalize(vertices[p].Normal);
+                        vertices[p].Normal = glm::normalize(vertices[p].Normal);
                     }
                 }
 
@@ -324,7 +356,18 @@ namespace Lumos::Graphics
                     Maths::Vector3Simple* uvs = reinterpret_cast<Maths::Vector3Simple*>(data.data());
                     for(auto p = 0; p < uvCount; ++p)
                     {
-                        vertices[p].Tangent = parentTransform.GetWorldMatrix() * ToVector4(uvs[p]);
+                        vertices[p].Tangent = glm::normalize(parentTransform.GetWorldMatrix() * ToVector4(uvs[p]));
+                    }
+                }
+
+                else if(attribute.first == "BINORMAL")
+                {
+                    hasBitangents             = true;
+                    size_t uvCount            = accessor.count;
+                    Maths::Vector3Simple* uvs = reinterpret_cast<Maths::Vector3Simple*>(data.data());
+                    for(auto p = 0; p < uvCount; ++p)
+                    {
+                        vertices[p].Bitangent = glm::normalize(parentTransform.GetWorldMatrix() * ToVector4(uvs[p]));
                     }
                 }
             }
@@ -377,8 +420,8 @@ namespace Lumos::Graphics
                 }
             }
 
-            if(!hasTangents)
-                Graphics::Mesh::GenerateTangents(vertices.data(), uint32_t(vertices.size()), indices.data(), uint32_t(indices.size()));
+            if(!hasTangents || !hasBitangents)
+                Graphics::Mesh::GenerateTangentsAndBitangents(vertices.data(), uint32_t(vertices.size()), indices.data(), uint32_t(indices.size()));
 
             auto lMesh = new Graphics::Mesh(indices, vertices);
 
@@ -456,7 +499,7 @@ namespace Lumos::Graphics
 
             for(auto& mesh : meshes)
             {
-                auto subname = node.name;
+                auto subname = model.meshes[node.mesh].name;
                 auto lMesh   = SharedPtr<Graphics::Mesh>(mesh);
                 lMesh->SetName(subname);
 
@@ -535,6 +578,35 @@ namespace Lumos::Graphics
             for(size_t i = 0; i < gltfScene.nodes.size(); i++)
             {
                 LoadNode(this, gltfScene.nodes[i], glm::mat4(1.0f), model, LoadedMaterials, meshes);
+            }
+
+            auto skins = model.skins;
+            if(!skins.empty())
+            {
+                using namespace ozz::animation::offline;
+                GltfImporter impl;
+                ozz::animation::offline::OzzImporter& importer = impl;
+                OzzImporter::NodeType types                    = {};
+
+                importer.Load(path.c_str());
+                RawSkeleton* rawSkeleton = new RawSkeleton();
+                importer.Import(rawSkeleton, types);
+
+                ozz::animation::offline::SkeletonBuilder skeletonBuilder;
+
+                m_Skeleton = SharedPtr<ozz::animation::Skeleton>(skeletonBuilder(*rawSkeleton).release());
+
+                ozz::animation::offline::AnimationBuilder animBuilder;
+                auto animationNames = importer.GetAnimationNames();
+
+                for(auto& animName : animationNames)
+                {
+                    RawAnimation* rawAnimation = new RawAnimation();
+                    importer.Import(animName.c_str(), *m_Skeleton.get(), 30.0f, rawAnimation);
+
+                    m_Animation.push_back(SharedPtr<ozz::animation::Animation>(animBuilder(*rawAnimation).release()));
+                    LUMOS_LOG_INFO("Loaded Anim : {0}", animName);
+                }
             }
         }
     }

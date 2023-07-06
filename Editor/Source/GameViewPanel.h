@@ -7,7 +7,7 @@
 #include <Lumos/Graphics/Camera/Camera.h>
 #include <Lumos/Core/StringUtilities.h>
 #include <Lumos/ImGui/ImGuiUtilities.h>
-#include <Lumos/Graphics/Renderers/SceneRenderer.h>
+#include <Lumos/Graphics/Renderers/RenderPasses.h>
 #include <imgui/imgui.h>
 
 namespace Lumos
@@ -30,7 +30,7 @@ namespace Lumos
         SharedPtr<Graphics::Texture2D> m_GameViewTexture = nullptr;
         Scene* m_CurrentScene                            = nullptr;
         uint32_t m_Width, m_Height;
-        UniquePtr<Graphics::SceneRenderer> m_SceneRenderer;
+        UniquePtr<Graphics::RenderPasses> m_RenderPasses;
         bool m_GameViewVisible = false;
         bool m_ShowStats       = false;
     };

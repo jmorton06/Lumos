@@ -8,7 +8,7 @@ namespace Lumos
         : m_AspectRatio(1.0f)
         , m_Near(0.1f)
         , m_Far(100.0f)
-        , m_Fov(45.0f)
+        , m_Fov(60.0f)
         , m_ProjectionDirty(true)
         , m_FrustumDirty(true)
         , m_Orthographic(false)

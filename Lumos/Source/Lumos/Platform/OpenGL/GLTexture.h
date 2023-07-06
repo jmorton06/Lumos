@@ -16,6 +16,8 @@ namespace Lumos
             void Bind(uint32_t slot = 0) const override;
             void Unbind(uint32_t slot = 0) const override;
 
+            void Load(uint32_t width, uint32_t height, void* data, TextureDesc parameters = TextureDesc(), TextureLoadOptions loadOptions = TextureLoadOptions()) override;
+
             virtual void SetData(const void* pixels) override;
 
             virtual void* GetHandle() const override
@@ -46,7 +48,6 @@ namespace Lumos
             {
                 return m_MipLevels;
             }
-
 
             void Resize(uint32_t width, uint32_t height) override;
             void BuildTexture();
@@ -81,14 +82,14 @@ namespace Lumos
             TextureDesc m_Parameters;
             TextureLoadOptions m_LoadOptions;
             RHIFormat m_Format;
-            bool isHDR = false;
+            bool isHDR           = false;
             uint32_t m_MipLevels = 1;
         };
 
         class GLTextureCube : public TextureCube
         {
         public:
-            GLTextureCube(uint32_t size);
+            GLTextureCube(uint32_t size, uint8_t* data, bool hdr);
             GLTextureCube(const std::string& filepath);
             GLTextureCube(const std::string* files);
             GLTextureCube(const std::string* files, uint32_t mips, TextureDesc params, TextureLoadOptions loadOptions);
@@ -139,6 +140,8 @@ namespace Lumos
             {
                 return m_Format;
             }
+
+            void GenerateMipMaps(CommandBuffer* commandBuffer) override;
 
             static void MakeDefault();
 
@@ -276,7 +279,7 @@ namespace Lumos
                 return m_Format;
             }
 
-            uint32_t GetCount() const { return m_Count; }
+            uint32_t GetCount() const override { return m_Count; }
 
             void Init() override;
 

@@ -20,6 +20,7 @@ namespace Lumos
             glm::vec4 albedoColour   = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
             float roughness          = 0.7f;
             float metallic           = 0.7f;
+            float reflectance        = 0.3f;
             float emissive           = 0.0f;
             float albedoMapFactor    = 1.0f;
             float metallicMapFactor  = 1.0f;
@@ -71,6 +72,8 @@ namespace Lumos
             void SetMaterialProperites(const MaterialProperties& properties);
             void UpdateMaterialPropertiesData();
             void UpdateDescriptorSet();
+
+            void SetName(const std::string& name) { m_Name = name; }
 
             void SetAlbedoTexture(const std::string& path);
             void SetNormalTexture(const std::string& path);
@@ -136,6 +139,8 @@ namespace Lumos
                         cereal::make_nvp("alphaCutOff", m_MaterialProperties->alphaCutoff),
                         cereal::make_nvp("workflow", m_MaterialProperties->workflow),
                         cereal::make_nvp("shader", shaderPath));
+
+                archive(cereal::make_nvp("Reflectance", m_MaterialProperties->reflectance));
             }
 
             template <typename Archive>
@@ -197,6 +202,9 @@ namespace Lumos
                             cereal::make_nvp("alphaCutOff", m_MaterialProperties->alphaCutoff),
                             cereal::make_nvp("workflow", m_MaterialProperties->workflow),
                             cereal::make_nvp("shader", shaderFilePath));
+
+                    if(Serialisation::CurrentSceneVersion > 19)
+                        archive(cereal::make_nvp("Reflectance", m_MaterialProperties->reflectance));
                 }
 
                 // if(!shaderFilePath.empty())

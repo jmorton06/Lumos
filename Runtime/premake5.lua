@@ -16,6 +16,7 @@ IncludeDir["spdlog"] = "../Lumos/External/spdlog/include"
 IncludeDir["glm"] = "../Lumos/External/glm"
 IncludeDir["msdf_atlas_gen"] = "../Lumos/External/msdf-atlas-gen/msdf-atlas-gen"
 IncludeDir["msdfgen"] = "../Lumos/External/msdf-atlas-gen/msdfgen"
+IncludeDir["ozz"] = "../Lumos/External/ozz-animation/include"
 
 project "Runtime"
 	kind "WindowedApp"
@@ -47,6 +48,7 @@ project "Runtime"
 		"%{IncludeDir.glm}",
 		"%{IncludeDir.msdfgen}",
 		"%{IncludeDir.msdf_atlas_gen}",
+		"%{IncludeDir.ozz}",
 		"%{IncludeDir.Lumos}",
 	}
 
@@ -65,7 +67,10 @@ project "Runtime"
 		"SpirvCross",
 		"spdlog",
 		"meshoptimizer",
-		"msdf-atlas-gen"
+		"msdf-atlas-gen",
+		"ozz_animation_offline",
+		"ozz_animation",
+		"ozz_base"
 	}
 
 	defines
@@ -83,10 +88,11 @@ project "Runtime"
 
 	filter "system:windows"
 		cppdialect "C++17"
-		staticruntime "On"
+		staticruntime "Off"
 		systemversion "latest"
 		entrypoint "WinMainCRTStartup"
-
+		conformancemode "on"
+		
 		defines
 		{
 			"LUMOS_PLATFORM_WINDOWS",
@@ -118,10 +124,10 @@ project "Runtime"
 
 	filter "system:macosx"
 		cppdialect "C++17"
-		staticruntime "On"
+		staticruntime "Off"
 		systemversion "11.0"
 		editandcontinue "Off"
-
+		
 		xcodebuildresources { "Assets.xcassets", "libMoltenVK.dylib" }
 
 		xcodebuildsettings
@@ -179,12 +185,12 @@ end
 
 	filter "system:ios"
 		cppdialect "C++17"
-		staticruntime "On"
+		staticruntime "Off"
 		systemversion "latest"
 		kind "WindowedApp"
 		targetextension ".app"
 		editandcontinue "Off"
-
+		
 		defines
 		{
 			"LUMOS_PLATFORM_IOS",
@@ -288,7 +294,7 @@ end
 
 	filter "system:linux"
 		cppdialect "C++17"
-		staticruntime "On"
+		staticruntime "Off"
 		systemversion "latest"
 
 		defines
@@ -328,13 +334,13 @@ defines { "LUMOS_DEBUG", "_DEBUG","TRACY_ENABLE","LUMOS_PROFILE","TRACY_ON_DEMAN
 		optimize "Off"
 
 	filter "configurations:Release"
-defines { "LUMOS_RELEASE","TRACY_ENABLE", "LUMOS_PROFILE","TRACY_ON_DEMAND"}
+defines { "LUMOS_RELEASE", "NDEBUG", "TRACY_ENABLE", "LUMOS_PROFILE","TRACY_ON_DEMAND"}
 		optimize "Speed"
 		symbols "On"
 		runtime "Release"
 
 	filter "configurations:Production"
-		defines "LUMOS_PRODUCTION"
+		defines { "LUMOS_PRODUCTION", "NDEBUG" }
 		symbols "Off"
 		optimize "Full"
 		runtime "Release"

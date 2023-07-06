@@ -2,8 +2,6 @@
 @echo off
 setLocal enableExtensions enableDelayedExpansion
 
-dir=$(cd -P -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)
-
 set COMPILER=C:/VulkanSDK/1.3.216.0/Bin/glslc.exe
 set DSTDIR=CompiledSPV
 
@@ -28,7 +26,7 @@ for %%f in (*.vert *.frag *.comp) do (
   set DST_DATE=!DATE_MODIFIED!
 
   if "!SRC_DATE!" gtr "!DST_DATE!" (
-    echo Compiling
+    echo Compiling "!SRC!"
     %COMPILER% "!SRC!" -o "!DST!"
 
   )

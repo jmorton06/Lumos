@@ -13,6 +13,8 @@
 #include <Windows.h>
 #include <filesystem>
 
+#include <shellapi.h>
+
 extern Lumos::Application* Lumos::CreateApplication();
 
 namespace Lumos
@@ -72,12 +74,25 @@ namespace Lumos
         WCHAR path[MAX_PATH];
         GetModuleFileNameW(NULL, path, MAX_PATH);
 
-        // To fix warnings
-        // std::wstring ws(path);
         std::string convertedString = std::filesystem::path(path).string();
-        ; // std::string(ws.begin(), ws.end());
         std::replace(convertedString.begin(), convertedString.end(), '\\', '/');
 
         return convertedString;
+    }
+
+    void WindowsOS::OpenFileLocation(const std::filesystem::path& path)
+    {
+        std::wstring command = L"explorer.exe /select," + path.wstring();
+        _wsystem(command.c_str());
+    }
+
+    void WindowsOS::OpenFileExternal(const std::filesystem::path& path)
+    {
+        ShellExecuteA(NULL, "open", path.string().c_str(), NULL, NULL, SW_SHOWNORMAL);
+    }
+
+    void WindowsOS::OpenURL(const std::string& url)
+    {
+        ShellExecuteA(NULL, "open", url.c_str(), NULL, NULL, SW_SHOWNORMAL);
     }
 }

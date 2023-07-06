@@ -1,28 +1,21 @@
 #ifndef ENTT_ENTITY_OBSERVER_HPP
 #define ENTT_ENTITY_OBSERVER_HPP
 
-
-#include <limits>
 #include <cstddef>
 #include <cstdint>
-#include <utility>
+#include <limits>
 #include <type_traits>
-#include "../config/config.h"
+#include <utility>
 #include "../core/type_traits.hpp"
-#include "registry.hpp"
-#include "storage.hpp"
-#include "utility.hpp"
-#include "entity.hpp"
+#include "../signal/delegate.hpp"
 #include "fwd.hpp"
-
+#include "storage.hpp"
 
 namespace entt {
-
 
 /*! @brief Grouping matcher. */
 template<typename...>
 struct matcher {};
-
 
 /**
  * @brief Collector.
@@ -32,7 +25,6 @@ struct matcher {};
  */
 template<typename...>
 struct basic_collector;
-
 
 /**
  * @brief Collector.
@@ -51,7 +43,7 @@ struct basic_collector<> {
      * @return The updated collector.
      */
     template<typename... AllOf, typename... NoneOf>
-    static constexpr auto group(exclude_t<NoneOf...> = {}) ENTT_NOEXCEPT {
+    static constexpr auto group(exclude_t<NoneOf...> = exclude_t{}) noexcept {
         return basic_collector<matcher<type_list<>, type_list<>, type_list<NoneOf...>, AllOf...>>{};
     }
 
@@ -61,7 +53,7 @@ struct basic_collector<> {
      * @return The updated collector.
      */
     template<typename AnyOf>
-    static constexpr auto update() ENTT_NOEXCEPT {
+    static constexpr auto update() noexcept {
         return basic_collector<matcher<type_list<>, type_list<>, AnyOf>>{};
     }
 };
@@ -86,7 +78,7 @@ struct basic_collector<matcher<type_list<Reject...>, type_list<Require...>, Rule
      * @return The updated collector.
      */
     template<typename... AllOf, typename... NoneOf>
-    static constexpr auto group(exclude_t<NoneOf...> = {}) ENTT_NOEXCEPT {
+    static constexpr auto group(exclude_t<NoneOf...> = exclude_t{}) noexcept {
         return basic_collector<matcher<type_list<>, type_list<>, type_list<NoneOf...>, AllOf...>, current_type, Other...>{};
     }
 
@@ -96,7 +88,7 @@ struct basic_collector<matcher<type_list<Reject...>, type_list<Require...>, Rule
      * @return The updated collector.
      */
     template<typename AnyOf>
-    static constexpr auto update() ENTT_NOEXCEPT {
+    static constexpr auto update() noexcept {
         return basic_collector<matcher<type_list<>, type_list<>, AnyOf>, current_type, Other...>{};
     }
 
@@ -107,16 +99,14 @@ struct basic_collector<matcher<type_list<Reject...>, type_list<Require...>, Rule
      * @return The updated collector.
      */
     template<typename... AllOf, typename... NoneOf>
-    static constexpr auto where(exclude_t<NoneOf...> = {}) ENTT_NOEXCEPT {
+    static constexpr auto where(exclude_t<NoneOf...> = exclude_t{}) noexcept {
         using extended_type = matcher<type_list<Reject..., NoneOf...>, type_list<Require..., AllOf...>, Rule...>;
         return basic_collector<extended_type, Other...>{};
     }
 };
 
-
 /*! @brief Variable template used to ease the definition of collectors. */
 inline constexpr basic_collector<> collector{};
-
 
 /**
  * @brief Observer.
@@ -156,8 +146,7 @@ inline constexpr basic_collector<> collector{};
  * * The entity currently pointed is destroyed.
  *
  * In all the other cases, modifying the pools of the given components in any
- * way invalidates all the iterators and using them results in undefined
- * behavior.
+ * way invalidates all the iterators.
  *
  * @warning
  * Lifetime of an observer doesn't necessarily have to overcome that of the
@@ -165,11 +154,13 @@ inline constexpr basic_collector<> collector{};
  * from the registry before being destroyed to avoid crashes due to dangling
  * pointers.
  *
- * @tparam Entity A valid entity type (see entt_traits for more details).
+ * @tparam Registry Basic registry type.
+ * @tparam Mask Mask type.
+ * @tparam Allocator Type of allocator used to manage memory and elements.
  */
-template<typename Entity>
-class basic_observer {
-    using payload_type = std::uint32_t;
+template<typename Registry, typename Mask, typename Allocator>
+class basic_observer: private basic_storage<Mask, typename Registry::entity_type, Allocator> {
+    using base_type = basic_storage<Mask, typename Registry::entity_type, Allocator>;
 
     template<typename>
     struct matcher_handler;
@@ -177,106 +168,126 @@ class basic_observer {
     template<typename... Reject, typename... Require, typename AnyOf>
     struct matcher_handler<matcher<type_list<Reject...>, type_list<Require...>, AnyOf>> {
         template<std::size_t Index>
-        static void maybe_valid_if(basic_observer &obs, const basic_registry<Entity> &reg, const Entity entt) {
-            if(reg.template has<Require...>(entt) && !reg.template any<Reject...>(entt)) {
-                if(auto *comp = obs.view.try_get(entt); !comp) {
-                    obs.view.emplace(entt);
+        static void maybe_valid_if(basic_observer &obs, Registry &reg, const typename Registry::entity_type entt) {
+            if(reg.template all_of<Require...>(entt) && !reg.template any_of<Reject...>(entt)) {
+                if(!obs.contains(entt)) {
+                    obs.emplace(entt);
                 }
 
-                obs.view.get(entt) |= (1 << Index);
+                obs.get(entt) |= (1 << Index);
             }
         }
 
         template<std::size_t Index>
-        static void discard_if(basic_observer &obs, const basic_registry<Entity> &, const Entity entt) {
-            if(auto *value = obs.view.try_get(entt); value && !(*value &= (~(1 << Index)))) {
-                obs.view.erase(entt);
+        static void discard_if(basic_observer &obs, Registry &, const typename Registry::entity_type entt) {
+            if(obs.contains(entt) && !(obs.get(entt) &= (~(1 << Index)))) {
+                obs.erase(entt);
             }
         }
 
         template<std::size_t Index>
-        static void connect(basic_observer &obs, basic_registry<Entity> &reg) {
+        static void connect(basic_observer &obs, Registry &reg) {
             (reg.template on_destroy<Require>().template connect<&discard_if<Index>>(obs), ...);
             (reg.template on_construct<Reject>().template connect<&discard_if<Index>>(obs), ...);
             reg.template on_update<AnyOf>().template connect<&maybe_valid_if<Index>>(obs);
             reg.template on_destroy<AnyOf>().template connect<&discard_if<Index>>(obs);
         }
 
-        static void disconnect(basic_observer &obs, basic_registry<Entity> &reg) {
-            (reg.template on_destroy<Require>().disconnect(obs), ...);
-            (reg.template on_construct<Reject>().disconnect(obs), ...);
-            reg.template on_update<AnyOf>().disconnect(obs);
-            reg.template on_destroy<AnyOf>().disconnect(obs);
+        static void disconnect(basic_observer &obs, Registry &reg) {
+            (reg.template on_destroy<Require>().disconnect(&obs), ...);
+            (reg.template on_construct<Reject>().disconnect(&obs), ...);
+            reg.template on_update<AnyOf>().disconnect(&obs);
+            reg.template on_destroy<AnyOf>().disconnect(&obs);
         }
     };
 
     template<typename... Reject, typename... Require, typename... NoneOf, typename... AllOf>
     struct matcher_handler<matcher<type_list<Reject...>, type_list<Require...>, type_list<NoneOf...>, AllOf...>> {
-        template<std::size_t Index>
-        static void maybe_valid_if(basic_observer &obs, const basic_registry<Entity> &reg, const Entity entt) {
-            if(reg.template has<AllOf..., Require...>(entt) && !reg.template any<NoneOf..., Reject...>(entt)) {
-                if(auto *comp = obs.view.try_get(entt); !comp) {
-                    obs.view.emplace(entt);
+        template<std::size_t Index, typename... Ignore>
+        static void maybe_valid_if(basic_observer &obs, Registry &reg, const typename Registry::entity_type entt) {
+            auto condition = [&reg, entt]() {
+                if constexpr(sizeof...(Ignore) == 0) {
+                    return reg.template all_of<AllOf..., Require...>(entt) && !reg.template any_of<NoneOf..., Reject...>(entt);
+                } else {
+                    return reg.template all_of<AllOf..., Require...>(entt) && ((std::is_same_v<Ignore..., NoneOf> || !reg.template any_of<NoneOf>(entt)) && ...) && !reg.template any_of<Reject...>(entt);
+                }
+            };
+
+            if(condition()) {
+                if(!obs.contains(entt)) {
+                    obs.emplace(entt);
                 }
 
-                obs.view.get(entt) |= (1 << Index);
+                obs.get(entt) |= (1 << Index);
             }
         }
 
         template<std::size_t Index>
-        static void discard_if(basic_observer &obs, const basic_registry<Entity> &, const Entity entt) {
-            if(auto *value = obs.view.try_get(entt); value && !(*value &= (~(1 << Index)))) {
-                obs.view.erase(entt);
+        static void discard_if(basic_observer &obs, Registry &, const typename Registry::entity_type entt) {
+            if(obs.contains(entt) && !(obs.get(entt) &= (~(1 << Index)))) {
+                obs.erase(entt);
             }
         }
 
         template<std::size_t Index>
-        static void connect(basic_observer &obs, basic_registry<Entity> &reg) {
+        static void connect(basic_observer &obs, Registry &reg) {
             (reg.template on_destroy<Require>().template connect<&discard_if<Index>>(obs), ...);
             (reg.template on_construct<Reject>().template connect<&discard_if<Index>>(obs), ...);
             (reg.template on_construct<AllOf>().template connect<&maybe_valid_if<Index>>(obs), ...);
-            (reg.template on_destroy<NoneOf>().template connect<&maybe_valid_if<Index>>(obs), ...);
+            (reg.template on_destroy<NoneOf>().template connect<&maybe_valid_if<Index, NoneOf>>(obs), ...);
             (reg.template on_destroy<AllOf>().template connect<&discard_if<Index>>(obs), ...);
             (reg.template on_construct<NoneOf>().template connect<&discard_if<Index>>(obs), ...);
         }
 
-        static void disconnect(basic_observer &obs, basic_registry<Entity> &reg) {
-            (reg.template on_destroy<Require>().disconnect(obs), ...);
-            (reg.template on_construct<Reject>().disconnect(obs), ...);
-            (reg.template on_construct<AllOf>().disconnect(obs), ...);
-            (reg.template on_destroy<NoneOf>().disconnect(obs), ...);
-            (reg.template on_destroy<AllOf>().disconnect(obs), ...);
-            (reg.template on_construct<NoneOf>().disconnect(obs), ...);
+        static void disconnect(basic_observer &obs, Registry &reg) {
+            (reg.template on_destroy<Require>().disconnect(&obs), ...);
+            (reg.template on_construct<Reject>().disconnect(&obs), ...);
+            (reg.template on_construct<AllOf>().disconnect(&obs), ...);
+            (reg.template on_destroy<NoneOf>().disconnect(&obs), ...);
+            (reg.template on_destroy<AllOf>().disconnect(&obs), ...);
+            (reg.template on_construct<NoneOf>().disconnect(&obs), ...);
         }
     };
 
     template<typename... Matcher>
-    static void disconnect(basic_observer &obs, basic_registry<Entity> &reg) {
+    static void disconnect(Registry &reg, basic_observer &obs) {
         (matcher_handler<Matcher>::disconnect(obs, reg), ...);
     }
 
     template<typename... Matcher, std::size_t... Index>
-    void connect(basic_registry<Entity> &reg, std::index_sequence<Index...>) {
-        static_assert(sizeof...(Matcher) < std::numeric_limits<payload_type>::digits, "Too many matchers");
+    void connect(Registry &reg, std::index_sequence<Index...>) {
+        static_assert(sizeof...(Matcher) < std::numeric_limits<typename base_type::value_type>::digits, "Too many matchers");
         (matcher_handler<Matcher>::template connect<Index>(*this, reg), ...);
-        release = &basic_observer::disconnect<Matcher...>;
+        release.template connect<&basic_observer::disconnect<Matcher...>>(reg);
     }
 
 public:
+    /*! Basic registry type. */
+    using registry_type = Registry;
     /*! @brief Underlying entity identifier. */
-    using entity_type = Entity;
+    using entity_type = typename registry_type::entity_type;
     /*! @brief Unsigned integer type. */
     using size_type = std::size_t;
+    /*! @brief Allocator type. */
+    using allocator_type = Allocator;
     /*! @brief Random access iterator type. */
-    using iterator = typename sparse_set<Entity>::iterator;
+    using iterator = typename registry_type::common_type::iterator;
 
     /*! @brief Default constructor. */
     basic_observer()
-        : target{}, release{}, view{}
-    {}
+        : basic_observer{allocator_type{}} {}
+
+    /**
+     * @brief Constructs an empty storage with a given allocator.
+     * @param allocator The allocator to use.
+     */
+    explicit basic_observer(const allocator_type &allocator)
+        : base_type{allocator},
+          release{} {}
 
     /*! @brief Default copy constructor, deleted on purpose. */
     basic_observer(const basic_observer &) = delete;
+
     /*! @brief Default move constructor, deleted on purpose. */
     basic_observer(basic_observer &&) = delete;
 
@@ -284,30 +295,25 @@ public:
      * @brief Creates an observer and connects it to a given registry.
      * @tparam Matcher Types of matchers to use to initialize the observer.
      * @param reg A valid reference to a registry.
+     * @param allocator The allocator to use.
      */
     template<typename... Matcher>
-    basic_observer(basic_registry<entity_type> &reg, basic_collector<Matcher...>)
-        : target{&reg},
-          release{},
-          view{}
-    {
+    basic_observer(registry_type &reg, basic_collector<Matcher...>, const allocator_type &allocator = allocator_type{})
+        : basic_observer{allocator} {
         connect<Matcher...>(reg, std::index_sequence_for<Matcher...>{});
     }
-
-    /*! @brief Default destructor. */
-    ~basic_observer() = default;
 
     /**
      * @brief Default copy assignment operator, deleted on purpose.
      * @return This observer.
      */
-    basic_observer & operator=(const basic_observer &) = delete;
+    basic_observer &operator=(const basic_observer &) = delete;
 
     /**
      * @brief Default move assignment operator, deleted on purpose.
      * @return This observer.
      */
-    basic_observer & operator=(basic_observer &&) = delete;
+    basic_observer &operator=(basic_observer &&) = delete;
 
     /**
      * @brief Connects an observer to a given registry.
@@ -315,18 +321,17 @@ public:
      * @param reg A valid reference to a registry.
      */
     template<typename... Matcher>
-    void connect(basic_registry<entity_type> &reg, basic_collector<Matcher...>) {
+    void connect(registry_type &reg, basic_collector<Matcher...>) {
         disconnect();
         connect<Matcher...>(reg, std::index_sequence_for<Matcher...>{});
-        target = &reg;
-        view.clear();
+        base_type::clear();
     }
 
     /*! @brief Disconnects an observer from the registry it keeps track of. */
     void disconnect() {
         if(release) {
-            release(*this, *target);
-            release = nullptr;
+            release(*this);
+            release.reset();
         }
     }
 
@@ -334,22 +339,22 @@ public:
      * @brief Returns the number of elements in an observer.
      * @return Number of elements.
      */
-    [[nodiscard]] size_type size() const ENTT_NOEXCEPT {
-        return view.size();
+    [[nodiscard]] size_type size() const noexcept {
+        return base_type::size();
     }
 
     /**
      * @brief Checks whether an observer is empty.
      * @return True if the observer is empty, false otherwise.
      */
-    [[nodiscard]] bool empty() const ENTT_NOEXCEPT {
-        return view.empty();
+    [[nodiscard]] bool empty() const noexcept {
+        return base_type::empty();
     }
 
     /**
      * @brief Direct access to the list of entities of the observer.
      *
-     * The returned pointer is such that range `[data(), data() + size()]` is
+     * The returned pointer is such that range `[data(), data() + size())` is
      * always a valid range, even if the container is empty.
      *
      * @note
@@ -358,39 +363,33 @@ public:
      *
      * @return A pointer to the array of entities.
      */
-    [[nodiscard]] const entity_type * data() const ENTT_NOEXCEPT {
-        return view.data();
+    [[nodiscard]] const entity_type *data() const noexcept {
+        return base_type::data();
     }
 
     /**
      * @brief Returns an iterator to the first entity of the observer.
      *
-     * The returned iterator points to the first entity of the observer. If the
-     * container is empty, the returned iterator will be equal to `end()`.
+     * If the observer is empty, the returned iterator will be equal to `end()`.
      *
      * @return An iterator to the first entity of the observer.
      */
-    [[nodiscard]] iterator begin() const ENTT_NOEXCEPT {
-        return view.sparse_set<entity_type>::begin();
+    [[nodiscard]] iterator begin() const noexcept {
+        return base_type::base_type::begin();
     }
 
     /**
      * @brief Returns an iterator that is past the last entity of the observer.
-     *
-     * The returned iterator points to the entity following the last entity of
-     * the observer. Attempting to dereference the returned iterator results in
-     * undefined behavior.
-     *
      * @return An iterator to the entity following the last entity of the
      * observer.
      */
-    [[nodiscard]] iterator end() const ENTT_NOEXCEPT {
-        return view.sparse_set<entity_type>::end();
+    [[nodiscard]] iterator end() const noexcept {
+        return base_type::base_type::end();
     }
 
     /*! @brief Clears the underlying container. */
-    void clear() ENTT_NOEXCEPT {
-        view.clear();
+    void clear() noexcept {
+        base_type::clear();
     }
 
     /**
@@ -429,13 +428,9 @@ public:
     }
 
 private:
-    basic_registry<entity_type> *target;
-    void(* release)(basic_observer &, basic_registry<entity_type> &);
-    storage<entity_type, payload_type> view;
+    delegate<void(basic_observer &)> release;
 };
 
-
-}
-
+} // namespace entt
 
 #endif

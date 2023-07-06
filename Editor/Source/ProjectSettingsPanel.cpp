@@ -23,7 +23,16 @@ namespace Lumos
 
         {
             auto& projectSettings = Application::Get().GetProjectSettings();
-            ImGuiUtilities::PropertyConst("Project Name", projectSettings.m_ProjectName.c_str());
+            auto projectName      = projectSettings.m_ProjectName;
+
+            if(m_NameUpdated)
+                projectName = m_ProjectName;
+
+            if(ImGuiUtilities::Property("Project Name", projectName, ImGuiUtilities::PropertyFlag::None))
+            {
+                m_NameUpdated = true;
+            }
+
             ImGuiUtilities::PropertyConst("Project Root", projectSettings.m_ProjectRoot.c_str());
             ImGuiUtilities::PropertyConst("Engine Asset Path", projectSettings.m_EngineAssetPath.c_str());
             ImGuiUtilities::Property("App Width", (int&)projectSettings.Width, 0, 0, ImGuiUtilities::PropertyFlag::ReadOnly);
@@ -35,6 +44,19 @@ namespace Lumos
             ImGuiUtilities::Property("Title", projectSettings.Title);
             ImGuiUtilities::Property("RenderAPI", projectSettings.RenderAPI, 0, 1);
             ImGuiUtilities::Property("Project Version", projectSettings.ProjectVersion, 0, 0, ImGuiUtilities::PropertyFlag::ReadOnly);
+
+            if(!ImGui::IsItemActive() && m_NameUpdated)
+            {
+                m_NameUpdated = false;
+                auto fullPath = projectSettings.m_ProjectRoot + projectSettings.m_ProjectName + std::string(".lmproj");
+                if(std::filesystem::exists(fullPath))
+                {
+                    projectSettings.m_ProjectName = projectName;
+                    std::filesystem::rename(fullPath, projectSettings.m_ProjectRoot + projectSettings.m_ProjectName + std::string(".lmproj"));
+                }
+                else
+                    projectSettings.m_ProjectName = projectName;
+            }
         }
         ImGui::Columns(1);
         ImGuiUtilities::PopID();
