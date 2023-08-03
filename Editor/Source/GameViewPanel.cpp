@@ -37,6 +37,7 @@ namespace Lumos
 
         m_RenderPasses                          = CreateUniquePtr<Graphics::RenderPasses>(m_Width, m_Height);
         m_RenderPasses->GetSettings().DebugPass = false;
+        m_RenderPasses->m_DebugRenderEnabled    = false;
     }
 
     static std::string AspectToString(float aspect)
@@ -171,6 +172,9 @@ namespace Lumos
 
         sceneViewSize.x -= static_cast<int>(sceneViewSize.x) % 2 != 0 ? 1.0f : 0.0f;
         sceneViewSize.y -= static_cast<int>(sceneViewSize.y) % 2 != 0 ? 1.0f : 0.0f;
+
+        sceneViewSize.x = Maths::Max(sceneViewSize.x, 2);
+        sceneViewSize.y = Maths::Max(sceneViewSize.y, 2);
 
         Resize(static_cast<uint32_t>(sceneViewSize.x), static_cast<uint32_t>(sceneViewSize.y));
 

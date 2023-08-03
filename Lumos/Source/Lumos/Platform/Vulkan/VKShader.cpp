@@ -446,7 +446,7 @@ namespace Lumos
 
         bool VKShader::Init()
         {
-            LUMOS_PROFILE_FUNCTION();
+            LUMOS_PROFILE_FUNCTION_LOW();
             m_StageCount = 0;
 
             std::map<ShaderType, std::string> files;
@@ -494,6 +494,7 @@ namespace Lumos
 
         void VKShader::CreatePipelineLayout()
         {
+            LUMOS_PROFILE_FUNCTION_LOW();
             std::vector<std::vector<Graphics::DescriptorLayoutInfo>> layouts;
 
             for(auto& descriptorLayout : GetDescriptorLayout())
@@ -567,8 +568,24 @@ namespace Lumos
             VK_CHECK_RESULT(vkCreatePipelineLayout(VKDevice::Get().GetDevice(), &pipelineLayoutCreateInfo, VK_NULL_HANDLE, &m_PipelineLayout));
         }
 
+        static const char* ShaderStageToString(const VkShaderStageFlagBits stage)
+        {
+            switch(stage)
+            {
+            case VK_SHADER_STAGE_VERTEX_BIT:
+                return "vert";
+            case VK_SHADER_STAGE_FRAGMENT_BIT:
+                return "frag";
+            case VK_SHADER_STAGE_COMPUTE_BIT:
+                return "comp";
+            }
+            LUMOS_ASSERT(false);
+            return "UNKNOWN";
+        }
+
         void VKShader::LoadFromData(const uint32_t* source, uint32_t fileSize, ShaderType shaderType, int currentShaderStage)
         {
+            LUMOS_PROFILE_FUNCTION_LOW();
             VkShaderModuleCreateInfo shaderCreateInfo = {};
             shaderCreateInfo.sType                    = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
             shaderCreateInfo.codeSize                 = fileSize;
@@ -734,6 +751,7 @@ namespace Lumos
             m_ShaderStages[currentShaderStage].pNext = VK_NULL_HANDLE;
 
             VkResult result = vkCreateShaderModule(VKDevice::Get().GetDevice(), &shaderCreateInfo, nullptr, &m_ShaderStages[currentShaderStage].module);
+            VKUtilities::SetDebugUtilsObjectName(VKDevice::Get().GetDevice(), VK_OBJECT_TYPE_SHADER_MODULE, fmt::format("{}:{}", m_Name, ShaderStageToString(m_ShaderStages[currentShaderStage].stage)), m_ShaderStages[currentShaderStage].module);
 
             if(result == VK_SUCCESS)
             {
@@ -745,7 +763,7 @@ namespace Lumos
 
         void VKShader::Unload()
         {
-            LUMOS_PROFILE_FUNCTION();
+            LUMOS_PROFILE_FUNCTION_LOW();
             for(uint32_t i = 0; i < m_StageCount; i++)
                 vkDestroyShaderModule(VKDevice::Get().GetDevice(), m_ShaderStages[i].module, nullptr);
 
@@ -765,7 +783,7 @@ namespace Lumos
 
         void VKShader::BindPushConstants(Graphics::CommandBuffer* commandBuffer, Graphics::Pipeline* pipeline)
         {
-            LUMOS_PROFILE_FUNCTION();
+            LUMOS_PROFILE_FUNCTION_LOW();
             uint32_t index = 0;
             for(auto& pc : m_PushConstants)
             {
@@ -792,6 +810,7 @@ namespace Lumos
 
         void VKShader::ReadShaderFile(const std::vector<std::string>& lines, std::map<ShaderType, std::string>* shaders)
         {
+            LUMOS_PROFILE_FUNCTION_LOW();
             for(uint32_t i = 0; i < lines.size(); i++)
             {
                 std::string str = std::string(lines[i]);

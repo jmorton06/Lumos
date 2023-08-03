@@ -246,7 +246,7 @@ namespace Lumos
             return false;
         }
 
-        SetIcon("/Textures/icon.png", "/Textures/icon32.png");
+        SetIcon(properties);
 
         ShowWindow(hWnd, SW_SHOW);
         SetFocus(hWnd);
@@ -679,43 +679,43 @@ namespace Lumos
         }
     }
 
-    void WindowsWindow::SetIcon(const std::string& filePath, const std::string& smallIconFilePath)
+    void WindowsWindow::SetIcon(const WindowDesc& desc)
     {
-        HICON bigIcon   = NULL;
-        HICON smallIcon = NULL;
+        // HICON bigIcon   = NULL;
+        // HICON smallIcon = NULL;
 
-        if(filePath != "")
-        {
-            uint32_t width, height;
-            uint8_t* pixels = Lumos::LoadImageFromFile(filePath, &width, &height, nullptr, nullptr, true);
+        // if(filePath != "")
+        // {
+        //     uint32_t width, height;
+        //     uint8_t* pixels = Lumos::LoadImageFromFile(filePath, &width, &height, nullptr, nullptr, true);
 
-            bigIcon = createIcon(pixels, int(width), int(height), 0, 0, true);
-            delete[] pixels;
-        }
+        //     bigIcon = createIcon(pixels, int(width), int(height), 0, 0, true);
+        //     delete[] pixels;
+        // }
 
-        if(smallIconFilePath != "")
-        {
-            uint32_t width, height;
-            uint8_t* pixels = Lumos::LoadImageFromFile(smallIconFilePath, &width, &height, nullptr, nullptr, true);
+        // if(smallIconFilePath != "")
+        // {
+        //     uint32_t width, height;
+        //     uint8_t* pixels = Lumos::LoadImageFromFile(smallIconFilePath, &width, &height, nullptr, nullptr, true);
 
-            auto smallIcon = createIcon(pixels, int(width), int(height), 0, 0, true);
-            delete[] pixels;
-        }
+        //     auto smallIcon = createIcon(pixels, int(width), int(height), 0, 0, true);
+        //     delete[] pixels;
+        // }
 
-        if(!smallIcon)
-            smallIcon = bigIcon;
+        // if(!smallIcon)
+        //     smallIcon = bigIcon;
 
-        SendMessage(hWnd, WM_SETICON, ICON_BIG, (LPARAM)bigIcon);
-        SendMessage(hWnd, WM_SETICON, ICON_SMALL, (LPARAM)smallIcon);
+        // SendMessage(hWnd, WM_SETICON, ICON_BIG, (LPARAM)bigIcon);
+        // SendMessage(hWnd, WM_SETICON, ICON_SMALL, (LPARAM)smallIcon);
 
-        if(m_BigIcon)
-            DestroyIcon(m_BigIcon);
+        // if(m_BigIcon)
+        //     DestroyIcon(m_BigIcon);
 
-        if(m_SmallIcon)
-            DestroyIcon(m_SmallIcon);
+        // if(m_SmallIcon)
+        //     DestroyIcon(m_SmallIcon);
 
-        m_BigIcon   = bigIcon;
-        m_SmallIcon = smallIcon;
+        // m_BigIcon   = bigIcon;
+        // m_SmallIcon = smallIcon;
     }
 
     void WindowsWindow::MakeDefault()

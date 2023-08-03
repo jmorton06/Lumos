@@ -225,12 +225,11 @@ namespace Lumos
         {
             auto shape = std::unique_ptr<CollisionShape>(m_CollisionShape.get());
 
-            const int Version = 1;
+            const int Version = 2;
 
             archive(cereal::make_nvp("Version", Version));
-
             archive(cereal::make_nvp("Position", m_Position), cereal::make_nvp("Orientation", m_Orientation), cereal::make_nvp("LinearVelocity", m_LinearVelocity), cereal::make_nvp("Force", m_Force), cereal::make_nvp("Mass", 1.0f / m_InvMass), cereal::make_nvp("AngularVelocity", m_AngularVelocity), cereal::make_nvp("Torque", m_Torque), cereal::make_nvp("Static", m_Static), cereal::make_nvp("Friction", m_Friction), cereal::make_nvp("Elasticity", m_Elasticity), cereal::make_nvp("CollisionShape", shape), cereal::make_nvp("Trigger", m_Trigger), cereal::make_nvp("AngularFactor", m_AngularFactor));
-
+            archive(cereal::make_nvp("UUID", (uint64_t)m_UUID));
             shape.release();
         }
 
@@ -241,12 +240,14 @@ namespace Lumos
 
             int Version;
             archive(cereal::make_nvp("Version", Version));
-
             archive(cereal::make_nvp("Position", m_Position), cereal::make_nvp("Orientation", m_Orientation), cereal::make_nvp("LinearVelocity", m_LinearVelocity), cereal::make_nvp("Force", m_Force), cereal::make_nvp("Mass", 1.0f / m_InvMass), cereal::make_nvp("AngularVelocity", m_AngularVelocity), cereal::make_nvp("Torque", m_Torque), cereal::make_nvp("Static", m_Static), cereal::make_nvp("Friction", m_Friction), cereal::make_nvp("Elasticity", m_Elasticity), cereal::make_nvp("CollisionShape", shape), cereal::make_nvp("Trigger", m_Trigger), cereal::make_nvp("AngularFactor", m_AngularFactor));
 
             m_CollisionShape = SharedPtr<CollisionShape>(shape.get());
             CollisionShapeUpdated();
             shape.release();
+
+            if(Version > 1)
+                archive(cereal::make_nvp("UUID", (uint64_t)m_UUID));
         }
 
         bool GetIsStatic() const { return m_Static; }

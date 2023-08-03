@@ -104,7 +104,6 @@ namespace Lumos
             void DebugPass();
             void FinalPass();
             void TextPass();
-            void TextFlush();
 
             // Post Process
             void ToneMappingPass();
@@ -120,6 +119,8 @@ namespace Lumos
 
             float SubmitTexture(Texture* texture);
             void UpdateCascades(Scene* scene, Light* light);
+
+            bool m_DebugRenderEnabled = false;
 
             struct LUMOS_EXPORT RenderCommand2D
             {
@@ -287,6 +288,7 @@ namespace Lumos
             Renderer2DData m_Renderer2DData;
             Renderer2DData m_TextRendererData;
             DebugDrawData m_DebugDrawData;
+            Renderer2DData m_DebugTextRendererData;
 
             TextVertexData* TextVertexBufferPtr = nullptr;
 
@@ -295,6 +297,8 @@ namespace Lumos
             std::vector<PointVertexData*> m_PointBufferBase;
             std::vector<VertexData*> m_QuadBufferBase;
             std::vector<TextVertexData*> TextVertexBufferBase;
+            std::vector<TextVertexData*> DebugTextVertexBufferBase;
+            TextVertexData* DebugTextVertexBufferPtr = nullptr;
 
             glm::vec4 m_ClearColour;
 
@@ -373,6 +377,8 @@ namespace Lumos
             // Outline pass
             Graphics::Model* m_SelectedModel           = nullptr;
             Maths::Transform* m_SelectedModelTransform = nullptr;
+
+            void TextFlush(Renderer2DData& textRenderData, std::vector<TextVertexData*>& textVertexBufferBase, TextVertexData*& textVertexBufferPtr);
         };
     }
 }

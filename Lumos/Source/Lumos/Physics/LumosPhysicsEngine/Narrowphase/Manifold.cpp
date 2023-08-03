@@ -30,7 +30,7 @@ namespace Lumos
 
     void Manifold::ApplyImpulse()
     {
-        LUMOS_PROFILE_FUNCTION();
+        LUMOS_PROFILE_FUNCTION_LOW();
         for(uint32_t i = 0; i < m_ContactCount; i++)
         {
             SolveContactPoint(m_vContacts[i]);
@@ -39,7 +39,7 @@ namespace Lumos
 
     void Manifold::SolveContactPoint(ContactPoint& c) const
     {
-        LUMOS_PROFILE_FUNCTION();
+        LUMOS_PROFILE_FUNCTION_LOW();
 
         if(m_pNodeA->GetInverseMass() + m_pNodeB->GetInverseMass() == 0.0f)
             return;
@@ -132,7 +132,7 @@ namespace Lumos
 
     void Manifold::PreSolverStep(float dt)
     {
-        LUMOS_PROFILE_FUNCTION();
+        LUMOS_PROFILE_FUNCTION_LOW();
 
         for(uint32_t i = 0; i < m_ContactCount; i++)
         {
@@ -142,7 +142,7 @@ namespace Lumos
 
     void Manifold::UpdateConstraint(ContactPoint& contact)
     {
-        LUMOS_PROFILE_FUNCTION();
+        LUMOS_PROFILE_FUNCTION_LOW();
 
         // Reset total impulse forces computed this physics timestep
         contact.sumImpulseContact  = 0.0f;
@@ -183,7 +183,7 @@ namespace Lumos
 
     void Manifold::AddContact(const glm::vec3& globalOnA, const glm::vec3& globalOnB, const glm::vec3& _normal, const float& _penetration)
     {
-        LUMOS_PROFILE_FUNCTION();
+        LUMOS_PROFILE_FUNCTION_LOW();
         // Get relative offsets from each object centre of mass
         //  Used to compute rotational velocity at the point of contact.
         glm::vec3 r1 = (globalOnA - m_pNodeA->GetPosition());
@@ -232,7 +232,7 @@ namespace Lumos
 
     void Manifold::DebugDraw() const
     {
-        LUMOS_PROFILE_FUNCTION();
+        LUMOS_PROFILE_FUNCTION_LOW();
 
         if(m_ContactCount > 0)
         {

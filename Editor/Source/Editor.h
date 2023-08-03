@@ -45,6 +45,8 @@ namespace Lumos
         CameraFrustum     = 8,
         MeshBoundingBoxes = 16,
         SpriteBoxes       = 32,
+        EntityNames       = 64,
+
     };
 
     class Editor : public Application

@@ -135,7 +135,7 @@ namespace Lumos
 
             {
                 LUMOS_PROFILE_SCOPE("Physics::UpdatePhysics");
-                m_UpdateAccum += timeStep.GetSeconds();
+                m_UpdateAccum += (float)timeStep.GetSeconds();
                 for(uint32_t i = 0; (m_UpdateAccum >= s_UpdateTimestep) && i < m_MaxUpdatesPerFrame; ++i)
                 {
                     m_UpdateAccum -= s_UpdateTimestep;
@@ -216,7 +216,7 @@ namespace Lumos
 
     void LumosPhysicsEngine::UpdateRigidBody(RigidBody3D* obj) const
     {
-        LUMOS_PROFILE_FUNCTION();
+        LUMOS_PROFILE_FUNCTION_LOW();
 
         if(!obj->GetIsStatic() && obj->IsAwake())
         {
@@ -626,7 +626,7 @@ namespace Lumos
 
     void LumosPhysicsEngine::OnDebugDraw()
     {
-        LUMOS_PROFILE_FUNCTION();
+        LUMOS_PROFILE_FUNCTION_LOW();
         if(m_DebugDrawFlags & PhysicsDebugFlags::MANIFOLD)
         {
             for(Manifold& m : m_Manifolds)

@@ -11,7 +11,7 @@ namespace Lumos
         {
             auto typeName = typeid(T).hash_code();
 
-            LUMOS_ASSERT(m_Systems.find(typeName) == m_Systems.end(), "Registering system more than once.");
+            LUMOS_ASSERT((m_Systems.find(typeName) == m_Systems.end()), "Registering system more than once.");
 
             // Create a pointer to the system and return it so it can be used externally
             SharedPtr<T> system = CreateSharedPtr<T>(std::forward<Args>(args)...);

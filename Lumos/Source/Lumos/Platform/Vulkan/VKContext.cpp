@@ -4,6 +4,7 @@
 #include "VKCommandPool.h"
 #include "VKCommandBuffer.h"
 #include "VKRenderer.h"
+#include "VKUtilities.h"
 #include "Core/Version.h"
 #include "Core/StringUtilities.h"
 
@@ -361,6 +362,7 @@ namespace Lumos
 #ifndef LUMOS_PLATFORM_IOS
             volkLoadInstance(s_VkInstance);
 #endif
+            VKUtilities::Init();
         }
 
         void VKContext::SetupDebugCallback()

@@ -22,7 +22,7 @@ namespace Lumos
 
     float PathNode::HeuristicValue(const PathNode& other) const
     {
-        return (GetWorldSpaceTransform()[3] - other.GetWorldSpaceTransform()[3]).length();
+        return glm::length(GetWorldSpaceTransform()[3] - other.GetWorldSpaceTransform()[3]);
     }
 
 }

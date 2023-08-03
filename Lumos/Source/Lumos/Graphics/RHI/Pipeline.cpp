@@ -39,7 +39,7 @@ namespace Lumos
 
         SharedPtr<Pipeline> Pipeline::Get(const PipelineDesc& pipelineDesc)
         {
-            LUMOS_PROFILE_FUNCTION();
+            LUMOS_PROFILE_FUNCTION_LOW();
             uint64_t hash = 0;
             HashCombine(hash, pipelineDesc.shader.get(), pipelineDesc.cullMode, pipelineDesc.depthBiasEnabled, (uint32_t)pipelineDesc.drawType, (uint32_t)pipelineDesc.polygonMode, pipelineDesc.transparencyEnabled);
 

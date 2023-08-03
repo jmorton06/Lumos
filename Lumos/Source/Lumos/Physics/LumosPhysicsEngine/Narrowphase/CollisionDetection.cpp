@@ -243,7 +243,6 @@ namespace Lumos
         CapsuleCollisionShape* capsuleShape1 = static_cast<CapsuleCollisionShape*>(shape1);
         CapsuleCollisionShape* capsuleShape2 = static_cast<CapsuleCollisionShape*>(shape2);
 
-        CollisionData cur_colData;
         CollisionData best_colData;
         best_colData.penetration = -FLT_MAX;
 

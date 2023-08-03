@@ -184,11 +184,10 @@ namespace Lumos
         if(glfwRawMouseMotionSupported())
             glfwSetInputMode(m_Handle, GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
 
-#ifdef LUMOS_PLATFORM_WINDOWS
-        SetIcon("//Textures/icon.png", "//Textures/icon32.png");
-#elif LUMOS_PLATFORM_LINUX
-        SetIcon("//Textures/icon.png", "//Textures/icon32.png");
-#endif
+        // #ifndef LUMOS_PLATFORM_MACOS
+        SetIcon(properties);
+        // #endif
+
         // glfwSetWindowPos(m_Handle, mode->width / 2 - m_Data.Width / 2, mode->height / 2 - m_Data.Height / 2);
         glfwSetInputMode(m_Handle, GLFW_STICKY_KEYS, true);
 
@@ -334,47 +333,58 @@ namespace Lumos
         return true;
     }
 
-    void GLFWWindow::SetIcon(const std::string& file, const std::string& smallIconFilePath)
+    void GLFWWindow::SetIcon(const WindowDesc& desc)
     {
-        uint32_t width, height;
-
         std::vector<GLFWimage> images;
-        GLFWimage image;
 
-        uint8_t* pixels      = nullptr;
-        uint8_t* pixelsSmall = nullptr;
-
-        if(smallIconFilePath != "")
+        if(!desc.IconData.empty() && desc.IconData[0].second != nullptr)
         {
-            pixelsSmall = Lumos::LoadImageFromFile(smallIconFilePath, &width, &height, nullptr, nullptr, false);
-
-            if(!pixelsSmall)
+            for(auto& data : desc.IconData)
             {
-                LUMOS_LOG_WARN("Failed to load app icon {0}", smallIconFilePath);
+                GLFWimage image;
+
+                uint8_t* pixels = nullptr;
+
+                image.height = data.first;
+                image.width  = data.first;
+                image.pixels = static_cast<unsigned char*>(data.second);
+                images.push_back(image);
             }
 
-            image.height = height;
-            image.width  = width;
-            image.pixels = static_cast<unsigned char*>(pixelsSmall);
-            images.push_back(image);
+            glfwSetWindowIcon(m_Handle, int(images.size()), images.data());
         }
-
-        pixels = Lumos::LoadImageFromFile(file, &width, &height, nullptr, nullptr, true);
-
-        if(!pixels)
+        else
         {
-            LUMOS_LOG_WARN("Failed to load app icon {0}", file);
+            for(auto& path : desc.IconPaths)
+            {
+                uint32_t width, height;
+                GLFWimage image;
+
+                uint8_t* pixels = nullptr;
+
+                if(path != "")
+                {
+                    pixels = Lumos::LoadImageFromFile(path, &width, &height, nullptr, nullptr, false);
+
+                    if(!pixels)
+                    {
+                        LUMOS_LOG_WARN("Failed to load app icon {0}", path);
+                    }
+
+                    image.height = height;
+                    image.width  = width;
+                    image.pixels = static_cast<unsigned char*>(pixels);
+                    images.push_back(image);
+                }
+            }
+
+            glfwSetWindowIcon(m_Handle, int(images.size()), images.data());
+
+            for(int i = 0; i < (int)images.size(); i++)
+            {
+                delete[] images[i].pixels;
+            }
         }
-
-        image.height = height;
-        image.width  = width;
-        image.pixels = static_cast<unsigned char*>(pixels);
-        images.push_back(image);
-
-        glfwSetWindowIcon(m_Handle, int(images.size()), images.data());
-
-        delete[] pixels;
-        delete[] pixelsSmall;
     }
 
     void GLFWWindow::SetWindowTitle(const std::string& title)

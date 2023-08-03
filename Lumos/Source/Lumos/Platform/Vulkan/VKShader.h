@@ -60,10 +60,6 @@ namespace Lumos
 
             std::vector<PushConstant>& GetPushConstants() override
             {
-#ifndef LUMOS_PRODUCTION
-                if(m_PushConstants.empty())
-                    LUMOS_LOG_WARN("No push constants found in shader");
-#endif
                 return m_PushConstants;
             }
             VkDescriptorSetLayout* GetDescriptorLayout(int id)

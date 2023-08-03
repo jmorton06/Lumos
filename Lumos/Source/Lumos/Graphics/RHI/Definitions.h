@@ -330,6 +330,7 @@ namespace Lumos
             bool swapchainTarget = false;
             int cubeMapIndex     = -1;
             int mipIndex         = 0;
+            std::string DebugName;
         };
 
         struct TextureDesc

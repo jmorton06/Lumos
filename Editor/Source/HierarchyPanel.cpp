@@ -39,6 +39,8 @@ namespace Lumos
         if(!registry.valid(node))
             return;
 
+        Entity nodeEntity = { node, Application::Get().GetSceneManager()->GetCurrentScene() };
+
         static const char* defaultName     = "Entity";
         const NameComponent* nameComponent = registry.try_get<NameComponent>(node);
         const char* name                   = nameComponent ? nameComponent->name.c_str() : defaultName; // StringUtilities::ToString(entt::to_integral(node));
@@ -156,7 +158,33 @@ namespace Lumos
             ImGui::PopStyleColor();
             ImGui::SameLine();
             if(!doubleClicked)
+            {
+                bool isPrefab = false;
+                if(registry.any_of<PrefabComponent>(node))
+                    isPrefab = true;
+                else
+                {
+                    auto Parent = nodeEntity.GetParent();
+                    while(Parent && Parent.Valid())
+                    {
+                        if(Parent.HasComponent<PrefabComponent>())
+                        {
+                            isPrefab = true;
+                            Parent   = {};
+                        }
+                        else
+                        {
+                            Parent = Parent.GetParent();
+                        }
+                    }
+                }
+
+                if(isPrefab)
+                    ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_CheckMark));
                 ImGui::TextUnformatted(name);
+                if(isPrefab)
+                    ImGui::PopStyleColor();
+            }
             // ImGui::EndGroup();
 
             if(doubleClicked)
@@ -328,7 +356,7 @@ namespace Lumos
 
             if(m_SelectUp)
             {
-                if(m_Editor->GetSelected().front() == node && registry.valid(m_CurrentPrevious))
+                if(!m_Editor->GetSelected().empty() && m_Editor->GetSelected().front() == node && registry.valid(m_CurrentPrevious))
                 {
                     m_SelectUp = false;
                     m_Editor->SetSelected(m_CurrentPrevious);
@@ -337,7 +365,7 @@ namespace Lumos
 
             if(m_SelectDown)
             {
-                if(registry.valid(m_CurrentPrevious) && m_CurrentPrevious == m_Editor->GetSelected().front())
+                if(!m_Editor->GetSelected().empty() && registry.valid(m_CurrentPrevious) && m_CurrentPrevious == m_Editor->GetSelected().front())
                 {
                     m_SelectDown = false;
                     m_Editor->SetSelected(node);
@@ -377,7 +405,7 @@ namespace Lumos
                 entt::entity child = hierarchyComponent->First();
                 while(child != entt::null && registry.valid(child))
                 {
-                    float HorizontalTreeLineSize = 16.0f * Application::Get().GetWindowDPI(); // chosen arbitrarily
+                    float HorizontalTreeLineSize = 20.0f * Application::Get().GetWindowDPI(); // chosen arbitrarily
                     auto currentPos              = ImGui::GetCursorScreenPos();
                     ImGui::Indent(10.0f);
 
@@ -388,7 +416,7 @@ namespace Lumos
                         entt::entity firstChild = childHerarchyComponent->First();
                         if(firstChild != entt::null && registry.valid(firstChild))
                         {
-                            HorizontalTreeLineSize *= 0.5f;
+                            HorizontalTreeLineSize *= 0.1f;
                         }
                     }
                     DrawNode(child, registry);
@@ -627,15 +655,16 @@ namespace Lumos
 
                 // ImGuiUtilities::AlternatingRowsBackground(ImGui::GetFontSize() + ImGui::GetStyle().FramePadding.y);
 
-                registry.each([&](auto entity)
-                              {
-                                  if(registry.valid(entity))
-                                  {
-                                      auto hierarchyComponent = registry.try_get<Hierarchy>(entity);
-                                      
-                                      if(!hierarchyComponent || hierarchyComponent->Parent() == entt::null)
-                                          DrawNode(entity, registry);
-                                  } });
+                for(auto [entity] : registry.storage<entt::entity>().each())
+                {
+                    if(registry.valid(entity))
+                    {
+                        auto hierarchyComponent = registry.try_get<Hierarchy>(entity);
+
+                        if(!hierarchyComponent || hierarchyComponent->Parent() == entt::null)
+                            DrawNode(entity, registry);
+                    }
+                }
 
                 // Only supports one scene
                 ImVec2 min_space = ImGui::GetWindowContentRegionMin();

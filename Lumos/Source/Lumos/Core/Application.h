@@ -275,6 +275,9 @@ namespace Lumos
             int RenderAPI;
             int ProjectVersion;
             int8_t DesiredGPUIndex = -1;
+            std::string IconPath;
+            bool DefaultIcon  = true;
+            bool HideTitleBar = false;
         };
 
         struct RenderConfig
@@ -285,6 +288,8 @@ namespace Lumos
 
         ProjectSettings& GetProjectSettings() { return m_ProjectSettings; }
         RenderConfig& GetRenderConfigSettings() { return m_RenderConfig; }
+
+        Arena* GetFrameArena() const { return m_FrameArena; }
 
     protected:
         ProjectSettings m_ProjectSettings;
@@ -331,6 +336,8 @@ namespace Lumos
 
         std::vector<std::function<void()>> m_MainThreadQueue;
         std::mutex m_MainThreadQueueMutex;
+
+        Arena* m_FrameArena;
 
         NONCOPYABLE(Application)
     };

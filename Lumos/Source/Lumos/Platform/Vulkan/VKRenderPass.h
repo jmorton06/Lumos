@@ -34,6 +34,7 @@ namespace Lumos
             bool m_DepthOnly;
             bool m_ClearDepth;
             bool m_SwapchainTarget;
+            std::string m_DebugName;
         };
     }
 }

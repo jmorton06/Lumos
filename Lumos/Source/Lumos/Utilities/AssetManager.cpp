@@ -1,4 +1,3 @@
-#pragma once
 #include "Precompiled.h"
 #include "AssetManager.h"
 #include "Core/Application.h"

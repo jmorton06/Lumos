@@ -35,9 +35,15 @@ namespace Lumos
         iterator begin();
         iterator end();
 
-        class iterator : public std::iterator<std::output_iterator_tag, Entity>
+        class iterator
         {
         public:
+            using iterator_category = std::output_iterator_tag;
+            using value_type        = Entity;
+            using difference_type   = std::ptrdiff_t;
+            using pointer           = Entity*;
+            using reference         = Entity&;
+
             explicit iterator(EntityView<Component...>& view, size_t index = 0)
                 : view(view)
                 , nIndex(index)
@@ -48,15 +54,20 @@ namespace Lumos
             {
                 return view[int(nIndex)];
             }
+
             iterator& operator++()
             {
                 nIndex++;
                 return *this;
             }
+
             iterator operator++(int)
             {
-                return ++(*this);
+                iterator temp = *this;
+                ++(*this);
+                return temp;
             }
+
             bool operator!=(const iterator& rhs) const
             {
                 return nIndex != rhs.nIndex;
@@ -96,8 +107,12 @@ namespace Lumos
     //    public:
     //        EntityGroup(Scene* scene)
     //            : m_Scene(scene)
-    //            , m_Group(scene->GetRegistry().group<Components...>())
     //        {
+    //            // Expand the component types into a tuple
+    //            std::tuple enttGroupTypes = std::make_tuple(entt::type_id<Components>()...);
+    //
+    //            // Create the entt::group using std::apply to expand the tuple
+    //            m_Group = scene->GetRegistry().group<Components...>(std::apply([](auto&&... args) { return entt::get<std::decay_t<decltype(args)>...>; }, enttGroupTypes));
     //        }
     //
     //        Entity operator[](int i)
@@ -117,7 +132,7 @@ namespace Lumos
     //
     //    private:
     //        Scene* m_Scene;
-    //        entt::group<Components...> m_Group;
+    //        entt::group<Components...>& m_Group;
     //    };
 
     template <typename...>

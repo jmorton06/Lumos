@@ -327,7 +327,15 @@ namespace Lumos
 
                 ImGui::Separator();
 
-                uint32_t flags = m_Editor->GetSettings().m_DebugDrawFlags;
+                uint32_t flags       = m_Editor->GetSettings().m_DebugDrawFlags;
+                bool showEntityNames = flags & EditorDebugFlags::EntityNames;
+                if(ImGui::Checkbox("Entity Names", &showEntityNames))
+                {
+                    if(showEntityNames)
+                        flags += EditorDebugFlags::EntityNames;
+                    else
+                        flags -= EditorDebugFlags::EntityNames;
+                }
 
                 bool showAABB = flags & EditorDebugFlags::MeshBoundingBoxes;
                 if(ImGui::Checkbox("Mesh AABB", &showAABB))

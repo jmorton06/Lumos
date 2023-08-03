@@ -1,0 +1,26 @@
+{
+    "Albedo": "NULL",
+    "Normal": "NULL",
+    "Metallic": "NULL",
+    "Roughness": "",
+    "Ao": "",
+    "Emissive": "",
+    "albedoColour": {
+        "value0": 0.5879999995231628,
+        "value1": 0.5879999995231628,
+        "value2": 0.5879999995231628,
+        "value3": 1.0
+    },
+    "roughnessValue": 0.699999988079071,
+    "metallicValue": 0.699999988079071,
+    "emissiveValue": 0.0,
+    "albedoMapFactor": 1.0,
+    "metallicMapFactor": 1.0,
+    "roughnessMapFactor": 0.0,
+    "normalMapFactor": 1.0,
+    "aoMapFactor": 0.0,
+    "emissiveMapFactor": 0.0,
+    "alphaCutOff": 0.4000000059604645,
+    "workflow": 1.0,
+    "shader": "//CoreShaders/ForwardPBR.shader",
+    "Reflectance": 0.30000001192092898

@@ -65,8 +65,6 @@ project "glfw"
 
 	staticruntime "Off"
 
-   	buildoptions { "/MP" }
-
     files {
       "glfw/src/win32_platform.h",
       "glfw/src/win32_joystick.h",

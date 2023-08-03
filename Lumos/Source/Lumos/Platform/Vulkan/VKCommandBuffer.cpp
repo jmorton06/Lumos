@@ -39,7 +39,7 @@ namespace Lumos
 
         bool VKCommandBuffer::Init(bool primary)
         {
-            LUMOS_PROFILE_FUNCTION();
+            LUMOS_PROFILE_FUNCTION_LOW();
             m_Primary     = primary;
             m_CommandPool = VKDevice::Get().GetCommandPool()->GetHandle();
 
@@ -58,7 +58,7 @@ namespace Lumos
 
         bool VKCommandBuffer::Init(bool primary, VkCommandPool commandPool)
         {
-            LUMOS_PROFILE_FUNCTION();
+            LUMOS_PROFILE_FUNCTION_LOW();
             m_Primary = primary;
 
             m_CommandPool = commandPool;
@@ -79,7 +79,7 @@ namespace Lumos
 
         void VKCommandBuffer::Unload()
         {
-            LUMOS_PROFILE_FUNCTION();
+            LUMOS_PROFILE_FUNCTION_LOW();
             VKUtilities::WaitIdle();
 
             if(m_State == CommandBufferState::Submitted)
@@ -92,7 +92,7 @@ namespace Lumos
 
         void VKCommandBuffer::BeginRecording()
         {
-            LUMOS_PROFILE_FUNCTION();
+            LUMOS_PROFILE_FUNCTION_LOW();
             LUMOS_ASSERT(m_Primary, "BeginRecording() called from a secondary command buffer!");
 
             m_State                                  = CommandBufferState::Recording;
@@ -103,7 +103,7 @@ namespace Lumos
 
         void VKCommandBuffer::BeginRecordingSecondary(RenderPass* renderPass, Framebuffer* framebuffer)
         {
-            LUMOS_PROFILE_FUNCTION();
+            LUMOS_PROFILE_FUNCTION_LOW();
             LUMOS_ASSERT(!m_Primary, "BeginRecordingSecondary() called from a primary command buffer!");
             m_State = CommandBufferState::Recording;
 
@@ -121,7 +121,7 @@ namespace Lumos
 
         void VKCommandBuffer::EndRecording()
         {
-            LUMOS_PROFILE_FUNCTION();
+            LUMOS_PROFILE_FUNCTION_LOW();
             LUMOS_ASSERT(m_State == CommandBufferState::Recording, "CommandBuffer ended before started recording");
 
             if(m_BoundPipeline)
@@ -136,7 +136,7 @@ namespace Lumos
 
         void VKCommandBuffer::Execute(VkPipelineStageFlags flags, VkSemaphore waitSemaphore, bool waitFence)
         {
-            LUMOS_PROFILE_FUNCTION();
+            LUMOS_PROFILE_FUNCTION_LOW();
             LUMOS_ASSERT(m_Primary, "Used Execute on secondary command buffer!");
             LUMOS_ASSERT(m_State == CommandBufferState::Ended, "CommandBuffer executed before ended recording");
             uint32_t waitSemaphoreCount = waitSemaphore ? 1 : 0, signalSemaphoreCount = m_Semaphore ? 1 : 0;
@@ -162,7 +162,7 @@ namespace Lumos
 
         void VKCommandBuffer::ExecuteSecondary(CommandBuffer* primaryCmdBuffer)
         {
-            LUMOS_PROFILE_FUNCTION();
+            LUMOS_PROFILE_FUNCTION_LOW();
             LUMOS_ASSERT(!m_Primary, "Used ExecuteSecondary on primary command buffer!");
             m_State = CommandBufferState::Submitted;
 
@@ -171,6 +171,7 @@ namespace Lumos
 
         void VKCommandBuffer::BindPipeline(Pipeline* pipeline)
         {
+            LUMOS_PROFILE_FUNCTION_LOW();
             if(pipeline != m_BoundPipeline)
             {
                 if(m_BoundPipeline)
@@ -183,6 +184,7 @@ namespace Lumos
 
         void VKCommandBuffer::UnBindPipeline()
         {
+            LUMOS_PROFILE_FUNCTION_LOW();
             if(m_BoundPipeline)
                 m_BoundPipeline->End(this);
             m_BoundPipeline = nullptr;
@@ -190,7 +192,7 @@ namespace Lumos
 
         void VKCommandBuffer::UpdateViewport(uint32_t width, uint32_t height, bool flipViewport)
         {
-            LUMOS_PROFILE_FUNCTION();
+            LUMOS_PROFILE_FUNCTION_LOW();
             VkViewport viewport = {};
             viewport.x          = 0.0f;
             viewport.y          = 0.0f;
@@ -217,13 +219,13 @@ namespace Lumos
 
         void VKCommandBuffer::Reset()
         {
-            LUMOS_PROFILE_FUNCTION();
+            LUMOS_PROFILE_FUNCTION_LOW();
             VK_CHECK_RESULT(vkResetCommandBuffer(m_CommandBuffer, 0));
         }
 
         bool VKCommandBuffer::Flush()
         {
-            LUMOS_PROFILE_FUNCTION();
+            LUMOS_PROFILE_FUNCTION_LOW();
             if(m_State == CommandBufferState::Idle)
                 return true;
 
@@ -237,8 +239,8 @@ namespace Lumos
 
         bool VKCommandBuffer::Wait()
         {
-            LUMOS_PROFILE_FUNCTION();
-            LUMOS_ASSERT(m_State == CommandBufferState::Submitted, "");
+            LUMOS_PROFILE_FUNCTION_LOW();
+            LUMOS_ASSERT(m_State == CommandBufferState::Submitted);
 
             m_Fence->WaitAndReset();
             m_State = CommandBufferState::Idle;
@@ -248,7 +250,7 @@ namespace Lumos
 
         void VKCommandBuffer::Submit()
         {
-            LUMOS_PROFILE_FUNCTION();
+            LUMOS_PROFILE_FUNCTION_LOW();
             Execute(VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, nullptr, false);
         }
 

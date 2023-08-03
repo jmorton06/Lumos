@@ -236,6 +236,7 @@ namespace Lumos
 
                     m_Frames[i].MainCommandBuffer = CreateSharedPtr<VKCommandBuffer>();
                     m_Frames[i].MainCommandBuffer->Init(true, m_Frames[i].CommandPool->GetHandle());
+                    VKUtilities::SetDebugUtilsObjectName(VKDevice::Get().GetDevice(), VK_OBJECT_TYPE_COMMAND_BUFFER, fmt::format("Commandbuffer (frame in flight: {})", i), m_Frames[i].MainCommandBuffer->GetHandle());
                 }
             }
         }
@@ -333,12 +334,14 @@ namespace Lumos
             commandBuffer->Reset();
             VKRenderer::GetDeletionQueue(m_CurrentBuffer).Flush();
             AcquireNextImage();
+
             commandBuffer->BeginRecording();
         }
 
         void VKSwapChain::End()
         {
             LUMOS_PROFILE_FUNCTION();
+
             GetCurrentCommandBuffer()->EndRecording();
         }
 
@@ -391,7 +394,7 @@ namespace Lumos
         // Get list of supported surface formats
         uint32_t formatCount;
         VK_CHECK_RESULT(vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, m_Surface, &formatCount, NULL));
-        LUMOS_ASSERT(formatCount > 0, "");
+        LUMOS_ASSERT(formatCount > 0);
 
         std::vector<VkSurfaceFormatKHR> surfaceFormats(formatCount);
         VK_CHECK_RESULT(vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, m_Surface, &formatCount, surfaceFormats.data()));
