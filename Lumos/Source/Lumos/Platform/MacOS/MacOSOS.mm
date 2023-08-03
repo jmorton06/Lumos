@@ -3,6 +3,7 @@
 #include "Platform/GLFW/GLFWWindow.h"
 #include "Core/CoreSystem.h"
 #include "Core/Application.h"
+#include "Core/OS/MemoryManager.h"
 
 #include <mach-o/dyld.h>
 
@@ -27,8 +28,18 @@ namespace Lumos
 		hours = minutes / 60;
 		minutes = minutes % 60;
 		
-        LUMOS_LOG_INFO("Battery Info - {0}% , Time Left {1}h : {2}m , State : {3}", percentage, hours, minutes, PowerStateToString(state));
+        LUMOS_LOG_INFO("--------------------");
+        LUMOS_LOG_INFO(" System Information ");
+        LUMOS_LOG_INFO("--------------------");
 
+        if(state != PowerState::POWERSTATE_NO_BATTERY)
+            LUMOS_LOG_INFO("Battery Info - Percentage : {0} , Time Left {1}s , State : {2}", percentage, secondsLeft, PowerStateToString(state));
+        else
+            LUMOS_LOG_INFO("Power - Outlet");
+            
+        auto systemInfo = MemoryManager::Get()->GetSystemInfo();
+        systemInfo.Log();
+        
         auto& app = Lumos::Application::Get();
 
         app.Init();

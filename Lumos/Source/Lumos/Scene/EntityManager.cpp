@@ -25,8 +25,10 @@ namespace Lumos
     void EntityManager::Clear()
     {
         LUMOS_PROFILE_FUNCTION();
-        m_Registry.each([&](auto entity)
-                        { m_Registry.destroy(entity); });
+        for(auto [entity] : m_Registry.storage<entt::entity>().each())
+        {
+            m_Registry.destroy(entity);
+        }
 
         m_Registry.clear();
     }

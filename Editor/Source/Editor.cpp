@@ -362,6 +362,17 @@ namespace Lumos
         return false;
     }
 
+    bool IsPrefab(const std::string& filePath)
+    {
+        LUMOS_PROFILE_FUNCTION();
+        std::string extension = StringUtilities::GetFilePathExtension(filePath);
+        extension             = StringUtilities::ToLower(extension);
+        if(extension == "lprefab")
+            return true;
+
+        return false;
+    }
+
     void Editor::OnImGui()
     {
         LUMOS_PROFILE_FUNCTION();
@@ -808,9 +819,12 @@ namespace Lumos
                 ImGui::Separator();
 
                 ImGui::TextUnformatted("Third-Party");
-                ImGui::Text("ImGui - Version : %s, Revision - %d", IMGUI_VERSION, IMGUI_VERSION_NUM);
-                ImGui::Text("Entt - Version %s", ENTT_VERSION);
-                ImGui::Text("Cereal - Version %d.&d.%d", CEREAL_VERSION_MAJOR, CEREAL_VERSION_MINOR, CEREAL_VERSION_PATCH);
+                if(ImGui::MenuItem(fmt::format("ImGui - Version : {0}, Revision - {1}", IMGUI_VERSION, IMGUI_VERSION_NUM).c_str()))
+                    Lumos::OS::Instance()->OpenURL("https://github.com/ocornut/imgui");
+                if(ImGui::MenuItem(fmt::format("Entt - Version  : {0}", ENTT_VERSION).c_str()))
+                    Lumos::OS::Instance()->OpenURL("https://github.com/skypjack/entt");
+                if(ImGui::MenuItem(fmt::format("Cereal - Version : {0}.{1}.{2}", CEREAL_VERSION_MAJOR, CEREAL_VERSION_MINOR, CEREAL_VERSION_PATCH).c_str()))
+                    Lumos::OS::Instance()->OpenURL("https://github.com/USCiLab/cereal");
 
                 ImGui::EndMenu();
             }
@@ -1357,8 +1371,6 @@ namespace Lumos
 
             glm::mat4 medianPointMatrix = glm::translate(glm::mat4(1.0f), medianPointLocation) * glm::scale(glm::mat4(1.0f), medianPointScale);
 
-            glm::mat4 projectionMatrix, viewMatrix;
-
             ImGuizmo::SetDrawlist();
             ImGuizmo::SetOrthographic(m_CurrentCamera->IsOrthographic());
 
@@ -1811,7 +1823,7 @@ namespace Lumos
                 autoSaveTimer = 0;
             }
 
-            autoSaveTimer += ts.GetMillis();
+            autoSaveTimer += (float)ts.GetMillis();
         }
 
         if(m_EditorState == EditorState::Play)
@@ -1853,7 +1865,7 @@ namespace Lumos
                 m_EditorCameraController.HandleKeyboard(m_EditorCameraTransform, (float)ts.GetSeconds());
                 m_EditorCameraTransform.SetWorldMatrix(glm::mat4(1.0f));
 
-                if(Input::Get().GetKeyPressed(InputCode::Key::F))
+                if(!m_SelectedEntities.empty() && Input::Get().GetKeyPressed(InputCode::Key::F))
                 {
                     if(registry.valid(m_SelectedEntities.front()))
                     {
@@ -2072,6 +2084,19 @@ namespace Lumos
 
                 {
                     DebugRenderer::DebugDraw(camera.GetFrustum(glm::inverse(trans.GetWorldMatrix())), glm::vec4(0.9f));
+                }
+            }
+        }
+
+        if(m_Settings.m_DebugDrawFlags & EditorDebugFlags::EntityNames)
+        {
+            auto transform = registry.view<Maths::Transform>();
+
+            for(auto entity : transform)
+            {
+                Entity e = { entity, GetCurrentScene() };
+                {
+                    DebugRenderer::DrawTextWsNDT(e.GetTransform().GetWorldPosition(), 20.0f, glm::vec4(1.0f), e.GetName());
                 }
             }
         }
@@ -2486,6 +2511,10 @@ namespace Lumos
 
             SharedPtr<Graphics::Texture2D> texture = SharedPtr<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile(path, path));
             sprite.SetTexture(texture);
+        }
+        else if(IsPrefab(path))
+        {
+            m_SceneManager->GetCurrentScene()->InstantiatePrefab(path);
         }
     }
 

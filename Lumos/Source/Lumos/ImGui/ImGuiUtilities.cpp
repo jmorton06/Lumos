@@ -1299,14 +1299,14 @@ namespace Lumos
         char buffer[256];
         memset(buffer, 0, 256);
         memcpy(buffer, currentText.c_str(), currentText.length());
-
+        ImGui::PushID(currentText.c_str());
         bool updated = ImGui::InputText("##SceneName", buffer, 256);
 
         ImGuiUtilities::DrawItemActivityOutline(2.0f, false);
 
         if(updated)
             currentText = std::string(buffer);
-
+        ImGui::PopID();
         return updated;
     }
 

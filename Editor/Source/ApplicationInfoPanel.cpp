@@ -72,7 +72,7 @@ namespace Lumos
             // if (frame > (int)(ImGui::GetIO().Framerate / 60))
             {
                 rdata.AddPoint(t, ImGui::GetIO().Framerate);
-                rdata1.AddPoint(t, Lumos::Engine::GetTimeStep().GetMillis()); // 1000.0f / ImGui::GetIO().Framerate);
+                rdata1.AddPoint(t, (float)Lumos::Engine::GetTimeStep().GetMillis()); // 1000.0f / ImGui::GetIO().Framerate);
             }
 
             static ImPlotAxisFlags rt_axis = ImPlotAxisFlags_NoTickLabels;

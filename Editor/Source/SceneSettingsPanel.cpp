@@ -114,7 +114,7 @@ namespace Lumos
                     ImGuiUtilities::Property("Saturation", sceneSettings.RenderSettings.Saturation, 0.0f, 1.0f, 0.01f);
 
                     auto& registry  = m_CurrentScene->GetRegistry();
-                    int entityCount = (int)registry.size();
+                    int entityCount = (int)registry.storage<entt::entity>().size();
                     ImGuiUtilities::Property("Entity Count", entityCount, 0, 0, ImGuiUtilities::PropertyFlag::ReadOnly);
 
                     static const char* debugModes[7] = {

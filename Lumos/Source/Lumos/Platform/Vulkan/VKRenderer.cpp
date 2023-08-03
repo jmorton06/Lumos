@@ -115,7 +115,7 @@ namespace Lumos
 
         void VKRenderer::ClearSwapChainImage() const
         {
-            LUMOS_PROFILE_FUNCTION();
+            LUMOS_PROFILE_FUNCTION_LOW();
 
             auto m_SwapChain = Application::Get().GetWindow()->GetSwapChain();
             for(int i = 0; i < m_SwapChain->GetSwapChainBufferCount(); i++)
@@ -138,7 +138,7 @@ namespace Lumos
 
         void VKRenderer::OnResize(uint32_t width, uint32_t height)
         {
-            LUMOS_PROFILE_FUNCTION();
+            LUMOS_PROFILE_FUNCTION_LOW();
             if(width == 0 || height == 0)
                 return;
 
@@ -150,7 +150,7 @@ namespace Lumos
 
         void VKRenderer::Begin()
         {
-            LUMOS_PROFILE_FUNCTION();
+            LUMOS_PROFILE_FUNCTION_LOW();
             s_DeletionQueueIndex++;
             s_DeletionQueueIndex = s_DeletionQueueIndex % int(s_DeletionQueue.size());
             s_DeletionQueue[s_DeletionQueueIndex].Flush();
@@ -161,7 +161,7 @@ namespace Lumos
 
         void VKRenderer::PresentInternal()
         {
-            LUMOS_PROFILE_FUNCTION();
+            LUMOS_PROFILE_FUNCTION_LOW();
             SharedPtr<VKSwapChain> swapChain = Application::Get().GetWindow()->GetSwapChain().As<VKSwapChain>();
 
             swapChain->End();
@@ -413,7 +413,7 @@ file.close();
 
         void VKRenderer::BindDescriptorSetsInternal(Graphics::Pipeline* pipeline, Graphics::CommandBuffer* commandBuffer, uint32_t dynamicOffset, Graphics::DescriptorSet** descriptorSets, uint32_t descriptorCount)
         {
-            LUMOS_PROFILE_FUNCTION();
+            LUMOS_PROFILE_FUNCTION_LOW();
             uint32_t numDynamicDescriptorSets = 0;
             uint32_t numDesciptorSets         = 0;
 
@@ -437,14 +437,14 @@ file.close();
 
         void VKRenderer::DrawIndexedInternal(CommandBuffer* commandBuffer, DrawType type, uint32_t count, uint32_t start) const
         {
-            LUMOS_PROFILE_FUNCTION();
+            LUMOS_PROFILE_FUNCTION_LOW();
             Engine::Get().Statistics().NumDrawCalls++;
             vkCmdDrawIndexed(static_cast<VKCommandBuffer*>(commandBuffer)->GetHandle(), count, 1, 0, 0, 0);
         }
 
         void VKRenderer::DrawInternal(CommandBuffer* commandBuffer, DrawType type, uint32_t count, DataType datayType, void* indices) const
         {
-            LUMOS_PROFILE_FUNCTION();
+            LUMOS_PROFILE_FUNCTION_LOW();
             Engine::Get().Statistics().NumDrawCalls++;
             vkCmdDraw(static_cast<VKCommandBuffer*>(commandBuffer)->GetHandle(), count, 1, 0, 0);
         }
@@ -486,6 +486,7 @@ file.close();
 
         void VKRenderer::DrawSplashScreen(Texture* texture)
         {
+            LUMOS_PROFILE_FUNCTION();
             std::vector<TextureType> attachmentTypes;
             std::vector<Texture*> attachments;
 
@@ -500,6 +501,7 @@ file.close();
             renderPassDesc.attachmentTypes = attachmentTypes.data();
             renderPassDesc.attachments     = attachments.data();
             renderPassDesc.clear           = true;
+            renderPassDesc.DebugName       = "Splash Screen Pass";
 
             float clearColour[4] = { 040.0f / 256.0f, 42.0f / 256.0f, 54.0f / 256.0f, 1.0f };
 

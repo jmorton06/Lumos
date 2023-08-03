@@ -9,7 +9,7 @@ namespace Lumos
     {
         Transform::Transform()
         {
-            LUMOS_PROFILE_FUNCTION();
+            LUMOS_PROFILE_FUNCTION_LOW();
             m_LocalPosition    = glm::vec3(0.0f, 0.0f, 0.0f);
             m_LocalOrientation = glm::quat(glm::vec3(0.0f, 0.0f, 0.0f));
             m_LocalScale       = glm::vec3(1.0f, 1.0f, 1.0f);
@@ -20,7 +20,7 @@ namespace Lumos
 
         Transform::Transform(const glm::mat4& matrix)
         {
-            LUMOS_PROFILE_FUNCTION();
+            LUMOS_PROFILE_FUNCTION_LOW();
             glm::vec3 skew;
             glm::vec4 perspective;
             glm::decompose(matrix, m_LocalScale, m_LocalOrientation, m_LocalPosition, skew, perspective);
@@ -32,7 +32,7 @@ namespace Lumos
 
         Transform::Transform(const glm::vec3& position)
         {
-            LUMOS_PROFILE_FUNCTION();
+            LUMOS_PROFILE_FUNCTION_LOW();
             m_LocalPosition    = position;
             m_LocalOrientation = glm::quat(glm::vec3(0.0f, 0.0f, 0.0f));
             m_LocalScale       = glm::vec3(1.0f, 1.0f, 1.0f);
@@ -52,15 +52,15 @@ namespace Lumos
 
         void Transform::ApplyTransform()
         {
-            LUMOS_PROFILE_FUNCTION();
-            glm::vec3 skew;
-            glm::vec4 perspective;
-            // glm::decompose(m_LocalMatrix, m_LocalScale, m_LocalOrientation, m_LocalPosition, skew, perspective);
+            LUMOS_PROFILE_FUNCTION_LOW();
+            // glm::vec3 skew;
+            // glm::vec4 perspective;
+            //  glm::decompose(m_LocalMatrix, m_LocalScale, m_LocalOrientation, m_LocalPosition, skew, perspective);
         }
 
         void Transform::SetWorldMatrix(const glm::mat4& mat)
         {
-            LUMOS_PROFILE_FUNCTION();
+            LUMOS_PROFILE_FUNCTION_LOW();
             // if(m_Dirty)
             //   UpdateMatrices();
             // m_ParentMatrix = mat;
@@ -69,7 +69,7 @@ namespace Lumos
 
         void Transform::SetLocalTransform(const glm::mat4& localMat)
         {
-            LUMOS_PROFILE_FUNCTION();
+            LUMOS_PROFILE_FUNCTION_LOW();
             // m_LocalMatrix = localMat;
             // m_HasUpdated  = true;
 
@@ -102,7 +102,7 @@ namespace Lumos
 
         const glm::mat4& Transform::GetWorldMatrix()
         {
-            LUMOS_PROFILE_FUNCTION();
+            LUMOS_PROFILE_FUNCTION_LOW();
             // if(m_Dirty)
             UpdateMatrices();
 
@@ -111,7 +111,7 @@ namespace Lumos
 
         glm::mat4 Transform::GetLocalMatrix()
         {
-            LUMOS_PROFILE_FUNCTION();
+            LUMOS_PROFILE_FUNCTION_LOW();
             // if(m_Dirty)
             //   UpdateMatrices();
 

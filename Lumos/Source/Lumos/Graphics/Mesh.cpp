@@ -124,7 +124,7 @@ namespace Lumos
 
         void Mesh::GenerateTangentsAndBitangents(Vertex* vertices, uint32_t vertexCount, uint32_t* indices, uint32_t numIndices)
         {
-            for(int i = 0; i < vertexCount; i++)
+            for(uint32_t i = 0; i < vertexCount; i++)
             {
                 vertices[i].Tangent   = glm::vec3(0.0f);
                 vertices[i].Bitangent = glm::vec3(0.0f);

@@ -73,7 +73,7 @@ namespace Lumos
             m_Data.EventCallback = callback;
         }
 
-        void SetIcon(const std::string& file, const std::string& smallIconFilePath = "") override;
+        void SetIcon(const WindowDesc& desc) override;
 
         static void MakeDefault();
 

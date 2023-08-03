@@ -34,6 +34,10 @@
 #include <imgui/imgui_internal.h>
 #include <glm/gtx/matrix_decompose.hpp>
 
+#include <cereal/types/polymorphic.hpp>
+#include <cereal/archives/binary.hpp>
+#include <cereal/archives/json.hpp>
+
 // #include <sol/sol.hpp>
 #include <inttypes.h>
 
@@ -1954,6 +1958,21 @@ end
                 {
                     using namespace Lumos;
                     ImGui::Indent();
+                    if(ImGui::Button("Save to file"))
+                    {
+                        std::string filePath = "//Meshes"; // Materials/" + matName + ".lmat";
+                        std::string physicalPath;
+                        if(VFS::Get().ResolvePhysicalPath(filePath, physicalPath))
+                        {
+                            physicalPath += "/Materials/" + matName + ".lmat";
+                            std::stringstream storage;
+
+                            cereal::JSONOutputArchive output { storage };
+                            material->save(output);
+
+                            FileSystem::WriteTextFile(physicalPath, storage.str());
+                        }
+                    }
                     bool flipImage = Graphics::Renderer::GetGraphicsContext()->FlipImGUITexture();
 
                     bool twoSided     = material->GetFlag(Lumos::Graphics::Material::RenderFlags::TWOSIDED);
@@ -2326,7 +2345,9 @@ namespace Lumos
         {
             ImGuiUtilities::PushID();
 
-            if(!Application::Get().GetSceneManager()->GetCurrentScene())
+            Scene* currentScene = Application::Get().GetSceneManager()->GetCurrentScene();
+
+            if(!currentScene)
             {
                 m_Editor->SetSelected(entt::null);
                 ImGuiUtilities::PopID();
@@ -2334,7 +2355,7 @@ namespace Lumos
                 return;
             }
 
-            auto& registry = Application::Get().GetSceneManager()->GetCurrentScene()->GetRegistry();
+            auto& registry = currentScene->GetRegistry();
             if(selectedEntities.size() != 1 || !registry.valid(selectedEntities.front()))
             {
                 m_Editor->SetSelected(entt::null);
@@ -2343,7 +2364,8 @@ namespace Lumos
                 return;
             }
 
-            auto selected = selectedEntities.front();
+            auto selected         = selectedEntities.front();
+            Entity SelectedEntity = { selected, currentScene };
 
             // active checkbox
             auto activeComponent = registry.try_get<ActiveComponent>(selected);
@@ -2379,7 +2401,7 @@ namespace Lumos
             }
 
             ImGui::SameLine();
-            ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x - ImGui::GetFontSize() * 2.0f);
+            ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x - ImGui::GetFontSize() * 4.0f);
             {
                 ImGuiUtilities::ScopedFont boldFont(ImGui::GetIO().Fonts->Fonts[1]);
                 if(ImGuiUtilities::InputText(name))
@@ -2389,15 +2411,66 @@ namespace Lumos
 
             ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.7f, 0.7f, 0.7f, 0.0f));
 
+            if(ImGui::Button(ICON_MDI_FLOPPY))
+                ImGui::OpenPopup("SavePrefab");
+
+            ImGuiUtilities::Tooltip("Save Entity As Prefab");
+
+            ImGui::SameLine();
             if(ImGui::Button(ICON_MDI_TUNE))
                 ImGui::OpenPopup("SetDebugMode");
             ImGui::PopStyleColor();
 
             if(ImGui::BeginPopup("SetDebugMode", 3))
             {
+                if(SelectedEntity.HasComponent<PrefabComponent>() && ImGui::Button("Revert To Prefab"))
+                {
+                    auto path = SelectedEntity.GetComponent<PrefabComponent>().Path;
+                    m_Editor->UnSelect(selected);
+                    SelectedEntity.Destroy();
+
+                    SelectedEntity = Application::Get().GetSceneManager()->GetCurrentScene()->InstantiatePrefab(path);
+                    selected       = SelectedEntity.GetHandle();
+                    m_Editor->SetSelected(selected);
+                }
+
                 if(ImGui::Selectable("Debug Mode", m_DebugMode))
                 {
                     m_DebugMode = !m_DebugMode;
+                }
+                ImGui::EndPopup();
+            }
+
+            if(ImGui::BeginPopupModal("SavePrefab", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+            {
+                ImGui::Text("Save Current Entity as a Prefab?\n\n");
+                ImGui::Separator();
+
+                static std::string prefabName = SelectedEntity.GetName();
+                ImGui::AlignTextToFramePadding();
+                ImGui::TextUnformatted("Name : ");
+                ImGui::SameLine();
+                ImGuiUtilities::InputText(prefabName);
+
+                static std::string prefabNamePath = "//Assets/Prefabs/";
+                ImGui::AlignTextToFramePadding();
+                ImGui::TextUnformatted("Path : ");
+                ImGui::SameLine();
+                ImGuiUtilities::InputText(prefabNamePath);
+
+                if(ImGui::Button("OK", ImVec2(120, 0)))
+                {
+                    std::string physicalPath;
+                    VFS::Get().ResolvePhysicalPath(prefabNamePath, physicalPath, true);
+                    std::string FullPath = physicalPath + prefabName + std::string(".lprefab");
+                    Application::Get().GetSceneManager()->GetCurrentScene()->SavePrefab({ selected, Application::Get().GetSceneManager()->GetCurrentScene() }, FullPath);
+                    ImGui::CloseCurrentPopup();
+                }
+                ImGui::SetItemDefaultFocus();
+                ImGui::SameLine();
+                if(ImGui::Button("Cancel", ImVec2(120, 0)))
+                {
+                    ImGui::CloseCurrentPopup();
                 }
                 ImGui::EndPopup();
             }
@@ -2445,6 +2518,15 @@ namespace Lumos
                 }
 
                 ImGui::Separator();
+            }
+
+            if(registry.try_get<PrefabComponent>(selected))
+            {
+                ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_CheckMark));
+                ImGui::Separator();
+                ImGui::Text("Prefab %s", registry.get<PrefabComponent>(selected).Path.c_str());
+                ImGui::Separator();
+                ImGui::PopStyleColor();
             }
 
             ImGui::BeginChild("Components", ImVec2(0.0f, 0.0f), false, ImGuiWindowFlags_None);

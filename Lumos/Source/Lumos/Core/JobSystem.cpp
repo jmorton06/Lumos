@@ -215,7 +215,7 @@ namespace Lumos
                     // Put each thread on to dedicated core
                     DWORD_PTR affinityMask    = 1ull << threadID;
                     DWORD_PTR affinity_result = SetThreadAffinityMask(handle, affinityMask);
-                    LUMOS_ASSERT(affinity_result > 0, "");
+                    LUMOS_ASSERT(affinity_result > 0);
 
                     // Increase thread priority:
                     // BOOL priority_result = SetThreadPriority(handle, THREAD_PRIORITY_HIGHEST);
@@ -225,7 +225,7 @@ namespace Lumos
                     std::wstring wthreadname = L"JobSystem_" + std::to_wstring(threadID);
                     HRESULT hr               = SetThreadDescription(handle, wthreadname.c_str());
 
-                    LUMOS_ASSERT(SUCCEEDED(hr), "");
+                    LUMOS_ASSERT(SUCCEEDED(hr));
 
 #elif LUMOS_PLATFORM_LINUX
 

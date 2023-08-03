@@ -115,7 +115,7 @@ public:
         log_it_(log_msg, log_enabled, traceback_enabled);
     }
 
-    void log(source_loc loc, level::level_enum lvl, string_view_t msg)
+    void log(source_loc loc, level::level_enum lvl, string_view_t msg = "")
     {
         bool log_enabled = should_log(lvl);
         bool traceback_enabled = tracer_.enabled();

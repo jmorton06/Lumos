@@ -220,7 +220,7 @@ namespace Lumos
             }
 
 #if defined(LUMOS_PROFILE) && defined(TRACY_ENABLE)
-            tracy::VkCtx* GetTracyContext();
+            tracy::VkCtx* GetTracyContext(bool present = false);
 #endif
 
 #ifdef USE_VMA_ALLOCATOR
@@ -264,11 +264,28 @@ namespace Lumos
 
 #if defined(LUMOS_PROFILE) && defined(TRACY_ENABLE)
             std::vector<tracy::VkCtx*> m_TracyContext;
+            tracy::VkCtx* m_PresentTracyContext;
 #endif
 
 #ifdef USE_VMA_ALLOCATOR
             VmaAllocator m_Allocator {};
 #endif
+        };
+
+        class VKGPUMarker
+        {
+        public:
+            VKGPUMarker(const char* name)
+            {
+                Begin(name);
+            }
+
+            ~VKGPUMarker()
+            {
+                End();
+            }
+            void Begin(const char* name);
+            void End();
         };
     }
 }

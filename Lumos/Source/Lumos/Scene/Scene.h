@@ -100,6 +100,8 @@ namespace Lumos
         Entity CreateEntity();
         Entity CreateEntity(const std::string& name);
         Entity GetEntityByUUID(uint64_t id);
+        Entity InstantiatePrefab(const std::string& path);
+        void SavePrefab(Entity entity, const std::string& path);
 
         EntityManager* GetEntityManager() { return m_EntityManager.get(); }
 
@@ -256,6 +258,7 @@ namespace Lumos
         {
             return m_Settings;
         }
+
         int GetSceneVersion() const
         {
             return m_SceneSerialisationVersion;

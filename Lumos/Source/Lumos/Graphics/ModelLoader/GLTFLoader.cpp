@@ -275,8 +275,10 @@ namespace Lumos::Graphics
             std::vector<uint32_t> indices;
             std::vector<Graphics::Vertex> vertices;
 
+            uint32_t vertexCount = primitive.attributes.empty() ? 0 : model.accessors.at(primitive.attributes["POSITION"]).count;
+
             indices.resize(indicesAccessor.count);
-            vertices.resize(indicesAccessor.count);
+            vertices.resize(vertexCount);
 
             bool hasTangents   = false;
             bool hasBitangents = false;
