@@ -3,7 +3,12 @@
 #include "Core/OS/FileSystem.h"
 #include "Core/StringUtilities.h"
 
+#if __has_include(<filesystem>)
 #include <filesystem>
+#elif __has_include(<experimental/filesystem>)
+#include <experimental/filesystem>
+#endif
+
 #include <fstream>
 
 Lumos::IniFile::IniFile(const std::string& filePath)

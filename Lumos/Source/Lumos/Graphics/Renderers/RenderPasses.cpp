@@ -1066,7 +1066,7 @@ namespace Lumos::Graphics
         auto& sceneRenderSettings = Application::Get().GetCurrentScene()->GetSettings().RenderSettings;
         Renderer::GetRenderer()->ClearRenderTarget(m_MainTexture, Renderer::GetMainSwapChain()->GetCurrentCommandBuffer());
 
-        // sceneRenderSettings.SSAOEnabled = false;
+        s ceneRenderSettings.SSAOEnabled = false;
         if(sceneRenderSettings.SSAOEnabled)
             Renderer::GetRenderer()->ClearRenderTarget(m_NormalTexture, Renderer::GetMainSwapChain()->GetCurrentCommandBuffer());
 

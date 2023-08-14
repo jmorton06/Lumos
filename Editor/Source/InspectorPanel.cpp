@@ -831,6 +831,7 @@ end
     {
         using namespace Lumos;
         LUMOS_PROFILE_FUNCTION();
+    
         auto& sprite = reg.get<Lumos::Graphics::Sprite>(e);
         ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
         ImGui::Columns(2);
@@ -841,7 +842,7 @@ end
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
         auto pos = sprite.GetPosition();
-        if(ImGui::InputFloat2("##Position", glm::value_ptr(pos)))
+        if (ImGui::InputFloat2("##Position", glm::value_ptr(pos)))
             sprite.SetPosition(pos);
 
         ImGui::PopItemWidth();
@@ -852,7 +853,7 @@ end
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
         auto scale = sprite.GetScale();
-        if(ImGui::InputFloat2("##Scale", glm::value_ptr(scale)))
+        if (ImGui::InputFloat2("##Scale", glm::value_ptr(scale)))
             sprite.SetScale(scale);
 
         ImGui::PopItemWidth();
@@ -863,13 +864,29 @@ end
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
         auto colour = sprite.GetColour();
-        if(ImGui::ColorEdit4("##Colour", glm::value_ptr(colour)))
+        if (ImGui::ColorEdit4("##Colour", glm::value_ptr(colour)))
             sprite.SetColour(colour);
 
         ImGui::PopItemWidth();
         ImGui::NextColumn();
+        
+        ImGuiUtilities::Property("Using Sprite Sheet", sprite.UsingSpriteSheet);
+        ImGuiUtilities::Property("Tile Size", sprite.SpriteSheetTileSize);
+        
+        if(sprite.UsingSpriteSheet)
+        {
+            static glm::vec2 tileIndex;
+            
+            ImGuiUtilities::Property("Tile Index", tileIndex);
+            ImGui::Columns(1);
 
-        if(ImGui::TreeNode("Texture"))
+            if(ImGui::Button("Set Sprite Sheet UV"))
+                sprite.SetSpriteSheetIndex((int)tileIndex.x, (int)tileIndex.y);
+            ImGui::Columns(2);
+
+        }
+
+        if (ImGui::TreeNode("Texture"))
         {
             ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
             ImGui::Columns(2);
@@ -880,23 +897,23 @@ end
             ImGui::AlignTextToFramePadding();
             auto tex = sprite.GetTexture();
 
-            auto imageButtonSize        = ImVec2(64, 64) * Application::Get().GetWindowDPI();
-            auto callback               = std::bind(&Lumos::Graphics::Sprite::SetTextureFromFile, &sprite, std::placeholders::_1);
+            auto imageButtonSize = ImVec2(64, 64) * Application::Get().GetWindowDPI();
+            auto callback = std::bind(&Lumos::Graphics::Sprite::SetTextureFromFile, &sprite, std::placeholders::_1);
             const ImGuiPayload* payload = ImGui::GetDragDropPayload();
-            auto min                    = ImGui::GetCurrentWindow()->DC.CursorPos;
-            auto max                    = min + imageButtonSize + ImGui::GetStyle().FramePadding;
+            auto min = ImGui::GetCurrentWindow()->DC.CursorPos;
+            auto max = min + imageButtonSize + ImGui::GetStyle().FramePadding;
 
             bool hoveringButton = ImGui::IsMouseHoveringRect(min, max, false);
-            bool showTexture    = !(hoveringButton && (payload != NULL && payload->IsDataType("AssetFile")));
-            if(tex && showTexture)
+            bool showTexture = !(hoveringButton && (payload != NULL && payload->IsDataType("AssetFile")));
+            if (tex && showTexture)
             {
-                if(ImGui::ImageButton((const char*)(tex), tex->GetHandle(), imageButtonSize, ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f)))
+                if (ImGui::ImageButton((const char*)(tex.get()), tex->GetHandle(), imageButtonSize, ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f)))
                 {
                     Lumos::Editor::GetEditor()->GetFileBrowserPanel().Open();
                     Lumos::Editor::GetEditor()->GetFileBrowserPanel().SetCallback(callback);
                 }
 
-                if(ImGui::IsItemHovered() && tex)
+                if (ImGui::IsItemHovered() && tex)
                 {
                     ImGui::BeginTooltip();
                     ImGui::TextUnformatted(tex ? tex->GetFilepath().c_str() : "No Texture");
@@ -906,22 +923,22 @@ end
             }
             else
             {
-                if(ImGui::Button(tex ? "" : "Empty", imageButtonSize))
+                if (ImGui::Button(tex ? "" : "Empty", imageButtonSize))
                 {
                     Lumos::Editor::GetEditor()->GetFileBrowserPanel().Open();
                     Lumos::Editor::GetEditor()->GetFileBrowserPanel().SetCallback(callback);
                 }
             }
 
-            if(payload != NULL && payload->IsDataType("AssetFile"))
+            if (payload != NULL && payload->IsDataType("AssetFile"))
             {
                 auto filePath = std::string(reinterpret_cast<const char*>(payload->Data));
-                if(Lumos::Editor::GetEditor()->IsTextureFile(filePath))
+                if (Lumos::Editor::GetEditor()->IsTextureFile(filePath))
                 {
-                    if(ImGui::BeginDragDropTarget())
+                    if (ImGui::BeginDragDropTarget())
                     {
                         // Drop directly on to node and append to the end of it's children list.
-                        if(ImGui::AcceptDragDropPayload("AssetFile"))
+                        if (ImGui::AcceptDragDropPayload("AssetFile"))
                         {
                             callback(filePath);
                             ImGui::EndDragDropTarget();
@@ -942,7 +959,7 @@ end
             ImGui::NextColumn();
             ImGui::PushItemWidth(-1);
 
-            if(tex)
+            if (tex)
             {
                 ImGui::Text("%u x %u", tex->GetWidth(), tex->GetHeight());
                 ImGui::Text("Mip Levels : %u", tex->GetMipMapLevels());
@@ -960,6 +977,15 @@ end
         ImGui::Columns(1);
         ImGui::Separator();
         ImGui::PopStyleVar();
+
+        if (ImGui::Button("Convert to Animated Sprite"))
+        {
+            Lumos::Graphics::AnimatedSprite& animatedSprite = reg.get_or_emplace<Lumos::Graphics::AnimatedSprite>(e);
+            animatedSprite.SetTexture(sprite.GetTexture());
+            animatedSprite.SetPosition(sprite.GetPosition());
+
+            reg.remove<Lumos::Graphics::Sprite>(e);
+        }
     }
 
     template <>
@@ -1138,6 +1164,13 @@ end
         ImGui::PopItemWidth();
         ImGui::NextColumn();
 
+
+        static bool byTile = false;
+        float tileSize = sprite.SpriteSheetTileSize;
+
+        Lumos::ImGuiUtilities::Property("By Tile", byTile);
+        Lumos::ImGuiUtilities::Property("Tile Size", tileSize);
+
         ImGui::AlignTextToFramePadding();
         ImGui::TextUnformatted("Current State");
         ImGui::NextColumn();
@@ -1313,7 +1346,13 @@ end
                             ImGui::PushID(&pos + numRemoved * 100);
                             ImGui::PushItemWidth((ImGui::GetWindowContentRegionMax() - ImGui::GetWindowContentRegionMin()).x - ImGui::GetFontSize() * 3.0f);
 
+                            if (byTile)
+                                pos /= tileSize;
+
                             ImGui::DragFloat2("##Position", glm::value_ptr(pos));
+
+                            if (byTile)
+                                pos *= tileSize;
 
                             ImGui::SameLine((ImGui::GetWindowContentRegionMax() - ImGui::GetWindowContentRegionMin()).x - ImGui::GetFontSize());
 
@@ -1391,7 +1430,7 @@ end
             bool showTexture    = !(hoveringButton && (payload != NULL && payload->IsDataType("AssetFile")));
             if(tex && showTexture)
             {
-                if(ImGui::ImageButton((const char*)(tex), tex->GetHandle(), imageButtonSize, ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f)))
+                if(ImGui::ImageButton((const char*)(tex.get()), tex->GetHandle(), imageButtonSize, ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f)))
                 {
                     Lumos::Editor::GetEditor()->GetFileBrowserPanel().Open();
                     Lumos::Editor::GetEditor()->GetFileBrowserPanel().SetCallback(callback);

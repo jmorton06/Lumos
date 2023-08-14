@@ -1,6 +1,6 @@
 #pragma once
 
-#define SceneSerialisationVersion 21
+#define SceneSerialisationVersion 22
 #include <cereal/cereal.hpp>
 
 namespace Serialisation
