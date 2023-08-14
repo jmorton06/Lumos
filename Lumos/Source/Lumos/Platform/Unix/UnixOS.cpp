@@ -4,10 +4,8 @@
 #include "Core/CoreSystem.h"
 #include "Core/OS/MemoryManager.h"
 #include "Core/Application.h"
-#include <sys/types.h>
-#include <sys/sysctl.h>
+
 #include <time.h>
-#include <unistd.h>
 
 extern Lumos::Application* Lumos::CreateApplication();
 
@@ -36,31 +34,7 @@ namespace Lumos
 
     SystemMemoryInfo MemoryManager::GetSystemInfo()
     {
-        SystemMemoryInfo result       = { 0 };
-        result.totalVirtualMemory     = 0; // Unix does not have an exact equivalent for total virtual memory.
-        result.availableVirtualMemory = 0; // Unix does not have an exact equivalent for available virtual memory.
-
-        size_t len;
-
-        // Get total physical memory
-        int64_t phys_mem;
-        len = sizeof(phys_mem);
-        if(sysctlbyname("hw.memsize", &phys_mem, &len, NULL, 0) != 0)
-        {
-            return result;
-        }
-        result.totalPhysicalMemory = phys_mem;
-
-        // Get available physical memory
-        int64_t avail_phys_mem;
-        len = sizeof(avail_phys_mem);
-        if(sysctlbyname("vm.stats.vm.v_free_count", &avail_phys_mem, &len, NULL, 0) != 0)
-        {
-            return result;
-        }
-
-        result.availablePhysicalMemory = avail_phys_mem * PAGE_SIZE;
-
+        SystemMemoryInfo result = {};
         return result;
     }
 

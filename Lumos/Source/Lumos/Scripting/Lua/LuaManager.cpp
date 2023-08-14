@@ -34,7 +34,11 @@
 #include <Tracy/TracyLua.hpp>
 #include <sol/sol.hpp>
 
+#if __has_include(<filesystem>)
 #include <filesystem>
+#elif __has_include(<experimental/filesystem>)
+#include <experimental/filesystem>
+#endif
 
 #ifdef CUSTOM_SMART_PTR
 namespace sol
@@ -470,6 +474,8 @@ namespace Lumos
         sol::usertype<Sprite> sprite_type = state.new_usertype<Sprite>("Sprite", sol::constructors<sol::types<glm::vec2, glm::vec2, glm::vec4>, Sprite(const SharedPtr<Graphics::Texture2D>&, const glm::vec2&, const glm::vec2&, const glm::vec4&)>());
         sprite_type.set_function("SetTexture", &Sprite::SetTexture);
         sprite_type.set_function("SetSpriteSheet", &Sprite::SetSpriteSheet);
+        sprite_type.set_function("SetSpriteSheetIndex", &Sprite::SetSpriteSheetIndex);
+        sprite_type["SpriteSheetTileSize"] = &Sprite::SpriteSheetTileSize;
 
         REGISTER_COMPONENT_WITH_ECS(state, Sprite, static_cast<Sprite& (Entity::*)(const glm::vec2&, const glm::vec2&, const glm::vec4&)>(&Entity::AddComponent<Sprite, const glm::vec2&, const glm::vec2&, const glm::vec4&>));
 

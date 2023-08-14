@@ -82,8 +82,7 @@ namespace Lumos
 
     void WindowsOS::OpenFileLocation(const std::filesystem::path& path)
     {
-        std::wstring command = L"explorer.exe /select," + path.wstring();
-        _wsystem(command.c_str());
+        ShellExecuteA(NULL, "open", std::filesystem::is_directory(path) ? path.string().c_str() : path.parent_path().string().c_str(), NULL, NULL, SW_SHOWNORMAL);
     }
 
     void WindowsOS::OpenFileExternal(const std::filesystem::path& path)

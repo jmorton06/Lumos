@@ -43,7 +43,7 @@ namespace Lumos
             Renderable2D();
             virtual ~Renderable2D();
 
-            Texture2D* GetTexture() const { return m_Texture.get(); }
+            SharedPtr<Texture2D> GetTexture() { return m_Texture; }
             glm::vec2 GetPosition() const { return m_Position; }
             glm::vec2 GetScale() const { return m_Scale; }
             const glm::vec4& GetColour() const { return m_Colour; }
