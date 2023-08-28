@@ -1,7 +1,8 @@
 #pragma once
 
-#include "Maths/Maths.h"
 #include "Entity.h"
+#include <glm/vec3.hpp>
+#include <glm/vec4.hpp>
 
 namespace Lumos
 {

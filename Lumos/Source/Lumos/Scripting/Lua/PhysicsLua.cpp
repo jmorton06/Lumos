@@ -309,12 +309,12 @@ namespace Lumos
 
     SharedPtr<RigidBody3D> CreateSharedPhysics3D()
     {
-        return CreateSharedPtr<RigidBody3D>();
+        return SharedPtr<RigidBody3D>(Application::Get().GetSystem<LumosPhysicsEngine>()->CreateBody({}));
     }
 
     SharedPtr<RigidBody3D> CreateSharedPhysics3DWithParams(const RigidBodyParameters& params)
     {
-        return CreateSharedPtr<RigidBody3D>();
+        return SharedPtr<RigidBody3D>(Application::Get().GetSystem<LumosPhysicsEngine>()->CreateBody({}));
     }
 
     void BindPhysicsLua(sol::state& state)
@@ -335,7 +335,7 @@ namespace Lumos
         physicsObjectParameters_type["isStatic"]                        = &RigidBodyParameters::isStatic;
         physicsObjectParameters_type["customShapePositions"]            = &RigidBodyParameters::custumShapePositions;
 
-        sol::usertype<RigidBody3D> physics3D_type = state.new_usertype<RigidBody3D>("RigidBody3D", sol::constructors<RigidBody2D>()); //;const RigidBodyParameters&)>());
+        sol::usertype<RigidBody3D> physics3D_type = state.new_usertype<RigidBody3D>("RigidBody3D"); //, sol::constructors<RigidBody2D>()); //;const RigidBodyParameters&)>());
         physics3D_type.set_function("SetForce", &RigidBody3D::SetForce);
         physics3D_type.set_function("SetPosition", &RigidBody3D::SetPosition);
         physics3D_type.set_function("SetLinearVelocity", &RigidBody3D::SetLinearVelocity);

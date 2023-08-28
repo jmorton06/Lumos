@@ -170,6 +170,10 @@ namespace Lumos
             {
                 vertices[i].Tangent   = glm::normalize(vertices[i].Tangent);
                 vertices[i].Bitangent = glm::normalize(vertices[i].Bitangent);
+
+                LUMOS_ASSERT(!Maths::IsInf(vertices[i].Tangent.x) && !Maths::IsInf(vertices[i].Tangent.y) && !Maths::IsInf(vertices[i].Tangent.z));
+                LUMOS_ASSERT(!Maths::IsInf(vertices[i].Bitangent.x) && !Maths::IsInf(vertices[i].Bitangent.y) && !Maths::IsInf(vertices[i].Bitangent.z));
+                LUMOS_ASSERT(!Maths::IsInf(vertices[i].Normal.x) && !Maths::IsInf(vertices[i].Normal.y) && !Maths::IsInf(vertices[i].Normal.z));
             }
         }
 

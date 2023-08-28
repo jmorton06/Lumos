@@ -4,6 +4,7 @@
 #include <Lumos/Scene/Scene.h>
 #include <Lumos/Physics/LumosPhysicsEngine/LumosPhysicsEngine.h>
 #include <Lumos/Core/OS/FileSystem.h>
+#include <Lumos/Core/Profiler.h>
 
 namespace Lumos
 {

@@ -7,6 +7,8 @@
 #include "Core/StringUtilities.h"
 #include "Core/Engine.h"
 
+#include <sol/sol.hpp>
+
 namespace Lumos
 {
     LuaScriptComponent::LuaScriptComponent()

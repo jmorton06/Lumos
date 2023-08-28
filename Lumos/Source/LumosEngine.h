@@ -51,7 +51,6 @@
 #include "Graphics/Camera/Camera2D.h"
 #include "Graphics/Camera/Camera.h"
 // Maths
-#include "Maths/Maths.h"
 #include "Maths/Transform.h"
 
 // Audio

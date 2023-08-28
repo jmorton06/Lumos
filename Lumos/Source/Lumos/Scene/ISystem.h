@@ -1,10 +1,9 @@
 #pragma once
 
-#include "Scene/Scene.h"
-
 namespace Lumos
 {
     class TimeStep;
+    class Scene;
 
     class LUMOS_EXPORT ISystem
     {

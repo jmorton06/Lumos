@@ -1,12 +1,11 @@
 
 #include "EditorPanel.h"
 #include "Editor.h"
-#include <Lumos/Maths/Maths.h>
 #include <Lumos/Maths/Frustum.h>
 #include <Lumos/Maths/Transform.h>
-#include <Lumos/Graphics/Camera/Camera.h>
 #include <Lumos/Core/StringUtilities.h>
 #include <Lumos/ImGui/ImGuiUtilities.h>
+#include <Lumos/Maths/MathsUtilities.h>
 
 #include <imgui/imgui.h>
 DISABLE_WARNING_PUSH

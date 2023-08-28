@@ -1,12 +1,16 @@
 #pragma once
 #include "Core/Application.h"
 #include "Core/OS/Window.h"
+#include "Graphics/RHI/Definitions.h"
+#include <glm/vec4.hpp>
 
 namespace Lumos
 {
     namespace Graphics
     {
         class Mesh;
+        class Pipeline;
+        class DescriptorSet;
 
         struct RenderAPICapabilities
         {

@@ -1,7 +1,7 @@
 #include "Precompiled.h"
 #include "AudioManager.h"
 #include "Core/Application.h"
-
+#include "Scene/Scene.h"
 #include "Scene/Component/SoundComponent.h"
 
 #ifdef LUMOS_OPENAL

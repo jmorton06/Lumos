@@ -3,6 +3,7 @@
 
 #include "Graphics/Mesh.h"
 #include "Core/Application.h"
+#include "Utilities/AssetManager.h"
 
 #include "CompiledSPV/Headers/Shadowvertspv.hpp"
 #include "CompiledSPV/Headers/Shadowfragspv.hpp"

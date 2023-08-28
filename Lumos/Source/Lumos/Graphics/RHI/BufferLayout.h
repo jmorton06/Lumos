@@ -1,7 +1,9 @@
 #pragma once
 
-#include "Maths/Maths.h"
 #include "DescriptorSet.h"
+#include <glm/vec2.hpp>
+#include <glm/vec3.hpp>
+#include <glm/vec4.hpp>
 
 namespace Lumos
 {

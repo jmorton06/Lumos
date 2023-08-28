@@ -1,7 +1,10 @@
 #pragma once
-#include "Maths/Maths.h"
 #include "Graphics/RHI/DescriptorSet.h"
 #include "Graphics/RHI/Texture.h"
+
+#include <glm/vec2.hpp>
+#include <glm/vec3.hpp>
+#include <glm/vec4.hpp>
 
 #define RENDERER2D_VERTEX_SIZE sizeof(VertexData)
 #define RENDERERTEXT_VERTEX_SIZE sizeof(TextVertexData)

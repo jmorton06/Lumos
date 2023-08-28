@@ -3,7 +3,7 @@
 #include "GLShader.h"
 #include "GLTexture.h"
 #include "GLUniformBuffer.h"
-
+#include "GL.h"
 namespace Lumos
 {
     namespace Graphics

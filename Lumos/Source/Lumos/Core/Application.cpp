@@ -25,6 +25,7 @@
 #include "Core/JobSystem.h"
 #include "Core/StringUtilities.h"
 #include "Core/OS/FileSystem.h"
+#include "Utilities/AssetManager.h"
 #include "Scripting/Lua/LuaManager.h"
 #include "ImGui/ImGuiManager.h"
 #include "Events/ApplicationEvent.h"
@@ -590,6 +591,15 @@ namespace Lumos
 
     void Application::OnExitScene()
     {
+    }
+
+    void Application::AddDefaultScene()
+    {
+        if(m_SceneManager->GetScenes().size() == 0)
+        {
+            m_SceneManager->EnqueueScene(new Scene("Empty Scene"));
+            m_SceneManager->SwitchScene(0);
+        }
     }
 
     bool Application::OnWindowClose(WindowCloseEvent& e)

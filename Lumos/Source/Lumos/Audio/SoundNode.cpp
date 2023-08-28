@@ -1,5 +1,6 @@
 #include "Precompiled.h"
 #include "SoundNode.h"
+#include "Maths/MathsUtilities.h"
 
 #ifdef LUMOS_OPENAL
 #include "Platform/OpenAL/ALSoundNode.h"
@@ -55,5 +56,15 @@ namespace Lumos
         {
             m_TimeLeft = m_Sound->GetLength();
         }
+    }
+
+    void SoundNode::SetVolume(float volume)
+    {
+        m_Volume = Maths::Min(1.0f, Maths::Max(0.0f, volume));
+    }
+
+    void SoundNode::SetRadius(float value)
+    {
+        m_Radius = Maths::Max(0.0f, value);
     }
 }

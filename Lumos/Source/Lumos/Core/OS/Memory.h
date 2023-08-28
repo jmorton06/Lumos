@@ -61,19 +61,19 @@ namespace Lumos
     class PoolAllocator
     {
     public:
-        explicit PoolAllocator(Arena* arena = nullptr, size_t poolSize = 4096)
+        explicit PoolAllocator(Arena* arena = nullptr, size_t poolSize = Megabytes(50))
             : m_Arena(arena)
             , m_PoolSize(poolSize)
             , m_NextAvailable(nullptr)
         {
-            assert(m_Arena);
-            assert(m_PoolSize >= sizeof(Node));
-
             if(!arena)
             {
                 m_ArenaOwned = true;
-                m_Arena      = ArenaAlloc(Megabytes(50));
+                m_Arena      = ArenaAlloc(Megabytes(51));
             }
+
+            assert(m_Arena);
+            assert(m_PoolSize >= sizeof(Node));
 
             m_AlignSize = (sizeof(T) + alignof(T) - 1) & ~(alignof(T) - 1);
 

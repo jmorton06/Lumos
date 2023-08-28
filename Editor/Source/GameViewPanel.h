@@ -1,7 +1,6 @@
 #pragma once
 #include "EditorPanel.h"
 #include "Editor.h"
-#include <Lumos/Maths/Maths.h>
 #include <Lumos/Maths/Frustum.h>
 #include <Lumos/Maths/Transform.h>
 #include <Lumos/Graphics/Camera/Camera.h>

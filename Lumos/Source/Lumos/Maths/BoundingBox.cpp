@@ -47,6 +47,12 @@ namespace Lumos
         {
         }
 
+        void BoundingBox::Clear()
+        {
+            m_Min = glm::vec3(FLT_MAX);
+            m_Max = glm::vec3(-FLT_MAX);
+        }
+
         BoundingBox& BoundingBox::operator=(const BoundingBox& other)
         {
             m_Min = other.m_Min;
@@ -95,7 +101,7 @@ namespace Lumos
 
         void BoundingBox::SetFromPoints(const glm::vec3* points, uint32_t numPoints, const glm::mat4& transform)
         {
-            LUMOS_PROFILE_FUNCTION();
+            LUMOS_PROFILE_FUNCTION_LOW();
             glm::vec3 min(FLT_MAX, FLT_MAX, FLT_MAX);
             glm::vec3 max(-FLT_MAX, -FLT_MAX, -FLT_MAX);
 
@@ -118,7 +124,7 @@ namespace Lumos
 
         void BoundingBox::SetFromTransformedAABB(const BoundingBox& aabb, const glm::mat4& transform)
         {
-            LUMOS_PROFILE_FUNCTION();
+            LUMOS_PROFILE_FUNCTION_LOW();
             glm::vec3 min = aabb.m_Min;
             glm::vec3 max = aabb.m_Max;
 
@@ -131,27 +137,27 @@ namespace Lumos
 
         void BoundingBox::Translate(const glm::vec3& translation)
         {
-            LUMOS_PROFILE_FUNCTION();
+            LUMOS_PROFILE_FUNCTION_LOW();
             m_Min += translation;
             m_Max += translation;
         }
 
         void BoundingBox::Translate(float x, float y, float z)
         {
-            LUMOS_PROFILE_FUNCTION();
+            LUMOS_PROFILE_FUNCTION_LOW();
             Translate(glm::vec3(x, y, z));
         }
 
         void BoundingBox::Scale(const glm::vec3& scale)
         {
-            LUMOS_PROFILE_FUNCTION();
+            LUMOS_PROFILE_FUNCTION_LOW();
             m_Min *= scale;
             m_Max *= scale;
         }
 
         void BoundingBox::Scale(float x, float y, float z)
         {
-            LUMOS_PROFILE_FUNCTION();
+            LUMOS_PROFILE_FUNCTION_LOW();
             m_Min.x *= x;
             m_Min.y *= y;
             m_Min.z *= z;
@@ -163,7 +169,7 @@ namespace Lumos
 
         void BoundingBox::Rotate(const glm::mat3& rotation)
         {
-            LUMOS_PROFILE_FUNCTION();
+            LUMOS_PROFILE_FUNCTION_LOW();
             glm::vec3 center  = Center();
             glm::vec3 extents = GetExtents();
 
@@ -175,7 +181,7 @@ namespace Lumos
 
         void BoundingBox::Transform(const glm::mat4& transform)
         {
-            LUMOS_PROFILE_FUNCTION();
+            LUMOS_PROFILE_FUNCTION_LOW();
             glm::vec3 newCenter = transform * glm::vec4(Center(), 1.0f);
             glm::vec3 oldEdge   = Size() * 0.5f;
             glm::vec3 newEdge   = glm::vec3(
@@ -189,7 +195,7 @@ namespace Lumos
 
         BoundingBox BoundingBox::Transformed(const glm::mat4& transform) const
         {
-            LUMOS_PROFILE_FUNCTION();
+            LUMOS_PROFILE_FUNCTION_LOW();
             BoundingBox box(*this);
             box.Transform(transform);
             return box;
@@ -197,7 +203,7 @@ namespace Lumos
 
         void BoundingBox::Merge(const BoundingBox& other)
         {
-            LUMOS_PROFILE_FUNCTION();
+            LUMOS_PROFILE_FUNCTION_LOW();
             if(other.m_Min.x < m_Min.x)
                 m_Min.x = other.m_Min.x;
             if(other.m_Min.y < m_Min.y)
@@ -214,7 +220,7 @@ namespace Lumos
 
         void BoundingBox::Merge(const glm::vec3& point)
         {
-            LUMOS_PROFILE_FUNCTION();
+            LUMOS_PROFILE_FUNCTION_LOW();
             if(point.x < m_Min.x)
                 m_Min.x = point.x;
             if(point.y < m_Min.y)
@@ -231,31 +237,31 @@ namespace Lumos
 
         void BoundingBox::Merge(const BoundingBox& other, const glm::mat4& transform)
         {
-            LUMOS_PROFILE_FUNCTION();
+            LUMOS_PROFILE_FUNCTION_LOW();
             Merge(other.Transformed(transform));
         }
         void BoundingBox::Merge(const glm::vec3& point, const glm::mat4& transform)
         {
-            LUMOS_PROFILE_FUNCTION();
+            LUMOS_PROFILE_FUNCTION_LOW();
             glm::vec3 transformed = transform * glm::vec4(point, 1.0f);
             Merge(transformed);
         }
 
         void BoundingBox::Merge(const BoundingBox& other, const glm::mat3& transform)
         {
-            LUMOS_PROFILE_FUNCTION();
+            LUMOS_PROFILE_FUNCTION_LOW();
             Merge(other.Transformed(glm::mat4(transform)));
         }
         void BoundingBox::Merge(const glm::vec3& point, const glm::mat3& transform)
         {
-            LUMOS_PROFILE_FUNCTION();
+            LUMOS_PROFILE_FUNCTION_LOW();
             glm::vec3 transformed = transform * glm::vec4(point, 1.0f);
             Merge(transformed);
         }
 
         Intersection BoundingBox::IsInside(const glm::vec3& point) const
         {
-            LUMOS_PROFILE_FUNCTION();
+            LUMOS_PROFILE_FUNCTION_LOW();
             if(point.x < m_Min.x || point.x > m_Max.x || point.y < m_Min.y || point.y > m_Max.y || point.z < m_Min.z || point.z > m_Max.z)
                 return OUTSIDE;
             else
@@ -264,7 +270,7 @@ namespace Lumos
 
         Intersection BoundingBox::IsInside(const BoundingBox& box) const
         {
-            LUMOS_PROFILE_FUNCTION();
+            LUMOS_PROFILE_FUNCTION_LOW();
             if(box.m_Max.x < m_Min.x || box.m_Min.x > m_Max.x || box.m_Max.y < m_Min.y || box.m_Min.y > m_Max.y || box.m_Max.z < m_Min.z || box.m_Min.z > m_Max.z)
                 return OUTSIDE;
             else if(box.m_Min.x < m_Min.x || box.m_Max.x > m_Max.x || box.m_Min.y < m_Min.y || box.m_Max.y > m_Max.y || box.m_Min.z < m_Min.z || box.m_Max.z > m_Max.z)
@@ -275,7 +281,7 @@ namespace Lumos
 
         Intersection BoundingBox::IsInside(const BoundingSphere& sphere) const
         {
-            LUMOS_PROFILE_FUNCTION();
+            LUMOS_PROFILE_FUNCTION_LOW();
             float distSquared = 0;
             float temp;
             const glm::vec3& center = sphere.GetCenter();
@@ -322,7 +328,7 @@ namespace Lumos
 
         bool BoundingBox::IsInsideFast(const BoundingBox& box) const
         {
-            LUMOS_PROFILE_FUNCTION();
+            LUMOS_PROFILE_FUNCTION_LOW();
             if(box.m_Max.x < m_Min.x || box.m_Min.x > m_Max.x || box.m_Max.y < m_Min.y || box.m_Min.y > m_Max.y || box.m_Max.z < m_Min.z || box.m_Min.z > m_Max.z)
                 return false;
             else

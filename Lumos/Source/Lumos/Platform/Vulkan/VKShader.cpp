@@ -499,7 +499,7 @@ namespace Lumos
 
             for(auto& descriptorLayout : GetDescriptorLayout())
             {
-                while(layouts.size() < descriptorLayout.setID + 1)
+                while((uint32_t)layouts.size() < descriptorLayout.setID + 1)
                 {
                     layouts.emplace_back();
                 }
@@ -514,7 +514,7 @@ namespace Lumos
                 setLayoutBindings.reserve(l.size());
                 layoutBindingFlags.reserve(l.size());
 
-                for(uint32_t i = 0; i < l.size(); i++)
+                for(uint32_t i = 0; i < (uint32_t)l.size(); i++)
                 {
                     auto& info = l[i];
 

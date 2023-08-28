@@ -1,6 +1,10 @@
 #include "Precompiled.h"
 #include "CollisionDetection.h"
 #include "Physics/LumosPhysicsEngine/CollisionShapes/SphereCollisionShape.h"
+#include "Physics/LumosPhysicsEngine/CollisionShapes/CuboidCollisionShape.h"
+#include "Physics/LumosPhysicsEngine/CollisionShapes/PyramidCollisionShape.h"
+#include "Physics/LumosPhysicsEngine/CollisionShapes/HullCollisionShape.h"
+#include "Physics/LumosPhysicsEngine/CollisionShapes/CapsuleCollisionShape.h"
 #include "Maths/MathsUtilities.h"
 #include <glm/gtx/string_cast.hpp>
 
@@ -30,7 +34,7 @@ namespace Lumos
 
     bool CollisionDetection::CheckCollision(RigidBody3D* obj1, RigidBody3D* obj2, CollisionShape* shape1, CollisionShape* shape2, CollisionData* out_coldata)
     {
-        LUMOS_PROFILE_FUNCTION();
+        LUMOS_PROFILE_FUNCTION_LOW();
         LUMOS_ASSERT(((shape1->GetType() | shape2->GetType()) < m_MaxSize), "Invalid collision func {0}, {1}, {2}, {3}", shape1->GetType(), shape2->GetType(), shape2->GetType() | shape2->GetType(), m_MaxSize);
         return CALL_MEMBER_FN(*this, m_CollisionCheckFunctions[shape1->GetType() | shape2->GetType()])(obj1, obj2, shape1, shape2, out_coldata);
     }
@@ -43,7 +47,7 @@ namespace Lumos
 
     bool CollisionDetection::CheckSphereCollision(RigidBody3D* obj1, RigidBody3D* obj2, CollisionShape* shape1, CollisionShape* shape2, CollisionData* out_coldata)
     {
-        LUMOS_PROFILE_FUNCTION();
+        LUMOS_PROFILE_FUNCTION_LOW();
         LUMOS_ASSERT(shape1->GetType() == CollisionShapeType::CollisionSphere && shape2->GetType() == CollisionShapeType::CollisionSphere, "Both shapes are not spheres");
 
         //        CollisionData colData;
@@ -76,7 +80,7 @@ namespace Lumos
 
     void AddPossibleCollisionAxis(glm::vec3& axis, glm::vec3* possibleCollisionAxes, uint32_t& possibleCollisionAxesCount)
     {
-        LUMOS_PROFILE_FUNCTION();
+        LUMOS_PROFILE_FUNCTION_LOW();
         if(glm::length2(axis) < Maths::M_EPSILON)
             return;
 
@@ -96,7 +100,7 @@ namespace Lumos
 
     bool CollisionDetection::CheckPolyhedronSphereCollision(RigidBody3D* obj1, RigidBody3D* obj2, CollisionShape* shape1, CollisionShape* shape2, CollisionData* out_coldata)
     {
-        LUMOS_PROFILE_FUNCTION();
+        LUMOS_PROFILE_FUNCTION_LOW();
         LUMOS_ASSERT(shape1->GetType() == CollisionShapeType::CollisionSphere || shape2->GetType() == CollisionShapeType::CollisionSphere, "No sphere collision shape");
 
         CollisionShape* complexShape;
@@ -156,7 +160,7 @@ namespace Lumos
 
     bool CollisionDetection::CheckPolyhedronCollision(RigidBody3D* obj1, RigidBody3D* obj2, CollisionShape* shape1, CollisionShape* shape2, CollisionData* out_coldata)
     {
-        LUMOS_PROFILE_FUNCTION();
+        LUMOS_PROFILE_FUNCTION_LOW();
         CollisionData cur_colData;
         CollisionData best_colData;
         best_colData.penetration = -FLT_MAX;
@@ -213,6 +217,7 @@ namespace Lumos
 
     float PlaneSegmentIntersection(const glm::vec3& segA, const glm::vec3& segB, const float planeD, const glm::vec3& planeNormal)
     {
+        LUMOS_PROFILE_FUNCTION_LOW();
         float t = -1.0f;
 
         const float nDotAB = glm::dot(planeNormal, segB - segA);
@@ -228,6 +233,7 @@ namespace Lumos
 
     float PointToLineDistance(const glm::vec3& linePointA, const glm::vec3& linePointB, const glm::vec3& point)
     {
+        LUMOS_PROFILE_FUNCTION_LOW();
         float distAB = glm::length(linePointB - linePointA);
 
         if(distAB < Maths::M_EPSILON)
@@ -240,6 +246,7 @@ namespace Lumos
 
     bool CollisionDetection::CheckCapsuleCollision(RigidBody3D* obj1, RigidBody3D* obj2, CollisionShape* shape1, CollisionShape* shape2, CollisionData* out_coldata)
     {
+        LUMOS_PROFILE_FUNCTION_LOW();
         CapsuleCollisionShape* capsuleShape1 = static_cast<CapsuleCollisionShape*>(shape1);
         CapsuleCollisionShape* capsuleShape2 = static_cast<CapsuleCollisionShape*>(shape2);
 
@@ -482,7 +489,7 @@ namespace Lumos
 
     bool CollisionDetection::CheckCapsuleSphereCheckCollision(RigidBody3D* obj1, RigidBody3D* obj2, CollisionShape* shape1, CollisionShape* shape2, CollisionData* out_coldata)
     {
-        LUMOS_PROFILE_FUNCTION();
+        LUMOS_PROFILE_FUNCTION_LOW();
         LUMOS_ASSERT(shape1->GetType() == CollisionShapeType::CollisionSphere || shape2->GetType() == CollisionShapeType::CollisionSphere, "Both shapes are not spheres");
 
         CollisionData colData;
@@ -604,6 +611,7 @@ namespace Lumos
 
     bool CollisionDetection::CheckPolyhedronCapsuleCheckCollision(RigidBody3D* obj1, RigidBody3D* obj2, CollisionShape* shape1, CollisionShape* shape2, CollisionData* out_coldata)
     {
+        LUMOS_PROFILE_FUNCTION_LOW();
         CollisionShape* complexShape;
         CapsuleCollisionShape* capsuleShape;
         RigidBody3D* complexObj;
@@ -677,7 +685,7 @@ namespace Lumos
 
     bool CollisionDetection::CheckCollisionAxis(const glm::vec3& axis, RigidBody3D* obj1, RigidBody3D* obj2, CollisionShape* shape1, CollisionShape* shape2, CollisionData* out_coldata)
     {
-        LUMOS_PROFILE_FUNCTION();
+        LUMOS_PROFILE_FUNCTION_LOW();
         glm::vec3 min1, min2, max1, max2;
 
         shape1->GetMinMaxVertexOnAxis(obj1, axis, &min1, &max1);
@@ -716,7 +724,7 @@ namespace Lumos
 
     bool CollisionDetection::BuildCollisionManifold(RigidBody3D* obj1, RigidBody3D* obj2, CollisionShape* shape1, CollisionShape* shape2, CollisionData& coldata, Manifold* manifold)
     {
-        LUMOS_PROFILE_FUNCTION();
+        LUMOS_PROFILE_FUNCTION_LOW();
         if(!manifold)
             return false;
 
@@ -797,7 +805,7 @@ namespace Lumos
 
     glm::vec3 CollisionDetection::GetClosestPointOnEdges(const glm::vec3& target, const std::vector<CollisionEdge>& edges)
     {
-        LUMOS_PROFILE_FUNCTION();
+        LUMOS_PROFILE_FUNCTION_LOW();
         glm::vec3 closest_point, temp_closest_point;
         float closest_distsq = FLT_MAX;
 
@@ -853,7 +861,7 @@ namespace Lumos
 
     void CollisionDetection::SutherlandHodgesonClipping(glm::vec3* input_polygon, int input_polygon_count, int num_clip_planes, const Plane* clip_planes, glm::vec3* output_polygon, int& output_polygon_count, bool removePoints) const
     {
-        LUMOS_PROFILE_FUNCTION();
+        LUMOS_PROFILE_FUNCTION_LOW();
         if(!output_polygon)
             return;
 

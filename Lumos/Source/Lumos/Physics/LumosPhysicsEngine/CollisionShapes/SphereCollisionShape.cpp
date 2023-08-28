@@ -1,8 +1,9 @@
 #include "Precompiled.h"
 #include "SphereCollisionShape.h"
 #include "Physics/LumosPhysicsEngine/RigidBody3D.h"
-#include <glm/mat3x3.hpp>
 #include "Graphics/Renderers/DebugRenderer.h"
+#include "Maths/BoundingSphere.h"
+#include <glm/mat3x3.hpp>
 
 namespace Lumos
 {
@@ -54,7 +55,7 @@ namespace Lumos
 
     void SphereCollisionShape::GetMinMaxVertexOnAxis(const RigidBody3D* currentObject, const glm::vec3& axis, glm::vec3* out_min, glm::vec3* out_max) const
     {
-        LUMOS_PROFILE_FUNCTION();
+        LUMOS_PROFILE_FUNCTION_LOW();
         glm::mat4 transform = currentObject ? currentObject->GetWorldSpaceTransform() * m_LocalTransform : m_LocalTransform;
 
         glm::vec3 pos = transform[3];
@@ -70,7 +71,7 @@ namespace Lumos
                                                            const glm::vec3& axis,
                                                            ReferencePolygon& refPolygon) const
     {
-        LUMOS_PROFILE_FUNCTION();
+        LUMOS_PROFILE_FUNCTION_LOW();
         refPolygon.Faces[0]  = currentObject->GetPosition() + axis * m_Radius;
         refPolygon.FaceCount = 1;
 
@@ -79,7 +80,7 @@ namespace Lumos
 
     void SphereCollisionShape::DebugDraw(const RigidBody3D* currentObject) const
     {
-        LUMOS_PROFILE_FUNCTION();
+        LUMOS_PROFILE_FUNCTION_LOW();
         glm::mat4 transform = currentObject->GetWorldSpaceTransform() * m_LocalTransform;
 
         auto pos    = transform[3];

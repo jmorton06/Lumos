@@ -1,5 +1,6 @@
 #include "Precompiled.h"
 #include "GLIMGUIRenderer.h"
+#include "GL.h"
 #include <imgui/imgui.h>
 #define IMGUI_IMPL_OPENGL_LOADER_CUSTOM
 // #define IMGUI_IMPL_OPENGL_LOADER_GLAD

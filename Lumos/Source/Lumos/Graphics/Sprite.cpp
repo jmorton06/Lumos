@@ -39,7 +39,7 @@ namespace Lumos
 
             m_UVs = GetUVs(min, max);
         }
-    
+
         void Sprite::SetSpriteSheetIndex(int x, int y)
         {
             if(!m_Texture)

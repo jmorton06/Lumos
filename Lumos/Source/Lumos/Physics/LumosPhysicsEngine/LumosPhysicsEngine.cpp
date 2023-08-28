@@ -16,6 +16,7 @@
 #include "Scene/Component/RigidBody3DComponent.h"
 
 #include "Maths/Transform.h"
+#include "ImGui/ImGuiUtilities.h"
 
 #include <imgui/imgui.h>
 
@@ -31,11 +32,14 @@ namespace Lumos
         , m_DampingFactor(0.9995f)
         , m_BroadphaseDetection(nullptr)
         , m_IntegrationType(IntegrationType::RUNGE_KUTTA_4)
+        , m_RootBody(nullptr)
     {
         m_DebugName = "Lumos3DPhysicsEngine";
         m_RigidBodys.reserve(100);
         m_BroadphaseCollisionPairs.reserve(1000);
         m_Manifolds.reserve(100);
+
+        m_Allocator = new PoolAllocator<RigidBody3D>();
     }
 
     void LumosPhysicsEngine::SetDefaults()
@@ -65,22 +69,31 @@ namespace Lumos
         if(!m_IsPaused)
         {
             auto& registry = scene->GetRegistry();
-            auto group     = registry.group<RigidBody3DComponent>(entt::get<Maths::Transform>);
+            //'auto group     = registry.group<RigidBody3DComponent>(entt::get<Maths::Transform>);
 
             {
                 LUMOS_PROFILE_SCOPE("Physics::Get Rigid Bodies");
-                for(auto entity : group)
+                //                for(auto entity : group)
+                //                {
+                //                    const auto& phys = group.get<RigidBody3DComponent>(entity);
+                //                    auto& physicsObj = phys.GetRigidBody();
+                //                    m_RigidBodys.push_back(physicsObj.get());
+                //                };
+
+                RigidBody3D* currentBody = m_RootBody;
+                while(currentBody)
                 {
-                    const auto& phys = group.get<RigidBody3DComponent>(entity);
-                    auto& physicsObj = phys.GetRigidBody();
-                    m_RigidBodys.push_back(physicsObj.get());
-                };
+                    m_RigidBodys.push_back(currentBody);
+                    currentBody = currentBody->m_Next;
+                }
             }
 
             if(m_RigidBodys.empty())
             {
                 return;
             }
+
+            m_Stats.RigidBodyCount = (uint32_t)m_RigidBodys.size();
 
             {
                 LUMOS_PROFILE_SCOPE("Physics::Get Spring Constraints");
@@ -133,6 +146,8 @@ namespace Lumos
                 }
             }
 
+            m_Stats.ConstraintCount = (uint32_t)m_Constraints.size();
+
             {
                 LUMOS_PROFILE_SCOPE("Physics::UpdatePhysics");
                 m_UpdateAccum += (float)timeStep.GetSeconds();
@@ -168,15 +183,75 @@ namespace Lumos
         // Update movement
         UpdateRigidBodys();
 
-        for(int i = 0; i < m_RigidBodys.size(); i++)
-            m_RigidBodys[i]->RestTest();
+        RigidBody3D* current = m_RootBody;
+        while(current)
+        {
+            current->RestTest();
+            current = current->m_Next;
+        }
     }
 
     void LumosPhysicsEngine::UpdateRigidBodys()
     {
         LUMOS_PROFILE_SCOPE("Update Rigid Body");
-        for(size_t i = 0; i < m_RigidBodys.size(); i++)
-            UpdateRigidBody(m_RigidBodys[i]);
+
+        m_Stats.StaticCount    = 0;
+        m_Stats.RestCount      = 0;
+        m_Stats.RigidBodyCount = 0;
+
+        RigidBody3D* current = m_RootBody;
+
+        while(current)
+        {
+            if(current->m_AtRest)
+                m_Stats.RestCount++;
+            if(current->m_Static)
+                m_Stats.StaticCount++;
+
+            m_Stats.RigidBodyCount++;
+
+            UpdateRigidBody(current);
+            current = current->m_Next;
+        }
+    }
+
+    RigidBody3D* LumosPhysicsEngine::CreateBody(const RigidBody3DProperties& properties)
+    {
+        void* mem = m_Allocator->Allocate();
+
+        RigidBody3D* body = new(mem) RigidBody3D();
+        // Add to world doubly linked list.
+        body->m_Prev = nullptr;
+        body->m_Next = m_RootBody;
+        if(m_RootBody)
+        {
+            m_RootBody->m_Prev = body;
+        }
+        m_RootBody = body;
+
+        return body;
+    }
+
+    void LumosPhysicsEngine::DestroyBody(RigidBody3D* body)
+    {
+        // Remove world body list.
+        if(body->m_Prev)
+        {
+            body->m_Prev->m_Next = body->m_Next;
+        }
+
+        if(body->m_Next)
+        {
+            body->m_Next->m_Prev = body->m_Prev;
+        }
+
+        if(body == m_RootBody)
+        {
+            m_RootBody = body->m_Next;
+        }
+
+        body->~RigidBody3D();
+        m_Allocator->Deallocate(body);
     }
 
     void LumosPhysicsEngine::SyncTransforms(Scene* scene)
@@ -389,6 +464,9 @@ namespace Lumos
         if(m_BroadphaseCollisionPairs.empty())
             return;
 
+        m_Stats.NarrowPhaseCount = (uint32_t)m_BroadphaseCollisionPairs.size();
+        m_Stats.CollisionCount   = 0;
+
         for(auto& cp : m_BroadphaseCollisionPairs)
         {
             auto shapeA = cp.pObjectA->GetCollisionShape();
@@ -420,6 +498,7 @@ namespace Lumos
                             // Fire callback
                             cp.pObjectA->FireOnCollisionManifoldCallback(cp.pObjectA, cp.pObjectB, &manifold);
                             cp.pObjectB->FireOnCollisionManifoldCallback(cp.pObjectB, cp.pObjectA, &manifold);
+                            m_Stats.CollisionCount++;
                         }
                         else
                         {
@@ -542,30 +621,14 @@ namespace Lumos
         ImGui::PopItemWidth();
         ImGui::NextColumn();
 
-        uint32_t maxCollisionPairs = Maths::nChoosek(uint32_t(m_RigidBodys.size()), 2);
-        ImGui::AlignTextToFramePadding();
-        ImGui::TextUnformatted("Max Number Of Collision Pairs");
-        ImGui::NextColumn();
-        ImGui::PushItemWidth(-1);
-        ImGui::Text("%5.2i", maxCollisionPairs);
-        ImGui::PopItemWidth();
-        ImGui::NextColumn();
-
-        ImGui::AlignTextToFramePadding();
-        ImGui::TextUnformatted("Number Of Rigid Bodys");
-        ImGui::NextColumn();
-        ImGui::PushItemWidth(-1);
-        ImGui::Text("%5.2i", GetNumberRigidBodys());
-        ImGui::PopItemWidth();
-        ImGui::NextColumn();
-
-        ImGui::AlignTextToFramePadding();
-        ImGui::TextUnformatted("Number Of Constraints");
-        ImGui::NextColumn();
-        ImGui::PushItemWidth(-1);
-        ImGui::Text("%5.2i", static_cast<int>(m_Constraints.size()));
-        ImGui::PopItemWidth();
-        ImGui::NextColumn();
+        uint32_t maxCollisionPairs = Maths::nChoosek(m_Stats.RigidBodyCount, 2);
+        ImGuiUtilities::Property("Max Number Of Collision Pairs", maxCollisionPairs, ImGuiUtilities::PropertyFlag::ReadOnly);
+        ImGuiUtilities::Property("Rigid Body Count", m_Stats.RigidBodyCount, ImGuiUtilities::PropertyFlag::ReadOnly);
+        ImGuiUtilities::Property("Static Body Count", m_Stats.StaticCount, ImGuiUtilities::PropertyFlag::ReadOnly);
+        ImGuiUtilities::Property("Rest Body Count", m_Stats.RestCount, ImGuiUtilities::PropertyFlag::ReadOnly);
+        ImGuiUtilities::Property("Collision Count", m_Stats.CollisionCount, ImGuiUtilities::PropertyFlag::ReadOnly);
+        ImGuiUtilities::Property("NarrowPhase Count", m_Stats.NarrowPhaseCount, ImGuiUtilities::PropertyFlag::ReadOnly);
+        ImGuiUtilities::Property("Constraint Count", m_Stats.ConstraintCount, ImGuiUtilities::PropertyFlag::ReadOnly);
 
         ImGui::AlignTextToFramePadding();
         ImGui::TextUnformatted("Paused");
@@ -655,13 +718,13 @@ namespace Lumos
         {
             const auto& phys = group.get<RigidBody3DComponent>(entity);
 
-            auto& physicsObj = phys.GetRigidBody();
+            auto physicsObj = phys.GetRigidBody();
 
             if(physicsObj)
             {
                 physicsObj->DebugDraw(m_DebugDrawFlags);
                 if(physicsObj->GetCollisionShape() && (m_DebugDrawFlags & PhysicsDebugFlags::COLLISIONVOLUMES))
-                    physicsObj->GetCollisionShape()->DebugDraw(physicsObj.get());
+                    physicsObj->GetCollisionShape()->DebugDraw(physicsObj);
             }
         }
     }

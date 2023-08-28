@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Broadphase.h"
-#include "Maths/Maths.h"
+#include <glm/vec3.hpp>
 
 namespace Lumos
 {

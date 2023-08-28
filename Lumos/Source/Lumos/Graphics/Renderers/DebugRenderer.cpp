@@ -26,9 +26,14 @@
 #include "Maths/BoundingBox.h"
 #include "Maths/BoundingSphere.h"
 #include "Maths/Ray.h"
-#include "Maths/Maths.h"
 #include "Audio/SoundNode.h"
 #include <cstdarg>
+#include <glm/vec2.hpp>
+#include <glm/vec3.hpp>
+#include <glm/vec4.hpp>
+#include <glm/mat4x4.hpp>
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/quaternion.hpp>
 
 namespace Lumos
 {
@@ -114,7 +119,8 @@ namespace Lumos
             size_t idx                              = (i + s_Instance->m_LogEntriesOffset) % MAX_LOG_SIZE;
             float alpha                             = 1.0f - ((float)log_len - (float)i) / (float)log_len;
             s_Instance->m_vLogEntries[idx].colour.w = alpha;
-            DrawTextCs(glm::vec4(-1.0f + cs_size_x * 0.5f, -1.0f + ((log_len - i - 1) * cs_size_y) + cs_size_y, 0.0f, 1.0f), LOG_TEXT_SIZE, s_Instance->m_vLogEntries[idx].text, s_Instance->m_vLogEntries[idx].colour);
+            float aspect                            = (float)s_Instance->m_Width / (float)s_Instance->m_Height;
+            DrawTextCs(glm::vec4(-aspect, -1.0f + ((log_len - i - 1) * cs_size_y) + cs_size_y, 0.0f, 1.0f), LOG_TEXT_SIZE, s_Instance->m_vLogEntries[idx].text, s_Instance->m_vLogEntries[idx].colour);
         }
     }
 

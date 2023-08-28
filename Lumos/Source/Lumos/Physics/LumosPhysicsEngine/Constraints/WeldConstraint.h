@@ -2,6 +2,10 @@
 #include "Constraint.h"
 #include "Maths/Maths.h"
 
+#include <glm/vec3.hpp>
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/quaternion.hpp>
+
 namespace Lumos
 {
     class RigidBody3D;

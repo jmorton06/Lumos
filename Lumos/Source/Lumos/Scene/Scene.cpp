@@ -13,6 +13,8 @@
 #include "Physics/LumosPhysicsEngine/CollisionShapes/SphereCollisionShape.h"
 #include "Physics/LumosPhysicsEngine/CollisionShapes/CuboidCollisionShape.h"
 #include "Physics/LumosPhysicsEngine/CollisionShapes/PyramidCollisionShape.h"
+#include "Physics/LumosPhysicsEngine/CollisionShapes/HullCollisionShape.h"
+#include "Physics/LumosPhysicsEngine/CollisionShapes/CapsuleCollisionShape.h"
 
 #include "Events/Event.h"
 #include "Events/ApplicationEvent.h"
@@ -36,6 +38,18 @@
 #include <cereal/archives/json.hpp>
 #include <entt/entity/registry.hpp>
 #include <sol/sol.hpp>
+
+CEREAL_REGISTER_TYPE(Lumos::SphereCollisionShape);
+CEREAL_REGISTER_TYPE(Lumos::CuboidCollisionShape);
+CEREAL_REGISTER_TYPE(Lumos::PyramidCollisionShape);
+CEREAL_REGISTER_TYPE(Lumos::HullCollisionShape);
+CEREAL_REGISTER_TYPE(Lumos::CapsuleCollisionShape);
+
+CEREAL_REGISTER_POLYMORPHIC_RELATION(Lumos::CollisionShape, Lumos::SphereCollisionShape);
+CEREAL_REGISTER_POLYMORPHIC_RELATION(Lumos::CollisionShape, Lumos::CuboidCollisionShape);
+CEREAL_REGISTER_POLYMORPHIC_RELATION(Lumos::CollisionShape, Lumos::PyramidCollisionShape);
+CEREAL_REGISTER_POLYMORPHIC_RELATION(Lumos::CollisionShape, Lumos::HullCollisionShape);
+CEREAL_REGISTER_POLYMORPHIC_RELATION(Lumos::CollisionShape, Lumos::CapsuleCollisionShape);
 
 namespace entt
 {

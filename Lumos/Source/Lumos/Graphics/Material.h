@@ -1,9 +1,10 @@
 #pragma once
-#include "Maths/Maths.h"
 #include "RHI/Texture.h"
 #include "RHI/Shader.h"
 #include "Core/VFS.h"
 #include "Scene/Serialisation.h"
+
+#include "Maths/MathsSerialisation.h"
 
 namespace Lumos
 {

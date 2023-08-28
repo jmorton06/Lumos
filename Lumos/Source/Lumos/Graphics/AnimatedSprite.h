@@ -70,7 +70,7 @@ namespace Lumos::Graphics
 
             if(!textureFilePath.empty())
                 m_Texture = SharedPtr<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile("sprite", textureFilePath));
-            
+
             if(Serialisation::CurrentSceneVersion > 21)
                 archive(SpriteSheetTileSize);
 

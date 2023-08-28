@@ -1,16 +1,11 @@
 #pragma once
 #include "Graphics/RHI/GraphicsContext.h"
 
-#include "VK.h"
 #include "Core/Reference.h"
-
+#include "VK.h"
 #include "VKDevice.h"
 
 #include <deque>
-
-#ifdef USE_VMA_ALLOCATOR
-#include <vulkan/vk_mem_alloc.h>
-#endif
 
 #if defined(LUMOS_DEBUG)
 const bool EnableValidationLayers = true;

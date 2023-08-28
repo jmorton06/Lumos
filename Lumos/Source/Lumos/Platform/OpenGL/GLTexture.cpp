@@ -4,6 +4,9 @@
 #include "Platform/OpenGL/GLUtilities.h"
 #include "Platform/OpenGL/GLShader.h"
 #include "Utilities/LoadImage.h"
+#include "Maths/Random.h"
+#include "Maths/MathsUtilities.h"
+#include "GLRenderer.h"
 
 namespace Lumos
 {

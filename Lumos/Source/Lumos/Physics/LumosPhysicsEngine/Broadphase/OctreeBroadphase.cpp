@@ -41,7 +41,7 @@ namespace Lumos
 
             if(physicsObject && physicsObject->GetCollisionShape())
             {
-                LUMOS_PROFILE_SCOPE("Merge Bounding box and add Physics Object");
+                LUMOS_PROFILE_SCOPE_LOW("Merge Bounding box and add Physics Object");
                 rootNode.boundingBox.Merge(physicsObject->GetWorldSpaceAABB());
                 rootNode.PhysicsObjects[rootNode.PhysicsObjectCount] = physicsObject;
                 rootNode.PhysicsObjectCount++;
@@ -68,11 +68,11 @@ namespace Lumos
 
     void OctreeBroadphase::Divide(OctreeNode& division, const size_t iteration)
     {
-        LUMOS_PROFILE_FUNCTION();
+        LUMOS_PROFILE_FUNCTION_LOW();
         // Exit conditions (partition depth limit or target object count reached)
         if(iteration > m_MaxPartitionDepth || division.PhysicsObjectCount <= m_MaxObjectsPerPartition)
         {
-            LUMOS_PROFILE_SCOPE("Add Leaf");
+            LUMOS_PROFILE_SCOPE_LOW("Add Leaf");
             // Ignore any subdivisions that contain no objects
             if(division.PhysicsObjectCount != 0)
             {
@@ -99,7 +99,7 @@ namespace Lumos
 
         for(size_t i = 0; i < NUM_DIVISIONS; i++)
         {
-            LUMOS_PROFILE_SCOPE("Create Child");
+            LUMOS_PROFILE_SCOPE_LOW("Create Child");
 
             division.ChildNodeIndices[division.ChildCount] = m_CurrentPoolIndex;
             auto& newNode                                  = m_NodePool[m_CurrentPoolIndex];
@@ -123,7 +123,7 @@ namespace Lumos
             // Add objects inside division
             for(uint32_t i = 0; i < division.PhysicsObjectCount; i++)
             {
-                LUMOS_PROFILE_SCOPE("PhysicsObject BB check");
+                LUMOS_PROFILE_SCOPE_LOW("PhysicsObject BB check");
                 RigidBody3D* physicsObject = division.PhysicsObjects[i];
 
                 if(!physicsObject)

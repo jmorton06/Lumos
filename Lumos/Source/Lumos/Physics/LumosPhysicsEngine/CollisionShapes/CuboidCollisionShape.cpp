@@ -44,7 +44,7 @@ namespace Lumos
 
     glm::mat3 CuboidCollisionShape::BuildInverseInertia(float invMass) const
     {
-        LUMOS_PROFILE_FUNCTION();
+        LUMOS_PROFILE_FUNCTION_LOW();
         // https://en.wikipedia.org/wiki/List_of_moments_of_inertia
         glm::mat3 inertia(1.0f);
 
@@ -60,7 +60,7 @@ namespace Lumos
 
     std::vector<glm::vec3>& CuboidCollisionShape::GetCollisionAxes(const RigidBody3D* currentObject)
     {
-        LUMOS_PROFILE_FUNCTION();
+        LUMOS_PROFILE_FUNCTION_LOW();
         {
             m_Axes.resize(3);
 
@@ -75,7 +75,7 @@ namespace Lumos
 
     std::vector<CollisionEdge>& CuboidCollisionShape::GetEdges(const RigidBody3D* currentObject)
     {
-        LUMOS_PROFILE_FUNCTION();
+        LUMOS_PROFILE_FUNCTION_LOW();
         {
             glm::mat4 transform = currentObject->GetWorldSpaceTransform() * m_LocalTransform;
             for(unsigned int i = 0; i < m_CubeHull->GetNumEdges(); ++i)
@@ -92,7 +92,7 @@ namespace Lumos
 
     void CuboidCollisionShape::GetMinMaxVertexOnAxis(const RigidBody3D* currentObject, const glm::vec3& axis, glm::vec3* out_min, glm::vec3* out_max) const
     {
-        LUMOS_PROFILE_FUNCTION();
+        LUMOS_PROFILE_FUNCTION_LOW();
         glm::mat4 wsTransform      = currentObject ? currentObject->GetWorldSpaceTransform() * m_LocalTransform : m_LocalTransform;
         const glm::vec3 local_axis = glm::transpose(wsTransform) * glm::vec4(axis, 1.0f);
 
@@ -110,7 +110,7 @@ namespace Lumos
                                                            const glm::vec3& axis,
                                                            ReferencePolygon& refPolygon) const
     {
-        LUMOS_PROFILE_FUNCTION();
+        LUMOS_PROFILE_FUNCTION_LOW();
         glm::mat4 wsTransform = currentObject ? currentObject->GetWorldSpaceTransform() * m_LocalTransform : m_LocalTransform;
 
         const glm::mat3 invNormalMatrix = glm::inverse(glm::mat3(wsTransform));
@@ -198,7 +198,7 @@ namespace Lumos
 
     void CuboidCollisionShape::ConstructCubeHull()
     {
-        LUMOS_PROFILE_FUNCTION();
+        LUMOS_PROFILE_FUNCTION_LOW();
         // Vertices
         m_CubeHull->AddVertex(glm::vec3(-1.0f, -1.0f, -1.0f)); // 0
         m_CubeHull->AddVertex(glm::vec3(-1.0f, 1.0f, -1.0f));  // 1

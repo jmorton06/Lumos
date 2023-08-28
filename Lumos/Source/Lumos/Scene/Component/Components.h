@@ -7,6 +7,7 @@
 #include "Graphics/Font.h"
 #include "Core/OS/FileSystem.h"
 #include "Scene/Serialisation.h"
+#include "Utilities/AssetManager.h"
 
 namespace Lumos
 {

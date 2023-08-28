@@ -7,6 +7,7 @@
 #include "Maths/Maths.h"
 #include "Core/StringUtilities.h"
 #include "Core/Application.h"
+#include "Utilities/AssetManager.h"
 
 #define TINYOBJLOADER_IMPLEMENTATION
 #include <ModelLoaders/tinyobjloader/tiny_obj_loader.h>

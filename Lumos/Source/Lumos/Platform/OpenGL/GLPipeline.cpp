@@ -5,7 +5,7 @@
 #include "GLFramebuffer.h"
 #include "GLRenderPass.h"
 #include "GLSwapChain.h"
-
+#include "GLRenderer.h"
 #include <glad/glad.h>
 
 namespace Lumos
