@@ -11,6 +11,7 @@ namespace Lumos
     namespace Graphics
     {
         VKSwapChain::VKSwapChain(uint32_t width, uint32_t height)
+            : m_SwapChainBufferCount(0)
         {
             m_Width        = width;
             m_Height       = height;
@@ -18,7 +19,7 @@ namespace Lumos
             m_OldSwapChain = VK_NULL_HANDLE;
             m_Surface      = VK_NULL_HANDLE;
 
-            // Initialised by first Image Aquire
+            // Initialised by first Image Acquire
             m_CurrentBuffer     = 0; // std::numeric_limits<uint32_t>::max();
             m_AcquireImageIndex = std::numeric_limits<uint32_t>::max();
         }
@@ -180,6 +181,9 @@ namespace Lumos
 
             for(uint32_t i = 0; i < m_SwapChainBufferCount; i++)
             {
+                if(i >= swapChainImageCount)
+                    break;
+
                 VkImageViewCreateInfo viewCI {};
                 viewCI.sType  = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
                 viewCI.format = m_ColourFormat;

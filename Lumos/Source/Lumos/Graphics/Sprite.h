@@ -1,9 +1,9 @@
 #pragma once
-#include "Maths/Maths.h"
 #include "Renderable2D.h"
 #include "Core/VFS.h"
 
 #include "Scene/Serialisation.h"
+#include "Maths/MathsSerialisation.h"
 
 namespace Lumos
 {
@@ -26,8 +26,8 @@ namespace Lumos
             void SetTexture(const SharedPtr<Texture2D>& texture) { m_Texture = texture; }
 
             void SetTextureFromFile(const std::string& filePath);
-            
-            bool UsingSpriteSheet = false;
+
+            bool UsingSpriteSheet        = false;
             uint32_t SpriteSheetTileSize = 32;
 
             template <typename Archive>
@@ -43,7 +43,7 @@ namespace Lumos
                         cereal::make_nvp("Position", m_Position),
                         cereal::make_nvp("Scale", m_Scale),
                         cereal::make_nvp("Colour", m_Colour));
-                
+
                 archive(UsingSpriteSheet, SpriteSheetTileSize);
             }
 
@@ -58,10 +58,9 @@ namespace Lumos
 
                 if(!textureFilePath.empty())
                     m_Texture = SharedPtr<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile("sprite", textureFilePath));
-                
+
                 if(Serialisation::CurrentSceneVersion > 21)
                     archive(UsingSpriteSheet, SpriteSheetTileSize);
-            
             }
         };
     }

@@ -9,6 +9,8 @@
 #include "Core/OS/FileSystem.h"
 #include "Core/VFS.h"
 #include "Core/Application.h"
+#include "Scene/Scene.h"
+#include "Utilities/AssetManager.h"
 
 #include <imgui/imgui.h>
 

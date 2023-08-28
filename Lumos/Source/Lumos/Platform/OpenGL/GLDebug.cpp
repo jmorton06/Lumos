@@ -1,5 +1,6 @@
 #include "Precompiled.h"
 #include "GLDebug.h"
+#include "GL.h"
 
 #ifdef GL_DEBUG
 

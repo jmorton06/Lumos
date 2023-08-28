@@ -3,6 +3,7 @@
 #include "Graphics/RHI/Renderer.h"
 #include "GLFramebuffer.h"
 #include "GLDebug.h"
+#include "GLRenderer.h"
 
 namespace Lumos
 {

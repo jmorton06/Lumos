@@ -2,9 +2,13 @@
 #include "Core/Reference.h"
 #include "Scene/SceneManager.h"
 #include "Scene/SystemManager.h"
+#include "Core/VFS.h"
+
+#include <thread>
 #include <cereal/types/vector.hpp>
 #include <cereal/cereal.hpp>
 #include <queue>
+#include <glm/vec2.hpp>
 
 namespace Lumos
 {
@@ -19,6 +23,10 @@ namespace Lumos
     class WindowCloseEvent;
     class WindowResizeEvent;
     class ImGuiManager;
+    class ModelLibrary;
+    class TextureLibrary;
+    class FontLibrary;
+    class ShaderLibrary;
 
     namespace Graphics
     {
@@ -230,11 +238,8 @@ namespace Lumos
                     m_SceneManager->AddFileToLoadList(filePath);
                 }
 
-                if(m_SceneManager->GetScenes().size() == 0 && sceneFilePaths.size() == sceneIndex)
-                {
-                    m_SceneManager->EnqueueScene(new Scene("Empty Scene"));
-                    m_SceneManager->SwitchScene(0);
-                }
+                if(sceneFilePaths.size() == sceneIndex)
+                    AddDefaultScene();
             }
             if(m_ProjectSettings.ProjectVersion > 3)
             {
@@ -297,6 +302,8 @@ namespace Lumos
         bool m_ProjectLoaded = false;
 
     private:
+        void AddDefaultScene();
+
         bool OnWindowClose(WindowCloseEvent& e);
         static void UpdateSystems();
         bool ShouldUpdateSystems = false;

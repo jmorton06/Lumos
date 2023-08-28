@@ -1,8 +1,7 @@
 #pragma once
-#include "Maths/Maths.h"
-#include "Utilities/AssetManager.h"
 #include "Serialisation.h"
 #include <sol/forward.hpp>
+#include <glm/vec3.hpp>
 
 DISABLE_WARNING_PUSH
 DISABLE_WARNING_CONVERSION_TO_SMALLER_TYPE

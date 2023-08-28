@@ -3,7 +3,6 @@
 #include "EditorPanel.h"
 #include "FileBrowserPanel.h"
 
-#include <Lumos/Maths/Maths.h>
 #include <Lumos/Maths/Ray.h>
 #include <Lumos/Maths/Transform.h>
 #include <Lumos/Utilities/IniFile.h>
@@ -13,9 +12,7 @@
 #include <Lumos/Core/Application.h>
 
 #include <imgui/imgui.h>
-#include <Lumos/Scene/SceneManager.h>
-#include <Lumos/Scene/Entity.h>
-#include <Lumos/Scene/EntityManager.h>
+#include <entt/entt.hpp>
 
 namespace Lumos
 {
@@ -135,27 +132,8 @@ namespace Lumos
             m_SelectedEntities.clear();
         }
 
-        void SetSelected(entt::entity entity)
-        {
-            auto& registry = Application::Get().GetSceneManager()->GetCurrentScene()->GetRegistry();
-
-            if(!registry.valid(entity))
-                return;
-            if(std::find(m_SelectedEntities.begin(), m_SelectedEntities.end(), entity) != m_SelectedEntities.end())
-                return;
-
-            m_SelectedEntities.push_back(entity);
-        }
-
-        void UnSelect(entt::entity entity)
-        {
-            auto it = std::find(m_SelectedEntities.begin(), m_SelectedEntities.end(), entity);
-
-            if(it != m_SelectedEntities.end())
-            {
-                m_SelectedEntities.erase(it);
-            }
-        }
+        void SetSelected(entt::entity entity);
+        void UnSelect(entt::entity entity);
 
         const std::vector<entt::entity>& GetSelected() const
         {

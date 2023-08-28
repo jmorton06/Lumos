@@ -10,6 +10,7 @@
 #include "Maths/Transform.h"
 #include "Core/Application.h"
 #include "Core/StringUtilities.h"
+#include "Utilities/AssetManager.h"
 
 #include <OpenFBX/ofbx.h>
 

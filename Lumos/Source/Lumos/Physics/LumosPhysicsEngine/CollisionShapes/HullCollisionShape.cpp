@@ -69,7 +69,7 @@ namespace Lumos
 
     glm::mat3 HullCollisionShape::BuildInverseInertia(float invMass) const
     {
-        LUMOS_PROFILE_FUNCTION();
+        LUMOS_PROFILE_FUNCTION_LOW();
         glm::mat3 inertia(1.0f);
 
         glm::vec3 dimsSq = (m_HalfDimensions + m_HalfDimensions);
@@ -84,7 +84,7 @@ namespace Lumos
 
     std::vector<glm::vec3>& HullCollisionShape::GetCollisionAxes(const RigidBody3D* currentObject)
     {
-        LUMOS_PROFILE_FUNCTION();
+        LUMOS_PROFILE_FUNCTION_LOW();
         {
             glm::mat3 objOrientation = glm::toMat3(currentObject->GetOrientation());
             m_Axes[0]                = (objOrientation * glm::vec3(1.0f, 0.0f, 0.0f)); // X - Axis
@@ -97,7 +97,7 @@ namespace Lumos
 
     std::vector<CollisionEdge>& HullCollisionShape::GetEdges(const RigidBody3D* currentObject)
     {
-        LUMOS_PROFILE_FUNCTION();
+        LUMOS_PROFILE_FUNCTION_LOW();
         {
             glm::mat4 transform = currentObject->GetWorldSpaceTransform() * m_LocalTransform;
             for(unsigned int i = 0; i < m_Hull->GetNumEdges(); ++i)
@@ -114,7 +114,7 @@ namespace Lumos
 
     void HullCollisionShape::GetMinMaxVertexOnAxis(const RigidBody3D* currentObject, const glm::vec3& axis, glm::vec3* out_min, glm::vec3* out_max) const
     {
-        LUMOS_PROFILE_FUNCTION();
+        LUMOS_PROFILE_FUNCTION_LOW();
         glm::mat4 wsTransform      = glm::transpose(currentObject ? currentObject->GetWorldSpaceTransform() * m_LocalTransform : m_LocalTransform);
         const glm::vec3 local_axis = wsTransform * glm::vec4(axis, 1.0f);
 
@@ -132,7 +132,7 @@ namespace Lumos
                                                          const glm::vec3& axis,
                                                          ReferencePolygon& refPolygon) const
     {
-        LUMOS_PROFILE_FUNCTION();
+        LUMOS_PROFILE_FUNCTION_LOW();
         glm::mat4 wsTransform = currentObject ? currentObject->GetWorldSpaceTransform() * m_LocalTransform : m_LocalTransform;
 
         const glm::mat3 invNormalMatrix = glm::inverse(wsTransform);

@@ -1,7 +1,7 @@
 #include "ProjectSettingsPanel.h"
 #include "Editor.h"
 
-#include <Lumos/Scene/Scene.h>
+#include <Lumos/Core/Profiler.h>
 
 namespace Lumos
 {

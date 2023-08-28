@@ -7,10 +7,8 @@
 #endif
 #endif
 
-#pragma warning(push, 0)
 #include <spdlog/spdlog.h>
 #include <spdlog/fmt/ostr.h>
-#pragma warning(pop)
 
 // Core log macros
 #define LUMOS_LOG_TRACE(...) SPDLOG_LOGGER_CALL(::Lumos::Debug::Log::GetCoreLogger(), spdlog::level::level_enum::trace, __VA_ARGS__)

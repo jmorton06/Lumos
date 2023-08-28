@@ -1,6 +1,6 @@
 #include "Precompiled.h"
 #include "GLIndexBuffer.h"
-
+#include "GLRenderer.h"
 #include "GL.h"
 
 namespace Lumos

@@ -1,6 +1,6 @@
 #include "Precompiled.h"
 #include "JobSystem.h"
-#include "Maths/Maths.h"
+#include "Maths/MathsUtilities.h"
 #include "Core/DataStructures/Vector.h"
 
 #include <atomic>

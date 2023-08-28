@@ -2,10 +2,15 @@
 #include "MeshFactory.h"
 #include "Mesh.h"
 #include "Material.h"
-#include "Maths/Maths.h"
 #include "Terrain.h"
 
 #include "Graphics/RHI/GraphicsContext.h"
+
+#include <glm/vec2.hpp>
+#include <glm/vec3.hpp>
+#include <glm/vec4.hpp>
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/quaternion.hpp>
 
 namespace Lumos
 {

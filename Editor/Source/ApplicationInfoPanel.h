@@ -1,6 +1,7 @@
 #pragma once
 
 #include "EditorPanel.h"
+#include <vector>
 
 namespace Lumos
 {

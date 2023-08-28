@@ -1,17 +1,20 @@
 #pragma once
-
-#include "Core/VFS.h"
 #include "Core/Engine.h"
 #include "Audio/Sound.h"
 #include "Graphics/RHI/Shader.h"
 #include "Utilities/TSingleton.h"
 #include "Utilities/LoadImage.h"
-#include "Scene/Component/ModelComponent.h"
 #include "Graphics/Font.h"
+#include "Graphics/Model.h"
 #include <future>
 
 namespace Lumos
 {
+    namespace Graphics
+    {
+        class Model;
+    }
+
     template <typename T>
     class ResourceManager
     {
@@ -22,10 +25,10 @@ namespace Lumos
 
         struct Resource
         {
-            float timeSinceReload;
-            float lastAccessed;
+            float timeSinceReload = 0.0f;
+            float lastAccessed    = 0.0f;
             ResourceHandle data;
-            bool onDisk;
+            bool onDisk = false;
         };
 
         typedef std::unordered_map<IDType, Resource> MapType;
@@ -203,10 +206,7 @@ namespace Lumos
         {
             m_LoadFunc = Load;
         }
-
-        ~TextureLibrary()
-        {
-        }
+        ~TextureLibrary();
 
         static bool Load(const std::string& filePath, SharedPtr<Graphics::Texture2D>& texture);
 
@@ -220,16 +220,9 @@ namespace Lumos
         {
             m_LoadFunc = Load;
         }
+        ~ModelLibrary();
 
-        ~ModelLibrary()
-        {
-        }
-
-        static bool Load(const std::string& filePath, SharedPtr<Graphics::Model>& model)
-        {
-            model = CreateSharedPtr<Graphics::Model>(filePath);
-            return true;
-        }
+        static bool Load(const std::string& filePath, SharedPtr<Graphics::Model>& model);
     };
 
     class FontLibrary : public ResourceManager<Graphics::Font>

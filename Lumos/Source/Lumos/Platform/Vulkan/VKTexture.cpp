@@ -5,6 +5,7 @@
 #include "VKUtilities.h"
 #include "VKRenderer.h"
 #include "Maths/Random.h"
+#include "Maths/MathsUtilities.h"
 
 namespace Lumos
 {

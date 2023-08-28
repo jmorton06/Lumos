@@ -3,6 +3,11 @@
 #include "Maths/Maths.h"
 #include "Maths/Transform.h"
 #include <sol/sol.hpp>
+#include <glm/vec2.hpp>
+#include <glm/vec3.hpp>
+#include <glm/vec4.hpp>
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/quaternion.hpp>
 
 namespace Lumos
 {

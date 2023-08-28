@@ -1,6 +1,7 @@
 #include "Precompiled.h"
 #include "GLVertexBuffer.h"
 #include "GLPipeline.h"
+#include "GLRenderer.h"
 
 #include "GL.h"
 

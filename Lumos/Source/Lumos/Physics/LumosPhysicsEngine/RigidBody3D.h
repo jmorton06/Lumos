@@ -1,28 +1,13 @@
 #pragma once
 #include "Physics/LumosPhysicsEngine/CollisionShapes/CollisionShape.h"
-#include "Physics/LumosPhysicsEngine/CollisionShapes/SphereCollisionShape.h"
-#include "Physics/LumosPhysicsEngine/CollisionShapes/CuboidCollisionShape.h"
-#include "Physics/LumosPhysicsEngine/CollisionShapes/PyramidCollisionShape.h"
-#include "Physics/LumosPhysicsEngine/CollisionShapes/HullCollisionShape.h"
-#include "Physics/LumosPhysicsEngine/CollisionShapes/CapsuleCollisionShape.h"
-#include "Maths/Maths.h"
-#include <cereal/types/polymorphic.hpp>
+#include "Core/UUID.h"
+#include "Maths/BoundingBox.h"
 #include <cereal/cereal.hpp>
 #include <glm/vec2.hpp>
 #include <glm/vec3.hpp>
-#include "Core/UUID.h"
-
-CEREAL_REGISTER_TYPE(Lumos::SphereCollisionShape);
-CEREAL_REGISTER_TYPE(Lumos::CuboidCollisionShape);
-CEREAL_REGISTER_TYPE(Lumos::PyramidCollisionShape);
-CEREAL_REGISTER_TYPE(Lumos::HullCollisionShape);
-CEREAL_REGISTER_TYPE(Lumos::CapsuleCollisionShape);
-
-CEREAL_REGISTER_POLYMORPHIC_RELATION(Lumos::CollisionShape, Lumos::SphereCollisionShape);
-CEREAL_REGISTER_POLYMORPHIC_RELATION(Lumos::CollisionShape, Lumos::CuboidCollisionShape);
-CEREAL_REGISTER_POLYMORPHIC_RELATION(Lumos::CollisionShape, Lumos::PyramidCollisionShape);
-CEREAL_REGISTER_POLYMORPHIC_RELATION(Lumos::CollisionShape, Lumos::HullCollisionShape);
-CEREAL_REGISTER_POLYMORPHIC_RELATION(Lumos::CollisionShape, Lumos::CapsuleCollisionShape);
+#include <glm/vec4.hpp>
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/quaternion.hpp>
 
 namespace Lumos
 {
@@ -61,7 +46,6 @@ namespace Lumos
         friend class LumosPhysicsEngine;
 
     public:
-        RigidBody3D(const RigidBody3DProperties& properties = RigidBody3DProperties());
         ~RigidBody3D();
 
         //<--------- GETTERS ------------->
@@ -140,6 +124,7 @@ namespace Lumos
             if(glm::length(v) > 0.0f)
                 m_AtRest = false;
         }
+
         void SetTorque(const glm::vec3& v)
         {
             if(m_Static)
@@ -262,6 +247,8 @@ namespace Lumos
         UUID GetUUID() const { return m_UUID; }
 
     protected:
+        RigidBody3D(const RigidBody3DProperties& properties = RigidBody3DProperties());
+
         mutable bool m_wsTransformInvalidated;
         float m_RestVelocityThresholdSquared;
         float m_AverageSummedVelocity;
@@ -295,5 +282,8 @@ namespace Lumos
         SharedPtr<CollisionShape> m_CollisionShape;
         PhysicsCollisionCallback m_OnCollisionCallback;
         std::vector<OnCollisionManifoldCallback> m_onCollisionManifoldCallbacks; //!< Collision callbacks post manifold generation
+
+        RigidBody3D* m_Prev = nullptr;
+        RigidBody3D* m_Next = nullptr;
     };
 }

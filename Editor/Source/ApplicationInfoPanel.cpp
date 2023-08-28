@@ -1,14 +1,11 @@
-#include "HierarchyPanel.h"
-#include "Editor.h"
 #include "ApplicationInfoPanel.h"
 
-#include <Lumos/Graphics/RHI/GraphicsContext.h>
 #include <Lumos/Core/Application.h>
 #include <Lumos/Scene/SceneManager.h>
+#include <Lumos/Scene/Scene.h>
+
 #include <Lumos/Core/Engine.h>
 #include <Lumos/Graphics/Renderers/RenderPasses.h>
-#include <Lumos/Graphics/GBuffer.h>
-#include <Lumos/Events/ApplicationEvent.h>
 #include <Lumos/ImGui/ImGuiUtilities.h>
 #include <imgui/imgui.h>
 #include <imgui/Plugins/implot/implot.h>

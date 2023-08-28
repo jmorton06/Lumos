@@ -2,6 +2,7 @@
 
 #include "Utilities/TSingleton.h"
 #include "Scene/ISystem.h"
+#include <glm/fwd.hpp>
 
 class b2World;
 class b2Body;

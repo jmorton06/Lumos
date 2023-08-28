@@ -4,9 +4,14 @@
 #include "Hull.h"
 #include "Maths/BoundingBox.h"
 
+#include <glm/vec3.hpp>
+#include <glm/mat3x3.hpp>
+#include <glm/mat4x4.hpp>
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtc/type_ptr.hpp>
+
 namespace Lumos
 {
-
     namespace Graphics
     {
         class Mesh;

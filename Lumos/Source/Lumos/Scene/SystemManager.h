@@ -1,5 +1,6 @@
 #pragma once
 #include "Scene/ISystem.h"
+#include <imgui/imgui.h>
 
 namespace Lumos
 {
@@ -73,7 +74,13 @@ namespace Lumos
         void OnImGui()
         {
             for(auto& system : m_Systems)
-                system.second->OnImGui();
+            {
+                if(ImGui::TreeNode(system.second->GetName().c_str()))
+                {
+                    system.second->OnImGui();
+                    ImGui::TreePop();
+                }
+            }
         }
 
         void OnDebugDraw()

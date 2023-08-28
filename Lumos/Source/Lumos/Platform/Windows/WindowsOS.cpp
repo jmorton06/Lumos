@@ -5,15 +5,21 @@
 #include "Core/CoreSystem.h"
 #include "Core/OS/MemoryManager.h"
 #include "Core/Application.h"
+#include <Windows.h>
 
 #ifdef LUMOS_USE_GLFW_WINDOWS
+#define GLFW_EXPOSE_NATIVE_WIN32
+
 #include "Platform/GLFW/GLFWWindow.h"
+#include <glfw/glfw3.h>
+#include <glfw/glfw3native.h>
 #endif
 
-#include <Windows.h>
 #include <filesystem>
 
 #include <shellapi.h>
+#include <dwmapi.h>
+#include <winuser.h>
 
 extern Lumos::Application* Lumos::CreateApplication();
 
@@ -93,5 +99,23 @@ namespace Lumos
     void WindowsOS::OpenURL(const std::string& url)
     {
         ShellExecuteA(NULL, "open", url.c_str(), NULL, NULL, SW_SHOWNORMAL);
+    }
+
+#include <glfw/glfw3native.h>
+
+    void WindowsOS::SetTitleBarColour(const glm::vec4& colour, bool dark)
+    {
+        auto& app = Lumos::Application::Get();
+        HWND hwnd = glfwGetWin32Window((GLFWwindow*)static_cast<GLFWwindow*>(app.GetWindow()->GetHandle()));
+
+        COLORREF col = RGB(colour.x * 255, colour.y * 255, colour.z * 255);
+
+        COLORREF CAPTION_COLOR = col;
+        COLORREF BORDER_COLOR  = 0x201e1e;
+
+        DwmSetWindowAttribute(hwnd, DWMWINDOWATTRIBUTE::DWMWA_CAPTION_COLOR, &CAPTION_COLOR, sizeof(CAPTION_COLOR));
+        DwmSetWindowAttribute(hwnd, DWMWINDOWATTRIBUTE::DWMWA_BORDER_COLOR, &BORDER_COLOR, sizeof(BORDER_COLOR));
+
+        SetWindowPos(hwnd, NULL, NULL, NULL, NULL, NULL, SWP_NOMOVE | SWP_NOOWNERZORDER | SWP_NOSIZE);
     }
 }

@@ -20,6 +20,7 @@
 
 #include <typeinfo>
 #include <imgui/imgui_internal.h>
+#include <sol/sol.hpp>
 
 namespace Lumos
 {

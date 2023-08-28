@@ -14,11 +14,13 @@
 #include "Graphics/Font.h"
 #include "Graphics/MSDFData.h"
 #include "Core/JobSystem.h"
+#include "Maths/BoundingSphere.h"
 
 #include "Events/ApplicationEvent.h"
 
 #include "Embedded/BRDFTexture.inl"
 #include "Embedded/CheckerBoardTextureArray.inl"
+#include "Utilities/AssetManager.h"
 
 #include "Scene/Component/Components.h"
 #include "Maths/Random.h"
@@ -3355,8 +3357,6 @@ namespace Lumos::Graphics
             m_DebugTextRendererData.m_VertexBuffers[currentFrame][m_DebugTextRendererData.m_BatchDrawCallIndex]->Bind(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer(), m_DebugTextRendererData.m_Pipeline.get());
             DebugTextVertexBufferPtr = DebugTextVertexBufferBase[currentFrame];
             auto projView            = m_Camera->GetProjectionMatrix() * glm::inverse(m_CameraTransform->GetWorldMatrix());
-            DebugRenderer::GetInstance()->SetProjView(projView);
-            DebugRenderer::SortLists();
 
             m_DebugTextRendererData.m_DescriptorSet[m_DebugTextRendererData.m_BatchDrawCallIndex][0]->SetUniform("UBO", "projView", &projView);
             m_DebugTextRendererData.m_DescriptorSet[m_DebugTextRendererData.m_BatchDrawCallIndex][0]->Update();
@@ -3447,7 +3447,7 @@ namespace Lumos::Graphics
                     double texelHeight = 1. / fontAtlas->GetHeight();
                     l *= texelWidth, b *= texelHeight, r *= texelWidth, t *= texelHeight;
 
-                    glm::mat4 transform = glm::translate(glm::mat4(1.0f), glm::vec3(pos)) * glm::scale(glm::mat4(1.0), glm::vec3(size / 10.0f));
+                    glm::mat4 transform = glm::translate(glm::mat4(1.0f), glm::vec3(pos)) * glm::toMat4(m_CameraTransform->GetLocalOrientation()) * glm::scale(glm::mat4(1.0), glm::vec3(size / 10.0f));
 
                     {
                         LUMOS_PROFILE_SCOPE("Set text buffer data");
@@ -3614,7 +3614,7 @@ namespace Lumos::Graphics
                     double texelHeight = 1. / fontAtlas->GetHeight();
                     l *= texelWidth, b *= texelHeight, r *= texelWidth, t *= texelHeight;
 
-                    glm::mat4 transform = glm::translate(glm::mat4(1.0f), glm::vec3(pos)) * glm::scale(glm::mat4(1.0), glm::vec3(size / 10.0f));
+                    glm::mat4 transform = glm::translate(glm::mat4(1.0f), glm::vec3(pos)) * glm::toMat4(m_CameraTransform->GetLocalOrientation()) * glm::scale(glm::mat4(1.0), glm::vec3(size / 10.0f));
 
                     {
                         LUMOS_PROFILE_SCOPE("Set text buffer data");
@@ -3665,6 +3665,17 @@ namespace Lumos::Graphics
             TextFlush(m_DebugTextRendererData, DebugTextVertexBufferBase, DebugTextVertexBufferPtr);
         }
 
+        glm::mat4 csProjection = glm::ortho(0.0f, (float)m_MainTexture->GetWidth(), 0.0f, (float)m_MainTexture->GetHeight(), -100.0f, 100.0f);
+        auto projView          = m_Camera->GetProjectionMatrix();
+        projView               = glm::mat4(1.0f);
+
+        float scale       = 1.0f;
+        float aspectRatio = (float)m_MainTexture->GetWidth() / (float)m_MainTexture->GetHeight();
+        projView          = glm::ortho(-aspectRatio * scale, aspectRatio * scale, -scale, scale, -10.0f, 10.0f);
+
+        DebugRenderer::GetInstance()->SetProjView(projView);
+        DebugRenderer::SortLists();
+
         auto& csDebugText = DebugRenderer::GetInstance()->GetDebugTextCS();
         if(!csDebugText.empty())
         {
@@ -3689,10 +3700,6 @@ namespace Lumos::Graphics
 
             m_DebugTextRendererData.m_VertexBuffers[currentFrame][m_DebugTextRendererData.m_BatchDrawCallIndex]->Bind(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer(), m_DebugTextRendererData.m_Pipeline.get());
             DebugTextVertexBufferPtr = DebugTextVertexBufferBase[currentFrame];
-            glm::mat4 csProjection   = glm::ortho(0.0f, (float)m_MainTexture->GetWidth(), 0.0f, (float)m_MainTexture->GetHeight(), -100.0f, 100.0f);
-            auto projView            = glm::mat4(1.0f); // csProjection;// *glm::inverse(m_CameraTransform->GetWorldMatrix());
-            DebugRenderer::GetInstance()->SetProjView(projView);
-            DebugRenderer::SortLists();
 
             m_DebugTextRendererData.m_DescriptorSet[m_DebugTextRendererData.m_BatchDrawCallIndex][0]->SetUniform("UBO", "projView", &projView);
             m_DebugTextRendererData.m_DescriptorSet[m_DebugTextRendererData.m_BatchDrawCallIndex][0]->Update();

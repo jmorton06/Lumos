@@ -5,7 +5,6 @@
 #include "Narrowphase/Manifold.h"
 #include "Broadphase/Broadphase.h"
 #include "Scene/ISystem.h"
-#include "Scene/Scene.h"
 
 namespace Lumos
 {
@@ -40,6 +39,17 @@ namespace Lumos
 
     class Constraint;
     class TimeStep;
+    class Scene;
+
+    struct PhysicsStats3D
+    {
+        uint32_t RigidBodyCount;
+        uint32_t CollisionCount;
+        uint32_t RestCount;
+        uint32_t StaticCount;
+        uint32_t ConstraintCount;
+        uint32_t NarrowPhaseCount;
+    };
 
     class LUMOS_EXPORT LumosPhysicsEngine : public ISystem
     {
@@ -101,6 +111,11 @@ namespace Lumos
         uint32_t GetPositionIterations() const { return m_PositionIterations; }
         void SetPositionIterations(uint32_t iterations) { m_PositionIterations = iterations; }
 
+        RigidBody3D* CreateBody(const RigidBody3DProperties& properties);
+        void DestroyBody(RigidBody3D* body);
+
+        const PhysicsStats3D& GetStats() const { return m_Stats; }
+
     protected:
         // The actual time-independant update function
         void UpdatePhysics();
@@ -140,6 +155,12 @@ namespace Lumos
 
         uint32_t m_DebugDrawFlags = 0;
         std::mutex m_ManifoldLock;
+
+        RigidBody3D* m_RootBody;
+        PoolAllocator<RigidBody3D>* m_Allocator;
+
+        PhysicsStats3D m_Stats;
+
         static float s_UpdateTimestep;
     };
 }

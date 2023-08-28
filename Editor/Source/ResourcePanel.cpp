@@ -1,11 +1,12 @@
 #include "Editor.h"
 #include "ResourcePanel.h"
-#include <Lumos/Core/OS/FileSystem.h>
+#include <Lumos/Graphics/RHI/Texture.h>
 #include <Lumos/Core/Profiler.h>
 #include <Lumos/Core/StringUtilities.h>
 #include <Lumos/Core/VFS.h>
 #include <Lumos/Core/OS/Window.h>
-
+#include <Lumos/Graphics/Material.h>
+#include <Lumos/Maths/MathsUtilities.h>
 #include <Lumos/ImGui/IconsMaterialDesignIcons.h>
 #include <imgui/imgui.h>
 #include <imgui/imgui_internal.h>
@@ -163,7 +164,6 @@ namespace Lumos
 
     bool IsHidden(const std::filesystem::path& filePath)
     {
-        std::filesystem::status(filePath);
         try
         {
             std::filesystem::file_status status = std::filesystem::status(filePath);

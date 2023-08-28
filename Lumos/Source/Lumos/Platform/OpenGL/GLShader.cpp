@@ -6,6 +6,8 @@
 #include "Core/OS/FileSystem.h"
 #include "Core/StringUtilities.h"
 
+#include <glm/gtc/type_ptr.hpp>
+
 enum root_signature_spaces
 {
     PUSH_CONSTANT_REGISTER_SPACE = 0,
@@ -574,7 +576,7 @@ namespace Lumos
             return "N/A";
         }
 
-        GLuint GLShader::CompileShader(ShaderType type, std::string source, uint32_t program, GLShaderErrorInfo& info)
+        uint32_t GLShader::CompileShader(ShaderType type, std::string source, uint32_t program, GLShaderErrorInfo& info)
         {
             LUMOS_PROFILE_FUNCTION();
             const char* cstr = source.c_str();

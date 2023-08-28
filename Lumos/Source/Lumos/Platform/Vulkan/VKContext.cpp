@@ -7,6 +7,7 @@
 #include "VKUtilities.h"
 #include "Core/Version.h"
 #include "Core/StringUtilities.h"
+#include "Maths/MathsUtilities.h"
 
 #ifndef VK_API_VERSION_1_2
 #error Wrong Vulkan SDK!

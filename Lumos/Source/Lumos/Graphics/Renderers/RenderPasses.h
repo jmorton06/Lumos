@@ -1,5 +1,4 @@
 #pragma once
-#include "Scene/Scene.h"
 #include "Graphics/Renderers/IRenderer.h"
 #include "Graphics/Renderable2D.h"
 
@@ -7,9 +6,11 @@
 
 namespace Lumos
 {
+    class Scene;
     namespace Maths
     {
         class Transform;
+        class Frustum;
     }
 
     namespace Graphics
@@ -21,6 +22,8 @@ namespace Lumos
         class TextureDepthArray;
         class SkyboxRenderer;
         class CommandBuffer;
+        class Model;
+        struct Light;
 
         struct LineVertexData
         {

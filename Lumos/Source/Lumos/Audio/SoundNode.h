@@ -1,10 +1,10 @@
 #pragma once
 
 #include "Sound.h"
-#include "Maths/Maths.h"
 #include "Core/StringUtilities.h"
 #include "Core/VFS.h"
 #include <cereal/cereal.hpp>
+#include <glm/vec3.hpp>
 
 namespace Lumos
 {
@@ -26,7 +26,7 @@ namespace Lumos
         void SetPosition(const glm::vec3& pos) { m_Position = pos; }
         glm::vec3 GetPosition() const { return m_Position; }
 
-        void SetVolume(float volume) { m_Volume = Maths::Min(1.0f, Maths::Max(0.0f, volume)); }
+        void SetVolume(float volume);
         float GetVolume() const { return m_Volume; }
 
         void SetLooping(bool state) { m_IsLooping = state; }
@@ -35,7 +35,7 @@ namespace Lumos
         void SetPaused(bool state) { m_Paused = state; }
         bool GetPaused() const { return m_Paused; }
 
-        void SetRadius(float value) { m_Radius = Maths::Max(0.0f, value); }
+        void SetRadius(float value);
         float GetRadius() const { return m_Radius; }
 
         float GetPitch() const { return m_Pitch; }

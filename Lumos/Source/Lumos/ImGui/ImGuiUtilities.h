@@ -3,6 +3,7 @@
 #include "Maths/Maths.h"
 #include <imgui/imgui.h>
 #include <imgui/imgui_internal.h>
+#include <glm/fwd.hpp>
 
 namespace Lumos
 {
@@ -36,7 +37,8 @@ namespace Lumos
             ClassicDark,
             Classic,
             Cherry,
-            Cinder
+            Cinder,
+            Cosy
         };
 
         bool Property(const char* name, std::string& value, PropertyFlag flags = PropertyFlag::ReadOnly);

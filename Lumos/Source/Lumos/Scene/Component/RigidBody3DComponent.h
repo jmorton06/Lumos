@@ -5,6 +5,8 @@
 #include "Physics/LumosPhysicsEngine/Constraints/WeldConstraint.h"
 #include "Physics/LumosPhysicsEngine/Constraints/DistanceConstraint.h"
 #include "Physics/LumosPhysicsEngine/Constraints/AxisConstraint.h"
+#include "Core/Application.h"
+#include "Physics/LumosPhysicsEngine/LumosPhysicsEngine.h"
 
 #include "Scene/Entity.h"
 #include <cereal/cereal.hpp>
@@ -104,7 +106,7 @@ namespace Lumos
         RigidBody3DComponent();
         RigidBody3DComponent(const RigidBody3DComponent& other);
 
-        explicit RigidBody3DComponent(SharedPtr<RigidBody3D>& physics);
+        explicit RigidBody3DComponent(RigidBody3D* physics);
 
         ~RigidBody3DComponent() = default;
 
@@ -112,7 +114,7 @@ namespace Lumos
         void Update();
         void OnImGui();
 
-        const SharedPtr<RigidBody3D>& GetRigidBody() const
+        RigidBody3D* GetRigidBody() const
         {
             return m_RigidBody;
         }
@@ -120,17 +122,18 @@ namespace Lumos
         template <typename Archive>
         void save(Archive& archive) const
         {
-            archive(*m_RigidBody.get());
+            archive(*m_RigidBody);
         }
 
         template <typename Archive>
         void load(Archive& archive)
         {
-            m_RigidBody = CreateSharedPtr<RigidBody3D>();
-            archive(*m_RigidBody.get());
+            // m_RigidBody = CreateSharedPtr<RigidBody3D>();
+            m_RigidBody = Application::Get().GetSystem<LumosPhysicsEngine>()->CreateBody({});
+            archive(*m_RigidBody);
         }
 
     private:
-        SharedPtr<RigidBody3D> m_RigidBody;
+        RigidBody3D* m_RigidBody;
     };
 }

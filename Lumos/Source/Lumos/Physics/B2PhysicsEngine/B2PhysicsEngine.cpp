@@ -5,6 +5,7 @@
 #include "Utilities/TimeStep.h"
 
 #include "Scene/Component/RigidBody2DComponent.h"
+#include "Scene/Scene.h"
 
 #include "Maths/Transform.h"
 #include "B2DebugDraw.h"

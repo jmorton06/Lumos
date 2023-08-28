@@ -439,8 +439,25 @@ namespace Lumos
 
         bool AreVectorsParallel(const glm::vec3& v1, const glm::vec3& v2);
 
+        glm::vec2 WorldToScreen(const glm::vec3& worldPos, const glm::mat4& mvp, float width, float height, float winPosX = 0.0f, float winPosY = 0.0f);
+
+        void SetScale(glm::mat4& transform, float scale);
+        void SetScale(glm::mat4& transform, const glm::vec3& scale);
+        void SetRotation(glm::mat4& transform, const glm::vec3& rotation);
+        void SetTranslation(glm::mat4& transform, const glm::vec3& translation);
+
+        glm::vec3 GetScale(const glm::mat4& transform);
+        glm::vec3 GetRotation(const glm::mat4& transform);
+
+        glm::mat4 Mat4FromTRS(const glm::vec3& translation, const glm::vec3& rotation, const glm::vec3& scale);
+
     }
 }
 #ifdef _MSC_VER
 #pragma warning(pop)
 #endif
+
+namespace glm
+{
+    glm::vec3 operator*(const glm::mat4& a, const glm::vec3& b);
+}

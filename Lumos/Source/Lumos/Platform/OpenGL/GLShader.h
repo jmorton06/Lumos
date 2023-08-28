@@ -5,6 +5,8 @@
 #include "GLUniformBuffer.h"
 #include "Graphics/RHI/BufferLayout.h"
 #include <spirv_glsl.hpp>
+#include <glm/mat4x4.hpp>
+#include <glm/mat3x3.hpp>
 
 namespace Lumos
 {
@@ -51,7 +53,7 @@ namespace Lumos
                 return m_ShaderTypes;
             }
 
-            static GLuint CompileShader(ShaderType type, std::string source, uint32_t program, GLShaderErrorInfo& info);
+            static uint32_t CompileShader(ShaderType type, std::string source, uint32_t program, GLShaderErrorInfo& info);
             static uint32_t Compile(std::map<ShaderType, std::string>* sources, GLShaderErrorInfo& info);
             static void PreProcess(const std::string& source, std::map<ShaderType, std::string>* sources);
             static void ReadShaderFile(std::vector<std::string> lines, std::map<ShaderType, std::string>* shaders);

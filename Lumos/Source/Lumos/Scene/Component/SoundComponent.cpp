@@ -2,9 +2,11 @@
 #include "SoundComponent.h"
 #include "Scene/Scene.h"
 #include "Core/Application.h"
+#include "Physics/LumosPhysicsEngine/RigidBody3D.h"
 #include "Audio/AudioManager.h"
 #include <imgui/imgui.h>
-#include "Physics/LumosPhysicsEngine/RigidBody3D.h"
+#include <glm/vec3.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 namespace Lumos
 {

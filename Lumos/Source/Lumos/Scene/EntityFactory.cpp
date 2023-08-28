@@ -65,7 +65,8 @@ namespace Lumos
         if(physics_enabled)
         {
             // Otherwise create a physics object, and set it's position etc
-            SharedPtr<RigidBody3D> testPhysics = CreateSharedPtr<RigidBody3D>();
+            // SharedPtr<RigidBody3D> testPhysics = CreateSharedPtr<RigidBody3D>();
+            RigidBody3D* testPhysics = Application::Get().GetSystem<LumosPhysicsEngine>()->CreateBody({});
 
             testPhysics->SetPosition(pos);
             testPhysics->SetInverseMass(inverse_mass);
@@ -126,8 +127,8 @@ namespace Lumos
         if(physics_enabled)
         {
             // Otherwise create a physics object, and set it's position etc
-            SharedPtr<RigidBody3D> testPhysics = CreateSharedPtr<RigidBody3D>();
-
+            // SharedPtr<RigidBody3D> testPhysics = CreateSharedPtr<RigidBody3D>();
+            RigidBody3D* testPhysics = Application::Get().GetSystem<LumosPhysicsEngine>()->CreateBody({});
             testPhysics->SetPosition(pos);
             testPhysics->SetInverseMass(inverse_mass);
 
@@ -187,8 +188,8 @@ namespace Lumos
         if(physics_enabled)
         {
             // Otherwise create a physics object, and set it's position etc
-            SharedPtr<RigidBody3D> testPhysics = CreateSharedPtr<RigidBody3D>();
-
+            // SharedPtr<RigidBody3D> testPhysics = CreateSharedPtr<RigidBody3D>();
+            RigidBody3D* testPhysics = Application::Get().GetSystem<LumosPhysicsEngine>()->CreateBody({});
             testPhysics->SetPosition(pos);
             testPhysics->SetInverseMass(inverse_mass);
 
