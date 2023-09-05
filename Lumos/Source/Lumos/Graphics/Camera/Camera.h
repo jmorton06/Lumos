@@ -4,6 +4,7 @@
 
 #include "Maths/Maths.h"
 #include "Maths/Ray.h"
+#include "Maths/Frustum.h"
 
 #include "Scene/Serialisation.h"
 

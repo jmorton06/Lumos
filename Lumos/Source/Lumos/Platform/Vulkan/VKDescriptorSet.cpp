@@ -148,8 +148,8 @@ namespace Lumos
             if(m_DescriptorDirty[currentFrame] || !m_DescriptorUpdated[currentFrame])
             {
                 m_DescriptorDirty[currentFrame] = false;
-                int imageIndex                  = 0;
-                int index                       = 0;
+                uint32_t imageIndex             = 0;
+                uint32_t index                  = 0;
 
                 for(auto& imageInfo : m_Descriptors.descriptors)
                 {

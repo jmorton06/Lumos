@@ -20,7 +20,7 @@
 #if FONT_DEBUG_LOG
 #define FONT_LOG(...) LUMOS_LOG_INFO("Font", __VA_ARGS__)
 #else
-#define FONT_LOG(...)
+#define FONT_LOG(...) ((void)0)
 #endif
 
 using namespace msdf_atlas;
@@ -334,7 +334,7 @@ namespace Lumos
                 break;
             }
 
-            LUMOS_ASSERT(glyphsLoaded >= 0, "");
+            LUMOS_ASSERT(glyphsLoaded >= 0);
             FONT_LOG("Font: Loaded geometry of {0} out of {1} glyphs", glyphsLoaded, (int)charset.size());
             // List missing glyphs
             if(glyphsLoaded < (int)charset.size())
@@ -367,7 +367,7 @@ namespace Lumos
                 LUMOS_LOG_ERROR("Font: Could not fit {0} out of {1} glyphs into the atlas.", remaining, (int)m_MSDFData->Glyphs.size());
             }
             atlasPacker.getDimensions(config.width, config.height);
-            LUMOS_CORE_ASSERT(config.width > 0 && config.height > 0, "");
+            LUMOS_ASSERT(config.width > 0 && config.height > 0);
             config.emSize  = atlasPacker.getScale();
             config.pxRange = atlasPacker.getPixelRange();
             if(!fixedScale)

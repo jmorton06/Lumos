@@ -105,7 +105,7 @@ namespace Lumos
 
             uint32_t queueFamilyCount;
             vkGetPhysicalDeviceQueueFamilyProperties(m_Handle, &queueFamilyCount, nullptr);
-            LUMOS_ASSERT(queueFamilyCount > 0, "");
+            LUMOS_ASSERT(queueFamilyCount > 0);
             m_QueueFamilyProperties.resize(queueFamilyCount);
             vkGetPhysicalDeviceQueueFamilyProperties(m_Handle, &queueFamilyCount, m_QueueFamilyProperties.data());
 
@@ -313,8 +313,9 @@ namespace Lumos
             vmaDestroyAllocator(m_Allocator);
 #endif
 #if defined(LUMOS_PROFILE) && defined(TRACY_ENABLE)
-            for(int i = 0; i < 3; i++)
+            for(int i = 0; i < 4; i++)
                 TracyVkDestroy(m_TracyContext[i]);
+            TracyVkDestroy(m_PresentTracyContext);
 #endif
 
             vkDestroyDevice(m_Device, VK_NULL_HANDLE);
@@ -453,6 +454,7 @@ namespace Lumos
 
         void VKDevice::CreateTracyContext()
         {
+#if defined(LUMOS_PROFILE) && defined(TRACY_ENABLE)
             VkCommandBufferAllocateInfo allocInfo = {};
             allocInfo.sType                       = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
             allocInfo.level                       = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
@@ -462,23 +464,42 @@ namespace Lumos
             VkCommandBuffer tracyBuffer;
             vkAllocateCommandBuffers(m_Device, &allocInfo, &tracyBuffer);
 
-#if defined(LUMOS_PROFILE) && defined(TRACY_ENABLE)
-            m_TracyContext.resize(3);
-            for(int i = 0; i < 3; i++)
+            m_TracyContext.resize(4);
+            for(int i = 0; i < 4; i++)
                 m_TracyContext[i] = TracyVkContext(m_PhysicalDevice->GetHandle(), m_Device, m_GraphicsQueue, tracyBuffer);
 
-                // m_TracyContext = TracyVkContextCalibrated(m_PhysicalDevice->GetHandle(), m_Device, m_GraphicsQueue, tracyBuffer, vkGetPhysicalDeviceCalibrateableTimeDomainsEXT, vkGetCalibratedTimestampsEXT);
-#endif
+            m_PresentTracyContext = TracyVkContext(m_PhysicalDevice->GetHandle(), m_Device, m_PresentQueue, tracyBuffer);
+
+            // m_TracyContext = TracyVkContextCalibrated(m_PhysicalDevice->GetHandle(), m_Device, m_GraphicsQueue, tracyBuffer, vkGetPhysicalDeviceCalibrateableTimeDomainsEXT, vkGetCalibratedTimestampsEXT);
 
             vkQueueWaitIdle(m_GraphicsQueue);
             vkFreeCommandBuffers(m_Device, m_CommandPool->GetHandle(), 1, &tracyBuffer);
+#endif
         }
 
 #if defined(LUMOS_PROFILE) && defined(TRACY_ENABLE)
-        tracy::VkCtx* VKDevice::GetTracyContext()
+        tracy::VkCtx* VKDevice::GetTracyContext(bool present)
         {
-            return m_TracyContext[VKRenderer::GetMainSwapChain()->GetCurrentBufferIndex()];
+            if(present)
+                return m_PresentTracyContext;
+
+            return m_TracyContext[VKRenderer::GetMainSwapChain()->GetCurrentBufferIndex() + 1];
         }
 #endif
+
+        void VKGPUMarker::Begin(const char* name)
+        {
+            VkCommandBuffer commandBuffer = static_cast<Lumos::Graphics::VKCommandBuffer*>(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer())->GetHandle();
+            VkDebugUtilsLabelEXT debugLabel {};
+            debugLabel.sType      = VK_STRUCTURE_TYPE_DEBUG_UTILS_LABEL_EXT;
+            debugLabel.pLabelName = name;
+            fpCmdBeginDebugUtilsLabelEXT(commandBuffer, &debugLabel);
+        }
+
+        void VKGPUMarker::End()
+        {
+            VkCommandBuffer commandBuffer = static_cast<Lumos::Graphics::VKCommandBuffer*>(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer())->GetHandle();
+            fpCmdEndDebugUtilsLabelEXT(commandBuffer);
+        }
     }
 }

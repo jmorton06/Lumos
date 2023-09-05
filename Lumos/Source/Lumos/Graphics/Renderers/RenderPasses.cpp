@@ -14,11 +14,13 @@
 #include "Graphics/Font.h"
 #include "Graphics/MSDFData.h"
 #include "Core/JobSystem.h"
+#include "Maths/BoundingSphere.h"
 
 #include "Events/ApplicationEvent.h"
 
 #include "Embedded/BRDFTexture.inl"
 #include "Embedded/CheckerBoardTextureArray.inl"
+#include "Utilities/AssetManager.h"
 
 #include "Scene/Component/Components.h"
 #include "Maths/Random.h"
@@ -365,6 +367,7 @@ namespace Lumos::Graphics
             TextVertexBufferBase.push_back(new TextVertexData[m_TextRendererData.m_Limits.MaxQuads * 4]);
             m_LineBufferBase.push_back(new LineVertexData[m_DebugDrawData.m_Renderer2DData.m_Limits.MaxQuads * 4]);
             m_PointBufferBase.push_back(new PointVertexData[m_DebugDrawData.m_Renderer2DData.m_Limits.MaxQuads * 4]);
+            DebugTextVertexBufferBase.push_back(new TextVertexData[m_DebugTextRendererData.m_Limits.MaxQuads * 4]);
         }
 
         delete[] indices;
@@ -514,6 +517,71 @@ namespace Lumos::Graphics
         delete[] indices;
 
         m_DebugDrawData.m_Renderer2DData.m_CurrentDescriptorSets.resize(2);
+
+        // Setup debug text pass
+        m_DebugTextRendererData.m_IndexCount = 0;
+        // m_TextBuffer                              = nullptr;
+        m_DebugTextRendererData.m_RenderToDepthTexture = true;
+        m_DebugTextRendererData.m_TriangleIndicies     = false;
+        m_DebugTextRendererData.m_Limits.SetMaxQuads(10000);
+        m_DebugTextRendererData.m_Limits.MaxTextures = 16; // Renderer::GetCapabilities().MaxTextureUnits;
+
+        DebugTextVertexBufferPtr = DebugTextVertexBufferBase[0];
+
+        m_DebugTextRendererData.m_Shader = Application::Get().GetShaderLibrary()->GetResource("Text");
+
+        m_DebugTextRendererData.m_TransformationStack.emplace_back(glm::mat4(1.0f));
+        m_DebugTextRendererData.m_TransformationBack = &m_DebugTextRendererData.m_TransformationStack.back();
+
+        descriptorDesc.layoutIndex = 0;
+        descriptorDesc.shader      = m_Renderer2DData.m_Shader.get();
+        m_DebugTextRendererData.m_DescriptorSet.resize(m_DebugTextRendererData.m_Limits.MaxBatchDrawCalls);
+        m_DebugTextRendererData.m_PreviousFrameTextureCount.resize(m_DebugTextRendererData.m_Limits.MaxBatchDrawCalls);
+
+        for(uint32_t i = 0; i < m_DebugTextRendererData.m_Limits.MaxBatchDrawCalls; i++)
+        {
+            m_DebugTextRendererData.m_PreviousFrameTextureCount[i] = 0;
+            m_DebugTextRendererData.m_DescriptorSet[i].resize(2);
+            // if (i == 0)
+            {
+                descriptorDesc.layoutIndex                    = 0;
+                m_DebugTextRendererData.m_DescriptorSet[i][0] = SharedPtr<Graphics::DescriptorSet>(Graphics::DescriptorSet::Create(descriptorDesc));
+            }
+            descriptorDesc.layoutIndex                    = 1;
+            m_DebugTextRendererData.m_DescriptorSet[i][1] = nullptr; // SharedPtr<Graphics::DescriptorSet>(Graphics::DescriptorSet::Create(descriptorDesc));
+        }
+
+        m_DebugTextRendererData.m_VertexBuffers.resize(Renderer::GetMainSwapChain()->GetSwapChainBufferCount());
+        indices = new uint32_t[m_DebugTextRendererData.m_Limits.IndiciesSize];
+
+        if(m_DebugTextRendererData.m_TriangleIndicies)
+        {
+            for(uint32_t i = 0; i < m_DebugTextRendererData.m_Limits.IndiciesSize; i++)
+            {
+                indices[i] = i;
+            }
+        }
+        else
+        {
+            uint32_t offset = 0;
+            for(uint32_t i = 0; i < m_DebugTextRendererData.m_Limits.IndiciesSize; i += 6)
+            {
+                indices[i]     = offset + 0;
+                indices[i + 1] = offset + 1;
+                indices[i + 2] = offset + 2;
+
+                indices[i + 3] = offset + 2;
+                indices[i + 4] = offset + 3;
+                indices[i + 5] = offset + 0;
+
+                offset += 4;
+            }
+        }
+        m_DebugTextRendererData.m_IndexBuffer = IndexBuffer::Create(indices, m_DebugTextRendererData.m_Limits.IndiciesSize);
+
+        delete[] indices;
+
+        m_DebugTextRendererData.m_CurrentDescriptorSets.resize(2);
     }
 
     RenderPasses::~RenderPasses()
@@ -536,11 +604,14 @@ namespace Lumos::Graphics
 
         delete m_Renderer2DData.m_IndexBuffer;
         delete m_TextRendererData.m_IndexBuffer;
+        delete m_DebugTextRendererData.m_IndexBuffer;
         delete m_DebugDrawData.m_Renderer2DData.m_IndexBuffer;
         delete m_DebugDrawData.m_LineIndexBuffer;
         delete m_DebugDrawData.m_PointIndexBuffer;
 
         for(auto data : TextVertexBufferBase)
+            delete[] data;
+        for(auto data : DebugTextVertexBufferBase)
             delete[] data;
 
         for(auto data : m_LineBufferBase)
@@ -560,6 +631,11 @@ namespace Lumos::Graphics
             for(uint32_t i = 0; i < m_TextRendererData.m_VertexBuffers[j].size(); i++)
             {
                 delete m_TextRendererData.m_VertexBuffers[j][i];
+            }
+
+            for(uint32_t i = 0; i < m_DebugTextRendererData.m_VertexBuffers[j].size(); i++)
+            {
+                delete m_DebugTextRendererData.m_VertexBuffers[j][i];
             }
 
             for(size_t i = 0; i < m_DebugDrawData.m_Renderer2DData.m_VertexBuffers[j].size(); i++)
@@ -605,7 +681,9 @@ namespace Lumos::Graphics
 
     void RenderPasses::EnableDebugRenderer(bool enable)
     {
-        if(enable)
+        m_DebugRenderEnabled = enable;
+
+        if(m_DebugRenderEnabled)
             DebugRenderer::Init();
         else
             DebugRenderer::Release();
@@ -622,8 +700,9 @@ namespace Lumos::Graphics
         m_Stats.NumShadowObjects   = 0;
         m_Stats.UpdatesPerSecond   = 0;
 
-        m_Renderer2DData.m_BatchDrawCallIndex   = 0;
-        m_TextRendererData.m_BatchDrawCallIndex = 0;
+        m_Renderer2DData.m_BatchDrawCallIndex        = 0;
+        m_TextRendererData.m_BatchDrawCallIndex      = 0;
+        m_DebugTextRendererData.m_BatchDrawCallIndex = 0;
 
         if(m_OverrideCamera)
         {
@@ -649,6 +728,12 @@ namespace Lumos::Graphics
         auto view     = glm::inverse(m_CameraTransform->GetWorldMatrix());
         auto proj     = m_Camera->GetProjectionMatrix();
         auto projView = proj * view;
+
+        if(m_DebugRenderEnabled)
+        {
+            DebugRenderer::GetInstance()->SetDimensions(m_MainTexture->GetWidth(), m_MainTexture->GetHeight());
+            DebugRenderer::GetInstance()->SetProjView(projView);
+        }
 
         Scene::SceneRenderSettings& renderSettings = scene->GetSettings().RenderSettings;
 
@@ -723,6 +808,9 @@ namespace Lumos::Graphics
                 {
                     if(!Entity(lightEntity, scene).Active())
                         continue;
+
+                    if(numLights >= 64)
+                        break;
 
                     const auto& [light, trans] = group.get<Graphics::Light, Maths::Transform>(lightEntity);
                     light.Position             = glm::vec4(trans.GetWorldPosition(), 1.0f);
@@ -890,6 +978,8 @@ namespace Lumos::Graphics
                             pipelineDesc.depthTarget = m_ForwardData.m_DepthTexture;
                         }
 
+                        pipelineDesc.DebugName = fmt::format("Forward PBR {0} {1}", pipelineDesc.transparencyEnabled ? "Transparent" : "", pipelineDesc.depthTarget ? "DepthTested" : "");
+
                         command.pipeline = Graphics::Pipeline::Get(pipelineDesc);
 
                         m_ForwardData.m_CommandQueue.push_back(command);
@@ -978,7 +1068,7 @@ namespace Lumos::Graphics
         auto& sceneRenderSettings = Application::Get().GetCurrentScene()->GetSettings().RenderSettings;
         Renderer::GetRenderer()->ClearRenderTarget(m_MainTexture, Renderer::GetMainSwapChain()->GetCurrentCommandBuffer());
 
-        // sceneRenderSettings.SSAOEnabled = false;
+        sceneRenderSettings.SSAOEnabled = false;
         if(sceneRenderSettings.SSAOEnabled)
             Renderer::GetRenderer()->ClearRenderTarget(m_NormalTexture, Renderer::GetMainSwapChain()->GetCurrentCommandBuffer());
 
@@ -1197,7 +1287,7 @@ namespace Lumos::Graphics
         int roundedValue = static_cast<int>(std::ceil(value / 5.0));
 
         // Multiply the rounded value by 5 to get the nearest multiple of 5
-        float result = roundedValue * 5.0;
+        float result = roundedValue * 5.0f;
 
         return result;
     }
@@ -1343,6 +1433,7 @@ namespace Lumos::Graphics
         pipelineDesc.cullMode            = Graphics::CullMode::BACK;
         pipelineDesc.transparencyEnabled = false;
         pipelineDesc.colourTargets[0]    = m_ForwardData.m_BRDFLUT.get();
+        pipelineDesc.DebugName           = "BRDF Generation";
 
         auto commandBuffer = Renderer::GetMainSwapChain()->GetCurrentCommandBuffer();
         auto pipeline      = Graphics::Pipeline::Get(pipelineDesc);
@@ -1379,6 +1470,7 @@ namespace Lumos::Graphics
         pipelineDesc.depthBiasEnabled        = false;
         pipelineDesc.depthBiasConstantFactor = 0.0f;
         pipelineDesc.depthBiasSlopeFactor    = 0.0f;
+        pipelineDesc.DebugName               = "Shadow";
 
         auto pipeline      = Graphics::Pipeline::Get(pipelineDesc);
         auto commandBuffer = Renderer::GetMainSwapChain()->GetCurrentCommandBuffer();
@@ -1432,6 +1524,7 @@ namespace Lumos::Graphics
         pipelineDesc.transparencyEnabled = false;
         pipelineDesc.depthTarget         = m_ForwardData.m_DepthTexture;
         pipelineDesc.colourTargets[0]    = m_NormalTexture;
+        pipelineDesc.DebugName           = "Depth Prepass";
 
         auto pipeline = Graphics::Pipeline::Get(pipelineDesc);
         commandBuffer->BindPipeline(pipeline);
@@ -1475,6 +1568,7 @@ namespace Lumos::Graphics
         pipelineDesc.shader           = m_SSAOShader;
         pipelineDesc.colourTargets[0] = m_SSAOTexture;
         pipelineDesc.clearTargets     = true;
+        pipelineDesc.DebugName        = "SSAO";
 
         auto projection = m_Camera->GetProjectionMatrix();
         auto invProj    = glm::inverse(m_Camera->GetProjectionMatrix());
@@ -1484,7 +1578,6 @@ namespace Lumos::Graphics
         float farC  = m_Camera->GetFar();
 
         static glm::vec4 samples[64];
-        float radius;
         static bool init = false;
 
         if(!init)
@@ -1542,6 +1635,7 @@ namespace Lumos::Graphics
         pipelineDesc.shader           = m_SSAOBlurShader;
         pipelineDesc.colourTargets[0] = m_SSAOTexture1;
         pipelineDesc.clearTargets     = true;
+        pipelineDesc.DebugName        = "SSAO Blur";
 
         glm::vec2 ssaoTexelOffset = glm::vec2(0.0f, 2.0f / m_SSAOTexture->GetHeight());
 
@@ -1657,6 +1751,7 @@ namespace Lumos::Graphics
         }
 
         pipelineDesc.colourTargets[0] = m_MainTexture;
+        pipelineDesc.DebugName        = "Skybox";
 
         auto commandBuffer = Renderer::GetMainSwapChain()->GetCurrentCommandBuffer();
         auto pipeline      = Graphics::Pipeline::Get(pipelineDesc);
@@ -1701,9 +1796,9 @@ namespace Lumos::Graphics
         pipelineDesc.cullMode            = Graphics::CullMode::BACK;
         pipelineDesc.transparencyEnabled = false;
         pipelineDesc.colourTargets[0]    = m_PostProcessTexture1;
-
-        auto commandBuffer = Renderer::GetMainSwapChain()->GetCurrentCommandBuffer();
-        auto pipeline      = Graphics::Pipeline::Get(pipelineDesc);
+        pipelineDesc.DebugName           = "DepthofField";
+        auto commandBuffer               = Renderer::GetMainSwapChain()->GetCurrentCommandBuffer();
+        auto pipeline                    = Graphics::Pipeline::Get(pipelineDesc);
         pipeline->Bind(commandBuffer);
 
         auto set = m_DepthOfFieldPassDescriptorSet.get();
@@ -1735,9 +1830,9 @@ namespace Lumos::Graphics
         pipelineDesc.cullMode            = Graphics::CullMode::BACK;
         pipelineDesc.transparencyEnabled = false;
         pipelineDesc.colourTargets[0]    = m_PostProcessTexture1;
-
-        auto commandBuffer = Renderer::GetMainSwapChain()->GetCurrentCommandBuffer();
-        auto pipeline      = Graphics::Pipeline::Get(pipelineDesc);
+        pipelineDesc.DebugName           = "Sharpen";
+        auto commandBuffer               = Renderer::GetMainSwapChain()->GetCurrentCommandBuffer();
+        auto pipeline                    = Graphics::Pipeline::Get(pipelineDesc);
         pipeline->Bind(commandBuffer);
 
         auto set = m_SharpenPassDescriptorSet.get();
@@ -1776,9 +1871,9 @@ namespace Lumos::Graphics
         pipelineDesc.cullMode            = Graphics::CullMode::BACK;
         pipelineDesc.transparencyEnabled = false;
         pipelineDesc.colourTargets[0]    = m_PostProcessTexture1;
-
-        auto commandBuffer = Renderer::GetMainSwapChain()->GetCurrentCommandBuffer();
-        auto pipeline      = Graphics::Pipeline::Get(pipelineDesc);
+        pipelineDesc.DebugName           = "ToneMapping";
+        auto commandBuffer               = Renderer::GetMainSwapChain()->GetCurrentCommandBuffer();
+        auto pipeline                    = Graphics::Pipeline::Get(pipelineDesc);
         pipeline->Bind(commandBuffer);
 
         auto set = m_ToneMappingPassDescriptorSet.get();
@@ -1835,7 +1930,7 @@ namespace Lumos::Graphics
         pipelineDesc.polygonMode         = Graphics::PolygonMode::FILL;
         pipelineDesc.cullMode            = Graphics::CullMode::BACK;
         pipelineDesc.transparencyEnabled = false;
-
+        pipelineDesc.DebugName           = "Final Pass";
         if(m_ForwardData.m_RenderTexture)
             pipelineDesc.colourTargets[0] = m_ForwardData.m_RenderTexture;
         else
@@ -1916,7 +2011,7 @@ namespace Lumos::Graphics
         pipelineDesc.cullMode            = Graphics::CullMode::BACK;
         pipelineDesc.transparencyEnabled = false;
         pipelineDesc.mipIndex            = 0;
-
+        pipelineDesc.DebugName           = "Bloom-Prefilter";
         if(!m_SupportCompute)
             pipelineDesc.colourTargets[0] = m_BloomTexture;
 
@@ -1981,7 +2076,8 @@ namespace Lumos::Graphics
         for(uint32_t i = 1; i < mips; i++)
         {
             {
-                pipelineDesc.mipIndex = i;
+                pipelineDesc.mipIndex  = i;
+                pipelineDesc.DebugName = fmt::format("Bloom-Downsample{0}", i);
                 if(!m_SupportCompute)
                     pipelineDesc.colourTargets[0] = m_BloomTexture1;
                 bloomComputePushConstants.Params2.z = (float)m_BloomTexture1->GetWidth(i);
@@ -2089,7 +2185,8 @@ namespace Lumos::Graphics
             bloomComputePushConstants.Params2.z = (float)m_BloomTexture2->GetWidth(mips - 2);
             bloomComputePushConstants.Params2.w = (float)m_BloomTexture2->GetHeight(mips - 2);
 
-            pipelineDesc.mipIndex = mips - 2;
+            pipelineDesc.mipIndex  = mips - 2;
+            pipelineDesc.DebugName = fmt::format("Bloom-Upsample{0}", mips - 2);
 
             if(!m_SupportCompute)
                 pipelineDesc.colourTargets[0] = m_BloomTexture2;
@@ -2148,7 +2245,8 @@ namespace Lumos::Graphics
             bloomComputePushConstants.Params2.z = (float)m_BloomTexture2->GetWidth(mip);
             bloomComputePushConstants.Params2.w = (float)m_BloomTexture2->GetHeight(mip);
 
-            pipelineDesc.mipIndex = mip;
+            pipelineDesc.mipIndex  = mip;
+            pipelineDesc.DebugName = fmt::format("Bloom-Upsample{0}", mip);
 
             if(evenMip)
             {
@@ -2230,6 +2328,7 @@ namespace Lumos::Graphics
         pipelineDesc.shader              = m_FXAAShader;
         pipelineDesc.transparencyEnabled = false;
         pipelineDesc.clearTargets        = false;
+        pipelineDesc.DebugName           = "FXAA";
 
         if(!m_SupportCompute)
             pipelineDesc.colourTargets[0] = m_PostProcessTexture1;
@@ -2276,6 +2375,7 @@ namespace Lumos::Graphics
         pipelineDesc.transparencyEnabled = false;
         pipelineDesc.clearTargets        = true;
         pipelineDesc.colourTargets[0]    = m_PostProcessTexture1;
+        pipelineDesc.DebugName           = "Debanding";
 
         auto commandBuffer = Renderer::GetMainSwapChain()->GetCurrentCommandBuffer();
         auto pipeline      = Graphics::Pipeline::Get(pipelineDesc);
@@ -2307,6 +2407,7 @@ namespace Lumos::Graphics
         pipelineDesc.transparencyEnabled = false;
         pipelineDesc.clearTargets        = true;
         pipelineDesc.colourTargets[0]    = m_PostProcessTexture1;
+        pipelineDesc.DebugName           = "FilmicGrain";
 
         auto commandBuffer = Renderer::GetMainSwapChain()->GetCurrentCommandBuffer();
         auto pipeline      = Graphics::Pipeline::Get(pipelineDesc);
@@ -2349,6 +2450,7 @@ namespace Lumos::Graphics
         pipelineDesc.transparencyEnabled = false;
         pipelineDesc.clearTargets        = true;
         pipelineDesc.colourTargets[0]    = m_PostProcessTexture1;
+        pipelineDesc.DebugName           = "Outline";
 
         auto commandBuffer = Renderer::GetMainSwapChain()->GetCurrentCommandBuffer();
         auto pipeline      = Graphics::Pipeline::Get(pipelineDesc);
@@ -2386,6 +2488,7 @@ namespace Lumos::Graphics
         pipelineDesc.transparencyEnabled = false;
         pipelineDesc.clearTargets        = true;
         pipelineDesc.colourTargets[0]    = m_PostProcessTexture1;
+        pipelineDesc.DebugName           = "ChromaticAberation";
 
         auto commandBuffer = Renderer::GetMainSwapChain()->GetCurrentCommandBuffer();
         auto pipeline      = Graphics::Pipeline::Get(pipelineDesc);
@@ -2449,6 +2552,7 @@ namespace Lumos::Graphics
         pipelineDesc.clearTargets        = false;
         pipelineDesc.depthTarget         = reinterpret_cast<Texture*>(m_ForwardData.m_DepthTexture);
         pipelineDesc.colourTargets[0]    = m_MainTexture;
+        pipelineDesc.DebugName           = "2D";
 
         m_Renderer2DData.m_Pipeline = Graphics::Pipeline::Get(pipelineDesc);
 
@@ -2614,12 +2718,12 @@ namespace Lumos::Graphics
         // m_Renderer2DData.m_Buffer = m_Renderer2DData.m_VertexBuffers[currentFrame][m_Renderer2DData.m_BatchDrawCallIndex]->GetPointer<VertexData>();
     }
 
-    void RenderPasses::TextFlush()
+    void RenderPasses::TextFlush(Renderer2DData& textRenderData, std::vector<TextVertexData*>& textVertexBufferBase, TextVertexData*& textVertexBufferPtr)
     {
         LUMOS_PROFILE_FUNCTION();
         uint32_t currentFrame = Renderer::GetMainSwapChain()->GetCurrentBufferIndex();
 
-        if(m_TextRendererData.m_DescriptorSet[m_TextRendererData.m_BatchDrawCallIndex][1] == nullptr)
+        if(textRenderData.m_DescriptorSet[textRenderData.m_BatchDrawCallIndex][1] == nullptr)
         {
             /*
              || m_Renderer2DData.m_TextureCount != m_Renderer2DData.m_PreviousFrameTextureCount[m_Renderer2DData.m_BatchDrawCallIndex])
@@ -2628,63 +2732,63 @@ namespace Lumos::Graphics
              May not be needed anymore
             */
             Graphics::DescriptorDesc descriptorDesc {};
-            descriptorDesc.layoutIndex                                                     = 1;
-            descriptorDesc.shader                                                          = m_TextRendererData.m_Shader.get();
-            m_TextRendererData.m_DescriptorSet[m_TextRendererData.m_BatchDrawCallIndex][1] = SharedPtr<Graphics::DescriptorSet>(Graphics::DescriptorSet::Create(descriptorDesc));
+            descriptorDesc.layoutIndex                                             = 1;
+            descriptorDesc.shader                                                  = textRenderData.m_Shader.get();
+            textRenderData.m_DescriptorSet[textRenderData.m_BatchDrawCallIndex][1] = SharedPtr<Graphics::DescriptorSet>(Graphics::DescriptorSet::Create(descriptorDesc));
         }
 
-        if(m_TextRendererData.m_TextureCount > 1)
-            m_TextRendererData.m_DescriptorSet[m_TextRendererData.m_BatchDrawCallIndex][1]->SetTexture("textures", m_TextRendererData.m_Textures, m_TextRendererData.m_TextureCount);
-        else if(m_TextRendererData.m_TextureCount == 0)
-            m_TextRendererData.m_DescriptorSet[m_TextRendererData.m_BatchDrawCallIndex][1]->SetTexture("textures", Material::GetDefaultTexture());
+        if(textRenderData.m_TextureCount > 1)
+            textRenderData.m_DescriptorSet[textRenderData.m_BatchDrawCallIndex][1]->SetTexture("textures", textRenderData.m_Textures, textRenderData.m_TextureCount);
+        else if(textRenderData.m_TextureCount == 0)
+            textRenderData.m_DescriptorSet[textRenderData.m_BatchDrawCallIndex][1]->SetTexture("textures", Material::GetDefaultTexture());
         else
-            m_TextRendererData.m_DescriptorSet[m_TextRendererData.m_BatchDrawCallIndex][1]->SetTexture("textures", m_TextRendererData.m_Textures[0]);
+            textRenderData.m_DescriptorSet[textRenderData.m_BatchDrawCallIndex][1]->SetTexture("textures", textRenderData.m_Textures[0]);
 
-        m_TextRendererData.m_DescriptorSet[m_TextRendererData.m_BatchDrawCallIndex][1]->Update();
+        textRenderData.m_DescriptorSet[textRenderData.m_BatchDrawCallIndex][1]->Update();
 
-        m_TextRendererData.m_PreviousFrameTextureCount[m_TextRendererData.m_BatchDrawCallIndex] = m_TextRendererData.m_TextureCount;
+        textRenderData.m_PreviousFrameTextureCount[textRenderData.m_BatchDrawCallIndex] = textRenderData.m_TextureCount;
 
         Graphics::CommandBuffer* commandBuffer = Renderer::GetMainSwapChain()->GetCurrentCommandBuffer();
 
-        m_TextRendererData.m_Pipeline->Bind(commandBuffer);
+        textRenderData.m_Pipeline->Bind(commandBuffer);
 
-        m_TextRendererData.m_CurrentDescriptorSets[0] = m_TextRendererData.m_DescriptorSet[0][0].get();
-        m_TextRendererData.m_CurrentDescriptorSets[1] = m_TextRendererData.m_DescriptorSet[m_TextRendererData.m_BatchDrawCallIndex][1].get();
+        textRenderData.m_CurrentDescriptorSets[0] = textRenderData.m_DescriptorSet[textRenderData.m_BatchDrawCallIndex][0].get();
+        textRenderData.m_CurrentDescriptorSets[1] = textRenderData.m_DescriptorSet[textRenderData.m_BatchDrawCallIndex][1].get();
 
-        m_TextRendererData.m_IndexBuffer->SetCount(m_TextRendererData.m_IndexCount);
-        m_TextRendererData.m_IndexBuffer->Bind(commandBuffer);
+        textRenderData.m_IndexBuffer->SetCount(textRenderData.m_IndexCount);
+        textRenderData.m_IndexBuffer->Bind(commandBuffer);
 
-        if((int)m_TextRendererData.m_VertexBuffers[currentFrame].size() - 1 < (int)m_TextRendererData.m_BatchDrawCallIndex)
+        if((int)textRenderData.m_VertexBuffers[currentFrame].size() - 1 < (int)textRenderData.m_BatchDrawCallIndex)
         {
-            auto& vertexBuffer = m_TextRendererData.m_VertexBuffers[currentFrame].emplace_back(Graphics::VertexBuffer::Create(BufferUsage::DYNAMIC));
+            auto& vertexBuffer = textRenderData.m_VertexBuffers[currentFrame].emplace_back(Graphics::VertexBuffer::Create(BufferUsage::DYNAMIC));
             vertexBuffer->Resize(RENDERER_LINE_BUFFER_SIZE);
         }
 
-        uint32_t dataSize = (uint32_t)((uint8_t*)TextVertexBufferPtr - (uint8_t*)TextVertexBufferBase[currentFrame]);
-        m_TextRendererData.m_VertexBuffers[currentFrame][m_TextRendererData.m_BatchDrawCallIndex]->SetData(dataSize, (void*)TextVertexBufferBase[currentFrame]);
+        uint32_t dataSize = (uint32_t)((uint8_t*)textVertexBufferPtr - (uint8_t*)textVertexBufferBase[currentFrame]);
+        textRenderData.m_VertexBuffers[currentFrame][textRenderData.m_BatchDrawCallIndex]->SetData(dataSize, (void*)textVertexBufferBase[currentFrame]);
 
         // m_TextRendererData.m_VertexBuffers[currentFrame][m_TextRendererData.m_BatchDrawCallIndex]->ReleasePointer();
 
-        Renderer::BindDescriptorSets(m_TextRendererData.m_Pipeline.get(), commandBuffer, 0, m_TextRendererData.m_CurrentDescriptorSets.data(), 2);
-        Renderer::DrawIndexed(commandBuffer, DrawType::TRIANGLE, m_TextRendererData.m_IndexCount);
+        Renderer::BindDescriptorSets(textRenderData.m_Pipeline.get(), commandBuffer, 0, textRenderData.m_CurrentDescriptorSets.data(), 2);
+        Renderer::DrawIndexed(commandBuffer, DrawType::TRIANGLE, textRenderData.m_IndexCount);
 
-        m_TextRendererData.m_VertexBuffers[currentFrame][m_TextRendererData.m_BatchDrawCallIndex]->Unbind();
-        m_TextRendererData.m_IndexBuffer->Unbind();
+        textRenderData.m_VertexBuffers[currentFrame][textRenderData.m_BatchDrawCallIndex]->Unbind();
+        textRenderData.m_IndexBuffer->Unbind();
 
-        m_TextRendererData.m_Pipeline->End(commandBuffer);
+        textRenderData.m_Pipeline->End(commandBuffer);
 
-        TextVertexBufferPtr             = TextVertexBufferBase[currentFrame];
-        m_TextRendererData.m_IndexCount = 0;
-        m_TextRendererData.m_BatchDrawCallIndex++;
+        textVertexBufferPtr         = textVertexBufferBase[currentFrame];
+        textRenderData.m_IndexCount = 0;
+        textRenderData.m_BatchDrawCallIndex++;
 
-        if((int)m_TextRendererData.m_VertexBuffers[currentFrame].size() - 1 < (int)m_TextRendererData.m_BatchDrawCallIndex)
+        if((int)textRenderData.m_VertexBuffers[currentFrame].size() - 1 < (int)textRenderData.m_BatchDrawCallIndex)
         {
-            auto& vertexBuffer = m_TextRendererData.m_VertexBuffers[currentFrame].emplace_back(Graphics::VertexBuffer::Create(BufferUsage::DYNAMIC));
+            auto& vertexBuffer = textRenderData.m_VertexBuffers[currentFrame].emplace_back(Graphics::VertexBuffer::Create(BufferUsage::DYNAMIC));
             vertexBuffer->Resize(RENDERER_LINE_BUFFER_SIZE);
         }
 
-        m_TextRendererData.m_TextureCount = 0;
-        m_TextRendererData.m_VertexBuffers[currentFrame][m_TextRendererData.m_BatchDrawCallIndex]->Bind(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer(), m_TextRendererData.m_Pipeline.get());
+        textRenderData.m_TextureCount = 0;
+        textRenderData.m_VertexBuffers[currentFrame][textRenderData.m_BatchDrawCallIndex]->Bind(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer(), textRenderData.m_Pipeline.get());
         // m_TextBuffer = m_TextRendererData.m_VertexBuffers[currentFrame][m_TextRendererData.m_BatchDrawCallIndex]->GetPointer<TextVertexData>();
     }
 
@@ -2708,6 +2812,7 @@ namespace Lumos::Graphics
         pipelineDesc.blendMode           = BlendMode::SrcAlphaOneMinusSrcAlpha;
         pipelineDesc.clearTargets        = false;
         pipelineDesc.colourTargets[0]    = m_MainTexture;
+        pipelineDesc.DebugName           = "Text";
 
         m_TextRendererData.m_Pipeline = Graphics::Pipeline::Get(pipelineDesc);
 
@@ -2736,7 +2841,7 @@ namespace Lumos::Graphics
             m_Stats.NumRenderedObjects++;
 
             if(m_TextRendererData.m_IndexCount >= m_TextRendererData.m_Limits.IndiciesSize)
-                TextFlush();
+                TextFlush(m_TextRendererData, TextVertexBufferBase, TextVertexBufferPtr);
 
             int textureIndex       = -1;
             auto& string           = textComp.TextString;
@@ -2865,7 +2970,7 @@ namespace Lumos::Graphics
             return;
         }
 
-        TextFlush();
+        TextFlush(m_TextRendererData, TextVertexBufferBase, TextVertexBufferPtr);
 
         // m_TextRendererData.m_VertexBuffers[currentFrame][m_TextRendererData.m_BatchDrawCallIndex]->ReleasePointer();
     }
@@ -2906,6 +3011,7 @@ namespace Lumos::Graphics
                 pipelineDesc.clearTargets        = false;
                 pipelineDesc.drawType            = DrawType::LINES;
                 pipelineDesc.colourTargets[0]    = m_MainTexture;
+                pipelineDesc.DebugName           = "Debug-Lines";
 
                 if(depthTest)
                     pipelineDesc.depthTarget = m_ForwardData.m_DepthTexture;
@@ -2983,6 +3089,7 @@ namespace Lumos::Graphics
                 pipelineDesc.drawType            = DrawType::LINES;
                 pipelineDesc.colourTargets[0]    = m_MainTexture;
                 pipelineDesc.lineWidth           = 2.0f;
+                pipelineDesc.DebugName           = "Debug-ThickLines";
 
                 if(depthTest)
                     pipelineDesc.depthTarget = m_ForwardData.m_DepthTexture;
@@ -3058,6 +3165,8 @@ namespace Lumos::Graphics
                 pipelineDesc.drawType            = DrawType::TRIANGLE;
                 pipelineDesc.blendMode           = BlendMode::SrcAlphaOneMinusSrcAlpha;
                 pipelineDesc.colourTargets[0]    = m_MainTexture;
+                pipelineDesc.DebugName           = "Debug-Points";
+
                 if(depthTest)
                     pipelineDesc.depthTarget = m_ForwardData.m_DepthTexture;
 
@@ -3146,6 +3255,7 @@ namespace Lumos::Graphics
                 pipelineDesc.depthBiasEnabled        = true;
                 pipelineDesc.depthBiasConstantFactor = -1.25f;
                 pipelineDesc.depthBiasSlopeFactor    = -1.75f;
+                pipelineDesc.DebugName               = "Debug-Triangles";
 
                 if(depthTest)
                     pipelineDesc.depthTarget = m_ForwardData.m_DepthTexture;
@@ -3219,6 +3329,516 @@ namespace Lumos::Graphics
 
         m_DebugDrawData.m_PointBatchDrawCallIndex = 0;
         m_DebugDrawData.m_LineBatchDrawCallIndex  = 0;
+
+        // Text Pass
+        auto& dtDebugText = DebugRenderer::GetInstance()->GetDebugText();
+        if(!dtDebugText.empty())
+        {
+            Graphics::PipelineDesc pipelineDesc;
+            pipelineDesc.shader                = m_DebugTextRendererData.m_Shader;
+            pipelineDesc.polygonMode           = Graphics::PolygonMode::FILL;
+            pipelineDesc.cullMode              = Graphics::CullMode::BACK;
+            pipelineDesc.transparencyEnabled   = true;
+            pipelineDesc.blendMode             = BlendMode::SrcAlphaOneMinusSrcAlpha;
+            pipelineDesc.clearTargets          = false;
+            pipelineDesc.colourTargets[0]      = m_MainTexture;
+            pipelineDesc.DebugName             = "Debug-TextDT";
+            pipelineDesc.depthTarget           = m_ForwardData.m_DepthTexture;
+            m_DebugTextRendererData.m_Pipeline = Graphics::Pipeline::Get(pipelineDesc);
+
+            uint32_t currentFrame = Renderer::GetMainSwapChain()->GetCurrentBufferIndex();
+
+            while((int)m_DebugTextRendererData.m_VertexBuffers[currentFrame].size() - 1 < (int)m_DebugTextRendererData.m_BatchDrawCallIndex)
+            {
+                auto& vertexBuffer = m_DebugTextRendererData.m_VertexBuffers[currentFrame].emplace_back(Graphics::VertexBuffer::Create(BufferUsage::DYNAMIC));
+                vertexBuffer->Resize(RENDERER_LINE_BUFFER_SIZE);
+            }
+
+            m_DebugTextRendererData.m_VertexBuffers[currentFrame][m_DebugTextRendererData.m_BatchDrawCallIndex]->Bind(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer(), m_DebugTextRendererData.m_Pipeline.get());
+            DebugTextVertexBufferPtr = DebugTextVertexBufferBase[currentFrame];
+            auto projView            = m_Camera->GetProjectionMatrix() * glm::inverse(m_CameraTransform->GetWorldMatrix());
+
+            m_DebugTextRendererData.m_DescriptorSet[m_DebugTextRendererData.m_BatchDrawCallIndex][0]->SetUniform("UBO", "projView", &projView);
+            m_DebugTextRendererData.m_DescriptorSet[m_DebugTextRendererData.m_BatchDrawCallIndex][0]->Update();
+
+            m_DebugTextRendererData.m_TextureCount = 0;
+            m_Stats.NumRenderedObjects++;
+
+            if(m_DebugTextRendererData.m_IndexCount >= m_DebugTextRendererData.m_Limits.IndiciesSize)
+                TextFlush(m_DebugTextRendererData, DebugTextVertexBufferBase, DebugTextVertexBufferPtr);
+
+            int textureIndex = -1;
+            // auto& string = textComp.TextString;
+            auto font              = Font::GetDefaultFont();
+            float lineHeightOffset = 0.0f;
+            float kerningOffset    = 0.0f;
+            float outlineWidth     = 0.0f;
+
+            SharedPtr<Texture2D> fontAtlas = font->GetFontAtlas();
+            if(!fontAtlas)
+                return; // TODO
+
+            for(uint32_t i = 0; i < m_DebugTextRendererData.m_TextureCount; i++)
+            {
+                if(m_DebugTextRendererData.m_Textures[i] == fontAtlas.get())
+                {
+                    textureIndex = int(i);
+                    break;
+                }
+            }
+
+            if(textureIndex == -1)
+            {
+                textureIndex                                                               = (int)m_DebugTextRendererData.m_TextureCount;
+                m_DebugTextRendererData.m_Textures[m_DebugTextRendererData.m_TextureCount] = fontAtlas.get();
+                m_DebugTextRendererData.m_TextureCount++;
+            }
+
+            auto& fontGeometry  = font->GetMSDFData()->FontGeometry;
+            const auto& metrics = fontGeometry.getMetrics();
+
+            for(auto& text : dtDebugText)
+            {
+                double x       = 0.0;
+                double fsScale = 1 / (metrics.ascenderY - metrics.descenderY);
+                double y       = 0.0;
+                for(int i = 0; i < text.text.size(); i++)
+                {
+                    char32_t character      = (char32_t)text.text[i];
+                    glm::vec4 pos           = text.Position;
+                    glm::vec4 colour        = text.colour;
+                    glm::vec4 outlineColour = text.colour;
+                    float size              = text.Size;
+
+                    if(character == '\r')
+                        continue;
+
+                    if(character == '\n')
+                    {
+                        x = 0;
+                        y -= fsScale * metrics.lineHeight + lineHeightOffset;
+                        continue;
+                    }
+
+                    if(character == '\t')
+                    {
+                        auto glyph     = fontGeometry.getGlyph('a');
+                        double advance = glyph->getAdvance();
+                        x += 4 * fsScale * advance + kerningOffset;
+                        continue;
+                    }
+
+                    auto glyph = fontGeometry.getGlyph(character);
+                    if(!glyph)
+                        glyph = fontGeometry.getGlyph('?');
+                    if(!glyph)
+                        continue;
+
+                    double l, b, r, t;
+                    glyph->getQuadAtlasBounds(l, b, r, t);
+
+                    double pl, pb, pr, pt;
+                    glyph->getQuadPlaneBounds(pl, pb, pr, pt);
+
+                    pl *= fsScale, pb *= fsScale, pr *= fsScale, pt *= fsScale;
+                    pl += x, pb += y, pr += x, pt += y;
+
+                    double texelWidth  = 1. / fontAtlas->GetWidth();
+                    double texelHeight = 1. / fontAtlas->GetHeight();
+                    l *= texelWidth, b *= texelHeight, r *= texelWidth, t *= texelHeight;
+
+                    glm::mat4 transform = glm::translate(glm::mat4(1.0f), glm::vec3(pos)) * glm::toMat4(m_CameraTransform->GetLocalOrientation()) * glm::scale(glm::mat4(1.0), glm::vec3(size / 10.0f));
+
+                    {
+                        LUMOS_PROFILE_SCOPE("Set text buffer data");
+                        DebugTextVertexBufferPtr->vertex        = transform * glm::vec4(pl, pb, 0.0f, 1.0f);
+                        DebugTextVertexBufferPtr->colour        = colour;
+                        DebugTextVertexBufferPtr->uv            = { l, b };
+                        DebugTextVertexBufferPtr->tid           = glm::vec2(textureIndex, outlineWidth);
+                        DebugTextVertexBufferPtr->outlineColour = outlineColour;
+                        DebugTextVertexBufferPtr++;
+
+                        DebugTextVertexBufferPtr->vertex        = transform * glm::vec4(pr, pb, 0.0f, 1.0f);
+                        DebugTextVertexBufferPtr->colour        = colour;
+                        DebugTextVertexBufferPtr->uv            = { r, b };
+                        DebugTextVertexBufferPtr->tid           = glm::vec2(textureIndex, outlineWidth);
+                        DebugTextVertexBufferPtr->outlineColour = outlineColour;
+                        DebugTextVertexBufferPtr++;
+
+                        DebugTextVertexBufferPtr->vertex        = transform * glm::vec4(pr, pt, 0.0f, 1.0f);
+                        DebugTextVertexBufferPtr->colour        = colour;
+                        DebugTextVertexBufferPtr->uv            = { r, t };
+                        DebugTextVertexBufferPtr->tid           = glm::vec2(textureIndex, outlineWidth);
+                        DebugTextVertexBufferPtr->outlineColour = outlineColour;
+                        DebugTextVertexBufferPtr++;
+
+                        DebugTextVertexBufferPtr->vertex        = transform * glm::vec4(pl, pt, 0.0f, 1.0f);
+                        DebugTextVertexBufferPtr->colour        = colour;
+                        DebugTextVertexBufferPtr->uv            = { l, t };
+                        DebugTextVertexBufferPtr->tid           = glm::vec2(textureIndex, outlineWidth);
+                        DebugTextVertexBufferPtr->outlineColour = outlineColour;
+                        DebugTextVertexBufferPtr++;
+                    }
+
+                    m_DebugTextRendererData.m_IndexCount += 6;
+
+                    double advance = glyph->getAdvance();
+
+                    fontGeometry.getAdvance(advance, character, text.text[i + 1]);
+                    x += fsScale * advance + kerningOffset;
+                }
+            }
+
+            if(m_DebugTextRendererData.m_IndexCount == 0)
+            {
+                // m_DebugTextRendererData.m_VertexBuffers[currentFrame][m_DebugTextRendererData.m_BatchDrawCallIndex]->ReleasePointer();
+                return;
+            }
+
+            TextFlush(m_DebugTextRendererData, DebugTextVertexBufferBase, DebugTextVertexBufferPtr);
+        }
+
+        auto& ndtDebugText = DebugRenderer::GetInstance()->GetDebugTextNDT();
+        if(!ndtDebugText.empty())
+        {
+            Graphics::PipelineDesc pipelineDesc;
+            pipelineDesc.shader                = m_DebugTextRendererData.m_Shader;
+            pipelineDesc.polygonMode           = Graphics::PolygonMode::FILL;
+            pipelineDesc.cullMode              = Graphics::CullMode::BACK;
+            pipelineDesc.transparencyEnabled   = true;
+            pipelineDesc.blendMode             = BlendMode::SrcAlphaOneMinusSrcAlpha;
+            pipelineDesc.clearTargets          = false;
+            pipelineDesc.colourTargets[0]      = m_MainTexture;
+            pipelineDesc.DebugName             = "Debug-TextNDT";
+            m_DebugTextRendererData.m_Pipeline = Graphics::Pipeline::Get(pipelineDesc);
+
+            uint32_t currentFrame = Renderer::GetMainSwapChain()->GetCurrentBufferIndex();
+
+            while((int)m_DebugTextRendererData.m_VertexBuffers[currentFrame].size() - 1 < (int)m_DebugTextRendererData.m_BatchDrawCallIndex)
+            {
+                auto& vertexBuffer = m_DebugTextRendererData.m_VertexBuffers[currentFrame].emplace_back(Graphics::VertexBuffer::Create(BufferUsage::DYNAMIC));
+                vertexBuffer->Resize(RENDERER_LINE_BUFFER_SIZE);
+            }
+
+            m_DebugTextRendererData.m_VertexBuffers[currentFrame][m_DebugTextRendererData.m_BatchDrawCallIndex]->Bind(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer(), m_DebugTextRendererData.m_Pipeline.get());
+            DebugTextVertexBufferPtr = DebugTextVertexBufferBase[currentFrame];
+            auto projView            = m_Camera->GetProjectionMatrix() * glm::inverse(m_CameraTransform->GetWorldMatrix());
+            DebugRenderer::GetInstance()->SetProjView(projView);
+            DebugRenderer::SortLists();
+
+            m_DebugTextRendererData.m_DescriptorSet[m_DebugTextRendererData.m_BatchDrawCallIndex][0]->SetUniform("UBO", "projView", &projView);
+            m_DebugTextRendererData.m_DescriptorSet[m_DebugTextRendererData.m_BatchDrawCallIndex][0]->Update();
+
+            m_DebugTextRendererData.m_TextureCount = 0;
+            m_Stats.NumRenderedObjects++;
+
+            if(m_DebugTextRendererData.m_IndexCount >= m_DebugTextRendererData.m_Limits.IndiciesSize)
+                TextFlush(m_DebugTextRendererData, DebugTextVertexBufferBase, DebugTextVertexBufferPtr);
+
+            int textureIndex = -1;
+            // auto& string = textComp.TextString;
+            auto font              = Font::GetDefaultFont();
+            float lineHeightOffset = 0.0f;
+            float kerningOffset    = 0.0f;
+            float outlineWidth     = 0.0f;
+
+            SharedPtr<Texture2D> fontAtlas = font->GetFontAtlas();
+            if(!fontAtlas)
+                return; // TODO
+
+            for(uint32_t i = 0; i < m_DebugTextRendererData.m_TextureCount; i++)
+            {
+                if(m_DebugTextRendererData.m_Textures[i] == fontAtlas.get())
+                {
+                    textureIndex = int(i);
+                    break;
+                }
+            }
+
+            if(textureIndex == -1)
+            {
+                textureIndex                                                               = (int)m_DebugTextRendererData.m_TextureCount;
+                m_DebugTextRendererData.m_Textures[m_DebugTextRendererData.m_TextureCount] = fontAtlas.get();
+                m_DebugTextRendererData.m_TextureCount++;
+            }
+
+            auto& fontGeometry  = font->GetMSDFData()->FontGeometry;
+            const auto& metrics = fontGeometry.getMetrics();
+
+            for(auto& text : ndtDebugText)
+            {
+                double x       = 0.0;
+                double fsScale = 1 / (metrics.ascenderY - metrics.descenderY);
+                double y       = 0.0;
+                for(int i = 0; i < text.text.size(); i++)
+                {
+                    char32_t character      = (char32_t)text.text[i];
+                    glm::vec4 pos           = text.Position;
+                    glm::vec4 colour        = text.colour;
+                    glm::vec4 outlineColour = text.colour;
+                    float size              = text.Size;
+                    if(character == '\r')
+                        continue;
+
+                    if(character == '\n')
+                    {
+                        x = 0;
+                        y -= fsScale * metrics.lineHeight + lineHeightOffset;
+                        continue;
+                    }
+
+                    if(character == '\t')
+                    {
+                        auto glyph     = fontGeometry.getGlyph('a');
+                        double advance = glyph->getAdvance();
+                        x += 4 * fsScale * advance + kerningOffset;
+                        continue;
+                    }
+
+                    auto glyph = fontGeometry.getGlyph(character);
+                    if(!glyph)
+                        glyph = fontGeometry.getGlyph('?');
+                    if(!glyph)
+                        continue;
+
+                    double l, b, r, t;
+                    glyph->getQuadAtlasBounds(l, b, r, t);
+
+                    double pl, pb, pr, pt;
+                    glyph->getQuadPlaneBounds(pl, pb, pr, pt);
+
+                    pl *= fsScale, pb *= fsScale, pr *= fsScale, pt *= fsScale;
+                    pl += x, pb += y, pr += x, pt += y;
+
+                    double texelWidth  = 1. / fontAtlas->GetWidth();
+                    double texelHeight = 1. / fontAtlas->GetHeight();
+                    l *= texelWidth, b *= texelHeight, r *= texelWidth, t *= texelHeight;
+
+                    glm::mat4 transform = glm::translate(glm::mat4(1.0f), glm::vec3(pos)) * glm::toMat4(m_CameraTransform->GetLocalOrientation()) * glm::scale(glm::mat4(1.0), glm::vec3(size / 10.0f));
+
+                    {
+                        LUMOS_PROFILE_SCOPE("Set text buffer data");
+                        DebugTextVertexBufferPtr->vertex        = transform * glm::vec4(pl, pb, 0.0f, 1.0f);
+                        DebugTextVertexBufferPtr->colour        = colour;
+                        DebugTextVertexBufferPtr->uv            = { l, b };
+                        DebugTextVertexBufferPtr->tid           = glm::vec2(textureIndex, outlineWidth);
+                        DebugTextVertexBufferPtr->outlineColour = outlineColour;
+                        DebugTextVertexBufferPtr++;
+
+                        DebugTextVertexBufferPtr->vertex        = transform * glm::vec4(pr, pb, 0.0f, 1.0f);
+                        DebugTextVertexBufferPtr->colour        = colour;
+                        DebugTextVertexBufferPtr->uv            = { r, b };
+                        DebugTextVertexBufferPtr->tid           = glm::vec2(textureIndex, outlineWidth);
+                        DebugTextVertexBufferPtr->outlineColour = outlineColour;
+                        DebugTextVertexBufferPtr++;
+
+                        DebugTextVertexBufferPtr->vertex        = transform * glm::vec4(pr, pt, 0.0f, 1.0f);
+                        DebugTextVertexBufferPtr->colour        = colour;
+                        DebugTextVertexBufferPtr->uv            = { r, t };
+                        DebugTextVertexBufferPtr->tid           = glm::vec2(textureIndex, outlineWidth);
+                        DebugTextVertexBufferPtr->outlineColour = outlineColour;
+                        DebugTextVertexBufferPtr++;
+
+                        DebugTextVertexBufferPtr->vertex        = transform * glm::vec4(pl, pt, 0.0f, 1.0f);
+                        DebugTextVertexBufferPtr->colour        = colour;
+                        DebugTextVertexBufferPtr->uv            = { l, t };
+                        DebugTextVertexBufferPtr->tid           = glm::vec2(textureIndex, outlineWidth);
+                        DebugTextVertexBufferPtr->outlineColour = outlineColour;
+                        DebugTextVertexBufferPtr++;
+                    }
+
+                    m_DebugTextRendererData.m_IndexCount += 6;
+
+                    double advance = glyph->getAdvance();
+
+                    fontGeometry.getAdvance(advance, character, text.text[i + 1]);
+                    x += fsScale * advance + kerningOffset;
+                }
+            }
+
+            if(m_DebugTextRendererData.m_IndexCount == 0)
+            {
+                // m_DebugTextRendererData.m_VertexBuffers[currentFrame][m_DebugTextRendererData.m_BatchDrawCallIndex]->ReleasePointer();
+                return;
+            }
+
+            TextFlush(m_DebugTextRendererData, DebugTextVertexBufferBase, DebugTextVertexBufferPtr);
+        }
+
+        glm::mat4 csProjection = glm::ortho(0.0f, (float)m_MainTexture->GetWidth(), 0.0f, (float)m_MainTexture->GetHeight(), -100.0f, 100.0f);
+        auto projView          = m_Camera->GetProjectionMatrix();
+        projView               = glm::mat4(1.0f);
+
+        float scale       = 1.0f;
+        float aspectRatio = (float)m_MainTexture->GetWidth() / (float)m_MainTexture->GetHeight();
+        projView          = glm::ortho(-aspectRatio * scale, aspectRatio * scale, -scale, scale, -10.0f, 10.0f);
+
+        DebugRenderer::GetInstance()->SetProjView(projView);
+        DebugRenderer::SortLists();
+
+        auto& csDebugText = DebugRenderer::GetInstance()->GetDebugTextCS();
+        if(!csDebugText.empty())
+        {
+            Graphics::PipelineDesc pipelineDesc;
+            pipelineDesc.shader                = m_DebugTextRendererData.m_Shader;
+            pipelineDesc.polygonMode           = Graphics::PolygonMode::FILL;
+            pipelineDesc.cullMode              = Graphics::CullMode::BACK;
+            pipelineDesc.transparencyEnabled   = true;
+            pipelineDesc.blendMode             = BlendMode::SrcAlphaOneMinusSrcAlpha;
+            pipelineDesc.clearTargets          = false;
+            pipelineDesc.colourTargets[0]      = m_MainTexture;
+            pipelineDesc.DebugName             = "Debug-TextCS";
+            m_DebugTextRendererData.m_Pipeline = Graphics::Pipeline::Get(pipelineDesc);
+
+            uint32_t currentFrame = Renderer::GetMainSwapChain()->GetCurrentBufferIndex();
+
+            while((int)m_DebugTextRendererData.m_VertexBuffers[currentFrame].size() - 1 < (int)m_DebugTextRendererData.m_BatchDrawCallIndex)
+            {
+                auto& vertexBuffer = m_DebugTextRendererData.m_VertexBuffers[currentFrame].emplace_back(Graphics::VertexBuffer::Create(BufferUsage::DYNAMIC));
+                vertexBuffer->Resize(RENDERER_LINE_BUFFER_SIZE);
+            }
+
+            m_DebugTextRendererData.m_VertexBuffers[currentFrame][m_DebugTextRendererData.m_BatchDrawCallIndex]->Bind(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer(), m_DebugTextRendererData.m_Pipeline.get());
+            DebugTextVertexBufferPtr = DebugTextVertexBufferBase[currentFrame];
+
+            m_DebugTextRendererData.m_DescriptorSet[m_DebugTextRendererData.m_BatchDrawCallIndex][0]->SetUniform("UBO", "projView", &projView);
+            m_DebugTextRendererData.m_DescriptorSet[m_DebugTextRendererData.m_BatchDrawCallIndex][0]->Update();
+
+            m_DebugTextRendererData.m_TextureCount = 0;
+            m_Stats.NumRenderedObjects++;
+
+            if(m_DebugTextRendererData.m_IndexCount >= m_DebugTextRendererData.m_Limits.IndiciesSize)
+                TextFlush(m_DebugTextRendererData, DebugTextVertexBufferBase, DebugTextVertexBufferPtr);
+
+            int textureIndex = -1;
+            // auto& string = textComp.TextString;
+            auto font              = Font::GetDefaultFont();
+            float lineHeightOffset = 0.0f;
+            float kerningOffset    = 0.0f;
+            float outlineWidth     = 0.0f;
+
+            SharedPtr<Texture2D> fontAtlas = font->GetFontAtlas();
+            if(!fontAtlas)
+                return; // TODO
+
+            for(uint32_t i = 0; i < m_DebugTextRendererData.m_TextureCount; i++)
+            {
+                if(m_DebugTextRendererData.m_Textures[i] == fontAtlas.get())
+                {
+                    textureIndex = int(i);
+                    break;
+                }
+            }
+
+            if(textureIndex == -1)
+            {
+                textureIndex                                                               = (int)m_DebugTextRendererData.m_TextureCount;
+                m_DebugTextRendererData.m_Textures[m_DebugTextRendererData.m_TextureCount] = fontAtlas.get();
+                m_DebugTextRendererData.m_TextureCount++;
+            }
+
+            auto& fontGeometry  = font->GetMSDFData()->FontGeometry;
+            const auto& metrics = fontGeometry.getMetrics();
+
+            for(auto& text : csDebugText)
+            {
+                double x       = 0.0;
+                double fsScale = 1 / (metrics.ascenderY - metrics.descenderY);
+                double y       = 0.0;
+                for(int i = 0; i < text.text.size(); i++)
+                {
+                    char32_t character      = (char32_t)text.text[i];
+                    glm::vec4 pos           = text.Position;
+                    glm::vec4 colour        = text.colour;
+                    glm::vec4 outlineColour = text.colour;
+
+                    if(character == '\r')
+                        continue;
+
+                    if(character == '\n')
+                    {
+                        x = 0;
+                        y -= fsScale * metrics.lineHeight + lineHeightOffset;
+                        continue;
+                    }
+
+                    if(character == '\t')
+                    {
+                        auto glyph     = fontGeometry.getGlyph('a');
+                        double advance = glyph->getAdvance();
+                        x += 4 * fsScale * advance + kerningOffset;
+                        continue;
+                    }
+
+                    auto glyph = fontGeometry.getGlyph(character);
+                    if(!glyph)
+                        glyph = fontGeometry.getGlyph('?');
+                    if(!glyph)
+                        continue;
+
+                    double l, b, r, t;
+                    glyph->getQuadAtlasBounds(l, b, r, t);
+
+                    double pl, pb, pr, pt;
+                    glyph->getQuadPlaneBounds(pl, pb, pr, pt);
+
+                    pl *= fsScale, pb *= fsScale, pr *= fsScale, pt *= fsScale;
+                    pl += x, pb += y, pr += x, pt += y;
+
+                    double texelWidth  = 1. / fontAtlas->GetWidth();
+                    double texelHeight = 1. / fontAtlas->GetHeight();
+                    l *= texelWidth, b *= texelHeight, r *= texelWidth, t *= texelHeight;
+
+                    glm::mat4 transform = glm::translate(glm::mat4(1.0f), glm::vec3(pos)) * glm::scale(glm::mat4(1.0), glm::vec3(0.05f, 0.05f, 0.05f));
+
+                    {
+                        LUMOS_PROFILE_SCOPE("Set text buffer data");
+                        DebugTextVertexBufferPtr->vertex        = transform * glm::vec4(pl, pb, 0.0f, 1.0f);
+                        DebugTextVertexBufferPtr->colour        = colour;
+                        DebugTextVertexBufferPtr->uv            = { l, b };
+                        DebugTextVertexBufferPtr->tid           = glm::vec2(textureIndex, outlineWidth);
+                        DebugTextVertexBufferPtr->outlineColour = outlineColour;
+                        DebugTextVertexBufferPtr++;
+
+                        DebugTextVertexBufferPtr->vertex        = transform * glm::vec4(pr, pb, 0.0f, 1.0f);
+                        DebugTextVertexBufferPtr->colour        = colour;
+                        DebugTextVertexBufferPtr->uv            = { r, b };
+                        DebugTextVertexBufferPtr->tid           = glm::vec2(textureIndex, outlineWidth);
+                        DebugTextVertexBufferPtr->outlineColour = outlineColour;
+                        DebugTextVertexBufferPtr++;
+
+                        DebugTextVertexBufferPtr->vertex        = transform * glm::vec4(pr, pt, 0.0f, 1.0f);
+                        DebugTextVertexBufferPtr->colour        = colour;
+                        DebugTextVertexBufferPtr->uv            = { r, t };
+                        DebugTextVertexBufferPtr->tid           = glm::vec2(textureIndex, outlineWidth);
+                        DebugTextVertexBufferPtr->outlineColour = outlineColour;
+                        DebugTextVertexBufferPtr++;
+
+                        DebugTextVertexBufferPtr->vertex        = transform * glm::vec4(pl, pt, 0.0f, 1.0f);
+                        DebugTextVertexBufferPtr->colour        = colour;
+                        DebugTextVertexBufferPtr->uv            = { l, t };
+                        DebugTextVertexBufferPtr->tid           = glm::vec2(textureIndex, outlineWidth);
+                        DebugTextVertexBufferPtr->outlineColour = outlineColour;
+                        DebugTextVertexBufferPtr++;
+                    }
+
+                    m_DebugTextRendererData.m_IndexCount += 6;
+
+                    double advance = glyph->getAdvance();
+
+                    fontGeometry.getAdvance(advance, character, text.text[i + 1]);
+                    x += fsScale * advance + kerningOffset;
+                }
+            }
+
+            if(m_DebugTextRendererData.m_IndexCount == 0)
+            {
+                // m_DebugTextRendererData.m_VertexBuffers[currentFrame][m_DebugTextRendererData.m_BatchDrawCallIndex]->ReleasePointer();
+                return;
+            }
+
+            TextFlush(m_DebugTextRendererData, DebugTextVertexBufferBase, DebugTextVertexBufferPtr);
+        }
     }
 
     void RenderPasses::CreateCubeMap(const std::string& filePath, const glm::vec4& params, SharedPtr<TextureCube>& outEnv, SharedPtr<TextureCube>& outIrr)
@@ -3265,6 +3885,7 @@ namespace Lumos::Graphics
             pipelineDesc.cullMode            = Graphics::CullMode::BACK;
             pipelineDesc.transparencyEnabled = false;
             pipelineDesc.cubeMapTarget       = environmentMap;
+            pipelineDesc.DebugName           = "Create Cubemap";
 
             for(uint32_t i = 0; i < 6; i++)
             {
@@ -3304,7 +3925,7 @@ namespace Lumos::Graphics
 
             const float deltaRoughness = 1.0f / Maths::Max((float)environmentMapFiltered->GetMipMapLevels() - 1.0f, 1.0f);
 
-            for(int mip = 0; mip < environmentMapFiltered->GetMipMapLevels(); mip++)
+            for(uint32_t mip = 0; mip < environmentMapFiltered->GetMipMapLevels(); mip++)
             {
                 Graphics::PipelineDesc pipelineDesc {};
                 pipelineDesc.shader              = shader;
@@ -3312,6 +3933,7 @@ namespace Lumos::Graphics
                 pipelineDesc.cullMode            = Graphics::CullMode::BACK;
                 pipelineDesc.transparencyEnabled = false;
                 pipelineDesc.cubeMapTarget       = environmentMapFiltered;
+                pipelineDesc.DebugName           = "Mip Generation";
 
                 for(uint32_t i = 0; i < 6; i++)
                 {

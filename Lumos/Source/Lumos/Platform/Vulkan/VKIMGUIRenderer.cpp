@@ -126,9 +126,9 @@ namespace Lumos
             renderPassDesc.clear           = m_ClearScreen;
             renderPassDesc.attachments     = textures;
             renderPassDesc.swapchainTarget = true;
-
-            m_Renderpass   = new VKRenderPass(renderPassDesc);
-            wd->RenderPass = m_Renderpass->GetHandle();
+            renderPassDesc.DebugName       = "ImGui";
+            m_Renderpass                   = new VKRenderPass(renderPassDesc);
+            wd->RenderPass                 = m_Renderpass->GetHandle();
 
             wd->Frames = (ImGui_ImplVulkanH_Frame*)IM_ALLOC(sizeof(ImGui_ImplVulkanH_Frame) * wd->ImageCount);
             // wd->FrameSemaphores = (ImGui_ImplVulkanH_FrameSemaphores*)IM_ALLOC(sizeof(ImGui_ImplVulkanH_FrameSemaphores) * wd->ImageCount);

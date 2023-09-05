@@ -16,11 +16,12 @@
 #include <Lumos/Graphics/Mesh.h>
 #include <Lumos/Graphics/MeshFactory.h>
 #include <Lumos/Graphics/Light.h>
+#include <Lumos/Graphics/RHI/GraphicsContext.h>
+#include <Lumos/Graphics/RHI/Renderer.h>
+
 #include <Lumos/Graphics/Material.h>
 #include <Lumos/Graphics/Environment.h>
 #include <Lumos/Graphics/RHI/Texture.h>
-#include <Lumos/Graphics/RHI/Renderer.h>
-#include <Lumos/Graphics/RHI/GraphicsContext.h>
 #include <Lumos/Maths/Transform.h>
 #include <Lumos/Scripting/Lua/LuaScriptComponent.h>
 #include <Lumos/ImGui/ImGuiUtilities.h>
@@ -28,13 +29,19 @@
 #include <Lumos/Physics/LumosPhysicsEngine/CollisionShapes/SphereCollisionShape.h>
 #include <Lumos/Physics/LumosPhysicsEngine/CollisionShapes/PyramidCollisionShape.h>
 #include <Lumos/Physics/LumosPhysicsEngine/CollisionShapes/CapsuleCollisionShape.h>
+#include <Lumos/Physics/LumosPhysicsEngine/CollisionShapes/HullCollisionShape.h>
+
 #include <Lumos/ImGui/IconsMaterialDesignIcons.h>
 
 #include <imgui/imgui.h>
 #include <imgui/imgui_internal.h>
 #include <glm/gtx/matrix_decompose.hpp>
 
-// #include <sol/sol.hpp>
+#include <cereal/types/polymorphic.hpp>
+#include <cereal/archives/binary.hpp>
+#include <cereal/archives/json.hpp>
+
+#include <sol/sol.hpp>
 #include <inttypes.h>
 
 namespace MM
@@ -787,13 +794,13 @@ end
         if(ImGuiUtilities::Property("Fov", fov, 1.0f, 120.0f))
             camera.SetFOV(fov);
 
-        float near = camera.GetNear();
-        if(ImGuiUtilities::Property("Near", near, 0.0f, 10.0f))
-            camera.SetNear(near);
+        float n = camera.GetNear();
+        if(ImGuiUtilities::Property("Near", n, 0.0f, 10.0f))
+            camera.SetNear(n);
 
-        float far = camera.GetFar();
-        if(ImGuiUtilities::Property("Far", far, 10.0f, 10000.0f))
-            camera.SetFar(far);
+        float f = camera.GetFar();
+        if(ImGuiUtilities::Property("Far", f, 10.0f, 10000.0f))
+            camera.SetFar(f);
 
         float scale = camera.GetScale();
         if(ImGuiUtilities::Property("Scale", scale, 0.0f, 1000.0f))
@@ -827,6 +834,7 @@ end
     {
         using namespace Lumos;
         LUMOS_PROFILE_FUNCTION();
+
         auto& sprite = reg.get<Lumos::Graphics::Sprite>(e);
         ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
         ImGui::Columns(2);
@@ -865,6 +873,21 @@ end
         ImGui::PopItemWidth();
         ImGui::NextColumn();
 
+        ImGuiUtilities::Property("Using Sprite Sheet", sprite.UsingSpriteSheet);
+        ImGuiUtilities::Property("Tile Size", sprite.SpriteSheetTileSize);
+
+        if(sprite.UsingSpriteSheet)
+        {
+            static glm::vec2 tileIndex;
+
+            ImGuiUtilities::Property("Tile Index", tileIndex);
+            ImGui::Columns(1);
+
+            if(ImGui::Button("Set Sprite Sheet UV"))
+                sprite.SetSpriteSheetIndex((int)tileIndex.x, (int)tileIndex.y);
+            ImGui::Columns(2);
+        }
+
         if(ImGui::TreeNode("Texture"))
         {
             ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
@@ -886,7 +909,7 @@ end
             bool showTexture    = !(hoveringButton && (payload != NULL && payload->IsDataType("AssetFile")));
             if(tex && showTexture)
             {
-                if(ImGui::ImageButton((const char*)(tex), tex->GetHandle(), imageButtonSize, ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f)))
+                if(ImGui::ImageButton((const char*)(tex.get()), tex->GetHandle(), imageButtonSize, ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f)))
                 {
                     Lumos::Editor::GetEditor()->GetFileBrowserPanel().Open();
                     Lumos::Editor::GetEditor()->GetFileBrowserPanel().SetCallback(callback);
@@ -956,6 +979,15 @@ end
         ImGui::Columns(1);
         ImGui::Separator();
         ImGui::PopStyleVar();
+
+        if(ImGui::Button("Convert to Animated Sprite"))
+        {
+            Lumos::Graphics::AnimatedSprite& animatedSprite = reg.get_or_emplace<Lumos::Graphics::AnimatedSprite>(e);
+            animatedSprite.SetTexture(sprite.GetTexture());
+            animatedSprite.SetPosition(sprite.GetPosition());
+
+            reg.remove<Lumos::Graphics::Sprite>(e);
+        }
     }
 
     template <>
@@ -1134,6 +1166,12 @@ end
         ImGui::PopItemWidth();
         ImGui::NextColumn();
 
+        static bool byTile = false;
+        float tileSize     = (float)sprite.SpriteSheetTileSize;
+
+        Lumos::ImGuiUtilities::Property("By Tile", byTile);
+        Lumos::ImGuiUtilities::Property("Tile Size", tileSize);
+
         ImGui::AlignTextToFramePadding();
         ImGui::TextUnformatted("Current State");
         ImGui::NextColumn();
@@ -1309,7 +1347,13 @@ end
                             ImGui::PushID(&pos + numRemoved * 100);
                             ImGui::PushItemWidth((ImGui::GetWindowContentRegionMax() - ImGui::GetWindowContentRegionMin()).x - ImGui::GetFontSize() * 3.0f);
 
+                            if(byTile)
+                                pos /= tileSize;
+
                             ImGui::DragFloat2("##Position", glm::value_ptr(pos));
+
+                            if(byTile)
+                                pos *= tileSize;
 
                             ImGui::SameLine((ImGui::GetWindowContentRegionMax() - ImGui::GetWindowContentRegionMin()).x - ImGui::GetFontSize());
 
@@ -1387,7 +1431,7 @@ end
             bool showTexture    = !(hoveringButton && (payload != NULL && payload->IsDataType("AssetFile")));
             if(tex && showTexture)
             {
-                if(ImGui::ImageButton((const char*)(tex), tex->GetHandle(), imageButtonSize, ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f)))
+                if(ImGui::ImageButton((const char*)(tex.get()), tex->GetHandle(), imageButtonSize, ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f)))
                 {
                     Lumos::Editor::GetEditor()->GetFileBrowserPanel().Open();
                     Lumos::Editor::GetEditor()->GetFileBrowserPanel().SetCallback(callback);
@@ -1954,6 +1998,21 @@ end
                 {
                     using namespace Lumos;
                     ImGui::Indent();
+                    if(ImGui::Button("Save to file"))
+                    {
+                        std::string filePath = "//Meshes"; // Materials/" + matName + ".lmat";
+                        std::string physicalPath;
+                        if(VFS::Get().ResolvePhysicalPath(filePath, physicalPath))
+                        {
+                            physicalPath += "/Materials/" + matName + ".lmat";
+                            std::stringstream storage;
+
+                            cereal::JSONOutputArchive output { storage };
+                            material->save(output);
+
+                            FileSystem::WriteTextFile(physicalPath, storage.str());
+                        }
+                    }
                     bool flipImage = Graphics::Renderer::GetGraphicsContext()->FlipImGUITexture();
 
                     bool twoSided     = material->GetFlag(Lumos::Graphics::Material::RenderFlags::TWOSIDED);
@@ -2326,7 +2385,9 @@ namespace Lumos
         {
             ImGuiUtilities::PushID();
 
-            if(!Application::Get().GetSceneManager()->GetCurrentScene())
+            Scene* currentScene = Application::Get().GetSceneManager()->GetCurrentScene();
+
+            if(!currentScene)
             {
                 m_Editor->SetSelected(entt::null);
                 ImGuiUtilities::PopID();
@@ -2334,7 +2395,7 @@ namespace Lumos
                 return;
             }
 
-            auto& registry = Application::Get().GetSceneManager()->GetCurrentScene()->GetRegistry();
+            auto& registry = currentScene->GetRegistry();
             if(selectedEntities.size() != 1 || !registry.valid(selectedEntities.front()))
             {
                 m_Editor->SetSelected(entt::null);
@@ -2343,7 +2404,8 @@ namespace Lumos
                 return;
             }
 
-            auto selected = selectedEntities.front();
+            auto selected         = selectedEntities.front();
+            Entity SelectedEntity = { selected, currentScene };
 
             // active checkbox
             auto activeComponent = registry.try_get<ActiveComponent>(selected);
@@ -2379,7 +2441,7 @@ namespace Lumos
             }
 
             ImGui::SameLine();
-            ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x - ImGui::GetFontSize() * 2.0f);
+            ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x - ImGui::GetFontSize() * 4.0f);
             {
                 ImGuiUtilities::ScopedFont boldFont(ImGui::GetIO().Fonts->Fonts[1]);
                 if(ImGuiUtilities::InputText(name))
@@ -2389,15 +2451,66 @@ namespace Lumos
 
             ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.7f, 0.7f, 0.7f, 0.0f));
 
+            if(ImGui::Button(ICON_MDI_FLOPPY))
+                ImGui::OpenPopup("SavePrefab");
+
+            ImGuiUtilities::Tooltip("Save Entity As Prefab");
+
+            ImGui::SameLine();
             if(ImGui::Button(ICON_MDI_TUNE))
                 ImGui::OpenPopup("SetDebugMode");
             ImGui::PopStyleColor();
 
             if(ImGui::BeginPopup("SetDebugMode", 3))
             {
+                if(SelectedEntity.HasComponent<PrefabComponent>() && ImGui::Button("Revert To Prefab"))
+                {
+                    auto path = SelectedEntity.GetComponent<PrefabComponent>().Path;
+                    m_Editor->UnSelect(selected);
+                    SelectedEntity.Destroy();
+
+                    SelectedEntity = Application::Get().GetSceneManager()->GetCurrentScene()->InstantiatePrefab(path);
+                    selected       = SelectedEntity.GetHandle();
+                    m_Editor->SetSelected(selected);
+                }
+
                 if(ImGui::Selectable("Debug Mode", m_DebugMode))
                 {
                     m_DebugMode = !m_DebugMode;
+                }
+                ImGui::EndPopup();
+            }
+
+            if(ImGui::BeginPopupModal("SavePrefab", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+            {
+                ImGui::Text("Save Current Entity as a Prefab?\n\n");
+                ImGui::Separator();
+
+                static std::string prefabName = SelectedEntity.GetName();
+                ImGui::AlignTextToFramePadding();
+                ImGui::TextUnformatted("Name : ");
+                ImGui::SameLine();
+                ImGuiUtilities::InputText(prefabName);
+
+                static std::string prefabNamePath = "//Assets/Prefabs/";
+                ImGui::AlignTextToFramePadding();
+                ImGui::TextUnformatted("Path : ");
+                ImGui::SameLine();
+                ImGuiUtilities::InputText(prefabNamePath);
+
+                if(ImGui::Button("OK", ImVec2(120, 0)))
+                {
+                    std::string physicalPath;
+                    VFS::Get().ResolvePhysicalPath(prefabNamePath, physicalPath, true);
+                    std::string FullPath = physicalPath + prefabName + std::string(".lprefab");
+                    Application::Get().GetSceneManager()->GetCurrentScene()->SavePrefab({ selected, Application::Get().GetSceneManager()->GetCurrentScene() }, FullPath);
+                    ImGui::CloseCurrentPopup();
+                }
+                ImGui::SetItemDefaultFocus();
+                ImGui::SameLine();
+                if(ImGui::Button("Cancel", ImVec2(120, 0)))
+                {
+                    ImGui::CloseCurrentPopup();
                 }
                 ImGui::EndPopup();
             }
@@ -2445,6 +2558,15 @@ namespace Lumos
                 }
 
                 ImGui::Separator();
+            }
+
+            if(registry.try_get<PrefabComponent>(selected))
+            {
+                ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_CheckMark));
+                ImGui::Separator();
+                ImGui::Text("Prefab %s", registry.get<PrefabComponent>(selected).Path.c_str());
+                ImGui::Separator();
+                ImGui::PopStyleColor();
             }
 
             ImGui::BeginChild("Components", ImVec2(0.0f, 0.0f), false, ImGuiWindowFlags_None);

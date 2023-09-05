@@ -20,7 +20,7 @@ namespace Lumos
     {
         NONE     = 0,
         REQUIRE  = 1,
-        OPTIONAL = 2
+        OPT = 2
     };
 #if 0
     struct option_t

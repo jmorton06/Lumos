@@ -166,4 +166,6 @@ Lumos/External/VulkanSDK
 *.xcworkspace
 *.xcodeproj
 ExampleProject/Assets/Meshes/Source
-ExampleProject/Assets/Meshes/Sponza
+ExampleProject/Assets/Kenney Game Assets All-in-1 1.7.0
+DerivedData
+ClangBuildAnalyzerSession.txt

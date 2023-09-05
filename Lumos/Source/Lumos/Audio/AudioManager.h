@@ -1,6 +1,7 @@
 #pragma once
 #include "Core/Core.h"
 #include "Scene/ISystem.h"
+#include <cereal/cereal.hpp>
 #include <vector>
 namespace Lumos
 {

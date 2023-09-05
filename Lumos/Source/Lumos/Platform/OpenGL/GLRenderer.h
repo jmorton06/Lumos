@@ -1,11 +1,9 @@
 #pragma once
 
-#include "Graphics/RHI/Pipeline.h"
-#include "Maths/Maths.h"
-#include "Core/OS/Window.h"
 #include "Graphics/RHI/Renderer.h"
-#include "GLSwapChain.h"
 #include "Graphics/RHI/Definitions.h"
+#include <glm/vec4.hpp>
+
 namespace Lumos
 {
     class Window;
@@ -14,6 +12,7 @@ namespace Lumos
         class GLContext;
         class GLIndexBuffer;
         class GLVertexBuffer;
+        class GLPipeline;
         class CommandBuffer;
         class Shader;
         class GLPipeline;

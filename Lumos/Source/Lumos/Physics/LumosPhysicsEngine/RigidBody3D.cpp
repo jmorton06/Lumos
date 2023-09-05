@@ -3,6 +3,12 @@
 #include "LumosPhysicsEngine.h"
 #include "Graphics/Renderers/DebugRenderer.h"
 
+#include "Physics/LumosPhysicsEngine/CollisionShapes/SphereCollisionShape.h"
+#include "Physics/LumosPhysicsEngine/CollisionShapes/CuboidCollisionShape.h"
+#include "Physics/LumosPhysicsEngine/CollisionShapes/PyramidCollisionShape.h"
+#include "Physics/LumosPhysicsEngine/CollisionShapes/HullCollisionShape.h"
+#include "Physics/LumosPhysicsEngine/CollisionShapes/CapsuleCollisionShape.h"
+
 namespace Lumos
 {
 
@@ -33,6 +39,7 @@ namespace Lumos
         m_AtRest     = properties.AtRest;
         m_Elasticity = properties.Elasticity;
         m_Friction   = properties.Friction;
+        m_UUID       = UUID();
     }
 
     RigidBody3D::~RigidBody3D()
@@ -41,7 +48,7 @@ namespace Lumos
 
     const Maths::BoundingBox& RigidBody3D::GetWorldSpaceAABB()
     {
-        LUMOS_PROFILE_FUNCTION();
+        LUMOS_PROFILE_FUNCTION_LOW();
         if(m_wsAabbInvalidated)
         {
             LUMOS_PROFILE_SCOPE("Calculate BoundingBox");
@@ -64,7 +71,7 @@ namespace Lumos
 
     const glm::mat4& RigidBody3D::GetWorldSpaceTransform() const
     {
-        LUMOS_PROFILE_FUNCTION();
+        LUMOS_PROFILE_FUNCTION_LOW();
         if(m_wsTransformInvalidated)
         {
             m_wsTransform = glm::translate(glm::mat4(1.0), m_Position) * glm::toMat4(m_Orientation);
@@ -77,7 +84,7 @@ namespace Lumos
 
     void RigidBody3D::AutoResizeBoundingBox()
     {
-        LUMOS_PROFILE_FUNCTION();
+        LUMOS_PROFILE_FUNCTION_LOW();
         m_localBoundingBox.Clear();
 
         const glm::vec3 xAxis(1.0f, 0.0f, 0.0f);
@@ -106,7 +113,7 @@ namespace Lumos
 
     void RigidBody3D::RestTest()
     {
-        LUMOS_PROFILE_FUNCTION();
+        LUMOS_PROFILE_FUNCTION_LOW();
         // Negative threshold disables test, don't bother calculating average or performing test
         if(m_RestVelocityThresholdSquared <= 0.0f)
             return;
@@ -124,7 +131,7 @@ namespace Lumos
 
     void RigidBody3D::DebugDraw(uint64_t flags) const
     {
-        LUMOS_PROFILE_FUNCTION();
+        LUMOS_PROFILE_FUNCTION_LOW();
         glm::vec4 colour(0.4f, 0.3f, 0.7f, 1.0f);
 
         if(flags & PhysicsDebugFlags::AABB)
@@ -146,7 +153,7 @@ namespace Lumos
 
     void RigidBody3D::SetCollisionShape(CollisionShapeType type)
     {
-        LUMOS_PROFILE_FUNCTION();
+        LUMOS_PROFILE_FUNCTION_LOW();
         switch(type)
         {
         case CollisionShapeType::CollisionCuboid:

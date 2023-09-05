@@ -2,6 +2,7 @@
 
 #include "RenderCommand.h"
 #include "Maths/Transform.h"
+#include "Maths/Frustum.h"
 
 #include "Graphics/RHI/Framebuffer.h"
 #include "Graphics/RHI/RenderPass.h"

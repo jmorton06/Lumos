@@ -47,6 +47,24 @@ namespace win_eventlog {
 
 namespace internal {
 
+struct local_alloc_t
+{
+    HLOCAL hlocal_;
+
+    SPDLOG_CONSTEXPR local_alloc_t() SPDLOG_NOEXCEPT : hlocal_(nullptr) {}
+
+    local_alloc_t(local_alloc_t const &) = delete;
+    local_alloc_t &operator=(local_alloc_t const &) = delete;
+
+    ~local_alloc_t() SPDLOG_NOEXCEPT
+    {
+        if (hlocal_)
+        {
+            LocalFree(hlocal_);
+        }
+    }
+};
+
 /** Windows error */
 struct win32_error : public spdlog_ex
 {
@@ -55,22 +73,17 @@ struct win32_error : public spdlog_ex
     {
         std::string system_message;
 
-        LPSTR format_message_result{};
+        local_alloc_t format_message_result{};
         auto format_message_succeeded =
             ::FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, nullptr,
-                error_code, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR)&format_message_result, 0, nullptr);
+                error_code, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR)&format_message_result.hlocal_, 0, nullptr);
 
-        if (format_message_succeeded && format_message_result)
+        if (format_message_succeeded && format_message_result.hlocal_)
         {
-            system_message = fmt::format(" ({})", format_message_result);
+            system_message = fmt_lib::format(" ({})", (LPSTR)format_message_result.hlocal_);
         }
 
-        if (format_message_result)
-        {
-            LocalFree((HLOCAL)format_message_result);
-        }
-
-        return fmt::format("{}: {}{}", user_message, error_code, system_message);
+        return fmt_lib::format("{}: {}{}", user_message, error_code, system_message);
     }
 
     explicit win32_error(std::string const &func_name, DWORD error = GetLastError())
@@ -197,7 +210,7 @@ private:
     HANDLE hEventLog_{NULL};
     internal::sid_t current_user_sid_;
     std::string source_;
-    WORD event_id_;
+    DWORD event_id_;
 
     HANDLE event_log_handle()
     {
@@ -228,12 +241,12 @@ protected:
         details::os::utf8_to_wstrbuf(string_view_t(formatted.data(), formatted.size()), buf);
 
         LPCWSTR lp_wstr = buf.data();
-        succeeded = ::ReportEventW(event_log_handle(), eventlog::get_event_type(msg), eventlog::get_event_category(msg), event_id_,
-            current_user_sid_.as_sid(), 1, 0, &lp_wstr, nullptr);
+        succeeded = static_cast<bool>(::ReportEventW(event_log_handle(), eventlog::get_event_type(msg), eventlog::get_event_category(msg),
+            event_id_, current_user_sid_.as_sid(), 1, 0, &lp_wstr, nullptr));
 #else
         LPCSTR lp_str = formatted.data();
-        succeeded = ::ReportEventA(event_log_handle(), eventlog::get_event_type(msg), eventlog::get_event_category(msg), event_id_,
-            current_user_sid_.as_sid(), 1, 0, &lp_str, nullptr);
+        succeeded = static_cast<bool>(::ReportEventA(event_log_handle(), eventlog::get_event_type(msg), eventlog::get_event_category(msg),
+            event_id_, current_user_sid_.as_sid(), 1, 0, &lp_str, nullptr));
 #endif
 
         if (!succeeded)
@@ -245,7 +258,7 @@ protected:
     void flush_() override {}
 
 public:
-    win_eventlog_sink(std::string const &source, WORD event_id = 1000 /* according to mscoree.dll */)
+    win_eventlog_sink(std::string const &source, DWORD event_id = 1000 /* according to mscoree.dll */)
         : source_(source)
         , event_id_(event_id)
     {

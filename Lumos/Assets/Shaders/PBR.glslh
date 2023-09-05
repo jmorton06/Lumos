@@ -163,7 +163,7 @@ float distribution(float roughness, float NoH, const vec3 h, const vec3 normal)
 
 float visibility(float roughness, float NoV, float NoL) {
 #if QUALITY_LOW
-    return V_SmithGGXCorrelated_Fast(roughness, NoV, NoL);
+    return V_SmithGGXCorrelatedFast(roughness, NoV, NoL);
 #else
     return V_SmithGGXCorrelated(roughness, NoV, NoL);
 #endif
@@ -171,7 +171,7 @@ float visibility(float roughness, float NoV, float NoL) {
 
 vec3 fresnel(const vec3 f0, float LoH) {
 #if QUALITY_LOW
-    return F_Schlick(f0, LoH); // f90 = 1.0
+    return F_Schlick(LoH, f0); // f90 = 1.0
 #else
     float f90 = saturate(dot(f0, vec3(50.0 * 0.33)));
     return F_Schlick(f0, f90, LoH);

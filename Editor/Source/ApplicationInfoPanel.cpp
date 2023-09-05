@@ -1,14 +1,11 @@
-#include "HierarchyPanel.h"
-#include "Editor.h"
 #include "ApplicationInfoPanel.h"
 
-#include <Lumos/Graphics/RHI/GraphicsContext.h>
 #include <Lumos/Core/Application.h>
 #include <Lumos/Scene/SceneManager.h>
+#include <Lumos/Scene/Scene.h>
+
 #include <Lumos/Core/Engine.h>
 #include <Lumos/Graphics/Renderers/RenderPasses.h>
-#include <Lumos/Graphics/GBuffer.h>
-#include <Lumos/Events/ApplicationEvent.h>
 #include <Lumos/ImGui/ImGuiUtilities.h>
 #include <imgui/imgui.h>
 #include <imgui/Plugins/implot/implot.h>
@@ -72,7 +69,7 @@ namespace Lumos
             // if (frame > (int)(ImGui::GetIO().Framerate / 60))
             {
                 rdata.AddPoint(t, ImGui::GetIO().Framerate);
-                rdata1.AddPoint(t, Lumos::Engine::GetTimeStep().GetMillis()); // 1000.0f / ImGui::GetIO().Framerate);
+                rdata1.AddPoint(t, (float)Lumos::Engine::GetTimeStep().GetMillis()); // 1000.0f / ImGui::GetIO().Framerate);
             }
 
             static ImPlotAxisFlags rt_axis = ImPlotAxisFlags_NoTickLabels;

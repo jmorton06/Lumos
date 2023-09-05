@@ -1,7 +1,5 @@
 #include "Precompiled.h"
 #include "RigidBody3DComponent.h"
-#include "Core/Application.h"
-#include "Physics/LumosPhysicsEngine/LumosPhysicsEngine.h"
 #include "Scene/Scene.h"
 #include "Scene/EntityManager.h"
 
@@ -10,18 +8,25 @@
 namespace Lumos
 {
     RigidBody3DComponent::RigidBody3DComponent()
-        : m_RigidBody(CreateSharedPtr<RigidBody3D>())
+    //: m_RigidBody(CreateSharedPtr<RigidBody3D>())
     {
+        m_RigidBody = Application::Get().GetSystem<LumosPhysicsEngine>()->CreateBody({});
     }
 
-    RigidBody3DComponent::RigidBody3DComponent(SharedPtr<RigidBody3D>& physics)
+    RigidBody3DComponent::RigidBody3DComponent(RigidBody3D* physics)
         : m_RigidBody(physics)
     {
     }
 
+    RigidBody3DComponent::RigidBody3DComponent(const RigidBody3DProperties& properties)
+    {
+        m_RigidBody = Application::Get().GetSystem<LumosPhysicsEngine>()->CreateBody(properties);
+
+    }
+
     RigidBody3DComponent::RigidBody3DComponent(const RigidBody3DComponent& other)
     {
-        m_RigidBody = CreateSharedPtr<RigidBody3D>(*other.GetRigidBody().get());
+        m_RigidBody = other.m_RigidBody;
     }
 
     void RigidBody3DComponent::Init()
@@ -165,22 +170,22 @@ namespace Lumos
 
     WeldConstraintComponent::WeldConstraintComponent(Entity entity, Entity otherEntity, const glm::vec3& pos1, const glm::vec3& pos2, float constant)
     {
-        m_Constraint = CreateSharedPtr<WeldConstraint>(entity.GetComponent<RigidBody3DComponent>().GetRigidBody().get(), otherEntity.GetComponent<RigidBody3DComponent>().GetRigidBody().get());
+        m_Constraint = CreateSharedPtr<WeldConstraint>(entity.GetComponent<RigidBody3DComponent>().GetRigidBody(), otherEntity.GetComponent<RigidBody3DComponent>().GetRigidBody());
     }
 
     WeldConstraintComponent::WeldConstraintComponent(Entity entity, Entity otherEntity)
     {
-        m_Constraint = CreateSharedPtr<WeldConstraint>(entity.GetComponent<RigidBody3DComponent>().GetRigidBody().get(), otherEntity.GetComponent<RigidBody3DComponent>().GetRigidBody().get());
+        m_Constraint = CreateSharedPtr<WeldConstraint>(entity.GetComponent<RigidBody3DComponent>().GetRigidBody(), otherEntity.GetComponent<RigidBody3DComponent>().GetRigidBody());
     }
 
     DistanceConstraintComponent::DistanceConstraintComponent(Entity entity, Entity otherEntity, const glm::vec3& pos1, const glm::vec3& pos2, float constant)
     {
-        m_Constraint = CreateSharedPtr<DistanceConstraint>(entity.GetComponent<RigidBody3DComponent>().GetRigidBody().get(), otherEntity.GetComponent<RigidBody3DComponent>().GetRigidBody().get(), pos1, pos2);
+        m_Constraint = CreateSharedPtr<DistanceConstraint>(entity.GetComponent<RigidBody3DComponent>().GetRigidBody(), otherEntity.GetComponent<RigidBody3DComponent>().GetRigidBody(), pos1, pos2);
     }
 
     DistanceConstraintComponent::DistanceConstraintComponent(Entity entity, Entity otherEntity)
     {
-        m_Constraint = CreateSharedPtr<DistanceConstraint>(entity.GetComponent<RigidBody3DComponent>().GetRigidBody().get(), otherEntity.GetComponent<RigidBody3DComponent>().GetRigidBody().get(),
+        m_Constraint = CreateSharedPtr<DistanceConstraint>(entity.GetComponent<RigidBody3DComponent>().GetRigidBody(), otherEntity.GetComponent<RigidBody3DComponent>().GetRigidBody(),
                                                            entity.GetComponent<RigidBody3DComponent>().GetRigidBody()->GetPosition(), otherEntity.GetComponent<RigidBody3DComponent>().GetRigidBody()->GetPosition());
     }
 
@@ -188,7 +193,7 @@ namespace Lumos
     {
         m_EntityID    = entity.GetID();
         m_Axes        = axes;
-        m_Constraint  = CreateSharedPtr<AxisConstraint>(entity.GetComponent<RigidBody3DComponent>().GetRigidBody().get(), axes);
+        m_Constraint  = CreateSharedPtr<AxisConstraint>(entity.GetComponent<RigidBody3DComponent>().GetRigidBody(), axes);
         m_Initialised = true;
     }
 
@@ -199,7 +204,7 @@ namespace Lumos
             auto entity = Application::Get().GetCurrentScene()->GetEntityManager()->GetEntityByUUID(m_EntityID);
 
             if(entity && entity.HasComponent<RigidBody3DComponent>())
-                m_Constraint = CreateSharedPtr<AxisConstraint>(entity.GetComponent<RigidBody3DComponent>().GetRigidBody().get(), m_Axes);
+                m_Constraint = CreateSharedPtr<AxisConstraint>(entity.GetComponent<RigidBody3DComponent>().GetRigidBody(), m_Axes);
             m_Initialised = true;
         }
         return m_Constraint;

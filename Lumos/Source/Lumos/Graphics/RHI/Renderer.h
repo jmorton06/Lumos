@@ -1,12 +1,15 @@
 #pragma once
-#include "Core/Application.h"
 #include "Core/OS/Window.h"
+#include "Graphics/RHI/Definitions.h"
+#include <glm/vec4.hpp>
 
 namespace Lumos
 {
     namespace Graphics
     {
         class Mesh;
+        class Pipeline;
+        class DescriptorSet;
 
         struct RenderAPICapabilities
         {
@@ -84,8 +87,8 @@ namespace Lumos
                 return capabilities;
             }
 
-            static GraphicsContext* GetGraphicsContext() { return Application::Get().GetWindow()->GetGraphicsContext(); }
-            static SwapChain* GetMainSwapChain() { return Application::Get().GetWindow()->GetSwapChain(); }
+            static GraphicsContext* GetGraphicsContext();
+            static SwapChain* GetMainSwapChain();
             static void DrawMesh(CommandBuffer* commandBuffer, Graphics::Pipeline* pipeline, Graphics::Mesh* mesh);
 
         protected:

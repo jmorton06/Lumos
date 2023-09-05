@@ -40,6 +40,17 @@ namespace Lumos
             m_UVs = GetUVs(min, max);
         }
 
+        void Sprite::SetSpriteSheetIndex(int x, int y)
+        {
+            if(!m_Texture)
+                return;
+
+            glm::vec2 min = { (x * (SpriteSheetTileSize)) / m_Texture->GetWidth(), (y * (SpriteSheetTileSize)) / m_Texture->GetHeight() };
+            glm::vec2 max = { ((x * (SpriteSheetTileSize)) + SpriteSheetTileSize) / m_Texture->GetWidth(), ((y * SpriteSheetTileSize) + SpriteSheetTileSize) / m_Texture->GetHeight() };
+
+            m_UVs = GetUVs(min, max);
+        }
+
         void Sprite::SetTextureFromFile(const std::string& filePath)
         {
             auto tex = SharedPtr<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile(filePath, filePath));

@@ -1,28 +1,13 @@
 #pragma once
 #include "Physics/LumosPhysicsEngine/CollisionShapes/CollisionShape.h"
-#include "Physics/LumosPhysicsEngine/CollisionShapes/SphereCollisionShape.h"
-#include "Physics/LumosPhysicsEngine/CollisionShapes/CuboidCollisionShape.h"
-#include "Physics/LumosPhysicsEngine/CollisionShapes/PyramidCollisionShape.h"
-#include "Physics/LumosPhysicsEngine/CollisionShapes/HullCollisionShape.h"
-#include "Physics/LumosPhysicsEngine/CollisionShapes/CapsuleCollisionShape.h"
-#include "Maths/Maths.h"
-#include <cereal/types/polymorphic.hpp>
+#include "Core/UUID.h"
+#include "Maths/BoundingBox.h"
 #include <cereal/cereal.hpp>
 #include <glm/vec2.hpp>
 #include <glm/vec3.hpp>
-#include "Core/UUID.h"
-
-CEREAL_REGISTER_TYPE(Lumos::SphereCollisionShape);
-CEREAL_REGISTER_TYPE(Lumos::CuboidCollisionShape);
-CEREAL_REGISTER_TYPE(Lumos::PyramidCollisionShape);
-CEREAL_REGISTER_TYPE(Lumos::HullCollisionShape);
-CEREAL_REGISTER_TYPE(Lumos::CapsuleCollisionShape);
-
-CEREAL_REGISTER_POLYMORPHIC_RELATION(Lumos::CollisionShape, Lumos::SphereCollisionShape);
-CEREAL_REGISTER_POLYMORPHIC_RELATION(Lumos::CollisionShape, Lumos::CuboidCollisionShape);
-CEREAL_REGISTER_POLYMORPHIC_RELATION(Lumos::CollisionShape, Lumos::PyramidCollisionShape);
-CEREAL_REGISTER_POLYMORPHIC_RELATION(Lumos::CollisionShape, Lumos::HullCollisionShape);
-CEREAL_REGISTER_POLYMORPHIC_RELATION(Lumos::CollisionShape, Lumos::CapsuleCollisionShape);
+#include <glm/vec4.hpp>
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/quaternion.hpp>
 
 namespace Lumos
 {
@@ -61,7 +46,6 @@ namespace Lumos
         friend class LumosPhysicsEngine;
 
     public:
-        RigidBody3D(const RigidBody3DProperties& properties = RigidBody3DProperties());
         ~RigidBody3D();
 
         //<--------- GETTERS ------------->
@@ -140,6 +124,7 @@ namespace Lumos
             if(glm::length(v) > 0.0f)
                 m_AtRest = false;
         }
+
         void SetTorque(const glm::vec3& v)
         {
             if(m_Static)
@@ -225,12 +210,11 @@ namespace Lumos
         {
             auto shape = std::unique_ptr<CollisionShape>(m_CollisionShape.get());
 
-            const int Version = 1;
+            const int Version = 2;
 
             archive(cereal::make_nvp("Version", Version));
-
             archive(cereal::make_nvp("Position", m_Position), cereal::make_nvp("Orientation", m_Orientation), cereal::make_nvp("LinearVelocity", m_LinearVelocity), cereal::make_nvp("Force", m_Force), cereal::make_nvp("Mass", 1.0f / m_InvMass), cereal::make_nvp("AngularVelocity", m_AngularVelocity), cereal::make_nvp("Torque", m_Torque), cereal::make_nvp("Static", m_Static), cereal::make_nvp("Friction", m_Friction), cereal::make_nvp("Elasticity", m_Elasticity), cereal::make_nvp("CollisionShape", shape), cereal::make_nvp("Trigger", m_Trigger), cereal::make_nvp("AngularFactor", m_AngularFactor));
-
+            archive(cereal::make_nvp("UUID", (uint64_t)m_UUID));
             shape.release();
         }
 
@@ -241,12 +225,14 @@ namespace Lumos
 
             int Version;
             archive(cereal::make_nvp("Version", Version));
-
             archive(cereal::make_nvp("Position", m_Position), cereal::make_nvp("Orientation", m_Orientation), cereal::make_nvp("LinearVelocity", m_LinearVelocity), cereal::make_nvp("Force", m_Force), cereal::make_nvp("Mass", 1.0f / m_InvMass), cereal::make_nvp("AngularVelocity", m_AngularVelocity), cereal::make_nvp("Torque", m_Torque), cereal::make_nvp("Static", m_Static), cereal::make_nvp("Friction", m_Friction), cereal::make_nvp("Elasticity", m_Elasticity), cereal::make_nvp("CollisionShape", shape), cereal::make_nvp("Trigger", m_Trigger), cereal::make_nvp("AngularFactor", m_AngularFactor));
 
             m_CollisionShape = SharedPtr<CollisionShape>(shape.get());
             CollisionShapeUpdated();
             shape.release();
+
+            if(Version > 1)
+                archive(cereal::make_nvp("UUID", (uint64_t)m_UUID));
         }
 
         bool GetIsStatic() const { return m_Static; }
@@ -261,6 +247,8 @@ namespace Lumos
         UUID GetUUID() const { return m_UUID; }
 
     protected:
+        RigidBody3D(const RigidBody3DProperties& properties = RigidBody3DProperties());
+
         mutable bool m_wsTransformInvalidated;
         float m_RestVelocityThresholdSquared;
         float m_AverageSummedVelocity;
@@ -294,5 +282,8 @@ namespace Lumos
         SharedPtr<CollisionShape> m_CollisionShape;
         PhysicsCollisionCallback m_OnCollisionCallback;
         std::vector<OnCollisionManifoldCallback> m_onCollisionManifoldCallbacks; //!< Collision callbacks post manifold generation
+
+        RigidBody3D* m_Prev = nullptr;
+        RigidBody3D* m_Next = nullptr;
     };
 }

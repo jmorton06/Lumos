@@ -58,7 +58,7 @@ namespace Lumos
             m_Data.EventCallback = callback;
         };
 
-        void SetIcon(const std::string& filePath, const std::string& smallIconFilePath) override {};
+        void SetIcon(const WindowDesc& desc) override {};
         void UpdateCursorImGui() override {};
 
         void OnKeyEvent(Lumos::InputCode::Key key, bool down);

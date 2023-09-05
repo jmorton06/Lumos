@@ -843,14 +843,14 @@ namespace Lumos
         imgui["getFontSize"]            = ImGui::GetFontSize;
         imgui["getFontTexUvWhitePixel"] = ImGui::GetFontTexUvWhitePixel;
 
-        imgui["pushItemWidth"]          = ImGui::PushItemWidth;
-        imgui["popItemWidth"]           = ImGui::PopItemWidth;
-        imgui["calcItemWidth"]          = ImGui::CalcItemWidth;
-        imgui["pushTextWrapPos"]        = sol::overload(ImGui::PushTextWrapPos, []()
-                                                        { ImGui::PushTextWrapPos(); });
-        imgui["popTextWrapPos"]         = ImGui::PopTextWrapPos;
-        imgui["pushButtonRepeat"]       = ImGui::PushButtonRepeat;
-        imgui["popButtonRepeat"]        = ImGui::PopButtonRepeat;
+        imgui["pushItemWidth"]    = ImGui::PushItemWidth;
+        imgui["popItemWidth"]     = ImGui::PopItemWidth;
+        imgui["calcItemWidth"]    = ImGui::CalcItemWidth;
+        imgui["pushTextWrapPos"]  = sol::overload(ImGui::PushTextWrapPos, []()
+                                                  { ImGui::PushTextWrapPos(); });
+        imgui["popTextWrapPos"]   = ImGui::PopTextWrapPos;
+        imgui["pushButtonRepeat"] = ImGui::PushButtonRepeat;
+        imgui["popButtonRepeat"]  = ImGui::PopButtonRepeat;
 
         imgui["separator"] = ImGui::Separator;
         imgui["sameLine"]  = sol::overload(

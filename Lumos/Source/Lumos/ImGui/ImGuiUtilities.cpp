@@ -12,6 +12,8 @@
 #include "Platform/Vulkan/VKTexture.h"
 #endif
 
+#include <glm/gtc/type_ptr.hpp>
+
 namespace Lumos
 {
     glm::vec4 SelectedColour       = glm::vec4(0.28f, 0.56f, 0.9f, 1.0f);
@@ -220,17 +222,11 @@ namespace Lumos
 
         if((int)flags & (int)PropertyFlag::ReadOnly)
         {
-            ImGui::Text("%uui", value);
+            ImGui::Text("%d", value);
         }
         else
         {
-            // std::string id = "##" + name;
-            int valueInt = (int)value;
-            if(ImGui::DragInt(GenerateID(), &valueInt))
-            {
-                updated = true;
-                value   = (uint32_t)valueInt;
-            }
+            updated = ImGui::DragScalar(GenerateID(), ImGuiDataType_U32, &value);
         }
         ImGui::PopItemWidth();
         ImGui::NextColumn();
@@ -913,6 +909,86 @@ namespace Lumos
             colours[ImGuiCol_DockingPreview]     = ImVec4(0.85f, 0.85f, 0.85f, 0.28f);
 #endif
         }
+        else if(theme == Cosy)
+        {
+            ImVec4 background             = ImVec4(39.0f / 255.0f, 40.0f / 255.0f, 47.0f / 255.0f, 255.0f / 255.0f);
+            ImVec4 foreground             = ImVec4(42.0f / 255.0f, 44.0f / 255.0f, 54.0f / 255.0f, 255.0f / 255.0f);
+            ImVec4 text                   = ImVec4(230.0f / 255.0f, 175.0f / 255.0f, 137.0f / 255.0f, 255.0f / 255.0f);
+            ImVec4 text_secondary         = ImVec4(159.0f / 255.0f, 159.0f / 255.0f, 176.0f / 255.0f, 255.0f / 255.0f);
+            ImVec4 text_background        = ImVec4(97.0f / 255.0f, 97.0f / 255.0f, 106.0f / 255.0f, 255.0f / 255.0f);
+            ImVec4 text_blue              = ImVec4(110.0f / 255.0f, 150.0f / 255.0f, 200.0f / 255.0f, 255.0f / 255.0f);
+            ImVec4 text_orange            = ImVec4(183.0f / 255.0f, 113.0f / 255.0f, 96.0f / 255.0f, 255.0f / 255.0f);
+            ImVec4 text_yellow            = ImVec4(214.0f / 255.0f, 199.0f / 255.0f, 130.0f / 255.0f, 255.0f / 255.0f);
+            ImVec4 text_red               = ImVec4(206.0f / 255.0f, 120.0f / 255.0f, 105.0f / 255.0f, 255.0f / 255.0f);
+            ImVec4 highlight_primary      = ImVec4(47.0f / 255.0f, 179.0f / 255.0f, 135.0f / 255.0f, 255.0f / 255.0f);
+            ImVec4 hover_primary          = ImVec4(76.0f / 255.0f, 148.0f / 255.0f, 123.0f / 255.0f, 255.0f / 255.0f);
+            ImVec4 highlight_secondary    = ImVec4(76.0f / 255.0f, 48.0f / 255.0f, 67.0f / 255.0f, 255.0f / 255.0f);
+            ImVec4 hover_secondary        = ImVec4(105.0f / 255.0f, 50.0f / 255.0f, 68.0f / 255.0f, 255.0f / 255.0f);
+            ImVec4 checkerboard_primary   = ImVec4(150.0f / 255.0f, 150.0f / 255.0f, 150.0f / 255.0f, 255.0f / 255.0f);
+            ImVec4 checkerboard_secondary = ImVec4(100.0f / 255.0f, 100.0f / 255.0f, 100.0f / 255.0f, 255.0f / 255.0f);
+            ImVec4 modal_dim              = ImVec4(0, 0, 0, 48.0f / 255.0f);
+
+            ImGui::StyleColorsDark();
+            colours[ImGuiCol_Text]           = text;
+            colours[ImGuiCol_TextDisabled]   = text_background;
+            colours[ImGuiCol_TextSelectedBg] = text_secondary;
+
+            colours[ImGuiCol_WindowBg] = background;
+            colours[ImGuiCol_ChildBg]  = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
+            colours[ImGuiCol_PopupBg]  = background;
+
+            colours[ImGuiCol_Border]         = foreground;
+            colours[ImGuiCol_BorderShadow]   = ImVec4(0.00f, 0.00f, 0.00f, 0.24f);
+            colours[ImGuiCol_FrameBg]        = foreground;
+            colours[ImGuiCol_FrameBgHovered] = foreground;
+            colours[ImGuiCol_FrameBgActive]  = foreground;
+
+            colours[ImGuiCol_TitleBg]          = foreground;
+            colours[ImGuiCol_TitleBgActive]    = foreground;
+            colours[ImGuiCol_TitleBgCollapsed] = foreground;
+            colours[ImGuiCol_MenuBarBg]        = foreground;
+
+            colours[ImGuiCol_ScrollbarBg]           = ImVec4(0.05f, 0.05f, 0.05f, 0.54f);
+            colours[ImGuiCol_ScrollbarGrab]         = ImVec4(0.34f, 0.34f, 0.34f, 0.54f);
+            colours[ImGuiCol_ScrollbarGrabHovered]  = ImVec4(0.40f, 0.40f, 0.40f, 0.54f);
+            colours[ImGuiCol_ScrollbarGrabActive]   = ImVec4(0.56f, 0.56f, 0.56f, 0.54f);
+            colours[ImGuiCol_CheckMark]             = checkerboard_primary;
+            colours[ImGuiCol_SliderGrab]            = ImVec4(0.34f, 0.34f, 0.34f, 0.54f);
+            colours[ImGuiCol_SliderGrabActive]      = ImVec4(0.56f, 0.56f, 0.56f, 0.54f);
+            colours[ImGuiCol_Button]                = foreground;
+            colours[ImGuiCol_ButtonHovered]         = hover_secondary;
+            colours[ImGuiCol_ButtonActive]          = highlight_secondary;
+            colours[ImGuiCol_Header]                = highlight_secondary;
+            colours[ImGuiCol_HeaderHovered]         = highlight_secondary;
+            colours[ImGuiCol_HeaderActive]          = highlight_secondary;
+            colours[ImGuiCol_Separator]             = foreground;
+            colours[ImGuiCol_SeparatorHovered]      = ImVec4(0.44f, 0.44f, 0.44f, 0.29f);
+            colours[ImGuiCol_SeparatorActive]       = ImVec4(0.40f, 0.44f, 0.47f, 1.00f);
+            colours[ImGuiCol_ResizeGrip]            = highlight_primary;
+            colours[ImGuiCol_ResizeGripHovered]     = highlight_secondary;
+            colours[ImGuiCol_ResizeGripActive]      = highlight_secondary;
+            colours[ImGuiCol_Tab]                   = background;
+            colours[ImGuiCol_TabHovered]            = foreground;
+            colours[ImGuiCol_TabActive]             = foreground;
+            colours[ImGuiCol_TabUnfocused]          = background;
+            colours[ImGuiCol_TabUnfocusedActive]    = foreground;
+            colours[ImGuiCol_DockingPreview]        = ImVec4(0.33f, 0.67f, 0.86f, 1.00f);
+            colours[ImGuiCol_DockingEmptyBg]        = ImVec4(1.00f, 0.00f, 0.00f, 1.00f);
+            colours[ImGuiCol_PlotLines]             = ImVec4(1.00f, 0.00f, 0.00f, 1.00f);
+            colours[ImGuiCol_PlotLinesHovered]      = ImVec4(1.00f, 0.00f, 0.00f, 1.00f);
+            colours[ImGuiCol_PlotHistogram]         = ImVec4(1.00f, 0.00f, 0.00f, 1.00f);
+            colours[ImGuiCol_PlotHistogramHovered]  = ImVec4(1.00f, 0.00f, 0.00f, 1.00f);
+            colours[ImGuiCol_TableHeaderBg]         = ImVec4(0.00f, 0.00f, 0.00f, 0.52f);
+            colours[ImGuiCol_TableBorderStrong]     = ImVec4(0.00f, 0.00f, 0.00f, 0.52f);
+            colours[ImGuiCol_TableBorderLight]      = ImVec4(0.28f, 0.28f, 0.28f, 0.29f);
+            colours[ImGuiCol_DragDropTarget]        = ImVec4(0.33f, 0.67f, 0.86f, 1.00f);
+            colours[ImGuiCol_NavHighlight]          = ImVec4(1.00f, 0.00f, 0.00f, 1.00f);
+            colours[ImGuiCol_NavWindowingHighlight] = ImVec4(1.00f, 0.00f, 0.00f, 0.70f);
+            colours[ImGuiCol_NavWindowingDimBg]     = ImVec4(0.80f, 0.80f, 0.80f, 0.35f);
+            colours[ImGuiCol_ModalWindowDimBg]      = modal_dim;
+
+            IconColour = text_secondary;
+        }
         else if(theme == Light)
         {
             ImGui::StyleColorsLight();
@@ -1178,9 +1254,6 @@ namespace Lumos
         colours[ImGuiCol_SeparatorActive]  = colours[ImGuiCol_Separator];
         colours[ImGuiCol_SeparatorHovered] = colours[ImGuiCol_Separator];
 
-        colours[ImGuiCol_Tab]          = colours[ImGuiCol_MenuBarBg];
-        colours[ImGuiCol_TabUnfocused] = colours[ImGuiCol_MenuBarBg];
-
         colours[ImGuiCol_TabUnfocusedActive] = colours[ImGuiCol_WindowBg];
         colours[ImGuiCol_TabActive]          = colours[ImGuiCol_WindowBg];
         colours[ImGuiCol_ChildBg]            = colours[ImGuiCol_TabActive];
@@ -1191,6 +1264,9 @@ namespace Lumos
         colours[ImGuiCol_TitleBgCollapsed] = colours[ImGuiCol_TitleBg];
         colours[ImGuiCol_MenuBarBg]        = colours[ImGuiCol_TitleBg];
         colours[ImGuiCol_PopupBg]          = colours[ImGuiCol_WindowBg] + ImVec4(0.05f, 0.05f, 0.05f, 0.0f);
+
+        colours[ImGuiCol_Tab]          = colours[ImGuiCol_MenuBarBg];
+        colours[ImGuiCol_TabUnfocused] = colours[ImGuiCol_MenuBarBg];
 
         colours[ImGuiCol_Border]            = ImVec4(0.08f, 0.10f, 0.12f, 0.00f);
         colours[ImGuiCol_BorderShadow]      = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
@@ -1299,14 +1375,14 @@ namespace Lumos
         char buffer[256];
         memset(buffer, 0, 256);
         memcpy(buffer, currentText.c_str(), currentText.length());
-
+        ImGui::PushID(currentText.c_str());
         bool updated = ImGui::InputText("##SceneName", buffer, 256);
 
         ImGuiUtilities::DrawItemActivityOutline(2.0f, false);
 
         if(updated)
             currentText = std::string(buffer);
-
+        ImGui::PopID();
         return updated;
     }
 

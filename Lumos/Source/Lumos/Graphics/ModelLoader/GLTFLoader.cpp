@@ -9,11 +9,12 @@
 #include "Graphics/Material.h"
 
 #include "Graphics/RHI/Texture.h"
-#include "Maths/Maths.h"
+#include "Maths/MathsBasicTypes.h"
 
 #include "Maths/Transform.h"
 #include "Core/Application.h"
 #include "Core/StringUtilities.h"
+#include "Utilities/AssetManager.h"
 
 #include <ozz/animation/offline/animation_builder.h>
 #include <ozz/animation/runtime/skeleton.h>
@@ -23,7 +24,7 @@
 #define TINYGLTF_USE_CPP14
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 
-#ifdef LUMOS_DIST
+#ifdef LUMOS_PRODUCTION
 #define TINYGLTF_NOEXCEPTION
 #endif
 #include <ModelLoaders/tinygltf/tiny_gltf.h>
@@ -275,8 +276,10 @@ namespace Lumos::Graphics
             std::vector<uint32_t> indices;
             std::vector<Graphics::Vertex> vertices;
 
+            uint32_t vertexCount = (uint32_t)(primitive.attributes.empty() ? 0 : model.accessors.at(primitive.attributes["POSITION"]).count);
+
             indices.resize(indicesAccessor.count);
-            vertices.resize(indicesAccessor.count);
+            vertices.resize(vertexCount);
 
             bool hasTangents   = false;
             bool hasBitangents = false;
@@ -317,8 +320,8 @@ namespace Lumos::Graphics
                     Maths::Vector3Simple* normals = reinterpret_cast<Maths::Vector3Simple*>(data.data());
                     for(auto p = 0; p < normalCount; ++p)
                     {
-                        vertices[p].Normal = (parentTransform.GetWorldMatrix() * Maths::ToVector4(normals[p]));
-
+                        //vertices[p].Normal = (parentTransform.GetWorldMatrix() * Maths::ToVector4(normals[p]));
+                        vertices[p].Normal = glm::transpose(glm::inverse(glm::mat3(parentTransform.GetWorldMatrix()))) * (glm::vec3(Maths::ToVector4(normals[p])));
                         vertices[p].Normal = glm::normalize(vertices[p].Normal);
                     }
                 }

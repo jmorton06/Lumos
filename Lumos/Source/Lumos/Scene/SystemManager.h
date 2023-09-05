@@ -1,5 +1,6 @@
 #pragma once
 #include "Scene/ISystem.h"
+#include <imgui/imgui.h>
 
 namespace Lumos
 {
@@ -11,7 +12,7 @@ namespace Lumos
         {
             auto typeName = typeid(T).hash_code();
 
-            LUMOS_ASSERT(m_Systems.find(typeName) == m_Systems.end(), "Registering system more than once.");
+            LUMOS_ASSERT((m_Systems.find(typeName) == m_Systems.end()), "Registering system more than once.");
 
             // Create a pointer to the system and return it so it can be used externally
             SharedPtr<T> system = CreateSharedPtr<T>(std::forward<Args>(args)...);
@@ -73,7 +74,13 @@ namespace Lumos
         void OnImGui()
         {
             for(auto& system : m_Systems)
-                system.second->OnImGui();
+            {
+                if(ImGui::TreeNode(system.second->GetName().c_str()))
+                {
+                    system.second->OnImGui();
+                    ImGui::TreePop();
+                }
+            }
         }
 
         void OnDebugDraw()

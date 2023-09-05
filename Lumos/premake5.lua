@@ -20,11 +20,18 @@ IncludeDir["msdf_atlas_gen"] = "External/msdf-atlas-gen/msdf-atlas-gen"
 IncludeDir["msdfgen"] = "External/msdf-atlas-gen/msdfgen"
 IncludeDir["ozz"] = "External/ozz-animation/include"
 
+newoption 
+{
+	trigger = "time-trace",
+	description = "Build with -ftime-trace (clang only)"
+}
+
 project "Lumos"
 	kind "StaticLib"
 	language "C++"
 	editandcontinue "Off"
-		staticruntime "Off"
+	staticruntime "Off"
+
 	files
 	{
 		"Source/**.h",
@@ -95,6 +102,10 @@ project "Lumos"
 		"GLM_FORCE_INTRINSICS",
 		"GLM_FORCE_DEPTH_ZERO_TO_ONE"
 	}
+	
+	filter "options:time-trace"
+		buildoptions {"-ftime-trace"}
+		linkoptions {"-ftime-trace"}
 
 	filter 'architecture:x86_64'
 		defines { "USE_VMA_ALLOCATOR"}
@@ -148,7 +159,8 @@ project "Lumos"
 		links
 		{
 			"Dbghelp",
-			"glfw"
+			"glfw",
+			"Dwmapi.lib"
 		}
 
 		buildoptions

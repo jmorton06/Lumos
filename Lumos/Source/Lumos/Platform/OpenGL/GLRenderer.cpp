@@ -8,13 +8,14 @@
 #include "GLContext.h"
 #include "GLIndexBuffer.h"
 #include "GLVertexBuffer.h"
-
+#include "GLPipeline.h"
 #include "GL.h"
 #include "GLUtilities.h"
 #include "Graphics/Mesh.h"
 #include "GLDescriptorSet.h"
 #include "GLFramebuffer.h"
 #include "GLRenderPass.h"
+#include "GLSwapChain.h"
 #include "Graphics/Material.h"
 
 namespace Lumos

@@ -25,16 +25,21 @@
 #include "Scene/EntityManager.h"
 #include "Scene/EntityFactory.h"
 #include "Physics/LumosPhysicsEngine/LumosPhysicsEngine.h"
+#include "Physics/LumosPhysicsEngine/RigidBody3D.h"
 
 #include "ImGuiLua.h"
 #include "PhysicsLua.h"
 #include "MathsLua.h"
 
 #include <imgui/imgui.h>
-#include <Tracy/TracyLua.hpp>
 #include <sol/sol.hpp>
+#include <Tracy/TracyLua.hpp>
 
+#if __has_include(<filesystem>)
 #include <filesystem>
+#elif __has_include(<experimental/filesystem>)
+#include <experimental/filesystem>
+#endif
 
 #ifdef CUSTOM_SMART_PTR
 namespace sol
@@ -98,6 +103,43 @@ namespace sol
 
 namespace Lumos
 {
+    template <typename, typename>
+    struct _ECS_export_view;
+
+    template <typename... Component, typename... Exclude>
+    struct _ECS_export_view<entt::type_list<Component...>, entt::type_list<Exclude...>>
+    {
+        static entt::view<entt::get_t<Component...>> view(entt::registry& registry)
+        {
+            return registry.view<Component...>(entt::exclude<Exclude...>);
+        }
+    };
+
+#define REGISTER_COMPONENT_WITH_ECS(curLuaState, Comp, assignPtr)                                              \
+    {                                                                                                          \
+        using namespace entt;                                                                                  \
+        auto entity_type = curLuaState["Entity"].get_or_create<sol::usertype<registry>>();                     \
+        entity_type.set_function("Add" #Comp, assignPtr);                                                      \
+        entity_type.set_function("Remove" #Comp, &Entity::RemoveComponent<Comp>);                              \
+        entity_type.set_function("Get" #Comp, &Entity::GetComponent<Comp>);                                    \
+        entity_type.set_function("GetOrAdd" #Comp, &Entity::GetOrAddComponent<Comp>);                          \
+        entity_type.set_function("TryGet" #Comp, &Entity::TryGetComponent<Comp>);                              \
+        entity_type.set_function("AddOrReplace" #Comp, &Entity::AddOrReplaceComponent<Comp>);                  \
+        entity_type.set_function("Has" #Comp, &Entity::HasComponent<Comp>);                                    \
+        auto entityManager_type = curLuaState["enttRegistry"].get_or_create<sol::usertype<registry>>();        \
+        entityManager_type.set_function("view_" #Comp, &_ECS_export_view<type_list<Comp>, type_list<>>::view); \
+        auto V = curLuaState.new_usertype<view<entt::get_t<Comp>>>(#Comp "_view");                             \
+        V.set_function("each", &view<entt::get_t<Comp>>::each<std::function<void(Comp&)>>);                    \
+        V.set_function("front", &view<entt::get_t<Comp>>::front);                                              \
+        s_Identifiers.push_back(#Comp);                                                                        \
+        s_Identifiers.push_back("Add" #Comp);                                                                  \
+        s_Identifiers.push_back("Remove" #Comp);                                                               \
+        s_Identifiers.push_back("Get" #Comp);                                                                  \
+        s_Identifiers.push_back("GetOrAdd" #Comp);                                                             \
+        s_Identifiers.push_back("TryGet" #Comp);                                                               \
+        s_Identifiers.push_back("AddOrReplace" #Comp);                                                         \
+        s_Identifiers.push_back("Has" #Comp);                                                                  \
+    }
 
     std::vector<std::string> LuaManager::s_Identifiers = {
         "Log",
@@ -470,6 +512,8 @@ namespace Lumos
         sol::usertype<Sprite> sprite_type = state.new_usertype<Sprite>("Sprite", sol::constructors<sol::types<glm::vec2, glm::vec2, glm::vec4>, Sprite(const SharedPtr<Graphics::Texture2D>&, const glm::vec2&, const glm::vec2&, const glm::vec4&)>());
         sprite_type.set_function("SetTexture", &Sprite::SetTexture);
         sprite_type.set_function("SetSpriteSheet", &Sprite::SetSpriteSheet);
+        sprite_type.set_function("SetSpriteSheetIndex", &Sprite::SetSpriteSheetIndex);
+        sprite_type["SpriteSheetTileSize"] = &Sprite::SpriteSheetTileSize;
 
         REGISTER_COMPONENT_WITH_ECS(state, Sprite, static_cast<Sprite& (Entity::*)(const glm::vec2&, const glm::vec2&, const glm::vec4&)>(&Entity::AddComponent<Sprite, const glm::vec2&, const glm::vec2&, const glm::vec4&>));
 
@@ -571,9 +615,11 @@ namespace Lumos
 
         REGISTER_COMPONENT_WITH_ECS(state, Camera, static_cast<Camera& (Entity::*)(const float&, const float&)>(&Entity::AddComponent<Camera, const float&, const float&>));
 
-        sol::usertype<RigidBody3DComponent> RigidBody3DComponent_type = state.new_usertype<RigidBody3DComponent>("RigidBody3DComponent", sol::constructors<sol::types<const SharedPtr<RigidBody3D>&>>());
+        sol::usertype<RigidBody3DComponent> RigidBody3DComponent_type = state.new_usertype<RigidBody3DComponent>("RigidBody3DComponent", sol::constructors<sol::types<RigidBody3D*>>());
         RigidBody3DComponent_type.set_function("GetRigidBody", &RigidBody3DComponent::GetRigidBody);
-        REGISTER_COMPONENT_WITH_ECS(state, RigidBody3DComponent, static_cast<RigidBody3DComponent& (Entity::*)(SharedPtr<RigidBody3D>&)>(&Entity::AddComponent<RigidBody3DComponent, SharedPtr<RigidBody3D>&>));
+
+        REGISTER_COMPONENT_WITH_ECS(state, RigidBody3DComponent, static_cast<RigidBody3DComponent& (Entity::*)(const RigidBody3DProperties&)>(&Entity::AddComponent<RigidBody3DComponent, const RigidBody3DProperties&>));
+        //REGISTER_COMPONENT_WITH_ECS(state, RigidBody3DComponent, static_cast<RigidBody3DComponent& (Entity::*)>(&Entity::AddComponent<RigidBody3DComponent));
 
         sol::usertype<RigidBody2DComponent> RigidBody2DComponent_type = state.new_usertype<RigidBody2DComponent>("RigidBody2DComponent", sol::constructors<sol::types<const RigidBodyParameters&>>());
         RigidBody2DComponent_type.set_function("GetRigidBody", &RigidBody2DComponent::GetRigidBody);

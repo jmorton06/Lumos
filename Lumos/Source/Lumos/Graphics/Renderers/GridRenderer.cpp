@@ -18,6 +18,7 @@
 #include "Graphics/Camera/Camera.h"
 #include "Maths/Transform.h"
 #include "Graphics/Renderers/RenderPasses.h"
+#include "Utilities/AssetManager.h"
 
 #include <imgui/imgui.h>
 

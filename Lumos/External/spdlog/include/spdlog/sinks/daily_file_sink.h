@@ -13,9 +13,10 @@
 #include <spdlog/details/circular_q.h>
 #include <spdlog/details/synchronous_factory.h>
 
+#include <sstream>
+#include <iomanip>
 #include <chrono>
 #include <cstdio>
-#include <ctime>
 #include <mutex>
 #include <string>
 
@@ -32,8 +33,8 @@ struct daily_filename_calculator
     {
         filename_t basename, ext;
         std::tie(basename, ext) = details::file_helper::split_by_extension(filename);
-        return fmt::format(
-            SPDLOG_FILENAME_T("{}_{:04d}-{:02d}-{:02d}{}"), basename, now_tm.tm_year + 1900, now_tm.tm_mon + 1, now_tm.tm_mday, ext);
+        return fmt_lib::format(SPDLOG_FMT_STRING(SPDLOG_FILENAME_T("{}_{:04d}-{:02d}-{:02d}{}")), basename, now_tm.tm_year + 1900,
+            now_tm.tm_mon + 1, now_tm.tm_mday, ext);
     }
 };
 
@@ -46,15 +47,15 @@ struct daily_filename_calculator
  */
 struct daily_filename_format_calculator
 {
-    static filename_t calc_filename(const filename_t &filename, const tm &now_tm)
+    static filename_t calc_filename(const filename_t &file_path, const tm &now_tm)
     {
-        // generate fmt datetime format string, e.g. {:%Y-%m-%d}.
-        filename_t fmt_filename = fmt::format(SPDLOG_FILENAME_T("{{:{}}}"), filename);
-#if defined(_MSC_VER) && defined(SPDLOG_WCHAR_FILENAMES) // for some reason msvc doesnt allow fmt::runtime(..) with wchar here
-        return fmt::format(fmt_filename, now_tm);
+#if defined(_WIN32) && defined(SPDLOG_WCHAR_FILENAMES)
+        std::wstringstream stream;
 #else
-        return fmt::format(SPDLOG_FMT_RUNTIME(fmt_filename), now_tm);
+        std::stringstream stream;
 #endif
+        stream << std::put_time(&now_tm, file_path.c_str());
+        return stream.str();
     }
 };
 
@@ -68,10 +69,12 @@ class daily_file_sink final : public base_sink<Mutex>
 {
 public:
     // create daily file sink which rotates on given time
-    daily_file_sink(filename_t base_filename, int rotation_hour, int rotation_minute, bool truncate = false, uint16_t max_files = 0)
+    daily_file_sink(filename_t base_filename, int rotation_hour, int rotation_minute, bool truncate = false, uint16_t max_files = 0,
+        const file_event_handlers &event_handlers = {})
         : base_filename_(std::move(base_filename))
         , rotation_h_(rotation_hour)
         , rotation_m_(rotation_minute)
+        , file_helper_{event_handlers}
         , truncate_(truncate)
         , max_files_(max_files)
         , filenames_q_()
@@ -213,30 +216,32 @@ using daily_file_format_sink_st = daily_file_sink<details::null_mutex, daily_fil
 // factory functions
 //
 template<typename Factory = spdlog::synchronous_factory>
-inline std::shared_ptr<logger> daily_logger_mt(
-    const std::string &logger_name, const filename_t &filename, int hour = 0, int minute = 0, bool truncate = false, uint16_t max_files = 0)
+inline std::shared_ptr<logger> daily_logger_mt(const std::string &logger_name, const filename_t &filename, int hour = 0, int minute = 0,
+    bool truncate = false, uint16_t max_files = 0, const file_event_handlers &event_handlers = {})
 {
-    return Factory::template create<sinks::daily_file_sink_mt>(logger_name, filename, hour, minute, truncate, max_files);
+    return Factory::template create<sinks::daily_file_sink_mt>(logger_name, filename, hour, minute, truncate, max_files, event_handlers);
 }
 
 template<typename Factory = spdlog::synchronous_factory>
-inline std::shared_ptr<logger> daily_logger_format_mt(
-    const std::string &logger_name, const filename_t &filename, int hour = 0, int minute = 0, bool truncate = false, uint16_t max_files = 0)
+inline std::shared_ptr<logger> daily_logger_format_mt(const std::string &logger_name, const filename_t &filename, int hour = 0,
+    int minute = 0, bool truncate = false, uint16_t max_files = 0, const file_event_handlers &event_handlers = {})
 {
-    return Factory::template create<sinks::daily_file_format_sink_mt>(logger_name, filename, hour, minute, truncate, max_files);
+    return Factory::template create<sinks::daily_file_format_sink_mt>(
+        logger_name, filename, hour, minute, truncate, max_files, event_handlers);
 }
 
 template<typename Factory = spdlog::synchronous_factory>
-inline std::shared_ptr<logger> daily_logger_st(
-    const std::string &logger_name, const filename_t &filename, int hour = 0, int minute = 0, bool truncate = false, uint16_t max_files = 0)
+inline std::shared_ptr<logger> daily_logger_st(const std::string &logger_name, const filename_t &filename, int hour = 0, int minute = 0,
+    bool truncate = false, uint16_t max_files = 0, const file_event_handlers &event_handlers = {})
 {
-    return Factory::template create<sinks::daily_file_sink_st>(logger_name, filename, hour, minute, truncate, max_files);
+    return Factory::template create<sinks::daily_file_sink_st>(logger_name, filename, hour, minute, truncate, max_files, event_handlers);
 }
 
 template<typename Factory = spdlog::synchronous_factory>
-inline std::shared_ptr<logger> daily_logger_format_st(
-    const std::string &logger_name, const filename_t &filename, int hour = 0, int minute = 0, bool truncate = false, uint16_t max_files = 0)
+inline std::shared_ptr<logger> daily_logger_format_st(const std::string &logger_name, const filename_t &filename, int hour = 0,
+    int minute = 0, bool truncate = false, uint16_t max_files = 0, const file_event_handlers &event_handlers = {})
 {
-    return Factory::template create<sinks::daily_file_format_sink_st>(logger_name, filename, hour, minute, truncate, max_files);
+    return Factory::template create<sinks::daily_file_format_sink_st>(
+        logger_name, filename, hour, minute, truncate, max_files, event_handlers);
 }
 } // namespace spdlog

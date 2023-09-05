@@ -4,8 +4,10 @@
 #include "VKCommandPool.h"
 #include "VKCommandBuffer.h"
 #include "VKRenderer.h"
+#include "VKUtilities.h"
 #include "Core/Version.h"
 #include "Core/StringUtilities.h"
+#include "Maths/MathsUtilities.h"
 
 #ifndef VK_API_VERSION_1_2
 #error Wrong Vulkan SDK!
@@ -361,6 +363,7 @@ namespace Lumos
 #ifndef LUMOS_PLATFORM_IOS
             volkLoadInstance(s_VkInstance);
 #endif
+            VKUtilities::Init();
         }
 
         void VKContext::SetupDebugCallback()

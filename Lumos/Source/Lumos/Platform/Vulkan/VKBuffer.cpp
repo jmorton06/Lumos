@@ -16,6 +16,7 @@ namespace Lumos
 
         VKBuffer::VKBuffer()
             : m_Size(0)
+            , m_MemoryProperyFlags(0)
         {
         }
 

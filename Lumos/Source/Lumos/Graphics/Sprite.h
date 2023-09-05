@@ -1,9 +1,9 @@
 #pragma once
-#include "Maths/Maths.h"
 #include "Renderable2D.h"
 #include "Core/VFS.h"
 
-#include <cereal/cereal.hpp>
+#include "Scene/Serialisation.h"
+#include "Maths/MathsSerialisation.h"
 
 namespace Lumos
 {
@@ -21,10 +21,14 @@ namespace Lumos
             void SetColour(const glm::vec4& colour) { m_Colour = colour; }
             void SetScale(const glm::vec2& scale) { m_Scale = scale; }
 
+            void SetSpriteSheetIndex(int x, int y);
             void SetSpriteSheet(const glm::vec2& index, const glm::vec2& cellSize, const glm::vec2& spriteSize, float boarder = 0.0f);
             void SetTexture(const SharedPtr<Texture2D>& texture) { m_Texture = texture; }
 
             void SetTextureFromFile(const std::string& filePath);
+
+            bool UsingSpriteSheet        = false;
+            uint32_t SpriteSheetTileSize = 32;
 
             template <typename Archive>
             void save(Archive& archive) const
@@ -39,6 +43,8 @@ namespace Lumos
                         cereal::make_nvp("Position", m_Position),
                         cereal::make_nvp("Scale", m_Scale),
                         cereal::make_nvp("Colour", m_Colour));
+
+                archive(UsingSpriteSheet, SpriteSheetTileSize);
             }
 
             template <typename Archive>
@@ -52,6 +58,9 @@ namespace Lumos
 
                 if(!textureFilePath.empty())
                     m_Texture = SharedPtr<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile("sprite", textureFilePath));
+
+                if(Serialisation::CurrentSceneVersion > 21)
+                    archive(UsingSpriteSheet, SpriteSheetTileSize);
             }
         };
     }

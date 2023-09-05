@@ -1,9 +1,10 @@
 #pragma once
-#include "Maths/Maths.h"
 #include "RHI/Texture.h"
 #include "RHI/Shader.h"
 #include "Core/VFS.h"
 #include "Scene/Serialisation.h"
+
+#include "Maths/MathsSerialisation.h"
 
 namespace Lumos
 {
@@ -241,6 +242,8 @@ namespace Lumos
             };
 
             static SharedPtr<Texture2D> GetDefaultTexture() { return s_DefaultTexture; }
+            const std::string& GetMaterialPath() const { return m_MaterialPath; }
+            void SetMaterialPath(const std::string& path) { m_MaterialPath = path; }
 
         private:
             PBRMataterialTextures m_PBRMaterialTextures;
@@ -251,6 +254,8 @@ namespace Lumos
             std::string m_Name;
             bool m_TexturesUpdated = false;
             uint32_t m_Flags;
+
+            std::string m_MaterialPath;
 
             static SharedPtr<Texture2D> s_DefaultTexture;
         };

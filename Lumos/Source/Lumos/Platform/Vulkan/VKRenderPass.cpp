@@ -27,7 +27,7 @@ namespace Lumos
 
         VKRenderPass::~VKRenderPass()
         {
-            LUMOS_PROFILE_FUNCTION();
+            LUMOS_PROFILE_FUNCTION_LOW();
             delete[] m_ClearValue;
 
             VKContext::DeletionQueue& deletionQueue = VKRenderer::GetCurrentDeletionQueue();
@@ -39,7 +39,7 @@ namespace Lumos
 
         VkAttachmentDescription GetAttachmentDescription(TextureType type, Texture* texture, bool clear = true)
         {
-            LUMOS_PROFILE_FUNCTION();
+            LUMOS_PROFILE_FUNCTION_LOW();
             VkAttachmentDescription attachment = {};
             if(type == TextureType::COLOUR)
             {
@@ -95,7 +95,7 @@ namespace Lumos
 
         bool VKRenderPass::Init(const RenderPassDesc& renderPassDesc)
         {
-            LUMOS_PROFILE_FUNCTION();
+            LUMOS_PROFILE_FUNCTION_LOW();
             std::vector<VkAttachmentDescription> attachments;
 
             std::vector<VkAttachmentReference> colourAttachmentReferences;
@@ -103,6 +103,7 @@ namespace Lumos
 
             m_DepthOnly  = true;
             m_ClearDepth = false;
+            m_DebugName  = renderPassDesc.DebugName;
 
             for(uint32_t i = 0; i < renderPassDesc.attachmentCount; i++)
             {
@@ -166,6 +167,9 @@ namespace Lumos
 
             VK_CHECK_RESULT(vkCreateRenderPass(VKDevice::Get().GetDevice(), &renderPassCreateInfo, VK_NULL_HANDLE, &m_RenderPass));
 
+            if(!renderPassDesc.DebugName.empty())
+                VKUtilities::SetDebugUtilsObjectName(VKDevice::Get().GetDevice(), VK_OBJECT_TYPE_RENDER_PASS, renderPassDesc.DebugName, m_RenderPass);
+
             m_ClearValue      = new VkClearValue[renderPassDesc.attachmentCount];
             m_ClearCount      = renderPassDesc.attachmentCount;
             m_SwapchainTarget = renderPassDesc.swapchainTarget;
@@ -175,7 +179,7 @@ namespace Lumos
 
         VkSubpassContents SubPassContentsToVK(SubPassContents contents)
         {
-            LUMOS_PROFILE_FUNCTION();
+            LUMOS_PROFILE_FUNCTION_LOW();
             switch(contents)
             {
             case INLINE:
@@ -189,7 +193,7 @@ namespace Lumos
 
         void VKRenderPass::BeginRenderpass(CommandBuffer* commandBuffer, float* clearColour, Framebuffer* frame, SubPassContents contents, uint32_t width, uint32_t height) const
         {
-            LUMOS_PROFILE_FUNCTION();
+            LUMOS_PROFILE_FUNCTION_LOW();
             if(!m_DepthOnly)
             {
                 for(int i = 0; i < m_ClearCount; i++)
@@ -218,14 +222,27 @@ namespace Lumos
             rpBegin.clearValueCount          = uint32_t(m_ClearCount);
             rpBegin.pClearValues             = m_ClearValue;
 
+            if(!m_DebugName.empty())
+            {
+                VkDebugUtilsLabelEXT debugLabel {};
+                debugLabel.sType      = VK_STRUCTURE_TYPE_DEBUG_UTILS_LABEL_EXT;
+                debugLabel.pLabelName = m_DebugName.c_str();
+                fpCmdBeginDebugUtilsLabelEXT(static_cast<VKCommandBuffer*>(commandBuffer)->GetHandle(), &debugLabel);
+            }
+
             vkCmdBeginRenderPass(static_cast<VKCommandBuffer*>(commandBuffer)->GetHandle(), &rpBegin, SubPassContentsToVK(contents));
             commandBuffer->UpdateViewport(width, height, m_SwapchainTarget);
         }
 
         void VKRenderPass::EndRenderpass(CommandBuffer* commandBuffer)
         {
-            LUMOS_PROFILE_FUNCTION();
+            LUMOS_PROFILE_FUNCTION_LOW();
             vkCmdEndRenderPass(static_cast<VKCommandBuffer*>(commandBuffer)->GetHandle());
+
+            if(!m_DebugName.empty())
+            {
+                fpCmdEndDebugUtilsLabelEXT(static_cast<VKCommandBuffer*>(commandBuffer)->GetHandle());
+            }
         }
 
         void VKRenderPass::MakeDefault()

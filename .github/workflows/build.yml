@@ -10,7 +10,7 @@ jobs:
         config: [debug, production]
         platform: [x64]
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 1
         submodules: recursive
@@ -41,7 +41,7 @@ jobs:
         config: [Debug, Production]
         platform: [x64, ARM]
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 1
         submodules: recursive
@@ -86,7 +86,7 @@ jobs:
       matrix:
         config: [Debug, Production]
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 1
         submodules: recursive
@@ -121,7 +121,7 @@ jobs:
     env:
       MSBUILD_PATH: C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin\
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 1
           submodules: recursive

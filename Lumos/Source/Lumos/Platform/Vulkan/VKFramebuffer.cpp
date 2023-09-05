@@ -11,6 +11,7 @@ namespace Lumos
     namespace Graphics
     {
         VKFramebuffer::VKFramebuffer(const FramebufferDesc& frameBufferInfo)
+            : m_Framebuffer(nullptr)
         {
             m_Width  = frameBufferInfo.width;
             m_Height = frameBufferInfo.height;

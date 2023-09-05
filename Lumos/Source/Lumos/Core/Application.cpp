@@ -25,6 +25,7 @@
 #include "Core/JobSystem.h"
 #include "Core/StringUtilities.h"
 #include "Core/OS/FileSystem.h"
+#include "Utilities/AssetManager.h"
 #include "Scripting/Lua/LuaManager.h"
 #include "ImGui/ImGuiManager.h"
 #include "Events/ApplicationEvent.h"
@@ -57,6 +58,7 @@ namespace Lumos
     {
         LUMOS_PROFILE_FUNCTION();
         LUMOS_ASSERT(!s_Instance, "Application already exists!");
+
         s_Instance = this;
     }
 
@@ -77,6 +79,12 @@ namespace Lumos
         auto projectRoot                = StringUtilities::GetFileLocation(filePath);
         m_ProjectSettings.m_ProjectRoot = projectRoot;
 #endif
+
+        if(!FileSystem::FolderExists(m_ProjectSettings.m_ProjectRoot + "Assets/Prefabs"))
+            std::filesystem::create_directory(m_ProjectSettings.m_ProjectRoot + "Assets/Prefabs");
+
+        if(!FileSystem::FolderExists(m_ProjectSettings.m_ProjectRoot + "Assets/Materials"))
+            std::filesystem::create_directory(m_ProjectSettings.m_ProjectRoot + "Assets/Materials");
 
         m_SceneManager = CreateUniquePtr<SceneManager>();
 
@@ -137,6 +145,12 @@ namespace Lumos
         if(!FileSystem::FolderExists(m_ProjectSettings.m_ProjectRoot + "Assets/Sounds"))
             std::filesystem::create_directory(m_ProjectSettings.m_ProjectRoot + "Assets/Sounds");
 
+        if(!FileSystem::FolderExists(m_ProjectSettings.m_ProjectRoot + "Assets/Prefabs"))
+            std::filesystem::create_directory(m_ProjectSettings.m_ProjectRoot + "Assets/Prefabs");
+
+        if(!FileSystem::FolderExists(m_ProjectSettings.m_ProjectRoot + "Assets/Materials"))
+            std::filesystem::create_directory(m_ProjectSettings.m_ProjectRoot + "Assets/Materials");
+
         MountVFSPaths();
 
         m_SceneManager->EnqueueScene(new Scene("Empty Scene"));
@@ -163,6 +177,8 @@ namespace Lumos
         VFS::Get().Mount("Scripts", m_ProjectSettings.m_ProjectRoot + std::string("Assets/Scripts"), true);
         VFS::Get().Mount("Scenes", m_ProjectSettings.m_ProjectRoot + std::string("Assets/Scenes"), true);
         VFS::Get().Mount("Assets", m_ProjectSettings.m_ProjectRoot + std::string("Assets"), true);
+        VFS::Get().Mount("Prefabs", m_ProjectSettings.m_ProjectRoot + std::string("Assets/Prefabs"), true);
+        VFS::Get().Mount("Materials", m_ProjectSettings.m_ProjectRoot + std::string("Assets/Materials"), true);
     }
 
     Scene* Application::GetCurrentScene() const
@@ -176,6 +192,8 @@ namespace Lumos
         LUMOS_PROFILE_FUNCTION();
         m_SceneManager = CreateUniquePtr<SceneManager>();
         Deserialise();
+
+        m_FrameArena = ArenaAlloc(Megabytes(64));
 
         Engine::Get();
         LuaManager::Get().OnInit();
@@ -194,6 +212,11 @@ namespace Lumos
         windowDesc.ShowConsole = m_ProjectSettings.ShowConsole;
         windowDesc.Title       = m_ProjectSettings.Title;
         windowDesc.VSync       = m_ProjectSettings.VSync;
+
+        if(m_ProjectSettings.DefaultIcon)
+        {
+            windowDesc.IconPaths = { "//Textures/icon.png", "//Textures/icon32.png" };
+        }
 
         // Initialise the Window
         m_Window = UniquePtr<Window>(Window::Create(windowDesc));
@@ -282,6 +305,9 @@ namespace Lumos
     {
         LUMOS_PROFILE_FUNCTION();
         Serialise();
+
+        ArenaRelease(m_FrameArena);
+
         Graphics::Material::ReleaseDefaultTexture();
         Graphics::Font::ShutdownDefaultFont();
         Engine::Release();
@@ -322,6 +348,8 @@ namespace Lumos
     bool Application::OnFrame()
     {
         LUMOS_PROFILE_FUNCTION();
+        ArenaClear(m_FrameArena);
+
         if(m_SceneManager->GetSwitchingScene())
         {
             LUMOS_PROFILE_SCOPE("Application::SceneSwitch");
@@ -565,6 +593,15 @@ namespace Lumos
     {
     }
 
+    void Application::AddDefaultScene()
+    {
+        if(m_SceneManager->GetScenes().size() == 0)
+        {
+            m_SceneManager->EnqueueScene(new Scene("Empty Scene"));
+            m_SceneManager->SwitchScene(0);
+        }
+    }
+
     bool Application::OnWindowClose(WindowCloseEvent& e)
     {
         m_CurrentState = AppState::Closing;
@@ -698,6 +735,30 @@ namespace Lumos
                 }
                 return;
             }
+
+            if(!FileSystem::FolderExists(m_ProjectSettings.m_ProjectRoot + "Assets"))
+                std::filesystem::create_directory(m_ProjectSettings.m_ProjectRoot + "Assets");
+
+            if(!FileSystem::FolderExists(m_ProjectSettings.m_ProjectRoot + "Assets/Scripts"))
+                std::filesystem::create_directory(m_ProjectSettings.m_ProjectRoot + "Assets/Scripts");
+
+            if(!FileSystem::FolderExists(m_ProjectSettings.m_ProjectRoot + "Assets/Scenes"))
+                std::filesystem::create_directory(m_ProjectSettings.m_ProjectRoot + "Assets/Scenes");
+
+            if(!FileSystem::FolderExists(m_ProjectSettings.m_ProjectRoot + "Assets/Textures"))
+                std::filesystem::create_directory(m_ProjectSettings.m_ProjectRoot + "Assets/Textures");
+
+            if(!FileSystem::FolderExists(m_ProjectSettings.m_ProjectRoot + "Assets/Meshes"))
+                std::filesystem::create_directory(m_ProjectSettings.m_ProjectRoot + "Assets/Meshes");
+
+            if(!FileSystem::FolderExists(m_ProjectSettings.m_ProjectRoot + "Assets/Sounds"))
+                std::filesystem::create_directory(m_ProjectSettings.m_ProjectRoot + "Assets/Sounds");
+
+            if(!FileSystem::FolderExists(m_ProjectSettings.m_ProjectRoot + "Assets/Prefabs"))
+                std::filesystem::create_directory(m_ProjectSettings.m_ProjectRoot + "Assets/Prefabs");
+
+            if(!FileSystem::FolderExists(m_ProjectSettings.m_ProjectRoot + "Assets/Materials"))
+                std::filesystem::create_directory(m_ProjectSettings.m_ProjectRoot + "Assets/Materials");
 
             m_ProjectLoaded = true;
 

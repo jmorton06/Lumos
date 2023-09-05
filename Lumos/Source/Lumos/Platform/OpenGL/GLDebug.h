@@ -1,8 +1,5 @@
 #pragma once
 
-#include "GLRenderer.h"
-#include "GL.h"
-
 namespace Lumos
 {
 #ifdef LUMOS_DEBUG

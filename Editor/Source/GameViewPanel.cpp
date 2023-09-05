@@ -2,24 +2,15 @@
 #include "Editor.h"
 #include <Lumos/Graphics/Camera/Camera.h>
 #include <Lumos/Core/Application.h>
-#include <Lumos/Scene/SceneManager.h>
+#include <Lumos/Scene/Scene.h>
 #include <Lumos/Core/Engine.h>
 #include <Lumos/Core/Profiler.h>
-#include <Lumos/Graphics/RHI/GraphicsContext.h>
 #include <Lumos/Graphics/RHI/Texture.h>
-#include <Lumos/Graphics/RHI/SwapChain.h>
 #include <Lumos/Graphics/Renderers/RenderPasses.h>
-#include <Lumos/Graphics/GBuffer.h>
-#include <Lumos/Graphics/Light.h>
-#include <Lumos/Scene/Component/SoundComponent.h>
-#include <Lumos/Physics/LumosPhysicsEngine/LumosPhysicsEngine.h>
 #include <Lumos/Physics/B2PhysicsEngine/B2PhysicsEngine.h>
 #include <Lumos/Core/OS/Input.h>
-#include <Lumos/Graphics/Renderers/DebugRenderer.h>
 #include <Lumos/ImGui/IconsMaterialDesignIcons.h>
-#include <Lumos/Graphics/Camera/EditorCamera.h>
 #include <Lumos/ImGui/ImGuiUtilities.h>
-#include <Lumos/Events/ApplicationEvent.h>
 
 #include <box2d/box2d.h>
 #include <imgui/imgui_internal.h>
@@ -37,6 +28,7 @@ namespace Lumos
 
         m_RenderPasses                          = CreateUniquePtr<Graphics::RenderPasses>(m_Width, m_Height);
         m_RenderPasses->GetSettings().DebugPass = false;
+        m_RenderPasses->m_DebugRenderEnabled    = false;
     }
 
     static std::string AspectToString(float aspect)
@@ -171,6 +163,9 @@ namespace Lumos
 
         sceneViewSize.x -= static_cast<int>(sceneViewSize.x) % 2 != 0 ? 1.0f : 0.0f;
         sceneViewSize.y -= static_cast<int>(sceneViewSize.y) % 2 != 0 ? 1.0f : 0.0f;
+
+        sceneViewSize.x = Maths::Max(sceneViewSize.x, 2);
+        sceneViewSize.y = Maths::Max(sceneViewSize.y, 2);
 
         Resize(static_cast<uint32_t>(sceneViewSize.x), static_cast<uint32_t>(sceneViewSize.y));
 

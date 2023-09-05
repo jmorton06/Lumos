@@ -74,7 +74,7 @@ namespace Lumos
 
     std::vector<CollisionEdge>& PyramidCollisionShape::GetEdges(const RigidBody3D* currentObject)
     {
-        LUMOS_PROFILE_FUNCTION();
+        LUMOS_PROFILE_FUNCTION_LOW();
         {
             glm::mat4 transform = currentObject->GetWorldSpaceTransform() * m_LocalTransform;
             for(unsigned int i = 0; i < m_PyramidHull->GetNumEdges(); ++i)
@@ -91,7 +91,7 @@ namespace Lumos
 
     std::vector<glm::vec3>& PyramidCollisionShape::GetCollisionAxes(const RigidBody3D* currentObject)
     {
-        LUMOS_PROFILE_FUNCTION();
+        LUMOS_PROFILE_FUNCTION_LOW();
         {
             m_Axes.clear();
             m_Axes.resize(5);
@@ -108,7 +108,7 @@ namespace Lumos
 
     void PyramidCollisionShape::GetMinMaxVertexOnAxis(const RigidBody3D* currentObject, const glm::vec3& axis, glm::vec3* out_min, glm::vec3* out_max) const
     {
-        LUMOS_PROFILE_FUNCTION();
+        LUMOS_PROFILE_FUNCTION_LOW();
         glm::mat4 wsTransform      = currentObject ? currentObject->GetWorldSpaceTransform() * m_LocalTransform : m_LocalTransform;
         const glm::vec3 local_axis = glm::transpose(wsTransform) * glm::vec4(axis, 1.0f);
 
@@ -125,7 +125,7 @@ namespace Lumos
                                                             const glm::vec3& axis,
                                                             ReferencePolygon& refPolygon) const
     {
-        LUMOS_PROFILE_FUNCTION();
+        LUMOS_PROFILE_FUNCTION_LOW();
         glm::mat4 wsTransform = currentObject ? currentObject->GetWorldSpaceTransform() * m_LocalTransform : m_LocalTransform;
 
         const glm::mat3 invNormalMatrix = glm::inverse(wsTransform);
@@ -201,7 +201,7 @@ namespace Lumos
 
     void PyramidCollisionShape::DebugDraw(const RigidBody3D* currentObject) const
     {
-        LUMOS_PROFILE_FUNCTION();
+        LUMOS_PROFILE_FUNCTION_LOW();
         const glm::mat4 transform = currentObject->GetWorldSpaceTransform() * m_LocalTransform;
 
         m_PyramidHull->DebugDraw(transform);
@@ -209,7 +209,7 @@ namespace Lumos
 
     void PyramidCollisionShape::ConstructPyramidHull()
     {
-        LUMOS_PROFILE_FUNCTION();
+        LUMOS_PROFILE_FUNCTION_LOW();
         glm::vec3 v0 = glm::vec3(-1.0f, -1.0f, -1.0f); // 0
         glm::vec3 v1 = glm::vec3(-1.0f, -1.0f, 1.0f);  // 1
         glm::vec3 v2 = glm::vec3(1.0f, -1.0f, 1.0f);   // 2

@@ -18,6 +18,7 @@ namespace Lumos
     {
         namespace VKUtilities
         {
+            void Init();
             void CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer,
                               VkDeviceMemory& bufferMemory, VmaAllocator allocator = nullptr, VmaAllocation allocation = nullptr);
 
@@ -64,6 +65,8 @@ namespace Lumos
             VkShaderStageFlagBits ShaderTypeToVK(const ShaderType& shaderName);
             VkPolygonMode PolygonModeToVk(Lumos::Graphics::PolygonMode mode);
             VkPrimitiveTopology DrawTypeToVk(Lumos::Graphics::DrawType type);
+
+            void SetDebugUtilsObjectName(const VkDevice device, const VkObjectType objectType, const std::string& name, const void* handle);
         }
     }
 }
