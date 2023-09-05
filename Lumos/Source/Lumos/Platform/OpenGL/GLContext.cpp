@@ -127,9 +127,9 @@ namespace Lumos
         {
             LUMOS_LOG_INFO("----------------------------------");
             LUMOS_LOG_INFO(OPENGLLOG);
-            LUMOS_LOG_INFO(glGetString(GL_VERSION));
-            LUMOS_LOG_INFO(glGetString(GL_VENDOR));
-            LUMOS_LOG_INFO(glGetString(GL_RENDERER));
+            LUMOS_LOG_INFO((const char*)(glGetString(GL_VERSION)));
+            LUMOS_LOG_INFO((const char*)(glGetString(GL_VENDOR)));
+            LUMOS_LOG_INFO((const char*)(glGetString(GL_RENDERER)));
             LUMOS_LOG_INFO("----------------------------------");
 
 #if LUMOS_DEBUG

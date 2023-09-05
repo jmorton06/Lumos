@@ -22,7 +22,7 @@ namespace Lumos
             spdlog::memory_buf_t formatted;
             spdlog::sinks::base_sink<Mutex>::formatter_->format(msg, formatted);
             std::string source = fmt::format("File : {0} | Function : {1} | Line : {2}", msg.source.filename, msg.source.funcname, msg.source.line);
-            const auto time    = fmt::localtime(msg.time);
+            const auto time    = fmt::localtime(std::chrono::system_clock::to_time_t(msg.time));
             auto processed     = fmt::format("{:%H:%M:%S}", time);
 
             auto message = CreateSharedPtr<ConsolePanel::Message>(fmt::to_string(formatted), GetMessageLevel(msg.level), source, static_cast<int>(msg.thread_id), processed);

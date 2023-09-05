@@ -794,13 +794,13 @@ end
         if(ImGuiUtilities::Property("Fov", fov, 1.0f, 120.0f))
             camera.SetFOV(fov);
 
-        float near = camera.GetNear();
-        if(ImGuiUtilities::Property("Near", near, 0.0f, 10.0f))
-            camera.SetNear(near);
+        float n = camera.GetNear();
+        if(ImGuiUtilities::Property("Near", n, 0.0f, 10.0f))
+            camera.SetNear(n);
 
-        float far = camera.GetFar();
-        if(ImGuiUtilities::Property("Far", far, 10.0f, 10000.0f))
-            camera.SetFar(far);
+        float f = camera.GetFar();
+        if(ImGuiUtilities::Property("Far", f, 10.0f, 10000.0f))
+            camera.SetFar(f);
 
         float scale = camera.GetScale();
         if(ImGuiUtilities::Property("Scale", scale, 0.0f, 1000.0f))

@@ -16,6 +16,7 @@
 #include <unistd.h>
 #include <netdb.h>
 #include <netinet/tcp.h>
+#include <netinet/in.h>
 
 #include <string>
 
@@ -57,7 +58,7 @@ public:
         struct addrinfo hints
         {};
         memset(&hints, 0, sizeof(struct addrinfo));
-        hints.ai_family = AF_INET;       // IPv4
+        hints.ai_family = AF_UNSPEC;     // To work with IPv4, IPv6, and so on
         hints.ai_socktype = SOCK_STREAM; // TCP
         hints.ai_flags = AI_NUMERICSERV; // port passed as as numeric value
         hints.ai_protocol = 0;
@@ -67,8 +68,7 @@ public:
         auto rv = ::getaddrinfo(host.c_str(), port_str.c_str(), &hints, &addrinfo_result);
         if (rv != 0)
         {
-            auto msg = fmt::format("::getaddrinfo failed: {}", gai_strerror(rv));
-            throw_spdlog_ex(msg);
+            throw_spdlog_ex(fmt_lib::format("::getaddrinfo failed: {}", gai_strerror(rv)));
         }
 
         // Try each address until we successfully connect(2).
@@ -111,7 +111,7 @@ public:
 #endif
 
 #if !defined(SO_NOSIGPIPE) && !defined(MSG_NOSIGNAL)
-#    error "tcp_sink would raise SIGPIPE since niether SO_NOSIGPIPE nor MSG_NOSIGNAL are available"
+#    error "tcp_sink would raise SIGPIPE since neither SO_NOSIGPIPE nor MSG_NOSIGNAL are available"
 #endif
     }
 

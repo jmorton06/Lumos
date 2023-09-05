@@ -13,7 +13,8 @@
 namespace spdlog {
 namespace details {
 
-SPDLOG_INLINE thread_pool::thread_pool(size_t q_max_items, size_t threads_n, std::function<void()> on_thread_start)
+SPDLOG_INLINE thread_pool::thread_pool(
+    size_t q_max_items, size_t threads_n, std::function<void()> on_thread_start, std::function<void()> on_thread_stop)
     : q_(q_max_items)
 {
     if (threads_n == 0 || threads_n > 1000)
@@ -23,15 +24,21 @@ SPDLOG_INLINE thread_pool::thread_pool(size_t q_max_items, size_t threads_n, std
     }
     for (size_t i = 0; i < threads_n; i++)
     {
-        threads_.emplace_back([this, on_thread_start] {
+        threads_.emplace_back([this, on_thread_start, on_thread_stop] {
             on_thread_start();
             this->thread_pool::worker_loop_();
+            on_thread_stop();
         });
     }
 }
 
+SPDLOG_INLINE thread_pool::thread_pool(size_t q_max_items, size_t threads_n, std::function<void()> on_thread_start)
+    : thread_pool(q_max_items, threads_n, on_thread_start, [] {})
+{}
+
 SPDLOG_INLINE thread_pool::thread_pool(size_t q_max_items, size_t threads_n)
-    : thread_pool(q_max_items, threads_n, [] {})
+    : thread_pool(
+          q_max_items, threads_n, [] {}, [] {})
 {}
 
 // message all threads to terminate gracefully join them
@@ -68,6 +75,11 @@ size_t SPDLOG_INLINE thread_pool::overrun_counter()
     return q_.overrun_counter();
 }
 
+void SPDLOG_INLINE thread_pool::reset_overrun_counter()
+{
+    q_.reset_overrun_counter();
+}
+
 size_t SPDLOG_INLINE thread_pool::queue_size()
 {
     return q_.size();
@@ -96,11 +108,7 @@ void SPDLOG_INLINE thread_pool::worker_loop_()
 bool SPDLOG_INLINE thread_pool::process_next_msg_()
 {
     async_msg incoming_async_msg;
-    bool dequeued = q_.dequeue_for(incoming_async_msg, std::chrono::seconds(10));
-    if (!dequeued)
-    {
-        return true;
-    }
+    q_.dequeue(incoming_async_msg);
 
     switch (incoming_async_msg.msg_type)
     {

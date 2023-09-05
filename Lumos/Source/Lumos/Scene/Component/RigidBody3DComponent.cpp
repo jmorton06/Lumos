@@ -18,6 +18,12 @@ namespace Lumos
     {
     }
 
+    RigidBody3DComponent::RigidBody3DComponent(const RigidBody3DProperties& properties)
+    {
+        m_RigidBody = Application::Get().GetSystem<LumosPhysicsEngine>()->CreateBody(properties);
+
+    }
+
     RigidBody3DComponent::RigidBody3DComponent(const RigidBody3DComponent& other)
     {
         m_RigidBody = other.m_RigidBody;

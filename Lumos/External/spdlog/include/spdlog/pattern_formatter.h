@@ -68,7 +68,7 @@ class SPDLOG_API custom_flag_formatter : public details::flag_formatter
 public:
     virtual std::unique_ptr<custom_flag_formatter> clone() const = 0;
 
-    void set_padding_info(details::padding_info padding)
+    void set_padding_info(const details::padding_info &padding)
     {
         flag_formatter::padinfo_ = padding;
     }
@@ -98,11 +98,13 @@ public:
         return *this;
     }
     void set_pattern(std::string pattern);
+    void need_localtime(bool need = true);
 
 private:
     std::string pattern_;
     std::string eol_;
     pattern_time_type pattern_time_type_;
+    bool need_localtime_;
     std::tm cached_tm_;
     std::chrono::seconds last_log_secs_;
     std::vector<std::unique_ptr<details::flag_formatter>> formatters_;

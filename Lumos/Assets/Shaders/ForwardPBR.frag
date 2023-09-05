@@ -556,6 +556,8 @@ void main()
         material.Roughness       		= sqrt(filteredRoughness2);
     }
 
+	material.Roughness = clamp(material.Roughness, MIN_ROUGHNESS, 1.0);
+
 	vec3 wsPos     = VertexOutput.Position.xyz;
 	material.View  = normalize(ubo.cameraPosition.xyz - wsPos);
 	material.NDotV = max(dot(material.Normal, material.View), 1e-4);

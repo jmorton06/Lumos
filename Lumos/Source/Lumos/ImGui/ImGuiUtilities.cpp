@@ -939,9 +939,9 @@ namespace Lumos
 
             colours[ImGuiCol_Border]         = foreground;
             colours[ImGuiCol_BorderShadow]   = ImVec4(0.00f, 0.00f, 0.00f, 0.24f);
-            colours[ImGuiCol_FrameBg]        = background;
-            colours[ImGuiCol_FrameBgHovered] = background;
-            colours[ImGuiCol_FrameBgActive]  = background;
+            colours[ImGuiCol_FrameBg]        = foreground;
+            colours[ImGuiCol_FrameBgHovered] = foreground;
+            colours[ImGuiCol_FrameBgActive]  = foreground;
 
             colours[ImGuiCol_TitleBg]          = foreground;
             colours[ImGuiCol_TitleBgActive]    = foreground;

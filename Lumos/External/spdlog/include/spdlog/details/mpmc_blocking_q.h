@@ -49,7 +49,7 @@ public:
         push_cv_.notify_one();
     }
 
-    // try to dequeue item. if no item found. wait upto timeout and try again
+    // dequeue with a timeout.
     // Return true, if succeeded dequeue item, false otherwise
     bool dequeue_for(T &popped_item, std::chrono::milliseconds wait_duration)
     {
@@ -64,6 +64,18 @@ public:
         }
         pop_cv_.notify_one();
         return true;
+    }
+
+    // blocking dequeue without a timeout.
+    void dequeue(T &popped_item)
+    {
+        {
+            std::unique_lock<std::mutex> lock(queue_mutex_);
+            push_cv_.wait(lock, [this] { return !this->q_.empty(); });
+            popped_item = std::move(q_.front());
+            q_.pop_front();
+        }
+        pop_cv_.notify_one();
     }
 
 #else
@@ -87,7 +99,7 @@ public:
         push_cv_.notify_one();
     }
 
-    // try to dequeue item. if no item found. wait upto timeout and try again
+    // dequeue with a timeout.
     // Return true, if succeeded dequeue item, false otherwise
     bool dequeue_for(T &popped_item, std::chrono::milliseconds wait_duration)
     {
@@ -102,6 +114,16 @@ public:
         return true;
     }
 
+    // blocking dequeue without a timeout.
+    void dequeue(T &popped_item)
+    {
+        std::unique_lock<std::mutex> lock(queue_mutex_);
+        push_cv_.wait(lock, [this] { return !this->q_.empty(); });
+        popped_item = std::move(q_.front());
+        q_.pop_front();
+        pop_cv_.notify_one();
+    }
+
 #endif
 
     size_t overrun_counter()
@@ -114,6 +136,12 @@ public:
     {
         std::unique_lock<std::mutex> lock(queue_mutex_);
         return q_.size();
+    }
+
+    void reset_overrun_counter()
+    {
+        std::unique_lock<std::mutex> lock(queue_mutex_);
+        q_.reset_overrun_counter();
     }
 
 private:

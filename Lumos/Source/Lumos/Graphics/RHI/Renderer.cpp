@@ -152,6 +152,9 @@ namespace Lumos
             }
         }
 
+        GraphicsContext* Renderer::GetGraphicsContext() { return Application::Get().GetWindow()->GetGraphicsContext(); }
+        SwapChain* Renderer::GetMainSwapChain() { return Application::Get().GetWindow()->GetSwapChain(); }
+
         void Renderer::DrawMesh(CommandBuffer* commandBuffer, Graphics::Pipeline* pipeline, Graphics::Mesh* mesh)
         {
             mesh->GetVertexBuffer()->Bind(commandBuffer, pipeline);

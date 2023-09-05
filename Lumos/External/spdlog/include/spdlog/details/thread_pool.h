@@ -27,7 +27,6 @@ enum class async_msg_type
     terminate
 };
 
-#include <spdlog/details/log_msg_buffer.h>
 // Async msg to move to/from the queue
 // Movable only. should never be copied
 struct async_msg : log_msg_buffer
@@ -85,10 +84,11 @@ public:
     using item_type = async_msg;
     using q_type = details::mpmc_blocking_queue<item_type>;
 
+    thread_pool(size_t q_max_items, size_t threads_n, std::function<void()> on_thread_start, std::function<void()> on_thread_stop);
     thread_pool(size_t q_max_items, size_t threads_n, std::function<void()> on_thread_start);
     thread_pool(size_t q_max_items, size_t threads_n);
 
-    // message all threads to terminate gracefully join them
+    // message all threads to terminate gracefully and join them
     ~thread_pool();
 
     thread_pool(const thread_pool &) = delete;
@@ -97,6 +97,7 @@ public:
     void post_log(async_logger_ptr &&worker_ptr, const details::log_msg &msg, async_overflow_policy overflow_policy);
     void post_flush(async_logger_ptr &&worker_ptr, async_overflow_policy overflow_policy);
     size_t overrun_counter();
+    void reset_overrun_counter();
     size_t queue_size();
 
 private:

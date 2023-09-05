@@ -106,7 +106,8 @@ namespace Lumos
         RigidBody3DComponent();
         RigidBody3DComponent(const RigidBody3DComponent& other);
 
-        explicit RigidBody3DComponent(RigidBody3D* physics);
+        RigidBody3DComponent(RigidBody3D* physics);
+        RigidBody3DComponent(const RigidBody3DProperties& params);
 
         ~RigidBody3DComponent() = default;
 

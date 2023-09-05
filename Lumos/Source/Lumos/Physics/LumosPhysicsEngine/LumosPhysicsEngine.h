@@ -5,6 +5,7 @@
 #include "Narrowphase/Manifold.h"
 #include "Broadphase/Broadphase.h"
 #include "Scene/ISystem.h"
+#include "Core/OS/Allocators/PoolAllocator.h"
 
 namespace Lumos
 {
@@ -111,7 +112,7 @@ namespace Lumos
         uint32_t GetPositionIterations() const { return m_PositionIterations; }
         void SetPositionIterations(uint32_t iterations) { m_PositionIterations = iterations; }
 
-        RigidBody3D* CreateBody(const RigidBody3DProperties& properties);
+        RigidBody3D* CreateBody(const RigidBody3DProperties& properties = {});
         void DestroyBody(RigidBody3D* body);
 
         const PhysicsStats3D& GetStats() const { return m_Stats; }
