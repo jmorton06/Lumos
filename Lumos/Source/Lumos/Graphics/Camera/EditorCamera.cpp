@@ -5,6 +5,7 @@
 #include "Core/Application.h"
 #include "Core/OS/Input.h"
 #include "Core/OS/Window.h"
+#include "Maths/MathsUtilities.h"
 
 namespace Lumos
 {

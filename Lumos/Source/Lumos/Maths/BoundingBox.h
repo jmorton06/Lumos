@@ -24,11 +24,7 @@ namespace Lumos
             BoundingBox(BoundingBox&& other);
             ~BoundingBox();
 
-            void Clear()
-            {
-                m_Min = glm::vec3(FLT_MAX);
-                m_Max = glm::vec3(-FLT_MAX);
-            }
+            void Clear();
 
             BoundingBox& operator=(const BoundingBox& other);
             BoundingBox& operator=(BoundingBox&& other);

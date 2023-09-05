@@ -90,6 +90,7 @@ namespace Lumos
                 return RHIFormat::R32G32B32A32_Float;
             default:
                 LUMOS_ASSERT(false, "[Texture] Unsupported image bit-depth! ({0})", bits);
+
                 return RHIFormat::R8G8B8A8_Unorm;
             }
         }

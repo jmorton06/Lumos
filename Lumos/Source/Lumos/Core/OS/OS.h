@@ -3,7 +3,12 @@
 
 #include <string>
 #include <glm/vec4.hpp>
+
+#if __has_include(<filesystem>)
 #include <filesystem>
+#elif __has_include(<experimental/filesystem>)
+#include <experimental/filesystem>
+#endif
 
 namespace Lumos
 {

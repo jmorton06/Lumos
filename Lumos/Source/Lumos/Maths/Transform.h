@@ -1,7 +1,6 @@
 #pragma once
 
-#include "Maths/Maths.h"
-
+#include "Maths/MathsSerialisation.h"
 #include <cereal/cereal.hpp>
 
 namespace Lumos

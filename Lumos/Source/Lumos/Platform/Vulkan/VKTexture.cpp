@@ -5,6 +5,7 @@
 #include "VKUtilities.h"
 #include "VKRenderer.h"
 #include "Maths/Random.h"
+#include "Maths/MathsUtilities.h"
 
 namespace Lumos
 {
@@ -274,6 +275,8 @@ namespace Lumos
                 delete m_StagingBuffer;
 
             m_StagingBuffer = nullptr;
+
+            m_ImageLayout = VK_IMAGE_LAYOUT_UNDEFINED;
         }
 
         void VKTexture2D::Resize(uint32_t width, uint32_t height)
@@ -513,7 +516,7 @@ namespace Lumos
 
         void VKTexture2D::TransitionImage(VkImageLayout newLayout, VKCommandBuffer* commandBuffer)
         {
-            LUMOS_PROFILE_FUNCTION();
+            LUMOS_PROFILE_FUNCTION_LOW();
             if(newLayout != m_ImageLayout)
                 VKUtilities::TransitionImageLayout(m_TextureImage, m_VKFormat, m_ImageLayout, newLayout, m_MipLevels, 1, commandBuffer ? commandBuffer->GetHandle() : nullptr);
             m_ImageLayout = newLayout;

@@ -5,7 +5,7 @@
 #include "Graphics/Camera/Camera.h"
 #include "Utilities/TimeStep.h"
 #include "Scene/Component/SoundComponent.h"
-
+#include "Scene/Scene.h"
 #include <imgui/imgui.h>
 
 namespace Lumos

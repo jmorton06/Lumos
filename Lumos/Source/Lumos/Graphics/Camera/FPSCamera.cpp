@@ -4,6 +4,7 @@
 #include "Core/OS/Input.h"
 #include "Core/OS/Window.h"
 #include "Camera.h"
+#include "Maths/MathsUtilities.h"
 
 namespace Lumos
 {

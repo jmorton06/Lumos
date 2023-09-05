@@ -87,13 +87,13 @@ namespace Lumos
                 switch(severity)
                 {
                 case GL_DEBUG_SEVERITY_HIGH:
-                    LUMOS_ASSERT(0, "");
+                    LUMOS_ASSERT(0);
                     return "High";
                 case GL_DEBUG_SEVERITY_MEDIUM:
-                    LUMOS_ASSERT(0, "");
+                    LUMOS_ASSERT(0);
                     return "Medium";
                 case GL_DEBUG_SEVERITY_LOW:
-                    LUMOS_ASSERT(0, "");
+                    LUMOS_ASSERT(0);
                     return "Low";
                 case GL_DEBUG_SEVERITY_NOTIFICATION:
                     return "Notification";
@@ -127,9 +127,9 @@ namespace Lumos
         {
             LUMOS_LOG_INFO("----------------------------------");
             LUMOS_LOG_INFO(OPENGLLOG);
-            LUMOS_LOG_INFO(glGetString(GL_VERSION));
-            LUMOS_LOG_INFO(glGetString(GL_VENDOR));
-            LUMOS_LOG_INFO(glGetString(GL_RENDERER));
+            LUMOS_LOG_INFO((const char*)(glGetString(GL_VERSION)));
+            LUMOS_LOG_INFO((const char*)(glGetString(GL_VENDOR)));
+            LUMOS_LOG_INFO((const char*)(glGetString(GL_RENDERER)));
             LUMOS_LOG_INFO("----------------------------------");
 
 #if LUMOS_DEBUG

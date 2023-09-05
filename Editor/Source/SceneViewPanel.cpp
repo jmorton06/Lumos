@@ -16,6 +16,7 @@
 #include <Lumos/Physics/LumosPhysicsEngine/LumosPhysicsEngine.h>
 #include <Lumos/Physics/B2PhysicsEngine/B2PhysicsEngine.h>
 #include <Lumos/Core/OS/Input.h>
+#include <Lumos/Scene/Scene.h>
 #include <Lumos/Graphics/Renderers/DebugRenderer.h>
 #include <Lumos/ImGui/IconsMaterialDesignIcons.h>
 #include <Lumos/Graphics/Camera/EditorCamera.h>
@@ -168,6 +169,7 @@ namespace Lumos
         if(app.GetSceneManager()->GetCurrentScene())
             DrawGizmos(sceneViewSize.x, sceneViewSize.y, offset.x, offset.y, app.GetSceneManager()->GetCurrentScene());
 
+        ImGui::GetWindowDrawList()->PopClipRect();
         ImGui::End();
     }
 
@@ -327,7 +329,15 @@ namespace Lumos
 
                 ImGui::Separator();
 
-                uint32_t flags = m_Editor->GetSettings().m_DebugDrawFlags;
+                uint32_t flags       = m_Editor->GetSettings().m_DebugDrawFlags;
+                bool showEntityNames = flags & EditorDebugFlags::EntityNames;
+                if(ImGui::Checkbox("Entity Names", &showEntityNames))
+                {
+                    if(showEntityNames)
+                        flags += EditorDebugFlags::EntityNames;
+                    else
+                        flags -= EditorDebugFlags::EntityNames;
+                }
 
                 bool showAABB = flags & EditorDebugFlags::MeshBoundingBoxes;
                 if(ImGui::Checkbox("Mesh AABB", &showAABB))

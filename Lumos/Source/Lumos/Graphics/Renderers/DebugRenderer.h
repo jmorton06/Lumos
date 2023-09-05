@@ -2,9 +2,27 @@
 #include <glm/fwd.hpp>
 #include <glm/vec3.hpp>
 #include <glm/vec4.hpp>
+#include <glm/mat4x4.hpp>
 
 namespace Lumos
 {
+#define MAX_LOG_SIZE 25
+#define LOG_TEXT_SIZE 14.0f
+#define STATUS_TEXT_SIZE 16.0f
+
+    struct LogEntry
+    {
+        glm::vec4 colour;
+        std::string text;
+    };
+
+    struct DebugText
+    {
+        glm::vec4 colour;
+        std::string text;
+        float Size;
+        glm::vec4 Position;
+    };
 
     namespace Graphics
     {
@@ -132,6 +150,24 @@ namespace Lumos
         static void DrawPolygon(int n_verts, const glm::vec3* verts, const glm::vec4& colour = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
         static void DrawPolygonNDT(int n_verts, const glm::vec3* verts, const glm::vec4& colour = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
 
+        // Draw Text WorldSpace (pos given here in worldspace)
+        static void DrawTextWs(const glm::vec3& pos, const float font_size, const glm::vec4& colour, const std::string text, ...);    /// See "printf" for usage manual
+        static void DrawTextWsNDT(const glm::vec3& pos, const float font_size, const glm::vec4& colour, const std::string text, ...); /// See "printf" for usage manual
+
+        // Draw Text (pos is assumed to be pre-multiplied by projMtx * viewMtx at this point)
+        static void DrawTextCs(const glm::vec4& pos, const float font_size, const std::string& text, const glm::vec4& colour = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+
+        // Add a status entry at the top left of the screen (Cleared each frame)
+        static void AddStatusEntry(const glm::vec4& colour, const std::string text, ...); /// See "printf" for usuage manual
+
+        // Add a log entry at the bottom left - persistent until scene reset
+        static void Log(const glm::vec3& colour, const std::string text, ...); /// See "printf" for usuage manual
+        static void Log(const std::string text, ...);                          // Default Text Colour
+        static void LogE(const char* filename, int linenumber, const std::string text, ...);
+
+        static void SortLists();
+        static void ClearLogEntries();
+
         static void DebugDraw(const Maths::BoundingBox& box, const glm::vec4& edgeColour, bool cornersOnly = false, float width = 0.02f);
         static void DebugDraw(const Maths::BoundingSphere& sphere, const glm::vec4& colour);
         static void DebugDraw(Maths::Frustum& frustum, const glm::vec4& colour);
@@ -148,6 +184,20 @@ namespace Lumos
         const std::vector<LineInfo>& GetThickLines(bool depthTested = false) const { return depthTested ? m_DrawList.m_DebugThickLines : m_DrawListNDT.m_DebugThickLines; }
         const std::vector<PointInfo>& GetPoints(bool depthTested = false) const { return depthTested ? m_DrawList.m_DebugPoints : m_DrawListNDT.m_DebugPoints; }
 
+        const std::vector<LogEntry>& GetLogEntries() const { return m_vLogEntries; }
+        const std::vector<DebugText>& GetDebugText() const { return m_TextList; }
+        const std::vector<DebugText>& GetDebugTextNDT() const { return m_TextListNDT; }
+        const std::vector<DebugText>& GetDebugTextCS() const { return m_TextListCS; }
+
+        // const std::vector<glm::vec4>& GetTextChars() const { return m_vChars; }
+
+        void SetDimensions(uint32_t width, uint32_t height)
+        {
+            m_Width  = width;
+            m_Height = height;
+        }
+        void SetProjView(const glm::mat4& projView) { m_ProjViewMtx = projView; }
+
         static DebugRenderer* GetInstance()
         {
             return s_Instance;
@@ -159,6 +209,7 @@ namespace Lumos
         static void GenDrawThickLine(bool ndt, const glm::vec3& start, const glm::vec3& end, float line_width, const glm::vec4& colour);
         static void GenDrawHairLine(bool ndt, const glm::vec3& start, const glm::vec3& end, const glm::vec4& colour);
         static void GenDrawTriangle(bool ndt, const glm::vec3& v0, const glm::vec3& v1, const glm::vec3& v2, const glm::vec4& colour);
+        static void AddLogEntry(const glm::vec3& colour, const std::string& text);
 
     private:
         void ClearInternal();
@@ -173,7 +224,22 @@ namespace Lumos
             std::vector<LineInfo> m_DebugThickLines;
         };
 
+        int m_NumStatusEntries;
+        float m_MaxStatusEntryWidth;
+        std::vector<LogEntry> m_vLogEntries;
+        int m_LogEntriesOffset;
+
+        std::vector<DebugText> m_TextList;
+        std::vector<DebugText> m_TextListNDT;
+        std::vector<DebugText> m_TextListCS;
+
+        // std::vector<glm::vec4> m_vChars;
+        size_t m_OffsetChars;
         DebugDrawList m_DrawList;
         DebugDrawList m_DrawListNDT;
+
+        glm::mat4 m_ProjViewMtx = glm::mat4(1.0f);
+        uint32_t m_Width;
+        uint32_t m_Height;
     };
 }

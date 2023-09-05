@@ -34,6 +34,7 @@ namespace Lumos
         std::vector<SharedPtr<DirectoryInformation>> Children;
 
         std::filesystem::path FilePath;
+        std::filesystem::path FullPath;
         bool IsFile;
 
         std::string Name;
@@ -45,6 +46,7 @@ namespace Lumos
         FileType Type;
         std::string_view FileTypeString;
         std::string FileSize;
+        int FileTypeID;
 
     public:
         DirectoryInformation(const std::filesystem::path& fname, bool isF)
@@ -165,7 +167,7 @@ namespace Lumos
         SharedPtr<DirectoryInformation> m_CurrentSelected;
 
         Lumos::TextureLibrary m_TextureLibrary;
-        
+
         std::filesystem::path m_CopiedPath;
         bool m_CutFile = false;
     };

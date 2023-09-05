@@ -9,14 +9,13 @@
   <a href="#dependencies">Dependencies</a>
 <br/>
 <br/>
-<a href="https://actions-badge.atrox.dev/jmorton06/Lumos/goto"><img alt="Build" src="https://img.shields.io/endpoint.svg?url=https%3A%2F%2Factions-badge.atrox.dev%2Fjmorton06%2FLumos%2Fbadge&style=flat-square&label=build&branch=master&event=push"/></a>
+<a href="https://actions-badge.atrox.dev/jmorton06/Lumos/goto?ref=main"><img alt="Build" src="https://img.shields.io/endpoint.svg?url=https%3A%2F%2Factions-badge.atrox.dev%2Fjmorton06%2FLumos%2Fbadge%3Fref%3Dmain&style=flat-square&event=push"/></a>
 <a href="https://github.com/jmorton06/Lumos/releases/latest"><img alt="platforms" src="https://img.shields.io/badge/Platforms-Windows%20%7C%20Linux%20%7C%20macOS%20%7C%20iOS-blue?style=flat-square"/></a>
-<a href="https://github.com/jmorton06/Lumos/blob/master/LICENSE"><img alt="license" src="https://img.shields.io/github/license/jmorton06/Lumos?style=flat-square"/></a>
+<a href="https://github.com/jmorton06/Lumos/blob/main/LICENSE"><img alt="license" src="https://img.shields.io/github/license/jmorton06/Lumos?style=flat-square"/></a>
 <br/>
-<a href="https://github.com/jmorton06/Lumos/issues"><img alt="Issues" src="https://img.shields.io/github/issues-raw/jmorton06/Lumos.svg?style=flat-square"/></a>
-<a href=""><img alt="size" src="https://img.shields.io/github/repo-size/jmorton06/Lumos?style=flat-square"/></a>
-<a href=""><img alt="stars" src="https://img.shields.io/github/stars/jmorton06/Lumos?style=social"/></a>
-<a href="https://discord.gg/n9PDrNjJwt"><img alt="Discord" src="https://img.shields.io/badge/chat-on_discord-7389D8.svg?logo=discord&logoColor=ffffff&labelColor=6A7EC2"/></a>
+<a href=""><img alt="stars" src="https://img.shields.io/github/stars/jmorton06/Lumos?style=flat-square"/></a>
+<a href="https://github.com/jmorton06/Lumos/releases/latest"><img alt="release" src="https://img.shields.io/github/v/release/jmorton06/Lumos?style=flat-square"/></a>
+<a href="https://discord.gg/n9PDrNjJwt"><img alt="Discord" src="https://img.shields.io/badge/chat-on_discord-7389D8.svg?logo=discord&logoColor=ffffff&labelColor=6A7EC2&style=flat-square"/></a>
 <br/>
 </p>
 

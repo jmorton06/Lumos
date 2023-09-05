@@ -2,6 +2,7 @@
 #include <Lumos/ImGui/IconsMaterialDesignIcons.h>
 #include <Lumos/ImGui/ImGuiUtilities.h>
 #include <Lumos/Core/Profiler.h>
+#include <Lumos/Maths/MathsUtilities.h>
 
 namespace Lumos
 {

@@ -3,6 +3,11 @@
 #include "Maths/Maths.h"
 #include "Maths/Transform.h"
 #include <sol/sol.hpp>
+#include <glm/vec2.hpp>
+#include <glm/vec3.hpp>
+#include <glm/vec4.hpp>
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/quaternion.hpp>
 
 namespace Lumos
 {
@@ -24,7 +29,13 @@ namespace Lumos
             sol::meta_function::division, [](const glm::vec2& a, const glm::vec2& b)
             { return a / b; },
             sol::meta_function::equal_to, [](const glm::vec2& a, const glm::vec2& b)
-            { return a == b; });
+            { return a == b; },
+            "Length", [](const glm::vec2& v)
+            { return glm::length(v); },
+            "Distance", [](const glm::vec2& a, const glm::vec2& b)
+            { return glm::distance(a, b); },
+            "Distance2", [](const glm::vec2& a, const glm::vec2& b)
+            { return glm::distance2(a, b); });
 
         auto mult_overloads = sol::overload(
             [](const glm::vec3& v1, const glm::vec3& v2) -> glm::vec3
@@ -40,7 +51,6 @@ namespace Lumos
             "x", &glm::vec3::x,
             "y", &glm::vec3::y,
             "z", &glm::vec3::z,
-            "Length", &glm::vec3::length,
             sol::meta_function::addition, [](const glm::vec3& a, const glm::vec3& b)
             { return a + b; },
             sol::meta_function::multiplication, mult_overloads,
@@ -53,7 +63,13 @@ namespace Lumos
             sol::meta_function::equal_to, [](const glm::vec3& a, const glm::vec3& b)
             { return a == b; },
             "Normalise", [](glm::vec3& v)
-            { return glm::normalize(v); });
+            { return glm::normalize(v); },
+            "Length", [](const glm::vec3& v)
+            { return glm::length(v); },
+            "Distance", [](const glm::vec3& a, const glm::vec3& b)
+            { return glm::distance(a, b); },
+            "Distance2", [](const glm::vec3& a, const glm::vec3& b)
+            { return glm::distance2(a, b); });
 
         state.new_usertype<glm::vec4>(
             "Vector4",
@@ -81,7 +97,13 @@ namespace Lumos
             sol::meta_function::equal_to, [](const glm::vec4& a, const glm::vec4& b)
             { return a == b; },
             "Normalise", [](glm::vec4& v)
-            { return glm::normalize(v); });
+            { return glm::normalize(v); },
+            "Length", [](const glm::vec4& v)
+            { return glm::length(v); },
+            "Distance", [](const glm::vec4& a, const glm::vec4& b)
+            { return glm::distance(a, b); },
+            "Distance2", [](const glm::vec4& a, const glm::vec4& b)
+            { return glm::distance2(a, b); });
 
         state.new_usertype<glm::quat>(
             "Quaternion",

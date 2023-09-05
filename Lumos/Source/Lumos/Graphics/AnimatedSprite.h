@@ -54,6 +54,7 @@ namespace Lumos::Graphics
                     cereal::make_nvp("Colour", m_Colour),
                     cereal::make_nvp("AnimationFrames", m_AnimationStates),
                     cereal::make_nvp("State", m_State));
+            archive(SpriteSheetTileSize);
         }
 
         template <typename Archive>
@@ -69,6 +70,9 @@ namespace Lumos::Graphics
 
             if(!textureFilePath.empty())
                 m_Texture = SharedPtr<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile("sprite", textureFilePath));
+
+            if(Serialisation::CurrentSceneVersion > 21)
+                archive(SpriteSheetTileSize);
 
             SetState(m_State);
         }

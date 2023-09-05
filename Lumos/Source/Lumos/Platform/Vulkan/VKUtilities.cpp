@@ -14,6 +14,22 @@ namespace Lumos
 {
     namespace Graphics
     {
+        void VKUtilities::Init()
+        {
+            fpSetDebugUtilsObjectNameEXT = (PFN_vkSetDebugUtilsObjectNameEXT)(vkGetInstanceProcAddr(VKContext::GetVKInstance(), "vkSetDebugUtilsObjectNameEXT"));
+            if(fpSetDebugUtilsObjectNameEXT == nullptr)
+                fpSetDebugUtilsObjectNameEXT = [](VkDevice device, const VkDebugUtilsObjectNameInfoEXT* pNameInfo)
+                { return VK_SUCCESS; };
+
+            fpCmdBeginDebugUtilsLabelEXT = (PFN_vkCmdBeginDebugUtilsLabelEXT)(vkGetInstanceProcAddr(VKContext::GetVKInstance(), "vkCmdBeginDebugUtilsLabelEXT"));
+            if(fpCmdBeginDebugUtilsLabelEXT == nullptr)
+                fpCmdBeginDebugUtilsLabelEXT = [](VkCommandBuffer commandBuffer, const VkDebugUtilsLabelEXT* pLabelInfo) {};
+
+            fpCmdEndDebugUtilsLabelEXT = (PFN_vkCmdEndDebugUtilsLabelEXT)(vkGetInstanceProcAddr(VKContext::GetVKInstance(), "vkCmdEndDebugUtilsLabelEXT"));
+            if(fpCmdEndDebugUtilsLabelEXT == nullptr)
+                fpCmdEndDebugUtilsLabelEXT = [](VkCommandBuffer commandBuffer) {};
+        }
+
         uint32_t VKUtilities::FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties)
         {
             VkPhysicalDeviceMemoryProperties memProperties;
@@ -840,6 +856,18 @@ namespace Lumos
         {
             LUMOS_PROFILE_FUNCTION();
             vkDeviceWaitIdle(VKDevice::GetHandle());
+        }
+
+        void VKUtilities::SetDebugUtilsObjectName(const VkDevice device, const VkObjectType objectType, const std::string& name, const void* handle)
+        {
+            VkDebugUtilsObjectNameInfoEXT nameInfo;
+            nameInfo.sType        = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT;
+            nameInfo.objectType   = objectType;
+            nameInfo.pObjectName  = name.c_str();
+            nameInfo.objectHandle = (uint64_t)handle;
+            nameInfo.pNext        = VK_NULL_HANDLE;
+
+            VK_CHECK_RESULT(fpSetDebugUtilsObjectNameEXT(device, &nameInfo));
         }
     }
 }

@@ -150,7 +150,7 @@ vec3 GetNormalFromMap()
 {
 	if (materialProperties.NormalMapFactor < 0.05)
 		return normalize(VertexOutput.Normal);
-		
+
 	vec3 Normal = normalize(texture(u_NormalMap, VertexOutput.TexCoord).rgb * 2.0f - 1.0f);
 	return normalize(VertexOutput.WorldNormal * Normal);
 }
@@ -524,7 +524,15 @@ void main()
     material.Metallic  = metallic;
     material.PerceptualRoughness = roughness;
 	material.Reflectance = materialProperties.Reflectance;
-    material.Normal    = GetNormalFromMap();
+	material.Normal = normalize(VertexOutput.Normal);
+	
+	if (materialProperties.NormalMapFactor > 0.04)
+	{
+		material.Normal = normalize(texture(u_NormalMap, VertexOutput.TexCoord).rgb * 2.0f - 1.0f);
+		material.Normal = normalize(VertexOutput.WorldNormal * material.Normal);
+		material.Normal = normalize(material.Normal);
+	}
+
 	material.AO		   = GetAO();
 	material.Emissive  = GetEmissive(material.Albedo.rgb);
 
@@ -547,6 +555,8 @@ void main()
         float filteredRoughness2 		= saturate(roughness2 + kernelRoughness2);
         material.Roughness       		= sqrt(filteredRoughness2);
     }
+
+	material.Roughness = clamp(material.Roughness, MIN_ROUGHNESS, 1.0);
 
 	vec3 wsPos     = VertexOutput.Position.xyz;
 	material.View  = normalize(ubo.cameraPosition.xyz - wsPos);

@@ -7,6 +7,7 @@
 #include "Graphics/Font.h"
 #include "Core/OS/FileSystem.h"
 #include "Scene/Serialisation.h"
+#include "Utilities/AssetManager.h"
 
 namespace Lumos
 {
@@ -63,6 +64,21 @@ namespace Lumos
             {
                 FontHandle = Graphics::Font::GetDefaultFont();
             }
+        }
+    };
+
+    struct PrefabComponent
+    {
+        PrefabComponent(const std::string& path)
+        {
+            Path = path;
+        }
+
+        std::string Path;
+        template <typename Archive>
+        void serialize(Archive& archive)
+        {
+            archive(Path);
         }
     };
 }

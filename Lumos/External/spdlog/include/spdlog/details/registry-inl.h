@@ -188,13 +188,6 @@ SPDLOG_INLINE void registry::flush_on(level::level_enum log_level)
     flush_level_ = log_level;
 }
 
-SPDLOG_INLINE void registry::flush_every(std::chrono::seconds interval)
-{
-    std::lock_guard<std::mutex> lock(flusher_mutex_);
-    auto clbk = [this]() { this->flush_all(); };
-    periodic_flusher_ = details::make_unique<periodic_worker>(clbk, interval);
-}
-
 SPDLOG_INLINE void registry::set_error_handler(err_handler handler)
 {
     std::lock_guard<std::mutex> lock(logger_map_mutex_);
@@ -226,8 +219,9 @@ SPDLOG_INLINE void registry::flush_all()
 SPDLOG_INLINE void registry::drop(const std::string &logger_name)
 {
     std::lock_guard<std::mutex> lock(logger_map_mutex_);
+    auto is_default_logger = default_logger_ && default_logger_->name() == logger_name;
     loggers_.erase(logger_name);
-    if (default_logger_ && default_logger_->name() == logger_name)
+    if (is_default_logger)
     {
         default_logger_.reset();
     }
@@ -292,6 +286,14 @@ SPDLOG_INLINE registry &registry::instance()
 {
     static registry s_instance;
     return s_instance;
+}
+
+SPDLOG_INLINE void registry::apply_logger_env_levels(std::shared_ptr<logger> new_logger)
+{
+    std::lock_guard<std::mutex> lock(logger_map_mutex_);
+    auto it = log_levels_.find(new_logger->name());
+    auto new_level = it != log_levels_.end() ? it->second : global_log_level_;
+    new_logger->set_level(new_level);
 }
 
 SPDLOG_INLINE void registry::throw_if_exists_(const std::string &logger_name)

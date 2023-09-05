@@ -1,8 +1,7 @@
 #pragma once
-#include "Maths/Maths.h"
-#include "Utilities/AssetManager.h"
 #include "Serialisation.h"
 #include <sol/forward.hpp>
+#include <glm/vec3.hpp>
 
 DISABLE_WARNING_PUSH
 DISABLE_WARNING_CONVERSION_TO_SMALLER_TYPE
@@ -100,6 +99,8 @@ namespace Lumos
         Entity CreateEntity();
         Entity CreateEntity(const std::string& name);
         Entity GetEntityByUUID(uint64_t id);
+        Entity InstantiatePrefab(const std::string& path);
+        void SavePrefab(Entity entity, const std::string& path);
 
         EntityManager* GetEntityManager() { return m_EntityManager.get(); }
 
@@ -256,6 +257,7 @@ namespace Lumos
         {
             return m_Settings;
         }
+
         int GetSceneVersion() const
         {
             return m_SceneSerialisationVersion;

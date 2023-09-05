@@ -3,7 +3,7 @@
 #include "Core/Application.h"
 #include "Core/UUID.h"
 
-#include <sol/sol.hpp>
+#include <sol/forward.hpp>
 #include <cereal/cereal.hpp>
 
 namespace Lumos

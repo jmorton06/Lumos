@@ -3,6 +3,7 @@
 
 #include "Graphics/Mesh.h"
 #include "Core/Application.h"
+#include "Utilities/AssetManager.h"
 
 #include "CompiledSPV/Headers/Shadowvertspv.hpp"
 #include "CompiledSPV/Headers/Shadowfragspv.hpp"
@@ -48,6 +49,8 @@
 #include "CompiledSPV/Headers/Textfragspv.hpp"
 #include "CompiledSPV/Headers/DepthOfFieldfragspv.hpp"
 #include "CompiledSPV/Headers/Sharpenfragspv.hpp"
+#include "CompiledSPV/Headers/SSAOfragspv.hpp"
+#include "CompiledSPV/Headers/SSAOBlurfragspv.hpp"
 
 namespace Lumos
 {
@@ -107,6 +110,8 @@ namespace Lumos
                 shaderLibrary->AddResource("Text", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromEmbeddedArray(spirv_Textvertspv.data(), spirv_Textvertspv_size, spirv_Textfragspv.data(), spirv_Textfragspv_size)));
                 shaderLibrary->AddResource("DepthOfField", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromEmbeddedArray(spirv_ScreenPassvertspv.data(), spirv_ScreenPassvertspv_size, spirv_DepthOfFieldfragspv.data(), spirv_DepthOfFieldfragspv_size)));
                 shaderLibrary->AddResource("Sharpen", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromEmbeddedArray(spirv_ScreenPassvertspv.data(), spirv_ScreenPassvertspv_size, spirv_Sharpenfragspv.data(), spirv_Sharpenfragspv_size)));
+                shaderLibrary->AddResource("SSAO", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromEmbeddedArray(spirv_ScreenPassvertspv.data(), spirv_ScreenPassvertspv_size, spirv_SSAOfragspv.data(), spirv_SSAOfragspv_size)));
+                shaderLibrary->AddResource("SSAOBlur", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromEmbeddedArray(spirv_ScreenPassvertspv.data(), spirv_ScreenPassvertspv_size, spirv_SSAOBlurfragspv.data(), spirv_SSAOBlurfragspv_size)));
             }
             else
             {
@@ -146,6 +151,9 @@ namespace Lumos
                 shaderLibrary->AddResource("Sharpen", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromFile("//CoreShaders/Sharpen.shader")));
             }
         }
+
+        GraphicsContext* Renderer::GetGraphicsContext() { return Application::Get().GetWindow()->GetGraphicsContext(); }
+        SwapChain* Renderer::GetMainSwapChain() { return Application::Get().GetWindow()->GetSwapChain(); }
 
         void Renderer::DrawMesh(CommandBuffer* commandBuffer, Graphics::Pipeline* pipeline, Graphics::Mesh* mesh)
         {

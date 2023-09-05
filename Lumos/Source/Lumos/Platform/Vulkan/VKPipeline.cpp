@@ -22,7 +22,7 @@ namespace Lumos
 
         VKPipeline::~VKPipeline()
         {
-            LUMOS_PROFILE_FUNCTION();
+            LUMOS_PROFILE_FUNCTION_LOW();
             VKContext::DeletionQueue& deletionQueue = VKRenderer::GetCurrentDeletionQueue();
 
             auto pipeline = m_Pipeline;
@@ -33,7 +33,7 @@ namespace Lumos
 
         bool VKPipeline::Init(const PipelineDesc& pipelineDesc)
         {
-            LUMOS_PROFILE_FUNCTION();
+            LUMOS_PROFILE_FUNCTION_LOW();
             m_Description    = pipelineDesc;
             m_Shader         = m_Description.shader;
             m_PipelineLayout = m_Shader.As<VKShader>()->GetPipelineLayout();
@@ -251,12 +251,15 @@ namespace Lumos
                 VK_CHECK_RESULT(vkCreateGraphicsPipelines(VKDevice::Get().GetDevice(), VKDevice::Get().GetPipelineCache(), 1, &graphicsPipelineCreateInfo, VK_NULL_HANDLE, &m_Pipeline));
             }
 
+            if(!pipelineDesc.DebugName.empty())
+                VKUtilities::SetDebugUtilsObjectName(VKDevice::Get().GetDevice(), VK_OBJECT_TYPE_PIPELINE, pipelineDesc.DebugName, m_Pipeline);
+
             return true;
         }
 
         void VKPipeline::Bind(CommandBuffer* commandBuffer, uint32_t layer)
         {
-            LUMOS_PROFILE_FUNCTION();
+            LUMOS_PROFILE_FUNCTION_LOW();
 
             VKFramebuffer* framebuffer;
 
@@ -299,7 +302,7 @@ namespace Lumos
 
         void VKPipeline::CreateFramebuffers()
         {
-            LUMOS_PROFILE_FUNCTION();
+            LUMOS_PROFILE_FUNCTION_LOW();
             std::vector<TextureType> attachmentTypes;
             std::vector<Texture*> attachments;
 
@@ -346,6 +349,7 @@ namespace Lumos
             renderPassDesc.clear                    = m_Description.clearTargets;
             renderPassDesc.cubeMapIndex             = m_Description.cubeMapIndex;
             renderPassDesc.mipIndex                 = m_Description.mipIndex;
+            renderPassDesc.DebugName                = m_Description.DebugName;
 
             m_RenderPass = Graphics::RenderPass::Get(renderPassDesc);
 
@@ -413,7 +417,7 @@ namespace Lumos
 
         void VKPipeline::ClearRenderTargets(CommandBuffer* commandBuffer)
         {
-            LUMOS_PROFILE_FUNCTION();
+            LUMOS_PROFILE_FUNCTION_LOW();
             if(m_Description.swapchainTarget)
             {
                 for(uint32_t i = 0; i < Renderer::GetMainSwapChain()->GetSwapChainBufferCount(); i++)
@@ -445,7 +449,7 @@ namespace Lumos
 
         void VKPipeline::TransitionAttachments()
         {
-            LUMOS_PROFILE_FUNCTION();
+            LUMOS_PROFILE_FUNCTION_LOW();
             auto commandBuffer = Renderer::GetMainSwapChain()->GetCurrentCommandBuffer();
 
             if(m_Description.swapchainTarget)

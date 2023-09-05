@@ -1,6 +1,7 @@
 #pragma once
 
-#include "Maths/Maths.h"
+#include <glm/vec3.hpp>
+#include <glm/mat4x4.hpp>
 
 struct HullEdge;
 struct HullFace;

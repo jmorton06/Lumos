@@ -1,6 +1,7 @@
 #include "Precompiled.h"
 #include "Hull.h"
 #include "Graphics/Renderers/DebugRenderer.h"
+#include <glm/vec4.hpp>
 
 namespace Lumos
 {
@@ -135,7 +136,7 @@ namespace Lumos
 
     void Hull::GetMinMaxVerticesInAxis(const glm::vec3& local_axis, int* out_min_vert, int* out_max_vert)
     {
-        LUMOS_PROFILE_FUNCTION();
+        LUMOS_PROFILE_FUNCTION_LOW();
         int minVertex = 0, maxVertex = 0;
 
         float minCorrelation = FLT_MAX, maxCorrelation = -FLT_MAX;

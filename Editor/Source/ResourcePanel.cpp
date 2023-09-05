@@ -1,11 +1,12 @@
 #include "Editor.h"
 #include "ResourcePanel.h"
-#include <Lumos/Core/OS/FileSystem.h>
+#include <Lumos/Graphics/RHI/Texture.h>
 #include <Lumos/Core/Profiler.h>
 #include <Lumos/Core/StringUtilities.h>
 #include <Lumos/Core/VFS.h>
 #include <Lumos/Core/OS/Window.h>
-
+#include <Lumos/Graphics/Material.h>
+#include <Lumos/Maths/MathsUtilities.h>
 #include <Lumos/ImGui/IconsMaterialDesignIcons.h>
 #include <imgui/imgui.h>
 #include <imgui/imgui_internal.h>
@@ -38,7 +39,7 @@ namespace Lumos
 
     static const std::unordered_map<std::string, FileType> s_FileTypes = {
         { ".lsn", FileType::Scene },
-        { ".prefab", FileType::Prefab },
+        { ".lprefab", FileType::Prefab },
         { ".cs", FileType::Script },
         { ".lua", FileType::Script },
         { ".glsl", FileType::Shader },
@@ -161,6 +162,21 @@ namespace Lumos
         m_Directories.erase(m_Directories.find(directory->FilePath.string()));
     }
 
+    bool IsHidden(const std::filesystem::path& filePath)
+    {
+        try
+        {
+            std::filesystem::file_status status = std::filesystem::status(filePath);
+            return (status.permissions() & std::filesystem::perms::owner_read) == std::filesystem::perms::none;
+        }
+        catch(const std::filesystem::filesystem_error& ex)
+        {
+            std::cerr << "Error accessing file: " << ex.what() << std::endl;
+        }
+
+        return false; // Return false by default if any error occurs
+    }
+
     std::string ResourcePanel::ProcessDirectory(const std::filesystem::path& directoryPath, const SharedPtr<DirectoryInformation>& parent)
     {
         const auto& directory = m_Directories[directoryPath.string()];
@@ -175,13 +191,16 @@ namespace Lumos
         else
             directoryInfo->FilePath = std::filesystem::relative(directoryPath, m_BasePath);
 
+        directoryInfo->FullPath   = directoryPath;
+        directoryInfo->FileTypeID = GetParsedAssetID(StringUtilities::GetFilePathExtension(directoryInfo->FilePath.string()));
+
         if(std::filesystem::is_directory(directoryPath))
         {
             directoryInfo->IsFile = false;
             directoryInfo->Name   = directoryPath.filename().string();
-            for(auto entry : std::filesystem::directory_iterator(directoryPath))
+            for(auto& entry : std::filesystem::directory_iterator(directoryPath))
             {
-                if(!m_ShowHiddenFiles && Lumos::StringUtilities::IsHiddenFile(entry.path().string()))
+                if(!m_ShowHiddenFiles && IsHidden(entry.path()))
                 {
                     continue;
                 }
@@ -255,10 +274,10 @@ namespace Lumos
             nodeFlags |= ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_AllowOverlap | ImGuiTreeNodeFlags_SpanAvailWidth;
 
             bool isOpen = ImGui::TreeNodeEx((void*)(intptr_t)(dirInfo.get()), nodeFlags, "");
-            if (ImGui::IsItemClicked())
+            if(ImGui::IsItemClicked())
             {
-                m_PreviousDirectory = m_CurrentDir;
-                m_CurrentDir = dirInfo;
+                m_PreviousDirectory    = m_CurrentDir;
+                m_CurrentDir           = dirInfo;
                 m_UpdateNavigationPath = true;
             }
 
@@ -271,8 +290,6 @@ namespace Lumos
             ImGui::TextUnformatted((const char*)dirInfo->FilePath.filename().string().c_str());
 
             ImVec2 verticalLineStart = ImGui::GetCursorScreenPos();
-
-        
 
             if(isOpen && containsFolder)
             {
@@ -428,7 +445,7 @@ namespace Lumos
 
                         if(ImGui::Selectable("New folder"))
                         {
-                            std::filesystem::create_directory(std::filesystem::path(m_BasePath + "/" + m_CurrentDir->FilePath.string() + "/NewFolder"));
+                            std::filesystem::create_directory(std::filesystem::path(m_CurrentDir->FullPath / "NewFolder"));
                             Refresh();
                         }
 
@@ -655,12 +672,12 @@ namespace Lumos
                                 if(m_CutFile)
                                 {
                                     const std::filesystem::path& fullPath = m_CopiedPath;
-                                    std::string filename = fullPath.stem().string();
-                                    std::string extension = fullPath.extension().string();
+                                    std::string filename                  = fullPath.stem().string();
+                                    std::string extension                 = fullPath.extension().string();
                                     std::filesystem::path destinationPath = m_BasePath / m_CurrentDir->FilePath / (filename + extension);
-                                    
+
                                     {
-                                        while (std::filesystem::exists(destinationPath))
+                                        while(std::filesystem::exists(destinationPath))
                                         {
                                             filename += "_copy";
                                             destinationPath = destinationPath.parent_path() / (filename + extension);
@@ -671,12 +688,12 @@ namespace Lumos
                                 else
                                 {
                                     const std::filesystem::path& fullPath = m_CopiedPath;
-                                    std::string filename = fullPath.stem().string();
-                                    std::string extension = fullPath.extension().string();
+                                    std::string filename                  = fullPath.stem().string();
+                                    std::string extension                 = fullPath.extension().string();
                                     std::filesystem::path destinationPath = m_BasePath / m_CurrentDir->FilePath / (filename + extension);
-                                    
+
                                     {
-                                        while (std::filesystem::exists(destinationPath))
+                                        while(std::filesystem::exists(destinationPath))
                                         {
                                             filename += "_copy";
                                             destinationPath = destinationPath.parent_path() / (filename + extension);
@@ -685,10 +702,10 @@ namespace Lumos
                                     std::filesystem::copy(fullPath, destinationPath);
                                 }
                                 m_CopiedPath = "";
-                                m_CutFile = false;
+                                m_CutFile    = false;
                                 Refresh();
                             }
-                            
+
                             if(ImGui::Selectable("Open Location"))
                             {
                                 auto fullPath = m_BasePath + "/" + m_CurrentDir->FilePath.string();
@@ -792,7 +809,6 @@ namespace Lumos
     bool ResourcePanel::RenderFile(int dirIndex, bool folder, int shownIndex, bool gridView)
     {
         LUMOS_PROFILE_FUNCTION();
-        auto fileID                      = GetParsedAssetID(StringUtilities::GetFilePathExtension(m_CurrentDir->Children[dirIndex]->FilePath.string()));
         constexpr float padding          = 4.0f;
         const float scaledThumbnailSize  = m_GridSize * ImGui::GetIO().FontGlobalScale;
         const float scaledThumbnailSizeX = scaledThumbnailSize * 0.55f;
@@ -829,7 +845,7 @@ namespace Lumos
                     else if(!textureCreated)
                     {
                         textureCreated         = true;
-                        CurrentEnty->Thumbnail = m_TextureLibrary.GetResource(m_BasePath + "/" + CurrentEnty->FilePath.string());
+                        CurrentEnty->Thumbnail = m_TextureLibrary.GetResource(CurrentEnty->FullPath.string());
                         textureId              = CurrentEnty->Thumbnail ? CurrentEnty->Thumbnail->GetHandle() : m_FileIcon->GetHandle();
                     }
                     else
@@ -882,37 +898,36 @@ namespace Lumos
             if(ImGui::BeginPopupContextItem())
             {
                 m_CurrentSelected = m_CurrentDir->Children[dirIndex];
-                
+
                 if(ImGui::Selectable("Cut"))
                 {
                     m_CopiedPath = (m_BasePath / m_CurrentDir->Children[dirIndex]->FilePath).string();
-                    m_CutFile = true;
+                    m_CutFile    = true;
                 }
-                
+
                 if(ImGui::Selectable("Copy"))
                 {
                     m_CopiedPath = (m_BasePath / m_CurrentDir->Children[dirIndex]->FilePath).string();
-                    m_CutFile = false;
+                    m_CutFile    = false;
                 }
 
                 if(ImGui::Selectable("Delete"))
                 {
-                    auto fullPath = (m_BasePath / m_CurrentDir->Children[dirIndex]->FilePath).string();
-
+                    auto& fullPath = m_CurrentDir->Children[dirIndex]->FullPath;
                     std::filesystem::remove_all(fullPath);
                     Refresh();
                 }
 
                 if(ImGui::Selectable("Duplicate"))
                 {
-                    std::filesystem::path fullPath = m_BasePath + "/" + m_CurrentDir->Children[dirIndex]->FilePath.string();
+                    std::filesystem::path fullPath        = m_BasePath + "/" + m_CurrentDir->Children[dirIndex]->FilePath.string();
                     std::filesystem::path destinationPath = fullPath;
-                    
+
                     {
-                        std::string filename = fullPath.stem().string();
+                        std::string filename  = fullPath.stem().string();
                         std::string extension = fullPath.extension().string();
-                            
-                        while (std::filesystem::exists(destinationPath))
+
+                        while(std::filesystem::exists(destinationPath))
                         {
                             filename += "_copy";
                             destinationPath = destinationPath.parent_path() / (filename + extension);
@@ -924,19 +939,13 @@ namespace Lumos
 
                 if(ImGui::Selectable("Open Location"))
                 {
-                    auto base = std::filesystem::path(m_BasePath);
-                    base.make_preferred();
-                    auto fullPath = base / m_CurrentDir->Children[dirIndex]->FilePath;
-
+                    auto& fullPath = m_CurrentDir->Children[dirIndex]->FullPath;
                     Lumos::OS::Instance()->OpenFileLocation(fullPath);
                 }
 
                 if(m_CurrentDir->Children[dirIndex]->IsFile && ImGui::Selectable("Open External"))
                 {
-                    auto base = std::filesystem::path(m_BasePath);
-                    base.make_preferred();
-                    auto fullPath = base / m_CurrentDir->Children[dirIndex]->FilePath;
-
+                    auto& fullPath = m_CurrentDir->Children[dirIndex]->FullPath;
                     Lumos::OS::Instance()->OpenFileExternal(fullPath);
                 }
 
@@ -969,13 +978,13 @@ namespace Lumos
             {
                 ImGui::BeginTooltip();
                 ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
-                ImGui::TextUnformatted((m_BasePath + "/" + m_CurrentDir->Children[dirIndex]->FilePath.filename().string()).c_str());
+                ImGui::TextUnformatted((m_CurrentDir->Children[dirIndex]->FullPath.string()).c_str());
                 ImGui::PopTextWrapPos();
                 ImGui::Image(m_CurrentDir->Children[dirIndex]->Thumbnail->GetHandle(), { 512, 512 }, ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
                 ImGui::EndTooltip();
             }
             else
-                ImGuiUtilities::Tooltip((m_BasePath + "/" + m_CurrentDir->Children[dirIndex]->FilePath.filename().string()).c_str());
+                ImGuiUtilities::Tooltip((const char*)(m_CurrentDir->Children[dirIndex]->FullPath.string()).c_str());
 
             if(ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID))
             {
@@ -1037,7 +1046,7 @@ namespace Lumos
                 }
             }
 
-            ImGuiUtilities::Tooltip(m_CurrentDir->Children[dirIndex]->FilePath.filename().string().c_str());
+            ImGuiUtilities::Tooltip((const char*)m_CurrentDir->Children[dirIndex]->FilePath.filename().string().c_str());
 
             if(ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID))
             {
@@ -1192,7 +1201,7 @@ namespace Lumos
 
         m_BasePath = Application::Get().GetProjectSettings().m_ProjectRoot + "Assets";
 
-        auto currentPath = m_CurrentDir->FilePath;
+        auto& currentPath = m_CurrentDir->FilePath;
 
         m_UpdateNavigationPath = true;
 

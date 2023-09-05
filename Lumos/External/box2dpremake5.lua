@@ -10,7 +10,6 @@ project 'box2d'
 
 	filter "system:windows"
 		systemversion "latest"
-   		buildoptions { "/MP" }
 	filter "system:linux"
 		buildoptions { "-fPIC" }
 

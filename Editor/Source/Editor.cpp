@@ -48,15 +48,19 @@
 #include <Lumos/Embedded/EmbedAsset.h>
 #include <Lumos/Scene/Component/ModelComponent.h>
 #include <imgui/Plugins/imcmd_command_palette.h>
+#include <Lumos/Maths/BoundingBox.h>
+#include <Lumos/Maths/BoundingSphere.h>
+#include <Lumos/Maths/Frustum.h>
+#include <Lumos/Maths/Plane.h>
+#include <Lumos/Maths/MathsUtilities.h>
+#include <Lumos/Core/LMLog.h>
+
+#include <spdlog/spdlog.h>
+#include <spdlog/fmt/ostr.h>
 
 #include <imgui/imgui_internal.h>
 #include <imgui/Plugins/ImGuizmo.h>
-#include <imgui/Plugins/ImGuiAl/button/imguial_button.h>
-#include <imgui/Plugins/ImTextEditor.h>
-#include <imgui/Plugins/ImFileBrowser.h>
-#include <iomanip>
 #include <glm/gtx/matrix_decompose.hpp>
-
 #include <cereal/version.hpp>
 
 namespace Lumos
@@ -65,8 +69,6 @@ namespace Lumos
 
     Editor::Editor()
         : Application()
-        //, m_SelectedEntity(entt::null)
-        //, m_CopiedEntity(entt::null)
         , m_IniFile("")
     {
         spdlog::sink_ptr sink = std::make_shared<ImGuiConsoleSink_mt>();
@@ -89,7 +91,6 @@ namespace Lumos
             panel->DestroyGraphicsResources();
 
         m_GridRenderer.reset();
-        // m_PreviewRenderer.reset();
         m_PreviewTexture.reset();
         m_PreviewSphere.reset();
         m_Panels.clear();
@@ -128,7 +129,8 @@ namespace Lumos
                 "ClassicDark",
                 "Classic",
                 "Cherry",
-                "Cinder" });
+                "Cinder",
+                "Cosy" });
         };
         select_theme_cmd.SubsequentCallback = [&](int selected_option)
         {
@@ -362,6 +364,17 @@ namespace Lumos
         return false;
     }
 
+    bool IsPrefab(const std::string& filePath)
+    {
+        LUMOS_PROFILE_FUNCTION();
+        std::string extension = StringUtilities::GetFilePathExtension(filePath);
+        extension             = StringUtilities::ToLower(extension);
+        if(extension == "lprefab")
+            return true;
+
+        return false;
+    }
+
     void Editor::OnImGui()
     {
         LUMOS_PROFILE_FUNCTION();
@@ -396,6 +409,29 @@ namespace Lumos
             Application::Get().GetSceneManager()->GetCurrentScene()->UpdateSceneGraph();
 
         EndDockSpace();
+
+        ImGuiDockContext* dc = &ImGui::GetCurrentContext()->DockContext;
+        for(int n = 0; n < dc->Nodes.Data.Size; n++)
+            if(ImGuiDockNode* node = (ImGuiDockNode*)dc->Nodes.Data[n].val_p)
+            {
+                if(node->TabBar)
+                    for(int n = 0; n < node->TabBar->Tabs.Size; n++)
+                    {
+                        const bool tab_visible     = node->TabBar->VisibleTabId == node->TabBar->Tabs[n].ID;
+                        const bool tab_bar_focused = (node->TabBar->Flags & ImGuiTabBarFlags_IsFocused) != 0;
+                        if(tab_bar_focused || tab_visible)
+                        {
+                            auto tab = node->TabBar->Tabs[n];
+
+                            ImVec2 pos = tab.Window->Pos;
+                            pos.x      = pos.x + tab.Offset + ImGui::GetStyle().FramePadding.x;
+                            pos.y      = pos.y + ImGui::GetStyle().ItemSpacing.y;
+                            ImRect bb(pos, { pos.x + tab.ContentWidth, pos.y });
+
+                            tab.Window->DrawList->AddLine(bb.Min, bb.Max, (!tab_bar_focused) ? ImGui::GetColorU32(ImGuiCol_SliderGrabActive) : ImGui::GetColorU32(ImGuiCol_Text), 2.0f);
+                        }
+                    }
+            }
 
         Application::OnImGui();
     }
@@ -579,6 +615,12 @@ namespace Lumos
                     {
                         m_Settings.m_Theme = ImGuiUtilities::ClassicLight;
                         ImGuiUtilities::SetTheme(ImGuiUtilities::ClassicLight);
+                        OS::Instance()->SetTitleBarColour(ImGui::GetStyle().Colors[ImGuiCol_MenuBarBg]);
+                    }
+                    if(ImGui::MenuItem("Cosy", "", m_Settings.m_Theme == ImGuiUtilities::Cosy))
+                    {
+                        m_Settings.m_Theme = ImGuiUtilities::Cosy;
+                        ImGuiUtilities::SetTheme(ImGuiUtilities::Cosy);
                         OS::Instance()->SetTitleBarColour(ImGui::GetStyle().Colors[ImGuiCol_MenuBarBg]);
                     }
                     ImGui::EndMenu();
@@ -808,9 +850,12 @@ namespace Lumos
                 ImGui::Separator();
 
                 ImGui::TextUnformatted("Third-Party");
-                ImGui::Text("ImGui - Version : %s, Revision - %d", IMGUI_VERSION, IMGUI_VERSION_NUM);
-                ImGui::Text("Entt - Version %s", ENTT_VERSION);
-                ImGui::Text("Cereal - Version %d.&d.%d", CEREAL_VERSION_MAJOR, CEREAL_VERSION_MINOR, CEREAL_VERSION_PATCH);
+                if(ImGui::MenuItem(fmt::format("ImGui - Version : {0}, Revision - {1}", IMGUI_VERSION, IMGUI_VERSION_NUM).c_str()))
+                    Lumos::OS::Instance()->OpenURL("https://github.com/ocornut/imgui");
+                if(ImGui::MenuItem(fmt::format("Entt - Version  : {0}", ENTT_VERSION).c_str()))
+                    Lumos::OS::Instance()->OpenURL("https://github.com/skypjack/entt");
+                if(ImGui::MenuItem(fmt::format("Cereal - Version : {0}.{1}.{2}", CEREAL_VERSION_MAJOR, CEREAL_VERSION_MINOR, CEREAL_VERSION_PATCH).c_str()))
+                    Lumos::OS::Instance()->OpenURL("https://github.com/USCiLab/cereal");
 
                 ImGui::EndMenu();
             }
@@ -1357,8 +1402,6 @@ namespace Lumos
 
             glm::mat4 medianPointMatrix = glm::translate(glm::mat4(1.0f), medianPointLocation) * glm::scale(glm::mat4(1.0f), medianPointScale);
 
-            glm::mat4 projectionMatrix, viewMatrix;
-
             ImGuizmo::SetDrawlist();
             ImGuizmo::SetOrthographic(m_CurrentCamera->IsOrthographic());
 
@@ -1811,7 +1854,7 @@ namespace Lumos
                 autoSaveTimer = 0;
             }
 
-            autoSaveTimer += ts.GetMillis();
+            autoSaveTimer += (float)ts.GetMillis();
         }
 
         if(m_EditorState == EditorState::Play)
@@ -1853,7 +1896,7 @@ namespace Lumos
                 m_EditorCameraController.HandleKeyboard(m_EditorCameraTransform, (float)ts.GetSeconds());
                 m_EditorCameraTransform.SetWorldMatrix(glm::mat4(1.0f));
 
-                if(Input::Get().GetKeyPressed(InputCode::Key::F))
+                if(!m_SelectedEntities.empty() && Input::Get().GetKeyPressed(InputCode::Key::F))
                 {
                     if(registry.valid(m_SelectedEntities.front()))
                     {
@@ -1962,6 +2005,28 @@ namespace Lumos
             m_EditorCameraController.StopMovement();
 
         Application::OnUpdate(ts);
+    }
+
+    void Editor::SetSelected(entt::entity entity)
+    {
+        auto& registry = Application::Get().GetSceneManager()->GetCurrentScene()->GetRegistry();
+
+        if(!registry.valid(entity))
+            return;
+        if(std::find(m_SelectedEntities.begin(), m_SelectedEntities.end(), entity) != m_SelectedEntities.end())
+            return;
+
+        m_SelectedEntities.push_back(entity);
+    }
+
+    void Editor::UnSelect(entt::entity entity)
+    {
+        auto it = std::find(m_SelectedEntities.begin(), m_SelectedEntities.end(), entity);
+
+        if(it != m_SelectedEntities.end())
+        {
+            m_SelectedEntities.erase(it);
+        }
     }
 
     void Editor::FocusCamera(const glm::vec3& point, float distance, float speed)
@@ -2076,6 +2141,19 @@ namespace Lumos
             }
         }
 
+        if(m_Settings.m_DebugDrawFlags & EditorDebugFlags::EntityNames)
+        {
+            auto transform = registry.view<Maths::Transform>();
+
+            for(auto entity : transform)
+            {
+                Entity e = { entity, GetCurrentScene() };
+                {
+                    DebugRenderer::DrawTextWsNDT(e.GetTransform().GetWorldPosition(), 20.0f, glm::vec4(1.0f), e.GetName());
+                }
+            }
+        }
+
         for(auto m_SelectedEntity : m_SelectedEntities)
             if(registry.valid(m_SelectedEntity)) // && Application::Get().GetEditorState() == EditorState::Preview)
             {
@@ -2180,7 +2258,7 @@ namespace Lumos
                 {
                     auto cs = phys3D->GetRigidBody()->GetCollisionShape();
                     if(cs)
-                        cs->DebugDraw(phys3D->GetRigidBody().get());
+                        cs->DebugDraw(phys3D->GetRigidBody());
                 }
             }
     }
@@ -2446,7 +2524,7 @@ namespace Lumos
             OpenTextFile(path, NULL);
         else if(IsModelFile(path))
         {
-            Entity modelEntity = Application::Get().GetSceneManager()->GetCurrentScene()->GetEntityManager()->Create();
+            Entity modelEntity = Application::Get().GetSceneManager()->GetCurrentScene()->GetEntityManager()->Create(StringUtilities::GetFileName(path));
             modelEntity.AddComponent<Graphics::ModelComponent>(path);
 
             SetSelected(modelEntity.GetHandle());
@@ -2468,7 +2546,7 @@ namespace Lumos
             soundNode->SetReferenceDistance(1.0f);
             soundNode->SetRadius(30.0f);
 
-            Entity entity = Application::Get().GetSceneManager()->GetCurrentScene()->GetEntityManager()->Create();
+            Entity entity = Application::Get().GetSceneManager()->GetCurrentScene()->GetEntityManager()->Create(StringUtilities::GetFileName(path));
             entity.AddComponent<SoundComponent>(soundNode);
             entity.GetOrAddComponent<Maths::Transform>();
             SetSelected(entity.GetHandle());
@@ -2480,12 +2558,16 @@ namespace Lumos
         }
         else if(IsTextureFile(path))
         {
-            auto entity  = Application::Get().GetSceneManager()->GetCurrentScene()->CreateEntity("Sprite");
+            auto entity  = Application::Get().GetSceneManager()->GetCurrentScene()->CreateEntity(StringUtilities::GetFileName(path));
             auto& sprite = entity.AddComponent<Graphics::Sprite>();
             entity.GetOrAddComponent<Maths::Transform>();
 
             SharedPtr<Graphics::Texture2D> texture = SharedPtr<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile(path, path));
             sprite.SetTexture(texture);
+        }
+        else if(IsPrefab(path))
+        {
+            m_SceneManager->GetCurrentScene()->InstantiatePrefab(path);
         }
     }
 

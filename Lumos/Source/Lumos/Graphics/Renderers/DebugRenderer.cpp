@@ -26,8 +26,14 @@
 #include "Maths/BoundingBox.h"
 #include "Maths/BoundingSphere.h"
 #include "Maths/Ray.h"
-#include "Maths/Maths.h"
 #include "Audio/SoundNode.h"
+#include <cstdarg>
+#include <glm/vec2.hpp>
+#include <glm/vec3.hpp>
+#include <glm/vec4.hpp>
+#include <glm/mat4x4.hpp>
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/quaternion.hpp>
 
 namespace Lumos
 {
@@ -41,6 +47,22 @@ namespace Lumos
 #define MAX_BATCH_DRAW_CALLS 100
 #define RENDERER_LINE_SIZE RENDERER2DLINE_VERTEX_SIZE * 4
 #define RENDERER_BUFFER_SIZE RENDERER_LINE_SIZE* MaxLineVertices
+
+#ifdef LUMOS_PLATFORM_WINDOWS
+#define VSNPRINTF(_DstBuf, _DstSize, _MaxCount, _Format, _ArgList) vsnprintf_s(_DstBuf, _DstSize, _MaxCount, _Format, _ArgList)
+#elif LUMOS_PLATFORM_MACOS
+#define VSNPRINTF(_DstBuf, _DstSize, _MaxCount, _Format, _ArgList) vsnprintf_l(_DstBuf, _DstSize, _MaxCount, _Format, _ArgList)
+#elif LUMOS_PLATFORM_LINUX
+#define VSNPRINTF(_DstBuf, _DstSize, _MaxCount, _Format, _ArgList) vsnprintf(_DstBuf, _DstSize, _Format, _ArgList)
+#elif LUMOS_PLATFORM_MOBILE
+#define VSNPRINTF(_DstBuf, _DstSize, _MaxCount, _Format, _ArgList) 0
+#else
+#define VSNPRINTF(_DstBuf, _DstSize, _MaxCount, _Format, _ArgList) 0
+#endif
+
+#ifndef LUMOS_PLATFORM_WINDOWS
+#define _TRUNCATE 0
+#endif
 
     void DebugRenderer::Init()
     {
@@ -69,10 +91,43 @@ namespace Lumos
         s_Instance->m_DrawListNDT.m_DebugLines.clear();
         s_Instance->m_DrawListNDT.m_DebugThickLines.clear();
         s_Instance->m_DrawListNDT.m_DebugPoints.clear();
+
+        s_Instance->m_TextList.clear();
+        s_Instance->m_TextListNDT.clear();
+        s_Instance->m_TextListCS.clear();
+        s_Instance->m_NumStatusEntries    = 0;
+        s_Instance->m_MaxStatusEntryWidth = 0.0f;
+    }
+
+    void DebugRenderer::ClearLogEntries()
+    {
+        s_Instance->m_vLogEntries.clear();
+        s_Instance->m_LogEntriesOffset = 0;
+    }
+
+    void DebugRenderer::SortLists()
+    {
+        float cs_size_x = LOG_TEXT_SIZE / s_Instance->m_Width * 2.0f;
+        float cs_size_y = LOG_TEXT_SIZE / s_Instance->m_Height * 2.0f;
+        size_t log_len  = s_Instance->m_vLogEntries.size();
+
+        float max_x = 0.0f;
+        for(size_t i = 0; i < log_len; ++i)
+        {
+            max_x = Maths::Max(max_x, s_Instance->m_vLogEntries[i].text.length() * cs_size_x * 0.6f);
+
+            size_t idx                              = (i + s_Instance->m_LogEntriesOffset) % MAX_LOG_SIZE;
+            float alpha                             = 1.0f - ((float)log_len - (float)i) / (float)log_len;
+            s_Instance->m_vLogEntries[idx].colour.w = alpha;
+            float aspect                            = (float)s_Instance->m_Width / (float)s_Instance->m_Height;
+            DrawTextCs(glm::vec4(-aspect, -1.0f + ((log_len - i - 1) * cs_size_y) + cs_size_y, 0.0f, 1.0f), LOG_TEXT_SIZE, s_Instance->m_vLogEntries[idx].text, s_Instance->m_vLogEntries[idx].colour);
+        }
     }
 
     DebugRenderer::DebugRenderer()
     {
+        m_vLogEntries.clear();
+        m_LogEntriesOffset = 0;
     }
 
     DebugRenderer::~DebugRenderer()
@@ -237,6 +292,191 @@ namespace Lumos
         {
             GenDrawTriangle(true, verts[0], verts[i - 1], verts[i], colour);
         }
+    }
+
+    void DebugRenderer::DrawTextCs(const glm::vec4& cs_pos, const float font_size, const std::string& text, const glm::vec4& colour)
+    {
+        glm::vec3 cs_size = glm::vec3(font_size / GetInstance()->m_Width, font_size / GetInstance()->m_Height, 0.0f);
+        cs_size           = cs_size * cs_pos.w;
+
+        // Work out the starting position of text based off desired alignment
+        float x_offset      = 0.0f;
+        const auto text_len = static_cast<int>(text.length());
+
+        DebugText& dText = GetInstance()->m_TextListCS.emplace_back();
+        dText.text       = text;
+        dText.Position   = cs_pos;
+        dText.colour     = colour;
+        dText.Size       = font_size;
+
+        // Add each characters to the draw list individually
+        // for (int i = 0; i < text_len; ++i)
+        //{
+        //     glm::vec4 char_pos = glm::vec4(cs_pos.x + x_offset, cs_pos.y, cs_pos.z, cs_pos.w);
+        //     glm::vec4 char_data = glm::vec4(cs_size.x, cs_size.y, static_cast<float>(text[i]), 0.0f);
+
+        //    GetInstance()->m_vChars.push_back(char_pos);
+        //    GetInstance()->m_vChars.push_back(char_data);
+        //    GetInstance()->m_vChars.push_back(colour);
+        //    GetInstance()->m_vChars.push_back(colour);    //We dont really need this, but we need the padding to match the same vertex format as all the other debug drawables
+
+        //    x_offset += cs_size.x * 1.2f;
+        //}
+    }
+
+    // Draw Text WorldSpace
+    void DebugRenderer::DrawTextWs(const glm::vec3& pos, const float font_size, const glm::vec4& colour, const std::string text, ...)
+    {
+        va_list args;
+        va_start(args, text);
+
+        char buf[1024];
+
+        int needed = VSNPRINTF(buf, 1023, _TRUNCATE, text.c_str(), args);
+
+        va_end(args);
+
+        int length = (needed < 0) ? 1024 : needed;
+
+        std::string formatted_text = std::string(buf, static_cast<size_t>(length));
+
+        // glm::vec4 cs_pos = GetInstance()->m_ProjViewMtx * glm::vec4(pos, 1.0f);
+        // DrawTextCs(cs_pos, font_size, formatted_text, colour);
+
+        DebugText& dText = GetInstance()->m_TextList.emplace_back();
+        dText.text       = text;
+        dText.Position   = glm::vec4(pos, 1.0f);
+        dText.colour     = colour;
+        dText.Size       = font_size;
+    }
+
+    void DebugRenderer::DrawTextWsNDT(const glm::vec3& pos, const float font_size, const glm::vec4& colour, const std::string text, ...)
+    {
+        va_list args;
+        va_start(args, text);
+
+        char buf[1024];
+
+        int needed = VSNPRINTF(buf, 1023, _TRUNCATE, text.c_str(), args);
+
+        va_end(args);
+
+        int length = (needed < 0) ? 1024 : needed;
+
+        std::string formatted_text = std::string(buf, static_cast<size_t>(length));
+
+        // glm::vec4 cs_pos = GetInstance()->m_ProjViewMtx * glm::vec4(pos, 1.0f);
+        // cs_pos.z = (1.0f * cs_pos.w);
+        // DrawTextCs(cs_pos, font_size, formatted_text, colour);
+
+        DebugText& dText = GetInstance()->m_TextListNDT.emplace_back();
+        dText.text       = text;
+        dText.Position   = glm::vec4(pos, 1.0f);
+        dText.colour     = colour;
+        dText.Size       = font_size;
+    }
+
+    // Status Entry
+    void DebugRenderer::AddStatusEntry(const glm::vec4& colour, const std::string text, ...)
+    {
+        float cs_size_x = STATUS_TEXT_SIZE / GetInstance()->m_Width * 2.0f;
+        float cs_size_y = STATUS_TEXT_SIZE / GetInstance()->m_Height * 2.0f;
+
+        va_list args;
+        va_start(args, text);
+
+        char buf[1024];
+
+        int needed = VSNPRINTF(buf, 1023, _TRUNCATE, text.c_str(), args);
+
+        va_end(args);
+
+        int length = (needed < 0) ? 1024 : needed;
+
+        std::string formatted_text = std::string(buf, static_cast<size_t>(length));
+
+        DrawTextCs(glm::vec4(-1.0f + cs_size_x * 0.5f, 1.0f - (GetInstance()->m_NumStatusEntries * cs_size_y) + cs_size_y, -1.0f, 1.0f), STATUS_TEXT_SIZE, formatted_text, colour);
+        GetInstance()->m_NumStatusEntries++;
+        GetInstance()->m_MaxStatusEntryWidth = Maths::Max(GetInstance()->m_MaxStatusEntryWidth, cs_size_x * 0.6f * length);
+    }
+
+    // Log
+
+    void DebugRenderer::AddLogEntry(const glm::vec3& colour, const std::string& text)
+    {
+        /*    time_t now = time(0);
+        tm ltm;
+        localtime_s(&ltm, &now);*/
+
+        // std::stringstream ss;
+        // ss << "[" << ltm.tm_hour << ":" << ltm.tm_min << ":" << ltm.tm_sec << "] ";
+
+        LogEntry le;
+        le.text   = /*ss.str() + */ text; // +"\n";
+        le.colour = glm::vec4(colour.x, colour.y, colour.z, 1.0f);
+
+        if(GetInstance()->m_vLogEntries.size() < MAX_LOG_SIZE)
+            GetInstance()->m_vLogEntries.push_back(le);
+        else
+        {
+            GetInstance()->m_vLogEntries[GetInstance()->m_LogEntriesOffset] = le;
+            GetInstance()->m_LogEntriesOffset                               = (GetInstance()->m_LogEntriesOffset + 1) % MAX_LOG_SIZE;
+        }
+
+        LUMOS_LOG_WARN(text);
+    }
+
+    void DebugRenderer::Log(const glm::vec3& colour, const std::string text, ...)
+    {
+        va_list args;
+        va_start(args, text);
+
+        char buf[1024];
+
+        int needed = VSNPRINTF(buf, 1023, _TRUNCATE, text.c_str(), args);
+
+        va_end(args);
+
+        int length = (needed < 0) ? 1024 : needed;
+        AddLogEntry(colour, std::string(buf, static_cast<size_t>(length)));
+    }
+
+    void DebugRenderer::Log(const std::string text, ...)
+    {
+        va_list args;
+        va_start(args, text);
+
+        char buf[1024];
+
+        int needed = VSNPRINTF(buf, 1023, _TRUNCATE, text.c_str(), args);
+
+        va_end(args);
+
+        int length = (needed < 0) ? 1024 : needed;
+        AddLogEntry(glm::vec3(0.4f, 1.0f, 0.6f), std::string(buf, static_cast<size_t>(length)));
+    }
+
+    void DebugRenderer::LogE(const char* filename, int linenumber, const std::string text, ...)
+    {
+        // Error Format:
+        //<text>
+        //         -> <line number> : <file name>
+
+        va_list args;
+        va_start(args, text);
+
+        char buf[1024];
+
+        int needed = VSNPRINTF(buf, 1023, _TRUNCATE, text.c_str(), args);
+
+        va_end(args);
+
+        int length = (needed < 0) ? 1024 : needed;
+
+        Log(glm::vec3(1.0f, 0.25f, 0.25f), "[ERROR] %s:%d", filename, linenumber);
+        AddLogEntry(glm::vec3(1.0f, 0.5f, 0.5f), "\t \x01 \"" + std::string(buf, static_cast<size_t>(length)) + "\"");
+
+        std::cout << std::endl;
     }
 
     void DebugRenderer::DebugDraw(const Maths::BoundingBox& box, const glm::vec4& edgeColour, bool cornersOnly, float width)

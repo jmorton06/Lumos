@@ -1,10 +1,13 @@
 #pragma once
+#include "Core/Reference.h"
 #include "Events/Event.h"
 #include "Graphics/RHI/SwapChain.h"
 #include "Graphics/RHI/GraphicsContext.h"
 
 #include <glm/vec2.hpp>
 #include <glm/fwd.hpp>
+#include <vector>
+#include <functional>
 
 namespace Lumos
 {
@@ -30,6 +33,8 @@ namespace Lumos
         std::string Title;
         int RenderAPI;
         std::string FilePath;
+        std::vector<std::string> IconPaths;
+        std::vector<std::pair<uint32_t, uint8_t*>> IconData;
     };
 
     class LUMOS_EXPORT Window
@@ -71,9 +76,9 @@ namespace Lumos
         virtual float GetScreenRatio() const = 0;
         virtual void HideMouse(bool hide) {};
         virtual void SetMousePosition(const glm::vec2& pos) {};
-        virtual void SetEventCallback(const EventCallbackFn& callback)                               = 0;
-        virtual void UpdateCursorImGui()                                                             = 0;
-        virtual void SetIcon(const std::string& filePath, const std::string& smallIconFilePath = "") = 0;
+        virtual void SetEventCallback(const EventCallbackFn& callback) = 0;
+        virtual void UpdateCursorImGui()                               = 0;
+        virtual void SetIcon(const WindowDesc& desc)                   = 0;
         virtual void Maximise() {};
         virtual std::string GetTitle() const = 0;
         virtual uint32_t GetWidth() const    = 0;

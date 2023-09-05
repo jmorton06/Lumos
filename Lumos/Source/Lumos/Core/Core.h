@@ -75,9 +75,9 @@
 #define STRINGIZE(s) STRINGIZE2(s)
 
 #if LUMOS_PLATFORM_WINDOWS
-#define LUMOS_BREAK() __debugbreak();
+#define LUMOS_BREAK() __debugbreak()
 #else
-#define LUMOS_BREAK() raise(SIGTRAP);
+#define LUMOS_BREAK() raise(SIGTRAP)
 #endif
 
 #ifdef LUMOS_DEBUG
@@ -87,40 +87,30 @@
 #define HEX2CHR(m_hex) \
     ((m_hex >= '0' && m_hex <= '9') ? (m_hex - '0') : ((m_hex >= 'A' && m_hex <= 'F') ? (10 + m_hex - 'A') : ((m_hex >= 'a' && m_hex <= 'f') ? (10 + m_hex - 'a') : 0)))
 
-#ifdef LUMOS_ENABLE_ASSERTS
-
-#define LUMOS_ASSERT_NO_MESSAGE(condition)        \
-    {                                             \
-        if(!(condition))                          \
-        {                                         \
-            LUMOS_LOG_ERROR("Assertion Failed!"); \
-            LUMOS_BREAK();                        \
-        }                                         \
-    }
-
-#define LUMOS_ASSERT_MESSAGE(condition, ...)     \
-    {                                            \
-        if(!(condition))                         \
-        {                                        \
-            LUMOS_LOG_ERROR("Assertion Failed"); \
-            LUMOS_LOG_ERROR(__VA_ARGS__);        \
-            LUMOS_BREAK();                       \
-        }                                        \
-    }
-
-#define LUMOS_CLIENT_ASSERT LUMOS_ASSERT_MESSAGE
-#define LUMOS_CORE_ASSERT LUMOS_ASSERT_MESSAGE
+#ifndef LUMOS_ENABLE_ASSERTS
+#define LUMOS_ASSERT(...) ((void)0)
 #else
-#define LUMOS_CLIENT_ASSERT(...)
-#define LUMOS_CORE_ASSERT(...)
-#define LUMOS_ASSERT_NO_MESSAGE(...)
-#define LUMOS_ASSERT_MESSAGE(condition)
+#ifdef LUMOS_PLATFORM_UNIX
+#define LUMOS_ASSERT(condition, ...)                                                                                                                                \
+    do {                                                                                                                                                            \
+        if(!(condition))                                                                                                                                            \
+        {                                                                                                                                                           \
+            LUMOS_LOG_ERROR("Assertion failed: {0}, file {1}, line {2}", #condition, __FILE__, __LINE__);                                                           \
+            (::Lumos::Debug::Log::GetCoreLogger())->log(spdlog::source_loc { __FILE__, __LINE__, SPDLOG_FUNCTION }, spdlog::level::level_enum::err, ##__VA_ARGS__); \
+            LUMOS_BREAK();                                                                                                                                          \
+        }                                                                                                                                                           \
+    } while(0)
+#else
+#define LUMOS_ASSERT(condition, ...)                                                                                                                              \
+    do {                                                                                                                                                          \
+        if(!(condition))                                                                                                                                          \
+        {                                                                                                                                                         \
+            LUMOS_LOG_ERROR("Assertion failed: {0}, file {1}, line {2}", #condition, __FILE__, __LINE__);                                                         \
+            (::Lumos::Debug::Log::GetCoreLogger())->log(spdlog::source_loc { __FILE__, __LINE__, SPDLOG_FUNCTION }, spdlog::level::level_enum::err, __VA_ARGS__); \
+            LUMOS_BREAK();                                                                                                                                        \
+        }                                                                                                                                                         \
+    } while(0)
 #endif
-
-#ifdef LUMOS_ENGINE
-#define LUMOS_ASSERT LUMOS_CORE_ASSERT
-#else
-#define LUMOS_ASSERT LUMOS_CLIENT_ASSERT
 #endif
 
 #define UNIMPLEMENTED                                                     \
@@ -129,9 +119,15 @@
         LUMOS_BREAK();                                                    \
     }
 
-#define NONCOPYABLE(type_identifier)                             \
-    type_identifier(const type_identifier&)            = delete; \
-    type_identifier& operator=(const type_identifier&) = delete;
+#define NONCOPYABLE(class_name)                        \
+    class_name(const class_name&)            = delete; \
+    class_name& operator=(const class_name&) = delete;
+
+#define NONCOPYABLEANDMOVE(class_name)                 \
+    class_name(const class_name&)            = delete; \
+    class_name& operator=(const class_name&) = delete; \
+    class_name(class_name&&)                 = delete; \
+    class_name& operator=(class_name&&)      = delete;
 
 #if defined(_MSC_VER)
 #define DISABLE_WARNING_PUSH __pragma(warning(push))
@@ -165,6 +161,26 @@
     CEREAL_CLASS_VERSION(x, version);  \
     CEREAL_REGISTER_TYPE_WITH_NAME(x, #x);
 
-// #define VMA_DEBUG_LOG LUMOS_LOG_WARN
-//  Vulkan Only
-// #define LUMOS_PROFILE_GPU_ENABLED
+#define Bytes(n) (n)
+#define Kilobytes(n) (n << 10)
+#define Megabytes(n) (n << 20)
+#define Gigabytes(n) (((uint64_t)n) << 30)
+#define Terabytes(n) (((uint64_t)n) << 40)
+
+#define ArrayCount(a) (sizeof(a) / sizeof((a)[0]))
+#define IntFromPtr(p) (uint64_t)(((uint8_t*)p) - 0)
+#define PtrFromInt(i) (void*)(((uint8_t*)0) + i)
+#define MemberOf(type, member_name) ((type*)0)->member_name
+#define OffsetOf(type, member_name) IntFromPtr(&MemberOf(type, member_name))
+#define BaseFromMember(type, member_name, ptr) (type*)((uint8_t*)(ptr)-OffsetOf(type, member_name))
+
+#define LUMOS_UNUSED(x) (void)(x)
+#define LUMOS_STRINGIFY(x) #x
+
+#if defined(__GNUC__) || defined(__clang__)
+#define LUMOS_DEPRECATED(msg) __attribute__((deprecated(msg)))
+#elif defined(_MSC_VER)
+#define LUMOS_DEPRECATED(msg) __declspec(deprecated(msg))
+#else
+#define LUMOS_DEPRECATED(msg)
+#endif

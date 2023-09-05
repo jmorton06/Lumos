@@ -13,6 +13,8 @@
 #include "Physics/LumosPhysicsEngine/CollisionShapes/SphereCollisionShape.h"
 #include "Physics/LumosPhysicsEngine/CollisionShapes/CuboidCollisionShape.h"
 #include "Physics/LumosPhysicsEngine/CollisionShapes/PyramidCollisionShape.h"
+#include "Physics/LumosPhysicsEngine/CollisionShapes/HullCollisionShape.h"
+#include "Physics/LumosPhysicsEngine/CollisionShapes/CapsuleCollisionShape.h"
 
 #include "Events/Event.h"
 #include "Events/ApplicationEvent.h"
@@ -36,6 +38,18 @@
 #include <cereal/archives/json.hpp>
 #include <entt/entity/registry.hpp>
 #include <sol/sol.hpp>
+
+CEREAL_REGISTER_TYPE(Lumos::SphereCollisionShape);
+CEREAL_REGISTER_TYPE(Lumos::CuboidCollisionShape);
+CEREAL_REGISTER_TYPE(Lumos::PyramidCollisionShape);
+CEREAL_REGISTER_TYPE(Lumos::HullCollisionShape);
+CEREAL_REGISTER_TYPE(Lumos::CapsuleCollisionShape);
+
+CEREAL_REGISTER_POLYMORPHIC_RELATION(Lumos::CollisionShape, Lumos::SphereCollisionShape);
+CEREAL_REGISTER_POLYMORPHIC_RELATION(Lumos::CollisionShape, Lumos::CuboidCollisionShape);
+CEREAL_REGISTER_POLYMORPHIC_RELATION(Lumos::CollisionShape, Lumos::PyramidCollisionShape);
+CEREAL_REGISTER_POLYMORPHIC_RELATION(Lumos::CollisionShape, Lumos::HullCollisionShape);
+CEREAL_REGISTER_POLYMORPHIC_RELATION(Lumos::CollisionShape, Lumos::CapsuleCollisionShape);
 
 namespace entt
 {
@@ -333,7 +347,8 @@ namespace Lumos
 #define ALL_COMPONENTSV7 ALL_COMPONENTSV6, AxisConstraintComponent
 #define ALL_COMPONENTSV8 ALL_COMPONENTSV7, TextComponent
 
-#define ALL_COMPONENTSV9(input) get<Maths::Transform>(input).get<NameComponent>(input).get<ActiveComponent>(input).get<Hierarchy>(input).get<Camera>(input).get<LuaScriptComponent>(input).get<Graphics::Model>(input).get<Graphics::Light>(input).get<RigidBody3DComponent>(input).get<Graphics::Environment>(input).get<Graphics::Sprite>(input).get<RigidBody2DComponent>(input).get<DefaultCameraController>(input).get<Graphics::AnimatedSprite>(input).get<SoundComponent>(input).get<Listener>(input).get<IDComponent>(input).get<Graphics::ModelComponent>(input).get<AxisConstraintComponent>(input).get<TextComponent>(input)
+#define ALL_COMPONENTSLISTV8 ALL_COMPONENTSV8
+#define ALL_COMPONENTSENTTV8(input) get<Maths::Transform>(input).get<NameComponent>(input).get<ActiveComponent>(input).get<Hierarchy>(input).get<Camera>(input).get<LuaScriptComponent>(input).get<Graphics::Model>(input).get<Graphics::Light>(input).get<RigidBody3DComponent>(input).get<Graphics::Environment>(input).get<Graphics::Sprite>(input).get<RigidBody2DComponent>(input).get<DefaultCameraController>(input).get<Graphics::AnimatedSprite>(input).get<SoundComponent>(input).get<Listener>(input).get<IDComponent>(input).get<Graphics::ModelComponent>(input).get<AxisConstraintComponent>(input).get<TextComponent>(input)
 
     void Scene::Serialise(const std::string& filePath, bool binary)
     {
@@ -354,7 +369,7 @@ namespace Lumos
                 // output finishes flushing its contents when it goes out of scope
                 cereal::BinaryOutputArchive output { file };
                 output(*this);
-                entt::snapshot { m_EntityManager->GetRegistry() }.get<entt::entity>(output).ALL_COMPONENTSV9(output);
+                entt::snapshot { m_EntityManager->GetRegistry() }.get<entt::entity>(output).ALL_COMPONENTSENTTV8(output);
             }
             file.close();
         }
@@ -367,7 +382,7 @@ namespace Lumos
                 // output finishes flushing its contents when it goes out of scope
                 cereal::JSONOutputArchive output { storage };
                 output(*this);
-                entt::snapshot { m_EntityManager->GetRegistry() }.get<entt::entity>(output).ALL_COMPONENTSV9(output);
+                entt::snapshot { m_EntityManager->GetRegistry() }.get<entt::entity>(output).ALL_COMPONENTSENTTV8(output);
             }
             FileSystem::WriteTextFile(path, storage.str());
         }
@@ -411,27 +426,32 @@ namespace Lumos
                 else if(m_SceneSerialisationVersion >= 8 && m_SceneSerialisationVersion < 14)
                     entt::basic_snapshot_loader_legacy { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV7>(input);
                 else if(m_SceneSerialisationVersion >= 14 && m_SceneSerialisationVersion < 21)
-                    entt::basic_snapshot_loader_legacy { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV8>(input);
+                    entt::basic_snapshot_loader_legacy { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSLISTV8>(input);
                 else if(m_SceneSerialisationVersion >= 21)
-                    entt::snapshot_loader { m_EntityManager->GetRegistry() }.get<entt::entity>(input).ALL_COMPONENTSV9(input);
+                    entt::snapshot_loader { m_EntityManager->GetRegistry() }.get<entt::entity>(input).ALL_COMPONENTSENTTV8(input);
 
                 if(m_SceneSerialisationVersion < 6)
                 {
-                    m_EntityManager->GetRegistry().each([&](auto entity)
-                                                        { m_EntityManager->GetRegistry().emplace<IDComponent>(entity, Random64::Rand(0, std::numeric_limits<uint64_t>::max())); });
+                    // m_EntityManager->GetRegistry().each([&](auto entity)
+                    for(auto [entity] : m_EntityManager->GetRegistry().storage<entt::entity>().each())
+                    {
+                        m_EntityManager->GetRegistry().emplace<IDComponent>(entity, Random64::Rand(0, std::numeric_limits<uint64_t>::max()));
+                    }
                 }
 
                 if(m_SceneSerialisationVersion < 7)
                 {
-                    m_EntityManager->GetRegistry().each([&](auto entity)
-                                                        {
-                            Graphics::Model* model;
-                            if(model = m_EntityManager->GetRegistry().try_get<Graphics::Model>(entity))
-                            {
-                                Graphics::Model* modelCopy = new Graphics::Model(*model);
-                                m_EntityManager->GetRegistry().emplace<Graphics::ModelComponent>(entity, SharedPtr<Graphics::Model>(modelCopy));
-                                m_EntityManager->GetRegistry().remove<Graphics::Model>(entity);
-                            } });
+                    // m_EntityManager->GetRegistry().each([&](auto entity)
+                    for(auto [entity] : m_EntityManager->GetRegistry().storage<entt::entity>().each())
+                    {
+                        Graphics::Model* model;
+                        if(model = m_EntityManager->GetRegistry().try_get<Graphics::Model>(entity))
+                        {
+                            Graphics::Model* modelCopy = new Graphics::Model(*model);
+                            m_EntityManager->GetRegistry().emplace<Graphics::ModelComponent>(entity, SharedPtr<Graphics::Model>(modelCopy));
+                            m_EntityManager->GetRegistry().remove<Graphics::Model>(entity);
+                        }
+                    }
                 }
             }
             catch(...)
@@ -471,27 +491,32 @@ namespace Lumos
                 else if(m_SceneSerialisationVersion >= 8 && m_SceneSerialisationVersion < 14)
                     entt::basic_snapshot_loader_legacy { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV7>(input);
                 else if(m_SceneSerialisationVersion >= 14 && m_SceneSerialisationVersion < 21)
-                    entt::basic_snapshot_loader_legacy { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV8>(input);
+                    entt::basic_snapshot_loader_legacy { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSLISTV8>(input);
                 else if(m_SceneSerialisationVersion >= 21)
-                    entt::snapshot_loader { m_EntityManager->GetRegistry() }.get<entt::entity>(input).ALL_COMPONENTSV9(input);
+                    entt::snapshot_loader { m_EntityManager->GetRegistry() }.get<entt::entity>(input).ALL_COMPONENTSENTTV8(input);
 
                 if(m_SceneSerialisationVersion < 6)
                 {
-                    m_EntityManager->GetRegistry().each([&](auto entity)
-                                                        { m_EntityManager->GetRegistry().emplace<IDComponent>(entity, Random64::Rand(0, std::numeric_limits<uint64_t>::max())); });
+                    // m_EntityManager->GetRegistry().each([&](auto entity)
+                    for(auto [entity] : m_EntityManager->GetRegistry().storage<entt::entity>().each())
+                    {
+                        m_EntityManager->GetRegistry().emplace<IDComponent>(entity, Random64::Rand(0, std::numeric_limits<uint64_t>::max()));
+                    }
                 }
 
                 if(m_SceneSerialisationVersion < 7)
                 {
-                    m_EntityManager->GetRegistry().each([&](auto entity)
-                                                        {
-                            Graphics::Model* model;
-                            if(model = m_EntityManager->GetRegistry().try_get<Graphics::Model>(entity))
-                            {
-                                Graphics::Model* modelCopy = new Graphics::Model(*model);
-                                m_EntityManager->GetRegistry().emplace<Graphics::ModelComponent>(entity, SharedPtr<Graphics::Model>(modelCopy));
-                                m_EntityManager->GetRegistry().remove<Graphics::Model>(entity);
-                            } });
+                    // m_EntityManager->GetRegistry().each([&](auto entity)
+                    for(auto [entity] : m_EntityManager->GetRegistry().storage<entt::entity>().each())
+                    {
+                        Graphics::Model* model;
+                        if(model = m_EntityManager->GetRegistry().try_get<Graphics::Model>(entity))
+                        {
+                            Graphics::Model* modelCopy = new Graphics::Model(*model);
+                            m_EntityManager->GetRegistry().emplace<Graphics::ModelComponent>(entity, SharedPtr<Graphics::Model>(modelCopy));
+                            m_EntityManager->GetRegistry().remove<Graphics::Model>(entity);
+                        }
+                    }
                 }
             }
             catch(...)
@@ -556,7 +581,7 @@ namespace Lumos
 
         Entity newEntity = m_EntityManager->Create();
 
-        CopyEntity<ALL_COMPONENTSV8>(newEntity.GetHandle(), entity.GetHandle(), m_EntityManager->GetRegistry());
+        CopyEntity<ALL_COMPONENTSLISTV8>(newEntity.GetHandle(), entity.GetHandle(), m_EntityManager->GetRegistry());
         newEntity.GetComponent<IDComponent>().ID = UUID();
 
         auto hierarchyComponent = newEntity.TryGetComponent<Hierarchy>();
@@ -580,5 +605,122 @@ namespace Lumos
             newEntity.SetParent(parent);
 
         m_SceneGraph->DisableOnConstruct(false, m_EntityManager->GetRegistry());
+    }
+
+    static int PrefabVersion = 2;
+
+    template <typename T>
+    static void DeserialiseComponentIfExists(Entity entity, cereal::JSONInputArchive& archive)
+    {
+        LUMOS_PROFILE_FUNCTION();
+        bool hasComponent;
+        archive(hasComponent);
+        if(hasComponent)
+            archive(entity.GetOrAddComponent<T>());
+    }
+
+    template <typename... Component>
+    static void DeserialiseEntity(Entity entity, cereal::JSONInputArchive& archive)
+    {
+        (DeserialiseComponentIfExists<Component>(entity, archive), ...);
+    }
+
+    void DeserializeEntityHierarchy(Entity entity, cereal::JSONInputArchive& archive, int version)
+    {
+        // Serialize the current entity
+        if(version == 2)
+            DeserialiseEntity<ALL_COMPONENTSLISTV8>(entity, archive);
+        entity.ClearChildren();
+
+        // Serialize the children recursively
+        int children; // = entity.GetChildren();
+        archive(children);
+
+        for(int i = 0; i < children; i++)
+        {
+            auto child = entity.GetScene()->GetEntityManager()->Create();
+            DeserializeEntityHierarchy(child, archive, version);
+            child.SetParent(entity);
+        }
+    }
+
+    Entity Scene::InstantiatePrefab(const std::string& path)
+    {
+        std::string prefabData = VFS::Get().ReadTextFile(path);
+        std::stringstream storage(prefabData);
+        cereal::JSONInputArchive input(storage);
+
+        int version;
+        int SceneVersion;
+        input(cereal::make_nvp("Version", version));
+        input(cereal::make_nvp("Scene Version", SceneVersion));
+
+        int cachedSceneVersion             = Serialisation::CurrentSceneVersion;
+        Serialisation::CurrentSceneVersion = SceneVersion;
+
+        Entity entity = m_EntityManager->Create();
+        DeserializeEntityHierarchy(entity, input, version);
+
+        std::string relativePath;
+        if(VFS::Get().AbsoulePathToVFS(path, relativePath))
+            entity.AddComponent<PrefabComponent>(relativePath);
+        else
+            entity.AddComponent<PrefabComponent>(path);
+
+        Serialisation::CurrentSceneVersion = cachedSceneVersion;
+
+        return entity;
+    }
+
+    template <typename T>
+    static void SerialiseComponentIfExists(Entity entity, cereal::JSONOutputArchive& archive)
+    {
+        LUMOS_PROFILE_FUNCTION();
+        bool hasComponent = entity.HasComponent<T>();
+        archive(hasComponent);
+        if(hasComponent)
+            archive(entity.GetComponent<T>());
+    }
+
+    template <typename... Component>
+    static void SerialiseEntity(Entity entity, cereal::JSONOutputArchive& archive)
+    {
+        (SerialiseComponentIfExists<Component>(entity, archive), ...);
+    }
+
+    void SerializeEntityHierarchy(Entity entity, cereal::JSONOutputArchive& archive)
+    {
+        // Serialize the current entity
+        SerialiseEntity<ALL_COMPONENTSLISTV8>(entity, archive);
+
+        // Serialize the children recursively
+        auto children = entity.GetChildren();
+        archive((int)children.size());
+
+        for(auto child : children)
+        {
+            SerializeEntityHierarchy(child, archive);
+        }
+    }
+
+    void Scene::SavePrefab(Entity entity, const std::string& path)
+    {
+        std::stringstream storage;
+
+        {
+            // output finishes flushing its contents when it goes out of scope
+            cereal::JSONOutputArchive output { storage };
+
+            output(cereal::make_nvp("Version", PrefabVersion));
+            output(cereal::make_nvp("Scene Version", SceneSerialisationVersion));
+
+            // Serialize a single entity
+            SerializeEntityHierarchy(entity, output);
+        }
+
+        FileSystem::WriteTextFile(path, storage.str());
+        std::string relativePath;
+        if(VFS::Get().AbsoulePathToVFS(path, relativePath))
+            entity.AddComponent<PrefabComponent>(relativePath);
     }
 }

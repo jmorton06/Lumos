@@ -1,9 +1,10 @@
 #include "EditorSettingsPanel.h"
 #include "Editor.h"
-
+#include <Lumos/Maths/MathsUtilities.h>
 #include <Lumos/Scene/Scene.h>
 #include <Lumos/Core/Version.h>
 #include <glm/gtx/matrix_decompose.hpp>
+#include <Lumos/Core/Profiler.h>
 
 namespace Lumos
 {

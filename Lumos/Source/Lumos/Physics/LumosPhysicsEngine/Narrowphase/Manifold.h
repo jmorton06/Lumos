@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Physics/LumosPhysicsEngine/RigidBody3D.h"
-#include "Maths/Maths.h"
+#include <glm/vec3.hpp>
 
 namespace Lumos
 {

@@ -33,14 +33,14 @@ namespace Lumos
 
         void Frustum::Define(const glm::mat4& projection, const glm::mat4& view)
         {
-            LUMOS_PROFILE_FUNCTION();
+            LUMOS_PROFILE_FUNCTION_LOW();
             glm::mat4 m = projection * view;
             Define(m);
         }
 
         void Frustum::Transform(const glm::mat4& transform)
         {
-            LUMOS_PROFILE_FUNCTION();
+            LUMOS_PROFILE_FUNCTION_LOW();
             for(int i = 0; i < 6; i++)
             {
                 m_Planes[i].Transform(transform);
@@ -56,7 +56,7 @@ namespace Lumos
 
         void Frustum::Define(const glm::mat4& transform)
         {
-            LUMOS_PROFILE_FUNCTION();
+            LUMOS_PROFILE_FUNCTION_LOW();
             auto& m               = transform;
             m_Planes[PLANE_LEFT]  = Plane(m[0][3] + m[0][0], m[1][3] + m[1][0], m[2][3] + m[2][0], m[3][3] + m[3][0]);
             m_Planes[PLANE_RIGHT] = Plane(m[0][3] - m[0][0], m[1][3] - m[1][0], m[2][3] - m[2][0], m[3][3] - m[3][0]);
@@ -73,28 +73,28 @@ namespace Lumos
             CalculateVertices(transform);
         }
 
-        void Frustum::DefineOrtho(float scale, float aspectRatio, float near, float far, const glm::mat4& viewMatrix)
+        void Frustum::DefineOrtho(float scale, float aspectRatio, float n, float f, const glm::mat4& viewMatrix)
         {
-            LUMOS_PROFILE_FUNCTION();
-            glm::mat4 m = glm::ortho(-scale * aspectRatio, scale * aspectRatio, -scale, scale, near, far);
+            LUMOS_PROFILE_FUNCTION_LOW();
+            glm::mat4 m = glm::ortho(-scale * aspectRatio, scale * aspectRatio, -scale, scale, n, f);
             m           = m * viewMatrix;
             Define(m);
         }
-        void Frustum::Define(float fov, float aspectRatio, float near, float far, const glm::mat4& viewMatrix)
+        void Frustum::Define(float fov, float aspectRatio, float n, float f, const glm::mat4& viewMatrix)
         {
-            LUMOS_PROFILE_FUNCTION();
+            LUMOS_PROFILE_FUNCTION_LOW();
             float tangent = tan(fov * 0.5f);
-            float height  = near * tangent;
+            float height  = n * tangent;
             float width   = height * aspectRatio;
 
-            glm::mat4 m = glm::frustum(-width, width, -height, height, near, far);
+            glm::mat4 m = glm::frustum(-width, width, -height, height, n, f);
             m           = m * viewMatrix;
             Define(m);
         }
 
         bool Frustum::IsInside(const glm::vec3& point) const
         {
-            LUMOS_PROFILE_FUNCTION();
+            LUMOS_PROFILE_FUNCTION_LOW();
             for(int i = 0; i < 6; i++)
             {
                 if(m_Planes[i].Distance(point) < 0.0f)
@@ -108,7 +108,7 @@ namespace Lumos
 
         bool Frustum::IsInside(const BoundingSphere& sphere) const
         {
-            LUMOS_PROFILE_FUNCTION();
+            LUMOS_PROFILE_FUNCTION_LOW();
             for(int i = 0; i < 6; i++)
             {
                 if(m_Planes[i].Distance(sphere.GetCenter()) < -sphere.GetRadius())
@@ -122,7 +122,7 @@ namespace Lumos
 
         bool Frustum::IsInside(const BoundingBox& box) const
         {
-            LUMOS_PROFILE_FUNCTION();
+            LUMOS_PROFILE_FUNCTION_LOW();
             for(int i = 0; i < 6; i++)
             {
                 glm::vec3 p = box.Min(), n = box.Max();
@@ -153,7 +153,7 @@ namespace Lumos
 
         bool Frustum::IsInside(const Rect& rect) const
         {
-            LUMOS_PROFILE_FUNCTION();
+            LUMOS_PROFILE_FUNCTION_LOW();
             for(int i = 0; i < 6; i++)
             {
                 glm::vec3 N = m_Planes[i].Normal();
@@ -178,7 +178,7 @@ namespace Lumos
 
         bool Frustum::IsInside(const Ray& ray) const
         {
-            LUMOS_PROFILE_FUNCTION();
+            LUMOS_PROFILE_FUNCTION_LOW();
             for(int i = 0; i < 6; i++)
             {
                 if(m_Planes[i].Distance(ray.Origin) < 0.0f)
@@ -192,7 +192,7 @@ namespace Lumos
 
         bool Frustum::IsInside(const Plane& plane) const
         {
-            LUMOS_PROFILE_FUNCTION();
+            LUMOS_PROFILE_FUNCTION_LOW();
             for(int i = 0; i < 6; i++)
             {
                 if(m_Planes[i].Distance(plane.Normal()) < 0.0f)
@@ -206,26 +206,28 @@ namespace Lumos
 
         const Plane& Frustum::GetPlane(FrustumPlane plane) const
         {
-            LUMOS_PROFILE_FUNCTION();
+            LUMOS_PROFILE_FUNCTION_LOW();
             return m_Planes[plane];
         }
 
         glm::vec3* Frustum::GetVerticies()
         {
-            LUMOS_PROFILE_FUNCTION();
+            LUMOS_PROFILE_FUNCTION_LOW();
             return m_Verticies;
         }
 
         void Frustum::CalculateVertices(const glm::mat4& transform)
         {
-            LUMOS_PROFILE_FUNCTION();
-            bool zerotoOne         = false;
-            bool leftHand          = true;
+            LUMOS_PROFILE_FUNCTION_LOW();
+            static const bool zerotoOne = false;
+            static const bool leftHand  = true;
+
             glm::mat4 transformInv = glm::inverse(transform);
-            m_Verticies[0]         = glm::vec4(-1.0f, -1.0f, zerotoOne ? 0.0f : -1.0f, 1.0f);
-            m_Verticies[1]         = glm::vec4(1.0f, -1.0f, zerotoOne ? 0.0f : -1.0f, 1.0f);
-            m_Verticies[2]         = glm::vec4(1.0f, 1.0f, zerotoOne ? 0.0f : -1.0f, 1.0f);
-            m_Verticies[3]         = glm::vec4(-1.0f, 1.0f, zerotoOne ? 0.0f : -1.0f, 1.0f);
+
+            m_Verticies[0] = glm::vec4(-1.0f, -1.0f, zerotoOne ? 0.0f : -1.0f, 1.0f);
+            m_Verticies[1] = glm::vec4(1.0f, -1.0f, zerotoOne ? 0.0f : -1.0f, 1.0f);
+            m_Verticies[2] = glm::vec4(1.0f, 1.0f, zerotoOne ? 0.0f : -1.0f, 1.0f);
+            m_Verticies[3] = glm::vec4(-1.0f, 1.0f, zerotoOne ? 0.0f : -1.0f, 1.0f);
 
             m_Verticies[4] = glm::vec4(-1.0f, -1.0f, 1.0f, 1.0f);
             m_Verticies[5] = glm::vec4(1.0f, -1.0f, 1.0f, 1.0f);

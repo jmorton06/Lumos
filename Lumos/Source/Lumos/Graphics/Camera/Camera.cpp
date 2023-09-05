@@ -104,14 +104,14 @@ namespace Lumos
         if(flipY)
             y *= -1.0f;
 
-        glm::vec4 near = viewProjInverse * glm::vec4(x, y, 0.0f, 1.0f);
-        near /= near.w;
+        glm::vec4 n = viewProjInverse * glm::vec4(x, y, 0.0f, 1.0f);
+        n /= n.w;
 
-        glm::vec4 far = viewProjInverse * glm::vec4(x, y, 1.0f, 1.0f);
-        far /= far.w;
+        glm::vec4 f = viewProjInverse * glm::vec4(x, y, 1.0f, 1.0f);
+        f /= f.w;
 
-        ret.Origin    = glm::vec3(near);
-        ret.Direction = glm::normalize(glm::vec3(far) - ret.Origin);
+        ret.Origin    = glm::vec3(n);
+        ret.Direction = glm::normalize(glm::vec3(f) - ret.Origin);
 
         return ret;
     }

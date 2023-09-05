@@ -5,6 +5,7 @@
 #include "Graphics/RHI/CommandBuffer.h"
 #include "Graphics/RHI/DescriptorSet.h"
 #include "Maths/Maths.h"
+#include "Maths/BoundingBox.h"
 #include "Material.h"
 
 #include <glm/gtx/hash.hpp>
@@ -61,6 +62,14 @@ namespace Lumos
             Vertex p2;
         };
 
+        struct MeshStats
+        {
+            uint32_t TriangleCount;
+            uint32_t VertexCount;
+            uint32_t IndexCount;
+            float OptimiseThreshold;
+        };
+
         class LUMOS_EXPORT Mesh
         {
         public:
@@ -93,6 +102,18 @@ namespace Lumos
                 return m_Triangles;
             }
 
+#ifndef LUMOS_PRODUCTION
+            const MeshStats& GetStats() const
+            {
+                return m_Stats;
+            }
+#else
+            MeshStats GetStats()
+            {
+                return {};
+            }
+#endif
+
         protected:
             static glm::vec3 GenerateTangent(const glm::vec3& a, const glm::vec3& b, const glm::vec3& c, const glm::vec2& ta, const glm::vec2& tb, const glm::vec2& tc);
 
@@ -112,6 +133,10 @@ namespace Lumos
 
             // Only calculated on request
             std::vector<Triangle> m_Triangles;
+
+#ifndef LUMOS_PRODUCTION
+            MeshStats m_Stats;
+#endif
         };
     }
 }

@@ -14,6 +14,14 @@ namespace Lumos
     void UnixOS::Run()
     {
         auto& app = Lumos::Application::Get();
+
+        LUMOS_LOG_INFO("--------------------");
+        LUMOS_LOG_INFO(" System Information ");
+        LUMOS_LOG_INFO("--------------------");
+
+        auto systemInfo = MemoryManager::Get()->GetSystemInfo();
+        systemInfo.Log();
+
         app.Init();
         app.Run();
         app.Release();
@@ -26,7 +34,8 @@ namespace Lumos
 
     SystemMemoryInfo MemoryManager::GetSystemInfo()
     {
-        return SystemMemoryInfo();
+        SystemMemoryInfo result = {};
+        return result;
     }
 
     void UnixOS::Delay(uint32_t usec)
@@ -42,19 +51,25 @@ namespace Lumos
 
     void UnixOS::OpenFileLocation(const std::filesystem::path& path)
     {
+#ifndef LUMOS_PLATFORM_MOBILE
         std::string command = "open -R " + path.string();
         std::system(command.c_str());
+#endif
     }
 
     void UnixOS::OpenFileExternal(const std::filesystem::path& path)
     {
+#ifndef LUMOS_PLATFORM_MOBILE
         std::string command = "open " + path.string();
         std::system(command.c_str());
+#endif
     }
 
     void UnixOS::OpenURL(const std::string& url)
     {
+#ifndef LUMOS_PLATFORM_MOBILE
         std::string command = "open " + url;
         system(command.c_str());
+#endif
     }
 }
