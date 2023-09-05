@@ -7,6 +7,9 @@
 namespace Lumos
 {
     class Scene;
+    class TimeStep;
+    class WindowResizeEvent;
+
     namespace Maths
     {
         class Transform;

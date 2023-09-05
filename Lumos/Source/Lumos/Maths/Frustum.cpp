@@ -73,21 +73,21 @@ namespace Lumos
             CalculateVertices(transform);
         }
 
-        void Frustum::DefineOrtho(float scale, float aspectRatio, float near, float far, const glm::mat4& viewMatrix)
+        void Frustum::DefineOrtho(float scale, float aspectRatio, float n, float f, const glm::mat4& viewMatrix)
         {
             LUMOS_PROFILE_FUNCTION_LOW();
-            glm::mat4 m = glm::ortho(-scale * aspectRatio, scale * aspectRatio, -scale, scale, near, far);
+            glm::mat4 m = glm::ortho(-scale * aspectRatio, scale * aspectRatio, -scale, scale, n, f);
             m           = m * viewMatrix;
             Define(m);
         }
-        void Frustum::Define(float fov, float aspectRatio, float near, float far, const glm::mat4& viewMatrix)
+        void Frustum::Define(float fov, float aspectRatio, float n, float f, const glm::mat4& viewMatrix)
         {
             LUMOS_PROFILE_FUNCTION_LOW();
             float tangent = tan(fov * 0.5f);
-            float height  = near * tangent;
+            float height  = n * tangent;
             float width   = height * aspectRatio;
 
-            glm::mat4 m = glm::frustum(-width, width, -height, height, near, far);
+            glm::mat4 m = glm::frustum(-width, width, -height, height, n, f);
             m           = m * viewMatrix;
             Define(m);
         }

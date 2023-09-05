@@ -27,4 +27,11 @@
 #include "Core/LMLog.h"
 #include "Core/Core.h"
 #include "Core/Profiler.h"
+
+#include <glm/glm.hpp>
+#include <cereal/cereal.hpp>
+
+#ifdef LUMOS_PLATFORM_WINDOWS
+#include <Windows.h>
+#endif
 #endif

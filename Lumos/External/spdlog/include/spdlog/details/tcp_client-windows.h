@@ -25,20 +25,6 @@ class tcp_client
 {
     SOCKET socket_ = INVALID_SOCKET;
 
-    static bool winsock_initialized_()
-    {
-        SOCKET s = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-        if (s == INVALID_SOCKET)
-        {
-            return false;
-        }
-        else
-        {
-            closesocket(s);
-            return true;
-        }
-    }
-
     static void init_winsock_()
     {
         WSADATA wsaData;
@@ -52,13 +38,24 @@ class tcp_client
     static void throw_winsock_error_(const std::string &msg, int last_error)
     {
         char buf[512];
-        ::FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, last_error,
+        ::FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, last_error,
             MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), buf, (sizeof(buf) / sizeof(char)), NULL);
 
-        throw_spdlog_ex(fmt::format("tcp_sink - {}: {}", msg, buf));
+        throw_spdlog_ex(fmt_lib::format("tcp_sink - {}: {}", msg, buf));
     }
 
 public:
+    tcp_client()
+    {
+        init_winsock_();
+    }
+
+    ~tcp_client()
+    {
+        close();
+        ::WSACleanup();
+    }
+
     bool is_connected() const
     {
         return socket_ != INVALID_SOCKET;
@@ -68,7 +65,6 @@ public:
     {
         ::closesocket(socket_);
         socket_ = INVALID_SOCKET;
-        WSACleanup();
     }
 
     SOCKET fd() const
@@ -76,20 +72,9 @@ public:
         return socket_;
     }
 
-    ~tcp_client()
-    {
-        close();
-    }
-
     // try to connect or throw on failure
     void connect(const std::string &host, int port)
     {
-        // initialize winsock if needed
-        if (!winsock_initialized_())
-        {
-            init_winsock_();
-        }
-
         if (is_connected())
         {
             close();
@@ -98,7 +83,7 @@ public:
         {};
         ZeroMemory(&hints, sizeof(hints));
 
-        hints.ai_family = AF_INET;       // IPv4
+        hints.ai_family = AF_UNSPEC;     // To work with IPv4, IPv6, and so on
         hints.ai_socktype = SOCK_STREAM; // TCP
         hints.ai_flags = AI_NUMERICSERV; // port passed as as numeric value
         hints.ai_protocol = 0;

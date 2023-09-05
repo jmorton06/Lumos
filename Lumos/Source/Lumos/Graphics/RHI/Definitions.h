@@ -1,4 +1,6 @@
 #pragma once
+#include "Core/LMLog.h"
+#include <vector>
 
 namespace Lumos
 {

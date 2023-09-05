@@ -374,7 +374,7 @@ namespace Lumos
             case VK_FORMAT_R32G32B32A32_UINT:
                 return sizeof(glm::ivec4); // Need uintvec?
             default:
-                LUMOS_LOG_ERROR("Unsupported Format {0}", format);
+                LUMOS_LOG_ERROR("Unsupported Format {0}", (int)format);
                 return 0;
             }
 

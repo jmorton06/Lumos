@@ -32,8 +32,8 @@ namespace Lumos
             void Transform(const glm::mat4& transform);
             void Define(const glm::mat4& projection, const glm::mat4& view);
             void Define(const glm::mat4& transform);
-            void DefineOrtho(float scale, float aspectRatio, float near, float far, const glm::mat4& viewMatrix);
-            void Define(float fov, float aspectRatio, float near, float far, const glm::mat4& viewMatrix);
+            void DefineOrtho(float scale, float aspectRatio, float n, float f, const glm::mat4& viewMatrix);
+            void Define(float fov, float aspectRatio, float n, float f, const glm::mat4& viewMatrix);
 
             bool IsInside(const glm::vec3& point) const;
             bool IsInside(const BoundingSphere& sphere) const;

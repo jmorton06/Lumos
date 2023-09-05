@@ -334,6 +334,15 @@ namespace Lumos
         physicsObjectParameters_type["scale"]                           = &RigidBodyParameters::scale;
         physicsObjectParameters_type["isStatic"]                        = &RigidBodyParameters::isStatic;
         physicsObjectParameters_type["customShapePositions"]            = &RigidBodyParameters::custumShapePositions;
+        
+        
+        sol::usertype<RigidBody3DProperties> physicsObjectParameters3D_type = state.new_usertype<RigidBody3DProperties>("RigidBodyParameters3D");
+        physicsObjectParameters3D_type["mass"]                            = &RigidBody3DProperties::Mass;
+        //physicsObjectParameters3D_type["shape"]                           = &RigidBody3DProperties::Shape;
+        physicsObjectParameters3D_type["position"]                        = &RigidBody3DProperties::Position;
+        //physicsObjectParameters3D_type["scale"]                           = &RigidBody3DProperties::Scale;
+        physicsObjectParameters3D_type["isStatic"]                        = &RigidBody3DProperties::Static;
+        //physicsObjectParameters3D_type["customShapePositions"]            = &RigidBody3DProperties::custumShapePositions;
 
         sol::usertype<RigidBody3D> physics3D_type = state.new_usertype<RigidBody3D>("RigidBody3D"); //, sol::constructors<RigidBody2D>()); //;const RigidBodyParameters&)>());
         physics3D_type.set_function("SetForce", &RigidBody3D::SetForce);

@@ -1,10 +1,13 @@
 #pragma once
+#include "Core/Reference.h"
 #include "Events/Event.h"
 #include "Graphics/RHI/SwapChain.h"
 #include "Graphics/RHI/GraphicsContext.h"
 
 #include <glm/vec2.hpp>
 #include <glm/fwd.hpp>
+#include <vector>
+#include <functional>
 
 namespace Lumos
 {

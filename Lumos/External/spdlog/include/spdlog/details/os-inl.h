@@ -23,9 +23,10 @@
 
 #ifdef _WIN32
 
-#    include <io.h>      // _get_osfhandle and _isatty support
-#    include <process.h> //  _get_pid support
+#    include <io.h>      // for _get_osfhandle, _isatty, _fileno
+#    include <process.h> // for _get_pid
 #    include <spdlog/details/windows_include.h>
+#    include <fileapi.h> // for FlushFileBuffers
 
 #    ifdef __MINGW32__
 #        include <share.h>
@@ -33,6 +34,7 @@
 
 #    if defined(SPDLOG_WCHAR_TO_UTF8_SUPPORT) || defined(SPDLOG_WCHAR_FILENAMES)
 #        include <limits>
+#        include <cassert>
 #    endif
 
 #    include <direct.h> // for _mkdir/_wmkdir
@@ -46,7 +48,7 @@
 #        include <sys/syscall.h> //Use gettid() syscall under linux to get thread id
 
 #    elif defined(_AIX)
-#        include <pthread.h> // for pthread_getthreadid_np
+#        include <pthread.h> // for pthread_getthrds_np
 
 #    elif defined(__DragonFly__) || defined(__FreeBSD__)
 #        include <pthread_np.h> // for pthread_getthreadid_np
@@ -59,6 +61,10 @@
 #    endif
 
 #endif // unix
+
+#if defined __APPLE__
+#    include <AvailabilityMacros.h>
+#endif
 
 #ifndef __has_feature          // Clang - feature checking macros.
 #    define __has_feature(x) 0 // Compatibility with non-clang compilers.
@@ -145,7 +151,7 @@ SPDLOG_INLINE bool fopen_s(FILE **fp, const filename_t &filename, const filename
     const int fd = ::open((filename.c_str()), O_CREAT | O_WRONLY | O_CLOEXEC | mode_flag, mode_t(0644));
     if (fd == -1)
     {
-        return false;
+        return true;
     }
     *fp = ::fdopen(fd, mode.c_str());
     if (*fp == nullptr)
@@ -230,14 +236,14 @@ SPDLOG_INLINE size_t filesize(FILE *f)
 #    endif
 
 #else // unix
-// OpenBSD doesn't compile with :: before the fileno(..)
-#    if defined(__OpenBSD__)
+// OpenBSD and AIX doesn't compile with :: before the fileno(..)
+#    if defined(__OpenBSD__) || defined(_AIX)
     int fd = fileno(f);
 #    else
     int fd = ::fileno(f);
 #    endif
-// 64 bits(but not in osx or cygwin, where fstat64 is deprecated)
-#    if (defined(__linux__) || defined(__sun) || defined(_AIX)) && (defined(__LP64__) || defined(_LP64))
+// 64 bits(but not in osx, linux/musl or cygwin, where fstat64 is deprecated)
+#    if ((defined(__linux__) && defined(__GLIBC__)) || defined(__sun) || defined(_AIX)) && (defined(__LP64__) || defined(_LP64))
     struct stat64 st;
     if (::fstat64(fd, &st) == 0)
     {
@@ -286,7 +292,8 @@ SPDLOG_INLINE int utc_minutes_offset(const std::tm &tm)
     return offset;
 #else
 
-#    if defined(sun) || defined(__sun) || defined(_AIX) || (!defined(_BSD_SOURCE) && !defined(_GNU_SOURCE))
+#    if defined(sun) || defined(__sun) || defined(_AIX) || (defined(__NEWLIB__) && !defined(__TM_GMTOFF)) ||                               \
+        (!defined(_BSD_SOURCE) && !defined(_GNU_SOURCE))
     // 'tm_gmtoff' field is BSD extension and it's missing on SunOS/Solaris
     struct helper
     {
@@ -305,7 +312,7 @@ SPDLOG_INLINE int utc_minutes_offset(const std::tm &tm)
                 ((local_year / 100 >> 2) - (gmt_year / 100 >> 2))
 
                 // + difference in years * 365 */
-                + (long int)(local_year - gmt_year) * 365);
+                + static_cast<long int>(local_year - gmt_year) * 365);
 
             long int hours = (24 * days) + (localtm.tm_hour - gmtm.tm_hour);
             long int mins = (60 * hours) + (localtm.tm_min - gmtm.tm_min);
@@ -336,7 +343,14 @@ SPDLOG_INLINE size_t _thread_id() SPDLOG_NOEXCEPT
 #        define SYS_gettid __NR_gettid
 #    endif
     return static_cast<size_t>(::syscall(SYS_gettid));
-#elif defined(_AIX) || defined(__DragonFly__) || defined(__FreeBSD__)
+#elif defined(_AIX)
+    struct __pthrdsinfo buf;
+    int reg_size = 0;
+    pthread_t pt = pthread_self();
+    int retval = pthread_getthrds_np(&pt, PTHRDSINFO_QUERY_TID, &buf, sizeof(buf), NULL, &reg_size);
+    int tid = (!retval) ? buf.__pi_tid : 0;
+    return static_cast<size_t>(tid);
+#elif defined(__DragonFly__) || defined(__FreeBSD__)
     return static_cast<size_t>(::pthread_getthreadid_np());
 #elif defined(__NetBSD__)
     return static_cast<size_t>(::_lwp_self());
@@ -346,7 +360,22 @@ SPDLOG_INLINE size_t _thread_id() SPDLOG_NOEXCEPT
     return static_cast<size_t>(::thr_self());
 #elif __APPLE__
     uint64_t tid;
+    // There is no pthread_threadid_np prior to 10.6, and it is not supported on any PPC,
+    // including 10.6.8 Rosetta. __POWERPC__ is Apple-specific define encompassing ppc and ppc64.
+#    if (MAC_OS_X_VERSION_MAX_ALLOWED < 1060) || defined(__POWERPC__)
+    tid = pthread_mach_thread_np(pthread_self());
+#    elif MAC_OS_X_VERSION_MIN_REQUIRED < 1060
+    if (&pthread_threadid_np)
+    {
+        pthread_threadid_np(nullptr, &tid);
+    }
+    else
+    {
+        tid = pthread_mach_thread_np(pthread_self());
+    }
+#    else
     pthread_threadid_np(nullptr, &tid);
+#    endif
     return static_cast<size_t>(tid);
 #else // Default to standard C++11 (other Unix)
     return static_cast<size_t>(std::hash<std::thread::id>()(std::this_thread::get_id()));
@@ -381,7 +410,7 @@ SPDLOG_INLINE std::string filename_to_str(const filename_t &filename)
 {
     memory_buf_t buf;
     wstr_to_utf8buf(filename, buf);
-    return fmt::to_string(buf);
+    return SPDLOG_BUF_TO_STRING(buf);
 }
 #else
 SPDLOG_INLINE std::string filename_to_str(const filename_t &filename)
@@ -394,9 +423,9 @@ SPDLOG_INLINE int pid() SPDLOG_NOEXCEPT
 {
 
 #ifdef _WIN32
-    return static_cast<int>(::GetCurrentProcessId());
+    return conditional_static_cast<int>(::GetCurrentProcessId());
 #else
-    return static_cast<int>(::getpid());
+    return conditional_static_cast<int>(::getpid());
 #endif
 }
 
@@ -476,7 +505,7 @@ SPDLOG_INLINE void wstr_to_utf8buf(wstring_view_t wstr, memory_buf_t &target)
         }
     }
 
-    throw_spdlog_ex(fmt::format("WideCharToMultiByte failed. Last error: {}", ::GetLastError()));
+    throw_spdlog_ex(fmt_lib::format("WideCharToMultiByte failed. Last error: {}", ::GetLastError()));
 }
 
 SPDLOG_INLINE void utf8_to_wstrbuf(string_view_t str, wmemory_buf_t &target)
@@ -493,25 +522,21 @@ SPDLOG_INLINE void utf8_to_wstrbuf(string_view_t str, wmemory_buf_t &target)
         return;
     }
 
-    int result_size = static_cast<int>(target.capacity());
-    if (str_size + 1 > result_size)
-    {
-        result_size = ::MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, str.data(), str_size, NULL, 0);
-    }
+    // find the size to allocate for the result buffer
+    int result_size = ::MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, str.data(), str_size, NULL, 0);
 
     if (result_size > 0)
     {
         target.resize(result_size);
         result_size = ::MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, str.data(), str_size, target.data(), result_size);
-
         if (result_size > 0)
         {
-            target.resize(result_size);
+            assert(result_size == target.size());
             return;
         }
     }
 
-    throw_spdlog_ex(fmt::format("MultiByteToWideChar failed. Last error: {}", ::GetLastError()));
+    throw_spdlog_ex(fmt_lib::format("MultiByteToWideChar failed. Last error: {}", ::GetLastError()));
 }
 #endif // (defined(SPDLOG_WCHAR_TO_UTF8_SUPPORT) || defined(SPDLOG_WCHAR_FILENAMES)) && defined(_WIN32)
 
@@ -531,7 +556,7 @@ static SPDLOG_INLINE bool mkdir_(const filename_t &path)
 
 // create the given directory - and all directories leading to it
 // return true on success or if the directory already exists
-SPDLOG_INLINE bool create_dir(filename_t path)
+SPDLOG_INLINE bool create_dir(const filename_t &path)
 {
     if (path_exists(path))
     {
@@ -570,7 +595,7 @@ SPDLOG_INLINE bool create_dir(filename_t path)
 // "abc/" => "abc"
 // "abc" => ""
 // "abc///" => "abc//"
-SPDLOG_INLINE filename_t dir_name(filename_t path)
+SPDLOG_INLINE filename_t dir_name(const filename_t &path)
 {
     auto pos = path.find_last_of(folder_seps_filename);
     return pos != filename_t::npos ? path.substr(0, pos) : filename_t{};
@@ -591,6 +616,17 @@ std::string SPDLOG_INLINE getenv(const char *field)
 #else // revert to getenv
     char *buf = ::getenv(field);
     return buf ? buf : std::string{};
+#endif
+}
+
+// Do fsync by FILE handlerpointer
+// Return true on success
+SPDLOG_INLINE bool fsync(FILE *fp)
+{
+#ifdef _WIN32
+    return FlushFileBuffers(reinterpret_cast<HANDLE>(_get_osfhandle(_fileno(fp)))) != 0;
+#else
+    return ::fsync(fileno(fp)) == 0;
 #endif
 }
 

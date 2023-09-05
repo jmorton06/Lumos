@@ -320,8 +320,8 @@ namespace Lumos::Graphics
                     Maths::Vector3Simple* normals = reinterpret_cast<Maths::Vector3Simple*>(data.data());
                     for(auto p = 0; p < normalCount; ++p)
                     {
-                        vertices[p].Normal = (parentTransform.GetWorldMatrix() * Maths::ToVector4(normals[p]));
-
+                        //vertices[p].Normal = (parentTransform.GetWorldMatrix() * Maths::ToVector4(normals[p]));
+                        vertices[p].Normal = glm::transpose(glm::inverse(glm::mat3(parentTransform.GetWorldMatrix()))) * (glm::vec3(Maths::ToVector4(normals[p])));
                         vertices[p].Normal = glm::normalize(vertices[p].Normal);
                     }
                 }

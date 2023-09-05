@@ -67,11 +67,6 @@ SPDLOG_INLINE void flush_on(level::level_enum log_level)
     details::registry::instance().flush_on(log_level);
 }
 
-SPDLOG_INLINE void flush_every(std::chrono::seconds interval)
-{
-    details::registry::instance().flush_every(interval);
-}
-
 SPDLOG_INLINE void set_error_handler(void (*handler)(const std::string &msg))
 {
     details::registry::instance().set_error_handler(handler);
@@ -120,6 +115,11 @@ SPDLOG_INLINE spdlog::logger *default_logger_raw()
 SPDLOG_INLINE void set_default_logger(std::shared_ptr<spdlog::logger> default_logger)
 {
     details::registry::instance().set_default_logger(std::move(default_logger));
+}
+
+SPDLOG_INLINE void apply_logger_env_levels(std::shared_ptr<logger> logger)
+{
+    details::registry::instance().apply_logger_env_levels(std::move(logger));
 }
 
 } // namespace spdlog
