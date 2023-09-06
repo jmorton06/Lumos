@@ -105,6 +105,7 @@ namespace Lumos
 
     void WindowsOS::SetTitleBarColour(const glm::vec4& colour, bool dark)
     {
+  #if WINVER >= 0x0A00
         auto& app = Lumos::Application::Get();
         HWND hwnd = glfwGetWin32Window((GLFWwindow*)static_cast<GLFWwindow*>(app.GetWindow()->GetHandle()));
 
@@ -113,9 +114,9 @@ namespace Lumos
         COLORREF CAPTION_COLOR = col;
         COLORREF BORDER_COLOR  = 0x201e1e;
 
-        DwmSetWindowAttribute(hwnd, DWMWINDOWATTRIBUTE::DWMWA_CAPTION_COLOR, &CAPTION_COLOR, sizeof(CAPTION_COLOR));
-        DwmSetWindowAttribute(hwnd, DWMWINDOWATTRIBUTE::DWMWA_BORDER_COLOR, &BORDER_COLOR, sizeof(BORDER_COLOR));
-
+        DwmSetWindowAttribute(hwnd, 34 /*DWMWINDOWATTRIBUTE::DWMWA_BORDER_COLOR*/, &BORDER_COLOR, sizeof(BORDER_COLOR));
+        DwmSetWindowAttribute(hwnd, 35 /*DWMWINDOWATTRIBUTE::DWMWA_CAPTION_COLOR*/, &CAPTION_COLOR, sizeof(CAPTION_COLOR));
         SetWindowPos(hwnd, NULL, NULL, NULL, NULL, NULL, SWP_NOMOVE | SWP_NOOWNERZORDER | SWP_NOSIZE);
+#endif
     }
 }
