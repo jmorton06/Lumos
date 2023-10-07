@@ -43,6 +43,8 @@
 
 #include <sol/sol.hpp>
 #include <inttypes.h>
+#include <spdlog/fmt/bundled/format.h>
+#include <ozz/animation/runtime/skeleton.h>
 
 namespace MM
 {
@@ -78,9 +80,9 @@ namespace MM
 
         if(ImGui::Button("New File", ImVec2(ImGui::GetContentRegionAvail().x, 0.0f)))
         {
-            std::string newFilePath = "//Scripts";
+            std::string newFilePath = "//Assets/Scripts";
             std::string physicalPath;
-            if(!Lumos::VFS::Get().ResolvePhysicalPath(newFilePath, physicalPath, true))
+            if(!Lumos::FileSystem::Get().ResolvePhysicalPath(newFilePath, physicalPath, true))
             {
                 LUMOS_LOG_ERROR("Failed to Create Lua script {0}", physicalPath);
             }
@@ -740,7 +742,7 @@ end
                     if(ImGui::AcceptDragDropPayload("AssetFile"))
                     {
                         std::string physicalPath;
-                        Lumos::VFS::Get().ResolvePhysicalPath(filePath, physicalPath);
+                        Lumos::FileSystem::Get().ResolvePhysicalPath(filePath, physicalPath);
                         auto newSound = Lumos::Sound::Create(physicalPath, Lumos::StringUtilities::GetFilePathExtension(filePath));
 
                         soundNode->SetSound(newSound);
@@ -2000,9 +2002,9 @@ end
                     ImGui::Indent();
                     if(ImGui::Button("Save to file"))
                     {
-                        std::string filePath = "//Meshes"; // Materials/" + matName + ".lmat";
+                        std::string filePath = "//Assets/Meshes"; // Materials/" + matName + ".lmat";
                         std::string physicalPath;
-                        if(VFS::Get().ResolvePhysicalPath(filePath, physicalPath))
+                        if(FileSystem::Get().ResolvePhysicalPath(filePath, physicalPath))
                         {
                             physicalPath += "/Materials/" + matName + ".lmat";
                             std::stringstream storage;
@@ -2501,7 +2503,7 @@ namespace Lumos
                 if(ImGui::Button("OK", ImVec2(120, 0)))
                 {
                     std::string physicalPath;
-                    VFS::Get().ResolvePhysicalPath(prefabNamePath, physicalPath, true);
+                    FileSystem::Get().ResolvePhysicalPath(prefabNamePath, physicalPath, true);
                     std::string FullPath = physicalPath + prefabName + std::string(".lprefab");
                     Application::Get().GetSceneManager()->GetCurrentScene()->SavePrefab({ selected, Application::Get().GetSceneManager()->GetCurrentScene() }, FullPath);
                     ImGui::CloseCurrentPopup();

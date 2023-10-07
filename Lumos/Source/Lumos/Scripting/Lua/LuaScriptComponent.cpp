@@ -47,14 +47,14 @@ namespace Lumos
     {
         m_FileName = fileName;
         std::string physicalPath;
-        if(!VFS::Get().ResolvePhysicalPath(fileName, physicalPath))
+        if(!FileSystem::Get().ResolvePhysicalPath(fileName, physicalPath))
         {
             LUMOS_LOG_ERROR("Failed to Load Lua script {0}", fileName);
             m_Env = nullptr;
             return;
         }
 
-        VFS::Get().AbsoulePathToVFS(m_FileName, m_FileName);
+        FileSystem::Get().AbsolutePathToFileSystem(m_FileName, m_FileName);
 
         m_Env = CreateSharedPtr<sol::environment>(LuaManager::Get().GetState(), sol::create, LuaManager::Get().GetState().globals());
 

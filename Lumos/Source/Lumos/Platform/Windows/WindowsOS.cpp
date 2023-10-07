@@ -105,7 +105,7 @@ namespace Lumos
 
     void WindowsOS::SetTitleBarColour(const glm::vec4& colour, bool dark)
     {
-  #if WINVER >= 0x0A00
+#if WINVER >= 0x0A00
         auto& app = Lumos::Application::Get();
         HWND hwnd = glfwGetWin32Window((GLFWwindow*)static_cast<GLFWwindow*>(app.GetWindow()->GetHandle()));
 

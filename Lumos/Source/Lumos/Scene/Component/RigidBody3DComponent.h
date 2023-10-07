@@ -13,6 +13,16 @@
 
 namespace Lumos
 {
+    struct RigidBody3DInstance
+    {
+        RigidBody3DInstance();
+        RigidBody3DInstance(RigidBody3D* physics);
+        RigidBody3DInstance(const RigidBody3DProperties& params);
+
+        ~RigidBody3DInstance();
+        RigidBody3D* Body;
+    };
+
     class AxisConstraintComponent
     {
     public:
@@ -105,11 +115,28 @@ namespace Lumos
     public:
         RigidBody3DComponent();
         RigidBody3DComponent(const RigidBody3DComponent& other);
-
         RigidBody3DComponent(RigidBody3D* physics);
         RigidBody3DComponent(const RigidBody3DProperties& params);
 
-        ~RigidBody3DComponent() = default;
+        ~RigidBody3DComponent();
+
+        inline RigidBody3DComponent& operator=(RigidBody3DComponent& moving)
+        {
+            m_OwnRigidBody        = moving.m_OwnRigidBody;
+            moving.m_OwnRigidBody = false;
+            m_RigidBody           = moving.m_RigidBody;
+
+            return *this;
+        }
+
+        inline RigidBody3DComponent& operator=(RigidBody3DComponent&& rhs) noexcept
+        {
+            m_OwnRigidBody     = rhs.m_OwnRigidBody;
+            rhs.m_OwnRigidBody = false;
+            m_RigidBody        = rhs.m_RigidBody;
+
+            return *this;
+        }
 
         void Init();
         void Update();
@@ -117,24 +144,25 @@ namespace Lumos
 
         RigidBody3D* GetRigidBody() const
         {
-            return m_RigidBody;
+            return m_RigidBody->Body;
         }
 
         template <typename Archive>
         void save(Archive& archive) const
         {
-            archive(*m_RigidBody);
+            archive(*(m_RigidBody->Body));
         }
 
         template <typename Archive>
         void load(Archive& archive)
         {
             // m_RigidBody = CreateSharedPtr<RigidBody3D>();
-            m_RigidBody = Application::Get().GetSystem<LumosPhysicsEngine>()->CreateBody({});
-            archive(*m_RigidBody);
+            m_RigidBody = CreateSharedPtr<RigidBody3DInstance>();
+            archive(*(m_RigidBody->Body));
         }
 
     private:
-        RigidBody3D* m_RigidBody;
+        SharedPtr<RigidBody3DInstance> m_RigidBody;
+        bool m_OwnRigidBody = false;
     };
 }

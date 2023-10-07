@@ -17,6 +17,7 @@
 #include <Lumos/Scripting/Lua/LuaScriptComponent.h>
 #include <Lumos/ImGui/IconsMaterialDesignIcons.h>
 #include <Lumos/Core/StringUtilities.h>
+#include <Lumos/Core/String.h>
 
 #include <typeinfo>
 #include <imgui/imgui_internal.h>
@@ -28,13 +29,19 @@ namespace Lumos
         : m_HadRecentDroppedEntity(entt::null)
         , m_DoubleClicked(entt::null)
     {
-        m_Name       = "Hierarchy###hierarchy";
-        m_SimpleName = "Hierarchy";
+        m_Name        = "Hierarchy###hierarchy";
+        m_SimpleName  = "Hierarchy";
+        m_StringArena = ArenaAlloc(Megabytes(1));
+    }
+
+    HierarchyPanel::~HierarchyPanel()
+    {
+        ArenaRelease(m_StringArena);
     }
 
     void HierarchyPanel::DrawNode(entt::entity node, entt::registry& registry)
     {
-        LUMOS_PROFILE_FUNCTION();
+        LUMOS_PROFILE_FUNCTION_LOW();
         bool show = true;
 
         if(!registry.valid(node))
@@ -44,11 +51,11 @@ namespace Lumos
 
         static const char* defaultName     = "Entity";
         const NameComponent* nameComponent = registry.try_get<NameComponent>(node);
-        const char* name                   = nameComponent ? nameComponent->name.c_str() : defaultName; // StringUtilities::ToString(entt::to_integral(node));
+        String8 name                       = PushStr8Copy(m_StringArena, nameComponent ? nameComponent->name.c_str() : defaultName); // StringUtilities::ToString(entt::to_integral(node));
 
         if(m_HierarchyFilter.IsActive())
         {
-            if(!m_HierarchyFilter.PassFilter(name))
+            if(!m_HierarchyFilter.PassFilter((const char*)name.str))
             {
                 show = false;
             }
@@ -93,53 +100,53 @@ namespace Lumos
                 m_HadRecentDroppedEntity = entt::null;
             }
 
-            std::string icon = ICON_MDI_CUBE_OUTLINE;
-            auto& iconMap    = m_Editor->GetComponentIconMap();
+            String8 icon  = Str8C((char*)ICON_MDI_CUBE_OUTLINE);
+            auto& iconMap = m_Editor->GetComponentIconMap();
 
             if(registry.all_of<Camera>(node))
             {
                 if(iconMap.find(typeid(Camera).hash_code()) != iconMap.end())
-                    icon = iconMap[typeid(Camera).hash_code()];
+                    icon = Str8C((char*)iconMap[typeid(Camera).hash_code()]);
             }
             if(registry.all_of<LuaScriptComponent>(node))
             {
                 if(iconMap.find(typeid(LuaScriptComponent).hash_code()) != iconMap.end())
-                    icon = iconMap[typeid(LuaScriptComponent).hash_code()];
+                    icon = Str8C((char*)iconMap[typeid(LuaScriptComponent).hash_code()]);
             }
             else if(registry.all_of<SoundComponent>(node))
             {
                 if(iconMap.find(typeid(SoundComponent).hash_code()) != iconMap.end())
-                    icon = iconMap[typeid(SoundComponent).hash_code()];
+                    icon = Str8C((char*)iconMap[typeid(SoundComponent).hash_code()]);
             }
             else if(registry.all_of<RigidBody2DComponent>(node))
             {
                 if(iconMap.find(typeid(RigidBody2DComponent).hash_code()) != iconMap.end())
-                    icon = iconMap[typeid(RigidBody2DComponent).hash_code()];
+                    icon = Str8C((char*)iconMap[typeid(RigidBody2DComponent).hash_code()]);
             }
             else if(registry.all_of<Graphics::Light>(node))
             {
                 if(iconMap.find(typeid(Graphics::Light).hash_code()) != iconMap.end())
-                    icon = iconMap[typeid(Graphics::Light).hash_code()];
+                    icon = Str8C((char*)iconMap[typeid(Graphics::Light).hash_code()]);
             }
             else if(registry.all_of<Graphics::Environment>(node))
             {
                 if(iconMap.find(typeid(Graphics::Environment).hash_code()) != iconMap.end())
-                    icon = iconMap[typeid(Graphics::Environment).hash_code()];
+                    icon = Str8C((char*)iconMap[typeid(Graphics::Environment).hash_code()]);
             }
             else if(registry.all_of<Graphics::Sprite>(node))
             {
                 if(iconMap.find(typeid(Graphics::Sprite).hash_code()) != iconMap.end())
-                    icon = iconMap[typeid(Graphics::Sprite).hash_code()];
+                    icon = Str8C((char*)iconMap[typeid(Graphics::Sprite).hash_code()]);
             }
             else if(registry.all_of<TextComponent>(node))
             {
                 if(iconMap.find(typeid(TextComponent).hash_code()) != iconMap.end())
-                    icon = iconMap[typeid(TextComponent).hash_code()];
+                    icon = Str8C((char*)iconMap[typeid(TextComponent).hash_code()]);
             }
 
             ImGui::PushStyleColor(ImGuiCol_Text, ImGuiUtilities::GetIconColour());
             // ImGui::BeginGroup();
-            bool nodeOpen = ImGui::TreeNodeEx((void*)(intptr_t)entt::to_integral(node), nodeFlags, "%s", icon.c_str());
+            bool nodeOpen = ImGui::TreeNodeEx((void*)(intptr_t)entt::to_integral(node), nodeFlags, "%s", (const char*)icon.str);
             {
                 // Allow clicking of icon and text. Need twice as they are separated
                 if(ImGui::IsItemClicked(ImGuiMouseButton_Left) && !ImGui::IsItemToggledOpen())
@@ -182,7 +189,7 @@ namespace Lumos
 
                 if(isPrefab)
                     ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_CheckMark));
-                ImGui::TextUnformatted(name);
+                ImGui::TextUnformatted((const char*)name.str);
                 if(isPrefab)
                     ImGui::PopStyleColor();
             }
@@ -190,11 +197,15 @@ namespace Lumos
 
             if(doubleClicked)
             {
-                static char objName[INPUT_BUF_SIZE];
-                strcpy(objName, name);
+                String8 nameBuffer = { 0 };
+                nameBuffer.str     = PushArray(m_StringArena, uint8_t, INPUT_BUF_SIZE);
+                nameBuffer.size    = INPUT_BUF_SIZE;
+
+                MemoryCopy(nameBuffer.str, name.str, name.size);
+
                 ImGui::PushItemWidth(-1);
-                if(ImGui::InputText("##Name", objName, IM_ARRAYSIZE(objName), 0))
-                    registry.get_or_emplace<NameComponent>(node).name = objName;
+                if(ImGui::InputText("##Name", (char*)nameBuffer.str, INPUT_BUF_SIZE, 0))
+                    registry.get_or_emplace<NameComponent>(node).name = (const char*)nameBuffer.str;
                 ImGui::PopStyleVar();
             }
 
@@ -202,7 +213,7 @@ namespace Lumos
                 ImGui::PopStyleColor();
 
             bool deleteEntity = false;
-            if(ImGui::BeginPopupContextItem(name))
+            if(ImGui::BeginPopupContextItem((const char*)name.str))
             {
                 if(ImGui::Selectable("Copy"))
                 {
@@ -497,7 +508,9 @@ namespace Lumos
         m_SelectUp   = Input::Get().GetKeyPressed(Lumos::InputCode::Key::Up);
         m_SelectDown = Input::Get().GetKeyPressed(Lumos::InputCode::Key::Down);
 
-        ImGui::Begin(m_Name.c_str(), &m_Active, flags);
+        ArenaClear(m_StringArena);
+
+        if(ImGui::Begin(m_Name.c_str(), &m_Active, flags))
         {
             auto scene = Application::Get().GetSceneManager()->GetCurrentScene();
 

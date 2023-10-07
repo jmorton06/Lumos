@@ -60,7 +60,7 @@ function postSolve(a, b, coll, normalimpulse, tangentimpulse)
 end
 
 function CreatePlayer()
-    texture = LoadTextureWithParams("icon", "//Textures/TappyPlane/PNG/Planes/planeBlue1.png", TextureFilter.Linear, TextureWrap.ClampToEdge)
+    texture = LoadTextureWithParams("icon", "//Assets/Textures/TappyPlane/PNG/Planes/planeBlue1.png", TextureFilter.Linear, TextureWrap.ClampToEdge)
 
     player = entityManager:Create()
     player:AddSprite(Vector2.new(-0.9, -0.8), Vector2.new(1.7, 1.5), Vector4.new(1.0,1.0,1.0,1.0)):SetTexture(texture)
@@ -147,8 +147,8 @@ end
 backgrounds = {}
 
 function OnInit()
-	iconTexture = LoadTextureWithParams("icon", "//Textures/TappyPlane/PNG/rock.png", TextureFilter.Linear, TextureWrap.ClampToEdge)
-	gameOverTexture = LoadTextureWithParams("gameOver", "//Textures/TappyPlane/PNG/UI/textGameOver.png", TextureFilter.Linear, TextureWrap.ClampToEdge)
+	iconTexture = LoadTextureWithParams("icon", "//Assets/Textures/TappyPlane/PNG/rock.png", TextureFilter.Linear, TextureWrap.ClampToEdge)
+	gameOverTexture = LoadTextureWithParams("gameOver", "//Assets/Textures/TappyPlane/PNG/UI/textGameOver.png", TextureFilter.Linear, TextureWrap.ClampToEdge)
 
     entityManager = scene:GetEntityManager()
 
@@ -173,7 +173,7 @@ function OnInit()
         CreatePillar(i, (i + 2) * 10.0)
     end
 
-    backgroundTexture = LoadTextureWithParams("background", "//Textures/TappyPlane/PNG/background.png", TextureFilter.Linear, TextureWrap.ClampToEdge)
+    backgroundTexture = LoadTextureWithParams("background", "//Assets/Textures/TappyPlane/PNG/background.png", TextureFilter.Linear, TextureWrap.ClampToEdge)
 
     for i=1,50, 1 do
         CreateBackground(i)

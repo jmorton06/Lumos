@@ -9,6 +9,7 @@ namespace Lumos
     class Scene;
     class TimeStep;
     class WindowResizeEvent;
+    class Event;
 
     namespace Maths
     {

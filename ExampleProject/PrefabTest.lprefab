@@ -1623,15 +1623,15 @@
     "value373": 3,
     "value374": 1048608,
     "value375": {
-        "FilePath": "//Scripts/Projectile.lua"
+        "FilePath": "//Assets/Scripts/Projectile.lua"
     },
     "value376": 36,
     "value377": {
-        "FilePath": "//Scripts/Script.lua"
+        "FilePath": "//Assets/Scripts/Script.lua"
     },
     "value378": 37,
     "value379": {
-        "FilePath": "//Scripts/Script(1).lua"
+        "FilePath": "//Assets/Scripts/Script(1).lua"
     },
     "value380": 0,
     "value381": 4,
@@ -2510,7 +2510,7 @@
     "value419": 1,
     "value420": 24,
     "value421": {
-        "value0": "//Textures/cubemap/noga",
+        "value0": "//Assets/Textures/cubemap/noga",
         "value1": 11,
         "value2": 3072,
         "value3": 4096,
@@ -2534,7 +2534,7 @@
     "value427": 1,
     "value428": 28,
     "value429": {
-        "TexturePath": "//Textures/cat.png",
+        "TexturePath": "//Assets/Textures/cat.png",
         "Position": {
             "value0": 0.0,
             "value1": 0.0
@@ -2727,7 +2727,7 @@
             "Global": false,
             "TimeLeft": 120000.0,
             "Stationary": false,
-            "SoundNodePath": "//Sounds/ambientguitar.ogg",
+            "SoundNodePath": "//Assets/Sounds/ambientguitar.ogg",
             "RollOffFactor": 6.0
         }
     },
@@ -3010,7 +3010,7 @@
     "value558": 33,
     "value559": {
         "PrimitiveType": 8,
-        "FilePath": "//Meshes/Scene/scene.gltf",
+        "FilePath": "//Assets/Meshes/Scene/scene.gltf",
         "Material": {
             "ptr_wrapper": {
                 "valid": 1,
@@ -3047,7 +3047,7 @@
     "value560": 1048607,
     "value561": {
         "PrimitiveType": 8,
-        "FilePath": "//Meshes/DamagedHelmet/glTF/DamagedHelmet.gltf",
+        "FilePath": "//Assets/Meshes/DamagedHelmet/glTF/DamagedHelmet.gltf",
         "Material": {
             "ptr_wrapper": {
                 "valid": 1,
@@ -3089,7 +3089,7 @@
             "ptr_wrapper": {
                 "valid": 1,
                 "data": {
-                    "Albedo": "//Textures/checkerboard.tga",
+                    "Albedo": "//Assets/Textures/checkerboard.tga",
                     "Normal": "",
                     "Metallic": "",
                     "Roughness": "",
@@ -3126,7 +3126,7 @@
             "ptr_wrapper": {
                 "valid": 1,
                 "data": {
-                    "Albedo": "//Textures/checkerboard.tga",
+                    "Albedo": "//Assets/Textures/checkerboard.tga",
                     "Normal": "",
                     "Metallic": "",
                     "Roughness": "",
@@ -3903,7 +3903,7 @@
             "ptr_wrapper": {
                 "valid": 1,
                 "data": {
-                    "Albedo": "//Textures/checkerboard.tga",
+                    "Albedo": "//Assets/Textures/checkerboard.tga",
                     "Normal": "",
                     "Metallic": "",
                     "Roughness": "",
@@ -3940,7 +3940,7 @@
             "ptr_wrapper": {
                 "valid": 1,
                 "data": {
-                    "Albedo": "//Textures/checkerboard.tga",
+                    "Albedo": "//Assets/Textures/checkerboard.tga",
                     "Normal": "",
                     "Metallic": "",
                     "Roughness": "",
@@ -3977,7 +3977,7 @@
             "ptr_wrapper": {
                 "valid": 1,
                 "data": {
-                    "Albedo": "//Textures/checkerboard.tga",
+                    "Albedo": "//Assets/Textures/checkerboard.tga",
                     "Normal": "",
                     "Metallic": "",
                     "Roughness": "",
@@ -4051,7 +4051,7 @@
             "ptr_wrapper": {
                 "valid": 1,
                 "data": {
-                    "Albedo": "//Textures/checkerboard.tga",
+                    "Albedo": "//Assets/Textures/checkerboard.tga",
                     "Normal": "",
                     "Metallic": "",
                     "Roughness": "",
@@ -4088,7 +4088,7 @@
             "ptr_wrapper": {
                 "valid": 1,
                 "data": {
-                    "Albedo": "//Textures/checkerboard.tga",
+                    "Albedo": "//Assets/Textures/checkerboard.tga",
                     "Normal": "",
                     "Metallic": "",
                     "Roughness": "",

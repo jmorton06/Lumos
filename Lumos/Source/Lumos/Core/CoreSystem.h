@@ -4,14 +4,18 @@
 
 namespace Lumos
 {
+
+    struct CommandLine;
+
     namespace Internal
     {
         // Low-level System operations
-        class LUMOS_EXPORT CoreSystem
+        namespace CoreSystem
         {
-        public:
-            static bool Init(int argc = 0, char** argv = nullptr);
-            static void Shutdown();
+            bool Init(int argc = 0, char** argv = nullptr);
+            void Shutdown();
+
+            CommandLine* GetCmdLine();
         };
 
     }

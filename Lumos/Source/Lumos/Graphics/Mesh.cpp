@@ -28,32 +28,37 @@ namespace Lumos
         {
         }
 
-        Mesh::Mesh(const std::vector<uint32_t>& indices, const std::vector<Vertex>& vertices, float optimiseThreshold)
+        Mesh::Mesh(const std::vector<uint32_t>& indices, const std::vector<Vertex>& vertices, bool optimise, float optimiseThreshold)
         {
+            // int lod = 2;
+            // float threshold = powf(0.7f, float(lod));
             m_Indices  = indices;
             m_Vertices = vertices;
 
-            // int lod = 2;
-            // float threshold = powf(0.7f, float(lod));
+            if(optimise)
+            {
+                size_t indexCount         = indices.size();
+                size_t target_index_count = size_t(indices.size() * optimiseThreshold);
 
-            size_t indexCount         = indices.size();
-            size_t target_index_count = size_t(indices.size() * optimiseThreshold);
+                float target_error = 1e-3f;
+                float* resultError = nullptr;
 
-            float target_error = 1e-3f;
-            float* resultError = nullptr;
+                auto newIndexCount = meshopt_simplify(m_Indices.data(), m_Indices.data(), m_Indices.size(), (const float*)(&m_Vertices[0]), m_Vertices.size(), sizeof(Graphics::Vertex), target_index_count, target_error, resultError);
 
-            auto newIndexCount = meshopt_simplify(m_Indices.data(), m_Indices.data(), m_Indices.size(), (const float*)(&m_Vertices[0]), m_Vertices.size(), sizeof(Graphics::Vertex), target_index_count, target_error, resultError);
+                auto newVertexCount = meshopt_optimizeVertexFetch( // return vertices (not vertex attribute values)
+                    (m_Vertices.data()),
+                    (unsigned int*)(m_Indices.data()),
+                    newIndexCount, // total new indices (not faces)
+                    (m_Vertices.data()),
+                    (size_t)m_Vertices.size(), // total vertices (not vertex attribute values)
+                    sizeof(Graphics::Vertex)   // vertex stride
+                );
 
-            auto newVertexCount = meshopt_optimizeVertexFetch( // return vertices (not vertex attribute values)
-                (m_Vertices.data()),
-                (unsigned int*)(m_Indices.data()),
-                newIndexCount, // total new indices (not faces)
-                (m_Vertices.data()),
-                (size_t)m_Vertices.size(), // total vertices (not vertex attribute values)
-                sizeof(Graphics::Vertex)   // vertex stride
-            );
+                m_Vertices.resize(newVertexCount);
+                m_Indices.resize(newIndexCount);
 
-            // LUMOS_LOG_INFO("Mesh Optimizer - Before : {0} indices {1} vertices , After : {2} indices , {3} vertices", indexCount, m_Vertices.size(), newIndexCount, newVertexCount);
+                // LUMOS_LOG_INFO("Mesh Optimizer - Before : {0} indices {1} vertices , After : {2} indices , {3} vertices", indexCount, m_Vertices.size(), newIndexCount, newVertexCount);
+            }
 
             m_BoundingBox = CreateSharedPtr<Maths::BoundingBox>();
 
@@ -62,10 +67,20 @@ namespace Lumos
                 m_BoundingBox->Merge(vertex.Position);
             }
 
-            m_IndexBuffer = SharedPtr<Graphics::IndexBuffer>(Graphics::IndexBuffer::Create(m_Indices.data(), (uint32_t)newIndexCount));
+            m_IndexBuffer = SharedPtr<Graphics::IndexBuffer>(Graphics::IndexBuffer::Create(m_Indices.data(), (uint32_t)m_Indices.size()));
 
             m_VertexBuffer = SharedPtr<VertexBuffer>(VertexBuffer::Create(BufferUsage::STATIC));
-            m_VertexBuffer->SetData((uint32_t)(sizeof(Graphics::Vertex) * newVertexCount), m_Vertices.data());
+            m_VertexBuffer->SetData((uint32_t)(sizeof(Graphics::Vertex) * m_Vertices.size()), m_Vertices.data());
+
+            const bool storeData = false;
+            if(!storeData)
+            {
+                m_Indices.clear();
+                m_Indices.shrink_to_fit();
+
+                m_Vertices.clear();
+                m_Vertices.shrink_to_fit();
+            }
         }
 
         Mesh::~Mesh()
@@ -122,6 +137,8 @@ namespace Lumos
             delete[] normals;
         }
 
+#define CHECK_VEC3(vec3) Maths::IsInf(vec3.x) || Maths::IsInf(vec3.y) || Maths::IsInf(vec3.z) || Maths::IsNaN(vec3.x) || Maths::IsNaN(vec3.y) || Maths::IsNaN(vec3.z)
+
         void Mesh::GenerateTangentsAndBitangents(Vertex* vertices, uint32_t vertexCount, uint32_t* indices, uint32_t numIndices)
         {
             for(uint32_t i = 0; i < vertexCount; i++)
@@ -150,7 +167,11 @@ namespace Lumos
                 glm::vec2 deltaUV1 = uv1 - uv0;
                 glm::vec2 deltaUV2 = uv2 - uv0;
 
-                float f = 1.0f / (deltaUV1.x * deltaUV2.y - deltaUV2.x * deltaUV1.y);
+                float den = (deltaUV1.x * deltaUV2.y - deltaUV2.x * deltaUV1.y);
+                if(den < Maths::M_EPSILON)
+                    den = 1.0f;
+
+                float f = 1.0f / den;
 
                 glm::vec3 tangent   = f * (deltaUV2.y * edge1 - deltaUV1.y * edge2);
                 glm::vec3 bitangent = f * (-deltaUV2.x * edge1 + deltaUV1.x * edge2);
@@ -168,12 +189,18 @@ namespace Lumos
             // Normalize the tangent and bitangent vectors
             for(uint32_t i = 0; i < vertexCount; i++)
             {
-                vertices[i].Tangent   = glm::normalize(vertices[i].Tangent);
-                vertices[i].Bitangent = glm::normalize(vertices[i].Bitangent);
+                if(glm::length2(vertices[i].Tangent) > Maths::M_EPSILON)
+                    vertices[i].Tangent = glm::normalize(vertices[i].Tangent);
+                else
+                    vertices[i].Tangent = glm::vec3(0.0f);
 
-                LUMOS_ASSERT(!Maths::IsInf(vertices[i].Tangent.x) && !Maths::IsInf(vertices[i].Tangent.y) && !Maths::IsInf(vertices[i].Tangent.z));
-                LUMOS_ASSERT(!Maths::IsInf(vertices[i].Bitangent.x) && !Maths::IsInf(vertices[i].Bitangent.y) && !Maths::IsInf(vertices[i].Bitangent.z));
-                LUMOS_ASSERT(!Maths::IsInf(vertices[i].Normal.x) && !Maths::IsInf(vertices[i].Normal.y) && !Maths::IsInf(vertices[i].Normal.z));
+                if(glm::length2(vertices[i].Tangent) > Maths::M_EPSILON)
+                    vertices[i].Bitangent = glm::normalize(vertices[i].Bitangent);
+                else
+                    vertices[i].Bitangent = glm::vec3(0.0f);
+
+                LUMOS_ASSERT(!CHECK_VEC3(vertices[i].Tangent));
+                LUMOS_ASSERT(!CHECK_VEC3(vertices[i].Bitangent));
             }
         }
 

@@ -19,7 +19,7 @@ namespace Lumos
 
         VKVertexBuffer::~VKVertexBuffer()
         {
-            LUMOS_PROFILE_FUNCTION();
+            LUMOS_PROFILE_FUNCTION_LOW();
             if(m_MappedBuffer)
             {
                 VKBuffer::Flush(m_Size);
@@ -30,7 +30,7 @@ namespace Lumos
 
         void VKVertexBuffer::Resize(uint32_t size)
         {
-            LUMOS_PROFILE_FUNCTION();
+            LUMOS_PROFILE_FUNCTION_LOW();
 
             if(m_Size != size)
             {
@@ -41,7 +41,7 @@ namespace Lumos
 
         void VKVertexBuffer::SetData(uint32_t size, const void* data)
         {
-            LUMOS_PROFILE_FUNCTION();
+            LUMOS_PROFILE_FUNCTION_LOW();
             if(m_Size < size)
             {
                 m_Size = size;
@@ -55,7 +55,7 @@ namespace Lumos
 
         void VKVertexBuffer::SetDataSub(uint32_t size, const void* data, uint32_t offset)
         {
-            LUMOS_PROFILE_FUNCTION();
+            LUMOS_PROFILE_FUNCTION_LOW();
             m_Size = size;
 
             if(m_Size < size)
@@ -71,7 +71,7 @@ namespace Lumos
 
         void* VKVertexBuffer::GetPointerInternal()
         {
-            LUMOS_PROFILE_FUNCTION();
+            LUMOS_PROFILE_FUNCTION_LOW();
             if(!m_MappedBuffer)
             {
                 VKBuffer::Map();
@@ -83,7 +83,7 @@ namespace Lumos
 
         void VKVertexBuffer::ReleasePointer()
         {
-            LUMOS_PROFILE_FUNCTION();
+            LUMOS_PROFILE_FUNCTION_LOW();
             if(m_MappedBuffer)
             {
                 VKBuffer::Flush(m_Size);
@@ -94,7 +94,7 @@ namespace Lumos
 
         void VKVertexBuffer::Bind(CommandBuffer* commandBuffer, Pipeline* pipeline)
         {
-            LUMOS_PROFILE_FUNCTION();
+            LUMOS_PROFILE_FUNCTION_LOW();
             VkDeviceSize offsets[1] = { 0 };
             if(commandBuffer)
                 vkCmdBindVertexBuffers(static_cast<VKCommandBuffer*>(commandBuffer)->GetHandle(), 0, 1, &m_Buffer, offsets);

@@ -47,7 +47,7 @@ namespace Lumos
                     {
                         m_NameUpdated = false;
                         std::string scenePath;
-                        if(VFS::Get().ResolvePhysicalPath("//Scenes/" + m_CurrentScene->GetSceneName() + ".lsn", scenePath))
+                        if(FileSystem::Get().ResolvePhysicalPath("//Assets/Scenes/" + m_CurrentScene->GetSceneName() + ".lsn", scenePath))
                         {
                             m_CurrentScene->SetName(sceneName);
                             // m_CurrentScene->Serialise(m_Editor->GetProjectSettings().m_ProjectRoot + "Assets/Scenes/");
@@ -74,23 +74,27 @@ namespace Lumos
                     ImGuiUtilities::Property("Shadow Enabled", sceneSettings.RenderSettings.ShadowsEnabled);
                     ImGuiUtilities::Property("Skybox Render Enabled", sceneSettings.RenderSettings.SkyboxRenderEnabled);
                     ImGuiUtilities::Property("Skybox Mip Level", sceneSettings.RenderSettings.SkyboxMipLevel, 0.0f, 14.0f, 0.01f);
-
                     ImGuiUtilities::Property("Debug Renderer Enabled", sceneSettings.RenderSettings.DebugRenderEnabled);
+
+                    ImGui::Separator();
                     ImGuiUtilities::Property("FXAA Enabled", sceneSettings.RenderSettings.FXAAEnabled);
                     ImGuiUtilities::Property("Debanding Enabled", sceneSettings.RenderSettings.DebandingEnabled);
                     ImGuiUtilities::Property("ChromaticAberation Enabled", sceneSettings.RenderSettings.ChromaticAberationEnabled);
                     ImGuiUtilities::Property("Filmic Grain Enabled", sceneSettings.RenderSettings.FilmicGrainEnabled);
                     ImGuiUtilities::Property("Sharpen Enabled", sceneSettings.RenderSettings.SharpenEnabled);
 
+                    ImGui::Separator();
                     ImGuiUtilities::Property("Bloom Enabled", sceneSettings.RenderSettings.BloomEnabled);
-                    ImGuiUtilities::Property("Bloom Intensity", sceneSettings.RenderSettings.m_BloomIntensity);
-                    ImGuiUtilities::Property("Bloom Upsample Scale", sceneSettings.RenderSettings.BloomUpsampleScale);
-                    ImGuiUtilities::Property("Bloom Knee", sceneSettings.RenderSettings.BloomKnee);
-                    ImGuiUtilities::Property("Bloom Threshold", sceneSettings.RenderSettings.BloomThreshold);
+                    ImGuiUtilities::Property("Bloom Intensity", sceneSettings.RenderSettings.m_BloomIntensity, -1.0f, -1.0f, 0.1f);
+                    ImGuiUtilities::Property("Bloom Upsample Scale", sceneSettings.RenderSettings.BloomUpsampleScale, -1.0f, -1.0f, 0.1f);
+                    ImGuiUtilities::Property("Bloom Knee", sceneSettings.RenderSettings.BloomKnee, -1.0f, -1.0f, 0.1f);
+                    ImGuiUtilities::Property("Bloom Threshold", sceneSettings.RenderSettings.BloomThreshold, -1.0f, -1.0f, 0.1f);
+                    ImGui::Separator();
+
                     ImGuiUtilities::Property("Depth Of Field Enabled", sceneSettings.RenderSettings.DepthOfFieldEnabled);
                     ImGuiUtilities::Property("Depth Of Field Strength", sceneSettings.RenderSettings.DepthOfFieldStrength);
                     ImGuiUtilities::Property("Depth Of Field Distance", sceneSettings.RenderSettings.DepthOfFieldDistance);
-
+                    ImGui::Separator();
                     // ImGui::BeginDisabled();
                     ImGuiUtilities::Property("SSAO Enabled", sceneSettings.RenderSettings.SSAOEnabled);
                     ImGuiUtilities::Property("SSAO Sample Radius", sceneSettings.RenderSettings.SSAOSampleRadius, 0.0f, 16.0f, 0.01f);
@@ -98,6 +102,7 @@ namespace Lumos
                     ImGuiUtilities::Property("SSAO Blur Enabled", sceneSettings.RenderSettings.SSAOBlur);
                     ImGuiUtilities::Property("SSAO Strength", sceneSettings.RenderSettings.SSAOStrength, 0.0f, 16.0f, 0.01f);
                     // ImGui::EndDisabled();
+                    ImGui::Separator();
 
                     static const char* toneMaps[7] = {
                         "None",
@@ -113,6 +118,7 @@ namespace Lumos
                     ImGuiUtilities::Property("Brightness", sceneSettings.RenderSettings.Brightness, -1.0f, 1.0f, 0.01f);
                     ImGuiUtilities::Property("Contrast", sceneSettings.RenderSettings.Contrast, 0.0f, 2.0f, 0.01f);
                     ImGuiUtilities::Property("Saturation", sceneSettings.RenderSettings.Saturation, 0.0f, 1.0f, 0.01f);
+                    ImGui::Separator();
 
                     auto& registry  = m_CurrentScene->GetRegistry();
                     int entityCount = (int)registry.storage<entt::entity>().size();

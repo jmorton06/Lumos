@@ -51,6 +51,8 @@ CEREAL_REGISTER_POLYMORPHIC_RELATION(Lumos::CollisionShape, Lumos::PyramidCollis
 CEREAL_REGISTER_POLYMORPHIC_RELATION(Lumos::CollisionShape, Lumos::HullCollisionShape);
 CEREAL_REGISTER_POLYMORPHIC_RELATION(Lumos::CollisionShape, Lumos::CapsuleCollisionShape);
 
+#pragma warning(push, 0)
+// Legacy version of entt snapshot loaded to load older scene versions saved before updating entt
 namespace entt
 {
 
@@ -197,6 +199,7 @@ namespace entt
         basic_registry<entity_type>* reg;
     };
 }
+#pragma warning(pop)
 
 namespace Lumos
 {
@@ -646,7 +649,7 @@ namespace Lumos
 
     Entity Scene::InstantiatePrefab(const std::string& path)
     {
-        std::string prefabData = VFS::Get().ReadTextFile(path);
+        std::string prefabData = FileSystem::Get().ReadTextFile(path);
         std::stringstream storage(prefabData);
         cereal::JSONInputArchive input(storage);
 
@@ -662,7 +665,7 @@ namespace Lumos
         DeserializeEntityHierarchy(entity, input, version);
 
         std::string relativePath;
-        if(VFS::Get().AbsoulePathToVFS(path, relativePath))
+        if(FileSystem::Get().AbsolutePathToFileSystem(path, relativePath))
             entity.AddComponent<PrefabComponent>(relativePath);
         else
             entity.AddComponent<PrefabComponent>(path);
@@ -720,7 +723,7 @@ namespace Lumos
 
         FileSystem::WriteTextFile(path, storage.str());
         std::string relativePath;
-        if(VFS::Get().AbsoulePathToVFS(path, relativePath))
+        if(FileSystem::Get().AbsolutePathToFileSystem(path, relativePath))
             entity.AddComponent<PrefabComponent>(relativePath);
     }
 }

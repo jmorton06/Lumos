@@ -4,6 +4,7 @@
 #include "Graphics/Mesh.h"
 #include "Core/Application.h"
 #include "Utilities/AssetManager.h"
+#include "Core/OS/Window.h"
 
 #include "CompiledSPV/Headers/Shadowvertspv.hpp"
 #include "CompiledSPV/Headers/Shadowfragspv.hpp"
@@ -60,13 +61,13 @@ namespace Lumos
 
         Renderer* Renderer::s_Instance = nullptr;
 
-        void Renderer::Init(bool loadEmbeddedShaders)
+        void Renderer::Init(bool loadEmbeddedShaders, const std::string& engineShaderPath)
         {
             LUMOS_ASSERT(CreateFunc, "No Renderer Create Function");
             LUMOS_PROFILE_FUNCTION();
             s_Instance = CreateFunc();
             s_Instance->InitInternal();
-            s_Instance->LoadEngineShaders(loadEmbeddedShaders);
+            s_Instance->LoadEngineShaders(loadEmbeddedShaders, engineShaderPath);
         }
 
         void Renderer::Release()
@@ -76,7 +77,7 @@ namespace Lumos
             s_Instance = nullptr;
         }
 
-        void Renderer::LoadEngineShaders(bool loadEmbeddedShaders)
+        void Renderer::LoadEngineShaders(bool loadEmbeddedShaders, const std::string& engineShaderPath)
         {
             auto shaderLibrary = Application::Get().GetShaderLibrary();
             if(loadEmbeddedShaders)
@@ -116,44 +117,50 @@ namespace Lumos
             else
             {
                 LUMOS_LOG_INFO("Loading shaders - files");
-                shaderLibrary->AddResource("Skybox", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromFile("//CoreShaders/Skybox.shader")));
-                shaderLibrary->AddResource("ForwardPBR", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromFile("//CoreShaders/ForwardPBR.shader")));
-                shaderLibrary->AddResource("Shadow", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromFile("//CoreShaders/Shadow.shader")));
-                shaderLibrary->AddResource("Batch2DPoint", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromFile("//CoreShaders/Batch2DPoint.shader")));
-                shaderLibrary->AddResource("Batch2DLine", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromFile("//CoreShaders/Batch2DLine.shader")));
-                shaderLibrary->AddResource("Batch2D", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromFile("//CoreShaders/Batch2D.shader")));
-                shaderLibrary->AddResource("FinalPass", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromFile("//CoreShaders/ScreenPass.shader")));
-                shaderLibrary->AddResource("Grid", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromFile("//CoreShaders/Grid.shader")));
-                shaderLibrary->AddResource("CreateEnvironmentMap", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromFile("//CoreShaders/CreateEnvironmentMap.shader")));
-                shaderLibrary->AddResource("EnvironmentIrradiance", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromFile("//CoreShaders/EnvironmentIrradiance.shader")));
-                shaderLibrary->AddResource("EnvironmentMipFilter", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromFile("//CoreShaders/EnvironmentMipFilter.shader")));
+                shaderLibrary->AddResource("Skybox", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromFile(engineShaderPath + "Shaders/Skybox.shader")));
+                shaderLibrary->AddResource("ForwardPBR", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromFile(engineShaderPath + "Shaders/ForwardPBR.shader")));
+                shaderLibrary->AddResource("Shadow", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromFile(engineShaderPath + "Shaders/Shadow.shader")));
+                shaderLibrary->AddResource("Batch2DPoint", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromFile(engineShaderPath + "Shaders/Batch2DPoint.shader")));
+                shaderLibrary->AddResource("Batch2DLine", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromFile(engineShaderPath + "Shaders/Batch2DLine.shader")));
+                shaderLibrary->AddResource("Batch2D", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromFile(engineShaderPath + "Shaders/Batch2D.shader")));
+                shaderLibrary->AddResource("FinalPass", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromFile(engineShaderPath + "Shaders/ScreenPass.shader")));
+                shaderLibrary->AddResource("Grid", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromFile(engineShaderPath + "Shaders/Grid.shader")));
+                shaderLibrary->AddResource("CreateEnvironmentMap", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromFile(engineShaderPath + "Shaders/CreateEnvironmentMap.shader")));
+                shaderLibrary->AddResource("EnvironmentIrradiance", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromFile(engineShaderPath + "Shaders/EnvironmentIrradiance.shader")));
+                shaderLibrary->AddResource("EnvironmentMipFilter", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromFile(engineShaderPath + "Shaders/EnvironmentMipFilter.shader")));
 
-                shaderLibrary->AddResource("FXAA", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromFile("//CoreShaders/FXAA.shader")));
+                shaderLibrary->AddResource("FXAA", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromFile(engineShaderPath + "Shaders/FXAA.shader")));
 
                 if(Renderer::GetCapabilities().SupportCompute)
-                    shaderLibrary->AddResource("FXAAComp", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromFile("//CoreShaders/FXAACompute.shader")));
+                    shaderLibrary->AddResource("FXAAComp", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromFile(engineShaderPath + "Shaders/FXAACompute.shader")));
 
-                shaderLibrary->AddResource("Debanding", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromFile("//CoreShaders/Debanding.shader")));
-                shaderLibrary->AddResource("FilmicGrain", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromFile("//CoreShaders/FilmicGrain.shader")));
-                // shaderLibrary->AddResource("Outline", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromFile("//CoreShaders/Outline.shader")));
-                shaderLibrary->AddResource("ChromaticAberation", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromFile("//CoreShaders/ChromaticAberation.shader")));
-                shaderLibrary->AddResource("DepthPrePass", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromFile("//CoreShaders/DepthPrePass.shader")));
-                shaderLibrary->AddResource("ToneMapping", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromFile("//CoreShaders/ToneMapping.shader")));
-                shaderLibrary->AddResource("Bloom", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromFile("//CoreShaders/Bloom.shader")));
+                shaderLibrary->AddResource("Debanding", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromFile(engineShaderPath + "Shaders/Debanding.shader")));
+                shaderLibrary->AddResource("FilmicGrain", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromFile(engineShaderPath + "Shaders/FilmicGrain.shader")));
+                // shaderLibrary->AddResource("Outline", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromFile(engineShaderPath + "Shaders/Outline.shader")));
+                shaderLibrary->AddResource("ChromaticAberation", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromFile(engineShaderPath + "Shaders/ChromaticAberation.shader")));
+                shaderLibrary->AddResource("DepthPrePass", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromFile(engineShaderPath + "Shaders/DepthPrePass.shader")));
+                shaderLibrary->AddResource("ToneMapping", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromFile(engineShaderPath + "Shaders/ToneMapping.shader")));
+                shaderLibrary->AddResource("Bloom", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromFile(engineShaderPath + "Shaders/Bloom.shader")));
                 if(Renderer::GetCapabilities().SupportCompute)
-                    shaderLibrary->AddResource("BloomComp", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromFile("//CoreShaders/BloomComp.shader")));
-                shaderLibrary->AddResource("DepthOfField", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromFile("//CoreShaders/DepthOfField.shader")));
+                    shaderLibrary->AddResource("BloomComp", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromFile(engineShaderPath + "Shaders/BloomComp.shader")));
+                shaderLibrary->AddResource("DepthOfField", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromFile(engineShaderPath + "Shaders/DepthOfField.shader")));
 
-                shaderLibrary->AddResource("BRDFLUT", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromFile("//CoreShaders/BRDFLUT.shader")));
-                shaderLibrary->AddResource("Text", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromFile("//CoreShaders/Text.shader")));
-                shaderLibrary->AddResource("SSAO", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromFile("//CoreShaders/SSAO.shader")));
-                shaderLibrary->AddResource("SSAOBlur", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromFile("//CoreShaders/SSAOBlur.shader")));
-                shaderLibrary->AddResource("Sharpen", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromFile("//CoreShaders/Sharpen.shader")));
+                shaderLibrary->AddResource("BRDFLUT", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromFile(engineShaderPath + "Shaders/BRDFLUT.shader")));
+                shaderLibrary->AddResource("Text", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromFile(engineShaderPath + "Shaders/Text.shader")));
+                shaderLibrary->AddResource("SSAO", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromFile(engineShaderPath + "Shaders/SSAO.shader")));
+                shaderLibrary->AddResource("SSAOBlur", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromFile(engineShaderPath + "Shaders/SSAOBlur.shader")));
+                shaderLibrary->AddResource("Sharpen", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromFile(engineShaderPath + "Shaders/Sharpen.shader")));
             }
         }
 
-        GraphicsContext* Renderer::GetGraphicsContext() { return Application::Get().GetWindow()->GetGraphicsContext(); }
-        SwapChain* Renderer::GetMainSwapChain() { return Application::Get().GetWindow()->GetSwapChain(); }
+        GraphicsContext* Renderer::GetGraphicsContext()
+        {
+            return Application::Get().GetWindow()->GetGraphicsContext();
+        }
+        SwapChain* Renderer::GetMainSwapChain()
+        {
+            return Application::Get().GetWindow()->GetSwapChain();
+        }
 
         void Renderer::DrawMesh(CommandBuffer* commandBuffer, Graphics::Pipeline* pipeline, Graphics::Mesh* mesh)
         {

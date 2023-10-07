@@ -2,7 +2,7 @@
 echo "Compiling shaders"
 cd "$(dirname "$0")"
 
-COMPILER="/Users/jmorton/VulkanSDK/1.3.216.0/macOS/bin/glslc"
+COMPILER="/Users/jmorton/VulkanSDK/1.3.261.1/macOS/bin/glslc"
 
 echo $COMPILER
 

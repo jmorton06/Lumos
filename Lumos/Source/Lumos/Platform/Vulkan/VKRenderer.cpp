@@ -7,8 +7,10 @@
 #include "VKPipeline.h"
 #include "VKInitialisers.h"
 #include "VKCommandBuffer.h"
+#include "VKSwapChain.h"
 #include "Core/Engine.h"
 #include "Core/Application.h"
+#include "Core/OS/Window.h"
 
 #include "stb_image_write.h"
 
@@ -40,22 +42,22 @@ namespace Lumos
             };
 
             VkDescriptorPoolSize pool_sizes[] = {
-                { VK_DESCRIPTOR_TYPE_SAMPLER, 100000 },
-                { VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 100000 },
-                { VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, 100000 },
-                { VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 100000 },
-                { VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, 100000 },
-                { VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, 100000 },
-                { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 100000 },
-                { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 100000 },
-                { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 100000 },
-                { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, 100000 },
-                { VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, 100000 }
+                { VK_DESCRIPTOR_TYPE_SAMPLER, 10000 },
+                { VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 10000 },
+                { VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, 10000 },
+                { VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 10000 },
+                { VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, 10000 },
+                { VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, 10000 },
+                { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 10000 },
+                { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 10000 },
+                { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 10000 },
+                { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, 10000 },
+                { VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, 10000 }
             };
             VkDescriptorPoolCreateInfo pool_info = {};
             pool_info.sType                      = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
             pool_info.flags                      = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
-            pool_info.maxSets                    = 100000 * 11;
+            pool_info.maxSets                    = 10000 * 11;
             pool_info.poolSizeCount              = (uint32_t)11;
             pool_info.pPoolSizes                 = pool_sizes;
 

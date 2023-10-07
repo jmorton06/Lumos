@@ -1,5 +1,6 @@
 #include <LumosEngine.h>
 #include <Lumos/Core/EntryPoint.h>
+#include <Lumos/Core/OS/Window.h>
 
 using namespace Lumos;
 

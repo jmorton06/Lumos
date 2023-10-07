@@ -90,7 +90,7 @@ function SetRecommendedXcodeSettings()
 		{   
 			["MACOSX_DEPLOYMENT_TARGET"] = "10.15",
 			--['ARCHS'] = 'x86_64',
-			--['ONLY_ACTIVE_ARCH'] = 'YES',
+			['ONLY_ACTIVE_ARCH'] = 'YES',
 		}
 
 	filter {"system:ios"}

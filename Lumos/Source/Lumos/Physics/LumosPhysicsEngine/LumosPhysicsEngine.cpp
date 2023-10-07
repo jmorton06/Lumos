@@ -1,7 +1,6 @@
 #include "Precompiled.h"
 #include "LumosPhysicsEngine.h"
 #include "Narrowphase/CollisionDetection.h"
-#include "Broadphase/SortAndSweepBroadphase.h"
 #include "Broadphase/BruteForceBroadphase.h"
 #include "Broadphase/OctreeBroadphase.h"
 #include "RigidBody3D.h"
@@ -35,11 +34,10 @@ namespace Lumos
         , m_RootBody(nullptr)
     {
         m_DebugName = "Lumos3DPhysicsEngine";
-        m_RigidBodys.reserve(100);
         m_BroadphaseCollisionPairs.reserve(1000);
-        m_Manifolds.reserve(100);
 
         m_Allocator = new PoolAllocator<RigidBody3D>();
+        m_Arena     = ArenaAlloc(Megabytes(8));
     }
 
     void LumosPhysicsEngine::SetDefaults()
@@ -54,99 +52,56 @@ namespace Lumos
 
     LumosPhysicsEngine::~LumosPhysicsEngine()
     {
-        m_RigidBodys.clear();
-        m_Constraints.clear();
-        m_Manifolds.clear();
-
         CollisionDetection::Release();
     }
 
     void LumosPhysicsEngine::OnUpdate(const TimeStep& timeStep, Scene* scene)
     {
         LUMOS_PROFILE_FUNCTION();
-        m_RigidBodys.clear();
-
         if(!m_IsPaused)
         {
-            auto& registry = scene->GetRegistry();
-            //'auto group     = registry.group<RigidBody3DComponent>(entt::get<Maths::Transform>);
-
-            {
-                LUMOS_PROFILE_SCOPE("Physics::Get Rigid Bodies");
-                //                for(auto entity : group)
-                //                {
-                //                    const auto& phys = group.get<RigidBody3DComponent>(entity);
-                //                    auto& physicsObj = phys.GetRigidBody();
-                //                    m_RigidBodys.push_back(physicsObj.get());
-                //                };
-
-                RigidBody3D* currentBody = m_RootBody;
-                while(currentBody)
-                {
-                    m_RigidBodys.push_back(currentBody);
-                    currentBody = currentBody->m_Next;
-                }
-            }
-
-            if(m_RigidBodys.empty())
-            {
-                return;
-            }
-
-            m_Stats.RigidBodyCount = (uint32_t)m_RigidBodys.size();
+            auto& registry    = scene->GetRegistry();
+            m_ConstraintCount = 0;
+            ArenaClear(m_Arena);
 
             {
                 LUMOS_PROFILE_SCOPE("Physics::Get Spring Constraints");
-                m_Constraints.clear();
-
                 auto viewSpring = registry.view<SpringConstraintComponent>();
+                auto viewAxis   = registry.view<AxisConstraintComponent>();
+                auto viewDis    = registry.view<DistanceConstraintComponent>();
+                auto viewWeld   = registry.view<WeldConstraintComponent>();
 
+                m_ConstraintCount = (uint32_t)viewSpring.size() + (uint32_t)viewAxis.size() + (uint32_t)viewDis.size() + (uint32_t)viewWeld.size();
+                m_Constraints     = PushArrayNoZero(m_Arena, Constraint*, m_ConstraintCount);
+
+                uint32_t constraintIndex = 0;
                 for(auto entity : viewSpring)
                 {
-                    const auto& constraint = viewSpring.get<SpringConstraintComponent>(entity).GetConstraint();
-                    m_Constraints.push_back(constraint.get());
+                    m_Constraints[constraintIndex++] = viewSpring.get<SpringConstraintComponent>(entity).GetConstraint();
                 }
-            }
-
-            {
-                LUMOS_PROFILE_SCOPE("Physics::Get Axis Constraints");
-
-                auto viewAxis = registry.view<AxisConstraintComponent, IDComponent>();
 
                 for(auto entity : viewAxis)
                 {
-                    const auto& [constraint, idComp] = viewAxis.get<AxisConstraintComponent, IDComponent>(entity);
+                    auto constraint = viewAxis.get<AxisConstraintComponent>(entity);
 
-                    if(constraint.GetEntityID() != idComp.ID)
-                        constraint.SetEntity(idComp.ID);
+                    if(constraint.GetEntityID() != Entity(entity, Application::Get().GetCurrentScene()).GetID())
+                        constraint.SetEntity(Entity(entity, Application::Get().GetCurrentScene()).GetID());
                     if(constraint.GetConstraint())
-                        m_Constraints.push_back(constraint.GetConstraint().get());
+                        m_Constraints[constraintIndex++] = constraint.GetConstraint().get();
                 }
-            }
-
-            {
-                LUMOS_PROFILE_SCOPE("Physics::Get Distance Constraints");
-                auto viewDis = registry.view<DistanceConstraintComponent>();
 
                 for(auto entity : viewDis)
                 {
-                    const auto& constraint = viewDis.get<DistanceConstraintComponent>(entity).GetConstraint();
-                    m_Constraints.push_back(constraint.get());
+                    m_Constraints[constraintIndex++] = viewDis.get<DistanceConstraintComponent>(entity).GetConstraint();
                 }
-            }
-
-            {
-                LUMOS_PROFILE_SCOPE("Physics::Get Weld Constraints");
-                auto viewWeld = registry.view<WeldConstraintComponent>();
 
                 for(auto entity : viewWeld)
                 {
-                    const auto& constraint = viewWeld.get<WeldConstraintComponent>(entity).GetConstraint();
-                    m_Constraints.push_back(constraint.get());
+                    m_Constraints[constraintIndex++] = viewWeld.get<WeldConstraintComponent>(entity).GetConstraint();
                 }
             }
 
-            m_Stats.ConstraintCount = (uint32_t)m_Constraints.size();
+            m_Stats.ConstraintCount = m_ConstraintCount;
 
             {
                 LUMOS_PROFILE_SCOPE("Physics::UpdatePhysics");
@@ -165,13 +120,14 @@ namespace Lumos
                 }
             }
 
-            m_Constraints.clear();
+            m_ConstraintCount = 0;
         }
     }
 
     void LumosPhysicsEngine::UpdatePhysics()
     {
-        m_Manifolds.clear();
+        m_ManifoldCount = 0;
+        m_Manifolds     = PushArrayNoZero(m_Arena, Manifold, 100);
 
         // Check for collisions
         BroadPhaseCollisions();
@@ -200,7 +156,6 @@ namespace Lumos
         m_Stats.RigidBodyCount = 0;
 
         RigidBody3D* current = m_RootBody;
-
         while(current)
         {
             if(current->m_AtRest)
@@ -432,7 +387,7 @@ namespace Lumos
         LUMOS_PROFILE_FUNCTION();
         m_BroadphaseCollisionPairs.clear();
         if(m_BroadphaseDetection)
-            m_BroadphaseDetection->FindPotentialCollisionPairs(m_RigidBodys.data(), (uint32_t)m_RigidBodys.size(), m_BroadphaseCollisionPairs);
+            m_BroadphaseDetection->FindPotentialCollisionPairs(m_RootBody, m_BroadphaseCollisionPairs);
 
 #ifdef CHECK_COLLISION_PAIR_DUPLICATES
 
@@ -489,7 +444,7 @@ namespace Lumos
                         // Build full collision manifold that will also handle the collision
                         // response between the two objects in the solver stage
                         m_ManifoldLock.lock();
-                        Manifold& manifold = m_Manifolds.emplace_back();
+                        Manifold& manifold = m_Manifolds[m_ManifoldCount++];
                         manifold.Initiate(cp.pObjectA, cp.pObjectB);
 
                         // Construct contact points that form the perimeter of the collision manifold
@@ -502,7 +457,7 @@ namespace Lumos
                         }
                         else
                         {
-                            m_Manifolds.pop_back();
+                            m_ManifoldCount--;
                         }
 
                         m_ManifoldLock.unlock();
@@ -518,34 +473,31 @@ namespace Lumos
 
         {
             LUMOS_PROFILE_SCOPE("Solve Manifolds");
-
-            for(Manifold& m : m_Manifolds)
-                m.PreSolverStep(s_UpdateTimestep);
+            for(uint32_t index = 0; index < m_ManifoldCount; index++)
+                m_Manifolds[index].PreSolverStep(s_UpdateTimestep);
         }
         {
             LUMOS_PROFILE_SCOPE("Solve Constraints");
-
-            for(Constraint* c : m_Constraints)
-                c->PreSolverStep(s_UpdateTimestep);
+            for(uint32_t index = 0; index < m_ConstraintCount; index++)
+                m_Constraints[index]->PreSolverStep(s_UpdateTimestep);
         }
-
         {
             LUMOS_PROFILE_SCOPE("Apply Impulses");
 
             for(uint32_t i = 0; i < m_VelocityIterations; i++)
             {
-                for(Manifold& m : m_Manifolds)
-                    m.ApplyImpulse();
+                for(uint32_t index = 0; index < m_ManifoldCount; index++)
+                    m_Manifolds[index].ApplyImpulse();
 
-                for(Constraint* c : m_Constraints)
-                    c->ApplyImpulse();
+                for(uint32_t index = 0; index < m_ConstraintCount; index++)
+                    m_Constraints[index]->ApplyImpulse();
             }
         }
     }
 
     void LumosPhysicsEngine::ClearConstraints()
     {
-        m_Constraints.clear();
+        m_ConstraintCount = 0;
     }
 
     std::string LumosPhysicsEngine::IntegrationTypeToString(IntegrationType type)
@@ -587,14 +539,12 @@ namespace Lumos
 
         switch(type)
         {
+        case BroadphaseType::SORT_AND_SWEAP:
         case BroadphaseType::BRUTE_FORCE:
             m_BroadphaseDetection = Lumos::CreateSharedPtr<BruteForceBroadphase>();
             break;
-        case BroadphaseType::SORT_AND_SWEAP:
-            m_BroadphaseDetection = Lumos::CreateSharedPtr<SortAndSweepBroadphase>();
-            break;
         case BroadphaseType::OCTREE:
-            m_BroadphaseDetection = Lumos::CreateSharedPtr<OctreeBroadphase>(5, 5, Lumos::CreateSharedPtr<BruteForceBroadphase>());
+            m_BroadphaseDetection = Lumos::CreateSharedPtr<OctreeBroadphase>(5, 5);
             break;
         default:
             m_BroadphaseDetection = Lumos::CreateSharedPtr<BruteForceBroadphase>();
@@ -692,40 +642,27 @@ namespace Lumos
         LUMOS_PROFILE_FUNCTION_LOW();
         if(m_DebugDrawFlags & PhysicsDebugFlags::MANIFOLD)
         {
-            for(Manifold& m : m_Manifolds)
-                m.DebugDraw();
+            for(uint32_t index = 0; index < m_ManifoldCount; index++)
+                m_Manifolds[index].DebugDraw();
         }
 
         // Draw all constraints
         if(m_DebugDrawFlags & PhysicsDebugFlags::CONSTRAINT)
         {
-            for(Constraint* c : m_Constraints)
-                c->DebugDraw();
+            for(uint32_t index = 0; index < m_ConstraintCount; index++)
+                m_Constraints[index]->DebugDraw();
         }
 
         if(!m_IsPaused && m_BroadphaseDetection && (m_DebugDrawFlags & PhysicsDebugFlags::BROADPHASE))
             m_BroadphaseDetection->DebugDraw();
 
-        auto scene     = Application::Get().GetCurrentScene();
-        auto& registry = scene->GetRegistry();
-
-        auto group = registry.group<RigidBody3DComponent>(entt::get<Maths::Transform>);
-
-        if(group.empty())
-            return;
-
-        for(auto entity : group)
+        RigidBody3D* current = m_RootBody;
+        while(current)
         {
-            const auto& phys = group.get<RigidBody3DComponent>(entity);
-
-            auto physicsObj = phys.GetRigidBody();
-
-            if(physicsObj)
-            {
-                physicsObj->DebugDraw(m_DebugDrawFlags);
-                if(physicsObj->GetCollisionShape() && (m_DebugDrawFlags & PhysicsDebugFlags::COLLISIONVOLUMES))
-                    physicsObj->GetCollisionShape()->DebugDraw(physicsObj);
-            }
+            current->DebugDraw(m_DebugDrawFlags);
+            if(current->GetCollisionShape() && (m_DebugDrawFlags & PhysicsDebugFlags::COLLISIONVOLUMES))
+                current->GetCollisionShape()->DebugDraw(current);
+            current = current->m_Next;
         }
     }
 }

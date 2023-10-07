@@ -246,6 +246,12 @@ namespace Lumos
 
         UUID GetUUID() const { return m_UUID; }
 
+        // For iteration
+        RigidBody3D* m_Prev = nullptr;
+        RigidBody3D* m_Next = nullptr;
+
+        bool Valid() const { return m_UUID != 0; }
+
     protected:
         RigidBody3D(const RigidBody3DProperties& properties = RigidBody3DProperties());
 
@@ -282,8 +288,5 @@ namespace Lumos
         SharedPtr<CollisionShape> m_CollisionShape;
         PhysicsCollisionCallback m_OnCollisionCallback;
         std::vector<OnCollisionManifoldCallback> m_onCollisionManifoldCallbacks; //!< Collision callbacks post manifold generation
-
-        RigidBody3D* m_Prev = nullptr;
-        RigidBody3D* m_Next = nullptr;
     };
 }

@@ -84,9 +84,9 @@ float Diffuse(float roughness, float NoV, float NoL, float LoH)
     #endif
 }
 
-vec3 ComputeF0(const vec4 baseColor, float metallic, float reflectance) 
+vec3 ComputeF0(const vec4 baseColour, float metallic, float reflectance) 
 {
-    return baseColor.rgb * metallic + (reflectance * (1.0 - metallic));
+    return baseColour.rgb * metallic + (reflectance * (1.0 - metallic));
 }
 
 #if QUALITY_LOW
@@ -98,27 +98,27 @@ vec3 ComputeF0(const vec4 baseColor, float metallic, float reflectance)
     #define MIN_ROUGHNESS            0.002025
 #endif
 
-#define MIN_N_DOT_V 1e-4
+#define MIN_N_DOT_V 0.1 // 1e-4
 
 float clampNoV(float NoV) {
     // Neubelt and Pettineo 2013, "Crafting a Next-gen Material Pipeline for The Order: 1886"
     return max(NoV, MIN_N_DOT_V);
 }
 
-vec3 computeDiffuseColor(const vec4 baseColor, float metallic) {
-    return baseColor.rgb * (1.0 - metallic);
+vec3 computeDiffuseColour(const vec4 baseColour, float metallic) {
+    return baseColour.rgb * (1.0 - metallic);
 }
 
-vec3 computeF0(const vec4 baseColor, float metallic, float reflectance) {
-    return baseColor.rgb * metallic + (reflectance * (1.0 - metallic));
+vec3 computeF0(const vec4 baseColour, float metallic, float reflectance) {
+    return baseColour.rgb * metallic + (reflectance * (1.0 - metallic));
 }
 
 float computeDielectricF0(float reflectance) {
     return 0.16 * reflectance * reflectance;
 }
 
-float computeMetallicFromSpecularColor(const vec3 specularColor) {
-    return max3(specularColor);
+float computeMetallicFromSpecularColour(const vec3 specularColour) {
+    return max3(specularColour);
 }
 
 float computeRoughnessFromGlossiness(float glossiness) {

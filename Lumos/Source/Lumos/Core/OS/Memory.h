@@ -38,6 +38,9 @@ namespace Lumos
         uint64_t pos;
     };
 
+    int GetArenaCount();
+    Arena* GetArena(int index);
+
     Arena* ArenaAlloc(uint64_t size);
     Arena* ArenaAllocDefault();
     void ArenaRelease(Arena* arena);
@@ -52,23 +55,69 @@ namespace Lumos
     ArenaTemp ArenaTempBegin(Arena* arena);
     void ArenaTempEnd(ArenaTemp temp);
 
+#define PushArrayNoZero(arena, type, count) (type*)ArenaPushNoZero((arena), sizeof(type) * (count))
+#define PushArray(arena, type, count) (type*)ArenaPush((arena), sizeof(type) * (count))
+
 #define ArenaTempBlock(arena, name) \
     ArenaTemp name = { 0 };         \
     DeferLoop(name = ArenaTempBegin(arena), ArenaTempEnd(name))
+
+    ArenaTemp ScratchBegin(Arena** conflicts, uint64_t conflict_count);
+#define ScratchEnd(temp) ArenaTempEnd(temp)
+
+    void InitScratchArenas();
+    void ReleaseScratchArenas();
+    void ClearScratchArenas();
 }
 
 #define CUSTOM_MEMORY_ALLOCATOR
 #if defined(CUSTOM_MEMORY_ALLOCATOR) && defined(LUMOS_ENGINE)
 
-void* operator new(std::size_t size);
-// void* operator new(std::size_t size, const char *file, int line);
-// void* operator new[](std::size_t size, const char *file, int line);
-// void* operator new (std::size_t size, const std::nothrow_t& nothrow_value) noexcept;
-void* operator new[](std::size_t size);
+#ifdef LUMOS_PLATFORM_WINDOWS
+_NODISCARD _Ret_notnull_ _Post_writable_byte_size_(size)
+_VCRT_ALLOCATOR
+void* __CRTDECL operator new(size_t size);
 
-void operator delete(void* p) throw();
-void operator delete[](void* p) throw();
-// void operator delete(void* block, const char* file, int line);
-// void operator delete[](void* block, const char* file, int line);
+_NODISCARD _Ret_notnull_ _Post_writable_byte_size_(size)
+_VCRT_ALLOCATOR
+void* __CRTDECL operator new[](size_t size);
+
+_NODISCARD _Ret_notnull_ _Post_writable_byte_size_(size)
+_VCRT_ALLOCATOR
+void* __CRTDECL operator new(size_t size, const char* desc);
+
+_NODISCARD _Ret_notnull_ _Post_writable_byte_size_(size)
+_VCRT_ALLOCATOR
+void* __CRTDECL operator new[](size_t size, const char* desc);
+
+_NODISCARD _Ret_notnull_ _Post_writable_byte_size_(size)
+_VCRT_ALLOCATOR
+void* __CRTDECL operator new(size_t size, const char* file, int line);
+
+_NODISCARD _Ret_notnull_ _Post_writable_byte_size_(size)
+_VCRT_ALLOCATOR
+void* __CRTDECL operator new[](size_t size, const char* file, int line);
+
+void __CRTDECL operator delete(void* memory);
+void __CRTDECL operator delete(void* memory, const char* desc);
+void __CRTDECL operator delete(void* memory, const char* file, int line);
+void __CRTDECL operator delete[](void* memory);
+void __CRTDECL operator delete[](void* memory, const char* desc);
+void __CRTDECL operator delete[](void* memory, const char* file, int line);
+#else
+void* operator new(size_t size);
+void* operator new[](size_t size);
+void* operator new(size_t size, const char* desc);
+void* operator new[](size_t size, const char* desc);
+void* operator new(size_t size, const char* file, int line);
+void* operator new[](size_t size, const char* file, int line);
+
+void operator delete(void* memory);
+void operator delete(void* memory, const char* desc);
+void operator delete(void* memory, const char* file, int line);
+void operator delete[](void* memory);
+void operator delete[](void* memory, const char* desc);
+void operator delete[](void* memory, const char* file, int line);
+#endif
 
 #endif

@@ -168,7 +168,7 @@ namespace Lumos
             VK_CHECK_RESULT(vkCreateRenderPass(VKDevice::Get().GetDevice(), &renderPassCreateInfo, VK_NULL_HANDLE, &m_RenderPass));
 
             if(!renderPassDesc.DebugName.empty())
-                VKUtilities::SetDebugUtilsObjectName(VKDevice::Get().GetDevice(), VK_OBJECT_TYPE_RENDER_PASS, renderPassDesc.DebugName, m_RenderPass);
+                VKUtilities::SetDebugUtilsObjectName(VKDevice::Get().GetDevice(), VK_OBJECT_TYPE_RENDER_PASS, renderPassDesc.DebugName.c_str(), m_RenderPass);
 
             m_ClearValue      = new VkClearValue[renderPassDesc.attachmentCount];
             m_ClearCount      = renderPassDesc.attachmentCount;

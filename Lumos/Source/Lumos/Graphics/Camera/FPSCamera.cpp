@@ -5,6 +5,7 @@
 #include "Core/OS/Window.h"
 #include "Camera.h"
 #include "Maths/MathsUtilities.h"
+#include "Maths/Transform.h"
 
 namespace Lumos
 {

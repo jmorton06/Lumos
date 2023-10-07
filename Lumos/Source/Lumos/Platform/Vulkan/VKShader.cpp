@@ -10,7 +10,7 @@
 #include "Graphics/Material.h"
 #include "Utilities/CombineHash.h"
 #include "Core/OS/FileSystem.h"
-#include "Core/VFS.h"
+#include "Core/OS/FileSystem.h"
 #include "Core/StringUtilities.h"
 
 #include <spirv_cross.hpp>
@@ -388,11 +388,12 @@ namespace Lumos
         {
             m_Name     = StringUtilities::GetFileName(filePath);
             m_FilePath = StringUtilities::GetFileLocation(filePath);
-            m_Source   = VFS::Get().ReadTextFile(filePath);
+            m_Source   = FileSystem::Get().ReadTextFile(filePath);
 
             if(m_Source.empty())
             {
                 m_Compiled = false;
+                LUMOS_LOG_ERROR("Failed to load shader {0}", filePath);
                 return;
             }
             Init();
@@ -751,7 +752,9 @@ namespace Lumos
             m_ShaderStages[currentShaderStage].pNext = VK_NULL_HANDLE;
 
             VkResult result = vkCreateShaderModule(VKDevice::Get().GetDevice(), &shaderCreateInfo, nullptr, &m_ShaderStages[currentShaderStage].module);
-            VKUtilities::SetDebugUtilsObjectName(VKDevice::Get().GetDevice(), VK_OBJECT_TYPE_SHADER_MODULE, fmt::format("{}:{}", m_Name, ShaderStageToString(m_ShaderStages[currentShaderStage].stage)), m_ShaderStages[currentShaderStage].module);
+
+            std::string debugName = m_Name + ShaderStageToString(m_ShaderStages[currentShaderStage].stage);
+            VKUtilities::SetDebugUtilsObjectName(VKDevice::Get().GetDevice(), VK_OBJECT_TYPE_SHADER_MODULE, debugName.c_str(), m_ShaderStages[currentShaderStage].module);
 
             if(result == VK_SUCCESS)
             {
@@ -876,7 +879,7 @@ namespace Lumos
         Shader* VKShader::CreateFuncVulkan(const std::string& filepath)
         {
             std::string physicalPath;
-            Lumos::VFS::Get().ResolvePhysicalPath(filepath, physicalPath, false);
+            Lumos::FileSystem::Get().ResolvePhysicalPath(filepath, physicalPath, false);
             return new VKShader(physicalPath);
         }
 

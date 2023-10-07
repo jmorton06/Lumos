@@ -6,11 +6,14 @@
 
 namespace Lumos::Debug
 {
+#if LUMOS_ENABLE_LOG
     std::shared_ptr<spdlog::logger> Log::s_CoreLogger;
     std::vector<spdlog::sink_ptr> sinks;
+#endif
 
     void Log::OnInit()
     {
+#if LUMOS_ENABLE_LOG
         sinks.emplace_back(std::make_shared<spdlog::sinks::stdout_color_sink_mt>()); // debug
                                                                                      // sinks.emplace_back(std::make_shared<ImGuiConsoleSink_mt>()); // ImGuiConsole
 
@@ -26,17 +29,22 @@ namespace Lumos::Debug
         // configure the loggers
         spdlog::set_pattern("%^[%T] %v%$");
         s_CoreLogger->set_level(spdlog::level::trace);
+#endif
     }
 
+#if LUMOS_ENABLE_LOG
     void Log::AddSink(spdlog::sink_ptr& sink)
     {
         s_CoreLogger->sinks().push_back(sink);
         s_CoreLogger->set_pattern("%v%$");
     }
+#endif
 
     void Log::OnRelease()
     {
+#if LUMOS_ENABLE_LOG
         s_CoreLogger.reset();
         spdlog::shutdown();
+#endif
     }
 }

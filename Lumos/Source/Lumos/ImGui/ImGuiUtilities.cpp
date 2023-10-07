@@ -13,6 +13,7 @@
 #endif
 
 #include <glm/gtc/type_ptr.hpp>
+#include <spdlog/fmt/bundled/format.h>
 
 namespace Lumos
 {
@@ -248,10 +249,19 @@ namespace Lumos
         {
             ImGui::Text("%.2f", value);
         }
+        else if((int)flags & (int)PropertyFlag::DragValue)
+        {
+            if(ImGui::DragFloat(GenerateID(), &value, delta, min, max))
+                updated = true;
+        }
+        else if((int)flags & (int)PropertyFlag::SliderValue)
+        {
+            if(ImGui::SliderFloat(GenerateID(), &value, min, max))
+                updated = true;
+        }
         else
         {
-            // std::string id = "##" + name;
-            if(ImGui::DragFloat(GenerateID(), &value, delta, min, max))
+            if(ImGui::InputFloat(GenerateID(), &value, delta))
                 updated = true;
         }
         ImGui::PopItemWidth();
@@ -650,7 +660,7 @@ namespace Lumos
         auto drawList           = ImGui::GetWindowDrawList();
 
         ImVec2 pos = ImGui::GetCursorPos();
-        ImVec2 size((radius)*2, (radius + style.FramePadding.y) * 2);
+        ImVec2 size((radius) * 2, (radius + style.FramePadding.y) * 2);
 
         const ImRect bb(pos, ImVec2(pos.x + size.x, pos.y + size.y));
         ImGui::ItemSize(bb, style.FramePadding.y);

@@ -25,21 +25,33 @@ namespace Lumos
             LUMOS_PROFILE_FUNCTION();
             if(m_Buffer)
             {
-                VKContext::DeletionQueue& deletionQueue = VKRenderer::GetCurrentDeletionQueue();
+                if(m_DeleteWithoutQueue)
+                {
+#ifdef USE_VMA_ALLOCATOR
+                    vmaDestroyBuffer(VKDevice::Get().GetAllocator(), m_Buffer, m_Allocation);
+#else
+                    vkDestroyBuffer(VKDevice::Device(), m_Buffer, nullptr);
+                    vkFreeMemory(VKDevice::Device(), m_Memory, nullptr);
+#endif
+                }
+                else
+                {
+                    VKContext::DeletionQueue& deletionQueue = VKRenderer::GetCurrentDeletionQueue();
 
-                auto buffer = m_Buffer;
+                    auto buffer = m_Buffer;
 
 #ifdef USE_VMA_ALLOCATOR
-                auto alloc = m_Allocation;
-                deletionQueue.PushFunction([buffer, alloc]
-                                           { vmaDestroyBuffer(VKDevice::Get().GetAllocator(), buffer, alloc); });
+                    auto alloc = m_Allocation;
+                    deletionQueue.PushFunction([buffer, alloc]
+                                               { vmaDestroyBuffer(VKDevice::Get().GetAllocator(), buffer, alloc); });
 #else
-                auto memory = m_Memory;
-                deletionQueue.PushFunction([buffer, memory]
-                                           {
-                        vkDestroyBuffer(VKDevice::Device(), buffer, nullptr);
-                        vkFreeMemory(VKDevice::Device(), memory, nullptr); });
+                    auto memory = m_Memory;
+                    deletionQueue.PushFunction([buffer, memory]
+                                               {
+                            vkDestroyBuffer(VKDevice::Device(), buffer, nullptr);
+                            vkFreeMemory(VKDevice::Device(), memory, nullptr); });
 #endif
+                }
             }
         }
 

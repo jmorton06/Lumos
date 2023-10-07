@@ -1,23 +1,3 @@
-IncludeDir = {}
-IncludeDir["GLFW"] = "../Lumos/External/glfw/include/"
-IncludeDir["Glad"] = "../Lumos/External/glad/include/"
-IncludeDir["lua"] = "../Lumos/External/lua/src/"
-IncludeDir["stb"] = "../Lumos/External/stb/"
-IncludeDir["OpenAL"] = "../Lumos/External/OpenAL/include/"
-IncludeDir["Box2D"] = "../Lumos/External/box2d/include/"
-IncludeDir["vulkan"] = "../Lumos/External/vulkan/"
-IncludeDir["Lumos"] = "../Lumos/Source"
-IncludeDir["External"] = "../Lumos/External/"
-IncludeDir["ImGui"] = "../Lumos/External/imgui/"
-IncludeDir["freetype"] = "../Lumos/External/freetype/include"
-IncludeDir["SpirvCross"] = "../Lumos/External/vulkan/SPIRV-Cross"
-IncludeDir["cereal"] = "../Lumos/External/cereal/include"
-IncludeDir["spdlog"] = "../Lumos/External/spdlog/include"
-IncludeDir["glm"] = "../Lumos/External/glm"
-IncludeDir["msdf_atlas_gen"] = "../Lumos/External/msdf-atlas-gen/msdf-atlas-gen"
-IncludeDir["msdfgen"] = "../Lumos/External/msdf-atlas-gen/msdfgen"
-IncludeDir["ozz"] = "../Lumos/External/ozz-animation/include"
-
 project "Runtime"
 	kind "WindowedApp"
 	language "C++"
@@ -317,7 +297,7 @@ end
 			"-Wno-psabi"
 		}
 
-		links { "X11", "pthread", "dl", "atomic", "stdc++fs", "openal", "glfw"}
+		links { "X11", "pthread", "dl", "atomic", "openal", "glfw"}
 
 		linkoptions { "-L%{cfg.targetdir}", "-Wl,-rpath=\\$$ORIGIN"}
 

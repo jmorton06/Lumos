@@ -44,7 +44,7 @@ namespace Lumos
 
         void Transform::UpdateMatrices()
         {
-            LUMOS_PROFILE_FUNCTION();
+            LUMOS_PROFILE_FUNCTION_LOW();
             // m_LocalMatrix =
 
             // m_WorldMatrix = m_ParentMatrix * m_LocalMatrix;
@@ -104,7 +104,7 @@ namespace Lumos
         {
             LUMOS_PROFILE_FUNCTION_LOW();
             // if(m_Dirty)
-            UpdateMatrices();
+            // UpdateMatrices();
 
             return m_WorldMatrix;
         }
@@ -121,7 +121,7 @@ namespace Lumos
         const glm::vec3 Transform::GetWorldPosition()
         {
             // if(m_Dirty)
-            UpdateMatrices();
+            // UpdateMatrices();
 
             return m_WorldMatrix[3];
         }
@@ -129,7 +129,7 @@ namespace Lumos
         const glm::quat Transform::GetWorldOrientation()
         {
             // if(m_Dirty)
-            UpdateMatrices();
+            // UpdateMatrices();
 
             return glm::toQuat(m_WorldMatrix);
         }

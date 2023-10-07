@@ -2,6 +2,7 @@
 
 #include "EditorPanel.h"
 #include <Lumos/Utilities/AssetManager.h>
+#include <Lumos/Core/String.h>
 
 #if __has_include(<filesystem>)
 #include <filesystem>
@@ -33,26 +34,25 @@ namespace Lumos
         SharedPtr<DirectoryInformation> Parent;
         std::vector<SharedPtr<DirectoryInformation>> Children;
 
-        std::filesystem::path FilePath;
-        std::filesystem::path FullPath;
         bool IsFile;
+        bool Opened = false;
+        bool Leaf   = true;
 
-        std::string Name;
-        std::string Extension;
-        std::filesystem::directory_entry DirectoryEntry;
+        String8 Path;
         SharedPtr<Graphics::Texture2D> Thumbnail = nullptr;
-
-        ImVec4 FileTypeColour;
         FileType Type;
-        std::string_view FileTypeString;
-        std::string FileSize;
-        int FileTypeID;
+        uint64_t FileSize;
+        String8 FileSizeString;
+        int64_t FileTypeID;
+        bool Hidden;
+        ImVec4 FileTypeColour;
 
     public:
-        DirectoryInformation(const std::filesystem::path& fname, bool isF)
+        DirectoryInformation(String8 path, bool isF)
         {
-            FilePath = fname;
-            IsFile   = isF;
+            Path   = path;
+            IsFile = isF;
+            Hidden = false;
         }
 
         ~DirectoryInformation()
@@ -67,15 +67,13 @@ namespace Lumos
         ~ResourcePanel()
         {
             m_TextureLibrary.Destroy();
+            ArenaRelease(m_Arena);
         }
 
         void OnImGui() override;
 
         bool RenderFile(int dirIndex, bool folder, int shownIndex, bool gridView);
-        void DrawFolder(const SharedPtr<DirectoryInformation>& dirInfo, bool defaultOpen = false);
-        void RenderBreadCrumbs();
-        void RenderBottom();
-        // void GetDirectories(const std::string& path);
+        void DrawFolder(SharedPtr<DirectoryInformation>& dirInfo, bool defaultOpen = false);
 
         void DestroyGraphicsResources() override
         {
@@ -99,11 +97,11 @@ namespace Lumos
             m_TextureLibrary.Destroy();
         }
 
-        int GetParsedAssetID(const std::string& extension)
+        int GetParsedAssetID(String8 extension)
         {
             for(int i = 0; i < assetTypes.size(); i++)
             {
-                if(extension == assetTypes[i])
+                if(Str8Match(extension, assetTypes[i], 0))
                 {
                     return i;
                 }
@@ -112,27 +110,27 @@ namespace Lumos
             return -1;
         }
 
-        static std::string GetParentPath(const std::string& path);
+        // static  String8 GetParentPath(String8 path);
 
-        static std::vector<std::string> SearchFiles(const std::string& query);
-        static bool MoveFile(const std::string& filePath, const std::string& movePath);
+        static bool MoveFile(String8 filePath, String8 movePath);
 
-        std::string StripExtras(const std::string& filename);
-        std::string ProcessDirectory(const std::filesystem::path& directoryPath, const SharedPtr<DirectoryInformation>& parent);
+        // String8 StripExtras(String8& filename);
+        String8 ProcessDirectory(String8 directoryPath, const SharedPtr<DirectoryInformation>& parent, bool processChildren);
 
         void ChangeDirectory(SharedPtr<DirectoryInformation>& directory);
         void RemoveDirectory(SharedPtr<DirectoryInformation>& directory, bool removeFromParent = true);
         void OnNewProject() override;
         void Refresh();
+        void QueueRefresh() { m_Refresh = true; }
 
     private:
-        static inline std::vector<std::string> assetTypes = {
-            "fbx", "obj", "wav", "cs", "png", "blend", "lsc", "ogg", "lua"
+        static inline std::vector<String8> assetTypes = {
+            Str8Lit("fbx"), Str8Lit("obj"), Str8Lit("wav"), Str8Lit("cs"), Str8Lit("png"), Str8Lit("blend"), Str8Lit("lsc"), Str8Lit("ogg"), Str8Lit("lua")
         };
 
-        std::string m_MovePath;
-        std::string m_LastNavPath;
-        static std::string m_Delimiter;
+        String8 m_MovePath;
+        String8 m_LastNavPath;
+        String8 m_Delimiter;
 
         size_t m_BasePathLen;
         bool m_IsDragging;
@@ -144,14 +142,12 @@ namespace Lumos
 
         ImGuiTextFilter m_Filter;
 
-        char* inputText;
-        char* inputHint;
-        char inputBuffer[1024];
-
         bool textureCreated = false;
 
-        std::string m_BasePath;
-        std::filesystem::path m_AssetPath;
+        String8 m_BasePath;
+        String8 m_AssetPath;
+
+        bool m_Refresh = false;
 
         bool m_UpdateNavigationPath = true;
 
@@ -159,7 +155,30 @@ namespace Lumos
         SharedPtr<DirectoryInformation> m_BaseProjectDir;
         SharedPtr<DirectoryInformation> m_NextDirectory;
         SharedPtr<DirectoryInformation> m_PreviousDirectory;
-        std::unordered_map<std::string, SharedPtr<DirectoryInformation>> m_Directories;
+
+        struct cmp_str
+        {
+            bool operator()(String8 a, String8 b) const
+            {
+                return Str8Match(a, b, 0);
+            }
+        };
+
+        struct String8Hash
+        {
+            std::size_t operator()(const String8& s) const
+            {
+                // Simple hash function that combines the bytes of the string
+                std::size_t hash = 0;
+                for(uint64_t i = 0; i < s.size; ++i)
+                {
+                    hash = hash * 31 + s.str[i];
+                }
+                return hash;
+            }
+        };
+
+        std::unordered_map<String8, SharedPtr<DirectoryInformation>, String8Hash, cmp_str> m_Directories;
         std::vector<SharedPtr<DirectoryInformation>> m_BreadCrumbData;
         SharedPtr<Graphics::Texture2D> m_FolderIcon;
         SharedPtr<Graphics::Texture2D> m_FileIcon;
@@ -168,7 +187,9 @@ namespace Lumos
 
         Lumos::TextureLibrary m_TextureLibrary;
 
-        std::filesystem::path m_CopiedPath;
+        String8 m_CopiedPath;
         bool m_CutFile = false;
+
+        Arena* m_Arena;
     };
 }

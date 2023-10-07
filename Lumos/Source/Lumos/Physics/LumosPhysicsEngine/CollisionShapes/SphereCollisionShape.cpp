@@ -32,10 +32,10 @@ namespace Lumos
         float i = 2.5f * invMass / (m_Radius * m_Radius); // SOLID
         // float i = 1.5f * invMass * m_Radius * m_Radius; //HOLLOW
 
-        glm::mat3 inertia;
-        inertia[0][0] = i;
-        inertia[1][1] = i;
-        inertia[2][2] = i;
+        glm::mat3 inertia = glm::mat3(1.0f);
+        inertia[0][0]     = i;
+        inertia[1][1]     = i;
+        inertia[2][2]     = i;
 
         return inertia;
     }

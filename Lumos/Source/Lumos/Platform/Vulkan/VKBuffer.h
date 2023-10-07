@@ -31,6 +31,7 @@ namespace Lumos
             void SetUsage(VkBufferUsageFlags flags) { m_UsageFlags = flags; }
             void SetMemoryProperyFlags(VkBufferUsageFlags flags) { m_MemoryProperyFlags = flags; }
             void Destroy(bool deletionQueue = false);
+            void SetDeleteWithoutQueue(bool value) { m_DeleteWithoutQueue = value; }
 
         protected:
             VkBuffer m_Buffer {};
@@ -40,7 +41,8 @@ namespace Lumos
             VkDeviceSize m_Alignment = 0;
             VkBufferUsageFlags m_UsageFlags;
             VkMemoryPropertyFlags m_MemoryProperyFlags;
-            void* m_Mapped = nullptr;
+            void* m_Mapped            = nullptr;
+            bool m_DeleteWithoutQueue = false;
 
 #ifdef USE_VMA_ALLOCATOR
             VmaAllocation m_Allocation {};

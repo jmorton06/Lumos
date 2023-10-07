@@ -19,6 +19,7 @@ layout(location = 0) in VertexData VertexOutput;
 #define BLEND_SHADOW_CASCADES 1
 #define FILTER_SHADOWS 1
 #define NUM_PCF_SAMPLES 8
+#define VOGEL_OFFSET 1
 float ShadowFade = 1.0;
 
 struct Light
@@ -85,7 +86,8 @@ layout(set = 2, binding = 5) uniform UBOLight
 	int shadowEnabled;
 } ubo;
 
-layout(location = 0) out vec4 outColor;
+
+layout(location = 0) out vec4 outColour;
 
 const float PBR_WORKFLOW_SEPARATE_TEXTURES = 0.0f;
 const float PBR_WORKFLOW_METALLIC_ROUGHNESS = 1.0f;
@@ -112,15 +114,15 @@ vec4 GetAlbedo()
 {
 	if(materialProperties.AlbedoMapFactor < 0.05)
 		return  materialProperties.AlbedoColour;
-
-	return (1.0 - materialProperties.AlbedoMapFactor) * materialProperties.AlbedoColour + materialProperties.AlbedoMapFactor * DeGamma(texture(u_AlbedoMap, VertexOutput.TexCoord));
+    
+	return /*(1.0 - materialProperties.AlbedoMapFactor) **/ materialProperties.AlbedoColour * (materialProperties.AlbedoMapFactor * DeGamma(texture(u_AlbedoMap, VertexOutput.TexCoord)));
 }
 
 vec3 GetMetallic()
 {
 	if(materialProperties.MetallicMapFactor < 0.05)
 		return  materialProperties.Metallic.rrr;
-
+    
 	return (1.0 - materialProperties.MetallicMapFactor) * materialProperties.Metallic + materialProperties.MetallicMapFactor * texture(u_MetallicMap, VertexOutput.TexCoord).rgb;
 }
 
@@ -135,7 +137,7 @@ float GetAO()
 {
 	if(materialProperties.AOMapFactor < 0.05)
 		return 1.0;
-
+    
 	return (1.0 - materialProperties.AOMapFactor) + materialProperties.AOMapFactor * texture(u_AOMap, VertexOutput.TexCoord).r;
 }
 
@@ -150,17 +152,17 @@ vec3 GetNormalFromMap()
 {
 	if (materialProperties.NormalMapFactor < 0.05)
 		return normalize(VertexOutput.Normal);
-
-	vec3 Normal = normalize(texture(u_NormalMap, VertexOutput.TexCoord).rgb * 2.0f - 1.0f);
+    
+    vec3 Normal = normalize(texture(u_NormalMap, VertexOutput.TexCoord).rgb * 2.0f - 1.0f);
 	return normalize(VertexOutput.WorldNormal * Normal);
 }
 
 const mat4 BiasMatrix = mat4(
-						  0.5, 0.0, 0.0, 0.5,
-						  0.0, 0.5, 0.0, 0.5,
-						  0.0, 0.0, 1.0, 0.0,
-						  0.0, 0.0, 0.0, 1.0
-						  );
+                             0.5, 0.0, 0.0, 0.5,
+                             0.0, 0.5, 0.0, 0.5,
+                             0.0, 0.0, 1.0, 0.0,
+                             0.0, 0.0, 0.0, 1.0
+                             );
 
 const vec2 PoissonDistribution16[16] = vec2[](
 											  vec2(-0.94201624, -0.39906216), vec2(0.94558609, -0.76890725), vec2(-0.094184101, -0.92938870), vec2(0.34495938, 0.29387760),
@@ -222,23 +224,29 @@ float rand(vec2 co)
     return fract(sin(sn) * c);
 }
 
-vec2 VogelDiskSample(int sampleIndex, int samplesCount, float phi)
+vec2 VogelDiskSample(int sampleIndex, float invSquareRootSamplesCount, float phi)
 {
-  float GoldenAngle = 2.4f;
-
-  float r = sqrt(sampleIndex + 0.5f) / sqrt(samplesCount);
-  float theta = sampleIndex * GoldenAngle + phi;
-
-  float sine = sin(theta);
-  float cosine = cos(theta);
-  
-  return vec2(r * cosine, r * sine);
+    float GoldenAngle = 2.4f;
+    
+    float r = sqrt(sampleIndex + 0.5f) * invSquareRootSamplesCount;/// sqrt(samplesCount);
+    float theta = sampleIndex * GoldenAngle + phi;
+    
+    float sine = sin(theta);
+    float cosine = cos(theta);
+    
+    return vec2(r * cosine, r * sine);
 }
 
 float Random(vec4 seed4)
 {
 	float dot_product = dot(seed4, vec4(12.9898,78.233,45.164,94.673));
     return fract(sin(dot_product) * 43758.5453);
+}
+
+float Random(vec3 seed, int i)
+{
+	vec4 seed4 = vec4(seed,i);
+	return Random(seed4);
 }
 
 vec2 SearchRegionRadiusUV(float zWorld)
@@ -258,9 +266,10 @@ float GetShadowBias(vec3 lightDirection, vec3 normal, int shadowIndex)
 float PCFShadowDirectionalLight(sampler2DArray shadowMap, vec4 shadowCoords, float uvRadius, vec3 lightDirection, vec3 normal, vec3 wsPos, int cascadeIndex)
 {
 	float bias = GetShadowBias(lightDirection, normal, cascadeIndex);
-	float sum = 0;
+	float sum = 0.0;
 	float noise = Noise(wsPos.xy);
-
+	float invSquareRootSamplesCount = 1.0 / sqrt(NUM_PCF_SAMPLES);
+    
 	for (int i = 0; i < NUM_PCF_SAMPLES; i++)
 	{
 		//int index = int(16.0f*Random(vec4(wsPos, i)))%16;
@@ -268,10 +277,15 @@ float PCFShadowDirectionalLight(sampler2DArray shadowMap, vec4 shadowCoords, flo
 		//int index = int(float(NUM_PCF_SAMPLES)*Random(vec4(wsPos.xyz, 1)))%NUM_PCF_SAMPLES;
 		//int index = int(float(NUM_PCF_SAMPLES)*Random(vec4(floor(wsPos*1000.0), 1)))%NUM_PCF_SAMPLES;
 		//int index = int(NUM_PCF_SAMPLES*Random(vec4(floor(wsPos.xyz*1000.0), i)))%NUM_PCF_SAMPLES;
-		
 		//int index = int(NUM_PCF_SAMPLES*Random(vec4(wsPos.xyy, i)))%NUM_PCF_SAMPLES;
-		//vec2 offset = (SamplePoisson(index) / 700.0f);
-		vec2 offset = VogelDiskSample(i, NUM_PCF_SAMPLES, noise) / 700.0f;
+		
+		int index = int(16.0*Random(floor(wsPos.xyz*1000.0), i))%16;
+#if VOGEL_OFFSET
+        
+		vec2 offset = VogelDiskSample(index, invSquareRootSamplesCount, noise) / 700.0f;
+#else
+		vec2 offset = SamplePoisson(index) / 700.0f;
+#endif
 		
 		float z = texture(shadowMap, vec3(shadowCoords.xy + offset, cascadeIndex)).r;
 		sum += step(shadowCoords.z - bias, z);
@@ -325,19 +339,19 @@ float CalculateShadow(vec3 wsPos, int cascadeIndex, vec3 lightDirection, vec3 no
 		
 		shadowAmount =  mix(shadowAmount, shadowAmount1, cascadeFade);
 	}
-	#endif
+#endif
 	
 	return 1.0 - ((1.0 - shadowAmount) * ShadowFade);
 }
 
 
 vec3 IsotropicLobe(const Material material, const Light light, const vec3 h,
-        float NoV, float NoL, float NoH, float LoH) {
-
+                   float NoV, float NoL, float NoH, float LoH) {
+    
     float D = distribution(material.Roughness, NoH, material.Normal, h);
     float V = visibility(material.Roughness, NoV, NoL);
     vec3  F = fresnel(material.F0, LoH);
-
+    
     return (D * V) * F;
 }
 
@@ -351,7 +365,7 @@ vec3 SpecularLobe(const Material material, const Light light, const vec3 h, floa
     return IsotropicLobe(material, light, h, NoV, NoL, NoH, LoH);
 }
 
-#define NEW_LIGHTING 1
+#define NEW_LIGHTING 0
 
 vec3 Lighting(vec3 F0, vec3 wsPos, Material material)
 {
@@ -375,7 +389,7 @@ vec3 Lighting(vec3 F0, vec3 wsPos, Material material)
 			// Attenuation
 			float atten = light.radius / (pow(dist, 2.0) + 1.0);
 			float attenuation = clamp(1.0 - (dist * dist) / (light.radius * light.radius), 0.0, 1.0);
-
+            
 			value = attenuation;
 			
 			light.direction = vec4(L,1.0);
@@ -409,8 +423,8 @@ vec3 Lighting(vec3 F0, vec3 wsPos, Material material)
 		vec3 Li = light.direction.xyz;
 		vec3 Lradiance = light.colour.xyz * light.intensity;
 		vec3 Lh = normalize(Li + material.View);
-
-		#ifndef NEW_LIGHTING
+        
+#if NEW_LIGHTING == 0
 		
 		// Calculate angles between surface normal and various light vectors.
 		float cosLi = max(0.0, dot(material.Normal, Li));
@@ -429,22 +443,22 @@ vec3 Lighting(vec3 F0, vec3 wsPos, Material material)
 		
 		specularBRDF = clamp(specularBRDF, vec3(0.0f), vec3(10.0f));//;
 		result += (diffuseBRDF + specularBRDF) * Lradiance * cosLi * value * ComputeMicroShadowing(saturate(cosLi), material.AO);
-
+        
 #else
 		float lightNoL = saturate(dot(material.Normal, Li));
 		vec3 h = normalize(material.View + Li);
-
+        
 		float shading_NoV = clampNoV(dot(material.Normal, material.View));
     	float NoV = shading_NoV;
     	float NoL = saturate(lightNoL);
     	float NoH = saturate(dot(material.Normal, h));
     	float LoH = saturate(dot(Li, h));
-
+        
     	vec3 Fd = DiffuseLobe(material, NoV, NoL, LoH);
 		vec3 Fr = SpecularLobe(material, light, h, NoV, NoL, NoH, LoH);;
-
+        
 		vec3 colour = Fd + Fr;// * material.EnergyCompensation;
-
+        
 		result += (colour * Lradiance.rgb) * (value * NoL * ComputeMicroShadowing(NoL, material.AO));
 #endif
 	}
@@ -468,27 +482,27 @@ vec3 IBL(vec3 F0, vec3 Lr, Material material)
 
 vec3 IBLNew(vec3 F0, vec3 Lr, Material material)
 {
-	  // specular layer
+    // specular layer
     vec3 Fr = vec3(0.0);
-
+    
     vec3 E = mix(material.dfg.xxx, material.dfg.yyy, material.F0); //specularDFG(pixel);
     vec3 r = Lr;//getReflectedVector(pixel, material.Normal);
-
+    
 	int u_EnvRadianceTexLevels = ubo.EnvMipCount;	
 	material.Roughness * u_EnvRadianceTexLevels;
 	vec3 specularIrradiance = textureLod(uEnvMap, Lr, material.PerceptualRoughness * u_EnvRadianceTexLevels).rgb;
 	//specularIrradiance = DeGamma(specularIrradiance);
-
+    
     Fr = E * specularIrradiance;
-
+    
 	vec3 irradiance = texture(uIrrMap, material.Normal).rgb;
 	//irradiance = DeGamma(irradiance);
     
     //vec3 diffuseIrradiance = diffuseIrradiance(shading_normal);
     vec3 Fd = material.Albedo.xyz * irradiance * (1.0 - E);// * diffuseBRDF;
-
-    vec3 color = Fr + Fd;
-	return color;
+    
+    vec3 colour = Fr + Fd;
+	return colour;
 }
 
 void main() 
@@ -532,17 +546,17 @@ void main()
 		material.Normal = normalize(VertexOutput.WorldNormal * material.Normal);
 		material.Normal = normalize(material.Normal);
 	}
-
+    
 	material.AO		   = GetAO();
 	material.Emissive  = GetEmissive(material.Albedo.rgb);
-
+    
 	vec2 uv = gl_FragCoord.xy / vec2(ubo.Width, ubo.Height);
 	float ssao = texture(uSSAOMap, uv).r;
 	material.Albedo *= ssao;
-
+    
     material.PerceptualRoughness = clamp(material.PerceptualRoughness, MIN_PERCEPTUAL_ROUGHNESS, 1.0);
 	material.Roughness = perceptualRoughnessToRoughness(material.Roughness);
-
+    
     // Specular anti-aliasing
     {
         const float strength          	= 1.0f;
@@ -555,21 +569,21 @@ void main()
         float filteredRoughness2 		= saturate(roughness2 + kernelRoughness2);
         material.Roughness       		= sqrt(filteredRoughness2);
     }
-
+    
 	material.Roughness = clamp(material.Roughness, MIN_ROUGHNESS, 1.0);
-
+    
 	vec3 wsPos     = VertexOutput.Position.xyz;
 	material.View  = normalize(ubo.cameraPosition.xyz - wsPos);
 	material.NDotV = max(dot(material.Normal, material.View), 1e-4);
-
+    
 	material.dfg = texture(uBRDFLUT, vec2(material.NDotV, material.PerceptualRoughness)).rg;
 	float reflectance = computeDielectricF0(material.Reflectance);
 	//vec3 F0 = mix(Fdielectric, material.Albedo.xyz, material.Metallic.x);
 	vec3 F0 = computeF0(material.Albedo, material.Metallic.x, reflectance);
 	material.F0 = F0;
     material.EnergyCompensation = 1.0 + material.F0 * (1.0 / max(0.1, material.dfg.y) - 1.0);
-	material.Albedo.xyz = computeDiffuseColor(material.Albedo, material.Metallic.x);
-
+	material.Albedo.xyz = computeDiffuseColour(material.Albedo, material.Metallic.x);
+    
     float shadowDistance     = ubo.MaxShadowDist;
 	float transitionDistance = ubo.ShadowFade;
 	
@@ -585,38 +599,38 @@ void main()
 	vec3 iblContribution   = IBL(material.F0, Lr, material);
 	
 	vec3 finalColour = lightContribution + iblContribution + material.Emissive;
-	outColor = vec4(finalColour, 1.0);
+	outColour = vec4(finalColour, 1.0);
 	
 	if(ubo.Mode > 0)
 	{
 		switch(ubo.Mode)
 		{
 			case 1:
-			outColor = material.Albedo;
+			outColour = material.Albedo;
 			break;
 			case 2:
-			outColor = vec4(material.Metallic.rrr, 1.0);
+			outColour = vec4(material.Metallic.rrr, 1.0);
 			break;
 			case 3:
-			outColor = vec4(material.PerceptualRoughness.xxx,1.0);
+			outColour = vec4(material.PerceptualRoughness.xxx,1.0);
 			break;
 			case 4:
-			outColor = vec4(material.AO.xxx, 1.0);
+			outColour = vec4(material.AO.xxx, 1.0);
 			break;
 			case 5:
-			outColor = vec4(material.Emissive, 1.0);
+			outColour = vec4(material.Emissive, 1.0);
 			break;
 			case 6:
-			outColor = vec4(material.Normal,1.0);
+			outColour = vec4(material.Normal,1.0);
 			break;
             case 7:
 			int cascadeIndex = CalculateCascadeIndex(wsPos);
 			switch(cascadeIndex)
 			{
-				case 0 : outColor = outColor * vec4(0.8,0.2,0.2,1.0); break;
-				case 1 : outColor = outColor * vec4(0.2,0.8,0.2,1.0); break;
-				case 2 : outColor = outColor * vec4(0.2,0.2,0.8,1.0); break;
-				case 3 : outColor = outColor * vec4(0.8,0.8,0.2,1.0); break;
+				case 0 : outColour = outColour * vec4(0.8,0.2,0.2,1.0); break;
+				case 1 : outColour = outColour * vec4(0.2,0.8,0.2,1.0); break;
+				case 2 : outColour = outColour * vec4(0.2,0.2,0.8,1.0); break;
+				case 3 : outColour = outColour * vec4(0.8,0.8,0.2,1.0); break;
 			}
 			break;
 		}

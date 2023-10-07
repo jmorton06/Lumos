@@ -67,13 +67,13 @@ namespace Lumos
                 bool HasUpdated[10];
             };
 
-            std::map<uint32_t, VkDescriptorSet> m_DescriptorSet;
             DescriptorSetInfo m_Descriptors;
-            std::map<uint32_t, std::map<std::string, SharedPtr<UniformBuffer>>> m_UniformBuffers;
-
             std::map<std::string, UniformBufferInfo> m_UniformBuffersData;
-            bool m_DescriptorDirty[3];
-            bool m_DescriptorUpdated[3];
+
+            std::map<std::string, SharedPtr<UniformBuffer>> m_UniformBuffers[MAX_FRAMES_FLIGHT];
+            VkDescriptorSet m_DescriptorSet[MAX_FRAMES_FLIGHT];
+            bool m_DescriptorDirty[MAX_FRAMES_FLIGHT];
+            bool m_DescriptorUpdated[MAX_FRAMES_FLIGHT];
         };
     }
 }

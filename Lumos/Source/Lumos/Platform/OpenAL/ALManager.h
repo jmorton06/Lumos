@@ -19,7 +19,7 @@ namespace Lumos
             ALManager(int numChannels = 8);
             ~ALManager();
 
-            void OnInit() override;
+            bool OnInit() override;
             void OnUpdate(const TimeStep& dt, Scene* scene) override;
             void UpdateListener(Scene* scene) override;
             void UpdateListener(Maths::Transform& listenerTransform);

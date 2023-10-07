@@ -3,7 +3,7 @@
 #include "Core/Application.h"
 #include "Renderers/RenderPasses.h"
 #include "RHI/Texture.h"
-#include "Core/VFS.h"
+#include "Core/OS/FileSystem.h"
 #include "Core/StringUtilities.h"
 
 namespace Lumos
@@ -82,7 +82,7 @@ namespace Lumos
                             break;
 
                         std::string newPath;
-                        if(!VFS::Get().ResolvePhysicalPath(envFiles[i], newPath))
+                        if(!FileSystem::Get().ResolvePhysicalPath(envFiles[i], newPath))
                         {
                             LUMOS_LOG_ERROR("Failed to load {0}", envFiles[i]);
                             failed = true;
@@ -106,7 +106,7 @@ namespace Lumos
                             break;
 
                         std::string newPath;
-                        if(!VFS::Get().ResolvePhysicalPath(irrFiles[i], newPath))
+                        if(!FileSystem::Get().ResolvePhysicalPath(irrFiles[i], newPath))
                         {
                             LUMOS_LOG_ERROR("Failed to load {0}", irrFiles[i]);
                             failed = true;
