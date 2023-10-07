@@ -32,74 +32,8 @@ namespace Lumos
 
             struct PhysicalDeviceInfo
             {
-                std::string GetVendorName()
-                {
-                    std::string name = "Unknown";
-
-                    if(VendorID == 0x10DE || StringUtilities::StringContains(Name, "Nvidia"))
-                    {
-                        name = "Nvidia";
-                    }
-                    else if(VendorID == 0x1002 || VendorID == 0x1022 || StringUtilities::StringContains(Name, "Amd"))
-                    {
-                        name = "AMD";
-                    }
-                    else if(VendorID == 0x8086 || VendorID == 0x163C || VendorID == 0x8087 || StringUtilities::StringContains(Name, "Intel"))
-                    {
-                        name = "Intel";
-                    }
-                    else if(VendorID == 0x13B5 || StringUtilities::StringContains(Name, "Arm,"))
-                    {
-                        name = "Arm";
-                    }
-                    else if(VendorID == 0x5143 || StringUtilities::StringContains(Name, "Qualcomm"))
-                    {
-                        name = "Qualcomm";
-                    }
-                    else if(VendorID == 0x106b || StringUtilities::StringContains(Name, "Apple"))
-                    {
-                        return "Apple";
-                    }
-
-                    return name;
-                }
-
-                std::string DecodeDriverVersion(const uint32_t version)
-                {
-                    char buffer[256];
-
-                    if(Vendor == "Nvidia")
-                    {
-                        sprintf(
-                            buffer,
-                            "%d.%d.%d.%d",
-                            (version >> 22) & 0x3ff,
-                            (version >> 14) & 0x0ff,
-                            (version >> 6) & 0x0ff,
-                            (version)&0x003f);
-                    }
-#if LUMOS_PLATFORM_WINDOWS
-                    else if(Vendor == "Intel")
-                    {
-                        sprintf(
-                            buffer,
-                            "%d.%d",
-                            (version >> 14),
-                            (version)&0x3fff);
-                    }
-#endif
-                    else // Vulkan version conventions
-                    {
-                        sprintf(
-                            buffer,
-                            "%d.%d.%d",
-                            (version >> 22),
-                            (version >> 12) & 0x3ff,
-                            version & 0xfff);
-                    }
-
-                    return buffer;
-                }
+                std::string GetVendorName();
+                std::string DecodeDriverVersion(const uint32_t version);
 
                 uint32_t Memory;
                 uint32_t VendorID;

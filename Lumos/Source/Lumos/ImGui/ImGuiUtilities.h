@@ -4,6 +4,7 @@
 #include <imgui/imgui.h>
 #include <imgui/imgui_internal.h>
 #include <glm/fwd.hpp>
+#include <iostream>
 
 namespace Lumos
 {

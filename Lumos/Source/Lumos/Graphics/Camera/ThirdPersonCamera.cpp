@@ -5,6 +5,8 @@
 #include "Core/Application.h"
 #include "Core/OS/Window.h"
 #include "Maths/MathsUtilities.h"
+#include "Maths/Transform.h"
+
 namespace Lumos
 {
 

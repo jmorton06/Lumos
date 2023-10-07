@@ -619,7 +619,7 @@
     "value131": 1,
     "value132": 0,
     "value133": {
-        "FilePath": "//Scripts/Projectile.lua"
+        "FilePath": "//Assets/Scripts/Projectile.lua"
     },
     "value134": 0,
     "value135": 1,
@@ -1259,7 +1259,7 @@
             "ptr_wrapper": {
                 "valid": 1,
                 "data": {
-                    "Albedo": "//Textures/checkerboard.tga",
+                    "Albedo": "//Assets/Textures/checkerboard.tga",
                     "Normal": "",
                     "Metallic": "",
                     "Roughness": "",

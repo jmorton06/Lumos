@@ -240,7 +240,7 @@ namespace Lumos
 
                     m_Frames[i].MainCommandBuffer = CreateSharedPtr<VKCommandBuffer>();
                     m_Frames[i].MainCommandBuffer->Init(true, m_Frames[i].CommandPool->GetHandle());
-                    VKUtilities::SetDebugUtilsObjectName(VKDevice::Get().GetDevice(), VK_OBJECT_TYPE_COMMAND_BUFFER, fmt::format("Commandbuffer (frame in flight: {})", i), m_Frames[i].MainCommandBuffer->GetHandle());
+                    VKUtilities::SetDebugUtilsObjectName(VKDevice::Get().GetDevice(), VK_OBJECT_TYPE_COMMAND_BUFFER, "Commandbuffer (frame in flight)", m_Frames[i].MainCommandBuffer->GetHandle());
                 }
             }
         }

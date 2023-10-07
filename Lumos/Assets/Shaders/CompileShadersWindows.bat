@@ -1,11 +1,13 @@
-
 @echo off
 setLocal enableExtensions enableDelayedExpansion
 
+cd /D "%~dp0"
+set mypath=%cd%
+@echo Compiling shaders in %mypath% to spv
+
 set COMPILER=C:/VulkanSDK/1.3.216.0/Bin/glslc.exe
 set DSTDIR=CompiledSPV
-
-echo Compiling Shaders to spv
+set CHECK_FILE_MODIFIED=0
 
 if not exist "%DSTDIR%" (
   mkdir "%DSTDIR%"
@@ -14,21 +16,24 @@ if not exist "%DSTDIR%" (
 for %%f in (*.vert *.frag *.comp) do (
 
   set SRC=%%f
-
   set DST=%DSTDIR%\!SRC:.vert=.vert.spv!
   set DST=!DST:.frag=.frag.spv!
   set DST=!DST:.comp=.comp.spv!
 
-  call :getModifiedDate "!SRC!"
-  set SRC_DATE=!DATE_MODIFIED!
+  if %CHECK_FILE_MODIFIED%==0 (
+	  echo Compiling "!SRC!"
+      %COMPILER% "!SRC!" -o "!DST!"
+  ) else (
+    call :getModifiedDate "!SRC!"
+    set SRC_DATE=!DATE_MODIFIED!
 
-  call :getModifiedDate "!DST!"
-  set DST_DATE=!DATE_MODIFIED!
+    call :getModifiedDate "!DST!"
+    set DST_DATE=!DATE_MODIFIED!
 
-  if "!SRC_DATE!" gtr "!DST_DATE!" (
-    echo Compiling "!SRC!"
-    %COMPILER% "!SRC!" -o "!DST!"
-
+    if "!SRC_DATE!" gtr "!DST_DATE!" (
+      echo Compiling "!SRC!"
+      %COMPILER% "!SRC!" -o "!DST!"
+    )
   )
 )
 pause

@@ -64,7 +64,7 @@ namespace Lumos
         void save(Archive& archive) const
         {
             std::string newPath;
-            VFS::Get().AbsoulePathToVFS(m_FileName, newPath);
+            FileSystem::Get().AbsolutePathToFileSystem(m_FileName, newPath);
             archive(cereal::make_nvp("FilePath", newPath));
         }
 

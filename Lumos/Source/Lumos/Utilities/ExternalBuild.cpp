@@ -38,6 +38,6 @@
 #define STB_PERLIN_IMPLEMENTATION
 #include <stb/stb_perlin.h>
 
-#include <OpenFBX/miniz.c>
-#include <OpenFBX/ofbx.cpp>
+#include <ModelLoaders/OpenFBX/miniz.c>
+#include <ModelLoaders/OpenFBX/ofbx.cpp>
 #pragma warning(pop)

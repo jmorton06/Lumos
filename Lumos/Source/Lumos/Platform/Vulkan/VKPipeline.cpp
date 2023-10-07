@@ -218,7 +218,7 @@ namespace Lumos
                 ms.sType                 = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
                 ms.pNext                 = NULL;
                 ms.pSampleMask           = NULL;
-                ms.rasterizationSamples  = VK_SAMPLE_COUNT_1_BIT;
+                ms.rasterizationSamples  = m_Description.samples > 1 ? (VkSampleCountFlagBits)m_Description.samples : VK_SAMPLE_COUNT_1_BIT;
                 ms.sampleShadingEnable   = VK_FALSE;
                 ms.alphaToCoverageEnable = VK_FALSE;
                 ms.alphaToOneEnable      = VK_FALSE;
@@ -251,7 +251,7 @@ namespace Lumos
                 VK_CHECK_RESULT(vkCreateGraphicsPipelines(VKDevice::Get().GetDevice(), VKDevice::Get().GetPipelineCache(), 1, &graphicsPipelineCreateInfo, VK_NULL_HANDLE, &m_Pipeline));
             }
 
-            if(!pipelineDesc.DebugName.empty())
+            if(!pipelineDesc.DebugName)
                 VKUtilities::SetDebugUtilsObjectName(VKDevice::Get().GetDevice(), VK_OBJECT_TYPE_PIPELINE, pipelineDesc.DebugName, m_Pipeline);
 
             return true;
@@ -349,7 +349,10 @@ namespace Lumos
             renderPassDesc.clear                    = m_Description.clearTargets;
             renderPassDesc.cubeMapIndex             = m_Description.cubeMapIndex;
             renderPassDesc.mipIndex                 = m_Description.mipIndex;
-            renderPassDesc.DebugName                = m_Description.DebugName;
+
+            if(m_Description.DebugName != NULL)
+                renderPassDesc.DebugName = m_Description.DebugName;
+            renderPassDesc.samples = m_Description.samples;
 
             m_RenderPass = Graphics::RenderPass::Get(renderPassDesc);
 
@@ -359,6 +362,7 @@ namespace Lumos
             frameBufferDesc.attachmentCount = uint32_t(attachments.size());
             frameBufferDesc.renderPass      = m_RenderPass.get();
             frameBufferDesc.attachmentTypes = attachmentTypes.data();
+            frameBufferDesc.samples         = m_Description.samples;
 
             if(m_Description.swapchainTarget)
             {

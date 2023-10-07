@@ -323,6 +323,30 @@ namespace Lumos
             std::vector<BufferMemberInfo> m_Members;
         };
 
+        enum class CubeFace
+        {
+            PositiveX = 0,
+            NegativeX,
+            PositiveY,
+            NegativeY,
+            PositiveZ,
+            NegativeZ
+        };
+
+        struct FramebufferDesc
+        {
+            uint32_t width           = 0;
+            uint32_t height          = 0;
+            uint32_t layer           = 0;
+            uint32_t attachmentCount = 0;
+            uint32_t samples         = 1;
+            int mipIndex             = 0;
+            bool screenFBO           = false;
+            Texture** attachments;
+            TextureType* attachmentTypes;
+            Graphics::RenderPass* renderPass;
+        };
+
         struct RenderPassDesc
         {
             Texture** attachments;
@@ -332,6 +356,7 @@ namespace Lumos
             bool swapchainTarget = false;
             int cubeMapIndex     = -1;
             int mipIndex         = 0;
+            int samples          = 1;
             std::string DebugName;
         };
 
@@ -341,7 +366,7 @@ namespace Lumos
             TextureFilter minFilter;
             TextureFilter magFilter;
             TextureWrap wrap;
-            uint16_t msaaLevel        = 1;
+            uint16_t samples          = 1;
             uint16_t flags            = TextureFlags::Texture_CreateMips;
             bool srgb                 = false;
             bool generateMipMaps      = true;
@@ -353,7 +378,7 @@ namespace Lumos
                 minFilter = TextureFilter::NEAREST;
                 magFilter = TextureFilter::NEAREST;
                 wrap      = TextureWrap::REPEAT;
-                msaaLevel = 1;
+                samples   = 1;
             }
 
             TextureDesc(RHIFormat format, TextureFilter minFilter, TextureFilter magFilter, TextureWrap wrap)

@@ -19,6 +19,12 @@
 #include <ozz/animation/offline/animation_builder.h>
 #include <ozz/animation/runtime/skeleton.h>
 #include <ozz/animation/offline/skeleton_builder.h>
+#include <ozz/animation/runtime/animation.h>
+#include <ozz/animation/runtime/sampling_job.h>
+#include <ozz/base/containers/vector.h>
+#include <ozz/base/maths/soa_transform.h>
+#include <ozz/base/memory/unique_ptr.h>
+#include <ozz/animation/offline/raw_skeleton.h>
 
 #define TINYGLTF_IMPLEMENTATION
 #define TINYGLTF_USE_CPP14
@@ -28,6 +34,7 @@
 #define TINYGLTF_NOEXCEPTION
 #endif
 #include <ModelLoaders/tinygltf/tiny_gltf.h>
+#include <stb_image_resize.h>
 
 #include <ozz-animation/src/animation/offline/gltf/gltf2ozz.cc>
 
@@ -137,8 +144,49 @@ namespace Lumos::Graphics
                     params = Graphics::TextureDesc(GetFilter(imageAndSampler.Sampler->minFilter), GetFilter(imageAndSampler.Sampler->magFilter), GetWrapMode(imageAndSampler.Sampler->wrapS));
                 else
                     LUMOS_LOG_WARN("MISSING SAMPLER");
-                Graphics::Texture2D* texture2D = Graphics::Texture2D::CreateFromSource(imageAndSampler.Image->width, imageAndSampler.Image->height, imageAndSampler.Image->image.data(), params);
+
+                uint32_t texWidth  = imageAndSampler.Image->width;
+                uint32_t texHeight = imageAndSampler.Image->height;
+                uint8_t* pixels    = imageAndSampler.Image->image.data();
+
+                uint32_t maxWidth, maxHeight;
+                GetMaxImageDimensions(maxWidth, maxHeight);
+                bool freeData = false;
+
+                if(maxWidth > 0 && maxHeight > 0 && (texWidth > maxWidth || texHeight > maxHeight))
+                {
+                    uint32_t texWidthOld  = imageAndSampler.Image->width;
+                    uint32_t texHeightOld = imageAndSampler.Image->height;
+
+                    float aspectRatio = static_cast<float>(texWidth) / static_cast<float>(texHeight);
+                    if(texWidth > maxWidth)
+                    {
+                        texWidth  = maxWidth;
+                        texHeight = static_cast<uint32_t>(maxWidth / aspectRatio);
+                    }
+                    if(texHeight > maxHeight)
+                    {
+                        texHeight = maxHeight;
+                        texWidth  = static_cast<uint32_t>(maxHeight * aspectRatio);
+                    }
+
+                    // Resize the image using stbir (a simple image resizing library)
+                    int resizedChannels    = 4; // RGBA format
+                    stbi_uc* resizedPixels = (stbi_uc*)malloc(texWidth * texHeight * resizedChannels);
+                    stbir_resize_uint8(pixels, texWidthOld, texHeightOld, 0, resizedPixels, texWidth, texHeight, 0, resizedChannels);
+
+                    // free(pixels);  // Free the original image
+                    pixels   = resizedPixels;
+                    freeData = true;
+                }
+
+                Graphics::Texture2D* texture2D = Graphics::Texture2D::CreateFromSource(texWidth, texHeight, pixels, params);
                 loadedTextures.push_back(SharedPtr<Graphics::Texture2D>(texture2D ? texture2D : nullptr));
+                if(freeData)
+                    free(pixels);
+
+                imageAndSampler.Image->image.clear();
+                imageAndSampler.Image->image.shrink_to_fit();
             }
         }
 
@@ -196,6 +244,8 @@ namespace Lumos::Graphics
             if(baseColourFactor != mat.values.end())
             {
                 properties.albedoColour = glm::vec4((float)baseColourFactor->second.ColorFactor()[0], (float)baseColourFactor->second.ColorFactor()[1], (float)baseColourFactor->second.ColorFactor()[2], 1.0f);
+                if(baseColourFactor->second.ColorFactor().size() > 3)
+                    properties.albedoColour.w = baseColourFactor->second.ColorFactor()[3];
             }
 
             // Extensions
@@ -309,6 +359,7 @@ namespace Lumos::Graphics
                     for(auto p = 0; p < positionCount; ++p)
                     {
                         vertices[p].Position = parentTransform.GetWorldMatrix() * Maths::ToVector4(positions[p]);
+                        LUMOS_ASSERT(!glm::isinf(vertices[p].Position.x) && !glm::isinf(vertices[p].Position.y) && !glm::isinf(vertices[p].Position.z) && !glm::isnan(vertices[p].Position.x) && !glm::isnan(vertices[p].Position.y) && !glm::isnan(vertices[p].Position.z));
                     }
                 }
 
@@ -320,9 +371,10 @@ namespace Lumos::Graphics
                     Maths::Vector3Simple* normals = reinterpret_cast<Maths::Vector3Simple*>(data.data());
                     for(auto p = 0; p < normalCount; ++p)
                     {
-                        //vertices[p].Normal = (parentTransform.GetWorldMatrix() * Maths::ToVector4(normals[p]));
+                        // vertices[p].Normal = (parentTransform.GetWorldMatrix() * Maths::ToVector4(normals[p]));
                         vertices[p].Normal = glm::transpose(glm::inverse(glm::mat3(parentTransform.GetWorldMatrix()))) * (glm::vec3(Maths::ToVector4(normals[p])));
                         vertices[p].Normal = glm::normalize(vertices[p].Normal);
+                        LUMOS_ASSERT(!glm::isinf(vertices[p].Normal.x) && !glm::isinf(vertices[p].Normal.y) && !glm::isinf(vertices[p].Normal.z) && !glm::isnan(vertices[p].Normal.x) && !glm::isnan(vertices[p].Normal.y) && !glm::isnan(vertices[p].Normal.z));
                     }
                 }
 
@@ -359,7 +411,9 @@ namespace Lumos::Graphics
                     Maths::Vector3Simple* uvs = reinterpret_cast<Maths::Vector3Simple*>(data.data());
                     for(auto p = 0; p < uvCount; ++p)
                     {
-                        vertices[p].Tangent = glm::normalize(parentTransform.GetWorldMatrix() * ToVector4(uvs[p]));
+                        vertices[p].Tangent = glm::transpose(glm::inverse(glm::mat3(parentTransform.GetWorldMatrix()))) * (glm::vec3(Maths::ToVector4(uvs[p])));
+                        vertices[p].Tangent = glm::normalize(vertices[p].Tangent);
+                        LUMOS_ASSERT(!glm::isinf(vertices[p].Tangent.x) && !glm::isinf(vertices[p].Tangent.y) && !glm::isinf(vertices[p].Tangent.z) && !glm::isnan(vertices[p].Tangent.x) && !glm::isnan(vertices[p].Tangent.y) && !glm::isnan(vertices[p].Tangent.z));
                     }
                 }
 
@@ -370,7 +424,9 @@ namespace Lumos::Graphics
                     Maths::Vector3Simple* uvs = reinterpret_cast<Maths::Vector3Simple*>(data.data());
                     for(auto p = 0; p < uvCount; ++p)
                     {
-                        vertices[p].Bitangent = glm::normalize(parentTransform.GetWorldMatrix() * ToVector4(uvs[p]));
+                        vertices[p].Bitangent = glm::transpose(glm::inverse(glm::mat3(parentTransform.GetWorldMatrix()))) * (glm::vec3(Maths::ToVector4(uvs[p])));
+                        vertices[p].Bitangent = glm::normalize(vertices[p].Bitangent);
+                        LUMOS_ASSERT(!glm::isinf(vertices[p].Bitangent.x) && !glm::isinf(vertices[p].Bitangent.y) && !glm::isinf(vertices[p].Bitangent.z) && !glm::isnan(vertices[p].Bitangent.x) && !glm::isnan(vertices[p].Bitangent.y) && !glm::isnan(vertices[p].Bitangent.z));
                     }
                 }
             }

@@ -5,6 +5,7 @@
 #include <Lumos/Scene/Scene.h>
 
 #include <Lumos/Core/Engine.h>
+#include <Lumos/Core/OS/Window.h>
 #include <Lumos/Graphics/Renderers/RenderPasses.h>
 #include <Lumos/ImGui/ImGuiUtilities.h>
 #include <imgui/imgui.h>
@@ -135,6 +136,7 @@ namespace Lumos
                 ImGui::Text("FPS : %5.2i", Engine::Get().Statistics().FramesPerSecond);
                 ImGui::Text("UPS : %5.2i", Engine::Get().Statistics().UpdatesPerSecond);
                 ImGui::Text("Frame Time : %5.2f ms", Engine::Get().Statistics().FrameTime);
+                ImGui::Text("Arena Count : %i", GetArenaCount());
                 ImGui::NewLine();
                 ImGui::Text("Scene : %s", Application::Get().GetSceneManager()->GetCurrentScene()->GetSceneName().c_str());
                 ImGui::TreePop();

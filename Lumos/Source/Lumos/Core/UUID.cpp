@@ -6,8 +6,7 @@ namespace Lumos
 {
     UUID::UUID()
     {
-        // Random uint64_t for now
-        m_UUID = Random64::Rand(0, std::numeric_limits<uint64_t>::max());
+        m_UUID = Random64::Rand(1, std::numeric_limits<uint64_t>::max());
     }
 
     UUID::UUID(uint64_t uuid)

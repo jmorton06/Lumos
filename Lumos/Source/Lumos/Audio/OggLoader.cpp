@@ -1,6 +1,6 @@
 #include "Precompiled.h"
 #include "OggLoader.h"
-#include "Core/VFS.h"
+#include "Core/OS/FileSystem.h"
 #include "Sound.h"
 
 #define STB_VORBIS_HEADER_ONLY
@@ -13,7 +13,7 @@ namespace Lumos
         AudioData data = AudioData();
 
         std::string physicalPath;
-        if(!Lumos::VFS::Get().ResolvePhysicalPath(fileName, physicalPath))
+        if(!Lumos::FileSystem::Get().ResolvePhysicalPath(fileName, physicalPath))
         {
             LUMOS_LOG_INFO("Failed to load Ogg file : File Not Found");
         }

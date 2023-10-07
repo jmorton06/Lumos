@@ -2,7 +2,15 @@
 #include "Model.h"
 #include "Mesh.h"
 #include "Core/StringUtilities.h"
-#include "Core/VFS.h"
+#include "Core/OS/FileSystem.h"
+
+#include <ozz/animation/runtime/animation.h>
+#include <ozz/animation/runtime/sampling_job.h>
+#include <ozz/animation/runtime/skeleton.h>
+#include <ozz/base/containers/vector.h>
+#include <ozz/base/maths/soa_transform.h>
+#include <ozz/base/memory/unique_ptr.h>
+#include <ozz/animation/offline/raw_skeleton.h>
 
 namespace Lumos::Graphics
 {
@@ -27,11 +35,15 @@ namespace Lumos::Graphics
         m_Meshes.push_back(SharedPtr<Mesh>(CreatePrimative(type)));
     }
 
+    Model::~Model()
+    {
+    }
+
     void Model::LoadModel(const std::string& path)
     {
         LUMOS_PROFILE_FUNCTION();
         std::string physicalPath;
-        if(!Lumos::VFS::Get().ResolvePhysicalPath(path, physicalPath))
+        if(!Lumos::FileSystem::Get().ResolvePhysicalPath(path, physicalPath))
         {
             LUMOS_LOG_INFO("Failed to load Model - {0}", path);
             return;

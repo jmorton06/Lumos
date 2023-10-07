@@ -60,13 +60,7 @@ namespace Lumos
 
         void SetDefaults();
 
-        // Add Constraints
-        void AddConstraint(Constraint* c)
-        {
-            m_Constraints.push_back(c);
-        }
-
-        void OnInit() override {};
+        bool OnInit() override { return true; };
         // Update Physics Engine
         void OnUpdate(const TimeStep& timeStep, Scene* scene) override;
 
@@ -87,7 +81,7 @@ namespace Lumos
 
         inline void SetBroadphase(const SharedPtr<Broadphase>& bp) { m_BroadphaseDetection = bp; }
         int GetNumberCollisionPairs() const { return static_cast<int>(m_BroadphaseCollisionPairs.size()); }
-        int GetNumberRigidBodys() const { return static_cast<int>(m_RigidBodys.size()); }
+        int GetNumberRigidBodys() const { return static_cast<int>(m_Stats.RigidBodyCount); }
         IntegrationType GetIntegrationType() const { return m_IntegrationType; }
         void SetIntegrationType(const IntegrationType& type) { m_IntegrationType = type; }
         void SetBroadphaseType(BroadphaseType type);
@@ -143,12 +137,13 @@ namespace Lumos
         uint32_t m_PositionIterations = 1;
         uint32_t m_VelocityIterations = 50;
 
-        std::vector<RigidBody3D*> m_RigidBodys;
         std::vector<CollisionPair> m_BroadphaseCollisionPairs;
-
-        std::vector<Constraint*> m_Constraints; // Misc constraints between pairs of objects
-        std::vector<Manifold> m_Manifolds;      // Contact constraints between pairs of objects
+        Constraint** m_Constraints; // Misc constraints between pairs of objects
+        Manifold* m_Manifolds;      // Contact constraints between pairs of objects
         std::mutex m_ManifoldsMutex;
+
+        uint32_t m_ManifoldCount   = 0;
+        uint32_t m_ConstraintCount = 0;
 
         SharedPtr<Broadphase> m_BroadphaseDetection;
         BroadphaseType m_BroadphaseType;
@@ -159,6 +154,7 @@ namespace Lumos
 
         RigidBody3D* m_RootBody;
         PoolAllocator<RigidBody3D>* m_Allocator;
+        Arena* m_Arena;
 
         PhysicsStats3D m_Stats;
 

@@ -14,6 +14,7 @@
 #include "Graphics/Font.h"
 #include "Graphics/MSDFData.h"
 #include "Core/JobSystem.h"
+#include "Core/OS/Window.h"
 #include "Maths/BoundingSphere.h"
 
 #include "Events/ApplicationEvent.h"
@@ -977,11 +978,31 @@ namespace Lumos::Graphics
                         {
                             pipelineDesc.depthTarget = m_ForwardData.m_DepthTexture;
                         }
+#ifndef LUMOS_PRODUCTION
+                        static const char* debugName0 = "Forward PBR Transparent DepthTested";
+                        static const char* debugName1 = "Forward PBR DepthTested";
+                        static const char* debugName2 = "Forward PBR Transparent";
+                        static const char* debugName3 = "Forward PBR";
 
-                        pipelineDesc.DebugName = fmt::format("Forward PBR {0} {1}", pipelineDesc.transparencyEnabled ? "Transparent" : "", pipelineDesc.depthTarget ? "DepthTested" : "");
+                        if(pipelineDesc.depthTarget && pipelineDesc.transparencyEnabled)
+                        {
+                            pipelineDesc.DebugName = debugName0;
+                        }
+                        else if(pipelineDesc.depthTarget)
+                        {
+                            pipelineDesc.DebugName = debugName1;
+                        }
+                        else if(pipelineDesc.transparencyEnabled)
+                        {
+                            pipelineDesc.DebugName = debugName2;
+                        }
+                        else
+                        {
+                            pipelineDesc.DebugName = debugName3;
+                        }
+#endif
 
                         command.pipeline = Graphics::Pipeline::Get(pipelineDesc);
-
                         m_ForwardData.m_CommandQueue.push_back(command);
                     }
                 }
@@ -1065,10 +1086,10 @@ namespace Lumos::Graphics
         LUMOS_PROFILE_FUNCTION();
         LUMOS_PROFILE_GPU("Render Passes");
 
-        auto& sceneRenderSettings = Application::Get().GetCurrentScene()->GetSettings().RenderSettings;
+        auto& sceneRenderSettings       = Application::Get().GetCurrentScene()->GetSettings().RenderSettings;
+        sceneRenderSettings.SSAOEnabled = false; // Disabled while broken
         Renderer::GetRenderer()->ClearRenderTarget(m_MainTexture, Renderer::GetMainSwapChain()->GetCurrentCommandBuffer());
 
-        sceneRenderSettings.SSAOEnabled = false;
         if(sceneRenderSettings.SSAOEnabled)
             Renderer::GetRenderer()->ClearRenderTarget(m_NormalTexture, Renderer::GetMainSwapChain()->GetCurrentCommandBuffer());
 
@@ -1300,7 +1321,7 @@ namespace Lumos::Graphics
         float cascadeRadius[SHADOWMAP_MAX];
 
         float nearClip  = m_Camera->GetNear();
-        float farClip   = m_Camera->GetFar();
+        float farClip   = m_ShadowData.m_MaxShadowDistance * 1.2f; // m_Camera->GetFar();
         float clipRange = farClip - nearClip;
 
         float minZ  = nearClip;
@@ -1318,10 +1339,11 @@ namespace Lumos::Graphics
             cascadeSplits[i] = (d - nearClip) / clipRange;
         }
 
-        cascadeSplits[3]    = 0.35f;
-        float lastSplitDist = 0.0f;
+        cascadeSplits[3]     = 0.35f;
+        float lastSplitDist  = 0.0f;
+        glm::mat4 CameraProj = glm::perspective(glm::radians(m_Camera->GetFOV()), m_Camera->GetAspectRatio(), nearClip, farClip);
 
-        const glm::mat4 invCam = glm::inverse(m_Camera->GetProjectionMatrix() * glm::inverse(m_CameraTransform->GetWorldMatrix()));
+        const glm::mat4 invCam = glm::inverse(CameraProj * glm::inverse(m_CameraTransform->GetWorldMatrix()));
 
         for(uint32_t i = 0; i < m_ShadowData.m_ShadowMapNum; i++)
         {
@@ -2077,7 +2099,7 @@ namespace Lumos::Graphics
         {
             {
                 pipelineDesc.mipIndex  = i;
-                pipelineDesc.DebugName = fmt::format("Bloom-Downsample{0}", i);
+                pipelineDesc.DebugName = "Bloom-Downsample"; // fmt::format("Bloom-Downsample{0}", i);
                 if(!m_SupportCompute)
                     pipelineDesc.colourTargets[0] = m_BloomTexture1;
                 bloomComputePushConstants.Params2.z = (float)m_BloomTexture1->GetWidth(i);
@@ -2186,7 +2208,7 @@ namespace Lumos::Graphics
             bloomComputePushConstants.Params2.w = (float)m_BloomTexture2->GetHeight(mips - 2);
 
             pipelineDesc.mipIndex  = mips - 2;
-            pipelineDesc.DebugName = fmt::format("Bloom-Upsample{0}", mips - 2);
+            pipelineDesc.DebugName = "Bloom-Upsample"; // fmt::format("Bloom-Upsample{0}", mips - 2);
 
             if(!m_SupportCompute)
                 pipelineDesc.colourTargets[0] = m_BloomTexture2;
@@ -2246,7 +2268,7 @@ namespace Lumos::Graphics
             bloomComputePushConstants.Params2.w = (float)m_BloomTexture2->GetHeight(mip);
 
             pipelineDesc.mipIndex  = mip;
-            pipelineDesc.DebugName = fmt::format("Bloom-Upsample{0}", mip);
+            pipelineDesc.DebugName = "Bloom-Upsample"; // fmt::format("Bloom-Upsample{0}", mip);
 
             if(evenMip)
             {

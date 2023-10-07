@@ -1,4 +1,5 @@
 #pragma once
+#include "Core/OS/Memory.h"
 
 namespace Lumos
 {
@@ -6,13 +7,21 @@ namespace Lumos
     class Vector
     {
     public:
-        Vector() = default;
-        Vector(const Vector<T>& another_vector); // copy constructor
-        Vector(size_t size, T initial = T {});   // constructor based on capacity and a default value
-        Vector(std::initializer_list<T> values);
+        Vector(Arena* arena = nullptr)
+            : m_Arena(arena)
+        {
+        }
+
+        Vector(const Vector<T>& another_vector);                       // copy constructor
+        Vector(size_t size, Arena* arena = nullptr, T initial = T {}); // constructor based on capacity and a default value
+        Vector(std::initializer_list<T> values, Arena* arena = nullptr);
         Vector(Vector<T>&& other) noexcept;
 
-        ~Vector() { delete[] m_Data; }
+        ~Vector()
+        {
+            if(!m_Arena)
+                delete[] m_Data;
+        }
 
         Vector<T>& operator=(const Vector<T>&); // copy assignment
 
@@ -29,6 +38,8 @@ namespace Lumos
         T& Back();
         void Pop();
         void Clear(bool deleteData = false);
+
+        bool Empty() const { return m_CurrentIndex == 0; }
 
         bool operator==(const Vector<T>& other) const;
         bool operator!=(const Vector<T>& other) const;
@@ -57,6 +68,7 @@ namespace Lumos
         Iterator end() const { return Iterator(m_Data + m_CurrentIndex); }
 
         T& operator[](const size_t index);
+        const T& operator[](const size_t index) const;
         T* Data() { return m_Data; }
 
         void Reserve(const size_t size);
@@ -65,18 +77,24 @@ namespace Lumos
         T* m_Data             = nullptr;
         size_t m_Size         = 0;
         size_t m_CurrentIndex = 0;
+        Arena* m_Arena        = nullptr;
     };
 
     template <class T>
     Vector<T>::Vector(const Vector<T>& other)
     {
-        delete[] m_Data; // Delete before copying everything from another vector
+        if(!m_Arena)
+            delete[] m_Data; // Delete before copying everything from another vector
 
         // Copy everything from another vector
         m_CurrentIndex = other.Size();
         m_Size         = other.Capacity();
-        m_Data         = new T[m_Size];
-        for(size_t i = 0; i < m_Size; ++i)
+        if(m_Arena)
+            m_Data = PushArrayNoZero(m_Arena, T, m_Size);
+        else
+            m_Data = new T[m_Size];
+
+        for(size_t i = 0; i < m_CurrentIndex; ++i)
             m_Data[i] = other[i];
     }
 
@@ -89,25 +107,37 @@ namespace Lumos
     }
 
     template <class T>
-    Vector<T>::Vector(std::initializer_list<T> values)
+    Vector<T>::Vector(std::initializer_list<T> values, Arena* arena)
+        : m_Arena(arena)
     {
-        delete[] m_Data; // Delete before copying everything from another vector
+        if(!m_Arena)
+            delete[] m_Data; // Delete before copying everything from another vector
 
         // Copy everything from another vector
         m_CurrentIndex = values.size();
         m_Size         = values.size();
-        m_Data         = new T[m_Size];
-        size_t index   = 0;
+
+        if(arena)
+            m_Data = PushArrayNoZero(m_Arena, T, m_Size);
+        else
+            m_Data = new T[m_Size];
+
+        size_t index = 0;
         for(auto& value : values)
             m_Data[index++] = value;
     }
 
     template <class T>
-    Vector<T>::Vector(size_t size, T initial)
+    Vector<T>::Vector(size_t size, Arena* arena, T initial)
         : m_Size(size)
         , m_CurrentIndex(size)
-        , m_Data { new T[size] {} } // allocate stack and store its pointer
+        , m_Arena(arena)
     {
+        if(m_Arena)
+            m_Data = PushArrayNoZero(m_Arena, T, m_Size);
+        else
+            m_Data = new T[size];
+
         for(size_t i = 0; i < size; ++i)
             m_Data[i] = initial; // initialize
     }
@@ -116,12 +146,18 @@ namespace Lumos
     template <class T>
     Vector<T>& Vector<T>::operator=(const Vector<T>& other)
     {
-        delete[] m_Data; // Delete before copying everything from another vector
+        if(!m_Arena)
+            delete[] m_Data; // Delete before copying everything from another vector
 
         // Copy everything from another vector
         m_CurrentIndex = other.Size();
         m_Size         = other.Capacity();
-        m_Data         = new T[m_Size];
+
+        if(m_Arena)
+            m_Data = PushArrayNoZero(m_Arena, T, m_Size);
+        else
+            m_Data = new T[m_Size];
+
         for(size_t i = 0; i < m_Size; ++i)
             m_Data[i] = other[i];
 
@@ -131,9 +167,15 @@ namespace Lumos
     template <class T>
     T& Vector<T>::operator[](const size_t index)
     {
-        if(index >= m_CurrentIndex)
-            throw std::invalid_argument("Index must be less than vector's size");
+        LUMOS_ASSERT(index < m_CurrentIndex, "Index must be less than vector's size");
 
+        return m_Data[index];
+    }
+
+    template <class T>
+    const T& Vector<T>::operator[](const size_t index) const
+    {
+        LUMOS_ASSERT(index < m_CurrentIndex, "Index must be less than vector's size");
         return m_Data[index];
     }
 
@@ -228,7 +270,7 @@ namespace Lumos
             m_CurrentIndex--;
         }
         else
-            throw std::out_of_range("Nothing to pop");
+            LUMOS_ASSERT(false, "Nothing to pop");
     }
 
     template <class T>
@@ -236,15 +278,13 @@ namespace Lumos
     {
         if(deleteData)
         {
-            delete[] m_Data;
+            if(!m_Arena)
+                delete[] m_Data;
             m_CurrentIndex = 0;
             m_Size         = 0;
         }
         else
         {
-            for(auto& element : m_Data)
-                element = {};
-
             m_CurrentIndex = 0;
         }
     }
@@ -256,13 +296,19 @@ namespace Lumos
         if(capacity > m_CurrentIndex)
         {
             // Reserves memory of size capacity for the vector_
-            T* temp = new T[capacity];
+            T* temp;
+            if(m_Arena)
+                temp = PushArrayNoZero(m_Arena, T, capacity);
+            else
+                temp = new T[capacity];
 
             // Move previous elements to this memory
             for(size_t i = 0; i < m_Size; ++i)
                 temp[i] = std::move(m_Data[i]);
 
-            delete[] m_Data; // Delete old vector
+            if(!m_Arena)
+                delete[] m_Data; // Delete old vector
+
             m_Size = capacity;
             m_Data = temp; // Copy assignment
         }

@@ -21,6 +21,7 @@
 #include <Lumos/Core/OS/OS.h>
 #include <Lumos/Core/Version.h>
 #include <Lumos/Core/Engine.h>
+#include <Lumos/Core/OS/Window.h>
 #include <Lumos/Audio/AudioManager.h>
 #include <Lumos/Scene/Scene.h>
 #include <Lumos/Scene/SceneManager.h>
@@ -54,6 +55,7 @@
 #include <Lumos/Maths/Plane.h>
 #include <Lumos/Maths/MathsUtilities.h>
 #include <Lumos/Core/LMLog.h>
+#include <Lumos/Core/String.h>
 
 #include <spdlog/spdlog.h>
 #include <spdlog/fmt/ostr.h>
@@ -63,6 +65,14 @@
 #include <glm/gtx/matrix_decompose.hpp>
 #include <cereal/version.hpp>
 
+#include <ozz/animation/runtime/animation.h>
+#include <ozz/animation/runtime/sampling_job.h>
+#include <ozz/animation/runtime/skeleton.h>
+#include <ozz/base/containers/vector.h>
+#include <ozz/base/maths/soa_transform.h>
+#include <ozz/base/memory/unique_ptr.h>
+#include <ozz/animation/offline/raw_skeleton.h>
+
 namespace Lumos
 {
     Editor* Editor::s_Editor = nullptr;
@@ -71,9 +81,11 @@ namespace Lumos
         : Application()
         , m_IniFile("")
     {
+#if LUMOS_ENABLE_LOG
         spdlog::sink_ptr sink = std::make_shared<ImGuiConsoleSink_mt>();
 
         Lumos::Debug::Log::AddSink(sink);
+#endif
 
         // Remove?
         s_Editor = this;
@@ -700,7 +712,7 @@ namespace Lumos
             {
                 auto scenes = Application::Get().GetSceneManager()->GetSceneNames();
 
-                for(size_t i = 0; i < scenes.size(); i++)
+                for(size_t i = 0; i < scenes.Size(); i++)
                 {
                     auto name = scenes[i];
                     if(ImGui::MenuItem(name.c_str()))
@@ -780,7 +792,7 @@ namespace Lumos
                 if(ImGui::MenuItem("Embed Shaders"))
                 {
                     std::string coreDataPath;
-                    VFS::Get().ResolvePhysicalPath("//CoreShaders", coreDataPath, true);
+                    FileSystem::Get().ResolvePhysicalPath("//CoreShaders", coreDataPath, true);
                     auto shaderPath = std::filesystem::path(coreDataPath + "/CompiledSPV/");
                     int shaderCount = 0;
                     if(std::filesystem::is_directory(shaderPath))
@@ -871,14 +883,18 @@ namespace Lumos
                     ImGui::SameLine();
                     ImGui::TextUnformatted(m_ProjectSettings.m_ProjectName.c_str());
 
-                    ImGuiUtilities::Tooltip(("Current project (" + m_ProjectSettings.m_ProjectName + ".lmproj)").c_str());
+                    String8 projectString = PushStr8F(GetFrameArena(), "Current project ( %s.lmproj )", m_ProjectSettings.m_ProjectName.c_str());
+
+                    ImGuiUtilities::Tooltip((const char*)projectString.str);
                     ImGuiUtilities::DrawBorder(ImGuiUtilities::RectExpanded(ImGuiUtilities::GetItemRect(), 24.0f, 68.0f), 1.0f, 3.0f, 0.0f, -60.0f);
 
                     ImGui::SameLine();
                     ImGui::Separator();
                     ImGui::SameLine(ImGui::GetCursorPosX() + 32.0f);
                     ImGui::TextUnformatted(GetCurrentScene()->GetSceneName().c_str());
-                    ImGuiUtilities::Tooltip(("Current Scene (" + GetCurrentScene()->GetSceneName() + ".lsn)").c_str());
+                    String8 sceneString = PushStr8F(GetFrameArena(), "Current Scene ( %s.lsn )", GetCurrentScene()->GetSceneName().c_str());
+
+                    ImGuiUtilities::Tooltip((const char*)sceneString.str);
                     ImGuiUtilities::DrawBorder(ImGuiUtilities::RectExpanded(ImGuiUtilities::GetItemRect(), 24.0f, 68.0f), 1.0f, 3.0f, 0.0f, -60.0f);
                 }
 
@@ -1145,7 +1161,7 @@ namespace Lumos
                 int sameNameCount     = 0;
                 auto sceneNames       = m_SceneManager->GetSceneNames();
 
-                while(FileSystem::FileExists("//Scenes/" + sceneName + ".lsn") || std::find(sceneNames.begin(), sceneNames.end(), sceneName) != sceneNames.end())
+                while(FileSystem::FileExists("//Assets/Scenes/" + sceneName + ".lsn") || m_SceneManager->ContainsScene(sceneName))
                 {
                     sameNameCount++;
                     sceneName = fmt::format(newSceneName + "{0}", sameNameCount);
@@ -1175,7 +1191,7 @@ namespace Lumos
                     scene->Serialise(m_ProjectSettings.m_ProjectRoot + "Assets/Scenes/");
                 }
                 Application::Get().GetSceneManager()->EnqueueScene(scene);
-                Application::Get().GetSceneManager()->SwitchScene((int)(Application::Get().GetSceneManager()->GetScenes().size()) - 1);
+                Application::Get().GetSceneManager()->SwitchScene((int)(Application::Get().GetSceneManager()->GetScenes().Size()) - 1);
 
                 ImGui::CloseCurrentPopup();
             }
@@ -1685,9 +1701,9 @@ namespace Lumos
 #ifdef LUMOS_PLATFORM_WINDOWS
         Platform = "Windows";
 #elif LUMOS_PLATFORM_LINUX
-        Platform      = "Linux";
+        Platform = "Linux";
 #elif LUMOS_PLATFORM_MACOS
-        Platform      = "MacOS";
+        Platform = "MacOS";
 #elif LUMOS_PLATFORM_IOS
         Platform = "iOS";
 #endif
@@ -2394,7 +2410,7 @@ namespace Lumos
     {
         LUMOS_PROFILE_FUNCTION();
         std::string physicalPath;
-        if(!VFS::Get().ResolvePhysicalPath(filePath, physicalPath))
+        if(!FileSystem::Get().ResolvePhysicalPath(filePath, physicalPath))
         {
             LUMOS_LOG_ERROR("Failed to Load Lua script {0}", filePath);
             return;
@@ -2533,7 +2549,7 @@ namespace Lumos
         else if(IsAudioFile(path))
         {
             std::string physicalPath;
-            Lumos::VFS::Get().ResolvePhysicalPath(path, physicalPath);
+            Lumos::FileSystem::Get().ResolvePhysicalPath(path, physicalPath);
             auto sound = Sound::Create(physicalPath, StringUtilities::GetFilePathExtension(path));
 
             auto soundNode = SharedPtr<SoundNode>(SoundNode::Create());
@@ -2656,6 +2672,7 @@ namespace Lumos
     void Editor::AddDefaultEditorSettings()
     {
         LUMOS_PROFILE_FUNCTION();
+        LUMOS_LOG_INFO("Setting default editor settings");
         m_ProjectSettings.m_ProjectRoot = "../../ExampleProject/";
         m_ProjectSettings.m_ProjectName = "Example";
 
@@ -2786,7 +2803,7 @@ namespace Lumos
         else
         {
             std::string physicalPath;
-            if(Lumos::VFS::Get().ResolvePhysicalPath("//Scenes/" + Application::Get().GetCurrentScene()->GetSceneName() + ".lsn", physicalPath))
+            if(Lumos::FileSystem::Get().ResolvePhysicalPath("//Assets/Scenes/" + Application::Get().GetCurrentScene()->GetSceneName() + ".lsn", physicalPath))
             {
                 auto newPath = StringUtilities::RemoveName(physicalPath);
                 Application::Get().GetCurrentScene()->Deserialise(newPath, false);

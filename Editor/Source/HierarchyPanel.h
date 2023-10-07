@@ -1,7 +1,7 @@
 #pragma once
 
 #include "EditorPanel.h"
-
+#include "Core/OS/Memory.h"
 #include <entt/entity/fwd.hpp>
 #include <imgui/imgui.h>
 
@@ -11,7 +11,7 @@ namespace Lumos
     {
     public:
         HierarchyPanel();
-        ~HierarchyPanel() = default;
+        ~HierarchyPanel();
 
         void DrawNode(entt::entity node, entt::registry& registry);
         void OnImGui() override;
@@ -26,5 +26,7 @@ namespace Lumos
         entt::entity m_CurrentPrevious;
         bool m_SelectUp;
         bool m_SelectDown;
+
+        Arena* m_StringArena;
     };
 }

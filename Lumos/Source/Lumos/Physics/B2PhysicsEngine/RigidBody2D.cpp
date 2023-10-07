@@ -111,10 +111,10 @@ namespace Lumos
         }
         else if(params.shape == Shape::Custom)
         {
-            m_CustomShapePositions = params.custumShapePositions;
+            m_CustomShapePositions = params.customShapePositions;
 
             b2PolygonShape dynamicBox;
-            dynamicBox.Set((b2Vec2*)params.custumShapePositions.data(), int32(params.custumShapePositions.size()));
+            dynamicBox.Set((b2Vec2*)params.customShapePositions.data(), int32(params.customShapePositions.size()));
 
             if(params.isStatic)
                 m_B2Body->CreateFixture(&dynamicBox, 0.0f);
@@ -162,7 +162,7 @@ namespace Lumos
         params.shape = m_ShapeType;
         if(m_B2Body)
             params.position = glm::vec3(GetPosition(), 1.0f);
-        params.custumShapePositions = customPositions;
+        params.customShapePositions = customPositions;
         params.mass                 = m_Mass;
         params.scale                = m_Scale;
         params.isStatic             = m_Static;

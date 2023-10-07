@@ -1,6 +1,6 @@
 #include "Precompiled.h"
 #include "Sound.h"
-#include "Core/VFS.h"
+#include "Core/OS/FileSystem.h"
 
 #ifdef LUMOS_OPENAL
 #include "Platform/OpenAL/ALSound.h"

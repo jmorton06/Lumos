@@ -33,7 +33,7 @@ namespace Lumos
         glm::vec3 scale;
         bool isStatic;
         Shape shape;
-        std::vector<glm::vec2> custumShapePositions;
+        std::vector<glm::vec2> customShapePositions;
     };
 
     class LUMOS_EXPORT RigidBody2D
@@ -95,7 +95,7 @@ namespace Lumos
             RigidBodyParameters params;
             float angle;
             glm::vec2 pos;
-            archive(cereal::make_nvp("Position", pos), cereal::make_nvp("Friction", m_Friction), cereal::make_nvp("Angle", angle), cereal::make_nvp("Static", m_Static), cereal::make_nvp("Mass", m_Mass), cereal::make_nvp("Scale", params.scale), cereal::make_nvp("Shape", m_ShapeType), cereal::make_nvp("CustomShapePos", params.custumShapePositions));
+            archive(cereal::make_nvp("Position", pos), cereal::make_nvp("Friction", m_Friction), cereal::make_nvp("Angle", angle), cereal::make_nvp("Static", m_Static), cereal::make_nvp("Mass", m_Mass), cereal::make_nvp("Scale", params.scale), cereal::make_nvp("Shape", m_ShapeType), cereal::make_nvp("CustomShapePos", params.customShapePositions));
             params.shape    = m_ShapeType;
             params.position = glm::vec3(pos, 1.0f);
             Init(params);

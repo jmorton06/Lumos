@@ -36,7 +36,7 @@ namespace Lumos
 
         void VKIndexBuffer::Bind(CommandBuffer* commandBuffer) const
         {
-            LUMOS_PROFILE_FUNCTION();
+            LUMOS_PROFILE_FUNCTION_LOW();
             vkCmdBindIndexBuffer(static_cast<VKCommandBuffer*>(commandBuffer)->GetHandle(), m_Buffer, 0, VK_INDEX_TYPE_UINT32);
         }
 
@@ -56,7 +56,7 @@ namespace Lumos
 
         void* VKIndexBuffer::GetPointerInternal()
         {
-            LUMOS_PROFILE_FUNCTION();
+            LUMOS_PROFILE_FUNCTION_LOW();
             if(!m_MappedBuffer)
             {
                 VKBuffer::Map();
@@ -68,7 +68,7 @@ namespace Lumos
 
         void VKIndexBuffer::ReleasePointer()
         {
-            LUMOS_PROFILE_FUNCTION();
+            LUMOS_PROFILE_FUNCTION_LOW();
             if(m_MappedBuffer)
             {
                 VKBuffer::Flush(m_Size);

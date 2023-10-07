@@ -8,6 +8,7 @@
 #include "Graphics/RHI/DescriptorSet.h"
 #include "Graphics/RHI/Pipeline.h"
 #include "Core/Application.h"
+#include "Core/OS/Window.h"
 #include "VKInitialisers.h"
 
 namespace Lumos
@@ -858,12 +859,12 @@ namespace Lumos
             vkDeviceWaitIdle(VKDevice::GetHandle());
         }
 
-        void VKUtilities::SetDebugUtilsObjectName(const VkDevice device, const VkObjectType objectType, const std::string& name, const void* handle)
+        void VKUtilities::SetDebugUtilsObjectName(const VkDevice device, const VkObjectType objectType, const char* name, const void* handle)
         {
             VkDebugUtilsObjectNameInfoEXT nameInfo;
             nameInfo.sType        = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT;
             nameInfo.objectType   = objectType;
-            nameInfo.pObjectName  = name.c_str();
+            nameInfo.pObjectName  = name;
             nameInfo.objectHandle = (uint64_t)handle;
             nameInfo.pNext        = VK_NULL_HANDLE;
 

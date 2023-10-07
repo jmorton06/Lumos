@@ -191,17 +191,8 @@ namespace Lumos
             init_info.MinImageCount             = 2;
             init_info.ImageCount                = (uint32_t)Renderer::GetMainSwapChain()->GetSwapChainBufferCount();
             ImGui_ImplVulkan_Init(&init_info, wd->RenderPass);
-            // Upload Fonts
-            {
-                ImGuiIO& io = ImGui::GetIO();
 
-                unsigned char* pixels;
-                int width, height;
-                io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
-
-                m_FontTexture   = new VKTexture2D(width, height, pixels, TextureDesc(TextureFilter::NEAREST, TextureFilter::NEAREST));
-                io.Fonts->TexID = (ImTextureID)m_FontTexture->GetHandle();
-            }
+            RebuildFontTexture();
         }
 
         void VKIMGUIRenderer::NewFrame()
@@ -339,6 +330,9 @@ namespace Lumos
         void VKIMGUIRenderer::RebuildFontTexture()
         {
             LUMOS_PROFILE_FUNCTION();
+
+            if(m_FontTexture)
+                delete m_FontTexture;
 
             // Upload Fonts
             {

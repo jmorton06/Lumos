@@ -17,7 +17,7 @@ namespace Lumos
     class LUMOS_EXPORT OctreeBroadphase : public Broadphase
     {
     public:
-        OctreeBroadphase(size_t maxObjectsPerPartition, size_t maxPartitionDepth, const SharedPtr<Broadphase>& secondaryBroadphase);
+        OctreeBroadphase(size_t maxObjectsPerPartition, size_t maxPartitionDepth);
         virtual ~OctreeBroadphase();
 
         struct OctreeNode
@@ -42,7 +42,7 @@ namespace Lumos
             Maths::BoundingBox boundingBox;
         };
 
-        void FindPotentialCollisionPairs(RigidBody3D** objects, uint32_t objectCount, std::vector<CollisionPair>& collisionPairs) override;
+        void FindPotentialCollisionPairs(RigidBody3D* rootObject, std::vector<CollisionPair>& collisionPairs) override;
         void DebugDraw() override;
         void Divide(OctreeNode& node, size_t iteration);
         void DebugDrawOctreeNode(const OctreeNode& node);
@@ -54,7 +54,6 @@ namespace Lumos
         uint32_t m_CurrentPoolIndex = 0;
         uint32_t m_LeafCount        = 0;
 
-        SharedPtr<Broadphase> m_SecondaryBroadphase; // Broadphase stage used to determine collision pairs within subdivisions
         OctreeNode m_NodePool[MAX_PARTITION_DEPTH * MAX_PARTITION_DEPTH * MAX_PARTITION_DEPTH];
         uint32_t m_Leaves[MAX_PARTITION_DEPTH * MAX_PARTITION_DEPTH * MAX_PARTITION_DEPTH] = { 0 };
     };

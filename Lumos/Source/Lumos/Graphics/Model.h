@@ -2,17 +2,18 @@
 #include "MeshFactory.h"
 #include "Mesh.h"
 #include "Material.h"
-#include "Core/VFS.h"
+#include "Core/OS/FileSystem.h"
 #include "Core/Asset.h"
 #include <cereal/cereal.hpp>
 
-#include <ozz/animation/runtime/animation.h>
-#include <ozz/animation/runtime/sampling_job.h>
-#include <ozz/animation/runtime/skeleton.h>
-#include <ozz/base/containers/vector.h>
-#include <ozz/base/maths/soa_transform.h>
-#include <ozz/base/memory/unique_ptr.h>
-#include <ozz/animation/offline/raw_skeleton.h>
+namespace ozz
+{
+    namespace animation
+    {
+        class Skeleton;
+        class Animation;
+    }
+}
 
 namespace Lumos
 {
@@ -26,7 +27,7 @@ namespace Lumos
             Model(const SharedPtr<Mesh>& mesh, PrimitiveType type);
             Model(PrimitiveType type);
 
-            ~Model() = default;
+            ~Model();
 
             std::vector<SharedPtr<Mesh>>& GetMeshesRef() { return m_Meshes; }
             const std::vector<SharedPtr<Mesh>>& GetMeshes() const { return m_Meshes; }
@@ -38,7 +39,7 @@ namespace Lumos
                 if(m_Meshes.size() > 0)
                 {
                     std::string newPath;
-                    VFS::Get().AbsoulePathToVFS(m_FilePath, newPath);
+                    FileSystem::Get().AbsolutePathToFileSystem(m_FilePath, newPath);
 
                     auto material = std::unique_ptr<Material>(m_Meshes.front()->GetMaterial().get());
                     archive(cereal::make_nvp("PrimitiveType", m_PrimitiveType), cereal::make_nvp("FilePath", newPath), cereal::make_nvp("Material", material));

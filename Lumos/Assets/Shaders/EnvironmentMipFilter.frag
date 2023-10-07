@@ -51,6 +51,9 @@ layout(location = 0) out vec4 FragColour;
 
 void main()
 {
+    float test = pushConsts.p0;
+    float test2 = pushConsts.p1;
+    
 	vec3 N = normalize(GetCubeMapTexCoord2(int(pushConsts.cubeFaceIndex), outTexCoord));
 	
     vec3 R = N;

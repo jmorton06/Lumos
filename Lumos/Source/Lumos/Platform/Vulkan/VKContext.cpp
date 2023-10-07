@@ -268,14 +268,15 @@ namespace Lumos
         {
             LUMOS_PROFILE_FUNCTION();
 #ifndef LUMOS_PLATFORM_IOS
-            if(volkInitialize() != VK_SUCCESS)
+            VkResult result = volkInitialize();
+            if(result != VK_SUCCESS)
             {
-                LUMOS_LOG_CRITICAL("volkInitialize failed");
+                LUMOS_ASSERT(false, "volkInitialize failed");
             }
 
             if(volkGetInstanceVersion() == 0)
             {
-                LUMOS_LOG_CRITICAL("Could not find loader");
+                LUMOS_ASSERT(false, "Could not find loader");
             }
 #endif
 

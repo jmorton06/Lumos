@@ -71,10 +71,11 @@ namespace Lumos
                 if(!m_DescriptorSet[frame])
                     continue;
 
-                auto descriptorSet                                      = m_DescriptorSet[frame];
-                auto pool                                               = VKRenderer::GetDescriptorPool();
-                auto device                                             = VKDevice::GetHandle();
-                std::map<std::string, SharedPtr<UniformBuffer>> buffers = m_UniformBuffers[frame];
+                auto descriptorSet                                       = m_DescriptorSet[frame];
+                auto pool                                                = VKRenderer::GetDescriptorPool();
+                auto device                                              = VKDevice::GetHandle();
+                std::map<std::string, SharedPtr<UniformBuffer>>& buffers = m_UniformBuffers[frame];
+                buffers.clear();
 
                 VKContext::DeletionQueue& deletionQueue = VKRenderer::GetCurrentDeletionQueue();
                 deletionQueue.PushFunction([descriptorSet, pool, device]
@@ -131,7 +132,7 @@ namespace Lumos
 
         void VKDescriptorSet::Update(CommandBuffer* cmdBuffer)
         {
-            LUMOS_PROFILE_FUNCTION();
+            LUMOS_PROFILE_FUNCTION_LOW();
             m_Dynamic                 = false;
             int descriptorWritesCount = 0;
             uint32_t currentFrame     = Renderer::GetMainSwapChain()->GetCurrentBufferIndex();

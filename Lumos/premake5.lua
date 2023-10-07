@@ -1,25 +1,3 @@
-IncludeDir = {}
-IncludeDir["entt"] = "External/entt/src/"
-IncludeDir["GLFW"] = "External/glfw/include/"
-IncludeDir["Glad"] = "External/glad/include/"
-IncludeDir["lua"] = "External/lua/src/"
-IncludeDir["stb"] = "External/stb/"
-IncludeDir["OpenAL"] = "External/OpenAL/include/"
-IncludeDir["Box2D"] = "External/box2d/include/"
-IncludeDir["external"] = "External/"
-IncludeDir["vulkan"] = "External/vulkan/"
-IncludeDir["Lumos"] = "Source"
-IncludeDir["External"] = "External/"
-IncludeDir["ImGui"] = "External/imgui/"
-IncludeDir["freetype"] = "External/freetype/include"
-IncludeDir["SpirvCross"] = "External/SPIRV-Cross"
-IncludeDir["cereal"] = "External/cereal/include"
-IncludeDir["spdlog"] = "External/spdlog/include"
-IncludeDir["glm"] = "External/glm"
-IncludeDir["msdf_atlas_gen"] = "External/msdf-atlas-gen/msdf-atlas-gen"
-IncludeDir["msdfgen"] = "External/msdf-atlas-gen/msdfgen"
-IncludeDir["ozz"] = "External/ozz-animation/include"
-
 newoption 
 {
 	trigger = "time-trace",

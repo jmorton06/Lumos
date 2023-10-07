@@ -1,5 +1,11 @@
 #pragma once
 
+#ifdef LUMOS_PLATFORM_WINDOWS
+#ifndef NOMINMAX
+#define NOMINMAX // For windows.h
+#endif
+#endif
+
 #ifndef LUMOS_PLATFORM_WINDOWS
 #include <signal.h>
 #endif
@@ -80,7 +86,7 @@
 #define LUMOS_BREAK() raise(SIGTRAP)
 #endif
 
-#ifdef LUMOS_DEBUG
+#ifndef LUMOS_PRODUCTION
 #define LUMOS_ENABLE_ASSERTS
 #endif
 
@@ -90,6 +96,7 @@
 #ifndef LUMOS_ENABLE_ASSERTS
 #define LUMOS_ASSERT(...) ((void)0)
 #else
+#if LUMOS_ENABLE_LOG
 #ifdef LUMOS_PLATFORM_UNIX
 #define LUMOS_ASSERT(condition, ...)                                                                                                                                \
     do {                                                                                                                                                            \
@@ -110,6 +117,11 @@
             LUMOS_BREAK();                                                                                                                                        \
         }                                                                                                                                                         \
     } while(0)
+#endif
+#else
+#define LUMOS_ASSERT(condition, ...) \
+    if(!(condition))                 \
+        LUMOS_BREAK();
 #endif
 #endif
 
@@ -174,6 +186,25 @@
 #define OffsetOf(type, member_name) IntFromPtr(&MemberOf(type, member_name))
 #define BaseFromMember(type, member_name, ptr) (type*)((uint8_t*)(ptr)-OffsetOf(type, member_name))
 
+#define MemoryCopy memcpy
+#define MemoryMove memmove
+#define MemorySet memset
+
+#define MemoryCopyStruct(dst, src)                \
+    do {                                          \
+        Assert(sizeof(*(dst)) == sizeof(*(src))); \
+        MemoryCopy((dst), (src), sizeof(*(dst))); \
+    } while(0)
+#define MemoryCopyArray(dst, src)              \
+    do {                                       \
+        Assert(sizeof(dst) == sizeof(src));    \
+        MemoryCopy((dst), (src), sizeof(src)); \
+    } while(0)
+
+#define MemoryZero(ptr, size) MemorySet((ptr), 0, (size))
+#define MemoryZeroStruct(ptr) MemoryZero((ptr), sizeof(*(ptr)))
+#define MemoryZeroArray(arr) MemoryZero((arr), sizeof(arr))
+
 #define LUMOS_UNUSED(x) (void)(x)
 #define LUMOS_STRINGIFY(x) #x
 
@@ -184,3 +215,18 @@
 #else
 #define LUMOS_DEPRECATED(msg)
 #endif
+
+#define CheckNull(p) ((p) == 0)
+#define SetIsNull(p) ((p) = 0)
+
+#define QueuePush_NZ(f, l, n, next, zchk, zset) (zchk(f) ? (((f) = (l) = (n)), zset((n)->next)) : ((l)->next = (n), (l) = (n), zset((n)->next)))
+#define QueuePushFront_NZ(f, l, n, next, zchk, zset) (zchk(f) ? (((f) = (l) = (n)), zset((n)->next)) : ((n)->next = (f)), ((f) = (n)))
+#define QueuePop_NZ(f, l, next, zset) ((f) == (l) ? (zset(f), zset(l)) : ((f) = (f)->next))
+#define StackPush_N(f, n, next) ((n)->next = (f), (f) = (n))
+#define StackPop_NZ(f, next, zchk) (zchk(f) ? 0 : ((f) = (f)->next))
+
+#define QueuePush(f, l, n) QueuePush_NZ(f, l, n, next, CheckNull, SetIsNull)
+#define QueuePushFront(f, l, n) QueuePushFront_NZ(f, l, n, next, CheckNull, SetIsNull)
+#define QueuePop(f, l) QueuePop_NZ(f, l, next, SetIsNull)
+#define StackPush(f, n) StackPush_N(f, n, next)
+#define StackPop(f) StackPop_NZ(f, next, CheckNull)

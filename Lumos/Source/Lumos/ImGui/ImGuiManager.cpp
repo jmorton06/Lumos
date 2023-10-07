@@ -4,7 +4,7 @@
 #include "Core/OS/Window.h"
 #include "Core/Application.h"
 #include "Graphics/RHI/IMGUIRenderer.h"
-#include "Core/VFS.h"
+#include "Core/OS/FileSystem.h"
 #include "ImGuiUtilities.h"
 #include "Maths/MathsUtilities.h"
 #include "IconsMaterialDesignIcons.h"
@@ -305,10 +305,10 @@ namespace Lumos
         io.Fonts->AddFontFromMemoryCompressedTTF(RobotoBold_compressed_data, RobotoBold_compressed_size, m_FontSize + 2.0f, &icons_config, ranges);
 
         io.Fonts->AddFontFromMemoryCompressedTTF(RobotoRegular_compressed_data, RobotoRegular_compressed_size, m_FontSize * 0.8f, &icons_config, ranges);
-        AddIconFont();
+        // AddIconFont();
 
-        io.Fonts->AddFontDefault();
-        AddIconFont();
+        // io.Fonts->AddFontDefault();
+        // AddIconFont();
 
         io.Fonts->TexGlyphPadding = 1;
         for(int n = 0; n < io.Fonts->ConfigData.Size; n++)

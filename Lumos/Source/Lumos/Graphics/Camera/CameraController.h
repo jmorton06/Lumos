@@ -1,10 +1,15 @@
 #pragma once
 
 #include "Maths/Maths.h"
-#include "Maths/Transform.h"
+#include <glm/vec2.hpp>
+#include <glm/vec3.hpp>
 
 namespace Lumos
 {
+    namespace Maths
+    {
+        class Transform;
+    }
     class Camera;
 
     class LUMOS_EXPORT CameraController

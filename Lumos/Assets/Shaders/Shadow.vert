@@ -55,6 +55,9 @@ void main()
 	vec3 test3 = inTangent; //SPV vertex layout incorrect when not used
 	vec3 test4 = inBitangent; //SPV vertex layout incorrect when not used
 	vec3 test5 = inNormal; //SPV vertex layout incorrect when not used
+    float test6 = pushConsts.p0;
+    float test7 = pushConsts.p1;
+    float test8 = pushConsts.p2;
 
     uv = inTexCoord;
 }

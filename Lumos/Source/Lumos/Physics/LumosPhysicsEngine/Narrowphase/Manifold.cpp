@@ -41,7 +41,7 @@ namespace Lumos
     {
         LUMOS_PROFILE_FUNCTION_LOW();
 
-        if(m_pNodeA->GetInverseMass() + m_pNodeB->GetInverseMass() == 0.0f)
+        if(m_pNodeA->GetInverseMass() + m_pNodeB->GetInverseMass() < Maths::M_EPSILON)
             return;
 
         glm::vec3& r1 = c.relPosA;

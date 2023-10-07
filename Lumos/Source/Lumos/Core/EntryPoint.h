@@ -17,12 +17,13 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 {
 #ifndef LUMOS_PRODUCTION
     AllocConsole();
+    AttachConsole(GetCurrentProcessId());
     freopen("CONIN$", "r", stdin);
     freopen("CONOUT$", "w", stdout);
     freopen("CONOUT$", "w", stderr);
 #endif
 
-    if(!Lumos::Internal::CoreSystem::Init(0, nullptr))
+    if(!Lumos::Internal::CoreSystem::Init(__argc, __argv))
         return 0;
 
     auto windowsOS = new Lumos::WindowsOS();
