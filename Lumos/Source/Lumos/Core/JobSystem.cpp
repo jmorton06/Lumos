@@ -33,7 +33,7 @@ namespace Lumos
                 int spin = 0;
                 while(!TryLock())
                 {
-#ifndef LUMOS_PLATFORM_MACOS
+#if !defined(LUMOS_PLATFORM_MACOS) && !defined(LUMOS_PLATFORM_IOS)
                     if(spin < 10)
                     {
                         _mm_pause(); // SMT thread swap can occur here
@@ -42,8 +42,8 @@ namespace Lumos
                     {
                         std::this_thread::yield(); // OS thread swap can occur here. It is important to keep it as fallback, to avoid any chance of lockup by busy wait
                     }
-                    spin++;
 #endif
+                    spin++;
                 }
             }
 

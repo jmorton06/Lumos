@@ -7,7 +7,7 @@
 #define XXH_INLINE_ALL
 #include "tracy_xxhash.h"
 
-#include "../common/TracyForceInline.hpp"
+#include "../public/common/TracyForceInline.hpp"
 #include "TracyCharUtil.hpp"
 #include "TracyEvent.hpp"
 #include "TracyMemory.hpp"
@@ -16,7 +16,7 @@
 namespace tracy
 {
 
-#pragma pack( 1 )
+#pragma pack( push, 1 )
 template<typename T>
 class VarArray
 {
@@ -56,7 +56,7 @@ private:
     uint32_t m_hash;
     const short_ptr<T> m_ptr;
 };
-#pragma pack()
+#pragma pack( pop )
 
 enum { VarArraySize = sizeof( VarArray<int> ) };
 

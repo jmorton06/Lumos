@@ -1,5 +1,8 @@
 #pragma once
 
+#if LUMOS_PROFILE_ENABLED && !defined(LUMOS_PROFILE)
+#define LUMOS_PROFILE 1
+#endif
 #if LUMOS_PROFILE
 #ifdef LUMOS_PLATFORM_WINDOWS
 #define TRACY_CALLSTACK 1
@@ -8,8 +11,9 @@
 #define LUMOS_TRACK_MEMORY 0
 #define LUMOS_PROFILE_LOW 0
 #define LUMOS_PROFILE_GPU_TIMINGS 0
+#define LUMOS_VULKAN_MARKERS 1 // Disable when using OpenGL
 
-#include <Tracy/Tracy.hpp>
+#include <tracy/public/tracy/Tracy.hpp>
 #define LUMOS_PROFILE_SCOPE(name) ZoneScopedN(name)
 #define LUMOS_PROFILE_FUNCTION() ZoneScoped
 #define LUMOS_PROFILE_FRAMEMARKER() FrameMark

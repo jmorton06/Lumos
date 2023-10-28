@@ -11,10 +11,11 @@ namespace Lumos
         {
         public:
             explicit VKVertexBuffer(const BufferUsage& usage);
+            VKVertexBuffer(uint32_t size, const void* data, const BufferUsage& usage);
             ~VKVertexBuffer();
 
             void Resize(uint32_t size) override;
-            void SetData(uint32_t size, const void* data) override;
+            void SetData(uint32_t size, const void* data, bool addBarrier = false) override;
             void SetDataSub(uint32_t size, const void* data, uint32_t offset) override;
             void ReleasePointer() override;
 
@@ -26,6 +27,8 @@ namespace Lumos
 
         protected:
             static VertexBuffer* CreateFuncVulkan(const BufferUsage& usage);
+            static VertexBuffer* CreateFuncWithDataVulkan(uint32_t size, const void* data, const BufferUsage& usage);
+
             void* GetPointerInternal() override;
 
             bool m_MappedBuffer = false;

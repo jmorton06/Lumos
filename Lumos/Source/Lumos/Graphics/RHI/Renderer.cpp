@@ -8,6 +8,7 @@
 
 #include "CompiledSPV/Headers/Shadowvertspv.hpp"
 #include "CompiledSPV/Headers/Shadowfragspv.hpp"
+#include "CompiledSPV/Headers/ShadowAlphafragspv.hpp"
 #include "CompiledSPV/Headers/ShadowAnimvertspv.hpp"
 
 #include "CompiledSPV/Headers/ForwardPBRvertspv.hpp"
@@ -39,6 +40,7 @@
 #include "CompiledSPV/Headers/Debandingfragspv.hpp"
 #include "CompiledSPV/Headers/ChromaticAberationfragspv.hpp"
 #include "CompiledSPV/Headers/DepthPrePassfragspv.hpp"
+#include "CompiledSPV/Headers/DepthPrePassAlphafragspv.hpp"
 #include "CompiledSPV/Headers/ToneMappingfragspv.hpp"
 #include "CompiledSPV/Headers/Bloomfragspv.hpp"
 #include "CompiledSPV/Headers/Bloomcompspv.hpp"
@@ -57,6 +59,10 @@ namespace Lumos
 {
     namespace Graphics
     {
+#define LoadShaderEmbedded(name, vertName, fragName) shaderLibrary->AddResource(name, SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromEmbeddedArray(spirv_##vertName##vertspv.data(), spirv_##vertName##vertspv_size, spirv_##fragName##fragspv.data(), spirv_##fragName##fragspv_size)));
+#define LoadComputeShaderEmbedded(name, compName) shaderLibrary->AddResource(name, SharedPtr<Graphics::Shader>(Graphics::Shader::CreateCompFromEmbeddedArray(spirv_##compName##compspv.data(), spirv_##compName##compspv_size)));
+#define LoadShaderFromFile(name, path) shaderLibrary->AddResource(name, SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromFile(engineShaderPath + path)));
+
         Renderer* (*Renderer::CreateFunc)() = nullptr;
 
         Renderer* Renderer::s_Instance = nullptr;
@@ -83,73 +89,74 @@ namespace Lumos
             if(loadEmbeddedShaders)
             {
                 LUMOS_LOG_INFO("Loading shaders - embedded");
-                shaderLibrary->AddResource("Skybox", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromEmbeddedArray(spirv_Skyboxvertspv.data(), spirv_Skyboxvertspv_size, spirv_Skyboxfragspv.data(), spirv_Skyboxfragspv_size)));
-                shaderLibrary->AddResource("ForwardPBR", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromEmbeddedArray(spirv_ForwardPBRvertspv.data(), spirv_ForwardPBRvertspv_size, spirv_ForwardPBRfragspv.data(), spirv_ForwardPBRfragspv_size)));
-                shaderLibrary->AddResource("Shadow", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromEmbeddedArray(spirv_Shadowvertspv.data(), spirv_Shadowvertspv_size, spirv_Shadowfragspv.data(), spirv_Shadowfragspv_size)));
-                shaderLibrary->AddResource("Batch2DPoint", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromEmbeddedArray(spirv_Batch2DPointvertspv.data(), spirv_Batch2DPointvertspv_size, spirv_Batch2DPointfragspv.data(), spirv_Batch2DPointfragspv_size)));
-                shaderLibrary->AddResource("Batch2DLine", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromEmbeddedArray(spirv_Batch2DLinevertspv.data(), spirv_Batch2DLinevertspv_size, spirv_Batch2DLinefragspv.data(), spirv_Batch2DLinefragspv_size)));
-                shaderLibrary->AddResource("Batch2D", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromEmbeddedArray(spirv_Batch2Dvertspv.data(), spirv_Batch2Dvertspv_size, spirv_Batch2Dfragspv.data(), spirv_Batch2Dfragspv_size)));
-                shaderLibrary->AddResource("FinalPass", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromEmbeddedArray(spirv_ScreenPassvertspv.data(), spirv_ScreenPassvertspv_size, spirv_ScreenPassfragspv.data(), spirv_ScreenPassfragspv_size)));
-                shaderLibrary->AddResource("Grid", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromEmbeddedArray(spirv_Gridvertspv.data(), spirv_Gridvertspv_size, spirv_Gridfragspv.data(), spirv_Gridfragspv_size)));
-                shaderLibrary->AddResource("CreateEnvironmentMap", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromEmbeddedArray(spirv_ScreenPassvertspv.data(), spirv_ScreenPassvertspv_size, spirv_CreateEnvironmentMapfragspv.data(), spirv_CreateEnvironmentMapfragspv_size)));
-                shaderLibrary->AddResource("EnvironmentIrradiance", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromEmbeddedArray(spirv_ScreenPassvertspv.data(), spirv_ScreenPassvertspv_size, spirv_EnvironmentIrradiancefragspv.data(), spirv_EnvironmentIrradiancefragspv_size)));
-                shaderLibrary->AddResource("EnvironmentMipFilter", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromEmbeddedArray(spirv_ScreenPassvertspv.data(), spirv_ScreenPassvertspv_size, spirv_EnvironmentMipFilterfragspv.data(), spirv_EnvironmentMipFilterfragspv_size)));
-                shaderLibrary->AddResource("FXAA", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromEmbeddedArray(spirv_ScreenPassvertspv.data(), spirv_ScreenPassvertspv_size, spirv_FXAAfragspv.data(), spirv_FXAAfragspv_size)));
+                LoadShaderEmbedded("Skybox", Skybox, Skybox);
+                LoadShaderEmbedded("ForwardPBR", ForwardPBR, ForwardPBR);
+                LoadShaderEmbedded("Shadow", Shadow, Shadow);
+                LoadShaderEmbedded("ShadowAlpha", Shadow, ShadowAlpha);
+                LoadShaderEmbedded("Batch2DPoint", Batch2DPoint, Batch2DPoint);
+                LoadShaderEmbedded("Batch2DLine", Batch2DLine, Batch2DLine);
+                LoadShaderEmbedded("Batch2D", Batch2D, Batch2D);
+                LoadShaderEmbedded("FinalPass", ScreenPass, ScreenPass);
+                LoadShaderEmbedded("Grid", Grid, Grid);
+                LoadShaderEmbedded("CreateEnvironmentMap", ScreenPass, CreateEnvironmentMap);
+                LoadShaderEmbedded("EnvironmentIrradiance", ScreenPass, EnvironmentIrradiance);
+                LoadShaderEmbedded("EnvironmentMipFilter", ScreenPass, EnvironmentMipFilter);
+                LoadShaderEmbedded("FXAA", ScreenPass, FXAA);
+                LoadShaderEmbedded("FilmicGrain", ScreenPass, FilmicGrain);
+                LoadShaderEmbedded("ChromaticAberation", ScreenPass, ChromaticAberation);
+                LoadShaderEmbedded("DepthPrePass", ForwardPBR, DepthPrePass);
+                LoadShaderEmbedded("DepthPrePassAlpha", ForwardPBR, DepthPrePassAlpha);
+                LoadShaderEmbedded("ToneMapping", ScreenPass, ToneMapping);
+                LoadShaderEmbedded("Bloom", ScreenPass, Bloom);
+                LoadShaderEmbedded("BRDFLUT", ScreenPass, BRDFLUT);
+                LoadShaderEmbedded("Debanding", ScreenPass, Debanding);
+                LoadShaderEmbedded("Text", Text, Text);
+                LoadShaderEmbedded("DepthOfField", ScreenPass, DepthOfField);
+                LoadShaderEmbedded("Sharpen", ScreenPass, Sharpen);
+                LoadShaderEmbedded("SSAO", ScreenPass, SSAO);
+                LoadShaderEmbedded("SSAOBlur", ScreenPass, SSAOBlur);
 
                 if(Renderer::GetCapabilities().SupportCompute)
-                    shaderLibrary->AddResource("FXAAComp", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateCompFromEmbeddedArray(spirv_FXAAComputecompspv.data(), spirv_FXAAComputecompspv_size)));
-                shaderLibrary->AddResource("FilmicGrain", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromEmbeddedArray(spirv_ScreenPassvertspv.data(), spirv_ScreenPassvertspv_size, spirv_FilmicGrainfragspv.data(), spirv_FilmicGrainfragspv_size)));
-                //                shaderLibrary->AddResource("Outline", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromEmbeddedArray(spirv_ScreenPassvertspv.data(), spirv_ScreenPassvertspv_size, spirv_Outlinefragspv.data(), spirv_Outlinefragspv_size)));
-                shaderLibrary->AddResource("Debanding", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromEmbeddedArray(spirv_ScreenPassvertspv.data(), spirv_ScreenPassvertspv_size, spirv_Debandingfragspv.data(), spirv_Debandingfragspv_size)));
-                shaderLibrary->AddResource("ChromaticAberation", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromEmbeddedArray(spirv_ScreenPassvertspv.data(), spirv_ScreenPassvertspv_size, spirv_ChromaticAberationfragspv.data(), spirv_ChromaticAberationfragspv_size)));
-                shaderLibrary->AddResource("DepthPrePass", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromEmbeddedArray(spirv_ForwardPBRvertspv.data(), spirv_ForwardPBRvertspv_size, spirv_DepthPrePassfragspv.data(), spirv_DepthPrePassfragspv_size)));
-                shaderLibrary->AddResource("ToneMapping", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromEmbeddedArray(spirv_ScreenPassvertspv.data(), spirv_ScreenPassvertspv_size, spirv_ToneMappingfragspv.data(), spirv_ToneMappingfragspv_size)));
-                shaderLibrary->AddResource("Bloom", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromEmbeddedArray(spirv_ScreenPassvertspv.data(), spirv_ScreenPassvertspv_size, spirv_Bloomfragspv.data(), spirv_Bloomfragspv_size)));
-                if(Renderer::GetCapabilities().SupportCompute)
-                    shaderLibrary->AddResource("BloomComp", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateCompFromEmbeddedArray(spirv_Bloomcompspv.data(), spirv_Bloomcompspv_size)));
-                shaderLibrary->AddResource("BRDFLUT", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromEmbeddedArray(spirv_ScreenPassvertspv.data(), spirv_ScreenPassvertspv_size, spirv_BRDFLUTfragspv.data(), spirv_BRDFLUTfragspv_size)));
-                shaderLibrary->AddResource("Text", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromEmbeddedArray(spirv_Textvertspv.data(), spirv_Textvertspv_size, spirv_Textfragspv.data(), spirv_Textfragspv_size)));
-                shaderLibrary->AddResource("DepthOfField", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromEmbeddedArray(spirv_ScreenPassvertspv.data(), spirv_ScreenPassvertspv_size, spirv_DepthOfFieldfragspv.data(), spirv_DepthOfFieldfragspv_size)));
-                shaderLibrary->AddResource("Sharpen", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromEmbeddedArray(spirv_ScreenPassvertspv.data(), spirv_ScreenPassvertspv_size, spirv_Sharpenfragspv.data(), spirv_Sharpenfragspv_size)));
-                shaderLibrary->AddResource("SSAO", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromEmbeddedArray(spirv_ScreenPassvertspv.data(), spirv_ScreenPassvertspv_size, spirv_SSAOfragspv.data(), spirv_SSAOfragspv_size)));
-                shaderLibrary->AddResource("SSAOBlur", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromEmbeddedArray(spirv_ScreenPassvertspv.data(), spirv_ScreenPassvertspv_size, spirv_SSAOBlurfragspv.data(), spirv_SSAOBlurfragspv_size)));
+                {
+                    LoadComputeShaderEmbedded("BloomComp", Bloom);
+                    LoadComputeShaderEmbedded("FXAAComp", FXAACompute);
+                }
             }
             else
             {
                 LUMOS_LOG_INFO("Loading shaders - files");
-                shaderLibrary->AddResource("Skybox", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromFile(engineShaderPath + "Shaders/Skybox.shader")));
-                shaderLibrary->AddResource("ForwardPBR", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromFile(engineShaderPath + "Shaders/ForwardPBR.shader")));
-                shaderLibrary->AddResource("Shadow", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromFile(engineShaderPath + "Shaders/Shadow.shader")));
-                shaderLibrary->AddResource("Batch2DPoint", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromFile(engineShaderPath + "Shaders/Batch2DPoint.shader")));
-                shaderLibrary->AddResource("Batch2DLine", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromFile(engineShaderPath + "Shaders/Batch2DLine.shader")));
-                shaderLibrary->AddResource("Batch2D", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromFile(engineShaderPath + "Shaders/Batch2D.shader")));
-                shaderLibrary->AddResource("FinalPass", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromFile(engineShaderPath + "Shaders/ScreenPass.shader")));
-                shaderLibrary->AddResource("Grid", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromFile(engineShaderPath + "Shaders/Grid.shader")));
-                shaderLibrary->AddResource("CreateEnvironmentMap", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromFile(engineShaderPath + "Shaders/CreateEnvironmentMap.shader")));
-                shaderLibrary->AddResource("EnvironmentIrradiance", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromFile(engineShaderPath + "Shaders/EnvironmentIrradiance.shader")));
-                shaderLibrary->AddResource("EnvironmentMipFilter", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromFile(engineShaderPath + "Shaders/EnvironmentMipFilter.shader")));
-
-                shaderLibrary->AddResource("FXAA", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromFile(engineShaderPath + "Shaders/FXAA.shader")));
+                LoadShaderFromFile("Skybox", "Shaders/Skybox.shader");
+                LoadShaderFromFile("Shadow", "Shaders/Shadow.shader");
+                LoadShaderFromFile("ShadowAlpha", "Shaders/ShadowAlpha.shader");
+                LoadShaderFromFile("Batch2DPoint", "Shaders/Batch2DPoint.shader");
+                LoadShaderFromFile("Batch2DLine", "Shaders/Batch2DLine.shader");
+                LoadShaderFromFile("Batch2D", "Shaders/Batch2D.shader");
+                LoadShaderFromFile("FinalPass", "Shaders/ScreenPass.shader");
+                LoadShaderFromFile("Grid", "Shaders/Grid.shader");
+                LoadShaderFromFile("CreateEnvironmentMap", "Shaders/CreateEnvironmentMap.shader");
+                LoadShaderFromFile("EnvironmentIrradiance", "Shaders/EnvironmentIrradiance.shader");
+                LoadShaderFromFile("EnvironmentMipFilter", "Shaders/EnvironmentMipFilter.shader");
+                LoadShaderFromFile("FXAA", "Shaders/FXAA.shader");
+                LoadShaderFromFile("Debanding", "Shaders/Debanding.shader");
+                LoadShaderFromFile("FilmicGrain", "Shaders/FilmicGrain.shader");
+                LoadShaderFromFile("ChromaticAberation", "Shaders/ChromaticAberation.shader");
+                LoadShaderFromFile("DepthPrePass", "Shaders/DepthPrePass.shader");
+                LoadShaderFromFile("DepthPrePassAlpha", "Shaders/DepthPrePassAlpha.shader");
+                LoadShaderFromFile("ToneMapping", "Shaders/ToneMapping.shader");
+                LoadShaderFromFile("Bloom", "Shaders/Bloom.shader");
+                LoadShaderFromFile("DepthOfField", "Shaders/DepthOfField.shader");
+                LoadShaderFromFile("BRDFLUT", "Shaders/BRDFLUT.shader");
+                LoadShaderFromFile("Text", "Shaders/Text.shader");
+                LoadShaderFromFile("SSAO", "Shaders/SSAO.shader");
+                LoadShaderFromFile("SSAOBlur", "Shaders/SSAOBlur.shader");
+                LoadShaderFromFile("Sharpen", "Shaders/Sharpen.shader");
+                LoadShaderFromFile("ForwardPBR", "Shaders/ForwardPBR.shader");
 
                 if(Renderer::GetCapabilities().SupportCompute)
-                    shaderLibrary->AddResource("FXAAComp", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromFile(engineShaderPath + "Shaders/FXAACompute.shader")));
-
-                shaderLibrary->AddResource("Debanding", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromFile(engineShaderPath + "Shaders/Debanding.shader")));
-                shaderLibrary->AddResource("FilmicGrain", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromFile(engineShaderPath + "Shaders/FilmicGrain.shader")));
-                // shaderLibrary->AddResource("Outline", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromFile(engineShaderPath + "Shaders/Outline.shader")));
-                shaderLibrary->AddResource("ChromaticAberation", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromFile(engineShaderPath + "Shaders/ChromaticAberation.shader")));
-                shaderLibrary->AddResource("DepthPrePass", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromFile(engineShaderPath + "Shaders/DepthPrePass.shader")));
-                shaderLibrary->AddResource("ToneMapping", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromFile(engineShaderPath + "Shaders/ToneMapping.shader")));
-                shaderLibrary->AddResource("Bloom", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromFile(engineShaderPath + "Shaders/Bloom.shader")));
-                if(Renderer::GetCapabilities().SupportCompute)
-                    shaderLibrary->AddResource("BloomComp", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromFile(engineShaderPath + "Shaders/BloomComp.shader")));
-                shaderLibrary->AddResource("DepthOfField", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromFile(engineShaderPath + "Shaders/DepthOfField.shader")));
-
-                shaderLibrary->AddResource("BRDFLUT", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromFile(engineShaderPath + "Shaders/BRDFLUT.shader")));
-                shaderLibrary->AddResource("Text", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromFile(engineShaderPath + "Shaders/Text.shader")));
-                shaderLibrary->AddResource("SSAO", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromFile(engineShaderPath + "Shaders/SSAO.shader")));
-                shaderLibrary->AddResource("SSAOBlur", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromFile(engineShaderPath + "Shaders/SSAOBlur.shader")));
-                shaderLibrary->AddResource("Sharpen", SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromFile(engineShaderPath + "Shaders/Sharpen.shader")));
+                {
+                    LoadShaderFromFile("FXAAComp", "Shaders/FXAACompute.shader");
+                    LoadShaderFromFile("BloomComp", "Shaders/BloomComp.shader");
+                }
             }
         }
 

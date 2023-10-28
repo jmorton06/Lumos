@@ -4,7 +4,7 @@
 #include "Scene/Scene.h"
 #include "Scene/Entity.h"
 #include "Scene/EntityManager.h"
-#include "Core/StringUtilities.h"
+#include "Utilities/StringUtilities.h"
 #include "Core/Engine.h"
 
 #include <sol/sol.hpp>

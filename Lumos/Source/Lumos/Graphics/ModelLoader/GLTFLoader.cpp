@@ -13,7 +13,7 @@
 
 #include "Maths/Transform.h"
 #include "Core/Application.h"
-#include "Core/StringUtilities.h"
+#include "Utilities/StringUtilities.h"
 #include "Utilities/AssetManager.h"
 
 #include <ozz/animation/offline/animation_builder.h>
@@ -34,7 +34,7 @@
 #define TINYGLTF_NOEXCEPTION
 #endif
 #include <ModelLoaders/tinygltf/tiny_gltf.h>
-#include <stb_image_resize.h>
+#include <stb_image_resize2.h>
 
 #include <ozz-animation/src/animation/offline/gltf/gltf2ozz.cc>
 
@@ -173,7 +173,7 @@ namespace Lumos::Graphics
                     // Resize the image using stbir (a simple image resizing library)
                     int resizedChannels    = 4; // RGBA format
                     stbi_uc* resizedPixels = (stbi_uc*)malloc(texWidth * texHeight * resizedChannels);
-                    stbir_resize_uint8(pixels, texWidthOld, texHeightOld, 0, resizedPixels, texWidth, texHeight, 0, resizedChannels);
+                    stbir_resize_uint8_linear(pixels, texWidthOld, texHeightOld, 0, resizedPixels, texWidth, texHeight, 0, STBIR_RGBA);
 
                     // free(pixels);  // Free the original image
                     pixels   = resizedPixels;
@@ -245,7 +245,7 @@ namespace Lumos::Graphics
             {
                 properties.albedoColour = glm::vec4((float)baseColourFactor->second.ColorFactor()[0], (float)baseColourFactor->second.ColorFactor()[1], (float)baseColourFactor->second.ColorFactor()[2], 1.0f);
                 if(baseColourFactor->second.ColorFactor().size() > 3)
-                    properties.albedoColour.w = baseColourFactor->second.ColorFactor()[3];
+                    properties.albedoColour.w = (float)baseColourFactor->second.ColorFactor()[3];
             }
 
             // Extensions

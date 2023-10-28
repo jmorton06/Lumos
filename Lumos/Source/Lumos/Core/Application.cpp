@@ -24,7 +24,7 @@
 #include "Core/OS/FileSystem.h"
 #include "Core/JobSystem.h"
 #include "Core/CoreSystem.h"
-#include "Core/StringUtilities.h"
+#include "Utilities/StringUtilities.h"
 #include "Core/OS/FileSystem.h"
 #include "Core/String.h"
 #include "Core/DataStructures/Vector.h"
@@ -185,10 +185,10 @@ namespace Lumos
     void Application::Init()
     {
         LUMOS_PROFILE_FUNCTION();
-        m_FrameArena = ArenaAlloc(Megabytes(4));
-        m_Arena      = ArenaAlloc(Megabytes(4));
+        m_FrameArena = ArenaAlloc(Kilobytes(64));
+        m_Arena      = ArenaAlloc(Kilobytes(64));
 
-        SetMaxImageDimensions(4096, 4096);
+        SetMaxImageDimensions(2048, 2048);
 
         m_SceneManager = CreateUniquePtr<SceneManager>();
         Deserialise();
@@ -328,9 +328,10 @@ namespace Lumos
         Graphics::Pipeline::ClearCache();
         Graphics::RenderPass::ClearCache();
         Graphics::Framebuffer::ClearCache();
-        Graphics::Renderer::Release();
 
         m_Window.reset();
+
+        Graphics::Renderer::Release();
     }
 
     glm::vec2 Application::GetWindowSize() const
@@ -408,18 +409,19 @@ namespace Lumos
             ImGui::NewFrame();
         }
 
+        System::JobSystem::Context context;
+
         {
             LUMOS_PROFILE_SCOPE("Application::Update");
             OnUpdate(ts);
 
-            {
-                // LUMOS_PROFILE_SCOPE("Wait System update");
-                // updateThread.join();
-                UpdateSystems();
+            System::JobSystem::Execute(context, [](JobDispatchArgs args)
+                                       { Application::UpdateSystems(); });
 
-                m_SystemManager->GetSystem<LumosPhysicsEngine>()->SyncTransforms(m_SceneManager->GetCurrentScene());
-                m_SystemManager->GetSystem<B2PhysicsEngine>()->SyncTransforms(m_SceneManager->GetCurrentScene());
-            }
+            // UpdateSystems();
+
+            // m_SystemManager->GetSystem<LumosPhysicsEngine>()->SyncTransforms(m_SceneManager->GetCurrentScene());
+            // m_SystemManager->GetSystem<B2PhysicsEngine>()->SyncTransforms(m_SceneManager->GetCurrentScene());
 
             m_Updates++;
         }
@@ -437,8 +439,6 @@ namespace Lumos
 
             OnRender();
             m_ImGuiManager->OnRender(m_SceneManager->GetCurrentScene());
-
-            Graphics::Renderer::GetRenderer()->Present();
 
             Graphics::Pipeline::DeleteUnusedCache();
             Graphics::Framebuffer::DeleteUnusedCache();
@@ -465,6 +465,16 @@ namespace Lumos
             m_Window->UpdateCursorImGui();
             m_Window->OnUpdate();
         }
+
+        {
+            System::JobSystem::Wait(context);
+
+            m_SystemManager->GetSystem<LumosPhysicsEngine>()->SyncTransforms(m_SceneManager->GetCurrentScene());
+            m_SystemManager->GetSystem<B2PhysicsEngine>()->SyncTransforms(m_SceneManager->GetCurrentScene());
+        }
+
+        if(!m_Minimized)
+            Graphics::Renderer::GetRenderer()->Present();
 
         if(now - m_SecondTimer > 1.0f)
         {
@@ -795,7 +805,7 @@ namespace Lumos
                 m_SceneManager->EnqueueScene(new Scene("Empty Scene"));
                 m_SceneManager->SwitchScene(0);
 
-                LUMOS_LOG_ERROR("Failed to load project");
+                LUMOS_LOG_ERROR("Failed to load project - {0}", filePath);
             }
         }
     }

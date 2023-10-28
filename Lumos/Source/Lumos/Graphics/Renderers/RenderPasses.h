@@ -139,10 +139,10 @@ namespace Lumos
 
             struct Render2DLimits
             {
-                uint32_t MaxQuads          = 10000;
+                uint32_t MaxQuads          = 1000;
                 uint32_t QuadsSize         = RENDERER2D_VERTEX_SIZE * 4;
-                uint32_t BufferSize        = 10000 * RENDERER2D_VERTEX_SIZE * 4;
-                uint32_t IndiciesSize      = 10000 * 6;
+                uint32_t BufferSize        = 1000 * RENDERER2D_VERTEX_SIZE * 4;
+                uint32_t IndiciesSize      = 1000 * 6;
                 uint32_t MaxTextures       = 16;
                 uint32_t MaxBatchDrawCalls = 100;
 
@@ -176,7 +176,8 @@ namespace Lumos
                 std::vector<SharedPtr<Graphics::DescriptorSet>> m_DescriptorSet;
 
                 std::vector<Graphics::DescriptorSet*> m_CurrentDescriptorSets;
-                SharedPtr<Shader> m_Shader = nullptr;
+                SharedPtr<Shader> m_Shader      = nullptr;
+                SharedPtr<Shader> m_ShaderAlpha = nullptr;
                 Maths::Frustum m_CascadeFrustums[SHADOWMAP_MAX];
             };
 
@@ -278,6 +279,12 @@ namespace Lumos
             void SetDisablePostProcess(bool disabled) { m_DisablePostProcess = disabled; }
 
         private:
+            void InitDebugRenderData();
+            bool m_DebugRenderDataInitialised = false;
+
+            void Init2DRenderData();
+            bool m_2DRenderDataInitialised = false;
+
             Texture2D* m_MainTexture      = nullptr;
             Texture2D* m_LastRenderTarget = nullptr;
 
@@ -347,8 +354,10 @@ namespace Lumos
             SharedPtr<Graphics::Shader> m_ChromaticAberationShader;
 
             SharedPtr<Graphics::DescriptorSet> m_DepthPrePassDescriptorSet;
+            SharedPtr<Graphics::DescriptorSet> m_DepthPrePassAlphaDescriptorSet;
             SharedPtr<Pipeline> m_DepthPrePassPipeline = nullptr;
             SharedPtr<Graphics::Shader> m_DepthPrePassShader;
+            SharedPtr<Graphics::Shader> m_DepthPrePassAlphaShader;
 
             Texture2D* m_SSAOTexture  = nullptr;
             Texture2D* m_SSAOTexture1 = nullptr;

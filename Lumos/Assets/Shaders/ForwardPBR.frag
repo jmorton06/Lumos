@@ -18,7 +18,7 @@ layout(location = 0) in VertexData VertexOutput;
 #define MAX_SHADOWMAPS 4
 #define BLEND_SHADOW_CASCADES 1
 #define FILTER_SHADOWS 1
-#define NUM_PCF_SAMPLES 8
+#define NUM_PCF_SAMPLES 4
 #define VOGEL_OFFSET 1
 float ShadowFade = 1.0;
 
@@ -263,12 +263,20 @@ float GetShadowBias(vec3 lightDirection, vec3 normal, int shadowIndex)
 	return bias;
 }
 
+float interleavedGradientNoise(vec2 position_screen)
+{
+    vec3 magic = vec3(0.06711056, 0.00583715, 52.9829189);
+    return fract(magic.z * fract(dot(position_screen, magic.xy)));
+}
+
 float PCFShadowDirectionalLight(sampler2DArray shadowMap, vec4 shadowCoords, float uvRadius, vec3 lightDirection, vec3 normal, vec3 wsPos, int cascadeIndex)
 {
 	float bias = GetShadowBias(lightDirection, normal, cascadeIndex);
 	float sum = 0.0;
 	float noise = Noise(wsPos.xy);
 	float invSquareRootSamplesCount = 1.0 / sqrt(NUM_PCF_SAMPLES);
+    vec3 flooredPos = floor(wsPos.xyz*1000.0);
+    int index = int(16.0*Random(flooredPos.xyz, 1))%16;
     
 	for (int i = 0; i < NUM_PCF_SAMPLES; i++)
 	{
@@ -279,16 +287,15 @@ float PCFShadowDirectionalLight(sampler2DArray shadowMap, vec4 shadowCoords, flo
 		//int index = int(NUM_PCF_SAMPLES*Random(vec4(floor(wsPos.xyz*1000.0), i)))%NUM_PCF_SAMPLES;
 		//int index = int(NUM_PCF_SAMPLES*Random(vec4(wsPos.xyy, i)))%NUM_PCF_SAMPLES;
 		
-		int index = int(16.0*Random(floor(wsPos.xyz*1000.0), i))%16;
-#if VOGEL_OFFSET
         
-		vec2 offset = VogelDiskSample(index, invSquareRootSamplesCount, noise) / 700.0f;
+#if VOGEL_OFFSET
+        vec2 offset = VogelDiskSample(i, invSquareRootSamplesCount, interleavedGradientNoise(gl_FragCoord.xy)) / 1024.0f;
 #else
-		vec2 offset = SamplePoisson(index) / 700.0f;
+        vec2 offset = SamplePoisson(index) / 700.0f;
 #endif
-		
-		float z = texture(shadowMap, vec3(shadowCoords.xy + offset, cascadeIndex)).r;
-		sum += step(shadowCoords.z - bias, z);
+        
+        float z = texture(shadowMap, vec3(shadowCoords.xy + offset, cascadeIndex)).r - bias;
+        sum += step(shadowCoords.z, z);
 	}
 	
 	return sum / NUM_PCF_SAMPLES;

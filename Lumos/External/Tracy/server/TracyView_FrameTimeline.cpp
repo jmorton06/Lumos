@@ -10,8 +10,8 @@
 namespace tracy
 {
 
-enum { MinVisSize = 3 };
-enum { MinFrameSize = 5 };
+constexpr float MinVisSize = 3;
+constexpr float MinFrameSize = 5;
 
 static tracy_force_inline uint32_t GetColorMuted( uint32_t color, bool active )
 {
@@ -93,6 +93,10 @@ void View::DrawTimelineFramesHeader()
 
 void View::DrawTimelineFrames( const FrameData& frames )
 {
+    const std::pair <int, int> zrange = m_worker.GetFrameRange( frames, m_vd.zvStart, m_vd.zvEnd );
+    if( zrange.first < 0 ) return;
+    if( m_worker.GetFrameBegin( frames, zrange.first ) > m_vd.zvEnd || m_worker.GetFrameEnd( frames, zrange.second ) < m_vd.zvStart ) return;
+
     const auto wpos = ImGui::GetCursorScreenPos();
     const auto dpos = wpos + ImVec2( 0.5f, 0.5f );
     const auto w = ImGui::GetContentRegionAvail().x - ImGui::GetStyle().ScrollbarSize;
@@ -109,9 +113,6 @@ void View::DrawTimelineFrames( const FrameData& frames )
     auto pxns = w / double( timespan );
 
     const auto nspx = 1.0 / pxns;
-
-    const std::pair <int, int> zrange = m_worker.GetFrameRange( frames, m_vd.zvStart, m_vd.zvEnd );
-    if( zrange.first < 0 ) return;
 
     int64_t prev = -1;
     int64_t prevEnd = -1;
@@ -143,7 +144,7 @@ void View::DrawTimelineFrames( const FrameData& frames )
                 if( IsMouseClickReleased( 1 ) ) m_setRangePopup = RangeSlim { fbegin, fend, true };
 
                 ImGui::BeginTooltip();
-                ImGui::TextUnformatted( GetFrameText( frames, i, ftime, m_worker.GetFrameOffset() ) );
+                ImGui::TextUnformatted( GetFrameText( frames, i, ftime ) );
                 ImGui::SameLine();
                 ImGui::TextDisabled( "(%.1f FPS)", 1000000000.0 / ftime );
                 TextFocused( "Time from start of program:", TimeToStringExact( m_worker.GetFrameBegin( frames, i ) ) );
@@ -243,7 +244,7 @@ void View::DrawTimelineFrames( const FrameData& frames )
             endPos = fend;
         }
 
-        auto buf = GetFrameText( frames, i, ftime, m_worker.GetFrameOffset() );
+        auto buf = GetFrameText( frames, i, ftime );
         auto tx = ImGui::CalcTextSize( buf ).x;
         uint32_t color = ( frames.name == 0 && i == 0 ) ? redColor : activeColor;
 
@@ -320,7 +321,7 @@ void View::DrawTimelineFrames( const FrameData& frames )
             ImGui::BeginTooltip();
             TextDisabledUnformatted( "Frame set:" );
             ImGui::SameLine();
-            ImGui::TextUnformatted( frames.name == 0 ? "Frames" : m_worker.GetString( frames.name ) );
+            ImGui::TextUnformatted( GetFrameSetName( frames ) );
             ImGui::EndTooltip();
         }
         if( IsMouseClicked( 0 ) )

@@ -100,6 +100,7 @@ namespace Lumos
 
             std::vector<VkAttachmentReference> colourAttachmentReferences;
             std::vector<VkAttachmentReference> depthAttachmentReferences;
+            std::vector<VkSubpassDependency> dependencies;
 
             m_DepthOnly  = true;
             m_ClearDepth = false;
@@ -147,6 +148,54 @@ namespace Lumos
                 {
                     LUMOS_LOG_ERROR("Unsupported texture attachment");
                 }
+
+                if(renderPassDesc.attachmentTypes[i] == TextureType::DEPTH || renderPassDesc.attachmentTypes[i] == TextureType::DEPTHARRAY)
+                {
+                    {
+                        VkSubpassDependency& depedency = dependencies.emplace_back();
+                        depedency.srcSubpass           = VK_SUBPASS_EXTERNAL;
+                        depedency.dstSubpass           = 0;
+                        depedency.srcStageMask         = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+                        depedency.dstStageMask         = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+                        depedency.srcAccessMask        = VK_ACCESS_SHADER_READ_BIT;
+                        depedency.dstAccessMask        = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+                        depedency.dependencyFlags      = VK_DEPENDENCY_BY_REGION_BIT;
+                    }
+
+                    {
+                        VkSubpassDependency& depedency = dependencies.emplace_back();
+                        depedency.srcSubpass           = 0;
+                        depedency.dstSubpass           = VK_SUBPASS_EXTERNAL;
+                        depedency.srcStageMask         = VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+                        depedency.dstStageMask         = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+                        depedency.srcAccessMask        = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+                        depedency.dstAccessMask        = VK_ACCESS_SHADER_READ_BIT;
+                        depedency.dependencyFlags      = VK_DEPENDENCY_BY_REGION_BIT;
+                    }
+                }
+                else
+                {
+                    {
+                        VkSubpassDependency& depedency = dependencies.emplace_back();
+                        depedency.srcSubpass           = VK_SUBPASS_EXTERNAL;
+                        depedency.dstSubpass           = 0;
+                        depedency.srcStageMask         = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+                        depedency.srcAccessMask        = VK_ACCESS_SHADER_READ_BIT;
+                        depedency.dstStageMask         = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+                        depedency.dstAccessMask        = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+                        depedency.dependencyFlags      = VK_DEPENDENCY_BY_REGION_BIT;
+                    }
+                    {
+                        VkSubpassDependency& depedency = dependencies.emplace_back();
+                        depedency.srcSubpass           = 0;
+                        depedency.dstSubpass           = VK_SUBPASS_EXTERNAL;
+                        depedency.srcStageMask         = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+                        depedency.srcAccessMask        = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+                        depedency.dstStageMask         = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+                        depedency.dstAccessMask        = VK_ACCESS_SHADER_READ_BIT;
+                        depedency.dependencyFlags      = VK_DEPENDENCY_BY_REGION_BIT;
+                    }
+                }
             }
 
             VkSubpassDescription subpass    = {};
@@ -162,8 +211,8 @@ namespace Lumos
             renderPassCreateInfo.pAttachments           = attachments.data();
             renderPassCreateInfo.subpassCount           = 1;
             renderPassCreateInfo.pSubpasses             = &subpass;
-            renderPassCreateInfo.dependencyCount        = 0;
-            renderPassCreateInfo.pDependencies          = nullptr;
+            renderPassCreateInfo.dependencyCount        = 0;       // static_cast<uint32_t>(dependencies.size());
+            renderPassCreateInfo.pDependencies          = nullptr; // dependencies.data();
 
             VK_CHECK_RESULT(vkCreateRenderPass(VKDevice::Get().GetDevice(), &renderPassCreateInfo, VK_NULL_HANDLE, &m_RenderPass));
 

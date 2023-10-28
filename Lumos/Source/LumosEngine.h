@@ -60,7 +60,7 @@
 // System
 #include "Core/OS/FileSystem.h"
 #include "Core/OS/FileSystem.h"
-#include "Core/StringUtilities.h"
+#include "Utilities/StringUtilities.h"
 #include "Core/CoreSystem.h"
 #include "Core/LMLog.h"
 #include "Core/OS/Input.h"

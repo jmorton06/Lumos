@@ -43,7 +43,7 @@ namespace Lumos
 
             bool FlipImGUITexture() const override { return true; }
             void WaitIdle() const override;
-            void OnImGui() override {};
+            void OnImGui() override;
 
             float GetGPUMemoryUsed() override { return 0.0f; };
             float GetTotalGPUMemory() override { return 0.0f; };

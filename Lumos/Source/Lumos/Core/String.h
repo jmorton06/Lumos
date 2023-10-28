@@ -85,7 +85,7 @@ namespace Lumos
     struct FuzzyMatchNode
     {
         FuzzyMatchNode* next;
-		Range1U64 match;
+        Range1U64 match;
     };
 
     struct FuzzyMatchList
@@ -162,12 +162,13 @@ namespace Lumos
     int64_t CStyleIntFromStr8(String8 str);
     double DoubleFromStr8(String8 str);
     String8 CStyleHexStringFromU64(Arena* arena, uint64_t x, bool caps);
-	
-	bool operator==(const String8& lhs, const String8& rhs);
-	
-	#define Str8Struct(ptr) Str8((uint8_t*)(ptr), sizeof(*(ptr)))
+
+    bool operator==(const String8& lhs, const String8& rhs);
+
+#define Str8Struct(ptr) Str8((uint8_t*)(ptr), sizeof(*(ptr)))
 
 #define Str8C(cstring) Str8((uint8_t*)(cstring), CalculateCStringLength(cstring))
+#define Str8StdS(stdString) Str8((uint8_t*)(stdString.c_str()), stdString.size())
 #define Str8Lit(s) Str8((uint8_t*)(s), sizeof(s) - 1)
 #define Str8LitComp(s)               \
     {                                \

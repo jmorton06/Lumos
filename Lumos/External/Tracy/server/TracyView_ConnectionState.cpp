@@ -1,7 +1,4 @@
-#ifndef TRACY_NO_FILESELECTOR
-#  include "../nfd/nfd.h"
-#endif
-
+#include "TracyFileselector.hpp"
 #include "TracyImGui.hpp"
 #include "TracyPrint.hpp"
 #include "TracyTexture.hpp"
@@ -122,17 +119,9 @@ bool View::DrawConnection()
     }
 
     ImGui::Separator();
-    if( ImGui::Button( ICON_FA_SAVE " Save trace" ) && m_saveThreadState.load( std::memory_order_relaxed ) == SaveThreadState::Inert )
+    if( ImGui::Button( ICON_FA_FLOPPY_DISK " Save trace" ) && m_saveThreadState.load( std::memory_order_relaxed ) == SaveThreadState::Inert )
     {
-#ifndef TRACY_NO_FILESELECTOR
-        nfdu8filteritem_t filter = { "Tracy Profiler trace file", "tracy" };
-        nfdu8char_t* fn;
-        auto res = NFD_SaveDialogU8( &fn, &filter, 1, nullptr, nullptr );
-        if( res == NFD_OKAY )
-#else
-        const char* fn = "trace.tracy";
-#endif
-        {
+        auto cb = [this]( const char* fn ) {
             const auto sz = strlen( fn );
             if( sz < 7 || memcmp( fn + sz - 6, ".tracy", 6 ) != 0 )
             {
@@ -144,10 +133,13 @@ bool View::DrawConnection()
             {
                 m_filenameStaging = fn;
             }
+        };
+
 #ifndef TRACY_NO_FILESELECTOR
-            NFD_FreePathU8( fn );
+        Fileselector::SaveFile( "tracy", "Tracy Profiler trace file", cb );
+#else
+        cb( "trace.tracy" );
 #endif
-        }
     }
 
     ImGui::SameLine( 0, 2 * ty );
@@ -169,7 +161,7 @@ bool View::DrawConnection()
     }
 
     ImGui::SameLine();
-    if( ImGui::Button( ICON_FA_EXCLAMATION_TRIANGLE " Discard" ) )
+    if( ImGui::Button( ICON_FA_TRIANGLE_EXCLAMATION " Discard" ) )
     {
         ImGui::OpenPopup( "Confirm trace discard" );
     }
@@ -177,7 +169,7 @@ bool View::DrawConnection()
     if( ImGui::BeginPopupModal( "Confirm trace discard", nullptr, ImGuiWindowFlags_AlwaysAutoResize ) )
     {
         ImGui::PushFont( m_bigFont );
-        TextCentered( ICON_FA_EXCLAMATION_TRIANGLE );
+        TextCentered( ICON_FA_TRIANGLE_EXCLAMATION );
         ImGui::PopFont();
         ImGui::TextUnformatted( "All unsaved profiling data will be lost!" );
         ImGui::TextUnformatted( "Are you sure you want to proceed?" );

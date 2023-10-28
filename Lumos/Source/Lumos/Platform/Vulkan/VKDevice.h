@@ -4,7 +4,7 @@
 #include "VKContext.h"
 #include "VKCommandPool.h"
 #include "Graphics/RHI/Definitions.h"
-#include "Core/StringUtilities.h"
+#include "Utilities/StringUtilities.h"
 
 #ifdef USE_VMA_ALLOCATOR
 #ifdef LUMOS_DEBUG
@@ -16,8 +16,8 @@
 
 #include <unordered_set>
 
-#if defined(LUMOS_PROFILE) && defined(TRACY_ENABLE)
-#include <Tracy/TracyVulkan.hpp>
+#if LUMOS_PROFILE && defined(TRACY_ENABLE)
+#include <tracy/public/tracy/TracyVulkan.hpp>
 #endif
 
 namespace Lumos
@@ -153,7 +153,7 @@ namespace Lumos
                 return m_PipelineCache;
             }
 
-#if defined(LUMOS_PROFILE) && defined(TRACY_ENABLE)
+#if LUMOS_PROFILE && defined(TRACY_ENABLE)
             tracy::VkCtx* GetTracyContext(bool present = false);
 #endif
 
@@ -196,7 +196,7 @@ namespace Lumos
 
             static uint32_t s_GraphicsQueueFamilyIndex;
 
-#if defined(LUMOS_PROFILE) && defined(TRACY_ENABLE)
+#if LUMOS_PROFILE && defined(TRACY_ENABLE)
             std::vector<tracy::VkCtx*> m_TracyContext;
             tracy::VkCtx* m_PresentTracyContext;
 #endif

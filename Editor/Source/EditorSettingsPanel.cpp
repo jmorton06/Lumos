@@ -61,11 +61,11 @@ namespace Lumos
             // Call this to fix alignment with columns
             ImGui::AlignTextToFramePadding();
 
-            if(Lumos::ImGuiUtilities::PorpertyTransform("Position", position, itemWidth))
+            if(Lumos::ImGuiUtilities::PropertyTransform("Position", position, itemWidth))
                 transform.SetLocalPosition(position);
 
             ImGui::SameLine();
-            if(Lumos::ImGuiUtilities::PorpertyTransform("Rotation", rotation, itemWidth))
+            if(Lumos::ImGuiUtilities::PropertyTransform("Rotation", rotation, itemWidth))
             {
                 float pitch = Lumos::Maths::Min(rotation.x, 89.9f);
                 pitch       = Lumos::Maths::Max(pitch, -89.9f);
@@ -73,7 +73,7 @@ namespace Lumos
             }
 
             ImGui::SameLine();
-            if(Lumos::ImGuiUtilities::PorpertyTransform("Scale", scale, itemWidth))
+            if(Lumos::ImGuiUtilities::PropertyTransform("Scale", scale, itemWidth))
             {
                 transform.SetLocalScale(scale);
             }

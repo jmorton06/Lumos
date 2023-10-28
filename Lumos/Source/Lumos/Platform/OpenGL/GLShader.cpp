@@ -4,7 +4,7 @@
 #include "Platform/OpenGL/GL.h"
 #include "Core/OS/FileSystem.h"
 #include "Core/OS/FileSystem.h"
-#include "Core/StringUtilities.h"
+#include "Utilities/StringUtilities.h"
 
 #include <glm/gtc/type_ptr.hpp>
 

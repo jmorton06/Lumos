@@ -1,7 +1,9 @@
 #include "Precompiled.h"
 
 #pragma warning(push, 0)
-#include <Tracy/TracyClient.cpp>
+#if LUMOS_PROFILE
+#include <tracy/public/TracyClient.cpp>
+#endif
 
 #ifdef LUMOS_RENDER_API_OPENGL
 #include <glad/src/glad.c>

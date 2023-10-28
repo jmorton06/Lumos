@@ -68,41 +68,84 @@ namespace Lumos
                 ImGui::Columns(1);
                 if(ImGui::CollapsingHeader("Renderer", ImGuiTreeNodeFlags_DefaultOpen))
                 {
-                    ImGui::Columns(2);
-                    ImGuiUtilities::Property("Renderer 2D Enabled", sceneSettings.RenderSettings.Renderer2DEnabled);
-                    ImGuiUtilities::Property("Renderer 3D Enabled", sceneSettings.RenderSettings.Renderer3DEnabled);
-                    ImGuiUtilities::Property("Shadow Enabled", sceneSettings.RenderSettings.ShadowsEnabled);
-                    ImGuiUtilities::Property("Skybox Render Enabled", sceneSettings.RenderSettings.SkyboxRenderEnabled);
-                    ImGuiUtilities::Property("Skybox Mip Level", sceneSettings.RenderSettings.SkyboxMipLevel, 0.0f, 14.0f, 0.01f);
-                    ImGuiUtilities::Property("Debug Renderer Enabled", sceneSettings.RenderSettings.DebugRenderEnabled);
+                    ImGui::Indent();
 
-                    ImGui::Separator();
-                    ImGuiUtilities::Property("FXAA Enabled", sceneSettings.RenderSettings.FXAAEnabled);
-                    ImGuiUtilities::Property("Debanding Enabled", sceneSettings.RenderSettings.DebandingEnabled);
-                    ImGuiUtilities::Property("ChromaticAberation Enabled", sceneSettings.RenderSettings.ChromaticAberationEnabled);
-                    ImGuiUtilities::Property("Filmic Grain Enabled", sceneSettings.RenderSettings.FilmicGrainEnabled);
-                    ImGuiUtilities::Property("Sharpen Enabled", sceneSettings.RenderSettings.SharpenEnabled);
+                    if(ImGui::TreeNodeEx("Renderers", ImGuiTreeNodeFlags_Framed))
+                    {
+                        ImGui::Columns(2);
+                        ImGuiUtilities::Property("Renderer 2D Enabled", sceneSettings.RenderSettings.Renderer2DEnabled);
+                        ImGuiUtilities::Property("Renderer 3D Enabled", sceneSettings.RenderSettings.Renderer3DEnabled);
+                        ImGuiUtilities::Property("Shadow Enabled", sceneSettings.RenderSettings.ShadowsEnabled);
+                        ImGuiUtilities::Property("Skybox Render Enabled", sceneSettings.RenderSettings.SkyboxRenderEnabled);
+                        ImGuiUtilities::Property("Skybox Mip Level", sceneSettings.RenderSettings.SkyboxMipLevel, 0.0f, 14.0f, 0.01f);
+                        ImGuiUtilities::Property("Debug Renderer Enabled", sceneSettings.RenderSettings.DebugRenderEnabled);
+                        ImGui::Columns(1);
+                        ImGui::TreePop();
+                    }
+                    if(ImGui::TreeNodeEx("Post Process", ImGuiTreeNodeFlags_Framed))
+                    {
 
-                    ImGui::Separator();
-                    ImGuiUtilities::Property("Bloom Enabled", sceneSettings.RenderSettings.BloomEnabled);
-                    ImGuiUtilities::Property("Bloom Intensity", sceneSettings.RenderSettings.m_BloomIntensity, -1.0f, -1.0f, 0.1f);
-                    ImGuiUtilities::Property("Bloom Upsample Scale", sceneSettings.RenderSettings.BloomUpsampleScale, -1.0f, -1.0f, 0.1f);
-                    ImGuiUtilities::Property("Bloom Knee", sceneSettings.RenderSettings.BloomKnee, -1.0f, -1.0f, 0.1f);
-                    ImGuiUtilities::Property("Bloom Threshold", sceneSettings.RenderSettings.BloomThreshold, -1.0f, -1.0f, 0.1f);
-                    ImGui::Separator();
+                        auto postprocessSetting = [&](const char* name, const char* checkboxname, bool& value, bool leaf) -> bool
+                        {
+                            ImGui::Columns(1);
+                            ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_FramePadding | ImGuiTreeNodeFlags_AllowOverlap | ImGuiTreeNodeFlags_SpanAvailWidth;
+                            if(leaf)
+                            {
+                                flags |= ImGuiTreeNodeFlags_Leaf;
+                            }
 
-                    ImGuiUtilities::Property("Depth Of Field Enabled", sceneSettings.RenderSettings.DepthOfFieldEnabled);
-                    ImGuiUtilities::Property("Depth Of Field Strength", sceneSettings.RenderSettings.DepthOfFieldStrength);
-                    ImGuiUtilities::Property("Depth Of Field Distance", sceneSettings.RenderSettings.DepthOfFieldDistance);
-                    ImGui::Separator();
-                    // ImGui::BeginDisabled();
-                    ImGuiUtilities::Property("SSAO Enabled", sceneSettings.RenderSettings.SSAOEnabled);
-                    ImGuiUtilities::Property("SSAO Sample Radius", sceneSettings.RenderSettings.SSAOSampleRadius, 0.0f, 16.0f, 0.01f);
-                    ImGuiUtilities::Property("SSAO Blur Radius", sceneSettings.RenderSettings.SSAOBlurRadius, 0, 16);
-                    ImGuiUtilities::Property("SSAO Blur Enabled", sceneSettings.RenderSettings.SSAOBlur);
-                    ImGuiUtilities::Property("SSAO Strength", sceneSettings.RenderSettings.SSAOStrength, 0.0f, 16.0f, 0.01f);
-                    // ImGui::EndDisabled();
-                    ImGui::Separator();
+                            bool open = ImGui::TreeNodeEx(name, flags);
+                            ImGui::SameLine(ImGui::GetWindowContentRegionMax().x - ImGui::CalcTextSize("AA").x * 2.0f);
+                            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.7f, 0.7f, 0.7f, 0.0f));
+                            ImGui::Checkbox(checkboxname, &value);
+                            ImGui::PopStyleColor();
+
+                            if(leaf)
+                                ImGui::TreePop();
+                            ImGui::Columns(2);
+                            return open;
+                        };
+
+                        ImGui::Columns(2);
+                        postprocessSetting("FXAA", "##FXAA", sceneSettings.RenderSettings.FXAAEnabled, true);
+                        postprocessSetting("Debanding", "##Debanding", sceneSettings.RenderSettings.DebandingEnabled, true);
+                        postprocessSetting("Chromatic Aberation", "##ChromaticAberation", sceneSettings.RenderSettings.ChromaticAberationEnabled, true);
+                        postprocessSetting("Filmic Grain", "##FilmicGrain", sceneSettings.RenderSettings.FilmicGrainEnabled, true);
+                        postprocessSetting("Sharpen", "##Sharpen", sceneSettings.RenderSettings.SharpenEnabled, true);
+
+                        bool open = postprocessSetting("Bloom", "##Bloom", sceneSettings.RenderSettings.BloomEnabled, false);
+                        if(open)
+                        {
+                            ImGuiUtilities::Property("Bloom Intensity", sceneSettings.RenderSettings.m_BloomIntensity, -1.0f, -1.0f, 0.1f);
+                            ImGuiUtilities::Property("Bloom Upsample Scale", sceneSettings.RenderSettings.BloomUpsampleScale, -1.0f, -1.0f, 0.1f);
+                            ImGuiUtilities::Property("Bloom Knee", sceneSettings.RenderSettings.BloomKnee, -1.0f, -1.0f, 0.1f);
+                            ImGuiUtilities::Property("Bloom Threshold", sceneSettings.RenderSettings.BloomThreshold, -1.0f, -1.0f, 0.1f);
+                            ImGui::TreePop();
+                        }
+
+                        open = postprocessSetting("Depth Of Field", "##DepthOfField", sceneSettings.RenderSettings.DepthOfFieldEnabled, false);
+                        if(open)
+                        {
+                            ImGuiUtilities::Property("DOF Strength", sceneSettings.RenderSettings.DepthOfFieldStrength);
+                            ImGuiUtilities::Property("DOF Distance", sceneSettings.RenderSettings.DepthOfFieldDistance);
+                            ImGui::TreePop();
+                        }
+
+                        ImGui::BeginDisabled();
+                        open = postprocessSetting("SSAO", "##SSAO", sceneSettings.RenderSettings.SSAOEnabled, false);
+                        if(open)
+                        {
+                            ImGuiUtilities::Property("SSAO Sample Radius", sceneSettings.RenderSettings.SSAOSampleRadius, 0.0f, 16.0f, 0.01f);
+                            ImGuiUtilities::Property("SSAO Blur Radius", sceneSettings.RenderSettings.SSAOBlurRadius, 0, 16);
+                            ImGuiUtilities::Property("SSAO Blur Enabled", sceneSettings.RenderSettings.SSAOBlur);
+                            ImGuiUtilities::Property("SSAO Strength", sceneSettings.RenderSettings.SSAOStrength, 0.0f, 16.0f, 0.01f);
+                            ImGui::TreePop();
+                        }
+
+                        ImGui::EndDisabled();
+                        ImGui::Columns(1);
+                        ImGui::TreePop();
+                    }
 
                     static const char* toneMaps[7] = {
                         "None",
@@ -114,6 +157,7 @@ namespace Lumos
                         "Aces"
                     };
 
+                    ImGui::Columns(2);
                     ImGuiUtilities::PropertyDropdown("ToneMap", toneMaps, 7, (int*)&m_CurrentScene->GetSettings().RenderSettings.m_ToneMapIndex);
                     ImGuiUtilities::Property("Brightness", sceneSettings.RenderSettings.Brightness, -1.0f, 1.0f, 0.01f);
                     ImGuiUtilities::Property("Contrast", sceneSettings.RenderSettings.Contrast, 0.0f, 2.0f, 0.01f);
@@ -134,6 +178,8 @@ namespace Lumos
                         "Post Process"
                     };
                     ImGuiUtilities::PropertyDropdown("Debug View Mode", debugModes, 7, (int*)&sceneSettings.RenderSettings.DebugMode);
+                    ImGui::Columns(1);
+                    ImGui::Unindent();
                 }
 
                 ImGui::Columns(1);

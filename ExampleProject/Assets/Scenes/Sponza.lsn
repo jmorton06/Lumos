@@ -333,9 +333,9 @@
             "ptr_wrapper": {
                 "valid": 1,
                 "data": {
-                    "Albedo": "NULL",
-                    "Normal": "NULL",
-                    "Metallic": "NULL",
+                    "Albedo": "",
+                    "Normal": "",
+                    "Metallic": "",
                     "Roughness": "",
                     "Ao": "",
                     "Emissive": "",
@@ -405,12 +405,12 @@
             "ptr_wrapper": {
                 "valid": 1,
                 "data": {
-                    "Albedo": "NULL",
-                    "Normal": "NULL",
-                    "Metallic": "NULL",
+                    "Albedo": "",
+                    "Normal": "",
+                    "Metallic": "",
                     "Roughness": "",
-                    "Ao": "NULL",
-                    "Emissive": "NULL",
+                    "Ao": "",
+                    "Emissive": "",
                     "albedoColour": {
                         "value0": 1.0,
                         "value1": 1.0,

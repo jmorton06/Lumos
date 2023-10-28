@@ -2,6 +2,214 @@ Note: There is no guarantee that version mismatched client and server will
 be able to talk with each other. Network protocol breakages won't be listed
 here.
 
+v0.10.0 (2023-10-16)
+--------------------
+
+- Missed frames region of on-demand captures will be now ignored when
+  calculating trace time span, zone percentages, etc.
+  - Due to technicalities information about locks, frame statistics in trace
+    information window and csvexport utility still include the missed frames
+    time.
+- When source location dynamic zone coloring mode is enabled, collapsed
+  zones will be now gray-colored. Previously such regions falled back to
+  showing thread colors, which may have been confusing to users.
+- Vulkan contexts can now use VK_EXT_host_query_reset extension.
+- System power usage is now reported on x86 Linux.
+- Program name displayed in broadcast messages can be now changed with the
+  TracySetProgramName() macro.
+- Zone error markers (red regions and error bars) have been removed for
+  consistency with how all other profiling events are displayed.
+- It is now possible to export messages in the csvexport utility.
+- Major overhaul of how timeline items are processed in GUI.
+  - The process of figuring out what needs to be drawn on the timeline has
+    been heavily parallelized.
+  - The impact is especially visible with traces containing large amounts
+    of data. The framerate improvement in such cases can be ~30x.
+  - Consequently, the profiler GUI will now produce multi-core spikes when
+    rendering frames. This may have impact on the profiled application's
+    performance, if both the application and the profiler GUI are running
+    on the same machine. If this is a problem, you may consider the capture
+    utility instead, which is not affected by these changes. Alternatively,
+    you may disable parallelization in the options menu.
+  - Most of the timeline item logic has been written from scratch, which
+    may have taken care of some elusive bugs.
+- Added global configuration settings dialog. You can find it in the
+  profiler's about menu (the wrench icon in the welcome dialog).
+- List of found zones in the Find zone menu can be filtered by user text.
+- Fixed div-by-zero in cvsexport utility when there was only one zone of
+  a kind.
+- Fixed compatibility problems with FreeBSD.
+- Added support for dynamically loaded Vulkan symbols.
+- Trace description or filename is now displayed on the window title bar.
+- The csvexport utility will now export thread id data.
+- Improved compatibility with MSVC projects not defining NOMINMAX.
+- Improved compatibility with Linux setups targeting musl as libc.
+- Thread safety of Vulkan instrumentation has been reviewed.
+- D3D11 and D3D12 instrumentation was rewritten.
+- Added support for efficient profiling when running under rr, the record-
+  replaying debugger. This is enabled with TRACY_PATCHABLE_NOPSLEDS define.
+- History of viewed symbols is now preserved and you can go back to
+  previously displayed entries.
+
+
+v0.9.1 (2023-02-26)
+-------------------
+
+- Support for pre-0.8 traces has been dropped.
+- Profiled programs will ignore dlclose() calls.
+- Added warning when the profiler interface is run with privilege elevation.
+  Advice is given to instead run the client with admin rights.
+- Switched to official ZEN4 uarch data.
+- Handle cases when thread name is set, but not through Tracy facilities.
+- Allow customization of source location data through the following macros:
+  - TracyFunction - defaults to __FUNCTION__
+  - TracyFile - defaults to __FILE__
+  - TracyLine - defaults to __LINE__
+- Tracy on Linux now targets and requires Wayland by default.
+  - Please don't ask about window decorations on Gnome. Current behavior is
+    the intended behavior. Gnome does not want windows to have decorations,
+    and Tracy respects this choice. If you find this problematic, use a
+    desktop environment that actually listens to its users.
+  - Pass LEGACY=1 parameter to make, if you want to instead rely on the GLFW
+    library, like before.
+  - Other platforms still use GLFW.
+- Compare traces menu can now display source code differences between two
+  traces.
+- Assembly listings saved to files have been improved.
+  - Listings are now annotated with source line information.
+  - To improve compatibility with external tools comments are now prefixed
+    with '#' instead of ';'.
+- Histogram tooltip will now also show left/right counts.
+- Tracy now actively manages timeline vertical scroll offset in order to keep
+  the thread under the mouse cursor in the same place on screen.
+- Removed support for AT&T assembly syntax.
+- Tracy will not display notification if the file selector can't be used.
+  Possible reasons for failure include lack of xdg-desktop-portal.
+- Using the TRACY_NO_CRASH_HANDLER define will disable handling of
+  application crashes by the profiler.
+- Tracy will now query jump and call target addresses. This enables discovery
+  of target function names, even if such function has no samples and is not
+  present in any call stack.
+
+
+v0.9.0 (2022-10-26)
+-------------------
+
+- Attention! All the header and source files used for integrating Tracy with
+  applications were moved to the public/ directory. This will break your
+  integration!
+  - To fix this, update the source and include directories lists to point to
+    the new location.
+  - Tracy include files directly referenced by the client were moved to
+    tracy/ subdirectory, to facilitate setups which previously had Tracy
+    checkout parent directory in the include paths list (i.e. when you
+    included "tracy/Tracy.hpp").
+  - Previously, if you have included the Tracy checkout directory in your
+    project include directories list (i.e. you could include "Tracy.hpp"),
+    this could result in third-party library conflicts, e.g. with ImGui.
+    Such scenarios are no longer the case.
+- Tracy macros now require to be terminated with a semicolon.
+- The undocumented ___tracy_demangle() function API has been changed. Please
+  refer to the source code for further instructions.
+- The parameter callback and its registration macro have been extended to
+  include user data pointer. You will need to update your code accordingly.
+- Plots visualization has been improved.
+  - Each plot now has its own color, which can also be defined by the user.
+  - The area below the plot is now optionally filled with a color.
+  - Plots can now also be configured to be staircase instead of smooth. This
+    new setting is appropriate for many inputs where only discrete values
+    make sense, e.g. the memory allocation plot.
+  - The API for TracyPlotConfig() macro has been changed. Please refer to
+    the manual to see how you can fix this.
+- Some text labels in the user interface are now more easy to read.
+- The profiler will now instruct the user in the UI on what can be done, if
+  the send queue is slow to process (typically due to symbol resolution).
+- If a client with an incompatible protocol is discovered, Tracy will now
+  try to show which versions can be used to handle the connection.
+- Messages list in zone info window can now show messages exclusive to the
+  zone, filtering out the messages emitted from child zones.
+- Added capture of vertical synchronization timings on Linux.
+- The range of frame bar colors in the frames overview on top of the screen
+  can be now controlled with the "Target FPS" entry box in the options menu.
+  - The "Draw frame targets" option does not need to be selected.
+  - Previously the hardcoded FPS target thresholds were: 30, 60, 144 FPS.
+  - Currently the FPS target threshold is: half of target, target, twice the
+    target.
+- Reworked the way zone names are shortened.
+  - Previously shortening supported only namespace removal, in a way that
+    didn't consider function parameters or template arguments.
+    - Shortening to one-letter namespace chains is no longer available.
+  - The new shortening rules first perform normalization of the function name.
+    - The function const qualifier is removed.
+    - Common return types are removed.
+    - All function parameters and all template arguments are removed.
+  - The next steps consist of repeated removal of namespaces, starting with
+    the most outermost one.
+    - While the old process was all or nothing, the new implementation by
+      default will dynamically adjust to the space available, trying to show
+      the most context possible.
+  - It is also possible to completely disable shortening, or require that it
+    is always performed in full.
+  - Function name normalization is enabled by default, even if there is space
+    to show full function name. This can be changed in options.
+  - Previously shortening was only applied to the zone names displayed on the
+    timeline. Currently this process will also apply to all other places in
+    the UI where function names are displayed. However, in these cases the
+    function names will only be normalized.
+    - Full function names are still available as tooltips, or in fine print if
+      the normalized name is already displayed in a tooltip.
+    - This functionality is disabled if zone name shortening is disabled.
+- Added context menu for timeline labels. Currently the only option is to hide
+  the selected thread, plot, etc.
+- You can now provide custom source file contents through a profiler callback.
+- Exposed Tracy version to client applications (available through the
+  common/TracyVersion.hpp header file).
+- D3D12 instrumentation is now thread-safe.
+- Timeline can be now navigated with WASD keys.
+- Symbol file paths are now normalized on libbacktrace systems. For example,
+  instead of "/usr/bin/../lib64/gcc/x86_64-pc-linux-gnu/12.2.0/../../../../
+  include/c++/12.2.0/bits/std_mutex.h" Tracy will now report such file as
+  "/usr/include/c++/12.2.0/bits/std_mutex.h".
+- The import-chrome utility interprets Instant (`i`/`I`) events where the
+  `name` field contains the word `frame` as a frame event. The `name` is the
+  frame set name.
+- Frame data won't be displayed if there was no frame instrumentation in the
+  profiling session.
+  - Note that some automated functionality (e.g. vertical synchronization
+    capture) may automatically generate frame data, which will force frames to
+    be displayed.
+- Tracy threads will now be collapsed by default on the timeline.
+- Clicking on a local thread in the CPU data view will make the thread visible
+  and uncollapsed on the timeline.
+- Assembly view is now in color.
+- The profiler UI will no longer unnecessarily redraw the screen if nothing
+  was changed. This should have a profound impact on power usage.
+- Added microarchitecture data for Zen 4.
+- Implemented optional propagation of inline cost down the local call stack.
+  - This feature may be useful when trying to get a general outlook of the
+    cost at the top-level function in the symbol.
+  - It is possible to get nonsense data when this is enabled, for example
+    total cost exceeding 100%. This is by design.
+  - Assembly line costs are not affected.
+- Available clients now also broadcast their PID.
+- Reversed mouse button assignments for jumping to source / assembly line in
+  symbol view. The left mouse button will now focus the target line.
+- Assembly lines tooltip will now display local call stack of inline functions
+  (within the symbol).
+  - Right-clicking the source location entry in assembly line will show the
+    local call stack, along with source code preview of each entry and ability
+    to navigate to any selected inline function.
+- The profiler UI will now indicate that it needs attention if the window is
+  not focused and something interesting happens. For example when a connection
+  is established, or when a saved trace finishes loading, etc. How the
+  attention request is indicated depends on the operating system.
+- Clicking on the red microarchitecture icon in the symbol view assembly pane
+  will switch the selected microarchitecture to one the profiled application
+  was running on.
+- Removed option to display instruction latencies in a graphical form. Latency
+  data is still available in instruction tooltip.
+
+
 v0.8.2 (2022-06-28)
 -------------------
 

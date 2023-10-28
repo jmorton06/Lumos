@@ -132,7 +132,7 @@ namespace Lumos
         }
 
         VKTexture2D::VKTexture2D(TextureDesc parameters, uint32_t width, uint32_t height)
-            : m_FileName("NULL")
+            : m_FileName()
             , m_TextureImage(VK_NULL_HANDLE)
             , m_TextureImageView(VK_NULL_HANDLE)
             , m_TextureSampler(VK_NULL_HANDLE)
@@ -150,7 +150,7 @@ namespace Lumos
         }
 
         VKTexture2D::VKTexture2D(uint32_t width, uint32_t height, void* data, TextureDesc parameters, TextureLoadOptions loadOptions)
-            : m_FileName("NULL")
+            : m_FileName()
             , m_TextureImage(VK_NULL_HANDLE)
             , m_TextureImageView(VK_NULL_HANDLE)
             , m_TextureSampler(VK_NULL_HANDLE)
@@ -419,11 +419,22 @@ namespace Lumos
 
             m_Flags |= TextureFlags::Texture_Sampled;
 
-            if(m_Data == nullptr)
+            if(m_Data == nullptr && !m_FileName.empty())
             {
-                pixels = Lumos::LoadImageFromFile(m_FileName, &m_Width, &m_Height, &bits);
-                if(pixels == nullptr)
+                ImageLoadDesc desc;
+                desc.filePath = m_FileName.c_str();
+
+                bool loaded = Lumos::LoadImageFromFile(desc);
+                if(!loaded || desc.outPixels == nullptr)
                     return false;
+
+                bool hdr;
+                pixels = desc.outPixels;
+                hdr    = desc.isHDR;
+
+                m_Width  = desc.outWidth;
+                m_Height = desc.outHeight;
+                bits     = desc.outBits;
 
                 m_Parameters.format = BitsToFormat(bits);
                 m_Format            = m_Parameters.format;
@@ -1008,11 +1019,12 @@ namespace Lumos
             }
         }
 
-        VKTextureDepth::VKTextureDepth(uint32_t width, uint32_t height)
+        VKTextureDepth::VKTextureDepth(uint32_t width, uint32_t height, RHIFormat format)
             : m_Width(width)
             , m_Height(height)
             , m_TextureImageView(VK_NULL_HANDLE)
             , m_TextureSampler(VK_NULL_HANDLE)
+            , m_Format(format)
         {
             Init();
         }
@@ -1051,9 +1063,11 @@ namespace Lumos
         void VKTextureDepth::Init()
         {
             LUMOS_PROFILE_FUNCTION();
-            VkFormat depthFormat = VKUtilities::FindDepthFormat();
-            m_VKFormat           = depthFormat;
-            m_Format             = VKUtilities::VKToFormat(depthFormat);
+            // VkFormat depthFormat = VKUtilities::FindDepthFormat();
+            // m_VKFormat           = depthFormat;
+            // m_Format             = VKUtilities::VKToFormat(depthFormat);
+
+            m_VKFormat = VKUtilities::FormatToVK(m_Format);
 
 #ifdef USE_VMA_ALLOCATOR
             Graphics::CreateImage(m_Width, m_Height, 1, m_VKFormat, VK_IMAGE_TYPE_2D, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_TextureImage, m_TextureImageMemory, 1, 0, m_Allocation);
@@ -1134,10 +1148,11 @@ namespace Lumos
             Init();
         }
 
-        VKTextureDepthArray::VKTextureDepthArray(uint32_t width, uint32_t height, uint32_t count)
+        VKTextureDepthArray::VKTextureDepthArray(uint32_t width, uint32_t height, uint32_t count, RHIFormat format)
             : m_Width(width)
             , m_Height(height)
             , m_Count(count)
+            , m_Format(format)
         {
             VKTextureDepthArray::Init();
         }
@@ -1185,9 +1200,11 @@ namespace Lumos
             LUMOS_PROFILE_FUNCTION();
             m_Flags |= TextureFlags::Texture_DepthStencil;
 
-            VkFormat depthFormat = VKUtilities::FindDepthFormat();
-            m_VKFormat           = VK_FORMAT_D32_SFLOAT; // depthFormat;
-            m_Format             = VKUtilities::VKToFormat(m_VKFormat);
+            // VkFormat depthFormat = VKUtilities::FindDepthFormat();
+            // m_VKFormat           = VK_FORMAT_D32_SFLOAT; // depthFormat;
+            // m_Format             = VKUtilities::VKToFormat(m_VKFormat);
+
+            m_VKFormat = VKUtilities::FormatToVK(m_Format);
 
 #ifdef USE_VMA_ALLOCATOR
             Graphics::CreateImage(m_Width, m_Height, 1, m_VKFormat, VK_IMAGE_TYPE_2D, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_TextureImage, m_TextureImageMemory, m_Count, 0, m_Allocation);
@@ -1316,14 +1333,14 @@ namespace Lumos
             return new VKTextureCube(files, mips, params, loadOptions);
         }
 
-        TextureDepth* VKTextureDepth::CreateFuncVulkan(uint32_t width, uint32_t height)
+        TextureDepth* VKTextureDepth::CreateFuncVulkan(uint32_t width, uint32_t height, RHIFormat format)
         {
-            return new VKTextureDepth(width, height);
+            return new VKTextureDepth(width, height, format);
         }
 
-        TextureDepthArray* VKTextureDepthArray::CreateFuncVulkan(uint32_t width, uint32_t height, uint32_t count)
+        TextureDepthArray* VKTextureDepthArray::CreateFuncVulkan(uint32_t width, uint32_t height, uint32_t count, RHIFormat format)
         {
-            return new VKTextureDepthArray(width, height, count);
+            return new VKTextureDepthArray(width, height, count, format);
         }
 
         void VKTexture2D::MakeDefault()

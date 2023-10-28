@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Sound.h"
-#include "Core/StringUtilities.h"
+#include "Utilities/StringUtilities.h"
 #include "Core/OS/FileSystem.h"
 #include <cereal/cereal.hpp>
 #include <glm/vec3.hpp>

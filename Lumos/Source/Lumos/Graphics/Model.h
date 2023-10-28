@@ -5,15 +5,8 @@
 #include "Core/OS/FileSystem.h"
 #include "Core/Asset.h"
 #include <cereal/cereal.hpp>
-
-namespace ozz
-{
-    namespace animation
-    {
-        class Skeleton;
-        class Animation;
-    }
-}
+#include <ozz/animation/runtime/animation.h>
+#include <ozz/animation/runtime/skeleton.h>
 
 namespace Lumos
 {

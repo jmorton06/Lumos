@@ -4,7 +4,7 @@
 #include "Renderers/RenderPasses.h"
 #include "RHI/Texture.h"
 #include "Core/OS/FileSystem.h"
-#include "Core/StringUtilities.h"
+#include "Utilities/StringUtilities.h"
 
 namespace Lumos
 {

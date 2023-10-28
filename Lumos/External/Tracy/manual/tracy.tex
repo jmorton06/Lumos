@@ -115,8 +115,9 @@ For Tracy to profile your application, you will need to integrate the profiler i
 
 \begin{itemize}
 \item Add the Tracy repository to your project directory.
-\item Add \texttt{project/tracy/TracyClient.cpp} as a source file.
-\item Add \texttt{project/tracy/Tracy.hpp} as an include file.
+\item Tracy source files in the \texttt{project/tracy/public} directory.
+\item Add \texttt{TracyClient.cpp} as a source file.
+\item Add \texttt{tracy/Tracy.hpp} as an include file.
 \item Include \texttt{Tracy.hpp} in every file you are interested in profiling.
 \item Define \texttt{TRACY\_ENABLE} for the \textbf{WHOLE} project.
 \item Add the macro \texttt{FrameMark} at the end of each frame loop.
@@ -137,7 +138,7 @@ There's much more Tracy can do, which can be explored by carefully reading this 
 \section{A quick look at Tracy Profiler}
 \label{quicklook}
 
-Tracy is a real-time, nanosecond resolution \emph{hybrid frame and sampling profiler} that can you can use for remote or embedded telemetry of games and other applications. It can profile CPU\footnote{Direct support is provided for C, C++, and Lua integration. At the same time, third-party bindings to many other languages exist on the internet, such as Rust, Zig, OCaml, Odin, etc.}, GPU\footnote{All major graphic APIs: OpenGL, Vulkan, Direct3D 11/12, OpenCL.}, memory allocations, locks, context switches, automatically attribute screenshots to captured frames, and much more.
+Tracy is a real-time, nanosecond resolution \emph{hybrid frame and sampling profiler} that can you can use for remote or embedded telemetry of games and other applications. It can profile CPU\footnote{Direct support is provided for C, C++, and Lua integration. At the same time, third-party bindings to many other languages exist on the internet, such as Rust, Zig, C\#, OCaml, Odin, etc.}, GPU\footnote{All major graphic APIs: OpenGL, Vulkan, Direct3D 11/12, OpenCL.}, memory allocations, locks, context switches, automatically attribute screenshots to captured frames, and much more.
 
 While Tracy can perform statistical analysis of sampled call stack data, just like other \emph{statistical profilers} (such as VTune, perf, or Very Sleepy), it mainly focuses on manual markup of the source code. Such markup allows frame-by-frame inspection of the program execution. For example, you will be able to see exactly which functions are called, how much time they require, and how they interact with each other in a multi-threaded environment. In contrast, the statistical analysis may show you the hot spots in your code, but it cannot accurately pinpoint the underlying cause for semi-random frame stutter that may occur every couple of seconds.
 
@@ -348,6 +349,7 @@ Tracy can be found at the following web addresses:
 \item Bug tracker -- \url{https://github.com/wolfpld/tracy/issues}
 \item Discord chat -- \url{https://discord.gg/pk78auc}
 \item Sponsoring development -- \url{https://github.com/sponsors/wolfpld/}
+\item Interactive demo -- \url{https://tracy.nereid.pl/}
 \end{itemize}
 
 \subsubsection{Binary distribution}
@@ -387,7 +389,7 @@ You may also try your luck with Mingw, but don't get your hopes too high. This p
 \subsection{Initial client setup}
 \label{initialsetup}
 
-The recommended way to integrate Tracy into an application is to create a git submodule in the repository (assuming that you use git for version control). This way, it is straightforward to update Tracy to newly released versions. If that's not an option, copy all the Tracy checkout directory files to your project.
+The recommended way to integrate Tracy into an application is to create a git submodule in the repository (assuming that you use git for version control). This way, it is straightforward to update Tracy to newly released versions. If that's not an option, all the files required to integrate your application with Tracy are contained in the \texttt{public} directory.
 
 \begin{bclogo}[
 noborder=true,
@@ -404,7 +406,7 @@ You have two options when deciding on the Tracy Profiler version you want to use
 Do note that all bug fixes and pull requests are made against the \texttt{master} branch.
 \end{bclogo}
 
-With the source code included in your project, add the \texttt{tracy/TracyClient.cpp} source file to the IDE project or makefile. You're done. Tracy is now integrated into the application.
+With the source code included in your project, add the \texttt{public/TracyClient.cpp} source file to the IDE project or makefile. You're done. Tracy is now integrated into the application.
 
 In the default configuration, Tracy is disabled. This way, you don't have to worry that the production builds will collect profiling data. To enable profiling, you will probably want to create a separate build configuration, with the \texttt{TRACY\_ENABLE} define.
 
@@ -494,6 +496,8 @@ The client with on-demand profiling enabled needs to perform additional bookkeep
 
 By default, the Tracy client will announce its presence to the local network\footnote{Additional configuration may be required to achieve full functionality, depending on your network layout. Read about UDP broadcasts for more information.}. If you want to disable this feature, define the \texttt{TRACY\_NO\_BROADCAST} macro.
 
+The program name that is sent out in the broadcast messages can be customized by using the \texttt{TracySetProgramName(name)} macro.
+
 \subsubsection{Client network interface}
 
 By default, the Tracy client will listen on all network interfaces. If you want to restrict it to only listening on the localhost interface, define the \texttt{TRACY\_ONLY\_LOCALHOST} macro at compile-time, or set the \texttt{TRACY\_ONLY\_LOCALHOST} environment variable to $1$ at runtime.
@@ -504,7 +508,7 @@ By default, the Tracy client will listen on IPv6 interfaces, falling back to IPv
 
 Things are a bit different in projects that consist of multiple DLLs/shared objects. Compiling \texttt{TracyClient.cpp} into every DLL is not an option because this would result in several instances of Tracy objects lying around in the process. We instead need to pass their instances to the different DLLs to be reused there.
 
-For that, you need a \emph{profiler DLL} to which your executable and the other DLLs link. If that doesn't exist, you have to create one explicitly for Tracy\footnote{You may also look at the \texttt{library} directory in the profiler source tree.}. This library should contain the \texttt{tracy/TracyClient.cpp} source file. Link the executable and all DLLs you want to profile to this DLL.
+For that, you need a \emph{profiler DLL} to which your executable and the other DLLs link. If that doesn't exist, you have to create one explicitly for Tracy\footnote{You may also look at the \texttt{library} directory in the profiler source tree.}. This library should contain the \texttt{public/TracyClient.cpp} source file. Link the executable and all DLLs you want to profile to this DLL.
 
 If you are targeting Windows with Microsoft Visual Studio or MinGW, add the \texttt{TRACY\_IMPORTS} define to your application.
 
@@ -765,6 +769,20 @@ In addition to the beforementioned libraries, you might also have to install the
 
 Installation of the libraries on OSX can be facilitated using the \texttt{brew} package manager.
 
+\subparagraph{Wayland}
+
+Linux builds of Tracy use the Wayland protocol by default, which allows proper support for Hi-DPI scaling and high-precision input devices such as touchpads. As such, the \texttt{glfw} library is no longer needed, but you will have to install \texttt{libxkbcommon}, \texttt{wayland}, \texttt{libglvnd} (or \texttt{libegl} on some distributions).
+
+You can build the profiler the old way on Linux by enabling the \texttt{LEGACY} flag, e.g. by issuing the following build command \texttt{make LEGACY=1}.
+
+\begin{bclogo}[
+noborder=true,
+couleur=black!5,
+logo=\bcbombe
+]{Window decorations}
+Please don't ask about window decorations in Gnome. The current behavior is the intended behavior. Gnome does not want windows to have decorations, and Tracy respects that choice. If you find this problematic, use a desktop environment that actually listens to its users.
+\end{bclogo}
+
 \subsubsection{Build process}
 
 As mentioned earlier, each utility is contained in its own directory, for example \texttt{profiler} or \texttt{capture}\footnote{Other utilities are contained in the \texttt{csvexport}, \texttt{import-chrome} and \texttt{update} directories.}. Where do you go within these directories depends on the operating system you are using.
@@ -795,9 +813,31 @@ The graphic server application will adapt to the system DPI scaling. If for some
 \subsection{Naming threads}
 \label{namingthreads}
 
-Remember to set thread names for proper identification of threads. You should do so by using the function \texttt{tracy::SetThreadName(name)} exposed in the \texttt{tracy/common/TracySystem.hpp} header, as the system facilities typically have limited functionality.
+Remember to set thread names for proper identification of threads. You should do so by using the function \texttt{tracy::SetThreadName(name)} exposed in the \texttt{public/common/TracySystem.hpp} header, as the system facilities typically have limited functionality.
 
 Tracy will try to capture thread names through operating system data if context switch capture is active. However, this is only a fallback mechanism, and it shouldn't be relied upon.
+
+\subsubsection{Source location data customization}
+
+Some source location data such as function name, file path or line number can be overriden with defines \texttt{TracyFunction}, \texttt{TracyFile}, \texttt{TracyLine}\footnote{By default the macros unwrap to \texttt{\_\_FUNCTION\_\_}, \texttt{\_\_FILE\_\_} and \texttt{\_\_LINE\_\_} respectively.} made before including \texttt{public/tracy/Tracy.hpp} header file\footnote{You should add either \texttt{public} or \texttt{public/tracy} directory from the Tracy root to the include directories list in your project. Then you will be able to \texttt{\#include "tracy/Tracy.hpp"} or \texttt{\#include "Tracy.hpp"}, respectively.}.
+
+\begin{lstlisting}
+#if defined(__clang__) || defined(__GNUC__)
+#  define TracyFunction __PRETTY_FUNCTION__
+#elif defined(_MSC_VER)
+#  define TracyFunction __FUNCSIG__
+#endif
+
+#include <tracy/Tracy.hpp>
+
+...
+
+void Graphics::Render()
+{
+    ZoneScoped;
+    ...
+}
+\end{lstlisting}
 
 \subsection{Crash handling}
 \label{crashhandling}
@@ -843,7 +883,7 @@ Wait stacks & \faCheck & \faCheck & \faCheck & \faTimes & \faPoo & \faTimes \\
 CPU topology information & \faCheck & \faCheck & \faCheck & \faTimes & \faTimes & \faTimes \\
 Call stack sampling & \faCheck & \faCheck & \faCheck & \faTimes & \faPoo & \faTimes \\
 Hardware sampling & \faCheck{}\textsuperscript{\emph{a}} & \faCheck & \faCheck & \faTimes & \faPoo & \faTimes \\
-VSync capture & \faCheck & \faTimes & \faTimes & \faTimes & \faTimes & \faTimes \\
+VSync capture & \faCheck & \faCheck & \faTimes & \faTimes & \faTimes & \faTimes \\
 \end{tabular}
 
 \vspace{1em}
@@ -856,7 +896,7 @@ VSync capture & \faCheck & \faTimes & \faTimes & \faTimes & \faTimes & \faTimes 
 \section{Client markup}
 \label{client}
 
-With the steps mentioned above, you will be able to connect to the profiled program, but there probably won't be any data collection performed\footnote{With some small exceptions, see section~\ref{automated}.}. Unless you're able to perform automatic call stack sampling (see chapter~\ref{sampling}), you will have to instrument the application manually. All the user-facing interface is contained in the \texttt{tracy/Tracy.hpp} header file.
+With the steps mentioned above, you will be able to connect to the profiled program, but there probably won't be any data collection performed\footnote{With some small exceptions, see section~\ref{automated}.}. Unless you're able to perform automatic call stack sampling (see chapter~\ref{sampling}), you will have to instrument the application manually. All the user-facing interface is contained in the \texttt{public/tracy/Tracy.hpp} header file\footnote{You should add either \texttt{public} or \texttt{public/tracy} directory from the Tracy root to the include directories list in your project. Then you will be able to \texttt{\#include "tracy/Tracy.hpp"} or \texttt{\#include "Tracy.hpp"}, respectively.}.
 
 Manual instrumentation is best started with adding markup to the application's main loop, along with a few functions that the loop calls. Such an approach will give you a rough outline of the function's time cost, which you may then further refine by instrumenting functions deeper in the call stack. Alternatively, automated sampling might guide you more quickly to places of interest.
 
@@ -1306,13 +1346,29 @@ If using the \texttt{TracyLockable} or \texttt{TracySharedLockable} wrappers doe
 
 Tracy can capture and draw numeric value changes over time. You may use it to analyze draw call counts, number of performed queries, etc. To report data, use the \texttt{TracyPlot(name, value)} macro.
 
-To configure how plot values are presented by the profiler, you may use the \texttt{TracyPlotConfig(name, format)} macro, where \texttt{format} is one of the following options:
+To configure how plot values are presented by the profiler, you may use the \texttt{TracyPlotConfig(name, format, step, fill, color)} macro, where \texttt{format} is one of the following options:
 
 \begin{itemize}
 \item \texttt{tracy::PlotFormatType::Number} -- values will be displayed as plain numbers.
 \item \texttt{tracy::PlotFormatType::Memory} -- treats the values as memory sizes. Will display kilobytes, megabytes, etc.
 \item \texttt{tracy::PlotFormatType::Percentage} -- values will be displayed as percentage (with value $100$ being equal to $100\%$).
 \end{itemize}
+
+The \texttt{step} parameter determines whether the plot will be displayed as a staircase or will smoothly change between plot points (see figure~\ref{plotconfig}). The \texttt{fill} parameter can be used to disable filling the area below the plot with a solid color.
+
+\begin{figure}[h]
+\centering\begin{tikzpicture}
+[dot/.style={rectangle,draw,scale=0.5}];
+\draw(0, -2) -- (1, -2.3) node[dot]{} -- (1.2, -3) node[dot]{} -- (1.8, -1.2) node[dot]{} -- (2.7, -0.5) node[dot]{} -- (3, -2) node[dot]{} -- (5, -2.5);
+\draw(7, -1.5) -- (8, -1.5) -- (8, -2.3) node[dot]{} -- (8.2, -2.3) -- (8.2, -3) node[dot]{} -- (8.8, -3) -- (8.8, -1.2) node[dot]{} -- (9.7, -1.2) -- (9.7, -0.5) node[dot]{} -- (10, -0.5) -- (10, -2) node[dot]{} -- (12, -2);
+\end{tikzpicture}
+\caption{An identical set of values on a smooth plot (left) and a staircase plot (right).}
+\label{plotconfig}
+\end{figure}
+
+Each plot has its own color, which by default is derived from the plot name (each unique plot name produces its own color, which does not change between profiling runs). If you want to provide your own color instead, you may enter the \texttt{color} parameter. Note that you should set the color value to \texttt{0} if you do not want to set your own color.
+
+For reference, the following command sets the default parameters of the plot (that is, it's a no-op): \texttt{TracyPlotConfig(name, tracy::PlotFormatType::Number, false, true, 0)}.
 
 It is beneficial but not required to use a unique pointer for name string literal (see section~\ref{uniquepointers} for more details).
 
@@ -1435,7 +1491,7 @@ If you experience crippling problems while profiling the GPU, you might get bett
 
 \subsubsection{OpenGL}
 
-You will need to include the \texttt{tracy/TracyOpenGL.hpp} header file and declare each of your rendering contexts using the \texttt{TracyGpuContext} macro (typically, you will only have one context). Tracy expects no more than one context per thread and no context migration. To set a custom name for the context, use the \texttt{TracyGpuContextName(name, size)} macro.
+You will need to include the \texttt{public/tracy/TracyOpenGL.hpp} header file and declare each of your rendering contexts using the \texttt{TracyGpuContext} macro (typically, you will only have one context). Tracy expects no more than one context per thread and no context migration. To set a custom name for the context, use the \texttt{TracyGpuContextName(name, size)} macro.
 
 To mark a GPU zone use the \texttt{TracyGpuZone(name)} macro, where \texttt{name} is a string literal name of the zone. Alternatively you may use \texttt{TracyGpuZoneC(name, color)} to specify zone color.
 
@@ -1455,7 +1511,7 @@ logo=\bcattention
 
 \subsubsection{Vulkan}
 
-Similarly, for Vulkan support you should include the \texttt{tracy/TracyVulkan.hpp} header file. Tracing Vulkan devices and queues is a bit more involved, and the Vulkan initialization macro \texttt{TracyVkContext(physdev, device, queue, cmdbuf)} returns an instance of \texttt{TracyVkCtx} object, which tracks an associated Vulkan queue. Cleanup is performed using the \texttt{TracyVkDestroy(ctx)} macro. You may create multiple Vulkan contexts. To set a custom name for the context, use the \texttt{TracyVkContextName(ctx, name, size)} macro.
+Similarly, for Vulkan support you should include the \texttt{public/tracy/TracyVulkan.hpp} header file. Tracing Vulkan devices and queues is a bit more involved, and the Vulkan initialization macro \texttt{TracyVkContext(physdev, device, queue, cmdbuf)} returns an instance of \texttt{TracyVkCtx} object, which tracks an associated Vulkan queue. Cleanup is performed using the \texttt{TracyVkDestroy(ctx)} macro. You may create multiple Vulkan contexts. To set a custom name for the context, use the \texttt{TracyVkContextName(ctx, name, size)} macro.
 
 The physical device, logical device, queue, and command buffer must relate to each other. The queue must support graphics or compute operations. The command buffer must be in the initial state and be able to be reset. The profiler will rerecord and submit it to the queue multiple times, and it will be in the executable state on exit from the initialization function.
 
@@ -1469,9 +1525,21 @@ In order to maintain synchronization between CPU and GPU time domains, you will 
 
 To enable calibrated context, replace the macro \texttt{TracyVkContext} with \texttt{TracyVkContextCalibrated} and pass the two functions as additional parameters, in the order specified above.
 
+\subparagraph{Using Vulkan 1.2 features}
+
+Vulkan 1.2 and \texttt{VK\_EXT\_host\_query\_reset} provide mechanics to reset the query pool without the need of a command buffer. By using \texttt{TracyVkContextHostCalibrated} you can make use of this feature. It only requires a function pointer to \texttt{vkResetQueryPool} in addition to the ones required for \texttt{TracyVkContextCalibrated} instead of the VkQueue and VkCommandBuffer handles.
+
+However, using this feature requires the physical device to have calibrated device and host time domains. In addition to \texttt{VK\_TIME\_DOMAIN\_DEVICE\_EXT}, \texttt{vkGetPhysicalDeviceCalibrateableTimeDomainsEXT} will have to additionally return either \texttt{VK\_TIME\_DOMAIN\_CLOCK\_MONOTONIC\_RAW\_EXT} or \texttt{VK\_TIME\_DOMAIN\_QUERY\_PERFORMANCE\_COUNTER\_EXT} for Unix and Windows, respectively. If this is not the case, you will need to use \texttt{TracyVkContextCalibrated} or \texttt{TracyVkContext} macro instead.
+
+\subparagraph{Dynamically loading the Vulkan symbols}
+
+Some applications dynamically link the Vulkan loader, and manage a local symbol table, to remove the trampoline overhead of calling through the Vulkan loader itself.
+
+When \texttt{TRACY\_VK\_USE\_SYMBOL\_TABLE} is defined the signature of \texttt{TracyVkContext}, \texttt{TracyVkContextCalibrated}, and \texttt{TracyVkContextHostCalibrated} are adjusted to take in the \texttt{VkInstance}, \texttt{PFN\_vkGetInstanceProcAddr}, and \texttt{PFN\_vkGetDeviceProcAddr} to enable constructing a local symbol table to be used to call through the Vulkan API when tracing.
+
 \subsubsection{Direct3D 11}
 
-To enable Direct3D 11 support, include the \texttt{tracy/TracyD3D11.hpp} header file, and create a \texttt{TracyD3D11Ctx} object with the \texttt{TracyD3D11Context(device, devicecontext)} macro. The object should later be cleaned up with the \texttt{TracyD3D11Destroy} macro. Tracy does not support D3D11 command lists. To set a custom name for the context, use the \texttt{TracyGpuContextName(name, size)} macro.
+To enable Direct3D 11 support, include the \texttt{public/tracy/TracyD3D11.hpp} header file, and create a \texttt{TracyD3D11Ctx} object with the \texttt{TracyD3D11Context(device, devicecontext)} macro. The object should later be cleaned up with the \texttt{TracyD3D11Destroy} macro. Tracy does not support D3D11 command lists. To set a custom name for the context, use the \texttt{TracyGpuContextName(name, size)} macro.
 
 To mark a GPU zone, use the \texttt{TracyD3D11Zone(name)} macro, where \texttt{name} is a string literal name of the zone. Alternatively you may use \texttt{TracyD3D11ZoneC(name, color)} to specify zone color.
 
@@ -1479,7 +1547,7 @@ You also need to periodically collect the GPU events using the \texttt{TracyD3D1
 
 \subsubsection{Direct3D 12}
 
-To enable Direct3D 12 support, include the \texttt{tracy/TracyD3D12.hpp} header file. Tracing Direct3D 12 queues is nearly on par with the Vulkan implementation, where a \texttt{TracyD3D12Ctx} is returned from a call to \texttt{TracyD3D12Context(device, queue)}, which should be later cleaned up with the \texttt{TracyD3D12Destroy(ctx)} macro. Multiple contexts can be created, each with any queue type. To set a custom name for the context, use the \texttt{TracyD3D12ContextName(ctx, name, size)} macro.
+To enable Direct3D 12 support, include the \texttt{public/tracy/TracyD3D12.hpp} header file. Tracing Direct3D 12 queues is nearly on par with the Vulkan implementation, where a \texttt{TracyD3D12Ctx} is returned from a call to \texttt{TracyD3D12Context(device, queue)}, which should be later cleaned up with the \texttt{TracyD3D12Destroy(ctx)} macro. Multiple contexts can be created, each with any queue type. To set a custom name for the context, use the \texttt{TracyD3D12ContextName(ctx, name, size)} macro.
 
 The queue must have been created through the specified device, however, a command list is not needed for this stage.
 
@@ -1493,7 +1561,7 @@ Direct3D 12 contexts are always calibrated.
 
 \subsubsection{OpenCL}
 
-OpenCL support is achieved by including the \texttt{tracy/TracyOpenCL.hpp} header file. Tracing OpenCL requires the creation of a Tracy OpenCL context using the macro \texttt{TracyCLContext(context, device)}, which will return an instance of \texttt{TracyCLCtx} object that must be used when creating zones. The specified \texttt{device} must be part of the \texttt{context}. Cleanup is performed using the \texttt{TracyCLDestroy(ctx)} macro. Although not common, it is possible to create multiple OpenCL contexts for the same application. To set a custom name for the context, use the \texttt{TracyCLContextName(ctx, name, size)} macro.
+OpenCL support is achieved by including the \texttt{public/tracy/TracyOpenCL.hpp} header file. Tracing OpenCL requires the creation of a Tracy OpenCL context using the macro \texttt{TracyCLContext(context, device)}, which will return an instance of \texttt{TracyCLCtx} object that must be used when creating zones. The specified \texttt{device} must be part of the \texttt{context}. Cleanup is performed using the \texttt{TracyCLDestroy(ctx)} macro. Although not common, it is possible to create multiple OpenCL contexts for the same application. To set a custom name for the context, use the \texttt{TracyCLContextName(ctx, name, size)} macro.
 
 To mark an OpenCL zone one must make sure that a valid OpenCL \texttt{cl\_event} object is available. The event will be the object that Tracy will use to query profiling information from the OpenCL driver. For this to work, you must create all OpenCL queues with the \texttt{CL\_QUEUE\_PROFILING\_ENABLE} property.
 
@@ -1668,7 +1736,7 @@ On Linux\footnote{And possibly other systems, if they decide to adapt the requir
 
 A modern alternative to installing static debug packages is to use the \emph{debuginfod} system, which performs on-demand delivery of debugging information across the internet. See \url{https://sourceware.org/elfutils/Debuginfod.html} for more details. Since this new method of symbol delivery is not yet universally supported, you will have to manually enable it, both in your system and in Tracy.
 
-First, make sure your distribution maintains a debuginfod server. Then, install the debuginfod library. You also need to ensure you have appropriately configured which server to access, but distribution maintainers usually provide this. Next, add the \texttt{TRACY\_DEBUGINFOD} define to the program you want to profile and link it with \texttt{libdebuginfod}. This will enable network symbol delivery.
+First, make sure your distribution maintains a debuginfod server. Then, install the \texttt{debuginfod} library. You also need to ensure you have appropriately configured which server to access, but distribution maintainers usually provide this. Next, add the \texttt{TRACY\_DEBUGINFOD} define to the program you want to profile and link it with \texttt{libdebuginfod}. This will enable network delivery of symbols and source file contents. However, the first run (including after a system update) may be slow to respond until the local debuginfod cache becomes filled.
 
 \paragraph{Using the dbghelp library on Windows}
 
@@ -1702,7 +1770,7 @@ Inline frames retrieval on Windows can be multiple orders of magnitude slower th
 
 \subsection{Lua support}
 
-To profile Lua code using Tracy, include the \texttt{tracy/TracyLua.hpp} header file in your Lua wrapper and execute \texttt{tracy::LuaRegister(lua\_State*)} function to add instrumentation support.
+To profile Lua code using Tracy, include the \texttt{public/tracy/TracyLua.hpp} header file in your Lua wrapper and execute \texttt{tracy::LuaRegister(lua\_State*)} function to add instrumentation support.
 
 In the Lua code, add \texttt{tracy.ZoneBegin()} and \texttt{tracy.ZoneEnd()} calls to mark execution zones. You need to call the \texttt{ZoneEnd} method because there is no automatic destruction of variables in Lua, and we don't know when the garbage collection will be performed. \emph{Double check if you have included all return paths!}
 
@@ -1776,7 +1844,7 @@ Even if Tracy is disabled, you still have to pay the no-op function call cost. T
 \subsection{C API}
 \label{capi}
 
-To profile code written in C programming language, you will need to include the \texttt{tracy/TracyC.h} header file, which exposes the C API.
+To profile code written in C programming language, you will need to include the \texttt{public/tracy/TracyC.h} header file, which exposes the C API.
 
 At the moment, there's no support for C API based markup of locks, GPU zones, or Lua.
 
@@ -1818,7 +1886,7 @@ The following macros mark the beginning of a zone:
 
 Refer to sections~\ref{markingzones} and~\ref{multizone} for description of macro variants and parameters. The \texttt{ctx} parameter specifies the name of a data structure, which the macro will create on the stack to hold the internal zone data.
 
-Unlike C++, there's no automatic destruction mechanism in C, so you will need to mark where the zone ends manually. To do so use the \texttt{TracyCZoneEnd(ctx)} macro.
+Unlike C++, there's no automatic destruction mechanism in C, so you will need to mark where the zone ends manually. To do so use the \texttt{TracyCZoneEnd(ctx)} macro.\footnote{GCC and Clang provide \texttt{\_\_attribute\_\_((cleanup))} which can used to run a function when a variable goes out of scope.}
 
 Zone text and name may be set by using the \texttt{TracyCZoneText(ctx, txt, size)}, \texttt{TracyCZoneValue(ctx, value)} and \texttt{TracyCZoneName(ctx, txt, size)} macros. Make sure you are following the zone stack rules, as described in section~\ref{multizone}!
 
@@ -1870,6 +1938,8 @@ To send additional markup in form of plot data points or messages use the follow
 
 \begin{itemize}
 \item \texttt{TracyCPlot(name, val)}
+\item \texttt{TracyCPlotF(name, val)}
+\item \texttt{TracyCPlotI(name, val)}
 \item \texttt{TracyCMessage(txt, size)}
 \item \texttt{TracyCMessageL(txt)}
 \item \texttt{TracyCMessageC(txt, size, color)}
@@ -2107,24 +2177,26 @@ couleur=black!5,
 logo=\bcbombe
 ]{Important}
 For proper program code retrieval, you can unload no module used by the application during the runtime. See section~\ref{datalifetime} for an explanation.
+
+On Linux, Tracy will override the \texttt{dlclose} function call to prevent shared objects from being unloaded. Note that in a well-behaved program this shouldn't have any effect, as calling \texttt{dlclose} does not guarantee that the shared object will be unloaded.
 \end{bclogo}
 
 \subsubsection{Vertical synchronization}
 
-On Windows, Tracy will automatically capture hardware Vsync events if running with elevated privileges (see section~\ref{privilegeelevation}). These events will be reported as '\texttt{[x] Vsync}' frame sets, where \texttt{x} is the identifier of a specific monitor. Note that hardware vertical synchronization might not correspond to the one seen by your application due to desktop composition, command queue buffering, etc.
+On Windows and Linux, Tracy will automatically capture hardware Vsync events, provided that the application has access to the kernel data (privilege elevation may be needed, see section~\ref{privilegeelevation}). These events will be reported as '\texttt{[x] Vsync}' frame sets, where \texttt{x} is the identifier of a specific monitor. Note that hardware vertical synchronization might not correspond to the one seen by your application due to desktop composition, command queue buffering, and so on. Also, in some instances, when there is nothing to update on the screen, the graphic driver may choose to stop issuing screen refresh. As a result, there may be periods where no vertical synchronization events are reported.
 
 Use the \texttt{TRACY\_NO\_VSYNC\_CAPTURE} macro to disable capture of Vsync events.
 
 \subsection{Trace parameters}
 \label{traceparameters}
 
-Sometimes it is desired to change how the profiled application behaves during the profiling run. For example, you may want to enable or disable the capture of frame images without recompiling and restarting your program. To be able to do so you must register a callback function using the \texttt{TracyParameterRegister(callback)} macro, where \texttt{callback} is a function conforming to the following signature:
+Sometimes it is desired to change how the profiled application behaves during the profiling run. For example, you may want to enable or disable the capture of frame images without recompiling and restarting your program. To be able to do so you must register a callback function using the \texttt{TracyParameterRegister(callback, data)} macro, where \texttt{callback} is a function conforming to the following signature:
 
 \begin{lstlisting}
-void Callback(uint32_t idx, int32_t val)
+void Callback(void* data, uint32_t idx, int32_t val)
 \end{lstlisting}
 
-The \texttt{idx} argument is an user-defined parameter index and \texttt{val} is the value set in the profiler user interface.
+The \texttt{data} parameter will have the same value as was specified in the macro. The \texttt{idx} argument is an user-defined parameter index and \texttt{val} is the value set in the profiler user interface.
 
 To specify individual parameters, use the \texttt{TracyParameterSetup(idx, name, isBool, val)} macro. The \texttt{idx} value will be passed to the callback function for identification purposes (Tracy doesn't care what it's set to). \texttt{Name} is the parameter label,  displayed on the list of parameters. Finally, \texttt{isBool} determines if \texttt{val} should be interpreted as a boolean value, or as an integer number.
 
@@ -2135,6 +2207,20 @@ logo=\bcbombe
 ]{Important}
 Usage of trace parameters makes profiling runs dependent on user interaction with the profiler, and thus it's not recommended to be employed if a consistent profiling environment is desired. Furthermore, interaction with the parameters is only possible in the graphical profiling application but not in the command line capture utility.
 \end{bclogo}
+
+\subsection{Source contents callback}
+
+Tracy performs several data discovery attempts to show you the source file contents associated with the executed program, which is explained in more detail in chapter~\ref{sourceview}. However, sometimes the source files cannot be accessed without your help. For example, you may want to profile a script that is loaded by the game and which only resides in an archive accessible only by your program. Accordingly, Tracy allows inserting your own custom step at the end of the source discovery chain, with the \texttt{TracySourceCallbackRegister(callback, data)} macro, where \texttt{callback} is a function conforming to the following signature:
+
+\begin{lstlisting}
+char* Callback(void* data, const char* filename, size_t& size)
+\end{lstlisting}
+
+The \texttt{data} parameter will have the same value as was specified in the macro. The \texttt{filename} parameter contains the file name of the queried source file. Finally, the \texttt{size} parameter is used only as an out-value and does not contain any functional data.
+
+The return value must be \texttt{nullptr} if the input file name is not accessible to the client application. If the file can be accessed, then the data size must be stored in the \texttt{size} parameter, and the file contents must be returned in a buffer allocated with the \texttt{tracy::tracy\_malloc\_fast(size)} function. Buffer contents do not need to be null-terminated. If for some reason the already allocated buffer can no longer be used, it must be freed with the \texttt{tracy::tracy\_free\_fast(ptr)} function.
+
+Transfer of source files larger than some unspecified, but reasonably large\footnote{Let's say around 256~KB sounds reasonable.} threshold won't be performed.
 
 \subsection{Connection status}
 \label{connectionstatus}
@@ -2181,7 +2267,7 @@ The client \emph{address entry} field and the \faWifi{}~\emph{Connect} button ar
 
 If you want to open a trace that you have stored on the disk, you can do so by pressing the \faFolderOpen{}~\emph{Open saved trace} button.
 
-The \emph{discovered clients} list is only displayed if clients are broadcasting their presence on the local network\footnote{Only on IPv4 network and only within the broadcast domain.}. Each entry shows the client's address\footnote{Either as an IP address or as a hostname, if able to resolve.} (and port, if different from the default one), how long the client has been running, and the name of the profiled application. Clicking on an entry will connect to the client. Incompatible clients are grayed out and can't be connected to. Clicking on the \emph{\faFilter{}~Filter} toggle button will display client filtering input fields, allowing removal of the displayed entries according to their address, port number, or program name. If filters are active, a yellow \faExclamationTriangle{}~warning icon will be displayed.
+The \emph{discovered clients} list is only displayed if clients are broadcasting their presence on the local network\footnote{Only on IPv4 network and only within the broadcast domain.}. Each entry shows the client's address\footnote{Either as an IP address or as a hostname, if able to resolve.} (and port, if different from the default one), how long the client has been running, and the name of the profiled application. Clicking on an entry will connect to the client. Incompatible clients are grayed out and can't be connected to, but Tracy will suggest a compatible version, if able. Clicking on the \emph{\faFilter{}~Filter} toggle button will display client filtering input fields, allowing removal of the displayed entries according to their address, port number, or program name. If filters are active, a yellow \faExclamationTriangle{}~warning icon will be displayed.
 
 \begin{figure}[h]
 \centering\begin{tikzpicture}
@@ -2494,7 +2580,7 @@ The control menu (top row of buttons) provides access to various profiler featur
 \item \emph{\faSearchPlus{}~Display scale} -- Enables run-time resizing of the displayed content. This may be useful in environments with potentially reduced visibility, e.g. during a presentation. Note that this setting is independent to the UI scaling coming from the system DPI settings.
 \end{itemize}
 
-The frame information block consists of four elements: the current frame set name along with the number of captured frames (click on it with the \LMB{}~left mouse button to go to a specified frame), the two navigational buttons \faCaretLeft{} and \faCaretRight{}, which allow you to focus the timeline view on the previous or next frame, and the frame set selection button \faCaretDown{}, which is used to switch to another frame set\footnote{See section~\ref{framesets} for another way to change the active frame set.}. For more information about marking frames, see section~\ref{markingframes}.
+The frame information block\footnote{Visible only if frame instrumentation was included in the capture.} consists of four elements: the current frame set name along with the number of captured frames (click on it with the \LMB{}~left mouse button to go to a specified frame), the two navigational buttons \faCaretLeft{} and \faCaretRight{}, which allow you to focus the timeline view on the previous or next frame, and the frame set selection button \faCaretDown{}, which is used to switch to another frame set\footnote{See section~\ref{framesets} for another way to change the active frame set.}. For more information about marking frames, see section~\ref{markingframes}.
 
 The following three items show the \emph{\faEye{}~view time range}, the \emph{\faDatabase{}~time span} of the whole capture (clicking on it with the \MMB{} middle mouse button will set the view range to the entire capture), and the \emph{\faMemory{}~memory usage} of the profiler.
 
@@ -2566,12 +2652,12 @@ The graph of the currently selected frame set (figure~\ref{frametime}) provides 
 \label{frametime}
 \end{figure}
 
-Each bar displayed on the graph represents a unique frame in the current frame set\footnote{Unless the view is zoomed out and multiple frames are merged into one column.}. The progress of time is in the right direction. The height of the bar indicates the time spent in the frame, complemented with the color information:
+Each bar displayed on the graph represents a unique frame in the current frame set\footnote{Unless the view is zoomed out and multiple frames are merged into one column.}. The progress of time is in the right direction. The bar height indicates the time spent in the frame, complemented by the color information, which depends on the target FPS value. You can set the desired FPS in the options menu (see section~\ref{options}).
 
 \begin{itemize}
-\item If the bar is \emph{blue}, then the frame met the \emph{best} time of 143 FPS, or 6.99 \si{\milli\second}\footnote{The actual target is 144 FPS, but one frame leeway is allowed to account for timing inaccuracies.} (represented by blue target line).
-\item If the bar is \emph{green}, then the frame met the \emph{good} time of 59 FPS, or 16.94 \si{\milli\second} (represented by green target line).
-\item If the bar is \emph{yellow}, then the frame met the \emph{bad} time of 29 FPS, or 34.48 \si{\milli\second} (represented by yellow target line).
+\item If the bar is \emph{blue}, then the frame met the \emph{best} time of twice the target FPS (represented by the green target line).
+\item If the bar is \emph{green}, then the frame met the \emph{good} time of target FPS (represented by the yellow line).
+\item If the bar is \emph{yellow}, then the frame met the \emph{bad} time of half the FPS (represented by the red target line).
 \item If the bar is \emph{red}, then the frame didn't meet any time limits.
 \end{itemize}
 
@@ -2747,33 +2833,17 @@ The left-hand side \emph{index area} of the timeline view displays various label
 \item \emph{Yellow label} -- Plot.
 \end{itemize}
 
-Labels accompanied by the \faCaretDown{}~symbol can be collapsed out of the view to reduce visual clutter. Hover the~\faMousePointer{}~mouse pointer over the label to display additional information. Click the \MMB{}~middle mouse button on a title to zoom the view to the extent of the label contents.
+Labels accompanied by the \faCaretDown{}~symbol can be collapsed out of the view to reduce visual clutter. Hover the~\faMousePointer{}~mouse pointer over the label to display additional information. Click the \MMB{}~middle mouse button on a title to zoom the view to the extent of the label contents. Finally, click the \RMB{}~right mouse button on a label to display the context menu with available actions:
+
+\begin{itemize}
+\item \emph{\faEyeSlash{}~Hide} -- Hides the label along with the content associated to it. To make the label visible again, you must find it in the options menu (section~\ref{options}).
+\end{itemize}
 
 \subparagraph{Zones}
 
 In an example in figure~\ref{zoneslocks} you can see that there are two threads: \emph{Main thread} and \emph{Streaming thread}\footnote{By clicking on a thread name, you can temporarily disable the display of the zones in this thread.}. We can see that the \emph{Main thread} has two root level zones visible: \emph{Update} and \emph{Render}. The \emph{Update} zone is split into further sub-zones, some of which are too small to be displayed at the current zoom level. This is indicated by drawing a zig-zag pattern over the merged zones box (section~\ref{collapseditems}), with the number of collapsed zones printed in place of the zone name. We can also see that the \emph{Physics} zone acquires the \emph{Physics lock} mutex for most of its run time.
 
 Meanwhile, the \emph{Streaming thread} is performing some \emph{Streaming jobs}. The first \emph{Streaming job} sent a message (section~\ref{messagelog}). In addition to being listed in the message log, it is indicated by a triangle over the thread separator. When multiple messages are in one place, the triangle outline shape changes to a filled triangle.
-
-At high zoom levels, the zones will be displayed with additional markers, as presented in figure~\ref{inaccuracy}. The red regions at the start and end of a zone indicate the cost associated with recording an event (\emph{Queue delay}). The error bars show the timer inaccuracy (\emph{Timer resolution}). Note that these markers are only \emph{approximations}, as many factors can impact the actual cost of capturing a zone, for example, cache effects or CPU frequency scaling, which is unaccounted for (see section~\ref{checkenvironmentcpu}).
-
-\begin{figure}[h]
-\centering\begin{tikzpicture}
-\draw(0, 0) rectangle+(5, 0.5) node [midway] {Zone};
-\draw[pattern=crosshatch dots] (0, 0) rectangle+(1, 0.5);
-\draw[pattern=crosshatch dots] (5, 0) rectangle+(1, 0.5);
-\draw(-0.5, 0.35) -- (-0.5, 0.15);
-\draw(0.5, 0.35) -- (0.5, 0.15);
-\draw(-0.5, 0.25) -- (0.5, 0.25);
-\draw(4.5, 0.35) -- (4.5, 0.15);
-\draw(5.5, 0.35) -- (5.5, 0.15);
-\draw(4.5, 0.25) -- (5.5, 0.25);
-\draw(0, -0.2) -- (0, -0.3) -- (5, -0.3) -- (5, -0.2);
-\draw(2.5, -0.3) node[anchor=north] {Zone extent};
-\end{tikzpicture}
-\caption{Approximation of timer inaccuracies and zone collection cost.}
-\label{inaccuracy}
-\end{figure}
 
 The GPU zones are displayed just like CPU zones, with an OpenGL/Vulkan/Direct3D/OpenCL context in place of a thread name.
 
@@ -2832,6 +2902,8 @@ Each line in the thread execution display represents a separate logical CPU thre
 
 When the \faMousePointer{}~mouse pointer is hovered over either the CPU data zone or the thread timeline label, Tracy will display a line connecting all zones associated with the selected thread. This can be used to quickly see how the thread migrated across the CPU cores.
 
+Clicking the \LMB{}~left mouse button on a tracked thread will make it visible on the timeline if it was either hidden or collapsed before.
+
 Careful examination of the data presented on this graph may allow you to determine areas where the profiled application was fighting for system resources with other programs (see section~\ref{checkenvironmentos}) or give you a hint to add more instrumentation macros.
 
 \subparagraph{Locks}
@@ -2878,6 +2950,8 @@ Hovering the \faMousePointer{} mouse pointer over the timeline view will display
 The timeline view may be scrolled both vertically and horizontally by dragging the \RMB{} right mouse button. Note that only the zones, locks, and plots scroll vertically, while the time scale and frame sets always stay on the top.
 
 You can zoom in and out the timeline view by using the \Scroll{}~mouse wheel. Pressing the \keys{\ctrl} key will make zooming more precise while pressing the \keys{\shift} key will make it faster. You can select a range to which you want to zoom in by dragging the \MMB{} middle mouse button. Dragging the \MMB{} middle mouse button while the \keys{\ctrl} key is pressed will zoom out.
+
+It is also possible to navigate the timeline using the keyboard. The \keys{A} and \keys{D} keys scroll the view to the left and right, respectively. The \keys{W} and \keys{S} keys change the zoom level.
 
 \subsection{Time ranges}
 \label{timeranges}
@@ -2931,6 +3005,9 @@ In this window, you can set various trace-related options. For example, the time
 \begin{itemize}
 \item \emph{\faExpand{} Draw empty labels} -- By default threads that don't have anything to display at the current zoom level are hidden. Enabling this option will show them anyway.
 \item \emph{\faFlagCheckered{} Draw frame targets} -- If enabled, time regions in any frame from the currently selected frame set, which exceed the specified \emph{Target FPS} value will be marked with a red background on timeline view.
+\begin{itemize}
+\item \emph{Target FPS} -- Controls the option above, but also the frame bar colors in the frame time graph (section~\ref{frametimegraph}). The color range thresholds are presented in a line directly below.
+\end{itemize}
 \item \emph{\faHiking{} Draw context switches} -- Allows disabling context switch display in threads.
 \begin{itemize}
 \item \emph{\faMoon{} Darken inactive thread} -- If enabled, inactive regions in threads will be dimmed out.
@@ -2950,12 +3027,15 @@ In this window, you can set various trace-related options. For example, the time
 \item \emph{Source location dynamic} -- Zone color is determined by source location (function name) and depth level.
 \end{itemize}
 Enabling the \emph{Ignore custom} option will force usage of the selected zone coloring scheme, disregarding any colors set by the user in profiled code.
-\item \emph{\faBoxOpen{} Namespaces} -- controls display behavior of long zone names, which don't fit inside a zone box:
+\item \emph{\faRulerHorizontal{} Zone name shortening} -- controls display behavior of long zone names, which don't fit inside a zone box:
 \begin{itemize}
-\item \emph{Full} -- Zone names are always fully displayed (e.g.\ \texttt{std::sort}).
-\item \emph{Shortened} -- Namespaces are shortened to one letter (e.g.\ \texttt{s::sort}).
-\item \emph{None} -- Namespaces are completely omitted (e.g.\ \texttt{sort}).
+\item \emph{Disabled} -- Shortening of zone names is not performed and names are always displayed in full (e.g.\ \texttt{bool ns::container<float>::add(const float\&)}).
+\item \emph{Minimal length} -- Always reduces zone name to minimal length, even if there is space available for a longer form (e.g.\ \texttt{add()}).
+\item \emph{Only normalize} -- Only performs normalization of the zone name\footnote{The normalization process removes the function \texttt{const} qualifier, some common return type declarations and all function parameters and template arguments.}, but does not remove namespaces (e.g.\ \texttt{ns::container<>::add()}).
+\item \emph{As needed} -- Name shortening steps will be performed only if there is no space to display a complete zone name, and only until the name fits available space, or shortening is no longer possible (e.g.\ \texttt{container<>::add()}).
+\item \emph{As needed + normalize} -- Same as above, but zone name normalization will always be performed, even if the entire zone name fits in the space available.
 \end{itemize}
+Function names in the remaining places across the UI will be normalized unless this option is set to \emph{Disabled}.
 \end{itemize}
 \item \emph{\faLock{} Draw locks} -- Controls the display of locks. If the \emph{Only contended} option is selected, the profiler won't display the non-blocking regions of locks (see section~\ref{zoneslocksplots}). The \emph{Locks} drop-down allows disabling the display of locks on a per-lock basis. As a convenience, the list of locks is split into the single-threaded and multi-threaded (contended and uncontended) categories. Clicking the \RMB{}~right mouse button on a lock label opens the lock information window (section~\ref{lockwindow}).
 \item \emph{\faSignature{} Draw plots} -- Allows disabling display of plots. Individual plots can be disabled in the \emph{Plots} drop-down.
@@ -3248,6 +3328,12 @@ logo=\bclampe
 Set custom trace descriptions (see section~\ref{traceinfo}) to easily differentiate the two loaded traces. If no trace description is set, the name of the profiled program will be displayed along with the capture time.
 \end{bclogo}
 
+\subsubsection{Source files diff}
+
+To see what changes were made in the source code between the two compared traces, select the \emph{Source diff} compare mode. This will display a list of deleted, added, and changed files. By default, the difference is calculated from the older trace to the newer one. You can reverse this by clicking on the \emph{Switch} button.
+
+Please note that changes will be registered only if the file has the same name and location in both traces. Tracy does not resolve file renames or moves.
+
 \subsection{Memory window}
 \label{memorywindow}
 
@@ -3350,7 +3436,7 @@ The zone information window displays detailed information about a single zone. T
 \item Timing information.
 \item If the profiler performed context switch capture (section~\ref{contextswitches}) and a thread was suspended during zone execution, a list of wait regions will be displayed, with complete information about the timing, CPU migrations, and wait reasons. If CPU topology data is available (section~\ref{cputopology}), the profiler will mark zone migrations across cores with 'C' and migrations across packages -- with 'P.' In some cases, context switch data might be incomplete\footnote{For example, when capture is ongoing and context switch information has not yet been received.}, in which case a warning message will be displayed.
 \item Memory events list, both summarized and a list of individual allocation/free events (see section~\ref{memorywindow} for more information on the memory events list).
-\item List of messages that the profiler logged in the zone's scope (including its children).
+\item List of messages that the profiler logged in the zone's scope. If the \emph{exclude children} option is disabled, messages emitted in child zones will also be included.
 \item Zone trace, taking into account the zone tree and call stack information (section~\ref{collectingcallstacks}), trying to reconstruct a combined zone + call stack trace\footnote{Reconstruction is only possible if all zones have complete call stack capture data available. In the case where that's not available, an \emph{unknown frames} entry will be present.}. Captured zones are displayed as standard text, while not instrumented functions are dimmed. Hovering the \faMousePointer{}~mouse pointer over a zone will highlight it on the timeline view with a red outline. Clicking the \LMB{}~left mouse button on a zone will switch the zone info window to that zone. Clicking the \MMB{}~middle mouse button on a zone will zoom the timeline view to the zone's extent. Clicking the \RMB{}~right mouse button on a source file location will open the source file view window (if applicable, see section~\ref{sourceview}).
 \item Child zones list, showing how the current zone's execution time was used. Zones on this list can be grouped according to their source location. Each group can be expanded to show individual entries. All the controls from the zone trace are also available here.
 \item Time distribution in child zones, which expands the information provided in the child zones list by processing \emph{all} zone children (including multiple levels of grandchildren). This results in a statistical list of zones that were really doing the work in the current zone's time span. If a group of zones is selected on this list, the find zone window (section~\ref{findzone}) will open, with a time range limited to show only the children of the current zone.
@@ -3458,14 +3544,14 @@ Nevertheless, \textbf{the displayed source files might still not reflect the cod
 
 A much more capable symbol view mode is available if the inspected source location has an associated symbol context (i.e., if it comes from a call stack capture, from call stack sampling, etc.). A symbol is a unit of machine code, basically a callable function. It may be generated using multiple source files and may consist of numerous inlined functions. A list of all captured symbols is available in the statistics window, as described in chapter~\ref{statisticssampling}.
 
-The header of symbol view window contains a name of the selected \emph{\faPuzzlePiece{}~symbol}, a list of \emph{\faSitemap{}~functions} that contribute to the symbol, and information such as \emph{\faWeightHanging{}~Code size} in the program, or count of probed \emph{\faEyeDropper{}~Samples}.
+The header of symbol view window contains a name of the selected \emph{\faPuzzlePiece{}~symbol}, a list of \emph{\faSitemap{}~functions} that contribute to the symbol, and information such as count of probed \emph{\faEyeDropper{}~Samples}.
 
 Additionally, you may use the \emph{Mode} selector to decide what content should be displayed in the panels below:
 
 \begin{itemize}
 \item \emph{Source} -- only the source code will be displayed.
 \item \emph{Assembly} -- only the machine code disassembly will be shown.
-\item \emph{Combined} -- both source code and disassembly will be listed next to each other.
+\item \emph{Both} -- selects combined mode, in which source code and disassembly will be listed next to each other.
 \end{itemize}
 
 Some modes may be unavailable in some circumstances (missing or outdated source files, lack of machine code). In case the \emph{Assembly} mode is unavailable, this might be due to the \texttt{capstone} disassembly engine failing to disassemble the machine instructions. See section~\ref{buildingserver} for more information.
@@ -3474,19 +3560,29 @@ Some modes may be unavailable in some circumstances (missing or outdated source 
 
 This is pretty much the source file view window, but with the ability to select one of the source files that the compiler used to build the symbol. Additionally, each source file line that produced machine code in the symbol will show a count of associated assembly instructions, displayed with an '\texttt{@}' prefix, and will be marked with grey color on the scroll bar. Due to how optimizing compilers work, some lines may seemingly not produce any machine code, for example, because iterating a loop counter index might have been reduced to advancing a data pointer. Some other lines may have a disproportionate amount of associated instructions, e.g., when the compiler applied a loop unrolling optimization. This varies from case to case and from compiler to compiler.
 
+The \emph{Propagate inlines} option, available when sample data is present, will enable propagation of the instruction costs down the local call stack. For example, suppose a base function in the symbol issues a call to an inlined function (which may not be readily visible due to being contained in another source file). In that case, any cost attributed to the inlined function will be visible in the base function. Because the cost information is added to all the entries in the local call stacks, it is possible to see seemingly nonsense total cost values when this feature is enabled. To quickly toggle this on or off, you may also press the \keys{X} key.
+
 \paragraph{Assembly mode}
 
-This mode shows the disassembly of the symbol machine code. If only one inline function is selected through the \emph{\faSitemap{}~Function} selector, assembly instructions outside of this function will be dimmed out. Each assembly instruction is displayed listed with its location in the program memory during execution. If the \emph{\faSearchLocation{}~Relative locations} option is selected, the profiler will print an offset from the symbol beginning instead. Clicking the \LMB{}~left mouse button on the address/offset will switch to counting line numbers, using the selected one as the origin (i.e., zero value). Line numbers are displayed inside \texttt{[]} brackets. This display mode can be useful to correlate lines with the output of external tools, such as \texttt{llvm-mca}. To disable line numbering click the \RMB{}~right mouse button on a line number.
+This mode shows the disassembly of the symbol machine code. If only one inline function is selected through the \emph{\faSitemap{}~Function} selector, assembly instructions outside of this function will be dimmed out. Each assembly instruction is displayed listed with its location in the program memory during execution. If the \emph{\faSearchLocation{}~Relative address} option is selected, the profiler will print an offset from the symbol beginning instead. Clicking the \LMB{}~left mouse button on the address/offset will switch to counting line numbers, using the selected one as the origin (i.e., zero value). Line numbers are displayed inside \texttt{[]} brackets. This display mode can be useful to correlate lines with the output of external tools, such as \texttt{llvm-mca}. To disable line numbering click the \RMB{}~right mouse button on a line number.
 
-If the \emph{\faFileImport{}~Source locations} option is selected, each line of the assembly code will also contain information about the originating source file name and line number. Each file is assigned its own color for easier differentiation between different source files. Clicking the \LMB{}~left mouse button on a displayed source location will switch the source file, if necessary, and focus the source view on the selected line. Additionally, hovering the \faMousePointer{}~mouse cursor over the presented location will show a tooltip containing the name of a function the instruction originates from, along with an appropriate source code fragment.
+If the \emph{\faFileImport{}~Source locations} option is selected, each line of the assembly code will also contain information about the originating source file name and line number. Each file is assigned its own color for easier differentiation between different source files. Clicking the \LMB{}~left mouse button on a displayed source location will switch the source file, if necessary, and focus the source view on the selected line. Additionally, hovering the \faMousePointer{}~mouse cursor over the presented location will show a tooltip containing the name of a function the instruction originates from, along with an appropriate source code fragment and the local call stack if it exists.
 
-Selecting the \emph{\faCogs{}~Machine code} option will enable the display of raw machine code bytes for each line.
+\begin{bclogo}[
+noborder=true,
+couleur=black!5,
+logo=\bclampe
+]{Local call stack}
+In some cases, it may be challenging to understand what is being displayed in the disassembly. For example, calling the \texttt{std::lower\_bound} function may generate multiple levels of inlined functions: first, we enter the search algorithm, then the comparison functions, which in turn may be lambdas that call even more external code, and so on. In such an event, you will most likely see that some external code is taking a long time to execute, and you will be none the wiser on improving things.
+
+The local call stack for an assembly instruction represents all the inline function calls \emph{within the symbol} (hence the 'local' part), which were made to reach the instruction. Deeper inspection of the local call stack, including navigation to the source call site of each participating inline function, can be performed through the context menu accessible by pressing the \RMB{}~right mouse button on the source location.
+\end{bclogo}
+
+Selecting the \emph{\faCogs{}~Raw code} option will enable the display of raw machine code bytes for each line. Individual bytes are displayed with interwoven colors to make reading easier.
 
 If any instruction would jump to a predefined address, the symbolic name of the jump target will be additionally displayed. If the destination location is within the currently displayed symbol, an \texttt{->}~arrow will be prepended to the name. Hovering the \faMousePointer{}~mouse pointer over such symbol name will highlight the target location. Clicking on it with the \LMB{}~left mouse button will focus the view on the destination instruction or switch view to the destination symbol.
 
-Enabling the \emph{\faShare{}~Jumps} option will show jumps within the symbol code as a series of arrows from the jump source to the jump target and hovering the \faMousePointer{}~mouse pointer over a jump arrow will display a jump information tooltip. It will also draw the jump range on the scroll bar as a green line. A horizontal green line will mark the jump target location. Clicking on a jump arrow with the \LMB{}~left mouse button will focus the view on the target location. Jumps going out of the symbol\footnote{This includes jumps, procedure calls, and returns. For example, in x86 assembly the respective operand names can be: \texttt{jmp}, \texttt{call}, \texttt{ret}.} will be indicated by a smaller arrow pointing away from the code.
-
-The \emph{AT\&T} switch can be used to select between \emph{Intel} and \emph{AT\&T} assembly syntax. Beware that microarchitecture data is only available if Intel syntax is selected.
+Enabling the \emph{\faShare{}~Jumps} option will show jumps within the symbol code as a series of arrows from the jump source to the jump target, and hovering the \faMousePointer{}~mouse pointer over a jump arrow will display a jump information tooltip. It will also draw the jump range on the scroll bar as a green line. A horizontal green line will mark the jump target location. Clicking on a jump arrow with the \LMB{}~left mouse button will focus the view on the target location. The \RMB{}~right mouse button opens a jump context menu, which allows inspection and navigation to the target location or any of the source locations. Jumps going out of the symbol\footnote{This includes jumps, procedure calls, and returns. For example, in x86 assembly the respective operand names can be: \texttt{jmp}, \texttt{call}, \texttt{ret}.} will be indicated by a smaller arrow pointing away from the code.
 
 Portions of the executable used to show the symbol view are stored within the captured profile and don't rely on the available local disk files.
 
@@ -3501,9 +3597,7 @@ If the listed assembly code targets x86 or x64 instruction set architectures, ho
 \item \emph{Ports} -- Which ports (execution units) are required for dispatch of microinstructions. For example, \texttt{2*p0+1*p015} would mean that out of the three microinstructions implementing the assembly instruction, two can only be executed on port 0, and one microinstruction can be executed on ports 0, 1, or 5. The number of available ports and their capabilities varies between different processors architectures. Refer to \url{https://wikichip.org/} for more information.
 \end{itemize}
 
-Selection of the CPU microarchitecture can be performed using the \emph{\faMicrochip{}~\textmu{}arch} drop-down. Each architecture is accompanied by the name of an example CPU implementing it. If the current selection matches the microarchitecture on which the profiled application was running on, the \faMicrochip{}~icon will be green\footnote{Comparing sampled instruction counts with microarchitectural details only makes sense when this selection is properly matched.}. Otherwise, it will be red\footnote{You can use this to gain insight into how the code \emph{may} behave on other processors.}.
-
-Enabling the \emph{\faTruckLoading{}~Latency} option will display a graphical representation of instruction latencies on the listing. The minimum latency of instruction is represented by a red bar, while the maximum latency is represented by a yellow bar.
+Selection of the CPU microarchitecture can be performed using the \emph{\faMicrochip{}~\textmu{}arch} drop-down. Each architecture is accompanied by the name of an example CPU implementing it. If the current selection matches the microarchitecture on which the profiled application was running, the \faMicrochip{}~icon will be green\footnote{Comparing sampled instruction counts with microarchitectural details only makes sense when this selection is properly matched.}. Otherwise, it will be red\footnote{You can use this to gain insight into how the code \emph{may} behave on other processors.}. Clicking on the \faMicrochip{}~icon when it is red will reset the selected microarchitecture to the one the profiled application was running on.
 
 Clicking on the \emph{\faFileImport{}~Save} button lets you write the disassembly listing to a file. You can then manually extract some critical loop kernel and pass it to a CPU simulator, such as \emph{LLVM Machine Code Analyzer} (\texttt{llvm-mca})\footnote{\url{https://llvm.org/docs/CommandGuide/llvm-mca.html}}, to see how the code is executed and if there are any pipeline bubbles. Consult the \texttt{llvm-mca} documentation for more details. Alternatively, you might click the \RMB{}~right mouse button on a jump arrow and save only the instructions within the jump range, using the \emph{\faFileImport{}~Save jump range} button.
 
@@ -3513,7 +3607,7 @@ Assembly instructions may read values stored in registers and may also write val
 
 Clicking the \LMB{}~left mouse button on any assembly instruction will mark it as a target for resolving register dependencies between instructions. To cancel this selection, click on any assembly instruction with \RMB{}~right mouse button.
 
-The selected instruction will be highlighted in red, while its dependencies will be highlighted in violet. Additionally, a list of dependent registers will be listed next to each instruction which reads or writes to them, with the following color code:
+The selected instruction will be highlighted in white, while its dependencies will be highlighted in red. Additionally, a list of dependent registers will be listed next to each instruction which reads or writes to them, with the following color code:
 
 \begin{itemize}
 \item \emph{Green} -- Register value is read (is a dependency \emph{after} target instruction).
@@ -3528,7 +3622,7 @@ For more straightforward navigation, dependencies are also marked on the left si
 
 \paragraph{Combined mode}
 
-In this mode, both the source and assembly panes will be displayed together, providing the best way to gain insight into the code. Hovering the \faMousePointer{}~mouse pointer over the source file line or the location of the assembly line will highlight the corresponding lines in the second pane (both in the listing and on the scroll bar). Clicking the \LMB{}~left mouse button on a line will select it in both panes. Note that while an assembly line always has only one corresponding source line, a single source line may have many associated assembly lines, not necessarily next to each other. Clicking the \RMB{}~right mouse button will perform the same action as the left mouse button, but it will also focus the secondary view on the selected line. Clicking on the same \emph{source} line more than once will focus the \emph{assembly} view on the next associated instructions block.
+In this mode, the source and assembly panes will be displayed together, providing the best way to gain insight into the code. Hovering the \faMousePointer{}~mouse pointer over the source file line or the location of the assembly line will highlight the corresponding lines in the second pane (both in the listing and on the scroll bar). Clicking the \LMB{}~left mouse button on a line will select it and focus on it in both panes. Note that while an assembly line always has only one corresponding source line, a single source line may have many associated assembly lines, not necessarily next to each other. Clicking on the same \emph{source} line more than once will focus the \emph{assembly} view on the next associated instructions block.
 
 \paragraph{Instruction pointer cost statistics}
 
@@ -3539,16 +3633,6 @@ By default, samples are displayed only within the selected symbol, in isolation.
 Instruction timings can be viewed as a group. To begin constructing such a group, click the \LMB{}~left mouse button on the percentage value. Additional instructions can be added using the \keys{\ctrl}~key while holding the \keys{\shift}~key will allow selection of a range. To cancel the selection, click the \RMB{}~right mouse button on a percentage value. Group statistics can be seen at the bottom of the pane.
 
 Clicking the \MMB{}~middle mouse button on the percentage value of an assembly instruction will display entry call stacks of the selected sample (see chapter~\ref{sampleparents}). This functionality is only available for instructions that have collected sampling data and only in the assembly view, as the source code may be inlined multiple times, which would result in ambiguous location data. Note that number of entry call stacks is displayed in a tooltip for a quick reference.
-
-\begin{bclogo}[
-noborder=true,
-couleur=black!5,
-logo=\bclampe
-]{How did I get here?}
-In some cases, it may be challenging to understand what is being displayed in the disassembly. For example, calling the \texttt{std::lower\_bound} function may generate multiple levels of inlined functions: first, we enter the search algorithm, then the comparison functions, which in turn may be lambdas that call even more external code, and so on. In such an event, you will most likely see that some external code is taking a long time to execute, and you will be none the wiser on improving things.
-
-Using the entry call stacks view can be very helpful in such cases, as you will be able to see the call stack of inline functions originating from a call site in the code you are familiar with. With this critical piece of information, you will be able to connect the functions you call and the executed instructions.
-\end{bclogo}
 
 The sample data source is controlled by the \emph{\faSitemap{}~Function} control in the window header. If this option should be disabled, sample data will represent the whole symbol. If it is enabled, then the sample data will only include the selected function. You can change the currently selected function by opening the drop-down box, which includes time statistics. The time percentage values of each contributing function are calculated relative to the total number of samples collected within the symbol.
 
@@ -3574,7 +3658,7 @@ As described in chapter~\ref{hardwaresampling}, on some platforms, Tracy can cap
 \item The rest of the available selections just show raw values gathered from the hardware counters. These are: \emph{Retirements}, \emph{Branches taken}, \emph{Branch miss}, \emph{Cache access} and \emph{Cache miss}.
 \end{itemize}
 
-If the \emph{\faHammer{}~Hardware samples} switch is enabled, the profiler will supplement the cost percentages column with three additional columns. The first added column displays the instructions per cycle (IPC) value. The two remaining columns show branch and cache data, as described below. The displayed values are color-coded, with green indicating good execution performance and red indicating that the code stalled the CPU pipeline for one reason or another.
+If the \emph{\faHammer{}~HW} (hardware samples) switch is enabled, the profiler will supplement the cost percentages column with three additional columns. The first added column displays the instructions per cycle (IPC) value. The two remaining columns show branch and cache data, as described below. The displayed values are color-coded, with green indicating good execution performance and red indicating that the code stalled the CPU pipeline for one reason or another.
 
 If the \emph{\faCarCrash{}~Impact} switch is enabled, the branch and cache columns will show how much impact the branch mispredictions and cache misses have. The way these statistics are calculated is described in the list above. In the other case, the columns will show the raw branch and cache miss rate ratios, isolated to their respective source and assembly lines and not relative to the whole symbol.
 
@@ -3778,7 +3862,7 @@ The following libraries are included with and used by the Tracy Profiler. Entrie
 \item getopt\_port -- \url{https://github.com/kimgr/getopt\_port}
 \item libbacktrace \faStar{} -- \url{https://github.com/ianlancetaylor/libbacktrace}
 \item Zstandard -- \url{https://github.com/facebook/zstd}
-\item capstone -- \url{https://github.com/capstone-engine/capstone}
+\item Diff Template Library -- \url{https://github.com/cubicdaiya/dtl}
 \end{itemize}
 
 \item 2-clause BSD license
@@ -3793,12 +3877,12 @@ The following libraries are included with and used by the Tracy Profiler. Entrie
 \item rpmalloc \faStar{} -- \url{https://github.com/rampantpixels/rpmalloc}
 \item gl3w -- \url{https://github.com/skaslev/gl3w}
 \item stb\_image -- \url{https://github.com/nothings/stb}
+\item stb\_image\_resize -- \url{https://github.com/nothings/stb}
 \end{itemize}
 
 \item zlib license
 \begin{itemize}
 \item Native File Dialog Extended -- \url{https://github.com/btzy/nativefiledialog-extended}
-\item GLFW -- \url{https://github.com/glfw/glfw}
 \item IconFontCppHeaders -- \url{https://github.com/juliettef/IconFontCppHeaders}
 \item pdqsort -- \url{https://github.com/orlp/pdqsort}
 \end{itemize}
@@ -3809,16 +3893,12 @@ The following libraries are included with and used by the Tracy Profiler. Entrie
 \item JSON for Modern C++ -- \url{https://github.com/nlohmann/json}
 \item robin-hood-hashing -- \url{https://github.com/martinus/robin-hood-hashing}
 \item SPSCQueue \faStar{} -- \url{https://github.com/rigtorp/SPSCQueue}
+\item ini -- \url{https://github.com/rxi/ini}
 \end{itemize}
 
 \item Apache license 2.0
 \begin{itemize}
 \item Droid Sans -- \url{https://www.fontsquirrel.com/fonts/droid-sans}
-\end{itemize}
-
-\item FreeType License
-\begin{itemize}
-\item FreeType -- \url{https://www.freetype.org/}
 \end{itemize}
 
 \item SIL Open Font License 1.1

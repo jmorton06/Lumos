@@ -18,13 +18,6 @@ namespace Lumos
             LUMOS_PROFILE_FUNCTION();
             m_FramesInFlight = uint32_t(VKRenderer::GetMainSwapChain()->GetSwapChainBufferCount());
 
-            VkDescriptorSetAllocateInfo descriptorSetAllocateInfo;
-            descriptorSetAllocateInfo.sType              = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-            descriptorSetAllocateInfo.descriptorPool     = VKRenderer::GetDescriptorPool();
-            descriptorSetAllocateInfo.pSetLayouts        = static_cast<Graphics::VKShader*>(descriptorDesc.shader)->GetDescriptorLayout(descriptorDesc.layoutIndex);
-            descriptorSetAllocateInfo.descriptorSetCount = descriptorDesc.count;
-            descriptorSetAllocateInfo.pNext              = nullptr;
-
             m_Shader      = descriptorDesc.shader;
             m_Descriptors = m_Shader->GetDescriptorInfo(descriptorDesc.layoutIndex);
 
@@ -60,7 +53,8 @@ namespace Lumos
                 m_DescriptorUpdated[frame] = false;
                 m_DescriptorSet[frame]     = nullptr;
                 g_DescriptorSetCount++;
-                VK_CHECK_RESULT(vkAllocateDescriptorSets(VKDevice::GetHandle(), &descriptorSetAllocateInfo, &m_DescriptorSet[frame]));
+                auto layout = static_cast<Graphics::VKShader*>(descriptorDesc.shader)->GetDescriptorLayout(descriptorDesc.layoutIndex);
+                VKRenderer::GetRenderer()->AllocateDescriptorSet(&m_DescriptorSet[frame], *layout, descriptorDesc.count);
             }
         }
 
@@ -71,15 +65,15 @@ namespace Lumos
                 if(!m_DescriptorSet[frame])
                     continue;
 
-                auto descriptorSet                                       = m_DescriptorSet[frame];
-                auto pool                                                = VKRenderer::GetDescriptorPool();
-                auto device                                              = VKDevice::GetHandle();
-                std::map<std::string, SharedPtr<UniformBuffer>>& buffers = m_UniformBuffers[frame];
-                buffers.clear();
+                /*         auto descriptorSet                                       = m_DescriptorSet[frame];
+                         auto pool                                                = VKRenderer::GetDescriptorPool();
+                         auto device                                              = VKDevice::GetHandle();
+                         std::map<std::string, SharedPtr<UniformBuffer>>& buffers = m_UniformBuffers[frame];
+                         buffers.clear();
 
-                VKContext::DeletionQueue& deletionQueue = VKRenderer::GetCurrentDeletionQueue();
-                deletionQueue.PushFunction([descriptorSet, pool, device]
-                                           { vkFreeDescriptorSets(device, pool, 1, &descriptorSet); });
+                         VKContext::DeletionQueue& deletionQueue = VKRenderer::GetCurrentDeletionQueue();
+                         deletionQueue.PushFunction([descriptorSet, pool, device]
+                                                    { vkFreeDescriptorSets(device, pool, 1, &descriptorSet); });*/
             }
 
             for(auto it = m_UniformBuffersData.begin(); it != m_UniformBuffersData.end(); it++)
