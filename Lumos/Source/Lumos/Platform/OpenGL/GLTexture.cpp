@@ -442,13 +442,13 @@ namespace Lumos
             glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
         }
 
-        GLTextureDepth::GLTextureDepth(uint32_t width, uint32_t height)
+        GLTextureDepth::GLTextureDepth(uint32_t width, uint32_t height, RHIFormat format)
             : m_Width(width)
             , m_Height(height)
         {
             GLCall(glGenTextures(1, &m_Handle));
 
-            m_Format = RHIFormat::D32_Float;
+            m_Format = format; // RHIFormat::D32_Float;
 
             Init();
         }
@@ -497,12 +497,12 @@ namespace Lumos
             Init();
         }
 
-        GLTextureDepthArray::GLTextureDepthArray(uint32_t width, uint32_t height, uint32_t count)
+        GLTextureDepthArray::GLTextureDepthArray(uint32_t width, uint32_t height, uint32_t count, RHIFormat format)
             : m_Width(width)
             , m_Height(height)
             , m_Count(count)
+            , m_Format(format)
         {
-            m_Format = RHIFormat::D32_Float;
             GLTextureDepthArray::Init();
         }
 
@@ -602,14 +602,14 @@ namespace Lumos
             return new GLTextureCube(files, mips, params, loadOptions);
         }
 
-        TextureDepth* GLTextureDepth::CreateFuncGL(uint32_t width, uint32_t height)
+        TextureDepth* GLTextureDepth::CreateFuncGL(uint32_t width, uint32_t height, RHIFormat format)
         {
-            return new GLTextureDepth(width, height);
+            return new GLTextureDepth(width, height, format);
         }
 
-        TextureDepthArray* GLTextureDepthArray::CreateFuncGL(uint32_t width, uint32_t height, uint32_t count)
+        TextureDepthArray* GLTextureDepthArray::CreateFuncGL(uint32_t width, uint32_t height, uint32_t count, RHIFormat format)
         {
-            return new GLTextureDepthArray(width, height, count);
+            return new GLTextureDepthArray(width, height, count, format);
         }
 
         void GLTexture2D::MakeDefault()

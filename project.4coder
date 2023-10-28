@@ -80,6 +80,12 @@ command_list = {
 		.cmd = { { "bin\\Release-windows-x86_64\\LumosEditor.exe", .os = "win"   },
             { "./Scripts/Linux/RunLinux-Editor.sh" , .os = "linux" },
             { "./Scripts/MacOS/RunMacOS-Editor.sh" , .os = "mac"   }, }, },
+    
+    { .name = "GitPull",
+		.out = "*Git Pull*", .footer_panel = true, .save_dirty_files = false,.cursor_at_end = true,
+		.cmd = { { "git pull", .os = "win"   },
+            { "git pull" , .os = "linux" },
+            { "git pull", .os = "mac"   }, }, },
 };
 fkey_command[1] = "gen project";
 fkey_command[2] = "build";
@@ -89,3 +95,4 @@ fkey_command[5] = "compileShaders";
 fkey_command[6] = "formatCode";
 fkey_command[7] = "buildEditor";
 fkey_command[8] = "runEditor";
+fkey_command[9] = "GitPull";

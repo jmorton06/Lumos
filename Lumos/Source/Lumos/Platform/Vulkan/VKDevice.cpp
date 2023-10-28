@@ -2,7 +2,7 @@
 
 #include "Core/Application.h"
 #include "Core/Version.h"
-#include "Core/StringUtilities.h"
+#include "Utilities/StringUtilities.h"
 
 #include "VKDevice.h"
 #include "VKRenderer.h"
@@ -380,7 +380,7 @@ namespace Lumos
 #ifdef USE_VMA_ALLOCATOR
             vmaDestroyAllocator(m_Allocator);
 #endif
-#if defined(LUMOS_PROFILE) && defined(TRACY_ENABLE)
+#if LUMOS_PROFILE && defined(TRACY_ENABLE)
             for(int i = 0; i < 4; i++)
                 TracyVkDestroy(m_TracyContext[i]);
             TracyVkDestroy(m_PresentTracyContext);
@@ -543,7 +543,7 @@ namespace Lumos
 
         void VKDevice::CreateTracyContext()
         {
-#if defined(LUMOS_PROFILE) && defined(TRACY_ENABLE)
+#if LUMOS_PROFILE && defined(TRACY_ENABLE)
             VkCommandBufferAllocateInfo allocInfo = {};
             allocInfo.sType                       = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
             allocInfo.level                       = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
@@ -566,7 +566,7 @@ namespace Lumos
 #endif
         }
 
-#if defined(LUMOS_PROFILE) && defined(TRACY_ENABLE)
+#if LUMOS_PROFILE && defined(TRACY_ENABLE)
         tracy::VkCtx* VKDevice::GetTracyContext(bool present)
         {
             if(present)

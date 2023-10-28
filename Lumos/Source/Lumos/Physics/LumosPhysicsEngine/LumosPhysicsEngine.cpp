@@ -4,13 +4,11 @@
 #include "Broadphase/BruteForceBroadphase.h"
 #include "Broadphase/OctreeBroadphase.h"
 #include "RigidBody3D.h"
-#include "Core/OS/Window.h"
-
 #include "Integration.h"
 #include "Constraints/Constraint.h"
 #include "Utilities/TimeStep.h"
+#include "Core/OS/Window.h"
 #include "Core/JobSystem.h"
-
 #include "Core/Application.h"
 #include "Scene/Component/RigidBody3DComponent.h"
 
@@ -37,7 +35,7 @@ namespace Lumos
         m_BroadphaseCollisionPairs.reserve(1000);
 
         m_Allocator = new PoolAllocator<RigidBody3D>();
-        m_Arena     = ArenaAlloc(Megabytes(8));
+        m_Arena     = ArenaAlloc(Megabytes(1));
     }
 
     void LumosPhysicsEngine::SetDefaults()

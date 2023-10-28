@@ -6,7 +6,7 @@
 #include "VKRenderer.h"
 #include "VKUtilities.h"
 #include "Core/Version.h"
-#include "Core/StringUtilities.h"
+#include "Utilities/StringUtilities.h"
 #include "Maths/MathsUtilities.h"
 
 #ifndef VK_API_VERSION_1_2
@@ -112,8 +112,7 @@ namespace Lumos
         VKContext::~VKContext()
         {
             VKRenderer::FlushDeletionQueues();
-
-            vkDestroyDescriptorPool(VKDevice::Get().GetDevice(), VKRenderer::GetDescriptorPool(), VK_NULL_HANDLE);
+            VKRenderer::GetRenderer()->ReleaseDescriptorPools();
 
             if(m_DebugCallback)
                 vkDestroyDebugReportCallbackEXT(s_VkInstance, m_DebugCallback, VK_NULL_HANDLE);
@@ -398,6 +397,21 @@ namespace Lumos
         void VKContext::WaitIdle() const
         {
             vkDeviceWaitIdle(VKDevice::Get().GetDevice());
+        }
+
+        void VKContext::OnImGui()
+        {
+            const auto& memoryProps = VKDevice::Get().GetPhysicalDevice()->GetMemoryProperties();
+            std::vector<VmaBudget> budgets(memoryProps.memoryHeapCount);
+            vmaGetHeapBudgets(VKDevice::Get().GetAllocator(), budgets.data());
+
+            for(VmaBudget& b : budgets)
+            {
+                ImGui::Text("VmaBudget.allocationBytes = %s", StringUtilities::BytesToString(b.statistics.allocationBytes).c_str());
+                ImGui::Text("VmaBudget.blockBytes = %s", StringUtilities::BytesToString(b.statistics.blockBytes).c_str());
+                ImGui::Text("VmaBudget.usage = %s", StringUtilities::BytesToString(b.usage).c_str());
+                ImGui::Text("VmaBudget.budget = %s", StringUtilities::BytesToString(b.budget).c_str());
+            }
         }
     }
 }

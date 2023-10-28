@@ -19,7 +19,7 @@ namespace Lumos
 
             void Init(VkBufferUsageFlags usage, VkMemoryPropertyFlags memoryProperyFlags, uint32_t size, const void* data);
             void Resize(uint32_t size, const void* data);
-            void SetData(uint32_t size, const void* data);
+            void SetData(uint32_t size, const void* data, bool addBarrier = false);
             const VkBuffer& GetBuffer() const { return m_Buffer; }
 
             const VkDescriptorBufferInfo& GetBufferInfo() const { return m_DesciptorBufferInfo; };
@@ -43,10 +43,12 @@ namespace Lumos
             VkMemoryPropertyFlags m_MemoryProperyFlags;
             void* m_Mapped            = nullptr;
             bool m_DeleteWithoutQueue = false;
+            bool m_GPUOnlyMemory      = false;
 
 #ifdef USE_VMA_ALLOCATOR
             VmaAllocation m_Allocation {};
             VmaAllocation m_MappedAllocation {};
+            VmaAllocationInfo m_AllocationInfo {};
 #endif
         };
     }

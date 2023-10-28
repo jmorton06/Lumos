@@ -11,7 +11,7 @@
 #include "Utilities/CombineHash.h"
 #include "Core/OS/FileSystem.h"
 #include "Core/OS/FileSystem.h"
-#include "Core/StringUtilities.h"
+#include "Utilities/StringUtilities.h"
 
 #include <spirv_cross.hpp>
 

@@ -67,10 +67,15 @@ namespace Lumos
                 m_BoundingBox->Merge(vertex.Position);
             }
 
-            m_IndexBuffer = SharedPtr<Graphics::IndexBuffer>(Graphics::IndexBuffer::Create(m_Indices.data(), (uint32_t)m_Indices.size()));
+            m_IndexBuffer  = SharedPtr<Graphics::IndexBuffer>(Graphics::IndexBuffer::Create(m_Indices.data(), (uint32_t)m_Indices.size()));
+            m_VertexBuffer = SharedPtr<VertexBuffer>(VertexBuffer::Create((uint32_t)(sizeof(Graphics::Vertex) * m_Vertices.size()), m_Vertices.data(), BufferUsage::STATIC));
 
-            m_VertexBuffer = SharedPtr<VertexBuffer>(VertexBuffer::Create(BufferUsage::STATIC));
-            m_VertexBuffer->SetData((uint32_t)(sizeof(Graphics::Vertex) * m_Vertices.size()), m_Vertices.data());
+#ifndef LUMOS_PRODUCTION
+            m_Stats.VertexCount       = (uint32_t)m_Vertices.size();
+            m_Stats.TriangleCount     = m_Stats.VertexCount / 3;
+            m_Stats.IndexCount        = (uint32_t)m_Indices.size();
+            m_Stats.OptimiseThreshold = optimiseThreshold;
+#endif
 
             const bool storeData = false;
             if(!storeData)

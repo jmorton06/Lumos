@@ -29,6 +29,7 @@ void print_usage_exit(int e)
     fprintf(stderr, "  -c, --case        Case sensitive filtering\n");
     fprintf(stderr, "  -e, --self        Get self times\n");
     fprintf(stderr, "  -u, --unwrap      Report each zone event\n");
+    fprintf(stderr, "  -m, --messages    Report only messages\n");
 
     exit(e);
 }
@@ -40,6 +41,7 @@ struct Args {
     bool case_sensitive;
     bool self_time;
     bool unwrap;
+    bool unwrapMessages;
 };
 
 Args parse_args(int argc, char** argv)
@@ -49,7 +51,7 @@ Args parse_args(int argc, char** argv)
         print_usage_exit(1);
     }
 
-    Args args = { "", ",", "", false, false, false };
+    Args args = { "", ",", "", false, false, false, false };
 
     struct option long_opts[] = {
         { "help", no_argument, NULL, 'h' },
@@ -58,11 +60,12 @@ Args parse_args(int argc, char** argv)
         { "case", no_argument, NULL, 'c' },
         { "self", no_argument, NULL, 'e' },
         { "unwrap", no_argument, NULL, 'u' },
+        { "messages", no_argument, NULL, 'm' },
         { NULL, 0, NULL, 0 }
     };
 
     int c;
-    while ((c = getopt_long(argc, argv, "hf:s:ceu", long_opts, NULL)) != -1)
+    while ((c = getopt_long(argc, argv, "hf:s:ceum", long_opts, NULL)) != -1)
     {
         switch (c)
         {
@@ -83,6 +86,9 @@ Args parse_args(int argc, char** argv)
             break;
         case 'u':
             args.unwrap = true;
+            break;
+        case 'm':
+            args.unwrapMessages = true;
             break;
         default:
             print_usage_exit(1);
@@ -198,6 +204,38 @@ int main(int argc, char** argv)
 
     auto worker = tracy::Worker(*f);
 
+    if (args.unwrapMessages) 
+    {
+        const auto& msgs = worker.GetMessages();
+    
+        if (msgs.size() > 0)
+        {
+            std::vector<const char*> columnsForMessages;
+            columnsForMessages = {
+                    "MessageName", "total_ns"
+                };
+            std::string headerForMessages = join(columnsForMessages, args.separator);
+            printf("%s\n", headerForMessages.data());
+
+            for(auto& it : msgs)
+            {
+                std::vector<std::string> values(columnsForMessages.size());
+
+                values[0] = worker.GetString(it->ref);
+                values[1] = std::to_string(it->time);
+
+                std::string row = join(values, args.separator);
+                printf("%s\n", row.data());
+            }
+        }
+        else
+        {
+            printf("There are currently no messages!\n");
+        }
+    
+        return 0;
+    }
+
     while (!worker.AreSourceLocationZonesReady())
     {
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
@@ -232,7 +270,7 @@ int main(int argc, char** argv)
     if (args.unwrap)
     {
         columns = {
-            "name", "src_file", "src_line", "ns_since_start", "exec_time_ns"
+            "name", "src_file", "src_line", "ns_since_start", "exec_time_ns", "thread"
         };
     }
     else
@@ -263,6 +301,7 @@ int main(int argc, char** argv)
             int i = 0;
             for (const auto& zone_thread_data : zone_data.zones) {
                 const auto zone_event = zone_thread_data.Zone();
+                const auto tId = zone_thread_data.Thread();
                 const auto start = zone_event->Start();
                 const auto end = zone_event->End();
 
@@ -273,6 +312,7 @@ int main(int argc, char** argv)
                     timespan -= GetZoneChildTimeFast(worker, *zone_event);
                 }
                 values[4] = std::to_string(timespan);
+                values[5] = std::to_string(tId);
 
                 std::string row = join(values, args.separator);
                 printf("%s\n", row.data());
@@ -299,7 +339,9 @@ int main(int argc, char** argv)
             const auto ss = zone_data.sumSq
                 - 2. * zone_data.total * avg
                 + avg * avg * sz;
-            const auto std = sqrt(ss / (sz - 1));
+            double std = 0;
+            if( sz > 1 )
+                std = sqrt(ss / (sz - 1));
             values[9] = std::to_string(std);
 
             std::string row = join(values, args.separator);

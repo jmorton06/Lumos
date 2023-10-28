@@ -2,7 +2,7 @@
 #include "ResourcePanel.h"
 #include <Lumos/Graphics/RHI/Texture.h>
 #include <Lumos/Core/Profiler.h>
-#include <Lumos/Core/StringUtilities.h>
+#include <Lumos/Utilities/StringUtilities.h>
 #include <Lumos/Core/OS/Window.h>
 #include <Lumos/Graphics/Material.h>
 #include <Lumos/Maths/MathsUtilities.h>
@@ -96,14 +96,14 @@ namespace Lumos
         m_Name       = ICON_MDI_FOLDER_STAR " Resources###resources";
         m_SimpleName = "Resources";
 
-        m_Arena = ArenaAlloc(Megabytes(10));
+        m_Arena = ArenaAlloc(Kilobytes(64));
 #ifdef LUMOS_PLATFORM_WINDOWS
         m_Delimiter = Str8Lit("\\");
 #else
         m_Delimiter = Str8Lit("/");
 #endif
 
-        m_GridSize = 180.0f;
+        m_GridSize = 130.0f;
         m_GridSize *= Application::Get().GetWindow()->GetDPIScale();
         m_BasePath = PushStr8F(m_Arena, "%sAssets", Application::Get().GetProjectSettings().m_ProjectRoot.c_str());
 

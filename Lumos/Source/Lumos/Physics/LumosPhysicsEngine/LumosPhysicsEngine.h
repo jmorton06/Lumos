@@ -137,6 +137,7 @@ namespace Lumos
         uint32_t m_PositionIterations = 1;
         uint32_t m_VelocityIterations = 50;
 
+        // Replace with CollisionPair*
         std::vector<CollisionPair> m_BroadphaseCollisionPairs;
         Constraint** m_Constraints; // Misc constraints between pairs of objects
         Manifold* m_Manifolds;      // Contact constraints between pairs of objects

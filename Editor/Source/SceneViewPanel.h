@@ -3,7 +3,7 @@
 #include "Editor.h"
 #include <Lumos/Maths/Frustum.h>
 #include <Lumos/Maths/Transform.h>
-#include <Lumos/Core/StringUtilities.h>
+#include <Lumos/Utilities/StringUtilities.h>
 #include <Lumos/ImGui/ImGuiUtilities.h>
 #include <Lumos/Maths/MathsUtilities.h>
 

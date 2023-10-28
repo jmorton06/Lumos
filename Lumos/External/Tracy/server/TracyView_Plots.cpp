@@ -1,442 +1,280 @@
 #include <inttypes.h>
 
+#include "TracyColor.hpp"
 #include "TracyImGui.hpp"
 #include "TracyMouse.hpp"
 #include "TracyPrint.hpp"
+#include "TracyTimelineContext.hpp"
+#include "TracyUtility.hpp"
 #include "TracyView.hpp"
 
 namespace tracy
 {
 
-const char* View::GetPlotName( const PlotData* plot ) const
+constexpr int PlotHeightPx = 100;
+
+
+bool View::DrawPlot( const TimelineContext& ctx, PlotData& plot, const std::vector<uint32_t>& plotDraw, int& offset )
 {
-    static char tmp[1024];
-    switch( plot->type )
-    {
-    case PlotType::User:
-        return m_worker.GetString( plot->name );
-    case PlotType::Memory:
-        if( plot->name == 0 )
-        {
-            return ICON_FA_MEMORY " Memory usage";
-        }
-        else
-        {
-            sprintf( tmp, ICON_FA_MEMORY " %s", m_worker.GetString( plot->name ) );
-            return tmp;
-        }
-    case PlotType::SysTime:
-        return ICON_FA_TACHOMETER_ALT " CPU usage";
-    default:
-        assert( false );
-        return nullptr;
-    }
-}
-
-static const char* FormatPlotValue( double val, PlotValueFormatting format )
-{
-    static char buf[64];
-    switch( format )
-    {
-    case PlotValueFormatting::Number:
-        return RealToString( val );
-        break;
-    case PlotValueFormatting::Memory:
-        return MemSizeToString( val );
-        break;
-    case PlotValueFormatting::Percentage:
-        sprintf( buf, "%.2f%%", val );
-        break;
-    default:
-        assert( false );
-        break;
-    }
-    return buf;
-}
-
-int View::DrawPlots( int offset, double pxns, const ImVec2& wpos, bool hover, float yMin, float yMax )
-{
-    const auto PlotHeight = 100 * GetScale();
-
-    enum { MaxPoints = 128 };
-    float tmpvec[MaxPoints*2];
-
-    const auto w = ImGui::GetContentRegionAvail().x - 1;
-    const auto ty = ImGui::GetTextLineHeight();
     auto draw = ImGui::GetWindowDrawList();
-    const auto to = 9.f;
-    const auto th = ( ty - to ) * sqrt( 3 ) * 0.5;
-    const auto nspx = 1.0 / pxns;
+    const auto& wpos = ctx.wpos;
     const auto dpos = wpos + ImVec2( 0.5f, 0.5f );
+    const auto pxns = ctx.pxns;
+    const auto w = ctx.w;
+    const auto hover = ctx.hover;
+    const auto ty = ctx.ty;
 
-    for( const auto& v : m_worker.GetPlots() )
+    const auto PlotHeight = PlotHeightPx * GetScale();
+
+    auto yPos = wpos.y + offset;
+    if( yPos + PlotHeight >= ctx.yMin && yPos <= ctx.yMax )
     {
-        auto& vis = Vis( v );
-        if( !vis.visible )
-        {
-            vis.height = 0;
-            vis.offset = 0;
-            continue;
-        }
-        if( v->data.empty() ) continue;
-        bool& showFull = vis.showFull;
+        auto min = plot.rMin;
+        auto max = plot.rMax;
 
-        float txtx = 0;
-        const auto yPos = AdjustThreadPosition( vis, wpos.y, offset );
-        const auto oldOffset = offset;
-        ImGui::PushClipRect( wpos + ImVec2( 0, offset ), wpos + ImVec2( w, offset + vis.height ), true );
-        if( yPos + ty >= yMin && yPos <= yMax )
+        auto pvit = m_plotView.find( &plot );
+        if( pvit == m_plotView.end() )
         {
-            if( showFull )
+            pvit = m_plotView.emplace( &plot, PlotView { min, max } ).first;
+        }
+        auto& pv = pvit->second;
+        if( pv.min != min || pv.max != max )
+        {
+            const auto dt = ImGui::GetIO().DeltaTime;
+            const auto minDiff = min - pv.min;
+            const auto maxDiff = max - pv.max;
+
+            pv.min += minDiff * 15.0 * dt;
+            pv.max += maxDiff * 15.0 * dt;
+
+            const auto minDiffNew = min - pv.min;
+            const auto maxDiffNew = max - pv.max;
+
+            if( minDiff * minDiffNew < 0 ) pv.min = min;
+            if( maxDiff * maxDiffNew < 0 ) pv.max = max;
+
+            min = pv.min;
+            max = pv.max;
+        }
+
+        const auto color = GetPlotColor( plot, m_worker );
+        const auto bg = 0x22000000 | ( DarkenColorMore( color ) & 0xFFFFFF );
+        const auto fill = 0x22000000 | ( DarkenColor( color ) & 0xFFFFFF );
+
+        draw->AddRectFilled( ImVec2( 0, yPos ), ImVec2( w, yPos + PlotHeight ), bg );
+
+        const auto revrange = 1.0 / ( max - min );
+
+        auto it = plotDraw.begin();
+        auto end = plotDraw.end();
+        double px, py;
+        bool first = true;
+        while( it < end )
+        {
+            auto& vec = plot.data;
+            const auto cnt = *it++;
+            const auto i0 = *it++;
+            const auto& v0 = vec[i0];
+            double x = ( v0.time.Val() - m_vd.zvStart ) * pxns;
+            double y = PlotHeight - ( v0.val - min ) * revrange * PlotHeight;
+
+            if( first )
             {
-                draw->AddTriangleFilled( wpos + ImVec2( to/2, offset + to/2 ), wpos + ImVec2( ty - to/2, offset + to/2 ), wpos + ImVec2( ty * 0.5, offset + to/2 + th ), 0xFF44DDDD );
+                first = false;
             }
             else
             {
-                draw->AddTriangle( wpos + ImVec2( to/2, offset + to/2 ), wpos + ImVec2( to/2, offset + ty - to/2 ), wpos + ImVec2( to/2 + th, offset + ty * 0.5 ), 0xFF226E6E, 2.0f );
-            }
-            const auto txt = GetPlotName( v );
-            txtx = ImGui::CalcTextSize( txt ).x;
-            DrawTextContrast( draw, wpos + ImVec2( ty, offset ), showFull ? 0xFF44DDDD : 0xFF226E6E, txt );
-            DrawLine( draw, dpos + ImVec2( 0, offset + ty - 1 ), dpos + ImVec2( w, offset + ty - 1 ), 0x8844DDDD );
-
-            if( hover && ImGui::IsMouseHoveringRect( wpos + ImVec2( 0, offset ), wpos + ImVec2( ty + txtx, offset + ty ) ) )
-            {
-                ImGui::BeginTooltip();
-                ImGui::Text( "Plot \"%s\"", txt );
-                ImGui::Separator();
-
-                const auto first = v->data.front().time.Val();
-                const auto last = v->data.back().time.Val();
-                const auto activity = last - first;
-                const auto traceLen = m_worker.GetLastTime();
-
-                TextFocused( "Appeared at", TimeToString( first ) );
-                TextFocused( "Last event at", TimeToString( last ) );
-                TextFocused( "Activity time:", TimeToString( activity ) );
-                ImGui::SameLine();
-                char buf[64];
-                PrintStringPercent( buf, activity / double( traceLen ) * 100 );
-                TextDisabledUnformatted( buf );
-                ImGui::Separator();
-                TextFocused( "Data points:", RealToString( v->data.size() ) );
-                TextFocused( "Data range:", FormatPlotValue( v->max - v->min, v->format ) );
-                TextFocused( "Min value:", FormatPlotValue( v->min, v->format ) );
-                TextFocused( "Max value:", FormatPlotValue( v->max, v->format ) );
-                TextFocused( "Avg value:", FormatPlotValue( v->sum / v->data.size(), v->format ) );
-                TextFocused( "Data/second:", RealToString( double( v->data.size() ) / activity * 1000000000ll ) );
-
-                const auto it = std::lower_bound( v->data.begin(), v->data.end(), last - 1000000000ll * 10, [] ( const auto& l, const auto& r ) { return l.time.Val() < r; } );
-                const auto tr10 = last - it->time.Val();
-                if( tr10 != 0 )
+                if( plot.showSteps )
                 {
-                    TextFocused( "D/s (10s):", RealToString( double( std::distance( it, v->data.end() ) ) / tr10 * 1000000000ll ) );
-                }
-                ImGui::EndTooltip();
-
-                if( IsMouseClicked( 0 ) )
-                {
-                    showFull = !showFull;
-                }
-                if( IsMouseClicked( 2 ) )
-                {
-                    ZoomToRange( first, last );
-                }
-            }
-        }
-
-        offset += ty;
-
-        if( showFull )
-        {
-            auto yPos = wpos.y + offset;
-            if( yPos + PlotHeight >= yMin && yPos <= yMax )
-            {
-                auto& vec = v->data;
-                vec.ensure_sorted();
-
-                if( v->type == PlotType::Memory )
-                {
-                    auto& mem = m_worker.GetMemoryNamed( v->name );
-
-                    if( m_memoryAllocInfoPool == v->name && m_memoryAllocInfoWindow >= 0 )
+                    if( plot.fill )
                     {
-                        const auto& ev = mem.data[m_memoryAllocInfoWindow];
-
-                        const auto tStart = ev.TimeAlloc();
-                        const auto tEnd = ev.TimeFree() < 0 ? m_worker.GetLastTime() : ev.TimeFree();
-
-                        const auto px0 = ( tStart - m_vd.zvStart ) * pxns;
-                        const auto px1 = std::max( px0 + std::max( 1.0, pxns * 0.5 ), ( tEnd - m_vd.zvStart ) * pxns );
-                        draw->AddRectFilled( ImVec2( wpos.x + px0, yPos ), ImVec2( wpos.x + px1, yPos + PlotHeight ), 0x2288DD88 );
-                        draw->AddRect( ImVec2( wpos.x + px0, yPos ), ImVec2( wpos.x + px1, yPos + PlotHeight ), 0x4488DD88 );
+                        draw->AddRectFilled( dpos + ImVec2( px, offset + PlotHeight ), dpos + ImVec2( x, offset + py ), fill );
                     }
-                    if( m_memoryAllocHover >= 0 && m_memoryAllocHoverPool == v->name && ( m_memoryAllocInfoPool != v->name || m_memoryAllocHover != m_memoryAllocInfoWindow ) )
-                    {
-                        const auto& ev = mem.data[m_memoryAllocHover];
-
-                        const auto tStart = ev.TimeAlloc();
-                        const auto tEnd = ev.TimeFree() < 0 ? m_worker.GetLastTime() : ev.TimeFree();
-
-                        const auto px0 = ( tStart - m_vd.zvStart ) * pxns;
-                        const auto px1 = std::max( px0 + std::max( 1.0, pxns * 0.5 ), ( tEnd - m_vd.zvStart ) * pxns );
-                        draw->AddRectFilled( ImVec2( wpos.x + px0, yPos ), ImVec2( wpos.x + px1, yPos + PlotHeight ), 0x228888DD );
-                        draw->AddRect( ImVec2( wpos.x + px0, yPos ), ImVec2( wpos.x + px1, yPos + PlotHeight ), 0x448888DD );
-
-                        if( m_memoryAllocHoverWait > 0 )
-                        {
-                            m_memoryAllocHoverWait--;
-                        }
-                        else
-                        {
-                            m_memoryAllocHover = -1;
-                        }
-                    }
-                }
-
-                auto it = std::lower_bound( vec.begin(), vec.end(), m_vd.zvStart - m_worker.GetDelay(), [] ( const auto& l, const auto& r ) { return l.time.Val() < r; } );
-                auto end = std::lower_bound( it, vec.end(), m_vd.zvEnd + m_worker.GetResolution(), [] ( const auto& l, const auto& r ) { return l.time.Val() < r; } );
-
-                if( end != vec.end() ) end++;
-                if( it != vec.begin() ) it--;
-
-                double min = it->val;
-                double max = it->val;
-                const auto num = std::distance( it, end );
-                if( num > 1000000 )
-                {
-                    min = v->min;
-                    max = v->max;
+                    const ImVec2 data[3] = { dpos + ImVec2( px, offset + py ), dpos + ImVec2( x, offset + py ), dpos + ImVec2( x, offset + y ) };
+                    draw->AddPolyline( data, 3, color, 0, 1.0f );
                 }
                 else
                 {
-                    auto tmp = it;
-                    ++tmp;
-                    const auto sz = end - tmp;
-                    for( ptrdiff_t i=0; i<sz; i++ )
+                    if( plot.fill )
                     {
-                        min = tmp[i].val < min ? tmp[i].val : min;
-                        max = tmp[i].val > max ? tmp[i].val : max;
+                        draw->AddQuadFilled( dpos + ImVec2( px, offset + PlotHeight ), dpos + ImVec2( px, offset + py ), dpos + ImVec2( x, offset + y ), dpos + ImVec2( x, offset + PlotHeight ), fill );
                     }
+                    DrawLine( draw, dpos + ImVec2( px, offset + py ), dpos + ImVec2( x, offset + y ), color );
                 }
-                if( min == max )
+            }
+
+            if( cnt == 0 )
+            {
+                if( i0 == 0 )
                 {
-                    min--;
-                    max++;
+                    DrawPlotPoint( wpos, x, y, offset, color, hover, false, v0, 0, plot.type, plot.format, PlotHeight, plot.name );
                 }
-
-                const auto rMin = min;
-                const auto rMax = max;
-
-                auto pvit = m_plotView.find( v );
-                if( pvit == m_plotView.end() )
+                else
                 {
-                    pvit = m_plotView.emplace( v, PlotView { min, max } ).first;
+                    DrawPlotPoint( wpos, x, y, offset, color, hover, true, v0, vec[i0-1].val, plot.type, plot.format, PlotHeight, plot.name );
                 }
-                auto& pv = pvit->second;
-                if( pv.min != min || pv.max != max )
-                {
-                    const auto dt = ImGui::GetIO().DeltaTime;
-                    const auto minDiff = min - pv.min;
-                    const auto maxDiff = max - pv.max;
-
-                    pv.min += minDiff * 15.0 * dt;
-                    pv.max += maxDiff * 15.0 * dt;
-
-                    const auto minDiffNew = min - pv.min;
-                    const auto maxDiffNew = max - pv.max;
-
-                    if( minDiff * minDiffNew < 0 ) pv.min = min;
-                    if( maxDiff * maxDiffNew < 0 ) pv.max = max;
-
-                    min = pv.min;
-                    max = pv.max;
-                }
-
-                const auto revrange = 1.0 / ( max - min );
-
-                if( it == vec.begin() )
-                {
-                    const auto x = ( it->time.Val() - m_vd.zvStart ) * pxns;
-                    const auto y = PlotHeight - ( it->val - min ) * revrange * PlotHeight;
-                    DrawPlotPoint( wpos, x, y, offset, 0xFF44DDDD, hover, false, it, 0, false, v->type, v->format, PlotHeight, v->name );
-                }
-
-                auto prevx = it;
-                auto prevy = it;
-                ++it;
-                ptrdiff_t skip = 0;
-                while( it < end )
-                {
-                    const auto x0 = ( prevx->time.Val() - m_vd.zvStart ) * pxns;
-                    const auto x1 = ( it->time.Val() - m_vd.zvStart ) * pxns;
-                    const auto y0 = PlotHeight - ( prevy->val - min ) * revrange * PlotHeight;
-                    const auto y1 = PlotHeight - ( it->val - min ) * revrange * PlotHeight;
-
-                    DrawLine( draw, dpos + ImVec2( x0, offset + y0 ), dpos + ImVec2( x1, offset + y1 ), 0xFF44DDDD );
-
-                    const auto rx = skip == 0 ? 2.0 : ( skip == 1 ? 2.5 : 4.0 );
-
-                    auto range = std::upper_bound( it, end, int64_t( it->time.Val() + nspx * rx ), [] ( const auto& l, const auto& r ) { return l < r.time.Val(); } );
-                    assert( range > it );
-                    const auto rsz = std::distance( it, range );
-                    if( rsz == 1 )
-                    {
-                        DrawPlotPoint( wpos, x1, y1, offset, 0xFF44DDDD, hover, true, it, prevy->val, false, v->type, v->format, PlotHeight, v->name );
-                        prevx = it;
-                        prevy = it;
-                        ++it;
-                    }
-                    else
-                    {
-                        prevx = it;
-
-                        skip = rsz / MaxPoints;
-                        const auto skip1 = std::max<ptrdiff_t>( 1, skip );
-                        const auto sz = rsz / skip1 + 1;
-                        assert( sz <= MaxPoints*2 );
-
-                        auto dst = tmpvec;
-                        const auto rsz = std::distance( it, range );
-                        const auto ssz = rsz / skip1;
-                        for( int64_t i=0; i<ssz; i++ )
-                        {
-                            *dst++ = float( it->val );
-                            it += skip1;
-                        }
-                        pdqsort_branchless( tmpvec, dst );
-
-                        if( rsz > MaxPoints )
-                        {
-                            DrawLine( draw, dpos + ImVec2( x1, offset + PlotHeight - ( tmpvec[0] - min ) * revrange * PlotHeight ), dpos + ImVec2( x1, offset + PlotHeight - ( dst[-1] - min ) * revrange * PlotHeight ), 0xFF44DDDD, 4.f );
-
-                            if( hover && ImGui::IsMouseHoveringRect( wpos + ImVec2( x1 - 2, offset ), wpos + ImVec2( x1 + 2, offset + PlotHeight ) ) )
-                            {
-                                ImGui::BeginTooltip();
-                                TextFocused( "Number of values:", RealToString( rsz ) );
-                                TextDisabledUnformatted( "Estimated range:" );
-                                ImGui::SameLine();
-                                ImGui::Text( "%s - %s", FormatPlotValue( tmpvec[0], v->format ), FormatPlotValue( dst[-1], v->format ) );
-                                ImGui::SameLine();
-                                ImGui::TextDisabled( "(%s)", FormatPlotValue( dst[-1] - tmpvec[0], v->format ) );
-                                ImGui::EndTooltip();
-                            }
-                        }
-                        else
-                        {
-                            DrawLine( draw, dpos + ImVec2( x1, offset + PlotHeight - ( tmpvec[0] - min ) * revrange * PlotHeight ), dpos + ImVec2( x1, offset + PlotHeight - ( dst[-1] - min ) * revrange * PlotHeight ), 0xFF44DDDD );
-
-                            auto vit = tmpvec;
-                            while( vit != dst )
-                            {
-                                auto vrange = std::upper_bound( vit, dst, *vit + 3.0 / ( revrange * PlotHeight ), [] ( const auto& l, const auto& r ) { return l < r; } );
-                                assert( vrange > vit );
-                                if( std::distance( vit, vrange ) == 1 )
-                                {
-                                    DrawPlotPoint( wpos, x1, PlotHeight - ( *vit - min ) * revrange * PlotHeight, offset, 0xFF44DDDD, hover, false, *vit, 0, false, v->format, PlotHeight );
-                                }
-                                else
-                                {
-                                    DrawPlotPoint( wpos, x1, PlotHeight - ( *vit - min ) * revrange * PlotHeight, offset, 0xFF44DDDD, hover, false, *vit, 0, true, v->format, PlotHeight );
-                                }
-                                vit = vrange;
-                            }
-                        }
-
-                        prevy = it - 1;
-                    }
-                }
-
-                if( yPos + ty >= yMin && yPos <= yMax )
-                {
-                    char tmp[64];
-                    sprintf( tmp, "(y-range: %s, visible data points: %s)", FormatPlotValue( rMax - rMin, v->format ), RealToString( num ) );
-                    draw->AddText( wpos + ImVec2( ty * 1.5f + txtx, offset - ty ), 0xFF226E6E, tmp );
-                }
-                auto tmp = FormatPlotValue( rMax, v->format );
-                DrawTextSuperContrast( draw, wpos + ImVec2( 0, offset ), 0xFF44DDDD, tmp );
-                offset += PlotHeight - ty;
-                tmp = FormatPlotValue( rMin, v->format );
-                DrawTextSuperContrast( draw, wpos + ImVec2( 0, offset ), 0xFF44DDDD, tmp );
-
-                DrawLine( draw, dpos + ImVec2( 0, offset + ty - 1 ), dpos + ImVec2( w, offset + ty - 1 ), 0xFF226E6E );
-                offset += ty;
+                px = x;
+                py = y;
             }
             else
             {
-                offset += PlotHeight;
+                constexpr int MaxShow = 32;
+                const auto i1 = i0 + cnt - 1;
+                const auto& v1 = vec[i1];
+                px = x;
+                py = PlotHeight - ( v1.val - min ) * revrange * PlotHeight;
+                const auto imin = *it++;
+                const auto imax = *it++;
+                const auto vmin = vec[imin].val;
+                const auto vmax = vec[imax].val;
+                const auto ymin = offset + PlotHeight - ( vmin - min ) * revrange * PlotHeight;
+                const auto ymax = offset + PlotHeight - ( vmax - min ) * revrange * PlotHeight;
+                if( cnt < MaxShow )
+                {
+                    DrawLine( draw, dpos + ImVec2( x, ymin ), dpos + ImVec2( x, ymax ), color );
+
+                    for( int i=0; i<cnt; i++ )
+                    {
+                        const auto is = i0 + i;
+                        const auto& vs = vec[is];
+                        auto ys = PlotHeight - ( vs.val - min ) * revrange * PlotHeight;
+                        DrawPlotPoint( wpos, x, ys, offset, color, hover, vs.val, plot.format, PlotHeight );
+                    }
+                }
+                else
+                {
+                    if( ymin - ymax < 3 )
+                    {
+                        const auto mid = ( ymin + ymax ) * 0.5;
+                        DrawLine( draw, dpos + ImVec2( x, mid - 1.5 ), dpos + ImVec2( x, mid + 1.5 ), color, 3 );
+                    }
+                    else
+                    {
+                        DrawLine( draw, dpos + ImVec2( x, ymin ), dpos + ImVec2( x, ymax ), color, 3 );
+                    }
+
+                    if( hover && ImGui::IsMouseHoveringRect( wpos + ImVec2( x - 2, offset ), wpos + ImVec2( x + 2, offset + PlotHeight ) ) )
+                    {
+                        constexpr int NumSamples = 256;
+                        ImGui::BeginTooltip();
+                        TextFocused( "Number of values:", RealToString( cnt ) );
+                        if( cnt < NumSamples )
+                        {
+                            TextDisabledUnformatted( "Range:" );
+                        }
+                        else
+                        {
+                            TextDisabledUnformatted( "Estimated range:" );
+                        }
+                        ImGui::SameLine();
+                        ImGui::Text( "%s - %s", FormatPlotValue( vmin, plot.format ), FormatPlotValue( vmax, plot.format ) );
+                        ImGui::SameLine();
+                        ImGui::TextDisabled( "(%s)", FormatPlotValue( vmax - vmin, plot.format ) );
+                        ImGui::EndTooltip();
+                    }
+                }
             }
         }
-        offset += 0.2 * ty;
-        AdjustThreadHeight( vis, oldOffset, offset );
-        ImGui::PopClipRect();
-    }
 
-    return offset;
-}
+        auto tmp = FormatPlotValue( plot.rMax, plot.format );
+        DrawTextSuperContrast( draw, wpos + ImVec2( 0, offset ), color, tmp );
+        offset += PlotHeight - ty;
+        tmp = FormatPlotValue( plot.rMin, plot.format );
+        DrawTextSuperContrast( draw, wpos + ImVec2( 0, offset ), color, tmp );
 
-void View::DrawPlotPoint( const ImVec2& wpos, float x, float y, int offset, uint32_t color, bool hover, bool hasPrev, double val, double prev, bool merged, PlotValueFormatting format, float PlotHeight )
-{
-    auto draw = ImGui::GetWindowDrawList();
-    if( merged )
-    {
-        draw->AddRectFilled( wpos + ImVec2( x - 1.5f, offset + y - 1.5f ), wpos + ImVec2( x + 2.5f, offset + y + 2.5f ), color );
+        DrawLine( draw, dpos + ImVec2( 0, offset + ty - 1 ), dpos + ImVec2( w, offset + ty - 1 ), 0xFF226E6E );
+        offset += ty;
+
+        if( plot.type == PlotType::Memory )
+        {
+            auto& mem = m_worker.GetMemoryNamed( plot.name );
+
+            if( m_memoryAllocInfoPool == plot.name && m_memoryAllocInfoWindow >= 0 )
+            {
+                const auto& ev = mem.data[m_memoryAllocInfoWindow];
+
+                const auto tStart = ev.TimeAlloc();
+                const auto tEnd = ev.TimeFree() < 0 ? m_worker.GetLastTime() : ev.TimeFree();
+
+                const auto px0 = ( tStart - m_vd.zvStart ) * pxns;
+                const auto px1 = std::max( px0 + std::max( 1.0, pxns * 0.5 ), ( tEnd - m_vd.zvStart ) * pxns );
+                draw->AddRectFilled( ImVec2( wpos.x + px0, yPos ), ImVec2( wpos.x + px1, yPos + PlotHeight ), 0x2288DD88 );
+                draw->AddRect( ImVec2( wpos.x + px0, yPos ), ImVec2( wpos.x + px1, yPos + PlotHeight ), 0x4488DD88 );
+            }
+            if( m_memoryAllocHover >= 0 && m_memoryAllocHoverPool == plot.name && ( m_memoryAllocInfoPool != plot.name || m_memoryAllocHover != m_memoryAllocInfoWindow ) )
+            {
+                const auto& ev = mem.data[m_memoryAllocHover];
+
+                const auto tStart = ev.TimeAlloc();
+                const auto tEnd = ev.TimeFree() < 0 ? m_worker.GetLastTime() : ev.TimeFree();
+
+                const auto px0 = ( tStart - m_vd.zvStart ) * pxns;
+                const auto px1 = std::max( px0 + std::max( 1.0, pxns * 0.5 ), ( tEnd - m_vd.zvStart ) * pxns );
+                draw->AddRectFilled( ImVec2( wpos.x + px0, yPos ), ImVec2( wpos.x + px1, yPos + PlotHeight ), 0x228888DD );
+                draw->AddRect( ImVec2( wpos.x + px0, yPos ), ImVec2( wpos.x + px1, yPos + PlotHeight ), 0x448888DD );
+
+                if( m_memoryAllocHoverWait > 0 )
+                {
+                    m_memoryAllocHoverWait--;
+                }
+                else
+                {
+                    m_memoryAllocHover = -1;
+                }
+            }
+        }
     }
     else
     {
-        draw->AddRect( wpos + ImVec2( x - 1.5f, offset + y - 1.5f ), wpos + ImVec2( x + 2.5f, offset + y + 2.5f ), color );
+        offset += PlotHeight;
     }
+    return true;
+}
+
+void View::DrawPlotPoint( const ImVec2& wpos, float x, float y, int offset, uint32_t color, bool hover, double val, PlotValueFormatting format, float PlotHeight )
+{
+    auto draw = ImGui::GetWindowDrawList();
+    draw->AddRect( wpos + ImVec2( x - 1.5f, offset + y - 1.5f ), wpos + ImVec2( x + 2.5f, offset + y + 2.5f ), color );
 
     if( hover && ImGui::IsMouseHoveringRect( wpos + ImVec2( x - 2, offset ), wpos + ImVec2( x + 2, offset + PlotHeight ) ) )
     {
         ImGui::BeginTooltip();
         TextFocused( "Value:", FormatPlotValue( val, format ) );
-        if( hasPrev )
-        {
-            TextFocused( "Change:", FormatPlotValue( val - prev, format ) );
-        }
         ImGui::EndTooltip();
     }
 }
 
-void View::DrawPlotPoint( const ImVec2& wpos, float x, float y, int offset, uint32_t color, bool hover, bool hasPrev, const PlotItem* item, double prev, bool merged, PlotType type, PlotValueFormatting format, float PlotHeight, uint64_t name )
+void View::DrawPlotPoint( const ImVec2& wpos, float x, float y, int offset, uint32_t color, bool hover, bool hasPrev, const PlotItem& item, double prev, PlotType type, PlotValueFormatting format, float PlotHeight, uint64_t name )
 {
     auto draw = ImGui::GetWindowDrawList();
-    if( merged )
-    {
-        draw->AddRectFilled( wpos + ImVec2( x - 1.5f, offset + y - 1.5f ), wpos + ImVec2( x + 2.5f, offset + y + 2.5f ), color );
-    }
-    else
-    {
-        draw->AddRect( wpos + ImVec2( x - 1.5f, offset + y - 1.5f ), wpos + ImVec2( x + 2.5f, offset + y + 2.5f ), color );
-    }
+    draw->AddRect( wpos + ImVec2( x - 1.5f, offset + y - 1.5f ), wpos + ImVec2( x + 2.5f, offset + y + 2.5f ), color );
 
     if( hover && ImGui::IsMouseHoveringRect( wpos + ImVec2( x - 2, offset ), wpos + ImVec2( x + 2, offset + PlotHeight ) ) )
     {
         ImGui::BeginTooltip();
-        TextFocused( "Time:", TimeToStringExact( item->time.Val() ) );
+        TextFocused( "Time:", TimeToStringExact( item.time.Val() ) );
         if( type == PlotType::Memory )
         {
             TextDisabledUnformatted( "Value:" );
             ImGui::SameLine();
-            if( item->val < 10000ll )
+            if( item.val < 10000ll )
             {
-                ImGui::TextUnformatted( MemSizeToString( item->val ) );
+                ImGui::TextUnformatted( MemSizeToString( item.val ) );
             }
             else
             {
-                ImGui::TextUnformatted( MemSizeToString( item->val ) );
+                ImGui::TextUnformatted( MemSizeToString( item.val ) );
                 ImGui::SameLine();
-                ImGui::TextDisabled( "(%s)", RealToString( item->val ) );
+                ImGui::TextDisabled( "(%s)", RealToString( item.val ) );
             }
         }
         else
         {
-            TextFocused( "Value:", FormatPlotValue( item->val, format ) );
+            TextFocused( "Value:", FormatPlotValue( item.val, format ) );
         }
         if( hasPrev )
         {
-            const auto change = item->val - prev;
+            const auto change = item.val - prev;
             TextFocused( "Change:", FormatPlotValue( change, format ) );
 
             if( type == PlotType::Memory )
@@ -445,8 +283,8 @@ void View::DrawPlotPoint( const ImVec2& wpos, float x, float y, int offset, uint
                 const MemEvent* ev = nullptr;
                 if( change > 0 )
                 {
-                    auto it = std::lower_bound( mem.data.begin(), mem.data.end(), item->time.Val(), [] ( const auto& lhs, const auto& rhs ) { return lhs.TimeAlloc() < rhs; } );
-                    if( it != mem.data.end() && it->TimeAlloc() == item->time.Val() )
+                    auto it = std::lower_bound( mem.data.begin(), mem.data.end(), item.time.Val(), [] ( const auto& lhs, const auto& rhs ) { return lhs.TimeAlloc() < rhs; } );
+                    if( it != mem.data.end() && it->TimeAlloc() == item.time.Val() )
                     {
                         ev = it;
                     }
@@ -454,8 +292,8 @@ void View::DrawPlotPoint( const ImVec2& wpos, float x, float y, int offset, uint
                 else
                 {
                     const auto& data = mem.data;
-                    auto it = std::lower_bound( mem.frees.begin(), mem.frees.end(), item->time.Val(), [&data] ( const auto& lhs, const auto& rhs ) { return data[lhs].TimeFree() < rhs; } );
-                    if( it != mem.frees.end() && data[*it].TimeFree() == item->time.Val() )
+                    auto it = std::lower_bound( mem.frees.begin(), mem.frees.end(), item.time.Val(), [&data] ( const auto& lhs, const auto& rhs ) { return data[lhs].TimeFree() < rhs; } );
+                    if( it != mem.frees.end() && data[*it].TimeFree() == item.time.Val() )
                     {
                         ev = &data[*it];
                     }

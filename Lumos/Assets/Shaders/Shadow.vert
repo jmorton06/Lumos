@@ -27,37 +27,47 @@ layout(location = 2) in vec2 inTexCoord;
 layout(location = 3) in vec3 inNormal;
 layout(location = 4) in vec3 inTangent;
 layout(location = 5) in vec3 inBitangent;
- 
+
 layout(location = 0) out vec2 uv;
 
 void main()
 {
+    mat4 transform = pushConsts.transform;
     mat4 proj;
     switch(pushConsts.cascadeIndex)
     {
         case 0 : 
 		proj = ubo.LightMatrices[0];
-            break;
+        break;
         case 1 : 
 		proj = ubo.LightMatrices[1];
-            break;
+        break;
         case 2 : 
 		proj = ubo.LightMatrices[2];
-            break;
+        break;
         default : 
 		proj = ubo.LightMatrices[3];
-            break;
+        break;
     }
-    gl_Position = proj * pushConsts.transform * vec4(inPosition, 1.0); 
+    gl_Position = proj * transform * vec4(inPosition, 1.0); 
 	
-	vec3 test = inPosition; //SPV vertex layout incorrect when not used
+    //This order needed to match the order of 
+    /*
+
+layout(location = 0) in vec3 inPosition;
+layout(location = 1) in vec4 inColor;
+layout(location = 2) in vec2 inTexCoord;
+layout(location = 3) in vec3 inNormal;
+layout(location = 4) in vec3 inTangent;
+layout(location = 5) in vec3 inBitangent;
+*/
 	vec4 test2 = inColor; //SPV vertex layout incorrect when not used
+    uv = inTexCoord;
+	vec3 test5 = inNormal; //SPV vertex layout incorrect when not used
 	vec3 test3 = inTangent; //SPV vertex layout incorrect when not used
 	vec3 test4 = inBitangent; //SPV vertex layout incorrect when not used
-	vec3 test5 = inNormal; //SPV vertex layout incorrect when not used
     float test6 = pushConsts.p0;
     float test7 = pushConsts.p1;
     float test8 = pushConsts.p2;
-
-    uv = inTexCoord;
+    
 }

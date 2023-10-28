@@ -1,9 +1,10 @@
 #include <inttypes.h>
 #include <sstream>
 
-#include "../common/TracyStackFrames.hpp"
+#include "../public/common/TracyStackFrames.hpp"
 #include "TracyImGui.hpp"
 #include "TracyPrint.hpp"
+#include "TracyUtility.hpp"
 #include "TracyView.hpp"
 
 namespace tracy
@@ -30,7 +31,6 @@ void View::DrawCallstackTable( uint32_t callstack, bool globalEntriesButton )
     {
         std::ostringstream s;
         int fidx = 0;
-        int bidx = 0;
         for( auto& entry : cs )
         {
             char buf[64*1024];
@@ -63,8 +63,6 @@ void View::DrawCallstackTable( uint32_t callstack, bool globalEntriesButton )
                         while( *++test );
                         if( match ) continue;
                     }
-
-                    bidx++;
 
                     if( f == fsz-1 )
                     {
@@ -207,9 +205,15 @@ void View::DrawCallstackTable( uint32_t callstack, bool globalEntriesButton )
                         {
                             TextColoredUnformatted( 0xFF8888FF, txt );
                         }
-                        else
+                        else if( m_shortenName == ShortenName::Never )
                         {
                             ImGui::TextUnformatted( txt );
+                        }
+                        else
+                        {
+                            const auto normalized = ShortenZoneName( ShortenName::OnlyNormalize, txt );
+                            ImGui::TextUnformatted( normalized );
+                            TooltipNormalizedName( txt, normalized );
                         }
                         ImGui::PopTextWrapPos();
                     }
@@ -389,7 +393,7 @@ void View::DrawCallstackCalls( uint32_t callstack, uint16_t limit ) const
         else
         {
             ImGui::SameLine();
-            TextDisabledUnformatted( ICON_FA_LONG_ARROW_ALT_LEFT );
+            TextDisabledUnformatted( ICON_FA_LEFT_LONG );
             ImGui::SameLine();
         }
         const auto& frame = frameData->data[frameData->size - 1];
@@ -398,9 +402,13 @@ void View::DrawCallstackCalls( uint32_t callstack, uint16_t limit ) const
         {
             TextDisabledUnformatted( txt );
         }
-        else
+        else if( m_shortenName == ShortenName::Never )
         {
             ImGui::TextUnformatted( txt );
+        }
+        else
+        {
+            ImGui::TextUnformatted( ShortenZoneName( ShortenName::Always, txt ) );
         }
     }
 }
@@ -465,9 +473,13 @@ void View::CallstackTooltipContents( uint32_t idx )
                 {
                     TextColoredUnformatted( 0xFF8888FF, txt );
                 }
-                else
+                else if( m_shortenName == ShortenName::Never )
                 {
                     ImGui::TextUnformatted( txt );
+                }
+                else
+                {
+                    ImGui::TextUnformatted( ShortenZoneName( ShortenName::OnlyNormalize, txt ) );
                 }
                 if( frameData->imageName.Active() )
                 {

@@ -1,7 +1,7 @@
 #include "Precompiled.h"
 #include "Model.h"
 #include "Mesh.h"
-#include "Core/StringUtilities.h"
+#include "Utilities/StringUtilities.h"
 #include "Core/OS/FileSystem.h"
 
 #include <ozz/animation/runtime/animation.h>

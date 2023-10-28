@@ -62,7 +62,7 @@ namespace Lumos
         {
         }
 
-        std::string ToString() const;
+        std::string ToString() const override;
 
         EVENT_CLASS_TYPE(KeyTyped)
 

@@ -4,7 +4,7 @@
 #include "Graphics/Renderers/DebugRenderer.h"
 #include <glm/mat3x3.hpp>
 #include <glm/gtx/matrix_decompose.hpp>
-
+#include <glm/gtc/matrix_inverse.hpp>
 namespace Lumos
 {
     CapsuleCollisionShape::CapsuleCollisionShape(float radius, float height)
@@ -58,11 +58,18 @@ namespace Lumos
         glm::mat4 transform = currentObject ? currentObject->GetWorldSpaceTransform() * m_LocalTransform : m_LocalTransform;
         glm::vec3 pos       = transform[3];
 
-        if(out_min)
-            *out_min = pos - axis * m_Radius;
+        glm::vec3 topPosition    = glm::vec3(transform * glm::vec4(0.0f, m_Height * 0.5f, 0.0f, 1.0f));
+        glm::vec3 bottomPosition = glm::vec3(transform * glm::vec4(0.0f, -m_Height * 0.5f, 0.0f, 1.0f));
 
-        if(out_max)
-            *out_max = pos + axis * m_Radius;
+        // Transform the axis into the local coordinate space of the capsule
+        glm::mat4 inverseTransform = glm::affineInverse(transform);
+        glm::vec3 localAxis        = glm::vec3(inverseTransform * glm::vec4(axis, 1.0f));
+
+        float minProj = glm::dot(topPosition, localAxis) - m_Radius;
+        float maxProj = glm::dot(bottomPosition, localAxis) + m_Radius;
+
+        *out_min = topPosition + minProj * localAxis;
+        *out_max = bottomPosition + maxProj * localAxis;
     }
 
     void CapsuleCollisionShape::GetIncidentReferencePolygon(const RigidBody3D* currentObject,

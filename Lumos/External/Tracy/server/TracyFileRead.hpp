@@ -16,15 +16,15 @@
 #ifdef _MSC_VER
 #  define stat64 _stat64
 #endif
-#if defined __APPLE__
+#if defined __APPLE__ || defined __FreeBSD__
 #  define stat64 stat
 #endif
 
 #include "TracyFileHeader.hpp"
 #include "TracyMmap.hpp"
-#include "../common/TracyYield.hpp"
-#include "../common/tracy_lz4.hpp"
-#include "../common/TracyForceInline.hpp"
+#include "../public/common/TracyYield.hpp"
+#include "../public/common/tracy_lz4.hpp"
+#include "../public/common/TracyForceInline.hpp"
 #include "../zstd/zstd.h"
 
 namespace tracy
@@ -289,6 +289,40 @@ public:
             memcpy( &v6, tmp + sizeof( T ) + sizeof( U ) + sizeof( V ) + sizeof( W ) + sizeof( X ) + sizeof( Y ), sizeof( Z ) );
             memcpy( &v7, tmp + sizeof( T ) + sizeof( U ) + sizeof( V ) + sizeof( W ) + sizeof( X ) + sizeof( Y ) + sizeof( Z ), sizeof( A ) );
             memcpy( &v8, tmp + sizeof( T ) + sizeof( U ) + sizeof( V ) + sizeof( W ) + sizeof( X ) + sizeof( Y ) + sizeof( Z ) + sizeof( A ), sizeof( B ) );
+        }
+    }
+
+    template<class T, class U, class V, class W, class X, class Y, class Z, class A, class B, class C>
+    tracy_force_inline void Read10( T& v0, U& v1, V& v2, W& v3, X& v4, Y& v5, Z& v6, A& v7, B& v8, C& v9 )
+    {
+        if( sizeof( T ) + sizeof( U ) + sizeof( V ) + sizeof( W ) + sizeof( X ) + sizeof( Y ) + sizeof( Z ) + sizeof( A ) + sizeof( B ) + sizeof( C ) <= BufSize - m_offset )
+        {
+            memcpy( &v0, m_buf + m_offset, sizeof( T ) );
+            memcpy( &v1, m_buf + m_offset + sizeof( T ), sizeof( U ) );
+            memcpy( &v2, m_buf + m_offset + sizeof( T ) + sizeof( U ), sizeof( V ) );
+            memcpy( &v3, m_buf + m_offset + sizeof( T ) + sizeof( U ) + sizeof( V ), sizeof( W ) );
+            memcpy( &v4, m_buf + m_offset + sizeof( T ) + sizeof( U ) + sizeof( V ) + sizeof( W ), sizeof( X ) );
+            memcpy( &v5, m_buf + m_offset + sizeof( T ) + sizeof( U ) + sizeof( V ) + sizeof( W ) + sizeof( X ), sizeof( Y ) );
+            memcpy( &v6, m_buf + m_offset + sizeof( T ) + sizeof( U ) + sizeof( V ) + sizeof( W ) + sizeof( X ) + sizeof( Y ), sizeof( Z ) );
+            memcpy( &v7, m_buf + m_offset + sizeof( T ) + sizeof( U ) + sizeof( V ) + sizeof( W ) + sizeof( X ) + sizeof( Y ) + sizeof( Z ), sizeof( A ) );
+            memcpy( &v8, m_buf + m_offset + sizeof( T ) + sizeof( U ) + sizeof( V ) + sizeof( W ) + sizeof( X ) + sizeof( Y ) + sizeof( Z ) + sizeof( A ), sizeof( B ) );
+            memcpy( &v9, m_buf + m_offset + sizeof( T ) + sizeof( U ) + sizeof( V ) + sizeof( W ) + sizeof( X ) + sizeof( Y ) + sizeof( Z ) + sizeof( A ) + sizeof( B ), sizeof( C ) );
+            m_offset += sizeof( T ) + sizeof( U ) + sizeof( V ) + sizeof( W ) + sizeof( X ) + sizeof( Y ) + sizeof( Z ) + sizeof( A ) + sizeof( B ) + sizeof( C );
+        }
+        else
+        {
+            char tmp[sizeof( T ) + sizeof( U ) + sizeof( V ) + sizeof( W ) + sizeof( X ) + sizeof( Y ) + sizeof( Z ) + sizeof( A ) + sizeof( B ) + sizeof( C )];
+            ReadBig( tmp, sizeof( T ) + sizeof( U ) + sizeof( V ) + sizeof( W ) + sizeof( X ) + sizeof( Y ) + sizeof( Z ) + sizeof( A ) + sizeof( B ) + sizeof( C ) );
+            memcpy( &v0, tmp, sizeof( T ) );
+            memcpy( &v1, tmp + sizeof( T ), sizeof( U ) );
+            memcpy( &v2, tmp + sizeof( T ) + sizeof( U ), sizeof( V ) );
+            memcpy( &v3, tmp + sizeof( T ) + sizeof( U ) + sizeof( V ), sizeof( W ) );
+            memcpy( &v4, tmp + sizeof( T ) + sizeof( U ) + sizeof( V ) + sizeof( W ), sizeof( X ) );
+            memcpy( &v5, tmp + sizeof( T ) + sizeof( U ) + sizeof( V ) + sizeof( W ) + sizeof( X ), sizeof( Y ) );
+            memcpy( &v6, tmp + sizeof( T ) + sizeof( U ) + sizeof( V ) + sizeof( W ) + sizeof( X ) + sizeof( Y ), sizeof( Z ) );
+            memcpy( &v7, tmp + sizeof( T ) + sizeof( U ) + sizeof( V ) + sizeof( W ) + sizeof( X ) + sizeof( Y ) + sizeof( Z ), sizeof( A ) );
+            memcpy( &v8, tmp + sizeof( T ) + sizeof( U ) + sizeof( V ) + sizeof( W ) + sizeof( X ) + sizeof( Y ) + sizeof( Z ) + sizeof( A ), sizeof( B ) );
+            memcpy( &v9, tmp + sizeof( T ) + sizeof( U ) + sizeof( V ) + sizeof( W ) + sizeof( X ) + sizeof( Y ) + sizeof( Z ) + sizeof( A ) + sizeof( B ), sizeof( C ) );
         }
     }
 

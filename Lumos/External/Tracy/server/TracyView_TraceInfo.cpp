@@ -61,6 +61,7 @@ void View::DrawInfo()
         if( ImGui::InputTextWithHint( "##traceDesc", "Enter description of the trace", buf, 256 ) )
         {
             m_userData.SetDescription( buf );
+            if( m_stcb ) UpdateTitle();
         }
     }
 
@@ -99,7 +100,6 @@ void View::DrawInfo()
         TextFocused( "Symbols:", RealToString( m_worker.GetSymbolsCount() ) );
         TextFocused( "Symbol code fragments:", RealToString( m_worker.GetSymbolCodeCount() ) );
         TooltipIfHovered( MemSizeToString( m_worker.GetSymbolCodeSize() ) );
-        TextFocused( "Code locations:", RealToString( m_worker.GetCodeLocationsSize() ) );
         TextFocused( "Call stacks:", RealToString( m_worker.GetCallstackPayloadCount() ) );
         if( m_worker.AreCallstackSamplesReady() )
         {
@@ -183,12 +183,12 @@ void View::DrawInfo()
         ImGui::TreePop();
     }
 
-    if( ImGui::TreeNode( "Frame statistics" ) )
+    if( m_worker.AreFramesUsed() && ImGui::TreeNode( "Frame statistics" ) )
     {
         auto fsz = m_worker.GetFullFrameCount( *m_frames );
         if( fsz != 0 )
         {
-            TextFocused( "Frame set:", m_frames->name == 0 ? "Frames" : m_worker.GetString( m_frames->name ) );
+            TextFocused( "Frame set:", GetFrameSetName( *m_frames ) );
             ImGui::SameLine();
             ImGui::TextDisabled( "(%s)", m_frames->continuous ? "continuous" : "discontinuous" );
             ImGui::SameLine();
@@ -199,7 +199,7 @@ void View::DrawInfo()
                 for( auto& fd : frames )
                 {
                     bool isSelected = m_frames == fd;
-                    if( ImGui::Selectable( fd->name == 0 ? "Frames" : m_worker.GetString( fd->name ), isSelected ) )
+                    if( ImGui::Selectable( GetFrameSetName( *fd ), isSelected ) )
                     {
                         m_frames = fd;
                         fsz = m_worker.GetFullFrameCount( *m_frames );
@@ -219,7 +219,7 @@ void View::DrawInfo()
             if( m_frameSortData.limitToView )
             {
                 ImGui::SameLine();
-                TextColoredUnformatted( 0xFF00FFFF, ICON_FA_EXCLAMATION_TRIANGLE );
+                TextColoredUnformatted( 0xFF00FFFF, ICON_FA_TRIANGLE_EXCLAMATION );
             }
 
             const auto frameRange = m_worker.GetFrameRange( *m_frames, m_vd.zvStart, m_vd.zvEnd );
@@ -675,6 +675,7 @@ void View::DrawInfo()
                                 const auto c = uint32_t( ( sin( s_time * 10 ) * 0.25 + 0.75 ) * 255 );
                                 const auto color = 0xFF000000 | ( c << 16 ) | ( c << 8 ) | c;
                                 DrawLine( draw, ImVec2( dpos.x + framePos, dpos.y ), ImVec2( dpos.x + framePos, dpos.y+Height-2 ), color );
+                                m_wasActive = true;
                             }
                         }
                     }
@@ -725,7 +726,7 @@ void View::DrawInfo()
 
                     for( auto& thread : core.second )
                     {
-                        sprintf( buf, ICON_FA_RANDOM "%" PRIu32, thread );
+                        sprintf( buf, ICON_FA_SHUFFLE "%" PRIu32, thread );
                         const auto tsz = ImGui::CalcTextSize( buf ).x;
                         if( tsz > ttsz ) ttsz = tsz;
                     }
@@ -777,7 +778,7 @@ void View::DrawInfo()
 
                     for( int i=0; i<core->second.size(); i++ )
                     {
-                        sprintf( buf, ICON_FA_RANDOM "%" PRIu32, core->second[i] );
+                        sprintf( buf, ICON_FA_SHUFFLE "%" PRIu32, core->second[i] );
                         draw->AddText( cpos + ImVec2( margin + i * ( margin + ttsz ), ty + small ), 0xFFFFFFFF, buf );
                     }
 
@@ -819,7 +820,7 @@ void View::DrawInfo()
         for( auto& v : m_sourceSubstitutions )
         {
             ImGui::PushID( idx );
-            if( ImGui::Button( ICON_FA_TRASH_ALT ) ) remove = idx;
+            if( ImGui::Button( ICON_FA_TRASH_CAN ) ) remove = idx;
             ImGui::SameLine();
             char tmp[1024];
             strncpy( tmp, v.pattern.c_str(), 1024 );
@@ -853,7 +854,7 @@ void View::DrawInfo()
                 {
                     v.regex.assign( v.pattern );
                 }
-                catch( std::regex_error& err )
+                catch( std::regex_error& )
                 {
                     regexValid = false;
                     break;

@@ -8,7 +8,7 @@ namespace Lumos
     class PoolAllocator
     {
     public:
-        explicit PoolAllocator(Arena* arena = nullptr, size_t poolSize = Megabytes(50))
+        explicit PoolAllocator(Arena* arena = nullptr, size_t poolSize = Megabytes(16))
             : m_Arena(arena)
             , m_PoolSize(poolSize)
             , m_NextAvailable(nullptr)
@@ -18,7 +18,7 @@ namespace Lumos
             if(!arena)
             {
                 m_ArenaOwned = true;
-                m_Arena      = ArenaAlloc(poolSize * 2);
+                m_Arena      = ArenaAlloc(poolSize * 1.1);
             }
 
             LUMOS_ASSERT(m_Arena, "Arena not allocated");

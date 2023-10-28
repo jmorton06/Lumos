@@ -178,7 +178,7 @@ void View::DrawMemory()
     auto& memNameMap = m_worker.GetMemNameMap();
     if( memNameMap.size() > 1 )
     {
-        TextDisabledUnformatted( ICON_FA_ARCHIVE " Memory pool:" );
+        TextDisabledUnformatted( ICON_FA_BOX_ARCHIVE " Memory pool:" );
         ImGui::SameLine();
         if( ImGui::BeginCombo( "##memoryPool", m_memInfo.pool == 0 ? "Default allocator" : m_worker.GetString( m_memInfo.pool ) ) )
         {
@@ -243,7 +243,7 @@ void View::DrawMemory()
     if( m_memInfo.range.active )
     {
         ImGui::SameLine();
-        TextColoredUnformatted( 0xFF00FFFF, ICON_FA_EXCLAMATION_TRIANGLE );
+        TextColoredUnformatted( 0xFF00FFFF, ICON_FA_TRIANGLE_EXCLAMATION );
         ImGui::SameLine();
         ToggleButton( ICON_FA_RULER " Limits", m_showRanges );
     }
@@ -255,13 +255,13 @@ void View::DrawMemory()
     {
         bool findClicked =  ImGui::InputTextWithHint( "###address", "Enter memory address to search for", m_memInfo.pattern, 1024, ImGuiInputTextFlags_EnterReturnsTrue );
         ImGui::SameLine();
-        findClicked |= ImGui::Button( ICON_FA_SEARCH " Find" );
+        findClicked |= ImGui::Button( ICON_FA_MAGNIFYING_GLASS " Find" );
         if( findClicked )
         {
             m_memInfo.ptrFind = strtoull( m_memInfo.pattern, nullptr, 0 );
         }
         ImGui::SameLine();
-        if( ImGui::Button( ICON_FA_BACKSPACE " Clear" ) )
+        if( ImGui::Button( ICON_FA_DELETE_LEFT " Clear" ) )
         {
             m_memInfo.ptrFind = 0;
             m_memInfo.pattern[0] = '\0';
@@ -313,14 +313,14 @@ void View::DrawMemory()
                     {
                         ImGui::Text( "0x%" PRIx64 "+%" PRIu64, v->Ptr(), m_memInfo.ptrFind - v->Ptr() );
                     }
-                    }, "##allocations", -1, m_memInfo.pool );
+                    }, -1, m_memInfo.pool );
             }
         }
         ImGui::TreePop();
     }
 
     ImGui::Separator();
-    if( ImGui::TreeNode( ICON_FA_HEARTBEAT " Active allocations" ) )
+    if( ImGui::TreeNode( ICON_FA_HEART_PULSE " Active allocations" ) )
     {
         uint64_t total = 0;
         std::vector<const MemEvent*> items;
@@ -362,7 +362,7 @@ void View::DrawMemory()
         {
             ListMemData( items, []( auto v ) {
                 ImGui::Text( "0x%" PRIx64, v->Ptr() );
-                }, "##activeMem", -1, m_memInfo.pool );
+                }, -1, m_memInfo.pool );
         }
         else
         {
@@ -527,7 +527,7 @@ void View::DrawMemoryAllocWindow()
 
         if( m_worker.GetMemNameMap().size() > 1 )
         {
-            TextFocused( ICON_FA_ARCHIVE " Pool:", m_memoryAllocInfoPool == 0 ? "Default allocator" : m_worker.GetString( m_memoryAllocInfoPool ) );
+            TextFocused( ICON_FA_BOX_ARCHIVE " Pool:", m_memoryAllocInfoPool == 0 ? "Default allocator" : m_worker.GetString( m_memoryAllocInfoPool ) );
         }
         char buf[64];
         sprintf( buf, "0x%" PRIx64, ev.Ptr() );
@@ -557,7 +557,7 @@ void View::DrawMemoryAllocWindow()
             const auto cs = ev.CsAlloc();
             SmallCallstackButton( ICON_FA_ALIGN_JUSTIFY, cs, idx );
             ImGui::SameLine();
-            DrawCallstackCalls( cs, 2 );
+            DrawCallstackCalls( cs, 4 );
         }
         if( ev.TimeFree() < 0 )
         {
@@ -583,7 +583,7 @@ void View::DrawMemoryAllocWindow()
                 const auto cs = ev.csFree.Val();
                 SmallCallstackButton( ICON_FA_ALIGN_JUSTIFY, cs, idx );
                 ImGui::SameLine();
-                DrawCallstackCalls( cs, 2 );
+                DrawCallstackCalls( cs, 4 );
             }
             TextFocused( "Duration:", TimeToString( ev.TimeFree() - ev.TimeAlloc() ) );
         }
@@ -638,7 +638,7 @@ void View::DrawMemoryAllocWindow()
                     }
                     ZoneTooltip( *zoneFree );
                 }
-                if( zoneAlloc != 0 && zoneAlloc == zoneFree )
+                if( zoneAlloc == zoneFree )
                 {
                     ImGui::SameLine();
                     TextDisabledUnformatted( "(same zone)" );
@@ -650,7 +650,7 @@ void View::DrawMemoryAllocWindow()
     if( !show ) m_memoryAllocInfoWindow = -1;
 }
 
-void View::ListMemData( std::vector<const MemEvent*>& vec, std::function<void(const MemEvent*)> DrawAddress, const char* id, int64_t startTime, uint64_t pool )
+void View::ListMemData( std::vector<const MemEvent*>& vec, const std::function<void(const MemEvent*)>& DrawAddress, int64_t startTime, uint64_t pool )
 {
     if( startTime == -1 ) startTime = 0;
     if( ImGui::BeginTable( "##mem", 8, ImGuiTableFlags_Resizable | ImGuiTableFlags_Reorderable | ImGuiTableFlags_Hideable | ImGuiTableFlags_Sortable | ImGuiTableFlags_BordersInnerV | ImGuiTableFlags_ScrollY, ImVec2( 0, ImGui::GetTextLineHeightWithSpacing() * std::min<int64_t>( 1+vec.size(), 15 ) ) ) )
@@ -724,6 +724,7 @@ void View::ListMemData( std::vector<const MemEvent*>& vec, std::function<void(co
                 auto v = vec[i];
                 const auto arrIdx = std::distance( mem.data.begin(), v );
 
+                ImGui::PushFont( m_fixedFont );
                 if( m_memoryAllocInfoPool == pool && m_memoryAllocInfoWindow == arrIdx )
                 {
                     ImGui::PushStyleColor( ImGuiCol_Text, ImVec4( 1.f, 0.f, 0.f, 1.f ) );
@@ -739,6 +740,7 @@ void View::ListMemData( std::vector<const MemEvent*>& vec, std::function<void(co
                         m_memoryAllocInfoPool = pool;
                     }
                 }
+                ImGui::PopFont();
                 if( ImGui::IsItemClicked( 2 ) )
                 {
                     ZoomToRange( v->TimeAlloc(), v->TimeFree() >= 0 ? v->TimeFree() : m_worker.GetLastTime() );
@@ -916,7 +918,7 @@ void View::DrawAllocList()
     TextFocused( "Number of allocations:", RealToString( m_memInfo.allocList.size() ) );
     ListMemData( data, []( auto v ) {
         ImGui::Text( "0x%" PRIx64, v->Ptr() );
-        }, "##allocations", -1, m_memInfo.pool );
+        }, -1, m_memInfo.pool );
     ImGui::End();
 }
 

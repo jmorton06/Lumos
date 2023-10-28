@@ -48,6 +48,48 @@ namespace Lumos
             }
         };
 
+        struct BoneInfluence
+        {
+            uint32_t BoneInfoIndices[4] = { 0, 0, 0, 0 };
+            float Weights[4]            = { 0.0f, 0.0f, 0.0f, 0.0f };
+
+            void AddBoneData(uint32_t boneInfoIndex, float weight)
+            {
+                if(weight < 0.0f || weight > 1.0f)
+                {
+                    weight = std::clamp(weight, 0.0f, 1.0f);
+                }
+                if(weight > 0.0f)
+                {
+                    for(size_t i = 0; i < 4; i++)
+                    {
+                        if(Weights[i] == 0.0f)
+                        {
+                            BoneInfoIndices[i] = boneInfoIndex;
+                            Weights[i]         = weight;
+                            return;
+                        }
+                    }
+                }
+            }
+
+            void NormalizeWeights()
+            {
+                float sumWeights = 0.0f;
+                for(size_t i = 0; i < 4; i++)
+                {
+                    sumWeights += Weights[i];
+                }
+                if(sumWeights > 0.0f)
+                {
+                    for(size_t i = 0; i < 4; i++)
+                    {
+                        Weights[i] /= sumWeights;
+                    }
+                }
+            }
+        };
+
         struct Triangle
         {
             Triangle(const Vertex& v0, const Vertex& v1, const Vertex& v2)
@@ -121,6 +163,7 @@ namespace Lumos
             static glm::vec3* GenerateTangents(uint32_t numVertices, glm::vec3* vertices, uint32_t* indices, uint32_t numIndices, glm::vec2* texCoords);
 
             SharedPtr<VertexBuffer> m_VertexBuffer;
+            SharedPtr<VertexBuffer> m_BoneInfluenceBuffer;
             SharedPtr<IndexBuffer> m_IndexBuffer;
             SharedPtr<Material> m_Material;
             SharedPtr<Maths::BoundingBox> m_BoundingBox;

@@ -49,10 +49,22 @@ namespace Lumos
         void GLCommandBuffer::BindPipeline(Pipeline* pipeline)
         {
             LUMOS_PROFILE_FUNCTION();
-            if(pipeline != m_BoundPipeline)
+            if(pipeline != m_BoundPipeline || m_BoundPipelineLayer != 0)
             {
+                m_BoundPipelineLayer = 0;
                 pipeline->Bind(this);
                 m_BoundPipeline = pipeline;
+            }
+        }
+
+        void GLCommandBuffer::BindPipeline(Pipeline* pipeline, uint32_t layer)
+        {
+            LUMOS_PROFILE_FUNCTION();
+            if(pipeline != m_BoundPipeline || m_BoundPipelineLayer != layer)
+            {
+                pipeline->Bind(this, layer);
+                m_BoundPipeline      = pipeline;
+                m_BoundPipelineLayer = layer;
             }
         }
 

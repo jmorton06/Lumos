@@ -46,9 +46,10 @@ namespace Lumos
             GLCall(glBufferData(GL_ARRAY_BUFFER, size, NULL, BufferUsageToOpenGL(m_Usage)));
         }
 
-        void GLVertexBuffer::SetData(uint32_t size, const void* data)
+        void GLVertexBuffer::SetData(uint32_t size, const void* data, bool addBarrier)
         {
             LUMOS_PROFILE_FUNCTION();
+            LUMOS_UNUSED(addBarrier);
             m_Size = size;
             GLCall(glBindBuffer(GL_ARRAY_BUFFER, m_Handle));
             GLCall(glBufferData(GL_ARRAY_BUFFER, size, data, BufferUsageToOpenGL(m_Usage)));

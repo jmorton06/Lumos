@@ -2,7 +2,7 @@
 
 #include "imgui.h"
 
-#include "../common/TracyStackFrames.hpp"
+#include "../public/common/TracyStackFrames.hpp"
 #include "TracyFilesystem.hpp"
 #include "TracyImGui.hpp"
 #include "TracyMouse.hpp"
@@ -75,7 +75,11 @@ void View::DrawZoneList( int id, const Vector<short_ptr<ZoneEvent>>& zones )
     const auto zsz = zones.size();
     char buf[32];
     sprintf( buf, "%i##zonelist", id );
-    if( !ImGui::BeginTable( buf, 3, ImGuiTableFlags_NoSavedSettings | ImGuiTableFlags_Resizable | ImGuiTableFlags_Hideable | ImGuiTableFlags_BordersInnerV | ImGuiTableFlags_Sortable | ImGuiTableFlags_ScrollY, ImVec2( 0, ImGui::GetTextLineHeightWithSpacing() * std::min<size_t>( zsz + 1, 15 ) ) ) ) return;
+    if( !ImGui::BeginTable( buf, 3, ImGuiTableFlags_NoSavedSettings | ImGuiTableFlags_Resizable | ImGuiTableFlags_Hideable | ImGuiTableFlags_BordersInnerV | ImGuiTableFlags_Sortable | ImGuiTableFlags_ScrollY, ImVec2( 0, ImGui::GetTextLineHeightWithSpacing() * std::min<size_t>( zsz + 1, 15 ) ) ) )
+    {
+        ImGui::TreePop();
+        return;
+    }
     ImGui::TableSetupScrollFreeze( 0, 1 );
     ImGui::TableSetupColumn( "Time from start" );
     ImGui::TableSetupColumn( "Execution time", ImGuiTableColumnFlags_PreferSortDescending );
@@ -280,7 +284,7 @@ void View::DrawFindZone()
     findClicked |= ImGui::InputTextWithHint( "###findzone", "Enter zone name to search for", m_findZone.pattern, 1024, ImGuiInputTextFlags_EnterReturnsTrue );
     ImGui::PopItemWidth();
 
-    findClicked |= ImGui::Button( ICON_FA_SEARCH " Find" );
+    findClicked |= ImGui::Button( ICON_FA_MAGNIFYING_GLASS " Find" );
     ImGui::SameLine();
 
     if( ImGui::Button( ICON_FA_BAN " Clear" ) )
@@ -303,7 +307,7 @@ void View::DrawFindZone()
     if( m_findZone.range.active )
     {
         ImGui::SameLine();
-        TextColoredUnformatted( 0xFF00FFFF, ICON_FA_EXCLAMATION_TRIANGLE );
+        TextColoredUnformatted( 0xFF00FFFF, ICON_FA_TRIANGLE_EXCLAMATION );
         ImGui::SameLine();
         ToggleButton( ICON_FA_RULER " Limits", m_showRanges );
     }
@@ -539,6 +543,7 @@ void View::DrawFindZone()
                             {
                                 auto& ev = zones[i];
                                 if( ev.Zone()->End() > rangeMax || ev.Zone()->Start() < rangeMin ) continue;
+                                if( m_filteredZones.contains( &ev ) ) continue;
                                 if( selGroup == GetSelectionTarget( ev, groupBy ) )
                                 {
                                     const auto ctx = m_worker.GetContextSwitchData( m_worker.DecompressThread( zones[i].Thread() ) );
@@ -556,6 +561,7 @@ void View::DrawFindZone()
                             for( size_t i=m_findZone.selSortNum; i<m_findZone.sortedNum; i++ )
                             {
                                 auto& ev = zones[i];
+                                if( m_filteredZones.contains( &ev ) ) continue;
                                 if( selGroup == GetSelectionTarget( ev, groupBy ) )
                                 {
                                     const auto ctx = m_worker.GetContextSwitchData( m_worker.DecompressThread( zones[i].Thread() ) );
@@ -577,6 +583,7 @@ void View::DrawFindZone()
                             {
                                 auto& ev = zones[i];
                                 if( ev.Zone()->End() > rangeMax || ev.Zone()->Start() < rangeMin ) continue;
+                                if( m_filteredZones.contains( &ev ) ) continue;
                                 if( selGroup == GetSelectionTarget( ev, groupBy ) )
                                 {
                                     const auto t = ev.Zone()->End() - ev.Zone()->Start() - GetZoneChildTimeFast( *ev.Zone() );
@@ -591,6 +598,7 @@ void View::DrawFindZone()
                             for( size_t i=m_findZone.selSortNum; i<m_findZone.sortedNum; i++ )
                             {
                                 auto& ev = zones[i];
+                                if( m_filteredZones.contains( &ev ) ) continue;
                                 if( selGroup == GetSelectionTarget( ev, groupBy ) )
                                 {
                                     const auto t = ev.Zone()->End() - ev.Zone()->Start() - GetZoneChildTimeFast( *ev.Zone() );
@@ -609,6 +617,7 @@ void View::DrawFindZone()
                             {
                                 auto& ev = zones[i];
                                 if( ev.Zone()->End() > rangeMax || ev.Zone()->Start() < rangeMin ) continue;
+                                if( m_filteredZones.contains( &ev ) ) continue;
                                 if( selGroup == GetSelectionTarget( ev, groupBy ) )
                                 {
                                     const auto t = ev.Zone()->End() - ev.Zone()->Start();
@@ -623,6 +632,7 @@ void View::DrawFindZone()
                             for( size_t i=m_findZone.selSortNum; i<m_findZone.sortedNum; i++ )
                             {
                                 auto& ev = zones[i];
+                                if( m_filteredZones.contains( &ev ) ) continue;
                                 if( selGroup == GetSelectionTarget( ev, groupBy ) )
                                 {
                                     const auto t = ev.Zone()->End() - ev.Zone()->Start();
@@ -1245,15 +1255,19 @@ void View::DrawFindZone()
                             }
 
                             int64_t tBefore = 0;
+                            int64_t cntBefore = 0;
                             for( int i=0; i<bin; i++ )
                             {
                                 tBefore += binTime[i];
+                                cntBefore += bins[i];
                             }
 
                             int64_t tAfter = 0;
+                            int64_t cntAfter = 0;
                             for( int i=bin+1; i<numBins; i++ )
                             {
                                 tAfter += binTime[i];
+                                cntAfter += bins[i];
                             }
 
                             ImGui::BeginTooltip();
@@ -1261,6 +1275,8 @@ void View::DrawFindZone()
                             ImGui::SameLine();
                             ImGui::Text( "%s - %s", TimeToString( t0 ), TimeToString( t1 ) );
                             TextFocused( "Count:", RealToString( bins[bin] ) );
+                            TextFocused( "Count in the left bins:", RealToString( cntBefore ) );
+                            TextFocused( "Count in the right bins:", RealToString( cntAfter ) );
                             TextFocused( "Time spent in bin:", TimeToString( binTime[bin] ) );
                             TextFocused( "Time spent in the left bins:", TimeToString( tBefore ) );
                             TextFocused( "Time spent in the right bins:", TimeToString( tAfter ) );
@@ -1339,6 +1355,7 @@ void View::DrawFindZone()
                             const auto c = uint32_t( ( sin( s_time * 10 ) * 0.25 + 0.75 ) * 255 );
                             const auto color = 0xFF000000 | ( c << 16 ) | ( c << 8 ) | c;
                             DrawLine( draw, ImVec2( dpos.x + zonePos, dpos.y ), ImVec2( dpos.x + zonePos, dpos.y+Height-2 ), color );
+                            m_wasActive = true;
                         }
                     }
                 }
@@ -1351,13 +1368,31 @@ void View::DrawFindZone()
         SmallCheckbox( "Show zone time in frames", &m_findZone.showZoneInFrames );
         ImGui::Separator();
 
+        ImGui::AlignTextToFramePadding();
+        TextDisabledUnformatted( "Filter user text:" );
+        ImGui::SameLine();
+        bool filterChanged = m_userTextFilter.Draw( ICON_FA_FILTER "###resultFilter", 200 );
+
+        ImGui::SameLine();
+        if( ImGui::Button( ICON_FA_DELETE_LEFT " Clear###userText" ) )
+        {
+            m_userTextFilter.Clear();
+            filterChanged = true;
+        }
+        ImGui::Separator();
+        if( filterChanged )
+        {
+            m_filteredZones.clear();
+            m_findZone.ResetGroups();
+        }
+
         ImGui::TextUnformatted( "Found zones:" );
         ImGui::SameLine();
         DrawHelpMarker( "Left click to highlight entry." );
         if( m_findZone.selGroup != m_findZone.Unselected )
         {
             ImGui::SameLine();
-            if( ImGui::SmallButton( ICON_FA_BACKSPACE " Clear" ) )
+            if( ImGui::SmallButton( ICON_FA_DELETE_LEFT " Clear" ) )
             {
                 m_findZone.selGroup = m_findZone.Unselected;
                 m_findZone.ResetSelection();
@@ -1418,6 +1453,26 @@ void View::DrawFindZone()
                 zptr++;
                 continue;
             }
+
+            if( m_userTextFilter.IsActive() )
+            {
+                bool keep = false;
+                if ( m_worker.HasZoneExtra( *ev.Zone() ) && m_worker.GetZoneExtra( *ev.Zone() ).text.Active() )
+                {
+                    auto text = m_worker.GetString( m_worker.GetZoneExtra( *ev.Zone() ).text );
+                    if( m_userTextFilter.PassFilter( text ) )
+                    {
+                        keep = true;
+                    }
+                }
+                if( !keep )
+                {
+                    m_filteredZones.insert( &ev );
+                    zptr++;
+                    continue;
+                }
+            }
+
             auto timespan = end - start;
             assert( timespan != 0 );
             if( m_findZone.selfTime )
@@ -1647,7 +1702,16 @@ void View::DrawFindZone()
                                     TextDisabledUnformatted( ICON_FA_CARET_RIGHT );
                                 }
                                 ImGui::SameLine();
-                                ImGui::TextUnformatted( txt );
+                                if( m_shortenName == ShortenName::Never )
+                                {
+                                    ImGui::TextUnformatted( txt );
+                                }
+                                else
+                                {
+                                    const auto normalized = ShortenZoneName( ShortenName::OnlyNormalize, txt );
+                                    ImGui::TextUnformatted( normalized );
+                                    TooltipNormalizedName( txt, normalized );
+                                }
                             }
                         }
                     }
@@ -1815,7 +1879,7 @@ void View::DrawFindZone()
 
                 bool empty = true;
                 const auto firstTime = samplesBegin->time.Val();
-                const auto lastTime = samplesEnd->time.Val();
+                const auto lastTime = samplesEnd == samples->end() ? m_worker.GetLastTime() : samplesEnd->time.Val();
                 for( auto& g: selectedGroups )
                 {
                     const auto& zones = g.group->zones;

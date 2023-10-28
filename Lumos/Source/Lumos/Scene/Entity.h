@@ -3,7 +3,7 @@
 #include "Scene/Scene.h"
 #include "Scene/SceneGraph.h"
 #include "Core/Profiler.h"
-#include "Core/StringUtilities.h"
+#include "Utilities/StringUtilities.h"
 #include "Core/UUID.h"
 
 DISABLE_WARNING_PUSH

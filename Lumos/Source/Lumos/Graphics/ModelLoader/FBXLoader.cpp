@@ -9,7 +9,7 @@
 
 #include "Maths/Transform.h"
 #include "Core/Application.h"
-#include "Core/StringUtilities.h"
+#include "Utilities/StringUtilities.h"
 #include "Utilities/AssetManager.h"
 
 #include <ModelLoaders/OpenFBX/ofbx.h>

@@ -33,7 +33,9 @@
 
 #include <imgui/imgui.h>
 #include <sol/sol.hpp>
-#include <Tracy/TracyLua.hpp>
+#if LUMOS_PROFILE
+#include <tracy/public/tracy/TracyLua.hpp>
+#endif
 
 #include <ozz/animation/runtime/animation.h>
 #include <ozz/animation/runtime/sampling_job.h>
@@ -195,14 +197,29 @@ namespace Lumos
     {
     }
 
+    struct TracyEmpty
+    {
+    };
+
+    static void Empty()
+    {
+    }
+
     void LuaManager::OnInit()
     {
         LUMOS_PROFILE_FUNCTION();
 
         m_State = new sol::state();
         m_State->open_libraries(sol::lib::base, sol::lib::package, sol::lib::math, sol::lib::table, sol::lib::os, sol::lib::string);
+#if LUMOS_PROFILE && defined(TRACY_ENABLE)
         tracy::LuaRegister(m_State->lua_state());
-
+#else
+        sol::usertype<TracyEmpty> app_type = m_State->new_usertype<TracyEmpty>("tracy");
+        app_type.set_function("ZoneBegin", &Empty);
+        app_type.set_function("ZoneEnd", &Empty);
+        app_type.set_function("ZoneName", &Empty);
+        app_type.set_function("ZoneMessage", &Empty);
+#endif
         BindAppLua(*m_State);
         BindInputLua(*m_State);
         BindMathsLua(*m_State);
@@ -288,10 +305,10 @@ namespace Lumos
         entt::entity e = entt::null;
         registry.view<NameComponent>().each([&](const entt::entity& entity, const NameComponent& component)
                                             {
-                if(name == component.name)
-                {
-                    e = entity;
-                } });
+                                                if(name == component.name)
+                                                {
+                                                    e = entity;
+                                                } });
 
         return e;
     }

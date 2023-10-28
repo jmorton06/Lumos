@@ -293,6 +293,7 @@ namespace Lumos
         RenderConfig& GetRenderConfigSettings() { return m_RenderConfig; }
 
         Arena* GetFrameArena() const { return m_FrameArena; }
+        static void UpdateSystems();
 
     protected:
         ProjectSettings m_ProjectSettings;
@@ -303,7 +304,6 @@ namespace Lumos
         void AddDefaultScene();
 
         bool OnWindowClose(WindowCloseEvent& e);
-        static void UpdateSystems();
         bool ShouldUpdateSystems = false;
 
         uint32_t m_Frames              = 0;

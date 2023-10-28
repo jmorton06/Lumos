@@ -142,7 +142,7 @@ namespace Lumos
 
         m_Editor->OnImGuizmo();
 
-        if(updateCamera && app.GetSceneActive() && !ImGuizmo::IsUsing() && Input::Get().GetMouseClicked(InputCode::MouseKey::ButtonLeft))
+        if(ImGui::IsWindowFocused() && updateCamera && app.GetSceneActive() && !ImGuizmo::IsUsing() && Input::Get().GetMouseClicked(InputCode::MouseKey::ButtonLeft))
         {
             LUMOS_PROFILE_SCOPE("Select Object");
 

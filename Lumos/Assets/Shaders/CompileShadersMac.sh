@@ -22,7 +22,7 @@ for SRC in *.vert *.frag *.comp; do
 
             #if [ "$SRC" = "$NEWER" ]; then
 
-                echo "Compiling $OUT from:"
+                echo "Compiling $OUT from: $SRC"
 
                 $COMPILER  "$SRC" -o "$OUT"
             #else

@@ -44,7 +44,6 @@
 #include <Lumos/Graphics/Renderers/DebugRenderer.h>
 #include <Lumos/Graphics/Model.h>
 #include <Lumos/Graphics/Environment.h>
-#include <Lumos/Scene/EntityFactory.h>
 #include <Lumos/ImGui/IconsMaterialDesignIcons.h>
 #include <Lumos/Embedded/EmbedAsset.h>
 #include <Lumos/Scene/Component/ModelComponent.h>
@@ -438,7 +437,7 @@ namespace Lumos
                             ImVec2 pos = tab.Window->Pos;
                             pos.x      = pos.x + tab.Offset + ImGui::GetStyle().FramePadding.x;
                             pos.y      = pos.y + ImGui::GetStyle().ItemSpacing.y;
-                            ImRect bb(pos, { pos.x + tab.ContentWidth, pos.y });
+                            ImRect bb(pos, { pos.x + tab.Width, pos.y });
 
                             tab.Window->DrawList->AddLine(bb.Min, bb.Max, (!tab_bar_focused) ? ImGui::GetColorU32(ImGuiCol_SliderGrabActive) : ImGui::GetColorU32(ImGuiCol_Text), 2.0f);
                         }
@@ -724,65 +723,6 @@ namespace Lumos
                 ImGui::EndMenu();
             }
 
-            if(ImGui::BeginMenu("Entity"))
-            {
-                auto scene = Application::Get().GetSceneManager()->GetCurrentScene();
-
-                if(ImGui::MenuItem("CreateEmpty"))
-                {
-                    scene->CreateEntity();
-                }
-
-                if(ImGui::MenuItem("Cube"))
-                {
-                    auto entity = scene->CreateEntity("Cube");
-                    entity.AddComponent<Graphics::ModelComponent>(Graphics::PrimitiveType::Cube);
-                }
-
-                if(ImGui::MenuItem("Sphere"))
-                {
-                    auto entity = scene->CreateEntity("Sphere");
-                    entity.AddComponent<Graphics::ModelComponent>(Graphics::PrimitiveType::Sphere);
-                }
-
-                if(ImGui::MenuItem("Pyramid"))
-                {
-                    auto entity = scene->CreateEntity("Pyramid");
-                    entity.AddComponent<Graphics::ModelComponent>(Graphics::PrimitiveType::Pyramid);
-                }
-
-                if(ImGui::MenuItem("Plane"))
-                {
-                    auto entity = scene->CreateEntity("Plane");
-                    entity.AddComponent<Graphics::ModelComponent>(Graphics::PrimitiveType::Plane);
-                }
-
-                if(ImGui::MenuItem("Cylinder"))
-                {
-                    auto entity = scene->CreateEntity("Cylinder");
-                    entity.AddComponent<Graphics::ModelComponent>(Graphics::PrimitiveType::Cylinder);
-                }
-
-                if(ImGui::MenuItem("Capsule"))
-                {
-                    auto entity = scene->CreateEntity("Capsule");
-                    entity.AddComponent<Graphics::ModelComponent>(Graphics::PrimitiveType::Capsule);
-                }
-
-                if(ImGui::MenuItem("Terrain"))
-                {
-                    auto entity = scene->CreateEntity("Terrain");
-                    entity.AddComponent<Graphics::ModelComponent>(Graphics::PrimitiveType::Terrain);
-                }
-
-                if(ImGui::MenuItem("Light Cube"))
-                {
-                    EntityFactory::AddLightCube(Application::Get().GetSceneManager()->GetCurrentScene(), glm::vec3(0.0f), glm::vec3(0.0f));
-                }
-
-                ImGui::EndMenu();
-            }
-
             if(ImGui::BeginMenu("Graphics"))
             {
                 if(ImGui::MenuItem("Compile Shaders"))
@@ -792,8 +732,7 @@ namespace Lumos
                 if(ImGui::MenuItem("Embed Shaders"))
                 {
                     std::string coreDataPath;
-                    FileSystem::Get().ResolvePhysicalPath("//CoreShaders", coreDataPath, true);
-                    auto shaderPath = std::filesystem::path(coreDataPath + "/CompiledSPV/");
+                    auto shaderPath = std::filesystem::path(m_ProjectSettings.m_EngineAssetPath + "Shaders/CompiledSPV/");
                     int shaderCount = 0;
                     if(std::filesystem::is_directory(shaderPath))
                     {

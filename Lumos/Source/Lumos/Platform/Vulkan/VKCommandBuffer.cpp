@@ -8,7 +8,11 @@
 #include "VKInitialisers.h"
 #include "Core/JobSystem.h"
 
-#include <Tracy/TracyVulkan.hpp>
+#if LUMOS_PROFILE
+#if LUMOS_PROFILE_GPU_TIMINGS
+#include <tracy/public/tracy/TracyVulkan.hpp>
+#endif
+#endif
 
 namespace Lumos
 {
@@ -128,7 +132,11 @@ namespace Lumos
                 m_BoundPipeline->End(this);
 
             m_BoundPipeline = nullptr;
+#if LUMOS_PROFILE
+#if LUMOS_PROFILE_GPU_TIMINGS
             TracyVkCollect(VKDevice::Get().GetTracyContext(), m_CommandBuffer);
+#endif
+#endif
 
             VK_CHECK_RESULT(vkEndCommandBuffer(m_CommandBuffer));
             m_State = CommandBufferState::Ended;
@@ -172,12 +180,28 @@ namespace Lumos
         void VKCommandBuffer::BindPipeline(Pipeline* pipeline)
         {
             LUMOS_PROFILE_FUNCTION_LOW();
-            if(pipeline != m_BoundPipeline)
+            if(pipeline != m_BoundPipeline || m_BoundPipelineLayer != 0)
             {
+                m_BoundPipelineLayer = 0;
                 if(m_BoundPipeline)
                     m_BoundPipeline->End(this);
 
                 pipeline->Bind(this);
+                m_BoundPipeline = pipeline;
+            }
+        }
+
+        void VKCommandBuffer::BindPipeline(Pipeline* pipeline, uint32_t layer)
+        {
+            LUMOS_PROFILE_FUNCTION_LOW();
+            if(pipeline != m_BoundPipeline || m_BoundPipelineLayer != layer)
+            {
+                m_BoundPipelineLayer = layer;
+
+                if(m_BoundPipeline)
+                    m_BoundPipeline->End(this);
+
+                pipeline->Bind(this, layer);
                 m_BoundPipeline = pipeline;
             }
         }

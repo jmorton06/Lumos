@@ -24,8 +24,9 @@ namespace Lumos
             virtual void UpdateViewport(uint32_t width, uint32_t height, bool flipViewport = false) = 0;
             virtual bool Flush() { return true; }
             virtual void Submit() { }
-            virtual void BindPipeline(Pipeline* pipeline) = 0;
-            virtual void UnBindPipeline()                 = 0;
+            virtual void BindPipeline(Pipeline* pipeline)                 = 0;
+            virtual void BindPipeline(Pipeline* pipeline, uint32_t layer) = 0;
+            virtual void UnBindPipeline()                                 = 0;
 
         protected:
             static CommandBuffer* (*CreateFunc)();

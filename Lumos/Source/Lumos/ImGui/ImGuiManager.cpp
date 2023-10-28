@@ -30,7 +30,7 @@ namespace Lumos
     ImGuiManager::ImGuiManager(bool clearScreen)
     {
         m_ClearScreen = clearScreen;
-        m_FontSize    = 15.0f;
+        m_FontSize    = 14.0f;
 
 #ifdef LUMOS_PLATFORM_IOS
         m_FontSize *= 2.0f;

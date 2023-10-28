@@ -341,7 +341,7 @@ namespace Lumos
         class VKTextureDepth : public TextureDepth
         {
         public:
-            VKTextureDepth(uint32_t width, uint32_t height);
+            VKTextureDepth(uint32_t width, uint32_t height, RHIFormat format);
             ~VKTextureDepth();
 
             void Bind(uint32_t slot = 0) const override {};
@@ -425,7 +425,7 @@ namespace Lumos
             static void MakeDefault();
 
         protected:
-            static TextureDepth* CreateFuncVulkan(uint32_t, uint32_t);
+            static TextureDepth* CreateFuncVulkan(uint32_t, uint32_t, RHIFormat);
             void Init();
 
         private:
@@ -449,7 +449,7 @@ namespace Lumos
         class VKTextureDepthArray : public TextureDepthArray
         {
         public:
-            VKTextureDepthArray(uint32_t width, uint32_t height, uint32_t count);
+            VKTextureDepthArray(uint32_t width, uint32_t height, uint32_t count, RHIFormat format);
             ~VKTextureDepthArray();
 
             void Bind(uint32_t slot = 0) const override {};
@@ -547,7 +547,7 @@ namespace Lumos
             static void MakeDefault();
 
         protected:
-            static TextureDepthArray* CreateFuncVulkan(uint32_t, uint32_t, uint32_t);
+            static TextureDepthArray* CreateFuncVulkan(uint32_t, uint32_t, uint32_t, RHIFormat);
             void Init() override;
 
         private:

@@ -60,7 +60,7 @@ namespace Lumos
         bool Property(const char* name, glm::vec3& value, float min = -1.0f, float max = 1.0f, PropertyFlag flags = PropertyFlag::None);
         bool Property(const char* name, glm::vec4& value, bool exposeW, PropertyFlag flags);
         bool Property(const char* name, glm::vec4& value, float min = -1.0f, float max = 1.0f, bool exposeW = false, PropertyFlag flags = PropertyFlag::None);
-        bool PorpertyTransform(const char* name, glm::vec3& vector, float width);
+        bool PropertyTransform(const char* name, glm::vec3& vector, float width, float defaultElementValue = 0.0f);
 
         bool Property(const char* name, glm::quat& value, PropertyFlag flags);
 

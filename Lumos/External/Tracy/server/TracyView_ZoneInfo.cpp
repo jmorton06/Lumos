@@ -32,16 +32,16 @@ void View::CalcZoneTimeData( unordered_flat_map<int16_t, ZoneTimeData>& data, in
     const auto& children = m_worker.GetZoneChildren( zone.Child() );
     if( children.is_magic() )
     {
-        CalcZoneTimeDataImpl<VectorAdapterDirect<ZoneEvent>>( *(Vector<ZoneEvent>*)( &children ), data, ztime, zone );
+        CalcZoneTimeDataImpl<VectorAdapterDirect<ZoneEvent>>( *(Vector<ZoneEvent>*)( &children ), data, ztime );
     }
     else
     {
-        CalcZoneTimeDataImpl<VectorAdapterPointer<ZoneEvent>>( children, data, ztime, zone );
+        CalcZoneTimeDataImpl<VectorAdapterPointer<ZoneEvent>>( children, data, ztime );
     }
 }
 
 template<typename Adapter, typename V>
-void View::CalcZoneTimeDataImpl( const V& children, unordered_flat_map<int16_t, ZoneTimeData>& data, int64_t& ztime, const ZoneEvent& zone )
+void View::CalcZoneTimeDataImpl( const V& children, unordered_flat_map<int16_t, ZoneTimeData>& data, int64_t& ztime )
 {
     Adapter a;
     if( m_timeDist.exclusiveTime )
@@ -78,16 +78,16 @@ void View::CalcZoneTimeData( const ContextSwitch* ctx, unordered_flat_map<int16_
     const auto& children = m_worker.GetZoneChildren( zone.Child() );
     if( children.is_magic() )
     {
-        CalcZoneTimeDataImpl<VectorAdapterDirect<ZoneEvent>>( *(Vector<ZoneEvent>*)( &children ), ctx, data, ztime, zone );
+        CalcZoneTimeDataImpl<VectorAdapterDirect<ZoneEvent>>( *(Vector<ZoneEvent>*)( &children ), ctx, data, ztime );
     }
     else
     {
-        CalcZoneTimeDataImpl<VectorAdapterPointer<ZoneEvent>>( children, ctx, data, ztime, zone );
+        CalcZoneTimeDataImpl<VectorAdapterPointer<ZoneEvent>>( children, ctx, data, ztime );
     }
 }
 
 template<typename Adapter, typename V>
-void View::CalcZoneTimeDataImpl( const V& children, const ContextSwitch* ctx, unordered_flat_map<int16_t, ZoneTimeData>& data, int64_t& ztime, const ZoneEvent& zone )
+void View::CalcZoneTimeDataImpl( const V& children, const ContextSwitch* ctx, unordered_flat_map<int16_t, ZoneTimeData>& data, int64_t& ztime )
 {
     Adapter a;
     if( m_timeDist.exclusiveTime )
@@ -131,6 +131,8 @@ void DrawZoneTrace( T zone, const std::vector<T>& trace, const Worker& worker, B
     ImGui::SameLine();
     ImGui::TextDisabled( "(%s)", RealToString( trace.size() ) );
     if( !expand ) return;
+
+    const auto shortenName = view.GetShortenName();
 
     ImGui::SameLine();
     SmallCheckbox( "Show unknown frames", &showUnknownFrames );
@@ -186,7 +188,10 @@ void DrawZoneTrace( T zone, const std::vector<T>& trace, const Worker& worker, B
                     auto frame = frameData->data + frameData->size - 1;
                     ImGui::TextDisabled( "%i.", fidx++ );
                     ImGui::SameLine();
-                    TextDisabledUnformatted( worker.GetString( frame->name ) );
+                    const auto frameName = worker.GetString( frame->name );
+                    const auto normalized = shortenName != ShortenName::Never ? ShortenZoneName( ShortenName::OnlyNormalize, frameName ) : frameName;
+                    TextDisabledUnformatted( normalized );
+                    TooltipNormalizedName( frameName, normalized );
                     ImGui::SameLine();
                     ImGui::Spacing();
                     if( anim.Match( frame ) )
@@ -194,6 +199,7 @@ void DrawZoneTrace( T zone, const std::vector<T>& trace, const Worker& worker, B
                         const auto time = anim.Time();
                         const auto indentVal = sin( time * 60.f ) * 10.f * time;
                         ImGui::SameLine( 0, ImGui::GetStyle().ItemSpacing.x + indentVal );
+                        s_wasActive = true;
                     }
                     else
                     {
@@ -237,7 +243,10 @@ void DrawZoneTrace( T zone, const std::vector<T>& trace, const Worker& worker, B
             auto frame = frameData->data + frameData->size - 1;
             ImGui::TextDisabled( "%i.", fidx++ );
             ImGui::SameLine();
-            TextDisabledUnformatted( worker.GetString( frame->name ) );
+            const auto frameName = worker.GetString( frame->name );
+            const auto normalized = shortenName != ShortenName::Never ? ShortenZoneName( ShortenName::OnlyNormalize, frameName ) : frameName;
+            TextDisabledUnformatted( normalized );
+            TooltipNormalizedName( frameName, normalized );
             ImGui::SameLine();
             ImGui::Spacing();
             if( anim.Match( frame ) )
@@ -245,6 +254,7 @@ void DrawZoneTrace( T zone, const std::vector<T>& trace, const Worker& worker, B
                 const auto time = anim.Time();
                 const auto indentVal = sin( time * 60.f ) * 10.f * time;
                 ImGui::SameLine( 0, ImGui::GetStyle().ItemSpacing.x + indentVal );
+                s_wasActive = true;
             }
             else
             {
@@ -344,7 +354,7 @@ void View::DrawZoneInfoWindow()
             {
                 SetButtonHighlightColor();
             }
-            if( ImGui::Button( ICON_FA_FILE_ALT " Source" ) )
+            if( ImGui::Button( ICON_FA_FILE_LINES " Source" ) )
             {
                 ViewSource( fileName, srcloc.line );
             }
@@ -666,7 +676,7 @@ void View::DrawZoneInfoWindow()
                                         }
                                         else
                                         {
-                                            ImGui::Text( "%i " ICON_FA_LONG_ARROW_ALT_RIGHT " %i", cpu0, cpu1 );
+                                            ImGui::Text( "%i " ICON_FA_RIGHT_LONG " %i", cpu0, cpu1 );
                                             const auto tt0 = m_worker.GetThreadTopology( cpu0 );
                                             const auto tt1 = m_worker.GetThreadTopology( cpu1 );
                                             if( tt0 && tt1 )
@@ -713,7 +723,7 @@ void View::DrawZoneInfoWindow()
         if( memNameMap.size() > 1 )
         {
             ImGui::AlignTextToFramePadding();
-            TextDisabledUnformatted( ICON_FA_ARCHIVE " Memory pool:" );
+            TextDisabledUnformatted( ICON_FA_BOX_ARCHIVE " Memory pool:" );
             ImGui::SameLine();
             if( ImGui::BeginCombo( "##memoryPool", m_zoneInfoMemPool == 0 ? "Default allocator" : m_worker.GetString( m_zoneInfoMemPool ) ) )
             {
@@ -838,7 +848,7 @@ void View::DrawZoneInfoWindow()
 
                             ListMemData( v, []( auto v ) {
                                 ImGui::Text( "0x%" PRIx64, v->Ptr() );
-                                }, nullptr, m_allocTimeRelativeToZone ? ev.Start() : -1, m_zoneInfoMemPool );
+                                }, m_allocTimeRelativeToZone ? ev.Start() : -1, m_zoneInfoMemPool );
                             ImGui::TreePop();
                         }
                     }
@@ -871,6 +881,8 @@ void View::DrawZoneInfoWindow()
                     {
                         ImGui::SameLine();
                         SmallCheckbox( "Time relative to zone start", &m_messageTimeRelativeToZone );
+                        ImGui::SameLine();
+                        SmallCheckbox( "Exclude children", &m_messagesExcludeChildren );
                         if( ImGui::BeginTable( "##messages", 2, ImGuiTableFlags_ScrollY | ImGuiTableFlags_BordersInnerV, ImVec2( 0, ImGui::GetTextLineHeightWithSpacing() * std::min<int64_t>( msgend-msgit+1, 15 ) ) ) )
                         {
                             ImGui::TableSetupScrollFreeze( 0, 1 );
@@ -879,6 +891,7 @@ void View::DrawZoneInfoWindow()
                             ImGui::TableHeadersRow();
                             do
                             {
+                                if( m_messagesExcludeChildren && GetZoneChild( ev, (*msgit)->time ) ) continue;
                                 ImGui::PushID( *msgit );
                                 ImGui::TableNextRow();
                                 ImGui::TableNextColumn();
@@ -1226,8 +1239,8 @@ void View::DrawZoneInfoChildren( const V& children, int64_t ztime )
             ImGui::NextColumn();
             if( expandGroup )
             {
-                auto ctt = std::make_unique<uint64_t[]>( cgr.v.size() );
-                auto cti = std::make_unique<uint32_t[]>( cgr.v.size() );
+                auto ctt = std::unique_ptr<uint64_t[]>( new uint64_t[cgr.v.size()] );
+                auto cti = std::unique_ptr<uint32_t[]>( new uint32_t[cgr.v.size()] );
                 for( size_t i=0; i<cgr.v.size(); i++ )
                 {
                     const auto& child = a(children[cgr.v[i]]);
@@ -1280,8 +1293,8 @@ void View::DrawZoneInfoChildren( const V& children, int64_t ztime )
     }
     else
     {
-        auto ctt = std::make_unique<uint64_t[]>( children.size() );
-        auto cti = std::make_unique<uint32_t[]>( children.size() );
+        auto ctt = std::unique_ptr<uint64_t[]>( new uint64_t[children.size()] );
+        auto cti = std::unique_ptr<uint32_t[]>( new uint32_t[children.size()] );
         uint64_t ctime = 0;
         for( size_t i=0; i<children.size(); i++ )
         {
@@ -1392,7 +1405,7 @@ void View::DrawGpuInfoWindow()
             {
                 SetButtonHighlightColor();
             }
-            if( ImGui::Button( ICON_FA_FILE_ALT " Source" ) )
+            if( ImGui::Button( ICON_FA_FILE_LINES " Source" ) )
             {
                 ViewSource( fileName, srcloc.line );
             }
@@ -1493,7 +1506,7 @@ void View::DrawGpuInfoWindow()
             ImGui::TextDisabled( "%i.", fidx++ );
             ImGui::SameLine();
             const auto& srcloc = m_worker.GetSourceLocation( v->SrcLoc() );
-            const auto txt = m_worker.GetZoneName( *v, srcloc );
+            const auto txt = m_worker.GetZoneName( srcloc );
             ImGui::PushID( idx++ );
             auto sel = ImGui::Selectable( txt, false );
             auto hover = ImGui::IsItemHovered();
@@ -1678,8 +1691,8 @@ void View::DrawGpuInfoChildren( const V& children, int64_t ztime )
             ImGui::NextColumn();
             if( expandGroup )
             {
-                auto ctt = std::make_unique<uint64_t[]>( cgr.v.size() );
-                auto cti = std::make_unique<uint32_t[]>( cgr.v.size() );
+                auto ctt = std::unique_ptr<uint64_t[]>( new uint64_t[cgr.v.size()] );
+                auto cti = std::unique_ptr<uint32_t[]>( new uint32_t[cgr.v.size()] );
                 for( size_t i=0; i<cgr.v.size(); i++ )
                 {
                     const auto& child = a(children[cgr.v[i]]);
@@ -1727,8 +1740,8 @@ void View::DrawGpuInfoChildren( const V& children, int64_t ztime )
     }
     else
     {
-        auto ctt = std::make_unique<uint64_t[]>( children.size() );
-        auto cti = std::make_unique<uint32_t[]>( children.size() );
+        auto ctt = std::unique_ptr<uint64_t[]>( new uint64_t[children.size()] );
+        auto cti = std::unique_ptr<uint32_t[]>( new uint32_t[children.size()] );
         uint64_t ctime = 0;
         for( size_t i=0; i<children.size(); i++ )
         {

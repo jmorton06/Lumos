@@ -9,12 +9,17 @@ namespace Lumos
     namespace Graphics
     {
         VKVertexBuffer::VKVertexBuffer(const BufferUsage& usage)
-            : VKBuffer()
+            : VKBuffer(VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, usage == BufferUsage::DYNAMIC ? VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT : 0, 0, nullptr)
             , m_Usage(usage)
             , m_Size(0)
         {
-            VKBuffer::SetUsage(VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
-            VKBuffer::SetMemoryProperyFlags(VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
+        }
+
+        VKVertexBuffer::VKVertexBuffer(uint32_t size, const void* data, const BufferUsage& usage)
+            : VKBuffer(VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, usage == BufferUsage::DYNAMIC ? VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT : 0, size, data)
+            , m_Usage(usage)
+            , m_Size(size)
+        {
         }
 
         VKVertexBuffer::~VKVertexBuffer()
@@ -39,7 +44,7 @@ namespace Lumos
             }
         }
 
-        void VKVertexBuffer::SetData(uint32_t size, const void* data)
+        void VKVertexBuffer::SetData(uint32_t size, const void* data, bool addBarrier)
         {
             LUMOS_PROFILE_FUNCTION_LOW();
             if(m_Size < size)
@@ -49,7 +54,7 @@ namespace Lumos
             }
             else
             {
-                VKBuffer::SetData(size, data);
+                VKBuffer::SetData(size, data, addBarrier);
             }
         }
 
@@ -106,12 +111,18 @@ namespace Lumos
 
         void VKVertexBuffer::MakeDefault()
         {
-            CreateFunc = CreateFuncVulkan;
+            CreateFunc         = CreateFuncVulkan;
+            CreateWithDataFunc = CreateFuncWithDataVulkan;
         }
 
         VertexBuffer* VKVertexBuffer::CreateFuncVulkan(const BufferUsage& usage)
         {
             return new VKVertexBuffer(usage);
+        }
+
+        VertexBuffer* VKVertexBuffer::CreateFuncWithDataVulkan(uint32_t size, const void* data, const BufferUsage& usage)
+        {
+            return new VKVertexBuffer(size, data, usage);
         }
     }
 }
