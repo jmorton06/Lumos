@@ -61,13 +61,6 @@ namespace Lumos
 #define ArenaTempBlock(arena, name) \
     ArenaTemp name = { 0 };         \
     DeferLoop(name = ArenaTempBegin(arena), ArenaTempEnd(name))
-
-    ArenaTemp ScratchBegin(Arena** conflicts, uint64_t conflict_count);
-#define ScratchEnd(temp) ArenaTempEnd(temp)
-
-    void InitScratchArenas();
-    void ReleaseScratchArenas();
-    void ClearScratchArenas();
 }
 
 #define CUSTOM_MEMORY_ALLOCATOR

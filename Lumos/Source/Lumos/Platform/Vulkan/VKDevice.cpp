@@ -410,9 +410,13 @@ namespace Lumos
             }
 
             if(supportedFeatures.samplerAnisotropy)
-            {
                 m_EnabledFeatures.samplerAnisotropy = true;
-            }
+
+            if(supportedFeatures.depthClamp)
+                m_EnabledFeatures.depthClamp = true;
+
+            if(supportedFeatures.depthBiasClamp)
+                m_EnabledFeatures.depthBiasClamp = true;
 
             std::vector<const char*> deviceExtensions = {
                 VK_KHR_SWAPCHAIN_EXTENSION_NAME

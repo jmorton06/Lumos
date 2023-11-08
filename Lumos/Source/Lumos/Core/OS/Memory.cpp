@@ -222,49 +222,6 @@ namespace Lumos
         LUMOS_ASSERT(temp.arena != nullptr);
         ArenaPopTo(temp.arena, temp.pos);
     }
-
-    static Arena* s_ScratchArenas[2];
-    void InitScratchArenas()
-    {
-        s_ScratchArenas[0] = ArenaAlloc(Megabytes(8));
-        s_ScratchArenas[1] = ArenaAlloc(Megabytes(8));
-    }
-
-    void ReleaseScratchArenas()
-    {
-        ArenaRelease(s_ScratchArenas[0]);
-        ArenaRelease(s_ScratchArenas[1]);
-    }
-
-    void ClearScratchArenas()
-    {
-        ArenaClear(s_ScratchArenas[0]);
-        ArenaClear(s_ScratchArenas[1]);
-    }
-
-    ArenaTemp ScratchBegin(Arena** conflicts, uint64_t conflict_count)
-    {
-        ArenaTemp scratch = { 0 };
-        for(uint32_t tctx_idx = 0; tctx_idx < 2; tctx_idx += 1)
-        {
-            bool is_conflicting = false;
-            for(Arena** conflict = conflicts; conflict < conflicts + conflict_count; conflict += 1)
-            {
-                if(*conflict == s_ScratchArenas[tctx_idx])
-                {
-                    is_conflicting = 1;
-                    break;
-                }
-            }
-            if(is_conflicting == 0)
-            {
-                scratch.arena = s_ScratchArenas[tctx_idx];
-                scratch.pos   = scratch.arena->Position;
-                break;
-            }
-        }
-        return scratch;
-    }
 }
 #if defined(CUSTOM_MEMORY_ALLOCATOR)
 #ifdef LUMOS_PLATFORM_WINDOWS

@@ -49,8 +49,9 @@ void main()
 		proj = ubo.LightMatrices[3];
         break;
     }
-    gl_Position = proj * transform * vec4(inPosition, 1.0); 
+    //gl_Position = ubo.LightMatrices[pushConsts.cascadeIndex] * transform * vec4(inPosition, 1.0); 
 	
+	gl_Position = transform * vec4(inPosition, 1.0); 
     //This order needed to match the order of 
     /*
 

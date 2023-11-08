@@ -109,12 +109,20 @@ namespace Lumos
 
         void GLVertexBuffer::MakeDefault()
         {
-            CreateFunc = CreateFuncGL;
+            CreateFunc         = CreateFuncGL;
+            CreateWithDataFunc = CreateFuncWithDataGL;
         }
 
         VertexBuffer* GLVertexBuffer::CreateFuncGL(const BufferUsage& usage)
         {
             return new GLVertexBuffer(usage);
+        }
+
+        VertexBuffer* GLVertexBuffer::CreateFuncWithDataGL(uint32_t size, const void* data, const BufferUsage& usage)
+        {
+            GLVertexBuffer* buffer = new GLVertexBuffer(usage);
+            buffer->SetData(size, data);
+            return buffer;
         }
     }
 }

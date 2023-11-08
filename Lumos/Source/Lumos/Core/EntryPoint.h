@@ -3,8 +3,6 @@
 #include "Core/CoreSystem.h"
 #include "Platform/Windows/WindowsOS.h"
 
-#pragma comment(linker, "/subsystem:windows")
-
 #ifndef NOMINMAX
 #define NOMINMAX // For windows.h
 #endif
@@ -13,18 +11,19 @@
 
 extern Lumos::Application* Lumos::CreateApplication();
 
-int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
+#ifdef LUMOS_PRODUCTION
+int APIENTRY WinMain(HINSTANCE hInst, HINSTANCE hInstPrev, PSTR cmdline, int cmdshow)
 {
-#ifndef LUMOS_PRODUCTION
-    AllocConsole();
-    AttachConsole(GetCurrentProcessId());
-    freopen("CONIN$", "r", stdin);
-    freopen("CONOUT$", "w", stdout);
-    freopen("CONOUT$", "w", stderr);
-#endif
-
     if(!Lumos::Internal::CoreSystem::Init(__argc, __argv))
         return 0;
+#else
+#pragma comment(linker, "/subsystem:console")
+
+int main(int argc, char** argv)
+{
+    if(!Lumos::Internal::CoreSystem::Init(argc, argv))
+        return 0;
+#endif
 
     auto windowsOS = new Lumos::WindowsOS();
     Lumos::OS::SetInstance(windowsOS);

@@ -683,11 +683,13 @@ namespace Lumos
             ImGui::Unindent();
 
             // For background colour
-            ImGui::PushStyleColor(ImGuiCol_ChildBg, ImGui::GetStyleColorVec4(ImGuiCol_TitleBg) * 1.1f);
-            const float backup_border_size    = ImGui::GetStyle().ChildBorderSize;
-            ImGui::GetStyle().ChildBorderSize = 6.0f;
-            ImGui::BeginChild("Nodes", ImVec2(0.0f, 0.0f), true, ImGuiWindowFlags_AlwaysUseWindowPadding);
-            ImGui::GetStyle().ChildBorderSize = backup_border_size;
+            /*
+ImGui::PushStyleColor(ImGuiCol_ChildBg, ImGui::GetStyleColorVec4(ImGuiCol_TitleBg) * 1.1f);
+const float backup_border_size    = ImGui::GetStyle().ChildBorderSize;
+ImGui::GetStyle().ChildBorderSize = 6.0f;
+ImGui::BeginChild("Nodes", ImVec2(0.0f, 0.0f), true, ImGuiWindowFlags_AlwaysUseWindowPadding);
+ImGui::GetStyle().ChildBorderSize = backup_border_size;
+*/
 
             // Right click popup
             if(ImGui::BeginPopupContextWindow())
@@ -790,8 +792,8 @@ namespace Lumos
                     ImGui::EndDragDropTarget();
                 }
             }
-            ImGui::EndChild();
-            ImGui::PopStyleColor();
+            // ImGui::EndChild();
+            // ImGui::PopStyleColor();
         }
         ImGui::End();
     }

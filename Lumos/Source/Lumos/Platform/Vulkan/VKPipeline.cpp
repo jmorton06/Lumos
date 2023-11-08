@@ -96,7 +96,7 @@ namespace Lumos
                 rs.polygonMode             = VKUtilities::PolygonModeToVk(pipelineDesc.polygonMode);
                 rs.cullMode                = VKUtilities::CullModeToVK(pipelineDesc.cullMode);
                 rs.frontFace               = pipelineDesc.swapchainTarget ? VK_FRONT_FACE_COUNTER_CLOCKWISE : VK_FRONT_FACE_CLOCKWISE;
-                rs.depthClampEnable        = VK_FALSE;
+                rs.depthClampEnable        = VK_TRUE;
                 rs.rasterizerDiscardEnable = VK_FALSE;
                 rs.depthBiasEnable         = (pipelineDesc.depthBiasEnabled ? VK_TRUE : VK_FALSE);
                 rs.depthBiasConstantFactor = pipelineDesc.depthBiasConstantFactor;

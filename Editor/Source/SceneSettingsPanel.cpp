@@ -26,36 +26,38 @@ namespace Lumos
             Lumos::ImGuiUtilities::ScopedStyle(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
             Lumos::ImGuiUtilities::PushID();
             {
-                auto sceneName      = m_CurrentScene->GetSceneName();
-                int sceneVersion    = m_CurrentScene->GetSceneVersion();
-                auto& sceneSettings = m_CurrentScene->GetSettings();
+                const auto& sceneName = m_CurrentScene->GetSceneName();
+                int sceneVersion      = m_CurrentScene->GetSceneVersion();
+                auto& sceneSettings   = m_CurrentScene->GetSettings();
 
-                if(m_NameUpdated)
-                    sceneName = m_SceneName;
+                String8 nameBuffer = { 0 };
+                nameBuffer.str     = PushArray(m_Editor->GetFrameArena(), uint8_t, INPUT_BUF_SIZE);
+                nameBuffer.size    = INPUT_BUF_SIZE;
+
+                MemoryCopy(nameBuffer.str, sceneName.c_str(), sceneName.size());
 
                 ImVec2 contentRegionAvailable = ImGui::GetContentRegionAvail();
                 ImGui::PushItemWidth(contentRegionAvailable.x * 0.5f);
 
                 {
                     ImGuiUtilities::ScopedFont boldFont(ImGui::GetIO().Fonts->Fonts[1]);
-                    if(ImGuiUtilities::InputText(sceneName))
+                    if(ImGui::InputText("##Name", (char*)nameBuffer.str, INPUT_BUF_SIZE, 0))
                     {
+                        if(!m_NameUpdated)
+                            m_SceneName = m_CurrentScene->GetSceneName();
                         m_NameUpdated = true;
+
+                        m_CurrentScene->SetName((char*)nameBuffer.str);
                     }
 
                     if(!ImGui::IsItemActive() && m_NameUpdated)
                     {
                         m_NameUpdated = false;
                         std::string scenePath;
-                        if(FileSystem::Get().ResolvePhysicalPath("//Assets/Scenes/" + m_CurrentScene->GetSceneName() + ".lsn", scenePath))
+                        if(FileSystem::Get().ResolvePhysicalPath("//Assets/Scenes/" + m_SceneName + ".lsn", scenePath))
                         {
-                            m_CurrentScene->SetName(sceneName);
-                            // m_CurrentScene->Serialise(m_Editor->GetProjectSettings().m_ProjectRoot + "Assets/Scenes/");
-
                             std::filesystem::rename(scenePath, m_Editor->GetProjectSettings().m_ProjectRoot + "Assets/Scenes/" + m_CurrentScene->GetSceneName() + ".lsn");
                         }
-                        else
-                            m_CurrentScene->SetName(sceneName);
 
                         // Save project with updated scene name
                         m_Editor->Serialise();

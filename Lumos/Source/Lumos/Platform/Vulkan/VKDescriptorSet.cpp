@@ -107,7 +107,7 @@ namespace Lumos
                     ((VKTexture2D*)texture)->TransitionImage(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, (VKCommandBuffer*)commandBuffer);
                 }
             }
-            if(texture->GetType() == TextureType::CUBE)
+            else if(texture->GetType() == TextureType::CUBE)
             {
                 if(((VKTextureCube*)texture)->GetImageLayout() != VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
                 {

@@ -230,3 +230,9 @@
 #define QueuePop(f, l) QueuePop_NZ(f, l, next, SetIsNull)
 #define StackPush(f, n) StackPush_N(f, n, next)
 #define StackPop(f) StackPop_NZ(f, next, CheckNull)
+
+#if LUMOS_PLATFORM_WINDOWS
+#define PerThread __declspec(thread)
+#else
+#define PerThread thread_local
+#endif

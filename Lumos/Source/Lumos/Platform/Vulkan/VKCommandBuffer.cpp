@@ -151,7 +151,7 @@ namespace Lumos
 
             VkSubmitInfo submitInfo         = VKInitialisers::SubmitInfo();
             submitInfo.waitSemaphoreCount   = waitSemaphoreCount;
-            submitInfo.pWaitSemaphores      = &waitSemaphore;
+            submitInfo.pWaitSemaphores      = waitSemaphoreCount == 0 ? nullptr : &waitSemaphore;
             submitInfo.pWaitDstStageMask    = &flags;
             submitInfo.commandBufferCount   = 1;
             submitInfo.pCommandBuffers      = &m_CommandBuffer;
