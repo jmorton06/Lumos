@@ -35,6 +35,7 @@ namespace Lumos
         VkMacOSSurfaceCreateInfoMVK surfaceInfo;
         surfaceInfo.sType = VK_STRUCTURE_TYPE_MACOS_SURFACE_CREATE_INFO_MVK;
         surfaceInfo.pNext = NULL;
+        surfaceInfo.flags = 0;
         surfaceInfo.pView = GetCAMetalLayer((void*)glfwGetCocoaWindow(static_cast<GLFWwindow*>(window->GetHandle())));
         vkCreateMacOSSurfaceMVK(vkInstance, &surfaceInfo, nullptr, &surface);
 

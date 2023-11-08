@@ -86,6 +86,7 @@ namespace Lumos
             }
 
             attachment.samples        = VK_SAMPLE_COUNT_1_BIT;
+            attachment.stencilLoadOp  = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
             attachment.storeOp        = VK_ATTACHMENT_STORE_OP_STORE;
             attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
             attachment.flags          = 0;

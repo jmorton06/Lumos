@@ -11,7 +11,7 @@
 #define LUMOS_TRACK_MEMORY 0
 #define LUMOS_PROFILE_LOW 0
 #define LUMOS_PROFILE_GPU_TIMINGS 0
-#define LUMOS_VULKAN_MARKERS 1 // Disable when using OpenGL
+#define LUMOS_VULKAN_MARKERS 0 // Disable when using OpenGL
 
 #include <tracy/public/tracy/Tracy.hpp>
 #define LUMOS_PROFILE_SCOPE(name) ZoneScopedN(name)

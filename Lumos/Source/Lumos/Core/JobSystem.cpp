@@ -2,6 +2,7 @@
 #include "JobSystem.h"
 #include "Maths/MathsUtilities.h"
 #include "Core/DataStructures/Vector.h"
+#include "Core/Thread.h"
 
 #include <atomic>
 #include <thread>
@@ -109,6 +110,7 @@ namespace Lumos
 
                 ~InternalState()
                 {
+                    LUMOS_PROFILE_FUNCTION_LOW();
                     alive.store(false); // indicate that new jobs cannot be started from this point
                     bool wake_loop = true;
                     std::thread waker([&]
@@ -167,7 +169,7 @@ namespace Lumos
                 }
             }
 
-            void OnInit(uint32_t maxThreadCount)
+            void OnInit(uint32_t reservedThreads)
             {
                 LUMOS_PROFILE_FUNCTION();
 
@@ -177,17 +179,13 @@ namespace Lumos
                 if(internal_state->numThreads > 0)
                     return;
 
-                maxThreadCount = std::max(1u, maxThreadCount);
-
                 // Retrieve the number of hardware threads in this System:
                 internal_state->numCores = std::thread::hardware_concurrency();
 
                 // Calculate the actual number of worker threads we want:
-                // Reserve a couple of threads
-                internal_state->numThreads = Lumos::Maths::Min(maxThreadCount, Lumos::Maths::Max(1u, internal_state->numCores - 1));
+                internal_state->numThreads = Lumos::Maths::Max(1u, internal_state->numCores - reservedThreads);
 
                 // Keep one for update thread
-                internal_state->numThreads -= 1;
                 internal_state->jobQueuePerThread.reset(new JobQueue[internal_state->numThreads]);
                 internal_state->threads.Reserve(internal_state->numThreads);
 
@@ -195,17 +193,20 @@ namespace Lumos
                 {
                     std::thread& worker = internal_state->threads.EmplaceBack([threadID]
                                                                               {
+                                ThreadContext& threadContext = *GetThreadContext();
+                                threadContext = ThreadContextAlloc();
+                                String8 name = PushStr8F(threadContext.ScratchArenas[0], "JobSystem_%u", threadID);
+                                LUMOS_PROFILE_SETTHREADNAME((const char*)name.str);
+                                SetThreadName(name);
+
                                 while (internal_state->alive.load())
                                 {
                                     work(threadID);
                                     
-                                    std::stringstream ss;
-                                    ss << "JobSystem_" << threadID;
-                                    LUMOS_PROFILE_SETTHREADNAME(ss.str().c_str());
-
                                     // finished with jobs, put to sleep
                                     std::unique_lock<std::mutex> lock(internal_state->wakeMutex);
                                     internal_state->wakeCondition.wait(lock);
+                                    
                                 } });
 
 #ifdef LUMOS_PLATFORM_WINDOWS
@@ -257,10 +258,7 @@ namespace Lumos
                     auto thread               = worker.native_handle();
                     thread_policy_set(pthread_mach_thread_np(pthread_self()), THREAD_AFFINITY_POLICY, (integer_t*)&affinity_tag, THREAD_AFFINITY_POLICY_COUNT);
 
-                    std::stringstream wss;
-                    wss << "JobSystem_" << threadID;
-                    pthread_setname_np(wss.str().c_str());
-                    LUMOS_PROFILE_SETTHREADNAME(wss.str().c_str());
+                    // pthread_setname_np((const char*)name.str);
 #endif
 
                     worker.detach();
@@ -282,6 +280,7 @@ namespace Lumos
 
             void Execute(Context& ctx, const std::function<void(JobDispatchArgs)>& task)
             {
+                LUMOS_PROFILE_FUNCTION_LOW();
                 // Context state is updated:
                 ctx.counter.fetch_add(1);
 
@@ -299,6 +298,7 @@ namespace Lumos
 
             void Dispatch(Context& ctx, uint32_t jobCount, uint32_t groupSize, const std::function<void(JobDispatchArgs)>& task, size_t sharedmemory_size)
             {
+                LUMOS_PROFILE_FUNCTION_LOW();
                 if(jobCount == 0 || groupSize == 0)
                 {
                     return;
@@ -341,6 +341,7 @@ namespace Lumos
 
             void Wait(const Context& ctx)
             {
+                LUMOS_PROFILE_FUNCTION_LOW();
                 if(IsBusy(ctx))
                 {
                     // Wake any threads that might be sleeping:

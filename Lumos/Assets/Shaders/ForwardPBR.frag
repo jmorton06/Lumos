@@ -57,10 +57,10 @@ layout(set = 1,binding = 6) uniform UniformMaterialData
 	float workflow;
 } materialProperties;
 
-layout(set = 2, binding = 0) uniform sampler2D uBRDFLUT;
+layout(set = 2, binding = 0) uniform sampler2DArray uShadowMap;
 layout(set = 2, binding = 1) uniform samplerCube uEnvMap;
 layout(set = 2, binding = 2) uniform samplerCube uIrrMap;
-layout(set = 2, binding = 3) uniform sampler2DArray uShadowMap;
+layout(set = 2, binding = 3) uniform sampler2D uBRDFLUT;
 layout(set = 2, binding = 4) uniform sampler2D uSSAOMap;
 
 layout(set = 2, binding = 5) uniform UBOLight

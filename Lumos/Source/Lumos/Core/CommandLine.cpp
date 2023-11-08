@@ -1,6 +1,7 @@
 #include "Precompiled.h"
 #include "CommandLine.h"
 #include "Maths/MathsUtilities.h"
+#include "Core/Thread.h"
 
 namespace Lumos
 {

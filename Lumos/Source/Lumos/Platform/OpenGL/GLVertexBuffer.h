@@ -33,6 +33,7 @@ namespace Lumos
 
         protected:
             static VertexBuffer* CreateFuncGL(const BufferUsage& usage);
+            static VertexBuffer* CreateFuncWithDataGL(uint32_t size, const void* data, const BufferUsage& usage);
 
         protected:
             void* GetPointerInternal() override;

@@ -310,7 +310,7 @@ namespace Lumos
                 break;
 
             case VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL:
-                accessMask = VK_ACCESS_SHADER_READ_BIT; // VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT;
+                accessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT;
                 break;
 
             case VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL:
@@ -345,7 +345,7 @@ namespace Lumos
                 break;
 
             case VK_IMAGE_LAYOUT_PRESENT_SRC_KHR:
-                accessMask = VK_ACCESS_MEMORY_READ_BIT;
+                accessMask = VK_ACCESS_2_NONE;
                 break;
 
             default:
@@ -469,6 +469,11 @@ namespace Lumos
             {
                 VkFormatProperties props;
                 vkGetPhysicalDeviceFormatProperties(VKDevice::Get().GetGPU(), format, &props);
+
+                if(!(props.optimalTilingFeatures & VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT))
+                {
+                    continue;
+                }
 
                 if(tiling == VK_IMAGE_TILING_LINEAR && (props.linearTilingFeatures & features) == features)
                 {

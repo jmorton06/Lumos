@@ -1181,7 +1181,8 @@ end
         float tileSize     = (float)sprite.SpriteSheetTileSize;
 
         Lumos::ImGuiUtilities::Property("By Tile", byTile);
-        Lumos::ImGuiUtilities::Property("Tile Size", tileSize);
+        if(Lumos::ImGuiUtilities::Property("Tile Size", tileSize))
+            sprite.SpriteSheetTileSize = tileSize;
 
         ImGui::AlignTextToFramePadding();
         ImGui::TextUnformatted("Current State");
@@ -2435,7 +2436,7 @@ namespace Lumos
     {
         LUMOS_PROFILE_FUNCTION();
 
-        auto selectedEntities = m_Editor->GetSelected();
+        const auto& selectedEntities = m_Editor->GetSelected();
 
         if(ImGui::Begin(m_Name.c_str(), &m_Active))
         {

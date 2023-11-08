@@ -35,11 +35,12 @@ namespace Lumos
                 LUMOS_LOG_INFO("Vulkan : Enabled Validation Layers");
                 extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
                 extensions.push_back(VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
-                extensions.push_back(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME);
             }
 
+            extensions.push_back(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME);
+
             extensions.push_back(VK_KHR_SURFACE_EXTENSION_NAME);
-            extensions.push_back("VK_KHR_portability_enumeration");
+            extensions.push_back(VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME);
 
 #if 0
 #if defined(TRACY_ENABLE) && defined(LUMOS_PLATFORM_WINDOWS)

@@ -353,7 +353,6 @@ namespace Lumos
     {
         LUMOS_PROFILE_FUNCTION();
         ArenaClear(m_FrameArena);
-        ClearScratchArenas();
 
         if(m_SceneManager->GetSwitchingScene())
         {
@@ -429,7 +428,10 @@ namespace Lumos
         // Exit frame early if escape or close button clicked
         // Prevents a crash with vulkan/moltenvk
         if(m_CurrentState == AppState::Closing)
+        {
+            System::JobSystem::Wait(context);
             return false;
+        }
 
         if(!m_Minimized)
         {
@@ -473,9 +475,6 @@ namespace Lumos
             m_SystemManager->GetSystem<B2PhysicsEngine>()->SyncTransforms(m_SceneManager->GetCurrentScene());
         }
 
-        if(!m_Minimized)
-            Graphics::Renderer::GetRenderer()->Present();
-
         if(now - m_SecondTimer > 1.0f)
         {
             LUMOS_PROFILE_SCOPE("Application::FrameRateCalc");
@@ -487,6 +486,9 @@ namespace Lumos
             m_Frames  = 0;
             m_Updates = 0;
         }
+
+        if(!m_Minimized)
+            Graphics::Renderer::GetRenderer()->Present();
 
         LUMOS_PROFILE_FRAMEMARKER();
 

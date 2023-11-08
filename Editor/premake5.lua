@@ -74,7 +74,6 @@ project "LumosEditor"
 		cppdialect "C++17"
 		staticruntime "Off"
 		systemversion "latest"
-		entrypoint "WinMainCRTStartup"
 		conformancemode "on"
 
 		defines

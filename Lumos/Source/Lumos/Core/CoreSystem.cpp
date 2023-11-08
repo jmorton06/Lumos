@@ -5,7 +5,7 @@
 #include "Scripting/Lua/LuaManager.h"
 #include "Core/Version.h"
 #include "Core/CommandLine.h"
-
+#include "Core/Thread.h"
 #include "Core/OS/MemoryManager.h"
 
 namespace Lumos
@@ -18,8 +18,10 @@ namespace Lumos
         bool CoreSystem::Init(int argc, char** argv)
         {
             Debug::Log::OnInit();
+            ThreadContext& mainThread = *GetThreadContext();
+            mainThread                = ThreadContextAlloc();
+            SetThreadName(Str8Lit("Main"));
 
-            InitScratchArenas();
             s_Arena = ArenaAlloc(Megabytes(2));
 
             LUMOS_LOG_INFO("Lumos Engine - Version {0}.{1}.{2}", LumosVersion.major, LumosVersion.minor, LumosVersion.patch);
@@ -40,7 +42,8 @@ namespace Lumos
             LUMOS_LOG_INFO(CommandLineOptDouble(&s_CommandLine, Str8Lit("TestDouble")));
             LUMOS_LOG_INFO(CommandLineOptInt64(&s_CommandLine, Str8Lit("TestInt")));
 
-            System::JobSystem::OnInit();
+            // Init Jobsystem. Reserve 2 threads for main and render threads
+            System::JobSystem::OnInit(2);
             LUMOS_LOG_INFO("Initialising System");
             FileSystem::Get();
 
@@ -57,9 +60,9 @@ namespace Lumos
             System::JobSystem::Release();
 
             ArenaClear(s_Arena);
-            ReleaseScratchArenas();
 
             MemoryManager::OnShutdown();
+            ThreadContextRelease(GetThreadContext());
         }
 
         CommandLine* CoreSystem::GetCmdLine()
