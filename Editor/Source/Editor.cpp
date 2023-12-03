@@ -1860,6 +1860,13 @@ namespace Lumos
         if(m_EditorState == EditorState::Play)
             autoSaveTimer = 0.0f;
 
+        if (Input::Get().GetKeyPressed(Lumos::InputCode::Key::Delete))
+        {
+			auto *scene = Application::Get().GetCurrentScene();
+			for(auto entity : m_SelectedEntities)
+				scene->DestroyEntity(Entity(entity, scene));
+        }
+
         if(Input::Get().GetKeyPressed(Lumos::InputCode::Key::Escape) && GetEditorState() != EditorState::Preview)
         {
 			Application::Get().GetSystem<LumosPhysicsEngine>()->SetPaused(true);
