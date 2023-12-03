@@ -130,6 +130,9 @@ namespace Lumos
             "fbx", "obj", "wav", "cs", "png", "blend", "lsc", "ogg", "lua"
         };
 
+        float MinGridSize = 50;
+		float MaxGridSize = 400;
+
         std::string m_MovePath;
         std::string m_LastNavPath;
         static std::string m_Delimiter;
