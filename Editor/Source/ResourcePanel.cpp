@@ -1,5 +1,6 @@
 #include "Editor.h"
 #include "ResourcePanel.h"
+#include <Lumos/Core/OS/Input.h>
 #include <Lumos/Graphics/RHI/Texture.h>
 #include <Lumos/Core/Profiler.h>
 #include <Lumos/Core/StringUtilities.h>
@@ -104,8 +105,12 @@ namespace Lumos
         m_Name       = ICON_MDI_FOLDER_STAR " Resources###resources";
         m_SimpleName = "Resources";
 
+        float dpi = Application::Get().GetWindow()->GetDPIScale();
         m_GridSize = 180.0f;
-        m_GridSize *= Application::Get().GetWindow()->GetDPIScale();
+		m_GridSize *= dpi;
+		MinGridSize *= dpi;
+		MaxGridSize *= dpi;
+
         // TODO: Get Project path from editor
         // #ifdef LUMOS_PLATFORM_IOS
         //         m_BaseDirPath = "Assets";
@@ -252,6 +257,13 @@ namespace Lumos
         const ImColor TreeLineColor = ImColor(128, 128, 128, 128);
         const float SmallOffsetX    = 6.0f * Application::Get().GetWindowDPI();
         ImDrawList* drawList        = ImGui::GetWindowDrawList();
+
+        if(Input::Get().GetKeyHeld(InputCode::Key::LeftControl))
+		{
+			float mouseScroll = Input::Get().GetScrollOffset();
+			m_GridSize += mouseScroll;
+			m_GridSize = Maths::Clamp(m_GridSize, MinGridSize, MaxGridSize);
+        }
 
         if(!dirInfo->IsFile)
         {
@@ -732,7 +744,7 @@ namespace Lumos
 
                             if(!m_IsInListView)
                             {
-                                ImGui::SliderFloat("##GridSize", &m_GridSize, 40.0f, 400.0f);
+                                ImGui::SliderFloat("##GridSize", &m_GridSize, MinGridSize, MaxGridSize);
                             }
                             ImGui::EndPopup();
                         }
@@ -969,7 +981,7 @@ namespace Lumos
 
                 if(!m_IsInListView)
                 {
-                    ImGui::SliderFloat("##GridSize", &m_GridSize, 40.0f, 400.0f);
+					ImGui::SliderFloat("##GridSize", &m_GridSize, MinGridSize, MaxGridSize);
                 }
                 ImGui::EndPopup();
             }
@@ -1133,7 +1145,7 @@ namespace Lumos
 
         if(!m_IsInListView)
         {
-            ImGui::SliderFloat("##GridSize", &m_GridSize, 40.0f, 400.0f);
+			ImGui::SliderFloat("##GridSize", &m_GridSize, MinGridSize, MaxGridSize);
         }
         ImGui::EndChild();
     }
