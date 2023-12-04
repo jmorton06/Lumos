@@ -248,7 +248,7 @@ namespace Lumos
         if(m_ProjectSettings.Fullscreen)
             m_Window->Maximise();
 
-        // Draw Splash Screeh
+        // Draw Splash Screen
         {
             auto splashTexture = Graphics::Texture2D::CreateFromSource(splashWidth, splashHeight, (void*)splash);
             Graphics::Renderer::GetRenderer()->Begin();
@@ -352,6 +352,8 @@ namespace Lumos
     bool Application::OnFrame()
     {
         LUMOS_PROFILE_FUNCTION();
+        LUMOS_PROFILE_FRAMEMARKER();
+
         ArenaClear(m_FrameArena);
 
         if(m_SceneManager->GetSwitchingScene())
@@ -378,6 +380,8 @@ namespace Lumos
 
         ExecuteMainThreadQueue();
 
+        ImGui::NewFrame();
+
         {
             LUMOS_PROFILE_SCOPE("Application::TimeStepUpdates");
             ts.OnUpdate();
@@ -401,11 +405,6 @@ namespace Lumos
                 func();
                 m_EventQueue.pop();
             }
-        }
-
-        {
-            LUMOS_PROFILE_SCOPE("Application::ImGui::NewFrame");
-            ImGui::NewFrame();
         }
 
         System::JobSystem::Context context;
@@ -438,9 +437,13 @@ namespace Lumos
             LUMOS_PROFILE_SCOPE("Application::Render");
 
             Graphics::Renderer::GetRenderer()->Begin();
-
             OnRender();
+            m_ImGuiManager->OnNewFrame();
             m_ImGuiManager->OnRender(m_SceneManager->GetCurrentScene());
+
+            // Clears debug line and point lists
+            DebugRenderer::Reset();
+            OnDebugDraw();
 
             Graphics::Pipeline::DeleteUnusedCache();
             Graphics::Framebuffer::DeleteUnusedCache();
@@ -490,8 +493,6 @@ namespace Lumos
         if(!m_Minimized)
             Graphics::Renderer::GetRenderer()->Present();
 
-        LUMOS_PROFILE_FRAMEMARKER();
-
         return m_CurrentState != AppState::Closing;
     }
 
@@ -505,10 +506,6 @@ namespace Lumos
         {
             m_RenderPasses->BeginScene(m_SceneManager->GetCurrentScene());
             m_RenderPasses->OnRender();
-
-            // Clears debug line and point lists
-            DebugRenderer::Reset();
-            OnDebugDraw();
         }
     }
 

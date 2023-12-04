@@ -19,6 +19,7 @@ layout(location = 0) in VertexData VertexOutput;
 #define BLEND_SHADOW_CASCADES 1
 #define FILTER_SHADOWS 1
 #define NUM_PCF_SAMPLES 4
+#define INV_SQRT_PCF_SAMPLES 0.5// 1.0 / sqrt(NUM_PCF_SAMPLES)
 #define VOGEL_OFFSET 1
 float ShadowFade = 1.0;
 
@@ -274,7 +275,7 @@ float PCFShadowDirectionalLight(sampler2DArray shadowMap, vec4 shadowCoords, flo
 	float bias = GetShadowBias(lightDirection, normal, cascadeIndex);
 	float sum = 0.0;
 	float noise = Noise(wsPos.xy);
-	float invSquareRootSamplesCount = 1.0 / sqrt(NUM_PCF_SAMPLES);
+	float invSquareRootSamplesCount = INV_SQRT_PCF_SAMPLES;;
     vec3 flooredPos = floor(wsPos.xyz*1000.0);
     int index = int(16.0*Random(flooredPos.xyz, 1))%16;
     
@@ -319,12 +320,20 @@ int CalculateCascadeIndex(vec3 wsPos)
 
 float CalculateShadow(vec3 wsPos, int cascadeIndex, vec3 lightDirection, vec3 normal)
 {
+	float shadowDistance     = ubo.MaxShadowDist;
+	float transitionDistance = ubo.ShadowFade;
+	
+	vec4 viewPos = ubo.ViewMatrix * vec4(wsPos, 1.0);
+	float distance = length(viewPos);
+	ShadowFade = distance - (shadowDistance - transitionDistance);
+	ShadowFade /= transitionDistance;
+	ShadowFade = clamp(1.0 - ShadowFade, 0.0, 1.0);
+	
 	vec4 shadowCoord = ubo.BiasMatrix * ubo.ShadowTransform[cascadeIndex] * vec4(wsPos, 1.0);
 	shadowCoord = shadowCoord * (1.0 / shadowCoord.w);
 	float NEAR = 0.01;
 	float uvRadius =  ubo.LightSize * NEAR / shadowCoord.z;
 	uvRadius = min(uvRadius, 0.002f);
-	vec4 viewPos = ubo.ViewMatrix * vec4(wsPos, 1.0);
 	
 	float shadowAmount = 1.0;
 	
@@ -372,7 +381,7 @@ vec3 SpecularLobe(const Material material, const Light light, const vec3 h, floa
     return IsotropicLobe(material, light, h, NoV, NoL, NoH, LoH);
 }
 
-#define NEW_LIGHTING 0
+#define NEW_LIGHTING 1
 
 vec3 Lighting(vec3 F0, vec3 wsPos, Material material)
 {
@@ -420,9 +429,13 @@ vec3 Lighting(vec3 F0, vec3 wsPos, Material material)
 		}
 		else
 		{
+			float nDotL = dot(material.Normal, light.direction.xyz);
+			
+			if(ubo.shadowEnabled > 0 && nDotL > 0.0f)
+			{
 			int cascadeIndex = CalculateCascadeIndex(wsPos);
-			if(ubo.shadowEnabled > 0)
 				value = CalculateShadow(wsPos,cascadeIndex, light.direction.xyz, material.Normal);
+			}
 			else
 				value = 1.0;
 		}
@@ -590,16 +603,6 @@ void main()
 	material.F0 = F0;
     material.EnergyCompensation = 1.0 + material.F0 * (1.0 / max(0.1, material.dfg.y) - 1.0);
 	material.Albedo.xyz = computeDiffuseColour(material.Albedo, material.Metallic.x);
-    
-    float shadowDistance     = ubo.MaxShadowDist;
-	float transitionDistance = ubo.ShadowFade;
-	
-	vec4 viewPos = ubo.ViewMatrix * vec4(wsPos, 1.0);
-	
-	float distance = length(viewPos);
-	ShadowFade = distance - (shadowDistance - transitionDistance);
-	ShadowFade /= transitionDistance;
-	ShadowFade = clamp(1.0 - ShadowFade, 0.0, 1.0);
 	
 	vec3 Lr = 2.0 * material.NDotV * material.Normal - material.View;	
 	vec3 lightContribution = Lighting(material.F0, wsPos, material);

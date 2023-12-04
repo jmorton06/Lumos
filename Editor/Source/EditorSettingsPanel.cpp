@@ -10,7 +10,7 @@ namespace Lumos
 {
     EditorSettingsPanel::EditorSettingsPanel()
     {
-        m_Name       = "EditorSettings###editorsettings";
+        m_Name       = "Editor Settings###editorsettings";
         m_SimpleName = "Editor Settings";
     }
 

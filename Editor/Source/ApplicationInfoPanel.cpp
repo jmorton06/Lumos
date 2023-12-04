@@ -47,8 +47,8 @@ namespace Lumos
 
     ApplicationInfoPanel::ApplicationInfoPanel()
     {
-        m_Name       = "ApplicationInfo";
-        m_SimpleName = "ApplicationInfo";
+        m_Name       = "Application Info##ApplicationInfo";
+        m_SimpleName = "Application Info";
     }
 
     static float MaxFrameTime = 0;
@@ -145,7 +145,7 @@ namespace Lumos
                     auto arena = GetArena(i);
                     totalAllocated += arena->Size;
                     float percentageFull = (float)arena->Position / (float)arena->Size;
-                    ImGui::ProgressBar(((float)arena->Position - (float)arena->Size) / (float)arena->Size);
+                    ImGui::ProgressBar((float)arena->Position / (float)arena->Size);
                     Lumos::ImGuiUtilities::Tooltip((Lumos::StringUtilities::BytesToString(arena->Position) + " / " + Lumos::StringUtilities::BytesToString(arena->Size)).c_str());
                 }
 

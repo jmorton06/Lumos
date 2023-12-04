@@ -5,10 +5,6 @@
 #include "Graphics/RHI/SwapChain.h"
 #include "Core/Buffer.h"
 
-#define MAX_BUFFER_INFOS 32
-#define MAX_IMAGE_INFOS 32
-#define MAX_WRITE_DESCTIPTORS 32
-
 namespace Lumos
 {
     namespace Graphics
@@ -52,9 +48,6 @@ namespace Lumos
             uint32_t m_DynamicOffset = 0;
             Shader* m_Shader         = nullptr;
             bool m_Dynamic           = false;
-            std::array<VkDescriptorBufferInfo, MAX_BUFFER_INFOS> m_BufferInfoPool;
-            std::array<VkDescriptorImageInfo, MAX_IMAGE_INFOS> m_ImageInfoPool;
-            std::array<VkWriteDescriptorSet, MAX_WRITE_DESCTIPTORS> m_WriteDescriptorSetPool;
 
             uint32_t m_FramesInFlight = 0;
 

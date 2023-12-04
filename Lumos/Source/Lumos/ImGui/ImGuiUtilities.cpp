@@ -3,6 +3,8 @@
 #include "Graphics/RHI/Renderer.h"
 #include "Graphics/RHI/Texture.h"
 #include "Graphics/RHI/GraphicsContext.h"
+#include "ImGui/ImGuiManager.h"
+#include "Graphics/RHI/IMGUIRenderer.h"
 #include "Core/OS/OS.h"
 #include "Core/Application.h"
 #include "Core/OS/Input.h"
@@ -538,7 +540,7 @@ namespace Lumos
         {
             ImGui::BeginTooltip();
             bool flipImage = Graphics::Renderer::GetGraphicsContext()->FlipImGUITexture();
-            ImGui::Image(texture ? texture->GetHandle() : nullptr, ImVec2(size.x, size.y), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
+            ImGui::Image(texture ? Application::Get().GetImGuiManager()->GetImGuiRenderer()->AddTexture(texture) : nullptr, ImVec2(size.x, size.y), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
             ImGui::EndTooltip();
         }
 
@@ -554,7 +556,7 @@ namespace Lumos
         {
             ImGui::BeginTooltip();
             bool flipImage = Graphics::Renderer::GetGraphicsContext()->FlipImGUITexture();
-            ImGui::Image(texture ? texture->GetHandle() : nullptr, ImVec2(size.x, size.y), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
+            ImGui::Image(texture ? Application::Get().GetImGuiManager()->GetImGuiRenderer()->AddTexture(texture) : nullptr, ImVec2(size.x, size.y), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
             ImGui::TextUnformatted(text);
             ImGui::EndTooltip();
         }
@@ -578,38 +580,29 @@ namespace Lumos
 #endif
 
             bool flipImage = Graphics::Renderer::GetGraphicsContext()->FlipImGUITexture();
-            ImGui::Image(texID, ImVec2(size.x, size.y), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
+            ImGui::Image(Application::Get().GetImGuiManager()->GetImGuiRenderer()->AddTexture(texture), ImVec2(size.x, size.y), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
             ImGui::EndTooltip();
         }
 
         ImGui::PopStyleVar();
     }
 
-    void ImGuiUtilities::Image(Graphics::Texture2D* texture, const glm::vec2& size)
+    void ImGuiUtilities::Image(Graphics::Texture2D* texture, const glm::vec2& size, bool flip)
     {
         LUMOS_PROFILE_FUNCTION();
-        bool flipImage = Graphics::Renderer::GetGraphicsContext()->FlipImGUITexture();
-        ImGui::Image(texture ? texture->GetHandle() : nullptr, ImVec2(size.x, size.y), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
+        ImGui::Image(texture ? Application::Get().GetImGuiManager()->GetImGuiRenderer()->AddTexture(texture) : nullptr, ImVec2(size.x, size.y), ImVec2(0.0f, flip ? 1.0f : 0.0f), ImVec2(1.0f, flip ? 0.0f : 1.0f));
     }
 
-    void ImGuiUtilities::Image(Graphics::TextureCube* texture, const glm::vec2& size)
+    void ImGuiUtilities::Image(Graphics::TextureCube* texture, const glm::vec2& size, bool flip)
     {
         LUMOS_PROFILE_FUNCTION();
-        bool flipImage = Graphics::Renderer::GetGraphicsContext()->FlipImGUITexture();
-        ImGui::Image(texture ? texture->GetHandle() : nullptr, ImVec2(size.x, size.y), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
+        ImGui::Image(texture ? Application::Get().GetImGuiManager()->GetImGuiRenderer()->AddTexture(texture) : nullptr, ImVec2(size.x, size.y), ImVec2(0.0f, flip ? 1.0f : 0.0f), ImVec2(1.0f, flip ? 0.0f : 1.0f));
     }
 
-    void ImGuiUtilities::Image(Graphics::TextureDepthArray* texture, uint32_t index, const glm::vec2& size)
+    void ImGuiUtilities::Image(Graphics::TextureDepthArray* texture, uint32_t index, const glm::vec2& size, bool flip)
     {
         LUMOS_PROFILE_FUNCTION();
-        bool flipImage = Graphics::Renderer::GetGraphicsContext()->FlipImGUITexture();
-
-        ImTextureID texID = texture ? texture->GetHandle() : nullptr;
-#ifdef LUMOS_RENDER_API_VULKAN
-        if(texture && Graphics::GraphicsContext::GetRenderAPI() == Graphics::RenderAPI::VULKAN)
-            texID = ((Graphics::VKTextureDepthArray*)texture)->GetImageView(index);
-#endif
-        ImGui::Image(texID, ImVec2(size.x, size.y), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
+        ImGui::Image(texture ? Application::Get().GetImGuiManager()->GetImGuiRenderer()->AddTexture(texture, Graphics::TextureType::DEPTHARRAY, index, 0) : nullptr, ImVec2(size.x, size.y), ImVec2(0.0f, flip ? 1.0f : 0.0f), ImVec2(1.0f, flip ? 0.0f : 1.0f));
     }
 
     bool ImGuiUtilities::BufferingBar(const char* label, float value, const glm::vec2& size_arg, const uint32_t& bg_col, const uint32_t& fg_col)

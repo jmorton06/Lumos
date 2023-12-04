@@ -180,6 +180,9 @@ namespace Lumos
                     texWidth  = static_cast<uint32_t>(desc.maxHeight * aspectRatio);
                 }
 
+                if(texChannels != 4)
+                    texChannels = 4;
+
                 // Resize the image using stbir
                 int resizedChannels    = texChannels;
                 uint8_t* resizedPixels = (stbi_uc*)malloc(texWidth * texHeight * resizedChannels);
@@ -190,10 +193,10 @@ namespace Lumos
                 }
                 else
                 {
-                    stbir_resize_uint8_linear(pixels, texWidthOld, texHeightOld, 0, resizedPixels, texWidth, texHeight, 0, STBIR_RGBA);
+                    stbir_resize_uint8_linear(pixels, texWidthOld, texHeightOld, 0, resizedPixels, texWidth, texHeight, 0, texChannels == 4 ? STBIR_RGBA : STBIR_RGB);
                 }
 
-                free(pixels); // Free the original image
+                stbi_image_free(pixels); // Free the original image
                 pixels = resizedPixels;
             }
         }
@@ -201,7 +204,7 @@ namespace Lumos
         if(!pixels)
         {
             LUMOS_LOG_ERROR("Could not load image '{0}'!", desc.filePath);
-            // Return magenta checkerboad image
+            // Return magenta checkerboard image
 
             texChannels = 4;
 

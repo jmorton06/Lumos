@@ -27,6 +27,7 @@
 #include "Core/LMLog.h"
 #include "Core/Core.h"
 #include "Core/Profiler.h"
+#include "Core/Thread.h"
 
 #include <glm/glm.hpp>
 #include <cereal/cereal.hpp>

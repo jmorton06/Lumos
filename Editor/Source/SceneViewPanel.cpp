@@ -113,7 +113,7 @@ namespace Lumos
         if(m_Editor->GetSettings().m_HalfRes)
             sceneViewSize *= 2.0f;
 
-        ImGuiUtilities::Image(m_GameViewTexture.get(), glm::vec2(sceneViewSize.x, sceneViewSize.y));
+        ImGuiUtilities::Image(m_GameViewTexture.get(), glm::vec2(sceneViewSize.x, sceneViewSize.y), Graphics::Renderer::GetGraphicsContext()->FlipImGUITexture());
 
         auto windowSize = ImGui::GetWindowSize();
         ImVec2 minBound = sceneViewPosition;

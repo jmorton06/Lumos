@@ -4,6 +4,12 @@
 #include "VKRenderer.h"
 #include "VKUtilities.h"
 
+#ifdef LUMOS_PLATFORM_WINDOWS
+#define USE_SMALL_VMA_POOL 1
+#else
+#define USE_SMALL_VMA_POOL 0
+#endif
+
 namespace Lumos
 {
     namespace Graphics
@@ -17,6 +23,7 @@ namespace Lumos
         VKBuffer::VKBuffer()
             : m_Size(0)
             , m_MemoryProperyFlags(0)
+            , m_UsageFlags(0)
         {
         }
 
@@ -116,6 +123,15 @@ namespace Lumos
                 vmaAllocInfo.usage                   = VMA_MEMORY_USAGE_AUTO;
                 vmaAllocInfo.flags                   = isMappable ? VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT : 0;
                 vmaAllocInfo.preferredFlags          = memoryProperyFlags;
+
+#if USE_SMALL_VMA_POOL
+                if(bufferInfo.size <= SMALL_ALLOCATION_MAX_SIZE)
+                {
+                    uint32_t mem_type_index = 0;
+                    vmaFindMemoryTypeIndexForBufferInfo(VKDevice::Get().GetAllocator(), &bufferInfo, &vmaAllocInfo, &mem_type_index);
+                    vmaAllocInfo.pool = VKDevice::Get().GetOrCreateSmallAllocPool(mem_type_index);
+                }
+#endif
                 vmaCreateBuffer(VKDevice::Get().GetAllocator(), &bufferInfo, &vmaAllocInfo, &m_Buffer, &m_Allocation, nullptr);
                 return;
             }
@@ -135,6 +151,16 @@ namespace Lumos
             bufferCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
             VkBuffer stagingBuffer;
             VmaAllocation stagingAlloc;
+
+#if USE_SMALL_VMA_POOL
+            if(bufferInfo.size <= SMALL_ALLOCATION_MAX_SIZE)
+            {
+                uint32_t mem_type_index = 0;
+                vmaFindMemoryTypeIndexForBufferInfo(VKDevice::Get().GetAllocator(), &bufferCreateInfo, &vmaAllocInfo, &mem_type_index);
+                vmaAllocInfo.pool = VKDevice::Get().GetOrCreateSmallAllocPool(mem_type_index);
+            }
+#endif
+
             vmaCreateBuffer(VKDevice::Get().GetAllocator(), &bufferCreateInfo, &vmaAllocInfo, &stagingBuffer, &stagingAlloc, nullptr);
 
             // Copy data to staging buffer
@@ -151,6 +177,15 @@ namespace Lumos
             vmaAllocInfo.flags = isMappable ? VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT : 0;
             vmaAllocInfo.usage = isMappable ? VMA_MEMORY_USAGE_AUTO : VMA_MEMORY_USAGE_GPU_ONLY;
             bufferInfo.usage |= VK_BUFFER_USAGE_TRANSFER_DST_BIT;
+
+#if USE_SMALL_VMA_POOL
+            if(bufferInfo.size <= SMALL_ALLOCATION_MAX_SIZE)
+            {
+                uint32_t mem_type_index = 0;
+                vmaFindMemoryTypeIndexForBufferInfo(VKDevice::Get().GetAllocator(), &bufferInfo, &vmaAllocInfo, &mem_type_index);
+                vmaAllocInfo.pool = VKDevice::Get().GetOrCreateSmallAllocPool(mem_type_index);
+            }
+#endif
 
             vmaCreateBuffer(VKDevice::Get().GetAllocator(), &bufferInfo, &vmaAllocInfo, &m_Buffer, &m_Allocation, &m_AllocationInfo);
 

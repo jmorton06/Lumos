@@ -33,6 +33,8 @@
 #include <Lumos/Physics/LumosPhysicsEngine/CollisionShapes/HullCollisionShape.h>
 
 #include <Lumos/ImGui/IconsMaterialDesignIcons.h>
+#include <Lumos/ImGui/ImGuiManager.h>
+#include <Lumos/Graphics/RHI/ImGuiRenderer.h>
 
 #include <imgui/imgui.h>
 #include <imgui/imgui_internal.h>
@@ -45,7 +47,6 @@
 #include <sol/sol.hpp>
 #include <inttypes.h>
 #include <spdlog/fmt/bundled/format.h>
-#include <ozz/animation/runtime/skeleton.h>
 
 namespace MM
 {
@@ -920,7 +921,7 @@ end
             bool showTexture    = !(hoveringButton && (payload != NULL && payload->IsDataType("AssetFile")));
             if(tex && showTexture)
             {
-                if(ImGui::ImageButton((const char*)(tex.get()), tex->GetHandle(), imageButtonSize, ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f)))
+                if(ImGui::ImageButton((const char*)(tex.get()), reinterpret_cast<ImTextureID>(Application::Get().GetImGuiManager()->GetImGuiRenderer()->AddTexture(tex)), imageButtonSize, ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f)))
                 {
                     Lumos::Editor::GetEditor()->GetFileBrowserPanel().Open();
                     Lumos::Editor::GetEditor()->GetFileBrowserPanel().SetCallback(callback);
@@ -930,7 +931,7 @@ end
                 {
                     ImGui::BeginTooltip();
                     ImGui::TextUnformatted(tex ? tex->GetFilepath().c_str() : "No Texture");
-                    ImGui::Image(tex->GetHandle(), ImVec2(256, 256), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
+                    ImGui::Image(reinterpret_cast<ImTextureID>(Application::Get().GetImGuiManager()->GetImGuiRenderer()->AddTexture(tex)), ImVec2(256, 256), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
                     ImGui::EndTooltip();
                 }
             }
@@ -1060,7 +1061,7 @@ end
             bool showTexture    = !(hoveringButton && (payload != NULL && payload->IsDataType("Font")));
             if(tex && showTexture)
             {
-                if(ImGui::ImageButton((const char*)(tex.get()), tex->GetHandle(), imageButtonSize, ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f)))
+                if(ImGui::ImageButton((const char*)(tex.get()), reinterpret_cast<ImTextureID>(Application::Get().GetImGuiManager()->GetImGuiRenderer()->AddTexture(tex)), imageButtonSize, ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f)))
                 {
                     Lumos::Editor::GetEditor()->GetFileBrowserPanel().Open();
                     Lumos::Editor::GetEditor()->GetFileBrowserPanel().SetCallback(callback);
@@ -1069,7 +1070,7 @@ end
                 if(ImGui::IsItemHovered() && tex)
                 {
                     ImGui::BeginTooltip();
-                    ImGui::Image(tex->GetHandle(), ImVec2(512, 512), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
+                    ImGui::Image(reinterpret_cast<ImTextureID>(Application::Get().GetImGuiManager()->GetImGuiRenderer()->AddTexture(tex)), ImVec2(512, 512), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
                     ImGui::EndTooltip();
                 }
             }
@@ -1178,7 +1179,7 @@ end
         ImGui::NextColumn();
 
         static bool byTile = false;
-        float tileSize     = (float)sprite.SpriteSheetTileSize;
+        uint32_t tileSize  = sprite.SpriteSheetTileSize;
 
         Lumos::ImGuiUtilities::Property("By Tile", byTile);
         if(Lumos::ImGuiUtilities::Property("Tile Size", tileSize))
@@ -1443,7 +1444,7 @@ end
             bool showTexture    = !(hoveringButton && (payload != NULL && payload->IsDataType("AssetFile")));
             if(tex && showTexture)
             {
-                if(ImGui::ImageButton((const char*)(tex.get()), tex->GetHandle(), imageButtonSize, ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f)))
+                if(ImGui::ImageButton((const char*)(tex.get()), reinterpret_cast<ImTextureID>(Application::Get().GetImGuiManager()->GetImGuiRenderer()->AddTexture(tex)), imageButtonSize, ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f)))
                 {
                     Lumos::Editor::GetEditor()->GetFileBrowserPanel().Open();
                     Lumos::Editor::GetEditor()->GetFileBrowserPanel().SetCallback(callback);
@@ -1452,7 +1453,7 @@ end
                 if(ImGui::IsItemHovered() && tex)
                 {
                     ImGui::BeginTooltip();
-                    ImGui::Image(tex->GetHandle(), ImVec2(256, 256), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
+                    ImGui::Image(reinterpret_cast<ImTextureID>(Application::Get().GetImGuiManager()->GetImGuiRenderer()->AddTexture(tex)), ImVec2(256, 256), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
                     ImGui::EndTooltip();
                 }
             }
@@ -1662,7 +1663,7 @@ end
             bool showTexture    = !(hoveringButton && (payload != NULL && payload->IsDataType("AssetFile")));
             if(tex && showTexture)
             {
-                if(ImGui::ImageButton((const char*)(tex), tex->GetHandle(), imageButtonSize, ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f)))
+                if(ImGui::ImageButton((const char*)(tex), reinterpret_cast<ImTextureID>(Application::Get().GetImGuiManager()->GetImGuiRenderer()->AddTexture(tex)), imageButtonSize, ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f)))
                 {
                     Lumos::Editor::GetEditor()->GetFileBrowserPanel().Open();
                     Lumos::Editor::GetEditor()->GetFileBrowserPanel().SetCallback(callback);
@@ -1674,7 +1675,7 @@ end
                     ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
                     ImGui::TextUnformatted(tex->GetFilepath().c_str());
                     ImGui::PopTextWrapPos();
-                    ImGui::Image(tex->GetHandle(), imageButtonSize * 3.0f, ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
+                    ImGui::Image(reinterpret_cast<ImTextureID>(Application::Get().GetImGuiManager()->GetImGuiRenderer()->AddTexture(tex)), imageButtonSize * 3.0f, ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
                     ImGui::EndTooltip();
                 }
             }
@@ -1774,7 +1775,7 @@ end
             bool showTexture    = !(hoveringButton && (payload != NULL && payload->IsDataType("AssetFile")));
             if(tex && showTexture)
             {
-                if(ImGui::ImageButton((const char*)(tex), tex->GetHandle(), imageButtonSize, ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f)))
+                if(ImGui::ImageButton((const char*)(tex), reinterpret_cast<ImTextureID>(Application::Get().GetImGuiManager()->GetImGuiRenderer()->AddTexture(tex)), imageButtonSize, ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f)))
                 {
                     Lumos::Editor::GetEditor()->GetFileBrowserPanel().Open();
                     Lumos::Editor::GetEditor()->GetFileBrowserPanel().SetCallback(callback);
@@ -1787,7 +1788,7 @@ end
                     ImGui::TextUnformatted(tex->GetFilepath().c_str());
                     ImGui::PopTextWrapPos();
 
-                    ImGui::Image(tex->GetHandle(), imageButtonSize * 3.0f, ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
+                    ImGui::Image(reinterpret_cast<ImTextureID>(Application::Get().GetImGuiManager()->GetImGuiRenderer()->AddTexture(tex)), imageButtonSize * 3.0f, ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
                     ImGui::EndTooltip();
                 }
             }
@@ -1982,28 +1983,7 @@ end
             }
             ImGui::TreePop();
         }
-        ImGui::Unindent();
 
-        auto Skeleton = modelRef->GetSkeleton();
-
-        if(Skeleton)
-        {
-            if(ImGui::TreeNodeEx("Animation", ImGuiTreeNodeFlags_Framed))
-            {
-
-                auto jointNames = Skeleton->joint_names();
-                for(auto& joint : jointNames)
-                {
-                    ImGui::TextUnformatted(joint);
-                }
-
-                ImGui::TreePop();
-
-                const auto& animations = modelRef->GetAnimations();
-            }
-        }
-
-        ImGui::Indent();
         if(ImGui::TreeNodeEx("Materials", ImGuiTreeNodeFlags_Framed))
         {
             Lumos::Graphics::Material* MaterialShown[1000];

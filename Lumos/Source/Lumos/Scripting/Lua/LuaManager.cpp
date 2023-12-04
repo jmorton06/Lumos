@@ -34,16 +34,8 @@
 #include <imgui/imgui.h>
 #include <sol/sol.hpp>
 #if LUMOS_PROFILE
-#include <tracy/public/tracy/TracyLua.hpp>
+#include <Tracy/public/tracy/TracyLua.hpp>
 #endif
-
-#include <ozz/animation/runtime/animation.h>
-#include <ozz/animation/runtime/sampling_job.h>
-#include <ozz/animation/runtime/skeleton.h>
-#include <ozz/base/containers/vector.h>
-#include <ozz/base/maths/soa_transform.h>
-#include <ozz/base/memory/unique_ptr.h>
-#include <ozz/animation/offline/raw_skeleton.h>
 
 #if __has_include(<filesystem>)
 #include <filesystem>
@@ -576,8 +568,6 @@ namespace Lumos
                                       Lumos::Graphics::Model(Lumos::Graphics::PrimitiveType)>(),
                                   // Properties
                                   "meshes", &Lumos::Graphics::Model::GetMeshes,
-                                  "skeleton", &Lumos::Graphics::Model::GetSkeleton,
-                                  "animations", &Lumos::Graphics::Model::GetAnimations,
                                   "file_path", &Lumos::Graphics::Model::GetFilePath,
                                   "primitive_type", sol::property(&Lumos::Graphics::Model::GetPrimitiveType, &Lumos::Graphics::Model::SetPrimitiveType),
                                   // Methods

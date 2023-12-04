@@ -249,6 +249,7 @@ namespace Lumos
                 ImGui::PopStyleColor();
 
             bool deleteEntity = false;
+
             if(ImGui::BeginPopupContextItem((const char*)name.str))
             {
                 if(ImGui::Selectable("Copy"))
@@ -334,8 +335,6 @@ namespace Lumos
                 const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("Drag_Entity");
                 if(payload)
                 {
-                    bool acceptable;
-
                     size_t count = payload->DataSize / sizeof(entt::entity);
 
                     auto currentScene = m_Editor->GetCurrentScene();
@@ -756,8 +755,6 @@ ImGui::GetStyle().ChildBorderSize = backup_border_size;
                     const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("Drag_Entity", ImGuiDragDropFlags_AcceptNoDrawDefaultRect);
                     if(payload)
                     {
-                        bool acceptable;
-
                         size_t count = payload->DataSize / sizeof(entt::entity);
 
                         auto currentScene = m_Editor->GetCurrentScene();
@@ -776,6 +773,13 @@ ImGui::GetStyle().ChildBorderSize = backup_border_size;
             }
             // ImGui::EndChild();
             // ImGui::PopStyleColor();
+
+            if (ImGui::IsWindowFocused() && Input::Get().GetKeyPressed(Lumos::InputCode::Key::Delete))
+            {
+                auto* scene = Application::Get().GetCurrentScene();
+                for (auto entity : m_Editor->GetSelected())
+                    scene->DestroyEntity(Entity(entity, scene));
+            }
         }
         ImGui::End();
     }

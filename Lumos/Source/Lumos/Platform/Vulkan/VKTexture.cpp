@@ -71,7 +71,7 @@ namespace Lumos
     }
 
 #ifdef USE_VMA_ALLOCATOR
-    void CreateImageVma(const VkImageCreateInfo& imageInfo, VkImage& image, VmaAllocation& allocation)
+    void CreateImageVma(const VkImageCreateInfo& imageInfo, VkImage& image, VmaAllocation& allocation, uint32_t imageSize)
     {
         LUMOS_PROFILE_FUNCTION();
         VmaAllocationCreateInfo allocInfovma;
@@ -82,6 +82,13 @@ namespace Lumos
         allocInfovma.memoryTypeBits = 0;
         allocInfovma.pool           = nullptr;
         allocInfovma.pUserData      = nullptr;
+
+        if(imageSize <= SMALL_ALLOCATION_MAX_SIZE)
+        {
+            uint32_t mem_type_index = 0;
+            vmaFindMemoryTypeIndexForImageInfo(Graphics::VKDevice::Get().GetAllocator(), &imageInfo, &allocInfovma, &mem_type_index);
+            allocInfovma.pool = Graphics::VKDevice::Get().GetOrCreateSmallAllocPool(mem_type_index);
+        }
 
         VK_CHECK_RESULT(vmaCreateImage(Graphics::VKDevice::Get().GetAllocator(), &imageInfo, &allocInfovma, &image, &allocation, nullptr));
     }
@@ -131,7 +138,8 @@ namespace Lumos
         imageInfo.flags                 = flags;
 
 #ifdef USE_VMA_ALLOCATOR
-        CreateImageVma(imageInfo, image, allocation);
+        uint32_t imageSize = SMALL_ALLOCATION_MAX_SIZE + 1; // Avoid small pool for now
+        CreateImageVma(imageInfo, image, allocation, imageSize);
 #else
         CreateImageDefault(imageInfo, image, imageMemory, properties);
 #endif
@@ -1214,7 +1222,7 @@ namespace Lumos
             m_VKFormat = VKUtilities::FormatToVK(m_Format);
 
 #ifdef LUMOS_PLATFORM_MACOS
-            VkImageUsageFlags usage = VkImageUsageFlags(0);
+            VkImageUsageFlags usage = VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
 
 #else
             VkImageUsageFlags usage = VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
@@ -1235,7 +1243,10 @@ namespace Lumos
             VKUtilities::TransitionImageLayout(m_TextureImage, m_VKFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, 1, m_Count);
             m_ImageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 
-            m_TextureSampler = CreateTextureSampler(VK_FILTER_LINEAR, VK_FILTER_LINEAR, 0.0f, 1, false, VKDevice::Get().GetPhysicalDevice()->GetProperties().limits.maxSamplerAnisotropy, false);
+            m_TextureSampler = CreateTextureSampler(VK_FILTER_LINEAR, VK_FILTER_LINEAR, 0.0f, 1, false, VKDevice::Get().GetPhysicalDevice()->GetProperties().limits.maxSamplerAnisotropy, false,
+                                                    VK_SAMPLER_ADDRESS_MODE_REPEAT,
+                                                    VK_SAMPLER_ADDRESS_MODE_REPEAT,
+                                                    VK_SAMPLER_ADDRESS_MODE_REPEAT);
 
             m_UUID = Random64::Rand(0, std::numeric_limits<uint64_t>::max());
 

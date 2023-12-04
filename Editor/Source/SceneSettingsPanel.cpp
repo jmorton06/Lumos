@@ -10,7 +10,7 @@ namespace Lumos
 {
     SceneSettingsPanel::SceneSettingsPanel()
     {
-        m_Name       = "SceneSettings###scenesettings";
+        m_Name       = "Scene Settings###scenesettings";
         m_SimpleName = "Scene Settings";
     }
 

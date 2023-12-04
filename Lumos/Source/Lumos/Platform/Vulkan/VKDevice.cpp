@@ -3,7 +3,7 @@
 #include "Core/Application.h"
 #include "Core/Version.h"
 #include "Utilities/StringUtilities.h"
-
+#include "VKUtilities.h"
 #include "VKDevice.h"
 #include "VKRenderer.h"
 #include "VKCommandPool.h"
@@ -378,6 +378,12 @@ namespace Lumos
             vkDestroyPipelineCache(m_Device, m_PipelineCache, VK_NULL_HANDLE);
 
 #ifdef USE_VMA_ALLOCATOR
+            for(auto& pool : m_SmallAllocPools)
+            {
+                vmaDestroyPool(m_Allocator, pool.second);
+            }
+            m_SmallAllocPools.clear();
+
             vmaDestroyAllocator(m_Allocator);
 #endif
 #if LUMOS_PROFILE && defined(TRACY_ENABLE)
@@ -513,8 +519,8 @@ namespace Lumos
             fn.vkInvalidateMappedMemoryRanges          = (PFN_vkInvalidateMappedMemoryRanges)vkInvalidateMappedMemoryRanges;
             fn.vkMapMemory                             = (PFN_vkMapMemory)vkMapMemory;
             fn.vkUnmapMemory                           = (PFN_vkUnmapMemory)vkUnmapMemory;
-            fn.vkGetBufferMemoryRequirements2KHR       = 0; //(PFN_vkGetBufferMemoryRequirements2KHR)vkGetBufferMemoryRequirements2KHR;
-            fn.vkGetImageMemoryRequirements2KHR        = 0; //(PFN_vkGetImageMemoryRequirements2KHR)vkGetImageMemoryRequirements2KHR;
+            fn.vkGetBufferMemoryRequirements2KHR       = (PFN_vkGetBufferMemoryRequirements2KHR)vkGetBufferMemoryRequirements2KHR;
+            fn.vkGetImageMemoryRequirements2KHR        = (PFN_vkGetImageMemoryRequirements2KHR)vkGetImageMemoryRequirements2KHR;
             fn.vkBindImageMemory2KHR                   = 0;
             fn.vkBindBufferMemory2KHR                  = 0;
             fn.vkGetPhysicalDeviceMemoryProperties2KHR = 0;
@@ -522,6 +528,7 @@ namespace Lumos
             fn.vkGetBufferMemoryRequirements2KHR       = 0;
             fn.vkGetInstanceProcAddr                   = (PFN_vkGetInstanceProcAddr)vkGetInstanceProcAddr;
             fn.vkGetDeviceProcAddr                     = (PFN_vkGetDeviceProcAddr)vkGetDeviceProcAddr;
+            fn.vkGetDeviceBufferMemoryRequirements     = (PFN_vkGetDeviceBufferMemoryRequirements)vkGetDeviceBufferMemoryRequirements;
             allocatorInfo.pVulkanFunctions             = &fn;
 
             if(vmaCreateAllocator(&allocatorInfo, &m_Allocator) != VK_SUCCESS)
@@ -577,6 +584,30 @@ namespace Lumos
                 return m_PresentTracyContext;
 
             return m_TracyContext[VKRenderer::GetMainSwapChain()->GetCurrentBufferIndex() + 1];
+        }
+#endif
+
+#ifdef USE_VMA_ALLOCATOR
+        VmaPool VKDevice::GetOrCreateSmallAllocPool(uint32_t memTypeIndex)
+        {
+            if(m_SmallAllocPools.find(memTypeIndex) != m_SmallAllocPools.end())
+                return m_SmallAllocPools[memTypeIndex];
+
+            LUMOS_LOG_INFO("Creating VMA small objects pool for memory type index {0}", memTypeIndex);
+
+            VmaPoolCreateInfo pci;
+            pci.memoryTypeIndex        = memTypeIndex;
+            pci.flags                  = 0;
+            pci.blockSize              = 0;
+            pci.minBlockCount          = 0;
+            pci.maxBlockCount          = SIZE_MAX;
+            pci.priority               = 0.5f;
+            pci.minAllocationAlignment = 0;
+            pci.pMemoryAllocateNext    = nullptr;
+            VmaPool pool               = VK_NULL_HANDLE;
+            VK_CHECK_RESULT(vmaCreatePool(m_Allocator, &pci, &pool));
+            m_SmallAllocPools[memTypeIndex] = pool;
+            return pool;
         }
 #endif
 

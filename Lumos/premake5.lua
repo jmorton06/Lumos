@@ -51,7 +51,6 @@ project "Lumos"
 		"%{IncludeDir.glm}",
 		"%{IncludeDir.msdfgen}",
 		"%{IncludeDir.msdf_atlas_gen}",
-		"%{IncludeDir.ozz}",
 		"%{IncludeDir.Lumos}",
 	}
 
@@ -65,10 +64,7 @@ project "Lumos"
 		"spdlog",
 		"meshoptimizer",
 		-- "msdfgen",
-		"msdf-atlas-gen",
-		"ozz_base",
-		"ozz_animation",
-		"ozz_animation_offline"
+		"msdf-atlas-gen"
 	}
 
 	defines

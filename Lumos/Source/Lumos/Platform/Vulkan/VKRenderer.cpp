@@ -140,9 +140,9 @@ namespace Lumos
             swapChain->QueueSubmit();
 
             auto& frameData = swapChain->GetCurrentFrameData();
-            auto semphore   = frameData.MainCommandBuffer->GetSemaphore();
+            auto semaphore   = frameData.MainCommandBuffer->GetSemaphore();
 
-            swapChain->Present(semphore);
+            swapChain->Present(semaphore);
         }
 
         const std::string& VKRenderer::GetTitleInternal() const

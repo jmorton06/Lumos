@@ -14,10 +14,12 @@
 #include <vulkan/vk_mem_alloc.h>
 #endif
 
+static const uint32_t SMALL_ALLOCATION_MAX_SIZE = 4096;
+
 #include <unordered_set>
 
 #if LUMOS_PROFILE && defined(TRACY_ENABLE)
-#include <tracy/public/tracy/TracyVulkan.hpp>
+#include <Tracy/public/tracy/TracyVulkan.hpp>
 #endif
 
 namespace Lumos
@@ -179,6 +181,10 @@ namespace Lumos
                 return m_EnabledFeatures;
             }
 
+#ifdef USE_VMA_ALLOCATOR
+            VmaPool GetOrCreateSmallAllocPool(uint32_t memTypeIndex);
+#endif
+
         private:
             VkDevice m_Device;
 
@@ -203,6 +209,7 @@ namespace Lumos
 
 #ifdef USE_VMA_ALLOCATOR
             VmaAllocator m_Allocator {};
+            std::unordered_map<uint32_t, VmaPool> m_SmallAllocPools;
 #endif
         };
 

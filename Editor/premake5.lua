@@ -35,7 +35,6 @@ project "LumosEditor"
 		"%{IncludeDir.msdfgen}",
 		"%{IncludeDir.msdf_atlas_gen}",
 		"%{IncludeDir.glm}",
-		"%{IncludeDir.ozz}",
 		"%{IncludeDir.Lumos}",
 	}
 
@@ -49,11 +48,7 @@ project "LumosEditor"
 		"SpirvCross",
 		"spdlog",
 		"meshoptimizer",
-		-- "msdfgen",
-		"msdf-atlas-gen",
-		"ozz_animation",
-		"ozz_animation_offline",
-		"ozz_base"
+		"msdf-atlas-gen"
 	}
 
 	defines

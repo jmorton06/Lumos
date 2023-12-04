@@ -5,8 +5,6 @@
 #include "Core/OS/FileSystem.h"
 #include "Core/Asset.h"
 #include <cereal/cereal.hpp>
-#include <ozz/animation/runtime/animation.h>
-#include <ozz/animation/runtime/skeleton.h>
 
 namespace Lumos
 {
@@ -64,9 +62,6 @@ namespace Lumos
                 }
             }
 
-            SharedPtr<ozz::animation::Skeleton> GetSkeleton() const { return m_Skeleton; }
-            const std::vector<SharedPtr<ozz::animation::Animation>>& GetAnimations() const { return m_Animation; }
-
             const std::string& GetFilePath() const { return m_FilePath; }
             PrimitiveType GetPrimitiveType() { return m_PrimitiveType; }
             void SetPrimitiveType(PrimitiveType type) { m_PrimitiveType = type; }
@@ -76,12 +71,6 @@ namespace Lumos
             PrimitiveType m_PrimitiveType = PrimitiveType::None;
             std::vector<SharedPtr<Mesh>> m_Meshes;
             std::string m_FilePath;
-
-            // Store paths to anims loaded from other files
-            std::vector<std::string> m_AnimFilePaths;
-
-            SharedPtr<ozz::animation::Skeleton> m_Skeleton;
-            std::vector<SharedPtr<ozz::animation::Animation>> m_Animation;
 
             void LoadOBJ(const std::string& path);
             void LoadGLTF(const std::string& path);

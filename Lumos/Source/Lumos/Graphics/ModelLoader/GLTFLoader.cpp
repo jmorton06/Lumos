@@ -16,16 +16,6 @@
 #include "Utilities/StringUtilities.h"
 #include "Utilities/AssetManager.h"
 
-#include <ozz/animation/offline/animation_builder.h>
-#include <ozz/animation/runtime/skeleton.h>
-#include <ozz/animation/offline/skeleton_builder.h>
-#include <ozz/animation/runtime/animation.h>
-#include <ozz/animation/runtime/sampling_job.h>
-#include <ozz/base/containers/vector.h>
-#include <ozz/base/maths/soa_transform.h>
-#include <ozz/base/memory/unique_ptr.h>
-#include <ozz/animation/offline/raw_skeleton.h>
-
 #define TINYGLTF_IMPLEMENTATION
 #define TINYGLTF_USE_CPP14
 #define STB_IMAGE_WRITE_IMPLEMENTATION
@@ -35,8 +25,6 @@
 #endif
 #include <ModelLoaders/tinygltf/tiny_gltf.h>
 #include <stb_image_resize2.h>
-
-#include <ozz-animation/src/animation/offline/gltf/gltf2ozz.cc>
 
 namespace Lumos::Graphics
 {
@@ -642,30 +630,6 @@ namespace Lumos::Graphics
             auto skins = model.skins;
             if(!skins.empty())
             {
-                using namespace ozz::animation::offline;
-                GltfImporter impl;
-                ozz::animation::offline::OzzImporter& importer = impl;
-                OzzImporter::NodeType types                    = {};
-
-                importer.Load(path.c_str());
-                RawSkeleton* rawSkeleton = new RawSkeleton();
-                importer.Import(rawSkeleton, types);
-
-                ozz::animation::offline::SkeletonBuilder skeletonBuilder;
-
-                m_Skeleton = SharedPtr<ozz::animation::Skeleton>(skeletonBuilder(*rawSkeleton).release());
-
-                ozz::animation::offline::AnimationBuilder animBuilder;
-                auto animationNames = importer.GetAnimationNames();
-
-                for(auto& animName : animationNames)
-                {
-                    RawAnimation* rawAnimation = new RawAnimation();
-                    importer.Import(animName.c_str(), *m_Skeleton.get(), 30.0f, rawAnimation);
-
-                    m_Animation.push_back(SharedPtr<ozz::animation::Animation>(animBuilder(*rawAnimation).release()));
-                    LUMOS_LOG_INFO("Loaded Anim : {0}", animName);
-                }
             }
         }
     }

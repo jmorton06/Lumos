@@ -26,6 +26,9 @@ namespace Lumos
         void OnEvent(Event& event);
         void OnRender(Scene* scene);
         void OnNewScene(Scene* scene);
+        void OnNewFrame();
+
+        Graphics::IMGUIRenderer* GetImGuiRenderer() const { return m_IMGUIRenderer.get(); }
 
     private:
         bool OnMouseButtonPressedEvent(MouseButtonPressedEvent& e);
