@@ -41,7 +41,6 @@ Install Vulkan SDK (https://vulkan.lunarg.com/)
 sudo apt-get install -y g++-11 libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev libopenal-dev mesa-common-dev
 cd Lumos
 Tools/linux/premake5 gmake2
-cd build
 make -j8 # config=release
 ```
 #### Windows 
