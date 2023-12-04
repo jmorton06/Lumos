@@ -15,6 +15,7 @@
 #include "Graphics/MeshFactory.h"
 #include "Scene/Scene.h"
 #include "Core/Application.h"
+#include "Graphics/RHI/GPUProfile.h"
 #include "Graphics/Camera/Camera.h"
 #include "Maths/Transform.h"
 #include "Graphics/Renderers/RenderPasses.h"
@@ -45,6 +46,7 @@ namespace Lumos
         void GridRenderer::RenderScene()
         {
             LUMOS_PROFILE_FUNCTION();
+            LUMOS_PROFILE_GPU("Grid Pass");
             m_CurrentBufferID = 0;
             if(!m_RenderTexture)
                 m_CurrentBufferID = Renderer::GetMainSwapChain()->GetCurrentBufferIndex();

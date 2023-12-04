@@ -8,7 +8,7 @@ namespace Lumos
         ThreadContext tctx = { 0 };
         for(int i = 0; i < 2; i++)
         {
-            tctx.ScratchArenas[i] = ArenaAlloc(Megabytes(8));
+            tctx.ScratchArenas[i] = ArenaAlloc(Megabytes(1));
         }
         return tctx;
     }

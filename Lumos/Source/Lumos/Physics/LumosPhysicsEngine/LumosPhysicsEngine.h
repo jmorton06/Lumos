@@ -52,10 +52,19 @@ namespace Lumos
         uint32_t NarrowPhaseCount;
     };
 
+    struct LumosPhysicsEngineConfig
+    {
+        float TimeStep             = 1.0f / 120.0f;
+        uint32_t RigidBodyPool     = 10000;
+        glm::vec3 Gravity          = glm::vec3(0.0f, -9.81f, 0.0f);
+        float DampingFactor        = 0.9995f;
+        IntegrationType IntegrType = IntegrationType::RUNGE_KUTTA_4;
+    };
+
     class LUMOS_EXPORT LumosPhysicsEngine : public ISystem
     {
     public:
-        LumosPhysicsEngine();
+        LumosPhysicsEngine(const LumosPhysicsEngineConfig& config = {});
         ~LumosPhysicsEngine();
 
         void SetDefaults();

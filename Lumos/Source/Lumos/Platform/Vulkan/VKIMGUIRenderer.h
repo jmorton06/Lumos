@@ -43,6 +43,7 @@ namespace Lumos
             VKFramebuffer* m_Framebuffers[3];
             VKRenderPass* m_Renderpass;
             VKTexture2D* m_FontTexture;
+            ImGuiTextureID m_FontTextureID;
             bool m_ClearScreen;
         };
     }

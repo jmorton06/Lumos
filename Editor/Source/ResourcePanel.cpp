@@ -2,6 +2,7 @@
 #include "ResourcePanel.h"
 #include <Lumos/Core/OS/Input.h>
 #include <Lumos/Graphics/RHI/Texture.h>
+#include <Lumos/Graphics/RHI/ImGuiRenderer.h>
 #include <Lumos/Core/Profiler.h>
 #include <Lumos/Utilities/StringUtilities.h>
 #include <Lumos/Core/OS/Window.h>
@@ -14,6 +15,7 @@
 #include <Lumos/Embedded/browserFolder.inl>
 #include <Lumos/Core/OS/OS.h>
 #include <Lumos/Core/String.h>
+#include <Lumos/ImGui/ImGuiManager.h>
 
 #ifdef LUMOS_PLATFORM_WINDOWS
 #include <Windows.h>
@@ -131,8 +133,11 @@ namespace Lumos
         desc.minFilter = Graphics::TextureFilter::LINEAR;
         desc.magFilter = Graphics::TextureFilter::LINEAR;
         desc.wrap      = Graphics::TextureWrap::CLAMP;
-        m_FileIcon     = Graphics::Texture2D::CreateFromSource(browserFileWidth, browserFileHeight, (void*)browserFile, desc);
-        m_FolderIcon   = Graphics::Texture2D::CreateFromSource(browserFolderWidth, browserFolderHeight, (void*)browserFolder, desc);
+
+        Graphics::TextureLoadOptions options;
+        options.flipY = true;
+        m_FileIcon     = Graphics::Texture2D::CreateFromSource(browserFileWidth, browserFileHeight, (void*)browserFile, desc, options);
+        m_FolderIcon   = Graphics::Texture2D::CreateFromSource(browserFolderWidth, browserFolderHeight, (void*)browserFolder, desc, options);
         m_Refresh      = false;
     }
 
@@ -792,7 +797,7 @@ namespace Lumos
         if(gridView)
         {
             auto& CurrentEnty = m_CurrentDir->Children[dirIndex];
-            void* textureId   = m_FolderIcon->GetHandle();
+            Graphics::Texture2D* textureId   = m_FolderIcon;
 
             auto cursorPos = ImGui::GetCursorPos();
 
@@ -802,24 +807,24 @@ namespace Lumos
                 {
                     if(CurrentEnty->Thumbnail)
                     {
-                        textureId = CurrentEnty->Thumbnail->GetHandle();
+                        textureId = CurrentEnty->Thumbnail;
                     }
                     else if(!textureCreated)
                     {
                         textureCreated         = true;
                         CurrentEnty->Thumbnail = m_TextureLibrary.GetResource(std::string((const char*)CurrentEnty->Path.str, CurrentEnty->Path.size));
-                        textureId              = CurrentEnty->Thumbnail ? CurrentEnty->Thumbnail->GetHandle() : m_FileIcon->GetHandle();
+                        textureId              = CurrentEnty->Thumbnail ? CurrentEnty->Thumbnail : m_FileIcon;
                     }
                     else
                     {
-                        textureId = m_FileIcon->GetHandle();
+                        textureId = m_FileIcon;
                     }
                 }
                 else if(CurrentEnty->Type == FileType::Scene)
                 {
                     if(CurrentEnty->Thumbnail)
                     {
-                        textureId = CurrentEnty->Thumbnail->GetHandle();
+                        textureId = CurrentEnty->Thumbnail;
                     }
                     else if(!textureCreated)
                     {
@@ -831,21 +836,21 @@ namespace Lumos
                         {
                             textureCreated         = true;
                             CurrentEnty->Thumbnail = m_TextureLibrary.GetResource(std::string((const char*)sceneScreenShotPath.str, sceneScreenShotPath.size));
-                            textureId              = CurrentEnty->Thumbnail ? CurrentEnty->Thumbnail->GetHandle() : m_FileIcon->GetHandle();
+                            textureId              = CurrentEnty->Thumbnail ? CurrentEnty->Thumbnail : m_FileIcon;
                         }
                         else
-                            textureId = m_FileIcon->GetHandle();
+                            textureId = m_FileIcon;
 
                         ArenaTempEnd(scratch);
                     }
                     else
                     {
-                        textureId = m_FileIcon->GetHandle();
+                        textureId = m_FileIcon;
                     }
                 }
                 else
                 {
-                    textureId = m_FileIcon->GetHandle();
+                    textureId = m_FileIcon;
                 }
             }
             bool flipImage = false;
@@ -943,12 +948,7 @@ namespace Lumos
 
             if(ImGui::IsItemHovered() && m_CurrentDir->Children[dirIndex]->Thumbnail)
             {
-                ImGui::BeginTooltip();
-                ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
-                ImGui::TextUnformatted((const char*)(m_CurrentDir->Children[dirIndex]->Path.str));
-                ImGui::PopTextWrapPos();
-                ImGui::Image(m_CurrentDir->Children[dirIndex]->Thumbnail->GetHandle(), { 512, 512 }, ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
-                ImGui::EndTooltip();
+                ImGuiUtilities::Tooltip(m_CurrentDir->Children[dirIndex]->Thumbnail, { 512, 512 }, (const char*)(m_CurrentDir->Children[dirIndex]->Path.str));
             }
             else
                 ImGuiUtilities::Tooltip((const char*)(m_CurrentDir->Children[dirIndex]->Path.str));
@@ -974,15 +974,16 @@ namespace Lumos
 
             ImGui::SetCursorPos({ cursorPos.x + padding, cursorPos.y + padding });
             ImGui::SetNextItemAllowOverlap();
-            ImGui::Image(reinterpret_cast<ImTextureID>(Graphics::Material::GetDefaultTexture()->GetHandle()), { backgroundThumbnailSize.x - padding * 2.0f, backgroundThumbnailSize.y - padding * 2.0f }, { 0, 0 }, { 1, 1 }, ImGui::GetStyleColorVec4(ImGuiCol_WindowBg) + ImVec4(0.04f, 0.04f, 0.04f, 0.04f));
-
+            ImGui::Image(reinterpret_cast<ImTextureID>(Application::Get().GetImGuiManager()->GetImGuiRenderer()->AddTexture(Graphics::Material::GetDefaultTexture())), { backgroundThumbnailSize.x - padding * 2.0f, backgroundThumbnailSize.y - padding * 2.0f }, { 0, 0 }, { 1, 1 }, ImGui::GetStyleColorVec4(ImGuiCol_WindowBg) + ImVec4(0.04f, 0.04f, 0.04f, 0.04f));
+            
             ImGui::SetCursorPos({ cursorPos.x + thumbnailPadding * 0.75f, cursorPos.y + thumbnailPadding });
             ImGui::SetNextItemAllowOverlap();
-            ImGui::Image(reinterpret_cast<ImTextureID>(textureId), { thumbnailSize, thumbnailSize }, ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
+            //ImGui::Image(reinterpret_cast<ImTextureID>(textureId), { thumbnailSize, thumbnailSize }, ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
+            ImGuiUtilities::Image(textureId, { thumbnailSize, thumbnailSize });
 
             const ImVec2 typeColorFrameSize = { scaledThumbnailSizeX, scaledThumbnailSizeX * 0.03f };
             ImGui::SetCursorPosX(cursorPos.x + padding);
-            ImGui::Image(reinterpret_cast<ImTextureID>(Graphics::Material::GetDefaultTexture()->GetHandle()), typeColorFrameSize, ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f), !CurrentEnty->IsFile ? ImVec4(0.0f, 0.0f, 0.0f, 0.0f) : CurrentEnty->FileTypeColour);
+            ImGui::Image(reinterpret_cast<ImTextureID>(Application::Get().GetImGuiManager()->GetImGuiRenderer()->AddTexture(Graphics::Material::GetDefaultTexture())), typeColorFrameSize, ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f), !CurrentEnty->IsFile ? ImVec4(0.0f, 0.0f, 0.0f, 0.0f) : CurrentEnty->FileTypeColour);
 
             const ImVec2 rectMin  = ImGui::GetItemRectMin() + ImVec2(0.0f, 8.0f);
             const ImVec2 rectSize = ImGui::GetItemRectSize() + ImVec2(0.0f, 4.0f);
@@ -1018,8 +1019,8 @@ namespace Lumos
         {
             ImGui::TextUnformatted(folder ? ICON_MDI_FOLDER : m_Editor->GetIconFontIcon(std::string((const char*)m_CurrentDir->Children[dirIndex]->Path.str, m_CurrentDir->Children[dirIndex]->Path.size)));
             ImGui::SameLine();
-
-            if(ImGui::Selectable((const char*)m_CurrentDir->Children[dirIndex]->Path.str, false, ImGuiSelectableFlags_AllowDoubleClick))
+            
+            if(ImGui::Selectable((const char*)GetFileName(m_CurrentDir->Children[dirIndex]->Path, !m_CurrentDir->Children[dirIndex]->IsFile).str, false, ImGuiSelectableFlags_AllowDoubleClick))
             {
                 if(ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
                 {

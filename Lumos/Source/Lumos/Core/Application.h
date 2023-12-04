@@ -88,6 +88,7 @@ namespace Lumos
         EditorState GetEditorState() const { return m_EditorState; }
         SystemManager* GetSystemManager() const { return m_SystemManager.get(); }
         Scene* GetCurrentScene() const;
+        ImGuiManager* GetImGuiManager() const { return m_ImGuiManager.get(); }
 
         void SetAppState(AppState state) { m_CurrentState = state; }
         void SetEditorState(EditorState state) { m_EditorState = state; }

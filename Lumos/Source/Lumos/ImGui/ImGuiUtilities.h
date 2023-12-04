@@ -72,9 +72,9 @@ namespace Lumos
         void Tooltip(Graphics::Texture2D* texture, const glm::vec2& size, const char* text);
         void Tooltip(Graphics::TextureDepthArray* texture, uint32_t index, const glm::vec2& size);
 
-        void Image(Graphics::Texture2D* texture, const glm::vec2& size);
-        void Image(Graphics::TextureCube* texture, const glm::vec2& size);
-        void Image(Graphics::TextureDepthArray* texture, uint32_t index, const glm::vec2& size);
+        void Image(Graphics::Texture2D* texture, const glm::vec2& size, bool flip = false);
+        void Image(Graphics::TextureCube* texture, const glm::vec2& size, bool flip = false);
+        void Image(Graphics::TextureDepthArray* texture, uint32_t index, const glm::vec2& size, bool flip = false);
 
         void TextCentred(const char* text);
 

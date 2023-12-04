@@ -20,15 +20,15 @@
 namespace Lumos
 {
 
-    float LumosPhysicsEngine::s_UpdateTimestep = 1.0f / 60.0f;
+    float LumosPhysicsEngine::s_UpdateTimestep = 1.0f / 120.0f;
 
-    LumosPhysicsEngine::LumosPhysicsEngine()
+    LumosPhysicsEngine::LumosPhysicsEngine(const LumosPhysicsEngineConfig& config)
         : m_IsPaused(true)
         , m_UpdateAccum(0.0f)
-        , m_Gravity(glm::vec3(0.0f, -9.81f, 0.0f))
-        , m_DampingFactor(0.9995f)
+        , m_Gravity(config.Gravity)
+        , m_DampingFactor(config.DampingFactor)
         , m_BroadphaseDetection(nullptr)
-        , m_IntegrationType(IntegrationType::RUNGE_KUTTA_4)
+        , m_IntegrationType(config.IntegrType)
         , m_RootBody(nullptr)
     {
         m_DebugName = "Lumos3DPhysicsEngine";
@@ -41,7 +41,7 @@ namespace Lumos
     void LumosPhysicsEngine::SetDefaults()
     {
         m_IsPaused        = true;
-        s_UpdateTimestep  = 1.0f / 60.f;
+        s_UpdateTimestep  = 1.0f / 120.0f;
         m_UpdateAccum     = 0.0f;
         m_Gravity         = glm::vec3(0.0f, -9.81f, 0.0f);
         m_DampingFactor   = 0.9995f;

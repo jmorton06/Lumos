@@ -146,6 +146,12 @@ namespace Lumos
                 uint32_t imageIndex             = 0;
                 uint32_t index                  = 0;
 
+                const uint32_t descriptorCount = (uint32_t)m_Descriptors.descriptors.size();
+                ArenaTemp scratch = ScratchBegin(nullptr, 0);
+                VkDescriptorBufferInfo* bufferInfos = PushArrayNoZero(scratch.arena, VkDescriptorBufferInfo, descriptorCount);
+                VkDescriptorImageInfo* imageInfos = PushArrayNoZero(scratch.arena, VkDescriptorImageInfo, descriptorCount);
+                VkWriteDescriptorSet* writeDescriptorSets = PushArrayNoZero(scratch.arena, VkWriteDescriptorSet, descriptorCount);
+
                 for(auto& imageInfo : m_Descriptors.descriptors)
                 {
                     if(imageInfo.type == DescriptorType::IMAGE_SAMPLER && (imageInfo.texture || imageInfo.textures))
@@ -157,9 +163,9 @@ namespace Lumos
                                 TransitionImageToCorrectLayout(imageInfo.texture, cmdBuffer);
 
                                 VkDescriptorImageInfo& des              = *static_cast<VkDescriptorImageInfo*>(imageInfo.texture->GetDescriptorInfo());
-                                m_ImageInfoPool[imageIndex].imageLayout = des.imageLayout;
-                                m_ImageInfoPool[imageIndex].imageView   = des.imageView;
-                                m_ImageInfoPool[imageIndex].sampler     = des.sampler;
+                                imageInfos[imageIndex].imageLayout = des.imageLayout;
+                                imageInfos[imageIndex].imageView   = des.imageView;
+                                imageInfos[imageIndex].sampler     = des.sampler;
                             }
                         }
                         else
@@ -171,9 +177,9 @@ namespace Lumos
                                     TransitionImageToCorrectLayout(imageInfo.textures[i], cmdBuffer);
 
                                     VkDescriptorImageInfo& des                  = *static_cast<VkDescriptorImageInfo*>(imageInfo.textures[i]->GetDescriptorInfo());
-                                    m_ImageInfoPool[i + imageIndex].imageLayout = des.imageLayout;
-                                    m_ImageInfoPool[i + imageIndex].imageView   = des.imageView;
-                                    m_ImageInfoPool[i + imageIndex].sampler     = des.sampler;
+                                    imageInfos[i + imageIndex].imageLayout = des.imageLayout;
+                                    imageInfos[i + imageIndex].imageView   = des.imageView;
+                                    imageInfos[i + imageIndex].sampler     = des.sampler;
                                 }
                             }
                         }
@@ -183,10 +189,10 @@ namespace Lumos
                         writeDescriptorSet.dstSet               = m_DescriptorSet[currentFrame];
                         writeDescriptorSet.descriptorType       = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
                         writeDescriptorSet.dstBinding           = imageInfo.binding;
-                        writeDescriptorSet.pImageInfo           = &m_ImageInfoPool[imageIndex];
+                        writeDescriptorSet.pImageInfo           = &imageInfos[imageIndex];
                         writeDescriptorSet.descriptorCount      = imageInfo.textureCount;
 
-                        m_WriteDescriptorSetPool[descriptorWritesCount] = writeDescriptorSet;
+                        writeDescriptorSets[descriptorWritesCount] = writeDescriptorSet;
                         imageIndex++;
                         descriptorWritesCount++;
                     }
@@ -197,9 +203,9 @@ namespace Lumos
                             ((VKTexture2D*)imageInfo.texture)->TransitionImage(VK_IMAGE_LAYOUT_GENERAL);
 
                             VkDescriptorImageInfo& des              = *static_cast<VkDescriptorImageInfo*>(imageInfo.texture->GetDescriptorInfo());
-                            m_ImageInfoPool[imageIndex].imageLayout = des.imageLayout;
-                            m_ImageInfoPool[imageIndex].imageView   = imageInfo.mipLevel > 0 ? ((VKTexture2D*)imageInfo.texture)->GetMipImageView(imageInfo.mipLevel) : des.imageView;
-                            m_ImageInfoPool[imageIndex].sampler     = des.sampler;
+                            imageInfos[imageIndex].imageLayout = des.imageLayout;
+                            imageInfos[imageIndex].imageView   = imageInfo.mipLevel > 0 ? ((VKTexture2D*)imageInfo.texture)->GetMipImageView(imageInfo.mipLevel) : des.imageView;
+                            imageInfos[imageIndex].sampler     = des.sampler;
                         }
 
                         VkWriteDescriptorSet writeDescriptorSet = {};
@@ -207,10 +213,10 @@ namespace Lumos
                         writeDescriptorSet.dstSet               = m_DescriptorSet[currentFrame];
                         writeDescriptorSet.descriptorType       = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
                         writeDescriptorSet.dstBinding           = imageInfo.binding;
-                        writeDescriptorSet.pImageInfo           = &m_ImageInfoPool[imageIndex];
+                        writeDescriptorSet.pImageInfo           = &imageInfos[imageIndex];
                         writeDescriptorSet.descriptorCount      = imageInfo.textureCount;
 
-                        m_WriteDescriptorSetPool[descriptorWritesCount] = writeDescriptorSet;
+                        writeDescriptorSets[descriptorWritesCount] = writeDescriptorSet;
                         imageIndex++;
                         descriptorWritesCount++;
                     }
@@ -218,19 +224,19 @@ namespace Lumos
                     else if(imageInfo.type == DescriptorType::UNIFORM_BUFFER)
                     {
                         VKUniformBuffer* vkUniformBuffer = m_UniformBuffers[currentFrame][imageInfo.name].As<VKUniformBuffer>().get();
-                        m_BufferInfoPool[index].buffer   = *vkUniformBuffer->GetBuffer();
-                        m_BufferInfoPool[index].offset   = imageInfo.offset;
-                        m_BufferInfoPool[index].range    = imageInfo.size;
+                        bufferInfos[index].buffer   = *vkUniformBuffer->GetBuffer();
+                        bufferInfos[index].offset   = imageInfo.offset;
+                        bufferInfos[index].range    = imageInfo.size;
 
                         VkWriteDescriptorSet writeDescriptorSet = {};
                         writeDescriptorSet.sType                = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
                         writeDescriptorSet.dstSet               = m_DescriptorSet[currentFrame];
                         writeDescriptorSet.descriptorType       = VKUtilities::DescriptorTypeToVK(imageInfo.type);
                         writeDescriptorSet.dstBinding           = imageInfo.binding;
-                        writeDescriptorSet.pBufferInfo          = &m_BufferInfoPool[index];
+                        writeDescriptorSet.pBufferInfo          = &bufferInfos[index];
                         writeDescriptorSet.descriptorCount      = 1;
 
-                        m_WriteDescriptorSetPool[descriptorWritesCount] = writeDescriptorSet;
+                        writeDescriptorSets[descriptorWritesCount] = writeDescriptorSet;
                         index++;
                         descriptorWritesCount++;
 
@@ -240,8 +246,9 @@ namespace Lumos
                 }
 
                 vkUpdateDescriptorSets(VKDevice::Get().GetDevice(), descriptorWritesCount,
-                                       m_WriteDescriptorSetPool.data(), 0, nullptr);
+                    writeDescriptorSets, 0, nullptr);
 
+                ScratchEnd(scratch);
                 m_DescriptorUpdated[currentFrame] = true;
             }
         }

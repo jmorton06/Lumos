@@ -968,15 +968,23 @@ namespace Lumos::Graphics
 
         auto& sceneRenderSettings       = Application::Get().GetCurrentScene()->GetSettings().RenderSettings;
         sceneRenderSettings.SSAOEnabled = false; // Disabled while broken
-        Renderer::GetRenderer()->ClearRenderTarget(m_MainTexture, Renderer::GetMainSwapChain()->GetCurrentCommandBuffer());
-        if(sceneRenderSettings.SSAOEnabled)
-            Renderer::GetRenderer()->ClearRenderTarget(m_NormalTexture, Renderer::GetMainSwapChain()->GetCurrentCommandBuffer());
 
+        {
+            LUMOS_PROFILE_GPU("Clear Main Texture Pass");
+            Renderer::GetRenderer()->ClearRenderTarget(m_MainTexture, Renderer::GetMainSwapChain()->GetCurrentCommandBuffer());
+        }
+
+        if(sceneRenderSettings.SSAOEnabled)
+        {
+            LUMOS_PROFILE_GPU("Clear Normal Texture Pass");
+            Renderer::GetRenderer()->ClearRenderTarget(m_NormalTexture, Renderer::GetMainSwapChain()->GetCurrentCommandBuffer());
+        }
         // Set to default texture if bloom disabled
         m_BloomTextureLastRenderered = Graphics::Material::GetDefaultTexture().get();
 
         if(m_ForwardData.m_DepthTest)
         {
+            LUMOS_PROFILE_GPU("Clear Depth Texture Pass");
             Renderer::GetRenderer()->ClearRenderTarget(reinterpret_cast<Texture*>(m_ForwardData.m_DepthTexture), Renderer::GetMainSwapChain()->GetCurrentCommandBuffer());
         }
 
@@ -1094,16 +1102,17 @@ namespace Lumos::Graphics
             static int index = 0;
 
             // TODO: Fix - only showing layer 0
-            ImGui::SliderInt("Texture Array Index", &index, 0, m_ShadowData.m_ShadowTex->GetCount());
+            ImGui::SliderInt("Texture Array Index", &index, 0, m_ShadowData.m_ShadowTex->GetCount() - 1);
 
             bool flipImage = Renderer::GetGraphicsContext()->FlipImGUITexture();
-
-            ImGui::Image(m_ShadowData.m_ShadowTex->GetHandle(), ImVec2(128, 128), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
+			
+			
+			ImGuiUtilities::Image(m_ShadowData.m_ShadowTex,index, ImVec2(128, 128));
 
             if(ImGui::IsItemHovered())
             {
                 ImGui::BeginTooltip();
-                ImGui::Image(m_ShadowData.m_ShadowTex->GetHandle(), ImVec2(256, 256), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
+                ImGuiUtilities::Image(m_ShadowData.m_ShadowTex,index, ImVec2(256, 256));
                 ImGui::EndTooltip();
             }
 
@@ -1359,8 +1368,10 @@ namespace Lumos::Graphics
 
         if(empty)
             return;
-
-        Renderer::GetRenderer()->ClearRenderTarget(m_ShadowData.m_ShadowTex, Renderer::GetMainSwapChain()->GetCurrentCommandBuffer());
+        {
+            LUMOS_PROFILE_GPU("Clear Shadow Texture Pass");
+            Renderer::GetRenderer()->ClearRenderTarget(m_ShadowData.m_ShadowTex, Renderer::GetMainSwapChain()->GetCurrentCommandBuffer());
+        }
         m_ShadowData.m_DescriptorSet[0]->SetUniform("ShadowData", "LightMatrices", m_ShadowData.m_ShadowProjView);
         m_ShadowData.m_DescriptorSet[0]->Update();
 

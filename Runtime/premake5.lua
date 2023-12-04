@@ -28,7 +28,6 @@ project "Runtime"
 		"%{IncludeDir.glm}",
 		"%{IncludeDir.msdfgen}",
 		"%{IncludeDir.msdf_atlas_gen}",
-		"%{IncludeDir.ozz}",
 		"%{IncludeDir.Lumos}",
 	}
 
@@ -47,10 +46,7 @@ project "Runtime"
 		"SpirvCross",
 		"spdlog",
 		"meshoptimizer",
-		"msdf-atlas-gen",
-		"ozz_animation_offline",
-		"ozz_animation",
-		"ozz_base"
+		"msdf-atlas-gen"
 	}
 
 	defines
