@@ -261,7 +261,19 @@ namespace Lumos
         if(Input::Get().GetKeyHeld(InputCode::Key::LeftControl))
 		{
 			float mouseScroll = Input::Get().GetScrollOffset();
-			m_GridSize += mouseScroll;
+
+			if(m_IsInListView)
+            {
+                if (mouseScroll > 0)
+					m_IsInListView = false;
+			}
+            else
+            {
+				m_GridSize += mouseScroll;
+				if(m_GridSize < MinGridSize)
+					m_IsInListView = true;
+			}
+
 			m_GridSize = Maths::Clamp(m_GridSize, MinGridSize, MaxGridSize);
         }
 
