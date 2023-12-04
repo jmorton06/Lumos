@@ -15,8 +15,6 @@ namespace Lumos
 
         void DrawNode(entt::entity node, entt::registry& registry);
         void OnImGui() override;
-
-        void DestroyEntity(entt::entity entity, entt::registry& registry);
         bool IsParentOfEntity(entt::entity entity, entt::entity child, entt::registry& registry);
 
     private:

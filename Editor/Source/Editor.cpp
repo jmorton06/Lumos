@@ -1815,28 +1815,27 @@ namespace Lumos
         if(m_EditorState == EditorState::Play)
             autoSaveTimer = 0.0f;
 
-        if(Input::Get().GetKeyPressed(Lumos::InputCode::Key::Escape))
+        if (Input::Get().GetKeyPressed(Lumos::InputCode::Key::Delete))
         {
-            if(GetEditorState() == EditorState::Preview)
-            {
-                m_CurrentState = AppState::Closing;
-                return;
-            }
-            else
-            {
-                Application::Get().GetSystem<LumosPhysicsEngine>()->SetPaused(true);
-                Application::Get().GetSystem<B2PhysicsEngine>()->SetPaused(true);
+			auto *scene = Application::Get().GetCurrentScene();
+			for(auto entity : m_SelectedEntities)
+				scene->DestroyEntity(Entity(entity, scene));
+        }
 
-                Application::Get().GetSystem<AudioManager>()->UpdateListener(Application::Get().GetCurrentScene());
-                Application::Get().GetSystem<AudioManager>()->SetPaused(true);
-                Application::Get().SetEditorState(EditorState::Preview);
+        if(Input::Get().GetKeyPressed(Lumos::InputCode::Key::Escape) && GetEditorState() != EditorState::Preview)
+        {
+			Application::Get().GetSystem<LumosPhysicsEngine>()->SetPaused(true);
+			Application::Get().GetSystem<B2PhysicsEngine>()->SetPaused(true);
 
-                // m_SelectedEntity = entt::null;
-                m_SelectedEntities.clear();
-                ImGui::SetWindowFocus("###scene");
-                LoadCachedScene();
-                SetEditorState(EditorState::Preview);
-            }
+			Application::Get().GetSystem<AudioManager>()->UpdateListener(Application::Get().GetCurrentScene());
+			Application::Get().GetSystem<AudioManager>()->SetPaused(true);
+			Application::Get().SetEditorState(EditorState::Preview);
+
+			// m_SelectedEntity = entt::null;
+			m_SelectedEntities.clear();
+			ImGui::SetWindowFocus("###scene");
+			LoadCachedScene();
+			SetEditorState(EditorState::Preview);
         }
 
         if(m_SceneViewActive)

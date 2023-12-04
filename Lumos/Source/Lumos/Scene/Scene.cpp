@@ -571,6 +571,32 @@ namespace Lumos
         return m_EntityManager->GetEntityByUUID(id);
     }
 
+    namespace
+	{
+		void _DestroyEntity(entt::entity entity, entt::registry& registry)
+		{
+			LUMOS_PROFILE_FUNCTION();
+			auto hierarchyComponent = registry.try_get<Hierarchy>(entity);
+			if(hierarchyComponent)
+			{
+				entt::entity child = hierarchyComponent->First();
+				while(child != entt::null)
+				{
+					auto hierarchyComponent = registry.try_get<Hierarchy>(child);
+					auto next = hierarchyComponent ? hierarchyComponent->Next() : entt::null;
+					_DestroyEntity(child, registry);
+					child = next;
+				}
+			}
+			registry.destroy(entity);
+		}
+    }
+
+    void Scene::DestroyEntity(Entity entity)
+	{
+		_DestroyEntity(entity.GetHandle(), GetRegistry());
+    }
+
     void Scene::DuplicateEntity(Entity entity)
     {
         LUMOS_PROFILE_FUNCTION();

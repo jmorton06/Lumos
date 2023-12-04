@@ -377,7 +377,7 @@ namespace Lumos
 
             if(deleteEntity)
             {
-                DestroyEntity(node, registry);
+				nodeEntity.GetScene()->DestroyEntity(nodeEntity);
                 if(nodeOpen)
                     ImGui::TreePop();
 
@@ -477,24 +477,6 @@ namespace Lumos
             ImGui::TreePop();
             ImGuiUtilities::PopID();
         }
-    }
-
-    void HierarchyPanel::DestroyEntity(entt::entity entity, entt::registry& registry)
-    {
-        LUMOS_PROFILE_FUNCTION();
-        auto hierarchyComponent = registry.try_get<Hierarchy>(entity);
-        if(hierarchyComponent)
-        {
-            entt::entity child = hierarchyComponent->First();
-            while(child != entt::null)
-            {
-                auto hierarchyComponent = registry.try_get<Hierarchy>(child);
-                auto next               = hierarchyComponent ? hierarchyComponent->Next() : entt::null;
-                DestroyEntity(child, registry);
-                child = next;
-            }
-        }
-        registry.destroy(entity);
     }
 
     bool HierarchyPanel::IsParentOfEntity(entt::entity entity, entt::entity child, entt::registry& registry)
@@ -712,7 +694,7 @@ ImGui::GetStyle().ChildBorderSize = backup_border_size;
 
                                 if(m_Editor->GetCutCopyEntity())
                                 {
-                                    DestroyEntity(entity, registry);
+									copiedEntity.GetScene()->DestroyEntity(copiedEntity);
                                 }
                             }
                         }
