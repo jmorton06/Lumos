@@ -128,6 +128,8 @@ namespace Lumos
             Str8Lit("fbx"), Str8Lit("obj"), Str8Lit("wav"), Str8Lit("cs"), Str8Lit("png"), Str8Lit("blend"), Str8Lit("lsc"), Str8Lit("ogg"), Str8Lit("lua")
         };
 
+     	float MinGridSize = 50;
+		float MaxGridSize = 400;
         String8 m_MovePath;
         String8 m_LastNavPath;
         String8 m_Delimiter;
