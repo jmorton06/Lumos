@@ -3,6 +3,8 @@
 #include "Graphics/RHI/Renderer.h"
 #include "Graphics/RHI/Texture.h"
 #include "Graphics/RHI/GraphicsContext.h"
+#include "ImGui/ImGuiManager.h"
+#include "Graphics/RHI/IMGUIRenderer.h"
 #include "Core/OS/OS.h"
 #include "Core/Application.h"
 #include "Core/OS/Input.h"
@@ -13,6 +15,7 @@
 #endif
 
 #include <glm/gtc/type_ptr.hpp>
+#include <spdlog/fmt/bundled/format.h>
 
 namespace Lumos
 {
@@ -248,10 +251,19 @@ namespace Lumos
         {
             ImGui::Text("%.2f", value);
         }
+        else if((int)flags & (int)PropertyFlag::DragValue)
+        {
+            if(ImGui::DragFloat(GenerateID(), &value, delta, min, max))
+                updated = true;
+        }
+        else if((int)flags & (int)PropertyFlag::SliderValue)
+        {
+            if(ImGui::SliderFloat(GenerateID(), &value, min, max))
+                updated = true;
+        }
         else
         {
-            // std::string id = "##" + name;
-            if(ImGui::DragFloat(GenerateID(), &value, delta, min, max))
+            if(ImGui::InputFloat(GenerateID(), &value, delta))
                 updated = true;
         }
         ImGui::PopItemWidth();
@@ -422,7 +434,7 @@ namespace Lumos
         return updated;
     }
 
-    bool ImGuiUtilities::PorpertyTransform(const char* name, glm::vec3& vector, float width)
+    bool ImGuiUtilities::PropertyTransform(const char* name, glm::vec3& vector, float width, float defaultElementValue)
     {
         const float labelIndetation = ImGui::GetFontSize();
         bool updated                = false;
@@ -436,8 +448,13 @@ namespace Lumos
             static const std::string format = "%.4f";
 
             ImGui::AlignTextToFramePadding();
-            ImGui::TextUnformatted(axis == 0 ? "X" : axis == 1 ? "Y"
-                                                               : "Z");
+            if(ImGui::Button(axis == 0 ? "X  " : axis == 1 ? "Y  "
+                                                           : "Z  "))
+            {
+                *value  = defaultElementValue;
+                updated = true;
+            }
+
             ImGui::SameLine(label_float_spacing);
             glm::vec2 posPostLabel = ImGui::GetCursorScreenPos();
 
@@ -454,8 +471,8 @@ namespace Lumos
             static const ImU32 colourY = IM_COL32(112, 162, 22, 255);
             static const ImU32 colourZ = IM_COL32(51, 122, 210, 255);
 
-            const glm::vec2 size   = glm::vec2(ImGui::GetFontSize() / 4.0f, ImGui::GetFontSize() + ImGui::GetStyle().FramePadding.y);
-            posPostLabel           = posPostLabel + glm::vec2(-1.0f, ImGui::GetStyle().FramePadding.y / 2.0f);
+            const glm::vec2 size   = glm::vec2(ImGui::GetFontSize() / 4.0f, ImGui::GetFontSize() + ImGui::GetStyle().FramePadding.y * 2.0f);
+            posPostLabel           = posPostLabel + glm::vec2(-1.0f, 0.0f); // ImGui::GetStyle().FramePadding.y / 2.0f);
             ImRect axis_color_rect = ImRect(posPostLabel.x, posPostLabel.y, posPostLabel.x + size.x, posPostLabel.y + size.y);
             ImGui::GetWindowDrawList()->AddRectFilled(axis_color_rect.Min, axis_color_rect.Max, axis == 0 ? colourX : axis == 1 ? colourY
                                                                                                                                 : colourZ);
@@ -523,7 +540,7 @@ namespace Lumos
         {
             ImGui::BeginTooltip();
             bool flipImage = Graphics::Renderer::GetGraphicsContext()->FlipImGUITexture();
-            ImGui::Image(texture ? texture->GetHandle() : nullptr, ImVec2(size.x, size.y), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
+            ImGui::Image(texture ? Application::Get().GetImGuiManager()->GetImGuiRenderer()->AddTexture(texture) : nullptr, ImVec2(size.x, size.y), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
             ImGui::EndTooltip();
         }
 
@@ -539,7 +556,7 @@ namespace Lumos
         {
             ImGui::BeginTooltip();
             bool flipImage = Graphics::Renderer::GetGraphicsContext()->FlipImGUITexture();
-            ImGui::Image(texture ? texture->GetHandle() : nullptr, ImVec2(size.x, size.y), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
+            ImGui::Image(texture ? Application::Get().GetImGuiManager()->GetImGuiRenderer()->AddTexture(texture) : nullptr, ImVec2(size.x, size.y), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
             ImGui::TextUnformatted(text);
             ImGui::EndTooltip();
         }
@@ -563,38 +580,29 @@ namespace Lumos
 #endif
 
             bool flipImage = Graphics::Renderer::GetGraphicsContext()->FlipImGUITexture();
-            ImGui::Image(texID, ImVec2(size.x, size.y), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
+            ImGui::Image(Application::Get().GetImGuiManager()->GetImGuiRenderer()->AddTexture(texture), ImVec2(size.x, size.y), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
             ImGui::EndTooltip();
         }
 
         ImGui::PopStyleVar();
     }
 
-    void ImGuiUtilities::Image(Graphics::Texture2D* texture, const glm::vec2& size)
+    void ImGuiUtilities::Image(Graphics::Texture2D* texture, const glm::vec2& size, bool flip)
     {
         LUMOS_PROFILE_FUNCTION();
-        bool flipImage = Graphics::Renderer::GetGraphicsContext()->FlipImGUITexture();
-        ImGui::Image(texture ? texture->GetHandle() : nullptr, ImVec2(size.x, size.y), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
+        ImGui::Image(texture ? Application::Get().GetImGuiManager()->GetImGuiRenderer()->AddTexture(texture) : nullptr, ImVec2(size.x, size.y), ImVec2(0.0f, flip ? 1.0f : 0.0f), ImVec2(1.0f, flip ? 0.0f : 1.0f));
     }
 
-    void ImGuiUtilities::Image(Graphics::TextureCube* texture, const glm::vec2& size)
+    void ImGuiUtilities::Image(Graphics::TextureCube* texture, const glm::vec2& size, bool flip)
     {
         LUMOS_PROFILE_FUNCTION();
-        bool flipImage = Graphics::Renderer::GetGraphicsContext()->FlipImGUITexture();
-        ImGui::Image(texture ? texture->GetHandle() : nullptr, ImVec2(size.x, size.y), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
+        ImGui::Image(texture ? Application::Get().GetImGuiManager()->GetImGuiRenderer()->AddTexture(texture) : nullptr, ImVec2(size.x, size.y), ImVec2(0.0f, flip ? 1.0f : 0.0f), ImVec2(1.0f, flip ? 0.0f : 1.0f));
     }
 
-    void ImGuiUtilities::Image(Graphics::TextureDepthArray* texture, uint32_t index, const glm::vec2& size)
+    void ImGuiUtilities::Image(Graphics::TextureDepthArray* texture, uint32_t index, const glm::vec2& size, bool flip)
     {
         LUMOS_PROFILE_FUNCTION();
-        bool flipImage = Graphics::Renderer::GetGraphicsContext()->FlipImGUITexture();
-
-        ImTextureID texID = texture ? texture->GetHandle() : nullptr;
-#ifdef LUMOS_RENDER_API_VULKAN
-        if(texture && Graphics::GraphicsContext::GetRenderAPI() == Graphics::RenderAPI::VULKAN)
-            texID = ((Graphics::VKTextureDepthArray*)texture)->GetImageView(index);
-#endif
-        ImGui::Image(texID, ImVec2(size.x, size.y), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
+        ImGui::Image(texture ? Application::Get().GetImGuiManager()->GetImGuiRenderer()->AddTexture(texture, Graphics::TextureType::DEPTHARRAY, index, 0) : nullptr, ImVec2(size.x, size.y), ImVec2(0.0f, flip ? 1.0f : 0.0f), ImVec2(1.0f, flip ? 0.0f : 1.0f));
     }
 
     bool ImGuiUtilities::BufferingBar(const char* label, float value, const glm::vec2& size_arg, const uint32_t& bg_col, const uint32_t& fg_col)
@@ -650,7 +658,7 @@ namespace Lumos
         auto drawList           = ImGui::GetWindowDrawList();
 
         ImVec2 pos = ImGui::GetCursorPos();
-        ImVec2 size((radius)*2, (radius + style.FramePadding.y) * 2);
+        ImVec2 size((radius) * 2, (radius + style.FramePadding.y) * 2);
 
         const ImRect bb(pos, ImVec2(pos.x + size.x, pos.y + size.y));
         ImGui::ItemSize(bb, style.FramePadding.y);

@@ -1,6 +1,6 @@
 #include "Precompiled.h"
 #include "Core/OS/FileSystem.h"
-#include "Core/StringUtilities.h"
+#include "Utilities/StringUtilities.h"
 #include "iOSOS.h"
 
 #include <stdio.h>

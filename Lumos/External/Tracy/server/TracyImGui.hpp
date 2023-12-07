@@ -11,8 +11,8 @@
 #include "imgui.h"
 #include "imgui_internal.h"
 
-#include "../common/TracyForceInline.hpp"
-#include "IconsFontAwesome5.h"
+#include "../public/common/TracyForceInline.hpp"
+#include "IconsFontAwesome6.h"
 
 #if !IMGUI_DEFINE_MATH_OPERATORS
 static inline ImVec2 operator+( const ImVec2& l, const ImVec2& r ) { return ImVec2( l.x + r.x, l.y + r.y ); }
@@ -22,41 +22,55 @@ static inline ImVec2 operator-( const ImVec2& l, const ImVec2& r ) { return ImVe
 namespace tracy
 {
 
-void DrawZigZag( ImDrawList* draw, const ImVec2& wpos, double start, double end, double h, uint32_t color, float thickness = 1.f );
+extern bool s_wasActive;
+bool WasActive();
+
+
+void DrawZigZag( ImDrawList* draw, const ImVec2& wpos, double start, double end, double h, uint32_t color );
 void DrawStripedRect( ImDrawList* draw, const ImVec2& wpos, double x0, double y0, double x1, double y1, double sw, uint32_t color, bool fix_stripes_in_screen_space, bool inverted );
 void DrawHistogramMinMaxLabel( ImDrawList* draw, int64_t tmin, int64_t tmax, ImVec2 wpos, float w, float ty );
 
 
-static constexpr const ImVec4 SyntaxColors[] = {
-    { 0.7f,  0.7f,  0.7f,  1 },    // default
-    { 0.45f, 0.68f, 0.32f, 1 },    // comment
-    { 0.72f, 0.37f, 0.12f, 1 },    // preprocessor
-    { 0.64f, 0.64f, 1,     1 },    // string
-    { 0.64f, 0.82f, 1,     1 },    // char literal
-    { 1,     0.91f, 0.53f, 1 },    // keyword
-    { 0.81f, 0.6f,  0.91f, 1 },    // number
-    { 0.9f,  0.9f,  0.9f,  1 },    // punctuation
-    { 0.78f, 0.46f, 0.75f, 1 },    // type
-    { 0.21f, 0.69f, 0.89f, 1 },    // special
+static constexpr const uint32_t SyntaxColors[] = {
+    0xFFB2B2B2,     // default
+    0xFF51AD72,     // comment
+    0xFF1E5EB7,     // preprocessor
+    0xFFFFA3A3,     // string
+    0xFFFFD1A3,     // char literal
+    0xFF87E8FF,     // keyword
+    0xFFE899CE,     // number
+    0xFFE5E5E5,     // punctuation
+    0xFFBF75C6,     // type
+    0xFFE2AF35,     // special
 };
 
-static constexpr const ImVec4 SyntaxColorsDimmed[] = {
-    { 0.7f,  0.7f,  0.7f,  0.6f },    // default
-    { 0.45f, 0.68f, 0.32f, 0.6f },    // comment
-    { 0.72f, 0.37f, 0.12f, 0.6f },    // preprocessor
-    { 0.64f, 0.64f, 1,     0.6f },    // string
-    { 0.64f, 0.82f, 1,     0.6f },    // char literal
-    { 1,     0.91f, 0.53f, 0.6f },    // keyword
-    { 0.81f, 0.6f,  0.91f, 0.6f },    // number
-    { 0.9f,  0.9f,  0.9f,  0.6f },    // punctuation
-    { 0.78f, 0.46f, 0.75f, 0.6f },    // type
-    { 0.21f, 0.69f, 0.89f, 0.6f },    // special
+static constexpr const uint32_t AsmOpTypeColors[] = {
+    0xFFE2AF35,     // None
+    0xFF358FE2,     // Jump
+    0xFF358FE2,     // Branch
+    0xFF35E2AF,     // Call
+    0xFF35E2AF,     // Ret
+    0xFF22FFFF,     // Privileged
+};
+
+static constexpr const uint32_t AsmSyntaxColors[] = {
+    0xFFFFD1A3,     // label
+    0xFFE5E5E5,     // default ('[', '+', '*', ',')
+    0xFF51AD72,     // dword/xmmword 'ptr'
+    0xFFBF75C6,     // register
+    0xFFE899CE,     // literal
 };
 
 
 [[maybe_unused]] static inline float GetScale()
 {
     return ImGui::GetTextLineHeight() / 15.f;
+}
+
+[[maybe_unused]] static inline void ImageCentered( ImTextureID user_texture_id, const ImVec2& size )
+{
+    ImGui::SetCursorPosX( ( ImGui::GetWindowWidth() - size.x ) * 0.5f );
+    ImGui::Image( user_texture_id, size );
 }
 
 [[maybe_unused]] static inline void TextCentered( const char* text )
@@ -96,6 +110,7 @@ static constexpr const ImVec4 SyntaxColorsDimmed[] = {
 
 [[maybe_unused]] static inline void DrawWaitingDots( double time )
 {
+    s_wasActive = true;
     ImGui::TextUnformatted( "" );
     auto draw = ImGui::GetWindowDrawList();
     const auto wpos = ImGui::GetWindowPos();

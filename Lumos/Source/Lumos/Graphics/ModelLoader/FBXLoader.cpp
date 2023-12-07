@@ -9,10 +9,10 @@
 
 #include "Maths/Transform.h"
 #include "Core/Application.h"
-#include "Core/StringUtilities.h"
+#include "Utilities/StringUtilities.h"
 #include "Utilities/AssetManager.h"
 
-#include <OpenFBX/ofbx.h>
+#include <ModelLoaders/OpenFBX/ofbx.h>
 
 // #define THREAD_MESH_LOADING //Can't use with opengl
 #ifdef THREAD_MESH_LOADING
@@ -424,40 +424,40 @@ namespace Lumos::Graphics
                 int i = args.jobIndex;
 #endif
 
-                const ofbx::Mesh* fbxMesh = (const ofbx::Mesh*)scene->getMesh(i);
+            const ofbx::Mesh* fbxMesh = (const ofbx::Mesh*)scene->getMesh(i);
 
-                meshes.push_back(fbxMesh);
+            meshes.push_back(fbxMesh);
 
-                const auto geometry = fbxMesh->getGeometry();
-                const auto trianglesCount = geometry->getVertexCount() / 3;
-            
-                if(IsMeshInvalid(fbxMesh))
-                    continue;
-            
-                if (fbxMesh->getMaterialCount() < 2 || !geometry->getMaterials())
+            const auto geometry       = fbxMesh->getGeometry();
+            const auto trianglesCount = geometry->getVertexCount() / 3;
+
+            if(IsMeshInvalid(fbxMesh))
+                continue;
+
+            if(fbxMesh->getMaterialCount() < 2 || !geometry->getMaterials())
+            {
+                m_Meshes.push_back(LoadMesh(fbxMesh, 0, trianglesCount - 1));
+            }
+            else
+            {
+                // Create mesh for each material
+
+                const auto materials       = geometry->getMaterials();
+                int32_t rangeStart         = 0;
+                int32_t rangeStartMaterial = materials[rangeStart];
+                for(int32_t triangleIndex = 1; triangleIndex < trianglesCount; triangleIndex++)
                 {
-                    m_Meshes.push_back(LoadMesh(fbxMesh, 0, trianglesCount - 1));
-                }
-                else
-                {
-                    // Create mesh for each material
-                    
-                    const auto materials = geometry->getMaterials();
-                    int32_t rangeStart = 0;
-                    int32_t rangeStartMaterial = materials[rangeStart];
-                    for (int32_t triangleIndex = 1; triangleIndex < trianglesCount; triangleIndex++)
+                    if(rangeStartMaterial != materials[triangleIndex])
                     {
-                        if (rangeStartMaterial != materials[triangleIndex])
-                        {
-                            m_Meshes.push_back(LoadMesh(fbxMesh, rangeStart, triangleIndex - 1));
+                        m_Meshes.push_back(LoadMesh(fbxMesh, rangeStart, triangleIndex - 1));
 
-                            // Start a new range
-                            rangeStart = triangleIndex;
-                            rangeStartMaterial = materials[triangleIndex];
-                        }
+                        // Start a new range
+                        rangeStart         = triangleIndex;
+                        rangeStartMaterial = materials[triangleIndex];
                     }
-                    m_Meshes.push_back(LoadMesh(fbxMesh, rangeStart, trianglesCount - 1));
-                } }
+                }
+                m_Meshes.push_back(LoadMesh(fbxMesh, rangeStart, trianglesCount - 1));
+            } }
 #ifdef THREAD_MESH_LOADING
         );
         System::JobSystem::Wait(ctx);

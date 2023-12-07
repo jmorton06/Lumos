@@ -10,7 +10,7 @@ namespace Lumos
 {
     SceneSettingsPanel::SceneSettingsPanel()
     {
-        m_Name       = "SceneSettings###scenesettings";
+        m_Name       = "Scene Settings###scenesettings";
         m_SimpleName = "Scene Settings";
     }
 
@@ -26,36 +26,38 @@ namespace Lumos
             Lumos::ImGuiUtilities::ScopedStyle(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
             Lumos::ImGuiUtilities::PushID();
             {
-                auto sceneName      = m_CurrentScene->GetSceneName();
-                int sceneVersion    = m_CurrentScene->GetSceneVersion();
-                auto& sceneSettings = m_CurrentScene->GetSettings();
+                const auto& sceneName = m_CurrentScene->GetSceneName();
+                int sceneVersion      = m_CurrentScene->GetSceneVersion();
+                auto& sceneSettings   = m_CurrentScene->GetSettings();
 
-                if(m_NameUpdated)
-                    sceneName = m_SceneName;
+                String8 nameBuffer = { 0 };
+                nameBuffer.str     = PushArray(m_Editor->GetFrameArena(), uint8_t, INPUT_BUF_SIZE);
+                nameBuffer.size    = INPUT_BUF_SIZE;
+
+                MemoryCopy(nameBuffer.str, sceneName.c_str(), sceneName.size());
 
                 ImVec2 contentRegionAvailable = ImGui::GetContentRegionAvail();
                 ImGui::PushItemWidth(contentRegionAvailable.x * 0.5f);
 
                 {
                     ImGuiUtilities::ScopedFont boldFont(ImGui::GetIO().Fonts->Fonts[1]);
-                    if(ImGuiUtilities::InputText(sceneName))
+                    if(ImGui::InputText("##Name", (char*)nameBuffer.str, INPUT_BUF_SIZE, 0))
                     {
+                        if(!m_NameUpdated)
+                            m_SceneName = m_CurrentScene->GetSceneName();
                         m_NameUpdated = true;
+
+                        m_CurrentScene->SetName((char*)nameBuffer.str);
                     }
 
                     if(!ImGui::IsItemActive() && m_NameUpdated)
                     {
                         m_NameUpdated = false;
                         std::string scenePath;
-                        if(VFS::Get().ResolvePhysicalPath("//Scenes/" + m_CurrentScene->GetSceneName() + ".lsn", scenePath))
+                        if(FileSystem::Get().ResolvePhysicalPath("//Assets/Scenes/" + m_SceneName + ".lsn", scenePath))
                         {
-                            m_CurrentScene->SetName(sceneName);
-                            // m_CurrentScene->Serialise(m_Editor->GetProjectSettings().m_ProjectRoot + "Assets/Scenes/");
-
                             std::filesystem::rename(scenePath, m_Editor->GetProjectSettings().m_ProjectRoot + "Assets/Scenes/" + m_CurrentScene->GetSceneName() + ".lsn");
                         }
-                        else
-                            m_CurrentScene->SetName(sceneName);
 
                         // Save project with updated scene name
                         m_Editor->Serialise();
@@ -68,36 +70,84 @@ namespace Lumos
                 ImGui::Columns(1);
                 if(ImGui::CollapsingHeader("Renderer", ImGuiTreeNodeFlags_DefaultOpen))
                 {
-                    ImGui::Columns(2);
-                    ImGuiUtilities::Property("Renderer 2D Enabled", sceneSettings.RenderSettings.Renderer2DEnabled);
-                    ImGuiUtilities::Property("Renderer 3D Enabled", sceneSettings.RenderSettings.Renderer3DEnabled);
-                    ImGuiUtilities::Property("Shadow Enabled", sceneSettings.RenderSettings.ShadowsEnabled);
-                    ImGuiUtilities::Property("Skybox Render Enabled", sceneSettings.RenderSettings.SkyboxRenderEnabled);
-                    ImGuiUtilities::Property("Skybox Mip Level", sceneSettings.RenderSettings.SkyboxMipLevel, 0.0f, 14.0f, 0.01f);
+                    ImGui::Indent();
 
-                    ImGuiUtilities::Property("Debug Renderer Enabled", sceneSettings.RenderSettings.DebugRenderEnabled);
-                    ImGuiUtilities::Property("FXAA Enabled", sceneSettings.RenderSettings.FXAAEnabled);
-                    ImGuiUtilities::Property("Debanding Enabled", sceneSettings.RenderSettings.DebandingEnabled);
-                    ImGuiUtilities::Property("ChromaticAberation Enabled", sceneSettings.RenderSettings.ChromaticAberationEnabled);
-                    ImGuiUtilities::Property("Filmic Grain Enabled", sceneSettings.RenderSettings.FilmicGrainEnabled);
-                    ImGuiUtilities::Property("Sharpen Enabled", sceneSettings.RenderSettings.SharpenEnabled);
+                    if(ImGui::TreeNodeEx("Renderers", ImGuiTreeNodeFlags_Framed))
+                    {
+                        ImGui::Columns(2);
+                        ImGuiUtilities::Property("Renderer 2D Enabled", sceneSettings.RenderSettings.Renderer2DEnabled);
+                        ImGuiUtilities::Property("Renderer 3D Enabled", sceneSettings.RenderSettings.Renderer3DEnabled);
+                        ImGuiUtilities::Property("Shadow Enabled", sceneSettings.RenderSettings.ShadowsEnabled);
+                        ImGuiUtilities::Property("Skybox Render Enabled", sceneSettings.RenderSettings.SkyboxRenderEnabled);
+                        ImGuiUtilities::Property("Skybox Mip Level", sceneSettings.RenderSettings.SkyboxMipLevel, 0.0f, 14.0f, 0.01f);
+                        ImGuiUtilities::Property("Debug Renderer Enabled", sceneSettings.RenderSettings.DebugRenderEnabled);
+                        ImGui::Columns(1);
+                        ImGui::TreePop();
+                    }
+                    if(ImGui::TreeNodeEx("Post Process", ImGuiTreeNodeFlags_Framed))
+                    {
 
-                    ImGuiUtilities::Property("Bloom Enabled", sceneSettings.RenderSettings.BloomEnabled);
-                    ImGuiUtilities::Property("Bloom Intensity", sceneSettings.RenderSettings.m_BloomIntensity);
-                    ImGuiUtilities::Property("Bloom Upsample Scale", sceneSettings.RenderSettings.BloomUpsampleScale);
-                    ImGuiUtilities::Property("Bloom Knee", sceneSettings.RenderSettings.BloomKnee);
-                    ImGuiUtilities::Property("Bloom Threshold", sceneSettings.RenderSettings.BloomThreshold);
-                    ImGuiUtilities::Property("Depth Of Field Enabled", sceneSettings.RenderSettings.DepthOfFieldEnabled);
-                    ImGuiUtilities::Property("Depth Of Field Strength", sceneSettings.RenderSettings.DepthOfFieldStrength);
-                    ImGuiUtilities::Property("Depth Of Field Distance", sceneSettings.RenderSettings.DepthOfFieldDistance);
+                        auto postprocessSetting = [&](const char* name, const char* checkboxname, bool& value, bool leaf) -> bool
+                        {
+                            ImGui::Columns(1);
+                            ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_FramePadding | ImGuiTreeNodeFlags_AllowOverlap | ImGuiTreeNodeFlags_SpanAvailWidth;
+                            if(leaf)
+                            {
+                                flags |= ImGuiTreeNodeFlags_Leaf;
+                            }
 
-                    // ImGui::BeginDisabled();
-                    ImGuiUtilities::Property("SSAO Enabled", sceneSettings.RenderSettings.SSAOEnabled);
-                    ImGuiUtilities::Property("SSAO Sample Radius", sceneSettings.RenderSettings.SSAOSampleRadius, 0.0f, 16.0f, 0.01f);
-                    ImGuiUtilities::Property("SSAO Blur Radius", sceneSettings.RenderSettings.SSAOBlurRadius, 0, 16);
-                    ImGuiUtilities::Property("SSAO Blur Enabled", sceneSettings.RenderSettings.SSAOBlur);
-                    ImGuiUtilities::Property("SSAO Strength", sceneSettings.RenderSettings.SSAOStrength, 0.0f, 16.0f, 0.01f);
-                    // ImGui::EndDisabled();
+                            bool open = ImGui::TreeNodeEx(name, flags);
+                            ImGui::SameLine(ImGui::GetWindowContentRegionMax().x - ImGui::CalcTextSize("AA").x * 2.0f);
+                            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.7f, 0.7f, 0.7f, 0.0f));
+                            ImGui::Checkbox(checkboxname, &value);
+                            ImGui::PopStyleColor();
+
+                            if(leaf)
+                                ImGui::TreePop();
+                            ImGui::Columns(2);
+                            return open;
+                        };
+
+                        ImGui::Columns(2);
+                        postprocessSetting("FXAA", "##FXAA", sceneSettings.RenderSettings.FXAAEnabled, true);
+                        postprocessSetting("Debanding", "##Debanding", sceneSettings.RenderSettings.DebandingEnabled, true);
+                        postprocessSetting("Chromatic Aberation", "##ChromaticAberation", sceneSettings.RenderSettings.ChromaticAberationEnabled, true);
+                        postprocessSetting("Filmic Grain", "##FilmicGrain", sceneSettings.RenderSettings.FilmicGrainEnabled, true);
+                        postprocessSetting("Sharpen", "##Sharpen", sceneSettings.RenderSettings.SharpenEnabled, true);
+
+                        bool open = postprocessSetting("Bloom", "##Bloom", sceneSettings.RenderSettings.BloomEnabled, false);
+                        if(open)
+                        {
+                            ImGuiUtilities::Property("Bloom Intensity", sceneSettings.RenderSettings.m_BloomIntensity, -1.0f, -1.0f, 0.1f);
+                            ImGuiUtilities::Property("Bloom Upsample Scale", sceneSettings.RenderSettings.BloomUpsampleScale, -1.0f, -1.0f, 0.1f);
+                            ImGuiUtilities::Property("Bloom Knee", sceneSettings.RenderSettings.BloomKnee, -1.0f, -1.0f, 0.1f);
+                            ImGuiUtilities::Property("Bloom Threshold", sceneSettings.RenderSettings.BloomThreshold, -1.0f, -1.0f, 0.1f);
+                            ImGui::TreePop();
+                        }
+
+                        open = postprocessSetting("Depth Of Field", "##DepthOfField", sceneSettings.RenderSettings.DepthOfFieldEnabled, false);
+                        if(open)
+                        {
+                            ImGuiUtilities::Property("DOF Strength", sceneSettings.RenderSettings.DepthOfFieldStrength);
+                            ImGuiUtilities::Property("DOF Distance", sceneSettings.RenderSettings.DepthOfFieldDistance);
+                            ImGui::TreePop();
+                        }
+
+                        ImGui::BeginDisabled();
+                        open = postprocessSetting("SSAO", "##SSAO", sceneSettings.RenderSettings.SSAOEnabled, false);
+                        if(open)
+                        {
+                            ImGuiUtilities::Property("SSAO Sample Radius", sceneSettings.RenderSettings.SSAOSampleRadius, 0.0f, 16.0f, 0.01f);
+                            ImGuiUtilities::Property("SSAO Blur Radius", sceneSettings.RenderSettings.SSAOBlurRadius, 0, 16);
+                            ImGuiUtilities::Property("SSAO Blur Enabled", sceneSettings.RenderSettings.SSAOBlur);
+                            ImGuiUtilities::Property("SSAO Strength", sceneSettings.RenderSettings.SSAOStrength, 0.0f, 16.0f, 0.01f);
+                            ImGui::TreePop();
+                        }
+
+                        ImGui::EndDisabled();
+                        ImGui::Columns(1);
+                        ImGui::TreePop();
+                    }
 
                     static const char* toneMaps[7] = {
                         "None",
@@ -109,10 +159,12 @@ namespace Lumos
                         "Aces"
                     };
 
+                    ImGui::Columns(2);
                     ImGuiUtilities::PropertyDropdown("ToneMap", toneMaps, 7, (int*)&m_CurrentScene->GetSettings().RenderSettings.m_ToneMapIndex);
                     ImGuiUtilities::Property("Brightness", sceneSettings.RenderSettings.Brightness, -1.0f, 1.0f, 0.01f);
                     ImGuiUtilities::Property("Contrast", sceneSettings.RenderSettings.Contrast, 0.0f, 2.0f, 0.01f);
                     ImGuiUtilities::Property("Saturation", sceneSettings.RenderSettings.Saturation, 0.0f, 1.0f, 0.01f);
+                    ImGui::Separator();
 
                     auto& registry  = m_CurrentScene->GetRegistry();
                     int entityCount = (int)registry.storage<entt::entity>().size();
@@ -128,6 +180,8 @@ namespace Lumos
                         "Post Process"
                     };
                     ImGuiUtilities::PropertyDropdown("Debug View Mode", debugModes, 7, (int*)&sceneSettings.RenderSettings.DebugMode);
+                    ImGui::Columns(1);
+                    ImGui::Unindent();
                 }
 
                 ImGui::Columns(1);

@@ -3,7 +3,7 @@
 #include "Scene/Scene.h"
 #include "Scene/SceneGraph.h"
 #include "Core/Profiler.h"
-#include "Core/StringUtilities.h"
+#include "Utilities/StringUtilities.h"
 #include "Core/UUID.h"
 
 DISABLE_WARNING_PUSH
@@ -52,7 +52,7 @@ namespace Lumos
         template <typename T, typename... Args>
         T& AddComponent(Args&&... args)
         {
-            LUMOS_PROFILE_FUNCTION();
+            LUMOS_PROFILE_FUNCTION_LOW();
 #ifdef LUMOS_DEBUG
             if(HasComponent<T>())
                 LUMOS_LOG_WARN("Attempting to add Component twice");
@@ -63,56 +63,56 @@ namespace Lumos
         template <typename T, typename... Args>
         T& GetOrAddComponent(Args&&... args)
         {
-            LUMOS_PROFILE_FUNCTION();
+            LUMOS_PROFILE_FUNCTION_LOW();
             return m_Scene->GetRegistry().get_or_emplace<T>(m_EntityHandle, std::forward<Args>(args)...);
         }
 
         template <typename T, typename... Args>
         void AddOrReplaceComponent(Args&&... args)
         {
-            LUMOS_PROFILE_FUNCTION();
+            LUMOS_PROFILE_FUNCTION_LOW();
             m_Scene->GetRegistry().emplace_or_replace<T>(m_EntityHandle, std::forward<Args>(args)...);
         }
 
         template <typename T>
         T& GetComponent()
         {
-            LUMOS_PROFILE_FUNCTION();
+            LUMOS_PROFILE_FUNCTION_LOW();
             return m_Scene->GetRegistry().get<T>(m_EntityHandle);
         }
 
         template <typename T>
         T* TryGetComponent()
         {
-            LUMOS_PROFILE_FUNCTION();
+            LUMOS_PROFILE_FUNCTION_LOW();
             return m_Scene->GetRegistry().try_get<T>(m_EntityHandle);
         }
 
         template <typename T>
         bool HasComponent()
         {
-            LUMOS_PROFILE_FUNCTION();
+            LUMOS_PROFILE_FUNCTION_LOW();
             return m_Scene->GetRegistry().all_of<T>(m_EntityHandle);
         }
 
         template <typename T>
         void RemoveComponent()
         {
-            LUMOS_PROFILE_FUNCTION();
+            LUMOS_PROFILE_FUNCTION_LOW();
             m_Scene->GetRegistry().remove<T>(m_EntityHandle);
         }
 
         template <typename T>
         void TryRemoveComponent()
         {
-            LUMOS_PROFILE_FUNCTION();
+            LUMOS_PROFILE_FUNCTION_LOW();
             if(HasComponent<T>())
                 RemoveComponent<T>();
         }
 
         bool Active()
         {
-            LUMOS_PROFILE_FUNCTION();
+            LUMOS_PROFILE_FUNCTION_LOW();
             bool active = true;
             if(HasComponent<ActiveComponent>())
                 active = m_Scene->GetRegistry().get<ActiveComponent>(m_EntityHandle).active;
@@ -125,31 +125,31 @@ namespace Lumos
 
         void SetActive(bool isActive)
         {
-            LUMOS_PROFILE_FUNCTION();
+            LUMOS_PROFILE_FUNCTION_LOW();
             GetOrAddComponent<ActiveComponent>().active = isActive;
         }
 
         Maths::Transform& GetTransform()
         {
-            LUMOS_PROFILE_FUNCTION();
+            LUMOS_PROFILE_FUNCTION_LOW();
             return m_Scene->GetRegistry().get<Maths::Transform>(m_EntityHandle);
         }
 
         const Maths::Transform& GetTransform() const
         {
-            LUMOS_PROFILE_FUNCTION();
+            LUMOS_PROFILE_FUNCTION_LOW();
             return m_Scene->GetRegistry().get<Maths::Transform>(m_EntityHandle);
         }
 
         uint64_t GetID()
         {
-            LUMOS_PROFILE_FUNCTION();
+            LUMOS_PROFILE_FUNCTION_LOW();
             return m_Scene->GetRegistry().get<IDComponent>(m_EntityHandle).ID;
         }
 
         const std::string& GetName()
         {
-            LUMOS_PROFILE_FUNCTION();
+            LUMOS_PROFILE_FUNCTION_LOW();
             auto nameComponent = TryGetComponent<NameComponent>();
 
             if(nameComponent)
@@ -163,7 +163,7 @@ namespace Lumos
 
         void SetParent(Entity entity)
         {
-            LUMOS_PROFILE_FUNCTION();
+            LUMOS_PROFILE_FUNCTION_LOW();
             bool acceptable         = false;
             auto hierarchyComponent = TryGetComponent<Hierarchy>();
             if(hierarchyComponent != nullptr)
@@ -189,7 +189,7 @@ namespace Lumos
 
         Entity GetParent()
         {
-            LUMOS_PROFILE_FUNCTION();
+            LUMOS_PROFILE_FUNCTION_LOW();
             auto hierarchyComp = TryGetComponent<Hierarchy>();
             if(hierarchyComp)
                 return Entity(hierarchyComp->Parent(), m_Scene);
@@ -199,7 +199,7 @@ namespace Lumos
 
         std::vector<Entity> GetChildren()
         {
-            LUMOS_PROFILE_FUNCTION();
+            LUMOS_PROFILE_FUNCTION_LOW();
             std::vector<Entity> children;
             auto hierarchyComponent = TryGetComponent<Hierarchy>();
             if(hierarchyComponent)
@@ -219,7 +219,7 @@ namespace Lumos
 
         void ClearChildren()
         {
-            LUMOS_PROFILE_FUNCTION();
+            LUMOS_PROFILE_FUNCTION_LOW();
             auto hierarchyComponent = TryGetComponent<Hierarchy>();
             if(hierarchyComponent)
             {
@@ -229,7 +229,7 @@ namespace Lumos
 
         bool IsParent(Entity potentialParent)
         {
-            LUMOS_PROFILE_FUNCTION();
+            LUMOS_PROFILE_FUNCTION_LOW();
             auto nodeHierarchyComponent = m_Scene->GetRegistry().try_get<Hierarchy>(m_EntityHandle);
             if(nodeHierarchyComponent)
             {
@@ -283,13 +283,13 @@ namespace Lumos
 
         void Destroy()
         {
-            LUMOS_PROFILE_FUNCTION();
+            LUMOS_PROFILE_FUNCTION_LOW();
             m_Scene->GetRegistry().destroy(m_EntityHandle);
         }
 
         bool Valid()
         {
-            LUMOS_PROFILE_FUNCTION();
+            LUMOS_PROFILE_FUNCTION_LOW();
             return m_Scene->GetRegistry().valid(m_EntityHandle) && m_Scene;
         }
 

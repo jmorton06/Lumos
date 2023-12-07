@@ -1,4 +1,8 @@
 #pragma once
+#include "Core/DataStructures/Vector.h"
+#include "Utilities/TSingleton.h"
+#include <map>
+#include "Core/String.h"
 
 namespace Lumos
 {
@@ -10,9 +14,28 @@ namespace Lumos
         WRITE_READ
     };
 
-    class FileSystem
+    class FileSystem : public ThreadSafeSingleton<FileSystem>
     {
+        friend class ThreadSafeSingleton<FileSystem>;
+
     public:
+        bool ResolvePhysicalPath(const std::string& path, std::string& outPhysicalPath, bool folder = false);
+        bool AbsolutePathToFileSystem(const std::string& path, std::string& outFileSystemPath, bool folder = false);
+        std::string AbsolutePathToFileSystem(const std::string& path, bool folder = false);
+
+        uint8_t* ReadFileVFS(const std::string& path);
+        std::string ReadTextFileVFS(const std::string& path);
+
+        bool WriteFileVFS(const std::string& path, uint8_t* buffer, uint32_t size);
+        bool WriteTextFileVFS(const std::string& path, const std::string& text);
+
+        void SetAssetRoot(String8 root) { m_AssetRootPath = root; };
+
+    private:
+        String8 m_AssetRootPath;
+
+    public:
+        // Static Helpers. Implemented in OS specific Files
         static bool FileExists(const std::string& path);
         static bool FolderExists(const std::string& path);
         static int64_t GetFileSize(const std::string& path);
@@ -26,55 +49,9 @@ namespace Lumos
 
         static std::string GetWorkingDirectory();
 
-        static bool IsRelativePath(const char* path)
-        {
-            if(!path || path[0] == '/' || path[0] == '\\')
-            {
-                return false;
-            }
-
-            if(strlen(path) >= 2 && isalpha(path[0]) && path[1] == ':')
-            {
-                return false;
-            }
-
-            return true;
-        }
-
-        static bool IsAbsolutePath(const char* path)
-        {
-            if(!path)
-            {
-                return false;
-            }
-
-            return !IsRelativePath(path);
-        }
-
-        static const char* GetFileOpenModeString(FileOpenFlags flag)
-        {
-            if(flag == FileOpenFlags::READ)
-            {
-                return "rb";
-            }
-            else if(flag == FileOpenFlags::WRITE)
-            {
-                return "wb";
-            }
-            else if(flag == FileOpenFlags::READ_WRITE)
-            {
-                return "rb+";
-            }
-            else if(flag == FileOpenFlags::WRITE_READ)
-            {
-                return "wb+";
-            }
-            else
-            {
-                LUMOS_LOG_WARN("Invalid open flag");
-                return "rb";
-            }
-        }
+        static bool IsRelativePath(const char* path);
+        static bool IsAbsolutePath(const char* path);
+        static const char* GetFileOpenModeString(FileOpenFlags flag);
     };
 
 }

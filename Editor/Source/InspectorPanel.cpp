@@ -4,6 +4,7 @@
 #include "TextEditPanel.h"
 #include <Lumos/Audio/AudioManager.h>
 #include <Lumos/Core/Application.h>
+#include <Lumos/Core/String.h>
 #include <Lumos/Core/OS/FileSystem.h>
 #include <Lumos/Scene/EntityManager.h>
 #include <Lumos/Scene/SceneManager.h>
@@ -32,6 +33,8 @@
 #include <Lumos/Physics/LumosPhysicsEngine/CollisionShapes/HullCollisionShape.h>
 
 #include <Lumos/ImGui/IconsMaterialDesignIcons.h>
+#include <Lumos/ImGui/ImGuiManager.h>
+#include <Lumos/Graphics/RHI/IMGUIRenderer.h>
 
 #include <imgui/imgui.h>
 #include <imgui/imgui_internal.h>
@@ -43,6 +46,7 @@
 
 #include <sol/sol.hpp>
 #include <inttypes.h>
+#include <spdlog/fmt/bundled/format.h>
 
 namespace MM
 {
@@ -78,9 +82,9 @@ namespace MM
 
         if(ImGui::Button("New File", ImVec2(ImGui::GetContentRegionAvail().x, 0.0f)))
         {
-            std::string newFilePath = "//Scripts";
+            std::string newFilePath = "//Assets/Scripts";
             std::string physicalPath;
-            if(!Lumos::VFS::Get().ResolvePhysicalPath(newFilePath, physicalPath, true))
+            if(!Lumos::FileSystem::Get().ResolvePhysicalPath(newFilePath, physicalPath, true))
             {
                 LUMOS_LOG_ERROR("Failed to Create Lua script {0}", physicalPath);
             }
@@ -88,7 +92,7 @@ namespace MM
             {
                 std::string defaultScript =
                     R"(--Default Lua Script
-                
+            
 function OnInit()
 end
 
@@ -119,12 +123,12 @@ end
             {
                 Lumos::Editor::GetEditor()->OpenTextFile(script.GetFilePath(), [&]
                                                          {
-                        script.Reload();
-                        hasReloaded = true;
-
-                        auto textEditPanel = Lumos::Editor::GetEditor()->GetTextEditPanel();
-                        if(textEditPanel)
-                            ((Lumos::TextEditPanel*)textEditPanel)->SetErrors(script.GetErrors()); });
+                                                             script.Reload();
+                                                             hasReloaded = true;
+                                                             
+                                                             auto textEditPanel = Lumos::Editor::GetEditor()->GetTextEditPanel();
+                                                             if(textEditPanel)
+                                                             ((Lumos::TextEditPanel*)textEditPanel)->SetErrors(script.GetErrors()); });
 
                 auto textEditPanel = Lumos::Editor::GetEditor()->GetTextEditPanel();
                 if(textEditPanel)
@@ -184,22 +188,30 @@ end
         // Call this to fix alignment with columns
         ImGui::AlignTextToFramePadding();
 
-        if(Lumos::ImGuiUtilities::PorpertyTransform("Position", position, itemWidth))
+        ImGui::PushID((void*)&position);
+        if(Lumos::ImGuiUtilities::PropertyTransform("Position", position, itemWidth, 0.0f))
             transform.SetLocalPosition(position);
+        ImGui::PopID();
 
         ImGui::SameLine();
-        if(Lumos::ImGuiUtilities::PorpertyTransform("Rotation", rotation, itemWidth))
+
+        ImGui::PushID((void*)&rotation);
+        if(Lumos::ImGuiUtilities::PropertyTransform("Rotation", rotation, itemWidth, 0.0f))
         {
             float pitch = Lumos::Maths::Min(rotation.x, 89.9f);
             pitch       = Lumos::Maths::Max(pitch, -89.9f);
             transform.SetLocalOrientation(glm::quat(glm::radians(glm::vec3(pitch, rotation.y, rotation.z))));
         }
+        ImGui::PopID();
 
         ImGui::SameLine();
-        if(Lumos::ImGuiUtilities::PorpertyTransform("Scale", scale, itemWidth))
+
+        ImGui::PushID((void*)&scale);
+        if(Lumos::ImGuiUtilities::PropertyTransform("Scale", scale, itemWidth, 1.0f))
         {
             transform.SetLocalScale(scale);
         }
+        ImGui::PopID();
 
         ImGui::Columns(1);
         ImGui::Separator();
@@ -740,7 +752,7 @@ end
                     if(ImGui::AcceptDragDropPayload("AssetFile"))
                     {
                         std::string physicalPath;
-                        Lumos::VFS::Get().ResolvePhysicalPath(filePath, physicalPath);
+                        Lumos::FileSystem::Get().ResolvePhysicalPath(filePath, physicalPath);
                         auto newSound = Lumos::Sound::Create(physicalPath, Lumos::StringUtilities::GetFilePathExtension(filePath));
 
                         soundNode->SetSound(newSound);
@@ -909,7 +921,7 @@ end
             bool showTexture    = !(hoveringButton && (payload != NULL && payload->IsDataType("AssetFile")));
             if(tex && showTexture)
             {
-                if(ImGui::ImageButton((const char*)(tex.get()), tex->GetHandle(), imageButtonSize, ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f)))
+                if(ImGui::ImageButton((const char*)(tex.get()), reinterpret_cast<ImTextureID>(Application::Get().GetImGuiManager()->GetImGuiRenderer()->AddTexture(tex)), imageButtonSize, ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f)))
                 {
                     Lumos::Editor::GetEditor()->GetFileBrowserPanel().Open();
                     Lumos::Editor::GetEditor()->GetFileBrowserPanel().SetCallback(callback);
@@ -919,7 +931,7 @@ end
                 {
                     ImGui::BeginTooltip();
                     ImGui::TextUnformatted(tex ? tex->GetFilepath().c_str() : "No Texture");
-                    ImGui::Image(tex->GetHandle(), ImVec2(256, 256), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
+                    ImGui::Image(reinterpret_cast<ImTextureID>(Application::Get().GetImGuiManager()->GetImGuiRenderer()->AddTexture(tex)), ImVec2(256, 256), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
                     ImGui::EndTooltip();
                 }
             }
@@ -1049,7 +1061,7 @@ end
             bool showTexture    = !(hoveringButton && (payload != NULL && payload->IsDataType("Font")));
             if(tex && showTexture)
             {
-                if(ImGui::ImageButton((const char*)(tex.get()), tex->GetHandle(), imageButtonSize, ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f)))
+                if(ImGui::ImageButton((const char*)(tex.get()), reinterpret_cast<ImTextureID>(Application::Get().GetImGuiManager()->GetImGuiRenderer()->AddTexture(tex)), imageButtonSize, ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f)))
                 {
                     Lumos::Editor::GetEditor()->GetFileBrowserPanel().Open();
                     Lumos::Editor::GetEditor()->GetFileBrowserPanel().SetCallback(callback);
@@ -1058,7 +1070,7 @@ end
                 if(ImGui::IsItemHovered() && tex)
                 {
                     ImGui::BeginTooltip();
-                    ImGui::Image(tex->GetHandle(), ImVec2(512, 512), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
+                    ImGui::Image(reinterpret_cast<ImTextureID>(Application::Get().GetImGuiManager()->GetImGuiRenderer()->AddTexture(tex)), ImVec2(512, 512), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
                     ImGui::EndTooltip();
                 }
             }
@@ -1167,10 +1179,11 @@ end
         ImGui::NextColumn();
 
         static bool byTile = false;
-        float tileSize     = (float)sprite.SpriteSheetTileSize;
+        uint32_t tileSize  = sprite.SpriteSheetTileSize;
 
         Lumos::ImGuiUtilities::Property("By Tile", byTile);
-        Lumos::ImGuiUtilities::Property("Tile Size", tileSize);
+        if(Lumos::ImGuiUtilities::Property("Tile Size", tileSize))
+            sprite.SpriteSheetTileSize = tileSize;
 
         ImGui::AlignTextToFramePadding();
         ImGui::TextUnformatted("Current State");
@@ -1431,7 +1444,7 @@ end
             bool showTexture    = !(hoveringButton && (payload != NULL && payload->IsDataType("AssetFile")));
             if(tex && showTexture)
             {
-                if(ImGui::ImageButton((const char*)(tex.get()), tex->GetHandle(), imageButtonSize, ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f)))
+                if(ImGui::ImageButton((const char*)(tex.get()), reinterpret_cast<ImTextureID>(Application::Get().GetImGuiManager()->GetImGuiRenderer()->AddTexture(tex)), imageButtonSize, ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f)))
                 {
                     Lumos::Editor::GetEditor()->GetFileBrowserPanel().Open();
                     Lumos::Editor::GetEditor()->GetFileBrowserPanel().SetCallback(callback);
@@ -1440,7 +1453,7 @@ end
                 if(ImGui::IsItemHovered() && tex)
                 {
                     ImGui::BeginTooltip();
-                    ImGui::Image(tex->GetHandle(), ImVec2(256, 256), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
+                    ImGui::Image(reinterpret_cast<ImTextureID>(Application::Get().GetImGuiManager()->GetImGuiRenderer()->AddTexture(tex)), ImVec2(256, 256), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
                     ImGui::EndTooltip();
                 }
             }
@@ -1624,10 +1637,14 @@ end
         return "";
     };
 
-    void TextureWidget(const char* label, Lumos::Graphics::Material* material, Lumos::Graphics::Texture2D* tex, bool flipImage, float& usingMapProperty, glm::vec4& colourProperty, const std::function<void(const std::string&)>& callback, const ImVec2& imageButtonSize = ImVec2(64, 64))
+    void TextureWidget(const char* label, Lumos::Graphics::Material* material, Lumos::Graphics::Texture2D* tex, bool flipImage, float& usingMapProperty, glm::vec4& colourProperty, const std::function<void(const std::string&)>& callback, const ImVec2& imageButtonSize = ImVec2(64, 64), bool defaultOpen = false)
     {
         using namespace Lumos;
-        if(ImGui::TreeNodeEx(label, ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_Framed))
+        ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_Framed;
+        if(defaultOpen)
+            flags |= ImGuiTreeNodeFlags_DefaultOpen;
+
+        if(ImGui::TreeNodeEx(label, flags))
         {
             ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
             // ImGui::Columns(2);
@@ -1646,7 +1663,7 @@ end
             bool showTexture    = !(hoveringButton && (payload != NULL && payload->IsDataType("AssetFile")));
             if(tex && showTexture)
             {
-                if(ImGui::ImageButton((const char*)(tex), tex->GetHandle(), imageButtonSize, ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f)))
+                if(ImGui::ImageButton((const char*)(tex), reinterpret_cast<ImTextureID>(Application::Get().GetImGuiManager()->GetImGuiRenderer()->AddTexture(tex)), imageButtonSize, ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f)))
                 {
                     Lumos::Editor::GetEditor()->GetFileBrowserPanel().Open();
                     Lumos::Editor::GetEditor()->GetFileBrowserPanel().SetCallback(callback);
@@ -1658,7 +1675,7 @@ end
                     ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
                     ImGui::TextUnformatted(tex->GetFilepath().c_str());
                     ImGui::PopTextWrapPos();
-                    ImGui::Image(tex->GetHandle(), imageButtonSize * 3.0f, ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
+                    ImGui::Image(reinterpret_cast<ImTextureID>(Application::Get().GetImGuiManager()->GetImGuiRenderer()->AddTexture(tex)), imageButtonSize * 3.0f, ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
                     ImGui::EndTooltip();
                 }
             }
@@ -1734,10 +1751,14 @@ end
         }
     }
 
-    void TextureWidget(const char* label, Lumos::Graphics::Material* material, Lumos::Graphics::Texture2D* tex, bool flipImage, float& usingMapProperty, float& amount, bool hasAmountValue, const std::function<void(const std::string&)>& callback, const ImVec2& imageButtonSize = ImVec2(64, 64))
+    void TextureWidget(const char* label, Lumos::Graphics::Material* material, Lumos::Graphics::Texture2D* tex, bool flipImage, float& usingMapProperty, float& amount, bool hasAmountValue, const std::function<void(const std::string&)>& callback, const ImVec2& imageButtonSize = ImVec2(64, 64), bool defaultOpen = false)
     {
         using namespace Lumos;
-        if(ImGui::TreeNodeEx(label, ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_SpanFullWidth))
+        ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_Framed;
+        if(defaultOpen)
+            flags |= ImGuiTreeNodeFlags_DefaultOpen;
+
+        if(ImGui::TreeNodeEx(label, flags))
         {
             ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
             ImGui::BeginColumns("TextureWidget", 2, ImGuiOldColumnFlags_NoResize);
@@ -1754,7 +1775,7 @@ end
             bool showTexture    = !(hoveringButton && (payload != NULL && payload->IsDataType("AssetFile")));
             if(tex && showTexture)
             {
-                if(ImGui::ImageButton((const char*)(tex), tex->GetHandle(), imageButtonSize, ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f)))
+                if(ImGui::ImageButton((const char*)(tex), reinterpret_cast<ImTextureID>(Application::Get().GetImGuiManager()->GetImGuiRenderer()->AddTexture(tex)), imageButtonSize, ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f)))
                 {
                     Lumos::Editor::GetEditor()->GetFileBrowserPanel().Open();
                     Lumos::Editor::GetEditor()->GetFileBrowserPanel().SetCallback(callback);
@@ -1767,7 +1788,7 @@ end
                     ImGui::TextUnformatted(tex->GetFilepath().c_str());
                     ImGui::PopTextWrapPos();
 
-                    ImGui::Image(tex->GetHandle(), imageButtonSize * 3.0f, ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
+                    ImGui::Image(reinterpret_cast<ImTextureID>(Application::Get().GetImGuiManager()->GetImGuiRenderer()->AddTexture(tex)), imageButtonSize * 3.0f, ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
                     ImGui::EndTooltip();
                 }
             }
@@ -1928,38 +1949,42 @@ end
             Lumos::ImGuiUtilities::PopID();
             return;
         }
-
+        using namespace Lumos;
         ImGui::Separator();
         const auto& meshes = modelRef->GetMeshes();
-        if(ImGui::TreeNode("Meshes"))
+        ImGui::Indent();
+        if(ImGui::TreeNodeEx("Meshes", ImGuiTreeNodeFlags_Framed))
         {
+            int MeshIndex = 0;
+
             for(auto mesh : meshes)
             {
-                if(!mesh->GetName().empty())
-                    ImGui::TextUnformatted(mesh->GetName().c_str());
+                String8 meshName = !mesh->GetName().empty() ? Str8StdS(mesh->GetName()) : PushStr8F(Application::Get().GetFrameArena(), "Mesh %i", MeshIndex);
+
+                if(ImGui::TreeNodeEx((const char*)meshName.str, ImGuiTreeNodeFlags_Framed))
+                {
+                    auto stats = mesh->GetStats();
+
+                    ImGui::Indent();
+                    ImGui::Columns(2);
+
+                    Lumos::ImGuiUtilities::Property("Triangle Count", stats.TriangleCount, Lumos::ImGuiUtilities::PropertyFlag::ReadOnly);
+                    Lumos::ImGuiUtilities::Property("Vertex Count", stats.VertexCount, Lumos::ImGuiUtilities::PropertyFlag::ReadOnly);
+                    Lumos::ImGuiUtilities::Property("Index Count", stats.IndexCount, Lumos::ImGuiUtilities::PropertyFlag::ReadOnly);
+                    Lumos::ImGuiUtilities::Property("Optimise Threshold", stats.OptimiseThreshold, 0.0f, 0.0f, 0.0f, Lumos::ImGuiUtilities::PropertyFlag::ReadOnly);
+                    Lumos::ImGuiUtilities::PropertyConst("Material", mesh->GetMaterial() ? mesh->GetMaterial()->GetName().c_str() : "Empty");
+                    ImGui::Columns(1);
+
+                    ImGui::Unindent();
+                    ImGui::TreePop();
+                }
+
+                MeshIndex++;
             }
             ImGui::TreePop();
         }
 
-        ImGui::Separator();
-
-        auto Skeleton = modelRef->GetSkeleton();
-
-        if(Skeleton)
-        {
-            ImGui::TextUnformatted("Animation");
-
-            auto jointNames = Skeleton->joint_names();
-            for(auto& joint : jointNames)
-            {
-                ImGui::TextUnformatted(joint);
-            }
-
-            const auto& animations = modelRef->GetAnimations();
-        }
-
-        ImGui::Separator();
-        if(ImGui::TreeNode("Materials"))
+        if(ImGui::TreeNodeEx("Materials", ImGuiTreeNodeFlags_Framed))
         {
             Lumos::Graphics::Material* MaterialShown[1000];
             uint32_t MaterialCount = 0;
@@ -1988,21 +2013,22 @@ end
 
                 matName += "##" + std::to_string(matIndex);
                 matIndex++;
+                ImGui::Indent();
                 if(!material)
                 {
                     ImGui::TextUnformatted("Empty Material");
                     if(ImGui::Button("Add Material", ImVec2(ImGui::GetContentRegionAvail().x, 0.0f)))
                         mesh->SetMaterial(Lumos::CreateSharedPtr<Lumos::Graphics::Material>());
                 }
-                else if(ImGui::TreeNodeEx(matName.c_str(), ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_SpanFullWidth))
+                else if(ImGui::TreeNodeEx(matName.c_str(), ImGuiTreeNodeFlags_Framed))
                 {
                     using namespace Lumos;
                     ImGui::Indent();
                     if(ImGui::Button("Save to file"))
                     {
-                        std::string filePath = "//Meshes"; // Materials/" + matName + ".lmat";
+                        std::string filePath = "//Assets/Meshes"; // Materials/" + matName + ".lmat";
                         std::string physicalPath;
-                        if(VFS::Get().ResolvePhysicalPath(filePath, physicalPath))
+                        if(FileSystem::Get().ResolvePhysicalPath(filePath, physicalPath))
                         {
                             physicalPath += "/Materials/" + matName + ".lmat";
                             std::stringstream storage;
@@ -2018,6 +2044,7 @@ end
                     bool twoSided     = material->GetFlag(Lumos::Graphics::Material::RenderFlags::TWOSIDED);
                     bool depthTested  = material->GetFlag(Lumos::Graphics::Material::RenderFlags::DEPTHTEST);
                     bool alphaBlended = material->GetFlag(Lumos::Graphics::Material::RenderFlags::ALPHABLEND);
+                    bool castShadows  = !material->GetFlag(Lumos::Graphics::Material::RenderFlags::NOSHADOW);
 
                     ImGui::Columns(2);
                     ImGui::Separator();
@@ -2033,38 +2060,10 @@ end
                     if(ImGuiUtilities::Property("Depth Tested", depthTested))
                         material->SetFlag(Lumos::Graphics::Material::RenderFlags::DEPTHTEST, depthTested);
 
-                    ImGui::Columns(1);
+                    if(ImGuiUtilities::Property("Cast Shadows", castShadows))
+                        material->SetFlag(Lumos::Graphics::Material::RenderFlags::NOSHADOW, !castShadows);
 
-                    Graphics::MaterialProperties* prop = material->GetProperties();
-                    auto colour                        = glm::vec4();
-                    float normal                       = 0.0f;
-                    auto& textures                     = material->GetTextures();
-                    glm::vec2 textureSize              = glm::vec2(100.0f, 100.0f);
-                    TextureWidget("Albedo", material.get(), textures.albedo.get(), flipImage, prop->albedoMapFactor, prop->albedoColour, std::bind(&Graphics::Material::SetAlbedoTexture, material, std::placeholders::_1), textureSize * Application::Get().GetWindowDPI());
-                    ImGui::Separator();
-
-                    TextureWidget("Normal", material.get(), textures.normal.get(), flipImage, prop->normalMapFactor, normal, false, std::bind(&Graphics::Material::SetNormalTexture, material, std::placeholders::_1), textureSize * Application::Get().GetWindowDPI());
-                    ImGui::Separator();
-
-                    TextureWidget("Metallic", material.get(), textures.metallic.get(), flipImage, prop->metallicMapFactor, prop->metallic, true, std::bind(&Graphics::Material::SetMetallicTexture, material, std::placeholders::_1), textureSize * Application::Get().GetWindowDPI());
-                    ImGui::Separator();
-
-                    TextureWidget("Roughness", material.get(), textures.roughness.get(), flipImage, prop->roughnessMapFactor, prop->roughness, true, std::bind(&Graphics::Material::SetRoughnessTexture, material, std::placeholders::_1), textureSize * Application::Get().GetWindowDPI());
-
-                    if(ImGui::TreeNodeEx("Reflectance", ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_SpanFullWidth))
-                    {
-                        ImGui::SliderFloat("##Reflectance", &prop->reflectance, 0.0f, 1.0f);
-                        ImGui::TreePop();
-                    }
-
-                    ImGui::Separator();
-
-                    TextureWidget("AO", material.get(), textures.ao.get(), flipImage, prop->occlusionMapFactor, normal, false, std::bind(&Graphics::Material::SetAOTexture, material, std::placeholders::_1), textureSize * Application::Get().GetWindowDPI());
-                    ImGui::Separator();
-
-                    TextureWidget("Emissive", material.get(), textures.emissive.get(), flipImage, prop->emissiveMapFactor, prop->emissive, true, std::bind(&Graphics::Material::SetEmissiveTexture, material, std::placeholders::_1), textureSize * Application::Get().GetWindowDPI());
-
-                    ImGui::Columns(2);
+                    ImGuiUtilities::Property("Alpha Cutoff", material->GetProperties()->alphaCutoff, 0.0f, 1.0f, 0.1f);
 
                     ImGui::AlignTextToFramePadding();
                     ImGui::TextUnformatted("WorkFlow");
@@ -2073,22 +2072,60 @@ end
 
                     int workFlow = (int)material->GetProperties()->workflow;
 
-                    if(ImGui::DragInt("##WorkFlow", &workFlow, 0.3f, 0, 2))
+                    const char* workFlows[]     = { "Separate Textures", "Metallic Roughness", "Specular Glossiness" };
+                    const char* workFlowCurrent = workFlows[workFlow];
+                    if(ImGui::BeginCombo("##WorkflowCombo", workFlowCurrent, 0)) // The second parameter is the label previewed before opening the combo.
                     {
-                        material->GetProperties()->workflow = (float)workFlow;
+                        for(int n = 0; n < 3; n++)
+                        {
+                            bool is_selected = (workFlow == n);
+                            if(ImGui::Selectable(workFlows[n], workFlowCurrent))
+                            {
+                                workFlow                            = n;
+                                material->GetProperties()->workflow = (float)workFlow;
+                            }
+                            if(is_selected)
+                                ImGui::SetItemDefaultFocus();
+                        }
+                        ImGui::EndCombo();
                     }
-
                     ImGui::PopItemWidth();
                     ImGui::NextColumn();
 
-                    material->SetMaterialProperites(*prop);
                     ImGui::Columns(1);
+
+                    Graphics::MaterialProperties* prop = material->GetProperties();
+                    auto colour                        = glm::vec4();
+                    float normal                       = 0.0f;
+                    auto& textures                     = material->GetTextures();
+                    glm::vec2 textureSize              = glm::vec2(100.0f, 100.0f);
+                    TextureWidget("Albedo", material.get(), textures.albedo.get(), flipImage, prop->albedoMapFactor, prop->albedoColour, std::bind(&Graphics::Material::SetAlbedoTexture, material, std::placeholders::_1), textureSize * Application::Get().GetWindowDPI(), true);
+
+                    TextureWidget("Normal", material.get(), textures.normal.get(), flipImage, prop->normalMapFactor, normal, false, std::bind(&Graphics::Material::SetNormalTexture, material, std::placeholders::_1), textureSize * Application::Get().GetWindowDPI());
+
+                    TextureWidget("Metallic", material.get(), textures.metallic.get(), flipImage, prop->metallicMapFactor, prop->metallic, true, std::bind(&Graphics::Material::SetMetallicTexture, material, std::placeholders::_1), textureSize * Application::Get().GetWindowDPI());
+
+                    TextureWidget("Roughness", material.get(), textures.roughness.get(), flipImage, prop->roughnessMapFactor, prop->roughness, true, std::bind(&Graphics::Material::SetRoughnessTexture, material, std::placeholders::_1), textureSize * Application::Get().GetWindowDPI());
+
+                    if(ImGui::TreeNodeEx("Reflectance", ImGuiTreeNodeFlags_Framed))
+                    {
+                        ImGui::SliderFloat("##Reflectance", &prop->reflectance, 0.0f, 1.0f);
+                        ImGui::TreePop();
+                    }
+
+                    TextureWidget("AO", material.get(), textures.ao.get(), flipImage, prop->occlusionMapFactor, normal, false, std::bind(&Graphics::Material::SetAOTexture, material, std::placeholders::_1), textureSize * Application::Get().GetWindowDPI());
+
+                    TextureWidget("Emissive", material.get(), textures.emissive.get(), flipImage, prop->emissiveMapFactor, prop->emissive, true, std::bind(&Graphics::Material::SetEmissiveTexture, material, std::placeholders::_1), textureSize * Application::Get().GetWindowDPI());
+
+                    material->SetMaterialProperites(*prop);
                     ImGui::Unindent();
                     ImGui::TreePop();
                 }
+                ImGui::Unindent();
             }
             ImGui::TreePop();
         }
+        ImGui::Unindent();
 
         Lumos::ImGuiUtilities::PopID();
     }
@@ -2379,7 +2416,7 @@ namespace Lumos
     {
         LUMOS_PROFILE_FUNCTION();
 
-        auto selectedEntities = m_Editor->GetSelected();
+        const auto& selectedEntities = m_Editor->GetSelected();
 
         if(ImGui::Begin(m_Name.c_str(), &m_Active))
         {
@@ -2501,7 +2538,7 @@ namespace Lumos
                 if(ImGui::Button("OK", ImVec2(120, 0)))
                 {
                     std::string physicalPath;
-                    VFS::Get().ResolvePhysicalPath(prefabNamePath, physicalPath, true);
+                    FileSystem::Get().ResolvePhysicalPath(prefabNamePath, physicalPath, true);
                     std::string FullPath = physicalPath + prefabName + std::string(".lprefab");
                     Application::Get().GetSceneManager()->GetCurrentScene()->SavePrefab({ selected, Application::Get().GetSceneManager()->GetCurrentScene() }, FullPath);
                     ImGui::CloseCurrentPopup();
@@ -2521,43 +2558,46 @@ namespace Lumos
             {
                 auto idComponent = registry.try_get<IDComponent>(selected);
 
-                ImGui::Text("UUID : %" PRIu64, (uint64_t)idComponent->ID);
-
-                auto hierarchyComp = registry.try_get<Hierarchy>(selected);
-
-                if(hierarchyComp)
+                if(idComponent)
                 {
-                    if(registry.valid(hierarchyComp->Parent()))
+                    ImGui::Text("UUID : %" PRIu64, (uint64_t)idComponent->ID);
+
+                    auto hierarchyComp = registry.try_get<Hierarchy>(selected);
+
+                    if(hierarchyComp)
                     {
-                        idComponent = registry.try_get<IDComponent>(hierarchyComp->Parent());
-                        ImGui::Text("Parent : ID: %" PRIu64, (uint64_t)idComponent->ID);
-                    }
-                    else
-                    {
-                        ImGui::TextUnformatted("Parent : null");
-                    }
-
-                    entt::entity child = hierarchyComp->First();
-                    ImGui::TextUnformatted("Children : ");
-                    ImGui::Indent(24.0f);
-
-                    while(child != entt::null)
-                    {
-                        idComponent = registry.try_get<IDComponent>(child);
-                        ImGui::Text("ID: %" PRIu64, (uint64_t)idComponent->ID);
-
-                        auto hierarchy = registry.try_get<Hierarchy>(child);
-
-                        if(hierarchy)
+                        if(registry.valid(hierarchyComp->Parent()))
                         {
-                            child = hierarchy->Next();
+                            idComponent = registry.try_get<IDComponent>(hierarchyComp->Parent());
+                            ImGui::Text("Parent : ID: %" PRIu64, (uint64_t)idComponent->ID);
                         }
+                        else
+                        {
+                            ImGui::TextUnformatted("Parent : null");
+                        }
+
+                        entt::entity child = hierarchyComp->First();
+                        ImGui::TextUnformatted("Children : ");
+                        ImGui::Indent(24.0f);
+
+                        while(child != entt::null)
+                        {
+                            idComponent = registry.try_get<IDComponent>(child);
+                            ImGui::Text("ID: %" PRIu64, (uint64_t)idComponent->ID);
+
+                            auto hierarchy = registry.try_get<Hierarchy>(child);
+
+                            if(hierarchy)
+                            {
+                                child = hierarchy->Next();
+                            }
+                        }
+
+                        ImGui::Unindent(24.0f);
                     }
 
-                    ImGui::Unindent(24.0f);
+                    ImGui::Separator();
                 }
-
-                ImGui::Separator();
             }
 
             if(registry.try_get<PrefabComponent>(selected))

@@ -7,6 +7,7 @@
 #include <Lumos/Core/Profiler.h>
 #include <Lumos/Graphics/RHI/Texture.h>
 #include <Lumos/Graphics/Renderers/RenderPasses.h>
+#include <Lumos/Graphics/RHI/GraphicsContext.h>
 #include <Lumos/Physics/B2PhysicsEngine/B2PhysicsEngine.h>
 #include <Lumos/Core/OS/Input.h>
 #include <Lumos/ImGui/IconsMaterialDesignIcons.h>
@@ -185,7 +186,7 @@ namespace Lumos
         if(!Maths::Equals(aspect, camera->GetAspectRatio()))
             camera->SetAspectRatio(aspect);
 
-        ImGuiUtilities::Image(m_GameViewTexture.get(), glm::vec2(sceneViewSize.x, sceneViewSize.y));
+        ImGuiUtilities::Image(m_GameViewTexture.get(), glm::vec2(sceneViewSize.x, sceneViewSize.y), Graphics::Renderer::GetGraphicsContext()->FlipImGUITexture());
 
         auto windowSize = ImGui::GetWindowSize();
         ImVec2 minBound = sceneViewPosition;

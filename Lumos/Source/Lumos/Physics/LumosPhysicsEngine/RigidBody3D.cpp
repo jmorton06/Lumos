@@ -26,6 +26,7 @@ namespace Lumos
         , m_InvInertia(glm::mat3(1.0f))
         , m_OnCollisionCallback(nullptr)
         , m_AngularFactor(1.0f)
+        , m_wsTransform(glm::mat4(1.0f))
     {
         LUMOS_ASSERT(properties.Mass > 0.0f, "Mass <= 0");
         m_InvMass = 1.0f / properties.Mass;
@@ -44,6 +45,7 @@ namespace Lumos
 
     RigidBody3D::~RigidBody3D()
     {
+        m_UUID = 0;
     }
 
     const Maths::BoundingBox& RigidBody3D::GetWorldSpaceAABB()
@@ -51,7 +53,7 @@ namespace Lumos
         LUMOS_PROFILE_FUNCTION_LOW();
         if(m_wsAabbInvalidated)
         {
-            LUMOS_PROFILE_SCOPE("Calculate BoundingBox");
+            LUMOS_PROFILE_SCOPE_LOW("Calculate BoundingBox");
             m_wsAabb            = m_localBoundingBox.Transformed(GetWorldSpaceTransform());
             m_wsAabbInvalidated = false;
         }

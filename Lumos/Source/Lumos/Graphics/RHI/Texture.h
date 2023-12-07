@@ -113,18 +113,18 @@ namespace Lumos
         class LUMOS_EXPORT TextureDepth : public Texture
         {
         public:
-            static TextureDepth* Create(uint32_t width, uint32_t height);
+            static TextureDepth* Create(uint32_t width, uint32_t height, RHIFormat format = RHIFormat::D24_Unorm_S8_UInt);
 
             virtual void Resize(uint32_t width, uint32_t height) = 0;
 
         protected:
-            static TextureDepth* (*CreateFunc)(uint32_t, uint32_t);
+            static TextureDepth* (*CreateFunc)(uint32_t, uint32_t, RHIFormat);
         };
 
         class LUMOS_EXPORT TextureDepthArray : public Texture
         {
         public:
-            static TextureDepthArray* Create(uint32_t width, uint32_t height, uint32_t count);
+            static TextureDepthArray* Create(uint32_t width, uint32_t height, uint32_t count, RHIFormat format = RHIFormat::D32_Float);
 
             virtual void Init()                                                  = 0;
             virtual void Resize(uint32_t width, uint32_t height, uint32_t count) = 0;
@@ -135,7 +135,7 @@ namespace Lumos
             };
 
         protected:
-            static TextureDepthArray* (*CreateFunc)(uint32_t, uint32_t, uint32_t);
+            static TextureDepthArray* (*CreateFunc)(uint32_t, uint32_t, uint32_t, RHIFormat);
         };
     }
 }

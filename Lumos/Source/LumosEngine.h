@@ -20,7 +20,6 @@
 #include "Physics/LumosPhysicsEngine/Broadphase/Broadphase.h"
 #include "Physics/LumosPhysicsEngine/Broadphase/OctreeBroadphase.h"
 #include "Physics/LumosPhysicsEngine/Broadphase/BruteForceBroadphase.h"
-#include "Physics/LumosPhysicsEngine/Broadphase/SortAndSweepBroadphase.h"
 #include "Physics/B2PhysicsEngine/RigidBody2D.h"
 #include "Physics/LumosPhysicsEngine/RigidBody3D.h"
 
@@ -59,9 +58,9 @@
 #include "Audio/SoundNode.h"
 
 // System
-#include "Core/VFS.h"
 #include "Core/OS/FileSystem.h"
-#include "Core/StringUtilities.h"
+#include "Core/OS/FileSystem.h"
+#include "Utilities/StringUtilities.h"
 #include "Core/CoreSystem.h"
 #include "Core/LMLog.h"
 #include "Core/OS/Input.h"

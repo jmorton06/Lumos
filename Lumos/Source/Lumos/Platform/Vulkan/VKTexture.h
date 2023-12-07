@@ -14,6 +14,12 @@ namespace Lumos
 {
     namespace Graphics
     {
+#ifdef USE_VMA_ALLOCATOR
+        void CreateImage(uint32_t width, uint32_t height, uint32_t mipLevels, VkFormat format, VkImageType imageType, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory, uint32_t arrayLayers, VkImageCreateFlags flags, VmaAllocation& allocation, uint32_t samples = 1);
+#else
+        void CreateImage(uint32_t width, uint32_t height, uint32_t mipLevels, VkFormat format, VkImageType imageType, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory, uint32_t arrayLayers, VkImageCreateFlags flags, uint32_t samples = 1);
+#endif
+
         class VKTexture2D : public Texture2D
         {
         public:
@@ -165,8 +171,6 @@ namespace Lumos
             VkDescriptorImageInfo m_Descriptor {};
 
             std::unordered_map<uint32_t, VkImageView> m_MipImageViews;
-
-            VKBuffer* m_StagingBuffer = nullptr;
 
 #ifdef USE_VMA_ALLOCATOR
             VmaAllocation m_Allocation {};
@@ -337,7 +341,7 @@ namespace Lumos
         class VKTextureDepth : public TextureDepth
         {
         public:
-            VKTextureDepth(uint32_t width, uint32_t height);
+            VKTextureDepth(uint32_t width, uint32_t height, RHIFormat format);
             ~VKTextureDepth();
 
             void Bind(uint32_t slot = 0) const override {};
@@ -421,7 +425,7 @@ namespace Lumos
             static void MakeDefault();
 
         protected:
-            static TextureDepth* CreateFuncVulkan(uint32_t, uint32_t);
+            static TextureDepth* CreateFuncVulkan(uint32_t, uint32_t, RHIFormat);
             void Init();
 
         private:
@@ -445,7 +449,7 @@ namespace Lumos
         class VKTextureDepthArray : public TextureDepthArray
         {
         public:
-            VKTextureDepthArray(uint32_t width, uint32_t height, uint32_t count);
+            VKTextureDepthArray(uint32_t width, uint32_t height, uint32_t count, RHIFormat format);
             ~VKTextureDepthArray();
 
             void Bind(uint32_t slot = 0) const override {};
@@ -543,7 +547,7 @@ namespace Lumos
             static void MakeDefault();
 
         protected:
-            static TextureDepthArray* CreateFuncVulkan(uint32_t, uint32_t, uint32_t);
+            static TextureDepthArray* CreateFuncVulkan(uint32_t, uint32_t, uint32_t, RHIFormat);
             void Init() override;
 
         private:

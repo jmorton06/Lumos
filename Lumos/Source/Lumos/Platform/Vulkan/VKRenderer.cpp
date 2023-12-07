@@ -7,8 +7,10 @@
 #include "VKPipeline.h"
 #include "VKInitialisers.h"
 #include "VKCommandBuffer.h"
+#include "VKSwapChain.h"
 #include "Core/Engine.h"
 #include "Core/Application.h"
+#include "Core/OS/Window.h"
 
 #include "stb_image_write.h"
 
@@ -20,55 +22,12 @@ namespace Lumos
 
         int VKRenderer::s_DeletionQueueIndex                              = 0;
         std::vector<VKContext::DeletionQueue> VKRenderer::s_DeletionQueue = {};
-        VkDescriptorPool VKRenderer::s_DescriptorPool                     = {};
 
         void VKRenderer::InitInternal()
         {
             LUMOS_PROFILE_FUNCTION();
 
-            m_RendererTitle      = "Vulkan";
-            m_DescriptorCapacity = 1024;
-
-            // Pool sizes
-            std::array<VkDescriptorPoolSize, 6> poolSizes = {
-                VkDescriptorPoolSize { VK_DESCRIPTOR_TYPE_SAMPLER, DESCRIPTOR_MAX_SAMPLERS },
-                VkDescriptorPoolSize { VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, DESCRIPTOR_MAX_TEXTURES },
-                VkDescriptorPoolSize { VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, DESCRIPTOR_MAX_STORAGE_TEXTURES },
-                VkDescriptorPoolSize { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, DESCRIPTOR_MAX_STORAGE_BUFFERS },
-                VkDescriptorPoolSize { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, DESCRIPTOR_MAX_CONSTANT_BUFFERS },
-                VkDescriptorPoolSize { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, DESCRIPTOR_MAX_CONSTANT_BUFFERS_DYNAMIC }
-            };
-
-            VkDescriptorPoolSize pool_sizes[] = {
-                { VK_DESCRIPTOR_TYPE_SAMPLER, 100000 },
-                { VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 100000 },
-                { VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, 100000 },
-                { VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 100000 },
-                { VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, 100000 },
-                { VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, 100000 },
-                { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 100000 },
-                { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 100000 },
-                { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 100000 },
-                { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, 100000 },
-                { VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, 100000 }
-            };
-            VkDescriptorPoolCreateInfo pool_info = {};
-            pool_info.sType                      = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-            pool_info.flags                      = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
-            pool_info.maxSets                    = 100000 * 11;
-            pool_info.poolSizeCount              = (uint32_t)11;
-            pool_info.pPoolSizes                 = pool_sizes;
-
-            // Create info
-            VkDescriptorPoolCreateInfo poolCreateInfo = {};
-            poolCreateInfo.sType                      = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-            poolCreateInfo.flags                      = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
-            poolCreateInfo.poolSizeCount              = static_cast<uint32_t>(poolSizes.size());
-            poolCreateInfo.pPoolSizes                 = poolSizes.data();
-            poolCreateInfo.maxSets                    = m_DescriptorCapacity;
-
-            // Pool
-            VK_CHECK_RESULT(vkCreateDescriptorPool(VKDevice::Get().GetDevice(), &pool_info, nullptr, &s_DescriptorPool));
+            m_RendererTitle = "Vulkan";
 
             // Deletion queue larger than frames in flight to delay deletion a few frames
             s_DeletionQueue.resize(12);
@@ -110,6 +69,19 @@ namespace Lumos
                 subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
                 ((VKTextureDepth*)texture)->TransitionImage(VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, (VKCommandBuffer*)commandBuffer);
                 vkCmdClearDepthStencilImage(((VKCommandBuffer*)commandBuffer)->GetHandle(), static_cast<VKTextureDepth*>(texture)->GetImage(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, &clear_depth_stencil, 1, &subresourceRange);
+            }
+            else if(texture->GetType() == TextureType::DEPTHARRAY)
+            {
+                VkImageLayout layout = ((VKTextureDepthArray*)texture)->GetImageLayout();
+
+                VkClearDepthStencilValue clear_depth_stencil = { 1.0f, 1 };
+
+                subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
+                subresourceRange.layerCount = static_cast<VKTextureDepthArray*>(texture)->GetCount();
+
+                ((VKTextureDepthArray*)texture)->TransitionImage(VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, (VKCommandBuffer*)commandBuffer);
+                vkCmdClearDepthStencilImage(((VKCommandBuffer*)commandBuffer)->GetHandle(), static_cast<VKTextureDepthArray*>(texture)->GetImage(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, &clear_depth_stencil, 1, &subresourceRange);
+                ((VKTextureDepthArray*)texture)->TransitionImage(layout, (VKCommandBuffer*)commandBuffer);
             }
         }
 
@@ -168,9 +140,9 @@ namespace Lumos
             swapChain->QueueSubmit();
 
             auto& frameData = swapChain->GetCurrentFrameData();
-            auto semphore   = frameData.MainCommandBuffer->GetSemaphore();
+            auto semaphore   = frameData.MainCommandBuffer->GetSemaphore();
 
-            swapChain->Present(semphore);
+            swapChain->Present(semaphore);
         }
 
         const std::string& VKRenderer::GetTitleInternal() const
@@ -425,14 +397,14 @@ file.close();
                     if(vkDesSet->GetIsDynamic())
                         numDynamicDescriptorSets++;
 
-                    m_DescriptorSetPool[numDesciptorSets] = vkDesSet->GetDescriptorSet();
+                    m_CurrentDescriptorSets[numDesciptorSets] = vkDesSet->GetDescriptorSet();
 
                     LUMOS_ASSERT(vkDesSet->GetHasUpdated(Renderer::GetMainSwapChain()->GetCurrentBufferIndex()), "Descriptor Set has not been updated before");
                     numDesciptorSets++;
                 }
             }
 
-            vkCmdBindDescriptorSets(static_cast<Graphics::VKCommandBuffer*>(commandBuffer)->GetHandle(), static_cast<Graphics::VKPipeline*>(pipeline)->IsCompute() ? VK_PIPELINE_BIND_POINT_COMPUTE : VK_PIPELINE_BIND_POINT_GRAPHICS, static_cast<Graphics::VKPipeline*>(pipeline)->GetPipelineLayout(), 0, numDesciptorSets, m_DescriptorSetPool, numDynamicDescriptorSets, &dynamicOffset);
+            vkCmdBindDescriptorSets(static_cast<Graphics::VKCommandBuffer*>(commandBuffer)->GetHandle(), static_cast<Graphics::VKPipeline*>(pipeline)->IsCompute() ? VK_PIPELINE_BIND_POINT_COMPUTE : VK_PIPELINE_BIND_POINT_GRAPHICS, static_cast<Graphics::VKPipeline*>(pipeline)->GetPipelineLayout(), 0, numDesciptorSets, m_CurrentDescriptorSets, numDynamicDescriptorSets, &dynamicOffset);
         }
 
         void VKRenderer::DrawIndexedInternal(CommandBuffer* commandBuffer, DrawType type, uint32_t count, uint32_t start) const
@@ -574,6 +546,122 @@ file.close();
         uint32_t VKRenderer::GetGPUCount() const
         {
             return VKDevice::Get().GetGPUCount();
+        }
+
+        VkDescriptorPool VKRenderer::CreatePool(VkDevice device, uint32_t count, VkDescriptorPoolCreateFlags flags)
+        {
+            std::array<VkDescriptorPoolSize, 11> poolSizes = {
+                VkDescriptorPoolSize { VK_DESCRIPTOR_TYPE_SAMPLER, count / 2 },
+                VkDescriptorPoolSize { VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, count * 4 },
+                VkDescriptorPoolSize { VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, count },
+                VkDescriptorPoolSize { VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, count },
+                VkDescriptorPoolSize { VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, count },
+                VkDescriptorPoolSize { VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, count },
+                VkDescriptorPoolSize { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, count * 2 },
+                VkDescriptorPoolSize { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, count * 2 },
+                VkDescriptorPoolSize { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, count },
+                VkDescriptorPoolSize { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, count },
+                VkDescriptorPoolSize { VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, count / 2 }
+            };
+
+            // Create info
+            VkDescriptorPoolCreateInfo poolCreateInfo = {};
+            poolCreateInfo.sType                      = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+            poolCreateInfo.flags                      = flags;
+            poolCreateInfo.poolSizeCount              = static_cast<uint32_t>(poolSizes.size());
+            poolCreateInfo.pPoolSizes                 = poolSizes.data();
+            poolCreateInfo.maxSets                    = count;
+
+            VkDescriptorPool descriptorPool;
+            vkCreateDescriptorPool(device, &poolCreateInfo, nullptr, &descriptorPool);
+
+            return descriptorPool;
+        }
+
+        VkDescriptorPool VKRenderer::GetPool()
+        {
+            if(m_FreeDescriptorPools.Size() > 0)
+            {
+                VkDescriptorPool pool = m_FreeDescriptorPools.Back();
+                m_FreeDescriptorPools.Pop();
+                return pool;
+            }
+            else
+            {
+                return CreatePool(VKDevice::Get().GetDevice(), 100, VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT);
+            }
+        }
+
+        bool VKRenderer::AllocateDescriptorSet(VkDescriptorSet* set, VkDescriptorSetLayout layout, uint32_t descriptorCount)
+        {
+            if(m_CurrentPool == VK_NULL_HANDLE)
+            {
+                m_CurrentPool = GetPool();
+                m_UsedDescriptorPools.Emplace(m_CurrentPool);
+            }
+
+            VkDescriptorSetAllocateInfo allocInfo = {};
+            allocInfo.sType                       = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+            allocInfo.pNext                       = nullptr;
+            allocInfo.pSetLayouts                 = &layout;
+            allocInfo.descriptorPool              = m_CurrentPool;
+            allocInfo.descriptorSetCount          = descriptorCount;
+
+            VkResult allocResult = vkAllocateDescriptorSets(VKDevice::Get().GetDevice(), &allocInfo, set);
+            bool needReallocate  = false;
+
+            switch(allocResult)
+            {
+            case VK_SUCCESS:
+                // all good, return
+                return true;
+
+                break;
+            case VK_ERROR_FRAGMENTED_POOL:
+            case VK_ERROR_OUT_OF_POOL_MEMORY:
+                // reallocate pool
+                needReallocate = true;
+                break;
+            default:
+                // unrecoverable error
+                return false;
+            }
+
+            if(needReallocate)
+            {
+                // allocate a new pool and retry
+                m_CurrentPool = GetPool();
+                m_UsedDescriptorPools.Emplace(m_CurrentPool);
+                allocInfo.descriptorPool = m_CurrentPool;
+
+                allocResult = vkAllocateDescriptorSets(VKDevice::Get().GetDevice(), &allocInfo, set);
+
+                // if it still fails then we have big issues
+                if(allocResult == VK_SUCCESS)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        void VKRenderer::ReleaseDescriptorPools()
+        {
+            for(auto p : m_FreeDescriptorPools)
+            {
+                vkDestroyDescriptorPool(VKDevice::Get().GetDevice(), p, nullptr);
+            }
+            for(auto p : m_UsedDescriptorPools)
+            {
+                vkDestroyDescriptorPool(VKDevice::Get().GetDevice(), p, nullptr);
+            }
+        }
+
+        RHIFormat VKRenderer::GetDepthFormat()
+        {
+            VkFormat depthFormat = VKUtilities::FindDepthFormat();
+            return VKUtilities::VKToFormat(depthFormat);
         }
     }
 }

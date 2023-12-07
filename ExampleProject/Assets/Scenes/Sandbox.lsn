@@ -111,7 +111,7 @@
     "value26": 1,
     "value27": 3,
     "value28": {
-        "FilePath": "//Scripts/Projectile.lua"
+        "FilePath": "//Assets/Scripts/Projectile.lua"
     },
     "value29": 0,
     "value30": 1,
@@ -144,7 +144,7 @@
     "value34": 1,
     "value35": 4,
     "value36": {
-        "value0": "//Textures/cubemap/noga",
+        "value0": "//Assets/Textures/cubemap/noga",
         "value1": 11,
         "value2": 3072,
         "value3": 4096,

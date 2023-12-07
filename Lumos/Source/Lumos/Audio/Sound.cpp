@@ -1,6 +1,6 @@
 #include "Precompiled.h"
 #include "Sound.h"
-#include "Core/VFS.h"
+#include "Core/OS/FileSystem.h"
 
 #ifdef LUMOS_OPENAL
 #include "Platform/OpenAL/ALSound.h"
@@ -56,7 +56,7 @@ namespace Lumos
                 {
                     data += static_cast<uint64_t>(*(inputData + i + c));
                 }
-                monoData[j] = data / channels;
+                monoData[j] = (uint8_t)(data / (uint64_t)channels);
                 j += bytesPerSample;
             }
             break;
@@ -67,7 +67,7 @@ namespace Lumos
                 {
                     data += static_cast<const int64_t>(*reinterpret_cast<const int16_t*>(inputData + i + c));
                 }
-                *reinterpret_cast<int16_t*>(monoData + j) = data / channels;
+                *reinterpret_cast<int16_t*>(monoData + j) = (uint16_t)(data / (uint64_t)channels);
                 j += bytesPerSample;
             }
             break;

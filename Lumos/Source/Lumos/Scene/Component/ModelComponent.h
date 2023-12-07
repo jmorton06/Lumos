@@ -1,7 +1,6 @@
 #pragma once
-#include "Precompiled.h"
 #include "Graphics/Model.h"
-#include "Core/VFS.h"
+#include "Core/OS/FileSystem.h"
 #include <cereal/cereal.hpp>
 
 namespace Lumos::Graphics
@@ -41,7 +40,7 @@ namespace Lumos::Graphics
                 std::string newPath;
 
                 if(ModelRef->GetPrimitiveType() == PrimitiveType::File)
-                    VFS::Get().AbsoulePathToVFS(ModelRef->GetFilePath(), newPath);
+                    FileSystem::Get().AbsolutePathToFileSystem(ModelRef->GetFilePath(), newPath);
                 else
                     newPath = "Primitive";
 

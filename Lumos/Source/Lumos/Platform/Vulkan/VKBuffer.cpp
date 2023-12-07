@@ -4,6 +4,12 @@
 #include "VKRenderer.h"
 #include "VKUtilities.h"
 
+#ifdef LUMOS_PLATFORM_WINDOWS
+#define USE_SMALL_VMA_POOL 1
+#else
+#define USE_SMALL_VMA_POOL 0
+#endif
+
 namespace Lumos
 {
     namespace Graphics
@@ -17,6 +23,7 @@ namespace Lumos
         VKBuffer::VKBuffer()
             : m_Size(0)
             , m_MemoryProperyFlags(0)
+            , m_UsageFlags(0)
         {
         }
 
@@ -25,21 +32,33 @@ namespace Lumos
             LUMOS_PROFILE_FUNCTION();
             if(m_Buffer)
             {
-                VKContext::DeletionQueue& deletionQueue = VKRenderer::GetCurrentDeletionQueue();
+                if(m_DeleteWithoutQueue)
+                {
+#ifdef USE_VMA_ALLOCATOR
+                    vmaDestroyBuffer(VKDevice::Get().GetAllocator(), m_Buffer, m_Allocation);
+#else
+                    vkDestroyBuffer(VKDevice::Device(), m_Buffer, nullptr);
+                    vkFreeMemory(VKDevice::Device(), m_Memory, nullptr);
+#endif
+                }
+                else
+                {
+                    VKContext::DeletionQueue& deletionQueue = VKRenderer::GetCurrentDeletionQueue();
 
-                auto buffer = m_Buffer;
+                    auto buffer = m_Buffer;
 
 #ifdef USE_VMA_ALLOCATOR
-                auto alloc = m_Allocation;
-                deletionQueue.PushFunction([buffer, alloc]
-                                           { vmaDestroyBuffer(VKDevice::Get().GetAllocator(), buffer, alloc); });
+                    auto alloc = m_Allocation;
+                    deletionQueue.PushFunction([buffer, alloc]
+                                               { vmaDestroyBuffer(VKDevice::Get().GetAllocator(), buffer, alloc); });
 #else
-                auto memory = m_Memory;
-                deletionQueue.PushFunction([buffer, memory]
-                                           {
-                        vkDestroyBuffer(VKDevice::Device(), buffer, nullptr);
-                        vkFreeMemory(VKDevice::Device(), memory, nullptr); });
+                    auto memory = m_Memory;
+                    deletionQueue.PushFunction([buffer, memory]
+                                               {
+                                                   vkDestroyBuffer(VKDevice::Device(), buffer, nullptr);
+                                                   vkFreeMemory(VKDevice::Device(), memory, nullptr); });
 #endif
+                }
             }
         }
 
@@ -62,8 +81,8 @@ namespace Lumos
                     auto memory = m_Memory;
                     currentDeletionQueue.PushFunction([buffer, memory]
                                                       {
-                            vkDestroyBuffer(VKDevice::Device(), buffer, nullptr);
-                            vkFreeMemory(VKDevice::Device(), memory, nullptr); });
+                                                          vkDestroyBuffer(VKDevice::Device(), buffer, nullptr);
+                                                          vkFreeMemory(VKDevice::Device(), memory, nullptr); });
 #endif
                 }
                 else
@@ -96,13 +115,105 @@ namespace Lumos
 
             bool isMappable = (memoryProperyFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) != 0;
 
+            m_GPUOnlyMemory = !isMappable;
+
+            if(!data)
+            {
+                VmaAllocationCreateInfo vmaAllocInfo = {};
+                vmaAllocInfo.usage                   = VMA_MEMORY_USAGE_AUTO;
+                vmaAllocInfo.flags                   = isMappable ? VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT : 0;
+                vmaAllocInfo.preferredFlags          = memoryProperyFlags;
+
+#if USE_SMALL_VMA_POOL
+                if(bufferInfo.size <= SMALL_ALLOCATION_MAX_SIZE)
+                {
+                    uint32_t mem_type_index = 0;
+                    vmaFindMemoryTypeIndexForBufferInfo(VKDevice::Get().GetAllocator(), &bufferInfo, &vmaAllocInfo, &mem_type_index);
+                    vmaAllocInfo.pool = VKDevice::Get().GetOrCreateSmallAllocPool(mem_type_index);
+                }
+#endif
+                vmaCreateBuffer(VKDevice::Get().GetAllocator(), &bufferInfo, &vmaAllocInfo, &m_Buffer, &m_Allocation, nullptr);
+                return;
+            }
+
 #ifdef USE_VMA_ALLOCATOR
+#define USE_STAGING 1
+#if USE_STAGING
+            VmaAllocationCreateInfo vmaAllocInfo = {};
+            vmaAllocInfo.usage                   = VMA_MEMORY_USAGE_CPU_TO_GPU;
+            vmaAllocInfo.preferredFlags          = memoryProperyFlags;
+            vmaAllocInfo.flags                   = 0;
+
+            VkBufferCreateInfo bufferCreateInfo {};
+            bufferCreateInfo.sType       = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+            bufferCreateInfo.size        = size;
+            bufferCreateInfo.usage       = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+            bufferCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+            VkBuffer stagingBuffer;
+            VmaAllocation stagingAlloc;
+
+#if USE_SMALL_VMA_POOL
+            if(bufferInfo.size <= SMALL_ALLOCATION_MAX_SIZE)
+            {
+                uint32_t mem_type_index = 0;
+                vmaFindMemoryTypeIndexForBufferInfo(VKDevice::Get().GetAllocator(), &bufferCreateInfo, &vmaAllocInfo, &mem_type_index);
+                vmaAllocInfo.pool = VKDevice::Get().GetOrCreateSmallAllocPool(mem_type_index);
+            }
+#endif
+
+            vmaCreateBuffer(VKDevice::Get().GetAllocator(), &bufferCreateInfo, &vmaAllocInfo, &stagingBuffer, &stagingAlloc, nullptr);
+
+            // Copy data to staging buffer
+            uint8_t* destData;
+            {
+                VkResult res = static_cast<VkResult>(vmaMapMemory(VKDevice::Get().GetAllocator(), stagingAlloc, (void**)&destData));
+                if(res != VK_SUCCESS)
+                    LUMOS_LOG_CRITICAL("[VULKAN] Failed to map buffer");
+
+                memcpy(destData, data, size);
+                vmaUnmapMemory(VKDevice::Get().GetAllocator(), stagingAlloc);
+            }
+
+            vmaAllocInfo.flags = isMappable ? VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT : 0;
+            vmaAllocInfo.usage = isMappable ? VMA_MEMORY_USAGE_AUTO : VMA_MEMORY_USAGE_GPU_ONLY;
+            bufferInfo.usage |= VK_BUFFER_USAGE_TRANSFER_DST_BIT;
+
+#if USE_SMALL_VMA_POOL
+            if(bufferInfo.size <= SMALL_ALLOCATION_MAX_SIZE)
+            {
+                uint32_t mem_type_index = 0;
+                vmaFindMemoryTypeIndexForBufferInfo(VKDevice::Get().GetAllocator(), &bufferInfo, &vmaAllocInfo, &mem_type_index);
+                vmaAllocInfo.pool = VKDevice::Get().GetOrCreateSmallAllocPool(mem_type_index);
+            }
+#endif
+
+            vmaCreateBuffer(VKDevice::Get().GetAllocator(), &bufferInfo, &vmaAllocInfo, &m_Buffer, &m_Allocation, &m_AllocationInfo);
+
+            VkCommandBuffer commandBuffer = VKUtilities::BeginSingleTimeCommands();
+
+            VkBufferCopy copyRegion = {};
+            copyRegion.size         = size;
+            vkCmdCopyBuffer(
+                commandBuffer,
+                stagingBuffer,
+                m_Buffer,
+                1,
+                &copyRegion);
+
+            VKUtilities::EndSingleTimeCommands(commandBuffer);
+            vmaDestroyBuffer(VKDevice::Get().GetAllocator(), stagingBuffer, stagingAlloc);
+#else
+
             VmaAllocationCreateInfo vmaAllocInfo = {};
             vmaAllocInfo.usage                   = VMA_MEMORY_USAGE_AUTO;
             vmaAllocInfo.flags                   = isMappable ? VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT : 0;
             vmaAllocInfo.preferredFlags          = memoryProperyFlags;
 
             vmaCreateBuffer(VKDevice::Get().GetAllocator(), &bufferInfo, &vmaAllocInfo, &m_Buffer, &m_Allocation, nullptr);
+
+            if(data != nullptr)
+                SetData(size, data);
+#endif
 #else
             VK_CHECK_RESULT(vkCreateBuffer(VKDevice::Device(), &bufferInfo, nullptr, &m_Buffer));
 
@@ -117,18 +228,33 @@ namespace Lumos
             VK_CHECK_RESULT(vkAllocateMemory(VKDevice::Device(), &allocInfo, nullptr, &m_Memory));
 
             vkBindBufferMemory(VKDevice::Device(), m_Buffer, m_Memory, 0);
-#endif
 
             if(data != nullptr)
                 SetData(size, data);
+#endif
         }
 
-        void VKBuffer::SetData(uint32_t size, const void* data)
+        void VKBuffer::SetData(uint32_t size, const void* data, bool addBarrier)
         {
             LUMOS_PROFILE_FUNCTION();
             Map(size, 0);
             memcpy(m_Mapped, data, size);
             UnMap();
+
+            if(addBarrier)
+            {
+                VkBufferMemoryBarrier bufferBarrier = {};
+                bufferBarrier.sType                 = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
+                bufferBarrier.srcAccessMask         = VK_ACCESS_TRANSFER_WRITE_BIT;
+                bufferBarrier.dstAccessMask         = VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT;
+                bufferBarrier.srcQueueFamilyIndex   = VK_QUEUE_FAMILY_IGNORED;
+                bufferBarrier.dstQueueFamilyIndex   = VK_QUEUE_FAMILY_IGNORED;
+                bufferBarrier.buffer                = m_Buffer;
+                bufferBarrier.offset                = 0;
+                bufferBarrier.size                  = VK_WHOLE_SIZE;
+
+                vkCmdPipelineBarrier(((VKCommandBuffer*)Renderer::GetMainSwapChain()->GetCurrentCommandBuffer())->GetHandle(), VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_VERTEX_INPUT_BIT, 0, 0, nullptr, 1, &bufferBarrier, 0, nullptr);
+            }
         }
 
         void VKBuffer::Resize(uint32_t size, const void* data)
@@ -149,8 +275,8 @@ namespace Lumos
                 auto memory = m_Memory;
                 deletionQueue.PushFunction([buffer, memory]
                                            {
-                        vkDestroyBuffer(VKDevice::Device(), buffer, nullptr);
-                        vkFreeMemory(VKDevice::Device(), memory, nullptr); });
+                                               vkDestroyBuffer(VKDevice::Device(), buffer, nullptr);
+                                               vkFreeMemory(VKDevice::Device(), memory, nullptr); });
 #endif
             }
 

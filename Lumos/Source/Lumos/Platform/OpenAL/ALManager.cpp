@@ -6,6 +6,8 @@
 #include "Utilities/TimeStep.h"
 #include "Scene/Component/SoundComponent.h"
 #include "Scene/Scene.h"
+#include "Maths/Transform.h"
+
 #include <imgui/imgui.h>
 
 namespace Lumos
@@ -26,19 +28,23 @@ namespace Lumos
             alcCloseDevice(m_Device);
         }
 
-        void ALManager::OnInit()
+        bool ALManager::OnInit()
         {
             LUMOS_PROFILE_FUNCTION();
             m_Device  = alcOpenDevice(nullptr);
             m_Context = alcCreateContext(m_Device, nullptr);
 
             if(!m_Device)
+            {
                 LUMOS_LOG_INFO("Failed to Initialise AudioManager! (No valid device!)");
+                return false;
+            }
 
             alcMakeContextCurrent(m_Context);
             alDistanceModel(AL_LINEAR_DISTANCE_CLAMPED);
 
             LUMOS_LOG_INFO("Initialised AudioManager - {0}", alcGetString(m_Device, ALC_DEVICE_SPECIFIER));
+            return true;
         }
 
         void ALManager::OnUpdate(const TimeStep& dt, Scene* scene)

@@ -55,7 +55,7 @@ struct ImGui_ImplVulkan_InitInfo
     uint32_t                        QueueFamily;
     VkQueue                         Queue;
     VkPipelineCache                 PipelineCache;
-    VkDescriptorPool                DescriptorPool;
+    VkDescriptorPool*               DescriptorPools;
     uint32_t                        Subpass;
     uint32_t                        MinImageCount;          // >= 2
     uint32_t                        ImageCount;             // >= MinImageCount
@@ -85,8 +85,8 @@ IMGUI_IMPL_API void         ImGui_ImplVulkan_SetMinImageCount(uint32_t min_image
 // This is only useful with IMGUI_IMPL_VULKAN_NO_PROTOTYPES / VK_NO_PROTOTYPES
 IMGUI_IMPL_API bool ImGui_ImplVulkan_LoadFunctions(PFN_vkVoidFunction(*loader_func)(const char* function_name, void* user_data), void* user_data = NULL);
 IMGUI_IMPL_API void ImGui_ImplVulkan_AddTexture(ImTextureID id, VkDescriptorSet sets,  uint32_t index);
-IMGUI_IMPL_API void ImGui_ImplVulkan_ClearDescriptors();
-IMGUI_IMPL_API std::unordered_map<ImTextureID, const VkDescriptorImageInfo*>& ImGui_ImplVulkan_GetDescriptorImageMap();
+IMGUI_IMPL_API void ImGui_ImplVulkan_ClearDescriptors(uint32_t index);
+IMGUI_IMPL_API std::unordered_map<ImTextureID, VkDescriptorImageInfo>& ImGui_ImplVulkan_GetDescriptorImageMap();
 IMGUI_IMPL_API bool         ImGui_ImplVulkan_LoadFunctions(PFN_vkVoidFunction(*loader_func)(const char* function_name, void* user_data), void* user_data);
 
 //-------------------------------------------------------------------------

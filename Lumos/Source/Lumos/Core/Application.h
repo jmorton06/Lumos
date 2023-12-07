@@ -2,7 +2,7 @@
 #include "Core/Reference.h"
 #include "Scene/SceneManager.h"
 #include "Scene/SystemManager.h"
-#include "Core/VFS.h"
+#include "Core/OS/FileSystem.h"
 
 #include <thread>
 #include <cereal/types/vector.hpp>
@@ -88,6 +88,7 @@ namespace Lumos
         EditorState GetEditorState() const { return m_EditorState; }
         SystemManager* GetSystemManager() const { return m_SystemManager.get(); }
         Scene* GetCurrentScene() const;
+        ImGuiManager* GetImGuiManager() const { return m_ImGuiManager.get(); }
 
         void SetAppState(AppState state) { m_CurrentState = state; }
         void SetEditorState(EditorState state) { m_EditorState = state; }
@@ -189,7 +190,7 @@ namespace Lumos
             for(auto& path : paths)
             {
                 std::string newPath;
-                VFS::Get().AbsoulePathToVFS(path, newPath);
+                FileSystem::Get().AbsolutePathToFileSystem(path, newPath);
                 newPaths.push_back(path);
             }
             archive(cereal::make_nvp("Scenes", newPaths));
@@ -260,11 +261,9 @@ namespace Lumos
 
             if(m_ProjectSettings.ProjectVersion > 6)
                 archive(cereal::make_nvp("GPUIndex", m_ProjectSettings.DesiredGPUIndex));
-
-            VFS::Get().Mount("CoreShaders", m_ProjectSettings.m_EngineAssetPath + std::string("Shaders"));
         }
 
-        void MountVFSPaths();
+        void MountFileSystemPaths();
 
         struct ProjectSettings
         {
@@ -295,6 +294,7 @@ namespace Lumos
         RenderConfig& GetRenderConfigSettings() { return m_RenderConfig; }
 
         Arena* GetFrameArena() const { return m_FrameArena; }
+        static void UpdateSystems();
 
     protected:
         ProjectSettings m_ProjectSettings;
@@ -305,7 +305,6 @@ namespace Lumos
         void AddDefaultScene();
 
         bool OnWindowClose(WindowCloseEvent& e);
-        static void UpdateSystems();
         bool ShouldUpdateSystems = false;
 
         uint32_t m_Frames              = 0;
@@ -345,6 +344,7 @@ namespace Lumos
         std::mutex m_MainThreadQueueMutex;
 
         Arena* m_FrameArena;
+        Arena* m_Arena;
 
         NONCOPYABLE(Application)
     };

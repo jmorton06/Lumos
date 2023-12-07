@@ -1,7 +1,7 @@
 #ifndef __TRACYDECAYVALUE_HPP__
 #define __TRACYDECAYVALUE_HPP__
 
-#include "../common/TracyForceInline.hpp"
+#include "../public/common/TracyForceInline.hpp"
 
 namespace tracy
 {
@@ -42,14 +42,6 @@ private:
     T m_value;
     bool m_active;
 };
-
-static tracy_force_inline uint32_t DarkenColor( uint32_t color )
-{
-    return 0xFF000000 |
-        ( ( ( ( color & 0x00FF0000 ) >> 16 ) * 2 / 3 ) << 16 ) |
-        ( ( ( ( color & 0x0000FF00 ) >> 8  ) * 2 / 3 ) << 8  ) |
-        ( ( ( ( color & 0x000000FF )       ) * 2 / 3 )       );
-}
 
 }
 

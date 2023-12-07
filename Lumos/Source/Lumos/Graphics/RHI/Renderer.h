@@ -1,5 +1,4 @@
 #pragma once
-#include "Core/OS/Window.h"
 #include "Graphics/RHI/Definitions.h"
 #include <glm/vec4.hpp>
 
@@ -10,6 +9,7 @@ namespace Lumos
         class Mesh;
         class Pipeline;
         class DescriptorSet;
+        class SwapChain;
 
         struct RenderAPICapabilities
         {
@@ -31,9 +31,9 @@ namespace Lumos
             Renderer()          = default;
             virtual ~Renderer() = default;
 
-            static void Init(bool loadEmbeddedShaders = true);
+            static void Init(bool loadEmbeddedShaders = true, const std::string& engineShaderPath = "");
             static void Release();
-            void LoadEngineShaders(bool loadEmbeddedShaders);
+            void LoadEngineShaders(bool loadEmbeddedShaders, const std::string& engineShaderPath);
             virtual void InitInternal()                            = 0;
             virtual void Begin()                                   = 0;
             virtual void OnResize(uint32_t width, uint32_t height) = 0;
@@ -55,6 +55,7 @@ namespace Lumos
             virtual uint32_t GetGPUCount() const { return 1; }
             virtual bool SupportsCompute() { return false; }
             virtual void SaveScreenshot(const std::string& path, Graphics::Texture* texture = nullptr) {};
+            virtual RHIFormat GetDepthFormat() { return RHIFormat::D32_Float; };
 
             inline static void Present()
             {

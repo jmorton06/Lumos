@@ -4,6 +4,7 @@ require 'Scripts/premake-utilities/premake-triggers'
 require 'Scripts/premake-utilities/premake-settings'
 require 'Scripts/premake-utilities/android_studio'
 
+include "premake-dependencies.lua"
 --require 'Scripts/premake-utilities/premake-vscode/vscode'
 
 root_dir = os.getcwd()
@@ -66,8 +67,6 @@ workspace( settings.workspace_name )
 			SetRecommendedSettings()
 		require("Lumos/External/spdlog/premake5")
 			SetRecommendedSettings()
-		require("Lumos/External/ozz-animation/premake5")
-SetRecommendedSettings()
 		require("Lumos/External/ModelLoaders/meshoptimizer/premake5")
 			SetRecommendedSettings()
 		-- require("Lumos/External/msdf-atlas-gen/msdfgen/premake5")

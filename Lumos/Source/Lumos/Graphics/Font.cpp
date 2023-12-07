@@ -4,7 +4,7 @@
 #include "Core/OS/FileSystem.h"
 #include "Core/Buffer.h"
 #include "RHI/Texture.h"
-#include "Core/VFS.h"
+#include "Core/OS/FileSystem.h"
 #include "Core/Application.h"
 
 #if __has_include(<filesystem>)
@@ -15,6 +15,7 @@
 
 #include <imgui/Plugins/ImGuiAl/fonts/RobotoRegular.inl>
 #include <stb/deprecated/stb.h>
+#include <spdlog/fmt/bundled/format.h>
 
 #define FONT_DEBUG_LOG 0
 #if FONT_DEBUG_LOG
@@ -272,7 +273,7 @@ namespace Lumos
             if(m_FontDataSize == 0)
             {
                 std::string outPath;
-                if(!VFS::Get().ResolvePhysicalPath(m_FilePath, outPath))
+                if(!FileSystem::Get().ResolvePhysicalPath(m_FilePath, outPath))
                     return;
 
                 FONT_LOG("Font: Loading Font {0}", m_FilePath);

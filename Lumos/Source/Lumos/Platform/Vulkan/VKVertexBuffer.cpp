@@ -9,17 +9,22 @@ namespace Lumos
     namespace Graphics
     {
         VKVertexBuffer::VKVertexBuffer(const BufferUsage& usage)
-            : VKBuffer()
+            : VKBuffer(VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, usage == BufferUsage::DYNAMIC ? VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT : 0, 0, nullptr)
             , m_Usage(usage)
             , m_Size(0)
         {
-            VKBuffer::SetUsage(VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
-            VKBuffer::SetMemoryProperyFlags(VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
+        }
+
+        VKVertexBuffer::VKVertexBuffer(uint32_t size, const void* data, const BufferUsage& usage)
+            : VKBuffer(VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, usage == BufferUsage::DYNAMIC ? VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT : 0, size, data)
+            , m_Usage(usage)
+            , m_Size(size)
+        {
         }
 
         VKVertexBuffer::~VKVertexBuffer()
         {
-            LUMOS_PROFILE_FUNCTION();
+            LUMOS_PROFILE_FUNCTION_LOW();
             if(m_MappedBuffer)
             {
                 VKBuffer::Flush(m_Size);
@@ -30,7 +35,7 @@ namespace Lumos
 
         void VKVertexBuffer::Resize(uint32_t size)
         {
-            LUMOS_PROFILE_FUNCTION();
+            LUMOS_PROFILE_FUNCTION_LOW();
 
             if(m_Size != size)
             {
@@ -39,9 +44,9 @@ namespace Lumos
             }
         }
 
-        void VKVertexBuffer::SetData(uint32_t size, const void* data)
+        void VKVertexBuffer::SetData(uint32_t size, const void* data, bool addBarrier)
         {
-            LUMOS_PROFILE_FUNCTION();
+            LUMOS_PROFILE_FUNCTION_LOW();
             if(m_Size < size)
             {
                 m_Size = size;
@@ -49,13 +54,13 @@ namespace Lumos
             }
             else
             {
-                VKBuffer::SetData(size, data);
+                VKBuffer::SetData(size, data, addBarrier);
             }
         }
 
         void VKVertexBuffer::SetDataSub(uint32_t size, const void* data, uint32_t offset)
         {
-            LUMOS_PROFILE_FUNCTION();
+            LUMOS_PROFILE_FUNCTION_LOW();
             m_Size = size;
 
             if(m_Size < size)
@@ -71,7 +76,7 @@ namespace Lumos
 
         void* VKVertexBuffer::GetPointerInternal()
         {
-            LUMOS_PROFILE_FUNCTION();
+            LUMOS_PROFILE_FUNCTION_LOW();
             if(!m_MappedBuffer)
             {
                 VKBuffer::Map();
@@ -83,7 +88,7 @@ namespace Lumos
 
         void VKVertexBuffer::ReleasePointer()
         {
-            LUMOS_PROFILE_FUNCTION();
+            LUMOS_PROFILE_FUNCTION_LOW();
             if(m_MappedBuffer)
             {
                 VKBuffer::Flush(m_Size);
@@ -94,7 +99,7 @@ namespace Lumos
 
         void VKVertexBuffer::Bind(CommandBuffer* commandBuffer, Pipeline* pipeline)
         {
-            LUMOS_PROFILE_FUNCTION();
+            LUMOS_PROFILE_FUNCTION_LOW();
             VkDeviceSize offsets[1] = { 0 };
             if(commandBuffer)
                 vkCmdBindVertexBuffers(static_cast<VKCommandBuffer*>(commandBuffer)->GetHandle(), 0, 1, &m_Buffer, offsets);
@@ -106,12 +111,18 @@ namespace Lumos
 
         void VKVertexBuffer::MakeDefault()
         {
-            CreateFunc = CreateFuncVulkan;
+            CreateFunc         = CreateFuncVulkan;
+            CreateWithDataFunc = CreateFuncWithDataVulkan;
         }
 
         VertexBuffer* VKVertexBuffer::CreateFuncVulkan(const BufferUsage& usage)
         {
             return new VKVertexBuffer(usage);
+        }
+
+        VertexBuffer* VKVertexBuffer::CreateFuncWithDataVulkan(uint32_t size, const void* data, const BufferUsage& usage)
+        {
+            return new VKVertexBuffer(size, data, usage);
         }
     }
 }

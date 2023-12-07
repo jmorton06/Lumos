@@ -20,6 +20,7 @@ namespace Lumos
             void ExecuteSecondary(CommandBuffer* primaryCmdBuffer) override;
 
             void BindPipeline(Pipeline* pipeline) override;
+            void BindPipeline(Pipeline* pipeline, uint32_t layer) override;
             void UnBindPipeline() override;
 
             void UpdateViewport(uint32_t width, uint32_t height, bool flipViewport) override {};
@@ -30,7 +31,8 @@ namespace Lumos
 
         private:
             bool primary;
-            Pipeline* m_BoundPipeline = nullptr;
+            uint32_t m_BoundPipelineLayer = 0;
+            Pipeline* m_BoundPipeline     = nullptr;
         };
     }
 }

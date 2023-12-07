@@ -1,218 +1,214 @@
 #include "Precompiled.h"
 #include "CommandLine.h"
-
-#include <algorithm>
-#include <iomanip>
+#include "Maths/MathsUtilities.h"
+#include "Core/Thread.h"
 
 namespace Lumos
 {
-#if 0
-    argument_t::argument_t()
-		: m_Enabled{false}, m_LongName{}, m_ArgValue{}, m_ShortName{0} {}
-	
-    argument_t::argument_t(std::string longName, char shortName, std::string argVal)
-		: m_Enabled{true}, m_LongName{std::move(longName)}, m_ArgValue{std::move(argVal)}, m_ShortName{shortName} {}
-	
-    void argument_t::AsCheck() const
-	{
-        if(!m_Enabled) 
-			LUMOS_LOG_ERROR("Option {0} is not provided. Type --help or -h for help", m_LongName);
-        
-        if(m_ArgValue.empty())
-			LUMOS_LOG_ERROR("Option {0} does not have an argument. Type --help or -h for help", m_LongName);
-    }
-	
-    std::string argument_t::AsString() const
+    uint64_t CommandLineHashFromString(String8 string)
     {
-        AsCheck();
-        return m_ArgValue;
-    }
-	
-    int argument_t::AsInteger() const
-    {
-        AsCheck();
-        return stoi(m_ArgValue);
-    }
-	
-	 float argument_t::AsFloat() const
-    {
-        AsCheck();
-        return stof(m_ArgValue);
-    }
-#endif
-
-    CommandLine::CommandLine()
-    {
-        m_Description = "Lumos Command Line Parser";
-    }
-
-    CommandLine::CommandLine(std::string description)
-        : m_Description(std::move(description))
-    {
-    }
-
-    void CommandLine::AddArgument(const std::vector<std::string>& flags,
-                                  const Value& value, const std::string& help)
-    {
-        m_Arguments.emplace_back(Argument { flags, value, help });
-    }
-
-    void CommandLine::PrintHelp(std::ostream& os) const
-    {
-
-        // Print the general description.
-        os << m_Description << std::endl;
-
-        // Find the argument with the longest combined flag length (in order
-        // to align the help messages).
-
-        uint32_t maxFlagLength = 0;
-
-        for(auto const& argument : m_Arguments)
+        uint64_t result = 5381;
+        for(uint64_t i = 0; i < string.size; i += 1)
         {
-            uint32_t flagLength = 0;
-            for(const auto& flag : argument.m_Flags)
-            {
-                // Plus comma and space.
-                flagLength += static_cast<uint32_t>(flag.size()) + 2;
-            }
+            result = ((result << 5) + result) + string.str[i];
+        }
+        return result;
+    }
 
-            maxFlagLength = std::max(maxFlagLength, flagLength);
+    CommandLine CommandLineFromStringList(Arena* arena, String8List strings)
+    {
+        ArenaTemp scratch = ScratchBegin(&arena, 1);
+
+        CommandLine cmdln = { 0 };
+        cmdln.slots_count = 64;
+        cmdln.slots       = PushArray(arena, CommandLineOptSlot, cmdln.slots_count);
+
+        String8List separated_strings = { 0 };
+        for(String8Node* n = strings.first; n != 0; n = n->next)
+        {
+            String8List strings_from_this_n = { 0 };
+            uint64_t start_idx              = 0;
+            bool quoted                     = 0;
+            bool seeking_non_ws             = 0;
+
+            for(uint64_t idx = 0; idx <= n->string.size; idx += 1)
+            {
+                if(seeking_non_ws && idx < n->string.size && !CharIsSpace(n->string.str[idx]))
+                {
+                    seeking_non_ws = 0;
+                    start_idx      = idx;
+                }
+                if(!seeking_non_ws && (idx == n->string.size || n->string.str[idx] == ' ' || n->string.str[idx] == '"'))
+                {
+                    String8 string = Substr8(n->string, Range1U64({ start_idx, idx }));
+                    Str8ListPush(scratch.arena, &strings_from_this_n, string);
+                    start_idx = idx + 1;
+                    if(n->string.str[idx] == ' ')
+                    {
+                        seeking_non_ws = 1;
+                    }
+                }
+                if(idx < n->string.size && n->string.str[idx] == '"')
+                {
+                    quoted ^= 1;
+                }
+            }
+            Str8ListConcatInPlace(&separated_strings, &strings_from_this_n);
         }
 
-        // Now print each argument.
-        for(const auto& argument : m_Arguments)
+        CommandLineOptNode* active_opt_node = 0;
+        for(String8Node* n = separated_strings.first; n != 0; n = n->next)
         {
-            std::string flags;
-            for(auto const& flag : argument.m_Flags)
+            String8 piece      = Str8SkipChopWhitespace(n->string);
+            bool double_dash   = Str8Match(Prefix8(piece, 2), Str8Lit("--"), 0);
+            bool single_dash   = Str8Match(Prefix8(piece, 1), Str8Lit("-"), 0);
+            bool value_for_opt = (active_opt_node != 0);
+
+            if(value_for_opt == 0 && (double_dash || single_dash))
             {
-                flags += flag + ", ";
+                uint64_t dash_prefix_size       = !!single_dash + !!double_dash;
+                String8 opt_part                = Str8Skip(piece, dash_prefix_size);
+                uint64_t colon_pos              = FindSubstr8(opt_part, Str8Lit(":"), 0, 0);
+                uint64_t equal_pos              = FindSubstr8(opt_part, Str8Lit("="), 0, 0);
+                uint64_t value_specifier_pos    = Maths::Min(colon_pos, equal_pos);
+                String8 opt_name                = Prefix8(opt_part, value_specifier_pos);
+                String8 first_part_of_opt_value = Str8Skip(opt_part, value_specifier_pos + 1);
+                uint64_t hash                   = CommandLineHashFromString(opt_name);
+                uint64_t slot_idx               = hash % cmdln.slots_count;
+                CommandLineOptSlot* slot        = &cmdln.slots[slot_idx];
+                CommandLineOptNode* node        = PushArray(arena, CommandLineOptNode, 1);
+                QueuePush(slot->first, slot->last, node);
+                node->name = opt_name;
+                if(first_part_of_opt_value.size != 0)
+                {
+                    Str8ListPush(arena, &node->values, first_part_of_opt_value);
+                }
+                if(value_specifier_pos < opt_part.size && (first_part_of_opt_value.size == 0 || Str8Match(Suffix8(first_part_of_opt_value, 1), Str8Lit(","), 0)))
+                {
+                    active_opt_node = node;
+                }
+            }
+            else if(value_for_opt)
+            {
+                String8 splits[]        = { Str8Lit(",") };
+                String8List value_parts = StrSplit8(arena, piece, ArrayCount(splits), splits);
+                Str8ListConcatInPlace(&active_opt_node->values, &value_parts);
+                if(!Str8Match(Suffix8(piece, 1), Str8Lit(","), 0))
+                {
+                    active_opt_node = 0;
+                }
             }
 
-            // Remove last comma and space and add padding according to the
-            // longest flags in order to align the help messages.
-            std::stringstream sstr;
-            sstr << std::left << std::setw(maxFlagLength)
-                 << flags.substr(0, flags.size() - 2);
-
-            // Print the help for each argument. This is a bit more involved
-            // since we do line wrapping for long descriptions.
-            size_t spacePos  = 0;
-            size_t lineWidth = 0;
-            while(spacePos != std::string::npos)
             {
-                size_t nextspacePos = argument.m_Help.find_first_of(' ', spacePos + 1);
-                sstr << argument.m_Help.substr(spacePos, nextspacePos - spacePos);
-                lineWidth += nextspacePos - spacePos;
-                spacePos = nextspacePos;
+                Str8ListPush(arena, &cmdln.inputs, piece);
+            }
+        }
 
-                if(lineWidth > 60)
+        {
+            for(uint64_t slot_idx = 0; slot_idx < cmdln.slots_count; slot_idx += 1)
+            {
+                for(CommandLineOptNode* n = cmdln.slots[slot_idx].first; n != 0; n = n->next)
                 {
-                    os << sstr.str() << std::endl;
-                    sstr = std::stringstream();
-                    sstr << std::left << std::setw(maxFlagLength - 1) << " ";
-                    lineWidth = 0;
+                    StringJoin join = { Str8Lit(""), Str8Lit(","), Str8Lit("") };
+                    n->value        = Str8ListJoin(arena, n->values, &join);
                 }
             }
         }
+
+        ScratchEnd(scratch);
+        return cmdln;
     }
 
-    void CommandLine::Parse(int argc, char** argv)
+    String8List CommandLineOptStrings(CommandLine* cmdln, String8 name)
     {
-        m_Argc = argc;
-        m_Argv = argv;
-
-        // Skip the first argument (name of the program).
-        int i = 1;
-        while(i < argc)
+        String8List result = { 0 };
         {
-            // First we have to identify wether the value is separated by a space
-            // or a '='.
-            std::string flag(argv[i]);
-            std::string value;
-            bool valueIsSeparate = false;
-
-            // If there is an '=' in the flag, the part after the '=' is actually
-            // the value.
-            size_t equalPos = flag.find('=');
-            if(equalPos != std::string::npos)
+            uint64_t hash            = CommandLineHashFromString(name);
+            uint64_t slot_idx        = hash % cmdln->slots_count;
+            CommandLineOptSlot* slot = &cmdln->slots[slot_idx];
+            CommandLineOptNode* node = 0;
+            for(CommandLineOptNode* n = slot->first; n != 0; n = n->next)
             {
-                value = flag.substr(equalPos + 1);
-                flag  = flag.substr(0, equalPos);
-            }
-            // Else the following argument is the value.
-            else if(i + 1 < argc)
-            {
-                value           = argv[i + 1];
-                valueIsSeparate = true;
-            }
-
-            // Search for an argument with the provided flag.
-            bool foundArgument = false;
-
-            for(auto const& argument : m_Arguments)
-            {
-                if(std::find(argument.m_Flags.begin(), argument.m_Flags.end(), flag)
-                   != std::end(argument.m_Flags))
+                if(Str8Match(n->name, name, 0))
                 {
-
-                    foundArgument = true;
-
-                    // In the case of booleans, there must not be a value present.
-                    // So if the value is neither 'true' nor 'false' it is considered
-                    // to be the next argument.
-                    if(std::holds_alternative<bool*>(argument.m_Value))
-                    {
-                        if(!value.empty() && value != "true" && value != "false")
-                        {
-                            valueIsSeparate = false;
-                        }
-                        *std::get<bool*>(argument.m_Value) = (value != "false");
-                    }
-                    // In all other cases there must be a value.
-                    else if(value.empty())
-                    {
-                        LUMOS_LOG_ERROR(
-                            "Failed to parse command line arguments: "
-                            "Missing value for argument \""
-                            + flag + "\"!");
-                    }
-                    // For a std::string, we take the entire value.
-                    else if(std::holds_alternative<std::string*>(argument.m_Value))
-                    {
-                        *std::get<std::string*>(argument.m_Value) = value;
-                    }
-                    // In all other cases we use a std::stringstream to
-                    // convert the value.
-                    else
-                    {
-                        std::visit(
-                            [&value](auto&& arg)
-                            {
-                                std::stringstream sstr(value);
-                                sstr >> *arg;
-                            },
-                            argument.m_Value);
-                    }
-
+                    node = n;
                     break;
                 }
             }
-
-            // Print a warning if there was an unknown argument.
-            if(!foundArgument)
+            if(node != 0)
             {
-                LUMOS_LOG_ERROR("Ignoring unknown command line argument {0}", flag);
-
-                // Advance to the next flag.
-                i++;
-
-                // If the value was separated, we have to advance our index once more.
-                if(foundArgument && valueIsSeparate)
-                {
-                    i++;
-                }
+                result = node->values;
             }
         }
+        return result;
     }
+
+    String8 CommandLineOptString(CommandLine* cmdln, String8 name)
+    {
+        String8 result = { 0 };
+        {
+            uint64_t hash            = CommandLineHashFromString(name);
+            uint64_t slot_idx        = hash % cmdln->slots_count;
+            CommandLineOptSlot* slot = &cmdln->slots[slot_idx];
+            CommandLineOptNode* node = 0;
+            for(CommandLineOptNode* n = slot->first; n != 0; n = n->next)
+            {
+                if(Str8Match(n->name, name, 0))
+                {
+                    node = n;
+                    break;
+                }
+            }
+            if(node != 0)
+            {
+                result = node->value;
+            }
+        }
+        return result;
+    }
+
+    bool CommandLineOptBool(CommandLine* cmdln, String8 name)
+    {
+        bool result = 0;
+        {
+            uint64_t hash            = CommandLineHashFromString(name);
+            uint64_t slot_idx        = hash % cmdln->slots_count;
+            CommandLineOptSlot* slot = &cmdln->slots[slot_idx];
+            CommandLineOptNode* node = 0;
+            for(CommandLineOptNode* n = slot->first; n != 0; n = n->next)
+            {
+                if(Str8Match(n->name, name, 0))
+                {
+                    node = n;
+                    break;
+                }
+            }
+            if(node != 0)
+            {
+                result = (node->value.size == 0 || Str8Match(node->value, Str8Lit("true"), MatchFlag_CaseInsensitive) || Str8Match(node->value, Str8Lit("1"), MatchFlag_CaseInsensitive));
+            }
+        }
+        return result;
+    }
+
+    double CommandLineOptDouble(CommandLine* cmdln, String8 name)
+    {
+        double result = 0;
+        {
+            String8 string = CommandLineOptString(cmdln, name);
+            result         = DoubleFromStr8(string);
+        }
+        return result;
+    }
+
+    int64_t CommandLineOptInt64(CommandLine* cmdln, String8 name)
+    {
+        int64_t result = 0;
+        {
+            String8 string = CommandLineOptString(cmdln, name);
+            result         = CStyleIntFromStr8(string);
+        }
+        return result;
+    }
+
 }

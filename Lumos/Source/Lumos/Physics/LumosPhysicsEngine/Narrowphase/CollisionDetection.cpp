@@ -806,8 +806,9 @@ namespace Lumos
     glm::vec3 CollisionDetection::GetClosestPointOnEdges(const glm::vec3& target, const std::vector<CollisionEdge>& edges)
     {
         LUMOS_PROFILE_FUNCTION_LOW();
-        glm::vec3 closest_point, temp_closest_point;
-        float closest_distsq = FLT_MAX;
+        glm::vec3 closest_point      = glm::vec3(0.0f);
+        glm::vec3 temp_closest_point = glm::vec3(0.0f);
+        float closest_distsq         = FLT_MAX;
 
         for(const CollisionEdge& edge : edges)
         {

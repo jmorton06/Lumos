@@ -2,7 +2,7 @@
 #include "Editor.h"
 #include <Lumos/Core/OS/FileSystem.h>
 #include <Lumos/Core/OS/Input.h>
-#include <Lumos/Core/StringUtilities.h>
+#include <Lumos/Utilities/StringUtilities.h>
 #include <Lumos/Scripting/Lua/LuaManager.h>
 
 #include <imgui/imgui.h>

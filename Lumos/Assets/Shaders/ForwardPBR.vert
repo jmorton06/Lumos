@@ -45,7 +45,7 @@ void main()
 	//VertexOutput.Normal = mat3(pushConsts.transform) * inNormal;
 	mat3 transposeInv = transpose(inverse(mat3(pushConsts.transform)));
     VertexOutput.Normal = transposeInv * inNormal;
-
+    
     VertexOutput.WorldNormal = transposeInv * mat3(inTangent, inBitangent, inNormal);
-
+    
 }

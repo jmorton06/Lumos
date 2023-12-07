@@ -5,7 +5,7 @@
 #include "Maths/Transform.h"
 #include "Graphics/RHI/Texture.h"
 #include "Maths/Maths.h"
-#include "Core/StringUtilities.h"
+#include "Utilities/StringUtilities.h"
 #include "Core/Application.h"
 #include "Utilities/AssetManager.h"
 

@@ -2,7 +2,7 @@
 #include "LuaManager.h"
 #include "Maths/Transform.h"
 #include "Core/OS/Window.h"
-#include "Core/VFS.h"
+#include "Core/OS/FileSystem.h"
 #include "Scene/Scene.h"
 #include "Core/Application.h"
 #include "Core/Engine.h"
@@ -33,7 +33,9 @@
 
 #include <imgui/imgui.h>
 #include <sol/sol.hpp>
-#include <Tracy/TracyLua.hpp>
+#if LUMOS_PROFILE
+#include <Tracy/public/tracy/TracyLua.hpp>
+#endif
 
 #if __has_include(<filesystem>)
 #include <filesystem>
@@ -187,14 +189,29 @@ namespace Lumos
     {
     }
 
+    struct TracyEmpty
+    {
+    };
+
+    static void Empty()
+    {
+    }
+
     void LuaManager::OnInit()
     {
         LUMOS_PROFILE_FUNCTION();
 
         m_State = new sol::state();
         m_State->open_libraries(sol::lib::base, sol::lib::package, sol::lib::math, sol::lib::table, sol::lib::os, sol::lib::string);
+#if LUMOS_PROFILE && defined(TRACY_ENABLE)
         tracy::LuaRegister(m_State->lua_state());
-
+#else
+        sol::usertype<TracyEmpty> app_type = m_State->new_usertype<TracyEmpty>("tracy");
+        app_type.set_function("ZoneBegin", &Empty);
+        app_type.set_function("ZoneEnd", &Empty);
+        app_type.set_function("ZoneName", &Empty);
+        app_type.set_function("ZoneMessage", &Empty);
+#endif
         BindAppLua(*m_State);
         BindInputLua(*m_State);
         BindMathsLua(*m_State);
@@ -222,7 +239,7 @@ namespace Lumos
 
         // auto& state = *m_State;
         // std::string ScriptsPath;
-        // VFS::Get().ResolvePhysicalPath("//Scripts", ScriptsPath);
+        // FileSystem::Get().ResolvePhysicalPath("//Assets/Scripts", ScriptsPath);
         //
         //// Setup the lua path to see luarocks packages
         // auto package_path = std::filesystem::path(ScriptsPath) / "lua" / "?.lua;";
@@ -263,7 +280,7 @@ namespace Lumos
     {
         auto& state = *m_State;
         std::string ScriptsPath;
-        VFS::Get().ResolvePhysicalPath("//Scripts", ScriptsPath);
+        FileSystem::Get().ResolvePhysicalPath("//Assets/Scripts", ScriptsPath);
 
         // Setup the lua path to see luarocks packages
         auto package_path = std::filesystem::path(ScriptsPath) / "lua" / "?.lua;";
@@ -280,10 +297,10 @@ namespace Lumos
         entt::entity e = entt::null;
         registry.view<NameComponent>().each([&](const entt::entity& entity, const NameComponent& component)
                                             {
-                if(name == component.name)
-                {
-                    e = entity;
-                } });
+                                                if(name == component.name)
+                                                {
+                                                    e = entity;
+                                                } });
 
         return e;
     }
@@ -551,8 +568,6 @@ namespace Lumos
                                       Lumos::Graphics::Model(Lumos::Graphics::PrimitiveType)>(),
                                   // Properties
                                   "meshes", &Lumos::Graphics::Model::GetMeshes,
-                                  "skeleton", &Lumos::Graphics::Model::GetSkeleton,
-                                  "animations", &Lumos::Graphics::Model::GetAnimations,
                                   "file_path", &Lumos::Graphics::Model::GetFilePath,
                                   "primitive_type", sol::property(&Lumos::Graphics::Model::GetPrimitiveType, &Lumos::Graphics::Model::SetPrimitiveType),
                                   // Methods
@@ -619,7 +634,7 @@ namespace Lumos
         RigidBody3DComponent_type.set_function("GetRigidBody", &RigidBody3DComponent::GetRigidBody);
 
         REGISTER_COMPONENT_WITH_ECS(state, RigidBody3DComponent, static_cast<RigidBody3DComponent& (Entity::*)(const RigidBody3DProperties&)>(&Entity::AddComponent<RigidBody3DComponent, const RigidBody3DProperties&>));
-        //REGISTER_COMPONENT_WITH_ECS(state, RigidBody3DComponent, static_cast<RigidBody3DComponent& (Entity::*)>(&Entity::AddComponent<RigidBody3DComponent));
+        // REGISTER_COMPONENT_WITH_ECS(state, RigidBody3DComponent, static_cast<RigidBody3DComponent& (Entity::*)>(&Entity::AddComponent<RigidBody3DComponent));
 
         sol::usertype<RigidBody2DComponent> RigidBody2DComponent_type = state.new_usertype<RigidBody2DComponent>("RigidBody2DComponent", sol::constructors<sol::types<const RigidBodyParameters&>>());
         RigidBody2DComponent_type.set_function("GetRigidBody", &RigidBody2DComponent::GetRigidBody);

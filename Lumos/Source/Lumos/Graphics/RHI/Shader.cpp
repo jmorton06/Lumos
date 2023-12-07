@@ -2,7 +2,7 @@
 #include "Shader.h"
 
 #include "Graphics/RHI/GraphicsContext.h"
-#include "Core/VFS.h"
+#include "Core/OS/FileSystem.h"
 
 #include <spirv_cross.hpp>
 

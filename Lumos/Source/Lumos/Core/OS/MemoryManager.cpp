@@ -1,6 +1,6 @@
 #include "Precompiled.h"
 #include "MemoryManager.h"
-#include "Core/StringUtilities.h"
+#include "Utilities/StringUtilities.h"
 
 namespace Lumos
 {

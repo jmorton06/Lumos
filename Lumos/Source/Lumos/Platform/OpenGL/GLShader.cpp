@@ -2,11 +2,13 @@
 #include "GLShader.h"
 
 #include "Platform/OpenGL/GL.h"
-#include "Core/VFS.h"
 #include "Core/OS/FileSystem.h"
-#include "Core/StringUtilities.h"
+#include "Core/OS/FileSystem.h"
+#include "Utilities/StringUtilities.h"
 
 #include <glm/gtc/type_ptr.hpp>
+
+#include <spirv_glsl.hpp>
 
 enum root_signature_spaces
 {
@@ -78,7 +80,7 @@ namespace Lumos
             m_Name = StringUtilities::GetFileName(filePath);
             m_Path = StringUtilities::GetFileLocation(filePath);
 
-            m_Source = VFS::Get().ReadTextFile(filePath);
+            m_Source = FileSystem::Get().ReadTextFile(filePath);
 
             Init();
         }
@@ -443,8 +445,8 @@ namespace Lumos
                             file.erase(j, rem.length());
                         file = StringUtilities::StringReplace(file, '\"');
                         LUMOS_LOG_WARN("Including file \'{0}\' into shader.", file);
-                        VFS::Get().ReadTextFile(file);
-                        ReadShaderFile(StringUtilities::GetLines(VFS::Get().ReadTextFile(file)), shaders);
+                        FileSystem::Get().ReadTextFile(file);
+                        ReadShaderFile(StringUtilities::GetLines(FileSystem::Get().ReadTextFile(file)), shaders);
                     }
                 }
                 else if(StringUtilities::StartsWith(str, "#if"))
@@ -970,7 +972,7 @@ namespace Lumos
         Shader* GLShader::CreateFuncGL(const std::string& filePath)
         {
             std::string physicalPath;
-            Lumos::VFS::Get().ResolvePhysicalPath(filePath, physicalPath);
+            Lumos::FileSystem::Get().ResolvePhysicalPath(filePath, physicalPath);
             GLShader* result = new GLShader(physicalPath);
             return result;
         }

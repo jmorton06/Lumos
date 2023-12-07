@@ -3,7 +3,7 @@
 #include "Editor.h"
 #include <Lumos/Maths/Frustum.h>
 #include <Lumos/Maths/Transform.h>
-#include <Lumos/Core/StringUtilities.h>
+#include <Lumos/Utilities/StringUtilities.h>
 #include <Lumos/ImGui/ImGuiUtilities.h>
 #include <Lumos/Maths/MathsUtilities.h>
 
@@ -59,12 +59,23 @@ namespace Lumos
                     ImGui::TextUnformatted(m_Editor->GetComponentIconMap()[typeid(T).hash_code()]);
                     ImGui::PopStyleColor();
 
-                    ImGuiUtilities::Tooltip(StringUtilities::Demangle(typeid(T).name()).c_str());
+                    const char* demangledName = nullptr;
+                    auto found                = m_DemangledNames.find(typeid(T).hash_code());
+                    if(found == m_DemangledNames.end())
+                    {
+                        m_DemangledNames[typeid(T).hash_code()] = StringUtilities::Demangle(typeid(T).name());
+                        demangledName                           = m_DemangledNames[typeid(T).hash_code()].c_str();
+                    }
+                    else
+                        demangledName = found->second.c_str();
+
+                    ImGuiUtilities::Tooltip(demangledName);
                 }
             }
         }
 
         std::unordered_map<size_t, bool> m_ShowComponentGizmoMap;
+        std::unordered_map<size_t, std::string> m_DemangledNames;
 
         bool m_ShowStats                                 = false;
         SharedPtr<Graphics::Texture2D> m_GameViewTexture = nullptr;

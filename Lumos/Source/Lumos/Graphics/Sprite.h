@@ -1,6 +1,6 @@
 #pragma once
 #include "Renderable2D.h"
-#include "Core/VFS.h"
+#include "Core/OS/FileSystem.h"
 
 #include "Scene/Serialisation.h"
 #include "Maths/MathsSerialisation.h"
@@ -36,7 +36,7 @@ namespace Lumos
                 std::string newPath = "";
                 if(m_Texture)
                 {
-                    VFS::Get().AbsoulePathToVFS(m_Texture->GetFilepath(), newPath);
+                    FileSystem::Get().AbsolutePathToFileSystem(m_Texture->GetFilepath(), newPath);
                 }
 
                 archive(cereal::make_nvp("TexturePath", newPath),
