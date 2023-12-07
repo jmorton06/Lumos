@@ -2,6 +2,7 @@
 #include "ResourcePanel.h"
 #include <Lumos/Core/OS/Input.h>
 #include <Lumos/Graphics/RHI/Texture.h>
+#include <Lumos/Graphics/RHI/IMGUIRenderer.h>
 #include <Lumos/Core/Profiler.h>
 #include <Lumos/Utilities/StringUtilities.h>
 #include <Lumos/Core/OS/Window.h>
@@ -14,7 +15,7 @@
 #include <Lumos/Embedded/browserFolder.inl>
 #include <Lumos/Core/OS/OS.h>
 #include <Lumos/Core/String.h>
-#include <Lumos/ImGui/IMGUIRenderer.h>
+#include <Lumos/ImGui/ImGuiManager.h>
 
 #ifdef LUMOS_PLATFORM_WINDOWS
 #include <Windows.h>
