@@ -2,25 +2,26 @@ version(1);
 project_name = "Lumos";
 open_recursively=true;
 patterns = {
-"*.c",
-"*.cpp",
+    "*.c",
+    "*.cpp",
 	"*.h",
 	"*.hpp",
 	"*.m",
-"*.mm",
-"*.bat",
-"*.sh",
-"*.glsl",
-"*.4coder",
-"*.vert",
+    "*.mm",
+    "*.bat",
+    "*.sh",
+    "*.glsl",
+    "*.glslh",
+    "*.4coder",
+    "*.vert",
 	"*.frag",
 	"*.comp",
 	"*.shader",
-"*.lua",
+    "*.lua",
 };
 blacklist_patterns = {
-".*",
-"Lumos/External/.*"
+    ".*",
+    "Lumos/External/.*"
 };
 load_paths_base = {
 	{ "./Lumos/Source", .relative = true, .recursive = true, },
@@ -29,37 +30,37 @@ load_paths_base = {
 	{ "./Editor", .relative = true, .recursive = true, },
 };
 load_paths = {
- { load_paths_base, .os = "win", },
- { load_paths_base, .os = "linux", },
- { load_paths_base, .os = "mac", },
+    { load_paths_base, .os = "win", },
+    { load_paths_base, .os = "linux", },
+    { load_paths_base, .os = "mac", },
 };
 
 command_list = {
- { .name = "build",
-   .out = "*compilation*", .footer_panel = true, .save_dirty_files = true,.cursor_at_end = true,
-   .cmd = { { "Scripts\Windows\BuildWindows.bat" , .os = "win"   },
+    { .name = "build",
+        .out = "*compilation*", .footer_panel = true, .save_dirty_files = true,.cursor_at_end = true,
+        .cmd = { { "Scripts\Windows\BuildWindows.bat" , .os = "win"   },
             { "./Scripts/Linux/BuildLinux.sh", .os = "linux" },
             { "./Scripts/MacOS/BuildMacOS.sh", .os = "mac"   }, }, },
-
- { .name = "run",
-   .out = "*Run - Release*", .footer_panel = true, .save_dirty_files = false,.cursor_at_end = true,
-   .cmd = { { "bin\\Release-windows-x86_64\\Runtime.exe", .os = "win"   },
+    
+    { .name = "run",
+        .out = "*Run - Release*", .footer_panel = true, .save_dirty_files = false,.cursor_at_end = true,
+        .cmd = { { "bin\\Release-windows-x86_64\\Runtime.exe", .os = "win"   },
             { "./Scripts/Linux/RunLinux.sh" , .os = "linux" },
             { "./Scripts/MacOS/RunMacOS.sh" , .os = "mac"   }, }, },
-
- { .name = "gen project",
-   .out = "*Generated Build Files*", .footer_panel = true, .save_dirty_files = false,.cursor_at_end = true,
-   .cmd = { { "Tools\premake5.exe vs2022", .os = "win"   },
+    
+    { .name = "gen project",
+        .out = "*Generated Build Files*", .footer_panel = true, .save_dirty_files = false,.cursor_at_end = true,
+        .cmd = { { "Tools\premake5.exe vs2022", .os = "win"   },
             { "Tools/linux/premake5 gmake2" , .os = "linux" },
             { "Tools/premake5 xcode4" , .os = "mac"   }, }, },
- { .name = "clean",
-   .out = "*Clean*", .footer_panel = true, .save_dirty_files = false,.cursor_at_end = true,
-   .cmd = { { "Tools\premake5.exe clean", .os = "win"   },
+    { .name = "clean",
+        .out = "*Clean*", .footer_panel = true, .save_dirty_files = false,.cursor_at_end = true,
+        .cmd = { { "Tools\premake5.exe clean", .os = "win"   },
             { "Tools/linux/premake5 clean" , .os = "linux" },
             { "./Scripts/MacOS/CleanMacOS.sh" , .os = "mac"   }, }, },
- { .name = "formatCode",
-   .out = "*Formatting Code*", .footer_panel = true, .save_dirty_files = false,.cursor_at_end = true,
-   .cmd = { { "", .os = "win"   },
+    { .name = "formatCode",
+        .out = "*Formatting Code*", .footer_panel = true, .save_dirty_files = false,.cursor_at_end = true,
+        .cmd = { { "", .os = "win"   },
             { "" , .os = "linux" },
             { "cd Scripts ; ./ClangFormat.sh" , .os = "mac"   }, }, },
 	{ .name = "compileShaders",
@@ -79,6 +80,12 @@ command_list = {
 		.cmd = { { "bin\\Release-windows-x86_64\\LumosEditor.exe", .os = "win"   },
             { "./Scripts/Linux/RunLinux-Editor.sh" , .os = "linux" },
             { "./Scripts/MacOS/RunMacOS-Editor.sh" , .os = "mac"   }, }, },
+    
+    { .name = "GitPull",
+		.out = "*Git Pull*", .footer_panel = true, .save_dirty_files = false,.cursor_at_end = true,
+		.cmd = { { "git pull", .os = "win"   },
+            { "git pull" , .os = "linux" },
+            { "git pull", .os = "mac"   }, }, },
 };
 fkey_command[1] = "gen project";
 fkey_command[2] = "build";
@@ -88,3 +95,4 @@ fkey_command[5] = "compileShaders";
 fkey_command[6] = "formatCode";
 fkey_command[7] = "buildEditor";
 fkey_command[8] = "runEditor";
+fkey_command[9] = "GitPull";

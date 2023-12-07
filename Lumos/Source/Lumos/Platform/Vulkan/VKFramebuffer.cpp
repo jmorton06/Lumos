@@ -5,6 +5,7 @@
 #include "VKInitialisers.h"
 #include "VKUtilities.h"
 #include "VKRenderer.h"
+#include "VKTexture.h"
 
 namespace Lumos
 {
@@ -13,16 +14,8 @@ namespace Lumos
         VKFramebuffer::VKFramebuffer(const FramebufferDesc& frameBufferInfo)
             : m_Framebuffer(nullptr)
         {
-            m_Width  = frameBufferInfo.width;
-            m_Height = frameBufferInfo.height;
-
-            //            if(frameBufferInfo.mipIndex >= 0)
-            //            {
-            //                m_Width = m_Width >> frameBufferInfo.mipIndex;
-            //                m_Height = m_Height >> frameBufferInfo.mipIndex;
-            //
-            //            }
-
+            m_Width           = frameBufferInfo.width;
+            m_Height          = frameBufferInfo.height;
             m_AttachmentCount = frameBufferInfo.attachmentCount;
 
             std::vector<VkImageView> attachments;

@@ -39,6 +39,7 @@ namespace Lumos
             void Submit() override;
 
             void BindPipeline(Pipeline* pipeline) override;
+            void BindPipeline(Pipeline* pipeline, uint32_t layer) override;
             void UnBindPipeline() override;
 
             void Execute(VkPipelineStageFlags flags, VkSemaphore signalSemaphore, bool waitFence);
@@ -64,6 +65,7 @@ namespace Lumos
             SharedPtr<VKFence> m_Fence;
             VkSemaphore m_Semaphore;
 
+            uint32_t m_BoundPipelineLayer = 0;
             Pipeline* m_BoundPipeline     = nullptr;
             RenderPass* m_BoundRenderPass = nullptr;
         };

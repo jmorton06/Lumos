@@ -21,7 +21,7 @@ local player = {}
 local camera = {}
 
 function CreatePlayer()
-    texture = LoadTextureWithParams("icon", "//Textures/TappyPlane/PNG/Planes/planeBlue1.png", TextureFilter.Linear, TextureWrap.ClampToEdge)
+    texture = LoadTextureWithParams("icon", "//Assets/Textures/TappyPlane/PNG/Planes/planeBlue1.png", TextureFilter.Linear, TextureWrap.ClampToEdge)
 
     player = entityManager:Create()
     player:AddSprite(Vector2.new(-0.4, -0.4), Vector2.new(0.8, 0.8), Vector4.new(1.0,1.0,1.0,1.0)):SetTexture(texture)
@@ -70,8 +70,8 @@ function OnInit()
   initPlayer(dungeon.levels[1])
   initBoss(dungeon.levels[#dungeon.levels])
 
-	SpriteSheetTexture = LoadTextureWithParams("icon", "//Textures/Dungeon/roguelikeDungeon_transparent.png", TextureFilter.Linear, TextureWrap.ClampToEdge)
-	gameOverTexture = LoadTextureWithParams("gameOver", "//Textures/TappyPlane/PNG/UI/textGameOver.png", TextureFilter.Linear, TextureWrap.ClampToEdge)
+	SpriteSheetTexture = LoadTextureWithParams("icon", "//Assets/Textures/Dungeon/roguelikeDungeon_transparent.png", TextureFilter.Linear, TextureWrap.ClampToEdge)
+	gameOverTexture = LoadTextureWithParams("gameOver", "//Assets/Textures/TappyPlane/PNG/UI/textGameOver.png", TextureFilter.Linear, TextureWrap.ClampToEdge)
 
 	scoreEntity = entityManager:Create()
 	scoreEntity:AddTransform()

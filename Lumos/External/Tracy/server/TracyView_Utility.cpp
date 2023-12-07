@@ -1,5 +1,8 @@
+#include <inttypes.h>
+
 #include "TracyColor.hpp"
 #include "TracyPrint.hpp"
+#include "TracyUtility.hpp"
 #include "TracyView.hpp"
 
 namespace tracy
@@ -7,8 +10,7 @@ namespace tracy
 
 uint32_t View::GetThreadColor( uint64_t thread, int depth )
 {
-    if( m_vd.dynamicColors == 0 ) return 0xFFCC5555;
-    return GetHsvColor( thread, depth );
+    return tracy::GetThreadColor( thread, depth, m_vd.dynamicColors != 0 );
 }
 
 uint32_t View::GetRawSrcLocColor( const SourceLocation& srcloc, int depth )
@@ -191,6 +193,27 @@ const ZoneEvent* View::FindZoneAtTime( uint64_t thread, int64_t time ) const
             if( !(*it)->HasChildren() ) return ret;
             timeline = &m_worker.GetZoneChildren( (*it)->Child() );
         }
+    }
+}
+
+const ZoneEvent* View::GetZoneChild( const ZoneEvent& zone, int64_t time ) const
+{
+    if( !zone.HasChildren() ) return nullptr;
+    auto& children = m_worker.GetZoneChildren( zone.Child() );
+    if( children.is_magic() )
+    {
+        auto& vec = *((Vector<ZoneEvent>*)&children);
+        auto it = std::upper_bound( vec.begin(), vec.end(), time, [] ( const auto& l, const auto& r ) { return l < r.Start(); } );
+        if( it != vec.begin() ) --it;
+        if( it->Start() > time || ( it->IsEndValid() && it->End() < time ) ) return nullptr;
+        return it;
+    }
+    else
+    {
+        auto it = std::upper_bound( children.begin(), children.end(), time, [] ( const auto& l, const auto& r ) { return l < r->Start(); } );
+        if( it != children.begin() ) --it;
+        if( (*it)->Start() > time || ( (*it)->IsEndValid() && (*it)->End() < time ) ) return nullptr;
+        return *it;
     }
 }
 
@@ -726,10 +749,11 @@ int64_t View::AdjustGpuTime( int64_t time, int64_t begin, int drift )
     return time + t / 1000000000 * drift;
 }
 
-uint64_t View::GetFrameNumber( const FrameData& fd, int i, uint64_t offset ) const
+uint64_t View::GetFrameNumber( const FrameData& fd, int i ) const
 {
     if( fd.name == 0 )
     {
+        const auto offset = m_worker.GetFrameOffset();
         if( offset == 0 )
         {
             return i;
@@ -745,9 +769,9 @@ uint64_t View::GetFrameNumber( const FrameData& fd, int i, uint64_t offset ) con
     }
 }
 
-const char* View::GetFrameText( const FrameData& fd, int i, uint64_t ftime, uint64_t offset ) const
+const char* View::GetFrameText( const FrameData& fd, int i, uint64_t ftime ) const
 {
-    const auto fnum = GetFrameNumber( fd, i, offset );
+    const auto fnum = GetFrameNumber( fd, i );
     static char buf[1024];
     if( fd.name == 0 )
     {
@@ -755,53 +779,47 @@ const char* View::GetFrameText( const FrameData& fd, int i, uint64_t ftime, uint
         {
             sprintf( buf, "Tracy init (%s)", TimeToString( ftime ) );
         }
-        else if( offset == 0 )
+        else if( i != 1 || !m_worker.IsOnDemand() )
         {
             sprintf( buf, "Frame %s (%s)", RealToString( fnum ), TimeToString( ftime ) );
-        }
-        else if( i == 1 )
-        {
-            sprintf( buf, "Missed frames (%s)", TimeToString( ftime ) );
         }
         else
         {
-            sprintf( buf, "Frame %s (%s)", RealToString( fnum ), TimeToString( ftime ) );
+            sprintf( buf, "Missed frames (%s)", TimeToString( ftime ) );
         }
     }
     else
     {
-        sprintf( buf, "%s %s (%s)", m_worker.GetString( fd.name ), RealToString( fnum ), TimeToString( ftime ) );
+        sprintf( buf, "%s %s (%s)", GetFrameSetName( fd ), RealToString( fnum ), TimeToString( ftime ) );
     }
     return buf;
 }
 
-const char* View::ShortenNamespace( const char* name ) const
+const char* View::GetFrameSetName( const FrameData& fd ) const
 {
-    if( m_namespace == Namespace::Full ) return name;
-    if( m_namespace == Namespace::Short )
-    {
-        auto ptr = name;
-        while( *ptr != '\0' ) ptr++;
-        while( ptr > name && *ptr != ':' ) ptr--;
-        if( *ptr == ':' ) ptr++;
-        return ptr;
-    }
+    return GetFrameSetName( fd, m_worker );
+}
 
-    static char buf[1024];
-    auto dst = buf;
-    auto ptr = name;
-    for(;;)
+const char* View::GetFrameSetName( const FrameData& fd, const Worker& worker )
+{
+    enum { Pool = 4 };
+    static char bufpool[Pool][64];
+    static int bufsel = 0;
+
+    if( fd.name == 0 )
     {
-        auto start = ptr;
-        while( *ptr != '\0' && *ptr != ':' ) ptr++;
-        if( *ptr == '\0' )
-        {
-            memcpy( dst, start, ptr - start + 1 );
-            return buf;
-        }
-        *dst++ = *start;
-        *dst++ = ':';
-        while( *ptr == ':' ) ptr++;
+        return "Frames";
+    }
+    else if( fd.name >> 63 != 0 )
+    {
+        char* buf = bufpool[bufsel];
+        bufsel = ( bufsel + 1 ) % Pool;
+        sprintf( buf, "[%" PRIu32 "] Vsync", uint32_t( fd.name ) );
+        return buf;
+    }
+    else
+    {
+        return worker.GetString( fd.name );
     }
 }
 
@@ -841,6 +859,41 @@ const char* View::GetThreadContextData( uint64_t thread, bool& _local, bool& _un
     _untracked = untracked;
     program = txt;
     return label;
+}
+
+void View::Attention( bool& alreadyDone )
+{
+    if( !alreadyDone )
+    {
+        alreadyDone = true;
+        m_acb();
+    }
+}
+
+void View::UpdateTitle()
+{
+    auto captureName = m_worker.GetCaptureName().c_str();
+    const auto& desc = m_userData.GetDescription();
+    if( !desc.empty() )
+    {
+        char buf[1024];
+        snprintf( buf, 1024, "%s (%s)", captureName, desc.c_str() );
+        m_stcb( buf );
+    }
+    else if( !m_filename.empty() )
+    {
+        auto fptr = m_filename.c_str() + m_filename.size() - 1;
+        while( fptr > m_filename.c_str() && *fptr != '/' && *fptr != '\\' ) fptr--;
+        if( *fptr == '/' || *fptr == '\\' ) fptr++;
+
+        char buf[1024];
+        snprintf( buf, 1024, "%s (%s)", captureName, fptr );
+        m_stcb( buf );
+    }
+    else
+    {
+        m_stcb( captureName );
+    }
 }
 
 }

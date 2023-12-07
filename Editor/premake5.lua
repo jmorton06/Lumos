@@ -1,24 +1,3 @@
-IncludeDir = {}
-IncludeDir["entt"] = "../Lumos/External/entt/src/"
-IncludeDir["GLFW"] = "../Lumos/External/glfw/include/"
-IncludeDir["Glad"] = "../Lumos/External/glad/include/"
-IncludeDir["lua"] = "../Lumos/External/lua/src/"
-IncludeDir["stb"] = "../Lumos/External/stb/"
-IncludeDir["OpenAL"] = "../Lumos/External/OpenAL/include/"
-IncludeDir["Box2D"] = "../Lumos/External/box2d/include/"
-IncludeDir["vulkan"] = "../Lumos/External/vulkan/"
-IncludeDir["Lumos"] = "../Lumos/Source"
-IncludeDir["External"] = "../Lumos/External/"
-IncludeDir["ImGui"] = "../Lumos/External/imgui/"
-IncludeDir["freetype"] = "../Lumos/External/freetype/include"
-IncludeDir["SpirvCross"] = "../Lumos/External/vulkan/SPIRV-Cross"
-IncludeDir["cereal"] = "../Lumos/External/cereal/include"
-IncludeDir["spdlog"] = "../Lumos/External/spdlog/include"
-IncludeDir["glm"] = "../Lumos/External/glm"
-IncludeDir["msdf_atlas_gen"] = "../Lumos/External/msdf-atlas-gen/msdf-atlas-gen"
-IncludeDir["msdfgen"] = "../Lumos/External/msdf-atlas-gen/msdfgen"
-IncludeDir["ozz"] = "../Lumos/External/ozz-animation/include"
-
 project "LumosEditor"
 	kind "WindowedApp"
 	language "C++"
@@ -56,7 +35,6 @@ project "LumosEditor"
 		"%{IncludeDir.msdfgen}",
 		"%{IncludeDir.msdf_atlas_gen}",
 		"%{IncludeDir.glm}",
-		"%{IncludeDir.ozz}",
 		"%{IncludeDir.Lumos}",
 	}
 
@@ -70,11 +48,7 @@ project "LumosEditor"
 		"SpirvCross",
 		"spdlog",
 		"meshoptimizer",
-		-- "msdfgen",
-		"msdf-atlas-gen",
-		"ozz_animation",
-		"ozz_animation_offline",
-		"ozz_base"
+		"msdf-atlas-gen"
 	}
 
 	defines
@@ -95,7 +69,6 @@ project "LumosEditor"
 		cppdialect "C++17"
 		staticruntime "Off"
 		systemversion "latest"
-		entrypoint "WinMainCRTStartup"
 		conformancemode "on"
 
 		defines
@@ -328,7 +301,7 @@ project "LumosEditor"
 			"glfw",
 		}
 
-		links { "X11", "pthread", "dl", "atomic", "stdc++fs", "openal"}
+		links { "X11", "pthread", "dl", "atomic", "openal"}
 
 		linkoptions { "-L%{cfg.targetdir}", "-Wl,-rpath=\\$$ORIGIN"}
 
@@ -407,13 +380,13 @@ project "LumosEditor"
 			}
 
 	filter "configurations:Debug"
-		defines { "LUMOS_DEBUG", "_DEBUG","TRACY_ENABLE","LUMOS_PROFILE","TRACY_ON_DEMAND" }
+		defines { "LUMOS_DEBUG", "_DEBUG","TRACY_ENABLE","LUMOS_PROFILE_ENABLED","TRACY_ON_DEMAND" }
 		symbols "On"
 		runtime "Debug"
 		optimize "Off"
 
 	filter "configurations:Release"
-		defines { "LUMOS_RELEASE", "NDEBUG", "TRACY_ENABLE","LUMOS_PROFILE","TRACY_ON_DEMAND"}
+defines { "LUMOS_RELEASE", "NDEBUG", "TRACY_ENABLE","LUMOS_PROFILE_ENABLED","TRACY_ON_DEMAND"}
 		optimize "Speed"
 		symbols "On"
 		runtime "Release"

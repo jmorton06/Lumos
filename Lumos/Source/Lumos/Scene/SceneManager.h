@@ -1,4 +1,5 @@
 #pragma once
+#include "Core/DataStructures/Vector.h"
 
 namespace Lumos
 {
@@ -36,11 +37,11 @@ namespace Lumos
         // Get total number of enqueued scenes
         inline uint32_t SceneCount() const
         {
-            return static_cast<uint32_t>(m_vpAllScenes.size());
+            return static_cast<uint32_t>(m_vpAllScenes.Size());
         }
 
-        std::vector<std::string> GetSceneNames();
-        const std::vector<SharedPtr<Scene>>& GetScenes() const
+        Vector<std::string> GetSceneNames();
+        const Vector<SharedPtr<Scene>>& GetScenes() const
         {
             return m_vpAllScenes;
         }
@@ -57,19 +58,21 @@ namespace Lumos
         int EnqueueSceneFromFile(const std::string& filePath);
         void EnqueueScene(Scene* scene);
 
+        bool ContainsScene(const std::string& filePath);
+
         template <class T>
         void EnqueueScene(const std::string& name)
         {
             // T* scene = new T(name);
-            m_vpAllScenes.emplace_back(CreateSharedPtr<T>(name));
+            m_vpAllScenes.Emplace(CreateSharedPtr<T>(name));
             LUMOS_LOG_INFO("[SceneManager] - Enqueued scene : {0}", name.c_str());
         }
 
-        const std::vector<std::string>& GetSceneFilePaths();
+        const Vector<std::string>& GetSceneFilePaths();
 
         void AddFileToLoadList(const std::string& filePath)
         {
-            m_SceneFilePathsToLoad.push_back(filePath);
+            m_SceneFilePathsToLoad.Emplace(filePath);
         }
 
         void LoadCurrentList();
@@ -77,9 +80,9 @@ namespace Lumos
     protected:
         uint32_t m_SceneIdx;
         Scene* m_CurrentScene;
-        std::vector<SharedPtr<Scene>> m_vpAllScenes;
-        std::vector<std::string> m_SceneFilePaths;
-        std::vector<std::string> m_SceneFilePathsToLoad;
+        Vector<SharedPtr<Scene>> m_vpAllScenes;
+        Vector<std::string> m_SceneFilePaths;
+        Vector<std::string> m_SceneFilePathsToLoad;
 
     private:
         bool m_SwitchingScenes = false;

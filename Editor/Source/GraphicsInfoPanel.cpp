@@ -8,8 +8,8 @@ namespace Lumos
 {
     GraphicsInfoPanel::GraphicsInfoPanel()
     {
-        m_Name       = "GraphicsInfo";
-        m_SimpleName = "GraphicsInfo";
+        m_Name       = "Graphics Info##GraphicsInfo";
+        m_SimpleName = "Graphics Info";
     }
 
     void GraphicsInfoPanel::OnImGui()

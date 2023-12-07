@@ -4,9 +4,13 @@
 #include "GLDebug.h"
 #include "GLUniformBuffer.h"
 #include "Graphics/RHI/BufferLayout.h"
-#include <spirv_glsl.hpp>
 #include <glm/mat4x4.hpp>
 #include <glm/mat3x3.hpp>
+
+namespace spirv_cross
+{
+    class CompilerGLSL;
+}
 
 namespace Lumos
 {

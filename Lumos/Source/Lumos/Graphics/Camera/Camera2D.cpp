@@ -2,6 +2,7 @@
 #include "Camera2D.h"
 #include "Core/OS/Input.h"
 #include "Maths/MathsUtilities.h"
+#include "Maths/Transform.h"
 #include "Camera.h"
 
 #include <glm/vec2.hpp>

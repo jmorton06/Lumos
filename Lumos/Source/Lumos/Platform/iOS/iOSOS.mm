@@ -1,7 +1,7 @@
 #include "iOSOS.h"
 #include "iOSWindow.h"
 #include "iOSKeyCodes.h"
-#include "Core/VFS.h"
+#include "Core/OS/FileSystem.h"
 #include "Core/OS/Input.h"
 #include "Core/CoreSystem.h"
 #include "Core/Application.h"
@@ -57,6 +57,7 @@ static iOSOS* os = nullptr;
         Lumos::Internal::CoreSystem::Init(false);
 
         std::string root = GetAssetPath();
+		/*
         Lumos::VFS::Get().Mount("CoreShaders", root + "Shaders");
 
        // Lumos::VFS::Get().Mount("Shaders", root + "shaders");
@@ -66,7 +67,7 @@ static iOSOS* os = nullptr;
         Lumos::VFS::Get().Mount("Scenes", root + "Scenes");
         Lumos::VFS::Get().Mount("Sounds", root + "Sounds");
         Lumos::VFS::Get().Mount("Assets", root + "Assets");
-
+*/
         LUMOS_LOG_INFO("Device : {0}",GetModelName());
         
         iOSWindow::MakeDefault();

@@ -7,10 +7,9 @@
 namespace Lumos
 {
 
-    OctreeBroadphase::OctreeBroadphase(const size_t maxObjectsPerPartition, const size_t maxPartitionDepth, const SharedPtr<Broadphase>& secondaryBroadphase)
+    OctreeBroadphase::OctreeBroadphase(const size_t maxObjectsPerPartition, const size_t maxPartitionDepth)
         : m_MaxObjectsPerPartition(maxObjectsPerPartition)
         , m_MaxPartitionDepth(maxPartitionDepth)
-        , m_SecondaryBroadphase(secondaryBroadphase)
         , m_Leaves()
     {
         m_NodePool[0].ChildCount         = 0;
@@ -22,7 +21,7 @@ namespace Lumos
     {
     }
 
-    void OctreeBroadphase::FindPotentialCollisionPairs(RigidBody3D** objects, uint32_t objectCount,
+    void OctreeBroadphase::FindPotentialCollisionPairs(RigidBody3D* rootObject,
                                                        std::vector<CollisionPair>& collisionPairs)
     {
         LUMOS_PROFILE_FUNCTION();
@@ -35,17 +34,18 @@ namespace Lumos
         rootNode.Index              = 0;
         rootNode.boundingBox        = Maths::BoundingBox();
 
-        for(uint32_t i = 0; i < objectCount; i++)
+        RigidBody3D* current = rootObject;
+        while(current)
         {
-            auto physicsObject = objects[i];
-
-            if(physicsObject && physicsObject->GetCollisionShape())
+            if(current->GetCollisionShape())
             {
                 LUMOS_PROFILE_SCOPE_LOW("Merge Bounding box and add Physics Object");
-                rootNode.boundingBox.Merge(physicsObject->GetWorldSpaceAABB());
-                rootNode.PhysicsObjects[rootNode.PhysicsObjectCount] = physicsObject;
+                rootNode.boundingBox.Merge(current->GetWorldSpaceAABB());
+                rootNode.PhysicsObjects[rootNode.PhysicsObjectCount] = current;
                 rootNode.PhysicsObjectCount++;
             }
+
+            current = current->m_Next;
         }
 
         m_CurrentPoolIndex++;
@@ -54,10 +54,65 @@ namespace Lumos
         Divide(rootNode, 0);
 
         // Add collision pairs in leaf world divisions
-        for(uint32_t i = 0; i < m_LeafCount; i++)
+        for(uint32_t leafIndex = 0; leafIndex < m_LeafCount; leafIndex++)
         {
-            if(m_NodePool[m_Leaves[i]].PhysicsObjectCount > 1)
-                m_SecondaryBroadphase->FindPotentialCollisionPairs(m_NodePool[m_Leaves[i]].PhysicsObjects, m_NodePool[m_Leaves[i]].PhysicsObjectCount, collisionPairs);
+            uint32_t objectCount = m_NodePool[m_Leaves[leafIndex]].PhysicsObjectCount;
+            if(objectCount == 0)
+                continue;
+
+            for(size_t i = 0; i < objectCount - 1; ++i)
+            {
+                RigidBody3D& obj1 = *m_NodePool[m_Leaves[leafIndex]].PhysicsObjects[i];
+
+                for(size_t j = i + 1; j < objectCount; ++j)
+                {
+                    RigidBody3D& obj2 = *m_NodePool[m_Leaves[leafIndex]].PhysicsObjects[j];
+
+                    if(!obj1.GetCollisionShape() || !obj2.GetCollisionShape())
+                        continue;
+
+                    // Skip pairs of two at objects at rest
+                    if(obj1.GetIsAtRest() && obj2.GetIsAtRest())
+                        continue;
+
+                    // Skip pairs of two at static objects
+                    if(obj1.GetIsStatic() && obj2.GetIsStatic())
+                        continue;
+
+                    // Skip pairs of one static and one at rest
+                    if(obj1.GetIsAtRest() && obj2.GetIsStatic())
+                        continue;
+
+                    if(obj1.GetIsStatic() && obj2.GetIsAtRest())
+                        continue;
+
+                    CollisionPair pair;
+
+                    if(&obj1 < &obj2)
+                    {
+                        pair.pObjectA = &obj1;
+                        pair.pObjectB = &obj2;
+                    }
+                    else
+                    {
+                        pair.pObjectA = &obj2;
+                        pair.pObjectB = &obj1;
+                    }
+
+                    bool duplicate = false;
+                    for(int i = 0; i < collisionPairs.size(); i++)
+                    {
+                        auto& pair2 = collisionPairs[i];
+
+                        if(pair.pObjectA == pair2.pObjectA && pair.pObjectB == pair2.pObjectB)
+                        {
+                            duplicate = true;
+                        }
+                    }
+                    if(!duplicate)
+                        collisionPairs.push_back(pair);
+                }
+            }
         }
     }
 

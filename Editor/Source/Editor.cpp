@@ -21,6 +21,7 @@
 #include <Lumos/Core/OS/OS.h>
 #include <Lumos/Core/Version.h>
 #include <Lumos/Core/Engine.h>
+#include <Lumos/Core/OS/Window.h>
 #include <Lumos/Audio/AudioManager.h>
 #include <Lumos/Scene/Scene.h>
 #include <Lumos/Scene/SceneManager.h>
@@ -43,7 +44,6 @@
 #include <Lumos/Graphics/Renderers/DebugRenderer.h>
 #include <Lumos/Graphics/Model.h>
 #include <Lumos/Graphics/Environment.h>
-#include <Lumos/Scene/EntityFactory.h>
 #include <Lumos/ImGui/IconsMaterialDesignIcons.h>
 #include <Lumos/Embedded/EmbedAsset.h>
 #include <Lumos/Scene/Component/ModelComponent.h>
@@ -54,6 +54,7 @@
 #include <Lumos/Maths/Plane.h>
 #include <Lumos/Maths/MathsUtilities.h>
 #include <Lumos/Core/LMLog.h>
+#include <Lumos/Core/String.h>
 
 #include <spdlog/spdlog.h>
 #include <spdlog/fmt/ostr.h>
@@ -71,9 +72,11 @@ namespace Lumos
         : Application()
         , m_IniFile("")
     {
+#if LUMOS_ENABLE_LOG
         spdlog::sink_ptr sink = std::make_shared<ImGuiConsoleSink_mt>();
 
         Lumos::Debug::Log::AddSink(sink);
+#endif
 
         // Remove?
         s_Editor = this;
@@ -426,7 +429,7 @@ namespace Lumos
                             ImVec2 pos = tab.Window->Pos;
                             pos.x      = pos.x + tab.Offset + ImGui::GetStyle().FramePadding.x;
                             pos.y      = pos.y + ImGui::GetStyle().ItemSpacing.y;
-                            ImRect bb(pos, { pos.x + tab.ContentWidth, pos.y });
+                            ImRect bb(pos, { pos.x + tab.Width, pos.y });
 
                             tab.Window->DrawList->AddLine(bb.Min, bb.Max, (!tab_bar_focused) ? ImGui::GetColorU32(ImGuiCol_SliderGrabActive) : ImGui::GetColorU32(ImGuiCol_Text), 2.0f);
                         }
@@ -678,7 +681,7 @@ namespace Lumos
 
                 ImGui::EndMenu();
             }
-            if(ImGui::BeginMenu("Panels"))
+            if(ImGui::BeginMenu("View"))
             {
                 for(auto& panel : m_Panels)
                 {
@@ -700,72 +703,13 @@ namespace Lumos
             {
                 auto scenes = Application::Get().GetSceneManager()->GetSceneNames();
 
-                for(size_t i = 0; i < scenes.size(); i++)
+                for(size_t i = 0; i < scenes.Size(); i++)
                 {
                     auto name = scenes[i];
                     if(ImGui::MenuItem(name.c_str()))
                     {
                         Application::Get().GetSceneManager()->SwitchScene(name);
                     }
-                }
-
-                ImGui::EndMenu();
-            }
-
-            if(ImGui::BeginMenu("Entity"))
-            {
-                auto scene = Application::Get().GetSceneManager()->GetCurrentScene();
-
-                if(ImGui::MenuItem("CreateEmpty"))
-                {
-                    scene->CreateEntity();
-                }
-
-                if(ImGui::MenuItem("Cube"))
-                {
-                    auto entity = scene->CreateEntity("Cube");
-                    entity.AddComponent<Graphics::ModelComponent>(Graphics::PrimitiveType::Cube);
-                }
-
-                if(ImGui::MenuItem("Sphere"))
-                {
-                    auto entity = scene->CreateEntity("Sphere");
-                    entity.AddComponent<Graphics::ModelComponent>(Graphics::PrimitiveType::Sphere);
-                }
-
-                if(ImGui::MenuItem("Pyramid"))
-                {
-                    auto entity = scene->CreateEntity("Pyramid");
-                    entity.AddComponent<Graphics::ModelComponent>(Graphics::PrimitiveType::Pyramid);
-                }
-
-                if(ImGui::MenuItem("Plane"))
-                {
-                    auto entity = scene->CreateEntity("Plane");
-                    entity.AddComponent<Graphics::ModelComponent>(Graphics::PrimitiveType::Plane);
-                }
-
-                if(ImGui::MenuItem("Cylinder"))
-                {
-                    auto entity = scene->CreateEntity("Cylinder");
-                    entity.AddComponent<Graphics::ModelComponent>(Graphics::PrimitiveType::Cylinder);
-                }
-
-                if(ImGui::MenuItem("Capsule"))
-                {
-                    auto entity = scene->CreateEntity("Capsule");
-                    entity.AddComponent<Graphics::ModelComponent>(Graphics::PrimitiveType::Capsule);
-                }
-
-                if(ImGui::MenuItem("Terrain"))
-                {
-                    auto entity = scene->CreateEntity("Terrain");
-                    entity.AddComponent<Graphics::ModelComponent>(Graphics::PrimitiveType::Terrain);
-                }
-
-                if(ImGui::MenuItem("Light Cube"))
-                {
-                    EntityFactory::AddLightCube(Application::Get().GetSceneManager()->GetCurrentScene(), glm::vec3(0.0f), glm::vec3(0.0f));
                 }
 
                 ImGui::EndMenu();
@@ -780,8 +724,7 @@ namespace Lumos
                 if(ImGui::MenuItem("Embed Shaders"))
                 {
                     std::string coreDataPath;
-                    VFS::Get().ResolvePhysicalPath("//CoreShaders", coreDataPath, true);
-                    auto shaderPath = std::filesystem::path(coreDataPath + "/CompiledSPV/");
+                    auto shaderPath = std::filesystem::path(m_ProjectSettings.m_EngineAssetPath + "Shaders/CompiledSPV/");
                     int shaderCount = 0;
                     if(std::filesystem::is_directory(shaderPath))
                     {
@@ -871,14 +814,18 @@ namespace Lumos
                     ImGui::SameLine();
                     ImGui::TextUnformatted(m_ProjectSettings.m_ProjectName.c_str());
 
-                    ImGuiUtilities::Tooltip(("Current project (" + m_ProjectSettings.m_ProjectName + ".lmproj)").c_str());
+                    String8 projectString = PushStr8F(GetFrameArena(), "Current project ( %s.lmproj )", m_ProjectSettings.m_ProjectName.c_str());
+
+                    ImGuiUtilities::Tooltip((const char*)projectString.str);
                     ImGuiUtilities::DrawBorder(ImGuiUtilities::RectExpanded(ImGuiUtilities::GetItemRect(), 24.0f, 68.0f), 1.0f, 3.0f, 0.0f, -60.0f);
 
                     ImGui::SameLine();
                     ImGui::Separator();
                     ImGui::SameLine(ImGui::GetCursorPosX() + 32.0f);
                     ImGui::TextUnformatted(GetCurrentScene()->GetSceneName().c_str());
-                    ImGuiUtilities::Tooltip(("Current Scene (" + GetCurrentScene()->GetSceneName() + ".lsn)").c_str());
+                    String8 sceneString = PushStr8F(GetFrameArena(), "Current Scene ( %s.lsn )", GetCurrentScene()->GetSceneName().c_str());
+
+                    ImGuiUtilities::Tooltip((const char*)sceneString.str);
                     ImGuiUtilities::DrawBorder(ImGuiUtilities::RectExpanded(ImGuiUtilities::GetItemRect(), 24.0f, 68.0f), 1.0f, 3.0f, 0.0f, -60.0f);
                 }
 
@@ -1145,7 +1092,7 @@ namespace Lumos
                 int sameNameCount     = 0;
                 auto sceneNames       = m_SceneManager->GetSceneNames();
 
-                while(FileSystem::FileExists("//Scenes/" + sceneName + ".lsn") || std::find(sceneNames.begin(), sceneNames.end(), sceneName) != sceneNames.end())
+                while(FileSystem::FileExists("//Assets/Scenes/" + sceneName + ".lsn") || m_SceneManager->ContainsScene(sceneName))
                 {
                     sameNameCount++;
                     sceneName = fmt::format(newSceneName + "{0}", sameNameCount);
@@ -1175,7 +1122,7 @@ namespace Lumos
                     scene->Serialise(m_ProjectSettings.m_ProjectRoot + "Assets/Scenes/");
                 }
                 Application::Get().GetSceneManager()->EnqueueScene(scene);
-                Application::Get().GetSceneManager()->SwitchScene((int)(Application::Get().GetSceneManager()->GetScenes().size()) - 1);
+                Application::Get().GetSceneManager()->SwitchScene((int)(Application::Get().GetSceneManager()->GetScenes().Size()) - 1);
 
                 ImGui::CloseCurrentPopup();
             }
@@ -1631,8 +1578,8 @@ namespace Lumos
             ImGui::DockBuilderDockWindow("###profiler", DockingBottomLeftChild);
             ImGui::DockBuilderDockWindow("###resources", DockingBottomLeftChild);
             ImGui::DockBuilderDockWindow("Dear ImGui Demo", DockLeft);
-            ImGui::DockBuilderDockWindow("GraphicsInfo", DockLeft);
-            ImGui::DockBuilderDockWindow("ApplicationInfo", DockLeft);
+            ImGui::DockBuilderDockWindow("###GraphicsInfo", DockLeft);
+            ImGui::DockBuilderDockWindow("###ApplicationInfo", DockLeft);
             ImGui::DockBuilderDockWindow("###hierarchy", DockLeft);
             ImGui::DockBuilderDockWindow("###textEdit", DockMiddleLeft);
             ImGui::DockBuilderDockWindow("###scenesettings", DockLeft);
@@ -1685,9 +1632,9 @@ namespace Lumos
 #ifdef LUMOS_PLATFORM_WINDOWS
         Platform = "Windows";
 #elif LUMOS_PLATFORM_LINUX
-        Platform      = "Linux";
+        Platform = "Linux";
 #elif LUMOS_PLATFORM_MACOS
-        Platform      = "MacOS";
+        Platform = "MacOS";
 #elif LUMOS_PLATFORM_IOS
         Platform = "iOS";
 #endif
@@ -1859,13 +1806,6 @@ namespace Lumos
 
         if(m_EditorState == EditorState::Play)
             autoSaveTimer = 0.0f;
-
-        if (Input::Get().GetKeyPressed(Lumos::InputCode::Key::Delete))
-        {
-			auto *scene = Application::Get().GetCurrentScene();
-			for(auto entity : m_SelectedEntities)
-				scene->DestroyEntity(Entity(entity, scene));
-        }
 
         if(Input::Get().GetKeyPressed(Lumos::InputCode::Key::Escape) && GetEditorState() != EditorState::Preview)
         {
@@ -2171,43 +2111,6 @@ namespace Lumos
                             DebugRenderer::DebugDraw(bbCopy, selectedColour, true);
                         }
                     }
-                    if(model->ModelRef->GetSkeleton())
-                    {
-                        auto& skeleton       = *model->ModelRef->GetSkeleton().get();
-                        const int num_joints = skeleton.num_joints();
-
-                        // Iterate through each joint in the skeleton
-                        for(int i = 0; i < num_joints; ++i)
-                        {
-                            // Get the current joint's world space transform
-
-                            const ozz::math::Transform joint_transform; //= skeleton.joint_rest_poses()[i];
-
-                            // Convert ozz::math::Transform to glm::mat4
-                            glm::mat4 joint_world_transform = glm::translate(glm::mat4(1.0f), glm::vec3(joint_transform.translation.x, joint_transform.translation.y, joint_transform.translation.z));
-                            joint_world_transform *= glm::mat4_cast(glm::quat(joint_transform.rotation.x, joint_transform.rotation.y, joint_transform.rotation.z, joint_transform.rotation.w));
-                            joint_world_transform = glm::scale(joint_world_transform, glm::vec3(joint_transform.scale.x, joint_transform.scale.y, joint_transform.scale.z));
-
-                            // Multiply the joint's world transform by the entity transform
-                            glm::mat4 final_transform = transform->GetWorldMatrix() * joint_world_transform;
-
-                            // Get the parent joint's world space transform
-                            const int parent_index = skeleton.joint_parents()[i];
-                            glm::mat4 parent_world_transform(1.0f);
-                            if(parent_index != ozz::animation::Skeleton::Constants::kNoParent)
-                            {
-                                const ozz::math::Transform parent_transform; // = skeleton.joint_rest_poses()[parent_index];
-                                parent_world_transform = glm::translate(glm::mat4(1.0f), glm::vec3(parent_transform.translation.x, parent_transform.translation.y, parent_transform.translation.z));
-                                parent_world_transform *= glm::mat4_cast(glm::quat(parent_transform.rotation.x, parent_transform.rotation.y, parent_transform.rotation.z, parent_transform.rotation.w));
-                                parent_world_transform = glm::scale(parent_world_transform, glm::vec3(parent_transform.scale.x, parent_transform.scale.y, parent_transform.scale.z));
-                                parent_world_transform = transform->GetWorldMatrix() * parent_world_transform;
-                            }
-
-                            // Draw a line between the current joint and its parent joint
-                            // (assuming you have a function to draw a line between two points)
-                            DebugRenderer::DrawHairLine(glm::vec3(final_transform[3]), glm::vec3(parent_world_transform[3]), glm::vec4(1.0f, 0.0f, 0.0f, 1.0f)); // Example color: red
-                        }
-                    }
                 }
 
                 auto sprite = registry.try_get<Graphics::Sprite>(m_SelectedEntity);
@@ -2393,7 +2296,7 @@ namespace Lumos
     {
         LUMOS_PROFILE_FUNCTION();
         std::string physicalPath;
-        if(!VFS::Get().ResolvePhysicalPath(filePath, physicalPath))
+        if(!FileSystem::Get().ResolvePhysicalPath(filePath, physicalPath))
         {
             LUMOS_LOG_ERROR("Failed to Load Lua script {0}", filePath);
             return;
@@ -2532,7 +2435,7 @@ namespace Lumos
         else if(IsAudioFile(path))
         {
             std::string physicalPath;
-            Lumos::VFS::Get().ResolvePhysicalPath(path, physicalPath);
+            Lumos::FileSystem::Get().ResolvePhysicalPath(path, physicalPath);
             auto sound = Sound::Create(physicalPath, StringUtilities::GetFilePathExtension(path));
 
             auto soundNode = SharedPtr<SoundNode>(SoundNode::Create());
@@ -2655,6 +2558,7 @@ namespace Lumos
     void Editor::AddDefaultEditorSettings()
     {
         LUMOS_PROFILE_FUNCTION();
+        LUMOS_LOG_INFO("Setting default editor settings");
         m_ProjectSettings.m_ProjectRoot = "../../ExampleProject/";
         m_ProjectSettings.m_ProjectName = "Example";
 
@@ -2785,7 +2689,7 @@ namespace Lumos
         else
         {
             std::string physicalPath;
-            if(Lumos::VFS::Get().ResolvePhysicalPath("//Scenes/" + Application::Get().GetCurrentScene()->GetSceneName() + ".lsn", physicalPath))
+            if(Lumos::FileSystem::Get().ResolvePhysicalPath("//Assets/Scenes/" + Application::Get().GetCurrentScene()->GetSceneName() + ".lsn", physicalPath))
             {
                 auto newPath = StringUtilities::RemoveName(physicalPath);
                 Application::Get().GetCurrentScene()->Deserialise(newPath, false);

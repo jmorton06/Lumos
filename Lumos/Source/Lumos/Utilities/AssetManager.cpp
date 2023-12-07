@@ -9,16 +9,17 @@ namespace Lumos
     static void LoadTexture2D(Graphics::Texture2D* tex, const std::string& path)
     {
         LUMOS_PROFILE_FUNCTION();
-        uint32_t width, height, channels;
-        bool hdr;
-        uint32_t bits;
-        uint8_t* data = Lumos::LoadImageFromFile(path, &width, &height, &bits, &hdr);
+        ImageLoadDesc imageLoadDesc = {};
+        imageLoadDesc.filePath      = path.c_str();
+        imageLoadDesc.maxHeight     = 256;
+        imageLoadDesc.maxWidth      = 256;
+        Lumos::LoadImageFromFile(imageLoadDesc);
 
         Graphics::TextureDesc desc;
-        desc.format = bits / 4 == 8 ? Graphics::RHIFormat::R8G8B8A8_Unorm : Graphics::RHIFormat::R32G32B32A32_Float;
+        desc.format = imageLoadDesc.outBits / 4 == 8 ? Graphics::RHIFormat::R8G8B8A8_Unorm : Graphics::RHIFormat::R32G32B32A32_Float;
 
-        Application::Get().SubmitToMainThread([tex, path, width, height, data, desc]()
-                                              { tex->Load(width, height, data, desc); });
+        Application::Get().SubmitToMainThread([tex, imageLoadDesc, desc]()
+                                              { tex->Load(imageLoadDesc.outWidth, imageLoadDesc.outHeight, imageLoadDesc.outPixels, desc); });
     }
 
     TextureLibrary::~TextureLibrary()

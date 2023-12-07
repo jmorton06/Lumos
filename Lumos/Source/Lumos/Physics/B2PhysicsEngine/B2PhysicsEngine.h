@@ -25,7 +25,7 @@ namespace Lumos
         void SetDefaults();
 
         void OnUpdate(const TimeStep& timeStep, Scene* scene) override;
-        void OnInit() override {};
+        bool OnInit() override { return true; };
         void OnImGui() override;
 
         b2World* GetB2World() const

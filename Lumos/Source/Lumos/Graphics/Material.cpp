@@ -7,7 +7,7 @@
 #include "Graphics/RHI/UniformBuffer.h"
 #include "Graphics/RHI/GraphicsContext.h"
 #include "Core/OS/FileSystem.h"
-#include "Core/VFS.h"
+#include "Core/OS/FileSystem.h"
 #include "Core/Application.h"
 #include "Scene/Scene.h"
 #include "Utilities/AssetManager.h"
@@ -73,7 +73,7 @@ namespace Lumos::Graphics
 
         std::string physicalPath;
 
-        VFS::Get().ResolvePhysicalPath(path, physicalPath);
+        FileSystem::Get().ResolvePhysicalPath(path, physicalPath);
         return FileSystem::FileExists(physicalPath);
     }
 
@@ -245,7 +245,7 @@ namespace Lumos::Graphics
 
     void Material::Bind()
     {
-        LUMOS_PROFILE_FUNCTION();
+        LUMOS_PROFILE_FUNCTION_LOW();
 
         if(m_DescriptorSet == nullptr || GetTexturesUpdated())
         {

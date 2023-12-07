@@ -1,7 +1,9 @@
 #include "Precompiled.h"
 
 #pragma warning(push, 0)
-#include <Tracy/TracyClient.cpp>
+#if LUMOS_PROFILE
+#include <Tracy/public/TracyClient.cpp>
+#endif
 
 #ifdef LUMOS_RENDER_API_OPENGL
 #include <glad/src/glad.c>
@@ -38,6 +40,6 @@
 #define STB_PERLIN_IMPLEMENTATION
 #include <stb/stb_perlin.h>
 
-#include <OpenFBX/miniz.c>
-#include <OpenFBX/ofbx.cpp>
+#include <ModelLoaders/OpenFBX/miniz.c>
+#include <ModelLoaders/OpenFBX/ofbx.cpp>
 #pragma warning(pop)

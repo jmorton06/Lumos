@@ -4,7 +4,7 @@
 #include <Lumos/Maths/Frustum.h>
 #include <Lumos/Maths/Transform.h>
 #include <Lumos/Graphics/Camera/Camera.h>
-#include <Lumos/Core/StringUtilities.h>
+#include <Lumos/Utilities/StringUtilities.h>
 #include <Lumos/ImGui/ImGuiUtilities.h>
 #include <Lumos/Graphics/Renderers/RenderPasses.h>
 #include <imgui/imgui.h>

@@ -8,6 +8,7 @@
 #include "VKUniformBuffer.h"
 #include "VKDescriptorSet.h"
 #include "Graphics/RHI/Renderer.h"
+#include "Core/DataStructures/Vector.h"
 
 #define NUM_SEMAPHORES 10
 
@@ -60,10 +61,8 @@ namespace Lumos
             bool SupportsCompute() override { return true; }
             void Dispatch(CommandBuffer* commandBuffer, uint32_t workGroupSizeX, uint32_t workGroupSizeY, uint32_t workGroupSizeZ) override;
 
-            static VkDescriptorPool& GetDescriptorPool()
-            {
-                return s_DescriptorPool;
-            };
+            bool AllocateDescriptorSet(VkDescriptorSet* set, VkDescriptorSetLayout layout, uint32_t descriptorCount);
+            void ReleaseDescriptorPools();
 
             static VKContext::DeletionQueue& GetDeletionQueue(int frameIndex)
             {
@@ -88,20 +87,28 @@ namespace Lumos
                 GetCurrentDeletionQueue().PushFunction(function);
             }
 
+            RHIFormat GetDepthFormat() override;
+
             static void MakeDefault();
 
         protected:
             static Renderer* CreateFuncVulkan();
 
         private:
+            VkDescriptorPool CreatePool(VkDevice device, uint32_t count, VkDescriptorPoolCreateFlags flags);
+            VkDescriptorPool GetPool();
+
             uint32_t m_CurrentSemaphoreIndex = 0;
 
             std::string m_RendererTitle;
             uint32_t m_DescriptorCapacity = 0;
 
-            VkDescriptorSet m_DescriptorSetPool[16] = {};
+            VkDescriptorSet m_CurrentDescriptorSets[16] = {};
 
-            static VkDescriptorPool s_DescriptorPool;
+            VkDescriptorPool m_CurrentPool;
+            Vector<VkDescriptorPool> m_UsedDescriptorPools;
+            Vector<VkDescriptorPool> m_FreeDescriptorPools;
+
             static std::vector<VKContext::DeletionQueue> s_DeletionQueue;
             static int s_DeletionQueueIndex;
         };

@@ -4,6 +4,7 @@
 #include <imgui/imgui.h>
 #include <imgui/imgui_internal.h>
 #include <glm/fwd.hpp>
+#include <iostream>
 
 namespace Lumos
 {
@@ -59,7 +60,7 @@ namespace Lumos
         bool Property(const char* name, glm::vec3& value, float min = -1.0f, float max = 1.0f, PropertyFlag flags = PropertyFlag::None);
         bool Property(const char* name, glm::vec4& value, bool exposeW, PropertyFlag flags);
         bool Property(const char* name, glm::vec4& value, float min = -1.0f, float max = 1.0f, bool exposeW = false, PropertyFlag flags = PropertyFlag::None);
-        bool PorpertyTransform(const char* name, glm::vec3& vector, float width);
+        bool PropertyTransform(const char* name, glm::vec3& vector, float width, float defaultElementValue = 0.0f);
 
         bool Property(const char* name, glm::quat& value, PropertyFlag flags);
 
@@ -71,9 +72,9 @@ namespace Lumos
         void Tooltip(Graphics::Texture2D* texture, const glm::vec2& size, const char* text);
         void Tooltip(Graphics::TextureDepthArray* texture, uint32_t index, const glm::vec2& size);
 
-        void Image(Graphics::Texture2D* texture, const glm::vec2& size);
-        void Image(Graphics::TextureCube* texture, const glm::vec2& size);
-        void Image(Graphics::TextureDepthArray* texture, uint32_t index, const glm::vec2& size);
+        void Image(Graphics::Texture2D* texture, const glm::vec2& size, bool flip = false);
+        void Image(Graphics::TextureCube* texture, const glm::vec2& size, bool flip = false);
+        void Image(Graphics::TextureDepthArray* texture, uint32_t index, const glm::vec2& size, bool flip = false);
 
         void TextCentred(const char* text);
 

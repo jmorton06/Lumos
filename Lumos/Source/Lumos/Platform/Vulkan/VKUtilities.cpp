@@ -8,6 +8,7 @@
 #include "Graphics/RHI/DescriptorSet.h"
 #include "Graphics/RHI/Pipeline.h"
 #include "Core/Application.h"
+#include "Core/OS/Window.h"
 #include "VKInitialisers.h"
 
 namespace Lumos
@@ -309,7 +310,7 @@ namespace Lumos
                 break;
 
             case VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL:
-                accessMask = VK_ACCESS_SHADER_READ_BIT; // VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT;
+                accessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT;
                 break;
 
             case VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL:
@@ -344,7 +345,7 @@ namespace Lumos
                 break;
 
             case VK_IMAGE_LAYOUT_PRESENT_SRC_KHR:
-                accessMask = VK_ACCESS_MEMORY_READ_BIT;
+                accessMask = VK_ACCESS_2_NONE;
                 break;
 
             default:
@@ -468,6 +469,11 @@ namespace Lumos
             {
                 VkFormatProperties props;
                 vkGetPhysicalDeviceFormatProperties(VKDevice::Get().GetGPU(), format, &props);
+
+                if(!(props.optimalTilingFeatures & VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT))
+                {
+                    continue;
+                }
 
                 if(tiling == VK_IMAGE_TILING_LINEAR && (props.linearTilingFeatures & features) == features)
                 {
@@ -858,12 +864,12 @@ namespace Lumos
             vkDeviceWaitIdle(VKDevice::GetHandle());
         }
 
-        void VKUtilities::SetDebugUtilsObjectName(const VkDevice device, const VkObjectType objectType, const std::string& name, const void* handle)
+        void VKUtilities::SetDebugUtilsObjectName(const VkDevice device, const VkObjectType objectType, const char* name, const void* handle)
         {
             VkDebugUtilsObjectNameInfoEXT nameInfo;
             nameInfo.sType        = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT;
             nameInfo.objectType   = objectType;
-            nameInfo.pObjectName  = name.c_str();
+            nameInfo.pObjectName  = name;
             nameInfo.objectHandle = (uint64_t)handle;
             nameInfo.pNext        = VK_NULL_HANDLE;
 

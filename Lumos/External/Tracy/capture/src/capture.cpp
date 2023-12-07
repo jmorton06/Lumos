@@ -16,8 +16,8 @@
 #include <stdlib.h>
 #include <sys/stat.h>
 
-#include "../../common/TracyProtocol.hpp"
-#include "../../common/TracyStackFrames.hpp"
+#include "../../public/common/TracyProtocol.hpp"
+#include "../../public/common/TracyStackFrames.hpp"
 #include "../../server/TracyFileWrite.hpp"
 #include "../../server/TracyMemory.hpp"
 #include "../../server/TracyPrint.hpp"
@@ -159,7 +159,7 @@ int main( int argc, char** argv )
     printf( "Connecting to %s:%i...", address, port );
     fflush( stdout );
     tracy::Worker worker( address, port );
-    while( !worker.IsConnected() )
+    while( !worker.HasData() )
     {
         const auto handshake = worker.GetHandshakeStatus();
         if( handshake == tracy::HandshakeProtocolMismatch )
@@ -177,8 +177,8 @@ int main( int argc, char** argv )
             printf( "\nThe client you are trying to connect to has disconnected during the initial\nconnection handshake. Please check your network configuration.\n" );
             return 3;
         }
+        std::this_thread::sleep_for( std::chrono::milliseconds( 100 ) );
     }
-    while( !worker.HasData() ) std::this_thread::sleep_for( std::chrono::milliseconds( 100 ) );
     printf( "\nQueue delay: %s\nTimer resolution: %s\n", tracy::TimeToString( worker.GetDelay() ), tracy::TimeToString( worker.GetResolution() ) );
 
 #ifdef _WIN32
@@ -190,6 +190,7 @@ int main( int argc, char** argv )
     sigaction( SIGINT, &sigint, &oldsigint );
 #endif
 
+    const auto firstTime = worker.GetFirstTime();
     auto& lock = worker.GetMbpsDataLock();
 
     const auto t0 = std::chrono::high_resolution_clock::now();
@@ -235,7 +236,7 @@ int main( int argc, char** argv )
             printf( " | ");
             AnsiPrintf( ANSI_RED ANSI_BOLD, "%s", tracy::MemSizeToString( tracy::memUsage ) );
             printf( " | ");
-            AnsiPrintf( ANSI_RED, "%s", tracy::TimeToString( worker.GetLastTime() ) );
+            AnsiPrintf( ANSI_RED, "%s", tracy::TimeToString( worker.GetLastTime() - firstTime ) );
             fflush( stdout );
         }
 
@@ -267,7 +268,6 @@ int main( int argc, char** argv )
             AnsiPrintf( ANSI_BOLD, "\n%sFailure callstack:%s\n" );
             auto& cs = worker.GetCallstack( fd.callstack );
             int fidx = 0;
-            int bidx = 0;
             for( auto& entry : cs )
             {
                 auto frameData = worker.GetCallstackFrame( entry );
@@ -298,8 +298,6 @@ int main( int argc, char** argv )
                             while( *++test );
                             if( match ) continue;
                         }
-
-                        bidx++;
 
                         if( f == fsz-1 )
                         {
@@ -334,7 +332,7 @@ int main( int argc, char** argv )
     }
 
     printf( "\nFrames: %" PRIu64 "\nTime span: %s\nZones: %s\nElapsed time: %s\nSaving trace...",
-        worker.GetFrameCount( *worker.GetFramesBase() ), tracy::TimeToString( worker.GetLastTime() ), tracy::RealToString( worker.GetZoneCount() ),
+        worker.GetFrameCount( *worker.GetFramesBase() ), tracy::TimeToString( worker.GetLastTime() - firstTime ), tracy::RealToString( worker.GetZoneCount() ),
         tracy::TimeToString( std::chrono::duration_cast<std::chrono::nanoseconds>( t1 - t0 ).count() ) );
     fflush( stdout );
     auto f = std::unique_ptr<tracy::FileWrite>( tracy::FileWrite::Open( output ) );

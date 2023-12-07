@@ -6,7 +6,7 @@
 #include "VKRenderer.h"
 #include "VKUtilities.h"
 #include "Core/Version.h"
-#include "Core/StringUtilities.h"
+#include "Utilities/StringUtilities.h"
 #include "Maths/MathsUtilities.h"
 
 #ifndef VK_API_VERSION_1_2
@@ -35,11 +35,12 @@ namespace Lumos
                 LUMOS_LOG_INFO("Vulkan : Enabled Validation Layers");
                 extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
                 extensions.push_back(VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
-                extensions.push_back(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME);
             }
 
+            extensions.push_back(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME);
+
             extensions.push_back(VK_KHR_SURFACE_EXTENSION_NAME);
-            extensions.push_back("VK_KHR_portability_enumeration");
+            extensions.push_back(VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME);
 
 #if 0
 #if defined(TRACY_ENABLE) && defined(LUMOS_PLATFORM_WINDOWS)
@@ -112,8 +113,7 @@ namespace Lumos
         VKContext::~VKContext()
         {
             VKRenderer::FlushDeletionQueues();
-
-            vkDestroyDescriptorPool(VKDevice::Get().GetDevice(), VKRenderer::GetDescriptorPool(), VK_NULL_HANDLE);
+            VKRenderer::GetRenderer()->ReleaseDescriptorPools();
 
             if(m_DebugCallback)
                 vkDestroyDebugReportCallbackEXT(s_VkInstance, m_DebugCallback, VK_NULL_HANDLE);
@@ -268,14 +268,15 @@ namespace Lumos
         {
             LUMOS_PROFILE_FUNCTION();
 #ifndef LUMOS_PLATFORM_IOS
-            if(volkInitialize() != VK_SUCCESS)
+            VkResult result = volkInitialize();
+            if(result != VK_SUCCESS)
             {
-                LUMOS_LOG_CRITICAL("volkInitialize failed");
+                LUMOS_ASSERT(false, "volkInitialize failed");
             }
 
             if(volkGetInstanceVersion() == 0)
             {
-                LUMOS_LOG_CRITICAL("Could not find loader");
+                LUMOS_ASSERT(false, "Could not find loader");
             }
 #endif
 
@@ -397,6 +398,21 @@ namespace Lumos
         void VKContext::WaitIdle() const
         {
             vkDeviceWaitIdle(VKDevice::Get().GetDevice());
+        }
+
+        void VKContext::OnImGui()
+        {
+            const auto& memoryProps = VKDevice::Get().GetPhysicalDevice()->GetMemoryProperties();
+            std::vector<VmaBudget> budgets(memoryProps.memoryHeapCount);
+            vmaGetHeapBudgets(VKDevice::Get().GetAllocator(), budgets.data());
+
+            for(VmaBudget& b : budgets)
+            {
+                ImGui::Text("VmaBudget.allocationBytes = %s", StringUtilities::BytesToString(b.statistics.allocationBytes).c_str());
+                ImGui::Text("VmaBudget.blockBytes = %s", StringUtilities::BytesToString(b.statistics.blockBytes).c_str());
+                ImGui::Text("VmaBudget.usage = %s", StringUtilities::BytesToString(b.usage).c_str());
+                ImGui::Text("VmaBudget.budget = %s", StringUtilities::BytesToString(b.budget).c_str());
+            }
         }
     }
 }

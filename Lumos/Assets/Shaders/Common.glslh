@@ -50,6 +50,11 @@ vec3 saturate(vec3 colour)
 	return clamp(colour , 0.0, 1.0);
 }
 
+vec4 saturate(vec4 a) 
+{
+	return clamp(a, vec4(0), vec4(1)); 
+}
+
 float LinearizeDepth(const float screenDepth, float DepthUnpackX, float DepthUnpackY)
 {
 	float depthLinearizeMul = DepthUnpackX;

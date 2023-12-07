@@ -31,7 +31,7 @@ namespace Lumos
         static AudioManager* Create();
 
         virtual ~AudioManager()                                          = default;
-        virtual void OnInit() override                                   = 0;
+        virtual bool OnInit() override                                   = 0;
         virtual void OnUpdate(const TimeStep& dt, Scene* scene) override = 0;
         virtual void UpdateListener(Scene* scene) {};
 

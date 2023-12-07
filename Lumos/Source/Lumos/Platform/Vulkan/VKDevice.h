@@ -4,7 +4,7 @@
 #include "VKContext.h"
 #include "VKCommandPool.h"
 #include "Graphics/RHI/Definitions.h"
-#include "Core/StringUtilities.h"
+#include "Utilities/StringUtilities.h"
 
 #ifdef USE_VMA_ALLOCATOR
 #ifdef LUMOS_DEBUG
@@ -14,10 +14,12 @@
 #include <vulkan/vk_mem_alloc.h>
 #endif
 
+static const uint32_t SMALL_ALLOCATION_MAX_SIZE = 4096;
+
 #include <unordered_set>
 
-#if defined(LUMOS_PROFILE) && defined(TRACY_ENABLE)
-#include <Tracy/TracyVulkan.hpp>
+#if LUMOS_PROFILE && defined(TRACY_ENABLE)
+#include <Tracy/public/tracy/TracyVulkan.hpp>
 #endif
 
 namespace Lumos
@@ -32,74 +34,8 @@ namespace Lumos
 
             struct PhysicalDeviceInfo
             {
-                std::string GetVendorName()
-                {
-                    std::string name = "Unknown";
-
-                    if(VendorID == 0x10DE || StringUtilities::StringContains(Name, "Nvidia"))
-                    {
-                        name = "Nvidia";
-                    }
-                    else if(VendorID == 0x1002 || VendorID == 0x1022 || StringUtilities::StringContains(Name, "Amd"))
-                    {
-                        name = "AMD";
-                    }
-                    else if(VendorID == 0x8086 || VendorID == 0x163C || VendorID == 0x8087 || StringUtilities::StringContains(Name, "Intel"))
-                    {
-                        name = "Intel";
-                    }
-                    else if(VendorID == 0x13B5 || StringUtilities::StringContains(Name, "Arm,"))
-                    {
-                        name = "Arm";
-                    }
-                    else if(VendorID == 0x5143 || StringUtilities::StringContains(Name, "Qualcomm"))
-                    {
-                        name = "Qualcomm";
-                    }
-                    else if(VendorID == 0x106b || StringUtilities::StringContains(Name, "Apple"))
-                    {
-                        return "Apple";
-                    }
-
-                    return name;
-                }
-
-                std::string DecodeDriverVersion(const uint32_t version)
-                {
-                    char buffer[256];
-
-                    if(Vendor == "Nvidia")
-                    {
-                        sprintf(
-                            buffer,
-                            "%d.%d.%d.%d",
-                            (version >> 22) & 0x3ff,
-                            (version >> 14) & 0x0ff,
-                            (version >> 6) & 0x0ff,
-                            (version)&0x003f);
-                    }
-#if LUMOS_PLATFORM_WINDOWS
-                    else if(Vendor == "Intel")
-                    {
-                        sprintf(
-                            buffer,
-                            "%d.%d",
-                            (version >> 14),
-                            (version)&0x3fff);
-                    }
-#endif
-                    else // Vulkan version conventions
-                    {
-                        sprintf(
-                            buffer,
-                            "%d.%d.%d",
-                            (version >> 22),
-                            (version >> 12) & 0x3ff,
-                            version & 0xfff);
-                    }
-
-                    return buffer;
-                }
+                std::string GetVendorName();
+                std::string DecodeDriverVersion(const uint32_t version);
 
                 uint32_t Memory;
                 uint32_t VendorID;
@@ -219,7 +155,7 @@ namespace Lumos
                 return m_PipelineCache;
             }
 
-#if defined(LUMOS_PROFILE) && defined(TRACY_ENABLE)
+#if LUMOS_PROFILE && defined(TRACY_ENABLE)
             tracy::VkCtx* GetTracyContext(bool present = false);
 #endif
 
@@ -245,6 +181,10 @@ namespace Lumos
                 return m_EnabledFeatures;
             }
 
+#ifdef USE_VMA_ALLOCATOR
+            VmaPool GetOrCreateSmallAllocPool(uint32_t memTypeIndex);
+#endif
+
         private:
             VkDevice m_Device;
 
@@ -262,13 +202,14 @@ namespace Lumos
 
             static uint32_t s_GraphicsQueueFamilyIndex;
 
-#if defined(LUMOS_PROFILE) && defined(TRACY_ENABLE)
+#if LUMOS_PROFILE && defined(TRACY_ENABLE)
             std::vector<tracy::VkCtx*> m_TracyContext;
             tracy::VkCtx* m_PresentTracyContext;
 #endif
 
 #ifdef USE_VMA_ALLOCATOR
             VmaAllocator m_Allocator {};
+            std::unordered_map<uint32_t, VmaPool> m_SmallAllocPools;
 #endif
         };
 

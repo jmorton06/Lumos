@@ -209,7 +209,7 @@
     "value43": 1,
     "value44": 3,
     "value45": {
-        "FilePath": "//Scripts/Projectile.lua"
+        "FilePath": "//Assets/Scripts/Projectile.lua"
     },
     "value46": 0,
     "value47": 2,
@@ -267,7 +267,7 @@
     "value53": 1,
     "value54": 4,
     "value55": {
-        "value0": "//Textures/cubemap/noga",
+        "value0": "//Assets/Textures/cubemap/noga",
         "value1": 11,
         "value2": 3072,
         "value3": 4096,
@@ -333,9 +333,9 @@
             "ptr_wrapper": {
                 "valid": 1,
                 "data": {
-                    "Albedo": "NULL",
-                    "Normal": "NULL",
-                    "Metallic": "NULL",
+                    "Albedo": "",
+                    "Normal": "",
+                    "Metallic": "",
                     "Roughness": "",
                     "Ao": "",
                     "Emissive": "",
@@ -405,12 +405,12 @@
             "ptr_wrapper": {
                 "valid": 1,
                 "data": {
-                    "Albedo": "NULL",
-                    "Normal": "NULL",
-                    "Metallic": "NULL",
+                    "Albedo": "",
+                    "Normal": "",
+                    "Metallic": "",
                     "Roughness": "",
-                    "Ao": "NULL",
-                    "Emissive": "NULL",
+                    "Ao": "",
+                    "Emissive": "",
                     "albedoColour": {
                         "value0": 1.0,
                         "value1": 1.0,

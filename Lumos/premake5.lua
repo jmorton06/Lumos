@@ -1,25 +1,3 @@
-IncludeDir = {}
-IncludeDir["entt"] = "External/entt/src/"
-IncludeDir["GLFW"] = "External/glfw/include/"
-IncludeDir["Glad"] = "External/glad/include/"
-IncludeDir["lua"] = "External/lua/src/"
-IncludeDir["stb"] = "External/stb/"
-IncludeDir["OpenAL"] = "External/OpenAL/include/"
-IncludeDir["Box2D"] = "External/box2d/include/"
-IncludeDir["external"] = "External/"
-IncludeDir["vulkan"] = "External/vulkan/"
-IncludeDir["Lumos"] = "Source"
-IncludeDir["External"] = "External/"
-IncludeDir["ImGui"] = "External/imgui/"
-IncludeDir["freetype"] = "External/freetype/include"
-IncludeDir["SpirvCross"] = "External/SPIRV-Cross"
-IncludeDir["cereal"] = "External/cereal/include"
-IncludeDir["spdlog"] = "External/spdlog/include"
-IncludeDir["glm"] = "External/glm"
-IncludeDir["msdf_atlas_gen"] = "External/msdf-atlas-gen/msdf-atlas-gen"
-IncludeDir["msdfgen"] = "External/msdf-atlas-gen/msdfgen"
-IncludeDir["ozz"] = "External/ozz-animation/include"
-
 newoption 
 {
 	trigger = "time-trace",
@@ -73,7 +51,6 @@ project "Lumos"
 		"%{IncludeDir.glm}",
 		"%{IncludeDir.msdfgen}",
 		"%{IncludeDir.msdf_atlas_gen}",
-		"%{IncludeDir.ozz}",
 		"%{IncludeDir.Lumos}",
 	}
 
@@ -87,10 +64,7 @@ project "Lumos"
 		"spdlog",
 		"meshoptimizer",
 		-- "msdfgen",
-		"msdf-atlas-gen",
-		"ozz_base",
-		"ozz_animation",
-		"ozz_animation_offline"
+		"msdf-atlas-gen"
 	}
 
 	defines
@@ -387,13 +361,13 @@ project "Lumos"
 			}
 
 	filter "configurations:Debug"
-		defines { "LUMOS_DEBUG", "_DEBUG","TRACY_ENABLE","LUMOS_PROFILE","TRACY_ON_DEMAND"  }
+defines { "LUMOS_DEBUG", "_DEBUG","TRACY_ENABLE","LUMOS_PROFILE_ENABLED","TRACY_ON_DEMAND"  }
 		symbols "On"
 		runtime "Debug"
 		optimize "Off"
 
 	filter "configurations:Release"
-		defines { "LUMOS_RELEASE", "NDEBUG", "TRACY_ENABLE","LUMOS_PROFILE", "TRACY_ON_DEMAND"}
+defines { "LUMOS_RELEASE", "NDEBUG", "TRACY_ENABLE","LUMOS_PROFILE_ENABLED", "TRACY_ON_DEMAND"}
 		optimize "Speed"
 		symbols "On"
 		runtime "Release"

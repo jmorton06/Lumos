@@ -1,7 +1,7 @@
 #pragma once
 #include "RHI/Texture.h"
 #include "RHI/Shader.h"
-#include "Core/VFS.h"
+#include "Core/OS/FileSystem.h"
 #include "Scene/Serialisation.h"
 
 #include "Maths/MathsSerialisation.h"
@@ -108,17 +108,17 @@ namespace Lumos
             void save(Archive& archive) const
             {
                 std::string shaderPath        = "";
-                std::string albedoFilePath    = m_PBRMaterialTextures.albedo ? VFS::Get().AbsoulePathToVFS(m_PBRMaterialTextures.albedo->GetFilepath()) : "";
-                std::string normalFilePath    = m_PBRMaterialTextures.normal ? VFS::Get().AbsoulePathToVFS(m_PBRMaterialTextures.normal->GetFilepath()) : "";
-                std::string metallicFilePath  = m_PBRMaterialTextures.metallic ? VFS::Get().AbsoulePathToVFS(m_PBRMaterialTextures.metallic->GetFilepath()) : "";
-                std::string roughnessFilePath = m_PBRMaterialTextures.roughness ? VFS::Get().AbsoulePathToVFS(m_PBRMaterialTextures.roughness->GetFilepath()) : "";
-                std::string emissiveFilePath  = m_PBRMaterialTextures.emissive ? VFS::Get().AbsoulePathToVFS(m_PBRMaterialTextures.emissive->GetFilepath()) : "";
-                std::string aoFilePath        = m_PBRMaterialTextures.ao ? VFS::Get().AbsoulePathToVFS(m_PBRMaterialTextures.ao->GetFilepath()) : "";
+                std::string albedoFilePath    = m_PBRMaterialTextures.albedo ? FileSystem::Get().AbsolutePathToFileSystem(m_PBRMaterialTextures.albedo->GetFilepath()) : "";
+                std::string normalFilePath    = m_PBRMaterialTextures.normal ? FileSystem::Get().AbsolutePathToFileSystem(m_PBRMaterialTextures.normal->GetFilepath()) : "";
+                std::string metallicFilePath  = m_PBRMaterialTextures.metallic ? FileSystem::Get().AbsolutePathToFileSystem(m_PBRMaterialTextures.metallic->GetFilepath()) : "";
+                std::string roughnessFilePath = m_PBRMaterialTextures.roughness ? FileSystem::Get().AbsolutePathToFileSystem(m_PBRMaterialTextures.roughness->GetFilepath()) : "";
+                std::string emissiveFilePath  = m_PBRMaterialTextures.emissive ? FileSystem::Get().AbsolutePathToFileSystem(m_PBRMaterialTextures.emissive->GetFilepath()) : "";
+                std::string aoFilePath        = m_PBRMaterialTextures.ao ? FileSystem::Get().AbsolutePathToFileSystem(m_PBRMaterialTextures.ao->GetFilepath()) : "";
 
                 if(m_Shader)
                 {
                     std::string path = m_Shader->GetFilePath() + m_Shader->GetName();
-                    VFS::Get().AbsoulePathToVFS(path, shaderPath);
+                    FileSystem::Get().AbsolutePathToFileSystem(path, shaderPath);
                 }
 
                 archive(cereal::make_nvp("Albedo", albedoFilePath),

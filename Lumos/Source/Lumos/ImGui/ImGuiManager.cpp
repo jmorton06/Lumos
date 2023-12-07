@@ -4,7 +4,7 @@
 #include "Core/OS/Window.h"
 #include "Core/Application.h"
 #include "Graphics/RHI/IMGUIRenderer.h"
-#include "Core/VFS.h"
+#include "Core/OS/FileSystem.h"
 #include "ImGuiUtilities.h"
 #include "Maths/MathsUtilities.h"
 #include "IconsMaterialDesignIcons.h"
@@ -30,7 +30,7 @@ namespace Lumos
     ImGuiManager::ImGuiManager(bool clearScreen)
     {
         m_ClearScreen = clearScreen;
-        m_FontSize    = 15.0f;
+        m_FontSize    = 14.0f;
 
 #ifdef LUMOS_PLATFORM_IOS
         m_FontSize *= 2.0f;
@@ -103,11 +103,6 @@ namespace Lumos
     void ImGuiManager::OnUpdate(const TimeStep& dt, Scene* scene)
     {
         LUMOS_PROFILE_FUNCTION();
-        if(m_IMGUIRenderer && m_IMGUIRenderer->Implemented())
-        {
-            m_IMGUIRenderer->NewFrame();
-        }
-
         ImGuizmo::BeginFrame();
 
         Application::Get().OnImGui();
@@ -140,6 +135,11 @@ namespace Lumos
     {
         LUMOS_PROFILE_FUNCTION();
         m_IMGUIRenderer->Clear();
+    }
+
+    void ImGuiManager::OnNewFrame()
+    {
+        m_IMGUIRenderer->NewFrame();
     }
 
     int LumosMouseButtonToImGui(Lumos::InputCode::MouseKey key)
@@ -305,10 +305,10 @@ namespace Lumos
         io.Fonts->AddFontFromMemoryCompressedTTF(RobotoBold_compressed_data, RobotoBold_compressed_size, m_FontSize + 2.0f, &icons_config, ranges);
 
         io.Fonts->AddFontFromMemoryCompressedTTF(RobotoRegular_compressed_data, RobotoRegular_compressed_size, m_FontSize * 0.8f, &icons_config, ranges);
-        AddIconFont();
+        // AddIconFont();
 
-        io.Fonts->AddFontDefault();
-        AddIconFont();
+        // io.Fonts->AddFontDefault();
+        // AddIconFont();
 
         io.Fonts->TexGlyphPadding = 1;
         for(int n = 0; n < io.Fonts->ConfigData.Size; n++)

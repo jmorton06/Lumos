@@ -5,6 +5,7 @@
 #include "VKFence.h"
 #include "VKRenderer.h"
 #include "Core/Application.h"
+#include "Core/Thread.h"
 
 namespace Lumos
 {
@@ -56,7 +57,8 @@ namespace Lumos
 
             bool success = Init(m_VSyncEnabled);
 
-            // AcquireNextImage();
+            if (!success)
+                LUMOS_LOG_ERROR("Failed to initialise swapchain");
 
             return success;
         }
@@ -99,6 +101,10 @@ namespace Lumos
 
             if(m_SwapChainBufferCount > 3)
                 m_SwapChainBufferCount = 3;
+            else if(m_SwapChainBufferCount == 0)
+                m_SwapChainBufferCount = 3;
+
+            LUMOS_ASSERT(m_SwapChainBufferCount > 1);
 
             VkSurfaceTransformFlagBitsKHR preTransform;
             if(surfaceCapabilities.supportedTransforms & VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR)
@@ -176,7 +182,8 @@ namespace Lumos
             uint32_t swapChainImageCount;
             VK_CHECK_RESULT(vkGetSwapchainImagesKHR(VKDevice::Get().GetDevice(), m_SwapChain, &swapChainImageCount, VK_NULL_HANDLE));
 
-            VkImage* pSwapChainImages = new VkImage[swapChainImageCount];
+            ArenaTemp scratch = ScratchBegin(nullptr, 0);
+            VkImage* pSwapChainImages = PushArrayNoZero(scratch.arena, VkImage, swapChainImageCount);
             VK_CHECK_RESULT(vkGetSwapchainImagesKHR(VKDevice::Get().GetDevice(), m_SwapChain, &swapChainImageCount, pSwapChainImages));
 
             for(uint32_t i = 0; i < m_SwapChainBufferCount; i++)
@@ -209,7 +216,7 @@ namespace Lumos
                 m_SwapChainBuffers.push_back(swapChainBuffer);
             }
 
-            delete[] pSwapChainImages;
+            ScratchEnd(scratch);
 
             CreateFrameData();
 
@@ -240,7 +247,7 @@ namespace Lumos
 
                     m_Frames[i].MainCommandBuffer = CreateSharedPtr<VKCommandBuffer>();
                     m_Frames[i].MainCommandBuffer->Init(true, m_Frames[i].CommandPool->GetHandle());
-                    VKUtilities::SetDebugUtilsObjectName(VKDevice::Get().GetDevice(), VK_OBJECT_TYPE_COMMAND_BUFFER, fmt::format("Commandbuffer (frame in flight: {})", i), m_Frames[i].MainCommandBuffer->GetHandle());
+                    VKUtilities::SetDebugUtilsObjectName(VKDevice::Get().GetDevice(), VK_OBJECT_TYPE_COMMAND_BUFFER, "Commandbuffer (frame in flight)", m_Frames[i].MainCommandBuffer->GetHandle());
                 }
             }
         }

@@ -7,16 +7,30 @@
 #ifdef LUMOS_OPENAL
 #include "Platform/OpenAL/ALManager.h"
 #endif
+#include "EmptyAudioManager.h"
 
 namespace Lumos
 {
     AudioManager* AudioManager::Create()
     {
+        AudioManager* AManager;
+
 #ifdef LUMOS_OPENAL
-        return new Audio::ALManager();
+        AManager = new Audio::ALManager();
 #else
-        return nullptr;
+        AManager = new Audio::EmptyAudioManager();
 #endif
+
+        if(!AManager->OnInit())
+        {
+            // If empty audio manager already then init wouldn't fail
+            delete AManager;
+            AManager = new Audio::EmptyAudioManager();
+        }
+
+        AManager->SetPaused(true);
+
+        return AManager;
     }
 
     void AudioManager::SetPaused(bool paused)

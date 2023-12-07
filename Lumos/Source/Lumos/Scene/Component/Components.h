@@ -34,7 +34,7 @@ namespace Lumos
         void save(Archive& archive) const
         {
             std::string path;
-            VFS::Get().AbsoulePathToVFS(FontHandle ? FontHandle->GetFilePath() : "", path);
+            FileSystem::Get().AbsolutePathToFileSystem(FontHandle ? FontHandle->GetFilePath() : "", path);
 
             archive(cereal::make_nvp("TextString", TextString), cereal::make_nvp("Path", path), cereal::make_nvp("Colour", Colour), cereal::make_nvp("LineSpacing", LineSpacing), cereal::make_nvp("Kerning", Kerning),
                     cereal::make_nvp("MaxWidth", MaxWidth), cereal::make_nvp("OutlineColour", OutlineColour), cereal::make_nvp("OutlineWidth", OutlineWidth));

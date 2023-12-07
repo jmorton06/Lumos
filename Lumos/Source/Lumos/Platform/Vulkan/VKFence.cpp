@@ -54,7 +54,7 @@ namespace Lumos
             LUMOS_PROFILE_FUNCTION();
             LUMOS_ASSERT(!m_Signaled, "Fence Signaled");
 
-            const VkResult result = vkWaitForFences(VKDevice::Get().GetDevice(), 1, &m_Handle, true, UINT32_MAX);
+            const VkResult result = vkWaitForFences(VKDevice::Get().GetDevice(), 1, &m_Handle, true, UINT64_MAX);
 
             VK_CHECK_RESULT(result);
             if(result == VK_SUCCESS)

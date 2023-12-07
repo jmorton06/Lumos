@@ -20,7 +20,7 @@ namespace Lumos
             ~GLVertexBuffer();
 
             void Resize(uint32_t size) override;
-            void SetData(uint32_t size, const void* data) override;
+            void SetData(uint32_t size, const void* data, bool addBarrier = false) override;
             void SetDataSub(uint32_t size, const void* data, uint32_t offset) override;
 
             void ReleasePointer() override;
@@ -33,6 +33,7 @@ namespace Lumos
 
         protected:
             static VertexBuffer* CreateFuncGL(const BufferUsage& usage);
+            static VertexBuffer* CreateFuncWithDataGL(uint32_t size, const void* data, const BufferUsage& usage);
 
         protected:
             void* GetPointerInternal() override;

@@ -305,7 +305,7 @@ namespace Lumos
                 frameBufferDesc.attachments     = attachments;
                 frameBufferDesc.mipIndex        = 0;
                 frameBufferDesc.layer           = 0;
-                frameBufferDesc.msaaLevel       = 1;
+                frameBufferDesc.samples         = 1;
                 auto framebuffer                = Framebuffer::Get(frameBufferDesc);
                 framebuffer.As<GLFramebuffer>()->Bind();
             }
