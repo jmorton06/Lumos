@@ -34,7 +34,7 @@
 
 #include <Lumos/ImGui/IconsMaterialDesignIcons.h>
 #include <Lumos/ImGui/ImGuiManager.h>
-#include <Lumos/Graphics/RHI/ImGuiRenderer.h>
+#include <Lumos/Graphics/RHI/IMGUIRenderer.h>
 
 #include <imgui/imgui.h>
 #include <imgui/imgui_internal.h>
