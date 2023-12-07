@@ -2,7 +2,6 @@
 #include "ResourcePanel.h"
 #include <Lumos/Core/OS/Input.h>
 #include <Lumos/Graphics/RHI/Texture.h>
-#include <Lumos/Graphics/RHI/ImGuiRenderer.h>
 #include <Lumos/Core/Profiler.h>
 #include <Lumos/Utilities/StringUtilities.h>
 #include <Lumos/Core/OS/Window.h>
