@@ -15,7 +15,7 @@
 #include <Lumos/Embedded/browserFolder.inl>
 #include <Lumos/Core/OS/OS.h>
 #include <Lumos/Core/String.h>
-#include <Lumos/ImGui/ImGuiManager.h>
+#include <Lumos/ImGui/IMGUIRenderer.h>
 
 #ifdef LUMOS_PLATFORM_WINDOWS
 #include <Windows.h>
