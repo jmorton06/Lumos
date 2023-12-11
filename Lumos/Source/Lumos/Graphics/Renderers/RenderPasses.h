@@ -228,7 +228,7 @@ namespace Lumos
                 const glm::mat4* m_TransformationBack {};
 
                 Texture* m_Textures[MAX_BOUND_TEXTURES];
-                uint32_t m_TextureCount;
+                uint32_t m_TextureCount = 0;
 
                 uint32_t m_CurrentBufferID = 0;
                 glm::vec3 m_QuadPositions[4];

@@ -271,7 +271,7 @@ namespace Lumos
         const float SmallOffsetX    = 6.0f * Application::Get().GetWindowDPI();
         ImDrawList* drawList        = ImGui::GetWindowDrawList();
 
-        if(Input::Get().GetKeyHeld(InputCode::Key::LeftControl))
+        if(ImGui::IsWindowFocused() && Input::Get().GetKeyHeld(InputCode::Key::LeftControl))
 		{
 			float mouseScroll = Input::Get().GetScrollOffset();
 
