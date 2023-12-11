@@ -1831,8 +1831,14 @@ namespace Lumos
             {
                 const glm::vec2 mousePos = Input::Get().GetMousePosition();
                 m_EditorCameraController.SetCamera(m_EditorCamera);
-                m_EditorCameraController.HandleMouse(m_EditorCameraTransform, (float)ts.GetSeconds(), mousePos.x, mousePos.y);
-                m_EditorCameraController.HandleKeyboard(m_EditorCameraTransform, (float)ts.GetSeconds());
+
+                // Make sure the camera is not controllable during transitions
+                if(!m_TransitioningCamera)
+                {
+                    m_EditorCameraController.HandleMouse(m_EditorCameraTransform, (float)ts.GetSeconds(), mousePos.x, mousePos.y);
+                    m_EditorCameraController.HandleKeyboard(m_EditorCameraTransform, (float)ts.GetSeconds());
+                }
+
                 m_EditorCameraTransform.SetWorldMatrix(glm::mat4(1.0f));
 
                 if(!m_SelectedEntities.empty() && Input::Get().GetKeyPressed(InputCode::Key::F))
@@ -1853,15 +1859,23 @@ namespace Lumos
 
             if(m_TransitioningCamera)
             {
-                if(m_CameraTransitionStartTime < 0.0f)
-                    m_CameraTransitionStartTime = (float)ts.GetElapsedSeconds();
+                // Defines the tolerance for distance, beyond which a transition is considered completed
+                constexpr float kTransitionCompletionDistanceTolerance = 0.01f;
+                constexpr float kSpeedBaseFactor = 5.0f;
 
-                float focusProgress         = Maths::Min(((float)ts.GetElapsedSeconds() - m_CameraTransitionStartTime) / m_CameraTransitionSpeed, 1.f);
-                glm::vec3 newCameraPosition = glm::mix(m_CameraStartPosition, m_CameraDestination, focusProgress);
-                m_EditorCameraTransform.SetLocalPosition(newCameraPosition);
+                const auto cameraCurrentPosition = m_EditorCameraTransform.GetLocalPosition();
 
-                if(m_EditorCameraTransform.GetLocalPosition() == m_CameraDestination)
-                    m_TransitioningCamera = false;
+                m_EditorCameraTransform.SetLocalPosition(
+                    glm::mix(
+                        cameraCurrentPosition,
+                        m_CameraDestination,
+                        glm::clamp(m_CameraTransitionSpeed * kSpeedBaseFactor * static_cast<float>(ts.GetSeconds()), 0.0f, 1.0f)
+                    )
+                );
+
+                auto distanceToDestination = glm::distance(cameraCurrentPosition, m_CameraDestination);
+
+                m_TransitioningCamera = distanceToDestination > kTransitionCompletionDistanceTolerance;
             }
 
             if(!Input::Get().GetMouseHeld(InputCode::MouseKey::ButtonRight) && !ImGuizmo::IsUsing())
@@ -1971,6 +1985,9 @@ namespace Lumos
     void Editor::FocusCamera(const glm::vec3& point, float distance, float speed)
     {
         LUMOS_PROFILE_FUNCTION();
+
+        m_EditorCameraController.StopMovement();
+
         if(m_CurrentCamera->IsOrthographic())
         {
             m_EditorCameraTransform.SetLocalPosition(point);
@@ -1981,9 +1998,7 @@ namespace Lumos
             m_TransitioningCamera = true;
 
             m_CameraDestination         = point + m_EditorCameraTransform.GetForwardDirection() * distance;
-            m_CameraTransitionStartTime = -1.0f;
-            m_CameraTransitionSpeed     = 1.0f / speed;
-            m_CameraStartPosition       = m_EditorCameraTransform.GetLocalPosition();
+            m_CameraTransitionSpeed     = speed;
         }
     }
 
@@ -2215,7 +2230,7 @@ namespace Lumos
                     auto& model = registry.get<Graphics::ModelComponent>(currentClosestEntity);
                     auto bb     = model.ModelRef->GetMeshes().front()->GetBoundingBox()->Transformed(trans.GetWorldMatrix());
 
-                    FocusCamera(trans.GetWorldPosition(), glm::distance(bb.Max(), bb.Min()));
+                    FocusCamera(trans.GetWorldPosition(), glm::distance(bb.Max(), bb.Min()), 2.0f);
                 }
                 else
                 {
@@ -2285,7 +2300,7 @@ namespace Lumos
                 auto& sprite = registry.get<Graphics::Sprite>(currentClosestEntity);
                 auto bb      = Maths::BoundingBox(Maths::Rect(sprite.GetPosition(), sprite.GetPosition() + sprite.GetScale()));
 
-                FocusCamera(trans.GetWorldPosition(), glm::distance(bb.Max(), bb.Min()));
+                FocusCamera(trans.GetWorldPosition(), glm::distance(bb.Max(), bb.Min()), 2.0f);
             }
         }
 
