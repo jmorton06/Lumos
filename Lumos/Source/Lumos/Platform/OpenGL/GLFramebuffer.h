@@ -7,7 +7,7 @@ namespace Lumos
 {
     namespace Graphics
     {
-        enum class RHIFormat : uint32_t;
+        enum class RHIFormat : uint8_t;
 
         class LUMOS_EXPORT GLFramebuffer : public Framebuffer
         {
