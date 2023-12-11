@@ -155,8 +155,9 @@ namespace Lumos
                 std::string aoFilePath;
                 std::string shaderFilePath;
 
-                static const bool loadOldMaterial = false;
-                if(loadOldMaterial)
+                constexpr bool loadOldMaterial = false;
+
+                if constexpr(loadOldMaterial)
                 {
                     glm::vec4 roughness, metallic, emissive;
                     archive(cereal::make_nvp("Albedo", albedoFilePath),
