@@ -1,0 +1,1 @@
+Common\GenerateVSProject.bat vs2017
