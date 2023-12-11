@@ -2230,7 +2230,7 @@ namespace Lumos
                     auto& model = registry.get<Graphics::ModelComponent>(currentClosestEntity);
                     auto bb     = model.ModelRef->GetMeshes().front()->GetBoundingBox()->Transformed(trans.GetWorldMatrix());
 
-                    FocusCamera(trans.GetWorldPosition(), glm::distance(bb.Max(), bb.Min()));
+                    FocusCamera(trans.GetWorldPosition(), glm::distance(bb.Max(), bb.Min()), 2.0f);
                 }
                 else
                 {
@@ -2300,7 +2300,7 @@ namespace Lumos
                 auto& sprite = registry.get<Graphics::Sprite>(currentClosestEntity);
                 auto bb      = Maths::BoundingBox(Maths::Rect(sprite.GetPosition(), sprite.GetPosition() + sprite.GetScale()));
 
-                FocusCamera(trans.GetWorldPosition(), glm::distance(bb.Max(), bb.Min()));
+                FocusCamera(trans.GetWorldPosition(), glm::distance(bb.Max(), bb.Min()), 2.0f);
             }
         }
 
