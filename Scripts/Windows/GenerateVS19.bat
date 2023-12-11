@@ -1,2 +1,1 @@
-cd ..\..
-call Tools\premake5.exe vs2019
+Common\GenerateVSProject.bat vs2019
