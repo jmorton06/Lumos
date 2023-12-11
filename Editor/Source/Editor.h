@@ -287,11 +287,9 @@ namespace Lumos
 
         bool m_CutCopyEntity              = false;
         float m_CurrentSceneAspectRatio   = 0.0f;
-        float m_CameraTransitionStartTime = 0.0f;
         float m_CameraTransitionSpeed     = 0.0f;
         bool m_TransitioningCamera        = false;
         glm::vec3 m_CameraDestination;
-        glm::vec3 m_CameraStartPosition;
         bool m_SceneViewActive     = false;
         bool m_NewProjectPopupOpen = false;
 
