@@ -148,9 +148,9 @@ namespace Lumos
 
                 const uint32_t descriptorCount = (uint32_t)m_Descriptors.descriptors.size();
                 ArenaTemp scratch = ScratchBegin(nullptr, 0);
-                VkDescriptorBufferInfo* bufferInfos = PushArrayNoZero(scratch.arena, VkDescriptorBufferInfo, descriptorCount);
-                VkDescriptorImageInfo* imageInfos = PushArrayNoZero(scratch.arena, VkDescriptorImageInfo, descriptorCount);
-                VkWriteDescriptorSet* writeDescriptorSets = PushArrayNoZero(scratch.arena, VkWriteDescriptorSet, descriptorCount);
+                VkDescriptorBufferInfo* bufferInfos = PushArrayNoZero(scratch.arena, VkDescriptorBufferInfo, 32);
+                VkDescriptorImageInfo* imageInfos = PushArrayNoZero(scratch.arena, VkDescriptorImageInfo, 32);
+                VkWriteDescriptorSet* writeDescriptorSets = PushArrayNoZero(scratch.arena, VkWriteDescriptorSet, 32);
 
                 for(auto& imageInfo : m_Descriptors.descriptors)
                 {
@@ -166,7 +166,7 @@ namespace Lumos
                                 imageInfos[imageIndex].imageLayout = des.imageLayout;
                                 imageInfos[imageIndex].imageView   = des.imageView;
                                 imageInfos[imageIndex].sampler     = des.sampler;
-                            }
+                            } 
                         }
                         else
                         {
@@ -176,7 +176,7 @@ namespace Lumos
                                 {
                                     TransitionImageToCorrectLayout(imageInfo.textures[i], cmdBuffer);
 
-                                    VkDescriptorImageInfo& des                  = *static_cast<VkDescriptorImageInfo*>(imageInfo.textures[i]->GetDescriptorInfo());
+                                    VkDescriptorImageInfo& des             = *static_cast<VkDescriptorImageInfo*>(imageInfo.textures[i]->GetDescriptorInfo());
                                     imageInfos[i + imageIndex].imageLayout = des.imageLayout;
                                     imageInfos[i + imageIndex].imageView   = des.imageView;
                                     imageInfos[i + imageIndex].sampler     = des.sampler;
