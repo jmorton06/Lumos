@@ -1222,7 +1222,7 @@ namespace Lumos
             m_VKFormat = VKUtilities::FormatToVK(m_Format);
 
 #ifdef LUMOS_PLATFORM_MACOS
-            VkImageUsageFlags usage = VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
+            VkImageUsageFlags usage = VkImageUsageFlags(0);
 
 #else
             VkImageUsageFlags usage = VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
