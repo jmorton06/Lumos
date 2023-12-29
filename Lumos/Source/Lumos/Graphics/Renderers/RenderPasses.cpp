@@ -2432,6 +2432,7 @@ namespace Lumos::Graphics
         LUMOS_PROFILE_FUNCTION();
         float result = 0.0f;
         bool found   = false;
+
         for(uint32_t i = 0; i < m_Renderer2DData.m_TextureCount; i++)
         {
             if(m_Renderer2DData.m_Textures[i] == texture)
@@ -2447,6 +2448,7 @@ namespace Lumos::Graphics
             if(m_Renderer2DData.m_TextureCount >= m_Renderer2DData.m_Limits.MaxTextures)
             {
                 Render2DFlush();
+                Renderer2DBeginBatch();
             }
             m_Renderer2DData.m_Textures[m_Renderer2DData.m_TextureCount] = texture;
             m_Renderer2DData.m_TextureCount++;
@@ -2618,9 +2620,9 @@ namespace Lumos::Graphics
         m_Renderer2DData.m_Pipeline->End(commandBuffer);
 
         m_Renderer2DData.m_BatchDrawCallIndex++;
-
-        /*m_Renderer2DData.m_IndexCount = 0;
         m_Renderer2DData.m_TextureCount = 0;
+        /*m_Renderer2DData.m_IndexCount = 0;
+        
 
         if((int)m_Renderer2DData.m_VertexBuffers[currentFrame].size() - 1 < (int)m_Renderer2DData.m_BatchDrawCallIndex)
         {
