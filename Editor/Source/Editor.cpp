@@ -800,7 +800,20 @@ namespace Lumos
                 if(ImGui::MenuItem(fmt::format("Cereal - Version : {0}.{1}.{2}", CEREAL_VERSION_MAJOR, CEREAL_VERSION_MINOR, CEREAL_VERSION_PATCH).c_str()))
                     Lumos::OS::Instance()->OpenURL("https://github.com/USCiLab/cereal");
 
-                ImGui::EndMenu();
+                if(ImGui::BeginMenu("Contributers"))
+                {
+                    if(ImGui::MenuItem("Joe Morton"))
+                        Lumos::OS::Instance()->OpenURL("https://github.com/jmorton06");
+                  
+                    if(ImGui::MenuItem("RuanLucasGD"))
+                        Lumos::OS::Instance()->OpenURL("https://github.com/RuanLucasGD");
+                  
+                    if(ImGui::MenuItem("adriengivry"))
+                        Lumos::OS::Instance()->OpenURL("https://github.com/adriengivry");
+                  
+                    ImGui::EndMenu(); //Contributer Menu
+                }
+                ImGui::EndMenu(); // About Menu
             }
 
             if(m_ProjectLoaded)
