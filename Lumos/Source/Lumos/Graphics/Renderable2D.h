@@ -16,7 +16,7 @@ namespace Lumos
         struct LUMOS_EXPORT VertexData
         {
             glm::vec3 vertex;
-            glm::vec2 uv;
+            glm::vec4 uv;
             glm::vec2 tid;
             glm::vec4 colour;
 

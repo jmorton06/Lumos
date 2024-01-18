@@ -376,7 +376,7 @@ namespace Lumos
 
             if(deleteEntity)
             {
-				nodeEntity.GetScene()->DestroyEntity(nodeEntity);
+                nodeEntity.GetScene()->DestroyEntity(nodeEntity);
                 if(nodeOpen)
                     ImGui::TreePop();
 
@@ -693,7 +693,7 @@ ImGui::GetStyle().ChildBorderSize = backup_border_size;
 
                                 if(m_Editor->GetCutCopyEntity())
                                 {
-									copiedEntity.GetScene()->DestroyEntity(copiedEntity);
+                                    copiedEntity.GetScene()->DestroyEntity(copiedEntity);
                                 }
                             }
                         }
@@ -774,10 +774,10 @@ ImGui::GetStyle().ChildBorderSize = backup_border_size;
             // ImGui::EndChild();
             // ImGui::PopStyleColor();
 
-            if (ImGui::IsWindowFocused() && Input::Get().GetKeyPressed(Lumos::InputCode::Key::Delete))
+            if(ImGui::IsWindowFocused() && Input::Get().GetKeyPressed(Lumos::InputCode::Key::Delete))
             {
                 auto* scene = Application::Get().GetCurrentScene();
-                for (auto entity : m_Editor->GetSelected())
+                for(auto entity : m_Editor->GetSelected())
                     scene->DestroyEntity(Entity(entity, scene));
             }
         }

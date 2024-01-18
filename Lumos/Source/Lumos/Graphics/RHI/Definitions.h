@@ -55,6 +55,7 @@ namespace Lumos
             OneZero,
             ZeroSrcColor,
             SrcAlphaOneMinusSrcAlpha,
+            SrcAlphaOne
         };
 
         enum class TextureWrap : uint8_t

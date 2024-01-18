@@ -101,7 +101,7 @@ namespace Lumos
         {
             for(int i = 0; i < assetTypes.size(); i++)
             {
-                if(Str8Match(extension, assetTypes[i], 0))
+                if(Str8Match(extension, assetTypes[i]))
                 {
                     return i;
                 }
@@ -128,8 +128,8 @@ namespace Lumos
             Str8Lit("fbx"), Str8Lit("obj"), Str8Lit("wav"), Str8Lit("cs"), Str8Lit("png"), Str8Lit("blend"), Str8Lit("lsc"), Str8Lit("ogg"), Str8Lit("lua")
         };
 
-     	float MinGridSize = 50;
-		float MaxGridSize = 400;
+        float MinGridSize = 50;
+        float MaxGridSize = 400;
         String8 m_MovePath;
         String8 m_LastNavPath;
         String8 m_Delimiter;
@@ -162,7 +162,7 @@ namespace Lumos
         {
             bool operator()(String8 a, String8 b) const
             {
-                return Str8Match(a, b, 0);
+                return Str8Match(a, b);
             }
         };
 

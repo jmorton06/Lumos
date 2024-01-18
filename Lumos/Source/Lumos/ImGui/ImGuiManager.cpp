@@ -187,8 +187,7 @@ namespace Lumos
     bool ImGuiManager::OnMouseScrolledEvent(MouseScrolledEvent& e)
     {
         ImGuiIO& io = ImGui::GetIO();
-        io.MouseWheel += e.GetYOffset() / 10.0f;
-        io.MouseWheelH += e.GetXOffset() / 10.0f;
+        io.AddMouseWheelEvent((float)e.GetXOffset(), (float)e.GetYOffset());
 
         return false;
     }

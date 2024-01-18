@@ -13,6 +13,7 @@
 #include "Graphics/RHI/GPUProfile.h"
 #include "Graphics/Font.h"
 #include "Graphics/MSDFData.h"
+#include "Graphics/ParticleManager.h"
 #include "Core/JobSystem.h"
 #include "Core/OS/Window.h"
 #include "Maths/BoundingSphere.h"
@@ -393,6 +394,80 @@ namespace Lumos::Graphics
 
         m_Renderer2DData.m_CurrentDescriptorSets.resize(2);
 
+        {
+            // Setup Particle pass data
+            m_ParticleData.m_IndexCount           = 0;
+            m_ParticleData.m_Buffer               = nullptr;
+            m_ParticleData.m_RenderToDepthTexture = true;
+            m_ParticleData.m_TriangleIndicies     = false;
+            m_ParticleData.m_Limits.SetMaxQuads(10000);
+            m_ParticleData.m_Limits.MaxTextures = 16; // Renderer::GetCapabilities().MaxTextureUnits;
+
+            m_ParticleData.m_Shader = Application::Get().GetShaderLibrary()->GetResource("Particle");
+
+            m_ParticleData.m_TransformationStack.emplace_back(glm::mat4(1.0f));
+            m_ParticleData.m_TransformationBack = &m_ParticleData.m_TransformationStack.back();
+
+            descriptorDesc.layoutIndex = 0;
+            descriptorDesc.shader      = m_ParticleData.m_Shader.get();
+            m_ParticleData.m_DescriptorSet.resize(m_ParticleData.m_Limits.MaxBatchDrawCalls);
+            m_ParticleData.m_PreviousFrameTextureCount.resize(m_ParticleData.m_Limits.MaxBatchDrawCalls);
+
+            for(uint32_t i = 0; i < m_ParticleData.m_Limits.MaxBatchDrawCalls; i++)
+            {
+                m_ParticleData.m_PreviousFrameTextureCount[i] = 0;
+                m_ParticleData.m_DescriptorSet[i].resize(2);
+                if(i == 0)
+                {
+                    descriptorDesc.layoutIndex           = 0;
+                    m_ParticleData.m_DescriptorSet[0][0] = SharedPtr<Graphics::DescriptorSet>(Graphics::DescriptorSet::Create(descriptorDesc));
+                }
+                descriptorDesc.layoutIndex           = 1;
+                m_ParticleData.m_DescriptorSet[i][1] = nullptr; // SharedPtr<Graphics::DescriptorSet>(Graphics::DescriptorSet::Create(descriptorDesc));
+            }
+
+            m_ParticleData.m_VertexBuffers.resize(Renderer::GetMainSwapChain()->GetSwapChainBufferCount());
+
+            uint32_t* indices = new uint32_t[m_ParticleData.m_Limits.IndiciesSize];
+
+            if(m_ParticleData.m_TriangleIndicies)
+            {
+                for(uint32_t i = 0; i < m_ParticleData.m_Limits.IndiciesSize; i++)
+                {
+                    indices[i] = i;
+                }
+            }
+            else
+            {
+                uint32_t offset = 0;
+                for(uint32_t i = 0; i < m_ParticleData.m_Limits.IndiciesSize; i += 6)
+                {
+                    indices[i]     = offset + 0;
+                    indices[i + 1] = offset + 1;
+                    indices[i + 2] = offset + 2;
+
+                    indices[i + 3] = offset + 2;
+                    indices[i + 4] = offset + 3;
+                    indices[i + 5] = offset + 0;
+
+                    offset += 4;
+                }
+            }
+            m_ParticleData.m_IndexBuffer = IndexBuffer::Create(indices, m_ParticleData.m_Limits.IndiciesSize);
+            m_ParticleBufferBase.resize(Renderer::GetMainSwapChain()->GetSwapChainBufferCount());
+
+            for(int currentFrame = 0; currentFrame < Renderer::GetMainSwapChain()->GetSwapChainBufferCount(); currentFrame++)
+            {
+                auto& vertexBuffer = m_ParticleData.m_VertexBuffers[currentFrame].emplace_back(Graphics::VertexBuffer::Create(m_ParticleData.m_Limits.BufferSize, nullptr, BufferUsage::DYNAMIC));
+
+                m_ParticleBufferBase[currentFrame].emplace_back(new VertexData[m_ParticleData.m_Limits.MaxQuads * 4]);
+            }
+
+            delete[] indices;
+
+            m_ParticleData.m_CurrentDescriptorSets.resize(2);
+        }
+
         // Setup text pass
         m_TextRendererData.m_IndexCount = 0;
         // m_TextBuffer                              = nullptr;
@@ -485,6 +560,7 @@ namespace Lumos::Graphics
         delete m_DebugDrawData.m_Renderer2DData.m_IndexBuffer;
         delete m_DebugDrawData.m_LineIndexBuffer;
         delete m_DebugDrawData.m_PointIndexBuffer;
+        delete m_ParticleData.m_IndexBuffer;
 
         for(auto data : TextVertexBufferBase)
             delete[] data;
@@ -521,6 +597,17 @@ namespace Lumos::Graphics
             }
 
             for(auto data : m_2DBufferBase[j])
+                delete[] data;
+        }
+
+        for(int j = 0; j < Renderer::GetMainSwapChain()->GetSwapChainBufferCount(); j++)
+        {
+            for(size_t i = 0; i < m_ParticleData.m_VertexBuffers[j].size(); i++)
+            {
+                delete m_ParticleData.m_VertexBuffers[j][i];
+            }
+
+            for(auto data : m_ParticleBufferBase[j])
                 delete[] data;
         }
 
@@ -580,6 +667,7 @@ namespace Lumos::Graphics
         m_Renderer2DData.m_BatchDrawCallIndex        = 0;
         m_TextRendererData.m_BatchDrawCallIndex      = 0;
         m_DebugTextRendererData.m_BatchDrawCallIndex = 0;
+        m_ParticleData.m_BatchDrawCallIndex          = 0;
 
         if(m_OverrideCamera)
         {
@@ -675,6 +763,13 @@ namespace Lumos::Graphics
         uint32_t numLights = 0;
 
         m_ForwardData.m_Frustum = m_Camera->GetFrustum(view);
+
+        auto emitterGroup = registry.group<ParticleEmitter>(entt::get<Maths::Transform>);
+        for(auto& emitterEntity : emitterGroup)
+        {
+            const auto& [emitter, trans] = emitterGroup.get<ParticleEmitter, Maths::Transform>(emitterEntity);
+            emitter.Update((float)Engine::GetTimeStep().GetSeconds(), trans.GetWorldPosition());
+        }
 
         if(renderSettings.Renderer3DEnabled)
         {
@@ -1006,6 +1101,8 @@ namespace Lumos::Graphics
             ForwardPass();
         if(m_Settings.SkyboxPass && sceneRenderSettings.SkyboxRenderEnabled)
             SkyboxPass();
+        if(m_Settings.GeomPass && sceneRenderSettings.Renderer3DEnabled)
+            ParticlePass();
         if(m_Settings.GeomPass && sceneRenderSettings.Renderer2DEnabled)
             Render2DPass();
 
@@ -1105,14 +1202,13 @@ namespace Lumos::Graphics
             ImGui::SliderInt("Texture Array Index", &index, 0, m_ShadowData.m_ShadowTex->GetCount() - 1);
 
             bool flipImage = Renderer::GetGraphicsContext()->FlipImGUITexture();
-			
-			
-			ImGuiUtilities::Image(m_ShadowData.m_ShadowTex,index, ImVec2(128, 128));
+
+            ImGuiUtilities::Image(m_ShadowData.m_ShadowTex, index, ImVec2(128, 128));
 
             if(ImGui::IsItemHovered())
             {
                 ImGui::BeginTooltip();
-                ImGuiUtilities::Image(m_ShadowData.m_ShadowTex,index, ImVec2(256, 256));
+                ImGuiUtilities::Image(m_ShadowData.m_ShadowTex, index, ImVec2(256, 256));
                 ImGui::EndTooltip();
             }
 
@@ -2429,7 +2525,7 @@ namespace Lumos::Graphics
 
     float RenderPasses::SubmitTexture(Texture* texture)
     {
-        LUMOS_PROFILE_FUNCTION();
+        LUMOS_PROFILE_FUNCTION_LOW();
         float result = 0.0f;
         bool found   = false;
 
@@ -2510,28 +2606,32 @@ namespace Lumos::Graphics
 
             glm::vec3 vertex                  = transform * glm::vec4(min.x, min.y, 0.0f, 1.0f);
             m_Renderer2DData.m_Buffer->vertex = vertex;
-            m_Renderer2DData.m_Buffer->uv     = uv[0];
+            m_Renderer2DData.m_Buffer->uv.x   = uv[0].x;
+            m_Renderer2DData.m_Buffer->uv.y   = uv[0].y;
             m_Renderer2DData.m_Buffer->tid    = glm::vec2(textureSlot, 0.0f);
             m_Renderer2DData.m_Buffer->colour = colour;
             m_Renderer2DData.m_Buffer++;
 
             vertex                            = transform * glm::vec4(max.x, min.y, 0.0f, 1.0f);
             m_Renderer2DData.m_Buffer->vertex = vertex;
-            m_Renderer2DData.m_Buffer->uv     = uv[1];
+            m_Renderer2DData.m_Buffer->uv.x   = uv[1].x;
+            m_Renderer2DData.m_Buffer->uv.y   = uv[1].y;
             m_Renderer2DData.m_Buffer->tid    = glm::vec2(textureSlot, 0.0f);
             m_Renderer2DData.m_Buffer->colour = colour;
             m_Renderer2DData.m_Buffer++;
 
             vertex                            = transform * glm::vec4(max.x, max.y, 0.0f, 1.0f);
             m_Renderer2DData.m_Buffer->vertex = vertex;
-            m_Renderer2DData.m_Buffer->uv     = uv[2];
+            m_Renderer2DData.m_Buffer->uv.x   = uv[2].x;
+            m_Renderer2DData.m_Buffer->uv.y   = uv[2].y;
             m_Renderer2DData.m_Buffer->tid    = glm::vec2(textureSlot, 0.0f);
             m_Renderer2DData.m_Buffer->colour = colour;
             m_Renderer2DData.m_Buffer++;
 
             vertex                            = transform * glm::vec4(min.x, max.y, 0.0f, 1.0f);
             m_Renderer2DData.m_Buffer->vertex = vertex;
-            m_Renderer2DData.m_Buffer->uv     = uv[3];
+            m_Renderer2DData.m_Buffer->uv.x   = uv[3].x;
+            m_Renderer2DData.m_Buffer->uv.y   = uv[3].y;
             m_Renderer2DData.m_Buffer->tid    = glm::vec2(textureSlot, 0.0f);
             m_Renderer2DData.m_Buffer->colour = colour;
             m_Renderer2DData.m_Buffer++;
@@ -2598,8 +2698,6 @@ namespace Lumos::Graphics
 
         Graphics::CommandBuffer* commandBuffer = Renderer::GetMainSwapChain()->GetCurrentCommandBuffer();
 
-        // m_Renderer2DData.m_VertexBuffers[currentFrame][m_Renderer2DData.m_BatchDrawCallIndex]->ReleasePointer();
-
         uint32_t dataSize = (uint32_t)((uint8_t*)m_Renderer2DData.m_Buffer - (uint8_t*)m_2DBufferBase[currentFrame][m_Renderer2DData.m_BatchDrawCallIndex]);
         m_Renderer2DData.m_VertexBuffers[currentFrame][m_Renderer2DData.m_BatchDrawCallIndex]->SetData(dataSize, (void*)m_2DBufferBase[currentFrame][m_Renderer2DData.m_BatchDrawCallIndex], true);
 
@@ -2621,20 +2719,6 @@ namespace Lumos::Graphics
 
         m_Renderer2DData.m_BatchDrawCallIndex++;
         m_Renderer2DData.m_TextureCount = 0;
-        /*m_Renderer2DData.m_IndexCount = 0;
-        
-
-        if((int)m_Renderer2DData.m_VertexBuffers[currentFrame].size() - 1 < (int)m_Renderer2DData.m_BatchDrawCallIndex)
-        {
-            auto& vertexBuffer = m_Renderer2DData.m_VertexBuffers[currentFrame].emplace_back(Graphics::VertexBuffer::Create(BufferUsage::DYNAMIC));
-            vertexBuffer->Resize(m_Renderer2DData.m_Limits.BufferSize);
-
-            m_2DBufferBase[currentFrame].emplace_back(new VertexData[m_Renderer2DData.m_Limits.MaxQuads  * 4]);
-        }
-
-        m_Renderer2DData.m_VertexBuffers[currentFrame][m_Renderer2DData.m_BatchDrawCallIndex]->Bind(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer(), m_Renderer2DData.m_Pipeline.get());
-        m_Renderer2DData.m_Buffer = m_2DBufferBase[currentFrame][m_Renderer2DData.m_BatchDrawCallIndex];*/
-        // m_Renderer2DData.m_Buffer = m_Renderer2DData.m_VertexBuffers[currentFrame][m_Renderer2DData.m_BatchDrawCallIndex]->GetPointer<VertexData>();
     }
 
     void RenderPasses::TextFlush(Renderer2DData& textRenderData, std::vector<TextVertexData*>& textVertexBufferBase, TextVertexData*& textVertexBufferPtr)
@@ -2700,15 +2784,7 @@ namespace Lumos::Graphics
         textRenderData.m_IndexCount = 0;
         textRenderData.m_BatchDrawCallIndex++;
 
-        //        if((int)textRenderData.m_VertexBuffers[currentFrame].size() - 1 < (int)textRenderData.m_BatchDrawCallIndex)
-        //        {
-        //            auto& vertexBuffer = textRenderData.m_VertexBuffers[currentFrame].emplace_back(Graphics::VertexBuffer::Create(BufferUsage::DYNAMIC));
-        //            vertexBuffer->Resize(RENDERER_LINE_BUFFER_SIZE);
-        //        }
-
         textRenderData.m_TextureCount = 0;
-        // textRenderData.m_VertexBuffers[currentFrame][textRenderData.m_BatchDrawCallIndex]->Bind(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer(), textRenderData.m_Pipeline.get());
-        //  m_TextBuffer = m_TextRendererData.m_VertexBuffers[currentFrame][m_TextRendererData.m_BatchDrawCallIndex]->GetPointer<TextVertexData>();
     }
 
     void RenderPasses::TextPass()
@@ -3206,17 +3282,17 @@ namespace Lumos::Graphics
                     float textureSlot = 0.0f;
 
                     m_DebugDrawData.m_Renderer2DData.m_Buffer->vertex = triangleInfo.p1;
-                    m_DebugDrawData.m_Renderer2DData.m_Buffer->uv     = { 0.0f, 0.0f };
+                    m_DebugDrawData.m_Renderer2DData.m_Buffer->uv     = { 0.0f, 0.0f, 0.0f, 0.0f };
                     m_DebugDrawData.m_Renderer2DData.m_Buffer->tid    = glm::vec2(textureSlot, 0.0f);
                     m_DebugDrawData.m_Renderer2DData.m_Buffer->colour = triangleInfo.col;
                     m_DebugDrawData.m_Renderer2DData.m_Buffer++;
                     m_DebugDrawData.m_Renderer2DData.m_Buffer->vertex = triangleInfo.p2;
-                    m_DebugDrawData.m_Renderer2DData.m_Buffer->uv     = { 0.0f, 0.0f };
+                    m_DebugDrawData.m_Renderer2DData.m_Buffer->uv     = { 0.0f, 0.0f, 0.0f, 0.0f };
                     m_DebugDrawData.m_Renderer2DData.m_Buffer->tid    = glm::vec2(textureSlot, 0.0f);
                     m_DebugDrawData.m_Renderer2DData.m_Buffer->colour = triangleInfo.col;
                     m_DebugDrawData.m_Renderer2DData.m_Buffer++;
                     m_DebugDrawData.m_Renderer2DData.m_Buffer->vertex = triangleInfo.p3;
-                    m_DebugDrawData.m_Renderer2DData.m_Buffer->uv     = { 0.0f, 0.0f };
+                    m_DebugDrawData.m_Renderer2DData.m_Buffer->uv     = { 0.0f, 0.0f, 0.0f, 0.0f };
                     m_DebugDrawData.m_Renderer2DData.m_Buffer->tid    = glm::vec2(textureSlot, 0.0f);
                     m_DebugDrawData.m_Renderer2DData.m_Buffer->colour = triangleInfo.col;
                     m_DebugDrawData.m_Renderer2DData.m_Buffer++;
@@ -4092,5 +4168,345 @@ namespace Lumos::Graphics
     void RenderPasses::Init2DRenderData()
     {
         m_DebugRenderDataInitialised = true;
+    }
+
+    float RenderPasses::SubmitParticleTexture(Texture* texture)
+    {
+        LUMOS_PROFILE_FUNCTION_LOW();
+        float result = 0.0f;
+        bool found   = false;
+
+        for(uint32_t i = 0; i < m_ParticleData.m_TextureCount; i++)
+        {
+            if(m_ParticleData.m_Textures[i] == texture)
+            {
+                result = static_cast<float>(i + 1);
+                found  = true;
+                break;
+            }
+        }
+
+        if(!found)
+        {
+            if(m_ParticleData.m_TextureCount >= m_ParticleData.m_Limits.MaxTextures)
+            {
+                Render2DFlush();
+                ParticleBeginBatch();
+            }
+            m_ParticleData.m_Textures[m_ParticleData.m_TextureCount] = texture;
+            m_ParticleData.m_TextureCount++;
+            result = static_cast<float>(m_ParticleData.m_TextureCount);
+        }
+        return result;
+    }
+
+    bool compareParticles(const Particle& a, const Particle& b, const glm::vec3& cameraPosition)
+    {
+        // Calculate squared distance from camera to particle
+        float distanceSqA = glm::length2(a.Position - cameraPosition);
+        float distanceSqB = glm::length2(b.Position - cameraPosition);
+
+        // Sort in descending order based on squared distance
+        return distanceSqA > distanceSqB;
+    }
+
+    glm::mat4 CalculateParticleTransform(const glm::vec3& position, const glm::mat4& viewMatrix)
+    {
+        glm::mat4 transform = glm::mat4(1.0f);
+        return transform;
+        transform = glm::translate(transform, position);
+
+        // Extract the rotation part from the view matrix
+        glm::mat3 rotationMatrix = glm::mat3(viewMatrix);
+
+        // Set the rotation part of the particle transform matrix
+        transform[0] = glm::vec4(rotationMatrix[0], 0.0f);
+        transform[1] = glm::vec4(rotationMatrix[1], 0.0f);
+        transform[2] = glm::vec4(rotationMatrix[2], 0.0f);
+
+        return transform;
+    }
+
+    void RenderPasses::ParticlePass()
+    {
+        LUMOS_PROFILE_FUNCTION();
+        LUMOS_PROFILE_GPU("Particle Pass");
+
+        auto emitterGroup = m_CurrentScene->GetRegistry().group<ParticleEmitter>(entt::get<Maths::Transform>);
+
+        if(emitterGroup.empty())
+            return;
+
+        Graphics::PipelineDesc pipelineDesc;
+        pipelineDesc.shader                  = m_ParticleData.m_Shader;
+        pipelineDesc.polygonMode             = Graphics::PolygonMode::FILL;
+        pipelineDesc.cullMode                = Graphics::CullMode::BACK;
+        pipelineDesc.transparencyEnabled     = true;
+        pipelineDesc.blendMode               = BlendMode::SrcAlphaOne;
+        pipelineDesc.clearTargets            = false;
+        pipelineDesc.depthTarget             = reinterpret_cast<Texture*>(m_ForwardData.m_DepthTexture);
+        pipelineDesc.DepthTest               = true;
+        pipelineDesc.DepthWrite              = false;
+        pipelineDesc.colourTargets[0]        = m_MainTexture;
+        pipelineDesc.DebugName               = "Particle";
+
+        ParticleBeginBatch();
+
+        auto projView   = m_Camera->GetProjectionMatrix() * glm::inverse(m_CameraTransform->GetWorldMatrix());
+  
+        auto cameraPos  = m_CameraTransform->GetWorldPosition();
+        m_ParticleData.m_DescriptorSet[0][0]->SetUniform("UBO", "projView", &projView);
+        m_ParticleData.m_DescriptorSet[0][0]->Update();
+
+        for(auto& emitterEntity : emitterGroup)
+        {
+            const auto& [emitter, trans] = emitterGroup.get<ParticleEmitter, Maths::Transform>(emitterEntity);
+            Particle* particles          = emitter.GetParticles();
+            uint32_t particleCount       = emitter.GetParticleCount();
+
+            if(!particleCount)
+                continue;
+
+            if(emitter.GetBlendType() == ParticleEmitter::BlendType::Additive)
+                pipelineDesc.blendMode = BlendMode::SrcAlphaOne;
+            else
+                pipelineDesc.blendMode = BlendMode::SrcAlphaOneMinusSrcAlpha;
+
+            pipelineDesc.clearTargets            = false;
+            pipelineDesc.depthTarget             = reinterpret_cast<Texture*>(m_ForwardData.m_DepthTexture);
+            pipelineDesc.DepthTest               = true;
+            pipelineDesc.DepthWrite              = false;
+            pipelineDesc.colourTargets[0]        = m_MainTexture;
+            pipelineDesc.DebugName               = "Particle";
+            pipelineDesc.depthBiasEnabled        = true;
+            pipelineDesc.depthBiasConstantFactor = -1.25f;
+            pipelineDesc.depthBiasSlopeFactor    = -1.75f;
+            m_ParticleData.m_Pipeline            = Graphics::Pipeline::Get(pipelineDesc);
+
+            if(emitter.GetSortParticles())
+            {
+                std::sort(&particles[0], &particles[particleCount - 1], [&](const Particle& a, const Particle& b)
+                          { return compareParticles(a, b, m_CameraTransform->GetWorldPosition()); });
+            }
+
+            for(uint32_t i = 0; i < particleCount; i++)
+            {
+                auto& particle = particles[i];
+                if(particle.Life <= 0.0f)
+                    continue;
+
+                m_Stats.NumRenderedObjects++;
+
+                if(m_ParticleData.m_IndexCount >= m_ParticleData.m_Limits.IndiciesSize)
+                {
+                    ParticleFlush();
+                    ParticleBeginBatch();
+                }
+                glm::vec3 v1;
+                glm::vec3 v2;
+                glm::vec3 v3;
+                glm::vec3 v4;
+                auto alignType = emitter.GetAlignedType();
+                if (alignType == ParticleEmitter::Aligned2D)
+                {
+                    glm::vec3 rightOffset = glm::vec3(1.0f, 0.0f, 0.0f) * particle.Size * 0.5f;
+                    glm::vec3 upOffset = glm::vec3(0.0f, 1.0f, 0.0f) * particle.Size * 0.5f;
+
+                    v1 = particle.Position - rightOffset - upOffset;
+                    v2 = particle.Position + rightOffset - upOffset;
+                    v3 = particle.Position + rightOffset + upOffset;
+                    v4 = particle.Position - rightOffset + upOffset;
+                }
+                else if (alignType == ParticleEmitter::Aligned3D)
+                {
+                    glm::vec3 cameraRight = glm::normalize(m_CameraTransform->GetRightDirection());
+                    glm::vec3 cameraUp = glm::normalize(m_CameraTransform->GetUpDirection());
+
+                    glm::vec3 rightOffset = cameraRight * particle.Size * 0.5f;
+                    glm::vec3 upOffset = cameraUp * particle.Size * 0.5f;
+
+                    v1 = particle.Position - rightOffset - upOffset;
+                    v2 = particle.Position + rightOffset - upOffset;
+                    v3 = particle.Position + rightOffset + upOffset;
+                    v4 = particle.Position - rightOffset + upOffset;
+                }
+                else
+                {
+                    glm::vec3 rightOffset = glm::vec3(particle.Size * 0.5f,0.0f, 0.0f);
+                    glm::vec3 upOffset = glm::vec3(0.0f, particle.Size * 0.5f, 0.0f);
+
+                    v1 = particle.Position - rightOffset - upOffset;
+                    v2 = particle.Position + rightOffset - upOffset;
+                    v3 = particle.Position + rightOffset + upOffset;
+                    v4 = particle.Position - rightOffset + upOffset;
+                }
+
+                const glm::vec4 colour = particle.Colour;
+                bool animated          = emitter.GetIsAnimated();
+                std::array<glm::vec2, 4> uv;
+                std::array<glm::vec4, 4> blendedUVs;
+
+                float blendAmount = -1.0f;
+
+                if(animated)
+                {
+                    blendedUVs = emitter.GetBlendedAnimatedUVs(1.0f - (particle.Life / emitter.GetParticleLife()), emitter.GetAnimatedTextureRows(), blendAmount);
+                }
+                else
+                {
+                    uv = emitter.GetDefaultUVs();
+                }
+
+                Texture* texture = emitter.GetTexture();
+
+                if(!texture)
+                    texture = Graphics::Material::GetDefaultTexture();
+
+                float textureSlot = 0.0f;
+                if(texture)
+                    textureSlot = SubmitParticleTexture(texture);
+
+                m_ParticleData.m_Buffer->vertex = v1;
+                if(animated)
+                {
+                    m_ParticleData.m_Buffer->uv = blendedUVs[0];
+                }
+                else
+                {
+                    m_ParticleData.m_Buffer->uv.x = uv[0].x;
+                    m_ParticleData.m_Buffer->uv.y = uv[0].y;
+                }
+
+                m_ParticleData.m_Buffer->tid    = glm::vec2(textureSlot, blendAmount);
+                m_ParticleData.m_Buffer->colour = colour;
+                m_ParticleData.m_Buffer++;
+
+                m_ParticleData.m_Buffer->vertex = v2;
+                if(animated)
+                {
+                    m_ParticleData.m_Buffer->uv = blendedUVs[1];
+                }
+                else
+                {
+                    m_ParticleData.m_Buffer->uv.x = uv[1].x;
+                    m_ParticleData.m_Buffer->uv.y = uv[1].y;
+                }
+                m_ParticleData.m_Buffer->tid    = glm::vec2(textureSlot, blendAmount);
+                m_ParticleData.m_Buffer->colour = colour;
+                m_ParticleData.m_Buffer++;
+
+                m_ParticleData.m_Buffer->vertex = v3;
+                if(animated)
+                {
+                    m_ParticleData.m_Buffer->uv = blendedUVs[2];
+                }
+                else
+                {
+                    m_ParticleData.m_Buffer->uv.x = uv[2].x;
+                    m_ParticleData.m_Buffer->uv.y = uv[2].y;
+                }
+                m_ParticleData.m_Buffer->tid    = glm::vec2(textureSlot, blendAmount);
+                m_ParticleData.m_Buffer->colour = colour;
+                m_ParticleData.m_Buffer++;
+
+
+                m_ParticleData.m_Buffer->vertex = v4;
+                if(animated)
+                {
+                    m_ParticleData.m_Buffer->uv = blendedUVs[3];
+                }
+                else
+                {
+                    m_ParticleData.m_Buffer->uv.x = uv[3].x;
+                    m_ParticleData.m_Buffer->uv.y = uv[3].y;
+                }
+                m_ParticleData.m_Buffer->tid    = glm::vec2(textureSlot, blendAmount);
+                m_ParticleData.m_Buffer->colour = colour;
+                m_ParticleData.m_Buffer++;
+
+                m_ParticleData.m_IndexCount += 6;
+            }
+        }
+
+        if(m_ParticleData.m_IndexCount == 0)
+        {
+            return;
+        }
+
+        ParticleFlush();
+    }
+
+    void RenderPasses::ParticleBeginBatch()
+    {
+        uint32_t currentFrame = Renderer::GetMainSwapChain()->GetCurrentBufferIndex();
+
+        m_ParticleData.m_IndexCount   = 0;
+        m_ParticleData.m_TextureCount = 0;
+
+        while((int)m_ParticleData.m_VertexBuffers[currentFrame].size() - 1 < (int)m_ParticleData.m_BatchDrawCallIndex)
+        {
+            auto& vertexBuffer = m_ParticleData.m_VertexBuffers[currentFrame].emplace_back(Graphics::VertexBuffer::Create(BufferUsage::DYNAMIC));
+            vertexBuffer->Resize(m_ParticleData.m_Limits.BufferSize);
+
+            m_ParticleBufferBase[currentFrame].emplace_back(new VertexData[m_ParticleData.m_Limits.MaxQuads * 4]);
+        }
+
+        m_ParticleData.m_VertexBuffers[currentFrame][m_ParticleData.m_BatchDrawCallIndex]->Bind(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer(), m_ParticleData.m_Pipeline.get());
+        m_ParticleData.m_Buffer = m_ParticleBufferBase[currentFrame][m_ParticleData.m_BatchDrawCallIndex];
+    }
+
+    void RenderPasses::ParticleFlush()
+    {
+        LUMOS_PROFILE_FUNCTION();
+        uint32_t currentFrame = Renderer::GetMainSwapChain()->GetCurrentBufferIndex();
+
+        if(m_ParticleData.m_DescriptorSet[m_ParticleData.m_BatchDrawCallIndex][1] == nullptr || m_ParticleData.m_TextureCount != m_ParticleData.m_PreviousFrameTextureCount[m_ParticleData.m_BatchDrawCallIndex])
+        {
+            /*
+             || m_ParticleData.m_TextureCount != m_ParticleData.m_PreviousFrameTextureCount[m_ParticleData.m_BatchDrawCallIndex])
+             When previous frame texture count was less then than the previous frame
+             and the texture previously used was deleted, there was a crash - maybe moltenvk only
+             May not be needed anymore
+            */
+            Graphics::DescriptorDesc descriptorDesc {};
+            descriptorDesc.layoutIndex                                             = 1;
+            descriptorDesc.shader                                                  = m_ParticleData.m_Shader.get();
+            m_ParticleData.m_DescriptorSet[m_ParticleData.m_BatchDrawCallIndex][1] = SharedPtr<Graphics::DescriptorSet>(Graphics::DescriptorSet::Create(descriptorDesc));
+        }
+
+        if(m_ParticleData.m_TextureCount > 1)
+            m_ParticleData.m_DescriptorSet[m_ParticleData.m_BatchDrawCallIndex][1]->SetTexture("textures", m_ParticleData.m_Textures, m_ParticleData.m_TextureCount);
+        else if(m_ParticleData.m_TextureCount == 0)
+            m_ParticleData.m_DescriptorSet[m_ParticleData.m_BatchDrawCallIndex][1]->SetTexture("textures", nullptr);
+        else
+            m_ParticleData.m_DescriptorSet[m_ParticleData.m_BatchDrawCallIndex][1]->SetTexture("textures", m_ParticleData.m_Textures[0]);
+
+        m_ParticleData.m_DescriptorSet[m_ParticleData.m_BatchDrawCallIndex][1]->Update();
+
+        m_ParticleData.m_PreviousFrameTextureCount[m_ParticleData.m_BatchDrawCallIndex] = m_ParticleData.m_TextureCount;
+
+        Graphics::CommandBuffer* commandBuffer = Renderer::GetMainSwapChain()->GetCurrentCommandBuffer();
+
+        uint32_t dataSize = (uint32_t)((uint8_t*)m_ParticleData.m_Buffer - (uint8_t*)m_ParticleBufferBase[currentFrame][m_ParticleData.m_BatchDrawCallIndex]);
+        m_ParticleData.m_VertexBuffers[currentFrame][m_ParticleData.m_BatchDrawCallIndex]->SetData(dataSize, (void*)m_ParticleBufferBase[currentFrame][m_ParticleData.m_BatchDrawCallIndex], true);
+
+        m_ParticleData.m_Pipeline->Bind(commandBuffer);
+
+        m_ParticleData.m_CurrentDescriptorSets[0] = m_ParticleData.m_DescriptorSet[0][0].get();
+        m_ParticleData.m_CurrentDescriptorSets[1] = m_ParticleData.m_DescriptorSet[m_ParticleData.m_BatchDrawCallIndex][1].get();
+
+        m_ParticleData.m_IndexBuffer->SetCount(m_ParticleData.m_IndexCount);
+        m_ParticleData.m_IndexBuffer->Bind(commandBuffer);
+
+        Renderer::BindDescriptorSets(m_ParticleData.m_Pipeline.get(), commandBuffer, 0, m_ParticleData.m_CurrentDescriptorSets.data(), 2);
+        Renderer::DrawIndexed(commandBuffer, DrawType::TRIANGLE, m_ParticleData.m_IndexCount);
+
+        m_ParticleData.m_VertexBuffers[currentFrame][m_ParticleData.m_BatchDrawCallIndex]->Unbind();
+        m_ParticleData.m_IndexBuffer->Unbind();
+
+        m_ParticleData.m_Pipeline->End(commandBuffer);
+
+        m_ParticleData.m_BatchDrawCallIndex++;
+        m_ParticleData.m_TextureCount = 0;
     }
 }

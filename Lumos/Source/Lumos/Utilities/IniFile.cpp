@@ -85,7 +85,10 @@ void Lumos::IniFile::Load()
 void Lumos::IniFile::Rewrite() const
 {
     if(m_FilePath.empty())
+    {
+        LUMOS_LOG_WARN("Ini file path empty");
         return;
+    }
 
     std::stringstream stream;
     for(const auto& [key, value] : m_Data)

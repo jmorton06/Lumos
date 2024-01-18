@@ -55,6 +55,8 @@
 #include <Lumos/Maths/MathsUtilities.h>
 #include <Lumos/Core/LMLog.h>
 #include <Lumos/Core/String.h>
+#include <Lumos/Core/CommandLine.h>
+#include <Lumos/Core/CoreSystem.h>
 
 #include <spdlog/spdlog.h>
 #include <spdlog/fmt/ostr.h>
@@ -178,6 +180,14 @@ namespace Lumos
         m_TempSceneSaveFilePath = std::filesystem::temp_directory_path().string();
 #endif
 
+        bool deleteIniFile   = false;
+        CommandLine* cmdline = Internal::CoreSystem::GetCmdLine();
+        if(cmdline->OptionBool(Str8Lit("CleanEditorIni")))
+        {
+            LUMOS_LOG_INFO("Deleting editor ini file");
+            deleteIniFile = true;
+        }
+
         m_TempSceneSaveFilePath += "Lumos/";
         if(!FileSystem::FolderExists(m_TempSceneSaveFilePath))
             std::filesystem::create_directory(m_TempSceneSaveFilePath);
@@ -192,12 +202,21 @@ namespace Lumos
         {
             if(FileSystem::FileExists(path))
             {
+                filePath = path;
+
                 LUMOS_LOG_INFO("Loaded Editor Ini file {0}", path);
-                filePath  = path;
-                m_IniFile = IniFile(filePath);
-                // ImGui::GetIO().IniFilename = ini[i];
-                fileFound = true;
-                LoadEditorSettings();
+                if(deleteIniFile)
+                {
+                    std::filesystem::remove_all(path);
+                }
+                else
+                {
+                    m_IniFile = IniFile(filePath);
+                    // ImGui::GetIO().IniFilename = ini[i];
+
+                    fileFound = true;
+                    LoadEditorSettings();
+                }
                 break;
             }
         }
@@ -804,14 +823,14 @@ namespace Lumos
                 {
                     if(ImGui::MenuItem("Joe Morton"))
                         Lumos::OS::Instance()->OpenURL("https://github.com/jmorton06");
-                  
+
                     if(ImGui::MenuItem("RuanLucasGD"))
                         Lumos::OS::Instance()->OpenURL("https://github.com/RuanLucasGD");
-                  
+
                     if(ImGui::MenuItem("adriengivry"))
                         Lumos::OS::Instance()->OpenURL("https://github.com/adriengivry");
-                  
-                    ImGui::EndMenu(); //Contributer Menu
+
+                    ImGui::EndMenu(); // Contributer Menu
                 }
                 ImGui::EndMenu(); // About Menu
             }
@@ -1093,7 +1112,7 @@ namespace Lumos
             ImGui::AlignTextToFramePadding();
             ImGui::TextUnformatted("Name : ");
             ImGui::SameLine();
-            ImGuiUtilities::InputText(newSceneName);
+            ImGuiUtilities::InputText(newSceneName, "##SceneNameChange");
 
             ImGui::Checkbox("Default Setup", &defaultSetup);
 
@@ -1171,7 +1190,7 @@ namespace Lumos
             ImGui::TextUnformatted("Create New Project?\n");
 
             static std::string newProjectName = "New Project";
-            ImGuiUtilities::InputText(newProjectName);
+            ImGuiUtilities::InputText(newProjectName, "##ProjectNameChange");
 
             if(ImGui::Button(ICON_MDI_FOLDER))
             {
@@ -1822,18 +1841,18 @@ namespace Lumos
 
         if(Input::Get().GetKeyPressed(Lumos::InputCode::Key::Escape) && GetEditorState() != EditorState::Preview)
         {
-			Application::Get().GetSystem<LumosPhysicsEngine>()->SetPaused(true);
-			Application::Get().GetSystem<B2PhysicsEngine>()->SetPaused(true);
+            Application::Get().GetSystem<LumosPhysicsEngine>()->SetPaused(true);
+            Application::Get().GetSystem<B2PhysicsEngine>()->SetPaused(true);
 
-			Application::Get().GetSystem<AudioManager>()->UpdateListener(Application::Get().GetCurrentScene());
-			Application::Get().GetSystem<AudioManager>()->SetPaused(true);
-			Application::Get().SetEditorState(EditorState::Preview);
+            Application::Get().GetSystem<AudioManager>()->UpdateListener(Application::Get().GetCurrentScene());
+            Application::Get().GetSystem<AudioManager>()->SetPaused(true);
+            Application::Get().SetEditorState(EditorState::Preview);
 
-			// m_SelectedEntity = entt::null;
-			m_SelectedEntities.clear();
-			ImGui::SetWindowFocus("###scene");
-			LoadCachedScene();
-			SetEditorState(EditorState::Preview);
+            // m_SelectedEntity = entt::null;
+            m_SelectedEntities.clear();
+            ImGui::SetWindowFocus("###scene");
+            LoadCachedScene();
+            SetEditorState(EditorState::Preview);
         }
 
         if(m_SceneViewActive)
@@ -1875,6 +1894,7 @@ namespace Lumos
                 // Defines the tolerance for distance, beyond which a transition is considered completed
                 constexpr float kTransitionCompletionDistanceTolerance = 0.01f;
                 constexpr float kSpeedBaseFactor = 5.0f;
+                constexpr float kSpeedBaseFactor                       = 5.0f;
 
                 const auto cameraCurrentPosition = m_EditorCameraTransform.GetLocalPosition();
 
