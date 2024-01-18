@@ -99,7 +99,7 @@ namespace Lumos
         }
         else
         {
-            if(ImGuiUtilities::InputText(value))
+            if(ImGuiUtilities::InputText(value, name))
             {
                 updated = true;
             }
@@ -1376,14 +1376,14 @@ namespace Lumos
         }
     }
 
-    bool ImGuiUtilities::InputText(std::string& currentText)
+    bool ImGuiUtilities::InputText(std::string& currentText, const char* ID)
     {
         ImGuiUtilities::ScopedStyle frameBorder(ImGuiStyleVar_FrameBorderSize, 0.0f);
         ImGuiUtilities::ScopedColour frameColour(ImGuiCol_FrameBg, IM_COL32(0, 0, 0, 0));
         char buffer[256];
         memset(buffer, 0, 256);
         memcpy(buffer, currentText.c_str(), currentText.length());
-        ImGui::PushID(currentText.c_str());
+        ImGui::PushID(ID);
         bool updated = ImGui::InputText("##SceneName", buffer, 256);
 
         ImGuiUtilities::DrawItemActivityOutline(2.0f, false);

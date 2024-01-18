@@ -26,6 +26,9 @@
 #include "CompiledSPV/Headers/Batch2Dvertspv.hpp"
 #include "CompiledSPV/Headers/Batch2Dfragspv.hpp"
 
+#include "CompiledSPV/Headers/Particlevertspv.hpp"
+#include "CompiledSPV/Headers/Particlefragspv.hpp"
+
 #include "CompiledSPV/Headers/ScreenPassvertspv.hpp"
 #include "CompiledSPV/Headers/ScreenPassfragspv.hpp"
 
@@ -115,6 +118,7 @@ namespace Lumos
                 LoadShaderEmbedded("Sharpen", ScreenPass, Sharpen);
                 LoadShaderEmbedded("SSAO", ScreenPass, SSAO);
                 LoadShaderEmbedded("SSAOBlur", ScreenPass, SSAOBlur);
+                LoadShaderEmbedded("Particle", Particle, Particle);
 
                 if(Renderer::GetCapabilities().SupportCompute)
                 {
@@ -151,6 +155,7 @@ namespace Lumos
                 LoadShaderFromFile("SSAOBlur", "Shaders/SSAOBlur.shader");
                 LoadShaderFromFile("Sharpen", "Shaders/Sharpen.shader");
                 LoadShaderFromFile("ForwardPBR", "Shaders/ForwardPBR.shader");
+                LoadShaderFromFile("Particle", "Shaders/Particle.shader");
 
                 if(Renderer::GetCapabilities().SupportCompute)
                 {

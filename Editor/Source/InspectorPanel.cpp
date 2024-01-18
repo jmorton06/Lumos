@@ -17,6 +17,7 @@
 #include <Lumos/Graphics/Mesh.h>
 #include <Lumos/Graphics/MeshFactory.h>
 #include <Lumos/Graphics/Light.h>
+#include <Lumos/Graphics/ParticleManager.h>
 #include <Lumos/Graphics/RHI/GraphicsContext.h>
 #include <Lumos/Graphics/RHI/Renderer.h>
 
@@ -50,6 +51,13 @@
 
 namespace MM
 {
+#define PropertySet(name, getter, setter)                \
+    {                                                    \
+        auto value = getter();                           \
+        if(Lumos::ImGuiUtilities::Property(name, value)) \
+            setter(value);                               \
+    }
+
     template <>
     void ComponentEditorWidget<Lumos::LuaScriptComponent>(entt::registry& reg, entt::registry::entity_type e)
     {
@@ -502,10 +510,10 @@ end
         ImGui::Separator();
         ImGui::PopStyleVar();
 
-        std::vector<const char*> shapes = { "Sphere", "Cuboid", "Pyramid", "Capsule", "Hull" };
-        int selectedIndex               = 0;
-        const char* shape_current       = collisionShape ? CollisionShapeTypeToString(collisionShape->GetType()) : "";
-        int index                       = 0;
+        const char* shapes[5]     = { "Sphere", "Cuboid", "Pyramid", "Capsule", "Hull" };
+        int selectedIndex         = 0;
+        const char* shape_current = collisionShape ? CollisionShapeTypeToString(collisionShape->GetType()) : "";
+        int index                 = 0;
         for(auto& shape : shapes)
         {
             if(shape == shape_current)
@@ -516,7 +524,7 @@ end
             index++;
         }
 
-        bool updated = Lumos::ImGuiUtilities::PropertyDropdown("Collision Shape", shapes.data(), 5, &selectedIndex);
+        bool updated = Lumos::ImGuiUtilities::PropertyDropdown("Collision Shape", shapes, 5, &selectedIndex);
 
         if(updated)
             phys.GetRigidBody()->SetCollisionShape(StringToCollisionShapeType(shapes[selectedIndex]));
@@ -2357,6 +2365,146 @@ end
     }
 
     template <>
+    void ComponentEditorWidget<Lumos::ParticleEmitter>(entt::registry& reg, entt::registry::entity_type e)
+    {
+        LUMOS_PROFILE_FUNCTION();
+        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
+        ImGui::Columns(2);
+        ImGui::Separator();
+        Lumos::ParticleEmitter& emitter = reg.get<Lumos::ParticleEmitter>(e);
+
+        PropertySet("Max Particles", emitter.GetParticleCount, emitter.SetParticleCount);
+
+        PropertySet("Initial Size", emitter.GetParticleSize, emitter.SetParticleSize);
+        PropertySet("Initial LifeTime", emitter.GetParticleLife, emitter.SetParticleLife);
+        PropertySet("Initial InitialVelocity", emitter.GetInitialVelocity, emitter.SetInitialVelocity);
+        PropertySet("Gravity", emitter.GetGravity, emitter.SetGravity);
+
+        auto colour = emitter.GetInitialColour();
+        if(Lumos::ImGuiUtilities::Property("Initial InitialColour", colour, true, Lumos::ImGuiUtilities::PropertyFlag::ColourProperty))
+        {
+            emitter.SetInitialColour(colour);
+        }
+
+        PropertySet("Position Spread", emitter.GetSpread, emitter.SetSpread);
+        PropertySet("Velocity Spread", emitter.GetVelocitySpread, emitter.SetVelocitySpread);
+        PropertySet("Life Spread", emitter.GetLifeSpread, emitter.SetLifeSpread);
+
+        PropertySet("Fade In", emitter.GetFadeIn, emitter.SetFadeIn);
+        PropertySet("Fade Out", emitter.GetFadeOut, emitter.SetFadeOut);
+        PropertySet("Particle Rate", emitter.GetParticleRate, emitter.SetParticleRate);
+        PropertySet("Launch Particles", emitter.GetNumLaunchParticles, emitter.SetNumLaunchParticles);
+        PropertySet("Sort Particles", emitter.GetSortParticles, emitter.SetSortParticles);
+        PropertySet("Depth Write", emitter.GetDepthWrite, emitter.SetDepthWrite);
+
+        Lumos::ParticleEmitter::BlendType blendtype = emitter.GetBlendType();
+        static const char* possibleBlendTypes[3]    = { "Additive", "Alpha", "Off" };
+
+        int selectedIndex = (int)blendtype;
+
+        bool updated = Lumos::ImGuiUtilities::PropertyDropdown("Blend Type", possibleBlendTypes, 3, &selectedIndex);
+        if(updated)
+            emitter.SetBlendType((Lumos::ParticleEmitter::BlendType)selectedIndex);
+
+        Lumos::ParticleEmitter::AlignedType alignType = emitter.GetAlignedType();
+        static const char* possibleAlignTypes[3] = { "2D", "3D", "Off" };
+
+        int selectedIndexAlign = (int)alignType;
+
+        updated = Lumos::ImGuiUtilities::PropertyDropdown("Align Type", possibleAlignTypes, 3, &selectedIndexAlign);
+        if (updated)
+            emitter.SetAlignedType((Lumos::ParticleEmitter::AlignedType)selectedIndexAlign);
+
+        PropertySet("Is Animated", emitter.GetIsAnimated, emitter.SetIsAnimated);
+        if(emitter.GetIsAnimated())
+        {
+            uint32_t numTextureRows = emitter.GetAnimatedTextureRows();
+            if(Lumos::ImGuiUtilities::Property("Animated Texture Rows", numTextureRows))
+            {
+                emitter.SetAnimatedTextureRows((uint8_t)numTextureRows);
+            }
+        }
+
+        using namespace Lumos;
+        ImGui::AlignTextToFramePadding();
+        auto& tex      = emitter.GetTexture();
+        bool flipImage = Graphics::Renderer::GetGraphicsContext()->FlipImGUITexture();
+
+        auto imageButtonSize        = ImVec2(64, 64) * Application::Get().GetWindowDPI();
+        auto callback               = std::bind(&Lumos::ParticleEmitter::SetTextureFromFile, &emitter, std::placeholders::_1);
+        const ImGuiPayload* payload = ImGui::GetDragDropPayload();
+        auto min                    = ImGui::GetCurrentWindow()->DC.CursorPos;
+        auto max                    = min + imageButtonSize + ImGui::GetStyle().FramePadding;
+
+        bool hoveringButton = ImGui::IsMouseHoveringRect(min, max, false);
+        bool showTexture    = !(hoveringButton && (payload != NULL && payload->IsDataType("AssetFile")));
+        if(tex && showTexture)
+        {
+            if(ImGui::ImageButton((const char*)(tex.get()), reinterpret_cast<ImTextureID>(Application::Get().GetImGuiManager()->GetImGuiRenderer()->AddTexture(tex)), imageButtonSize, ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f)))
+            {
+                Lumos::Editor::GetEditor()->GetFileBrowserPanel().Open();
+                Lumos::Editor::GetEditor()->GetFileBrowserPanel().SetCallback(callback);
+            }
+
+            if(ImGui::IsItemHovered() && tex)
+            {
+                ImGui::BeginTooltip();
+                ImGui::TextUnformatted(tex ? tex->GetFilepath().c_str() : "No Texture");
+                ImGui::Image(reinterpret_cast<ImTextureID>(Application::Get().GetImGuiManager()->GetImGuiRenderer()->AddTexture(tex)), ImVec2(256, 256), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
+                ImGui::EndTooltip();
+            }
+        }
+        else
+        {
+            if(ImGui::Button(tex ? "" : "Empty", imageButtonSize))
+            {
+                Lumos::Editor::GetEditor()->GetFileBrowserPanel().Open();
+                Lumos::Editor::GetEditor()->GetFileBrowserPanel().SetCallback(callback);
+            }
+        }
+
+        if(payload != NULL && payload->IsDataType("AssetFile"))
+        {
+            auto filePath = std::string(reinterpret_cast<const char*>(payload->Data));
+            if(Lumos::Editor::GetEditor()->IsTextureFile(filePath))
+            {
+                if(ImGui::BeginDragDropTarget())
+                {
+                    // Drop directly on to node and append to the end of it's children list.
+                    if(ImGui::AcceptDragDropPayload("AssetFile"))
+                    {
+                        callback(filePath);
+                        ImGui::EndDragDropTarget();
+
+                        ImGui::Columns(1);
+                        ImGui::Separator();
+                        ImGui::PopStyleVar(1);
+                        return;
+                    }
+
+                    ImGui::EndDragDropTarget();
+                }
+            }
+        }
+
+        ImGui::NextColumn();
+        ImGui::PushItemWidth(-1);
+
+        if(tex)
+        {
+            ImGui::Text("%u x %u", tex->GetWidth(), tex->GetHeight());
+            ImGui::Text("Mip Levels : %u", tex->GetMipMapLevels());
+        }
+
+        ImGui::PopItemWidth();
+        ImGui::NextColumn();
+
+        ImGui::Columns(1);
+        ImGui::Separator();
+        ImGui::PopStyleVar();
+    }
+
+    template <>
     void ComponentEditorWidget<Lumos::Listener>(entt::registry& reg, entt::registry::entity_type e)
     {
     }
@@ -2410,6 +2558,7 @@ namespace Lumos
         TRIVIAL_COMPONENT(DefaultCameraController, "Default Camera Controller");
         TRIVIAL_COMPONENT(Listener, "Listener");
         TRIVIAL_COMPONENT(TextComponent, "Text");
+        TRIVIAL_COMPONENT(ParticleEmitter, "ParticleEmitter");
     }
 
     void InspectorPanel::OnImGui()
@@ -2481,7 +2630,7 @@ namespace Lumos
             ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x - ImGui::GetFontSize() * 4.0f);
             {
                 ImGuiUtilities::ScopedFont boldFont(ImGui::GetIO().Fonts->Fonts[1]);
-                if(ImGuiUtilities::InputText(name))
+                if(ImGuiUtilities::InputText(name, "##InspectorNameChange"))
                     registry.get_or_emplace<NameComponent>(selected).name = name;
             }
             ImGui::SameLine();
@@ -2527,13 +2676,13 @@ namespace Lumos
                 ImGui::AlignTextToFramePadding();
                 ImGui::TextUnformatted("Name : ");
                 ImGui::SameLine();
-                ImGuiUtilities::InputText(prefabName);
+                ImGuiUtilities::InputText(prefabName, "##PrefabNameChange");
 
                 static std::string prefabNamePath = "//Assets/Prefabs/";
                 ImGui::AlignTextToFramePadding();
                 ImGui::TextUnformatted("Path : ");
                 ImGui::SameLine();
-                ImGuiUtilities::InputText(prefabNamePath);
+                ImGuiUtilities::InputText(prefabNamePath, "##PrefabPathChange");
 
                 if(ImGui::Button("OK", ImVec2(120, 0)))
                 {

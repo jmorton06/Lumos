@@ -146,10 +146,10 @@ namespace Lumos
                 uint32_t imageIndex             = 0;
                 uint32_t index                  = 0;
 
-                const uint32_t descriptorCount = (uint32_t)m_Descriptors.descriptors.size();
-                ArenaTemp scratch = ScratchBegin(nullptr, 0);
-                VkDescriptorBufferInfo* bufferInfos = PushArrayNoZero(scratch.arena, VkDescriptorBufferInfo, 32);
-                VkDescriptorImageInfo* imageInfos = PushArrayNoZero(scratch.arena, VkDescriptorImageInfo, 32);
+                const uint32_t descriptorCount            = (uint32_t)m_Descriptors.descriptors.size();
+                ArenaTemp scratch                         = ScratchBegin(nullptr, 0);
+                VkDescriptorBufferInfo* bufferInfos       = PushArrayNoZero(scratch.arena, VkDescriptorBufferInfo, 32);
+                VkDescriptorImageInfo* imageInfos         = PushArrayNoZero(scratch.arena, VkDescriptorImageInfo, 32);
                 VkWriteDescriptorSet* writeDescriptorSets = PushArrayNoZero(scratch.arena, VkWriteDescriptorSet, 32);
 
                 for(auto& imageInfo : m_Descriptors.descriptors)
@@ -162,11 +162,11 @@ namespace Lumos
                             {
                                 TransitionImageToCorrectLayout(imageInfo.texture, cmdBuffer);
 
-                                VkDescriptorImageInfo& des              = *static_cast<VkDescriptorImageInfo*>(imageInfo.texture->GetDescriptorInfo());
+                                VkDescriptorImageInfo& des         = *static_cast<VkDescriptorImageInfo*>(imageInfo.texture->GetDescriptorInfo());
                                 imageInfos[imageIndex].imageLayout = des.imageLayout;
                                 imageInfos[imageIndex].imageView   = des.imageView;
                                 imageInfos[imageIndex].sampler     = des.sampler;
-                            } 
+                            }
                         }
                         else
                         {
@@ -202,7 +202,7 @@ namespace Lumos
                         {
                             ((VKTexture2D*)imageInfo.texture)->TransitionImage(VK_IMAGE_LAYOUT_GENERAL);
 
-                            VkDescriptorImageInfo& des              = *static_cast<VkDescriptorImageInfo*>(imageInfo.texture->GetDescriptorInfo());
+                            VkDescriptorImageInfo& des         = *static_cast<VkDescriptorImageInfo*>(imageInfo.texture->GetDescriptorInfo());
                             imageInfos[imageIndex].imageLayout = des.imageLayout;
                             imageInfos[imageIndex].imageView   = imageInfo.mipLevel > 0 ? ((VKTexture2D*)imageInfo.texture)->GetMipImageView(imageInfo.mipLevel) : des.imageView;
                             imageInfos[imageIndex].sampler     = des.sampler;
@@ -224,9 +224,9 @@ namespace Lumos
                     else if(imageInfo.type == DescriptorType::UNIFORM_BUFFER)
                     {
                         VKUniformBuffer* vkUniformBuffer = m_UniformBuffers[currentFrame][imageInfo.name].As<VKUniformBuffer>().get();
-                        bufferInfos[index].buffer   = *vkUniformBuffer->GetBuffer();
-                        bufferInfos[index].offset   = imageInfo.offset;
-                        bufferInfos[index].range    = imageInfo.size;
+                        bufferInfos[index].buffer        = *vkUniformBuffer->GetBuffer();
+                        bufferInfos[index].offset        = imageInfo.offset;
+                        bufferInfos[index].range         = imageInfo.size;
 
                         VkWriteDescriptorSet writeDescriptorSet = {};
                         writeDescriptorSet.sType                = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
@@ -246,7 +246,7 @@ namespace Lumos
                 }
 
                 vkUpdateDescriptorSets(VKDevice::Get().GetDevice(), descriptorWritesCount,
-                    writeDescriptorSets, 0, nullptr);
+                                       writeDescriptorSets, 0, nullptr);
 
                 ScratchEnd(scratch);
                 m_DescriptorUpdated[currentFrame] = true;

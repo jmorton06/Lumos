@@ -53,21 +53,21 @@ msbuild /p:Platform=x64 /p:Configuration=Release Lumos.sln
 ```
 cd Lumos
 Tools/premake5 xcode4
-xcodebuild -project Runtime/Runtime.xcodeproj
+xcodebuild -project Runtime.xcodeproj
 ```
 
 M1/M2/M3 Macs may need : 
 ```
 cd Lumos
 Tools/premake5 xcode4 --arch=arm64 --os=macosx
-xcodebuild -project Runtime/Runtime.xcodeproj
+xcodebuild -project Runtime.xcodeproj
 ```
 
 #### iOS
 ```
 cd Lumos
 Tools/premake5 xcode4 --os=ios
-xcodebuild -project Runtime/Runtime.xcodeproj CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO
+xcodebuild -project Runtime.xcodeproj CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO
 ```
 
 To run on apple devices with Vulkan ( MoltenVK ), disable Metal API Validation here : Product > Scheme > Edit Scheme… > Run > Options > Metal API Validation

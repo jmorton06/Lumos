@@ -119,10 +119,12 @@ namespace Lumos
 
                 for(unsigned int i = 0; i < blendAttachState.size(); i++)
                 {
-                    blendAttachState[i]                = VkPipelineColorBlendAttachmentState();
-                    blendAttachState[i].colorWriteMask = 0x0f;
-                    blendAttachState[i].alphaBlendOp   = VK_BLEND_OP_ADD;
-                    blendAttachState[i].colorBlendOp   = VK_BLEND_OP_ADD;
+                    blendAttachState[i]                     = VkPipelineColorBlendAttachmentState();
+                    blendAttachState[i].colorWriteMask      = 0x0f;
+                    blendAttachState[i].alphaBlendOp        = VK_BLEND_OP_ADD;
+                    blendAttachState[i].colorBlendOp        = VK_BLEND_OP_ADD;
+                    blendAttachState[i].srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
+                    blendAttachState[i].dstAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
 
                     if(pipelineDesc.transparencyEnabled)
                     {
@@ -134,6 +136,15 @@ namespace Lumos
                         {
                             blendAttachState[i].srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
                             blendAttachState[i].dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+                            blendAttachState[i].srcAlphaBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
+                            blendAttachState[i].dstAlphaBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+                        }
+                        else if(pipelineDesc.blendMode == BlendMode::SrcAlphaOne)
+                        {
+                            blendAttachState[i].srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
+                            blendAttachState[i].dstColorBlendFactor = VK_BLEND_FACTOR_ONE;
+                            blendAttachState[i].srcAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
+                            blendAttachState[i].dstAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
                         }
                         else if(pipelineDesc.blendMode == BlendMode::ZeroSrcColor)
                         {
@@ -198,8 +209,8 @@ namespace Lumos
                 VkPipelineDepthStencilStateCreateInfo ds {};
                 ds.sType                 = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
                 ds.pNext                 = NULL;
-                ds.depthTestEnable       = VK_TRUE;
-                ds.depthWriteEnable      = VK_TRUE;
+                ds.depthTestEnable       = pipelineDesc.DepthTest ? VK_TRUE : VK_FALSE;
+                ds.depthWriteEnable      = pipelineDesc.DepthWrite ? VK_TRUE : VK_FALSE;
                 ds.depthCompareOp        = VK_COMPARE_OP_LESS_OR_EQUAL;
                 ds.depthBoundsTestEnable = VK_FALSE;
                 ds.stencilTestEnable     = VK_FALSE;
