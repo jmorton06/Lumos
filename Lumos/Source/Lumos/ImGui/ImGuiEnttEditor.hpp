@@ -84,7 +84,20 @@ namespace MM
         {
             if(e != entt::null)
             {
-                std::map<ComponentTypeID, ComponentInfo> has_not;
+                static std::unordered_map<ComponentTypeID, ComponentInfo> has_not;
+                static bool addComponentPopupOpen = false;
+                static bool initialised           = false;
+                if(addComponentPopupOpen)
+                {
+                    if(!initialised)
+                    {
+                        has_not.reserve(64);
+                        initialised = true;
+                    }
+                    else
+                        has_not.clear();
+                }
+
                 for(auto& [component_type_id, ci] : component_infos)
                 {
                     if(entityHasComponent(registry, e, component_type_id))
@@ -130,11 +143,12 @@ namespace MM
                     }
                     else
                     {
-                        has_not[component_type_id] = ci;
+                        if(addComponentPopupOpen)
+                            has_not[component_type_id] = ci;
                     }
                 }
 
-                if(!has_not.empty())
+                // if(!has_not.empty())
                 {
                     if(ImGui::Button(ICON_MDI_PLUS_BOX_OUTLINE " Add Component", ImVec2(ImGui::GetContentRegionAvail().x, 0.0f)))
                     {
@@ -143,6 +157,7 @@ namespace MM
 
                     if(ImGui::BeginPopup("addComponent"))
                     {
+                        addComponentPopupOpen = true;
                         ImGui::Separator();
 
                         ImGui::AlignTextToFramePadding();
@@ -176,6 +191,8 @@ namespace MM
 
                         ImGui::EndPopup();
                     }
+                    else
+                        addComponentPopupOpen = false;
                 }
             }
         }

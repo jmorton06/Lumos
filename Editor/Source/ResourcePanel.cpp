@@ -106,11 +106,11 @@ namespace Lumos
         m_Delimiter = Str8Lit("/");
 #endif
 
-        float dpi = Application::Get().GetWindow()->GetDPIScale();
+        float dpi  = Application::Get().GetWindow()->GetDPIScale();
         m_GridSize = 180.0f;
-		m_GridSize *= dpi;
-		MinGridSize *= dpi;
-		MaxGridSize *= dpi;
+        m_GridSize *= dpi;
+        MinGridSize *= dpi;
+        MaxGridSize *= dpi;
         m_BasePath = PushStr8F(m_Arena, "%sAssets", Application::Get().GetProjectSettings().m_ProjectRoot.c_str());
 
         std::string assetsBasePath;
@@ -136,9 +136,9 @@ namespace Lumos
 
         Graphics::TextureLoadOptions options;
         options.flipY = true;
-        m_FileIcon     = Graphics::Texture2D::CreateFromSource(browserFileWidth, browserFileHeight, (void*)browserFile, desc, options);
-        m_FolderIcon   = Graphics::Texture2D::CreateFromSource(browserFolderWidth, browserFolderHeight, (void*)browserFolder, desc, options);
-        m_Refresh      = false;
+        m_FileIcon    = Graphics::Texture2D::CreateFromSource(browserFileWidth, browserFileHeight, (void*)browserFile, desc, options);
+        m_FolderIcon  = Graphics::Texture2D::CreateFromSource(browserFolderWidth, browserFolderHeight, (void*)browserFolder, desc, options);
+        m_Refresh     = false;
     }
 
     void ResourcePanel::ChangeDirectory(SharedPtr<DirectoryInformation>& directory)
@@ -194,13 +194,13 @@ namespace Lumos
         SharedPtr<DirectoryInformation> directoryInfo = directory ? directory : CreateSharedPtr<DirectoryInformation>(directoryPath, !std::filesystem::is_directory(std::string((const char*)directoryPath.str, directoryPath.size)));
         directoryInfo->Parent                         = parent;
 
-        if(Str8Match(directoryPath, m_BasePath, 0))
+        if(Str8Match(directoryPath, m_BasePath))
             directoryInfo->Path = m_BasePath;
         else
             directoryInfo->Path = directoryPath;
 
         directoryInfo->Path       = directoryPath;
-        String8 extension         = Str8PathSkipLastPeriod(directoryInfo->Path);
+        String8 extension         = StringUtilities::Str8PathSkipLastPeriod(directoryInfo->Path);
         directoryInfo->FileTypeID = GetParsedAssetID(extension);
 
         auto stdPath = std::filesystem::path(std::string((const char*)directoryPath.str, directoryPath.size));
@@ -271,23 +271,23 @@ namespace Lumos
         const float SmallOffsetX    = 6.0f * Application::Get().GetWindowDPI();
         ImDrawList* drawList        = ImGui::GetWindowDrawList();
 
-        if(ImGui::IsWindowFocused() && Input::Get().GetKeyHeld(InputCode::Key::LeftControl))
-		{
-			float mouseScroll = Input::Get().GetScrollOffset();
+        if(ImGui::IsWindowFocused() && (Input::Get().GetKeyHeld(InputCode::Key::LeftSuper) || Input::Get().GetKeyHeld(InputCode::Key::LeftControl)))
+        {
+            float mouseScroll = Input::Get().GetScrollOffset();
 
-			if(m_IsInListView)
+            if(m_IsInListView)
             {
-                if (mouseScroll > 0)
-					m_IsInListView = false;
-			}
+                if(mouseScroll > 0)
+                    m_IsInListView = false;
+            }
             else
             {
-				m_GridSize += mouseScroll;
-				if(m_GridSize < MinGridSize)
-					m_IsInListView = true;
-			}
+                m_GridSize += mouseScroll;
+                if(m_GridSize < MinGridSize)
+                    m_IsInListView = true;
+            }
 
-			m_GridSize = Maths::Clamp(m_GridSize, MinGridSize, MaxGridSize);
+            m_GridSize = Maths::Clamp(m_GridSize, MinGridSize, MaxGridSize);
         }
 
         if(!dirInfo->IsFile)
@@ -313,7 +313,7 @@ namespace Lumos
             ImGui::PopStyleColor();
             ImGui::SameLine();
 
-            ImGui::TextUnformatted((const char*)(Str8PathSkipLastSlash(dirInfo->Path).str));
+            ImGui::TextUnformatted((const char*)(StringUtilities::Str8PathSkipLastSlash(dirInfo->Path).str));
 
             ImVec2 verticalLineStart = ImGui::GetCursorScreenPos();
 
@@ -532,7 +532,7 @@ namespace Lumos
 
                         for(auto& directory : m_BreadCrumbData)
                         {
-                            if(ImGui::SmallButton((const char*)GetFileName(directory->Path).str))
+                            if(ImGui::SmallButton((const char*)StringUtilities::GetFileName(directory->Path).str))
                                 ChangeDirectory(directory);
 
                             ImGui::SameLine();
@@ -634,7 +634,7 @@ namespace Lumos
 
                                     if(m_Filter.IsActive())
                                     {
-                                        if(!m_Filter.PassFilter((const char*)(Str8PathSkipLastSlash(m_CurrentDir->Children[i]->Path).str)))
+                                        if(!m_Filter.PassFilter((const char*)(StringUtilities::Str8PathSkipLastSlash(m_CurrentDir->Children[i]->Path).str)))
                                         {
                                             continue;
                                         }
@@ -660,7 +660,7 @@ namespace Lumos
 
                                 if(m_Filter.IsActive())
                                 {
-                                    if(!m_Filter.PassFilter((const char*)(Str8PathSkipLastSlash(m_CurrentDir->Children[i]->Path).str)))
+                                    if(!m_Filter.PassFilter((const char*)(StringUtilities::Str8PathSkipLastSlash(m_CurrentDir->Children[i]->Path).str)))
                                     {
                                         continue;
                                     }
@@ -796,8 +796,8 @@ namespace Lumos
 
         if(gridView)
         {
-            auto& CurrentEnty = m_CurrentDir->Children[dirIndex];
-            Graphics::Texture2D* textureId   = m_FolderIcon;
+            auto& CurrentEnty              = m_CurrentDir->Children[dirIndex];
+            Graphics::Texture2D* textureId = m_FolderIcon;
 
             auto cursorPos = ImGui::GetCursorPos();
 
@@ -941,7 +941,7 @@ namespace Lumos
 
                 if(!m_IsInListView)
                 {
-					ImGui::SliderFloat("##GridSize", &m_GridSize, MinGridSize, MaxGridSize);
+                    ImGui::SliderFloat("##GridSize", &m_GridSize, MinGridSize, MaxGridSize);
                 }
                 ImGui::EndPopup();
             }
@@ -975,10 +975,10 @@ namespace Lumos
             ImGui::SetCursorPos({ cursorPos.x + padding, cursorPos.y + padding });
             ImGui::SetNextItemAllowOverlap();
             ImGui::Image(reinterpret_cast<ImTextureID>(Application::Get().GetImGuiManager()->GetImGuiRenderer()->AddTexture(Graphics::Material::GetDefaultTexture())), { backgroundThumbnailSize.x - padding * 2.0f, backgroundThumbnailSize.y - padding * 2.0f }, { 0, 0 }, { 1, 1 }, ImGui::GetStyleColorVec4(ImGuiCol_WindowBg) + ImVec4(0.04f, 0.04f, 0.04f, 0.04f));
-            
+
             ImGui::SetCursorPos({ cursorPos.x + thumbnailPadding * 0.75f, cursorPos.y + thumbnailPadding });
             ImGui::SetNextItemAllowOverlap();
-            //ImGui::Image(reinterpret_cast<ImTextureID>(textureId), { thumbnailSize, thumbnailSize }, ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
+            // ImGui::Image(reinterpret_cast<ImTextureID>(textureId), { thumbnailSize, thumbnailSize }, ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
             ImGuiUtilities::Image(textureId, { thumbnailSize, thumbnailSize });
 
             const ImVec2 typeColorFrameSize = { scaledThumbnailSizeX, scaledThumbnailSizeX * 0.03f };
@@ -990,7 +990,7 @@ namespace Lumos
             const ImRect clipRect = ImRect({ rectMin.x + padding * 2.0f, rectMin.y + padding * 4.0f },
                                            { rectMin.x + rectSize.x, rectMin.y + scaledThumbnailSizeX - ImGui::GetIO().Fonts->Fonts[2]->FontSize - padding * 4.0f });
 
-            ImGuiUtilities::ClippedText(clipRect.Min, clipRect.Max, (const char*)(GetFileName(CurrentEnty->Path, !CurrentEnty->IsFile).str), nullptr, nullptr, { 0, 0 }, nullptr, clipRect.GetSize().x);
+            ImGuiUtilities::ClippedText(clipRect.Min, clipRect.Max, (const char*)(StringUtilities::GetFileName(CurrentEnty->Path, !CurrentEnty->IsFile).str), nullptr, nullptr, { 0, 0 }, nullptr, clipRect.GetSize().x);
 
             if(CurrentEnty->IsFile)
             {
@@ -1019,8 +1019,8 @@ namespace Lumos
         {
             ImGui::TextUnformatted(folder ? ICON_MDI_FOLDER : m_Editor->GetIconFontIcon(std::string((const char*)m_CurrentDir->Children[dirIndex]->Path.str, m_CurrentDir->Children[dirIndex]->Path.size)));
             ImGui::SameLine();
-            
-            if(ImGui::Selectable((const char*)GetFileName(m_CurrentDir->Children[dirIndex]->Path, !m_CurrentDir->Children[dirIndex]->IsFile).str, false, ImGuiSelectableFlags_AllowDoubleClick))
+
+            if(ImGui::Selectable((const char*)StringUtilities::GetFileName(m_CurrentDir->Children[dirIndex]->Path, !m_CurrentDir->Children[dirIndex]->IsFile).str, false, ImGuiSelectableFlags_AllowDoubleClick))
             {
                 if(ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
                 {
@@ -1101,7 +1101,7 @@ namespace Lumos
         bool dirFound = false;
         for(auto dir : m_Directories)
         {
-            if(Str8Match(dir.first, currentPath, 0))
+            if(Str8Match(dir.first, currentPath))
             {
                 m_CurrentDir = dir.second;
                 dirFound     = true;

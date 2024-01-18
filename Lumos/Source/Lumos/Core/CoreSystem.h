@@ -5,7 +5,7 @@
 namespace Lumos
 {
 
-    struct CommandLine;
+    class CommandLine;
 
     namespace Internal
     {

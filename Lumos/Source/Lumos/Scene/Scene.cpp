@@ -27,6 +27,7 @@
 #include "Graphics/MeshFactory.h"
 #include "Graphics/Light.h"
 #include "Graphics/Model.h"
+#include "Graphics/ParticleManager.h"
 #include "Graphics/Environment.h"
 #include "Scene/EntityManager.h"
 #include "Scene/Component/SoundComponent.h"
@@ -217,6 +218,7 @@ namespace Lumos
         m_EntityManager->AddDependency<Graphics::Sprite, Maths::Transform>();
         m_EntityManager->AddDependency<Graphics::AnimatedSprite, Maths::Transform>();
         m_EntityManager->AddDependency<Graphics::Font, Maths::Transform>();
+        m_EntityManager->AddDependency<ParticleEmitter, Maths::Transform>();
 
         m_SceneGraph = CreateUniquePtr<SceneGraph>();
         m_SceneGraph->Init(m_EntityManager->GetRegistry());
@@ -353,6 +355,8 @@ namespace Lumos
 #define ALL_COMPONENTSLISTV8 ALL_COMPONENTSV8
 #define ALL_COMPONENTSENTTV8(input) get<Maths::Transform>(input).get<NameComponent>(input).get<ActiveComponent>(input).get<Hierarchy>(input).get<Camera>(input).get<LuaScriptComponent>(input).get<Graphics::Model>(input).get<Graphics::Light>(input).get<RigidBody3DComponent>(input).get<Graphics::Environment>(input).get<Graphics::Sprite>(input).get<RigidBody2DComponent>(input).get<DefaultCameraController>(input).get<Graphics::AnimatedSprite>(input).get<SoundComponent>(input).get<Listener>(input).get<IDComponent>(input).get<Graphics::ModelComponent>(input).get<AxisConstraintComponent>(input).get<TextComponent>(input)
 
+#define ALL_COMPONENTSENTTV9(input) get<Maths::Transform>(input).get<NameComponent>(input).get<ActiveComponent>(input).get<Hierarchy>(input).get<Camera>(input).get<LuaScriptComponent>(input).get<Graphics::Model>(input).get<Graphics::Light>(input).get<RigidBody3DComponent>(input).get<Graphics::Environment>(input).get<Graphics::Sprite>(input).get<RigidBody2DComponent>(input).get<DefaultCameraController>(input).get<Graphics::AnimatedSprite>(input).get<SoundComponent>(input).get<Listener>(input).get<IDComponent>(input).get<Graphics::ModelComponent>(input).get<AxisConstraintComponent>(input).get<TextComponent>(input).get<ParticleEmitter>(input)
+
     void Scene::Serialise(const std::string& filePath, bool binary)
     {
         LUMOS_PROFILE_FUNCTION();
@@ -372,7 +376,7 @@ namespace Lumos
                 // output finishes flushing its contents when it goes out of scope
                 cereal::BinaryOutputArchive output { file };
                 output(*this);
-                entt::snapshot { m_EntityManager->GetRegistry() }.get<entt::entity>(output).ALL_COMPONENTSENTTV8(output);
+                entt::snapshot { m_EntityManager->GetRegistry() }.get<entt::entity>(output).ALL_COMPONENTSENTTV9(output);
             }
             file.close();
         }
@@ -385,7 +389,7 @@ namespace Lumos
                 // output finishes flushing its contents when it goes out of scope
                 cereal::JSONOutputArchive output { storage };
                 output(*this);
-                entt::snapshot { m_EntityManager->GetRegistry() }.get<entt::entity>(output).ALL_COMPONENTSENTTV8(output);
+                entt::snapshot { m_EntityManager->GetRegistry() }.get<entt::entity>(output).ALL_COMPONENTSENTTV9(output);
             }
             FileSystem::WriteTextFile(path, storage.str());
         }
@@ -430,9 +434,10 @@ namespace Lumos
                     entt::basic_snapshot_loader_legacy { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV7>(input);
                 else if(m_SceneSerialisationVersion >= 14 && m_SceneSerialisationVersion < 21)
                     entt::basic_snapshot_loader_legacy { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSLISTV8>(input);
-                else if(m_SceneSerialisationVersion >= 21)
+                else if(m_SceneSerialisationVersion >= 21 && m_SceneSerialisationVersion < 22)
                     entt::snapshot_loader { m_EntityManager->GetRegistry() }.get<entt::entity>(input).ALL_COMPONENTSENTTV8(input);
-
+                else if(m_SceneSerialisationVersion >= 22)
+                    entt::snapshot_loader { m_EntityManager->GetRegistry() }.get<entt::entity>(input).ALL_COMPONENTSENTTV9(input);
                 if(m_SceneSerialisationVersion < 6)
                 {
                     // m_EntityManager->GetRegistry().each([&](auto entity)
@@ -495,8 +500,10 @@ namespace Lumos
                     entt::basic_snapshot_loader_legacy { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV7>(input);
                 else if(m_SceneSerialisationVersion >= 14 && m_SceneSerialisationVersion < 21)
                     entt::basic_snapshot_loader_legacy { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSLISTV8>(input);
-                else if(m_SceneSerialisationVersion >= 21)
+                else if(m_SceneSerialisationVersion >= 21 && m_SceneSerialisationVersion < 22)
                     entt::snapshot_loader { m_EntityManager->GetRegistry() }.get<entt::entity>(input).ALL_COMPONENTSENTTV8(input);
+                else if(m_SceneSerialisationVersion >= 22)
+                    entt::snapshot_loader { m_EntityManager->GetRegistry() }.get<entt::entity>(input).ALL_COMPONENTSENTTV9(input);
 
                 if(m_SceneSerialisationVersion < 6)
                 {
@@ -572,29 +579,29 @@ namespace Lumos
     }
 
     namespace
-	{
-		void _DestroyEntity(entt::entity entity, entt::registry& registry)
-		{
-			LUMOS_PROFILE_FUNCTION();
-			auto hierarchyComponent = registry.try_get<Hierarchy>(entity);
-			if(hierarchyComponent)
-			{
-				entt::entity child = hierarchyComponent->First();
-				while(child != entt::null)
-				{
-					auto hierarchyComponent = registry.try_get<Hierarchy>(child);
-					auto next = hierarchyComponent ? hierarchyComponent->Next() : entt::null;
-					_DestroyEntity(child, registry);
-					child = next;
-				}
-			}
-			registry.destroy(entity);
-		}
+    {
+        void _DestroyEntity(entt::entity entity, entt::registry& registry)
+        {
+            LUMOS_PROFILE_FUNCTION();
+            auto hierarchyComponent = registry.try_get<Hierarchy>(entity);
+            if(hierarchyComponent)
+            {
+                entt::entity child = hierarchyComponent->First();
+                while(child != entt::null)
+                {
+                    auto hierarchyComponent = registry.try_get<Hierarchy>(child);
+                    auto next               = hierarchyComponent ? hierarchyComponent->Next() : entt::null;
+                    _DestroyEntity(child, registry);
+                    child = next;
+                }
+            }
+            registry.destroy(entity);
+        }
     }
 
     void Scene::DestroyEntity(Entity entity)
-	{
-		_DestroyEntity(entity.GetHandle(), GetRegistry());
+    {
+        _DestroyEntity(entity.GetHandle(), GetRegistry());
     }
 
     void Scene::DuplicateEntity(Entity entity)

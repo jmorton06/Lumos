@@ -3,32 +3,38 @@
 
 namespace Lumos
 {
-    struct CommandLineOptNode
+    struct CommandLineOptionNode
     {
-        CommandLineOptNode* next;
+        CommandLineOptionNode* next;
         String8 name;
         String8List values;
         String8 value;
     };
 
-    struct CommandLineOptSlot
+    struct CommandLineOptionSlot
     {
-        CommandLineOptNode* first;
-        CommandLineOptNode* last;
+        CommandLineOptionNode* first;
+        CommandLineOptionNode* last;
     };
 
-    struct CommandLine
+    class CommandLine
     {
-        uint64_t slots_count;
-        CommandLineOptSlot* slots;
-        String8List inputs;
+    public: 
+
+        CommandLine() = default;
+        ~CommandLine() = default;
+
+        void Init(Arena* arena, String8List strings);
+        String8List OptionStrings(String8 name);
+        String8 OptionString(String8 name);
+        bool OptionBool(String8 name);
+        double OptionDouble(String8 name);
+        int64_t OptionInt64(String8 name);
+    private:
+        uint64_t m_SlotCount;
+        CommandLineOptionSlot* m_Slots;
+        String8List m_Inputs;
     };
 
-    uint64_t CommandLineHashFromString(String8 string);
-    CommandLine CommandLineFromStringList(Arena* arena, String8List strings);
-    String8List CommandLineOptStrings(CommandLine* cmdln, String8 name);
-    String8 CommandLineOptString(CommandLine* cmdln, String8 name);
-    bool CommandLineOptBool(CommandLine* cmdln, String8 name);
-    double CommandLineOptDouble(CommandLine* cmdln, String8 name);
-    int64_t CommandLineOptInt64(CommandLine* cmdln, String8 name);
+
 }

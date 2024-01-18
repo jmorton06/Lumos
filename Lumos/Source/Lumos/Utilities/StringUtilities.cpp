@@ -345,5 +345,227 @@ namespace Lumos
 
             return result.str();
         }
+
+        String8 Str8SkipWhitespace(String8 str)
+        {
+            uint64_t first_non_ws = 0;
+            for(uint64_t idx = 0; idx < str.size; idx += 1)
+            {
+                first_non_ws = idx;
+                if(!CharIsSpace(str.str[idx]))
+                {
+                    break;
+                }
+                else if(idx == str.size - 1)
+                {
+                    first_non_ws = 1;
+                }
+            }
+            return Substr8(str, RangeU64({ first_non_ws, str.size }));
+        }
+
+        String8 Str8ChopWhitespace(String8 str)
+        {
+            uint64_t first_ws_at_end = str.size;
+            for(uint64_t idx = str.size - 1; idx < str.size; idx -= 1)
+            {
+                if(!CharIsSpace(str.str[idx]))
+                {
+                    break;
+                }
+                first_ws_at_end = idx;
+            }
+            return Substr8(str, RangeU64({ 0, first_ws_at_end }));
+        }
+
+        String8 Str8SkipChopWhitespace(String8 str)
+        {
+            return Str8SkipWhitespace(Str8ChopWhitespace(str));
+        }
+
+        String8 Str8SkipChopNewlines(String8 str)
+        {
+            uint64_t first_non_ws = 0;
+            for(uint64_t idx = 0; idx < str.size; idx += 1)
+            {
+                first_non_ws = idx;
+                if(str.str[idx] != '\n' && str.str[idx] != '\r')
+                {
+                    break;
+                }
+            }
+
+            uint64_t first_ws_at_end = str.size;
+            for(uint64_t idx = str.size - 1; idx < str.size; idx -= 1)
+            {
+                if(str.str[idx] != '\n' && str.str[idx] != '\r')
+                {
+                    break;
+                }
+                first_ws_at_end = idx;
+            }
+
+            return Substr8(str, RangeU64({ first_non_ws, first_ws_at_end }));
+        }
+
+        String8 Str8PathChopLastPeriod(String8 string)
+        {
+            uint64_t periodPos = FindSubstr8(string, Str8Lit("."), 0, MatchFlags::FindLast);
+            if(periodPos < string.size)
+            {
+                string.size = periodPos;
+            }
+            return string;
+        }
+
+        String8 Str8PathSkipLastSlash(String8 string)
+        {
+            uint64_t slash_pos = FindSubstr8(string, Str8Lit("/"), 0, MatchFlags(MatchFlags::SlashInsensitive | MatchFlags::FindLast));
+            if(slash_pos < string.size)
+            {
+                string.str += slash_pos + 1;
+                string.size -= slash_pos + 1;
+            }
+            return string;
+        }
+
+        String8 Str8PathChopLastSlash(String8 string)
+        {
+            uint64_t slash_pos = FindSubstr8(string, Str8Lit("/"), 0, MatchFlags(MatchFlags::SlashInsensitive | MatchFlags::FindLast));
+            if(slash_pos < string.size)
+            {
+                string.size = slash_pos;
+            }
+            return string;
+        }
+
+        String8 Str8PathSkipLastPeriod(String8 string)
+        {
+            uint64_t period_pos = FindSubstr8(string, Str8Lit("."), 0, MatchFlags::FindLast);
+            if(period_pos < string.size)
+            {
+                string.str += period_pos + 1;
+                string.size -= period_pos + 1;
+            }
+            return string;
+        }
+
+        String8 Str8PathChopPastLastSlash(String8 string)
+        {
+            uint64_t slash_pos = FindSubstr8(string, Str8Lit("/"), 0, MatchFlags(MatchFlags::SlashInsensitive | MatchFlags::FindLast));
+            if(slash_pos < string.size)
+            {
+                string.size = slash_pos + 1;
+            }
+            return string;
+        }
+
+        PathType PathTypeFromStr8(String8 path)
+        {
+            PathType kind = PathType::Relative;
+            if(path.size >= 1 && path.str[0] == '/')
+            {
+                kind = PathType::RootAbsolute;
+            }
+            if(path.size >= 2 && CharIsAlpha(path.str[0]) && path.str[1] == ':')
+            {
+                kind = PathType::DriveAbsolute;
+            }
+            return kind;
+        }
+
+        String8List PathPartsFromStr8(Arena* arena, String8 path)
+        {
+            String8 splits[] = { Str8Lit("/"), Str8Lit("\\") };
+            String8List strs = StrSplit8(arena, path, ArrayCount(splits), splits);
+            return strs;
+        }
+
+        String8List AbsolutePathPartsFromSourcePartsType(Arena* arena, String8 source, String8List parts, PathType type)
+        {
+            if(type == PathType::Relative)
+            {
+                String8List concattedParts = { 0 };
+                String8List sourceParts    = PathPartsFromStr8(arena, source);
+                Str8ListConcatInPlace(&concattedParts, &sourceParts);
+                Str8ListConcatInPlace(&concattedParts, &parts);
+                parts = concattedParts;
+            }
+
+            return parts;
+        }
+
+        String8List DotResolvedPathPartsFromParts(Arena* arena, String8List parts)
+        {
+            ArenaTemp scratch = ArenaTempBegin(arena);
+            struct NodeNode
+            {
+                NodeNode* next;
+                String8Node* node;
+            };
+
+            NodeNode* part_stack_top = 0;
+            for(String8Node* n = parts.first; n != 0; n = n->next)
+            {
+                if(Str8Match(n->string, Str8Lit(".."), MatchFlags(0)))
+                {
+                    StackPop(part_stack_top);
+                }
+                else if(Str8Match(n->string, Str8Lit("."), MatchFlags(0)))
+                {
+                }
+                else
+                {
+                    NodeNode* nn = PushArray(scratch.arena, NodeNode, 1);
+                    nn->node     = n;
+                    StackPush(part_stack_top, nn);
+                }
+            }
+            String8List result = { 0 };
+            for(NodeNode* nn = part_stack_top; nn != 0; nn = nn->next)
+            {
+                Str8ListPushFront(arena, &result, nn->node->string);
+            }
+            ArenaTempEnd(scratch);
+            return result;
+        }
+
+        String8 NormalizedPathFromStr8(Arena* arena, String8 source, String8 path)
+        {
+            ArenaTemp scratch                        = ArenaTempBegin(arena);
+            path                                     = Str8SkipWhitespace(path);
+            bool trailing_slash                      = path.size > 0 && (path.str[path.size - 1] == '/' || path.str[path.size - 1] == '\\');
+            PathType type                            = PathTypeFromStr8(path);
+            String8List path_parts                   = PathPartsFromStr8(scratch.arena, path);
+            String8List absolute_path_parts          = AbsolutePathPartsFromSourcePartsType(scratch.arena, source, path_parts, type);
+            String8List absolute_resolved_path_parts = DotResolvedPathPartsFromParts(scratch.arena, absolute_path_parts);
+            StringJoin join                          = { 0 };
+            join.sep                                 = Str8Lit("/");
+            if(trailing_slash)
+            {
+                join.post = Str8Lit("/");
+            }
+            String8 absolute_resolved_path = Str8ListJoin(scratch.arena, absolute_resolved_path_parts, &join);
+            ArenaTempEnd(scratch);
+            return absolute_resolved_path;
+        }
+
+        String8 GetFileName(String8 str, bool directory)
+        {
+            if(directory)
+                return Str8PathSkipLastSlash(str);
+            else
+                return Str8PathSkipLastSlash(Str8PathChopLastPeriod(str));
+        }
+
+        uint64_t BasicHashFromString(String8 string)
+        {
+            uint64_t result = 5381;
+            for(uint64_t i = 0; i < string.size; i += 1)
+            {
+                result = ((result << 5) + result) + string.str[i];
+            }
+            return result;
+        }
     }
 }

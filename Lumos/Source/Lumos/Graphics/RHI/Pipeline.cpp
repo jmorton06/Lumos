@@ -41,7 +41,7 @@ namespace Lumos
         {
             LUMOS_PROFILE_FUNCTION_LOW();
             uint64_t hash = 0;
-            HashCombine(hash, pipelineDesc.shader.get(), pipelineDesc.cullMode, pipelineDesc.depthBiasEnabled, (uint32_t)pipelineDesc.drawType, (uint32_t)pipelineDesc.polygonMode, pipelineDesc.transparencyEnabled);
+            HashCombine(hash, pipelineDesc.shader.get(), pipelineDesc.cullMode, pipelineDesc.depthBiasEnabled, (uint32_t)pipelineDesc.drawType, (uint32_t)pipelineDesc.polygonMode, pipelineDesc.transparencyEnabled, pipelineDesc.DepthTest, pipelineDesc.DepthWrite);
 
             for(auto texture : pipelineDesc.colourTargets)
             {

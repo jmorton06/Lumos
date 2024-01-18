@@ -57,7 +57,7 @@ namespace Lumos
 
             bool success = Init(m_VSyncEnabled);
 
-            if (!success)
+            if(!success)
                 LUMOS_LOG_ERROR("Failed to initialise swapchain");
 
             return success;
@@ -182,7 +182,7 @@ namespace Lumos
             uint32_t swapChainImageCount;
             VK_CHECK_RESULT(vkGetSwapchainImagesKHR(VKDevice::Get().GetDevice(), m_SwapChain, &swapChainImageCount, VK_NULL_HANDLE));
 
-            ArenaTemp scratch = ScratchBegin(nullptr, 0);
+            ArenaTemp scratch         = ScratchBegin(nullptr, 0);
             VkImage* pSwapChainImages = PushArrayNoZero(scratch.arena, VkImage, swapChainImageCount);
             VK_CHECK_RESULT(vkGetSwapchainImagesKHR(VKDevice::Get().GetDevice(), m_SwapChain, &swapChainImageCount, pSwapChainImages));
 

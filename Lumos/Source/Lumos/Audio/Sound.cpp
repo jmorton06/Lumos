@@ -10,7 +10,7 @@ namespace Lumos
 {
     Sound::Sound()
         : m_Streaming(false)
-        , m_Data{}
+        , m_Data {}
     {
     }
 

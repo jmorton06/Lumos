@@ -100,7 +100,7 @@ namespace Lumos
         Entity CreateEntity(const std::string& name);
         Entity GetEntityByUUID(uint64_t id);
         Entity InstantiatePrefab(const std::string& path);
-		void DestroyEntity(Entity entity);
+        void DestroyEntity(Entity entity);
         void SavePrefab(Entity entity, const std::string& path);
 
         EntityManager* GetEntityManager() { return m_EntityManager.get(); }
