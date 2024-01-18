@@ -1893,7 +1893,6 @@ namespace Lumos
             {
                 // Defines the tolerance for distance, beyond which a transition is considered completed
                 constexpr float kTransitionCompletionDistanceTolerance = 0.01f;
-                constexpr float kSpeedBaseFactor = 5.0f;
                 constexpr float kSpeedBaseFactor                       = 5.0f;
 
                 const auto cameraCurrentPosition = m_EditorCameraTransform.GetLocalPosition();
