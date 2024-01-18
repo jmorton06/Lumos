@@ -34,7 +34,7 @@ namespace Lumos
         static constexpr uint16_t DESCRIPTOR_MAX_SAMPLERS                 = 1024;
         static constexpr uint16_t DESCRIPTOR_MAX_TEXTURES                 = 1024;
 
-        enum class CullMode
+        enum class CullMode : uint8_t
         {
             FRONT = 0,
             BACK,
@@ -42,14 +42,14 @@ namespace Lumos
             NONE
         };
 
-        enum class PolygonMode
+        enum class PolygonMode : uint8_t
         {
             FILL = 0,
             LINE,
             POINT
         };
 
-        enum class BlendMode
+        enum class BlendMode : uint8_t
         {
             None = 0,
             OneZero,
@@ -57,7 +57,7 @@ namespace Lumos
             SrcAlphaOneMinusSrcAlpha,
         };
 
-        enum class TextureWrap
+        enum class TextureWrap : uint8_t
         {
             NONE = 0,
             REPEAT,
@@ -67,14 +67,14 @@ namespace Lumos
             CLAMP_TO_BORDER
         };
 
-        enum class TextureFilter
+        enum class TextureFilter : uint8_t
         {
             NONE = 0,
             LINEAR,
             NEAREST
         };
 
-        enum class RHIFormat : uint32_t
+        enum class RHIFormat : uint8_t
         {
             NONE = 0,
             R8_Unorm,
@@ -115,14 +115,14 @@ namespace Lumos
             SCREEN
         };
 
-        enum class BufferUsage
+        enum class BufferUsage : uint8_t
         {
             STATIC,
             DYNAMIC,
             STREAM
         };
 
-        enum class DescriptorType
+        enum class DescriptorType : uint8_t
         {
             UNIFORM_BUFFER,
             UNIFORM_BUFFER_DYNAMIC,
@@ -130,7 +130,7 @@ namespace Lumos
             IMAGE_STORAGE
         };
 
-        enum class ShaderDataType
+        enum class ShaderDataType : uint8_t
         {
             NONE = 0,
             FLOAT32,
@@ -150,7 +150,7 @@ namespace Lumos
             MAT4ARRAY
         };
 
-        enum class ShaderType : int
+        enum class ShaderType : uint8_t
         {
             VERTEX = 0,
             FRAGMENT,
@@ -161,7 +161,7 @@ namespace Lumos
             UNKNOWN
         };
 
-        enum class TextureType
+        enum class TextureType : uint8_t
         {
             COLOUR = 0,
             DEPTH,
@@ -170,13 +170,13 @@ namespace Lumos
             OTHER
         };
 
-        enum SubPassContents
+        enum SubPassContents : uint8_t
         {
             INLINE = 0,
             SECONDARY
         };
 
-        enum TextureFlags : uint32_t
+        enum TextureFlags : uint8_t
         {
             Texture_Sampled              = BIT(0),
             Texture_Storage              = BIT(1),
@@ -187,7 +187,7 @@ namespace Lumos
             Texture_MipViews             = BIT(6)
         };
 
-        enum RendererBufferType
+        enum RendererBufferType : uint8_t
         {
             RENDERER_BUFFER_COLOUR  = BIT(0),
             RENDERER_BUFFER_DEPTH   = BIT(1),
@@ -196,14 +196,14 @@ namespace Lumos
 
         };
 
-        enum class DrawType
+        enum class DrawType : uint8_t
         {
             POINT = 0,
             TRIANGLE,
             LINES
         };
 
-        enum class StencilType
+        enum class StencilType : uint8_t
         {
             EQUAL = 0,
             NOTEQUAL,
@@ -213,13 +213,13 @@ namespace Lumos
             ALWAYS
         };
 
-        enum class PixelPackType
+        enum class PixelPackType : uint8_t
         {
             PACK = 0,
             UNPACK
         };
 
-        enum class RendererBlendFunction
+        enum class RendererBlendFunction : uint8_t
         {
             NONE = 0,
             ZERO,
@@ -229,27 +229,27 @@ namespace Lumos
             ONE_MINUS_SOURCE_ALPHA
         };
 
-        enum class RendererBlendEquation
+        enum class RendererBlendEquation : uint8_t
         {
             NONE = 0,
             ADD,
             SUBTRACT
         };
 
-        enum class RenderMode
+        enum class RenderMode : uint8_t
         {
             FILL = 0,
             WIREFRAME
         };
 
-        enum class DataType
+        enum class DataType : uint8_t
         {
             FLOAT = 0,
             UNSIGNED_INT,
             UNSIGNED_BYTE
         };
 
-        enum class PhysicalDeviceType
+        enum class PhysicalDeviceType : uint8_t
         {
             DISCRETE   = 0,
             INTEGRATED = 1,
@@ -323,7 +323,7 @@ namespace Lumos
             std::vector<BufferMemberInfo> m_Members;
         };
 
-        enum class CubeFace
+        enum class CubeFace : uint8_t
         {
             PositiveX = 0,
             NegativeX,

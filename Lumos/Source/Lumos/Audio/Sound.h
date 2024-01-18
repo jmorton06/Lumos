@@ -11,11 +11,11 @@ namespace Lumos
 
     public:
         static SharedPtr<Sound> Create(const std::string& name, const std::string& extension);
-        virtual ~Sound();
+        virtual ~Sound() = default;
 
-        unsigned char* GetData() const
+        const std::byte* GetData() const
         {
-            return m_Data.Data;
+            return reinterpret_cast<const std::byte*>(m_Data.Data.data());
         }
         int GetBitRate() const
         {

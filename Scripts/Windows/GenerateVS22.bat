@@ -1,2 +1,1 @@
-cd ..\..
-call Tools\premake5.exe vs2022
+Common\GenerateVSProject.bat vs2022

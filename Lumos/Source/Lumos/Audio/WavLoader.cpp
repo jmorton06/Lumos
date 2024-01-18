@@ -39,8 +39,8 @@ namespace Lumos
             else if(chunkName == "data")
             {
                 data.Size = chunkSize;
-                data.Data = new unsigned char[data.Size];
-                file.read(reinterpret_cast<char*>(data.Data), chunkSize);
+                data.Data.resize(data.Size);
+                file.read(reinterpret_cast<char*>(data.Data.data()), chunkSize);
                 break;
                 /*
                                 In release mode, ifstream and / or something else were combining

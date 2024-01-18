@@ -10,13 +10,8 @@ namespace Lumos
 {
     Sound::Sound()
         : m_Streaming(false)
-        , m_Data(AudioData())
+        , m_Data{}
     {
-    }
-
-    Sound::~Sound()
-    {
-        delete[] m_Data.Data;
     }
 
     SharedPtr<Sound> Sound::Create(const std::string& name, const std::string& extension)
