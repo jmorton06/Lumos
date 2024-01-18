@@ -26,21 +26,19 @@ namespace Lumos
 
             LUMOS_LOG_INFO("Lumos Engine - Version {0}.{1}.{2}", LumosVersion.major, LumosVersion.minor, LumosVersion.patch);
 
-            String8List args_list = {};
-            for(uint64_t argument_idx = 1; argument_idx < argc; argument_idx += 1)
+            String8List argsList = {};
+            for(uint64_t argumentIndex = 1; argumentIndex < argc; argumentIndex += 1)
             {
-                Str8ListPush(s_Arena, &args_list, Str8C(argv[argument_idx]));
+                Str8ListPush(s_Arena, &argsList, Str8C(argv[argumentIndex]));
             }
-            s_CommandLine = CommandLineFromStringList(s_Arena, args_list);
+            s_CommandLine = {};
+            s_CommandLine.Init(s_Arena, argsList);
 
-            if(CommandLineOptBool(&s_CommandLine, Str8Lit("help")))
+            if(s_CommandLine.OptionBool(Str8Lit("help")))
             {
                 LUMOS_LOG_INFO("Print this help. This help message is actually so long "
                                "that it requires a line break!");
             }
-
-            LUMOS_LOG_INFO(CommandLineOptDouble(&s_CommandLine, Str8Lit("TestDouble")));
-            LUMOS_LOG_INFO(CommandLineOptInt64(&s_CommandLine, Str8Lit("TestInt")));
 
             // Init Jobsystem. Reserve 2 threads for main and render threads
             System::JobSystem::OnInit(2);

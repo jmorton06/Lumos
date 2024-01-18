@@ -140,7 +140,7 @@ namespace Lumos
             swapChain->QueueSubmit();
 
             auto& frameData = swapChain->GetCurrentFrameData();
-            auto semaphore   = frameData.MainCommandBuffer->GetSemaphore();
+            auto semaphore  = frameData.MainCommandBuffer->GetSemaphore();
 
             swapChain->Present(semaphore);
         }

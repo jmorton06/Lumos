@@ -15,16 +15,19 @@ layout(set = 0,binding = 0) uniform UBO
 layout (location = 0) out DATA
 {
 	vec3 position;
-	vec2 uv;
+	vec4 uv;
+	float blend;
 	float tid;
 	vec4 colour;
 } vs_out;
 
 void main()
 {
-	gl_Position =  ubo.projView * vec4(position,1.0);
+	vec4 pos =  ubo.projView * vec4(position,1.0);
+	gl_Position = pos;// / pos.w;
 	vs_out.position = position;
-	vs_out.uv = uv.xy;
+	vs_out.uv = uv;
 	vs_out.tid = tid.x;
 	vs_out.colour = colour;
+	vs_out.blend = tid.y;
 }

@@ -2,7 +2,6 @@
 #include "VKIMGUIRenderer.h"
 #include <imgui/imgui.h>
 
-
 #define IMGUI_IMPL_VULKAN_NO_PROTOTYPES
 #define VK_NO_PROTOTYPES
 #include <imgui/backends/imgui_impl_vulkan.h>
@@ -15,7 +14,7 @@
 #include "Graphics/RHI/GPUProfile.h"
 
 static ImGui_ImplVulkanH_Window g_WindowData;
-static VkAllocationCallbacks* g_Allocator = nullptr;
+static VkAllocationCallbacks* g_Allocator   = nullptr;
 static VkDescriptorPool g_DescriptorPool[3] = { VK_NULL_HANDLE, VK_NULL_HANDLE, VK_NULL_HANDLE };
 
 static void check_vk_result(VkResult err)
@@ -73,14 +72,10 @@ namespace Lumos
                 auto descriptorPool = g_DescriptorPool[i];
 
                 deletionQueue.PushFunction([descriptorPool]
-                    {
-                        vkDestroyDescriptorPool(VKDevice::Get().GetDevice(), descriptorPool, nullptr);
-                    });
+                                           { vkDestroyDescriptorPool(VKDevice::Get().GetDevice(), descriptorPool, nullptr); });
             }
             deletionQueue.PushFunction([]
-                {
-                    ImGui_ImplVulkan_Shutdown();
-                });
+                                       { ImGui_ImplVulkan_Shutdown(); });
         }
 
         void VKIMGUIRenderer::SetupVulkanWindowData(ImGui_ImplVulkanH_Window* wd, VkSurfaceKHR surface, int width, int height)
@@ -88,7 +83,7 @@ namespace Lumos
             LUMOS_PROFILE_FUNCTION();
 
             // Create Descriptor Pool
-            for (int i = 0; i < Renderer::GetMainSwapChain()->GetSwapChainBufferCount(); i++)
+            for(int i = 0; i < Renderer::GetMainSwapChain()->GetSwapChainBufferCount(); i++)
             {
                 VkDescriptorPoolSize pool_sizes[] = {
                     { VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 100 }
@@ -228,7 +223,7 @@ namespace Lumos
                         {
                             if(texID->type == TextureType::COLOUR)
                             {
-                                
+
                                 auto texture = (VKTexture2D*)texID->texture;
                                 texture->TransitionImage(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, currentCommandBuffer);
                                 descriptorImageMap[pcmd->TextureId] = *texture->GetDescriptor();
@@ -243,7 +238,7 @@ namespace Lumos
                             {
                                 auto texture = (VKTextureDepthArray*)texID->texture;
                                 texture->TransitionImage(VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL, currentCommandBuffer);
-                                descriptorImageMap[pcmd->TextureId] = *texture->GetDescriptor();
+                                descriptorImageMap[pcmd->TextureId]           = *texture->GetDescriptor();
                                 descriptorImageMap[pcmd->TextureId].imageView = texture->GetImageView(texID->level);
                             }
                         }
@@ -346,12 +341,12 @@ namespace Lumos
                 int width, height;
                 io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
 
-                m_FontTexture   = new VKTexture2D(width, height, pixels, TextureDesc(TextureFilter::NEAREST, TextureFilter::NEAREST, TextureWrap::REPEAT));
-                m_FontTextureID.level = 0;
-                m_FontTextureID.mip = 0;
-                m_FontTextureID.type = TextureType::COLOUR;
+                m_FontTexture           = new VKTexture2D(width, height, pixels, TextureDesc(TextureFilter::NEAREST, TextureFilter::NEAREST, TextureWrap::REPEAT));
+                m_FontTextureID.level   = 0;
+                m_FontTextureID.mip     = 0;
+                m_FontTextureID.type    = TextureType::COLOUR;
                 m_FontTextureID.texture = m_FontTexture;
-                io.Fonts->TexID = (ImTextureID) & m_FontTextureID;
+                io.Fonts->TexID         = (ImTextureID)&m_FontTextureID;
             }
         }
     }

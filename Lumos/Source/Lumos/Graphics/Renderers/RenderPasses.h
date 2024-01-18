@@ -108,6 +108,9 @@ namespace Lumos
             void Renderer2DBeginBatch();
             void Render2DPass();
             void Render2DFlush();
+            void ParticleBeginBatch();
+            void ParticlePass();
+            void ParticleFlush();
             void DebugPass();
             void FinalPass();
             void TextPass();
@@ -125,6 +128,7 @@ namespace Lumos
             void SharpenPass();
 
             float SubmitTexture(Texture* texture);
+            float SubmitParticleTexture(Texture* texture);
             void UpdateCascades(Scene* scene, Light* light);
 
             bool m_DebugRenderEnabled = false;
@@ -303,9 +307,11 @@ namespace Lumos
             Renderer2DData m_TextRendererData;
             DebugDrawData m_DebugDrawData;
             Renderer2DData m_DebugTextRendererData;
+            Renderer2DData m_ParticleData;
 
             TextVertexData* TextVertexBufferPtr = nullptr;
 
+            std::vector<std::vector<VertexData*>> m_ParticleBufferBase;
             std::vector<std::vector<VertexData*>> m_2DBufferBase;
             std::vector<LineVertexData*> m_LineBufferBase;
             std::vector<PointVertexData*> m_PointBufferBase;

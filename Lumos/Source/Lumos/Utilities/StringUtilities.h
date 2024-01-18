@@ -66,5 +66,34 @@ namespace Lumos
         std::string StringReplace(std::string str, char ch);
 
         std::string BytesToString(uint64_t bytes);
+
+        enum PathType : uint8_t
+        {
+            Relative,
+            DriveAbsolute,
+            RootAbsolute,
+            Count
+        };
+
+        String8 Str8SkipWhitespace(String8 str);
+        String8 Str8ChopWhitespace(String8 str);
+        String8 Str8SkipChopWhitespace(String8 str);
+        String8 Str8SkipChopNewlines(String8 str);
+
+        String8 Str8PathChopLastPeriod(String8 str);
+        String8 Str8PathSkipLastSlash(String8 str);
+        String8 Str8PathChopLastSlash(String8 str);
+        String8 Str8PathSkipLastPeriod(String8 str);
+        String8 Str8PathChopPastLastSlash(String8 str);
+
+        PathType PathTypeFromStr8(String8 path);
+        String8List PathPartsFromStr8(Arena* arena, String8 path);
+        String8List AbsolutePathPartsFromSourcePartsType(Arena* arena, String8 source, String8List parts, PathType type);
+
+        String8List DotResolvedPathPartsFromParts(Arena* arena, String8List parts);
+        String8 NormalizedPathFromStr8(Arena* arena, String8 source, String8 path);
+        String8 GetFileName(String8 str, bool directory = false);
+
+        uint64_t BasicHashFromString(String8 string);
     }
 }

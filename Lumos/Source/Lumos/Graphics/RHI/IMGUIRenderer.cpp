@@ -28,7 +28,7 @@ namespace Lumos
 
         ImGuiTextureID* IMGUIRenderer::AddTexture(Texture* texture, TextureType type, uint32_t level, uint32_t mip)
         {
-            if (Graphics::GraphicsContext::GetRenderAPI() == RenderAPI::OPENGL)
+            if(Graphics::GraphicsContext::GetRenderAPI() == RenderAPI::OPENGL)
                 return (ImGuiTextureID*)texture->GetHandle();
 
             if(m_CurrentTextureIDIndex > MAX_IMGUI_TEXTURES)
@@ -36,11 +36,11 @@ namespace Lumos
                 LUMOS_LOG_ERROR("Exceeded max imgui textures");
                 return &m_TextureIDs[0];
             }
-            
+
             m_TextureIDs[m_CurrentTextureIDIndex].texture = texture;
-            m_TextureIDs[m_CurrentTextureIDIndex].type = type;
-            m_TextureIDs[m_CurrentTextureIDIndex].level = level;
-            m_TextureIDs[m_CurrentTextureIDIndex].mip = mip;
+            m_TextureIDs[m_CurrentTextureIDIndex].type    = type;
+            m_TextureIDs[m_CurrentTextureIDIndex].level   = level;
+            m_TextureIDs[m_CurrentTextureIDIndex].mip     = mip;
 
             return &m_TextureIDs[m_CurrentTextureIDIndex++];
         }

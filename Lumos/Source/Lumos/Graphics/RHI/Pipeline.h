@@ -21,6 +21,9 @@ namespace Lumos
             bool swapchainTarget     = false;
             bool clearTargets        = false;
 
+            bool DepthTest  = true;
+            bool DepthWrite = true;
+
             std::array<Texture*, MAX_RENDER_TARGETS> colourTargets = {};
 
             Texture* cubeMapTarget        = nullptr;

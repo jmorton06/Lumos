@@ -194,7 +194,7 @@ namespace Lumos
         Deserialise();
 
         CommandLine* cmdline = Internal::CoreSystem::GetCmdLine();
-        if(CommandLineOptBool(cmdline, Str8Lit("help")))
+        if(cmdline->OptionBool(Str8Lit("help")))
         {
             LUMOS_LOG_INFO("Print this help.\n Option 1 : test");
         }
