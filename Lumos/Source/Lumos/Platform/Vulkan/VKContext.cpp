@@ -19,6 +19,8 @@
 #define VK_LAYER_LUNARG_ASSISTENT_LAYER_NAME "VK_LAYER_LUNARG_assistant_layer"
 #define VK_LAYER_LUNARG_VALIDATION_NAME "VK_LAYER_KHRONOS_validation"
 
+const bool EnableValidationLayers = false;
+
 namespace Lumos
 {
     namespace Graphics

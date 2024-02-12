@@ -250,7 +250,9 @@ namespace Lumos
 
         // Draw Splash Screen
         {
-            auto splashTexture = Graphics::Texture2D::CreateFromSource(splashWidth, splashHeight, (void*)splash);
+			auto desc = Graphics::TextureDesc(Graphics::TextureFilter::LINEAR, Graphics::TextureFilter::LINEAR, Graphics::TextureWrap::REPEAT);
+			desc.flags = Graphics::TextureFlags::Texture_Sampled;
+            auto splashTexture = Graphics::Texture2D::CreateFromSource(splashWidth, splashHeight, (void*)splash, desc);
             Graphics::Renderer::GetRenderer()->Begin();
             Graphics::Renderer::GetRenderer()->DrawSplashScreen(splashTexture);
             Graphics::Renderer::GetRenderer()->Present();
@@ -368,19 +370,27 @@ namespace Lumos
         auto& stats = Engine::Get().Statistics();
         auto& ts    = Engine::GetTimeStep();
 
+		static int s_NumContiguousLargeFrames = 0;
+		const int maxContiguousLargeFrames = 2;
+
         if(ts.GetSeconds() > 5)
         {
             LUMOS_LOG_WARN("Large frame time {0}", ts.GetSeconds());
+
+			s_NumContiguousLargeFrames++;
 #ifdef LUMOS_DISABLE_LARGE_FRAME_TIME
             // Added to stop application locking computer
             // Exit if frametime exceeds 5 seconds
             return false;
 #endif
+
+			if(s_NumContiguousLargeFrames > maxContiguousLargeFrames)
+				return false;
         }
+		else
+			s_NumContiguousLargeFrames = 0;
 
         ExecuteMainThreadQueue();
-
-        ImGui::NewFrame();
 
         {
             LUMOS_PROFILE_SCOPE("Application::TimeStepUpdates");
@@ -392,8 +402,10 @@ namespace Lumos
             stats.FrameTime = ts.GetMillis();
         }
 
+        //Process Input events before ImGui::NewFrame
         Input::Get().ResetPressed();
         m_Window->ProcessInput();
+        ImGui::NewFrame();
 
         {
             std::scoped_lock<std::mutex> lock(m_EventQueueMutex);
@@ -442,7 +454,7 @@ namespace Lumos
             m_ImGuiManager->OnRender(m_SceneManager->GetCurrentScene());
 
             // Clears debug line and point lists
-            DebugRenderer::Reset();
+            DebugRenderer::Reset((float)ts.GetSeconds());
             OnDebugDraw();
 
             Graphics::Pipeline::DeleteUnusedCache();

@@ -241,7 +241,7 @@ namespace Lumos
             }
         }
 
-        void VKRenderPass::BeginRenderpass(CommandBuffer* commandBuffer, float* clearColour, Framebuffer* frame, SubPassContents contents, uint32_t width, uint32_t height) const
+        void VKRenderPass::BeginRenderPass(CommandBuffer* commandBuffer, float* clearColour, Framebuffer* frame, SubPassContents contents, uint32_t width, uint32_t height) const
         {
             LUMOS_PROFILE_FUNCTION_LOW();
             if(!m_DepthOnly)
@@ -284,7 +284,7 @@ namespace Lumos
             commandBuffer->UpdateViewport(width, height, m_SwapchainTarget);
         }
 
-        void VKRenderPass::EndRenderpass(CommandBuffer* commandBuffer)
+        void VKRenderPass::EndRenderPass(CommandBuffer* commandBuffer)
         {
             LUMOS_PROFILE_FUNCTION_LOW();
             vkCmdEndRenderPass(static_cast<VKCommandBuffer*>(commandBuffer)->GetHandle());

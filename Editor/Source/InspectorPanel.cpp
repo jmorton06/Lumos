@@ -387,7 +387,7 @@ end
     {
         using namespace Lumos;
         LUMOS_PROFILE_FUNCTION();
-        ImGuiUtilities::ScopedStyle(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
+        ImGuiUtilities::ScopedStyle frameStyle(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
 
         ImGui::Columns(2);
         ImGui::Separator();
@@ -800,7 +800,7 @@ end
         LUMOS_PROFILE_FUNCTION();
         auto& camera = reg.get<Lumos::Camera>(e);
 
-        Lumos::ImGuiUtilities::ScopedStyle(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
+        Lumos::ImGuiUtilities::ScopedStyle frameStyle(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
         ImGui::Columns(2);
         ImGui::Separator();
 

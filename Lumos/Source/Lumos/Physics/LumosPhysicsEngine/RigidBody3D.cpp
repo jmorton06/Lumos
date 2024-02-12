@@ -147,10 +147,10 @@ namespace Lumos
         }
 
         if(flags & PhysicsDebugFlags::LINEARVELOCITY)
-            DebugRenderer::DrawThickLineNDT(m_wsTransform[3], m_wsTransform * glm::vec4(m_LinearVelocity, 1.0f), 0.02f, glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
+            DebugRenderer::DrawThickLine(m_wsTransform[3], m_wsTransform * glm::vec4(m_LinearVelocity, 1.0f), 0.02f, false,  glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
 
         if(flags & PhysicsDebugFlags::LINEARFORCE)
-            DebugRenderer::DrawThickLineNDT(m_wsTransform[3], m_wsTransform * glm::vec4(m_Force, 1.0f), 0.02f, glm::vec4(0.0f, 0.0f, 1.0f, 1.0f));
+            DebugRenderer::DrawThickLine(m_wsTransform[3], m_wsTransform * glm::vec4(m_Force, 1.0f), 0.02f, false, glm::vec4(0.0f, 0.0f, 1.0f, 1.0f));
     }
 
     void RigidBody3D::SetCollisionShape(CollisionShapeType type)

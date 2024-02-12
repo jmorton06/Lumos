@@ -188,7 +188,6 @@ namespace Lumos
     {
         ImGuiIO& io = ImGui::GetIO();
         io.AddMouseWheelEvent((float)e.GetXOffset(), (float)e.GetYOffset());
-
         return false;
     }
 
@@ -207,7 +206,7 @@ namespace Lumos
         io.KeySuper = io.KeysDown[(int)Lumos::InputCode::Key::LeftSuper] || io.KeysDown[(int)Lumos::InputCode::Key::RightSuper];
 #endif
 
-        return io.WantTextInput;
+        return io.WantTextInput && !io.KeyCtrl && !io.KeySuper;
     }
 
     bool ImGuiManager::OnKeyReleasedEvent(KeyReleasedEvent& e)

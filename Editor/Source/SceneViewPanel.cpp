@@ -38,8 +38,8 @@ namespace Lumos
         m_ShowComponentGizmoMap[typeid(Camera).hash_code()]          = true;
         m_ShowComponentGizmoMap[typeid(SoundComponent).hash_code()]  = true;
 
-        m_Width  = 1280;
-        m_Height = 800;
+        m_Width  = 800;
+        m_Height = 600;
 
         Application::Get().GetRenderPasses()->SetDisablePostProcess(false);
     }
@@ -81,7 +81,7 @@ namespace Lumos
             offset = ImGui::GetCursorPos(); // Usually ImVec2(0.0f, 50.0f);
         }
 
-        if(!camera)
+        if(!camera || !transform)
         {
             ImGui::End();
             return;
@@ -585,6 +585,10 @@ namespace Lumos
         bool resize = false;
 
         LUMOS_ASSERT(width > 0 && height > 0, "Scene View Dimensions 0");
+
+        const QualitySettings& qs = Application::Get().GetQualitySettings();
+        width *= qs.RendererScale;
+        height *= qs.RendererScale;
 
         Application::Get().SetSceneViewDimensions(width, height);
 

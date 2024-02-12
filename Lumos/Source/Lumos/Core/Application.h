@@ -3,6 +3,7 @@
 #include "Scene/SceneManager.h"
 #include "Scene/SystemManager.h"
 #include "Core/OS/FileSystem.h"
+#include "Core/QualitySettings.h"
 
 #include <thread>
 #include <cereal/types/vector.hpp>
@@ -102,6 +103,9 @@ namespace Lumos
         SharedPtr<ShaderLibrary>& GetShaderLibrary();
         SharedPtr<ModelLibrary>& GetModelLibrary();
         SharedPtr<FontLibrary>& GetFontLibrary();
+		
+		const QualitySettings& GetQualitySettings() const { return m_QualitySettings; }
+        QualitySettings& GetQualitySettings() { return m_QualitySettings; }
 
         void SubmitToMainThread(const std::function<void()>& function);
         void ExecuteMainThreadQueue();
@@ -345,6 +349,8 @@ namespace Lumos
 
         Arena* m_FrameArena;
         Arena* m_Arena;
+		
+		QualitySettings m_QualitySettings;
 
         NONCOPYABLE(Application)
     };

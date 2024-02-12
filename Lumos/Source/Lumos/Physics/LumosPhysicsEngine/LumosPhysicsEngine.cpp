@@ -11,6 +11,7 @@
 #include "Core/JobSystem.h"
 #include "Core/Application.h"
 #include "Scene/Component/RigidBody3DComponent.h"
+#include "Graphics/Renderers/DebugRenderer.h"
 
 #include "Maths/Transform.h"
 #include "ImGui/ImGuiUtilities.h"
@@ -448,6 +449,13 @@ namespace Lumos
                         // Construct contact points that form the perimeter of the collision manifold
                         if(CollisionDetection::Get().BuildCollisionManifold(cp.pObjectA, cp.pObjectB, shapeA.get(), shapeB.get(), colData, &manifold))
                         {
+
+                            if (m_DebugDrawFlags & PhysicsDebugFlags::COLLISIONNORMALS)
+                            {
+                                DebugRenderer::DrawPoint(colData.pointOnPlane, 0.1f, false, glm::vec4(0.5f, 0.5f, 1.0f, 1.0f), 3.0f);
+                                DebugRenderer::DrawThickLine(colData.pointOnPlane, colData.pointOnPlane - colData.normal * colData.penetration, 0.05f, false, glm::vec4(0.0f, 0.0f, 1.0f, 1.0f), 3.0f);
+                            }
+
                             // Fire callback
                             cp.pObjectA->FireOnCollisionManifoldCallback(cp.pObjectA, cp.pObjectB, &manifold);
                             cp.pObjectB->FireOnCollisionManifoldCallback(cp.pObjectB, cp.pObjectA, &manifold);

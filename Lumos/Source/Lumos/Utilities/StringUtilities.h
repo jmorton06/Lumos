@@ -1,5 +1,5 @@
 #pragma once
-
+#include "Core/String.h"
 #ifdef LUMOS_PLATFORM_ANDROID
 template <typename T>
 std::string to_string(const T& n)

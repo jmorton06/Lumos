@@ -1,7 +1,6 @@
 #pragma once
 #include "VK.h"
 #include "Graphics/RHI/Definitions.h"
-#include <vulkan/vk_mem_alloc.h>
 
 #define VK_CHECK_RESULT(f)                                                                                                                        \
     {                                                                                                                                             \
@@ -59,6 +58,8 @@ namespace Lumos
             VkDescriptorType DescriptorTypeToVK(DescriptorType type);
             VkFormat FormatToVK(const RHIFormat format, bool srgb = false);
             RHIFormat VKToFormat(VkFormat format);
+
+			uint32_t BytesPerPixel(VkFormat format);
 
             VkSamplerAddressMode TextureWrapToVK(const TextureWrap format);
             VkFilter TextureFilterToVK(const TextureFilter filter);

@@ -24,11 +24,10 @@ namespace Lumos
         m_SimpleName   = "Game";
         m_CurrentScene = nullptr;
 
-        m_Width  = 1280;
-        m_Height = 800;
+        m_Width  = 800;
+        m_Height = 600;
 
         m_RenderPasses                          = CreateUniquePtr<Graphics::RenderPasses>(m_Width, m_Height);
-        m_RenderPasses->GetSettings().DebugPass = false;
         m_RenderPasses->m_DebugRenderEnabled    = false;
     }
 
@@ -281,6 +280,9 @@ namespace Lumos
         bool resize = false;
 
         LUMOS_ASSERT(width > 0 && height > 0, "Game View Dimensions 0");
+        const QualitySettings& qs = Application::Get().GetQualitySettings();
+        width *= qs.RendererScale;
+        height *= qs.RendererScale;
 
         if(m_Width != width || m_Height != height)
         {

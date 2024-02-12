@@ -21,5 +21,9 @@ namespace Lumos
         std::string m_FilePath;
         TextEditor editor;
         std::function<void()> m_OnSaveCallback;
+
+		bool m_TextUnsaved = false;
+
+		float m_SavedTimer = -1.0f;
     };
 }

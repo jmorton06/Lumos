@@ -9,12 +9,15 @@
 
 namespace Lumos
 {
+	static bool JustOpenedFile = false;
     TextEditPanel::TextEditPanel(const std::string& filePath)
         : m_FilePath(filePath)
     {
         m_Name           = "Text Editor###textEdit";
+		m_ChangedName    = "Text Editor *###textEdit";
         m_SimpleName     = "TextEdit";
         m_OnSaveCallback = NULL;
+		m_TextUnsaved    = false;
         editor.SetCustomIdentifiers({});
 
         auto extension = StringUtilities::GetFilePathExtension(m_FilePath);
@@ -50,6 +53,7 @@ namespace Lumos
         auto string = FileSystem::ReadTextFile(m_FilePath);
         editor.SetText(string);
         editor.SetShowWhitespaces(false);
+		JustOpenedFile = true;
     }
 
     void TextEditPanel::SetErrors(const std::map<int, std::string>& errors)
@@ -59,18 +63,10 @@ namespace Lumos
 
     void TextEditPanel::OnImGui()
     {
-        if((Input::Get().GetKeyHeld(InputCode::Key::LeftSuper) || (Input::Get().GetKeyHeld(InputCode::Key::LeftControl))))
-        {
-            if(Input::Get().GetKeyPressed(InputCode::Key::S))
-            {
-                auto textToSave = editor.GetText();
-                FileSystem::WriteTextFile(m_FilePath, textToSave);
-            }
-        }
-
         auto cpos = editor.GetCursorPosition();
         ImGui::SetWindowSize(ImVec2(800, 600), ImGuiCond_FirstUseEver);
-        if(ImGui::Begin(m_Name.c_str(), &m_Active, ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_MenuBar))
+		std::string& windowName = m_TextUnsaved ? m_ChangedName : m_Name;
+        if(ImGui::Begin(windowName.c_str(), &m_Active, ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_MenuBar))
         {
             if(ImGui::BeginMenuBar())
             {
@@ -82,6 +78,8 @@ namespace Lumos
                         FileSystem::WriteTextFile(m_FilePath, textToSave);
                         if(m_OnSaveCallback)
                             m_OnSaveCallback();
+
+						m_TextUnsaved = false;
                     }
                     ImGui::EndMenu();
                 }
@@ -140,16 +138,26 @@ namespace Lumos
 
             ImGui::Text("%6d/%-6d %6d lines  | %s | %s | %s | %s", cpos.mLine + 1, cpos.mColumn + 1, editor.GetTotalLines(), editor.IsOverwrite() ? "Ovr" : "Ins", editor.CanUndo() ? "*" : " ", editor.GetLanguageDefinition().mName.c_str(), Lumos::StringUtilities::GetFileName(m_FilePath).c_str());
 
-            if(ImGui::IsItemActive())
-            {
-                if(Input::Get().GetKeyHeld(InputCode::Key::LeftControl) && Input::Get().GetKeyPressed(InputCode::Key::S))
-                {
-                    auto textToSave = editor.GetText();
-                    FileSystem::WriteTextFile(m_FilePath, textToSave);
-                }
-            }
+			if(editor.IsTextChanged() && !JustOpenedFile)
+				m_TextUnsaved = true;
 
             editor.Render(m_Name.c_str());
+
+			if(ImGui::IsWindowFocused(ImGuiHoveredFlags_ChildWindows))
+			{
+				if((Input::Get().GetKeyHeld(InputCode::Key::LeftSuper) || Input::Get().GetKeyHeld(InputCode::Key::LeftControl)) && 
+					Input::Get().GetKeyPressed(InputCode::Key::S))
+				{
+					auto textToSave = editor.GetText();
+					FileSystem::WriteTextFile(m_FilePath, textToSave);
+					if(m_OnSaveCallback)
+						m_OnSaveCallback();
+
+					m_TextUnsaved = false;
+				}
+			}
+			JustOpenedFile = false;
+
         }
         ImGui::End();
     }

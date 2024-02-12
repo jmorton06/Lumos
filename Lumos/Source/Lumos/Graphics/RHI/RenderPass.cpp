@@ -82,5 +82,8 @@ namespace Lumos
                 m_RenderPassCache.erase(keysToDelete[i]);
             }
         }
+        void RenderPass::BeginRenderPass(CommandBuffer* commandBuffer, float* clearColour, Framebuffer* frame, SubPassContents contents, uint32_t width, uint32_t height) const
+        {
+        }
     }
 }

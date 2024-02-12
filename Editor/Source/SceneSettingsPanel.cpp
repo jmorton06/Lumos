@@ -23,7 +23,7 @@ namespace Lumos
 
         if(ImGui::Begin(m_Name.c_str(), &m_Active, 0))
         {
-            Lumos::ImGuiUtilities::ScopedStyle(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
+            Lumos::ImGuiUtilities::ScopedStyle frameStyle(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
             Lumos::ImGuiUtilities::PushID();
             {
                 const auto& sceneName = m_CurrentScene->GetSceneName();
@@ -133,7 +133,7 @@ namespace Lumos
                             ImGui::TreePop();
                         }
 
-                        ImGui::BeginDisabled();
+                        //ImGui::BeginDisabled();
                         open = postprocessSetting("SSAO", "##SSAO", sceneSettings.RenderSettings.SSAOEnabled, false);
                         if(open)
                         {
@@ -144,7 +144,7 @@ namespace Lumos
                             ImGui::TreePop();
                         }
 
-                        ImGui::EndDisabled();
+                        //ImGui::EndDisabled();
                         ImGui::Columns(1);
                         ImGui::TreePop();
                     }

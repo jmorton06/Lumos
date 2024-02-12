@@ -67,6 +67,11 @@ namespace Lumos
                 if(m_FileType == ".hdr")
                 {
                     Application::Get().GetRenderPasses()->CreateCubeMap(m_FilePath + "_Env_" + StringUtilities::ToString(0) + "_" + StringUtilities::ToString(currWidth) + "x" + StringUtilities::ToString(currHeight) + m_FileType, m_Parameters, m_Environmnet, m_IrradianceMap);
+
+
+					delete[] envFiles;
+					delete[] irrFiles;
+					
                     return;
                 }
                 else
@@ -125,12 +130,9 @@ namespace Lumos
                         m_IrradianceMap = SharedPtr<TextureCube>(Graphics::TextureCube::CreateFromVCross(irrFiles, numMipsIrr, params, loadOptions));
                     }
                     else
-                    {
-                        LUMOS_LOG_ERROR("Failed to load environment");
-                    }
-
-                    delete[] envFiles;
-                    delete[] irrFiles;
+					{
+						LUMOS_LOG_ERROR("Failed to load environment");
+					}
                 }
             }
             else // if (m_Mode == 1)
@@ -138,6 +140,10 @@ namespace Lumos
                 m_Parameters.w = m_Mode;
                 Application::Get().GetRenderPasses()->CreateCubeMap("", m_Parameters, m_Environmnet, m_IrradianceMap);
             }
+
+
+			delete[] envFiles;
+			delete[] irrFiles;
         }
 
         Environment::~Environment()

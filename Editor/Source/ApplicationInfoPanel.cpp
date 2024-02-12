@@ -47,7 +47,7 @@ namespace Lumos
 
     ApplicationInfoPanel::ApplicationInfoPanel()
     {
-        m_Name       = "Application Info##ApplicationInfo";
+        m_Name       = "Application Info###appinfo";
         m_SimpleName = "Application Info";
     }
 
@@ -133,6 +133,17 @@ namespace Lumos
                                                       Application::Get().GetWindow()->GetSwapChain()->SetVSync(VSync);
                                                       Graphics::Renderer::GetRenderer()->OnResize(Application::Get().GetWindow()->GetWidth(), Application::Get().GetWindow()->GetHeight()); });
                 }
+
+                QualitySettings& qs = Application::Get().GetQualitySettings();
+                int shadowQuality = (int)qs.ShadowQuality;
+                int shadowRes = (int)qs.ShadowResolution;
+
+                if (ImGuiUtilities::Property("Shadow Quality", shadowQuality, 0, 3))
+                    qs.ShadowQuality = (ShadowQualitySetting)shadowQuality;
+
+                if (ImGuiUtilities::Property("Shadow Resolution", shadowRes, 0, 3))
+                    qs.ShadowResolution = (ShadowResolutionSetting)shadowRes;
+
                 ImGui::Columns(1);
                 ImGui::Text("FPS : %5.2i", Engine::Get().Statistics().FramesPerSecond);
                 ImGui::Text("UPS : %5.2i", Engine::Get().Statistics().UpdatesPerSecond);
