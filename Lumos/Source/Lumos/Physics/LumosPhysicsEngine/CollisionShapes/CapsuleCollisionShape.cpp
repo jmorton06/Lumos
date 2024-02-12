@@ -55,21 +55,68 @@ namespace Lumos
 
     void CapsuleCollisionShape::GetMinMaxVertexOnAxis(const RigidBody3D* currentObject, const glm::vec3& axis, glm::vec3* out_min, glm::vec3* out_max) const
     {
-        glm::mat4 transform = currentObject ? currentObject->GetWorldSpaceTransform() * m_LocalTransform : m_LocalTransform;
-        glm::vec3 pos       = transform[3];
+//        glm::mat4 transform = currentObject ? currentObject->GetWorldSpaceTransform() * m_LocalTransform : m_LocalTransform;
+//        glm::vec3 pos       = transform[3];
+//
+//        glm::vec3 topPosition    = glm::vec3(transform * glm::vec4(0.0f, m_Height * 0.5f, 0.0f, 1.0f));
+//        glm::vec3 bottomPosition = glm::vec3(transform * glm::vec4(0.0f, -m_Height * 0.5f, 0.0f, 1.0f));
+//
+//        // Transform the axis into the local coordinate space of the capsule
+//        glm::mat4 inverseTransform = glm::affineInverse(transform);
+//        glm::vec3 localAxis        = glm::vec3(inverseTransform * glm::vec4(axis, 1.0f));
+//
+//        float minProj = glm::dot(topPosition, localAxis) - m_Radius;
+//        float maxProj = glm::dot(bottomPosition, localAxis) + m_Radius;
+//
+//        *out_min = topPosition + minProj * localAxis;
+//        *out_max = bottomPosition + maxProj * localAxis;
 
-        glm::vec3 topPosition    = glm::vec3(transform * glm::vec4(0.0f, m_Height * 0.5f, 0.0f, 1.0f));
-        glm::vec3 bottomPosition = glm::vec3(transform * glm::vec4(0.0f, -m_Height * 0.5f, 0.0f, 1.0f));
+		float minCorrelation = FLT_MAX, maxCorrelation = -FLT_MAX;
 
-        // Transform the axis into the local coordinate space of the capsule
-        glm::mat4 inverseTransform = glm::affineInverse(transform);
-        glm::vec3 localAxis        = glm::vec3(inverseTransform * glm::vec4(axis, 1.0f));
+		glm::mat4 transform = currentObject ? currentObject->GetWorldSpaceTransform() * m_LocalTransform : m_LocalTransform;
+		const glm::vec3 localAxis = glm::transpose(transform) * glm::vec4(axis, 1.0f);
 
-        float minProj = glm::dot(topPosition, localAxis) - m_Radius;
-        float maxProj = glm::dot(bottomPosition, localAxis) + m_Radius;
+		glm::vec3 pos = transform[3];
+		glm::vec3 minVertex = glm::vec3(0.0f), maxVertex = glm::vec3(0);
 
-        *out_min = topPosition + minProj * localAxis;
-        *out_max = bottomPosition + maxProj * localAxis;
+		glm::vec3 topPosition    = glm::vec3(transform * glm::vec4(0.0f, m_Height * 0.5f, 0.0f, 1.0f));
+		glm::vec3 bottomPosition = glm::vec3(transform * glm::vec4(0.0f, -m_Height * 0.5f, 0.0f, 1.0f));
+
+		// Transform the axis into the local coordinate space of the capsule
+		//glm::mat4 inverseTransform = glm::affineInverse(transform);
+		//glm::vec3 localAxis        = glm::vec3(inverseTransform * glm::vec4(axis, 1.0f));
+
+		float minProj = glm::dot(topPosition, localAxis) - m_Radius;
+		float maxProj = glm::dot(bottomPosition, localAxis) + m_Radius;
+
+		if(out_min)
+			*out_min = topPosition + minProj;// * localAxis;
+		if(out_max)
+			*out_max = bottomPosition + maxProj;// * localAxis;
+
+//Capsule Collision shape
+//		for(size_t i = 0; i < m_Vertices.size(); ++i)
+//		{
+//			const float cCorrelation = glm::dot(local_axis, m_Vertices[i].pos);
+//
+//			if(cCorrelation > maxCorrelation)
+//			{
+//				maxCorrelation = cCorrelation;
+//				maxVertex      = int(i);
+//			}
+//
+//			if(cCorrelation <= minCorrelation)
+//			{
+//				minCorrelation = cCorrelation;
+//				minVertex      = int(i);
+//			}
+//		}
+
+//		if(out_min)
+//			*out_min = pos - axis * m_Radius;
+//
+//		if(out_max)
+//			*out_max = pos + axis * m_Radius;
     }
 
     void CapsuleCollisionShape::GetIncidentReferencePolygon(const RigidBody3D* currentObject,

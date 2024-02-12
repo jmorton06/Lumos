@@ -664,9 +664,10 @@ namespace Lumos
         float capsuleTop    = capsulePos.y + capsuleHeight * 0.5f;
         float capsuleBottom = capsulePos.y - capsuleHeight * 0.5f;
 
-        for(int i = 0; i < shapeCollisionAxes.size(); i++)
+
+        for(int i = 0; i < possibleCollisionAxesCount; i++)
         {
-            const glm::vec3& axis = shapeCollisionAxes[i];
+            const glm::vec3& axis = possibleCollisionAxes[i];
             if(!CheckCollisionAxis(axis, obj1, obj2, shape1, shape2, &cur_colData))
                 return false;
 

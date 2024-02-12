@@ -8,7 +8,7 @@ namespace Lumos
 {
     GraphicsInfoPanel::GraphicsInfoPanel()
     {
-        m_Name       = "Graphics Info##GraphicsInfo";
+        m_Name       = "Graphics Info###GraphicsInfo";
         m_SimpleName = "Graphics Info";
     }
 

@@ -86,7 +86,7 @@ void main()
 		vec4 offset = vec4(samplePos, 1.0f);
 		offset = ubo.projection * offset;
 		offset.xy /= offset.w;
-		offset.xy = offset.xy * 0.5f + HALF_2;
+		offset.xy = (offset.xy * 0.5f) + HALF_2;
 
 		vec3 sampledNormal = normalize(mat3(ubo.view) * (texture(in_Normal, offset.xy).xyz * 2.0f - 1.0f));
 		 vec3 reconstructedPos = reconstructVSPosFromDepth(offset.xy);
@@ -104,14 +104,13 @@ void main()
 			float l = length(diff);
 			
 			float rangeCheck = smoothstep(0.0f, 1.0f, ubo.ssaoRadius / abs(reconstructedPos.z - samplePos.z - bias));//abs(diff.z - bias));
-            occlusion += (reconstructedPos.z >= samplePos.z + bias ? 1.0f : 0.0f) * rangeCheck; 
-			//occlusion *= smoothstep(MAX_DISTANCE,MAX_DISTANCE * 0.5, l);
+            occlusion += (reconstructedPos.z <= samplePos.z - bias ? 1.0f : 0.0f) * rangeCheck; 
 			
 			++sampleCount;
 		}
 	}
-	occlusion = 1.0f - (occlusion * INV_MAX_KERNEL_SIZE_F) / ubo.strength;// / float(max(sampleCount,1)));
-	//occlusion = pow(occlusion, 2.0f);
+	occlusion = 1.0f - (occlusion * INV_MAX_KERNEL_SIZE_F);
+	occlusion = pow(occlusion, ubo.strength);
 	//fragColour = vec4(posVS,1.0);
 	fragColour = occlusion.xxxx;
 }

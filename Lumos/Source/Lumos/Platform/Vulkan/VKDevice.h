@@ -6,14 +6,6 @@
 #include "Graphics/RHI/Definitions.h"
 #include "Utilities/StringUtilities.h"
 
-#ifdef USE_VMA_ALLOCATOR
-#ifdef LUMOS_DEBUG
-#define VMA_DEBUG_MARGIN 16
-#define VMA_DEBUG_DETECT_CORRUPTION 1
-#endif
-#include <vulkan/vk_mem_alloc.h>
-#endif
-
 static const uint32_t SMALL_ALLOCATION_MAX_SIZE = 4096;
 
 #include <unordered_set>

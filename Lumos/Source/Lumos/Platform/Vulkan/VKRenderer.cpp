@@ -402,6 +402,8 @@ file.close();
                     LUMOS_ASSERT(vkDesSet->GetHasUpdated(Renderer::GetMainSwapChain()->GetCurrentBufferIndex()), "Descriptor Set has not been updated before");
                     numDesciptorSets++;
                 }
+				else
+					LUMOS_LOG_ERROR("Descriptor null");
             }
 
             vkCmdBindDescriptorSets(static_cast<Graphics::VKCommandBuffer*>(commandBuffer)->GetHandle(), static_cast<Graphics::VKPipeline*>(pipeline)->IsCompute() ? VK_PIPELINE_BIND_POINT_COMPUTE : VK_PIPELINE_BIND_POINT_GRAPHICS, static_cast<Graphics::VKPipeline*>(pipeline)->GetPipelineLayout(), 0, numDesciptorSets, m_CurrentDescriptorSets, numDynamicDescriptorSets, &dynamicOffset);
@@ -492,8 +494,8 @@ file.close();
             auto frameBuffer                = Framebuffer::Get(frameBufferDesc);
 
             // To clear screen
-            renderPass->BeginRenderpass(commandBuffer, clearColour, frameBuffer, SubPassContents::INLINE, width, height);
-            renderPass->EndRenderpass(commandBuffer);
+            renderPass->BeginRenderPass(commandBuffer, clearColour, frameBuffer, SubPassContents::INLINE, width, height);
+            renderPass->EndRenderPass(commandBuffer);
 
             float ratio = float(texture->GetWidth() / texture->GetHeight());
             VkImageBlit blit {};

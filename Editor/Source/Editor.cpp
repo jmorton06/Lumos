@@ -57,6 +57,7 @@
 #include <Lumos/Core/String.h>
 #include <Lumos/Core/CommandLine.h>
 #include <Lumos/Core/CoreSystem.h>
+#include <Lumos/Core/Thread.h>
 
 #include <spdlog/spdlog.h>
 #include <spdlog/fmt/ostr.h>
@@ -892,6 +893,7 @@ namespace Lumos
                     Application::Get().GetSystem<AudioManager>()->UpdateListener(Application::Get().GetCurrentScene());
                     Application::Get().GetSystem<AudioManager>()->SetPaused(selected);
                     Application::Get().SetEditorState(selected ? EditorState::Preview : EditorState::Play);
+                    ImGui::SetWindowFocus(ICON_MDI_GAMEPAD_VARIANT " Game###game");
 
                     m_SelectedEntities.clear();
                     // m_SelectedEntity = entt::null;
@@ -1134,7 +1136,7 @@ namespace Lumos
                 if(defaultSetup)
                 {
                     auto light          = scene->GetEntityManager()->Create("Light");
-                    auto lightComp      = light.AddComponent<Graphics::Light>();
+                    auto& lightComp     = light.AddComponent<Graphics::Light>();
                     glm::mat4 lightView = glm::inverse(glm::lookAt(glm::vec3(30.0f, 9.0f, 50.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f)));
                     light.GetTransform().SetLocalTransform(lightView);
 
@@ -1177,7 +1179,7 @@ namespace Lumos
                 locationPopupOpened   = true;
 
                 // Set filePath to working directory
-                const auto& path  = OS::Instance()->GetExecutablePath();
+				const auto& path  = OS::Instance()->GetExecutablePath();
                 auto& browserPath = m_FileBrowserPanel.GetPath();
                 browserPath       = std::filesystem::path(path);
                 m_FileBrowserPanel.SetFileTypeFilters({ ".lmproj" });
@@ -1611,7 +1613,7 @@ namespace Lumos
             ImGui::DockBuilderDockWindow("###resources", DockingBottomLeftChild);
             ImGui::DockBuilderDockWindow("Dear ImGui Demo", DockLeft);
             ImGui::DockBuilderDockWindow("###GraphicsInfo", DockLeft);
-            ImGui::DockBuilderDockWindow("###ApplicationInfo", DockLeft);
+            ImGui::DockBuilderDockWindow("###appinfo", DockLeft);
             ImGui::DockBuilderDockWindow("###hierarchy", DockLeft);
             ImGui::DockBuilderDockWindow("###textEdit", DockMiddleLeft);
             ImGui::DockBuilderDockWindow("###scenesettings", DockLeft);
@@ -1715,9 +1717,9 @@ namespace Lumos
             return;
         }
 
-        DebugRenderer::DrawHairLine(glm::vec3(-5000.0f, 0.0f, 0.0f), glm::vec3(5000.0f, 0.0f, 0.0f), glm::vec4(1.0f, 0.0f, 0.0f, 1.0f));
-        DebugRenderer::DrawHairLine(glm::vec3(0.0f, -5000.0f, 0.0f), glm::vec3(0.0f, 5000.0f, 0.0f), glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
-        DebugRenderer::DrawHairLine(glm::vec3(0.0f, 0.0f, -5000.0f), glm::vec3(0.0f, 0.0f, 5000.0f), glm::vec4(0.0f, 0.0f, 1.0f, 1.0f));
+        DebugRenderer::DrawHairLine(glm::vec3(-5000.0f, 0.0f, 0.0f), glm::vec3(5000.0f, 0.0f, 0.0f), true, glm::vec4(1.0f, 0.0f, 0.0f, 1.0f));
+        DebugRenderer::DrawHairLine(glm::vec3(0.0f, -5000.0f, 0.0f), glm::vec3(0.0f, 5000.0f, 0.0f), true, glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
+        DebugRenderer::DrawHairLine(glm::vec3(0.0f, 0.0f, -5000.0f), glm::vec3(0.0f, 0.0f, 5000.0f), true, glm::vec4(0.0f, 0.0f, 1.0f, 1.0f));
 
         m_GridRenderer->OnImGui();
 
@@ -1941,11 +1943,57 @@ namespace Lumos
                 }
             }
 
+			static float m_SceneSavePopupTimer = -1.0f;
+			static bool popupopen = false;
+
+			if(m_SceneSavePopupTimer > 0.0f)
+			{
+				{
+					ImGui::OpenPopup("Scene Save");
+					ImVec2 size = ImGui::GetMainViewport()->Size;
+					ImGui::SetNextWindowSize({ size.x * 0.65f, size.y * 0.25f });
+					ImGui::SetNextWindowPos({ size.x / 2.0f, size.y / 2.5f }, 0, { 0.5, 0.5 });
+					popupopen = true;
+				}
+			}
+
+			if(ImGui::BeginPopupModal("Scene Save", nullptr, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar))
+			{
+				ArenaTemp scratch = ScratchBegin(nullptr, 0);
+				String8 savedText = PushStr8F(scratch.arena, "Scene Saved - %s/Assets/Scenes", m_ProjectSettings.m_ProjectRoot.c_str());
+				ImVec2 textSize = ImGui::CalcTextSize((const char*)savedText.str);
+
+					// Calculate the position to center the text horizontally
+				ImVec2 windowSize = ImGui::GetWindowSize();
+				float posX = (windowSize.x - textSize.x) * 0.5f;
+				float posY = (windowSize.y - textSize.y) * 0.5f;
+
+					// Set the cursor position to the calculated position
+				ImGui::SetCursorPosX(posX);
+				ImGui::SetCursorPosY(posY);
+
+					// Display the centered text
+				ImGui::TextUnformatted((const char*)savedText.str);
+
+				if(m_SceneSavePopupTimer < 0.0f)
+				{
+					popupopen = false;
+					ImGui::CloseCurrentPopup();
+				}
+
+				ScratchEnd(scratch);
+				ImGui::EndPopup();
+			}
+
+			if(m_SceneSavePopupTimer > 0.0f)
+				m_SceneSavePopupTimer -= Engine::GetTimeStep().GetSeconds();
+
             if((Input::Get().GetKeyHeld(InputCode::Key::LeftSuper) || (Input::Get().GetKeyHeld(InputCode::Key::LeftControl))))
             {
                 if(Input::Get().GetKeyPressed(InputCode::Key::S) && Application::Get().GetSceneActive())
                 {
                     Application::Get().GetSceneManager()->GetCurrentScene()->Serialise(m_ProjectSettings.m_ProjectRoot + "Assets/scenes/", false);
+					m_SceneSavePopupTimer = 2.0f;
                 }
 
                 if(Input::Get().GetKeyPressed(InputCode::Key::O))
@@ -2133,7 +2181,7 @@ namespace Lumos
             {
                 Entity e = { entity, GetCurrentScene() };
                 {
-                    DebugRenderer::DrawTextWsNDT(e.GetTransform().GetWorldPosition(), 20.0f, glm::vec4(1.0f), e.GetName());
+                    DebugRenderer::DrawTextWs(e.GetTransform().GetWorldPosition(), 20.0f, false, glm::vec4(1.0f), 0.0f, e.GetName());
                 }
             }
         }
@@ -2360,6 +2408,8 @@ namespace Lumos
         m_Panels.emplace_back(CreateSharedPtr<TextEditPanel>(physicalPath));
         m_Panels.back().As<TextEditPanel>()->SetOnSaveCallback(callback);
         m_Panels.back()->SetEditor(this);
+
+        ImGui::SetWindowFocus(m_Panels.back()->GetName().c_str());
     }
 
     EditorPanel* Editor::GetTextEditPanel()

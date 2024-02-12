@@ -7,12 +7,6 @@
 
 #include <deque>
 
-#if defined(LUMOS_DEBUG)
-const bool EnableValidationLayers = true;
-#else
-const bool EnableValidationLayers = false;
-#endif
-
 namespace Lumos
 {
     namespace Graphics

@@ -41,9 +41,9 @@ namespace Lumos
 
     DebugRenderer* DebugRenderer::s_Instance = nullptr;
 
-    static const uint32_t MaxLines        = 10000;
+    static const uint32_t MaxLines = 10000;
     static const uint32_t MaxLineVertices = MaxLines * 2;
-    static const uint32_t MaxLineIndices  = MaxLines * 6;
+    static const uint32_t MaxLineIndices = MaxLines * 6;
 #define MAX_BATCH_DRAW_CALLS 100
 #define RENDERER_LINE_SIZE RENDERER2DLINE_VERTEX_SIZE * 4
 #define RENDERER_BUFFER_SIZE RENDERER_LINE_SIZE* MaxLineVertices
@@ -66,7 +66,7 @@ namespace Lumos
 
     void DebugRenderer::Init()
     {
-        if(s_Instance)
+        if (s_Instance)
             return;
 
         s_Instance = new DebugRenderer();
@@ -79,24 +79,40 @@ namespace Lumos
         s_Instance = nullptr;
     }
 
-    void DebugRenderer::Reset()
+    void DebugRenderer::Reset(float dt)
     {
         LUMOS_PROFILE_FUNCTION();
-        s_Instance->m_DrawList.m_DebugTriangles.clear();
-        s_Instance->m_DrawList.m_DebugLines.clear();
-        s_Instance->m_DrawList.m_DebugThickLines.clear();
-        s_Instance->m_DrawList.m_DebugPoints.clear();
-
-        s_Instance->m_DrawListNDT.m_DebugTriangles.clear();
-        s_Instance->m_DrawListNDT.m_DebugLines.clear();
-        s_Instance->m_DrawListNDT.m_DebugThickLines.clear();
-        s_Instance->m_DrawListNDT.m_DebugPoints.clear();
+        s_Instance->ClearDrawList(s_Instance->m_DrawList, dt);
+        s_Instance->ClearDrawList(s_Instance->m_DrawListNDT, dt);
 
         s_Instance->m_TextList.clear();
         s_Instance->m_TextListNDT.clear();
         s_Instance->m_TextListCS.clear();
-        s_Instance->m_NumStatusEntries    = 0;
+        s_Instance->m_NumStatusEntries = 0;
         s_Instance->m_MaxStatusEntryWidth = 0.0f;
+    }
+
+    void DebugRenderer::ClearDrawList(DebugDrawList& drawlist, float dt)
+    {
+        drawlist.m_DebugTriangles.erase(std::remove_if(drawlist.m_DebugTriangles.begin(), drawlist.m_DebugTriangles.end(), [dt](TriangleInfo& triangle) {
+            triangle.time -= dt;
+            return triangle.time <= Maths::M_EPSILON;
+            }), drawlist.m_DebugTriangles.end());
+
+        drawlist.m_DebugLines.erase(std::remove_if(drawlist.m_DebugLines.begin(), drawlist.m_DebugLines.end(), [dt](LineInfo& line) {
+            line.time -= dt;
+            return line.time <= Maths::M_EPSILON;
+            }), drawlist.m_DebugLines.end());
+
+        drawlist.m_DebugThickLines.erase(std::remove_if(drawlist.m_DebugThickLines.begin(), drawlist.m_DebugThickLines.end(), [dt](LineInfo& line) {
+            line.time -= dt;
+            return line.time <= Maths::M_EPSILON;
+            }), drawlist.m_DebugThickLines.end());
+
+        drawlist.m_DebugPoints.erase(std::remove_if(drawlist.m_DebugPoints.begin(), drawlist.m_DebugPoints.end(), [dt](PointInfo& point) {
+            point.time -= dt;
+            return point.time <= Maths::M_EPSILON;
+            }), drawlist.m_DebugPoints.end());
     }
 
     void DebugRenderer::ClearLogEntries()
@@ -135,162 +151,94 @@ namespace Lumos
     }
 
     // Draw Point (circle)
-    void DebugRenderer::GenDrawPoint(bool ndt, const glm::vec3& pos, float point_radius, const glm::vec4& colour)
+    void DebugRenderer::GenDrawPoint(bool ndt, const glm::vec3& pos, float point_radius, const glm::vec4& colour, float time)
     {
         LUMOS_PROFILE_FUNCTION();
         if(ndt)
-            s_Instance->m_DrawListNDT.m_DebugPoints.emplace_back(pos, point_radius, colour);
+            s_Instance->m_DrawListNDT.m_DebugPoints.emplace_back(pos, point_radius, colour, time);
         else
-            s_Instance->m_DrawList.m_DebugPoints.emplace_back(pos, point_radius, colour);
+            s_Instance->m_DrawList.m_DebugPoints.emplace_back(pos, point_radius, colour, time);
     }
 
-    void DebugRenderer::DrawPoint(const glm::vec3& pos, float point_radius, const glm::vec3& colour)
+    void DebugRenderer::DrawPoint(const glm::vec3& pos, float point_radius, bool depthTested, const glm::vec4& colour, float time)
     {
         LUMOS_PROFILE_FUNCTION();
-        GenDrawPoint(false, pos, point_radius, glm::vec4(colour, 1.0f));
-    }
-    void DebugRenderer::DrawPoint(const glm::vec3& pos, float point_radius, const glm::vec4& colour)
-    {
-        LUMOS_PROFILE_FUNCTION();
-        GenDrawPoint(false, pos, point_radius, colour);
-    }
-    void DebugRenderer::DrawPointNDT(const glm::vec3& pos, float point_radius, const glm::vec3& colour)
-    {
-        LUMOS_PROFILE_FUNCTION();
-        GenDrawPoint(true, pos, point_radius, glm::vec4(colour, 1.0f));
-    }
-    void DebugRenderer::DrawPointNDT(const glm::vec3& pos, float point_radius, const glm::vec4& colour)
-    {
-        GenDrawPoint(true, pos, point_radius, colour);
+        GenDrawPoint(!depthTested, pos, point_radius, colour, time);
     }
 
     // Draw Line with a given thickness
-    void DebugRenderer::GenDrawThickLine(bool ndt, const glm::vec3& start, const glm::vec3& end, float line_width, const glm::vec4& colour)
+    void DebugRenderer::GenDrawThickLine(bool ndt, const glm::vec3& start, const glm::vec3& end, float line_width, const glm::vec4& colour, float time)
     {
         LUMOS_PROFILE_FUNCTION();
         if(ndt)
-            s_Instance->m_DrawListNDT.m_DebugThickLines.emplace_back(start, end, colour);
+            s_Instance->m_DrawListNDT.m_DebugThickLines.emplace_back(start, end, colour, time);
         else
-            s_Instance->m_DrawList.m_DebugThickLines.emplace_back(start, end, colour);
-    }
-    void DebugRenderer::DrawThickLine(const glm::vec3& start, const glm::vec3& end, float line_width, const glm::vec3& colour)
-    {
-        LUMOS_PROFILE_FUNCTION();
-        GenDrawThickLine(false, start, end, line_width, glm::vec4(colour, 1.0f));
-    }
-    void DebugRenderer::DrawThickLine(const glm::vec3& start, const glm::vec3& end, float line_width, const glm::vec4& colour)
-    {
-        LUMOS_PROFILE_FUNCTION();
-        GenDrawThickLine(false, start, end, line_width, colour);
-    }
-    void DebugRenderer::DrawThickLineNDT(const glm::vec3& start, const glm::vec3& end, float line_width, const glm::vec3& colour)
-    {
-        LUMOS_PROFILE_FUNCTION();
-        GenDrawThickLine(true, start, end, line_width, glm::vec4(colour, 1.0f));
-    }
-    void DebugRenderer::DrawThickLineNDT(const glm::vec3& start, const glm::vec3& end, float line_width, const glm::vec4& colour)
-    {
-        LUMOS_PROFILE_FUNCTION();
-        GenDrawThickLine(true, start, end, line_width, colour);
+            s_Instance->m_DrawList.m_DebugThickLines.emplace_back(start, end, colour, time);
     }
 
+    void DebugRenderer::DrawThickLine(const glm::vec3& start, const glm::vec3& end, float line_width, bool depthTested,  const glm::vec4& colour, float time)
+    {
+        LUMOS_PROFILE_FUNCTION();
+        GenDrawThickLine(!depthTested, start, end, line_width, colour, time);
+    }
+
+
     // Draw line with thickness of 1 screen pixel regardless of distance from camera
-    void DebugRenderer::GenDrawHairLine(bool ndt, const glm::vec3& start, const glm::vec3& end, const glm::vec4& colour)
+    void DebugRenderer::GenDrawHairLine(bool ndt, const glm::vec3& start, const glm::vec3& end, const glm::vec4& colour, float time)
     {
         LUMOS_PROFILE_FUNCTION();
         if(ndt)
-            s_Instance->m_DrawListNDT.m_DebugLines.emplace_back(start, end, colour);
+            s_Instance->m_DrawListNDT.m_DebugLines.emplace_back(start, end, colour, time);
         else
-            s_Instance->m_DrawList.m_DebugLines.emplace_back(start, end, colour);
+            s_Instance->m_DrawList.m_DebugLines.emplace_back(start, end, colour, time);
     }
-    void DebugRenderer::DrawHairLine(const glm::vec3& start, const glm::vec3& end, const glm::vec3& colour)
+
+
+    void DebugRenderer::DrawHairLine(const glm::vec3& start, const glm::vec3& end, bool depthTested, const glm::vec4& colour, float time)
     {
         LUMOS_PROFILE_FUNCTION();
-        GenDrawHairLine(false, start, end, glm::vec4(colour, 1.0f));
-    }
-    void DebugRenderer::DrawHairLine(const glm::vec3& start, const glm::vec3& end, const glm::vec4& colour)
-    {
-        LUMOS_PROFILE_FUNCTION();
-        GenDrawHairLine(false, start, end, colour);
-    }
-    void DebugRenderer::DrawHairLineNDT(const glm::vec3& start, const glm::vec3& end, const glm::vec3& colour)
-    {
-        LUMOS_PROFILE_FUNCTION();
-        GenDrawHairLine(true, start, end, glm::vec4(colour, 1.0f));
-    }
-    void DebugRenderer::DrawHairLineNDT(const glm::vec3& start, const glm::vec3& end, const glm::vec4& colour)
-    {
-        LUMOS_PROFILE_FUNCTION();
-        GenDrawHairLine(true, start, end, colour);
+        GenDrawHairLine(!depthTested, start, end, colour, time);
     }
 
     // Draw Matrix (x,y,z axis at pos)
-    void DebugRenderer::DrawMatrix(const glm::mat4& mtx)
+    void DebugRenderer::DrawMatrix(const glm::mat4& mtx, bool depthTested, float time)
     {
         LUMOS_PROFILE_FUNCTION();
-        // glm::vec3 position = mtx[3];
-        // GenDrawHairLine(false, position, position + glm::vec3(mtx[0], mtx[1], mtx[2]), glm::vec4(1.0f, 0.0f, 0.0f, 1.0f));
-        // GenDrawHairLine(false, position, position + glm::vec3(mtx[4], mtx[5], mtx[6]), glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
-        // GenDrawHairLine(false, position, position + glm::vec3(mtx[8], mtx[9], mtx[10]), glm::vec4(0.0f, 0.0f, 1.0f, 1.0f));
+//         glm::vec3 position = glm::vec3(mtx[3].x, mtx[3].y, mtx[3].z);
+//         GenDrawHairLine(!depthTested, position, position + glm::vec3(mtx[0], mtx[1], mtx[2]), glm::vec4(1.0f, 0.0f, 0.0f, 1.0f), time);
+//         GenDrawHairLine(!depthTested, position, position + glm::vec3(mtx[4], mtx[5], mtx[6]), glm::vec4(0.0f, 1.0f, 0.0f, 1.0f), time);
+//         GenDrawHairLine(!depthTested, position, position + glm::vec3(mtx[8], mtx[9], mtx[10]), glm::vec4(0.0f, 0.0f, 1.0f, 1.0f), time);
     }
-    void DebugRenderer::DrawMatrix(const glm::mat3& mtx, const glm::vec3& position)
+    void DebugRenderer::DrawMatrix(const glm::mat3& mtx, const glm::vec3& position, bool depthTested, float time)
     {
         LUMOS_PROFILE_FUNCTION();
-        GenDrawHairLine(false, position, position + mtx[0], glm::vec4(1.0f, 0.0f, 0.0f, 1.0f));
-        GenDrawHairLine(false, position, position + mtx[1], glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
-        GenDrawHairLine(false, position, position + mtx[2], glm::vec4(0.0f, 0.0f, 1.0f, 1.0f));
-    }
-    void DebugRenderer::DrawMatrixNDT(const glm::mat4& mtx)
-    {
-        LUMOS_PROFILE_FUNCTION();
-        // glm::vec3 position = mtx[3];
-        // GenDrawHairLine(true, position, position + glm::vec3(mtx[0], mtx[1], mtx[2]), glm::vec4(1.0f, 0.0f, 0.0f, 1.0f));
-        // GenDrawHairLine(true, position, position + glm::vec3(mtx[4], mtx[5], mtx[6]), glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
-        // GenDrawHairLine(true, position, position + glm::vec3(mtx[8], mtx[9], mtx[10]), glm::vec4(0.0f, 0.0f, 1.0f, 1.0f));
-    }
-    void DebugRenderer::DrawMatrixNDT(const glm::mat3& mtx, const glm::vec3& position)
-    {
-        LUMOS_PROFILE_FUNCTION();
-        GenDrawHairLine(true, position, position + mtx[0], glm::vec4(1.0f, 0.0f, 0.0f, 1.0f));
-        GenDrawHairLine(true, position, position + mtx[1], glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
-        GenDrawHairLine(true, position, position + mtx[2], glm::vec4(0.0f, 0.0f, 1.0f, 1.0f));
+//s
     }
 
     // Draw Triangle
-    void DebugRenderer::GenDrawTriangle(bool ndt, const glm::vec3& v0, const glm::vec3& v1, const glm::vec3& v2, const glm::vec4& colour)
+    void DebugRenderer::GenDrawTriangle(bool ndt, const glm::vec3& v0, const glm::vec3& v1, const glm::vec3& v2, const glm::vec4& colour, float time)
     {
         LUMOS_PROFILE_FUNCTION();
-        s_Instance->m_DrawList.m_DebugTriangles.emplace_back(v0, v1, v2, colour);
+		if(ndt)
+			s_Instance->m_DrawListNDT.m_DebugTriangles.emplace_back(v0, v1, v2, colour, time);
+		else
+			s_Instance->m_DrawList.m_DebugTriangles.emplace_back(v0, v1, v2, colour, time);
     }
 
-    void DebugRenderer::DrawTriangle(const glm::vec3& v0, const glm::vec3& v1, const glm::vec3& v2, const glm::vec4& colour)
+    void DebugRenderer::DrawTriangle(const glm::vec3& v0, const glm::vec3& v1, const glm::vec3& v2,bool depthTested,  const glm::vec4& colour, float time)
     {
         LUMOS_PROFILE_FUNCTION();
-        GenDrawTriangle(false, v0, v1, v2, colour);
+        GenDrawTriangle(!depthTested, v0, v1, v2, colour, time);
     }
 
-    void DebugRenderer::DrawTriangleNDT(const glm::vec3& v0, const glm::vec3& v1, const glm::vec3& v2, const glm::vec4& colour)
-    {
-        LUMOS_PROFILE_FUNCTION();
-        GenDrawTriangle(true, v0, v1, v2, colour);
-    }
 
     // Draw Polygon (Renders as a triangle fan, so verts must be arranged in order)
-    void DebugRenderer::DrawPolygon(int n_verts, const glm::vec3* verts, const glm::vec4& colour)
+    void DebugRenderer::DrawPolygon(int n_verts, const glm::vec3* verts, bool depthTested, const glm::vec4& colour, float time)
     {
         LUMOS_PROFILE_FUNCTION();
         for(int i = 2; i < n_verts; ++i)
         {
-            GenDrawTriangle(false, verts[0], verts[i - 1], verts[i], colour);
-        }
-    }
-
-    void DebugRenderer::DrawPolygonNDT(int n_verts, const glm::vec3* verts, const glm::vec4& colour)
-    {
-        LUMOS_PROFILE_FUNCTION();
-        for(int i = 2; i < n_verts; ++i)
-        {
-            GenDrawTriangle(true, verts[0], verts[i - 1], verts[i], colour);
+            GenDrawTriangle(!depthTested, verts[0], verts[i - 1], verts[i], colour, time);
         }
     }
 
@@ -325,7 +273,7 @@ namespace Lumos
     }
 
     // Draw Text WorldSpace
-    void DebugRenderer::DrawTextWs(const glm::vec3& pos, const float font_size, const glm::vec4& colour, const std::string text, ...)
+    void DebugRenderer::DrawTextWs(const glm::vec3& pos, const float font_size, bool depthTested, const glm::vec4& colour,float time, const std::string text,  ...)
     {
         va_list args;
         va_start(args, text);
@@ -343,37 +291,12 @@ namespace Lumos
         // glm::vec4 cs_pos = GetInstance()->m_ProjViewMtx * glm::vec4(pos, 1.0f);
         // DrawTextCs(cs_pos, font_size, formatted_text, colour);
 
-        DebugText& dText = GetInstance()->m_TextList.emplace_back();
+        DebugText& dText = depthTested ? GetInstance()->m_TextList.emplace_back() : GetInstance()->m_TextListNDT.emplace_back();
         dText.text       = text;
         dText.Position   = glm::vec4(pos, 1.0f);
         dText.colour     = colour;
         dText.Size       = font_size;
-    }
-
-    void DebugRenderer::DrawTextWsNDT(const glm::vec3& pos, const float font_size, const glm::vec4& colour, const std::string text, ...)
-    {
-        va_list args;
-        va_start(args, text);
-
-        char buf[1024];
-
-        int needed = VSNPRINTF(buf, 1023, _TRUNCATE, text.c_str(), args);
-
-        va_end(args);
-
-        int length = (needed < 0) ? 1024 : needed;
-
-        std::string formatted_text = std::string(buf, static_cast<size_t>(length));
-
-        // glm::vec4 cs_pos = GetInstance()->m_ProjViewMtx * glm::vec4(pos, 1.0f);
-        // cs_pos.z = (1.0f * cs_pos.w);
-        // DrawTextCs(cs_pos, font_size, formatted_text, colour);
-
-        DebugText& dText = GetInstance()->m_TextListNDT.emplace_back();
-        dText.text       = text;
-        dText.Position   = glm::vec4(pos, 1.0f);
-        dText.colour     = colour;
-        dText.Size       = font_size;
+		dText.time 		 = time;
     }
 
     // Status Entry
@@ -496,65 +419,52 @@ namespace Lumos
         // Draw edges
         if(!cornersOnly)
         {
-            DrawThickLineNDT(luu, uuu, width, edgeColour);
-            DrawThickLineNDT(lul, uul, width, edgeColour);
-            DrawThickLineNDT(llu, ulu, width, edgeColour);
-            DrawThickLineNDT(lll, ull, width, edgeColour);
-
-            DrawThickLineNDT(lul, lll, width, edgeColour);
-            DrawThickLineNDT(uul, ull, width, edgeColour);
-            DrawThickLineNDT(luu, llu, width, edgeColour);
-            DrawThickLineNDT(uuu, ulu, width, edgeColour);
-
-            DrawThickLineNDT(lll, llu, width, edgeColour);
-            DrawThickLineNDT(ull, ulu, width, edgeColour);
-            DrawThickLineNDT(lul, luu, width, edgeColour);
-            DrawThickLineNDT(uul, uuu, width, edgeColour);
+            DrawThickLine(luu, uuu, width, false, edgeColour);
+            DrawThickLine(lul, uul, width, false, edgeColour);
+            DrawThickLine(llu, ulu, width, false, edgeColour);
+            DrawThickLine(lll, ull, width, false, edgeColour);
+            DrawThickLine(lul, lll, width, false, edgeColour);
+            DrawThickLine(uul, ull, width, false, edgeColour);
+            DrawThickLine(luu, llu, width, false, edgeColour);
+            DrawThickLine(uuu, ulu, width, false, edgeColour);
+            DrawThickLine(lll, llu, width, false, edgeColour);
+            DrawThickLine(ull, ulu, width, false, edgeColour);
+            DrawThickLine(lul, luu, width, false, edgeColour);
+            DrawThickLine(uul, uuu, width, false, edgeColour);
         }
         else
         {
-            DrawThickLineNDT(luu, luu + (uuu - luu) * 0.25f, width, edgeColour);
-            DrawThickLineNDT(luu + (uuu - luu) * 0.75f, uuu, width, edgeColour);
-
-            DrawThickLineNDT(lul, lul + (uul - lul) * 0.25f, width, edgeColour);
-            DrawThickLineNDT(lul + (uul - lul) * 0.75f, uul, width, edgeColour);
-
-            DrawThickLineNDT(llu, llu + (ulu - llu) * 0.25f, width, edgeColour);
-            DrawThickLineNDT(llu + (ulu - llu) * 0.75f, ulu, width, edgeColour);
-
-            DrawThickLineNDT(lll, lll + (ull - lll) * 0.25f, width, edgeColour);
-            DrawThickLineNDT(lll + (ull - lll) * 0.75f, ull, width, edgeColour);
-
-            DrawThickLineNDT(lul, lul + (lll - lul) * 0.25f, width, edgeColour);
-            DrawThickLineNDT(lul + (lll - lul) * 0.75f, lll, width, edgeColour);
-
-            DrawThickLineNDT(uul, uul + (ull - uul) * 0.25f, width, edgeColour);
-            DrawThickLineNDT(uul + (ull - uul) * 0.75f, ull, width, edgeColour);
-
-            DrawThickLineNDT(luu, luu + (llu - luu) * 0.25f, width, edgeColour);
-            DrawThickLineNDT(luu + (llu - luu) * 0.75f, llu, width, edgeColour);
-
-            DrawThickLineNDT(uuu, uuu + (ulu - uuu) * 0.25f, width, edgeColour);
-            DrawThickLineNDT(uuu + (ulu - uuu) * 0.75f, ulu, width, edgeColour);
-
-            DrawThickLineNDT(lll, lll + (llu - lll) * 0.25f, width, edgeColour);
-            DrawThickLineNDT(lll + (llu - lll) * 0.75f, llu, width, edgeColour);
-
-            DrawThickLineNDT(ull, ull + (ulu - ull) * 0.25f, width, edgeColour);
-            DrawThickLineNDT(ull + (ulu - ull) * 0.75f, ulu, width, edgeColour);
-
-            DrawThickLineNDT(lul, lul + (luu - lul) * 0.25f, width, edgeColour);
-            DrawThickLineNDT(lul + (luu - lul) * 0.75f, luu, width, edgeColour);
-
-            DrawThickLineNDT(uul, uul + (uuu - uul) * 0.25f, width, edgeColour);
-            DrawThickLineNDT(uul + (uuu - uul) * 0.75f, uuu, width, edgeColour);
+            DrawThickLine(luu, luu + (uuu - luu) * 0.25f, width, false, edgeColour);
+            DrawThickLine(luu + (uuu - luu) * 0.75f, uuu, width, false, edgeColour);
+            DrawThickLine(lul, lul + (uul - lul) * 0.25f, width, false, edgeColour);
+            DrawThickLine(lul + (uul - lul) * 0.75f, uul, width, false, edgeColour);
+            DrawThickLine(llu, llu + (ulu - llu) * 0.25f, width, false, edgeColour);
+            DrawThickLine(llu + (ulu - llu) * 0.75f, ulu, width, false, edgeColour);
+            DrawThickLine(lll, lll + (ull - lll) * 0.25f, width, false, edgeColour);
+            DrawThickLine(lll + (ull - lll) * 0.75f, ull, width, false, edgeColour);
+            DrawThickLine(lul, lul + (lll - lul) * 0.25f, width, false, edgeColour);
+            DrawThickLine(lul + (lll - lul) * 0.75f, lll, width, false, edgeColour);
+            DrawThickLine(uul, uul + (ull - uul) * 0.25f, width, false, edgeColour);
+            DrawThickLine(uul + (ull - uul) * 0.75f, ull, width, false, edgeColour);
+            DrawThickLine(luu, luu + (llu - luu) * 0.25f, width, false, edgeColour);
+            DrawThickLine(luu + (llu - luu) * 0.75f, llu, width, false, edgeColour);
+            DrawThickLine(uuu, uuu + (ulu - uuu) * 0.25f, width, false, edgeColour);
+            DrawThickLine(uuu + (ulu - uuu) * 0.75f, ulu, width, false, edgeColour);
+            DrawThickLine(lll, lll + (llu - lll) * 0.25f, width, false, edgeColour);
+            DrawThickLine(lll + (llu - lll) * 0.75f, llu, width, false, edgeColour);
+            DrawThickLine(ull, ull + (ulu - ull) * 0.25f, width, false, edgeColour);
+            DrawThickLine(ull + (ulu - ull) * 0.75f, ulu, width, false, edgeColour);
+            DrawThickLine(lul, lul + (luu - lul) * 0.25f, width, false, edgeColour);
+            DrawThickLine(lul + (luu - lul) * 0.75f, luu, width, false, edgeColour);
+            DrawThickLine(uul, uul + (uuu - uul) * 0.25f, width, false, edgeColour);
+            DrawThickLine(uul + (uuu - uul) * 0.75f, uuu, width, false, edgeColour);
         }
     }
 
     void DebugRenderer::DebugDraw(const Maths::BoundingSphere& sphere, const glm::vec4& colour)
     {
         LUMOS_PROFILE_FUNCTION();
-        Lumos::DebugRenderer::DrawPointNDT(sphere.GetCenter(), sphere.GetRadius(), colour);
+        Lumos::DebugRenderer::DrawPoint(sphere.GetCenter(), sphere.GetRadius(), false, colour);
     }
 
     void DebugRenderer::DebugDraw(Maths::Frustum& frustum, const glm::vec4& colour)
@@ -562,18 +472,18 @@ namespace Lumos
         LUMOS_PROFILE_FUNCTION();
         auto* vertices = frustum.GetVerticies();
 
-        DebugRenderer::DrawHairLine(vertices[0], vertices[1], colour);
-        DebugRenderer::DrawHairLine(vertices[1], vertices[2], colour);
-        DebugRenderer::DrawHairLine(vertices[2], vertices[3], colour);
-        DebugRenderer::DrawHairLine(vertices[3], vertices[0], colour);
-        DebugRenderer::DrawHairLine(vertices[4], vertices[5], colour);
-        DebugRenderer::DrawHairLine(vertices[5], vertices[6], colour);
-        DebugRenderer::DrawHairLine(vertices[6], vertices[7], colour);
-        DebugRenderer::DrawHairLine(vertices[7], vertices[4], colour);
-        DebugRenderer::DrawHairLine(vertices[0], vertices[4], colour);
-        DebugRenderer::DrawHairLine(vertices[1], vertices[5], colour);
-        DebugRenderer::DrawHairLine(vertices[2], vertices[6], colour);
-        DebugRenderer::DrawHairLine(vertices[3], vertices[7], colour);
+        DebugRenderer::DrawHairLine(vertices[0], vertices[1], false, colour);
+        DebugRenderer::DrawHairLine(vertices[1], vertices[2], false, colour);
+        DebugRenderer::DrawHairLine(vertices[2], vertices[3], false, colour);
+        DebugRenderer::DrawHairLine(vertices[3], vertices[0], false, colour);
+        DebugRenderer::DrawHairLine(vertices[4], vertices[5], false, colour);
+        DebugRenderer::DrawHairLine(vertices[5], vertices[6], false, colour);
+        DebugRenderer::DrawHairLine(vertices[6], vertices[7], false, colour);
+        DebugRenderer::DrawHairLine(vertices[7], vertices[4], false, colour);
+        DebugRenderer::DrawHairLine(vertices[0], vertices[4], false, colour);
+        DebugRenderer::DrawHairLine(vertices[1], vertices[5], false, colour);
+        DebugRenderer::DrawHairLine(vertices[2], vertices[6], false, colour);
+        DebugRenderer::DrawHairLine(vertices[3], vertices[7], false, colour);
     }
 
     void DebugRenderer::DebugDraw(Graphics::Light* light, const glm::quat& rotation, const glm::vec4& colour)
@@ -583,10 +493,10 @@ namespace Lumos
         if(light->Type < 0.1f)
         {
             glm::vec3 offset(0.0f, 0.1f, 0.0f);
-            DrawHairLine(glm::vec3(light->Position) + offset, glm::vec3(light->Position + (light->Direction) * 2.0f) + offset, colour);
-            DrawHairLine(glm::vec3(light->Position) - offset, glm::vec3(light->Position + (light->Direction) * 2.0f) - offset, colour);
+            DrawHairLine(glm::vec3(light->Position) + offset, glm::vec3(light->Position + (light->Direction) * 2.0f) + offset, false, colour);
+            DrawHairLine(glm::vec3(light->Position) - offset, glm::vec3(light->Position + (light->Direction) * 2.0f) - offset, false, colour);
 
-            DrawHairLine(glm::vec3(light->Position), glm::vec3(light->Position + (light->Direction) * 2.0f), colour);
+            DrawHairLine(glm::vec3(light->Position), glm::vec3(light->Position + (light->Direction) * 2.0f), false, colour);
             DebugDrawCone(20, 4, 30.0f, 1.5f, (light->Position - (light->Direction) * 1.5f), rotation, colour);
         }
         // Spot
@@ -604,7 +514,7 @@ namespace Lumos
     void DebugRenderer::DebugDraw(SoundNode* sound, const glm::vec4& colour)
     {
         LUMOS_PROFILE_FUNCTION();
-        DrawPoint(sound->GetPosition(), sound->GetRadius(), colour);
+        DrawPoint(sound->GetPosition(), sound->GetRadius(), false,  colour);
     }
 
     void DebugRenderer::DebugDrawCircle(int numVerts, float radius, const glm::vec3& position, const glm::quat& rotation, const glm::vec4& colour)
@@ -622,7 +532,7 @@ namespace Lumos
             float ny       = Maths::Sin(step * (i + 1)) * radius;
             glm::vec3 next = glm::vec3(nx, ny, 0.0f);
 
-            DrawHairLine(position + (rotation * current), position + (rotation * next), colour);
+            DrawHairLine(position + (rotation * current), position + (rotation * next), false, colour);
         }
     }
     void DebugRenderer::DebugDrawSphere(float radius, const glm::vec3& position, const glm::vec4& colour)
@@ -647,7 +557,7 @@ namespace Lumos
         {
             float a         = i * 90.0f;
             glm::vec3 point = rotation * glm::vec3(Maths::Cos(a), Maths::Sin(a), 0.0f) * endAngle;
-            DrawHairLine(position, position + point + forward * length, colour);
+            DrawHairLine(position, position + point + forward * length, false, colour);
         }
     }
 
@@ -669,7 +579,7 @@ namespace Lumos
             float ny       = Maths::Sin(step * (i + 1)) * radius;
             glm::vec3 next = glm::vec3(nx, ny, 0.0f);
 
-            DebugRenderer::DrawHairLine(arcCentre + (rot * current), arcCentre + (rot * next), colour);
+            DebugRenderer::DrawHairLine(arcCentre + (rot * current), arcCentre + (rot * next), false, colour);
         }
     }
 
@@ -693,7 +603,7 @@ namespace Lumos
             float x = Maths::Sin(step * i) * radius;
 
             glm::vec3 offset = rotation * glm::vec4(x, 0.0f, z, 0.0f);
-            DrawHairLine(bottomSphereCentre + offset, topSphereCentre + offset, colour);
+            DrawHairLine(bottomSphereCentre + offset, topSphereCentre + offset, false, colour);
 
             if(i < 10)
             {
@@ -712,7 +622,7 @@ namespace Lumos
     void DebugRenderer::DebugDraw(const Maths::Ray& ray, const glm::vec4& colour, float distance)
     {
         LUMOS_PROFILE_FUNCTION();
-        DrawHairLine(ray.Origin, ray.Origin + ray.Direction * distance, colour);
+        DrawHairLine(ray.Origin, ray.Origin + ray.Direction * distance, false, colour);
     }
 
 }

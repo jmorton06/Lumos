@@ -6,10 +6,6 @@
 #include "VKCommandBuffer.h"
 #include "VKBuffer.h"
 
-#ifdef USE_VMA_ALLOCATOR
-#include <vulkan/vk_mem_alloc.h>
-#endif
-
 namespace Lumos
 {
     namespace Graphics
@@ -296,6 +292,7 @@ namespace Lumos
             VkImageLayout GetImageLayout() const { return m_ImageLayout; }
 
             void GenerateMipMaps(CommandBuffer* commandBuffer) override;
+            void Destroy(bool DeletionQueue) override;
 
             static void MakeDefault();
 

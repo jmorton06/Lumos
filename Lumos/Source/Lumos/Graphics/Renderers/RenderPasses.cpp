@@ -43,7 +43,7 @@ static const uint32_t RENDERER_POINT_BUFFER_SIZE = RENDERER_POINT_SIZE * MaxPoin
 
 static const uint32_t MaxLines                  = 1000;
 static const uint32_t MaxLineVertices           = MaxLines * 2;
-static const uint32_t MaxLineIndices            = MaxLines * 6;
+static const uint32_t MaxLineIndices            = MaxLines * 2;
 static const uint32_t MAX_LINE_BATCH_DRAW_CALLS = 100;
 static const uint32_t RENDERER_LINE_SIZE        = sizeof(Lumos::Graphics::LineVertexData) * 4;
 static const uint32_t RENDERER_LINE_BUFFER_SIZE = RENDERER_LINE_SIZE * MaxLineVertices;
@@ -70,7 +70,22 @@ namespace Lumos::Graphics
         // Setup shadow pass data
         m_ShadowData.m_ShadowTex             = nullptr;
         m_ShadowData.m_ShadowMapNum          = 4;
-        m_ShadowData.m_ShadowMapSize         = 1024;
+        
+		uint32_t shadowMapResolution = 4096;
+		switch (Application::Get().GetQualitySettings().ShadowResolution)
+		{
+			case ShadowResolutionSetting::Low:
+			shadowMapResolution = 1024;
+			break;
+			case ShadowResolutionSetting::Medium:
+			shadowMapResolution = 2048;
+			break;
+			case ShadowResolutionSetting::High:
+			shadowMapResolution = 4096;
+			break;
+		}
+		m_ShadowData.m_ShadowMapSize         = shadowMapResolution;
+		
         m_ShadowData.m_ShadowMapsInvalidated = true;
         m_ShadowData.m_CascadeSplitLambda    = 0.92f;
         m_ShadowData.m_Shader                = Application::Get().GetShaderLibrary()->GetResource("Shadow");
@@ -378,16 +393,6 @@ namespace Lumos::Graphics
         for(int i = 0; i < Renderer::GetMainSwapChain()->GetSwapChainBufferCount(); i++)
         {
             TextVertexBufferBase.push_back(new TextVertexData[m_TextRendererData.m_Limits.MaxQuads * 4]);
-
-            if(m_Settings.DebugPass) // && sceneRenderSettings.DebugRenderEnabled)
-            {
-                m_QuadBufferBase.push_back(new VertexData[m_DebugDrawData.m_Renderer2DData.m_Limits.MaxQuads * 4]);
-
-                // m_2DBufferBase.push_back(new VertexData[m_Renderer2DData.m_Limits.MaxQuads  * 4]);
-                m_LineBufferBase.push_back(new LineVertexData[m_DebugDrawData.m_Renderer2DData.m_Limits.MaxQuads * 4]);
-                m_PointBufferBase.push_back(new PointVertexData[m_DebugDrawData.m_Renderer2DData.m_Limits.MaxQuads * 4]);
-                DebugTextVertexBufferBase.push_back(new TextVertexData[m_DebugTextRendererData.m_Limits.MaxQuads * 4]);
-            }
         }
 
         delete[] indices;
@@ -556,22 +561,29 @@ namespace Lumos::Graphics
 
         delete m_Renderer2DData.m_IndexBuffer;
         delete m_TextRendererData.m_IndexBuffer;
-        delete m_DebugTextRendererData.m_IndexBuffer;
-        delete m_DebugDrawData.m_Renderer2DData.m_IndexBuffer;
-        delete m_DebugDrawData.m_LineIndexBuffer;
-        delete m_DebugDrawData.m_PointIndexBuffer;
         delete m_ParticleData.m_IndexBuffer;
+
+		if(m_DebugRenderDataInitialised)
+		{
+			delete m_DebugTextRendererData.m_IndexBuffer;
+			delete m_DebugDrawData.m_Renderer2DData.m_IndexBuffer;
+			delete m_DebugDrawData.m_LineIndexBuffer;
+			delete m_DebugDrawData.m_PointIndexBuffer;
+		}
 
         for(auto data : TextVertexBufferBase)
             delete[] data;
         for(auto data : DebugTextVertexBufferBase)
             delete[] data;
 
-        for(auto data : m_LineBufferBase)
+		if(!m_LineBufferBase.empty())
+        for(auto data : m_LineBufferBase[0])
             delete[] data;
-        for(auto data : m_PointBufferBase)
+		if(!m_PointBufferBase.empty())
+        for(auto data : m_PointBufferBase[0])
             delete[] data;
-        for(auto data : m_QuadBufferBase)
+		if(!m_QuadBufferBase.empty())
+        for(auto data : m_QuadBufferBase[0])
             delete[] data;
 
         for(int j = 0; j < Renderer::GetMainSwapChain()->GetSwapChainBufferCount(); j++)
@@ -586,11 +598,18 @@ namespace Lumos::Graphics
                 delete m_TextRendererData.m_VertexBuffers[j][i];
             }
 
+			for(size_t i = 0; i < m_ParticleData.m_VertexBuffers[j].size(); i++)
+            {
+                delete m_ParticleData.m_VertexBuffers[j][i];
+            }
+
+			if(m_DebugRenderDataInitialised)
             for(uint32_t i = 0; i < m_DebugTextRendererData.m_VertexBuffers[j].size(); i++)
             {
                 delete m_DebugTextRendererData.m_VertexBuffers[j][i];
             }
 
+			if(m_DebugRenderDataInitialised)
             for(size_t i = 0; i < m_DebugDrawData.m_Renderer2DData.m_VertexBuffers[j].size(); i++)
             {
                 delete m_DebugDrawData.m_Renderer2DData.m_VertexBuffers[j][i];
@@ -598,28 +617,25 @@ namespace Lumos::Graphics
 
             for(auto data : m_2DBufferBase[j])
                 delete[] data;
-        }
 
-        for(int j = 0; j < Renderer::GetMainSwapChain()->GetSwapChainBufferCount(); j++)
-        {
-            for(size_t i = 0; i < m_ParticleData.m_VertexBuffers[j].size(); i++)
-            {
-                delete m_ParticleData.m_VertexBuffers[j][i];
-            }
-
-            for(auto data : m_ParticleBufferBase[j])
+           for(auto data : m_ParticleBufferBase[j])
                 delete[] data;
         }
 
-        for(int i = 0; i < m_DebugDrawData.m_PointVertexBuffers.size(); i++)
-        {
-            delete m_DebugDrawData.m_PointVertexBuffers[i];
-        }
+		if(m_DebugRenderDataInitialised)
+		{
+			if(!m_DebugDrawData.m_PointVertexBuffers.empty())
+			for(int i = 0; i < m_DebugDrawData.m_PointVertexBuffers[0].size(); i++)
+			{
+				delete m_DebugDrawData.m_PointVertexBuffers[0][i];
+			}
 
-        for(int i = 0; i < m_DebugDrawData.m_LineVertexBuffers.size(); i++)
-        {
-            delete m_DebugDrawData.m_LineVertexBuffers[i];
-        }
+			if(!m_DebugDrawData.m_LineVertexBuffers.empty())
+			for(int i = 0; i < m_DebugDrawData.m_LineVertexBuffers[0].size(); i++)
+			{
+				delete m_DebugDrawData.m_LineVertexBuffers[0][i];
+			}
+		}
 
         DebugRenderer::Release();
     }
@@ -627,7 +643,7 @@ namespace Lumos::Graphics
     void RenderPasses::OnResize(uint32_t width, uint32_t height)
     {
         LUMOS_PROFILE_FUNCTION();
-
+		
         width -= (width % 2 != 0) ? 1 : 0;
         height -= (height % 2 != 0) ? 1 : 0;
 
@@ -648,7 +664,10 @@ namespace Lumos::Graphics
         m_DebugRenderEnabled = enable;
 
         if(m_DebugRenderEnabled)
-            DebugRenderer::Init();
+		{
+			DebugRenderer::Init();
+			InitDebugRenderData();
+		}
         else
             DebugRenderer::Release();
     }
@@ -690,9 +709,9 @@ namespace Lumos::Graphics
         m_Exposure     = m_Camera->GetExposure();
         m_ToneMapIndex = scene->GetSettings().RenderSettings.m_ToneMapIndex;
 
-        auto view     = glm::inverse(m_CameraTransform->GetWorldMatrix());
-        auto proj     = m_Camera->GetProjectionMatrix();
-        auto projView = proj * view;
+        auto view        = glm::inverse(m_CameraTransform->GetWorldMatrix());
+        const auto& proj = m_Camera->GetProjectionMatrix();
+        auto projView    = proj * view;
 
         if(m_DebugRenderEnabled)
         {
@@ -1062,8 +1081,6 @@ namespace Lumos::Graphics
         LUMOS_PROFILE_GPU("Render Passes");
 
         auto& sceneRenderSettings       = Application::Get().GetCurrentScene()->GetSettings().RenderSettings;
-        sceneRenderSettings.SSAOEnabled = false; // Disabled while broken
-
         {
             LUMOS_PROFILE_GPU("Clear Main Texture Pass");
             Renderer::GetRenderer()->ClearRenderTarget(m_MainTexture, Renderer::GetMainSwapChain()->GetCurrentCommandBuffer());
@@ -1094,16 +1111,15 @@ namespace Lumos::Graphics
                 SSAOBlurPass();
         }
 
-        if(m_Settings.ShadowPass && sceneRenderSettings.ShadowsEnabled)
+		if(sceneRenderSettings.ShadowsEnabled)
             ShadowPass();
-
-        if(m_Settings.GeomPass && sceneRenderSettings.Renderer3DEnabled)
+        if(sceneRenderSettings.Renderer3DEnabled)
             ForwardPass();
-        if(m_Settings.SkyboxPass && sceneRenderSettings.SkyboxRenderEnabled)
+        if(sceneRenderSettings.SkyboxRenderEnabled)
             SkyboxPass();
-        if(m_Settings.GeomPass && sceneRenderSettings.Renderer3DEnabled)
+        if(sceneRenderSettings.Renderer3DEnabled)
             ParticlePass();
-        if(m_Settings.GeomPass && sceneRenderSettings.Renderer2DEnabled)
+        if(sceneRenderSettings.Renderer2DEnabled)
             Render2DPass();
 
         TextPass();
@@ -1139,7 +1155,7 @@ namespace Lumos::Graphics
         // if(sceneRenderSettings.OutlineEnabled
         // OutlinePass();
 
-        if(m_Settings.DebugPass && sceneRenderSettings.DebugRenderEnabled)
+        if(m_DebugRenderEnabled && sceneRenderSettings.DebugRenderEnabled)
             DebugPass();
 
         FinalPass();
@@ -1656,7 +1672,9 @@ namespace Lumos::Graphics
         glm::vec2 ssaoTexelOffset = glm::vec2(0.0f, 2.0f / m_SSAOTexture->GetHeight());
 
         Scene::SceneRenderSettings& renderSettings = m_CurrentScene->GetSettings().RenderSettings;
+        auto view = glm::inverse(m_CameraTransform->GetWorldMatrix());
 
+        m_SSAOBlurPassDescriptorSet->SetUniform("UniformBuffer", "view", &view);
         m_SSAOBlurPassDescriptorSet->SetUniform("UniformBuffer", "ssaoTexelOffset", &ssaoTexelOffset);
         m_SSAOBlurPassDescriptorSet->SetUniform("UniformBuffer", "ssaoBlurRadius", &renderSettings.SSAOBlurRadius);
 
@@ -1668,6 +1686,7 @@ namespace Lumos::Graphics
 
         ssaoTexelOffset = glm::vec2(2.0f / m_SSAOTexture->GetWidth(), 0.0f);
 
+        m_SSAOBlurPassDescriptorSet2->SetUniform("UniformBuffer", "view", &view);
         m_SSAOBlurPassDescriptorSet2->SetUniform("UniformBuffer", "ssaoTexelOffset", &ssaoTexelOffset);
         m_SSAOBlurPassDescriptorSet2->SetUniform("UniformBuffer", "ssaoBlurRadius", &renderSettings.SSAOBlurRadius);
 
@@ -2645,7 +2664,9 @@ namespace Lumos::Graphics
         }
 
         Render2DFlush();
-    }
+
+		Renderer::GetMainSwapChain()->GetCurrentCommandBuffer()->UnBindPipeline();
+	}
 
     void RenderPasses::Renderer2DBeginBatch()
     {
@@ -2670,6 +2691,9 @@ namespace Lumos::Graphics
     {
         LUMOS_PROFILE_FUNCTION();
         uint32_t currentFrame = Renderer::GetMainSwapChain()->GetCurrentBufferIndex();
+		Graphics::CommandBuffer* commandBuffer = Renderer::GetMainSwapChain()->GetCurrentCommandBuffer();
+
+		commandBuffer->BindPipeline(m_Renderer2DData.m_Pipeline);
 
         if(m_Renderer2DData.m_DescriptorSet[m_Renderer2DData.m_BatchDrawCallIndex][1] == nullptr || m_Renderer2DData.m_TextureCount != m_Renderer2DData.m_PreviousFrameTextureCount[m_Renderer2DData.m_BatchDrawCallIndex])
         {
@@ -2685,6 +2709,13 @@ namespace Lumos::Graphics
             m_Renderer2DData.m_DescriptorSet[m_Renderer2DData.m_BatchDrawCallIndex][1] = SharedPtr<Graphics::DescriptorSet>(Graphics::DescriptorSet::Create(descriptorDesc));
         }
 
+		for(int i = m_Renderer2DData.m_TextureCount; i < 16; i++)
+		{
+			m_Renderer2DData.m_Textures[i] = Material::GetDefaultTexture();
+		}
+
+		m_Renderer2DData.m_TextureCount = 16;
+
         if(m_Renderer2DData.m_TextureCount > 1)
             m_Renderer2DData.m_DescriptorSet[m_Renderer2DData.m_BatchDrawCallIndex][1]->SetTexture("textures", m_Renderer2DData.m_Textures, m_Renderer2DData.m_TextureCount);
         else if(m_Renderer2DData.m_TextureCount == 0)
@@ -2696,12 +2727,9 @@ namespace Lumos::Graphics
 
         m_Renderer2DData.m_PreviousFrameTextureCount[m_Renderer2DData.m_BatchDrawCallIndex] = m_Renderer2DData.m_TextureCount;
 
-        Graphics::CommandBuffer* commandBuffer = Renderer::GetMainSwapChain()->GetCurrentCommandBuffer();
-
         uint32_t dataSize = (uint32_t)((uint8_t*)m_Renderer2DData.m_Buffer - (uint8_t*)m_2DBufferBase[currentFrame][m_Renderer2DData.m_BatchDrawCallIndex]);
         m_Renderer2DData.m_VertexBuffers[currentFrame][m_Renderer2DData.m_BatchDrawCallIndex]->SetData(dataSize, (void*)m_2DBufferBase[currentFrame][m_Renderer2DData.m_BatchDrawCallIndex], true);
 
-        m_Renderer2DData.m_Pipeline->Bind(commandBuffer);
 
         m_Renderer2DData.m_CurrentDescriptorSets[0] = m_Renderer2DData.m_DescriptorSet[0][0].get();
         m_Renderer2DData.m_CurrentDescriptorSets[1] = m_Renderer2DData.m_DescriptorSet[m_Renderer2DData.m_BatchDrawCallIndex][1].get();
@@ -2714,8 +2742,6 @@ namespace Lumos::Graphics
 
         m_Renderer2DData.m_VertexBuffers[currentFrame][m_Renderer2DData.m_BatchDrawCallIndex]->Unbind();
         m_Renderer2DData.m_IndexBuffer->Unbind();
-
-        m_Renderer2DData.m_Pipeline->End(commandBuffer);
 
         m_Renderer2DData.m_BatchDrawCallIndex++;
         m_Renderer2DData.m_TextureCount = 0;
@@ -2740,6 +2766,13 @@ namespace Lumos::Graphics
             textRenderData.m_DescriptorSet[textRenderData.m_BatchDrawCallIndex][1] = SharedPtr<Graphics::DescriptorSet>(Graphics::DescriptorSet::Create(descriptorDesc));
         }
 
+		for(int i = textRenderData.m_TextureCount; i < 16; i++)
+		{
+			textRenderData.m_Textures[i] = Material::GetDefaultTexture();
+		}
+
+		textRenderData.m_TextureCount = 16;
+		
         if(textRenderData.m_TextureCount > 1)
             textRenderData.m_DescriptorSet[textRenderData.m_BatchDrawCallIndex][1]->SetTexture("textures", textRenderData.m_Textures, textRenderData.m_TextureCount);
         else if(textRenderData.m_TextureCount == 0)
@@ -2859,14 +2892,14 @@ namespace Lumos::Graphics
             {
                 if(m_TextRendererData.m_Textures[i] == fontAtlas.get())
                 {
-                    textureIndex = int(i);
+                    textureIndex = int(i + 1);
                     break;
                 }
             }
 
             if(textureIndex == -1)
             {
-                textureIndex                                                     = (int)m_TextRendererData.m_TextureCount;
+                textureIndex                                                     = (int)m_TextRendererData.m_TextureCount + 1;
                 m_TextRendererData.m_Textures[m_TextRendererData.m_TextureCount] = fontAtlas.get();
                 m_TextRendererData.m_TextureCount++;
             }
@@ -2983,7 +3016,9 @@ namespace Lumos::Graphics
             LUMOS_LOG_WARN("Debug Render data not initialised");
             return;
         }
-
+		m_DebugDrawData.m_LineBatchDrawCallIndex= 0;
+		m_DebugDrawData.m_Renderer2DData.m_BatchDrawCallIndex = 0;
+		m_DebugDrawData.m_PointBatchDrawCallIndex = 0;
         // Loop twice for depth test and no depth test
         for(int i = 0; i < 2; i++)
         {
@@ -3021,21 +3056,23 @@ namespace Lumos::Graphics
 
                 pipeline->Bind(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer());
 
-                if((int)m_DebugDrawData.m_LineVertexBuffers.size() - 1 < (int)m_DebugDrawData.m_LineBatchDrawCallIndex)
+				if(m_DebugDrawData.m_LineVertexBuffers.empty())
+					m_DebugDrawData.m_LineVertexBuffers.emplace_back();
+                if((int)m_DebugDrawData.m_LineVertexBuffers[0].size() - 1 < (int)m_DebugDrawData.m_LineBatchDrawCallIndex)
                 {
-                    auto& vertexBuffer = m_DebugDrawData.m_LineVertexBuffers.emplace_back(Graphics::VertexBuffer::Create(RENDERER_LINE_BUFFER_SIZE, nullptr, BufferUsage::DYNAMIC));
+                    auto& vertexBuffer = m_DebugDrawData.m_LineVertexBuffers[0].emplace_back(Graphics::VertexBuffer::Create(RENDERER_LINE_BUFFER_SIZE, nullptr, BufferUsage::DYNAMIC));
                     // vertexBuffer->Resize(RENDERER_LINE_BUFFER_SIZE);
                 }
 
-                m_DebugDrawData.m_LineVertexBuffers[m_DebugDrawData.m_LineBatchDrawCallIndex]->Bind(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer(), pipeline.get());
-                m_DebugDrawData.m_LineBuffer = m_LineBufferBase[0];
+                m_DebugDrawData.m_LineVertexBuffers[0][m_DebugDrawData.m_LineBatchDrawCallIndex]->Bind(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer(), pipeline.get());
+				m_DebugDrawData.m_LineBuffer = m_LineBufferBase[0][0];//[m_DebugDrawData.m_LineBatchDrawCallIndex];
 
                 // m_DebugDrawData.m_LineBuffer = m_DebugDrawData.m_LineVertexBuffers[m_DebugDrawData.m_LineBatchDrawCallIndex]->GetPointer<LineVertexData>();
 
                 for(auto& line : lines)
                 {
-                    if(m_DebugDrawData.LineIndexCount >= m_DebugDrawData.m_Renderer2DData.m_Limits.MaxQuads)
-                        break;
+                    if(m_DebugDrawData.LineIndexCount >= MaxLineIndices)
+						DebugLineFlush(pipeline);
 
                     m_DebugDrawData.m_LineBuffer->vertex = line.p1;
                     m_DebugDrawData.m_LineBuffer->colour = line.col;
@@ -3052,26 +3089,11 @@ namespace Lumos::Graphics
                 // m_DebugDrawData.m_LineVertexBuffers[m_DebugDrawData.m_LineBatchDrawCallIndex]->Unbind();
                 // m_DebugDrawData.m_LineVertexBuffers[m_DebugDrawData.m_LineBatchDrawCallIndex]->Bind(commandBuffer, pipeline.get());
 
-                m_DebugDrawData.m_LineIndexBuffer->SetCount(m_DebugDrawData.LineIndexCount);
-                m_DebugDrawData.m_LineIndexBuffer->Bind(commandBuffer);
+				DebugLineFlush(pipeline);
 
-                uint32_t dataSize = (uint32_t)((uint8_t*)m_DebugDrawData.m_LineBuffer - (uint8_t*)m_LineBufferBase[0]);
-                m_DebugDrawData.m_LineVertexBuffers[m_DebugDrawData.m_LineBatchDrawCallIndex]->SetData(dataSize, (void*)m_LineBufferBase[0]);
-
-                auto* desc = m_DebugDrawData.m_LineDescriptorSet[0].get();
-                Renderer::BindDescriptorSets(pipeline.get(), commandBuffer, 0, &desc, 1);
-                Renderer::DrawIndexed(commandBuffer, DrawType::LINES, m_DebugDrawData.LineIndexCount);
-
-                m_DebugDrawData.m_LineVertexBuffers[m_DebugDrawData.m_LineBatchDrawCallIndex]->Unbind();
-                m_DebugDrawData.m_LineIndexBuffer->Unbind();
-
-                m_DebugDrawData.m_LineBuffer   = m_LineBufferBase[0];
-                m_DebugDrawData.LineIndexCount = 0;
-
-                pipeline->End(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer());
-
-                m_DebugDrawData.m_LineBatchDrawCallIndex++;
+				pipeline->End(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer());
             }
+
 
             if(!thickLines.empty())
             {
@@ -3099,20 +3121,21 @@ namespace Lumos::Graphics
 
                 pipeline->Bind(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer());
 
-                if((int)m_DebugDrawData.m_LineVertexBuffers.size() - 1 < (int)m_DebugDrawData.m_LineBatchDrawCallIndex)
-                {
-                    auto& vertexBuffer = m_DebugDrawData.m_LineVertexBuffers.emplace_back(Graphics::VertexBuffer::Create(RENDERER_LINE_BUFFER_SIZE, nullptr, BufferUsage::DYNAMIC));
-                    // vertexBuffer->Resize(RENDERER_LINE_BUFFER_SIZE);
-                }
+				if(m_DebugDrawData.m_LineVertexBuffers.empty())
+					m_DebugDrawData.m_LineVertexBuffers.emplace_back();
+				if((int)m_DebugDrawData.m_LineVertexBuffers[0].size() - 1 < (int)m_DebugDrawData.m_LineBatchDrawCallIndex)
+				{
+					auto& vertexBuffer = m_DebugDrawData.m_LineVertexBuffers[0].emplace_back(Graphics::VertexBuffer::Create(RENDERER_LINE_BUFFER_SIZE, nullptr, BufferUsage::DYNAMIC));
+						// vertexBuffer->Resize(RENDERER_LINE_BUFFER_SIZE);
+				}
 
-                m_DebugDrawData.m_LineVertexBuffers[m_DebugDrawData.m_LineBatchDrawCallIndex]->Bind(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer(), pipeline.get());
-                // m_DebugDrawData.m_LineBuffer = m_DebugDrawData.m_LineVertexBuffers[m_DebugDrawData.m_LineBatchDrawCallIndex]->GetPointer<LineVertexData>();
-                m_DebugDrawData.m_LineBuffer = m_LineBufferBase[0];
+				m_DebugDrawData.m_LineVertexBuffers[0][m_DebugDrawData.m_LineBatchDrawCallIndex]->Bind(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer(), pipeline.get());
+				m_DebugDrawData.m_LineBuffer = m_LineBufferBase[0][0];//[m_DebugDrawData.m_LineBatchDrawCallIndex];
 
                 for(auto& line : thickLines)
                 {
-                    if(m_DebugDrawData.LineIndexCount >= m_DebugDrawData.m_Renderer2DData.m_Limits.MaxQuads)
-                        break;
+                    if(m_DebugDrawData.LineIndexCount >= MaxLineIndices)
+						DebugLineFlush(pipeline);
 
                     m_DebugDrawData.m_LineBuffer->vertex = line.p1;
                     m_DebugDrawData.m_LineBuffer->colour = line.col;
@@ -3125,29 +3148,9 @@ namespace Lumos::Graphics
                     m_DebugDrawData.LineIndexCount += 2;
                 }
 
-                // m_DebugDrawData.m_LineVertexBuffers[m_DebugDrawData.m_LineBatchDrawCallIndex]->ReleasePointer();
-                // m_DebugDrawData.m_LineVertexBuffers[m_DebugDrawData.m_LineBatchDrawCallIndex]->Unbind();
+				DebugLineFlush(pipeline.get());
 
-                m_DebugDrawData.m_LineIndexBuffer->SetCount(m_DebugDrawData.LineIndexCount);
-
-                m_DebugDrawData.m_LineVertexBuffers[m_DebugDrawData.m_LineBatchDrawCallIndex]->Bind(commandBuffer, pipeline.get());
-                uint32_t dataSize = (uint32_t)((uint8_t*)m_DebugDrawData.m_LineBuffer - (uint8_t*)m_LineBufferBase[0]);
-                m_DebugDrawData.m_LineVertexBuffers[m_DebugDrawData.m_LineBatchDrawCallIndex]->SetData(dataSize, (void*)m_LineBufferBase[0]);
-
-                m_DebugDrawData.m_LineIndexBuffer->Bind(commandBuffer);
-                auto* desc = m_DebugDrawData.m_LineDescriptorSet[0].get();
-                Renderer::BindDescriptorSets(pipeline.get(), commandBuffer, 0, &desc, 1);
-                Renderer::DrawIndexed(commandBuffer, DrawType::LINES, m_DebugDrawData.LineIndexCount);
-
-                m_DebugDrawData.m_LineVertexBuffers[m_DebugDrawData.m_LineBatchDrawCallIndex]->Unbind();
-                m_DebugDrawData.m_LineIndexBuffer->Unbind();
-
-                m_DebugDrawData.m_LineBuffer   = m_LineBufferBase[0];
-                m_DebugDrawData.LineIndexCount = 0;
-
-                pipeline->End(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer());
-
-                m_DebugDrawData.m_LineBatchDrawCallIndex++;
+				pipeline->End(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer());
             }
 
             if(!points.empty())
@@ -3175,14 +3178,19 @@ namespace Lumos::Graphics
 
                 pipeline->Bind(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer());
 
-                if((int)m_DebugDrawData.m_PointVertexBuffers.size() - 1 < (int)m_DebugDrawData.m_PointBatchDrawCallIndex)
+				if(m_DebugDrawData.m_PointVertexBuffers.empty())
+					m_DebugDrawData.m_PointVertexBuffers.emplace_back();
+
+				int bufferCount = 0;
+				bufferCount =(int)m_DebugDrawData.m_PointVertexBuffers[0].size();
+                if((bufferCount - 1) < (int)m_DebugDrawData.m_PointBatchDrawCallIndex)
                 {
-                    auto& vertexBuffer = m_DebugDrawData.m_PointVertexBuffers.emplace_back(Graphics::VertexBuffer::Create(BufferUsage::DYNAMIC));
+                    auto& vertexBuffer = m_DebugDrawData.m_PointVertexBuffers[0].emplace_back(Graphics::VertexBuffer::Create(BufferUsage::DYNAMIC));
                     vertexBuffer->Resize(RENDERER_POINT_BUFFER_SIZE);
                 }
 
-                m_DebugDrawData.m_PointVertexBuffers[m_DebugDrawData.m_PointBatchDrawCallIndex]->Bind(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer(), pipeline.get());
-                m_DebugDrawData.m_PointBuffer = m_PointBufferBase[0]; // m_DebugDrawData.m_PointVertexBuffers[m_DebugDrawData.m_PointBatchDrawCallIndex]->GetPointer<PointVertexData>();
+                m_DebugDrawData.m_PointVertexBuffers[0][m_DebugDrawData.m_PointBatchDrawCallIndex]->Bind(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer(), pipeline.get());
+                m_DebugDrawData.m_PointBuffer = m_PointBufferBase[0][m_DebugDrawData.m_PointBatchDrawCallIndex]; // m_DebugDrawData.m_PointVertexBuffers[m_DebugDrawData.m_PointBatchDrawCallIndex]->GetPointer<PointVertexData>();
 
                 for(auto& pointInfo : points)
                 {
@@ -3216,26 +3224,8 @@ namespace Lumos::Graphics
                     m_DebugDrawData.PointIndexCount += 6;
                 }
 
-                // m_DebugDrawData.m_PointVertexBuffers[m_DebugDrawData.m_PointBatchDrawCallIndex]->ReleasePointer();
-                m_DebugDrawData.m_PointIndexBuffer->SetCount(m_DebugDrawData.PointIndexCount);
-                m_DebugDrawData.m_PointIndexBuffer->Bind(commandBuffer);
-
-                uint32_t dataSize = (uint32_t)((uint8_t*)m_DebugDrawData.m_PointBuffer - (uint8_t*)m_PointBufferBase[0]);
-                m_DebugDrawData.m_PointVertexBuffers[m_DebugDrawData.m_PointBatchDrawCallIndex]->SetData(dataSize, (void*)m_PointBufferBase[0]);
-
-                auto* desc = m_DebugDrawData.m_PointDescriptorSet[0].get();
-                Renderer::BindDescriptorSets(pipeline.get(), commandBuffer, 0, &desc, 1);
-                Renderer::DrawIndexed(commandBuffer, DrawType::TRIANGLE, m_DebugDrawData.PointIndexCount);
-
-                m_DebugDrawData.m_PointVertexBuffers[m_DebugDrawData.m_PointBatchDrawCallIndex]->Unbind();
-                m_DebugDrawData.m_PointIndexBuffer->Unbind();
-
-                m_DebugDrawData.m_PointBuffer   = m_PointBufferBase[0];
-                m_DebugDrawData.PointIndexCount = 0;
-
-                pipeline->End(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer());
-
-                m_DebugDrawData.m_PointBatchDrawCallIndex++;
+				DebugPointFlush(pipeline.get());
+				pipeline->End(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer());
             }
 
             if(!triangles.empty())
@@ -3273,7 +3263,7 @@ namespace Lumos::Graphics
 
                 m_DebugDrawData.m_Renderer2DData.m_VertexBuffers[currentFrame][m_DebugDrawData.m_Renderer2DData.m_BatchDrawCallIndex]->Bind(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer(), pipeline.get());
                 // m_DebugDrawData.m_Renderer2DData.m_Buffer = m_DebugDrawData.m_Renderer2DData.m_VertexBuffers[currentFrame][m_DebugDrawData.m_Renderer2DData.m_BatchDrawCallIndex]->GetPointer<VertexData>();
-                m_DebugDrawData.m_Renderer2DData.m_Buffer = m_QuadBufferBase[currentFrame];
+                m_DebugDrawData.m_Renderer2DData.m_Buffer = m_QuadBufferBase[currentFrame][m_DebugDrawData.m_Renderer2DData.m_BatchDrawCallIndex];
 
                 for(auto& triangleInfo : triangles)
                 {
@@ -3307,8 +3297,8 @@ namespace Lumos::Graphics
                 m_DebugDrawData.m_Renderer2DData.m_IndexBuffer->SetCount(m_DebugDrawData.m_Renderer2DData.m_IndexCount);
                 m_DebugDrawData.m_Renderer2DData.m_IndexBuffer->Bind(commandBuffer);
 
-                uint32_t dataSize = (uint32_t)((uint8_t*)m_DebugDrawData.m_Renderer2DData.m_Buffer - (uint8_t*)m_QuadBufferBase[currentFrame]);
-                m_DebugDrawData.m_Renderer2DData.m_VertexBuffers[currentFrame][m_DebugDrawData.m_Renderer2DData.m_BatchDrawCallIndex]->SetData(dataSize, (void*)m_QuadBufferBase[currentFrame], true);
+                uint32_t dataSize = (uint32_t)((uint8_t*)m_DebugDrawData.m_Renderer2DData.m_Buffer - (uint8_t*)m_QuadBufferBase[currentFrame][m_DebugDrawData.m_Renderer2DData.m_BatchDrawCallIndex]);
+                m_DebugDrawData.m_Renderer2DData.m_VertexBuffers[currentFrame][m_DebugDrawData.m_Renderer2DData.m_BatchDrawCallIndex]->SetData(dataSize, (void*)m_QuadBufferBase[currentFrame][m_DebugDrawData.m_Renderer2DData.m_BatchDrawCallIndex], true);
 
                 pipeline->Bind(commandBuffer);
 
@@ -3320,7 +3310,8 @@ namespace Lumos::Graphics
 
                 pipeline->End(commandBuffer);
 
-                m_DebugDrawData.m_Renderer2DData.m_Buffer     = m_QuadBufferBase[currentFrame];
+				//m_DebugDrawData.m_Renderer2DData.m_BatchDrawCallIndex++;
+                m_DebugDrawData.m_Renderer2DData.m_Buffer     = m_QuadBufferBase[currentFrame][m_DebugDrawData.m_Renderer2DData.m_BatchDrawCallIndex];
                 m_DebugDrawData.m_Renderer2DData.m_IndexCount = 0;
             }
         }
@@ -3839,6 +3830,75 @@ namespace Lumos::Graphics
         }
     }
 
+	void RenderPasses::DebugLineFlush(Graphics::Pipeline* pipeline)
+	{
+		m_DebugDrawData.m_LineIndexBuffer->SetCount(m_DebugDrawData.LineIndexCount);
+		m_DebugDrawData.m_LineIndexBuffer->Bind(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer());
+
+		uint32_t dataSize = (uint32_t)((uint8_t*)m_DebugDrawData.m_LineBuffer - (uint8_t*)m_LineBufferBase[0][0]);
+		m_DebugDrawData.m_LineVertexBuffers[0][m_DebugDrawData.m_LineBatchDrawCallIndex]->SetData(dataSize, (void*)m_LineBufferBase[0][0]);
+
+		auto* desc = m_DebugDrawData.m_LineDescriptorSet[0].get();
+		Renderer::BindDescriptorSets(pipeline, Renderer::GetMainSwapChain()->GetCurrentCommandBuffer(), 0, &desc, 1);
+		Renderer::DrawIndexed(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer(), DrawType::LINES, m_DebugDrawData.LineIndexCount);
+
+		m_DebugDrawData.m_LineVertexBuffers[0][m_DebugDrawData.m_LineBatchDrawCallIndex]->Unbind();
+		m_DebugDrawData.m_LineIndexBuffer->Unbind();
+
+
+		m_DebugDrawData.m_LineBatchDrawCallIndex++;
+		m_DebugDrawData.m_LineBuffer   = m_LineBufferBase[0][0];//[m_DebugDrawData.m_LineBatchDrawCallIndex];
+		m_DebugDrawData.LineIndexCount = 0;
+
+		if(m_DebugDrawData.m_LineVertexBuffers.empty())
+			m_DebugDrawData.m_LineVertexBuffers.emplace_back();
+		if((int)m_DebugDrawData.m_LineVertexBuffers[0].size() - 1 < (int)m_DebugDrawData.m_LineBatchDrawCallIndex)
+		{
+			auto& vertexBuffer = m_DebugDrawData.m_LineVertexBuffers[0].emplace_back(Graphics::VertexBuffer::Create(RENDERER_LINE_BUFFER_SIZE, nullptr, BufferUsage::DYNAMIC));
+				// vertexBuffer->Resize(RENDERER_LINE_BUFFER_SIZE);
+		}
+
+		m_DebugDrawData.m_LineVertexBuffers[0][m_DebugDrawData.m_LineBatchDrawCallIndex]->Bind(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer(), pipeline);
+		m_DebugDrawData.m_LineBuffer = m_LineBufferBase[0][0];//[m_DebugDrawData.m_LineBatchDrawCallIndex];
+        m_DebugDrawData.LineIndexCount = 0;
+
+	}
+	
+	void RenderPasses::DebugPointFlush(Graphics::Pipeline* pipeline)
+	{
+		// m_DebugDrawData.m_PointVertexBuffers[m_DebugDrawData.m_PointBatchDrawCallIndex]->ReleasePointer();
+		m_DebugDrawData.m_PointIndexBuffer->SetCount(m_DebugDrawData.PointIndexCount);
+		m_DebugDrawData.m_PointIndexBuffer->Bind(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer());
+
+		uint32_t dataSize = (uint32_t)((uint8_t*)m_DebugDrawData.m_PointBuffer - (uint8_t*)m_PointBufferBase[0][m_DebugDrawData.m_PointBatchDrawCallIndex]);
+		m_DebugDrawData.m_PointVertexBuffers[0][m_DebugDrawData.m_PointBatchDrawCallIndex]->SetData(dataSize, (void*)m_PointBufferBase[0][m_DebugDrawData.m_PointBatchDrawCallIndex]);
+
+		auto* desc = m_DebugDrawData.m_PointDescriptorSet[0].get();
+		Renderer::BindDescriptorSets(pipeline, Renderer::GetMainSwapChain()->GetCurrentCommandBuffer(), 0, &desc, 1);
+		Renderer::DrawIndexed(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer(), DrawType::TRIANGLE, m_DebugDrawData.PointIndexCount);
+
+		m_DebugDrawData.m_PointVertexBuffers[0][m_DebugDrawData.m_PointBatchDrawCallIndex]->Unbind();
+		m_DebugDrawData.m_PointIndexBuffer->Unbind();
+
+		m_DebugDrawData.m_PointBatchDrawCallIndex++;
+
+		if(m_DebugDrawData.m_PointVertexBuffers.empty())
+			m_DebugDrawData.m_PointVertexBuffers.emplace_back();
+
+		int bufferCount = 0;
+		bufferCount =(int)m_DebugDrawData.m_PointVertexBuffers[0].size();
+		if((bufferCount - 1) < (int)m_DebugDrawData.m_PointBatchDrawCallIndex)
+		{
+			auto& vertexBuffer = m_DebugDrawData.m_PointVertexBuffers[0].emplace_back(Graphics::VertexBuffer::Create(BufferUsage::DYNAMIC));
+			vertexBuffer->Resize(RENDERER_POINT_BUFFER_SIZE);
+		}
+
+        m_DebugDrawData.m_PointVertexBuffers[0][m_DebugDrawData.m_PointBatchDrawCallIndex]->Bind(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer(), pipeline);
+		m_DebugDrawData.m_PointBuffer   = m_PointBufferBase[0][0];
+		m_DebugDrawData.PointIndexCount = 0;
+		
+	}
+
     void RenderPasses::CreateCubeMap(const std::string& filePath, const glm::vec4& params, SharedPtr<TextureCube>& outEnv, SharedPtr<TextureCube>& outIrr)
     {
         // Create shader and pipeline
@@ -4010,6 +4070,8 @@ namespace Lumos::Graphics
         commandBuffer->EndRecording();
         commandBuffer->Submit();
 
+        Graphics::Renderer::GetGraphicsContext()->WaitIdle();
+        environmentMap->Destroy(false);
         delete environmentMap;
         delete commandBuffer;
         outEnv = SharedPtr<TextureCube>(environmentMapFiltered);
@@ -4018,8 +4080,21 @@ namespace Lumos::Graphics
 
     void RenderPasses::InitDebugRenderData()
     {
-        if(m_DebugRenderDataInitialised)
+        if(m_DebugRenderDataInitialised || !m_DebugRenderEnabled)
             return;
+
+		for(int i = 0; i < Renderer::GetMainSwapChain()->GetSwapChainBufferCount(); i++)
+		{
+			if(m_DebugRenderEnabled)
+			{
+				m_QuadBufferBase.emplace_back().push_back(new VertexData[m_DebugDrawData.m_Renderer2DData.m_Limits.MaxQuads * 4]);
+
+					// m_2DBufferBase.push_back(new VertexData[m_Renderer2DData.m_Limits.MaxQuads  * 4]);
+				m_LineBufferBase.emplace_back().push_back(new LineVertexData[m_DebugDrawData.m_Renderer2DData.m_Limits.MaxQuads * 4]);
+				m_PointBufferBase.emplace_back().push_back(new PointVertexData[m_DebugDrawData.m_Renderer2DData.m_Limits.MaxQuads * 4]);
+				DebugTextVertexBufferBase.push_back(new TextVertexData[m_DebugTextRendererData.m_Limits.MaxQuads * 4]);
+			}
+		}
         // Points
         m_DebugDrawData.m_PointShader           = Application::Get().GetShaderLibrary()->GetResource("Batch2DPoint");
         Graphics::DescriptorDesc descriptorDesc = {};
@@ -4210,27 +4285,13 @@ namespace Lumos::Graphics
         return distanceSqA > distanceSqB;
     }
 
-    glm::mat4 CalculateParticleTransform(const glm::vec3& position, const glm::mat4& viewMatrix)
-    {
-        glm::mat4 transform = glm::mat4(1.0f);
-        return transform;
-        transform = glm::translate(transform, position);
-
-        // Extract the rotation part from the view matrix
-        glm::mat3 rotationMatrix = glm::mat3(viewMatrix);
-
-        // Set the rotation part of the particle transform matrix
-        transform[0] = glm::vec4(rotationMatrix[0], 0.0f);
-        transform[1] = glm::vec4(rotationMatrix[1], 0.0f);
-        transform[2] = glm::vec4(rotationMatrix[2], 0.0f);
-
-        return transform;
-    }
-
     void RenderPasses::ParticlePass()
     {
         LUMOS_PROFILE_FUNCTION();
         LUMOS_PROFILE_GPU("Particle Pass");
+
+      	if(!m_Camera || !m_CameraTransform)
+            return;
 
         auto emitterGroup = m_CurrentScene->GetRegistry().group<ParticleEmitter>(entt::get<Maths::Transform>);
 
@@ -4459,6 +4520,12 @@ namespace Lumos::Graphics
     {
         LUMOS_PROFILE_FUNCTION();
         uint32_t currentFrame = Renderer::GetMainSwapChain()->GetCurrentBufferIndex();
+        for (int i = m_ParticleData.m_TextureCount; i < 16; i++)
+        {
+            m_ParticleData.m_Textures[i] = Material::GetDefaultTexture();
+        }
+
+        m_ParticleData.m_TextureCount = 16;
 
         if(m_ParticleData.m_DescriptorSet[m_ParticleData.m_BatchDrawCallIndex][1] == nullptr || m_ParticleData.m_TextureCount != m_ParticleData.m_PreviousFrameTextureCount[m_ParticleData.m_BatchDrawCallIndex])
         {
@@ -4473,6 +4540,8 @@ namespace Lumos::Graphics
             descriptorDesc.shader                                                  = m_ParticleData.m_Shader.get();
             m_ParticleData.m_DescriptorSet[m_ParticleData.m_BatchDrawCallIndex][1] = SharedPtr<Graphics::DescriptorSet>(Graphics::DescriptorSet::Create(descriptorDesc));
         }
+
+		
 
         if(m_ParticleData.m_TextureCount > 1)
             m_ParticleData.m_DescriptorSet[m_ParticleData.m_BatchDrawCallIndex][1]->SetTexture("textures", m_ParticleData.m_Textures, m_ParticleData.m_TextureCount);

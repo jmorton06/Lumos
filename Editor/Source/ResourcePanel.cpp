@@ -133,7 +133,7 @@ namespace Lumos
         desc.minFilter = Graphics::TextureFilter::LINEAR;
         desc.magFilter = Graphics::TextureFilter::LINEAR;
         desc.wrap      = Graphics::TextureWrap::CLAMP;
-
+		
         Graphics::TextureLoadOptions options;
         options.flipY = true;
         m_FileIcon    = Graphics::Texture2D::CreateFromSource(browserFileWidth, browserFileHeight, (void*)browserFile, desc, options);

@@ -1,6 +1,6 @@
 {
     "value0": {
-        "Version": 17,
+        "Version": 23,
         "Scene Name": "Sandbox",
         "PhysicsEnabled2D": true,
         "PhysicsEnabled3D": true,
@@ -16,12 +16,12 @@
         "BloomKnee": 0.10000000149011612,
         "BloomThreshold": 1.0,
         "BloomUpsampleScale": 1.0,
-        "FXAAEnabled": true,
-        "DebandingEnabled": true,
+        "FXAAEnabled": false,
+        "DebandingEnabled": false,
         "ChromaticAberationEnabled": false,
         "EyeAdaptation": true,
-        "SSAOEnabled": true,
-        "BloomEnabled": true,
+        "SSAOEnabled": false,
+        "BloomEnabled": false,
         "FilmicGrainEnabled": false,
         "DepthOfFieldEnabled": false,
         "MotionBlurEnabled": false,
@@ -30,36 +30,38 @@
         "DepthOfFieldDistance": 100.0,
         "value0": 0.0,
         "value1": 1.0,
-        "value2": 1.0
+        "value2": 1.0,
+        "value3": false
     },
     "value1": 5,
-    "value2": 2097151,
-    "value3": 1,
-    "value4": 2,
-    "value5": 3,
-    "value6": 4,
-    "value7": 2,
-    "value8": 1,
-    "value9": {
+    "value2": 5,
+    "value3": 0,
+    "value4": 1,
+    "value5": 2,
+    "value6": 3,
+    "value7": 1048580,
+    "value8": 3,
+    "value9": 1048580,
+    "value10": {
         "Position": {
             "value0": 0.0,
             "value1": 0.0,
             "value2": 0.0
         },
         "Rotation": {
-            "value0": -0.32251736521720889,
-            "value1": 0.2442595511674881,
-            "value2": -0.08653092384338379,
-            "value3": 0.9104021787643433
+            "value0": 0.0,
+            "value1": 0.0,
+            "value2": 0.0,
+            "value3": 1.0
         },
         "Scale": {
-            "value0": 1.0000011920928956,
-            "value1": 1.0000061988830567,
-            "value2": 1.0000035762786866
+            "value0": 1.0,
+            "value1": 1.0,
+            "value2": 1.0
         }
     },
-    "value10": 2,
-    "value11": {
+    "value11": 2,
+    "value12": {
         "Position": {
             "value0": 228.4239044189453,
             "value1": 133.44451904296876,
@@ -77,30 +79,49 @@
             "value2": 1.0000016689300538
         }
     },
-    "value12": 4,
     "value13": 1,
     "value14": {
-        "Name": "Light"
+        "Position": {
+            "value0": 0.0,
+            "value1": 0.0,
+            "value2": 0.0
+        },
+        "Rotation": {
+            "value0": -0.32251736521720889,
+            "value1": 0.2442595511674881,
+            "value2": -0.08653092384338379,
+            "value3": 0.9104021787643433
+        },
+        "Scale": {
+            "value0": 1.0000011920928956,
+            "value1": 1.0000061988830567,
+            "value2": 1.0000035762786866
+        }
     },
     "value15": 4,
-    "value16": {
-        "Name": "Environment"
+    "value16": 1,
+    "value17": {
+        "Name": "Light"
     },
-    "value17": 2,
-    "value18": {
-        "Name": "Camera"
-    },
-    "value19": 3,
-    "value20": {
+    "value18": 3,
+    "value19": {
         "Name": "LuaScript"
     },
-    "value21": 0,
-    "value22": 0,
-    "value23": 1,
-    "value24": 2,
-    "value25": {
+    "value20": 2,
+    "value21": {
+        "Name": "Camera"
+    },
+    "value22": 1048580,
+    "value23": {
+        "Name": "Particle"
+    },
+    "value24": 0,
+    "value25": 0,
+    "value26": 1,
+    "value27": 2,
+    "value28": {
         "Scale": 1.0,
-        "Aspect": 1.1355931758880616,
+        "Aspect": 0.8066783547401428,
         "FOV": 79.24700164794922,
         "Near": 0.27399998903274538,
         "Far": 831.0960083007813,
@@ -108,15 +129,15 @@
         "ShutterSpeed": 0.01666666753590107,
         "Sensitivity": 200.0
     },
-    "value26": 1,
-    "value27": 3,
-    "value28": {
+    "value29": 1,
+    "value30": 3,
+    "value31": {
         "FilePath": "//Assets/Scripts/Projectile.lua"
     },
-    "value29": 0,
-    "value30": 1,
-    "value31": 1,
-    "value32": {
+    "value32": 0,
+    "value33": 1,
+    "value34": 1,
+    "value35": {
         "value0": {
             "value0": 0.0,
             "value1": 0.0,
@@ -132,7 +153,7 @@
         "value2": 0.0,
         "value3": 0.0,
         "value4": {
-            "value0": 0.5005651116371155,
+            "value0": 0.5005650520324707,
             "value1": 0.5449714064598084,
             "value2": 0.6726371645927429,
             "value3": 1.0
@@ -140,45 +161,77 @@
         "value5": 128000.0,
         "value6": 1.0
     },
-    "value33": 0,
-    "value34": 1,
-    "value35": 4,
-    "value36": {
-        "value0": "//Assets/Textures/cubemap/noga",
-        "value1": 11,
-        "value2": 3072,
-        "value3": 4096,
-        "value4": ".tga",
-        "value5": 0.03125
-    },
+    "value36": 0,
     "value37": 0,
     "value38": 0,
-    "value39": 1,
-    "value40": 2,
-    "value41": {
+    "value39": 0,
+    "value40": 1,
+    "value41": 2,
+    "value42": {
         "ControllerType": 4
     },
-    "value42": 0,
     "value43": 0,
     "value44": 0,
-    "value45": 4,
+    "value45": 0,
     "value46": 4,
-    "value47": {
-        "value0": 15908292661079695999
-    },
-    "value48": 3,
-    "value49": {
-        "value0": 7526643175369553408
-    },
-    "value50": 2,
-    "value51": {
-        "value0": 10876671568568338938
-    },
-    "value52": 1,
-    "value53": {
+    "value47": 1,
+    "value48": {
         "value0": 7214240436243909756
     },
-    "value54": 0,
+    "value49": 3,
+    "value50": {
+        "value0": 7526643175369553408
+    },
+    "value51": 2,
+    "value52": {
+        "value0": 10876671568568338938
+    },
+    "value53": 1048580,
+    "value54": {
+        "value0": 8659945023637098014
+    },
     "value55": 0,
-    "value56": 0
+    "value56": 0,
+    "value57": 0,
+    "value58": 1,
+    "value59": 1048580,
+    "value60": {
+        "value0": 65536,
+        "value1": 5.0,
+        "value2": 0.5,
+        "value3": {
+            "value0": 0.0,
+            "value1": 0.30000001192092898,
+            "value2": 0.0
+        },
+        "value4": {
+            "value0": 1.0,
+            "value1": 1.0,
+            "value2": 1.0,
+            "value3": 1.0
+        },
+        "value5": {
+            "value0": 0.10000000149011612,
+            "value1": 0.0,
+            "value2": 0.0
+        },
+        "value6": {
+            "value0": 0.10000000149011612,
+            "value1": 0.0,
+            "value2": 0.10000000149011612
+        },
+        "value7": -1.0,
+        "value8": -1.0,
+        "value9": 0.06899240612983704,
+        "value10": 0.10000000149011612,
+        "value11": 10,
+        "value12": true,
+        "value13": {
+            "value0": 0.0,
+            "value1": 0.0,
+            "value2": 0.0
+        },
+        "value14": 8,
+        "value15": "//Assets/Textures/fire.png"
+    }
 }

@@ -7,7 +7,7 @@
 #ifdef LUMOS_PLATFORM_WINDOWS
 #define USE_SMALL_VMA_POOL 1
 #else
-#define USE_SMALL_VMA_POOL 0
+#define USE_SMALL_VMA_POOL 1
 #endif
 
 namespace Lumos

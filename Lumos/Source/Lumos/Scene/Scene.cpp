@@ -217,7 +217,7 @@ namespace Lumos
         m_EntityManager->AddDependency<Graphics::Light, Maths::Transform>();
         m_EntityManager->AddDependency<Graphics::Sprite, Maths::Transform>();
         m_EntityManager->AddDependency<Graphics::AnimatedSprite, Maths::Transform>();
-        m_EntityManager->AddDependency<Graphics::Font, Maths::Transform>();
+        m_EntityManager->AddDependency<TextComponent, Maths::Transform>();
         m_EntityManager->AddDependency<ParticleEmitter, Maths::Transform>();
 
         m_SceneGraph = CreateUniquePtr<SceneGraph>();
