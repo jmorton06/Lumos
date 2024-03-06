@@ -76,7 +76,7 @@ namespace Lumos
             r2.x      = cosInc * r1.x - sinInc * r1.y;
             r2.y      = sinInc * r1.x + cosInc * r1.y;
             b2Vec2 v2 = center + radius * r2;
-            DebugRenderer::DrawTriangle({ v0.x, v0.y, 0.0f }, { v2.x, v2.y, 0.0f }, { v1.x, v1.y, 0.0f },  false, { fillColour.r, fillColour.g, fillColour.b, fillColour.a });
+            DebugRenderer::DrawTriangle({ v0.x, v0.y, 0.0f }, { v2.x, v2.y, 0.0f }, { v1.x, v1.y, 0.0f }, false, { fillColour.r, fillColour.g, fillColour.b, fillColour.a });
             r1 = r2;
             v1 = v2;
         }
@@ -97,7 +97,7 @@ namespace Lumos
 
         // Draw a line fixed in the circle to animate rotation.
         b2Vec2 p = center + radius * axis;
-        DebugRenderer::DrawHairLine({ p.x, p.y, 0.0f }, { center.x, center.y, 0.0f },false,  { colour.r, colour.g, colour.b, colour.a });
+        DebugRenderer::DrawHairLine({ p.x, p.y, 0.0f }, { center.x, center.y, 0.0f }, false, { colour.r, colour.g, colour.b, colour.a });
     }
 
     //

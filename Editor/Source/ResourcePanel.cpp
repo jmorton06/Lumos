@@ -16,6 +16,7 @@
 #include <Lumos/Core/OS/OS.h>
 #include <Lumos/Core/String.h>
 #include <Lumos/ImGui/ImGuiManager.h>
+#include <Lumos/Core/Thread.h>
 
 #ifdef LUMOS_PLATFORM_WINDOWS
 #include <Windows.h>
@@ -133,7 +134,7 @@ namespace Lumos
         desc.minFilter = Graphics::TextureFilter::LINEAR;
         desc.magFilter = Graphics::TextureFilter::LINEAR;
         desc.wrap      = Graphics::TextureWrap::CLAMP;
-		
+
         Graphics::TextureLoadOptions options;
         options.flipY = true;
         m_FileIcon    = Graphics::Texture2D::CreateFromSource(browserFileWidth, browserFileHeight, (void*)browserFile, desc, options);
@@ -198,8 +199,8 @@ namespace Lumos
             directoryInfo->Path = m_BasePath;
         else
             directoryInfo->Path = directoryPath;
+        directoryInfo->Path = directoryPath;
 
-        directoryInfo->Path       = directoryPath;
         String8 extension         = StringUtilities::Str8PathSkipLastPeriod(directoryInfo->Path);
         directoryInfo->FileTypeID = GetParsedAssetID(extension);
 
@@ -244,6 +245,9 @@ namespace Lumos
             directoryInfo->Hidden         = std::filesystem::exists(stdPath) ? IsHidden(stdPath) : true;
             directoryInfo->Opened         = true;
             directoryInfo->Leaf           = true;
+
+            String8 pathCopy = PushStr8Copy(m_Arena, directoryPath);
+            directoryInfo->AssetPath = StringUtilities::AbsolutePathToRelativeFileSystemPath(m_Arena, pathCopy, m_BasePath, Str8Lit("//Assets"));
 
             ImVec4 fileTypeColor        = { 1.0f, 1.0f, 1.0f, 1.0f };
             const auto& fileTypeColorIt = s_TypeColors.find(fileType);
@@ -367,7 +371,7 @@ namespace Lumos
     {
         LUMOS_PROFILE_FUNCTION();
 
-        m_TextureLibrary.Update((float)Engine::Get().GetTimeStep().GetElapsedSeconds());
+        // m_TextureLibrary.Update((float)Engine::Get().GetTimeStep().GetElapsedSeconds());
         if(ImGui::Begin(m_Name.c_str(), &m_Active))
         {
             FileIndex        = 0;
@@ -811,9 +815,13 @@ namespace Lumos
                     }
                     else if(!textureCreated)
                     {
-                        textureCreated         = true;
-                        CurrentEnty->Thumbnail = m_TextureLibrary.GetResource(std::string((const char*)CurrentEnty->Path.str, CurrentEnty->Path.size));
-                        textureId              = CurrentEnty->Thumbnail ? CurrentEnty->Thumbnail : m_FileIcon;
+                        textureCreated = true;
+
+                        if(!m_Editor->GetAssetManager()->AssetExists(std::string((const char*)CurrentEnty->AssetPath.str, CurrentEnty->AssetPath.size)))
+                            CurrentEnty->Thumbnail = m_Editor->GetAssetManager()->LoadTextureAsset(std::string((const char*)CurrentEnty->AssetPath.str, CurrentEnty->AssetPath.size), true);
+                        else
+                            CurrentEnty->Thumbnail = m_Editor->GetAssetManager()->GetAssetData(std::string((const char*)CurrentEnty->AssetPath.str, CurrentEnty->AssetPath.size)).As<Graphics::Texture2D>();
+                        textureId = CurrentEnty->Thumbnail ? CurrentEnty->Thumbnail : m_FileIcon;
                     }
                     else
                     {
@@ -830,13 +838,19 @@ namespace Lumos
                     {
                         ArenaTemp scratch = ArenaTempBegin(m_Arena);
 
-                        String8 sceneScreenShotPath = PushStr8F(scratch.arena, "%s/Scenes/Cache/%s.png", m_BasePath.str, CurrentEnty->Path);
+                        String8 fileName            = PushStr8Copy(scratch.arena, StringUtilities::GetFileName(CurrentEnty->Path));
+                        String8 sceneScreenShotPath = PushStr8F(scratch.arena, "%s/Scenes/Cache/%s.png", m_BasePath.str, fileName);
                         // auto sceneScreenShotPath = m_BasePath + "/Scenes/Cache/" + CurrentEnty->FilePath.stem().string() + ".png";
                         if(std::filesystem::exists(std::filesystem::path(std::string((const char*)sceneScreenShotPath.str, sceneScreenShotPath.size))))
                         {
-                            textureCreated         = true;
-                            CurrentEnty->Thumbnail = m_TextureLibrary.GetResource(std::string((const char*)sceneScreenShotPath.str, sceneScreenShotPath.size));
-                            textureId              = CurrentEnty->Thumbnail ? CurrentEnty->Thumbnail : m_FileIcon;
+                            textureCreated = true;
+
+                            if(!m_Editor->GetAssetManager()->AssetExists(std::string((const char*)sceneScreenShotPath.str, sceneScreenShotPath.size)))
+                                CurrentEnty->Thumbnail = m_Editor->GetAssetManager()->LoadTextureAsset(std::string((const char*)sceneScreenShotPath.str, sceneScreenShotPath.size), true);
+                            else
+                                CurrentEnty->Thumbnail = m_Editor->GetAssetManager()->GetAssetData(std::string((const char*)sceneScreenShotPath.str, sceneScreenShotPath.size)).As<Graphics::Texture2D>();
+                            // CurrentEnty->Thumbnail = nullptr;//  m_TextureLibrary.GetAsset(std::string((const char*)sceneScreenShotPath.str, sceneScreenShotPath.size));
+                            textureId = CurrentEnty->Thumbnail ? CurrentEnty->Thumbnail : m_FileIcon;
                         }
                         else
                             textureId = m_FileIcon;
@@ -958,11 +972,13 @@ namespace Lumos
                 ImGui::TextUnformatted(m_Editor->GetIconFontIcon(ToStdString(m_CurrentDir->Children[dirIndex]->Path)));
 
                 ImGui::SameLine();
-                m_MovePath = m_CurrentDir->Children[dirIndex]->Path;
-                ImGui::TextUnformatted((const char*)m_MovePath.str);
+                m_MovePath           = m_CurrentDir->Children[dirIndex]->Path;
+                String8 resolvedPath = StringUtilities::AbsolutePathToRelativeFileSystemPath(m_Arena, m_MovePath, m_BasePath, Str8Lit("//Assets"));
 
-                size_t size = sizeof(const char*) + m_MovePath.size;
-                ImGui::SetDragDropPayload("AssetFile", m_MovePath.str, size);
+                ImGui::TextUnformatted((const char*)resolvedPath.str);
+
+                size_t size = sizeof(const char*) + resolvedPath.size;
+                ImGui::SetDragDropPayload("AssetFile", resolvedPath.str, size);
                 m_IsDragging = true;
                 ImGui::EndDragDropSource();
             }
@@ -1079,10 +1095,8 @@ namespace Lumos
 
     void ResourcePanel::Refresh()
     {
-        m_TextureLibrary.Destroy();
-
-        Arena* temp         = ArenaAlloc(256);
-        String8 currentPath = PushStr8Copy(temp, m_CurrentDir->Path);
+        ArenaTemp temp      = ScratchBegin(&m_Arena, 1);
+        String8 currentPath = PushStr8Copy(temp.arena, m_CurrentDir->Path);
 
         ArenaClear(m_Arena);
         m_Directories.clear();
@@ -1111,6 +1125,6 @@ namespace Lumos
         if(!dirFound)
             ChangeDirectory(m_BaseProjectDir);
 
-        ArenaRelease(temp);
+        ScratchEnd(temp);
     }
 }

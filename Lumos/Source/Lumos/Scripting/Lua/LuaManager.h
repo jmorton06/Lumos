@@ -23,6 +23,8 @@ namespace Lumos
         void OnInit(Scene* scene);
         void OnUpdate(Scene* scene);
 
+        void CollectGarbage();
+
         void OnNewProject(const std::string& projectPath);
 
         void BindECSLua(sol::state& state);
@@ -38,9 +40,9 @@ namespace Lumos
             return *m_State;
         }
 
+    private:
         static std::vector<std::string> s_Identifiers;
 
-    private:
         sol::state* m_State;
     };
 }

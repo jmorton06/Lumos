@@ -10,8 +10,8 @@ namespace Lumos
     {
         ArenaTemp scratch = ScratchBegin(&arena, 1);
 
-        m_SlotCount   = 64;
-        m_Slots       = PushArray(arena, CommandLineOptionSlot, m_SlotCount);
+        m_SlotCount = 64;
+        m_Slots     = PushArray(arena, CommandLineOptionSlot, m_SlotCount);
 
         String8List separatedStrings = { 0 };
         for(String8Node* n = strings.first; n != 0; n = n->next)
@@ -19,23 +19,23 @@ namespace Lumos
             String8List stringsFromCurrentNode = { 0 };
             uint64_t startIndex                = 0;
             bool quoted                        = false;
-            bool seekingNonWS             	   = false;
+            bool seekingNonWS                  = false;
 
             for(uint64_t index = 0; index <= n->string.size; index += 1)
             {
                 if(seekingNonWS && index < n->string.size && !CharIsSpace(n->string.str[index]))
                 {
-					seekingNonWS = false;
-					startIndex   = index;
+                    seekingNonWS = false;
+                    startIndex   = index;
                 }
                 if(!seekingNonWS && (index == n->string.size || n->string.str[index] == ' ' || n->string.str[index] == '"'))
                 {
                     String8 string = Substr8(n->string, RangeU64({ startIndex, index }));
                     Str8ListPush(scratch.arena, &stringsFromCurrentNode, string);
-					startIndex = index + 1;
+                    startIndex = index + 1;
                     if(n->string.str[index] == ' ')
                     {
-						seekingNonWS = true;
+                        seekingNonWS = true;
                     }
                 }
                 if(index < n->string.size && n->string.str[index] == '"')

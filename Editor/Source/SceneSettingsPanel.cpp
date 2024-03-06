@@ -133,7 +133,7 @@ namespace Lumos
                             ImGui::TreePop();
                         }
 
-                        //ImGui::BeginDisabled();
+                        // ImGui::BeginDisabled();
                         open = postprocessSetting("SSAO", "##SSAO", sceneSettings.RenderSettings.SSAOEnabled, false);
                         if(open)
                         {
@@ -144,7 +144,7 @@ namespace Lumos
                             ImGui::TreePop();
                         }
 
-                        //ImGui::EndDisabled();
+                        // ImGui::EndDisabled();
                         ImGui::Columns(1);
                         ImGui::TreePop();
                     }

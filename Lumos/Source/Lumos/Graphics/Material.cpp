@@ -231,7 +231,7 @@ namespace Lumos::Graphics
         {
             // If no shader then set it to the default pbr shader
             // TODO default to forward
-            m_Shader = Application::Get().GetShaderLibrary()->GetResource("ForwardPBR");
+            m_Shader = Application::Get().GetAssetManager()->GetAssetData("ForwardPBR").As<Graphics::Shader>();
         }
 
         Graphics::DescriptorDesc descriptorDesc;
@@ -260,7 +260,7 @@ namespace Lumos::Graphics
 
     void Material::SetShader(const std::string& filePath)
     {
-        m_Shader = Application::Get().GetShaderLibrary()->GetResource(filePath);
+        m_Shader = Application::Get().GetAssetManager()->GetAssetData("ForwardPBR").As<Graphics::Shader>();
     }
 
     void Material::InitDefaultTexture()

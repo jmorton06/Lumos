@@ -1,6 +1,6 @@
 {
     "value0": {
-        "Version": 24,
+        "Version": 21,
         "Scene Name": "2D",
         "PhysicsEnabled2D": true,
         "PhysicsEnabled3D": true,
@@ -34,7 +34,7 @@
         "value3": false
     },
     "value1": 67,
-    "value2": 8,
+    "value2": 1,
     "value3": 0,
     "value4": 1048578,
     "value5": 1048577,
@@ -42,8 +42,8 @@
     "value7": 1048580,
     "value8": 1048581,
     "value9": 1048641,
-    "value10": 4194311,
-    "value11": 2097216,
+    "value10": 1048640,
+    "value11": 3145735,
     "value12": 3145734,
     "value13": 2097160,
     "value14": 2097161,
@@ -102,431 +102,36 @@
     "value67": 2097166,
     "value68": 2097167,
     "value69": 1048642,
-    "value70": 6,
-    "value71": 1048579,
-    "value72": {
-        "Position": {
-            "value0": 0.6216171979904175,
-            "value1": -0.6347350478172302,
-            "value2": 1.56640625
-        },
-        "Rotation": {
-            "value0": -0.3565860986709595,
-            "value1": 0.0,
-            "value2": 0.0,
-            "value3": 0.9342624545097351
-        },
-        "Scale": {
-            "value0": 1.0,
-            "value1": 1.0,
-            "value2": 0.9999999403953552
-        }
-    },
-    "value73": 1048641,
-    "value74": {
-        "Position": {
-            "value0": 0.0,
-            "value1": 0.0,
-            "value2": 0.0
-        },
-        "Rotation": {
-            "value0": 0.0,
-            "value1": 0.0,
-            "value2": 0.0,
-            "value3": 1.0
-        },
-        "Scale": {
-            "value0": 1.0,
-            "value1": 1.0,
-            "value2": 1.0
-        }
-    },
-    "value75": 4194311,
-    "value76": {
-        "Position": {
-            "value0": -19.7490234375,
-            "value1": -6.9737396240234379,
-            "value2": -10.3634033203125
-        },
-        "Rotation": {
-            "value0": 0.0,
-            "value1": 0.0,
-            "value2": 0.0,
-            "value3": 1.0
-        },
-        "Scale": {
-            "value0": 1.0,
-            "value1": 1.0,
-            "value2": 1.0
-        }
-    },
-    "value77": 1048577,
-    "value78": {
-        "Position": {
-            "value0": 0.0,
-            "value1": 0.0,
-            "value2": 0.0
-        },
-        "Rotation": {
-            "value0": 0.0,
-            "value1": 0.0,
-            "value2": 0.0,
-            "value3": 1.0
-        },
-        "Scale": {
-            "value0": 1.0,
-            "value1": 1.0,
-            "value2": 1.0
-        }
-    },
-    "value79": 1048581,
-    "value80": {
-        "Position": {
-            "value0": -2.7478182315826418,
-            "value1": -3.1210477352142336,
-            "value2": -1.821167230606079
-        },
-        "Rotation": {
-            "value0": 0.0,
-            "value1": 0.0,
-            "value2": 0.0,
-            "value3": 1.0
-        },
-        "Scale": {
-            "value0": 1.0,
-            "value1": 1.0,
-            "value2": 1.0
-        }
-    },
-    "value81": 1048578,
-    "value82": {
-        "Position": {
-            "value0": -2.449951171875,
-            "value1": -1.1522674560546876,
-            "value2": -1.21807861328125
-        },
-        "Rotation": {
-            "value0": 0.0,
-            "value1": 0.0,
-            "value2": 0.0,
-            "value3": 1.0
-        },
-        "Scale": {
-            "value0": 1.0,
-            "value1": 1.0,
-            "value2": 1.0
-        }
-    },
-    "value83": 6,
-    "value84": 0,
-    "value85": {
+    "value70": 0,
+    "value71": 1,
+    "value72": 0,
+    "value73": {
         "Name": "GameController"
     },
-    "value86": 1048578,
-    "value87": {
-        "Name": "DamagedHelmet.gltf"
-    },
-    "value88": 1048577,
-    "value89": {
-        "Name": "round_outline.png"
-    },
-    "value90": 1048579,
-    "value91": {
-        "Name": "Light"
-    },
-    "value92": 1048581,
-    "value93": {
-        "Name": "Cube"
-    },
-    "value94": 4194311,
-    "value95": {
-        "Name": "scene.gltf"
-    },
-    "value96": 0,
-    "value97": 0,
-    "value98": 0,
-    "value99": 1,
-    "value100": 0,
-    "value101": {
+    "value74": 0,
+    "value75": 0,
+    "value76": 0,
+    "value77": 1,
+    "value78": 0,
+    "value79": {
         "FilePath": "//Assets/Scripts/FlappyBirdTest.lua"
     },
-    "value102": 0,
-    "value103": 1,
-    "value104": 1048579,
-    "value105": {
-        "value0": {
-            "value0": 0.6216171979904175,
-            "value1": -0.6347350478172302,
-            "value2": 1.56640625,
-            "value3": 1.0
-        },
-        "value1": {
-            "value0": 1.0,
-            "value1": 1.0,
-            "value2": 1.0,
-            "value3": 1.0
-        },
-        "value2": 0.0,
-        "value3": 0.0,
-        "value4": {
-            "value0": 0.0,
-            "value1": 0.6662899851799011,
-            "value2": 0.745692789554596,
-            "value3": 1.0
-        },
-        "value5": 120000.0,
-        "value6": 1.0
-    },
-    "value106": 0,
-    "value107": 1,
-    "value108": 1048580,
-    "value109": {
-        "value0": "//Assets/Textures/cubemap/noga",
-        "value1": 11,
-        "value2": 3072,
-        "value3": 4096,
-        "value4": ".hdr",
-        "value5": 0.03125,
-        "value6": 0,
-        "value7": {
-            "value0": 2.0,
-            "value1": 0.0,
-            "value2": 0.0,
-            "value3": 0.0
-        }
-    },
-    "value110": 1,
-    "value111": 1048577,
-    "value112": {
-        "TexturePath": "//Assets/Textures/round_outline.png",
-        "Position": {
-            "value0": 0.0,
-            "value1": 0.0
-        },
-        "Scale": {
-            "value0": 1.0,
-            "value1": 1.0
-        },
-        "Colour": {
-            "value0": 1.0,
-            "value1": 1.0,
-            "value2": 1.0,
-            "value3": 1.0
-        },
-        "value0": false,
-        "value1": 32
-    },
-    "value113": 0,
-    "value114": 0,
-    "value115": 0,
-    "value116": 0,
-    "value117": 0,
-    "value118": 8,
-    "value119": 0,
-    "value120": {
+    "value80": 0,
+    "value81": 0,
+    "value82": 0,
+    "value83": 0,
+    "value84": 0,
+    "value85": 0,
+    "value86": 0,
+    "value87": 0,
+    "value88": 0,
+    "value89": 0,
+    "value90": 1,
+    "value91": 0,
+    "value92": {
         "value0": 5632316061460210371
     },
-    "value121": 1048578,
-    "value122": {
-        "value0": 3148763975313226597
-    },
-    "value123": 1048577,
-    "value124": {
-        "value0": 338801640988112690
-    },
-    "value125": 1048579,
-    "value126": {
-        "value0": 2676029196170788084
-    },
-    "value127": 1048580,
-    "value128": {
-        "value0": 15306655761902444500
-    },
-    "value129": 1048581,
-    "value130": {
-        "value0": 14763346221470978657
-    },
-    "value131": 1048641,
-    "value132": {
-        "value0": 8723656259509364768
-    },
-    "value133": 4194311,
-    "value134": {
-        "value0": 16879756948095933651
-    },
-    "value135": 3,
-    "value136": 1048578,
-    "value137": {
-        "PrimitiveType": 8,
-        "FilePath": "//Assets/Meshes/DamagedHelmet/glTF/DamagedHelmet.gltf",
-        "Material": {
-            "ptr_wrapper": {
-                "valid": 1,
-                "data": {
-                    "Albedo": "",
-                    "Normal": "",
-                    "Metallic": "",
-                    "Roughness": "",
-                    "Ao": "",
-                    "Emissive": "",
-                    "albedoColour": {
-                        "value0": 1.0,
-                        "value1": 1.0,
-                        "value2": 1.0,
-                        "value3": 1.0
-                    },
-                    "roughnessValue": 0.699999988079071,
-                    "metallicValue": 0.699999988079071,
-                    "emissiveValue": 0.0,
-                    "albedoMapFactor": 1.0,
-                    "metallicMapFactor": 1.0,
-                    "roughnessMapFactor": 0.0,
-                    "normalMapFactor": 1.0,
-                    "aoMapFactor": 1.0,
-                    "emissiveMapFactor": 1.0,
-                    "alphaCutOff": 0.4000000059604645,
-                    "workflow": 1.0,
-                    "shader": "/Users/jmorton/Dev/Lumos/Lumos/Assets/Shaders/ForwardPBR.shader",
-                    "Reflectance": 0.30000001192092898
-                }
-            }
-        }
-    },
-    "value138": 1048581,
-    "value139": {
-        "PrimitiveType": 2,
-        "FilePath": "Primitive",
-        "Material": {
-            "ptr_wrapper": {
-                "valid": 0
-            }
-        }
-    },
-    "value140": 4194311,
-    "value141": {
-        "PrimitiveType": 8,
-        "FilePath": "//Assets/Meshes/Scene/scene.gltf",
-        "Material": {
-            "ptr_wrapper": {
-                "valid": 1,
-                "data": {
-                    "Albedo": "",
-                    "Normal": "",
-                    "Metallic": "",
-                    "Roughness": "",
-                    "Ao": "",
-                    "Emissive": "",
-                    "albedoColour": {
-                        "value0": 1.0,
-                        "value1": 1.0,
-                        "value2": 1.0,
-                        "value3": 1.0
-                    },
-                    "roughnessValue": 1.0,
-                    "metallicValue": 0.699999988079071,
-                    "emissiveValue": 0.0,
-                    "albedoMapFactor": 1.0,
-                    "metallicMapFactor": 0.0,
-                    "roughnessMapFactor": 0.0,
-                    "normalMapFactor": 0.0,
-                    "aoMapFactor": 0.0,
-                    "emissiveMapFactor": 1.0,
-                    "alphaCutOff": 0.4000000059604645,
-                    "workflow": 0.0,
-                    "shader": "/Users/jmorton/Dev/Lumos/Lumos/Assets/Shaders/ForwardPBR.shader",
-                    "Reflectance": 0.30000001192092898
-                }
-            }
-        }
-    },
-    "value142": 0,
-    "value143": 2,
-    "value144": 1048579,
-    "value145": {
-        "TextString": "Textffffffffffffffffffffffffffffffffffffffffff",
-        "Path": "RobotoRegular",
-        "Colour": {
-            "value0": 1.0,
-            "value1": 1.0,
-            "value2": 1.0,
-            "value3": 1.0
-        },
-        "LineSpacing": 0.0,
-        "Kerning": 0.0,
-        "MaxWidth": 10.0,
-        "OutlineColour": {
-            "value0": 1.0,
-            "value1": 1.0,
-            "value2": 1.0,
-            "value3": 1.0
-        },
-        "OutlineWidth": 0.0
-    },
-    "value146": 1048641,
-    "value147": {
-        "TextString": "Textmeow",
-        "Path": "RobotoRegular",
-        "Colour": {
-            "value0": 1.0,
-            "value1": 1.0,
-            "value2": 1.0,
-            "value3": 1.0
-        },
-        "LineSpacing": 0.0,
-        "Kerning": 0.0,
-        "MaxWidth": 10.0,
-        "OutlineColour": {
-            "value0": 1.0,
-            "value1": 1.0,
-            "value2": 1.0,
-            "value3": 1.0
-        },
-        "OutlineWidth": 0.0
-    },
-    "value148": 1,
-    "value149": 1048579,
-    "value150": {
-        "value0": 1024,
-        "value1": 3.0,
-        "value2": 1.0,
-        "value3": {
-            "value0": 0.0,
-            "value1": 1.0,
-            "value2": 0.0
-        },
-        "value4": {
-            "value0": 1.0,
-            "value1": 1.0,
-            "value2": 1.0,
-            "value3": 1.0
-        },
-        "value5": {
-            "value0": 0.10000000149011612,
-            "value1": 0.0,
-            "value2": 0.0
-        },
-        "value6": {
-            "value0": 0.0,
-            "value1": 0.0,
-            "value2": 0.0
-        },
-        "value7": -1.0,
-        "value8": -1.0,
-        "value9": 0.07547474652528763,
-        "value10": 0.10000000149011612,
-        "value11": 10,
-        "value12": true,
-        "value13": {
-            "value0": 0.0,
-            "value1": 0.0,
-            "value2": 0.0
-        },
-        "value14": 4,
-        "value15": "//Assets/Textures/Fire1.png",
-        "value16": 0.10000000149011612,
-        "value17": false,
-        "value18": false,
-        "value19": 0,
-        "value20": 1
-    }
+    "value93": 0,
+    "value94": 0,
+    "value95": 0
 }

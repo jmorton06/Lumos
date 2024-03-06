@@ -3,6 +3,7 @@
 #include "RHI/Renderer.h"
 
 #include <ModelLoaders/meshoptimizer/src/meshoptimizer.h>
+#include <glm/gtx/norm.hpp>
 
 namespace Lumos
 {
@@ -75,6 +76,42 @@ namespace Lumos
             m_Stats.TriangleCount     = m_Stats.VertexCount / 3;
             m_Stats.IndexCount        = (uint32_t)m_Indices.size();
             m_Stats.OptimiseThreshold = optimiseThreshold;
+#endif
+
+            const bool storeData = false;
+            if(!storeData)
+            {
+                m_Indices.clear();
+                m_Indices.shrink_to_fit();
+
+                m_Vertices.clear();
+                m_Vertices.shrink_to_fit();
+            }
+        }
+
+		Mesh::Mesh(const std::vector<uint32_t>& indices, const std::vector<Vertex>& vertices, const std::vector<BoneInfluence>& boneInfluences)
+        {
+                   // int lod = 2;
+            // float threshold = powf(0.7f, float(lod));
+            m_Indices  = indices;
+            m_Vertices = vertices;
+
+            m_BoundingBox = CreateSharedPtr<Maths::BoundingBox>();
+
+            for(auto& vertex : m_Vertices)
+            {
+                m_BoundingBox->Merge(vertex.Position);
+            }
+
+            m_IndexBuffer  = SharedPtr<Graphics::IndexBuffer>(Graphics::IndexBuffer::Create(m_Indices.data(), (uint32_t)m_Indices.size()));
+            m_VertexBuffer = SharedPtr<VertexBuffer>(VertexBuffer::Create((uint32_t)(sizeof(Graphics::Vertex) * m_Vertices.size()), m_Vertices.data(), BufferUsage::STATIC));
+            m_BoneInfluenceBuffer = SharedPtr<VertexBuffer>(VertexBuffer::Create((uint32_t)(sizeof(Graphics::BoneInfluence) * boneInfluences.size()), boneInfluences.data(), BufferUsage::STATIC));
+
+#ifndef LUMOS_PRODUCTION
+            m_Stats.VertexCount       = (uint32_t)m_Vertices.size();
+            m_Stats.TriangleCount     = m_Stats.VertexCount / 3;
+            m_Stats.IndexCount        = (uint32_t)m_Indices.size();
+            m_Stats.OptimiseThreshold = 1.0f;
 #endif
 
             const bool storeData = false;

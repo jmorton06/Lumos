@@ -530,10 +530,10 @@ namespace Lumos
             fn.vkGetDeviceProcAddr                     = (PFN_vkGetDeviceProcAddr)vkGetDeviceProcAddr;
 
 #if !defined(LUMOS_PLATFORM_MACOS) && !defined(LUMOS_PLATFORM_IOS)
-            fn.vkGetDeviceBufferMemoryRequirements     = (PFN_vkGetDeviceBufferMemoryRequirements)vkGetDeviceBufferMemoryRequirements;
-            fn.vkGetDeviceImageMemoryRequirements = (PFN_vkGetDeviceImageMemoryRequirements)vkGetDeviceImageMemoryRequirements;
+            fn.vkGetDeviceBufferMemoryRequirements = (PFN_vkGetDeviceBufferMemoryRequirements)vkGetDeviceBufferMemoryRequirements;
+            fn.vkGetDeviceImageMemoryRequirements  = (PFN_vkGetDeviceImageMemoryRequirements)vkGetDeviceImageMemoryRequirements;
 #endif
-			allocatorInfo.pVulkanFunctions             = &fn;
+            allocatorInfo.pVulkanFunctions            = &fn;
             allocatorInfo.preferredLargeHeapBlockSize = 64 * 1024 * 1024;
             if(vmaCreateAllocator(&allocatorInfo, &m_Allocator) != VK_SUCCESS)
             {

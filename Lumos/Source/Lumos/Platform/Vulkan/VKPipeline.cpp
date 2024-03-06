@@ -23,7 +23,7 @@ namespace Lumos
         VKPipeline::~VKPipeline()
         {
             LUMOS_PROFILE_FUNCTION_LOW();
-            VKContext::DeletionQueue& deletionQueue = VKRenderer::GetCurrentDeletionQueue();
+            DeletionQueue& deletionQueue = VKRenderer::GetCurrentDeletionQueue();
 
             auto pipeline = m_Pipeline;
 

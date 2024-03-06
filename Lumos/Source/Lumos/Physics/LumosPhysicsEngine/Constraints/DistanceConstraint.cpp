@@ -3,7 +3,7 @@
 #include "Physics/LumosPhysicsEngine/LumosPhysicsEngine.h"
 #include "DistanceConstraint.h"
 #include "Graphics/Renderers/DebugRenderer.h"
-#include <glm/ext.hpp>
+
 namespace Lumos
 {
 

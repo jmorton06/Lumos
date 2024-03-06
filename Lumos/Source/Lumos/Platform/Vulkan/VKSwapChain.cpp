@@ -247,7 +247,7 @@ namespace Lumos
 
                     m_Frames[i].MainCommandBuffer = CreateSharedPtr<VKCommandBuffer>();
                     m_Frames[i].MainCommandBuffer->Init(true, m_Frames[i].CommandPool->GetHandle());
-                    ArenaTemp scratch = ScratchBegin(nullptr, 0);
+                    ArenaTemp scratch         = ScratchBegin(nullptr, 0);
                     String8 commandBufferName = PushStr8F(scratch.arena, "Commandbuffer - Frame %u", i);
                     VKUtilities::SetDebugUtilsObjectName(VKDevice::Get().GetDevice(), VK_OBJECT_TYPE_COMMAND_BUFFER, ToCChar(commandBufferName), m_Frames[i].MainCommandBuffer->GetHandle());
                     ScratchEnd(scratch);

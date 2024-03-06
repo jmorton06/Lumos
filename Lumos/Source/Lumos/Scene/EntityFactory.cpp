@@ -58,7 +58,7 @@ namespace Lumos
         properties.metallicMapFactor  = 0.0f;
         matInstance->SetMaterialProperites(properties);
 
-        // auto shader = Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/ForwardPBR.shader");
+        // auto shader = Application::Get().GetShaderLibrary()->GetAsset("//CoreShaders/ForwardPBR.shader");
         // matInstance->SetShader(nullptr);//shader);
         model->GetMeshes().front()->SetMaterial(matInstance);
 
@@ -120,7 +120,7 @@ namespace Lumos
         properties.occlusionMapFactor = 0.0f;
         matInstance->SetMaterialProperites(properties);
 
-        // auto shader = Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/ForwardPBR.shader");
+        // auto shader = Application::Get().GetShaderLibrary()->GetAsset("//CoreShaders/ForwardPBR.shader");
         // matInstance->SetShader(shader);
         model->GetMeshes().front()->SetMaterial(matInstance);
 
@@ -177,7 +177,7 @@ namespace Lumos
         properties.metallicMapFactor  = 0.0f;
         matInstance->SetMaterialProperites(properties);
 
-        // auto shader = Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/ForwardPBR.shader");
+        // auto shader = Application::Get().GetShaderLibrary()->GetAsset("//CoreShaders/ForwardPBR.shader");
         // matInstance->SetShader(shader);
 
         pyramidMeshEntity.AddComponent<Maths::Transform>(glm::toMat4(glm::quat(glm::vec3(glm::radians(-90.0f), 0.0f, 0.0f))) * glm::scale(glm::mat4(1.0), halfdims));

@@ -21,16 +21,16 @@ inline PFN_vkSetDebugUtilsObjectNameEXT fpSetDebugUtilsObjectNameEXT;
 
 #if ENABLE_VMA_LOG
 static char VMA_LOG_BUFFER[100];
-#define VMA_DEBUG_LOG(...) \
-	sprintf(VMA_LOG_BUFFER, __VA_ARGS__); \
-	LUMOS_LOG_INFO((const char*)VMA_LOG_BUFFER)
+#define VMA_DEBUG_LOG(...)                \
+    sprintf(VMA_LOG_BUFFER, __VA_ARGS__); \
+    LUMOS_LOG_INFO((const char*)VMA_LOG_BUFFER)
 #endif
 
 #if defined(LUMOS_PLATFORM_MACOS) || defined(LUMOS_PLATFORM_IOS)
 #undef VMA_VULKAN_VERSION
 
-//Cap version to 1.2 for apple devices
-//Fixes issue with vma assuming vkGetDeviceBufferMemoryRequirements is available
+// Cap version to 1.2 for apple devices
+// Fixes issue with vma assuming vkGetDeviceBufferMemoryRequirements is available
 #if defined(VK_VERSION_1_3)
 #define VMA_VULKAN_VERSION 1002000
 #elif defined(VK_VERSION_1_2)

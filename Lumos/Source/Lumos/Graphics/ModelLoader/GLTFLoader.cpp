@@ -194,8 +194,8 @@ namespace Lumos::Graphics
         for(tinygltf::Material& mat : gltfModel.materials)
         {
             // TODO : if(isAnimated) Load deferredColourAnimated;
-            // auto shader = Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/ForwardPBR.shader");
-            auto shader = Application::Get().GetShaderLibrary()->GetResource("ForwardPBR");
+            // auto shader = Application::Get().GetShaderLibrary()->GetAsset("//CoreShaders/ForwardPBR.shader");
+            auto shader = Application::Get().GetAssetManager()->GetAssetData("ForwardPBR").As<Graphics::Shader>();
 
             SharedPtr<Material> pbrMaterial = CreateSharedPtr<Material>(shader);
             PBRMataterialTextures textures;
@@ -313,6 +313,7 @@ namespace Lumos::Graphics
 
             std::vector<uint32_t> indices;
             std::vector<Graphics::Vertex> vertices;
+            std::vector<Graphics::BoneInfluence> boneInfluences;
 
             uint32_t vertexCount = (uint32_t)(primitive.attributes.empty() ? 0 : model.accessors.at(primitive.attributes["POSITION"]).count);
 
@@ -321,6 +322,20 @@ namespace Lumos::Graphics
 
             bool hasTangents   = false;
             bool hasBitangents = false;
+            bool hasWeights    = false;
+            bool hasJoints     = false; 
+
+            if(primitive.attributes.find("TANGENT") != primitive.attributes.end())
+                hasTangents = true;
+            if(primitive.attributes.find("JOINTS_0") != primitive.attributes.end())
+                hasJoints = true;
+            if(primitive.attributes.find("WEIGHTS_0") != primitive.attributes.end())
+                hasWeights = true;
+            if(primitive.attributes.find("BITANGENT") != primitive.attributes.end())
+                hasBitangents = true;
+
+            if(hasJoints || hasWeights)
+                boneInfluences.resize(vertexCount);
 
             for(auto& attribute : primitive.attributes)
             {
@@ -417,6 +432,37 @@ namespace Lumos::Graphics
                         LUMOS_ASSERT(!glm::isinf(vertices[p].Bitangent.x) && !glm::isinf(vertices[p].Bitangent.y) && !glm::isinf(vertices[p].Bitangent.z) && !glm::isnan(vertices[p].Bitangent.x) && !glm::isnan(vertices[p].Bitangent.y) && !glm::isnan(vertices[p].Bitangent.z));
                     }
                 }
+
+                // -------- Weights attribute -----------
+
+                else if(attribute.first == "WEIGHTS_0")
+                {
+                    hasWeights = true;
+
+                    size_t weightCount            = accessor.count;
+                    Maths::Vector4Simple* weights = reinterpret_cast<Maths::Vector4Simple*>(data.data());
+                    for(auto p = 0; p < weightCount; ++p)
+                    {
+                        boneInfluences[p].AddBoneData(static_cast<uint32_t>(weights[p].x), weights[p].w);
+                    }
+                }
+
+                // -------- Joints attribute -----------
+
+                else if(attribute.first == "JOINTS_0")
+                {
+                    hasJoints = true;
+
+                    size_t jointCount            = accessor.count;
+                    Maths::Vector4Simple* joints = reinterpret_cast<Maths::Vector4Simple*>(data.data());
+                    for(auto p = 0; p < jointCount; ++p)
+                    {
+                        boneInfluences[p].BoneInfoIndices[0] = static_cast<uint32_t>(joints[p].x);
+                        boneInfluences[p].BoneInfoIndices[0] = static_cast<uint32_t>(joints[p].y);
+                        boneInfluences[p].BoneInfoIndices[0] = static_cast<uint32_t>(joints[p].z);
+                        boneInfluences[p].BoneInfoIndices[0] = static_cast<uint32_t>(joints[p].w);
+                    }
+                }
             }
 
             // -------- Indices ----------
@@ -470,7 +516,13 @@ namespace Lumos::Graphics
             if(!hasTangents || !hasBitangents)
                 Graphics::Mesh::GenerateTangentsAndBitangents(vertices.data(), uint32_t(vertices.size()), indices.data(), uint32_t(indices.size()));
 
-            auto lMesh = new Graphics::Mesh(indices, vertices);
+            // Add mesh
+            Graphics::Mesh* lMesh;
+            
+            if(hasJoints || hasWeights)
+                lMesh = new Graphics::Mesh(indices, vertices, boneInfluences);
+            else
+                lMesh = new Graphics::Mesh(indices, vertices);
 
             meshes.emplace_back(lMesh);
         }

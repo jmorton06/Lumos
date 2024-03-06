@@ -128,7 +128,7 @@ public:
 	typedef std::string String;
 	typedef std::unordered_map<std::string, Identifier> Identifiers;
 	typedef std::unordered_set<std::string> Keywords;
-	typedef std::map<int, std::string> ErrorMarkers;
+	typedef std::unordered_map<int, std::string> ErrorMarkers;
 	typedef std::unordered_set<int> Breakpoints;
 	typedef std::array<ImU32, (unsigned)PaletteIndex::Max> Palette;
 	typedef uint8_t Char;

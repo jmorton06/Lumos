@@ -59,9 +59,9 @@ namespace Lumos
 
         LineInfo(const glm::vec3& pos1, const glm::vec3& pos2, const glm::vec4& colour, float t = 0.0f)
         {
-            p1  = pos1;
-            p2  = pos2;
-            col = colour;
+            p1   = pos1;
+            p2   = pos2;
+            col  = colour;
             time = t;
         }
     };
@@ -92,10 +92,10 @@ namespace Lumos
 
         TriangleInfo(const glm::vec3& pos1, const glm::vec3& pos2, const glm::vec3& pos3, const glm::vec4& colour, float t = 0.0f)
         {
-            p1  = pos1;
-            p2  = pos2;
-            p3  = pos3;
-            col = colour;
+            p1   = pos1;
+            p2   = pos2;
+            p3   = pos3;
+            col  = colour;
             time = t;
         }
     };
@@ -127,13 +127,13 @@ namespace Lumos
         // Note: Functions appended with 'NDT' (no depth testing) will always be rendered in the foreground. This can be useful for debugging things inside objects.
 
         // Draw Point (circle)
-		static void DrawPoint(const glm::vec3& pos, float point_radius, bool depthTested = false, const glm::vec4& colour = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), float time = 0.0f);
+        static void DrawPoint(const glm::vec3& pos, float point_radius, bool depthTested = false, const glm::vec4& colour = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), float time = 0.0f);
 
         // Draw Line with a given thickness
-        static void DrawThickLine(const glm::vec3& start, const glm::vec3& end, float line_width,  bool depthTested = false, const glm::vec4& colour = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), float time = 0.0f);
+        static void DrawThickLine(const glm::vec3& start, const glm::vec3& end, float line_width, bool depthTested = false, const glm::vec4& colour = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), float time = 0.0f);
 
         // Draw line with thickness of 1 screen pixel regardless of distance from camera
-        static void DrawHairLine(const glm::vec3& start, const glm::vec3& end,  bool depthTested = false, const glm::vec4& colour = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), float time = 0.0f);
+        static void DrawHairLine(const glm::vec3& start, const glm::vec3& end, bool depthTested = false, const glm::vec4& colour = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), float time = 0.0f);
 
         // Draw Matrix (x,y,z axis at pos)
         static void DrawMatrix(const glm::mat4& transform_mtx, bool depthTested = false, float time = 0.0f);
@@ -143,10 +143,10 @@ namespace Lumos
         static void DrawTriangle(const glm::vec3& v0, const glm::vec3& v1, const glm::vec3& v2, bool depthTested = false, const glm::vec4& colour = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), float time = 0.0f);
 
         // Draw Polygon (Renders as a triangle fan, so verts must be arranged in order)
-        static void DrawPolygon(int n_verts, const glm::vec3* verts,  bool depthTested = false, const glm::vec4& colour = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f),  float time = 0.0f);
+        static void DrawPolygon(int n_verts, const glm::vec3* verts, bool depthTested = false, const glm::vec4& colour = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), float time = 0.0f);
 
         // Draw Text WorldSpace (pos given here in worldspace)
-        static void DrawTextWs(const glm::vec3& pos, const float font_size, bool depthTested, const glm::vec4& colour, float time, const std::string text, ...);    /// See "printf" for usage manual
+        static void DrawTextWs(const glm::vec3& pos, const float font_size, bool depthTested, const glm::vec4& colour, float time, const std::string text, ...); /// See "printf" for usage manual
 
         // Draw Text (pos is assumed to be pre-multiplied by projMtx * viewMtx at this point)
         static void DrawTextCs(const glm::vec4& pos, const float font_size, const std::string& text, const glm::vec4& colour = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));

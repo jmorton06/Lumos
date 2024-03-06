@@ -756,56 +756,56 @@ namespace Lumos
             }
         }
 
-		uint32_t VKUtilities::BytesPerPixel(VkFormat format)
-		{
-			switch (format)
-			{
-				case VK_FORMAT_R8_UNORM:
-				case VK_FORMAT_R8_UINT:
-					return 1;
-				case VK_FORMAT_R5G6B5_UNORM_PACK16:
-				case VK_FORMAT_B4G4R4A4_UNORM_PACK16:
-				case VK_FORMAT_A1R5G5B5_UNORM_PACK16:
-				case VK_FORMAT_R16_SFLOAT:
-				case VK_FORMAT_R8G8_SNORM:
-				case VK_FORMAT_R8G8_UINT:
-				case VK_FORMAT_R16_UINT:
-				case VK_FORMAT_D16_UNORM:
-					return 2;
-				case VK_FORMAT_D16_UNORM_S8_UINT:
-					return 3;
-				case VK_FORMAT_R8G8B8A8_UNORM:
-				case VK_FORMAT_B8G8R8A8_UNORM:
-				case VK_FORMAT_R32_SFLOAT:
-				case VK_FORMAT_R16G16_UNORM:
-				case VK_FORMAT_R16G16_SFLOAT:
-				case VK_FORMAT_R8G8B8A8_SNORM:
-				case VK_FORMAT_A2R10G10B10_UNORM_PACK32:
-				case VK_FORMAT_R8G8B8A8_UINT:
-				case VK_FORMAT_R16G16_UINT:
-				case VK_FORMAT_D32_SFLOAT:
-                case VK_FORMAT_B10G11R11_UFLOAT_PACK32:
-					return 4;
-				case VK_FORMAT_D32_SFLOAT_S8_UINT:
-					return 5;
-				case VK_FORMAT_R16G16B16A16_SFLOAT:
-				case VK_FORMAT_R16G16B16A16_UNORM:
-				case VK_FORMAT_R32G32_SFLOAT:
-				case VK_FORMAT_R16G16B16A16_UINT:
-				case VK_FORMAT_BC1_RGBA_UNORM_BLOCK:
-					return 8;
-				case VK_FORMAT_R32G32B32A32_SFLOAT:
-				case VK_FORMAT_BC2_UNORM_BLOCK:
-				case VK_FORMAT_BC3_UNORM_BLOCK:
-				case VK_FORMAT_BC7_UNORM_BLOCK:
-					return 16;
-				default:
-					LUMOS_LOG_ERROR("Unsupported Vulkan format");
-					return 4;
-			}
+        uint32_t VKUtilities::BytesPerPixel(VkFormat format)
+        {
+            switch(format)
+            {
+            case VK_FORMAT_R8_UNORM:
+            case VK_FORMAT_R8_UINT:
+                return 1;
+            case VK_FORMAT_R5G6B5_UNORM_PACK16:
+            case VK_FORMAT_B4G4R4A4_UNORM_PACK16:
+            case VK_FORMAT_A1R5G5B5_UNORM_PACK16:
+            case VK_FORMAT_R16_SFLOAT:
+            case VK_FORMAT_R8G8_SNORM:
+            case VK_FORMAT_R8G8_UINT:
+            case VK_FORMAT_R16_UINT:
+            case VK_FORMAT_D16_UNORM:
+                return 2;
+            case VK_FORMAT_D16_UNORM_S8_UINT:
+                return 3;
+            case VK_FORMAT_R8G8B8A8_UNORM:
+            case VK_FORMAT_B8G8R8A8_UNORM:
+            case VK_FORMAT_R32_SFLOAT:
+            case VK_FORMAT_R16G16_UNORM:
+            case VK_FORMAT_R16G16_SFLOAT:
+            case VK_FORMAT_R8G8B8A8_SNORM:
+            case VK_FORMAT_A2R10G10B10_UNORM_PACK32:
+            case VK_FORMAT_R8G8B8A8_UINT:
+            case VK_FORMAT_R16G16_UINT:
+            case VK_FORMAT_D32_SFLOAT:
+            case VK_FORMAT_B10G11R11_UFLOAT_PACK32:
+                return 4;
+            case VK_FORMAT_D32_SFLOAT_S8_UINT:
+                return 5;
+            case VK_FORMAT_R16G16B16A16_SFLOAT:
+            case VK_FORMAT_R16G16B16A16_UNORM:
+            case VK_FORMAT_R32G32_SFLOAT:
+            case VK_FORMAT_R16G16B16A16_UINT:
+            case VK_FORMAT_BC1_RGBA_UNORM_BLOCK:
+                return 8;
+            case VK_FORMAT_R32G32B32A32_SFLOAT:
+            case VK_FORMAT_BC2_UNORM_BLOCK:
+            case VK_FORMAT_BC3_UNORM_BLOCK:
+            case VK_FORMAT_BC7_UNORM_BLOCK:
+                return 16;
+            default:
+                LUMOS_LOG_ERROR("Unsupported Vulkan format");
+                return 4;
+            }
 
-			return 4;
-		}
+            return 4;
+        }
 
         VkShaderStageFlagBits VKUtilities::ShaderTypeToVK(const ShaderType& shaderName)
         {

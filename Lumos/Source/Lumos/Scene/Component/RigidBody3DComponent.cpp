@@ -2,7 +2,7 @@
 #include "RigidBody3DComponent.h"
 #include "Scene/Scene.h"
 #include "Scene/EntityManager.h"
-
+#include <glm/gtc/type_ptr.hpp>
 #include <imgui/imgui.h>
 
 namespace Lumos

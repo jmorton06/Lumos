@@ -1,6 +1,5 @@
 #pragma once
 
-#include "Entity.h"
 #include <glm/vec3.hpp>
 #include <glm/vec4.hpp>
 
@@ -8,6 +7,7 @@ namespace Lumos
 {
     class RigidBody;
     class Scene;
+    class Entity;
 
     namespace EntityFactory
     {

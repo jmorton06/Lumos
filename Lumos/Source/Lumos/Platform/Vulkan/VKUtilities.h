@@ -59,7 +59,7 @@ namespace Lumos
             VkFormat FormatToVK(const RHIFormat format, bool srgb = false);
             RHIFormat VKToFormat(VkFormat format);
 
-			uint32_t BytesPerPixel(VkFormat format);
+            uint32_t BytesPerPixel(VkFormat format);
 
             VkSamplerAddressMode TextureWrapToVK(const TextureWrap format);
             VkFilter TextureFilterToVK(const TextureFilter filter);

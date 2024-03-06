@@ -5,6 +5,7 @@
 
 #include <sol/forward.hpp>
 #include <cereal/cereal.hpp>
+#include <unordered_map>
 
 namespace Lumos
 {
@@ -50,7 +51,7 @@ namespace Lumos
             m_FileName = path;
         }
 
-        const std::map<int, std::string>& GetErrors() const
+        const std::unordered_map<int, std::string>& GetErrors() const
         {
             return m_Errors;
         }
@@ -84,7 +85,7 @@ namespace Lumos
     private:
         Scene* m_Scene = nullptr;
         std::string m_FileName;
-        std::map<int, std::string> m_Errors;
+        std::unordered_map<int, std::string> m_Errors;
 
         SharedPtr<sol::environment> m_Env;
         SharedPtr<sol::protected_function> m_OnInitFunc;

@@ -530,97 +530,102 @@ namespace Lumos
 
             auto AddEntity = [scene]()
             {
-                if(ImGui::Selectable("Add Empty Entity"))
-                {
-                    scene->CreateEntity();
-                }
-
-                if(ImGui::Selectable("Add Light"))
-                {
-                    auto entity = scene->CreateEntity("Light");
-                    entity.AddComponent<Graphics::Light>();
-                    entity.GetOrAddComponent<Maths::Transform>();
-                }
-
-                if(ImGui::Selectable("Add Rigid Body"))
-                {
-                    auto entity = scene->CreateEntity("RigidBody");
-                    entity.AddComponent<RigidBody3DComponent>();
-                    entity.GetOrAddComponent<Maths::Transform>();
-                    entity.AddComponent<AxisConstraintComponent>(entity, Axes::XZ);
-                    entity.GetComponent<RigidBody3DComponent>().GetRigidBody()->SetCollisionShape(CollisionShapeType::CollisionCuboid);
-                }
-
-                if(ImGui::Selectable("Add Camera"))
-                {
-                    auto entity = scene->CreateEntity("Camera");
-                    entity.AddComponent<Camera>();
-                    entity.GetOrAddComponent<Maths::Transform>();
-                }
-
-                if(ImGui::Selectable("Add Sprite"))
-                {
-                    auto entity = scene->CreateEntity("Sprite");
-                    entity.AddComponent<Graphics::Sprite>();
-                    entity.GetOrAddComponent<Maths::Transform>();
-                }
-
-                if(ImGui::Selectable("Add Lua Script"))
-                {
-                    auto entity = scene->CreateEntity("LuaScript");
-                    entity.AddComponent<LuaScriptComponent>();
-                }
-
-                if(ImGui::BeginMenu("Add Primitive"))
+                if(ImGui::BeginMenu("Add"))
                 {
 
-                    if(ImGui::MenuItem("Cube"))
+                    if(ImGui::Selectable("Empty Entity"))
                     {
-                        auto entity = scene->CreateEntity("Cube");
-                        entity.AddComponent<Graphics::ModelComponent>(Graphics::PrimitiveType::Cube);
+                        scene->CreateEntity();
                     }
 
-                    if(ImGui::MenuItem("Sphere"))
+                    if(ImGui::Selectable("Light"))
                     {
-                        auto entity = scene->CreateEntity("Sphere");
-                        entity.AddComponent<Graphics::ModelComponent>(Graphics::PrimitiveType::Sphere);
+                        auto entity = scene->CreateEntity("Light");
+                        entity.AddComponent<Graphics::Light>();
+                        entity.GetOrAddComponent<Maths::Transform>();
                     }
 
-                    if(ImGui::MenuItem("Pyramid"))
+                    if(ImGui::Selectable("Rigid Body"))
                     {
-                        auto entity = scene->CreateEntity("Pyramid");
-                        entity.AddComponent<Graphics::ModelComponent>(Graphics::PrimitiveType::Pyramid);
+                        auto entity = scene->CreateEntity("RigidBody");
+                        entity.AddComponent<RigidBody3DComponent>();
+                        entity.GetOrAddComponent<Maths::Transform>();
+                        entity.AddComponent<AxisConstraintComponent>(entity, Axes::XZ);
+                        entity.GetComponent<RigidBody3DComponent>().GetRigidBody()->SetCollisionShape(CollisionShapeType::CollisionCuboid);
                     }
 
-                    if(ImGui::MenuItem("Plane"))
+                    if(ImGui::Selectable("Camera"))
                     {
-                        auto entity = scene->CreateEntity("Plane");
-                        entity.AddComponent<Graphics::ModelComponent>(Graphics::PrimitiveType::Plane);
+                        auto entity = scene->CreateEntity("Camera");
+                        entity.AddComponent<Camera>();
+                        entity.GetOrAddComponent<Maths::Transform>();
                     }
 
-                    if(ImGui::MenuItem("Cylinder"))
+                    if(ImGui::Selectable("Sprite"))
                     {
-                        auto entity = scene->CreateEntity("Cylinder");
-                        entity.AddComponent<Graphics::ModelComponent>(Graphics::PrimitiveType::Cylinder);
+                        auto entity = scene->CreateEntity("Sprite");
+                        entity.AddComponent<Graphics::Sprite>();
+                        entity.GetOrAddComponent<Maths::Transform>();
                     }
 
-                    if(ImGui::MenuItem("Capsule"))
+                    if(ImGui::Selectable("Lua Script"))
                     {
-                        auto entity = scene->CreateEntity("Capsule");
-                        entity.AddComponent<Graphics::ModelComponent>(Graphics::PrimitiveType::Capsule);
+                        auto entity = scene->CreateEntity("LuaScript");
+                        entity.AddComponent<LuaScriptComponent>();
                     }
 
-                    if(ImGui::MenuItem("Terrain"))
+                    if(ImGui::BeginMenu("Primitive"))
                     {
-                        auto entity = scene->CreateEntity("Terrain");
-                        entity.AddComponent<Graphics::ModelComponent>(Graphics::PrimitiveType::Terrain);
-                    }
 
-                    if(ImGui::MenuItem("Light Cube"))
-                    {
-                        EntityFactory::AddLightCube(Application::Get().GetSceneManager()->GetCurrentScene(), glm::vec3(0.0f), glm::vec3(0.0f));
-                    }
+                        if(ImGui::MenuItem("Cube"))
+                        {
+                            auto entity = scene->CreateEntity("Cube");
+                            entity.AddComponent<Graphics::ModelComponent>(Graphics::PrimitiveType::Cube);
+                        }
 
+                        if(ImGui::MenuItem("Sphere"))
+                        {
+                            auto entity = scene->CreateEntity("Sphere");
+                            entity.AddComponent<Graphics::ModelComponent>(Graphics::PrimitiveType::Sphere);
+                        }
+
+                        if(ImGui::MenuItem("Pyramid"))
+                        {
+                            auto entity = scene->CreateEntity("Pyramid");
+                            entity.AddComponent<Graphics::ModelComponent>(Graphics::PrimitiveType::Pyramid);
+                        }
+
+                        if(ImGui::MenuItem("Plane"))
+                        {
+                            auto entity = scene->CreateEntity("Plane");
+                            entity.AddComponent<Graphics::ModelComponent>(Graphics::PrimitiveType::Plane);
+                        }
+
+                        if(ImGui::MenuItem("Cylinder"))
+                        {
+                            auto entity = scene->CreateEntity("Cylinder");
+                            entity.AddComponent<Graphics::ModelComponent>(Graphics::PrimitiveType::Cylinder);
+                        }
+
+                        if(ImGui::MenuItem("Capsule"))
+                        {
+                            auto entity = scene->CreateEntity("Capsule");
+                            entity.AddComponent<Graphics::ModelComponent>(Graphics::PrimitiveType::Capsule);
+                        }
+
+                        if(ImGui::MenuItem("Terrain"))
+                        {
+                            auto entity = scene->CreateEntity("Terrain");
+                            entity.AddComponent<Graphics::ModelComponent>(Graphics::PrimitiveType::Terrain);
+                        }
+
+                        if(ImGui::MenuItem("Light Cube"))
+                        {
+                            EntityFactory::AddLightCube(Application::Get().GetSceneManager()->GetCurrentScene(), glm::vec3(0.0f), glm::vec3(0.0f));
+                        }
+
+                        ImGui::EndMenu();
+                    }
                     ImGui::EndMenu();
                 }
             };

@@ -55,7 +55,7 @@ namespace Lumos
             delete m_Renderpass;
             delete m_FontTexture;
 
-            VKContext::DeletionQueue& deletionQueue = VKRenderer::GetCurrentDeletionQueue();
+            DeletionQueue& deletionQueue = VKRenderer::GetCurrentDeletionQueue();
 
             for(int i = 0; i < Renderer::GetMainSwapChain()->GetSwapChainBufferCount(); i++)
             {
@@ -341,8 +341,8 @@ namespace Lumos
                 int width, height;
                 io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
 
-				auto desc = TextureDesc(TextureFilter::NEAREST, TextureFilter::NEAREST, TextureWrap::REPEAT);
-				desc.flags = TextureFlags::Texture_Sampled;
+                auto desc  = TextureDesc(TextureFilter::NEAREST, TextureFilter::NEAREST, TextureWrap::REPEAT);
+                desc.flags = TextureFlags::Texture_Sampled;
 
                 m_FontTexture           = new VKTexture2D(width, height, pixels, desc);
                 m_FontTextureID.level   = 0;

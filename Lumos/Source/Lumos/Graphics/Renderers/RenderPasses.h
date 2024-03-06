@@ -103,8 +103,8 @@ namespace Lumos
             void ParticlePass();
             void ParticleFlush();
             void DebugPass();
-			void DebugLineFlush(Graphics::Pipeline* pipeline);
-			void DebugPointFlush(Graphics::Pipeline* pipeline);
+            void DebugLineFlush(Graphics::Pipeline* pipeline);
+            void DebugPointFlush(Graphics::Pipeline* pipeline);
             void FinalPass();
             void TextPass();
 
@@ -303,12 +303,12 @@ namespace Lumos
 
             TextVertexData* TextVertexBufferPtr = nullptr;
 
-			//Vertex data per frame in flight, per batch
+            // Vertex data per frame in flight, per batch
             std::vector<std::vector<VertexData*>> m_ParticleBufferBase;
             std::vector<std::vector<VertexData*>> m_2DBufferBase;
-			std::vector<std::vector<LineVertexData*>> m_LineBufferBase;
-			std::vector<std::vector<PointVertexData*>> m_PointBufferBase;
-			std::vector<std::vector<VertexData*>> m_QuadBufferBase;
+            std::vector<std::vector<LineVertexData*>> m_LineBufferBase;
+            std::vector<std::vector<PointVertexData*>> m_PointBufferBase;
+            std::vector<std::vector<VertexData*>> m_QuadBufferBase;
             std::vector<TextVertexData*> TextVertexBufferBase;
             std::vector<TextVertexData*> DebugTextVertexBufferBase;
             TextVertexData* DebugTextVertexBufferPtr = nullptr;

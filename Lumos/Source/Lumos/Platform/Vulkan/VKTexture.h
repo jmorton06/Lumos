@@ -292,7 +292,7 @@ namespace Lumos
             VkImageLayout GetImageLayout() const { return m_ImageLayout; }
 
             void GenerateMipMaps(CommandBuffer* commandBuffer) override;
-            void Destroy(bool DeletionQueue) override;
+            void Destroy(bool useDeletionQueue) override;
 
             static void MakeDefault();
 

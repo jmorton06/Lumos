@@ -27,8 +27,8 @@ namespace Lumos
         m_Width  = 800;
         m_Height = 600;
 
-        m_RenderPasses                          = CreateUniquePtr<Graphics::RenderPasses>(m_Width, m_Height);
-        m_RenderPasses->m_DebugRenderEnabled    = false;
+        m_RenderPasses                       = CreateUniquePtr<Graphics::RenderPasses>(m_Width, m_Height);
+        m_RenderPasses->m_DebugRenderEnabled = false;
     }
 
     static std::string AspectToString(float aspect)

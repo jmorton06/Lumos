@@ -20,6 +20,7 @@
 #include "Maths/Transform.h"
 #include "Graphics/Renderers/RenderPasses.h"
 #include "Utilities/AssetManager.h"
+#include <entt/entity/registry.hpp>
 
 #include <imgui/imgui.h>
 
@@ -84,8 +85,9 @@ namespace Lumos
         void GridRenderer::Init()
         {
             LUMOS_PROFILE_FUNCTION();
-            m_Shader = Application::Get().GetShaderLibrary()->GetResource("Grid");
-            m_Quad   = Graphics::CreateQuad(); // Graphics::CreatePlane(5000.0f, 5000.f, glm::vec3(0.0f, 1.0f, 0.0f));
+            m_Shader = Application::Get().GetAssetManager()->GetAssetData("Grid").As<Graphics::Shader>();
+
+            m_Quad = Graphics::CreateQuad(); // Graphics::CreatePlane(5000.0f, 5000.f, glm::vec3(0.0f, 1.0f, 0.0f));
 
             Graphics::DescriptorDesc descriptorDesc {};
             descriptorDesc.layoutIndex = 0;

@@ -5,8 +5,6 @@
 #include "VK.h"
 #include "VKDevice.h"
 
-#include <deque>
-
 namespace Lumos
 {
     namespace Graphics
@@ -46,29 +44,6 @@ namespace Lumos
             const std::vector<const char*>& GetExtensionNames() const { return m_InstanceExtensionNames; }
 
             static void MakeDefault();
-
-            struct DeletionQueue
-            {
-                std::deque<std::function<void()>> m_Deletors;
-
-                template <typename F>
-                void PushFunction(F&& function)
-                {
-                    LUMOS_ASSERT(sizeof(F) < 200, "Lambda too large");
-                    m_Deletors.push_back(function);
-                }
-
-                void Flush()
-                {
-                    for(auto it = m_Deletors.rbegin(); it != m_Deletors.rend(); it++)
-                    {
-                        (*it)();
-                    }
-
-                    m_Deletors.clear();
-                }
-            };
-
             static uint32_t GetVKVersion() { return m_VKVersion; }
 
         protected:

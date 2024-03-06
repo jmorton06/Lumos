@@ -18,14 +18,14 @@ namespace Lumos
 
         m_MouseOnScreen = true;
         m_ScrollOffset  = 0.0f;
-        m_ScrollOffsetX  = 0.0f;
+        m_ScrollOffsetX = 0.0f;
     }
 
     void Input::ResetPressed()
     {
         memset(m_KeyPressed, 0, MAX_KEYS);
         memset(m_MouseClicked, 0, MAX_BUTTONS);
-        m_ScrollOffset = 0.0f;
+        m_ScrollOffset  = 0.0f;
         m_ScrollOffsetX = 0.0f;
     }
 

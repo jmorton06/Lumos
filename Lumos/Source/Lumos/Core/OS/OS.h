@@ -1,7 +1,6 @@
 #pragma once
 #include "Core/Core.h"
 
-#include <string>
 #include <glm/vec4.hpp>
 
 #if __has_include(<filesystem>)
@@ -42,12 +41,9 @@ namespace Lumos
         }
         static std::string PowerStateToString(PowerState state);
 
-        virtual std::string GetCurrentWorkingDirectory() { return std::string(""); };
         virtual std::string GetExecutablePath() = 0;
-        virtual std::string GetAssetPath()
-        {
-            return "";
-        };
+        virtual std::string GetCurrentWorkingDirectory();
+        virtual std::string GetAssetPath();
         virtual void Vibrate() const {};
         virtual void SetTitleBarColour(const glm::vec4& colour, bool dark = true) {};
 

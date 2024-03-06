@@ -1,14 +1,22 @@
 #pragma once
 
-#include "Maths/MathsSerialisation.h"
-#include <cereal/cereal.hpp>
+#include <glm/vec3.hpp>
+#include <glm/mat4x4.hpp>
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/quaternion.hpp>
 
 namespace Lumos
 {
     namespace Maths
     {
-        class LUMOS_EXPORT Transform
+        class Transform
         {
+            template <typename Archive>
+            friend void save(Archive& archive, const Transform& transform);
+
+            template <typename Archive>
+            friend void load(Archive& archive, Transform& transform);
+
         public:
             Transform();
             Transform(const glm::mat4& matrix);
@@ -58,18 +66,6 @@ namespace Lumos
                 glm::vec3 forward = glm::vec3(0.0f, 0.0f, 1.0f);
                 forward           = GetWorldOrientation() * forward;
                 return forward;
-            }
-
-            template <typename Archive>
-            void save(Archive& archive) const
-            {
-                archive(cereal::make_nvp("Position", m_LocalPosition), cereal::make_nvp("Rotation", m_LocalOrientation), cereal::make_nvp("Scale", m_LocalScale));
-            }
-
-            template <typename Archive>
-            void load(Archive& archive)
-            {
-                archive(cereal::make_nvp("Position", m_LocalPosition), cereal::make_nvp("Rotation", m_LocalOrientation), cereal::make_nvp("Scale", m_LocalScale));
             }
 
         protected:

@@ -58,7 +58,7 @@ namespace Lumos
 
             if(!fontFilePath.empty() && fontFilePath != Graphics::Font::GetDefaultFont()->GetFilePath() && FileSystem::FileExists(fontFilePath))
             {
-                Application::Get().GetFontLibrary()->Load(fontFilePath, FontHandle);
+                Application::Get().GetAssetManager()->AddAsset(fontFilePath, FontHandle);
             }
             else
             {
