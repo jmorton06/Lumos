@@ -2,8 +2,6 @@
 #include "Maths/Rect.h"
 #include "MathsUtilities.h"
 #include <glm/vec3.hpp>
-#include <glm/mat3x3.hpp>
-#include <glm/mat4x4.hpp>
 
 namespace Lumos
 {

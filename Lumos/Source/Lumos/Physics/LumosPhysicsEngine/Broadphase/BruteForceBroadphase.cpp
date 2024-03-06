@@ -15,7 +15,7 @@ namespace Lumos
     }
 
     void BruteForceBroadphase::FindPotentialCollisionPairs(RigidBody3D* rootObject,
-                                                           std::vector<CollisionPair>& collisionPairs)
+                                                           Vector<CollisionPair>& collisionPairs)
     {
         LUMOS_PROFILE_FUNCTION();
 
@@ -62,7 +62,7 @@ namespace Lumos
                             }
 
                             bool duplicate = false;
-                            for(int i = 0; i < collisionPairs.size(); i++)
+                            for(int i = 0; i < collisionPairs.Size(); i++)
                             {
                                 auto& pair2 = collisionPairs[i];
 
@@ -72,7 +72,7 @@ namespace Lumos
                                 }
                             }
                             if(!duplicate)
-                                collisionPairs.push_back(pair);
+                                collisionPairs.EmplaceBack(pair);
                         }
                     }
                 }

@@ -24,10 +24,7 @@ namespace Lumos
     class WindowCloseEvent;
     class WindowResizeEvent;
     class ImGuiManager;
-    class ModelLibrary;
-    class TextureLibrary;
-    class FontLibrary;
-    class ShaderLibrary;
+    class AssetManager;
 
     namespace Graphics
     {
@@ -100,11 +97,9 @@ namespace Lumos
         glm::vec2 GetWindowSize() const;
         float GetWindowDPI() const;
 
-        SharedPtr<ShaderLibrary>& GetShaderLibrary();
-        SharedPtr<ModelLibrary>& GetModelLibrary();
-        SharedPtr<FontLibrary>& GetFontLibrary();
-		
-		const QualitySettings& GetQualitySettings() const { return m_QualitySettings; }
+        SharedPtr<AssetManager>& GetAssetManager();
+
+        const QualitySettings& GetQualitySettings() const { return m_QualitySettings; }
         QualitySettings& GetQualitySettings() { return m_QualitySettings; }
 
         void SubmitToMainThread(const std::function<void()>& function);
@@ -332,9 +327,7 @@ namespace Lumos
         UniquePtr<Graphics::RenderPasses> m_RenderPasses;
         UniquePtr<ImGuiManager> m_ImGuiManager;
         UniquePtr<Timer> m_Timer;
-        SharedPtr<ShaderLibrary> m_ShaderLibrary;
-        SharedPtr<ModelLibrary> m_ModelLibrary;
-        SharedPtr<FontLibrary> m_FontLibrary;
+        SharedPtr<AssetManager> m_AssetManager;
 
         AppState m_CurrentState   = AppState::Loading;
         EditorState m_EditorState = EditorState::Preview;
@@ -349,8 +342,8 @@ namespace Lumos
 
         Arena* m_FrameArena;
         Arena* m_Arena;
-		
-		QualitySettings m_QualitySettings;
+
+        QualitySettings m_QualitySettings;
 
         NONCOPYABLE(Application)
     };

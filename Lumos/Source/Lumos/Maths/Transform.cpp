@@ -1,7 +1,6 @@
 #include "Precompiled.h"
 #include "Transform.h"
 #include <glm/gtx/matrix_decompose.hpp>
-#include <glm/ext.hpp>
 
 namespace Lumos
 {

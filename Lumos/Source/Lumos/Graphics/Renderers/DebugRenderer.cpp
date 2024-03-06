@@ -41,9 +41,9 @@ namespace Lumos
 
     DebugRenderer* DebugRenderer::s_Instance = nullptr;
 
-    static const uint32_t MaxLines = 10000;
+    static const uint32_t MaxLines        = 10000;
     static const uint32_t MaxLineVertices = MaxLines * 2;
-    static const uint32_t MaxLineIndices = MaxLines * 6;
+    static const uint32_t MaxLineIndices  = MaxLines * 6;
 #define MAX_BATCH_DRAW_CALLS 100
 #define RENDERER_LINE_SIZE RENDERER2DLINE_VERTEX_SIZE * 4
 #define RENDERER_BUFFER_SIZE RENDERER_LINE_SIZE* MaxLineVertices
@@ -66,7 +66,7 @@ namespace Lumos
 
     void DebugRenderer::Init()
     {
-        if (s_Instance)
+        if(s_Instance)
             return;
 
         s_Instance = new DebugRenderer();
@@ -88,31 +88,35 @@ namespace Lumos
         s_Instance->m_TextList.clear();
         s_Instance->m_TextListNDT.clear();
         s_Instance->m_TextListCS.clear();
-        s_Instance->m_NumStatusEntries = 0;
+        s_Instance->m_NumStatusEntries    = 0;
         s_Instance->m_MaxStatusEntryWidth = 0.0f;
     }
 
     void DebugRenderer::ClearDrawList(DebugDrawList& drawlist, float dt)
     {
-        drawlist.m_DebugTriangles.erase(std::remove_if(drawlist.m_DebugTriangles.begin(), drawlist.m_DebugTriangles.end(), [dt](TriangleInfo& triangle) {
+        drawlist.m_DebugTriangles.erase(std::remove_if(drawlist.m_DebugTriangles.begin(), drawlist.m_DebugTriangles.end(), [dt](TriangleInfo& triangle)
+                                                       {
             triangle.time -= dt;
-            return triangle.time <= Maths::M_EPSILON;
-            }), drawlist.m_DebugTriangles.end());
+            return triangle.time <= Maths::M_EPSILON; }),
+                                        drawlist.m_DebugTriangles.end());
 
-        drawlist.m_DebugLines.erase(std::remove_if(drawlist.m_DebugLines.begin(), drawlist.m_DebugLines.end(), [dt](LineInfo& line) {
+        drawlist.m_DebugLines.erase(std::remove_if(drawlist.m_DebugLines.begin(), drawlist.m_DebugLines.end(), [dt](LineInfo& line)
+                                                   {
             line.time -= dt;
-            return line.time <= Maths::M_EPSILON;
-            }), drawlist.m_DebugLines.end());
+            return line.time <= Maths::M_EPSILON; }),
+                                    drawlist.m_DebugLines.end());
 
-        drawlist.m_DebugThickLines.erase(std::remove_if(drawlist.m_DebugThickLines.begin(), drawlist.m_DebugThickLines.end(), [dt](LineInfo& line) {
+        drawlist.m_DebugThickLines.erase(std::remove_if(drawlist.m_DebugThickLines.begin(), drawlist.m_DebugThickLines.end(), [dt](LineInfo& line)
+                                                        {
             line.time -= dt;
-            return line.time <= Maths::M_EPSILON;
-            }), drawlist.m_DebugThickLines.end());
+            return line.time <= Maths::M_EPSILON; }),
+                                         drawlist.m_DebugThickLines.end());
 
-        drawlist.m_DebugPoints.erase(std::remove_if(drawlist.m_DebugPoints.begin(), drawlist.m_DebugPoints.end(), [dt](PointInfo& point) {
+        drawlist.m_DebugPoints.erase(std::remove_if(drawlist.m_DebugPoints.begin(), drawlist.m_DebugPoints.end(), [dt](PointInfo& point)
+                                                    {
             point.time -= dt;
-            return point.time <= Maths::M_EPSILON;
-            }), drawlist.m_DebugPoints.end());
+            return point.time <= Maths::M_EPSILON; }),
+                                     drawlist.m_DebugPoints.end());
     }
 
     void DebugRenderer::ClearLogEntries()
@@ -176,12 +180,11 @@ namespace Lumos
             s_Instance->m_DrawList.m_DebugThickLines.emplace_back(start, end, colour, time);
     }
 
-    void DebugRenderer::DrawThickLine(const glm::vec3& start, const glm::vec3& end, float line_width, bool depthTested,  const glm::vec4& colour, float time)
+    void DebugRenderer::DrawThickLine(const glm::vec3& start, const glm::vec3& end, float line_width, bool depthTested, const glm::vec4& colour, float time)
     {
         LUMOS_PROFILE_FUNCTION();
         GenDrawThickLine(!depthTested, start, end, line_width, colour, time);
     }
-
 
     // Draw line with thickness of 1 screen pixel regardless of distance from camera
     void DebugRenderer::GenDrawHairLine(bool ndt, const glm::vec3& start, const glm::vec3& end, const glm::vec4& colour, float time)
@@ -193,7 +196,6 @@ namespace Lumos
             s_Instance->m_DrawList.m_DebugLines.emplace_back(start, end, colour, time);
     }
 
-
     void DebugRenderer::DrawHairLine(const glm::vec3& start, const glm::vec3& end, bool depthTested, const glm::vec4& colour, float time)
     {
         LUMOS_PROFILE_FUNCTION();
@@ -204,33 +206,32 @@ namespace Lumos
     void DebugRenderer::DrawMatrix(const glm::mat4& mtx, bool depthTested, float time)
     {
         LUMOS_PROFILE_FUNCTION();
-//         glm::vec3 position = glm::vec3(mtx[3].x, mtx[3].y, mtx[3].z);
-//         GenDrawHairLine(!depthTested, position, position + glm::vec3(mtx[0], mtx[1], mtx[2]), glm::vec4(1.0f, 0.0f, 0.0f, 1.0f), time);
-//         GenDrawHairLine(!depthTested, position, position + glm::vec3(mtx[4], mtx[5], mtx[6]), glm::vec4(0.0f, 1.0f, 0.0f, 1.0f), time);
-//         GenDrawHairLine(!depthTested, position, position + glm::vec3(mtx[8], mtx[9], mtx[10]), glm::vec4(0.0f, 0.0f, 1.0f, 1.0f), time);
+        //         glm::vec3 position = glm::vec3(mtx[3].x, mtx[3].y, mtx[3].z);
+        //         GenDrawHairLine(!depthTested, position, position + glm::vec3(mtx[0], mtx[1], mtx[2]), glm::vec4(1.0f, 0.0f, 0.0f, 1.0f), time);
+        //         GenDrawHairLine(!depthTested, position, position + glm::vec3(mtx[4], mtx[5], mtx[6]), glm::vec4(0.0f, 1.0f, 0.0f, 1.0f), time);
+        //         GenDrawHairLine(!depthTested, position, position + glm::vec3(mtx[8], mtx[9], mtx[10]), glm::vec4(0.0f, 0.0f, 1.0f, 1.0f), time);
     }
     void DebugRenderer::DrawMatrix(const glm::mat3& mtx, const glm::vec3& position, bool depthTested, float time)
     {
         LUMOS_PROFILE_FUNCTION();
-//s
+        // s
     }
 
     // Draw Triangle
     void DebugRenderer::GenDrawTriangle(bool ndt, const glm::vec3& v0, const glm::vec3& v1, const glm::vec3& v2, const glm::vec4& colour, float time)
     {
         LUMOS_PROFILE_FUNCTION();
-		if(ndt)
-			s_Instance->m_DrawListNDT.m_DebugTriangles.emplace_back(v0, v1, v2, colour, time);
-		else
-			s_Instance->m_DrawList.m_DebugTriangles.emplace_back(v0, v1, v2, colour, time);
+        if(ndt)
+            s_Instance->m_DrawListNDT.m_DebugTriangles.emplace_back(v0, v1, v2, colour, time);
+        else
+            s_Instance->m_DrawList.m_DebugTriangles.emplace_back(v0, v1, v2, colour, time);
     }
 
-    void DebugRenderer::DrawTriangle(const glm::vec3& v0, const glm::vec3& v1, const glm::vec3& v2,bool depthTested,  const glm::vec4& colour, float time)
+    void DebugRenderer::DrawTriangle(const glm::vec3& v0, const glm::vec3& v1, const glm::vec3& v2, bool depthTested, const glm::vec4& colour, float time)
     {
         LUMOS_PROFILE_FUNCTION();
         GenDrawTriangle(!depthTested, v0, v1, v2, colour, time);
     }
-
 
     // Draw Polygon (Renders as a triangle fan, so verts must be arranged in order)
     void DebugRenderer::DrawPolygon(int n_verts, const glm::vec3* verts, bool depthTested, const glm::vec4& colour, float time)
@@ -273,7 +274,7 @@ namespace Lumos
     }
 
     // Draw Text WorldSpace
-    void DebugRenderer::DrawTextWs(const glm::vec3& pos, const float font_size, bool depthTested, const glm::vec4& colour,float time, const std::string text,  ...)
+    void DebugRenderer::DrawTextWs(const glm::vec3& pos, const float font_size, bool depthTested, const glm::vec4& colour, float time, const std::string text, ...)
     {
         va_list args;
         va_start(args, text);
@@ -296,7 +297,7 @@ namespace Lumos
         dText.Position   = glm::vec4(pos, 1.0f);
         dText.colour     = colour;
         dText.Size       = font_size;
-		dText.time 		 = time;
+        dText.time       = time;
     }
 
     // Status Entry
@@ -514,7 +515,7 @@ namespace Lumos
     void DebugRenderer::DebugDraw(SoundNode* sound, const glm::vec4& colour)
     {
         LUMOS_PROFILE_FUNCTION();
-        DrawPoint(sound->GetPosition(), sound->GetRadius(), false,  colour);
+        DrawPoint(sound->GetPosition(), sound->GetRadius(), false, colour);
     }
 
     void DebugRenderer::DebugDrawCircle(int numVerts, float radius, const glm::vec3& position, const glm::quat& rotation, const glm::vec4& colour)

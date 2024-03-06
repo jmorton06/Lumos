@@ -20,6 +20,7 @@
 #include "Events/ApplicationEvent.h"
 
 #include "Maths/Transform.h"
+#include "Maths/Random.h"
 #include "Core/OS/FileSystem.h"
 #include "Scene/Component/Components.h"
 #include "Scripting/Lua/LuaScriptComponent.h"
@@ -33,11 +34,13 @@
 #include "Scene/Component/SoundComponent.h"
 #include "Scene/Component/ModelComponent.h"
 #include "SceneGraph.h"
+#include "SerialisationImplementation.h"
 
 #include <cereal/types/polymorphic.hpp>
 #include <cereal/archives/binary.hpp>
 #include <cereal/archives/json.hpp>
 #include <entt/entity/registry.hpp>
+#include <entt/entity/snapshot.hpp>
 #include <sol/sol.hpp>
 
 CEREAL_REGISTER_TYPE(Lumos::SphereCollisionShape);
@@ -237,8 +240,6 @@ namespace Lumos
     void Scene::OnInit()
     {
         LUMOS_PROFILE_FUNCTION();
-        LuaManager::Get().GetState().set("registry", &m_EntityManager->GetRegistry());
-        LuaManager::Get().GetState().set("scene", this);
 
         // Physics setup
         auto physics3DSytem = Application::Get().GetSystem<LumosPhysicsEngine>();
@@ -257,7 +258,7 @@ namespace Lumos
         LUMOS_PROFILE_FUNCTION();
         DeleteAllGameObjects();
 
-        LuaManager::Get().GetState().collect_garbage();
+        LuaManager::Get().CollectGarbage();
 
         auto audioManager = Application::Get().GetSystem<AudioManager>();
         if(audioManager)

@@ -19,9 +19,8 @@ namespace Lumos
 
     class CommandLine
     {
-    public: 
-
-        CommandLine() = default;
+    public:
+        CommandLine()  = default;
         ~CommandLine() = default;
 
         void Init(Arena* arena, String8List strings);
@@ -30,11 +29,11 @@ namespace Lumos
         bool OptionBool(String8 name);
         double OptionDouble(String8 name);
         int64_t OptionInt64(String8 name);
+
     private:
         uint64_t m_SlotCount;
         CommandLineOptionSlot* m_Slots;
         String8List m_Inputs;
     };
-
 
 }

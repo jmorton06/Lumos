@@ -103,7 +103,8 @@ namespace Lumos
             static TextureCube* CreateFromFiles(const std::string* files);
             static TextureCube* CreateFromVCross(const std::string* files, uint32_t mips, TextureDesc params, TextureLoadOptions loadOptions);
 
-            virtual void Destroy(bool deletionQueue) {}
+            virtual void Destroy(bool deletionQueue) { }
+
         protected:
             static TextureCube* (*CreateFunc)(uint32_t, void*, bool);
             static TextureCube* (*CreateFromFileFunc)(const std::string&);

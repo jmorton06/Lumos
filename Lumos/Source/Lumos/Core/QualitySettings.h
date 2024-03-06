@@ -2,73 +2,79 @@
 
 namespace Lumos
 {
-	enum class ShadowQualitySetting
-	{
-		None = 0, Low = 1, Medium = 2, High = 2
-	};
-	
-	enum class ShadowResolutionSetting
-	{
-		None = 0, Low = 1, Medium = 2, High = 3
-	};
-	
-	struct QualitySettings
-	{
-		float RendererScale = 1.0f;
+    enum class ShadowQualitySetting
+    {
+        None   = 0,
+        Low    = 1,
+        Medium = 2,
+        High   = 2
+    };
 
-		// Shadows
-		bool EnableShadows = true;
-		ShadowQualitySetting ShadowQuality = ShadowQualitySetting::Low;
-		ShadowResolutionSetting ShadowResolution = ShadowResolutionSetting::Low;
-		
-		// Post-Process
-		bool EnableBloom = true;
-		bool EnableDOF   = false;
-		bool EnableSSR   = false;
-		bool EnableSSAO  = false;
+    enum class ShadowResolutionSetting
+    {
+        None   = 0,
+        Low    = 1,
+        Medium = 2,
+        High   = 3
+    };
 
-		void SetGeneralLeve(uint8_t level)
-		{
-			switch(level)
-			{
-				case 0:
-				{
-					EnableShadows = true;
-					ShadowQuality = ShadowQualitySetting::Low;
-					ShadowResolution = ShadowResolutionSetting::Low;
+    struct QualitySettings
+    {
+        float RendererScale = 1.0f;
 
-					EnableBloom = false;
-					EnableDOF   = false;
-					EnableSSR   = false;
-					EnableSSAO  = false;
-					break;
-				}
-				case 1:
-				{
-					EnableShadows = true;
-					ShadowQuality = ShadowQualitySetting::Medium;
-					ShadowResolution = ShadowResolutionSetting::Medium;
+        // Shadows
+        bool EnableShadows                       = true;
+        ShadowQualitySetting ShadowQuality       = ShadowQualitySetting::Low;
+        ShadowResolutionSetting ShadowResolution = ShadowResolutionSetting::Low;
 
-					EnableBloom = true;
-					EnableDOF   = false;
-					EnableSSR   = false;
-					EnableSSAO  = false;
-					break;
-				}
-				default:
-				case 2:
-				{
-					EnableShadows = true;
-					ShadowQuality = ShadowQualitySetting::High;
-					ShadowResolution = ShadowResolutionSetting::High;
+        // Post-Process
+        bool EnableBloom = true;
+        bool EnableDOF   = false;
+        bool EnableSSR   = false;
+        bool EnableSSAO  = false;
 
-					EnableBloom = true;
-					EnableDOF   = true;
-					EnableSSR   = false;
-					EnableSSAO  = true;
-					break;
-				}
-			}
-		}
-	};
+        void SetGeneralLeve(uint8_t level)
+        {
+            switch(level)
+            {
+            case 0:
+            {
+                EnableShadows    = true;
+                ShadowQuality    = ShadowQualitySetting::Low;
+                ShadowResolution = ShadowResolutionSetting::Low;
+
+                EnableBloom = false;
+                EnableDOF   = false;
+                EnableSSR   = false;
+                EnableSSAO  = false;
+                break;
+            }
+            case 1:
+            {
+                EnableShadows    = true;
+                ShadowQuality    = ShadowQualitySetting::Medium;
+                ShadowResolution = ShadowResolutionSetting::Medium;
+
+                EnableBloom = true;
+                EnableDOF   = false;
+                EnableSSR   = false;
+                EnableSSAO  = false;
+                break;
+            }
+            default:
+            case 2:
+            {
+                EnableShadows    = true;
+                ShadowQuality    = ShadowQualitySetting::High;
+                ShadowResolution = ShadowResolutionSetting::High;
+
+                EnableBloom = true;
+                EnableDOF   = true;
+                EnableSSR   = false;
+                EnableSSAO  = true;
+                break;
+            }
+            }
+        }
+    };
 }

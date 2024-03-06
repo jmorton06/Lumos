@@ -5,6 +5,7 @@
 #include "HierarchyPanel.h"
 #include "InspectorPanel.h"
 #include "ApplicationInfoPanel.h"
+#include "AssetManagerPanel.h"
 #include "GraphicsInfoPanel.h"
 #include "TextEditPanel.h"
 #include "ResourcePanel.h"
@@ -66,6 +67,7 @@
 #include <imgui/Plugins/ImGuizmo.h>
 #include <glm/gtx/matrix_decompose.hpp>
 #include <cereal/version.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 namespace Lumos
 {
@@ -243,6 +245,10 @@ namespace Lumos
         Application::SetEditorState(EditorState::Preview);
         Application::Get().GetWindow()->SetEventCallback(BIND_EVENT_FN(Editor::OnEvent));
 
+		String8 pathCopy = PushStr8Copy(m_FrameArena, m_ProjectSettings.m_ProjectRoot.c_str());
+		pathCopy = StringUtilities::ResolveRelativePath(m_FrameArena, pathCopy);
+		m_ProjectSettings.m_ProjectRoot = (const char*)pathCopy.str;
+
         m_EditorCamera  = CreateSharedPtr<Camera>(-20.0f,
                                                  -40.0f,
                                                  glm::vec3(-31.0f, 12.0f, 51.0f),
@@ -275,6 +281,8 @@ namespace Lumos
         m_Panels.emplace_back(CreateSharedPtr<GameViewPanel>());
         m_Panels.emplace_back(CreateSharedPtr<InspectorPanel>());
         m_Panels.emplace_back(CreateSharedPtr<ApplicationInfoPanel>());
+        m_Panels.emplace_back(CreateSharedPtr<AssetManagerPanel>());
+        m_Panels.back()->SetActive(false);
         m_Panels.emplace_back(CreateSharedPtr<SceneSettingsPanel>());
         m_Panels.emplace_back(CreateSharedPtr<HierarchyPanel>());
         m_Panels.emplace_back(CreateSharedPtr<EditorSettingsPanel>());
@@ -1179,7 +1187,7 @@ namespace Lumos
                 locationPopupOpened   = true;
 
                 // Set filePath to working directory
-				const auto& path  = OS::Instance()->GetExecutablePath();
+                const auto& path  = OS::Instance()->GetExecutablePath();
                 auto& browserPath = m_FileBrowserPanel.GetPath();
                 browserPath       = std::filesystem::path(path);
                 m_FileBrowserPanel.SetFileTypeFilters({ ".lmproj" });
@@ -1614,6 +1622,7 @@ namespace Lumos
             ImGui::DockBuilderDockWindow("Dear ImGui Demo", DockLeft);
             ImGui::DockBuilderDockWindow("###GraphicsInfo", DockLeft);
             ImGui::DockBuilderDockWindow("###appinfo", DockLeft);
+            ImGui::DockBuilderDockWindow("###AssetManagerPanel", DockLeft);
             ImGui::DockBuilderDockWindow("###hierarchy", DockLeft);
             ImGui::DockBuilderDockWindow("###textEdit", DockMiddleLeft);
             ImGui::DockBuilderDockWindow("###scenesettings", DockLeft);
@@ -1943,57 +1952,57 @@ namespace Lumos
                 }
             }
 
-			static float m_SceneSavePopupTimer = -1.0f;
-			static bool popupopen = false;
+            static float m_SceneSavePopupTimer = -1.0f;
+            static bool popupopen              = false;
 
-			if(m_SceneSavePopupTimer > 0.0f)
-			{
-				{
-					ImGui::OpenPopup("Scene Save");
-					ImVec2 size = ImGui::GetMainViewport()->Size;
-					ImGui::SetNextWindowSize({ size.x * 0.65f, size.y * 0.25f });
-					ImGui::SetNextWindowPos({ size.x / 2.0f, size.y / 2.5f }, 0, { 0.5, 0.5 });
-					popupopen = true;
-				}
-			}
+            if(m_SceneSavePopupTimer > 0.0f)
+            {
+                {
+                    ImGui::OpenPopup("Scene Save");
+                    ImVec2 size = ImGui::GetMainViewport()->Size;
+                    ImGui::SetNextWindowSize({ size.x * 0.65f, size.y * 0.25f });
+                    ImGui::SetNextWindowPos({ size.x / 2.0f, size.y / 2.5f }, 0, { 0.5, 0.5 });
+                    popupopen = true;
+                }
+            }
 
-			if(ImGui::BeginPopupModal("Scene Save", nullptr, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar))
-			{
-				ArenaTemp scratch = ScratchBegin(nullptr, 0);
-				String8 savedText = PushStr8F(scratch.arena, "Scene Saved - %s/Assets/Scenes", m_ProjectSettings.m_ProjectRoot.c_str());
-				ImVec2 textSize = ImGui::CalcTextSize((const char*)savedText.str);
+            if(ImGui::BeginPopupModal("Scene Save", nullptr, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar))
+            {
+                ArenaTemp scratch = ScratchBegin(nullptr, 0);
+                String8 savedText = PushStr8F(scratch.arena, "Scene Saved - %s/Assets/Scenes", m_ProjectSettings.m_ProjectRoot.c_str());
+                ImVec2 textSize   = ImGui::CalcTextSize((const char*)savedText.str);
 
-					// Calculate the position to center the text horizontally
-				ImVec2 windowSize = ImGui::GetWindowSize();
-				float posX = (windowSize.x - textSize.x) * 0.5f;
-				float posY = (windowSize.y - textSize.y) * 0.5f;
+                // Calculate the position to center the text horizontally
+                ImVec2 windowSize = ImGui::GetWindowSize();
+                float posX        = (windowSize.x - textSize.x) * 0.5f;
+                float posY        = (windowSize.y - textSize.y) * 0.5f;
 
-					// Set the cursor position to the calculated position
-				ImGui::SetCursorPosX(posX);
-				ImGui::SetCursorPosY(posY);
+                // Set the cursor position to the calculated position
+                ImGui::SetCursorPosX(posX);
+                ImGui::SetCursorPosY(posY);
 
-					// Display the centered text
-				ImGui::TextUnformatted((const char*)savedText.str);
+                // Display the centered text
+                ImGui::TextUnformatted((const char*)savedText.str);
 
-				if(m_SceneSavePopupTimer < 0.0f)
-				{
-					popupopen = false;
-					ImGui::CloseCurrentPopup();
-				}
+                if(m_SceneSavePopupTimer < 0.0f)
+                {
+                    popupopen = false;
+                    ImGui::CloseCurrentPopup();
+                }
 
-				ScratchEnd(scratch);
-				ImGui::EndPopup();
-			}
+                ScratchEnd(scratch);
+                ImGui::EndPopup();
+            }
 
-			if(m_SceneSavePopupTimer > 0.0f)
-				m_SceneSavePopupTimer -= Engine::GetTimeStep().GetSeconds();
+            if(m_SceneSavePopupTimer > 0.0f)
+                m_SceneSavePopupTimer -= Engine::GetTimeStep().GetSeconds();
 
             if((Input::Get().GetKeyHeld(InputCode::Key::LeftSuper) || (Input::Get().GetKeyHeld(InputCode::Key::LeftControl))))
             {
                 if(Input::Get().GetKeyPressed(InputCode::Key::S) && Application::Get().GetSceneActive())
                 {
                     Application::Get().GetSceneManager()->GetCurrentScene()->Serialise(m_ProjectSettings.m_ProjectRoot + "Assets/scenes/", false);
-					m_SceneSavePopupTimer = 2.0f;
+                    m_SceneSavePopupTimer = 2.0f;
                 }
 
                 if(Input::Get().GetKeyPressed(InputCode::Key::O))
@@ -2655,6 +2664,20 @@ namespace Lumos
         LUMOS_PROFILE_FUNCTION();
         LUMOS_LOG_INFO("Setting default editor settings");
         m_ProjectSettings.m_ProjectRoot = "../../ExampleProject/";
+
+#ifdef LUMOS_PLATFORM_MACOS
+        // Assuming working directory in /bin/Debug-macosx-x86_64/LumosEditor.app/Contents/MacOS
+        m_ProjectSettings.m_ProjectRoot = StringUtilities::GetFileLocation(OS::Instance()->GetExecutablePath()) + "../../../../../ExampleProject/";
+        if(!Lumos::FileSystem::FolderExists(m_ProjectSettings.m_ProjectRoot))
+        {
+            m_ProjectSettings.m_ProjectRoot = StringUtilities::GetFileLocation(OS::Instance()->GetExecutablePath()) + "/ExampleProject/";
+            if(!Lumos::FileSystem::FolderExists(m_ProjectSettings.m_ProjectRoot))
+            {
+                m_ProjectSettings.m_ProjectRoot = "../../ExampleProject/";
+            }
+        }
+#endif
+
         m_ProjectSettings.m_ProjectName = "Example";
 
         m_IniFile.Add("ShowGrid", m_Settings.m_ShowGrid);
@@ -2693,7 +2716,14 @@ namespace Lumos
 
         m_ProjectSettings.m_ProjectRoot  = m_IniFile.GetOrDefault("ProjectRoot", std::string("../../ExampleProject/"));
         m_ProjectSettings.m_ProjectName  = m_IniFile.GetOrDefault("ProjectName", std::string("Example"));
-        m_Settings.m_Physics2DDebugFlags = m_IniFile.GetOrDefault("PhysicsDebugDrawFlags2D", 0);
+
+		ArenaTemp arena = ScratchBegin(nullptr, 0);
+		String8 pathCopy = PushStr8Copy(arena.arena, m_ProjectSettings.m_ProjectRoot.c_str());
+		pathCopy = StringUtilities::ResolveRelativePath(arena.arena, pathCopy);
+		m_ProjectSettings.m_ProjectRoot = (const char*)pathCopy.str;
+		ScratchEnd(arena);
+
+		m_Settings.m_Physics2DDebugFlags = m_IniFile.GetOrDefault("PhysicsDebugDrawFlags2D", 0);
         m_Settings.m_Physics3DDebugFlags = m_IniFile.GetOrDefault("PhysicsDebugDrawFlags", 0);
         m_Settings.m_SleepOutofFocus     = m_IniFile.GetOrDefault("SleepOutofFocus", true);
         m_Settings.m_CameraSpeed         = m_IniFile.GetOrDefault("CameraSpeed", 1000.0f);

@@ -9,6 +9,7 @@
 #include "VKDescriptorSet.h"
 #include "Graphics/RHI/Renderer.h"
 #include "Core/DataStructures/Vector.h"
+#include "Utilities/DeletionQueue.h"
 
 #define NUM_SEMAPHORES 10
 
@@ -64,13 +65,13 @@ namespace Lumos
             bool AllocateDescriptorSet(VkDescriptorSet* set, VkDescriptorSetLayout layout, uint32_t descriptorCount);
             void ReleaseDescriptorPools();
 
-            static VKContext::DeletionQueue& GetDeletionQueue(int frameIndex)
+            static DeletionQueue& GetDeletionQueue(int frameIndex)
             {
-                LUMOS_ASSERT(frameIndex < int(s_DeletionQueue.size()), "Unsupported Frame Index");
+                LUMOS_ASSERT(frameIndex < int(s_DeletionQueue.Size()), "Unsupported Frame Index");
                 return s_DeletionQueue[frameIndex];
             }
 
-            static VKContext::DeletionQueue& GetCurrentDeletionQueue()
+            static DeletionQueue& GetCurrentDeletionQueue()
             {
                 return s_DeletionQueue[s_DeletionQueueIndex];
             }
@@ -109,7 +110,7 @@ namespace Lumos
             Vector<VkDescriptorPool> m_UsedDescriptorPools;
             Vector<VkDescriptorPool> m_FreeDescriptorPools;
 
-            static std::vector<VKContext::DeletionQueue> s_DeletionQueue;
+            static Vector<DeletionQueue> s_DeletionQueue;
             static int s_DeletionQueueIndex;
         };
     }

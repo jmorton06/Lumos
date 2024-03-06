@@ -89,11 +89,15 @@ namespace Lumos
         PathType PathTypeFromStr8(String8 path);
         String8List PathPartsFromStr8(Arena* arena, String8 path);
         String8List AbsolutePathPartsFromSourcePartsType(Arena* arena, String8 source, String8List parts, PathType type);
+        String8 ResolveRelativePath(Arena* arena, String8 path);
 
         String8List DotResolvedPathPartsFromParts(Arena* arena, String8List parts);
         String8 NormalizedPathFromStr8(Arena* arena, String8 source, String8 path);
         String8 GetFileName(String8 str, bool directory = false);
+        String8 AbsolutePathToRelativeFileSystemPath(Arena* arena, String8 path, String8 fileSystemPath, String8 prefix);
 
         uint64_t BasicHashFromString(String8 string);
+        String8 BackSlashesToSlashes(Arena* arena, String8& string);
+        String8 SlashesToBackSlashes(Arena* arena, String8& string);
     }
 }

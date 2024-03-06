@@ -36,6 +36,7 @@
 #include <Lumos/ImGui/IconsMaterialDesignIcons.h>
 #include <Lumos/ImGui/ImGuiManager.h>
 #include <Lumos/Graphics/RHI/IMGUIRenderer.h>
+// #include <Lumos/Scene/SerialisationImplementation.h>
 
 #include <imgui/imgui.h>
 #include <imgui/imgui_internal.h>
@@ -406,6 +407,19 @@ end
         ImGui::TextUnformatted("Entity");
         ImGui::NextColumn();
         ImGui::Text("%s", name.c_str());
+
+        if(ImGui::BeginDragDropTarget())
+        {
+            const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("Drag_Entity");
+            if(payload)
+            {
+                size_t count                 = payload->DataSize / sizeof(entt::entity);
+                entt::entity droppedEntityID = *(((entt::entity*)payload->Data));
+                axisConstraintComponent.SetEntity(Entity(droppedEntityID, Application::Get().GetCurrentScene()).GetID());
+            }
+            ImGui::EndDragDropTarget();
+        }
+
         ImGui::NextColumn();
 
         std::vector<std::string> entities;
@@ -1101,7 +1115,7 @@ end
                         // Drop directly on to node and append to the end of it's children list.
                         if(ImGui::AcceptDragDropPayload("Font"))
                         {
-                            Application::Get().GetFontLibrary()->Load(filePath, text.FontHandle);
+                            Application::Get().GetAssetManager()->AddAsset(filePath, text.FontHandle);
                             ImGui::EndDragDropTarget();
 
                             ImGui::Columns(1);
@@ -2042,7 +2056,7 @@ end
                             std::stringstream storage;
 
                             cereal::JSONOutputArchive output { storage };
-                            material->save(output);
+                            // Lumos::save(output, *material.get());
 
                             FileSystem::WriteTextFile(physicalPath, storage.str());
                         }
@@ -2407,12 +2421,12 @@ end
             emitter.SetBlendType((Lumos::ParticleEmitter::BlendType)selectedIndex);
 
         Lumos::ParticleEmitter::AlignedType alignType = emitter.GetAlignedType();
-        static const char* possibleAlignTypes[3] = { "2D", "3D", "Off" };
+        static const char* possibleAlignTypes[3]      = { "2D", "3D", "Off" };
 
         int selectedIndexAlign = (int)alignType;
 
         updated = Lumos::ImGuiUtilities::PropertyDropdown("Align Type", possibleAlignTypes, 3, &selectedIndexAlign);
-        if (updated)
+        if(updated)
             emitter.SetAlignedType((Lumos::ParticleEmitter::AlignedType)selectedIndexAlign);
 
         PropertySet("Is Animated", emitter.GetIsAnimated, emitter.SetIsAnimated);

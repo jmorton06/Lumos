@@ -664,7 +664,6 @@ namespace Lumos
         float capsuleTop    = capsulePos.y + capsuleHeight * 0.5f;
         float capsuleBottom = capsulePos.y - capsuleHeight * 0.5f;
 
-
         for(int i = 0; i < possibleCollisionAxesCount; i++)
         {
             const glm::vec3& axis = possibleCollisionAxes[i];

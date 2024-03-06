@@ -1,8 +1,8 @@
 #pragma once
 #include "Core/Core.h"
 #include "Scene/ISystem.h"
-#include <cereal/cereal.hpp>
-#include <vector>
+#include "Core/DataStructures/Vector.h"
+
 namespace Lumos
 {
     class Camera;
@@ -11,18 +11,6 @@ namespace Lumos
     struct Listener
     {
         bool m_Enabled = true;
-
-        template <typename Archive>
-        void save(Archive& archive) const
-        {
-            archive(cereal::make_nvp("enabled", m_Enabled));
-        }
-
-        template <typename Archive>
-        void load(Archive& archive)
-        {
-            archive(cereal::make_nvp("enabled", m_Enabled));
-        }
     };
 
     class LUMOS_EXPORT AudioManager : public ISystem
@@ -37,20 +25,20 @@ namespace Lumos
 
         void AddSoundNode(SoundNode* node)
         {
-            m_SoundNodes.emplace_back(node);
+            m_SoundNodes.EmplaceBack(node);
         }
         void OnDebugDraw() override {};
 
         void ClearNodes()
         {
-            m_SoundNodes.clear();
+            m_SoundNodes.Clear();
         }
 
         bool GetPaused() const { return m_Paused; }
         void SetPaused(bool paused);
 
     protected:
-        std::vector<SoundNode*> m_SoundNodes;
+        Vector<SoundNode*> m_SoundNodes;
         bool m_Paused;
     };
 }

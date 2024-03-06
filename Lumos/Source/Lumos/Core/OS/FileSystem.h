@@ -1,7 +1,6 @@
 #pragma once
 #include "Core/DataStructures/Vector.h"
 #include "Utilities/TSingleton.h"
-#include <map>
 #include "Core/String.h"
 
 namespace Lumos

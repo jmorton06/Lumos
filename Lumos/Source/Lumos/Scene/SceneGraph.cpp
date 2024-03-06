@@ -4,7 +4,7 @@
 
 DISABLE_WARNING_PUSH
 DISABLE_WARNING_CONVERSION_TO_SMALLER_TYPE
-#include <entt/entt.hpp>
+#include <entt/entity/registry.hpp>
 DISABLE_WARNING_POP
 
 namespace Lumos

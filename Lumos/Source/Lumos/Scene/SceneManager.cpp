@@ -76,7 +76,7 @@ namespace Lumos
                 return;
 
             if(m_vpAllScenes.Empty())
-                m_vpAllScenes.Emplace(CreateSharedPtr<Scene>("NewScene"));
+                m_vpAllScenes.PushBack(CreateSharedPtr<Scene>("NewScene"));
 
             m_QueuedSceneIndex = 0;
         }
@@ -133,7 +133,7 @@ namespace Lumos
 
         for(auto& scene : m_vpAllScenes)
         {
-            names.Emplace(scene->GetSceneName());
+            names.PushBack(scene->GetSceneName());
         }
 
         return names;
@@ -153,7 +153,7 @@ namespace Lumos
             }
         }
 
-        m_SceneFilePaths.Emplace(filePath);
+        m_SceneFilePaths.PushBack(filePath);
 
         auto name  = StringUtilities::RemoveFilePathExtension(StringUtilities::GetFileName(filePath));
         auto scene = new Scene(name);
@@ -163,7 +163,7 @@ namespace Lumos
 
     void SceneManager::EnqueueScene(Scene* scene)
     {
-        m_vpAllScenes.Emplace(SharedPtr<Scene>(scene));
+        m_vpAllScenes.PushBack(SharedPtr<Scene>(scene));
         LUMOS_LOG_INFO("[SceneManager] - Enqueued scene : {0}", scene->GetSceneName().c_str());
     }
 
@@ -196,7 +196,7 @@ namespace Lumos
     {
         m_SceneFilePaths.Clear();
         for(auto scene : m_vpAllScenes)
-            m_SceneFilePaths.Emplace("//Assets/Scenes/" + scene->GetSceneName());
+            m_SceneFilePaths.PushBack("//Assets/Scenes/" + scene->GetSceneName());
         return m_SceneFilePaths;
     }
 }

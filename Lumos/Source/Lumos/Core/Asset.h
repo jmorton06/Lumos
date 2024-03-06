@@ -25,7 +25,7 @@ namespace Lumos
 
     enum class AssetType : uint16_t
     {
-        None                = 0,
+        Unkown              = 0,
         Texture             = 1,
         Mesh                = 2,
         Scene               = 3,
@@ -38,7 +38,45 @@ namespace Lumos
         Skeleton            = 10,
         Animation           = 11,
         AnimationController = 12,
+        Prefab              = 13,
+        Script              = 14
     };
+
+    inline const char* AssetTypeToString(AssetType assetType)
+    {
+        switch(assetType)
+        {
+        case AssetType::Unkown:
+            return "Unkown";
+        case AssetType::Scene:
+            return "Scene";
+        case AssetType::Prefab:
+            return "Prefab";
+        case AssetType::Mesh:
+            return "Mesh";
+        case AssetType::Model:
+            return "Model";
+        case AssetType::Material:
+            return "Material";
+        case AssetType::Texture:
+            return "Texture";
+        case AssetType::Audio:
+            return "Audio";
+        case AssetType::Font:
+            return "Font";
+        case AssetType::Script:
+            return "Script";
+        case AssetType::Skeleton:
+            return "Skeleton";
+        case AssetType::Animation:
+            return "Animation";
+        case AssetType::Shader:
+            return "Shader";
+        }
+
+        LUMOS_ASSERT(false, "Unknown Asset Type");
+        return "None";
+    }
 
     class LUMOS_EXPORT Asset
     {
@@ -47,8 +85,8 @@ namespace Lumos
 
         virtual ~Asset() { }
 
-        static AssetType GetStaticType() { return AssetType::None; }
-        virtual AssetType GetAssetType() const { return AssetType::None; }
+        static AssetType GetStaticType() { return AssetType::Unkown; }
+        virtual AssetType GetAssetType() const { return AssetType::Unkown; }
 
         bool IsValid() const { return ((Flags & (uint16_t)AssetFlag::Missing) | (Flags & (uint16_t)AssetFlag::Invalid)) == 0; }
 

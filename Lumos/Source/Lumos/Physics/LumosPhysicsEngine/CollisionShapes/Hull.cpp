@@ -179,7 +179,7 @@ namespace Lumos
                 {
                     glm::vec3 polygon_next = transform * glm::vec4(m_Vertices[face.vert_ids[idx]].pos, 1.0f);
 
-                    DebugRenderer::DrawTriangle(polygon_start, polygon_last, polygon_next, true,  glm::vec4(0.9f, 0.9f, 0.9f, 0.2f));
+                    DebugRenderer::DrawTriangle(polygon_start, polygon_last, polygon_next, true, glm::vec4(0.9f, 0.9f, 0.9f, 0.2f));
                     polygon_last = polygon_next;
                 }
             }

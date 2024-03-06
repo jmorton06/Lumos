@@ -2,9 +2,6 @@
 #include "Renderable2D.h"
 #include "Core/OS/FileSystem.h"
 
-#include "Scene/Serialisation.h"
-#include "Maths/MathsSerialisation.h"
-
 namespace Lumos
 {
     namespace Graphics
@@ -13,6 +10,12 @@ namespace Lumos
 
         class LUMOS_EXPORT Sprite : public Renderable2D
         {
+            template <typename Archive>
+            friend void save(Archive& archive, const Sprite& sprite);
+
+            template <typename Archive>
+            friend void load(Archive& archive, Sprite& sprite);
+
         public:
             Sprite(const glm::vec2& position = glm::vec2(0.0f, 0.0f), const glm::vec2& scale = glm::vec2(1.0f, 1.0f), const glm::vec4& colour = glm::vec4(1.0f));
             Sprite(const SharedPtr<Texture2D>& texture, const glm::vec2& position, const glm::vec2& scale, const glm::vec4& colour);
@@ -29,39 +32,6 @@ namespace Lumos
 
             bool UsingSpriteSheet        = false;
             uint32_t SpriteSheetTileSize = 32;
-
-            template <typename Archive>
-            void save(Archive& archive) const
-            {
-                std::string newPath = "";
-                if(m_Texture)
-                {
-                    FileSystem::Get().AbsolutePathToFileSystem(m_Texture->GetFilepath(), newPath);
-                }
-
-                archive(cereal::make_nvp("TexturePath", newPath),
-                        cereal::make_nvp("Position", m_Position),
-                        cereal::make_nvp("Scale", m_Scale),
-                        cereal::make_nvp("Colour", m_Colour));
-
-                archive(UsingSpriteSheet, SpriteSheetTileSize);
-            }
-
-            template <typename Archive>
-            void load(Archive& archive)
-            {
-                std::string textureFilePath;
-                archive(cereal::make_nvp("TexturePath", textureFilePath),
-                        cereal::make_nvp("Position", m_Position),
-                        cereal::make_nvp("Scale", m_Scale),
-                        cereal::make_nvp("Colour", m_Colour));
-
-                if(!textureFilePath.empty())
-                    m_Texture = SharedPtr<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile("sprite", textureFilePath));
-
-                if(Serialisation::CurrentSceneVersion > 21)
-                    archive(UsingSpriteSheet, SpriteSheetTileSize);
-            }
         };
     }
 }

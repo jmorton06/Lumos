@@ -68,10 +68,9 @@ namespace Lumos
                 {
                     Application::Get().GetRenderPasses()->CreateCubeMap(m_FilePath + "_Env_" + StringUtilities::ToString(0) + "_" + StringUtilities::ToString(currWidth) + "x" + StringUtilities::ToString(currHeight) + m_FileType, m_Parameters, m_Environmnet, m_IrradianceMap);
 
+                    delete[] envFiles;
+                    delete[] irrFiles;
 
-					delete[] envFiles;
-					delete[] irrFiles;
-					
                     return;
                 }
                 else
@@ -130,9 +129,9 @@ namespace Lumos
                         m_IrradianceMap = SharedPtr<TextureCube>(Graphics::TextureCube::CreateFromVCross(irrFiles, numMipsIrr, params, loadOptions));
                     }
                     else
-					{
-						LUMOS_LOG_ERROR("Failed to load environment");
-					}
+                    {
+                        LUMOS_LOG_ERROR("Failed to load environment");
+                    }
                 }
             }
             else // if (m_Mode == 1)
@@ -141,9 +140,8 @@ namespace Lumos
                 Application::Get().GetRenderPasses()->CreateCubeMap("", m_Parameters, m_Environmnet, m_IrradianceMap);
             }
 
-
-			delete[] envFiles;
-			delete[] irrFiles;
+            delete[] envFiles;
+            delete[] irrFiles;
         }
 
         Environment::~Environment()

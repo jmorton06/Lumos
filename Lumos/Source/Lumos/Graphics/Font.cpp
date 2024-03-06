@@ -91,10 +91,10 @@ namespace Lumos
             if(std::filesystem::exists(filepath))
             {
                 storageBuffer.Allocate(uint32_t(FileSystem::GetFileSize(filepath.string())));
-				auto data = FileSystem::ReadFile(filepath.string());
+                auto data = FileSystem::ReadFile(filepath.string());
                 storageBuffer.Write(data, storageBuffer.Size);
-				delete[] data;
-				
+                delete[] data;
+
                 header = *storageBuffer.As<AtlasHeader>();
                 pixels = (uint8_t*)storageBuffer.Data + sizeof(AtlasHeader);
                 return true;

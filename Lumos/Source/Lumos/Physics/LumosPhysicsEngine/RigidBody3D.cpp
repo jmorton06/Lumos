@@ -13,10 +13,10 @@ namespace Lumos
 {
 
     RigidBody3D::RigidBody3D(const RigidBody3DProperties& properties)
-        : m_wsTransformInvalidated(true)
+        : m_WSTransformInvalidated(true)
         , m_RestVelocityThresholdSquared(0.004f)
         , m_AverageSummedVelocity(0.0f)
-        , m_wsAabbInvalidated(true)
+        , m_WSAabbInvalidated(true)
         , m_Position(properties.Position)
         , m_LinearVelocity(properties.LinearVelocity)
         , m_Force(properties.Force)
@@ -26,12 +26,12 @@ namespace Lumos
         , m_InvInertia(glm::mat3(1.0f))
         , m_OnCollisionCallback(nullptr)
         , m_AngularFactor(1.0f)
-        , m_wsTransform(glm::mat4(1.0f))
+        , m_WSTransform(glm::mat4(1.0f))
     {
         LUMOS_ASSERT(properties.Mass > 0.0f, "Mass <= 0");
         m_InvMass = 1.0f / properties.Mass;
 
-        m_localBoundingBox.Set(glm::vec3(-0.5f), glm::vec3(0.5f));
+        m_LocalBoundingBox.Set(glm::vec3(-0.5f), glm::vec3(0.5f));
 
         if(properties.Shape)
             SetCollisionShape(properties.Shape);
@@ -51,14 +51,14 @@ namespace Lumos
     const Maths::BoundingBox& RigidBody3D::GetWorldSpaceAABB()
     {
         LUMOS_PROFILE_FUNCTION_LOW();
-        if(m_wsAabbInvalidated)
+        if(m_WSAabbInvalidated)
         {
             LUMOS_PROFILE_SCOPE_LOW("Calculate BoundingBox");
-            m_wsAabb            = m_localBoundingBox.Transformed(GetWorldSpaceTransform());
-            m_wsAabbInvalidated = false;
+            m_WSAabb            = m_LocalBoundingBox.Transformed(GetWorldSpaceTransform());
+            m_WSAabbInvalidated = false;
         }
 
-        return m_wsAabb;
+        return m_WSAabb;
     }
 
     void RigidBody3D::WakeUp()
@@ -74,20 +74,20 @@ namespace Lumos
     const glm::mat4& RigidBody3D::GetWorldSpaceTransform() const
     {
         LUMOS_PROFILE_FUNCTION_LOW();
-        if(m_wsTransformInvalidated)
+        if(m_WSTransformInvalidated)
         {
-            m_wsTransform = glm::translate(glm::mat4(1.0), m_Position) * glm::toMat4(m_Orientation);
+            m_WSTransform = glm::translate(glm::mat4(1.0), m_Position) * glm::toMat4(m_Orientation);
 
-            m_wsTransformInvalidated = false;
+            m_WSTransformInvalidated = false;
         }
 
-        return m_wsTransform;
+        return m_WSTransform;
     }
 
     void RigidBody3D::AutoResizeBoundingBox()
     {
         LUMOS_PROFILE_FUNCTION_LOW();
-        m_localBoundingBox.Clear();
+        m_LocalBoundingBox.Clear();
 
         const glm::vec3 xAxis(1.0f, 0.0f, 0.0f);
         const glm::vec3 yAxis(0.0f, 1.0f, 0.0f);
@@ -98,19 +98,19 @@ namespace Lumos
         if(m_CollisionShape)
         {
             m_CollisionShape->GetMinMaxVertexOnAxis(nullptr, xAxis, &lower, &upper);
-            m_localBoundingBox.Merge(lower);
-            m_localBoundingBox.Merge(upper);
+            m_LocalBoundingBox.Merge(lower);
+            m_LocalBoundingBox.Merge(upper);
 
             m_CollisionShape->GetMinMaxVertexOnAxis(nullptr, yAxis, &lower, &upper);
-            m_localBoundingBox.Merge(lower);
-            m_localBoundingBox.Merge(upper);
+            m_LocalBoundingBox.Merge(lower);
+            m_LocalBoundingBox.Merge(upper);
 
             m_CollisionShape->GetMinMaxVertexOnAxis(nullptr, zAxis, &lower, &upper);
-            m_localBoundingBox.Merge(lower);
-            m_localBoundingBox.Merge(upper);
+            m_LocalBoundingBox.Merge(lower);
+            m_LocalBoundingBox.Merge(upper);
         }
 
-        m_wsAabbInvalidated = true;
+        m_WSAabbInvalidated = true;
     }
 
     void RigidBody3D::RestTest()
@@ -142,15 +142,15 @@ namespace Lumos
                 colour = glm::vec4(0.0f, 1.0f, 0.0f, 1.0f);
 
             // AABB
-            Maths::BoundingBox box = m_wsAabb;
+            Maths::BoundingBox box = m_WSAabb;
             DebugRenderer::DebugDraw(box, colour, false);
         }
 
         if(flags & PhysicsDebugFlags::LINEARVELOCITY)
-            DebugRenderer::DrawThickLine(m_wsTransform[3], m_wsTransform * glm::vec4(m_LinearVelocity, 1.0f), 0.02f, false,  glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
+            DebugRenderer::DrawThickLine(m_WSTransform[3], m_WSTransform * glm::vec4(m_LinearVelocity, 1.0f), 0.02f, false, glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
 
         if(flags & PhysicsDebugFlags::LINEARFORCE)
-            DebugRenderer::DrawThickLine(m_wsTransform[3], m_wsTransform * glm::vec4(m_Force, 1.0f), 0.02f, false, glm::vec4(0.0f, 0.0f, 1.0f, 1.0f));
+            DebugRenderer::DrawThickLine(m_WSTransform[3], m_WSTransform * glm::vec4(m_Force, 1.0f), 0.02f, false, glm::vec4(0.0f, 0.0f, 1.0f, 1.0f));
     }
 
     void RigidBody3D::SetCollisionShape(CollisionShapeType type)

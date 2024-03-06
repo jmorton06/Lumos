@@ -1,6 +1,6 @@
 #pragma once
 #include "Core/LMLog.h"
-#include <vector>
+#include "Core/DataStructures/Vector.h"
 
 namespace Lumos
 {
@@ -321,7 +321,7 @@ namespace Lumos
             DescriptorType type = DescriptorType::IMAGE_SAMPLER;
             ShaderType shaderType;
 
-            std::vector<BufferMemberInfo> m_Members;
+            Vector<BufferMemberInfo> m_Members;
         };
 
         enum class CubeFace : uint8_t
@@ -449,7 +449,7 @@ namespace Lumos
             uint32_t offset = 0;
             std::string name;
 
-            std::vector<BufferMemberInfo> m_Members;
+            Vector<BufferMemberInfo> m_Members;
 
             void SetValue(const std::string& name, void* value)
             {

@@ -29,7 +29,8 @@ namespace Lumos
             void SetUniformBufferData(const std::string& bufferName, void* data) override;
             void TransitionImages(CommandBuffer* commandBuffer) override;
 
-            Graphics::UniformBuffer* GetUnifromBuffer(const std::string& name) override;
+            Buffer* GetUniformBufferLocalData(const std::string& name) override;
+            Graphics::UniformBuffer* GetUniformBuffer(const std::string& name) override;
             bool GetIsDynamic() const { return m_Dynamic; }
 
             void SetDynamicOffset(uint32_t offset) override { m_DynamicOffset = offset; }
@@ -53,11 +54,11 @@ namespace Lumos
 
             struct UniformBufferInfo
             {
-                std::vector<BufferMemberInfo> m_Members;
+                Vector<BufferMemberInfo> m_Members;
                 Buffer LocalStorage;
 
                 // Per frame in flight
-                bool HasUpdated[10];
+                bool HasUpdated[MAX_FRAMES_FLIGHT];
             };
 
             DescriptorSetInfo m_Descriptors;

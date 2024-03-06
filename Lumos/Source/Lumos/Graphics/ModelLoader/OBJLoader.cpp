@@ -130,8 +130,8 @@ namespace Lumos
                 Graphics::Mesh::GenerateNormals(vertices.data(), vertexCount, indices.data(), numIndices);
 
             // TODO : if(isAnimated) Load deferredColourAnimated;
-            //  auto shader = Application::Get().GetShaderLibrary()->GetResource("//CoreShaders/ForwardPBR.shader");
-            auto shader = Application::Get().GetShaderLibrary()->GetResource("ForwardPBR");
+            //  auto shader = Application::Get().GetShaderLibrary()->GetAsset("//CoreShaders/ForwardPBR.shader");
+            auto shader = Application::Get().GetAssetManager()->GetAssetData("ForwardPBR").As<Graphics::Shader>();
 
             SharedPtr<Material> pbrMaterial = CreateSharedPtr<Material>(shader);
 

@@ -30,8 +30,8 @@ namespace Lumos
             LUMOS_PROFILE_FUNCTION_LOW();
             delete[] m_ClearValue;
 
-            VKContext::DeletionQueue& deletionQueue = VKRenderer::GetCurrentDeletionQueue();
-            VkRenderPass renderPass                 = m_RenderPass;
+            DeletionQueue& deletionQueue = VKRenderer::GetCurrentDeletionQueue();
+            VkRenderPass renderPass      = m_RenderPass;
 
             deletionQueue.PushFunction([renderPass]
                                        { vkDestroyRenderPass(VKDevice::Get().GetDevice(), renderPass, VK_NULL_HANDLE); });

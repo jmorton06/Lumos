@@ -89,7 +89,7 @@ namespace Lumos
         SharedPtr<Broadphase> GetBroadphase() const { return m_BroadphaseDetection; }
 
         inline void SetBroadphase(const SharedPtr<Broadphase>& bp) { m_BroadphaseDetection = bp; }
-        int GetNumberCollisionPairs() const { return static_cast<int>(m_BroadphaseCollisionPairs.size()); }
+        int GetNumberCollisionPairs() const { return static_cast<int>(m_BroadphaseCollisionPairs.Size()); }
         int GetNumberRigidBodys() const { return static_cast<int>(m_Stats.RigidBodyCount); }
         IntegrationType GetIntegrationType() const { return m_IntegrationType; }
         void SetIntegrationType(const IntegrationType& type) { m_IntegrationType = type; }
@@ -143,13 +143,12 @@ namespace Lumos
         glm::vec3 m_Gravity;
         float m_DampingFactor;
         uint32_t m_MaxUpdatesPerFrame = 5;
-        uint32_t m_PositionIterations = 1;
-        uint32_t m_VelocityIterations = 50;
+        uint32_t m_PositionIterations = 2;
+        uint32_t m_VelocityIterations = 10;
 
-        // Replace with CollisionPair*
-        std::vector<CollisionPair> m_BroadphaseCollisionPairs;
-        Constraint** m_Constraints; // Misc constraints between pairs of objects
-        Manifold* m_Manifolds;      // Contact constraints between pairs of objects
+        Vector<CollisionPair> m_BroadphaseCollisionPairs;
+        SharedPtr<Constraint>* m_Constraints; // Misc constraints between pairs of objects
+        Manifold* m_Manifolds;                // Contact constraints between pairs of objects
         std::mutex m_ManifoldsMutex;
 
         uint32_t m_ManifoldCount   = 0;

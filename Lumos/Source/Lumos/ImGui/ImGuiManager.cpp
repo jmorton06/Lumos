@@ -139,6 +139,7 @@ namespace Lumos
 
     void ImGuiManager::OnNewFrame()
     {
+        LUMOS_PROFILE_FUNCTION();
         m_IMGUIRenderer->NewFrame();
     }
 
