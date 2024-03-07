@@ -59,7 +59,9 @@ namespace Lumos
 
                         ImGui::TableNextColumn();
                         std::string name = "Unnamed";
+#ifndef LUMOS_PRODUCTION
                         registry.GetName(ID, name);
+#endif
                         ImGui::TextUnformatted(name.c_str());
 
                         ImGui::TableNextColumn();
