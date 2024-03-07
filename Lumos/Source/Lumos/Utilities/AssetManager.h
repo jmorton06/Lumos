@@ -74,7 +74,9 @@ namespace Lumos
         void AddName(const std::string& name, UUID ID)
         {
             m_NameMap.emplace(name, ID);
+#ifndef LUMOS_PRODUCTION
             m_UUIDNameMap.emplace(ID, name);
+#endif
         }
         bool GetID(const std::string& name, UUID& ID)
         {
