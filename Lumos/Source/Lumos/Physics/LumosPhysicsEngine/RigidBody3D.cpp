@@ -170,6 +170,9 @@ namespace Lumos
         case CollisionShapeType::CollisionCapsule:
             SetCollisionShape(CreateSharedPtr<CapsuleCollisionShape>());
             break;
+        case CollisionShapeType::CollisionHull:
+            SetCollisionShape(CreateSharedPtr<HullCollisionShape>());
+            break;
         default:
             LUMOS_LOG_ERROR("Unsupported Collision shape");
             break;

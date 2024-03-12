@@ -68,7 +68,7 @@ namespace Lumos
                         ImGui::TextUnformatted(AssetTypeToString(metaData.Type));
 
                         ImGui::TableNextColumn();
-                        ImGui::Text("%lld", metaData.lastAccessed);
+                        ImGui::Text("%.2f", metaData.lastAccessed);
 
                         ImGui::TableNextRow();
                     }

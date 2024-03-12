@@ -161,7 +161,7 @@ namespace Lumos
                         auto arena = GetArena(i);
                         totalAllocated += arena->Size;
                         float percentageFull = (float)arena->Position / (float)arena->Size;
-                        ImGui::ProgressBar((float)arena->Position / (float)arena->Size);
+                        ImGui::ProgressBar(percentageFull);
                         Lumos::ImGuiUtilities::Tooltip((Lumos::StringUtilities::BytesToString(arena->Position) + " / " + Lumos::StringUtilities::BytesToString(arena->Size)).c_str());
                     }
                     ImGui::Text("Total %s", Lumos::StringUtilities::BytesToString(totalAllocated).c_str());

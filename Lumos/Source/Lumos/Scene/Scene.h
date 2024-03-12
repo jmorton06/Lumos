@@ -160,6 +160,7 @@ namespace Lumos
 
             float SkyboxMipLevel = 0.0f;
             int DebugMode        = 0;
+            uint8_t MSAASamples =  4;
         };
 
         struct ScenePhysics3DSettings

@@ -352,15 +352,21 @@ namespace Lumos
                 attachments.push_back(m_Description.cubeMapTarget);
             }
 
+            if (m_Description.resolveTexture)
+            {
+                attachmentTypes.push_back(TextureType::COLOUR);
+                attachments.push_back(m_Description.resolveTexture);
+            }
+
             Graphics::RenderPassDesc renderPassDesc = {};
-            renderPassDesc.attachmentCount          = uint32_t(attachmentTypes.size());
+            renderPassDesc.attachmentCount          = uint32_t(attachmentTypes.size()) - (m_Description.resolveTexture ? 1 : 0);
             renderPassDesc.attachmentTypes          = attachmentTypes.data();
             renderPassDesc.attachments              = attachments.data();
             renderPassDesc.swapchainTarget          = m_Description.swapchainTarget;
             renderPassDesc.clear                    = m_Description.clearTargets;
             renderPassDesc.cubeMapIndex             = m_Description.cubeMapIndex;
             renderPassDesc.mipIndex                 = m_Description.mipIndex;
-
+            renderPassDesc.resolveTexture           = m_Description.resolveTexture;
             if(m_Description.DebugName != NULL)
                 renderPassDesc.DebugName = m_Description.DebugName;
             renderPassDesc.samples = m_Description.samples;
@@ -491,6 +497,11 @@ namespace Lumos
                 {
                     ((VKTexture2D*)texture)->TransitionImage(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, (VKCommandBuffer*)commandBuffer);
                 }
+            }
+
+            if (m_Description.resolveTexture)
+            {
+                ((VKTexture2D*)m_Description.resolveTexture)->TransitionImage(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, (VKCommandBuffer*)commandBuffer);
             }
         }
 

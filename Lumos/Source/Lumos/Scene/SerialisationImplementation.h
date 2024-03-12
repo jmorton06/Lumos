@@ -161,7 +161,7 @@ namespace Lumos
             if(version <= 1)
                 archive(cereal::make_nvp("Name", key), cereal::make_nvp("UUID", value));
             else
-                archive(cereal::make_nvp("Name", key), cereal::make_nvp("UUID", value), cereal::make_nvp("Type", type));
+                archive(cereal::make_nvp("Name", key), cereal::make_nvp("UUID", value), cereal::make_nvp("AssetType", type));
             nameMap[key] = (UUID)value;
 
             if (type)
@@ -169,6 +169,7 @@ namespace Lumos
                 AssetMetaData metaData;
                 metaData.IsDataLoaded = false;
                 metaData.Type = (AssetType)type;
+                registry.m_AssetRegistry[(UUID)value] = metaData;
             }
         }
     }

@@ -54,8 +54,8 @@ namespace Lumos
             bool CheckValidationLayerSupport(std::vector<const char*>& validationLayers);
             bool CheckExtensionSupport(std::vector<const char*>& extensions);
 
-            static const std::vector<const char*> GetRequiredExtensions();
-            const std::vector<const char*> GetRequiredLayers() const;
+            static const std::vector<const char*> GetRequiredExtensions(bool enableValidationLayers);
+            const std::vector<const char*> GetRequiredLayers(bool enableValidationLayers) const;
 
         private:
             static VkInstance s_VkInstance;

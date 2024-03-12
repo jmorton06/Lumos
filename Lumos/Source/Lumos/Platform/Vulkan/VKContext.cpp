@@ -8,6 +8,8 @@
 #include "Core/Version.h"
 #include "Utilities/StringUtilities.h"
 #include "Maths/MathsUtilities.h"
+#include "Core/CommandLine.h"
+#include "Core/CoreSystem.h"
 
 #ifndef VK_API_VERSION_1_2
 #error Wrong Vulkan SDK!
@@ -28,11 +30,11 @@ namespace Lumos
         VkInstance VKContext::s_VkInstance = nullptr;
         uint32_t VKContext::m_VKVersion    = 0;
 
-        const std::vector<const char*> VKContext::GetRequiredExtensions()
+        const std::vector<const char*> VKContext::GetRequiredExtensions(bool enableValidationLayers)
         {
             std::vector<const char*> extensions;
 
-            if(EnableValidationLayers)
+            if(enableValidationLayers)
             {
                 LUMOS_LOG_INFO("Vulkan : Enabled Validation Layers");
                 extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
@@ -71,11 +73,11 @@ namespace Lumos
             return extensions;
         }
 
-        const std::vector<const char*> VKContext::GetRequiredLayers() const
+        const std::vector<const char*> VKContext::GetRequiredLayers(bool enableValidationLayers) const
         {
             std::vector<const char*> layers;
 
-            if(EnableValidationLayers)
+            if(enableValidationLayers)
             {
                 layers.emplace_back(VK_LAYER_LUNARG_VALIDATION_NAME);
             }
@@ -128,9 +130,7 @@ namespace Lumos
         {
             LUMOS_PROFILE_FUNCTION();
             CreateInstance();
-            VKDevice::Get().Init();
-
-            SetupDebugCallback();
+            
         };
 
         void VKContext::Present()
@@ -281,9 +281,15 @@ namespace Lumos
                 LUMOS_ASSERT(false, "Could not find loader");
             }
 #endif
+            bool enableValidation = EnableValidationLayers;
+            CommandLine* cmdline = Internal::CoreSystem::GetCmdLine();
+            if (cmdline->OptionBool(Str8Lit("EnableVulkanValidation")))
+            {
+                enableValidation = true;
+            }
 
-            m_InstanceLayerNames     = GetRequiredLayers();
-            m_InstanceExtensionNames = GetRequiredExtensions();
+            m_InstanceLayerNames     = GetRequiredLayers(enableValidation);
+            m_InstanceExtensionNames = GetRequiredExtensions(enableValidation);
 
             if(!CheckValidationLayerSupport(m_InstanceLayerNames))
             {
@@ -367,13 +373,16 @@ namespace Lumos
             volkLoadInstance(s_VkInstance);
 #endif
             VKUtilities::Init();
+
+            VKDevice::Get().Init();
+
+            if(enableValidation)
+                SetupDebugCallback();
         }
 
         void VKContext::SetupDebugCallback()
         {
             LUMOS_PROFILE_FUNCTION();
-            if(!EnableValidationLayers)
-                return;
 
             VkDebugReportCallbackCreateInfoEXT createInfo = {};
             createInfo.sType                              = VK_STRUCTURE_TYPE_DEBUG_REPORT_CALLBACK_CREATE_INFO_EXT;

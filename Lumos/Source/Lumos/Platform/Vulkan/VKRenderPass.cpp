@@ -37,7 +37,7 @@ namespace Lumos
                                        { vkDestroyRenderPass(VKDevice::Get().GetDevice(), renderPass, VK_NULL_HANDLE); });
         }
 
-        VkAttachmentDescription GetAttachmentDescription(TextureType type, Texture* texture, bool clear = true)
+        VkAttachmentDescription GetAttachmentDescription(TextureType type, Texture* texture, uint8_t samples = 1, bool clear = true)
         {
             LUMOS_PROFILE_FUNCTION_LOW();
             VkAttachmentDescription attachment = {};
@@ -85,7 +85,7 @@ namespace Lumos
                 attachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
             }
 
-            attachment.samples        = VK_SAMPLE_COUNT_1_BIT;
+            attachment.samples        = samples > 1 ? (VkSampleCountFlagBits)samples : VK_SAMPLE_COUNT_1_BIT;
             attachment.stencilLoadOp  = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
             attachment.storeOp        = VK_ATTACHMENT_STORE_OP_STORE;
             attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
@@ -109,7 +109,7 @@ namespace Lumos
 
             for(uint32_t i = 0; i < renderPassDesc.attachmentCount; i++)
             {
-                attachments.push_back(GetAttachmentDescription(renderPassDesc.attachmentTypes[i], renderPassDesc.attachments[i], renderPassDesc.clear));
+                attachments.push_back(GetAttachmentDescription(renderPassDesc.attachmentTypes[i], renderPassDesc.attachments[i], renderPassDesc.samples, renderPassDesc.clear));
 
                 if(renderPassDesc.attachmentTypes[i] == TextureType::COLOUR)
                 {
@@ -199,16 +199,33 @@ namespace Lumos
                 }
             }
 
+            uint32_t attachmentCount = renderPassDesc.attachmentCount;
+
+            bool resolveTexture = false;
+            VkAttachmentReference colourAttachmentResolvedRef = {};
+
+            if(renderPassDesc.resolveTexture != nullptr && renderPassDesc.samples > 1)
+            {
+                resolveTexture = true;
+                VkImageLayout layout                   = ((VKTexture2D*)renderPassDesc.resolveTexture)->GetImageLayout();
+                colourAttachmentResolvedRef.attachment = uint32_t(renderPassDesc.attachmentCount);
+                colourAttachmentResolvedRef.layout     = layout == VK_IMAGE_LAYOUT_PRESENT_SRC_KHR ? VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL : layout;
+                attachmentCount++;
+
+                attachments.push_back(GetAttachmentDescription(renderPassDesc.attachmentTypes[0], renderPassDesc.resolveTexture, 1, renderPassDesc.clear));
+            }
+
             VkSubpassDescription subpass    = {};
             subpass.pipelineBindPoint       = VK_PIPELINE_BIND_POINT_GRAPHICS;
             subpass.colorAttachmentCount    = static_cast<uint32_t>(colourAttachmentReferences.size());
             subpass.pColorAttachments       = colourAttachmentReferences.data();
             subpass.pDepthStencilAttachment = depthAttachmentReferences.data();
+            subpass.pResolveAttachments     = resolveTexture ? &colourAttachmentResolvedRef : nullptr;
 
             m_ColourAttachmentCount = int(colourAttachmentReferences.size());
 
             VkRenderPassCreateInfo renderPassCreateInfo = VKInitialisers::RenderPassCreateInfo();
-            renderPassCreateInfo.attachmentCount        = uint32_t(renderPassDesc.attachmentCount);
+            renderPassCreateInfo.attachmentCount        = uint32_t(attachmentCount);
             renderPassCreateInfo.pAttachments           = attachments.data();
             renderPassCreateInfo.subpassCount           = 1;
             renderPassCreateInfo.pSubpasses             = &subpass;
@@ -220,7 +237,7 @@ namespace Lumos
             if(!renderPassDesc.DebugName.empty())
                 VKUtilities::SetDebugUtilsObjectName(VKDevice::Get().GetDevice(), VK_OBJECT_TYPE_RENDER_PASS, renderPassDesc.DebugName.c_str(), m_RenderPass);
 
-            m_ClearValue      = new VkClearValue[renderPassDesc.attachmentCount];
+            m_ClearValue      = new VkClearValue[attachmentCount];
             m_ClearCount      = renderPassDesc.attachmentCount;
             m_SwapchainTarget = renderPassDesc.swapchainTarget;
 

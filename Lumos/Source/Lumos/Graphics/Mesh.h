@@ -157,6 +157,9 @@ namespace Lumos
             }
 #endif
 
+            const std::vector<uint32_t>& GetIndices() const { return m_Indices; }
+            const std::vector<Vertex>& GetVertices() const { return m_Vertices; }
+
         protected:
             static glm::vec3 GenerateTangent(const glm::vec3& a, const glm::vec3& b, const glm::vec3& c, const glm::vec2& ta, const glm::vec2& tb, const glm::vec2& tc);
 

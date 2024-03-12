@@ -51,6 +51,11 @@ namespace Lumos
                 }
             }
 
+			if(pipelineDesc.resolveTexture)
+			{
+				HashCombine(hash, pipelineDesc.resolveTexture->GetUUID());
+			}
+
             if(pipelineDesc.depthTarget)
             {
                 HashCombine(hash, pipelineDesc.depthTarget->GetUUID());
@@ -69,6 +74,7 @@ namespace Lumos
             HashCombine(hash, pipelineDesc.cubeMapIndex);
             HashCombine(hash, pipelineDesc.cubeMapTarget);
             HashCombine(hash, pipelineDesc.mipIndex);
+            HashCombine(hash, pipelineDesc.samples);
 
             if(pipelineDesc.swapchainTarget)
             {

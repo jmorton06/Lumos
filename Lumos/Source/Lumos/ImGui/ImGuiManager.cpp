@@ -71,6 +71,10 @@ namespace Lumos
 #ifdef LUMOS_PLATFORM_IOS
         io.ConfigFlags |= ImGuiConfigFlags_IsTouchScreen;
 #endif
+		
+#ifdef LUMOS_PLATFORM_MACOS
+		io.ConfigMacOSXBehaviors = true;
+		#endif
         io.BackendFlags |= ImGuiBackendFlags_HasMouseCursors;
         io.ConfigWindowsMoveFromTitleBarOnly = true;
 

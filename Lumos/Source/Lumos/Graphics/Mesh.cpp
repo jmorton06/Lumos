@@ -78,7 +78,7 @@ namespace Lumos
             m_Stats.OptimiseThreshold = optimiseThreshold;
 #endif
 
-            const bool storeData = false;
+            const bool storeData = true;
             if(!storeData)
             {
                 m_Indices.clear();
@@ -114,7 +114,7 @@ namespace Lumos
             m_Stats.OptimiseThreshold = 1.0f;
 #endif
 
-            const bool storeData = false;
+            const bool storeData = true;
             if(!storeData)
             {
                 m_Indices.clear();

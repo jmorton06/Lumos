@@ -359,6 +359,7 @@ namespace Lumos
             int mipIndex         = 0;
             int samples          = 1;
             std::string DebugName;
+            Texture* resolveTexture = nullptr;
         };
 
         struct TextureDesc
@@ -367,7 +368,7 @@ namespace Lumos
             TextureFilter minFilter;
             TextureFilter magFilter;
             TextureWrap wrap;
-            uint16_t samples          = 1;
+            uint8_t samples           = 1;
             uint16_t flags            = TextureFlags::Texture_CreateMips;
             bool srgb                 = false;
             bool generateMipMaps      = true;

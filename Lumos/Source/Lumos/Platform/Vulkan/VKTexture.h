@@ -133,6 +133,11 @@ namespace Lumos
                 return m_VKFormat;
             }
 
+			uint8_t GetSamples() const override
+			{
+				return m_Samples;
+			}
+
             VkImageView GetMipImageView(uint32_t mip);
 
             VkImageLayout GetImageLayout() const { return m_ImageLayout; }
@@ -152,6 +157,7 @@ namespace Lumos
             uint32_t m_Width {}, m_Height {};
             uint32_t m_MipLevels = 1;
             uint8_t* m_Data      = nullptr;
+            uint8_t m_Samples = 1;
 
             TextureDesc m_Parameters;
             TextureLoadOptions m_LoadOptions;
@@ -338,7 +344,7 @@ namespace Lumos
         class VKTextureDepth : public TextureDepth
         {
         public:
-            VKTextureDepth(uint32_t width, uint32_t height, RHIFormat format);
+            VKTextureDepth(uint32_t width, uint32_t height, RHIFormat format, uint8_t samples);
             ~VKTextureDepth();
 
             void Bind(uint32_t slot = 0) const override {};
@@ -384,6 +390,11 @@ namespace Lumos
                 return m_Format;
             }
 
+			uint8_t GetSamples() const override
+			{
+				return m_Samples;
+			}
+
             VkImage GetImage() const
             {
                 return m_TextureImage;
@@ -422,13 +433,14 @@ namespace Lumos
             static void MakeDefault();
 
         protected:
-            static TextureDepth* CreateFuncVulkan(uint32_t, uint32_t, RHIFormat);
+            static TextureDepth* CreateFuncVulkan(uint32_t, uint32_t, RHIFormat, uint8_t);
             void Init();
 
         private:
             std::string m_Name;
             uint32_t m_Handle {};
             uint32_t m_Width, m_Height;
+            uint8_t m_Samples;
             RHIFormat m_Format;
             VkFormat m_VKFormat;
             VkImageLayout m_ImageLayout;

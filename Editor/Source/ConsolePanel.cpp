@@ -33,7 +33,7 @@ namespace Lumos
         {
             for(auto messIt = messageStart; messIt != s_MessageBuffer.end(); ++messIt)
             {
-                if(message->GetMessageID() == (*messIt)->GetMessageID())
+                if((*messIt) && message->GetMessageID() == (*messIt)->GetMessageID())
                 {
                     (*messIt)->IncreaseCount();
                     return;

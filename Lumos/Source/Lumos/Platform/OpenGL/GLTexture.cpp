@@ -442,7 +442,7 @@ namespace Lumos
             glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
         }
 
-        GLTextureDepth::GLTextureDepth(uint32_t width, uint32_t height, RHIFormat format)
+        GLTextureDepth::GLTextureDepth(uint32_t width, uint32_t height, RHIFormat format, uint8_t samples)
             : m_Width(width)
             , m_Height(height)
         {
@@ -602,9 +602,9 @@ namespace Lumos
             return new GLTextureCube(files, mips, params, loadOptions);
         }
 
-        TextureDepth* GLTextureDepth::CreateFuncGL(uint32_t width, uint32_t height, RHIFormat format)
+        TextureDepth* GLTextureDepth::CreateFuncGL(uint32_t width, uint32_t height, RHIFormat format, uint8_t samples)
         {
-            return new GLTextureDepth(width, height, format);
+            return new GLTextureDepth(width, height, format, samples);
         }
 
         TextureDepthArray* GLTextureDepthArray::CreateFuncGL(uint32_t width, uint32_t height, uint32_t count, RHIFormat format)

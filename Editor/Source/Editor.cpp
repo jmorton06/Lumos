@@ -1269,7 +1269,6 @@ namespace Lumos
 
             if(ImGui::Button("OK", ImVec2(120, 0)))
             {
-                auto scene = new Scene("New Scene");
                 Application::Get().GetSceneManager()->SwitchScene(Application::Get().GetSceneManager()->GetCurrentSceneIndex());
 
                 ImGui::CloseCurrentPopup();
@@ -1732,6 +1731,7 @@ namespace Lumos
 
         m_GridRenderer->OnImGui();
 
+		m_GridRenderer->SetDepthTarget(m_RenderPasses->GetForwardData().m_DepthTexture);
         m_GridRenderer->BeginScene(Application::Get().GetSceneManager()->GetCurrentScene(), m_EditorCamera.get(), &m_EditorCameraTransform);
         m_GridRenderer->RenderScene();
 #endif
@@ -2533,8 +2533,8 @@ namespace Lumos
             Entity modelEntity = Application::Get().GetSceneManager()->GetCurrentScene()->GetEntityManager()->Create(StringUtilities::GetFileName(path));
             modelEntity.AddComponent<Graphics::ModelComponent>(path);
 
+            m_SelectedEntities.clear();
             SetSelected(modelEntity.GetHandle());
-            // m_SelectedEntity = modelEntity.GetHandle();
         }
         else if(IsAudioFile(path))
         {
