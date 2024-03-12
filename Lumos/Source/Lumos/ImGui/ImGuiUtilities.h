@@ -6,6 +6,14 @@
 #include <glm/fwd.hpp>
 #include <iostream>
 
+
+static float value1 = 0.0f;
+static float value2 = 0.0f;
+#define IMGUI_VALUE_WINDOW(windowName, valueName, value) \
+ImGui::Begin(windowName, nullptr); \
+ImGui::DragFloat(valueName, &value);\
+ImGui::End();
+
 namespace Lumos
 {
     namespace Graphics
@@ -47,6 +55,7 @@ namespace Lumos
         bool Property(const char* name, bool& value, PropertyFlag flags = PropertyFlag::None);
         bool Property(const char* name, int& value, PropertyFlag flags);
         bool Property(const char* name, uint32_t& value, PropertyFlag flags = PropertyFlag::None);
+        bool Property(const char* name, uint8_t& value, PropertyFlag flags = PropertyFlag::None);
         bool PropertyMultiline(const char* label, std::string& value);
 
         bool Property(const char* name, double& value, double min = -1.0, double max = 1.0, PropertyFlag flags = PropertyFlag::None);

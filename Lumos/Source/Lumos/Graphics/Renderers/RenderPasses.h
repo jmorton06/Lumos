@@ -10,6 +10,7 @@ namespace Lumos
     class TimeStep;
     class WindowResizeEvent;
     class Event;
+    struct SceneRenderSettings;
 
     namespace Maths
     {
@@ -281,9 +282,9 @@ namespace Lumos
             void Init2DRenderData();
             bool m_2DRenderDataInitialised = false;
 
-            Texture2D* m_MainTexture      = nullptr;
-            Texture2D* m_LastRenderTarget = nullptr;
-
+            Texture2D* m_MainTexture         = nullptr;
+            Texture2D* m_ResolveTexture      = nullptr;
+            Texture2D* m_LastRenderTarget    = nullptr;
             Texture2D* m_PostProcessTexture1 = nullptr;
             Texture2D* m_PostProcessTexture2 = nullptr;
 
@@ -387,10 +388,13 @@ namespace Lumos
             SharedPtr<Graphics::Shader> m_SharpenShader;
 
             RenderPassesStats m_Stats;
+            uint8_t m_MainTextureSamples = 4;
 
             // Outline pass
             Graphics::Model* m_SelectedModel           = nullptr;
             Maths::Transform* m_SelectedModelTransform = nullptr;
+
+            SceneRenderSettings* m_OverrideSceneRenderSettings = nullptr; //For editor viewport
 
             void TextFlush(Renderer2DData& textRenderData, std::vector<TextVertexData*>& textVertexBufferBase, TextVertexData*& textVertexBufferPtr);
         };

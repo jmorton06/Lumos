@@ -224,6 +224,13 @@ end
 
         ImGui::Columns(1);
         ImGui::Separator();
+
+        if (ImGui::Button("Copy Editor Camera Transforn", ImVec2(ImGui::GetContentRegionAvail().x, 0.0f)))
+        {
+            Lumos::Application* app = &Lumos::Editor::Get();
+            glm::mat4 cameraTransform = ((Lumos::Editor*)app)->GetEditorCameraTransform().GetWorldMatrix();
+            transform.SetLocalTransform(cameraTransform);
+        }
     }
 
     static void CuboidCollisionShapeInspector(Lumos::CuboidCollisionShape* shape, const Lumos::RigidBody3DComponent& phys)
@@ -311,6 +318,12 @@ end
         ImGui::TextUnformatted("Hull Collision Shape");
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
+        
+        if (ImGui::Button("Generate Collider"))
+        {
+            auto test = Lumos::SharedPtr<Lumos::Graphics::Mesh>(Lumos::Graphics::CreatePrimative(Lumos::Graphics::PrimitiveType::Cube));
+            shape->BuildFromMesh(test.get());
+        }
     }
 
     std::string CollisionShape2DTypeToString(Lumos::Shape shape)
@@ -530,7 +543,7 @@ end
         int index                 = 0;
         for(auto& shape : shapes)
         {
-            if(shape == shape_current)
+            if(strcmp(shape, shape_current) == 0)
             {
                 selectedIndex = index;
                 break;

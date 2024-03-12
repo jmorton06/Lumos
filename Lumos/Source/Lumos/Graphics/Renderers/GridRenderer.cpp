@@ -187,6 +187,7 @@ namespace Lumos
             pipelineDesc.transparencyEnabled = true;
             pipelineDesc.blendMode           = BlendMode::SrcAlphaOneMinusSrcAlpha;
 
+            if(m_DepthTexture && m_DepthTexture->GetSamples() == 1)
             {
                 pipelineDesc.depthTarget = reinterpret_cast<Texture*>(m_DepthTexture); // reinterpret_cast<Texture*>(Application::Get().GetRenderPasses()->GetDepthTexture());
             }

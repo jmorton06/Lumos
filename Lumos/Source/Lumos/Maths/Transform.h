@@ -9,6 +9,11 @@ namespace Lumos
 {
     namespace Maths
     {
+        struct WorldTransform
+        {
+            glm::mat4 WorldMatrix;
+        };
+
         class Transform
         {
             template <typename Archive>

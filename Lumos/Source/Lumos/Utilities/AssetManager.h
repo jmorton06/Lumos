@@ -49,7 +49,7 @@ namespace Lumos
 
             for(auto&& [key, value] : m_AssetRegistry)
             {
-                if(value.Expire && value.data.GetCounter()->GetReferenceCount() == 1 && m_ExpirationTime < (elapsedSeconds - value.lastAccessed))
+                if(value.Expire && value.IsDataLoaded && value.data.GetCounter()->GetReferenceCount() == 1 && m_ExpirationTime < (elapsedSeconds - value.lastAccessed))
                 {
                     keysToDelete[keysToDeleteCount] = key;
                     keysToDeleteCount++;
@@ -156,6 +156,8 @@ namespace Lumos
                 metaData.lastAccessed   = (float)Engine::GetTimeStep().GetElapsedSeconds();
                 metaData.data           = data;
                 metaData.Expire         = !keepUnreferenced;
+                metaData.Type           = data ?  data->GetAssetType() : AssetType::Unkown;
+                metaData.IsDataLoaded   = data ? true : false;
                 return metaData;
             }
 

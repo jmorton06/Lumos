@@ -237,6 +237,34 @@ namespace Lumos
         return updated;
     }
 
+    bool ImGuiUtilities::Property(const char* name, uint8_t& value, ImGuiUtilities::PropertyFlag flags)
+    {
+        LUMOS_PROFILE_FUNCTION();
+        bool updated = false;
+
+        ImGui::AlignTextToFramePadding();
+        ImGui::TextUnformatted(name);
+        ImGui::NextColumn();
+        ImGui::PushItemWidth(-1);
+
+        if ((int)flags & (int)PropertyFlag::ReadOnly)
+		{
+			ImGui::Text("%d", value);
+		}
+		else if ((int)flags & (int)PropertyFlag::DragValue)
+		{
+			updated = ImGui::DragScalar(GenerateID(), ImGuiDataType_U8, &value);
+		}
+        else
+        {
+            updated = ImGui::InputScalar(GenerateID(), ImGuiDataType_U8, &value);
+        }
+        ImGui::PopItemWidth();
+        ImGui::NextColumn();
+
+        return updated;
+    }
+
     bool ImGuiUtilities::Property(const char* name, float& value, float min, float max, float delta, ImGuiUtilities::PropertyFlag flags)
     {
         LUMOS_PROFILE_FUNCTION();
@@ -555,7 +583,7 @@ namespace Lumos
         if(ImGui::IsItemHovered())
         {
             ImGui::BeginTooltip();
-            bool flipImage = Graphics::Renderer::GetGraphicsContext()->FlipImGUITexture();
+            bool flipImage = false;// Graphics::Renderer::GetGraphicsContext()->FlipImGUITexture();
             ImGui::Image(texture ? Application::Get().GetImGuiManager()->GetImGuiRenderer()->AddTexture(texture) : nullptr, ImVec2(size.x, size.y), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
             ImGui::TextUnformatted(text);
             ImGui::EndTooltip();

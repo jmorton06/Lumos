@@ -149,7 +149,7 @@ namespace Lumos
 
             ImGui::PushStyleColor(ImGuiCol_Text, ImGuiUtilities::GetIconColour());
             // ImGui::BeginGroup();
-            bool nodeOpen = ImGui::TreeNodeEx((void*)(intptr_t)entt::to_integral(node), nodeFlags, (const char*)icon.str);
+			bool nodeOpen = ImGui::TreeNodeEx((void*)(intptr_t)entt::to_integral(node), nodeFlags, "%s", (const char*)icon.str);
             {
                 if(ImGui::BeginDragDropSource())
                 {
@@ -265,7 +265,7 @@ namespace Lumos
                 if(ImGui::Selectable("Cut"))
                 {
                     for(auto entity : m_Editor->GetSelected())
-                        m_Editor->SetCopiedEntity(node, true);
+                        m_Editor->SetCopiedEntity(entity, true);
                 }
 
                 if(m_Editor->GetCopiedEntity().size() > 0 && registry.valid(m_Editor->GetCopiedEntity().front()))

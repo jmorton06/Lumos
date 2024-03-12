@@ -68,6 +68,8 @@ namespace Lumos
             VkPrimitiveTopology DrawTypeToVk(Lumos::Graphics::DrawType type);
 
             void SetDebugUtilsObjectName(const VkDevice device, const VkObjectType objectType, const char* name, const void* handle);
+
+            VkSampleCountFlagBits GetMaxUsableSampleCount();
         }
     }
 }

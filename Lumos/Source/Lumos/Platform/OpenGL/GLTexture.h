@@ -170,7 +170,7 @@ namespace Lumos
         class GLTextureDepth : public TextureDepth
         {
         public:
-            GLTextureDepth(uint32_t width, uint32_t height, RHIFormat format);
+            GLTextureDepth(uint32_t width, uint32_t height, RHIFormat format, uint8_t samples);
             ~GLTextureDepth();
 
             void Bind(uint32_t slot = 0) const override;
@@ -214,7 +214,7 @@ namespace Lumos
             static void MakeDefault();
 
         protected:
-            static TextureDepth* CreateFuncGL(uint32_t, uint32_t, RHIFormat);
+            static TextureDepth* CreateFuncGL(uint32_t, uint32_t, RHIFormat, uint8_t);
 
             void Init();
 

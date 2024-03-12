@@ -25,7 +25,7 @@ namespace Lumos
             bool DepthWrite = true;
 
             std::array<Texture*, MAX_RENDER_TARGETS> colourTargets = {};
-
+            Texture* resolveTexture       = nullptr;
             Texture* cubeMapTarget        = nullptr;
             Texture* depthTarget          = nullptr;
             Texture* depthArrayTarget     = nullptr;
@@ -35,7 +35,7 @@ namespace Lumos
             float depthBiasSlopeFactor    = 0.0f;
             int cubeMapIndex              = 0;
             int mipIndex                  = 0;
-            int samples                   = 1;
+            uint8_t samples               = 1;
 
             const char* DebugName = nullptr;
         };
