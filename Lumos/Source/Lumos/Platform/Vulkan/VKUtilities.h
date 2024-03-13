@@ -1,7 +1,6 @@
 #pragma once
 #include "VK.h"
 #include "Graphics/RHI/Definitions.h"
-#include <vulkan/vk_mem_alloc.h>
 
 #define VK_CHECK_RESULT(f)                                                                                                                        \
     {                                                                                                                                             \
@@ -60,6 +59,8 @@ namespace Lumos
             VkFormat FormatToVK(const RHIFormat format, bool srgb = false);
             RHIFormat VKToFormat(VkFormat format);
 
+            uint32_t BytesPerPixel(VkFormat format);
+
             VkSamplerAddressMode TextureWrapToVK(const TextureWrap format);
             VkFilter TextureFilterToVK(const TextureFilter filter);
             VkShaderStageFlagBits ShaderTypeToVK(const ShaderType& shaderName);
@@ -67,6 +68,8 @@ namespace Lumos
             VkPrimitiveTopology DrawTypeToVk(Lumos::Graphics::DrawType type);
 
             void SetDebugUtilsObjectName(const VkDevice device, const VkObjectType objectType, const char* name, const void* handle);
+
+            VkSampleCountFlagBits GetMaxUsableSampleCount();
         }
     }
 }

@@ -62,9 +62,9 @@ namespace Lumos
 {
     namespace Graphics
     {
-#define LoadShaderEmbedded(name, vertName, fragName) shaderLibrary->AddResource(name, SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromEmbeddedArray(spirv_##vertName##vertspv.data(), spirv_##vertName##vertspv_size, spirv_##fragName##fragspv.data(), spirv_##fragName##fragspv_size)));
-#define LoadComputeShaderEmbedded(name, compName) shaderLibrary->AddResource(name, SharedPtr<Graphics::Shader>(Graphics::Shader::CreateCompFromEmbeddedArray(spirv_##compName##compspv.data(), spirv_##compName##compspv_size)));
-#define LoadShaderFromFile(name, path) shaderLibrary->AddResource(name, SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromFile(engineShaderPath + path)));
+#define LoadShaderEmbedded(name, vertName, fragName) shaderLibrary->AddAsset(name, SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromEmbeddedArray(spirv_##vertName##vertspv.data(), spirv_##vertName##vertspv_size, spirv_##fragName##fragspv.data(), spirv_##fragName##fragspv_size)), true);
+#define LoadComputeShaderEmbedded(name, compName) shaderLibrary->AddAsset(name, SharedPtr<Graphics::Shader>(Graphics::Shader::CreateCompFromEmbeddedArray(spirv_##compName##compspv.data(), spirv_##compName##compspv_size)), true);
+#define LoadShaderFromFile(name, path) shaderLibrary->AddAsset(name, SharedPtr<Graphics::Shader>(Graphics::Shader::CreateFromFile(engineShaderPath + path)), true);
 
         Renderer* (*Renderer::CreateFunc)() = nullptr;
 
@@ -88,7 +88,7 @@ namespace Lumos
 
         void Renderer::LoadEngineShaders(bool loadEmbeddedShaders, const std::string& engineShaderPath)
         {
-            auto shaderLibrary = Application::Get().GetShaderLibrary();
+            auto shaderLibrary = Application::Get().GetAssetManager();
             if(loadEmbeddedShaders)
             {
                 LUMOS_LOG_INFO("Loading shaders - embedded");

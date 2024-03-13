@@ -72,11 +72,11 @@ namespace Lumos
             }
             archive(newPath);
 
-			archive(m_LifeSpread);
-			archive(m_SortParticles);
-			archive(m_DepthWrite);
-			archive(m_BlendType);
-			archive(m_AlignedType);
+            archive(m_LifeSpread);
+            archive(m_SortParticles);
+            archive(m_DepthWrite);
+            archive((uint8_t)m_BlendType);
+            archive((uint8_t)m_AlignedType);
         }
 
         template <typename Archive>
@@ -112,14 +112,17 @@ namespace Lumos
             else
                 m_Texture = nullptr;
 
-			if(SceneSerialisationVersion > 23)
-			{
-				archive(m_LifeSpread);
-				archive(m_SortParticles);
-				archive(m_DepthWrite);
-				archive(m_BlendType);
-				archive(m_AlignedType);
-			}
+            if(SceneSerialisationVersion > 23)
+            {
+                archive(m_LifeSpread);
+                archive(m_SortParticles);
+                archive(m_DepthWrite);
+                uint8_t value;
+                archive(value);
+                m_BlendType = (BlendType)value;
+                archive(value);
+                m_AlignedType = (AlignedType)value;
+            }
 
             Init();
         }

@@ -5,14 +5,6 @@
 #include "VK.h"
 #include "VKDevice.h"
 
-#include <deque>
-
-#if defined(LUMOS_DEBUG)
-const bool EnableValidationLayers = true;
-#else
-const bool EnableValidationLayers = false;
-#endif
-
 namespace Lumos
 {
     namespace Graphics
@@ -52,29 +44,6 @@ namespace Lumos
             const std::vector<const char*>& GetExtensionNames() const { return m_InstanceExtensionNames; }
 
             static void MakeDefault();
-
-            struct DeletionQueue
-            {
-                std::deque<std::function<void()>> m_Deletors;
-
-                template <typename F>
-                void PushFunction(F&& function)
-                {
-                    LUMOS_ASSERT(sizeof(F) < 200, "Lambda too large");
-                    m_Deletors.push_back(function);
-                }
-
-                void Flush()
-                {
-                    for(auto it = m_Deletors.rbegin(); it != m_Deletors.rend(); it++)
-                    {
-                        (*it)();
-                    }
-
-                    m_Deletors.clear();
-                }
-            };
-
             static uint32_t GetVKVersion() { return m_VKVersion; }
 
         protected:
@@ -85,8 +54,8 @@ namespace Lumos
             bool CheckValidationLayerSupport(std::vector<const char*>& validationLayers);
             bool CheckExtensionSupport(std::vector<const char*>& extensions);
 
-            static const std::vector<const char*> GetRequiredExtensions();
-            const std::vector<const char*> GetRequiredLayers() const;
+            static const std::vector<const char*> GetRequiredExtensions(bool enableValidationLayers);
+            const std::vector<const char*> GetRequiredLayers(bool enableValidationLayers) const;
 
         private:
             static VkInstance s_VkInstance;

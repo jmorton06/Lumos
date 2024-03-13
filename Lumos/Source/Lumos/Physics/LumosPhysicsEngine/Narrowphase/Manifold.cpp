@@ -245,11 +245,11 @@ namespace Lumos
                 glm::vec3 globalOnB  = m_pNodeB->GetPosition() + contact.relPosB;
 
                 // Draw line to form area given by all contact points
-                DebugRenderer::DrawThickLineNDT(globalOnA1, globalOnA2, 0.02f, glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
+                DebugRenderer::DrawThickLine(globalOnA1, globalOnA2, 0.02f, false, glm::vec4(0.0f, 1.0f, 0.0f, 1.0f), 3.0f);
 
                 // Draw descriptors for indivdual contact point
-                DebugRenderer::DrawPointNDT(globalOnA2, 0.05f, glm::vec4(0.0f, 0.5f, 0.0f, 1.0f));
-                DebugRenderer::DrawThickLineNDT(globalOnB, globalOnA2, 0.01f, glm::vec4(1.0f, 0.0f, 1.0f, 1.0f));
+                DebugRenderer::DrawPoint(globalOnA2, 0.05f, false, glm::vec4(0.0f, 0.5f, 0.0f, 1.0f), 3.0f);
+                DebugRenderer::DrawThickLine(globalOnB, globalOnA2, 0.01f, false, glm::vec4(1.0f, 0.0f, 1.0f, 1.0f), 3.0f);
 
                 globalOnA1 = globalOnA2;
             }

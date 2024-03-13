@@ -166,7 +166,6 @@ namespace Lumos
             caps.Renderer                     = std::string(m_PhysicalDeviceProperties.deviceName);
             caps.Version                      = StringUtilities::ToString(m_PhysicalDeviceProperties.driverVersion);
             caps.MaxAnisotropy                = m_PhysicalDeviceProperties.limits.maxSamplerAnisotropy;
-            caps.MaxSamples                   = m_PhysicalDeviceProperties.limits.maxSamplerAllocationCount;
             caps.MaxTextureUnits              = m_PhysicalDeviceProperties.limits.maxDescriptorSetSamplers;
             caps.UniformBufferOffsetAlignment = int(m_PhysicalDeviceProperties.limits.minUniformBufferOffsetAlignment);
             caps.SupportCompute               = false; // true; //Need to sort descriptor set management first
@@ -415,6 +414,8 @@ namespace Lumos
                 Renderer::GetCapabilities().WideLines = false;
             }
 
+            Renderer::GetCapabilities().MaxSamples = VKUtilities::GetMaxUsableSampleCount();
+
             if(supportedFeatures.samplerAnisotropy)
                 m_EnabledFeatures.samplerAnisotropy = true;
 
@@ -528,9 +529,13 @@ namespace Lumos
             fn.vkGetBufferMemoryRequirements2KHR       = 0;
             fn.vkGetInstanceProcAddr                   = (PFN_vkGetInstanceProcAddr)vkGetInstanceProcAddr;
             fn.vkGetDeviceProcAddr                     = (PFN_vkGetDeviceProcAddr)vkGetDeviceProcAddr;
-            fn.vkGetDeviceBufferMemoryRequirements     = (PFN_vkGetDeviceBufferMemoryRequirements)vkGetDeviceBufferMemoryRequirements;
-            allocatorInfo.pVulkanFunctions             = &fn;
 
+#if !defined(LUMOS_PLATFORM_MACOS) && !defined(LUMOS_PLATFORM_IOS)
+            fn.vkGetDeviceBufferMemoryRequirements = (PFN_vkGetDeviceBufferMemoryRequirements)vkGetDeviceBufferMemoryRequirements;
+            fn.vkGetDeviceImageMemoryRequirements  = (PFN_vkGetDeviceImageMemoryRequirements)vkGetDeviceImageMemoryRequirements;
+#endif
+            allocatorInfo.pVulkanFunctions            = &fn;
+            allocatorInfo.preferredLargeHeapBlockSize = 64 * 1024 * 1024;
             if(vmaCreateAllocator(&allocatorInfo, &m_Allocator) != VK_SUCCESS)
             {
                 LUMOS_LOG_CRITICAL("[VULKAN] Failed to create VMA allocator");
@@ -597,7 +602,7 @@ namespace Lumos
 
             VmaPoolCreateInfo pci;
             pci.memoryTypeIndex        = memTypeIndex;
-            pci.flags                  = 0;
+            pci.flags                  = VMA_POOL_CREATE_IGNORE_BUFFER_IMAGE_GRANULARITY_BIT;
             pci.blockSize              = 0;
             pci.minBlockCount          = 0;
             pci.maxBlockCount          = SIZE_MAX;

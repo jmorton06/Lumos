@@ -1,12 +1,9 @@
 #pragma once
-#include "Serialisation.h"
 #include <sol/forward.hpp>
 #include <glm/vec3.hpp>
-
-DISABLE_WARNING_PUSH
-DISABLE_WARNING_CONVERSION_TO_SMALLER_TYPE
-#include <entt/entity/registry.hpp>
-DISABLE_WARNING_POP
+#include <entt/fwd.hpp>
+#include "Core/DataStructures/Vector.h"
+#include "Core/UUID.h"
 
 namespace Lumos
 {
@@ -28,6 +25,12 @@ namespace Lumos
 
     class LUMOS_EXPORT Scene
     {
+        template <typename Archive>
+        friend void save(Archive& archive, const Scene& scene);
+
+        template <typename Archive>
+        friend void load(Archive& archive, Scene& scene);
+
     public:
         explicit Scene(const std::string& name);
         virtual ~Scene();
@@ -93,7 +96,6 @@ namespace Lumos
         entt::registry& GetRegistry();
 
         void UpdateSceneGraph();
-
         void DuplicateEntity(Entity entity);
         void DuplicateEntity(Entity entity, Entity parent);
         Entity CreateEntity();
@@ -158,13 +160,14 @@ namespace Lumos
 
             float SkyboxMipLevel = 0.0f;
             int DebugMode        = 0;
+            uint8_t MSAASamples =  4;
         };
 
         struct ScenePhysics3DSettings
         {
             uint32_t m_MaxUpdatesPerFrame = 5;
-            uint32_t VelocityIterations   = 20;
-            uint32_t PositionIterations   = 1;
+            uint32_t VelocityIterations   = 6;
+            uint32_t PositionIterations   = 2;
 
             glm::vec3 Gravity             = glm::vec3(0.0f, -9.81f, 0.0f);
             float Dampening               = 0.9995f;
@@ -192,68 +195,6 @@ namespace Lumos
             ScenePhysics2DSettings Physics2DSettings;
         };
 
-        template <typename Archive>
-        void save(Archive& archive) const
-        {
-            archive(cereal::make_nvp("Version", SceneSerialisationVersion));
-            archive(cereal::make_nvp("Scene Name", m_SceneName));
-
-            archive(cereal::make_nvp("PhysicsEnabled2D", m_Settings.PhysicsEnabled2D), cereal::make_nvp("PhysicsEnabled3D", m_Settings.PhysicsEnabled3D), cereal::make_nvp("AudioEnabled", m_Settings.AudioEnabled), cereal::make_nvp("Renderer2DEnabled", m_Settings.RenderSettings.Renderer2DEnabled),
-                    cereal::make_nvp("Renderer3DEnabled", m_Settings.RenderSettings.Renderer3DEnabled), cereal::make_nvp("DebugRenderEnabled", m_Settings.RenderSettings.DebugRenderEnabled), cereal::make_nvp("SkyboxRenderEnabled", m_Settings.RenderSettings.SkyboxRenderEnabled), cereal::make_nvp("ShadowsEnabled", m_Settings.RenderSettings.ShadowsEnabled));
-            archive(cereal::make_nvp("Exposure", m_Settings.RenderSettings.m_Exposure), cereal::make_nvp("ToneMap", m_Settings.RenderSettings.m_ToneMapIndex));
-
-            archive(cereal::make_nvp("BloomIntensity", m_Settings.RenderSettings.m_BloomIntensity), cereal::make_nvp("BloomKnee", m_Settings.RenderSettings.BloomKnee), cereal::make_nvp("BloomThreshold", m_Settings.RenderSettings.BloomThreshold),
-                    cereal::make_nvp("BloomUpsampleScale", m_Settings.RenderSettings.BloomUpsampleScale));
-
-            archive(cereal::make_nvp("FXAAEnabled", m_Settings.RenderSettings.FXAAEnabled), cereal::make_nvp("DebandingEnabled", m_Settings.RenderSettings.DebandingEnabled), cereal::make_nvp("ChromaticAberationEnabled", m_Settings.RenderSettings.ChromaticAberationEnabled), cereal::make_nvp("EyeAdaptation", m_Settings.RenderSettings.EyeAdaptation), cereal::make_nvp("SSAOEnabled", m_Settings.RenderSettings.SSAOEnabled), cereal::make_nvp("BloomEnabled", m_Settings.RenderSettings.BloomEnabled), cereal::make_nvp("FilmicGrainEnabled", m_Settings.RenderSettings.FilmicGrainEnabled), cereal::make_nvp("DepthOfFieldEnabled", m_Settings.RenderSettings.DepthOfFieldEnabled), cereal::make_nvp("MotionBlurEnabled", m_Settings.RenderSettings.MotionBlurEnabled));
-
-            archive(cereal::make_nvp("DepthOFFieldEnabled", m_Settings.RenderSettings.DepthOfFieldEnabled), cereal::make_nvp("DepthOfFieldStrength", m_Settings.RenderSettings.DepthOfFieldStrength), cereal::make_nvp("DepthOfFieldDistance", m_Settings.RenderSettings.DepthOfFieldDistance));
-
-            archive(m_Settings.RenderSettings.Brightness, m_Settings.RenderSettings.Saturation, m_Settings.RenderSettings.Contrast);
-
-            archive(m_Settings.RenderSettings.SharpenEnabled);
-        }
-
-        template <typename Archive>
-        void load(Archive& archive)
-        {
-            archive(cereal::make_nvp("Version", m_SceneSerialisationVersion));
-            archive(cereal::make_nvp("Scene Name", m_SceneName));
-
-            Serialisation::CurrentSceneVersion = m_SceneSerialisationVersion;
-
-            if(m_SceneSerialisationVersion > 7)
-            {
-                archive(cereal::make_nvp("PhysicsEnabled2D", m_Settings.PhysicsEnabled2D), cereal::make_nvp("PhysicsEnabled3D", m_Settings.PhysicsEnabled3D), cereal::make_nvp("AudioEnabled", m_Settings.AudioEnabled), cereal::make_nvp("Renderer2DEnabled", m_Settings.RenderSettings.Renderer2DEnabled),
-                        cereal::make_nvp("Renderer3DEnabled", m_Settings.RenderSettings.Renderer3DEnabled), cereal::make_nvp("DebugRenderEnabled", m_Settings.RenderSettings.DebugRenderEnabled), cereal::make_nvp("SkyboxRenderEnabled", m_Settings.RenderSettings.SkyboxRenderEnabled), cereal::make_nvp("ShadowsEnabled", m_Settings.RenderSettings.ShadowsEnabled));
-            }
-            if(m_SceneSerialisationVersion > 9)
-            {
-                archive(cereal::make_nvp("Exposure", m_Settings.RenderSettings.m_Exposure), cereal::make_nvp("ToneMap", m_Settings.RenderSettings.m_ToneMapIndex));
-            }
-
-            if(Serialisation::CurrentSceneVersion > 11)
-            {
-                archive(cereal::make_nvp("BloomIntensity", m_Settings.RenderSettings.m_BloomIntensity), cereal::make_nvp("BloomKnee", m_Settings.RenderSettings.BloomKnee), cereal::make_nvp("BloomThreshold", m_Settings.RenderSettings.BloomThreshold),
-                        cereal::make_nvp("BloomUpsampleScale", m_Settings.RenderSettings.BloomUpsampleScale));
-            }
-            if(Serialisation::CurrentSceneVersion > 12)
-            {
-                archive(cereal::make_nvp("FXAAEnabled", m_Settings.RenderSettings.FXAAEnabled), cereal::make_nvp("DebandingEnabled", m_Settings.RenderSettings.DebandingEnabled), cereal::make_nvp("ChromaticAberationEnabled", m_Settings.RenderSettings.ChromaticAberationEnabled), cereal::make_nvp("EyeAdaptation", m_Settings.RenderSettings.EyeAdaptation), cereal::make_nvp("SSAOEnabled", m_Settings.RenderSettings.SSAOEnabled), cereal::make_nvp("BloomEnabled", m_Settings.RenderSettings.BloomEnabled), cereal::make_nvp("FilmicGrainEnabled", m_Settings.RenderSettings.FilmicGrainEnabled), cereal::make_nvp("DepthOfFieldEnabled", m_Settings.RenderSettings.DepthOfFieldEnabled), cereal::make_nvp("MotionBlurEnabled", m_Settings.RenderSettings.MotionBlurEnabled));
-            }
-
-            if(Serialisation::CurrentSceneVersion > 15)
-            {
-                archive(cereal::make_nvp("DepthOfFieldEnabled", m_Settings.RenderSettings.DepthOfFieldEnabled), cereal::make_nvp("DepthOfFieldStrength", m_Settings.RenderSettings.DepthOfFieldStrength), cereal::make_nvp("DepthOfFieldDistance", m_Settings.RenderSettings.DepthOfFieldDistance));
-            }
-
-            if(Serialisation::CurrentSceneVersion > 16)
-                archive(m_Settings.RenderSettings.Brightness, m_Settings.RenderSettings.Saturation, m_Settings.RenderSettings.Contrast);
-
-            if(Serialisation::CurrentSceneVersion > 18)
-                archive(m_Settings.RenderSettings.SharpenEnabled);
-        }
-
         SceneSettings& GetSettings()
         {
             return m_Settings;
@@ -274,6 +215,9 @@ namespace Lumos
 
         uint32_t m_ScreenWidth;
         uint32_t m_ScreenHeight;
+
+        //Load these assets ready to be used during a scene
+        Vector<UUID> m_PreLoadAssetsList;
 
     private:
         NONCOPYABLE(Scene)

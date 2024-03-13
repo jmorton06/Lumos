@@ -495,6 +495,15 @@ namespace Lumos
             return parts;
         }
 
+        String8 ResolveRelativePath(Arena* arena, String8 path)
+        {
+            ArenaTemp scratch      = ArenaTempBegin(arena);
+            String8 pathCopy       = BackSlashesToSlashes(scratch.arena, path);
+            String8 resolvedString = NormalizedPathFromStr8(arena, pathCopy, pathCopy);
+            ArenaTempEnd(scratch);
+            return resolvedString;
+        }
+
         String8List DotResolvedPathPartsFromParts(Arena* arena, String8List parts)
         {
             ArenaTemp scratch = ArenaTempBegin(arena);
@@ -545,7 +554,7 @@ namespace Lumos
             {
                 join.post = Str8Lit("/");
             }
-            String8 absolute_resolved_path = Str8ListJoin(scratch.arena, absolute_resolved_path_parts, &join);
+            String8 absolute_resolved_path = Str8ListJoin(arena, absolute_resolved_path_parts, &join);
             ArenaTempEnd(scratch);
             return absolute_resolved_path;
         }
@@ -558,6 +567,36 @@ namespace Lumos
                 return Str8PathSkipLastSlash(Str8PathChopLastPeriod(str));
         }
 
+        String8 AbsolutePathToRelativeFileSystemPath(Arena* arena, String8 path, String8 fileSystemPath, String8 prefix)
+        {
+            LUMOS_PROFILE_FUNCTION();
+
+            ArenaTemp scratch      = ScratchBegin(&arena, 1);
+            String8 pathCopy       = BackSlashesToSlashes(scratch.arena, path);
+            String8 resolvedString = NormalizedPathFromStr8(scratch.arena, pathCopy, pathCopy);
+            String8 outString;
+
+            uint64_t loc = FindSubstr8(resolvedString, fileSystemPath, 0);
+
+            if(loc != resolvedString.size)
+            {
+                resolvedString.str  = resolvedString.str + fileSystemPath.size;
+                resolvedString.size = resolvedString.size - fileSystemPath.size;
+
+                outString      = { 0 };
+                outString.size = (resolvedString.size + prefix.size);
+                outString.str  = PushArrayNoZero(arena, uint8_t, outString.size + 1);
+
+                MemoryCopy(outString.str, prefix.str, prefix.size);
+                MemoryCopy(outString.str + prefix.size, resolvedString.str, resolvedString.size);
+            }
+            else
+                outString = PushStr8Copy(arena, resolvedString);
+
+            ScratchEnd(scratch);
+            return outString;
+        }
+
         uint64_t BasicHashFromString(String8 string)
         {
             uint64_t result = 5381;
@@ -566,6 +605,47 @@ namespace Lumos
                 result = ((result << 5) + result) + string.str[i];
             }
             return result;
+        }
+
+        String8 BackSlashesToSlashes(Arena* arena, String8& string)
+        {
+            String8 copy = PushStr8Copy(arena, string);
+
+            ArenaTemp scratch = ArenaTempBegin(arena);
+            size_t len        = string.size;
+
+            for(size_t i = 0; i < len; i++)
+            {
+                if(string.str[i] == '\\')
+                {
+                    copy.str[i] = '/';
+                }
+                else
+                    copy.str[i] = string.str[i];
+            }
+            ArenaTempEnd(scratch);
+
+            return copy;
+        }
+
+        String8 SlashesToBackSlashes(Arena* arena, String8& string)
+        {
+            String8 copy = PushStr8Copy(arena, string);
+
+            ArenaTemp scratch = ArenaTempBegin(arena);
+            size_t len        = string.size;
+            for(size_t i = 0; i < len; i++)
+            {
+                if(string.str[i] == '/')
+                {
+                    copy.str[i] = '\\';
+                }
+                else
+                    copy.str[i] = string.str[i];
+            }
+            ArenaTempEnd(scratch);
+
+            return copy;
         }
     }
 }

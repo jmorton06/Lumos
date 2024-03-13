@@ -1,6 +1,6 @@
 #pragma once
 #include "Core/LMLog.h"
-#include <vector>
+#include "Core/DataStructures/Vector.h"
 
 namespace Lumos
 {
@@ -321,7 +321,7 @@ namespace Lumos
             DescriptorType type = DescriptorType::IMAGE_SAMPLER;
             ShaderType shaderType;
 
-            std::vector<BufferMemberInfo> m_Members;
+            Vector<BufferMemberInfo> m_Members;
         };
 
         enum class CubeFace : uint8_t
@@ -359,6 +359,7 @@ namespace Lumos
             int mipIndex         = 0;
             int samples          = 1;
             std::string DebugName;
+            Texture* resolveTexture = nullptr;
         };
 
         struct TextureDesc
@@ -367,7 +368,7 @@ namespace Lumos
             TextureFilter minFilter;
             TextureFilter magFilter;
             TextureWrap wrap;
-            uint16_t samples          = 1;
+            uint8_t samples           = 1;
             uint16_t flags            = TextureFlags::Texture_CreateMips;
             bool srgb                 = false;
             bool generateMipMaps      = true;
@@ -449,7 +450,7 @@ namespace Lumos
             uint32_t offset = 0;
             std::string name;
 
-            std::vector<BufferMemberInfo> m_Members;
+            Vector<BufferMemberInfo> m_Members;
 
             void SetValue(const std::string& name, void* value)
             {

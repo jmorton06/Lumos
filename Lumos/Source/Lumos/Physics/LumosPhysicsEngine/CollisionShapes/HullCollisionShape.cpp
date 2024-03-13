@@ -4,14 +4,21 @@
 #include <glm/mat3x3.hpp>
 
 #include "Graphics/Mesh.h"
+#include "Graphics/MeshFactory.h"
 
 namespace Lumos
 {
     HullCollisionShape::HullCollisionShape()
     {
-        m_HalfDimensions = glm::vec3(0.5f, 0.5f, 0.5f);
+        m_HalfDimensions = glm::vec3(1.0f);
         m_Type           = CollisionShapeType::CollisionHull;
         m_Axes.resize(3);
+
+        auto test = Lumos::SharedPtr<Lumos::Graphics::Mesh>(Lumos::Graphics::CreatePrimative(Lumos::Graphics::PrimitiveType::Cube));
+        BuildFromMesh(test.get());
+
+        m_LocalTransform = glm::scale(glm::mat4(1.0), m_HalfDimensions);
+        m_Edges.resize(m_Hull->GetNumEdges());
     }
 
     HullCollisionShape::~HullCollisionShape()
@@ -21,21 +28,24 @@ namespace Lumos
     void HullCollisionShape::BuildFromMesh(Graphics::Mesh* mesh)
     {
         m_Hull = CreateSharedPtr<Hull>();
+        const auto& vertices = mesh->GetVertices();
+        const auto& indices = mesh->GetIndices();
 
-        auto vertexBuffer          = mesh->GetVertexBuffer();
+
+   /*     auto vertexBuffer          = mesh->GetVertexBuffer();
         Graphics::Vertex* vertices = vertexBuffer->GetPointer<Graphics::Vertex>();
         uint32_t size              = vertexBuffer->GetSize();
         uint32_t count             = size / sizeof(Graphics::Vertex);
 
         uint32_t* indices   = mesh->GetIndexBuffer()->GetPointer<uint32_t>();
-        uint32_t indexCount = mesh->GetIndexBuffer()->GetCount();
+        uint32_t indexCount = mesh->GetIndexBuffer()->GetCount();*/
 
-        for(size_t i = 0; i < count; i++)
+        for(size_t i = 0; i < vertices.size(); i++)
         {
             m_Hull->AddVertex(vertices[i].Position);
         }
 
-        for(size_t i = 0; i < indexCount; i += 3)
+        for(size_t i = 0; i < indices.size(); i += 3)
         {
             glm::vec3 n1     = vertices[indices[i]].Normal;
             glm::vec3 n2     = vertices[indices[i + 1]].Normal;
@@ -48,9 +58,6 @@ namespace Lumos
         }
 
         m_Edges.resize(m_Hull->GetNumEdges());
-
-        vertexBuffer->ReleasePointer();
-        mesh->GetIndexBuffer()->ReleasePointer();
     }
 
     // glm::mat3 HullCollisionShape::GetLocalInertiaTensor(float mass)
@@ -119,6 +126,16 @@ namespace Lumos
         const glm::vec3 local_axis = wsTransform * glm::vec4(axis, 1.0f);
 
         int vMin, vMax;
+
+        if (!m_Hull)
+        {
+            if (out_min)
+                *out_min = glm::vec3(0.0f);
+            if (out_max)
+                *out_max = glm::vec3(0.0f);
+
+            return;
+        }
 
         m_Hull->GetMinMaxVerticesInAxis(local_axis, &vMin, &vMax);
 
@@ -208,6 +225,8 @@ namespace Lumos
 
     void HullCollisionShape::DebugDraw(const RigidBody3D* currentObject) const
     {
+        if (!m_Hull)
+            return;
         glm::mat4 transform = currentObject->GetWorldSpaceTransform() * m_LocalTransform;
         m_Hull->DebugDraw(transform);
     }

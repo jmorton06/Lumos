@@ -34,8 +34,8 @@ namespace Lumos
         glm::vec3 posA = m_pObj1->GetPosition();
         glm::vec3 posB = m_pObj2->GetPosition();
 
-        DebugRenderer::DrawThickLine(posA, posB, 0.02f, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
-        DebugRenderer::DrawPointNDT(posA, 0.05f, glm::vec4(1.0f, 0.8f, 1.0f, 1.0f));
-        DebugRenderer::DrawPointNDT(posB, 0.05f, glm::vec4(1.0f, 0.8f, 1.0f, 1.0f));
+        DebugRenderer::DrawThickLine(posA, posB, 0.02f, false, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+        DebugRenderer::DrawPoint(posA, 0.05f, false, glm::vec4(1.0f, 0.8f, 1.0f, 1.0f));
+        DebugRenderer::DrawPoint(posB, 0.05f, false, glm::vec4(1.0f, 0.8f, 1.0f, 1.0f));
     }
 }

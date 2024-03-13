@@ -20,7 +20,7 @@
         "DebandingEnabled": true,
         "ChromaticAberationEnabled": false,
         "EyeAdaptation": true,
-        "SSAOEnabled": false,
+        "SSAOEnabled": true,
         "BloomEnabled": true,
         "FilmicGrainEnabled": false,
         "DepthOfFieldEnabled": false,
@@ -50,13 +50,13 @@
         "Position": {
             "value0": 0.0,
             "value1": 0.0,
-            "value2": 0.857250452041626
+            "value2": 1.0328266620635987
         },
         "Rotation": {
             "value0": 0.0,
             "value1": 0.0,
             "value2": 0.0,
-            "value3": 0.9999999403953552
+            "value3": 1.0
         },
         "Scale": {
             "value0": 4.507300853729248,
@@ -121,8 +121,27 @@
             "value2": 1.000004768371582
         }
     },
-    "value21": 2,
+    "value21": 8,
     "value22": {
+        "Position": {
+            "value0": 0.0,
+            "value1": 20.91830825805664,
+            "value2": 0.0
+        },
+        "Rotation": {
+            "value0": 0.0,
+            "value1": 0.0,
+            "value2": 0.0,
+            "value3": 1.0
+        },
+        "Scale": {
+            "value0": 1.0,
+            "value1": 1.0,
+            "value2": 1.0
+        }
+    },
+    "value23": 2,
+    "value24": {
         "Position": {
             "value0": 20.89605140686035,
             "value1": 4.722044944763184,
@@ -140,8 +159,8 @@
             "value2": 1.0000011920928956
         }
     },
-    "value23": 1,
-    "value24": {
+    "value25": 1,
+    "value26": {
         "Position": {
             "value0": 0.0,
             "value1": 0.0,
@@ -157,25 +176,6 @@
             "value0": 1.0000011920928956,
             "value1": 1.0000063180923463,
             "value2": 1.000003457069397
-        }
-    },
-    "value25": 8,
-    "value26": {
-        "Position": {
-            "value0": 0.0,
-            "value1": 0.0,
-            "value2": 0.0
-        },
-        "Rotation": {
-            "value0": 0.0,
-            "value1": 0.0,
-            "value2": 0.0,
-            "value3": 1.0
-        },
-        "Scale": {
-            "value0": 1.0,
-            "value1": 1.0,
-            "value2": 1.0
         }
     },
     "value27": 6,
@@ -470,7 +470,7 @@
     "value98": 1,
     "value99": 8,
     "value100": {
-        "value0": 1024,
+        "value0": 2048,
         "value1": 6.0,
         "value2": 0.20000000298023225,
         "value3": {
@@ -494,11 +494,11 @@
             "value1": 0.20000000298023225,
             "value2": 0.20000000298023225
         },
-        "value7": 3.0,
-        "value8": 3.0,
-        "value9": 0.0017724819481372834,
+        "value7": 2.0,
+        "value8": 2.0,
+        "value9": 0.08911193907260895,
         "value10": 0.10000000149011612,
-        "value11": 20,
+        "value11": 100,
         "value12": false,
         "value13": {
             "value0": 0.0,

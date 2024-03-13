@@ -3,11 +3,12 @@
 #include "Core/Application.h"
 #include "Scene/Scene.h"
 #include "Scene/Component/SoundComponent.h"
-
 #ifdef LUMOS_OPENAL
 #include "Platform/OpenAL/ALManager.h"
 #endif
 #include "EmptyAudioManager.h"
+
+#include <entt/entity/registry.hpp>
 
 namespace Lumos
 {

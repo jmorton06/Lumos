@@ -651,7 +651,7 @@ namespace Lumos
 
                     std::string uniformName = u.name + "." + memberName;
 
-                    auto& member  = descriptor.m_Members.emplace_back();
+                    auto& member  = descriptor.m_Members.EmplaceBack();
                     member.name   = memberName;
                     member.offset = offset;
                     member.size   = (uint32_t)size;
@@ -694,7 +694,7 @@ namespace Lumos
                     auto size               = comp.get_declared_struct_member_size(bufferType, i);
                     auto offset             = comp.type_struct_member_offset(bufferType, i);
                     std::string uniformName = u.name + "." + memberName;
-                    auto& member            = m_PushConstants.back().m_Members.emplace_back();
+                    auto& member            = m_PushConstants.back().m_Members.EmplaceBack();
                     member.size             = (uint32_t)size;
                     member.offset           = offset;
                     member.type             = SPIRVTypeToLumosDataType(type);

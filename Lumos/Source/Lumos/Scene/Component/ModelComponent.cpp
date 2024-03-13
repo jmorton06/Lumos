@@ -12,7 +12,9 @@ namespace Lumos::Graphics
 
     void ModelComponent::LoadFromLibrary(const std::string& path)
     {
-        ModelRef = Application::Get().GetModelLibrary()->GetResource(path);
+        ModelRef = Application::Get().GetAssetManager()->AddAsset(path, CreateSharedPtr<Graphics::Model>(path)).data.As<Graphics::Model>();
+
+        // ModelRef = Application::Get().GetModelLibrary()->GetAsset(path);
     }
 
 }

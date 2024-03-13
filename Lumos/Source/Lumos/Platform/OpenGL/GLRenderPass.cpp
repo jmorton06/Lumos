@@ -25,7 +25,7 @@ namespace Lumos
             return false;
         }
 
-        void GLRenderPass::BeginRenderpass(CommandBuffer* commandBuffer, float* clearColour,
+        void GLRenderPass::BeginRenderPass(CommandBuffer* commandBuffer, float* clearColour,
                                            Framebuffer* frame, SubPassContents contents, uint32_t width, uint32_t height) const
         {
             if(frame != nullptr)
@@ -45,7 +45,7 @@ namespace Lumos
                 GLRenderer::ClearInternal(RENDERER_BUFFER_COLOUR | RENDERER_BUFFER_DEPTH | RENDERER_BUFFER_STENCIL);
         }
 
-        void GLRenderPass::EndRenderpass(CommandBuffer* commandBuffer)
+        void GLRenderPass::EndRenderPass(CommandBuffer* commandBuffer)
         {
             GLCall(glBindFramebuffer(GL_FRAMEBUFFER, 0));
         }

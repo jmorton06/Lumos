@@ -225,7 +225,7 @@ namespace Lumos
                 framebuffer = m_Framebuffers[0];
             }
 
-            m_RenderPass->BeginRenderpass(commandBuffer, m_Description.clearColour, framebuffer, Graphics::INLINE, GetWidth(), GetHeight());
+            m_RenderPass->BeginRenderPass(commandBuffer, m_Description.clearColour, framebuffer, Graphics::INLINE, GetWidth(), GetHeight());
 
             m_Shader->Bind();
 
@@ -287,7 +287,7 @@ namespace Lumos
 
         void GLPipeline::End(Graphics::CommandBuffer* commandBuffer)
         {
-            m_RenderPass->EndRenderpass(commandBuffer);
+            m_RenderPass->EndRenderPass(commandBuffer);
 
             if(m_LineWidth != 1.0f)
                 glLineWidth(1.0f);

@@ -5,6 +5,7 @@
 #include <Lumos/Physics/LumosPhysicsEngine/LumosPhysicsEngine.h>
 #include <Lumos/Core/OS/FileSystem.h>
 #include <Lumos/Core/Profiler.h>
+#include <Lumos/Graphics/RHI/Renderer.h>
 
 namespace Lumos
 {
@@ -23,7 +24,7 @@ namespace Lumos
 
         if(ImGui::Begin(m_Name.c_str(), &m_Active, 0))
         {
-            Lumos::ImGuiUtilities::ScopedStyle(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
+            Lumos::ImGuiUtilities::ScopedStyle frameStyle(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
             Lumos::ImGuiUtilities::PushID();
             {
                 const auto& sceneName = m_CurrentScene->GetSceneName();
@@ -133,7 +134,7 @@ namespace Lumos
                             ImGui::TreePop();
                         }
 
-                        ImGui::BeginDisabled();
+                        // ImGui::BeginDisabled();
                         open = postprocessSetting("SSAO", "##SSAO", sceneSettings.RenderSettings.SSAOEnabled, false);
                         if(open)
                         {
@@ -144,7 +145,7 @@ namespace Lumos
                             ImGui::TreePop();
                         }
 
-                        ImGui::EndDisabled();
+                        // ImGui::EndDisabled();
                         ImGui::Columns(1);
                         ImGui::TreePop();
                     }
@@ -164,6 +165,65 @@ namespace Lumos
                     ImGuiUtilities::Property("Brightness", sceneSettings.RenderSettings.Brightness, -1.0f, 1.0f, 0.01f);
                     ImGuiUtilities::Property("Contrast", sceneSettings.RenderSettings.Contrast, 0.0f, 2.0f, 0.01f);
                     ImGuiUtilities::Property("Saturation", sceneSettings.RenderSettings.Saturation, 0.0f, 1.0f, 0.01f);
+
+                    int32_t maxSupportedSampleCount = Lumos::Graphics::Renderer::GetCapabilities().MaxSamples;
+                    uint8_t cachedValue = sceneSettings.RenderSettings.MSAASamples;
+					static const char* msaaValues[4] =
+					{
+						"1",
+						"2",
+						"4",
+						"8"
+					};
+					int index = 0;
+					switch(cachedValue)
+					{
+						case 1:
+						index = 0;
+						break;
+						case 2:
+						index = 1;
+						break;
+						case 4:
+						index = 2;
+						break;
+						case 8:
+						index = 3;
+						break;
+					}
+
+                    uint8_t choiceCount = 4;
+                    if (maxSupportedSampleCount < 2)
+                        choiceCount = 1;
+                    else if (maxSupportedSampleCount < 4)
+                        choiceCount = 2;
+                    else if (maxSupportedSampleCount < 8)
+                        choiceCount = 3;
+                   
+                    ImGuiUtilities::PropertyDropdown("MSAA Samples", msaaValues, choiceCount, &index);
+					switch(index)
+					{
+						case 0:
+							sceneSettings.RenderSettings.MSAASamples = 1;
+							break;
+						case 1:
+							sceneSettings.RenderSettings.MSAASamples = 2;
+							break;
+						case 2:
+							sceneSettings.RenderSettings.MSAASamples = 4;
+							break;
+						case 3:
+							sceneSettings.RenderSettings.MSAASamples = 8;
+							break;
+					}
+
+
+//                    if(sceneSettings.RenderSettings.MSAASamples > cachedValue)
+//                        sceneSettings.RenderSettings.MSAASamples = Maths::NextPowerOfTwo(sceneSettings.RenderSettings.MSAASamples);
+//                    else if (sceneSettings.RenderSettings.MSAASamples < cachedValue)
+//                        sceneSettings.RenderSettings.MSAASamples = sceneSettings.RenderSettings.MSAASamples / 2U;
+//                    sceneSettings.RenderSettings.MSAASamples = Maths::Clamp(sceneSettings.RenderSettings.MSAASamples, (uint8_t)1, (uint8_t)8);
+
                     ImGui::Separator();
 
                     auto& registry  = m_CurrentScene->GetRegistry();

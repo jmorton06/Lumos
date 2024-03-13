@@ -14,6 +14,7 @@
 #include <box2d/b2_math.h>
 
 #include <imgui/imgui.h>
+#include <entt/entity/registry.hpp>
 
 namespace Lumos
 {

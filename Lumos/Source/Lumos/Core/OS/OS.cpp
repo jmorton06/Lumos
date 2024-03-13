@@ -60,4 +60,13 @@ namespace Lumos
             break;
         }
     }
+
+    std::string OS::GetCurrentWorkingDirectory()
+    {
+        return std::string("");
+    };
+    std::string OS::GetAssetPath()
+    {
+        return std::string("");
+    };
 }

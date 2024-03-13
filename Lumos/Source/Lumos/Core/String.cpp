@@ -165,7 +165,6 @@ namespace Lumos
 
     uint64_t FindSubstr8(String8 haystack, String8 needle, uint64_t start_pos, MatchFlags flags)
     {
-        bool found         = 0;
         uint64_t found_idx = haystack.size;
         for(uint64_t i = start_pos; i < haystack.size; i += 1)
         {
@@ -175,7 +174,6 @@ namespace Lumos
                 if(Str8Match(substr, needle, flags))
                 {
                     found_idx = i;
-                    found     = 1;
                     if(!(flags & MatchFlags::FindLast))
                     {
                         break;

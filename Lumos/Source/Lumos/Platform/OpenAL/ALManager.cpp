@@ -9,6 +9,7 @@
 #include "Maths/Transform.h"
 
 #include <imgui/imgui.h>
+#include <entt/entity/registry.hpp>
 
 namespace Lumos
 {
@@ -117,7 +118,7 @@ namespace Lumos
             ImGui::TextUnformatted("Number Of Audio Sources");
             ImGui::NextColumn();
             ImGui::PushItemWidth(-1);
-            ImGui::Text("%5.2lu", m_SoundNodes.size());
+            ImGui::Text("%5.2lu", m_SoundNodes.Size());
             ImGui::PopItemWidth();
             ImGui::NextColumn();
 

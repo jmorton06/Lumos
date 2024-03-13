@@ -30,6 +30,36 @@ float ScreenPxRange()
     return max(0.5*dot(unitRange, screenTexSize), 1.0);
 }
 
+vec4 SampleTexture()
+{
+	vec4 texColour = vec4(0.0);
+	
+	if (fs_in.tid > 0.0)
+    {
+		switch(int(fs_in.tid - 0.5))
+		{
+			case 0: texColour = texture(textures[0], fs_in.uv); break;
+			case 1: texColour = texture(textures[1], fs_in.uv); break;
+			case 2: texColour = texture(textures[2], fs_in.uv); break;
+			case 3: texColour = texture(textures[3], fs_in.uv); break;
+			case 4: texColour = texture(textures[4], fs_in.uv); break;
+			case 5: texColour = texture(textures[5], fs_in.uv); break;
+			case 6: texColour = texture(textures[6], fs_in.uv); break;
+			case 7: texColour = texture(textures[7], fs_in.uv); break;
+			case 8: texColour = texture(textures[8], fs_in.uv); break;
+			case 9: texColour = texture(textures[9], fs_in.uv); break;
+			case 10: texColour = texture(textures[10], fs_in.uv); break;
+			case 11: texColour = texture(textures[11], fs_in.uv); break;
+			case 12: texColour = texture(textures[12], fs_in.uv); break;
+			case 13: texColour = texture(textures[13], fs_in.uv); break;
+			case 14: texColour = texture(textures[14], fs_in.uv); break;
+			case 15: texColour = texture(textures[15], fs_in.uv); break;
+		}
+    }
+	return texColour;
+	
+}
+
 void main()
 {
 	vec4 mainColour = fs_in.colour;
@@ -38,7 +68,7 @@ void main()
 	float screenPxRange = ScreenPxRange();
 	float outlineWidth = fs_in.outlineWidth;
 
-	vec4 msd = texture(textures[int(fs_in.tid)], fs_in.uv);
+	vec4 msd = SampleTexture();//texture(textures[int(fs_in.tid)], fs_in.uv);
     float sd = median(msd.r, msd.g, msd.b);
 
     float screenPxDistance = screenPxRange * (sd - 0.5 - (outlineWidth));

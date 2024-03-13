@@ -15,8 +15,8 @@ namespace Lumos
             static void ClearCache();
             static void DeleteUnusedCache();
 
-            virtual void BeginRenderpass(CommandBuffer* commandBuffer, float* clearColour, Framebuffer* frame, SubPassContents contents, uint32_t width, uint32_t height) const = 0;
-            virtual void EndRenderpass(CommandBuffer* commandBuffer)                                                                                                            = 0;
+            virtual void BeginRenderPass(CommandBuffer* commandBuffer, float* clearColour, Framebuffer* frame, SubPassContents contents, uint32_t width, uint32_t height) const = 0;
+            virtual void EndRenderPass(CommandBuffer* commandBuffer)                                                                                                            = 0;
             virtual int GetAttachmentCount() const                                                                                                                              = 0;
 
         protected:

@@ -8,6 +8,7 @@ layout (location = 0) in vec2 outTexCoord;
 
 layout (set = 0, binding = 0) uniform UniformBuffer
 {
+	mat4 view;
     vec2 ssaoTexelOffset;
 	int ssaoBlurRadius;
 	int pad;
@@ -20,7 +21,7 @@ layout (set = 0,binding = 3) uniform sampler2D in_Normal;
 void main()
 {
 	float ourDepth = texture(in_Depth, outTexCoord).r;
-	vec3 ourNormal = normalize(texture(in_Normal, outTexCoord).rgb * 2.0f - 1.0f);
+	vec3 ourNormal = normalize(mat3(ubo.view) * (texture(in_Normal, outTexCoord).rgb * 2.0f - 1.0f));
 
 	int sampleCount = 0;
 	float sum = 0.0f;
@@ -28,7 +29,7 @@ void main()
 	{
 		vec2 offset = ubo.ssaoTexelOffset * float(i);
 		float depth = texture(in_Depth, outTexCoord + offset).r;
-		vec3 normal = normalize(texture(in_Normal, outTexCoord + offset).rgb * 2.0f - 1.0f);
+		vec3 normal = normalize(mat3(ubo.view) * (texture(in_Normal, outTexCoord + offset).rgb * 2.0f - 1.0f));
 		if (abs(ourDepth - depth) < 0.00002f && dot(ourNormal, normal) > 0.85f)
 		{
 			sum += texture(in_SSAO, outTexCoord + offset).r;

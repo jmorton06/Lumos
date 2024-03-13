@@ -55,7 +55,7 @@ namespace Lumos
             delete m_Renderpass;
             delete m_FontTexture;
 
-            VKContext::DeletionQueue& deletionQueue = VKRenderer::GetCurrentDeletionQueue();
+            DeletionQueue& deletionQueue = VKRenderer::GetCurrentDeletionQueue();
 
             for(int i = 0; i < Renderer::GetMainSwapChain()->GetSwapChainBufferCount(); i++)
             {
@@ -249,14 +249,14 @@ namespace Lumos
             ImGui_ImplVulkan_CreateDescriptorSets(ImGui::GetDrawData(), wd->FrameIndex);
 
             float clearColour[4] = { 0.1f, 0.1f, 0.1f, 1.0f };
-            m_Renderpass->BeginRenderpass(currentCommandBuffer, clearColour, m_Framebuffers[wd->FrameIndex], Graphics::SubPassContents::INLINE, wd->Width, wd->Height);
+            m_Renderpass->BeginRenderPass(currentCommandBuffer, clearColour, m_Framebuffers[wd->FrameIndex], Graphics::SubPassContents::INLINE, wd->Width, wd->Height);
 
             {
                 LUMOS_PROFILE_SCOPE("ImGui Vulkan RenderDrawData");
                 // Record Imgui Draw Data and draw funcs into command buffer
                 ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), currentCommandBuffer->GetHandle(), VK_NULL_HANDLE, wd->FrameIndex);
             }
-            m_Renderpass->EndRenderpass(currentCommandBuffer);
+            m_Renderpass->EndRenderPass(currentCommandBuffer);
         }
 
         void VKIMGUIRenderer::Render(Lumos::Graphics::CommandBuffer* commandBuffer)
@@ -341,7 +341,10 @@ namespace Lumos
                 int width, height;
                 io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
 
-                m_FontTexture           = new VKTexture2D(width, height, pixels, TextureDesc(TextureFilter::NEAREST, TextureFilter::NEAREST, TextureWrap::REPEAT));
+                auto desc  = TextureDesc(TextureFilter::NEAREST, TextureFilter::NEAREST, TextureWrap::REPEAT);
+                desc.flags = TextureFlags::Texture_Sampled;
+
+                m_FontTexture           = new VKTexture2D(width, height, pixels, desc);
                 m_FontTextureID.level   = 0;
                 m_FontTextureID.mip     = 0;
                 m_FontTextureID.type    = TextureType::COLOUR;

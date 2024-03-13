@@ -3,7 +3,7 @@
 #include "Physics/LumosPhysicsEngine/LumosPhysicsEngine.h"
 #include "DistanceConstraint.h"
 #include "Graphics/Renderers/DebugRenderer.h"
-#include <glm/ext.hpp>
+
 namespace Lumos
 {
 
@@ -62,8 +62,8 @@ namespace Lumos
         glm::vec3 globalOnA = glm::toMat3(m_pObj1->GetOrientation()) * m_LocalOnA + m_pObj1->GetPosition();
         glm::vec3 globalOnB = glm::toMat3(m_pObj2->GetOrientation()) * m_LocalOnB + m_pObj2->GetPosition();
 
-        DebugRenderer::DrawThickLine(globalOnA, globalOnB, 0.02f, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
-        DebugRenderer::DrawPointNDT(globalOnA, 0.05f, glm::vec4(1.0f, 0.8f, 1.0f, 1.0f));
-        DebugRenderer::DrawPointNDT(globalOnB, 0.05f, glm::vec4(1.0f, 0.8f, 1.0f, 1.0f));
+        DebugRenderer::DrawThickLine(globalOnA, globalOnB, 0.02f, false, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+        DebugRenderer::DrawPoint(globalOnA, 0.05f, false, glm::vec4(1.0f, 0.8f, 1.0f, 1.0f));
+        DebugRenderer::DrawPoint(globalOnB, 0.05f, false, glm::vec4(1.0f, 0.8f, 1.0f, 1.0f));
     }
 }

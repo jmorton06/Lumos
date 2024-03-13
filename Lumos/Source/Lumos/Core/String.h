@@ -131,4 +131,5 @@ namespace Lumos
 #define Str8VArg(s) (int)(s).size, (s).str
 #define Str8ListFirst(list) ((list)->first != 0 ? (list)->first->string : Str8Lit(""))
 #define ToStdString(s) std::string((const char*)s.str, s.size)
+#define ToCChar(s) (const char*)s.str
 }

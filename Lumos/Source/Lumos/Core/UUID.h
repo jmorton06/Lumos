@@ -6,6 +6,12 @@ namespace Lumos
 {
     class UUID
     {
+        template <typename Archive>
+        friend void save(Archive& archive, const UUID& ID);
+
+        template <typename Archive>
+        friend void load(Archive& archive, UUID& ID);
+
     public:
         UUID();
         UUID(uint64_t uuid);

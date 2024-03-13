@@ -35,7 +35,7 @@ namespace Lumos
         {
             LUMOS_PROFILE_FUNCTION();
             uint64_t hash = 0;
-            HashCombine(hash, framebufferDesc.attachmentCount, framebufferDesc.width, framebufferDesc.height, framebufferDesc.layer, framebufferDesc.screenFBO);
+            HashCombine(hash, framebufferDesc.attachmentCount, framebufferDesc.width, framebufferDesc.height, framebufferDesc.layer, framebufferDesc.screenFBO, framebufferDesc.samples);
 
             for(uint32_t i = 0; i < framebufferDesc.attachmentCount; i++)
             {

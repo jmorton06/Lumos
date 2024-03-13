@@ -71,7 +71,7 @@ namespace Lumos
                          std::map<std::string, SharedPtr<UniformBuffer>>& buffers = m_UniformBuffers[frame];
                          buffers.clear();
 
-                         VKContext::DeletionQueue& deletionQueue = VKRenderer::GetCurrentDeletionQueue();
+                         DeletionQueue& deletionQueue = VKRenderer::GetCurrentDeletionQueue();
                          deletionQueue.PushFunction([descriptorSet, pool, device]
                                                     { vkFreeDescriptorSets(device, pool, 1, &descriptorSet); });*/
             }
@@ -327,7 +327,22 @@ namespace Lumos
 #endif
         }
 
-        Graphics::UniformBuffer* VKDescriptorSet::GetUnifromBuffer(const std::string& name)
+        Buffer* VKDescriptorSet::GetUniformBufferLocalData(const std::string& name)
+        {
+            std::map<std::string, UniformBufferInfo>::iterator itr = m_UniformBuffersData.find(name);
+            if(itr != m_UniformBuffersData.end())
+            {
+                itr->second.HasUpdated[0] = true;
+                itr->second.HasUpdated[1] = true;
+                itr->second.HasUpdated[2] = true;
+
+                return &itr->second.LocalStorage;
+            }
+
+            return nullptr;
+        }
+
+        Graphics::UniformBuffer* VKDescriptorSet::GetUniformBuffer(const std::string& name)
         {
             LUMOS_PROFILE_FUNCTION();
             uint32_t currentFrame = Renderer::GetMainSwapChain()->GetCurrentBufferIndex();
