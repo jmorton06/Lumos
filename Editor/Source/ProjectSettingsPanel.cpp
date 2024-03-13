@@ -19,7 +19,7 @@ namespace Lumos
         ImGuiUtilities::PushID();
 
         ImGui::Columns(2);
-        Lumos::ImGuiUtilities::ScopedStyle(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
+        Lumos::ImGuiUtilities::ScopedStyle frameStyle(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
 
         {
             auto& projectSettings = Application::Get().GetProjectSettings();

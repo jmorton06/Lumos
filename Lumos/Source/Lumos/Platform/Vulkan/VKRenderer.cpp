@@ -20,8 +20,8 @@ namespace Lumos
     {
         static VkFence s_ComputeFence = nullptr;
 
-        int VKRenderer::s_DeletionQueueIndex                              = 0;
-        std::vector<VKContext::DeletionQueue> VKRenderer::s_DeletionQueue = {};
+        int VKRenderer::s_DeletionQueueIndex              = 0;
+        Vector<DeletionQueue> VKRenderer::s_DeletionQueue = {};
 
         void VKRenderer::InitInternal()
         {
@@ -30,7 +30,7 @@ namespace Lumos
             m_RendererTitle = "Vulkan";
 
             // Deletion queue larger than frames in flight to delay deletion a few frames
-            s_DeletionQueue.resize(12);
+            s_DeletionQueue.Resize(12);
         }
 
         VKRenderer::~VKRenderer()
@@ -124,7 +124,7 @@ namespace Lumos
         {
             LUMOS_PROFILE_FUNCTION_LOW();
             s_DeletionQueueIndex++;
-            s_DeletionQueueIndex = s_DeletionQueueIndex % int(s_DeletionQueue.size());
+            s_DeletionQueueIndex = s_DeletionQueueIndex % int(s_DeletionQueue.Size());
             s_DeletionQueue[s_DeletionQueueIndex].Flush();
 
             SharedPtr<VKSwapChain> swapChain = Application::Get().GetWindow()->GetSwapChain().As<VKSwapChain>();
@@ -402,6 +402,8 @@ file.close();
                     LUMOS_ASSERT(vkDesSet->GetHasUpdated(Renderer::GetMainSwapChain()->GetCurrentBufferIndex()), "Descriptor Set has not been updated before");
                     numDesciptorSets++;
                 }
+                else
+                    LUMOS_LOG_ERROR("Descriptor null");
             }
 
             vkCmdBindDescriptorSets(static_cast<Graphics::VKCommandBuffer*>(commandBuffer)->GetHandle(), static_cast<Graphics::VKPipeline*>(pipeline)->IsCompute() ? VK_PIPELINE_BIND_POINT_COMPUTE : VK_PIPELINE_BIND_POINT_GRAPHICS, static_cast<Graphics::VKPipeline*>(pipeline)->GetPipelineLayout(), 0, numDesciptorSets, m_CurrentDescriptorSets, numDynamicDescriptorSets, &dynamicOffset);
@@ -492,8 +494,8 @@ file.close();
             auto frameBuffer                = Framebuffer::Get(frameBufferDesc);
 
             // To clear screen
-            renderPass->BeginRenderpass(commandBuffer, clearColour, frameBuffer, SubPassContents::INLINE, width, height);
-            renderPass->EndRenderpass(commandBuffer);
+            renderPass->BeginRenderPass(commandBuffer, clearColour, frameBuffer, SubPassContents::INLINE, width, height);
+            renderPass->EndRenderPass(commandBuffer);
 
             float ratio = float(texture->GetWidth() / texture->GetHeight());
             VkImageBlit blit {};
@@ -583,7 +585,7 @@ file.close();
             if(m_FreeDescriptorPools.Size() > 0)
             {
                 VkDescriptorPool pool = m_FreeDescriptorPools.Back();
-                m_FreeDescriptorPools.Pop();
+                m_FreeDescriptorPools.PopBack();
                 return pool;
             }
             else
@@ -597,7 +599,7 @@ file.close();
             if(m_CurrentPool == VK_NULL_HANDLE)
             {
                 m_CurrentPool = GetPool();
-                m_UsedDescriptorPools.Emplace(m_CurrentPool);
+                m_UsedDescriptorPools.PushBack(m_CurrentPool);
             }
 
             VkDescriptorSetAllocateInfo allocInfo = {};
@@ -631,7 +633,7 @@ file.close();
             {
                 // allocate a new pool and retry
                 m_CurrentPool = GetPool();
-                m_UsedDescriptorPools.Emplace(m_CurrentPool);
+                m_UsedDescriptorPools.PushBack(m_CurrentPool);
                 allocInfo.descriptorPool = m_CurrentPool;
 
                 allocResult = vkAllocateDescriptorSets(VKDevice::Get().GetDevice(), &allocInfo, set);

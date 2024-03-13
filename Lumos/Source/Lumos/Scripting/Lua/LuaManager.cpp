@@ -249,6 +249,9 @@ namespace Lumos
         // std::string test = state["package"]["path"];
         // state["package"]["path"] = std::string(package_path.string()) + test;
 
+        m_State->set("registry", &registry);
+        m_State->set("scene", scene);
+
         for(auto entity : view)
         {
             auto& luaScript = registry.get<LuaScriptComponent>(entity);
@@ -274,6 +277,11 @@ namespace Lumos
             auto& luaScript = registry.get<LuaScriptComponent>(entity);
             luaScript.OnUpdate(dt);
         }
+    }
+
+    void LuaManager::CollectGarbage()
+    {
+        m_State->collect_garbage();
     }
 
     void LuaManager::OnNewProject(const std::string& projectPath)

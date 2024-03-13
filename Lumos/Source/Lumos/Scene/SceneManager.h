@@ -64,7 +64,7 @@ namespace Lumos
         void EnqueueScene(const std::string& name)
         {
             // T* scene = new T(name);
-            m_vpAllScenes.Emplace(CreateSharedPtr<T>(name));
+            m_vpAllScenes.PushBack(CreateSharedPtr<T>(name));
             LUMOS_LOG_INFO("[SceneManager] - Enqueued scene : {0}", name.c_str());
         }
 
@@ -72,7 +72,7 @@ namespace Lumos
 
         void AddFileToLoadList(const std::string& filePath)
         {
-            m_SceneFilePathsToLoad.Emplace(filePath);
+            m_SceneFilePathsToLoad.PushBack(filePath);
         }
 
         void LoadCurrentList();

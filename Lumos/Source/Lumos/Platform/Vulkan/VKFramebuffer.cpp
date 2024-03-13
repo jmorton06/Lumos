@@ -57,7 +57,7 @@ namespace Lumos
 
         VKFramebuffer::~VKFramebuffer()
         {
-            VKContext::DeletionQueue& deletionQueue = VKRenderer::GetCurrentDeletionQueue();
+            DeletionQueue& deletionQueue = VKRenderer::GetCurrentDeletionQueue();
 
             auto framebuffer = m_Framebuffer;
 

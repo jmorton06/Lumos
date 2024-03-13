@@ -24,6 +24,7 @@ namespace Lumos
             virtual RHIFormat GetFormat() const                = 0;
             virtual void GenerateMipMaps(CommandBuffer* commandBuffer = nullptr) { }
             virtual void SetName(const std::string& name) {};
+			virtual uint8_t GetSamples() const { return 0; }
 
             virtual uint32_t GetSize() const { return 0; }
             virtual uint32_t GetMipMapLevels() const { return 0; }
@@ -103,6 +104,8 @@ namespace Lumos
             static TextureCube* CreateFromFiles(const std::string* files);
             static TextureCube* CreateFromVCross(const std::string* files, uint32_t mips, TextureDesc params, TextureLoadOptions loadOptions);
 
+            virtual void Destroy(bool deletionQueue) { }
+
         protected:
             static TextureCube* (*CreateFunc)(uint32_t, void*, bool);
             static TextureCube* (*CreateFromFileFunc)(const std::string&);
@@ -113,12 +116,12 @@ namespace Lumos
         class LUMOS_EXPORT TextureDepth : public Texture
         {
         public:
-            static TextureDepth* Create(uint32_t width, uint32_t height, RHIFormat format = RHIFormat::D24_Unorm_S8_UInt);
+            static TextureDepth* Create(uint32_t width, uint32_t height, RHIFormat format = RHIFormat::D24_Unorm_S8_UInt, uint8_t samples = 1);
 
             virtual void Resize(uint32_t width, uint32_t height) = 0;
 
         protected:
-            static TextureDepth* (*CreateFunc)(uint32_t, uint32_t, RHIFormat);
+            static TextureDepth* (*CreateFunc)(uint32_t, uint32_t, RHIFormat, uint8_t);
         };
 
         class LUMOS_EXPORT TextureDepthArray : public Texture

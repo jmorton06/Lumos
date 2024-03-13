@@ -30,9 +30,14 @@
 #include "Core/Thread.h"
 
 #include <glm/glm.hpp>
+#include <glm/gtx/quaternion.hpp>
 #include <cereal/cereal.hpp>
 
 #ifdef LUMOS_PLATFORM_WINDOWS
 #include <Windows.h>
+#endif
+
+#ifdef LUMOS_RENDER_API_VULKAN
+#include "Platform/Vulkan/VK.h"
 #endif
 #endif

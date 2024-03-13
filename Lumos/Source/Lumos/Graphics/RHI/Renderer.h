@@ -17,7 +17,7 @@ namespace Lumos
             std::string Renderer;
             std::string Version;
 
-            int MaxSamples                   = 0;
+            int MaxSamples                   = 1;
             float MaxAnisotropy              = 0.0f;
             int MaxTextureUnits              = 0;
             int UniformBufferOffsetAlignment = 0;

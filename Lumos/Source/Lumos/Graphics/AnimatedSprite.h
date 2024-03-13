@@ -1,14 +1,17 @@
 #pragma once
 #include "Sprite.h"
 #include <unordered_map>
-#include <cereal/cereal.hpp>
-#include <cereal/types/vector.hpp>
-#include <cereal/types/unordered_map.hpp>
 
 namespace Lumos::Graphics
 {
     class AnimatedSprite : public Sprite
     {
+        template <typename Archive>
+        friend void save(Archive& archive, const AnimatedSprite& sprite);
+
+        template <typename Archive>
+        friend void load(Archive& archive, AnimatedSprite& sprite);
+
     public:
         enum class PlayMode
         {
@@ -44,38 +47,6 @@ namespace Lumos::Graphics
         void SetState(const std::string& state);
         const std::string& GetState() const { return m_State; }
         std::unordered_map<std::string, AnimationState>& GetAnimationStates() { return m_AnimationStates; }
-
-        template <typename Archive>
-        void save(Archive& archive) const
-        {
-            archive(cereal::make_nvp("TexturePath", m_Texture ? m_Texture->GetFilepath() : ""),
-                    cereal::make_nvp("Position", m_Position),
-                    cereal::make_nvp("Scale", m_Scale),
-                    cereal::make_nvp("Colour", m_Colour),
-                    cereal::make_nvp("AnimationFrames", m_AnimationStates),
-                    cereal::make_nvp("State", m_State));
-            archive(SpriteSheetTileSize);
-        }
-
-        template <typename Archive>
-        void load(Archive& archive)
-        {
-            std::string textureFilePath;
-            archive(cereal::make_nvp("TexturePath", textureFilePath),
-                    cereal::make_nvp("Position", m_Position),
-                    cereal::make_nvp("Scale", m_Scale),
-                    cereal::make_nvp("Colour", m_Colour),
-                    cereal::make_nvp("AnimationFrames", m_AnimationStates),
-                    cereal::make_nvp("State", m_State));
-
-            if(!textureFilePath.empty())
-                m_Texture = SharedPtr<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile("sprite", textureFilePath));
-
-            if(Serialisation::CurrentSceneVersion > 21)
-                archive(SpriteSheetTileSize);
-
-            SetState(m_State);
-        }
 
         std::unordered_map<std::string, AnimationState> m_AnimationStates;
         uint32_t m_CurrentFrame = 0;

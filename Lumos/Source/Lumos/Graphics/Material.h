@@ -2,9 +2,6 @@
 #include "RHI/Texture.h"
 #include "RHI/Shader.h"
 #include "Core/OS/FileSystem.h"
-#include "Scene/Serialisation.h"
-
-#include "Maths/MathsSerialisation.h"
 
 namespace Lumos
 {
@@ -46,6 +43,12 @@ namespace Lumos
 
         class LUMOS_EXPORT Material
         {
+            template <typename Archive>
+            friend void save(Archive& archive, const Material& material);
+
+            template <typename Archive>
+            friend void load(Archive& archive, Material& material);
+
         public:
             enum class RenderFlags
             {
@@ -103,130 +106,6 @@ namespace Lumos
 
             static void InitDefaultTexture();
             static void ReleaseDefaultTexture();
-
-            template <typename Archive>
-            void save(Archive& archive) const
-            {
-                std::string shaderPath        = "";
-                std::string albedoFilePath    = m_PBRMaterialTextures.albedo ? FileSystem::Get().AbsolutePathToFileSystem(m_PBRMaterialTextures.albedo->GetFilepath()) : "";
-                std::string normalFilePath    = m_PBRMaterialTextures.normal ? FileSystem::Get().AbsolutePathToFileSystem(m_PBRMaterialTextures.normal->GetFilepath()) : "";
-                std::string metallicFilePath  = m_PBRMaterialTextures.metallic ? FileSystem::Get().AbsolutePathToFileSystem(m_PBRMaterialTextures.metallic->GetFilepath()) : "";
-                std::string roughnessFilePath = m_PBRMaterialTextures.roughness ? FileSystem::Get().AbsolutePathToFileSystem(m_PBRMaterialTextures.roughness->GetFilepath()) : "";
-                std::string emissiveFilePath  = m_PBRMaterialTextures.emissive ? FileSystem::Get().AbsolutePathToFileSystem(m_PBRMaterialTextures.emissive->GetFilepath()) : "";
-                std::string aoFilePath        = m_PBRMaterialTextures.ao ? FileSystem::Get().AbsolutePathToFileSystem(m_PBRMaterialTextures.ao->GetFilepath()) : "";
-
-                if(m_Shader)
-                {
-                    std::string path = m_Shader->GetFilePath() + m_Shader->GetName();
-                    FileSystem::Get().AbsolutePathToFileSystem(path, shaderPath);
-                }
-
-                archive(cereal::make_nvp("Albedo", albedoFilePath),
-                        cereal::make_nvp("Normal", normalFilePath),
-                        cereal::make_nvp("Metallic", metallicFilePath),
-                        cereal::make_nvp("Roughness", roughnessFilePath),
-                        cereal::make_nvp("Ao", aoFilePath),
-                        cereal::make_nvp("Emissive", emissiveFilePath),
-                        cereal::make_nvp("albedoColour", m_MaterialProperties->albedoColour),
-                        cereal::make_nvp("roughnessValue", m_MaterialProperties->roughness),
-                        cereal::make_nvp("metallicValue", m_MaterialProperties->metallic),
-                        cereal::make_nvp("emissiveValue", m_MaterialProperties->emissive),
-                        cereal::make_nvp("albedoMapFactor", m_MaterialProperties->albedoMapFactor),
-                        cereal::make_nvp("metallicMapFactor", m_MaterialProperties->metallicMapFactor),
-                        cereal::make_nvp("roughnessMapFactor", m_MaterialProperties->roughnessMapFactor),
-                        cereal::make_nvp("normalMapFactor", m_MaterialProperties->normalMapFactor),
-                        cereal::make_nvp("aoMapFactor", m_MaterialProperties->occlusionMapFactor),
-                        cereal::make_nvp("emissiveMapFactor", m_MaterialProperties->emissiveMapFactor),
-                        cereal::make_nvp("alphaCutOff", m_MaterialProperties->alphaCutoff),
-                        cereal::make_nvp("workflow", m_MaterialProperties->workflow),
-                        cereal::make_nvp("shader", shaderPath));
-
-                archive(cereal::make_nvp("Reflectance", m_MaterialProperties->reflectance));
-            }
-
-            template <typename Archive>
-            void load(Archive& archive)
-            {
-                std::string albedoFilePath;
-                std::string normalFilePath;
-                std::string roughnessFilePath;
-                std::string metallicFilePath;
-                std::string emissiveFilePath;
-                std::string aoFilePath;
-                std::string shaderFilePath;
-
-                constexpr bool loadOldMaterial = false;
-
-                if constexpr(loadOldMaterial)
-                {
-                    glm::vec4 roughness, metallic, emissive;
-                    archive(cereal::make_nvp("Albedo", albedoFilePath),
-                            cereal::make_nvp("Normal", normalFilePath),
-                            cereal::make_nvp("Metallic", metallicFilePath),
-                            cereal::make_nvp("Roughness", roughnessFilePath),
-                            cereal::make_nvp("Ao", aoFilePath),
-                            cereal::make_nvp("Emissive", emissiveFilePath),
-                            cereal::make_nvp("albedoColour", m_MaterialProperties->albedoColour),
-                            cereal::make_nvp("roughnessColour", roughness),
-                            cereal::make_nvp("metallicColour", metallic),
-                            cereal::make_nvp("emissiveColour", emissive),
-                            cereal::make_nvp("usingAlbedoMap", m_MaterialProperties->albedoMapFactor),
-                            cereal::make_nvp("usingMetallicMap", m_MaterialProperties->metallicMapFactor),
-                            cereal::make_nvp("usingRoughnessMap", m_MaterialProperties->roughnessMapFactor),
-                            cereal::make_nvp("usingNormalMap", m_MaterialProperties->normalMapFactor),
-                            cereal::make_nvp("usingAOMap", m_MaterialProperties->occlusionMapFactor),
-                            cereal::make_nvp("usingEmissiveMap", m_MaterialProperties->emissiveMapFactor),
-                            cereal::make_nvp("workflow", m_MaterialProperties->workflow),
-                            cereal::make_nvp("shader", shaderFilePath));
-
-                    m_MaterialProperties->emissive  = emissive.x;
-                    m_MaterialProperties->metallic  = metallic.x;
-                    m_MaterialProperties->roughness = roughness.x;
-                }
-                else
-                {
-                    archive(cereal::make_nvp("Albedo", albedoFilePath),
-                            cereal::make_nvp("Normal", normalFilePath),
-                            cereal::make_nvp("Metallic", metallicFilePath),
-                            cereal::make_nvp("Roughness", roughnessFilePath),
-                            cereal::make_nvp("Ao", aoFilePath),
-                            cereal::make_nvp("Emissive", emissiveFilePath),
-                            cereal::make_nvp("albedoColour", m_MaterialProperties->albedoColour),
-                            cereal::make_nvp("roughnessValue", m_MaterialProperties->roughness),
-                            cereal::make_nvp("metallicValue", m_MaterialProperties->metallic),
-                            cereal::make_nvp("emissiveValue", m_MaterialProperties->emissive),
-                            cereal::make_nvp("albedoMapFactor", m_MaterialProperties->albedoMapFactor),
-                            cereal::make_nvp("metallicMapFactor", m_MaterialProperties->metallicMapFactor),
-                            cereal::make_nvp("roughnessMapFactor", m_MaterialProperties->roughnessMapFactor),
-                            cereal::make_nvp("normalMapFactor", m_MaterialProperties->normalMapFactor),
-                            cereal::make_nvp("aoMapFactor", m_MaterialProperties->occlusionMapFactor),
-                            cereal::make_nvp("emissiveMapFactor", m_MaterialProperties->emissiveMapFactor),
-                            cereal::make_nvp("alphaCutOff", m_MaterialProperties->alphaCutoff),
-                            cereal::make_nvp("workflow", m_MaterialProperties->workflow),
-                            cereal::make_nvp("shader", shaderFilePath));
-
-                    if(Serialisation::CurrentSceneVersion > 19)
-                        archive(cereal::make_nvp("Reflectance", m_MaterialProperties->reflectance));
-                }
-
-                // if(!shaderFilePath.empty())
-                // SetShader(shaderFilePath);
-                // TODO: Support Custom Shaders;
-                m_Shader = nullptr;
-
-                if(!albedoFilePath.empty())
-                    m_PBRMaterialTextures.albedo = SharedPtr<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile("albedo", albedoFilePath));
-                if(!normalFilePath.empty())
-                    m_PBRMaterialTextures.normal = SharedPtr<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile("roughness", normalFilePath));
-                if(!metallicFilePath.empty())
-                    m_PBRMaterialTextures.metallic = SharedPtr<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile("metallic", metallicFilePath));
-                if(!roughnessFilePath.empty())
-                    m_PBRMaterialTextures.roughness = SharedPtr<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile("roughness", roughnessFilePath));
-                if(!emissiveFilePath.empty())
-                    m_PBRMaterialTextures.emissive = SharedPtr<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile("emissive", emissiveFilePath));
-                if(!aoFilePath.empty())
-                    m_PBRMaterialTextures.ao = SharedPtr<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile("ao", aoFilePath));
-            }
 
             uint32_t GetFlags() const { return m_Flags; };
             bool GetFlag(RenderFlags flag) const { return (uint32_t)flag & m_Flags; };

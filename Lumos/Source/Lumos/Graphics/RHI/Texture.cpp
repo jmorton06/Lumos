@@ -11,8 +11,8 @@ namespace Lumos
         Texture2D* (*Texture2D::CreateFromSourceFunc)(uint32_t, uint32_t, void*, TextureDesc, TextureLoadOptions)            = nullptr;
         Texture2D* (*Texture2D::CreateFromFileFunc)(const std::string&, const std::string&, TextureDesc, TextureLoadOptions) = nullptr;
 
-        TextureDepth* (*TextureDepth::CreateFunc)(uint32_t, uint32_t, RHIFormat)                     = nullptr;
-        TextureDepthArray* (*TextureDepthArray::CreateFunc)(uint32_t, uint32_t, uint32_t, RHIFormat) = nullptr;
+        TextureDepth* (*TextureDepth::CreateFunc)(uint32_t, uint32_t, RHIFormat, uint8_t)                                = nullptr;
+        TextureDepthArray* (*TextureDepthArray::CreateFunc)(uint32_t, uint32_t, uint32_t, RHIFormat)                     = nullptr;
 
         TextureCube* (*TextureCube::CreateFunc)(uint32_t, void*, bool)                                                   = nullptr;
         TextureCube* (*TextureCube::CreateFromFileFunc)(const std::string&)                                              = nullptr;
@@ -179,11 +179,11 @@ namespace Lumos
             return CreateFromVCrossFunc(files, mips, params, loadOptions);
         }
 
-        TextureDepth* TextureDepth::Create(uint32_t width, uint32_t height, RHIFormat format)
+        TextureDepth* TextureDepth::Create(uint32_t width, uint32_t height, RHIFormat format, uint8_t samples)
         {
             LUMOS_ASSERT(CreateFunc, "No TextureDepth Create Function");
 
-            return CreateFunc(width, height, format);
+            return CreateFunc(width, height, format, samples);
         }
 
         TextureDepthArray* TextureDepthArray::Create(uint32_t width, uint32_t height, uint32_t count, RHIFormat format)

@@ -3,6 +3,9 @@
 #include <Lumos/Core/Application.h>
 #include <Lumos/Scene/SceneManager.h>
 #include <Lumos/Scene/Scene.h>
+#include <Lumos/Utilities/AssetManager.h>
+
+#include "Editor.h"
 
 #include <Lumos/Core/Engine.h>
 #include <Lumos/Core/OS/Window.h>
@@ -47,7 +50,7 @@ namespace Lumos
 
     ApplicationInfoPanel::ApplicationInfoPanel()
     {
-        m_Name       = "Application Info##ApplicationInfo";
+        m_Name       = "Application Info###appinfo";
         m_SimpleName = "Application Info";
     }
 
@@ -75,7 +78,7 @@ namespace Lumos
             }
 
             static ImPlotAxisFlags rt_axis = ImPlotAxisFlags_NoTickLabels;
-            static bool PlotFrameTime      = true;
+            static bool PlotFrameTime      = false;
             static bool PlotFramerate      = false;
 
             ImGui::Checkbox("Plot Frame Time", &PlotFrameTime);
@@ -92,6 +95,7 @@ namespace Lumos
 
                 ImPlot::EndPlot();
             }
+
             if(PlotFrameTime && ImPlot::BeginPlot("Frametime", ImVec2(-1, 350), 0))
             {
                 ImPlot::SetupAxis(ImAxis_X1, nullptr, rt_axis);
@@ -133,27 +137,40 @@ namespace Lumos
                                                       Application::Get().GetWindow()->GetSwapChain()->SetVSync(VSync);
                                                       Graphics::Renderer::GetRenderer()->OnResize(Application::Get().GetWindow()->GetWidth(), Application::Get().GetWindow()->GetHeight()); });
                 }
+
+                QualitySettings& qs = Application::Get().GetQualitySettings();
+                int shadowQuality   = (int)qs.ShadowQuality;
+                int shadowRes       = (int)qs.ShadowResolution;
+
+                if(ImGuiUtilities::Property("Shadow Quality", shadowQuality, 0, 3))
+                    qs.ShadowQuality = (ShadowQualitySetting)shadowQuality;
+
+                if(ImGuiUtilities::Property("Shadow Resolution", shadowRes, 0, 3))
+                    qs.ShadowResolution = (ShadowResolutionSetting)shadowRes;
+
                 ImGui::Columns(1);
                 ImGui::Text("FPS : %5.2i", Engine::Get().Statistics().FramesPerSecond);
                 ImGui::Text("UPS : %5.2i", Engine::Get().Statistics().UpdatesPerSecond);
                 ImGui::Text("Frame Time : %5.2f ms", Engine::Get().Statistics().FrameTime);
                 ImGui::Text("Arena Count : %i", GetArenaCount());
-
-                uint64_t totalAllocated = 0;
-                for(int i = 0; i < GetArenaCount(); i++)
+                if(ImGui::TreeNodeEx("Arenas", 0))
                 {
-                    auto arena = GetArena(i);
-                    totalAllocated += arena->Size;
-                    float percentageFull = (float)arena->Position / (float)arena->Size;
-                    ImGui::ProgressBar((float)arena->Position / (float)arena->Size);
-                    Lumos::ImGuiUtilities::Tooltip((Lumos::StringUtilities::BytesToString(arena->Position) + " / " + Lumos::StringUtilities::BytesToString(arena->Size)).c_str());
+                    uint64_t totalAllocated = 0;
+                    for(int i = 0; i < GetArenaCount(); i++)
+                    {
+                        auto arena = GetArena(i);
+                        totalAllocated += arena->Size;
+                        float percentageFull = (float)arena->Position / (float)arena->Size;
+                        ImGui::ProgressBar(percentageFull);
+                        Lumos::ImGuiUtilities::Tooltip((Lumos::StringUtilities::BytesToString(arena->Position) + " / " + Lumos::StringUtilities::BytesToString(arena->Size)).c_str());
+                    }
+                    ImGui::Text("Total %s", Lumos::StringUtilities::BytesToString(totalAllocated).c_str());
+                    ImGui::TreePop();
                 }
 
-                ImGui::Text("Total %s", Lumos::StringUtilities::BytesToString(totalAllocated).c_str());
-                ImGui::NewLine();
                 ImGui::Text("Scene : %s", Application::Get().GetSceneManager()->GetCurrentScene()->GetSceneName().c_str());
                 ImGui::TreePop();
-            };
+            }
 
             ImGuiUtilities::PopID();
         }

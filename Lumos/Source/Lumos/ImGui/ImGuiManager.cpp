@@ -71,6 +71,10 @@ namespace Lumos
 #ifdef LUMOS_PLATFORM_IOS
         io.ConfigFlags |= ImGuiConfigFlags_IsTouchScreen;
 #endif
+		
+#ifdef LUMOS_PLATFORM_MACOS
+		io.ConfigMacOSXBehaviors = true;
+		#endif
         io.BackendFlags |= ImGuiBackendFlags_HasMouseCursors;
         io.ConfigWindowsMoveFromTitleBarOnly = true;
 
@@ -139,6 +143,7 @@ namespace Lumos
 
     void ImGuiManager::OnNewFrame()
     {
+        LUMOS_PROFILE_FUNCTION();
         m_IMGUIRenderer->NewFrame();
     }
 
@@ -188,7 +193,6 @@ namespace Lumos
     {
         ImGuiIO& io = ImGui::GetIO();
         io.AddMouseWheelEvent((float)e.GetXOffset(), (float)e.GetYOffset());
-
         return false;
     }
 
@@ -207,7 +211,7 @@ namespace Lumos
         io.KeySuper = io.KeysDown[(int)Lumos::InputCode::Key::LeftSuper] || io.KeysDown[(int)Lumos::InputCode::Key::RightSuper];
 #endif
 
-        return io.WantTextInput;
+        return io.WantTextInput && !io.KeyCtrl && !io.KeySuper;
     }
 
     bool ImGuiManager::OnKeyReleasedEvent(KeyReleasedEvent& e)

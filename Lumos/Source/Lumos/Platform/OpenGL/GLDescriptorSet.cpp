@@ -155,7 +155,7 @@ namespace Lumos
             LUMOS_LOG_WARN("Uniform not found {0}.{1}", bufferName);
         }
 
-        Graphics::UniformBuffer* GLDescriptorSet::GetUnifromBuffer(const std::string& name)
+        Graphics::UniformBuffer* GLDescriptorSet::GetUniformBuffer(const std::string& name)
         {
             LUMOS_PROFILE_FUNCTION();
             for(auto& descriptor : m_Descriptors)

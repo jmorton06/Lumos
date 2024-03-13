@@ -118,6 +118,7 @@ namespace Lumos
             Mesh();
             Mesh(const Mesh& mesh);
             Mesh(const std::vector<uint32_t>& indices, const std::vector<Vertex>& vertices, bool optimise = false, float optimiseThreshold = 0.95f);
+            Mesh(const std::vector<uint32_t>& indices, const std::vector<Vertex>& vertices, const std::vector<BoneInfluence>& boneInfluences);
             virtual ~Mesh();
 
             const SharedPtr<VertexBuffer>& GetVertexBuffer() const { return m_VertexBuffer; }
@@ -155,6 +156,9 @@ namespace Lumos
                 return {};
             }
 #endif
+
+            const std::vector<uint32_t>& GetIndices() const { return m_Indices; }
+            const std::vector<Vertex>& GetVertices() const { return m_Vertices; }
 
         protected:
             static glm::vec3 GenerateTangent(const glm::vec3& a, const glm::vec3& b, const glm::vec3& c, const glm::vec2& ta, const glm::vec2& tb, const glm::vec2& tc);

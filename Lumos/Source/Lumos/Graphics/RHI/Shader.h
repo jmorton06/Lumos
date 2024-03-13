@@ -2,6 +2,7 @@
 #include "DescriptorSet.h"
 #include "Definitions.h"
 #include "Core/Profiler.h"
+#include "Core/Asset.h"
 
 namespace spirv_cross
 {
@@ -11,7 +12,7 @@ namespace Lumos
 {
     namespace Graphics
     {
-        class LUMOS_EXPORT Shader
+        class LUMOS_EXPORT Shader : public Asset
         {
         public:
             static const Shader* s_CurrentlyBound;
@@ -36,6 +37,8 @@ namespace Lumos
             virtual uint64_t GetHash() const { return 0; };
 
             ShaderDataType SPIRVTypeToLumosDataType(const spirv_cross::SPIRType type);
+
+            SET_ASSET_TYPE(AssetType::Shader);
 
         public:
             static Shader* CreateFromFile(const std::string& filepath);

@@ -6,7 +6,6 @@
 #pragma warning(disable : 4702) // unreachable code
 #endif
 
-#include "Maths/Random.h"
 #include "Core/Core.h"
 
 #include <cstdlib>
@@ -326,100 +325,28 @@ namespace Lumos
         }
 
         /// Check whether an unsigned integer is a power of two.
-        inline bool IsPowerOfTwo(unsigned value)
-        {
-            return !(value & (value - 1));
-        }
+        bool IsPowerOfTwo(unsigned value);
 
         /// Round up to next power of two.
-        inline unsigned NextPowerOfTwo(unsigned value)
-        {
-            // http://graphics.stanford.edu/~seander/bithacks.html#RoundUpPowerOf2
-            --value;
-            value |= value >> 1u;
-            value |= value >> 2u;
-            value |= value >> 4u;
-            value |= value >> 8u;
-            value |= value >> 16u;
-            return ++value;
-        }
+        unsigned NextPowerOfTwo(unsigned value);
 
         /// Round up or down to the closest power of two.
-        inline unsigned ClosestPowerOfTwo(unsigned value)
-        {
-            unsigned next = NextPowerOfTwo(value);
-            unsigned prev = next >> (unsigned)1;
-            return (value - prev) > (next - value) ? next : prev;
-        }
+        unsigned ClosestPowerOfTwo(unsigned value);
 
         /// Return log base two or the MSB position of the given value.
-        inline unsigned LogBaseTwo(unsigned value)
-        {
-            // http://graphics.stanford.edu/~seander/bithacks.html#IntegerLogObvious
-            unsigned ret = 0;
-            while(value >>= 1) // Unroll for more speed...
-                ++ret;
-            return ret;
-        }
+        unsigned LogBaseTwo(unsigned value);
 
         /// Count the number of set bits in a mask.
-        inline unsigned CountSetBits(unsigned value)
-        {
-            // Brian Kernighan's method
-            unsigned count = 0;
-            for(count = 0; value; count++)
-                value &= value - 1;
-            return count;
-        }
+        unsigned CountSetBits(unsigned value);
 
         /// Update a hash with the given 8-bit value using the SDBM algorithm.
-        inline constexpr unsigned SDBMHash(unsigned hash, unsigned char c)
-        {
-            return c + (hash << 6u) + (hash << 16u) - hash;
-        }
+        constexpr unsigned SDBMHash(unsigned hash, unsigned char c);
 
         /// Convert float to half float
-        inline unsigned short FloatToHalf(float value)
-        {
-            unsigned inu = FloatToRawIntBits(value);
-            unsigned t1  = inu & 0x7fffffffu; // Non-sign bits
-            unsigned t2  = inu & 0x80000000u; // Sign bit
-            unsigned t3  = inu & 0x7f800000u; // Exponent
-
-            t1 >>= 13; // Align mantissa on MSB
-            t2 >>= 16; // Shift sign bit into position
-
-            t1 -= 0x1c000; // Adjust bias
-
-            t1 = (t3 < 0x38800000) ? 0 : t1;      // Flush-to-zero
-            t1 = (t3 > 0x47000000) ? 0x7bff : t1; // Clamp-to-max
-            t1 = (t3 == 0 ? 0 : t1);              // Denormals-as-zero
-
-            t1 |= t2; // Re-insert sign bit
-
-            return (unsigned short)t1;
-        }
+        unsigned short FloatToHalf(float value);
 
         /// Convert half float to float
-        inline float HalfToFloat(unsigned short value)
-        {
-            unsigned t1 = value & 0x7fffu; // Non-sign bits
-            unsigned t2 = value & 0x8000u; // Sign bit
-            unsigned t3 = value & 0x7c00u; // Exponent
-
-            t1 <<= 13; // Align mantissa on MSB
-            t2 <<= 16; // Shift sign bit into position
-
-            t1 += 0x38000000; // Adjust bias
-
-            t1 = (t3 == 0 ? 0 : t1); // Denormals-as-zero
-
-            t1 |= t2; // Re-insert sign bit
-
-            float out;
-            *((unsigned*)&out) = t1;
-            return out;
-        }
+        float HalfToFloat(unsigned short value);
 
         /// Wrap a value fitting it in the range defined by [min, max)
         template <typename T>

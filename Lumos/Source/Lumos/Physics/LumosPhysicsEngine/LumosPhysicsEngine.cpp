@@ -11,6 +11,7 @@
 #include "Core/JobSystem.h"
 #include "Core/Application.h"
 #include "Scene/Component/RigidBody3DComponent.h"
+#include "Graphics/Renderers/DebugRenderer.h"
 
 #include "Maths/Transform.h"
 #include "ImGui/ImGuiUtilities.h"
@@ -32,7 +33,7 @@ namespace Lumos
         , m_RootBody(nullptr)
     {
         m_DebugName = "Lumos3DPhysicsEngine";
-        m_BroadphaseCollisionPairs.reserve(1000);
+        m_BroadphaseCollisionPairs.Reserve(1000);
 
         m_Allocator = new PoolAllocator<RigidBody3D>();
         m_Arena     = ArenaAlloc(Megabytes(1));
@@ -70,7 +71,7 @@ namespace Lumos
                 auto viewWeld   = registry.view<WeldConstraintComponent>();
 
                 m_ConstraintCount = (uint32_t)viewSpring.size() + (uint32_t)viewAxis.size() + (uint32_t)viewDis.size() + (uint32_t)viewWeld.size();
-                m_Constraints     = PushArrayNoZero(m_Arena, Constraint*, m_ConstraintCount);
+                m_Constraints     = PushArray(m_Arena, SharedPtr<Constraint>, m_ConstraintCount);
 
                 uint32_t constraintIndex = 0;
                 for(auto entity : viewSpring)
@@ -85,7 +86,7 @@ namespace Lumos
                     if(constraint.GetEntityID() != Entity(entity, Application::Get().GetCurrentScene()).GetID())
                         constraint.SetEntity(Entity(entity, Application::Get().GetCurrentScene()).GetID());
                     if(constraint.GetConstraint())
-                        m_Constraints[constraintIndex++] = constraint.GetConstraint().get();
+                        m_Constraints[constraintIndex++] = constraint.GetConstraint();
                 }
 
                 for(auto entity : viewDis)
@@ -135,7 +136,8 @@ namespace Lumos
         SolveConstraints();
 
         // Update movement
-        UpdateRigidBodys();
+        for(int i = 0; i < m_PositionIterations; i++)
+            UpdateRigidBodys();
 
         RigidBody3D* current = m_RootBody;
         while(current)
@@ -245,6 +247,8 @@ namespace Lumos
     void LumosPhysicsEngine::UpdateRigidBody(RigidBody3D* obj) const
     {
         LUMOS_PROFILE_FUNCTION_LOW();
+
+        s_UpdateTimestep /= m_PositionIterations;
 
         if(!obj->GetIsStatic() && obj->IsAwake())
         {
@@ -363,8 +367,8 @@ namespace Lumos
             }
 
             // Mark cached world transform and AABB as invalid
-            obj->m_wsTransformInvalidated = true;
-            obj->m_wsAabbInvalidated      = true;
+            obj->m_WSTransformInvalidated = true;
+            obj->m_WSAabbInvalidated      = true;
         }
 
         s_UpdateTimestep *= m_PositionIterations;
@@ -383,7 +387,7 @@ namespace Lumos
     void LumosPhysicsEngine::BroadPhaseCollisions()
     {
         LUMOS_PROFILE_FUNCTION();
-        m_BroadphaseCollisionPairs.clear();
+        m_BroadphaseCollisionPairs.Clear();
         if(m_BroadphaseDetection)
             m_BroadphaseDetection->FindPotentialCollisionPairs(m_RootBody, m_BroadphaseCollisionPairs);
 
@@ -414,10 +418,10 @@ namespace Lumos
     void LumosPhysicsEngine::NarrowPhaseCollisions()
     {
         LUMOS_PROFILE_FUNCTION();
-        if(m_BroadphaseCollisionPairs.empty())
+        if(m_BroadphaseCollisionPairs.Empty())
             return;
 
-        m_Stats.NarrowPhaseCount = (uint32_t)m_BroadphaseCollisionPairs.size();
+        m_Stats.NarrowPhaseCount = (uint32_t)m_BroadphaseCollisionPairs.Size();
         m_Stats.CollisionCount   = 0;
 
         for(auto& cp : m_BroadphaseCollisionPairs)
@@ -448,6 +452,12 @@ namespace Lumos
                         // Construct contact points that form the perimeter of the collision manifold
                         if(CollisionDetection::Get().BuildCollisionManifold(cp.pObjectA, cp.pObjectB, shapeA.get(), shapeB.get(), colData, &manifold))
                         {
+                            if(m_DebugDrawFlags & PhysicsDebugFlags::COLLISIONNORMALS)
+                            {
+                                DebugRenderer::DrawPoint(colData.pointOnPlane, 0.1f, false, glm::vec4(0.5f, 0.5f, 1.0f, 1.0f), 3.0f);
+                                DebugRenderer::DrawThickLine(colData.pointOnPlane, colData.pointOnPlane - colData.normal * colData.penetration, 0.05f, false, glm::vec4(0.0f, 0.0f, 1.0f, 1.0f), 3.0f);
+                            }
+
                             // Fire callback
                             cp.pObjectA->FireOnCollisionManifoldCallback(cp.pObjectA, cp.pObjectB, &manifold);
                             cp.pObjectB->FireOnCollisionManifoldCallback(cp.pObjectB, cp.pObjectA, &manifold);

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Physics/LumosPhysicsEngine/RigidBody3D.h"
+#include "Core/DataStructures/Vector.h"
 
 namespace Lumos
 {
@@ -14,8 +15,8 @@ namespace Lumos
     class LUMOS_EXPORT Broadphase
     {
     public:
-        virtual ~Broadphase()                                                                                         = default;
-        virtual void FindPotentialCollisionPairs(RigidBody3D* rootObject, std::vector<CollisionPair>& collisionPairs) = 0;
-        virtual void DebugDraw()                                                                                      = 0;
+        virtual ~Broadphase()                                                                                    = default;
+        virtual void FindPotentialCollisionPairs(RigidBody3D* rootObject, Vector<CollisionPair>& collisionPairs) = 0;
+        virtual void DebugDraw()                                                                                 = 0;
     };
 }

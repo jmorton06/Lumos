@@ -1,6 +1,7 @@
 #pragma once
 
 #define MAX_FRAMES_FLIGHT 3
+#define MAX_ELEMENTS_PER_SET 32
 namespace Lumos
 {
     class Window;

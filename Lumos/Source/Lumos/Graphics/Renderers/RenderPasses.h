@@ -10,6 +10,7 @@ namespace Lumos
     class TimeStep;
     class WindowResizeEvent;
     class Event;
+    struct SceneRenderSettings;
 
     namespace Maths
     {
@@ -51,15 +52,6 @@ namespace Lumos
             {
                 return vertex == other.vertex && colour == other.colour && size == other.size && uv == other.uv;
             }
-        };
-
-        struct RenderPassesSettings
-        {
-            bool DebugPass       = true;
-            bool GeomPass        = true;
-            bool PostProcessPass = false;
-            bool ShadowPass      = true;
-            bool SkyboxPass      = true;
         };
 
         struct RenderPassesStats
@@ -112,6 +104,8 @@ namespace Lumos
             void ParticlePass();
             void ParticleFlush();
             void DebugPass();
+            void DebugLineFlush(Graphics::Pipeline* pipeline);
+            void DebugPointFlush(Graphics::Pipeline* pipeline);
             void FinalPass();
             void TextPass();
 
@@ -250,11 +244,11 @@ namespace Lumos
 
             struct DebugDrawData
             {
-                std::vector<Graphics::VertexBuffer*> m_LineVertexBuffers;
+                std::vector<std::vector<Graphics::VertexBuffer*>> m_LineVertexBuffers;
                 Graphics::IndexBuffer* m_LineIndexBuffer;
 
                 Graphics::IndexBuffer* m_PointIndexBuffer = nullptr;
-                std::vector<Graphics::VertexBuffer*> m_PointVertexBuffers;
+                std::vector<std::vector<Graphics::VertexBuffer*>> m_PointVertexBuffers;
 
                 std::vector<SharedPtr<Graphics::DescriptorSet>> m_LineDescriptorSet;
                 std::vector<SharedPtr<Graphics::DescriptorSet>> m_PointDescriptorSet;
@@ -275,7 +269,6 @@ namespace Lumos
 
             ForwardData& GetForwardData() { return m_ForwardData; }
             ShadowData& GetShadowData() { return m_ShadowData; }
-            RenderPassesSettings& GetSettings() { return m_Settings; }
             RenderPassesStats& GetRenderPassesStats() { return m_Stats; }
 
             void CreateCubeMap(const std::string& filePath, const glm::vec4& params, SharedPtr<TextureCube>& outEnv, SharedPtr<TextureCube>& outIrr);
@@ -289,9 +282,9 @@ namespace Lumos
             void Init2DRenderData();
             bool m_2DRenderDataInitialised = false;
 
-            Texture2D* m_MainTexture      = nullptr;
-            Texture2D* m_LastRenderTarget = nullptr;
-
+            Texture2D* m_MainTexture         = nullptr;
+            Texture2D* m_ResolveTexture      = nullptr;
+            Texture2D* m_LastRenderTarget    = nullptr;
             Texture2D* m_PostProcessTexture1 = nullptr;
             Texture2D* m_PostProcessTexture2 = nullptr;
 
@@ -311,11 +304,12 @@ namespace Lumos
 
             TextVertexData* TextVertexBufferPtr = nullptr;
 
+            // Vertex data per frame in flight, per batch
             std::vector<std::vector<VertexData*>> m_ParticleBufferBase;
             std::vector<std::vector<VertexData*>> m_2DBufferBase;
-            std::vector<LineVertexData*> m_LineBufferBase;
-            std::vector<PointVertexData*> m_PointBufferBase;
-            std::vector<VertexData*> m_QuadBufferBase;
+            std::vector<std::vector<LineVertexData*>> m_LineBufferBase;
+            std::vector<std::vector<PointVertexData*>> m_PointBufferBase;
+            std::vector<std::vector<VertexData*>> m_QuadBufferBase;
             std::vector<TextVertexData*> TextVertexBufferBase;
             std::vector<TextVertexData*> DebugTextVertexBufferBase;
             TextVertexData* DebugTextVertexBufferPtr = nullptr;
@@ -393,12 +387,14 @@ namespace Lumos
             SharedPtr<Graphics::DescriptorSet> m_SharpenPassDescriptorSet;
             SharedPtr<Graphics::Shader> m_SharpenShader;
 
-            RenderPassesSettings m_Settings;
             RenderPassesStats m_Stats;
+            uint8_t m_MainTextureSamples = 4;
 
             // Outline pass
             Graphics::Model* m_SelectedModel           = nullptr;
             Maths::Transform* m_SelectedModelTransform = nullptr;
+
+            SceneRenderSettings* m_OverrideSceneRenderSettings = nullptr; //For editor viewport
 
             void TextFlush(Renderer2DData& textRenderData, std::vector<TextVertexData*>& textVertexBufferBase, TextVertexData*& textVertexBufferPtr);
         };

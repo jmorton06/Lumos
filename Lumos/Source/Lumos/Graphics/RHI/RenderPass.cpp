@@ -34,7 +34,10 @@ namespace Lumos
 
             for(uint32_t i = 0; i < renderPassDesc.attachmentCount; i++)
             {
-                HashCombine(hash, renderPassDesc.attachmentTypes[i], renderPassDesc.attachments[i], renderPassDesc.cubeMapIndex, renderPassDesc.mipIndex);
+                HashCombine(hash, renderPassDesc.attachmentTypes[i], renderPassDesc.attachments[i], renderPassDesc.cubeMapIndex, renderPassDesc.mipIndex, renderPassDesc.samples);
+
+				if(renderPassDesc.resolveTexture)
+					HashCombine(hash, renderPassDesc.resolveTexture->GetUUID());
 
                 if(renderPassDesc.attachments[i])
                     HashCombine(hash, renderPassDesc.attachments[i]->GetUUID());
@@ -81,6 +84,9 @@ namespace Lumos
                 m_RenderPassCache[keysToDelete[i]].renderpass = nullptr;
                 m_RenderPassCache.erase(keysToDelete[i]);
             }
+        }
+        void RenderPass::BeginRenderPass(CommandBuffer* commandBuffer, float* clearColour, Framebuffer* frame, SubPassContents contents, uint32_t width, uint32_t height) const
+        {
         }
     }
 }

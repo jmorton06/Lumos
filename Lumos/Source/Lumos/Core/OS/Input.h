@@ -5,6 +5,7 @@
 #include "Utilities/TSingleton.h"
 #include "Core/OS/KeyCodes.h"
 #include <glm/vec2.hpp>
+#include <map>
 
 #define MAX_KEYS 1024
 #define MAX_BUTTONS 32
@@ -56,6 +57,9 @@ namespace Lumos
         void SetScrollOffset(float offset) { m_ScrollOffset = offset; }
         float GetScrollOffset() const { return m_ScrollOffset; }
 
+        void SetScrollOffsetX(float offset) { m_ScrollOffsetX = offset; }
+        float GetScrollOffsetX() const { return m_ScrollOffsetX; }
+
         void Reset();
         void ResetPressed();
         void OnEvent(Event& e);
@@ -93,7 +97,8 @@ namespace Lumos
         bool m_MouseHeld[MAX_BUTTONS];
         bool m_MouseClicked[MAX_BUTTONS];
 
-        float m_ScrollOffset = 0.0f;
+        float m_ScrollOffset  = 0.0f;
+        float m_ScrollOffsetX = 0.0f;
 
         bool m_MouseOnScreen;
         MouseMode m_MouseMode;

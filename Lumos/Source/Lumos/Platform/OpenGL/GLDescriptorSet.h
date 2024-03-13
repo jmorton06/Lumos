@@ -24,7 +24,7 @@ namespace Lumos
             void SetUniform(const std::string& bufferName, const std::string& uniformName, void* data, uint32_t size) override;
             void SetUniformBufferData(const std::string& bufferName, void* data) override;
 
-            Graphics::UniformBuffer* GetUnifromBuffer(const std::string& name) override;
+            Graphics::UniformBuffer* GetUniformBuffer(const std::string& name) override;
             void Bind(uint32_t offset = 0);
 
             void SetDynamicOffset(uint32_t offset) override { m_DynamicOffset = offset; }
@@ -44,7 +44,7 @@ namespace Lumos
             struct UniformBufferInfo
             {
                 SharedPtr<UniformBuffer> UB;
-                std::vector<BufferMemberInfo> m_Members;
+                Vector<BufferMemberInfo> m_Members;
                 Buffer LocalStorage;
                 bool HasUpdated;
             };

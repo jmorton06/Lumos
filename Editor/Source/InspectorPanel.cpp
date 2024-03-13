@@ -36,6 +36,7 @@
 #include <Lumos/ImGui/IconsMaterialDesignIcons.h>
 #include <Lumos/ImGui/ImGuiManager.h>
 #include <Lumos/Graphics/RHI/IMGUIRenderer.h>
+// #include <Lumos/Scene/SerialisationImplementation.h>
 
 #include <imgui/imgui.h>
 #include <imgui/imgui_internal.h>
@@ -223,6 +224,13 @@ end
 
         ImGui::Columns(1);
         ImGui::Separator();
+
+        if (ImGui::Button("Copy Editor Camera Transforn", ImVec2(ImGui::GetContentRegionAvail().x, 0.0f)))
+        {
+            Lumos::Application* app = &Lumos::Editor::Get();
+            glm::mat4 cameraTransform = ((Lumos::Editor*)app)->GetEditorCameraTransform().GetWorldMatrix();
+            transform.SetLocalTransform(cameraTransform);
+        }
     }
 
     static void CuboidCollisionShapeInspector(Lumos::CuboidCollisionShape* shape, const Lumos::RigidBody3DComponent& phys)
@@ -310,6 +318,12 @@ end
         ImGui::TextUnformatted("Hull Collision Shape");
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
+        
+        if (ImGui::Button("Generate Collider"))
+        {
+            auto test = Lumos::SharedPtr<Lumos::Graphics::Mesh>(Lumos::Graphics::CreatePrimative(Lumos::Graphics::PrimitiveType::Cube));
+            shape->BuildFromMesh(test.get());
+        }
     }
 
     std::string CollisionShape2DTypeToString(Lumos::Shape shape)
@@ -387,7 +401,7 @@ end
     {
         using namespace Lumos;
         LUMOS_PROFILE_FUNCTION();
-        ImGuiUtilities::ScopedStyle(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
+        ImGuiUtilities::ScopedStyle frameStyle(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
 
         ImGui::Columns(2);
         ImGui::Separator();
@@ -406,6 +420,19 @@ end
         ImGui::TextUnformatted("Entity");
         ImGui::NextColumn();
         ImGui::Text("%s", name.c_str());
+
+        if(ImGui::BeginDragDropTarget())
+        {
+            const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("Drag_Entity");
+            if(payload)
+            {
+                size_t count                 = payload->DataSize / sizeof(entt::entity);
+                entt::entity droppedEntityID = *(((entt::entity*)payload->Data));
+                axisConstraintComponent.SetEntity(Entity(droppedEntityID, Application::Get().GetCurrentScene()).GetID());
+            }
+            ImGui::EndDragDropTarget();
+        }
+
         ImGui::NextColumn();
 
         std::vector<std::string> entities;
@@ -516,7 +543,7 @@ end
         int index                 = 0;
         for(auto& shape : shapes)
         {
-            if(shape == shape_current)
+            if(strcmp(shape, shape_current) == 0)
             {
                 selectedIndex = index;
                 break;
@@ -800,7 +827,7 @@ end
         LUMOS_PROFILE_FUNCTION();
         auto& camera = reg.get<Lumos::Camera>(e);
 
-        Lumos::ImGuiUtilities::ScopedStyle(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
+        Lumos::ImGuiUtilities::ScopedStyle frameStyle(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
         ImGui::Columns(2);
         ImGui::Separator();
 
@@ -1101,7 +1128,7 @@ end
                         // Drop directly on to node and append to the end of it's children list.
                         if(ImGui::AcceptDragDropPayload("Font"))
                         {
-                            Application::Get().GetFontLibrary()->Load(filePath, text.FontHandle);
+                            Application::Get().GetAssetManager()->AddAsset(filePath, text.FontHandle);
                             ImGui::EndDragDropTarget();
 
                             ImGui::Columns(1);
@@ -2042,7 +2069,7 @@ end
                             std::stringstream storage;
 
                             cereal::JSONOutputArchive output { storage };
-                            material->save(output);
+                            // Lumos::save(output, *material.get());
 
                             FileSystem::WriteTextFile(physicalPath, storage.str());
                         }
@@ -2407,12 +2434,12 @@ end
             emitter.SetBlendType((Lumos::ParticleEmitter::BlendType)selectedIndex);
 
         Lumos::ParticleEmitter::AlignedType alignType = emitter.GetAlignedType();
-        static const char* possibleAlignTypes[3] = { "2D", "3D", "Off" };
+        static const char* possibleAlignTypes[3]      = { "2D", "3D", "Off" };
 
         int selectedIndexAlign = (int)alignType;
 
         updated = Lumos::ImGuiUtilities::PropertyDropdown("Align Type", possibleAlignTypes, 3, &selectedIndexAlign);
-        if (updated)
+        if(updated)
             emitter.SetAlignedType((Lumos::ParticleEmitter::AlignedType)selectedIndexAlign);
 
         PropertySet("Is Animated", emitter.GetIsAnimated, emitter.SetIsAnimated);

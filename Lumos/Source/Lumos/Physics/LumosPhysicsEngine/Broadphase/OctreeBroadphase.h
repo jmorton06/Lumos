@@ -42,7 +42,7 @@ namespace Lumos
             Maths::BoundingBox boundingBox;
         };
 
-        void FindPotentialCollisionPairs(RigidBody3D* rootObject, std::vector<CollisionPair>& collisionPairs) override;
+        void FindPotentialCollisionPairs(RigidBody3D* rootObject, Vector<CollisionPair>& collisionPairs) override;
         void DebugDraw() override;
         void Divide(OctreeNode& node, size_t iteration);
         void DebugDrawOctreeNode(const OctreeNode& node);

@@ -29,7 +29,6 @@
 #include "ImGui/ImGuiUtilities.h"
 #include <imgui/imgui.h>
 #include <glm/gtx/matrix_decompose.hpp>
-#include <glm/ext.hpp>
 #include <glm/gtx/string_cast.hpp>
 
 #include <cmath>
@@ -43,7 +42,7 @@ static const uint32_t RENDERER_POINT_BUFFER_SIZE = RENDERER_POINT_SIZE * MaxPoin
 
 static const uint32_t MaxLines                  = 1000;
 static const uint32_t MaxLineVertices           = MaxLines * 2;
-static const uint32_t MaxLineIndices            = MaxLines * 6;
+static const uint32_t MaxLineIndices            = MaxLines * 2;
 static const uint32_t MAX_LINE_BATCH_DRAW_CALLS = 100;
 static const uint32_t RENDERER_LINE_SIZE        = sizeof(Lumos::Graphics::LineVertexData) * 4;
 static const uint32_t RENDERER_LINE_BUFFER_SIZE = RENDERER_LINE_SIZE * MaxLineVertices;
@@ -64,17 +63,36 @@ namespace Lumos::Graphics
         mainRenderTargetDesc.minFilter       = TextureFilter::LINEAR;
         mainRenderTargetDesc.magFilter       = TextureFilter::LINEAR;
         mainRenderTargetDesc.generateMipMaps = false;
+        mainRenderTargetDesc.samples         = m_MainTextureSamples;
         m_MainTexture                        = Graphics::Texture2D::Create(mainRenderTargetDesc, width, height);
+        mainRenderTargetDesc.samples         = 1;
+
         m_PostProcessTexture1                = Graphics::Texture2D::Create(mainRenderTargetDesc, width, height);
+        m_ResolveTexture                     = Graphics::Texture2D::Create(mainRenderTargetDesc, width, height);
 
         // Setup shadow pass data
-        m_ShadowData.m_ShadowTex             = nullptr;
-        m_ShadowData.m_ShadowMapNum          = 4;
-        m_ShadowData.m_ShadowMapSize         = 1024;
+        m_ShadowData.m_ShadowTex    = nullptr;
+        m_ShadowData.m_ShadowMapNum = 4;
+
+        uint32_t shadowMapResolution = 4096;
+        switch(Application::Get().GetQualitySettings().ShadowResolution)
+        {
+        case ShadowResolutionSetting::Low:
+            shadowMapResolution = 1024;
+            break;
+        case ShadowResolutionSetting::Medium:
+            shadowMapResolution = 2048;
+            break;
+        case ShadowResolutionSetting::High:
+            shadowMapResolution = 4096;
+            break;
+        }
+        m_ShadowData.m_ShadowMapSize = shadowMapResolution;
+
         m_ShadowData.m_ShadowMapsInvalidated = true;
         m_ShadowData.m_CascadeSplitLambda    = 0.92f;
-        m_ShadowData.m_Shader                = Application::Get().GetShaderLibrary()->GetResource("Shadow");
-        m_ShadowData.m_ShaderAlpha           = Application::Get().GetShaderLibrary()->GetResource("ShadowAlpha");
+        m_ShadowData.m_Shader                = Application::Get().GetAssetManager()->GetAssetData("Shadow").As<Graphics::Shader>();
+        m_ShadowData.m_ShaderAlpha           = Application::Get().GetAssetManager()->GetAssetData("ShadowAlpha").As<Graphics::Shader>();
         m_ShadowData.m_ShadowTex             = TextureDepthArray::Create(m_ShadowData.m_ShadowMapSize, m_ShadowData.m_ShadowMapSize, m_ShadowData.m_ShadowMapNum, Renderer::GetRenderer()->GetDepthFormat());
         m_ShadowData.m_LightSize             = 1.5f;
         m_ShadowData.m_MaxShadowDistance     = 500.0f;
@@ -98,8 +116,8 @@ namespace Lumos::Graphics
 
         // Setup forward pass data
         m_ForwardData.m_DepthTest    = true;
-        m_ForwardData.m_Shader       = Application::Get().GetShaderLibrary()->GetResource("ForwardPBR");
-        m_ForwardData.m_DepthTexture = TextureDepth::Create(width, height, Renderer::GetRenderer()->GetDepthFormat());
+        m_ForwardData.m_Shader       = Application::Get().GetAssetManager()->GetAssetData("ForwardPBR").As<Graphics::Shader>();
+        m_ForwardData.m_DepthTexture = TextureDepth::Create(width, height, Renderer::GetRenderer()->GetDepthFormat(), m_MainTextureSamples);
         m_ForwardData.m_CommandQueue.reserve(1000);
 
         const size_t minUboAlignment = size_t(Graphics::Renderer::GetCapabilities().UniformBufferOffsetAlignment);
@@ -135,6 +153,7 @@ namespace Lumos::Graphics
         noiseTextureDesc.wrap      = TextureWrap::CLAMP_TO_EDGE;
         noiseTextureDesc.minFilter = TextureFilter::LINEAR;
         noiseTextureDesc.magFilter = TextureFilter::LINEAR;
+        noiseTextureDesc.samples   = m_MainTextureSamples;
         m_NormalTexture            = Graphics::Texture2D::Create(noiseTextureDesc, width, height);
 
         m_SSAOTexture  = Graphics::Texture2D::Create(noiseTextureDesc, width / 2, height / 2);
@@ -214,35 +233,35 @@ namespace Lumos::Graphics
 
         // Set up skybox pass data
         m_ScreenQuad               = Graphics::CreateQuad();
-        m_SkyboxShader             = Application::Get().GetShaderLibrary()->GetResource("Skybox");
+        m_SkyboxShader             = Application::Get().GetAssetManager()->GetAssetData("Skybox").As<Graphics::Shader>();
         descriptorDesc.layoutIndex = 0;
         descriptorDesc.shader      = m_SkyboxShader.get();
         m_SkyboxDescriptorSet      = SharedPtr<Graphics::DescriptorSet>(Graphics::DescriptorSet::Create(descriptorDesc));
 
         // Set up final pass data
-        m_FinalPassShader          = Application::Get().GetShaderLibrary()->GetResource("FinalPass");
+        m_FinalPassShader          = Application::Get().GetAssetManager()->GetAssetData("FinalPass").As<Graphics::Shader>();
         descriptorDesc.layoutIndex = 0;
         descriptorDesc.shader      = m_FinalPassShader.get();
         m_FinalPassDescriptorSet   = SharedPtr<Graphics::DescriptorSet>(Graphics::DescriptorSet::Create(descriptorDesc));
 
         // PostProcesses
 
-        m_ToneMappingPassShader        = Application::Get().GetShaderLibrary()->GetResource("ToneMapping");
+        m_ToneMappingPassShader        = Application::Get().GetAssetManager()->GetAssetData("ToneMapping").As<Graphics::Shader>();
         descriptorDesc.layoutIndex     = 0;
         descriptorDesc.shader          = m_ToneMappingPassShader.get();
         m_ToneMappingPassDescriptorSet = SharedPtr<Graphics::DescriptorSet>(Graphics::DescriptorSet::Create(descriptorDesc));
 
-        m_DepthOfFieldShader            = Application::Get().GetShaderLibrary()->GetResource("DepthOfField");
+        m_DepthOfFieldShader            = Application::Get().GetAssetManager()->GetAssetData("DepthOfField").As<Graphics::Shader>();
         descriptorDesc.layoutIndex      = 0;
         descriptorDesc.shader           = m_DepthOfFieldShader.get();
         m_DepthOfFieldPassDescriptorSet = SharedPtr<Graphics::DescriptorSet>(Graphics::DescriptorSet::Create(descriptorDesc));
 
-        m_SharpenShader            = Application::Get().GetShaderLibrary()->GetResource("Sharpen");
+        m_SharpenShader            = Application::Get().GetAssetManager()->GetAssetData("Sharpen").As<Graphics::Shader>();
         descriptorDesc.layoutIndex = 0;
         descriptorDesc.shader      = m_SharpenShader.get();
         m_SharpenPassDescriptorSet = SharedPtr<Graphics::DescriptorSet>(Graphics::DescriptorSet::Create(descriptorDesc));
 
-        m_BloomPassShader          = Application::Get().GetShaderLibrary()->GetResource(m_SupportCompute ? "BloomComp" : "Bloom");
+        m_BloomPassShader          = Application::Get().GetAssetManager()->GetAssetData(m_SupportCompute ? "BloomComp" : "Bloom").As<Graphics::Shader>();
         descriptorDesc.layoutIndex = 0;
         descriptorDesc.shader      = m_BloomPassShader.get();
 
@@ -257,43 +276,43 @@ namespace Lumos::Graphics
         m_BloomTexture1            = Texture2D::Create(mainRenderTargetDesc, width, height);
         m_BloomTexture2            = Texture2D::Create(mainRenderTargetDesc, width, height);
 
-        m_FXAAShader               = Application::Get().GetShaderLibrary()->GetResource(m_SupportCompute ? "FXAAComp" : "FXAA");
+        m_FXAAShader               = Application::Get().GetAssetManager()->GetAssetData(m_SupportCompute ? "FXAAComp" : "FXAA").As<Graphics::Shader>();
         descriptorDesc.layoutIndex = 0;
         descriptorDesc.shader      = m_FXAAShader.get();
         m_FXAAPassDescriptorSet    = SharedPtr<Graphics::DescriptorSet>(Graphics::DescriptorSet::Create(descriptorDesc));
 
-        m_DebandingShader            = Application::Get().GetShaderLibrary()->GetResource("Debanding");
+        m_DebandingShader            = Application::Get().GetAssetManager()->GetAssetData("Debanding").As<Graphics::Shader>();
         descriptorDesc.layoutIndex   = 0;
         descriptorDesc.shader        = m_DebandingShader.get();
         m_DebandingPassDescriptorSet = SharedPtr<Graphics::DescriptorSet>(Graphics::DescriptorSet::Create(descriptorDesc));
 
-        m_ChromaticAberationShader            = Application::Get().GetShaderLibrary()->GetResource("ChromaticAberation");
+        m_ChromaticAberationShader            = Application::Get().GetAssetManager()->GetAssetData("ChromaticAberation").As<Graphics::Shader>();
         descriptorDesc.layoutIndex            = 0;
         descriptorDesc.shader                 = m_ChromaticAberationShader.get();
         m_ChromaticAberationPassDescriptorSet = SharedPtr<Graphics::DescriptorSet>(Graphics::DescriptorSet::Create(descriptorDesc));
 
-        m_DepthPrePassShader        = Application::Get().GetShaderLibrary()->GetResource("DepthPrePass");
+        m_DepthPrePassShader        = Application::Get().GetAssetManager()->GetAssetData("DepthPrePass").As<Graphics::Shader>();
         descriptorDesc.layoutIndex  = 0;
         descriptorDesc.shader       = m_DepthPrePassShader.get();
         m_DepthPrePassDescriptorSet = SharedPtr<Graphics::DescriptorSet>(Graphics::DescriptorSet::Create(descriptorDesc));
 
-        m_DepthPrePassAlphaShader        = Application::Get().GetShaderLibrary()->GetResource("DepthPrePassAlpha");
+        m_DepthPrePassAlphaShader        = Application::Get().GetAssetManager()->GetAssetData("DepthPrePassAlpha").As<Graphics::Shader>();
         descriptorDesc.shader            = m_DepthPrePassAlphaShader.get();
         m_DepthPrePassAlphaDescriptorSet = SharedPtr<Graphics::DescriptorSet>(Graphics::DescriptorSet::Create(descriptorDesc));
 
-        m_FilmicGrainShader            = Application::Get().GetShaderLibrary()->GetResource("FilmicGrain");
+        m_FilmicGrainShader            = Application::Get().GetAssetManager()->GetAssetData("FilmicGrain").As<Graphics::Shader>();
         descriptorDesc.layoutIndex     = 0;
         descriptorDesc.shader          = m_FilmicGrainShader.get();
         m_FilmicGrainPassDescriptorSet = SharedPtr<Graphics::DescriptorSet>(Graphics::DescriptorSet::Create(descriptorDesc));
 
-        m_SSAOShader               = Application::Get().GetShaderLibrary()->GetResource("SSAO");
+        m_SSAOShader               = Application::Get().GetAssetManager()->GetAssetData("SSAO").As<Graphics::Shader>();
         descriptorDesc.layoutIndex = 0;
         descriptorDesc.shader      = m_SSAOShader.get();
 
         if(m_SSAOShader->IsCompiled())
             m_SSAOPassDescriptorSet = SharedPtr<Graphics::DescriptorSet>(Graphics::DescriptorSet::Create(descriptorDesc));
 
-        m_SSAOBlurShader           = Application::Get().GetShaderLibrary()->GetResource("SSAOBlur");
+        m_SSAOBlurShader           = Application::Get().GetAssetManager()->GetAssetData("SSAOBlur").As<Graphics::Shader>();
         descriptorDesc.layoutIndex = 0;
         descriptorDesc.shader      = m_SSAOBlurShader.get();
         if(m_SSAOBlurShader->IsCompiled())
@@ -302,7 +321,7 @@ namespace Lumos::Graphics
             m_SSAOBlurPassDescriptorSet2 = SharedPtr<Graphics::DescriptorSet>(Graphics::DescriptorSet::Create(descriptorDesc));
         }
 
-        // m_OutlineShader = Application::Get().GetShaderLibrary()->GetResource("Outline");
+        // m_OutlineShader = Application::Get().GetAssetManager()->GetAssetData("Outline");
         //         descriptorDesc.layoutIndex = 0;
         //         descriptorDesc.shader      = m_OutlineShader.get();
         //         m_OutlinePassDescriptorSet    = SharedPtr<Graphics::DescriptorSet>(Graphics::DescriptorSet::Create(descriptorDesc));
@@ -315,7 +334,7 @@ namespace Lumos::Graphics
         m_Renderer2DData.m_Limits.SetMaxQuads(10000);
         m_Renderer2DData.m_Limits.MaxTextures = 16; // Renderer::GetCapabilities().MaxTextureUnits;
 
-        m_Renderer2DData.m_Shader = Application::Get().GetShaderLibrary()->GetResource("Batch2D");
+        m_Renderer2DData.m_Shader = Application::Get().GetAssetManager()->GetAssetData("Batch2D").As<Graphics::Shader>();
 
         m_Renderer2DData.m_TransformationStack.emplace_back(glm::mat4(1.0f));
         m_Renderer2DData.m_TransformationBack = &m_Renderer2DData.m_TransformationStack.back();
@@ -378,16 +397,6 @@ namespace Lumos::Graphics
         for(int i = 0; i < Renderer::GetMainSwapChain()->GetSwapChainBufferCount(); i++)
         {
             TextVertexBufferBase.push_back(new TextVertexData[m_TextRendererData.m_Limits.MaxQuads * 4]);
-
-            if(m_Settings.DebugPass) // && sceneRenderSettings.DebugRenderEnabled)
-            {
-                m_QuadBufferBase.push_back(new VertexData[m_DebugDrawData.m_Renderer2DData.m_Limits.MaxQuads * 4]);
-
-                // m_2DBufferBase.push_back(new VertexData[m_Renderer2DData.m_Limits.MaxQuads  * 4]);
-                m_LineBufferBase.push_back(new LineVertexData[m_DebugDrawData.m_Renderer2DData.m_Limits.MaxQuads * 4]);
-                m_PointBufferBase.push_back(new PointVertexData[m_DebugDrawData.m_Renderer2DData.m_Limits.MaxQuads * 4]);
-                DebugTextVertexBufferBase.push_back(new TextVertexData[m_DebugTextRendererData.m_Limits.MaxQuads * 4]);
-            }
         }
 
         delete[] indices;
@@ -403,7 +412,7 @@ namespace Lumos::Graphics
             m_ParticleData.m_Limits.SetMaxQuads(10000);
             m_ParticleData.m_Limits.MaxTextures = 16; // Renderer::GetCapabilities().MaxTextureUnits;
 
-            m_ParticleData.m_Shader = Application::Get().GetShaderLibrary()->GetResource("Particle");
+            m_ParticleData.m_Shader = Application::Get().GetAssetManager()->GetAssetData("Particle").As<Graphics::Shader>();
 
             m_ParticleData.m_TransformationStack.emplace_back(glm::mat4(1.0f));
             m_ParticleData.m_TransformationBack = &m_ParticleData.m_TransformationStack.back();
@@ -478,7 +487,7 @@ namespace Lumos::Graphics
 
         TextVertexBufferPtr = TextVertexBufferBase[0];
 
-        m_TextRendererData.m_Shader = Application::Get().GetShaderLibrary()->GetResource("Text");
+        m_TextRendererData.m_Shader = Application::Get().GetAssetManager()->GetAssetData("Text").As<Graphics::Shader>();
 
         m_TextRendererData.m_TransformationStack.emplace_back(glm::mat4(1.0f));
         m_TextRendererData.m_TransformationBack = &m_Renderer2DData.m_TransformationStack.back();
@@ -540,6 +549,7 @@ namespace Lumos::Graphics
     {
         delete m_ForwardData.m_DepthTexture;
         delete m_MainTexture;
+        delete m_ResolveTexture;
         delete m_PostProcessTexture1;
         delete m_SSAOTexture;
         delete m_SSAOTexture1;
@@ -556,23 +566,30 @@ namespace Lumos::Graphics
 
         delete m_Renderer2DData.m_IndexBuffer;
         delete m_TextRendererData.m_IndexBuffer;
-        delete m_DebugTextRendererData.m_IndexBuffer;
-        delete m_DebugDrawData.m_Renderer2DData.m_IndexBuffer;
-        delete m_DebugDrawData.m_LineIndexBuffer;
-        delete m_DebugDrawData.m_PointIndexBuffer;
         delete m_ParticleData.m_IndexBuffer;
+
+        if(m_DebugRenderDataInitialised)
+        {
+            delete m_DebugTextRendererData.m_IndexBuffer;
+            delete m_DebugDrawData.m_Renderer2DData.m_IndexBuffer;
+            delete m_DebugDrawData.m_LineIndexBuffer;
+            delete m_DebugDrawData.m_PointIndexBuffer;
+        }
 
         for(auto data : TextVertexBufferBase)
             delete[] data;
         for(auto data : DebugTextVertexBufferBase)
             delete[] data;
 
-        for(auto data : m_LineBufferBase)
-            delete[] data;
-        for(auto data : m_PointBufferBase)
-            delete[] data;
-        for(auto data : m_QuadBufferBase)
-            delete[] data;
+        if(!m_LineBufferBase.empty())
+            for(auto data : m_LineBufferBase[0])
+                delete[] data;
+        if(!m_PointBufferBase.empty())
+            for(auto data : m_PointBufferBase[0])
+                delete[] data;
+        if(!m_QuadBufferBase.empty())
+            for(auto data : m_QuadBufferBase[0])
+                delete[] data;
 
         for(int j = 0; j < Renderer::GetMainSwapChain()->GetSwapChainBufferCount(); j++)
         {
@@ -586,39 +603,43 @@ namespace Lumos::Graphics
                 delete m_TextRendererData.m_VertexBuffers[j][i];
             }
 
-            for(uint32_t i = 0; i < m_DebugTextRendererData.m_VertexBuffers[j].size(); i++)
-            {
-                delete m_DebugTextRendererData.m_VertexBuffers[j][i];
-            }
-
-            for(size_t i = 0; i < m_DebugDrawData.m_Renderer2DData.m_VertexBuffers[j].size(); i++)
-            {
-                delete m_DebugDrawData.m_Renderer2DData.m_VertexBuffers[j][i];
-            }
-
-            for(auto data : m_2DBufferBase[j])
-                delete[] data;
-        }
-
-        for(int j = 0; j < Renderer::GetMainSwapChain()->GetSwapChainBufferCount(); j++)
-        {
             for(size_t i = 0; i < m_ParticleData.m_VertexBuffers[j].size(); i++)
             {
                 delete m_ParticleData.m_VertexBuffers[j][i];
             }
 
+            if(m_DebugRenderDataInitialised)
+                for(uint32_t i = 0; i < m_DebugTextRendererData.m_VertexBuffers[j].size(); i++)
+                {
+                    delete m_DebugTextRendererData.m_VertexBuffers[j][i];
+                }
+
+            if(m_DebugRenderDataInitialised)
+                for(size_t i = 0; i < m_DebugDrawData.m_Renderer2DData.m_VertexBuffers[j].size(); i++)
+                {
+                    delete m_DebugDrawData.m_Renderer2DData.m_VertexBuffers[j][i];
+                }
+
+            for(auto data : m_2DBufferBase[j])
+                delete[] data;
+
             for(auto data : m_ParticleBufferBase[j])
                 delete[] data;
         }
 
-        for(int i = 0; i < m_DebugDrawData.m_PointVertexBuffers.size(); i++)
+        if(m_DebugRenderDataInitialised)
         {
-            delete m_DebugDrawData.m_PointVertexBuffers[i];
-        }
+            if(!m_DebugDrawData.m_PointVertexBuffers.empty())
+                for(int i = 0; i < m_DebugDrawData.m_PointVertexBuffers[0].size(); i++)
+                {
+                    delete m_DebugDrawData.m_PointVertexBuffers[0][i];
+                }
 
-        for(int i = 0; i < m_DebugDrawData.m_LineVertexBuffers.size(); i++)
-        {
-            delete m_DebugDrawData.m_LineVertexBuffers[i];
+            if(!m_DebugDrawData.m_LineVertexBuffers.empty())
+                for(int i = 0; i < m_DebugDrawData.m_LineVertexBuffers[0].size(); i++)
+                {
+                    delete m_DebugDrawData.m_LineVertexBuffers[0][i];
+                }
         }
 
         DebugRenderer::Release();
@@ -633,13 +654,13 @@ namespace Lumos::Graphics
 
         m_ForwardData.m_DepthTexture->Resize(width, height);
         m_MainTexture->Resize(width, height);
+        m_ResolveTexture->Resize(width, height);
         m_PostProcessTexture1->Resize(width, height);
         m_SSAOTexture->Resize(width / 2, height / 2);
         m_SSAOTexture1->Resize(width / 2, height / 2);
         m_BloomTexture->Resize(width, height);
         m_BloomTexture1->Resize(width, height);
         m_BloomTexture2->Resize(width, height);
-
         m_NormalTexture->Resize(width, height);
     }
 
@@ -648,7 +669,10 @@ namespace Lumos::Graphics
         m_DebugRenderEnabled = enable;
 
         if(m_DebugRenderEnabled)
+        {
             DebugRenderer::Init();
+            InitDebugRenderData();
+        }
         else
             DebugRenderer::Release();
     }
@@ -690,9 +714,42 @@ namespace Lumos::Graphics
         m_Exposure     = m_Camera->GetExposure();
         m_ToneMapIndex = scene->GetSettings().RenderSettings.m_ToneMapIndex;
 
-        auto view     = glm::inverse(m_CameraTransform->GetWorldMatrix());
-        auto proj     = m_Camera->GetProjectionMatrix();
-        auto projView = proj * view;
+        if (m_MainTextureSamples != scene->GetSettings().RenderSettings.MSAASamples)
+        {
+            m_MainTextureSamples = scene->GetSettings().RenderSettings.MSAASamples;
+
+            uint32_t width = m_MainTexture->GetWidth();
+            uint32_t height = m_MainTexture->GetHeight();
+
+            delete m_MainTexture;
+            delete m_ForwardData.m_DepthTexture;
+            delete m_NormalTexture;
+
+            Graphics::TextureDesc mainRenderTargetDesc;
+            mainRenderTargetDesc.format = Graphics::RHIFormat::R11G11B10_Float;
+            mainRenderTargetDesc.flags = TextureFlags::Texture_RenderTarget;
+            mainRenderTargetDesc.wrap = TextureWrap::CLAMP_TO_EDGE;
+            mainRenderTargetDesc.minFilter = TextureFilter::LINEAR;
+            mainRenderTargetDesc.magFilter = TextureFilter::LINEAR;
+            mainRenderTargetDesc.generateMipMaps = false;
+            mainRenderTargetDesc.samples = m_MainTextureSamples;
+            m_MainTexture = Graphics::Texture2D::Create(mainRenderTargetDesc, width, height);
+            m_ForwardData.m_DepthTexture = TextureDepth::Create(width, height, Renderer::GetRenderer()->GetDepthFormat(), m_MainTextureSamples);
+
+			mainRenderTargetDesc.generateMipMaps       = false;
+			mainRenderTargetDesc.anisotropicFiltering  = false;
+			mainRenderTargetDesc.flags     = TextureFlags::Texture_RenderTarget;
+			mainRenderTargetDesc.wrap      = TextureWrap::CLAMP_TO_EDGE;
+			mainRenderTargetDesc.minFilter = TextureFilter::LINEAR;
+			mainRenderTargetDesc.magFilter = TextureFilter::LINEAR;
+			mainRenderTargetDesc.samples   = m_MainTextureSamples;
+			m_NormalTexture            = Graphics::Texture2D::Create(mainRenderTargetDesc, width, height);
+
+        }
+
+        auto view        = glm::inverse(m_CameraTransform->GetWorldMatrix());
+        const auto& proj = m_Camera->GetProjectionMatrix();
+        auto projView    = proj * view;
 
         if(m_DebugRenderEnabled)
         {
@@ -873,7 +930,7 @@ namespace Lumos::Graphics
             m_ForwardData.m_DescriptorSet[2]->SetUniform("UBOLight", "Mode", &m_ForwardData.m_RenderMode);
             m_ForwardData.m_DescriptorSet[2]->SetUniform("UBOLight", "EnvMipCount", &EnvMipCount);
             m_ForwardData.m_DescriptorSet[2]->SetTexture("uBRDFLUT", m_ForwardData.m_BRDFLUT.get());
-            m_ForwardData.m_DescriptorSet[2]->SetTexture("uSSAOMap", Application::Get().GetCurrentScene()->GetSettings().RenderSettings.SSAOEnabled ? m_SSAOTexture : Material::GetDefaultTexture().get());
+            m_ForwardData.m_DescriptorSet[2]->SetTexture("uSSAOMap", /*Application::Get().GetCurrentScene()->GetSettings().RenderSettings.SSAOEnabled ?*/ /*m_SSAOTexture :*/ Material::GetDefaultTexture().get());
             m_ForwardData.m_DescriptorSet[2]->SetTexture("uEnvMap", m_ForwardData.m_EnvironmentMap, 0, TextureType::CUBE);
             m_ForwardData.m_DescriptorSet[2]->SetTexture("uIrrMap", m_ForwardData.m_IrradianceMap, 0, TextureType::CUBE);
 
@@ -948,7 +1005,9 @@ namespace Lumos::Graphics
                         pipelineDesc.colourTargets[0]    = m_MainTexture;
                         pipelineDesc.cullMode            = command.material->GetFlag(Material::RenderFlags::TWOSIDED) ? Graphics::CullMode::NONE : Graphics::CullMode::BACK;
                         pipelineDesc.transparencyEnabled = command.material->GetFlag(Material::RenderFlags::ALPHABLEND);
-
+                        pipelineDesc.samples             = m_MainTextureSamples;
+                        if (m_MainTextureSamples > 1)
+                        pipelineDesc.resolveTexture      = m_ResolveTexture;
                         if(m_ForwardData.m_DepthTest && command.material->GetFlag(Material::RenderFlags::DEPTHTEST))
                         {
                             pipelineDesc.depthTarget = m_ForwardData.m_DepthTexture;
@@ -1061,8 +1120,8 @@ namespace Lumos::Graphics
         LUMOS_PROFILE_FUNCTION();
         LUMOS_PROFILE_GPU("Render Passes");
 
-        auto& sceneRenderSettings       = Application::Get().GetCurrentScene()->GetSettings().RenderSettings;
-        sceneRenderSettings.SSAOEnabled = false; // Disabled while broken
+        auto& sceneRenderSettings = Application::Get().GetCurrentScene()->GetSettings().RenderSettings;
+        sceneRenderSettings.SSAOEnabled = false;
 
         {
             LUMOS_PROFILE_GPU("Clear Main Texture Pass");
@@ -1094,30 +1153,32 @@ namespace Lumos::Graphics
                 SSAOBlurPass();
         }
 
-        if(m_Settings.ShadowPass && sceneRenderSettings.ShadowsEnabled)
+        if(sceneRenderSettings.ShadowsEnabled)
             ShadowPass();
-
-        if(m_Settings.GeomPass && sceneRenderSettings.Renderer3DEnabled)
+        if(sceneRenderSettings.Renderer3DEnabled)
             ForwardPass();
-        if(m_Settings.SkyboxPass && sceneRenderSettings.SkyboxRenderEnabled)
+        if(sceneRenderSettings.SkyboxRenderEnabled)
             SkyboxPass();
-        if(m_Settings.GeomPass && sceneRenderSettings.Renderer3DEnabled)
+        if(sceneRenderSettings.Renderer3DEnabled)
             ParticlePass();
-        if(m_Settings.GeomPass && sceneRenderSettings.Renderer2DEnabled)
+        if(sceneRenderSettings.Renderer2DEnabled)
             Render2DPass();
 
         TextPass();
 
-        m_LastRenderTarget = m_MainTexture;
+        if (m_DebugRenderEnabled && sceneRenderSettings.DebugRenderEnabled)
+            DebugPass();
+
+        m_LastRenderTarget = m_MainTextureSamples > 1 ? m_ResolveTexture : m_MainTexture;
 
         // if (sceneRenderSettings.EyeAdaptation)
         //    EyeAdaptationPass();
 
+		if(sceneRenderSettings.DepthOfFieldEnabled && !m_DisablePostProcess)
+			DepthOfFieldPass();
+
         if(sceneRenderSettings.BloomEnabled && !m_DisablePostProcess)
             BloomPass();
-
-        if(sceneRenderSettings.DepthOfFieldEnabled && !m_DisablePostProcess)
-            DepthOfFieldPass();
 
         if(sceneRenderSettings.DebandingEnabled && !m_DisablePostProcess)
             DebandingPass();
@@ -1138,9 +1199,6 @@ namespace Lumos::Graphics
 
         // if(sceneRenderSettings.OutlineEnabled
         // OutlinePass();
-
-        if(m_Settings.DebugPass && sceneRenderSettings.DebugRenderEnabled)
-            DebugPass();
 
         FinalPass();
     }
@@ -1434,7 +1492,7 @@ namespace Lumos::Graphics
         m_GenerateBRDFLUT = false;
 
         Graphics::PipelineDesc pipelineDesc {};
-        pipelineDesc.shader = Application::Get().GetShaderLibrary()->GetResource("BRDFLUT");
+        pipelineDesc.shader = Application::Get().GetAssetManager()->GetAssetData("BRDFLUT").As<Graphics::Shader>();
 
         pipelineDesc.polygonMode         = Graphics::PolygonMode::FILL;
         pipelineDesc.cullMode            = Graphics::CullMode::BACK;
@@ -1537,6 +1595,7 @@ namespace Lumos::Graphics
         pipelineDesc.depthTarget      = m_ForwardData.m_DepthTexture;
         pipelineDesc.colourTargets[0] = m_NormalTexture;
         pipelineDesc.DebugName        = "Depth Prepass";
+		pipelineDesc.samples          = m_MainTextureSamples;
 
         DescriptorSet* sets[2];
         sets[0] = m_ForwardData.m_DescriptorSet[0].get();
@@ -1656,7 +1715,9 @@ namespace Lumos::Graphics
         glm::vec2 ssaoTexelOffset = glm::vec2(0.0f, 2.0f / m_SSAOTexture->GetHeight());
 
         Scene::SceneRenderSettings& renderSettings = m_CurrentScene->GetSettings().RenderSettings;
+        auto view                                  = glm::inverse(m_CameraTransform->GetWorldMatrix());
 
+        m_SSAOBlurPassDescriptorSet->SetUniform("UniformBuffer", "view", &view);
         m_SSAOBlurPassDescriptorSet->SetUniform("UniformBuffer", "ssaoTexelOffset", &ssaoTexelOffset);
         m_SSAOBlurPassDescriptorSet->SetUniform("UniformBuffer", "ssaoBlurRadius", &renderSettings.SSAOBlurRadius);
 
@@ -1668,6 +1729,7 @@ namespace Lumos::Graphics
 
         ssaoTexelOffset = glm::vec2(2.0f / m_SSAOTexture->GetWidth(), 0.0f);
 
+        m_SSAOBlurPassDescriptorSet2->SetUniform("UniformBuffer", "view", &view);
         m_SSAOBlurPassDescriptorSet2->SetUniform("UniformBuffer", "ssaoTexelOffset", &ssaoTexelOffset);
         m_SSAOBlurPassDescriptorSet2->SetUniform("UniformBuffer", "ssaoBlurRadius", &renderSettings.SSAOBlurRadius);
 
@@ -1766,9 +1828,11 @@ namespace Lumos::Graphics
             pipelineDesc.depthTarget = reinterpret_cast<Texture*>(m_ForwardData.m_DepthTexture);
         }
 
-        pipelineDesc.colourTargets[0] = m_MainTexture;
+        pipelineDesc.colourTargets[0] = m_MainTexture;//m_MainTexture;
         pipelineDesc.DebugName        = "Skybox";
-
+		pipelineDesc.samples = m_MainTextureSamples;
+		if(m_MainTextureSamples > 1)
+			pipelineDesc.resolveTexture = m_ResolveTexture;
         auto commandBuffer = Renderer::GetMainSwapChain()->GetCurrentCommandBuffer();
         auto pipeline      = Graphics::Pipeline::Get(pipelineDesc);
         pipeline->Bind(commandBuffer);
@@ -1784,6 +1848,12 @@ namespace Lumos::Graphics
     {
         LUMOS_PROFILE_FUNCTION();
         LUMOS_PROFILE_GPU("Depth Of Field Pass");
+
+		if(m_MainTextureSamples > 1)
+		{
+			LUMOS_LOG_WARN("Depth of field pass currently not working with msaa");
+			return;
+		}
 
         if(!m_Camera || !m_DepthOfFieldShader || !m_DepthOfFieldShader->IsCompiled())
             return;
@@ -1802,7 +1872,7 @@ namespace Lumos::Graphics
         m_DepthOfFieldPassDescriptorSet->SetUniform("UniformBuffer", "DOFParams", &DOFParams);
         m_DepthOfFieldPassDescriptorSet->SetUniform("UniformBuffer", "DepthConsts", &DepthConsts);
 
-        m_DepthOfFieldPassDescriptorSet->SetTexture("u_Texture", m_MainTexture);
+        m_DepthOfFieldPassDescriptorSet->SetTexture("u_Texture", m_LastRenderTarget);
         m_DepthOfFieldPassDescriptorSet->SetTexture("u_DepthTexture", m_ForwardData.m_DepthTexture);
         m_DepthOfFieldPassDescriptorSet->Update();
 
@@ -1813,6 +1883,7 @@ namespace Lumos::Graphics
         pipelineDesc.transparencyEnabled = false;
         pipelineDesc.colourTargets[0]    = m_PostProcessTexture1;
         pipelineDesc.DebugName           = "DepthofField";
+		pipelineDesc.samples 			 = m_MainTextureSamples;
         auto commandBuffer               = Renderer::GetMainSwapChain()->GetCurrentCommandBuffer();
         auto pipeline                    = Graphics::Pipeline::Get(pipelineDesc);
         pipeline->Bind(commandBuffer);
@@ -1823,8 +1894,7 @@ namespace Lumos::Graphics
 
         pipeline->End(commandBuffer);
 
-        m_LastRenderTarget = m_PostProcessTexture1;
-        std::swap(m_PostProcessTexture1, m_MainTexture);
+        std::swap(m_LastRenderTarget, m_PostProcessTexture1);
     }
 
     void RenderPasses::SharpenPass()
@@ -1837,7 +1907,7 @@ namespace Lumos::Graphics
 
         Scene::SceneRenderSettings& renderSettings = m_CurrentScene->GetSettings().RenderSettings;
 
-        m_SharpenPassDescriptorSet->SetTexture("u_Texture", m_MainTexture);
+        m_SharpenPassDescriptorSet->SetTexture("u_Texture", m_LastRenderTarget);
         m_SharpenPassDescriptorSet->Update();
 
         Graphics::PipelineDesc pipelineDesc {};
@@ -1857,8 +1927,7 @@ namespace Lumos::Graphics
 
         pipeline->End(commandBuffer);
 
-        m_LastRenderTarget = m_PostProcessTexture1;
-        std::swap(m_PostProcessTexture1, m_MainTexture);
+        std::swap(m_PostProcessTexture1, m_LastRenderTarget);
     }
 
     void RenderPasses::ToneMappingPass()
@@ -1877,7 +1946,7 @@ namespace Lumos::Graphics
         m_ToneMappingPassDescriptorSet->SetUniform("UniformBuffer", "Contrast", &Contrast);
         m_ToneMappingPassDescriptorSet->SetUniform("UniformBuffer", "Saturation", &Saturation);
 
-        m_ToneMappingPassDescriptorSet->SetTexture("u_Texture", m_MainTexture);
+        m_ToneMappingPassDescriptorSet->SetTexture("u_Texture", m_LastRenderTarget);
         m_ToneMappingPassDescriptorSet->SetTexture("u_BloomTexture", m_BloomTextureLastRenderered);
         m_ToneMappingPassDescriptorSet->Update();
 
@@ -1898,8 +1967,7 @@ namespace Lumos::Graphics
 
         pipeline->End(commandBuffer);
 
-        m_LastRenderTarget = m_PostProcessTexture1;
-        std::swap(m_PostProcessTexture1, m_MainTexture);
+        std::swap(m_PostProcessTexture1, m_LastRenderTarget);
     }
 
     void RenderPasses::FinalPass()
@@ -1907,7 +1975,7 @@ namespace Lumos::Graphics
         LUMOS_PROFILE_FUNCTION();
         LUMOS_PROFILE_GPU("Final Pass");
 
-        Texture* finalPassTexture = m_MainTexture;
+        Texture* finalPassTexture = m_LastRenderTarget;
 
 #ifndef LUMOS_DIST
 
@@ -1961,6 +2029,9 @@ namespace Lumos::Graphics
         Renderer::Draw(commandBuffer, DrawType::TRIANGLE, 3);
 
         pipeline->End(commandBuffer);
+
+        if(m_LastRenderTarget != m_MainTexture && m_LastRenderTarget != m_ResolveTexture)
+			std::swap(m_PostProcessTexture1, m_LastRenderTarget);
     }
 
     void RenderPasses::BloomPass()
@@ -2011,8 +2082,8 @@ namespace Lumos::Graphics
         uint32_t workGroupsX   = m_BloomTexture->GetWidth() / workGroupSize;
         uint32_t workGroupsY   = m_BloomTexture->GetHeight() / workGroupSize;
 
-        m_BloomDescriptorSets[0]->SetTexture("u_Texture", m_MainTexture);
-        m_BloomDescriptorSets[0]->SetTexture("u_BloomTexture", m_MainTexture);
+        m_BloomDescriptorSets[0]->SetTexture("u_Texture", m_LastRenderTarget);
+        m_BloomDescriptorSets[0]->SetTexture("u_BloomTexture", m_LastRenderTarget);
 
         if(m_SupportCompute)
         {
@@ -2070,12 +2141,12 @@ namespace Lumos::Graphics
             if(i % 2 == 0)
             {
                 m_BloomDescriptorSets[i]->SetTexture("u_Texture", m_BloomTexture1);
-                m_BloomDescriptorSets[i]->SetTexture("u_BloomTexture", m_MainTexture);
+                m_BloomDescriptorSets[i]->SetTexture("u_BloomTexture", m_LastRenderTarget);
             }
             else
             {
                 m_BloomDescriptorSets[i]->SetTexture("u_Texture", m_BloomTexture);
-                m_BloomDescriptorSets[i]->SetTexture("u_BloomTexture", m_MainTexture);
+                m_BloomDescriptorSets[i]->SetTexture("u_BloomTexture", m_LastRenderTarget);
             }
 
             m_BloomDescriptorSets[i]->Update();
@@ -2187,7 +2258,7 @@ namespace Lumos::Graphics
         // First Upsample
         {
             m_BloomDescriptorSets[passCount]->SetTexture("u_Texture", m_BloomTexture);
-            m_BloomDescriptorSets[passCount]->SetTexture("u_BloomTexture", m_MainTexture);
+            m_BloomDescriptorSets[passCount]->SetTexture("u_BloomTexture", m_LastRenderTarget);
 
             if(m_SupportCompute)
             {
@@ -2330,7 +2401,7 @@ namespace Lumos::Graphics
 
         auto commandBuffer = Renderer::GetMainSwapChain()->GetCurrentCommandBuffer();
 
-        m_FXAAPassDescriptorSet->SetTexture("u_Texture", m_MainTexture);
+        m_FXAAPassDescriptorSet->SetTexture("u_Texture", m_LastRenderTarget);
 
         if(m_SupportCompute)
         {
@@ -2371,8 +2442,7 @@ namespace Lumos::Graphics
 
         pipeline->End(commandBuffer);
 
-        m_LastRenderTarget = m_PostProcessTexture1;
-        std::swap(m_PostProcessTexture1, m_MainTexture);
+        std::swap(m_PostProcessTexture1, m_LastRenderTarget);
     }
 
     void RenderPasses::DebandingPass()
@@ -2380,10 +2450,10 @@ namespace Lumos::Graphics
         LUMOS_PROFILE_FUNCTION();
         LUMOS_PROFILE_GPU("Debanding Pass");
 
-        if(!m_MainTexture || !m_DebandingShader->IsCompiled())
+        if(!m_LastRenderTarget || !m_DebandingShader->IsCompiled())
             return;
 
-        m_DebandingPassDescriptorSet->SetTexture("u_Texture", m_MainTexture);
+        m_DebandingPassDescriptorSet->SetTexture("u_Texture", m_LastRenderTarget);
         m_DebandingPassDescriptorSet->Update();
 
         Graphics::PipelineDesc pipelineDesc {};
@@ -2403,8 +2473,7 @@ namespace Lumos::Graphics
 
         pipeline->End(commandBuffer);
 
-        m_LastRenderTarget = m_PostProcessTexture1;
-        std::swap(m_PostProcessTexture1, m_MainTexture);
+        std::swap(m_PostProcessTexture1, m_LastRenderTarget);
     }
 
     void RenderPasses::FilmicGrainPass()
@@ -2415,7 +2484,7 @@ namespace Lumos::Graphics
         if(!m_MainTexture || !m_FilmicGrainShader->IsCompiled())
             return;
 
-        m_FilmicGrainPassDescriptorSet->SetTexture("u_Texture", m_MainTexture);
+        m_FilmicGrainPassDescriptorSet->SetTexture("u_Texture", m_LastRenderTarget);
         m_FilmicGrainPassDescriptorSet->Update();
 
         Graphics::PipelineDesc pipelineDesc {};
@@ -2446,8 +2515,7 @@ namespace Lumos::Graphics
 
         pipeline->End(commandBuffer);
 
-        m_LastRenderTarget = m_PostProcessTexture1;
-        std::swap(m_PostProcessTexture1, m_MainTexture);
+        std::swap(m_PostProcessTexture1, m_LastRenderTarget);
     }
 
     void RenderPasses::OutlinePass()
@@ -2455,10 +2523,10 @@ namespace Lumos::Graphics
         LUMOS_PROFILE_FUNCTION();
         LUMOS_PROFILE_GPU("Outline Pass");
 
-        if(!m_MainTexture || !m_OutlineShader || !m_OutlineShader->IsCompiled())
+        if(!m_LastRenderTarget || !m_OutlineShader || !m_OutlineShader->IsCompiled())
             return;
 
-        // m_OutlinePassDescriptorSet->SetTexture("u_Texture", m_MainTexture);
+        // m_OutlinePassDescriptorSet->SetTexture("u_Texture", m_LastRenderTarget);
         // m_OutlinePassDescriptorSet->Update();
 
         Graphics::PipelineDesc pipelineDesc {};
@@ -2478,8 +2546,7 @@ namespace Lumos::Graphics
 
         pipeline->End(commandBuffer);
 
-        m_LastRenderTarget = m_PostProcessTexture1;
-        std::swap(m_PostProcessTexture1, m_MainTexture);
+        std::swap(m_PostProcessTexture1, m_LastRenderTarget);
     }
 
     void RenderPasses::ChromaticAberationPass()
@@ -2487,14 +2554,14 @@ namespace Lumos::Graphics
         LUMOS_PROFILE_FUNCTION();
         LUMOS_PROFILE_GPU("ChromaticAberation Pass");
 
-        if(!m_Camera || !m_MainTexture || !m_ChromaticAberationShader->IsCompiled())
+        if(!m_Camera || !m_LastRenderTarget || !m_ChromaticAberationShader->IsCompiled())
             return;
 
         auto set             = m_ChromaticAberationPassDescriptorSet.get();
         float cameraAperture = m_Camera->GetAperture();
         float intensity      = 100.0f;
 
-        set->SetTexture("u_Texture", m_MainTexture);
+        set->SetTexture("u_Texture", m_LastRenderTarget);
         set->SetUniform("UniformBuffer", "chromaticAberrationIntensity", &intensity);
         set->SetUniform("UniformBuffer", "cameraAperture", &cameraAperture);
         set->Update();
@@ -2515,8 +2582,7 @@ namespace Lumos::Graphics
 
         pipeline->End(commandBuffer);
 
-        m_LastRenderTarget = m_PostProcessTexture1;
-        std::swap(m_PostProcessTexture1, m_MainTexture);
+        std::swap(m_PostProcessTexture1, m_LastRenderTarget);
     }
 
     void RenderPasses::EyeAdaptationPass()
@@ -2571,6 +2637,9 @@ namespace Lumos::Graphics
         pipelineDesc.depthTarget         = reinterpret_cast<Texture*>(m_ForwardData.m_DepthTexture);
         pipelineDesc.colourTargets[0]    = m_MainTexture;
         pipelineDesc.DebugName           = "2D";
+		pipelineDesc.samples             = m_MainTextureSamples;
+		if(m_MainTextureSamples > 1)
+			pipelineDesc.resolveTexture      = m_ResolveTexture;
 
         m_Renderer2DData.m_Pipeline = Graphics::Pipeline::Get(pipelineDesc);
 
@@ -2645,6 +2714,8 @@ namespace Lumos::Graphics
         }
 
         Render2DFlush();
+
+        Renderer::GetMainSwapChain()->GetCurrentCommandBuffer()->UnBindPipeline();
     }
 
     void RenderPasses::Renderer2DBeginBatch()
@@ -2669,7 +2740,14 @@ namespace Lumos::Graphics
     void RenderPasses::Render2DFlush()
     {
         LUMOS_PROFILE_FUNCTION();
-        uint32_t currentFrame = Renderer::GetMainSwapChain()->GetCurrentBufferIndex();
+        uint32_t currentFrame                  = Renderer::GetMainSwapChain()->GetCurrentBufferIndex();
+        Graphics::CommandBuffer* commandBuffer = Renderer::GetMainSwapChain()->GetCurrentCommandBuffer();
+
+
+        uint32_t dataSize = (uint32_t)((uint8_t*)m_Renderer2DData.m_Buffer - (uint8_t*)m_2DBufferBase[currentFrame][m_Renderer2DData.m_BatchDrawCallIndex]);
+        m_Renderer2DData.m_VertexBuffers[currentFrame][m_Renderer2DData.m_BatchDrawCallIndex]->SetData(dataSize, (void*)m_2DBufferBase[currentFrame][m_Renderer2DData.m_BatchDrawCallIndex], true);
+
+        commandBuffer->BindPipeline(m_Renderer2DData.m_Pipeline);
 
         if(m_Renderer2DData.m_DescriptorSet[m_Renderer2DData.m_BatchDrawCallIndex][1] == nullptr || m_Renderer2DData.m_TextureCount != m_Renderer2DData.m_PreviousFrameTextureCount[m_Renderer2DData.m_BatchDrawCallIndex])
         {
@@ -2685,6 +2763,13 @@ namespace Lumos::Graphics
             m_Renderer2DData.m_DescriptorSet[m_Renderer2DData.m_BatchDrawCallIndex][1] = SharedPtr<Graphics::DescriptorSet>(Graphics::DescriptorSet::Create(descriptorDesc));
         }
 
+        for(int i = m_Renderer2DData.m_TextureCount; i < 16; i++)
+        {
+            m_Renderer2DData.m_Textures[i] = Material::GetDefaultTexture();
+        }
+
+        m_Renderer2DData.m_TextureCount = 16;
+
         if(m_Renderer2DData.m_TextureCount > 1)
             m_Renderer2DData.m_DescriptorSet[m_Renderer2DData.m_BatchDrawCallIndex][1]->SetTexture("textures", m_Renderer2DData.m_Textures, m_Renderer2DData.m_TextureCount);
         else if(m_Renderer2DData.m_TextureCount == 0)
@@ -2695,13 +2780,6 @@ namespace Lumos::Graphics
         m_Renderer2DData.m_DescriptorSet[m_Renderer2DData.m_BatchDrawCallIndex][1]->Update();
 
         m_Renderer2DData.m_PreviousFrameTextureCount[m_Renderer2DData.m_BatchDrawCallIndex] = m_Renderer2DData.m_TextureCount;
-
-        Graphics::CommandBuffer* commandBuffer = Renderer::GetMainSwapChain()->GetCurrentCommandBuffer();
-
-        uint32_t dataSize = (uint32_t)((uint8_t*)m_Renderer2DData.m_Buffer - (uint8_t*)m_2DBufferBase[currentFrame][m_Renderer2DData.m_BatchDrawCallIndex]);
-        m_Renderer2DData.m_VertexBuffers[currentFrame][m_Renderer2DData.m_BatchDrawCallIndex]->SetData(dataSize, (void*)m_2DBufferBase[currentFrame][m_Renderer2DData.m_BatchDrawCallIndex], true);
-
-        m_Renderer2DData.m_Pipeline->Bind(commandBuffer);
 
         m_Renderer2DData.m_CurrentDescriptorSets[0] = m_Renderer2DData.m_DescriptorSet[0][0].get();
         m_Renderer2DData.m_CurrentDescriptorSets[1] = m_Renderer2DData.m_DescriptorSet[m_Renderer2DData.m_BatchDrawCallIndex][1].get();
@@ -2714,8 +2792,6 @@ namespace Lumos::Graphics
 
         m_Renderer2DData.m_VertexBuffers[currentFrame][m_Renderer2DData.m_BatchDrawCallIndex]->Unbind();
         m_Renderer2DData.m_IndexBuffer->Unbind();
-
-        m_Renderer2DData.m_Pipeline->End(commandBuffer);
 
         m_Renderer2DData.m_BatchDrawCallIndex++;
         m_Renderer2DData.m_TextureCount = 0;
@@ -2739,6 +2815,13 @@ namespace Lumos::Graphics
             descriptorDesc.shader                                                  = textRenderData.m_Shader.get();
             textRenderData.m_DescriptorSet[textRenderData.m_BatchDrawCallIndex][1] = SharedPtr<Graphics::DescriptorSet>(Graphics::DescriptorSet::Create(descriptorDesc));
         }
+
+        for(int i = textRenderData.m_TextureCount; i < 16; i++)
+        {
+            textRenderData.m_Textures[i] = Material::GetDefaultTexture();
+        }
+
+        textRenderData.m_TextureCount = 16;
 
         if(textRenderData.m_TextureCount > 1)
             textRenderData.m_DescriptorSet[textRenderData.m_BatchDrawCallIndex][1]->SetTexture("textures", textRenderData.m_Textures, textRenderData.m_TextureCount);
@@ -2808,6 +2891,10 @@ namespace Lumos::Graphics
         pipelineDesc.clearTargets        = false;
         pipelineDesc.colourTargets[0]    = m_MainTexture;
         pipelineDesc.DebugName           = "Text";
+		pipelineDesc.samples 			 = m_MainTextureSamples;
+
+        if(m_MainTextureSamples > 1)
+            pipelineDesc.resolveTexture      = m_ResolveTexture;
 
         m_TextRendererData.m_Pipeline = Graphics::Pipeline::Get(pipelineDesc);
 
@@ -2859,14 +2946,14 @@ namespace Lumos::Graphics
             {
                 if(m_TextRendererData.m_Textures[i] == fontAtlas.get())
                 {
-                    textureIndex = int(i);
+                    textureIndex = int(i + 1);
                     break;
                 }
             }
 
             if(textureIndex == -1)
             {
-                textureIndex                                                     = (int)m_TextRendererData.m_TextureCount;
+                textureIndex                                                     = (int)m_TextRendererData.m_TextureCount + 1;
                 m_TextRendererData.m_Textures[m_TextRendererData.m_TextureCount] = fontAtlas.get();
                 m_TextRendererData.m_TextureCount++;
             }
@@ -2983,11 +3070,13 @@ namespace Lumos::Graphics
             LUMOS_LOG_WARN("Debug Render data not initialised");
             return;
         }
-
+        m_DebugDrawData.m_LineBatchDrawCallIndex              = 0;
+        m_DebugDrawData.m_Renderer2DData.m_BatchDrawCallIndex = 0;
+        m_DebugDrawData.m_PointBatchDrawCallIndex             = 0;
         // Loop twice for depth test and no depth test
         for(int i = 0; i < 2; i++)
         {
-            bool depthTest = i == 1;
+            bool depthTest = i == 0;
 
             auto& lines      = DebugRenderer::GetInstance()->GetLines(depthTest);
             auto& thickLines = DebugRenderer::GetInstance()->GetThickLines(depthTest);
@@ -3013,7 +3102,9 @@ namespace Lumos::Graphics
                 pipelineDesc.drawType            = DrawType::LINES;
                 pipelineDesc.colourTargets[0]    = m_MainTexture;
                 pipelineDesc.DebugName           = "Debug-Lines";
-
+                if (m_MainTextureSamples > 1)
+                    pipelineDesc.resolveTexture      = m_ResolveTexture;
+                pipelineDesc.samples             = m_MainTextureSamples;
                 if(depthTest)
                     pipelineDesc.depthTarget = m_ForwardData.m_DepthTexture;
 
@@ -3021,21 +3112,23 @@ namespace Lumos::Graphics
 
                 pipeline->Bind(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer());
 
-                if((int)m_DebugDrawData.m_LineVertexBuffers.size() - 1 < (int)m_DebugDrawData.m_LineBatchDrawCallIndex)
+                if(m_DebugDrawData.m_LineVertexBuffers.empty())
+                    m_DebugDrawData.m_LineVertexBuffers.emplace_back();
+                if((int)m_DebugDrawData.m_LineVertexBuffers[0].size() - 1 < (int)m_DebugDrawData.m_LineBatchDrawCallIndex)
                 {
-                    auto& vertexBuffer = m_DebugDrawData.m_LineVertexBuffers.emplace_back(Graphics::VertexBuffer::Create(RENDERER_LINE_BUFFER_SIZE, nullptr, BufferUsage::DYNAMIC));
+                    auto& vertexBuffer = m_DebugDrawData.m_LineVertexBuffers[0].emplace_back(Graphics::VertexBuffer::Create(RENDERER_LINE_BUFFER_SIZE, nullptr, BufferUsage::DYNAMIC));
                     // vertexBuffer->Resize(RENDERER_LINE_BUFFER_SIZE);
                 }
 
-                m_DebugDrawData.m_LineVertexBuffers[m_DebugDrawData.m_LineBatchDrawCallIndex]->Bind(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer(), pipeline.get());
-                m_DebugDrawData.m_LineBuffer = m_LineBufferBase[0];
+                m_DebugDrawData.m_LineVertexBuffers[0][m_DebugDrawData.m_LineBatchDrawCallIndex]->Bind(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer(), pipeline.get());
+                m_DebugDrawData.m_LineBuffer = m_LineBufferBase[0][0]; //[m_DebugDrawData.m_LineBatchDrawCallIndex];
 
                 // m_DebugDrawData.m_LineBuffer = m_DebugDrawData.m_LineVertexBuffers[m_DebugDrawData.m_LineBatchDrawCallIndex]->GetPointer<LineVertexData>();
 
                 for(auto& line : lines)
                 {
-                    if(m_DebugDrawData.LineIndexCount >= m_DebugDrawData.m_Renderer2DData.m_Limits.MaxQuads)
-                        break;
+                    if(m_DebugDrawData.LineIndexCount >= MaxLineIndices)
+                        DebugLineFlush(pipeline);
 
                     m_DebugDrawData.m_LineBuffer->vertex = line.p1;
                     m_DebugDrawData.m_LineBuffer->colour = line.col;
@@ -3052,25 +3145,9 @@ namespace Lumos::Graphics
                 // m_DebugDrawData.m_LineVertexBuffers[m_DebugDrawData.m_LineBatchDrawCallIndex]->Unbind();
                 // m_DebugDrawData.m_LineVertexBuffers[m_DebugDrawData.m_LineBatchDrawCallIndex]->Bind(commandBuffer, pipeline.get());
 
-                m_DebugDrawData.m_LineIndexBuffer->SetCount(m_DebugDrawData.LineIndexCount);
-                m_DebugDrawData.m_LineIndexBuffer->Bind(commandBuffer);
-
-                uint32_t dataSize = (uint32_t)((uint8_t*)m_DebugDrawData.m_LineBuffer - (uint8_t*)m_LineBufferBase[0]);
-                m_DebugDrawData.m_LineVertexBuffers[m_DebugDrawData.m_LineBatchDrawCallIndex]->SetData(dataSize, (void*)m_LineBufferBase[0]);
-
-                auto* desc = m_DebugDrawData.m_LineDescriptorSet[0].get();
-                Renderer::BindDescriptorSets(pipeline.get(), commandBuffer, 0, &desc, 1);
-                Renderer::DrawIndexed(commandBuffer, DrawType::LINES, m_DebugDrawData.LineIndexCount);
-
-                m_DebugDrawData.m_LineVertexBuffers[m_DebugDrawData.m_LineBatchDrawCallIndex]->Unbind();
-                m_DebugDrawData.m_LineIndexBuffer->Unbind();
-
-                m_DebugDrawData.m_LineBuffer   = m_LineBufferBase[0];
-                m_DebugDrawData.LineIndexCount = 0;
+                DebugLineFlush(pipeline);
 
                 pipeline->End(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer());
-
-                m_DebugDrawData.m_LineBatchDrawCallIndex++;
             }
 
             if(!thickLines.empty())
@@ -3091,7 +3168,9 @@ namespace Lumos::Graphics
                 pipelineDesc.colourTargets[0]    = m_MainTexture;
                 pipelineDesc.lineWidth           = 2.0f;
                 pipelineDesc.DebugName           = "Debug-ThickLines";
-
+                if (m_MainTextureSamples > 1)
+                    pipelineDesc.resolveTexture  = m_ResolveTexture;
+                pipelineDesc.samples             = m_MainTextureSamples;
                 if(depthTest)
                     pipelineDesc.depthTarget = m_ForwardData.m_DepthTexture;
 
@@ -3099,20 +3178,21 @@ namespace Lumos::Graphics
 
                 pipeline->Bind(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer());
 
-                if((int)m_DebugDrawData.m_LineVertexBuffers.size() - 1 < (int)m_DebugDrawData.m_LineBatchDrawCallIndex)
+                if(m_DebugDrawData.m_LineVertexBuffers.empty())
+                    m_DebugDrawData.m_LineVertexBuffers.emplace_back();
+                if((int)m_DebugDrawData.m_LineVertexBuffers[0].size() - 1 < (int)m_DebugDrawData.m_LineBatchDrawCallIndex)
                 {
-                    auto& vertexBuffer = m_DebugDrawData.m_LineVertexBuffers.emplace_back(Graphics::VertexBuffer::Create(RENDERER_LINE_BUFFER_SIZE, nullptr, BufferUsage::DYNAMIC));
+                    auto& vertexBuffer = m_DebugDrawData.m_LineVertexBuffers[0].emplace_back(Graphics::VertexBuffer::Create(RENDERER_LINE_BUFFER_SIZE, nullptr, BufferUsage::DYNAMIC));
                     // vertexBuffer->Resize(RENDERER_LINE_BUFFER_SIZE);
                 }
 
-                m_DebugDrawData.m_LineVertexBuffers[m_DebugDrawData.m_LineBatchDrawCallIndex]->Bind(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer(), pipeline.get());
-                // m_DebugDrawData.m_LineBuffer = m_DebugDrawData.m_LineVertexBuffers[m_DebugDrawData.m_LineBatchDrawCallIndex]->GetPointer<LineVertexData>();
-                m_DebugDrawData.m_LineBuffer = m_LineBufferBase[0];
+                m_DebugDrawData.m_LineVertexBuffers[0][m_DebugDrawData.m_LineBatchDrawCallIndex]->Bind(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer(), pipeline.get());
+                m_DebugDrawData.m_LineBuffer = m_LineBufferBase[0][0]; //[m_DebugDrawData.m_LineBatchDrawCallIndex];
 
                 for(auto& line : thickLines)
                 {
-                    if(m_DebugDrawData.LineIndexCount >= m_DebugDrawData.m_Renderer2DData.m_Limits.MaxQuads)
-                        break;
+                    if(m_DebugDrawData.LineIndexCount >= MaxLineIndices)
+                        DebugLineFlush(pipeline);
 
                     m_DebugDrawData.m_LineBuffer->vertex = line.p1;
                     m_DebugDrawData.m_LineBuffer->colour = line.col;
@@ -3125,29 +3205,9 @@ namespace Lumos::Graphics
                     m_DebugDrawData.LineIndexCount += 2;
                 }
 
-                // m_DebugDrawData.m_LineVertexBuffers[m_DebugDrawData.m_LineBatchDrawCallIndex]->ReleasePointer();
-                // m_DebugDrawData.m_LineVertexBuffers[m_DebugDrawData.m_LineBatchDrawCallIndex]->Unbind();
-
-                m_DebugDrawData.m_LineIndexBuffer->SetCount(m_DebugDrawData.LineIndexCount);
-
-                m_DebugDrawData.m_LineVertexBuffers[m_DebugDrawData.m_LineBatchDrawCallIndex]->Bind(commandBuffer, pipeline.get());
-                uint32_t dataSize = (uint32_t)((uint8_t*)m_DebugDrawData.m_LineBuffer - (uint8_t*)m_LineBufferBase[0]);
-                m_DebugDrawData.m_LineVertexBuffers[m_DebugDrawData.m_LineBatchDrawCallIndex]->SetData(dataSize, (void*)m_LineBufferBase[0]);
-
-                m_DebugDrawData.m_LineIndexBuffer->Bind(commandBuffer);
-                auto* desc = m_DebugDrawData.m_LineDescriptorSet[0].get();
-                Renderer::BindDescriptorSets(pipeline.get(), commandBuffer, 0, &desc, 1);
-                Renderer::DrawIndexed(commandBuffer, DrawType::LINES, m_DebugDrawData.LineIndexCount);
-
-                m_DebugDrawData.m_LineVertexBuffers[m_DebugDrawData.m_LineBatchDrawCallIndex]->Unbind();
-                m_DebugDrawData.m_LineIndexBuffer->Unbind();
-
-                m_DebugDrawData.m_LineBuffer   = m_LineBufferBase[0];
-                m_DebugDrawData.LineIndexCount = 0;
+                DebugLineFlush(pipeline.get());
 
                 pipeline->End(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer());
-
-                m_DebugDrawData.m_LineBatchDrawCallIndex++;
             }
 
             if(!points.empty())
@@ -3167,22 +3227,29 @@ namespace Lumos::Graphics
                 pipelineDesc.blendMode           = BlendMode::SrcAlphaOneMinusSrcAlpha;
                 pipelineDesc.colourTargets[0]    = m_MainTexture;
                 pipelineDesc.DebugName           = "Debug-Points";
-
+                if (m_MainTextureSamples > 1)
+                    pipelineDesc.resolveTexture      = m_ResolveTexture;
+                pipelineDesc.samples             = m_MainTextureSamples;
                 if(depthTest)
                     pipelineDesc.depthTarget = m_ForwardData.m_DepthTexture;
 
                 auto pipeline = Graphics::Pipeline::Get(pipelineDesc);
 
-                pipeline->Bind(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer());
+                pipeline->Bind(commandBuffer);
 
-                if((int)m_DebugDrawData.m_PointVertexBuffers.size() - 1 < (int)m_DebugDrawData.m_PointBatchDrawCallIndex)
+                if(m_DebugDrawData.m_PointVertexBuffers.empty())
+                    m_DebugDrawData.m_PointVertexBuffers.emplace_back();
+
+                int bufferCount = 0;
+                bufferCount     = (int)m_DebugDrawData.m_PointVertexBuffers[0].size();
+                if((bufferCount - 1) < (int)m_DebugDrawData.m_PointBatchDrawCallIndex)
                 {
-                    auto& vertexBuffer = m_DebugDrawData.m_PointVertexBuffers.emplace_back(Graphics::VertexBuffer::Create(BufferUsage::DYNAMIC));
+                    auto& vertexBuffer = m_DebugDrawData.m_PointVertexBuffers[0].emplace_back(Graphics::VertexBuffer::Create(BufferUsage::DYNAMIC));
                     vertexBuffer->Resize(RENDERER_POINT_BUFFER_SIZE);
                 }
 
-                m_DebugDrawData.m_PointVertexBuffers[m_DebugDrawData.m_PointBatchDrawCallIndex]->Bind(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer(), pipeline.get());
-                m_DebugDrawData.m_PointBuffer = m_PointBufferBase[0]; // m_DebugDrawData.m_PointVertexBuffers[m_DebugDrawData.m_PointBatchDrawCallIndex]->GetPointer<PointVertexData>();
+                m_DebugDrawData.m_PointVertexBuffers[0][m_DebugDrawData.m_PointBatchDrawCallIndex]->Bind(commandBuffer, pipeline.get());
+                m_DebugDrawData.m_PointBuffer = m_PointBufferBase[0][m_DebugDrawData.m_PointBatchDrawCallIndex]; // m_DebugDrawData.m_PointVertexBuffers[m_DebugDrawData.m_PointBatchDrawCallIndex]->GetPointer<PointVertexData>();
 
                 for(auto& pointInfo : points)
                 {
@@ -3216,26 +3283,8 @@ namespace Lumos::Graphics
                     m_DebugDrawData.PointIndexCount += 6;
                 }
 
-                // m_DebugDrawData.m_PointVertexBuffers[m_DebugDrawData.m_PointBatchDrawCallIndex]->ReleasePointer();
-                m_DebugDrawData.m_PointIndexBuffer->SetCount(m_DebugDrawData.PointIndexCount);
-                m_DebugDrawData.m_PointIndexBuffer->Bind(commandBuffer);
-
-                uint32_t dataSize = (uint32_t)((uint8_t*)m_DebugDrawData.m_PointBuffer - (uint8_t*)m_PointBufferBase[0]);
-                m_DebugDrawData.m_PointVertexBuffers[m_DebugDrawData.m_PointBatchDrawCallIndex]->SetData(dataSize, (void*)m_PointBufferBase[0]);
-
-                auto* desc = m_DebugDrawData.m_PointDescriptorSet[0].get();
-                Renderer::BindDescriptorSets(pipeline.get(), commandBuffer, 0, &desc, 1);
-                Renderer::DrawIndexed(commandBuffer, DrawType::TRIANGLE, m_DebugDrawData.PointIndexCount);
-
-                m_DebugDrawData.m_PointVertexBuffers[m_DebugDrawData.m_PointBatchDrawCallIndex]->Unbind();
-                m_DebugDrawData.m_PointIndexBuffer->Unbind();
-
-                m_DebugDrawData.m_PointBuffer   = m_PointBufferBase[0];
-                m_DebugDrawData.PointIndexCount = 0;
-
-                pipeline->End(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer());
-
-                m_DebugDrawData.m_PointBatchDrawCallIndex++;
+                DebugPointFlush(pipeline.get());
+                pipeline->End(commandBuffer);
             }
 
             if(!triangles.empty())
@@ -3254,10 +3303,12 @@ namespace Lumos::Graphics
                 pipelineDesc.clearTargets            = false;
                 pipelineDesc.colourTargets[0]        = m_MainTexture;
                 pipelineDesc.depthBiasEnabled        = true;
-                pipelineDesc.depthBiasConstantFactor = -1.25f;
-                pipelineDesc.depthBiasSlopeFactor    = -1.75f;
+                pipelineDesc.depthBiasConstantFactor = 0.0f;
+                pipelineDesc.depthBiasSlopeFactor    = -10.0f;
                 pipelineDesc.DebugName               = "Debug-Triangles";
-
+                if (m_MainTextureSamples > 1)
+                    pipelineDesc.resolveTexture      = m_ResolveTexture;
+                pipelineDesc.samples                 = m_MainTextureSamples;
                 if(depthTest)
                     pipelineDesc.depthTarget = m_ForwardData.m_DepthTexture;
 
@@ -3273,7 +3324,7 @@ namespace Lumos::Graphics
 
                 m_DebugDrawData.m_Renderer2DData.m_VertexBuffers[currentFrame][m_DebugDrawData.m_Renderer2DData.m_BatchDrawCallIndex]->Bind(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer(), pipeline.get());
                 // m_DebugDrawData.m_Renderer2DData.m_Buffer = m_DebugDrawData.m_Renderer2DData.m_VertexBuffers[currentFrame][m_DebugDrawData.m_Renderer2DData.m_BatchDrawCallIndex]->GetPointer<VertexData>();
-                m_DebugDrawData.m_Renderer2DData.m_Buffer = m_QuadBufferBase[currentFrame];
+                m_DebugDrawData.m_Renderer2DData.m_Buffer = m_QuadBufferBase[currentFrame][m_DebugDrawData.m_Renderer2DData.m_BatchDrawCallIndex];
 
                 for(auto& triangleInfo : triangles)
                 {
@@ -3307,8 +3358,8 @@ namespace Lumos::Graphics
                 m_DebugDrawData.m_Renderer2DData.m_IndexBuffer->SetCount(m_DebugDrawData.m_Renderer2DData.m_IndexCount);
                 m_DebugDrawData.m_Renderer2DData.m_IndexBuffer->Bind(commandBuffer);
 
-                uint32_t dataSize = (uint32_t)((uint8_t*)m_DebugDrawData.m_Renderer2DData.m_Buffer - (uint8_t*)m_QuadBufferBase[currentFrame]);
-                m_DebugDrawData.m_Renderer2DData.m_VertexBuffers[currentFrame][m_DebugDrawData.m_Renderer2DData.m_BatchDrawCallIndex]->SetData(dataSize, (void*)m_QuadBufferBase[currentFrame], true);
+                uint32_t dataSize = (uint32_t)((uint8_t*)m_DebugDrawData.m_Renderer2DData.m_Buffer - (uint8_t*)m_QuadBufferBase[currentFrame][m_DebugDrawData.m_Renderer2DData.m_BatchDrawCallIndex]);
+                m_DebugDrawData.m_Renderer2DData.m_VertexBuffers[currentFrame][m_DebugDrawData.m_Renderer2DData.m_BatchDrawCallIndex]->SetData(dataSize, (void*)m_QuadBufferBase[currentFrame][m_DebugDrawData.m_Renderer2DData.m_BatchDrawCallIndex], true);
 
                 pipeline->Bind(commandBuffer);
 
@@ -3320,7 +3371,8 @@ namespace Lumos::Graphics
 
                 pipeline->End(commandBuffer);
 
-                m_DebugDrawData.m_Renderer2DData.m_Buffer     = m_QuadBufferBase[currentFrame];
+                // m_DebugDrawData.m_Renderer2DData.m_BatchDrawCallIndex++;
+                m_DebugDrawData.m_Renderer2DData.m_Buffer     = m_QuadBufferBase[currentFrame][m_DebugDrawData.m_Renderer2DData.m_BatchDrawCallIndex];
                 m_DebugDrawData.m_Renderer2DData.m_IndexCount = 0;
             }
         }
@@ -3341,7 +3393,10 @@ namespace Lumos::Graphics
             pipelineDesc.clearTargets          = false;
             pipelineDesc.colourTargets[0]      = m_MainTexture;
             pipelineDesc.DebugName             = "Debug-TextDT";
-            pipelineDesc.depthTarget           = m_ForwardData.m_DepthTexture;
+            if (m_MainTextureSamples > 1)
+            pipelineDesc.resolveTexture        = m_ResolveTexture;
+            pipelineDesc.samples               = m_MainTextureSamples;
+            //pipelineDesc.depthTarget           = m_ForwardData.m_DepthTexture;
             m_DebugTextRendererData.m_Pipeline = Graphics::Pipeline::Get(pipelineDesc);
 
             uint32_t currentFrame = Renderer::GetMainSwapChain()->GetCurrentBufferIndex();
@@ -3507,7 +3562,10 @@ namespace Lumos::Graphics
             pipelineDesc.blendMode             = BlendMode::SrcAlphaOneMinusSrcAlpha;
             pipelineDesc.clearTargets          = false;
             pipelineDesc.colourTargets[0]      = m_MainTexture;
-            pipelineDesc.DebugName             = "Debug-TextNDT";
+            pipelineDesc.DebugName             = "Debug-TextNDT"; 
+            if (m_MainTextureSamples > 1)
+            pipelineDesc.resolveTexture        = m_ResolveTexture;
+            pipelineDesc.samples               = m_MainTextureSamples;
             m_DebugTextRendererData.m_Pipeline = Graphics::Pipeline::Get(pipelineDesc);
 
             uint32_t currentFrame = Renderer::GetMainSwapChain()->GetCurrentBufferIndex();
@@ -3686,6 +3744,9 @@ namespace Lumos::Graphics
             pipelineDesc.clearTargets          = false;
             pipelineDesc.colourTargets[0]      = m_MainTexture;
             pipelineDesc.DebugName             = "Debug-TextCS";
+            if (m_MainTextureSamples > 1)
+            pipelineDesc.resolveTexture        = m_ResolveTexture;
+            pipelineDesc.samples               = m_MainTextureSamples;
             m_DebugTextRendererData.m_Pipeline = Graphics::Pipeline::Get(pipelineDesc);
 
             uint32_t currentFrame = Renderer::GetMainSwapChain()->GetCurrentBufferIndex();
@@ -3839,6 +3900,72 @@ namespace Lumos::Graphics
         }
     }
 
+    void RenderPasses::DebugLineFlush(Graphics::Pipeline* pipeline)
+    {
+        m_DebugDrawData.m_LineIndexBuffer->SetCount(m_DebugDrawData.LineIndexCount);
+        m_DebugDrawData.m_LineIndexBuffer->Bind(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer());
+
+        uint32_t dataSize = (uint32_t)((uint8_t*)m_DebugDrawData.m_LineBuffer - (uint8_t*)m_LineBufferBase[0][0]);
+        m_DebugDrawData.m_LineVertexBuffers[0][m_DebugDrawData.m_LineBatchDrawCallIndex]->SetData(dataSize, (void*)m_LineBufferBase[0][0]);
+
+        auto* desc = m_DebugDrawData.m_LineDescriptorSet[0].get();
+        Renderer::BindDescriptorSets(pipeline, Renderer::GetMainSwapChain()->GetCurrentCommandBuffer(), 0, &desc, 1);
+        Renderer::DrawIndexed(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer(), DrawType::LINES, m_DebugDrawData.LineIndexCount);
+
+        m_DebugDrawData.m_LineVertexBuffers[0][m_DebugDrawData.m_LineBatchDrawCallIndex]->Unbind();
+        m_DebugDrawData.m_LineIndexBuffer->Unbind();
+
+        m_DebugDrawData.m_LineBatchDrawCallIndex++;
+        m_DebugDrawData.m_LineBuffer   = m_LineBufferBase[0][0]; //[m_DebugDrawData.m_LineBatchDrawCallIndex];
+        m_DebugDrawData.LineIndexCount = 0;
+
+        if(m_DebugDrawData.m_LineVertexBuffers.empty())
+            m_DebugDrawData.m_LineVertexBuffers.emplace_back();
+        if((int)m_DebugDrawData.m_LineVertexBuffers[0].size() - 1 < (int)m_DebugDrawData.m_LineBatchDrawCallIndex)
+        {
+            auto& vertexBuffer = m_DebugDrawData.m_LineVertexBuffers[0].emplace_back(Graphics::VertexBuffer::Create(RENDERER_LINE_BUFFER_SIZE, nullptr, BufferUsage::DYNAMIC));
+            // vertexBuffer->Resize(RENDERER_LINE_BUFFER_SIZE);
+        }
+
+        m_DebugDrawData.m_LineVertexBuffers[0][m_DebugDrawData.m_LineBatchDrawCallIndex]->Bind(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer(), pipeline);
+        m_DebugDrawData.m_LineBuffer   = m_LineBufferBase[0][0]; //[m_DebugDrawData.m_LineBatchDrawCallIndex];
+        m_DebugDrawData.LineIndexCount = 0;
+    }
+
+    void RenderPasses::DebugPointFlush(Graphics::Pipeline* pipeline)
+    {
+        // m_DebugDrawData.m_PointVertexBuffers[m_DebugDrawData.m_PointBatchDrawCallIndex]->ReleasePointer();
+        m_DebugDrawData.m_PointIndexBuffer->SetCount(m_DebugDrawData.PointIndexCount);
+        m_DebugDrawData.m_PointIndexBuffer->Bind(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer());
+
+        uint32_t dataSize = (uint32_t)((uint8_t*)m_DebugDrawData.m_PointBuffer - (uint8_t*)m_PointBufferBase[0][m_DebugDrawData.m_PointBatchDrawCallIndex]);
+        m_DebugDrawData.m_PointVertexBuffers[0][m_DebugDrawData.m_PointBatchDrawCallIndex]->SetData(dataSize, (void*)m_PointBufferBase[0][m_DebugDrawData.m_PointBatchDrawCallIndex]);
+
+        auto* desc = m_DebugDrawData.m_PointDescriptorSet[0].get();
+        Renderer::BindDescriptorSets(pipeline, Renderer::GetMainSwapChain()->GetCurrentCommandBuffer(), 0, &desc, 1);
+        Renderer::DrawIndexed(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer(), DrawType::TRIANGLE, m_DebugDrawData.PointIndexCount);
+
+        m_DebugDrawData.m_PointVertexBuffers[0][m_DebugDrawData.m_PointBatchDrawCallIndex]->Unbind();
+        m_DebugDrawData.m_PointIndexBuffer->Unbind();
+
+        m_DebugDrawData.m_PointBatchDrawCallIndex++;
+
+        if(m_DebugDrawData.m_PointVertexBuffers.empty())
+            m_DebugDrawData.m_PointVertexBuffers.emplace_back();
+
+        int bufferCount = 0;
+        bufferCount     = (int)m_DebugDrawData.m_PointVertexBuffers[0].size();
+        if((bufferCount - 1) < (int)m_DebugDrawData.m_PointBatchDrawCallIndex)
+        {
+            auto& vertexBuffer = m_DebugDrawData.m_PointVertexBuffers[0].emplace_back(Graphics::VertexBuffer::Create(BufferUsage::DYNAMIC));
+            vertexBuffer->Resize(RENDERER_POINT_BUFFER_SIZE);
+        }
+
+        m_DebugDrawData.m_PointVertexBuffers[0][m_DebugDrawData.m_PointBatchDrawCallIndex]->Bind(Renderer::GetMainSwapChain()->GetCurrentCommandBuffer(), pipeline);
+        m_DebugDrawData.m_PointBuffer   = m_PointBufferBase[0][0];
+        m_DebugDrawData.PointIndexCount = 0;
+    }
+
     void RenderPasses::CreateCubeMap(const std::string& filePath, const glm::vec4& params, SharedPtr<TextureCube>& outEnv, SharedPtr<TextureCube>& outIrr)
     {
         // Create shader and pipeline
@@ -3852,7 +3979,7 @@ namespace Lumos::Graphics
         commandBuffer->BeginRecording();
         {
 
-            auto shader = Application::Get().GetShaderLibrary()->GetResource("CreateEnvironmentMap");
+            auto shader = Application::Get().GetAssetManager()->GetAssetData("CreateEnvironmentMap").As<Graphics::Shader>();
 
             Graphics::DescriptorDesc descriptorDesc {};
             descriptorDesc.layoutIndex = 0;
@@ -3911,8 +4038,7 @@ namespace Lumos::Graphics
         // Generate Mips
         {
             environmentMap->GenerateMipMaps(commandBuffer);
-
-            auto shader = Application::Get().GetShaderLibrary()->GetResource("EnvironmentMipFilter");
+            auto shader = Application::Get().GetAssetManager()->GetAssetData("EnvironmentMipFilter").As<Graphics::Shader>();
 
             Graphics::DescriptorDesc descriptorDesc {};
             descriptorDesc.layoutIndex = 0;
@@ -3962,11 +4088,11 @@ namespace Lumos::Graphics
         }
 
         {
-            auto shader = Application::Get().GetShaderLibrary()->GetResource("EnvironmentIrradiance");
+            auto shader = Application::Get().GetAssetManager()->GetAssetData("EnvironmentIrradiance").As<Graphics::Shader>();
 
             Graphics::DescriptorDesc descriptorDesc {};
             descriptorDesc.layoutIndex = 0;
-            descriptorDesc.shader      = shader.get();
+            descriptorDesc.shader      = shader;
             auto descriptorSet         = SharedPtr<Graphics::DescriptorSet>(Graphics::DescriptorSet::Create(descriptorDesc));
 
             descriptorSet->SetTexture("u_Texture", environmentMapFiltered);
@@ -4010,6 +4136,8 @@ namespace Lumos::Graphics
         commandBuffer->EndRecording();
         commandBuffer->Submit();
 
+        Graphics::Renderer::GetGraphicsContext()->WaitIdle();
+        environmentMap->Destroy(false);
         delete environmentMap;
         delete commandBuffer;
         outEnv = SharedPtr<TextureCube>(environmentMapFiltered);
@@ -4018,10 +4146,23 @@ namespace Lumos::Graphics
 
     void RenderPasses::InitDebugRenderData()
     {
-        if(m_DebugRenderDataInitialised)
+        if(m_DebugRenderDataInitialised || !m_DebugRenderEnabled)
             return;
+
+        for(int i = 0; i < Renderer::GetMainSwapChain()->GetSwapChainBufferCount(); i++)
+        {
+            if(m_DebugRenderEnabled)
+            {
+                m_QuadBufferBase.emplace_back().push_back(new VertexData[m_DebugDrawData.m_Renderer2DData.m_Limits.MaxQuads * 4]);
+
+                // m_2DBufferBase.push_back(new VertexData[m_Renderer2DData.m_Limits.MaxQuads  * 4]);
+                m_LineBufferBase.emplace_back().push_back(new LineVertexData[m_DebugDrawData.m_Renderer2DData.m_Limits.MaxQuads * 4]);
+                m_PointBufferBase.emplace_back().push_back(new PointVertexData[m_DebugDrawData.m_Renderer2DData.m_Limits.MaxQuads * 4]);
+                DebugTextVertexBufferBase.push_back(new TextVertexData[m_DebugTextRendererData.m_Limits.MaxQuads * 4]);
+            }
+        }
         // Points
-        m_DebugDrawData.m_PointShader           = Application::Get().GetShaderLibrary()->GetResource("Batch2DPoint");
+        m_DebugDrawData.m_PointShader           = Application::Get().GetAssetManager()->GetAssetData("Batch2DPoint").As<Graphics::Shader>();
         Graphics::DescriptorDesc descriptorDesc = {};
         descriptorDesc.layoutIndex              = 0;
         descriptorDesc.shader                   = m_DebugDrawData.m_PointShader.get();
@@ -4049,7 +4190,7 @@ namespace Lumos::Graphics
         delete[] indices;
 
         // Lines
-        m_DebugDrawData.m_LineShader = Application::Get().GetShaderLibrary()->GetResource("Batch2DLine");
+        m_DebugDrawData.m_LineShader = Application::Get().GetAssetManager()->GetAssetData("Batch2DLine").As<Graphics::Shader>();
         descriptorDesc.layoutIndex   = 0;
         descriptorDesc.shader        = m_DebugDrawData.m_LineShader.get();
         m_DebugDrawData.m_LineDescriptorSet.resize(1);
@@ -4071,7 +4212,7 @@ namespace Lumos::Graphics
         m_DebugDrawData.m_Renderer2DData.m_RenderToDepthTexture = true;
         m_DebugDrawData.m_Renderer2DData.m_TriangleIndicies     = false;
         m_DebugDrawData.m_Renderer2DData.m_Limits.SetMaxQuads(10000);
-        m_DebugDrawData.m_Renderer2DData.m_Shader = Application::Get().GetShaderLibrary()->GetResource("Batch2D");
+        m_DebugDrawData.m_Renderer2DData.m_Shader = Application::Get().GetAssetManager()->GetAssetData("Batch2D").As<Graphics::Shader>();
 
         descriptorDesc.layoutIndex = 0;
         descriptorDesc.shader      = m_DebugDrawData.m_Renderer2DData.m_Shader.get();
@@ -4108,7 +4249,7 @@ namespace Lumos::Graphics
 
         DebugTextVertexBufferPtr = DebugTextVertexBufferBase[0];
 
-        m_DebugTextRendererData.m_Shader = Application::Get().GetShaderLibrary()->GetResource("Text");
+        m_DebugTextRendererData.m_Shader = Application::Get().GetAssetManager()->GetAssetData("Text").As<Graphics::Shader>();
 
         m_DebugTextRendererData.m_TransformationStack.emplace_back(glm::mat4(1.0f));
         m_DebugTextRendererData.m_TransformationBack = &m_DebugTextRendererData.m_TransformationStack.back();
@@ -4210,27 +4351,13 @@ namespace Lumos::Graphics
         return distanceSqA > distanceSqB;
     }
 
-    glm::mat4 CalculateParticleTransform(const glm::vec3& position, const glm::mat4& viewMatrix)
-    {
-        glm::mat4 transform = glm::mat4(1.0f);
-        return transform;
-        transform = glm::translate(transform, position);
-
-        // Extract the rotation part from the view matrix
-        glm::mat3 rotationMatrix = glm::mat3(viewMatrix);
-
-        // Set the rotation part of the particle transform matrix
-        transform[0] = glm::vec4(rotationMatrix[0], 0.0f);
-        transform[1] = glm::vec4(rotationMatrix[1], 0.0f);
-        transform[2] = glm::vec4(rotationMatrix[2], 0.0f);
-
-        return transform;
-    }
-
     void RenderPasses::ParticlePass()
     {
         LUMOS_PROFILE_FUNCTION();
         LUMOS_PROFILE_GPU("Particle Pass");
+
+        if(!m_Camera || !m_CameraTransform)
+            return;
 
         auto emitterGroup = m_CurrentScene->GetRegistry().group<ParticleEmitter>(entt::get<Maths::Transform>);
 
@@ -4238,23 +4365,25 @@ namespace Lumos::Graphics
             return;
 
         Graphics::PipelineDesc pipelineDesc;
-        pipelineDesc.shader                  = m_ParticleData.m_Shader;
-        pipelineDesc.polygonMode             = Graphics::PolygonMode::FILL;
-        pipelineDesc.cullMode                = Graphics::CullMode::BACK;
-        pipelineDesc.transparencyEnabled     = true;
-        pipelineDesc.blendMode               = BlendMode::SrcAlphaOne;
-        pipelineDesc.clearTargets            = false;
-        pipelineDesc.depthTarget             = reinterpret_cast<Texture*>(m_ForwardData.m_DepthTexture);
-        pipelineDesc.DepthTest               = true;
-        pipelineDesc.DepthWrite              = false;
-        pipelineDesc.colourTargets[0]        = m_MainTexture;
-        pipelineDesc.DebugName               = "Particle";
-
+        pipelineDesc.shader              = m_ParticleData.m_Shader;
+        pipelineDesc.polygonMode         = Graphics::PolygonMode::FILL;
+        pipelineDesc.cullMode            = Graphics::CullMode::BACK;
+        pipelineDesc.transparencyEnabled = true;
+        pipelineDesc.blendMode           = BlendMode::SrcAlphaOne;
+        pipelineDesc.clearTargets        = false;
+        pipelineDesc.depthTarget         = reinterpret_cast<Texture*>(m_ForwardData.m_DepthTexture);
+        pipelineDesc.DepthTest           = true;
+        pipelineDesc.DepthWrite          = false;
+        pipelineDesc.colourTargets[0]    = m_MainTexture;
+        if (m_MainTextureSamples > 1)
+        pipelineDesc.resolveTexture      = m_ResolveTexture;
+        pipelineDesc.DebugName           = "Particle";
+		pipelineDesc.samples = m_MainTextureSamples;
         ParticleBeginBatch();
 
-        auto projView   = m_Camera->GetProjectionMatrix() * glm::inverse(m_CameraTransform->GetWorldMatrix());
-  
-        auto cameraPos  = m_CameraTransform->GetWorldPosition();
+        auto projView = m_Camera->GetProjectionMatrix() * glm::inverse(m_CameraTransform->GetWorldMatrix());
+
+        auto cameraPos = m_CameraTransform->GetWorldPosition();
         m_ParticleData.m_DescriptorSet[0][0]->SetUniform("UBO", "projView", &projView);
         m_ParticleData.m_DescriptorSet[0][0]->Update();
 
@@ -4273,10 +4402,8 @@ namespace Lumos::Graphics
                 pipelineDesc.blendMode = BlendMode::SrcAlphaOneMinusSrcAlpha;
 
             pipelineDesc.clearTargets            = false;
-            pipelineDesc.depthTarget             = reinterpret_cast<Texture*>(m_ForwardData.m_DepthTexture);
             pipelineDesc.DepthTest               = true;
             pipelineDesc.DepthWrite              = false;
-            pipelineDesc.colourTargets[0]        = m_MainTexture;
             pipelineDesc.DebugName               = "Particle";
             pipelineDesc.depthBiasEnabled        = true;
             pipelineDesc.depthBiasConstantFactor = -1.25f;
@@ -4307,23 +4434,23 @@ namespace Lumos::Graphics
                 glm::vec3 v3;
                 glm::vec3 v4;
                 auto alignType = emitter.GetAlignedType();
-                if (alignType == ParticleEmitter::Aligned2D)
+                if(alignType == ParticleEmitter::Aligned2D)
                 {
                     glm::vec3 rightOffset = glm::vec3(1.0f, 0.0f, 0.0f) * particle.Size * 0.5f;
-                    glm::vec3 upOffset = glm::vec3(0.0f, 1.0f, 0.0f) * particle.Size * 0.5f;
+                    glm::vec3 upOffset    = glm::vec3(0.0f, 1.0f, 0.0f) * particle.Size * 0.5f;
 
                     v1 = particle.Position - rightOffset - upOffset;
                     v2 = particle.Position + rightOffset - upOffset;
                     v3 = particle.Position + rightOffset + upOffset;
                     v4 = particle.Position - rightOffset + upOffset;
                 }
-                else if (alignType == ParticleEmitter::Aligned3D)
+                else if(alignType == ParticleEmitter::Aligned3D)
                 {
                     glm::vec3 cameraRight = glm::normalize(m_CameraTransform->GetRightDirection());
-                    glm::vec3 cameraUp = glm::normalize(m_CameraTransform->GetUpDirection());
+                    glm::vec3 cameraUp    = glm::normalize(m_CameraTransform->GetUpDirection());
 
                     glm::vec3 rightOffset = cameraRight * particle.Size * 0.5f;
-                    glm::vec3 upOffset = cameraUp * particle.Size * 0.5f;
+                    glm::vec3 upOffset    = cameraUp * particle.Size * 0.5f;
 
                     v1 = particle.Position - rightOffset - upOffset;
                     v2 = particle.Position + rightOffset - upOffset;
@@ -4332,8 +4459,8 @@ namespace Lumos::Graphics
                 }
                 else
                 {
-                    glm::vec3 rightOffset = glm::vec3(particle.Size * 0.5f,0.0f, 0.0f);
-                    glm::vec3 upOffset = glm::vec3(0.0f, particle.Size * 0.5f, 0.0f);
+                    glm::vec3 rightOffset = glm::vec3(particle.Size * 0.5f, 0.0f, 0.0f);
+                    glm::vec3 upOffset    = glm::vec3(0.0f, particle.Size * 0.5f, 0.0f);
 
                     v1 = particle.Position - rightOffset - upOffset;
                     v2 = particle.Position + rightOffset - upOffset;
@@ -4409,7 +4536,6 @@ namespace Lumos::Graphics
                 m_ParticleData.m_Buffer->colour = colour;
                 m_ParticleData.m_Buffer++;
 
-
                 m_ParticleData.m_Buffer->vertex = v4;
                 if(animated)
                 {
@@ -4459,6 +4585,12 @@ namespace Lumos::Graphics
     {
         LUMOS_PROFILE_FUNCTION();
         uint32_t currentFrame = Renderer::GetMainSwapChain()->GetCurrentBufferIndex();
+        for(int i = m_ParticleData.m_TextureCount; i < 16; i++)
+        {
+            m_ParticleData.m_Textures[i] = Material::GetDefaultTexture();
+        }
+
+        m_ParticleData.m_TextureCount = 16;
 
         if(m_ParticleData.m_DescriptorSet[m_ParticleData.m_BatchDrawCallIndex][1] == nullptr || m_ParticleData.m_TextureCount != m_ParticleData.m_PreviousFrameTextureCount[m_ParticleData.m_BatchDrawCallIndex])
         {

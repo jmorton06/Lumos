@@ -38,6 +38,9 @@
 #include "Physics/B2PhysicsEngine/B2PhysicsEngine.h"
 #include "Physics/LumosPhysicsEngine/LumosPhysicsEngine.h"
 
+#define SERIALISATION_INCLUDE_ONLY
+#include "Scene/SerialisationImplementation.h"
+
 #include "Embedded/splash.inl"
 
 #if __has_include(<filesystem>)
@@ -82,6 +85,10 @@ namespace Lumos
 #ifndef LUMOS_PLATFORM_IOS
         auto projectRoot                = StringUtilities::GetFileLocation(filePath);
         m_ProjectSettings.m_ProjectRoot = projectRoot;
+
+		String8 pathCopy = PushStr8Copy(m_FrameArena, projectRoot.c_str());
+		pathCopy = StringUtilities::ResolveRelativePath(m_FrameArena, pathCopy);
+		m_ProjectSettings.m_ProjectRoot = (const char*)pathCopy.str;
 #endif
 
         if(!FileSystem::FolderExists(m_ProjectSettings.m_ProjectRoot + "Assets/Prefabs"))
@@ -105,6 +112,10 @@ namespace Lumos
         LUMOS_PROFILE_FUNCTION();
         m_ProjectSettings.m_ProjectRoot = path + name + "/";
         m_ProjectSettings.m_ProjectName = name;
+
+		String8 pathCopy = PushStr8Copy(m_FrameArena, m_ProjectSettings.m_ProjectRoot.c_str());
+		pathCopy = StringUtilities::ResolveRelativePath(m_FrameArena, pathCopy);
+		m_ProjectSettings.m_ProjectRoot = (const char*)pathCopy.str;
 
         std::filesystem::create_directory(m_ProjectSettings.m_ProjectRoot);
 
@@ -191,6 +202,8 @@ namespace Lumos
         SetMaxImageDimensions(2048, 2048);
 
         m_SceneManager = CreateUniquePtr<SceneManager>();
+        m_AssetManager = CreateSharedPtr<AssetManager>();
+
         Deserialise();
 
         CommandLine* cmdline = Internal::CoreSystem::GetCmdLine();
@@ -235,10 +248,6 @@ namespace Lumos
         ImPlot::CreateContext();
         ImGui::StyleColorsDark();
 
-        m_ShaderLibrary = CreateSharedPtr<ShaderLibrary>();
-        m_ModelLibrary  = CreateSharedPtr<ModelLibrary>();
-        m_FontLibrary   = CreateSharedPtr<FontLibrary>();
-
         bool loadEmbeddedShaders = true;
         if(FileSystem::FolderExists(m_ProjectSettings.m_EngineAssetPath + "Shaders"))
             loadEmbeddedShaders = false;
@@ -250,7 +259,9 @@ namespace Lumos
 
         // Draw Splash Screen
         {
-            auto splashTexture = Graphics::Texture2D::CreateFromSource(splashWidth, splashHeight, (void*)splash);
+            auto desc          = Graphics::TextureDesc(Graphics::TextureFilter::LINEAR, Graphics::TextureFilter::LINEAR, Graphics::TextureWrap::REPEAT);
+            desc.flags         = Graphics::TextureFlags::Texture_Sampled;
+            auto splashTexture = Graphics::Texture2D::CreateFromSource(splashWidth, splashHeight, (void*)splash, desc);
             Graphics::Renderer::GetRenderer()->Begin();
             Graphics::Renderer::GetRenderer()->DrawSplashScreen(splashTexture);
             Graphics::Renderer::GetRenderer()->Present();
@@ -316,9 +327,7 @@ namespace Lumos
         Engine::Release();
         Input::Release();
 
-        m_ShaderLibrary.reset();
-        m_ModelLibrary.reset();
-        m_FontLibrary.reset();
+        m_AssetManager.reset();
         m_SceneManager.reset();
         m_RenderPasses.reset();
         m_SystemManager.reset();
@@ -368,19 +377,27 @@ namespace Lumos
         auto& stats = Engine::Get().Statistics();
         auto& ts    = Engine::GetTimeStep();
 
+        static int s_NumContiguousLargeFrames = 0;
+        const int maxContiguousLargeFrames    = 2;
+
         if(ts.GetSeconds() > 5)
         {
             LUMOS_LOG_WARN("Large frame time {0}", ts.GetSeconds());
+
+            s_NumContiguousLargeFrames++;
 #ifdef LUMOS_DISABLE_LARGE_FRAME_TIME
             // Added to stop application locking computer
             // Exit if frametime exceeds 5 seconds
             return false;
 #endif
+
+            if(s_NumContiguousLargeFrames > maxContiguousLargeFrames)
+                return false;
         }
+        else
+            s_NumContiguousLargeFrames = 0;
 
         ExecuteMainThreadQueue();
-
-        ImGui::NewFrame();
 
         {
             LUMOS_PROFILE_SCOPE("Application::TimeStepUpdates");
@@ -392,8 +409,10 @@ namespace Lumos
             stats.FrameTime = ts.GetMillis();
         }
 
+        // Process Input events before ImGui::NewFrame
         Input::Get().ResetPressed();
         m_Window->ProcessInput();
+        ImGui::NewFrame();
 
         {
             std::scoped_lock<std::mutex> lock(m_EventQueueMutex);
@@ -442,16 +461,15 @@ namespace Lumos
             m_ImGuiManager->OnRender(m_SceneManager->GetCurrentScene());
 
             // Clears debug line and point lists
-            DebugRenderer::Reset();
+            DebugRenderer::Reset((float)ts.GetSeconds());
             OnDebugDraw();
 
-            Graphics::Pipeline::DeleteUnusedCache();
-            Graphics::Framebuffer::DeleteUnusedCache();
-            Graphics::RenderPass::DeleteUnusedCache();
+            // Graphics::Pipeline::DeleteUnusedCache();
+            // Graphics::Framebuffer::DeleteUnusedCache();
+            // Graphics::RenderPass::DeleteUnusedCache();
 
             // m_ShaderLibrary->Update(ts.GetElapsedSeconds());
-            m_ModelLibrary->Update((float)ts.GetElapsedSeconds());
-            m_FontLibrary->Update((float)ts.GetElapsedSeconds());
+            m_AssetManager->Update((float)ts.GetElapsedSeconds());
             m_Frames++;
         }
         else
@@ -568,19 +586,9 @@ namespace Lumos
         m_RenderPasses->OnNewScene(scene);
     }
 
-    SharedPtr<ShaderLibrary>& Application::GetShaderLibrary()
+    SharedPtr<AssetManager>& Application::GetAssetManager()
     {
-        return m_ShaderLibrary;
-    }
-
-    SharedPtr<ModelLibrary>& Application::GetModelLibrary()
-    {
-        return m_ModelLibrary;
-    }
-
-    SharedPtr<FontLibrary>& Application::GetFontLibrary()
-    {
-        return m_FontLibrary;
+        return m_AssetManager;
     }
 
     void Application::SubmitToMainThread(const std::function<void()>& function)
@@ -701,6 +709,12 @@ namespace Lumos
             LUMOS_LOG_INFO("Serialising Application {0}", fullPath);
             FileSystem::WriteTextFile(fullPath, storage.str());
         }
+
+        // Save Asset Registry
+        {
+            String8 path = PushStr8F(m_FrameArena, "%sAssetRegistry.lmar", m_ProjectSettings.m_ProjectRoot.c_str()); // m_ProjectSettings.m_ProjectRoot + std::string("AssetRegistry.lmar");
+            SerialialiseAssetRegistry(path, m_AssetManager->GetAssetRegistry());
+        }
     }
 
     void Application::Deserialise()
@@ -782,6 +796,13 @@ namespace Lumos
             {
                 cereal::JSONInputArchive input(istr);
                 input(*this);
+
+                // Load Asset Registry
+                {
+                    String8 path = PushStr8F(m_FrameArena, "%sAssetRegistry.lmar", m_ProjectSettings.m_ProjectRoot.c_str());
+                    if(FileSystem::FileExists((const char*)path.str))
+                        DeserialialiseAssetRegistry(path, m_AssetManager->GetAssetRegistry());
+                }
             }
             catch(...)
             {

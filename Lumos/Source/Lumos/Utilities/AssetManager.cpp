@@ -1,6 +1,7 @@
 #include "Precompiled.h"
 #include "AssetManager.h"
 #include "Core/Application.h"
+#include <future>
 
 namespace Lumos
 {
@@ -22,40 +23,62 @@ namespace Lumos
                                               { tex->Load(imageLoadDesc.outWidth, imageLoadDesc.outHeight, imageLoadDesc.outPixels, desc); });
     }
 
-    TextureLibrary::~TextureLibrary()
-    {
-    }
-
-    bool TextureLibrary::Load(const std::string& filePath, SharedPtr<Graphics::Texture2D>& texture)
+    bool AssetManager::LoadTexture(const std::string& filePath, SharedPtr<Graphics::Texture2D>& texture, bool thread)
     {
         texture = SharedPtr<Graphics::Texture2D>(Graphics::Texture2D::Create({}, 1, 1));
-        m_Futures.push_back(std::async(std::launch::async, &LoadTexture2D, texture.get(), filePath));
+        if(thread)
+            m_Futures.push_back(std::async(std::launch::async, &LoadTexture2D, texture.get(), filePath));
+        else
+            LoadTexture2D(texture.get(), filePath);
+
+        AddAsset(filePath, texture);
         return true;
     }
 
-    void TextureLibrary::Destroy()
+    SharedPtr<Graphics::Texture2D> AssetManager::LoadTextureAsset(const std::string& filePath, bool thread)
     {
-        m_Futures.clear();
-        typename MapType::iterator itr = m_NameResourceMap.begin();
-
-        if(m_ReleaseFunc)
-        {
-            while(itr != m_NameResourceMap.end())
-            {
-                m_ReleaseFunc((itr->second.data));
-                ++itr;
-            }
-        }
-        m_NameResourceMap.clear();
+        SharedPtr<Graphics::Texture2D> texture;
+        LoadTexture(filePath, texture, thread);
+        return texture;
     }
 
-    ModelLibrary::~ModelLibrary()
+    static std::mutex s_AssetRegistryMutex;
+
+    AssetMetaData& AssetRegistry::operator[](UUID handle)
     {
+        std::scoped_lock<std::mutex> lock(s_AssetRegistryMutex);
+        return m_AssetRegistry[handle];
     }
 
-    bool ModelLibrary::Load(const std::string& filePath, SharedPtr<Graphics::Model>& model)
+    const AssetMetaData& AssetRegistry::Get(UUID handle) const
     {
-        model = CreateSharedPtr<Graphics::Model>(filePath);
-        return true;
+        std::scoped_lock<std::mutex> lock(s_AssetRegistryMutex);
+
+        LUMOS_ASSERT(m_AssetRegistry.find(handle) != m_AssetRegistry.end());
+        return m_AssetRegistry.at(handle);
+    }
+
+    AssetMetaData& AssetRegistry::Get(UUID handle)
+    {
+        std::scoped_lock<std::mutex> lock(s_AssetRegistryMutex);
+        return m_AssetRegistry[handle];
+    }
+
+    bool AssetRegistry::Contains(UUID handle) const
+    {
+        std::scoped_lock<std::mutex> lock(s_AssetRegistryMutex);
+        return m_AssetRegistry.find(handle) != m_AssetRegistry.end();
+    }
+
+    size_t AssetRegistry::Remove(UUID handle)
+    {
+        std::scoped_lock<std::mutex> lock(s_AssetRegistryMutex);
+        return m_AssetRegistry.erase(handle);
+    }
+
+    void AssetRegistry::Clear()
+    {
+        std::scoped_lock<std::mutex> lock(s_AssetRegistryMutex);
+        m_AssetRegistry.clear();
     }
 }

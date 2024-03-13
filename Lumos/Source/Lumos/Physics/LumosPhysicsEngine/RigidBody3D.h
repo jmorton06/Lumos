@@ -66,7 +66,7 @@ namespace Lumos
 
         Maths::BoundingBox GetLocalBoundingBox() const
         {
-            return m_localBoundingBox;
+            return m_LocalBoundingBox;
         }
 
         void SetRestVelocityThreshold(float vel)
@@ -79,8 +79,8 @@ namespace Lumos
 
         void SetLocalBoundingBox(const Maths::BoundingBox& bb)
         {
-            m_localBoundingBox  = bb;
-            m_wsAabbInvalidated = true;
+            m_LocalBoundingBox  = bb;
+            m_WSAabbInvalidated = true;
         }
 
         //<--------- SETTERS ------------->
@@ -88,8 +88,8 @@ namespace Lumos
         void SetPosition(const glm::vec3& v)
         {
             m_Position               = v;
-            m_wsTransformInvalidated = true;
-            m_wsAabbInvalidated      = true;
+            m_WSTransformInvalidated = true;
+            m_WSAabbInvalidated      = true;
             // m_AtRest = false;
         }
 
@@ -111,7 +111,7 @@ namespace Lumos
         void SetOrientation(const glm::quat& v)
         {
             m_Orientation            = v;
-            m_wsTransformInvalidated = true;
+            m_WSTransformInvalidated = true;
             m_AtRest                 = false;
         }
 
@@ -149,7 +149,7 @@ namespace Lumos
 
         void FireOnCollisionManifoldCallback(RigidBody3D* a, RigidBody3D* b, Manifold* manifold)
         {
-            for(auto it = m_onCollisionManifoldCallbacks.begin(); it != m_onCollisionManifoldCallbacks.end(); ++it)
+            for(auto it = m_OnCollisionManifoldCallbacks.begin(); it != m_OnCollisionManifoldCallbacks.end(); ++it)
                 it->operator()(a, b, manifold);
         }
 
@@ -160,7 +160,7 @@ namespace Lumos
 
         typedef std::function<void(RigidBody3D*, RigidBody3D*, Manifold*)> OnCollisionManifoldCallback;
 
-        void AddOnCollisionManifoldCallback(const OnCollisionManifoldCallback callback) { m_onCollisionManifoldCallbacks.push_back(callback); }
+        void AddOnCollisionManifoldCallback(const OnCollisionManifoldCallback callback) { m_OnCollisionManifoldCallbacks.push_back(callback); }
 
         void SetCollisionShape(const SharedPtr<CollisionShape>& shape)
         {
@@ -243,7 +243,7 @@ namespace Lumos
         void SetElasticity(const float elasticity) { m_Elasticity = elasticity; }
         void SetFriction(const float friction) { m_Friction = friction; }
         void SetIsStatic(const bool isStatic) { m_Static = isStatic; }
-
+        // void SetIsColliding(const bool colliding) { m_IsColliding = colliding; }
         UUID GetUUID() const { return m_UUID; }
 
         // For iteration
@@ -255,20 +255,21 @@ namespace Lumos
     protected:
         RigidBody3D(const RigidBody3DProperties& properties = RigidBody3DProperties());
 
-        mutable bool m_wsTransformInvalidated;
+        mutable bool m_WSTransformInvalidated;
         float m_RestVelocityThresholdSquared;
         float m_AverageSummedVelocity;
 
-        mutable glm::mat4 m_wsTransform;
-        Maths::BoundingBox m_localBoundingBox; //!< Model orientated bounding box in model space
-        mutable bool m_wsAabbInvalidated;      //!< Flag indicating if the cached world space transoformed AABB is invalid
-        mutable Maths::BoundingBox m_wsAabb;   //!< Axis aligned bounding box of this object in world space
+        mutable glm::mat4 m_WSTransform;
+        Maths::BoundingBox m_LocalBoundingBox; //!< Model orientated bounding box in model space
+        mutable bool m_WSAabbInvalidated;      //!< Flag indicating if the cached world space transoformed AABB is invalid
+        mutable Maths::BoundingBox m_WSAabb;   //!< Axis aligned bounding box of this object in world space
 
         bool m_Static;
         float m_Elasticity;
         float m_Friction;
         bool m_AtRest;
         UUID m_UUID;
+        // bool m_IsColliding;
 
         //<---------LINEAR-------------->
         glm::vec3 m_Position;
@@ -287,6 +288,6 @@ namespace Lumos
         //<----------COLLISION------------>
         SharedPtr<CollisionShape> m_CollisionShape;
         PhysicsCollisionCallback m_OnCollisionCallback;
-        std::vector<OnCollisionManifoldCallback> m_onCollisionManifoldCallbacks; //!< Collision callbacks post manifold generation
+        std::vector<OnCollisionManifoldCallback> m_OnCollisionManifoldCallbacks; //!< Collision callbacks post manifold generation
     };
 }

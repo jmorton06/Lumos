@@ -4,6 +4,102 @@
 #include <glm/gtx/norm.hpp>
 namespace Lumos::Maths
 {
+    /// Check whether an unsigned integer is a power of two.
+    bool IsPowerOfTwo(unsigned value)
+    {
+        return !(value & (value - 1));
+    }
+
+    /// Round up to next power of two.
+    unsigned NextPowerOfTwo(unsigned value)
+    {
+        // http://graphics.stanford.edu/~seander/bithacks.html#RoundUpPowerOf2
+        --value;
+        value |= value >> 1u;
+        value |= value >> 2u;
+        value |= value >> 4u;
+        value |= value >> 8u;
+        value |= value >> 16u;
+        return ++value;
+    }
+
+    /// Round up or down to the closest power of two.
+    unsigned ClosestPowerOfTwo(unsigned value)
+    {
+        unsigned next = NextPowerOfTwo(value);
+        unsigned prev = next >> (unsigned)1;
+        return (value - prev) > (next - value) ? next : prev;
+    }
+
+    /// Return log base two or the MSB position of the given value.
+    unsigned LogBaseTwo(unsigned value)
+    {
+        // http://graphics.stanford.edu/~seander/bithacks.html#IntegerLogObvious
+        unsigned ret = 0;
+        while(value >>= 1) // Unroll for more speed...
+            ++ret;
+        return ret;
+    }
+
+    /// Count the number of set bits in a mask.
+    unsigned CountSetBits(unsigned value)
+    {
+        // Brian Kernighan's method
+        unsigned count = 0;
+        for(count = 0; value; count++)
+            value &= value - 1;
+        return count;
+    }
+
+    /// Update a hash with the given 8-bit value using the SDBM algorithm.
+    constexpr unsigned SDBMHash(unsigned hash, unsigned char c)
+    {
+        return c + (hash << 6u) + (hash << 16u) - hash;
+    }
+
+    /// Convert float to half float
+    unsigned short FloatToHalf(float value)
+    {
+        unsigned inu = FloatToRawIntBits(value);
+        unsigned t1  = inu & 0x7fffffffu; // Non-sign bits
+        unsigned t2  = inu & 0x80000000u; // Sign bit
+        unsigned t3  = inu & 0x7f800000u; // Exponent
+
+        t1 >>= 13; // Align mantissa on MSB
+        t2 >>= 16; // Shift sign bit into position
+
+        t1 -= 0x1c000; // Adjust bias
+
+        t1 = (t3 < 0x38800000) ? 0 : t1;      // Flush-to-zero
+        t1 = (t3 > 0x47000000) ? 0x7bff : t1; // Clamp-to-max
+        t1 = (t3 == 0 ? 0 : t1);              // Denormals-as-zero
+
+        t1 |= t2; // Re-insert sign bit
+
+        return (unsigned short)t1;
+    }
+
+    /// Convert half float to float
+    float HalfToFloat(unsigned short value)
+    {
+        unsigned t1 = value & 0x7fffu; // Non-sign bits
+        unsigned t2 = value & 0x8000u; // Sign bit
+        unsigned t3 = value & 0x7c00u; // Exponent
+
+        t1 <<= 13; // Align mantissa on MSB
+        t2 <<= 16; // Shift sign bit into position
+
+        t1 += 0x38000000; // Adjust bias
+
+        t1 = (t3 == 0 ? 0 : t1); // Denormals-as-zero
+
+        t1 |= t2; // Re-insert sign bit
+
+        float out;
+        *((unsigned*)&out) = t1;
+        return out;
+    }
+
     void SinCos(float angle, float& sin, float& cos)
     {
         float angleRadians = angle * M_DEGTORAD;

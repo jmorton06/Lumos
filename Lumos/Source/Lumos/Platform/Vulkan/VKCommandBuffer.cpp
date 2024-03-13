@@ -10,7 +10,7 @@
 
 #if LUMOS_PROFILE
 #if LUMOS_PROFILE_GPU_TIMINGS
-#include <tracy/public/tracy/TracyVulkan.hpp>
+#include <Tracy/public/tracy/TracyVulkan.hpp>
 #endif
 #endif
 

@@ -38,6 +38,7 @@ namespace Lumos
         bool Opened = false;
         bool Leaf   = true;
 
+        String8 AssetPath;
         String8 Path;
         SharedPtr<Graphics::Texture2D> Thumbnail = nullptr;
         FileType Type;
@@ -66,7 +67,6 @@ namespace Lumos
         ResourcePanel();
         ~ResourcePanel()
         {
-            m_TextureLibrary.Destroy();
             ArenaRelease(m_Arena);
         }
 
@@ -94,7 +94,6 @@ namespace Lumos
             m_NextDirectory.reset();
             m_PreviousDirectory.reset();
             m_BreadCrumbData.clear();
-            m_TextureLibrary.Destroy();
         }
 
         int GetParsedAssetID(String8 extension)
@@ -186,8 +185,6 @@ namespace Lumos
         SharedPtr<Graphics::Texture2D> m_FileIcon;
 
         SharedPtr<DirectoryInformation> m_CurrentSelected;
-
-        Lumos::TextureLibrary m_TextureLibrary;
 
         String8 m_CopiedPath;
         bool m_CutFile = false;

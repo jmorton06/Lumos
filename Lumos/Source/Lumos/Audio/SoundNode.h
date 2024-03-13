@@ -1,15 +1,17 @@
 #pragma once
-
 #include "Sound.h"
-#include "Utilities/StringUtilities.h"
-#include "Core/OS/FileSystem.h"
-#include <cereal/cereal.hpp>
 #include <glm/vec3.hpp>
 
 namespace Lumos
 {
     class LUMOS_EXPORT SoundNode
     {
+        template <typename Archive>
+        friend void save(Archive& archive, const SoundNode& node);
+
+        template <typename Archive>
+        friend void load(Archive& archive, SoundNode& node);
+
     public:
         static SoundNode* Create();
         SoundNode();
@@ -60,29 +62,6 @@ namespace Lumos
         virtual void Resume()             = 0;
         virtual void Stop()               = 0;
         virtual void SetSound(SharedPtr<Sound> s);
-
-        template <typename Archive>
-        void save(Archive& archive) const
-        {
-            std::string path;
-            FileSystem::Get().AbsolutePathToFileSystem(m_Sound ? m_Sound->GetFilePath() : "", path);
-
-            archive(cereal::make_nvp("Position", m_Position), cereal::make_nvp("Radius", m_Radius), cereal::make_nvp("Pitch", m_Pitch), cereal::make_nvp("Volume", m_Volume), cereal::make_nvp("Velocity", m_Velocity), cereal::make_nvp("Looping", m_IsLooping), cereal::make_nvp("Paused", m_Paused), cereal::make_nvp("ReferenceDistance", m_ReferenceDistance), cereal::make_nvp("Global", m_IsGlobal), cereal::make_nvp("TimeLeft", m_TimeLeft), cereal::make_nvp("Stationary", m_Stationary),
-                    cereal::make_nvp("SoundNodePath", path), cereal::make_nvp("RollOffFactor", m_RollOffFactor));
-        }
-
-        template <typename Archive>
-        void load(Archive& archive)
-        {
-            std::string soundFilePath;
-            archive(cereal::make_nvp("Position", m_Position), cereal::make_nvp("Radius", m_Radius), cereal::make_nvp("Pitch", m_Pitch), cereal::make_nvp("Volume", m_Volume), cereal::make_nvp("Velocity", m_Velocity), cereal::make_nvp("Looping", m_IsLooping), cereal::make_nvp("Paused", m_Paused), cereal::make_nvp("ReferenceDistance", m_ReferenceDistance), cereal::make_nvp("Global", m_IsGlobal), cereal::make_nvp("TimeLeft", 0.0f), cereal::make_nvp("Stationary", m_Stationary),
-                    cereal::make_nvp("SoundNodePath", soundFilePath), cereal::make_nvp("RollOffFactor", m_RollOffFactor));
-
-            if(!soundFilePath.empty())
-            {
-                SetSound(Sound::Create(soundFilePath, StringUtilities::GetFilePathExtension(soundFilePath)));
-            }
-        }
 
     protected:
         SharedPtr<Sound> m_Sound;

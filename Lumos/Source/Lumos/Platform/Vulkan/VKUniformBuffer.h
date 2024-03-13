@@ -3,10 +3,6 @@
 #include "VKBuffer.h"
 #include "Graphics/RHI/UniformBuffer.h"
 
-#ifdef USE_VMA_ALLOCATOR
-#include <vulkan/vk_mem_alloc.h>
-#endif
-
 namespace Lumos
 {
     namespace Graphics

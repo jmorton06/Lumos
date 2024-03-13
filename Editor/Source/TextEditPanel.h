@@ -15,11 +15,15 @@ namespace Lumos
         void OnClose();
 
         void SetOnSaveCallback(const std::function<void()>& callback) { m_OnSaveCallback = callback; }
-        void SetErrors(const std::map<int, std::string>& errors);
+        void SetErrors(const std::unordered_map<int, std::string>& errors);
 
     private:
         std::string m_FilePath;
         TextEditor editor;
         std::function<void()> m_OnSaveCallback;
+
+        bool m_TextUnsaved = false;
+
+        float m_SavedTimer = -1.0f;
     };
 }
