@@ -40,6 +40,7 @@ namespace Lumos
 
         String8 AssetPath;
         String8 Path;
+        String8 ThumbnailPath;
         SharedPtr<Graphics::Texture2D> Thumbnail = nullptr;
         FileType Type;
         uint64_t FileSize;
@@ -186,6 +187,7 @@ namespace Lumos
 
         SharedPtr<DirectoryInformation> m_CurrentSelected;
 
+        String8 m_RequestedThumbnailPath;
         String8 m_CopiedPath;
         bool m_CutFile = false;
 

@@ -164,12 +164,15 @@ namespace Lumos
                 archive(cereal::make_nvp("Name", key), cereal::make_nvp("UUID", value), cereal::make_nvp("AssetType", type));
             nameMap[key] = (UUID)value;
 
-            if (type)
+            if(type)
             {
-                AssetMetaData metaData;
-                metaData.IsDataLoaded = false;
-                metaData.Type = (AssetType)type;
-                registry.m_AssetRegistry[(UUID)value] = metaData;
+                if(!registry.Contains((UUID)value))
+                {
+                    AssetMetaData metaData;
+                    metaData.IsDataLoaded                 = false;
+                    metaData.Type                         = (AssetType)type;
+                    registry.m_AssetRegistry[(UUID)value] = metaData;
+                }
             }
         }
     }
@@ -383,6 +386,6 @@ namespace Lumos
     }
 #endif
 
-    void SerialialiseAssetRegistry(const String8& path, const AssetRegistry& registry);
-    void DeserialialiseAssetRegistry(const String8& path, AssetRegistry& registry);
+    void SerialiseAssetRegistry(const String8& path, const AssetRegistry& registry);
+    void DeserialiseAssetRegistry(const String8& path, AssetRegistry& registry);
 }

@@ -25,6 +25,10 @@ namespace Lumos
             s_Arena = ArenaAlloc(Megabytes(2));
 
             LUMOS_LOG_INFO("Lumos Engine - Version {0}.{1}.{2}", LumosVersion.major, LumosVersion.minor, LumosVersion.patch);
+#if LUMOS_PROFILE
+            String8 versionString = PushStr8F(s_Arena, "Version : %i.%i.%i", LumosVersion.major, LumosVersion.minor, LumosVersion.patch);
+            TracyAppInfo((const char*)versionString.str, versionString.size);
+#endif
 
             String8List argsList = {};
             for(uint64_t argumentIndex = 1; argumentIndex < argc; argumentIndex += 1)
@@ -52,7 +56,6 @@ namespace Lumos
         {
             LUMOS_LOG_INFO("Shutting down System");
             FileSystem::Release();
-            Lumos::Memory::LogMemoryInformation();
 
             Debug::Log::OnRelease();
             System::JobSystem::Release();

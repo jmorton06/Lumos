@@ -1,6 +1,8 @@
 #include "Precompiled.h"
 #include "Mesh.h"
 #include "RHI/Renderer.h"
+#include "Scene/SerialisationImplementation.h"
+#include <cereal/archives/json.hpp>
 
 #include <ModelLoaders/meshoptimizer/src/meshoptimizer.h>
 #include <glm/gtx/norm.hpp>
@@ -89,9 +91,9 @@ namespace Lumos
             }
         }
 
-		Mesh::Mesh(const std::vector<uint32_t>& indices, const std::vector<Vertex>& vertices, const std::vector<BoneInfluence>& boneInfluences)
+        Mesh::Mesh(const std::vector<uint32_t>& indices, const std::vector<Vertex>& vertices, const std::vector<BoneInfluence>& boneInfluences)
         {
-                   // int lod = 2;
+            // int lod = 2;
             // float threshold = powf(0.7f, float(lod));
             m_Indices  = indices;
             m_Vertices = vertices;
@@ -103,8 +105,8 @@ namespace Lumos
                 m_BoundingBox->Merge(vertex.Position);
             }
 
-            m_IndexBuffer  = SharedPtr<Graphics::IndexBuffer>(Graphics::IndexBuffer::Create(m_Indices.data(), (uint32_t)m_Indices.size()));
-            m_VertexBuffer = SharedPtr<VertexBuffer>(VertexBuffer::Create((uint32_t)(sizeof(Graphics::Vertex) * m_Vertices.size()), m_Vertices.data(), BufferUsage::STATIC));
+            m_IndexBuffer         = SharedPtr<Graphics::IndexBuffer>(Graphics::IndexBuffer::Create(m_Indices.data(), (uint32_t)m_Indices.size()));
+            m_VertexBuffer        = SharedPtr<VertexBuffer>(VertexBuffer::Create((uint32_t)(sizeof(Graphics::Vertex) * m_Vertices.size()), m_Vertices.data(), BufferUsage::STATIC));
             m_BoneInfluenceBuffer = SharedPtr<VertexBuffer>(VertexBuffer::Create((uint32_t)(sizeof(Graphics::BoneInfluence) * boneInfluences.size()), boneInfluences.data(), BufferUsage::STATIC));
 
 #ifndef LUMOS_PRODUCTION
@@ -366,5 +368,17 @@ namespace Lumos
                 m_Triangles.emplace_back(m_Vertices[m_Indices[i + 0]], m_Vertices[m_Indices[i + 1]], m_Vertices[m_Indices[i + 2]]);
             }
         }
+
+		void Mesh::SetAndLoadMaterial(const std::string& filePath)
+		{
+            std::string data = FileSystem::Get().ReadTextFileVFS(filePath);
+            std::istringstream istr;
+            istr.str(data);
+            cereal::JSONInputArchive input(istr);
+            auto material = std::make_unique<Graphics::Material>();
+            Lumos::Graphics::load(input, *material.get());
+            m_Material = SharedPtr<Material>(material.get());
+            material.release();
+		}
     }
 }

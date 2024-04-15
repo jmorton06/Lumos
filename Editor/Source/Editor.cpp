@@ -99,9 +99,8 @@ namespace Lumos
             panel->DestroyGraphicsResources();
 
         m_GridRenderer.reset();
-        m_PreviewTexture.reset();
-        m_PreviewSphere.reset();
         m_Panels.clear();
+        m_PreviewDraw.ReleaseResources();
 
         Application::OnQuit();
     }
@@ -245,17 +244,19 @@ namespace Lumos
         Application::SetEditorState(EditorState::Preview);
         Application::Get().GetWindow()->SetEventCallback(BIND_EVENT_FN(Editor::OnEvent));
 
-		String8 pathCopy = PushStr8Copy(m_FrameArena, m_ProjectSettings.m_ProjectRoot.c_str());
-		pathCopy = StringUtilities::ResolveRelativePath(m_FrameArena, pathCopy);
-		m_ProjectSettings.m_ProjectRoot = (const char*)pathCopy.str;
+        m_RequestedThumbnailPath = PushStr8FillByte(m_Arena, 256, 0);
+
+        String8 pathCopy                = PushStr8Copy(m_FrameArena, m_ProjectSettings.m_ProjectRoot.c_str());
+        pathCopy                        = StringUtilities::ResolveRelativePath(m_FrameArena, pathCopy);
+        m_ProjectSettings.m_ProjectRoot = (const char*)pathCopy.str;
 
         m_EditorCamera  = CreateSharedPtr<Camera>(-20.0f,
-                                                 -40.0f,
-                                                 glm::vec3(-31.0f, 12.0f, 51.0f),
-                                                 60.0f,
-                                                 0.01f,
-                                                 m_Settings.m_CameraFar,
-                                                 (float)Application::Get().GetWindowSize().x / (float)Application::Get().GetWindowSize().y);
+                                                  -40.0f,
+                                                  glm::vec3(-31.0f, 12.0f, 51.0f),
+                                                  60.0f,
+                                                  0.01f,
+                                                  m_Settings.m_CameraFar,
+                                                  (float)Application::Get().GetWindowSize().x / (float)Application::Get().GetWindowSize().y);
         m_CurrentCamera = m_EditorCamera.get();
 
         glm::mat4 viewMat = glm::inverse(glm::lookAt(glm::vec3(-31.0f, 12.0f, 51.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f)));
@@ -277,8 +278,8 @@ namespace Lumos
         m_ComponentIconMap[typeid(TextComponent).hash_code()]            = ICON_MDI_TEXT;
 
         m_Panels.emplace_back(CreateSharedPtr<ConsolePanel>());
-        m_Panels.emplace_back(CreateSharedPtr<SceneViewPanel>());
         m_Panels.emplace_back(CreateSharedPtr<GameViewPanel>());
+        m_Panels.emplace_back(CreateSharedPtr<SceneViewPanel>());
         m_Panels.emplace_back(CreateSharedPtr<InspectorPanel>());
         m_Panels.emplace_back(CreateSharedPtr<ApplicationInfoPanel>());
         m_Panels.emplace_back(CreateSharedPtr<AssetManagerPanel>());
@@ -304,7 +305,6 @@ namespace Lumos
 
         m_SelectedEntities.clear();
         // m_SelectedEntity = entt::null;
-        m_PreviewTexture = nullptr;
 
         Application::Get().GetSystem<LumosPhysicsEngine>()->SetDebugDrawFlags(m_Settings.m_Physics3DDebugFlags);
         Application::Get().GetSystem<B2PhysicsEngine>()->SetDebugDrawFlags(m_Settings.m_Physics2DDebugFlags);
@@ -315,6 +315,8 @@ namespace Lumos
 
         ImGuizmo::SetGizmoSizeClipSpace(m_Settings.m_ImGuizmoScale);
         // ImGuizmo::SetGizmoSizeScale(Application::Get().GetWindowDPI());
+
+        m_PreviewDraw.CreateDefaultScene();
     }
 
     bool Editor::IsTextFile(const std::string& filePath)
@@ -405,6 +407,17 @@ namespace Lumos
 
         return false;
     }
+
+	bool Editor::IsMaterialFile(const std::string& filePath)
+	{
+		LUMOS_PROFILE_FUNCTION();
+		std::string extension = StringUtilities::GetFilePathExtension(filePath);
+		extension             = StringUtilities::ToLower(extension);
+		if(extension == "lmat")
+			return true;
+
+		return false;
+	}
 
     void Editor::OnImGui()
     {
@@ -903,7 +916,7 @@ namespace Lumos
                     Application::Get().SetEditorState(selected ? EditorState::Preview : EditorState::Play);
                     ImGui::SetWindowFocus(ICON_MDI_GAMEPAD_VARIANT " Game###game");
 
-                    m_SelectedEntities.clear();
+                    // m_SelectedEntities.clear();
                     // m_SelectedEntity = entt::null;
                     if(selected)
                     {
@@ -1147,15 +1160,21 @@ namespace Lumos
                     auto& lightComp     = light.AddComponent<Graphics::Light>();
                     glm::mat4 lightView = glm::inverse(glm::lookAt(glm::vec3(30.0f, 9.0f, 50.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f)));
                     light.GetTransform().SetLocalTransform(lightView);
+					light.GetTransform().SetWorldMatrix(glm::mat4(1.0f));
 
                     auto camera = scene->GetEntityManager()->Create("Camera");
                     camera.AddComponent<Camera>();
-                    glm::mat4 viewMat = glm::inverse(glm::lookAt(glm::vec3(-2.3f, 1.0f, 4.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f)));
-                    camera.GetTransform().SetLocalTransform(viewMat);
-                    camera.AddComponent<DefaultCameraController>(DefaultCameraController::ControllerType::EditorCamera);
+
+					glm::mat4 viewMat = glm::inverse(glm::lookAt(glm::vec3(-1.0f, 0.5f, 1.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f)));
+					camera.GetTransform().SetLocalTransform(viewMat);
+					camera.GetTransform().SetWorldMatrix(glm::mat4(1.0f));
 
                     auto cube = scene->GetEntityManager()->Create("Cube");
                     cube.AddComponent<Graphics::ModelComponent>(Graphics::PrimitiveType::Cube);
+
+					auto bb = cube.GetComponent<Graphics::ModelComponent>().ModelRef->GetMeshes().front()->GetBoundingBox();
+					camera.GetTransform().SetLocalPosition((camera.GetTransform().GetForwardDirection()) * glm::distance(bb->Max(), bb->Min()));
+					camera.GetTransform().SetWorldMatrix(glm::mat4(1.0f));
 
                     auto environment = scene->GetEntityManager()->Create("Environment");
                     environment.AddComponent<Graphics::Environment>();
@@ -1593,41 +1612,93 @@ namespace Lumos
             ImGui::DockBuilderAddNode(DockspaceID);    // Add empty node
             ImGui::DockBuilderSetNodeSize(DockspaceID, ImGui::GetIO().DisplaySize * ImGui::GetIO().DisplayFramebufferScale);
 
-            ImGuiID dock_main_id = DockspaceID;
-            ImGuiID DockBottom   = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Down, 0.3f, nullptr, &dock_main_id);
-            ImGuiID DockLeft     = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Left, 0.2f, nullptr, &dock_main_id);
-            ImGuiID DockRight    = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Right, 0.20f, nullptr, &dock_main_id);
+            static bool newLayout = true;
 
-            ImGuiID DockLeftChild         = ImGui::DockBuilderSplitNode(DockLeft, ImGuiDir_Down, 0.875f, nullptr, &DockLeft);
-            ImGuiID DockRightChild        = ImGui::DockBuilderSplitNode(DockRight, ImGuiDir_Down, 0.875f, nullptr, &DockRight);
-            ImGuiID DockingLeftDownChild  = ImGui::DockBuilderSplitNode(DockLeftChild, ImGuiDir_Down, 0.06f, nullptr, &DockLeftChild);
-            ImGuiID DockingRightDownChild = ImGui::DockBuilderSplitNode(DockRightChild, ImGuiDir_Down, 0.06f, nullptr, &DockRightChild);
+            if(newLayout)
+            {
+                ImGuiID dock_main_id = DockspaceID;
+                ImGuiID DockBottom   = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Down, 0.3f, nullptr, &dock_main_id);
+                ImGuiID DockLeft     = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Left, 0.66f, nullptr, &dock_main_id);
+                ImGuiID DockRight    = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Right, 0.33f, nullptr, &dock_main_id);
 
-            ImGuiID DockBottomChild         = ImGui::DockBuilderSplitNode(DockBottom, ImGuiDir_Down, 0.2f, nullptr, &DockBottom);
-            ImGuiID DockingBottomLeftChild  = ImGui::DockBuilderSplitNode(DockLeft, ImGuiDir_Down, 0.4f, nullptr, &DockLeft);
-            ImGuiID DockingBottomRightChild = ImGui::DockBuilderSplitNode(DockRight, ImGuiDir_Down, 0.4f, nullptr, &DockRight);
+                ImGuiID DockLeftSplitLeft  = ImGui::DockBuilderSplitNode(DockLeft, ImGuiDir_Left, 0.5f, nullptr, &DockLeft);
+                ImGuiID DockLeftSplitRight = ImGui::DockBuilderSplitNode(DockLeft, ImGuiDir_Right, 0.5f, nullptr, &DockLeft);
 
-            ImGuiID DockMiddle       = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Right, 0.8f, nullptr, &dock_main_id);
-            ImGuiID DockBottomMiddle = ImGui::DockBuilderSplitNode(DockMiddle, ImGuiDir_Down, 0.3f, nullptr, &DockMiddle);
-            ImGuiID DockMiddleLeft   = ImGui::DockBuilderSplitNode(DockMiddle, ImGuiDir_Left, 0.5f, nullptr, &DockMiddle);
-            ImGuiID DockMiddleRight  = ImGui::DockBuilderSplitNode(DockMiddle, ImGuiDir_Right, 0.5f, nullptr, &DockMiddle);
+                ImGuiID DockRightSplitLeft  = ImGui::DockBuilderSplitNode(DockRight, ImGuiDir_Left, 0.5f, nullptr, &DockRight);
+                ImGuiID DockRightSplitRight = ImGui::DockBuilderSplitNode(DockRight, ImGuiDir_Right, 0.5f, nullptr, &DockRight);
 
-            ImGui::DockBuilderDockWindow("###game", DockMiddleRight);
-            ImGui::DockBuilderDockWindow("###scene", DockMiddleLeft);
-            ImGui::DockBuilderDockWindow("###inspector", DockRight);
-            ImGui::DockBuilderDockWindow("###console", DockBottomMiddle);
-            ImGui::DockBuilderDockWindow("###profiler", DockingBottomLeftChild);
-            ImGui::DockBuilderDockWindow("###resources", DockingBottomLeftChild);
-            ImGui::DockBuilderDockWindow("Dear ImGui Demo", DockLeft);
-            ImGui::DockBuilderDockWindow("###GraphicsInfo", DockLeft);
-            ImGui::DockBuilderDockWindow("###appinfo", DockLeft);
-            ImGui::DockBuilderDockWindow("###AssetManagerPanel", DockLeft);
-            ImGui::DockBuilderDockWindow("###hierarchy", DockLeft);
-            ImGui::DockBuilderDockWindow("###textEdit", DockMiddleLeft);
-            ImGui::DockBuilderDockWindow("###scenesettings", DockLeft);
-            ImGui::DockBuilderDockWindow("###editorsettings", DockLeft);
-            ImGui::DockBuilderDockWindow("###projectsettings", DockLeft);
+                ImGuiID DockLeftChild         = ImGui::DockBuilderSplitNode(DockLeft, ImGuiDir_Down, 0.875f, nullptr, &DockLeft);
+                ImGuiID DockRightChild        = ImGui::DockBuilderSplitNode(DockRight, ImGuiDir_Down, 0.875f, nullptr, &DockRight);
+                ImGuiID DockingLeftDownChild  = ImGui::DockBuilderSplitNode(DockLeftChild, ImGuiDir_Down, 0.06f, nullptr, &DockLeftChild);
+                ImGuiID DockingRightDownChild = ImGui::DockBuilderSplitNode(DockRightChild, ImGuiDir_Down, 0.06f, nullptr, &DockRightChild);
 
+                ImGuiID DockBottomChild         = ImGui::DockBuilderSplitNode(DockBottom, ImGuiDir_Down, 0.2f, nullptr, &DockBottom);
+                ImGuiID DockingBottomLeftChild  = ImGui::DockBuilderSplitNode(DockLeft, ImGuiDir_Down, 0.4f, nullptr, &DockLeft);
+                ImGuiID DockingBottomRightChild = ImGui::DockBuilderSplitNode(DockRight, ImGuiDir_Down, 0.4f, nullptr, &DockRight);
+
+                ImGuiID DockMiddle       = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Right, 0.8f, nullptr, &dock_main_id);
+                ImGuiID DockBottomMiddle = ImGui::DockBuilderSplitNode(DockMiddle, ImGuiDir_Down, 0.3f, nullptr, &DockMiddle);
+                ImGuiID DockMiddleLeft   = ImGui::DockBuilderSplitNode(DockMiddle, ImGuiDir_Left, 0.5f, nullptr, &DockMiddle);
+                ImGuiID DockMiddleRight  = ImGui::DockBuilderSplitNode(DockMiddle, ImGuiDir_Right, 0.5f, nullptr, &DockMiddle);
+
+                ImGuiID DockingBottomRight           = ImGui::DockBuilderSplitNode(DockBottom, ImGuiDir_Right, 0.33f, nullptr, &DockBottom);
+                ImGuiID DockingBottomRightSplitLeft  = ImGui::DockBuilderSplitNode(DockingBottomRight, ImGuiDir_Left, 0.5f, nullptr, &DockingBottomRight);
+                ImGuiID DockingBottomRightSplitRight = ImGui::DockBuilderSplitNode(DockingBottomRight, ImGuiDir_Right, 0.5f, nullptr, &DockingBottomRight);
+
+                ImGui::DockBuilderDockWindow("###game", DockLeftSplitRight);
+                ImGui::DockBuilderDockWindow("###scene", DockLeftSplitLeft);
+                ImGui::DockBuilderDockWindow("###inspector", DockRightSplitRight);
+                ImGui::DockBuilderDockWindow("###console", DockBottom);
+
+                ImGui::DockBuilderDockWindow("###profiler", DockingBottomLeftChild);
+                ImGui::DockBuilderDockWindow("###resources", DockBottom);
+                ImGui::DockBuilderDockWindow("Dear ImGui Demo", DockRightSplitRight);
+                ImGui::DockBuilderDockWindow("###GraphicsInfo", DockingBottomRightSplitLeft);
+                ImGui::DockBuilderDockWindow("###appinfo", DockingBottomRightSplitRight);
+                ImGui::DockBuilderDockWindow("###AssetManagerPanel", DockRightSplitRight);
+                ImGui::DockBuilderDockWindow("###hierarchy", DockRightSplitLeft);
+                ImGui::DockBuilderDockWindow("###textEdit", DockLeftSplitLeft);
+                ImGui::DockBuilderDockWindow("###scenesettings", DockingBottomRightSplitLeft);
+                ImGui::DockBuilderDockWindow("###editorsettings", DockingBottomRightSplitRight);
+                ImGui::DockBuilderDockWindow("###projectsettings", DockingBottomRightSplitRight);
+            }
+            else
+            {
+                ImGuiID dock_main_id = DockspaceID;
+                ImGuiID DockBottom   = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Down, 0.3f, nullptr, &dock_main_id);
+                ImGuiID DockLeft     = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Left, 0.2f, nullptr, &dock_main_id);
+                ImGuiID DockRight    = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Right, 0.20f, nullptr, &dock_main_id);
+
+                ImGuiID DockLeftChild         = ImGui::DockBuilderSplitNode(DockLeft, ImGuiDir_Down, 0.875f, nullptr, &DockLeft);
+                ImGuiID DockRightChild        = ImGui::DockBuilderSplitNode(DockRight, ImGuiDir_Down, 0.875f, nullptr, &DockRight);
+                ImGuiID DockingLeftDownChild  = ImGui::DockBuilderSplitNode(DockLeftChild, ImGuiDir_Down, 0.06f, nullptr, &DockLeftChild);
+                ImGuiID DockingRightDownChild = ImGui::DockBuilderSplitNode(DockRightChild, ImGuiDir_Down, 0.06f, nullptr, &DockRightChild);
+
+                ImGuiID DockBottomChild         = ImGui::DockBuilderSplitNode(DockBottom, ImGuiDir_Down, 0.2f, nullptr, &DockBottom);
+                ImGuiID DockingBottomLeftChild  = ImGui::DockBuilderSplitNode(DockLeft, ImGuiDir_Down, 0.4f, nullptr, &DockLeft);
+                ImGuiID DockingBottomRightChild = ImGui::DockBuilderSplitNode(DockRight, ImGuiDir_Down, 0.4f, nullptr, &DockRight);
+
+                ImGuiID DockMiddle       = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Right, 0.8f, nullptr, &dock_main_id);
+                ImGuiID DockBottomMiddle = ImGui::DockBuilderSplitNode(DockMiddle, ImGuiDir_Down, 0.3f, nullptr, &DockMiddle);
+                ImGuiID DockMiddleLeft   = ImGui::DockBuilderSplitNode(DockMiddle, ImGuiDir_Left, 0.5f, nullptr, &DockMiddle);
+                ImGuiID DockMiddleRight  = ImGui::DockBuilderSplitNode(DockMiddle, ImGuiDir_Right, 0.5f, nullptr, &DockMiddle);
+
+                ImGui::DockBuilderDockWindow("###game", DockMiddleRight);
+                ImGui::DockBuilderDockWindow("###scene", DockMiddleLeft);
+                ImGui::DockBuilderDockWindow("###inspector", DockRight);
+                ImGui::DockBuilderDockWindow("###console", DockBottomMiddle);
+                ImGui::DockBuilderDockWindow("###profiler", DockingBottomLeftChild);
+                ImGui::DockBuilderDockWindow("###resources", DockingBottomLeftChild);
+                ImGui::DockBuilderDockWindow("Dear ImGui Demo", DockLeft);
+                ImGui::DockBuilderDockWindow("###GraphicsInfo", DockLeft);
+                ImGui::DockBuilderDockWindow("###appinfo", DockLeft);
+                ImGui::DockBuilderDockWindow("###AssetManagerPanel", DockLeft);
+                ImGui::DockBuilderDockWindow("###hierarchy", DockLeft);
+                ImGui::DockBuilderDockWindow("###textEdit", DockMiddleLeft);
+                ImGui::DockBuilderDockWindow("###scenesettings", DockLeft);
+                ImGui::DockBuilderDockWindow("###editorsettings", DockLeft);
+                ImGui::DockBuilderDockWindow("###projectsettings", DockLeft);
+            }
             ImGui::DockBuilderFinish(DockspaceID);
         }
 
@@ -1649,6 +1720,7 @@ namespace Lumos
         LUMOS_PROFILE_FUNCTION();
         Application::OnNewScene(scene);
         // m_SelectedEntity = entt::null;
+        m_HoveredEntity = {};
         m_SelectedEntities.clear();
         glm::mat4 viewMat = glm::inverse(glm::lookAt(glm::vec3(-31.0f, 12.0f, 51.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f)));
         m_EditorCameraTransform.SetLocalTransform(viewMat);
@@ -1731,7 +1803,7 @@ namespace Lumos
 
         m_GridRenderer->OnImGui();
 
-		m_GridRenderer->SetDepthTarget(m_RenderPasses->GetForwardData().m_DepthTexture);
+        m_GridRenderer->SetDepthTarget(m_RenderPasses->GetForwardData().m_DepthTexture);
         m_GridRenderer->BeginScene(Application::Get().GetSceneManager()->GetCurrentScene(), m_EditorCamera.get(), &m_EditorCameraTransform);
         m_GridRenderer->RenderScene();
 #endif
@@ -1846,6 +1918,10 @@ namespace Lumos
 
             autoSaveTimer += (float)ts.GetMillis();
         }
+        auto& registry = GetCurrentScene()->GetEntityManager()->GetRegistry();
+        m_SelectedEntities.erase(std::remove_if(m_SelectedEntities.begin(), m_SelectedEntities.end(), [&registry](entt::entity entity)
+                                                { return !registry.valid(entity); }),
+                                 m_SelectedEntities.end());
 
         if(m_EditorState == EditorState::Play)
             autoSaveTimer = 0.0f;
@@ -2195,6 +2271,68 @@ namespace Lumos
             }
         }
 
+        static auto startTime = std::chrono::steady_clock::now();
+        if(m_HoveredEntity)
+        {
+            float alpha      = (float)Maths::Sin(std::chrono::duration<double>(std::chrono::high_resolution_clock::now() - startTime).count() * 200.0);
+            alpha            = Maths::Abs(alpha);
+            glm::vec4 colour = glm::vec4(0.9f, 0.9f, 0.1f, alpha);
+            auto transform   = m_HoveredEntity.TryGetComponent<Maths::Transform>();
+            auto model       = m_HoveredEntity.TryGetComponent<Graphics::ModelComponent>();
+            if(transform && model && model->ModelRef)
+            {
+                auto& meshes = model->ModelRef->GetMeshes();
+                for(auto mesh : meshes)
+                {
+                    if(mesh->GetActive())
+                    {
+                        auto& worldTransform = transform->GetWorldMatrix();
+                        auto bbCopy          = mesh->GetBoundingBox()->Transformed(worldTransform);
+                        DebugRenderer::DebugDraw(bbCopy, colour, true);
+                    }
+                }
+            }
+            auto sprite = m_HoveredEntity.TryGetComponent<Graphics::Sprite>();
+            if(transform && sprite)
+            {
+                {
+                    auto& worldTransform = transform->GetWorldMatrix();
+
+                    auto bb = Maths::BoundingBox(Maths::Rect(sprite->GetPosition(), sprite->GetPosition() + sprite->GetScale()));
+                    bb.Transform(worldTransform);
+                    DebugRenderer::DebugDraw(bb, colour, true);
+                }
+            }
+            auto animSprite = m_HoveredEntity.TryGetComponent<Graphics::AnimatedSprite>();
+            if(transform && animSprite)
+            {
+                auto& worldTransform = transform->GetWorldMatrix();
+
+                auto bb = Maths::BoundingBox(Maths::Rect(animSprite->GetPosition(), animSprite->GetPosition() + animSprite->GetScale()));
+                bb.Transform(worldTransform);
+                DebugRenderer::DebugDraw(bb, colour, true);
+            }
+            auto camera = m_HoveredEntity.TryGetComponent<Camera>();
+            if(camera && transform)
+            {
+                DebugRenderer::DebugDraw(camera->GetFrustum(glm::inverse(transform->GetWorldMatrix())), colour);
+            }
+
+            auto light = m_HoveredEntity.TryGetComponent<Graphics::Light>();
+            if(light && transform)
+            {
+                DebugRenderer::DebugDraw(light, transform->GetWorldOrientation(), colour);
+            }
+
+            auto sound = m_HoveredEntity.TryGetComponent<SoundComponent>();
+            if(sound)
+            {
+                DebugRenderer::DebugDraw(sound->GetSoundNode(), colour);
+            }
+        }
+        else
+            startTime = std::chrono::steady_clock::now();
+
         for(auto m_SelectedEntity : m_SelectedEntities)
             if(registry.valid(m_SelectedEntity)) // && Application::Get().GetEditorState() == EditorState::Preview)
             {
@@ -2267,7 +2405,7 @@ namespace Lumos
             }
     }
 
-    void Editor::SelectObject(const Maths::Ray& ray)
+    void Editor::SelectObject(const Maths::Ray& ray, bool hoveredOnly)
     {
         LUMOS_PROFILE_FUNCTION();
         auto& registry                    = Application::Get().GetSceneManager()->GetCurrentScene()->GetRegistry();
@@ -2306,36 +2444,36 @@ namespace Lumos
                 }
             }
         }
-
-        if(!m_SelectedEntities.empty())
-        {
-            if(registry.valid(currentClosestEntity) && IsSelected(currentClosestEntity))
+        if(!hoveredOnly)
+            if(!m_SelectedEntities.empty())
             {
-                if(timer.GetElapsedS() - timeSinceLastSelect < 1.0f)
+                if(registry.valid(currentClosestEntity) && IsSelected(currentClosestEntity))
                 {
-                    auto& trans = registry.get<Maths::Transform>(currentClosestEntity);
-                    auto& model = registry.get<Graphics::ModelComponent>(currentClosestEntity);
-                    auto bb     = model.ModelRef->GetMeshes().front()->GetBoundingBox()->Transformed(trans.GetWorldMatrix());
+                    if(timer.GetElapsedS() - timeSinceLastSelect < 1.0f)
+                    {
+                        auto& trans = registry.get<Maths::Transform>(currentClosestEntity);
+                        auto& model = registry.get<Graphics::ModelComponent>(currentClosestEntity);
+                        auto bb     = model.ModelRef->GetMeshes().front()->GetBoundingBox()->Transformed(trans.GetWorldMatrix());
 
-                    FocusCamera(trans.GetWorldPosition(), glm::distance(bb.Max(), bb.Min()), 2.0f);
+                        FocusCamera(trans.GetWorldPosition(), glm::distance(bb.Max(), bb.Min()), 2.0f);
+                    }
+                    else
+                    {
+                        UnSelect(currentClosestEntity);
+                    }
                 }
-                else
-                {
-                    UnSelect(currentClosestEntity);
-                }
+
+                timeSinceLastSelect = timer.GetElapsedS();
+
+                auto& io  = ImGui::GetIO();
+                auto ctrl = Input::Get().GetKeyHeld(InputCode::Key::LeftSuper) || (Input::Get().GetKeyHeld(InputCode::Key::LeftControl));
+
+                if(!ctrl)
+                    m_SelectedEntities.clear();
+
+                SetSelected(currentClosestEntity);
+                return;
             }
-
-            timeSinceLastSelect = timer.GetElapsedS();
-
-            auto& io  = ImGui::GetIO();
-            auto ctrl = Input::Get().GetKeyHeld(InputCode::Key::LeftSuper) || (Input::Get().GetKeyHeld(InputCode::Key::LeftControl));
-
-            if(!ctrl)
-                m_SelectedEntities.clear();
-
-            SetSelected(currentClosestEntity);
-            return;
-        }
 
         auto spriteGroup = registry.group<Graphics::Sprite>(entt::get<Maths::Transform>);
 
@@ -2380,18 +2518,22 @@ namespace Lumos
             }
         }
 
-        {
-            if(IsSelected(currentClosestEntity))
-            {
-                auto& trans  = registry.get<Maths::Transform>(currentClosestEntity);
-                auto& sprite = registry.get<Graphics::Sprite>(currentClosestEntity);
-                auto bb      = Maths::BoundingBox(Maths::Rect(sprite.GetPosition(), sprite.GetPosition() + sprite.GetScale()));
+        /*       if (hoveredOnly)
+               {
+                   if(IsSelected(currentClosestEntity))
+                   {
+                       auto& trans  = registry.get<Maths::Transform>(currentClosestEntity);
+                       auto& sprite = registry.get<Graphics::Sprite>(currentClosestEntity);
+                       auto bb      = Maths::BoundingBox(Maths::Rect(sprite.GetPosition(), sprite.GetPosition() + sprite.GetScale()));
 
-                FocusCamera(trans.GetWorldPosition(), glm::distance(bb.Max(), bb.Min()), 2.0f);
-            }
-        }
+                       FocusCamera(trans.GetWorldPosition(), glm::distance(bb.Max(), bb.Min()), 2.0f);
+                   }
+               }*/
 
-        SetSelected(currentClosestEntity);
+        if(hoveredOnly)
+            SetHoveredEntity(Entity(currentClosestEntity, Application::Get().GetSceneManager()->GetCurrentScene()));
+        else
+            SetSelected(currentClosestEntity);
     }
 
     void Editor::OpenTextFile(const std::string& filePath, const std::function<void()>& callback)
@@ -2453,8 +2595,8 @@ namespace Lumos
     {
         LUMOS_PROFILE_FUNCTION();
         ImGui::Begin("Preview");
-        if(m_PreviewTexture)
-            ImGuiUtilities::Image(m_PreviewTexture.get(), { 200, 200 });
+        if(GetPreviewTexture())
+            ImGuiUtilities::Image(GetPreviewTexture().get(), { 256, 256 });
         ImGui::End();
     }
 
@@ -2481,6 +2623,31 @@ namespace Lumos
 
         Application::OnRender();
 
+        if(m_DrawPreview)
+        {
+            m_PreviewDraw.Draw();
+            m_PreviewDraw.DeletePreviewModel();
+            m_DrawPreview = false;
+        }
+
+        if (m_SavePreviewTexture)
+        {
+            String8 texturePath = PushStr8F(m_FrameArena, "%s_thumbnail.png", (const char*)m_RequestedThumbnailPath.str);
+            String8 basePath = PushStr8F(m_FrameArena, "%sAssets", Application::Get().GetProjectSettings().m_ProjectRoot.c_str());
+            String8 assetCachePath = StringUtilities::AbsolutePathToRelativeFileSystemPath(m_FrameArena, texturePath, basePath, Str8Lit("//Assets/Cache") );
+            String8 cacheAbsolutePath = StringUtilities::AbsolutePathToRelativeFileSystemPath(m_FrameArena, assetCachePath, Str8Lit("//Assets"), basePath);
+
+            m_PreviewDraw.SaveTexture(cacheAbsolutePath);
+            m_SavePreviewTexture = false;
+        }
+
+        // Save texture next frame after its finishes drawing
+        if (m_QueuePreviewSave)
+        {
+            m_QueuePreviewSave = false;
+            m_SavePreviewTexture = true;
+        }
+
         for(int i = 0; i < int(m_Panels.size()); i++)
         {
             m_Panels[i]->OnRender();
@@ -2495,29 +2662,39 @@ namespace Lumos
     void Editor::DrawPreview()
     {
         LUMOS_PROFILE_FUNCTION();
-        if(!m_PreviewTexture)
+        m_DrawPreview = true;
+    }
+
+    void Editor::SavePreview()
+    {
+        LUMOS_PROFILE_FUNCTION();
+        m_SavePreviewTexture = true;
+    }
+
+    void Editor::RequestThumbnail(String8 asset)
+    {
+        LUMOS_PROFILE_FUNCTION();
+
+		if(m_QueuePreviewSave)
+			return;
+        LUMOS_LOG_INFO("Requesting thumbnail {0}", (const char*)asset.str);
+        MemorySet(m_RequestedThumbnailPath.str, 0, 256);
+        MemoryCopy(m_RequestedThumbnailPath.str, asset.str, asset.size);
+        m_RequestedThumbnailPath.size = asset.size;
+
+        String8 extension = StringUtilities::Str8PathSkipLastPeriod(asset);
+        if (strcmp((char*)extension.str, "lmat") == 0)
         {
-            Graphics::TextureDesc desc;
-            desc.format = Graphics::RHIFormat::R8G8B8A8_Unorm;
-            desc.flags  = Graphics::TextureFlags::Texture_RenderTarget;
-
-            m_PreviewTexture = SharedPtr<Graphics::Texture2D>(Graphics::Texture2D::Create(desc, 200, 200));
-
-            // m_PreviewRenderer = CreateSharedPtr<Graphics::ForwardRenderer>(200, 200, false);
-            m_PreviewSphere = SharedPtr<Graphics::Mesh>(Graphics::CreateSphere());
-
-            // m_PreviewRenderer->SetRenderTarget(m_PreviewTexture.get(), true);
+            m_PreviewDraw.LoadMaterial(asset);
+        }
+        else
+        {
+            //Assume mesh
+            m_PreviewDraw.LoadMesh(asset);
         }
 
-        glm::mat4 proj = glm::perspective(0.1f, 10.0f, 200.0f / 200.0f, 60.0f);
-        glm::mat4 view = glm::inverse(Maths::Mat4FromTRS(glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f, 0.0f, 0.0f),
-                                                         glm::vec3(1.0f)));
-
-        //        m_PreviewRenderer->Begin();
-        //        //m_PreviewRenderer->BeginScene(proj, view);
-        //        m_PreviewRenderer->SubmitMesh(m_PreviewSphere.get(), nullptr, glm::mat4(1.0f), glm::mat4(1.0f));
-        //        m_PreviewRenderer->Present();
-        //        m_PreviewRenderer->End();
+        m_DrawPreview = true;
+        m_QueuePreviewSave = true;
     }
 
     void Editor::FileOpenCallback(const std::string& filePath)
@@ -2714,16 +2891,16 @@ namespace Lumos
         m_Settings.m_DebugDrawFlags   = m_IniFile.GetOrDefault("DebugDrawFlags", m_Settings.m_DebugDrawFlags);
         m_Settings.m_Theme            = ImGuiUtilities::Theme(m_IniFile.GetOrDefault("Theme", (int)m_Settings.m_Theme));
 
-        m_ProjectSettings.m_ProjectRoot  = m_IniFile.GetOrDefault("ProjectRoot", std::string("../../ExampleProject/"));
-        m_ProjectSettings.m_ProjectName  = m_IniFile.GetOrDefault("ProjectName", std::string("Example"));
+        m_ProjectSettings.m_ProjectRoot = m_IniFile.GetOrDefault("ProjectRoot", std::string("../../ExampleProject/"));
+        m_ProjectSettings.m_ProjectName = m_IniFile.GetOrDefault("ProjectName", std::string("Example"));
 
-		ArenaTemp arena = ScratchBegin(nullptr, 0);
-		String8 pathCopy = PushStr8Copy(arena.arena, m_ProjectSettings.m_ProjectRoot.c_str());
-		pathCopy = StringUtilities::ResolveRelativePath(arena.arena, pathCopy);
-		m_ProjectSettings.m_ProjectRoot = (const char*)pathCopy.str;
-		ScratchEnd(arena);
+        ArenaTemp arena                 = ScratchBegin(nullptr, 0);
+        String8 pathCopy                = PushStr8Copy(arena.arena, m_ProjectSettings.m_ProjectRoot.c_str());
+        pathCopy                        = StringUtilities::ResolveRelativePath(arena.arena, pathCopy);
+        m_ProjectSettings.m_ProjectRoot = (const char*)pathCopy.str;
+        ScratchEnd(arena);
 
-		m_Settings.m_Physics2DDebugFlags = m_IniFile.GetOrDefault("PhysicsDebugDrawFlags2D", 0);
+        m_Settings.m_Physics2DDebugFlags = m_IniFile.GetOrDefault("PhysicsDebugDrawFlags2D", 0);
         m_Settings.m_Physics3DDebugFlags = m_IniFile.GetOrDefault("PhysicsDebugDrawFlags", 0);
         m_Settings.m_SleepOutofFocus     = m_IniFile.GetOrDefault("SleepOutofFocus", true);
         m_Settings.m_CameraSpeed         = m_IniFile.GetOrDefault("CameraSpeed", 1000.0f);
@@ -2820,5 +2997,10 @@ namespace Lumos
                 Application::Get().GetCurrentScene()->Deserialise(newPath, false);
             }
         }
+    }
+
+    void Editor::SetEditorScriptsPath(const std::string& path)
+    {
+        m_EditorScriptPath = PushStr8Copy(m_Arena, path.c_str());
     }
 }

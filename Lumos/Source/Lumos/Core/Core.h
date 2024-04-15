@@ -11,6 +11,7 @@
 #endif
 
 #include <stdint.h>
+#include "Types.h"
 
 #ifdef LUMOS_PLATFORM_WINDOWS
 
@@ -184,21 +185,21 @@
 #define PtrFromInt(i) (void*)(((uint8_t*)0) + i)
 #define MemberOf(type, member_name) ((type*)0)->member_name
 #define OffsetOf(type, member_name) IntFromPtr(&MemberOf(type, member_name))
-#define BaseFromMember(type, member_name, ptr) (type*)((uint8_t*)(ptr)-OffsetOf(type, member_name))
+#define BaseFromMember(type, member_name, ptr) (type*)((uint8_t*)(ptr) - OffsetOf(type, member_name))
 
 #define MemoryCopy memcpy
 #define MemoryMove memmove
 #define MemorySet memset
 
-#define MemoryCopyStruct(dst, src)                \
-    do {                                          \
-        Assert(sizeof(*(dst)) == sizeof(*(src))); \
-        MemoryCopy((dst), (src), sizeof(*(dst))); \
+#define MemoryCopyStruct(dst, src)                      \
+    do {                                                \
+        LUMOS_ASSERT(sizeof(*(dst)) == sizeof(*(src))); \
+        MemoryCopy((dst), (src), sizeof(*(dst)));       \
     } while(0)
-#define MemoryCopyArray(dst, src)              \
-    do {                                       \
-        Assert(sizeof(dst) == sizeof(src));    \
-        MemoryCopy((dst), (src), sizeof(src)); \
+#define MemoryCopyArray(dst, src)                 \
+    do {                                          \
+        LUMOS_ASSERT(sizeof(dst) == sizeof(src)); \
+        MemoryCopy((dst), (src), sizeof(src));    \
     } while(0)
 
 #define MemoryZero(ptr, size) MemorySet((ptr), 0, (size))

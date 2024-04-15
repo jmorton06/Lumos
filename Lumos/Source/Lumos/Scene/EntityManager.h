@@ -178,6 +178,7 @@ namespace Lumos
         void Clear();
 
         Entity GetEntityByUUID(uint64_t id);
+        bool EntityExists(u64 id);
 
     private:
         Scene* m_Scene = nullptr;

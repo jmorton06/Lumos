@@ -101,6 +101,7 @@ namespace Lumos
         Entity CreateEntity();
         Entity CreateEntity(const std::string& name);
         Entity GetEntityByUUID(uint64_t id);
+        bool EntityExists(u64 id);
         Entity InstantiatePrefab(const std::string& path);
         void DestroyEntity(Entity entity);
         void SavePrefab(Entity entity, const std::string& path);
@@ -154,20 +155,24 @@ namespace Lumos
 
             // SSAO
             int SSAOBlurRadius     = 4;
-            float SSAOSampleRadius = 4.0f;
+            float SSAOSampleRadius = 2.0f;
             bool SSAOBlur          = true;
             float SSAOStrength     = 1.0f;
 
             float SkyboxMipLevel = 0.0f;
             int DebugMode        = 0;
-            uint8_t MSAASamples =  4;
+#ifdef LUMOS_PLATFORM_WINDOWS
+            uint8_t MSAASamples = 4;
+#else
+            uint8_t MSAASamples = 1;
+#endif
         };
 
         struct ScenePhysics3DSettings
         {
-            uint32_t m_MaxUpdatesPerFrame = 5;
-            uint32_t VelocityIterations   = 6;
-            uint32_t PositionIterations   = 2;
+            uint32_t MaxUpdatesPerFrame = 5;
+            uint32_t VelocityIterations = 6;
+            uint32_t PositionIterations = 2;
 
             glm::vec3 Gravity             = glm::vec3(0.0f, -9.81f, 0.0f);
             float Dampening               = 0.9995f;
@@ -216,7 +221,7 @@ namespace Lumos
         uint32_t m_ScreenWidth;
         uint32_t m_ScreenHeight;
 
-        //Load these assets ready to be used during a scene
+        // Load these assets ready to be used during a scene
         Vector<UUID> m_PreLoadAssetsList;
 
     private:

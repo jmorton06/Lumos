@@ -51,10 +51,10 @@ namespace Lumos
                 }
             }
 
-			if(pipelineDesc.resolveTexture)
-			{
-				HashCombine(hash, pipelineDesc.resolveTexture->GetUUID());
-			}
+            if(pipelineDesc.resolveTexture)
+            {
+                HashCombine(hash, pipelineDesc.resolveTexture->GetUUID());
+            }
 
             if(pipelineDesc.depthTarget)
             {
@@ -69,10 +69,18 @@ namespace Lumos
             HashCombine(hash, pipelineDesc.clearTargets);
             HashCombine(hash, pipelineDesc.swapchainTarget);
             HashCombine(hash, pipelineDesc.lineWidth);
-            HashCombine(hash, pipelineDesc.depthBiasConstantFactor);
-            HashCombine(hash, pipelineDesc.depthBiasSlopeFactor);
-            HashCombine(hash, pipelineDesc.cubeMapIndex);
-            HashCombine(hash, pipelineDesc.cubeMapTarget);
+			if(pipelineDesc.depthBiasEnabled)
+			{
+				HashCombine(hash, pipelineDesc.depthBiasConstantFactor);
+				HashCombine(hash, pipelineDesc.depthBiasSlopeFactor);
+			}
+
+			if(pipelineDesc.cubeMapTarget)
+			{
+				HashCombine(hash, pipelineDesc.cubeMapIndex);
+				HashCombine(hash, pipelineDesc.cubeMapTarget->GetUUID());
+			}
+
             HashCombine(hash, pipelineDesc.mipIndex);
             HashCombine(hash, pipelineDesc.samples);
 

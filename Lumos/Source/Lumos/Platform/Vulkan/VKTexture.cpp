@@ -250,7 +250,7 @@ namespace Lumos
             , m_ImageLayout(VK_IMAGE_LAYOUT_UNDEFINED)
         {
             m_TextureImageMemory = VK_NULL_HANDLE;
-            m_Samples = 1;
+            m_Samples            = 1;
 
             m_UUID = Random64::Rand(0, std::numeric_limits<uint64_t>::max());
 

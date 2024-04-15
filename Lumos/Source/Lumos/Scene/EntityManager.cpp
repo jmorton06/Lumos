@@ -48,4 +48,19 @@ namespace Lumos
         LUMOS_LOG_WARN("Entity not found by ID");
         return Entity {};
     }
+
+    bool EntityManager::EntityExists(u64 id)
+    {
+        LUMOS_PROFILE_FUNCTION();
+
+        auto view = m_Registry.view<IDComponent>();
+        for(auto entity : view)
+        {
+            auto& idComponent = m_Registry.get<IDComponent>(entity);
+            if(idComponent.ID == id)
+                return true;
+        }
+
+        return false;
+    }
 }

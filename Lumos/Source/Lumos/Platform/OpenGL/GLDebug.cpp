@@ -41,8 +41,7 @@ bool Lumos::GLLogCall(const char* function, const char* file, const int32_t line
 
 void Lumos::GLClearError()
 {
-    while(glGetError() != GL_NO_ERROR)
-        ;
+    while(glGetError() != GL_NO_ERROR);
 }
 
 #endif

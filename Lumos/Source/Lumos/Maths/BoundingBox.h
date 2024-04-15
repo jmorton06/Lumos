@@ -55,6 +55,8 @@ namespace Lumos
             void Merge(const BoundingBox& other, const glm::mat3& transform);
             void Merge(const glm::vec3& point, const glm::mat3& transform);
 
+            void ExtendToCube();
+
             Intersection IsInside(const glm::vec3& point) const;
             Intersection IsInside(const BoundingBox& box) const;
             Intersection IsInside(const BoundingSphere& sphere) const;

@@ -34,14 +34,14 @@ namespace Lumos
         glm::vec3 AngularVelocity       = glm::vec3(0.0f);
         glm::vec3 Torque                = glm::vec3(0.0f);
         bool Static                     = false;
-        float Elasticity                = 1.0f;
-        float Friction                  = 1.0f;
+        float Elasticity                = 0.5f;
+        float Friction                  = 0.5f;
         bool AtRest                     = false;
         bool isTrigger                  = false;
         SharedPtr<CollisionShape> Shape = nullptr;
     };
 
-    class LUMOS_EXPORT RigidBody3D
+    class LUMOS_EXPORT alignas(16) RigidBody3D
     {
         friend class LumosPhysicsEngine;
 
@@ -242,7 +242,12 @@ namespace Lumos
         bool IsAwake() const { return !m_AtRest; }
         void SetElasticity(const float elasticity) { m_Elasticity = elasticity; }
         void SetFriction(const float friction) { m_Friction = friction; }
-        void SetIsStatic(const bool isStatic) { m_Static = isStatic; }
+        void SetIsStatic(const bool isStatic)
+        {
+            m_Static = isStatic;
+            if(m_Static)
+                m_AtRest = true;
+        }
         // void SetIsColliding(const bool colliding) { m_IsColliding = colliding; }
         UUID GetUUID() const { return m_UUID; }
 
@@ -255,37 +260,35 @@ namespace Lumos
     protected:
         RigidBody3D(const RigidBody3DProperties& properties = RigidBody3DProperties());
 
-        mutable bool m_WSTransformInvalidated;
         float m_RestVelocityThresholdSquared;
         float m_AverageSummedVelocity;
+        float m_Elasticity;
+        float m_Friction;
 
         mutable glm::mat4 m_WSTransform;
         Maths::BoundingBox m_LocalBoundingBox; //!< Model orientated bounding box in model space
-        mutable bool m_WSAabbInvalidated;      //!< Flag indicating if the cached world space transoformed AABB is invalid
-        mutable Maths::BoundingBox m_WSAabb;   //!< Axis aligned bounding box of this object in world space
 
+        mutable Maths::BoundingBox m_WSAabb; //!< Axis aligned bounding box of this object in world space
+
+        mutable bool m_WSTransformInvalidated;
+        mutable bool m_WSAabbInvalidated; //!< Flag indicating if the cached world space transoformed AABB is invalid
         bool m_Static;
-        float m_Elasticity;
-        float m_Friction;
         bool m_AtRest;
+        float m_AngularFactor;
+
         UUID m_UUID;
-        // bool m_IsColliding;
 
-        //<---------LINEAR-------------->
         glm::vec3 m_Position;
-        glm::vec3 m_LinearVelocity;
-        glm::vec3 m_Force;
         float m_InvMass;
+        glm::vec3 m_LinearVelocity;
         bool m_Trigger = false;
+        glm::vec3 m_Force;
 
-        //<----------ANGULAR-------------->
         glm::quat m_Orientation;
         glm::vec3 m_AngularVelocity;
         glm::vec3 m_Torque;
         glm::mat3 m_InvInertia;
-        float m_AngularFactor;
 
-        //<----------COLLISION------------>
         SharedPtr<CollisionShape> m_CollisionShape;
         PhysicsCollisionCallback m_OnCollisionCallback;
         std::vector<OnCollisionManifoldCallback> m_OnCollisionManifoldCallbacks; //!< Collision callbacks post manifold generation

@@ -159,9 +159,9 @@ namespace Lumos
         bool m_ProjectionDirty  = false;
         bool m_CustomProjection = false;
 
-        float m_Fov = 60.0f, m_Near = 0.001f, m_Far = 1000.0f;
+        float m_Fov = 60.0f, m_Near = 0.001f, m_Far = 5000.0f;
         float m_MouseSensitivity = 0.1f;
-        float m_Aperture         = 50.0f;
+        float m_Aperture         = 55.0f;
         float m_ShutterSpeed     = 1.0f / 60.0f;
         float m_Sensitivity      = 250.0f;
 

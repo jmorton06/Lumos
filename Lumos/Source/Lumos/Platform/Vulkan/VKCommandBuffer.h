@@ -18,6 +18,7 @@ namespace Lumos
 
         class RenderPass;
         class Pipeline;
+        class VKSemaphore;
 
         class VKCommandBuffer : public CommandBuffer
         {
@@ -50,7 +51,7 @@ namespace Lumos
             VkCommandBuffer GetHandle() const { return m_CommandBuffer; };
             CommandBufferState GetState() const { return m_State; }
 
-            VkSemaphore GetSemaphore() const { return m_Semaphore; }
+            VkSemaphore GetSemaphore() const;
 
             static void MakeDefault();
 
@@ -63,7 +64,7 @@ namespace Lumos
             bool m_Primary;
             CommandBufferState m_State;
             SharedPtr<VKFence> m_Fence;
-            VkSemaphore m_Semaphore;
+            SharedPtr<VKSemaphore> m_Semaphore;
 
             uint32_t m_BoundPipelineLayer = 0;
             Pipeline* m_BoundPipeline     = nullptr;

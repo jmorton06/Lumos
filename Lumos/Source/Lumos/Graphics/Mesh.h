@@ -127,6 +127,7 @@ namespace Lumos
             const SharedPtr<Maths::BoundingBox>& GetBoundingBox() const { return m_BoundingBox; }
 
             void SetMaterial(const SharedPtr<Material>& material) { m_Material = material; }
+			void SetAndLoadMaterial(const std::string& filePath);
 
             bool& GetActive() { return m_Active; }
             void SetName(const std::string& name) { m_Name = name; }

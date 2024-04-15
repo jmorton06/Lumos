@@ -403,7 +403,7 @@ namespace Lumos
         std::cout << std::endl;
     }
 
-    void DebugRenderer::DebugDraw(const Maths::BoundingBox& box, const glm::vec4& edgeColour, bool cornersOnly, float width)
+    void DebugRenderer::DebugDraw(const Maths::BoundingBox& box, const glm::vec4& edgeColour, bool cornersOnly, bool depthTested, float width)
     {
         LUMOS_PROFILE_FUNCTION();
         glm::vec3 uuu = box.Max();
@@ -420,45 +420,45 @@ namespace Lumos
         // Draw edges
         if(!cornersOnly)
         {
-            DrawThickLine(luu, uuu, width, false, edgeColour);
-            DrawThickLine(lul, uul, width, false, edgeColour);
-            DrawThickLine(llu, ulu, width, false, edgeColour);
-            DrawThickLine(lll, ull, width, false, edgeColour);
-            DrawThickLine(lul, lll, width, false, edgeColour);
-            DrawThickLine(uul, ull, width, false, edgeColour);
-            DrawThickLine(luu, llu, width, false, edgeColour);
-            DrawThickLine(uuu, ulu, width, false, edgeColour);
-            DrawThickLine(lll, llu, width, false, edgeColour);
-            DrawThickLine(ull, ulu, width, false, edgeColour);
-            DrawThickLine(lul, luu, width, false, edgeColour);
-            DrawThickLine(uul, uuu, width, false, edgeColour);
+            DrawThickLine(luu, uuu, width, depthTested, edgeColour);
+            DrawThickLine(lul, uul, width, depthTested, edgeColour);
+            DrawThickLine(llu, ulu, width, depthTested, edgeColour);
+            DrawThickLine(lll, ull, width, depthTested, edgeColour);
+            DrawThickLine(lul, lll, width, depthTested, edgeColour);
+            DrawThickLine(uul, ull, width, depthTested, edgeColour);
+            DrawThickLine(luu, llu, width, depthTested, edgeColour);
+            DrawThickLine(uuu, ulu, width, depthTested, edgeColour);
+            DrawThickLine(lll, llu, width, depthTested, edgeColour);
+            DrawThickLine(ull, ulu, width, depthTested, edgeColour);
+            DrawThickLine(lul, luu, width, depthTested, edgeColour);
+            DrawThickLine(uul, uuu, width, depthTested, edgeColour);
         }
         else
         {
-            DrawThickLine(luu, luu + (uuu - luu) * 0.25f, width, false, edgeColour);
-            DrawThickLine(luu + (uuu - luu) * 0.75f, uuu, width, false, edgeColour);
-            DrawThickLine(lul, lul + (uul - lul) * 0.25f, width, false, edgeColour);
-            DrawThickLine(lul + (uul - lul) * 0.75f, uul, width, false, edgeColour);
-            DrawThickLine(llu, llu + (ulu - llu) * 0.25f, width, false, edgeColour);
-            DrawThickLine(llu + (ulu - llu) * 0.75f, ulu, width, false, edgeColour);
-            DrawThickLine(lll, lll + (ull - lll) * 0.25f, width, false, edgeColour);
-            DrawThickLine(lll + (ull - lll) * 0.75f, ull, width, false, edgeColour);
-            DrawThickLine(lul, lul + (lll - lul) * 0.25f, width, false, edgeColour);
-            DrawThickLine(lul + (lll - lul) * 0.75f, lll, width, false, edgeColour);
-            DrawThickLine(uul, uul + (ull - uul) * 0.25f, width, false, edgeColour);
-            DrawThickLine(uul + (ull - uul) * 0.75f, ull, width, false, edgeColour);
-            DrawThickLine(luu, luu + (llu - luu) * 0.25f, width, false, edgeColour);
-            DrawThickLine(luu + (llu - luu) * 0.75f, llu, width, false, edgeColour);
-            DrawThickLine(uuu, uuu + (ulu - uuu) * 0.25f, width, false, edgeColour);
-            DrawThickLine(uuu + (ulu - uuu) * 0.75f, ulu, width, false, edgeColour);
-            DrawThickLine(lll, lll + (llu - lll) * 0.25f, width, false, edgeColour);
-            DrawThickLine(lll + (llu - lll) * 0.75f, llu, width, false, edgeColour);
-            DrawThickLine(ull, ull + (ulu - ull) * 0.25f, width, false, edgeColour);
-            DrawThickLine(ull + (ulu - ull) * 0.75f, ulu, width, false, edgeColour);
-            DrawThickLine(lul, lul + (luu - lul) * 0.25f, width, false, edgeColour);
-            DrawThickLine(lul + (luu - lul) * 0.75f, luu, width, false, edgeColour);
-            DrawThickLine(uul, uul + (uuu - uul) * 0.25f, width, false, edgeColour);
-            DrawThickLine(uul + (uuu - uul) * 0.75f, uuu, width, false, edgeColour);
+            DrawThickLine(luu, luu + (uuu - luu) * 0.25f, width, depthTested, edgeColour);
+            DrawThickLine(luu + (uuu - luu) * 0.75f, uuu, width, depthTested, edgeColour);
+            DrawThickLine(lul, lul + (uul - lul) * 0.25f, width, depthTested, edgeColour);
+            DrawThickLine(lul + (uul - lul) * 0.75f, uul, width, depthTested, edgeColour);
+            DrawThickLine(llu, llu + (ulu - llu) * 0.25f, width, depthTested, edgeColour);
+            DrawThickLine(llu + (ulu - llu) * 0.75f, ulu, width, depthTested, edgeColour);
+            DrawThickLine(lll, lll + (ull - lll) * 0.25f, width, depthTested, edgeColour);
+            DrawThickLine(lll + (ull - lll) * 0.75f, ull, width, depthTested, edgeColour);
+            DrawThickLine(lul, lul + (lll - lul) * 0.25f, width, depthTested, edgeColour);
+            DrawThickLine(lul + (lll - lul) * 0.75f, lll, width, depthTested, edgeColour);
+            DrawThickLine(uul, uul + (ull - uul) * 0.25f, width, depthTested, edgeColour);
+            DrawThickLine(uul + (ull - uul) * 0.75f, ull, width, depthTested, edgeColour);
+            DrawThickLine(luu, luu + (llu - luu) * 0.25f, width, depthTested, edgeColour);
+            DrawThickLine(luu + (llu - luu) * 0.75f, llu, width, depthTested, edgeColour);
+            DrawThickLine(uuu, uuu + (ulu - uuu) * 0.25f, width, depthTested, edgeColour);
+            DrawThickLine(uuu + (ulu - uuu) * 0.75f, ulu, width, depthTested, edgeColour);
+            DrawThickLine(lll, lll + (llu - lll) * 0.25f, width, depthTested, edgeColour);
+            DrawThickLine(lll + (llu - lll) * 0.75f, llu, width, depthTested, edgeColour);
+            DrawThickLine(ull, ull + (ulu - ull) * 0.25f, width, depthTested, edgeColour);
+            DrawThickLine(ull + (ulu - ull) * 0.75f, ulu, width, depthTested, edgeColour);
+            DrawThickLine(lul, lul + (luu - lul) * 0.25f, width, depthTested, edgeColour);
+            DrawThickLine(lul + (luu - lul) * 0.75f, luu, width, depthTested, edgeColour);
+            DrawThickLine(uul, uul + (uuu - uul) * 0.25f, width, depthTested, edgeColour);
+            DrawThickLine(uul + (uuu - uul) * 0.75f, uuu, width, depthTested, edgeColour);
         }
     }
 

@@ -388,13 +388,18 @@ namespace Lumos
             SharedPtr<Graphics::Shader> m_SharpenShader;
 
             RenderPassesStats m_Stats;
+
+#ifdef LUMOS_PLATFORM_WINDOWS
             uint8_t m_MainTextureSamples = 4;
+#else
+            uint8_t m_MainTextureSamples = 1;
+#endif
 
             // Outline pass
             Graphics::Model* m_SelectedModel           = nullptr;
             Maths::Transform* m_SelectedModelTransform = nullptr;
 
-            SceneRenderSettings* m_OverrideSceneRenderSettings = nullptr; //For editor viewport
+            SceneRenderSettings* m_OverrideSceneRenderSettings = nullptr; // For editor viewport
 
             void TextFlush(Renderer2DData& textRenderData, std::vector<TextVertexData*>& textVertexBufferBase, TextVertexData*& textVertexBufferPtr);
         };

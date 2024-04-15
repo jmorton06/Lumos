@@ -1,0 +1,245 @@
+{
+    "Version": 2,
+    "Scene Version": 25,
+    "value0": true,
+    "value1": {
+        "Position": {
+            "value0": 0.0,
+            "value1": -0.8354345560073853,
+            "value2": 76.22335815429688
+        },
+        "Rotation": {
+            "value0": 0.0,
+            "value1": 0.0,
+            "value2": 0.0,
+            "value3": 0.9999999403953552
+        },
+        "Scale": {
+            "value0": 0.9999998211860657,
+            "value1": 0.9999998211860657,
+            "value2": 0.9999998211860657
+        }
+    },
+    "value2": true,
+    "value3": {
+        "Name": "Bonfire"
+    },
+    "value4": false,
+    "value5": true,
+    "value6": {
+        "First": 36,
+        "Next": 1048575,
+        "Previous": 1048575,
+        "Parent": 1048575
+    },
+    "value7": false,
+    "value8": false,
+    "value9": false,
+    "value10": false,
+    "value11": false,
+    "value12": false,
+    "value13": false,
+    "value14": false,
+    "value15": false,
+    "value16": false,
+    "value17": true,
+    "value18": {
+        "value0": {
+            "Position": {
+                "value0": 0.0,
+                "value1": 0.0,
+                "value2": 76.22335815429688
+            },
+            "Radius": 20.0,
+            "Pitch": 1.0,
+            "Volume": 1.0,
+            "Velocity": {
+                "value0": 0.0,
+                "value1": 0.0,
+                "value2": 0.0
+            },
+            "Looping": true,
+            "Paused": false,
+            "ReferenceDistance": 10.0,
+            "Global": false,
+            "TimeLeft": 16849.388671875,
+            "Stationary": false,
+            "SoundNodePath": "//Assets/Sounds/fire.ogg",
+            "RollOffFactor": 6.0
+        }
+    },
+    "value19": false,
+    "value20": true,
+    "value21": {
+        "value0": 11107416043673070741
+    },
+    "value22": true,
+    "value23": {
+        "PrimitiveType": 8,
+        "FilePath": "//Assets/Meshes/lowpoly_bonfire/scene.gltf",
+        "Material": {
+            "ptr_wrapper": {
+                "valid": 1,
+                "data": {
+                    "Albedo": "",
+                    "Normal": "",
+                    "Metallic": "",
+                    "Roughness": "",
+                    "Ao": "",
+                    "Emissive": "",
+                    "albedoColour": {
+                        "value0": 1.0,
+                        "value1": 1.0,
+                        "value2": 1.0,
+                        "value3": 1.0
+                    },
+                    "roughnessValue": 0.699999988079071,
+                    "metallicValue": 0.699999988079071,
+                    "emissiveValue": 0.0,
+                    "albedoMapFactor": 1.0,
+                    "metallicMapFactor": 1.0,
+                    "roughnessMapFactor": 0.0,
+                    "normalMapFactor": 1.0,
+                    "aoMapFactor": 0.0,
+                    "emissiveMapFactor": 1.0,
+                    "alphaCutOff": 0.4000000059604645,
+                    "workflow": 1.0,
+                    "shader": "C:/Dev/Lumos-Dev/Lumos/Assets/Shaders/ForwardPBR.shader",
+                    "Reflectance": 0.30000001192092898
+                }
+            }
+        }
+    },
+    "value24": false,
+    "value25": false,
+    "value26": 2,
+    "value27": true,
+    "value28": {
+        "Position": {
+            "value0": 0.0,
+            "value1": 2.349538803100586,
+            "value2": -0.00330352783203125
+        },
+        "Rotation": {
+            "value0": 0.0,
+            "value1": 0.0,
+            "value2": 0.0,
+            "value3": 1.0
+        },
+        "Scale": {
+            "value0": 1.0,
+            "value1": 1.0,
+            "value2": 1.0
+        }
+    },
+    "value29": true,
+    "value30": {
+        "Name": "Light"
+    },
+    "value31": false,
+    "value32": true,
+    "value33": {
+        "First": 1048575,
+        "Next": 58,
+        "Previous": 1048575,
+        "Parent": 35
+    },
+    "value34": false,
+    "value35": true,
+    "value36": {
+        "FilePath": "//Assets/Scripts/Script.lua"
+    },
+    "value37": false,
+    "value38": true,
+    "value39": {
+        "value0": {
+            "value0": 0.0,
+            "value1": 1.5141037702560425,
+            "value2": 76.22005462646485,
+            "value3": 1.0
+        },
+        "value1": {
+            "value0": 0.7747126221656799,
+            "value1": 0.4114605188369751,
+            "value2": 0.19590432941913606,
+            "value3": 1.0
+        },
+        "value2": 2.0,
+        "value3": 0.0,
+        "value4": {
+            "value0": 0.0,
+            "value1": 0.0,
+            "value2": 1.0,
+            "value3": 1.0
+        },
+        "value5": 500000.0,
+        "value6": 10.0
+    },
+    "value40": false,
+    "value41": false,
+    "value42": false,
+    "value43": false,
+    "value44": false,
+    "value45": false,
+    "value46": false,
+    "value47": false,
+    "value48": true,
+    "value49": {
+        "value0": 7142670811742260938
+    },
+    "value50": false,
+    "value51": false,
+    "value52": false,
+    "value53": 0,
+    "value54": true,
+    "value55": {
+        "Position": {
+            "value0": 0.0,
+            "value1": 0.0,
+            "value2": 0.0
+        },
+        "Rotation": {
+            "value0": 0.0,
+            "value1": 0.0,
+            "value2": 0.0,
+            "value3": 1.0
+        },
+        "Scale": {
+            "value0": 1.0,
+            "value1": 1.0,
+            "value2": 1.0
+        }
+    },
+    "value56": true,
+    "value57": {
+        "Name": "Particle Emitter"
+    },
+    "value58": false,
+    "value59": true,
+    "value60": {
+        "First": 4294967295,
+        "Next": 4294967295,
+        "Previous": 36,
+        "Parent": 35
+    },
+    "value61": false,
+    "value62": false,
+    "value63": false,
+    "value64": false,
+    "value65": false,
+    "value66": false,
+    "value67": false,
+    "value68": false,
+    "value69": false,
+    "value70": false,
+    "value71": false,
+    "value72": false,
+    "value73": true,
+    "value74": {
+        "value0": 14913877175427098188
+    },
+    "value75": false,
+    "value76": false,
+    "value77": false,
+    "value78": 0
+}

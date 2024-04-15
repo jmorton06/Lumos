@@ -158,9 +158,6 @@ namespace Lumos
 
         float aspect = static_cast<float>(sceneViewSize.x) / static_cast<float>(sceneViewSize.y);
 
-        if(m_Editor->GetSettings().m_HalfRes)
-            sceneViewSize *= 0.5f;
-
         sceneViewSize.x -= static_cast<int>(sceneViewSize.x) % 2 != 0 ? 1.0f : 0.0f;
         sceneViewSize.y -= static_cast<int>(sceneViewSize.y) % 2 != 0 ? 1.0f : 0.0f;
 
@@ -168,9 +165,6 @@ namespace Lumos
         sceneViewSize.y = Maths::Max(sceneViewSize.y, 2);
 
         Resize(static_cast<uint32_t>(sceneViewSize.x), static_cast<uint32_t>(sceneViewSize.y));
-
-        if(m_Editor->GetSettings().m_HalfRes)
-            sceneViewSize *= 2.0f;
 
         // Moved this exit down to prevent a crash
         if(!camera)
@@ -191,7 +185,7 @@ namespace Lumos
         ImVec2 minBound = sceneViewPosition;
 
         ImVec2 maxBound   = { minBound.x + windowSize.x, minBound.y + windowSize.y };
-        bool updateCamera = ImGui::IsMouseHoveringRect(minBound, maxBound) || Input::Get().GetMouseMode() == MouseMode::Captured;
+        bool updateCamera = ImGui::IsMouseHoveringRect(minBound, maxBound);// || Input::Get().GetMouseMode() == MouseMode::Captured;
 
         Application::Get().SetSceneActive(ImGui::IsWindowFocused() && !ImGuizmo::IsUsing() && updateCamera);
 
@@ -225,7 +219,6 @@ namespace Lumos
                     stats             = Engine::Get().Statistics();
                     RenderPassesStats = m_RenderPasses->GetRenderPassesStats();
                 }
-                Engine::Get().ResetStats();
 
                 ImGui::Text("%.2f ms (%i FPS)", stats.FrameTime, stats.FramesPerSecond);
                 ImGui::Separator();
@@ -280,9 +273,7 @@ namespace Lumos
         bool resize = false;
 
         LUMOS_ASSERT(width > 0 && height > 0, "Game View Dimensions 0");
-        const QualitySettings& qs = Application::Get().GetQualitySettings();
-        width *= qs.RendererScale;
-        height *= qs.RendererScale;
+        ;
 
         if(m_Width != width || m_Height != height)
         {
@@ -374,29 +365,13 @@ namespace Lumos
         ImGui::SameLine();
 
         {
-            selected = m_Editor->GetSettings().m_HalfRes;
-            if(selected)
-                ImGui::PushStyleColor(ImGuiCol_Text, ImGuiUtilities::GetSelectedColour());
-
-            if(ImGui::Button("Half Res"))
-                m_Editor->GetSettings().m_HalfRes = !m_Editor->GetSettings().m_HalfRes;
-
-            if(ImGui::IsItemHovered())
-                ImGui::SetTooltip("Scene view with halved resolution");
-
-            if(selected)
-                ImGui::PopStyleColor();
-        }
-
-        ImGui::SameLine();
-
-        {
             selected = m_Editor->FullScreenOnPlay();
             if(m_Editor->FullScreenOnPlay())
                 ImGui::PushStyleColor(ImGuiCol_Text, ImGuiUtilities::GetSelectedColour());
 
             if(ImGui::Button("Maximise"))
                 m_Editor->FullScreenOnPlay() = !m_Editor->FullScreenOnPlay();
+            ImGuiUtilities::ScopedStyle scopedStyle(ImGuiStyleVar_WindowPadding, ImVec2(4, 4));
 
             if(ImGui::IsItemHovered())
                 ImGui::SetTooltip("Maximise on play");

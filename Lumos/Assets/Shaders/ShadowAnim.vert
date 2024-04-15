@@ -27,8 +27,8 @@ out gl_PerVertex
 
 layout (location = 0) in vec3 position;
 
-layout(location = 5) in ivec4 inBoneIndices;
-layout(location = 6) in vec4 inBoneWeights;
+layout(location = 6) in ivec4 inBoneIndices;
+layout(location = 7) in vec4 inBoneWeights;
 
 void main()
 {

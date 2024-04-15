@@ -1,8 +1,5 @@
 #include "Precompiled.h"
 #include "Memory.h"
-#include "Allocators/BinAllocator.h"
-#include "Allocators/DefaultAllocator.h"
-#include "Allocators/StbAllocator.h"
 
 namespace Lumos
 {
@@ -29,8 +26,6 @@ namespace Lumos
 #endif
     }
 
-    Allocator* const Memory::MemoryAllocator = nullptr; // new DefaultAllocator();
-
     void* Memory::AlignedAlloc(size_t size, size_t alignment)
     {
         void* data;
@@ -55,16 +50,14 @@ namespace Lumos
 
     void* Memory::NewFunc(std::size_t size, const char* file, int line)
     {
-        void* memory;
-        if(MemoryAllocator)
-            memory = MemoryAllocator->Malloc(size, file, line);
-        else
-            memory = malloc(size);
+        void* memory = malloc(size);
 
+#ifndef LUMOS_PRODUCTION
         if(memory == nullptr)
         {
             throw std::bad_alloc();
         }
+#endif
 
 #if defined(LUMOS_PROFILE) && defined(TRACY_ENABLE) && LUMOS_TRACK_MEMORY
         TracyAlloc(memory, size);
@@ -78,17 +71,7 @@ namespace Lumos
 #if defined(LUMOS_PROFILE) && defined(TRACY_ENABLE) && LUMOS_TRACK_MEMORY
         TracyFree(p);
 #endif
-
-        if(MemoryAllocator)
-            return MemoryAllocator->Free(p);
-        else
-            return free(p);
-    }
-
-    void Memory::LogMemoryInformation()
-    {
-        if(MemoryAllocator)
-            return MemoryAllocator->Print();
+		return free(p);
     }
 
     // Arenas

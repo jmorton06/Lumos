@@ -83,10 +83,8 @@ namespace Lumos
             sol::meta_function::multiplication, [](const glm::vec4& a, const glm::vec4& b)
             { return a * b; },
             sol::meta_function::multiplication, sol::overload([](const glm::vec4& v1, const glm::vec4& v2) -> glm::vec4
-                                                              { return v1 * v2; },
-                                                              [](const glm::vec4& v1, float f) -> glm::vec4
-                                                              { return v1 * f; },
-                                                              [](float f, const glm::vec4& v1) -> glm::vec4
+                                                              { return v1 * v2; }, [](const glm::vec4& v1, float f) -> glm::vec4
+                                                              { return v1 * f; }, [](float f, const glm::vec4& v1) -> glm::vec4
                                                               { return f * v1; }),
             sol::meta_function::multiplication, [](float a, const glm::vec4& b)
             { return a * b; },

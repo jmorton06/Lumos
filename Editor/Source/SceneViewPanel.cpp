@@ -102,16 +102,10 @@ namespace Lumos
         }
         m_Editor->m_SceneViewPanelPosition = glm::vec2(sceneViewPosition.x, sceneViewPosition.y);
 
-        if(m_Editor->GetSettings().m_HalfRes)
-            sceneViewSize *= 0.5f;
-
         sceneViewSize.x -= static_cast<int>(sceneViewSize.x) % 2 != 0 ? 1.0f : 0.0f;
         sceneViewSize.y -= static_cast<int>(sceneViewSize.y) % 2 != 0 ? 1.0f : 0.0f;
 
         Resize(static_cast<uint32_t>(sceneViewSize.x), static_cast<uint32_t>(sceneViewSize.y));
-
-        if(m_Editor->GetSettings().m_HalfRes)
-            sceneViewSize *= 2.0f;
 
         ImGuiUtilities::Image(m_GameViewTexture.get(), glm::vec2(sceneViewSize.x, sceneViewSize.y), Graphics::Renderer::GetGraphicsContext()->FlipImGUITexture());
 
@@ -119,13 +113,13 @@ namespace Lumos
         ImVec2 minBound = sceneViewPosition;
 
         ImVec2 maxBound   = { minBound.x + windowSize.x, minBound.y + windowSize.y };
-        bool updateCamera = ImGui::IsMouseHoveringRect(minBound, maxBound); // || Input::Get().GetMouseMode() == MouseMode::Captured;
+        bool updateCamera = ImGui::IsMouseHoveringRect(minBound, maxBound);// || Input::Get().GetMouseMode() == MouseMode::Captured;
 
-        app.SetSceneActive(ImGui::IsWindowFocused() && !ImGuizmo::IsUsing() && updateCamera);
+       // app.SetSceneActive(true);// ImGui::IsWindowFocused() && !ImGuizmo::IsUsing() && updateCamera);
 
         ImGuizmo::SetRect(sceneViewPosition.x, sceneViewPosition.y, sceneViewSize.x, sceneViewSize.y);
 
-        m_Editor->SetSceneViewActive(updateCamera);
+        m_Editor->SetSceneViewActive(updateCamera && !Application::Get().GetSceneActive());
         {
             LUMOS_PROFILE_SCOPE("Push Clip Rect");
             ImGui::GetWindowDrawList()->PushClipRect(sceneViewPosition, { sceneViewSize.x + sceneViewPosition.x, sceneViewSize.y + sceneViewPosition.y - 2.0f });
@@ -142,7 +136,7 @@ namespace Lumos
 
         m_Editor->OnImGuizmo();
 
-        if(ImGui::IsWindowFocused() && updateCamera && app.GetSceneActive() && !ImGuizmo::IsUsing() && Input::Get().GetMouseClicked(InputCode::MouseKey::ButtonLeft))
+        if(ImGui::IsWindowFocused() && updateCamera && !ImGuizmo::IsUsing() && Input::Get().GetMouseClicked(InputCode::MouseKey::ButtonLeft))
         {
             LUMOS_PROFILE_SCOPE("Select Object");
 
@@ -151,6 +145,27 @@ namespace Lumos
 
             Maths::Ray ray = m_Editor->GetScreenRay(int(clickPos.x), int(clickPos.y), camera, int(sceneViewSize.x / dpi), int(sceneViewSize.y / dpi));
             m_Editor->SelectObject(ray);
+        }
+
+        if(ImGui::IsWindowFocused() && updateCamera && !ImGuizmo::IsUsing() && ImGui::IsItemHovered() && Input::Get().GetMouseMode() == MouseMode::Visible)
+        {
+            LUMOS_PROFILE_SCOPE("Hover Object");
+
+            float dpi     = Application::Get().GetWindowDPI();
+            auto clickPos = Input::Get().GetMousePosition() - glm::vec2(sceneViewPosition.x / dpi, sceneViewPosition.y / dpi);
+
+            Maths::Ray ray = m_Editor->GetScreenRay(int(clickPos.x), int(clickPos.y), camera, int(sceneViewSize.x / dpi), int(sceneViewSize.y / dpi));
+            m_Editor->SelectObject(ray, true);
+        }
+        else
+            m_Editor->SetHoveredEntity({});
+
+        if(m_Editor->GetHoveredEntity())
+        {
+            ImGuiUtilities::ScopedStyle scopedStyle(ImGuiStyleVar_WindowPadding, ImVec2(4, 4));
+            ImGui::BeginTooltip();
+            ImGui::TextUnformatted(m_Editor->GetHoveredEntity().GetName().c_str());
+            ImGui::EndTooltip();
         }
 
         const ImGuiPayload* payload = ImGui::GetDragDropPayload();
@@ -585,10 +600,6 @@ namespace Lumos
         bool resize = false;
 
         LUMOS_ASSERT(width > 0 && height > 0, "Scene View Dimensions 0");
-
-        const QualitySettings& qs = Application::Get().GetQualitySettings();
-        width *= qs.RendererScale;
-        height *= qs.RendererScale;
 
         Application::Get().SetSceneViewDimensions(width, height);
 

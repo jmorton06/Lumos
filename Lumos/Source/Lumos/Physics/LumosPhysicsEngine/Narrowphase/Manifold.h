@@ -29,7 +29,7 @@ namespace Lumos
         ~Manifold();
 
         // Initiate for collision pair
-        void Initiate(RigidBody3D* nodeA, RigidBody3D* nodeB);
+        void Initiate(RigidBody3D* nodeA, RigidBody3D* nodeB, float BaumgarteScalar, float BaumgarteSlop);
 
         // Called whenever a new collision contact between A & B are found
         void AddContact(const glm::vec3& globalOnA, const glm::vec3& globalOnB, const glm::vec3& _normal, const float& _penetration);
@@ -60,5 +60,7 @@ namespace Lumos
         RigidBody3D* m_pNodeB;
         ContactPoint m_vContacts[MAX_CONTACT_POINTS];
         uint32_t m_ContactCount = 0;
+        float m_BaumgarteScalar = 0.2f;   // Amount of force to add to the System to solve error
+        float m_BaumgarteSlop   = 0.001f; // Amount of allowed penetration, ensures a complete manifold each frame
     };
 }

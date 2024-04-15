@@ -8,11 +8,13 @@
 #include "VKInitialisers.h"
 #include "VKCommandBuffer.h"
 #include "VKSwapChain.h"
+#include "VKSemaphore.h"
 #include "Core/Engine.h"
 #include "Core/Application.h"
 #include "Core/OS/Window.h"
 
 #include "stb_image_write.h"
+#include <filesystem>
 
 namespace Lumos
 {
@@ -142,7 +144,12 @@ namespace Lumos
             auto& frameData = swapChain->GetCurrentFrameData();
             auto semaphore  = frameData.MainCommandBuffer->GetSemaphore();
 
-            swapChain->Present(semaphore);
+            ArenaTemp scratch = ScratchBegin(nullptr, 0);
+            Vector<VkSemaphore> semaphores(scratch.arena);
+            semaphores.EmplaceBack(semaphore);
+            semaphores.EmplaceBack(frameData.ImageAcquireSemaphore->GetHandle());
+            swapChain->Present(semaphores);
+            ScratchEnd(scratch);
         }
 
         const std::string& VKRenderer::GetTitleInternal() const
@@ -169,7 +176,6 @@ namespace Lumos
             vkGetPhysicalDeviceFormatProperties(VKDevice::Get().GetGPU(), VK_FORMAT_R8G8B8A8_UNORM, &formatProps);
             if(!(formatProps.linearTilingFeatures & VK_FORMAT_FEATURE_BLIT_DST_BIT))
             {
-                std::cerr << "Device does not support blitting to linear tiled images, using copy instead of blit!" << std::endl;
                 supportsBlit = false;
             }
 
@@ -343,6 +349,10 @@ file << "P6\n"
 
             uint32_t width  = texture->GetWidth();
             uint32_t height = texture->GetHeight();
+
+            //Create directory if needed
+            std::filesystem::create_directories(std::filesystem::path(path).parent_path()); //TODO: move this away from vkrenderer
+
 
             int32_t resWrite = stbi_write_png(
                 path.c_str(),

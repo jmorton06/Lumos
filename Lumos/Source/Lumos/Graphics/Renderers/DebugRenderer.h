@@ -162,7 +162,7 @@ namespace Lumos
         static void SortLists();
         static void ClearLogEntries();
 
-        static void DebugDraw(const Maths::BoundingBox& box, const glm::vec4& edgeColour, bool cornersOnly = false, float width = 0.02f);
+        static void DebugDraw(const Maths::BoundingBox& box, const glm::vec4& edgeColour, bool cornersOnly = false, bool depthTested = false, float width = 0.02f);
         static void DebugDraw(const Maths::BoundingSphere& sphere, const glm::vec4& colour);
         static void DebugDraw(Maths::Frustum& frustum, const glm::vec4& colour);
         static void DebugDraw(Graphics::Light* light, const glm::quat& rotation, const glm::vec4& colour);

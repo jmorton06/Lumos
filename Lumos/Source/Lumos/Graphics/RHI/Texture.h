@@ -24,7 +24,7 @@ namespace Lumos
             virtual RHIFormat GetFormat() const                = 0;
             virtual void GenerateMipMaps(CommandBuffer* commandBuffer = nullptr) { }
             virtual void SetName(const std::string& name) {};
-			virtual uint8_t GetSamples() const { return 0; }
+            virtual uint8_t GetSamples() const { return 0; }
 
             virtual uint32_t GetSize() const { return 0; }
             virtual uint32_t GetMipMapLevels() const { return 0; }

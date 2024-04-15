@@ -12,10 +12,11 @@ namespace Lumos
     namespace Graphics
     {
         class VKFence;
+        class VKSemaphore;
 
         struct FrameData
         {
-            VkSemaphore PresentSemaphore = VK_NULL_HANDLE;
+            SharedPtr<VKSemaphore> ImageAcquireSemaphore;
             SharedPtr<VKCommandPool> CommandPool;
             SharedPtr<VKCommandBuffer> MainCommandBuffer;
         };
@@ -32,7 +33,7 @@ namespace Lumos
             void CreateFrameData();
             void AcquireNextImage();
             void QueueSubmit();
-            void Present(VkSemaphore semaphore);
+            void Present(const Vector<VkSemaphore>& semaphore);
             void Begin();
             void End();
             void OnResize(uint32_t width, uint32_t height, bool forceResize = false, Window* windowHandle = nullptr);

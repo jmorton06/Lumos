@@ -59,7 +59,7 @@ namespace Lumos
             m_Velocity -= up * m_CameraSpeed;
         }
 
-        if(m_Velocity.length() > Maths::M_EPSILON)
+        if(glm::length(m_Velocity) > Maths::M_EPSILON)
         {
             glm::vec3 position = transform.GetLocalPosition();
             position += m_Velocity * dt;

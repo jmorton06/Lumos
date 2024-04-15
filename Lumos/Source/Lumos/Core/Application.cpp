@@ -37,6 +37,7 @@
 #include "Audio/Sound.h"
 #include "Physics/B2PhysicsEngine/B2PhysicsEngine.h"
 #include "Physics/LumosPhysicsEngine/LumosPhysicsEngine.h"
+#include "Embedded/EmbedAsset.h"
 
 #define SERIALISATION_INCLUDE_ONLY
 #include "Scene/SerialisationImplementation.h"
@@ -86,9 +87,9 @@ namespace Lumos
         auto projectRoot                = StringUtilities::GetFileLocation(filePath);
         m_ProjectSettings.m_ProjectRoot = projectRoot;
 
-		String8 pathCopy = PushStr8Copy(m_FrameArena, projectRoot.c_str());
-		pathCopy = StringUtilities::ResolveRelativePath(m_FrameArena, pathCopy);
-		m_ProjectSettings.m_ProjectRoot = (const char*)pathCopy.str;
+        String8 pathCopy                = PushStr8Copy(m_FrameArena, projectRoot.c_str());
+        pathCopy                        = StringUtilities::ResolveRelativePath(m_FrameArena, pathCopy);
+        m_ProjectSettings.m_ProjectRoot = (const char*)pathCopy.str;
 #endif
 
         if(!FileSystem::FolderExists(m_ProjectSettings.m_ProjectRoot + "Assets/Prefabs"))
@@ -113,9 +114,9 @@ namespace Lumos
         m_ProjectSettings.m_ProjectRoot = path + name + "/";
         m_ProjectSettings.m_ProjectName = name;
 
-		String8 pathCopy = PushStr8Copy(m_FrameArena, m_ProjectSettings.m_ProjectRoot.c_str());
-		pathCopy = StringUtilities::ResolveRelativePath(m_FrameArena, pathCopy);
-		m_ProjectSettings.m_ProjectRoot = (const char*)pathCopy.str;
+        String8 pathCopy                = PushStr8Copy(m_FrameArena, m_ProjectSettings.m_ProjectRoot.c_str());
+        pathCopy                        = StringUtilities::ResolveRelativePath(m_FrameArena, pathCopy);
+        m_ProjectSettings.m_ProjectRoot = (const char*)pathCopy.str;
 
         std::filesystem::create_directory(m_ProjectSettings.m_ProjectRoot);
 
@@ -252,6 +253,25 @@ namespace Lumos
         if(FileSystem::FolderExists(m_ProjectSettings.m_EngineAssetPath + "Shaders"))
             loadEmbeddedShaders = false;
 
+        if (!loadEmbeddedShaders)
+        {
+            std::string coreDataPath;
+            auto shaderPath = std::filesystem::path(m_ProjectSettings.m_EngineAssetPath + "Shaders/CompiledSPV/");
+            int shaderCount = 0;
+            if (std::filesystem::is_directory(shaderPath))
+            {
+                for (auto entry : std::filesystem::directory_iterator(shaderPath))
+                {
+                    auto extension = StringUtilities::GetFilePathExtension(entry.path().string());
+                    if (extension == "spv")
+                    {
+                        EmbedShader(entry.path().string());
+                        shaderCount++;
+                    }
+                }
+            }
+            LUMOS_LOG_INFO("Embedded {0} shaders.", shaderCount);
+        }
         Graphics::Renderer::Init(loadEmbeddedShaders, m_ProjectSettings.m_EngineAssetPath);
 
         if(m_ProjectSettings.Fullscreen)
@@ -454,6 +474,7 @@ namespace Lumos
         if(!m_Minimized)
         {
             LUMOS_PROFILE_SCOPE("Application::Render");
+			Engine::Get().ResetStats();
 
             Graphics::Renderer::GetRenderer()->Begin();
             OnRender();
@@ -464,11 +485,10 @@ namespace Lumos
             DebugRenderer::Reset((float)ts.GetSeconds());
             OnDebugDraw();
 
-            // Graphics::Pipeline::DeleteUnusedCache();
-            // Graphics::Framebuffer::DeleteUnusedCache();
-            // Graphics::RenderPass::DeleteUnusedCache();
+			Graphics::Pipeline::DeleteUnusedCache();
+			Graphics::Framebuffer::DeleteUnusedCache();
+			Graphics::RenderPass::DeleteUnusedCache();
 
-            // m_ShaderLibrary->Update(ts.GetElapsedSeconds());
             m_AssetManager->Update((float)ts.GetElapsedSeconds());
             m_Frames++;
         }
@@ -489,13 +509,6 @@ namespace Lumos
             m_Window->OnUpdate();
         }
 
-        {
-            System::JobSystem::Wait(context);
-
-            m_SystemManager->GetSystem<LumosPhysicsEngine>()->SyncTransforms(m_SceneManager->GetCurrentScene());
-            m_SystemManager->GetSystem<B2PhysicsEngine>()->SyncTransforms(m_SceneManager->GetCurrentScene());
-        }
-
         if(now - m_SecondTimer > 1.0f)
         {
             LUMOS_PROFILE_SCOPE("Application::FrameRateCalc");
@@ -510,6 +523,14 @@ namespace Lumos
 
         if(!m_Minimized)
             Graphics::Renderer::GetRenderer()->Present();
+
+        // Sync transforms from physics for the next frame
+        {
+            System::JobSystem::Wait(context);
+
+            m_SystemManager->GetSystem<LumosPhysicsEngine>()->SyncTransforms(m_SceneManager->GetCurrentScene());
+            m_SystemManager->GetSystem<B2PhysicsEngine>()->SyncTransforms(m_SceneManager->GetCurrentScene());
+        }
 
         return m_CurrentState != AppState::Closing;
     }
@@ -713,7 +734,7 @@ namespace Lumos
         // Save Asset Registry
         {
             String8 path = PushStr8F(m_FrameArena, "%sAssetRegistry.lmar", m_ProjectSettings.m_ProjectRoot.c_str()); // m_ProjectSettings.m_ProjectRoot + std::string("AssetRegistry.lmar");
-            SerialialiseAssetRegistry(path, m_AssetManager->GetAssetRegistry());
+            SerialiseAssetRegistry(path, m_AssetManager->GetAssetRegistry());
         }
     }
 
@@ -801,7 +822,9 @@ namespace Lumos
                 {
                     String8 path = PushStr8F(m_FrameArena, "%sAssetRegistry.lmar", m_ProjectSettings.m_ProjectRoot.c_str());
                     if(FileSystem::FileExists((const char*)path.str))
-                        DeserialialiseAssetRegistry(path, m_AssetManager->GetAssetRegistry());
+                    {
+                        DeserialiseAssetRegistry(path, m_AssetManager->GetAssetRegistry());
+                    }
                 }
             }
             catch(...)
