@@ -15,13 +15,14 @@
 
 #include "Maths/Transform.h"
 #include "ImGui/ImGuiUtilities.h"
+#include "Utilities/Colour.h"
 
 #include <imgui/imgui.h>
 
 namespace Lumos
 {
 
-    float LumosPhysicsEngine::s_UpdateTimestep = 1.0f / 120.0f;
+    float LumosPhysicsEngine::s_UpdateTimestep = 1.0f / 60.0f;
 
     LumosPhysicsEngine::LumosPhysicsEngine(const LumosPhysicsEngineConfig& config)
         : m_IsPaused(true)
@@ -31,12 +32,14 @@ namespace Lumos
         , m_BroadphaseDetection(nullptr)
         , m_IntegrationType(config.IntegrType)
         , m_RootBody(nullptr)
+        , m_BaumgarteScalar(config.BaumgarteScalar)
+        , m_BaumgarteSlop(config.BaumgarteSlop)
     {
         m_DebugName = "Lumos3DPhysicsEngine";
         m_BroadphaseCollisionPairs.Reserve(1000);
 
         m_Allocator = new PoolAllocator<RigidBody3D>();
-        m_Arena     = ArenaAlloc(Megabytes(1));
+        m_Arena     = ArenaAlloc(Megabytes(4));
     }
 
     void LumosPhysicsEngine::SetDefaults()
@@ -47,6 +50,8 @@ namespace Lumos
         m_Gravity         = glm::vec3(0.0f, -9.81f, 0.0f);
         m_DampingFactor   = 0.9995f;
         m_IntegrationType = IntegrationType::RUNGE_KUTTA_4;
+        m_BaumgarteScalar = 0.3f;
+        m_BaumgarteSlop   = 0.001f;
     }
 
     LumosPhysicsEngine::~LumosPhysicsEngine()
@@ -76,7 +81,13 @@ namespace Lumos
                 uint32_t constraintIndex = 0;
                 for(auto entity : viewSpring)
                 {
-                    m_Constraints[constraintIndex++] = viewSpring.get<SpringConstraintComponent>(entity).GetConstraint();
+                    auto& springComp = viewSpring.get<SpringConstraintComponent>(entity);
+
+                    if(!springComp.Initialised())
+                        springComp.Initialise();
+
+                    if(springComp.Initialised())
+                        m_Constraints[constraintIndex++] = viewSpring.get<SpringConstraintComponent>(entity).GetConstraint();
                 }
 
                 for(auto entity : viewAxis)
@@ -118,15 +129,13 @@ namespace Lumos
                     m_UpdateAccum = 0.0f;
                 }
             }
-
-            m_ConstraintCount = 0;
         }
     }
 
     void LumosPhysicsEngine::UpdatePhysics()
     {
         m_ManifoldCount = 0;
-        m_Manifolds     = PushArrayNoZero(m_Arena, Manifold, 100);
+        m_Manifolds     = PushArrayNoZero(m_Arena, Manifold, 1000);
 
         // Check for collisions
         BroadPhaseCollisions();
@@ -134,7 +143,6 @@ namespace Lumos
 
         // Solve collision constraints
         SolveConstraints();
-
         // Update movement
         for(int i = 0; i < m_PositionIterations; i++)
             UpdateRigidBodys();
@@ -172,6 +180,8 @@ namespace Lumos
 
     RigidBody3D* LumosPhysicsEngine::CreateBody(const RigidBody3DProperties& properties)
     {
+		m_RigidBodyCount++;
+
         void* mem = m_Allocator->Allocate();
 
         RigidBody3D* body = new(mem) RigidBody3D();
@@ -189,6 +199,8 @@ namespace Lumos
 
     void LumosPhysicsEngine::DestroyBody(RigidBody3D* body)
     {
+		m_RigidBodyCount--;
+
         // Remove world body list.
         if(body->m_Prev)
         {
@@ -389,15 +401,15 @@ namespace Lumos
         LUMOS_PROFILE_FUNCTION();
         m_BroadphaseCollisionPairs.Clear();
         if(m_BroadphaseDetection)
-            m_BroadphaseDetection->FindPotentialCollisionPairs(m_RootBody, m_BroadphaseCollisionPairs);
+            m_BroadphaseDetection->FindPotentialCollisionPairs(m_RootBody, m_BroadphaseCollisionPairs, m_RigidBodyCount);
 
 #ifdef CHECK_COLLISION_PAIR_DUPLICATES
 
         uint32_t duplicatePairs = 0;
-        for(size_t i = 0; i < m_BroadphaseCollisionPairs.size(); ++i)
+        for(size_t i = 0; i < m_BroadphaseCollisionPairs.Size(); ++i)
         {
             auto& pair = m_BroadphaseCollisionPairs[i];
-            for(size_t j = i + 1; j < m_BroadphaseCollisionPairs.size(); ++j)
+            for(size_t j = i + 1; j < m_BroadphaseCollisionPairs.Size(); ++j)
             {
                 auto& pair2 = m_BroadphaseCollisionPairs[j];
                 if(pair.pObjectA == pair2.pObjectA && pair.pObjectB == pair2.pObjectB)
@@ -423,6 +435,7 @@ namespace Lumos
 
         m_Stats.NarrowPhaseCount = (uint32_t)m_BroadphaseCollisionPairs.Size();
         m_Stats.CollisionCount   = 0;
+        CollisionData colData;
 
         for(auto& cp : m_BroadphaseCollisionPairs)
         {
@@ -431,7 +444,15 @@ namespace Lumos
 
             if(shapeA && shapeB)
             {
-                CollisionData colData;
+
+                // Broadphase debug draw
+                if(m_DebugDrawFlags & PhysicsDebugFlags::BROADPHASE_PAIRS)
+                {
+                    glm::vec4 colour = Colour::RandomColour();
+                    DebugRenderer::DrawThickLine(cp.pObjectA->GetPosition(), cp.pObjectB->GetPosition(), 0.02f, false, colour);
+                    DebugRenderer::DrawPoint(cp.pObjectA->GetPosition(), 0.05f, false, colour);
+                    DebugRenderer::DrawPoint(cp.pObjectB->GetPosition(), 0.05f, false, colour);
+                }
 
                 // Detects if the objects are colliding - Seperating Axis Theorem
                 if(CollisionDetection::Get().CheckCollision(cp.pObjectA, cp.pObjectB, shapeA.get(), shapeB.get(), &colData))
@@ -447,8 +468,9 @@ namespace Lumos
                         // response between the two objects in the solver stage
                         m_ManifoldLock.lock();
                         Manifold& manifold = m_Manifolds[m_ManifoldCount++];
-                        manifold.Initiate(cp.pObjectA, cp.pObjectB);
+                        manifold.Initiate(cp.pObjectA, cp.pObjectB, m_BaumgarteScalar, m_BaumgarteSlop);
 
+                        LUMOS_ASSERT(m_ManifoldCount < 1000);
                         // Construct contact points that form the perimeter of the collision manifold
                         if(CollisionDetection::Get().BuildCollisionManifold(cp.pObjectA, cp.pObjectB, shapeA.get(), shapeB.get(), colData, &manifold))
                         {
@@ -552,7 +574,7 @@ namespace Lumos
             m_BroadphaseDetection = Lumos::CreateSharedPtr<BruteForceBroadphase>();
             break;
         case BroadphaseType::OCTREE:
-            m_BroadphaseDetection = Lumos::CreateSharedPtr<OctreeBroadphase>(5, 5);
+            m_BroadphaseDetection = Lumos::CreateSharedPtr<OctreeBroadphase>(5, 8);
             break;
         default:
             m_BroadphaseDetection = Lumos::CreateSharedPtr<BruteForceBroadphase>();
@@ -653,6 +675,9 @@ namespace Lumos
             for(uint32_t index = 0; index < m_ManifoldCount; index++)
                 m_Manifolds[index].DebugDraw();
         }
+
+        if(m_IsPaused)
+            m_ManifoldCount = 0;
 
         // Draw all constraints
         if(m_DebugDrawFlags & PhysicsDebugFlags::CONSTRAINT)

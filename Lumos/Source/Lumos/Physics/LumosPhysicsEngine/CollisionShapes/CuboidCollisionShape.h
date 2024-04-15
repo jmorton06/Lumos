@@ -34,17 +34,23 @@ namespace Lumos
         void SetHalfWidth(float half_width)
         {
             m_CuboidHalfDimensions.x = fabs(half_width);
-            m_LocalTransform         = glm::scale(glm::mat4(1.0), m_CuboidHalfDimensions);
+            m_CubeHull->Set(-m_CuboidHalfDimensions, m_CuboidHalfDimensions);
+            m_CubeHull->UpdateHull();
+            // m_LocalTransform         = glm::scale(glm::mat4(1.0), m_CuboidHalfDimensions);
         }
         void SetHalfHeight(float half_height)
         {
             m_CuboidHalfDimensions.y = fabs(half_height);
-            m_LocalTransform         = glm::scale(glm::mat4(1.0), m_CuboidHalfDimensions);
+            m_CubeHull->Set(-m_CuboidHalfDimensions, m_CuboidHalfDimensions);
+            m_CubeHull->UpdateHull();
+            // m_LocalTransform         = glm::scale(glm::mat4(1.0), m_CuboidHalfDimensions);
         }
         void SetHalfDepth(float half_depth)
         {
             m_CuboidHalfDimensions.z = fabs(half_depth);
-            m_LocalTransform         = glm::scale(glm::mat4(1.0), m_CuboidHalfDimensions);
+            m_CubeHull->Set(-m_CuboidHalfDimensions, m_CuboidHalfDimensions);
+            m_CubeHull->UpdateHull();
+            // m_LocalTransform         = glm::scale(glm::mat4(1.0), m_CuboidHalfDimensions);
         }
 
         // Get Cuboid Dimensions
@@ -68,7 +74,9 @@ namespace Lumos
         void SetHalfDimensions(const glm::vec3& dims)
         {
             m_CuboidHalfDimensions = dims;
-            m_LocalTransform       = glm::scale(glm::mat4(1.0), m_CuboidHalfDimensions);
+            m_CubeHull->Set(-m_CuboidHalfDimensions, m_CuboidHalfDimensions);
+            m_CubeHull->UpdateHull();
+            // m_LocalTransform       = glm::scale(glm::mat4(1.0), m_CuboidHalfDimensions);
         }
 
         virtual float GetSize() const override
@@ -86,9 +94,10 @@ namespace Lumos
         void load(Archive& archive)
         {
             archive(m_CuboidHalfDimensions);
-
-            m_LocalTransform = glm::scale(glm::mat4(1.0), m_CuboidHalfDimensions);
-            m_Type           = CollisionShapeType::CollisionCuboid;
+            m_CubeHull->Set(-m_CuboidHalfDimensions, m_CuboidHalfDimensions);
+            m_CubeHull->UpdateHull();
+            // m_LocalTransform = glm::scale(glm::mat4(1.0), m_CuboidHalfDimensions);
+            m_Type = CollisionShapeType::CollisionCuboid;
 
             if(m_CubeHull->GetNumVertices() == 0)
             {
@@ -103,7 +112,7 @@ namespace Lumos
     protected:
         glm::vec3 m_CuboidHalfDimensions;
 
-        static SharedPtr<Hull> m_CubeHull;
+        SharedPtr<BoundingBoxHull> m_CubeHull;
     };
 
 }

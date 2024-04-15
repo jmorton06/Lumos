@@ -4,7 +4,7 @@
 
 namespace Lumos
 {
-    void SerialialiseAssetRegistry(const String8& path, const AssetRegistry& registry)
+    void SerialiseAssetRegistry(const String8& path, const AssetRegistry& registry)
     {
         std::stringstream storage;
         {
@@ -17,7 +17,7 @@ namespace Lumos
         FileSystem::WriteTextFile((const char*)path.str, storage.str());
     }
 
-    void DeserialialiseAssetRegistry(const String8& path, AssetRegistry& registry)
+    void DeserialiseAssetRegistry(const String8& path, AssetRegistry& registry)
     {
         std::string data = FileSystem::ReadTextFile((const char*)path.str);
         std::istringstream istr;

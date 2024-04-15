@@ -5,20 +5,14 @@
 
 namespace Lumos
 {
-
-    SharedPtr<Hull> CuboidCollisionShape::m_CubeHull = CreateSharedPtr<Hull>();
-
     CuboidCollisionShape::CuboidCollisionShape()
     {
         m_CuboidHalfDimensions = glm::vec3(0.5f, 0.5f, 0.5f);
         m_Type                 = CollisionShapeType::CollisionCuboid;
-        m_LocalTransform       = glm::scale(glm::mat4(1.0), m_CuboidHalfDimensions);
-
-        if(m_CubeHull->GetNumVertices() == 0)
-        {
-            ConstructCubeHull();
-        }
-
+        m_LocalTransform       = glm::mat4(1.0f); // glm::scale(glm::mat4(1.0), m_CuboidHalfDimensions);
+        m_CubeHull             = CreateSharedPtr<BoundingBoxHull>();
+        m_CubeHull->Set(-m_CuboidHalfDimensions, m_CuboidHalfDimensions);
+        m_CubeHull->UpdateHull();
         m_Axes.resize(3);
         m_Edges.resize(m_CubeHull->GetNumEdges());
     }
@@ -26,13 +20,12 @@ namespace Lumos
     CuboidCollisionShape::CuboidCollisionShape(const glm::vec3& halfdims)
     {
         m_CuboidHalfDimensions = halfdims;
-        m_LocalTransform       = glm::scale(glm::mat4(1.0), halfdims);
+        m_LocalTransform       = glm::mat4(1.0f); // glm::scale(glm::mat4(1.0), halfdims);
         m_Type                 = CollisionShapeType::CollisionCuboid;
 
-        if(m_CubeHull->GetNumVertices() == 0)
-        {
-            ConstructCubeHull();
-        }
+        m_CubeHull = CreateSharedPtr<BoundingBoxHull>();
+        m_CubeHull->Set(-m_CuboidHalfDimensions, m_CuboidHalfDimensions);
+        m_CubeHull->UpdateHull();
 
         m_Axes.resize(3);
         m_Edges.resize(m_CubeHull->GetNumEdges());
@@ -94,7 +87,7 @@ namespace Lumos
     {
         LUMOS_PROFILE_FUNCTION_LOW();
         glm::mat4 wsTransform      = currentObject ? currentObject->GetWorldSpaceTransform() * m_LocalTransform : m_LocalTransform;
-        const glm::vec3 local_axis = glm::transpose(wsTransform) * glm::vec4(axis, 1.0f);
+        const glm::vec3 local_axis = glm::transpose(glm::mat3(wsTransform)) * axis;
 
         int vMin, vMax;
 
@@ -113,8 +106,8 @@ namespace Lumos
         LUMOS_PROFILE_FUNCTION_LOW();
         glm::mat4 wsTransform = currentObject ? currentObject->GetWorldSpaceTransform() * m_LocalTransform : m_LocalTransform;
 
-        const glm::mat3 invNormalMatrix = glm::inverse(glm::mat3(wsTransform));
-        const glm::mat3 normalMatrix    = glm::transpose(invNormalMatrix);
+        const glm::mat3 invNormalMatrix = glm::transpose(glm::mat3(wsTransform));
+        const glm::mat3 normalMatrix    = glm::inverse(invNormalMatrix);
 
         const glm::vec3 local_axis = invNormalMatrix * axis;
 
@@ -200,29 +193,29 @@ namespace Lumos
     {
         LUMOS_PROFILE_FUNCTION_LOW();
         // Vertices
-        m_CubeHull->AddVertex(glm::vec3(-1.0f, -1.0f, -1.0f)); // 0
-        m_CubeHull->AddVertex(glm::vec3(-1.0f, 1.0f, -1.0f));  // 1
-        m_CubeHull->AddVertex(glm::vec3(1.0f, 1.0f, -1.0f));   // 2
-        m_CubeHull->AddVertex(glm::vec3(1.0f, -1.0f, -1.0f));  // 3
+        // m_CubeHull->AddVertex(glm::vec3(-1.0f, -1.0f, -1.0f)); // 0
+        // m_CubeHull->AddVertex(glm::vec3(-1.0f, 1.0f, -1.0f));  // 1
+        // m_CubeHull->AddVertex(glm::vec3(1.0f, 1.0f, -1.0f));   // 2
+        // m_CubeHull->AddVertex(glm::vec3(1.0f, -1.0f, -1.0f));  // 3
 
-        m_CubeHull->AddVertex(glm::vec3(-1.0f, -1.0f, 1.0f)); // 4
-        m_CubeHull->AddVertex(glm::vec3(-1.0f, 1.0f, 1.0f));  // 5
-        m_CubeHull->AddVertex(glm::vec3(1.0f, 1.0f, 1.0f));   // 6
-        m_CubeHull->AddVertex(glm::vec3(1.0f, -1.0f, 1.0f));  // 7
+        // m_CubeHull->AddVertex(glm::vec3(-1.0f, -1.0f, 1.0f)); // 4
+        // m_CubeHull->AddVertex(glm::vec3(-1.0f, 1.0f, 1.0f));  // 5
+        // m_CubeHull->AddVertex(glm::vec3(1.0f, 1.0f, 1.0f));   // 6
+        // m_CubeHull->AddVertex(glm::vec3(1.0f, -1.0f, 1.0f));  // 7
 
-        int face1[] = { 0, 1, 2, 3 };
-        int face2[] = { 7, 6, 5, 4 };
-        int face3[] = { 5, 6, 2, 1 };
-        int face4[] = { 0, 3, 7, 4 };
-        int face5[] = { 6, 7, 3, 2 };
-        int face6[] = { 4, 5, 1, 0 };
+        // int face1[] = { 0, 1, 2, 3 };
+        // int face2[] = { 7, 6, 5, 4 };
+        // int face3[] = { 5, 6, 2, 1 };
+        // int face4[] = { 0, 3, 7, 4 };
+        // int face5[] = { 6, 7, 3, 2 };
+        // int face6[] = { 4, 5, 1, 0 };
 
-        // Faces
-        m_CubeHull->AddFace(glm::vec3(0.0f, 0.0f, -1.0f), 4, face1);
-        m_CubeHull->AddFace(glm::vec3(0.0f, 0.0f, 1.0f), 4, face2);
-        m_CubeHull->AddFace(glm::vec3(0.0f, 1.0f, 0.0f), 4, face3);
-        m_CubeHull->AddFace(glm::vec3(0.0f, -1.0f, 0.0f), 4, face4);
-        m_CubeHull->AddFace(glm::vec3(1.0f, 0.0f, 0.0f), 4, face5);
-        m_CubeHull->AddFace(glm::vec3(-1.0f, 0.0f, 0.0f), 4, face6);
+        //// Faces
+        // m_CubeHull->AddFace(glm::vec3(0.0f, 0.0f, -1.0f), 4, face1);
+        // m_CubeHull->AddFace(glm::vec3(0.0f, 0.0f, 1.0f), 4, face2);
+        // m_CubeHull->AddFace(glm::vec3(0.0f, 1.0f, 0.0f), 4, face3);
+        // m_CubeHull->AddFace(glm::vec3(0.0f, -1.0f, 0.0f), 4, face4);
+        // m_CubeHull->AddFace(glm::vec3(1.0f, 0.0f, 0.0f), 4, face5);
+        // m_CubeHull->AddFace(glm::vec3(-1.0f, 0.0f, 0.0f), 4, face6);
     }
 }

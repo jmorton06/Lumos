@@ -27,18 +27,17 @@ namespace Lumos
 
     void HullCollisionShape::BuildFromMesh(Graphics::Mesh* mesh)
     {
-        m_Hull = CreateSharedPtr<Hull>();
+        m_Hull               = CreateSharedPtr<Hull>();
         const auto& vertices = mesh->GetVertices();
-        const auto& indices = mesh->GetIndices();
+        const auto& indices  = mesh->GetIndices();
 
+        /*     auto vertexBuffer          = mesh->GetVertexBuffer();
+             Graphics::Vertex* vertices = vertexBuffer->GetPointer<Graphics::Vertex>();
+             uint32_t size              = vertexBuffer->GetSize();
+             uint32_t count             = size / sizeof(Graphics::Vertex);
 
-   /*     auto vertexBuffer          = mesh->GetVertexBuffer();
-        Graphics::Vertex* vertices = vertexBuffer->GetPointer<Graphics::Vertex>();
-        uint32_t size              = vertexBuffer->GetSize();
-        uint32_t count             = size / sizeof(Graphics::Vertex);
-
-        uint32_t* indices   = mesh->GetIndexBuffer()->GetPointer<uint32_t>();
-        uint32_t indexCount = mesh->GetIndexBuffer()->GetCount();*/
+             uint32_t* indices   = mesh->GetIndexBuffer()->GetPointer<uint32_t>();
+             uint32_t indexCount = mesh->GetIndexBuffer()->GetCount();*/
 
         for(size_t i = 0; i < vertices.size(); i++)
         {
@@ -122,16 +121,15 @@ namespace Lumos
     void HullCollisionShape::GetMinMaxVertexOnAxis(const RigidBody3D* currentObject, const glm::vec3& axis, glm::vec3* out_min, glm::vec3* out_max) const
     {
         LUMOS_PROFILE_FUNCTION_LOW();
-        glm::mat4 wsTransform      = glm::transpose(currentObject ? currentObject->GetWorldSpaceTransform() * m_LocalTransform : m_LocalTransform);
-        const glm::vec3 local_axis = wsTransform * glm::vec4(axis, 1.0f);
+        glm::mat4 wsTransform      = currentObject ? currentObject->GetWorldSpaceTransform() * m_LocalTransform : m_LocalTransform;
+        const glm::vec3 local_axis = glm::transpose(wsTransform) * glm::vec4(axis, 1.0f);
 
         int vMin, vMax;
-
-        if (!m_Hull)
+        if(!m_Hull)
         {
-            if (out_min)
+            if(out_min)
                 *out_min = glm::vec3(0.0f);
-            if (out_max)
+            if(out_max)
                 *out_max = glm::vec3(0.0f);
 
             return;
@@ -225,7 +223,7 @@ namespace Lumos
 
     void HullCollisionShape::DebugDraw(const RigidBody3D* currentObject) const
     {
-        if (!m_Hull)
+        if(!m_Hull)
             return;
         glm::mat4 transform = currentObject->GetWorldSpaceTransform() * m_LocalTransform;
         m_Hull->DebugDraw(transform);

@@ -166,63 +166,61 @@ namespace Lumos
                     ImGuiUtilities::Property("Contrast", sceneSettings.RenderSettings.Contrast, 0.0f, 2.0f, 0.01f);
                     ImGuiUtilities::Property("Saturation", sceneSettings.RenderSettings.Saturation, 0.0f, 1.0f, 0.01f);
 
-                    int32_t maxSupportedSampleCount = Lumos::Graphics::Renderer::GetCapabilities().MaxSamples;
-                    uint8_t cachedValue = sceneSettings.RenderSettings.MSAASamples;
-					static const char* msaaValues[4] =
-					{
-						"1",
-						"2",
-						"4",
-						"8"
-					};
-					int index = 0;
-					switch(cachedValue)
-					{
-						case 1:
-						index = 0;
-						break;
-						case 2:
-						index = 1;
-						break;
-						case 4:
-						index = 2;
-						break;
-						case 8:
-						index = 3;
-						break;
-					}
+                    int32_t maxSupportedSampleCount  = Lumos::Graphics::Renderer::GetCapabilities().MaxSamples;
+                    uint8_t cachedValue              = sceneSettings.RenderSettings.MSAASamples;
+                    static const char* msaaValues[4] = {
+                        "1",
+                        "2",
+                        "4",
+                        "8"
+                    };
+                    int index = 0;
+                    switch(cachedValue)
+                    {
+                    case 1:
+                        index = 0;
+                        break;
+                    case 2:
+                        index = 1;
+                        break;
+                    case 4:
+                        index = 2;
+                        break;
+                    case 8:
+                        index = 3;
+                        break;
+                    }
 
                     uint8_t choiceCount = 4;
-                    if (maxSupportedSampleCount < 2)
+                    if(maxSupportedSampleCount < 2)
                         choiceCount = 1;
-                    else if (maxSupportedSampleCount < 4)
+                    else if(maxSupportedSampleCount < 4)
                         choiceCount = 2;
-                    else if (maxSupportedSampleCount < 8)
+                    else if(maxSupportedSampleCount < 8)
                         choiceCount = 3;
-                   
+
                     ImGuiUtilities::PropertyDropdown("MSAA Samples", msaaValues, choiceCount, &index);
-					switch(index)
-					{
-						case 0:
-							sceneSettings.RenderSettings.MSAASamples = 1;
-							break;
-						case 1:
-							sceneSettings.RenderSettings.MSAASamples = 2;
-							break;
-						case 2:
-							sceneSettings.RenderSettings.MSAASamples = 4;
-							break;
-						case 3:
-							sceneSettings.RenderSettings.MSAASamples = 8;
-							break;
-					}
+                    switch(index)
+                    {
+                    case 0:
+                        sceneSettings.RenderSettings.MSAASamples = 1;
+                        break;
+                    case 1:
+                        sceneSettings.RenderSettings.MSAASamples = 2;
+                        break;
+                    case 2:
+                        sceneSettings.RenderSettings.MSAASamples = 4;
+                        break;
+                    case 3:
+                        sceneSettings.RenderSettings.MSAASamples = 8;
+                        break;
+                    }
 
-
-//                    if(sceneSettings.RenderSettings.MSAASamples > cachedValue)
-//                        sceneSettings.RenderSettings.MSAASamples = Maths::NextPowerOfTwo(sceneSettings.RenderSettings.MSAASamples);
-//                    else if (sceneSettings.RenderSettings.MSAASamples < cachedValue)
-//                        sceneSettings.RenderSettings.MSAASamples = sceneSettings.RenderSettings.MSAASamples / 2U;
-//                    sceneSettings.RenderSettings.MSAASamples = Maths::Clamp(sceneSettings.RenderSettings.MSAASamples, (uint8_t)1, (uint8_t)8);
+                    //                    if(sceneSettings.RenderSettings.MSAASamples > cachedValue)
+                    //                        sceneSettings.RenderSettings.MSAASamples = Maths::NextPowerOfTwo(sceneSettings.RenderSettings.MSAASamples);
+                    //                    else if (sceneSettings.RenderSettings.MSAASamples < cachedValue)
+                    //                        sceneSettings.RenderSettings.MSAASamples = sceneSettings.RenderSettings.MSAASamples / 2U;
+                    //                    sceneSettings.RenderSettings.MSAASamples = Maths::Clamp(sceneSettings.RenderSettings.MSAASamples, (uint8_t)1, (uint8_t)8);
 
                     ImGui::Separator();
 
@@ -263,8 +261,8 @@ namespace Lumos
                     {
                         if(ImGuiUtilities::Property("Dampening", sceneSettings.Physics3DSettings.Dampening))
                             physicsSystem->SetDampingFactor(sceneSettings.Physics3DSettings.Dampening);
-                        if(ImGuiUtilities::Property("Max Updates Per Frame", sceneSettings.Physics3DSettings.m_MaxUpdatesPerFrame))
-                            physicsSystem->SetMaxUpdatesPerFrame(sceneSettings.Physics3DSettings.m_MaxUpdatesPerFrame);
+                        if(ImGuiUtilities::Property("Max Updates Per Frame", sceneSettings.Physics3DSettings.MaxUpdatesPerFrame))
+                            physicsSystem->SetMaxUpdatesPerFrame(sceneSettings.Physics3DSettings.MaxUpdatesPerFrame);
                         if(ImGuiUtilities::Property("Position Iterations", sceneSettings.Physics3DSettings.PositionIterations))
                             physicsSystem->SetPositionIterations(sceneSettings.Physics3DSettings.PositionIterations);
                         if(ImGuiUtilities::Property("Velocity Iterations", sceneSettings.Physics3DSettings.VelocityIterations))

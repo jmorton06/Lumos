@@ -20,8 +20,7 @@ patterns = {
     "*.lua",
 };
 blacklist_patterns = {
-    ".*",
-    "Lumos/External/.*"
+    
 };
 load_paths_base = {
 	{ "./Lumos/Source", .relative = true, .recursive = true, },

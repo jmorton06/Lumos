@@ -58,7 +58,10 @@ namespace Lumos
         uint32_t RigidBodyPool     = 10000;
         glm::vec3 Gravity          = glm::vec3(0.0f, -9.81f, 0.0f);
         float DampingFactor        = 0.9995f;
-        IntegrationType IntegrType = IntegrationType::RUNGE_KUTTA_4;
+        IntegrationType IntegrType = IntegrationType::SEMI_IMPLICIT_EULER;
+        float BaumgarteScalar      = 0.3f;   // Amount of force to add to the System to solve error
+        float BaumgarteSlop        = 0.001f; // Amount of allowed penetration, ensures a complete manifold each frame
+        float PenetrationSlop      = 0.02f;  // How much bodies are allowed to sink into each other in meters
     };
 
     class LUMOS_EXPORT LumosPhysicsEngine : public ISystem
@@ -145,6 +148,11 @@ namespace Lumos
         uint32_t m_MaxUpdatesPerFrame = 5;
         uint32_t m_PositionIterations = 2;
         uint32_t m_VelocityIterations = 10;
+
+		uint32_t m_RigidBodyCount = 0;
+
+        float m_BaumgarteScalar = 0.2f;   // Amount of force to add to the System to solve error
+        float m_BaumgarteSlop   = 0.001f; // Amount of allowed penetration, ensures a complete manifold each frame
 
         Vector<CollisionPair> m_BroadphaseCollisionPairs;
         SharedPtr<Constraint>* m_Constraints; // Misc constraints between pairs of objects

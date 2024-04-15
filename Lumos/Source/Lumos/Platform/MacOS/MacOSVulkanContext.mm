@@ -61,15 +61,18 @@ namespace Lumos
         size_t pConfigurationSize = sizeof(MVKConfiguration);
         getMoltenVKConfigurationMVK(vkInstance, &mvkConfig, &pConfigurationSize);
 		#ifndef LUMOS_PLATFORM_PRODUCTION
-        mvkConfig.debugMode = true;
+        //mvkConfig.debugMode = true;
 		#endif
+
+		//mvkConfig.traceVulkanCalls = MVK_CONFIG_TRACE_VULKAN_CALLS_DURATION;
+		mvkConfig.performanceTracking = true;
         //mvkConfig.synchronousQueueSubmits = false;
         //mvkConfig.presentWithCommandBuffer = false;
         //mvkConfig.prefillMetalCommandBuffers = true;
 
-		mvkConfig.useMetalArgumentBuffers = MVKUseMetalArgumentBuffers::MVK_CONFIG_USE_METAL_ARGUMENT_BUFFERS_ALWAYS;
-        mvkConfig.resumeLostDevice = true;
-		
+		//mvkConfig.useMetalArgumentBuffers = MVKUseMetalArgumentBuffers::MVK_CONFIG_USE_METAL_ARGUMENT_BUFFERS_ALWAYS;
+        //mvkConfig.resumeLostDevice = true;
+
         setMoltenVKConfigurationMVK(vkInstance, &mvkConfig, &pConfigurationSize);
 		
         

@@ -170,6 +170,14 @@ namespace Lumos
         void GridRenderer::OnResize(uint32_t width, uint32_t height)
         {
             LUMOS_PROFILE_FUNCTION();
+
+            width -= (width % 2 != 0) ? 1 : 0;
+            height -= (height % 2 != 0) ? 1 : 0;
+
+            const QualitySettings& qs = Application::Get().GetQualitySettings();
+            width                     = uint32_t(qs.RendererScale * float(width));
+            height                    = uint32_t(qs.RendererScale * float(height));
+
             SetScreenBufferSize(width, height);
 
             UpdateUniformBuffer();

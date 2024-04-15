@@ -41,6 +41,9 @@ namespace Lumos
         m_Elasticity = properties.Elasticity;
         m_Friction   = properties.Friction;
         m_UUID       = UUID();
+
+        if(m_Static)
+            m_AtRest = true;
     }
 
     RigidBody3D::~RigidBody3D()

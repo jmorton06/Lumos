@@ -268,7 +268,7 @@ namespace Lumos
         {
             std::string m_ProjectRoot;
             std::string m_ProjectName;
-            std::string m_EngineAssetPath;
+            std::string m_EngineAssetPath; // TODO: move
             uint32_t Width = 1200, Height = 800;
             bool Fullscreen  = true;
             bool VSync       = true;

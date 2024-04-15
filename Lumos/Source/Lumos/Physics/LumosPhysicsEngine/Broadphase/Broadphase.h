@@ -16,7 +16,7 @@ namespace Lumos
     {
     public:
         virtual ~Broadphase()                                                                                    = default;
-        virtual void FindPotentialCollisionPairs(RigidBody3D* rootObject, Vector<CollisionPair>& collisionPairs) = 0;
+        virtual void FindPotentialCollisionPairs(RigidBody3D* rootObject, Vector<CollisionPair>& collisionPairs, uint32_t totalRigidBodyCount) = 0;
         virtual void DebugDraw()                                                                                 = 0;
     };
 }

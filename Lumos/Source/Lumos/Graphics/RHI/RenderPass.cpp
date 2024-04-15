@@ -36,12 +36,15 @@ namespace Lumos
             {
                 HashCombine(hash, renderPassDesc.attachmentTypes[i], renderPassDesc.attachments[i], renderPassDesc.cubeMapIndex, renderPassDesc.mipIndex, renderPassDesc.samples);
 
-				if(renderPassDesc.resolveTexture)
-					HashCombine(hash, renderPassDesc.resolveTexture->GetUUID());
+                if(renderPassDesc.resolveTexture)
+                    HashCombine(hash, renderPassDesc.resolveTexture->GetUUID());
 
                 if(renderPassDesc.attachments[i])
                     HashCombine(hash, renderPassDesc.attachments[i]->GetUUID());
             }
+
+            if (renderPassDesc.resolveTexture)
+                HashCombine(hash, renderPassDesc.resolveTexture->GetUUID());
 
             auto found = m_RenderPassCache.find(hash);
             if(found != m_RenderPassCache.end() && found->second.renderpass)

@@ -20,12 +20,15 @@ namespace Lumos
     {
     }
 
-    void Manifold::Initiate(RigidBody3D* nodeA, RigidBody3D* nodeB)
+    void Manifold::Initiate(RigidBody3D* nodeA, RigidBody3D* nodeB, float BaumgarteScalar, float BaumgarteSlop)
     {
         m_ContactCount = 0;
 
         m_pNodeA = nodeA;
         m_pNodeB = nodeB;
+
+        m_BaumgarteScalar = BaumgarteScalar;
+        m_BaumgarteSlop   = BaumgarteSlop;
     }
 
     void Manifold::ApplyImpulse()
@@ -68,13 +71,11 @@ namespace Lumos
             // slight solving errors that accumulate over time
             // called as �constraint drift �)
 
-            const float baumgarteScalar = 0.3f;   // Amount of force to add to the System to solve error
-            const float baumgarteSlop   = 0.001f; // Amount of allowed penetration, ensures a complete manifold each frame
-            float penetrationSlop       = Maths::Min(c.collisionPenetration + baumgarteSlop, 0.0f);
-            float b                     = -(baumgarteScalar / LumosPhysicsEngine::GetDeltaTime()) * penetrationSlop;
-            float b_real                = Maths::Max(b, c.elatisity_term + b * 0.2f);
-            float jn                    = -(glm::dot(dv, normal) + b_real) / constraintMass;
-            float oldSumImpulseContact  = c.sumImpulseContact;
+            float penetrationSlop      = Maths::Min(c.collisionPenetration + m_BaumgarteSlop, 0.0f);
+            float b                    = -(m_BaumgarteScalar / LumosPhysicsEngine::GetDeltaTime()) * penetrationSlop;
+            float b_real               = Maths::Max(b, c.elatisity_term + b * 0.2f);
+            float jn                   = -(glm::dot(dv, normal) + b_real) / constraintMass;
+            float oldSumImpulseContact = c.sumImpulseContact;
 
             jn                  = Maths::Min(jn, 0.0f);
             c.sumImpulseContact = Maths::Min(c.sumImpulseContact + jn, 0.0f);
@@ -97,13 +98,12 @@ namespace Lumos
             glm::vec3 tangent = dv - normal * glm::dot(dv, normal);
             float tangent_len = glm::length(tangent);
 
-            if(tangent_len > Maths::M_EPSILON)
+            if(tangent_len > 0.001f)
             {
                 tangent = tangent * (1.0f / tangent_len);
 
                 float frictionalMass = (m_pNodeA->GetInverseMass() + m_pNodeB->GetInverseMass())
                     + glm::dot(tangent, glm::cross(m_pNodeA->GetInverseInertia() * glm::cross(r1, tangent), r1) + glm::cross(m_pNodeB->GetInverseInertia() * glm::cross(r2, tangent), r2));
-
                 float frictionCoef = sqrtf(Maths::Max(m_pNodeA->GetFriction(), 0.1f) * Maths::Max(m_pNodeB->GetFriction(), 0.1f));
                 float jt           = -1.0f * frictionCoef * glm::dot(dv, tangent) / frictionalMass;
 
@@ -168,8 +168,8 @@ namespace Lumos
                 // rest quicker . It works out if the elastic term is less
                 // than a given value (0.2 m/s here ) and if it is , then we
                 // assume it is too small to see and should ignore the
-                // elasticity calculation . Most noticable when you have a
-                // stack of objects , without this they will jitter alot .
+                // elasticity calculation . Most noticeable when you have a
+                // stack of objects , without this they will jitter a lot .
 
                 const float elasticity_slop = 0.2f;
 
@@ -214,6 +214,7 @@ namespace Lumos
                 {
                     std::swap(m_vContacts[i], m_vContacts[m_ContactCount - 1]);
                     m_ContactCount--;
+                    i--;
                     continue;
                 }
                 else
@@ -245,11 +246,11 @@ namespace Lumos
                 glm::vec3 globalOnB  = m_pNodeB->GetPosition() + contact.relPosB;
 
                 // Draw line to form area given by all contact points
-                DebugRenderer::DrawThickLine(globalOnA1, globalOnA2, 0.02f, false, glm::vec4(0.0f, 1.0f, 0.0f, 1.0f), 3.0f);
+                DebugRenderer::DrawThickLine(globalOnA1, globalOnA2, 0.02f, false, glm::vec4(0.0f, 1.0f, 0.0f, 1.0f), 0.0f);
 
                 // Draw descriptors for indivdual contact point
-                DebugRenderer::DrawPoint(globalOnA2, 0.05f, false, glm::vec4(0.0f, 0.5f, 0.0f, 1.0f), 3.0f);
-                DebugRenderer::DrawThickLine(globalOnB, globalOnA2, 0.01f, false, glm::vec4(1.0f, 0.0f, 1.0f, 1.0f), 3.0f);
+                DebugRenderer::DrawPoint(globalOnA2, 0.05f, false, glm::vec4(0.0f, 0.5f, 0.0f, 1.0f), 0.0f);
+                DebugRenderer::DrawThickLine(globalOnB, globalOnA2, 0.01f, false, glm::vec4(1.0f, 0.0f, 1.0f, 1.0f), 0.0f);
 
                 globalOnA1 = globalOnA2;
             }

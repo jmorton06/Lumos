@@ -211,7 +211,7 @@ namespace Lumos
 
         inline T& operator[](int index)
         {
-            assert(m_Ptr);
+            LUMOS_ASSERT(m_Ptr);
             return m_Ptr[index];
         }
 
@@ -388,7 +388,7 @@ namespace Lumos
 
         inline T& operator[](int index)
         {
-            assert(m_Ptr);
+            LUMOS_ASSERT(m_Ptr);
             return m_Ptr[index];
         }
 
@@ -489,6 +489,13 @@ namespace Lumos
         T& operator*() const
         {
             return *m_Ptr;
+        }
+
+
+        T& operator[](int index)
+        {
+            LUMOS_ASSERT(m_Ptr);
+            return m_Ptr[index];
         }
 
         // Access to smart pointer state

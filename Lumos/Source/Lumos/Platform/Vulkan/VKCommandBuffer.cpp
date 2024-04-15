@@ -6,6 +6,7 @@
 #include "VKUtilities.h"
 #include "VKPipeline.h"
 #include "VKInitialisers.h"
+#include "VKSemaphore.h"
 #include "Core/JobSystem.h"
 
 #if LUMOS_PROFILE
@@ -51,10 +52,7 @@ namespace Lumos
 
             VK_CHECK_RESULT(vkAllocateCommandBuffers(VKDevice::Get().GetDevice(), &cmdBufferCreateInfo, &m_CommandBuffer));
 
-            VkSemaphoreCreateInfo semaphoreInfo = VKInitialisers::SemaphoreCreateInfo();
-            semaphoreInfo.pNext                 = nullptr;
-
-            VK_CHECK_RESULT(vkCreateSemaphore(VKDevice::Get().GetDevice(), &semaphoreInfo, nullptr, &m_Semaphore));
+            m_Semaphore = CreateSharedPtr<VKSemaphore>(false);
             m_Fence = CreateSharedPtr<VKFence>(false);
 
             return true;
@@ -71,11 +69,7 @@ namespace Lumos
 
             VK_CHECK_RESULT(vkAllocateCommandBuffers(VKDevice::Get().GetDevice(), &cmdBufferCreateInfo, &m_CommandBuffer));
 
-            VkSemaphoreCreateInfo semaphoreInfo = {};
-            semaphoreInfo.sType                 = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-            semaphoreInfo.pNext                 = nullptr;
-
-            VK_CHECK_RESULT(vkCreateSemaphore(VKDevice::Get().GetDevice(), &semaphoreInfo, nullptr, &m_Semaphore));
+            m_Semaphore = CreateSharedPtr<VKSemaphore>(false);
             m_Fence = CreateSharedPtr<VKFence>(true);
 
             return true;
@@ -90,7 +84,7 @@ namespace Lumos
                 Wait();
 
             m_Fence = nullptr;
-            vkDestroySemaphore(VKDevice::Get().GetDevice(), m_Semaphore, nullptr);
+            m_Semaphore = nullptr;
             vkFreeCommandBuffers(VKDevice::Get().GetDevice(), m_CommandPool, 1, &m_CommandBuffer);
         }
 
@@ -129,7 +123,7 @@ namespace Lumos
             LUMOS_ASSERT(m_State == CommandBufferState::Recording, "CommandBuffer ended before started recording");
 
             if(m_BoundPipeline)
-                m_BoundPipeline->End(this);
+                m_BoundPipeline->End((CommandBuffer*)this);
 
             m_BoundPipeline = nullptr;
 #if LUMOS_PROFILE
@@ -147,18 +141,20 @@ namespace Lumos
             LUMOS_PROFILE_FUNCTION_LOW();
             LUMOS_ASSERT(m_Primary, "Used Execute on secondary command buffer!");
             LUMOS_ASSERT(m_State == CommandBufferState::Ended, "CommandBuffer executed before ended recording");
-            uint32_t waitSemaphoreCount = waitSemaphore ? 1 : 0, signalSemaphoreCount = m_Semaphore ? 1 : 0;
+			uint32_t waitSemaphoreCount = waitSemaphore ? 1 : 0;
+			uint32_t signalSemaphoreCount = m_Semaphore ? 1 : 0;
 
+			VkSemaphore semaphore = m_Semaphore->GetHandle();
             VkSubmitInfo submitInfo         = VKInitialisers::SubmitInfo();
-            submitInfo.waitSemaphoreCount   = waitSemaphoreCount;
-            submitInfo.pWaitSemaphores      = waitSemaphoreCount == 0 ? nullptr : &waitSemaphore;
+            submitInfo.waitSemaphoreCount   = 0;//waitSemaphoreCount;
+			submitInfo.pWaitSemaphores      = nullptr;//waitSemaphoreCount == 0 ? nullptr : &waitSemaphore;
             submitInfo.pWaitDstStageMask    = &flags;
             submitInfo.commandBufferCount   = 1;
             submitInfo.pCommandBuffers      = &m_CommandBuffer;
             submitInfo.signalSemaphoreCount = signalSemaphoreCount;
-            submitInfo.pSignalSemaphores    = &m_Semaphore;
+            submitInfo.pSignalSemaphores    = &semaphore;
 
-            m_Fence->Reset();
+            //m_Fence->Reset();
 
             {
                 LUMOS_PROFILE_SCOPE("vkQueueSubmit");
@@ -277,6 +273,11 @@ namespace Lumos
             LUMOS_PROFILE_FUNCTION_LOW();
             Execute(VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, nullptr, false);
         }
+
+		VkSemaphore VKCommandBuffer::GetSemaphore() const
+		{
+			return m_Semaphore->GetHandle();
+		}
 
         void VKCommandBuffer::MakeDefault()
         {

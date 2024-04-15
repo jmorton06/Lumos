@@ -11,8 +11,8 @@ namespace Lumos
         Texture2D* (*Texture2D::CreateFromSourceFunc)(uint32_t, uint32_t, void*, TextureDesc, TextureLoadOptions)            = nullptr;
         Texture2D* (*Texture2D::CreateFromFileFunc)(const std::string&, const std::string&, TextureDesc, TextureLoadOptions) = nullptr;
 
-        TextureDepth* (*TextureDepth::CreateFunc)(uint32_t, uint32_t, RHIFormat, uint8_t)                                = nullptr;
-        TextureDepthArray* (*TextureDepthArray::CreateFunc)(uint32_t, uint32_t, uint32_t, RHIFormat)                     = nullptr;
+        TextureDepth* (*TextureDepth::CreateFunc)(uint32_t, uint32_t, RHIFormat, uint8_t)            = nullptr;
+        TextureDepthArray* (*TextureDepthArray::CreateFunc)(uint32_t, uint32_t, uint32_t, RHIFormat) = nullptr;
 
         TextureCube* (*TextureCube::CreateFunc)(uint32_t, void*, bool)                                                   = nullptr;
         TextureCube* (*TextureCube::CreateFromFileFunc)(const std::string&)                                              = nullptr;

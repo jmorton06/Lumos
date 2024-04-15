@@ -7,7 +7,7 @@ namespace Lumos
         None   = 0,
         Low    = 1,
         Medium = 2,
-        High   = 2
+        High   = 3
     };
 
     enum class ShadowResolutionSetting
@@ -20,8 +20,12 @@ namespace Lumos
 
     struct QualitySettings
     {
+#ifdef LUMOS_PLATFORM_MACOS
+        float RendererScale = 0.75f;
+#else
         float RendererScale = 1.0f;
 
+#endif
         // Shadows
         bool EnableShadows                       = true;
         ShadowQualitySetting ShadowQuality       = ShadowQualitySetting::Low;

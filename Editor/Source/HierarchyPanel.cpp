@@ -88,6 +88,7 @@ namespace Lumos
             if(!active)
                 ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
 
+            bool dragging      = false;
             bool doubleClicked = false;
             if(node == m_DoubleClicked)
             {
@@ -149,23 +150,30 @@ namespace Lumos
 
             ImGui::PushStyleColor(ImGuiCol_Text, ImGuiUtilities::GetIconColour());
             // ImGui::BeginGroup();
-			bool nodeOpen = ImGui::TreeNodeEx((void*)(intptr_t)entt::to_integral(node), nodeFlags, "%s", (const char*)icon.str);
+            bool nodeOpen = ImGui::TreeNodeEx((void*)(intptr_t)entt::to_integral(node), nodeFlags, "%s", (const char*)icon.str);
             {
                 if(ImGui::BeginDragDropSource())
                 {
 
                     if(!m_Editor->IsSelected(node))
                     {
-                        m_Editor->ClearSelected();
-                        m_Editor->SetSelected(node);
-                    }
-                    auto selected = m_Editor->GetSelected();
-                    for(auto e : selected)
-                    {
-                        ImGui::TextUnformatted(Entity(e, Application::Get().GetSceneManager()->GetCurrentScene()).GetName().c_str());
-                    }
+                        /*      m_Editor->ClearSelected();
+                              m_Editor->SetSelected(node);*/
 
-                    ImGui::SetDragDropPayload("Drag_Entity", selected.data(), selected.size() * sizeof(entt::entity));
+                        auto selected = node;
+                        ImGui::TextUnformatted(Entity(node, Application::Get().GetSceneManager()->GetCurrentScene()).GetName().c_str());
+                        ImGui::SetDragDropPayload("Drag_Entity", &selected, sizeof(entt::entity));
+                    }
+                    else
+                    {
+                        auto selected = m_Editor->GetSelected();
+                        for(auto e : selected)
+                        {
+                            ImGui::TextUnformatted(Entity(e, Application::Get().GetSceneManager()->GetCurrentScene()).GetName().c_str());
+                        }
+
+                        ImGui::SetDragDropPayload("Drag_Entity", selected.data(), selected.size() * sizeof(entt::entity));
+                    }
 
                     ImGui::EndDragDropSource();
                 }
@@ -376,7 +384,8 @@ namespace Lumos
 
             if(deleteEntity)
             {
-                nodeEntity.GetScene()->DestroyEntity(nodeEntity);
+                for(auto entity : m_Editor->GetSelected())
+                    nodeEntity.GetScene()->DestroyEntity(Entity(entity, Application::Get().GetSceneManager()->GetCurrentScene()));
                 if(nodeOpen)
                     ImGui::TreePop();
 
@@ -527,12 +536,11 @@ namespace Lumos
                 return;
             }
             auto& registry = scene->GetRegistry();
-
-            auto AddEntity = [scene]()
+            auto editor    = m_Editor;
+            auto AddEntity = [scene, editor]()
             {
                 if(ImGui::BeginMenu("Add"))
                 {
-
                     if(ImGui::Selectable("Empty Entity"))
                     {
                         scene->CreateEntity();
@@ -543,6 +551,8 @@ namespace Lumos
                         auto entity = scene->CreateEntity("Light");
                         entity.AddComponent<Graphics::Light>();
                         entity.GetOrAddComponent<Maths::Transform>();
+                        editor->ClearSelected();
+                        editor->SetSelected(entity);
                     }
 
                     if(ImGui::Selectable("Rigid Body"))
@@ -550,8 +560,11 @@ namespace Lumos
                         auto entity = scene->CreateEntity("RigidBody");
                         entity.AddComponent<RigidBody3DComponent>();
                         entity.GetOrAddComponent<Maths::Transform>();
-                        entity.AddComponent<AxisConstraintComponent>(entity, Axes::XZ);
+                        entity.AddComponent<Graphics::ModelComponent>(Graphics::PrimitiveType::Cube);
+                        // entity.AddComponent<AxisConstraintComponent>(entity, Axes::XZ);
                         entity.GetComponent<RigidBody3DComponent>().GetRigidBody()->SetCollisionShape(CollisionShapeType::CollisionCuboid);
+                        editor->ClearSelected();
+                        editor->SetSelected(entity);
                     }
 
                     if(ImGui::Selectable("Camera"))
@@ -559,6 +572,8 @@ namespace Lumos
                         auto entity = scene->CreateEntity("Camera");
                         entity.AddComponent<Camera>();
                         entity.GetOrAddComponent<Maths::Transform>();
+                        editor->ClearSelected();
+                        editor->SetSelected(entity);
                     }
 
                     if(ImGui::Selectable("Sprite"))
@@ -566,12 +581,16 @@ namespace Lumos
                         auto entity = scene->CreateEntity("Sprite");
                         entity.AddComponent<Graphics::Sprite>();
                         entity.GetOrAddComponent<Maths::Transform>();
+                        editor->ClearSelected();
+                        editor->SetSelected(entity);
                     }
 
                     if(ImGui::Selectable("Lua Script"))
                     {
                         auto entity = scene->CreateEntity("LuaScript");
                         entity.AddComponent<LuaScriptComponent>();
+                        editor->ClearSelected();
+                        editor->SetSelected(entity);
                     }
 
                     if(ImGui::BeginMenu("Primitive"))
@@ -581,42 +600,56 @@ namespace Lumos
                         {
                             auto entity = scene->CreateEntity("Cube");
                             entity.AddComponent<Graphics::ModelComponent>(Graphics::PrimitiveType::Cube);
+                            editor->ClearSelected();
+                            editor->SetSelected(entity);
                         }
 
                         if(ImGui::MenuItem("Sphere"))
                         {
                             auto entity = scene->CreateEntity("Sphere");
                             entity.AddComponent<Graphics::ModelComponent>(Graphics::PrimitiveType::Sphere);
+                            editor->ClearSelected();
+                            editor->SetSelected(entity);
                         }
 
                         if(ImGui::MenuItem("Pyramid"))
                         {
                             auto entity = scene->CreateEntity("Pyramid");
                             entity.AddComponent<Graphics::ModelComponent>(Graphics::PrimitiveType::Pyramid);
+                            editor->ClearSelected();
+                            editor->SetSelected(entity);
                         }
 
                         if(ImGui::MenuItem("Plane"))
                         {
                             auto entity = scene->CreateEntity("Plane");
                             entity.AddComponent<Graphics::ModelComponent>(Graphics::PrimitiveType::Plane);
+                            editor->ClearSelected();
+                            editor->SetSelected(entity);
                         }
 
                         if(ImGui::MenuItem("Cylinder"))
                         {
                             auto entity = scene->CreateEntity("Cylinder");
                             entity.AddComponent<Graphics::ModelComponent>(Graphics::PrimitiveType::Cylinder);
+                            editor->ClearSelected();
+                            editor->SetSelected(entity);
                         }
 
                         if(ImGui::MenuItem("Capsule"))
                         {
                             auto entity = scene->CreateEntity("Capsule");
                             entity.AddComponent<Graphics::ModelComponent>(Graphics::PrimitiveType::Capsule);
+                            editor->ClearSelected();
+                            editor->SetSelected(entity);
                         }
 
                         if(ImGui::MenuItem("Terrain"))
                         {
                             auto entity = scene->CreateEntity("Terrain");
                             entity.AddComponent<Graphics::ModelComponent>(Graphics::PrimitiveType::Terrain);
+                            editor->ClearSelected();
+                            editor->SetSelected(entity);
                         }
 
                         if(ImGui::MenuItem("Light Cube"))

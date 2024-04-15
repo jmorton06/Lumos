@@ -1,4 +1,5 @@
 #version 450
+#include "Common.glslh"
 #extension GL_ARB_separate_shader_objects : enable
 #extension GL_ARB_shading_language_420pack : enable
 
@@ -20,5 +21,5 @@ void main()
 	{
 		discard;
 	}
-	colour = fs_in.colour;
+	colour = DeGamma(fs_in.colour);
 }

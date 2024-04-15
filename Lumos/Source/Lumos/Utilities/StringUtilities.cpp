@@ -589,6 +589,7 @@ namespace Lumos
 
                 MemoryCopy(outString.str, prefix.str, prefix.size);
                 MemoryCopy(outString.str + prefix.size, resolvedString.str, resolvedString.size);
+                outString.str[outString.size] = 0;
             }
             else
                 outString = PushStr8Copy(arena, resolvedString);

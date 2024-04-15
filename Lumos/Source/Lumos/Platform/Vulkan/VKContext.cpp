@@ -130,7 +130,6 @@ namespace Lumos
         {
             LUMOS_PROFILE_FUNCTION();
             CreateInstance();
-            
         };
 
         void VKContext::Present()
@@ -282,8 +281,8 @@ namespace Lumos
             }
 #endif
             bool enableValidation = EnableValidationLayers;
-            CommandLine* cmdline = Internal::CoreSystem::GetCmdLine();
-            if (cmdline->OptionBool(Str8Lit("EnableVulkanValidation")))
+            CommandLine* cmdline  = Internal::CoreSystem::GetCmdLine();
+            if(cmdline->OptionBool(Str8Lit("EnableVulkanValidation")))
             {
                 enableValidation = true;
             }

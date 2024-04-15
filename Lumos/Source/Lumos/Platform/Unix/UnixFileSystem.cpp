@@ -140,12 +140,7 @@ namespace Lumos
 
     bool FileSystem::WriteTextFile(const std::string& path, const std::string& text)
     {
-        FILE* file = fopen(path.c_str(), FileSystem::GetFileOpenModeString(FileOpenFlags::WRITE));
-        if(file == NULL) // if file does not exist, create it
-        {
-            file = fopen(path.c_str(), FileSystem::GetFileOpenModeString(FileOpenFlags::WRITE_READ));
-        }
-
+        FILE* file = fopen(path.c_str(), FileSystem::GetFileOpenModeString(FileOpenFlags::WRITE_READ));
         if(file == nullptr)
         {
             switch(errno)
@@ -165,9 +160,9 @@ namespace Lumos
         }
         else
         {
-            size_t size = fwrite(text.c_str(), 1, strlen(text.c_str()), file);
+            size_t size = fwrite(text.c_str(), 1, text.size(), file);
             fclose(file);
-            return size > 0;
+            return size == text.size();
         }
     }
 

@@ -323,7 +323,7 @@ namespace Lumos::Graphics
             bool hasTangents   = false;
             bool hasBitangents = false;
             bool hasWeights    = false;
-            bool hasJoints     = false; 
+            bool hasJoints     = false;
 
             if(primitive.attributes.find("TANGENT") != primitive.attributes.end())
                 hasTangents = true;
@@ -518,7 +518,7 @@ namespace Lumos::Graphics
 
             // Add mesh
             Graphics::Mesh* lMesh;
-            
+
             if(hasJoints || hasWeights)
                 lMesh = new Graphics::Mesh(indices, vertices, boneInfluences);
             else

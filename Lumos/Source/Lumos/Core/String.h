@@ -5,8 +5,8 @@ namespace Lumos
 {
     struct String8
     {
-        uint8_t* str;
-        uint64_t size;
+        uint8_t* str  = nullptr;
+        uint64_t size = 0;
 
         friend bool operator==(const String8& lhs, const String8& rhs);
     };

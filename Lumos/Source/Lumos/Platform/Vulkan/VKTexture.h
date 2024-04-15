@@ -133,10 +133,10 @@ namespace Lumos
                 return m_VKFormat;
             }
 
-			uint8_t GetSamples() const override
-			{
-				return m_Samples;
-			}
+            uint8_t GetSamples() const override
+            {
+                return m_Samples;
+            }
 
             VkImageView GetMipImageView(uint32_t mip);
 
@@ -157,7 +157,7 @@ namespace Lumos
             uint32_t m_Width {}, m_Height {};
             uint32_t m_MipLevels = 1;
             uint8_t* m_Data      = nullptr;
-            uint8_t m_Samples = 1;
+            uint8_t m_Samples    = 1;
 
             TextureDesc m_Parameters;
             TextureLoadOptions m_LoadOptions;
@@ -390,10 +390,10 @@ namespace Lumos
                 return m_Format;
             }
 
-			uint8_t GetSamples() const override
-			{
-				return m_Samples;
-			}
+            uint8_t GetSamples() const override
+            {
+                return m_Samples;
+            }
 
             VkImage GetImage() const
             {

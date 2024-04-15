@@ -54,8 +54,7 @@ namespace Lumos
     uint64_t CalculateCStringLength(char* cstr)
     {
         uint64_t length = 0;
-        for(; cstr[length]; length += 1)
-            ;
+        for(; cstr[length]; length += 1);
         return length;
     }
 
@@ -86,8 +85,7 @@ namespace Lumos
     String16 Str16C(uint16_t* ptr)
     {
         uint16_t* p = ptr;
-        for(; *p; p += 1)
-            ;
+        for(; *p; p += 1);
         String16 result = Str16(ptr, p - ptr);
         return result;
     }

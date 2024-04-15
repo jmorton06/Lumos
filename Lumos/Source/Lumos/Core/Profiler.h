@@ -10,7 +10,7 @@
 
 #define LUMOS_TRACK_MEMORY 1
 #define LUMOS_PROFILE_LOW 1
-#define LUMOS_PROFILE_GPU_TIMINGS 1
+#define LUMOS_PROFILE_GPU_TIMINGS 0
 #define LUMOS_VULKAN_MARKERS 1 // Disable when using OpenGL
 
 #include <Tracy/public/tracy/Tracy.hpp>
@@ -20,7 +20,7 @@
 #define LUMOS_PROFILE_LOCK(type, var, name) TracyLockableN(type, var, name)
 #define LUMOS_PROFILE_LOCKMARKER(var) LockMark(var)
 #define LUMOS_PROFILE_SETTHREADNAME(name) tracy::SetThreadName(name)
-
+#define LUMOS_PROFILE_MESSAGE(txt, len) TracyMessage(txt, len)
 #if LUMOS_PROFILE_LOW
 #define LUMOS_PROFILE_FUNCTION_LOW() ZoneScoped
 #define LUMOS_PROFILE_SCOPE_LOW(name) ZoneScopedN(name)
@@ -38,5 +38,5 @@
 #define LUMOS_PROFILE_SETTHREADNAME(name)
 #define LUMOS_PROFILE_FUNCTION_LOW()
 #define LUMOS_PROFILE_SCOPE_LOW(name)
-
+#define LUMOS_PROFILE_MESSAGE(txt, len)
 #endif
