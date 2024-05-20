@@ -22,10 +22,10 @@
 #
 
 ## Screenshots
+![Lumos](/Resources/Screenshot0424-2.png?raw=true)
 ![Lumos](/Resources/Screenshot0424.png?raw=true)
 ![Lumos](/Resources/Screenshot1022.png?raw=true)
 ![Lumos](/Resources/Screenshot0923.png?raw=true)
-![Lumos](/Resources/Screenshot0622.png?raw=true)
 #
 
 ## Building 🔨
