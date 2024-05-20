@@ -1,5 +1,5 @@
 #shader vertex
-CompiledSPV/ForwardAnim.vert.spv
+CompiledSPV/ForwardPBRAnim.vert.spv
 #shader end
 
 #shader fragment

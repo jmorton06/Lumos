@@ -188,8 +188,8 @@ namespace Lumos
         std::swap(m_Capacity, other.m_Capacity);
 
         other.m_Capacity = 0;
-        other.m_Data = nullptr;
-        other.m_Arena = nullptr;
+        other.m_Data     = nullptr;
+        other.m_Arena    = nullptr;
 
         return *this;
     }

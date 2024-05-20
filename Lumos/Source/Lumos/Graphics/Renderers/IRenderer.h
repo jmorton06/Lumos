@@ -8,7 +8,7 @@
 #include "Graphics/RHI/RenderPass.h"
 #include "Graphics/RHI/Pipeline.h"
 
-#include <glm/vec4.hpp>
+#include <glm/ext/vector_float4.hpp>
 #include <glm/fwd.hpp>
 
 #define SCENE_DESCRIPTORSET_ID 0

@@ -1,8 +1,9 @@
 #include "Precompiled.h"
 #include "Manifold.h"
-#include <glm/mat3x3.hpp>
 #include "Physics/LumosPhysicsEngine/LumosPhysicsEngine.h"
+#include "Physics/LumosPhysicsEngine/RigidBody3D.h"
 #include "Graphics/Renderers/DebugRenderer.h"
+#include <glm/ext/matrix_float3x3.hpp>
 #include <glm/gtx/string_cast.hpp>
 
 namespace Lumos

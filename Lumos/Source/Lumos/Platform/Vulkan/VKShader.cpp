@@ -519,15 +519,30 @@ namespace Lumos
                 {
                     auto& info = l[i];
 
-                    VkDescriptorSetLayoutBinding setLayoutBinding = {};
-                    setLayoutBinding.descriptorType               = VKUtilities::DescriptorTypeToVK(info.type);
-                    setLayoutBinding.stageFlags                   = VKUtilities::ShaderTypeToVK(info.stage);
-                    setLayoutBinding.binding                      = info.binding;
-                    setLayoutBinding.descriptorCount              = info.count;
+                    int foundIndex = -1;
+                    for(uint32_t i = 0; i < (uint32_t)setLayoutBindings.size(); i++)
+                    {
+                        if(setLayoutBindings[i].binding == info.binding)
+                            foundIndex = i;
+                    }
+
+                    VkDescriptorSetLayoutBinding& setLayoutBinding = foundIndex >= 0 ? setLayoutBindings[foundIndex] : setLayoutBindings.emplace_back();
+
+                    setLayoutBinding.descriptorType = VKUtilities::DescriptorTypeToVK(info.type);
+                    if(foundIndex >= 0)
+                    {
+                        setLayoutBinding.stageFlags |= VKUtilities::ShaderTypeToVK(info.stage);
+                    }
+                    else
+                        setLayoutBinding.stageFlags = VKUtilities::ShaderTypeToVK(info.stage);
+
+                    setLayoutBinding.binding         = info.binding;
+                    setLayoutBinding.descriptorCount = info.count;
 
                     bool isArray = info.count > 1;
-                    layoutBindingFlags.push_back(isArray ? VK_DESCRIPTOR_BINDING_PARTIALLY_BOUND_BIT : 0);
-                    setLayoutBindings.push_back(setLayoutBinding);
+
+                    if(foundIndex < 0)
+                        layoutBindingFlags.push_back(isArray ? VK_DESCRIPTOR_BINDING_PARTIALLY_BOUND_BIT : 0);
                 }
 
                 VkDescriptorSetLayoutBindingFlagsCreateInfo flagsInfo = {};

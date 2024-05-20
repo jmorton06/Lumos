@@ -1,6 +1,11 @@
-#include <LumosEngine.h>
+#include <Lumos/Core/Application.h>
 #include <Lumos/Core/EntryPoint.h>
 #include <Lumos/Core/OS/Window.h>
+#include <Lumos/Core/OS/Input.h>
+#include <Lumos/Core/Engine.h>
+#include <Lumos/Utilities/StringUtilities.h>
+
+#include <imgui/imgui.h>
 
 using namespace Lumos;
 

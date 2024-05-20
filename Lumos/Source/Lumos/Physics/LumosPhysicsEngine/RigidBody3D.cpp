@@ -2,7 +2,7 @@
 #include "RigidBody3D.h"
 #include "LumosPhysicsEngine.h"
 #include "Graphics/Renderers/DebugRenderer.h"
-
+#include "Physics/LumosPhysicsEngine/CollisionShapes/CollisionShape.h"
 #include "Physics/LumosPhysicsEngine/CollisionShapes/SphereCollisionShape.h"
 #include "Physics/LumosPhysicsEngine/CollisionShapes/CuboidCollisionShape.h"
 #include "Physics/LumosPhysicsEngine/CollisionShapes/PyramidCollisionShape.h"
@@ -50,6 +50,9 @@ namespace Lumos
     {
         m_UUID = 0;
     }
+
+    RigidBody3DProperties::RigidBody3DProperties()  = default;
+    RigidBody3DProperties::~RigidBody3DProperties() = default;
 
     const Maths::BoundingBox& RigidBody3D::GetWorldSpaceAABB()
     {
@@ -181,4 +184,40 @@ namespace Lumos
             break;
         }
     }
+
+    void RigidBody3D::SetCollisionShape(const SharedPtr<CollisionShape>& shape)
+    {
+        m_CollisionShape = shape;
+        m_InvInertia     = m_CollisionShape->BuildInverseInertia(m_InvMass);
+        AutoResizeBoundingBox();
+    }
+
+    void RigidBody3D::CollisionShapeUpdated()
+    {
+        if(m_CollisionShape)
+            m_InvInertia = m_CollisionShape->BuildInverseInertia(m_InvMass);
+        AutoResizeBoundingBox();
+    }
+
+    void RigidBody3D::SetInverseMass(const float& v)
+    {
+        m_InvMass = v;
+        if(m_CollisionShape)
+            m_InvInertia = m_CollisionShape->BuildInverseInertia(m_InvMass);
+    }
+
+    void RigidBody3D::SetMass(const float& v)
+    {
+        LUMOS_ASSERT(v > 0, "Physics object mass <= 0");
+        m_InvMass = 1.0f / v;
+
+        if(m_CollisionShape)
+            m_InvInertia = m_CollisionShape->BuildInverseInertia(m_InvMass);
+    }
+
+    const SharedPtr<CollisionShape>& RigidBody3D::GetCollisionShape() const
+    {
+        return m_CollisionShape;
+    }
+
 }

@@ -2,9 +2,9 @@
 #include "VKDevice.h"
 #include "VKSwapChain.h"
 #include "VKUtilities.h"
-#include "VKFence.h"
 #include "VKRenderer.h"
 #include "VKSemaphore.h"
+#include "VKTexture.h"
 #include "Core/Application.h"
 #include "Core/Thread.h"
 
@@ -34,9 +34,9 @@ namespace Lumos
             {
                 m_Frames[i].MainCommandBuffer->Flush();
 
-                m_Frames[i].MainCommandBuffer = nullptr;
-                m_Frames[i].CommandPool       = nullptr;
-				m_Frames[i].ImageAcquireSemaphore = nullptr;
+                m_Frames[i].MainCommandBuffer     = nullptr;
+                m_Frames[i].CommandPool           = nullptr;
+                m_Frames[i].ImageAcquireSemaphore = nullptr;
 
                 delete m_SwapChainBuffers[i];
             }
@@ -61,7 +61,7 @@ namespace Lumos
             if(!success)
                 LUMOS_LOG_ERROR("Failed to initialise swapchain");
 
-			AcquireNextImage();
+            // AcquireNextImage();
 
             return success;
         }
@@ -240,7 +240,7 @@ namespace Lumos
                 semaphoreInfo.pNext                 = nullptr;
                 semaphoreInfo.flags                 = 0;
 
-				m_Frames[i].ImageAcquireSemaphore = CreateSharedPtr<VKSemaphore>(false);
+                m_Frames[i].ImageAcquireSemaphore = CreateSharedPtr<VKSemaphore>(false);
                 if(!m_Frames[i].MainCommandBuffer)
                 {
                     m_Frames[i].CommandPool = CreateSharedPtr<VKCommandPool>(VKDevice::Get().GetPhysicalDevice()->GetGraphicsQueueFamilyIndex(), VK_COMMAND_POOL_CREATE_TRANSIENT_BIT | VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT);
@@ -347,7 +347,7 @@ namespace Lumos
             }
             commandBuffer->Reset();
             VKRenderer::GetDeletionQueue(m_CurrentBuffer).Flush();
-            //AcquireNextImage();
+            AcquireNextImage();
 
             commandBuffer->BeginRecording();
         }
@@ -364,7 +364,7 @@ namespace Lumos
             LUMOS_PROFILE_FUNCTION();
 
             VkSemaphore vkWaitSemaphores[3] = { nullptr, nullptr, nullptr };
-            uint32_t semaphoreCount = 0;
+            uint32_t semaphoreCount         = 0;
 
             for(auto semaphore : semaphores)
             {
@@ -399,7 +399,7 @@ namespace Lumos
                 VK_CHECK_RESULT(error);
             }
 
-            AcquireNextImage();
+            // AcquireNextImage();
         }
 
         void VKSwapChain::MakeDefault()

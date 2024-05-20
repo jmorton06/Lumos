@@ -1,10 +1,10 @@
 #pragma once
 
-#include "Physics/LumosPhysicsEngine/RigidBody3D.h"
-#include <glm/vec3.hpp>
+#include <glm/ext/vector_float3.hpp>
 
 namespace Lumos
 {
+    class RigidBody3D;
     /* A contact constraint is actually the summation of a normal distance constraint
         along with two friction constraints going along the axes perpendicular to the collision
         normal.

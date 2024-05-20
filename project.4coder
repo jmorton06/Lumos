@@ -19,9 +19,7 @@ patterns = {
 	"*.shader",
     "*.lua",
 };
-blacklist_patterns = {
-    
-};
+
 load_paths_base = {
 	{ "./Lumos/Source", .relative = true, .recursive = true, },
 	{ "./Lumos/Assets/Shaders", .relative = true, .recursive = true, },

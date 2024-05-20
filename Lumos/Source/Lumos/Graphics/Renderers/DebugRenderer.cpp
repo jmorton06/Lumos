@@ -28,10 +28,10 @@
 #include "Maths/Ray.h"
 #include "Audio/SoundNode.h"
 #include <cstdarg>
-#include <glm/vec2.hpp>
-#include <glm/vec3.hpp>
-#include <glm/vec4.hpp>
-#include <glm/mat4x4.hpp>
+#include <glm/ext/vector_float2.hpp>
+#include <glm/ext/vector_float3.hpp>
+#include <glm/ext/vector_float4.hpp>
+#include <glm/ext/matrix_float4x4.hpp>
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/quaternion.hpp>
 
@@ -618,6 +618,50 @@ namespace Lumos
                 DebugDrawArc(20, radius, bottomSphereCentre + offset, bottomSphereCentre + offset2, rotation * glm::quat(glm::vec3(glm::radians(180.0f), 0.0f, 0.0f)), colour);
             }
         }
+    }
+
+    void DebugDrawPyramid(int numVerts, float baseSize, float height, const glm::vec3& position, const glm::quat& rotation, const glm::vec4& colour)
+    {
+        LUMOS_PROFILE_FUNCTION();
+
+        // Calculate half base size
+        float halfBaseSize = baseSize * 0.5f;
+
+        // Vertices for the base of the pyramid
+        glm::vec3 baseVertices[4] = {
+            glm::vec3(-halfBaseSize, 0.0f, 0.0f),
+            glm::vec3(halfBaseSize, 0.0f, 0.0f),
+            glm::vec3(halfBaseSize, 0.0f, baseSize),
+            glm::vec3(-halfBaseSize, 0.0f, baseSize)
+        };
+
+        // Top vertex of the pyramid
+        glm::vec3 topVertex(0.0f, height, halfBaseSize);
+
+        // Transform base vertices and top vertex by rotation and position
+        for(int i = 0; i < 4; ++i)
+        {
+            baseVertices[i] = position + rotation * baseVertices[i];
+        }
+        topVertex = position + rotation * topVertex;
+
+        // Draw the base of the pyramid
+        for(int i = 0; i < 4; ++i)
+        {
+            int j = (i + 1) % 4;
+            DebugRenderer::DrawHairLine(baseVertices[i], baseVertices[j], false, colour);
+        }
+
+        // Draw lines from the top vertex to each base vertex
+        for(int i = 0; i < 4; ++i)
+        {
+            DebugRenderer::DrawHairLine(topVertex, baseVertices[i], false, colour);
+        }
+    }
+
+    void DebugRenderer::DebugDrawBone(const glm::vec3& parent, const glm::vec3& child, const glm::vec4& colour)
+    {
+        DrawHairLine(parent, child, false, colour);
     }
 
     void DebugRenderer::DebugDraw(const Maths::Ray& ray, const glm::vec4& colour, float distance)

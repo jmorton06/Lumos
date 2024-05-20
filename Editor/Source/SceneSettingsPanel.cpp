@@ -76,6 +76,7 @@ namespace Lumos
                     if(ImGui::TreeNodeEx("Renderers", ImGuiTreeNodeFlags_Framed))
                     {
                         ImGui::Columns(2);
+                        ImGuiUtilities::Property("Depth Pre Pass Enabled", sceneSettings.RenderSettings.DepthPrePass);
                         ImGuiUtilities::Property("Renderer 2D Enabled", sceneSettings.RenderSettings.Renderer2DEnabled);
                         ImGuiUtilities::Property("Renderer 3D Enabled", sceneSettings.RenderSettings.Renderer3DEnabled);
                         ImGuiUtilities::Property("Shadow Enabled", sceneSettings.RenderSettings.ShadowsEnabled);

@@ -22,29 +22,31 @@ namespace Lumos
     class PreviewDraw
     {
         friend class Editor;
-        public:
-            ~PreviewDraw();
 
-            void Draw();
-            void LoadMesh(String8 path);
-            void LoadMaterial(String8 path);
-            void SetDimensions(u32 width, u32 height);
-            void CreateDefaultScene();
-            void SaveTexture(String8 savePath);
-            void DeletePreviewModel();
+    public:
+        PreviewDraw();
+        ~PreviewDraw();
 
-            void ReleaseResources();
+        void Draw();
+        void LoadMesh(String8 path);
+        void LoadMaterial(String8 path);
+        void SetDimensions(u32 width, u32 height);
+        void CreateDefaultScene();
+        void SaveTexture(String8 savePath);
+        void DeletePreviewModel();
 
-        private:
-            Entity m_PreviewObjectEntity;
-            Entity m_CameraEntity;
+        void ReleaseResources();
 
-            Scene* m_PreviewScene = nullptr;
-            SharedPtr<Graphics::RenderPasses> m_PreviewRenderer;
-            SharedPtr<Graphics::Texture2D> m_PreviewTexture;
+    private:
+        Entity m_PreviewObjectEntity;
+        Entity m_CameraEntity;
 
-            u32 m_Width  = 256;
-            u32 m_Height = 256;
+        Scene* m_PreviewScene = nullptr;
+        SharedPtr<Graphics::RenderPasses> m_PreviewRenderer;
+        SharedPtr<Graphics::Texture2D> m_PreviewTexture;
+
+        u32 m_Width  = 256;
+        u32 m_Height = 256;
     };
 
 }

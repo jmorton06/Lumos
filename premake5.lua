@@ -32,9 +32,9 @@ workspace( settings.workspace_name )
 
 	gradleversion "com.android.tools.build:gradle:7.0.0"
 
-	if Arch == "arm" then 
+	if Arch == "arm" then
 		architecture "ARM"
-	elseif Arch == "x64" then 
+	elseif Arch == "x64" then
 		architecture "x86_64"
 	elseif Arch == "x86" then
 		architecture "x86"
@@ -53,7 +53,7 @@ workspace( settings.workspace_name )
 	{
 		["pack"] = "install-time",
 	}
-	
+
 	group "External"
 		require("Lumos/External/box2dpremake5")
 			SetRecommendedSettings()
@@ -69,15 +69,15 @@ workspace( settings.workspace_name )
 			SetRecommendedSettings()
 		require("Lumos/External/ModelLoaders/meshoptimizer/premake5")
 			SetRecommendedSettings()
-		-- require("Lumos/External/msdf-atlas-gen/msdfgen/premake5")
-		-- 	SetRecommendedSettings()
+		require("Lumos/External/ozz-animation/premake5")
+			SetRecommendedSettings()
 		require("Lumos/External/msdf-atlas-gen/premake5")
 			SetRecommendedSettings()
 		if not os.istarget(premake.IOS) and not os.istarget(premake.ANDROID) then
 			require("Lumos/External/GLFWpremake5")
 			SetRecommendedSettings()
 		end
-			
+
 	filter {}
 	group ""
 

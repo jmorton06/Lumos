@@ -1,0 +1,222 @@
+{
+    "value0": {
+        "Version": 25,
+        "Scene Name": "Empty Scene",
+        "PhysicsEnabled2D": true,
+        "PhysicsEnabled3D": true,
+        "AudioEnabled": true,
+        "Renderer2DEnabled": true,
+        "Renderer3DEnabled": true,
+        "DebugRenderEnabled": true,
+        "SkyboxRenderEnabled": true,
+        "ShadowsEnabled": true,
+        "Exposure": 1.0,
+        "ToneMap": 6,
+        "BloomIntensity": 1.0,
+        "BloomKnee": 0.10000000149011612,
+        "BloomThreshold": 1.0,
+        "BloomUpsampleScale": 1.0,
+        "FXAAEnabled": true,
+        "DebandingEnabled": true,
+        "ChromaticAberationEnabled": false,
+        "EyeAdaptation": false,
+        "SSAOEnabled": false,
+        "BloomEnabled": true,
+        "FilmicGrainEnabled": false,
+        "DepthOfFieldEnabled": false,
+        "MotionBlurEnabled": false,
+        "DepthOFFieldEnabled": false,
+        "DepthOfFieldStrength": 1.0,
+        "DepthOfFieldDistance": 100.0,
+        "value0": 0.0,
+        "value1": 1.0,
+        "value2": 1.0,
+        "value3": false
+    },
+    "value1": 4,
+    "value2": 4,
+    "value3": 0,
+    "value4": 1,
+    "value5": 2,
+    "value6": 3,
+    "value7": 3,
+    "value8": 3,
+    "value9": {
+        "Position": {
+            "value0": -44.67218780517578,
+            "value1": 9.402909278869629,
+            "value2": 0.0
+        },
+        "Rotation": {
+            "value0": -0.40410086512565615,
+            "value1": 0.08029552549123764,
+            "value2": -0.17758186161518098,
+            "value3": 0.893711268901825
+        },
+        "Scale": {
+            "value0": 1.0000001192092896,
+            "value1": 1.0,
+            "value2": 0.9999998807907105
+        }
+    },
+    "value10": 0,
+    "value11": {
+        "Position": {
+            "value0": 0.0,
+            "value1": 0.0,
+            "value2": 0.0
+        },
+        "Rotation": {
+            "value0": 0.0,
+            "value1": 0.0,
+            "value2": 0.0,
+            "value3": 1.0
+        },
+        "Scale": {
+            "value0": 1.0,
+            "value1": 1.0,
+            "value2": 1.0
+        }
+    },
+    "value12": 1,
+    "value13": {
+        "Position": {
+            "value0": 0.0,
+            "value1": 0.0,
+            "value2": 0.0
+        },
+        "Rotation": {
+            "value0": 0.0,
+            "value1": 0.0,
+            "value2": 0.0,
+            "value3": 1.0
+        },
+        "Scale": {
+            "value0": 1.0,
+            "value1": 1.0,
+            "value2": 1.0
+        }
+    },
+    "value14": 3,
+    "value15": 0,
+    "value16": {
+        "Name": "Camera"
+    },
+    "value17": 1,
+    "value18": {
+        "Name": "Fox.glb"
+    },
+    "value19": 3,
+    "value20": {
+        "Name": "Light"
+    },
+    "value21": 0,
+    "value22": 0,
+    "value23": 1,
+    "value24": 0,
+    "value25": {
+        "Scale": 1.0,
+        "Aspect": 0.6706827282905579,
+        "FOV": 60.0,
+        "Near": 0.10000000149011612,
+        "Far": 100.0,
+        "Aperture": 55.0,
+        "ShutterSpeed": 0.01666666753590107,
+        "Sensitivity": 250.0
+    },
+    "value26": 0,
+    "value27": 0,
+    "value28": 1,
+    "value29": 3,
+    "value30": {
+        "value0": {
+            "value0": -44.67218780517578,
+            "value1": 9.402909278869629,
+            "value2": 0.0,
+            "value3": 1.0
+        },
+        "value1": {
+            "value0": 1.0,
+            "value1": 1.0,
+            "value2": 1.0,
+            "value3": 1.0
+        },
+        "value2": 0.0,
+        "value3": 0.0,
+        "value4": {
+            "value0": 0.2870440185070038,
+            "value1": 0.6937808990478516,
+            "value2": 0.660510241985321,
+            "value3": 1.0
+        },
+        "value5": 120000.0,
+        "value6": 1.0
+    },
+    "value31": 0,
+    "value32": 0,
+    "value33": 0,
+    "value34": 0,
+    "value35": 0,
+    "value36": 0,
+    "value37": 0,
+    "value38": 0,
+    "value39": 4,
+    "value40": 0,
+    "value41": {
+        "value0": 13155449795979721897
+    },
+    "value42": 1,
+    "value43": {
+        "value0": 16362485482300840292
+    },
+    "value44": 2,
+    "value45": {
+        "value0": 17071912573665687789
+    },
+    "value46": 3,
+    "value47": {
+        "value0": 2058410961000498113
+    },
+    "value48": 1,
+    "value49": 1,
+    "value50": {
+        "PrimitiveType": 8,
+        "FilePath": "//Assets/Meshes/Fox.glb",
+        "Material": {
+            "ptr_wrapper": {
+                "valid": 1,
+                "data": {
+                    "Albedo": "",
+                    "Normal": "",
+                    "Metallic": "",
+                    "Roughness": "",
+                    "Ao": "",
+                    "Emissive": "",
+                    "albedoColour": {
+                        "value0": 1.0,
+                        "value1": 1.0,
+                        "value2": 1.0,
+                        "value3": 1.0
+                    },
+                    "roughnessValue": 0.5799999833106995,
+                    "metallicValue": 0.0,
+                    "emissiveValue": 0.0,
+                    "albedoMapFactor": 1.0,
+                    "metallicMapFactor": 0.0,
+                    "roughnessMapFactor": 0.0,
+                    "normalMapFactor": 0.0,
+                    "aoMapFactor": 0.0,
+                    "emissiveMapFactor": 0.0,
+                    "alphaCutOff": 0.4000000059604645,
+                    "workflow": 0.0,
+                    "shader": "/Users/jmorton/Dev/Lumos/bin/Debug-macosx-x86_64/LumosEditor.app/Contents/MacOS/../../../../../Lumos/Assets/Shaders/ForwardPBRAnim.shader",
+                    "Reflectance": 0.30000001192092898
+                }
+            }
+        }
+    },
+    "value51": 0,
+    "value52": 0,
+    "value53": 0,
+    "value54": 0
+}

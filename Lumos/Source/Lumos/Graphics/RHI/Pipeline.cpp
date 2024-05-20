@@ -69,17 +69,17 @@ namespace Lumos
             HashCombine(hash, pipelineDesc.clearTargets);
             HashCombine(hash, pipelineDesc.swapchainTarget);
             HashCombine(hash, pipelineDesc.lineWidth);
-			if(pipelineDesc.depthBiasEnabled)
-			{
-				HashCombine(hash, pipelineDesc.depthBiasConstantFactor);
-				HashCombine(hash, pipelineDesc.depthBiasSlopeFactor);
-			}
+            if(pipelineDesc.depthBiasEnabled)
+            {
+                HashCombine(hash, pipelineDesc.depthBiasConstantFactor);
+                HashCombine(hash, pipelineDesc.depthBiasSlopeFactor);
+            }
 
-			if(pipelineDesc.cubeMapTarget)
-			{
-				HashCombine(hash, pipelineDesc.cubeMapIndex);
-				HashCombine(hash, pipelineDesc.cubeMapTarget->GetUUID());
-			}
+            if(pipelineDesc.cubeMapTarget)
+            {
+                HashCombine(hash, pipelineDesc.cubeMapIndex);
+                HashCombine(hash, pipelineDesc.cubeMapTarget->GetUUID());
+            }
 
             HashCombine(hash, pipelineDesc.mipIndex);
             HashCombine(hash, pipelineDesc.samples);

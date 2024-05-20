@@ -491,7 +491,6 @@ namespace Lumos
             return *m_Ptr;
         }
 
-
         T& operator[](int index)
         {
             LUMOS_ASSERT(m_Ptr);

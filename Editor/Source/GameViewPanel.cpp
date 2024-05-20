@@ -166,6 +166,14 @@ namespace Lumos
 
         Resize(static_cast<uint32_t>(sceneViewSize.x), static_cast<uint32_t>(sceneViewSize.y));
 
+        auto windowSize = ImGui::GetWindowSize();
+        ImVec2 minBound = sceneViewPosition;
+
+        ImVec2 maxBound   = { minBound.x + windowSize.x, minBound.y + windowSize.y };
+        bool updateCamera = ImGui::IsMouseHoveringRect(minBound, maxBound); // || Input::Get().GetMouseMode() == MouseMode::Captured;
+
+        Application::Get().SetSceneActive(ImGui::IsWindowFocused() && !ImGuizmo::IsUsing() && updateCamera);
+
         // Moved this exit down to prevent a crash
         if(!camera)
         {
@@ -180,14 +188,6 @@ namespace Lumos
             camera->SetAspectRatio(aspect);
 
         ImGuiUtilities::Image(m_GameViewTexture.get(), glm::vec2(sceneViewSize.x, sceneViewSize.y), Graphics::Renderer::GetGraphicsContext()->FlipImGUITexture());
-
-        auto windowSize = ImGui::GetWindowSize();
-        ImVec2 minBound = sceneViewPosition;
-
-        ImVec2 maxBound   = { minBound.x + windowSize.x, minBound.y + windowSize.y };
-        bool updateCamera = ImGui::IsMouseHoveringRect(minBound, maxBound);// || Input::Get().GetMouseMode() == MouseMode::Captured;
-
-        Application::Get().SetSceneActive(ImGui::IsWindowFocused() && !ImGuizmo::IsUsing() && updateCamera);
 
         if(m_ShowStats) //&& ImGui::IsWindowFocused())
         {

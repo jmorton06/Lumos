@@ -1,7 +1,7 @@
 #pragma once
 #include "Maths/Rect.h"
 #include "MathsUtilities.h"
-#include <glm/vec3.hpp>
+#include <glm/ext/vector_float3.hpp>
 
 namespace Lumos
 {

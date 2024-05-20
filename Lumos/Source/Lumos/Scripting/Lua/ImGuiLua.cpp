@@ -1,6 +1,7 @@
 #include "Precompiled.h"
 #include "ImGuiLua.h"
 
+#ifdef BIND_IMGUI_LUA
 #include <sol/sol.hpp>
 #include <imgui/imgui.h>
 
@@ -1474,3 +1475,7 @@ namespace Lumos
         // imgui["captureMouseFromApp"] = ImGui::CaptureMouseFromApp;
     }
 }
+
+#else
+void Lumos::BindImGuiLua(sol::state& solState) { }
+#endif

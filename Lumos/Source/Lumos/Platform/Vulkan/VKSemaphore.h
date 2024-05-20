@@ -15,13 +15,13 @@ namespace Lumos
             VkSemaphore& GetHandle() { return m_Handle; }
 
             void Signal(uint64_t value);
-            void Wait(uint64_t value, uint64_t timeout );
+            void Wait(uint64_t value, uint64_t timeout);
 
             uint64_t GetValue();
 
         private:
             VkSemaphore m_Handle;
-			bool m_Timeline;
+            bool m_Timeline;
         };
     }
 }

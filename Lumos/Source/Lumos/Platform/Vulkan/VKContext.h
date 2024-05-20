@@ -1,9 +1,7 @@
 #pragma once
 #include "Graphics/RHI/GraphicsContext.h"
-
 #include "Core/Reference.h"
 #include "VK.h"
-#include "VKDevice.h"
 
 namespace Lumos
 {

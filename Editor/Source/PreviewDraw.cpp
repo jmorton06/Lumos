@@ -11,18 +11,20 @@
 
 namespace Lumos
 {
+    PreviewDraw::PreviewDraw() = default;
+
     PreviewDraw::~PreviewDraw()
     {
         if(m_PreviewScene)
-		{
-			m_PreviewScene->OnCleanupScene();
-			delete m_PreviewScene;
-		}
+        {
+            m_PreviewScene->OnCleanupScene();
+            delete m_PreviewScene;
+        }
     }
 
     void PreviewDraw::CreateDefaultScene()
     {
-        if (m_PreviewScene)
+        if(m_PreviewScene)
             return;
 
         if(!m_PreviewTexture)
@@ -40,8 +42,8 @@ namespace Lumos
             m_PreviewRenderer->m_DebugRenderEnabled = false;
         }
 
-        m_PreviewScene = new Scene("Preview");
-        auto& sceneSettings = m_PreviewScene->GetSettings();
+        m_PreviewScene                           = new Scene("Preview");
+        auto& sceneSettings                      = m_PreviewScene->GetSettings();
         sceneSettings.RenderSettings.MSAASamples = 1;
 
         {
@@ -49,7 +51,7 @@ namespace Lumos
             auto& lightComp     = light.AddComponent<Graphics::Light>();
             glm::mat4 lightView = glm::inverse(glm::lookAt(glm::vec3(30.0f, 9.0f, 50.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f)));
             light.GetTransform().SetLocalTransform(lightView);
-			light.GetTransform().SetWorldMatrix(glm::mat4(1.0f));
+            light.GetTransform().SetWorldMatrix(glm::mat4(1.0f));
 
             m_CameraEntity = m_PreviewScene->GetEntityManager()->Create("Camera");
             m_CameraEntity.AddComponent<Camera>();
@@ -65,7 +67,6 @@ namespace Lumos
 
         m_PreviewRenderer->OnNewScene(m_PreviewScene);
         m_PreviewRenderer->SetRenderTarget(m_PreviewTexture.get(), true);
-
     }
 
     void PreviewDraw::Draw()
@@ -85,12 +86,12 @@ namespace Lumos
 
     void PreviewDraw::LoadMesh(String8 path)
     {
-        if (m_PreviewObjectEntity)
+        if(m_PreviewObjectEntity)
             m_PreviewObjectEntity.Destroy();
 
         m_PreviewObjectEntity = m_PreviewScene->GetEntityManager()->Create("Model");
 
-        if (Application::Get().GetAssetManager()->AssetExists(ToStdString(path)))
+        if(Application::Get().GetAssetManager()->AssetExists(ToStdString(path)))
         {
             m_PreviewObjectEntity.AddComponent<Graphics::ModelComponent>(Application::Get().GetAssetManager()->GetAssetData(ToStdString(path)).As<Graphics::Model>());
         }
@@ -101,7 +102,7 @@ namespace Lumos
 
         glm::mat4 viewMat = glm::inverse(glm::lookAt(glm::vec3(-1.0f, 0.5f, 1.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f)));
         m_CameraEntity.GetTransform().SetLocalTransform(viewMat);
-		m_CameraEntity.GetTransform().SetWorldMatrix(glm::mat4(1.0f));
+        m_CameraEntity.GetTransform().SetWorldMatrix(glm::mat4(1.0f));
 
         auto bb = m_PreviewObjectEntity.GetComponent<Graphics::ModelComponent>().ModelRef->GetMeshes().front()->GetBoundingBox();
         m_CameraEntity.GetTransform().SetLocalPosition((m_CameraEntity.GetTransform().GetForwardDirection()) * glm::distance(bb->Max(), bb->Min()));
@@ -132,17 +133,16 @@ namespace Lumos
 
     void PreviewDraw::SetDimensions(u32 width, u32 height)
     {
-
     }
 
     void PreviewDraw::ReleaseResources()
     {
         if(m_PreviewScene)
-		{
-			m_PreviewScene->OnCleanupScene();
-			delete m_PreviewScene;
-		}
-		m_PreviewScene = nullptr;
+        {
+            m_PreviewScene->OnCleanupScene();
+            delete m_PreviewScene;
+        }
+        m_PreviewScene = nullptr;
 
         m_PreviewTexture.reset();
         m_PreviewRenderer.reset();

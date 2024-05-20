@@ -1,18 +1,17 @@
 #pragma once
 #include "Utilities/TSingleton.h"
 #include "VK.h"
-#include "VKContext.h"
 #include "VKCommandPool.h"
 #include "Graphics/RHI/Definitions.h"
-#include "Utilities/StringUtilities.h"
+#include "Core/DataStructures/Set.h"
+#include "Core/DataStructures/Vector.h"
 
 static const uint32_t SMALL_ALLOCATION_MAX_SIZE = 4096;
 
-#include <unordered_set>
-
-#if LUMOS_PROFILE && defined(TRACY_ENABLE)
-#include <Tracy/public/tracy/TracyVulkan.hpp>
-#endif
+namespace tracy
+{
+    class VkCtx;
+}
 
 namespace Lumos
 {
@@ -39,7 +38,7 @@ namespace Lumos
                 VkPhysicalDevice Handle;
             };
 
-            bool IsExtensionSupported(const std::string& extensionName) const;
+            bool IsExtensionSupported(String8 extensionName) const;
             uint32_t GetMemoryTypeIndex(uint32_t typeBits, VkMemoryPropertyFlags properties) const;
 
             PhysicalDeviceInfo GetInfo(VkPhysicalDevice device);
@@ -81,9 +80,9 @@ namespace Lumos
         private:
             QueueFamilyIndices m_QueueFamilyIndices;
 
-            std::vector<VkQueueFamilyProperties> m_QueueFamilyProperties;
-            std::unordered_set<std::string> m_SupportedExtensions;
-            std::vector<VkDeviceQueueCreateInfo> m_QueueCreateInfos;
+            Vector<VkQueueFamilyProperties> m_QueueFamilyProperties;
+            Vector<VkDeviceQueueCreateInfo> m_QueueCreateInfos;
+            HashSet(uint64_t) m_SupportedExtensions;
 
             VkPhysicalDevice m_Handle;
             VkPhysicalDeviceProperties m_PhysicalDeviceProperties;

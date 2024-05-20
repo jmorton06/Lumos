@@ -51,7 +51,7 @@ namespace Lumos
 
         bool VKFence::Wait(uint64_t timeoutNanoseconds)
         {
-            LUMOS_PROFILE_FUNCTION();
+            LUMOS_PROFILE_SCOPE("vkWaitForFences");
             LUMOS_ASSERT(!m_Signaled, "Fence Signaled");
 
             const VkResult result = vkWaitForFences(VKDevice::Get().GetDevice(), 1, &m_Handle, true, timeoutNanoseconds);

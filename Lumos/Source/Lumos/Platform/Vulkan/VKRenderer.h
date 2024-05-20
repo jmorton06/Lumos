@@ -104,8 +104,6 @@ namespace Lumos
             std::string m_RendererTitle;
             uint32_t m_DescriptorCapacity = 0;
 
-            VkDescriptorSet m_CurrentDescriptorSets[16] = {};
-
             VkDescriptorPool m_CurrentPool;
             Vector<VkDescriptorPool> m_UsedDescriptorPools;
             Vector<VkDescriptorPool> m_FreeDescriptorPools;

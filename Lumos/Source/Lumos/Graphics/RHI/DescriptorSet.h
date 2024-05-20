@@ -6,11 +6,6 @@ namespace Lumos
     struct Buffer;
     namespace Graphics
     {
-        struct DescriptorSetInfo
-        {
-            std::vector<Descriptor> descriptors;
-        };
-
         class DescriptorSet
         {
         public:

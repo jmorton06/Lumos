@@ -1,6 +1,7 @@
 #version 450
 #extension GL_ARB_separate_shader_objects : enable
 #extension GL_ARB_shading_language_420pack : enable
+#include "Buffers.glslh"
 
 layout(push_constant) uniform PushConsts
 {
@@ -10,11 +11,6 @@ layout(push_constant) uniform PushConsts
     float p1;
     float p2;
 } pushConsts;
-
-layout(set = 0,binding = 0) uniform ShadowData
-{
-    mat4 LightMatrices[16];
-} ubo;
 
 out gl_PerVertex
 {
@@ -37,19 +33,19 @@ void main()
     switch(pushConsts.cascadeIndex)
     {
         case 0 : 
-		proj = ubo.LightMatrices[0];
+		proj = u_DirShadow.DirLightMatrices[0];
         break;
         case 1 : 
-		proj = ubo.LightMatrices[1];
+		proj = u_DirShadow.DirLightMatrices[1];
         break;
         case 2 : 
-		proj = ubo.LightMatrices[2];
+		proj = u_DirShadow.DirLightMatrices[2];
         break;
         default : 
-		proj = ubo.LightMatrices[3];
+		proj = u_DirShadow.DirLightMatrices[3];
         break;
     }
-    //gl_Position = ubo.LightMatrices[pushConsts.cascadeIndex] * transform * vec4(inPosition, 1.0); 
+    //gl_Position = u_DirShadow.DirLightMatrices[pushConsts.cascadeIndex] * transform * vec4(inPosition, 1.0); 
 	
 	gl_Position = transform * vec4(inPosition, 1.0); 
     //This order needed to match the order of 

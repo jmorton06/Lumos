@@ -1,8 +1,8 @@
 #pragma once
 
 #include "Maths/Maths.h"
-#include <glm/vec2.hpp>
-#include <glm/vec3.hpp>
+#include <glm/ext/vector_float2.hpp>
+#include <glm/ext/vector_float3.hpp>
 
 namespace Lumos
 {

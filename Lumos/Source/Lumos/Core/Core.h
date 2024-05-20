@@ -237,3 +237,6 @@
 #else
 #define PerThread thread_local
 #endif
+
+#define Concat_(a, b) a##b
+#define Concat(a, b) Concat_(a, b)

@@ -1,6 +1,7 @@
 #include "Precompiled.h"
 #include "AssetManager.h"
 #include "Core/Application.h"
+#include "Graphics/RHI/Texture.h"
 #include <future>
 
 namespace Lumos

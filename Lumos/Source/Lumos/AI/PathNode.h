@@ -1,6 +1,6 @@
 #pragma once
 #include "Physics/LumosPhysicsEngine/RigidBody3D.h"
-#include <glm/vec3.hpp>
+#include <glm/ext/vector_float3.hpp>
 #include <vector>
 
 namespace Lumos

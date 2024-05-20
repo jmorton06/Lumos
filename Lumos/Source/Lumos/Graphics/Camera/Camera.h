@@ -6,7 +6,7 @@
 #include "Maths/Ray.h"
 #include "Maths/Frustum.h"
 
-#include "Scene/Serialisation.h"
+#include "Scene/Serialisation/Serialisation.h"
 
 namespace Lumos
 {

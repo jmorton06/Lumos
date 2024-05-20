@@ -14,6 +14,12 @@
 
 #include <ModelLoaders/OpenFBX/ofbx.h>
 
+#include <ozz/animation/offline/animation_builder.h>
+#include <ozz/animation/runtime/skeleton.h>
+#include <ozz/animation/offline/skeleton_builder.h>
+// #include <ozz-animation/src/animation/offline/fbx/fbx2ozz.cc>
+#include <ozz/animation/runtime/local_to_model_job.h>
+
 // #define THREAD_MESH_LOADING //Can't use with opengl
 #ifdef THREAD_MESH_LOADING
 #include "Core/JobSystem.h"
@@ -278,6 +284,8 @@ namespace Lumos::Graphics
         std::vector<Graphics::Vertex> tempvertices(vertex_count);
         std::vector<uint32_t> indicesArray(numIndices);
         ofbx::Vec3* generatedTangents = nullptr;
+
+        const ofbx::Skin* skin = geom->getSkin();
 
         int indexCount = 0;
         auto indices   = geom->getFaceIndices();

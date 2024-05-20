@@ -71,7 +71,7 @@ namespace Lumos
 #if defined(LUMOS_PROFILE) && defined(TRACY_ENABLE) && LUMOS_TRACK_MEMORY
         TracyFree(p);
 #endif
-		return free(p);
+        return free(p);
     }
 
     // Arenas
@@ -123,7 +123,7 @@ namespace Lumos
 
         if(newPos > arena->Size)
         {
-            LUMOS_LOG_ERROR("Not enough space in the arena");
+            LUMOS_ASSERT(false, "Not enough space in the arena");
             return nullptr;
         }
 
@@ -144,6 +144,7 @@ namespace Lumos
 
         if(newPos > arena->Size)
         {
+            LUMOS_ASSERT(false, "Not enough space in the arena");
             return nullptr; // Not enough space in the arena
         }
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <glm/vec4.hpp>
+#include <glm/ext/vector_float4.hpp>
 
 namespace Lumos
 {

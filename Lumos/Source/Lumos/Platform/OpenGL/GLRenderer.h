@@ -2,7 +2,7 @@
 
 #include "Graphics/RHI/Renderer.h"
 #include "Graphics/RHI/Definitions.h"
-#include <glm/vec4.hpp>
+#include <glm/ext/vector_float4.hpp>
 
 namespace Lumos
 {

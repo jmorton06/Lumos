@@ -1,5 +1,6 @@
 #include "Precompiled.h"
 #include "LumosPhysicsEngine.h"
+#include "RigidBody3D.h"
 #include "Narrowphase/CollisionDetection.h"
 #include "Broadphase/BruteForceBroadphase.h"
 #include "Broadphase/OctreeBroadphase.h"
@@ -11,12 +12,15 @@
 #include "Core/JobSystem.h"
 #include "Core/Application.h"
 #include "Scene/Component/RigidBody3DComponent.h"
+#include "Scene/Scene.h"
+#include "Scene/Entity.h"
 #include "Graphics/Renderers/DebugRenderer.h"
 
 #include "Maths/Transform.h"
 #include "ImGui/ImGuiUtilities.h"
 #include "Utilities/Colour.h"
 
+#include <entt/entt.hpp>
 #include <imgui/imgui.h>
 
 namespace Lumos
@@ -144,7 +148,7 @@ namespace Lumos
         // Solve collision constraints
         SolveConstraints();
         // Update movement
-        for(int i = 0; i < m_PositionIterations; i++)
+        for(uint32_t i = 0; i < m_PositionIterations; i++)
             UpdateRigidBodys();
 
         RigidBody3D* current = m_RootBody;
@@ -180,7 +184,7 @@ namespace Lumos
 
     RigidBody3D* LumosPhysicsEngine::CreateBody(const RigidBody3DProperties& properties)
     {
-		m_RigidBodyCount++;
+        m_RigidBodyCount++;
 
         void* mem = m_Allocator->Allocate();
 
@@ -199,7 +203,7 @@ namespace Lumos
 
     void LumosPhysicsEngine::DestroyBody(RigidBody3D* body)
     {
-		m_RigidBodyCount--;
+        m_RigidBodyCount--;
 
         // Remove world body list.
         if(body->m_Prev)

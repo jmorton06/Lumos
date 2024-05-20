@@ -3,38 +3,40 @@
 #include "Maths/Maths.h"
 #include "OctreeBroadphase.h"
 #include "Graphics/Renderers/DebugRenderer.h"
-#include <set>
+
+#include "Core/DataStructures/Set.h"
 
 #define DEBUG_CHECK_DUPLICATES 0
 namespace Lumos
 {
 
-    OctreeBroadphase::OctreeBroadphase(const size_t maxObjectsPerPartition, const size_t maxPartitionDepth)
+    OctreeBroadphase::OctreeBroadphase(const u32 maxObjectsPerPartition, const u32 maxPartitionDepth)
         : m_MaxObjectsPerPartition(maxObjectsPerPartition)
         , m_MaxPartitionDepth(maxPartitionDepth)
         , m_Leaves()
     {
-		m_Arena = ArenaAlloc(Megabytes(4));
+        m_Arena            = ArenaAlloc(Megabytes(4));
         m_MinPartitionSize = 2;
     }
 
     OctreeBroadphase::~OctreeBroadphase()
     {
-		ArenaRelease(m_Arena);
+        ArenaRelease(m_Arena);
     }
 
     void OctreeBroadphase::FindPotentialCollisionPairs(RigidBody3D* rootObject,
                                                        Vector<CollisionPair>& collisionPairs, uint32_t totalRigidBodyCount)
     {
         LUMOS_PROFILE_FUNCTION();
-		ArenaClear(m_Arena);
-        m_LeafCount        = 0;
+        ArenaClear(m_Arena);
+        m_LeafCount = 0;
 
-		m_RootNode.ChildCount         = 0;
-		m_RootNode.PhysicsObjectCount = 0;
-		m_RootNode.boundingBox        = Maths::BoundingBox();
-		m_RootNode.PhysicsObjects = PushArrayNoZero(m_Arena, RigidBody3D* , totalRigidBodyCount);
-		m_Leaves = PushArrayNoZero(m_Arena, OctreeNode, totalRigidBodyCount);
+        m_RootNode.ChildCount         = 0;
+        m_RootNode.PhysicsObjectCount = 0;
+        m_RootNode.boundingBox        = Maths::BoundingBox();
+        m_RootNode.PhysicsObjects     = PushArrayNoZero(m_Arena, RigidBody3D*, totalRigidBodyCount);
+#define LEAF_COUNT 1024
+        m_Leaves = PushArrayNoZero(m_Arena, OctreeNode*, LEAF_COUNT);
 
         RigidBody3D* current = rootObject;
         while(current)
@@ -42,35 +44,42 @@ namespace Lumos
             if(current->GetCollisionShape())
             {
                 LUMOS_PROFILE_SCOPE_LOW("Merge Bounding box and add Physics Object");
-				m_RootNode.boundingBox.Merge(current->GetWorldSpaceAABB());
-				m_RootNode.PhysicsObjects[m_RootNode.PhysicsObjectCount] = current;
-				m_RootNode.PhysicsObjectCount++;
+                m_RootNode.boundingBox.Merge(current->GetWorldSpaceAABB());
+                m_RootNode.PhysicsObjects[m_RootNode.PhysicsObjectCount] = current;
+                m_RootNode.PhysicsObjectCount++;
             }
 
             current = current->m_Next;
         }
 
-		m_RootNode.boundingBox.ExtendToCube();
+        m_RootNode.boundingBox.ExtendToCube();
 
         // Recursively divide world
         Divide(m_RootNode, 0);
 
-        static std::set<size_t> collisionPairMap;
-        collisionPairMap.clear();
+        HashSet(size_t) collisionPairHashSet = { 0 };
+        collisionPairHashSet.arena           = m_Arena;
+
         // Add collision pairs in leaf world divisions
         for(uint32_t leafIndex = 0; leafIndex < m_LeafCount; leafIndex++)
         {
-            auto& node           = m_Leaves[leafIndex];
+            auto& node           = *m_Leaves[leafIndex];
             uint32_t objectCount = node.PhysicsObjectCount;
             if(objectCount == 0)
                 continue;
 
             for(size_t i = 0; i < objectCount - 1; ++i)
             {
+                if(!node.PhysicsObjects[i])
+                    continue;
+
                 RigidBody3D& obj1 = *node.PhysicsObjects[i];
 
                 for(size_t j = i + 1; j < objectCount; ++j)
                 {
+                    if(!node.PhysicsObjects[j])
+                        continue;
+
                     RigidBody3D& obj2 = *node.PhysicsObjects[j];
 
                     // Skip pairs of two at objects at rest
@@ -93,12 +102,14 @@ namespace Lumos
                     }
 
                     size_t pairHash = (size_t)pair.pObjectA + ((size_t)pair.pObjectB << 8);
-                    if(collisionPairMap.find(pairHash) == collisionPairMap.end())
-                        collisionPairMap.insert(pairHash);
+                    if(!HashSetContains(&collisionPairHashSet, pairHash))
+                    {
+                        HashSetAdd(&collisionPairHashSet, pairHash);
+                    }
                     else
                         continue;
 
-                    //Slow check for duplicates
+                        // Slow check for duplicates
 #if DEBUG_CHECK_DUPLICATES
                     bool duplicate = false;
                     for(int i = 0; i < collisionPairs.Size(); i++)
@@ -112,7 +123,7 @@ namespace Lumos
                     }
                     if(!duplicate)
 #endif
-                    collisionPairs.EmplaceBack(pair);
+                        collisionPairs.EmplaceBack(pair);
                 }
             }
         }
@@ -133,7 +144,7 @@ namespace Lumos
             // Ignore any subdivisions that contain no objects
             if(division.PhysicsObjectCount > 1)
             {
-                m_Leaves[m_LeafCount] = division;
+                m_Leaves[m_LeafCount] = &division;
                 m_LeafCount++;
             }
 
@@ -154,16 +165,15 @@ namespace Lumos
             { 1, 1, 1, 2, 2, 2 }
         };
 
-		division.Children = PushArrayNoZero(m_Arena, OctreeNode, 8);
+        division.Children = PushArray(m_Arena, OctreeNode, NUM_DIVISIONS);
 
         for(size_t i = 0; i < NUM_DIVISIONS; i++)
         {
             LUMOS_PROFILE_SCOPE_LOW("Create Child");
-
-			OctreeNode& chileNode = division.Children[division.ChildCount];
-			chileNode.ChildCount                             = 0;
-			chileNode.PhysicsObjectCount                     = 0;
-			chileNode.PhysicsObjects = PushArrayNoZero(m_Arena, RigidBody3D* , division.PhysicsObjectCount);
+            OctreeNode& chileNode        = division.Children[division.ChildCount];
+            chileNode.ChildCount         = 0;
+            chileNode.PhysicsObjectCount = 0;
+            chileNode.PhysicsObjects     = PushArrayNoZero(m_Arena, RigidBody3D*, division.PhysicsObjectCount);
 
             division.ChildCount++;
 
@@ -174,8 +184,8 @@ namespace Lumos
                                   divisionPoints[DIVISION_POINT_INDICES[i][4]].y,
                                   divisionPoints[DIVISION_POINT_INDICES[i][5]].z);
 
-			chileNode.boundingBox.m_Min = lower;
-			chileNode.boundingBox.m_Max = upper;
+            chileNode.boundingBox.m_Min = lower;
+            chileNode.boundingBox.m_Max = upper;
 
             // Add objects inside division
             for(uint32_t i = 0; i < division.PhysicsObjectCount; i++)
@@ -190,8 +200,8 @@ namespace Lumos
                 Intersection intersection             = chileNode.boundingBox.IsInside(boundingBox);
                 if(intersection != OUTSIDE)
                 {
-					chileNode.PhysicsObjects[chileNode.PhysicsObjectCount] = physicsObject;
-					chileNode.PhysicsObjectCount++;
+                    chileNode.PhysicsObjects[chileNode.PhysicsObjectCount] = physicsObject;
+                    chileNode.PhysicsObjectCount++;
 
                     if(intersection == INSIDE)
                         division.PhysicsObjects[i] = nullptr;

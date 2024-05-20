@@ -8,6 +8,10 @@
 #include "VKRenderer.h"
 #include "VKCommandPool.h"
 
+#if LUMOS_PROFILE && defined(TRACY_ENABLE)
+#include <Tracy/public/tracy/TracyVulkan.hpp>
+#endif
+
 namespace Lumos
 {
     namespace Graphics
@@ -115,6 +119,9 @@ namespace Lumos
             // First select the gpu at the back of the list
             m_Handle = physicalDevices.back();
 
+            m_SupportedExtensions       = { 0 };
+            m_SupportedExtensions.arena = nullptr;
+
             int8_t desiredGPUIndex = Application::Get().GetProjectSettings().DesiredGPUIndex;
 
             if(desiredGPUIndex >= 0)
@@ -142,7 +149,7 @@ namespace Lumos
                           {
                     if(deviceA.Type == deviceB.Type)
                         return deviceA.Memory > deviceB.Memory;
-                    
+
                     return deviceA.Type < deviceB.Type; });
 
                 m_Handle     = deviceInfos[0].Handle;
@@ -173,8 +180,8 @@ namespace Lumos
             uint32_t queueFamilyCount;
             vkGetPhysicalDeviceQueueFamilyProperties(m_Handle, &queueFamilyCount, nullptr);
             LUMOS_ASSERT(queueFamilyCount > 0);
-            m_QueueFamilyProperties.resize(queueFamilyCount);
-            vkGetPhysicalDeviceQueueFamilyProperties(m_Handle, &queueFamilyCount, m_QueueFamilyProperties.data());
+            m_QueueFamilyProperties.Resize(queueFamilyCount);
+            vkGetPhysicalDeviceQueueFamilyProperties(m_Handle, &queueFamilyCount, m_QueueFamilyProperties.Data());
 
             uint32_t extCount = 0;
             vkEnumerateDeviceExtensionProperties(m_Handle, nullptr, &extCount, nullptr);
@@ -186,7 +193,8 @@ namespace Lumos
                     LUMOS_LOG_INFO("Selected physical device has {0} extensions", extensions.size());
                     for(const auto& ext : extensions)
                     {
-                        m_SupportedExtensions.emplace(ext.extensionName);
+                        uint64_t basicStringHash = StringUtilities::BasicHashFromString(Str8C((char*)ext.extensionName));
+                        HashSetAdd(&m_SupportedExtensions, basicStringHash);
                     }
                 }
             }
@@ -212,7 +220,7 @@ namespace Lumos
                 queueInfo.queueFamilyIndex        = m_QueueFamilyIndices.Graphics;
                 queueInfo.queueCount              = 1;
                 queueInfo.pQueuePriorities        = &defaultQueuePriority;
-                m_QueueCreateInfos.push_back(queueInfo);
+                m_QueueCreateInfos.PushBack(queueInfo);
             }
 
             // Dedicated compute queue
@@ -226,7 +234,7 @@ namespace Lumos
                     queueInfo.queueFamilyIndex        = m_QueueFamilyIndices.Compute;
                     queueInfo.queueCount              = 1;
                     queueInfo.pQueuePriorities        = &defaultQueuePriority;
-                    m_QueueCreateInfos.push_back(queueInfo);
+                    m_QueueCreateInfos.PushBack(queueInfo);
                 }
             }
 
@@ -241,7 +249,7 @@ namespace Lumos
                     queueInfo.queueFamilyIndex = m_QueueFamilyIndices.Transfer;
                     queueInfo.queueCount       = 1;
                     queueInfo.pQueuePriorities = &defaultQueuePriority;
-                    m_QueueCreateInfos.push_back(queueInfo);
+                    m_QueueCreateInfos.PushBack(queueInfo);
                 }
             }
         }
@@ -250,9 +258,10 @@ namespace Lumos
         {
         }
 
-        bool VKPhysicalDevice::IsExtensionSupported(const std::string& extensionName) const
+        bool VKPhysicalDevice::IsExtensionSupported(String8 extensionName) const
         {
-            return m_SupportedExtensions.find(extensionName) != m_SupportedExtensions.end();
+            uint64_t basicStringHash = StringUtilities::BasicHashFromString(extensionName);
+            return HashSetContains(&m_SupportedExtensions, basicStringHash);
         }
 
         VKPhysicalDevice::QueueFamilyIndices VKPhysicalDevice::GetQueueFamilyIndices(int flags)
@@ -263,7 +272,7 @@ namespace Lumos
             // Try to find a queue family index that supports compute but not graphics
             if(flags & VK_QUEUE_COMPUTE_BIT)
             {
-                for(uint32_t i = 0; i < m_QueueFamilyProperties.size(); i++)
+                for(uint32_t i = 0; i < m_QueueFamilyProperties.Size(); i++)
                 {
                     auto& queueFamilyProperties = m_QueueFamilyProperties[i];
                     if((queueFamilyProperties.queueFlags & VK_QUEUE_COMPUTE_BIT) && ((queueFamilyProperties.queueFlags & VK_QUEUE_GRAPHICS_BIT) == 0))
@@ -278,7 +287,7 @@ namespace Lumos
             // Try to find a queue family index that supports transfer but not graphics and compute
             if(flags & VK_QUEUE_TRANSFER_BIT)
             {
-                for(uint32_t i = 0; i < m_QueueFamilyProperties.size(); i++)
+                for(uint32_t i = 0; i < m_QueueFamilyProperties.Size(); i++)
                 {
                     auto& queueFamilyProperties = m_QueueFamilyProperties[i];
                     if((queueFamilyProperties.queueFlags & VK_QUEUE_TRANSFER_BIT) && ((queueFamilyProperties.queueFlags & VK_QUEUE_GRAPHICS_BIT) == 0) && ((queueFamilyProperties.queueFlags & VK_QUEUE_COMPUTE_BIT) == 0))
@@ -290,7 +299,7 @@ namespace Lumos
             }
 
             // For other queue types or if no separate compute queue is present, return the first one to support the requested flags
-            for(uint32_t i = 0; i < m_QueueFamilyProperties.size(); i++)
+            for(uint32_t i = 0; i < m_QueueFamilyProperties.Size(); i++)
             {
                 if((flags & VK_QUEUE_TRANSFER_BIT) && indices.Transfer == -1)
                 {
@@ -429,10 +438,14 @@ namespace Lumos
                 VK_KHR_SWAPCHAIN_EXTENSION_NAME
             };
 
-            if(m_PhysicalDevice->IsExtensionSupported(VK_EXT_DEBUG_UTILS_EXTENSION_NAME))
+            if(m_PhysicalDevice->IsExtensionSupported(Str8Lit(VK_EXT_DEBUG_UTILS_EXTENSION_NAME)))
             {
                 deviceExtensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
                 m_EnableDebugMarkers = true;
+            }
+            else
+            {
+                LUMOS_LOG_WARN("{0} unsupported", VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
             }
 
             VkPhysicalDeviceDescriptorIndexingFeaturesEXT indexingFeatures = {};
@@ -442,22 +455,30 @@ namespace Lumos
 
 #if defined(LUMOS_PLATFORM_MACOS) || defined(LUMOS_PLATFORM_IOS)
             // https://vulkan.lunarg.com/doc/view/1.2.162.0/mac/1.2-extensions/vkspec.html#VUID-VkDeviceCreateInfo-pProperties-04451
-            if(m_PhysicalDevice->IsExtensionSupported("VK_KHR_portability_subset"))
+            if(m_PhysicalDevice->IsExtensionSupported(Str8Lit("VK_KHR_portability_subset")))
             {
                 deviceExtensions.push_back("VK_KHR_portability_subset");
             }
+            else
+            {
+                LUMOS_LOG_WARN("VK_KHR_portability_subset unsupported");
+            }
 
-            if(m_PhysicalDevice->IsExtensionSupported(VK_EXT_DESCRIPTOR_INDEXING_EXTENSION_NAME))
+            if(m_PhysicalDevice->IsExtensionSupported(Str8Lit(VK_EXT_DESCRIPTOR_INDEXING_EXTENSION_NAME)))
             {
                 deviceExtensions.push_back(VK_EXT_DESCRIPTOR_INDEXING_EXTENSION_NAME);
+            }
+            else
+            {
+                LUMOS_LOG_WARN("{0} unsupported", VK_EXT_DESCRIPTOR_INDEXING_EXTENSION_NAME);
             }
 #endif
 
             // Device
             VkDeviceCreateInfo deviceCreateInfo      = {};
             deviceCreateInfo.sType                   = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-            deviceCreateInfo.queueCreateInfoCount    = static_cast<uint32_t>(m_PhysicalDevice->m_QueueCreateInfos.size());
-            deviceCreateInfo.pQueueCreateInfos       = m_PhysicalDevice->m_QueueCreateInfos.data();
+            deviceCreateInfo.queueCreateInfoCount    = static_cast<uint32_t>(m_PhysicalDevice->m_QueueCreateInfos.Size());
+            deviceCreateInfo.pQueueCreateInfos       = m_PhysicalDevice->m_QueueCreateInfos.Data();
             deviceCreateInfo.enabledExtensionCount   = static_cast<uint32_t>(deviceExtensions.size());
             deviceCreateInfo.ppEnabledExtensionNames = deviceExtensions.data();
             deviceCreateInfo.pEnabledFeatures        = &m_EnabledFeatures;

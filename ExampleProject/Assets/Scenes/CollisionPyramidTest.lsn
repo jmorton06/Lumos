@@ -1,6 +1,6 @@
 {
     "value0": {
-        "Version": 24,
+        "Version": 25,
         "Scene Name": "CollisionPyramidTest",
         "PhysicsEnabled2D": true,
         "PhysicsEnabled3D": true,
@@ -33,8 +33,8 @@
         "value2": 1.0,
         "value3": false
     },
-    "value1": 63,
-    "value2": 63,
+    "value1": 65,
+    "value2": 64,
     "value3": 0,
     "value4": 1,
     "value5": 2,
@@ -98,9 +98,11 @@
     "value63": 60,
     "value64": 61,
     "value65": 1048638,
-    "value66": 63,
-    "value67": 2,
-    "value68": {
+    "value66": 1048639,
+    "value67": 1048640,
+    "value68": 64,
+    "value69": 2,
+    "value70": {
         "Position": {
             "value0": 0.0,
             "value1": -3.3106017112731935,
@@ -118,8 +120,8 @@
             "value2": 400.0
         }
     },
-    "value69": 15,
-    "value70": {
+    "value71": 15,
+    "value72": {
         "Position": {
             "value0": 1.2000000476837159,
             "value1": 0.0,
@@ -137,8 +139,8 @@
             "value2": 1.0
         }
     },
-    "value71": 1048579,
-    "value72": {
+    "value73": 1048579,
+    "value74": {
         "Position": {
             "value0": 0.0,
             "value1": -0.003154277801513672,
@@ -156,31 +158,12 @@
             "value2": 1.0
         }
     },
-    "value73": 5,
-    "value74": {
-        "Position": {
-            "value0": 0.0,
-            "value1": 0.0,
-            "value2": -1.2000000476837159
-        },
-        "Rotation": {
-            "value0": 0.0,
-            "value1": 0.0,
-            "value2": 0.0,
-            "value3": 1.0
-        },
-        "Scale": {
-            "value0": 1.0,
-            "value1": 1.0,
-            "value2": 1.0
-        }
-    },
-    "value75": 6,
+    "value75": 5,
     "value76": {
         "Position": {
             "value0": 0.0,
             "value1": 0.0,
-            "value2": -2.4000000953674318
+            "value2": -1.2000000476837159
         },
         "Rotation": {
             "value0": 0.0,
@@ -194,12 +177,12 @@
             "value2": 1.0
         }
     },
-    "value77": 7,
+    "value77": 6,
     "value78": {
         "Position": {
             "value0": 0.0,
             "value1": 0.0,
-            "value2": -3.5999999046325685
+            "value2": -2.4000000953674318
         },
         "Rotation": {
             "value0": 0.0,
@@ -213,12 +196,12 @@
             "value2": 1.0
         }
     },
-    "value79": 8,
+    "value79": 7,
     "value80": {
         "Position": {
             "value0": 0.0,
             "value1": 0.0,
-            "value2": -4.800000190734863
+            "value2": -3.5999999046325685
         },
         "Rotation": {
             "value0": 0.0,
@@ -232,11 +215,30 @@
             "value2": 1.0
         }
     },
-    "value81": 9,
+    "value81": 8,
     "value82": {
         "Position": {
             "value0": 0.0,
             "value1": 0.0,
+            "value2": -4.800000190734863
+        },
+        "Rotation": {
+            "value0": 0.0,
+            "value1": 0.0,
+            "value2": 0.0,
+            "value3": 1.0
+        },
+        "Scale": {
+            "value0": 1.0,
+            "value1": 1.0,
+            "value2": 1.0
+        }
+    },
+    "value83": 9,
+    "value84": {
+        "Position": {
+            "value0": 0.0,
+            "value1": 0.0,
             "value2": -6.0
         },
         "Rotation": {
@@ -251,30 +253,30 @@
             "value2": 1.0
         }
     },
-    "value83": 10,
-    "value84": {
-        "Position": {
-            "value0": 1.2000000476837159,
-            "value1": 0.0,
-            "value2": 0.0
-        },
-        "Rotation": {
-            "value0": 0.0,
-            "value1": 0.0,
-            "value2": 0.0,
-            "value3": 1.0
-        },
-        "Scale": {
-            "value0": 1.0,
-            "value1": 1.0,
-            "value2": 1.0
-        }
-    },
-    "value85": 11,
+    "value85": 10,
     "value86": {
         "Position": {
             "value0": 1.2000000476837159,
             "value1": 0.0,
+            "value2": 0.0
+        },
+        "Rotation": {
+            "value0": 0.0,
+            "value1": 0.0,
+            "value2": 0.0,
+            "value3": 1.0
+        },
+        "Scale": {
+            "value0": 1.0,
+            "value1": 1.0,
+            "value2": 1.0
+        }
+    },
+    "value87": 11,
+    "value88": {
+        "Position": {
+            "value0": 1.2000000476837159,
+            "value1": 0.0,
             "value2": -1.2000000476837159
         },
         "Rotation": {
@@ -289,8 +291,8 @@
             "value2": 1.0
         }
     },
-    "value87": 12,
-    "value88": {
+    "value89": 12,
+    "value90": {
         "Position": {
             "value0": 1.2000000476837159,
             "value1": 0.0,
@@ -308,8 +310,8 @@
             "value2": 1.0
         }
     },
-    "value89": 13,
-    "value90": {
+    "value91": 13,
+    "value92": {
         "Position": {
             "value0": 1.2000000476837159,
             "value1": 0.0,
@@ -327,8 +329,8 @@
             "value2": 1.0
         }
     },
-    "value91": 14,
-    "value92": {
+    "value93": 14,
+    "value94": {
         "Position": {
             "value0": 1.2000000476837159,
             "value1": 0.0,
@@ -346,8 +348,8 @@
             "value2": 1.0
         }
     },
-    "value93": 2097156,
-    "value94": {
+    "value95": 2097156,
+    "value96": {
         "Position": {
             "value0": 0.6000000238418579,
             "value1": 1.2000000476837159,
@@ -365,8 +367,8 @@
             "value2": 1.0
         }
     },
-    "value95": 16,
-    "value96": {
+    "value97": 16,
+    "value98": {
         "Position": {
             "value0": 0.6000000238418579,
             "value1": 1.2000000476837159,
@@ -384,8 +386,8 @@
             "value2": 1.0
         }
     },
-    "value97": 17,
-    "value98": {
+    "value99": 17,
+    "value100": {
         "Position": {
             "value0": 0.6000000238418579,
             "value1": 1.2000000476837159,
@@ -403,8 +405,8 @@
             "value2": 1.0
         }
     },
-    "value99": 18,
-    "value100": {
+    "value101": 18,
+    "value102": {
         "Position": {
             "value0": 0.6000000238418579,
             "value1": 1.2000000476837159,
@@ -422,8 +424,8 @@
             "value2": 1.0
         }
     },
-    "value101": 19,
-    "value102": {
+    "value103": 19,
+    "value104": {
         "Position": {
             "value0": 0.6000000238418579,
             "value1": 1.2000000476837159,
@@ -441,8 +443,8 @@
             "value2": 1.0
         }
     },
-    "value103": 20,
-    "value104": {
+    "value105": 20,
+    "value106": {
         "Position": {
             "value0": 0.6000000238418579,
             "value1": 1.2000000476837159,
@@ -460,8 +462,8 @@
             "value2": 1.0
         }
     },
-    "value105": 21,
-    "value106": {
+    "value107": 21,
+    "value108": {
         "Position": {
             "value0": 2.4000000953674318,
             "value1": 0.0,
@@ -479,8 +481,8 @@
             "value2": 1.0
         }
     },
-    "value107": 22,
-    "value108": {
+    "value109": 22,
+    "value110": {
         "Position": {
             "value0": 2.4000000953674318,
             "value1": 0.0,
@@ -498,8 +500,8 @@
             "value2": 1.0
         }
     },
-    "value109": 23,
-    "value110": {
+    "value111": 23,
+    "value112": {
         "Position": {
             "value0": 2.4000000953674318,
             "value1": 0.0,
@@ -517,8 +519,8 @@
             "value2": 1.0
         }
     },
-    "value111": 24,
-    "value112": {
+    "value113": 24,
+    "value114": {
         "Position": {
             "value0": 2.4000000953674318,
             "value1": 0.0,
@@ -536,30 +538,30 @@
             "value2": 1.0
         }
     },
-    "value113": 25,
-    "value114": {
-        "Position": {
-            "value0": 2.4000000953674318,
-            "value1": 0.0,
-            "value2": -4.800000190734863
-        },
-        "Rotation": {
-            "value0": 0.0,
-            "value1": 0.0,
-            "value2": 0.0,
-            "value3": 0.0
-        },
-        "Scale": {
-            "value0": 1.0,
-            "value1": 1.0,
-            "value2": 1.0
-        }
-    },
-    "value115": 26,
+    "value115": 25,
     "value116": {
         "Position": {
             "value0": 2.4000000953674318,
             "value1": 0.0,
+            "value2": -4.800000190734863
+        },
+        "Rotation": {
+            "value0": 0.0,
+            "value1": 0.0,
+            "value2": 0.0,
+            "value3": 0.0
+        },
+        "Scale": {
+            "value0": 1.0,
+            "value1": 1.0,
+            "value2": 1.0
+        }
+    },
+    "value117": 26,
+    "value118": {
+        "Position": {
+            "value0": 2.4000000953674318,
+            "value1": 0.0,
             "value2": -6.0
         },
         "Rotation": {
@@ -574,31 +576,12 @@
             "value2": 1.0
         }
     },
-    "value117": 27,
-    "value118": {
-        "Position": {
-            "value0": 3.5999999046325685,
-            "value1": 0.0,
-            "value2": 0.0
-        },
-        "Rotation": {
-            "value0": 0.0,
-            "value1": 0.0,
-            "value2": 0.0,
-            "value3": 0.0
-        },
-        "Scale": {
-            "value0": 1.0,
-            "value1": 1.0,
-            "value2": 1.0
-        }
-    },
-    "value119": 28,
+    "value119": 27,
     "value120": {
         "Position": {
             "value0": 3.5999999046325685,
             "value1": 0.0,
-            "value2": -1.2000000476837159
+            "value2": 0.0
         },
         "Rotation": {
             "value0": 0.0,
@@ -612,12 +595,12 @@
             "value2": 1.0
         }
     },
-    "value121": 29,
+    "value121": 28,
     "value122": {
         "Position": {
             "value0": 3.5999999046325685,
             "value1": 0.0,
-            "value2": -2.4000000953674318
+            "value2": -1.2000000476837159
         },
         "Rotation": {
             "value0": 0.0,
@@ -631,11 +614,30 @@
             "value2": 1.0
         }
     },
-    "value123": 30,
+    "value123": 29,
     "value124": {
         "Position": {
             "value0": 3.5999999046325685,
             "value1": 0.0,
+            "value2": -2.4000000953674318
+        },
+        "Rotation": {
+            "value0": 0.0,
+            "value1": 0.0,
+            "value2": 0.0,
+            "value3": 0.0
+        },
+        "Scale": {
+            "value0": 1.0,
+            "value1": 1.0,
+            "value2": 1.0
+        }
+    },
+    "value125": 30,
+    "value126": {
+        "Position": {
+            "value0": 3.5999999046325685,
+            "value1": 0.0,
             "value2": -3.5999999046325685
         },
         "Rotation": {
@@ -650,8 +652,8 @@
             "value2": 1.0
         }
     },
-    "value125": 31,
-    "value126": {
+    "value127": 31,
+    "value128": {
         "Position": {
             "value0": 3.5999999046325685,
             "value1": 0.0,
@@ -669,8 +671,8 @@
             "value2": 1.0
         }
     },
-    "value127": 32,
-    "value128": {
+    "value129": 32,
+    "value130": {
         "Position": {
             "value0": 3.5999999046325685,
             "value1": 0.0,
@@ -688,8 +690,8 @@
             "value2": 1.0
         }
     },
-    "value129": 33,
-    "value130": {
+    "value131": 33,
+    "value132": {
         "Position": {
             "value0": 1.7999999523162842,
             "value1": 1.2000000476837159,
@@ -707,8 +709,8 @@
             "value2": 1.0
         }
     },
-    "value131": 34,
-    "value132": {
+    "value133": 34,
+    "value134": {
         "Position": {
             "value0": 1.7999999523162842,
             "value1": 1.2000000476837159,
@@ -726,8 +728,8 @@
             "value2": 1.0
         }
     },
-    "value133": 35,
-    "value134": {
+    "value135": 35,
+    "value136": {
         "Position": {
             "value0": 1.7999999523162842,
             "value1": 1.2000000476837159,
@@ -745,8 +747,8 @@
             "value2": 1.0
         }
     },
-    "value135": 36,
-    "value136": {
+    "value137": 36,
+    "value138": {
         "Position": {
             "value0": 1.7999999523162842,
             "value1": 1.2000000476837159,
@@ -764,8 +766,8 @@
             "value2": 1.0
         }
     },
-    "value137": 37,
-    "value138": {
+    "value139": 37,
+    "value140": {
         "Position": {
             "value0": 1.7999999523162842,
             "value1": 1.2000000476837159,
@@ -783,8 +785,8 @@
             "value2": 1.0
         }
     },
-    "value139": 38,
-    "value140": {
+    "value141": 38,
+    "value142": {
         "Position": {
             "value0": 1.7999999523162842,
             "value1": 1.2000000476837159,
@@ -802,8 +804,8 @@
             "value2": 1.0
         }
     },
-    "value141": 39,
-    "value142": {
+    "value143": 39,
+    "value144": {
         "Position": {
             "value0": 3.0,
             "value1": 1.2000000476837159,
@@ -821,8 +823,8 @@
             "value2": 1.0
         }
     },
-    "value143": 40,
-    "value144": {
+    "value145": 40,
+    "value146": {
         "Position": {
             "value0": 3.0,
             "value1": 1.2000000476837159,
@@ -840,8 +842,8 @@
             "value2": 1.0
         }
     },
-    "value145": 41,
-    "value146": {
+    "value147": 41,
+    "value148": {
         "Position": {
             "value0": 3.0,
             "value1": 1.2000000476837159,
@@ -859,30 +861,30 @@
             "value2": 0.9999969601631165
         }
     },
-    "value147": 42,
-    "value148": {
-        "Position": {
-            "value0": 3.0,
-            "value1": 1.2000000476837159,
-            "value2": -3.5999999046325685
-        },
-        "Rotation": {
-            "value0": 0.0,
-            "value1": 0.0,
-            "value2": 0.0,
-            "value3": 0.0
-        },
-        "Scale": {
-            "value0": 1.0,
-            "value1": 1.0,
-            "value2": 1.0
-        }
-    },
-    "value149": 43,
+    "value149": 42,
     "value150": {
         "Position": {
             "value0": 3.0,
             "value1": 1.2000000476837159,
+            "value2": -3.5999999046325685
+        },
+        "Rotation": {
+            "value0": 0.0,
+            "value1": 0.0,
+            "value2": 0.0,
+            "value3": 0.0
+        },
+        "Scale": {
+            "value0": 1.0,
+            "value1": 1.0,
+            "value2": 1.0
+        }
+    },
+    "value151": 43,
+    "value152": {
+        "Position": {
+            "value0": 3.0,
+            "value1": 1.2000000476837159,
             "value2": -4.800000190734863
         },
         "Rotation": {
@@ -897,8 +899,8 @@
             "value2": 1.0
         }
     },
-    "value151": 44,
-    "value152": {
+    "value153": 44,
+    "value154": {
         "Position": {
             "value0": 3.0,
             "value1": 1.2000000476837159,
@@ -916,31 +918,12 @@
             "value2": 1.0
         }
     },
-    "value153": 45,
-    "value154": {
-        "Position": {
-            "value0": 1.2000000476837159,
-            "value1": 2.4000000953674318,
-            "value2": 0.0
-        },
-        "Rotation": {
-            "value0": 0.0,
-            "value1": 0.0,
-            "value2": 0.0,
-            "value3": 0.0
-        },
-        "Scale": {
-            "value0": 1.0,
-            "value1": 1.0,
-            "value2": 1.0
-        }
-    },
-    "value155": 46,
+    "value155": 45,
     "value156": {
         "Position": {
             "value0": 1.2000000476837159,
             "value1": 2.4000000953674318,
-            "value2": -1.2000000476837159
+            "value2": 0.0
         },
         "Rotation": {
             "value0": 0.0,
@@ -954,12 +937,12 @@
             "value2": 1.0
         }
     },
-    "value157": 47,
+    "value157": 46,
     "value158": {
         "Position": {
             "value0": 1.2000000476837159,
             "value1": 2.4000000953674318,
-            "value2": -2.4000000953674318
+            "value2": -1.2000000476837159
         },
         "Rotation": {
             "value0": 0.0,
@@ -973,12 +956,12 @@
             "value2": 1.0
         }
     },
-    "value159": 48,
+    "value159": 47,
     "value160": {
         "Position": {
             "value0": 1.2000000476837159,
             "value1": 2.4000000953674318,
-            "value2": -3.5999999046325685
+            "value2": -2.4000000953674318
         },
         "Rotation": {
             "value0": 0.0,
@@ -992,11 +975,30 @@
             "value2": 1.0
         }
     },
-    "value161": 49,
+    "value161": 48,
     "value162": {
         "Position": {
             "value0": 1.2000000476837159,
             "value1": 2.4000000953674318,
+            "value2": -3.5999999046325685
+        },
+        "Rotation": {
+            "value0": 0.0,
+            "value1": 0.0,
+            "value2": 0.0,
+            "value3": 0.0
+        },
+        "Scale": {
+            "value0": 1.0,
+            "value1": 1.0,
+            "value2": 1.0
+        }
+    },
+    "value163": 49,
+    "value164": {
+        "Position": {
+            "value0": 1.2000000476837159,
+            "value1": 2.4000000953674318,
             "value2": -4.800000190734863
         },
         "Rotation": {
@@ -1011,8 +1013,8 @@
             "value2": 1.0
         }
     },
-    "value163": 50,
-    "value164": {
+    "value165": 50,
+    "value166": {
         "Position": {
             "value0": 1.2000000476837159,
             "value1": 2.4000000953674318,
@@ -1030,30 +1032,30 @@
             "value2": 1.0
         }
     },
-    "value165": 51,
-    "value166": {
-        "Position": {
-            "value0": 2.4000000953674318,
-            "value1": 2.4000000953674318,
-            "value2": 0.0
-        },
-        "Rotation": {
-            "value0": 0.0,
-            "value1": 0.0,
-            "value2": 0.0,
-            "value3": 0.0
-        },
-        "Scale": {
-            "value0": 1.0,
-            "value1": 1.0,
-            "value2": 1.0
-        }
-    },
-    "value167": 52,
+    "value167": 51,
     "value168": {
         "Position": {
             "value0": 2.4000000953674318,
             "value1": 2.4000000953674318,
+            "value2": 0.0
+        },
+        "Rotation": {
+            "value0": 0.0,
+            "value1": 0.0,
+            "value2": 0.0,
+            "value3": 0.0
+        },
+        "Scale": {
+            "value0": 1.0,
+            "value1": 1.0,
+            "value2": 1.0
+        }
+    },
+    "value169": 52,
+    "value170": {
+        "Position": {
+            "value0": 2.4000000953674318,
+            "value1": 2.4000000953674318,
             "value2": -1.2000000476837159
         },
         "Rotation": {
@@ -1068,8 +1070,8 @@
             "value2": 1.0
         }
     },
-    "value169": 53,
-    "value170": {
+    "value171": 53,
+    "value172": {
         "Position": {
             "value0": 2.4000000953674318,
             "value1": 2.4000000953674318,
@@ -1087,8 +1089,8 @@
             "value2": 1.0
         }
     },
-    "value171": 54,
-    "value172": {
+    "value173": 54,
+    "value174": {
         "Position": {
             "value0": 2.4000000953674318,
             "value1": 2.4000000953674318,
@@ -1106,8 +1108,8 @@
             "value2": 1.0
         }
     },
-    "value173": 55,
-    "value174": {
+    "value175": 55,
+    "value176": {
         "Position": {
             "value0": 2.4000000953674318,
             "value1": 2.4000000953674318,
@@ -1125,8 +1127,8 @@
             "value2": 1.0
         }
     },
-    "value175": 56,
-    "value176": {
+    "value177": 56,
+    "value178": {
         "Position": {
             "value0": 2.4000000953674318,
             "value1": 2.4000000953674318,
@@ -1144,8 +1146,8 @@
             "value2": 1.0
         }
     },
-    "value177": 57,
-    "value178": {
+    "value179": 57,
+    "value180": {
         "Position": {
             "value0": 1.7999999523162842,
             "value1": 3.5999999046325685,
@@ -1163,8 +1165,8 @@
             "value2": 1.0
         }
     },
-    "value179": 58,
-    "value180": {
+    "value181": 58,
+    "value182": {
         "Position": {
             "value0": 1.7999999523162842,
             "value1": 3.5999999046325685,
@@ -1182,8 +1184,8 @@
             "value2": 1.0
         }
     },
-    "value181": 59,
-    "value182": {
+    "value183": 59,
+    "value184": {
         "Position": {
             "value0": 1.7999999523162842,
             "value1": 3.5999999046325685,
@@ -1201,8 +1203,8 @@
             "value2": 1.0
         }
     },
-    "value183": 60,
-    "value184": {
+    "value185": 60,
+    "value186": {
         "Position": {
             "value0": 1.7999999523162842,
             "value1": 3.5999999046325685,
@@ -1220,8 +1222,8 @@
             "value2": 1.0
         }
     },
-    "value185": 61,
-    "value186": {
+    "value187": 61,
+    "value188": {
         "Position": {
             "value0": 1.7999999523162842,
             "value1": 3.5999999046325685,
@@ -1239,8 +1241,8 @@
             "value2": 1.0
         }
     },
-    "value187": 1048638,
-    "value188": {
+    "value189": 1048638,
+    "value190": {
         "Position": {
             "value0": 1.7999999523162842,
             "value1": 3.5999999046325685,
@@ -1258,8 +1260,27 @@
             "value2": 1.0
         }
     },
-    "value189": 0,
-    "value190": {
+    "value191": 1048639,
+    "value192": {
+        "Position": {
+            "value0": 0.0,
+            "value1": 0.0,
+            "value2": 0.0
+        },
+        "Rotation": {
+            "value0": 0.0,
+            "value1": 0.0,
+            "value2": 0.0,
+            "value3": 1.0
+        },
+        "Scale": {
+            "value0": 1.0,
+            "value1": 1.0,
+            "value2": 1.0
+        }
+    },
+    "value193": 0,
+    "value194": {
         "Position": {
             "value0": -62.4451789855957,
             "value1": 37.44212341308594,
@@ -1277,8 +1298,8 @@
             "value2": 1.00001060962677
         }
     },
-    "value191": 1,
-    "value192": {
+    "value195": 1,
+    "value196": {
         "Position": {
             "value0": -5.864191055297852,
             "value1": 4.970639705657959,
@@ -1296,266 +1317,270 @@
             "value2": 1.000001311302185
         }
     },
-    "value193": 63,
-    "value194": 0,
-    "value195": {
+    "value197": 64,
+    "value198": 0,
+    "value199": {
         "Name": "Light"
     },
-    "value196": 1,
-    "value197": {
+    "value200": 1,
+    "value201": {
         "Name": "Camera"
     },
-    "value198": 2,
-    "value199": {
+    "value202": 2,
+    "value203": {
         "Name": "Floor"
     },
-    "value200": 15,
-    "value201": {
-        "Name": "RigidBody"
-    },
-    "value202": 1048579,
-    "value203": {
-        "Name": "RigidBody"
-    },
-    "value204": 5,
+    "value204": 15,
     "value205": {
         "Name": "RigidBody"
     },
-    "value206": 6,
+    "value206": 1048579,
     "value207": {
         "Name": "RigidBody"
     },
-    "value208": 7,
+    "value208": 5,
     "value209": {
         "Name": "RigidBody"
     },
-    "value210": 8,
+    "value210": 6,
     "value211": {
         "Name": "RigidBody"
     },
-    "value212": 9,
+    "value212": 7,
     "value213": {
         "Name": "RigidBody"
     },
-    "value214": 10,
+    "value214": 8,
     "value215": {
         "Name": "RigidBody"
     },
-    "value216": 11,
+    "value216": 9,
     "value217": {
         "Name": "RigidBody"
     },
-    "value218": 12,
+    "value218": 10,
     "value219": {
         "Name": "RigidBody"
     },
-    "value220": 13,
+    "value220": 11,
     "value221": {
         "Name": "RigidBody"
     },
-    "value222": 14,
+    "value222": 12,
     "value223": {
         "Name": "RigidBody"
     },
-    "value224": 2097156,
+    "value224": 13,
     "value225": {
         "Name": "RigidBody"
     },
-    "value226": 16,
+    "value226": 14,
     "value227": {
         "Name": "RigidBody"
     },
-    "value228": 17,
+    "value228": 2097156,
     "value229": {
         "Name": "RigidBody"
     },
-    "value230": 18,
+    "value230": 16,
     "value231": {
         "Name": "RigidBody"
     },
-    "value232": 19,
+    "value232": 17,
     "value233": {
         "Name": "RigidBody"
     },
-    "value234": 20,
+    "value234": 18,
     "value235": {
         "Name": "RigidBody"
     },
-    "value236": 21,
+    "value236": 19,
     "value237": {
         "Name": "RigidBody"
     },
-    "value238": 22,
+    "value238": 20,
     "value239": {
         "Name": "RigidBody"
     },
-    "value240": 23,
+    "value240": 21,
     "value241": {
         "Name": "RigidBody"
     },
-    "value242": 24,
+    "value242": 22,
     "value243": {
         "Name": "RigidBody"
     },
-    "value244": 25,
+    "value244": 23,
     "value245": {
         "Name": "RigidBody"
     },
-    "value246": 26,
+    "value246": 24,
     "value247": {
         "Name": "RigidBody"
     },
-    "value248": 27,
+    "value248": 25,
     "value249": {
         "Name": "RigidBody"
     },
-    "value250": 28,
+    "value250": 26,
     "value251": {
         "Name": "RigidBody"
     },
-    "value252": 29,
+    "value252": 27,
     "value253": {
         "Name": "RigidBody"
     },
-    "value254": 30,
+    "value254": 28,
     "value255": {
         "Name": "RigidBody"
     },
-    "value256": 31,
+    "value256": 29,
     "value257": {
         "Name": "RigidBody"
     },
-    "value258": 32,
+    "value258": 30,
     "value259": {
         "Name": "RigidBody"
     },
-    "value260": 33,
+    "value260": 31,
     "value261": {
         "Name": "RigidBody"
     },
-    "value262": 34,
+    "value262": 32,
     "value263": {
         "Name": "RigidBody"
     },
-    "value264": 35,
+    "value264": 33,
     "value265": {
         "Name": "RigidBody"
     },
-    "value266": 36,
+    "value266": 34,
     "value267": {
         "Name": "RigidBody"
     },
-    "value268": 37,
+    "value268": 35,
     "value269": {
         "Name": "RigidBody"
     },
-    "value270": 38,
+    "value270": 36,
     "value271": {
         "Name": "RigidBody"
     },
-    "value272": 39,
+    "value272": 37,
     "value273": {
         "Name": "RigidBody"
     },
-    "value274": 40,
+    "value274": 38,
     "value275": {
         "Name": "RigidBody"
     },
-    "value276": 41,
+    "value276": 39,
     "value277": {
         "Name": "RigidBody"
     },
-    "value278": 42,
+    "value278": 40,
     "value279": {
         "Name": "RigidBody"
     },
-    "value280": 43,
+    "value280": 41,
     "value281": {
         "Name": "RigidBody"
     },
-    "value282": 44,
+    "value282": 42,
     "value283": {
         "Name": "RigidBody"
     },
-    "value284": 45,
+    "value284": 43,
     "value285": {
         "Name": "RigidBody"
     },
-    "value286": 46,
+    "value286": 44,
     "value287": {
         "Name": "RigidBody"
     },
-    "value288": 47,
+    "value288": 45,
     "value289": {
         "Name": "RigidBody"
     },
-    "value290": 48,
+    "value290": 46,
     "value291": {
         "Name": "RigidBody"
     },
-    "value292": 49,
+    "value292": 47,
     "value293": {
         "Name": "RigidBody"
     },
-    "value294": 50,
+    "value294": 48,
     "value295": {
         "Name": "RigidBody"
     },
-    "value296": 51,
+    "value296": 49,
     "value297": {
         "Name": "RigidBody"
     },
-    "value298": 52,
+    "value298": 50,
     "value299": {
         "Name": "RigidBody"
     },
-    "value300": 53,
+    "value300": 51,
     "value301": {
         "Name": "RigidBody"
     },
-    "value302": 54,
+    "value302": 52,
     "value303": {
         "Name": "RigidBody"
     },
-    "value304": 55,
+    "value304": 53,
     "value305": {
         "Name": "RigidBody"
     },
-    "value306": 56,
+    "value306": 54,
     "value307": {
         "Name": "RigidBody"
     },
-    "value308": 57,
+    "value308": 55,
     "value309": {
         "Name": "RigidBody"
     },
-    "value310": 58,
+    "value310": 56,
     "value311": {
         "Name": "RigidBody"
     },
-    "value312": 59,
+    "value312": 57,
     "value313": {
         "Name": "RigidBody"
     },
-    "value314": 60,
+    "value314": 58,
     "value315": {
         "Name": "RigidBody"
     },
-    "value316": 61,
+    "value316": 59,
     "value317": {
         "Name": "RigidBody"
     },
-    "value318": 1048638,
+    "value318": 60,
     "value319": {
         "Name": "RigidBody"
     },
-    "value320": 0,
-    "value321": 0,
-    "value322": 1,
-    "value323": 1,
-    "value324": {
+    "value320": 61,
+    "value321": {
+        "Name": "RigidBody"
+    },
+    "value322": 1048638,
+    "value323": {
+        "Name": "RigidBody"
+    },
+    "value324": 1048639,
+    "value325": {
+        "Name": "Fox.glb"
+    },
+    "value326": 0,
+    "value327": 0,
+    "value328": 1,
+    "value329": 1,
+    "value330": {
         "Scale": 1.0,
-        "Aspect": 0.9603960514068604,
+        "Aspect": 0.7130281925201416,
         "FOV": 60.0,
         "Near": 0.10000000149011612,
         "Far": 100.0,
@@ -1563,15 +1588,15 @@
         "ShutterSpeed": 0.01666666753590107,
         "Sensitivity": 250.0
     },
-    "value325": 1,
-    "value326": 1,
-    "value327": {
+    "value331": 1,
+    "value332": 1,
+    "value333": {
         "FilePath": "//Assets/Scripts/Projectile.lua"
     },
-    "value328": 0,
-    "value329": 1,
-    "value330": 0,
-    "value331": {
+    "value334": 0,
+    "value335": 1,
+    "value336": 0,
+    "value337": {
         "value0": {
             "value0": -62.4451789855957,
             "value1": 37.44212341308594,
@@ -1587,17 +1612,17 @@
         "value2": 0.0,
         "value3": 0.0,
         "value4": {
-            "value0": -0.8250278830528259,
-            "value1": 0.46215835213661196,
-            "value2": 0.32517489790916445,
+            "value0": -0.8250277638435364,
+            "value1": 0.46215829253196719,
+            "value2": 0.3251749873161316,
             "value3": 1.0
         },
         "value5": 120000.0,
         "value6": 1.0
     },
-    "value332": 61,
-    "value333": 2,
-    "value334": {
+    "value338": 61,
+    "value339": 2,
+    "value340": {
         "value0": {
             "Version": 2,
             "Position": {
@@ -1651,11 +1676,11 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 5615784388336064883
+            "UUID": 18244296624544067207
         }
     },
-    "value335": 15,
-    "value336": {
+    "value341": 15,
+    "value342": {
         "value0": {
             "Version": 2,
             "Position": {
@@ -1708,11 +1733,11 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 6989148309775615003
+            "UUID": 5264578520513951555
         }
     },
-    "value337": 1048579,
-    "value338": {
+    "value343": 1048579,
+    "value344": {
         "value0": {
             "Version": 2,
             "Position": {
@@ -1765,188 +1790,17 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 12013497288603390502
+            "UUID": 6933207245876821251
         }
     },
-    "value339": 5,
-    "value340": {
-        "value0": {
-            "Version": 2,
-            "Position": {
-                "value0": 0.0,
-                "value1": 0.0,
-                "value2": -1.2000000476837159
-            },
-            "Orientation": {
-                "value0": 0.0,
-                "value1": 0.0,
-                "value2": 0.0,
-                "value3": 1.0
-            },
-            "LinearVelocity": {
-                "value0": 0.0,
-                "value1": 0.0,
-                "value2": 0.0
-            },
-            "Force": {
-                "value0": 0.0,
-                "value1": 0.0,
-                "value2": 0.0
-            },
-            "Mass": 1.0,
-            "AngularVelocity": {
-                "value0": 0.0,
-                "value1": 0.0,
-                "value2": 0.0
-            },
-            "Torque": {
-                "value0": 0.0,
-                "value1": 0.0,
-                "value2": 0.0
-            },
-            "Static": false,
-            "Friction": 1.0,
-            "Elasticity": 0.5,
-            "CollisionShape": {
-                "polymorphic_id": 1,
-                "ptr_wrapper": {
-                    "valid": 1,
-                    "data": {
-                        "value0": {
-                            "value0": 0.5,
-                            "value1": 0.5,
-                            "value2": 0.5
-                        }
-                    }
-                }
-            },
-            "Trigger": false,
-            "AngularFactor": 1.0,
-            "UUID": 1504841985316855870
-        }
-    },
-    "value341": 6,
-    "value342": {
-        "value0": {
-            "Version": 2,
-            "Position": {
-                "value0": 0.0,
-                "value1": 0.0,
-                "value2": -2.4000000953674318
-            },
-            "Orientation": {
-                "value0": 0.0,
-                "value1": 0.0,
-                "value2": 0.0,
-                "value3": 1.0
-            },
-            "LinearVelocity": {
-                "value0": 0.0,
-                "value1": 0.0,
-                "value2": 0.0
-            },
-            "Force": {
-                "value0": 0.0,
-                "value1": 0.0,
-                "value2": 0.0
-            },
-            "Mass": 1.0,
-            "AngularVelocity": {
-                "value0": 0.0,
-                "value1": 0.0,
-                "value2": 0.0
-            },
-            "Torque": {
-                "value0": 0.0,
-                "value1": 0.0,
-                "value2": 0.0
-            },
-            "Static": false,
-            "Friction": 1.0,
-            "Elasticity": 0.5,
-            "CollisionShape": {
-                "polymorphic_id": 1,
-                "ptr_wrapper": {
-                    "valid": 1,
-                    "data": {
-                        "value0": {
-                            "value0": 0.5,
-                            "value1": 0.5,
-                            "value2": 0.5
-                        }
-                    }
-                }
-            },
-            "Trigger": false,
-            "AngularFactor": 1.0,
-            "UUID": 8653656995508805281
-        }
-    },
-    "value343": 7,
-    "value344": {
-        "value0": {
-            "Version": 2,
-            "Position": {
-                "value0": 0.0,
-                "value1": 0.0,
-                "value2": -3.5999999046325685
-            },
-            "Orientation": {
-                "value0": 0.0,
-                "value1": 0.0,
-                "value2": 0.0,
-                "value3": 1.0
-            },
-            "LinearVelocity": {
-                "value0": 0.0,
-                "value1": 0.0,
-                "value2": 0.0
-            },
-            "Force": {
-                "value0": 0.0,
-                "value1": 0.0,
-                "value2": 0.0
-            },
-            "Mass": 1.0,
-            "AngularVelocity": {
-                "value0": 0.0,
-                "value1": 0.0,
-                "value2": 0.0
-            },
-            "Torque": {
-                "value0": 0.0,
-                "value1": 0.0,
-                "value2": 0.0
-            },
-            "Static": false,
-            "Friction": 1.0,
-            "Elasticity": 0.5,
-            "CollisionShape": {
-                "polymorphic_id": 1,
-                "ptr_wrapper": {
-                    "valid": 1,
-                    "data": {
-                        "value0": {
-                            "value0": 0.5,
-                            "value1": 0.5,
-                            "value2": 0.5
-                        }
-                    }
-                }
-            },
-            "Trigger": false,
-            "AngularFactor": 1.0,
-            "UUID": 895056478196617125
-        }
-    },
-    "value345": 8,
+    "value345": 5,
     "value346": {
         "value0": {
             "Version": 2,
             "Position": {
                 "value0": 0.0,
                 "value1": 0.0,
-                "value2": -4.800000190734863
+                "value2": -1.2000000476837159
             },
             "Orientation": {
                 "value0": 0.0,
@@ -1993,187 +1847,16 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 3917077400047674441
+            "UUID": 7396468693272627395
         }
     },
-    "value347": 9,
+    "value347": 6,
     "value348": {
         "value0": {
             "Version": 2,
             "Position": {
                 "value0": 0.0,
                 "value1": 0.0,
-                "value2": -6.0
-            },
-            "Orientation": {
-                "value0": 0.0,
-                "value1": 0.0,
-                "value2": 0.0,
-                "value3": 1.0
-            },
-            "LinearVelocity": {
-                "value0": 0.0,
-                "value1": 0.0,
-                "value2": 0.0
-            },
-            "Force": {
-                "value0": 0.0,
-                "value1": 0.0,
-                "value2": 0.0
-            },
-            "Mass": 1.0,
-            "AngularVelocity": {
-                "value0": 0.0,
-                "value1": 0.0,
-                "value2": 0.0
-            },
-            "Torque": {
-                "value0": 0.0,
-                "value1": 0.0,
-                "value2": 0.0
-            },
-            "Static": false,
-            "Friction": 1.0,
-            "Elasticity": 0.5,
-            "CollisionShape": {
-                "polymorphic_id": 1,
-                "ptr_wrapper": {
-                    "valid": 1,
-                    "data": {
-                        "value0": {
-                            "value0": 0.5,
-                            "value1": 0.5,
-                            "value2": 0.5
-                        }
-                    }
-                }
-            },
-            "Trigger": false,
-            "AngularFactor": 1.0,
-            "UUID": 17996691420199487823
-        }
-    },
-    "value349": 10,
-    "value350": {
-        "value0": {
-            "Version": 2,
-            "Position": {
-                "value0": 1.2000000476837159,
-                "value1": 0.0,
-                "value2": 0.0
-            },
-            "Orientation": {
-                "value0": 0.0,
-                "value1": 0.0,
-                "value2": 0.0,
-                "value3": 1.0
-            },
-            "LinearVelocity": {
-                "value0": 0.0,
-                "value1": 0.0,
-                "value2": 0.0
-            },
-            "Force": {
-                "value0": 0.0,
-                "value1": 0.0,
-                "value2": 0.0
-            },
-            "Mass": 1.0,
-            "AngularVelocity": {
-                "value0": 0.0,
-                "value1": 0.0,
-                "value2": 0.0
-            },
-            "Torque": {
-                "value0": 0.0,
-                "value1": 0.0,
-                "value2": 0.0
-            },
-            "Static": false,
-            "Friction": 1.0,
-            "Elasticity": 0.5,
-            "CollisionShape": {
-                "polymorphic_id": 1,
-                "ptr_wrapper": {
-                    "valid": 1,
-                    "data": {
-                        "value0": {
-                            "value0": 0.5,
-                            "value1": 0.5,
-                            "value2": 0.5
-                        }
-                    }
-                }
-            },
-            "Trigger": false,
-            "AngularFactor": 1.0,
-            "UUID": 5910983871067763631
-        }
-    },
-    "value351": 11,
-    "value352": {
-        "value0": {
-            "Version": 2,
-            "Position": {
-                "value0": 1.2000000476837159,
-                "value1": 0.0,
-                "value2": -1.2000000476837159
-            },
-            "Orientation": {
-                "value0": 0.0,
-                "value1": 0.0,
-                "value2": 0.0,
-                "value3": 1.0
-            },
-            "LinearVelocity": {
-                "value0": 0.0,
-                "value1": 0.0,
-                "value2": 0.0
-            },
-            "Force": {
-                "value0": 0.0,
-                "value1": 0.0,
-                "value2": 0.0
-            },
-            "Mass": 1.0,
-            "AngularVelocity": {
-                "value0": 0.0,
-                "value1": 0.0,
-                "value2": 0.0
-            },
-            "Torque": {
-                "value0": 0.0,
-                "value1": 0.0,
-                "value2": 0.0
-            },
-            "Static": false,
-            "Friction": 1.0,
-            "Elasticity": 0.5,
-            "CollisionShape": {
-                "polymorphic_id": 1,
-                "ptr_wrapper": {
-                    "valid": 1,
-                    "data": {
-                        "value0": {
-                            "value0": 0.5,
-                            "value1": 0.5,
-                            "value2": 0.5
-                        }
-                    }
-                }
-            },
-            "Trigger": false,
-            "AngularFactor": 1.0,
-            "UUID": 15098239534421500726
-        }
-    },
-    "value353": 12,
-    "value354": {
-        "value0": {
-            "Version": 2,
-            "Position": {
-                "value0": 1.2000000476837159,
-                "value1": 0.0,
                 "value2": -2.4000000953674318
             },
             "Orientation": {
@@ -2221,16 +1904,358 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 14621492748080685680
+            "UUID": 4377005413002453858
         }
     },
-    "value355": 13,
+    "value349": 7,
+    "value350": {
+        "value0": {
+            "Version": 2,
+            "Position": {
+                "value0": 0.0,
+                "value1": 0.0,
+                "value2": -3.5999999046325685
+            },
+            "Orientation": {
+                "value0": 0.0,
+                "value1": 0.0,
+                "value2": 0.0,
+                "value3": 1.0
+            },
+            "LinearVelocity": {
+                "value0": 0.0,
+                "value1": 0.0,
+                "value2": 0.0
+            },
+            "Force": {
+                "value0": 0.0,
+                "value1": 0.0,
+                "value2": 0.0
+            },
+            "Mass": 1.0,
+            "AngularVelocity": {
+                "value0": 0.0,
+                "value1": 0.0,
+                "value2": 0.0
+            },
+            "Torque": {
+                "value0": 0.0,
+                "value1": 0.0,
+                "value2": 0.0
+            },
+            "Static": false,
+            "Friction": 1.0,
+            "Elasticity": 0.5,
+            "CollisionShape": {
+                "polymorphic_id": 1,
+                "ptr_wrapper": {
+                    "valid": 1,
+                    "data": {
+                        "value0": {
+                            "value0": 0.5,
+                            "value1": 0.5,
+                            "value2": 0.5
+                        }
+                    }
+                }
+            },
+            "Trigger": false,
+            "AngularFactor": 1.0,
+            "UUID": 10348454703535336366
+        }
+    },
+    "value351": 8,
+    "value352": {
+        "value0": {
+            "Version": 2,
+            "Position": {
+                "value0": 0.0,
+                "value1": 0.0,
+                "value2": -4.800000190734863
+            },
+            "Orientation": {
+                "value0": 0.0,
+                "value1": 0.0,
+                "value2": 0.0,
+                "value3": 1.0
+            },
+            "LinearVelocity": {
+                "value0": 0.0,
+                "value1": 0.0,
+                "value2": 0.0
+            },
+            "Force": {
+                "value0": 0.0,
+                "value1": 0.0,
+                "value2": 0.0
+            },
+            "Mass": 1.0,
+            "AngularVelocity": {
+                "value0": 0.0,
+                "value1": 0.0,
+                "value2": 0.0
+            },
+            "Torque": {
+                "value0": 0.0,
+                "value1": 0.0,
+                "value2": 0.0
+            },
+            "Static": false,
+            "Friction": 1.0,
+            "Elasticity": 0.5,
+            "CollisionShape": {
+                "polymorphic_id": 1,
+                "ptr_wrapper": {
+                    "valid": 1,
+                    "data": {
+                        "value0": {
+                            "value0": 0.5,
+                            "value1": 0.5,
+                            "value2": 0.5
+                        }
+                    }
+                }
+            },
+            "Trigger": false,
+            "AngularFactor": 1.0,
+            "UUID": 3960439910726594642
+        }
+    },
+    "value353": 9,
+    "value354": {
+        "value0": {
+            "Version": 2,
+            "Position": {
+                "value0": 0.0,
+                "value1": 0.0,
+                "value2": -6.0
+            },
+            "Orientation": {
+                "value0": 0.0,
+                "value1": 0.0,
+                "value2": 0.0,
+                "value3": 1.0
+            },
+            "LinearVelocity": {
+                "value0": 0.0,
+                "value1": 0.0,
+                "value2": 0.0
+            },
+            "Force": {
+                "value0": 0.0,
+                "value1": 0.0,
+                "value2": 0.0
+            },
+            "Mass": 1.0,
+            "AngularVelocity": {
+                "value0": 0.0,
+                "value1": 0.0,
+                "value2": 0.0
+            },
+            "Torque": {
+                "value0": 0.0,
+                "value1": 0.0,
+                "value2": 0.0
+            },
+            "Static": false,
+            "Friction": 1.0,
+            "Elasticity": 0.5,
+            "CollisionShape": {
+                "polymorphic_id": 1,
+                "ptr_wrapper": {
+                    "valid": 1,
+                    "data": {
+                        "value0": {
+                            "value0": 0.5,
+                            "value1": 0.5,
+                            "value2": 0.5
+                        }
+                    }
+                }
+            },
+            "Trigger": false,
+            "AngularFactor": 1.0,
+            "UUID": 4194195915772355246
+        }
+    },
+    "value355": 10,
     "value356": {
         "value0": {
             "Version": 2,
             "Position": {
                 "value0": 1.2000000476837159,
                 "value1": 0.0,
+                "value2": 0.0
+            },
+            "Orientation": {
+                "value0": 0.0,
+                "value1": 0.0,
+                "value2": 0.0,
+                "value3": 1.0
+            },
+            "LinearVelocity": {
+                "value0": 0.0,
+                "value1": 0.0,
+                "value2": 0.0
+            },
+            "Force": {
+                "value0": 0.0,
+                "value1": 0.0,
+                "value2": 0.0
+            },
+            "Mass": 1.0,
+            "AngularVelocity": {
+                "value0": 0.0,
+                "value1": 0.0,
+                "value2": 0.0
+            },
+            "Torque": {
+                "value0": 0.0,
+                "value1": 0.0,
+                "value2": 0.0
+            },
+            "Static": false,
+            "Friction": 1.0,
+            "Elasticity": 0.5,
+            "CollisionShape": {
+                "polymorphic_id": 1,
+                "ptr_wrapper": {
+                    "valid": 1,
+                    "data": {
+                        "value0": {
+                            "value0": 0.5,
+                            "value1": 0.5,
+                            "value2": 0.5
+                        }
+                    }
+                }
+            },
+            "Trigger": false,
+            "AngularFactor": 1.0,
+            "UUID": 1085874228274680474
+        }
+    },
+    "value357": 11,
+    "value358": {
+        "value0": {
+            "Version": 2,
+            "Position": {
+                "value0": 1.2000000476837159,
+                "value1": 0.0,
+                "value2": -1.2000000476837159
+            },
+            "Orientation": {
+                "value0": 0.0,
+                "value1": 0.0,
+                "value2": 0.0,
+                "value3": 1.0
+            },
+            "LinearVelocity": {
+                "value0": 0.0,
+                "value1": 0.0,
+                "value2": 0.0
+            },
+            "Force": {
+                "value0": 0.0,
+                "value1": 0.0,
+                "value2": 0.0
+            },
+            "Mass": 1.0,
+            "AngularVelocity": {
+                "value0": 0.0,
+                "value1": 0.0,
+                "value2": 0.0
+            },
+            "Torque": {
+                "value0": 0.0,
+                "value1": 0.0,
+                "value2": 0.0
+            },
+            "Static": false,
+            "Friction": 1.0,
+            "Elasticity": 0.5,
+            "CollisionShape": {
+                "polymorphic_id": 1,
+                "ptr_wrapper": {
+                    "valid": 1,
+                    "data": {
+                        "value0": {
+                            "value0": 0.5,
+                            "value1": 0.5,
+                            "value2": 0.5
+                        }
+                    }
+                }
+            },
+            "Trigger": false,
+            "AngularFactor": 1.0,
+            "UUID": 18116935934544593888
+        }
+    },
+    "value359": 12,
+    "value360": {
+        "value0": {
+            "Version": 2,
+            "Position": {
+                "value0": 1.2000000476837159,
+                "value1": 0.0,
+                "value2": -2.4000000953674318
+            },
+            "Orientation": {
+                "value0": 0.0,
+                "value1": 0.0,
+                "value2": 0.0,
+                "value3": 1.0
+            },
+            "LinearVelocity": {
+                "value0": 0.0,
+                "value1": 0.0,
+                "value2": 0.0
+            },
+            "Force": {
+                "value0": 0.0,
+                "value1": 0.0,
+                "value2": 0.0
+            },
+            "Mass": 1.0,
+            "AngularVelocity": {
+                "value0": 0.0,
+                "value1": 0.0,
+                "value2": 0.0
+            },
+            "Torque": {
+                "value0": 0.0,
+                "value1": 0.0,
+                "value2": 0.0
+            },
+            "Static": false,
+            "Friction": 1.0,
+            "Elasticity": 0.5,
+            "CollisionShape": {
+                "polymorphic_id": 1,
+                "ptr_wrapper": {
+                    "valid": 1,
+                    "data": {
+                        "value0": {
+                            "value0": 0.5,
+                            "value1": 0.5,
+                            "value2": 0.5
+                        }
+                    }
+                }
+            },
+            "Trigger": false,
+            "AngularFactor": 1.0,
+            "UUID": 1130231201184121799
+        }
+    },
+    "value361": 13,
+    "value362": {
+        "value0": {
+            "Version": 2,
+            "Position": {
+                "value0": 1.2000000476837159,
+                "value1": 0.0,
                 "value2": -3.5999999046325685
             },
             "Orientation": {
@@ -2278,11 +2303,11 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 7127086199113284944
+            "UUID": 6185647987596770495
         }
     },
-    "value357": 14,
-    "value358": {
+    "value363": 14,
+    "value364": {
         "value0": {
             "Version": 2,
             "Position": {
@@ -2335,11 +2360,11 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 9302653294611151558
+            "UUID": 13323165108156557836
         }
     },
-    "value359": 2097156,
-    "value360": {
+    "value365": 2097156,
+    "value366": {
         "value0": {
             "Version": 2,
             "Position": {
@@ -2392,11 +2417,11 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 1207214444800058750
+            "UUID": 665773378216266965
         }
     },
-    "value361": 16,
-    "value362": {
+    "value367": 16,
+    "value368": {
         "value0": {
             "Version": 2,
             "Position": {
@@ -2449,11 +2474,11 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 14570753528120093179
+            "UUID": 10654364817843881201
         }
     },
-    "value363": 17,
-    "value364": {
+    "value369": 17,
+    "value370": {
         "value0": {
             "Version": 2,
             "Position": {
@@ -2506,11 +2531,11 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 5987679551451855867
+            "UUID": 17143812082414439308
         }
     },
-    "value365": 18,
-    "value366": {
+    "value371": 18,
+    "value372": {
         "value0": {
             "Version": 2,
             "Position": {
@@ -2563,11 +2588,11 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 17219365356039535836
+            "UUID": 13730197266480755673
         }
     },
-    "value367": 19,
-    "value368": {
+    "value373": 19,
+    "value374": {
         "value0": {
             "Version": 2,
             "Position": {
@@ -2620,11 +2645,11 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 2267480365395181549
+            "UUID": 1531821917529408558
         }
     },
-    "value369": 20,
-    "value370": {
+    "value375": 20,
+    "value376": {
         "value0": {
             "Version": 2,
             "Position": {
@@ -2677,11 +2702,11 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 3032665207049362364
+            "UUID": 10802341756514380191
         }
     },
-    "value371": 21,
-    "value372": {
+    "value377": 21,
+    "value378": {
         "value0": {
             "Version": 2,
             "Position": {
@@ -2734,11 +2759,11 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 3956362309535638440
+            "UUID": 3579427638143080856
         }
     },
-    "value373": 22,
-    "value374": {
+    "value379": 22,
+    "value380": {
         "value0": {
             "Version": 2,
             "Position": {
@@ -2791,11 +2816,11 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 7517663874083179155
+            "UUID": 10879398746680865625
         }
     },
-    "value375": 23,
-    "value376": {
+    "value381": 23,
+    "value382": {
         "value0": {
             "Version": 2,
             "Position": {
@@ -2848,11 +2873,11 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 5334986677057053978
+            "UUID": 5563403434597807203
         }
     },
-    "value377": 24,
-    "value378": {
+    "value383": 24,
+    "value384": {
         "value0": {
             "Version": 2,
             "Position": {
@@ -2905,11 +2930,11 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 12465944368699365665
+            "UUID": 7499439980036425185
         }
     },
-    "value379": 25,
-    "value380": {
+    "value385": 25,
+    "value386": {
         "value0": {
             "Version": 2,
             "Position": {
@@ -2962,11 +2987,11 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 11425101660888223010
+            "UUID": 10343154558714229762
         }
     },
-    "value381": 26,
-    "value382": {
+    "value387": 26,
+    "value388": {
         "value0": {
             "Version": 2,
             "Position": {
@@ -3019,187 +3044,187 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 6702393681675935816
+            "UUID": 840183513322974557
         }
     },
-    "value383": 27,
-    "value384": {
-        "value0": {
-            "Version": 2,
-            "Position": {
-                "value0": 3.5999999046325685,
-                "value1": 0.0,
-                "value2": 0.0
-            },
-            "Orientation": {
-                "value0": 0.0,
-                "value1": 0.0,
-                "value2": 0.0,
-                "value3": 0.0
-            },
-            "LinearVelocity": {
-                "value0": 0.0,
-                "value1": 0.0,
-                "value2": 0.0
-            },
-            "Force": {
-                "value0": 0.0,
-                "value1": 0.0,
-                "value2": 0.0
-            },
-            "Mass": 1.0,
-            "AngularVelocity": {
-                "value0": 0.0,
-                "value1": 0.0,
-                "value2": 0.0
-            },
-            "Torque": {
-                "value0": 0.0,
-                "value1": 0.0,
-                "value2": 0.0
-            },
-            "Static": false,
-            "Friction": 1.0,
-            "Elasticity": 0.5,
-            "CollisionShape": {
-                "polymorphic_id": 1,
-                "ptr_wrapper": {
-                    "valid": 1,
-                    "data": {
-                        "value0": {
-                            "value0": 0.5,
-                            "value1": 0.5,
-                            "value2": 0.5
-                        }
-                    }
-                }
-            },
-            "Trigger": false,
-            "AngularFactor": 1.0,
-            "UUID": 2887045536138976908
-        }
-    },
-    "value385": 28,
-    "value386": {
-        "value0": {
-            "Version": 2,
-            "Position": {
-                "value0": 3.5999999046325685,
-                "value1": 0.0,
-                "value2": -1.2000000476837159
-            },
-            "Orientation": {
-                "value0": 0.0,
-                "value1": 0.0,
-                "value2": 0.0,
-                "value3": 0.0
-            },
-            "LinearVelocity": {
-                "value0": 0.0,
-                "value1": 0.0,
-                "value2": 0.0
-            },
-            "Force": {
-                "value0": 0.0,
-                "value1": 0.0,
-                "value2": 0.0
-            },
-            "Mass": 1.0,
-            "AngularVelocity": {
-                "value0": 0.0,
-                "value1": 0.0,
-                "value2": 0.0
-            },
-            "Torque": {
-                "value0": 0.0,
-                "value1": 0.0,
-                "value2": 0.0
-            },
-            "Static": false,
-            "Friction": 1.0,
-            "Elasticity": 0.5,
-            "CollisionShape": {
-                "polymorphic_id": 1,
-                "ptr_wrapper": {
-                    "valid": 1,
-                    "data": {
-                        "value0": {
-                            "value0": 0.5,
-                            "value1": 0.5,
-                            "value2": 0.5
-                        }
-                    }
-                }
-            },
-            "Trigger": false,
-            "AngularFactor": 1.0,
-            "UUID": 8119295735229538629
-        }
-    },
-    "value387": 29,
-    "value388": {
-        "value0": {
-            "Version": 2,
-            "Position": {
-                "value0": 3.5999999046325685,
-                "value1": 0.0,
-                "value2": -2.4000000953674318
-            },
-            "Orientation": {
-                "value0": 0.0,
-                "value1": 0.0,
-                "value2": 0.0,
-                "value3": 0.0
-            },
-            "LinearVelocity": {
-                "value0": 0.0,
-                "value1": 0.0,
-                "value2": 0.0
-            },
-            "Force": {
-                "value0": 0.0,
-                "value1": 0.0,
-                "value2": 0.0
-            },
-            "Mass": 1.0,
-            "AngularVelocity": {
-                "value0": 0.0,
-                "value1": 0.0,
-                "value2": 0.0
-            },
-            "Torque": {
-                "value0": 0.0,
-                "value1": 0.0,
-                "value2": 0.0
-            },
-            "Static": false,
-            "Friction": 1.0,
-            "Elasticity": 0.5,
-            "CollisionShape": {
-                "polymorphic_id": 1,
-                "ptr_wrapper": {
-                    "valid": 1,
-                    "data": {
-                        "value0": {
-                            "value0": 0.5,
-                            "value1": 0.5,
-                            "value2": 0.5
-                        }
-                    }
-                }
-            },
-            "Trigger": false,
-            "AngularFactor": 1.0,
-            "UUID": 2582742542751955836
-        }
-    },
-    "value389": 30,
+    "value389": 27,
     "value390": {
         "value0": {
             "Version": 2,
             "Position": {
                 "value0": 3.5999999046325685,
                 "value1": 0.0,
+                "value2": 0.0
+            },
+            "Orientation": {
+                "value0": 0.0,
+                "value1": 0.0,
+                "value2": 0.0,
+                "value3": 0.0
+            },
+            "LinearVelocity": {
+                "value0": 0.0,
+                "value1": 0.0,
+                "value2": 0.0
+            },
+            "Force": {
+                "value0": 0.0,
+                "value1": 0.0,
+                "value2": 0.0
+            },
+            "Mass": 1.0,
+            "AngularVelocity": {
+                "value0": 0.0,
+                "value1": 0.0,
+                "value2": 0.0
+            },
+            "Torque": {
+                "value0": 0.0,
+                "value1": 0.0,
+                "value2": 0.0
+            },
+            "Static": false,
+            "Friction": 1.0,
+            "Elasticity": 0.5,
+            "CollisionShape": {
+                "polymorphic_id": 1,
+                "ptr_wrapper": {
+                    "valid": 1,
+                    "data": {
+                        "value0": {
+                            "value0": 0.5,
+                            "value1": 0.5,
+                            "value2": 0.5
+                        }
+                    }
+                }
+            },
+            "Trigger": false,
+            "AngularFactor": 1.0,
+            "UUID": 10997193082882398034
+        }
+    },
+    "value391": 28,
+    "value392": {
+        "value0": {
+            "Version": 2,
+            "Position": {
+                "value0": 3.5999999046325685,
+                "value1": 0.0,
+                "value2": -1.2000000476837159
+            },
+            "Orientation": {
+                "value0": 0.0,
+                "value1": 0.0,
+                "value2": 0.0,
+                "value3": 0.0
+            },
+            "LinearVelocity": {
+                "value0": 0.0,
+                "value1": 0.0,
+                "value2": 0.0
+            },
+            "Force": {
+                "value0": 0.0,
+                "value1": 0.0,
+                "value2": 0.0
+            },
+            "Mass": 1.0,
+            "AngularVelocity": {
+                "value0": 0.0,
+                "value1": 0.0,
+                "value2": 0.0
+            },
+            "Torque": {
+                "value0": 0.0,
+                "value1": 0.0,
+                "value2": 0.0
+            },
+            "Static": false,
+            "Friction": 1.0,
+            "Elasticity": 0.5,
+            "CollisionShape": {
+                "polymorphic_id": 1,
+                "ptr_wrapper": {
+                    "valid": 1,
+                    "data": {
+                        "value0": {
+                            "value0": 0.5,
+                            "value1": 0.5,
+                            "value2": 0.5
+                        }
+                    }
+                }
+            },
+            "Trigger": false,
+            "AngularFactor": 1.0,
+            "UUID": 16925614258910881102
+        }
+    },
+    "value393": 29,
+    "value394": {
+        "value0": {
+            "Version": 2,
+            "Position": {
+                "value0": 3.5999999046325685,
+                "value1": 0.0,
+                "value2": -2.4000000953674318
+            },
+            "Orientation": {
+                "value0": 0.0,
+                "value1": 0.0,
+                "value2": 0.0,
+                "value3": 0.0
+            },
+            "LinearVelocity": {
+                "value0": 0.0,
+                "value1": 0.0,
+                "value2": 0.0
+            },
+            "Force": {
+                "value0": 0.0,
+                "value1": 0.0,
+                "value2": 0.0
+            },
+            "Mass": 1.0,
+            "AngularVelocity": {
+                "value0": 0.0,
+                "value1": 0.0,
+                "value2": 0.0
+            },
+            "Torque": {
+                "value0": 0.0,
+                "value1": 0.0,
+                "value2": 0.0
+            },
+            "Static": false,
+            "Friction": 1.0,
+            "Elasticity": 0.5,
+            "CollisionShape": {
+                "polymorphic_id": 1,
+                "ptr_wrapper": {
+                    "valid": 1,
+                    "data": {
+                        "value0": {
+                            "value0": 0.5,
+                            "value1": 0.5,
+                            "value2": 0.5
+                        }
+                    }
+                }
+            },
+            "Trigger": false,
+            "AngularFactor": 1.0,
+            "UUID": 508045386900904027
+        }
+    },
+    "value395": 30,
+    "value396": {
+        "value0": {
+            "Version": 2,
+            "Position": {
+                "value0": 3.5999999046325685,
+                "value1": 0.0,
                 "value2": -3.5999999046325685
             },
             "Orientation": {
@@ -3247,11 +3272,11 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 7141757745309777556
+            "UUID": 557524578611046664
         }
     },
-    "value391": 31,
-    "value392": {
+    "value397": 31,
+    "value398": {
         "value0": {
             "Version": 2,
             "Position": {
@@ -3304,11 +3329,11 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 13141500260045980342
+            "UUID": 12667653957823480353
         }
     },
-    "value393": 32,
-    "value394": {
+    "value399": 32,
+    "value400": {
         "value0": {
             "Version": 2,
             "Position": {
@@ -3361,11 +3386,11 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 3632987320136957869
+            "UUID": 12927692698925868939
         }
     },
-    "value395": 33,
-    "value396": {
+    "value401": 33,
+    "value402": {
         "value0": {
             "Version": 2,
             "Position": {
@@ -3418,11 +3443,11 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 2850926527059952489
+            "UUID": 9620821005231644493
         }
     },
-    "value397": 34,
-    "value398": {
+    "value403": 34,
+    "value404": {
         "value0": {
             "Version": 2,
             "Position": {
@@ -3475,11 +3500,11 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 9289837897964113333
+            "UUID": 16375152874770729646
         }
     },
-    "value399": 35,
-    "value400": {
+    "value405": 35,
+    "value406": {
         "value0": {
             "Version": 2,
             "Position": {
@@ -3532,11 +3557,11 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 3783724144336868447
+            "UUID": 18145175543412355236
         }
     },
-    "value401": 36,
-    "value402": {
+    "value407": 36,
+    "value408": {
         "value0": {
             "Version": 2,
             "Position": {
@@ -3589,11 +3614,11 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 11399495573476533058
+            "UUID": 13617707352686503859
         }
     },
-    "value403": 37,
-    "value404": {
+    "value409": 37,
+    "value410": {
         "value0": {
             "Version": 2,
             "Position": {
@@ -3646,11 +3671,11 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 8898562508695079853
+            "UUID": 9399461829266273811
         }
     },
-    "value405": 38,
-    "value406": {
+    "value411": 38,
+    "value412": {
         "value0": {
             "Version": 2,
             "Position": {
@@ -3703,11 +3728,11 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 13128395578639792145
+            "UUID": 16617579479345438125
         }
     },
-    "value407": 39,
-    "value408": {
+    "value413": 39,
+    "value414": {
         "value0": {
             "Version": 2,
             "Position": {
@@ -3760,11 +3785,11 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 11114492796239241898
+            "UUID": 11477626728202295593
         }
     },
-    "value409": 40,
-    "value410": {
+    "value415": 40,
+    "value416": {
         "value0": {
             "Version": 2,
             "Position": {
@@ -3817,11 +3842,11 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 3699797509398107266
+            "UUID": 252568238661514755
         }
     },
-    "value411": 41,
-    "value412": {
+    "value417": 41,
+    "value418": {
         "value0": {
             "Version": 2,
             "Position": {
@@ -3874,11 +3899,11 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 4142407928326496653
+            "UUID": 7592016959615858123
         }
     },
-    "value413": 42,
-    "value414": {
+    "value419": 42,
+    "value420": {
         "value0": {
             "Version": 2,
             "Position": {
@@ -3931,11 +3956,11 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 16753769245971427287
+            "UUID": 16200366531696724060
         }
     },
-    "value415": 43,
-    "value416": {
+    "value421": 43,
+    "value422": {
         "value0": {
             "Version": 2,
             "Position": {
@@ -3988,11 +4013,11 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 5885493721844848027
+            "UUID": 17964135267751172475
         }
     },
-    "value417": 44,
-    "value418": {
+    "value423": 44,
+    "value424": {
         "value0": {
             "Version": 2,
             "Position": {
@@ -4045,188 +4070,17 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 5369865823113332766
+            "UUID": 11589760034350687779
         }
     },
-    "value419": 45,
-    "value420": {
-        "value0": {
-            "Version": 2,
-            "Position": {
-                "value0": 1.2000000476837159,
-                "value1": 2.4000000953674318,
-                "value2": 0.0
-            },
-            "Orientation": {
-                "value0": 0.0,
-                "value1": 0.0,
-                "value2": 0.0,
-                "value3": 0.0
-            },
-            "LinearVelocity": {
-                "value0": 0.0,
-                "value1": 0.0,
-                "value2": 0.0
-            },
-            "Force": {
-                "value0": 0.0,
-                "value1": 0.0,
-                "value2": 0.0
-            },
-            "Mass": 1.0,
-            "AngularVelocity": {
-                "value0": 0.0,
-                "value1": 0.0,
-                "value2": 0.0
-            },
-            "Torque": {
-                "value0": 0.0,
-                "value1": 0.0,
-                "value2": 0.0
-            },
-            "Static": false,
-            "Friction": 0.5,
-            "Elasticity": 0.5,
-            "CollisionShape": {
-                "polymorphic_id": 1,
-                "ptr_wrapper": {
-                    "valid": 1,
-                    "data": {
-                        "value0": {
-                            "value0": 0.5,
-                            "value1": 0.5,
-                            "value2": 0.5
-                        }
-                    }
-                }
-            },
-            "Trigger": false,
-            "AngularFactor": 1.0,
-            "UUID": 8562583450158024747
-        }
-    },
-    "value421": 46,
-    "value422": {
-        "value0": {
-            "Version": 2,
-            "Position": {
-                "value0": 1.2000000476837159,
-                "value1": 2.4000000953674318,
-                "value2": -1.2000000476837159
-            },
-            "Orientation": {
-                "value0": 0.0,
-                "value1": 0.0,
-                "value2": 0.0,
-                "value3": 0.0
-            },
-            "LinearVelocity": {
-                "value0": 0.0,
-                "value1": 0.0,
-                "value2": 0.0
-            },
-            "Force": {
-                "value0": 0.0,
-                "value1": 0.0,
-                "value2": 0.0
-            },
-            "Mass": 1.0,
-            "AngularVelocity": {
-                "value0": 0.0,
-                "value1": 0.0,
-                "value2": 0.0
-            },
-            "Torque": {
-                "value0": 0.0,
-                "value1": 0.0,
-                "value2": 0.0
-            },
-            "Static": false,
-            "Friction": 0.5,
-            "Elasticity": 0.5,
-            "CollisionShape": {
-                "polymorphic_id": 1,
-                "ptr_wrapper": {
-                    "valid": 1,
-                    "data": {
-                        "value0": {
-                            "value0": 0.5,
-                            "value1": 0.5,
-                            "value2": 0.5
-                        }
-                    }
-                }
-            },
-            "Trigger": false,
-            "AngularFactor": 1.0,
-            "UUID": 4243389198495264611
-        }
-    },
-    "value423": 47,
-    "value424": {
-        "value0": {
-            "Version": 2,
-            "Position": {
-                "value0": 1.2000000476837159,
-                "value1": 2.4000000953674318,
-                "value2": -2.4000000953674318
-            },
-            "Orientation": {
-                "value0": 0.0,
-                "value1": 0.0,
-                "value2": 0.0,
-                "value3": 0.0
-            },
-            "LinearVelocity": {
-                "value0": 0.0,
-                "value1": 0.0,
-                "value2": 0.0
-            },
-            "Force": {
-                "value0": 0.0,
-                "value1": 0.0,
-                "value2": 0.0
-            },
-            "Mass": 1.0,
-            "AngularVelocity": {
-                "value0": 0.0,
-                "value1": 0.0,
-                "value2": 0.0
-            },
-            "Torque": {
-                "value0": 0.0,
-                "value1": 0.0,
-                "value2": 0.0
-            },
-            "Static": false,
-            "Friction": 0.5,
-            "Elasticity": 0.5,
-            "CollisionShape": {
-                "polymorphic_id": 1,
-                "ptr_wrapper": {
-                    "valid": 1,
-                    "data": {
-                        "value0": {
-                            "value0": 0.5,
-                            "value1": 0.5,
-                            "value2": 0.5
-                        }
-                    }
-                }
-            },
-            "Trigger": false,
-            "AngularFactor": 1.0,
-            "UUID": 7909503774014195914
-        }
-    },
-    "value425": 48,
+    "value425": 45,
     "value426": {
         "value0": {
             "Version": 2,
             "Position": {
                 "value0": 1.2000000476837159,
                 "value1": 2.4000000953674318,
-                "value2": -3.5999999046325685
+                "value2": 0.0
             },
             "Orientation": {
                 "value0": 0.0,
@@ -4273,16 +4127,187 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 14328412961587349084
+            "UUID": 15913589664364077959
         }
     },
-    "value427": 49,
+    "value427": 46,
     "value428": {
         "value0": {
             "Version": 2,
             "Position": {
                 "value0": 1.2000000476837159,
                 "value1": 2.4000000953674318,
+                "value2": -1.2000000476837159
+            },
+            "Orientation": {
+                "value0": 0.0,
+                "value1": 0.0,
+                "value2": 0.0,
+                "value3": 0.0
+            },
+            "LinearVelocity": {
+                "value0": 0.0,
+                "value1": 0.0,
+                "value2": 0.0
+            },
+            "Force": {
+                "value0": 0.0,
+                "value1": 0.0,
+                "value2": 0.0
+            },
+            "Mass": 1.0,
+            "AngularVelocity": {
+                "value0": 0.0,
+                "value1": 0.0,
+                "value2": 0.0
+            },
+            "Torque": {
+                "value0": 0.0,
+                "value1": 0.0,
+                "value2": 0.0
+            },
+            "Static": false,
+            "Friction": 0.5,
+            "Elasticity": 0.5,
+            "CollisionShape": {
+                "polymorphic_id": 1,
+                "ptr_wrapper": {
+                    "valid": 1,
+                    "data": {
+                        "value0": {
+                            "value0": 0.5,
+                            "value1": 0.5,
+                            "value2": 0.5
+                        }
+                    }
+                }
+            },
+            "Trigger": false,
+            "AngularFactor": 1.0,
+            "UUID": 14269605486649570443
+        }
+    },
+    "value429": 47,
+    "value430": {
+        "value0": {
+            "Version": 2,
+            "Position": {
+                "value0": 1.2000000476837159,
+                "value1": 2.4000000953674318,
+                "value2": -2.4000000953674318
+            },
+            "Orientation": {
+                "value0": 0.0,
+                "value1": 0.0,
+                "value2": 0.0,
+                "value3": 0.0
+            },
+            "LinearVelocity": {
+                "value0": 0.0,
+                "value1": 0.0,
+                "value2": 0.0
+            },
+            "Force": {
+                "value0": 0.0,
+                "value1": 0.0,
+                "value2": 0.0
+            },
+            "Mass": 1.0,
+            "AngularVelocity": {
+                "value0": 0.0,
+                "value1": 0.0,
+                "value2": 0.0
+            },
+            "Torque": {
+                "value0": 0.0,
+                "value1": 0.0,
+                "value2": 0.0
+            },
+            "Static": false,
+            "Friction": 0.5,
+            "Elasticity": 0.5,
+            "CollisionShape": {
+                "polymorphic_id": 1,
+                "ptr_wrapper": {
+                    "valid": 1,
+                    "data": {
+                        "value0": {
+                            "value0": 0.5,
+                            "value1": 0.5,
+                            "value2": 0.5
+                        }
+                    }
+                }
+            },
+            "Trigger": false,
+            "AngularFactor": 1.0,
+            "UUID": 6694029536250578262
+        }
+    },
+    "value431": 48,
+    "value432": {
+        "value0": {
+            "Version": 2,
+            "Position": {
+                "value0": 1.2000000476837159,
+                "value1": 2.4000000953674318,
+                "value2": -3.5999999046325685
+            },
+            "Orientation": {
+                "value0": 0.0,
+                "value1": 0.0,
+                "value2": 0.0,
+                "value3": 0.0
+            },
+            "LinearVelocity": {
+                "value0": 0.0,
+                "value1": 0.0,
+                "value2": 0.0
+            },
+            "Force": {
+                "value0": 0.0,
+                "value1": 0.0,
+                "value2": 0.0
+            },
+            "Mass": 1.0,
+            "AngularVelocity": {
+                "value0": 0.0,
+                "value1": 0.0,
+                "value2": 0.0
+            },
+            "Torque": {
+                "value0": 0.0,
+                "value1": 0.0,
+                "value2": 0.0
+            },
+            "Static": false,
+            "Friction": 0.5,
+            "Elasticity": 0.5,
+            "CollisionShape": {
+                "polymorphic_id": 1,
+                "ptr_wrapper": {
+                    "valid": 1,
+                    "data": {
+                        "value0": {
+                            "value0": 0.5,
+                            "value1": 0.5,
+                            "value2": 0.5
+                        }
+                    }
+                }
+            },
+            "Trigger": false,
+            "AngularFactor": 1.0,
+            "UUID": 14940612494241396129
+        }
+    },
+    "value433": 49,
+    "value434": {
+        "value0": {
+            "Version": 2,
+            "Position": {
+                "value0": 1.2000000476837159,
+                "value1": 2.4000000953674318,
                 "value2": -4.800000190734863
             },
             "Orientation": {
@@ -4330,11 +4355,11 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 15159761787506406916
+            "UUID": 10887689759856551802
         }
     },
-    "value429": 50,
-    "value430": {
+    "value435": 50,
+    "value436": {
         "value0": {
             "Version": 2,
             "Position": {
@@ -4387,187 +4412,187 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 8553013123300234015
+            "UUID": 11905271907563640568
         }
     },
-    "value431": 51,
-    "value432": {
-        "value0": {
-            "Version": 2,
-            "Position": {
-                "value0": 2.4000000953674318,
-                "value1": 2.4000000953674318,
-                "value2": 0.0
-            },
-            "Orientation": {
-                "value0": 0.0,
-                "value1": 0.0,
-                "value2": 0.0,
-                "value3": 0.0
-            },
-            "LinearVelocity": {
-                "value0": 0.0,
-                "value1": 0.0,
-                "value2": 0.0
-            },
-            "Force": {
-                "value0": 0.0,
-                "value1": 0.0,
-                "value2": 0.0
-            },
-            "Mass": 1.0,
-            "AngularVelocity": {
-                "value0": 0.0,
-                "value1": 0.0,
-                "value2": 0.0
-            },
-            "Torque": {
-                "value0": 0.0,
-                "value1": 0.0,
-                "value2": 0.0
-            },
-            "Static": false,
-            "Friction": 0.5,
-            "Elasticity": 0.5,
-            "CollisionShape": {
-                "polymorphic_id": 1,
-                "ptr_wrapper": {
-                    "valid": 1,
-                    "data": {
-                        "value0": {
-                            "value0": 0.5,
-                            "value1": 0.5,
-                            "value2": 0.5
-                        }
-                    }
-                }
-            },
-            "Trigger": false,
-            "AngularFactor": 1.0,
-            "UUID": 2395465573096722446
-        }
-    },
-    "value433": 52,
-    "value434": {
-        "value0": {
-            "Version": 2,
-            "Position": {
-                "value0": 2.4000000953674318,
-                "value1": 2.4000000953674318,
-                "value2": -1.2000000476837159
-            },
-            "Orientation": {
-                "value0": 0.0,
-                "value1": 0.0,
-                "value2": 0.0,
-                "value3": 0.0
-            },
-            "LinearVelocity": {
-                "value0": 0.0,
-                "value1": 0.0,
-                "value2": 0.0
-            },
-            "Force": {
-                "value0": 0.0,
-                "value1": 0.0,
-                "value2": 0.0
-            },
-            "Mass": 1.0,
-            "AngularVelocity": {
-                "value0": 0.0,
-                "value1": 0.0,
-                "value2": 0.0
-            },
-            "Torque": {
-                "value0": 0.0,
-                "value1": 0.0,
-                "value2": 0.0
-            },
-            "Static": false,
-            "Friction": 0.5,
-            "Elasticity": 0.5,
-            "CollisionShape": {
-                "polymorphic_id": 1,
-                "ptr_wrapper": {
-                    "valid": 1,
-                    "data": {
-                        "value0": {
-                            "value0": 0.5,
-                            "value1": 0.5,
-                            "value2": 0.5
-                        }
-                    }
-                }
-            },
-            "Trigger": false,
-            "AngularFactor": 1.0,
-            "UUID": 836857740137794504
-        }
-    },
-    "value435": 53,
-    "value436": {
-        "value0": {
-            "Version": 2,
-            "Position": {
-                "value0": 2.4000000953674318,
-                "value1": 2.4000000953674318,
-                "value2": -2.4000000953674318
-            },
-            "Orientation": {
-                "value0": 0.0,
-                "value1": 0.0,
-                "value2": 0.0,
-                "value3": 0.0
-            },
-            "LinearVelocity": {
-                "value0": 0.0,
-                "value1": 0.0,
-                "value2": 0.0
-            },
-            "Force": {
-                "value0": 0.0,
-                "value1": 0.0,
-                "value2": 0.0
-            },
-            "Mass": 1.0,
-            "AngularVelocity": {
-                "value0": 0.0,
-                "value1": 0.0,
-                "value2": 0.0
-            },
-            "Torque": {
-                "value0": 0.0,
-                "value1": 0.0,
-                "value2": 0.0
-            },
-            "Static": false,
-            "Friction": 0.5,
-            "Elasticity": 0.5,
-            "CollisionShape": {
-                "polymorphic_id": 1,
-                "ptr_wrapper": {
-                    "valid": 1,
-                    "data": {
-                        "value0": {
-                            "value0": 0.5,
-                            "value1": 0.5,
-                            "value2": 0.5
-                        }
-                    }
-                }
-            },
-            "Trigger": false,
-            "AngularFactor": 1.0,
-            "UUID": 216565788824770803
-        }
-    },
-    "value437": 54,
+    "value437": 51,
     "value438": {
         "value0": {
             "Version": 2,
             "Position": {
                 "value0": 2.4000000953674318,
                 "value1": 2.4000000953674318,
+                "value2": 0.0
+            },
+            "Orientation": {
+                "value0": 0.0,
+                "value1": 0.0,
+                "value2": 0.0,
+                "value3": 0.0
+            },
+            "LinearVelocity": {
+                "value0": 0.0,
+                "value1": 0.0,
+                "value2": 0.0
+            },
+            "Force": {
+                "value0": 0.0,
+                "value1": 0.0,
+                "value2": 0.0
+            },
+            "Mass": 1.0,
+            "AngularVelocity": {
+                "value0": 0.0,
+                "value1": 0.0,
+                "value2": 0.0
+            },
+            "Torque": {
+                "value0": 0.0,
+                "value1": 0.0,
+                "value2": 0.0
+            },
+            "Static": false,
+            "Friction": 0.5,
+            "Elasticity": 0.5,
+            "CollisionShape": {
+                "polymorphic_id": 1,
+                "ptr_wrapper": {
+                    "valid": 1,
+                    "data": {
+                        "value0": {
+                            "value0": 0.5,
+                            "value1": 0.5,
+                            "value2": 0.5
+                        }
+                    }
+                }
+            },
+            "Trigger": false,
+            "AngularFactor": 1.0,
+            "UUID": 12486914329437047427
+        }
+    },
+    "value439": 52,
+    "value440": {
+        "value0": {
+            "Version": 2,
+            "Position": {
+                "value0": 2.4000000953674318,
+                "value1": 2.4000000953674318,
+                "value2": -1.2000000476837159
+            },
+            "Orientation": {
+                "value0": 0.0,
+                "value1": 0.0,
+                "value2": 0.0,
+                "value3": 0.0
+            },
+            "LinearVelocity": {
+                "value0": 0.0,
+                "value1": 0.0,
+                "value2": 0.0
+            },
+            "Force": {
+                "value0": 0.0,
+                "value1": 0.0,
+                "value2": 0.0
+            },
+            "Mass": 1.0,
+            "AngularVelocity": {
+                "value0": 0.0,
+                "value1": 0.0,
+                "value2": 0.0
+            },
+            "Torque": {
+                "value0": 0.0,
+                "value1": 0.0,
+                "value2": 0.0
+            },
+            "Static": false,
+            "Friction": 0.5,
+            "Elasticity": 0.5,
+            "CollisionShape": {
+                "polymorphic_id": 1,
+                "ptr_wrapper": {
+                    "valid": 1,
+                    "data": {
+                        "value0": {
+                            "value0": 0.5,
+                            "value1": 0.5,
+                            "value2": 0.5
+                        }
+                    }
+                }
+            },
+            "Trigger": false,
+            "AngularFactor": 1.0,
+            "UUID": 7793383927925553410
+        }
+    },
+    "value441": 53,
+    "value442": {
+        "value0": {
+            "Version": 2,
+            "Position": {
+                "value0": 2.4000000953674318,
+                "value1": 2.4000000953674318,
+                "value2": -2.4000000953674318
+            },
+            "Orientation": {
+                "value0": 0.0,
+                "value1": 0.0,
+                "value2": 0.0,
+                "value3": 0.0
+            },
+            "LinearVelocity": {
+                "value0": 0.0,
+                "value1": 0.0,
+                "value2": 0.0
+            },
+            "Force": {
+                "value0": 0.0,
+                "value1": 0.0,
+                "value2": 0.0
+            },
+            "Mass": 1.0,
+            "AngularVelocity": {
+                "value0": 0.0,
+                "value1": 0.0,
+                "value2": 0.0
+            },
+            "Torque": {
+                "value0": 0.0,
+                "value1": 0.0,
+                "value2": 0.0
+            },
+            "Static": false,
+            "Friction": 0.5,
+            "Elasticity": 0.5,
+            "CollisionShape": {
+                "polymorphic_id": 1,
+                "ptr_wrapper": {
+                    "valid": 1,
+                    "data": {
+                        "value0": {
+                            "value0": 0.5,
+                            "value1": 0.5,
+                            "value2": 0.5
+                        }
+                    }
+                }
+            },
+            "Trigger": false,
+            "AngularFactor": 1.0,
+            "UUID": 2080664255553496093
+        }
+    },
+    "value443": 54,
+    "value444": {
+        "value0": {
+            "Version": 2,
+            "Position": {
+                "value0": 2.4000000953674318,
+                "value1": 2.4000000953674318,
                 "value2": -3.5999999046325685
             },
             "Orientation": {
@@ -4615,11 +4640,11 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 18340654106233960772
+            "UUID": 17616881478454565213
         }
     },
-    "value439": 55,
-    "value440": {
+    "value445": 55,
+    "value446": {
         "value0": {
             "Version": 2,
             "Position": {
@@ -4672,11 +4697,11 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 9880227596561234923
+            "UUID": 2901604417712254076
         }
     },
-    "value441": 56,
-    "value442": {
+    "value447": 56,
+    "value448": {
         "value0": {
             "Version": 2,
             "Position": {
@@ -4729,11 +4754,11 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 8641158104228096520
+            "UUID": 8885516179998504667
         }
     },
-    "value443": 57,
-    "value444": {
+    "value449": 57,
+    "value450": {
         "value0": {
             "Version": 2,
             "Position": {
@@ -4786,11 +4811,11 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 4444172508535320564
+            "UUID": 7438191846819467108
         }
     },
-    "value445": 58,
-    "value446": {
+    "value451": 58,
+    "value452": {
         "value0": {
             "Version": 2,
             "Position": {
@@ -4843,11 +4868,11 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 27945636570201055
+            "UUID": 30097346010941037
         }
     },
-    "value447": 59,
-    "value448": {
+    "value453": 59,
+    "value454": {
         "value0": {
             "Version": 2,
             "Position": {
@@ -4900,11 +4925,11 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 3642327764176902799
+            "UUID": 5377816354733690687
         }
     },
-    "value449": 60,
-    "value450": {
+    "value455": 60,
+    "value456": {
         "value0": {
             "Version": 2,
             "Position": {
@@ -4957,11 +4982,11 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 9505293566223225828
+            "UUID": 5716077624935843952
         }
     },
-    "value451": 61,
-    "value452": {
+    "value457": 61,
+    "value458": {
         "value0": {
             "Version": 2,
             "Position": {
@@ -5014,11 +5039,11 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 3802963586425775494
+            "UUID": 10447189323473597341
         }
     },
-    "value453": 1048638,
-    "value454": {
+    "value459": 1048638,
+    "value460": {
         "value0": {
             "Version": 2,
             "Position": {
@@ -5071,276 +5096,280 @@
             },
             "Trigger": false,
             "AngularFactor": 1.0,
-            "UUID": 2728600149353767492
+            "UUID": 9841531456335147741
         }
-    },
-    "value455": 0,
-    "value456": 0,
-    "value457": 0,
-    "value458": 1,
-    "value459": 1,
-    "value460": {
-        "ControllerType": 4
     },
     "value461": 0,
     "value462": 0,
     "value463": 0,
-    "value464": 63,
-    "value465": 0,
+    "value464": 1,
+    "value465": 1,
     "value466": {
+        "ControllerType": 4
+    },
+    "value467": 0,
+    "value468": 0,
+    "value469": 0,
+    "value470": 64,
+    "value471": 0,
+    "value472": {
         "value0": 11984101520111109072
     },
-    "value467": 1,
-    "value468": {
+    "value473": 1,
+    "value474": {
         "value0": 12693731299015073711
     },
-    "value469": 2,
-    "value470": {
+    "value475": 2,
+    "value476": {
         "value0": 16116779229844795067
     },
-    "value471": 15,
-    "value472": {
+    "value477": 15,
+    "value478": {
         "value0": 3255267364678447053
     },
-    "value473": 1048579,
-    "value474": {
+    "value479": 1048579,
+    "value480": {
         "value0": 7283881333509846891
     },
-    "value475": 5,
-    "value476": {
+    "value481": 5,
+    "value482": {
         "value0": 3490754314890301258
     },
-    "value477": 6,
-    "value478": {
+    "value483": 6,
+    "value484": {
         "value0": 15428624151734407110
     },
-    "value479": 7,
-    "value480": {
+    "value485": 7,
+    "value486": {
         "value0": 8045770046215843943
     },
-    "value481": 8,
-    "value482": {
+    "value487": 8,
+    "value488": {
         "value0": 16596640641922387454
     },
-    "value483": 9,
-    "value484": {
+    "value489": 9,
+    "value490": {
         "value0": 17774836157624644543
     },
-    "value485": 10,
-    "value486": {
+    "value491": 10,
+    "value492": {
         "value0": 11446525187536210015
     },
-    "value487": 11,
-    "value488": {
+    "value493": 11,
+    "value494": {
         "value0": 5875019472662734565
     },
-    "value489": 12,
-    "value490": {
+    "value495": 12,
+    "value496": {
         "value0": 11283063144623761082
     },
-    "value491": 13,
-    "value492": {
+    "value497": 13,
+    "value498": {
         "value0": 8563980749067876996
     },
-    "value493": 14,
-    "value494": {
+    "value499": 14,
+    "value500": {
         "value0": 17714666868824745160
     },
-    "value495": 2097156,
-    "value496": {
+    "value501": 2097156,
+    "value502": {
         "value0": 7440264963907605638
     },
-    "value497": 16,
-    "value498": {
+    "value503": 16,
+    "value504": {
         "value0": 1911272223493987730
     },
-    "value499": 17,
-    "value500": {
+    "value505": 17,
+    "value506": {
         "value0": 15790117930668832684
     },
-    "value501": 18,
-    "value502": {
+    "value507": 18,
+    "value508": {
         "value0": 258380877838881684
     },
-    "value503": 19,
-    "value504": {
+    "value509": 19,
+    "value510": {
         "value0": 6869805117332142123
     },
-    "value505": 20,
-    "value506": {
+    "value511": 20,
+    "value512": {
         "value0": 18366028368834594762
     },
-    "value507": 21,
-    "value508": {
+    "value513": 21,
+    "value514": {
         "value0": 5834867167121354997
     },
-    "value509": 22,
-    "value510": {
+    "value515": 22,
+    "value516": {
         "value0": 1631643731448963652
     },
-    "value511": 23,
-    "value512": {
+    "value517": 23,
+    "value518": {
         "value0": 1265698233658565003
     },
-    "value513": 24,
-    "value514": {
+    "value519": 24,
+    "value520": {
         "value0": 14887613255030924228
     },
-    "value515": 25,
-    "value516": {
+    "value521": 25,
+    "value522": {
         "value0": 14114246735815273529
     },
-    "value517": 26,
-    "value518": {
+    "value523": 26,
+    "value524": {
         "value0": 4214087301905175060
     },
-    "value519": 27,
-    "value520": {
+    "value525": 27,
+    "value526": {
         "value0": 578298889866774279
     },
-    "value521": 28,
-    "value522": {
+    "value527": 28,
+    "value528": {
         "value0": 417060909672614916
     },
-    "value523": 29,
-    "value524": {
+    "value529": 29,
+    "value530": {
         "value0": 6818742149940086570
     },
-    "value525": 30,
-    "value526": {
+    "value531": 30,
+    "value532": {
         "value0": 5494154048368015443
     },
-    "value527": 31,
-    "value528": {
+    "value533": 31,
+    "value534": {
         "value0": 1588332495741656546
     },
-    "value529": 32,
-    "value530": {
+    "value535": 32,
+    "value536": {
         "value0": 17582293428410081294
     },
-    "value531": 33,
-    "value532": {
+    "value537": 33,
+    "value538": {
         "value0": 10511789478920665327
     },
-    "value533": 34,
-    "value534": {
+    "value539": 34,
+    "value540": {
         "value0": 12681394848159178581
     },
-    "value535": 35,
-    "value536": {
+    "value541": 35,
+    "value542": {
         "value0": 3933695719277056767
     },
-    "value537": 36,
-    "value538": {
+    "value543": 36,
+    "value544": {
         "value0": 12554640265836549678
     },
-    "value539": 37,
-    "value540": {
+    "value545": 37,
+    "value546": {
         "value0": 3709794379950202995
     },
-    "value541": 38,
-    "value542": {
+    "value547": 38,
+    "value548": {
         "value0": 17885907984819750326
     },
-    "value543": 39,
-    "value544": {
+    "value549": 39,
+    "value550": {
         "value0": 115267889887193194
     },
-    "value545": 40,
-    "value546": {
+    "value551": 40,
+    "value552": {
         "value0": 16263995907643123354
     },
-    "value547": 41,
-    "value548": {
+    "value553": 41,
+    "value554": {
         "value0": 9762110844927783019
     },
-    "value549": 42,
-    "value550": {
+    "value555": 42,
+    "value556": {
         "value0": 16514251787101421589
     },
-    "value551": 43,
-    "value552": {
+    "value557": 43,
+    "value558": {
         "value0": 7245039831353502907
     },
-    "value553": 44,
-    "value554": {
+    "value559": 44,
+    "value560": {
         "value0": 17394828465445830412
     },
-    "value555": 45,
-    "value556": {
+    "value561": 45,
+    "value562": {
         "value0": 5903723800449167371
     },
-    "value557": 46,
-    "value558": {
+    "value563": 46,
+    "value564": {
         "value0": 17616727919010377311
     },
-    "value559": 47,
-    "value560": {
+    "value565": 47,
+    "value566": {
         "value0": 17248300732214159447
     },
-    "value561": 48,
-    "value562": {
+    "value567": 48,
+    "value568": {
         "value0": 9377556801495612784
     },
-    "value563": 49,
-    "value564": {
+    "value569": 49,
+    "value570": {
         "value0": 13156306274235857940
     },
-    "value565": 50,
-    "value566": {
+    "value571": 50,
+    "value572": {
         "value0": 8103951779510916582
     },
-    "value567": 51,
-    "value568": {
+    "value573": 51,
+    "value574": {
         "value0": 6207790523093596569
     },
-    "value569": 52,
-    "value570": {
+    "value575": 52,
+    "value576": {
         "value0": 10527794872029319234
     },
-    "value571": 53,
-    "value572": {
+    "value577": 53,
+    "value578": {
         "value0": 10328704622164086829
     },
-    "value573": 54,
-    "value574": {
+    "value579": 54,
+    "value580": {
         "value0": 11540924929348772855
     },
-    "value575": 55,
-    "value576": {
+    "value581": 55,
+    "value582": {
         "value0": 16565245989805709233
     },
-    "value577": 56,
-    "value578": {
+    "value583": 56,
+    "value584": {
         "value0": 11231529153473274855
     },
-    "value579": 57,
-    "value580": {
+    "value585": 57,
+    "value586": {
         "value0": 6958637726463052492
     },
-    "value581": 58,
-    "value582": {
+    "value587": 58,
+    "value588": {
         "value0": 15595018513263686533
     },
-    "value583": 59,
-    "value584": {
+    "value589": 59,
+    "value590": {
         "value0": 9767588151257782228
     },
-    "value585": 60,
-    "value586": {
+    "value591": 60,
+    "value592": {
         "value0": 16095449831148497375
     },
-    "value587": 61,
-    "value588": {
+    "value593": 61,
+    "value594": {
         "value0": 9374894390556389389
     },
-    "value589": 1048638,
-    "value590": {
+    "value595": 1048638,
+    "value596": {
         "value0": 17609859596845711685
     },
-    "value591": 61,
-    "value592": 2,
-    "value593": {
+    "value597": 1048639,
+    "value598": {
+        "value0": 769180725554046469
+    },
+    "value599": 62,
+    "value600": 2,
+    "value601": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
         "Material": {
@@ -5370,53 +5399,13 @@
                     "emissiveMapFactor": 0.0,
                     "alphaCutOff": 0.4000000059604645,
                     "workflow": 0.0,
-                    "shader": "C:/Dev/Lumos-Dev/Lumos/Assets/Shaders/ForwardPBR.shader",
+                    "shader": "/Users/jmorton/Dev/Lumos/Lumos/Assets/Shaders/ForwardPBR.shader",
                     "Reflectance": 0.30000001192092898
                 }
             }
         }
     },
-    "value594": 15,
-    "value595": {
-        "PrimitiveType": 2,
-        "FilePath": "Primitive",
-        "Material": {
-            "ptr_wrapper": {
-                "valid": 0
-            }
-        }
-    },
-    "value596": 1048579,
-    "value597": {
-        "PrimitiveType": 2,
-        "FilePath": "Primitive",
-        "Material": {
-            "ptr_wrapper": {
-                "valid": 0
-            }
-        }
-    },
-    "value598": 5,
-    "value599": {
-        "PrimitiveType": 2,
-        "FilePath": "Primitive",
-        "Material": {
-            "ptr_wrapper": {
-                "valid": 0
-            }
-        }
-    },
-    "value600": 6,
-    "value601": {
-        "PrimitiveType": 2,
-        "FilePath": "Primitive",
-        "Material": {
-            "ptr_wrapper": {
-                "valid": 0
-            }
-        }
-    },
-    "value602": 7,
+    "value602": 15,
     "value603": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
@@ -5426,7 +5415,7 @@
             }
         }
     },
-    "value604": 8,
+    "value604": 1048579,
     "value605": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
@@ -5436,7 +5425,7 @@
             }
         }
     },
-    "value606": 9,
+    "value606": 5,
     "value607": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
@@ -5446,7 +5435,7 @@
             }
         }
     },
-    "value608": 10,
+    "value608": 6,
     "value609": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
@@ -5456,7 +5445,7 @@
             }
         }
     },
-    "value610": 11,
+    "value610": 7,
     "value611": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
@@ -5466,7 +5455,7 @@
             }
         }
     },
-    "value612": 12,
+    "value612": 8,
     "value613": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
@@ -5476,7 +5465,7 @@
             }
         }
     },
-    "value614": 13,
+    "value614": 9,
     "value615": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
@@ -5486,7 +5475,7 @@
             }
         }
     },
-    "value616": 14,
+    "value616": 10,
     "value617": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
@@ -5496,7 +5485,7 @@
             }
         }
     },
-    "value618": 2097156,
+    "value618": 11,
     "value619": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
@@ -5506,7 +5495,7 @@
             }
         }
     },
-    "value620": 16,
+    "value620": 12,
     "value621": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
@@ -5516,7 +5505,7 @@
             }
         }
     },
-    "value622": 17,
+    "value622": 13,
     "value623": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
@@ -5526,7 +5515,7 @@
             }
         }
     },
-    "value624": 18,
+    "value624": 14,
     "value625": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
@@ -5536,7 +5525,7 @@
             }
         }
     },
-    "value626": 19,
+    "value626": 2097156,
     "value627": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
@@ -5546,7 +5535,7 @@
             }
         }
     },
-    "value628": 20,
+    "value628": 16,
     "value629": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
@@ -5556,7 +5545,7 @@
             }
         }
     },
-    "value630": 21,
+    "value630": 17,
     "value631": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
@@ -5566,7 +5555,7 @@
             }
         }
     },
-    "value632": 22,
+    "value632": 18,
     "value633": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
@@ -5576,7 +5565,7 @@
             }
         }
     },
-    "value634": 23,
+    "value634": 19,
     "value635": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
@@ -5586,7 +5575,7 @@
             }
         }
     },
-    "value636": 24,
+    "value636": 20,
     "value637": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
@@ -5596,7 +5585,7 @@
             }
         }
     },
-    "value638": 25,
+    "value638": 21,
     "value639": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
@@ -5606,7 +5595,7 @@
             }
         }
     },
-    "value640": 26,
+    "value640": 22,
     "value641": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
@@ -5616,7 +5605,7 @@
             }
         }
     },
-    "value642": 27,
+    "value642": 23,
     "value643": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
@@ -5626,7 +5615,7 @@
             }
         }
     },
-    "value644": 28,
+    "value644": 24,
     "value645": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
@@ -5636,7 +5625,7 @@
             }
         }
     },
-    "value646": 29,
+    "value646": 25,
     "value647": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
@@ -5646,7 +5635,7 @@
             }
         }
     },
-    "value648": 30,
+    "value648": 26,
     "value649": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
@@ -5656,7 +5645,7 @@
             }
         }
     },
-    "value650": 31,
+    "value650": 27,
     "value651": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
@@ -5666,7 +5655,7 @@
             }
         }
     },
-    "value652": 32,
+    "value652": 28,
     "value653": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
@@ -5676,7 +5665,7 @@
             }
         }
     },
-    "value654": 33,
+    "value654": 29,
     "value655": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
@@ -5686,7 +5675,7 @@
             }
         }
     },
-    "value656": 34,
+    "value656": 30,
     "value657": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
@@ -5696,7 +5685,7 @@
             }
         }
     },
-    "value658": 35,
+    "value658": 31,
     "value659": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
@@ -5706,7 +5695,7 @@
             }
         }
     },
-    "value660": 36,
+    "value660": 32,
     "value661": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
@@ -5716,7 +5705,7 @@
             }
         }
     },
-    "value662": 37,
+    "value662": 33,
     "value663": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
@@ -5726,7 +5715,7 @@
             }
         }
     },
-    "value664": 38,
+    "value664": 34,
     "value665": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
@@ -5736,7 +5725,7 @@
             }
         }
     },
-    "value666": 39,
+    "value666": 35,
     "value667": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
@@ -5746,7 +5735,7 @@
             }
         }
     },
-    "value668": 40,
+    "value668": 36,
     "value669": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
@@ -5756,7 +5745,7 @@
             }
         }
     },
-    "value670": 41,
+    "value670": 37,
     "value671": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
@@ -5766,7 +5755,7 @@
             }
         }
     },
-    "value672": 42,
+    "value672": 38,
     "value673": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
@@ -5776,7 +5765,7 @@
             }
         }
     },
-    "value674": 43,
+    "value674": 39,
     "value675": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
@@ -5786,7 +5775,7 @@
             }
         }
     },
-    "value676": 44,
+    "value676": 40,
     "value677": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
@@ -5796,7 +5785,7 @@
             }
         }
     },
-    "value678": 45,
+    "value678": 41,
     "value679": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
@@ -5806,7 +5795,7 @@
             }
         }
     },
-    "value680": 46,
+    "value680": 42,
     "value681": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
@@ -5816,7 +5805,7 @@
             }
         }
     },
-    "value682": 47,
+    "value682": 43,
     "value683": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
@@ -5826,7 +5815,7 @@
             }
         }
     },
-    "value684": 48,
+    "value684": 44,
     "value685": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
@@ -5836,7 +5825,7 @@
             }
         }
     },
-    "value686": 49,
+    "value686": 45,
     "value687": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
@@ -5846,7 +5835,7 @@
             }
         }
     },
-    "value688": 50,
+    "value688": 46,
     "value689": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
@@ -5856,7 +5845,7 @@
             }
         }
     },
-    "value690": 51,
+    "value690": 47,
     "value691": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
@@ -5866,7 +5855,7 @@
             }
         }
     },
-    "value692": 52,
+    "value692": 48,
     "value693": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
@@ -5876,7 +5865,7 @@
             }
         }
     },
-    "value694": 53,
+    "value694": 49,
     "value695": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
@@ -5886,7 +5875,7 @@
             }
         }
     },
-    "value696": 54,
+    "value696": 50,
     "value697": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
@@ -5896,7 +5885,7 @@
             }
         }
     },
-    "value698": 55,
+    "value698": 51,
     "value699": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
@@ -5906,7 +5895,7 @@
             }
         }
     },
-    "value700": 56,
+    "value700": 52,
     "value701": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
@@ -5916,7 +5905,7 @@
             }
         }
     },
-    "value702": 57,
+    "value702": 53,
     "value703": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
@@ -5926,7 +5915,7 @@
             }
         }
     },
-    "value704": 58,
+    "value704": 54,
     "value705": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
@@ -5936,7 +5925,7 @@
             }
         }
     },
-    "value706": 59,
+    "value706": 55,
     "value707": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
@@ -5946,7 +5935,7 @@
             }
         }
     },
-    "value708": 60,
+    "value708": 56,
     "value709": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
@@ -5956,7 +5945,7 @@
             }
         }
     },
-    "value710": 61,
+    "value710": 57,
     "value711": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
@@ -5966,7 +5955,7 @@
             }
         }
     },
-    "value712": 1048638,
+    "value712": 58,
     "value713": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
@@ -5976,7 +5965,85 @@
             }
         }
     },
-    "value714": 0,
-    "value715": 0,
-    "value716": 0
+    "value714": 59,
+    "value715": {
+        "PrimitiveType": 2,
+        "FilePath": "Primitive",
+        "Material": {
+            "ptr_wrapper": {
+                "valid": 0
+            }
+        }
+    },
+    "value716": 60,
+    "value717": {
+        "PrimitiveType": 2,
+        "FilePath": "Primitive",
+        "Material": {
+            "ptr_wrapper": {
+                "valid": 0
+            }
+        }
+    },
+    "value718": 61,
+    "value719": {
+        "PrimitiveType": 2,
+        "FilePath": "Primitive",
+        "Material": {
+            "ptr_wrapper": {
+                "valid": 0
+            }
+        }
+    },
+    "value720": 1048638,
+    "value721": {
+        "PrimitiveType": 2,
+        "FilePath": "Primitive",
+        "Material": {
+            "ptr_wrapper": {
+                "valid": 0
+            }
+        }
+    },
+    "value722": 1048639,
+    "value723": {
+        "PrimitiveType": 8,
+        "FilePath": "//Assets/Meshes/Fox.glb",
+        "Material": {
+            "ptr_wrapper": {
+                "valid": 1,
+                "data": {
+                    "Albedo": "",
+                    "Normal": "",
+                    "Metallic": "",
+                    "Roughness": "",
+                    "Ao": "",
+                    "Emissive": "",
+                    "albedoColour": {
+                        "value0": 1.0,
+                        "value1": 1.0,
+                        "value2": 1.0,
+                        "value3": 1.0
+                    },
+                    "roughnessValue": 0.5799999833106995,
+                    "metallicValue": 0.0,
+                    "emissiveValue": 0.0,
+                    "albedoMapFactor": 1.0,
+                    "metallicMapFactor": 0.0,
+                    "roughnessMapFactor": 0.0,
+                    "normalMapFactor": 0.0,
+                    "aoMapFactor": 0.0,
+                    "emissiveMapFactor": 0.0,
+                    "alphaCutOff": 0.4000000059604645,
+                    "workflow": 0.0,
+                    "shader": "/Users/jmorton/Dev/Lumos/Lumos/Assets/Shaders/ForwardPBRAnim.shader",
+                    "Reflectance": 0.30000001192092898
+                }
+            }
+        }
+    },
+    "value724": 0,
+    "value725": 0,
+    "value726": 0,
+    "value727": 0
 }

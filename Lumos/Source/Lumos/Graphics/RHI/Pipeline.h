@@ -42,6 +42,10 @@ namespace Lumos
 
         class LUMOS_EXPORT Pipeline
         {
+            friend class CommandBuffer;
+            friend class GLCommandBuffer;
+            friend class VKCommandBuffer;
+
         public:
             static Pipeline* Create(const PipelineDesc& pipelineDesc);
             static SharedPtr<Pipeline> Get(const PipelineDesc& pipelineDesc);
@@ -50,8 +54,6 @@ namespace Lumos
 
             virtual ~Pipeline() = default;
 
-            virtual void Bind(CommandBuffer* commandBuffer, uint32_t layer = 0) = 0;
-            virtual void End(CommandBuffer* commandBuffer) { }
             virtual void ClearRenderTargets(CommandBuffer* commandBuffer) { }
             virtual Shader* GetShader() const = 0;
 
@@ -59,6 +61,9 @@ namespace Lumos
             uint32_t GetHeight();
 
         protected:
+            virtual void Bind(CommandBuffer* commandBuffer, uint32_t layer = 0) = 0;
+            virtual void End(CommandBuffer* commandBuffer) { }
+
             static Pipeline* (*CreateFunc)(const PipelineDesc&);
             PipelineDesc m_Description;
         };

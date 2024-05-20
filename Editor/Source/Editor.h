@@ -76,7 +76,7 @@ namespace Lumos
         bool IsTextureFile(const std::string& filePath);
         bool IsShaderFile(const std::string& filePath);
         bool IsFontFile(const std::string& filePath);
-		bool IsMaterialFile(const std::string& filePath);
+        bool IsMaterialFile(const std::string& filePath);
 
         void SetImGuizmoOperation(uint32_t operation)
         {
@@ -283,7 +283,7 @@ namespace Lumos
         void SetEditorScriptsPath(const std::string& path);
         String8 GetEditorScriptsPath() { return m_EditorScriptPath; }
 
-        SharedPtr<Graphics::Texture2D> GetPreviewTexture() const { return m_PreviewDraw.m_PreviewTexture; }
+        SharedPtr<Graphics::Texture2D> GetPreviewTexture() const;
 
     protected:
         NONCOPYABLE(Editor)
@@ -314,16 +314,16 @@ namespace Lumos
         Maths::Transform m_EditorCameraTransform;
 
         SharedPtr<Camera> m_EditorCamera = nullptr;
-      
+
         SharedPtr<Graphics::GridRenderer> m_GridRenderer;
 
         std::string m_TempSceneSaveFilePath;
         int m_AutoSaveSettingsTime = 15000;
         String8 m_EditorScriptPath;
 
-        bool m_DrawPreview = false;
+        bool m_DrawPreview        = false;
         bool m_SavePreviewTexture = false;
-        bool m_QueuePreviewSave = false;
+        bool m_QueuePreviewSave   = false;
         String8 m_RequestedThumbnailPath;
 
         IniFile m_IniFile;
