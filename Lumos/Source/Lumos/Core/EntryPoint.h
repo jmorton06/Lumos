@@ -65,6 +65,7 @@ int main(int argc, char** argv)
 
 #elif defined(LUMOS_PLATFORM_MACOS)
 
+#include "Core/CoreSystem.h"
 #include "Platform/MacOS/MacOSOS.h"
 
 int main(int argc, char** argv)

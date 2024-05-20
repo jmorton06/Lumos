@@ -18,15 +18,15 @@ namespace Lumos
 
     struct AssetMetaData
     {
-        float timeSinceReload = 0.0f;
-        float lastAccessed    = 0.0f;
-        SharedPtr<Asset> data = nullptr;
-        bool onDisk           = false;
-        bool Expire           = true;
-        AssetType Type        = AssetType::Unkown;
-        bool IsDataLoaded     = false;
-        bool IsMemoryAsset    = false;
-        uint64_t ParameterCache;
+        float timeSinceReload   = 0.0f;
+        float lastAccessed      = 0.0f;
+        SharedPtr<Asset> data   = nullptr;
+        bool onDisk             = false;
+        bool Expire             = true;
+        AssetType Type          = AssetType::Unkown;
+        bool IsDataLoaded       = false;
+        bool IsMemoryAsset      = false;
+        uint64_t ParameterCache = 0;
     };
 
     class AssetRegistry

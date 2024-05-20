@@ -1,5 +1,4 @@
 #pragma once
-#include "DescriptorSet.h"
 #include "Definitions.h"
 #include "Core/Profiler.h"
 #include "Core/Asset.h"

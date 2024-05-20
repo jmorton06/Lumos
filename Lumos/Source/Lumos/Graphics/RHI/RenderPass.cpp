@@ -30,20 +30,17 @@ namespace Lumos
         {
             LUMOS_PROFILE_FUNCTION();
             uint64_t hash = 0;
-            HashCombine(hash, renderPassDesc.attachmentCount, renderPassDesc.clear);
+            HashCombine(hash, renderPassDesc.attachmentCount, renderPassDesc.clear, renderPassDesc.cubeMapIndex, renderPassDesc.mipIndex, renderPassDesc.samples);
 
             for(uint32_t i = 0; i < renderPassDesc.attachmentCount; i++)
             {
-                HashCombine(hash, renderPassDesc.attachmentTypes[i], renderPassDesc.attachments[i], renderPassDesc.cubeMapIndex, renderPassDesc.mipIndex, renderPassDesc.samples);
-
-                if(renderPassDesc.resolveTexture)
-                    HashCombine(hash, renderPassDesc.resolveTexture->GetUUID());
+                HashCombine(hash, (uint32_t)renderPassDesc.attachmentTypes[i]);
 
                 if(renderPassDesc.attachments[i])
                     HashCombine(hash, renderPassDesc.attachments[i]->GetUUID());
             }
 
-            if (renderPassDesc.resolveTexture)
+            if(renderPassDesc.resolveTexture)
                 HashCombine(hash, renderPassDesc.resolveTexture->GetUUID());
 
             auto found = m_RenderPassCache.find(hash);

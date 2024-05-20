@@ -31,9 +31,13 @@
 #include <Lumos/Events/ApplicationEvent.h>
 #include <Lumos/Scene/Component/Components.h>
 #include <Lumos/Scene/Component/ModelComponent.h>
+#include <Lumos/Scene/Component/SoundComponent.h>
+#include <Lumos/Scene/Component/RigidBody2DComponent.h>
+#include <Lumos/Scene/Component/RigidBody3DComponent.h>
 #include <Lumos/Scripting/Lua/LuaScriptComponent.h>
 #include <Lumos/Physics/LumosPhysicsEngine/LumosPhysicsEngine.h>
 #include <Lumos/Physics/B2PhysicsEngine/B2PhysicsEngine.h>
+#include <Lumos/Physics/LumosPhysicsEngine/CollisionShapes/CollisionShape.h>
 #include <Lumos/Graphics/MeshFactory.h>
 #include <Lumos/Graphics/Sprite.h>
 #include <Lumos/Graphics/AnimatedSprite.h>
@@ -45,6 +49,7 @@
 #include <Lumos/Graphics/Renderers/DebugRenderer.h>
 #include <Lumos/Graphics/Model.h>
 #include <Lumos/Graphics/Environment.h>
+#include <Lumos/Graphics/Animation/AnimationController.h>
 #include <Lumos/ImGui/IconsMaterialDesignIcons.h>
 #include <Lumos/Embedded/EmbedAsset.h>
 #include <Lumos/Scene/Component/ModelComponent.h>
@@ -408,16 +413,16 @@ namespace Lumos
         return false;
     }
 
-	bool Editor::IsMaterialFile(const std::string& filePath)
-	{
-		LUMOS_PROFILE_FUNCTION();
-		std::string extension = StringUtilities::GetFilePathExtension(filePath);
-		extension             = StringUtilities::ToLower(extension);
-		if(extension == "lmat")
-			return true;
+    bool Editor::IsMaterialFile(const std::string& filePath)
+    {
+        LUMOS_PROFILE_FUNCTION();
+        std::string extension = StringUtilities::GetFilePathExtension(filePath);
+        extension             = StringUtilities::ToLower(extension);
+        if(extension == "lmat")
+            return true;
 
-		return false;
-	}
+        return false;
+    }
 
     void Editor::OnImGui()
     {
@@ -1160,21 +1165,21 @@ namespace Lumos
                     auto& lightComp     = light.AddComponent<Graphics::Light>();
                     glm::mat4 lightView = glm::inverse(glm::lookAt(glm::vec3(30.0f, 9.0f, 50.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f)));
                     light.GetTransform().SetLocalTransform(lightView);
-					light.GetTransform().SetWorldMatrix(glm::mat4(1.0f));
+                    light.GetTransform().SetWorldMatrix(glm::mat4(1.0f));
 
                     auto camera = scene->GetEntityManager()->Create("Camera");
                     camera.AddComponent<Camera>();
 
-					glm::mat4 viewMat = glm::inverse(glm::lookAt(glm::vec3(-1.0f, 0.5f, 1.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f)));
-					camera.GetTransform().SetLocalTransform(viewMat);
-					camera.GetTransform().SetWorldMatrix(glm::mat4(1.0f));
+                    glm::mat4 viewMat = glm::inverse(glm::lookAt(glm::vec3(-1.0f, 0.5f, 1.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f)));
+                    camera.GetTransform().SetLocalTransform(viewMat);
+                    camera.GetTransform().SetWorldMatrix(glm::mat4(1.0f));
 
                     auto cube = scene->GetEntityManager()->Create("Cube");
                     cube.AddComponent<Graphics::ModelComponent>(Graphics::PrimitiveType::Cube);
 
-					auto bb = cube.GetComponent<Graphics::ModelComponent>().ModelRef->GetMeshes().front()->GetBoundingBox();
-					camera.GetTransform().SetLocalPosition((camera.GetTransform().GetForwardDirection()) * glm::distance(bb->Max(), bb->Min()));
-					camera.GetTransform().SetWorldMatrix(glm::mat4(1.0f));
+                    auto bb = cube.GetComponent<Graphics::ModelComponent>().ModelRef->GetMeshes().front()->GetBoundingBox();
+                    camera.GetTransform().SetLocalPosition((camera.GetTransform().GetForwardDirection()) * glm::distance(bb->Max(), bb->Min()));
+                    camera.GetTransform().SetWorldMatrix(glm::mat4(1.0f));
 
                     auto environment = scene->GetEntityManager()->Create("Environment");
                     environment.AddComponent<Graphics::Environment>();
@@ -2071,7 +2076,7 @@ namespace Lumos
             }
 
             if(m_SceneSavePopupTimer > 0.0f)
-                m_SceneSavePopupTimer -= Engine::GetTimeStep().GetSeconds();
+                m_SceneSavePopupTimer -= (float)Engine::GetTimeStep().GetSeconds();
 
             if((Input::Get().GetKeyHeld(InputCode::Key::LeftSuper) || (Input::Get().GetKeyHeld(InputCode::Key::LeftControl))))
             {
@@ -2199,14 +2204,29 @@ namespace Lumos
             {
                 const auto& [model, trans] = group.get<Graphics::ModelComponent, Maths::Transform>(entity);
                 auto& meshes               = model.ModelRef->GetMeshes();
+                auto& worldTransform       = trans.GetWorldMatrix();
+
                 for(auto mesh : meshes)
                 {
                     if(mesh->GetActive())
                     {
-                        auto& worldTransform = trans.GetWorldMatrix();
-                        auto bbCopy          = mesh->GetBoundingBox()->Transformed(worldTransform);
+                        auto bbCopy = mesh->GetBoundingBox()->Transformed(worldTransform);
                         DebugRenderer::DebugDraw(bbCopy, selectedColour, true);
                     }
+                }
+            }
+        }
+
+        {
+            auto group = registry.group<Graphics::ModelComponent>(entt::get<Maths::Transform>);
+
+            for(auto entity : group)
+            {
+                const auto& [model, trans] = group.get<Graphics::ModelComponent, Maths::Transform>(entity);
+                auto& worldTransform       = trans.GetWorldMatrix();
+                if(model.ModelRef && model.ModelRef->GetAnimationController())
+                {
+                    model.ModelRef->GetAnimationController()->DebugDraw(worldTransform);
                 }
             }
         }
@@ -2271,10 +2291,10 @@ namespace Lumos
             }
         }
 
-        static auto startTime = std::chrono::steady_clock::now();
+        static std::chrono::time_point<std::chrono::steady_clock> startTime = std::chrono::steady_clock::now();
         if(m_HoveredEntity)
         {
-            float alpha      = (float)Maths::Sin(std::chrono::duration<double>(std::chrono::high_resolution_clock::now() - startTime).count() * 200.0);
+            float alpha      = (float)Maths::Sin(std::chrono::duration<double>(std::chrono::steady_clock::now() - startTime).count() * 200.0);
             alpha            = Maths::Abs(alpha);
             glm::vec4 colour = glm::vec4(0.9f, 0.9f, 0.1f, alpha);
             auto transform   = m_HoveredEntity.TryGetComponent<Maths::Transform>();
@@ -2630,11 +2650,11 @@ namespace Lumos
             m_DrawPreview = false;
         }
 
-        if (m_SavePreviewTexture)
+        if(m_SavePreviewTexture)
         {
-            String8 texturePath = PushStr8F(m_FrameArena, "%s_thumbnail.png", (const char*)m_RequestedThumbnailPath.str);
-            String8 basePath = PushStr8F(m_FrameArena, "%sAssets", Application::Get().GetProjectSettings().m_ProjectRoot.c_str());
-            String8 assetCachePath = StringUtilities::AbsolutePathToRelativeFileSystemPath(m_FrameArena, texturePath, basePath, Str8Lit("//Assets/Cache") );
+            String8 texturePath       = PushStr8F(m_FrameArena, "%s_thumbnail.png", (const char*)m_RequestedThumbnailPath.str);
+            String8 basePath          = PushStr8F(m_FrameArena, "%sAssets", Application::Get().GetProjectSettings().m_ProjectRoot.c_str());
+            String8 assetCachePath    = StringUtilities::AbsolutePathToRelativeFileSystemPath(m_FrameArena, texturePath, basePath, Str8Lit("//Assets/Cache"));
             String8 cacheAbsolutePath = StringUtilities::AbsolutePathToRelativeFileSystemPath(m_FrameArena, assetCachePath, Str8Lit("//Assets"), basePath);
 
             m_PreviewDraw.SaveTexture(cacheAbsolutePath);
@@ -2642,9 +2662,9 @@ namespace Lumos
         }
 
         // Save texture next frame after its finishes drawing
-        if (m_QueuePreviewSave)
+        if(m_QueuePreviewSave)
         {
-            m_QueuePreviewSave = false;
+            m_QueuePreviewSave   = false;
             m_SavePreviewTexture = true;
         }
 
@@ -2675,25 +2695,25 @@ namespace Lumos
     {
         LUMOS_PROFILE_FUNCTION();
 
-		if(m_QueuePreviewSave)
-			return;
+        if(m_QueuePreviewSave)
+            return;
         LUMOS_LOG_INFO("Requesting thumbnail {0}", (const char*)asset.str);
         MemorySet(m_RequestedThumbnailPath.str, 0, 256);
         MemoryCopy(m_RequestedThumbnailPath.str, asset.str, asset.size);
         m_RequestedThumbnailPath.size = asset.size;
 
         String8 extension = StringUtilities::Str8PathSkipLastPeriod(asset);
-        if (strcmp((char*)extension.str, "lmat") == 0)
+        if(strcmp((char*)extension.str, "lmat") == 0)
         {
             m_PreviewDraw.LoadMaterial(asset);
         }
         else
         {
-            //Assume mesh
+            // Assume mesh
             m_PreviewDraw.LoadMesh(asset);
         }
 
-        m_DrawPreview = true;
+        m_DrawPreview      = true;
         m_QueuePreviewSave = true;
     }
 
@@ -2934,6 +2954,11 @@ namespace Lumos
 
         std::sort(m_Settings.m_RecentProjects.begin(), m_Settings.m_RecentProjects.end());
         m_Settings.m_RecentProjects.erase(std::unique(m_Settings.m_RecentProjects.begin(), m_Settings.m_RecentProjects.end()), m_Settings.m_RecentProjects.end());
+    }
+
+    SharedPtr<Graphics::Texture2D> Editor::GetPreviewTexture() const
+    {
+        return m_PreviewDraw.m_PreviewTexture;
     }
 
     const char* Editor::GetIconFontIcon(const std::string& filePath)

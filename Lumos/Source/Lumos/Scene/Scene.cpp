@@ -34,14 +34,20 @@
 #include "Scene/Component/SoundComponent.h"
 #include "Scene/Component/ModelComponent.h"
 #include "SceneGraph.h"
-#include "SerialisationImplementation.h"
+#include "Serialisation/SerialisationImplementation.h"
+
+#include "Scene/Component/SoundComponent.h"
+#include "Scene/Component/TextureMatrixComponent.h"
+#include "Scene/Component/RigidBody2DComponent.h"
+#include "Scene/Component/RigidBody3DComponent.h"
+#include "Scene/Component/AIComponent.h"
 
 #include <cereal/types/polymorphic.hpp>
 #include <cereal/archives/binary.hpp>
 #include <cereal/archives/json.hpp>
 #include <entt/entity/registry.hpp>
 #include <entt/entity/snapshot.hpp>
-#include <sol/sol.hpp>
+#include <sol/sol.hpp> //For deleting sol::basic_environment<sol::basic_reference<false>>
 
 CEREAL_REGISTER_TYPE(Lumos::SphereCollisionShape);
 CEREAL_REGISTER_TYPE(Lumos::CuboidCollisionShape);
@@ -306,6 +312,21 @@ namespace Lumos
         {
             auto& animSprite = entity.GetComponent<Graphics::AnimatedSprite>();
             animSprite.OnUpdate((float)timeStep.GetSeconds());
+        }
+
+        auto group = m_EntityManager->GetRegistry().group<Graphics::ModelComponent>(entt::get<Maths::Transform>);
+        for(auto entity : group)
+        {
+            if(!Entity(entity, this).Active())
+                continue;
+
+            const auto& [model, trans] = group.get<Graphics::ModelComponent, Maths::Transform>(entity);
+
+            if(!model.ModelRef)
+                continue;
+
+            const auto& meshes = model.ModelRef->GetMeshes();
+            model.ModelRef->UpdateAnimation(Engine::GetTimeStep());
         }
     }
 
@@ -695,7 +716,7 @@ namespace Lumos
     {
         std::string prefabData = FileSystem::Get().ReadTextFileVFS(path);
 
-        if (prefabData.empty())
+        if(prefabData.empty())
         {
             LUMOS_LOG_ERROR("Failed to load prefab {0}", path);
             return Entity();

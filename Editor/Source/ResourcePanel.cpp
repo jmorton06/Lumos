@@ -857,28 +857,28 @@ namespace Lumos
                         textureId = m_FileIcon;
                     }
                 }
-                else if (CurrentEnty->Type == FileType::Material)
+                else if(CurrentEnty->Type == FileType::Material)
                 {
-                    if (CurrentEnty->Thumbnail)
+                    if(CurrentEnty->Thumbnail)
                     {
                         textureId = CurrentEnty->Thumbnail;
                     }
-                    else if (!textureCreated)
+                    else if(!textureCreated)
                     {
                         ArenaTemp scratch = ArenaTempBegin(m_Arena);
 
                         String8 fileName = PushStr8Copy(scratch.arena, StringUtilities::GetFileName(CurrentEnty->Path));
-                        //String8 sceneScreenShotPath = PushStr8F(scratch.arena, "%s_thumbnail.png", (const char*)CurrentEnty->Path.str);
-                        String8 texturePath = PushStr8F(scratch.arena, "%s_thumbnail.png", (const char*)CurrentEnty->Path.str);
-                        String8 assetCachePath = StringUtilities::AbsolutePathToRelativeFileSystemPath(scratch.arena, texturePath, m_BasePath, Str8Lit("//Assets/Cache") );
+                        // String8 sceneScreenShotPath = PushStr8F(scratch.arena, "%s_thumbnail.png", (const char*)CurrentEnty->Path.str);
+                        String8 texturePath       = PushStr8F(scratch.arena, "%s_thumbnail.png", (const char*)CurrentEnty->Path.str);
+                        String8 assetCachePath    = StringUtilities::AbsolutePathToRelativeFileSystemPath(scratch.arena, texturePath, m_BasePath, Str8Lit("//Assets/Cache"));
                         String8 cacheAbsolutePath = StringUtilities::AbsolutePathToRelativeFileSystemPath(scratch.arena, assetCachePath, Str8Lit("//Assets"), m_BasePath);
 
-                        if (std::filesystem::exists(std::filesystem::path(std::string((const char*)cacheAbsolutePath.str, cacheAbsolutePath.size))))
+                        if(std::filesystem::exists(std::filesystem::path(std::string((const char*)cacheAbsolutePath.str, cacheAbsolutePath.size))))
                         {
-                            textureCreated = true;
-                            String8 sceneScreenShotAssetPath = cacheAbsolutePath;// PushStr8F(scratch.arena, "%s/Scenes/Cache/%s.png", Str8Lit("//Assets").str, fileName.str);
+                            textureCreated                   = true;
+                            String8 sceneScreenShotAssetPath = cacheAbsolutePath; // PushStr8F(scratch.arena, "%s/Scenes/Cache/%s.png", Str8Lit("//Assets").str, fileName.str);
 
-                            if (!m_Editor->GetAssetManager()->AssetExists(std::string((const char*)cacheAbsolutePath.str, cacheAbsolutePath.size)))
+                            if(!m_Editor->GetAssetManager()->AssetExists(std::string((const char*)cacheAbsolutePath.str, cacheAbsolutePath.size)))
                                 CurrentEnty->Thumbnail = m_Editor->GetAssetManager()->LoadTextureAsset(std::string((const char*)cacheAbsolutePath.str, cacheAbsolutePath.size), true);
                             else
                                 CurrentEnty->Thumbnail = m_Editor->GetAssetManager()->GetAssetData(std::string((const char*)cacheAbsolutePath.str, cacheAbsolutePath.size)).As<Graphics::Texture2D>();
@@ -895,29 +895,29 @@ namespace Lumos
                         textureId = m_FileIcon;
                     }
                 }
-                else if (CurrentEnty->Type == FileType::Model)
+                else if(CurrentEnty->Type == FileType::Model)
                 {
-                    if (CurrentEnty->Thumbnail)
+                    if(CurrentEnty->Thumbnail)
                     {
                         textureId = CurrentEnty->Thumbnail;
                     }
-                    else if (!textureCreated)
+                    else if(!textureCreated)
                     {
                         ArenaTemp scratch = ArenaTempBegin(m_Arena);
 
                         String8 fileName = PushStr8Copy(scratch.arena, StringUtilities::GetFileName(CurrentEnty->Path));
-                        //String8 sceneScreenShotPath = PushStr8F(scratch.arena, "%s_thumbnail.png", (const char*)CurrentEnty->Path.str);
+                        // String8 sceneScreenShotPath = PushStr8F(scratch.arena, "%s_thumbnail.png", (const char*)CurrentEnty->Path.str);
 
-                        String8 texturePath = PushStr8F(scratch.arena, "%s_thumbnail.png", (const char*)CurrentEnty->Path.str);
-                        String8 assetCachePath = StringUtilities::AbsolutePathToRelativeFileSystemPath(scratch.arena, texturePath, m_BasePath, Str8Lit("//Assets/Cache") );
+                        String8 texturePath       = PushStr8F(scratch.arena, "%s_thumbnail.png", (const char*)CurrentEnty->Path.str);
+                        String8 assetCachePath    = StringUtilities::AbsolutePathToRelativeFileSystemPath(scratch.arena, texturePath, m_BasePath, Str8Lit("//Assets/Cache"));
                         String8 cacheAbsolutePath = StringUtilities::AbsolutePathToRelativeFileSystemPath(scratch.arena, assetCachePath, Str8Lit("//Assets"), m_BasePath);
 
-                        if (std::filesystem::exists(std::filesystem::path(std::string((const char*)cacheAbsolutePath.str, cacheAbsolutePath.size))))
+                        if(std::filesystem::exists(std::filesystem::path(std::string((const char*)cacheAbsolutePath.str, cacheAbsolutePath.size))))
                         {
-                            textureCreated = true;
+                            textureCreated                   = true;
                             String8 sceneScreenShotAssetPath = cacheAbsolutePath;
 
-                            if (!m_Editor->GetAssetManager()->AssetExists(std::string((const char*)cacheAbsolutePath.str, cacheAbsolutePath.size)))
+                            if(!m_Editor->GetAssetManager()->AssetExists(std::string((const char*)cacheAbsolutePath.str, cacheAbsolutePath.size)))
                                 CurrentEnty->Thumbnail = m_Editor->GetAssetManager()->LoadTextureAsset(std::string((const char*)cacheAbsolutePath.str, cacheAbsolutePath.size), true);
                             else
                                 CurrentEnty->Thumbnail = m_Editor->GetAssetManager()->GetAssetData(std::string((const char*)cacheAbsolutePath.str, cacheAbsolutePath.size)).As<Graphics::Texture2D>();
@@ -1102,7 +1102,6 @@ namespace Lumos
                 {
                     ImGuiUtilities::ClippedText(clipRect.Min, clipRect.Max, (const char*)(StringUtilities::GetFileName(CurrentEnty->Path, !CurrentEnty->IsFile).str), nullptr, nullptr, { 0, 0 }, nullptr, clipRect.GetSize().x);
                 }
-
             }
 
             if(CurrentEnty->IsFile)

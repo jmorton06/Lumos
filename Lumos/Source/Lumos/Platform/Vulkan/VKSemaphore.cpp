@@ -18,14 +18,12 @@ namespace Lumos
             semaphoreTypeCreateInfo.semaphoreType             = VK_SEMAPHORE_TYPE_TIMELINE;
             semaphoreTypeCreateInfo.initialValue              = 0;
 
-
             VkSemaphoreCreateInfo semaphoreInfo = {};
             semaphoreInfo.sType                 = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-			semaphoreInfo.pNext                 = m_Timeline ? &semaphoreTypeCreateInfo : nullptr;
+            semaphoreInfo.pNext                 = m_Timeline ? &semaphoreTypeCreateInfo : nullptr;
             semaphoreInfo.flags                 = 0;
 
             VK_CHECK_RESULT(vkCreateSemaphore(VKDevice::Get().GetDevice(), &semaphoreInfo, nullptr, &m_Handle));
-
         }
 
         VKSemaphore::~VKSemaphore()
@@ -33,7 +31,7 @@ namespace Lumos
             vkDestroySemaphore(VKDevice::Get().GetDevice(), m_Handle, nullptr);
         }
 
-        void VKSemaphore::Wait(uint64_t value, uint64_t timeout )
+        void VKSemaphore::Wait(uint64_t value, uint64_t timeout)
         {
             LUMOS_PROFILE_FUNCTION();
             LUMOS_ASSERT(m_Timeline);

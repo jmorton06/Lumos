@@ -48,10 +48,31 @@ namespace Lumos
             }
         };
 
-        struct BoneInfluence
+        struct AnimVertex
         {
+            AnimVertex()
+                : Position(glm::vec3(0.0f))
+                , Colours(glm::vec4(0.0f))
+                , TexCoords(glm::vec2(0.0f))
+                , Normal(glm::vec3(0.0f))
+                , Tangent(glm::vec3(0.0f))
+                , Bitangent(glm::vec3(0.0f))
+            {
+            }
+
+            glm::vec3 Position;
+            glm::vec4 Colours;
+            glm::vec2 TexCoords;
+            glm::vec3 Normal;
+            glm::vec3 Tangent;
+            glm::vec3 Bitangent;
             uint32_t BoneInfoIndices[4] = { 0, 0, 0, 0 };
             float Weights[4]            = { 0.0f, 0.0f, 0.0f, 0.0f };
+
+            bool operator==(const AnimVertex& other) const
+            {
+                return Position == other.Position && TexCoords == other.TexCoords && Colours == other.Colours && Normal == other.Normal && Tangent == other.Tangent && Bitangent == other.Bitangent;
+            }
 
             void AddBoneData(uint32_t boneInfoIndex, float weight)
             {
@@ -118,16 +139,17 @@ namespace Lumos
             Mesh();
             Mesh(const Mesh& mesh);
             Mesh(const std::vector<uint32_t>& indices, const std::vector<Vertex>& vertices, bool optimise = false, float optimiseThreshold = 0.95f);
-            Mesh(const std::vector<uint32_t>& indices, const std::vector<Vertex>& vertices, const std::vector<BoneInfluence>& boneInfluences);
+            Mesh(const std::vector<uint32_t>& indices, const std::vector<AnimVertex>& vertices);
             virtual ~Mesh();
 
             const SharedPtr<VertexBuffer>& GetVertexBuffer() const { return m_VertexBuffer; }
+            const SharedPtr<VertexBuffer>& GetAnimVertexBuffer() const { return m_AnimVertexBuffer; }
             const SharedPtr<IndexBuffer>& GetIndexBuffer() const { return m_IndexBuffer; }
             const SharedPtr<Material>& GetMaterial() const { return m_Material; }
             const SharedPtr<Maths::BoundingBox>& GetBoundingBox() const { return m_BoundingBox; }
 
             void SetMaterial(const SharedPtr<Material>& material) { m_Material = material; }
-			void SetAndLoadMaterial(const std::string& filePath);
+            void SetAndLoadMaterial(const std::string& filePath);
 
             bool& GetActive() { return m_Active; }
             void SetName(const std::string& name) { m_Name = name; }
@@ -168,7 +190,7 @@ namespace Lumos
             static glm::vec3* GenerateTangents(uint32_t numVertices, glm::vec3* vertices, uint32_t* indices, uint32_t numIndices, glm::vec2* texCoords);
 
             SharedPtr<VertexBuffer> m_VertexBuffer;
-            SharedPtr<VertexBuffer> m_BoneInfluenceBuffer;
+            SharedPtr<VertexBuffer> m_AnimVertexBuffer;
             SharedPtr<IndexBuffer> m_IndexBuffer;
             SharedPtr<Material> m_Material;
             SharedPtr<Maths::BoundingBox> m_BoundingBox;

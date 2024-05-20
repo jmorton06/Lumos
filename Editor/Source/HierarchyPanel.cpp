@@ -20,7 +20,10 @@
 #include <Lumos/Scene/Component/ModelComponent.h>
 #include <Lumos/Scene/EntityFactory.h>
 #include <Lumos/Core/String.h>
-
+#include <Lumos/Scene/Component/SoundComponent.h>
+#include <Lumos/Scene/Component/RigidBody2DComponent.h>
+#include <Lumos/Scene/Component/RigidBody3DComponent.h>
+#include <Lumos/Physics/LumosPhysicsEngine/CollisionShapes/CollisionShape.h>
 #include <typeinfo>
 #include <imgui/imgui_internal.h>
 #include <sol/sol.hpp>

@@ -27,6 +27,7 @@ namespace Lumos
         void UpdateCursorImGui() override;
         void ProcessInput() override;
         void Maximise() override;
+        void UpdateControllers() override;
 
         bool Init(const WindowDesc& properties);
 

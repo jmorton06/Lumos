@@ -19,7 +19,7 @@ namespace Lumos
             void SetDataSub(uint32_t size, const void* data, uint32_t offset) override;
             void ReleasePointer() override;
 
-            void Bind(CommandBuffer* commandBuffer, Pipeline* pipeline) override;
+            void Bind(CommandBuffer* commandBuffer, Pipeline* pipeline, uint8_t binding = 0) override;
             void Unbind() override;
             uint32_t GetSize() override { return m_Size; }
 

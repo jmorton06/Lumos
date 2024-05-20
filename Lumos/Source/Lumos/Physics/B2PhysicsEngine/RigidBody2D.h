@@ -2,8 +2,8 @@
 
 #include <cereal/cereal.hpp>
 #include <cereal/types/vector.hpp>
-#include <glm/vec2.hpp>
-#include <glm/vec3.hpp>
+#include <glm/ext/vector_float2.hpp>
+#include <glm/ext/vector_float3.hpp>
 #include "Core/UUID.h"
 class Object;
 class b2Body;

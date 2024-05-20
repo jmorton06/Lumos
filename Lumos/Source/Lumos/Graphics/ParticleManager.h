@@ -1,7 +1,7 @@
 #pragma once
-#include <glm/vec2.hpp>
-#include <glm/vec4.hpp>
-#include "Scene/Serialisation.h"
+#include <glm/ext/vector_float2.hpp>
+#include <glm/ext/vector_float4.hpp>
+#include "Scene/Serialisation/Serialisation.h"
 #include "Graphics/RHI/Definitions.h"
 #include "Graphics/RHI/Texture.h"
 #include "Core/OS/FileSystem.h"

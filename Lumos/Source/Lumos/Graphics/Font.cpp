@@ -78,8 +78,8 @@ namespace Lumos
 
         struct AtlasHeader
         {
-            uint32_t Type = 0;
-            uint32_t Width, Height;
+            uint32_t Type  = 0;
+            uint32_t Width = 0, Height = 0;
         };
 
         static bool TryReadFontAtlasFromCache(const std::string& fontName, float fontSize, AtlasHeader& header, void*& pixels, Buffer& storageBuffer)
@@ -439,6 +439,11 @@ namespace Lumos
         }
 
         SharedPtr<Font> Font::s_DefaultFont;
+
+        SharedPtr<Graphics::Texture2D> Font::GetFontAtlas() const
+        {
+            return m_TextureAtlas;
+        }
 
         void Font::InitDefaultFont()
         {

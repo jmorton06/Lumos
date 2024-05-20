@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Utilities/TSingleton.h"
-#include "RigidBody3D.h"
 #include "Narrowphase/Manifold.h"
 #include "Broadphase/Broadphase.h"
 #include "Scene/ISystem.h"
@@ -9,6 +8,8 @@
 
 namespace Lumos
 {
+    class RigidBody3D;
+
     enum class LUMOS_EXPORT IntegrationType : uint32_t
     {
         EXPLICIT_EULER      = 0,
@@ -149,7 +150,7 @@ namespace Lumos
         uint32_t m_PositionIterations = 2;
         uint32_t m_VelocityIterations = 10;
 
-		uint32_t m_RigidBodyCount = 0;
+        uint32_t m_RigidBodyCount = 0;
 
         float m_BaumgarteScalar = 0.2f;   // Amount of force to add to the System to solve error
         float m_BaumgarteSlop   = 0.001f; // Amount of allowed penetration, ensures a complete manifold each frame

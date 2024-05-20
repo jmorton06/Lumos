@@ -246,6 +246,44 @@ namespace Lumos
                 }
             }
 
+            {
+                // Controller
+                {
+                    float hAxis = Input::Get().GetControllerAxis(0, 0);
+                    float vAxis = Input::Get().GetControllerAxis(0, 1);
+
+                    if(Maths::Abs(vAxis) > 0.2f)
+                        m_Velocity += vAxis * transform.GetForwardDirection() * speed;
+                    if(Maths::Abs(hAxis) > 0.2f)
+                        m_Velocity += hAxis * transform.GetRightDirection() * speed;
+                }
+
+                {
+                    float sensitivity = 0.2f;
+
+                    float hAxis = Input::Get().GetControllerAxis(0, 2);
+                    float vAxis = Input::Get().GetControllerAxis(0, 5);
+                    if(Maths::Abs(vAxis) < 0.2f)
+                        vAxis = 0.0f;
+                    if(Maths::Abs(hAxis) < 0.2f)
+                        hAxis = 0.0f;
+
+                    glm::vec2 delta = glm::vec2(hAxis * hAxis, vAxis * vAxis);
+                    delta *= glm::vec2(Maths::Sign(hAxis), Maths::Sign(vAxis));
+                    // m_CurrentYMovement = delta.x * sensitivity;
+                    float xRotation = delta.y * sensitivity * dt;
+                    delta *= sensitivity;
+                    glm::quat rotationQ = transform.GetLocalOrientation();
+                    glm::quat rotationX = glm::angleAxis(-delta.y, glm::vec3(1.0f, 0.0f, 0.0f));
+                    glm::quat rotationY = glm::angleAxis(-delta.x, glm::vec3(0.0f, 1.0f, 0.0f));
+
+                    rotationQ = rotationY * rotationQ;
+                    rotationQ = rotationQ * rotationX;
+
+                    transform.SetLocalOrientation(rotationQ);
+                }
+            }
+
             if(glm::length(m_Velocity) > Maths::M_EPSILON)
             {
                 glm::vec3 position = transform.GetLocalPosition();

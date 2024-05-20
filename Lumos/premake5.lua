@@ -1,4 +1,4 @@
-newoption 
+newoption
 {
 	trigger = "time-trace",
 	description = "Build with -ftime-trace (clang only)"
@@ -51,6 +51,7 @@ project "Lumos"
 		"%{IncludeDir.glm}",
 		"%{IncludeDir.msdfgen}",
 		"%{IncludeDir.msdf_atlas_gen}",
+		"%{IncludeDir.ozz}",
 		"%{IncludeDir.Lumos}",
 	}
 
@@ -63,8 +64,10 @@ project "Lumos"
 		"SpirvCross",
 		"spdlog",
 		"meshoptimizer",
-		-- "msdfgen",
-		"msdf-atlas-gen"
+		"msdf-atlas-gen",
+		"ozz_base",
+		"ozz_animation",
+		"ozz_animation_offline"
 	}
 
 	defines
@@ -76,7 +79,7 @@ project "Lumos"
 		"GLM_FORCE_INTRINSICS",
 		"GLM_FORCE_DEPTH_ZERO_TO_ONE"
 	}
-	
+
 	filter "options:time-trace"
 		buildoptions {"-ftime-trace"}
 		linkoptions {"-ftime-trace"}

@@ -2,7 +2,7 @@
 #include "CapsuleCollisionShape.h"
 #include "Physics/LumosPhysicsEngine/RigidBody3D.h"
 #include "Graphics/Renderers/DebugRenderer.h"
-#include <glm/mat3x3.hpp>
+#include <glm/ext/matrix_float3x3.hpp>
 #include <glm/gtx/matrix_decompose.hpp>
 #include <glm/gtc/matrix_inverse.hpp>
 namespace Lumos

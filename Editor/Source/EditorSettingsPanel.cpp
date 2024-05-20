@@ -6,8 +6,9 @@
 #include <glm/gtx/matrix_decompose.hpp>
 #include <Lumos/Core/Profiler.h>
 #include <Lumos/ImGui/ImGuiManager.h>
-#include <Lumos/Graphics/RHI/ImGuiRenderer.h>
+#include <Lumos/Graphics/RHI/IMGUIRenderer.h>
 #include <Lumos/Graphics/RHI/Renderer.h>
+#include <Lumos/Graphics/RHI/Texture.h>
 #include <Lumos/Graphics/RHI/GraphicsContext.h>
 
 namespace Lumos
@@ -105,23 +106,6 @@ namespace Lumos
                 ImGuiUtilities::PropertyConst("Editor Scripts Path", (const char*)m_Editor->GetEditorScriptsPath().str);
         }
         ImGui::Columns(1);
-
-        if(ImGui::Button("Draw Preview"))
-        {
-            Lumos::Editor::GetEditor()->DrawPreview();
-        }
-
-        if (ImGui::Button("Save Preview"))
-        {
-            Lumos::Editor::GetEditor()->SavePreview();
-        }
-
-        SharedPtr<Graphics::Texture2D> previewTexture = Lumos::Editor::GetEditor()->GetPreviewTexture();
-        if(previewTexture)
-        {
-            bool flipImage = Graphics::Renderer::GetGraphicsContext()->FlipImGUITexture();
-            ImGui::Image(reinterpret_cast<ImTextureID>(Application::Get().GetImGuiManager()->GetImGuiRenderer()->AddTexture((Graphics::Texture*)previewTexture.get())), ImVec2(256, 256), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
-        }
 
         // Engine Asset Path;
         // Editor Script Path;

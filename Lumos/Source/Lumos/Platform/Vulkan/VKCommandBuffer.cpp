@@ -25,6 +25,7 @@ namespace Lumos
             , m_Semaphore(nullptr)
             , m_Primary(false)
             , m_State(CommandBufferState::Idle)
+            , m_BoundRenderPass(nullptr)
         {
         }
 
@@ -34,6 +35,7 @@ namespace Lumos
             , m_Semaphore(nullptr)
             , m_Primary(true)
             , m_State(CommandBufferState::Idle)
+            , m_BoundRenderPass(nullptr)
         {
         }
 
@@ -53,8 +55,8 @@ namespace Lumos
             VK_CHECK_RESULT(vkAllocateCommandBuffers(VKDevice::Get().GetDevice(), &cmdBufferCreateInfo, &m_CommandBuffer));
 
             m_Semaphore = CreateSharedPtr<VKSemaphore>(false);
-            m_Fence = CreateSharedPtr<VKFence>(false);
-
+            m_Fence     = CreateSharedPtr<VKFence>(false);
+            m_Fence->Reset();
             return true;
         }
 
@@ -70,7 +72,7 @@ namespace Lumos
             VK_CHECK_RESULT(vkAllocateCommandBuffers(VKDevice::Get().GetDevice(), &cmdBufferCreateInfo, &m_CommandBuffer));
 
             m_Semaphore = CreateSharedPtr<VKSemaphore>(false);
-            m_Fence = CreateSharedPtr<VKFence>(true);
+            m_Fence     = CreateSharedPtr<VKFence>(true);
 
             return true;
         }
@@ -83,7 +85,7 @@ namespace Lumos
             if(m_State == CommandBufferState::Submitted)
                 Wait();
 
-            m_Fence = nullptr;
+            m_Fence     = nullptr;
             m_Semaphore = nullptr;
             vkFreeCommandBuffers(VKDevice::Get().GetDevice(), m_CommandPool, 1, &m_CommandBuffer);
         }
@@ -141,20 +143,20 @@ namespace Lumos
             LUMOS_PROFILE_FUNCTION_LOW();
             LUMOS_ASSERT(m_Primary, "Used Execute on secondary command buffer!");
             LUMOS_ASSERT(m_State == CommandBufferState::Ended, "CommandBuffer executed before ended recording");
-			uint32_t waitSemaphoreCount = waitSemaphore ? 1 : 0;
-			uint32_t signalSemaphoreCount = m_Semaphore ? 1 : 0;
+            uint32_t waitSemaphoreCount   = waitSemaphore ? 1 : 0;
+            uint32_t signalSemaphoreCount = m_Semaphore ? 1 : 0;
 
-			VkSemaphore semaphore = m_Semaphore->GetHandle();
+            VkSemaphore semaphore           = m_Semaphore->GetHandle();
             VkSubmitInfo submitInfo         = VKInitialisers::SubmitInfo();
-            submitInfo.waitSemaphoreCount   = 0;//waitSemaphoreCount;
-			submitInfo.pWaitSemaphores      = nullptr;//waitSemaphoreCount == 0 ? nullptr : &waitSemaphore;
+            submitInfo.waitSemaphoreCount   = 0;       // waitSemaphoreCount;
+            submitInfo.pWaitSemaphores      = nullptr; // waitSemaphoreCount == 0 ? nullptr : &waitSemaphore;
             submitInfo.pWaitDstStageMask    = &flags;
             submitInfo.commandBufferCount   = 1;
             submitInfo.pCommandBuffers      = &m_CommandBuffer;
             submitInfo.signalSemaphoreCount = signalSemaphoreCount;
             submitInfo.pSignalSemaphores    = &semaphore;
 
-            //m_Fence->Reset();
+            m_Fence->Reset();
 
             {
                 LUMOS_PROFILE_SCOPE("vkQueueSubmit");
@@ -208,6 +210,36 @@ namespace Lumos
             if(m_BoundPipeline)
                 m_BoundPipeline->End(this);
             m_BoundPipeline = nullptr;
+
+            /*	if(m_BoundRenderPass)
+                            m_BoundRenderPass->EndRenderPass(this);
+                    m_BoundRenderPass = nullptr;*/
+        }
+
+        void VKCommandBuffer::EndCurrentRenderPass()
+        {
+            LUMOS_PROFILE_FUNCTION();
+            if(m_BoundRenderPass)
+                m_BoundRenderPass->EndRenderPass(this);
+
+            m_BoundRenderPass = nullptr;
+        }
+
+        void VKCommandBuffer::BeginRenderPass(RenderPass* renderpass, float* clearColour, Framebuffer* framebuffer, uint32_t width, uint32_t height)
+        {
+            LUMOS_PROFILE_FUNCTION();
+            if(m_BoundRenderPass != renderpass || m_BoundFrameBuffer != framebuffer || m_BoundRenderPassWidth != width || m_BoundRenderPassHeight != height)
+            {
+                if(m_BoundRenderPass)
+                    m_BoundRenderPass->EndRenderPass(this);
+
+                m_BoundRenderPass       = renderpass;
+                m_BoundFrameBuffer      = framebuffer;
+                m_BoundRenderPassWidth  = width;
+                m_BoundRenderPassHeight = height;
+
+                m_BoundRenderPass->BeginRenderPass(this, clearColour, framebuffer, SubPassContents::INLINE, width, height);
+            }
         }
 
         void VKCommandBuffer::UpdateViewport(uint32_t width, uint32_t height, bool flipViewport)
@@ -274,10 +306,10 @@ namespace Lumos
             Execute(VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, nullptr, false);
         }
 
-		VkSemaphore VKCommandBuffer::GetSemaphore() const
-		{
-			return m_Semaphore->GetHandle();
-		}
+        VkSemaphore VKCommandBuffer::GetSemaphore() const
+        {
+            return m_Semaphore->GetHandle();
+        }
 
         void VKCommandBuffer::MakeDefault()
         {

@@ -1,7 +1,7 @@
 #include "Precompiled.h"
 #include "Hull.h"
 #include "Graphics/Renderers/DebugRenderer.h"
-#include <glm/vec4.hpp>
+#include <glm/ext/vector_float4.hpp>
 
 namespace Lumos
 {

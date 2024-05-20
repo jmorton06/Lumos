@@ -54,8 +54,7 @@ namespace Lumos
 
             CreateGraphicsPipeline();
             auto commandBuffer = Renderer::GetMainSwapChain()->GetCurrentCommandBuffer();
-
-            m_Pipeline->Bind(commandBuffer);
+            commandBuffer->BindPipeline(m_Pipeline);
 
             m_CurrentDescriptorSets[0] = m_DescriptorSet[0].get();
 
@@ -68,12 +67,8 @@ namespace Lumos
             m_Quad->GetVertexBuffer()->Unbind();
             m_Quad->GetIndexBuffer()->Unbind();
 
-            End();
-
-            m_Pipeline->End(commandBuffer);
-
-            // if(!m_RenderTexture)
-            // Renderer::Present((m_CommandBuffers[Renderer::GetMainSwapChain()->GetCurrentBufferIndex()].get()));
+            commandBuffer->UnBindPipeline();
+            commandBuffer->EndCurrentRenderPass();
         }
 
         enum VSSystemUniformIndices : int32_t

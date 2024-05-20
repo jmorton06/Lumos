@@ -9,6 +9,7 @@
 #include "VKCommandBuffer.h"
 #include "VKSwapChain.h"
 #include "VKSemaphore.h"
+#include "VKTexture.h"
 #include "Core/Engine.h"
 #include "Core/Application.h"
 #include "Core/OS/Window.h"
@@ -16,6 +17,7 @@
 #include "stb_image_write.h"
 #include <filesystem>
 
+#define DELETION_QUEUE_CAPACITY 3 // 12
 namespace Lumos
 {
     namespace Graphics
@@ -31,8 +33,11 @@ namespace Lumos
 
             m_RendererTitle = "Vulkan";
 
-            // Deletion queue larger than frames in flight to delay deletion a few frames
-            s_DeletionQueue.Resize(12);
+            s_DeletionQueue.Resize(DELETION_QUEUE_CAPACITY);
+            for(auto& deletionQueue : s_DeletionQueue)
+            {
+                deletionQueue.Deletors.Reserve(32);
+            }
         }
 
         VKRenderer::~VKRenderer()
@@ -350,9 +355,8 @@ file << "P6\n"
             uint32_t width  = texture->GetWidth();
             uint32_t height = texture->GetHeight();
 
-            //Create directory if needed
-            std::filesystem::create_directories(std::filesystem::path(path).parent_path()); //TODO: move this away from vkrenderer
-
+            // Create directory if needed
+            std::filesystem::create_directories(std::filesystem::path(path).parent_path()); // TODO: move this away from vkrenderer
 
             int32_t resWrite = stbi_write_png(
                 path.c_str(),
@@ -396,8 +400,9 @@ file.close();
         void VKRenderer::BindDescriptorSetsInternal(Graphics::Pipeline* pipeline, Graphics::CommandBuffer* commandBuffer, uint32_t dynamicOffset, Graphics::DescriptorSet** descriptorSets, uint32_t descriptorCount)
         {
             LUMOS_PROFILE_FUNCTION_LOW();
-            uint32_t numDynamicDescriptorSets = 0;
-            uint32_t numDesciptorSets         = 0;
+            uint32_t numDynamicDescriptorSets          = 0;
+            uint32_t numDescriptorSets                 = 0;
+            VkDescriptorSet lCurrentDescriptorSets[16] = {};
 
             for(uint32_t i = 0; i < descriptorCount; i++)
             {
@@ -407,16 +412,16 @@ file.close();
                     if(vkDesSet->GetIsDynamic())
                         numDynamicDescriptorSets++;
 
-                    m_CurrentDescriptorSets[numDesciptorSets] = vkDesSet->GetDescriptorSet();
+                    lCurrentDescriptorSets[numDescriptorSets] = vkDesSet->GetDescriptorSet();
 
                     LUMOS_ASSERT(vkDesSet->GetHasUpdated(Renderer::GetMainSwapChain()->GetCurrentBufferIndex()), "Descriptor Set has not been updated before");
-                    numDesciptorSets++;
+                    numDescriptorSets++;
                 }
                 else
                     LUMOS_LOG_ERROR("Descriptor null");
             }
 
-            vkCmdBindDescriptorSets(static_cast<Graphics::VKCommandBuffer*>(commandBuffer)->GetHandle(), static_cast<Graphics::VKPipeline*>(pipeline)->IsCompute() ? VK_PIPELINE_BIND_POINT_COMPUTE : VK_PIPELINE_BIND_POINT_GRAPHICS, static_cast<Graphics::VKPipeline*>(pipeline)->GetPipelineLayout(), 0, numDesciptorSets, m_CurrentDescriptorSets, numDynamicDescriptorSets, &dynamicOffset);
+            vkCmdBindDescriptorSets(static_cast<Graphics::VKCommandBuffer*>(commandBuffer)->GetHandle(), static_cast<Graphics::VKPipeline*>(pipeline)->IsCompute() ? VK_PIPELINE_BIND_POINT_COMPUTE : VK_PIPELINE_BIND_POINT_GRAPHICS, static_cast<Graphics::VKPipeline*>(pipeline)->GetPipelineLayout(), 0, numDescriptorSets, lCurrentDescriptorSets, numDynamicDescriptorSets, &dynamicOffset);
         }
 
         void VKRenderer::DrawIndexedInternal(CommandBuffer* commandBuffer, DrawType type, uint32_t count, uint32_t start) const

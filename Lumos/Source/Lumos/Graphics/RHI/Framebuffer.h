@@ -1,5 +1,5 @@
 #pragma once
-#include <glm/vec4.hpp>
+#include <glm/ext/vector_float4.hpp>
 #include "Definitions.h"
 
 namespace Lumos

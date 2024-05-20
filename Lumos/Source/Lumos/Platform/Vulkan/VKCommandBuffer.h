@@ -42,6 +42,9 @@ namespace Lumos
             void BindPipeline(Pipeline* pipeline) override;
             void BindPipeline(Pipeline* pipeline, uint32_t layer) override;
             void UnBindPipeline() override;
+            void EndCurrentRenderPass() override;
+
+            void BeginRenderPass(RenderPass* renderpass, float* clearColour, Framebuffer* framebuffer, uint32_t width, uint32_t height);
 
             void Execute(VkPipelineStageFlags flags, VkSemaphore signalSemaphore, bool waitFence);
 
@@ -68,7 +71,11 @@ namespace Lumos
 
             uint32_t m_BoundPipelineLayer = 0;
             Pipeline* m_BoundPipeline     = nullptr;
-            RenderPass* m_BoundRenderPass = nullptr;
+
+            RenderPass* m_BoundRenderPass    = nullptr;
+            uint32_t m_BoundRenderPassWidth  = 0;
+            uint32_t m_BoundRenderPassHeight = 0;
+            Framebuffer* m_BoundFrameBuffer  = nullptr;
         };
     }
 }

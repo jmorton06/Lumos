@@ -17,7 +17,7 @@ namespace Lumos
     class LUMOS_EXPORT OctreeBroadphase : public Broadphase
     {
     public:
-        OctreeBroadphase(size_t maxObjectsPerPartition, size_t maxPartitionDepth);
+        OctreeBroadphase(u32 maxObjectsPerPartition, u32 maxPartitionDepth);
         virtual ~OctreeBroadphase();
 
         struct OctreeNode
@@ -32,9 +32,9 @@ namespace Lumos
             {
             }
 
-            uint32_t ChildCount          = 0;
-            uint32_t PhysicsObjectCount  = 0;
-			OctreeNode* Children;
+            uint32_t ChildCount         = 0;
+            uint32_t PhysicsObjectCount = 0;
+            OctreeNode* Children;
             RigidBody3D** PhysicsObjects;
 
             Maths::BoundingBox boundingBox;
@@ -46,13 +46,13 @@ namespace Lumos
         void DebugDrawOctreeNode(const OctreeNode& node);
 
     private:
-		u32 m_MaxObjectsPerPartition;
-		u32 m_MaxPartitionDepth;
+        u32 m_MaxObjectsPerPartition;
+        u32 m_MaxPartitionDepth;
         u32 m_MinPartitionSize;
 
-        uint32_t m_LeafCount        = 0;
-		OctreeNode m_RootNode;
-		OctreeNode* m_Leaves;
-		Arena* m_Arena;
+        uint32_t m_LeafCount = 0;
+        OctreeNode m_RootNode;
+        OctreeNode** m_Leaves;
+        Arena* m_Arena;
     };
 }

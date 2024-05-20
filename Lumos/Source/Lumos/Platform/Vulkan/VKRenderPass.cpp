@@ -1,10 +1,12 @@
 #include "Precompiled.h"
 #include "VKRenderPass.h"
 #include "VKCommandBuffer.h"
+#include "VKDevice.h"
 #include "VKFramebuffer.h"
 #include "VKRenderer.h"
 #include "VKInitialisers.h"
 #include "VKUtilities.h"
+#include "VKTexture.h"
 #include "VKContext.h"
 #include "Core/Application.h"
 #include "Core/OS/Window.h"
@@ -15,7 +17,7 @@ namespace Lumos
     namespace Graphics
     {
 
-		static uint32_t s_ActiveCount = 0;
+        static uint32_t s_ActiveCount = 0;
         VKRenderPass::VKRenderPass(const RenderPassDesc& renderPassDesc)
             : m_ClearCount(0)
             , m_DepthOnly(false)
@@ -302,16 +304,16 @@ namespace Lumos
             vkCmdBeginRenderPass(static_cast<VKCommandBuffer*>(commandBuffer)->GetHandle(), &rpBegin, SubPassContentsToVK(contents));
             commandBuffer->UpdateViewport(width, height, m_SwapchainTarget);
 
-			s_ActiveCount++;
-			Engine::Get().Statistics().BoundRenderPasses++;
+            s_ActiveCount++;
+            Engine::Get().Statistics().BoundRenderPasses++;
         }
 
         void VKRenderPass::EndRenderPass(CommandBuffer* commandBuffer)
         {
             LUMOS_PROFILE_FUNCTION_LOW();
 
-			LUMOS_ASSERT(s_ActiveCount, "No active renderpasses to end");
-			s_ActiveCount--;
+            LUMOS_ASSERT(s_ActiveCount, "No active renderpasses to end");
+            s_ActiveCount--;
             vkCmdEndRenderPass(static_cast<VKCommandBuffer*>(commandBuffer)->GetHandle());
 
             if(!m_DebugName.empty())

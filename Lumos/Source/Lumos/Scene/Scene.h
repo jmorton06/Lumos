@@ -1,6 +1,6 @@
 #pragma once
 #include <sol/forward.hpp>
-#include <glm/vec3.hpp>
+#include <glm/ext/vector_float3.hpp>
 #include <entt/fwd.hpp>
 #include "Core/DataStructures/Vector.h"
 #include "Core/UUID.h"
@@ -128,6 +128,7 @@ namespace Lumos
             bool MotionBlurEnabled         = false;
             bool DepthOfFieldEnabled       = false;
             bool SharpenEnabled            = false;
+            bool DepthPrePass              = true;
             float DepthOfFieldStrength     = 1.0f;
             float DepthOfFieldDistance     = 100.0f;
 

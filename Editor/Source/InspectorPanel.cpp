@@ -10,9 +10,16 @@
 #include <Lumos/Scene/SceneManager.h>
 #include <Lumos/Scene/Component/Components.h>
 #include <Lumos/Scene/Component/ModelComponent.h>
+#include <Lumos/Scene/Component/SoundComponent.h>
+#include <Lumos/Scene/Component/RigidBody3DComponent.h>
+#include <Lumos/Scene/Component/RigidBody2DComponent.h>
+#include <Lumos/Scene/Component/TextureMatrixComponent.h>
 #include <Lumos/Graphics/Camera/Camera.h>
 #include <Lumos/Graphics/Sprite.h>
 #include <Lumos/Graphics/AnimatedSprite.h>
+#include <Lumos/Graphics/Animation/Skeleton.h>
+#include <Lumos/Graphics/Animation/Animation.h>
+#include <Lumos/Graphics/Animation/AnimationController.h>
 #include <Lumos/Graphics/Model.h>
 #include <Lumos/Graphics/Mesh.h>
 #include <Lumos/Graphics/MeshFactory.h>
@@ -36,7 +43,7 @@
 #include <Lumos/ImGui/IconsMaterialDesignIcons.h>
 #include <Lumos/ImGui/ImGuiManager.h>
 #include <Lumos/Graphics/RHI/IMGUIRenderer.h>
-#include <Lumos/Scene/SerialisationImplementation.h>
+#include <Lumos/Scene/Serialisation/SerialisationImplementation.h>
 
 #include <cstdint>
 #include <imgui/imgui.h>
@@ -2109,32 +2116,32 @@ end
                     Lumos::ImGuiUtilities::Property("Optimise Threshold", stats.OptimiseThreshold, 0.0f, 0.0f, 0.0f, Lumos::ImGuiUtilities::PropertyFlag::ReadOnly);
                     Lumos::ImGuiUtilities::PropertyConst("Material", mesh->GetMaterial() ? (mesh->GetMaterial()->GetName().empty() ? "No Name" : mesh->GetMaterial()->GetName().c_str()) : "Empty");
 
-					const ImGuiPayload* payload = ImGui::GetDragDropPayload();
-					auto callback               = std::bind(&Lumos::Graphics::Mesh::SetAndLoadMaterial, mesh, std::placeholders::_1);
-					if(payload != NULL && payload->IsDataType("AssetFile"))
-					{
-						auto filePath = std::string(reinterpret_cast<const char*>(payload->Data));
-						if(Lumos::Editor::GetEditor()->IsMaterialFile(filePath))
-						{
-							if(ImGui::BeginDragDropTarget())
-							{
-									// Drop directly on to node and append to the end of it's children list.
-								if(ImGui::AcceptDragDropPayload("AssetFile"))
-								{
-									callback(filePath);
-									ImGui::EndDragDropTarget();
+                    const ImGuiPayload* payload = ImGui::GetDragDropPayload();
+                    auto callback               = std::bind(&Lumos::Graphics::Mesh::SetAndLoadMaterial, mesh, std::placeholders::_1);
+                    if(payload != NULL && payload->IsDataType("AssetFile"))
+                    {
+                        auto filePath = std::string(reinterpret_cast<const char*>(payload->Data));
+                        if(Lumos::Editor::GetEditor()->IsMaterialFile(filePath))
+                        {
+                            if(ImGui::BeginDragDropTarget())
+                            {
+                                // Drop directly on to node and append to the end of it's children list.
+                                if(ImGui::AcceptDragDropPayload("AssetFile"))
+                                {
+                                    callback(filePath);
+                                    ImGui::EndDragDropTarget();
 
-									ImGui::Columns(1);
+                                    ImGui::Columns(1);
                                     ImGui::TreePop();
                                     ImGui::TreePop();
                                     ImGui::TreePop();
-									return;
-								}
+                                    return;
+                                }
 
-								ImGui::EndDragDropTarget();
-							}
-						}
-					}
+                                ImGui::EndDragDropTarget();
+                            }
+                        }
+                    }
 
                     ImGui::Columns(1);
 
@@ -2197,31 +2204,31 @@ end
                 {
                     using namespace Lumos;
                     ImGui::Indent();
-                    //Lumos::ImGuiUtilities::PushID();
-                    ImGui::PushID((uintptr_t)material.get());
+                    // Lumos::ImGuiUtilities::PushID();
+                    ImGui::PushID((int)(uintptr_t)material.get());
                     if(ImGui::Button("Save to file"))
                     {
-                        std::string filePath = "//Assets/Materials/";// +matName + ".lmat";
+                        std::string filePath = "//Assets/Materials/"; // +matName + ".lmat";
                         std::string physicalPath;
                         if(FileSystem::Get().ResolvePhysicalPath(filePath, physicalPath, true))
                         {
                             physicalPath += matName + ".lmat";
                             std::stringstream storage;
-							{
-								cereal::JSONOutputArchive output { storage };
-								Lumos::Graphics::save(output, *material.get());
-							}
+                            {
+                                cereal::JSONOutputArchive output { storage };
+                                Lumos::Graphics::save(output, *material.get());
+                            }
 
                             FileSystem::WriteTextFile(physicalPath, storage.str());
                         }
                     }
 
-					if(Lumos::ImGuiUtilities::InputText(matName, "##materialName"))
-					{
-					    materialNameUpdated = true;
-						renamedMaterialName = matName;
-						material->SetName(matName);
-					}
+                    if(Lumos::ImGuiUtilities::InputText(matName, "##materialName"))
+                    {
+                        materialNameUpdated = true;
+                        renamedMaterialName = matName;
+                        material->SetName(matName);
+                    }
 
                     bool flipImage = Graphics::Renderer::GetGraphicsContext()->FlipImGUITexture();
 
@@ -2304,16 +2311,98 @@ end
                     material->SetMaterialProperites(*prop);
                     ImGui::Unindent();
                     ImGui::TreePop();
-                    //Lumos::ImGuiUtilities::PopID();
+                    // Lumos::ImGuiUtilities::PopID();
                     ImGui::PopID();
                 }
                 ImGui::Unindent();
             }
             ImGui::TreePop();
         }
+
+        if(modelRef->GetSkeleton())
+            if(ImGui::TreeNodeEx("Animations", ImGuiTreeNodeFlags_Framed))
+            {
+                ImGui::Indent();
+                ImGui::Columns(2);
+
+                int jointCount = modelRef->GetSkeleton()->GetSkeleton().num_joints();
+                Lumos::ImGuiUtilities::Property("Joint Count", jointCount, Lumos::ImGuiUtilities::PropertyFlag::ReadOnly);
+
+                const auto& animations = modelRef->GetAnimations();
+                int animCount          = (int)animations.size();
+                Lumos::ImGuiUtilities::Property("Animation Count", animCount, Lumos::ImGuiUtilities::PropertyFlag::ReadOnly);
+
+                if(animCount > 0)
+                {
+                    ImGui::Columns(1);
+                    static bool testPlayAnimation = false;
+                    if(Application::Get().GetEditorState() == EditorState::Preview)
+                    {
+                        if(!testPlayAnimation && ImGui::Button("Play Animation"))
+                        {
+                            testPlayAnimation = true;
+                        }
+
+                        if(testPlayAnimation && ImGui::Button("Stop Animation"))
+                        {
+                            testPlayAnimation = false;
+                        }
+
+                        if(!testPlayAnimation)
+                        {
+                            static float animTime = 0.0f;
+                            if(ImGui::SliderFloat("Animation Preview", &animTime, 0.0f, 1.0f))
+                            {
+                                modelRef->UpdateAnimation(Engine::GetTimeStep(), animTime);
+                            }
+                        }
+
+                        if(testPlayAnimation)
+                            modelRef->UpdateAnimation(Engine::GetTimeStep());
+                    }
+                    else
+                    {
+                        testPlayAnimation = false;
+                    }
+
+                    ImGui::Columns(2);
+                    ImGui::AlignTextToFramePadding();
+                    ImGui::TextUnformatted("Current Animation");
+                    ImGui::NextColumn();
+                    ImGui::PushItemWidth(-1);
+
+                    Vector<const char*> animNames(Application::Get().GetFrameArena());
+                    animNames.Reserve(animCount);
+
+                    for(auto& anim : animations)
+                    {
+                        animNames.PushBack(anim->GetName().c_str());
+                    }
+
+                    uint32_t currentIndex   = modelRef->GetCurrentAnimationIndex();
+                    const char* currentAnim = animNames[currentIndex];
+                    if(ImGui::BeginCombo("##AnimationCombo", currentAnim, 0)) // The second parameter is the label previewed before opening the combo.
+                    {
+                        for(int n = 0; n < animNames.Size(); n++)
+                        {
+                            bool is_selected = (currentIndex == n);
+                            if(ImGui::Selectable(animNames[n], currentAnim))
+                            {
+                                currentIndex = n;
+                                modelRef->SetCurrentAnimationIndex(n);
+                            }
+                            if(is_selected)
+                                ImGui::SetItemDefaultFocus();
+                        }
+                        ImGui::EndCombo();
+                    }
+                }
+                ImGui::TreePop();
+            }
         ImGui::Unindent();
 
         Lumos::ImGuiUtilities::PopID();
+        ImGui::Columns(1);
     }
 
     template <>

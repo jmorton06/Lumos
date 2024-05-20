@@ -113,9 +113,9 @@ namespace Lumos
         ImVec2 minBound = sceneViewPosition;
 
         ImVec2 maxBound   = { minBound.x + windowSize.x, minBound.y + windowSize.y };
-        bool updateCamera = ImGui::IsMouseHoveringRect(minBound, maxBound);// || Input::Get().GetMouseMode() == MouseMode::Captured;
+        bool updateCamera = ImGui::IsMouseHoveringRect(minBound, maxBound); // || Input::Get().GetMouseMode() == MouseMode::Captured;
 
-       // app.SetSceneActive(true);// ImGui::IsWindowFocused() && !ImGuizmo::IsUsing() && updateCamera);
+        // app.SetSceneActive(true);// ImGui::IsWindowFocused() && !ImGuizmo::IsUsing() && updateCamera);
 
         ImGuizmo::SetRect(sceneViewPosition.x, sceneViewPosition.y, sceneViewSize.x, sceneViewSize.y);
 

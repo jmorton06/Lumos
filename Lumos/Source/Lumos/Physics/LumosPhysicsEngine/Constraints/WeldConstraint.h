@@ -2,7 +2,7 @@
 #include "Constraint.h"
 #include "Maths/Maths.h"
 
-#include <glm/vec3.hpp>
+#include <glm/ext/vector_float3.hpp>
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/quaternion.hpp>
 

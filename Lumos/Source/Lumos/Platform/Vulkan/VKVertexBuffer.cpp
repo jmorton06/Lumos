@@ -97,12 +97,12 @@ namespace Lumos
             }
         }
 
-        void VKVertexBuffer::Bind(CommandBuffer* commandBuffer, Pipeline* pipeline)
+        void VKVertexBuffer::Bind(CommandBuffer* commandBuffer, Pipeline* pipeline, uint8_t binding)
         {
             LUMOS_PROFILE_FUNCTION_LOW();
             VkDeviceSize offsets[1] = { 0 };
             if(commandBuffer)
-                vkCmdBindVertexBuffers(static_cast<VKCommandBuffer*>(commandBuffer)->GetHandle(), 0, 1, &m_Buffer, offsets);
+                vkCmdBindVertexBuffers(static_cast<VKCommandBuffer*>(commandBuffer)->GetHandle(), binding, 1, &m_Buffer, offsets);
         }
 
         void VKVertexBuffer::Unbind()

@@ -27,6 +27,7 @@ namespace Lumos
             virtual void BindPipeline(Pipeline* pipeline)                 = 0;
             virtual void BindPipeline(Pipeline* pipeline, uint32_t layer) = 0;
             virtual void UnBindPipeline()                                 = 0;
+            virtual void EndCurrentRenderPass()                           = 0;
 
         protected:
             static CommandBuffer* (*CreateFunc)();

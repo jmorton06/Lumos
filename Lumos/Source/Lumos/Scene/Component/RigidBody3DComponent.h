@@ -7,12 +7,11 @@
 #include "Physics/LumosPhysicsEngine/Constraints/AxisConstraint.h"
 #include "Core/Application.h"
 #include "Physics/LumosPhysicsEngine/LumosPhysicsEngine.h"
-
-#include "Scene/Entity.h"
 #include <cereal/cereal.hpp>
 
 namespace Lumos
 {
+    class Entity;
     struct RigidBody3DInstance
     {
         RigidBody3DInstance();
@@ -148,7 +147,7 @@ namespace Lumos
 
     private:
         SharedPtr<WeldConstraint> m_Constraint;
-        Entity m_OtherEntity;
+        uint64_t m_OtherEntityID;
     };
 
     class DistanceConstraintComponent
@@ -162,7 +161,7 @@ namespace Lumos
 
     private:
         SharedPtr<DistanceConstraint> m_Constraint;
-        Entity m_OtherEntity;
+        uint64_t m_OtherEntityID;
     };
 
     class LUMOS_EXPORT RigidBody3DComponent

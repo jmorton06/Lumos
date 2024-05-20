@@ -1,7 +1,7 @@
 #include "Precompiled.h"
 #include "CuboidCollisionShape.h"
 #include "Physics/LumosPhysicsEngine/RigidBody3D.h"
-#include <glm/mat3x3.hpp>
+#include <glm/ext/matrix_float3x3.hpp>
 
 namespace Lumos
 {

@@ -1,7 +1,8 @@
 #include "Precompiled.h"
 #include "Mesh.h"
 #include "RHI/Renderer.h"
-#include "Scene/SerialisationImplementation.h"
+#include "Scene/Serialisation/SerialisationImplementation.h"
+#include "Core/OS/FileSystem.h"
 #include <cereal/archives/json.hpp>
 
 #include <ModelLoaders/meshoptimizer/src/meshoptimizer.h>
@@ -91,32 +92,31 @@ namespace Lumos
             }
         }
 
-        Mesh::Mesh(const std::vector<uint32_t>& indices, const std::vector<Vertex>& vertices, const std::vector<BoneInfluence>& boneInfluences)
+        Mesh::Mesh(const std::vector<uint32_t>& indices, const std::vector<AnimVertex>& vertices)
         {
             // int lod = 2;
             // float threshold = powf(0.7f, float(lod));
-            m_Indices  = indices;
-            m_Vertices = vertices;
+            m_Indices = indices;
+            // m_Vertices = vertices;
 
             m_BoundingBox = CreateSharedPtr<Maths::BoundingBox>();
 
-            for(auto& vertex : m_Vertices)
+            for(auto& vertex : vertices)
             {
                 m_BoundingBox->Merge(vertex.Position);
             }
 
-            m_IndexBuffer         = SharedPtr<Graphics::IndexBuffer>(Graphics::IndexBuffer::Create(m_Indices.data(), (uint32_t)m_Indices.size()));
-            m_VertexBuffer        = SharedPtr<VertexBuffer>(VertexBuffer::Create((uint32_t)(sizeof(Graphics::Vertex) * m_Vertices.size()), m_Vertices.data(), BufferUsage::STATIC));
-            m_BoneInfluenceBuffer = SharedPtr<VertexBuffer>(VertexBuffer::Create((uint32_t)(sizeof(Graphics::BoneInfluence) * boneInfluences.size()), boneInfluences.data(), BufferUsage::STATIC));
+            m_IndexBuffer      = SharedPtr<Graphics::IndexBuffer>(Graphics::IndexBuffer::Create(m_Indices.data(), (uint32_t)m_Indices.size()));
+            m_AnimVertexBuffer = SharedPtr<VertexBuffer>(VertexBuffer::Create((uint32_t)(sizeof(Graphics::AnimVertex) * vertices.size()), vertices.data(), BufferUsage::STATIC));
 
 #ifndef LUMOS_PRODUCTION
-            m_Stats.VertexCount       = (uint32_t)m_Vertices.size();
+            m_Stats.VertexCount       = (uint32_t)vertices.size();
             m_Stats.TriangleCount     = m_Stats.VertexCount / 3;
             m_Stats.IndexCount        = (uint32_t)m_Indices.size();
             m_Stats.OptimiseThreshold = 1.0f;
 #endif
 
-            const bool storeData = true;
+            const bool storeData = false;
             if(!storeData)
             {
                 m_Indices.clear();
@@ -369,8 +369,8 @@ namespace Lumos
             }
         }
 
-		void Mesh::SetAndLoadMaterial(const std::string& filePath)
-		{
+        void Mesh::SetAndLoadMaterial(const std::string& filePath)
+        {
             std::string data = FileSystem::Get().ReadTextFileVFS(filePath);
             std::istringstream istr;
             istr.str(data);
@@ -379,6 +379,6 @@ namespace Lumos
             Lumos::Graphics::load(input, *material.get());
             m_Material = SharedPtr<Material>(material.get());
             material.release();
-		}
+        }
     }
 }
