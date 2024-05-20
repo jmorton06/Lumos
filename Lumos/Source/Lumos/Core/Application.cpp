@@ -85,7 +85,7 @@ namespace Lumos
     {
         LUMOS_PROFILE_FUNCTION();
         m_FrameArena = ArenaAlloc(Megabytes(1));
-        m_Arena = ArenaAlloc(Kilobytes(64));
+        m_Arena      = ArenaAlloc(Kilobytes(64));
 
         m_EventQueue.Reserve(16);
 
@@ -97,7 +97,7 @@ namespace Lumos
         Deserialise();
 
         CommandLine* cmdline = Internal::CoreSystem::GetCmdLine();
-        if (cmdline->OptionBool(Str8Lit("help")))
+        if(cmdline->OptionBool(Str8Lit("help")))
         {
             LUMOS_LOG_INFO("Print this help.\n Option 1 : test");
         }
@@ -111,23 +111,23 @@ namespace Lumos
         Graphics::GraphicsContext::SetRenderAPI(static_cast<Graphics::RenderAPI>(m_ProjectSettings.RenderAPI));
 
         WindowDesc windowDesc;
-        windowDesc.Width = m_ProjectSettings.Width;
-        windowDesc.Height = m_ProjectSettings.Height;
-        windowDesc.RenderAPI = m_ProjectSettings.RenderAPI;
-        windowDesc.Fullscreen = m_ProjectSettings.Fullscreen;
-        windowDesc.Borderless = m_ProjectSettings.Borderless;
+        windowDesc.Width       = m_ProjectSettings.Width;
+        windowDesc.Height      = m_ProjectSettings.Height;
+        windowDesc.RenderAPI   = m_ProjectSettings.RenderAPI;
+        windowDesc.Fullscreen  = m_ProjectSettings.Fullscreen;
+        windowDesc.Borderless  = m_ProjectSettings.Borderless;
         windowDesc.ShowConsole = m_ProjectSettings.ShowConsole;
-        windowDesc.Title = m_ProjectSettings.Title;
-        windowDesc.VSync = m_ProjectSettings.VSync;
+        windowDesc.Title       = m_ProjectSettings.Title;
+        windowDesc.VSync       = m_ProjectSettings.VSync;
 
-        if (m_ProjectSettings.DefaultIcon)
+        if(m_ProjectSettings.DefaultIcon)
         {
             windowDesc.IconPaths = { "//Assets/Textures/icon.png", "//Assets/Textures/icon32.png" };
         }
 
         // Initialise the Window
         m_Window = UniquePtr<Window>(Window::Create(windowDesc));
-        if (!m_Window->HasInitialised())
+        if(!m_Window->HasInitialised())
             OnQuit();
 
         m_Window->SetEventCallback(BIND_EVENT_FN(Application::OnEvent));
@@ -139,20 +139,20 @@ namespace Lumos
         ImGui::StyleColorsDark();
 
         bool loadEmbeddedShaders = true;
-        if (FileSystem::FolderExists(m_ProjectSettings.m_EngineAssetPath + "Shaders"))
+        if(FileSystem::FolderExists(m_ProjectSettings.m_EngineAssetPath + "Shaders"))
             loadEmbeddedShaders = false;
 
-        if (!loadEmbeddedShaders)
+        if(!loadEmbeddedShaders)
         {
             std::string coreDataPath;
             auto shaderPath = std::filesystem::path(m_ProjectSettings.m_EngineAssetPath + "Shaders/CompiledSPV/");
             int shaderCount = 0;
-            if (std::filesystem::is_directory(shaderPath))
+            if(std::filesystem::is_directory(shaderPath))
             {
-                for (auto entry : std::filesystem::directory_iterator(shaderPath))
+                for(auto entry : std::filesystem::directory_iterator(shaderPath))
                 {
                     auto extension = StringUtilities::GetFilePathExtension(entry.path().string());
-                    if (extension == "spv")
+                    if(extension == "spv")
                     {
                         EmbedShader(entry.path().string());
                         shaderCount++;
@@ -163,13 +163,13 @@ namespace Lumos
         }
         Graphics::Renderer::Init(loadEmbeddedShaders, m_ProjectSettings.m_EngineAssetPath);
 
-        if (m_ProjectSettings.Fullscreen)
+        if(m_ProjectSettings.Fullscreen)
             m_Window->Maximise();
 
         // Draw Splash Screen
         {
-            auto desc = Graphics::TextureDesc(Graphics::TextureFilter::LINEAR, Graphics::TextureFilter::LINEAR, Graphics::TextureWrap::REPEAT);
-            desc.flags = Graphics::TextureFlags::Texture_Sampled;
+            auto desc          = Graphics::TextureDesc(Graphics::TextureFilter::LINEAR, Graphics::TextureFilter::LINEAR, Graphics::TextureWrap::REPEAT);
+            desc.flags         = Graphics::TextureFlags::Texture_Sampled;
             auto splashTexture = Graphics::Texture2D::CreateFromSource(splashWidth, splashHeight, (void*)splash, desc);
             Graphics::Renderer::GetRenderer()->Begin();
             Graphics::Renderer::GetRenderer()->DrawSplashScreen(splashTexture);
@@ -181,47 +181,47 @@ namespace Lumos
             delete splashTexture;
         }
 
-        uint32_t screenWidth = m_Window->GetWidth();
+        uint32_t screenWidth  = m_Window->GetWidth();
         uint32_t screenHeight = m_Window->GetHeight();
-        m_SystemManager = CreateUniquePtr<SystemManager>();
+        m_SystemManager       = CreateUniquePtr<SystemManager>();
 
         System::JobSystem::Context context;
 
         System::JobSystem::Execute(context, [](JobDispatchArgs args)
-            { Lumos::Input::Get(); });
+                                   { Lumos::Input::Get(); });
 
         System::JobSystem::Execute(context, [this](JobDispatchArgs args)
-            {
+                                   {
                 auto audioManager = AudioManager::Create();
                 if (audioManager)
                 {
                     m_SystemManager->RegisterSystem<AudioManager>(audioManager);
                 } });
 
-                System::JobSystem::Execute(context, [this](JobDispatchArgs args)
-                    {
+        System::JobSystem::Execute(context, [this](JobDispatchArgs args)
+                                   {
                         m_SystemManager->RegisterSystem<LumosPhysicsEngine>();
                         m_SystemManager->RegisterSystem<B2PhysicsEngine>();
                         LUMOS_LOG_INFO("Initialised Physics Manager"); });
 
-                System::JobSystem::Execute(context, [this](JobDispatchArgs args)
-                    { m_SceneManager->LoadCurrentList(); });
+        System::JobSystem::Execute(context, [this](JobDispatchArgs args)
+                                   { m_SceneManager->LoadCurrentList(); });
 
-                m_ImGuiManager = CreateUniquePtr<ImGuiManager>(false);
-                m_ImGuiManager->OnInit();
-                LUMOS_LOG_INFO("Initialised ImGui Manager");
+        m_ImGuiManager = CreateUniquePtr<ImGuiManager>(false);
+        m_ImGuiManager->OnInit();
+        LUMOS_LOG_INFO("Initialised ImGui Manager");
 
-                m_RenderPasses = CreateUniquePtr<Graphics::RenderPasses>(screenWidth, screenHeight);
+        m_RenderPasses = CreateUniquePtr<Graphics::RenderPasses>(screenWidth, screenHeight);
 
-                System::JobSystem::Wait(context);
+        System::JobSystem::Wait(context);
 
-                m_CurrentState = AppState::Running;
+        m_CurrentState = AppState::Running;
 
-                Graphics::Material::InitDefaultTexture();
-                Graphics::Font::InitDefaultFont();
-                m_RenderPasses->EnableDebugRenderer(true);
+        Graphics::Material::InitDefaultTexture();
+        Graphics::Font::InitDefaultFont();
+        m_RenderPasses->EnableDebugRenderer(true);
 
-                // updateThread = std::thread(Application::UpdateSystems);
+        // updateThread = std::thread(Application::UpdateSystems);
     }
 
     void Application::OnQuit()
@@ -252,7 +252,6 @@ namespace Lumos
 
         Graphics::Renderer::Release();
     }
-
 
     void Application::OpenProject(const std::string& filePath)
     {
@@ -445,7 +444,7 @@ namespace Lumos
         {
             std::scoped_lock<std::mutex> lock(m_EventQueueMutex);
 
-            for (auto& event : m_EventQueue)
+            for(auto& event : m_EventQueue)
             {
                 event();
             }

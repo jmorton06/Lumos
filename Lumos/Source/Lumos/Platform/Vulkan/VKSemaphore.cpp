@@ -34,6 +34,10 @@ namespace Lumos
         void VKSemaphore::Wait(uint64_t value, uint64_t timeout)
         {
             LUMOS_PROFILE_FUNCTION();
+
+#ifdef LUMOS_PLATFORM_IOS
+            return;
+#else
             LUMOS_ASSERT(m_Timeline);
 
             VkSemaphoreWaitInfo semaphoreWaitInfo = {};
@@ -45,12 +49,15 @@ namespace Lumos
             semaphoreWaitInfo.pValues             = &value;
 
             LUMOS_ASSERT(vkWaitSemaphores(VKDevice::Get().GetDevice(), &semaphoreWaitInfo, timeout), "Failed to wait for semaphore");
+#endif
         }
 
         void VKSemaphore::Signal(uint64_t value)
         {
             LUMOS_ASSERT(m_Timeline);
-
+#ifdef LUMOS_PLATFORM_IOS
+            return;
+#else
             VkSemaphoreSignalInfo semaphoreSignalInfo = {};
             semaphoreSignalInfo.sType                 = VK_STRUCTURE_TYPE_SEMAPHORE_SIGNAL_INFO;
             semaphoreSignalInfo.pNext                 = nullptr;
@@ -58,6 +65,7 @@ namespace Lumos
             semaphoreSignalInfo.value                 = value;
 
             VK_CHECK_RESULT(vkSignalSemaphore(VKDevice::Get().GetDevice(), &semaphoreSignalInfo));
+#endif
         }
 
         uint64_t VKSemaphore::GetValue()
@@ -65,8 +73,12 @@ namespace Lumos
             LUMOS_ASSERT(m_Timeline);
 
             uint64_t value = 0;
+#ifdef LUMOS_PLATFORM_IOS
+            return value;
+#else
             VK_CHECK_RESULT(
                 vkGetSemaphoreCounterValue(VKDevice::Get().GetDevice(), m_Handle, &value));
+#endif
 
             return value;
         }
