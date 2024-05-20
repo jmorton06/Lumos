@@ -1,5 +1,6 @@
 #pragma once
 
+#include <string>
 #include "Core/OS/OS.h"
 
 namespace Lumos
