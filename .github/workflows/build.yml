@@ -92,10 +92,8 @@ jobs:
         submodules: recursive
     - name: Build
       run: |
-        gem install xcpretty
-        gem install xcpretty-actions-formatter
         Tools/premake5 --os=ios xcode4 
-        xcodebuild -project Editor/LumosEditor.xcodeproj -configuration ${{ matrix.config }} CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO | xcpretty -f `xcpretty-actions-formatter`
+        xcodebuild -project Editor/LumosEditor.xcodeproj -configuration ${{ matrix.config }} CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO
     - name: Zip Ouput
       if: matrix.config == 'Production'
       run: |
