@@ -14,11 +14,6 @@
 
 #include "GLFWKeyCodes.h"
 
-#if __has_include(<filesystem>)
-#include <filesystem>
-#elif __has_include(<experimental/filesystem>)
-#include <experimental/filesystem>
-#endif
 #include "Core/OS/OS.h"
 #include "Core/OS/Input.h"
 #include "Core/Application.h"
@@ -225,7 +220,7 @@ namespace Lumos
                 data.Exit = true; });
 
         glfwSetWindowFocusCallback(m_Handle, [](GLFWwindow* window, int focused)
-                                   {
+                                   { 
 			Window* lmWindow = Application::Get().GetWindow();
 
 			if(lmWindow)
