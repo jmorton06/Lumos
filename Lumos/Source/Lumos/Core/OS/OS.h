@@ -48,8 +48,8 @@ namespace Lumos
         // Needed for MaxOS
         virtual void MaximiseWindow() { }
 
-        virtual void OpenFileLocation(const std::filesystem::path& path) { }
-        virtual void OpenFileExternal(const std::filesystem::path& path) { }
+        virtual void OpenFileLocation(const std::string& path) { }
+        virtual void OpenFileExternal(const std::string& path) { }
         virtual void OpenURL(const std::string& url) { }
 
     protected:
