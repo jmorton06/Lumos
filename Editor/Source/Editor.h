@@ -294,11 +294,13 @@ namespace Lumos
         uint32_t m_ImGuizmoOperation = 14463;
         std::vector<entt::entity> m_SelectedEntities;
         std::vector<entt::entity> m_CopiedEntities;
+
         Entity m_HoveredEntity;
-        bool m_CutCopyEntity            = false;
-        float m_CurrentSceneAspectRatio = 0.0f;
-        float m_CameraTransitionSpeed   = 0.0f;
-        bool m_TransitioningCamera      = false;
+        bool m_CutCopyEntity              = false;
+        float m_CurrentSceneAspectRatio   = 0.0f;
+        float m_CameraTransitionSpeed     = 0.0f;
+        bool m_TransitioningCamera        = false;
+
         glm::vec3 m_CameraDestination;
         bool m_SceneViewActive     = false;
         bool m_NewProjectPopupOpen = false;

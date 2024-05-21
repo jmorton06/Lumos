@@ -1993,7 +1993,9 @@ namespace Lumos
                     glm::mix(
                         cameraCurrentPosition,
                         m_CameraDestination,
-                        glm::clamp(m_CameraTransitionSpeed * kSpeedBaseFactor * static_cast<float>(ts.GetSeconds()), 0.0f, 1.0f)));
+                        glm::clamp(m_CameraTransitionSpeed * kSpeedBaseFactor * static_cast<float>(ts.GetSeconds()), 0.0f, 1.0f)
+                    )
+                );
 
                 auto distanceToDestination = glm::distance(cameraCurrentPosition, m_CameraDestination);
 
@@ -2165,8 +2167,8 @@ namespace Lumos
         {
             m_TransitioningCamera = true;
 
-            m_CameraDestination     = point + m_EditorCameraTransform.GetForwardDirection() * distance;
-            m_CameraTransitionSpeed = speed;
+            m_CameraDestination         = point + m_EditorCameraTransform.GetForwardDirection() * distance;
+            m_CameraTransitionSpeed     = speed;
         }
     }
 
