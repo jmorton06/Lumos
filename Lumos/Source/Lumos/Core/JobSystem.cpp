@@ -31,6 +31,7 @@ namespace Lumos
         public:
             inline void lock()
             {
+                LUMOS_PROFILE_FUNCTION_LOW();
                 int spin = 0;
                 while(!TryLock())
                 {
@@ -135,6 +136,7 @@ namespace Lumos
             //    After the job queue is finished, it can switch to an other queue and steal jobs from there
             inline void work(uint32_t startingQueue)
             {
+                LUMOS_PROFILE_FUNCTION_LOW();
                 Job job;
                 for(uint32_t i = 0; i < internal_state->numThreads; ++i)
                 {
@@ -202,11 +204,11 @@ namespace Lumos
                                 while (internal_state->alive.load())
                                 {
                                     work(threadID);
-                                    
+
                                     // finished with jobs, put to sleep
                                     std::unique_lock<std::mutex> lock(internal_state->wakeMutex);
                                     internal_state->wakeCondition.wait(lock);
-                                    
+
                                 } });
 
 #ifdef LUMOS_PLATFORM_WINDOWS

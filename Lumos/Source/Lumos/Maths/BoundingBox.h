@@ -1,7 +1,7 @@
 #pragma once
 #include "Maths/Rect.h"
 #include "MathsUtilities.h"
-#include <glm/vec3.hpp>
+#include <glm/ext/vector_float3.hpp>
 
 namespace Lumos
 {
@@ -54,6 +54,8 @@ namespace Lumos
 
             void Merge(const BoundingBox& other, const glm::mat3& transform);
             void Merge(const glm::vec3& point, const glm::mat3& transform);
+
+            void ExtendToCube();
 
             Intersection IsInside(const glm::vec3& point) const;
             Intersection IsInside(const BoundingBox& box) const;

@@ -1,19 +1,23 @@
 #include "Precompiled.h"
 #include "VKRenderPass.h"
 #include "VKCommandBuffer.h"
+#include "VKDevice.h"
 #include "VKFramebuffer.h"
 #include "VKRenderer.h"
 #include "VKInitialisers.h"
 #include "VKUtilities.h"
+#include "VKTexture.h"
 #include "VKContext.h"
 #include "Core/Application.h"
 #include "Core/OS/Window.h"
+#include "Core/Engine.h"
 
 namespace Lumos
 {
     namespace Graphics
     {
 
+        static uint32_t s_ActiveCount = 0;
         VKRenderPass::VKRenderPass(const RenderPassDesc& renderPassDesc)
             : m_ClearCount(0)
             , m_DepthOnly(false)
@@ -201,12 +205,12 @@ namespace Lumos
 
             uint32_t attachmentCount = renderPassDesc.attachmentCount;
 
-            bool resolveTexture = false;
+            bool resolveTexture                               = false;
             VkAttachmentReference colourAttachmentResolvedRef = {};
 
             if(renderPassDesc.resolveTexture != nullptr && renderPassDesc.samples > 1)
             {
-                resolveTexture = true;
+                resolveTexture                         = true;
                 VkImageLayout layout                   = ((VKTexture2D*)renderPassDesc.resolveTexture)->GetImageLayout();
                 colourAttachmentResolvedRef.attachment = uint32_t(renderPassDesc.attachmentCount);
                 colourAttachmentResolvedRef.layout     = layout == VK_IMAGE_LAYOUT_PRESENT_SRC_KHR ? VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL : layout;
@@ -299,11 +303,17 @@ namespace Lumos
 
             vkCmdBeginRenderPass(static_cast<VKCommandBuffer*>(commandBuffer)->GetHandle(), &rpBegin, SubPassContentsToVK(contents));
             commandBuffer->UpdateViewport(width, height, m_SwapchainTarget);
+
+            s_ActiveCount++;
+            Engine::Get().Statistics().BoundRenderPasses++;
         }
 
         void VKRenderPass::EndRenderPass(CommandBuffer* commandBuffer)
         {
             LUMOS_PROFILE_FUNCTION_LOW();
+
+            LUMOS_ASSERT(s_ActiveCount, "No active renderpasses to end");
+            s_ActiveCount--;
             vkCmdEndRenderPass(static_cast<VKCommandBuffer*>(commandBuffer)->GetHandle());
 
             if(!m_DebugName.empty())

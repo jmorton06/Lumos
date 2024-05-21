@@ -10,6 +10,7 @@ namespace Lumos
     {
         class Material;
         class Pipeline;
+        class DescriptorSet;
 
         struct LUMOS_EXPORT RenderCommand
         {
@@ -18,7 +19,8 @@ namespace Lumos
             Pipeline* pipeline = nullptr;
             glm::mat4 transform;
             glm::mat4 textureMatrix;
-            bool animated = false;
+            bool animated                        = false;
+            DescriptorSet* AnimatedDescriptorSet = nullptr;
         };
     }
 }

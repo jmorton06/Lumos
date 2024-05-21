@@ -1,76 +1,76 @@
 #pragma once
 #include "MeshFactory.h"
-#include "Mesh.h"
-#include "Material.h"
-#include "Core/OS/FileSystem.h"
 #include "Core/Asset.h"
-#include <cereal/cereal.hpp>
+#include "Utilities/TimeStep.h"
 
 namespace Lumos
 {
+    class AStar;
     namespace Graphics
     {
+        class Skeleton;
+        class Animation;
+        class AnimationController;
+        struct SamplingContext;
+        class Mesh;
+
         class Model : public Asset
         {
+            template <typename Archive>
+            friend void save(Archive& archive, const Model& model);
+
+            template <typename Archive>
+            friend void load(Archive& archive, Model& model);
+
         public:
-            Model() = default;
+            Model();
             Model(const std::string& filePath);
             Model(const SharedPtr<Mesh>& mesh, PrimitiveType type);
             Model(PrimitiveType type);
 
             ~Model();
 
-            std::vector<SharedPtr<Mesh>>& GetMeshesRef() { return m_Meshes; }
-            const std::vector<SharedPtr<Mesh>>& GetMeshes() const { return m_Meshes; }
-            void AddMesh(SharedPtr<Mesh> mesh) { m_Meshes.push_back(mesh); }
+            std::vector<SharedPtr<Mesh>>& GetMeshesRef();
+            const std::vector<SharedPtr<Mesh>>& GetMeshes() const;
+            void AddMesh(SharedPtr<Mesh> mesh);
 
-            template <typename Archive>
-            void save(Archive& archive) const
-            {
-                if(m_Meshes.size() > 0)
-                {
-                    std::string newPath;
-                    FileSystem::Get().AbsolutePathToFileSystem(m_FilePath, newPath);
+            SharedPtr<Skeleton> GetSkeleton() const;
+            const std::vector<SharedPtr<Animation>>& GetAnimations() const;
+            SharedPtr<SamplingContext> GetSamplingContext() const;
+            SharedPtr<AnimationController> GetAnimationController() const;
 
-                    auto material = std::unique_ptr<Material>(m_Meshes.front()->GetMaterial().get());
-                    archive(cereal::make_nvp("PrimitiveType", m_PrimitiveType), cereal::make_nvp("FilePath", newPath), cereal::make_nvp("Material", material));
-                    material.release();
-                }
-            }
-
-            template <typename Archive>
-            void load(Archive& archive)
-            {
-                auto material = std::unique_ptr<Graphics::Material>();
-
-                archive(cereal::make_nvp("PrimitiveType", m_PrimitiveType), cereal::make_nvp("FilePath", m_FilePath), cereal::make_nvp("Material", material));
-
-                m_Meshes.clear();
-
-                if(m_PrimitiveType != PrimitiveType::File)
-                {
-                    m_Meshes.push_back(SharedPtr<Mesh>(CreatePrimative(m_PrimitiveType)));
-                    m_Meshes.back()->SetMaterial(SharedPtr<Material>(material.get()));
-                    material.release();
-                }
-                else
-                {
-                    LoadModel(m_FilePath);
-                    // TODO: This should load material changes from editor
-                    // m_Meshes.back()->SetMaterial(SharedPtr<Material>(material.get()));
-                    // material.release();
-                }
-            }
+            uint32_t GetCurrentAnimationIndex() const { return m_CurrentAnimation; }
+            void SetCurrentAnimationIndex(uint32_t index) { m_CurrentAnimation = index; }
 
             const std::string& GetFilePath() const { return m_FilePath; }
             PrimitiveType GetPrimitiveType() { return m_PrimitiveType; }
             void SetPrimitiveType(PrimitiveType type) { m_PrimitiveType = type; }
             SET_ASSET_TYPE(AssetType::Model);
 
+            void UpdateAnimation(const TimeStep& dt);
+            void UpdateAnimation(const TimeStep& dt, float overrideTime);
+
+            std::vector<glm::mat4> GetJointMatrices();
+
+            Model(const Model&);
+            Model& operator=(const Model&);
+            Model(Model&&);
+            Model& operator=(Model&&);
+
         private:
             PrimitiveType m_PrimitiveType = PrimitiveType::None;
             std::vector<SharedPtr<Mesh>> m_Meshes;
             std::string m_FilePath;
+            std::vector<String8> m_AnimFilePaths;
+
+            SharedPtr<Skeleton> m_Skeleton;
+            std::vector<SharedPtr<Animation>> m_Animation;
+            SharedPtr<SamplingContext> m_SamplingContext;
+            SharedPtr<AnimationController> m_AnimationController;
+
+            uint32_t m_CurrentAnimation = 0;
+
+            std::vector<glm::mat4> m_BindPoses;
 
             void LoadOBJ(const std::string& path);
             void LoadGLTF(const std::string& path);

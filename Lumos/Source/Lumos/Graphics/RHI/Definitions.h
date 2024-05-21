@@ -452,7 +452,7 @@ namespace Lumos
 
             Vector<BufferMemberInfo> m_Members;
 
-            void SetValue(const std::string& name, void* value)
+            inline void SetValue(const std::string& name, void* value)
             {
                 for(auto& member : m_Members)
                 {
@@ -466,10 +466,15 @@ namespace Lumos
                 LUMOS_LOG_WARN("Pushconst not found {0}", name);
             }
 
-            void SetData(void* value)
+            inline void SetData(void* value)
             {
                 memcpy(data, value, size);
             }
+        };
+
+        struct DescriptorSetInfo
+        {
+            std::vector<Descriptor> descriptors;
         };
     }
 }

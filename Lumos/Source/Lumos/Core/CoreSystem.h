@@ -4,7 +4,6 @@
 
 namespace Lumos
 {
-
     class CommandLine;
 
     namespace Internal
@@ -17,7 +16,5 @@ namespace Lumos
 
             CommandLine* GetCmdLine();
         };
-
     }
-
 };

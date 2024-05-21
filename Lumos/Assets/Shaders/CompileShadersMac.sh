@@ -6,16 +6,16 @@ COMPILER="/Users/jmorton/VulkanSDK/1.3.268.1/macOS/bin/glslc"
 
 echo $COMPILER
 
-DSTDIR=compiledSPV
+DSTDIR=CompiledSPV
 
 for SRC in *.vert *.frag *.comp; do
 
     if [ -e $SRC ]
     then
-        OUT="compiledSPV/$(echo "$SRC" | sed "s/\.frag$/.frag/" | sed "s/\.vert$/.vert/" | sed "s/\.comp$/.comp/").spv"
+        OUT="CompiledSPV/$(echo "$SRC" | sed "s/\.frag$/.frag/" | sed "s/\.vert$/.vert/" | sed "s/\.comp$/.comp/").spv"
 
         if [ -e $OUT ]
-        then    
+        then
             # if output exists
             # don't re-compile if existing binary is newer than source file
             NEWER="$(ls -t1 "$SRC" "$OUT" | head -1)"

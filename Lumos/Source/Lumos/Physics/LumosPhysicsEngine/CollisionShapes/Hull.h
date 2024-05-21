@@ -1,7 +1,8 @@
 #pragma once
 
-#include <glm/vec3.hpp>
-#include <glm/mat4x4.hpp>
+#include <glm/ext/vector_float3.hpp>
+#include <glm/ext/matrix_float4x4.hpp>
+#include "Maths/BoundingBox.h"
 
 struct HullEdge;
 struct HullFace;
@@ -66,6 +67,23 @@ namespace Lumos
         std::vector<HullVertex> m_Vertices;
         std::vector<HullEdge> m_Edges;
         std::vector<HullFace> m_Faces;
+    };
+
+    class BoundingBoxHull : public Maths::BoundingBox, public Hull
+    {
+    public:
+        static const int FAR_FACE[];
+        static const int NEAR_FACE[];
+        static const int TOP_FACE[];
+        static const int BOTTOM_FACE[];
+        static const int RIGHT_FACE[];
+        static const int LEFT_FACE[];
+
+    public:
+        BoundingBoxHull();
+        virtual ~BoundingBoxHull();
+
+        void UpdateHull();
     };
 
 }

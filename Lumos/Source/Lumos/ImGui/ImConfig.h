@@ -15,8 +15,8 @@
 
 #include "Core/LMLog.h"
 #include "Core/Core.h"
-#include <glm/vec2.hpp>
-#include <glm/vec4.hpp>
+#include <glm/ext/vector_float2.hpp>
+#include <glm/ext/vector_float4.hpp>
 
 //---- Define assertion handler. Defaults to calling assert().
 // If your macro uses multiple statements, make sure is enclosed in a 'do { .. } while (0)' block so it can be used as a single statement.

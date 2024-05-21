@@ -1,6 +1,6 @@
 #pragma once
-#include "Scene/Serialisation.h"
-#include <glm/vec4.hpp>
+#include "Scene/Serialisation/Serialisation.h"
+#include <glm/ext/vector_float4.hpp>
 
 namespace Lumos
 {

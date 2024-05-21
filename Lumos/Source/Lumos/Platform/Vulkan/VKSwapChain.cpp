@@ -2,8 +2,9 @@
 #include "VKDevice.h"
 #include "VKSwapChain.h"
 #include "VKUtilities.h"
-#include "VKFence.h"
 #include "VKRenderer.h"
+#include "VKSemaphore.h"
+#include "VKTexture.h"
 #include "Core/Application.h"
 #include "Core/Thread.h"
 
@@ -31,11 +32,11 @@ namespace Lumos
 
             for(uint32_t i = 0; i < m_SwapChainBufferCount; i++)
             {
-                vkDestroySemaphore(VKDevice::Get().GetDevice(), m_Frames[i].PresentSemaphore, nullptr);
                 m_Frames[i].MainCommandBuffer->Flush();
 
-                m_Frames[i].MainCommandBuffer = nullptr;
-                m_Frames[i].CommandPool       = nullptr;
+                m_Frames[i].MainCommandBuffer     = nullptr;
+                m_Frames[i].CommandPool           = nullptr;
+                m_Frames[i].ImageAcquireSemaphore = nullptr;
 
                 delete m_SwapChainBuffers[i];
             }
@@ -59,6 +60,8 @@ namespace Lumos
 
             if(!success)
                 LUMOS_LOG_ERROR("Failed to initialise swapchain");
+
+            // AcquireNextImage();
 
             return success;
         }
@@ -169,8 +172,7 @@ namespace Lumos
                     m_Frames[i].MainCommandBuffer->Reset();
 
                     delete m_SwapChainBuffers[i];
-                    vkDestroySemaphore(VKDevice::Get().GetDevice(), m_Frames[i].PresentSemaphore, nullptr);
-                    m_Frames[i].PresentSemaphore = VK_NULL_HANDLE;
+                    m_Frames[i].ImageAcquireSemaphore = VK_NULL_HANDLE;
                 }
 
                 m_SwapChainBuffers.clear();
@@ -238,9 +240,7 @@ namespace Lumos
                 semaphoreInfo.pNext                 = nullptr;
                 semaphoreInfo.flags                 = 0;
 
-                if(m_Frames[i].PresentSemaphore == VK_NULL_HANDLE)
-                    VK_CHECK_RESULT(vkCreateSemaphore(VKDevice::Get().GetDevice(), &semaphoreInfo, nullptr, &m_Frames[i].PresentSemaphore));
-
+                m_Frames[i].ImageAcquireSemaphore = CreateSharedPtr<VKSemaphore>(false);
                 if(!m_Frames[i].MainCommandBuffer)
                 {
                     m_Frames[i].CommandPool = CreateSharedPtr<VKCommandPool>(VKDevice::Get().GetPhysicalDevice()->GetGraphicsQueueFamilyIndex(), VK_COMMAND_POOL_CREATE_TRANSIENT_BIT | VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT);
@@ -266,7 +266,7 @@ namespace Lumos
 
             {
                 LUMOS_PROFILE_SCOPE("vkAcquireNextImageKHR");
-                auto result = vkAcquireNextImageKHR(VKDevice::Get().GetDevice(), m_SwapChain, UINT64_MAX, m_Frames[m_CurrentBuffer].PresentSemaphore, VK_NULL_HANDLE, &m_AcquireImageIndex);
+                auto result = vkAcquireNextImageKHR(VKDevice::Get().GetDevice(), m_SwapChain, UINT64_MAX, m_Frames[m_CurrentBuffer].ImageAcquireSemaphore->GetHandle(), VK_NULL_HANDLE, &m_AcquireImageIndex);
 
                 if(result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR)
                 {
@@ -324,7 +324,7 @@ namespace Lumos
         {
             LUMOS_PROFILE_FUNCTION();
             auto& frameData = GetCurrentFrameData();
-            frameData.MainCommandBuffer->Execute(VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, frameData.PresentSemaphore, true);
+            frameData.MainCommandBuffer->Execute(VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, frameData.ImageAcquireSemaphore->GetHandle(), true);
         }
 
         CommandBuffer* VKSwapChain::GetCurrentCommandBuffer()
@@ -359,9 +359,20 @@ namespace Lumos
             GetCurrentCommandBuffer()->EndRecording();
         }
 
-        void VKSwapChain::Present(VkSemaphore semaphore)
+        void VKSwapChain::Present(const Vector<VkSemaphore>& semaphores)
         {
             LUMOS_PROFILE_FUNCTION();
+
+            VkSemaphore vkWaitSemaphores[3] = { nullptr, nullptr, nullptr };
+            uint32_t semaphoreCount         = 0;
+
+            for(auto semaphore : semaphores)
+            {
+                if(semaphoreCount > 3)
+                    break;
+
+                vkWaitSemaphores[semaphoreCount++] = semaphore;
+            }
 
             VkPresentInfoKHR present;
             present.sType              = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
@@ -369,8 +380,8 @@ namespace Lumos
             present.swapchainCount     = 1;
             present.pSwapchains        = &m_SwapChain;
             present.pImageIndices      = &m_AcquireImageIndex;
-            present.waitSemaphoreCount = 1;
-            present.pWaitSemaphores    = &semaphore;
+            present.waitSemaphoreCount = semaphoreCount;
+            present.pWaitSemaphores    = vkWaitSemaphores;
             present.pResults           = VK_NULL_HANDLE;
 
             auto error = vkQueuePresentKHR(VKDevice::Get().GetPresentQueue(), &present);
@@ -387,6 +398,8 @@ namespace Lumos
             {
                 VK_CHECK_RESULT(error);
             }
+
+            // AcquireNextImage();
         }
 
         void VKSwapChain::MakeDefault()

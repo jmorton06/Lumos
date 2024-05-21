@@ -10,9 +10,16 @@
 #include <Lumos/Scene/SceneManager.h>
 #include <Lumos/Scene/Component/Components.h>
 #include <Lumos/Scene/Component/ModelComponent.h>
+#include <Lumos/Scene/Component/SoundComponent.h>
+#include <Lumos/Scene/Component/RigidBody3DComponent.h>
+#include <Lumos/Scene/Component/RigidBody2DComponent.h>
+#include <Lumos/Scene/Component/TextureMatrixComponent.h>
 #include <Lumos/Graphics/Camera/Camera.h>
 #include <Lumos/Graphics/Sprite.h>
 #include <Lumos/Graphics/AnimatedSprite.h>
+#include <Lumos/Graphics/Animation/Skeleton.h>
+#include <Lumos/Graphics/Animation/Animation.h>
+#include <Lumos/Graphics/Animation/AnimationController.h>
 #include <Lumos/Graphics/Model.h>
 #include <Lumos/Graphics/Mesh.h>
 #include <Lumos/Graphics/MeshFactory.h>
@@ -36,8 +43,9 @@
 #include <Lumos/ImGui/IconsMaterialDesignIcons.h>
 #include <Lumos/ImGui/ImGuiManager.h>
 #include <Lumos/Graphics/RHI/IMGUIRenderer.h>
-// #include <Lumos/Scene/SerialisationImplementation.h>
+#include <Lumos/Scene/Serialisation/SerialisationImplementation.h>
 
+#include <cstdint>
 #include <imgui/imgui.h>
 #include <imgui/imgui_internal.h>
 #include <glm/gtx/matrix_decompose.hpp>
@@ -49,6 +57,8 @@
 #include <sol/sol.hpp>
 #include <inttypes.h>
 #include <spdlog/fmt/bundled/format.h>
+
+static bool DebugView = false;
 
 namespace MM
 {
@@ -101,7 +111,7 @@ namespace MM
             {
                 std::string defaultScript =
                     R"(--Default Lua Script
-            
+
 function OnInit()
 end
 
@@ -134,7 +144,7 @@ end
                                                          {
                                                              script.Reload();
                                                              hasReloaded = true;
-                                                             
+
                                                              auto textEditPanel = Lumos::Editor::GetEditor()->GetTextEditPanel();
                                                              if(textEditPanel)
                                                              ((Lumos::TextEditPanel*)textEditPanel)->SetErrors(script.GetErrors()); });
@@ -225,9 +235,9 @@ end
         ImGui::Columns(1);
         ImGui::Separator();
 
-        if (ImGui::Button("Copy Editor Camera Transforn", ImVec2(ImGui::GetContentRegionAvail().x, 0.0f)))
+        if(ImGui::Button("Copy Editor Camera Transforn", ImVec2(ImGui::GetContentRegionAvail().x, 0.0f)))
         {
-            Lumos::Application* app = &Lumos::Editor::Get();
+            Lumos::Application* app   = &Lumos::Editor::Get();
             glm::mat4 cameraTransform = ((Lumos::Editor*)app)->GetEditorCameraTransform().GetWorldMatrix();
             transform.SetLocalTransform(cameraTransform);
         }
@@ -318,8 +328,8 @@ end
         ImGui::TextUnformatted("Hull Collision Shape");
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
-        
-        if (ImGui::Button("Generate Collider"))
+
+        if(ImGui::Button("Generate Collider"))
         {
             auto test = Lumos::SharedPtr<Lumos::Graphics::Mesh>(Lumos::Graphics::CreatePrimative(Lumos::Graphics::PrimitiveType::Cube));
             shape->BuildFromMesh(test.get());
@@ -469,6 +479,102 @@ end
     }
 
     template <>
+    void ComponentEditorWidget<Lumos::SpringConstraintComponent>(entt::registry& reg, entt::registry::entity_type e)
+    {
+        using namespace Lumos;
+        LUMOS_PROFILE_FUNCTION();
+        ImGuiUtilities::ScopedStyle frameStyle(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
+
+        ImGui::Columns(2);
+        ImGui::Separator();
+        SpringConstraintComponent& springConstraintComponent = reg.get<Lumos::SpringConstraintComponent>(e);
+        {
+            uint64_t entityID = springConstraintComponent.GetEntityID();
+
+            Entity entity = Application::Get().GetCurrentScene()->GetEntityManager()->GetEntityByUUID(entityID);
+
+            bool hasName = entity ? entity.HasComponent<NameComponent>() : false;
+            std::string name;
+            if(hasName)
+                name = entity.GetComponent<NameComponent>().name;
+            else
+                name = "Empty";
+            ImGui::TextUnformatted("Entity");
+            ImGui::NextColumn();
+            ImGui::Text("%s", name.c_str());
+
+            if(ImGui::BeginDragDropTarget())
+            {
+                const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("Drag_Entity");
+                if(payload)
+                {
+                    size_t count                 = payload->DataSize / sizeof(entt::entity);
+                    entt::entity droppedEntityID = *(((entt::entity*)payload->Data));
+
+                    Entity entity = Entity(droppedEntityID, Application::Get().GetCurrentScene());
+                    springConstraintComponent.SetEntityID((uint64_t)entity.GetID());
+                }
+                ImGui::EndDragDropTarget();
+            }
+        }
+        ImGui::NextColumn();
+        {
+            uint64_t entityID = springConstraintComponent.GetOtherEntityID();
+
+            Entity entity = Application::Get().GetCurrentScene()->GetEntityManager()->GetEntityByUUID(entityID);
+
+            bool hasName = entity ? entity.HasComponent<NameComponent>() : false;
+            std::string name;
+            if(hasName)
+                name = entity.GetComponent<NameComponent>().name;
+            else
+                name = "Empty";
+            ImGui::TextUnformatted("Other Entity");
+            ImGui::NextColumn();
+            ImGui::Text("%s", name.c_str());
+
+            if(ImGui::BeginDragDropTarget())
+            {
+                const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("Drag_Entity");
+                if(payload)
+                {
+                    size_t count                 = payload->DataSize / sizeof(entt::entity);
+                    entt::entity droppedEntityID = *(((entt::entity*)payload->Data));
+                    Entity entity                = Entity(droppedEntityID, Application::Get().GetCurrentScene());
+                    springConstraintComponent.SetOtherEntityID((uint64_t)entity.GetID());
+                }
+                ImGui::EndDragDropTarget();
+            }
+        }
+        ImGui::NextColumn();
+
+        float constant = springConstraintComponent.GetConstant();
+        if(ImGuiUtilities::Property("Constant", constant))
+            springConstraintComponent.SetConstant(constant);
+
+        // ImGui::NextColumn();
+
+        // std::vector<std::string> entities;
+        // uint64_t currentEntityID = springConstraintComponent.GetEntityID();
+        // int index = 0;
+        // int selectedIndex = 0;
+
+        // auto physics3dEntities = Application::Get().GetCurrentScene()->GetEntityManager()->GetRegistry().view<Lumos::RigidBody3DComponent>();
+
+        // for (auto entity : physics3dEntities)
+        //{
+        //     if (Entity(entity, Application::Get().GetCurrentScene()).GetID() == currentEntityID)
+        //         selectedIndex = index;
+
+        //    entities.push_back(Entity(entity, Application::Get().GetCurrentScene()).GetName());
+
+        //    index++;
+        //}
+
+        ImGui::Columns(1);
+    }
+
+    template <>
     void ComponentEditorWidget<Lumos::RigidBody3DComponent>(entt::registry& reg, entt::registry::entity_type e)
     {
         LUMOS_PROFILE_FUNCTION();
@@ -490,9 +596,10 @@ end
         auto elasticity      = phys.GetRigidBody()->GetElasticity();
         auto angularFactor   = phys.GetRigidBody()->GetAngularFactor();
         auto collisionShape  = phys.GetRigidBody()->GetCollisionShape();
-        auto UUID            = phys.GetRigidBody()->GetUUID();
+        auto uuid            = phys.GetRigidBody()->GetUUID();
 
-        Lumos::ImGuiUtilities::Property("UUID", (uint32_t&)UUID, Lumos::ImGuiUtilities::PropertyFlag::ReadOnly);
+        if(DebugView)
+            Lumos::ImGuiUtilities::Property("UUID", (uint64_t&)uuid, Lumos::ImGuiUtilities::PropertyFlag::ReadOnly);
 
         if(Lumos::ImGuiUtilities::Property("Position", pos))
             phys.GetRigidBody()->SetPosition(pos);
@@ -2007,7 +2114,35 @@ end
                     Lumos::ImGuiUtilities::Property("Vertex Count", stats.VertexCount, Lumos::ImGuiUtilities::PropertyFlag::ReadOnly);
                     Lumos::ImGuiUtilities::Property("Index Count", stats.IndexCount, Lumos::ImGuiUtilities::PropertyFlag::ReadOnly);
                     Lumos::ImGuiUtilities::Property("Optimise Threshold", stats.OptimiseThreshold, 0.0f, 0.0f, 0.0f, Lumos::ImGuiUtilities::PropertyFlag::ReadOnly);
-                    Lumos::ImGuiUtilities::PropertyConst("Material", mesh->GetMaterial() ? mesh->GetMaterial()->GetName().c_str() : "Empty");
+                    Lumos::ImGuiUtilities::PropertyConst("Material", mesh->GetMaterial() ? (mesh->GetMaterial()->GetName().empty() ? "No Name" : mesh->GetMaterial()->GetName().c_str()) : "Empty");
+
+                    const ImGuiPayload* payload = ImGui::GetDragDropPayload();
+                    auto callback               = std::bind(&Lumos::Graphics::Mesh::SetAndLoadMaterial, mesh, std::placeholders::_1);
+                    if(payload != NULL && payload->IsDataType("AssetFile"))
+                    {
+                        auto filePath = std::string(reinterpret_cast<const char*>(payload->Data));
+                        if(Lumos::Editor::GetEditor()->IsMaterialFile(filePath))
+                        {
+                            if(ImGui::BeginDragDropTarget())
+                            {
+                                // Drop directly on to node and append to the end of it's children list.
+                                if(ImGui::AcceptDragDropPayload("AssetFile"))
+                                {
+                                    callback(filePath);
+                                    ImGui::EndDragDropTarget();
+
+                                    ImGui::Columns(1);
+                                    ImGui::TreePop();
+                                    ImGui::TreePop();
+                                    ImGui::TreePop();
+                                    return;
+                                }
+
+                                ImGui::EndDragDropTarget();
+                            }
+                        }
+                    }
+
                     ImGui::Columns(1);
 
                     ImGui::Unindent();
@@ -2046,34 +2181,55 @@ end
                     matName += std::to_string(matIndex);
                 }
 
-                matName += "##" + std::to_string(matIndex);
                 matIndex++;
                 ImGui::Indent();
+
+                static bool materialNameUpdated = false;
+                static std::string renamedMaterialName;
+                if(materialNameUpdated)
+                {
+                    if(matName == renamedMaterialName)
+                    {
+                        materialNameUpdated = false;
+                        ImGui::SetNextItemOpen(true);
+                    }
+                }
                 if(!material)
                 {
                     ImGui::TextUnformatted("Empty Material");
                     if(ImGui::Button("Add Material", ImVec2(ImGui::GetContentRegionAvail().x, 0.0f)))
                         mesh->SetMaterial(Lumos::CreateSharedPtr<Lumos::Graphics::Material>());
                 }
-                else if(ImGui::TreeNodeEx(matName.c_str(), ImGuiTreeNodeFlags_Framed))
+                else if(ImGui::TreeNodeEx((void*)(intptr_t)material.get(), ImGuiTreeNodeFlags_Framed, matName.c_str()))
                 {
                     using namespace Lumos;
                     ImGui::Indent();
+                    // Lumos::ImGuiUtilities::PushID();
+                    ImGui::PushID((int)(uintptr_t)material.get());
                     if(ImGui::Button("Save to file"))
                     {
-                        std::string filePath = "//Assets/Meshes"; // Materials/" + matName + ".lmat";
+                        std::string filePath = "//Assets/Materials/"; // +matName + ".lmat";
                         std::string physicalPath;
-                        if(FileSystem::Get().ResolvePhysicalPath(filePath, physicalPath))
+                        if(FileSystem::Get().ResolvePhysicalPath(filePath, physicalPath, true))
                         {
-                            physicalPath += "/Materials/" + matName + ".lmat";
+                            physicalPath += matName + ".lmat";
                             std::stringstream storage;
-
-                            cereal::JSONOutputArchive output { storage };
-                            // Lumos::save(output, *material.get());
+                            {
+                                cereal::JSONOutputArchive output { storage };
+                                Lumos::Graphics::save(output, *material.get());
+                            }
 
                             FileSystem::WriteTextFile(physicalPath, storage.str());
                         }
                     }
+
+                    if(Lumos::ImGuiUtilities::InputText(matName, "##materialName"))
+                    {
+                        materialNameUpdated = true;
+                        renamedMaterialName = matName;
+                        material->SetName(matName);
+                    }
+
                     bool flipImage = Graphics::Renderer::GetGraphicsContext()->FlipImGUITexture();
 
                     bool twoSided     = material->GetFlag(Lumos::Graphics::Material::RenderFlags::TWOSIDED);
@@ -2155,14 +2311,98 @@ end
                     material->SetMaterialProperites(*prop);
                     ImGui::Unindent();
                     ImGui::TreePop();
+                    // Lumos::ImGuiUtilities::PopID();
+                    ImGui::PopID();
                 }
                 ImGui::Unindent();
             }
             ImGui::TreePop();
         }
+
+        if(modelRef->GetSkeleton())
+            if(ImGui::TreeNodeEx("Animations", ImGuiTreeNodeFlags_Framed))
+            {
+                ImGui::Indent();
+                ImGui::Columns(2);
+
+                int jointCount = modelRef->GetSkeleton()->GetSkeleton().num_joints();
+                Lumos::ImGuiUtilities::Property("Joint Count", jointCount, Lumos::ImGuiUtilities::PropertyFlag::ReadOnly);
+
+                const auto& animations = modelRef->GetAnimations();
+                int animCount          = (int)animations.size();
+                Lumos::ImGuiUtilities::Property("Animation Count", animCount, Lumos::ImGuiUtilities::PropertyFlag::ReadOnly);
+
+                if(animCount > 0)
+                {
+                    ImGui::Columns(1);
+                    static bool testPlayAnimation = false;
+                    if(Application::Get().GetEditorState() == EditorState::Preview)
+                    {
+                        if(!testPlayAnimation && ImGui::Button("Play Animation"))
+                        {
+                            testPlayAnimation = true;
+                        }
+
+                        if(testPlayAnimation && ImGui::Button("Stop Animation"))
+                        {
+                            testPlayAnimation = false;
+                        }
+
+                        if(!testPlayAnimation)
+                        {
+                            static float animTime = 0.0f;
+                            if(ImGui::SliderFloat("Animation Preview", &animTime, 0.0f, 1.0f))
+                            {
+                                modelRef->UpdateAnimation(Engine::GetTimeStep(), animTime);
+                            }
+                        }
+
+                        if(testPlayAnimation)
+                            modelRef->UpdateAnimation(Engine::GetTimeStep());
+                    }
+                    else
+                    {
+                        testPlayAnimation = false;
+                    }
+
+                    ImGui::Columns(2);
+                    ImGui::AlignTextToFramePadding();
+                    ImGui::TextUnformatted("Current Animation");
+                    ImGui::NextColumn();
+                    ImGui::PushItemWidth(-1);
+
+                    Vector<const char*> animNames(Application::Get().GetFrameArena());
+                    animNames.Reserve(animCount);
+
+                    for(auto& anim : animations)
+                    {
+                        animNames.PushBack(anim->GetName().c_str());
+                    }
+
+                    uint32_t currentIndex   = modelRef->GetCurrentAnimationIndex();
+                    const char* currentAnim = animNames[currentIndex];
+                    if(ImGui::BeginCombo("##AnimationCombo", currentAnim, 0)) // The second parameter is the label previewed before opening the combo.
+                    {
+                        for(int n = 0; n < animNames.Size(); n++)
+                        {
+                            bool is_selected = (currentIndex == n);
+                            if(ImGui::Selectable(animNames[n], currentAnim))
+                            {
+                                currentIndex = n;
+                                modelRef->SetCurrentAnimationIndex(n);
+                            }
+                            if(is_selected)
+                                ImGui::SetItemDefaultFocus();
+                        }
+                        ImGui::EndCombo();
+                    }
+                }
+                ImGui::TreePop();
+            }
         ImGui::Unindent();
 
         Lumos::ImGuiUtilities::PopID();
+        ImGui::Columns(1);
     }
 
     template <>
@@ -2573,6 +2813,7 @@ namespace Lumos
         TRIVIAL_COMPONENT(Graphics::ModelComponent, "ModelComponent");
         TRIVIAL_COMPONENT(Camera, "Camera");
         TRIVIAL_COMPONENT(AxisConstraintComponent, "AxisConstraint");
+        TRIVIAL_COMPONENT(SpringConstraintComponent, "SpringConstraint");
         TRIVIAL_COMPONENT(RigidBody3DComponent, "Physics3D");
         TRIVIAL_COMPONENT(RigidBody2DComponent, "Physics2D");
         TRIVIAL_COMPONENT(SoundComponent, "Sound");
@@ -2694,6 +2935,8 @@ namespace Lumos
                 ImGui::EndPopup();
             }
 
+            DebugView = m_DebugMode;
+
             if(ImGui::BeginPopupModal("SavePrefab", NULL, ImGuiWindowFlags_AlwaysAutoResize))
             {
                 ImGui::Text("Save Current Entity as a Prefab?\n\n");
@@ -2736,7 +2979,8 @@ namespace Lumos
 
                 if(idComponent)
                 {
-                    ImGui::Text("UUID : %" PRIu64, (uint64_t)idComponent->ID);
+                    ImGui::Columns(2);
+                    Lumos::ImGuiUtilities::Property("UUID", (uint64_t&)idComponent->ID, Lumos::ImGuiUtilities::PropertyFlag::ReadOnly);
 
                     auto hierarchyComp = registry.try_get<Hierarchy>(selected);
 
@@ -2745,21 +2989,27 @@ namespace Lumos
                         if(registry.valid(hierarchyComp->Parent()))
                         {
                             idComponent = registry.try_get<IDComponent>(hierarchyComp->Parent());
-                            ImGui::Text("Parent : ID: %" PRIu64, (uint64_t)idComponent->ID);
+                            Lumos::ImGuiUtilities::Property("Parent UUID", (uint64_t&)idComponent->ID, Lumos::ImGuiUtilities::PropertyFlag::ReadOnly);
                         }
                         else
                         {
-                            ImGui::TextUnformatted("Parent : null");
+                            auto nullString = std::string("NULL");
+                            Lumos::ImGuiUtilities::Property("Parent UUID", nullString, Lumos::ImGuiUtilities::PropertyFlag::ReadOnly);
                         }
 
                         entt::entity child = hierarchyComp->First();
-                        ImGui::TextUnformatted("Children : ");
+
+                        if(child != entt::null)
+                            ImGui::TextUnformatted("Children : ");
                         ImGui::Indent(24.0f);
+                        ImGui::NextColumn();
+                        ImGui::NextColumn();
 
                         while(child != entt::null)
                         {
                             idComponent = registry.try_get<IDComponent>(child);
-                            ImGui::Text("ID: %" PRIu64, (uint64_t)idComponent->ID);
+
+                            Lumos::ImGuiUtilities::Property("UUID", (uint64_t&)idComponent->ID, Lumos::ImGuiUtilities::PropertyFlag::ReadOnly);
 
                             auto hierarchy = registry.try_get<Hierarchy>(child);
 
@@ -2770,8 +3020,10 @@ namespace Lumos
                         }
 
                         ImGui::Unindent(24.0f);
+                        ImGui::NextColumn();
                     }
 
+                    ImGui::Columns(1);
                     ImGui::Separator();
                 }
             }

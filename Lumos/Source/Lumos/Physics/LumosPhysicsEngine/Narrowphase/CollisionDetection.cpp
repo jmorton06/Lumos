@@ -50,23 +50,24 @@ namespace Lumos
         LUMOS_PROFILE_FUNCTION_LOW();
         LUMOS_ASSERT(shape1->GetType() == CollisionShapeType::CollisionSphere && shape2->GetType() == CollisionShapeType::CollisionSphere, "Both shapes are not spheres");
 
-        //        CollisionData colData;
-        //        glm::vec3 axis = obj2->GetPosition() - obj1->GetPosition();
-        //
-        //        float sumRadii        = ((SphereCollisionShape*)shape1)->GetRadius() + ((SphereCollisionShape*)shape2)->GetRadius();
-        //        float sumRadiiSquared = sumRadii * sumRadii;
-        //        float distSquared     = glm::length2(axis);
-        //        if(distSquared > sumRadiiSquared)
-        //            return false;
-        //
-        //        colData.normal       = glm::normalize(axis);
-        //        colData.penetration  = sumRadii - std::sqrt(distSquared);
-        //        colData.pointOnPlane = obj1->GetPosition() + axis * 0.5f;
-        //
-        //        if(out_coldata)
-        //            *out_coldata = colData;
-
         CollisionData colData;
+        glm::vec3 axis = obj2->GetPosition() - obj1->GetPosition();
+
+        float sumRadii        = ((SphereCollisionShape*)shape1)->GetRadius() + ((SphereCollisionShape*)shape2)->GetRadius();
+        float sumRadiiSquared = sumRadii * sumRadii;
+        float distSquared     = glm::length2(axis);
+        if(distSquared > sumRadiiSquared)
+            return false;
+
+        colData.normal       = glm::normalize(axis);
+        colData.penetration  = sumRadii - std::sqrt(distSquared);
+        colData.pointOnPlane = obj1->GetPosition() + axis * 0.5f;
+
+        if(out_coldata)
+            *out_coldata = colData;
+
+        /*
+CollisionData colData;
         glm::vec3 axis = obj2->GetPosition() - obj1->GetPosition();
         axis           = glm::normalize(axis);
         if(!CheckCollisionAxis(axis, obj1, obj2, shape1, shape2, &colData))
@@ -74,7 +75,7 @@ namespace Lumos
 
         if(out_coldata)
             *out_coldata = colData;
-
+*/
         return true;
     }
 
@@ -185,19 +186,19 @@ namespace Lumos
         std::vector<CollisionEdge>& shape1_edges = shape1->GetEdges(obj1);
         std::vector<CollisionEdge>& shape2_edges = shape2->GetEdges(obj2);
 
-        for(const CollisionEdge& edge1 : shape1_edges)
-        {
-            for(const CollisionEdge& edge2 : shape2_edges)
-            {
-                glm::vec3 e1 = edge1.posB - edge1.posA;
-                glm::vec3 e2 = edge2.posB - edge2.posA;
-                e1           = glm::normalize(e1);
-                e2           = glm::normalize(e2);
+        /*     for(const CollisionEdge& edge1 : shape1_edges)
+             {
+                 for(const CollisionEdge& edge2 : shape2_edges)
+                 {
+                     glm::vec3 e1 = edge1.posB - edge1.posA;
+                     glm::vec3 e2 = edge2.posB - edge2.posA;
+                     e1           = glm::normalize(e1);
+                     e2           = glm::normalize(e2);
 
-                glm::vec3 temp = glm::cross(e1, e2);
-                AddPossibleCollisionAxis(temp, possibleCollisionAxes, possibleCollisionAxesCount);
-            }
-        }
+                     glm::vec3 temp = glm::cross(e1, e2);
+                     AddPossibleCollisionAxis(temp, possibleCollisionAxes, possibleCollisionAxesCount);
+                 }
+             }*/
 
         for(uint32_t i = 0; i < possibleCollisionAxesCount; i++)
         {
@@ -664,7 +665,7 @@ namespace Lumos
         float capsuleTop    = capsulePos.y + capsuleHeight * 0.5f;
         float capsuleBottom = capsulePos.y - capsuleHeight * 0.5f;
 
-        for(int i = 0; i < possibleCollisionAxesCount; i++)
+        for(uint32_t i = 0; i < possibleCollisionAxesCount; i++)
         {
             const glm::vec3& axis = possibleCollisionAxes[i];
             if(!CheckCollisionAxis(axis, obj1, obj2, shape1, shape2, &cur_colData))
@@ -742,7 +743,9 @@ namespace Lumos
         {
             bool flipped;
             glm::vec3* incPolygon;
+            glm::vec3* refPolygon;
             int incPolygonCount;
+            int refPolygonCount;
             Plane* refAdjPlanes;
             int refAdjPlanesCount;
             Plane refPlane;
@@ -755,7 +758,9 @@ namespace Lumos
                 refAdjPlanes      = poly1.AdjacentPlanes;
                 refAdjPlanesCount = poly1.PlaneCount;
                 incPolygon        = poly2.Faces;
+                refPolygon        = poly1.Faces;
                 incPolygonCount   = poly2.FaceCount;
+                refPolygonCount   = poly1.FaceCount;
 
                 flipped = false;
             }
@@ -767,38 +772,58 @@ namespace Lumos
                 refAdjPlanes      = poly2.AdjacentPlanes;
                 refAdjPlanesCount = poly2.PlaneCount;
                 incPolygon        = poly1.Faces;
+                refPolygon        = poly2.Faces;
                 incPolygonCount   = poly1.FaceCount;
+                refPolygonCount   = poly2.FaceCount;
 
                 flipped = true;
             }
 
-            SutherlandHodgesonClipping(incPolygon, incPolygonCount, refAdjPlanesCount, refAdjPlanes, incPolygon, incPolygonCount, false);
-            SutherlandHodgesonClipping(incPolygon, incPolygonCount, 1, &refPlane, incPolygon, incPolygonCount, true);
-
-            for(int i = 0; i < incPolygonCount; i++)
+            // Determine largest penetration
+            float penetrationOffset = -FLT_MAX;
+            for(auto it = 0; it != refPolygonCount; ++it)
             {
-                auto& endPoint = incPolygon[i];
+                float pOffset = glm::dot(refPolygon[it], coldata.normal);
+                if(pOffset > penetrationOffset)
+                    penetrationOffset = pOffset;
+            }
+
+            ArenaTemp scratch = ScratchBegin(nullptr, 0);
+            Vector<glm::vec3> incPolygonList(scratch.arena);
+            incPolygonList.Resize(incPolygonCount);
+            MemoryCopy(incPolygonList.Data(), incPolygon, sizeof(glm::vec3) * incPolygonCount);
+
+            SutherlandHodgesonClipping(scratch.arena, incPolygonList, refAdjPlanesCount, refAdjPlanes, &incPolygonList, false);
+            SutherlandHodgesonClipping(scratch.arena, incPolygonList, 1, &refPlane, &incPolygonList, true);
+
+            for(auto it = incPolygonList.begin(); it != incPolygonList.end(); ++it)
+            {
                 float contact_penetration;
                 glm::vec3 globalOnA, globalOnB;
 
                 if(flipped)
                 {
-                    contact_penetration = -(glm::dot(endPoint, coldata.normal)
-                                            - (glm::dot(coldata.normal, poly2.Faces[0])));
+                    contact_penetration = -glm::dot(*it, coldata.normal)
+                        + penetrationOffset; // +(glm::dot(coldata.normal, poly2.Faces[0]));
 
-                    globalOnA = endPoint + coldata.normal * contact_penetration;
-                    globalOnB = endPoint;
+                    globalOnA = *it + (coldata.normal * contact_penetration);
+                    globalOnB = *it;
                 }
                 else
                 {
-                    contact_penetration = glm::dot(endPoint, coldata.normal) - glm::dot(coldata.normal, poly1.Faces[0]);
+                    contact_penetration = glm::dot(*it, coldata.normal) - penetrationOffset; // glm::dot(coldata.normal, poly1.Faces[0]);
 
-                    globalOnA = endPoint;
-                    globalOnB = endPoint - coldata.normal * contact_penetration;
+                    globalOnA = *it;
+                    globalOnB = *it - (coldata.normal * contact_penetration);
                 }
 
-                manifold->AddContact(globalOnA, globalOnB, coldata.normal, contact_penetration);
+                if(globalOnB.z > 30.0f)
+                    LUMOS_LOG_INFO("Large value in manifold creation {0},{1},{2}", globalOnB.x, globalOnB.y, globalOnB.z);
+
+                if(contact_penetration < 0.0f)
+                    manifold->AddContact(globalOnA, globalOnB, coldata.normal, contact_penetration);
             }
+            ScratchEnd(scratch);
         }
         return true;
     }
@@ -846,7 +871,7 @@ namespace Lumos
 
         float ab_p = glm::dot(plane.Normal(), ab);
 
-        if(glm::abs(ab_p) > 0.0001f)
+        if(glm::abs(ab_p) > Maths::M_EPSILON)
         {
             glm::vec3 p_co = plane.Normal() * (-plane.Distance(glm::vec3(0.0f)));
 
@@ -860,65 +885,72 @@ namespace Lumos
         return start;
     }
 
-    void CollisionDetection::SutherlandHodgesonClipping(glm::vec3* input_polygon, int input_polygon_count, int num_clip_planes, const Plane* clip_planes, glm::vec3* output_polygon, int& output_polygon_count, bool removePoints) const
+    void CollisionDetection::SutherlandHodgesonClipping(Arena* arena, const Vector<glm::vec3>& input_polygon, int num_clip_planes, const Plane* clip_planes, Vector<glm::vec3>* out_polygon, bool removePoints) const
     {
         LUMOS_PROFILE_FUNCTION_LOW();
-        if(!output_polygon)
+        if(!out_polygon)
             return;
 
-        glm::vec3 ppPolygon1[8], ppPolygon2[8];
-        int inputCount = 0, outputCount = 0;
+        // Create temporary list of vertices
+        // - We will keep ping-pong'ing between
+        //   the two lists updating them as we go.
+        Vector<glm::vec3> ppPolygon1(arena), ppPolygon2(arena);
+        Vector<glm::vec3>*input = &ppPolygon1, *output = &ppPolygon2;
 
-        glm::vec3 *input = ppPolygon1, *output = ppPolygon2;
-        inputCount  = input_polygon_count;
-        output      = input_polygon;
-        outputCount = inputCount;
+        *output = input_polygon;
 
-        for(int iterations = 0; iterations < num_clip_planes; ++iterations)
+        // Iterate over each clip_plane provided
+        for(int i = 0; i < num_clip_planes; ++i)
         {
-            if(outputCount == 0)
+            // If we every single point on our shape has already been removed, just exit
+            if(output->Empty())
                 break;
 
-            const Plane& plane = clip_planes[iterations];
+            const Plane& plane = clip_planes[i];
 
+            // Swap input/output polygons, and clear output list for us to generate afresh
             std::swap(input, output);
-            inputCount = outputCount;
+            output->Clear();
 
-            outputCount = 0;
-
-            glm::vec3 startPoint = input[inputCount - 1];
-            for(int i = 0; i < inputCount; i++)
+            // Loop through each edge of the polygon (see line_loop from gfx) and clips
+            // that edge against the plane.
+            glm::vec3 startPoint = input->Back();
+            for(const glm::vec3& endPoint : *input)
             {
-                const auto& endPoint = input[i];
-                bool startInPlane    = plane.IsPointOnPlane(startPoint);
-                bool endInPlane      = plane.IsPointOnPlane(endPoint);
+                bool startInPlane = plane.IsPointOnPlane(startPoint);
+                bool endInPlane   = plane.IsPointOnPlane(endPoint);
 
+                // If it's the final pass, just remove all points outside the reference
+                // plane
                 if(removePoints)
                 {
                     if(endInPlane)
-                        output[outputCount++] = endPoint;
+                        output->EmplaceBack(endPoint);
                 }
                 else
                 {
                     // if entire edge is within the clipping plane, keep it as it is
                     if(startInPlane && endInPlane)
-                        output[outputCount++] = endPoint;
+                        output->EmplaceBack(endPoint);
 
                     // if edge interesects the clipping plane, cut the edge along clip plane
                     else if(startInPlane && !endInPlane)
-                        output[outputCount++] = PlaneEdgeIntersection(plane, startPoint, endPoint);
+                    {
+                        output->EmplaceBack(PlaneEdgeIntersection(plane, startPoint, endPoint));
+                    }
                     else if(!startInPlane && endInPlane)
                     {
-                        output[outputCount++] = PlaneEdgeIntersection(plane, endPoint, startPoint);
-                        output[outputCount++] = endPoint;
+                        output->EmplaceBack(PlaneEdgeIntersection(plane, endPoint, startPoint));
+                        output->EmplaceBack(endPoint);
                     }
                 }
+                //..otherwise the edge is entirely outside the clipping plane and should
+                // be removed
 
                 startPoint = endPoint;
             }
         }
 
-        output_polygon       = output;
-        output_polygon_count = outputCount;
+        *out_polygon = *output;
     }
 }

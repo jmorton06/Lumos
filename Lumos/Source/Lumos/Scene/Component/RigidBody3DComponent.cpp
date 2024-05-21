@@ -192,6 +192,19 @@ namespace Lumos
         m_Constraint = CreateSharedPtr<SpringConstraint>(entity.GetComponent<RigidBody3DComponent>().GetRigidBody(), otherEntity.GetComponent<RigidBody3DComponent>().GetRigidBody(), 0.9f, 0.5f);
     }
 
+    void SpringConstraintComponent::Initialise()
+    {
+        Scene* scene   = Application::Get().GetCurrentScene();
+        Entity entity1 = scene->GetEntityByUUID(m_EntityID);
+        Entity entity2 = scene->GetEntityByUUID(m_OtherEntityID);
+
+        if(entity1 && entity2 && entity1.HasComponent<RigidBody3DComponent>() && entity2.HasComponent<RigidBody3DComponent>())
+        {
+            m_Constraint  = CreateSharedPtr<SpringConstraint>(entity1.GetComponent<RigidBody3DComponent>().GetRigidBody(), entity2.GetComponent<RigidBody3DComponent>().GetRigidBody(), m_Constant, 0.5f);
+            m_Initialised = true;
+        }
+    }
+
     WeldConstraintComponent::WeldConstraintComponent(Entity entity, Entity otherEntity, const glm::vec3& pos1, const glm::vec3& pos2, float constant)
     {
         m_Constraint = CreateSharedPtr<WeldConstraint>(entity.GetComponent<RigidBody3DComponent>().GetRigidBody(), otherEntity.GetComponent<RigidBody3DComponent>().GetRigidBody());

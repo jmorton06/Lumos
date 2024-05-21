@@ -7,6 +7,8 @@
 #include "Graphics/Model.h"
 #include "Graphics/Mesh.h"
 #include "Graphics/Material.h"
+#include "Graphics/Animation/Skeleton.h"
+#include "Graphics/Animation/Animation.h"
 
 #include "Graphics/RHI/Texture.h"
 #include "Maths/MathsBasicTypes.h"
@@ -25,6 +27,20 @@
 #endif
 #include <ModelLoaders/tinygltf/tiny_gltf.h>
 #include <stb_image_resize2.h>
+
+#include <glm/ext/matrix_float4x4.hpp>
+#include <glm/mat3x3.hpp>
+#include <glm/mat4x4.hpp>
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/quaternion.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
+#include <ozz/animation/runtime/animation.h>
+#include <ozz/animation/offline/animation_builder.h>
+#include <ozz/animation/runtime/skeleton.h>
+#include <ozz/animation/offline/skeleton_builder.h>
+#include <ozz-animation/src/animation/offline/gltf/gltf2ozz.cc>
+#include <ozz/animation/runtime/local_to_model_job.h>
 
 namespace Lumos::Graphics
 {
@@ -110,6 +126,11 @@ namespace Lumos::Graphics
         std::vector<SharedPtr<Material>> loadedMaterials;
         loadedTextures.reserve(gltfModel.textures.size());
         loadedMaterials.reserve(gltfModel.materials.size());
+        bool animated = false;
+        if(gltfModel.skins.size() >= 0)
+        {
+            animated = true;
+        }
 
         for(tinygltf::Texture& gltfTexture : gltfModel.textures)
         {
@@ -195,7 +216,7 @@ namespace Lumos::Graphics
         {
             // TODO : if(isAnimated) Load deferredColourAnimated;
             // auto shader = Application::Get().GetShaderLibrary()->GetAsset("//CoreShaders/ForwardPBR.shader");
-            auto shader = Application::Get().GetAssetManager()->GetAssetData("ForwardPBR").As<Graphics::Shader>();
+            auto shader = Application::Get().GetAssetManager()->GetAssetData(animated ? "ForwardPBRAnim" : "ForwardPBR").As<Graphics::Shader>();
 
             SharedPtr<Material> pbrMaterial = CreateSharedPtr<Material>(shader);
             PBRMataterialTextures textures;
@@ -309,22 +330,19 @@ namespace Lumos::Graphics
 
         for(auto& primitive : mesh.primitives)
         {
-            const tinygltf::Accessor& indicesAccessor = model.accessors[primitive.indices];
-
-            std::vector<uint32_t> indices;
             std::vector<Graphics::Vertex> vertices;
-            std::vector<Graphics::BoneInfluence> boneInfluences;
+            std::vector<Graphics::AnimVertex> animVertices;
 
             uint32_t vertexCount = (uint32_t)(primitive.attributes.empty() ? 0 : model.accessors.at(primitive.attributes["POSITION"]).count);
 
-            indices.resize(indicesAccessor.count);
-            vertices.resize(vertexCount);
-
+            bool hasNormals    = false;
             bool hasTangents   = false;
             bool hasBitangents = false;
             bool hasWeights    = false;
-            bool hasJoints     = false; 
+            bool hasJoints     = false;
 
+            if(primitive.attributes.find("NORMAL") != primitive.attributes.end())
+                hasNormals = true;
             if(primitive.attributes.find("TANGENT") != primitive.attributes.end())
                 hasTangents = true;
             if(primitive.attributes.find("JOINTS_0") != primitive.attributes.end())
@@ -335,7 +353,11 @@ namespace Lumos::Graphics
                 hasBitangents = true;
 
             if(hasJoints || hasWeights)
-                boneInfluences.resize(vertexCount);
+                animVertices.resize(vertexCount);
+
+            vertices.resize(vertexCount);
+
+#define VERTEX(i, member) (hasWeights ? vertices[i].member : animVertices[i].member)
 
             for(auto& attribute : primitive.attributes)
             {
@@ -346,13 +368,14 @@ namespace Lumos::Graphics
                 int componentLength       = GLTF_COMPONENT_LENGTH_LOOKUP.at(accessor.type);
                 int componentTypeByteSize = GLTF_COMPONENT_BYTE_SIZE_LOOKUP.at(accessor.componentType);
 
+                int stride = accessor.ByteStride(bufferView);
+
                 // Extra vertex data from buffer
                 size_t bufferOffset       = bufferView.byteOffset + accessor.byteOffset;
                 int bufferLength          = static_cast<int>(accessor.count) * componentLength * componentTypeByteSize;
                 auto first                = buffer.data.begin() + bufferOffset;
                 auto last                 = buffer.data.begin() + bufferOffset + bufferLength;
                 std::vector<uint8_t> data = std::vector<uint8_t>(first, last);
-
                 // -------- Position attribute -----------
 
                 if(attribute.first == "POSITION")
@@ -439,11 +462,52 @@ namespace Lumos::Graphics
                 {
                     hasWeights = true;
 
-                    size_t weightCount            = accessor.count;
-                    Maths::Vector4Simple* weights = reinterpret_cast<Maths::Vector4Simple*>(data.data());
-                    for(auto p = 0; p < weightCount; ++p)
+                    size_t weightCount = accessor.count;
+
+                    if(accessor.componentType == TINYGLTF_COMPONENT_TYPE_FLOAT)
                     {
-                        boneInfluences[p].AddBoneData(static_cast<uint32_t>(weights[p].x), weights[p].w);
+                        Maths::Vector4Simple* weights = reinterpret_cast<Maths::Vector4Simple*>(data.data());
+                        for(auto p = 0; p < weightCount; ++p)
+                        {
+                            animVertices[p].Weights[0] = weights[p].x;
+                            animVertices[p].Weights[1] = weights[p].y;
+                            animVertices[p].Weights[2] = weights[p].z;
+                            animVertices[p].Weights[3] = weights[p].w;
+                        }
+                    }
+                    else if(accessor.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT)
+                    {
+                        for(auto i = 0; i < weightCount; ++i)
+                        {
+                            const uint8_t& x = *(uint8_t*)((size_t)data.data() + i * stride + 0 * sizeof(uint16_t));
+                            const uint8_t& y = *(uint8_t*)((size_t)data.data() + i * stride + 1 * sizeof(uint16_t));
+                            const uint8_t& z = *(uint8_t*)((size_t)data.data() + i * stride + 2 * sizeof(uint16_t));
+                            const uint8_t& w = *(uint8_t*)((size_t)data.data() + i * stride + 3 * sizeof(uint16_t));
+
+                            animVertices[i].Weights[0] = (float)x / 65535.0f;
+                            animVertices[i].Weights[1] = (float)y / 65535.0f;
+                            animVertices[i].Weights[2] = (float)z / 65535.0f;
+                            animVertices[i].Weights[3] = (float)w / 65535.0f;
+                        }
+                    }
+                    else if(accessor.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE)
+                    {
+                        for(auto i = 0; i < weightCount; ++i)
+                        {
+                            const uint8_t& x = *(uint8_t*)((size_t)data.data() + i * stride + 0);
+                            const uint8_t& y = *(uint8_t*)((size_t)data.data() + i * stride + 1);
+                            const uint8_t& z = *(uint8_t*)((size_t)data.data() + i * stride + 2);
+                            const uint8_t& w = *(uint8_t*)((size_t)data.data() + i * stride + 3);
+
+                            animVertices[i].Weights[0] = (float)x / 255.0f;
+                            animVertices[i].Weights[1] = (float)y / 255.0f;
+                            animVertices[i].Weights[2] = (float)z / 255.0f;
+                            animVertices[i].Weights[3] = (float)w / 255.0f;
+                        }
+                    }
+                    else
+                    {
+                        LUMOS_LOG_WARN("Unsupported weight data type");
                     }
                 }
 
@@ -453,74 +517,152 @@ namespace Lumos::Graphics
                 {
                     hasJoints = true;
 
-                    size_t jointCount            = accessor.count;
-                    Maths::Vector4Simple* joints = reinterpret_cast<Maths::Vector4Simple*>(data.data());
-                    for(auto p = 0; p < jointCount; ++p)
+                    size_t jointCount = accessor.count;
+                    if(accessor.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT)
                     {
-                        boneInfluences[p].BoneInfoIndices[0] = static_cast<uint32_t>(joints[p].x);
-                        boneInfluences[p].BoneInfoIndices[0] = static_cast<uint32_t>(joints[p].y);
-                        boneInfluences[p].BoneInfoIndices[0] = static_cast<uint32_t>(joints[p].z);
-                        boneInfluences[p].BoneInfoIndices[0] = static_cast<uint32_t>(joints[p].w);
+                        struct JointTmp
+                        {
+                            uint16_t ind[4];
+                        };
+
+                        uint16_t* joints = reinterpret_cast<uint16_t*>(data.data());
+                        for(auto p = 0; p < jointCount; ++p)
+                        {
+                            const JointTmp& joint = *(const JointTmp*)(data.data() + p * stride);
+
+                            animVertices[p].BoneInfoIndices[0] = (uint32_t)joint.ind[0];
+                            animVertices[p].BoneInfoIndices[1] = (uint32_t)joint.ind[1];
+                            animVertices[p].BoneInfoIndices[2] = (uint32_t)joint.ind[2];
+                            animVertices[p].BoneInfoIndices[3] = (uint32_t)joint.ind[3];
+                        }
+                    }
+                    else if(accessor.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE)
+                    {
+                        uint8_t* joints = reinterpret_cast<uint8_t*>(data.data());
+                        for(auto p = 0; p < jointCount; ++p)
+                        {
+                            animVertices[p].BoneInfoIndices[0] = (uint32_t)joints[p * 4];
+                            animVertices[p].BoneInfoIndices[1] = (uint32_t)joints[p * 4 + 1];
+                            animVertices[p].BoneInfoIndices[2] = (uint32_t)joints[p * 4 + 2];
+                            animVertices[p].BoneInfoIndices[3] = (uint32_t)joints[p * 4 + 3];
+                        }
+                    }
+                    else if(accessor.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT)
+                    {
+                        struct JointTmp
+                        {
+                            uint32_t ind[4];
+                        };
+
+                        for(size_t i = 0; i < jointCount; ++i)
+                        {
+                            const JointTmp& joint = *(const JointTmp*)(data.data() + i * stride);
+
+                            animVertices[i].BoneInfoIndices[0] = joint.ind[0];
+                            animVertices[i].BoneInfoIndices[1] = joint.ind[1];
+                            animVertices[i].BoneInfoIndices[2] = joint.ind[2];
+                            animVertices[i].BoneInfoIndices[3] = joint.ind[3];
+                        }
+                    }
+                    else
+                    {
+                        LUMOS_LOG_WARN("Unsupported joint data type");
                     }
                 }
             }
 
             // -------- Indices ----------
+            std::vector<uint32_t> indices;
+            if(primitive.indices >= 0)
             {
-                // Get accessor info
-                auto indexAccessor   = model.accessors.at(primitive.indices);
-                auto indexBufferView = model.bufferViews.at(indexAccessor.bufferView);
-                auto indexBuffer     = model.buffers.at(indexBufferView.buffer);
-
-                int componentLength       = GLTF_COMPONENT_LENGTH_LOOKUP.at(indexAccessor.type);
-                int componentTypeByteSize = GLTF_COMPONENT_BYTE_SIZE_LOOKUP.at(indexAccessor.componentType);
-
-                // Extra index data
-                size_t bufferOffset       = indexBufferView.byteOffset + indexAccessor.byteOffset;
-                int bufferLength          = static_cast<int>(indexAccessor.count) * componentLength * componentTypeByteSize;
-                auto first                = indexBuffer.data.begin() + bufferOffset;
-                auto last                 = indexBuffer.data.begin() + bufferOffset + bufferLength;
-                std::vector<uint8_t> data = std::vector<uint8_t>(first, last);
-
-                size_t indicesCount = indexAccessor.count;
-                if(componentTypeByteSize == 1)
+                const tinygltf::Accessor& indicesAccessor = model.accessors[primitive.indices];
+                indices.resize(indicesAccessor.count);
                 {
-                    uint8_t* in = reinterpret_cast<uint8_t*>(data.data());
-                    for(auto iCount = 0; iCount < indicesCount; iCount++)
+                    // Get accessor info
+                    auto indexAccessor   = model.accessors.at(primitive.indices);
+                    auto indexBufferView = model.bufferViews.at(indexAccessor.bufferView);
+                    auto indexBuffer     = model.buffers.at(indexBufferView.buffer);
+
+                    int componentLength       = GLTF_COMPONENT_LENGTH_LOOKUP.at(indexAccessor.type);
+                    int componentTypeByteSize = GLTF_COMPONENT_BYTE_SIZE_LOOKUP.at(indexAccessor.componentType);
+
+                    // Extra index data
+                    size_t bufferOffset       = indexBufferView.byteOffset + indexAccessor.byteOffset;
+                    int bufferLength          = static_cast<int>(indexAccessor.count) * componentLength * componentTypeByteSize;
+                    auto first                = indexBuffer.data.begin() + bufferOffset;
+                    auto last                 = indexBuffer.data.begin() + bufferOffset + bufferLength;
+                    std::vector<uint8_t> data = std::vector<uint8_t>(first, last);
+
+                    size_t indicesCount = indexAccessor.count;
+                    if(componentTypeByteSize == 1)
                     {
-                        indices[iCount] = (uint32_t)in[iCount];
+                        uint8_t* in = reinterpret_cast<uint8_t*>(data.data());
+                        for(auto iCount = 0; iCount < indicesCount; iCount++)
+                        {
+                            indices[iCount] = (uint32_t)in[iCount];
+                        }
+                    }
+                    else if(componentTypeByteSize == 2)
+                    {
+                        uint16_t* in = reinterpret_cast<uint16_t*>(data.data());
+                        for(auto iCount = 0; iCount < indicesCount; iCount++)
+                        {
+                            indices[iCount] = (uint32_t)in[iCount];
+                        }
+                    }
+                    else if(componentTypeByteSize == 4)
+                    {
+                        auto in = reinterpret_cast<uint32_t*>(data.data());
+                        for(auto iCount = 0; iCount < indicesCount; iCount++)
+                        {
+                            indices[iCount] = in[iCount];
+                        }
+                    }
+                    else
+                    {
+                        LUMOS_LOG_WARN("Unsupported indices data type - {0}", componentTypeByteSize);
                     }
                 }
-                else if(componentTypeByteSize == 2)
+            }
+            else
+            {
+                LUMOS_LOG_WARN("Missing Indices - Generating new");
+
+                const auto& accessor = model.accessors[primitive.attributes.find("POSITION")->second];
+                indices.reserve(accessor.count);
+                //                for (auto i = 0; i < accessor.count; i++)
+                //                       indices.push_back(i);
+
+                for(size_t vi = 0; vi < accessor.count; vi += 3)
                 {
-                    uint16_t* in = reinterpret_cast<uint16_t*>(data.data());
-                    for(auto iCount = 0; iCount < indicesCount; iCount++)
-                    {
-                        indices[iCount] = (uint32_t)in[iCount];
-                    }
-                }
-                else if(componentTypeByteSize == 4)
-                {
-                    auto in = reinterpret_cast<uint32_t*>(data.data());
-                    for(auto iCount = 0; iCount < indicesCount; iCount++)
-                    {
-                        indices[iCount] = in[iCount];
-                    }
-                }
-                else
-                {
-                    LUMOS_LOG_WARN("Unsupported indices data type - {0}", componentTypeByteSize);
+                    indices.push_back(uint32_t(vi + 0));
+                    indices.push_back(uint32_t(vi + 1));
+                    indices.push_back(uint32_t(vi + 2));
                 }
             }
 
+            if(!hasNormals)
+                Graphics::Mesh::GenerateNormals(vertices.data(), uint32_t(vertices.size()), indices.data(), uint32_t(indices.size()));
             if(!hasTangents || !hasBitangents)
                 Graphics::Mesh::GenerateTangentsAndBitangents(vertices.data(), uint32_t(vertices.size()), indices.data(), uint32_t(indices.size()));
 
             // Add mesh
             Graphics::Mesh* lMesh;
-            
+
             if(hasJoints || hasWeights)
-                lMesh = new Graphics::Mesh(indices, vertices, boneInfluences);
+            {
+                for(size_t i = 0; i < vertices.size(); i++)
+                {
+                    animVertices[i].NormalizeWeights();
+                    animVertices[i].Position  = vertices[i].Position;
+                    animVertices[i].Normal    = vertices[i].Normal;
+                    animVertices[i].Colours   = vertices[i].Colours;
+                    animVertices[i].Tangent   = vertices[i].Tangent;
+                    animVertices[i].Bitangent = vertices[i].Bitangent;
+                    animVertices[i].TexCoords = vertices[i].TexCoords;
+                }
+                lMesh = new Graphics::Mesh(indices, animVertices);
+            }
             else
                 lMesh = new Graphics::Mesh(indices, vertices);
 
@@ -608,9 +750,9 @@ namespace Lumos::Graphics
 
                 mainModel->AddMesh(lMesh);
 
-                /*if (node.skin >= 0)
-                {
-                }*/
+                // if (node.skin >= 0)
+                // {
+                // }
 
                 subIndex++;
             }
@@ -623,6 +765,29 @@ namespace Lumos::Graphics
                 LoadNode(mainModel, child, transform.GetLocalMatrix(), model, materials, meshes);
             }
         }
+    }
+
+    glm::mat4 ConvertToGLM2(const ozz::math::Float4x4& ozzMat)
+    {
+        glm::mat4 glmMat;
+
+        // Assuming ozz::math::Float4x4 is column-major
+        float matrix[16];
+        for(int r = 0; r < 4; r++)
+        {
+            float result[4];
+            std::memcpy(result, ozzMat.cols + r, sizeof(ozzMat.cols[r]));
+            float dresult[4];
+            for(int j = 0; j < 4; j++)
+            {
+                dresult[j] = result[j];
+            }
+            //_mm_store_ps(result,p.cols[r]);
+            std::memcpy(matrix + r * 4, dresult, sizeof(dresult));
+        }
+
+        glmMat = glm::make_mat4(matrix);
+        return glmMat;
     }
 
     void Model::LoadGLTF(const std::string& path)
@@ -661,7 +826,7 @@ namespace Lumos::Graphics
             LUMOS_LOG_ERROR(warn);
         }
 
-        if(!ret)
+        if(!ret || model.defaultScene < 0 || model.scenes.empty())
         {
             LUMOS_LOG_ERROR("Failed to parse glTF");
         }
@@ -680,8 +845,57 @@ namespace Lumos::Graphics
             }
 
             auto skins = model.skins;
-            if(!skins.empty())
+            if(!skins.empty() || !model.animations.empty())
             {
+                using namespace ozz::animation::offline;
+                GltfImporter impl;
+                ozz::animation::offline::OzzImporter& importer = impl;
+                OzzImporter::NodeType types                    = {};
+
+                importer.Load(path.c_str());
+                RawSkeleton* rawSkeleton = new RawSkeleton();
+                importer.Import(rawSkeleton, types);
+
+                ozz::animation::offline::SkeletonBuilder skeletonBuilder;
+
+                m_Skeleton = CreateSharedPtr<Skeleton>(skeletonBuilder(*rawSkeleton).release());
+                if(m_Skeleton->Valid())
+                {
+                    ozz::vector<ozz::math::Float4x4> bindposes_ozz;
+                    m_BindPoses.reserve(m_Skeleton->GetSkeleton().joint_names().size());
+                    bindposes_ozz.resize(m_Skeleton->GetSkeleton().joint_names().size());
+
+                    // convert from local space to model space
+                    ozz::animation::LocalToModelJob job;
+                    job.skeleton = &m_Skeleton->GetSkeleton();
+                    job.input    = ozz::span(m_Skeleton->GetSkeleton().joint_rest_poses());
+                    job.output   = ozz::make_span(bindposes_ozz); //, m_Skeleton->GetSkeleton().joint_names().size_bytes());
+
+                    if(!job.Run())
+                    {
+                        LUMOS_LOG_ERROR("Failed to run ozz LocalToModelJob");
+                    }
+
+                    for(auto& pose : bindposes_ozz)
+                    {
+                        m_BindPoses.push_back(glm::inverse(ConvertToGLM2(pose)));
+                    }
+
+                    ozz::animation::offline::AnimationBuilder animBuilder;
+                    auto animationNames = importer.GetAnimationNames();
+
+                    for(auto& animName : animationNames)
+                    {
+                        RawAnimation* rawAnimation = new RawAnimation();
+                        importer.Import(animName.c_str(), m_Skeleton->GetSkeleton(), 30.0f, rawAnimation);
+
+                        m_Animation.push_back(CreateSharedPtr<Animation>(std::string(animName.c_str()), animBuilder(*rawAnimation).release(), m_Skeleton));
+
+                        delete rawAnimation;
+                    }
+                }
+
+                delete rawSkeleton;
             }
         }
     }

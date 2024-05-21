@@ -1,15 +1,12 @@
 #pragma once
 #include "Graphics/RHI/Texture.h"
 #include "VK.h"
-#include "Graphics/RHI/GraphicsContext.h"
-#include "VKContext.h"
-#include "VKCommandBuffer.h"
-#include "VKBuffer.h"
 
 namespace Lumos
 {
     namespace Graphics
     {
+        class VKCommandBuffer;
 #ifdef USE_VMA_ALLOCATOR
         void CreateImage(uint32_t width, uint32_t height, uint32_t mipLevels, VkFormat format, VkImageType imageType, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory, uint32_t arrayLayers, VkImageCreateFlags flags, VmaAllocation& allocation, uint32_t samples = 1);
 #else
@@ -133,10 +130,10 @@ namespace Lumos
                 return m_VKFormat;
             }
 
-			uint8_t GetSamples() const override
-			{
-				return m_Samples;
-			}
+            uint8_t GetSamples() const override
+            {
+                return m_Samples;
+            }
 
             VkImageView GetMipImageView(uint32_t mip);
 
@@ -157,7 +154,7 @@ namespace Lumos
             uint32_t m_Width {}, m_Height {};
             uint32_t m_MipLevels = 1;
             uint8_t* m_Data      = nullptr;
-            uint8_t m_Samples = 1;
+            uint8_t m_Samples    = 1;
 
             TextureDesc m_Parameters;
             TextureLoadOptions m_LoadOptions;
@@ -390,10 +387,10 @@ namespace Lumos
                 return m_Format;
             }
 
-			uint8_t GetSamples() const override
-			{
-				return m_Samples;
-			}
+            uint8_t GetSamples() const override
+            {
+                return m_Samples;
+            }
 
             VkImage GetImage() const
             {

@@ -22,9 +22,10 @@
 #
 
 ## Screenshots
+![Lumos](/Resources/Screenshot0424-2.png?raw=true)
+![Lumos](/Resources/Screenshot0424.png?raw=true)
 ![Lumos](/Resources/Screenshot1022.png?raw=true)
-![Lumos](/Resources/Screenshot09222.png?raw=true)
-![Lumos](/Resources/Screenshot0622.png?raw=true)
+![Lumos](/Resources/Screenshot0923.png?raw=true)
 #
 
 ## Building 🔨
@@ -43,7 +44,7 @@ cd Lumos
 Tools/linux/premake5 gmake2
 make -j8 # config=release
 ```
-#### Windows 
+#### Windows
 Run Scripts/GenerateVS.bat to generate a visual studio project.
 ```
 cd Lumos
@@ -56,7 +57,7 @@ Tools/premake5 xcode4
 xcodebuild -project Runtime/Runtime.xcodeproj
 ```
 
-M1/M2/M3 Macs may need : 
+M1/M2/M3 Macs may need :
 ```
 cd Lumos
 Tools/premake5 xcode4 --arch=arm64 --os=macosx
@@ -91,7 +92,7 @@ To run on apple devices with Vulkan ( MoltenVK ), disable Metal API Validation h
 ## Dependencies
  * [imgui](https://github.com/ocornut/imgui) : Dear ImGui: Bloat-free Immediate Mode Graphical User interface for C++ with minimal dependencies.
  * [imguizmo](https://github.com/CedricGuillemet/ImGuizmo) : Immediate mode 3D gizmo for scene editing and other controls based on Dear Imgui.
- * [entt](https://github.com/skypjack/entt) : Fast and reliable entity-component system (ECS) 
+ * [entt](https://github.com/skypjack/entt) : Fast and reliable entity-component system (ECS)
  * [glfw](https://github.com/glfw/glfw) : A multi-platform library for OpenGL, OpenGL ES, Vulkan, window and input.
  * [spdlog](https://github.com/gabime/spdlog) : Fast C++ logging library.
  * [stb](https://github.com/nothings/stb) : Single-file public domain (or MIT licensed) libraries for C/C++.

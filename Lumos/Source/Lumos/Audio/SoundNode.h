@@ -1,6 +1,6 @@
 #pragma once
 #include "Sound.h"
-#include <glm/vec3.hpp>
+#include <glm/ext/vector_float3.hpp>
 
 namespace Lumos
 {

@@ -16,7 +16,6 @@
 #endif
 
 #include <filesystem>
-
 #include <shellapi.h>
 #include <dwmapi.h>
 #include <winuser.h>
@@ -86,14 +85,15 @@ namespace Lumos
         return convertedString;
     }
 
-    void WindowsOS::OpenFileLocation(const std::filesystem::path& path)
+    void WindowsOS::OpenFileLocation(const std::string& path)
     {
-        ShellExecuteA(NULL, "open", std::filesystem::is_directory(path) ? path.string().c_str() : path.parent_path().string().c_str(), NULL, NULL, SW_SHOWNORMAL);
+        std::filesystem::path fsPath = path;
+        ShellExecuteA(NULL, "open", std::filesystem::is_directory(fsPath) ? path.c_str() : fsPath.parent_path().string().c_str(), NULL, NULL, SW_SHOWNORMAL);
     }
 
-    void WindowsOS::OpenFileExternal(const std::filesystem::path& path)
+    void WindowsOS::OpenFileExternal(const std::string& path)
     {
-        ShellExecuteA(NULL, "open", path.string().c_str(), NULL, NULL, SW_SHOWNORMAL);
+        ShellExecuteA(NULL, "open", path.c_str(), NULL, NULL, SW_SHOWNORMAL);
     }
 
     void WindowsOS::OpenURL(const std::string& url)

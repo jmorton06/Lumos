@@ -20,12 +20,16 @@ namespace Lumos
 
         // Copy assignment
         Vector<T>& operator=(const Vector<T>& other);
+        // Move assignment
+        Vector<T>& operator=(Vector<T>&& other) noexcept;
 
         // Element access
         T& operator[](size_t index);
         const T& operator[](size_t index) const;
+
         T& Front();
         const T& Front() const;
+
         T& Back();
         const T& Back() const;
 
@@ -76,9 +80,9 @@ namespace Lumos
                 ++ptr;
                 return *this;
             }
-            bool operator!=(const Iterator& other) const { return ptr != other.ptr; }
+            bool operator!=(const ConstIterator& other) const { return ptr != other.ptr; }
             const T& operator*() const { return *ptr; }
-            Iterator operator+(int offset) const { return Iterator(ptr + offset); }
+            ConstIterator operator+(int offset) const { return ConstIterator(ptr + offset); }
 
         private:
             const T* ptr;
@@ -174,20 +178,34 @@ namespace Lumos
         return *this;
     }
 
+    // Move assignment implementation
+    template <class T>
+    Vector<T>& Vector<T>::operator=(Vector<T>&& other) noexcept
+    {
+        std::swap(m_Data, other.m_Data);
+        std::swap(m_Arena, other.m_Arena);
+        std::swap(m_Size, other.m_Size);
+        std::swap(m_Capacity, other.m_Capacity);
+
+        other.m_Capacity = 0;
+        other.m_Data     = nullptr;
+        other.m_Arena    = nullptr;
+
+        return *this;
+    }
+
     // Element access implementations
     template <class T>
     T& Vector<T>::operator[](size_t index)
     {
-        if(index >= m_Size)
-            LUMOS_ASSERT(index < m_Size, "Index must be less than vector's size");
+        LUMOS_ASSERT(index < m_Size, "Index must be less than vector's size");
         return m_Data[index];
     }
 
     template <class T>
     const T& Vector<T>::operator[](size_t index) const
     {
-        if(index >= m_Size)
-            LUMOS_ASSERT(index < m_Size, "Index must be less than vector's size");
+        LUMOS_ASSERT(index < m_Size, "Index must be less than vector's size");
         return m_Data[index];
     }
 
@@ -319,7 +337,7 @@ namespace Lumos
     template <class T>
     void Vector<T>::Destroy() noexcept
     {
-        if(!m_Arena)
+        if(!m_Arena && m_Data)
             delete[] m_Data;
         m_Data     = nullptr;
         m_Size     = 0;

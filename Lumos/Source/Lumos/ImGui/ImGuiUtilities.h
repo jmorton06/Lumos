@@ -6,13 +6,12 @@
 #include <glm/fwd.hpp>
 #include <iostream>
 
-
 static float value1 = 0.0f;
 static float value2 = 0.0f;
 #define IMGUI_VALUE_WINDOW(windowName, valueName, value) \
-ImGui::Begin(windowName, nullptr); \
-ImGui::DragFloat(valueName, &value);\
-ImGui::End();
+    ImGui::Begin(windowName, nullptr);                   \
+    ImGui::DragFloat(valueName, &value);                 \
+    ImGui::End();
 
 namespace Lumos
 {
@@ -27,11 +26,11 @@ namespace Lumos
     {
         enum class PropertyFlag
         {
-            None           = 0,
-            ColourProperty = 1,
-            ReadOnly       = 2,
-            DragValue      = 3,
-            SliderValue    = 4,
+            None           = BIT(0),
+            ColourProperty = BIT(1),
+            ReadOnly       = BIT(2),
+            DragValue      = BIT(3),
+            SliderValue    = BIT(4),
         };
 
         enum Theme
@@ -55,6 +54,7 @@ namespace Lumos
         bool Property(const char* name, bool& value, PropertyFlag flags = PropertyFlag::None);
         bool Property(const char* name, int& value, PropertyFlag flags);
         bool Property(const char* name, uint32_t& value, PropertyFlag flags = PropertyFlag::None);
+        bool Property(const char* name, uint64_t& value, PropertyFlag flags = PropertyFlag::None);
         bool Property(const char* name, uint8_t& value, PropertyFlag flags = PropertyFlag::None);
         bool PropertyMultiline(const char* label, std::string& value);
 

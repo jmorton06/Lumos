@@ -1,26 +1,26 @@
 #pragma once
-#include <deque>
+#include "Core/DataStructures/Vector.h"
 namespace Lumos
 {
     struct DeletionQueue
     {
-        std::deque<std::function<void()>> Deletors;
+        Vector<std::function<void()>> Deletors;
 
         template <typename F>
         void PushFunction(F&& function)
         {
             LUMOS_ASSERT(sizeof(F) < 200, "Lambda too large");
-            Deletors.push_back(function);
+            Deletors.PushBack(function);
         }
 
         void Flush()
         {
-            for(auto it = Deletors.rbegin(); it != Deletors.rend(); it++)
+            for(auto& deleteFunc : Deletors)
             {
-                (*it)();
+                deleteFunc();
             }
 
-            Deletors.clear();
+            Deletors.Clear();
         }
     };
 }

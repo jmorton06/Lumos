@@ -49,18 +49,18 @@ namespace Lumos
         }
     }
 
-    void UnixOS::OpenFileLocation(const std::filesystem::path& path)
+    void UnixOS::OpenFileLocation(const std::string& path)
     {
 #ifndef LUMOS_PLATFORM_MOBILE
-        std::string command = "open -R " + path.string();
+        std::string command = "open -R " + path;
         std::system(command.c_str());
 #endif
     }
 
-    void UnixOS::OpenFileExternal(const std::filesystem::path& path)
+    void UnixOS::OpenFileExternal(const std::string& path)
     {
 #ifndef LUMOS_PLATFORM_MOBILE
-        std::string command = "open " + path.string();
+        std::string command = "open " + path;
         std::system(command.c_str());
 #endif
     }

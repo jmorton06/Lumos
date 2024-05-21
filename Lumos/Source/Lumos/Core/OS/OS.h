@@ -1,13 +1,6 @@
 #pragma once
 #include "Core/Core.h"
-
-#include <glm/vec4.hpp>
-
-#if __has_include(<filesystem>)
-#include <filesystem>
-#elif __has_include(<experimental/filesystem>)
-#include <experimental/filesystem>
-#endif
+#include <glm/ext/vector_float4.hpp>
 
 namespace Lumos
 {
@@ -55,8 +48,8 @@ namespace Lumos
         // Needed for MaxOS
         virtual void MaximiseWindow() { }
 
-        virtual void OpenFileLocation(const std::filesystem::path& path) { }
-        virtual void OpenFileExternal(const std::filesystem::path& path) { }
+        virtual void OpenFileLocation(const std::string& path) { }
+        virtual void OpenFileExternal(const std::string& path) { }
         virtual void OpenURL(const std::string& url) { }
 
     protected:

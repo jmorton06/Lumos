@@ -39,6 +39,9 @@ namespace Lumos
             m_Callback(filePath);
 
             m_FileBrowser->ClearSelected();
+            auto flags = m_FileBrowser->GetFlags();
+            flags &= ~(ImGuiFileBrowserFlags_SelectDirectory);
+            m_FileBrowser->SetFlags(flags);
         }
     }
 

@@ -5,11 +5,8 @@
 #include "Core/OS/FileSystem.h"
 #include "Core/QualitySettings.h"
 
+#include <glm/fwd.hpp>
 #include <thread>
-#include <cereal/types/vector.hpp>
-#include <cereal/cereal.hpp>
-#include <queue>
-#include <glm/vec2.hpp>
 
 namespace Lumos
 {
@@ -57,10 +54,18 @@ namespace Lumos
     {
         friend class Editor;
         friend class Runtime;
+        template <typename Archive>
+        friend void save(Archive& archive, const Application& application);
+
+        template <typename Archive>
+        friend void load(Archive& archive, Application& application);
 
     public:
         Application();
         virtual ~Application();
+
+        virtual void Init();
+        virtual void OnQuit();
 
         void Run();
         bool OnFrame();
@@ -70,8 +75,6 @@ namespace Lumos
         void OpenProject(const std::string& filePath);
         void OpenNewProject(const std::string& path, const std::string& name = "New Project");
 
-        virtual void OnQuit();
-        virtual void Init();
         virtual void OnEvent(Event& e);
         virtual void OnNewScene(Scene* scene);
         virtual void OnRender();
@@ -123,7 +126,7 @@ namespace Lumos
         template <typename Func>
         void QueueEvent(Func&& func)
         {
-            m_EventQueue.push(func);
+            m_EventQueue.PushBack(func);
         }
 
         template <typename TEvent, bool Immediate = false, typename... TEventArgs>
@@ -137,8 +140,8 @@ namespace Lumos
             else
             {
                 std::scoped_lock<std::mutex> lock(m_EventQueueMutex);
-                m_EventQueue.push([event]()
-                                  { Application::Get().OnEvent(*event); });
+                m_EventQueue.PushBack([event]()
+                                      { Application::Get().OnEvent(*event); });
             }
         }
 
@@ -162,113 +165,13 @@ namespace Lumos
         virtual void Serialise();
         virtual void Deserialise();
 
-        template <typename Archive>
-        void save(Archive& archive) const
-
-        {
-            int projectVersion = 8;
-
-            archive(cereal::make_nvp("Project Version", projectVersion));
-
-            // Version 1
-
-            std::string path;
-
-            // Window size and full screen shouldnt be in project
-
-            // Version 8 removed width and height
-            archive(cereal::make_nvp("RenderAPI", m_ProjectSettings.RenderAPI),
-                    cereal::make_nvp("Fullscreen", m_ProjectSettings.Fullscreen),
-                    cereal::make_nvp("VSync", m_ProjectSettings.VSync),
-                    cereal::make_nvp("ShowConsole", m_ProjectSettings.ShowConsole),
-                    cereal::make_nvp("Title", m_ProjectSettings.Title));
-            // Version 2
-
-            auto paths = m_SceneManager->GetSceneFilePaths();
-            std::vector<std::string> newPaths;
-            for(auto& path : paths)
-            {
-                std::string newPath;
-                FileSystem::Get().AbsolutePathToFileSystem(path, newPath);
-                newPaths.push_back(path);
-            }
-            archive(cereal::make_nvp("Scenes", newPaths));
-            // Version 3
-            archive(cereal::make_nvp("SceneIndex", m_SceneManager->GetCurrentSceneIndex()));
-            // Version 4
-            archive(cereal::make_nvp("Borderless", m_ProjectSettings.Borderless));
-            // Version 5
-            archive(cereal::make_nvp("EngineAssetPath", m_ProjectSettings.m_EngineAssetPath));
-            // Version 6
-            archive(cereal::make_nvp("GPUIndex", m_ProjectSettings.DesiredGPUIndex));
-        }
-
-        template <typename Archive>
-        void load(Archive& archive)
-        {
-            int sceneIndex = 0;
-            archive(cereal::make_nvp("Project Version", m_ProjectSettings.ProjectVersion));
-
-            std::string test;
-            if(m_ProjectSettings.ProjectVersion < 8)
-            {
-                archive(cereal::make_nvp("RenderAPI", m_ProjectSettings.RenderAPI),
-                        cereal::make_nvp("Width", m_ProjectSettings.Width),
-                        cereal::make_nvp("Height", m_ProjectSettings.Height),
-                        cereal::make_nvp("Fullscreen", m_ProjectSettings.Fullscreen),
-                        cereal::make_nvp("VSync", m_ProjectSettings.VSync),
-                        cereal::make_nvp("ShowConsole", m_ProjectSettings.ShowConsole),
-                        cereal::make_nvp("Title", m_ProjectSettings.Title));
-            }
-            else
-            {
-                archive(cereal::make_nvp("RenderAPI", m_ProjectSettings.RenderAPI),
-                        cereal::make_nvp("Fullscreen", m_ProjectSettings.Fullscreen),
-                        cereal::make_nvp("VSync", m_ProjectSettings.VSync),
-                        cereal::make_nvp("ShowConsole", m_ProjectSettings.ShowConsole),
-                        cereal::make_nvp("Title", m_ProjectSettings.Title));
-            }
-            if(m_ProjectSettings.ProjectVersion > 2)
-            {
-                std::vector<std::string> sceneFilePaths;
-                archive(cereal::make_nvp("Scenes", sceneFilePaths));
-
-                for(auto& filePath : sceneFilePaths)
-                {
-                    m_SceneManager->AddFileToLoadList(filePath);
-                }
-
-                if(sceneFilePaths.size() == sceneIndex)
-                    AddDefaultScene();
-            }
-            if(m_ProjectSettings.ProjectVersion > 3)
-            {
-                archive(cereal::make_nvp("SceneIndex", sceneIndex));
-                m_SceneManager->SwitchScene(sceneIndex);
-            }
-            if(m_ProjectSettings.ProjectVersion > 4)
-            {
-                archive(cereal::make_nvp("Borderless", m_ProjectSettings.Borderless));
-            }
-
-            if(m_ProjectSettings.ProjectVersion > 5)
-            {
-                archive(cereal::make_nvp("EngineAssetPath", m_ProjectSettings.m_EngineAssetPath));
-            }
-            else
-                m_ProjectSettings.m_EngineAssetPath = "/Users/jmorton/dev/Lumos/Lumos/Assets/";
-
-            if(m_ProjectSettings.ProjectVersion > 6)
-                archive(cereal::make_nvp("GPUIndex", m_ProjectSettings.DesiredGPUIndex));
-        }
-
         void MountFileSystemPaths();
 
         struct ProjectSettings
         {
             std::string m_ProjectRoot;
             std::string m_ProjectName;
-            std::string m_EngineAssetPath;
+            std::string m_EngineAssetPath; // TODO: move
             uint32_t Width = 1200, Height = 800;
             bool Fullscreen  = true;
             bool VSync       = true;
@@ -319,7 +222,7 @@ namespace Lumos
         bool m_RenderDocEnabled     = false;
 
         std::mutex m_EventQueueMutex;
-        std::queue<std::function<void()>> m_EventQueue;
+        Vector<std::function<void()>> m_EventQueue;
 
         UniquePtr<Window> m_Window;
         UniquePtr<SceneManager> m_SceneManager;

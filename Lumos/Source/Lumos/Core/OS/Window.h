@@ -4,7 +4,7 @@
 #include "Graphics/RHI/SwapChain.h"
 #include "Graphics/RHI/GraphicsContext.h"
 
-#include <glm/vec2.hpp>
+#include <glm/ext/vector_float2.hpp>
 #include <glm/fwd.hpp>
 #include <vector>
 #include <functional>
@@ -85,6 +85,7 @@ namespace Lumos
         virtual uint32_t GetHeight() const   = 0;
         virtual float GetDPIScale() const { return 1.0f; }
         virtual bool GetVSync() const { return m_VSync; };
+        virtual void UpdateControllers() { }
 
         void SetWindowFocus(bool focus) { m_WindowFocus = focus; }
         bool GetWindowFocus() const { return m_WindowFocus; }

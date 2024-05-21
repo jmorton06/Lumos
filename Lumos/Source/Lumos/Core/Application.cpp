@@ -19,7 +19,6 @@
 #include "Utilities/LoadImage.h"
 #include "Core/OS/Input.h"
 #include "Core/OS/Window.h"
-#include "Core/OS/OS.h"
 #include "Core/Profiler.h"
 #include "Core/OS/FileSystem.h"
 #include "Core/JobSystem.h"
@@ -37,9 +36,13 @@
 #include "Audio/Sound.h"
 #include "Physics/B2PhysicsEngine/B2PhysicsEngine.h"
 #include "Physics/LumosPhysicsEngine/LumosPhysicsEngine.h"
+#include "Embedded/EmbedAsset.h"
+
+#include "Core/DataStructures/Map.h"
 
 #define SERIALISATION_INCLUDE_ONLY
-#include "Scene/SerialisationImplementation.h"
+#include "Scene/Serialisation/SerialisationImplementation.h"
+#include "Scene/Serialisation/SerialiseApplication.h"
 
 #include "Embedded/splash.inl"
 
@@ -48,6 +51,8 @@
 #elif __has_include(<experimental/filesystem>)
 #include <experimental/filesystem>
 #endif
+
+#include "Core/OS/OS.h"
 
 #include <cereal/archives/json.hpp>
 #include <imgui/imgui.h>
@@ -76,6 +81,178 @@ namespace Lumos
         ImPlot::DestroyContext();
     }
 
+    void Application::Init()
+    {
+        LUMOS_PROFILE_FUNCTION();
+        m_FrameArena = ArenaAlloc(Megabytes(1));
+        m_Arena      = ArenaAlloc(Kilobytes(64));
+
+        m_EventQueue.Reserve(16);
+
+        SetMaxImageDimensions(2048, 2048);
+
+        m_SceneManager = CreateUniquePtr<SceneManager>();
+        m_AssetManager = CreateSharedPtr<AssetManager>();
+
+        Deserialise();
+
+        CommandLine* cmdline = Internal::CoreSystem::GetCmdLine();
+        if(cmdline->OptionBool(Str8Lit("help")))
+        {
+            LUMOS_LOG_INFO("Print this help.\n Option 1 : test");
+        }
+
+        Engine::Get();
+        LuaManager::Get().OnInit();
+        LuaManager::Get().OnNewProject(m_ProjectSettings.m_ProjectRoot);
+
+        m_Timer = CreateUniquePtr<Timer>();
+
+        Graphics::GraphicsContext::SetRenderAPI(static_cast<Graphics::RenderAPI>(m_ProjectSettings.RenderAPI));
+
+        WindowDesc windowDesc;
+        windowDesc.Width       = m_ProjectSettings.Width;
+        windowDesc.Height      = m_ProjectSettings.Height;
+        windowDesc.RenderAPI   = m_ProjectSettings.RenderAPI;
+        windowDesc.Fullscreen  = m_ProjectSettings.Fullscreen;
+        windowDesc.Borderless  = m_ProjectSettings.Borderless;
+        windowDesc.ShowConsole = m_ProjectSettings.ShowConsole;
+        windowDesc.Title       = m_ProjectSettings.Title;
+        windowDesc.VSync       = m_ProjectSettings.VSync;
+
+        if(m_ProjectSettings.DefaultIcon)
+        {
+            windowDesc.IconPaths = { "//Assets/Textures/icon.png", "//Assets/Textures/icon32.png" };
+        }
+
+        // Initialise the Window
+        m_Window = UniquePtr<Window>(Window::Create(windowDesc));
+        if(!m_Window->HasInitialised())
+            OnQuit();
+
+        m_Window->SetEventCallback(BIND_EVENT_FN(Application::OnEvent));
+
+        m_EditorState = EditorState::Play;
+
+        ImGui::CreateContext();
+        ImPlot::CreateContext();
+        ImGui::StyleColorsDark();
+
+        bool loadEmbeddedShaders = true;
+        if(FileSystem::FolderExists(m_ProjectSettings.m_EngineAssetPath + "Shaders"))
+            loadEmbeddedShaders = false;
+
+        if(!loadEmbeddedShaders)
+        {
+            std::string coreDataPath;
+            auto shaderPath = std::filesystem::path(m_ProjectSettings.m_EngineAssetPath + "Shaders/CompiledSPV/");
+            int shaderCount = 0;
+            if(std::filesystem::is_directory(shaderPath))
+            {
+                for(auto entry : std::filesystem::directory_iterator(shaderPath))
+                {
+                    auto extension = StringUtilities::GetFilePathExtension(entry.path().string());
+                    if(extension == "spv")
+                    {
+                        EmbedShader(entry.path().string());
+                        shaderCount++;
+                    }
+                }
+            }
+            LUMOS_LOG_INFO("Embedded {0} shaders.", shaderCount);
+        }
+        Graphics::Renderer::Init(loadEmbeddedShaders, m_ProjectSettings.m_EngineAssetPath);
+
+        if(m_ProjectSettings.Fullscreen)
+            m_Window->Maximise();
+
+        // Draw Splash Screen
+        {
+            auto desc          = Graphics::TextureDesc(Graphics::TextureFilter::LINEAR, Graphics::TextureFilter::LINEAR, Graphics::TextureWrap::REPEAT);
+            desc.flags         = Graphics::TextureFlags::Texture_Sampled;
+            auto splashTexture = Graphics::Texture2D::CreateFromSource(splashWidth, splashHeight, (void*)splash, desc);
+            Graphics::Renderer::GetRenderer()->Begin();
+            Graphics::Renderer::GetRenderer()->DrawSplashScreen(splashTexture);
+            Graphics::Renderer::GetRenderer()->Present();
+            // To Display the window
+            m_Window->ProcessInput();
+            m_Window->OnUpdate();
+
+            delete splashTexture;
+        }
+
+        uint32_t screenWidth  = m_Window->GetWidth();
+        uint32_t screenHeight = m_Window->GetHeight();
+        m_SystemManager       = CreateUniquePtr<SystemManager>();
+
+        System::JobSystem::Context context;
+
+        System::JobSystem::Execute(context, [](JobDispatchArgs args)
+                                   { Lumos::Input::Get(); });
+
+        System::JobSystem::Execute(context, [this](JobDispatchArgs args)
+                                   {
+                auto audioManager = AudioManager::Create();
+                if (audioManager)
+                {
+                    m_SystemManager->RegisterSystem<AudioManager>(audioManager);
+                } });
+
+        System::JobSystem::Execute(context, [this](JobDispatchArgs args)
+                                   {
+                        m_SystemManager->RegisterSystem<LumosPhysicsEngine>();
+                        m_SystemManager->RegisterSystem<B2PhysicsEngine>();
+                        LUMOS_LOG_INFO("Initialised Physics Manager"); });
+
+        System::JobSystem::Execute(context, [this](JobDispatchArgs args)
+                                   { m_SceneManager->LoadCurrentList(); });
+
+        m_ImGuiManager = CreateUniquePtr<ImGuiManager>(false);
+        m_ImGuiManager->OnInit();
+        LUMOS_LOG_INFO("Initialised ImGui Manager");
+
+        m_RenderPasses = CreateUniquePtr<Graphics::RenderPasses>(screenWidth, screenHeight);
+
+        System::JobSystem::Wait(context);
+
+        m_CurrentState = AppState::Running;
+
+        Graphics::Material::InitDefaultTexture();
+        Graphics::Font::InitDefaultFont();
+        m_RenderPasses->EnableDebugRenderer(true);
+
+        // updateThread = std::thread(Application::UpdateSystems);
+    }
+
+    void Application::OnQuit()
+    {
+        LUMOS_PROFILE_FUNCTION();
+        Serialise();
+
+        ArenaRelease(m_FrameArena);
+        ArenaRelease(m_Arena);
+
+        Graphics::Material::ReleaseDefaultTexture();
+        Graphics::Font::ShutdownDefaultFont();
+        Engine::Release();
+        Input::Release();
+
+        m_AssetManager.reset();
+        m_SceneManager.reset();
+        m_RenderPasses.reset();
+        m_SystemManager.reset();
+        m_ImGuiManager.reset();
+        LuaManager::Release();
+
+        Graphics::Pipeline::ClearCache();
+        Graphics::RenderPass::ClearCache();
+        Graphics::Framebuffer::ClearCache();
+
+        m_Window.reset();
+
+        Graphics::Renderer::Release();
+    }
+
     void Application::OpenProject(const std::string& filePath)
     {
         LUMOS_PROFILE_FUNCTION();
@@ -86,9 +263,9 @@ namespace Lumos
         auto projectRoot                = StringUtilities::GetFileLocation(filePath);
         m_ProjectSettings.m_ProjectRoot = projectRoot;
 
-		String8 pathCopy = PushStr8Copy(m_FrameArena, projectRoot.c_str());
-		pathCopy = StringUtilities::ResolveRelativePath(m_FrameArena, pathCopy);
-		m_ProjectSettings.m_ProjectRoot = (const char*)pathCopy.str;
+        String8 pathCopy                = PushStr8Copy(m_FrameArena, projectRoot.c_str());
+        pathCopy                        = StringUtilities::ResolveRelativePath(m_FrameArena, pathCopy);
+        m_ProjectSettings.m_ProjectRoot = (const char*)pathCopy.str;
 #endif
 
         if(!FileSystem::FolderExists(m_ProjectSettings.m_ProjectRoot + "Assets/Prefabs"))
@@ -113,9 +290,9 @@ namespace Lumos
         m_ProjectSettings.m_ProjectRoot = path + name + "/";
         m_ProjectSettings.m_ProjectName = name;
 
-		String8 pathCopy = PushStr8Copy(m_FrameArena, m_ProjectSettings.m_ProjectRoot.c_str());
-		pathCopy = StringUtilities::ResolveRelativePath(m_FrameArena, pathCopy);
-		m_ProjectSettings.m_ProjectRoot = (const char*)pathCopy.str;
+        String8 pathCopy                = PushStr8Copy(m_FrameArena, m_ProjectSettings.m_ProjectRoot.c_str());
+        pathCopy                        = StringUtilities::ResolveRelativePath(m_FrameArena, pathCopy);
+        m_ProjectSettings.m_ProjectRoot = (const char*)pathCopy.str;
 
         std::filesystem::create_directory(m_ProjectSettings.m_ProjectRoot);
 
@@ -193,156 +370,6 @@ namespace Lumos
         return m_SceneManager->GetCurrentScene();
     }
 
-    void Application::Init()
-    {
-        LUMOS_PROFILE_FUNCTION();
-        m_FrameArena = ArenaAlloc(Kilobytes(64));
-        m_Arena      = ArenaAlloc(Kilobytes(64));
-
-        SetMaxImageDimensions(2048, 2048);
-
-        m_SceneManager = CreateUniquePtr<SceneManager>();
-        m_AssetManager = CreateSharedPtr<AssetManager>();
-
-        Deserialise();
-
-        CommandLine* cmdline = Internal::CoreSystem::GetCmdLine();
-        if(cmdline->OptionBool(Str8Lit("help")))
-        {
-            LUMOS_LOG_INFO("Print this help.\n Option 1 : test");
-        }
-
-        Engine::Get();
-        LuaManager::Get().OnInit();
-        LuaManager::Get().OnNewProject(m_ProjectSettings.m_ProjectRoot);
-
-        m_Timer = CreateUniquePtr<Timer>();
-
-        Graphics::GraphicsContext::SetRenderAPI(static_cast<Graphics::RenderAPI>(m_ProjectSettings.RenderAPI));
-
-        WindowDesc windowDesc;
-        windowDesc.Width       = m_ProjectSettings.Width;
-        windowDesc.Height      = m_ProjectSettings.Height;
-        windowDesc.RenderAPI   = m_ProjectSettings.RenderAPI;
-        windowDesc.Fullscreen  = m_ProjectSettings.Fullscreen;
-        windowDesc.Borderless  = m_ProjectSettings.Borderless;
-        windowDesc.ShowConsole = m_ProjectSettings.ShowConsole;
-        windowDesc.Title       = m_ProjectSettings.Title;
-        windowDesc.VSync       = m_ProjectSettings.VSync;
-
-        if(m_ProjectSettings.DefaultIcon)
-        {
-            windowDesc.IconPaths = { "//Assets/Textures/icon.png", "//Assets/Textures/icon32.png" };
-        }
-
-        // Initialise the Window
-        m_Window = UniquePtr<Window>(Window::Create(windowDesc));
-        if(!m_Window->HasInitialised())
-            OnQuit();
-
-        m_Window->SetEventCallback(BIND_EVENT_FN(Application::OnEvent));
-
-        m_EditorState = EditorState::Play;
-
-        ImGui::CreateContext();
-        ImPlot::CreateContext();
-        ImGui::StyleColorsDark();
-
-        bool loadEmbeddedShaders = true;
-        if(FileSystem::FolderExists(m_ProjectSettings.m_EngineAssetPath + "Shaders"))
-            loadEmbeddedShaders = false;
-
-        Graphics::Renderer::Init(loadEmbeddedShaders, m_ProjectSettings.m_EngineAssetPath);
-
-        if(m_ProjectSettings.Fullscreen)
-            m_Window->Maximise();
-
-        // Draw Splash Screen
-        {
-            auto desc          = Graphics::TextureDesc(Graphics::TextureFilter::LINEAR, Graphics::TextureFilter::LINEAR, Graphics::TextureWrap::REPEAT);
-            desc.flags         = Graphics::TextureFlags::Texture_Sampled;
-            auto splashTexture = Graphics::Texture2D::CreateFromSource(splashWidth, splashHeight, (void*)splash, desc);
-            Graphics::Renderer::GetRenderer()->Begin();
-            Graphics::Renderer::GetRenderer()->DrawSplashScreen(splashTexture);
-            Graphics::Renderer::GetRenderer()->Present();
-            // To Display the window
-            m_Window->ProcessInput();
-            m_Window->OnUpdate();
-
-            delete splashTexture;
-        }
-
-        uint32_t screenWidth  = m_Window->GetWidth();
-        uint32_t screenHeight = m_Window->GetHeight();
-        m_SystemManager       = CreateUniquePtr<SystemManager>();
-
-        System::JobSystem::Context context;
-
-        System::JobSystem::Execute(context, [](JobDispatchArgs args)
-                                   { Lumos::Input::Get(); });
-
-        System::JobSystem::Execute(context, [this](JobDispatchArgs args)
-                                   {
-                                       auto audioManager = AudioManager::Create();
-                                       if(audioManager)
-                                       {
-                                           m_SystemManager->RegisterSystem<AudioManager>(audioManager);
-                                       } });
-
-        System::JobSystem::Execute(context, [this](JobDispatchArgs args)
-                                   {
-                                       m_SystemManager->RegisterSystem<LumosPhysicsEngine>();
-                                       m_SystemManager->RegisterSystem<B2PhysicsEngine>(); 
-                                       LUMOS_LOG_INFO("Initialised Physics Manager"); });
-
-        System::JobSystem::Execute(context, [this](JobDispatchArgs args)
-                                   { m_SceneManager->LoadCurrentList(); });
-
-        m_ImGuiManager = CreateUniquePtr<ImGuiManager>(false);
-        m_ImGuiManager->OnInit();
-        LUMOS_LOG_INFO("Initialised ImGui Manager");
-
-        m_RenderPasses = CreateUniquePtr<Graphics::RenderPasses>(screenWidth, screenHeight);
-
-        System::JobSystem::Wait(context);
-
-        m_CurrentState = AppState::Running;
-
-        Graphics::Material::InitDefaultTexture();
-        Graphics::Font::InitDefaultFont();
-        m_RenderPasses->EnableDebugRenderer(true);
-
-        // updateThread = std::thread(Application::UpdateSystems);
-    }
-
-    void Application::OnQuit()
-    {
-        LUMOS_PROFILE_FUNCTION();
-        Serialise();
-
-        ArenaRelease(m_FrameArena);
-
-        Graphics::Material::ReleaseDefaultTexture();
-        Graphics::Font::ShutdownDefaultFont();
-        Engine::Release();
-        Input::Release();
-
-        m_AssetManager.reset();
-        m_SceneManager.reset();
-        m_RenderPasses.reset();
-        m_SystemManager.reset();
-        m_ImGuiManager.reset();
-        LuaManager::Release();
-
-        Graphics::Pipeline::ClearCache();
-        Graphics::RenderPass::ClearCache();
-        Graphics::Framebuffer::ClearCache();
-
-        m_Window.reset();
-
-        Graphics::Renderer::Release();
-    }
-
     glm::vec2 Application::GetWindowSize() const
     {
         if(!m_Window)
@@ -417,12 +444,18 @@ namespace Lumos
         {
             std::scoped_lock<std::mutex> lock(m_EventQueueMutex);
 
-            // Process custom event queue
-            while(m_EventQueue.size() > 0)
+            for(auto& event : m_EventQueue)
             {
-                auto& func = m_EventQueue.front();
+                event();
+            }
+            m_EventQueue.Clear();
+
+            // Process custom event queue
+            while(!m_EventQueue.Empty())
+            {
+                auto& func = m_EventQueue.Back();
                 func();
-                m_EventQueue.pop();
+                m_EventQueue.PopBack();
             }
         }
 
@@ -454,6 +487,7 @@ namespace Lumos
         if(!m_Minimized)
         {
             LUMOS_PROFILE_SCOPE("Application::Render");
+            Engine::Get().ResetStats();
 
             Graphics::Renderer::GetRenderer()->Begin();
             OnRender();
@@ -464,11 +498,10 @@ namespace Lumos
             DebugRenderer::Reset((float)ts.GetSeconds());
             OnDebugDraw();
 
-            // Graphics::Pipeline::DeleteUnusedCache();
-            // Graphics::Framebuffer::DeleteUnusedCache();
-            // Graphics::RenderPass::DeleteUnusedCache();
+            Graphics::Pipeline::DeleteUnusedCache();
+            Graphics::Framebuffer::DeleteUnusedCache();
+            Graphics::RenderPass::DeleteUnusedCache();
 
-            // m_ShaderLibrary->Update(ts.GetElapsedSeconds());
             m_AssetManager->Update((float)ts.GetElapsedSeconds());
             m_Frames++;
         }
@@ -489,13 +522,6 @@ namespace Lumos
             m_Window->OnUpdate();
         }
 
-        {
-            System::JobSystem::Wait(context);
-
-            m_SystemManager->GetSystem<LumosPhysicsEngine>()->SyncTransforms(m_SceneManager->GetCurrentScene());
-            m_SystemManager->GetSystem<B2PhysicsEngine>()->SyncTransforms(m_SceneManager->GetCurrentScene());
-        }
-
         if(now - m_SecondTimer > 1.0f)
         {
             LUMOS_PROFILE_SCOPE("Application::FrameRateCalc");
@@ -510,6 +536,14 @@ namespace Lumos
 
         if(!m_Minimized)
             Graphics::Renderer::GetRenderer()->Present();
+
+        // Sync transforms from physics for the next frame
+        {
+            System::JobSystem::Wait(context);
+
+            m_SystemManager->GetSystem<LumosPhysicsEngine>()->SyncTransforms(m_SceneManager->GetCurrentScene());
+            m_SystemManager->GetSystem<B2PhysicsEngine>()->SyncTransforms(m_SceneManager->GetCurrentScene());
+        }
 
         return m_CurrentState != AppState::Closing;
     }
@@ -713,7 +747,7 @@ namespace Lumos
         // Save Asset Registry
         {
             String8 path = PushStr8F(m_FrameArena, "%sAssetRegistry.lmar", m_ProjectSettings.m_ProjectRoot.c_str()); // m_ProjectSettings.m_ProjectRoot + std::string("AssetRegistry.lmar");
-            SerialialiseAssetRegistry(path, m_AssetManager->GetAssetRegistry());
+            SerialiseAssetRegistry(path, m_AssetManager->GetAssetRegistry());
         }
     }
 
@@ -801,7 +835,9 @@ namespace Lumos
                 {
                     String8 path = PushStr8F(m_FrameArena, "%sAssetRegistry.lmar", m_ProjectSettings.m_ProjectRoot.c_str());
                     if(FileSystem::FileExists((const char*)path.str))
-                        DeserialialiseAssetRegistry(path, m_AssetManager->GetAssetRegistry());
+                    {
+                        DeserialiseAssetRegistry(path, m_AssetManager->GetAssetRegistry());
+                    }
                 }
             }
             catch(...)

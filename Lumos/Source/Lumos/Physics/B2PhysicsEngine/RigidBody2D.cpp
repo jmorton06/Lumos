@@ -3,8 +3,7 @@
 #include "B2PhysicsEngine.h"
 #include "Core/Application.h"
 
-#include <glm/vec2.hpp>
-
+#include <glm/ext/vector_float2.hpp>
 #include <box2d/box2d.h>
 #include <box2d/b2_world.h>
 

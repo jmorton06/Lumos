@@ -13,8 +13,8 @@ namespace Lumos
         void Run() override;
         std::string GetExecutablePath() override;
 
-        void OpenFileLocation(const std::filesystem::path& path) override;
-        void OpenFileExternal(const std::filesystem::path& path) override;
+        void OpenFileLocation(const std::string& path) override;
+        void OpenFileExternal(const std::string& path) override;
         void OpenURL(const std::string& url) override;
 
         void SetTitleBarColour(const glm::vec4& colour, bool dark = true) override;

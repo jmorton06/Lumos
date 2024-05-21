@@ -7,12 +7,11 @@
 #include "Physics/LumosPhysicsEngine/Constraints/AxisConstraint.h"
 #include "Core/Application.h"
 #include "Physics/LumosPhysicsEngine/LumosPhysicsEngine.h"
-
-#include "Scene/Entity.h"
 #include <cereal/cereal.hpp>
 
 namespace Lumos
 {
+    class Entity;
     struct RigidBody3DInstance
     {
         RigidBody3DInstance();
@@ -71,15 +70,70 @@ namespace Lumos
     class SpringConstraintComponent
     {
     public:
-        SpringConstraintComponent(Entity entity, Entity otherEntity, const glm::vec3& pos1, const glm::vec3& pos2, float constant = 1.0f);
+        SpringConstraintComponent() = default;
+        SpringConstraintComponent(Entity entity, Entity otherEntity, const glm::vec3& pos1, const glm::vec3& pos2, float constant = 0.9f);
         SpringConstraintComponent(Entity entity, Entity otherEntity);
         ~SpringConstraintComponent() = default;
 
         const SharedPtr<SpringConstraint>& GetConstraint() const { return m_Constraint; }
 
+        template <typename Archive>
+        void save(Archive& archive) const
+        {
+            archive(m_EntityID, m_OtherEntityID, m_Position1, m_Position2, m_Constant);
+        }
+
+        template <typename Archive>
+        void load(Archive& archive)
+        {
+            archive(m_EntityID, m_OtherEntityID, m_Position1, m_Position2, m_Constant);
+            m_Initialised = false;
+        }
+
+        void Initialise();
+        bool Initialised() const { return m_Initialised; }
+
+        uint64_t GetEntityID() { return m_EntityID; }
+        uint64_t GetOtherEntityID() { return m_OtherEntityID; }
+
+        void SetEntityID(uint64_t entityID)
+        {
+            m_EntityID    = entityID;
+            m_Initialised = false;
+        }
+        void SetOtherEntityID(uint64_t entityID)
+        {
+            m_OtherEntityID = entityID;
+            m_Initialised   = false;
+        }
+
+        const glm::vec3& getPosition1() const { return m_Position1; }
+        void SetPosition1(const glm::vec3& position)
+        {
+            m_Position1   = position;
+            m_Initialised = false;
+        }
+        const glm::vec3& GetPosition2() const { return m_Position2; }
+        void SetPosition2(const glm::vec3& position)
+        {
+            m_Position2   = position;
+            m_Initialised = false;
+        }
+        float GetConstant() const { return m_Constant; }
+        void SetConstant(float constant)
+        {
+            m_Constant    = constant;
+            m_Initialised = false;
+        }
+
     private:
         SharedPtr<SpringConstraint> m_Constraint;
-        Entity m_OtherEntity;
+        uint64_t m_EntityID;
+        uint64_t m_OtherEntityID;
+        glm::vec3 m_Position1;
+        glm::vec3 m_Position2;
+        float m_Constant   = 1.0f;
+        bool m_Initialised = false;
     };
 
     class WeldConstraintComponent
@@ -93,7 +147,7 @@ namespace Lumos
 
     private:
         SharedPtr<WeldConstraint> m_Constraint;
-        Entity m_OtherEntity;
+        uint64_t m_OtherEntityID;
     };
 
     class DistanceConstraintComponent
@@ -107,7 +161,7 @@ namespace Lumos
 
     private:
         SharedPtr<DistanceConstraint> m_Constraint;
-        Entity m_OtherEntity;
+        uint64_t m_OtherEntityID;
     };
 
     class LUMOS_EXPORT RigidBody3DComponent

@@ -3,8 +3,7 @@
 #include "GLDebug.h"
 #include "GL.h"
 
-#include <glm/mat4x4.hpp>
-
+#include <glm/ext/matrix_float4x4.hpp>
 #include <imgui/imgui.h>
 
 namespace Lumos

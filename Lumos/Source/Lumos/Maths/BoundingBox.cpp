@@ -259,6 +259,22 @@ namespace Lumos
             Merge(transformed);
         }
 
+        void BoundingBox::ExtendToCube()
+        {
+            // Calculate the size of the current bounding box
+            glm::vec3 size = Size();
+
+            // Find the maximum dimension among x, y, and z
+            float maxDimension = glm::max(glm::max(size.x, size.y), size.z);
+
+            // Calculate the amount by which each dimension needs to be extended
+            glm::vec3 extendAmount = glm::vec3(maxDimension - size.x, maxDimension - size.y, maxDimension - size.z) * 0.5f;
+
+            // Update the bounding box to make it a cube
+            m_Min -= extendAmount;
+            m_Max += extendAmount;
+        }
+
         Intersection BoundingBox::IsInside(const glm::vec3& point) const
         {
             LUMOS_PROFILE_FUNCTION_LOW();

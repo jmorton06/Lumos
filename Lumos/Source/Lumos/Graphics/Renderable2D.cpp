@@ -1,6 +1,6 @@
 #include "Precompiled.h"
 #include "Renderable2D.h"
-#include <glm/vec2.hpp>
+#include <glm/ext/vector_float2.hpp>
 
 namespace Lumos
 {
