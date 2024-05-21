@@ -10,7 +10,11 @@ namespace Lumos
     class ImGuiConsoleSink : public spdlog::sinks::base_sink<Mutex>
     {
     public:
-        explicit ImGuiConsoleSink() {};
+        explicit ImGuiConsoleSink()
+            : m_MessageBufferCapacity(1)
+        {
+            m_MessageBuffer.PushBack({});
+        };
 
         ImGuiConsoleSink(const ImGuiConsoleSink&)            = delete;
         ImGuiConsoleSink& operator=(const ImGuiConsoleSink&) = delete;
@@ -25,34 +29,44 @@ namespace Lumos
             const auto time    = fmt::localtime(std::chrono::system_clock::to_time_t(msg.time));
             auto processed     = fmt::format("{:%H:%M:%S}", time);
 
-            auto message = CreateSharedPtr<ConsolePanel::Message>(fmt::to_string(formatted), GetMessageLevel(msg.level), source, static_cast<int>(msg.thread_id), processed);
-            ConsolePanel::AddMessage(message);
+            m_MessageBuffer[m_MessageCount++] = ConsoleMessage(fmt::to_string(formatted), GetMessageLevel(msg.level), source, static_cast<int>(msg.thread_id), processed);
+
+            if(m_MessageCount == m_MessageBufferCapacity)
+                flush_();
         }
 
-        static ConsolePanel::Message::Level GetMessageLevel(const spdlog::level::level_enum level)
+        static ConsoleLogLevel GetMessageLevel(const spdlog::level::level_enum level)
         {
             switch(level)
             {
             case spdlog::level::level_enum::trace:
-                return ConsolePanel::Message::Level::Trace;
+                return ConsoleLogLevel::Trace;
             case spdlog::level::level_enum::debug:
-                return ConsolePanel::Message::Level::Debug;
+                return ConsoleLogLevel::Debug;
             case spdlog::level::level_enum::info:
-                return ConsolePanel::Message::Level::Info;
+                return ConsoleLogLevel::Info;
             case spdlog::level::level_enum::warn:
-                return ConsolePanel::Message::Level::Warn;
+                return ConsoleLogLevel::Warn;
             case spdlog::level::level_enum::err:
-                return ConsolePanel::Message::Level::Error;
+                return ConsoleLogLevel::Error;
             case spdlog::level::level_enum::critical:
-                return ConsolePanel::Message::Level::Critical;
+                return ConsoleLogLevel::Critical;
             }
-            return ConsolePanel::Message::Level::Trace;
+            return ConsoleLogLevel::Trace;
         }
 
         void flush_() override
         {
-            ConsolePanel::Flush();
+            for(const auto& message : m_MessageBuffer)
+                ConsolePanel::AddMessage(message);
+
+            m_MessageCount = 0;
         };
+
+    private:
+        uint32_t m_MessageBufferCapacity;
+        Vector<ConsoleMessage> m_MessageBuffer;
+        uint32_t m_MessageCount = 0;
     };
 }
 

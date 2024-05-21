@@ -1,5 +1,5 @@
 #pragma once
-#include <glm/mat4x4.hpp>
+#include <glm/ext/matrix_float4x4.hpp>
 
 namespace Lumos
 {

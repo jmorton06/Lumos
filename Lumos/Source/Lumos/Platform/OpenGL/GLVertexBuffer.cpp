@@ -90,7 +90,7 @@ namespace Lumos
             }
         }
 
-        void GLVertexBuffer::Bind(CommandBuffer* commandBuffer, Pipeline* pipeline)
+        void GLVertexBuffer::Bind(CommandBuffer* commandBuffer, Pipeline* pipeline, uint8_t binding)
         {
             LUMOS_PROFILE_FUNCTION();
             GLCall(glBindBuffer(GL_ARRAY_BUFFER, m_Handle));

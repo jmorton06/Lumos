@@ -28,10 +28,10 @@
 #include "Maths/Ray.h"
 #include "Audio/SoundNode.h"
 #include <cstdarg>
-#include <glm/vec2.hpp>
-#include <glm/vec3.hpp>
-#include <glm/vec4.hpp>
-#include <glm/mat4x4.hpp>
+#include <glm/ext/vector_float2.hpp>
+#include <glm/ext/vector_float3.hpp>
+#include <glm/ext/vector_float4.hpp>
+#include <glm/ext/matrix_float4x4.hpp>
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/quaternion.hpp>
 
@@ -403,7 +403,7 @@ namespace Lumos
         std::cout << std::endl;
     }
 
-    void DebugRenderer::DebugDraw(const Maths::BoundingBox& box, const glm::vec4& edgeColour, bool cornersOnly, float width)
+    void DebugRenderer::DebugDraw(const Maths::BoundingBox& box, const glm::vec4& edgeColour, bool cornersOnly, bool depthTested, float width)
     {
         LUMOS_PROFILE_FUNCTION();
         glm::vec3 uuu = box.Max();
@@ -420,45 +420,45 @@ namespace Lumos
         // Draw edges
         if(!cornersOnly)
         {
-            DrawThickLine(luu, uuu, width, false, edgeColour);
-            DrawThickLine(lul, uul, width, false, edgeColour);
-            DrawThickLine(llu, ulu, width, false, edgeColour);
-            DrawThickLine(lll, ull, width, false, edgeColour);
-            DrawThickLine(lul, lll, width, false, edgeColour);
-            DrawThickLine(uul, ull, width, false, edgeColour);
-            DrawThickLine(luu, llu, width, false, edgeColour);
-            DrawThickLine(uuu, ulu, width, false, edgeColour);
-            DrawThickLine(lll, llu, width, false, edgeColour);
-            DrawThickLine(ull, ulu, width, false, edgeColour);
-            DrawThickLine(lul, luu, width, false, edgeColour);
-            DrawThickLine(uul, uuu, width, false, edgeColour);
+            DrawThickLine(luu, uuu, width, depthTested, edgeColour);
+            DrawThickLine(lul, uul, width, depthTested, edgeColour);
+            DrawThickLine(llu, ulu, width, depthTested, edgeColour);
+            DrawThickLine(lll, ull, width, depthTested, edgeColour);
+            DrawThickLine(lul, lll, width, depthTested, edgeColour);
+            DrawThickLine(uul, ull, width, depthTested, edgeColour);
+            DrawThickLine(luu, llu, width, depthTested, edgeColour);
+            DrawThickLine(uuu, ulu, width, depthTested, edgeColour);
+            DrawThickLine(lll, llu, width, depthTested, edgeColour);
+            DrawThickLine(ull, ulu, width, depthTested, edgeColour);
+            DrawThickLine(lul, luu, width, depthTested, edgeColour);
+            DrawThickLine(uul, uuu, width, depthTested, edgeColour);
         }
         else
         {
-            DrawThickLine(luu, luu + (uuu - luu) * 0.25f, width, false, edgeColour);
-            DrawThickLine(luu + (uuu - luu) * 0.75f, uuu, width, false, edgeColour);
-            DrawThickLine(lul, lul + (uul - lul) * 0.25f, width, false, edgeColour);
-            DrawThickLine(lul + (uul - lul) * 0.75f, uul, width, false, edgeColour);
-            DrawThickLine(llu, llu + (ulu - llu) * 0.25f, width, false, edgeColour);
-            DrawThickLine(llu + (ulu - llu) * 0.75f, ulu, width, false, edgeColour);
-            DrawThickLine(lll, lll + (ull - lll) * 0.25f, width, false, edgeColour);
-            DrawThickLine(lll + (ull - lll) * 0.75f, ull, width, false, edgeColour);
-            DrawThickLine(lul, lul + (lll - lul) * 0.25f, width, false, edgeColour);
-            DrawThickLine(lul + (lll - lul) * 0.75f, lll, width, false, edgeColour);
-            DrawThickLine(uul, uul + (ull - uul) * 0.25f, width, false, edgeColour);
-            DrawThickLine(uul + (ull - uul) * 0.75f, ull, width, false, edgeColour);
-            DrawThickLine(luu, luu + (llu - luu) * 0.25f, width, false, edgeColour);
-            DrawThickLine(luu + (llu - luu) * 0.75f, llu, width, false, edgeColour);
-            DrawThickLine(uuu, uuu + (ulu - uuu) * 0.25f, width, false, edgeColour);
-            DrawThickLine(uuu + (ulu - uuu) * 0.75f, ulu, width, false, edgeColour);
-            DrawThickLine(lll, lll + (llu - lll) * 0.25f, width, false, edgeColour);
-            DrawThickLine(lll + (llu - lll) * 0.75f, llu, width, false, edgeColour);
-            DrawThickLine(ull, ull + (ulu - ull) * 0.25f, width, false, edgeColour);
-            DrawThickLine(ull + (ulu - ull) * 0.75f, ulu, width, false, edgeColour);
-            DrawThickLine(lul, lul + (luu - lul) * 0.25f, width, false, edgeColour);
-            DrawThickLine(lul + (luu - lul) * 0.75f, luu, width, false, edgeColour);
-            DrawThickLine(uul, uul + (uuu - uul) * 0.25f, width, false, edgeColour);
-            DrawThickLine(uul + (uuu - uul) * 0.75f, uuu, width, false, edgeColour);
+            DrawThickLine(luu, luu + (uuu - luu) * 0.25f, width, depthTested, edgeColour);
+            DrawThickLine(luu + (uuu - luu) * 0.75f, uuu, width, depthTested, edgeColour);
+            DrawThickLine(lul, lul + (uul - lul) * 0.25f, width, depthTested, edgeColour);
+            DrawThickLine(lul + (uul - lul) * 0.75f, uul, width, depthTested, edgeColour);
+            DrawThickLine(llu, llu + (ulu - llu) * 0.25f, width, depthTested, edgeColour);
+            DrawThickLine(llu + (ulu - llu) * 0.75f, ulu, width, depthTested, edgeColour);
+            DrawThickLine(lll, lll + (ull - lll) * 0.25f, width, depthTested, edgeColour);
+            DrawThickLine(lll + (ull - lll) * 0.75f, ull, width, depthTested, edgeColour);
+            DrawThickLine(lul, lul + (lll - lul) * 0.25f, width, depthTested, edgeColour);
+            DrawThickLine(lul + (lll - lul) * 0.75f, lll, width, depthTested, edgeColour);
+            DrawThickLine(uul, uul + (ull - uul) * 0.25f, width, depthTested, edgeColour);
+            DrawThickLine(uul + (ull - uul) * 0.75f, ull, width, depthTested, edgeColour);
+            DrawThickLine(luu, luu + (llu - luu) * 0.25f, width, depthTested, edgeColour);
+            DrawThickLine(luu + (llu - luu) * 0.75f, llu, width, depthTested, edgeColour);
+            DrawThickLine(uuu, uuu + (ulu - uuu) * 0.25f, width, depthTested, edgeColour);
+            DrawThickLine(uuu + (ulu - uuu) * 0.75f, ulu, width, depthTested, edgeColour);
+            DrawThickLine(lll, lll + (llu - lll) * 0.25f, width, depthTested, edgeColour);
+            DrawThickLine(lll + (llu - lll) * 0.75f, llu, width, depthTested, edgeColour);
+            DrawThickLine(ull, ull + (ulu - ull) * 0.25f, width, depthTested, edgeColour);
+            DrawThickLine(ull + (ulu - ull) * 0.75f, ulu, width, depthTested, edgeColour);
+            DrawThickLine(lul, lul + (luu - lul) * 0.25f, width, depthTested, edgeColour);
+            DrawThickLine(lul + (luu - lul) * 0.75f, luu, width, depthTested, edgeColour);
+            DrawThickLine(uul, uul + (uuu - uul) * 0.25f, width, depthTested, edgeColour);
+            DrawThickLine(uul + (uuu - uul) * 0.75f, uuu, width, depthTested, edgeColour);
         }
     }
 
@@ -618,6 +618,50 @@ namespace Lumos
                 DebugDrawArc(20, radius, bottomSphereCentre + offset, bottomSphereCentre + offset2, rotation * glm::quat(glm::vec3(glm::radians(180.0f), 0.0f, 0.0f)), colour);
             }
         }
+    }
+
+    void DebugDrawPyramid(int numVerts, float baseSize, float height, const glm::vec3& position, const glm::quat& rotation, const glm::vec4& colour)
+    {
+        LUMOS_PROFILE_FUNCTION();
+
+        // Calculate half base size
+        float halfBaseSize = baseSize * 0.5f;
+
+        // Vertices for the base of the pyramid
+        glm::vec3 baseVertices[4] = {
+            glm::vec3(-halfBaseSize, 0.0f, 0.0f),
+            glm::vec3(halfBaseSize, 0.0f, 0.0f),
+            glm::vec3(halfBaseSize, 0.0f, baseSize),
+            glm::vec3(-halfBaseSize, 0.0f, baseSize)
+        };
+
+        // Top vertex of the pyramid
+        glm::vec3 topVertex(0.0f, height, halfBaseSize);
+
+        // Transform base vertices and top vertex by rotation and position
+        for(int i = 0; i < 4; ++i)
+        {
+            baseVertices[i] = position + rotation * baseVertices[i];
+        }
+        topVertex = position + rotation * topVertex;
+
+        // Draw the base of the pyramid
+        for(int i = 0; i < 4; ++i)
+        {
+            int j = (i + 1) % 4;
+            DebugRenderer::DrawHairLine(baseVertices[i], baseVertices[j], false, colour);
+        }
+
+        // Draw lines from the top vertex to each base vertex
+        for(int i = 0; i < 4; ++i)
+        {
+            DebugRenderer::DrawHairLine(topVertex, baseVertices[i], false, colour);
+        }
+    }
+
+    void DebugRenderer::DebugDrawBone(const glm::vec3& parent, const glm::vec3& child, const glm::vec4& colour)
+    {
+        DrawHairLine(parent, child, false, colour);
     }
 
     void DebugRenderer::DebugDraw(const Maths::Ray& ray, const glm::vec4& colour, float distance)

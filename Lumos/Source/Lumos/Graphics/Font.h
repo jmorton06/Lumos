@@ -18,7 +18,7 @@ namespace Lumos
 
             virtual ~Font();
 
-            SharedPtr<Graphics::Texture2D> GetFontAtlas() const { return m_TextureAtlas; }
+            SharedPtr<Graphics::Texture2D> GetFontAtlas() const;
             const MSDFData* GetMSDFData() const { return m_MSDFData; }
             const std::string& GetFilePath() const { return m_FilePath; }
 

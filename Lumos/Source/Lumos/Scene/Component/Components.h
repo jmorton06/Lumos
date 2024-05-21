@@ -1,13 +1,7 @@
 #pragma once
-#include "SoundComponent.h"
-#include "TextureMatrixComponent.h"
-#include "RigidBody2DComponent.h"
-#include "RigidBody3DComponent.h"
-#include "AIComponent.h"
+
 #include "Graphics/Font.h"
 #include "Core/OS/FileSystem.h"
-#include "Scene/Serialisation.h"
-#include "Utilities/AssetManager.h"
 
 namespace Lumos
 {
@@ -29,42 +23,6 @@ namespace Lumos
         {
             FontHandle = CreateSharedPtr<Graphics::Font>(filePath);
         }
-
-        template <typename Archive>
-        void save(Archive& archive) const
-        {
-            std::string path;
-            FileSystem::Get().AbsolutePathToFileSystem(FontHandle ? FontHandle->GetFilePath() : "", path);
-
-            archive(cereal::make_nvp("TextString", TextString), cereal::make_nvp("Path", path), cereal::make_nvp("Colour", Colour), cereal::make_nvp("LineSpacing", LineSpacing), cereal::make_nvp("Kerning", Kerning),
-                    cereal::make_nvp("MaxWidth", MaxWidth), cereal::make_nvp("OutlineColour", OutlineColour), cereal::make_nvp("OutlineWidth", OutlineWidth));
-        }
-
-        template <typename Archive>
-        void load(Archive& archive)
-        {
-            std::string fontFilePath;
-
-            if(Serialisation::CurrentSceneVersion >= 15)
-            {
-                archive(cereal::make_nvp("TextString", TextString), cereal::make_nvp("Path", fontFilePath), cereal::make_nvp("Colour", Colour), cereal::make_nvp("LineSpacing", LineSpacing), cereal::make_nvp("Kerning", Kerning),
-                        cereal::make_nvp("MaxWidth", MaxWidth), cereal::make_nvp("OutlineColour", OutlineColour), cereal::make_nvp("OutlineWidth", OutlineWidth));
-            }
-            else
-            {
-                archive(cereal::make_nvp("TextString", TextString), cereal::make_nvp("Path", fontFilePath), cereal::make_nvp("Colour", Colour), cereal::make_nvp("LineSpacing", LineSpacing), cereal::make_nvp("Kerning", Kerning),
-                        cereal::make_nvp("MaxWidth", MaxWidth));
-            }
-
-            if(!fontFilePath.empty() && fontFilePath != Graphics::Font::GetDefaultFont()->GetFilePath() && FileSystem::FileExists(fontFilePath))
-            {
-                Application::Get().GetAssetManager()->AddAsset(fontFilePath, FontHandle);
-            }
-            else
-            {
-                FontHandle = Graphics::Font::GetDefaultFont();
-            }
-        }
     };
 
     struct PrefabComponent
@@ -75,10 +33,5 @@ namespace Lumos
         }
 
         std::string Path;
-        template <typename Archive>
-        void serialize(Archive& archive)
-        {
-            archive(Path);
-        }
     };
 }

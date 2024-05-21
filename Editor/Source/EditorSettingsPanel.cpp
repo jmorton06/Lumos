@@ -5,6 +5,11 @@
 #include <Lumos/Core/Version.h>
 #include <glm/gtx/matrix_decompose.hpp>
 #include <Lumos/Core/Profiler.h>
+#include <Lumos/ImGui/ImGuiManager.h>
+#include <Lumos/Graphics/RHI/IMGUIRenderer.h>
+#include <Lumos/Graphics/RHI/Renderer.h>
+#include <Lumos/Graphics/RHI/Texture.h>
+#include <Lumos/Graphics/RHI/GraphicsContext.h>
 
 namespace Lumos
 {
@@ -96,8 +101,21 @@ namespace Lumos
             ImGuiUtilities::Property("Debug draw flags", (int&)editorSettings.m_DebugDrawFlags);
             ImGuiUtilities::Property("Physics 2D debug flags", (int&)editorSettings.m_Physics2DDebugFlags);
             ImGuiUtilities::Property("Physics 3D debug flags", (int&)editorSettings.m_Physics3DDebugFlags);
+
+            if(m_Editor->GetEditorScriptsPath().size)
+                ImGuiUtilities::PropertyConst("Editor Scripts Path", (const char*)m_Editor->GetEditorScriptsPath().str);
         }
         ImGui::Columns(1);
+
+        // Engine Asset Path;
+        // Editor Script Path;
+
+        if(ImGui::Button("Set Editor Scripts Path", ImVec2(ImGui::GetContentRegionAvail().x, 0.0f)))
+        {
+            Lumos::Editor::GetEditor()->GetFileBrowserPanel().Open();
+            Lumos::Editor::GetEditor()->GetFileBrowserPanel().SetOpenDirectory(true);
+            Lumos::Editor::GetEditor()->GetFileBrowserPanel().SetCallback(std::bind(&Lumos::Editor::SetEditorScriptsPath, Lumos::Editor::GetEditor(), std::placeholders::_1));
+        }
 
         if(ImGui::Button("Save Settings"))
             m_Editor->SaveEditorSettings();

@@ -14,6 +14,7 @@
 #include "Graphics/MeshFactory.h"
 #include "Graphics/Light.h"
 #include "Scene/Component/Components.h"
+#include "Scene/Component/RigidBody3DComponent.h"
 #include "Maths/Transform.h"
 #include "Scene/EntityManager.h"
 

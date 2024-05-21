@@ -6,9 +6,11 @@
 #include "VKRenderer.h"
 #include "VKSwapChain.h"
 #include "VKShader.h"
+#include "VKTexture.h"
 #include "VKUtilities.h"
 #include "Graphics/RHI/DescriptorSet.h"
 #include "VKInitialisers.h"
+#include "Core/Engine.h"
 
 namespace Lumos
 {
@@ -271,6 +273,7 @@ namespace Lumos
         void VKPipeline::Bind(CommandBuffer* commandBuffer, uint32_t layer)
         {
             LUMOS_PROFILE_FUNCTION_LOW();
+            Engine::Get().Statistics().BoundPipelines++;
 
             VKFramebuffer* framebuffer;
 
@@ -291,6 +294,7 @@ namespace Lumos
                     framebuffer = m_Framebuffers[0];
                 }
 
+                //((VKCommandBuffer*)commandBuffer)->BeginRenderPass(m_RenderPass, m_Description.clearColour, framebuffer, GetWidth(), GetHeight());
                 m_RenderPass->BeginRenderPass(commandBuffer, m_Description.clearColour, framebuffer, Graphics::INLINE, GetWidth(), GetHeight());
             }
             else
@@ -352,7 +356,7 @@ namespace Lumos
                 attachments.push_back(m_Description.cubeMapTarget);
             }
 
-            if (m_Description.resolveTexture)
+            if(m_Description.resolveTexture)
             {
                 attachmentTypes.push_back(TextureType::COLOUR);
                 attachments.push_back(m_Description.resolveTexture);
@@ -499,7 +503,7 @@ namespace Lumos
                 }
             }
 
-            if (m_Description.resolveTexture)
+            if(m_Description.resolveTexture)
             {
                 ((VKTexture2D*)m_Description.resolveTexture)->TransitionImage(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, (VKCommandBuffer*)commandBuffer);
             }

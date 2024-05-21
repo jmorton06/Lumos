@@ -15,7 +15,7 @@ namespace Lumos
     }
 
     void BruteForceBroadphase::FindPotentialCollisionPairs(RigidBody3D* rootObject,
-                                                           Vector<CollisionPair>& collisionPairs)
+                                                           Vector<CollisionPair>& collisionPairs, uint32_t totalRigidBodyCount)
     {
         LUMOS_PROFILE_FUNCTION();
 

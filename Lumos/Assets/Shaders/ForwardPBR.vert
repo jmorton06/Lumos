@@ -1,11 +1,7 @@
 #version 450
 #extension GL_ARB_separate_shader_objects : enable
 #extension GL_ARB_shading_language_420pack : enable
-
-layout(set = 0,binding = 0) uniform UBO 
-{    
-	mat4 projView;
-} cameraUBO;
+#include "Buffers.glslh"
 
 layout(push_constant) uniform PushConsts
 {
@@ -35,17 +31,17 @@ out gl_PerVertex
     vec4 gl_Position;
 };
 
-void main() 
+void main()
 {
 	VertexOutput.Position = pushConsts.transform * vec4(inPosition, 1.0);
-    gl_Position = cameraUBO.projView * VertexOutput.Position;
-    
+    gl_Position = u_CameraData.projView * VertexOutput.Position;
+
 	VertexOutput.Colour = inColor.xyz;
 	VertexOutput.TexCoord = inTexCoord;
 	//VertexOutput.Normal = mat3(pushConsts.transform) * inNormal;
 	mat3 transposeInv = transpose(inverse(mat3(pushConsts.transform)));
     VertexOutput.Normal = transposeInv * inNormal;
-    
+
     VertexOutput.WorldNormal = transposeInv * mat3(inTangent, inBitangent, inNormal);
-    
+
 }

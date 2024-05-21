@@ -3,7 +3,7 @@
 #include "Physics/LumosPhysicsEngine/RigidBody3D.h"
 #include "Graphics/Renderers/DebugRenderer.h"
 #include "Maths/BoundingSphere.h"
-#include <glm/mat3x3.hpp>
+#include <glm/ext/matrix_float3x3.hpp>
 
 namespace Lumos
 {

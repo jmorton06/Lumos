@@ -18,15 +18,15 @@ namespace Lumos
 
     struct AssetMetaData
     {
-        float timeSinceReload = 0.0f;
-        float lastAccessed    = 0.0f;
-        SharedPtr<Asset> data = nullptr;
-        bool onDisk           = false;
-        bool Expire           = true;
-        AssetType Type = AssetType::Unkown;
-        bool IsDataLoaded  = false;
-        bool IsMemoryAsset = false;
-        uint64_t ParameterCache;
+        float timeSinceReload   = 0.0f;
+        float lastAccessed      = 0.0f;
+        SharedPtr<Asset> data   = nullptr;
+        bool onDisk             = false;
+        bool Expire             = true;
+        AssetType Type          = AssetType::Unkown;
+        bool IsDataLoaded       = false;
+        bool IsMemoryAsset      = false;
+        uint64_t ParameterCache = 0;
     };
 
     class AssetRegistry
@@ -156,7 +156,7 @@ namespace Lumos
                 metaData.lastAccessed   = (float)Engine::GetTimeStep().GetElapsedSeconds();
                 metaData.data           = data;
                 metaData.Expire         = !keepUnreferenced;
-                metaData.Type           = data ?  data->GetAssetType() : AssetType::Unkown;
+                metaData.Type           = data ? data->GetAssetType() : AssetType::Unkown;
                 metaData.IsDataLoaded   = data ? true : false;
                 return metaData;
             }
@@ -180,7 +180,7 @@ namespace Lumos
             UUID ID;
             if(m_AssetRegistry.GetID(name, ID))
             {
-                if (m_AssetRegistry[ID].IsDataLoaded)
+                if(m_AssetRegistry[ID].IsDataLoaded)
                     return m_AssetRegistry[ID];
                 else
                 {
@@ -210,7 +210,7 @@ namespace Lumos
         {
             UUID ID;
             if(m_AssetRegistry.GetID(name, ID))
-                return m_AssetRegistry.Contains(ID);
+                return m_AssetRegistry.Contains(ID) && m_AssetRegistry[ID].IsDataLoaded;
 
             return false;
         }
@@ -249,8 +249,8 @@ namespace Lumos
             uint64_t hash = 0;
             HashCombine(hash, std::forward<TArgs>(args)...);
             SharedPtr<TAsset> asset = SharedPtr<TAsset>::CreateSharedPtr(std::forward<TArgs>(args)...);
-            AssetMetaData metaData = AddAsset(name, asset);
-            metaData.IsMemoryAsset = true;
+            AssetMetaData metaData  = AddAsset(name, asset);
+            metaData.IsMemoryAsset  = true;
             metaData.ParameterCache = hash;
             return asset;
         }
@@ -260,10 +260,10 @@ namespace Lumos
         {
             static_assert(std::is_base_of<Asset, TAsset>::value, "CreateMemoryOnlyAsset only works for types derived from Asset");
 
-            uint64_t hash = 0;
+            uint64_t hash                 = 0;
             SharedPtr<TAsset> sharedAsset = SharedPtr<TAsset>::SharedPtr(asset);
-            AssetMetaData metaData = AddAsset(name, sharedAsset);
-            metaData.IsMemoryAsset = true;
+            AssetMetaData metaData        = AddAsset(name, sharedAsset);
+            metaData.IsMemoryAsset        = true;
             return asset;
         }
 

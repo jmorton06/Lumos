@@ -2,7 +2,7 @@ project "LumosEditor"
 	kind "WindowedApp"
 	language "C++"
 	editandcontinue "Off"
-		
+
 	files
 	{
 		"**.h",
@@ -10,7 +10,7 @@ project "LumosEditor"
 		"Source/**.h",
 		"Source/**.cpp"
 	}
-	
+
 	includedirs
 	{
 		"../Lumos/Source/Lumos",
@@ -35,6 +35,7 @@ project "LumosEditor"
 		"%{IncludeDir.msdfgen}",
 		"%{IncludeDir.msdf_atlas_gen}",
 		"%{IncludeDir.glm}",
+		"%{IncludeDir.ozz}",
 		"%{IncludeDir.Lumos}",
 	}
 
@@ -48,7 +49,10 @@ project "LumosEditor"
 		"SpirvCross",
 		"spdlog",
 		"meshoptimizer",
-		"msdf-atlas-gen"
+		"msdf-atlas-gen",
+		"ozz_animation",
+		"ozz_animation_offline",
+		"ozz_base"
 	}
 
 	defines
@@ -96,7 +100,7 @@ project "LumosEditor"
 			"OpenAL32"
 		}
 
-		postbuildcommands { "xcopy /Y /C \"..\\Lumos\\External\\OpenAL\\libs\\Win32\\OpenAL32.dll\" \"$(OutDir)\"" } 
+		postbuildcommands { "xcopy /Y /C \"..\\Lumos\\External\\OpenAL\\libs\\Win32\\OpenAL32.dll\" \"$(OutDir)\"" }
 
 		disablewarnings { 4307 }
 
@@ -105,7 +109,7 @@ project "LumosEditor"
 		staticruntime "Off"
 		systemversion "11.0"
 		editandcontinue "Off"
-		
+
 		xcodebuildresources { "Assets.xcassets", "libMoltenVK.dylib" }
 
 		xcodebuildsettings
@@ -167,7 +171,7 @@ project "LumosEditor"
 		kind "WindowedApp"
 		targetextension ".app"
 		editandcontinue "Off"
-		
+
 		defines
 		{
 			"LUMOS_PLATFORM_IOS",
@@ -310,8 +314,8 @@ project "LumosEditor"
 			{
 				"-msse4.1",
 			}
-	
-			
+
+
 		filter "system:android"
 			androidsdkversion "29"
 			androidminsdkversion "29"
@@ -321,7 +325,7 @@ project "LumosEditor"
 			kind "WindowedApp"
 			targetextension ".apk"
 			editandcontinue "Off"
-			
+
 			defines
 			{
 				"LUMOS_PLATFORM_ANDROID",
@@ -330,7 +334,7 @@ project "LumosEditor"
 				"LUMOS_RENDER_API_VULKAN",
 				"LUMOS_IMGUI"
 			}
-	
+
 			--Adding assets from Game Project folder. Needs rework
 			files
 			{
@@ -343,37 +347,37 @@ project "LumosEditor"
 				"../ExampleProject/Assets/Textures",
 				"../ExampleProject/Example.lmproj"
 			}
-			
+
 			links
 			{
-				"log" -- required for c++ logging	
+				"log" -- required for c++ logging
 			}
-			
+
 			buildoptions
 			{
 				"-std=c++17" -- flag mainly here to test cmake compile options
 			}
-			
+
 			linkoptions
 			{
 				"--no-undefined" -- this flag is used just to cmake link libraries
 			}
-			
+
 			includedirs
 			{
 				"h"
 			}
-			
+
 			androidabis
 			{
 				"arm64-v8a"
 			}
-		
+
 			androiddependencies
 			{
 				"com.android.support:support-v4:27.1.0",
 			}
-			
+
 			assetpackdependencies
 			{
 				"pack"

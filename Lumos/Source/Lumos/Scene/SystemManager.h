@@ -1,48 +1,47 @@
 #pragma once
 #include "Scene/ISystem.h"
-#include <imgui/imgui.h>
-#include <unordered_map>
+#include "Core/DataStructures/Map.h"
 
 namespace Lumos
 {
     class SystemManager
     {
     public:
-        template <typename T, typename... Args>
-        SharedPtr<T> RegisterSystem(Args&&... args)
-        {
-            auto typeName = typeid(T).hash_code();
+        SystemManager();
+        ~SystemManager();
 
-            LUMOS_ASSERT((m_Systems.find(typeName) == m_Systems.end()), "Registering system more than once.");
+        template <typename T, typename... Args>
+        ISystem* RegisterSystem(Args&&... args)
+        {
+            std::scoped_lock<std::mutex> lock(m_Mutex);
+            auto typeName = typeid(T).hash_code();
+            LUMOS_ASSERT(!HasSystem<T>(), "Registering system more than once.");
 
             // Create a pointer to the system and return it so it can be used externally
-            SharedPtr<T> system = CreateSharedPtr<T>(std::forward<Args>(args)...);
-            m_Systems.insert({ typeName, std::move(system) });
+            ISystem* system = new T(std::forward<Args>(args)...);
+            HashMapInsert(&m_Systems, typeName, system);
             return system;
         }
 
         template <typename T>
-        SharedPtr<T> RegisterSystem(T* t)
+        ISystem* RegisterSystem(T* t)
         {
+            std::scoped_lock<std::mutex> lock(m_Mutex);
             auto typeName = typeid(T).hash_code();
-
-            LUMOS_ASSERT(m_Systems.find(typeName) == m_Systems.end(), "Registering system more than once.");
+            LUMOS_ASSERT(!HasSystem<T>(), "Registering system more than once.");
 
             // Create a pointer to the system and return it so it can be used externally
-            SharedPtr<T> system = SharedPtr<T>(t);
-            m_Systems.insert({ typeName, std::move(system) });
+            ISystem* system = t;
+            HashMapInsert(&m_Systems, typeName, system);
             return system;
         }
 
         template <typename T>
         void RemoveSystem()
         {
+            std::scoped_lock<std::mutex> lock(m_Mutex);
             auto typeName = typeid(T).hash_code();
-
-            if(m_Systems.find(typeName) != m_Systems.end())
-            {
-                m_Systems.erase(typeName);
-            }
+            HashMapRemove(&m_Systems, typeName);
         }
 
         template <typename T>
@@ -50,48 +49,49 @@ namespace Lumos
         {
             auto typeName = typeid(T).hash_code();
 
-            if(m_Systems.find(typeName) != m_Systems.end())
+            ISystem* find;
+            if(HashMapFind(&m_Systems, typeName, &find))
             {
-                return dynamic_cast<T*>(m_Systems[typeName].get());
+                return dynamic_cast<T*>(find);
             }
+
+            LUMOS_LOG_WARN("Failed to find system");
 
             return nullptr;
         }
 
         template <typename T>
-        T* HasSystem()
+        bool HasSystem()
         {
             auto typeName = typeid(T).hash_code();
-
-            return m_Systems.find(typeName) != m_Systems.end();
+            ISystem* find;
+            return HashMapFind(&m_Systems, typeName, &find);
         }
 
         void OnUpdate(const TimeStep& dt, Scene* scene)
         {
-            for(auto& system : m_Systems)
-                system.second->OnUpdate(dt, scene);
-        }
-
-        void OnImGui()
-        {
-            for(auto& system : m_Systems)
+            ForHashMapEach(size_t, ISystem*, &m_Systems, it)
             {
-                if(ImGui::TreeNode(system.second->GetName().c_str()))
-                {
-                    system.second->OnImGui();
-                    ImGui::TreePop();
-                }
+                ISystem* value = *it.value;
+                value->OnUpdate(dt, scene);
             }
         }
 
+        void OnImGui();
+
         void OnDebugDraw()
         {
-            for(auto& system : m_Systems)
-                system.second->OnDebugDraw();
+            ForHashMapEach(size_t, ISystem*, &m_Systems, it)
+            {
+                ISystem* value = *it.value;
+                value->OnDebugDraw();
+            }
         }
 
     private:
-        // Map from system type string pointer to a system pointer
-        std::unordered_map<size_t, SharedPtr<ISystem>> m_Systems;
+        std::mutex m_Mutex;
+        Arena* m_Arena;
+
+        HashMap(size_t, ISystem*) m_Systems;
     };
 }

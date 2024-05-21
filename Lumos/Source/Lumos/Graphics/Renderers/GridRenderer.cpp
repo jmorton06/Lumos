@@ -54,8 +54,7 @@ namespace Lumos
 
             CreateGraphicsPipeline();
             auto commandBuffer = Renderer::GetMainSwapChain()->GetCurrentCommandBuffer();
-
-            m_Pipeline->Bind(commandBuffer);
+            commandBuffer->BindPipeline(m_Pipeline);
 
             m_CurrentDescriptorSets[0] = m_DescriptorSet[0].get();
 
@@ -68,12 +67,8 @@ namespace Lumos
             m_Quad->GetVertexBuffer()->Unbind();
             m_Quad->GetIndexBuffer()->Unbind();
 
-            End();
-
-            m_Pipeline->End(commandBuffer);
-
-            // if(!m_RenderTexture)
-            // Renderer::Present((m_CommandBuffers[Renderer::GetMainSwapChain()->GetCurrentBufferIndex()].get()));
+            commandBuffer->UnBindPipeline();
+            commandBuffer->EndCurrentRenderPass();
         }
 
         enum VSSystemUniformIndices : int32_t
@@ -170,6 +165,14 @@ namespace Lumos
         void GridRenderer::OnResize(uint32_t width, uint32_t height)
         {
             LUMOS_PROFILE_FUNCTION();
+
+            width -= (width % 2 != 0) ? 1 : 0;
+            height -= (height % 2 != 0) ? 1 : 0;
+
+            const QualitySettings& qs = Application::Get().GetQualitySettings();
+            width                     = uint32_t(qs.RendererScale * float(width));
+            height                    = uint32_t(qs.RendererScale * float(height));
+
             SetScreenBufferSize(width, height);
 
             UpdateUniformBuffer();

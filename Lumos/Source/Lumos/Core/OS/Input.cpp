@@ -133,7 +133,7 @@ namespace Lumos
         if(controller.ButtonStates.find(button) == controller.ButtonStates.end())
             return false;
 
-        return controller.ButtonStates.at(button);
+        return controller.ButtonStates.at(button).State == KeyState::Pressed;
     }
 
     float Input::GetControllerAxis(int controllerID, int axis)

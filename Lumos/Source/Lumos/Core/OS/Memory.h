@@ -1,11 +1,5 @@
 #pragma once
-
 #include "Core/Core.h"
-#include "Allocators/Allocator.h"
-
-#include <cstdint>
-#include <cstdlib>
-#include <cassert>
 
 namespace Lumos
 {
@@ -17,9 +11,6 @@ namespace Lumos
 
         static void* NewFunc(std::size_t size, const char* file, int line);
         static void DeleteFunc(void* p);
-        static void LogMemoryInformation();
-
-        static Allocator* const MemoryAllocator;
     };
 
     struct Arena

@@ -4,7 +4,7 @@
 #include "Utilities/LoadImage.h"
 #include "VKUtilities.h"
 #include "VKRenderer.h"
-#include "Maths/Random.h"
+#include "Core/UUID.h"
 #include "Maths/MathsUtilities.h"
 #ifdef LUMOS_PLATFORM_WINDOWS
 #define USE_SMALL_VMA_POOL 0
@@ -208,7 +208,7 @@ namespace Lumos
             m_TextureImageView = CreateImageView(m_TextureImage, VKUtilities::FormatToVK(parameters.format, parameters.srgb), m_MipLevels, VK_IMAGE_VIEW_TYPE_2D, VK_IMAGE_ASPECT_COLOR_BIT, 1);
             m_TextureSampler   = CreateTextureSampler(VKUtilities::TextureFilterToVK(m_Parameters.magFilter), VKUtilities::TextureFilterToVK(m_Parameters.minFilter), 0.0f, static_cast<float>(m_MipLevels), m_Parameters.anisotropicFiltering, m_Parameters.anisotropicFiltering ? VKDevice::Get().GetPhysicalDevice()->GetProperties().limits.maxSamplerAnisotropy : 1.0f, VKUtilities::TextureWrapToVK(m_Parameters.wrap), VKUtilities::TextureWrapToVK(m_Parameters.wrap), VKUtilities::TextureWrapToVK(m_Parameters.wrap));
 
-            m_UUID = Random64::Rand(0, std::numeric_limits<uint64_t>::max());
+            m_UUID = {};
 
             UpdateDescriptor();
         }
@@ -234,7 +234,7 @@ namespace Lumos
             m_TextureImageView = CreateImageView(m_TextureImage, m_VKFormat, m_MipLevels, VK_IMAGE_VIEW_TYPE_2D, VK_IMAGE_ASPECT_COLOR_BIT, 1);
             m_TextureSampler   = CreateTextureSampler(VKUtilities::TextureFilterToVK(m_Parameters.magFilter), VKUtilities::TextureFilterToVK(m_Parameters.minFilter), 0.0f, static_cast<float>(m_MipLevels), m_Parameters.anisotropicFiltering, m_Parameters.anisotropicFiltering ? VKDevice::Get().GetPhysicalDevice()->GetProperties().limits.maxSamplerAnisotropy : 1.0f, VKUtilities::TextureWrapToVK(m_Parameters.wrap), VKUtilities::TextureWrapToVK(m_Parameters.wrap), VKUtilities::TextureWrapToVK(m_Parameters.wrap));
 
-            m_UUID = Random64::Rand(0, std::numeric_limits<uint64_t>::max());
+            m_UUID = {};
 
             UpdateDescriptor();
         }
@@ -250,9 +250,9 @@ namespace Lumos
             , m_ImageLayout(VK_IMAGE_LAYOUT_UNDEFINED)
         {
             m_TextureImageMemory = VK_NULL_HANDLE;
-            m_Samples = 1;
+            m_Samples            = 1;
 
-            m_UUID = Random64::Rand(0, std::numeric_limits<uint64_t>::max());
+            m_UUID = {};
 
             UpdateDescriptor();
         }
@@ -525,7 +525,7 @@ namespace Lumos
 
             m_ImageLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 
-            m_UUID = Random64::Rand(0, std::numeric_limits<uint64_t>::max());
+            m_UUID = {};
 
             TransitionImage(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
@@ -563,7 +563,7 @@ namespace Lumos
 
             UpdateDescriptor();
 
-            m_UUID = Random64::Rand(0, std::numeric_limits<uint64_t>::max());
+            m_UUID = {};
         }
 
         void VKTexture2D::TransitionImage(VkImageLayout newLayout, VKCommandBuffer* commandBuffer)
@@ -602,7 +602,7 @@ namespace Lumos
             m_TextureImageView = CreateImageView(m_TextureImage, VKUtilities::FormatToVK(parameters.format, parameters.srgb), m_MipLevels, VK_IMAGE_VIEW_TYPE_2D, VK_IMAGE_ASPECT_COLOR_BIT, 1);
             m_TextureSampler   = CreateTextureSampler(VKUtilities::TextureFilterToVK(m_Parameters.magFilter), VKUtilities::TextureFilterToVK(m_Parameters.minFilter), 0.0f, static_cast<float>(m_MipLevels), m_Parameters.anisotropicFiltering, m_Parameters.anisotropicFiltering ? VKDevice::Get().GetPhysicalDevice()->GetProperties().limits.maxSamplerAnisotropy : 1.0f, VKUtilities::TextureWrapToVK(m_Parameters.wrap), VKUtilities::TextureWrapToVK(m_Parameters.wrap), VKUtilities::TextureWrapToVK(m_Parameters.wrap));
 
-            m_UUID = Random64::Rand(0, std::numeric_limits<uint64_t>::max());
+            m_UUID = {};
 
             UpdateDescriptor();
         }
@@ -750,7 +750,7 @@ namespace Lumos
 
             m_ImageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
-            m_UUID = Random64::Rand(0, std::numeric_limits<uint64_t>::max());
+            m_UUID = {};
 
             UpdateDescriptor();
         }
@@ -1101,7 +1101,7 @@ namespace Lumos
             m_TextureSampler   = CreateTextureSampler(VK_FILTER_LINEAR, VK_FILTER_LINEAR, 0.0f, static_cast<float>(m_NumMips), false, VKDevice::Get().GetPhysicalDevice()->GetProperties().limits.maxSamplerAnisotropy, false, VK_SAMPLER_ADDRESS_MODE_REPEAT, VK_SAMPLER_ADDRESS_MODE_REPEAT, VK_SAMPLER_ADDRESS_MODE_REPEAT);
             m_TextureImageView = CreateImageView(m_TextureImage, m_VKFormat, m_NumMips, VK_IMAGE_VIEW_TYPE_CUBE, VK_IMAGE_ASPECT_COLOR_BIT, 6);
 
-            m_UUID = Random64::Rand(0, std::numeric_limits<uint64_t>::max());
+            m_UUID = {};
 
             delete stagingBuffer;
 
@@ -1194,7 +1194,7 @@ namespace Lumos
 
             UpdateDescriptor();
 
-            m_UUID = Random64::Rand(0, std::numeric_limits<uint64_t>::max());
+            m_UUID = {};
         }
 
         void VKTextureDepth::UpdateDescriptor()
@@ -1278,7 +1278,7 @@ namespace Lumos
                                        {
                                            vkDestroySampler(VKDevice::GetHandle(), sampler, nullptr);
                                            vkDestroyImageView(VKDevice::GetHandle(), imageView, nullptr);
-                                           
+
                                            for(uint32_t i = 0; i < (uint32_t)imageViews.size(); i++)
                                            {
                                                vkDestroyImageView(VKDevice::GetHandle(), imageViews[i], nullptr);
@@ -1309,7 +1309,7 @@ namespace Lumos
             m_Flags |= TextureFlags::Texture_DepthStencil;
             m_VKFormat = VKUtilities::FormatToVK(m_Format);
 
-#ifdef LUMOS_PLATFORM_MACOS
+#ifdef LUMOS_PLATFORM_MACOS_D
             VkImageUsageFlags usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
 
 #else
@@ -1336,7 +1336,7 @@ namespace Lumos
                                                     VK_SAMPLER_ADDRESS_MODE_REPEAT,
                                                     VK_SAMPLER_ADDRESS_MODE_REPEAT);
 
-            m_UUID = Random64::Rand(0, std::numeric_limits<uint64_t>::max());
+            m_UUID = {};
 
             UpdateDescriptor();
         }
@@ -1381,7 +1381,7 @@ namespace Lumos
                                        {
                                            vkDestroySampler(VKDevice::GetHandle(), sampler, nullptr);
                                            vkDestroyImageView(VKDevice::GetHandle(), imageView, nullptr);
-                                           
+
                                            for(uint32_t i = 0; i < (uint32_t)imageViews.size(); i++)
                                            {
                                                vkDestroyImageView(VKDevice::GetHandle(), imageViews[i], nullptr);

@@ -28,6 +28,7 @@ project "Runtime"
 		"%{IncludeDir.glm}",
 		"%{IncludeDir.msdfgen}",
 		"%{IncludeDir.msdf_atlas_gen}",
+		"%{IncludeDir.ozz}",
 		"%{IncludeDir.Lumos}",
 	}
 
@@ -46,7 +47,10 @@ project "Runtime"
 		"SpirvCross",
 		"spdlog",
 		"meshoptimizer",
-		"msdf-atlas-gen"
+		"msdf-atlas-gen",
+		"ozz_animation",
+		"ozz_animation_offline",
+		"ozz_base"
 	}
 
 	defines
@@ -67,7 +71,7 @@ project "Runtime"
 		staticruntime "Off"
 		systemversion "latest"
 		conformancemode "on"
-		
+
 		defines
 		{
 			"LUMOS_PLATFORM_WINDOWS",
@@ -93,7 +97,7 @@ project "Runtime"
 			"OpenAL32"
 		}
 
-		postbuildcommands { "xcopy /Y /C \"..\\Lumos\\External\\OpenAL\\libs\\Win32\\OpenAL32.dll\" \"$(OutDir)\"" } 
+		postbuildcommands { "xcopy /Y /C \"..\\Lumos\\External\\OpenAL\\libs\\Win32\\OpenAL32.dll\" \"$(OutDir)\"" }
 
 		disablewarnings { 4307 }
 
@@ -102,7 +106,7 @@ project "Runtime"
 		staticruntime "Off"
 		systemversion "11.0"
 		editandcontinue "Off"
-		
+
 		xcodebuildresources { "Assets.xcassets", "libMoltenVK.dylib" }
 
 		xcodebuildsettings
@@ -165,7 +169,7 @@ end
 		kind "WindowedApp"
 		targetextension ".app"
 		editandcontinue "Off"
-		
+
 		defines
 		{
 			"LUMOS_PLATFORM_IOS",

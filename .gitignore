@@ -173,3 +173,4 @@ ClangBuildAnalyzerSession.txt
 compileData.*
 ExampleProject/Assets/Meshes/Sponza
 Scripts/Setup
+ExampleProject/Assets/Cache/

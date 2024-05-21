@@ -173,9 +173,11 @@ namespace Lumos
                 glm::mat4 m_LightMatrix;
                 std::vector<SharedPtr<Graphics::DescriptorSet>> m_DescriptorSet;
 
-                std::vector<Graphics::DescriptorSet*> m_CurrentDescriptorSets;
-                SharedPtr<Shader> m_Shader      = nullptr;
-                SharedPtr<Shader> m_ShaderAlpha = nullptr;
+                SharedPtr<Shader> m_Shader          = nullptr;
+                SharedPtr<Shader> m_ShaderAlpha     = nullptr;
+                SharedPtr<Shader> m_ShaderAnim      = nullptr;
+                SharedPtr<Shader> m_ShaderAnimAlpha = nullptr;
+
                 Maths::Frustum m_CascadeFrustums[SHADOWMAP_MAX];
             };
 
@@ -194,11 +196,11 @@ namespace Lumos
                 CommandQueue m_CommandQueue;
 
                 std::vector<SharedPtr<Graphics::DescriptorSet>> m_DescriptorSet;
-                std::vector<Graphics::DescriptorSet*> m_CurrentDescriptorSets;
 
-                SharedPtr<Shader> m_Shader   = nullptr;
-                Texture* m_RenderTexture     = nullptr;
-                TextureDepth* m_DepthTexture = nullptr;
+                SharedPtr<Shader> m_Shader     = nullptr;
+                SharedPtr<Shader> m_AnimShader = nullptr;
+                Texture* m_RenderTexture       = nullptr;
+                TextureDepth* m_DepthTexture   = nullptr;
 
                 Maths::Frustum m_Frustum;
 
@@ -239,7 +241,6 @@ namespace Lumos
                 SharedPtr<Pipeline> m_Pipeline = nullptr;
 
                 std::vector<std::vector<SharedPtr<Graphics::DescriptorSet>>> m_DescriptorSet;
-                std::vector<Graphics::DescriptorSet*> m_CurrentDescriptorSets;
             };
 
             struct DebugDrawData
@@ -358,7 +359,8 @@ namespace Lumos
             SharedPtr<Pipeline> m_DepthPrePassPipeline = nullptr;
             SharedPtr<Graphics::Shader> m_DepthPrePassShader;
             SharedPtr<Graphics::Shader> m_DepthPrePassAlphaShader;
-
+            SharedPtr<Graphics::Shader> m_DepthPrePassAnimShader;
+            SharedPtr<Graphics::Shader> m_DepthPrePassAlphaAnimShader;
             Texture2D* m_SSAOTexture  = nullptr;
             Texture2D* m_SSAOTexture1 = nullptr;
 
@@ -388,13 +390,18 @@ namespace Lumos
             SharedPtr<Graphics::Shader> m_SharpenShader;
 
             RenderPassesStats m_Stats;
+
+#ifdef LUMOS_PLATFORM_WINDOWS
             uint8_t m_MainTextureSamples = 4;
+#else
+            uint8_t m_MainTextureSamples = 1;
+#endif
 
             // Outline pass
             Graphics::Model* m_SelectedModel           = nullptr;
             Maths::Transform* m_SelectedModelTransform = nullptr;
 
-            SceneRenderSettings* m_OverrideSceneRenderSettings = nullptr; //For editor viewport
+            SceneRenderSettings* m_OverrideSceneRenderSettings = nullptr; // For editor viewport
 
             void TextFlush(Renderer2DData& textRenderData, std::vector<TextVertexData*>& textVertexBufferBase, TextVertexData*& textVertexBufferPtr);
         };

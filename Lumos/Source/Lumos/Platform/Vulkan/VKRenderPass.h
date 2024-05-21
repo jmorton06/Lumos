@@ -1,7 +1,6 @@
 #pragma once
-
-#include "VKDevice.h"
 #include "Graphics/RHI/RenderPass.h"
+#include "VK.h"
 
 namespace Lumos
 {

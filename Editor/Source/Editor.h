@@ -2,6 +2,7 @@
 
 #include "EditorPanel.h"
 #include "FileBrowserPanel.h"
+#include "PreviewDraw.h"
 
 #include <Lumos/Maths/Ray.h>
 #include <Lumos/Maths/Transform.h>
@@ -10,7 +11,7 @@
 #include <Lumos/Graphics/Camera/Camera.h>
 #include <Lumos/ImGui/ImGuiUtilities.h>
 #include <Lumos/Core/Application.h>
-
+#include <Lumos/Scene/Entity.h>
 #include <imgui/imgui.h>
 #include <entt/entt.hpp>
 
@@ -32,6 +33,8 @@ namespace Lumos
         class Texture2D;
         class GridRenderer;
         class Mesh;
+        class Environment;
+        class RenderPasses;
     }
 
     enum EditorDebugFlags : uint32_t
@@ -73,6 +76,7 @@ namespace Lumos
         bool IsTextureFile(const std::string& filePath);
         bool IsShaderFile(const std::string& filePath);
         bool IsFontFile(const std::string& filePath);
+        bool IsMaterialFile(const std::string& filePath);
 
         void SetImGuizmoOperation(uint32_t operation)
         {
@@ -134,7 +138,8 @@ namespace Lumos
 
         void SetSelected(entt::entity entity);
         void UnSelect(entt::entity entity);
-
+        void SetHoveredEntity(Entity entity) { m_HoveredEntity = entity; }
+        Entity GetHoveredEntity() { return m_HoveredEntity; }
         const std::vector<entt::entity>& GetSelected() const
         {
             return m_SelectedEntities;
@@ -184,7 +189,7 @@ namespace Lumos
 
         void RecompileShaders();
         void DebugDraw();
-        void SelectObject(const Maths::Ray& ray);
+        void SelectObject(const Maths::Ray& ray, bool hoveredOnly = false);
 
         void OpenTextFile(const std::string& filePath, const std::function<void()>& callback);
         void RemovePanel(EditorPanel* panel);
@@ -192,6 +197,8 @@ namespace Lumos
 
         void ShowPreview();
         void DrawPreview();
+        void SavePreview();
+        void RequestThumbnail(String8 asset);
 
         static Editor* GetEditor() { return s_Editor; }
 
@@ -261,7 +268,6 @@ namespace Lumos
             ImGuiUtilities::Theme m_Theme = ImGuiUtilities::Theme::Black;
             bool m_FreeAspect             = true;
             float m_FixedAspect           = 1.0f;
-            bool m_HalfRes                = false;
             float m_AspectRatio           = 1.0f;
 
             // Camera Settings
@@ -274,6 +280,10 @@ namespace Lumos
 
         EditorSettings& GetSettings() { return m_Settings; }
         void SetSceneViewActive(bool active) { m_SceneViewActive = active; }
+        void SetEditorScriptsPath(const std::string& path);
+        String8 GetEditorScriptsPath() { return m_EditorScriptPath; }
+
+        SharedPtr<Graphics::Texture2D> GetPreviewTexture() const;
 
     protected:
         NONCOPYABLE(Editor)
@@ -285,10 +295,12 @@ namespace Lumos
         std::vector<entt::entity> m_SelectedEntities;
         std::vector<entt::entity> m_CopiedEntities;
 
+        Entity m_HoveredEntity;
         bool m_CutCopyEntity              = false;
         float m_CurrentSceneAspectRatio   = 0.0f;
         float m_CameraTransitionSpeed     = 0.0f;
         bool m_TransitioningCamera        = false;
+
         glm::vec3 m_CameraDestination;
         bool m_SceneViewActive     = false;
         bool m_NewProjectPopupOpen = false;
@@ -304,14 +316,20 @@ namespace Lumos
         Maths::Transform m_EditorCameraTransform;
 
         SharedPtr<Camera> m_EditorCamera = nullptr;
-        // SharedPtr<Graphics::ForwardRenderer> m_PreviewRenderer;
-        SharedPtr<Graphics::Texture2D> m_PreviewTexture;
-        SharedPtr<Graphics::Mesh> m_PreviewSphere;
+
         SharedPtr<Graphics::GridRenderer> m_GridRenderer;
+
         std::string m_TempSceneSaveFilePath;
         int m_AutoSaveSettingsTime = 15000;
+        String8 m_EditorScriptPath;
+
+        bool m_DrawPreview        = false;
+        bool m_SavePreviewTexture = false;
+        bool m_QueuePreviewSave   = false;
+        String8 m_RequestedThumbnailPath;
 
         IniFile m_IniFile;
+        PreviewDraw m_PreviewDraw;
 
         static Editor* s_Editor;
     };

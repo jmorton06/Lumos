@@ -1,7 +1,7 @@
 #include "Precompiled.h"
 #include "Hull.h"
 #include "Graphics/Renderers/DebugRenderer.h"
-#include <glm/vec4.hpp>
+#include <glm/ext/vector_float4.hpp>
 
 namespace Lumos
 {
@@ -183,6 +183,8 @@ namespace Lumos
                     polygon_last = polygon_next;
                 }
             }
+
+            DebugRenderer::DrawThickLine(transform * glm::vec4(face.normal, 1.0f), transform * glm::vec4(face.normal * 2.0f, 1.0f), 0.02f, true, glm::vec4(0.7f, 0.2f, 0.7f, 1.0f));
         }
 
         // Draw all Hull Edges
@@ -191,4 +193,83 @@ namespace Lumos
             DebugRenderer::DrawThickLine(transform * glm::vec4(m_Vertices[edge.vStart].pos, 1.0f), transform * glm::vec4(m_Vertices[edge.vEnd].pos, 1.0f), 0.02f, true, glm::vec4(0.7f, 0.2f, 0.7f, 1.0f));
         }
     }
+
+    const int BoundingBoxHull::FAR_FACE[]    = { 0, 1, 2, 3 };
+    const int BoundingBoxHull::NEAR_FACE[]   = { 7, 6, 5, 4 };
+    const int BoundingBoxHull::TOP_FACE[]    = { 5, 6, 2, 1 };
+    const int BoundingBoxHull::BOTTOM_FACE[] = { 0, 3, 7, 4 };
+    const int BoundingBoxHull::RIGHT_FACE[]  = { 6, 7, 3, 2 };
+    const int BoundingBoxHull::LEFT_FACE[]   = { 4, 5, 1, 0 };
+
+    BoundingBoxHull::BoundingBoxHull()
+    {
+        // Vertices
+        AddVertex(glm::vec3(-1.0f, -1.0f, -1.0f)); // 0 lll
+        AddVertex(glm::vec3(-1.0f, 1.0f, -1.0f));  // 1 lul
+        AddVertex(glm::vec3(1.0f, 1.0f, -1.0f));   // 2 uul
+        AddVertex(glm::vec3(1.0f, -1.0f, -1.0f));  // 3 ull
+        AddVertex(glm::vec3(-1.0f, -1.0f, 1.0f));  // 4 llu
+        AddVertex(glm::vec3(-1.0f, 1.0f, 1.0f));   // 5 luu
+        AddVertex(glm::vec3(1.0f, 1.0f, 1.0f));    // 6 uuu
+        AddVertex(glm::vec3(1.0f, -1.0f, 1.0f));   // 7 ulu
+
+        // Faces
+        AddFace(glm::vec3(0.0f, 0.0f, -1.0f), 4, FAR_FACE);
+        AddFace(glm::vec3(0.0f, 0.0f, 1.0f), 4, NEAR_FACE);
+        AddFace(glm::vec3(0.0f, 1.0f, 0.0f), 4, TOP_FACE);
+        AddFace(glm::vec3(0.0f, -1.0f, 0.0f), 4, BOTTOM_FACE);
+        AddFace(glm::vec3(1.0f, 0.0f, 0.0f), 4, RIGHT_FACE);
+        AddFace(glm::vec3(-1.0f, 0.0f, 0.0f), 4, LEFT_FACE);
+    }
+
+    BoundingBoxHull::~BoundingBoxHull()
+    {
+    }
+
+    void BoundingBoxHull::UpdateHull()
+    {
+        if(m_Vertices.size() != 8)
+            return;
+
+        // Lower
+        m_Vertices[0].pos.x = m_Min.x;
+        m_Vertices[0].pos.y = m_Min.y;
+        m_Vertices[0].pos.z = m_Min.z;
+
+        m_Vertices[1].pos.x = m_Min.x;
+        m_Vertices[1].pos.z = m_Min.z;
+
+        m_Vertices[2].pos.z = m_Min.z;
+
+        m_Vertices[3].pos.y = m_Min.y;
+        m_Vertices[3].pos.z = m_Min.z;
+
+        m_Vertices[4].pos.x = m_Min.x;
+        m_Vertices[4].pos.y = m_Min.y;
+
+        m_Vertices[5].pos.x = m_Min.x;
+
+        m_Vertices[7].pos.y = m_Min.y;
+
+        // Upper
+        m_Vertices[1].pos.y = m_Max.y;
+
+        m_Vertices[2].pos.x = m_Max.x;
+        m_Vertices[2].pos.y = m_Max.y;
+
+        m_Vertices[3].pos.x = m_Max.x;
+
+        m_Vertices[4].pos.z = m_Max.z;
+
+        m_Vertices[5].pos.y = m_Max.y;
+        m_Vertices[5].pos.z = m_Max.z;
+
+        m_Vertices[6].pos.x = m_Max.x;
+        m_Vertices[6].pos.y = m_Max.y;
+        m_Vertices[6].pos.z = m_Max.z;
+
+        m_Vertices[7].pos.x = m_Max.x;
+        m_Vertices[7].pos.z = m_Max.z;
+    }
+
 }

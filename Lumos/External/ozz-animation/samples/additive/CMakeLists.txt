@@ -1,0 +1,61 @@
+
+add_custom_command(
+  DEPENDS $<$<BOOL:${ozz_build_fbx}>:BUILD_DATA>
+          $<$<BOOL:${ozz_build_fbx}>:BUILD_DATA_SAMPLE>
+          "${CMAKE_CURRENT_LIST_DIR}/README.md"
+          "${ozz_media_directory}/bin/pab_skeleton.ozz"
+          "${ozz_media_directory}/bin/pab_walk.ozz"
+          "${ozz_media_directory}/bin/pab_curl_additive.ozz"
+          "${ozz_media_directory}/bin/pab_splay_additive.ozz"
+  OUTPUT  "${CMAKE_CURRENT_BINARY_DIR}/README.md"
+          "${CMAKE_CURRENT_BINARY_DIR}/media/skeleton.ozz"
+          "${CMAKE_CURRENT_BINARY_DIR}/media/animation_base.ozz"
+          "${CMAKE_CURRENT_BINARY_DIR}/media/animation_curl_additive.ozz"
+          "${CMAKE_CURRENT_BINARY_DIR}/media/animation_splay_additive.ozz"
+  COMMAND ${CMAKE_COMMAND} -E make_directory media
+  COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_LIST_DIR}/README.md" .
+  COMMAND ${CMAKE_COMMAND} -E copy "${ozz_media_directory}/bin/pab_skeleton.ozz" "./media/skeleton.ozz"
+  COMMAND ${CMAKE_COMMAND} -E copy "${ozz_media_directory}/bin/pab_walk.ozz" "./media/animation_base.ozz"
+  COMMAND ${CMAKE_COMMAND} -E copy "${ozz_media_directory}/bin/pab_curl_additive.ozz" "./media/animation_curl_additive.ozz"
+  COMMAND ${CMAKE_COMMAND} -E copy "${ozz_media_directory}/bin/pab_splay_additive.ozz" "./media/animation_splay_additive.ozz"
+  VERBATIM)
+
+add_executable(sample_additive
+  sample_additive.cc
+  "${CMAKE_CURRENT_BINARY_DIR}/README.md"
+  "${CMAKE_CURRENT_BINARY_DIR}/media/skeleton.ozz"
+  "${CMAKE_CURRENT_BINARY_DIR}/media/animation_base.ozz"
+  "${CMAKE_CURRENT_BINARY_DIR}/media/animation_curl_additive.ozz"
+  "${CMAKE_CURRENT_BINARY_DIR}/media/animation_splay_additive.ozz")
+target_link_libraries(sample_additive
+  sample_framework)
+target_copy_shared_libraries(sample_additive)
+set_target_properties(sample_additive
+  PROPERTIES FOLDER "samples")
+
+if(EMSCRIPTEN)
+  # Resource files are embedded to the output file with emscripten
+  set_target_properties(sample_additive
+    PROPERTIES LINK_FLAGS "--embed-file media --embed-file README.md --memory-init-file 0")
+
+  install(FILES
+    ${CMAKE_CURRENT_BINARY_DIR}/sample_additive.html
+    ${CMAKE_CURRENT_BINARY_DIR}/sample_additive.js
+    ${CMAKE_CURRENT_BINARY_DIR}/sample_additive.wasm
+    DESTINATION bin/samples/additive)
+else()
+  install(TARGETS sample_additive DESTINATION bin/samples/additive)
+  install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/media DESTINATION bin/samples/additive)
+  install(FILES ${CMAKE_CURRENT_BINARY_DIR}/README.md DESTINATION bin/samples/additive)
+endif(EMSCRIPTEN)
+
+add_test(NAME sample_additive COMMAND sample_additive "--max_idle_loops=${ozz_sample_testing_loops}" $<$<BOOL:${ozz_run_tests_headless}>:--norender>)
+add_test(NAME sample_additive_path COMMAND sample_additive "--skeleton=media/skeleton.ozz" "--animation=media/animation_base.ozz" "--splay_animation=media/animation_splay_additive.ozz" "--curl_animation=media/animation_curl_additive.ozz" "--max_idle_loops=${ozz_sample_testing_loops}" $<$<BOOL:${ozz_run_tests_headless}>:--norender>)
+add_test(NAME sample_additive_invalid_skeleton_path COMMAND sample_additive "--skeleton=media/bad_skeleton.ozz" $<$<BOOL:${ozz_run_tests_headless}>:--norender>)
+set_tests_properties(sample_additive_invalid_skeleton_path PROPERTIES WILL_FAIL true)
+add_test(NAME sample_additive_invalid_animation_path1 COMMAND sample_additive "--animation=media/bad_animation.ozz" $<$<BOOL:${ozz_run_tests_headless}>:--norender>)
+set_tests_properties(sample_additive_invalid_animation_path1 PROPERTIES WILL_FAIL true)
+add_test(NAME sample_additive_invalid_animation_path2 COMMAND sample_additive "--curl_animation=media/bad_animation.ozz" $<$<BOOL:${ozz_run_tests_headless}>:--norender>)
+set_tests_properties(sample_additive_invalid_animation_path2 PROPERTIES WILL_FAIL true)
+add_test(NAME sample_additive_invalid_animation_path3 COMMAND sample_additive "--splay_animation=media/bad_animation.ozz" $<$<BOOL:${ozz_run_tests_headless}>:--norender>)
+set_tests_properties(sample_additive_invalid_animation_path3 PROPERTIES WILL_FAIL true)

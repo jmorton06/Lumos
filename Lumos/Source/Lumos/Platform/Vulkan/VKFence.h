@@ -15,12 +15,7 @@ namespace Lumos
             bool IsSignaled();
             VkFence& GetHandle() { return m_Handle; }
 
-            void SetSignaled(bool signaled)
-            {
-                m_Signaled = signaled;
-            }
-
-            bool Wait();
+            bool Wait(uint64_t timeoutNanoseconds = 1000000000);
             void Reset();
             void WaitAndReset();
 

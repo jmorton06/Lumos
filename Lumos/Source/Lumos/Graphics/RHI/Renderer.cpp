@@ -1,3 +1,4 @@
+
 #include "Precompiled.h"
 #include "Renderer.h"
 
@@ -11,6 +12,7 @@
 #include "CompiledSPV/Headers/ShadowAlphafragspv.hpp"
 #include "CompiledSPV/Headers/ShadowAnimvertspv.hpp"
 
+#include "CompiledSPV/Headers/ForwardPBRAnimvertspv.hpp"
 #include "CompiledSPV/Headers/ForwardPBRvertspv.hpp"
 #include "CompiledSPV/Headers/ForwardPBRfragspv.hpp"
 
@@ -96,6 +98,8 @@ namespace Lumos
                 LoadShaderEmbedded("ForwardPBR", ForwardPBR, ForwardPBR);
                 LoadShaderEmbedded("Shadow", Shadow, Shadow);
                 LoadShaderEmbedded("ShadowAlpha", Shadow, ShadowAlpha);
+                LoadShaderEmbedded("ShadowAnim", ShadowAnim, Shadow);
+                LoadShaderEmbedded("ShadowAnimAlpha", ShadowAnim, ShadowAlpha);
                 LoadShaderEmbedded("Batch2DPoint", Batch2DPoint, Batch2DPoint);
                 LoadShaderEmbedded("Batch2DLine", Batch2DLine, Batch2DLine);
                 LoadShaderEmbedded("Batch2D", Batch2D, Batch2D);
@@ -109,6 +113,8 @@ namespace Lumos
                 LoadShaderEmbedded("ChromaticAberation", ScreenPass, ChromaticAberation);
                 LoadShaderEmbedded("DepthPrePass", ForwardPBR, DepthPrePass);
                 LoadShaderEmbedded("DepthPrePassAlpha", ForwardPBR, DepthPrePassAlpha);
+                LoadShaderEmbedded("DepthPrePassAnim", ForwardPBRAnim, DepthPrePassAlpha);
+                LoadShaderEmbedded("DepthPrePassAlphaAnim", ForwardPBRAnim, DepthPrePassAlpha);
                 LoadShaderEmbedded("ToneMapping", ScreenPass, ToneMapping);
                 LoadShaderEmbedded("Bloom", ScreenPass, Bloom);
                 LoadShaderEmbedded("BRDFLUT", ScreenPass, BRDFLUT);
@@ -131,7 +137,9 @@ namespace Lumos
                 LUMOS_LOG_INFO("Loading shaders - files");
                 LoadShaderFromFile("Skybox", "Shaders/Skybox.shader");
                 LoadShaderFromFile("Shadow", "Shaders/Shadow.shader");
+                LoadShaderFromFile("ShadowAnim", "Shaders/ShadowAnim.shader");
                 LoadShaderFromFile("ShadowAlpha", "Shaders/ShadowAlpha.shader");
+                LoadShaderFromFile("ShadowAnimAlpha", "Shaders/ShadowAnimAlpha.shader");
                 LoadShaderFromFile("Batch2DPoint", "Shaders/Batch2DPoint.shader");
                 LoadShaderFromFile("Batch2DLine", "Shaders/Batch2DLine.shader");
                 LoadShaderFromFile("Batch2D", "Shaders/Batch2D.shader");
@@ -155,9 +163,13 @@ namespace Lumos
                 LoadShaderFromFile("SSAOBlur", "Shaders/SSAOBlur.shader");
                 LoadShaderFromFile("Sharpen", "Shaders/Sharpen.shader");
                 LoadShaderFromFile("ForwardPBR", "Shaders/ForwardPBR.shader");
+                LoadShaderFromFile("ForwardPBRAnim", "Shaders/ForwardPBRAnim.shader");
                 LoadShaderFromFile("Particle", "Shaders/Particle.shader");
 
-                if(Renderer::GetCapabilities().SupportCompute)
+                LoadShaderFromFile("DepthPrePassAnim", "Shaders/DepthPrePassAnim.shader");
+                LoadShaderFromFile("DepthPrePassAlphaAnim", "Shaders/DepthPrePassAlphaAnim.shader")
+
+                    if(Renderer::GetCapabilities().SupportCompute)
                 {
                     LoadShaderFromFile("FXAAComp", "Shaders/FXAACompute.shader");
                     LoadShaderFromFile("BloomComp", "Shaders/BloomComp.shader");
@@ -176,11 +188,15 @@ namespace Lumos
 
         void Renderer::DrawMesh(CommandBuffer* commandBuffer, Graphics::Pipeline* pipeline, Graphics::Mesh* mesh)
         {
-            mesh->GetVertexBuffer()->Bind(commandBuffer, pipeline);
+            if(mesh->GetAnimVertexBuffer())
+                mesh->GetAnimVertexBuffer()->Bind(commandBuffer, pipeline);
+            else
+                mesh->GetVertexBuffer()->Bind(commandBuffer, pipeline);
             mesh->GetIndexBuffer()->Bind(commandBuffer);
+
             Renderer::DrawIndexed(commandBuffer, DrawType::TRIANGLE, mesh->GetIndexBuffer()->GetCount());
-            mesh->GetVertexBuffer()->Unbind();
-            mesh->GetIndexBuffer()->Unbind();
+            // mesh->GetVertexBuffer()->Unbind();
+            // mesh->GetIndexBuffer()->Unbind();
         }
     }
 }

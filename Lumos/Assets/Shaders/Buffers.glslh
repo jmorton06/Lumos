@@ -1,0 +1,69 @@
+#define MAX_LIGHTS 32
+#define MAX_SHADOWMAPS 4
+#define MAX_BONES 100
+
+layout(set = 0,binding = 0) uniform UBO
+{
+	mat4 projView;
+} u_CameraData;
+
+layout (std140, set = 0, binding = 1) uniform ShadowData
+{
+	mat4 DirLightMatrices[MAX_SHADOWMAPS];
+} u_DirShadow;
+
+struct Light
+{
+	vec4 colour;
+	vec4 position;
+	vec4 direction;
+	float intensity;
+	float radius;
+	float type;
+	float angle;
+};
+
+layout(set = 1,binding = 6) uniform UniformMaterialData
+{
+	vec4  AlbedoColour;
+	float Roughness;
+	float Metallic;
+	float Reflectance;
+	float Emissive;
+	float AlbedoMapFactor;
+	float MetallicMapFactor;
+	float RoughnessMapFactor;
+	float NormalMapFactor;
+	float EmissiveMapFactor;
+	float AOMapFactor;
+	float AlphaCutOff;
+	float workflow;
+} u_MaterialData;
+
+layout(set = 2, binding = 5) uniform UniformSceneData
+{
+	Light lights[MAX_LIGHTS];
+	mat4 ShadowTransform[MAX_SHADOWMAPS];
+	mat4 ViewMatrix;
+	mat4 LightView;
+	mat4 BiasMatrix;
+	vec4 cameraPosition;
+	vec4 SplitDepths[MAX_SHADOWMAPS];
+	float LightSize;
+	float MaxShadowDist;
+	float ShadowFade;
+	float CascadeFade;
+	int LightCount;
+	int ShadowCount;
+	int Mode;
+	int EnvMipCount;
+	float InitialBias;
+	float Width;
+	float Height;
+	int shadowEnabled;
+} u_SceneData;
+
+layout (std140, set = 3, binding = 0) uniform BoneTransforms
+{
+	mat4 BoneTransforms[MAX_BONES];
+} u_BoneTransforms;

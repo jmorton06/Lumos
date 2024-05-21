@@ -4,8 +4,8 @@
 #include "GLDebug.h"
 #include "GLUniformBuffer.h"
 #include "Graphics/RHI/BufferLayout.h"
-#include <glm/mat4x4.hpp>
-#include <glm/mat3x3.hpp>
+#include <glm/ext/matrix_float3x3.hpp>
+#include <glm/ext/matrix_float4x4.hpp>
 
 namespace spirv_cross
 {

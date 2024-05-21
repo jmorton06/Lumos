@@ -112,6 +112,29 @@ namespace Lumos
             {
                 auto systems = Application::Get().GetSystemManager();
 
+                if(ImGui::TreeNode("Quality Settings"))
+                {
+                    QualitySettings& qs = Application::Get().GetQualitySettings();
+                    int shadowQuality   = (int)qs.ShadowQuality;
+                    int shadowRes       = (int)qs.ShadowResolution;
+                    float resScale      = qs.RendererScale;
+
+                    ImGui::Columns(2);
+
+                    if(ImGuiUtilities::Property("Render Scale", resScale, 0.01f, 3.0f, 0.1f, ImGuiUtilities::PropertyFlag::DragValue))
+                        qs.RendererScale = resScale;
+
+                    if(ImGuiUtilities::Property("Shadow Quality", shadowQuality, 0, 3))
+                        qs.ShadowQuality = (ShadowQualitySetting)shadowQuality;
+
+                    if(ImGuiUtilities::Property("Shadow Resolution", shadowRes, 0, 3))
+                        qs.ShadowResolution = (ShadowResolutionSetting)shadowRes;
+
+                    ImGui::Columns(1);
+
+                    ImGui::TreePop();
+                }
+
                 if(ImGui::TreeNode("Systems"))
                 {
                     systems->OnImGui();
@@ -138,21 +161,15 @@ namespace Lumos
                                                       Graphics::Renderer::GetRenderer()->OnResize(Application::Get().GetWindow()->GetWidth(), Application::Get().GetWindow()->GetHeight()); });
                 }
 
-                QualitySettings& qs = Application::Get().GetQualitySettings();
-                int shadowQuality   = (int)qs.ShadowQuality;
-                int shadowRes       = (int)qs.ShadowResolution;
-
-                if(ImGuiUtilities::Property("Shadow Quality", shadowQuality, 0, 3))
-                    qs.ShadowQuality = (ShadowQualitySetting)shadowQuality;
-
-                if(ImGuiUtilities::Property("Shadow Resolution", shadowRes, 0, 3))
-                    qs.ShadowResolution = (ShadowResolutionSetting)shadowRes;
-
                 ImGui::Columns(1);
                 ImGui::Text("FPS : %5.2i", Engine::Get().Statistics().FramesPerSecond);
-                ImGui::Text("UPS : %5.2i", Engine::Get().Statistics().UpdatesPerSecond);
                 ImGui::Text("Frame Time : %5.2f ms", Engine::Get().Statistics().FrameTime);
                 ImGui::Text("Arena Count : %i", GetArenaCount());
+                ImGui::Text("Num Draw Calls  %u", Engine::Get().Statistics().NumDrawCalls);
+                ImGui::Text("Num Rendered Objects %u", Engine::Get().Statistics().NumRenderedObjects);
+                ImGui::Text("Num Shadow Objects %u", Engine::Get().Statistics().NumShadowObjects);
+                ImGui::Text("Bound Pipelines %u", Engine::Get().Statistics().BoundPipelines);
+                ImGui::Text("Bound RenderPasses %u", Engine::Get().Statistics().BoundRenderPasses);
                 if(ImGui::TreeNodeEx("Arenas", 0))
                 {
                     uint64_t totalAllocated = 0;

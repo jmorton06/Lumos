@@ -4,6 +4,7 @@
 #include "Physics/LumosPhysicsEngine/CollisionShapes/CollisionShape.h"
 #include "Manifold.h"
 #include "Utilities/TSingleton.h"
+#include "Core/DataStructures/Vector.h"
 
 #define CALL_MEMBER_FN(instance, ptrToMemberFn) ((instance).*(ptrToMemberFn))
 
@@ -134,8 +135,7 @@ namespace Lumos
 
         static glm::vec3 GetClosestPointOnEdges(const glm::vec3& target, const std::vector<CollisionEdge>& edges);
         glm::vec3 PlaneEdgeIntersection(const Plane& plane, const glm::vec3& start, const glm::vec3& end) const;
-        void SutherlandHodgesonClipping(glm::vec3* input_polygon, int input_polygon_count, int num_clip_planes, const Plane* clip_planes, glm::vec3* output_polygon, int& output_polygon_count, bool removePoints) const;
-
+        void SutherlandHodgesonClipping(Arena* arena, const Vector<glm::vec3>& input_polygon, int num_clip_planes, const Plane* clip_planes, Vector<glm::vec3>* out_polygon, bool removePoints) const;
         uint32_t m_MaxSize = 0;
     };
 }

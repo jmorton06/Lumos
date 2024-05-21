@@ -1,11 +1,9 @@
 #pragma once
-#include "Physics/LumosPhysicsEngine/CollisionShapes/CollisionShape.h"
 #include "Core/UUID.h"
 #include "Maths/BoundingBox.h"
-#include <cereal/cereal.hpp>
-#include <glm/vec2.hpp>
-#include <glm/vec3.hpp>
-#include <glm/vec4.hpp>
+#include <glm/ext/vector_float2.hpp>
+#include <glm/ext/vector_float3.hpp>
+#include <glm/ext/vector_float4.hpp>
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/quaternion.hpp>
 
@@ -13,6 +11,10 @@ namespace Lumos
 {
     class LumosPhysicsEngine;
     class Manifold;
+    class CollisionShape;
+    class RigidBody3D;
+
+    enum CollisionShapeType : unsigned int;
 
     // Callback function called whenever a collision is detected between two objects
     // Params:
@@ -26,24 +28,31 @@ namespace Lumos
 
     struct RigidBody3DProperties
     {
-        glm::vec3 Position              = glm::vec3(0.0f);
-        glm::vec3 LinearVelocity        = glm::vec3(0.0f);
-        glm::vec3 Force                 = glm::vec3(0.0f);
-        float Mass                      = 1.0f;
-        glm::quat Orientation           = glm::quat();
-        glm::vec3 AngularVelocity       = glm::vec3(0.0f);
-        glm::vec3 Torque                = glm::vec3(0.0f);
-        bool Static                     = false;
-        float Elasticity                = 1.0f;
-        float Friction                  = 1.0f;
-        bool AtRest                     = false;
-        bool isTrigger                  = false;
-        SharedPtr<CollisionShape> Shape = nullptr;
+        RigidBody3DProperties();
+        ~RigidBody3DProperties();
+        glm::vec3 Position        = glm::vec3(0.0f);
+        glm::vec3 LinearVelocity  = glm::vec3(0.0f);
+        glm::vec3 Force           = glm::vec3(0.0f);
+        float Mass                = 1.0f;
+        glm::quat Orientation     = glm::quat();
+        glm::vec3 AngularVelocity = glm::vec3(0.0f);
+        glm::vec3 Torque          = glm::vec3(0.0f);
+        bool Static               = false;
+        float Elasticity          = 0.5f;
+        float Friction            = 0.5f;
+        bool AtRest               = false;
+        bool isTrigger            = false;
+        SharedPtr<CollisionShape> Shape;
     };
 
-    class LUMOS_EXPORT RigidBody3D
+    class alignas(16) RigidBody3D
     {
         friend class LumosPhysicsEngine;
+        template <typename Archive>
+        friend void save(Archive& archive, const RigidBody3D& rigidBody3D);
+
+        template <typename Archive>
+        friend void load(Archive& archive, RigidBody3D& rigidBody3D);
 
     public:
         ~RigidBody3D();
@@ -162,78 +171,18 @@ namespace Lumos
 
         void AddOnCollisionManifoldCallback(const OnCollisionManifoldCallback callback) { m_OnCollisionManifoldCallbacks.push_back(callback); }
 
-        void SetCollisionShape(const SharedPtr<CollisionShape>& shape)
-        {
-            m_CollisionShape = shape;
-            m_InvInertia     = m_CollisionShape->BuildInverseInertia(m_InvMass);
-            AutoResizeBoundingBox();
-        }
-
         void SetCollisionShape(CollisionShapeType type);
-
-        void CollisionShapeUpdated()
-        {
-            if(m_CollisionShape)
-                m_InvInertia = m_CollisionShape->BuildInverseInertia(m_InvMass);
-            AutoResizeBoundingBox();
-        }
-
-        void SetInverseMass(const float& v)
-        {
-            m_InvMass = v;
-            if(m_CollisionShape)
-                m_InvInertia = m_CollisionShape->BuildInverseInertia(m_InvMass);
-        }
-
-        void SetMass(const float& v)
-        {
-            LUMOS_ASSERT(v > 0, "Physics object mass <= 0");
-            m_InvMass = 1.0f / v;
-
-            if(m_CollisionShape)
-                m_InvInertia = m_CollisionShape->BuildInverseInertia(m_InvMass);
-        }
-
-        const SharedPtr<CollisionShape>& GetCollisionShape() const
-        {
-            return m_CollisionShape;
-        }
+        void SetCollisionShape(const SharedPtr<CollisionShape>& shape);
+        void CollisionShapeUpdated();
+        void SetInverseMass(const float& v);
+        void SetMass(const float& v);
+        const SharedPtr<CollisionShape>& GetCollisionShape() const;
 
         bool GetIsTrigger() const { return m_Trigger; }
         void SetIsTrigger(bool trigger) { m_Trigger = trigger; }
 
         float GetAngularFactor() const { return m_AngularFactor; }
         void SetAngularFactor(float factor) { m_AngularFactor = factor; }
-
-        template <typename Archive>
-        void save(Archive& archive) const
-        {
-            auto shape = std::unique_ptr<CollisionShape>(m_CollisionShape.get());
-
-            const int Version = 2;
-
-            archive(cereal::make_nvp("Version", Version));
-            archive(cereal::make_nvp("Position", m_Position), cereal::make_nvp("Orientation", m_Orientation), cereal::make_nvp("LinearVelocity", m_LinearVelocity), cereal::make_nvp("Force", m_Force), cereal::make_nvp("Mass", 1.0f / m_InvMass), cereal::make_nvp("AngularVelocity", m_AngularVelocity), cereal::make_nvp("Torque", m_Torque), cereal::make_nvp("Static", m_Static), cereal::make_nvp("Friction", m_Friction), cereal::make_nvp("Elasticity", m_Elasticity), cereal::make_nvp("CollisionShape", shape), cereal::make_nvp("Trigger", m_Trigger), cereal::make_nvp("AngularFactor", m_AngularFactor));
-            archive(cereal::make_nvp("UUID", (uint64_t)m_UUID));
-            shape.release();
-        }
-
-        template <typename Archive>
-        void load(Archive& archive)
-        {
-            auto shape = std::unique_ptr<CollisionShape>(m_CollisionShape.get());
-
-            int Version;
-            archive(cereal::make_nvp("Version", Version));
-            archive(cereal::make_nvp("Position", m_Position), cereal::make_nvp("Orientation", m_Orientation), cereal::make_nvp("LinearVelocity", m_LinearVelocity), cereal::make_nvp("Force", m_Force), cereal::make_nvp("Mass", 1.0f / m_InvMass), cereal::make_nvp("AngularVelocity", m_AngularVelocity), cereal::make_nvp("Torque", m_Torque), cereal::make_nvp("Static", m_Static), cereal::make_nvp("Friction", m_Friction), cereal::make_nvp("Elasticity", m_Elasticity), cereal::make_nvp("CollisionShape", shape), cereal::make_nvp("Trigger", m_Trigger), cereal::make_nvp("AngularFactor", m_AngularFactor));
-
-            m_CollisionShape = SharedPtr<CollisionShape>(shape.get());
-            CollisionShapeUpdated();
-            shape.release();
-
-            if(Version > 1)
-                archive(cereal::make_nvp("UUID", (uint64_t)m_UUID));
-        }
 
         bool GetIsStatic() const { return m_Static; }
         bool GetIsAtRest() const { return m_AtRest; }
@@ -242,7 +191,12 @@ namespace Lumos
         bool IsAwake() const { return !m_AtRest; }
         void SetElasticity(const float elasticity) { m_Elasticity = elasticity; }
         void SetFriction(const float friction) { m_Friction = friction; }
-        void SetIsStatic(const bool isStatic) { m_Static = isStatic; }
+        void SetIsStatic(const bool isStatic)
+        {
+            m_Static = isStatic;
+            if(m_Static)
+                m_AtRest = true;
+        }
         // void SetIsColliding(const bool colliding) { m_IsColliding = colliding; }
         UUID GetUUID() const { return m_UUID; }
 
@@ -252,40 +206,43 @@ namespace Lumos
 
         bool Valid() const { return m_UUID != 0; }
 
+        uint16_t GetCollisionLayer() const { return m_CollisionLayer; }
+        void SetCollisionLayer(u16 layer) { m_CollisionLayer = layer; }
+
     protected:
         RigidBody3D(const RigidBody3DProperties& properties = RigidBody3DProperties());
 
-        mutable bool m_WSTransformInvalidated;
         float m_RestVelocityThresholdSquared;
         float m_AverageSummedVelocity;
+        float m_Elasticity;
+        float m_Friction;
 
         mutable glm::mat4 m_WSTransform;
         Maths::BoundingBox m_LocalBoundingBox; //!< Model orientated bounding box in model space
-        mutable bool m_WSAabbInvalidated;      //!< Flag indicating if the cached world space transoformed AABB is invalid
-        mutable Maths::BoundingBox m_WSAabb;   //!< Axis aligned bounding box of this object in world space
 
+        mutable Maths::BoundingBox m_WSAabb; //!< Axis aligned bounding box of this object in world space
+
+        mutable bool m_WSTransformInvalidated;
+        mutable bool m_WSAabbInvalidated; //!< Flag indicating if the cached world space transoformed AABB is invalid
         bool m_Static;
-        float m_Elasticity;
-        float m_Friction;
         bool m_AtRest;
+        float m_AngularFactor;
+
         UUID m_UUID;
-        // bool m_IsColliding;
 
-        //<---------LINEAR-------------->
+        u16 m_CollisionLayer = 0;
+
         glm::vec3 m_Position;
-        glm::vec3 m_LinearVelocity;
-        glm::vec3 m_Force;
         float m_InvMass;
+        glm::vec3 m_LinearVelocity;
         bool m_Trigger = false;
+        glm::vec3 m_Force;
 
-        //<----------ANGULAR-------------->
         glm::quat m_Orientation;
         glm::vec3 m_AngularVelocity;
         glm::vec3 m_Torque;
         glm::mat3 m_InvInertia;
-        float m_AngularFactor;
 
-        //<----------COLLISION------------>
         SharedPtr<CollisionShape> m_CollisionShape;
         PhysicsCollisionCallback m_OnCollisionCallback;
         std::vector<OnCollisionManifoldCallback> m_OnCollisionManifoldCallbacks; //!< Collision callbacks post manifold generation

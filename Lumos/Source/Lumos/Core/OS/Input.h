@@ -4,7 +4,7 @@
 #include "Events/MouseEvent.h"
 #include "Utilities/TSingleton.h"
 #include "Core/OS/KeyCodes.h"
-#include <glm/vec2.hpp>
+#include <glm/ext/vector_float2.hpp>
 #include <map>
 
 #define MAX_KEYS 1024
@@ -21,12 +21,29 @@ namespace Lumos
         Captured
     };
 
+    enum class KeyState
+    {
+        None = -1,
+        Pressed,
+        Held,
+        Released
+    };
+
+    struct ControllerButtonData
+    {
+        int Button;
+        KeyState State    = KeyState::None;
+        KeyState OldState = KeyState::None;
+    };
+
     struct Controller
     {
         int ID;
         std::string Name;
-        std::map<int, bool> ButtonStates;
+        std::map<int, bool> ButtonDown;
+        std::map<int, ControllerButtonData> ButtonStates;
         std::map<int, float> AxisStates;
+        std::map<int, float> DeadZones;
         std::map<int, uint8_t> HatStates;
     };
 

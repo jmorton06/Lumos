@@ -27,7 +27,7 @@
 #include <imgui/imgui.h>
 
 static GLFWcursor* g_MouseCursors[ImGuiMouseCursor_COUNT] = { 0 };
-
+#define LOG_CONTROLLER
 namespace Lumos
 {
     static bool s_GLFWInitialized = false;
@@ -515,57 +515,7 @@ namespace Lumos
             it++;
         }
 
-        // Update controllers
-        for(int id = GLFW_JOYSTICK_1; id < GLFW_JOYSTICK_LAST; id++)
-        {
-            if(glfwJoystickPresent(id) == GLFW_TRUE)
-            {
-#if LOG_CONTROLLER
-                LUMOS_LOG_INFO("Controller Connected {0}", id);
-#endif
-                Controller* controller = Input::Get().GetOrAddController(id);
-                if(controller)
-                {
-                    controller->ID   = id;
-                    controller->Name = glfwGetJoystickName(id);
-
-#if LOG_CONTROLLER
-                    LUMOS_LOG_INFO(controller->Name);
-#endif
-                    int buttonCount;
-                    const unsigned char* buttons = glfwGetJoystickButtons(id, &buttonCount);
-                    for(int i = 0; i < buttonCount; i++)
-                    {
-                        controller->ButtonStates[i] = buttons[i] == GLFW_PRESS;
-
-#if LOG_CONTROLLER
-                        if(controller->ButtonStates[i])
-                            LUMOS_LOG_INFO("Button pressed {0}", buttons[i]);
-#endif
-                    }
-
-                    int axisCount;
-                    const float* axes = glfwGetJoystickAxes(id, &axisCount);
-                    for(int i = 0; i < axisCount; i++)
-                    {
-                        controller->AxisStates[i] = axes[i];
-#if LOG_CONTROLLER
-                        LUMOS_LOG_INFO(controller->AxisStates[i]);
-#endif
-                    }
-
-                    int hatCount;
-                    const unsigned char* hats = glfwGetJoystickHats(id, &hatCount);
-                    for(int i = 0; i < hatCount; i++)
-                    {
-                        controller->HatStates[i] = hats[i];
-#if LOG_CONTROLLER
-                        LUMOS_LOG_INFO(controller->HatStates[i]);
-#endif
-                    }
-                }
-            }
-        }
+        UpdateControllers();
     }
 
     void GLFWWindow::Maximise()
@@ -577,5 +527,65 @@ namespace Lumos
         // TODO: Move to glfw extensions or something
         OS::Instance()->MaximiseWindow();
 #endif
+    }
+
+    void GLFWWindow::UpdateControllers()
+    {
+        // Cleanup disconnected controller
+        auto& controllers = Input::Get().GetControllers();
+        for(auto it = controllers.begin(); it != controllers.end();)
+        {
+            int id = it->first;
+            if(glfwJoystickPresent(id) != GLFW_TRUE)
+                it = controllers.erase(it);
+            else
+                it++;
+        }
+
+        // Update controllers
+        for(int id = GLFW_JOYSTICK_1; id < GLFW_JOYSTICK_LAST; id++)
+        {
+            if(glfwJoystickPresent(id) == GLFW_TRUE)
+            {
+                if(controllers.find(id) == controllers.end())
+                {
+                    Controller& controller = controllers[id];
+                    controller.ID          = id;
+                    controller.Name        = glfwGetJoystickName(id);
+
+                    LUMOS_LOG_INFO("Controller connected {0}", controller.Name);
+                }
+
+                Controller& controller = controllers[id];
+
+                LUMOS_LOG_INFO("Controller connected {0}", controller.Name);
+                int buttonCount;
+                const unsigned char* buttons = glfwGetJoystickButtons(id, &buttonCount);
+                for(int i = 0; i < buttonCount; i++)
+                {
+                    if(buttons[i] == GLFW_PRESS && !controller.ButtonDown[i])
+                        controller.ButtonStates[i].State = KeyState::Pressed;
+                    else if(buttons[i] == GLFW_RELEASE && controller.ButtonDown[i])
+                        controller.ButtonStates[i].State = KeyState::Released;
+
+                    controller.ButtonDown[i] = buttons[i] == GLFW_PRESS;
+                }
+
+                int axisCount;
+                const float* axes = glfwGetJoystickAxes(id, &axisCount);
+                for(int i = 0; i < axisCount; i++)
+                {
+                    controller.AxisStates[i] = abs(axes[i]) > controller.DeadZones[i] ? axes[i] : 0.0f;
+#ifdef LOG_CONTROLLER
+                    LUMOS_LOG_INFO("State {0} : {1}", i, controller.AxisStates[i]);
+#endif
+                }
+
+                int hatCount;
+                const unsigned char* hats = glfwGetJoystickHats(id, &hatCount);
+                for(int i = 0; i < hatCount; i++)
+                    controller.HatStates[i] = hats[i];
+            }
+        }
     }
 }

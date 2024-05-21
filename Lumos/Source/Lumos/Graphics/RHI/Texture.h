@@ -24,7 +24,7 @@ namespace Lumos
             virtual RHIFormat GetFormat() const                = 0;
             virtual void GenerateMipMaps(CommandBuffer* commandBuffer = nullptr) { }
             virtual void SetName(const std::string& name) {};
-			virtual uint8_t GetSamples() const { return 0; }
+            virtual uint8_t GetSamples() const { return 0; }
 
             virtual uint32_t GetSize() const { return 0; }
             virtual uint32_t GetMipMapLevels() const { return 0; }
@@ -67,13 +67,13 @@ namespace Lumos
 
             SET_ASSET_TYPE(AssetType::Texture);
 
-            uint64_t GetUUID() const { return m_UUID; }
+            UUID GetUUID() const { return m_UUID; }
 
         protected:
             uint32_t m_Flags          = 0;
             uint32_t m_BitsPerChannel = 8;
             uint32_t m_ChannelCount   = 4;
-            uint64_t m_UUID           = 0;
+            UUID m_UUID               = 0;
         };
 
         class LUMOS_EXPORT Texture2D : public Texture

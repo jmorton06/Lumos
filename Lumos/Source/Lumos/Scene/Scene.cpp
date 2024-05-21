@@ -34,14 +34,20 @@
 #include "Scene/Component/SoundComponent.h"
 #include "Scene/Component/ModelComponent.h"
 #include "SceneGraph.h"
-#include "SerialisationImplementation.h"
+#include "Serialisation/SerialisationImplementation.h"
+
+#include "Scene/Component/SoundComponent.h"
+#include "Scene/Component/TextureMatrixComponent.h"
+#include "Scene/Component/RigidBody2DComponent.h"
+#include "Scene/Component/RigidBody3DComponent.h"
+#include "Scene/Component/AIComponent.h"
 
 #include <cereal/types/polymorphic.hpp>
 #include <cereal/archives/binary.hpp>
 #include <cereal/archives/json.hpp>
 #include <entt/entity/registry.hpp>
 #include <entt/entity/snapshot.hpp>
-#include <sol/sol.hpp>
+#include <sol/sol.hpp> //For deleting sol::basic_environment<sol::basic_reference<false>>
 
 CEREAL_REGISTER_TYPE(Lumos::SphereCollisionShape);
 CEREAL_REGISTER_TYPE(Lumos::CuboidCollisionShape);
@@ -245,7 +251,7 @@ namespace Lumos
         auto physics3DSytem = Application::Get().GetSystem<LumosPhysicsEngine>();
         physics3DSytem->SetDampingFactor(m_Settings.Physics3DSettings.Dampening);
         physics3DSytem->SetIntegrationType((IntegrationType)m_Settings.Physics3DSettings.IntegrationTypeIndex);
-        physics3DSytem->SetMaxUpdatesPerFrame(m_Settings.Physics3DSettings.m_MaxUpdatesPerFrame);
+        physics3DSytem->SetMaxUpdatesPerFrame(m_Settings.Physics3DSettings.MaxUpdatesPerFrame);
         physics3DSytem->SetPositionIterations(m_Settings.Physics3DSettings.PositionIterations);
         physics3DSytem->SetVelocityIterations(m_Settings.Physics3DSettings.VelocityIterations);
         physics3DSytem->SetBroadphaseType(BroadphaseType(m_Settings.Physics3DSettings.BroadPhaseTypeIndex));
@@ -307,6 +313,21 @@ namespace Lumos
             auto& animSprite = entity.GetComponent<Graphics::AnimatedSprite>();
             animSprite.OnUpdate((float)timeStep.GetSeconds());
         }
+
+        auto group = m_EntityManager->GetRegistry().group<Graphics::ModelComponent>(entt::get<Maths::Transform>);
+        for(auto entity : group)
+        {
+            if(!Entity(entity, this).Active())
+                continue;
+
+            const auto& [model, trans] = group.get<Graphics::ModelComponent, Maths::Transform>(entity);
+
+            if(!model.ModelRef)
+                continue;
+
+            const auto& meshes = model.ModelRef->GetMeshes();
+            model.ModelRef->UpdateAnimation(Engine::GetTimeStep());
+        }
     }
 
     void Scene::OnEvent(Event& e)
@@ -357,6 +378,7 @@ namespace Lumos
 #define ALL_COMPONENTSENTTV8(input) get<Maths::Transform>(input).get<NameComponent>(input).get<ActiveComponent>(input).get<Hierarchy>(input).get<Camera>(input).get<LuaScriptComponent>(input).get<Graphics::Model>(input).get<Graphics::Light>(input).get<RigidBody3DComponent>(input).get<Graphics::Environment>(input).get<Graphics::Sprite>(input).get<RigidBody2DComponent>(input).get<DefaultCameraController>(input).get<Graphics::AnimatedSprite>(input).get<SoundComponent>(input).get<Listener>(input).get<IDComponent>(input).get<Graphics::ModelComponent>(input).get<AxisConstraintComponent>(input).get<TextComponent>(input)
 
 #define ALL_COMPONENTSENTTV9(input) get<Maths::Transform>(input).get<NameComponent>(input).get<ActiveComponent>(input).get<Hierarchy>(input).get<Camera>(input).get<LuaScriptComponent>(input).get<Graphics::Model>(input).get<Graphics::Light>(input).get<RigidBody3DComponent>(input).get<Graphics::Environment>(input).get<Graphics::Sprite>(input).get<RigidBody2DComponent>(input).get<DefaultCameraController>(input).get<Graphics::AnimatedSprite>(input).get<SoundComponent>(input).get<Listener>(input).get<IDComponent>(input).get<Graphics::ModelComponent>(input).get<AxisConstraintComponent>(input).get<TextComponent>(input).get<ParticleEmitter>(input)
+#define ALL_COMPONENTSENTTV10(input) get<Maths::Transform>(input).get<NameComponent>(input).get<ActiveComponent>(input).get<Hierarchy>(input).get<Camera>(input).get<LuaScriptComponent>(input).get<Graphics::Model>(input).get<Graphics::Light>(input).get<RigidBody3DComponent>(input).get<Graphics::Environment>(input).get<Graphics::Sprite>(input).get<RigidBody2DComponent>(input).get<DefaultCameraController>(input).get<Graphics::AnimatedSprite>(input).get<SoundComponent>(input).get<Listener>(input).get<IDComponent>(input).get<Graphics::ModelComponent>(input).get<AxisConstraintComponent>(input).get<TextComponent>(input).get<ParticleEmitter>(input).get<SpringConstraintComponent>(input)
 
     void Scene::Serialise(const std::string& filePath, bool binary)
     {
@@ -377,7 +399,7 @@ namespace Lumos
                 // output finishes flushing its contents when it goes out of scope
                 cereal::BinaryOutputArchive output { file };
                 output(*this);
-                entt::snapshot { m_EntityManager->GetRegistry() }.get<entt::entity>(output).ALL_COMPONENTSENTTV9(output);
+                entt::snapshot { m_EntityManager->GetRegistry() }.get<entt::entity>(output).ALL_COMPONENTSENTTV10(output);
             }
             file.close();
         }
@@ -390,7 +412,7 @@ namespace Lumos
                 // output finishes flushing its contents when it goes out of scope
                 cereal::JSONOutputArchive output { storage };
                 output(*this);
-                entt::snapshot { m_EntityManager->GetRegistry() }.get<entt::entity>(output).ALL_COMPONENTSENTTV9(output);
+                entt::snapshot { m_EntityManager->GetRegistry() }.get<entt::entity>(output).ALL_COMPONENTSENTTV10(output);
             }
             FileSystem::WriteTextFile(path, storage.str());
         }
@@ -437,8 +459,10 @@ namespace Lumos
                     entt::basic_snapshot_loader_legacy { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSLISTV8>(input);
                 else if(m_SceneSerialisationVersion >= 21 && m_SceneSerialisationVersion < 22)
                     entt::snapshot_loader { m_EntityManager->GetRegistry() }.get<entt::entity>(input).ALL_COMPONENTSENTTV8(input);
-                else if(m_SceneSerialisationVersion >= 22)
+                else if(m_SceneSerialisationVersion >= 22 && m_SceneSerialisationVersion < 25)
                     entt::snapshot_loader { m_EntityManager->GetRegistry() }.get<entt::entity>(input).ALL_COMPONENTSENTTV9(input);
+                else if(m_SceneSerialisationVersion >= 25)
+                    entt::snapshot_loader { m_EntityManager->GetRegistry() }.get<entt::entity>(input).ALL_COMPONENTSENTTV10(input);
                 if(m_SceneSerialisationVersion < 6)
                 {
                     // m_EntityManager->GetRegistry().each([&](auto entity)
@@ -503,9 +527,10 @@ namespace Lumos
                     entt::basic_snapshot_loader_legacy { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSLISTV8>(input);
                 else if(m_SceneSerialisationVersion >= 21 && m_SceneSerialisationVersion < 22)
                     entt::snapshot_loader { m_EntityManager->GetRegistry() }.get<entt::entity>(input).ALL_COMPONENTSENTTV8(input);
-                else if(m_SceneSerialisationVersion >= 22)
+                else if(m_SceneSerialisationVersion >= 22 && m_SceneSerialisationVersion < 25)
                     entt::snapshot_loader { m_EntityManager->GetRegistry() }.get<entt::entity>(input).ALL_COMPONENTSENTTV9(input);
-
+                else if(m_SceneSerialisationVersion >= 25)
+                    entt::snapshot_loader { m_EntityManager->GetRegistry() }.get<entt::entity>(input).ALL_COMPONENTSENTTV10(input);
                 if(m_SceneSerialisationVersion < 6)
                 {
                     // m_EntityManager->GetRegistry().each([&](auto entity)
@@ -551,7 +576,7 @@ namespace Lumos
     {
         if(registry.all_of<T>(src))
         {
-            auto& srcComponent = registry.get<T>(src);
+            auto srcComponent = registry.get<T>(src);
             registry.emplace_or_replace<T>(dst, srcComponent);
         }
     }
@@ -577,6 +602,12 @@ namespace Lumos
     {
         LUMOS_PROFILE_FUNCTION();
         return m_EntityManager->GetEntityByUUID(id);
+    }
+
+    bool Scene::EntityExists(u64 id)
+    {
+        LUMOS_PROFILE_FUNCTION();
+        return m_EntityManager->EntityExists(id);
     }
 
     namespace
@@ -683,7 +714,14 @@ namespace Lumos
 
     Entity Scene::InstantiatePrefab(const std::string& path)
     {
-        std::string prefabData = FileSystem::Get().ReadTextFile(path);
+        std::string prefabData = FileSystem::Get().ReadTextFileVFS(path);
+
+        if(prefabData.empty())
+        {
+            LUMOS_LOG_ERROR("Failed to load prefab {0}", path);
+            return Entity();
+        }
+
         std::stringstream storage(prefabData);
         cereal::JSONInputArchive input(storage);
 
@@ -758,6 +796,6 @@ namespace Lumos
         FileSystem::WriteTextFile(path, storage.str());
         std::string relativePath;
         if(FileSystem::Get().AbsolutePathToFileSystem(path, relativePath))
-            entity.AddComponent<PrefabComponent>(relativePath);
+            entity.GetOrAddComponent<PrefabComponent>(relativePath);
     }
 }

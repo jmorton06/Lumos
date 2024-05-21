@@ -5,7 +5,7 @@ cd "$(dirname "$0")"
 COMPILER="/home/jmorton/Dev/Lumos/Lumos/External/VulkanSDK/1.3.216.0/x86_64/bin/glslc"
 echo $COMPILER
 
-DSTDIR=compiledSPV
+DSTDIR=CompiledSPV
 
 for SRC in *.vert *.frag *.comp; do
 
@@ -14,7 +14,7 @@ for SRC in *.vert *.frag *.comp; do
         OUT="CompiledSPV/$(echo "$SRC" | sed "s/\.frag$/.frag/" | sed "s/\.vert$/.vert/" | sed "s/\.comp$/.comp/").spv"
 
         if [ -e $OUT ]
-        then    
+        then
             # if output exists
             # don't re-compile if existing binary is newer than source file
             NEWER="$(ls -t1 "$SRC" "$OUT" | head -1)"

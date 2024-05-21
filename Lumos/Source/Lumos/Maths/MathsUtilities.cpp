@@ -1,6 +1,6 @@
 #include "Precompiled.h"
 #include "Maths/MathsUtilities.h"
-#include <glm/vec3.hpp>
+#include <glm/ext/vector_float3.hpp>
 #include <glm/gtx/norm.hpp>
 namespace Lumos::Maths
 {

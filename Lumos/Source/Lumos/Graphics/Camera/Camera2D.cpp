@@ -5,10 +5,10 @@
 #include "Maths/Transform.h"
 #include "Camera.h"
 
-#include <glm/vec2.hpp>
-#include <glm/vec3.hpp>
-#include <glm/vec4.hpp>
-#include <glm/mat4x4.hpp>
+#include <glm/ext/vector_float2.hpp>
+#include <glm/ext/vector_float3.hpp>
+#include <glm/ext/vector_float4.hpp>
+#include <glm/ext/matrix_float4x4.hpp>
 
 namespace Lumos
 {
@@ -59,7 +59,7 @@ namespace Lumos
             m_Velocity -= up * m_CameraSpeed;
         }
 
-        if(m_Velocity.length() > Maths::M_EPSILON)
+        if(glm::length(m_Velocity) > Maths::M_EPSILON)
         {
             glm::vec3 position = transform.GetLocalPosition();
             position += m_Velocity * dt;
