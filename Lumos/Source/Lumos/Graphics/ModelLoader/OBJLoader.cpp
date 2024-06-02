@@ -4,7 +4,6 @@
 #include "Graphics/Material.h"
 #include "Maths/Transform.h"
 #include "Graphics/RHI/Texture.h"
-#include "Maths/Maths.h"
 #include "Utilities/StringUtilities.h"
 #include "Core/Application.h"
 #include "Utilities/AssetManager.h"
@@ -71,8 +70,6 @@ namespace Lumos
             std::vector<Graphics::Vertex> vertices(numVertices);
             std::vector<uint32_t> indices(numIndices);
 
-            std::unordered_map<Graphics::Vertex, uint32_t> uniqueVertices;
-
             SharedPtr<Maths::BoundingBox> boundingBox = CreateSharedPtr<Maths::BoundingBox>();
 
             for(uint32_t i = 0; i < shape.mesh.indices.size(); i++)
@@ -115,13 +112,13 @@ namespace Lumos
 
                 vertex.Colours = colour;
 
-                if(uniqueVertices.count(vertex) == 0)
+       /*         if(uniqueVertices.count(vertex) == 0)
                 {
-                    uniqueVertices[vertex] = static_cast<uint32_t>(vertexCount);
+                    uniqueVertices[vertex] = static_cast<uint32_t>(vertexCount);*/
                     vertices[vertexCount]  = vertex;
-                }
+               //}
 
-                indices[vertexCount] = uniqueVertices[vertex];
+                    indices[vertexCount] = vertexCount;// uniqueVertices[vertex];
 
                 vertexCount++;
             }

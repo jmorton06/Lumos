@@ -155,7 +155,7 @@ namespace Lumos
         float m_BaumgarteScalar = 0.2f;   // Amount of force to add to the System to solve error
         float m_BaumgarteSlop   = 0.001f; // Amount of allowed penetration, ensures a complete manifold each frame
 
-        Vector<CollisionPair> m_BroadphaseCollisionPairs;
+        TDArray<CollisionPair> m_BroadphaseCollisionPairs;
         SharedPtr<Constraint>* m_Constraints; // Misc constraints between pairs of objects
         Manifold* m_Manifolds;                // Contact constraints between pairs of objects
         std::mutex m_ManifoldsMutex;

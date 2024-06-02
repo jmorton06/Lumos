@@ -64,7 +64,6 @@
 #include <Lumos/Core/CommandLine.h>
 #include <Lumos/Core/CoreSystem.h>
 #include <Lumos/Core/Thread.h>
-
 #include <spdlog/spdlog.h>
 #include <spdlog/fmt/ostr.h>
 
@@ -716,7 +715,7 @@ namespace Lumos
                     for(auto entity : m_CopiedEntities)
                     {
                         Application::Get().GetCurrentScene()->DuplicateEntity({ entity, Application::Get().GetCurrentScene() });
-                        if(entity != entt::null)
+                        if(entity.Valid())
                         {
                             /// if(entity == m_SelectedEntity)
                             ///  m_SelectedEntity = entt::null;
@@ -1328,15 +1327,15 @@ namespace Lumos
 
         if(m_SelectedEntities.size() == 1)
         {
-            entt::entity m_SelectedEntity = entt::null;
+			Entity m_SelectedEntity = {};
 
             m_SelectedEntity = m_SelectedEntities.front();
-            if(registry.valid(m_SelectedEntity))
+            if(m_SelectedEntity.Valid())
             {
                 ImGuizmo::SetDrawlist();
                 ImGuizmo::SetOrthographic(m_CurrentCamera->IsOrthographic());
 
-                auto transform = registry.try_get<Maths::Transform>(m_SelectedEntity);
+                auto transform = m_SelectedEntity.TryGetComponent<Maths::Transform>();
                 if(transform != nullptr)
                 {
                     glm::mat4 model = transform->GetWorldMatrix();
@@ -1354,7 +1353,7 @@ namespace Lumos
 
                     if(ImGuizmo::IsUsing())
                     {
-                        Entity parent = Entity(m_SelectedEntity, m_SceneManager->GetCurrentScene()).GetParent(); // m_CurrentScene->TryGetEntityWithUUID(entity.GetParentUUID());
+                        Entity parent = m_SelectedEntity.GetParent(); // m_CurrentScene->TryGetEntityWithUUID(entity.GetParentUUID());
                         if(parent && parent.HasComponent<Maths::Transform>())
                         {
                             glm::mat4 parentTransform = parent.GetTransform().GetWorldMatrix();
@@ -1369,7 +1368,7 @@ namespace Lumos
                         {
                             transform->SetLocalTransform(model);
 
-                            RigidBody2DComponent* rigidBody2DComponent = registry.try_get<Lumos::RigidBody2DComponent>(m_SelectedEntity);
+                            RigidBody2DComponent* rigidBody2DComponent = m_SelectedEntity.TryGetComponent<Lumos::RigidBody2DComponent>();
 
                             if(rigidBody2DComponent)
                             {
@@ -1378,7 +1377,7 @@ namespace Lumos
                             }
                             else
                             {
-                                Lumos::RigidBody3DComponent* rigidBody3DComponent = registry.try_get<Lumos::RigidBody3DComponent>(m_SelectedEntity);
+                                Lumos::RigidBody3DComponent* rigidBody3DComponent = m_SelectedEntity.TryGetComponent<Lumos::RigidBody3DComponent>();
                                 if(rigidBody3DComponent)
                                 {
                                     rigidBody3DComponent->GetRigidBody()->SetPosition(model[3]);
@@ -1993,9 +1992,7 @@ namespace Lumos
                     glm::mix(
                         cameraCurrentPosition,
                         m_CameraDestination,
-                        glm::clamp(m_CameraTransitionSpeed * kSpeedBaseFactor * static_cast<float>(ts.GetSeconds()), 0.0f, 1.0f)
-                    )
-                );
+                        glm::clamp(m_CameraTransitionSpeed * kSpeedBaseFactor * static_cast<float>(ts.GetSeconds()), 0.0f, 1.0f)));
 
                 auto distanceToDestination = glm::distance(cameraCurrentPosition, m_CameraDestination);
 
@@ -2108,7 +2105,7 @@ namespace Lumos
                     for(auto entity : m_CopiedEntities)
                     {
                         Application::Get().GetCurrentScene()->DuplicateEntity({ entity, Application::Get().GetCurrentScene() });
-                        if(entity != entt::null)
+                        if(entity.Valid())
                         {
                             // if(m_CopiedEntity == m_SelectedEntity)
                             //   m_SelectedEntity = entt::null;
@@ -2130,11 +2127,9 @@ namespace Lumos
         Application::OnUpdate(ts);
     }
 
-    void Editor::SetSelected(entt::entity entity)
+    void Editor::SetSelected(Entity entity)
     {
-        auto& registry = Application::Get().GetSceneManager()->GetCurrentScene()->GetRegistry();
-
-        if(!registry.valid(entity))
+        if(!entity.Valid())
             return;
         if(std::find(m_SelectedEntities.begin(), m_SelectedEntities.end(), entity) != m_SelectedEntities.end())
             return;
@@ -2142,7 +2137,7 @@ namespace Lumos
         m_SelectedEntities.push_back(entity);
     }
 
-    void Editor::UnSelect(entt::entity entity)
+    void Editor::UnSelect(Entity entity)
     {
         auto it = std::find(m_SelectedEntities.begin(), m_SelectedEntities.end(), entity);
 
@@ -2167,8 +2162,8 @@ namespace Lumos
         {
             m_TransitioningCamera = true;
 
-            m_CameraDestination         = point + m_EditorCameraTransform.GetForwardDirection() * distance;
-            m_CameraTransitionSpeed     = speed;
+            m_CameraDestination     = point + m_EditorCameraTransform.GetForwardDirection() * distance;
+            m_CameraTransitionSpeed = speed;
         }
     }
 
@@ -2430,9 +2425,10 @@ namespace Lumos
     void Editor::SelectObject(const Maths::Ray& ray, bool hoveredOnly)
     {
         LUMOS_PROFILE_FUNCTION();
-        auto& registry                    = Application::Get().GetSceneManager()->GetCurrentScene()->GetRegistry();
+		auto scene = Application::Get().GetSceneManager()->GetCurrentScene();
+        auto& registry                    = scene->GetRegistry();
         float closestEntityDist           = Maths::M_INFINITY;
-        entt::entity currentClosestEntity = entt::null;
+		Entity currentClosestEntity = {};
 
         auto group = registry.group<Graphics::ModelComponent>(entt::get<Maths::Transform>);
 
@@ -2460,7 +2456,7 @@ namespace Lumos
                         if(distance < closestEntityDist)
                         {
                             closestEntityDist    = distance;
-                            currentClosestEntity = entity;
+							currentClosestEntity =  { entity, scene };
                         }
                     }
                 }
@@ -2514,7 +2510,7 @@ namespace Lumos
                 if(distance < closestEntityDist)
                 {
                     closestEntityDist    = distance;
-                    currentClosestEntity = entity;
+					currentClosestEntity = { entity, scene };
                 }
             }
         }
@@ -2535,7 +2531,7 @@ namespace Lumos
                 if(distance < closestEntityDist)
                 {
                     closestEntityDist    = distance;
-                    currentClosestEntity = entity;
+					currentClosestEntity = { entity, scene };
                 }
             }
         }
@@ -2733,7 +2729,7 @@ namespace Lumos
             modelEntity.AddComponent<Graphics::ModelComponent>(path);
 
             m_SelectedEntities.clear();
-            SetSelected(modelEntity.GetHandle());
+            SetSelected(modelEntity);
         }
         else if(IsAudioFile(path))
         {
@@ -2754,7 +2750,7 @@ namespace Lumos
             Entity entity = Application::Get().GetSceneManager()->GetCurrentScene()->GetEntityManager()->Create(StringUtilities::GetFileName(path));
             entity.AddComponent<SoundComponent>(soundNode);
             entity.GetOrAddComponent<Maths::Transform>();
-            SetSelected(entity.GetHandle());
+            SetSelected(entity);
         }
         else if(IsSceneFile(path))
         {

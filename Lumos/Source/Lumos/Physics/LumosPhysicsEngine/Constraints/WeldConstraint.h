@@ -1,6 +1,5 @@
 #pragma once
 #include "Constraint.h"
-#include "Maths/Maths.h"
 
 #include <glm/ext/vector_float3.hpp>
 #define GLM_ENABLE_EXPERIMENTAL

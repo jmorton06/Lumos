@@ -1,5 +1,5 @@
 #pragma once
-#include "Core/DataStructures/Vector.h"
+#include "Core/DataStructures/TDArray.h"
 
 namespace Lumos
 {
@@ -40,8 +40,8 @@ namespace Lumos
             return static_cast<uint32_t>(m_vpAllScenes.Size());
         }
 
-        Vector<std::string> GetSceneNames();
-        const Vector<SharedPtr<Scene>>& GetScenes() const
+        TDArray<std::string> GetSceneNames();
+        const TDArray<SharedPtr<Scene>>& GetScenes() const
         {
             return m_vpAllScenes;
         }
@@ -68,7 +68,7 @@ namespace Lumos
             LUMOS_LOG_INFO("[SceneManager] - Enqueued scene : {0}", name.c_str());
         }
 
-        const Vector<std::string>& GetSceneFilePaths();
+        const TDArray<std::string>& GetSceneFilePaths();
 
         void AddFileToLoadList(const std::string& filePath)
         {
@@ -80,9 +80,9 @@ namespace Lumos
     protected:
         uint32_t m_SceneIdx;
         Scene* m_CurrentScene;
-        Vector<SharedPtr<Scene>> m_vpAllScenes;
-        Vector<std::string> m_SceneFilePaths;
-        Vector<std::string> m_SceneFilePathsToLoad;
+        TDArray<SharedPtr<Scene>> m_vpAllScenes;
+        TDArray<std::string> m_SceneFilePaths;
+        TDArray<std::string> m_SceneFilePathsToLoad;
 
     private:
         bool m_SwitchingScenes = false;

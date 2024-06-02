@@ -127,9 +127,9 @@ namespace Lumos
         m_SwitchingScenes = false;
     }
 
-    Vector<std::string> SceneManager::GetSceneNames()
+    TDArray<std::string> SceneManager::GetSceneNames()
     {
-        Vector<std::string> names;
+        TDArray<std::string> names;
 
         for(auto& scene : m_vpAllScenes)
         {
@@ -192,7 +192,7 @@ namespace Lumos
         m_SceneFilePathsToLoad.Clear();
     }
 
-    const Vector<std::string>& SceneManager::GetSceneFilePaths()
+    const TDArray<std::string>& SceneManager::GetSceneFilePaths()
     {
         m_SceneFilePaths.Clear();
         for(auto scene : m_vpAllScenes)

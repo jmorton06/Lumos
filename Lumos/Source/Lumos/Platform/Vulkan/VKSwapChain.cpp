@@ -359,7 +359,7 @@ namespace Lumos
             GetCurrentCommandBuffer()->EndRecording();
         }
 
-        void VKSwapChain::Present(const Vector<VkSemaphore>& semaphores)
+        void VKSwapChain::Present(const TDArray<VkSemaphore>& semaphores)
         {
             LUMOS_PROFILE_FUNCTION();
 

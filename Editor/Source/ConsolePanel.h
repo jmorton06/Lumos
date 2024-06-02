@@ -4,7 +4,7 @@
 
 #include <imgui/imgui.h>
 #include <Lumos/Core/Reference.h>
-#include <Lumos/Core/DataStructures/Vector.h>
+#include <Lumos/Core/DataStructures/TDArray.h>
 
 namespace Lumos
 {
@@ -50,7 +50,7 @@ namespace Lumos
 
     private:
         static std::mutex m_MessageBufferMutex;
-        static Vector<ConsoleMessage> m_MessageBuffer;
+        static TDArray<ConsoleMessage> m_MessageBuffer;
 
         static bool s_AllowScrollingToBottom;
         static bool s_RequestScrollToBottom;

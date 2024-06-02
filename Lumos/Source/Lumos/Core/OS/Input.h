@@ -4,8 +4,9 @@
 #include "Events/MouseEvent.h"
 #include "Utilities/TSingleton.h"
 #include "Core/OS/KeyCodes.h"
+#include "Core/DataStructures/TArray.h"
+#include "Core/DataStructures/Map.h"
 #include <glm/ext/vector_float2.hpp>
-#include <map>
 
 #define MAX_KEYS 1024
 #define MAX_BUTTONS 32
@@ -40,16 +41,17 @@ namespace Lumos
     {
         int ID;
         std::string Name;
-        std::map<int, bool> ButtonDown;
-        std::map<int, ControllerButtonData> ButtonStates;
-        std::map<int, float> AxisStates;
-        std::map<int, float> DeadZones;
-        std::map<int, uint8_t> HatStates;
+        TArray<bool, 64> ButtonDown;
+        TArray<ControllerButtonData, 64> ButtonStates;
+        TArray<float, 16> AxisStates;
+        TArray<float, 16> DeadZones;
+        TArray<uint8_t, 16> HatStates;
     };
 
     class LUMOS_EXPORT Input : public ThreadSafeSingleton<Input>
     {
         friend class TSingleton<Input>;
+		friend class GLFWWindow;
 
     public:
         Input();
@@ -96,8 +98,6 @@ namespace Lumos
         uint8_t GetControllerHat(int controllerID, int hat);
         void RemoveController(int id);
 
-        std::map<int, Controller>& GetControllers() { return m_Controllers; }
-
     private:
     protected:
         bool OnKeyPressed(KeyPressedEvent& e);
@@ -122,6 +122,6 @@ namespace Lumos
 
         glm::vec2 m_MousePosition;
 
-        std::map<int, Controller> m_Controllers;
+        HashMap(int, Controller) m_Controllers;
     };
 }

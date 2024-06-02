@@ -2,7 +2,7 @@
 #include <sol/forward.hpp>
 #include <glm/ext/vector_float3.hpp>
 #include <entt/fwd.hpp>
-#include "Core/DataStructures/Vector.h"
+#include "Core/DataStructures/TDArray.h"
 #include "Core/UUID.h"
 
 namespace Lumos
@@ -223,7 +223,7 @@ namespace Lumos
         uint32_t m_ScreenHeight;
 
         // Load these assets ready to be used during a scene
-        Vector<UUID> m_PreLoadAssetsList;
+        TDArray<UUID> m_PreLoadAssetsList;
 
     private:
         NONCOPYABLE(Scene)

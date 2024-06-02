@@ -3,10 +3,7 @@
 #include "Graphics/Mesh.h"
 #include "Graphics/Material.h"
 #include "Core/OS/FileSystem.h"
-
 #include "Graphics/RHI/Texture.h"
-#include "Maths/Maths.h"
-
 #include "Maths/Transform.h"
 #include "Core/Application.h"
 #include "Utilities/StringUtilities.h"

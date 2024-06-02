@@ -4,12 +4,8 @@
 #include "RHI/VertexBuffer.h"
 #include "Graphics/RHI/CommandBuffer.h"
 #include "Graphics/RHI/DescriptorSet.h"
-#include "Maths/Maths.h"
 #include "Maths/BoundingBox.h"
 #include "Material.h"
-
-#include <glm/gtx/hash.hpp>
-#include <array>
 
 namespace Lumos
 {
@@ -209,16 +205,4 @@ namespace Lumos
 #endif
         };
     }
-}
-
-namespace std
-{
-    template <>
-    struct hash<Lumos::Graphics::Vertex>
-    {
-        size_t operator()(Lumos::Graphics::Vertex const& vertex) const
-        {
-            return ((hash<glm::vec3>()(vertex.Position) ^ (hash<glm::vec2>()(vertex.TexCoords) << 1) ^ (hash<glm::vec4>()(vertex.Colours) << 1) ^ (hash<glm::vec3>()(vertex.Normal) << 1) ^ (hash<glm::vec3>()(vertex.Tangent) << 1)));
-        }
-    };
 }

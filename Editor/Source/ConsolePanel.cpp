@@ -10,7 +10,7 @@ namespace Lumos
     bool ConsolePanel::s_AllowScrollingToBottom        = true;
     bool ConsolePanel::s_RequestScrollToBottom         = false;
     std::mutex ConsolePanel::m_MessageBufferMutex;
-    Vector<ConsoleMessage> ConsolePanel::m_MessageBuffer = Vector<ConsoleMessage>(2000);
+    TDArray<ConsoleMessage> ConsolePanel::m_MessageBuffer = TDArray<ConsoleMessage>(2000);
 
     const char* GetLevelIcon(ConsoleLogLevel level)
     {
@@ -254,6 +254,9 @@ namespace Lumos
             for(uint32_t i = 0; i < m_MessageBuffer.Size(); i++)
             {
                 auto& msg = m_MessageBuffer[i];
+
+				if(Filter.IsActive() && !Filter.PassFilter(msg.m_Message.c_str()))
+					continue;
                 DrawMessage(&msg);
             }
 

@@ -1,7 +1,7 @@
 #include "Precompiled.h"
 #include "JobSystem.h"
 #include "Maths/MathsUtilities.h"
-#include "Core/DataStructures/Vector.h"
+#include "Core/DataStructures/TDArray.h"
 #include "Core/Thread.h"
 
 #include <atomic>
@@ -107,7 +107,7 @@ namespace Lumos
                 std::condition_variable wakeCondition;
                 std::mutex wakeMutex;
                 std::atomic<uint32_t> nextQueue { 0 };
-                Vector<std::thread> threads;
+                TDArray<std::thread> threads;
 
                 ~InternalState()
                 {
@@ -147,7 +147,7 @@ namespace Lumos
                         args.groupID = job.groupID;
                         if(job.sharedmemory_size > 0)
                         {
-                            thread_local static Vector<uint8_t> shared_allocation_data;
+                            thread_local static TDArray<uint8_t> shared_allocation_data;
                             shared_allocation_data.Reserve(job.sharedmemory_size);
                             args.sharedmemory = shared_allocation_data.Data();
                         }

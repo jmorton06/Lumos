@@ -8,7 +8,7 @@
 #include "VKUniformBuffer.h"
 #include "VKDescriptorSet.h"
 #include "Graphics/RHI/Renderer.h"
-#include "Core/DataStructures/Vector.h"
+#include "Core/DataStructures/TDArray.h"
 #include "Utilities/DeletionQueue.h"
 
 #define NUM_SEMAPHORES 10
@@ -105,10 +105,10 @@ namespace Lumos
             uint32_t m_DescriptorCapacity = 0;
 
             VkDescriptorPool m_CurrentPool;
-            Vector<VkDescriptorPool> m_UsedDescriptorPools;
-            Vector<VkDescriptorPool> m_FreeDescriptorPools;
+            TDArray<VkDescriptorPool> m_UsedDescriptorPools;
+            TDArray<VkDescriptorPool> m_FreeDescriptorPools;
 
-            static Vector<DeletionQueue> s_DeletionQueue;
+            static TDArray<DeletionQueue> s_DeletionQueue;
             static int s_DeletionQueueIndex;
         };
     }

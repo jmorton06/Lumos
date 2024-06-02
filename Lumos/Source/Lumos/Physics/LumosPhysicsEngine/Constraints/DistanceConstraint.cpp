@@ -1,5 +1,4 @@
 #include "Precompiled.h"
-#include "Maths/Maths.h"
 #include "Physics/LumosPhysicsEngine/LumosPhysicsEngine.h"
 #include "DistanceConstraint.h"
 #include "Graphics/Renderers/DebugRenderer.h"

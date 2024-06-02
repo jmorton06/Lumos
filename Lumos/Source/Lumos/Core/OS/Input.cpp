@@ -7,6 +7,8 @@ namespace Lumos
         : m_MouseMode(MouseMode::Visible)
     {
         Reset();
+
+		HashMapInit(&m_Controllers);
     }
 
     void Input::Reset()
@@ -90,30 +92,49 @@ namespace Lumos
 
     bool Input::IsControllerPresent(int id)
     {
-        return m_Controllers.find(id) != m_Controllers.end();
+		return HashMapFindPtr(&m_Controllers, id);
+       // return m_Controllers.find(id) != m_Controllers.end();
     }
 
     std::vector<int> Input::GetConnectedControllerIDs()
     {
         std::vector<int> ids;
-        ids.reserve(m_Controllers.size());
-        for(auto [id, controller] : m_Controllers)
-            ids.emplace_back(id);
+//        ids.reserve(m_Controllers.size());
+//        for(auto [id, controller] : m_Controllers)
+//            ids.emplace_back(id);
 
         return ids;
     }
 
     Controller* Input::GetController(int id)
     {
-        if(!Input::IsControllerPresent(id))
-            return nullptr;
-
-        return &m_Controllers.at(id);
+		return (Controller*)HashMapFindPtr(&m_Controllers, id);
     }
 
     Controller* Input::GetOrAddController(int id)
     {
-        return &(m_Controllers[id]);
+        {
+            //TODO: FIX
+            Controller* value = nullptr;
+            if (HashMapFind(&m_Controllers, id, value))
+            {
+                return value;
+            }
+        }
+
+        {
+            Controller value;
+            value.ID = id;
+            HashMapInsert(&m_Controllers, id, value);
+
+            Controller* valuePtr = nullptr;
+            if (HashMapFind(&m_Controllers, id, valuePtr))
+            {
+                return valuePtr;
+            }
+        }
+   
+        return nullptr;
     }
 
     std::string Input::GetControllerName(int id)
@@ -121,7 +142,8 @@ namespace Lumos
         if(!Input::IsControllerPresent(id))
             return {};
 
-        return m_Controllers.at(id).Name;
+		Controller& controller = *GetController(id);
+        return controller.Name;
     }
 
     bool Input::IsControllerButtonPressed(int controllerID, int button)
@@ -129,11 +151,9 @@ namespace Lumos
         if(!Input::IsControllerPresent(controllerID))
             return false;
 
-        const Controller& controller = m_Controllers.at(controllerID);
-        if(controller.ButtonStates.find(button) == controller.ButtonStates.end())
-            return false;
-
-        return controller.ButtonStates.at(button).State == KeyState::Pressed;
+		Controller& controller = *GetController(controllerID);
+        ControllerButtonData& data = controller.ButtonStates[button];
+        return data.State == KeyState::Pressed;
     }
 
     float Input::GetControllerAxis(int controllerID, int axis)
@@ -141,11 +161,9 @@ namespace Lumos
         if(!Input::IsControllerPresent(controllerID))
             return 0.0f;
 
-        const Controller& controller = m_Controllers.at(controllerID);
-        if(controller.AxisStates.find(axis) == controller.AxisStates.end())
-            return 0.0f;
-
-        return controller.AxisStates.at(axis);
+        float data;
+		Controller* controller = GetController(controllerID);
+        return controller->AxisStates[axis];
     }
 
     uint8_t Input::GetControllerHat(int controllerID, int hat)
@@ -153,25 +171,13 @@ namespace Lumos
         if(!Input::IsControllerPresent(controllerID))
             return 0;
 
-        const Controller& controller = m_Controllers.at(controllerID);
-        if(controller.HatStates.find(hat) == controller.HatStates.end())
-            return 0;
-
-        return controller.HatStates.at(hat);
+		Controller& controller = *GetController(controllerID);
+		uint8_t value = 0;
+        return controller.HatStates[hat];
     }
 
     void Input::RemoveController(int id)
     {
-        for(auto it = m_Controllers.begin(); it != m_Controllers.end();)
-        {
-            int currentID = it->first;
-            if(currentID == id)
-            {
-                m_Controllers.erase(it);
-                return;
-            }
-            else
-                it++;
-        }
+		HashMapRemove(&m_Controllers, id);
     }
 }

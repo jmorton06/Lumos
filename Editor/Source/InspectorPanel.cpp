@@ -2371,7 +2371,7 @@ end
                     ImGui::NextColumn();
                     ImGui::PushItemWidth(-1);
 
-                    Vector<const char*> animNames(Application::Get().GetFrameArena());
+                    TDArray<const char*> animNames(Application::Get().GetFrameArena());
                     animNames.Reserve(animCount);
 
                     for(auto& anim : animations)
@@ -2843,7 +2843,7 @@ namespace Lumos
 
             if(!currentScene)
             {
-                m_Editor->SetSelected(entt::null);
+				m_Editor->SetSelected({});
                 ImGuiUtilities::PopID();
                 ImGui::End();
                 return;
@@ -2852,7 +2852,7 @@ namespace Lumos
             auto& registry = currentScene->GetRegistry();
             if(selectedEntities.size() != 1 || !registry.valid(selectedEntities.front()))
             {
-                m_Editor->SetSelected(entt::null);
+				m_Editor->SetSelected({});
                 ImGuiUtilities::PopID();
                 ImGui::End();
                 return;
@@ -2876,17 +2876,13 @@ namespace Lumos
             ImGui::SameLine();
 
             bool hasName = registry.all_of<NameComponent>(selected);
-            std::string name;
-            if(hasName)
-                name = registry.get<NameComponent>(selected).name;
-            else
-                name = StringUtilities::ToString(entt::to_integral(selected));
+			std::string name = selected.GetName();
 
             if(m_DebugMode)
             {
-                if(registry.valid(selected))
+                if(selected.Valid())
                 {
-                    // ImGui::Text("ID: %d, Version: %d", static_cast<int>(registry.entity(selected)), registry.version(selected));
+                    //ImGui::Text("ID: %d, Version: %d", static_cast<int>(registry.entity(selected)), registry.version(selected));
                 }
                 else
                 {
@@ -2924,7 +2920,7 @@ namespace Lumos
                     SelectedEntity.Destroy();
 
                     SelectedEntity = Application::Get().GetSceneManager()->GetCurrentScene()->InstantiatePrefab(path);
-                    selected       = SelectedEntity.GetHandle();
+                    selected       = SelectedEntity;
                     m_Editor->SetSelected(selected);
                 }
 
@@ -3038,7 +3034,8 @@ namespace Lumos
             }
 
             ImGui::BeginChild("Components", ImVec2(0.0f, 0.0f), false, ImGuiWindowFlags_None);
-            m_EnttEditor.RenderImGui(registry, selected);
+			auto entityHandle = (entt::entity)selected.GetHandle();
+            m_EnttEditor.RenderImGui(registry, entityHandle);
             ImGui::EndChild();
 
             ImGuiUtilities::PopID();

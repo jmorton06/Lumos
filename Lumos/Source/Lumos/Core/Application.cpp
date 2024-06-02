@@ -26,7 +26,7 @@
 #include "Utilities/StringUtilities.h"
 #include "Core/OS/FileSystem.h"
 #include "Core/String.h"
-#include "Core/DataStructures/Vector.h"
+#include "Core/DataStructures/TDArray.h"
 #include "Core/CommandLine.h"
 #include "Utilities/AssetManager.h"
 #include "Scripting/Lua/LuaManager.h"

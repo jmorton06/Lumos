@@ -78,8 +78,8 @@
 
 #define MAX_OBJECTS 2048
 
-#define STRINGIZE2(s) #s
-#define STRINGIZE(s) STRINGIZE2(s)
+#define _STRINGIZE(s) #s
+#define STRINGIZE(s) _STRINGIZE(s)
 
 #if LUMOS_PLATFORM_WINDOWS
 #define LUMOS_BREAK() __debugbreak()

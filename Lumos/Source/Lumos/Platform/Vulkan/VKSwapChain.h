@@ -33,7 +33,7 @@ namespace Lumos
             void CreateFrameData();
             void AcquireNextImage();
             void QueueSubmit();
-            void Present(const Vector<VkSemaphore>& semaphore);
+            void Present(const TDArray<VkSemaphore>& semaphore);
             void Begin();
             void End();
             void OnResize(uint32_t width, uint32_t height, bool forceResize = false, Window* windowHandle = nullptr);

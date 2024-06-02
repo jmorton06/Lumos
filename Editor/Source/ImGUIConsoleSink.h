@@ -65,7 +65,7 @@ namespace Lumos
 
     private:
         uint32_t m_MessageBufferCapacity;
-        Vector<ConsoleMessage> m_MessageBuffer;
+        TDArray<ConsoleMessage> m_MessageBuffer;
         uint32_t m_MessageCount = 0;
     };
 }
