@@ -222,7 +222,7 @@ namespace Lumos
         bool m_RenderDocEnabled     = false;
 
         std::mutex m_EventQueueMutex;
-        Vector<std::function<void()>> m_EventQueue;
+        TDArray<std::function<void()>> m_EventQueue;
 
         UniquePtr<Window> m_Window;
         UniquePtr<SceneManager> m_SceneManager;

@@ -33,8 +33,6 @@ namespace Lumos
 
         inline int GetRepeatCount() const { return m_RepeatCount; }
 
-        std::string ToString() const override;
-
         EVENT_CLASS_TYPE(KeyPressed)
     private:
         int m_RepeatCount;
@@ -48,8 +46,6 @@ namespace Lumos
         {
         }
 
-        std::string ToString() const override;
-
         EVENT_CLASS_TYPE(KeyReleased)
     };
 
@@ -61,8 +57,6 @@ namespace Lumos
             , Character(character)
         {
         }
-
-        std::string ToString() const override;
 
         EVENT_CLASS_TYPE(KeyTyped)
 

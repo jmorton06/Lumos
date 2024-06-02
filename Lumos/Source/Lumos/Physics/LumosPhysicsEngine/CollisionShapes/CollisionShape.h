@@ -1,6 +1,5 @@
 #pragma once
 
-#include "Maths/Maths.h"
 #include "Maths/Plane.h"
 #include <vector>
 #include <glm/ext/vector_float3.hpp>

@@ -290,7 +290,7 @@ namespace Lumos
         bool Valid()
         {
             LUMOS_PROFILE_FUNCTION_LOW();
-            return m_Scene->GetRegistry().valid(m_EntityHandle) && m_Scene;
+            return m_Scene && m_Scene->GetRegistry().valid(m_EntityHandle);
         }
 
         Scene* GetScene() const { return m_Scene; }

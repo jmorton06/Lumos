@@ -1,7 +1,6 @@
 #include "Precompiled.h"
 #include "ALManager.h"
 #include "ALSoundNode.h"
-#include "Maths/Maths.h"
 #include "Graphics/Camera/Camera.h"
 #include "Utilities/TimeStep.h"
 #include "Scene/Component/SoundComponent.h"

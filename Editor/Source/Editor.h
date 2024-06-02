@@ -4,7 +4,6 @@
 #include "FileBrowserPanel.h"
 #include "PreviewDraw.h"
 
-#include <Lumos/Maths/Ray.h>
 #include <Lumos/Maths/Transform.h>
 #include <Lumos/Utilities/IniFile.h>
 #include <Lumos/Graphics/Camera/EditorCamera.h>
@@ -13,7 +12,6 @@
 #include <Lumos/Core/Application.h>
 #include <Lumos/Scene/Entity.h>
 #include <imgui/imgui.h>
-#include <entt/entt.hpp>
 
 namespace Lumos
 {
@@ -27,6 +25,7 @@ namespace Lumos
     class WindowResizeEvent;
     class WindowFileEvent;
     class TimeStep;
+	class Entity;
 
     namespace Graphics
     {
@@ -36,6 +35,11 @@ namespace Lumos
         class Environment;
         class RenderPasses;
     }
+
+	namespace Maths
+	{
+		class Ray;
+	}
 
     enum EditorDebugFlags : uint32_t
     {
@@ -136,16 +140,16 @@ namespace Lumos
             m_SelectedEntities.clear();
         }
 
-        void SetSelected(entt::entity entity);
-        void UnSelect(entt::entity entity);
+        void SetSelected(Entity entity);
+        void UnSelect(Entity entity);
         void SetHoveredEntity(Entity entity) { m_HoveredEntity = entity; }
         Entity GetHoveredEntity() { return m_HoveredEntity; }
-        const std::vector<entt::entity>& GetSelected() const
+        const std::vector<Entity>& GetSelected() const
         {
             return m_SelectedEntities;
         }
 
-        bool IsSelected(entt::entity entity)
+        bool IsSelected(Entity entity)
         {
             if(std::find(m_SelectedEntities.begin(), m_SelectedEntities.end(), entity) != m_SelectedEntities.end())
                 return true;
@@ -153,7 +157,7 @@ namespace Lumos
             return false;
         }
 
-        bool IsCopied(entt::entity entity)
+        bool IsCopied(Entity entity)
         {
             if(std::find(m_CopiedEntities.begin(), m_CopiedEntities.end(), entity) != m_CopiedEntities.end())
                 return true;
@@ -161,7 +165,7 @@ namespace Lumos
             return false;
         }
 
-        void SetCopiedEntity(entt::entity entity, bool cut = false)
+        void SetCopiedEntity(Entity entity, bool cut = false)
         {
             if(std::find(m_CopiedEntities.begin(), m_CopiedEntities.end(), entity) != m_CopiedEntities.end())
                 return;
@@ -170,7 +174,7 @@ namespace Lumos
             m_CutCopyEntity = cut;
         }
 
-        const std::vector<entt::entity>& GetCopiedEntity() const
+        const std::vector<Entity>& GetCopiedEntity() const
         {
             return m_CopiedEntities;
         }
@@ -292,15 +296,13 @@ namespace Lumos
         Application* m_Application;
 
         uint32_t m_ImGuizmoOperation = 14463;
-        std::vector<entt::entity> m_SelectedEntities;
-        std::vector<entt::entity> m_CopiedEntities;
-
+        std::vector<Entity> m_SelectedEntities;
+        std::vector<Entity> m_CopiedEntities;
         Entity m_HoveredEntity;
-        bool m_CutCopyEntity              = false;
-        float m_CurrentSceneAspectRatio   = 0.0f;
-        float m_CameraTransitionSpeed     = 0.0f;
-        bool m_TransitioningCamera        = false;
-
+        bool m_CutCopyEntity            = false;
+        float m_CurrentSceneAspectRatio = 0.0f;
+        float m_CameraTransitionSpeed   = 0.0f;
+        bool m_TransitioningCamera      = false;
         glm::vec3 m_CameraDestination;
         bool m_SceneViewActive     = false;
         bool m_NewProjectPopupOpen = false;

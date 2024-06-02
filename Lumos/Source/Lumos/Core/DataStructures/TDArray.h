@@ -5,23 +5,23 @@
 namespace Lumos
 {
     template <class T>
-    class Vector
+    class TDArray
     {
     public:
         // Constructors
-        Vector(Arena* arena = nullptr);
-        Vector(const Vector<T>& other);
-        Vector(Vector<T>&& other) noexcept;
-        Vector(size_t size, const T& initial = T {}, Arena* arena = nullptr);
-        Vector(std::initializer_list<T> values, Arena* arena = nullptr);
+        TDArray(Arena* arena = nullptr);
+        TDArray(const TDArray<T>& other);
+        TDArray(TDArray<T>&& other) noexcept;
+        TDArray(size_t size, const T& initial = T {}, Arena* arena = nullptr);
+        TDArray(std::initializer_list<T> values, Arena* arena = nullptr);
 
         // Destructor
-        ~Vector();
+        ~TDArray();
 
         // Copy assignment
-        Vector<T>& operator=(const Vector<T>& other);
+        TDArray<T>& operator=(const TDArray<T>& other);
         // Move assignment
-        Vector<T>& operator=(Vector<T>&& other) noexcept;
+        TDArray<T>& operator=(TDArray<T>&& other) noexcept;
 
         // Element access
         T& operator[](size_t index);
@@ -103,7 +103,7 @@ namespace Lumos
         Arena* m_Arena    = nullptr;
 
         // Helper function for copying elements
-        void CopyElements(const Vector<T>& other);
+        void CopyElements(const TDArray<T>& other);
 
         // Helper function for deleting allocated memory
         void Destroy() noexcept;
@@ -111,20 +111,20 @@ namespace Lumos
 
     // Constructor implementations
     template <class T>
-    Vector<T>::Vector(Arena* arena)
+    TDArray<T>::TDArray(Arena* arena)
         : m_Arena(arena)
     {
     }
 
     template <class T>
-    Vector<T>::Vector(const Vector<T>& other)
+    TDArray<T>::TDArray(const TDArray<T>& other)
         : m_Arena(other.m_Arena)
     {
         CopyElements(other);
     }
 
     template <class T>
-    Vector<T>::Vector(Vector<T>&& other) noexcept
+    TDArray<T>::TDArray(TDArray<T>&& other) noexcept
         : m_Data(other.m_Data)
         , m_Size(other.m_Size)
         , m_Capacity(other.m_Capacity)
@@ -136,7 +136,7 @@ namespace Lumos
     }
 
     template <class T>
-    Vector<T>::Vector(size_t size, const T& initial, Arena* arena)
+    TDArray<T>::TDArray(size_t size, const T& initial, Arena* arena)
         : m_Size(0)
         , m_Capacity(0)
         , m_Arena(arena)
@@ -147,7 +147,7 @@ namespace Lumos
     }
 
     template <class T>
-    Vector<T>::Vector(std::initializer_list<T> values, Arena* arena)
+    TDArray<T>::TDArray(std::initializer_list<T> values, Arena* arena)
         : m_Size(values.size())
         , m_Capacity(0)
         , m_Arena(arena)
@@ -160,14 +160,14 @@ namespace Lumos
 
     // Destructor implementation
     template <class T>
-    Vector<T>::~Vector()
+    TDArray<T>::~TDArray()
     {
         Destroy();
     }
 
     // Copy assignment implementation
     template <class T>
-    Vector<T>& Vector<T>::operator=(const Vector<T>& other)
+    TDArray<T>& TDArray<T>::operator=(const TDArray<T>& other)
     {
         if(this != &other)
         {
@@ -180,7 +180,7 @@ namespace Lumos
 
     // Move assignment implementation
     template <class T>
-    Vector<T>& Vector<T>::operator=(Vector<T>&& other) noexcept
+    TDArray<T>& TDArray<T>::operator=(TDArray<T>&& other) noexcept
     {
         std::swap(m_Data, other.m_Data);
         std::swap(m_Arena, other.m_Arena);
@@ -196,64 +196,64 @@ namespace Lumos
 
     // Element access implementations
     template <class T>
-    T& Vector<T>::operator[](size_t index)
+    T& TDArray<T>::operator[](size_t index)
     {
         LUMOS_ASSERT(index < m_Size, "Index must be less than vector's size");
         return m_Data[index];
     }
 
     template <class T>
-    const T& Vector<T>::operator[](size_t index) const
+    const T& TDArray<T>::operator[](size_t index) const
     {
         LUMOS_ASSERT(index < m_Size, "Index must be less than vector's size");
         return m_Data[index];
     }
 
     template <class T>
-    T& Vector<T>::Front()
+    T& TDArray<T>::Front()
     {
         return *begin();
     }
 
     template <class T>
-    const T& Vector<T>::Front() const
+    const T& TDArray<T>::Front() const
     {
         return *begin();
     }
 
     template <class T>
-    T& Vector<T>::Back()
+    T& TDArray<T>::Back()
     {
         return m_Data[m_Size - 1];
     }
 
     template <class T>
-    const T& Vector<T>::Back() const
+    const T& TDArray<T>::Back() const
     {
         return *(end() - 1);
     }
 
     // Capacity implementations
     template <class T>
-    bool Vector<T>::Empty() const noexcept
+    bool TDArray<T>::Empty() const noexcept
     {
         return m_Size == 0;
     }
 
     template <class T>
-    size_t Vector<T>::Size() const noexcept
+    size_t TDArray<T>::Size() const noexcept
     {
         return m_Size;
     }
 
     template <class T>
-    size_t Vector<T>::Capacity() const noexcept
+    size_t TDArray<T>::Capacity() const noexcept
     {
         return m_Capacity;
     }
 
     template <class T>
-    void Vector<T>::Reserve(size_t capacity)
+    void TDArray<T>::Reserve(size_t capacity)
     {
         if(capacity <= m_Capacity)
             return;
@@ -275,7 +275,7 @@ namespace Lumos
     }
 
     template <class T>
-    void Vector<T>::Resize(size_t size, const T& value)
+    void TDArray<T>::Resize(size_t size, const T& value)
     {
         Reserve(size);
         for(size_t i = m_Size; i < size; ++i)
@@ -285,13 +285,13 @@ namespace Lumos
 
     // Modifiers implementations
     template <class T>
-    void Vector<T>::Clear() noexcept
+    void TDArray<T>::Clear() noexcept
     {
         m_Size = 0;
     }
 
     template <class T>
-    void Vector<T>::PushBack(const T& value)
+    void TDArray<T>::PushBack(const T& value)
     {
         if(m_Size == m_Capacity)
             Reserve(m_Capacity == 0 ? 1 : m_Capacity * 2);
@@ -299,7 +299,7 @@ namespace Lumos
     }
 
     template <class T>
-    void Vector<T>::PushBack(T&& value)
+    void TDArray<T>::PushBack(T&& value)
     {
         if(m_Size == m_Capacity)
             Reserve(m_Capacity == 0 ? 1 : m_Capacity * 2);
@@ -308,7 +308,7 @@ namespace Lumos
 
     template <class T>
     template <typename... Args>
-    T& Vector<T>::EmplaceBack(Args&&... args)
+    T& TDArray<T>::EmplaceBack(Args&&... args)
     {
         if(m_Size == m_Capacity)
             Reserve(m_Capacity == 0 ? 1 : m_Capacity * 2);
@@ -318,7 +318,7 @@ namespace Lumos
     }
 
     template <class T>
-    void Vector<T>::PopBack()
+    void TDArray<T>::PopBack()
     {
         if(m_Size > 0)
             --m_Size;
@@ -326,7 +326,7 @@ namespace Lumos
 
     // Helper function implementations
     template <class T>
-    void Vector<T>::CopyElements(const Vector<T>& other)
+    void TDArray<T>::CopyElements(const TDArray<T>& other)
     {
         Reserve(other.m_Capacity);
         for(size_t i = 0; i < other.m_Size; ++i)
@@ -335,7 +335,7 @@ namespace Lumos
     }
 
     template <class T>
-    void Vector<T>::Destroy() noexcept
+    void TDArray<T>::Destroy() noexcept
     {
         if(!m_Arena && m_Data)
             delete[] m_Data;

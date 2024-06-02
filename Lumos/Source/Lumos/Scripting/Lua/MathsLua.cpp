@@ -1,6 +1,5 @@
 #include "Precompiled.h"
 #include "MathsLua.h"
-#include "Maths/Maths.h"
 #include "Maths/Transform.h"
 #include <sol/sol.hpp>
 #include <glm/ext/vector_float3.hpp>

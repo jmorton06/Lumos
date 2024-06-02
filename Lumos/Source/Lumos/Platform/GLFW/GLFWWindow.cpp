@@ -505,15 +505,19 @@ namespace Lumos
         LUMOS_PROFILE_SCOPE("GLFW PollEvents");
         glfwPollEvents();
 
-        auto& controllers = Input::Get().GetControllers();
-        for(auto it = controllers.begin(); it != controllers.end();)
-        {
-            int id = it->first;
-            if(glfwJoystickPresent(id) != GLFW_TRUE)
-                Input::Get().RemoveController(id);
+		auto& controllers = Input::Get().m_Controllers;
 
-            it++;
-        }
+		ForHashMapEach(int, Controller, &controllers, it)
+	    {
+		    int key = *it.key;
+		    Controller& value = *it.value;
+			
+            if (glfwJoystickPresent(key) != GLFW_TRUE)
+            {
+                LUMOS_LOG_INFO("Controller disconnected : {0}", value.Name);
+                Input::Get().RemoveController(key);
+            }
+		}
 
         UpdateControllers();
     }
@@ -531,60 +535,56 @@ namespace Lumos
 
     void GLFWWindow::UpdateControllers()
     {
-        // Cleanup disconnected controller
-        auto& controllers = Input::Get().GetControllers();
-        for(auto it = controllers.begin(); it != controllers.end();)
-        {
-            int id = it->first;
-            if(glfwJoystickPresent(id) != GLFW_TRUE)
-                it = controllers.erase(it);
-            else
-                it++;
-        }
+		auto& controllers = Input::Get().m_Controllers;
 
         // Update controllers
         for(int id = GLFW_JOYSTICK_1; id < GLFW_JOYSTICK_LAST; id++)
         {
             if(glfwJoystickPresent(id) == GLFW_TRUE)
             {
-                if(controllers.find(id) == controllers.end())
-                {
-                    Controller& controller = controllers[id];
-                    controller.ID          = id;
-                    controller.Name        = glfwGetJoystickName(id);
+				auto& controllers = Input::Get().m_Controllers;
+				Controller* controller = (Controller*)HashMapFindPtr(&controllers, id);
+				if(!controller)
+				{
+					Controller newController;
+					newController.ID          = id;
+					newController.Name        = glfwGetJoystickName(id);
+					HashMapInsert(&controllers, id, newController);
+                    controller = (Controller*)HashMapFindPtr(&controllers, id);
+                    if (!controller)
+                    {
+                        LUMOS_LOG_INFO("Failed to find controller {0}", newController.Name);
 
-                    LUMOS_LOG_INFO("Controller connected {0}", controller.Name);
-                }
+                    }
+				}
 
-                Controller& controller = controllers[id];
-
-                LUMOS_LOG_INFO("Controller connected {0}", controller.Name);
+                LUMOS_LOG_INFO("Controller connected {0}", controller->Name);
                 int buttonCount;
                 const unsigned char* buttons = glfwGetJoystickButtons(id, &buttonCount);
                 for(int i = 0; i < buttonCount; i++)
                 {
-                    if(buttons[i] == GLFW_PRESS && !controller.ButtonDown[i])
-                        controller.ButtonStates[i].State = KeyState::Pressed;
-                    else if(buttons[i] == GLFW_RELEASE && controller.ButtonDown[i])
-                        controller.ButtonStates[i].State = KeyState::Released;
+                    if(buttons[i] == GLFW_PRESS && !controller->ButtonDown[i])
+                        controller->ButtonStates[i].State = KeyState::Pressed;
+                    else if(buttons[i] == GLFW_RELEASE && controller->ButtonDown[i])
+                        controller->ButtonStates[i].State = KeyState::Released;
 
-                    controller.ButtonDown[i] = buttons[i] == GLFW_PRESS;
+                    controller->ButtonDown[i] = buttons[i] == GLFW_PRESS;
                 }
 
                 int axisCount;
                 const float* axes = glfwGetJoystickAxes(id, &axisCount);
                 for(int i = 0; i < axisCount; i++)
                 {
-                    controller.AxisStates[i] = abs(axes[i]) > controller.DeadZones[i] ? axes[i] : 0.0f;
+                    controller->AxisStates[i] = abs(axes[i]) > controller->DeadZones[i] ? axes[i] : 0.0f;
 #ifdef LOG_CONTROLLER
-                    LUMOS_LOG_INFO("State {0} : {1}", i, controller.AxisStates[i]);
+                    LUMOS_LOG_INFO("State {0} : {1}", i, controller->AxisStates[i]);
 #endif
                 }
 
                 int hatCount;
                 const unsigned char* hats = glfwGetJoystickHats(id, &hatCount);
                 for(int i = 0; i < hatCount; i++)
-                    controller.HatStates[i] = hats[i];
+                    controller->HatStates[i] = hats[i];
             }
         }
     }

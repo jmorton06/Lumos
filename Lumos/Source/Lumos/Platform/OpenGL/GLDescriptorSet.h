@@ -44,7 +44,7 @@ namespace Lumos
             struct UniformBufferInfo
             {
                 SharedPtr<UniformBuffer> UB;
-                Vector<BufferMemberInfo> m_Members;
+                TDArray<BufferMemberInfo> m_Members;
                 Buffer LocalStorage;
                 bool HasUpdated;
             };

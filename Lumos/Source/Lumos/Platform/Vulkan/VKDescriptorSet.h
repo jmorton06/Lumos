@@ -54,7 +54,7 @@ namespace Lumos
 
             struct UniformBufferInfo
             {
-                Vector<BufferMemberInfo> m_Members;
+                TDArray<BufferMemberInfo> m_Members;
                 Buffer LocalStorage;
 
                 // Per frame in flight

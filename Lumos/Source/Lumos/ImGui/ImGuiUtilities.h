@@ -1,10 +1,8 @@
 #pragma once
 
-#include "Maths/Maths.h"
 #include <imgui/imgui.h>
 #include <imgui/imgui_internal.h>
 #include <glm/fwd.hpp>
-#include <iostream>
 
 static float value1 = 0.0f;
 static float value2 = 0.0f;
@@ -278,13 +276,13 @@ static inline ImVec4& operator/=(ImVec4& lhs, const float rhs)
     lhs.y /= rhs;
     return lhs;
 }
-static inline std::ostream& operator<<(std::ostream& ostream, const ImVec2 a)
-{
-    ostream << "{ " << a.x << ", " << a.y << " }";
-    return ostream;
-}
-static inline std::ostream& operator<<(std::ostream& ostream, const ImVec4 a)
-{
-    ostream << "{ " << a.x << ", " << a.y << ", " << a.z << ", " << a.w << " }";
-    return ostream;
-}
+//static inline std::ostream& operator<<(std::ostream& ostream, const ImVec2 a)
+//{
+//    ostream << "{ " << a.x << ", " << a.y << " }";
+//    return ostream;
+//}
+//static inline std::ostream& operator<<(std::ostream& ostream, const ImVec4 a)
+//{
+//    ostream << "{ " << a.x << ", " << a.y << ", " << a.z << ", " << a.w << " }";
+//    return ostream;
+//}

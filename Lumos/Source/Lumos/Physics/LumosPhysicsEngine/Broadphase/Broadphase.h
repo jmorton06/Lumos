@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Physics/LumosPhysicsEngine/RigidBody3D.h"
-#include "Core/DataStructures/Vector.h"
+#include "Core/DataStructures/TDArray.h"
 
 namespace Lumos
 {
@@ -16,7 +16,7 @@ namespace Lumos
     {
     public:
         virtual ~Broadphase()                                                                                                                  = default;
-        virtual void FindPotentialCollisionPairs(RigidBody3D* rootObject, Vector<CollisionPair>& collisionPairs, uint32_t totalRigidBodyCount) = 0;
+        virtual void FindPotentialCollisionPairs(RigidBody3D* rootObject, TDArray<CollisionPair>& collisionPairs, uint32_t totalRigidBodyCount) = 0;
         virtual void DebugDraw()                                                                                                               = 0;
     };
 }

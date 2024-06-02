@@ -4,7 +4,7 @@
 #include "VKCommandPool.h"
 #include "Graphics/RHI/Definitions.h"
 #include "Core/DataStructures/Set.h"
-#include "Core/DataStructures/Vector.h"
+#include "Core/DataStructures/TDArray.h"
 
 static const uint32_t SMALL_ALLOCATION_MAX_SIZE = 4096;
 
@@ -80,8 +80,8 @@ namespace Lumos
         private:
             QueueFamilyIndices m_QueueFamilyIndices;
 
-            Vector<VkQueueFamilyProperties> m_QueueFamilyProperties;
-            Vector<VkDeviceQueueCreateInfo> m_QueueCreateInfos;
+            TDArray<VkQueueFamilyProperties> m_QueueFamilyProperties;
+            TDArray<VkDeviceQueueCreateInfo> m_QueueCreateInfos;
             HashSet(uint64_t) m_SupportedExtensions;
 
             VkPhysicalDevice m_Handle;

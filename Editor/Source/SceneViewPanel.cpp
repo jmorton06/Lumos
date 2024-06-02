@@ -601,8 +601,6 @@ namespace Lumos
 
         LUMOS_ASSERT(width > 0 && height > 0, "Scene View Dimensions 0");
 
-        Application::Get().SetSceneViewDimensions(width, height);
-
         if(m_Width != width || m_Height != height)
         {
             resize   = true;

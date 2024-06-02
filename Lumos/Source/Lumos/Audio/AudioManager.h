@@ -1,7 +1,7 @@
 #pragma once
 #include "Core/Core.h"
 #include "Scene/ISystem.h"
-#include "Core/DataStructures/Vector.h"
+#include "Core/DataStructures/TDArray.h"
 
 namespace Lumos
 {
@@ -38,7 +38,7 @@ namespace Lumos
         void SetPaused(bool paused);
 
     protected:
-        Vector<SoundNode*> m_SoundNodes;
+        TDArray<SoundNode*> m_SoundNodes;
         bool m_Paused;
     };
 }

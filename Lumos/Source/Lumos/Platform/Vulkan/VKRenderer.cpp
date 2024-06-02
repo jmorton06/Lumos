@@ -25,7 +25,7 @@ namespace Lumos
         static VkFence s_ComputeFence = nullptr;
 
         int VKRenderer::s_DeletionQueueIndex              = 0;
-        Vector<DeletionQueue> VKRenderer::s_DeletionQueue = {};
+        TDArray<DeletionQueue> VKRenderer::s_DeletionQueue = {};
 
         void VKRenderer::InitInternal()
         {
@@ -150,7 +150,7 @@ namespace Lumos
             auto semaphore  = frameData.MainCommandBuffer->GetSemaphore();
 
             ArenaTemp scratch = ScratchBegin(nullptr, 0);
-            Vector<VkSemaphore> semaphores(scratch.arena);
+            TDArray<VkSemaphore> semaphores(scratch.arena);
             semaphores.EmplaceBack(semaphore);
             semaphores.EmplaceBack(frameData.ImageAcquireSemaphore->GetHandle());
             swapChain->Present(semaphores);

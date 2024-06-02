@@ -789,7 +789,7 @@ CollisionData colData;
             }
 
             ArenaTemp scratch = ScratchBegin(nullptr, 0);
-            Vector<glm::vec3> incPolygonList(scratch.arena);
+            TDArray<glm::vec3> incPolygonList(scratch.arena);
             incPolygonList.Resize(incPolygonCount);
             MemoryCopy(incPolygonList.Data(), incPolygon, sizeof(glm::vec3) * incPolygonCount);
 
@@ -885,7 +885,7 @@ CollisionData colData;
         return start;
     }
 
-    void CollisionDetection::SutherlandHodgesonClipping(Arena* arena, const Vector<glm::vec3>& input_polygon, int num_clip_planes, const Plane* clip_planes, Vector<glm::vec3>* out_polygon, bool removePoints) const
+    void CollisionDetection::SutherlandHodgesonClipping(Arena* arena, const TDArray<glm::vec3>& input_polygon, int num_clip_planes, const Plane* clip_planes, TDArray<glm::vec3>* out_polygon, bool removePoints) const
     {
         LUMOS_PROFILE_FUNCTION_LOW();
         if(!out_polygon)
@@ -894,8 +894,8 @@ CollisionData colData;
         // Create temporary list of vertices
         // - We will keep ping-pong'ing between
         //   the two lists updating them as we go.
-        Vector<glm::vec3> ppPolygon1(arena), ppPolygon2(arena);
-        Vector<glm::vec3>*input = &ppPolygon1, *output = &ppPolygon2;
+        TDArray<glm::vec3> ppPolygon1(arena), ppPolygon2(arena);
+        TDArray<glm::vec3>*input = &ppPolygon1, *output = &ppPolygon2;
 
         *output = input_polygon;
 

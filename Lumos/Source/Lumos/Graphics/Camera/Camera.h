@@ -1,11 +1,8 @@
 #pragma once
 
 #include "CameraController.h"
-
-#include "Maths/Maths.h"
 #include "Maths/Ray.h"
 #include "Maths/Frustum.h"
-
 #include "Scene/Serialisation/Serialisation.h"
 
 namespace Lumos

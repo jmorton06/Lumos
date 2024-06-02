@@ -5,7 +5,6 @@
 #include <functional>
 #include <iostream>
 #include <string>
-#include <sstream>
 #include <vector>
 #include <array>
 #include <map>
@@ -14,6 +13,7 @@
 #include <cfloat>
 #include <cstring>
 #include <utility>
+#include <sstream>
 #include <memory>
 #include <thread>
 #include <cassert>
@@ -26,8 +26,9 @@
 #include "Core/Core.h"
 #include "Core/Profiler.h"
 #include "Core/Thread.h"
-#include "Core/DataStructures/Vector.h"
+#include "Core/DataStructures/TDArray.h"
 #include "Graphics/RHI/Definitions.h"
+#include "Scene/Entity.h"
 
 #include <glm/ext/vector_float2.hpp>
 #include <glm/ext/vector_float3.hpp>
@@ -49,4 +50,6 @@
 #ifdef LUMOS_RENDER_API_OPENGL
 #include <glad/glad.h>
 #endif
+
+#include <sol/sol.hpp>
 #endif

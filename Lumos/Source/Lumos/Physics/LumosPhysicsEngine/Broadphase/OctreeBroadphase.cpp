@@ -1,6 +1,4 @@
 #include "Precompiled.h"
-
-#include "Maths/Maths.h"
 #include "OctreeBroadphase.h"
 #include "Graphics/Renderers/DebugRenderer.h"
 
@@ -25,7 +23,7 @@ namespace Lumos
     }
 
     void OctreeBroadphase::FindPotentialCollisionPairs(RigidBody3D* rootObject,
-                                                       Vector<CollisionPair>& collisionPairs, uint32_t totalRigidBodyCount)
+                                                       TDArray<CollisionPair>& collisionPairs, uint32_t totalRigidBodyCount)
     {
         LUMOS_PROFILE_FUNCTION();
         ArenaClear(m_Arena);

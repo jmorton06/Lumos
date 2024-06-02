@@ -1,6 +1,6 @@
 #pragma once
 #include "Core/LMLog.h"
-#include "Core/DataStructures/Vector.h"
+#include "Core/DataStructures/TDArray.h"
 
 namespace Lumos
 {
@@ -321,7 +321,7 @@ namespace Lumos
             DescriptorType type = DescriptorType::IMAGE_SAMPLER;
             ShaderType shaderType;
 
-            Vector<BufferMemberInfo> m_Members;
+            TDArray<BufferMemberInfo> m_Members;
         };
 
         enum class CubeFace : uint8_t
@@ -450,7 +450,7 @@ namespace Lumos
             uint32_t offset = 0;
             std::string name;
 
-            Vector<BufferMemberInfo> m_Members;
+            TDArray<BufferMemberInfo> m_Members;
 
             inline void SetValue(const std::string& name, void* value)
             {
