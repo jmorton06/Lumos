@@ -96,6 +96,7 @@ namespace Lumos
                 LUMOS_LOG_INFO("Loading shaders - embedded");
                 LoadShaderEmbedded("Skybox", Skybox, Skybox);
                 LoadShaderEmbedded("ForwardPBR", ForwardPBR, ForwardPBR);
+				LoadShaderEmbedded("ForwardPBRAnim", ForwardPBRAnim, ForwardPBR);
                 LoadShaderEmbedded("Shadow", Shadow, Shadow);
                 LoadShaderEmbedded("ShadowAlpha", Shadow, ShadowAlpha);
                 LoadShaderEmbedded("ShadowAnim", ShadowAnim, Shadow);
