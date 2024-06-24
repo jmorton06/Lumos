@@ -1,4 +1,6 @@
+#ifndef LUMOS_PLATFORM_MACOS
 #include "Precompiled.h"
+#endif
 #include "VKContext.h"
 #include "VKDevice.h"
 #include "VKCommandPool.h"
@@ -21,7 +23,7 @@
 #define VK_LAYER_LUNARG_ASSISTENT_LAYER_NAME "VK_LAYER_LUNARG_assistant_layer"
 #define VK_LAYER_LUNARG_VALIDATION_NAME "VK_LAYER_KHRONOS_validation"
 
-const bool EnableValidationLayers = false;
+const bool EnableValidationLayers = true;
 
 namespace Lumos
 {
@@ -30,56 +32,123 @@ namespace Lumos
         VkInstance VKContext::s_VkInstance = nullptr;
         uint32_t VKContext::m_VKVersion    = 0;
 
-        const std::vector<const char*> VKContext::GetRequiredExtensions(bool enableValidationLayers)
+        const TDArray<const char*> VKContext::GetRequiredExtensions(bool enableValidationLayers)
         {
-            std::vector<const char*> extensions;
+            if(m_InstanceExtensions.Empty())
+            {
+                uint32_t extensionCount;
+                vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);
+
+                m_InstanceExtensions.Resize(extensionCount);
+                vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, m_InstanceExtensions.Data());
+            }
+
+            auto CheckExtension = [&](const char* extensionName)
+            {
+                bool extensionFound = false;
+
+                for(const auto& extensionProperties : m_InstanceExtensions)
+                {
+                    if(strcmp(extensionName, extensionProperties.extensionName) == 0)
+                    {
+                        extensionFound = true;
+                        break;
+                    }
+                }
+
+                if(!extensionFound)
+                {
+                    LUMOS_LOG_WARN("[VULKAN] Extension not supported - {0}", extensionName);
+                }
+
+                return extensionFound;
+            };
+
+            TDArray<const char*> extensions;
 
             if(enableValidationLayers)
             {
                 LUMOS_LOG_INFO("Vulkan : Enabled Validation Layers");
-                extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
-                extensions.push_back(VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
+                if(CheckExtension(VK_EXT_DEBUG_UTILS_EXTENSION_NAME))
+                    extensions.PushBack(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+                if(CheckExtension(VK_EXT_DEBUG_REPORT_EXTENSION_NAME))
+                    extensions.PushBack(VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
             }
 
-            extensions.push_back(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME);
-
-            extensions.push_back(VK_KHR_SURFACE_EXTENSION_NAME);
-            extensions.push_back(VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME);
+            if(CheckExtension(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME))
+                extensions.PushBack(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME);
+            if(CheckExtension(VK_KHR_SURFACE_EXTENSION_NAME))
+                extensions.PushBack(VK_KHR_SURFACE_EXTENSION_NAME);
+            if(CheckExtension(VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME))
+                extensions.PushBack(VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME);
 
 #if 0
 #if defined(TRACY_ENABLE) && defined(LUMOS_PLATFORM_WINDOWS)
-            extensions.push_back("VK_EXT_calibrated_timestamps");
+            if (CheckExtension("VK_EXT_calibrated_timestamps"))
+                extensions.PushBack("VK_EXT_calibrated_timestamps");
 #endif
 #endif
-
+            const char* platformLayerName = nullptr;
 #if defined(_WIN32)
-            extensions.push_back(VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
+            platformLayerName = VK_KHR_WIN32_SURFACE_EXTENSION_NAME;
 #elif defined(VK_USE_PLATFORM_ANDROID_KHR)
-            extensions.push_back(VK_KHR_ANDROID_SURFACE_EXTENSION_NAME);
+            platformLayerName = VK_KHR_ANDROID_SURFACE_EXTENSION_NAME;
 #elif defined(_DIRECT2DISPLAY)
-            extensions.push_back(VK_KHR_DISPLAY_EXTENSION_NAME);
+            platformLayerName = VK_KHR_DISPLAY_EXTENSION_NAME;
 #elif defined(VK_USE_PLATFORM_WAYLAND_KHR)
-            extensions.push_back(VK_KHR_WAYLAND_SURFACE_EXTENSION_NAME);
+            platformLayerName = VK_KHR_WAYLAND_SURFACE_EXTENSION_NAME;
 #elif defined(VK_USE_PLATFORM_XCB_KHR)
-            extensions.push_back(VK_KHR_XCB_SURFACE_EXTENSION_NAME);
+            platformLayerName = VK_KHR_XCB_SURFACE_EXTENSION_NAME;
 #elif defined(VK_USE_PLATFORM_IOS_MVK)
-            extensions.push_back("VK_EXT_metal_surface");
+            platformLayerName = "VK_EXT_metal_surface";
 #elif defined(VK_USE_PLATFORM_MACOS_MVK)
-            extensions.push_back(VK_MVK_MACOS_SURFACE_EXTENSION_NAME);
+            platformLayerName = VK_MVK_MACOS_SURFACE_EXTENSION_NAME;
 #elif defined(VK_USE_PLATFORM_METAL_EXT)
-            extensions.push_back("VK_EXT_metal_surface");
+            platformLayerName = "VK_EXT_metal_surface";
 #endif
+            if(CheckExtension(platformLayerName))
+                extensions.PushBack(platformLayerName);
 
             return extensions;
         }
 
-        const std::vector<const char*> VKContext::GetRequiredLayers(bool enableValidationLayers) const
+        const TDArray<const char*> VKContext::GetRequiredLayers(bool enableValidationLayers)
         {
-            std::vector<const char*> layers;
+            if(m_InstanceLayers.Empty())
+            {
+                uint32_t layerCount;
+                vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
 
+                m_InstanceLayers.Resize(layerCount);
+                vkEnumerateInstanceLayerProperties(&layerCount, m_InstanceLayers.Data());
+            }
+
+            auto CheckLayer = [&](const char* layerName)
+            {
+                bool layerFound = false;
+
+                for(const auto& layerProperties : m_InstanceLayers)
+                {
+                    if(strcmp(layerName, layerProperties.layerName) == 0)
+                    {
+                        layerFound = true;
+                        break;
+                    }
+                }
+
+                if(!layerFound)
+                {
+                    LUMOS_LOG_WARN("[VULKAN] Layer not supported - {0}", layerName);
+                }
+
+                return layerFound;
+            };
+
+            TDArray<const char*> layers;
             if(enableValidationLayers)
             {
-                layers.emplace_back(VK_LAYER_LUNARG_VALIDATION_NAME);
+                if(CheckLayer(VK_LAYER_LUNARG_VALIDATION_NAME))
+                    layers.EmplaceBack(VK_LAYER_LUNARG_VALIDATION_NAME);
             }
 
             return layers;
@@ -181,85 +250,6 @@ namespace Lumos
             return VK_FALSE;
         }
 
-        bool VKContext::CheckValidationLayerSupport(std::vector<const char*>& validationLayers)
-        {
-            uint32_t layerCount;
-            vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
-
-            m_InstanceLayers.resize(layerCount);
-            vkEnumerateInstanceLayerProperties(&layerCount, m_InstanceLayers.data());
-            bool removedLayer = false;
-
-            validationLayers.erase(
-                std::remove_if(
-                    validationLayers.begin(),
-                    validationLayers.end(),
-                    [&](const char* layerName)
-                    {
-                        bool layerFound = false;
-
-                        for(const auto& layerProperties : m_InstanceLayers)
-                        {
-                            if(strcmp(layerName, layerProperties.layerName) == 0)
-                            {
-                                layerFound = true;
-                                break;
-                            }
-                        }
-
-                        if(!layerFound)
-                        {
-                            removedLayer = true;
-                            LUMOS_LOG_WARN("[VULKAN] Layer not supported - {0}", layerName);
-                        }
-
-                        return !layerFound;
-                    }),
-                validationLayers.end());
-
-            return !removedLayer;
-        }
-
-        bool VKContext::CheckExtensionSupport(std::vector<const char*>& extensions)
-        {
-            uint32_t extensionCount;
-            vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);
-
-            m_InstanceExtensions.resize(extensionCount);
-            vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, m_InstanceExtensions.data());
-
-            bool removedExtension = false;
-
-            extensions.erase(
-                std::remove_if(
-                    extensions.begin(),
-                    extensions.end(),
-                    [&](const char* extensionName)
-                    {
-                        bool extensionFound = false;
-
-                        for(const auto& extensionProperties : m_InstanceExtensions)
-                        {
-                            if(strcmp(extensionName, extensionProperties.extensionName) == 0)
-                            {
-                                extensionFound = true;
-                                break;
-                            }
-                        }
-
-                        if(!extensionFound)
-                        {
-                            removedExtension = true;
-                            LUMOS_LOG_WARN("[VULKAN] Extension not supported - {0}", extensionName);
-                        }
-
-                        return !extensionFound;
-                    }),
-                extensions.end());
-
-            return !removedExtension;
-        }
-
         size_t VKContext::GetMinUniformBufferOffsetAlignment() const
         {
             return Graphics::VKDevice::Get().GetPhysicalDevice()->GetProperties().limits.minUniformBufferOffsetAlignment;
@@ -290,15 +280,6 @@ namespace Lumos
             m_InstanceLayerNames     = GetRequiredLayers(enableValidation);
             m_InstanceExtensionNames = GetRequiredExtensions(enableValidation);
 
-            if(!CheckValidationLayerSupport(m_InstanceLayerNames))
-            {
-                LUMOS_LOG_WARN("[VULKAN] One or multiple Validation layers requested are not available!");
-            }
-
-            if(!CheckExtensionSupport(m_InstanceExtensionNames))
-            {
-                LUMOS_LOG_WARN("[VULKAN] One or multiple Extensions requested are not available!");
-            }
             VkApplicationInfo appInfo = {};
 
             uint32_t sdkVersion    = VK_HEADER_VERSION_COMPLETE;
@@ -337,28 +318,27 @@ namespace Lumos
             appInfo.pEngineName        = "Lumos";
             appInfo.engineVersion      = VK_MAKE_VERSION(LumosVersion.major, LumosVersion.minor, LumosVersion.patch);
 
-            VkInstanceCreateInfo createInfo                  = {};
-            createInfo.pApplicationInfo                      = &appInfo;
-            createInfo.sType                                 = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
-            createInfo.enabledExtensionCount                 = static_cast<uint32_t>(m_InstanceExtensionNames.size());
-            createInfo.ppEnabledExtensionNames               = m_InstanceExtensionNames.data();
-            createInfo.enabledLayerCount                     = static_cast<uint32_t>(m_InstanceLayerNames.size());
-            createInfo.ppEnabledLayerNames                   = m_InstanceLayerNames.data();
-            createInfo.flags                                 = VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR;
-            const std::vector<const char*> validation_layers = { "VK_LAYER_KHRONOS_validation" };
+            VkInstanceCreateInfo createInfo    = {};
+            createInfo.pApplicationInfo        = &appInfo;
+            createInfo.sType                   = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
+            createInfo.enabledExtensionCount   = static_cast<uint32_t>(m_InstanceExtensionNames.Size());
+            createInfo.ppEnabledExtensionNames = m_InstanceExtensionNames.Data();
+            createInfo.enabledLayerCount       = static_cast<uint32_t>(m_InstanceLayerNames.Size());
+            createInfo.ppEnabledLayerNames     = m_InstanceLayerNames.Data();
+            createInfo.flags                   = VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR;
 
             const bool enableFeatureValidation = false;
 
             if(enableFeatureValidation)
             {
-                std::vector<VkValidationFeatureEnableEXT> validation_extensions = {};
-                validation_extensions.emplace_back(VK_VALIDATION_FEATURE_ENABLE_BEST_PRACTICES_EXT);
-                validation_extensions.emplace_back(VK_VALIDATION_FEATURE_ENABLE_SYNCHRONIZATION_VALIDATION_EXT);
+                TDArray<VkValidationFeatureEnableEXT> validation_extensions = {};
+                validation_extensions.EmplaceBack(VK_VALIDATION_FEATURE_ENABLE_BEST_PRACTICES_EXT);
+                validation_extensions.EmplaceBack(VK_VALIDATION_FEATURE_ENABLE_SYNCHRONIZATION_VALIDATION_EXT);
 
                 VkValidationFeaturesEXT validation_features       = {};
                 validation_features.sType                         = VK_STRUCTURE_TYPE_VALIDATION_FEATURES_EXT;
-                validation_features.enabledValidationFeatureCount = static_cast<uint32_t>(validation_extensions.size());
-                validation_features.pEnabledValidationFeatures    = validation_extensions.data();
+                validation_features.enabledValidationFeatureCount = static_cast<uint32_t>(validation_extensions.Size());
+                validation_features.pEnabledValidationFeatures    = validation_extensions.Data();
                 createInfo.pNext                                  = &validation_features;
             }
 
@@ -413,8 +393,8 @@ namespace Lumos
         void VKContext::OnImGui()
         {
             const auto& memoryProps = VKDevice::Get().GetPhysicalDevice()->GetMemoryProperties();
-            std::vector<VmaBudget> budgets(memoryProps.memoryHeapCount);
-            vmaGetHeapBudgets(VKDevice::Get().GetAllocator(), budgets.data());
+            TDArray<VmaBudget> budgets(memoryProps.memoryHeapCount);
+            vmaGetHeapBudgets(VKDevice::Get().GetAllocator(), budgets.Data());
 
             for(VmaBudget& b : budgets)
             {

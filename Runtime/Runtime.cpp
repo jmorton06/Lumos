@@ -23,6 +23,12 @@ public:
     {
     }
 
+    void OnUpdate(const TimeStep& dt) override
+    {
+        using namespace Lumos;
+        Application::OnUpdate(dt);
+    }
+
     void OnEvent(Event& e) override
     {
         Application::OnEvent(e);
@@ -34,8 +40,9 @@ public:
     void Init() override
     {
         std::vector<std::string> projectLocations = {
-            "ExampleProject/Example.lmproj",
+            OS::Instance()->GetExecutablePath() + "../../../../../ExampleProject/",
             "/Users/jmorton/dev/Lumos/ExampleProject/Example.lmproj",
+            "ExampleProject/Example.lmproj",
             "../ExampleProject/Example.lmproj",
             OS::Instance()->GetExecutablePath() + "/ExampleProject/Example.lmproj",
             OS::Instance()->GetExecutablePath() + "/../ExampleProject/Example.lmproj",

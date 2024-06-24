@@ -11,6 +11,7 @@ namespace Lumos
     class WindowResizeEvent;
     class Event;
     struct SceneRenderSettings;
+    struct UI_Widget;
 
     namespace Maths
     {
@@ -29,6 +30,8 @@ namespace Lumos
         class CommandBuffer;
         class Model;
         struct Light;
+        class VertexBuffer;
+        class IndexBuffer;
 
         struct LineVertexData
         {
@@ -54,7 +57,7 @@ namespace Lumos
             }
         };
 
-        struct RenderPassesStats
+        struct SceneRendererStats
         {
             uint32_t UpdatesPerSecond;
             uint32_t FramesPerSecond;
@@ -63,11 +66,11 @@ namespace Lumos
             uint32_t NumDrawCalls       = 0;
         };
 
-        class RenderPasses
+        class SceneRenderer
         {
         public:
-            RenderPasses(uint32_t width, uint32_t height);
-            ~RenderPasses();
+            SceneRenderer(uint32_t width, uint32_t height);
+            ~SceneRenderer();
 
             void EnableDebugRenderer(bool enable);
 
@@ -109,6 +112,10 @@ namespace Lumos
             void FinalPass();
             void TextPass();
 
+            void Begin2DPass();
+            void BeginTextPass();
+            void draw_ui(UI_Widget* widget);
+
             // Post Process
             void ToneMappingPass();
             void BloomPass();
@@ -126,7 +133,6 @@ namespace Lumos
             void UpdateCascades(Scene* scene, Light* light);
 
             bool m_DebugRenderEnabled = false;
-
             struct LUMOS_EXPORT RenderCommand2D
             {
                 Renderable2D* renderable = nullptr;
@@ -270,7 +276,7 @@ namespace Lumos
 
             ForwardData& GetForwardData() { return m_ForwardData; }
             ShadowData& GetShadowData() { return m_ShadowData; }
-            RenderPassesStats& GetRenderPassesStats() { return m_Stats; }
+            SceneRendererStats& GetSceneRendererStats() { return m_Stats; }
 
             void CreateCubeMap(const std::string& filePath, const glm::vec4& params, SharedPtr<TextureCube>& outEnv, SharedPtr<TextureCube>& outIrr);
 
@@ -389,7 +395,7 @@ namespace Lumos
             SharedPtr<Graphics::DescriptorSet> m_SharpenPassDescriptorSet;
             SharedPtr<Graphics::Shader> m_SharpenShader;
 
-            RenderPassesStats m_Stats;
+            SceneRendererStats m_Stats;
 
 #ifdef LUMOS_PLATFORM_WINDOWS
             uint8_t m_MainTextureSamples = 4;
@@ -404,6 +410,8 @@ namespace Lumos
             SceneRenderSettings* m_OverrideSceneRenderSettings = nullptr; // For editor viewport
 
             void TextFlush(Renderer2DData& textRenderData, std::vector<TextVertexData*>& textVertexBufferBase, TextVertexData*& textVertexBufferPtr);
+
+            bool m_CurrentUIText = false;
         };
     }
 }

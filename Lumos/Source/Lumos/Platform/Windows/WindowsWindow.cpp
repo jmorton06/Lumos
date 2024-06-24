@@ -1,4 +1,4 @@
-#include "Precompiled.h"
+#ifndef LUMOS_PLATFORM_MACOS #include "Precompiled.h" #endif
 #define NOMINMAX
 #undef NOGDI
 #include <Windows.h>
@@ -312,20 +312,20 @@ namespace Lumos
 		if(properties.RenderAPI == RenderAPI::OpenGL)
 		{
             HDC hDc = GetDC(static_cast<HWND>(GetHandle()));
-			
+
             HGLRC tempContext = wglCreateContext(hDc);
             wglMakeCurrent(hDc, tempContext);
-			
+
             if(!wglMakeCurrent(hDc, tempContext))
             {
                 LUMOS_LOG_ERROR("Failed to initialise OpenGL context");
             }
-			
+
             if(!gladLoadWGL(hDc))
                 LUMOS_LOG_ERROR("glad failed to load WGL!");
             if(!gladLoadGL())
                 LUMOS_LOG_ERROR("glad failed to load OpenGL!");
-			
+
             const int contextAttribsList[] = {
                 WGL_CONTEXT_MAJOR_VERSION_ARB,
                 4,
@@ -342,7 +342,7 @@ namespace Lumos
 #endif
                 0,
             };
-			
+
             HGLRC hrc = wglCreateContextAttribsARB(hDc, nullptr, contextAttribsList);
             if(hrc == nullptr)
             {

@@ -1,6 +1,5 @@
 #ifdef LUMOS_RENDER_API_VULKAN
 
-#import <Cocoa/Cocoa.h>
 #include <QuartzCore/CAMetalLayer.h>
 
 #include "Platform/Vulkan/VKSwapChain.h"
@@ -18,14 +17,14 @@ extern "C" void* GetCAMetalLayer(void* handle)
 {
     NSWindow* window = (NSWindow*)handle;
     NSView* view = window.contentView;
-    
+
     if (![view.layer isKindOfClass:[CAMetalLayer class]])
     {
         [view setLayer:[CAMetalLayer layer]];
         [view setWantsLayer:YES];
         [view.layer setContentsScale:[window backingScaleFactor]];
     }
-    
+
     return view.layer;
 }
 
@@ -35,7 +34,7 @@ namespace Lumos
 	{
 		VkSurfaceKHR surface;
 #if defined(VK_USE_PLATFORM_METAL_EXT)
-		
+
         VkMetalSurfaceCreateInfoEXT surfaceInfo;
         surfaceInfo.sType = VK_STRUCTURE_TYPE_METAL_SURFACE_CREATE_INFO_EXT;
         surfaceInfo.pNext = NULL;
@@ -50,13 +49,13 @@ namespace Lumos
         surfaceInfo.pView = GetCAMetalLayer((void*)glfwGetCocoaWindow(static_cast<GLFWwindow*>(window->GetHandle())));
         vkCreateMacOSSurfaceMVK(vkInstance, &surfaceInfo, nullptr, &surface);
 #endif
-		
+
 		auto libMoltenVK = dlopen("/usr/local/lib/libMoltenVK.dylib", RTLD_NOW | RTLD_LOCAL);
 		auto getMoltenVKConfigurationMVK = (PFN_vkGetMoltenVKConfigurationMVK)
 			dlsym(libMoltenVK, "vkGetMoltenVKConfigurationMVK");
 		auto setMoltenVKConfigurationMVK = (PFN_vkSetMoltenVKConfigurationMVK)
 			dlsym(libMoltenVK, "vkSetMoltenVKConfigurationMVK");
-		
+
 		MVKConfiguration mvkConfig;
         size_t pConfigurationSize = sizeof(MVKConfiguration);
         getMoltenVKConfigurationMVK(vkInstance, &mvkConfig, &pConfigurationSize);
@@ -74,8 +73,8 @@ namespace Lumos
         //mvkConfig.resumeLostDevice = true;
 
         setMoltenVKConfigurationMVK(vkInstance, &mvkConfig, &pConfigurationSize);
-		
-        
+
+
 		return surface;
 	}
 }

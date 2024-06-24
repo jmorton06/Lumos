@@ -1,4 +1,6 @@
+#ifndef LUMOS_PLATFORM_MACOS
 #include "Precompiled.h"
+#endif
 #include "HullCollisionShape.h"
 #include "Physics/LumosPhysicsEngine/RigidBody3D.h"
 #include <glm/ext/matrix_float3x3.hpp>

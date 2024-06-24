@@ -1,11 +1,21 @@
+#ifndef LUMOS_PLATFORM_MACOS
 #include "Precompiled.h"
+#endif
 #include "Skeleton.h"
 #include "AnimationController.h"
+#include "SamplingContext.h"
 #include "Graphics/Renderers/DebugRenderer.h"
 #include "Graphics/RHI/DescriptorSet.h"
 #include "Graphics/RHI/Shader.h"
 #include "Core/Application.h"
-#include "Utilities/AssetManager.h"
+#include "Core/Asset/AssetManager.h"
+
+#include <ozz/animation/runtime/animation.h>
+#include <ozz/animation/runtime/sampling_job.h>
+#include <ozz/animation/runtime/skeleton.h>
+#include <ozz/base/containers/vector.h>
+#include <ozz/base/maths/soa_transform.h>
+#include <ozz/base/memory/unique_ptr.h>
 
 #include <ozz/animation/offline/raw_skeleton.h>
 #include <ozz/animation/offline/skeleton_builder.h>
@@ -19,11 +29,21 @@
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/quaternion.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <glm/ext/matrix_float4x4.hpp>
 
 namespace Lumos
 {
     namespace Graphics
     {
+        struct AnimationData
+        {
+            std::vector<SharedPtr<Animation>> m_AnimationStates;
+            std::vector<std::string> m_AnimationNames;
+            ozz::vector<ozz::math::Float4x4> m_JointWorldMats;
+            std::vector<glm::mat4> m_BindPoses;
+            ozz::vector<uint16_t> m_JointRemap;
+        };
+
         glm::mat4 ConvertToGLM(const ozz::math::Float4x4& ozzMat)
         {
             LUMOS_PROFILE_FUNCTION_LOW();
@@ -48,75 +68,26 @@ namespace Lumos
             return glmMat;
         }
 
-        SamplingContext::SamplingContext()
-        {
-        }
-
-        SamplingContext::SamplingContext(const SamplingContext& other)
-            : LocalTranslations(other.LocalTranslations)
-            , LocalScales(other.LocalScales)
-            , LocalRotations(other.LocalRotations)
-            , m_LocalSpaceSoaTransforms(other.m_LocalSpaceSoaTransforms)
-        {
-            m_Context.Resize(other.m_Context.max_tracks());
-        }
-
-        SamplingContext::~SamplingContext()
-        {
-        }
-
-        SamplingContext& SamplingContext::operator=(const SamplingContext& other)
-        {
-            LocalTranslations         = other.LocalTranslations;
-            LocalScales               = other.LocalScales;
-            LocalRotations            = other.LocalRotations;
-            m_LocalSpaceSoaTransforms = other.m_LocalSpaceSoaTransforms;
-
-            m_Context.Resize(other.m_Context.max_tracks());
-            return *this;
-        }
-
-        void SamplingContext::resize(uint32_t size)
-        {
-            if(m_Size != size)
-            {
-                m_Size = size;
-                m_Context.Resize(size);
-                LocalTranslations.resize(size);
-                LocalScales.resize(size);
-                LocalRotations.resize(size);
-            }
-        }
-
-        void SamplingContext::resizeSao(uint32_t size)
-        {
-            if(m_SaoSize != size)
-            {
-                m_SaoSize = size;
-                m_LocalSpaceSoaTransforms.resize(size);
-            }
-        }
-
         AnimationController::AnimationController()
         {
+            m_Data = new AnimationData();
         }
 
-        AnimationController::AnimationController(const AnimationController& copy)
-        {
-        }
+        AnimationController::AnimationController(const AnimationController& copy) = default;
 
         AnimationController::~AnimationController()
         {
+            delete m_Data;
         }
 
         void AnimationController::Update(float& animationTime, SamplingContext& context)
         {
             LUMOS_PROFILE_FUNCTION();
-            if(m_AnimationStates.empty())
+            if(m_Data->m_AnimationStates.empty())
                 return;
-            m_JointWorldMats = ozz::vector<ozz::math::Float4x4>();
+            m_Data->m_JointWorldMats = ozz::vector<ozz::math::Float4x4>();
 
-            float ratio = animationTime / m_AnimationStates[m_StateIndex]->GetAnimation().duration();
+            float ratio = animationTime / m_Data->m_AnimationStates[m_StateIndex]->GetAnimation().duration();
             if(ratio >= 1.0f)
             {
                 animationTime = 0.0f;
@@ -127,16 +98,16 @@ namespace Lumos
             {
                 context.resize(m_Skeleton->GetSkeleton().num_joints());
                 context.resizeSao(m_Skeleton->GetSkeleton().num_soa_joints());
-                updateSampling(ratio, context);
+                UpdateSampling(ratio, context);
 
-                if(m_JointWorldMats.size() != m_Skeleton->GetSkeleton().num_joints())
-                    m_JointWorldMats.resize(m_Skeleton->GetSkeleton().num_joints());
+                if(m_Data->m_JointWorldMats.size() != m_Skeleton->GetSkeleton().num_joints())
+                    m_Data->m_JointWorldMats.resize(m_Skeleton->GetSkeleton().num_joints());
 
                 // Setup local-to-model conversion job.
                 ozz::animation::LocalToModelJob ltmJob;
                 ltmJob.skeleton = &m_Skeleton->GetSkeleton();
                 ltmJob.input    = ozz::make_span(context.GetLocalTransforms());
-                ltmJob.output   = ozz::make_span(m_JointWorldMats);
+                ltmJob.output   = ozz::make_span(m_Data->m_JointWorldMats);
 
                 // Runs ltm job.
                 if(!ltmJob.Run())
@@ -153,9 +124,9 @@ namespace Lumos
 
         void AnimationController::SetCurrentState(const std::string& name)
         {
-            for(size_t i = 0; i < m_AnimationNames.size(); ++i)
+            for(size_t i = 0; i < m_Data->m_AnimationNames.size(); ++i)
             {
-                if(m_AnimationNames[i] == name)
+                if(m_Data->m_AnimationNames[i] == name)
                 {
                     m_StateIndex = i;
                     return;
@@ -164,7 +135,7 @@ namespace Lumos
         }
         void AnimationController::AddState(const std::string_view name, const SharedPtr<Animation>& animation)
         {
-            for(const auto& animName : m_AnimationNames)
+            for(const auto& animName : m_Data->m_AnimationNames)
             {
                 if(animName == name)
                 {
@@ -172,14 +143,23 @@ namespace Lumos
                     return;
                 }
             }
-            m_AnimationNames.push_back(std::string(name));
-            m_AnimationStates.push_back(animation);
+            m_Data->m_AnimationNames.push_back(std::string(name));
+            m_Data->m_AnimationStates.push_back(animation);
         }
 
         void AnimationController::SetState(size_t index, const std::string_view name, const SharedPtr<Animation>& animation)
         {
-            m_AnimationNames[index]  = name;
-            m_AnimationStates[index] = animation;
+            m_Data->m_AnimationNames[index]  = name;
+            m_Data->m_AnimationStates[index] = animation;
+        }
+
+        const std::vector<std::string>& AnimationController::GetStateNames() const
+        {
+            return m_Data->m_AnimationNames;
+        }
+        const std::vector<SharedPtr<Animation>>& AnimationController::GetAnimationStates() const
+        {
+            return m_Data->m_AnimationStates;
         }
 
         SharedPtr<DescriptorSet> AnimationController::GetDescriptorSet()
@@ -204,13 +184,13 @@ namespace Lumos
         {
             LUMOS_PROFILE_FUNCTION_LOW();
             std::vector<glm::mat4> glmMats;
-            for(size_t i = 0; i < m_JointWorldMats.size(); i++)
+            for(size_t i = 0; i < m_Data->m_JointWorldMats.size(); i++)
             {
-                ozz::math::Float4x4 skin_matrix = m_JointWorldMats[i];
-                glmMats.push_back(ConvertToGLM(skin_matrix) * m_BindPoses[i]);
+                ozz::math::Float4x4 skin_matrix = m_Data->m_JointWorldMats[i];
+                glmMats.push_back(ConvertToGLM(skin_matrix) * m_Data->m_BindPoses[i]);
             }
 
-            if(m_JointWorldMats.empty())
+            if(m_Data->m_JointWorldMats.empty())
             {
                 LUMOS_LOG_INFO("Using identy for joint matrices");
                 for(size_t i = 0; i < 100; i++)
@@ -246,8 +226,8 @@ namespace Lumos
                 }
 
                 // Selects joint matrices.
-                const math::Float4x4& parent  = m_JointWorldMats[parent_id];
-                const math::Float4x4& current = m_JointWorldMats[i];
+                const math::Float4x4& parent  = m_Data->m_JointWorldMats[parent_id];
+                const math::Float4x4& current = m_Data->m_JointWorldMats[i];
 
                 // Copy parent joint's raw matrix, to render a bone between the parent
                 // and current matrix.
@@ -286,11 +266,16 @@ namespace Lumos
             }
         }
 
-        void AnimationController::updateSampling(float ratio, SamplingContext& context)
+        void AnimationController::SetBindPoses(const std::vector<glm::mat4>& mats)
+        {
+            m_Data->m_BindPoses = mats;
+        }
+
+        void AnimationController::UpdateSampling(float ratio, SamplingContext& context)
         {
             LUMOS_PROFILE_FUNCTION();
             ozz::animation::SamplingJob sampling_job;
-            sampling_job.animation = &m_AnimationStates[m_StateIndex]->GetAnimation();
+            sampling_job.animation = &m_Data->m_AnimationStates[m_StateIndex]->GetAnimation();
             sampling_job.context   = &context.m_Context;
             sampling_job.ratio     = ratio;
             sampling_job.output    = ozz::make_span(context.m_LocalSpaceSoaTransforms);

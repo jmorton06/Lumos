@@ -1,4 +1,6 @@
+#ifndef LUMOS_PLATFORM_MACOS
 #include "Precompiled.h"
+#endif
 #include "GLUniformBuffer.h"
 #include "GL.h"
 #include "GLDebug.h"

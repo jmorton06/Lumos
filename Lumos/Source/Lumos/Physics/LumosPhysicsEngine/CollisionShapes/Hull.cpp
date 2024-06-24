@@ -1,4 +1,6 @@
+#ifndef LUMOS_PLATFORM_MACOS
 #include "Precompiled.h"
+#endif
 #include "Hull.h"
 #include "Graphics/Renderers/DebugRenderer.h"
 #include <glm/ext/vector_float4.hpp>

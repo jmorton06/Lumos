@@ -1,4 +1,6 @@
+#ifndef LUMOS_PLATFORM_MACOS
 #include "Precompiled.h"
+#endif
 #include "RigidBody3D.h"
 #include "LumosPhysicsEngine.h"
 #include "Graphics/Renderers/DebugRenderer.h"

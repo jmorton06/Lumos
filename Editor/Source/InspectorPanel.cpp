@@ -39,12 +39,14 @@
 #include <Lumos/Physics/LumosPhysicsEngine/CollisionShapes/PyramidCollisionShape.h>
 #include <Lumos/Physics/LumosPhysicsEngine/CollisionShapes/CapsuleCollisionShape.h>
 #include <Lumos/Physics/LumosPhysicsEngine/CollisionShapes/HullCollisionShape.h>
+#include <Lumos/Maths/MathsUtilities.h>
 
 #include <Lumos/ImGui/IconsMaterialDesignIcons.h>
 #include <Lumos/ImGui/ImGuiManager.h>
 #include <Lumos/Graphics/RHI/IMGUIRenderer.h>
 #include <Lumos/Scene/Serialisation/SerialisationImplementation.h>
 
+#include <sol/sol.hpp>
 #include <cstdint>
 #include <imgui/imgui.h>
 #include <imgui/imgui_internal.h>
@@ -53,8 +55,9 @@
 #include <cereal/types/polymorphic.hpp>
 #include <cereal/archives/binary.hpp>
 #include <cereal/archives/json.hpp>
+#include <ozz/animation/runtime/animation.h>
+#include <ozz/animation/runtime/skeleton.h>
 
-#include <sol/sol.hpp>
 #include <inttypes.h>
 #include <spdlog/fmt/bundled/format.h>
 
@@ -180,7 +183,7 @@ end
             return;
         }
 
-        ImGui::TextUnformatted("Loaded Functions : ");
+        // ImGui::TextUnformatted("Loaded Functions : ");
 
         /*     ImGui::Indent();
              for(auto&& function : solEnv)
@@ -2843,7 +2846,7 @@ namespace Lumos
 
             if(!currentScene)
             {
-				m_Editor->SetSelected({});
+                m_Editor->SetSelected({});
                 ImGuiUtilities::PopID();
                 ImGui::End();
                 return;
@@ -2852,7 +2855,7 @@ namespace Lumos
             auto& registry = currentScene->GetRegistry();
             if(selectedEntities.size() != 1 || !registry.valid(selectedEntities.front()))
             {
-				m_Editor->SetSelected({});
+                m_Editor->SetSelected({});
                 ImGuiUtilities::PopID();
                 ImGui::End();
                 return;
@@ -2875,14 +2878,14 @@ namespace Lumos
             ImGui::TextUnformatted(ICON_MDI_CUBE);
             ImGui::SameLine();
 
-            bool hasName = registry.all_of<NameComponent>(selected);
-			std::string name = selected.GetName();
+            bool hasName     = registry.all_of<NameComponent>(selected);
+            std::string name = selected.GetName();
 
             if(m_DebugMode)
             {
                 if(selected.Valid())
                 {
-                    //ImGui::Text("ID: %d, Version: %d", static_cast<int>(registry.entity(selected)), registry.version(selected));
+                    // ImGui::Text("ID: %d, Version: %d", static_cast<int>(registry.entity(selected)), registry.version(selected));
                 }
                 else
                 {
@@ -3034,7 +3037,7 @@ namespace Lumos
             }
 
             ImGui::BeginChild("Components", ImVec2(0.0f, 0.0f), false, ImGuiWindowFlags_None);
-			auto entityHandle = (entt::entity)selected.GetHandle();
+            auto entityHandle = (entt::entity)selected.GetHandle();
             m_EnttEditor.RenderImGui(registry, entityHandle);
             ImGui::EndChild();
 

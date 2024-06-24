@@ -160,8 +160,6 @@ end
 			"glfw",
 		}
 
-		SetRecommendedXcodeSettings()
-
 	filter "system:ios"
 		cppdialect "C++17"
 		staticruntime "Off"
@@ -269,7 +267,6 @@ end
             "Textures",
             "Example.lmproj"
 		}
-		SetRecommendedXcodeSettings()
 
 	filter "system:linux"
 		cppdialect "C++17"

@@ -1,4 +1,6 @@
+#ifndef LUMOS_PLATFORM_MACOS
 #include "Precompiled.h"
+#endif
 #include "Camera2D.h"
 #include "Core/OS/Input.h"
 #include "Maths/MathsUtilities.h"

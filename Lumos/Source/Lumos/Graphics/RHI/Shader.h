@@ -1,7 +1,7 @@
 #pragma once
 #include "Definitions.h"
 #include "Core/Profiler.h"
-#include "Core/Asset.h"
+#include "Core/Asset/Asset.h"
 
 namespace spirv_cross
 {

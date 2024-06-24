@@ -1,4 +1,4 @@
-#include "Precompiled.h"
+#ifndef LUMOS_PLATFORM_MACOS #include "Precompiled.h" #endif
 
 #ifdef LUMOS_RENDER_API_VULKAN
 

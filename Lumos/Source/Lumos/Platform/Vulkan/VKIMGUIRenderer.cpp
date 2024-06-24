@@ -1,4 +1,6 @@
+#ifndef LUMOS_PLATFORM_MACOS
 #include "Precompiled.h"
+#endif
 #include "VKIMGUIRenderer.h"
 #include <imgui/imgui.h>
 

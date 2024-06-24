@@ -1,8 +1,11 @@
+#ifndef LUMOS_PLATFORM_MACOS
 #include "Precompiled.h"
+#endif
 #include "OctreeBroadphase.h"
 #include "Graphics/Renderers/DebugRenderer.h"
 
 #include "Core/DataStructures/Set.h"
+#include "Maths/MathsUtilities.h"
 
 #define DEBUG_CHECK_DUPLICATES 0
 namespace Lumos
@@ -195,13 +198,13 @@ namespace Lumos
                     continue;
 
                 const Maths::BoundingBox& boundingBox = physicsObject->GetWorldSpaceAABB();
-                Intersection intersection             = chileNode.boundingBox.IsInside(boundingBox);
-                if(intersection != OUTSIDE)
+                Maths::Intersection intersection      = chileNode.boundingBox.IsInside(boundingBox);
+                if(intersection != Maths::Intersection::OUTSIDE)
                 {
                     chileNode.PhysicsObjects[chileNode.PhysicsObjectCount] = physicsObject;
                     chileNode.PhysicsObjectCount++;
 
-                    if(intersection == INSIDE)
+                    if(intersection == Maths::Intersection::INSIDE)
                         division.PhysicsObjects[i] = nullptr;
                 }
             }

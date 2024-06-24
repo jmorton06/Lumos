@@ -1,10 +1,15 @@
+#ifndef LUMOS_PLATFORM_MACOS
 #include "Precompiled.h"
+#endif
 #include "Mesh.h"
 #include "RHI/Renderer.h"
+#include "RHI/VertexBuffer.h"
+#include "RHI/IndexBuffer.h"
 #include "Scene/Serialisation/SerialisationImplementation.h"
 #include "Core/OS/FileSystem.h"
-#include <cereal/archives/json.hpp>
+#include "Maths/MathsUtilities.h"
 
+#include <cereal/archives/json.hpp>
 #include <ModelLoaders/meshoptimizer/src/meshoptimizer.h>
 #include <glm/gtx/norm.hpp>
 
@@ -158,7 +163,7 @@ namespace Lumos
             else
             {
                 // It's just a list of triangles, so generate face normals
-                for(uint32_t i = 0; i < vertexCount; i += 3)
+                for(uint32_t i = 0; i < vertexCount - 3; i += 3)
                 {
                     glm::vec3& a = vertices[i].Position;
                     glm::vec3& b = vertices[i + 1].Position;
@@ -290,7 +295,7 @@ namespace Lumos
             else
             {
                 // It's just a list of triangles, so generate face normals
-                for(uint32_t i = 0; i < numVertices; i += 3)
+                for(uint32_t i = 0; i < numVertices - 3; i += 3)
                 {
                     glm::vec3& a = vertices[i];
                     glm::vec3& b = vertices[i + 1];
@@ -367,6 +372,11 @@ namespace Lumos
             {
                 m_Triangles.emplace_back(m_Vertices[m_Indices[i + 0]], m_Vertices[m_Indices[i + 1]], m_Vertices[m_Indices[i + 2]]);
             }
+        }
+
+        void Mesh::SetMaterial(const SharedPtr<Material>& material)
+        {
+            m_Material = material;
         }
 
         void Mesh::SetAndLoadMaterial(const std::string& filePath)

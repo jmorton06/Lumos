@@ -82,5 +82,8 @@ workspace( settings.workspace_name )
 	group ""
 
 	include "Lumos/premake5"
+	   SetRecommendedSettings()
 	include "Runtime/premake5"
+		   SetRecommendedSettings()
 	include "Editor/premake5"
+		   SetRecommendedSettings()

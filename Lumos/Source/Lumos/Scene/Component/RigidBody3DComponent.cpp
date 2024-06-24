@@ -1,4 +1,6 @@
+#ifndef LUMOS_PLATFORM_MACOS
 #include "Precompiled.h"
+#endif
 #include "RigidBody3DComponent.h"
 #include "Scene/Scene.h"
 #include "Scene/EntityManager.h"

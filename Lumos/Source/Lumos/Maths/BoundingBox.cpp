@@ -1,6 +1,10 @@
+#ifndef LUMOS_PLATFORM_MACOS
 #include "Precompiled.h"
+#endif
 #include "BoundingBox.h"
 #include "BoundingSphere.h"
+#include "Rect.h"
+#include "Maths/MathsUtilities.h"
 
 #include <glm/mat4x4.hpp>
 

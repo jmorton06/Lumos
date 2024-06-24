@@ -17,6 +17,7 @@
 #include <Lumos/Core/String.h>
 #include <Lumos/ImGui/ImGuiManager.h>
 #include <Lumos/Core/Thread.h>
+#include <Lumos/Core/Asset/AssetManager.h>
 
 #ifdef LUMOS_PLATFORM_WINDOWS
 #include <Windows.h>

@@ -1,13 +1,8 @@
 #pragma once
 
-#include "EditorPanel.h"
-#include "FileBrowserPanel.h"
-#include "PreviewDraw.h"
-
 #include <Lumos/Maths/Transform.h>
 #include <Lumos/Utilities/IniFile.h>
 #include <Lumos/Graphics/Camera/EditorCamera.h>
-#include <Lumos/Graphics/Camera/Camera.h>
 #include <Lumos/ImGui/ImGuiUtilities.h>
 #include <Lumos/Core/Application.h>
 #include <Lumos/Scene/Entity.h>
@@ -25,7 +20,11 @@ namespace Lumos
     class WindowResizeEvent;
     class WindowFileEvent;
     class TimeStep;
-	class Entity;
+    class Entity;
+    class FileBrowserPanel;
+    class PreviewDraw;
+    class EditorPanel;
+    class Camera;
 
     namespace Graphics
     {
@@ -33,13 +32,13 @@ namespace Lumos
         class GridRenderer;
         class Mesh;
         class Environment;
-        class RenderPasses;
+        class SceneRenderer;
     }
 
-	namespace Maths
-	{
-		class Ray;
-	}
+    namespace Maths
+    {
+        class Ray;
+    }
 
     enum EditorDebugFlags : uint32_t
     {
@@ -217,7 +216,7 @@ namespace Lumos
 
         FileBrowserPanel& GetFileBrowserPanel()
         {
-            return m_FileBrowserPanel;
+            return *m_FileBrowserPanel;
         }
 
         void AddDefaultEditorSettings();
@@ -312,7 +311,9 @@ namespace Lumos
 
         std::unordered_map<size_t, const char*> m_ComponentIconMap;
 
-        FileBrowserPanel m_FileBrowserPanel;
+        FileBrowserPanel* m_FileBrowserPanel;
+        PreviewDraw* m_PreviewDraw;
+
         Camera* m_CurrentCamera = nullptr;
         EditorCameraController m_EditorCameraController;
         Maths::Transform m_EditorCameraTransform;
@@ -331,7 +332,6 @@ namespace Lumos
         String8 m_RequestedThumbnailPath;
 
         IniFile m_IniFile;
-        PreviewDraw m_PreviewDraw;
 
         static Editor* s_Editor;
     };

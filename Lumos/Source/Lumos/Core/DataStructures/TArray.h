@@ -87,7 +87,7 @@ namespace Lumos
 
     private:
         T* m_Data;
-        size_t m_Size = 0;
+        size_t m_Size  = 0;
         Arena* m_Arena = nullptr;
     };
 
@@ -98,7 +98,7 @@ namespace Lumos
         , m_Size(_Size)
     {
         m_Data = nullptr;
-        if (m_Arena)
+        if(m_Arena)
             m_Data = PushArrayNoZero(m_Arena, T, m_Size);
         else
             m_Data = new T[m_Size];
@@ -106,15 +106,16 @@ namespace Lumos
 
     template <class T, size_t _Size>
     TArray<T, _Size>::TArray(const TArray<T, _Size>& other)
-        : m_Size(other.m_Size), m_Arena(other.m_Arena)
+        : m_Size(other.m_Size)
+        , m_Arena(other.m_Arena)
     {
         m_Data = nullptr;
-        if (m_Arena)
+        if(m_Arena)
             m_Data = PushArrayNoZero(m_Arena, T, m_Size);
         else
             m_Data = new T[m_Size];
 
-        for (size_t i = 0; i < m_Size; ++i)
+        for(size_t i = 0; i < m_Size; ++i)
         {
             m_Data[i] = other.m_Data[i];
         }
@@ -122,15 +123,16 @@ namespace Lumos
 
     template <class T, size_t _Size>
     TArray<T, _Size>::TArray(TArray<T, _Size>&& other) noexcept
-        : m_Size(other.m_Size), m_Arena(other.m_Arena)
+        : m_Size(other.m_Size)
+        , m_Arena(other.m_Arena)
     {
         m_Data = nullptr;
-        if (m_Arena)
+        if(m_Arena)
             m_Data = PushArrayNoZero(m_Arena, T, m_Size);
         else
             m_Data = new T[m_Size];
 
-        for (size_t i = 0; i < m_Size; ++i)
+        for(size_t i = 0; i < m_Size; ++i)
         {
             m_Data[i] = std::move(other.m_Data[i]);
         }
@@ -141,11 +143,11 @@ namespace Lumos
     template <class T, size_t _Size>
     TArray<T, _Size>& TArray<T, _Size>::operator=(const TArray<T, _Size>& other)
     {
-        if (this != &other)
+        if(this != &other)
         {
-            m_Size = other.m_Size;
+            m_Size  = other.m_Size;
             m_Arena = other.m_Arena;
-            for (size_t i = 0; i < m_Size; ++i)
+            for(size_t i = 0; i < m_Size; ++i)
             {
                 m_Data[i] = other.m_Data[i];
             }
@@ -157,18 +159,18 @@ namespace Lumos
     template <class T, size_t _Size>
     TArray<T, _Size>& TArray<T, _Size>::operator=(TArray<T, _Size>&& other) noexcept
     {
-        if (this != &other)
+        if(this != &other)
         {
-            m_Size = other.m_Size;
+            m_Size  = other.m_Size;
             m_Arena = other.m_Arena;
 
             m_Data = nullptr;
-            if (m_Arena)
+            if(m_Arena)
                 m_Data = PushArrayNoZero(m_Arena, T, m_Size);
             else
                 m_Data = new T[m_Size];
 
-            for (size_t i = 0; i < m_Size; ++i)
+            for(size_t i = 0; i < m_Size; ++i)
             {
                 m_Data[i] = std::move(other.m_Data[i]);
             }

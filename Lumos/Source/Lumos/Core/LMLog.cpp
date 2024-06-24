@@ -1,4 +1,6 @@
+#ifndef LUMOS_PLATFORM_MACOS
 #include "Precompiled.h"
+#endif
 #include "LMLog.h"
 
 #include <spdlog/sinks/rotating_file_sink.h>

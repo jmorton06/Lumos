@@ -1,4 +1,6 @@
+#ifndef LUMOS_PLATFORM_MACOS
 #include "Precompiled.h"
+#endif
 
 #if defined(LUMOS_PLATFORM_MACOS)
 #define GLFW_EXPOSE_NATIVE_COCOA
@@ -220,7 +222,7 @@ namespace Lumos
                 data.Exit = true; });
 
         glfwSetWindowFocusCallback(m_Handle, [](GLFWwindow* window, int focused)
-                                   { 
+                                   {
 			Window* lmWindow = Application::Get().GetWindow();
 
 			if(lmWindow)
@@ -505,19 +507,19 @@ namespace Lumos
         LUMOS_PROFILE_SCOPE("GLFW PollEvents");
         glfwPollEvents();
 
-		auto& controllers = Input::Get().m_Controllers;
+        auto& controllers = Input::Get().m_Controllers;
 
-		ForHashMapEach(int, Controller, &controllers, it)
-	    {
-		    int key = *it.key;
-		    Controller& value = *it.value;
-			
-            if (glfwJoystickPresent(key) != GLFW_TRUE)
+        ForHashMapEach(int, Controller, &controllers, it)
+        {
+            int key           = *it.key;
+            Controller& value = *it.value;
+
+            if(glfwJoystickPresent(key) != GLFW_TRUE)
             {
                 LUMOS_LOG_INFO("Controller disconnected : {0}", value.Name);
                 Input::Get().RemoveController(key);
             }
-		}
+        }
 
         UpdateControllers();
     }
@@ -535,28 +537,27 @@ namespace Lumos
 
     void GLFWWindow::UpdateControllers()
     {
-		auto& controllers = Input::Get().m_Controllers;
+        auto& controllers = Input::Get().m_Controllers;
 
         // Update controllers
         for(int id = GLFW_JOYSTICK_1; id < GLFW_JOYSTICK_LAST; id++)
         {
             if(glfwJoystickPresent(id) == GLFW_TRUE)
             {
-				auto& controllers = Input::Get().m_Controllers;
-				Controller* controller = (Controller*)HashMapFindPtr(&controllers, id);
-				if(!controller)
-				{
-					Controller newController;
-					newController.ID          = id;
-					newController.Name        = glfwGetJoystickName(id);
-					HashMapInsert(&controllers, id, newController);
+                auto& controllers      = Input::Get().m_Controllers;
+                Controller* controller = (Controller*)HashMapFindPtr(&controllers, id);
+                if(!controller)
+                {
+                    Controller newController;
+                    newController.ID   = id;
+                    newController.Name = glfwGetJoystickName(id);
+                    HashMapInsert(&controllers, id, newController);
                     controller = (Controller*)HashMapFindPtr(&controllers, id);
-                    if (!controller)
+                    if(!controller)
                     {
                         LUMOS_LOG_INFO("Failed to find controller {0}", newController.Name);
-
                     }
-				}
+                }
 
                 LUMOS_LOG_INFO("Controller connected {0}", controller->Name);
                 int buttonCount;

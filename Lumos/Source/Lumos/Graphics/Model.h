@@ -1,6 +1,6 @@
 #pragma once
 #include "MeshFactory.h"
-#include "Core/Asset.h"
+#include "Core/Asset/Asset.h"
 #include "Utilities/TimeStep.h"
 
 namespace Lumos

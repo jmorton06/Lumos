@@ -1,4 +1,4 @@
-#include "Precompiled.h"
+#ifndef LUMOS_PLATFORM_MACOS #include "Precompiled.h" #endif
 #include "iOSWindow.h"
 #include "iOSOS.h"
 #include "Graphics/RHI/GraphicsContext.h"
@@ -17,23 +17,23 @@ namespace Lumos
 	{
 		m_Init = false;
         auto prop = properties;
-        
+
         auto iosOS = (iOSOS*)iOSOS::Instance();
 
         prop.Width = (uint32_t)iosOS->GetWidth();
         prop.Height = (uint32_t)iosOS->GetHeight();
 
 		m_Init = Init(prop, "title");
-        
+
         m_Handle = iosOS->GetIOSView();
-		
+
 		m_GraphicsContext = SharedPtr<Graphics::GraphicsContext>(Graphics::GraphicsContext::Create());
         m_GraphicsContext->Init();
-        
+
 		m_SwapChain = SharedPtr<Graphics::SwapChain>(Graphics::SwapChain::Create(m_Data.Width, m_Data.Height));
 		m_SwapChain->Init(m_Data.VSync, (Window*)this);
-		
-		
+
+
 	}
 
 	iOSWindow::~iOSWindow()
@@ -49,7 +49,7 @@ namespace Lumos
         m_Data.Width = properties.Width;
         m_Data.Height = properties.Height;
         m_Data.Exit = false;
-        
+
 		return true;
 	}
 
@@ -62,7 +62,7 @@ namespace Lumos
 	{
 
 	}
-    
+
 	void iOSWindow::OnUpdate()
 	{
 
@@ -80,7 +80,7 @@ namespace Lumos
             m_Data.EventCallback(*event);
             delete event;
         }
-        
+
         m_QueuedEvents.clear();
     }
 
@@ -113,7 +113,7 @@ namespace Lumos
         MouseMovedEvent* event = new MouseMovedEvent((float)xPos, (float)yPos);
         m_QueuedEvents.push_back(event);
 
-        
+
         if(down)
         {
             MouseButtonPressedEvent* event2 = new MouseButtonPressedEvent((Lumos::InputCode::MouseKey)Lumos::iOSKeyCodes::iOSTouchToLumosMouseKey(count));

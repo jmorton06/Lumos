@@ -1,4 +1,6 @@
+#ifndef LUMOS_PLATFORM_MACOS
 #include "Precompiled.h"
+#endif
 #include "Input.h"
 
 namespace Lumos
@@ -8,7 +10,7 @@ namespace Lumos
     {
         Reset();
 
-		HashMapInit(&m_Controllers);
+        HashMapInit(&m_Controllers);
     }
 
     void Input::Reset()
@@ -92,31 +94,31 @@ namespace Lumos
 
     bool Input::IsControllerPresent(int id)
     {
-		return HashMapFindPtr(&m_Controllers, id);
-       // return m_Controllers.find(id) != m_Controllers.end();
+        return HashMapFindPtr(&m_Controllers, id);
+        // return m_Controllers.find(id) != m_Controllers.end();
     }
 
     std::vector<int> Input::GetConnectedControllerIDs()
     {
         std::vector<int> ids;
-//        ids.reserve(m_Controllers.size());
-//        for(auto [id, controller] : m_Controllers)
-//            ids.emplace_back(id);
+        //        ids.reserve(m_Controllers.size());
+        //        for(auto [id, controller] : m_Controllers)
+        //            ids.emplace_back(id);
 
         return ids;
     }
 
     Controller* Input::GetController(int id)
     {
-		return (Controller*)HashMapFindPtr(&m_Controllers, id);
+        return (Controller*)HashMapFindPtr(&m_Controllers, id);
     }
 
     Controller* Input::GetOrAddController(int id)
     {
         {
-            //TODO: FIX
+            // TODO: FIX
             Controller* value = nullptr;
-            if (HashMapFind(&m_Controllers, id, value))
+            if(HashMapFind(&m_Controllers, id, value))
             {
                 return value;
             }
@@ -128,12 +130,12 @@ namespace Lumos
             HashMapInsert(&m_Controllers, id, value);
 
             Controller* valuePtr = nullptr;
-            if (HashMapFind(&m_Controllers, id, valuePtr))
+            if(HashMapFind(&m_Controllers, id, valuePtr))
             {
                 return valuePtr;
             }
         }
-   
+
         return nullptr;
     }
 
@@ -142,7 +144,7 @@ namespace Lumos
         if(!Input::IsControllerPresent(id))
             return {};
 
-		Controller& controller = *GetController(id);
+        Controller& controller = *GetController(id);
         return controller.Name;
     }
 
@@ -151,7 +153,7 @@ namespace Lumos
         if(!Input::IsControllerPresent(controllerID))
             return false;
 
-		Controller& controller = *GetController(controllerID);
+        Controller& controller     = *GetController(controllerID);
         ControllerButtonData& data = controller.ButtonStates[button];
         return data.State == KeyState::Pressed;
     }
@@ -162,7 +164,7 @@ namespace Lumos
             return 0.0f;
 
         float data;
-		Controller* controller = GetController(controllerID);
+        Controller* controller = GetController(controllerID);
         return controller->AxisStates[axis];
     }
 
@@ -171,13 +173,13 @@ namespace Lumos
         if(!Input::IsControllerPresent(controllerID))
             return 0;
 
-		Controller& controller = *GetController(controllerID);
-		uint8_t value = 0;
+        Controller& controller = *GetController(controllerID);
+        uint8_t value          = 0;
         return controller.HatStates[hat];
     }
 
     void Input::RemoveController(int id)
     {
-		HashMapRemove(&m_Controllers, id);
+        HashMapRemove(&m_Controllers, id);
     }
 }

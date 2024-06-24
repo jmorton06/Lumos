@@ -27,7 +27,7 @@ namespace Lumos
             uint32_t NumShadowObjects   = 0;
             uint32_t NumDrawCalls       = 0;
             uint32_t BoundPipelines     = 0;
-            uint32_t BoundRenderPasses  = 0;
+            uint32_t BoundSceneRenderer = 0;
             double FrameTime            = 0.0;
             float UsedGPUMemory         = 0.0f;
             float UsedRam               = 0.0f;
@@ -44,7 +44,7 @@ namespace Lumos
             m_Stats.NumDrawCalls       = 0;
             m_Stats.TotalGPUMemory     = 0.0f;
             m_Stats.BoundPipelines     = 0;
-            m_Stats.BoundRenderPasses  = 0;
+            m_Stats.BoundSceneRenderer = 0;
         }
 
         Stats& Statistics() { return m_Stats; }

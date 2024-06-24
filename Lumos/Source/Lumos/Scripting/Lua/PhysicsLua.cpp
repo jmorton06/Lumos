@@ -1,4 +1,6 @@
+#ifndef LUMOS_PLATFORM_MACOS
 #include "Precompiled.h"
+#endif
 #include "PhysicsLua.h"
 #include "Scene/Component/RigidBody2DComponent.h"
 #include "Scene/Component/RigidBody3DComponent.h"
@@ -12,21 +14,37 @@ namespace Lumos
 {
     void register_type_b2Vec2(sol::state& state)
     {
-        auto b2Vec2_addition_overloads = sol::overload(
-            [](b2Vec2& left, const b2Vec2& right)
-            {
-                b2Vec2 ret = left;
-                ret += right;
-                return ret;
-            });
-        auto b2Vec2_subtraction_overloads = sol::overload(
-            [](b2Vec2& left, const b2Vec2& right)
-            {
-                b2Vec2 ret = left;
-                ret -= right;
-                return ret;
-            });
-        auto b2Vec2_multiplication_overloads = sol::overload(
+        auto b2Vec2type = state.new_usertype<b2Vec2>("b2Vec2", sol::constructors<b2Vec2(), b2Vec2(float, float)>());
+
+        // Fields
+        b2Vec2type["x"] = &b2Vec2::x;
+        b2Vec2type["y"] = &b2Vec2::y;
+
+        // Methods
+        b2Vec2type["SetZero"]       = &b2Vec2::SetZero;
+        b2Vec2type["Set"]           = &b2Vec2::Set;
+        b2Vec2type["Length"]        = &b2Vec2::Length;
+        b2Vec2type["LengthSquared"] = &b2Vec2::LengthSquared;
+        b2Vec2type["Normalize"]     = &b2Vec2::Normalize;
+        b2Vec2type["IsValid"]       = &b2Vec2::IsValid;
+        b2Vec2type["Skew"]          = &b2Vec2::Skew;
+
+        // Meta-functions
+        b2Vec2type[sol::meta_function::addition] = [](b2Vec2& left, const b2Vec2& right)
+        {
+            b2Vec2 ret = left;
+            ret += right;
+            return ret;
+        };
+
+        b2Vec2type[sol::meta_function::subtraction] = [](b2Vec2& left, const b2Vec2& right)
+        {
+            b2Vec2 ret = left;
+            ret -= right;
+            return ret;
+        };
+
+        b2Vec2type[sol::meta_function::multiplication] = sol::overload(
             [](const float& left, b2Vec2& right)
             {
                 b2Vec2 ret = right;
@@ -39,61 +57,36 @@ namespace Lumos
                 ret *= right;
                 return ret;
             });
-        state.new_usertype<b2Vec2>("b2Vec2"
-                                   // fields
-                                   ,
-                                   "x",
-                                   &b2Vec2::x,
-                                   "y",
-                                   &b2Vec2::y
-                                   // methods
-                                   ,
-                                   "SetZero",
-                                   &b2Vec2::SetZero,
-                                   "Set",
-                                   &b2Vec2::Set,
-                                   "Length",
-                                   &b2Vec2::Length,
-                                   "LengthSquared",
-                                   &b2Vec2::LengthSquared,
-                                   "Normalise",
-                                   &b2Vec2::Normalize,
-                                   "IsValid",
-                                   &b2Vec2::IsValid,
-                                   "Skew",
-                                   &b2Vec2::Skew
-                                   // constructors
-                                   ,
-                                   sol::call_constructor,
-                                   sol::constructors<
-                                       b2Vec2(),
-                                       b2Vec2(float, float)>()
-                                   // metas
-                                   ,
-                                   sol::meta_function::addition,
-                                   b2Vec2_addition_overloads,
-                                   sol::meta_function::subtraction,
-                                   b2Vec2_subtraction_overloads,
-                                   sol::meta_function::multiplication,
-                                   b2Vec2_multiplication_overloads);
     }
     void register_type_b2Vec3(sol::state& state)
     {
-        auto b2Vec3_addition_overloads = sol::overload(
-            [](b2Vec3& left, const b2Vec3& right)
-            {
-                b2Vec3 ret = left;
-                ret += right;
-                return ret;
-            });
-        auto b2Vec3_subtraction_overloads = sol::overload(
-            [](b2Vec3& left, const b2Vec3& right)
-            {
-                b2Vec3 ret = left;
-                ret -= right;
-                return ret;
-            });
-        auto b2Vec3_multiplication_overloads = sol::overload(
+        auto b2Vec3type = state.new_usertype<b2Vec3>("b2Vec3", sol::constructors<b2Vec3(), b2Vec3(float, float, float)>());
+
+        // Fields
+        b2Vec3type["x"] = &b2Vec3::x;
+        b2Vec3type["y"] = &b2Vec3::y;
+        b2Vec3type["z"] = &b2Vec3::z;
+
+        // Methods
+        b2Vec3type["SetZero"] = &b2Vec3::SetZero;
+        b2Vec3type["Set"]     = &b2Vec3::Set;
+
+        // Meta-functions
+        b2Vec3type[sol::meta_function::addition] = [](b2Vec3& left, const b2Vec3& right)
+        {
+            b2Vec3 ret = left;
+            ret += right;
+            return ret;
+        };
+
+        b2Vec3type[sol::meta_function::subtraction] = [](b2Vec3& left, const b2Vec3& right)
+        {
+            b2Vec3 ret = left;
+            ret -= right;
+            return ret;
+        };
+
+        b2Vec3type[sol::meta_function::multiplication] = sol::overload(
             [](const float& left, b2Vec3& right)
             {
                 b2Vec3 ret = right;
@@ -106,172 +99,86 @@ namespace Lumos
                 ret *= right;
                 return ret;
             });
-        state.new_usertype<b2Vec3>("b2Vec3"
-                                   // fields
-                                   ,
-                                   "x",
-                                   &b2Vec3::x,
-                                   "y",
-                                   &b2Vec3::y,
-                                   "z",
-                                   &b2Vec3::z
-                                   // methods
-                                   ,
-                                   "SetZero",
-                                   &b2Vec3::SetZero,
-                                   "Set",
-                                   &b2Vec3::Set
-                                   // constructors
-                                   ,
-                                   sol::call_constructor,
-                                   sol::constructors<
-                                       b2Vec3(),
-                                       b2Vec3(float, float, float)>()
-                                   // metas
-                                   ,
-                                   sol::meta_function::addition,
-                                   b2Vec3_addition_overloads,
-                                   sol::meta_function::subtraction,
-                                   b2Vec3_subtraction_overloads,
-                                   sol::meta_function::multiplication,
-                                   b2Vec3_multiplication_overloads);
     }
     void register_type_b2Mat22(sol::state& state)
     {
-        state.new_usertype<b2Mat22>("b2Mat22"
-                                    // fields
-                                    ,
-                                    "ex",
-                                    &b2Mat22::ex,
-                                    "ey",
-                                    &b2Mat22::ey
-                                    // methods
-                                    ,
-                                    "Set",
-                                    &b2Mat22::Set,
-                                    "SetIdentity",
-                                    &b2Mat22::SetIdentity,
-                                    "SetZero",
-                                    &b2Mat22::SetZero,
-                                    "GetInverse",
-                                    &b2Mat22::GetInverse,
-                                    "Solve",
-                                    &b2Mat22::Solve
-                                    // constructors
-                                    ,
-                                    sol::call_constructor,
-                                    sol::constructors<
-                                        b2Mat22(),
-                                        b2Mat22(const b2Vec2&, const b2Vec2&),
-                                        b2Mat22(float, float, float, float)>());
+        auto b2Mat22type = state.new_usertype<b2Mat22>("b2Mat22", sol::constructors<b2Mat22(), b2Mat22(const b2Vec2&, const b2Vec2&), b2Mat22(float, float, float, float)>());
+
+        // Fields
+        b2Mat22type["ex"] = &b2Mat22::ex;
+        b2Mat22type["ey"] = &b2Mat22::ey;
+
+        // Methods
+        b2Mat22type["Set"]         = &b2Mat22::Set;
+        b2Mat22type["SetIdentity"] = &b2Mat22::SetIdentity;
+        b2Mat22type["SetZero"]     = &b2Mat22::SetZero;
+        b2Mat22type["GetInverse"]  = &b2Mat22::GetInverse;
+        b2Mat22type["Solve"]       = &b2Mat22::Solve;
     }
     void register_type_b2Mat33(sol::state& state)
     {
-        state.new_usertype<b2Mat33>("b2Mat33"
-                                    // fields
-                                    ,
-                                    "ex",
-                                    &b2Mat33::ex,
-                                    "ey",
-                                    &b2Mat33::ey,
-                                    "ez",
-                                    &b2Mat33::ez
-                                    // methods
-                                    ,
-                                    "SetZero",
-                                    &b2Mat33::SetZero,
-                                    "Solve33",
-                                    &b2Mat33::Solve33,
-                                    "Solve22",
-                                    &b2Mat33::Solve22,
-                                    "GetInverse22",
-                                    &b2Mat33::GetInverse22,
-                                    "GetSymInverse33",
-                                    &b2Mat33::GetSymInverse33
-                                    // constructors
-                                    ,
-                                    sol::call_constructor,
-                                    sol::constructors<
-                                        b2Mat33(),
-                                        b2Mat33(const b2Vec3&, const b2Vec3&, const b2Vec3&)>());
+        auto b2Mat33type = state.new_usertype<b2Mat33>("b2Mat33", sol::constructors<b2Mat33(), b2Mat33(const b2Vec3&, const b2Vec3&, const b2Vec3&)>());
+
+        // Fields
+        b2Mat33type["ex"] = &b2Mat33::ex;
+        b2Mat33type["ey"] = &b2Mat33::ey;
+        b2Mat33type["ez"] = &b2Mat33::ez;
+
+        // Methods
+        b2Mat33type["SetZero"]         = &b2Mat33::SetZero;
+        b2Mat33type["Solve33"]         = &b2Mat33::Solve33;
+        b2Mat33type["Solve22"]         = &b2Mat33::Solve22;
+        b2Mat33type["GetInverse22"]    = &b2Mat33::GetInverse22;
+        b2Mat33type["GetSymInverse33"] = &b2Mat33::GetSymInverse33;
     }
     void register_type_b2Rot(sol::state& state)
     {
-        state.new_usertype<b2Rot>("b2Rot"
-                                  // fields
-                                  ,
-                                  "s",
-                                  &b2Rot::s,
-                                  "c",
-                                  &b2Rot::c
-                                  // methods
-                                  ,
-                                  "Set",
-                                  &b2Rot::Set,
-                                  "SetIdentity",
-                                  &b2Rot::SetIdentity,
-                                  "GetAngle",
-                                  &b2Rot::GetAngle,
-                                  "GetXAxis",
-                                  &b2Rot::GetXAxis,
-                                  "GetYAxis",
-                                  &b2Rot::GetYAxis
-                                  // constructors
-                                  ,
-                                  sol::call_constructor,
-                                  sol::constructors<
-                                      b2Rot(),
-                                      b2Rot(float)>());
+        auto b2Rottype = state.new_usertype<b2Rot>("b2Rot", sol::constructors<b2Rot(), b2Rot(float)>());
+
+        // Fields
+        b2Rottype["s"] = &b2Rot::s;
+        b2Rottype["c"] = &b2Rot::c;
+
+        // Methods
+        b2Rottype["Set"]         = &b2Rot::Set;
+        b2Rottype["SetIdentity"] = &b2Rot::SetIdentity;
+        b2Rottype["GetAngle"]    = &b2Rot::GetAngle;
+        b2Rottype["GetXAxis"]    = &b2Rot::GetXAxis;
+        b2Rottype["GetYAxis"]    = &b2Rot::GetYAxis;
     }
     void register_type_b2Transform(sol::state& state)
     {
-        state.new_usertype<b2Transform>("b2Transform"
-                                        // fields
-                                        ,
-                                        "p",
-                                        &b2Transform::p,
-                                        "q",
-                                        &b2Transform::q
-                                        // methods
-                                        ,
-                                        "SetIdentity",
-                                        &b2Transform::SetIdentity,
-                                        "Set",
-                                        &b2Transform::Set
-                                        // constructors
-                                        ,
-                                        sol::call_constructor,
-                                        sol::constructors<
-                                            b2Transform(),
-                                            b2Transform(const b2Vec2&, const b2Rot&)>());
+        auto b2Transformtype = state.new_usertype<b2Transform>("b2Transform");
+
+        // Fields
+        b2Transformtype["p"] = &b2Transform::p;
+        b2Transformtype["q"] = &b2Transform::q;
+
+        // Methods
+        b2Transformtype["SetIdentity"] = &b2Transform::SetIdentity;
+        b2Transformtype["Set"]         = &b2Transform::Set;
+
+        // Constructors
+        b2Transformtype[sol::call_constructor] = sol::constructors<
+            b2Transform(),
+            b2Transform(const b2Vec2&, const b2Rot&)>();
     }
     void register_type_b2Sweep(sol::state& state)
     {
-        state.new_usertype<b2Sweep>("b2Sweep"
-                                    // fields
-                                    ,
-                                    "localCenter",
-                                    &b2Sweep::localCenter,
-                                    "c0",
-                                    &b2Sweep::c0,
-                                    "c",
-                                    &b2Sweep::c,
-                                    "a0",
-                                    &b2Sweep::a0,
-                                    "a",
-                                    &b2Sweep::a,
-                                    "alpha0",
-                                    &b2Sweep::alpha0
-                                    // methods
-                                    ,
-                                    "GetTransform",
-                                    &b2Sweep::GetTransform,
-                                    "Advance",
-                                    &b2Sweep::Advance,
-                                    "Normalise",
-                                    &b2Sweep::Normalize
-                                    // constructors
-        );
+        auto b2Sweeptype = state.new_usertype<b2Sweep>("b2Sweep");
+
+        // Fields
+        b2Sweeptype["localCenter"] = &b2Sweep::localCenter;
+        b2Sweeptype["c0"]          = &b2Sweep::c0;
+        b2Sweeptype["c"]           = &b2Sweep::c;
+        b2Sweeptype["a0"]          = &b2Sweep::a0;
+        b2Sweeptype["a"]           = &b2Sweep::a;
+        b2Sweeptype["alpha0"]      = &b2Sweep::alpha0;
+
+        // Methods
+        b2Sweeptype["GetTransform"] = &b2Sweep::GetTransform;
+        b2Sweeptype["Advance"]      = &b2Sweep::Advance;
+        b2Sweeptype["Normalize"]    = &b2Sweep::Normalize;
     }
 
     class ContactListener : public b2ContactListener
@@ -384,44 +291,88 @@ namespace Lumos
 
         state.new_enum("b2BodyType", "b2_staticBody", b2BodyType::b2_staticBody, "b2_kinematicBody", b2BodyType::b2_kinematicBody, "b2_dynamicBody", b2BodyType::b2_dynamicBody);
 
-        state.new_usertype<b2BodyDef>("b2BodyDef"
-                                      // fields
-                                      ,
-                                      "type",
-                                      &b2BodyDef::type,
-                                      "position",
-                                      &b2BodyDef::position,
-                                      "angle",
-                                      &b2BodyDef::angle,
-                                      "linearVelocity",
-                                      &b2BodyDef::linearVelocity,
-                                      "angularVelocity",
-                                      &b2BodyDef::angularVelocity,
-                                      "linearDamping",
-                                      &b2BodyDef::linearDamping,
-                                      "angularDamping",
-                                      &b2BodyDef::angularDamping,
-                                      "allowSleep",
-                                      &b2BodyDef::allowSleep,
-                                      "awake",
-                                      &b2BodyDef::awake,
-                                      "fixedRotation",
-                                      &b2BodyDef::fixedRotation,
-                                      "bullet",
-                                      &b2BodyDef::bullet,
-                                      "userData",
-                                      &b2BodyDef::userData,
-                                      "gravityScale",
-                                      &b2BodyDef::gravityScale
-                                      // methods
-                                      // constructors
-                                      ,
-                                      sol::call_constructor,
-                                      sol::constructors<
-                                          b2BodyDef()>());
+        auto b2BodyDeftype = state.new_usertype<b2BodyDef>("b2BodyDef", sol::constructors<b2BodyDef()>());
 
-        state.new_usertype<b2Body>("b2Body", "CreateFixture", sol::overload(sol::resolve<b2Fixture*(const b2FixtureDef*)>(&b2Body::CreateFixture), sol::resolve<b2Fixture*(const b2Shape*, float)>(&b2Body::CreateFixture)), "DestroyFixture", &b2Body::DestroyFixture, "SetTransform", &b2Body::SetTransform, "GetTransform", &b2Body::GetTransform, "GetPosition", &b2Body::GetPosition, "GetAngle", &b2Body::GetAngle, "GetWorldCenter", &b2Body::GetWorldCenter, "GetLocalCenter", &b2Body::GetLocalCenter, "SetLinearVelocity", &b2Body::SetLinearVelocity, "GetLinearVelocity", &b2Body::GetLinearVelocity, "SetAngularVelocity", &b2Body::SetAngularVelocity, "GetAngularVelocity", &b2Body::GetAngularVelocity, "ApplyForce", &b2Body::ApplyForce, "ApplyForceToCenter", &b2Body::ApplyForceToCenter, "ApplyTorque", &b2Body::ApplyTorque, "ApplyLinearImpulse", &b2Body::ApplyLinearImpulse, "ApplyAngularImpulse", &b2Body::ApplyAngularImpulse, "GetMass", &b2Body::GetMass, "GetInertia", &b2Body::GetInertia, "GetMassData", &b2Body::GetMassData, "SetMassData", &b2Body::SetMassData, "ResetMassData", &b2Body::ResetMassData, "GetWorldPoint", &b2Body::GetWorldPoint, "GetWorldVector", &b2Body::GetWorldVector, "GetLocalPoint", &b2Body::GetLocalPoint, "GetLocalVector", &b2Body::GetLocalVector, "GetLinearVelocityFromWorldPoint", &b2Body::GetLinearVelocityFromWorldPoint, "GetLinearVelocityFromLocalPoint", &b2Body::GetLinearVelocityFromLocalPoint, "GetLinearDamping", &b2Body::GetLinearDamping, "SetLinearDamping", &b2Body::SetLinearDamping, "GetAngularDamping", &b2Body::GetAngularDamping, "SetAngularDamping", &b2Body::SetAngularDamping, "GetGravityScale", &b2Body::GetGravityScale, "SetGravityScale", &b2Body::SetGravityScale, "SetType", &b2Body::SetType, "GetType", &b2Body::GetType, "SetBullet", &b2Body::SetBullet, "IsBullet", &b2Body::IsBullet, "SetSleepingAllowed", &b2Body::SetSleepingAllowed, "IsSleepingAllowed", &b2Body::IsSleepingAllowed, "SetAwake", &b2Body::SetAwake, "IsAwake", &b2Body::IsAwake, "SetFixedRotation", &b2Body::SetFixedRotation, "IsFixedRotation", &b2Body::IsFixedRotation, "GetFixtureList", sol::overload(sol::resolve<b2Fixture*()>(&b2Body::GetFixtureList), sol::resolve<const b2Fixture*() const>(&b2Body::GetFixtureList)), "GetJointList", sol::overload(sol::resolve<b2JointEdge*()>(&b2Body::GetJointList), sol::resolve<const b2JointEdge*() const>(&b2Body::GetJointList)), "GetContactList", sol::overload(sol::resolve<b2ContactEdge*()>(&b2Body::GetContactList), sol::resolve<const b2ContactEdge*() const>(&b2Body::GetContactList)), "GetNext", sol::overload(sol::resolve<b2Body*()>(&b2Body::GetNext), sol::resolve<const b2Body*() const>(&b2Body::GetNext)), "GetUserData", &b2Body::GetUserData, /*"SetUserData", &b2Body::SetUserData,*/ "GetWorld", sol::overload(sol::resolve<b2World*()>(&b2Body::GetWorld), sol::resolve<const b2World*() const>(&b2Body::GetWorld)), "Dump", &b2Body::Dump
-                                   // constructors
-        );
+        // Fields
+        b2BodyDeftype["type"]            = &b2BodyDef::type;
+        b2BodyDeftype["position"]        = &b2BodyDef::position;
+        b2BodyDeftype["angle"]           = &b2BodyDef::angle;
+        b2BodyDeftype["linearVelocity"]  = &b2BodyDef::linearVelocity;
+        b2BodyDeftype["angularVelocity"] = &b2BodyDef::angularVelocity;
+        b2BodyDeftype["linearDamping"]   = &b2BodyDef::linearDamping;
+        b2BodyDeftype["angularDamping"]  = &b2BodyDef::angularDamping;
+        b2BodyDeftype["allowSleep"]      = &b2BodyDef::allowSleep;
+        b2BodyDeftype["awake"]           = &b2BodyDef::awake;
+        b2BodyDeftype["fixedRotation"]   = &b2BodyDef::fixedRotation;
+        b2BodyDeftype["bullet"]          = &b2BodyDef::bullet;
+        b2BodyDeftype["userData"]        = &b2BodyDef::userData;
+        b2BodyDeftype["gravityScale"]    = &b2BodyDef::gravityScale;
+
+        auto b2Bodytype = state.new_usertype<b2Body>("b2Body");
+
+        // Methods
+        b2Bodytype["CreateFixture"] = sol::overload(
+            sol::resolve<b2Fixture*(const b2FixtureDef*)>(&b2Body::CreateFixture),
+            sol::resolve<b2Fixture*(const b2Shape*, float)>(&b2Body::CreateFixture));
+        b2Bodytype["DestroyFixture"]                  = &b2Body::DestroyFixture;
+        b2Bodytype["SetTransform"]                    = &b2Body::SetTransform;
+        b2Bodytype["GetTransform"]                    = &b2Body::GetTransform;
+        b2Bodytype["GetPosition"]                     = &b2Body::GetPosition;
+        b2Bodytype["GetAngle"]                        = &b2Body::GetAngle;
+        b2Bodytype["GetWorldCenter"]                  = &b2Body::GetWorldCenter;
+        b2Bodytype["GetLocalCenter"]                  = &b2Body::GetLocalCenter;
+        b2Bodytype["SetLinearVelocity"]               = &b2Body::SetLinearVelocity;
+        b2Bodytype["GetLinearVelocity"]               = &b2Body::GetLinearVelocity;
+        b2Bodytype["SetAngularVelocity"]              = &b2Body::SetAngularVelocity;
+        b2Bodytype["GetAngularVelocity"]              = &b2Body::GetAngularVelocity;
+        b2Bodytype["ApplyForce"]                      = &b2Body::ApplyForce;
+        b2Bodytype["ApplyForceToCenter"]              = &b2Body::ApplyForceToCenter;
+        b2Bodytype["ApplyTorque"]                     = &b2Body::ApplyTorque;
+        b2Bodytype["ApplyLinearImpulse"]              = &b2Body::ApplyLinearImpulse;
+        b2Bodytype["ApplyAngularImpulse"]             = &b2Body::ApplyAngularImpulse;
+        b2Bodytype["GetMass"]                         = &b2Body::GetMass;
+        b2Bodytype["GetInertia"]                      = &b2Body::GetInertia;
+        b2Bodytype["GetMassData"]                     = &b2Body::GetMassData;
+        b2Bodytype["SetMassData"]                     = &b2Body::SetMassData;
+        b2Bodytype["ResetMassData"]                   = &b2Body::ResetMassData;
+        b2Bodytype["GetWorldPoint"]                   = &b2Body::GetWorldPoint;
+        b2Bodytype["GetWorldVector"]                  = &b2Body::GetWorldVector;
+        b2Bodytype["GetLocalPoint"]                   = &b2Body::GetLocalPoint;
+        b2Bodytype["GetLocalVector"]                  = &b2Body::GetLocalVector;
+        b2Bodytype["GetLinearVelocityFromWorldPoint"] = &b2Body::GetLinearVelocityFromWorldPoint;
+        b2Bodytype["GetLinearVelocityFromLocalPoint"] = &b2Body::GetLinearVelocityFromLocalPoint;
+        b2Bodytype["GetLinearDamping"]                = &b2Body::GetLinearDamping;
+        b2Bodytype["SetLinearDamping"]                = &b2Body::SetLinearDamping;
+        b2Bodytype["GetAngularDamping"]               = &b2Body::GetAngularDamping;
+        b2Bodytype["SetAngularDamping"]               = &b2Body::SetAngularDamping;
+        b2Bodytype["GetGravityScale"]                 = &b2Body::GetGravityScale;
+        b2Bodytype["SetGravityScale"]                 = &b2Body::SetGravityScale;
+        b2Bodytype["SetType"]                         = &b2Body::SetType;
+        b2Bodytype["GetType"]                         = &b2Body::GetType;
+        b2Bodytype["SetBullet"]                       = &b2Body::SetBullet;
+        b2Bodytype["IsBullet"]                        = &b2Body::IsBullet;
+        b2Bodytype["SetSleepingAllowed"]              = &b2Body::SetSleepingAllowed;
+        b2Bodytype["IsSleepingAllowed"]               = &b2Body::IsSleepingAllowed;
+        b2Bodytype["SetAwake"]                        = &b2Body::SetAwake;
+        b2Bodytype["IsAwake"]                         = &b2Body::IsAwake;
+        b2Bodytype["SetFixedRotation"]                = &b2Body::SetFixedRotation;
+        b2Bodytype["IsFixedRotation"]                 = &b2Body::IsFixedRotation;
+        b2Bodytype["GetFixtureList"]                  = sol::overload(
+            sol::resolve<b2Fixture*()>(&b2Body::GetFixtureList),
+            sol::resolve<const b2Fixture*() const>(&b2Body::GetFixtureList));
+        b2Bodytype["GetJointList"] = sol::overload(
+            sol::resolve<b2JointEdge*()>(&b2Body::GetJointList),
+            sol::resolve<const b2JointEdge*() const>(&b2Body::GetJointList));
+        b2Bodytype["GetContactList"] = sol::overload(
+            sol::resolve<b2ContactEdge*()>(&b2Body::GetContactList),
+            sol::resolve<const b2ContactEdge*() const>(&b2Body::GetContactList));
+        b2Bodytype["GetNext"] = sol::overload(
+            sol::resolve<b2Body*()>(&b2Body::GetNext),
+            sol::resolve<const b2Body*() const>(&b2Body::GetNext));
+        b2Bodytype["GetUserData"] = &b2Body::GetUserData;
+        b2Bodytype["GetWorld"]    = sol::overload(
+            sol::resolve<b2World*()>(&b2Body::GetWorld),
+            sol::resolve<const b2World*() const>(&b2Body::GetWorld));
+        b2Bodytype["Dump"] = &b2Body::Dump;
     }
 }

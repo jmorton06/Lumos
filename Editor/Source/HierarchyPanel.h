@@ -5,7 +5,7 @@
 
 namespace Lumos
 {
-	class Entity;
+    class Entity;
     class HierarchyPanel : public EditorPanel
     {
     public:

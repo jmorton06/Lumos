@@ -1,4 +1,6 @@
+#ifndef LUMOS_PLATFORM_MACOS
 #include "Precompiled.h"
+#endif
 #include "VKPipeline.h"
 #include "VKDevice.h"
 #include "VKCommandBuffer.h"
@@ -147,6 +149,13 @@ namespace Lumos
                             blendAttachState[i].dstColorBlendFactor = VK_BLEND_FACTOR_ONE;
                             blendAttachState[i].srcAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
                             blendAttachState[i].dstAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
+                        }
+                        else if(pipelineDesc.blendMode == BlendMode::OneMinusSrcAlpha)
+                        {
+                            blendAttachState[i].srcColorBlendFactor = VK_BLEND_FACTOR_ONE;
+                            blendAttachState[i].dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+                            blendAttachState[i].srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
+                            blendAttachState[i].dstAlphaBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
                         }
                         else if(pipelineDesc.blendMode == BlendMode::ZeroSrcColor)
                         {

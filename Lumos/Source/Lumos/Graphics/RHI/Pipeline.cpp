@@ -1,4 +1,6 @@
+#ifndef LUMOS_PLATFORM_MACOS
 #include "Precompiled.h"
+#endif
 #include "Pipeline.h"
 #include "Core/Engine.h"
 #include "SwapChain.h"

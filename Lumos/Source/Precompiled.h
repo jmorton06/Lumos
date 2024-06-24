@@ -3,7 +3,6 @@
 #ifdef __cplusplus
 #include <algorithm>
 #include <functional>
-#include <iostream>
 #include <string>
 #include <vector>
 #include <array>
@@ -13,12 +12,9 @@
 #include <cfloat>
 #include <cstring>
 #include <utility>
-#include <sstream>
 #include <memory>
 #include <thread>
 #include <cassert>
-#include <variant>
-#include <stdio.h>
 #include <math.h>
 
 #include "Core/Reference.h"

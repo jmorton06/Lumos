@@ -1,4 +1,6 @@
+#ifndef LUMOS_PLATFORM_MACOS
 #include "Precompiled.h"
+#endif
 #include "DebugRenderer.h"
 #include "Core/OS/Window.h"
 #include "Graphics/RHI/Shader.h"
@@ -11,13 +13,12 @@
 #include "Graphics/RHI/Pipeline.h"
 #include "Graphics/RHI/IndexBuffer.h"
 #include "Graphics/RHI/Texture.h"
-#include "Graphics/GBuffer.h"
 #include "Graphics/Sprite.h"
 #include "Graphics/Light.h"
 #include "Graphics/Camera/Camera.h"
 #include "Scene/Scene.h"
 #include "Core/Application.h"
-#include "RenderPasses.h"
+#include "SceneRenderer.h"
 #include "Platform/OpenGL/GLDescriptorSet.h"
 #include "Graphics/Renderable2D.h"
 #include "Graphics/Camera/Camera.h"
@@ -26,6 +27,7 @@
 #include "Maths/BoundingBox.h"
 #include "Maths/BoundingSphere.h"
 #include "Maths/Ray.h"
+#include "Maths/MathsUtilities.h"
 #include "Audio/SoundNode.h"
 #include <cstdarg>
 #include <glm/ext/vector_float2.hpp>

@@ -1,4 +1,6 @@
+#ifndef LUMOS_PLATFORM_MACOS
 #include "Precompiled.h"
+#endif
 #include "DefaultAllocator.h"
 
 #include "Core/OS/MemoryManager.h"

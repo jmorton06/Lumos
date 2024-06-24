@@ -1,12 +1,15 @@
+#ifndef LUMOS_PLATFORM_MACOS
 #include "Precompiled.h"
+#endif
 #include "Graphics/Model.h"
 #include "Graphics/Mesh.h"
 #include "Graphics/Material.h"
 #include "Maths/Transform.h"
+#include "Maths/BoundingBox.h"
 #include "Graphics/RHI/Texture.h"
 #include "Utilities/StringUtilities.h"
 #include "Core/Application.h"
-#include "Utilities/AssetManager.h"
+#include "Core/Asset/AssetManager.h"
 
 #define TINYOBJLOADER_IMPLEMENTATION
 #include <ModelLoaders/tinyobjloader/tiny_obj_loader.h>
@@ -112,13 +115,13 @@ namespace Lumos
 
                 vertex.Colours = colour;
 
-       /*         if(uniqueVertices.count(vertex) == 0)
-                {
-                    uniqueVertices[vertex] = static_cast<uint32_t>(vertexCount);*/
-                    vertices[vertexCount]  = vertex;
-               //}
+                /*         if(uniqueVertices.count(vertex) == 0)
+                         {
+                             uniqueVertices[vertex] = static_cast<uint32_t>(vertexCount);*/
+                vertices[vertexCount] = vertex;
+                //}
 
-                    indices[vertexCount] = vertexCount;// uniqueVertices[vertex];
+                indices[vertexCount] = vertexCount; // uniqueVertices[vertex];
 
                 vertexCount++;
             }

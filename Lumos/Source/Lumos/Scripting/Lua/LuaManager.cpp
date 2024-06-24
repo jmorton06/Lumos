@@ -1,4 +1,6 @@
+#ifndef LUMOS_PLATFORM_MACOS
 #include "Precompiled.h"
+#endif
 #include "LuaManager.h"
 #include "Maths/Transform.h"
 #include "Core/OS/Window.h"
@@ -574,50 +576,49 @@ namespace Lumos
 
         state.new_enum<Lumos::Graphics::PrimitiveType, false>("PrimitiveType", primitives);
 
-        state.new_usertype<Model>("Model",
-                                  // Constructors
-                                  sol::constructors<
-                                      Lumos::Graphics::Model(),
-                                      Lumos::Graphics::Model(const std::string&),
-                                      Lumos::Graphics::Model(const Lumos::SharedPtr<Lumos::Graphics::Mesh>&, Lumos::Graphics::PrimitiveType),
-                                      Lumos::Graphics::Model(Lumos::Graphics::PrimitiveType)>(),
-                                  // Properties
-                                  "meshes", &Lumos::Graphics::Model::GetMeshes,
-                                  "file_path", &Lumos::Graphics::Model::GetFilePath,
-                                  "primitive_type", sol::property(&Lumos::Graphics::Model::GetPrimitiveType, &Lumos::Graphics::Model::SetPrimitiveType),
-                                  // Methods
-                                  "add_mesh", &Lumos::Graphics::Model::AddMesh,
-                                  "load_model", &Lumos::Graphics::Model::LoadModel);
+        auto Modeltype = state.new_usertype<Model>("Model");
+
+        // Constructors
+        Modeltype[sol::call_constructor] = sol::constructors<
+            Lumos::Graphics::Model(),
+            Lumos::Graphics::Model(const std::string&),
+            Lumos::Graphics::Model(const Lumos::SharedPtr<Lumos::Graphics::Mesh>&, Lumos::Graphics::PrimitiveType),
+            Lumos::Graphics::Model(Lumos::Graphics::PrimitiveType)>();
+
+        // Properties
+        Modeltype["meshes"]         = &Lumos::Graphics::Model::GetMeshes;
+        Modeltype["file_path"]      = &Lumos::Graphics::Model::GetFilePath;
+        Modeltype["primitive_type"] = sol::property(&Lumos::Graphics::Model::GetPrimitiveType, &Lumos::Graphics::Model::SetPrimitiveType);
+
+        // Methods
+        Modeltype["add_mesh"]   = &Lumos::Graphics::Model::AddMesh;
+        Modeltype["load_model"] = &Lumos::Graphics::Model::LoadModel;
 
         REGISTER_COMPONENT_WITH_ECS(state, Model, static_cast<Model& (Entity::*)(const std::string&)>(&Entity::AddComponent<Model, const std::string&>));
 
-        // Member functions
-        sol::usertype<Material> material_type = state.new_usertype<Material>("Material",
+        auto material_type = state.new_usertype<Material>("Material");
+        // Setters
+        material_type["set_albedo_texture"]    = &Material::SetAlbedoTexture;
+        material_type["set_normal_texture"]    = &Material::SetNormalTexture;
+        material_type["set_roughness_texture"] = &Material::SetRoughnessTexture;
+        material_type["set_metallic_texture"]  = &Material::SetMetallicTexture;
+        material_type["set_ao_texture"]        = &Material::SetAOTexture;
+        material_type["set_emissive_texture"]  = &Material::SetEmissiveTexture;
 
-                                                                             sol::constructors<
-                                                                                 Lumos::Graphics::Material()>(),
-                                                                             // Setters
-                                                                             "set_albedo_texture", &Material::SetAlbedoTexture,
-                                                                             "set_normal_texture", &Material::SetNormalTexture,
-                                                                             "set_roughness_texture", &Material::SetRoughnessTexture,
-                                                                             "set_metallic_texture", &Material::SetMetallicTexture,
-                                                                             "set_ao_texture", &Material::SetAOTexture,
-                                                                             "set_emissive_texture", &Material::SetEmissiveTexture,
+        // Getters
+        material_type["get_name"]       = &Material::GetName;
+        material_type["get_properties"] = &Material::GetProperties;
+        // material_type["get_textures"] = &Material::GetTextures; // Commented out in original
+        material_type["get_shader"] = &Material::GetShader;
 
-                                                                             // Getters
-                                                                             "get_name", &Material::GetName,
-                                                                             "get_properties", &Material::GetProperties,
-                                                                             //"get_textures", &Material::GetTextures,
-                                                                             "get_shader", &Material::GetShader,
-
-                                                                             // Other member functions
-                                                                             "load_pbr_material", &Material::LoadPBRMaterial,
-                                                                             "load_material", &Material::LoadMaterial,
-                                                                             "set_textures", &Material::SetTextures,
-                                                                             "set_material_properties", &Material::SetMaterialProperites,
-                                                                             "update_material_properties_data", &Material::UpdateMaterialPropertiesData,
-                                                                             "set_name", &Material::SetName,
-                                                                             "bind", &Material::Bind);
+        // Other member functions
+        material_type["load_pbr_material"]               = &Material::LoadPBRMaterial;
+        material_type["load_material"]                   = &Material::LoadMaterial;
+        material_type["set_textures"]                    = &Material::SetTextures;
+        material_type["set_material_properties"]         = &Material::SetMaterialProperites;
+        material_type["update_material_properties_data"] = &Material::UpdateMaterialPropertiesData;
+        material_type["set_name"]                        = &Material::SetName;
+        material_type["bind"]                            = &Material::Bind;
 
         // Enum for RenderFlags
         std::initializer_list<std::pair<sol::string_view, Material::RenderFlags>> render_flags = {

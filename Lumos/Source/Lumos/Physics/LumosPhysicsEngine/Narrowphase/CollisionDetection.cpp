@@ -1,4 +1,6 @@
+#ifndef LUMOS_PLATFORM_MACOS
 #include "Precompiled.h"
+#endif
 #include "CollisionDetection.h"
 #include "Physics/LumosPhysicsEngine/CollisionShapes/SphereCollisionShape.h"
 #include "Physics/LumosPhysicsEngine/CollisionShapes/CuboidCollisionShape.h"
@@ -952,5 +954,91 @@ CollisionData colData;
         }
 
         *out_polygon = *output;
+    }
+
+    bool CollisionDetection::CheckSphereOverlap(const glm::vec3& pos1, float radius1, const glm::vec3& pos2, float radius2)
+    {
+        return glm::distance2(pos2, pos1) <= Maths::Squared(radius1 + radius2);
+    }
+
+    bool CollisionDetection::CheckAABBOverlap(const glm::vec3& pos1, const glm::vec3& halfHidth1, const glm::vec3& pos2, const glm::vec3& halfHidth2)
+    {
+        if(abs(pos1.x - pos2.x) >= (halfHidth1.x + halfHidth2.x))
+            return false;
+        if(abs(pos1.y - pos2.y) >= (halfHidth1.y + halfHidth2.y))
+            return false;
+        if(abs(pos1.z - pos2.z) >= (halfHidth1.z + halfHidth2.z))
+            return false;
+        return true;
+    }
+
+    bool CollisionDetection::CheckAABBSphereOverlap(const glm::vec3& center, const glm::vec3& halfVol, const glm::vec3& spherePos, float sphereRad)
+    {
+        const glm::vec3 minVol = center - halfVol;
+        const glm::vec3 maxVol = center + halfVol;
+        float distSquared      = sphereRad * sphereRad;
+
+        if(spherePos.x <= minVol.x)
+            distSquared -= Maths::Squared(spherePos.x - minVol.x);
+        else if(spherePos.x >= maxVol.x)
+            distSquared -= Maths::Squared(spherePos.x - maxVol.x);
+
+        if(spherePos.y <= minVol.y)
+            distSquared -= Maths::Squared(spherePos.y - minVol.y);
+        else if(spherePos.y >= maxVol.y)
+            distSquared -= Maths::Squared(spherePos.y - maxVol.y);
+
+        if(spherePos.z <= minVol.z)
+            distSquared -= Maths::Squared(spherePos.z - minVol.z);
+        else if(spherePos.z >= maxVol.z)
+            distSquared -= Maths::Squared(spherePos.z - maxVol.z);
+
+        return distSquared > 0;
+    }
+
+    bool CollisionDetection::CheckSphereInsideAABB(const glm::vec3& spherePos, float sphereRadius, const glm::vec3& AABBCenter, const glm::vec3& AABBHalfVol)
+    {
+        // min check
+        glm::vec3 minPoint = AABBCenter - AABBHalfVol;
+        if(minPoint.x > spherePos.x - sphereRadius)
+            return false;
+        if(minPoint.y > spherePos.y - sphereRadius)
+            return false;
+        if(minPoint.z > spherePos.z - sphereRadius)
+            return false;
+        // max check
+        glm::vec3 maxPoint = AABBCenter + AABBHalfVol;
+        if(maxPoint.x < spherePos.x + sphereRadius)
+            return false;
+        if(maxPoint.y < spherePos.y + sphereRadius)
+            return false;
+        if(maxPoint.z < spherePos.z + sphereRadius)
+            return false;
+
+        return true;
+    }
+
+    bool CollisionDetection::CheckAABBInsideAABB(const glm::vec3& AABBInsideCenter, const glm::vec3& AABBInsideHalfVol, const glm::vec3& AABBCenter, const glm::vec3& AABBHalfVol)
+    {
+        // min check
+        glm::vec3 minPoint       = AABBCenter - AABBHalfVol;
+        glm::vec3 minInsidePoint = AABBInsideCenter - AABBInsideHalfVol;
+        if(minPoint.x > minInsidePoint.x)
+            return false;
+        if(minPoint.y > minInsidePoint.y)
+            return false;
+        if(minPoint.z > minInsidePoint.z)
+            return false;
+        // max check
+        glm::vec3 maxPoint       = AABBCenter + AABBHalfVol;
+        glm::vec3 maxInsidePoint = AABBInsideCenter + AABBInsideHalfVol;
+        if(maxPoint.x < maxInsidePoint.x)
+            return false;
+        if(maxPoint.y < maxInsidePoint.y)
+            return false;
+        if(maxPoint.z < maxInsidePoint.z)
+            return false;
+
+        return true;
     }
 }

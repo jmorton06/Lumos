@@ -1,4 +1,6 @@
+#ifndef LUMOS_PLATFORM_MACOS
 #include "Precompiled.h"
+#endif
 #include "VKTexture.h"
 #include "VKDevice.h"
 #include "Utilities/LoadImage.h"
@@ -60,7 +62,7 @@ namespace Lumos
         samplerInfo.anisotropyEnable        = anisotropyEnable;
         samplerInfo.unnormalizedCoordinates = VK_FALSE;
         samplerInfo.compareEnable           = VK_FALSE; // compareEnabled;
-        samplerInfo.borderColor             = VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE;
+        samplerInfo.borderColor             = VK_BORDER_COLOR_FLOAT_TRANSPARENT_BLACK;
         samplerInfo.mipLodBias              = 0.0f;
         samplerInfo.compareOp               = compareEnabled ? VK_COMPARE_OP_GREATER_OR_EQUAL : VK_COMPARE_OP_NEVER;
         samplerInfo.minLod                  = minLod;
@@ -283,15 +285,15 @@ namespace Lumos
 
             for(auto& view : m_MipImageViews)
             {
-                if(view.second)
+                if(view)
                 {
-                    auto imageView = view.second;
+                    auto imageView = view;
                     deletionQueue.PushFunction([imageView]
                                                { vkDestroyImageView(VKDevice::GetHandle(), imageView, nullptr); });
                 }
             }
 
-            m_MipImageViews.clear();
+            m_MipImageViews.Clear();
 
             if(m_DeleteImage)
             {
@@ -577,11 +579,10 @@ namespace Lumos
 
         VkImageView VKTexture2D::GetMipImageView(uint32_t mip)
         {
-            if(m_MipImageViews.find(mip) == m_MipImageViews.end())
-            {
-                m_MipImageViews[mip] = CreateImageView(m_TextureImage, m_VKFormat, 1, VK_IMAGE_VIEW_TYPE_2D, VK_IMAGE_ASPECT_COLOR_BIT, 1, 0, mip);
-            }
-            return m_MipImageViews.at(mip);
+            if(mip < m_MipImageViews.Size())
+                return m_MipImageViews[mip];
+
+            return m_MipImageViews.EmplaceBack(CreateImageView(m_TextureImage, m_VKFormat, 1, VK_IMAGE_VIEW_TYPE_2D, VK_IMAGE_ASPECT_COLOR_BIT, 1, 0, mip));
         }
 
         void VKTexture2D::Load(uint32_t width, uint32_t height, void* data, TextureDesc parameters, TextureLoadOptions loadOptions)

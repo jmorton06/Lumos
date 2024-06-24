@@ -1,4 +1,6 @@
+#ifndef LUMOS_PLATFORM_MACOS
 #include "Precompiled.h"
+#endif
 #include "VKRenderPass.h"
 #include "VKCommandBuffer.h"
 #include "VKDevice.h"
@@ -305,14 +307,14 @@ namespace Lumos
             commandBuffer->UpdateViewport(width, height, m_SwapchainTarget);
 
             s_ActiveCount++;
-            Engine::Get().Statistics().BoundRenderPasses++;
+            Engine::Get().Statistics().BoundSceneRenderer++;
         }
 
         void VKRenderPass::EndRenderPass(CommandBuffer* commandBuffer)
         {
             LUMOS_PROFILE_FUNCTION_LOW();
 
-            LUMOS_ASSERT(s_ActiveCount, "No active renderpasses to end");
+            LUMOS_ASSERT(s_ActiveCount, "No active SceneRenderer to end");
             s_ActiveCount--;
             vkCmdEndRenderPass(static_cast<VKCommandBuffer*>(commandBuffer)->GetHandle());
 

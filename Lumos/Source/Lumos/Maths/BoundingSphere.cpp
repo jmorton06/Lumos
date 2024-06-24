@@ -1,7 +1,10 @@
+#ifndef LUMOS_PLATFORM_MACOS
 #include "Precompiled.h"
+#endif
 #include "BoundingSphere.h"
 #include "BoundingBox.h"
 #include "Frustum.h"
+#include "Maths/MathsUtilities.h"
 
 #include <glm/ext/matrix_float4x4.hpp>
 #include <glm/gtx/norm.hpp>

@@ -1,13 +1,11 @@
 #pragma once
 
-#include "Graphics/Mesh.h"
-#include "Graphics/RHI/Shader.h"
-
 namespace Lumos
 {
 
     namespace Graphics
     {
+        class Mesh;
         class Material;
         class Pipeline;
         class DescriptorSet;

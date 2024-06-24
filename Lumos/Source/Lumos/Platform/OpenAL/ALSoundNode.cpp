@@ -1,4 +1,6 @@
+#ifndef LUMOS_PLATFORM_MACOS
 #include "Precompiled.h"
+#endif
 #include "ALSoundNode.h"
 #include "ALSound.h"
 #include "ALManager.h"

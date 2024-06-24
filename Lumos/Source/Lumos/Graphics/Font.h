@@ -1,5 +1,5 @@
 #pragma once
-#include "Core/Asset.h"
+#include "Core/Asset/Asset.h"
 
 namespace Lumos
 {

@@ -1,13 +1,15 @@
 #include "PreviewDraw.h"
-#include <Lumos/Utilities/AssetManager.h>
+#include <Lumos/Core/Asset/AssetManager.h>
 #include <Lumos/Graphics/RHI/Renderer.h>
-#include <Lumos/Graphics/Renderers/RenderPasses.h>
+#include <Lumos/Graphics/Renderers/SceneRenderer.h>
 #include <Lumos/Graphics/Model.h>
+#include <Lumos/Graphics/Mesh.h>
 #include <Lumos/Scene/Component/ModelComponent.h>
 #include <Lumos/Scene/EntityManager.h>
 #include <Lumos/Scene/Scene.h>
 #include <Lumos/Graphics/Light.h>
 #include <Lumos/Graphics/Environment.h>
+#include <Lumos/Maths/BoundingBox.h>
 
 namespace Lumos
 {
@@ -38,7 +40,7 @@ namespace Lumos
 
         if(!m_PreviewRenderer)
         {
-            m_PreviewRenderer                       = CreateSharedPtr<Graphics::RenderPasses>(256, 256);
+            m_PreviewRenderer                       = CreateSharedPtr<Graphics::SceneRenderer>(256, 256);
             m_PreviewRenderer->m_DebugRenderEnabled = false;
         }
 

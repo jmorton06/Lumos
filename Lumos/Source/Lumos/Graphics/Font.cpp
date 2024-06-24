@@ -1,4 +1,6 @@
+#ifndef LUMOS_PLATFORM_MACOS
 #include "Precompiled.h"
+#endif
 #include "Font.h"
 #include "MSDFData.h"
 #include "Core/OS/FileSystem.h"
@@ -16,6 +18,7 @@
 #include <imgui/Plugins/ImGuiAl/fonts/RobotoRegular.inl>
 #include <stb/deprecated/stb.h>
 #include <spdlog/fmt/bundled/format.h>
+#include <fstream>
 
 #define FONT_DEBUG_LOG 0
 #if FONT_DEBUG_LOG
@@ -133,6 +136,8 @@ namespace Lumos
             param.wrap            = TextureWrap::CLAMP;
             param.generateMipMaps = false;
             param.flags           = TextureFlags::Texture_Sampled;
+            param.anisotropicFiltering = false;
+
             return SharedPtr<Texture2D>(Texture2D::CreateFromSource(header.Width, header.Height, pixels, param));
         }
 
@@ -194,7 +199,6 @@ namespace Lumos
             fontInput.fontScale           = -1;
 
             Configuration config                             = {};
-            config.imageType                                 = ImageType::MSDF;
             config.imageFormat                               = msdf_atlas::ImageFormat::BINARY_FLOAT;
             config.yDirection                                = YDirection::BOTTOM_UP;
             config.edgeColoring                              = msdfgen::edgeColoringInkTrap;
@@ -209,7 +213,7 @@ namespace Lumos
             int fixedWidth                                             = -1;
             int fixedHeight                                            = -1;
             double minEmSize                                           = 0;
-            double rangeValue                                          = 2.0;
+            double rangeValue                                          = 8.0;
             TightAtlasPacker::DimensionsConstraint atlasSizeConstraint = TightAtlasPacker::DimensionsConstraint::MULTIPLE_OF_FOUR_SQUARE;
 
             // Load fonts

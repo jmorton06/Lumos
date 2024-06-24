@@ -1,4 +1,6 @@
+#ifndef LUMOS_PLATFORM_MACOS
 #include "Precompiled.h"
+#endif
 #include "Maths/Plane.h"
 #include "MathsUtilities.h"
 namespace Lumos

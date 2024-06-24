@@ -1,4 +1,6 @@
+#ifndef LUMOS_PLATFORM_MACOS
 #include "Precompiled.h"
+#endif
 #include "AudioManager.h"
 #include "Core/Application.h"
 #include "Scene/Scene.h"

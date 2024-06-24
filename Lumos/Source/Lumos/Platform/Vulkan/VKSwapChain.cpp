@@ -1,4 +1,6 @@
+#ifndef LUMOS_PLATFORM_MACOS
 #include "Precompiled.h"
+#endif
 #include "VKDevice.h"
 #include "VKSwapChain.h"
 #include "VKUtilities.h"
@@ -175,7 +177,7 @@ namespace Lumos
                     m_Frames[i].ImageAcquireSemaphore = VK_NULL_HANDLE;
                 }
 
-                m_SwapChainBuffers.clear();
+                MemorySet(m_SwapChainBuffers, 0, sizeof(Texture*) * MAX_SWAPCHAIN_BUFFERS);
 
                 vkDestroySwapchainKHR(VKDevice::Get().GetDevice(), m_OldSwapChain, VK_NULL_HANDLE);
                 m_OldSwapChain = VK_NULL_HANDLE;
@@ -215,7 +217,7 @@ namespace Lumos
                 VKTexture2D* swapChainBuffer = new VKTexture2D(pSwapChainImages[i], imageView, m_ColourFormat, m_Width, m_Height);
                 swapChainBuffer->TransitionImage(VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
 
-                m_SwapChainBuffers.push_back(swapChainBuffer);
+                m_SwapChainBuffers[i] = swapChainBuffer;
             }
 
             ScratchEnd(scratch);
