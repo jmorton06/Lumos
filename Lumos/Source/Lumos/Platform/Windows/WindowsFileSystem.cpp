@@ -1,4 +1,6 @@
-#ifndef LUMOS_PLATFORM_MACOS #include "Precompiled.h" #endif
+#ifndef LUMOS_PLATFORM_MACOS
+#include "Precompiled.h"
+#endif
 #include "Core/OS/FileSystem.h"
 #include "WindowsUtilities.h"
 

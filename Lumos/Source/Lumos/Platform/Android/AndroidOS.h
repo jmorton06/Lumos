@@ -1,5 +1,7 @@
 #pragma once
-#ifndef LUMOS_PLATFORM_MACOS #include "Precompiled.h" #endif
+#ifndef LUMOS_PLATFORM_MACOS
+#include "Precompiled.h"
+#endif
 #include "Core/OS/OS.h"
 
 namespace Lumos
