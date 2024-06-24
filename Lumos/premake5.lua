@@ -19,7 +19,9 @@ project "Lumos"
 
 	removefiles
 	{
-		"Source/Lumos/Platform/**"
+		"Source/Lumos/Platform/**",
+		"Source/Precompiled.h",
+		"Source/Precompiled.cpp"
 	}
 
 	includedirs
@@ -211,13 +213,11 @@ project "Lumos"
 		{
 			"-Wno-attributes",
 			"-Wno-nullability-completeness",
-			"-fdiagnostics-absolute-paths"
+			"-fdiagnostics-absolute-paths",
 		}
 
-		pchheader "../Lumos/Source/Precompiled.h"
-		pchsource "../Lumos/Source/Precompiled.cpp"
-
-		SetRecommendedXcodeSettings()
+		pchheader "Source/Precompiled.h"
+		pchsource "Source/Precompiled.cpp"
 
 		filter 'files:External/**.cpp'
 			flags  { 'NoPCH' }

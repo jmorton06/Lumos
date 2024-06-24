@@ -1,13 +1,16 @@
+#ifndef LUMOS_PLATFORM_MACOS
 #include "Precompiled.h"
+#endif
 #include "Graphics/Model.h"
 #include "Graphics/Mesh.h"
 #include "Graphics/Material.h"
 #include "Core/OS/FileSystem.h"
 #include "Graphics/RHI/Texture.h"
 #include "Maths/Transform.h"
+#include "Maths/MathsUtilities.h"
 #include "Core/Application.h"
 #include "Utilities/StringUtilities.h"
-#include "Utilities/AssetManager.h"
+#include "Core/Asset/AssetManager.h"
 
 #include <ModelLoaders/OpenFBX/ofbx.h>
 

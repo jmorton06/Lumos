@@ -1,4 +1,6 @@
+#ifndef LUMOS_PLATFORM_MACOS
 #include "Precompiled.h"
+#endif
 #include "Entity.h"
 #include "EntityManager.h"
 #include "Maths/Random.h"

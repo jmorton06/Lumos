@@ -1,17 +1,17 @@
 #pragma once
 
-#include "RHI/IndexBuffer.h"
-#include "RHI/VertexBuffer.h"
-#include "Graphics/RHI/CommandBuffer.h"
-#include "Graphics/RHI/DescriptorSet.h"
-#include "Maths/BoundingBox.h"
-#include "Material.h"
-
 namespace Lumos
 {
+    namespace Maths
+    {
+        class BoundingBox;
+    }
     namespace Graphics
     {
         class Texture2D;
+        class Material;
+        class VertexBuffer;
+        class IndexBuffer;
 
         struct LUMOS_EXPORT BasicVertex
         {
@@ -144,7 +144,7 @@ namespace Lumos
             const SharedPtr<Material>& GetMaterial() const { return m_Material; }
             const SharedPtr<Maths::BoundingBox>& GetBoundingBox() const { return m_BoundingBox; }
 
-            void SetMaterial(const SharedPtr<Material>& material) { m_Material = material; }
+            void SetMaterial(const SharedPtr<Material>& material);
             void SetAndLoadMaterial(const std::string& filePath);
 
             bool& GetActive() { return m_Active; }

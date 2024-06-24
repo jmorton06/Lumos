@@ -51,7 +51,7 @@ namespace Lumos
     class LUMOS_EXPORT Input : public ThreadSafeSingleton<Input>
     {
         friend class TSingleton<Input>;
-		friend class GLFWWindow;
+        friend class GLFWWindow;
 
     public:
         Input();

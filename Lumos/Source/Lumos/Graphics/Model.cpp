@@ -1,4 +1,6 @@
+#ifndef LUMOS_PLATFORM_MACOS
 #include "Precompiled.h"
+#endif
 #include "Model.h"
 #include "Mesh.h"
 #include "Material.h"
@@ -7,6 +9,7 @@
 #include "Animation/Skeleton.h"
 #include "Animation/Animation.h"
 #include "Animation/AnimationController.h"
+#include "Animation/SamplingContext.h"
 #include "AI/AStar.h"
 
 namespace Lumos::Graphics
@@ -91,7 +94,7 @@ namespace Lumos::Graphics
             {
                 m_AnimationController->AddState(anim->GetName(), anim);
             }
-            m_AnimationController->m_BindPoses = m_BindPoses;
+            m_AnimationController->SetBindPoses(m_BindPoses);
         }
 
         static float time = 0.0f;
@@ -118,7 +121,7 @@ namespace Lumos::Graphics
             {
                 m_AnimationController->AddState(anim->GetName(), anim);
             }
-            m_AnimationController->m_BindPoses = m_BindPoses;
+            m_AnimationController->SetBindPoses(m_BindPoses);
         }
 
         m_AnimationController->SetCurrentState(m_CurrentAnimation);

@@ -1,9 +1,11 @@
+#ifndef LUMOS_PLATFORM_MACOS
 #include "Precompiled.h"
+#endif
 #include "Scene.h"
 #include "Core/OS/Input.h"
 #include "Core/Application.h"
 #include "Graphics/RHI/GraphicsContext.h"
-#include "Graphics/Renderers/RenderPasses.h"
+#include "Graphics/Renderers/SceneRenderer.h"
 #include "Graphics/Camera/Camera.h"
 #include "Graphics/Sprite.h"
 #include "Graphics/AnimatedSprite.h"
@@ -48,6 +50,8 @@
 #include <entt/entity/registry.hpp>
 #include <entt/entity/snapshot.hpp>
 #include <sol/sol.hpp> //For deleting sol::basic_environment<sol::basic_reference<false>>
+#include <fstream>
+#include <ostream>
 
 CEREAL_REGISTER_TYPE(Lumos::SphereCollisionShape);
 CEREAL_REGISTER_TYPE(Lumos::CuboidCollisionShape);
@@ -61,6 +65,9 @@ CEREAL_REGISTER_POLYMORPHIC_RELATION(Lumos::CollisionShape, Lumos::PyramidCollis
 CEREAL_REGISTER_POLYMORPHIC_RELATION(Lumos::CollisionShape, Lumos::HullCollisionShape);
 CEREAL_REGISTER_POLYMORPHIC_RELATION(Lumos::CollisionShape, Lumos::CapsuleCollisionShape);
 
+#define MIN_SCENE_VERSION 24
+
+#if MIN_SCENE_VERSION < 21
 #pragma warning(push, 0)
 // Legacy version of entt snapshot loaded to load older scene versions saved before updating entt
 namespace entt
@@ -210,6 +217,7 @@ namespace entt
     };
 }
 #pragma warning(pop)
+#endif
 
 namespace Lumos
 {
@@ -441,28 +449,52 @@ namespace Lumos
                 std::ifstream file(path, std::ios::binary);
                 cereal::BinaryInputArchive input(file);
                 input(*this);
-                if(m_SceneSerialisationVersion < 2)
+                if(m_SceneSerialisationVersion == 0)
+                    LUMOS_LOG_ERROR("Invalid Scene Version");
+#if MIN_SCENE_VERSION <= 2
+                else if(m_SceneSerialisationVersion < 2)
                     entt::basic_snapshot_loader_legacy { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV1>(input).orphans();
+#endif
+#if MIN_SCENE_VERSION <= 3
                 else if(m_SceneSerialisationVersion == 3)
                     entt::basic_snapshot_loader_legacy { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV2>(input).orphans();
+#endif
+#if MIN_SCENE_VERSION <= 4
                 else if(m_SceneSerialisationVersion == 4)
                     entt::basic_snapshot_loader_legacy { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV3>(input).orphans();
+#endif
+#if MIN_SCENE_VERSION <= 5
                 else if(m_SceneSerialisationVersion == 5)
                     entt::basic_snapshot_loader_legacy { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV4>(input);
+#endif
+#if MIN_SCENE_VERSION <= 6
                 else if(m_SceneSerialisationVersion == 6)
                     entt::basic_snapshot_loader_legacy { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV5>(input);
+#endif
+#if MIN_SCENE_VERSION <= 7
                 else if(m_SceneSerialisationVersion == 7)
                     entt::basic_snapshot_loader_legacy { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV6>(input);
+#endif
+#if MIN_SCENE_VERSION <= 13
                 else if(m_SceneSerialisationVersion >= 8 && m_SceneSerialisationVersion < 14)
                     entt::basic_snapshot_loader_legacy { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV7>(input);
+#endif
+#if MIN_SCENE_VERSION <= 20
                 else if(m_SceneSerialisationVersion >= 14 && m_SceneSerialisationVersion < 21)
                     entt::basic_snapshot_loader_legacy { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSLISTV8>(input);
+#endif
+#if MIN_SCENE_VERSION <= 21
                 else if(m_SceneSerialisationVersion >= 21 && m_SceneSerialisationVersion < 22)
                     entt::snapshot_loader { m_EntityManager->GetRegistry() }.get<entt::entity>(input).ALL_COMPONENTSENTTV8(input);
+#endif
+#if MIN_SCENE_VERSION <= 25
                 else if(m_SceneSerialisationVersion >= 22 && m_SceneSerialisationVersion < 25)
                     entt::snapshot_loader { m_EntityManager->GetRegistry() }.get<entt::entity>(input).ALL_COMPONENTSENTTV9(input);
+#endif
                 else if(m_SceneSerialisationVersion >= 25)
                     entt::snapshot_loader { m_EntityManager->GetRegistry() }.get<entt::entity>(input).ALL_COMPONENTSENTTV10(input);
+
+#if MIN_SCENE_VERSION <= 6
                 if(m_SceneSerialisationVersion < 6)
                 {
                     // m_EntityManager->GetRegistry().each([&](auto entity)
@@ -471,7 +503,9 @@ namespace Lumos
                         m_EntityManager->GetRegistry().emplace<IDComponent>(entity, Random64::Rand(0, std::numeric_limits<uint64_t>::max()));
                     }
                 }
+#endif
 
+#if MIN_SCENE_VERSION <= 7
                 if(m_SceneSerialisationVersion < 7)
                 {
                     // m_EntityManager->GetRegistry().each([&](auto entity)
@@ -486,6 +520,7 @@ namespace Lumos
                         }
                     }
                 }
+#endif
             }
             catch(...)
             {
@@ -509,28 +544,51 @@ namespace Lumos
                 cereal::JSONInputArchive input(istr);
                 input(*this);
 
+                if(m_SceneSerialisationVersion == 0)
+                    LUMOS_LOG_ERROR("Invalid Scene Version");
+#if MIN_SCENE_VERSION <= 2
                 if(m_SceneSerialisationVersion < 2)
                     entt::basic_snapshot_loader_legacy { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV1>(input).orphans();
+#endif
+#if MIN_SCENE_VERSION <= 3
                 else if(m_SceneSerialisationVersion == 3)
                     entt::basic_snapshot_loader_legacy { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV2>(input).orphans();
+#endif
+#if MIN_SCENE_VERSION <= 4
                 else if(m_SceneSerialisationVersion == 4)
                     entt::basic_snapshot_loader_legacy { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV3>(input).orphans();
+#endif
+#if MIN_SCENE_VERSION <= 5
                 else if(m_SceneSerialisationVersion == 5)
                     entt::basic_snapshot_loader_legacy { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV4>(input);
+#endif
+#if MIN_SCENE_VERSION <= 6
                 else if(m_SceneSerialisationVersion == 6)
                     entt::basic_snapshot_loader_legacy { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV5>(input);
+#endif
+#if MIN_SCENE_VERSION <= 7
                 else if(m_SceneSerialisationVersion == 7)
                     entt::basic_snapshot_loader_legacy { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV6>(input);
+#endif
+#if MIN_SCENE_VERSION <= 13
                 else if(m_SceneSerialisationVersion >= 8 && m_SceneSerialisationVersion < 14)
                     entt::basic_snapshot_loader_legacy { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV7>(input);
+#endif
+#if MIN_SCENE_VERSION <= 20
                 else if(m_SceneSerialisationVersion >= 14 && m_SceneSerialisationVersion < 21)
                     entt::basic_snapshot_loader_legacy { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSLISTV8>(input);
+#endif
+#if MIN_SCENE_VERSION <= 21
                 else if(m_SceneSerialisationVersion >= 21 && m_SceneSerialisationVersion < 22)
                     entt::snapshot_loader { m_EntityManager->GetRegistry() }.get<entt::entity>(input).ALL_COMPONENTSENTTV8(input);
+#endif
+#if MIN_SCENE_VERSION <= 24
                 else if(m_SceneSerialisationVersion >= 22 && m_SceneSerialisationVersion < 25)
                     entt::snapshot_loader { m_EntityManager->GetRegistry() }.get<entt::entity>(input).ALL_COMPONENTSENTTV9(input);
+#endif
                 else if(m_SceneSerialisationVersion >= 25)
                     entt::snapshot_loader { m_EntityManager->GetRegistry() }.get<entt::entity>(input).ALL_COMPONENTSENTTV10(input);
+#if MIN_SCENE_VERSION <= 6
                 if(m_SceneSerialisationVersion < 6)
                 {
                     // m_EntityManager->GetRegistry().each([&](auto entity)
@@ -539,7 +597,8 @@ namespace Lumos
                         m_EntityManager->GetRegistry().emplace<IDComponent>(entity, Random64::Rand(0, std::numeric_limits<uint64_t>::max()));
                     }
                 }
-
+#endif
+#if MIN_SCENE_VERSION <= 7
                 if(m_SceneSerialisationVersion < 7)
                 {
                     // m_EntityManager->GetRegistry().each([&](auto entity)
@@ -554,6 +613,7 @@ namespace Lumos
                         }
                     }
                 }
+#endif
             }
             catch(...)
             {

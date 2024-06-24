@@ -1,4 +1,6 @@
+#ifndef LUMOS_PLATFORM_MACOS
 #include "Precompiled.h"
+#endif
 #include "GLIMGUIRenderer.h"
 #include "GL.h"
 #include <imgui/imgui.h>

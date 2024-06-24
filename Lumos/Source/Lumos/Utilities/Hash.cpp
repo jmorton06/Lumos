@@ -1,4 +1,6 @@
+#ifndef LUMOS_PLATFORM_MACOS
 #include "Precompiled.h"
+#endif
 
 #if defined(_MSC_VER)
 #include <stdlib.h>

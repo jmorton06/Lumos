@@ -1,6 +1,6 @@
 #pragma once
 #include "Core/Core.h"
-#include "UUID.h"
+#include "Core/UUID.h"
 
 #define SET_ASSET_TYPE(type)                        \
     static AssetType GetStaticType()                \

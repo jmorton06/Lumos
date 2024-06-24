@@ -1,5 +1,6 @@
 #pragma once
 #include "Core/UUID.h"
+#include "Core/DataStructures/TDArray.h"
 #include "Maths/BoundingBox.h"
 #include <glm/ext/vector_float2.hpp>
 #include <glm/ext/vector_float3.hpp>
@@ -158,8 +159,8 @@ namespace Lumos
 
         void FireOnCollisionManifoldCallback(RigidBody3D* a, RigidBody3D* b, Manifold* manifold)
         {
-            for(auto it = m_OnCollisionManifoldCallbacks.begin(); it != m_OnCollisionManifoldCallbacks.end(); ++it)
-                it->operator()(a, b, manifold);
+            for(auto& callback : m_OnCollisionManifoldCallbacks)
+                callback(a, b, manifold);
         }
 
         void AutoResizeBoundingBox();
@@ -169,7 +170,7 @@ namespace Lumos
 
         typedef std::function<void(RigidBody3D*, RigidBody3D*, Manifold*)> OnCollisionManifoldCallback;
 
-        void AddOnCollisionManifoldCallback(const OnCollisionManifoldCallback callback) { m_OnCollisionManifoldCallbacks.push_back(callback); }
+        void AddOnCollisionManifoldCallback(const OnCollisionManifoldCallback callback) { m_OnCollisionManifoldCallbacks.PushBack(callback); }
 
         void SetCollisionShape(CollisionShapeType type);
         void SetCollisionShape(const SharedPtr<CollisionShape>& shape);
@@ -245,6 +246,6 @@ namespace Lumos
 
         SharedPtr<CollisionShape> m_CollisionShape;
         PhysicsCollisionCallback m_OnCollisionCallback;
-        std::vector<OnCollisionManifoldCallback> m_OnCollisionManifoldCallbacks; //!< Collision callbacks post manifold generation
+        TDArray<OnCollisionManifoldCallback> m_OnCollisionManifoldCallbacks; //!< Collision callbacks post manifold generation
     };
 }

@@ -1,4 +1,6 @@
+#ifndef LUMOS_PLATFORM_MACOS
 #include "Precompiled.h"
+#endif
 #include "Material.h"
 #include "Graphics/RHI/Shader.h"
 #include "Graphics/RHI/Texture.h"
@@ -10,7 +12,7 @@
 #include "Core/OS/FileSystem.h"
 #include "Core/Application.h"
 #include "Scene/Scene.h"
-#include "Utilities/AssetManager.h"
+#include "Core/Asset/AssetManager.h"
 
 #include <imgui/imgui.h>
 

@@ -1,11 +1,15 @@
 
+#ifndef LUMOS_PLATFORM_MACOS
 #include "Precompiled.h"
+#endif
 #include "Renderer.h"
 
 #include "Graphics/Mesh.h"
 #include "Core/Application.h"
-#include "Utilities/AssetManager.h"
+#include "Core/Asset/AssetManager.h"
 #include "Core/OS/Window.h"
+#include "IndexBuffer.h"
+#include "VertexBuffer.h"
 
 #include "CompiledSPV/Headers/Shadowvertspv.hpp"
 #include "CompiledSPV/Headers/Shadowfragspv.hpp"
@@ -96,7 +100,7 @@ namespace Lumos
                 LUMOS_LOG_INFO("Loading shaders - embedded");
                 LoadShaderEmbedded("Skybox", Skybox, Skybox);
                 LoadShaderEmbedded("ForwardPBR", ForwardPBR, ForwardPBR);
-				LoadShaderEmbedded("ForwardPBRAnim", ForwardPBRAnim, ForwardPBR);
+                LoadShaderEmbedded("ForwardPBRAnim", ForwardPBRAnim, ForwardPBR);
                 LoadShaderEmbedded("Shadow", Shadow, Shadow);
                 LoadShaderEmbedded("ShadowAlpha", Shadow, ShadowAlpha);
                 LoadShaderEmbedded("ShadowAnim", ShadowAnim, Shadow);

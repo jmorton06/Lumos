@@ -1,7 +1,6 @@
 #pragma once
 
 #include "EditorPanel.h"
-#include <Lumos/Utilities/AssetManager.h>
 #include <Lumos/Core/String.h>
 
 #if __has_include(<filesystem>)

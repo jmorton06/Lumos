@@ -1,13 +1,21 @@
 #pragma once
 #include "Core.h"
 
+#ifdef LUMOS_PRODUCTION
 #define LUMOS_ENABLE_LOG 1
+#else
+#define LUMOS_ENABLE_LOG 1
+#endif
 
 #if LUMOS_ENABLE_LOG
 #ifdef LUMOS_PLATFORM_WINDOWS
 #ifndef NOMINMAX
 #define NOMINMAX // For windows.h
 #endif
+#endif
+
+#ifndef FMT_HEADER_ONLY
+#define FMT_HEADER_ONLY
 #endif
 
 #include <spdlog/spdlog.h>

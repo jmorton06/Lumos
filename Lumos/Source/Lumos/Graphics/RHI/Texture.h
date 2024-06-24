@@ -1,6 +1,6 @@
 #pragma once
 #include "Definitions.h"
-#include "Core/Asset.h"
+#include "Core/Asset/Asset.h"
 
 namespace Lumos
 {

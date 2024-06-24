@@ -13,8 +13,11 @@
 #include "SceneSettingsPanel.h"
 #include "EditorSettingsPanel.h"
 #include "ProjectSettingsPanel.h"
+#include "FileBrowserPanel.h"
+#include "PreviewDraw.h"
+#include "EditorPanel.h"
 
-#include <Lumos/Graphics/Camera/EditorCamera.h>
+#include <Lumos/Graphics/Camera/Camera.h>
 #include <Lumos/Utilities/Timer.h>
 #include <Lumos/Core/Application.h>
 #include <Lumos/Core/OS/Input.h>
@@ -47,6 +50,7 @@
 #include <Lumos/Graphics/RHI/GraphicsContext.h>
 #include <Lumos/Graphics/Renderers/GridRenderer.h>
 #include <Lumos/Graphics/Renderers/DebugRenderer.h>
+#include <Lumos/Graphics/Mesh.h>
 #include <Lumos/Graphics/Model.h>
 #include <Lumos/Graphics/Environment.h>
 #include <Lumos/Graphics/Animation/AnimationController.h>
@@ -56,6 +60,7 @@
 #include <imgui/Plugins/imcmd_command_palette.h>
 #include <Lumos/Maths/BoundingBox.h>
 #include <Lumos/Maths/BoundingSphere.h>
+#include <Lumos/Maths/Rect.h>
 #include <Lumos/Maths/Frustum.h>
 #include <Lumos/Maths/Plane.h>
 #include <Lumos/Maths/MathsUtilities.h>
@@ -104,7 +109,9 @@ namespace Lumos
 
         m_GridRenderer.reset();
         m_Panels.clear();
-        m_PreviewDraw.ReleaseResources();
+        m_PreviewDraw->ReleaseResources();
+        delete m_PreviewDraw;
+        delete m_FileBrowserPanel;
 
         Application::OnQuit();
     }
@@ -303,6 +310,9 @@ namespace Lumos
         for(auto& panel : m_Panels)
             panel->SetEditor(this);
 
+        m_FileBrowserPanel = new FileBrowserPanel();
+        m_PreviewDraw      = new PreviewDraw();
+
         CreateGridRenderer();
 
         m_Settings.m_ShowImGuiDemo = false;
@@ -320,7 +330,8 @@ namespace Lumos
         ImGuizmo::SetGizmoSizeClipSpace(m_Settings.m_ImGuizmoScale);
         // ImGuizmo::SetGizmoSizeScale(Application::Get().GetWindowDPI());
 
-        m_PreviewDraw.CreateDefaultScene();
+        m_PreviewDraw->CreateDefaultScene();
+
     }
 
     bool Editor::IsTextFile(const std::string& filePath)
@@ -441,7 +452,7 @@ namespace Lumos
 
         m_Settings.m_View2D = m_CurrentCamera->IsOrthographic();
 
-        m_FileBrowserPanel.OnImGui();
+        m_FileBrowserPanel->OnImGui();
         auto& io  = ImGui::GetIO();
         auto ctrl = io.ConfigMacOSXBehaviors ? io.KeySuper : io.KeyCtrl;
         if(ctrl && Input::Get().GetKeyPressed(Lumos::InputCode::Key::P))
@@ -511,14 +522,14 @@ namespace Lumos
         // Set filePath to working directory
         auto path = OS::Instance()->GetExecutablePath();
         std::filesystem::current_path(path);
-        m_FileBrowserPanel.SetCallback(BIND_FILEBROWSER_FN(Editor::FileOpenCallback));
-        m_FileBrowserPanel.Open();
+        m_FileBrowserPanel->SetCallback(BIND_FILEBROWSER_FN(Editor::FileOpenCallback));
+        m_FileBrowserPanel->Open();
     }
 
     void Editor::EmbedFile()
     {
-        m_FileBrowserPanel.SetCallback(BIND_FILEBROWSER_FN(Editor::FileEmbedCallback));
-        m_FileBrowserPanel.Open();
+        m_FileBrowserPanel->SetCallback(BIND_FILEBROWSER_FN(Editor::FileEmbedCallback));
+        m_FileBrowserPanel->Open();
     }
 
     static std::string projectLocation = "../";
@@ -573,9 +584,9 @@ namespace Lumos
 
                 if(ImGui::MenuItem("Open File"))
                 {
-                    m_FileBrowserPanel.SetCurrentPath(m_ProjectSettings.m_ProjectRoot);
-                    m_FileBrowserPanel.SetCallback(BIND_FILEBROWSER_FN(Editor::FileOpenCallback));
-                    m_FileBrowserPanel.Open();
+                    m_FileBrowserPanel->SetCurrentPath(m_ProjectSettings.m_ProjectRoot);
+                    m_FileBrowserPanel->SetCallback(BIND_FILEBROWSER_FN(Editor::FileOpenCallback));
+                    m_FileBrowserPanel->Open();
                 }
 
                 ImGui::Separator();
@@ -1092,7 +1103,7 @@ namespace Lumos
             if(ImGui::Button("OK", ImVec2(120, 0)))
             {
                 Application::Get().GetSceneManager()->GetCurrentScene()->Serialise(m_ProjectSettings.m_ProjectRoot + "Assets/Scenes/", false);
-                Graphics::Renderer::GetRenderer()->SaveScreenshot(m_ProjectSettings.m_ProjectRoot + "Assets/Scenes/Cache/" + Application::Get().GetSceneManager()->GetCurrentScene()->GetSceneName() + ".png", m_RenderPasses->GetForwardData().m_RenderTexture);
+                Graphics::Renderer::GetRenderer()->SaveScreenshot(m_ProjectSettings.m_ProjectRoot + "Assets/Scenes/Cache/" + Application::Get().GetSceneManager()->GetCurrentScene()->GetSceneName() + ".png", m_SceneRenderer->GetForwardData().m_RenderTexture);
                 ImGui::CloseCurrentPopup();
             }
             ImGui::SetItemDefaultFocus();
@@ -1107,7 +1118,7 @@ namespace Lumos
         if(locationPopupOpened)
         {
             // Cancel clicked on project location popups
-            if(!m_FileBrowserPanel.IsOpen())
+            if(!m_FileBrowserPanel->IsOpen())
             {
                 m_NewProjectPopupOpen = false;
                 locationPopupOpened   = false;
@@ -1211,12 +1222,12 @@ namespace Lumos
 
                 // Set filePath to working directory
                 const auto& path  = OS::Instance()->GetExecutablePath();
-                auto& browserPath = m_FileBrowserPanel.GetPath();
+                auto& browserPath = m_FileBrowserPanel->GetPath();
                 browserPath       = std::filesystem::path(path);
-                m_FileBrowserPanel.SetFileTypeFilters({ ".lmproj" });
-                m_FileBrowserPanel.SetOpenDirectory(false);
-                m_FileBrowserPanel.SetCallback(BIND_FILEBROWSER_FN(ProjectOpenCallback));
-                m_FileBrowserPanel.Open();
+                m_FileBrowserPanel->SetFileTypeFilters({ ".lmproj" });
+                m_FileBrowserPanel->SetOpenDirectory(false);
+                m_FileBrowserPanel->SetCallback(BIND_FILEBROWSER_FN(ProjectOpenCallback));
+                m_FileBrowserPanel->Open();
             }
 
             ImGui::Separator();
@@ -1234,12 +1245,12 @@ namespace Lumos
 
                 // Set filePath to working directory
                 const auto& path  = OS::Instance()->GetExecutablePath();
-                auto& browserPath = m_FileBrowserPanel.GetPath();
+                auto& browserPath = m_FileBrowserPanel->GetPath();
                 browserPath       = std::filesystem::path(path);
-                m_FileBrowserPanel.ClearFileTypeFilters();
-                m_FileBrowserPanel.SetOpenDirectory(true);
-                m_FileBrowserPanel.SetCallback(BIND_FILEBROWSER_FN(NewProjectLocationCallback));
-                m_FileBrowserPanel.Open();
+                m_FileBrowserPanel->ClearFileTypeFilters();
+                m_FileBrowserPanel->SetOpenDirectory(true);
+                m_FileBrowserPanel->SetCallback(BIND_FILEBROWSER_FN(NewProjectLocationCallback));
+                m_FileBrowserPanel->Open();
             }
 
             ImGui::SameLine();
@@ -1251,7 +1262,7 @@ namespace Lumos
             if(ImGui::Button("Create", ImVec2(120, 0)))
             {
                 Application::Get().OpenNewProject(projectLocation, newProjectName);
-                m_FileBrowserPanel.SetOpenDirectory(false);
+                m_FileBrowserPanel->SetOpenDirectory(false);
 
                 for(int i = 0; i < int(m_Panels.size()); i++)
                 {
@@ -1327,7 +1338,7 @@ namespace Lumos
 
         if(m_SelectedEntities.size() == 1)
         {
-			Entity m_SelectedEntity = {};
+            Entity m_SelectedEntity = {};
 
             m_SelectedEntity = m_SelectedEntities.front();
             if(m_SelectedEntity.Valid())
@@ -1737,7 +1748,6 @@ namespace Lumos
         std::string Configuration;
         std::string Platform;
         std::string RenderAPI;
-        std::string dash = " - ";
 
 #ifdef LUMOS_DEBUG
         Configuration = "Debug";
@@ -1786,10 +1796,10 @@ namespace Lumos
             break;
         }
 
-        std::stringstream Title;
-        Title << Platform << dash << RenderAPI << dash << Configuration << dash << scene->GetSceneName() << dash << Application::Get().GetWindow()->GetTitle();
-
-        Application::Get().GetWindow()->SetWindowTitle(Title.str());
+        // std::stringstream Title;
+        // Title << Platform << dash << RenderAPI << dash << Configuration << dash << scene->GetSceneName() << dash << Application::Get().GetWindow()->GetTitle();
+        String8 title = PushStr8F(m_Arena, "%s - %s - %s - %s - %s", Platform.c_str(), RenderAPI.c_str(), Configuration.c_str(), scene->GetSceneName().c_str(), Application::Get().GetWindow()->GetTitle().c_str());
+        Application::Get().GetWindow()->SetWindowTitle((const char*)(title.str));
     }
 
     void Editor::Draw3DGrid()
@@ -1807,7 +1817,7 @@ namespace Lumos
 
         m_GridRenderer->OnImGui();
 
-        m_GridRenderer->SetDepthTarget(m_RenderPasses->GetForwardData().m_DepthTexture);
+        m_GridRenderer->SetDepthTarget(m_SceneRenderer->GetForwardData().m_DepthTexture);
         m_GridRenderer->BeginScene(Application::Get().GetSceneManager()->GetCurrentScene(), m_EditorCamera.get(), &m_EditorCameraTransform);
         m_GridRenderer->RenderScene();
 #endif
@@ -2425,10 +2435,10 @@ namespace Lumos
     void Editor::SelectObject(const Maths::Ray& ray, bool hoveredOnly)
     {
         LUMOS_PROFILE_FUNCTION();
-		auto scene = Application::Get().GetSceneManager()->GetCurrentScene();
-        auto& registry                    = scene->GetRegistry();
-        float closestEntityDist           = Maths::M_INFINITY;
-		Entity currentClosestEntity = {};
+        auto scene                  = Application::Get().GetSceneManager()->GetCurrentScene();
+        auto& registry              = scene->GetRegistry();
+        float closestEntityDist     = Maths::M_INFINITY;
+        Entity currentClosestEntity = {};
 
         auto group = registry.group<Graphics::ModelComponent>(entt::get<Maths::Transform>);
 
@@ -2456,7 +2466,7 @@ namespace Lumos
                         if(distance < closestEntityDist)
                         {
                             closestEntityDist    = distance;
-							currentClosestEntity =  { entity, scene };
+                            currentClosestEntity = { entity, scene };
                         }
                     }
                 }
@@ -2510,7 +2520,7 @@ namespace Lumos
                 if(distance < closestEntityDist)
                 {
                     closestEntityDist    = distance;
-					currentClosestEntity = { entity, scene };
+                    currentClosestEntity = { entity, scene };
                 }
             }
         }
@@ -2531,7 +2541,7 @@ namespace Lumos
                 if(distance < closestEntityDist)
                 {
                     closestEntityDist    = distance;
-					currentClosestEntity = { entity, scene };
+                    currentClosestEntity = { entity, scene };
                 }
             }
         }
@@ -2643,8 +2653,8 @@ namespace Lumos
 
         if(m_DrawPreview)
         {
-            m_PreviewDraw.Draw();
-            m_PreviewDraw.DeletePreviewModel();
+            m_PreviewDraw->Draw();
+            m_PreviewDraw->DeletePreviewModel();
             m_DrawPreview = false;
         }
 
@@ -2655,7 +2665,7 @@ namespace Lumos
             String8 assetCachePath    = StringUtilities::AbsolutePathToRelativeFileSystemPath(m_FrameArena, texturePath, basePath, Str8Lit("//Assets/Cache"));
             String8 cacheAbsolutePath = StringUtilities::AbsolutePathToRelativeFileSystemPath(m_FrameArena, assetCachePath, Str8Lit("//Assets"), basePath);
 
-            m_PreviewDraw.SaveTexture(cacheAbsolutePath);
+            m_PreviewDraw->SaveTexture(cacheAbsolutePath);
             m_SavePreviewTexture = false;
         }
 
@@ -2703,12 +2713,12 @@ namespace Lumos
         String8 extension = StringUtilities::Str8PathSkipLastPeriod(asset);
         if(strcmp((char*)extension.str, "lmat") == 0)
         {
-            m_PreviewDraw.LoadMaterial(asset);
+            m_PreviewDraw->LoadMaterial(asset);
         }
         else
         {
             // Assume mesh
-            m_PreviewDraw.LoadMesh(asset);
+            m_PreviewDraw->LoadMesh(asset);
         }
 
         m_DrawPreview      = true;
@@ -2793,7 +2803,7 @@ namespace Lumos
         m_NewProjectPopupOpen = false;
         reopenNewProjectPopup = false;
         locationPopupOpened   = false;
-        m_FileBrowserPanel.ClearFileTypeFilters();
+        m_FileBrowserPanel->ClearFileTypeFilters();
 
         if(FileSystem::FileExists(filePath))
         {
@@ -2813,7 +2823,7 @@ namespace Lumos
     void Editor::NewProjectOpenCallback(const std::string& filePath)
     {
         Application::Get().OpenNewProject(filePath);
-        m_FileBrowserPanel.SetOpenDirectory(false);
+        m_FileBrowserPanel->SetOpenDirectory(false);
 
         for(int i = 0; i < int(m_Panels.size()); i++)
         {
@@ -2956,7 +2966,7 @@ namespace Lumos
 
     SharedPtr<Graphics::Texture2D> Editor::GetPreviewTexture() const
     {
-        return m_PreviewDraw.m_PreviewTexture;
+        return m_PreviewDraw->m_PreviewTexture;
     }
 
     const char* Editor::GetIconFontIcon(const std::string& filePath)

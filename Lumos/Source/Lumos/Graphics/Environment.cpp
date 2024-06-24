@@ -1,7 +1,9 @@
+#ifndef LUMOS_PLATFORM_MACOS
 #include "Precompiled.h"
+#endif
 #include "Environment.h"
 #include "Core/Application.h"
-#include "Renderers/RenderPasses.h"
+#include "Renderers/SceneRenderer.h"
 #include "RHI/Texture.h"
 #include "Core/OS/FileSystem.h"
 #include "Utilities/StringUtilities.h"
@@ -66,7 +68,7 @@ namespace Lumos
 
                 if(m_FileType == ".hdr")
                 {
-                    Application::Get().GetRenderPasses()->CreateCubeMap(m_FilePath + "_Env_" + StringUtilities::ToString(0) + "_" + StringUtilities::ToString(currWidth) + "x" + StringUtilities::ToString(currHeight) + m_FileType, m_Parameters, m_Environmnet, m_IrradianceMap);
+                    Application::Get().GetSceneRenderer()->CreateCubeMap(m_FilePath + "_Env_" + StringUtilities::ToString(0) + "_" + StringUtilities::ToString(currWidth) + "x" + StringUtilities::ToString(currHeight) + m_FileType, m_Parameters, m_Environmnet, m_IrradianceMap);
 
                     delete[] envFiles;
                     delete[] irrFiles;
@@ -137,7 +139,7 @@ namespace Lumos
             else // if (m_Mode == 1)
             {
                 m_Parameters.w = m_Mode;
-                Application::Get().GetRenderPasses()->CreateCubeMap("", m_Parameters, m_Environmnet, m_IrradianceMap);
+                Application::Get().GetSceneRenderer()->CreateCubeMap("", m_Parameters, m_Environmnet, m_IrradianceMap);
             }
 
             delete[] envFiles;

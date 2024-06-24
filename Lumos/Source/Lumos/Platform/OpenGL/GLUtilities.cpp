@@ -1,4 +1,6 @@
+#ifndef LUMOS_PLATFORM_MACOS
 #include "Precompiled.h"
+#endif
 #include "GLUtilities.h"
 #include "GL.h"
 #include "GLRenderer.h"

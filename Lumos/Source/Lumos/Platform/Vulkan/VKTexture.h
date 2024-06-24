@@ -169,7 +169,7 @@ namespace Lumos
             VkSampler m_TextureSampler {};
             VkDescriptorImageInfo m_Descriptor {};
 
-            std::unordered_map<uint32_t, VkImageView> m_MipImageViews;
+            TDArray<VkImageView> m_MipImageViews;
 
 #ifdef USE_VMA_ALLOCATOR
             VmaAllocation m_Allocation {};

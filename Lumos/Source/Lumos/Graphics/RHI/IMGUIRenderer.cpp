@@ -1,4 +1,6 @@
+#ifndef LUMOS_PLATFORM_MACOS
 #include "Precompiled.h"
+#endif
 #include "IMGUIRenderer.h"
 #include "GraphicsContext.h"
 #include "Graphics/RHI/Texture.h"
@@ -31,7 +33,7 @@ namespace Lumos
             if(Graphics::GraphicsContext::GetRenderAPI() == RenderAPI::OPENGL)
                 return (ImGuiTextureID*)texture->GetHandle();
 
-            if(m_CurrentTextureIDIndex > MAX_IMGUI_TEXTURES)
+            if(m_CurrentTextureIDIndex >= MAX_IMGUI_TEXTURES)
             {
                 LUMOS_LOG_ERROR("Exceeded max imgui textures");
                 return &m_TextureIDs[0];

@@ -1,14 +1,13 @@
 #pragma once
-#include "Maths/Rect.h"
-#include "MathsUtilities.h"
 #include <glm/ext/vector_float3.hpp>
 
 namespace Lumos
 {
     namespace Maths
     {
-
+        enum Intersection : u8;
         class BoundingSphere;
+        class Rect;
         class BoundingBox
         {
             friend class BoundingSphere;

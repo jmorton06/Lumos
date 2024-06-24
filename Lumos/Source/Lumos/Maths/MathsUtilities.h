@@ -16,15 +16,15 @@
 
 namespace Lumos
 {
-    /// Intersection test result.
-    enum Intersection
-    {
-        OUTSIDE    = 0,
-        INTERSECTS = 1,
-        INSIDE     = 2
-    };
     namespace Maths
     {
+        /// Intersection test result.
+        enum Intersection : u8
+        {
+            OUTSIDE    = 0,
+            INTERSECTS = 1,
+            INSIDE     = 2
+        };
 #undef M_PI
         static constexpr float M_PI              = 3.14159265358979323846264338327950288f;
         static constexpr float M_HALF_PI         = M_PI * 0.5f;

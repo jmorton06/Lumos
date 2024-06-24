@@ -1,5 +1,8 @@
+#ifndef LUMOS_PLATFORM_MACOS
 #include "Precompiled.h"
+#endif
 #include "WavLoader.h"
+#include <fstream>
 
 namespace Lumos
 {

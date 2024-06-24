@@ -15,8 +15,8 @@ namespace Lumos
     class LUMOS_EXPORT Broadphase
     {
     public:
-        virtual ~Broadphase()                                                                                                                  = default;
+        virtual ~Broadphase()                                                                                                                   = default;
         virtual void FindPotentialCollisionPairs(RigidBody3D* rootObject, TDArray<CollisionPair>& collisionPairs, uint32_t totalRigidBodyCount) = 0;
-        virtual void DebugDraw()                                                                                                               = 0;
+        virtual void DebugDraw()                                                                                                                = 0;
     };
 }

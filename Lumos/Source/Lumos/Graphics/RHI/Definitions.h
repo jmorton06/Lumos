@@ -54,6 +54,7 @@ namespace Lumos
             None = 0,
             OneZero,
             ZeroSrcColor,
+            OneMinusSrcAlpha,
             SrcAlphaOneMinusSrcAlpha,
             SrcAlphaOne
         };

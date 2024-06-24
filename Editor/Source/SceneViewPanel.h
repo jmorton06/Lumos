@@ -44,7 +44,7 @@ namespace Lumos
 
                     auto inside = frustum.IsInside(pos);
 
-                    if(inside == Intersection::OUTSIDE)
+                    if(inside == Maths::Intersection::OUTSIDE)
                         continue;
 
                     glm::vec2 screenPos = Maths::WorldToScreen(pos, viewProj, width, height, xpos, ypos);

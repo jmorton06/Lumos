@@ -67,8 +67,8 @@ namespace Lumos
             K key;         \
             V value;       \
         }* data;           \
-        int length;    \
-        int capacity;  \
+        int length;        \
+        int capacity;      \
     }
     typedef HashMap(char, char) HashMapRaw;
 

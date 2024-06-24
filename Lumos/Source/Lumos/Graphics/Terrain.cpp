@@ -1,6 +1,10 @@
+#ifndef LUMOS_PLATFORM_MACOS
 #include "Precompiled.h"
+#endif
 #include "Terrain.h"
 #include "Maths/BoundingBox.h"
+#include "Graphics/RHI/IndexBuffer.h"
+#include "Graphics/RHI/VertexBuffer.h"
 #include <stb/stb_perlin.h>
 
 namespace Lumos

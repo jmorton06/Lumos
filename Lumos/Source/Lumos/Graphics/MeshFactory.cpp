@@ -1,9 +1,11 @@
+#ifndef LUMOS_PLATFORM_MACOS
 #include "Precompiled.h"
+#endif
 #include "MeshFactory.h"
 #include "Mesh.h"
 #include "Material.h"
 #include "Terrain.h"
-
+#include "Maths/MathsUtilities.h"
 #include "Graphics/RHI/GraphicsContext.h"
 
 #include <glm/ext/vector_float2.hpp>

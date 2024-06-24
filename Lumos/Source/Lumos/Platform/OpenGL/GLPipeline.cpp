@@ -1,4 +1,6 @@
+#ifndef LUMOS_PLATFORM_MACOS
 #include "Precompiled.h"
+#endif
 #include "GLPipeline.h"
 #include "GLDescriptorSet.h"
 #include "GLShader.h"
@@ -246,6 +248,10 @@ namespace Lumos
                 else if(m_BlendMode == BlendMode::OneZero)
                 {
                     GLCall(glBlendFunc(GL_ONE, GL_ZERO));
+                }
+                else if(m_BlendMode == BlendMode::OneMinusSrcAlpha)
+                {
+                    GLCall(glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA));
                 }
                 else
                 {

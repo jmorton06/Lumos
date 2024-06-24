@@ -7,7 +7,6 @@
 
 #include <mach-o/dyld.h>
 
-#import <Cocoa/Cocoa.h>
 #define GLFW_EXPOSE_NATIVE_COCOA
 #include <GLFW/glfw3.h>
 #include <GLFW/glfw3native.h>
@@ -22,12 +21,12 @@ namespace Lumos
         auto percentage = power.GetPowerPercentageLeft();
         auto secondsLeft = power.GetPowerSecondsLeft();
         auto state = power.GetPowerState();
-		
+
 		int hours, minutes;
 		minutes = secondsLeft / 60;
 		hours = minutes / 60;
 		minutes = minutes % 60;
-		
+
         LUMOS_LOG_INFO("--------------------");
         LUMOS_LOG_INFO(" System Information ");
         LUMOS_LOG_INFO("--------------------");
@@ -36,10 +35,10 @@ namespace Lumos
             LUMOS_LOG_INFO("Battery Info - Percentage : {0} , Time Left {1}s , State : {2}", percentage, secondsLeft, PowerStateToString(state));
         else
             LUMOS_LOG_INFO("Power - Outlet");
-            
+
         auto systemInfo = MemoryManager::Get()->GetSystemInfo();
         systemInfo.Log();
-        
+
         auto& app = Lumos::Application::Get();
 
         app.Init();
@@ -59,7 +58,7 @@ namespace Lumos
         NSWindow* window = (NSWindow*)glfwGetCocoaWindow(static_cast<GLFWwindow*>(app.GetWindow()->GetHandle()));
         window.titlebarAppearsTransparent = YES;
         //window.titleVisibility = NSWindowTitleHidden;
-        
+
         NSColor *titleColour = [NSColor colorWithSRGBRed:colour.x green:colour.y blue:colour.z alpha:colour.w];
         window.backgroundColor = titleColour;
         if(dark)
@@ -87,7 +86,7 @@ namespace Lumos
         }
         return buffer.data();
     }
-	
+
 	void MacOSOS::Delay(uint32_t usec)
 	{
 		struct timespec requested = { static_cast<time_t>(usec / 1000000), (static_cast<long>(usec) % 1000000) * 1000 };

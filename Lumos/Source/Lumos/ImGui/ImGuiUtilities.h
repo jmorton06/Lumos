@@ -276,13 +276,13 @@ static inline ImVec4& operator/=(ImVec4& lhs, const float rhs)
     lhs.y /= rhs;
     return lhs;
 }
-//static inline std::ostream& operator<<(std::ostream& ostream, const ImVec2 a)
+// static inline std::ostream& operator<<(std::ostream& ostream, const ImVec2 a)
 //{
-//    ostream << "{ " << a.x << ", " << a.y << " }";
-//    return ostream;
-//}
-//static inline std::ostream& operator<<(std::ostream& ostream, const ImVec4 a)
+//     ostream << "{ " << a.x << ", " << a.y << " }";
+//     return ostream;
+// }
+// static inline std::ostream& operator<<(std::ostream& ostream, const ImVec4 a)
 //{
-//    ostream << "{ " << a.x << ", " << a.y << ", " << a.z << ", " << a.w << " }";
-//    return ostream;
-//}
+//     ostream << "{ " << a.x << ", " << a.y << ", " << a.z << ", " << a.w << " }";
+//     return ostream;
+// }

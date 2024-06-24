@@ -3,13 +3,14 @@
 #include <Lumos/Core/Application.h>
 #include <Lumos/Scene/SceneManager.h>
 #include <Lumos/Scene/Scene.h>
-#include <Lumos/Utilities/AssetManager.h>
+#include <Lumos/Core/Asset/AssetRegistry.h>
+#include <Lumos/Core/Asset/AssetManager.h>
 
 #include "Editor.h"
 
 #include <Lumos/Core/Engine.h>
 #include <Lumos/Core/OS/Window.h>
-#include <Lumos/Graphics/Renderers/RenderPasses.h>
+#include <Lumos/Graphics/Renderers/SceneRenderer.h>
 #include <Lumos/ImGui/ImGuiUtilities.h>
 #include <Lumos/Utilities/StringUtilities.h>
 #include <imgui/imgui.h>
@@ -49,7 +50,7 @@ namespace Lumos
 
                 ImGui::TableHeadersRow();
                 ImGui::TableNextRow();
-                Lumos::AssetRegistry& registry = m_Editor->GetAssetManager()->GetAssetRegistry();
+                Lumos::AssetRegistry& registry = *m_Editor->GetAssetManager()->GetAssetRegistry();
 
                 auto DrawEntry = [&registry](AssetMetaData& metaData, uint64_t ID)
                 {

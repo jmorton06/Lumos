@@ -1,4 +1,6 @@
+#ifndef LUMOS_PLATFORM_MACOS
 #include "Precompiled.h"
+#endif
 #include "VKRenderer.h"
 #include "VKDevice.h"
 #include "VKShader.h"
@@ -24,7 +26,7 @@ namespace Lumos
     {
         static VkFence s_ComputeFence = nullptr;
 
-        int VKRenderer::s_DeletionQueueIndex              = 0;
+        int VKRenderer::s_DeletionQueueIndex               = 0;
         TDArray<DeletionQueue> VKRenderer::s_DeletionQueue = {};
 
         void VKRenderer::InitInternal()

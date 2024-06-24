@@ -1,4 +1,6 @@
+#ifndef LUMOS_PLATFORM_MACOS
 #include "Precompiled.h"
+#endif
 #include "LumosPhysicsEngine.h"
 #include "RigidBody3D.h"
 #include "Narrowphase/CollisionDetection.h"
@@ -15,7 +17,7 @@
 #include "Scene/Scene.h"
 #include "Scene/Entity.h"
 #include "Graphics/Renderers/DebugRenderer.h"
-
+#include "Maths/MathsUtilities.h"
 #include "Maths/Transform.h"
 #include "ImGui/ImGuiUtilities.h"
 #include "Utilities/Colour.h"

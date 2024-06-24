@@ -1,4 +1,6 @@
+#ifndef LUMOS_PLATFORM_MACOS
 #include "Precompiled.h"
+#endif
 #include "RigidBody2DComponent.h"
 
 #include <box2d/box2d.h>

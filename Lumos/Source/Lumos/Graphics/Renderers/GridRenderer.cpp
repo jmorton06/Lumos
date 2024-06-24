@@ -1,4 +1,6 @@
+#ifndef LUMOS_PLATFORM_MACOS
 #include "Precompiled.h"
+#endif
 #include "GridRenderer.h"
 #include "Graphics/RHI/Shader.h"
 #include "Graphics/RHI/Framebuffer.h"
@@ -10,7 +12,8 @@
 #include "Graphics/RHI/RenderPass.h"
 #include "Graphics/RHI/Pipeline.h"
 #include "Graphics/RHI/GraphicsContext.h"
-#include "Graphics/GBuffer.h"
+#include "Graphics/RHI/IndexBuffer.h"
+#include "Graphics/RHI/VertexBuffer.h"
 #include "Graphics/Mesh.h"
 #include "Graphics/MeshFactory.h"
 #include "Scene/Scene.h"
@@ -18,8 +21,8 @@
 #include "Graphics/RHI/GPUProfile.h"
 #include "Graphics/Camera/Camera.h"
 #include "Maths/Transform.h"
-#include "Graphics/Renderers/RenderPasses.h"
-#include "Utilities/AssetManager.h"
+#include "Graphics/Renderers/SceneRenderer.h"
+#include "Core/Asset/AssetManager.h"
 #include <entt/entity/registry.hpp>
 
 #include <imgui/imgui.h>
@@ -192,7 +195,7 @@ namespace Lumos
 
             if(m_DepthTexture && m_DepthTexture->GetSamples() == 1)
             {
-                pipelineDesc.depthTarget = reinterpret_cast<Texture*>(m_DepthTexture); // reinterpret_cast<Texture*>(Application::Get().GetRenderPasses()->GetDepthTexture());
+                pipelineDesc.depthTarget = reinterpret_cast<Texture*>(m_DepthTexture); // reinterpret_cast<Texture*>(Application::Get().GetSceneRenderer()->GetDepthTexture());
             }
 
             if(m_RenderTexture)

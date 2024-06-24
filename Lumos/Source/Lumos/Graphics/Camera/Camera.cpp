@@ -1,4 +1,6 @@
+#ifndef LUMOS_PLATFORM_MACOS
 #include "Precompiled.h"
+#endif
 #include "Camera.h"
 #include <glm/gtc/matrix_transform.hpp>
 

@@ -1,4 +1,6 @@
+#ifndef LUMOS_PLATFORM_MACOS
 #include "Precompiled.h"
+#endif
 #include "ALManager.h"
 #include "ALSoundNode.h"
 #include "Graphics/Camera/Camera.h"

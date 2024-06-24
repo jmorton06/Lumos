@@ -1,4 +1,6 @@
+#ifndef LUMOS_PLATFORM_MACOS
 #include "Precompiled.h"
+#endif
 #include "JobSystem.h"
 #include "Maths/MathsUtilities.h"
 #include "Core/DataStructures/TDArray.h"

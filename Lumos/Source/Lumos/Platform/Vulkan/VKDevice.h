@@ -194,13 +194,13 @@ namespace Lumos
             static uint32_t s_GraphicsQueueFamilyIndex;
 
 #if LUMOS_PROFILE && defined(TRACY_ENABLE)
-            std::vector<tracy::VkCtx*> m_TracyContext;
+            TDArray<tracy::VkCtx*> m_TracyContext;
             tracy::VkCtx* m_PresentTracyContext;
 #endif
 
 #ifdef USE_VMA_ALLOCATOR
             VmaAllocator m_Allocator {};
-            std::unordered_map<uint32_t, VmaPool> m_SmallAllocPools;
+            HashMap(uint32_t, VmaPool) m_SmallAllocPools;
 #endif
         };
 

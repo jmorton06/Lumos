@@ -1,4 +1,6 @@
+#ifndef LUMOS_PLATFORM_MACOS
 #include "Precompiled.h"
+#endif
 
 #include "Core/Application.h"
 #include "Core/Version.h"
@@ -386,11 +388,12 @@ namespace Lumos
             vkDestroyPipelineCache(m_Device, m_PipelineCache, VK_NULL_HANDLE);
 
 #ifdef USE_VMA_ALLOCATOR
-            for(auto& pool : m_SmallAllocPools)
+
+            ForHashMapEach(uint32_t, VmaPool, &m_SmallAllocPools, it)
             {
-                vmaDestroyPool(m_Allocator, pool.second);
+                VmaPool value = *it.value;
+                vmaDestroyPool(m_Allocator, value);
             }
-            m_SmallAllocPools.clear();
 
             vmaDestroyAllocator(m_Allocator);
 #endif
@@ -590,7 +593,7 @@ namespace Lumos
             VkCommandBuffer tracyBuffer;
             vkAllocateCommandBuffers(m_Device, &allocInfo, &tracyBuffer);
 
-            m_TracyContext.resize(4);
+            m_TracyContext.Resize(4);
             for(int i = 0; i < 4; i++)
                 m_TracyContext[i] = TracyVkContext(m_PhysicalDevice->GetHandle(), m_Device, m_GraphicsQueue, tracyBuffer);
 
@@ -616,8 +619,9 @@ namespace Lumos
 #ifdef USE_VMA_ALLOCATOR
         VmaPool VKDevice::GetOrCreateSmallAllocPool(uint32_t memTypeIndex)
         {
-            if(m_SmallAllocPools.find(memTypeIndex) != m_SmallAllocPools.end())
-                return m_SmallAllocPools[memTypeIndex];
+            VmaPool pool = VK_NULL_HANDLE;
+            if(HashMapFind(&m_SmallAllocPools, memTypeIndex, &pool))
+                return pool;
 
             LUMOS_LOG_INFO("Creating VMA small objects pool for memory type index {0}", memTypeIndex);
 
@@ -630,9 +634,8 @@ namespace Lumos
             pci.priority               = 0.5f;
             pci.minAllocationAlignment = 0;
             pci.pMemoryAllocateNext    = nullptr;
-            VmaPool pool               = VK_NULL_HANDLE;
             VK_CHECK_RESULT(vmaCreatePool(m_Allocator, &pci, &pool));
-            m_SmallAllocPools[memTypeIndex] = pool;
+            HashMapInsert(&m_SmallAllocPools, memTypeIndex, pool);
             return pool;
         }
 #endif

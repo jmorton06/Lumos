@@ -9,12 +9,14 @@
 #include "Graphics/Material.h"
 #include "Graphics/Sprite.h"
 #include "Graphics/AnimatedSprite.h"
-#include "Utilities/AssetManager.h"
+#include "Core/Asset/AssetManager.h"
 #include "Utilities/StringUtilities.h"
 #include "Scene/Component/ModelComponent.h"
 #include "Scene/Component/Components.h"
 #include "Core/Application.h"
 #include "Physics/LumosPhysicsEngine/RigidBody3D.h"
+#include "Core/Asset/Asset.h"
+#include "Core/Asset/AssetRegistry.h"
 #include <cereal/types/vector.hpp>
 #include <cereal/types/unordered_map.hpp>
 

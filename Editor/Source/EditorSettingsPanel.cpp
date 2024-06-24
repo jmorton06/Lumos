@@ -1,5 +1,6 @@
 #include "EditorSettingsPanel.h"
 #include "Editor.h"
+#include "FileBrowserPanel.h"
 #include <Lumos/Maths/MathsUtilities.h>
 #include <Lumos/Scene/Scene.h>
 #include <Lumos/Core/Version.h>

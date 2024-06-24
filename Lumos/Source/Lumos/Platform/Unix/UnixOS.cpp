@@ -1,4 +1,6 @@
+#ifndef LUMOS_PLATFORM_MACOS
 #include "Precompiled.h"
+#endif
 #include "UnixOS.h"
 #include "Platform/GLFW/GLFWWindow.h"
 #include "Core/CoreSystem.h"

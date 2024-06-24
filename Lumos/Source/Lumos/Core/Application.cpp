@@ -1,4 +1,6 @@
+#ifndef LUMOS_PLATFORM_MACOS
 #include "Precompiled.h"
+#endif
 #include "Application.h"
 
 #include "Scene/Scene.h"
@@ -7,7 +9,7 @@
 
 #include "Graphics/RHI/Renderer.h"
 #include "Graphics/RHI/GraphicsContext.h"
-#include "Graphics/Renderers/RenderPasses.h"
+#include "Graphics/Renderers/SceneRenderer.h"
 #include "Graphics/Camera/Camera.h"
 #include "Graphics/Material.h"
 #include "Graphics/Renderers/DebugRenderer.h"
@@ -28,7 +30,7 @@
 #include "Core/String.h"
 #include "Core/DataStructures/TDArray.h"
 #include "Core/CommandLine.h"
-#include "Utilities/AssetManager.h"
+#include "Core/Asset/AssetManager.h"
 #include "Scripting/Lua/LuaManager.h"
 #include "ImGui/ImGuiManager.h"
 #include "Events/ApplicationEvent.h"
@@ -37,7 +39,7 @@
 #include "Physics/B2PhysicsEngine/B2PhysicsEngine.h"
 #include "Physics/LumosPhysicsEngine/LumosPhysicsEngine.h"
 #include "Embedded/EmbedAsset.h"
-
+#include "Core/Asset/AssetRegistry.h"
 #include "Core/DataStructures/Map.h"
 
 #define SERIALISATION_INCLUDE_ONLY
@@ -211,7 +213,7 @@ namespace Lumos
         m_ImGuiManager->OnInit();
         LUMOS_LOG_INFO("Initialised ImGui Manager");
 
-        m_RenderPasses = CreateUniquePtr<Graphics::RenderPasses>(screenWidth, screenHeight);
+        m_SceneRenderer = CreateUniquePtr<Graphics::SceneRenderer>(screenWidth, screenHeight);
 
         System::JobSystem::Wait(context);
 
@@ -219,7 +221,7 @@ namespace Lumos
 
         Graphics::Material::InitDefaultTexture();
         Graphics::Font::InitDefaultFont();
-        m_RenderPasses->EnableDebugRenderer(true);
+        m_SceneRenderer->EnableDebugRenderer(true);
 
         // updateThread = std::thread(Application::UpdateSystems);
     }
@@ -239,7 +241,7 @@ namespace Lumos
 
         m_AssetManager.reset();
         m_SceneManager.reset();
-        m_RenderPasses.reset();
+        m_SceneRenderer.reset();
         m_SystemManager.reset();
         m_ImGuiManager.reset();
         LuaManager::Release();
@@ -554,10 +556,10 @@ namespace Lumos
         if(!m_SceneManager->GetCurrentScene())
             return;
 
-        if(!m_DisableMainRenderPasses)
+        if(!m_DisableMainSceneRenderer)
         {
-            m_RenderPasses->BeginScene(m_SceneManager->GetCurrentScene());
-            m_RenderPasses->OnRender();
+            m_SceneRenderer->BeginScene(m_SceneManager->GetCurrentScene());
+            m_SceneRenderer->OnRender();
         }
     }
 
@@ -593,8 +595,8 @@ namespace Lumos
         if(e.Handled())
             return;
 
-        if(m_RenderPasses)
-            m_RenderPasses->OnEvent(e);
+        if(m_SceneRenderer)
+            m_SceneRenderer->OnEvent(e);
 
         if(e.Handled())
             return;
@@ -617,7 +619,7 @@ namespace Lumos
     void Application::OnNewScene(Scene* scene)
     {
         LUMOS_PROFILE_FUNCTION();
-        m_RenderPasses->OnNewScene(scene);
+        m_SceneRenderer->OnNewScene(scene);
     }
 
     SharedPtr<AssetManager>& Application::GetAssetManager()
@@ -679,8 +681,8 @@ namespace Lumos
 
         Graphics::Renderer::GetRenderer()->OnResize(width, height);
 
-        if(m_RenderPasses)
-            m_RenderPasses->OnResize(width, height);
+        if(m_SceneRenderer)
+            m_SceneRenderer->OnResize(width, height);
 
         Graphics::Renderer::GetGraphicsContext()->WaitIdle();
 
@@ -723,8 +725,8 @@ namespace Lumos
             return;
         }
         m_Minimized = false;
-        m_RenderPasses->OnResize(width, height);
-        m_RenderPasses->OnEvent(e);
+        m_SceneRenderer->OnResize(width, height);
+        m_SceneRenderer->OnEvent(e);
 
         Graphics::Renderer::GetGraphicsContext()->WaitIdle();
     }
@@ -747,7 +749,7 @@ namespace Lumos
         // Save Asset Registry
         {
             String8 path = PushStr8F(m_FrameArena, "%sAssetRegistry.lmar", m_ProjectSettings.m_ProjectRoot.c_str()); // m_ProjectSettings.m_ProjectRoot + std::string("AssetRegistry.lmar");
-            SerialiseAssetRegistry(path, m_AssetManager->GetAssetRegistry());
+            SerialiseAssetRegistry(path, *m_AssetManager->GetAssetRegistry());
         }
     }
 
@@ -836,7 +838,7 @@ namespace Lumos
                     String8 path = PushStr8F(m_FrameArena, "%sAssetRegistry.lmar", m_ProjectSettings.m_ProjectRoot.c_str());
                     if(FileSystem::FileExists((const char*)path.str))
                     {
-                        DeserialiseAssetRegistry(path, m_AssetManager->GetAssetRegistry());
+                        DeserialiseAssetRegistry(path, *m_AssetManager->GetAssetRegistry());
                     }
                 }
             }

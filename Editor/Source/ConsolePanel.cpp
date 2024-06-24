@@ -255,8 +255,8 @@ namespace Lumos
             {
                 auto& msg = m_MessageBuffer[i];
 
-				if(Filter.IsActive() && !Filter.PassFilter(msg.m_Message.c_str()))
-					continue;
+                if(Filter.IsActive() && !Filter.PassFilter(msg.m_Message.c_str()))
+                    continue;
                 DrawMessage(&msg);
             }
 
