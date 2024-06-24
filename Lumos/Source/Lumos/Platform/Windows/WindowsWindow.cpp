@@ -1,4 +1,6 @@
-#ifndef LUMOS_PLATFORM_MACOS #include "Precompiled.h" #endif
+#ifndef LUMOS_PLATFORM_MACOS
+#include "Precompiled.h"
+#endif
 #define NOMINMAX
 #undef NOGDI
 #include <Windows.h>
