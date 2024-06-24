@@ -19,9 +19,7 @@ project "Lumos"
 
 	removefiles
 	{
-		"Source/Lumos/Platform/**",
-		"Source/Precompiled.h",
-		"Source/Precompiled.cpp"
+		"Source/Lumos/Platform/**"
 	}
 
 	includedirs
@@ -177,6 +175,12 @@ project "Lumos"
 			"Source/Lumos/Platform/Vulkan/*.h",
 			"Source/Lumos/Platform/Vulkan/*.cpp"
 		}
+
+		removefiles
+    	{
+    		"Source/Precompiled.h",
+    		"Source/Precompiled.cpp"
+    	}
 
 		defines
 		{
