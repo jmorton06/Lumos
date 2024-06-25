@@ -1,6 +1,4 @@
-#ifndef LUMOS_PLATFORM_MACOS
 #include "Precompiled.h"
-#endif
 #include "SceneManager.h"
 
 #include "Physics/B2PhysicsEngine/B2PhysicsEngine.h"

@@ -1,6 +1,4 @@
-#ifndef LUMOS_PLATFORM_MACOS
 #include "Precompiled.h"
-#endif
 #include "SerialisationImplementation.h"
 #include <cereal/archives/json.hpp>
 

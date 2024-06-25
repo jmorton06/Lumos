@@ -1,6 +1,4 @@
-#ifndef LUMOS_PLATFORM_MACOS
 #include "Precompiled.h"
-#endif
 #include "ImGuiManager.h"
 #include "Core/OS/Input.h"
 #include "Core/OS/Window.h"

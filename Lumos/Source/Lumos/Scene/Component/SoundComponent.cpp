@@ -1,6 +1,4 @@
-#ifndef LUMOS_PLATFORM_MACOS
 #include "Precompiled.h"
-#endif
 #include "SoundComponent.h"
 #include "Scene/Scene.h"
 #include "Core/Application.h"

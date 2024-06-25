@@ -1,6 +1,4 @@
-#ifndef LUMOS_PLATFORM_MACOS
 #include "Precompiled.h"
-#endif
 #include "Font.h"
 #include "MSDFData.h"
 #include "Core/OS/FileSystem.h"

@@ -1,6 +1,4 @@
-#ifndef LUMOS_PLATFORM_MACOS
 #include "Precompiled.h"
-#endif
 #include "Ray.h"
 #include "BoundingBox.h"
 #include "Maths/MathsUtilities.h"

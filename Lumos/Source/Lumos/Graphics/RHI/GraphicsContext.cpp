@@ -1,6 +1,4 @@
-#ifndef LUMOS_PLATFORM_MACOS
 #include "Precompiled.h"
-#endif
 #include "GraphicsContext.h"
 
 #ifdef LUMOS_RENDER_API_OPENGL

@@ -1,6 +1,4 @@
-#ifndef LUMOS_PLATFORM_MACOS
 #include "Precompiled.h"
-#endif
 #include "Maths/MathsUtilities.h"
 #include <glm/ext/vector_float3.hpp>
 #include <glm/gtx/norm.hpp>

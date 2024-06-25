@@ -1,6 +1,4 @@
-#ifndef LUMOS_PLATFORM_MACOS
 #include "Precompiled.h"
-#endif
 #include "PhysicsLua.h"
 #include "Scene/Component/RigidBody2DComponent.h"
 #include "Scene/Component/RigidBody3DComponent.h"

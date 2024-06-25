@@ -1,6 +1,4 @@
-#ifndef LUMOS_PLATFORM_MACOS
 #include "Precompiled.h"
-#endif
 #include "Model.h"
 #include "Mesh.h"
 #include "Material.h"

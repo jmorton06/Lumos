@@ -1,6 +1,5 @@
 #pragma once
 
-#ifndef LUMOS_PLATFORM_MACOS
 #ifdef __cplusplus
 #include <algorithm>
 #include <functional>
@@ -36,10 +35,6 @@
 #include <cereal/cereal.hpp>
 #include <imgui/imgui.h>
 
-#ifdef LUMOS_PLATFORM_WINDOWS
-#include <Windows.h>
-#endif
-
 #ifdef LUMOS_RENDER_API_VULKAN
 #include "Platform/Vulkan/VK.h"
 #endif
@@ -49,5 +44,4 @@
 #endif
 
 #include <sol/sol.hpp>
-#endif
 #endif

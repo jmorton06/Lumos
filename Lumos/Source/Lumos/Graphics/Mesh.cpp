@@ -1,6 +1,4 @@
-#ifndef LUMOS_PLATFORM_MACOS
 #include "Precompiled.h"
-#endif
 #include "Mesh.h"
 #include "RHI/Renderer.h"
 #include "RHI/VertexBuffer.h"

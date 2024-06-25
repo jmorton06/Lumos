@@ -1,6 +1,4 @@
-#ifndef LUMOS_PLATFORM_MACOS
 #include "Precompiled.h"
-#endif
 #include "AssetManager.h"
 #include "AssetRegistry.h"
 #include "Core/Application.h"

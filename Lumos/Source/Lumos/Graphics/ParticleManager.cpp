@@ -1,6 +1,4 @@
-#ifndef LUMOS_PLATFORM_MACOS
 #include "Precompiled.h"
-#endif
 #include "ParticleManager.h"
 #include "Maths/Random.h"
 #include "Maths/MathsUtilities.h"

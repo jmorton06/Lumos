@@ -1,6 +1,4 @@
-#ifndef LUMOS_PLATFORM_MACOS
 #include "Precompiled.h"
-#endif
 
 #if defined(LUMOS_PLATFORM_MACOS)
 #define GLFW_EXPOSE_NATIVE_COCOA

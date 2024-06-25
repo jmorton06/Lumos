@@ -1,6 +1,4 @@
-#ifndef LUMOS_PLATFORM_MACOS
 #include "Precompiled.h"
-#endif
 #include "RenderPass.h"
 #include "Core/Engine.h"
 #include "Utilities/CombineHash.h"

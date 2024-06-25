@@ -1,6 +1,4 @@
-#ifndef LUMOS_PLATFORM_MACOS
 #include "Precompiled.h"
-#endif
 #include "Environment.h"
 #include "Core/Application.h"
 #include "Renderers/SceneRenderer.h"

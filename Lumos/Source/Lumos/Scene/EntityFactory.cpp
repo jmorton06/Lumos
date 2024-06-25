@@ -1,6 +1,4 @@
-#ifndef LUMOS_PLATFORM_MACOS
 #include "Precompiled.h"
-#endif
 #include "EntityFactory.h"
 #include "Physics/LumosPhysicsEngine/CollisionShapes/SphereCollisionShape.h"
 #include "Physics/LumosPhysicsEngine/CollisionShapes/PyramidCollisionShape.h"

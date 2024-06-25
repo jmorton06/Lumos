@@ -1,6 +1,4 @@
-#ifndef LUMOS_PLATFORM_MACOS
 #include "Precompiled.h"
-#endif
 #include "WindowsOS.h"
 #include "WindowsPower.h"
 #include "WindowsWindow.h"

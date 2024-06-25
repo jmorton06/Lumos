@@ -1,6 +1,4 @@
-#ifndef LUMOS_PLATFORM_MACOS
 #include "Precompiled.h"
-#endif
 #include "OS.h"
 
 #if defined(LUMOS_PLATFORM_WINDOWS)

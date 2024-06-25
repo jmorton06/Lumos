@@ -1,6 +1,4 @@
-#ifndef LUMOS_PLATFORM_MACOS
 #include "Precompiled.h"
-#endif
 #include "StbAllocator.h"
 
 #define STB_LEAKCHECK_IMPLEMENTATION

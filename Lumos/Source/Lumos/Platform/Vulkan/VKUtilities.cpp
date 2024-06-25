@@ -1,6 +1,4 @@
-#ifndef LUMOS_PLATFORM_MACOS
 #include "Precompiled.h"
-#endif
 #include "VKUtilities.h"
 #include "VKDevice.h"
 #include "VKShader.h"

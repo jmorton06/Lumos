@@ -1,6 +1,4 @@
-#ifndef LUMOS_PLATFORM_MACOS
 #include "Precompiled.h"
-#endif
 #include "Maths/Frustum.h"
 #include "Maths/BoundingBox.h"
 #include "Maths/BoundingSphere.h"

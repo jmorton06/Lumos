@@ -1,6 +1,4 @@
-#ifndef LUMOS_PLATFORM_MACOS
 #include "Precompiled.h"
-#endif
 
 #pragma warning(push, 0)
 #if LUMOS_PROFILE

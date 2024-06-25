@@ -1,6 +1,4 @@
-#ifndef LUMOS_PLATFORM_MACOS
 #include "Precompiled.h"
-#endif
 #include "LuaManager.h"
 #include "Maths/Transform.h"
 #include "Core/OS/Window.h"

@@ -1,6 +1,4 @@
-#ifndef LUMOS_PLATFORM_MACOS
 #include "Precompiled.h"
-#endif
 #include "IRenderer.h"
 
 // #include "Graphics/RHI/Shader.h"

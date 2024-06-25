@@ -1,6 +1,4 @@
-#ifndef LUMOS_PLATFORM_MACOS
 #include "Precompiled.h"
-#endif
 #include "Transform.h"
 #include <glm/gtx/matrix_decompose.hpp>
 

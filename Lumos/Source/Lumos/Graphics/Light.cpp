@@ -1,6 +1,4 @@
-#ifndef LUMOS_PLATFORM_MACOS
 #include "Precompiled.h"
-#endif
 #include "Light.h"
 
 #include "ImGui/ImGuiUtilities.h"

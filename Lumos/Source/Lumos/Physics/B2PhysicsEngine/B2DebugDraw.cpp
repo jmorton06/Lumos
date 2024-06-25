@@ -1,6 +1,4 @@
-#ifndef LUMOS_PLATFORM_MACOS
 #include "Precompiled.h"
-#endif
 #include "B2DebugDraw.h"
 
 #include "Graphics/Renderers/DebugRenderer.h"
