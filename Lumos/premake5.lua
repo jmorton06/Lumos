@@ -220,7 +220,7 @@ project "Lumos"
 			"-fdiagnostics-absolute-paths",
 		}
 
-		pchheader "Source/Precompiled.h"
+		pchheader "Source/Precompiled.pch"
 		pchsource "Source/Precompiled.cpp"
 
 		filter 'files:External/**.cpp'

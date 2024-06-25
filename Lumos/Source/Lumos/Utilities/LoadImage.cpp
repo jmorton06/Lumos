@@ -1,6 +1,4 @@
-#ifndef LUMOS_PLATFORM_MACOS
 #include "Precompiled.h"
-#endif
 #include "LoadImage.h"
 
 #include "Core/OS/FileSystem.h"

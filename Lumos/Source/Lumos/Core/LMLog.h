@@ -14,10 +14,6 @@
 #endif
 #endif
 
-#ifndef FMT_HEADER_ONLY
-#define FMT_HEADER_ONLY
-#endif
-
 #include <spdlog/spdlog.h>
 #include <spdlog/fmt/ostr.h>
 

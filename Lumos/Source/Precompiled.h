@@ -1,5 +1,6 @@
 #pragma once
 
+#ifndef LUMOS_PLATFORM_MACOS
 #ifdef __cplusplus
 #include <algorithm>
 #include <functional>
@@ -48,4 +49,5 @@
 #endif
 
 #include <sol/sol.hpp>
+#endif
 #endif

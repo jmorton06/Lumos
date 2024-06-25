@@ -1,6 +1,4 @@
-#ifndef LUMOS_PLATFORM_MACOS
 #include "Precompiled.h"
-#endif
 #include "GLSwapChain.h"
 #include "GLCommandBuffer.h"
 #include "Graphics/RHI/Framebuffer.h"

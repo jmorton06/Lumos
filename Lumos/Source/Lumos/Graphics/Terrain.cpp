@@ -1,6 +1,4 @@
-#ifndef LUMOS_PLATFORM_MACOS
 #include "Precompiled.h"
-#endif
 #include "Terrain.h"
 #include "Maths/BoundingBox.h"
 #include "Graphics/RHI/IndexBuffer.h"

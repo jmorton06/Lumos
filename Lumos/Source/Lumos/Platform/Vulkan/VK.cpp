@@ -1,6 +1,4 @@
-#ifndef LUMOS_PLATFORM_MACOS
 #include "Precompiled.h"
-#endif
 #include "VK.h"
 #ifdef USE_VMA_ALLOCATOR
 #define VMA_IMPLEMENTATION

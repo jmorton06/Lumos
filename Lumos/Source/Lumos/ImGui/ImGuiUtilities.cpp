@@ -1,6 +1,4 @@
-#ifndef LUMOS_PLATFORM_MACOS
 #include "Precompiled.h"
-#endif
 #include "ImGui/ImGuiUtilities.h"
 #include "Graphics/RHI/Renderer.h"
 #include "Graphics/RHI/Texture.h"

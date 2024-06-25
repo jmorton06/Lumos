@@ -1,6 +1,4 @@
-#ifndef LUMOS_PLATFORM_MACOS
 #include "Precompiled.h"
-#endif
 #include "CoreSystem.h"
 #include "OS/FileSystem.h"
 #include "JobSystem.h"

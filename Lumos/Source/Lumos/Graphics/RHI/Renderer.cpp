@@ -1,7 +1,5 @@
 
-#ifndef LUMOS_PLATFORM_MACOS
 #include "Precompiled.h"
-#endif
 #include "Renderer.h"
 
 #include "Graphics/Mesh.h"

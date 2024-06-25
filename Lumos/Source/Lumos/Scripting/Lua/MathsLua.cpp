@@ -1,6 +1,4 @@
-#ifndef LUMOS_PLATFORM_MACOS
 #include "Precompiled.h"
-#endif
 #include "MathsLua.h"
 #include "Maths/Transform.h"
 #include <sol/sol.hpp>

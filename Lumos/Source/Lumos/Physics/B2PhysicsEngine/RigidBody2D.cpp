@@ -1,6 +1,4 @@
-#ifndef LUMOS_PLATFORM_MACOS
 #include "Precompiled.h"
-#endif
 #include "RigidBody2D.h"
 #include "B2PhysicsEngine.h"
 #include "Core/Application.h"

@@ -1,6 +1,4 @@
-#ifndef LUMOS_PLATFORM_MACOS
 #include "Precompiled.h"
-#endif
 #include "Skeleton.h"
 #include <glm/gtc/type_ptr.hpp>
 

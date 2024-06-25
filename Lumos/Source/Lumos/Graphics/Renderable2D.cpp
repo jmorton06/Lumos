@@ -1,6 +1,4 @@
-#ifndef LUMOS_PLATFORM_MACOS
 #include "Precompiled.h"
-#endif
 #include "Renderable2D.h"
 #include <glm/ext/vector_float2.hpp>
 

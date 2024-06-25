@@ -1,6 +1,4 @@
-#ifndef LUMOS_PLATFORM_MACOS
 #include "Precompiled.h"
-#endif
 #include "GridRenderer.h"
 #include "Graphics/RHI/Shader.h"
 #include "Graphics/RHI/Framebuffer.h"

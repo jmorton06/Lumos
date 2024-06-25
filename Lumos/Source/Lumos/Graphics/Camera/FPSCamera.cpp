@@ -1,6 +1,4 @@
-#ifndef LUMOS_PLATFORM_MACOS
 #include "Precompiled.h"
-#endif
 #include "FPSCamera.h"
 #include "Core/Application.h"
 #include "Core/OS/Input.h"

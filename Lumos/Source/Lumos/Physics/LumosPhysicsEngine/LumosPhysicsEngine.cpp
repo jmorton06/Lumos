@@ -1,6 +1,4 @@
-#ifndef LUMOS_PLATFORM_MACOS
 #include "Precompiled.h"
-#endif
 #include "LumosPhysicsEngine.h"
 #include "RigidBody3D.h"
 #include "Narrowphase/CollisionDetection.h"

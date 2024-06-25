@@ -1,6 +1,4 @@
-#ifndef LUMOS_PLATFORM_MACOS
 #include "Precompiled.h"
-#endif
 #include "VKCommandBuffer.h"
 #include "VKDevice.h"
 #include "VKCommandPool.h"
