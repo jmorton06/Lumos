@@ -8,7 +8,7 @@
 #include "Core/Application.h"
 #include "Core/OS/Window.h"
 
-#include <ImGui/imgui.h>
+#include <imgui/imgui.h>
 
 #define HashUIName(Name) Lumos::StringUtilities::BasicHashFromString(Str8C(Name))
 #define HashUIStr8Name(Name) Lumos::StringUtilities::BasicHashFromString(Name)
