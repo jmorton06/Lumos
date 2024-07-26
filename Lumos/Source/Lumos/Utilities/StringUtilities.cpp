@@ -87,18 +87,18 @@ namespace Lumos
             return false;
         }
 
-        std::vector<std::string> SplitString(const std::string& string, const std::string& delimiters)
+        TDArray<std::string> SplitString(const std::string& string, const std::string& delimiters)
         {
             size_t start = 0;
             size_t end   = string.find_first_of(delimiters);
 
-            std::vector<std::string> result;
+            TDArray<std::string> result;
 
             while(end <= std::string::npos)
             {
                 std::string token = string.substr(start, end - start);
                 if(!token.empty())
-                    result.push_back(token);
+                    result.PushBack(token);
 
                 if(end == std::string::npos)
                     break;
@@ -110,17 +110,17 @@ namespace Lumos
             return result;
         }
 
-        std::vector<std::string> SplitString(const std::string& string, const char delimiter)
+        TDArray<std::string> SplitString(const std::string& string, const char delimiter)
         {
             return SplitString(string, std::string(1, delimiter));
         }
 
-        std::vector<std::string> Tokenize(const std::string& string)
+        TDArray<std::string> Tokenize(const std::string& string)
         {
             return SplitString(string, " \t\n");
         }
 
-        std::vector<std::string> GetLines(const std::string& string)
+        TDArray<std::string> GetLines(const std::string& string)
         {
             return SplitString(string, "\n");
         }

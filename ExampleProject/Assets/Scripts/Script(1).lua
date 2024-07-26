@@ -28,7 +28,7 @@ if ((hat & 2) ~= 0) then
 if ((hat & 8) ~= 0) then
 		return -1.0;
 	end
-	
+
 	 --Analogue stick
 	return GetMovementAxis(0, deadzone);
 end
@@ -40,11 +40,11 @@ end
 if ((hat & 4) ~= 0) then
 		return 1.0;
 	end
-		
+
 if ((hat & 1) ~= 0) then
 		return -1.0;
 	end
-	
+
 	 --Analogue stick
 	return GetMovementAxis(1, deadzone);
 end
@@ -77,9 +77,9 @@ if Input.GetKeyPressed( Key.Space ) or Input.IsControllerButtonPressed(0,0) and 
 phys:GetRigidBody():SetLinearVelocity(phys:GetRigidBody():GetLinearVelocity() + Vector3.new(0.0,7.0,0.0))
 jumpTimer =  0.0
 elseif Input.GetKeyHeld( Key.W ) then
-movementY = -1.0
-elseif Input.GetKeyHeld( Key.S ) then
 movementY = 1.0
+elseif Input.GetKeyHeld( Key.S ) then
+movementY = -1.0
 end
 
 if Input.GetKeyHeld( Key.A ) then
@@ -93,9 +93,9 @@ movement.y = 0.0
 
 if(movement:Length() > 0.0) then
 movement:Normalise()
-local velocity = movement * speed 
+local velocity = movement * speed
 
-local currentVelocity = phys:GetRigidBody():GetLinearVelocity() 
+local currentVelocity = phys:GetRigidBody():GetLinearVelocity()
 velocity.y  = currentVelocity.y
 phys:GetRigidBody():SetLinearVelocity(velocity)
 end
@@ -104,25 +104,3 @@ end
 
 function OnCleanUp()
 end
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

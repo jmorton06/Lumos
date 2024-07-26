@@ -1,6 +1,6 @@
 #pragma once
 #include "Scene/Serialisation/Serialisation.h"
-#include <glm/ext/vector_float4.hpp>
+#include "Maths/Vector4.h"
 
 namespace Lumos
 {
@@ -84,8 +84,8 @@ namespace Lumos
 
             void SetMode(uint8_t mode) { m_Mode = mode; }
 
-            const glm::vec4& GetParameters() const { return m_Parameters; }
-            void SetParameters(const glm::vec4& param) { m_Parameters = param; }
+            const Vec4& GetParameters() const { return m_Parameters; }
+            void SetParameters(const Vec4& param) { m_Parameters = param; }
 
         private:
             SharedPtr<TextureCube> m_Environmnet;
@@ -99,7 +99,7 @@ namespace Lumos
             std::string m_FilePath;
             std::string m_FileType;
             uint8_t m_Mode = 0;
-            glm::vec4 m_Parameters;
+            Vec4 m_Parameters;
         };
     }
 }

@@ -8,8 +8,8 @@ namespace Lumos
 
     struct Buffer
     {
-        uint8_t* Data;
-        uint32_t Size;
+        uint8_t* Data = nullptr;
+        uint32_t Size = 0;
 
         Buffer()
             : Data(nullptr)
@@ -64,7 +64,7 @@ namespace Lumos
 
         uint8_t* ReadBytes(uint32_t size, uint32_t offset)
         {
-            LUMOS_ASSERT(offset + size <= Size, "Index out of bounds");
+            ASSERT(offset + size <= Size, "Index out of bounds");
             uint8_t* buffer = new uint8_t[size];
             memcpy(buffer, (uint8_t*)Data + offset, size);
             return buffer;
@@ -72,7 +72,7 @@ namespace Lumos
 
         void Write(void* data, uint32_t size, uint32_t offset = 0)
         {
-            LUMOS_ASSERT(offset + size <= Size, "Index out of bounds");
+            ASSERT(offset + size <= Size, "Index out of bounds");
             memcpy((uint8_t*)Data + offset, data, size);
         }
 

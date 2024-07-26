@@ -4,9 +4,11 @@
 #include "Scene/SystemManager.h"
 #include "Core/OS/FileSystem.h"
 #include "Core/QualitySettings.h"
+#include "Maths/MathsFwd.h"
+#include "Maths/Vector2.h"
 
-#include <glm/fwd.hpp>
 #include <thread>
+#include <functional>
 
 namespace Lumos
 {
@@ -97,7 +99,7 @@ namespace Lumos
         void SetDisableMainSceneRenderer(bool disable) { m_DisableMainSceneRenderer = disable; }
         bool GetSceneActive() const { return m_SceneActive; }
 
-        glm::vec2 GetWindowSize() const;
+        Vec2 GetWindowSize() const;
         float GetWindowDPI() const;
 
         SharedPtr<AssetManager>& GetAssetManager();
@@ -162,6 +164,8 @@ namespace Lumos
             }
         }
 
+        void TestUI();
+
         virtual void Serialise();
         virtual void Deserialise();
 
@@ -198,6 +202,7 @@ namespace Lumos
         Arena* GetFrameArena() const { return m_FrameArena; }
         static void UpdateSystems();
 
+        Vec2 m_SceneViewPosition; // For Editor
     protected:
         ProjectSettings m_ProjectSettings;
         RenderConfig m_RenderConfig;
@@ -216,8 +221,9 @@ namespace Lumos
         bool m_SceneActive              = true;
         bool m_DisableMainSceneRenderer = false;
 
-        uint32_t m_SceneViewWidth   = 0;
-        uint32_t m_SceneViewHeight  = 0;
+        uint32_t m_SceneViewWidth  = 0;
+        uint32_t m_SceneViewHeight = 0;
+
         bool m_SceneViewSizeUpdated = false;
         bool m_RenderDocEnabled     = false;
 
@@ -240,11 +246,12 @@ namespace Lumos
 
         std::thread m_UpdateThread;
 
-        std::vector<std::function<void()>> m_MainThreadQueue;
+        TDArray<std::function<void()>> m_MainThreadQueue;
         std::mutex m_MainThreadQueueMutex;
 
         Arena* m_FrameArena;
         Arena* m_Arena;
+        Arena* m_UIArena;
 
         QualitySettings m_QualitySettings;
 

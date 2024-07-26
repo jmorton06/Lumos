@@ -1,6 +1,6 @@
 #pragma once
-#include <glm/ext/vector_float2.hpp>
-#include <glm/ext/vector_float3.hpp>
+#include "Maths/Vector2.h"
+#include "Maths/Vector3.h"
 
 namespace Lumos
 {
@@ -24,24 +24,24 @@ namespace Lumos
 
         void SetMouseSensitivity(float value) { m_MouseSensitivity = value; }
 
-        const glm::vec3& GetVelocity() const { return m_Velocity; }
+        const Vec3& GetVelocity() const { return m_Velocity; }
 
         void SetCamera(Camera* camera) { m_Camera = camera; }
 
     protected:
-        glm::vec3 m_Velocity;
-        glm::vec2 m_RotateVelocity;
-        glm::vec2 m_ArcRotateVelocity;
-        glm::vec3 m_FocalPoint;
+        Vec3 m_Velocity;
+        Vec2 m_RotateVelocity;
+        Vec2 m_ArcRotateVelocity;
+        Vec3 m_FocalPoint;
 
         float m_ZoomVelocity = 0.0f;
         float m_CameraSpeed  = 0.0f;
         float m_Distance     = 0.0f;
         float m_Zoom         = 1.0f;
 
-        glm::vec2 m_ProjectionOffset  = glm::vec2(0.0f, 0.0f);
-        glm::vec2 m_PreviousCurserPos = glm::vec2(0.0f, 0.0f);
-        float m_MouseSensitivity      = 0.1f;
+        Vec2 m_ProjectionOffset  = Vec2(0.0f, 0.0f);
+        Vec2 m_PreviousCurserPos = Vec2(0.0f, 0.0f);
+        float m_MouseSensitivity = 0.1f;
 
         float m_ZoomDampeningFactor   = 0.00001f;
         float m_DampeningFactor       = 0.00001f;

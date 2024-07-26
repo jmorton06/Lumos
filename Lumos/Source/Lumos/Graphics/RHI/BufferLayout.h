@@ -1,9 +1,9 @@
 #pragma once
 
 #include "DescriptorSet.h"
-#include <glm/ext/vector_float2.hpp>
-#include <glm/ext/vector_float3.hpp>
-#include <glm/ext/vector_float4.hpp>
+#include "Maths/Vector2.h"
+#include "Maths/Vector3.h"
+#include "Maths/Vector4.h"
 
 namespace Lumos
 {
@@ -21,7 +21,7 @@ namespace Lumos
         {
         private:
             uint32_t m_Size;
-            std::vector<BufferElement> m_Layout;
+            TDArray<BufferElement> m_Layout;
 
         public:
             BufferLayout();
@@ -29,10 +29,10 @@ namespace Lumos
             template <typename T>
             void Push(const std::string& name, bool Normalised = false)
             {
-                LUMOS_ASSERT(false, "Unkown type!");
+                ASSERT(false, "Unkown type!");
             }
 
-            inline const std::vector<BufferElement>& GetLayout() const
+            inline const TDArray<BufferElement>& GetLayout() const
             {
                 return m_Layout;
             }
@@ -52,10 +52,10 @@ namespace Lumos
         template <>
         void LUMOS_EXPORT BufferLayout::Push<uint8_t>(const std::string& name, bool Normalised);
         template <>
-        void LUMOS_EXPORT BufferLayout::Push<glm::vec2>(const std::string& name, bool Normalised);
+        void LUMOS_EXPORT BufferLayout::Push<Vec2>(const std::string& name, bool Normalised);
         template <>
-        void LUMOS_EXPORT BufferLayout::Push<glm::vec3>(const std::string& name, bool Normalised);
+        void LUMOS_EXPORT BufferLayout::Push<Vec3>(const std::string& name, bool Normalised);
         template <>
-        void LUMOS_EXPORT BufferLayout::Push<glm::vec4>(const std::string& name, bool Normalised);
+        void LUMOS_EXPORT BufferLayout::Push<Vec4>(const std::string& name, bool Normalised);
     }
 }

@@ -6,7 +6,7 @@
 #include "Core/OS/KeyCodes.h"
 #include "Core/DataStructures/TArray.h"
 #include "Core/DataStructures/Map.h"
-#include <glm/ext/vector_float2.hpp>
+#include "Maths/Vector2.h"
 
 #define MAX_KEYS 1024
 #define MAX_BUTTONS 32
@@ -70,8 +70,8 @@ namespace Lumos
         void SetMouseOnScreen(bool onScreen) { m_MouseOnScreen = onScreen; }
         bool GetMouseOnScreen() const { return m_MouseOnScreen; }
 
-        void StoreMousePosition(float xpos, float ypos) { m_MousePosition = glm::vec2(float(xpos), float(ypos)); }
-        const glm::vec2& GetMousePosition() const { return m_MousePosition; }
+        void StoreMousePosition(float xpos, float ypos) { m_MousePosition = Vec2(float(xpos), float(ypos)); }
+        const Vec2& GetMousePosition() const { return m_MousePosition; }
 
         void SetScrollOffset(float offset) { m_ScrollOffset = offset; }
         float GetScrollOffset() const { return m_ScrollOffset; }
@@ -88,7 +88,7 @@ namespace Lumos
 
         // Controllers
         bool IsControllerPresent(int id);
-        std::vector<int> GetConnectedControllerIDs();
+        TDArray<int> GetConnectedControllerIDs();
         Controller* GetController(int id);
         Controller* GetOrAddController(int id);
 
@@ -120,7 +120,7 @@ namespace Lumos
         bool m_MouseOnScreen;
         MouseMode m_MouseMode;
 
-        glm::vec2 m_MousePosition;
+        Vec2 m_MousePosition;
 
         HashMap(int, Controller) m_Controllers;
     };

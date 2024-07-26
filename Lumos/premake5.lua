@@ -44,7 +44,6 @@ project "Lumos"
 		"%{IncludeDir.vulkan}",
 		"%{IncludeDir.external}",
 		"%{IncludeDir.External}",
-		"%{IncludeDir.spdlog}",
 		"%{IncludeDir.freetype}",
 		"%{IncludeDir.SpirvCross}",
 		"%{IncludeDir.cereal}",
@@ -62,7 +61,6 @@ project "Lumos"
 		"imgui",
 		"freetype",
 		"SpirvCross",
-		"spdlog",
 		"meshoptimizer",
 		"msdf-atlas-gen",
 		"ozz_base",
@@ -75,9 +73,6 @@ project "Lumos"
 		"LUMOS_ENGINE",
 		"FREEIMAGE_LIB",
 		"IMGUI_USER_CONFIG=\"Source/Lumos/ImGui/ImConfig.h\"",
-		"SPDLOG_COMPILED_LIB",
-		"GLM_FORCE_INTRINSICS",
-		"GLM_FORCE_DEPTH_ZERO_TO_ONE"
 	}
 
 	filter "options:time-trace"
@@ -85,7 +80,7 @@ project "Lumos"
 		linkoptions {"-ftime-trace"}
 
 	filter 'architecture:x86_64'
-		defines { "USE_VMA_ALLOCATOR"}
+		defines { "USE_VMA_ALLOCATOR", "LUMOS_SSE" }
 
 	filter "system:windows"
 		cppdialect "C++17"
@@ -169,9 +164,6 @@ project "Lumos"
 			"Source/Lumos/Platform/OpenAL/*.h",
 			"Source/Lumos/Platform/OpenAL/*.cpp",
 
-			"Source/Lumos/Platform/OpenGL/*.h",
-			"Source/Lumos/Platform/OpenGL/*.cpp",
-
 			"Source/Lumos/Platform/Vulkan/*.h",
 			"Source/Lumos/Platform/Vulkan/*.cpp"
 		}
@@ -186,7 +178,6 @@ project "Lumos"
 		{
 			"LUMOS_PLATFORM_MACOS",
 			"LUMOS_PLATFORM_UNIX",
-			"LUMOS_RENDER_API_OPENGL",
 			"LUMOS_RENDER_API_VULKAN",
 			"VK_USE_PLATFORM_METAL_EXT",
 			"LUMOS_IMGUI",

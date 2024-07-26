@@ -1,6 +1,5 @@
 #pragma once
 #include "Core/OS/Memory.h"
-#include <utility> // for std::move
 
 namespace Lumos
 {
@@ -134,7 +133,7 @@ namespace Lumos
 
         for(size_t i = 0; i < m_Size; ++i)
         {
-            m_Data[i] = std::move(other.m_Data[i]);
+            m_Data[i] = Move(other.m_Data[i]);
         }
         other.m_Size = 0;
     }
@@ -172,7 +171,7 @@ namespace Lumos
 
             for(size_t i = 0; i < m_Size; ++i)
             {
-                m_Data[i] = std::move(other.m_Data[i]);
+                m_Data[i] = Move(other.m_Data[i]);
             }
             other.m_Size = 0;
         }
@@ -183,14 +182,14 @@ namespace Lumos
     template <class T, size_t _Size>
     T& TArray<T, _Size>::operator[](size_t index)
     {
-        LUMOS_ASSERT(index < m_Size, "Index must be less than array's size");
+        ASSERT(index < m_Size, "Index must be less than array's size");
         return m_Data[index];
     }
 
     template <class T, size_t _Size>
     const T& TArray<T, _Size>::operator[](size_t index) const
     {
-        LUMOS_ASSERT(index < m_Size, "Index must be less than array's size");
+        ASSERT(index < m_Size, "Index must be less than array's size");
         return m_Data[index];
     }
 

@@ -6,11 +6,10 @@
 #include "Maths/MathsUtilities.h"
 #include "Graphics/RHI/GraphicsContext.h"
 
-#include <glm/ext/vector_float2.hpp>
-#include <glm/ext/vector_float3.hpp>
-#include <glm/ext/vector_float4.hpp>
-#define GLM_ENABLE_EXPERIMENTAL
-#include <glm/gtx/quaternion.hpp>
+#include "Maths/Vector2.h"
+#include "Maths/Vector3.h"
+#include "Maths/Vector4.h"
+#include "Maths/Quaternion.h"
 
 namespace Lumos
 {
@@ -20,21 +19,21 @@ namespace Lumos
         {
             LUMOS_PROFILE_FUNCTION();
 
-            std::vector<Vertex> data(4);
+            TDArray<Vertex> data(4);
 
-            data[0].Position  = glm::vec3(x, y, 0.0f);
-            data[0].TexCoords = glm::vec2(0.0f, 1.0f);
+            data[0].Position  = Vec3(x, y, 0.0f);
+            data[0].TexCoords = Vec2(0.0f, 1.0f);
 
-            data[1].Position  = glm::vec3(x + width, y, 0.0f);
-            data[1].TexCoords = glm::vec2(0, 0);
+            data[1].Position  = Vec3(x + width, y, 0.0f);
+            data[1].TexCoords = Vec2(0, 0);
 
-            data[2].Position  = glm::vec3(x + width, y + height, 0.0f);
-            data[2].TexCoords = glm::vec2(1, 0);
+            data[2].Position  = Vec3(x + width, y + height, 0.0f);
+            data[2].TexCoords = Vec2(1, 0);
 
-            data[3].Position  = glm::vec3(x, y + height, 0.0f);
-            data[3].TexCoords = glm::vec2(1, 1);
+            data[3].Position  = Vec3(x, y + height, 0.0f);
+            data[3].TexCoords = Vec2(1, 1);
 
-            std::vector<uint32_t> indices = {
+            TDArray<uint32_t> indices = {
                 0,
                 1,
                 2,
@@ -45,7 +44,7 @@ namespace Lumos
             return new Mesh(indices, data);
         }
 
-        Mesh* CreateQuad(const glm::vec2& position, const glm::vec2& size)
+        Mesh* CreateQuad(const Vec2& position, const Vec2& size)
         {
             return CreateQuad(position.x, position.y, size.x, size.y);
         }
@@ -53,32 +52,32 @@ namespace Lumos
         Mesh* CreateQuad()
         {
             LUMOS_PROFILE_FUNCTION();
-            std::vector<Vertex> data(4);
+            TDArray<Vertex> data(4);
 
-            data[0].Position  = glm::vec3(-1.0f, -1.0f, 0.0f);
-            data[0].TexCoords = glm::vec2(0.0f, 0.0f);
-            data[0].Colours   = glm::vec4(0.0f);
+            data[0].Position  = Vec3(-1.0f, -1.0f, 0.0f);
+            data[0].TexCoords = Vec2(0.0f, 0.0f);
+            data[0].Colours   = Vec4(0.0f);
 
-            data[1].Position  = glm::vec3(1.0f, -1.0f, 0.0f);
-            data[1].Colours   = glm::vec4(0.0f);
-            data[1].TexCoords = glm::vec2(1.0f, 0.0f);
+            data[1].Position  = Vec3(1.0f, -1.0f, 0.0f);
+            data[1].Colours   = Vec4(0.0f);
+            data[1].TexCoords = Vec2(1.0f, 0.0f);
 
-            data[2].Position  = glm::vec3(1.0f, 1.0f, 0.0f);
-            data[2].Colours   = glm::vec4(0.0f);
-            data[2].TexCoords = glm::vec2(1.0f, 1.0f);
+            data[2].Position  = Vec3(1.0f, 1.0f, 0.0f);
+            data[2].Colours   = Vec4(0.0f);
+            data[2].TexCoords = Vec2(1.0f, 1.0f);
 
-            data[3].Position  = glm::vec3(-1.0f, 1.0f, 0.0f);
-            data[3].Colours   = glm::vec4(0.0f);
-            data[3].TexCoords = glm::vec2(0.0f, 1.0f);
+            data[3].Position  = Vec3(-1.0f, 1.0f, 0.0f);
+            data[3].Colours   = Vec4(0.0f);
+            data[3].TexCoords = Vec2(0.0f, 1.0f);
 
-            std::vector<uint32_t> indices = {
+            TDArray<uint32_t> indices = TDArray<uint32_t>({
                 0,
                 1,
                 2,
                 2,
                 3,
                 0,
-            };
+            });
 
             return new Mesh(indices, data);
         }
@@ -93,126 +92,124 @@ namespace Lumos
             //  |/      |/
             //  v2------v3
             LUMOS_PROFILE_FUNCTION();
-            std::vector<Vertex> data(24);
+            TDArray<Vertex> data(24);
 
-            data[0].Position = glm::vec3(0.5f, 0.5f, 0.5f);
-            data[0].Colours  = glm::vec4(0.0f);
-            data[0].Normal   = glm::vec3(0.0f, 0.0f, 1.0f);
+            data[0].Position = Vec3(0.5f, 0.5f, 0.5f);
+            data[0].Colours  = Vec4(0.0f);
+            data[0].Normal   = Vec3(0.0f, 0.0f, 1.0f);
 
-            data[1].Position = glm::vec3(-0.5f, 0.5f, 0.5f);
-            data[1].Colours  = glm::vec4(0.0f);
-            data[1].Normal   = glm::vec3(0.0f, 0.0f, 1.0f);
+            data[1].Position = Vec3(-0.5f, 0.5f, 0.5f);
+            data[1].Colours  = Vec4(0.0f);
+            data[1].Normal   = Vec3(0.0f, 0.0f, 1.0f);
 
-            data[2].Position = glm::vec3(-0.5f, -0.5f, 0.5f);
-            data[2].Colours  = glm::vec4(0.0f);
-            data[2].Normal   = glm::vec3(0.0f, 0.0f, 1.0f);
+            data[2].Position = Vec3(-0.5f, -0.5f, 0.5f);
+            data[2].Colours  = Vec4(0.0f);
+            data[2].Normal   = Vec3(0.0f, 0.0f, 1.0f);
 
-            data[3].Position = glm::vec3(0.5f, -0.5f, 0.5f);
-            data[3].Colours  = glm::vec4(0.0f);
-            data[3].Normal   = glm::vec3(0.0f, 0.0f, 1.0f);
+            data[3].Position = Vec3(0.5f, -0.5f, 0.5f);
+            data[3].Colours  = Vec4(0.0f);
+            data[3].Normal   = Vec3(0.0f, 0.0f, 1.0f);
 
-            data[4].Position = glm::vec3(0.5f, 0.5f, 0.5f);
-            data[4].Colours  = glm::vec4(0.0f);
-            data[4].Normal   = glm::vec3(1.0f, 0.0f, 0.0f);
+            data[4].Position = Vec3(0.5f, 0.5f, 0.5f);
+            data[4].Colours  = Vec4(0.0f);
+            data[4].Normal   = Vec3(1.0f, 0.0f, 0.0f);
 
-            data[5].Position = glm::vec3(0.5f, -0.5f, 0.5f);
-            data[5].Colours  = glm::vec4(0.0f);
-            data[5].Normal   = glm::vec3(1.0f, 0.0f, 0.0f);
+            data[5].Position = Vec3(0.5f, -0.5f, 0.5f);
+            data[5].Colours  = Vec4(0.0f);
+            data[5].Normal   = Vec3(1.0f, 0.0f, 0.0f);
 
-            data[6].Position = glm::vec3(0.5f, -0.5f, -0.5f);
-            data[6].Colours  = glm::vec4(0.0f);
-            data[6].Normal   = glm::vec3(1.0f, 0.0f, 0.0f);
+            data[6].Position = Vec3(0.5f, -0.5f, -0.5f);
+            data[6].Colours  = Vec4(0.0f);
+            data[6].Normal   = Vec3(1.0f, 0.0f, 0.0f);
 
-            data[7].Position = glm::vec3(0.5f, 0.5f, -0.5f);
-            data[7].Colours  = glm::vec4(0.0f);
-            data[7].Normal   = glm::vec3(1.0f, 0.0f, 0.0f);
+            data[7].Position = Vec3(0.5f, 0.5f, -0.5f);
+            data[7].Colours  = Vec4(0.0f);
+            data[7].Normal   = Vec3(1.0f, 0.0f, 0.0f);
 
-            data[8].Position = glm::vec3(0.5f, 0.5f, 0.5f);
-            data[8].Colours  = glm::vec4(0.0f);
-            data[8].Normal   = glm::vec3(0.0f, 1.0f, 0.0f);
+            data[8].Position = Vec3(0.5f, 0.5f, 0.5f);
+            data[8].Colours  = Vec4(0.0f);
+            data[8].Normal   = Vec3(0.0f, 1.0f, 0.0f);
 
-            data[9].Position = glm::vec3(0.5f, 0.5f, -0.5f);
-            data[9].Colours  = glm::vec4(0.0f);
-            data[9].Normal   = glm::vec3(0.0f, 1.0f, 0.0f);
+            data[9].Position = Vec3(0.5f, 0.5f, -0.5f);
+            data[9].Colours  = Vec4(0.0f);
+            data[9].Normal   = Vec3(0.0f, 1.0f, 0.0f);
 
-            data[10].Position = glm::vec3(-0.5f, 0.5f, -0.5f);
-            data[10].Colours  = glm::vec4(0.0f);
-            data[10].Normal   = glm::vec3(0.0f, 1.0f, 0.0f);
+            data[10].Position = Vec3(-0.5f, 0.5f, -0.5f);
+            data[10].Colours  = Vec4(0.0f);
+            data[10].Normal   = Vec3(0.0f, 1.0f, 0.0f);
 
-            data[11].Position = glm::vec3(-0.5f, 0.5f, 0.5f);
-            data[11].Colours  = glm::vec4(0.0f);
-            data[11].Normal   = glm::vec3(0.0f, 1.0f, 0.0f);
+            data[11].Position = Vec3(-0.5f, 0.5f, 0.5f);
+            data[11].Colours  = Vec4(0.0f);
+            data[11].Normal   = Vec3(0.0f, 1.0f, 0.0f);
 
-            data[12].Position = glm::vec3(-0.5f, 0.5f, 0.5f);
-            data[12].Colours  = glm::vec4(0.0f);
-            data[12].Normal   = glm::vec3(-1.0f, 0.0f, 0.0f);
+            data[12].Position = Vec3(-0.5f, 0.5f, 0.5f);
+            data[12].Colours  = Vec4(0.0f);
+            data[12].Normal   = Vec3(-1.0f, 0.0f, 0.0f);
 
-            data[13].Position = glm::vec3(-0.5f, 0.5f, -0.5f);
-            data[13].Colours  = glm::vec4(0.0f);
-            data[13].Normal   = glm::vec3(-1.0f, 0.0f, 0.0f);
+            data[13].Position = Vec3(-0.5f, 0.5f, -0.5f);
+            data[13].Colours  = Vec4(0.0f);
+            data[13].Normal   = Vec3(-1.0f, 0.0f, 0.0f);
 
-            data[14].Position = glm::vec3(-0.5f, -0.5f, -0.5f);
-            data[14].Colours  = glm::vec4(0.0f);
-            data[14].Normal   = glm::vec3(-1.0f, 0.0f, 0.0f);
+            data[14].Position = Vec3(-0.5f, -0.5f, -0.5f);
+            data[14].Colours  = Vec4(0.0f);
+            data[14].Normal   = Vec3(-1.0f, 0.0f, 0.0f);
 
-            data[15].Position = glm::vec3(-0.5f, -0.5f, 0.5f);
-            data[15].Colours  = glm::vec4(0.0f);
-            data[15].Normal   = glm::vec3(-1.0f, 0.0f, 0.0f);
+            data[15].Position = Vec3(-0.5f, -0.5f, 0.5f);
+            data[15].Colours  = Vec4(0.0f);
+            data[15].Normal   = Vec3(-1.0f, 0.0f, 0.0f);
 
-            data[16].Position = glm::vec3(-0.5f, -0.5f, -0.5f);
-            data[16].Colours  = glm::vec4(0.0f);
-            data[16].Normal   = glm::vec3(0.0f, -1.0f, 0.0f);
+            data[16].Position = Vec3(-0.5f, -0.5f, -0.5f);
+            data[16].Colours  = Vec4(0.0f);
+            data[16].Normal   = Vec3(0.0f, -1.0f, 0.0f);
 
-            data[17].Position = glm::vec3(0.5f, -0.5f, -0.5f);
-            data[17].Colours  = glm::vec4(0.0f);
-            data[17].Normal   = glm::vec3(0.0f, -1.0f, 0.0f);
+            data[17].Position = Vec3(0.5f, -0.5f, -0.5f);
+            data[17].Colours  = Vec4(0.0f);
+            data[17].Normal   = Vec3(0.0f, -1.0f, 0.0f);
 
-            data[18].Position = glm::vec3(0.5f, -0.5f, 0.5f);
-            data[18].Colours  = glm::vec4(0.0f);
-            data[18].Normal   = glm::vec3(0.0f, -1.0f, 0.0f);
+            data[18].Position = Vec3(0.5f, -0.5f, 0.5f);
+            data[18].Colours  = Vec4(0.0f);
+            data[18].Normal   = Vec3(0.0f, -1.0f, 0.0f);
 
-            data[19].Position = glm::vec3(-0.5f, -0.5f, 0.5f);
-            data[19].Colours  = glm::vec4(0.0f);
-            data[19].Normal   = glm::vec3(0.0f, -1.0f, 0.0f);
+            data[19].Position = Vec3(-0.5f, -0.5f, 0.5f);
+            data[19].Colours  = Vec4(0.0f);
+            data[19].Normal   = Vec3(0.0f, -1.0f, 0.0f);
 
-            data[20].Position = glm::vec3(0.5f, -0.5f, -0.5f);
-            data[20].Colours  = glm::vec4(0.0f);
-            data[20].Normal   = glm::vec3(0.0f, 0.0f, -1.0f);
+            data[20].Position = Vec3(0.5f, -0.5f, -0.5f);
+            data[20].Colours  = Vec4(0.0f);
+            data[20].Normal   = Vec3(0.0f, 0.0f, -1.0f);
 
-            data[21].Position = glm::vec3(-0.5f, -0.5f, -0.5f);
-            data[21].Colours  = glm::vec4(0.0f);
-            data[21].Normal   = glm::vec3(0.0f, 0.0f, -1.0f);
+            data[21].Position = Vec3(-0.5f, -0.5f, -0.5f);
+            data[21].Colours  = Vec4(0.0f);
+            data[21].Normal   = Vec3(0.0f, 0.0f, -1.0f);
 
-            data[22].Position = glm::vec3(-0.5f, 0.5f, -0.5f);
-            data[22].Colours  = glm::vec4(0.0f);
-            data[22].Normal   = glm::vec3(0.0f, 0.0f, -1.0f);
+            data[22].Position = Vec3(-0.5f, 0.5f, -0.5f);
+            data[22].Colours  = Vec4(0.0f);
+            data[22].Normal   = Vec3(0.0f, 0.0f, -1.0f);
 
-            data[23].Position = glm::vec3(0.5f, 0.5f, -0.5f);
-            data[23].Colours  = glm::vec4(0.0f);
-            data[23].Normal   = glm::vec3(0.0f, 0.0f, -1.0f);
+            data[23].Position = Vec3(0.5f, 0.5f, -0.5f);
+            data[23].Colours  = Vec4(0.0f);
+            data[23].Normal   = Vec3(0.0f, 0.0f, -1.0f);
 
             for(int i = 0; i < 6; i++)
             {
-                data[i * 4 + 0].TexCoords = glm::vec2(0.0f, 0.0f);
-                data[i * 4 + 1].TexCoords = glm::vec2(1.0f, 0.0f);
-                data[i * 4 + 2].TexCoords = glm::vec2(1.0f, 1.0f);
-                data[i * 4 + 3].TexCoords = glm::vec2(0.0f, 1.0f);
+                data[i * 4 + 0].TexCoords = Vec2(0.0f, 0.0f);
+                data[i * 4 + 1].TexCoords = Vec2(1.0f, 0.0f);
+                data[i * 4 + 2].TexCoords = Vec2(1.0f, 1.0f);
+                data[i * 4 + 3].TexCoords = Vec2(0.0f, 1.0f);
             }
 
-            std::vector<uint32_t> indices = {
-                0, 1, 2,
-                0, 2, 3,
-                4, 5, 6,
-                4, 6, 7,
-                8, 9, 10,
-                8, 10, 11,
-                12, 13, 14,
-                12, 14, 15,
-                16, 17, 18,
-                16, 18, 19,
-                20, 21, 22,
-                20, 22, 23
-            };
+            TDArray<uint32_t> indices = TDArray<uint32_t>({ 0, 1, 2,
+                                                            0, 2, 3,
+                                                            4, 5, 6,
+                                                            4, 6, 7,
+                                                            8, 9, 10,
+                                                            8, 10, 11,
+                                                            12, 13, 14,
+                                                            12, 14, 15,
+                                                            16, 17, 18,
+                                                            16, 18, 19,
+                                                            20, 21, 22,
+                                                            20, 22, 23 });
 
             return new Mesh(indices, data);
         }
@@ -220,106 +217,104 @@ namespace Lumos
         Mesh* CreatePyramid()
         {
             LUMOS_PROFILE_FUNCTION();
-            std::vector<Vertex> data(18);
+            TDArray<Vertex> data(18);
 
-            data[0].Position  = glm::vec3(1.0f, 1.0f, -1.0f);
-            data[0].Colours   = glm::vec4(0.0f);
-            data[0].TexCoords = glm::vec2(0.24f, 0.20f);
-            data[0].Normal    = glm::vec3(0.0f, 0.8948f, 0.4464f);
+            data[0].Position  = Vec3(1.0f, 1.0f, -1.0f);
+            data[0].Colours   = Vec4(0.0f);
+            data[0].TexCoords = Vec2(0.24f, 0.20f);
+            data[0].Normal    = Vec3(0.0f, 0.8948f, 0.4464f);
 
-            data[1].Position  = glm::vec3(-1.0f, 1.0f, -1.0f);
-            data[1].Colours   = glm::vec4(0.0f);
-            data[1].TexCoords = glm::vec2(0.24f, 0.81f);
-            data[1].Normal    = glm::vec3(0.0f, 0.8948f, 0.4464f);
+            data[1].Position  = Vec3(-1.0f, 1.0f, -1.0f);
+            data[1].Colours   = Vec4(0.0f);
+            data[1].TexCoords = Vec2(0.24f, 0.81f);
+            data[1].Normal    = Vec3(0.0f, 0.8948f, 0.4464f);
 
-            data[2].Position  = glm::vec3(0.0f, 0.0f, 1.0f);
-            data[2].Colours   = glm::vec4(0.0f);
-            data[2].TexCoords = glm::vec2(0.95f, 0.50f);
-            data[2].Normal    = glm::vec3(0.0f, 0.8948f, 0.4464f);
+            data[2].Position  = Vec3(0.0f, 0.0f, 1.0f);
+            data[2].Colours   = Vec4(0.0f);
+            data[2].TexCoords = Vec2(0.95f, 0.50f);
+            data[2].Normal    = Vec3(0.0f, 0.8948f, 0.4464f);
 
-            data[3].Position  = glm::vec3(-1.0f, 1.0f, -1.0f);
-            data[3].Colours   = glm::vec4(0.0f);
-            data[3].TexCoords = glm::vec2(0.24f, 0.21f);
-            data[3].Normal    = glm::vec3(-0.8948f, 0.0f, 0.4464f);
+            data[3].Position  = Vec3(-1.0f, 1.0f, -1.0f);
+            data[3].Colours   = Vec4(0.0f);
+            data[3].TexCoords = Vec2(0.24f, 0.21f);
+            data[3].Normal    = Vec3(-0.8948f, 0.0f, 0.4464f);
 
-            data[4].Position  = glm::vec3(-1.0f, -1.0f, -1.0f);
-            data[4].Colours   = glm::vec4(0.0f);
-            data[4].TexCoords = glm::vec2(0.24f, 0.81f);
-            data[4].Normal    = glm::vec3(-0.8948f, 0.0f, 0.4464f);
+            data[4].Position  = Vec3(-1.0f, -1.0f, -1.0f);
+            data[4].Colours   = Vec4(0.0f);
+            data[4].TexCoords = Vec2(0.24f, 0.81f);
+            data[4].Normal    = Vec3(-0.8948f, 0.0f, 0.4464f);
 
-            data[5].Position  = glm::vec3(0.0f, 0.0f, 1.0f);
-            data[5].Colours   = glm::vec4(0.0f);
-            data[5].TexCoords = glm::vec2(0.95f, 0.50f);
-            data[5].Normal    = glm::vec3(-0.8948f, 0.0f, 0.4464f);
+            data[5].Position  = Vec3(0.0f, 0.0f, 1.0f);
+            data[5].Colours   = Vec4(0.0f);
+            data[5].TexCoords = Vec2(0.95f, 0.50f);
+            data[5].Normal    = Vec3(-0.8948f, 0.0f, 0.4464f);
 
-            data[6].Position  = glm::vec3(1.0f, 1.0f, -1.0f);
-            data[6].Colours   = glm::vec4(0.0f);
-            data[6].TexCoords = glm::vec2(0.24f, 0.81f);
-            data[6].Normal    = glm::vec3(0.8948f, 0.0f, 0.4475f);
+            data[6].Position  = Vec3(1.0f, 1.0f, -1.0f);
+            data[6].Colours   = Vec4(0.0f);
+            data[6].TexCoords = Vec2(0.24f, 0.81f);
+            data[6].Normal    = Vec3(0.8948f, 0.0f, 0.4475f);
 
-            data[7].Position  = glm::vec3(0.0f, 0.0f, 1.0f);
-            data[7].Colours   = glm::vec4(0.0f);
-            data[7].TexCoords = glm::vec2(0.95f, 0.50f);
-            data[7].Normal    = glm::vec3(0.8948f, 0.0f, 0.4475f);
+            data[7].Position  = Vec3(0.0f, 0.0f, 1.0f);
+            data[7].Colours   = Vec4(0.0f);
+            data[7].TexCoords = Vec2(0.95f, 0.50f);
+            data[7].Normal    = Vec3(0.8948f, 0.0f, 0.4475f);
 
-            data[8].Position  = glm::vec3(1.0f, -1.0f, -1.0f);
-            data[8].Colours   = glm::vec4(0.0f);
-            data[8].TexCoords = glm::vec2(0.24f, 0.21f);
-            data[8].Normal    = glm::vec3(0.8948f, 0.0f, 0.4475f);
+            data[8].Position  = Vec3(1.0f, -1.0f, -1.0f);
+            data[8].Colours   = Vec4(0.0f);
+            data[8].TexCoords = Vec2(0.24f, 0.21f);
+            data[8].Normal    = Vec3(0.8948f, 0.0f, 0.4475f);
 
-            data[9].Position  = glm::vec3(-1.0f, -1.0f, -1.0f);
-            data[9].Colours   = glm::vec4(0.0f);
-            data[9].TexCoords = glm::vec2(0.24f, 0.21f);
-            data[9].Normal    = glm::vec3(0.0f, -0.8948f, 0.448f);
+            data[9].Position  = Vec3(-1.0f, -1.0f, -1.0f);
+            data[9].Colours   = Vec4(0.0f);
+            data[9].TexCoords = Vec2(0.24f, 0.21f);
+            data[9].Normal    = Vec3(0.0f, -0.8948f, 0.448f);
 
-            data[10].Position  = glm::vec3(1.0f, -1.0f, -1.0f);
-            data[10].Colours   = glm::vec4(0.0f);
-            data[10].TexCoords = glm::vec2(0.24f, 0.81f);
-            data[10].Normal    = glm::vec3(0.0f, -0.8948f, 0.448f);
+            data[10].Position  = Vec3(1.0f, -1.0f, -1.0f);
+            data[10].Colours   = Vec4(0.0f);
+            data[10].TexCoords = Vec2(0.24f, 0.81f);
+            data[10].Normal    = Vec3(0.0f, -0.8948f, 0.448f);
 
-            data[11].Position  = glm::vec3(0.0f, 0.0f, 1.0f);
-            data[11].Colours   = glm::vec4(0.0f);
-            data[11].TexCoords = glm::vec2(0.95f, 0.50f);
-            data[11].Normal    = glm::vec3(0.0f, -0.8948f, 0.448f);
+            data[11].Position  = Vec3(0.0f, 0.0f, 1.0f);
+            data[11].Colours   = Vec4(0.0f);
+            data[11].TexCoords = Vec2(0.95f, 0.50f);
+            data[11].Normal    = Vec3(0.0f, -0.8948f, 0.448f);
 
-            data[12].Position  = glm::vec3(-1.0f, 1.0f, -1.0f);
-            data[12].Colours   = glm::vec4(0.0f);
-            data[12].TexCoords = glm::vec2(0.0f, 0.0f);
-            data[12].Normal    = glm::vec3(0.0f, 0.0f, -1.0f);
+            data[12].Position  = Vec3(-1.0f, 1.0f, -1.0f);
+            data[12].Colours   = Vec4(0.0f);
+            data[12].TexCoords = Vec2(0.0f, 0.0f);
+            data[12].Normal    = Vec3(0.0f, 0.0f, -1.0f);
 
-            data[13].Position  = glm::vec3(1.0f, 1.0f, -1.0f);
-            data[13].Colours   = glm::vec4(0.0f);
-            data[13].TexCoords = glm::vec2(0.0f, 1.0f);
-            data[13].Normal    = glm::vec3(0.0f, 0.0f, -1.0f);
+            data[13].Position  = Vec3(1.0f, 1.0f, -1.0f);
+            data[13].Colours   = Vec4(0.0f);
+            data[13].TexCoords = Vec2(0.0f, 1.0f);
+            data[13].Normal    = Vec3(0.0f, 0.0f, -1.0f);
 
-            data[14].Position  = glm::vec3(1.0f, -1.0f, -1.0f);
-            data[14].Colours   = glm::vec4(0.0f);
-            data[14].TexCoords = glm::vec2(1.0f, 1.0f);
-            data[14].Normal    = glm::vec3(0.0f, 0.0f, -1.0f);
+            data[14].Position  = Vec3(1.0f, -1.0f, -1.0f);
+            data[14].Colours   = Vec4(0.0f);
+            data[14].TexCoords = Vec2(1.0f, 1.0f);
+            data[14].Normal    = Vec3(0.0f, 0.0f, -1.0f);
 
-            data[15].Position  = glm::vec3(-1.0f, -1.0f, -1.0f);
-            data[15].Colours   = glm::vec4(0.0f);
-            data[15].TexCoords = glm::vec2(0.96f, 0.0f);
-            data[15].Normal    = glm::vec3(0.0f, 0.0f, -1.0f);
+            data[15].Position  = Vec3(-1.0f, -1.0f, -1.0f);
+            data[15].Colours   = Vec4(0.0f);
+            data[15].TexCoords = Vec2(0.96f, 0.0f);
+            data[15].Normal    = Vec3(0.0f, 0.0f, -1.0f);
 
-            data[16].Position  = glm::vec3(0.0f, 0.0f, 0.0f);
-            data[16].Colours   = glm::vec4(0.0f);
-            data[16].TexCoords = glm::vec2(0.0f, 0.0f);
-            data[16].Normal    = glm::vec3(0.0f, 0.0f, 0.0f);
+            data[16].Position  = Vec3(0.0f, 0.0f, 0.0f);
+            data[16].Colours   = Vec4(0.0f);
+            data[16].TexCoords = Vec2(0.0f, 0.0f);
+            data[16].Normal    = Vec3(0.0f, 0.0f, 0.0f);
 
-            data[17].Position  = glm::vec3(0.0f, 0.0f, 0.0f);
-            data[17].Colours   = glm::vec4(0.0f);
-            data[17].TexCoords = glm::vec2(0.0f, 0.0f);
-            data[17].Normal    = glm::vec3(0.0f, 0.0f, 0.0f);
+            data[17].Position  = Vec3(0.0f, 0.0f, 0.0f);
+            data[17].Colours   = Vec4(0.0f);
+            data[17].TexCoords = Vec2(0.0f, 0.0f);
+            data[17].Normal    = Vec3(0.0f, 0.0f, 0.0f);
 
-            std::vector<uint32_t> indices = {
-                0, 1, 2,
-                3, 4, 5,
-                6, 7, 8,
-                9, 10, 11,
-                12, 13, 14,
-                15, 12, 14
-            };
+            TDArray<uint32_t> indices = TDArray<uint32_t>({ 0, 1, 2,
+                                                            3, 4, 5,
+                                                            6, 7, 8,
+                                                            9, 10, 11,
+                                                            12, 13, 14,
+                                                            15, 12, 14 });
 
             return new Mesh(indices, data);
         }
@@ -327,7 +322,7 @@ namespace Lumos
         Mesh* CreateSphere(uint32_t xSegments, uint32_t ySegments)
         {
             LUMOS_PROFILE_FUNCTION();
-            auto data = std::vector<Vertex>();
+            auto data = TDArray<Vertex>();
 
             float sectorCount = static_cast<float>(xSegments);
             float stackCount  = static_cast<float>(ySegments);
@@ -356,15 +351,15 @@ namespace Lumos
                     float t = static_cast<float>(i / stackCount);
 
                     Vertex vertex;
-                    vertex.Position  = glm::vec3(x, y, z);
-                    vertex.TexCoords = glm::vec2(s, t);
-                    vertex.Normal    = glm::normalize(glm::vec3(x, y, z));
+                    vertex.Position  = Vec3(x, y, z);
+                    vertex.TexCoords = Vec2(s, t);
+                    vertex.Normal    = vertex.Position.Normalised();
 
-                    data.emplace_back(vertex);
+                    data.EmplaceBack(vertex);
                 }
             }
 
-            std::vector<uint32_t> indices;
+            TDArray<uint32_t> indices;
             uint32_t k1, k2;
             for(uint32_t i = 0; i < stackCount; ++i)
             {
@@ -377,17 +372,17 @@ namespace Lumos
                     // k1 => k2 => k1+1
                     if(i != 0)
                     {
-                        indices.push_back(k1);
-                        indices.push_back(k2);
-                        indices.push_back(k1 + 1);
+                        indices.PushBack(k1);
+                        indices.PushBack(k2);
+                        indices.PushBack(k1 + 1);
                     }
 
                     // k1+1 => k2 => k2+1
                     if(i != (stackCount - 1))
                     {
-                        indices.push_back(k1 + 1);
-                        indices.push_back(k2);
-                        indices.push_back(k2 + 1);
+                        indices.PushBack(k1 + 1);
+                        indices.PushBack(k2);
+                        indices.PushBack(k2 + 1);
                     }
                 }
             }
@@ -395,34 +390,31 @@ namespace Lumos
             return new Mesh(indices, data);
         }
 
-        Mesh* CreatePlane(float width, float height, const glm::vec3& normal)
+        Mesh* CreatePlane(float width, float height, const Vec3& normal)
         {
             LUMOS_PROFILE_FUNCTION();
-            glm::vec3 vec      = normal * 90.0f;
-            glm::quat rotation = glm::quat(vec.z, glm::vec3(1.0f, 0.0f, 0.0f)) * glm::quat(vec.y, glm::vec3(0.0f, 1.0f, 0.0f)) * glm::quat(vec.x, glm::vec3(0.0f, 0.0f, 1.0f));
+            Vec3 vec      = normal * 90.0f;
+            Quat rotation = Quat::Rotation(vec.z, Vec3(1.0f, 0.0f, 0.0f)) * Quat::Rotation(vec.y, Vec3(0.0f, 1.0f, 0.0f)) * Quat::Rotation(vec.x, Vec3(0.0f, 0.0f, 1.0f));
 
-            std::vector<Vertex> data(4);
+            TDArray<Vertex> data(4);
 
-            data[0].Position  = rotation * glm::vec3(-width * 0.5f, -1.0f, -height * 0.5f);
+            data[0].Position  = rotation * Vec3(-width * 0.5f, -1.0f, -height * 0.5f);
             data[0].Normal    = normal;
-            data[0].TexCoords = glm::vec2(0.0f, 0.0f);
+            data[0].TexCoords = Vec2(0.0f, 0.0f);
 
-            data[1].Position  = rotation * glm::vec3(-width * 0.5f, -1.0f, height * 0.5f);
+            data[1].Position  = rotation * Vec3(-width * 0.5f, -1.0f, height * 0.5f);
             data[1].Normal    = normal;
-            data[1].TexCoords = glm::vec2(0.0f, 1.0f);
+            data[1].TexCoords = Vec2(0.0f, 1.0f);
 
-            data[2].Position  = rotation * glm::vec3(width * 0.5f, 1.0f, height * 0.5f);
+            data[2].Position  = rotation * Vec3(width * 0.5f, 1.0f, height * 0.5f);
             data[2].Normal    = normal;
-            data[2].TexCoords = glm::vec2(1.0f, 1.0f);
+            data[2].TexCoords = Vec2(1.0f, 1.0f);
 
-            data[3].Position  = rotation * glm::vec3(width * 0.5f, 1.0f, -height * 0.5f);
+            data[3].Position  = rotation * Vec3(width * 0.5f, 1.0f, -height * 0.5f);
             data[3].Normal    = normal;
-            data[3].TexCoords = glm::vec2(1.0f, 0.0f);
+            data[3].TexCoords = Vec2(1.0f, 0.0f);
 
-            std::vector<uint32_t> indices = {
-                0, 1, 2,
-                2, 3, 0
-            };
+            TDArray<uint32_t> indices = { 0, 1, 2, 2, 3, 0 };
             return new Mesh(indices, data);
         }
 
@@ -434,8 +426,8 @@ namespace Lumos
             float onethird  = 1.0f / 3.0f;
             float twothirds = 2.0f / 3.0f;
 
-            std::vector<Vertex> data;
-            std::vector<uint32_t> indices;
+            TDArray<Vertex> data;
+            TDArray<uint32_t> indices;
 
             point = 0;
 
@@ -458,24 +450,24 @@ namespace Lumos
                     x = sin(u * (Maths::M_PI * 2.0f));
                     z = cos(u * (Maths::M_PI * 2.0f));
 
-                    glm::vec3 p = glm::vec3(x * radius * w, y, z * radius * w);
+                    Vec3 p = Vec3(x * radius * w, y, z * radius * w);
 
                     Vertex vertex;
-                    vertex.Position  = p + glm::vec3(0.0f, 0.5f * midHeight, 0.0f);
-                    vertex.Normal    = glm::normalize(p);
-                    vertex.TexCoords = glm::vec2(u, onethird * v);
-                    data.emplace_back(vertex);
+                    vertex.Position  = p + Vec3(0.0f, 0.5f * midHeight, 0.0f);
+                    vertex.Normal    = p.Normalised();
+                    vertex.TexCoords = Vec2(u, onethird * v);
+                    data.EmplaceBack(vertex);
                     point++;
 
                     if(i > 0 && j > 0)
                     {
-                        indices.push_back(thisrow + i - 1);
-                        indices.push_back(prevrow + i);
-                        indices.push_back(prevrow + i - 1);
+                        indices.PushBack(thisrow + i - 1);
+                        indices.PushBack(prevrow + i);
+                        indices.PushBack(prevrow + i - 1);
 
-                        indices.push_back(thisrow + i - 1);
-                        indices.push_back(thisrow + i);
-                        indices.push_back(prevrow + i);
+                        indices.PushBack(thisrow + i - 1);
+                        indices.PushBack(thisrow + i);
+                        indices.PushBack(prevrow + i);
                     };
                 };
 
@@ -502,27 +494,27 @@ namespace Lumos
                     x = sin(u * (Maths::M_PI * 2.0f));
                     z = cos(u * (Maths::M_PI * 2.0f));
 
-                    glm::vec3 p = glm::vec3(x * radius, y, z * radius);
+                    Vec3 p = Vec3(x * radius, y, z * radius);
 
                     Vertex vertex;
                     vertex.Position = p;
-                    // vertex.Normal = glm::vec3(x, z, 0.0f);
-                    vertex.Normal = glm::vec3(x, 0.0f, z);
-                    // vertex.TexCoords = glm::vec2(u, onethird + (v * onethird));
-                    vertex.TexCoords = glm::vec2(u, v * 0.5f);
-                    data.emplace_back(vertex);
+                    // vertex.Normal = Vec3(x, z, 0.0f);
+                    vertex.Normal = Vec3(x, 0.0f, z);
+                    // vertex.TexCoords = Vec2(u, onethird + (v * onethird));
+                    vertex.TexCoords = Vec2(u, v * 0.5f);
+                    data.EmplaceBack(vertex);
 
                     point++;
 
                     if(i > 0 && j > 0)
                     {
-                        indices.push_back(thisrow + i - 1);
-                        indices.push_back(prevrow + i);
-                        indices.push_back(prevrow + i - 1);
+                        indices.PushBack(thisrow + i - 1);
+                        indices.PushBack(prevrow + i);
+                        indices.PushBack(prevrow + i - 1);
 
-                        indices.push_back(thisrow + i - 1);
-                        indices.push_back(thisrow + i);
-                        indices.push_back(prevrow + i);
+                        indices.PushBack(thisrow + i - 1);
+                        indices.PushBack(thisrow + i);
+                        indices.PushBack(prevrow + i);
                     };
                 };
 
@@ -551,25 +543,25 @@ namespace Lumos
                     x = sin(u2 * (Maths::M_PI * 2.0f));
                     z = cos(u2 * (Maths::M_PI * 2.0f));
 
-                    glm::vec3 p = glm::vec3(x * radius * w, y, z * radius * w);
+                    Vec3 p = Vec3(x * radius * w, y, z * radius * w);
 
                     Vertex vertex;
-                    vertex.Position  = p + glm::vec3(0.0f, -0.5f * midHeight, 0.0f);
-                    vertex.Normal    = glm::normalize(p);
-                    vertex.TexCoords = glm::vec2(u2, twothirds + ((v - 1.0f) * onethird));
-                    data.emplace_back(vertex);
+                    vertex.Position  = p + Vec3(0.0f, -0.5f * midHeight, 0.0f);
+                    vertex.Normal    = p.Normalised();
+                    vertex.TexCoords = Vec2(u2, twothirds + ((v - 1.0f) * onethird));
+                    data.EmplaceBack(vertex);
 
                     point++;
 
                     if(i > 0 && j > 0)
                     {
-                        indices.push_back(thisrow + i - 1);
-                        indices.push_back(prevrow + i);
-                        indices.push_back(prevrow + i - 1);
+                        indices.PushBack(thisrow + i - 1);
+                        indices.PushBack(prevrow + i);
+                        indices.PushBack(prevrow + i - 1);
 
-                        indices.push_back(thisrow + i - 1);
-                        indices.push_back(thisrow + i);
-                        indices.push_back(prevrow + i);
+                        indices.PushBack(thisrow + i - 1);
+                        indices.PushBack(thisrow + i);
+                        indices.PushBack(prevrow + i);
                     };
                 };
 
@@ -587,8 +579,8 @@ namespace Lumos
         int i, j, prevrow, thisrow, point = 0;
         float x, y, z, u, v, radius;
 
-        std::vector<Vertex> data;
-        std::vector<uint32_t> indices;
+        TDArray<Vertex> data;
+        TDArray<uint32_t> indices;
 
         thisrow = 0;
         prevrow = 0;
@@ -610,25 +602,25 @@ namespace Lumos
                 x = sin(u * (Maths::M_PI * 2.0f));
                 z = cos(u * (Maths::M_PI * 2.0f));
 
-                glm::vec3 p = glm::vec3(x * radius, y, z * radius);
+                Vec3 p = Vec3(x * radius, y, z * radius);
 
                 Vertex vertex;
                 vertex.Position  = p;
-                vertex.Normal    = glm::vec3(x, 0.0f, z);
-                vertex.TexCoords = glm::vec2(u, v * 0.5f);
-                data.emplace_back(vertex);
+                vertex.Normal    = Vec3(x, 0.0f, z);
+                vertex.TexCoords = Vec2(u, v * 0.5f);
+                data.EmplaceBack(vertex);
 
                 point++;
 
                 if(i > 0 && j > 0)
                 {
-                    indices.push_back(thisrow + i - 1);
-                    indices.push_back(prevrow + i);
-                    indices.push_back(prevrow + i - 1);
+                    indices.PushBack(thisrow + i - 1);
+                    indices.PushBack(prevrow + i);
+                    indices.PushBack(prevrow + i - 1);
 
-                    indices.push_back(thisrow + i - 1);
-                    indices.push_back(thisrow + i);
-                    indices.push_back(prevrow + i);
+                    indices.PushBack(thisrow + i - 1);
+                    indices.PushBack(thisrow + i);
+                    indices.PushBack(prevrow + i);
                 };
             };
 
@@ -642,10 +634,10 @@ namespace Lumos
             y = height * 0.5f;
 
             Vertex vertex;
-            vertex.Position  = glm::vec3(0.0f, y, 0.0f);
-            vertex.Normal    = glm::vec3(0.0f, 1.0f, 0.0f);
-            vertex.TexCoords = glm::vec2(0.25f, 0.75f);
-            data.emplace_back(vertex);
+            vertex.Position  = Vec3(0.0f, y, 0.0f);
+            vertex.Normal    = Vec3(0.0f, 1.0f, 0.0f);
+            vertex.TexCoords = Vec2(0.25f, 0.75f);
+            data.EmplaceBack(vertex);
             point++;
 
             for(i = 0; i <= radialSegments; i++)
@@ -659,19 +651,19 @@ namespace Lumos
                 u = ((x + 1.0f) * 0.25f);
                 v = 0.5f + ((z + 1.0f) * 0.25f);
 
-                glm::vec3 p = glm::vec3(x * topRadius, y, z * topRadius);
+                Vec3 p = Vec3(x * topRadius, y, z * topRadius);
                 Vertex vertex;
                 vertex.Position  = p;
-                vertex.Normal    = glm::vec3(0.0f, 1.0f, 0.0f);
-                vertex.TexCoords = glm::vec2(u, v);
-                data.emplace_back(vertex);
+                vertex.Normal    = Vec3(0.0f, 1.0f, 0.0f);
+                vertex.TexCoords = Vec2(u, v);
+                data.EmplaceBack(vertex);
                 point++;
 
                 if(i > 0)
                 {
-                    indices.push_back(point - 2);
-                    indices.push_back(point - 1);
-                    indices.push_back(thisrow);
+                    indices.PushBack(point - 2);
+                    indices.PushBack(point - 1);
+                    indices.PushBack(thisrow);
                 };
             };
         };
@@ -684,10 +676,10 @@ namespace Lumos
             thisrow = point;
 
             Vertex vertex;
-            vertex.Position  = glm::vec3(0.0f, y, 0.0f);
-            vertex.Normal    = glm::vec3(0.0f, -1.0f, 0.0f);
-            vertex.TexCoords = glm::vec2(0.75f, 0.75f);
-            data.emplace_back(vertex);
+            vertex.Position  = Vec3(0.0f, y, 0.0f);
+            vertex.Normal    = Vec3(0.0f, -1.0f, 0.0f);
+            vertex.TexCoords = Vec2(0.75f, 0.75f);
+            data.EmplaceBack(vertex);
             point++;
 
             for(i = 0; i <= radialSegments; i++)
@@ -701,19 +693,19 @@ namespace Lumos
                 u = 0.5f + ((x + 1.0f) * 0.25f);
                 v = 1.0f - ((z + 1.0f) * 0.25f);
 
-                glm::vec3 p = glm::vec3(x * bottomRadius, y, z * bottomRadius);
+                Vec3 p = Vec3(x * bottomRadius, y, z * bottomRadius);
 
                 vertex.Position  = p;
-                vertex.Normal    = glm::vec3(0.0f, -1.0f, 0.0f);
-                vertex.TexCoords = glm::vec2(u, v);
-                data.emplace_back(vertex);
+                vertex.Normal    = Vec3(0.0f, -1.0f, 0.0f);
+                vertex.TexCoords = Vec2(u, v);
+                data.EmplaceBack(vertex);
                 point++;
 
                 if(i > 0)
                 {
-                    indices.push_back(point - 1);
-                    indices.push_back(point - 2);
-                    indices.push_back(thisrow);
+                    indices.PushBack(point - 1);
+                    indices.PushBack(point - 2);
+                    indices.PushBack(thisrow);
                 };
             };
         };
@@ -728,7 +720,7 @@ namespace Lumos
         case Graphics::PrimitiveType::Cube:
             return Graphics::CreateCube();
         case Graphics::PrimitiveType::Plane:
-            return Graphics::CreatePlane(1.0f, 1.0f, glm::vec3(0.0f, 1.0f, 0.0f));
+            return Graphics::CreatePlane(1.0f, 1.0f, Vec3(0.0f, 1.0f, 0.0f));
         case Graphics::PrimitiveType::Quad:
             return Graphics::CreateQuad();
         case Graphics::PrimitiveType::Sphere:
@@ -742,11 +734,11 @@ namespace Lumos
         case Graphics::PrimitiveType::Terrain:
             return Graphics::CreateTerrain();
         case Graphics::PrimitiveType::File:
-            LUMOS_LOG_WARN("Trying to create primitive of type File");
+            LWARN("Trying to create primitive of type File");
             return nullptr;
         }
 
-        LUMOS_LOG_ERROR("Primitive not supported");
+        LERROR("Primitive not supported");
         return nullptr;
     };
 

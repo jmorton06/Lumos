@@ -205,7 +205,7 @@ namespace entt
             /*        reg->orphans([this](const auto entt) {
                         reg->destroy(entt);
                         });*/
-            LUMOS_LOG_WARN("May need to fix this - basic_snapshot_loader_legacy::orphans()");
+            LWARN("May need to fix this - basic_snapshot_loader_legacy::orphans()");
 
             return *this;
         }
@@ -288,7 +288,7 @@ namespace Lumos
     void Scene::OnUpdate(const TimeStep& timeStep)
     {
         LUMOS_PROFILE_FUNCTION();
-        const glm::vec2& mousePos = Input::Get().GetMousePosition();
+        const Vec2& mousePos = Input::Get().GetMousePosition();
 
         auto defaultCameraControllerView = m_EntityManager->GetEntitiesWithType<DefaultCameraController>();
         auto cameraView                  = m_EntityManager->GetEntitiesWithType<Camera>();
@@ -389,7 +389,7 @@ namespace Lumos
     void Scene::Serialise(const std::string& filePath, bool binary)
     {
         LUMOS_PROFILE_FUNCTION();
-        LUMOS_LOG_INFO("Scene saved - {0}", filePath);
+        LINFO("Scene saved - %s", filePath.c_str());
         std::string path = filePath;
         path += m_SceneName; // StringUtilities::RemoveSpaces(m_SceneName);
 
@@ -438,7 +438,7 @@ namespace Lumos
 
             if(!FileSystem::FileExists(path))
             {
-                LUMOS_LOG_ERROR("No saved scene file found {0}", path);
+                LERROR("No saved scene file found %s", path.c_str());
                 return;
             }
 
@@ -448,7 +448,7 @@ namespace Lumos
                 cereal::BinaryInputArchive input(file);
                 input(*this);
                 if(m_SceneSerialisationVersion == 0)
-                    LUMOS_LOG_ERROR("Invalid Scene Version");
+                    LERROR("Invalid Scene Version");
 #if MIN_SCENE_VERSION <= 2
                 else if(m_SceneSerialisationVersion < 2)
                     entt::basic_snapshot_loader_legacy { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV1>(input).orphans();
@@ -522,7 +522,7 @@ namespace Lumos
             }
             catch(...)
             {
-                LUMOS_LOG_ERROR("Failed to load scene - {0}", path);
+                LERROR("Failed to load scene - %s", path.c_str());
             }
         }
         else
@@ -531,7 +531,7 @@ namespace Lumos
 
             if(!FileSystem::FileExists(path))
             {
-                LUMOS_LOG_ERROR("No saved scene file found {0}", path);
+                LERROR("No saved scene file found %s", path.c_str());
                 return;
             }
             try
@@ -543,7 +543,7 @@ namespace Lumos
                 input(*this);
 
                 if(m_SceneSerialisationVersion == 0)
-                    LUMOS_LOG_ERROR("Invalid Scene Version");
+                    LERROR("Invalid Scene Version");
 #if MIN_SCENE_VERSION <= 2
                 if(m_SceneSerialisationVersion < 2)
                     entt::basic_snapshot_loader_legacy { m_EntityManager->GetRegistry() }.entities(input).component<ALL_COMPONENTSV1>(input).orphans();
@@ -615,7 +615,7 @@ namespace Lumos
             }
             catch(...)
             {
-                LUMOS_LOG_ERROR("Failed to load scene - {0}", path);
+                LERROR("Failed to load scene - %s", path.c_str());
             }
         }
 
@@ -776,7 +776,7 @@ namespace Lumos
 
         if(prefabData.empty())
         {
-            LUMOS_LOG_ERROR("Failed to load prefab {0}", path);
+            LERROR("Failed to load prefab %s", path.c_str());
             return Entity();
         }
 

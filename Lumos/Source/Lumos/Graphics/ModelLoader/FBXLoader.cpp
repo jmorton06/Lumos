@@ -51,40 +51,40 @@ namespace Lumos::Graphics
         return { a.x - b.x, a.y - b.y };
     }
 
-    glm::vec3 FixOrientation(const glm::vec3& v)
+    Vec3 FixOrientation(const Vec3& v)
     {
         switch(orientation)
         {
         case Orientation::Y_UP:
-            return glm::vec3(v.x, v.y, v.z);
+            return Vec3(v.x, v.y, v.z);
         case Orientation::Z_UP:
-            return glm::vec3(v.x, v.z, -v.y);
+            return Vec3(v.x, v.z, -v.y);
         case Orientation::Z_MINUS_UP:
-            return glm::vec3(v.x, -v.z, v.y);
+            return Vec3(v.x, -v.z, v.y);
         case Orientation::X_MINUS_UP:
-            return glm::vec3(v.y, -v.x, v.z);
+            return Vec3(v.y, -v.x, v.z);
         case Orientation::X_UP:
-            return glm::vec3(-v.y, v.x, v.z);
+            return Vec3(-v.y, v.x, v.z);
         }
-        return glm::vec3(v.x, v.y, v.z);
+        return Vec3(v.x, v.y, v.z);
     }
 
-    glm::quat FixOrientation(const glm::quat& v)
+    Quat FixOrientation(const Quat& v)
     {
         switch(orientation)
         {
         case Orientation::Y_UP:
-            return glm::quat(v.x, v.y, v.z, v.w);
+            return Quat(v.x, v.y, v.z, v.w);
         case Orientation::Z_UP:
-            return glm::quat(v.x, v.z, -v.y, v.w);
+            return Quat(v.x, v.z, -v.y, v.w);
         case Orientation::Z_MINUS_UP:
-            return glm::quat(v.x, -v.z, v.y, v.w);
+            return Quat(v.x, -v.z, v.y, v.w);
         case Orientation::X_MINUS_UP:
-            return glm::quat(v.y, -v.x, v.z, v.w);
+            return Quat(v.y, -v.x, v.z, v.w);
         case Orientation::X_UP:
-            return glm::quat(-v.y, v.x, v.z, v.w);
+            return Quat(-v.y, v.x, v.z, v.w);
         }
-        return glm::quat(v.x, v.y, v.z, v.w);
+        return Quat(v.x, v.y, v.z, v.w);
     }
 
     static void computeTangents(ofbx::Vec3* out, int vertex_count, const ofbx::Vec3* vertices, const ofbx::Vec3* normals, const ofbx::Vec2* uvs)
@@ -118,29 +118,29 @@ namespace Lumos::Graphics
         }
     }
 
-    glm::vec2 ToLumosVector(const ofbx::Vec2& vec)
+    Vec2 ToLumosVector(const ofbx::Vec2& vec)
     {
-        return glm::vec2(float(vec.x), float(vec.y));
+        return Vec2(float(vec.x), float(vec.y));
     }
 
-    glm::vec3 ToLumosVector(const ofbx::Vec3& vec)
+    Vec3 ToLumosVector(const ofbx::Vec3& vec)
     {
-        return glm::vec3(float(vec.x), float(vec.y), float(vec.z));
+        return Vec3(float(vec.x), float(vec.y), float(vec.z));
     }
 
-    glm::vec4 ToLumosVector(const ofbx::Vec4& vec)
+    Vec4 ToLumosVector(const ofbx::Vec4& vec)
     {
-        return glm::vec4(float(vec.x), float(vec.y), float(vec.z), float(vec.w));
+        return Vec4(float(vec.x), float(vec.y), float(vec.z), float(vec.w));
     }
 
-    glm::vec4 ToLumosVector(const ofbx::Color& vec)
+    Vec4 ToLumosVector(const ofbx::Color& vec)
     {
-        return glm::vec4(float(vec.r), float(vec.g), float(vec.b), 1.0f);
+        return Vec4(float(vec.r), float(vec.g), float(vec.b), 1.0f);
     }
 
-    glm::quat ToLumosQuat(const ofbx::Quat& quat)
+    Quat ToLumosQuat(const ofbx::Quat& quat)
     {
-        return glm::quat(float(quat.x), float(quat.y), float(quat.z), float(quat.w));
+        return Quat(float(quat.x), float(quat.y), float(quat.z), float(quat.w));
     }
 
     bool IsMeshInvalid(const ofbx::Mesh* aMesh)
@@ -242,15 +242,15 @@ namespace Lumos::Graphics
 
         ofbx::Vec3 p = mesh->getLocalTranslation();
 
-        glm::vec3 pos = (glm::vec3(static_cast<float>(p.x), static_cast<float>(p.y), static_cast<float>(p.z)));
+        Vec3 pos = (Vec3(static_cast<float>(p.x), static_cast<float>(p.y), static_cast<float>(p.z)));
         transform.SetLocalPosition(FixOrientation(pos));
 
-        ofbx::Vec3 r  = mesh->getLocalRotation();
-        glm::vec3 rot = FixOrientation(glm::vec3(static_cast<float>(r.x), static_cast<float>(r.y), static_cast<float>(r.z)));
-        transform.SetLocalOrientation(glm::quat(glm::vec3(rot.x, rot.y, rot.z)));
+        ofbx::Vec3 r = mesh->getLocalRotation();
+        Vec3 rot     = FixOrientation(Vec3(static_cast<float>(r.x), static_cast<float>(r.y), static_cast<float>(r.z)));
+        transform.SetLocalOrientation(Quat(Vec3(rot.x, rot.y, rot.z)));
 
-        ofbx::Vec3 s  = mesh->getLocalScaling();
-        glm::vec3 scl = glm::vec3(static_cast<float>(s.x), static_cast<float>(s.y), static_cast<float>(s.z));
+        ofbx::Vec3 s = mesh->getLocalScaling();
+        Vec3 scl     = Vec3(static_cast<float>(s.x), static_cast<float>(s.y), static_cast<float>(s.z));
         transform.SetLocalScale(scl);
 
         if(mesh->getParent())
@@ -258,7 +258,7 @@ namespace Lumos::Graphics
             transform.SetWorldMatrix(GetTransform(mesh->getParent()).GetWorldMatrix());
         }
         else
-            transform.SetWorldMatrix(glm::mat4(1.0f));
+            transform.SetWorldMatrix(Mat4(1.0f));
 
         return transform;
     }
@@ -279,8 +279,8 @@ namespace Lumos::Graphics
         const ofbx::Vec4* colours = geom->getColors();
         const ofbx::Vec2* uvs     = geom->getUVs();
         const int* materials      = geom->getMaterials();
-        std::vector<Graphics::Vertex> tempvertices(vertex_count);
-        std::vector<uint32_t> indicesArray(numIndices);
+        TDArray<Graphics::Vertex> tempvertices(vertex_count);
+        TDArray<uint32_t> indicesArray(numIndices);
         ofbx::Vec3* generatedTangents = nullptr;
 
         const ofbx::Skin* skin = geom->getSkin();
@@ -295,16 +295,16 @@ namespace Lumos::Graphics
             ofbx::Vec3 cp = vertices[i + firstVertexOffset];
 
             auto& vertex    = tempvertices[i];
-            vertex.Position = transform.GetWorldMatrix() * glm::vec4(float(cp.x), float(cp.y), float(cp.z), 1.0f);
+            vertex.Position = transform.GetWorldMatrix() * Vec4(float(cp.x), float(cp.y), float(cp.z), 1.0f);
             FixOrientation(vertex.Position);
 
             if(normals)
-                vertex.Normal = transform.GetWorldMatrix() * glm::normalize(glm::vec4(float(normals[i + firstVertexOffset].x), float(normals[i + firstVertexOffset].y), float(normals[i + firstVertexOffset].z), 1.0f));
-            // vertex.Normal = transform.GetWorldMatrix().ToMatrix3().Inverse().Transpose() * (glm::vec3(float(normals[i].x), float(normals[i].y), float(normals[i].z))).Normalised();
+                vertex.Normal = transform.GetWorldMatrix() * Vec4(float(normals[i + firstVertexOffset].x), float(normals[i + firstVertexOffset].y), float(normals[i + firstVertexOffset].z), 1.0f).Normalised();
+            // vertex.Normal = transform.GetWorldMatrix().ToMatrix3().Inverse().Transpose() * (Vec3(float(normals[i].x), float(normals[i].y), float(normals[i].z))).Normalised();
             if(uvs)
-                vertex.TexCoords = glm::vec2(float(uvs[i + firstVertexOffset].x), 1.0f - float(uvs[i + firstVertexOffset].y));
+                vertex.TexCoords = Vec2(float(uvs[i + firstVertexOffset].x), 1.0f - float(uvs[i + firstVertexOffset].y));
             if(colours)
-                vertex.Colours = glm::vec4(float(colours[i + firstVertexOffset].x), float(colours[i + firstVertexOffset].y), float(colours[i + firstVertexOffset].z), float(colours[i + firstVertexOffset].w));
+                vertex.Colours = Vec4(float(colours[i + firstVertexOffset].x), float(colours[i + firstVertexOffset].y), float(colours[i + firstVertexOffset].z), float(colours[i + firstVertexOffset].w));
 
             FixOrientation(vertex.Normal);
             FixOrientation(vertex.Tangent);
@@ -338,21 +338,21 @@ namespace Lumos::Graphics
         if(material)
             mesh->SetMaterial(pbrMaterial);
 
-        mesh->Graphics::Mesh::GenerateTangentsAndBitangents(tempvertices.data(), uint32_t(vertexCount), indicesArray.data(), uint32_t(indicesArray.size()));
+        mesh->Graphics::Mesh::GenerateTangentsAndBitangents(tempvertices.Data(), uint32_t(vertexCount), indicesArray.Data(), uint32_t(indicesArray.Size()));
 
         return mesh;
     }
 
-    glm::mat4 FbxMatrixToLM(const ofbx::Matrix& mat)
+    Mat4 FbxMatrixToLM(const ofbx::Matrix& mat)
     {
-        glm::mat4 result;
+        Mat4 result;
         for(int32_t i = 0; i < 4; i++)
             for(int32_t j = 0; j < 4; j++)
-                result[i][j] = (float)mat.m[i * 4 + j];
+                result.Get(i, j) = (float)mat.m[i * 4 + j];
         return result;
     }
 
-    glm::mat4 GetOffsetMatrix(const ofbx::Mesh* mesh, const ofbx::Object* node)
+    Mat4 GetOffsetMatrix(const ofbx::Mesh* mesh, const ofbx::Object* node)
     {
         auto* skin = mesh ? mesh->getGeometry()->getSkin() : nullptr;
         if(skin)
@@ -385,7 +385,7 @@ namespace Lumos::Graphics
 
         if(data == nullptr)
         {
-            LUMOS_LOG_WARN("Failed to load fbx file");
+            LWARN("Failed to load fbx file");
             return;
         }
         const bool ignoreGeometry = false;
@@ -398,7 +398,7 @@ namespace Lumos::Graphics
 
         if(!err.empty() || !scene)
         {
-            LUMOS_LOG_CRITICAL(err);
+            LFATAL(err.c_str());
         }
 
         switch(settings->UpAxis)
@@ -442,7 +442,7 @@ namespace Lumos::Graphics
 
             if(fbxMesh->getMaterialCount() < 2 || !geometry->getMaterials())
             {
-                m_Meshes.push_back(LoadMesh(fbxMesh, 0, trianglesCount - 1));
+                m_Meshes.PushBack(LoadMesh(fbxMesh, 0, trianglesCount - 1));
             }
             else
             {
@@ -455,14 +455,14 @@ namespace Lumos::Graphics
                 {
                     if(rangeStartMaterial != materials[triangleIndex])
                     {
-                        m_Meshes.push_back(LoadMesh(fbxMesh, rangeStart, triangleIndex - 1));
+                        m_Meshes.PushBack(LoadMesh(fbxMesh, rangeStart, triangleIndex - 1));
 
                         // Start a new range
                         rangeStart         = triangleIndex;
                         rangeStartMaterial = materials[triangleIndex];
                     }
                 }
-                m_Meshes.push_back(LoadMesh(fbxMesh, rangeStart, trianglesCount - 1));
+                m_Meshes.PushBack(LoadMesh(fbxMesh, rangeStart, trianglesCount - 1));
             } }
 #ifdef THREAD_MESH_LOADING
         );

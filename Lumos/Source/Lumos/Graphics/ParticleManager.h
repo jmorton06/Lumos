@@ -1,8 +1,8 @@
 #pragma once
-#include <glm/ext/vector_float2.hpp>
-#include <glm/ext/vector_float4.hpp>
+#include "Maths/Vector2.h"
+#include "Maths/Vector4.h"
 #include "Scene/Serialisation/Serialisation.h"
-#include "Graphics/RHI/Definitions.h"
+#include "Graphics/RHI/RHIDefinitions.h"
 #include "Graphics/RHI/Texture.h"
 #include "Core/OS/FileSystem.h"
 
@@ -10,8 +10,8 @@ namespace Lumos
 {
     struct Particle
     {
-        glm::vec3 Position, Velocity;
-        glm::vec4 Colour;
+        Vec3 Position, Velocity;
+        Vec4 Colour;
         float Life;
         float Size;
 
@@ -45,7 +45,7 @@ namespace Lumos
             None      = 2
         };
 
-        void Update(float dt, glm::vec3 emitterPosition = glm::vec3(0.0f));
+        void Update(float dt, Vec3 emitterPosition = Vec3(0.0f));
         template <typename Archive>
         void save(Archive& archive) const
         {
@@ -136,11 +136,11 @@ namespace Lumos
         uint32_t GetParticleCount() const { return m_ParticleCount; }
         float GetParticleLife() const { return m_ParticleLife; }
         float GetParticleSize() const { return m_ParticleSize; }
-        const glm::vec3& GetInitialVelocity() const { return m_InitialVelocity; }
-        const glm::vec4& GetInitialColour() const { return m_InitialColour; }
-        const glm::vec3& GetSpread() const { return m_Spread; }
-        const glm::vec3& GetVelocitySpread() const { return m_VelocitySpread; }
-        const glm::vec3& GetGravity() const { return m_Gravity; }
+        const Vec3& GetInitialVelocity() const { return m_InitialVelocity; }
+        const Vec4& GetInitialColour() const { return m_InitialColour; }
+        const Vec3& GetSpread() const { return m_Spread; }
+        const Vec3& GetVelocitySpread() const { return m_VelocitySpread; }
+        const Vec3& GetGravity() const { return m_Gravity; }
         float GetNextParticleTime() const { return m_NextParticleTime; }
         float GetParticleRate() const { return m_ParticleRate; }
         uint32_t GetNumLaunchParticles() const { return m_NumLaunchParticles; }
@@ -159,11 +159,11 @@ namespace Lumos
         void SetParticleCount(uint32_t particleCount);
         void SetParticleLife(const float& particleLife) { m_ParticleLife = particleLife; }
         void SetParticleSize(const float& particleSize) { m_ParticleSize = particleSize; }
-        void SetInitialVelocity(const glm::vec3& initialVelocity) { m_InitialVelocity = initialVelocity; }
-        void SetInitialColour(const glm::vec4& initialColour) { m_InitialColour = initialColour; }
-        void SetSpread(const glm::vec3& spread) { m_Spread = spread; }
-        void SetVelocitySpread(const glm::vec3& velocitySpread) { m_VelocitySpread = velocitySpread; }
-        void SetGravity(const glm::vec3& gravity) { m_Gravity = gravity; }
+        void SetInitialVelocity(const Vec3& initialVelocity) { m_InitialVelocity = initialVelocity; }
+        void SetInitialColour(const Vec4& initialColour) { m_InitialColour = initialColour; }
+        void SetSpread(const Vec3& spread) { m_Spread = spread; }
+        void SetVelocitySpread(const Vec3& velocitySpread) { m_VelocitySpread = velocitySpread; }
+        void SetGravity(const Vec3& gravity) { m_Gravity = gravity; }
         void SetNextParticleTime(const float& nextParticleTime) { m_NextParticleTime = nextParticleTime; }
         void SetParticleRate(const float& particleRate) { m_ParticleRate = particleRate; }
         void SetNumLaunchParticles(uint32_t numLaunchParticles) { m_NumLaunchParticles = numLaunchParticles; }
@@ -177,14 +177,14 @@ namespace Lumos
         void SetAlignedType(const AlignedType& aligned) { m_AlignedType = aligned; }
         void SetDepthWrite(bool DepthWrite) { m_DepthWrite = DepthWrite; }
 
-        static const std::array<glm::vec2, 4>& GetDefaultUVs();
-        std::array<glm::vec2, 4> GetAnimatedUVs(float currentLife, int numRows);
-        std::array<glm::vec4, 4> GetBlendedAnimatedUVs(float currentLife, int numRows, float& outBlendAmount);
+        static const std::array<Vec2, 4>& GetDefaultUVs();
+        std::array<Vec2, 4> GetAnimatedUVs(float currentLife, int numRows);
+        std::array<Vec4, 4> GetBlendedAnimatedUVs(float currentLife, int numRows, float& outBlendAmount);
 
     private:
         void Init();
         uint32_t FirstUnusedParticle();
-        void RespawnParticle(Particle& particle, glm::vec3 emitterPosition = glm::vec3(0.0f));
+        void RespawnParticle(Particle& particle, Vec3 emitterPosition = Vec3(0.0f));
 
         Particle* m_Particles = nullptr;
 
@@ -192,17 +192,17 @@ namespace Lumos
         uint32_t m_ParticleCount       = 1024;
         float m_ParticleLife           = 3.0f;
         float m_ParticleSize           = 0.1f;
-        glm::vec3 m_InitialVelocity    = glm::vec3(0.0f, 1.0f, 0.0f);
-        glm::vec4 m_InitialColour      = glm::vec4(1.0f);
-        glm::vec3 m_Spread             = glm::vec3(2.0f, 0.0f, 2.0f);
-        glm::vec3 m_VelocitySpread     = glm::vec3(0.0f, 0.0f, 0.0f);
+        Vec3 m_InitialVelocity         = Vec3(0.0f, 1.0f, 0.0f);
+        Vec4 m_InitialColour           = Vec4(1.0f);
+        Vec3 m_Spread                  = Vec3(2.0f, 0.0f, 2.0f);
+        Vec3 m_VelocitySpread          = Vec3(0.0f, 0.0f, 0.0f);
         float m_FadeIn                 = -1.0f;
         float m_FadeOut                = -1.0f;
         float m_NextParticleTime       = 0.0f;
         float m_ParticleRate           = 0.1f;
         uint32_t m_NumLaunchParticles  = 10;
         bool m_IsAnimated              = false;
-        glm::vec3 m_Gravity            = glm::vec3(0.0f, 0.0f, 0.0f);
+        Vec3 m_Gravity                 = Vec3(0.0f, 0.0f, 0.0f);
         uint32_t m_AnimatedTextureRows = 4;
         float m_LifeSpread             = 0.1f;
         bool m_SortParticles           = false;

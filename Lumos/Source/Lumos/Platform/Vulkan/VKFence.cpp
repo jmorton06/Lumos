@@ -37,7 +37,7 @@ namespace Lumos
 
         bool VKFence::CheckState()
         {
-            LUMOS_ASSERT(!m_Signaled, "Fence Signaled");
+            ASSERT(!m_Signaled, "Fence Signaled");
 
             const VkResult result = vkGetFenceStatus(VKDevice::Get().GetDevice(), m_Handle);
             if(result == VK_SUCCESS)
@@ -52,7 +52,7 @@ namespace Lumos
         bool VKFence::Wait(uint64_t timeoutNanoseconds)
         {
             LUMOS_PROFILE_SCOPE("vkWaitForFences");
-            LUMOS_ASSERT(!m_Signaled, "Fence Signaled");
+            ASSERT(!m_Signaled, "Fence Signaled");
 
             const VkResult result = vkWaitForFences(VKDevice::Get().GetDevice(), 1, &m_Handle, true, timeoutNanoseconds);
 

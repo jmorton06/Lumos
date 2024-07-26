@@ -54,21 +54,21 @@ msbuild /p:Platform=x64 /p:Configuration=Release Lumos.sln
 ```
 cd Lumos
 Tools/premake5 xcode4
-xcodebuild -project Runtime/Runtime.xcodeproj
+xcodebuild -project Runtime.xcodeproj
 ```
 
 M1/M2/M3 Macs may need :
 ```
 cd Lumos
 Tools/premake5 xcode4 --arch=arm64 --os=macosx
-xcodebuild -project Runtime/Runtime.xcodeproj
+xcodebuild -project Runtime.xcodeproj
 ```
 
 #### iOS
 ```
 cd Lumos
 Tools/premake5 xcode4 --os=ios
-xcodebuild -project Runtime/Runtime.xcodeproj CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO
+xcodebuild -project Runtime.xcodeproj CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO
 ```
 
 To run on apple devices with Vulkan ( MoltenVK ), disable Metal API Validation here : Product > Scheme > Edit Scheme… > Run > Options > Metal API Validation
@@ -94,7 +94,6 @@ To run on apple devices with Vulkan ( MoltenVK ), disable Metal API Validation h
  * [imguizmo](https://github.com/CedricGuillemet/ImGuizmo) : Immediate mode 3D gizmo for scene editing and other controls based on Dear Imgui.
  * [entt](https://github.com/skypjack/entt) : Fast and reliable entity-component system (ECS)
  * [glfw](https://github.com/glfw/glfw) : A multi-platform library for OpenGL, OpenGL ES, Vulkan, window and input.
- * [spdlog](https://github.com/gabime/spdlog) : Fast C++ logging library.
  * [stb](https://github.com/nothings/stb) : Single-file public domain (or MIT licensed) libraries for C/C++.
  * [tinygltf](https://github.com/syoyo/tinygltf) : Header only C++11 tiny glTF 2.0 library
  * [tinyobjloader](https://github.com/syoyo/tinyobjloader) : Tiny but powerful single file wavefront obj loader

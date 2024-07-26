@@ -51,14 +51,14 @@ namespace Lumos
         // Provide global access to the only instance of this class
         static T& Get()
         {
-            LUMOS_ASSERT(m_pInstance == nullptr, "Singleton hasn't been Initialised");
+            ASSERT(m_pInstance == nullptr, "Singleton hasn't been Initialised");
             return *m_pInstance;
         }
 
         template <typename... TArgs>
         static void Init(TArgs... args)
         {
-            LUMOS_ASSERT(m_pInstance == nullptr, "Calling Init twice");
+            ASSERT(m_pInstance == nullptr, "Calling Init twice");
             m_pInstance = new T(std::forward<TArgs>(args)...);
         }
 

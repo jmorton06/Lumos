@@ -1,6 +1,5 @@
 #include "Precompiled.h"
 #include "Skeleton.h"
-#include <glm/gtc/type_ptr.hpp>
 
 #include <ozz/animation/runtime/animation.h>
 #include <ozz/animation/runtime/sampling_job.h>

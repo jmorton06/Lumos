@@ -1,6 +1,6 @@
 #include "Precompiled.h"
 #include "Renderable2D.h"
-#include <glm/ext/vector_float2.hpp>
+#include "Maths/Vector2.h"
 
 namespace Lumos
 {
@@ -14,27 +14,27 @@ namespace Lumos
         {
         }
 
-        const std::array<glm::vec2, 4>& Renderable2D::GetDefaultUVs()
+        const std::array<Vec2, 4>& Renderable2D::GetDefaultUVs()
         {
             LUMOS_PROFILE_FUNCTION();
-            static std::array<glm::vec2, 4> results;
+            static std::array<Vec2, 4> results;
             {
-                results[0] = glm::vec2(0, 1);
-                results[1] = glm::vec2(1, 1);
-                results[2] = glm::vec2(1, 0);
-                results[3] = glm::vec2(0, 0);
+                results[0] = Vec2(0, 1);
+                results[1] = Vec2(1, 1);
+                results[2] = Vec2(1, 0);
+                results[3] = Vec2(0, 0);
             }
             return results;
         }
 
-        const std::array<glm::vec2, 4>& Renderable2D::GetUVs(const glm::vec2& min, const glm::vec2& max)
+        const std::array<Vec2, 4>& Renderable2D::GetUVs(const Vec2& min, const Vec2& max)
         {
             LUMOS_PROFILE_FUNCTION();
-            static std::array<glm::vec2, 4> results;
+            static std::array<Vec2, 4> results;
             {
-                results[0] = glm::vec2(min.x, max.y);
+                results[0] = Vec2(min.x, max.y);
                 results[1] = max;
-                results[2] = glm::vec2(max.x, min.y);
+                results[2] = Vec2(max.x, min.y);
                 results[3] = min;
             }
             return results;

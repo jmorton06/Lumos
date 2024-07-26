@@ -30,7 +30,7 @@ namespace Lumos
             return metaData.data;
         }
 
-        LUMOS_LOG_WARN("Asset not found {0}", ID);
+        LWARN("Asset not found {0}", (u64)ID);
         return nullptr;
     }
 
@@ -179,7 +179,7 @@ namespace Lumos
     {
         std::scoped_lock<std::mutex> lock(s_AssetRegistryMutex);
 
-        LUMOS_ASSERT(m_AssetRegistry.find(handle) != m_AssetRegistry.end());
+        ASSERT(m_AssetRegistry.find(handle) != m_AssetRegistry.end());
         return m_AssetRegistry.at(handle);
     }
 

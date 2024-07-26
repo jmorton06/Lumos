@@ -41,7 +41,7 @@ namespace Lumos
             case RHIFormat::D32_Float_S8_UInt:
                 return GL_DEPTH32F_STENCIL8;
             default:
-                LUMOS_ASSERT(false, "[Texture] Unsupported Format");
+                ASSERT(false, "[Texture] Unsupported Format");
                 return 0;
             }
         }
@@ -63,7 +63,7 @@ namespace Lumos
             case TextureWrap::MIRRORED_REPEAT:
                 return GL_MIRRORED_REPEAT;
             default:
-                LUMOS_ASSERT(false, "[Texture] Unsupported TextureWrap");
+                ASSERT(false, "[Texture] Unsupported TextureWrap");
                 return 0;
             }
         }
@@ -114,7 +114,7 @@ namespace Lumos
                 return GL_LUMINANCE_ALPHA;
 
             default:
-                LUMOS_ASSERT(false, "[Texture] Unsupported Texture Format");
+                ASSERT(false, "[Texture] Unsupported Texture Format");
                 return 0;
             }
         }
@@ -136,7 +136,7 @@ namespace Lumos
             case StencilType::ALWAYS:
                 return GL_ALWAYS;
             default:
-                LUMOS_ASSERT(false, "Unsupported StencilType");
+                ASSERT(false, "Unsupported StencilType");
                 return 0;
             }
         }
@@ -160,7 +160,7 @@ namespace Lumos
             case RHIFormat::R32G32B32A32_Float:
                 return GL_FLOAT;
             default:
-                LUMOS_ASSERT(false, "[Texture] Unsupported Format");
+                ASSERT(false, "[Texture] Unsupported Format");
                 return GL_UNSIGNED_BYTE;
             }
         }
@@ -207,7 +207,7 @@ namespace Lumos
             case DataType::UNSIGNED_BYTE:
                 return GL_UNSIGNED_BYTE;
             default:
-                LUMOS_LOG_ERROR("Unsupported DataType");
+                LERROR("Unsupported DataType");
                 break;
             }
             return 0;
@@ -224,7 +224,7 @@ namespace Lumos
             case DrawType::TRIANGLE:
                 return GL_TRIANGLES;
             default:
-                LUMOS_LOG_ERROR("Unsupported DrawType");
+                LERROR("Unsupported DrawType");
                 break;
             }
             return 0;

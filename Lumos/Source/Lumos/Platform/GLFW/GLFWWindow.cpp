@@ -27,7 +27,7 @@
 #include <imgui/imgui.h>
 
 static GLFWcursor* g_MouseCursors[ImGuiMouseCursor_COUNT] = { 0 };
-#define LOG_CONTROLLER
+#define LOG_CONTROLLER 0
 namespace Lumos
 {
     static bool s_GLFWInitialized = false;
@@ -35,7 +35,7 @@ namespace Lumos
 
     static void GLFWErrorCallback(int error, const char* description)
     {
-        LUMOS_LOG_ERROR("GLFW Error - {0} : {1}", error, description);
+        LERROR("GLFW Error - %i : %s", error, description);
     }
 
     GLFWWindow::GLFWWindow(const WindowDesc& properties)
@@ -44,7 +44,7 @@ namespace Lumos
         m_Init  = false;
         m_VSync = properties.VSync;
 
-        LUMOS_LOG_INFO("VSync : {0}", m_VSync ? "True" : "False");
+        LINFO("VSync : %s", m_VSync ? "True" : "False");
         m_HasResized       = true;
         m_Data.m_RenderAPI = static_cast<Graphics::RenderAPI>(properties.RenderAPI);
         m_Data.VSync       = m_VSync;
@@ -84,12 +84,12 @@ namespace Lumos
     bool GLFWWindow::Init(const WindowDesc& properties)
     {
         LUMOS_PROFILE_FUNCTION();
-        LUMOS_LOG_INFO("Creating window - Title : {0}, Width : {1}, Height : {2}", properties.Title, properties.Width, properties.Height);
+        LINFO("Creating window - Title : %s, Width : %i, Height : %i", properties.Title.c_str(), properties.Width, properties.Height);
 
         if(!s_GLFWInitialized)
         {
             int success = glfwInit();
-            LUMOS_ASSERT(success, "Could not initialize GLFW!");
+            ASSERT(success, "Could not initialize GLFW!");
             glfwSetErrorCallback(GLFWErrorCallback);
 
             s_GLFWInitialized = true;
@@ -174,7 +174,7 @@ namespace Lumos
 
             if(!gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress)))
             {
-                LUMOS_LOG_ERROR("Failed to initialise OpenGL context");
+                LERROR("Failed to initialise OpenGL context");
             }
         }
 #endif
@@ -237,7 +237,7 @@ namespace Lumos
                     Application::Get().GetWindow()->SetWindowFocus(true);
                     break;
                 default:
-                    LUMOS_LOG_INFO("Unsupported window iconify state from callback");
+                    LINFO("Unsupported window iconify state from callback");
                 } });
 
         glfwSetKeyCallback(m_Handle, [](GLFWwindow* window, int key, int scancode, int action, int mods)
@@ -329,7 +329,7 @@ namespace Lumos
         g_MouseCursors[ImGuiMouseCursor_ResizeNWSE] = glfwCreateStandardCursor(GLFW_ARROW_CURSOR);
         g_MouseCursors[ImGuiMouseCursor_Hand]       = glfwCreateStandardCursor(GLFW_HAND_CURSOR);
 
-        LUMOS_LOG_INFO("Initialised GLFW version : {0}", glfwGetVersionString());
+        LINFO("Initialised GLFW version : %s", glfwGetVersionString());
         return true;
     }
 
@@ -368,7 +368,7 @@ namespace Lumos
 
                     if(!pixels)
                     {
-                        LUMOS_LOG_WARN("Failed to load app icon {0}", path);
+                        LWARN("Failed to load app icon %s", path.c_str());
                     }
 
                     image.height = height;
@@ -405,7 +405,7 @@ namespace Lumos
             SetVSync(true);
         }
 
-        LUMOS_LOG_INFO("VSync : {0}", m_VSync ? "True" : "False");
+        LINFO("VSync : %s", m_VSync ? "True" : "False");
     }
 
     void GLFWWindow::SetVSync(bool set)
@@ -416,7 +416,7 @@ namespace Lumos
         if(Graphics::GraphicsContext::GetRenderAPI() == Graphics::RenderAPI::OPENGL)
             glfwSwapInterval(set ? 1 : 0);
 
-        LUMOS_LOG_INFO("VSync : {0}", m_VSync ? "True" : "False");
+        LINFO("VSync : %s", m_VSync ? "True" : "False");
     }
 
     void GLFWWindow::OnUpdate()
@@ -457,7 +457,7 @@ namespace Lumos
         }
     }
 
-    void GLFWWindow::SetMousePosition(const glm::vec2& pos)
+    void GLFWWindow::SetMousePosition(const Vec2& pos)
     {
         LUMOS_PROFILE_FUNCTION();
         Input::Get().StoreMousePosition(pos.x, pos.y);
@@ -514,7 +514,7 @@ namespace Lumos
 
             if(glfwJoystickPresent(key) != GLFW_TRUE)
             {
-                LUMOS_LOG_INFO("Controller disconnected : {0}", value.Name);
+                LINFO("Controller disconnected : %s", value.Name.c_str());
                 Input::Get().RemoveController(key);
             }
         }
@@ -553,11 +553,11 @@ namespace Lumos
                     controller = (Controller*)HashMapFindPtr(&controllers, id);
                     if(!controller)
                     {
-                        LUMOS_LOG_INFO("Failed to find controller {0}", newController.Name);
+                        LINFO("Failed to find controller %s", newController.Name.c_str());
                     }
                 }
 
-                LUMOS_LOG_INFO("Controller connected {0}", controller->Name);
+                LINFO("Controller connected %s", controller->Name.c_str());
                 int buttonCount;
                 const unsigned char* buttons = glfwGetJoystickButtons(id, &buttonCount);
                 for(int i = 0; i < buttonCount; i++)
@@ -575,8 +575,8 @@ namespace Lumos
                 for(int i = 0; i < axisCount; i++)
                 {
                     controller->AxisStates[i] = abs(axes[i]) > controller->DeadZones[i] ? axes[i] : 0.0f;
-#ifdef LOG_CONTROLLER
-                    LUMOS_LOG_INFO("State {0} : {1}", i, controller->AxisStates[i]);
+#if LOG_CONTROLLER
+                    LINFO("State %i : %i", i, controller->AxisStates[i]);
 #endif
                 }
 

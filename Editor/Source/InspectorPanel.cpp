@@ -27,6 +27,7 @@
 #include <Lumos/Graphics/ParticleManager.h>
 #include <Lumos/Graphics/RHI/GraphicsContext.h>
 #include <Lumos/Graphics/RHI/Renderer.h>
+#include <Lumos/Core/Thread.h>
 
 #include <Lumos/Graphics/Material.h>
 #include <Lumos/Graphics/Environment.h>
@@ -40,6 +41,8 @@
 #include <Lumos/Physics/LumosPhysicsEngine/CollisionShapes/CapsuleCollisionShape.h>
 #include <Lumos/Physics/LumosPhysicsEngine/CollisionShapes/HullCollisionShape.h>
 #include <Lumos/Maths/MathsUtilities.h>
+#include <Lumos/Maths/Quaternion.h>
+#include <Lumos/Maths/Matrix4.h>
 
 #include <Lumos/ImGui/IconsMaterialDesignIcons.h>
 #include <Lumos/ImGui/ImGuiManager.h>
@@ -50,7 +53,6 @@
 #include <cstdint>
 #include <imgui/imgui.h>
 #include <imgui/imgui_internal.h>
-#include <glm/gtx/matrix_decompose.hpp>
 
 #include <cereal/types/polymorphic.hpp>
 #include <cereal/archives/binary.hpp>
@@ -59,7 +61,6 @@
 #include <ozz/animation/runtime/skeleton.h>
 
 #include <inttypes.h>
-#include <spdlog/fmt/bundled/format.h>
 
 static bool DebugView = false;
 
@@ -108,7 +109,7 @@ namespace MM
             std::string physicalPath;
             if(!Lumos::FileSystem::Get().ResolvePhysicalPath(newFilePath, physicalPath, true))
             {
-                LUMOS_LOG_ERROR("Failed to Create Lua script {0}", physicalPath);
+                LERROR("Failed to Create Lua script %s", physicalPath.c_str());
             }
             else
             {
@@ -124,18 +125,22 @@ end
 function OnCleanUp()
 end
 )";
-                std::string newScriptFileName = "Script";
-                int fileIndex                 = 0;
-                while(Lumos::FileSystem::FileExists(physicalPath + "/" + newScriptFileName + ".lua"))
+                Lumos::ArenaTemp scratch         = Lumos::ScratchBegin(nullptr, 0);
+                Lumos::String8 newScriptFileName = Lumos::Str8Lit("Script");
+                int fileIndex                    = 0;
+
+                while(Lumos::FileSystem::FileExists(physicalPath + "/" + ((const char*)newScriptFileName.str) + ".lua"))
                 {
                     fileIndex++;
-                    newScriptFileName = fmt::format("Script({0})", fileIndex);
+                    newScriptFileName = Lumos::PushStr8F(scratch.arena, "Script(%i)", fileIndex);
                 }
 
-                Lumos::FileSystem::WriteTextFile(physicalPath + "/" + newScriptFileName + ".lua", defaultScript);
-                script.SetFilePath(newFilePath + "/" + newScriptFileName + ".lua");
+                Lumos::FileSystem::WriteTextFile(physicalPath + "/" + ((const char*)newScriptFileName.str) + ".lua", defaultScript);
+                script.SetFilePath(newFilePath + "/" + ((const char*)newScriptFileName.str) + ".lua");
                 script.Reload();
                 hasReloaded = true;
+
+                Lumos::ScratchEnd(scratch);
             }
         }
 
@@ -200,9 +205,10 @@ end
     void ComponentEditorWidget<Lumos::Maths::Transform>(entt::registry& reg, entt::registry::entity_type e)
     {
         LUMOS_PROFILE_FUNCTION();
+        using namespace Lumos;
         auto& transform = reg.get<Lumos::Maths::Transform>(e);
 
-        auto rotation   = glm::degrees(glm::eulerAngles(transform.GetLocalOrientation()));
+        auto rotation   = transform.GetLocalOrientation().ToEuler();
         auto position   = transform.GetLocalPosition();
         auto scale      = transform.GetLocalScale();
         float itemWidth = (ImGui::GetContentRegionAvail().x - (ImGui::GetFontSize() * 3.0f)) / 3.0f;
@@ -222,7 +228,7 @@ end
         {
             float pitch = Lumos::Maths::Min(rotation.x, 89.9f);
             pitch       = Lumos::Maths::Max(pitch, -89.9f);
-            transform.SetLocalOrientation(glm::quat(glm::radians(glm::vec3(pitch, rotation.y, rotation.z))));
+            transform.SetLocalOrientation(Quat(Vec3(pitch, rotation.y, rotation.z)));
         }
         ImGui::PopID();
 
@@ -240,8 +246,8 @@ end
 
         if(ImGui::Button("Copy Editor Camera Transforn", ImVec2(ImGui::GetContentRegionAvail().x, 0.0f)))
         {
-            Lumos::Application* app   = &Lumos::Editor::Get();
-            glm::mat4 cameraTransform = ((Lumos::Editor*)app)->GetEditorCameraTransform().GetWorldMatrix();
+            Lumos::Application* app     = &Lumos::Editor::Get();
+            Lumos::Mat4 cameraTransform = ((Lumos::Editor*)app)->GetEditorCameraTransform().GetWorldMatrix();
             transform.SetLocalTransform(cameraTransform);
         }
     }
@@ -254,8 +260,8 @@ end
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
 
-        glm::vec3 size = shape->GetHalfDimensions();
-        if(ImGui::DragFloat3("##CollisionShapeHalfDims", glm::value_ptr(size), 1.0f, 0.0f, 10000.0f, "%.2f"))
+        Lumos::Vec3 size = shape->GetHalfDimensions();
+        if(ImGui::DragFloat3("##CollisionShapeHalfDims", Lumos::Maths::ValuePtr(size), 1.0f, 0.0f, 10000.0f, "%.2f"))
         {
             shape->SetHalfDimensions(size);
             phys.GetRigidBody()->CollisionShapeUpdated();
@@ -290,8 +296,8 @@ end
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
 
-        glm::vec3 size = shape->GetHalfDimensions();
-        if(ImGui::DragFloat3("##CollisionShapeHalfDims", glm::value_ptr(size), 1.0f, 0.0f, 10000.0f, "%.2f"))
+        Lumos::Vec3 size = shape->GetHalfDimensions();
+        if(ImGui::DragFloat3("##CollisionShapeHalfDims", Lumos::Maths::ValuePtr(size), 1.0f, 0.0f, 10000.0f, "%.2f"))
         {
             shape->SetHalfDimensions(size);
             phys.GetRigidBody()->CollisionShapeUpdated();
@@ -365,7 +371,7 @@ end
         if(type == "Custom")
             return Lumos::Shape::Custom;
 
-        LUMOS_LOG_ERROR("Unsupported Collision shape {0}", type);
+        LERROR("Unsupported Collision shape %s", type.c_str());
         return Lumos::Shape::Circle;
     }
 
@@ -385,7 +391,7 @@ end
         case Lumos::CollisionShapeType::CollisionHull:
             return "Hull";
         default:
-            LUMOS_LOG_ERROR("Unsupported Collision shape");
+            LERROR("Unsupported Collision shape");
             break;
         }
 
@@ -405,7 +411,7 @@ end
             return Lumos::CollisionShapeType::CollisionCapsule;
         if(type == "Hull")
             return Lumos::CollisionShapeType::CollisionHull;
-        LUMOS_LOG_ERROR("Unsupported Collision shape {0}", type);
+        LERROR("Unsupported Collision shape %s", type.c_str());
         return Lumos::CollisionShapeType::CollisionSphere;
     }
 
@@ -589,7 +595,7 @@ end
         auto pos             = phys.GetRigidBody()->GetPosition();
         auto force           = phys.GetRigidBody()->GetForce();
         auto torque          = phys.GetRigidBody()->GetTorque();
-        auto orientation     = glm::eulerAngles(phys.GetRigidBody()->GetOrientation());
+        auto orientation     = phys.GetRigidBody()->GetOrientation().ToEuler();
         auto angularVelocity = phys.GetRigidBody()->GetAngularVelocity();
         auto friction        = phys.GetRigidBody()->GetFriction();
         auto isStatic        = phys.GetRigidBody()->GetIsStatic();
@@ -614,7 +620,7 @@ end
             phys.GetRigidBody()->SetTorque(torque);
 
         if(Lumos::ImGuiUtilities::Property("Orientation", orientation))
-            phys.GetRigidBody()->SetOrientation(glm::quat(orientation));
+            phys.GetRigidBody()->SetOrientation(Lumos::Quat(orientation));
 
         if(Lumos::ImGuiUtilities::Property("Force", force))
             phys.GetRigidBody()->SetForce(force);
@@ -688,7 +694,7 @@ end
             default:
                 ImGui::NextColumn();
                 ImGui::PushItemWidth(-1);
-                LUMOS_LOG_ERROR("Unsupported Collision shape");
+                LERROR("Unsupported Collision shape");
                 break;
             }
         }
@@ -1002,7 +1008,7 @@ end
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
         auto pos = sprite.GetPosition();
-        if(ImGui::InputFloat2("##Position", glm::value_ptr(pos)))
+        if(ImGui::InputFloat2("##Position", Maths::ValuePtr(pos)))
             sprite.SetPosition(pos);
 
         ImGui::PopItemWidth();
@@ -1013,7 +1019,7 @@ end
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
         auto scale = sprite.GetScale();
-        if(ImGui::InputFloat2("##Scale", glm::value_ptr(scale)))
+        if(ImGui::InputFloat2("##Scale", Maths::ValuePtr(scale)))
             sprite.SetScale(scale);
 
         ImGui::PopItemWidth();
@@ -1024,7 +1030,7 @@ end
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
         auto colour = sprite.GetColour();
-        if(ImGui::ColorEdit4("##Colour", glm::value_ptr(colour)))
+        if(ImGui::ColorEdit4("##Colour", Maths::ValuePtr(colour)))
             sprite.SetColour(colour);
 
         ImGui::PopItemWidth();
@@ -1035,7 +1041,7 @@ end
 
         if(sprite.UsingSpriteSheet)
         {
-            static glm::vec2 tileIndex;
+            static Vec2 tileIndex;
 
             ImGuiUtilities::Property("Tile Index", tileIndex);
             ImGui::Columns(1);
@@ -1295,7 +1301,7 @@ end
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
         auto pos = sprite.GetPosition();
-        if(ImGui::InputFloat2("##Position", glm::value_ptr(pos)))
+        if(ImGui::InputFloat2("##Position", Maths::ValuePtr(pos)))
             sprite.SetPosition(pos);
 
         ImGui::PopItemWidth();
@@ -1306,7 +1312,7 @@ end
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
         auto scale = sprite.GetScale();
-        if(ImGui::InputFloat2("##Scale", glm::value_ptr(scale)))
+        if(ImGui::InputFloat2("##Scale", Maths::ValuePtr(scale)))
             sprite.SetScale(scale);
 
         ImGui::PopItemWidth();
@@ -1317,7 +1323,7 @@ end
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
         auto colour = sprite.GetColour();
-        if(ImGui::ColorEdit4("##Colour", glm::value_ptr(colour)))
+        if(ImGui::ColorEdit4("##Colour", Maths::ValuePtr(colour)))
             sprite.SetColour(colour);
 
         ImGui::PopItemWidth();
@@ -1486,7 +1492,7 @@ end
                         ImGui::SameLine((ImGui::GetWindowContentRegionMax() - ImGui::GetWindowContentRegionMin()).x - ImGui::GetFontSize());
                         ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.7f, 0.7f, 0.7f, 0.0f));
 
-                        std::vector<glm::vec2>& frames = state.Frames;
+                        std::vector<Vec2>& frames = state.Frames;
 
                         if(ImGui::Button(ICON_MDI_PLUS))
                         {
@@ -1506,12 +1512,12 @@ end
                             ImGui::PushItemWidth((ImGui::GetWindowContentRegionMax() - ImGui::GetWindowContentRegionMin()).x - ImGui::GetFontSize() * 3.0f);
 
                             if(byTile)
-                                pos /= tileSize;
+                                pos /= (float)tileSize;
 
-                            ImGui::DragFloat2("##Position", glm::value_ptr(pos));
+                            ImGui::DragFloat2("##Position", Maths::ValuePtr(pos));
 
                             if(byTile)
-                                pos *= tileSize;
+                                pos *= (float)tileSize;
 
                             ImGui::SameLine((ImGui::GetWindowContentRegionMax() - ImGui::GetWindowContentRegionMin()).x - ImGui::GetFontSize());
 
@@ -1747,7 +1753,7 @@ end
             return Lumos::Graphics::PrimitiveType::Terrain;
         }
 
-        LUMOS_LOG_ERROR("Primitive not supported");
+        LERROR("Primitive not supported");
         return Lumos::Graphics::PrimitiveType::Cube;
     };
 
@@ -1778,11 +1784,11 @@ end
             return "None";
         }
 
-        LUMOS_LOG_ERROR("Primitive not supported");
+        LERROR("Primitive not supported");
         return "";
     };
 
-    void TextureWidget(const char* label, Lumos::Graphics::Material* material, Lumos::Graphics::Texture2D* tex, bool flipImage, float& usingMapProperty, glm::vec4& colourProperty, const std::function<void(const std::string&)>& callback, const ImVec2& imageButtonSize = ImVec2(64, 64), bool defaultOpen = false)
+    void TextureWidget(const char* label, Lumos::Graphics::Material* material, Lumos::Graphics::Texture2D* tex, bool flipImage, float& usingMapProperty, Lumos::Vec4& colourProperty, const std::function<void(const std::string&)>& callback, const ImVec2& imageButtonSize = ImVec2(64, 64), bool defaultOpen = false)
     {
         using namespace Lumos;
         ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_Framed;
@@ -1874,7 +1880,7 @@ end
 
             ImGui::SliderFloat(Lumos::ImGuiUtilities::GenerateLabelID("Use Map"), &usingMapProperty, 0.0f, 1.0f);
 
-            ImGui::ColorEdit4(Lumos::ImGuiUtilities::GenerateLabelID("Colour"), glm::value_ptr(colourProperty));
+            ImGui::ColorEdit4(Lumos::ImGuiUtilities::GenerateLabelID("Colour"), Maths::ValuePtr(colourProperty));
             /*       ImGui::TextUnformatted("Value");
                    ImGui::SameLine();
                    ImGui::PushItemWidth(-1);*/
@@ -2040,13 +2046,13 @@ end
                 if(ImGui::Selectable(shapes[n], shape_current.c_str()))
                 {
                     if(reg.get<Lumos::Graphics::ModelComponent>(e).ModelRef)
-                        model.GetMeshesRef().clear();
+                        model.GetMeshesRef().Clear();
 
                     if(strcmp(shapes[n], "File") != 0)
                     {
                         if(reg.get<Lumos::Graphics::ModelComponent>(e).ModelRef)
                         {
-                            model.GetMeshesRef().push_back(Lumos::SharedPtr<Lumos::Graphics::Mesh>(Lumos::Graphics::CreatePrimative(GetPrimativeName(shapes[n]))));
+                            model.GetMeshesRef().PushBack(Lumos::SharedPtr<Lumos::Graphics::Mesh>(Lumos::Graphics::CreatePrimative(GetPrimativeName(shapes[n]))));
                             model.SetPrimitiveType(GetPrimativeName(shapes[n]));
                         }
                         else
@@ -2289,10 +2295,10 @@ end
                     ImGui::Columns(1);
 
                     Graphics::MaterialProperties* prop = material->GetProperties();
-                    auto colour                        = glm::vec4();
+                    auto colour                        = Vec4();
                     float normal                       = 0.0f;
                     auto& textures                     = material->GetTextures();
-                    glm::vec2 textureSize              = glm::vec2(100.0f, 100.0f);
+                    Vec2 textureSize                   = Vec2(100.0f, 100.0f);
                     TextureWidget("Albedo", material.get(), textures.albedo.get(), flipImage, prop->albedoMapFactor, prop->albedoColour, std::bind(&Graphics::Material::SetAlbedoTexture, material, std::placeholders::_1), textureSize * Application::Get().GetWindowDPI(), true);
 
                     TextureWidget("Normal", material.get(), textures.normal.get(), flipImage, prop->normalMapFactor, normal, false, std::bind(&Graphics::Material::SetNormalTexture, material, std::placeholders::_1), textureSize * Application::Get().GetWindowDPI());
@@ -2332,7 +2338,7 @@ end
                 Lumos::ImGuiUtilities::Property("Joint Count", jointCount, Lumos::ImGuiUtilities::PropertyFlag::ReadOnly);
 
                 const auto& animations = modelRef->GetAnimations();
-                int animCount          = (int)animations.size();
+                int animCount          = (int)animations.Size();
                 Lumos::ImGuiUtilities::Property("Animation Count", animCount, Lumos::ImGuiUtilities::PropertyFlag::ReadOnly);
 
                 if(animCount > 0)
@@ -2414,10 +2420,10 @@ end
         LUMOS_PROFILE_FUNCTION();
         auto& environment = reg.get<Lumos::Graphics::Environment>(e);
         // Disable image until texturecube is supported
-        // Lumos::ImGuiUtilities::Image(environment.GetEnvironmentMap(), glm::vec2(200, 200));
+        // Lumos::ImGuiUtilities::Image(environment.GetEnvironmentMap(), Vec2(200, 200));
 
-        uint8_t mode     = environment.GetMode();
-        glm::vec4 params = environment.GetParameters();
+        uint8_t mode       = environment.GetMode();
+        Lumos::Vec4 params = environment.GetParameters();
         ImGui::PushItemWidth(-1);
 
         const char* modes[]      = { "Textures", "Preetham", "Generic" };
@@ -2538,15 +2544,14 @@ end
     void ComponentEditorWidget<Lumos::TextureMatrixComponent>(entt::registry& reg, entt::registry::entity_type e)
     {
         LUMOS_PROFILE_FUNCTION();
+        using namespace Lumos;
         auto& textureMatrix = reg.get<Lumos::TextureMatrixComponent>(e);
-        glm::mat4& mat      = textureMatrix.GetMatrix();
+        Mat4& mat           = textureMatrix.GetMatrix();
 
-        glm::vec3 skew;
-        glm::vec3 position;
-        glm::vec3 scale;
-        glm::vec4 perspective;
-        glm::quat rotation;
-        glm::decompose(mat, scale, rotation, position, skew, perspective);
+        Vec3 position;
+        Vec3 scale;
+        Quat rotation;
+        mat.Decompose(position, rotation, scale);
 
         ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
         ImGui::Columns(2);
@@ -2556,7 +2561,7 @@ end
         ImGui::TextUnformatted("Position");
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
-        if(ImGui::DragFloat3("##Position", glm::value_ptr(position)))
+        if(ImGui::DragFloat3("##Position", Maths::ValuePtr(position)))
         {
             Lumos::Maths::SetTranslation(mat, position);
         }
@@ -2568,11 +2573,11 @@ end
         ImGui::TextUnformatted("Rotation");
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
-        if(ImGui::DragFloat3("##Rotation", glm::value_ptr(rotation)))
+        if(ImGui::DragFloat3("##Rotation", Maths::ValuePtr(rotation)))
         {
             float pitch = Lumos::Maths::Min(rotation.x, 89.9f);
             pitch       = Lumos::Maths::Max(pitch, -89.9f);
-            Lumos::Maths::SetRotation(mat, glm::vec3(pitch, rotation.y, rotation.z));
+            Lumos::Maths::SetRotation(mat, Vec3(pitch, rotation.y, rotation.z));
         }
 
         ImGui::PopItemWidth();
@@ -2582,7 +2587,7 @@ end
         ImGui::TextUnformatted("Scale");
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
-        if(ImGui::DragFloat3("##Scale", glm::value_ptr(scale), 0.1f))
+        if(ImGui::DragFloat3("##Scale", Maths::ValuePtr(scale), 0.1f))
         {
             Lumos::Maths::SetScale(mat, scale);
         }

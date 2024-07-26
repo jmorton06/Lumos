@@ -1,6 +1,6 @@
 #pragma once
 
-#include <glm/ext/vector_float3.hpp>
+#include "Maths/Vector3.h"
 
 namespace Lumos
 {
@@ -16,9 +16,9 @@ namespace Lumos
         float elatisity_term       = 0.0f;
         float collisionPenetration = 0.0f;
 
-        glm::vec3 collisionNormal;
-        glm::vec3 relPosA; // Position relative to objectA
-        glm::vec3 relPosB; // Position relative to objectB
+        Vec3 collisionNormal;
+        Vec3 relPosA; // Position relative to objectA
+        Vec3 relPosB; // Position relative to objectB
     };
 #define MAX_CONTACT_POINTS 8
 
@@ -32,7 +32,7 @@ namespace Lumos
         void Initiate(RigidBody3D* nodeA, RigidBody3D* nodeB, float BaumgarteScalar, float BaumgarteSlop);
 
         // Called whenever a new collision contact between A & B are found
-        void AddContact(const glm::vec3& globalOnA, const glm::vec3& globalOnB, const glm::vec3& _normal, const float& _penetration);
+        void AddContact(const Vec3& globalOnA, const Vec3& globalOnB, const Vec3& _normal, const float& _penetration);
 
         // Sequentially solves each contact constraint
         void ApplyImpulse();

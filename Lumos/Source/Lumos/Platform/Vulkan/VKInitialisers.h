@@ -216,13 +216,13 @@ namespace Lumos
         }
 
         inline VkDescriptorPoolCreateInfo DescriptorPoolCreateInfo(
-            const std::vector<VkDescriptorPoolSize>& poolSizes,
+            const TDArray<VkDescriptorPoolSize>& poolSizes,
             uint32_t maxSets)
         {
             VkDescriptorPoolCreateInfo descriptorPoolInfo = {};
             descriptorPoolInfo.sType                      = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-            descriptorPoolInfo.poolSizeCount              = static_cast<uint32_t>(poolSizes.size());
-            descriptorPoolInfo.pPoolSizes                 = poolSizes.data();
+            descriptorPoolInfo.poolSizeCount              = static_cast<uint32_t>(poolSizes.Size());
+            descriptorPoolInfo.pPoolSizes                 = poolSizes.Data();
             descriptorPoolInfo.maxSets                    = maxSets;
             return descriptorPoolInfo;
         }
@@ -263,12 +263,12 @@ namespace Lumos
         }
 
         inline VkDescriptorSetLayoutCreateInfo DescriptorSetLayoutCreateInfo(
-            const std::vector<VkDescriptorSetLayoutBinding>& bindings)
+            const TDArray<VkDescriptorSetLayoutBinding>& bindings)
         {
             VkDescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo = {};
             descriptorSetLayoutCreateInfo.sType                           = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-            descriptorSetLayoutCreateInfo.pBindings                       = bindings.data();
-            descriptorSetLayoutCreateInfo.bindingCount                    = static_cast<uint32_t>(bindings.size());
+            descriptorSetLayoutCreateInfo.pBindings                       = bindings.Data();
+            descriptorSetLayoutCreateInfo.bindingCount                    = static_cast<uint32_t>(bindings.Size());
             return descriptorSetLayoutCreateInfo;
         }
 
@@ -485,13 +485,13 @@ namespace Lumos
         }
 
         inline VkPipelineDynamicStateCreateInfo PipelineDynamicStateCreateInfo(
-            const std::vector<VkDynamicState>& pDynamicStates,
+            const TDArray<VkDynamicState>& pDynamicStates,
             VkPipelineDynamicStateCreateFlags flags = 0)
         {
             VkPipelineDynamicStateCreateInfo pipelineDynamicStateCreateInfo = {};
             pipelineDynamicStateCreateInfo.sType                            = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
-            pipelineDynamicStateCreateInfo.pDynamicStates                   = pDynamicStates.data();
-            pipelineDynamicStateCreateInfo.dynamicStateCount                = static_cast<uint32_t>(pDynamicStates.size());
+            pipelineDynamicStateCreateInfo.pDynamicStates                   = pDynamicStates.Data();
+            pipelineDynamicStateCreateInfo.dynamicStateCount                = static_cast<uint32_t>(pDynamicStates.Size());
             pipelineDynamicStateCreateInfo.flags                            = flags;
             return pipelineDynamicStateCreateInfo;
         }

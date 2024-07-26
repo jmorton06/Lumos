@@ -12,7 +12,7 @@ namespace Lumos
 
         if(!file)
         {
-            LUMOS_LOG_CRITICAL("Failed to load WAV file '{0}'!", fileName);
+            LFATAL("Failed to load WAV file '{0}'!", fileName.c_str());
             return data;
         }
 

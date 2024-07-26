@@ -74,7 +74,7 @@ namespace Lumos
             return "Shader";
         }
 
-        LUMOS_ASSERT(false, "Unknown Asset Type");
+        ASSERT(false, "Unknown Asset Type");
         return "None";
     }
 

@@ -1,6 +1,5 @@
 #include "Precompiled.h"
 #include "Camera.h"
-#include <glm/gtc/matrix_transform.hpp>
 
 namespace Lumos
 {
@@ -26,7 +25,7 @@ namespace Lumos
         , m_Orthographic(false)
         , m_Scale(1.0f) {};
 
-    Camera::Camera(float pitch, float yaw, const glm::vec3& position, float FOV, float Near, float Far, float aspect)
+    Camera::Camera(float pitch, float yaw, const Vec3& position, float FOV, float Near, float Far, float aspect)
         : m_AspectRatio(aspect)
         , m_FrustumDirty(true)
         , m_ProjectionDirty(true)
@@ -65,12 +64,12 @@ namespace Lumos
     void Camera::UpdateProjectionMatrix()
     {
         if(m_Orthographic)
-            m_ProjMatrix = glm::ortho(-m_AspectRatio * m_Scale, m_AspectRatio * m_Scale, -m_Scale, m_Scale, m_Near, m_Far);
+            m_ProjMatrix = Mat4::Orthographic(-m_AspectRatio * m_Scale, m_AspectRatio * m_Scale, -m_Scale, m_Scale, m_Near, m_Far);
         else
-            m_ProjMatrix = glm::perspective(glm::radians(m_Fov), m_AspectRatio, m_Near, m_Far);
+            m_ProjMatrix = Mat4::Perspective(m_Near, m_Far, m_AspectRatio, m_Fov);
     }
 
-    Maths::Frustum& Camera::GetFrustum(const glm::mat4& viewMatrix)
+    Maths::Frustum& Camera::GetFrustum(const Mat4& viewMatrix)
     {
         if(m_ProjectionDirty)
             UpdateProjectionMatrix();
@@ -83,7 +82,7 @@ namespace Lumos
         return m_Frustum;
     }
 
-    const glm::mat4& Camera::GetProjectionMatrix()
+    const Mat4& Camera::GetProjectionMatrix()
     {
         if(m_ProjectionDirty)
         {
@@ -93,10 +92,10 @@ namespace Lumos
         return m_ProjMatrix;
     }
 
-    Maths::Ray Camera::GetScreenRay(float x, float y, const glm::mat4& viewMatrix, bool flipY) const
+    Maths::Ray Camera::GetScreenRay(float x, float y, const Mat4& viewMatrix, bool flipY) const
     {
         Maths::Ray ret;
-        glm::mat4 viewProjInverse = glm::inverse(m_ProjMatrix * viewMatrix);
+        Mat4 viewProjInverse = (m_ProjMatrix * viewMatrix).Inverse();
 
         x = 2.0f * x - 1.0f;
         y = 2.0f * y - 1.0f;
@@ -104,14 +103,14 @@ namespace Lumos
         if(flipY)
             y *= -1.0f;
 
-        glm::vec4 n = viewProjInverse * glm::vec4(x, y, 0.0f, 1.0f);
+        Vec4 n = viewProjInverse * Vec4(x, y, 0.0f, 1.0f);
         n /= n.w;
 
-        glm::vec4 f = viewProjInverse * glm::vec4(x, y, 1.0f, 1.0f);
+        Vec4 f = viewProjInverse * Vec4(x, y, 1.0f, 1.0f);
         f /= f.w;
 
-        ret.Origin    = glm::vec3(n);
-        ret.Direction = glm::normalize(glm::vec3(f) - ret.Origin);
+        ret.Origin    = Vec3(n);
+        ret.Direction = (Vec3(f) - ret.Origin).Normalised();
 
         return ret;
     }

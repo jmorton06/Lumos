@@ -45,7 +45,7 @@ namespace Lumos
                 return Entity(entity, m_Scene);
         }
 
-        LUMOS_LOG_WARN("Entity not found by ID");
+        LWARN("Entity not found by ID");
         return Entity {};
     }
 

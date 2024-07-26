@@ -203,10 +203,9 @@ namespace Lumos
         va_list args2;
         va_copy(args2, args);
 
-        uint64_t needed_bytes = vsnprintf(0, 0, fmt, args) + 1; // fmt::formatted_size(fmt, args2);// ts_stbsp_vsnprintf(0, 0, fmt, args)+1;
+        uint64_t needed_bytes = vsnprintf(0, 0, fmt, args) + 1;
         result.str            = PushArrayNoZero(arena, uint8_t, needed_bytes);
         result.size           = needed_bytes - 1;
-        // fmt::format_to(result.str, fmt, args2);
 
         vsnprintf((char*)result.str, needed_bytes, fmt, args2);
 
@@ -449,7 +448,7 @@ namespace Lumos
 
     uint64_t U64FromStr8(String8 string, uint32_t radix)
     {
-        LUMOS_ASSERT(2 <= radix && radix <= 16);
+        ASSERT(2 <= radix && radix <= 16);
 
         uint64_t value = 0;
         for(uint64_t i = 0; i < string.size; i += 1)

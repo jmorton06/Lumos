@@ -156,7 +156,7 @@ namespace Lumos
         "Info",
         "Warn",
         "Error",
-        "Critical",
+        "FATAL",
         "Input",
         "GetKeyPressed",
         "GetKeyHeld",
@@ -326,19 +326,19 @@ namespace Lumos
         auto log = state.create_table("Log");
 
         log.set_function("Trace", [&](sol::this_state s, std::string_view message)
-                         { LUMOS_LOG_TRACE(message); });
+                         { LTRACE((char*)message.data()); });
 
         log.set_function("Info", [&](sol::this_state s, std::string_view message)
-                         { LUMOS_LOG_TRACE(message); });
+                         { LTRACE((char*)message.data()); });
 
         log.set_function("Warn", [&](sol::this_state s, std::string_view message)
-                         { LUMOS_LOG_WARN(message); });
+                         { LWARN((char*)message.data()); });
 
         log.set_function("Error", [&](sol::this_state s, std::string_view message)
-                         { LUMOS_LOG_ERROR(message); });
+                         { LERROR((char*)message.data()); });
 
-        log.set_function("Critical", [&](sol::this_state s, std::string_view message)
-                         { LUMOS_LOG_CRITICAL(message); });
+        log.set_function("FATAL", [&](sol::this_state s, std::string_view message)
+                         { LFATAL((char*)message.data()); });
     }
 
     void LuaManager::BindInputLua(sol::state& state)
@@ -358,7 +358,7 @@ namespace Lumos
         input.set_function("GetMouseHeld", [](Lumos::InputCode::MouseKey key) -> bool
                            { return Input::Get().GetMouseHeld(key); });
 
-        input.set_function("GetMousePosition", []() -> glm::vec2
+        input.set_function("GetMousePosition", []() -> Vec2
                            { return Input::Get().Get().GetMousePosition(); });
 
         input.set_function("GetScrollOffset", []() -> float
@@ -541,13 +541,13 @@ namespace Lumos
 
         REGISTER_COMPONENT_WITH_ECS(state, TextComponent, static_cast<TextComponent& (Entity::*)()>(&Entity::AddComponent<TextComponent>));
 
-        sol::usertype<Sprite> sprite_type = state.new_usertype<Sprite>("Sprite", sol::constructors<sol::types<glm::vec2, glm::vec2, glm::vec4>, Sprite(const SharedPtr<Graphics::Texture2D>&, const glm::vec2&, const glm::vec2&, const glm::vec4&)>());
+        sol::usertype<Sprite> sprite_type = state.new_usertype<Sprite>("Sprite", sol::constructors<sol::types<Vec2, Vec2, Vec4>, Sprite(const SharedPtr<Graphics::Texture2D>&, const Vec2&, const Vec2&, const Vec4&)>());
         sprite_type.set_function("SetTexture", &Sprite::SetTexture);
         sprite_type.set_function("SetSpriteSheet", &Sprite::SetSpriteSheet);
         sprite_type.set_function("SetSpriteSheetIndex", &Sprite::SetSpriteSheetIndex);
         sprite_type["SpriteSheetTileSize"] = &Sprite::SpriteSheetTileSize;
 
-        REGISTER_COMPONENT_WITH_ECS(state, Sprite, static_cast<Sprite& (Entity::*)(const glm::vec2&, const glm::vec2&, const glm::vec4&)>(&Entity::AddComponent<Sprite, const glm::vec2&, const glm::vec2&, const glm::vec4&>));
+        REGISTER_COMPONENT_WITH_ECS(state, Sprite, static_cast<Sprite& (Entity::*)(const Vec2&, const Vec2&, const Vec4&)>(&Entity::AddComponent<Sprite, const Vec2&, const Vec2&, const Vec4&>));
 
         state.new_usertype<Light>(
             "Light",
@@ -659,7 +659,7 @@ namespace Lumos
 
         auto mesh_type = state.new_usertype<Lumos::Graphics::Mesh>("Mesh",
                                                                    sol::constructors<Lumos::Graphics::Mesh(), Lumos::Graphics::Mesh(const Lumos::Graphics::Mesh&),
-                                                                                     Lumos::Graphics::Mesh(const std::vector<uint32_t>&, const std::vector<Vertex>&, float)>());
+                                                                                     Lumos::Graphics::Mesh(const TDArray<uint32_t>&, const TDArray<Vertex>&, float)>());
 
         // Bind the member functions and variables
         mesh_type["GetMaterial"]    = &Lumos::Graphics::Mesh::GetMaterial;
@@ -721,7 +721,7 @@ namespace Lumos
 
     static void SwitchSceneByName(const std::string& name)
     {
-        Application::Get().GetSceneManager()->SwitchScene(name);
+        Application::Get().GetSceneManager()->SwitchScene(name.c_str());
     }
 
     static void SetPhysicsDebugFlags(int flags)

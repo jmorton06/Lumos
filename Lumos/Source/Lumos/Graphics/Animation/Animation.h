@@ -33,7 +33,7 @@ namespace Lumos
 
             const ozz::animation::Animation& GetAnimation() const
             {
-                LUMOS_ASSERT(m_Animation, "Attempted to access null animation!");
+                ASSERT(m_Animation, "Attempted to access null animation!");
                 return *m_Animation;
             }
 

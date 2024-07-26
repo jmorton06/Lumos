@@ -96,7 +96,7 @@ namespace Lumos
             }
             else
             {
-                LUMOS_LOG_ERROR("Failed to cast Reference");
+                LERROR("Failed to cast Reference");
             }
         }
 
@@ -182,7 +182,7 @@ namespace Lumos
             }
             else
             {
-                LUMOS_LOG_ERROR("Failed to cast Reference");
+                LERROR("Failed to cast Reference");
             }
 
             return *this;
@@ -211,7 +211,7 @@ namespace Lumos
 
         inline T& operator[](int index)
         {
-            LUMOS_ASSERT(m_Ptr);
+            ASSERT(m_Ptr);
             return m_Ptr[index];
         }
 
@@ -274,7 +274,7 @@ namespace Lumos
 
         inline void refPointer(T* ptr)
         {
-            LUMOS_ASSERT(ptr, "Creating shared ptr with nullptr");
+            ASSERT(ptr, "Creating shared ptr with nullptr");
 
             m_Ptr     = ptr;
             m_Counter = new RefCount();
@@ -330,7 +330,7 @@ namespace Lumos
         explicit WeakReference(T* ptr) noexcept
             : m_Ptr(ptr)
         {
-            LUMOS_ASSERT(ptr, "Creating weak ptr with nullptr");
+            ASSERT(ptr, "Creating weak ptr with nullptr");
 
             m_Counter = new RefCount();
             m_Counter->weakReference();
@@ -388,7 +388,7 @@ namespace Lumos
 
         inline T& operator[](int index)
         {
-            LUMOS_ASSERT(m_Ptr);
+            ASSERT(m_Ptr);
             return m_Ptr[index];
         }
 
@@ -493,7 +493,7 @@ namespace Lumos
 
         T& operator[](int index)
         {
-            LUMOS_ASSERT(m_Ptr);
+            ASSERT(m_Ptr);
             return m_Ptr[index];
         }
 

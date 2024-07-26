@@ -3,8 +3,6 @@
 #include "Utilities/TimeStep.h"
 #include "Animation.h"
 
-#include <glm/fwd.hpp>
-
 namespace Lumos
 {
     namespace Graphics
@@ -35,17 +33,17 @@ namespace Lumos
             size_t GetCurrentState() const { return m_StateIndex; }
 
             const SharedPtr<Skeleton>& GetSkeleton() const { return m_Skeleton; }
-            const std::vector<std::string>& GetStateNames() const;
-            const std::vector<SharedPtr<Animation>>& GetAnimationStates() const;
+            const TDArray<std::string>& GetStateNames() const;
+            const TDArray<SharedPtr<Animation>>& GetAnimationStates() const;
             SharedPtr<DescriptorSet> GetDescriptorSet();
 
             static AssetType GetStaticType() { return AssetType::AnimationController; }
             virtual AssetType GetAssetType() const override { return GetStaticType(); }
 
-            std::vector<glm::mat4> GetJointMatrices();
-            void DebugDraw(const glm::mat4& transform);
+            TDArray<Mat4> GetJointMatrices();
+            void DebugDraw(const Mat4& transform);
 
-            void SetBindPoses(const std::vector<glm::mat4>& mats);
+            void SetBindPoses(const TDArray<Mat4>& mats);
 
         private:
             void UpdateSampling(float ratio, SamplingContext& context);

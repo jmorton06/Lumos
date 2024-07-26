@@ -40,7 +40,7 @@ namespace Lumos
 
         if(!data)
         {
-            LUMOS_LOG_WARN("Failed to load shader : {0}", shaderPath);
+            LWARN("Failed to load shader : %s", shaderPath.c_str());
             return;
         }
         auto shaderPath2 = shaderPath;
@@ -86,5 +86,6 @@ namespace Lumos
         std::string folder = StringUtilities::GetFileLocation(shaderPath2);
         shaderName         = StringUtilities::BackSlashesToSlashes(shaderName);
         FileSystem::WriteTextFile(folder + "Headers/" + shaderName + ".hpp", ss.str());
+        delete[] data;
     }
 }

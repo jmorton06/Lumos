@@ -1,6 +1,6 @@
 #pragma once
-#include "Definitions.h"
-#include <glm/ext/vector_float4.hpp>
+#include "RHIDefinitions.h"
+#include "Maths/Vector4.h"
 
 namespace Lumos
 {

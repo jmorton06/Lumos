@@ -3,7 +3,7 @@
 #include "GLDebug.h"
 #include "GL.h"
 
-#include <glm/ext/matrix_float4x4.hpp>
+#include "Maths/Matrix4.h"
 #include <imgui/imgui.h>
 
 namespace Lumos
@@ -86,13 +86,13 @@ namespace Lumos
                 switch(severity)
                 {
                 case GL_DEBUG_SEVERITY_HIGH:
-                    LUMOS_ASSERT(0);
+                    ASSERT(0);
                     return "High";
                 case GL_DEBUG_SEVERITY_MEDIUM:
-                    LUMOS_ASSERT(0);
+                    ASSERT(0);
                     return "Medium";
                 case GL_DEBUG_SEVERITY_LOW:
-                    LUMOS_ASSERT(0);
+                    ASSERT(0);
                     return "Low";
                 case GL_DEBUG_SEVERITY_NOTIFICATION:
                     return "Notification";
@@ -114,27 +114,27 @@ namespace Lumos
                 if(!PrintMessage(type))
                     return;
 
-                LUMOS_LOG_INFO(OPENGLLOG "Message: {0}", message);
-                LUMOS_LOG_INFO(OPENGLLOG "Type: {0}", GetStringForType(type));
-                LUMOS_LOG_INFO(OPENGLLOG "Source: {0}", GetStringForSource(source));
-                LUMOS_LOG_INFO(OPENGLLOG "ID: {0}", id);
-                LUMOS_LOG_INFO(OPENGLLOG "Severity: {0}", GetStringForSeverity(source));
+                LINFO(OPENGLLOG "Message: %s", message);
+                LINFO(OPENGLLOG "Type: %s", GetStringForType(type).c_str());
+                LINFO(OPENGLLOG "Source: %s", GetStringForSource(source).c_str());
+                LINFO(OPENGLLOG "ID: %i", id);
+                LINFO(OPENGLLOG "Severity: %s", GetStringForSeverity(source).c_str());
             }
         }
 #endif
         GLContext::GLContext()
         {
-            LUMOS_LOG_INFO("----------------------------------");
-            LUMOS_LOG_INFO(OPENGLLOG);
-            LUMOS_LOG_INFO((const char*)(glGetString(GL_VERSION)));
-            LUMOS_LOG_INFO((const char*)(glGetString(GL_VENDOR)));
-            LUMOS_LOG_INFO((const char*)(glGetString(GL_RENDERER)));
-            LUMOS_LOG_INFO("----------------------------------");
+            LINFO("----------------------------------");
+            LINFO(OPENGLLOG);
+            LINFO((const char*)(glGetString(GL_VERSION)));
+            LINFO((const char*)(glGetString(GL_VENDOR)));
+            LINFO((const char*)(glGetString(GL_RENDERER)));
+            LINFO("----------------------------------");
 
 #if LUMOS_DEBUG
 #ifdef GL_DEBUD_CALLBACK
 #ifndef LUMOS_PLATFORM_MACOS
-            LUMOS_LOG_INFO(OPENGLLOG "Registering OpenGL debug callback");
+            LINFO(OPENGLLOG "Registering OpenGL debug callback");
 
             glEnable(GL_DEBUG_OUTPUT);
             glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
@@ -147,10 +147,11 @@ namespace Lumos
                                   &unusedIds,
                                   true);
 #else
-            LUMOS_LOG_INFO(OPENGLLOG "glDebugMessageCallback not available");
+            LINFO(OPENGLLOG "glDebugMessageCallback not available");
 #endif
 #endif
 #endif
+            Maths::Matrix4::SetUpCoordSystem(false, false);
         }
 
         GLContext::~GLContext() = default;

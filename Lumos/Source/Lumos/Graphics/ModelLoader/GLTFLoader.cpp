@@ -18,6 +18,7 @@
 #include "Utilities/StringUtilities.h"
 #include "Core/Asset/AssetManager.h"
 #include "Maths/MathsUtilities.h"
+#include "Maths/Matrix3.h"
 
 #define TINYGLTF_IMPLEMENTATION
 #define TINYGLTF_USE_CPP14
@@ -29,12 +30,8 @@
 #include <ModelLoaders/tinygltf/tiny_gltf.h>
 #include <stb_image_resize2.h>
 
-#include <glm/ext/matrix_float4x4.hpp>
-#include <glm/mat3x3.hpp>
-#include <glm/mat4x4.hpp>
-#define GLM_ENABLE_EXPERIMENTAL
-#include <glm/gtx/quaternion.hpp>
-#include <glm/gtc/type_ptr.hpp>
+#include "Maths/Matrix4.h"
+#include "Maths/Quaternion.h"
 
 #include <ozz/animation/runtime/animation.h>
 #include <ozz/animation/offline/animation_builder.h>
@@ -120,13 +117,13 @@ namespace Lumos::Graphics
         }
     }
 
-    std::vector<SharedPtr<Material>> LoadMaterials(tinygltf::Model& gltfModel)
+    TDArray<SharedPtr<Material>> LoadMaterials(tinygltf::Model& gltfModel)
     {
         LUMOS_PROFILE_FUNCTION();
-        std::vector<SharedPtr<Graphics::Texture2D>> loadedTextures;
-        std::vector<SharedPtr<Material>> loadedMaterials;
-        loadedTextures.reserve(gltfModel.textures.size());
-        loadedMaterials.reserve(gltfModel.materials.size());
+        TDArray<SharedPtr<Graphics::Texture2D>> loadedTextures;
+        TDArray<SharedPtr<Material>> loadedMaterials;
+        loadedTextures.Reserve(gltfModel.textures.size());
+        loadedMaterials.Reserve(gltfModel.materials.size());
         bool animated = false;
         if(gltfModel.skins.size() >= 0)
         {
@@ -153,7 +150,7 @@ namespace Lumos::Graphics
                 if(gltfTexture.sampler != -1)
                     params = Graphics::TextureDesc(GetFilter(imageAndSampler.Sampler->minFilter), GetFilter(imageAndSampler.Sampler->magFilter), GetWrapMode(imageAndSampler.Sampler->wrapS));
                 else
-                    LUMOS_LOG_WARN("MISSING SAMPLER");
+                    LWARN("MISSING SAMPLER");
 
                 uint32_t texWidth  = imageAndSampler.Image->width;
                 uint32_t texHeight = imageAndSampler.Image->height;
@@ -191,7 +188,7 @@ namespace Lumos::Graphics
                 }
 
                 Graphics::Texture2D* texture2D = Graphics::Texture2D::CreateFromSource(texWidth, texHeight, pixels, params);
-                loadedTextures.push_back(SharedPtr<Graphics::Texture2D>(texture2D ? texture2D : nullptr));
+                loadedTextures.PushBack(SharedPtr<Graphics::Texture2D>(texture2D ? texture2D : nullptr));
                 if(freeData)
                     free(pixels);
 
@@ -205,7 +202,7 @@ namespace Lumos::Graphics
             if(index >= 0)
             {
                 const tinygltf::Texture& tex = gltfModel.textures[index];
-                if(tex.source >= 0 && tex.source < loadedTextures.size())
+                if(tex.source >= 0 && tex.source < loadedTextures.Size())
                 {
                     return loadedTextures[tex.source];
                 }
@@ -253,7 +250,7 @@ namespace Lumos::Graphics
 
             if(baseColourFactor != mat.values.end())
             {
-                properties.albedoColour = glm::vec4((float)baseColourFactor->second.ColorFactor()[0], (float)baseColourFactor->second.ColorFactor()[1], (float)baseColourFactor->second.ColorFactor()[2], 1.0f);
+                properties.albedoColour = Vec4((float)baseColourFactor->second.ColorFactor()[0], (float)baseColourFactor->second.ColorFactor()[1], (float)baseColourFactor->second.ColorFactor()[2], 1.0f);
                 if(baseColourFactor->second.ColorFactor().size() > 3)
                     properties.albedoColour.w = (float)baseColourFactor->second.ColorFactor()[3];
             }
@@ -319,20 +316,20 @@ namespace Lumos::Graphics
             if(mat.alphaMode != "OPAQUE")
                 pbrMaterial->SetFlag(Graphics::Material::RenderFlags::ALPHABLEND);
 
-            loadedMaterials.push_back(pbrMaterial);
+            loadedMaterials.PushBack(pbrMaterial);
         }
 
         return loadedMaterials;
     }
 
-    std::vector<Graphics::Mesh*> LoadMesh(tinygltf::Model& model, tinygltf::Mesh& mesh, std::vector<SharedPtr<Material>>& materials, Maths::Transform& parentTransform)
+    TDArray<Graphics::Mesh*> LoadMesh(tinygltf::Model& model, tinygltf::Mesh& mesh, TDArray<SharedPtr<Material>>& materials, Maths::Transform& parentTransform)
     {
-        std::vector<Graphics::Mesh*> meshes;
+        TDArray<Graphics::Mesh*> meshes;
 
         for(auto& primitive : mesh.primitives)
         {
-            std::vector<Graphics::Vertex> vertices;
-            std::vector<Graphics::AnimVertex> animVertices;
+            TDArray<Graphics::Vertex> vertices;
+            TDArray<Graphics::AnimVertex> animVertices;
 
             uint32_t vertexCount = (uint32_t)(primitive.attributes.empty() ? 0 : model.accessors.at(primitive.attributes["POSITION"]).count);
 
@@ -354,9 +351,9 @@ namespace Lumos::Graphics
                 hasBitangents = true;
 
             if(hasJoints || hasWeights)
-                animVertices.resize(vertexCount);
+                animVertices.Resize(vertexCount);
 
-            vertices.resize(vertexCount);
+            vertices.Resize(vertexCount);
 
 #define VERTEX(i, member) (hasWeights ? vertices[i].member : animVertices[i].member)
 
@@ -372,21 +369,26 @@ namespace Lumos::Graphics
                 int stride = accessor.ByteStride(bufferView);
 
                 // Extra vertex data from buffer
-                size_t bufferOffset       = bufferView.byteOffset + accessor.byteOffset;
-                int bufferLength          = static_cast<int>(accessor.count) * componentLength * componentTypeByteSize;
-                auto first                = buffer.data.begin() + bufferOffset;
-                auto last                 = buffer.data.begin() + bufferOffset + bufferLength;
-                std::vector<uint8_t> data = std::vector<uint8_t>(first, last);
+                size_t bufferOffset = bufferView.byteOffset + accessor.byteOffset;
+                int bufferLength    = static_cast<int>(accessor.count) * componentLength * componentTypeByteSize;
+                // auto first                = buffer.data.begin() + bufferOffset;
+                // auto last                 = buffer.data.begin() + bufferOffset + bufferLength;
+                // TDArray<uint8_t> data = TDArray<uint8_t>(first, last);
+                TDArray<uint8_t> data = TDArray<uint8_t>();
+                data.Resize(bufferLength);
+                uint8_t*& arrayData = data.Data();
+                MemoryCopy(arrayData, buffer.data.data() + bufferOffset, bufferLength);
+
                 // -------- Position attribute -----------
 
                 if(attribute.first == "POSITION")
                 {
                     size_t positionCount            = accessor.count;
-                    Maths::Vector3Simple* positions = reinterpret_cast<Maths::Vector3Simple*>(data.data());
+                    Maths::Vector3Simple* positions = reinterpret_cast<Maths::Vector3Simple*>(data.Data());
                     for(auto p = 0; p < positionCount; ++p)
                     {
                         vertices[p].Position = parentTransform.GetWorldMatrix() * Maths::ToVector4(positions[p]);
-                        LUMOS_ASSERT(!glm::isinf(vertices[p].Position.x) && !glm::isinf(vertices[p].Position.y) && !glm::isinf(vertices[p].Position.z) && !glm::isnan(vertices[p].Position.x) && !glm::isnan(vertices[p].Position.y) && !glm::isnan(vertices[p].Position.z));
+                        ASSERT(!Maths::IsInf(vertices[p].Position.x) && !Maths::IsInf(vertices[p].Position.y) && !Maths::IsInf(vertices[p].Position.z) && !Maths::IsNaN(vertices[p].Position.x) && !Maths::IsNaN(vertices[p].Position.y) && !Maths::IsNaN(vertices[p].Position.z));
                     }
                 }
 
@@ -395,13 +397,13 @@ namespace Lumos::Graphics
                 else if(attribute.first == "NORMAL")
                 {
                     size_t normalCount            = accessor.count;
-                    Maths::Vector3Simple* normals = reinterpret_cast<Maths::Vector3Simple*>(data.data());
+                    Maths::Vector3Simple* normals = reinterpret_cast<Maths::Vector3Simple*>(data.Data());
                     for(auto p = 0; p < normalCount; ++p)
                     {
                         // vertices[p].Normal = (parentTransform.GetWorldMatrix() * Maths::ToVector4(normals[p]));
-                        vertices[p].Normal = glm::transpose(glm::inverse(glm::mat3(parentTransform.GetWorldMatrix()))) * (glm::vec3(Maths::ToVector4(normals[p])));
-                        vertices[p].Normal = glm::normalize(vertices[p].Normal);
-                        LUMOS_ASSERT(!glm::isinf(vertices[p].Normal.x) && !glm::isinf(vertices[p].Normal.y) && !glm::isinf(vertices[p].Normal.z) && !glm::isnan(vertices[p].Normal.x) && !glm::isnan(vertices[p].Normal.y) && !glm::isnan(vertices[p].Normal.z));
+                        vertices[p].Normal = Maths::Transpose(Mat3::Inverse(Mat3(parentTransform.GetWorldMatrix()))) * (Vec3(Maths::ToVector4(normals[p])));
+                        vertices[p].Normal = vertices[p].Normal.Normalised();
+                        ASSERT(!Maths::IsInf(vertices[p].Normal.x) && !Maths::IsInf(vertices[p].Normal.y) && !Maths::IsInf(vertices[p].Normal.z) && !Maths::IsNaN(vertices[p].Normal.x) && !Maths::IsNaN(vertices[p].Normal.y) && !Maths::IsNaN(vertices[p].Normal.z));
                     }
                 }
 
@@ -410,7 +412,7 @@ namespace Lumos::Graphics
                 else if(attribute.first == "TEXCOORD_0")
                 {
                     size_t uvCount            = accessor.count;
-                    Maths::Vector2Simple* uvs = reinterpret_cast<Maths::Vector2Simple*>(data.data());
+                    Maths::Vector2Simple* uvs = reinterpret_cast<Maths::Vector2Simple*>(data.Data());
                     for(auto p = 0; p < uvCount; ++p)
                     {
                         vertices[p].TexCoords = ToVector(uvs[p]);
@@ -422,7 +424,7 @@ namespace Lumos::Graphics
                 else if(attribute.first == "COLOR_0")
                 {
                     size_t uvCount                = accessor.count;
-                    Maths::Vector4Simple* colours = reinterpret_cast<Maths::Vector4Simple*>(data.data());
+                    Maths::Vector4Simple* colours = reinterpret_cast<Maths::Vector4Simple*>(data.Data());
                     for(auto p = 0; p < uvCount; ++p)
                     {
                         vertices[p].Colours = ToVector(colours[p]);
@@ -435,12 +437,12 @@ namespace Lumos::Graphics
                 {
                     hasTangents               = true;
                     size_t uvCount            = accessor.count;
-                    Maths::Vector3Simple* uvs = reinterpret_cast<Maths::Vector3Simple*>(data.data());
+                    Maths::Vector3Simple* uvs = reinterpret_cast<Maths::Vector3Simple*>(data.Data());
                     for(auto p = 0; p < uvCount; ++p)
                     {
-                        vertices[p].Tangent = glm::transpose(glm::inverse(glm::mat3(parentTransform.GetWorldMatrix()))) * (glm::vec3(Maths::ToVector4(uvs[p])));
-                        vertices[p].Tangent = glm::normalize(vertices[p].Tangent);
-                        LUMOS_ASSERT(!glm::isinf(vertices[p].Tangent.x) && !glm::isinf(vertices[p].Tangent.y) && !glm::isinf(vertices[p].Tangent.z) && !glm::isnan(vertices[p].Tangent.x) && !glm::isnan(vertices[p].Tangent.y) && !glm::isnan(vertices[p].Tangent.z));
+                        vertices[p].Tangent = Maths::Transpose(Mat3::Inverse(Mat3(parentTransform.GetWorldMatrix()))) * (Vec3(Maths::ToVector4(uvs[p])));
+                        vertices[p].Tangent = vertices[p].Tangent.Normalised();
+                        ASSERT(!Maths::IsInf(vertices[p].Tangent.x) && !Maths::IsInf(vertices[p].Tangent.y) && !Maths::IsInf(vertices[p].Tangent.z) && !Maths::IsNaN(vertices[p].Tangent.x) && !Maths::IsNaN(vertices[p].Tangent.y) && !Maths::IsNaN(vertices[p].Tangent.z));
                     }
                 }
 
@@ -448,12 +450,12 @@ namespace Lumos::Graphics
                 {
                     hasBitangents             = true;
                     size_t uvCount            = accessor.count;
-                    Maths::Vector3Simple* uvs = reinterpret_cast<Maths::Vector3Simple*>(data.data());
+                    Maths::Vector3Simple* uvs = reinterpret_cast<Maths::Vector3Simple*>(data.Data());
                     for(auto p = 0; p < uvCount; ++p)
                     {
-                        vertices[p].Bitangent = glm::transpose(glm::inverse(glm::mat3(parentTransform.GetWorldMatrix()))) * (glm::vec3(Maths::ToVector4(uvs[p])));
-                        vertices[p].Bitangent = glm::normalize(vertices[p].Bitangent);
-                        LUMOS_ASSERT(!glm::isinf(vertices[p].Bitangent.x) && !glm::isinf(vertices[p].Bitangent.y) && !glm::isinf(vertices[p].Bitangent.z) && !glm::isnan(vertices[p].Bitangent.x) && !glm::isnan(vertices[p].Bitangent.y) && !glm::isnan(vertices[p].Bitangent.z));
+                        vertices[p].Bitangent = Maths::Transpose(Mat3::Inverse(Mat3(parentTransform.GetWorldMatrix()))) * (Vec3(Maths::ToVector4(uvs[p])));
+                        vertices[p].Bitangent = vertices[p].Bitangent.Normalised();
+                        ASSERT(!Maths::IsInf(vertices[p].Bitangent.x) && !Maths::IsInf(vertices[p].Bitangent.y) && !Maths::IsInf(vertices[p].Bitangent.z) && !Maths::IsNaN(vertices[p].Bitangent.x) && !Maths::IsNaN(vertices[p].Bitangent.y) && !Maths::IsNaN(vertices[p].Bitangent.z));
                     }
                 }
 
@@ -467,7 +469,7 @@ namespace Lumos::Graphics
 
                     if(accessor.componentType == TINYGLTF_COMPONENT_TYPE_FLOAT)
                     {
-                        Maths::Vector4Simple* weights = reinterpret_cast<Maths::Vector4Simple*>(data.data());
+                        Maths::Vector4Simple* weights = reinterpret_cast<Maths::Vector4Simple*>(data.Data());
                         for(auto p = 0; p < weightCount; ++p)
                         {
                             animVertices[p].Weights[0] = weights[p].x;
@@ -480,10 +482,10 @@ namespace Lumos::Graphics
                     {
                         for(auto i = 0; i < weightCount; ++i)
                         {
-                            const uint8_t& x = *(uint8_t*)((size_t)data.data() + i * stride + 0 * sizeof(uint16_t));
-                            const uint8_t& y = *(uint8_t*)((size_t)data.data() + i * stride + 1 * sizeof(uint16_t));
-                            const uint8_t& z = *(uint8_t*)((size_t)data.data() + i * stride + 2 * sizeof(uint16_t));
-                            const uint8_t& w = *(uint8_t*)((size_t)data.data() + i * stride + 3 * sizeof(uint16_t));
+                            const uint8_t& x = *(uint8_t*)((size_t)data.Data() + i * stride + 0 * sizeof(uint16_t));
+                            const uint8_t& y = *(uint8_t*)((size_t)data.Data() + i * stride + 1 * sizeof(uint16_t));
+                            const uint8_t& z = *(uint8_t*)((size_t)data.Data() + i * stride + 2 * sizeof(uint16_t));
+                            const uint8_t& w = *(uint8_t*)((size_t)data.Data() + i * stride + 3 * sizeof(uint16_t));
 
                             animVertices[i].Weights[0] = (float)x / 65535.0f;
                             animVertices[i].Weights[1] = (float)y / 65535.0f;
@@ -495,10 +497,10 @@ namespace Lumos::Graphics
                     {
                         for(auto i = 0; i < weightCount; ++i)
                         {
-                            const uint8_t& x = *(uint8_t*)((size_t)data.data() + i * stride + 0);
-                            const uint8_t& y = *(uint8_t*)((size_t)data.data() + i * stride + 1);
-                            const uint8_t& z = *(uint8_t*)((size_t)data.data() + i * stride + 2);
-                            const uint8_t& w = *(uint8_t*)((size_t)data.data() + i * stride + 3);
+                            const uint8_t& x = *(uint8_t*)((size_t)data.Data() + i * stride + 0);
+                            const uint8_t& y = *(uint8_t*)((size_t)data.Data() + i * stride + 1);
+                            const uint8_t& z = *(uint8_t*)((size_t)data.Data() + i * stride + 2);
+                            const uint8_t& w = *(uint8_t*)((size_t)data.Data() + i * stride + 3);
 
                             animVertices[i].Weights[0] = (float)x / 255.0f;
                             animVertices[i].Weights[1] = (float)y / 255.0f;
@@ -508,7 +510,7 @@ namespace Lumos::Graphics
                     }
                     else
                     {
-                        LUMOS_LOG_WARN("Unsupported weight data type");
+                        LWARN("Unsupported weight data type");
                     }
                 }
 
@@ -526,10 +528,10 @@ namespace Lumos::Graphics
                             uint16_t ind[4];
                         };
 
-                        uint16_t* joints = reinterpret_cast<uint16_t*>(data.data());
+                        uint16_t* joints = reinterpret_cast<uint16_t*>(data.Data());
                         for(auto p = 0; p < jointCount; ++p)
                         {
-                            const JointTmp& joint = *(const JointTmp*)(data.data() + p * stride);
+                            const JointTmp& joint = *(const JointTmp*)(data.Data() + p * stride);
 
                             animVertices[p].BoneInfoIndices[0] = (uint32_t)joint.ind[0];
                             animVertices[p].BoneInfoIndices[1] = (uint32_t)joint.ind[1];
@@ -539,7 +541,7 @@ namespace Lumos::Graphics
                     }
                     else if(accessor.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE)
                     {
-                        uint8_t* joints = reinterpret_cast<uint8_t*>(data.data());
+                        uint8_t* joints = reinterpret_cast<uint8_t*>(data.Data());
                         for(auto p = 0; p < jointCount; ++p)
                         {
                             animVertices[p].BoneInfoIndices[0] = (uint32_t)joints[p * 4];
@@ -557,7 +559,7 @@ namespace Lumos::Graphics
 
                         for(size_t i = 0; i < jointCount; ++i)
                         {
-                            const JointTmp& joint = *(const JointTmp*)(data.data() + i * stride);
+                            const JointTmp& joint = *(const JointTmp*)(data.Data() + i * stride);
 
                             animVertices[i].BoneInfoIndices[0] = joint.ind[0];
                             animVertices[i].BoneInfoIndices[1] = joint.ind[1];
@@ -567,17 +569,17 @@ namespace Lumos::Graphics
                     }
                     else
                     {
-                        LUMOS_LOG_WARN("Unsupported joint data type");
+                        LWARN("Unsupported joint data type");
                     }
                 }
             }
 
             // -------- Indices ----------
-            std::vector<uint32_t> indices;
+            TDArray<uint32_t> indices;
             if(primitive.indices >= 0)
             {
                 const tinygltf::Accessor& indicesAccessor = model.accessors[primitive.indices];
-                indices.resize(indicesAccessor.count);
+                indices.Resize(indicesAccessor.count);
                 {
                     // Get accessor info
                     auto indexAccessor   = model.accessors.at(primitive.indices);
@@ -588,16 +590,20 @@ namespace Lumos::Graphics
                     int componentTypeByteSize = GLTF_COMPONENT_BYTE_SIZE_LOOKUP.at(indexAccessor.componentType);
 
                     // Extra index data
-                    size_t bufferOffset       = indexBufferView.byteOffset + indexAccessor.byteOffset;
-                    int bufferLength          = static_cast<int>(indexAccessor.count) * componentLength * componentTypeByteSize;
-                    auto first                = indexBuffer.data.begin() + bufferOffset;
-                    auto last                 = indexBuffer.data.begin() + bufferOffset + bufferLength;
-                    std::vector<uint8_t> data = std::vector<uint8_t>(first, last);
+                    size_t bufferOffset = indexBufferView.byteOffset + indexAccessor.byteOffset;
+                    int bufferLength    = static_cast<int>(indexAccessor.count) * componentLength * componentTypeByteSize;
+                    /*       auto first                = indexBuffer.data.begin() + bufferOffset;
+                           auto last                 = indexBuffer.data.begin() + bufferOffset + bufferLength;
+                           TDArray<uint8_t> data = TDArray<uint8_t>(first, last);*/
+                    TDArray<uint8_t> data = TDArray<uint8_t>();
+                    data.Resize(bufferLength);
+                    uint8_t*& arrayData = data.Data();
+                    MemoryCopy(arrayData, indexBuffer.data.data() + bufferOffset, bufferLength);
 
                     size_t indicesCount = indexAccessor.count;
                     if(componentTypeByteSize == 1)
                     {
-                        uint8_t* in = reinterpret_cast<uint8_t*>(data.data());
+                        uint8_t* in = reinterpret_cast<uint8_t*>(data.Data());
                         for(auto iCount = 0; iCount < indicesCount; iCount++)
                         {
                             indices[iCount] = (uint32_t)in[iCount];
@@ -605,7 +611,7 @@ namespace Lumos::Graphics
                     }
                     else if(componentTypeByteSize == 2)
                     {
-                        uint16_t* in = reinterpret_cast<uint16_t*>(data.data());
+                        uint16_t* in = reinterpret_cast<uint16_t*>(data.Data());
                         for(auto iCount = 0; iCount < indicesCount; iCount++)
                         {
                             indices[iCount] = (uint32_t)in[iCount];
@@ -613,7 +619,7 @@ namespace Lumos::Graphics
                     }
                     else if(componentTypeByteSize == 4)
                     {
-                        auto in = reinterpret_cast<uint32_t*>(data.data());
+                        auto in = reinterpret_cast<uint32_t*>(data.Data());
                         for(auto iCount = 0; iCount < indicesCount; iCount++)
                         {
                             indices[iCount] = in[iCount];
@@ -621,38 +627,38 @@ namespace Lumos::Graphics
                     }
                     else
                     {
-                        LUMOS_LOG_WARN("Unsupported indices data type - {0}", componentTypeByteSize);
+                        LWARN("Unsupported indices data type - %i", componentTypeByteSize);
                     }
                 }
             }
             else
             {
-                LUMOS_LOG_WARN("Missing Indices - Generating new");
+                LWARN("Missing Indices - Generating new");
 
                 const auto& accessor = model.accessors[primitive.attributes.find("POSITION")->second];
-                indices.reserve(accessor.count);
+                indices.Reserve(accessor.count);
                 //                for (auto i = 0; i < accessor.count; i++)
-                //                       indices.push_back(i);
+                //                       indices.PushBack(i);
 
                 for(size_t vi = 0; vi < accessor.count; vi += 3)
                 {
-                    indices.push_back(uint32_t(vi + 0));
-                    indices.push_back(uint32_t(vi + 1));
-                    indices.push_back(uint32_t(vi + 2));
+                    indices.PushBack(uint32_t(vi + 0));
+                    indices.PushBack(uint32_t(vi + 1));
+                    indices.PushBack(uint32_t(vi + 2));
                 }
             }
 
             if(!hasNormals)
-                Graphics::Mesh::GenerateNormals(vertices.data(), uint32_t(vertices.size()), indices.data(), uint32_t(indices.size()));
+                Graphics::Mesh::GenerateNormals(vertices.Data(), uint32_t(vertices.Size()), indices.Data(), uint32_t(indices.Size()));
             if(!hasTangents || !hasBitangents)
-                Graphics::Mesh::GenerateTangentsAndBitangents(vertices.data(), uint32_t(vertices.size()), indices.data(), uint32_t(indices.size()));
+                Graphics::Mesh::GenerateTangentsAndBitangents(vertices.Data(), uint32_t(vertices.Size()), indices.Data(), uint32_t(indices.Size()));
 
             // Add mesh
             Graphics::Mesh* lMesh;
 
             if(hasJoints || hasWeights)
             {
-                for(size_t i = 0; i < vertices.size(); i++)
+                for(size_t i = 0; i < vertices.Size(); i++)
                 {
                     animVertices[i].NormalizeWeights();
                     animVertices[i].Position  = vertices[i].Position;
@@ -667,13 +673,13 @@ namespace Lumos::Graphics
             else
                 lMesh = new Graphics::Mesh(indices, vertices);
 
-            meshes.emplace_back(lMesh);
+            meshes.EmplaceBack(lMesh);
         }
 
         return meshes;
     }
 
-    void LoadNode(Model* mainModel, int nodeIndex, const glm::mat4& parentTransform, tinygltf::Model& model, std::vector<SharedPtr<Material>>& materials, std::vector<std::vector<Graphics::Mesh*>>& meshes)
+    void LoadNode(Model* mainModel, int nodeIndex, const Mat4& parentTransform, tinygltf::Model& model, TDArray<SharedPtr<Material>>& materials, TDArray<TDArray<Graphics::Mesh*>>& meshes)
     {
         LUMOS_PROFILE_FUNCTION();
         if(nodeIndex < 0)
@@ -685,35 +691,35 @@ namespace Lumos::Graphics
         auto name  = node.name;
 
 #ifdef DEBUG_PRINT_GLTF_LOADING
-        LUMOS_LOG_INFO("asset.copyright : {0}", model.asset.copyright);
-        LUMOS_LOG_INFO("asset.generator : {0}", model.asset.generator);
-        LUMOS_LOG_INFO("asset.version : {0}", model.asset.version);
-        LUMOS_LOG_INFO("asset.minVersion : {0}", model.asset.minVersion);
+        LINFO("asset.copyright : %s", model.asset.copyright);
+        LINFO("asset.generator : %s", model.asset.generator);
+        LINFO("asset.version : %s", model.asset.version);
+        LINFO("asset.minVersion : %s", model.asset.minVersion);
 #endif
 
         Maths::Transform transform;
-        glm::mat4 matrix;
-        glm::mat4 position = glm::mat4(1.0f);
-        glm::mat4 rotation = glm::mat4(1.0f);
-        glm::mat4 scale    = glm::mat4(1.0f);
+        Mat4 matrix;
+        Mat4 position = Mat4(1.0f);
+        Mat4 rotation = Mat4(1.0f);
+        Mat4 scale    = Mat4(1.0f);
 
         if(!node.scale.empty())
         {
-            scale = glm::scale(glm::mat4(1.0), glm::vec3(static_cast<float>(node.scale[0]), static_cast<float>(node.scale[1]), static_cast<float>(node.scale[2])));
-            // transform.SetLocalScale(glm::vec3(static_cast<float>(node.scale[0]), static_cast<float>(node.scale[1]), static_cast<float>(node.scale[2])));
+            scale = Mat4::Scale(Vec3(static_cast<float>(node.scale[0]), static_cast<float>(node.scale[1]), static_cast<float>(node.scale[2])));
+            // transform.SetLocalScale(Vec3(static_cast<float>(node.scale[0]), static_cast<float>(node.scale[1]), static_cast<float>(node.scale[2])));
         }
 
         if(!node.rotation.empty())
         {
-            rotation = glm::toMat4(glm::quat(static_cast<float>(node.rotation[3]), static_cast<float>(node.rotation[0]), static_cast<float>(node.rotation[1]), static_cast<float>(node.rotation[2])));
+            rotation = Maths::ToMat4(Quat(static_cast<float>(node.rotation[0]), static_cast<float>(node.rotation[1]), static_cast<float>(node.rotation[2]), static_cast<float>(node.rotation[3])));
 
-            // transform.SetLocalOrientation(glm::quat(static_cast<float>(node.rotation[3]), static_cast<float>(node.rotation[0]), static_cast<float>(node.rotation[1]), static_cast<float>(node.rotation[2])));
+            // transform.SetLocalOrientation(Quat(static_cast<float>(node.rotation[3]), static_cast<float>(node.rotation[0]), static_cast<float>(node.rotation[1]), static_cast<float>(node.rotation[2])));
         }
 
         if(!node.translation.empty())
         {
-            // transform.SetLocalPosition(glm::vec3(static_cast<float>(node.translation[0]), static_cast<float>(node.translation[1]), static_cast<float>(node.translation[2])));
-            position = glm::translate(glm::mat4(1.0), glm::vec3(static_cast<float>(node.translation[0]), static_cast<float>(node.translation[1]), static_cast<float>(node.translation[2])));
+            // transform.SetLocalPosition(Vec3(static_cast<float>(node.translation[0]), static_cast<float>(node.translation[1]), static_cast<float>(node.translation[2])));
+            position = Mat4::Translation(Vec3(static_cast<float>(node.translation[0]), static_cast<float>(node.translation[1]), static_cast<float>(node.translation[2])));
         }
 
         if(!node.matrix.empty())
@@ -721,7 +727,7 @@ namespace Lumos::Graphics
             float matrixData[16];
             for(int i = 0; i < 16; i++)
                 matrixData[i] = float(node.matrix.data()[i]);
-            matrix = glm::make_mat4(matrixData);
+            matrix = Mat4(matrixData);
             transform.SetLocalTransform(matrix);
         }
         else
@@ -730,7 +736,6 @@ namespace Lumos::Graphics
             transform.SetLocalTransform(matrix);
         }
 
-        transform.ApplyTransform();
         transform.SetWorldMatrix(parentTransform);
 
         if(node.mesh >= 0)
@@ -768,9 +773,9 @@ namespace Lumos::Graphics
         }
     }
 
-    glm::mat4 ConvertToGLM2(const ozz::math::Float4x4& ozzMat)
+    Mat4 ConvertToGLM2(const ozz::math::Float4x4& ozzMat)
     {
-        glm::mat4 glmMat;
+        Mat4 glmMat;
 
         // Assuming ozz::math::Float4x4 is column-major
         float matrix[16];
@@ -787,7 +792,7 @@ namespace Lumos::Graphics
             std::memcpy(matrix + r * 4, dresult, sizeof(dresult));
         }
 
-        glmMat = glm::make_mat4(matrix);
+        glmMat = Mat4(matrix);
         return glmMat;
     }
 
@@ -819,17 +824,17 @@ namespace Lumos::Graphics
 
         if(!err.empty())
         {
-            LUMOS_LOG_ERROR(err);
+            LERROR(err.c_str());
         }
 
         if(!warn.empty())
         {
-            LUMOS_LOG_ERROR(warn);
+            LERROR(warn.c_str());
         }
 
         if(!ret || model.defaultScene < 0 || model.scenes.empty())
         {
-            LUMOS_LOG_ERROR("Failed to parse glTF");
+            LERROR("Failed to parse glTF");
         }
         {
             LUMOS_PROFILE_SCOPE("Parse GLTF Model");
@@ -838,11 +843,11 @@ namespace Lumos::Graphics
 
             std::string name = path.substr(path.find_last_of('/') + 1);
 
-            auto meshes                      = std::vector<std::vector<Graphics::Mesh*>>();
+            auto meshes                      = TDArray<TDArray<Graphics::Mesh*>>();
             const tinygltf::Scene& gltfScene = model.scenes[Lumos::Maths::Max(0, model.defaultScene)];
             for(size_t i = 0; i < gltfScene.nodes.size(); i++)
             {
-                LoadNode(this, gltfScene.nodes[i], glm::mat4(1.0f), model, LoadedMaterials, meshes);
+                LoadNode(this, gltfScene.nodes[i], Mat4(1.0f), model, LoadedMaterials, meshes);
             }
 
             auto skins = model.skins;
@@ -863,7 +868,7 @@ namespace Lumos::Graphics
                 if(m_Skeleton->Valid())
                 {
                     ozz::vector<ozz::math::Float4x4> bindposes_ozz;
-                    m_BindPoses.reserve(m_Skeleton->GetSkeleton().joint_names().size());
+                    m_BindPoses.Reserve(m_Skeleton->GetSkeleton().joint_names().size());
                     bindposes_ozz.resize(m_Skeleton->GetSkeleton().joint_names().size());
 
                     // convert from local space to model space
@@ -874,12 +879,12 @@ namespace Lumos::Graphics
 
                     if(!job.Run())
                     {
-                        LUMOS_LOG_ERROR("Failed to run ozz LocalToModelJob");
+                        LERROR("Failed to run ozz LocalToModelJob");
                     }
 
                     for(auto& pose : bindposes_ozz)
                     {
-                        m_BindPoses.push_back(glm::inverse(ConvertToGLM2(pose)));
+                        m_BindPoses.PushBack(Mat4::Inverse(ConvertToGLM2(pose)));
                     }
 
                     ozz::animation::offline::AnimationBuilder animBuilder;
@@ -890,7 +895,7 @@ namespace Lumos::Graphics
                         RawAnimation* rawAnimation = new RawAnimation();
                         importer.Import(animName.c_str(), m_Skeleton->GetSkeleton(), 30.0f, rawAnimation);
 
-                        m_Animation.push_back(CreateSharedPtr<Animation>(std::string(animName.c_str()), animBuilder(*rawAnimation).release(), m_Skeleton));
+                        m_Animation.PushBack(CreateSharedPtr<Animation>(std::string(animName.c_str()), animBuilder(*rawAnimation).release(), m_Skeleton));
 
                         delete rawAnimation;
                     }

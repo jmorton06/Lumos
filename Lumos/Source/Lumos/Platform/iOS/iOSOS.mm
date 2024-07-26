@@ -68,18 +68,18 @@ static iOSOS* os = nullptr;
         Lumos::VFS::Get().Mount("Sounds", root + "Sounds");
         Lumos::VFS::Get().Mount("Assets", root + "Assets");
 */
-        LUMOS_LOG_INFO("Device : {0}",GetModelName());
-        
+        LINFO("Device : %s",GetModelName());
+
         iOSWindow::MakeDefault();
 
         s_Instance = this;
-        
+
         //TODO: Replace with non depricated functions
         AudioSessionInitialize(NULL, NULL, AudioInterruptionListenerCallback, NULL);
-                
+
         UInt32 session_category = kAudioSessionCategory_MediaPlayback;
         AudioSessionSetProperty(kAudioSessionProperty_AudioCategory, sizeof(session_category), &session_category);
-        
+
         AudioSessionSetActive(true);
 
         auto app = Lumos::CreateApplication();
@@ -90,19 +90,19 @@ static iOSOS* os = nullptr;
     {
         Application::Get().OnFrame();
     }
-    
+
     void iOSOS::OnQuit()
     {
         Application::Get().OnQuit();
         Application::Release();
 	    Lumos::Internal::CoreSystem::Shutdown();
     }
-    
+
     std::string iOSOS::GetAssetPath()
     {
         return [NSBundle.mainBundle.resourcePath stringByAppendingString: @"/"].UTF8String;
     }
-    
+
     void iOSOS::OnKeyPressed(char keycode, bool down)
     {
         ((iOSWindow*)Application::Get().GetWindow())->OnKeyEvent((Lumos::InputCode::Key)Lumos::iOSKeyCodes::iOSKeyToLumos(keycode), down);
@@ -117,7 +117,7 @@ static iOSOS* os = nullptr;
     {
         ((iOSWindow*)Application::Get().GetWindow())->OnMouseMovedEvent(xPos,yPos);
     }
-    
+
     void iOSOS::OnScreenResize(uint32_t width, uint32_t height)
     {
         ((iOSWindow*)Application::Get().GetWindow())->OnResizeEvent(width, height);
@@ -155,25 +155,25 @@ static iOSOS* os = nullptr;
         NSString* nsmsg = [[NSString alloc] initWithBytes:message
                             length:strlen(message) * sizeof(message)
                             encoding:NSUTF8StringEncoding];
-        
+
         UIAlertController* alert = [UIAlertController
                                       alertControllerWithTitle:@"Error"
                                       message:nsmsg
                                       preferredStyle:UIAlertControllerStyleAlert];
-          
+
         UIAlertAction* okButton = [UIAlertAction
                                      actionWithTitle:@"OK"
                                      style:UIAlertActionStyleDefault
                                      handler:^(UIAlertAction* action) {
                                           // Handle your ok button action here
                                      }];
-          
+
         [alert addAction:okButton];
-        
+
         UIViewController* viewController = [[[[UIApplication sharedApplication] delegate] window] rootViewController];
         [viewController presentViewController:alert animated:YES completion:nil];
     }
-    
+
     std::string iOSOS::GetModelName() const
     {
         size_t size;
@@ -191,7 +191,7 @@ static iOSOS* os = nullptr;
 
     void iOSOS::ShowKeyboard(bool open)
     {
-        
+
     }
 
     bool iOSOS::HasWifiConnection()
@@ -213,7 +213,7 @@ static iOSOS* os = nullptr;
                               (reachabilityFlags & kSCNetworkReachabilityFlagsConnectionRequired) == 0 &&
                               // in case kSCNetworkReachabilityFlagsConnectionOnDemand || kSCNetworkReachabilityFlagsConnectionOnTraffic
                               (reachabilityFlags & kSCNetworkReachabilityFlagsInterventionRequired) == 0;
-                       
+
            hasActiveWiFiConnection = isReachable && (reachabilityFlags & kSCNetworkReachabilityFlagsIsWWAN) == 0;
         }
 
@@ -271,7 +271,7 @@ static iOSOS* os = nullptr;
 }
 
 - (void)mtkView:(MTKView *)view drawableSizeWillChange:(CGSize)size {
-    
+
 }
 
 - (void)drawInMTKView:(MTKView *)view {
@@ -283,19 +283,19 @@ static iOSOS* os = nullptr;
 
         self.drawableWidth = newDrawableWidth;
         self.drawableHeight = newDrawableHeight;
-    
+
     }
     else if (newDrawableWidth != self.drawableWidth || newDrawableHeight != self.drawableHeight)
     {
         self.drawableWidth = newDrawableWidth;
         self.drawableHeight = newDrawableHeight;
-        
+
         Lumos::os->OnScreenResize(self.drawableWidth, self.drawableHeight);
     }
-        
+
     Lumos::os->OnFrame();
 }
-    
+
 
 - (void)layoutSubviews
 {
@@ -359,10 +359,10 @@ static iOSOS* os = nullptr;
 {
     auto *delegate = UIApplication.sharedApplication.delegate;
     CGRect frame = delegate.window.bounds;
-    
+
     CGFloat scale = [UIScreen mainScreen].nativeScale;
     UIView<LumosView> *lumosView = nil;
-        
+
     if (self.metalDevice)
     {
         lumosView = [[[LumosMetalView alloc] initWithFrame:frame
@@ -370,10 +370,10 @@ static iOSOS* os = nullptr;
                                                    device:self.metalDevice
                                               ] autorelease ];
     }
-    
+
     self.view = lumosView;
     self.view.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
-    
+
     self.multipleTouchEnabled = true;
 
     Lumos::os->SetIOSView((__bridge void *)lumosView);
@@ -387,7 +387,7 @@ static iOSOS* os = nullptr;
 
     auto *delegate = (LumosAppDelegate*)UIApplication.sharedApplication.delegate;
     self.lumosView.animating = delegate.active;
-        
+
 #if TARGET_OS_IOS
     self.view.multipleTouchEnabled = self.multipleTouchEnabled;
 
@@ -470,12 +470,12 @@ typedef enum {
         index = firstNullIndex;
         activeTouches[index] = (__bridge const void *)touch;
     }
-    
+
     {
         CGPoint currLocation = [touch locationInView:self.view];
         currLocation.x *= self.view.contentScaleFactor;
         currLocation.y *= self.view.contentScaleFactor;
-        
+
         switch(phase)
         {
             case TouchPhaseCancelled:
@@ -637,12 +637,12 @@ typedef enum {
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
     _active = YES;
-    
+
     Lumos::iOSOS::Create();
     Lumos::os = (Lumos::iOSOS*)Lumos::iOSOS::Instance();
-    
+
     self.window = [[[UIWindow alloc] init] autorelease];
-    
+
     if (self.window.bounds.size.width <= 0.0 || self.window.bounds.size.height <= 0.0)
     {
         // Set UIWindow frame for iOS 8.
@@ -650,7 +650,7 @@ typedef enum {
         // Split View or Slide Over.
         self.window.frame = [[UIScreen mainScreen] bounds];
     }
-    
+
     UIEdgeInsets safeAreaInsets = self.window.safeAreaInsets;
     CGRect safeAreaFrame = CGRectMake(safeAreaInsets.left,
                                       safeAreaInsets.top,
@@ -660,14 +660,14 @@ typedef enum {
 
     self.window.rootViewController = [[[LumosViewController alloc] init] autorelease];
     [self.window makeKeyAndVisible];
-        
+
     return YES;
 }
 
 - (void)setActive:(BOOL)active {
     if (_active != active) {
         _active = active;
-        
+
         LumosViewController *vc = (LumosViewController *)[self.window rootViewController];
         //if (vc.Display && vc.Display->focusFunc) {
             //vc.Display->focusFunc(vc.Display, _active);
@@ -689,7 +689,7 @@ CGRect ComputeSafeArea(UIView* view)
     CGRect screenRect = CGRectMake(0, 0, screenSize.width, screenSize.height);
 
     UIEdgeInsets insets = UIEdgeInsetsMake(0, 0, 0, 0);
-    
+
     if (@available(iOS 11.0, tvOS 11.0, *))
         insets = [view safeAreaInsets];
 
@@ -697,7 +697,7 @@ CGRect ComputeSafeArea(UIView* view)
     screenRect.origin.y += insets.bottom;
     screenRect.size.width -= insets.left + insets.right;
     screenRect.size.height -= insets.top + insets.bottom;
-    
+
     return screenRect;
 }
 

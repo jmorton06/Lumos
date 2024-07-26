@@ -9,7 +9,7 @@ namespace Lumos
 
         SwapChain* SwapChain::Create(uint32_t width, uint32_t height)
         {
-            LUMOS_ASSERT(CreateFunc, "No SwapChain Create Function");
+            ASSERT(CreateFunc, "No SwapChain Create Function");
 
             return CreateFunc(width, height);
         }

@@ -24,7 +24,7 @@ namespace Lumos
 
         Entity operator[](int i)
         {
-            LUMOS_ASSERT(i < Size(), "Index out of range on Entity View");
+            ASSERT(i < Size(), "Index out of range on Entity View");
             return Entity(m_View[i], m_Scene);
         }
 
@@ -117,7 +117,7 @@ namespace Lumos
     //
     //        Entity operator[](int i)
     //        {
-    //            LUMOS_ASSERT(i < Size(), "Index out of range on Entity View");
+    //            ASSERT(i < Size(), "Index out of range on Entity View");
     //            return Entity(m_Group[i], m_Scene);
     //        }
     //

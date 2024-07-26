@@ -8,6 +8,7 @@
 #include "Scene/Scene.h"
 
 #include "Maths/Transform.h"
+#include "Maths/MathsUtilities.h"
 #include "B2DebugDraw.h"
 
 #include <box2d/box2d.h>
@@ -126,7 +127,7 @@ namespace Lumos
         m_DebugDraw->SetFlags(flags);
     }
 
-    void B2PhysicsEngine::SetGravity(const glm::vec2& gravity)
+    void B2PhysicsEngine::SetGravity(const Vec2& gravity)
     {
         m_B2DWorld->SetGravity({ gravity.x, gravity.y });
     }
@@ -164,9 +165,9 @@ namespace Lumos
             // if (!phys.GetRigidBody()->GetB2Body()->IsAwake())
             //     break;
 
-            trans.SetLocalPosition(glm::vec3(phys.GetRigidBody()->GetPosition(), trans.GetLocalPosition().z));
-            trans.SetLocalOrientation(glm::quat(glm::vec3(0.0f, 0.0f, phys.GetRigidBody()->GetAngle())));
-            trans.SetWorldMatrix(glm::mat4(1.0f)); // TODO: temp
+            trans.SetLocalPosition(Vec3(phys.GetRigidBody()->GetPosition(), trans.GetLocalPosition().z));
+            trans.SetLocalOrientation(Quat(Vec3(0.0f, 0.0f, Maths::ToDegrees(phys.GetRigidBody()->GetAngle()))));
+            trans.SetWorldMatrix(Mat4(1.0f)); // TODO: temp
         };
     }
 }

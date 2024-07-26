@@ -1,5 +1,6 @@
 #pragma once
 #include "OS/Memory.h"
+#include <stdarg.h>
 
 namespace Lumos
 {

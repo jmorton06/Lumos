@@ -28,7 +28,6 @@ project "LumosEditor"
 		"%{IncludeDir.Box2D}",
 		"%{IncludeDir.vulkan}",
 		"%{IncludeDir.External}",
-		"%{IncludeDir.spdlog}",
 		"%{IncludeDir.freetype}",
 		"%{IncludeDir.SpirvCross}",
 		"%{IncludeDir.cereal}",
@@ -47,7 +46,6 @@ project "LumosEditor"
 		"imgui",
 		"freetype",
 		"SpirvCross",
-		"spdlog",
 		"meshoptimizer",
 		"msdf-atlas-gen",
 		"ozz_animation",
@@ -58,16 +56,13 @@ project "LumosEditor"
 	defines
 	{
 		"IMGUI_USER_CONFIG=\"../../Lumos/Source/Lumos/ImGui/ImConfig.h\"",
-		"SPDLOG_COMPILED_LIB",
-		"GLM_FORCE_INTRINSICS",
-		"GLM_FORCE_DEPTH_ZERO_TO_ONE"
 	}
 
 	filter { "files:External/**"}
 		warnings "Off"
 
 	filter 'architecture:x86_64'
-		defines { "USE_VMA_ALLOCATOR"}
+		defines { "USE_VMA_ALLOCATOR", "LUMOS_SSE"  }
 
 	filter "system:windows"
 		cppdialect "C++17"

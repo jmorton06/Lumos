@@ -93,7 +93,7 @@ namespace Lumos
         void VKCommandBuffer::BeginRecording()
         {
             LUMOS_PROFILE_FUNCTION_LOW();
-            LUMOS_ASSERT(m_Primary, "BeginRecording() called from a secondary command buffer!");
+            ASSERT(m_Primary, "BeginRecording() called from a secondary command buffer!");
 
             m_State                                  = CommandBufferState::Recording;
             VkCommandBufferBeginInfo beginCreateInfo = VKInitialisers::CommandBufferBeginInfo();
@@ -104,7 +104,7 @@ namespace Lumos
         void VKCommandBuffer::BeginRecordingSecondary(RenderPass* renderPass, Framebuffer* framebuffer)
         {
             LUMOS_PROFILE_FUNCTION_LOW();
-            LUMOS_ASSERT(!m_Primary, "BeginRecordingSecondary() called from a primary command buffer!");
+            ASSERT(!m_Primary, "BeginRecordingSecondary() called from a primary command buffer!");
             m_State = CommandBufferState::Recording;
 
             VkCommandBufferInheritanceInfo inheritanceInfo = VKInitialisers::CommandBufferInheritanceInfo();
@@ -122,7 +122,7 @@ namespace Lumos
         void VKCommandBuffer::EndRecording()
         {
             LUMOS_PROFILE_FUNCTION_LOW();
-            LUMOS_ASSERT(m_State == CommandBufferState::Recording, "CommandBuffer ended before started recording");
+            ASSERT(m_State == CommandBufferState::Recording, "CommandBuffer ended before started recording");
 
             if(m_BoundPipeline)
                 m_BoundPipeline->End((CommandBuffer*)this);
@@ -141,8 +141,8 @@ namespace Lumos
         void VKCommandBuffer::Execute(VkPipelineStageFlags flags, VkSemaphore waitSemaphore, bool waitFence)
         {
             LUMOS_PROFILE_FUNCTION_LOW();
-            LUMOS_ASSERT(m_Primary, "Used Execute on secondary command buffer!");
-            LUMOS_ASSERT(m_State == CommandBufferState::Ended, "CommandBuffer executed before ended recording");
+            ASSERT(m_Primary, "Used Execute on secondary command buffer!");
+            ASSERT(m_State == CommandBufferState::Ended, "CommandBuffer executed before ended recording");
             uint32_t waitSemaphoreCount   = waitSemaphore ? 1 : 0;
             uint32_t signalSemaphoreCount = m_Semaphore ? 1 : 0;
 
@@ -169,7 +169,7 @@ namespace Lumos
         void VKCommandBuffer::ExecuteSecondary(CommandBuffer* primaryCmdBuffer)
         {
             LUMOS_PROFILE_FUNCTION_LOW();
-            LUMOS_ASSERT(!m_Primary, "Used ExecuteSecondary on primary command buffer!");
+            ASSERT(!m_Primary, "Used ExecuteSecondary on primary command buffer!");
             m_State = CommandBufferState::Submitted;
 
             vkCmdExecuteCommands(static_cast<VKCommandBuffer*>(primaryCmdBuffer)->GetHandle(), 1, &m_CommandBuffer);
@@ -292,7 +292,7 @@ namespace Lumos
         bool VKCommandBuffer::Wait()
         {
             LUMOS_PROFILE_FUNCTION_LOW();
-            LUMOS_ASSERT(m_State == CommandBufferState::Submitted);
+            ASSERT(m_State == CommandBufferState::Submitted);
 
             m_Fence->WaitAndReset();
             m_State = CommandBufferState::Idle;

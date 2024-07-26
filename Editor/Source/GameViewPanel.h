@@ -13,6 +13,8 @@ namespace Lumos
 {
     class GameViewPanel : public EditorPanel
     {
+        friend class Editor;
+
     public:
         GameViewPanel();
         ~GameViewPanel() = default;

@@ -10,14 +10,14 @@ namespace Lumos
 
         IndexBuffer* IndexBuffer::Create(uint16_t* data, uint32_t count, BufferUsage bufferUsage)
         {
-            LUMOS_ASSERT(CreateFunc, "No IndexBuffer Create Function");
+            ASSERT(CreateFunc, "No IndexBuffer Create Function");
 
             return Create16Func(data, count, bufferUsage);
         }
 
         IndexBuffer* IndexBuffer::Create(uint32_t* data, uint32_t count, BufferUsage bufferUsage)
         {
-            LUMOS_ASSERT(CreateFunc, "No IndexBuffer Create Function");
+            ASSERT(CreateFunc, "No IndexBuffer Create Function");
 
             return CreateFunc(data, count, bufferUsage);
         }

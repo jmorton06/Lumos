@@ -43,7 +43,7 @@ namespace Lumos
 
 	bool iOSWindow::Init(const WindowDesc& properties, const std::string& title)
 	{
-        LUMOS_LOG_INFO("Creating window - Title : {0}, Width : {1}, Height : {2}", properties.Title, properties.Width, properties.Height);
+        LINFO("Creating window - Title : %s, Width : %i, Height : %i", properties.Title, properties.Width, properties.Height);
 
         m_Data.Title = properties.Title;
         m_Data.Width = properties.Width;

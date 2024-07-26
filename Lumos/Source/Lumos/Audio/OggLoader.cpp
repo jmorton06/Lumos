@@ -15,21 +15,21 @@ namespace Lumos
         std::string physicalPath;
         if(!Lumos::FileSystem::Get().ResolvePhysicalPath(fileName, physicalPath))
         {
-            LUMOS_LOG_INFO("Failed to load Ogg file : File Not Found");
+            LINFO("Failed to load Ogg file : File Not Found");
         }
 
         const auto m_FileHandle = fopen(physicalPath.c_str(), "rb");
 
         if(!m_FileHandle)
         {
-            LUMOS_LOG_CRITICAL("Failed to load OGG file '{0}'!", physicalPath);
+            LFATAL("Failed to load OGG file '{0}'!", physicalPath.c_str());
         }
         int error;
         auto m_StreamHandle = stb_vorbis_open_filename(physicalPath.c_str(), &error, nullptr);
 
         if(!m_StreamHandle)
         {
-            LUMOS_LOG_CRITICAL("Failed to load OGG file '{0}'! , Error {1}", physicalPath, error);
+            LFATAL("Failed to load OGG file '{0}'! , Error {1}", physicalPath.c_str(), error);
             return data;
         }
 

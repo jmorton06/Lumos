@@ -8,8 +8,7 @@
 #include "Graphics/RHI/RenderPass.h"
 #include "Graphics/RHI/Pipeline.h"
 
-#include <glm/ext/vector_float4.hpp>
-#include <glm/fwd.hpp>
+#include "Maths/Vector4.h"
 
 #define SCENE_DESCRIPTORSET_ID 0
 #define MATERIAL_DESCRIPTORSET_ID 1
@@ -28,7 +27,7 @@ namespace Lumos
         class Shader;
         class Material;
 
-        typedef std::vector<RenderCommand> CommandQueue;
+        typedef TDArray<RenderCommand> CommandQueue;
 
         class LUMOS_EXPORT IRenderer
         {
@@ -39,7 +38,7 @@ namespace Lumos
             virtual void Begin()                                                                                     = 0;
             virtual void BeginScene(Scene* scene, Camera* overrideCamera, Maths::Transform* overrideCameraTransform) = 0;
             virtual void Submit(const RenderCommand& command) {};
-            virtual void SubmitMesh(Mesh* mesh, Material* material, const glm::mat4& transform, const glm::mat4& textureMatrix) {};
+            virtual void SubmitMesh(Mesh* mesh, Material* material, const Mat4& transform, const Mat4& textureMatrix) {};
             virtual void EndScene()                                = 0;
             virtual void End()                                     = 0;
             virtual void Present()                                 = 0;
@@ -49,7 +48,7 @@ namespace Lumos
 
             virtual void SetScreenBufferSize(uint32_t width, uint32_t height)
             {
-                LUMOS_ASSERT(width != 0 && height != 0, "Width or Height 0!");
+                ASSERT(width != 0 && height != 0, "Width or Height 0!");
 
                 m_ScreenBufferWidth  = width;
                 m_ScreenBufferHeight = height;
@@ -106,9 +105,9 @@ namespace Lumos
             Maths::Transform* m_CameraTransform = nullptr;
 
             SharedPtr<Lumos::Graphics::Pipeline> m_Pipeline;
-            std::vector<SharedPtr<Graphics::DescriptorSet>> m_DescriptorSet;
+            TDArray<SharedPtr<Graphics::DescriptorSet>> m_DescriptorSet;
 
-            std::vector<Graphics::DescriptorSet*> m_CurrentDescriptorSets;
+            TDArray<Graphics::DescriptorSet*> m_CurrentDescriptorSets;
             SharedPtr<Shader> m_Shader = nullptr;
 
             uint32_t m_ScreenBufferWidth = 0, m_ScreenBufferHeight = 0;
@@ -117,7 +116,7 @@ namespace Lumos
             Texture* m_DepthTexture  = nullptr;
 
             Maths::Frustum m_Frustum;
-            glm::vec4 m_ClearColour;
+            Vec4 m_ClearColour;
 
             int m_RenderPriority  = 0;
             bool m_ScreenRenderer = true;

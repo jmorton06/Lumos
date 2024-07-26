@@ -3,7 +3,6 @@
 #include "Scene/Scene.h"
 #include "Scene/SceneGraph.h"
 #include "Core/Profiler.h"
-#include "Utilities/StringUtilities.h"
 #include "Core/UUID.h"
 
 DISABLE_WARNING_PUSH
@@ -55,7 +54,7 @@ namespace Lumos
             LUMOS_PROFILE_FUNCTION_LOW();
 #ifdef LUMOS_DEBUG
             if(HasComponent<T>())
-                LUMOS_LOG_WARN("Attempting to add Component twice");
+                LWARN("Attempting to add Component twice");
 #endif
             return m_Scene->GetRegistry().emplace<T>(m_EntityHandle, std::forward<Args>(args)...);
         }
@@ -175,7 +174,7 @@ namespace Lumos
 
             if(!acceptable)
             {
-                LUMOS_LOG_WARN("Failed to parent entity!");
+                LWARN("Failed to parent entity!");
                 return;
             }
 

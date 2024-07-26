@@ -1,6 +1,6 @@
 #pragma once
 #include "Physics/LumosPhysicsEngine/RigidBody3D.h"
-#include <glm/ext/vector_float3.hpp>
+#include "Maths/Vector3.h"
 #include <vector>
 
 namespace Lumos
@@ -11,7 +11,7 @@ namespace Lumos
     class PathNode : public RigidBody3D
     {
     public:
-        explicit PathNode(const glm::vec3& position = glm::vec3());
+        explicit PathNode(const Vec3& position = Vec3());
         virtual ~PathNode();
 
         size_t NumConnections() const

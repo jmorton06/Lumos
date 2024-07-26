@@ -1,8 +1,8 @@
 #pragma once
 
 #include "Graphics/RHI/Renderer.h"
-#include "Graphics/RHI/Definitions.h"
-#include <glm/ext/vector_float4.hpp>
+#include "Graphics/RHI/RHIDefinitions.h"
+#include "Maths/Vector4.h"
 
 namespace Lumos
 {
@@ -55,7 +55,7 @@ namespace Lumos
             void SetStencilOpInternal(StencilType fail, StencilType zfail, StencilType zpass);
 
             static void ClearInternal(uint32_t buffer);
-            void ClearRenderTarget(Graphics::Texture* texture, Graphics::CommandBuffer* commandBuffer, glm::vec4 clearColour) override;
+            void ClearRenderTarget(Graphics::Texture* texture, Graphics::CommandBuffer* commandBuffer, Vec4 clearColour) override;
 
             const std::string& GetTitleInternal() const override;
 

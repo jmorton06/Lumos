@@ -24,7 +24,7 @@ namespace Lumos
 
             s_Arena = ArenaAlloc(Megabytes(2));
 
-            LUMOS_LOG_INFO("Lumos Engine - Version {0}.{1}.{2}", LumosVersion.major, LumosVersion.minor, LumosVersion.patch);
+            LINFO("Lumos Engine - Version %i.%i.%i", LumosVersion.major, LumosVersion.minor, LumosVersion.patch);
 #if LUMOS_PROFILE
             String8 versionString = PushStr8F(s_Arena, "Version : %i.%i.%i", LumosVersion.major, LumosVersion.minor, LumosVersion.patch);
             TracyAppInfo((const char*)versionString.str, versionString.size);
@@ -40,13 +40,13 @@ namespace Lumos
 
             if(s_CommandLine.OptionBool(Str8Lit("help")))
             {
-                LUMOS_LOG_INFO("Print this help. This help message is actually so long "
-                               "that it requires a line break!");
+                LINFO("Print this help. This help message is actually so long "
+                      "that it requires a line break!");
             }
 
             // Init Jobsystem. Reserve 2 threads for main and render threads
             System::JobSystem::OnInit(2);
-            LUMOS_LOG_INFO("Initialising System");
+            LINFO("Initialising System");
             FileSystem::Get();
 
             return true;
@@ -54,7 +54,7 @@ namespace Lumos
 
         void CoreSystem::Shutdown()
         {
-            LUMOS_LOG_INFO("Shutting down System");
+            LINFO("Shutting down System");
             FileSystem::Release();
 
             Debug::Log::OnRelease();

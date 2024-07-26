@@ -10,7 +10,7 @@ namespace Lumos
     bool ConsolePanel::s_AllowScrollingToBottom        = true;
     bool ConsolePanel::s_RequestScrollToBottom         = false;
     std::mutex ConsolePanel::m_MessageBufferMutex;
-    TDArray<ConsoleMessage> ConsolePanel::m_MessageBuffer = TDArray<ConsoleMessage>(2000);
+    TDArray<ConsoleMessage> ConsolePanel::m_MessageBuffer = TDArray<ConsoleMessage>();
 
     const char* GetLevelIcon(ConsoleLogLevel level)
     {
@@ -26,7 +26,7 @@ namespace Lumos
             return ICON_MDI_ALERT;
         case ConsoleLogLevel::Error:
             return ICON_MDI_CLOSE_OCTAGON;
-        case ConsoleLogLevel::Critical:
+        case ConsoleLogLevel::FATAL:
             return ICON_MDI_ALERT_OCTAGRAM;
         default:
             return "Unknown name";
@@ -47,14 +47,14 @@ namespace Lumos
             return ICON_MDI_ALERT " Warning";
         case ConsoleLogLevel::Error:
             return ICON_MDI_CLOSE_OCTAGON " Error";
-        case ConsoleLogLevel::Critical:
-            return ICON_MDI_ALERT_OCTAGRAM " Critical";
+        case ConsoleLogLevel::FATAL:
+            return ICON_MDI_ALERT_OCTAGRAM " FATAL";
         default:
             return "Unknown name";
         }
     }
 
-    glm::vec4 GetRenderColour(ConsoleLogLevel level)
+    Vec4 GetRenderColour(ConsoleLogLevel level)
     {
         switch(level)
         {
@@ -68,7 +68,7 @@ namespace Lumos
             return { 1.00f, 1.00f, 0.00f, 1.00f }; // Yellow
         case ConsoleLogLevel::Error:
             return { 1.00f, 0.25f, 0.25f, 1.00f }; // Red
-        case ConsoleLogLevel::Critical:
+        case ConsoleLogLevel::FATAL:
             return { 0.6f, 0.2f, 0.8f, 1.00f }; // Purple
         default:
             return { 1.00f, 1.00f, 1.00f, 1.00f };
@@ -80,19 +80,18 @@ namespace Lumos
         LUMOS_PROFILE_FUNCTION();
         m_Name                      = ICON_MDI_VIEW_LIST " Console###console";
         m_SimpleName                = "Console";
-        s_MessageBufferRenderFilter = (int16_t)ConsoleLogLevel::Trace | (int16_t)ConsoleLogLevel::Info | (int16_t)ConsoleLogLevel::Debug | (int16_t)ConsoleLogLevel::Warn | (int16_t)ConsoleLogLevel::Error | (int16_t)ConsoleLogLevel::Critical;
+        s_MessageBufferRenderFilter = (int16_t)ConsoleLogLevel::Trace | (int16_t)ConsoleLogLevel::Info | (int16_t)ConsoleLogLevel::Debug | (int16_t)ConsoleLogLevel::Warn | (int16_t)ConsoleLogLevel::Error | (int16_t)ConsoleLogLevel::FATAL;
+        m_MessageBuffer.Reserve(2000);
     }
 
     void ConsolePanel::AddMessage(const ConsoleMessage& message)
     {
         LUMOS_PROFILE_FUNCTION();
-        // if(message.m_Level == ConsoleLogLevel::None)
-        //   return;
-
         if(m_MessageBuffer.Size() > 0)
         {
             if(m_MessageBuffer.Back().m_MessageID == message.m_MessageID)
             {
+                std::scoped_lock<std::mutex> lock(m_MessageBufferMutex);
                 m_MessageBuffer.Back().m_Count++;
                 return;
             }
@@ -212,11 +211,11 @@ namespace Lumos
     {
         LUMOS_PROFILE_FUNCTION();
         // ImGui::BeginChild("ScrollRegion", ImVec2(0, 0), false, ImGuiWindowFlags_HorizontalScrollbar);
-        if(ImGui::BeginTable("Messages", 3, ImGuiTableFlags_NoSavedSettings | ImGuiTableFlags_Borders | ImGuiTableFlags_SizingStretchProp | ImGuiTableFlags_ScrollY | ImGuiTableFlags_RowBg))
+        if(ImGui::BeginTable("Messages", 2, ImGuiTableFlags_NoSavedSettings | ImGuiTableFlags_Borders | ImGuiTableFlags_SizingStretchProp | ImGuiTableFlags_ScrollY | ImGuiTableFlags_RowBg))
         {
 
             ImGui::TableSetupColumn("Type", ImGuiTableColumnFlags_NoSort | ImGuiTableColumnFlags_WidthFixed, 0.0f, MyItemColumnID_Type);
-            ImGui::TableSetupColumn("Time", ImGuiTableColumnFlags_NoSort | ImGuiTableColumnFlags_WidthFixed, 0.0f, MyItemColumnID_Time);
+            // ImGui::TableSetupColumn("Time", ImGuiTableColumnFlags_NoSort | ImGuiTableColumnFlags_WidthFixed, 0.0f, MyItemColumnID_Time);
             ImGui::TableSetupColumn("Message", ImGuiTableColumnFlags_NoSort, 0.0f, MyItemColumnID_Message);
             ImGui::TableSetupScrollFreeze(0, 1);
 
@@ -242,8 +241,8 @@ namespace Lumos
                     }
                     ImGui::PopStyleColor();
 
-                    ImGui::TableNextColumn();
-                    ImGui::TextUnformatted(message->m_Time.c_str());
+                    // ImGui::TableNextColumn();
+                    // ImGui::TextUnformatted(message->m_Time.c_str());
 
                     ImGui::TableNextColumn();
                     message->OnImGUIRender();

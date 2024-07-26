@@ -36,14 +36,14 @@ namespace Lumos
 
             if(!m_Device)
             {
-                LUMOS_LOG_INFO("Failed to Initialise AudioManager! (No valid device!)");
+                LINFO("Failed to Initialise AudioManager! (No valid device!)");
                 return false;
             }
 
             alcMakeContextCurrent(m_Context);
             alDistanceModel(AL_LINEAR_DISTANCE_CLAMPED);
 
-            LUMOS_LOG_INFO("Initialised AudioManager - {0}", alcGetString(m_Device, ALC_DEVICE_SPECIFIER));
+            LINFO("Initialised AudioManager - %s", alcGetString(m_Device, ALC_DEVICE_SPECIFIER));
             return true;
         }
 
@@ -84,12 +84,12 @@ namespace Lumos
         {
             LUMOS_PROFILE_FUNCTION();
             {
-                glm::vec3 worldPos = listenerTransform.GetWorldPosition();
-                glm::vec3 velocity = glm::vec3(0.0f); // TODO: m_Listener->GetVelocity();
+                Vec3 worldPos = listenerTransform.GetWorldPosition();
+                Vec3 velocity = Vec3(0.0f); // TODO: m_Listener->GetVelocity();
 
                 ALfloat direction[6];
 
-                glm::quat orientation = listenerTransform.GetWorldOrientation();
+                Quat orientation = listenerTransform.GetWorldOrientation();
 
                 direction[0] = -2 * (orientation.w * orientation.y + orientation.x * orientation.z);
                 direction[1] = 2 * (orientation.x * orientation.w - orientation.z * orientation.y);

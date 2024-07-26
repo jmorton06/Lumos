@@ -71,6 +71,7 @@ namespace Lumos
             transform = &m_Editor->GetEditorCameraTransform();
 
             app.GetSceneRenderer()->SetOverrideCamera(camera, transform);
+            app.GetSceneRenderer()->m_EnableUIPass = false;
         }
 
         ImVec2 offset = { 0.0f, 0.0f };
@@ -99,14 +100,14 @@ namespace Lumos
         {
             camera->SetAspectRatio(aspect);
         }
-        m_Editor->m_SceneViewPanelPosition = glm::vec2(sceneViewPosition.x, sceneViewPosition.y);
+        // m_Editor->m_SceneViewPosition = Vec2(sceneViewPosition.x, sceneViewPosition.y);
 
         sceneViewSize.x -= static_cast<int>(sceneViewSize.x) % 2 != 0 ? 1.0f : 0.0f;
         sceneViewSize.y -= static_cast<int>(sceneViewSize.y) % 2 != 0 ? 1.0f : 0.0f;
 
         Resize(static_cast<uint32_t>(sceneViewSize.x), static_cast<uint32_t>(sceneViewSize.y));
 
-        ImGuiUtilities::Image(m_GameViewTexture.get(), glm::vec2(sceneViewSize.x, sceneViewSize.y), Graphics::Renderer::GetGraphicsContext()->FlipImGUITexture());
+        ImGuiUtilities::Image(m_GameViewTexture.get(), Vec2(sceneViewSize.x, sceneViewSize.y), Graphics::Renderer::GetGraphicsContext()->FlipImGUITexture());
 
         auto windowSize = ImGui::GetWindowSize();
         ImVec2 minBound = sceneViewPosition;
@@ -140,7 +141,7 @@ namespace Lumos
             LUMOS_PROFILE_SCOPE("Select Object");
 
             float dpi     = Application::Get().GetWindowDPI();
-            auto clickPos = Input::Get().GetMousePosition() - glm::vec2(sceneViewPosition.x / dpi, sceneViewPosition.y / dpi);
+            auto clickPos = Input::Get().GetMousePosition() - Vec2(sceneViewPosition.x / dpi, sceneViewPosition.y / dpi);
 
             Maths::Ray ray = m_Editor->GetScreenRay(int(clickPos.x), int(clickPos.y), camera, int(sceneViewSize.x / dpi), int(sceneViewSize.y / dpi));
             m_Editor->SelectObject(ray);
@@ -151,7 +152,7 @@ namespace Lumos
             LUMOS_PROFILE_SCOPE("Hover Object");
 
             float dpi     = Application::Get().GetWindowDPI();
-            auto clickPos = Input::Get().GetMousePosition() - glm::vec2(sceneViewPosition.x / dpi, sceneViewPosition.y / dpi);
+            auto clickPos = Input::Get().GetMousePosition() - Vec2(sceneViewPosition.x / dpi, sceneViewPosition.y / dpi);
 
             Maths::Ray ray = m_Editor->GetScreenRay(int(clickPos.x), int(clickPos.y), camera, int(sceneViewSize.x / dpi), int(sceneViewSize.y / dpi));
             m_Editor->SelectObject(ray, true);
@@ -193,9 +194,9 @@ namespace Lumos
         Camera* camera                    = m_Editor->GetCamera();
         Maths::Transform& cameraTransform = m_Editor->GetEditorCameraTransform();
         auto& registry                    = scene->GetRegistry();
-        glm::mat4 view                    = glm::inverse(cameraTransform.GetWorldMatrix());
-        glm::mat4 proj                    = camera->GetProjectionMatrix();
-        glm::mat4 viewProj                = proj * view;
+        Mat4 view                         = cameraTransform.GetWorldMatrix().Inverse();
+        Mat4 proj                         = camera->GetProjectionMatrix();
+        Mat4 viewProj                     = proj * view;
         const Maths::Frustum& f           = camera->GetFrustum(view);
 
         ShowComponentGizmo<Graphics::Light>(width, height, xpos, ypos, viewProj, f, registry);
@@ -567,8 +568,8 @@ namespace Lumos
                 camPos.z    = 0.0f;
                 camera.SetNear(-10.0f);
                 m_Editor->GetEditorCameraTransform().SetLocalPosition(camPos);
-                m_Editor->GetEditorCameraTransform().SetLocalOrientation(glm::quat(glm::vec3(0.0f, 0.0f, 0.0f)));
-                m_Editor->GetEditorCameraTransform().SetLocalScale(glm::vec3(1.0f, 1.0f, 1.0f));
+                m_Editor->GetEditorCameraTransform().SetLocalOrientation(Quat(Vec3(0.0f, 0.0f, 0.0f)));
+                m_Editor->GetEditorCameraTransform().SetLocalScale(Vec3(1.0f, 1.0f, 1.0f));
 
                 m_Editor->GetEditorCameraController().SetCurrentMode(EditorCameraMode::TWODIM);
             }
@@ -598,7 +599,7 @@ namespace Lumos
         LUMOS_PROFILE_FUNCTION();
         bool resize = false;
 
-        LUMOS_ASSERT(width > 0 && height > 0, "Scene View Dimensions 0");
+        ASSERT(width > 0 && height > 0, "Scene View Dimensions 0");
 
         if(m_Width != width || m_Height != height)
         {

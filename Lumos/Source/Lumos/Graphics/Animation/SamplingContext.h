@@ -3,9 +3,8 @@
 #include "Utilities/TimeStep.h"
 #include "Animation.h"
 
-#define GLM_ENABLE_EXPERIMENTAL
-#include <glm/ext/vector_float3.hpp>
-#include <glm/gtx/quaternion.hpp>
+#include "Maths/Vector3.h"
+#include "Maths/Quaternion.h"
 
 #include <ozz/animation/runtime/sampling_job.h>
 #include <ozz/base/containers/vector.h>
@@ -27,9 +26,9 @@ namespace Lumos
 
             SamplingContext& operator=(const SamplingContext& other);
 
-            std::vector<glm::vec3> LocalTranslations;
-            std::vector<glm::vec3> LocalScales;
-            std::vector<glm::quat> LocalRotations;
+            std::vector<Vec3> LocalTranslations;
+            std::vector<Vec3> LocalScales;
+            std::vector<Quat> LocalRotations;
 
             ozz::vector<ozz::math::SoaTransform>& GetLocalTransforms() { return m_LocalSpaceSoaTransforms; }
             const ozz::vector<ozz::math::SoaTransform>& GetLocalTransforms() const { return m_LocalSpaceSoaTransforms; }

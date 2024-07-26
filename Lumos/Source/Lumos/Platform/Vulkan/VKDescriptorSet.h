@@ -41,7 +41,7 @@ namespace Lumos
             static void MakeDefault();
 
         protected:
-            void UpdateInternal(std::vector<Descriptor>* imageInfos);
+            void UpdateInternal(TDArray<Descriptor>* imageInfos);
 
             static DescriptorSet* CreateFuncVulkan(const DescriptorDesc&);
 
@@ -66,6 +66,7 @@ namespace Lumos
 
             std::map<std::string, SharedPtr<UniformBuffer>> m_UniformBuffers[MAX_FRAMES_FLIGHT];
             VkDescriptorSet m_DescriptorSet[MAX_FRAMES_FLIGHT];
+            VkDescriptorPool m_DescriptorPoolCreatedFrom[MAX_FRAMES_FLIGHT];
             bool m_DescriptorDirty[MAX_FRAMES_FLIGHT];
             bool m_DescriptorUpdated[MAX_FRAMES_FLIGHT];
         };

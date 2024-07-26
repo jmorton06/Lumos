@@ -25,9 +25,9 @@ namespace Lumos
             void Bind() const override {};
             void Unbind() const override {};
 
-            const std::vector<ShaderType> GetShaderTypes() const override
+            const TDArray<ShaderType> GetShaderTypes() const override
             {
-                return std::vector<ShaderType>();
+                return TDArray<ShaderType>();
             };
 
             const std::string& GetName() const override
@@ -46,7 +46,7 @@ namespace Lumos
 
             bool IsCompute()
             {
-                if(m_ShaderTypes.size() > 0)
+                if(m_ShaderTypes.Size() > 0)
                     return m_ShaderTypes[0] == ShaderType::COMPUTE;
 
                 return false;
@@ -54,11 +54,11 @@ namespace Lumos
 
             PushConstant* GetPushConstant(uint32_t index) override
             {
-                LUMOS_ASSERT(index < m_PushConstants.size(), "Push constants out of bounds");
+                ASSERT(index < m_PushConstants.Size(), "Push constants out of bounds");
                 return &m_PushConstants[index];
             }
 
-            std::vector<PushConstant>& GetPushConstants() override
+            TDArray<PushConstant>& GetPushConstants() override
             {
                 return m_PushConstants;
             }
@@ -76,16 +76,16 @@ namespace Lumos
                     return m_DescriptorInfos[index];
                 }
 
-                LUMOS_LOG_WARN("DescriptorDesc not found. Index = {0}", index);
+                LWARN("DescriptorDesc not found. Index = %s", index);
                 return DescriptorSetInfo();
             }
 
-            const std::vector<DescriptorLayoutInfo>& GetDescriptorLayout() const { return m_DescriptorLayoutInfo; }
-            const std::vector<VkDescriptorSetLayout>& GetDescriptorLayouts() const { return m_DescriptorSetLayouts; }
+            const TDArray<DescriptorLayoutInfo>& GetDescriptorLayout() const { return m_DescriptorLayoutInfo; }
+            const TDArray<VkDescriptorSetLayout>& GetDescriptorLayouts() const { return m_DescriptorSetLayouts; }
             void BindPushConstants(Graphics::CommandBuffer* commandBuffer, Graphics::Pipeline* pipeline) override;
 
             static void PreProcess(const std::string& source, std::map<ShaderType, std::string>* sources);
-            static void ReadShaderFile(const std::vector<std::string>& lines, std::map<ShaderType, std::string>* shaders);
+            static void ReadShaderFile(const TDArray<std::string>& lines, std::map<ShaderType, std::string>* shaders);
 
             static void MakeDefault();
 
@@ -94,7 +94,7 @@ namespace Lumos
                 return nullptr;
             }
 
-            const std::vector<VkVertexInputAttributeDescription>& GetVertexInputAttributeDescription() const { return m_VertexInputAttributeDescriptions; }
+            const TDArray<VkVertexInputAttributeDescription>& GetVertexInputAttributeDescription() const { return m_VertexInputAttributeDescriptions; }
             const uint32_t GetVertexInputStride() const { return m_VertexInputStride; }
 
             uint64_t GetHash() const override { return m_Hash; }
@@ -114,17 +114,17 @@ namespace Lumos
             std::string m_Name;
             std::string m_FilePath;
             std::string m_Source;
-            std::vector<ShaderType> m_ShaderTypes;
+            TDArray<ShaderType> m_ShaderTypes;
             bool m_Compiled = false;
 
-            std::vector<VkVertexInputAttributeDescription> m_VertexInputAttributeDescriptions;
+            TDArray<VkVertexInputAttributeDescription> m_VertexInputAttributeDescriptions;
             uint32_t m_VertexInputStride = 0;
             uint64_t m_Hash              = 0;
 
             VkPipelineLayout m_PipelineLayout;
-            std::vector<PushConstant> m_PushConstants;
-            std::vector<Graphics::DescriptorLayoutInfo> m_DescriptorLayoutInfo;
-            std::vector<VkDescriptorSetLayout> m_DescriptorSetLayouts;
+            TDArray<PushConstant> m_PushConstants;
+            TDArray<Graphics::DescriptorLayoutInfo> m_DescriptorLayoutInfo;
+            TDArray<VkDescriptorSetLayout> m_DescriptorSetLayouts;
         };
     }
 }

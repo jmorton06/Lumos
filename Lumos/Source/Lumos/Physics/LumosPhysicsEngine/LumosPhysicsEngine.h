@@ -57,7 +57,7 @@ namespace Lumos
     {
         float TimeStep             = 1.0f / 120.0f;
         uint32_t RigidBodyPool     = 10000;
-        glm::vec3 Gravity          = glm::vec3(0.0f, -9.81f, 0.0f);
+        Vec3 Gravity               = Vec3(0.0f, -9.81f, 0.0f);
         float DampingFactor        = 0.9995f;
         IntegrationType IntegrType = IntegrationType::SEMI_IMPLICIT_EULER;
         float BaumgarteScalar      = 0.3f;   // Amount of force to add to the System to solve error
@@ -83,8 +83,8 @@ namespace Lumos
         bool IsPaused() const { return m_IsPaused; }
         void SetPaused(bool paused) { m_IsPaused = paused; }
 
-        const glm::vec3& GetGravity() const { return m_Gravity; }
-        void SetGravity(const glm::vec3& g) { m_Gravity = g; }
+        const Vec3& GetGravity() const { return m_Gravity; }
+        void SetGravity(const Vec3& g) { m_Gravity = g; }
 
         float GetDampingFactor() const { return m_DampingFactor; }
         void SetDampingFactor(float d) { m_DampingFactor = d; }
@@ -144,7 +144,7 @@ namespace Lumos
     protected:
         bool m_IsPaused;
         float m_UpdateAccum;
-        glm::vec3 m_Gravity;
+        Vec3 m_Gravity;
         float m_DampingFactor;
         uint32_t m_MaxUpdatesPerFrame = 5;
         uint32_t m_PositionIterations = 2;

@@ -76,7 +76,7 @@ namespace Lumos
 
         void Renderer::Init(bool loadEmbeddedShaders, const std::string& engineShaderPath)
         {
-            LUMOS_ASSERT(CreateFunc, "No Renderer Create Function");
+            ASSERT(CreateFunc, "No Renderer Create Function");
             LUMOS_PROFILE_FUNCTION();
             s_Instance = CreateFunc();
             s_Instance->InitInternal();
@@ -95,7 +95,7 @@ namespace Lumos
             auto shaderLibrary = Application::Get().GetAssetManager();
             if(loadEmbeddedShaders)
             {
-                LUMOS_LOG_INFO("Loading shaders - embedded");
+                LINFO("Loading shaders - embedded");
                 LoadShaderEmbedded("Skybox", Skybox, Skybox);
                 LoadShaderEmbedded("ForwardPBR", ForwardPBR, ForwardPBR);
                 LoadShaderEmbedded("ForwardPBRAnim", ForwardPBRAnim, ForwardPBR);
@@ -137,7 +137,7 @@ namespace Lumos
             }
             else
             {
-                LUMOS_LOG_INFO("Loading shaders - files");
+                LINFO("Loading shaders - files");
                 LoadShaderFromFile("Skybox", "Shaders/Skybox.shader");
                 LoadShaderFromFile("Shadow", "Shaders/Shadow.shader");
                 LoadShaderFromFile("ShadowAnim", "Shaders/ShadowAnim.shader");

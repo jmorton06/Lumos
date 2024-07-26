@@ -16,12 +16,12 @@ namespace Lumos
         virtual void OnImGui()                                  = 0;
         virtual void OnDebugDraw()                              = 0;
 
-        inline const std::string& GetName() const
+        inline const char* GetName() const
         {
             return m_DebugName;
         }
 
     protected:
-        std::string m_DebugName;
+        const char* m_DebugName;
     };
 }

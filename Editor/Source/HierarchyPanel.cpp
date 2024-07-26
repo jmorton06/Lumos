@@ -669,7 +669,7 @@ namespace Lumos
 
                         if(ImGui::MenuItem("Light Cube"))
                         {
-                            EntityFactory::AddLightCube(Application::Get().GetSceneManager()->GetCurrentScene(), glm::vec3(0.0f), glm::vec3(0.0f));
+                            EntityFactory::AddLightCube(Application::Get().GetSceneManager()->GetCurrentScene(), Vec3(0.0f), Vec3(0.0f));
                         }
 
                         ImGui::EndMenu();
@@ -768,7 +768,7 @@ ImGui::GetStyle().ChildBorderSize = backup_border_size;
                         {
                             if(const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("Drag_Entity"))
                             {
-                                LUMOS_ASSERT(payload->DataSize == sizeof(entt::entity*), "Error ImGUI drag entity");
+                                ASSERT(payload->DataSize == sizeof(entt::entity*), "Error ImGUI drag entity");
                                 auto entity             = *reinterpret_cast<entt::entity*>(payload->Data);
                                 auto hierarchyComponent = registry.try_get<Hierarchy>(entity);
                                 if(hierarchyComponent)

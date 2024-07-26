@@ -13,7 +13,7 @@ namespace Lumos
             output(registry);
         }
 
-        LUMOS_LOG_INFO("Serialising Asset Registry {0}", (const char*)path.str);
+        LINFO("Serialising Asset Registry %s", (const char*)path.str);
         FileSystem::WriteTextFile((const char*)path.str, storage.str());
     }
 
@@ -29,7 +29,7 @@ namespace Lumos
         }
         catch(...)
         {
-            LUMOS_LOG_WARN("Failed to load asset registry {0}", (const char*)path.str);
+            LWARN("Failed to load asset registry %s", (const char*)path.str);
         }
     }
 }

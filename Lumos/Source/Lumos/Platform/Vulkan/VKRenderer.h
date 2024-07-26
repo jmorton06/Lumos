@@ -47,7 +47,7 @@ namespace Lumos
             void PresentInternal() override;
             void PresentInternal(CommandBuffer* commandBuffer) override;
 
-            void ClearRenderTarget(Graphics::Texture* texture, Graphics::CommandBuffer* commandBuffer, glm::vec4 clearColour) override;
+            void ClearRenderTarget(Graphics::Texture* texture, Graphics::CommandBuffer* commandBuffer, Vec4 clearColour) override;
             void ClearSwapChainImage() const;
 
             void SaveScreenshot(const std::string& path, Graphics::Texture* texture = nullptr) override;
@@ -62,12 +62,12 @@ namespace Lumos
             bool SupportsCompute() override { return true; }
             void Dispatch(CommandBuffer* commandBuffer, uint32_t workGroupSizeX, uint32_t workGroupSizeY, uint32_t workGroupSizeZ) override;
 
-            bool AllocateDescriptorSet(VkDescriptorSet* set, VkDescriptorSetLayout layout, uint32_t descriptorCount);
+            bool AllocateDescriptorSet(VkDescriptorSet* set, VkDescriptorPool& pool, VkDescriptorSetLayout layout, uint32_t descriptorCount);
             void ReleaseDescriptorPools();
 
             static DeletionQueue& GetDeletionQueue(int frameIndex)
             {
-                LUMOS_ASSERT(frameIndex < int(s_DeletionQueue.Size()), "Unsupported Frame Index");
+                ASSERT(frameIndex < int(s_DeletionQueue.Size()), "Unsupported Frame Index");
                 return s_DeletionQueue[frameIndex];
             }
 

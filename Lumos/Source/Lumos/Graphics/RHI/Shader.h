@@ -1,5 +1,5 @@
 #pragma once
-#include "Definitions.h"
+#include "RHIDefinitions.h"
 #include "Core/Profiler.h"
 #include "Core/Asset/Asset.h"
 
@@ -22,14 +22,14 @@ namespace Lumos
 
             virtual ~Shader() = default;
 
-            virtual const std::vector<ShaderType> GetShaderTypes() const = 0;
-            virtual const std::string& GetName() const                   = 0;
-            virtual const std::string& GetFilePath() const               = 0;
+            virtual const TDArray<ShaderType> GetShaderTypes() const = 0;
+            virtual const std::string& GetName() const               = 0;
+            virtual const std::string& GetFilePath() const           = 0;
 
             virtual void* GetHandle() const = 0;
             virtual bool IsCompiled() const { return true; }
 
-            virtual std::vector<PushConstant>& GetPushConstants() = 0;
+            virtual TDArray<PushConstant>& GetPushConstants() = 0;
             virtual PushConstant* GetPushConstant(uint32_t index) { return nullptr; }
             virtual void BindPushConstants(Graphics::CommandBuffer* commandBuffer, Graphics::Pipeline* pipeline) = 0;
             virtual DescriptorSetInfo GetDescriptorInfo(uint32_t index) { return DescriptorSetInfo(); }

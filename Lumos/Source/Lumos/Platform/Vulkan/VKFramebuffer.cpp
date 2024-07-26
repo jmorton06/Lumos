@@ -18,26 +18,26 @@ namespace Lumos
             m_Height          = frameBufferInfo.height;
             m_AttachmentCount = frameBufferInfo.attachmentCount;
 
-            std::vector<VkImageView> attachments;
+            TDArray<VkImageView> attachments;
 
             for(uint32_t i = 0; i < m_AttachmentCount; i++)
             {
                 switch(frameBufferInfo.attachmentTypes[i])
                 {
                 case TextureType::COLOUR:
-                    attachments.push_back(frameBufferInfo.mipIndex >= 0 ? static_cast<VKTexture2D*>(frameBufferInfo.attachments[i])->GetMipImageView(frameBufferInfo.mipIndex) : static_cast<VKTexture2D*>(frameBufferInfo.attachments[i])->GetImageView());
+                    attachments.PushBack(frameBufferInfo.mipIndex >= 0 ? static_cast<VKTexture2D*>(frameBufferInfo.attachments[i])->GetMipImageView(frameBufferInfo.mipIndex) : static_cast<VKTexture2D*>(frameBufferInfo.attachments[i])->GetImageView());
                     break;
                 case TextureType::DEPTH:
-                    attachments.push_back(static_cast<VKTextureDepth*>(frameBufferInfo.attachments[i])->GetImageView());
+                    attachments.PushBack(static_cast<VKTextureDepth*>(frameBufferInfo.attachments[i])->GetImageView());
                     break;
                 case TextureType::DEPTHARRAY:
-                    attachments.push_back(static_cast<VKTextureDepthArray*>(frameBufferInfo.attachments[i])->GetImageView(frameBufferInfo.layer));
+                    attachments.PushBack(static_cast<VKTextureDepthArray*>(frameBufferInfo.attachments[i])->GetImageView(frameBufferInfo.layer));
                     break;
                 case TextureType::OTHER:
-                    attachments.push_back(static_cast<VKTexture2D*>(frameBufferInfo.attachments[i])->GetImageView());
+                    attachments.PushBack(static_cast<VKTexture2D*>(frameBufferInfo.attachments[i])->GetImageView());
                     break;
                 case TextureType::CUBE:
-                    attachments.push_back(frameBufferInfo.mipIndex >= 0 ? static_cast<VKTextureCube*>(frameBufferInfo.attachments[i])->GetImageView(frameBufferInfo.layer, frameBufferInfo.mipIndex) : static_cast<VKTextureCube*>(frameBufferInfo.attachments[i])->GetImageView(frameBufferInfo.layer));
+                    attachments.PushBack(frameBufferInfo.mipIndex >= 0 ? static_cast<VKTextureCube*>(frameBufferInfo.attachments[i])->GetImageView(frameBufferInfo.layer, frameBufferInfo.mipIndex) : static_cast<VKTextureCube*>(frameBufferInfo.attachments[i])->GetImageView(frameBufferInfo.layer));
                     break;
                 }
             }
@@ -45,7 +45,7 @@ namespace Lumos
             VkFramebufferCreateInfo framebufferCreateInfo = VKInitialisers::FramebufferCreateInfo();
             framebufferCreateInfo.renderPass              = static_cast<VKRenderPass*>(frameBufferInfo.renderPass)->GetHandle();
             framebufferCreateInfo.attachmentCount         = m_AttachmentCount;
-            framebufferCreateInfo.pAttachments            = attachments.data();
+            framebufferCreateInfo.pAttachments            = attachments.Data();
             framebufferCreateInfo.width                   = m_Width;
             framebufferCreateInfo.height                  = m_Height;
             framebufferCreateInfo.layers                  = 1;

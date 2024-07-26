@@ -15,7 +15,6 @@
 #include <utility>
 #include <memory>
 #include <thread>
-#include <cassert>
 #include <math.h>
 
 #include "Core/Reference.h"
@@ -23,16 +22,8 @@
 #include "Core/Core.h"
 #include "Core/Profiler.h"
 #include "Core/Thread.h"
-#include "Core/DataStructures/TDArray.h"
-#include "Graphics/RHI/Definitions.h"
 #include "Scene/Entity.h"
 
-#include <glm/ext/vector_float2.hpp>
-#include <glm/ext/vector_float3.hpp>
-#include <glm/ext/vector_float4.hpp>
-#include <glm/ext/matrix_float3x3.hpp>
-#include <glm/ext/matrix_float4x4.hpp>
-#include <glm/gtx/quaternion.hpp>
 #include <cereal/cereal.hpp>
 #include <imgui/imgui.h>
 

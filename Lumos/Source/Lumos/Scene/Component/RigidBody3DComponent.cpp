@@ -2,7 +2,7 @@
 #include "RigidBody3DComponent.h"
 #include "Scene/Scene.h"
 #include "Scene/EntityManager.h"
-#include <glm/gtc/type_ptr.hpp>
+#include "Maths/MathsUtilities.h"
 #include <imgui/imgui.h>
 
 namespace Lumos
@@ -82,7 +82,7 @@ namespace Lumos
         ImGui::TextUnformatted("Position");
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
-        if(ImGui::DragFloat3("##Position", glm::value_ptr(pos)))
+        if(ImGui::DragFloat3("##Position", Maths::ValuePtr(pos)))
             m_RigidBody->Body->SetPosition(pos);
 
         ImGui::PopItemWidth();
@@ -92,7 +92,7 @@ namespace Lumos
         ImGui::TextUnformatted("Velocity");
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
-        if(ImGui::DragFloat3("##Velocity", glm::value_ptr(velocity)))
+        if(ImGui::DragFloat3("##Velocity", Maths::ValuePtr(velocity)))
             m_RigidBody->Body->SetLinearVelocity(velocity);
 
         ImGui::PopItemWidth();
@@ -102,7 +102,7 @@ namespace Lumos
         ImGui::TextUnformatted("Torque");
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
-        if(ImGui::DragFloat3("##Torque", glm::value_ptr(torque)))
+        if(ImGui::DragFloat3("##Torque", Maths::ValuePtr(torque)))
             m_RigidBody->Body->SetTorque(torque);
 
         ImGui::PopItemWidth();
@@ -112,7 +112,7 @@ namespace Lumos
         ImGui::TextUnformatted("Orientation");
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
-        if(ImGui::DragFloat4("##Orientation", glm::value_ptr(orientation)))
+        if(ImGui::DragFloat4("##Orientation", Maths::ValuePtr(orientation)))
             m_RigidBody->Body->SetOrientation(orientation);
 
         ImGui::PopItemWidth();
@@ -122,7 +122,7 @@ namespace Lumos
         ImGui::TextUnformatted("Angular Velocity");
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
-        if(ImGui::DragFloat3("##Angular Velocity", glm::value_ptr(angularVelocity)))
+        if(ImGui::DragFloat3("##Angular Velocity", Maths::ValuePtr(angularVelocity)))
             m_RigidBody->Body->SetAngularVelocity(angularVelocity);
 
         ImGui::PopItemWidth();
@@ -183,7 +183,7 @@ namespace Lumos
         ImGui::PopStyleVar();
     }
 
-    SpringConstraintComponent::SpringConstraintComponent(Entity entity, Entity otherEntity, const glm::vec3& pos1, const glm::vec3& pos2, float constant)
+    SpringConstraintComponent::SpringConstraintComponent(Entity entity, Entity otherEntity, const Vec3& pos1, const Vec3& pos2, float constant)
     {
         m_Constraint = CreateSharedPtr<SpringConstraint>(entity.GetComponent<RigidBody3DComponent>().GetRigidBody(), otherEntity.GetComponent<RigidBody3DComponent>().GetRigidBody(), pos1, pos2, 0.9f, 0.5f);
     }
@@ -205,7 +205,7 @@ namespace Lumos
         }
     }
 
-    WeldConstraintComponent::WeldConstraintComponent(Entity entity, Entity otherEntity, const glm::vec3& pos1, const glm::vec3& pos2, float constant)
+    WeldConstraintComponent::WeldConstraintComponent(Entity entity, Entity otherEntity, const Vec3& pos1, const Vec3& pos2, float constant)
     {
         m_Constraint = CreateSharedPtr<WeldConstraint>(entity.GetComponent<RigidBody3DComponent>().GetRigidBody(), otherEntity.GetComponent<RigidBody3DComponent>().GetRigidBody());
     }
@@ -215,7 +215,7 @@ namespace Lumos
         m_Constraint = CreateSharedPtr<WeldConstraint>(entity.GetComponent<RigidBody3DComponent>().GetRigidBody(), otherEntity.GetComponent<RigidBody3DComponent>().GetRigidBody());
     }
 
-    DistanceConstraintComponent::DistanceConstraintComponent(Entity entity, Entity otherEntity, const glm::vec3& pos1, const glm::vec3& pos2, float constant)
+    DistanceConstraintComponent::DistanceConstraintComponent(Entity entity, Entity otherEntity, const Vec3& pos1, const Vec3& pos2, float constant)
     {
         m_Constraint = CreateSharedPtr<DistanceConstraint>(entity.GetComponent<RigidBody3DComponent>().GetRigidBody(), otherEntity.GetComponent<RigidBody3DComponent>().GetRigidBody(), pos1, pos2);
     }

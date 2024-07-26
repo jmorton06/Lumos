@@ -2,9 +2,9 @@
 #include "Editor.h"
 #include "FileBrowserPanel.h"
 #include <Lumos/Maths/MathsUtilities.h>
+#include <Lumos/Maths/Vector3.h>
 #include <Lumos/Scene/Scene.h>
 #include <Lumos/Core/Version.h>
-#include <glm/gtx/matrix_decompose.hpp>
 #include <Lumos/Core/Profiler.h>
 #include <Lumos/ImGui/ImGuiManager.h>
 #include <Lumos/Graphics/RHI/IMGUIRenderer.h>
@@ -59,7 +59,7 @@ namespace Lumos
             // Camera Transform;
             auto& transform = m_Editor->GetEditorCameraTransform();
 
-            auto rotation   = glm::degrees(glm::eulerAngles(transform.GetLocalOrientation()));
+            auto rotation   = transform.GetLocalOrientation().ToEuler();
             auto position   = transform.GetLocalPosition();
             auto scale      = transform.GetLocalScale();
             float itemWidth = (ImGui::GetContentRegionAvail().x - (ImGui::GetFontSize() * 3.0f)) / 3.0f;
@@ -75,7 +75,7 @@ namespace Lumos
             {
                 float pitch = Lumos::Maths::Min(rotation.x, 89.9f);
                 pitch       = Lumos::Maths::Max(pitch, -89.9f);
-                transform.SetLocalOrientation(glm::quat(glm::radians(glm::vec3(pitch, rotation.y, rotation.z))));
+                transform.SetLocalOrientation(Quat(Vec3(pitch, rotation.y, rotation.z)));
             }
 
             ImGui::SameLine();

@@ -4,7 +4,7 @@
 namespace Lumos
 {
 
-    BruteForceBroadphase::BruteForceBroadphase(const glm::vec3& axis)
+    BruteForceBroadphase::BruteForceBroadphase(const Vec3& axis)
         : Broadphase()
         , m_axis(axis)
     {

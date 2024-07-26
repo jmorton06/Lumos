@@ -13,7 +13,7 @@ namespace Lumos
     void* DefaultAllocator::Malloc(size_t size, const char* file, int line)
     {
 #ifdef TRACK_ALLOCATIONS
-        LUMOS_ASSERT(size < 1024 * 1024 * 1024, "Allocation more than max size");
+        ASSERT(size < 1024 * 1024 * 1024, "Allocation more than max size");
 
         Lumos::MemoryManager::Get()->m_MemoryStats.totalAllocated += size;
         Lumos::MemoryManager::Get()->m_MemoryStats.currentUsed += size;
@@ -25,7 +25,7 @@ namespace Lumos
         uint8_t* result = (uint8_t*)mem;
         if(result == NULL)
         {
-            LUMOS_LOG_ERROR("Aligned malloc failed");
+            LERROR("Aligned malloc failed");
             return NULL;
         }
 

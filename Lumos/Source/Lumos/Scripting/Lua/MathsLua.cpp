@@ -2,11 +2,13 @@
 #include "MathsLua.h"
 #include "Maths/Transform.h"
 #include <sol/sol.hpp>
-#include <glm/ext/vector_float3.hpp>
-#include <glm/ext/vector_float3.hpp>
-#include <glm/ext/vector_float4.hpp>
-#define GLM_ENABLE_EXPERIMENTAL
-#include <glm/gtx/quaternion.hpp>
+#include "Maths/Vector3.h"
+#include "Maths/Vector3.h"
+#include "Maths/Vector4.h"
+#include "Maths/Matrix3.h"
+#include "Maths/Matrix4.h"
+#include "Maths/Quaternion.h"
+#include "Maths/MathsUtilities.h"
 
 namespace Lumos
 {
@@ -14,243 +16,233 @@ namespace Lumos
     void BindMathsLua(sol::state& state)
     {
         LUMOS_PROFILE_FUNCTION();
-        auto Vector2type = state.new_usertype<glm::vec2>("Vector2", sol::constructors<glm::vec2(float, float)>());
+        auto Vector2type = state.new_usertype<Vec2>("Vector2", sol::constructors<Vec2(float, float)>());
 
         // Fields
-        Vector2type["x"] = &glm::vec2::x;
-        Vector2type["y"] = &glm::vec2::y;
+        Vector2type["x"] = &Vec2::x;
+        Vector2type["y"] = &Vec2::y;
 
         // Meta functions
-        Vector2type[sol::meta_function::addition] = [](const glm::vec2& a, const glm::vec2& b)
+        Vector2type[sol::meta_function::addition] = [](const Vec2& a, const Vec2& b)
         {
             return a + b;
         };
-        Vector2type[sol::meta_function::multiplication] = [](const glm::vec2& a, const glm::vec2& b)
+        Vector2type[sol::meta_function::multiplication] = [](const Vec2& a, const Vec2& b)
         {
             return a * b;
         };
-        Vector2type[sol::meta_function::subtraction] = [](const glm::vec2& a, const glm::vec2& b)
+        Vector2type[sol::meta_function::subtraction] = [](const Vec2& a, const Vec2& b)
         {
             return a - b;
         };
-        Vector2type[sol::meta_function::division] = [](const glm::vec2& a, const glm::vec2& b)
+        Vector2type[sol::meta_function::division] = [](const Vec2& a, const Vec2& b)
         {
             return a / b;
         };
-        Vector2type[sol::meta_function::equal_to] = [](const glm::vec2& a, const glm::vec2& b)
+        Vector2type[sol::meta_function::equal_to] = [](const Vec2& a, const Vec2& b)
         {
             return a == b;
         };
 
         // Methods
-        Vector2type["Length"] = [](const glm::vec2& v)
+        Vector2type["Length"] = [](const Vec2& v)
         {
-            return glm::length(v);
+            return Maths::Length(v);
         };
-        Vector2type["Distance"] = [](const glm::vec2& a, const glm::vec2& b)
+        Vector2type["Distance"] = [](const Vec2& a, const Vec2& b)
         {
-            return glm::distance(a, b);
+            return Maths::Distance(a, b);
         };
-        Vector2type["Distance2"] = [](const glm::vec2& a, const glm::vec2& b)
+        Vector2type["Distance2"] = [](const Vec2& a, const Vec2& b)
         {
-            return glm::distance2(a, b);
+            return Maths::Distance2(a, b);
         };
 
         auto mult_overloads = sol::overload(
-            [](const glm::vec3& v1, const glm::vec3& v2) -> glm::vec3
+            [](const Vec3& v1, const Vec3& v2) -> Vec3
             { return v1 * v2; },
-            [](const glm::vec3& v1, float f) -> glm::vec3
+            [](const Vec3& v1, float f) -> Vec3
             { return v1 * f; },
-            [](float f, const glm::vec3& v1) -> glm::vec3
+            [](float f, const Vec3& v1) -> Vec3
             { return f * v1; });
 
-        auto Vector3type = state.new_usertype<glm::vec3>("Vector3", sol::constructors<glm::vec3(), glm::vec3(float, float, float)>());
+        auto Vector3type = state.new_usertype<Vec3>("Vector3", sol::constructors<Vec3(), Vec3(float, float, float)>());
 
         // Fields
-        Vector3type["x"] = &glm::vec3::x;
-        Vector3type["y"] = &glm::vec3::y;
-        Vector3type["z"] = &glm::vec3::z;
+        Vector3type["x"] = &Vec3::x;
+        Vector3type["y"] = &Vec3::y;
+        Vector3type["z"] = &Vec3::z;
 
         // Meta functions
-        Vector3type[sol::meta_function::addition] = [](const glm::vec3& a, const glm::vec3& b)
+        Vector3type[sol::meta_function::addition] = [](const Vec3& a, const Vec3& b)
         {
             return a + b;
         };
 
         Vector3type[sol::meta_function::multiplication] = mult_overloads;
 
-        Vector3type[sol::meta_function::subtraction] = [](const glm::vec3& a, const glm::vec3& b)
+        Vector3type[sol::meta_function::subtraction] = [](const Vec3& a, const Vec3& b)
         {
             return a - b;
         };
 
-        Vector3type[sol::meta_function::unary_minus] = [](glm::vec3& v) -> glm::vec3
+        Vector3type[sol::meta_function::unary_minus] = [](Vec3& v) -> Vec3
         {
             return -v;
         };
 
-        Vector3type[sol::meta_function::division] = [](const glm::vec3& a, const glm::vec3& b)
+        Vector3type[sol::meta_function::division] = [](const Vec3& a, const Vec3& b)
         {
             return a / b;
         };
 
-        Vector3type[sol::meta_function::equal_to] = [](const glm::vec3& a, const glm::vec3& b)
+        Vector3type[sol::meta_function::equal_to] = [](const Vec3& a, const Vec3& b)
         {
             return a == b;
         };
 
         // Methods
-        Vector3type["Normalise"] = [](glm::vec3& v)
+        Vector3type["Normalise"] = [](Vec3& v)
         {
-            return glm::normalize(v);
+            return v.Normalised();
         };
 
-        Vector3type["Length"] = [](const glm::vec3& v)
+        Vector3type["Length"] = [](const Vec3& v)
         {
-            return glm::length(v);
+            return Maths::Length(v);
         };
 
-        Vector3type["Distance"] = [](const glm::vec3& a, const glm::vec3& b)
+        Vector3type["Distance"] = [](const Vec3& a, const Vec3& b)
         {
-            return glm::distance(a, b);
+            return Maths::Distance(a, b);
         };
 
-        Vector3type["Distance2"] = [](const glm::vec3& a, const glm::vec3& b)
+        Vector3type["Distance2"] = [](const Vec3& a, const Vec3& b)
         {
-            return glm::distance2(a, b);
+            return Maths::Distance2(a, b);
         };
 
-        auto Vector4type = state.new_usertype<glm::vec4>("Vector4", sol::constructors<glm::vec4(), glm::vec4(float, float, float, float)>());
+        auto Vector4type = state.new_usertype<Vec4>("Vector4", sol::constructors<Vec4(), Vec4(float, float, float, float)>());
 
         // Fields
-        Vector4type["x"] = &glm::vec4::x;
-        Vector4type["y"] = &glm::vec4::y;
-        Vector4type["z"] = &glm::vec4::z;
-        Vector4type["w"] = &glm::vec4::w;
+        Vector4type["x"] = &Vec4::x;
+        Vector4type["y"] = &Vec4::y;
+        Vector4type["z"] = &Vec4::z;
+        Vector4type["w"] = &Vec4::w;
 
         // Meta functions
-        Vector4type[sol::meta_function::addition] = [](const glm::vec4& a, const glm::vec4& b)
+        Vector4type[sol::meta_function::addition] = [](const Vec4& a, const Vec4& b)
         {
             return a + b;
         };
 
         Vector4type[sol::meta_function::multiplication] = sol::overload(
-            [](const glm::vec4& v1, const glm::vec4& v2) -> glm::vec4
+            [](const Vec4& v1, const Vec4& v2) -> Vec4
             {
                 return v1 * v2;
             },
-            [](const glm::vec4& v1, float f) -> glm::vec4
+            [](const Vec4& v1, float f) -> Vec4
             {
                 return v1 * f;
             },
-            [](float f, const glm::vec4& v1) -> glm::vec4
+            [](float f, const Vec4& v1) -> Vec4
             {
                 return f * v1;
             });
 
-        Vector4type[sol::meta_function::subtraction] = [](const glm::vec4& a, const glm::vec4& b)
+        Vector4type[sol::meta_function::subtraction] = [](const Vec4& a, const Vec4& b)
         {
             return a - b;
         };
 
-        Vector4type[sol::meta_function::division] = [](const glm::vec4& a, const glm::vec4& b)
+        Vector4type[sol::meta_function::division] = [](const Vec4& a, const Vec4& b)
         {
             return a / b;
         };
 
-        Vector4type[sol::meta_function::equal_to] = [](const glm::vec4& a, const glm::vec4& b)
+        Vector4type[sol::meta_function::equal_to] = [](const Vec4& a, const Vec4& b)
         {
             return a == b;
         };
 
         // Methods
-        Vector4type["Normalise"] = [](glm::vec4& v)
+        Vector4type["Normalise"] = [](Vec4& v)
         {
-            return glm::normalize(v);
+            return v.Normalise();
         };
 
-        Vector4type["Length"] = [](const glm::vec4& v)
+        Vector4type["Length"] = [](const Vec4& v)
         {
-            return glm::length(v);
+            return Maths::Length(v);
         };
 
-        Vector4type["Distance"] = [](const glm::vec4& a, const glm::vec4& b)
+        Vector4type["Distance"] = [](const Vec4& a, const Vec4& b)
         {
-            return glm::distance(a, b);
+            return Maths::Distance(a, b);
         };
 
-        Vector4type["Distance2"] = [](const glm::vec4& a, const glm::vec4& b)
+        Vector4type["Distance2"] = [](const Vec4& a, const Vec4& b)
         {
-            return glm::distance2(a, b);
+            return Maths::Distance2(a, b);
         };
 
-        auto QuaternionType = state.new_usertype<glm::quat>("Quaternion", sol::constructors<glm::quat(float, float, float, float), glm::quat(glm::vec3)>());
+        auto QuaternionType = state.new_usertype<Quat>("Quaternion", sol::constructors<Quat(float, float, float, float), Quat(Vec3)>());
 
         // Fields
-        QuaternionType["x"] = &glm::quat::x;
-        QuaternionType["y"] = &glm::quat::y;
-        QuaternionType["z"] = &glm::quat::z;
-        QuaternionType["w"] = &glm::quat::w;
+        QuaternionType["x"] = &Quat::x;
+        QuaternionType["y"] = &Quat::y;
+        QuaternionType["z"] = &Quat::z;
+        QuaternionType["w"] = &Quat::w;
 
         // Meta functions
-        QuaternionType[sol::meta_function::addition] = [](const glm::quat& a, const glm::quat& b)
+        QuaternionType[sol::meta_function::addition] = [](const Quat& a, const Quat& b)
         {
             return a + b;
         };
 
-        QuaternionType[sol::meta_function::multiplication] = [](const glm::quat& a, const glm::quat& b)
+        QuaternionType[sol::meta_function::multiplication] = [](const Quat& a, const Quat& b)
         {
             return a * b;
         };
 
-        QuaternionType[sol::meta_function::subtraction] = [](const glm::quat& a, const glm::quat& b)
+        QuaternionType[sol::meta_function::subtraction] = [](const Quat& a, const Quat& b)
         {
             return a - b;
         };
 
-        QuaternionType[sol::meta_function::equal_to] = [](const glm::quat& a, const glm::quat& b)
+        QuaternionType[sol::meta_function::equal_to] = [](const Quat& a, const Quat& b)
         {
             return a == b;
         };
 
         // Methods
-        QuaternionType["Normalise"] = [](glm::quat& q)
+        QuaternionType["Normalise"] = [](Quat& q)
         {
-            return glm::normalize(q);
+            return q.Normalised();
         };
 
-        auto Matrix3Type = state.new_usertype<glm::mat3>("Matrix3", sol::constructors<glm::mat3(float, float, float, float, float, float, float, float, float), glm::mat3()>());
+        auto Matrix3Type = state.new_usertype<Mat3>("Matrix3", sol::constructors<Mat3(float, float, float, float, float, float, float, float, float), Mat3()>());
 
         // Meta functions
-        Matrix3Type[sol::meta_function::multiplication] = [](const glm::mat3& a, const glm::mat3& b)
+        Matrix3Type[sol::meta_function::multiplication] = [](const Mat3& a, const Mat3& b)
         {
             return a * b;
         };
 
-        auto Matrix4Type = state.new_usertype<glm::mat4>("Matrix4");
+        auto Matrix4Type = state.new_usertype<Mat4>("Matrix4");
 
         // Constructors
         Matrix4Type[sol::call_constructor] = sol::constructors<
-            glm::mat4(float),
-            glm::mat4()>();
+            Mat4(float),
+            Mat4()>();
 
         // Meta functions
-        Matrix4Type[sol::meta_function::multiplication] = [](const glm::mat4& a, const glm::mat4& b)
+        Matrix4Type[sol::meta_function::multiplication] = [](const Mat4& a, const Mat4& b)
         {
             return a * b;
         };
 
-        Matrix4Type[sol::meta_function::addition] = [](const glm::mat4& a, const glm::mat4& b)
-        {
-            return a + b;
-        };
-
-        Matrix4Type[sol::meta_function::subtraction] = [](const glm::mat4& a, const glm::mat4& b)
-        {
-            return a - b;
-        };
-
-        auto TransformType = state.new_usertype<Maths::Transform>("Transform", sol::constructors<Maths::Transform(glm::mat4), Maths::Transform(), Maths::Transform(glm::vec3)>());
+        auto TransformType = state.new_usertype<Maths::Transform>("Transform", sol::constructors<Maths::Transform(Mat4), Maths::Transform(), Maths::Transform(Vec3)>());
 
         // Fields
         TransformType["LocalScale"]       = &Maths::Transform::GetLocalScale;
@@ -258,8 +250,6 @@ namespace Lumos
         TransformType["LocalPosition"]    = &Maths::Transform::GetLocalPosition;
 
         // Methods
-        TransformType["ApplyTransform"]      = &Maths::Transform::ApplyTransform;
-        TransformType["UpdateMatrices"]      = &Maths::Transform::UpdateMatrices;
         TransformType["SetLocalTransform"]   = &Maths::Transform::SetLocalTransform;
         TransformType["SetLocalPosition"]    = &Maths::Transform::SetLocalPosition;
         TransformType["SetLocalScale"]       = &Maths::Transform::SetLocalScale;
@@ -268,5 +258,16 @@ namespace Lumos
         TransformType["GetWorldOrientation"] = &Maths::Transform::GetWorldOrientation;
         TransformType["GetForwardDirection"] = &Maths::Transform::GetForwardDirection;
         TransformType["GetRightDirection"]   = &Maths::Transform::GetRightDirection;
+
+        state["SineOut"]          = Maths::SineOut;
+        state["SineIn"]           = Maths::SineIn;
+        state["SineInOut"]        = Maths::SineInOut;
+        state["ExponentialOut"]   = Maths::ExponentialOut;
+        state["ExponentialIn"]    = Maths::ExponentialIn;
+        state["ExponentialInOut"] = Maths::ExponentialInOut;
+        state["ElasticIn"]        = Maths::ElasticIn;
+        state["ElasticOut"]       = Maths::ElasticOut;
+        state["ElasticInOut"]     = Maths::ElasticInOut;
+        state["AnimateToTarget"]  = Maths::AnimateToTarget;
     }
 }

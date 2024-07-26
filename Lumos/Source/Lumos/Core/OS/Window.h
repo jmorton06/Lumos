@@ -4,10 +4,11 @@
 #include "Graphics/RHI/SwapChain.h"
 #include "Graphics/RHI/GraphicsContext.h"
 
-#include <glm/ext/vector_float2.hpp>
-#include <glm/fwd.hpp>
-#include <vector>
+#include "Maths/Vector2.h"
+#include "Maths/MathsFwd.h"
+#include "Core/DataStructures/TDArray.h"
 #include <functional>
+#include <vector>
 
 namespace Lumos
 {
@@ -75,7 +76,7 @@ namespace Lumos
         };
         virtual float GetScreenRatio() const = 0;
         virtual void HideMouse(bool hide) {};
-        virtual void SetMousePosition(const glm::vec2& pos) {};
+        virtual void SetMousePosition(const Vec2& pos) {};
         virtual void SetEventCallback(const EventCallbackFn& callback) = 0;
         virtual void UpdateCursorImGui()                               = 0;
         virtual void SetIcon(const WindowDesc& desc)                   = 0;
@@ -99,7 +100,7 @@ namespace Lumos
         Window() = default;
 
         bool m_Init = false;
-        glm::vec2 m_Position;
+        Vec2 m_Position;
         bool m_VSync       = false;
         bool m_HasResized  = false;
         bool m_WindowFocus = true;

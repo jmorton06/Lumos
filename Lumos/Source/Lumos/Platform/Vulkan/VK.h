@@ -1,4 +1,5 @@
 #pragma once
+#include "Core/Core.h"
 
 #ifdef LUMOS_VOLK
 #define VK_NO_PROTOTYPES
@@ -23,7 +24,17 @@ inline PFN_vkSetDebugUtilsObjectNameEXT fpSetDebugUtilsObjectNameEXT;
 static char VMA_LOG_BUFFER[100];
 #define VMA_DEBUG_LOG(...)                \
     sprintf(VMA_LOG_BUFFER, __VA_ARGS__); \
-    LUMOS_LOG_INFO((const char*)VMA_LOG_BUFFER)
+    LINFO((const char*)VMA_LOG_BUFFER)
+
+#define VMA_DEBUG_LOG_FORMAT(...)         \
+    sprintf(VMA_LOG_BUFFER, __VA_ARGS__); \
+    LERROR((const char*)VMA_LOG_BUFFER)
+#endif
+
+#define DISABLE_VMA_ASSERT 1
+#if DISABLE_VMA_ASSERT
+#define VMA_ASSERT(...) \
+    void(0)
 #endif
 
 #if defined(LUMOS_PLATFORM_MACOS) || defined(LUMOS_PLATFORM_IOS)

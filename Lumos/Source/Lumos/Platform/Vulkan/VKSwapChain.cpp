@@ -59,7 +59,7 @@ namespace Lumos
             bool success = Init(m_VSyncEnabled);
 
             if(!success)
-                LUMOS_LOG_ERROR("Failed to initialise swapchain");
+                LERROR("Failed to initialise swapchain");
 
             // AcquireNextImage();
 
@@ -73,14 +73,14 @@ namespace Lumos
 
             if(!m_Surface)
             {
-                LUMOS_LOG_CRITICAL("[VULKAN] Failed to create window surface!");
+                LFATAL("[VULKAN] Failed to create window surface!");
             }
 
             VkBool32 queueIndexSupported;
             vkGetPhysicalDeviceSurfaceSupportKHR(VKDevice::Get().GetPhysicalDevice()->GetHandle(), VKDevice::Get().GetPhysicalDevice()->GetGraphicsQueueFamilyIndex(), m_Surface, &queueIndexSupported);
 
             if(queueIndexSupported == VK_FALSE)
-                LUMOS_LOG_ERROR("Present Queue not supported");
+                LERROR("Present Queue not supported");
 
             // Swap chain
             VkSurfaceCapabilitiesKHR surfaceCapabilities;
@@ -89,8 +89,8 @@ namespace Lumos
             uint32_t numPresentModes;
             vkGetPhysicalDeviceSurfacePresentModesKHR(VKDevice::Get().GetGPU(), m_Surface, &numPresentModes, VK_NULL_HANDLE);
 
-            std::vector<VkPresentModeKHR> pPresentModes(numPresentModes);
-            vkGetPhysicalDeviceSurfacePresentModesKHR(VKDevice::Get().GetGPU(), m_Surface, &numPresentModes, pPresentModes.data());
+            TDArray<VkPresentModeKHR> pPresentModes(numPresentModes);
+            vkGetPhysicalDeviceSurfacePresentModesKHR(VKDevice::Get().GetGPU(), m_Surface, &numPresentModes, pPresentModes.Data());
 
             VkExtent2D swapChainExtent;
 
@@ -107,7 +107,7 @@ namespace Lumos
             else if(m_SwapChainBufferCount == 0)
                 m_SwapChainBufferCount = 3;
 
-            LUMOS_ASSERT(m_SwapChainBufferCount > 1);
+            ASSERT(m_SwapChainBufferCount > 1);
 
             VkSurfaceTransformFlagBitsKHR preTransform;
             if(surfaceCapabilities.supportedTransforms & VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR)
@@ -115,8 +115,8 @@ namespace Lumos
             else
                 preTransform = surfaceCapabilities.currentTransform;
 
-            VkCompositeAlphaFlagBitsKHR compositeAlpha                   = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
-            std::vector<VkCompositeAlphaFlagBitsKHR> compositeAlphaFlags = {
+            VkCompositeAlphaFlagBitsKHR compositeAlpha               = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
+            TDArray<VkCompositeAlphaFlagBitsKHR> compositeAlphaFlags = {
                 VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR,
                 VK_COMPOSITE_ALPHA_PRE_MULTIPLIED_BIT_KHR,
                 VK_COMPOSITE_ALPHA_POST_MULTIPLIED_BIT_KHR,
@@ -227,7 +227,7 @@ namespace Lumos
 
         FrameData& VKSwapChain::GetCurrentFrameData()
         {
-            LUMOS_ASSERT(m_CurrentBuffer < m_SwapChainBufferCount, "Incorrect swapchain buffer index");
+            ASSERT(m_CurrentBuffer < m_SwapChainBufferCount, "Incorrect swapchain buffer index");
             return m_Frames[m_CurrentBuffer];
         }
 
@@ -270,7 +270,7 @@ namespace Lumos
 
                 if(result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR)
                 {
-                    LUMOS_LOG_INFO("Acquire Image result : {0}", result == VK_ERROR_OUT_OF_DATE_KHR ? "Out of Date" : "SubOptimal");
+                    LINFO("Acquire Image result : %s", result == VK_ERROR_OUT_OF_DATE_KHR ? "Out of Date" : "SubOptimal");
 
                     if(result == VK_ERROR_OUT_OF_DATE_KHR)
                     {
@@ -280,11 +280,11 @@ namespace Lumos
                 else if(result != VK_SUCCESS)
                 {
                     FailedCount++;
-                    LUMOS_LOG_CRITICAL("[VULKAN] Failed to acquire swap chain image! - {0}", VKUtilities::ErrorString(result));
+                    LFATAL("[VULKAN] Failed to acquire swap chain image! - %s", VKUtilities::ErrorString(result).c_str());
 
                     if(FailedCount > 10)
                     {
-                        LUMOS_LOG_CRITICAL("[VULKAN] Failed to acquire swap chain image {0} times! - Exiting", FailedCount);
+                        LFATAL("[VULKAN] Failed to acquire swap chain image %s times! - Exiting", FailedCount);
                         Application::Get().SetAppState(AppState::Closing);
                     }
 
@@ -388,11 +388,11 @@ namespace Lumos
 
             if(error == VK_ERROR_OUT_OF_DATE_KHR)
             {
-                LUMOS_LOG_ERROR("[Vulkan] SwapChain out of date");
+                LERROR("[Vulkan] SwapChain out of date");
             }
             else if(error == VK_SUBOPTIMAL_KHR)
             {
-                LUMOS_LOG_ERROR("[Vulkan] SwapChain suboptimal");
+                LERROR("[Vulkan] SwapChain suboptimal");
             }
             else
             {
@@ -421,10 +421,10 @@ namespace Lumos
         // Get list of supported surface formats
         uint32_t formatCount;
         VK_CHECK_RESULT(vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, m_Surface, &formatCount, NULL));
-        LUMOS_ASSERT(formatCount > 0);
+        ASSERT(formatCount > 0);
 
-        std::vector<VkSurfaceFormatKHR> surfaceFormats(formatCount);
-        VK_CHECK_RESULT(vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, m_Surface, &formatCount, surfaceFormats.data()));
+        TDArray<VkSurfaceFormatKHR> surfaceFormats(formatCount);
+        VK_CHECK_RESULT(vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, m_Surface, &formatCount, surfaceFormats.Data()));
 
         // If the surface format list only includes one entry with VK_FORMAT_UNDEFINED,
         // there is no preferered format, so we assume VK_FORMAT_B8G8R8A8_UNORM
