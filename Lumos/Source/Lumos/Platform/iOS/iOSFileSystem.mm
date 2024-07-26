@@ -9,6 +9,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <sys/mman.h>
+#include <fstream>
 
 #import <Foundation/Foundation.h>
 
