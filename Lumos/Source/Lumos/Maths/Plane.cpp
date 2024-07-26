@@ -5,39 +5,39 @@ namespace Lumos
 {
     Plane::Plane()
     {
-        m_Normal   = glm::vec3(0.0f, 1.0f, 0.0f);
+        m_Normal   = Vec3(0.0f, 1.0f, 0.0f);
         m_Distance = 0.0f;
     }
 
-    Plane::Plane(const glm::vec3& normal, float distance)
+    Plane::Plane(const Vec3& normal, float distance)
     {
-        m_Normal   = glm::normalize(normal);
+        m_Normal   = normal.Normalised();
         m_Distance = distance;
     }
 
-    Plane::Plane(const glm::vec3& point, const glm::vec3& normal)
+    Plane::Plane(const Vec3& point, const Vec3& normal)
     {
-        m_Normal   = glm::normalize(normal);
-        m_Distance = glm::dot(normal, point);
+        m_Normal   = normal.Normalised();
+        m_Distance = Maths::Dot(normal, point);
     }
 
-    Plane::Plane(const glm::vec3& point1, const glm::vec3& point2, const glm::vec3& point3)
+    Plane::Plane(const Vec3& point1, const Vec3& point2, const Vec3& point3)
     {
-        glm::vec3 edge1 = point2 - point1;
-        glm::vec3 edge2 = point3 - point1;
-        m_Normal        = glm::normalize(glm::cross(edge1, edge2));
-        m_Distance      = glm::dot(m_Normal, point1);
+        Vec3 edge1 = point2 - point1;
+        Vec3 edge2 = point3 - point1;
+        m_Normal   = Maths::Cross(edge1, edge2).Normalised();
+        m_Distance = Maths::Dot(m_Normal, point1);
     }
 
-    Plane::Plane(const glm::vec4& plane)
+    Plane::Plane(const Vec4& plane)
     {
-        m_Normal   = glm::vec3(plane.x, plane.y, plane.z);
+        m_Normal   = Vec3(plane.x, plane.y, plane.z);
         m_Distance = plane.w;
     }
 
     Plane::Plane(float a, float b, float c, float d)
     {
-        m_Normal   = glm::vec3(a, b, c);
+        m_Normal   = Vec3(a, b, c);
         m_Distance = d;
     }
 
@@ -45,61 +45,61 @@ namespace Lumos
     {
     }
 
-    void Plane::Set(const glm::vec3& normal, float distance)
+    void Plane::Set(const Vec3& normal, float distance)
     {
         m_Normal   = normal;
         m_Distance = distance;
     }
 
-    void Plane::Set(const glm::vec3& point, const glm::vec3& normal)
+    void Plane::Set(const Vec3& point, const Vec3& normal)
     {
         m_Normal   = normal;
-        m_Distance = glm::dot(m_Normal, point);
+        m_Distance = Maths::Dot(m_Normal, point);
     }
 
-    void Plane::Set(const glm::vec3& point1, const glm::vec3& point2, const glm::vec3& point3)
+    void Plane::Set(const Vec3& point1, const Vec3& point2, const Vec3& point3)
     {
-        glm::vec3 vec1 = point2 - point1;
-        glm::vec3 vec2 = point3 - point1;
-        m_Normal       = glm::cross(vec1, vec2);
-        m_Normal       = glm::normalize(m_Normal);
-        m_Distance     = glm::dot(m_Normal, point1);
+        Vec3 vec1 = point2 - point1;
+        Vec3 vec2 = point3 - point1;
+        m_Normal  = Maths::Cross(vec1, vec2);
+        m_Normal.Normalise();
+        m_Distance = Maths::Dot(m_Normal, point1);
     }
 
-    void Plane::Set(const glm::vec4& plane)
+    void Plane::Set(const Vec4& plane)
     {
-        m_Normal   = glm::vec3(plane.x, plane.y, plane.z);
+        m_Normal   = Vec3(plane.x, plane.y, plane.z);
         m_Distance = plane.w;
     }
 
     void Plane::Normalise()
     {
-        float magnitude = glm::length(m_Normal);
+        float magnitude = Maths::Length(m_Normal);
         m_Normal /= magnitude;
         m_Distance /= magnitude;
     }
 
-    float Plane::Distance(const glm::vec3& point) const
+    float Plane::Distance(const Vec3& point) const
     {
-        return glm::dot(point, m_Normal) + m_Distance;
+        return Maths::Dot(point, m_Normal) + m_Distance;
     }
 
-    float Plane::Distance(const glm::vec4& point) const
+    float Plane::Distance(const Vec4& point) const
     {
-        return glm::dot(glm::vec3(point), m_Normal) + m_Distance;
+        return Maths::Dot(Vec3(point), m_Normal) + m_Distance;
     }
 
-    bool Plane::IsPointOnPlane(const glm::vec3& point) const
+    bool Plane::IsPointOnPlane(const Vec3& point) const
     {
         return Distance(point) >= -0.0001f;
     }
 
-    bool Plane::IsPointOnPlane(const glm::vec4& point) const
+    bool Plane::IsPointOnPlane(const Vec4& point) const
     {
         return Distance(point) >= -Maths::M_EPSILON;
     }
 
-    void Plane::SetNormal(const glm::vec3& normal)
+    void Plane::SetNormal(const Vec3& normal)
     {
         m_Normal = normal;
     }
@@ -109,18 +109,18 @@ namespace Lumos
         m_Distance = distance;
     }
 
-    void Plane::Transform(const glm::mat4& matrix)
+    void Plane::Transform(const Mat4& matrix)
     {
-        glm::vec4 plane = glm::vec4(m_Normal, m_Distance);
-        plane           = matrix * plane;
-        m_Normal        = glm::vec3(plane.x, plane.y, plane.z);
-        m_Distance      = plane.w;
+        Vec4 plane = Vec4(m_Normal, m_Distance);
+        plane      = matrix * plane;
+        m_Normal   = Vec3(plane.x, plane.y, plane.z);
+        m_Distance = plane.w;
     }
 
-    Plane Plane::Transformed(const glm::mat4& matrix) const
+    Plane Plane::Transformed(const Mat4& matrix) const
     {
-        glm::vec4 plane = glm::vec4(m_Normal, m_Distance);
-        plane           = matrix * plane;
-        return Plane(glm::vec3(plane.x, plane.y, plane.z), plane.w);
+        Vec4 plane = Vec4(m_Normal, m_Distance);
+        plane      = matrix * plane;
+        return Plane(Vec3(plane.x, plane.y, plane.z), plane.w);
     }
 }

@@ -1,6 +1,6 @@
 {
     "value0": {
-        "Version": 21,
+        "Version": 25,
         "Scene Name": "2D",
         "PhysicsEnabled2D": true,
         "PhysicsEnabled3D": true,
@@ -34,11 +34,11 @@
         "value3": false
     },
     "value1": 67,
-    "value2": 1,
+    "value2": 8,
     "value3": 0,
     "value4": 1048578,
-    "value5": 1048577,
-    "value6": 1048579,
+    "value5": 2097153,
+    "value6": 2097155,
     "value7": 1048580,
     "value8": 1048581,
     "value9": 1048641,
@@ -102,36 +102,340 @@
     "value67": 2097166,
     "value68": 2097167,
     "value69": 1048642,
-    "value70": 0,
-    "value71": 1,
-    "value72": 0,
-    "value73": {
+    "value70": 7,
+    "value71": 1048578,
+    "value72": {
+        "Position": {
+            "value0": 0.0,
+            "value1": -6.58942174911499,
+            "value2": 0.0
+        },
+        "Rotation": {
+            "value0": 0.0,
+            "value1": 0.0,
+            "value2": 0.0,
+            "value3": 1.0
+        },
+        "Scale": {
+            "value0": 0.5,
+            "value1": 0.5,
+            "value2": 1.0
+        }
+    },
+    "value73": 2097155,
+    "value74": {
+        "Position": {
+            "value0": 0.0,
+            "value1": -5.8729376792907719,
+            "value2": 0.0
+        },
+        "Rotation": {
+            "value0": 0.0,
+            "value1": 0.0,
+            "value2": 0.0,
+            "value3": 1.0
+        },
+        "Scale": {
+            "value0": 0.6000000238418579,
+            "value1": 0.6000000238418579,
+            "value2": 1.0
+        }
+    },
+    "value75": 1048580,
+    "value76": {
+        "Position": {
+            "value0": 0.0,
+            "value1": -5.162221908569336,
+            "value2": 0.0
+        },
+        "Rotation": {
+            "value0": 0.0,
+            "value1": 0.0,
+            "value2": 0.0,
+            "value3": 1.0
+        },
+        "Scale": {
+            "value0": 0.699999988079071,
+            "value1": 0.699999988079071,
+            "value2": 1.0
+        }
+    },
+    "value77": 1048581,
+    "value78": {
+        "Position": {
+            "value0": 0.0,
+            "value1": -4.304971694946289,
+            "value2": 0.0
+        },
+        "Rotation": {
+            "value0": 0.0,
+            "value1": 0.0,
+            "value2": 0.0,
+            "value3": 1.0
+        },
+        "Scale": {
+            "value0": 0.800000011920929,
+            "value1": 0.800000011920929,
+            "value2": 1.0
+        }
+    },
+    "value79": 1048641,
+    "value80": {
+        "Position": {
+            "value0": 0.0,
+            "value1": -3.338031768798828,
+            "value2": 0.0
+        },
+        "Rotation": {
+            "value0": 0.0,
+            "value1": 0.0,
+            "value2": 0.0,
+            "value3": 1.0
+        },
+        "Scale": {
+            "value0": 0.8999999761581421,
+            "value1": 0.8999999761581421,
+            "value2": 1.0
+        }
+    },
+    "value81": 1048640,
+    "value82": {
+        "Position": {
+            "value0": 0.0,
+            "value1": -2.3431015014648439,
+            "value2": 0.0
+        },
+        "Rotation": {
+            "value0": 0.0,
+            "value1": 0.0,
+            "value2": 0.0,
+            "value3": 1.0
+        },
+        "Scale": {
+            "value0": 1.0,
+            "value1": 1.0,
+            "value2": 1.0
+        }
+    },
+    "value83": 2097153,
+    "value84": {
+        "Position": {
+            "value0": 4.98375940322876,
+            "value1": -7.393299102783203,
+            "value2": 9.41756534576416
+        },
+        "Rotation": {
+            "value0": 0.0,
+            "value1": 0.0,
+            "value2": 0.0,
+            "value3": 1.0
+        },
+        "Scale": {
+            "value0": 1.0,
+            "value1": 1.0,
+            "value2": 1.0
+        }
+    },
+    "value85": 2,
+    "value86": 0,
+    "value87": {
         "Name": "GameController"
     },
-    "value74": 0,
-    "value75": 0,
-    "value76": 0,
-    "value77": 1,
-    "value78": 0,
-    "value79": {
+    "value88": 2097153,
+    "value89": {
+        "Name": "Camera"
+    },
+    "value90": 0,
+    "value91": 0,
+    "value92": 1,
+    "value93": 2097153,
+    "value94": {
+        "Scale": 6.0,
+        "Aspect": 0.8773784637451172,
+        "FOV": 60.0,
+        "Near": 0.10000000149011612,
+        "Far": 100.0,
+        "Aperture": 55.0,
+        "ShutterSpeed": 0.01666666753590107,
+        "Sensitivity": 250.0
+    },
+    "value95": 1,
+    "value96": 0,
+    "value97": {
         "FilePath": "//Assets/Scripts/FlappyBirdTest.lua"
     },
-    "value80": 0,
-    "value81": 0,
-    "value82": 0,
-    "value83": 0,
-    "value84": 0,
-    "value85": 0,
-    "value86": 0,
-    "value87": 0,
-    "value88": 0,
-    "value89": 0,
-    "value90": 1,
-    "value91": 0,
-    "value92": {
+    "value98": 0,
+    "value99": 0,
+    "value100": 0,
+    "value101": 0,
+    "value102": 0,
+    "value103": 0,
+    "value104": 0,
+    "value105": 0,
+    "value106": 0,
+    "value107": 0,
+    "value108": 8,
+    "value109": 0,
+    "value110": {
         "value0": 5632316061460210371
     },
-    "value93": 0,
-    "value94": 0,
-    "value95": 0
+    "value111": 1048578,
+    "value112": {
+        "value0": 8466145118487812636
+    },
+    "value113": 2097153,
+    "value114": {
+        "value0": 11691517214524486209
+    },
+    "value115": 2097155,
+    "value116": {
+        "value0": 144156051823949758
+    },
+    "value117": 1048580,
+    "value118": {
+        "value0": 3882128855649812894
+    },
+    "value119": 1048581,
+    "value120": {
+        "value0": 9989147567555966625
+    },
+    "value121": 1048641,
+    "value122": {
+        "value0": 10114217533649475247
+    },
+    "value123": 1048640,
+    "value124": {
+        "value0": 15469366471971964283
+    },
+    "value125": 0,
+    "value126": 0,
+    "value127": 6,
+    "value128": 1048578,
+    "value129": {
+        "TextString": "Test text bla 12345",
+        "Path": "RobotoRegular",
+        "Colour": {
+            "value0": 1.0,
+            "value1": 1.0,
+            "value2": 1.0,
+            "value3": 1.0
+        },
+        "LineSpacing": 0.0,
+        "Kerning": 0.0,
+        "MaxWidth": 10.0,
+        "OutlineColour": {
+            "value0": 1.0,
+            "value1": 1.0,
+            "value2": 1.0,
+            "value3": 1.0
+        },
+        "OutlineWidth": 0.0
+    },
+    "value130": 2097155,
+    "value131": {
+        "TextString": "Test text bla 12345",
+        "Path": "RobotoRegular",
+        "Colour": {
+            "value0": 1.0,
+            "value1": 1.0,
+            "value2": 1.0,
+            "value3": 1.0
+        },
+        "LineSpacing": 0.0,
+        "Kerning": 0.0,
+        "MaxWidth": 10.0,
+        "OutlineColour": {
+            "value0": 1.0,
+            "value1": 1.0,
+            "value2": 1.0,
+            "value3": 1.0
+        },
+        "OutlineWidth": 0.0
+    },
+    "value132": 1048580,
+    "value133": {
+        "TextString": "Test text bla 12345",
+        "Path": "RobotoRegular",
+        "Colour": {
+            "value0": 1.0,
+            "value1": 1.0,
+            "value2": 1.0,
+            "value3": 1.0
+        },
+        "LineSpacing": 0.0,
+        "Kerning": 0.0,
+        "MaxWidth": 10.0,
+        "OutlineColour": {
+            "value0": 1.0,
+            "value1": 1.0,
+            "value2": 1.0,
+            "value3": 1.0
+        },
+        "OutlineWidth": 0.0
+    },
+    "value134": 1048581,
+    "value135": {
+        "TextString": "Test text bla 12345",
+        "Path": "RobotoRegular",
+        "Colour": {
+            "value0": 1.0,
+            "value1": 1.0,
+            "value2": 1.0,
+            "value3": 1.0
+        },
+        "LineSpacing": 0.0,
+        "Kerning": 0.0,
+        "MaxWidth": 10.0,
+        "OutlineColour": {
+            "value0": 1.0,
+            "value1": 1.0,
+            "value2": 1.0,
+            "value3": 1.0
+        },
+        "OutlineWidth": 0.0
+    },
+    "value136": 1048641,
+    "value137": {
+        "TextString": "Test text bla 12345",
+        "Path": "RobotoRegular",
+        "Colour": {
+            "value0": 1.0,
+            "value1": 1.0,
+            "value2": 1.0,
+            "value3": 1.0
+        },
+        "LineSpacing": 0.0,
+        "Kerning": 0.0,
+        "MaxWidth": 10.0,
+        "OutlineColour": {
+            "value0": 1.0,
+            "value1": 1.0,
+            "value2": 1.0,
+            "value3": 1.0
+        },
+        "OutlineWidth": 0.0
+    },
+    "value138": 1048640,
+    "value139": {
+        "TextString": "Test text bla 12345",
+        "Path": "RobotoRegular",
+        "Colour": {
+            "value0": 1.0,
+            "value1": 1.0,
+            "value2": 1.0,
+            "value3": 1.0
+        },
+        "LineSpacing": 0.0,
+        "Kerning": 0.0,
+        "MaxWidth": 10.0,
+        "OutlineColour": {
+            "value0": 1.0,
+            "value1": 1.0,
+            "value2": 1.0,
+            "value3": 1.0
+        },
+        "OutlineWidth": 0.0
+    },
+    "value140": 0,
+    "value141": 0
 }

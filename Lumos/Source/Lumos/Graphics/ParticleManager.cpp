@@ -18,7 +18,7 @@ namespace Lumos
         Init();
     }
 
-    void ParticleEmitter::Update(float dt, glm::vec3 emitterPosition)
+    void ParticleEmitter::Update(float dt, Vec3 emitterPosition)
     {
         LUMOS_PROFILE_FUNCTION();
 
@@ -51,9 +51,9 @@ namespace Lumos
                 p.Position += p.Velocity * dt;
 
                 if(m_FadeIn > 0.0f && p.Life > (m_ParticleLife - m_FadeIn))
-                    p.Colour.a = (m_ParticleLife - p.Life) / m_FadeIn;
+                    p.Colour.w = (m_ParticleLife - p.Life) / m_FadeIn;
                 else if(m_FadeOut > 0.0f && p.Life < m_FadeOut)
-                    p.Colour.a = 1.0f - ((m_FadeOut - p.Life) / m_FadeOut);
+                    p.Colour.w = 1.0f - ((m_FadeOut - p.Life) / m_FadeOut);
             }
         }
     }
@@ -67,14 +67,14 @@ namespace Lumos
         m_Particles = PushArray(m_Arena, Particle, m_ParticleCount);
     }
 
-    void ParticleEmitter::RespawnParticle(Particle& particle, glm::vec3 emitterPosition)
+    void ParticleEmitter::RespawnParticle(Particle& particle, Vec3 emitterPosition)
     {
         LUMOS_PROFILE_FUNCTION_LOW();
 
-        particle.Position = glm::vec3(m_Spread.x > Maths::M_EPSILON ? Random32::Rand(-m_Spread.x, m_Spread.x) : 0.0f, m_Spread.y > Maths::M_EPSILON ? Random32::Rand(-m_Spread.y, m_Spread.y) : 0.0f, m_Spread.z > Maths::M_EPSILON ? Random32::Rand(-m_Spread.z, m_Spread.z) : 0.0f) + emitterPosition;
+        particle.Position = Vec3(m_Spread.x > Maths::M_EPSILON ? Random32::Rand(-m_Spread.x, m_Spread.x) : 0.0f, m_Spread.y > Maths::M_EPSILON ? Random32::Rand(-m_Spread.y, m_Spread.y) : 0.0f, m_Spread.z > Maths::M_EPSILON ? Random32::Rand(-m_Spread.z, m_Spread.z) : 0.0f) + emitterPosition;
         particle.Colour   = m_InitialColour;
         particle.Life     = m_ParticleLife + Random32::Rand(-m_LifeSpread, m_LifeSpread);
-        particle.Velocity = m_InitialVelocity + glm::vec3(m_VelocitySpread.x > Maths::M_EPSILON ? Random32::Rand(-m_VelocitySpread.x, m_VelocitySpread.x) : 0.0f, m_VelocitySpread.y > Maths::M_EPSILON ? Random32::Rand(-m_VelocitySpread.y, m_VelocitySpread.y) : 0.0f, m_VelocitySpread.z > Maths::M_EPSILON ? Random32::Rand(-m_VelocitySpread.z, m_VelocitySpread.z) : 0.0f);
+        particle.Velocity = m_InitialVelocity + Vec3(m_VelocitySpread.x > Maths::M_EPSILON ? Random32::Rand(-m_VelocitySpread.x, m_VelocitySpread.x) : 0.0f, m_VelocitySpread.y > Maths::M_EPSILON ? Random32::Rand(-m_VelocitySpread.y, m_VelocitySpread.y) : 0.0f, m_VelocitySpread.z > Maths::M_EPSILON ? Random32::Rand(-m_VelocitySpread.z, m_VelocitySpread.z) : 0.0f);
         particle.Size     = m_ParticleSize;
     }
 
@@ -118,29 +118,29 @@ namespace Lumos
         Init();
     }
 
-    const std::array<glm::vec2, 4>& ParticleEmitter::GetDefaultUVs()
+    const std::array<Vec2, 4>& ParticleEmitter::GetDefaultUVs()
     {
         LUMOS_PROFILE_FUNCTION_LOW();
-        static std::array<glm::vec2, 4> results;
+        static std::array<Vec2, 4> results;
         {
-            results[0] = glm::vec2(0, 1);
-            results[1] = glm::vec2(1, 1);
-            results[2] = glm::vec2(1, 0);
-            results[3] = glm::vec2(0, 0);
+            results[0] = Vec2(0, 1);
+            results[1] = Vec2(1, 1);
+            results[2] = Vec2(1, 0);
+            results[3] = Vec2(0, 0);
         }
         return results;
     }
 
-    std::array<glm::vec2, 4> ParticleEmitter::GetAnimatedUVs(float currentLife, int numRows)
+    std::array<Vec2, 4> ParticleEmitter::GetAnimatedUVs(float currentLife, int numRows)
     {
         if(numRows <= 0)
             return GetDefaultUVs();
 
         // Assumes numRows = numCols
-        std::array<glm::vec2, 4> results;
+        std::array<Vec2, 4> results;
 
         // Assuming normalized life value in the range [0, 1]
-        float normalizedLife = glm::clamp(currentLife, 0.0f, 1.0f);
+        float normalizedLife = Maths::Clamp(currentLife, 0.0f, 1.0f);
 
         // Calculate the total number of frames
         int totalFrames = numRows * numRows;
@@ -156,21 +156,21 @@ namespace Lumos
         float frameWidth  = 1.0f / static_cast<float>(numRows);
         float frameHeight = 1.0f / static_cast<float>(numRows);
 
-        results[0] = glm::vec2(currentCol * frameWidth, 1.0f - ((currentRow + 1) * frameHeight));
-        results[1] = glm::vec2((currentCol + 1) * frameWidth, 1.0f - ((currentRow + 1) * frameHeight));
-        results[2] = glm::vec2((currentCol + 1) * frameWidth, 1.0f - ((currentRow)*frameHeight));
-        results[3] = glm::vec2(currentCol * frameWidth, 1.0f - ((currentRow)*frameHeight));
+        results[0] = Vec2(currentCol * frameWidth, 1.0f - ((currentRow + 1) * frameHeight));
+        results[1] = Vec2((currentCol + 1) * frameWidth, 1.0f - ((currentRow + 1) * frameHeight));
+        results[2] = Vec2((currentCol + 1) * frameWidth, 1.0f - ((currentRow)*frameHeight));
+        results[3] = Vec2(currentCol * frameWidth, 1.0f - ((currentRow)*frameHeight));
 
         return results;
     }
 
-    std::array<glm::vec4, 4> ParticleEmitter::GetBlendedAnimatedUVs(float currentLife, int numRows, float& outBlendAmount)
+    std::array<Vec4, 4> ParticleEmitter::GetBlendedAnimatedUVs(float currentLife, int numRows, float& outBlendAmount)
     {
         // Assumes numRows = numCols
-        std::array<glm::vec4, 4> results;
+        std::array<Vec4, 4> results;
 
         // Assuming normalized life value in the range [0, 1]
-        float normalizedLife = glm::clamp(currentLife, 0.0f, 1.0f);
+        float normalizedLife = Maths::Clamp(currentLife, 0.0f, 1.0f);
 
         // Calculate the total number of frames
         int totalFrames = numRows * numRows;

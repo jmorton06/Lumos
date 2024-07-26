@@ -15,8 +15,8 @@ namespace Lumos
             Mesh* mesh         = nullptr;
             Material* material = nullptr;
             Pipeline* pipeline = nullptr;
-            glm::mat4 transform;
-            glm::mat4 textureMatrix;
+            Mat4 transform;
+            Mat4 textureMatrix;
             bool animated                        = false;
             DescriptorSet* AnimatedDescriptorSet = nullptr;
         };

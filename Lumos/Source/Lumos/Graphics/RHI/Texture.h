@@ -1,5 +1,5 @@
 #pragma once
-#include "Definitions.h"
+#include "RHIDefinitions.h"
 #include "Core/Asset/Asset.h"
 
 namespace Lumos

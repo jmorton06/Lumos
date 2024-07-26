@@ -21,7 +21,7 @@
 #define VK_LAYER_LUNARG_ASSISTENT_LAYER_NAME "VK_LAYER_LUNARG_assistant_layer"
 #define VK_LAYER_LUNARG_VALIDATION_NAME "VK_LAYER_KHRONOS_validation"
 
-const bool EnableValidationLayers = true;
+const bool EnableValidationLayers = false;
 
 namespace Lumos
 {
@@ -56,7 +56,7 @@ namespace Lumos
 
                 if(!extensionFound)
                 {
-                    LUMOS_LOG_WARN("[VULKAN] Extension not supported - {0}", extensionName);
+                    LWARN("[VULKAN] Extension not supported - %s", extensionName);
                 }
 
                 return extensionFound;
@@ -66,7 +66,7 @@ namespace Lumos
 
             if(enableValidationLayers)
             {
-                LUMOS_LOG_INFO("Vulkan : Enabled Validation Layers");
+                LINFO("Vulkan : Enabled Validation Layers");
                 if(CheckExtension(VK_EXT_DEBUG_UTILS_EXTENSION_NAME))
                     extensions.PushBack(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
                 if(CheckExtension(VK_EXT_DEBUG_REPORT_EXTENSION_NAME))
@@ -136,7 +136,7 @@ namespace Lumos
 
                 if(!layerFound)
                 {
-                    LUMOS_LOG_WARN("[VULKAN] Layer not supported - {0}", layerName);
+                    LWARN("[VULKAN] Layer not supported - %s", layerName);
                 }
 
                 return layerFound;
@@ -197,6 +197,8 @@ namespace Lumos
         {
             LUMOS_PROFILE_FUNCTION();
             CreateInstance();
+
+            Mat4::SetUpCoordSystem(false, true);
         };
 
         void VKContext::Present()
@@ -221,28 +223,28 @@ namespace Lumos
 
             if(flags & VK_DEBUG_REPORT_ERROR_BIT_EXT)
             {
-                LUMOS_LOG_WARN("[VULKAN] - ERROR : [{0}] Code {1}  : {2}", pLayerPrefix, msgCode, pMsg);
+                LWARN("[VULKAN] - ERROR : [%s] Code %i  : %s", pLayerPrefix, msgCode, pMsg);
             }
             // Warnings may hint at unexpected / non-spec API usage
             if(flags & VK_DEBUG_REPORT_WARNING_BIT_EXT)
             {
-                LUMOS_LOG_WARN("[VULKAN] - WARNING : [{0}] Code {1}  : {2}", pLayerPrefix, msgCode, pMsg);
+                LWARN("[VULKAN] - WARNING : [%s] Code %i  : {2}", pLayerPrefix, msgCode, pMsg);
             }
             // May indicate sub-optimal usage of the API
             if(flags & VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT)
             {
-                LUMOS_LOG_WARN("[VULKAN] - PERFORMANCE : [{0}] Code {1}  : {2}", pLayerPrefix, msgCode, pMsg);
+                LWARN("[VULKAN] - PERFORMANCE : [%s] Code %i : %s", pLayerPrefix, msgCode, pMsg);
             }
             // Informal messages that may become handy during debugging
             if(flags & VK_DEBUG_REPORT_INFORMATION_BIT_EXT)
             {
-                LUMOS_LOG_WARN("[VULKAN] - INFO : [{0}] Code {1}  : {2}", pLayerPrefix, msgCode, pMsg);
+                LWARN("[VULKAN] - INFO : [%s] Code %i : %s", pLayerPrefix, msgCode, pMsg);
             }
             // Diagnostic info from the Vulkan loader and layers
             // Usually not helpful in terms of API usage, but may help to debug layer and loader problems
             if(flags & VK_DEBUG_REPORT_DEBUG_BIT_EXT)
             {
-                LUMOS_LOG_INFO("[VULKAN] - DEBUG : [{0}] Code {1}  : {2}", pLayerPrefix, msgCode, pMsg);
+                LINFO("[VULKAN] - DEBUG : [%s] Code %i : %s", pLayerPrefix, msgCode, pMsg);
             }
 
             return VK_FALSE;
@@ -260,12 +262,12 @@ namespace Lumos
             VkResult result = volkInitialize();
             if(result != VK_SUCCESS)
             {
-                LUMOS_ASSERT(false, "volkInitialize failed");
+                ASSERT(false, "volkInitialize failed");
             }
 
             if(volkGetInstanceVersion() == 0)
             {
-                LUMOS_ASSERT(false, "Could not find loader");
+                ASSERT(false, "Could not find loader");
             }
 #endif
             bool enableValidation = EnableValidationLayers;
@@ -307,7 +309,7 @@ namespace Lumos
                 // Detect and log version
                 std::string driverVersionStr = StringUtilities::ToString(VK_API_VERSION_MAJOR(driverVersion)) + "." + StringUtilities::ToString(VK_API_VERSION_MINOR(driverVersion)) + "." + StringUtilities::ToString(VK_API_VERSION_PATCH(driverVersion));
                 std::string sdkVersionStr    = StringUtilities::ToString(VK_API_VERSION_MAJOR(sdkVersion)) + "." + StringUtilities::ToString(VK_API_VERSION_MINOR(sdkVersion)) + "." + StringUtilities::ToString(VK_API_VERSION_PATCH(sdkVersion));
-                // LUMOS_LOG_WARN("Using Vulkan {0}. Please update your graphics drivers to support Vulkan {1}.", driverVersionStr, sdkVersionStr);
+                // LWARN("Using Vulkan %s. Please update your graphics drivers to support Vulkan %s.", driverVersionStr, sdkVersionStr);
             }
 
             appInfo.sType              = VK_STRUCTURE_TYPE_APPLICATION_INFO;
@@ -344,7 +346,7 @@ namespace Lumos
             if(createResult != VK_SUCCESS)
             {
 
-                LUMOS_LOG_CRITICAL("[VULKAN] Failed to create instance!");
+                LFATAL("[VULKAN] Failed to create instance!");
             }
 #ifndef LUMOS_PLATFORM_IOS
             volkLoadInstance(s_VkInstance);
@@ -369,7 +371,7 @@ namespace Lumos
             VkResult result = CreateDebugReportCallbackEXT(s_VkInstance, &createInfo, nullptr, &m_DebugCallback);
             if(result != VK_SUCCESS)
             {
-                LUMOS_LOG_CRITICAL("[VULKAN] Failed to set up debug callback!");
+                LFATAL("[VULKAN] Failed to set up debug callback!");
             }
         }
 

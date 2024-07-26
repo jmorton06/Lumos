@@ -30,6 +30,7 @@ namespace Lumos
 
         m_SceneRenderer                       = CreateUniquePtr<Graphics::SceneRenderer>(m_Width, m_Height);
         m_SceneRenderer->m_DebugRenderEnabled = false;
+        m_SceneRenderer->m_EnableUIPass       = true;
     }
 
     static std::string AspectToString(float aspect)
@@ -131,6 +132,8 @@ namespace Lumos
         if(m_Editor->GetEditorState() == EditorState::Play)
             ImGui::GetForegroundDrawList()->AddQuad(sceneViewPosition, sceneViewPosition + ImVec2(sceneViewSize.x, 0.0f), sceneViewPosition + ImVec2(sceneViewSize.x, sceneViewSize.y), sceneViewPosition + ImVec2(0.0f, sceneViewSize.y), ImGui::ColorConvertFloat4ToU32(ImGuiUtilities::GetSelectedColour()), 5);
 
+        m_Editor->m_SceneViewPosition = sceneViewPosition;
+
         sceneViewSize.x -= static_cast<int>(sceneViewSize.x) % 2 != 0 ? 1.0f : 0.0f;
         sceneViewSize.y -= static_cast<int>(sceneViewSize.y) % 2 != 0 ? 1.0f : 0.0f;
 
@@ -188,7 +191,7 @@ namespace Lumos
         if(!Maths::Equals(aspect, camera->GetAspectRatio()))
             camera->SetAspectRatio(aspect);
 
-        ImGuiUtilities::Image(m_GameViewTexture.get(), glm::vec2(sceneViewSize.x, sceneViewSize.y), Graphics::Renderer::GetGraphicsContext()->FlipImGUITexture());
+        ImGuiUtilities::Image(m_GameViewTexture.get(), Vec2(sceneViewSize.x, sceneViewSize.y), Graphics::Renderer::GetGraphicsContext()->FlipImGUITexture());
 
         if(m_ShowStats) //&& ImGui::IsWindowFocused())
         {
@@ -273,7 +276,7 @@ namespace Lumos
         LUMOS_PROFILE_FUNCTION();
         bool resize = false;
 
-        LUMOS_ASSERT(width > 0 && height > 0, "Game View Dimensions 0");
+        ASSERT(width > 0 && height > 0, "Game View Dimensions 0");
         Application::Get().SetSceneViewDimensions(width, height);
 
         if(m_Width != width || m_Height != height)

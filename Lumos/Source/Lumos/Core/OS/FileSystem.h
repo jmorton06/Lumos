@@ -37,6 +37,7 @@ namespace Lumos
         // Static Helpers. Implemented in OS specific Files
         static bool FileExists(const std::string& path);
         static bool FolderExists(const std::string& path);
+        static void CreateFolderIfDoesntExist(const std::string& path);
         static int64_t GetFileSize(const std::string& path);
 
         static uint8_t* ReadFile(const std::string& path);

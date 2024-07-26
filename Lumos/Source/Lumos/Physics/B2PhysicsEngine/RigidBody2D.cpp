@@ -3,7 +3,7 @@
 #include "B2PhysicsEngine.h"
 #include "Core/Application.h"
 
-#include <glm/ext/vector_float2.hpp>
+#include "Maths/Vector2.h"
 #include <box2d/box2d.h>
 #include <box2d/b2_world.h>
 
@@ -28,7 +28,7 @@ namespace Lumos
             Application::Get().GetSystem<B2PhysicsEngine>()->GetB2World()->DestroyBody(m_B2Body);
     }
 
-    void RigidBody2D::SetLinearVelocity(const glm::vec2& v) const
+    void RigidBody2D::SetLinearVelocity(const Vec2& v) const
     {
         m_B2Body->SetLinearVelocity(b2Vec2(v.x, v.y));
     }
@@ -38,12 +38,12 @@ namespace Lumos
         m_B2Body->SetAngularVelocity(velocity);
     }
 
-    void RigidBody2D::SetForce(const glm::vec2& v) const
+    void RigidBody2D::SetForce(const Vec2& v) const
     {
         m_B2Body->ApplyForceToCenter(b2Vec2(v.x, v.y), true);
     }
 
-    void RigidBody2D::SetPosition(const glm::vec2& pos) const
+    void RigidBody2D::SetPosition(const Vec2& pos) const
     {
         m_B2Body->SetTransform(b2Vec2(pos.x, pos.y), m_B2Body->GetAngle());
     }
@@ -112,8 +112,16 @@ namespace Lumos
         {
             m_CustomShapePositions = params.customShapePositions;
 
+            ArenaTemp temp           = ScratchBegin(0, 0);
+            b2Vec2* b2ShapePositions = PushArrayNoZero(temp.arena, b2Vec2, int32(params.customShapePositions.size()));
+            for(i32 i = 0; i < int32(params.customShapePositions.size()); i++)
+            {
+                b2ShapePositions[i].x = m_CustomShapePositions[i].x;
+                b2ShapePositions[i].y = m_CustomShapePositions[i].y;
+            }
+
             b2PolygonShape dynamicBox;
-            dynamicBox.Set((b2Vec2*)params.customShapePositions.data(), int32(params.customShapePositions.size()));
+            dynamicBox.Set(b2ShapePositions, int32(params.customShapePositions.size()));
 
             if(params.isStatic)
                 m_B2Body->CreateFixture(&dynamicBox, 0.0f);
@@ -125,17 +133,18 @@ namespace Lumos
                 fixtureDef.friction = 0.1f;
                 m_B2Body->CreateFixture(&fixtureDef);
             }
+            ScratchEnd(temp);
         }
         else
         {
-            LUMOS_LOG_ERROR("Shape Not Supported");
+            LERROR("Shape Not Supported");
         }
     }
 
-    glm::vec2 RigidBody2D::GetPosition() const
+    Vec2 RigidBody2D::GetPosition() const
     {
         b2Vec2 pos = m_B2Body->GetPosition();
-        return glm::vec2(pos.x, pos.y);
+        return Vec2(pos.x, pos.y);
     }
 
     float RigidBody2D::GetAngle() const
@@ -143,12 +152,12 @@ namespace Lumos
         return m_B2Body->GetAngle();
     }
 
-    const glm::vec2 RigidBody2D::GetLinearVelocity() const
+    const Vec2 RigidBody2D::GetLinearVelocity() const
     {
-        return glm::vec2(m_B2Body->GetLinearVelocity().x, m_B2Body->GetLinearVelocity().y);
+        return Vec2(m_B2Body->GetLinearVelocity().x, m_B2Body->GetLinearVelocity().y);
     }
 
-    void RigidBody2D::SetShape(Shape shape, const std::vector<glm::vec2>& customPositions)
+    void RigidBody2D::SetShape(Shape shape, const std::vector<Vec2>& customPositions)
     {
         LUMOS_PROFILE_FUNCTION();
         m_ShapeType            = shape;
@@ -160,7 +169,7 @@ namespace Lumos
         RigidBodyParameters params;
         params.shape = m_ShapeType;
         if(m_B2Body)
-            params.position = glm::vec3(GetPosition(), 1.0f);
+            params.position = Vec3(GetPosition(), 1.0f);
         params.customShapePositions = customPositions;
         params.mass                 = m_Mass;
         params.scale                = m_Scale;

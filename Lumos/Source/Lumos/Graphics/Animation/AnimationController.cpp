@@ -7,6 +7,7 @@
 #include "Graphics/RHI/Shader.h"
 #include "Core/Application.h"
 #include "Core/Asset/AssetManager.h"
+#include "Maths/MathsUtilities.h"
 
 #include <ozz/animation/runtime/animation.h>
 #include <ozz/animation/runtime/sampling_job.h>
@@ -24,10 +25,8 @@
 #include <ozz/animation/runtime/sampling_job.h>
 #include <ozz/base/span.h>
 
-#define GLM_ENABLE_EXPERIMENTAL
-#include <glm/gtx/quaternion.hpp>
-#include <glm/gtc/type_ptr.hpp>
-#include <glm/ext/matrix_float4x4.hpp>
+#include "Maths/Quaternion.h"
+#include "Maths/Matrix4.h"
 
 namespace Lumos
 {
@@ -35,17 +34,17 @@ namespace Lumos
     {
         struct AnimationData
         {
-            std::vector<SharedPtr<Animation>> m_AnimationStates;
-            std::vector<std::string> m_AnimationNames;
+            TDArray<SharedPtr<Animation>> m_AnimationStates;
+            TDArray<std::string> m_AnimationNames;
             ozz::vector<ozz::math::Float4x4> m_JointWorldMats;
-            std::vector<glm::mat4> m_BindPoses;
+            TDArray<Mat4> m_BindPoses;
             ozz::vector<uint16_t> m_JointRemap;
         };
 
-        glm::mat4 ConvertToGLM(const ozz::math::Float4x4& ozzMat)
+        Mat4 ConvertToGLM(const ozz::math::Float4x4& ozzMat)
         {
             LUMOS_PROFILE_FUNCTION_LOW();
-            glm::mat4 glmMat;
+            Mat4 glmMat;
 
             // Assuming ozz::math::Float4x4 is column-major
             float matrix[16];
@@ -62,7 +61,7 @@ namespace Lumos
                 std::memcpy(matrix + r * 4, dresult, sizeof(dresult));
             }
 
-            glmMat = glm::make_mat4(matrix);
+            glmMat = Mat4(matrix);
             return glmMat;
         }
 
@@ -81,7 +80,7 @@ namespace Lumos
         void AnimationController::Update(float& animationTime, SamplingContext& context)
         {
             LUMOS_PROFILE_FUNCTION();
-            if(m_Data->m_AnimationStates.empty())
+            if(m_Data->m_AnimationStates.Empty())
                 return;
             m_Data->m_JointWorldMats = ozz::vector<ozz::math::Float4x4>();
 
@@ -110,7 +109,7 @@ namespace Lumos
                 // Runs ltm job.
                 if(!ltmJob.Run())
                 {
-                    LUMOS_LOG_ERROR("Failed to run ozz LocalToModelJob");
+                    LERROR("Failed to run ozz LocalToModelJob");
                 }
             }
         }
@@ -122,7 +121,7 @@ namespace Lumos
 
         void AnimationController::SetCurrentState(const std::string& name)
         {
-            for(size_t i = 0; i < m_Data->m_AnimationNames.size(); ++i)
+            for(size_t i = 0; i < m_Data->m_AnimationNames.Size(); ++i)
             {
                 if(m_Data->m_AnimationNames[i] == name)
                 {
@@ -137,12 +136,12 @@ namespace Lumos
             {
                 if(animName == name)
                 {
-                    LUMOS_LOG_ERROR("State with the same name {} already exists", name);
+                    LERROR("State with the same name {} already exists", name);
                     return;
                 }
             }
-            m_Data->m_AnimationNames.push_back(std::string(name));
-            m_Data->m_AnimationStates.push_back(animation);
+            m_Data->m_AnimationNames.PushBack(std::string(name));
+            m_Data->m_AnimationStates.PushBack(animation);
         }
 
         void AnimationController::SetState(size_t index, const std::string_view name, const SharedPtr<Animation>& animation)
@@ -151,11 +150,11 @@ namespace Lumos
             m_Data->m_AnimationStates[index] = animation;
         }
 
-        const std::vector<std::string>& AnimationController::GetStateNames() const
+        const TDArray<std::string>& AnimationController::GetStateNames() const
         {
             return m_Data->m_AnimationNames;
         }
-        const std::vector<SharedPtr<Animation>>& AnimationController::GetAnimationStates() const
+        const TDArray<SharedPtr<Animation>>& AnimationController::GetAnimationStates() const
         {
             return m_Data->m_AnimationStates;
         }
@@ -172,27 +171,27 @@ namespace Lumos
             }
 
             auto test = GetJointMatrices();
-            m_Descriptor->SetUniform("BoneTransforms", "BoneTransforms", test.data(), (uint32_t)(sizeof(glm::mat4) * test.size()));
+            m_Descriptor->SetUniform("BoneTransforms", "BoneTransforms", test.Data(), (uint32_t)(sizeof(Mat4) * test.Size()));
             m_Descriptor->Update();
 
             return m_Descriptor;
         }
 
-        std::vector<glm::mat4> AnimationController::GetJointMatrices()
+        TDArray<Mat4> AnimationController::GetJointMatrices()
         {
             LUMOS_PROFILE_FUNCTION_LOW();
-            std::vector<glm::mat4> glmMats;
+            TDArray<Mat4> glmMats;
             for(size_t i = 0; i < m_Data->m_JointWorldMats.size(); i++)
             {
                 ozz::math::Float4x4 skin_matrix = m_Data->m_JointWorldMats[i];
-                glmMats.push_back(ConvertToGLM(skin_matrix) * m_Data->m_BindPoses[i]);
+                glmMats.PushBack(ConvertToGLM(skin_matrix) * m_Data->m_BindPoses[i]);
             }
 
             if(m_Data->m_JointWorldMats.empty())
             {
-                LUMOS_LOG_INFO("Using identy for joint matrices");
+                LINFO("Using identy for joint matrices");
                 for(size_t i = 0; i < 100; i++)
-                    glmMats.push_back(glm::mat4(1.0f));
+                    glmMats.PushBack(Mat4(1.0f));
             }
             return glmMats;
         }
@@ -206,7 +205,7 @@ namespace Lumos
             return next == num_joints || parents[next] != _joint;
         }
 
-        void AnimationController::DebugDraw(const glm::mat4& transform)
+        void AnimationController::DebugDraw(const Mat4& transform)
         {
             using namespace ozz;
             const int num_joints               = m_Skeleton->GetSkeleton().num_joints();
@@ -245,9 +244,9 @@ namespace Lumos
 
                 float bonevalues[4];
                 math::StorePtrU(parent.cols[3], bonevalues);
-                glm::vec3 parentPos = transform * glm::vec4(glm::make_vec3(bonevalues), 1.0f);
+                Vec3 parentPos = transform * Vec4(Vec3(bonevalues), 1.0f);
                 math::StorePtrU(current.cols[3], bonevalues);
-                glm::vec3 currentPos = transform * glm::vec4(glm::make_vec3(bonevalues), 1.0f);
+                Vec3 currentPos = transform * Vec4(Vec3(bonevalues), 1.0f);
 
                 DebugRenderer::DebugDrawBone(parentPos, currentPos);
 
@@ -259,12 +258,12 @@ namespace Lumos
                 if(IsLeaf(m_Skeleton->GetSkeleton(), i))
                 {
                     // Copy current joint's raw matrix.
-                    DebugRenderer::DebugDrawSphere(0.1f, currentPos, glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
+                    DebugRenderer::DebugDrawSphere(0.1f, currentPos, Vec4(0.0f, 1.0f, 0.0f, 1.0f));
                 }
             }
         }
 
-        void AnimationController::SetBindPoses(const std::vector<glm::mat4>& mats)
+        void AnimationController::SetBindPoses(const TDArray<Mat4>& mats)
         {
             m_Data->m_BindPoses = mats;
         }
@@ -279,7 +278,7 @@ namespace Lumos
             sampling_job.output    = ozz::make_span(context.m_LocalSpaceSoaTransforms);
             if(!sampling_job.Run())
             {
-                LUMOS_LOG_ERROR("ozz animation sampling job failed!");
+                LERROR("ozz animation sampling job failed!");
             }
 
             for(int i = 0; i < context.m_LocalSpaceSoaTransforms.size(); ++i)
@@ -298,9 +297,9 @@ namespace Lumos
                     if(index >= context.LocalTranslations.size())
                         break;
 
-                    ozz::math::Store3PtrU(translations[j], glm::value_ptr(context.LocalTranslations[index]));
-                    ozz::math::Store3PtrU(scales[j], glm::value_ptr(context.LocalScales[index]));
-                    ozz::math::StorePtrU(rotations[j], glm::value_ptr(context.LocalRotations[index]));
+                    ozz::math::Store3PtrU(translations[j], Maths::ValuePtr(context.LocalTranslations[index]));
+                    ozz::math::Store3PtrU(scales[j], Maths::ValuePtr(context.LocalScales[index]));
+                    ozz::math::StorePtrU(rotations[j], Maths::ValuePtr(context.LocalRotations[index]));
                 }
             }
         }

@@ -30,7 +30,7 @@ namespace Lumos
 
     private:
         template <typename T>
-        void ShowComponentGizmo(float width, float height, float xpos, float ypos, const glm::mat4& viewProj, const Maths::Frustum& frustum, entt::registry& registry)
+        void ShowComponentGizmo(float width, float height, float xpos, float ypos, const Mat4& viewProj, const Maths::Frustum& frustum, entt::registry& registry)
         {
             if(m_ShowComponentGizmoMap[typeid(T).hash_code()])
             {
@@ -40,14 +40,14 @@ namespace Lumos
                 {
                     const auto& [component, trans] = group.template get<T, Maths::Transform>(entity);
 
-                    glm::vec3 pos = trans.GetWorldPosition();
+                    Vec3 pos = trans.GetWorldPosition();
 
                     auto inside = frustum.IsInside(pos);
 
                     if(inside == Maths::Intersection::OUTSIDE)
                         continue;
 
-                    glm::vec2 screenPos = Maths::WorldToScreen(pos, viewProj, width, height, xpos, ypos);
+                    Vec2 screenPos = Maths::WorldToScreen(pos, viewProj, width, height, xpos, ypos);
                     ImGui::SetCursorPos({ screenPos.x - ImGui::GetFontSize() * 0.5f, screenPos.y - ImGui::GetFontSize() * 0.5f });
                     ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.7f, 0.7f, 0.7f, 0.0f));
 

@@ -5,18 +5,18 @@
 #include <imgui/imgui.h>
 #include <Lumos/Core/Reference.h>
 #include <Lumos/Core/DataStructures/TDArray.h>
-
+#include <mutex>
 namespace Lumos
 {
     enum class ConsoleLogLevel : int16_t
     {
-        None     = -1,
-        Trace    = 1,
-        Debug    = 2,
-        Info     = 4,
-        Warn     = 8,
-        Error    = 16,
-        Critical = 32,
+        None  = -1,
+        Trace = 1,
+        Debug = 2,
+        Info  = 4,
+        Warn  = 8,
+        Error = 16,
+        FATAL = 32,
     };
 
     struct ConsoleMessage
@@ -27,7 +27,7 @@ namespace Lumos
         size_t GetMessageID() const { return m_MessageID; }
 
         std::string m_Message;
-        ConsoleLogLevel m_Level;
+        ConsoleLogLevel m_Level = ConsoleLogLevel::None;
         std::string m_Source;
         int m_ThreadID;
         std::string m_Time;

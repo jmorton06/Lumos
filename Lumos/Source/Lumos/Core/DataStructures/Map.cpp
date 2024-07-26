@@ -91,7 +91,7 @@ namespace Lumos
         uint32_t index = hash & mask;
 
         char temp[MAX_MAP_SLOT_SIZE];
-        LUMOS_ASSERT(MAX_MAP_SLOT_SIZE >= elem_size);
+        ASSERT(MAX_MAP_SLOT_SIZE >= elem_size);
 
         bool ok = true;
         for(;;)
@@ -192,6 +192,9 @@ namespace Lumos
 
     bool HashMapFindRaw(HashMapRaw* map, const void* key, void* out_val, int K_size, int V_size, int elem_size, int key_offset, int val_offset)
     {
+        if(!map)
+            return false;
+
         void* ptr = HashMapFindPtrRaw(map, key, K_size, V_size, elem_size, key_offset, val_offset);
         if(ptr)
         {

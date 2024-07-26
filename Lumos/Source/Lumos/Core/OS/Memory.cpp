@@ -117,13 +117,13 @@ namespace Lumos
 
     void* ArenaPushNoZero(Arena* arena, uint64_t size)
     {
-        LUMOS_ASSERT(arena != nullptr);
+        ASSERT(arena != nullptr);
         uint64_t alignedSize = (size + arena->Align - 1) & ~(arena->Align - 1);
         uint64_t newPos      = arena->Position + alignedSize;
 
         if(newPos > arena->Size)
         {
-            LUMOS_ASSERT(false, "Not enough space in the arena");
+            ASSERT(false, "Not enough space in the arena");
             return nullptr;
         }
 
@@ -134,8 +134,8 @@ namespace Lumos
 
     void* ArenaPushAligner(Arena* arena, uint64_t alignment)
     {
-        LUMOS_ASSERT(arena != nullptr);
-        LUMOS_ASSERT((alignment & (alignment - 1)) == 0); // Ensure alignment is a power of 2
+        ASSERT(arena != nullptr);
+        ASSERT((alignment & (alignment - 1)) == 0); // Ensure alignment is a power of 2
 
         uint64_t currentAddr      = reinterpret_cast<uintptr_t>(arena->Ptr) + arena->Position;
         uint64_t alignedAddr      = (currentAddr + alignment - 1) & ~(alignment - 1);
@@ -144,7 +144,7 @@ namespace Lumos
 
         if(newPos > arena->Size)
         {
-            LUMOS_ASSERT(false, "Not enough space in the arena");
+            ASSERT(false, "Not enough space in the arena");
             return nullptr; // Not enough space in the arena
         }
 
@@ -165,45 +165,45 @@ namespace Lumos
 
     void ArenaPopTo(Arena* arena, uint64_t pos)
     {
-        LUMOS_ASSERT(arena != nullptr);
-        LUMOS_ASSERT(pos <= arena->Position);
+        ASSERT(arena != nullptr);
+        ASSERT(pos <= arena->Position);
         arena->Position = pos;
     }
 
     void ArenaSetAutoAlign(Arena* arena, uint64_t align)
     {
-        LUMOS_ASSERT(arena != nullptr);
+        ASSERT(arena != nullptr);
         arena->Align = align;
     }
 
     void ArenaPop(Arena* arena, uint64_t size)
     {
-        LUMOS_ASSERT(arena != nullptr);
-        LUMOS_ASSERT(size <= arena->Position);
+        ASSERT(arena != nullptr);
+        ASSERT(size <= arena->Position);
         arena->Position -= size;
     }
 
     void ArenaClear(Arena* arena)
     {
-        LUMOS_ASSERT(arena != nullptr);
+        ASSERT(arena != nullptr);
         arena->Position = sizeof(Arena);
     }
 
     uint64_t ArenaPos(Arena* arena)
     {
-        LUMOS_ASSERT(arena != nullptr);
+        ASSERT(arena != nullptr);
         return arena->Position;
     }
 
     ArenaTemp ArenaTempBegin(Arena* arena)
     {
-        LUMOS_ASSERT(arena != nullptr);
+        ASSERT(arena != nullptr);
         return { arena, arena->Position };
     }
 
     void ArenaTempEnd(ArenaTemp temp)
     {
-        LUMOS_ASSERT(temp.arena != nullptr);
+        ASSERT(temp.arena != nullptr);
         ArenaPopTo(temp.arena, temp.pos);
     }
 }

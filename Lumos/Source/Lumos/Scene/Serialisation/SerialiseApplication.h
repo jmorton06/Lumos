@@ -23,13 +23,13 @@ namespace Lumos
                 cereal::make_nvp("Title", application.m_ProjectSettings.Title));
         // Version 2
 
-        auto paths = application.m_SceneManager->GetSceneFilePaths();
+        const auto& paths = application.m_SceneManager->GetSceneFilePaths();
         std::vector<std::string> newPaths;
         for(auto& path : paths)
         {
             std::string newPath;
-            FileSystem::Get().AbsolutePathToFileSystem(path, newPath);
-            newPaths.push_back(path);
+            FileSystem::Get().AbsolutePathToFileSystem((const char*)path.str, newPath);
+            newPaths.push_back((const char*)path.str);
         }
         archive(cereal::make_nvp("Scenes", newPaths));
         // Version 3
@@ -74,7 +74,7 @@ namespace Lumos
 
             for(auto& filePath : sceneFilePaths)
             {
-                application.m_SceneManager->AddFileToLoadList(filePath);
+                application.m_SceneManager->AddFileToLoadList(filePath.c_str());
             }
 
             if(sceneFilePaths.size() == sceneIndex)

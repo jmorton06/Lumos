@@ -7,11 +7,13 @@
 #include "VKDevice.h"
 #include "VKRenderer.h"
 #include "VKCommandPool.h"
+#include "Core/Algorithms/Sort.h"
 
 #if LUMOS_PROFILE && defined(TRACY_ENABLE)
 #include <Tracy/public/tracy/TracyVulkan.hpp>
 #endif
 
+#define LOG_VMA_ALLOCATIONS 0
 namespace Lumos
 {
     namespace Graphics
@@ -111,13 +113,13 @@ namespace Lumos
             vkEnumeratePhysicalDevices(vkInstance, &m_GPUCount, VK_NULL_HANDLE);
             if(m_GPUCount == 0)
             {
-                LUMOS_LOG_CRITICAL("No GPUs found!");
+                LFATAL("No GPUs found!");
             }
 
-            std::vector<VkPhysicalDevice> physicalDevices(m_GPUCount);
-            vkEnumeratePhysicalDevices(vkInstance, &m_GPUCount, physicalDevices.data());
+            TDArray<VkPhysicalDevice> physicalDevices(m_GPUCount);
+            vkEnumeratePhysicalDevices(vkInstance, &m_GPUCount, physicalDevices.Data());
             // First select the gpu at the back of the list
-            m_Handle = physicalDevices.back();
+            m_Handle = physicalDevices.Back();
 
             m_SupportedExtensions       = { 0 };
             m_SupportedExtensions.arena = nullptr;
@@ -129,7 +131,7 @@ namespace Lumos
                 // If index is greater than 0 try and use it
                 if(desiredGPUIndex >= (int8_t)m_GPUCount)
                 {
-                    LUMOS_LOG_CRITICAL("GPU index greater than GPU count!");
+                    LFATAL("GPU index greater than GPU count!");
                 }
                 else
                 {
@@ -139,14 +141,14 @@ namespace Lumos
             }
             else
             {
-                std::vector<PhysicalDeviceInfo> deviceInfos;
+                TDArray<PhysicalDeviceInfo> deviceInfos;
                 for(VkPhysicalDevice physicalDevice : physicalDevices)
                 {
-                    deviceInfos.push_back(GetInfo(physicalDevice));
+                    deviceInfos.PushBack(GetInfo(physicalDevice));
                 }
 
-                std::sort(deviceInfos.begin(), deviceInfos.end(), [](PhysicalDeviceInfo& deviceA, PhysicalDeviceInfo& deviceB)
-                          {
+                Algorithms::BubbleSort(deviceInfos.begin(), deviceInfos.end(), [](PhysicalDeviceInfo& deviceA, PhysicalDeviceInfo& deviceB)
+                                       {
                     if(deviceA.Type == deviceB.Type)
                         return deviceA.Memory > deviceB.Memory;
 
@@ -159,14 +161,14 @@ namespace Lumos
             vkGetPhysicalDeviceProperties(m_Handle, &m_PhysicalDeviceProperties);
             vkGetPhysicalDeviceMemoryProperties(m_Handle, &m_MemoryProperties);
 
-            LUMOS_LOG_INFO("Vulkan : {0}.{1}.{2}", VK_API_VERSION_MAJOR(m_PhysicalDeviceProperties.apiVersion), VK_API_VERSION_MINOR(m_PhysicalDeviceProperties.apiVersion), VK_API_VERSION_PATCH(m_PhysicalDeviceProperties.apiVersion));
-            LUMOS_LOG_INFO("GPU : {0}", m_DeviceInfo.Name);
-            LUMOS_LOG_INFO("Memory : {0} mb", StringUtilities::ToString(m_DeviceInfo.Memory));
-            LUMOS_LOG_INFO("Vendor : {0}", m_DeviceInfo.Vendor);
-            LUMOS_LOG_INFO("Vendor ID : {0}", StringUtilities::ToString(m_DeviceInfo.VendorID));
-            LUMOS_LOG_INFO("Device Type : {0}", std::string(PhysicalDeviceTypeToString(m_DeviceInfo.Type)));
-            LUMOS_LOG_INFO("Driver Version : {0}", m_DeviceInfo.Driver);
-            LUMOS_LOG_INFO("APi Version : {0}", m_DeviceInfo.APIVersion);
+            LINFO("Vulkan : %i.%i.%i", VK_API_VERSION_MAJOR(m_PhysicalDeviceProperties.apiVersion), VK_API_VERSION_MINOR(m_PhysicalDeviceProperties.apiVersion), VK_API_VERSION_PATCH(m_PhysicalDeviceProperties.apiVersion));
+            LINFO("GPU : %s", m_DeviceInfo.Name.c_str());
+            LINFO("Memory : %s mb", StringUtilities::ToString(m_DeviceInfo.Memory).c_str());
+            LINFO("Vendor : %s", m_DeviceInfo.Vendor.c_str());
+            LINFO("Vendor ID : %s", StringUtilities::ToString(m_DeviceInfo.VendorID).c_str());
+            LINFO("Device Type : %s", std::string(PhysicalDeviceTypeToString(m_DeviceInfo.Type)).c_str());
+            LINFO("Driver Version : %s", m_DeviceInfo.Driver.c_str());
+            LINFO("APi Version : %s", m_DeviceInfo.APIVersion.c_str());
 
             auto& caps                        = Renderer::GetCapabilities();
             caps.Vendor                       = m_DeviceInfo.Vendor;
@@ -179,7 +181,7 @@ namespace Lumos
 
             uint32_t queueFamilyCount;
             vkGetPhysicalDeviceQueueFamilyProperties(m_Handle, &queueFamilyCount, nullptr);
-            LUMOS_ASSERT(queueFamilyCount > 0);
+            ASSERT(queueFamilyCount > 0);
             m_QueueFamilyProperties.Resize(queueFamilyCount);
             vkGetPhysicalDeviceQueueFamilyProperties(m_Handle, &queueFamilyCount, m_QueueFamilyProperties.Data());
 
@@ -187,10 +189,10 @@ namespace Lumos
             vkEnumerateDeviceExtensionProperties(m_Handle, nullptr, &extCount, nullptr);
             if(extCount > 0)
             {
-                std::vector<VkExtensionProperties> extensions(extCount);
-                if(vkEnumerateDeviceExtensionProperties(m_Handle, nullptr, &extCount, &extensions.front()) == VK_SUCCESS)
+                TDArray<VkExtensionProperties> extensions(extCount);
+                if(vkEnumerateDeviceExtensionProperties(m_Handle, nullptr, &extCount, &extensions.Front()) == VK_SUCCESS)
                 {
-                    LUMOS_LOG_INFO("Selected physical device has {0} extensions", extensions.size());
+                    LINFO("Selected physical device has %i extensions", extensions.Size());
                     for(const auto& ext : extensions)
                     {
                         uint64_t basicStringHash = StringUtilities::BasicHashFromString(Str8C((char*)ext.extensionName));
@@ -370,7 +372,7 @@ namespace Lumos
                 typeBits >>= 1;
             }
 
-            LUMOS_ASSERT(false, "Could not find a suitable memory type!");
+            ASSERT(false, "Could not find a suitable memory type!");
             return UINT32_MAX;
         }
 
@@ -392,7 +394,13 @@ namespace Lumos
                 VmaPool value = *it.value;
                 vmaDestroyPool(m_Allocator, value);
             }
-
+#ifdef LUMOS_DEBUG
+            for(int i = 0; i < 3; i++)
+            {
+                auto queue = VKRenderer::GetDeletionQueue(i);
+                ASSERT((int)queue.Deletors.Size() == 0);
+            }
+#endif
             vmaDestroyAllocator(m_Allocator);
 #endif
 #if LUMOS_PROFILE && defined(TRACY_ENABLE)
@@ -404,6 +412,10 @@ namespace Lumos
             vkDestroyDevice(m_Device, VK_NULL_HANDLE);
         }
 
+#if LOG_VMA_ALLOCATIONS
+        static int g_allocs         = 0;
+        VkDeviceSize totalAllocated = 0;
+#endif
         bool VKDevice::Init()
         {
             m_PhysicalDevice = CreateSharedPtr<VKPhysicalDevice>();
@@ -411,7 +423,11 @@ namespace Lumos
             VkPhysicalDeviceFeatures supportedFeatures;
             memset(&supportedFeatures, 0, sizeof(VkPhysicalDeviceFeatures));
             memset(&m_EnabledFeatures, 0, sizeof(VkPhysicalDeviceFeatures));
-
+#ifdef USE_VMA_ALLOCATOR
+            m_SmallAllocPools.data     = 0;
+            m_SmallAllocPools.length   = 0;
+            m_SmallAllocPools.capacity = 0;
+#endif
             vkGetPhysicalDeviceFeatures(m_PhysicalDevice->GetHandle(), &supportedFeatures);
 
             if(supportedFeatures.wideLines)
@@ -435,18 +451,18 @@ namespace Lumos
             if(supportedFeatures.depthBiasClamp)
                 m_EnabledFeatures.depthBiasClamp = true;
 
-            std::vector<const char*> deviceExtensions = {
+            TDArray<const char*> deviceExtensions = {
                 VK_KHR_SWAPCHAIN_EXTENSION_NAME
             };
 
             if(m_PhysicalDevice->IsExtensionSupported(Str8Lit(VK_EXT_DEBUG_UTILS_EXTENSION_NAME)))
             {
-                deviceExtensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+                deviceExtensions.PushBack(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
                 m_EnableDebugMarkers = true;
             }
             else
             {
-                LUMOS_LOG_WARN("{0} unsupported", VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+                LWARN("%s unsupported", VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
             }
 
             VkPhysicalDeviceDescriptorIndexingFeaturesEXT indexingFeatures = {};
@@ -458,20 +474,20 @@ namespace Lumos
             // https://vulkan.lunarg.com/doc/view/1.2.162.0/mac/1.2-extensions/vkspec.html#VUID-VkDeviceCreateInfo-pProperties-04451
             if(m_PhysicalDevice->IsExtensionSupported(Str8Lit("VK_KHR_portability_subset")))
             {
-                deviceExtensions.push_back("VK_KHR_portability_subset");
+                deviceExtensions.PushBack("VK_KHR_portability_subset");
             }
             else
             {
-                LUMOS_LOG_WARN("VK_KHR_portability_subset unsupported");
+                LWARN("VK_KHR_portability_subset unsupported");
             }
 
             if(m_PhysicalDevice->IsExtensionSupported(Str8Lit(VK_EXT_DESCRIPTOR_INDEXING_EXTENSION_NAME)))
             {
-                deviceExtensions.push_back(VK_EXT_DESCRIPTOR_INDEXING_EXTENSION_NAME);
+                deviceExtensions.PushBack(VK_EXT_DESCRIPTOR_INDEXING_EXTENSION_NAME);
             }
             else
             {
-                LUMOS_LOG_WARN("{0} unsupported", VK_EXT_DESCRIPTOR_INDEXING_EXTENSION_NAME);
+                LWARN("%s unsupported", VK_EXT_DESCRIPTOR_INDEXING_EXTENSION_NAME);
             }
 #endif
 
@@ -480,8 +496,8 @@ namespace Lumos
             deviceCreateInfo.sType                   = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
             deviceCreateInfo.queueCreateInfoCount    = static_cast<uint32_t>(m_PhysicalDevice->m_QueueCreateInfos.Size());
             deviceCreateInfo.pQueueCreateInfos       = m_PhysicalDevice->m_QueueCreateInfos.Data();
-            deviceCreateInfo.enabledExtensionCount   = static_cast<uint32_t>(deviceExtensions.size());
-            deviceCreateInfo.ppEnabledExtensionNames = deviceExtensions.data();
+            deviceCreateInfo.enabledExtensionCount   = static_cast<uint32_t>(deviceExtensions.Size());
+            deviceCreateInfo.ppEnabledExtensionNames = deviceExtensions.Data();
             deviceCreateInfo.pEnabledFeatures        = &m_EnabledFeatures;
             deviceCreateInfo.enabledLayerCount       = 0;
             deviceCreateInfo.pNext                   = (void*)&indexingFeatures;
@@ -489,7 +505,7 @@ namespace Lumos
             auto result = vkCreateDevice(m_PhysicalDevice->GetHandle(), &deviceCreateInfo, VK_NULL_HANDLE, &m_Device);
             if(result != VK_SUCCESS)
             {
-                LUMOS_LOG_CRITICAL("[VULKAN] vkCreateDevice() failed!");
+                LFATAL("[VULKAN] vkCreateDevice() failed!");
                 return false;
             }
 
@@ -513,6 +529,11 @@ namespace Lumos
                                                      void*)
             {
                 TracyAllocN(memory, size, "vulkan");
+#if LOG_VMA_ALLOCATIONS
+                g_allocs++;
+                LINFO("VMA Allocating %i", (int)size);
+                totalAllocated += size;
+#endif
             };
             device_memory_callbacks.pfnFree = [](VmaAllocator,
                                                  uint32_t,
@@ -521,6 +542,14 @@ namespace Lumos
                                                  void* VMA_NULLABLE)
             {
                 TracyFreeN(memory, "vulkan");
+
+#if LOG_VMA_ALLOCATIONS
+                g_allocs--;
+                totalAllocated -= size;
+                LINFO("VMA Deleting %i", (int)size);
+                LINFO("VMA allocs %i", g_allocs);
+                LINFO("VMA allocation total size - %i", (int)totalAllocated);
+#endif
             };
             allocatorInfo.pDeviceMemoryCallbacks = &device_memory_callbacks;
 #endif
@@ -544,23 +573,32 @@ namespace Lumos
             fn.vkUnmapMemory                           = (PFN_vkUnmapMemory)vkUnmapMemory;
             fn.vkGetBufferMemoryRequirements2KHR       = (PFN_vkGetBufferMemoryRequirements2KHR)vkGetBufferMemoryRequirements2KHR;
             fn.vkGetImageMemoryRequirements2KHR        = (PFN_vkGetImageMemoryRequirements2KHR)vkGetImageMemoryRequirements2KHR;
+            fn.vkBindImageMemory2KHR                   = (PFN_vkBindImageMemory2KHR)vkBindImageMemory2KHR;
+            fn.vkBindBufferMemory2KHR                  = (PFN_vkBindBufferMemory2KHR)vkBindBufferMemory2KHR;
+            fn.vkGetPhysicalDeviceMemoryProperties2KHR = (PFN_vkGetPhysicalDeviceMemoryProperties2KHR)vkGetPhysicalDeviceMemoryProperties2;
+            fn.vkGetInstanceProcAddr                   = (PFN_vkGetInstanceProcAddr)vkGetInstanceProcAddr;
+            fn.vkGetDeviceProcAddr                     = (PFN_vkGetDeviceProcAddr)vkGetDeviceProcAddr;
+
+#if !defined(LUMOS_PLATFORM_MACOS) && !defined(LUMOS_PLATFORM_IOS)
+            fn.vkGetDeviceBufferMemoryRequirements     = (PFN_vkGetDeviceBufferMemoryRequirements)vkGetDeviceBufferMemoryRequirements;
+            fn.vkGetDeviceImageMemoryRequirements      = (PFN_vkGetDeviceImageMemoryRequirements)vkGetDeviceImageMemoryRequirements;
             fn.vkBindImageMemory2KHR                   = 0;
             fn.vkBindBufferMemory2KHR                  = 0;
             fn.vkGetPhysicalDeviceMemoryProperties2KHR = 0;
             fn.vkGetImageMemoryRequirements2KHR        = 0;
             fn.vkGetBufferMemoryRequirements2KHR       = 0;
-            fn.vkGetInstanceProcAddr                   = (PFN_vkGetInstanceProcAddr)vkGetInstanceProcAddr;
-            fn.vkGetDeviceProcAddr                     = (PFN_vkGetDeviceProcAddr)vkGetDeviceProcAddr;
-
-#if !defined(LUMOS_PLATFORM_MACOS) && !defined(LUMOS_PLATFORM_IOS)
-            fn.vkGetDeviceBufferMemoryRequirements = (PFN_vkGetDeviceBufferMemoryRequirements)vkGetDeviceBufferMemoryRequirements;
-            fn.vkGetDeviceImageMemoryRequirements  = (PFN_vkGetDeviceImageMemoryRequirements)vkGetDeviceImageMemoryRequirements;
+#else
+            fn.vkBindImageMemory2KHR                   = 0;
+            fn.vkBindBufferMemory2KHR                  = 0;
+            fn.vkGetPhysicalDeviceMemoryProperties2KHR = 0;
+            fn.vkGetImageMemoryRequirements2KHR        = 0;
+            fn.vkGetBufferMemoryRequirements2KHR       = 0;
 #endif
             allocatorInfo.pVulkanFunctions            = &fn;
-            allocatorInfo.preferredLargeHeapBlockSize = 64 * 1024 * 1024;
+            allocatorInfo.preferredLargeHeapBlockSize = 0; // 64 * 1024 * 1024;
             if(vmaCreateAllocator(&allocatorInfo, &m_Allocator) != VK_SUCCESS)
             {
-                LUMOS_LOG_CRITICAL("[VULKAN] Failed to create VMA allocator");
+                LFATAL("[VULKAN] Failed to create VMA allocator");
             }
 
 #endif
@@ -621,7 +659,7 @@ namespace Lumos
             if(HashMapFind(&m_SmallAllocPools, memTypeIndex, &pool))
                 return pool;
 
-            LUMOS_LOG_INFO("Creating VMA small objects pool for memory type index {0}", memTypeIndex);
+            LINFO("Creating VMA small objects pool for memory type index %i", memTypeIndex);
 
             VmaPoolCreateInfo pci;
             pci.memoryTypeIndex        = memTypeIndex;

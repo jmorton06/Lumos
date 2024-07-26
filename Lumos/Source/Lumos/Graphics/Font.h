@@ -21,6 +21,8 @@ namespace Lumos
             SharedPtr<Graphics::Texture2D> GetFontAtlas() const;
             const MSDFData* GetMSDFData() const { return m_MSDFData; }
             const std::string& GetFilePath() const { return m_FilePath; }
+            Vec2 CalculateTextSize(const std::string& text, float fontSize);
+            Vec2 CalculateTextSize(const String8& text, float fontSize);
 
             void Init();
 

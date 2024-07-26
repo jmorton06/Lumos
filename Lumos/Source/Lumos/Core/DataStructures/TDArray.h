@@ -1,6 +1,6 @@
 #pragma once
 #include "Core/OS/Memory.h"
-#include <utility> // for std::move
+#include <initializer_list>
 
 namespace Lumos
 {
@@ -48,6 +48,9 @@ namespace Lumos
         T& EmplaceBack(Args&&... args);
         void PopBack();
 
+        template <typename UnaryPredicate>
+        void RemoveIf(UnaryPredicate p);
+
         class Iterator
         {
         public:
@@ -61,6 +64,8 @@ namespace Lumos
                 return *this;
             }
             bool operator!=(const Iterator& other) const { return ptr != other.ptr; }
+            bool operator==(const Iterator& other) const { return ptr == other.ptr; }
+
             T& operator*() const { return *ptr; }
             Iterator operator+(int offset) const { return Iterator(ptr + offset); }
 
@@ -80,6 +85,7 @@ namespace Lumos
                 ++ptr;
                 return *this;
             }
+            bool operator==(const ConstIterator& other) const { return ptr == other.ptr; }
             bool operator!=(const ConstIterator& other) const { return ptr != other.ptr; }
             const T& operator*() const { return *ptr; }
             ConstIterator operator+(int offset) const { return ConstIterator(ptr + offset); }
@@ -94,7 +100,11 @@ namespace Lumos
         ConstIterator begin() const { return ConstIterator(m_Data); }
         ConstIterator end() const { return ConstIterator(m_Data + m_Size); }
 
-        T* Data() { return m_Data; }
+        T*& Data() { return m_Data; }
+        const T* Data() const { return m_Data; }
+
+        // Helper function for deleting allocated memory
+        void Destroy() noexcept;
 
     private:
         T* m_Data         = nullptr;
@@ -104,9 +114,6 @@ namespace Lumos
 
         // Helper function for copying elements
         void CopyElements(const TDArray<T>& other);
-
-        // Helper function for deleting allocated memory
-        void Destroy() noexcept;
     };
 
     // Constructor implementations
@@ -119,6 +126,8 @@ namespace Lumos
     template <class T>
     TDArray<T>::TDArray(const TDArray<T>& other)
         : m_Arena(other.m_Arena)
+        , m_Size(0)
+        , m_Capacity(0)
     {
         CopyElements(other);
     }
@@ -144,6 +153,8 @@ namespace Lumos
         Reserve(size);
         for(size_t i = 0; i < size; ++i)
             m_Data[i] = initial;
+
+        m_Size = size;
     }
 
     template <class T>
@@ -182,15 +193,15 @@ namespace Lumos
     template <class T>
     TDArray<T>& TDArray<T>::operator=(TDArray<T>&& other) noexcept
     {
-        std::swap(m_Data, other.m_Data);
-        std::swap(m_Arena, other.m_Arena);
-        std::swap(m_Size, other.m_Size);
-        std::swap(m_Capacity, other.m_Capacity);
+        Swap(m_Data, other.m_Data);
+        Swap(m_Arena, other.m_Arena);
+        Swap(m_Size, other.m_Size);
+        Swap(m_Capacity, other.m_Capacity);
 
         other.m_Capacity = 0;
         other.m_Data     = nullptr;
         other.m_Arena    = nullptr;
-
+        other.m_Size     = 0;
         return *this;
     }
 
@@ -198,14 +209,14 @@ namespace Lumos
     template <class T>
     T& TDArray<T>::operator[](size_t index)
     {
-        LUMOS_ASSERT(index < m_Size, "Index must be less than vector's size");
+        ASSERT(index < m_Size, "Index must be less than vector's size");
         return m_Data[index];
     }
 
     template <class T>
     const T& TDArray<T>::operator[](size_t index) const
     {
-        LUMOS_ASSERT(index < m_Size, "Index must be less than vector's size");
+        ASSERT(index < m_Size, "Index must be less than vector's size");
         return m_Data[index];
     }
 
@@ -230,7 +241,7 @@ namespace Lumos
     template <class T>
     const T& TDArray<T>::Back() const
     {
-        return *(end() - 1);
+        return m_Data[m_Size - 1];
     }
 
     // Capacity implementations
@@ -264,11 +275,14 @@ namespace Lumos
         else
             newData = new T[capacity];
 
-        for(size_t i = 0; i < m_Size; ++i)
-            newData[i] = std::move(m_Data[i]);
+        if(m_Data)
+        {
+            for(size_t i = 0; i < m_Size; ++i)
+                newData[i] = Move(m_Data[i]);
 
-        if(!m_Arena)
-            delete[] m_Data;
+            if(!m_Arena)
+                delete[] m_Data;
+        }
 
         m_Data     = newData;
         m_Capacity = capacity;
@@ -287,6 +301,13 @@ namespace Lumos
     template <class T>
     void TDArray<T>::Clear() noexcept
     {
+        for(size_t i = 0; i < m_Size; ++i)
+        {
+            m_Data[i].~T();
+        }
+
+        if(m_Data)
+            MemorySet(m_Data, 0, m_Size * sizeof(T));
         m_Size = 0;
     }
 
@@ -303,7 +324,7 @@ namespace Lumos
     {
         if(m_Size == m_Capacity)
             Reserve(m_Capacity == 0 ? 1 : m_Capacity * 2);
-        m_Data[m_Size++] = std::move(value);
+        m_Data[m_Size++] = value;
     }
 
     template <class T>
@@ -321,7 +342,10 @@ namespace Lumos
     void TDArray<T>::PopBack()
     {
         if(m_Size > 0)
+        {
+            m_Data[m_Size - 1].~T();
             --m_Size;
+        }
     }
 
     // Helper function implementations
@@ -337,10 +361,42 @@ namespace Lumos
     template <class T>
     void TDArray<T>::Destroy() noexcept
     {
-        if(!m_Arena && m_Data)
-            delete[] m_Data;
+        if(m_Data)
+        {
+            if(m_Arena)
+            {
+                for(size_t i = 0; i < m_Size; ++i)
+                {
+                    m_Data[i].~T();
+                }
+            }
+            else
+            {
+                delete[] m_Data;
+            }
+        }
+
         m_Data     = nullptr;
         m_Size     = 0;
         m_Capacity = 0;
+    }
+
+    template <class T>
+    template <typename UnaryPredicate>
+    void TDArray<T>::RemoveIf(UnaryPredicate p)
+    {
+        size_t writeIndex = 0;
+        for(size_t readIndex = 0; readIndex < m_Size; ++readIndex)
+        {
+            if(!p(m_Data[readIndex]))
+            {
+                if(writeIndex != readIndex)
+                {
+                    m_Data[writeIndex] = Move(m_Data[readIndex]);
+                }
+                ++writeIndex;
+            }
+        }
+        Resize(writeIndex);
     }
 }

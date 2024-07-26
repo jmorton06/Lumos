@@ -90,7 +90,7 @@ namespace Lumos
                     {
                         return false;
                     }
-                    item = std::move(queue.front());
+                    item = Move(queue.front());
                     queue.pop_front();
                     return true;
                 }
@@ -218,17 +218,17 @@ namespace Lumos
                     // Put each thread on to dedicated core
                     DWORD_PTR affinityMask    = 1ull << threadID;
                     DWORD_PTR affinity_result = SetThreadAffinityMask(handle, affinityMask);
-                    LUMOS_ASSERT(affinity_result > 0);
+                    ASSERT(affinity_result > 0);
 
                     // Increase thread priority:
                     // BOOL priority_result = SetThreadPriority(handle, THREAD_PRIORITY_HIGHEST);
-                    // LUMOS_ASSERT(priority_result != 0, "");
+                    // ASSERT(priority_result != 0, "");
 
                     // Name the thread:
                     std::wstring wthreadname = L"JobSystem_" + std::to_wstring(threadID);
                     HRESULT hr               = SetThreadDescription(handle, wthreadname.c_str());
 
-                    LUMOS_ASSERT(SUCCEEDED(hr));
+                    ASSERT(SUCCEEDED(hr));
 
 #elif LUMOS_PLATFORM_LINUX
 
@@ -266,7 +266,7 @@ namespace Lumos
                     worker.detach();
                 }
 
-                LUMOS_LOG_INFO("Initialised JobSystem with [{0} cores] [{1} threads]", internal_state->numCores, internal_state->numThreads);
+                LINFO("Initialised JobSystem with [%i cores] [%i threads]", internal_state->numCores, internal_state->numThreads);
             }
 
             void Release()

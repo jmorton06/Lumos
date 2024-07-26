@@ -24,7 +24,7 @@ namespace Lumos
         ForHashMapEach(size_t, ISystem*, &m_Systems, it)
         {
             ISystem* value = *it.value;
-            if(ImGui::TreeNode(value->GetName().c_str()))
+            if(ImGui::TreeNode(value->GetName()))
             {
                 value->OnImGui();
                 ImGui::TreePop();

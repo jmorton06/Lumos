@@ -1,5 +1,6 @@
-
+#pragma once
 #include "Core/OS/OS.h"
+#include "Maths/MathsFwd.h"
 
 namespace Lumos
 {
@@ -17,6 +18,6 @@ namespace Lumos
         void OpenFileExternal(const std::string& path) override;
         void OpenURL(const std::string& url) override;
 
-        void SetTitleBarColour(const glm::vec4& colour, bool dark = true) override;
+        void SetTitleBarColour(const Vec4& colour, bool dark = true) override;
     };
 }

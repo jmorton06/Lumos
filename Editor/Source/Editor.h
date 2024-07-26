@@ -6,6 +6,7 @@
 #include <Lumos/ImGui/ImGuiUtilities.h>
 #include <Lumos/Core/Application.h>
 #include <Lumos/Scene/Entity.h>
+#include <Lumos/Maths/Vector3.h>
 #include <imgui/imgui.h>
 
 namespace Lumos
@@ -188,7 +189,7 @@ namespace Lumos
             return m_ComponentIconMap;
         }
 
-        void FocusCamera(const glm::vec3& point, float distance, float speed = 1.0f);
+        void FocusCamera(const Vec3& point, float distance, float speed = 1.0f);
 
         void RecompileShaders();
         void DebugDraw();
@@ -203,9 +204,8 @@ namespace Lumos
         void SavePreview();
         void RequestThumbnail(String8 asset);
 
-        static Editor* GetEditor() { return s_Editor; }
+        static Editor* GetEditor() { return (Editor*)&Application::Get(); }
 
-        glm::vec2 m_SceneViewPanelPosition;
         Maths::Ray GetScreenRay(int x, int y, Camera* camera, int width, int height);
 
         void FileOpenCallback(const std::string& filepath);
@@ -292,8 +292,6 @@ namespace Lumos
         NONCOPYABLE(Editor)
         bool OnWindowResize(WindowResizeEvent& e);
 
-        Application* m_Application;
-
         uint32_t m_ImGuizmoOperation = 14463;
         std::vector<Entity> m_SelectedEntities;
         std::vector<Entity> m_CopiedEntities;
@@ -302,7 +300,7 @@ namespace Lumos
         float m_CurrentSceneAspectRatio = 0.0f;
         float m_CameraTransitionSpeed   = 0.0f;
         bool m_TransitioningCamera      = false;
-        glm::vec3 m_CameraDestination;
+        Vec3 m_CameraDestination;
         bool m_SceneViewActive     = false;
         bool m_NewProjectPopupOpen = false;
 
@@ -332,7 +330,5 @@ namespace Lumos
         String8 m_RequestedThumbnailPath;
 
         IniFile m_IniFile;
-
-        static Editor* s_Editor;
     };
 }

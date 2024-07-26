@@ -140,7 +140,7 @@ namespace Lumos
 
         void GLRenderer::SetBlendEquationInternal(RendererBlendFunction blendEquation)
         {
-            LUMOS_ASSERT(false, "Not implemented");
+            ASSERT(false, "Not implemented");
         }
 
         void GLRenderer::SetViewportInternal(uint32_t x, uint32_t y, uint32_t width, uint32_t height)
@@ -271,7 +271,7 @@ namespace Lumos
             }
         }
 
-        void GLRenderer::ClearRenderTarget(Graphics::Texture* texture, Graphics::CommandBuffer* commandBuffer, glm::vec4 clearColour)
+        void GLRenderer::ClearRenderTarget(Graphics::Texture* texture, Graphics::CommandBuffer* commandBuffer, Vec4 clearColour)
         {
             LUMOS_PROFILE_FUNCTION();
             if(!texture)

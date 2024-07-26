@@ -96,13 +96,17 @@ namespace Lumos
         // return m_Controllers.find(id) != m_Controllers.end();
     }
 
-    std::vector<int> Input::GetConnectedControllerIDs()
+    TDArray<int> Input::GetConnectedControllerIDs()
     {
-        std::vector<int> ids;
-        //        ids.reserve(m_Controllers.size());
-        //        for(auto [id, controller] : m_Controllers)
-        //            ids.emplace_back(id);
+        TDArray<int> ids;
+        ids.Reserve(HashMapElemSize(&m_Controllers));
 
+        ForHashMapEach(u64, int, &m_Controllers, it)
+        {
+            u64 key   = *it.key;
+            int value = *it.value;
+            ids.PushBack(value);
+        }
         return ids;
     }
 
@@ -161,7 +165,6 @@ namespace Lumos
         if(!Input::IsControllerPresent(controllerID))
             return 0.0f;
 
-        float data;
         Controller* controller = GetController(controllerID);
         return controller->AxisStates[axis];
     }

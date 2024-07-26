@@ -396,7 +396,7 @@ namespace Lumos
                     String8* file = (String8*)data->Data;
                     if(MoveFile(*file, m_MovePath))
                     {
-                        LUMOS_LOG_INFO("Moved File: {0} to {1}", (const char*)((*file).str), (const char*)m_MovePath.str);
+                        LINFO("Moved File: %s to %s", (const char*)((*file).str), (const char*)m_MovePath.str);
                     }
                     m_IsDragging = false;
                 }
@@ -764,7 +764,7 @@ namespace Lumos
                     String8* a = (String8*)data->Data;
                     if(MoveFile(*a, m_MovePath))
                     {
-                        LUMOS_LOG_INFO("Moved File: {0} to {1}", (const char*)((*a).str), (const char*)m_MovePath.str);
+                        LINFO("Moved File: %s to %s", (const char*)((*a).str), (const char*)m_MovePath.str);
                     }
                     m_IsDragging = false;
                 }

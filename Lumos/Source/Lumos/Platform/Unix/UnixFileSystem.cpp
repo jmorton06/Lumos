@@ -117,12 +117,12 @@ namespace Lumos
             {
             case ENOENT:
             {
-                LUMOS_LOG_ERROR("File not found : {0}", path);
+                LERROR("File not found : %s", path.c_str());
             }
             break;
             default:
             {
-                LUMOS_LOG_ERROR("File can't open : {0}", path);
+                LERROR("File can't open : %s", path.c_str());
             }
             break;
             }
@@ -147,12 +147,12 @@ namespace Lumos
             {
             case ENOENT:
             {
-                LUMOS_LOG_ERROR("File not found : {0}", path);
+                LERROR("File not found : %s", path.c_str());
             }
             break;
             default:
             {
-                LUMOS_LOG_ERROR("File can't open : {0}", path);
+                LERROR("File can't open : %s", path.c_str());
             }
             break;
             }
@@ -171,7 +171,7 @@ namespace Lumos
         const size_t pathSize = 4096;
         char currentDir[pathSize];
         if(getcwd(currentDir, pathSize) != NULL)
-            LUMOS_LOG_INFO(currentDir);
+            LINFO(currentDir);
 
         return std::string(currentDir);
     }

@@ -88,7 +88,7 @@ namespace Lumos
                         std::string newPath;
                         if(!FileSystem::Get().ResolvePhysicalPath(envFiles[i], newPath))
                         {
-                            LUMOS_LOG_ERROR("Failed to load {0}", envFiles[i]);
+                            LERROR("Failed to load %s", envFiles[i].c_str());
                             failed = true;
                             break;
                         }
@@ -112,7 +112,7 @@ namespace Lumos
                         std::string newPath;
                         if(!FileSystem::Get().ResolvePhysicalPath(irrFiles[i], newPath))
                         {
-                            LUMOS_LOG_ERROR("Failed to load {0}", irrFiles[i]);
+                            LERROR("Failed to load %s", irrFiles[i].c_str());
                             failed = true;
                             break;
                         }
@@ -130,7 +130,7 @@ namespace Lumos
                     }
                     else
                     {
-                        LUMOS_LOG_ERROR("Failed to load environment");
+                        LERROR("Failed to load environment");
                     }
                 }
             }

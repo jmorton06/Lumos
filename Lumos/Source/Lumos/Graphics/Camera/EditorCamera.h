@@ -20,12 +20,12 @@ namespace Lumos
         virtual void HandleMouse(Maths::Transform& transform, float dt, float xpos, float ypos) override;
         virtual void HandleKeyboard(Maths::Transform& transform, float dt) override;
 
-        void MousePan(Maths::Transform& transform, const glm::vec2& delta);
-        void MouseRotate(Maths::Transform& transform, const glm::vec2& delta);
+        void MousePan(Maths::Transform& transform, const Vec2& delta);
+        void MouseRotate(Maths::Transform& transform, const Vec2& delta);
         void MouseZoom(Maths::Transform& transform, float delta);
         void UpdateCameraView(Maths::Transform& transform, float dt);
 
-        glm::vec3 CalculatePosition(Maths::Transform& transform) const;
+        Vec3 CalculatePosition(Maths::Transform& transform) const;
         std::pair<float, float> PanSpeed() const;
         float RotationSpeed() const;
         float ZoomSpeed() const;
@@ -40,10 +40,10 @@ namespace Lumos
 
     private:
         EditorCameraMode m_CameraMode = EditorCameraMode::ARCBALL;
-        glm::vec2 m_StoredCursorPos;
+        Vec2 m_StoredCursorPos;
         float m_CameraSpeed = 20.0f;
 
         float m_PitchDelta { 0.0f }, m_YawDelta { 0.0f };
-        glm::vec3 m_PositionDelta {};
+        Vec3 m_PositionDelta {};
     };
 }

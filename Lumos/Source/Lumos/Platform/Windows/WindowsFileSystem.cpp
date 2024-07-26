@@ -5,6 +5,7 @@
 #ifdef LUMOS_PLATFORM_WINDOWS
 #include <Windows.h>
 #include <wtypes.h>
+#include <fstream>
 
 namespace Lumos
 {

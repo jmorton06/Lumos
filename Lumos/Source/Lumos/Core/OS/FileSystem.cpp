@@ -1,6 +1,12 @@
 #include "Precompiled.h"
 #include "FileSystem.h"
 
+#if __has_include(<filesystem>)
+#include <filesystem>
+#elif __has_include(<experimental/filesystem>)
+#include <experimental/filesystem>
+#endif
+
 namespace Lumos
 {
     bool FileSystem::IsRelativePath(const char* path)
@@ -48,7 +54,7 @@ namespace Lumos
         }
         else
         {
-            LUMOS_LOG_WARN("Invalid open flag");
+            LWARN("Invalid open flag");
             return "rb";
         }
     }
@@ -134,5 +140,14 @@ namespace Lumos
         std::string outPath;
         AbsolutePathToFileSystem(path, outPath, folder);
         return outPath;
+    }
+
+    void FileSystem::CreateFolderIfDoesntExist(const std::string& path)
+    {
+        if(!FileSystem::FolderExists(path))
+        {
+            std::filesystem::create_directory(path);
+            LINFO("Creating folder &s", path.c_str());
+        }
     }
 }

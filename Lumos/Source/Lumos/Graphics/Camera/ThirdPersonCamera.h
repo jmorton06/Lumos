@@ -15,6 +15,6 @@ namespace Lumos
 
     private:
         bool m_Free;
-        glm::vec2 m_StoredCursorPos;
+        Vec2 m_StoredCursorPos;
     };
 }

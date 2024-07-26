@@ -2,7 +2,6 @@
 
 #include "Utilities/TSingleton.h"
 #include "Scene/ISystem.h"
-#include <glm/fwd.hpp>
 
 class b2World;
 class b2Body;
@@ -49,7 +48,7 @@ namespace Lumos
 
         uint32_t GetDebugDrawFlags();
         void SetDebugDrawFlags(uint32_t flags);
-        void SetGravity(const glm::vec2& gravity);
+        void SetGravity(const Vec2& gravity);
 
         void SetContactListener(b2ContactListener* listener);
         void SyncTransforms(Scene* scene);

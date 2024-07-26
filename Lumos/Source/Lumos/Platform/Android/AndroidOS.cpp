@@ -41,7 +41,7 @@ namespace Lumos
         Lumos::VFS::Get().Mount("Sounds", root + "Sounds");
         Lumos::VFS::Get().Mount("Assets", root + "Assets");
 
-        LUMOS_LOG_INFO("Device : {0}", GetModelName());
+        LINFO("Device : %s", GetModelName());
 
         // AndroidWindow::MakeDefault();
 

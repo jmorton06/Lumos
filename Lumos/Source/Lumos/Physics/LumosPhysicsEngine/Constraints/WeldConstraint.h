@@ -1,9 +1,8 @@
 #pragma once
 #include "Constraint.h"
 
-#include <glm/ext/vector_float3.hpp>
-#define GLM_ENABLE_EXPERIMENTAL
-#include <glm/gtx/quaternion.hpp>
+#include "Maths/Vector3.h"
+#include "Maths/Quaternion.h"
 
 namespace Lumos
 {
@@ -21,7 +20,7 @@ namespace Lumos
         RigidBody3D* m_pObj1;
         RigidBody3D* m_pObj2;
 
-        glm::vec3 m_positionOffset;
-        glm::quat m_orientation;
+        Vec3 m_positionOffset;
+        Quat m_orientation;
     };
 }

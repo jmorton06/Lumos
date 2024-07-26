@@ -31,7 +31,7 @@ namespace Lumos
             bool Valid() { return m_Skeleton != nullptr; }
             const ozz::animation::Skeleton& GetSkeleton() const
             {
-                LUMOS_ASSERT(m_Skeleton, "Attempted to access null skeleton!");
+                ASSERT(m_Skeleton, "Attempted to access null skeleton!");
                 return *m_Skeleton;
             }
 

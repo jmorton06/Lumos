@@ -2,7 +2,7 @@
 #include "Utilities/TSingleton.h"
 #include "VK.h"
 #include "VKCommandPool.h"
-#include "Graphics/RHI/Definitions.h"
+#include "Graphics/RHI/RHIDefinitions.h"
 #include "Core/DataStructures/Set.h"
 #include "Core/DataStructures/TDArray.h"
 

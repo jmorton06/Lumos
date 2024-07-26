@@ -1,5 +1,7 @@
 #pragma once
 #include "Core/String.h"
+#include <string>
+
 #ifdef LUMOS_PLATFORM_ANDROID
 template <typename T>
 std::string to_string(const T& n)
@@ -41,10 +43,10 @@ namespace Lumos
 
         bool IsHiddenFile(const std::string& path);
 
-        std::vector<std::string> LUMOS_EXPORT SplitString(const std::string& string, const std::string& delimiters);
-        std::vector<std::string> LUMOS_EXPORT SplitString(const std::string& string, const char delimiter);
-        std::vector<std::string> LUMOS_EXPORT Tokenize(const std::string& string);
-        std::vector<std::string> GetLines(const std::string& string);
+        TDArray<std::string> SplitString(const std::string& string, const std::string& delimiters);
+        TDArray<std::string> SplitString(const std::string& string, const char delimiter);
+        TDArray<std::string> Tokenize(const std::string& string);
+        TDArray<std::string> GetLines(const std::string& string);
 
         const char* FindToken(const char* str, const std::string& token);
         const char* FindToken(const std::string& string, const std::string& token);

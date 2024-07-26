@@ -3,9 +3,9 @@
 #include "Scene/Scene.h"
 #include "Core/Application.h"
 #include "Audio/AudioManager.h"
+#include "Maths/Vector3.h"
+#include "Maths/MathsUtilities.h"
 #include <imgui/imgui.h>
-#include <glm/ext/vector_float3.hpp>
-#include <glm/gtc/type_ptr.hpp>
 
 namespace Lumos
 {
@@ -42,7 +42,7 @@ namespace Lumos
         ImGui::TextUnformatted("Position");
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
-        if(ImGui::InputFloat3("##Position", glm::value_ptr(pos)))
+        if(ImGui::InputFloat3("##Position", Maths::ValuePtr(pos)))
             m_SoundNode->SetPosition(pos);
 
         ImGui::PopItemWidth();

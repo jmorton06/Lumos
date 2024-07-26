@@ -100,7 +100,7 @@ namespace Lumos
             if(type == "Custom")
                 return ControllerType::Custom;
 
-            LUMOS_LOG_ERROR("Unsupported Camera controller {0}", type);
+            LERROR("Unsupported Camera controller %s", type.c_str());
             return ControllerType::Custom;
         }
 

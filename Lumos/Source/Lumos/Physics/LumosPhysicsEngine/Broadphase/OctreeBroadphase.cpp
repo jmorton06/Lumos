@@ -150,7 +150,7 @@ namespace Lumos
             return;
         }
 
-        glm::vec3 divisionPoints[3] = { division.boundingBox.Min(), division.boundingBox.Center(), division.boundingBox.Max() };
+        Vec3 divisionPoints[3] = { division.boundingBox.Min(), division.boundingBox.Center(), division.boundingBox.Max() };
 
         static const size_t NUM_DIVISIONS                            = 8;
         static const size_t DIVISION_POINT_INDICES[NUM_DIVISIONS][6] = {
@@ -176,12 +176,12 @@ namespace Lumos
 
             division.ChildCount++;
 
-            const glm::vec3 lower(divisionPoints[DIVISION_POINT_INDICES[i][0]].x,
-                                  divisionPoints[DIVISION_POINT_INDICES[i][1]].y,
-                                  divisionPoints[DIVISION_POINT_INDICES[i][2]].z);
-            const glm::vec3 upper(divisionPoints[DIVISION_POINT_INDICES[i][3]].x,
-                                  divisionPoints[DIVISION_POINT_INDICES[i][4]].y,
-                                  divisionPoints[DIVISION_POINT_INDICES[i][5]].z);
+            const Vec3 lower(divisionPoints[DIVISION_POINT_INDICES[i][0]].x,
+                             divisionPoints[DIVISION_POINT_INDICES[i][1]].y,
+                             divisionPoints[DIVISION_POINT_INDICES[i][2]].z);
+            const Vec3 upper(divisionPoints[DIVISION_POINT_INDICES[i][3]].x,
+                             divisionPoints[DIVISION_POINT_INDICES[i][4]].y,
+                             divisionPoints[DIVISION_POINT_INDICES[i][5]].z);
 
             chileNode.boundingBox.m_Min = lower;
             chileNode.boundingBox.m_Max = upper;
@@ -214,7 +214,7 @@ namespace Lumos
 
     void OctreeBroadphase::DebugDrawOctreeNode(const OctreeNode& node)
     {
-        DebugRenderer::DebugDraw(node.boundingBox, glm::vec4(0.8f, 0.2f, 0.4f, 1.0f), false, true, 0.1f);
+        DebugRenderer::DebugDraw(node.boundingBox, Vec4(0.8f, 0.2f, 0.4f, 1.0f), false, true, 0.1f);
 
         // Draw sub divisions
         for(uint32_t i = 0; i < node.ChildCount; i++)

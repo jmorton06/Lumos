@@ -8,6 +8,7 @@
 #include "Physics/LumosPhysicsEngine/CollisionShapes/PyramidCollisionShape.h"
 #include "Physics/LumosPhysicsEngine/CollisionShapes/HullCollisionShape.h"
 #include "Physics/LumosPhysicsEngine/CollisionShapes/CapsuleCollisionShape.h"
+#include "Maths/MathsUtilities.h"
 
 namespace Lumos
 {
@@ -23,15 +24,15 @@ namespace Lumos
         , m_Orientation(properties.Orientation)
         , m_AngularVelocity(properties.AngularVelocity)
         , m_Torque(properties.Torque)
-        , m_InvInertia(glm::mat3(1.0f))
+        , m_InvInertia(Mat3(1.0f))
         , m_OnCollisionCallback(nullptr)
         , m_AngularFactor(1.0f)
-        , m_WSTransform(glm::mat4(1.0f))
+        , m_WSTransform(Mat4(1.0f))
     {
-        LUMOS_ASSERT(properties.Mass > 0.0f, "Mass <= 0");
+        ASSERT(properties.Mass > 0.0f, "Mass <= 0");
         m_InvMass = 1.0f / properties.Mass;
 
-        m_LocalBoundingBox.Set(glm::vec3(-0.5f), glm::vec3(0.5f));
+        m_LocalBoundingBox.Set(Vec3(-0.5f), Vec3(0.5f));
 
         if(properties.Shape)
             SetCollisionShape(properties.Shape);
@@ -77,12 +78,12 @@ namespace Lumos
         m_AtRest = isAtRest;
     }
 
-    const glm::mat4& RigidBody3D::GetWorldSpaceTransform() const
+    const Mat4& RigidBody3D::GetWorldSpaceTransform() const
     {
         LUMOS_PROFILE_FUNCTION_LOW();
         if(m_WSTransformInvalidated)
         {
-            m_WSTransform = glm::translate(glm::mat4(1.0), m_Position) * glm::toMat4(m_Orientation);
+            m_WSTransform = Mat4::Translation(m_Position) * Maths::ToMat4(m_Orientation);
 
             m_WSTransformInvalidated = false;
         }
@@ -95,11 +96,11 @@ namespace Lumos
         LUMOS_PROFILE_FUNCTION_LOW();
         m_LocalBoundingBox.Clear();
 
-        const glm::vec3 xAxis(1.0f, 0.0f, 0.0f);
-        const glm::vec3 yAxis(0.0f, 1.0f, 0.0f);
-        const glm::vec3 zAxis(0.0f, 0.0f, 1.0f);
+        const Vec3 xAxis(1.0f, 0.0f, 0.0f);
+        const Vec3 yAxis(0.0f, 1.0f, 0.0f);
+        const Vec3 zAxis(0.0f, 0.0f, 1.0f);
 
-        glm::vec3 lower, upper;
+        Vec3 lower, upper;
 
         if(m_CollisionShape)
         {
@@ -130,7 +131,7 @@ namespace Lumos
         static const float ALPHA = 0.15f;
 
         // Calculate exponential moving average
-        const float v = glm::length2(m_LinearVelocity) + glm::length2(m_AngularVelocity);
+        const float v = Maths::Length2(m_LinearVelocity) + Maths::Length2(m_AngularVelocity);
         m_AverageSummedVelocity += ALPHA * (v - m_AverageSummedVelocity);
 
         // Do test
@@ -140,12 +141,12 @@ namespace Lumos
     void RigidBody3D::DebugDraw(uint64_t flags) const
     {
         LUMOS_PROFILE_FUNCTION_LOW();
-        glm::vec4 colour(0.4f, 0.3f, 0.7f, 1.0f);
+        Vec4 colour(0.4f, 0.3f, 0.7f, 1.0f);
 
         if(flags & PhysicsDebugFlags::AABB)
         {
             if(!IsAwake())
-                colour = glm::vec4(0.0f, 1.0f, 0.0f, 1.0f);
+                colour = Vec4(0.0f, 1.0f, 0.0f, 1.0f);
 
             // AABB
             Maths::BoundingBox box = m_WSAabb;
@@ -153,10 +154,10 @@ namespace Lumos
         }
 
         if(flags & PhysicsDebugFlags::LINEARVELOCITY)
-            DebugRenderer::DrawThickLine(m_WSTransform[3], m_WSTransform * glm::vec4(m_LinearVelocity, 1.0f), 0.02f, false, glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
+            DebugRenderer::DrawThickLine(Vec3(m_WSTransform.Translation()), m_WSTransform * Vec4(m_LinearVelocity, 1.0f), 0.02f, false, Vec4(0.0f, 1.0f, 0.0f, 1.0f));
 
         if(flags & PhysicsDebugFlags::LINEARFORCE)
-            DebugRenderer::DrawThickLine(m_WSTransform[3], m_WSTransform * glm::vec4(m_Force, 1.0f), 0.02f, false, glm::vec4(0.0f, 0.0f, 1.0f, 1.0f));
+            DebugRenderer::DrawThickLine(Vec3(m_WSTransform.Translation()), m_WSTransform * Vec4(m_Force, 1.0f), 0.02f, false, Vec4(0.0f, 0.0f, 1.0f, 1.0f));
     }
 
     void RigidBody3D::SetCollisionShape(CollisionShapeType type)
@@ -180,7 +181,7 @@ namespace Lumos
             SetCollisionShape(CreateSharedPtr<HullCollisionShape>());
             break;
         default:
-            LUMOS_LOG_ERROR("Unsupported Collision shape");
+            LERROR("Unsupported Collision shape");
             break;
         }
     }
@@ -190,6 +191,16 @@ namespace Lumos
         m_CollisionShape = shape;
         m_InvInertia     = m_CollisionShape->BuildInverseInertia(m_InvMass);
         AutoResizeBoundingBox();
+    }
+
+    void RigidBody3D::SetAngularVelocity(const Vec3& v)
+    {
+        if(m_Static)
+            return;
+        m_AngularVelocity = v;
+
+        if(Maths::Length2(v) > Maths::M_EPSILON)
+            m_AtRest = false;
     }
 
     void RigidBody3D::CollisionShapeUpdated()
@@ -208,7 +219,7 @@ namespace Lumos
 
     void RigidBody3D::SetMass(const float& v)
     {
-        LUMOS_ASSERT(v > 0, "Physics object mass <= 0");
+        ASSERT(v > 0, "Physics object mass <= 0");
         m_InvMass = 1.0f / v;
 
         if(m_CollisionShape)

@@ -1,14 +1,14 @@
 #pragma once
 #include "VK.h"
-#include "Graphics/RHI/Definitions.h"
+#include "Graphics/RHI/RHIDefinitions.h"
 
-#define VK_CHECK_RESULT(f)                                                                                                                        \
-    {                                                                                                                                             \
-        VkResult res = (f);                                                                                                                       \
-        if(res != VK_SUCCESS)                                                                                                                     \
-        {                                                                                                                                         \
-            LUMOS_LOG_ERROR("[VULKAN] : VkResult is {0} in {1} at line {2}", Lumos::Graphics::VKUtilities::ErrorString(res), __FILE__, __LINE__); \
-        }                                                                                                                                         \
+#define VK_CHECK_RESULT(f)                                                                                                                    \
+    {                                                                                                                                         \
+        VkResult res = (f);                                                                                                                   \
+        if(res != VK_SUCCESS)                                                                                                                 \
+        {                                                                                                                                     \
+            LERROR("[VULKAN] : VkResult is %s in %s at line %i", Lumos::Graphics::VKUtilities::ErrorString(res).c_str(), __FILE__, __LINE__); \
+        }                                                                                                                                     \
     }
 
 namespace Lumos
@@ -43,12 +43,12 @@ namespace Lumos
             void TransitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout, uint32_t mipLevels = 1, uint32_t layerCount = 1, VkCommandBuffer commandBuffer = nullptr);
 
             uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
-            VkFormat FindSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
+            VkFormat FindSupportedFormat(const TDArray<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
             VkFormat FindDepthFormat();
 
             void ValidateResolution(uint32_t& width, uint32_t& height);
-            bool IsPresentModeSupported(const std::vector<VkPresentModeKHR>& supportedModes, VkPresentModeKHR presentMode);
-            VkPresentModeKHR ChoosePresentMode(const std::vector<VkPresentModeKHR>& supportedModes, bool vsync);
+            bool IsPresentModeSupported(const TDArray<VkPresentModeKHR>& supportedModes, VkPresentModeKHR presentMode);
+            VkPresentModeKHR ChoosePresentMode(const TDArray<VkPresentModeKHR>& supportedModes, bool vsync);
 
             void WaitIdle();
             std::string ErrorString(VkResult errorCode);

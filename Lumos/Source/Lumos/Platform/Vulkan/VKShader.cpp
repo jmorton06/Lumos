@@ -12,7 +12,7 @@
 #include "Core/OS/FileSystem.h"
 #include "Core/OS/FileSystem.h"
 #include "Utilities/StringUtilities.h"
-
+#include "Maths/IVector4.h"
 #include <spirv_cross.hpp>
 
 #define SHADER_LOG_ENABLED 0
@@ -34,7 +34,7 @@ namespace Lumos
             using namespace spirv_cross;
             if(type.basetype == SPIRType::Struct || type.basetype == SPIRType::Sampler)
             {
-                LUMOS_LOG_WARN("Tried to convert a structure or SPIR sampler into a VkFormat enum value!");
+                LWARN("Tried to convert a structure or SPIR sampler into a VkFormat enum value!");
                 return VK_FORMAT_UNDEFINED;
             }
             else if(type.basetype == SPIRType::Image || type.basetype == SPIRType::SampledImage)
@@ -88,7 +88,7 @@ namespace Lumos
                 case spv::ImageFormatRgba32ui:
                     return VK_FORMAT_R32G32B32A32_UINT;
                 default:
-                    LUMOS_LOG_WARN("Failed to convert an image format to a VkFormat enum.");
+                    LWARN("Failed to convert an image format to a VkFormat enum.");
                     return VK_FORMAT_UNDEFINED;
                 }
             }
@@ -150,7 +150,7 @@ namespace Lumos
                 }
                 else
                 {
-                    LUMOS_LOG_WARN("Invalid type width for conversion of SPIR-Type to VkFormat enum value!");
+                    LWARN("Invalid type width for conversion of SPIR-Type to VkFormat enum value!");
                     return VK_FORMAT_UNDEFINED;
                 }
             }
@@ -212,7 +212,7 @@ namespace Lumos
                 }
                 else
                 {
-                    LUMOS_LOG_WARN("Invalid type width for conversion of SPIR-Type to VkFormat enum value!");
+                    LWARN("Invalid type width for conversion of SPIR-Type to VkFormat enum value!");
                     return VK_FORMAT_UNDEFINED;
                 }
             }
@@ -274,7 +274,7 @@ namespace Lumos
                 }
                 else
                 {
-                    LUMOS_LOG_WARN("Invalid type width for conversion of SPIR-Type to VkFormat enum value!");
+                    LWARN("Invalid type width for conversion of SPIR-Type to VkFormat enum value!");
                     return VK_FORMAT_UNDEFINED;
                 }
             }
@@ -336,13 +336,13 @@ namespace Lumos
                 }
                 else
                 {
-                    LUMOS_LOG_WARN("Invalid type width for conversion to a VkFormat enum");
+                    LWARN("Invalid type width for conversion to a VkFormat enum");
                     return VK_FORMAT_UNDEFINED;
                 }
             }
             else
             {
-                LUMOS_LOG_WARN("Vector size in vertex input attributes isn't explicitly supported for parsing from SPIRType->VkFormat");
+                LWARN("Vector size in vertex input attributes isn't explicitly supported for parsing from SPIRType->VkFormat");
                 return VK_FORMAT_UNDEFINED;
             }
         }
@@ -356,25 +356,20 @@ namespace Lumos
             case VK_FORMAT_R32_SFLOAT:
                 return sizeof(float);
             case VK_FORMAT_R32G32_SFLOAT:
-                return sizeof(glm::vec2);
+                return sizeof(Vec2);
             case VK_FORMAT_R32G32B32_SFLOAT:
-                return sizeof(glm::vec3);
+                return sizeof(Vec3);
             case VK_FORMAT_R32G32B32A32_SFLOAT:
-                return sizeof(glm::vec4);
-            case VK_FORMAT_R32G32_SINT:
-                return sizeof(glm::ivec2);
-            case VK_FORMAT_R32G32B32_SINT:
-                return sizeof(glm::ivec3);
+                return sizeof(Vec4);
             case VK_FORMAT_R32G32B32A32_SINT:
-                return sizeof(glm::ivec4);
+                return sizeof(IVec4);
+            case VK_FORMAT_R32G32_SINT:
+            case VK_FORMAT_R32G32B32_SINT:
             case VK_FORMAT_R32G32_UINT:
-                return sizeof(glm::ivec2);
             case VK_FORMAT_R32G32B32_UINT:
-                return sizeof(glm::ivec3);
             case VK_FORMAT_R32G32B32A32_UINT:
-                return sizeof(glm::ivec4); // Need uintvec?
             default:
-                LUMOS_LOG_ERROR("Unsupported Format {0}", (int)format);
+                LERROR("Unsupported Format %i", (int)format);
                 return 0;
             }
 
@@ -393,7 +388,7 @@ namespace Lumos
             if(m_Source.empty())
             {
                 m_Compiled = false;
-                LUMOS_LOG_ERROR("Failed to load shader {0}", filePath);
+                LERROR("Failed to load shader %s", filePath.c_str());
                 return;
             }
             Init();
@@ -455,7 +450,7 @@ namespace Lumos
 
             for(auto& source : files)
             {
-                m_ShaderTypes.push_back(source.first);
+                m_ShaderTypes.PushBack(source.first);
                 m_StageCount++;
             }
 
@@ -464,7 +459,7 @@ namespace Lumos
             for(uint32_t i = 0; i < m_StageCount; i++)
                 m_ShaderStages[i] = VkPipelineShaderStageCreateInfo();
 
-            LUMOS_LOG_INFO("Loading Shader : {0}", m_Name);
+            LINFO("Loading Shader : %s", m_Name.c_str());
 
             uint32_t currentShaderStage = 0;
             HashCombine(m_Hash, m_Name);
@@ -486,7 +481,7 @@ namespace Lumos
             }
 
             if(files.empty())
-                LUMOS_LOG_ERROR("Failed to load shader {0}", m_Name);
+                LERROR("Failed to load shader %s", m_Name.c_str());
 
             CreatePipelineLayout();
 
@@ -496,37 +491,37 @@ namespace Lumos
         void VKShader::CreatePipelineLayout()
         {
             LUMOS_PROFILE_FUNCTION_LOW();
-            std::vector<std::vector<Graphics::DescriptorLayoutInfo>> layouts;
+            TDArray<TDArray<Graphics::DescriptorLayoutInfo>> layouts;
 
             for(auto& descriptorLayout : GetDescriptorLayout())
             {
-                while((uint32_t)layouts.size() < descriptorLayout.setID + 1)
+                while((uint32_t)layouts.Size() < descriptorLayout.setID + 1)
                 {
-                    layouts.emplace_back();
+                    layouts.EmplaceBack();
                 }
 
-                layouts[descriptorLayout.setID].push_back(descriptorLayout);
+                layouts[descriptorLayout.setID].PushBack(descriptorLayout);
             }
 
             for(auto& l : layouts)
             {
-                std::vector<VkDescriptorSetLayoutBinding> setLayoutBindings;
-                std::vector<VkDescriptorBindingFlags> layoutBindingFlags;
-                setLayoutBindings.reserve(l.size());
-                layoutBindingFlags.reserve(l.size());
+                TDArray<VkDescriptorSetLayoutBinding> setLayoutBindings;
+                TDArray<VkDescriptorBindingFlags> layoutBindingFlags;
+                setLayoutBindings.Reserve(l.Size());
+                layoutBindingFlags.Reserve(l.Size());
 
-                for(uint32_t i = 0; i < (uint32_t)l.size(); i++)
+                for(uint32_t i = 0; i < (uint32_t)l.Size(); i++)
                 {
                     auto& info = l[i];
 
                     int foundIndex = -1;
-                    for(uint32_t i = 0; i < (uint32_t)setLayoutBindings.size(); i++)
+                    for(uint32_t i = 0; i < (uint32_t)setLayoutBindings.Size(); i++)
                     {
                         if(setLayoutBindings[i].binding == info.binding)
                             foundIndex = i;
                     }
 
-                    VkDescriptorSetLayoutBinding& setLayoutBinding = foundIndex >= 0 ? setLayoutBindings[foundIndex] : setLayoutBindings.emplace_back();
+                    VkDescriptorSetLayoutBinding& setLayoutBinding = foundIndex >= 0 ? setLayoutBindings[foundIndex] : setLayoutBindings.EmplaceBack();
 
                     setLayoutBinding.descriptorType = VKUtilities::DescriptorTypeToVK(info.type);
                     if(foundIndex >= 0)
@@ -542,44 +537,44 @@ namespace Lumos
                     bool isArray = info.count > 1;
 
                     if(foundIndex < 0)
-                        layoutBindingFlags.push_back(isArray ? VK_DESCRIPTOR_BINDING_PARTIALLY_BOUND_BIT : 0);
+                        layoutBindingFlags.PushBack(isArray ? VK_DESCRIPTOR_BINDING_PARTIALLY_BOUND_BIT : 0);
                 }
 
                 VkDescriptorSetLayoutBindingFlagsCreateInfo flagsInfo = {};
                 flagsInfo.sType                                       = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_BINDING_FLAGS_CREATE_INFO;
                 flagsInfo.pNext                                       = nullptr;
-                flagsInfo.bindingCount                                = static_cast<uint32_t>(layoutBindingFlags.size());
-                flagsInfo.pBindingFlags                               = layoutBindingFlags.data();
+                flagsInfo.bindingCount                                = static_cast<uint32_t>(layoutBindingFlags.Size());
+                flagsInfo.pBindingFlags                               = layoutBindingFlags.Data();
 
                 // Pipeline layout
                 VkDescriptorSetLayoutCreateInfo setLayoutCreateInfo = {};
                 setLayoutCreateInfo.sType                           = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-                setLayoutCreateInfo.bindingCount                    = static_cast<uint32_t>(setLayoutBindings.size());
-                setLayoutCreateInfo.pBindings                       = setLayoutBindings.data();
+                setLayoutCreateInfo.bindingCount                    = static_cast<uint32_t>(setLayoutBindings.Size());
+                setLayoutCreateInfo.pBindings                       = setLayoutBindings.Data();
                 setLayoutCreateInfo.pNext                           = &flagsInfo;
 
                 VkDescriptorSetLayout layout;
                 vkCreateDescriptorSetLayout(VKDevice::Get().GetDevice(), &setLayoutCreateInfo, VK_NULL_HANDLE, &layout);
 
-                m_DescriptorSetLayouts.push_back(layout);
+                m_DescriptorSetLayouts.PushBack(layout);
             }
 
             const auto& pushConsts = GetPushConstants();
-            std::vector<VkPushConstantRange> pushConstantRanges;
+            TDArray<VkPushConstantRange> pushConstantRanges;
 
             for(auto& pushConst : pushConsts)
             {
-                pushConstantRanges.push_back(VKInitialisers::PushConstantRange(VKUtilities::ShaderTypeToVK(pushConst.shaderStage), pushConst.size, pushConst.offset));
+                pushConstantRanges.PushBack(VKInitialisers::PushConstantRange(VKUtilities::ShaderTypeToVK(pushConst.shaderStage), pushConst.size, pushConst.offset));
             }
 
             auto& descriptorSetLayouts = GetDescriptorLayouts();
 
             VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo = {};
             pipelineLayoutCreateInfo.sType                      = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-            pipelineLayoutCreateInfo.setLayoutCount             = static_cast<uint32_t>(descriptorSetLayouts.size());
-            pipelineLayoutCreateInfo.pSetLayouts                = descriptorSetLayouts.data();
-            pipelineLayoutCreateInfo.pushConstantRangeCount     = uint32_t(pushConstantRanges.size());
-            pipelineLayoutCreateInfo.pPushConstantRanges        = pushConstantRanges.data();
+            pipelineLayoutCreateInfo.setLayoutCount             = static_cast<uint32_t>(descriptorSetLayouts.Size());
+            pipelineLayoutCreateInfo.pSetLayouts                = descriptorSetLayouts.Data();
+            pipelineLayoutCreateInfo.pushConstantRangeCount     = uint32_t(pushConstantRanges.Size());
+            pipelineLayoutCreateInfo.pPushConstantRanges        = pushConstantRanges.Data();
 
             VK_CHECK_RESULT(vkCreatePipelineLayout(VKDevice::Get().GetDevice(), &pipelineLayoutCreateInfo, VK_NULL_HANDLE, &m_PipelineLayout));
         }
@@ -595,7 +590,7 @@ namespace Lumos
             case VK_SHADER_STAGE_COMPUTE_BIT:
                 return "comp";
             }
-            LUMOS_ASSERT(false);
+            ASSERT(false);
             return "UNKNOWN";
         }
 
@@ -610,7 +605,7 @@ namespace Lumos
 
             std::vector<uint32_t> spv(source, source + fileSize / sizeof(uint32_t));
 
-            spirv_cross::Compiler comp(std::move(spv));
+            spirv_cross::Compiler comp(Move(spv));
             // The SPIR-V is now parsed, and we can perform reflection on it.
             spirv_cross::ShaderResources resources = comp.get_shader_resources();
 
@@ -628,7 +623,7 @@ namespace Lumos
                     Description.location                          = comp.get_decoration(resource.id, spv::DecorationLocation);
                     Description.offset                            = m_VertexInputStride;
                     Description.format                            = GetVulkanFormat(InputType);
-                    m_VertexInputAttributeDescriptions.push_back(Description);
+                    m_VertexInputAttributeDescriptions.PushBack(Description);
 
                     m_VertexInputStride += GetStrideFromVulkanFormat(Description.format);
                 }
@@ -641,14 +636,14 @@ namespace Lumos
                 uint32_t binding = comp.get_decoration(u.id, spv::DecorationBinding);
                 auto& type       = comp.get_type(u.type_id);
 
-                SHADER_LOG(LUMOS_LOG_INFO("Found UBO {0} at set = {1}, binding = {2}", u.name.c_str(), set, binding));
-                m_DescriptorLayoutInfo.push_back({ Graphics::DescriptorType::UNIFORM_BUFFER, shaderType, binding, set, type.array.size() ? uint32_t(type.array[0]) : 1 });
+                SHADER_LOG(LINFO("Found UBO %s at set = %i, binding = %i", u.name.c_str(), set, binding));
+                m_DescriptorLayoutInfo.PushBack({ Graphics::DescriptorType::UNIFORM_BUFFER, shaderType, binding, set, type.array.size() ? uint32_t(type.array[0]) : 1 });
 
                 auto& bufferType      = comp.get_type(u.base_type_id);
                 auto bufferSize       = comp.get_declared_struct_size(bufferType);
                 int memberCount       = (int)bufferType.member_types.size();
                 auto& descriptorInfo  = m_DescriptorInfos[set];
-                auto& descriptor      = descriptorInfo.descriptors.emplace_back();
+                auto& descriptor      = descriptorInfo.descriptors.EmplaceBack();
                 descriptor.binding    = binding;
                 descriptor.size       = (uint32_t)bufferSize;
                 descriptor.name       = u.name;
@@ -671,7 +666,7 @@ namespace Lumos
                     member.offset = offset;
                     member.size   = (uint32_t)size;
 
-                    SHADER_LOG(LUMOS_LOG_INFO("{0} - Size {1}, offset {2}", uniformName, size, offset));
+                    SHADER_LOG(LINFO("%s - Size %i, offset %i", uniformName, size, offset));
                 }
             }
 
@@ -689,14 +684,14 @@ namespace Lumos
                 uint32_t size = 0;
                 for(auto& range : ranges)
                 {
-                    SHADER_LOG(LUMOS_LOG_INFO("Accessing Member {0} offset {1}, size {2}", range.index, range.offset, range.range));
+                    SHADER_LOG(LINFO("Accessing Member %i offset %i, size %i", range.index, range.offset, range.range));
                     size += uint32_t(range.range);
                 }
 
-                SHADER_LOG(LUMOS_LOG_INFO("Found Push Constant {0} at set = {1}, binding = {2}", u.name.c_str(), set, binding, type.array.size() ? uint32_t(type.array[0]) : 1));
+                SHADER_LOG(LINFO("Found Push Constant %s at set = %i, binding = %i", u.name.c_str(), set, binding, type.array.size() ? uint32_t(type.array[0]) : 1));
 
-                m_PushConstants.push_back({ size, shaderType });
-                m_PushConstants.back().data = new uint8_t[size];
+                m_PushConstants.PushBack({ size, shaderType });
+                m_PushConstants.Back().data = new uint8_t[size];
 
                 auto& bufferType = comp.get_type(u.base_type_id);
                 auto bufferSize  = comp.get_declared_struct_size(bufferType);
@@ -709,7 +704,7 @@ namespace Lumos
                     auto size               = comp.get_declared_struct_member_size(bufferType, i);
                     auto offset             = comp.type_struct_member_offset(bufferType, i);
                     std::string uniformName = u.name + "." + memberName;
-                    auto& member            = m_PushConstants.back().m_Members.EmplaceBack();
+                    auto& member            = m_PushConstants.Back().m_Members.EmplaceBack();
                     member.size             = (uint32_t)size;
                     member.offset           = offset;
                     member.type             = SPIRVTypeToLumosDataType(type);
@@ -723,12 +718,12 @@ namespace Lumos
                 uint32_t set         = comp.get_decoration(u.id, spv::DecorationDescriptorSet);
                 uint32_t binding     = comp.get_decoration(u.id, spv::DecorationBinding);
                 auto& descriptorInfo = m_DescriptorInfos[set];
-                auto& descriptor     = descriptorInfo.descriptors.emplace_back();
+                auto& descriptor     = descriptorInfo.descriptors.EmplaceBack();
 
                 auto& type = comp.get_type(u.type_id);
-                SHADER_LOG(LUMOS_LOG_INFO("Found Sampled Image {0} at set = {1}, binding = {2}", u.name.c_str(), set, binding));
+                SHADER_LOG(LINFO("Found Sampled Image %s at set = %i, binding = %i", u.name.c_str(), set, binding));
 
-                m_DescriptorLayoutInfo.push_back({ Graphics::DescriptorType::IMAGE_SAMPLER, shaderType, binding, set, type.array.size() ? uint32_t(type.array[0]) : 1 });
+                m_DescriptorLayoutInfo.PushBack({ Graphics::DescriptorType::IMAGE_SAMPLER, shaderType, binding, set, type.array.size() ? uint32_t(type.array[0]) : 1 });
 
                 descriptor.binding      = binding;
                 descriptor.textureCount = 1;
@@ -748,11 +743,11 @@ namespace Lumos
                     arraySize = 1;
 
                 auto& descriptorInfo = m_DescriptorInfos[descriptorSet];
-                auto& descriptor     = descriptorInfo.descriptors.emplace_back();
+                auto& descriptor     = descriptorInfo.descriptors.EmplaceBack();
 
-                SHADER_LOG(LUMOS_LOG_INFO("Found Storage Image {0} at set = {1}, binding = {2}", u.name.c_str(), descriptorSet, binding));
+                SHADER_LOG(LINFO("Found Storage Image %s at set = %i, binding = %i", u.name.c_str(), descriptorSet, binding));
 
-                m_DescriptorLayoutInfo.push_back({ Graphics::DescriptorType::IMAGE_STORAGE, shaderType, binding, descriptorSet, type.array.size() ? uint32_t(type.array[0]) : 1 });
+                m_DescriptorLayoutInfo.PushBack({ Graphics::DescriptorType::IMAGE_STORAGE, shaderType, binding, descriptorSet, type.array.size() ? uint32_t(type.array[0]) : 1 });
 
                 descriptor.type         = Graphics::DescriptorType::IMAGE_STORAGE;
                 descriptor.binding      = binding;
@@ -821,15 +816,15 @@ namespace Lumos
 
         void VKShader::PreProcess(const std::string& source, std::map<ShaderType, std::string>* sources)
         {
-            type                           = ShaderType::UNKNOWN;
-            std::vector<std::string> lines = StringUtilities::GetLines(source);
+            type                       = ShaderType::UNKNOWN;
+            TDArray<std::string> lines = StringUtilities::GetLines(source);
             ReadShaderFile(lines, sources);
         }
 
-        void VKShader::ReadShaderFile(const std::vector<std::string>& lines, std::map<ShaderType, std::string>* shaders)
+        void VKShader::ReadShaderFile(const TDArray<std::string>& lines, std::map<ShaderType, std::string>* shaders)
         {
             LUMOS_PROFILE_FUNCTION_LOW();
-            for(uint32_t i = 0; i < lines.size(); i++)
+            for(uint32_t i = 0; i < lines.Size(); i++)
             {
                 std::string str = std::string(lines[i]);
                 str             = StringUtilities::StringReplace(str, '\t');

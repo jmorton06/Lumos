@@ -1,5 +1,5 @@
 #pragma once
-#include <glm/ext/vector_float3.hpp>
+#include "Maths/Vector3.h"
 
 namespace Lumos
 {
@@ -10,13 +10,13 @@ namespace Lumos
         {
         public:
             Ray();
-            Ray(const glm::vec3& origin, const glm::vec3& direction);
+            Ray(const Vec3& origin, const Vec3& direction);
 
             bool Intersects(const BoundingBox& bb) const;
             bool Intersects(const BoundingBox& bb, float& t) const;
-            bool IntersectsTriangle(const glm::vec3& a, const glm::vec3& b, const glm::vec3& c, float& t) const;
+            bool IntersectsTriangle(const Vec3& a, const Vec3& b, const Vec3& c, float& t) const;
 
-            glm::vec3 Origin, Direction;
+            Vec3 Origin, Direction;
         };
     }
 }

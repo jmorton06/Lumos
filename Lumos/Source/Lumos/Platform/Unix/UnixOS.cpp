@@ -15,9 +15,9 @@ namespace Lumos
     {
         auto& app = Lumos::Application::Get();
 
-        LUMOS_LOG_INFO("--------------------");
-        LUMOS_LOG_INFO(" System Information ");
-        LUMOS_LOG_INFO("--------------------");
+        LINFO("--------------------");
+        LINFO(" System Information ");
+        LINFO("--------------------");
 
         auto systemInfo = MemoryManager::Get()->GetSystemInfo();
         systemInfo.Log();

@@ -1,11 +1,12 @@
 #include "Precompiled.h"
 #include "PathNode.h"
 #include "PathEdge.h"
+#include "Maths/MathsUtilities.h"
 
 namespace Lumos
 {
 
-    PathNode::PathNode(const glm::vec3& position)
+    PathNode::PathNode(const Vec3& position)
         : RigidBody3D()
     {
         SetPosition(position);
@@ -22,7 +23,7 @@ namespace Lumos
 
     float PathNode::HeuristicValue(const PathNode& other) const
     {
-        return glm::length(GetWorldSpaceTransform()[3] - other.GetWorldSpaceTransform()[3]);
+        return Maths::Length(Vec3(GetWorldSpaceTransform().Translation() - other.GetWorldSpaceTransform().Translation()));
     }
 
 }

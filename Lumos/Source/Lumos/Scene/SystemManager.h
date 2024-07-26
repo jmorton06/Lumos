@@ -2,6 +2,7 @@
 #include "Scene/ISystem.h"
 #include "Core/DataStructures/Map.h"
 
+#include <mutex>
 namespace Lumos
 {
     class SystemManager
@@ -15,7 +16,7 @@ namespace Lumos
         {
             std::scoped_lock<std::mutex> lock(m_Mutex);
             auto typeName = typeid(T).hash_code();
-            LUMOS_ASSERT(!HasSystem<T>(), "Registering system more than once.");
+            ASSERT(!HasSystem<T>(), "Registering system more than once.");
 
             // Create a pointer to the system and return it so it can be used externally
             ISystem* system = new T(std::forward<Args>(args)...);
@@ -28,7 +29,7 @@ namespace Lumos
         {
             std::scoped_lock<std::mutex> lock(m_Mutex);
             auto typeName = typeid(T).hash_code();
-            LUMOS_ASSERT(!HasSystem<T>(), "Registering system more than once.");
+            ASSERT(!HasSystem<T>(), "Registering system more than once.");
 
             // Create a pointer to the system and return it so it can be used externally
             ISystem* system = t;
@@ -55,7 +56,7 @@ namespace Lumos
                 return dynamic_cast<T*>(find);
             }
 
-            LUMOS_LOG_WARN("Failed to find system");
+            LWARN("Failed to find system");
 
             return nullptr;
         }

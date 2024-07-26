@@ -35,8 +35,8 @@ namespace Lumos
 
         struct LineVertexData
         {
-            glm::vec3 vertex;
-            glm::vec4 colour;
+            Vec3 vertex;
+            Vec4 colour;
 
             bool operator==(const LineVertexData& other) const
             {
@@ -46,10 +46,10 @@ namespace Lumos
 
         struct PointVertexData
         {
-            glm::vec3 vertex;
-            glm::vec4 colour;
-            glm::vec2 size;
-            glm::vec2 uv;
+            Vec3 vertex;
+            Vec4 colour;
+            Vec2 size;
+            Vec2 uv;
 
             bool operator==(const PointVertexData& other) const
             {
@@ -128,18 +128,21 @@ namespace Lumos
             void DepthOfFieldPass();
             void SharpenPass();
 
+            void UIPass();
+
             float SubmitTexture(Texture* texture);
             float SubmitParticleTexture(Texture* texture);
             void UpdateCascades(Scene* scene, Light* light);
 
             bool m_DebugRenderEnabled = false;
+            bool m_EnableUIPass       = true;
             struct LUMOS_EXPORT RenderCommand2D
             {
                 Renderable2D* renderable = nullptr;
-                glm::mat4 transform;
+                Mat4 transform;
             };
 
-            typedef std::vector<RenderCommand2D> CommandQueue2D;
+            typedef TDArray<RenderCommand2D> CommandQueue2D;
 
             struct Render2DLimits
             {
@@ -174,10 +177,10 @@ namespace Lumos
                 uint32_t m_ShadowMapNum;
                 uint32_t m_ShadowMapSize;
                 bool m_ShadowMapsInvalidated;
-                glm::mat4 m_ShadowProjView[SHADOWMAP_MAX];
-                glm::vec4 m_SplitDepth[SHADOWMAP_MAX];
-                glm::mat4 m_LightMatrix;
-                std::vector<SharedPtr<Graphics::DescriptorSet>> m_DescriptorSet;
+                Mat4 m_ShadowProjView[SHADOWMAP_MAX];
+                Vec4 m_SplitDepth[SHADOWMAP_MAX];
+                Mat4 m_LightMatrix;
+                TDArray<SharedPtr<Graphics::DescriptorSet>> m_DescriptorSet;
 
                 SharedPtr<Shader> m_Shader          = nullptr;
                 SharedPtr<Shader> m_ShaderAlpha     = nullptr;
@@ -193,15 +196,15 @@ namespace Lumos
                 Material* m_DefaultMaterial;
 
                 UniquePtr<Texture2D> m_BRDFLUT;
-                std::vector<Lumos::Graphics::CommandBuffer*> m_CommandBuffers;
+                TDArray<Lumos::Graphics::CommandBuffer*> m_CommandBuffers;
 
-                glm::mat4 m_BiasMatrix;
+                Mat4 m_BiasMatrix;
                 Texture* m_EnvironmentMap = nullptr;
                 Texture* m_IrradianceMap  = nullptr;
 
                 CommandQueue m_CommandQueue;
 
-                std::vector<SharedPtr<Graphics::DescriptorSet>> m_DescriptorSet;
+                TDArray<SharedPtr<Graphics::DescriptorSet>> m_DescriptorSet;
 
                 SharedPtr<Shader> m_Shader     = nullptr;
                 SharedPtr<Shader> m_AnimShader = nullptr;
@@ -214,13 +217,13 @@ namespace Lumos
                 uint32_t m_CurrentBufferID = 0;
                 bool m_DepthTest           = false;
                 size_t m_DynamicAlignment;
-                glm::mat4* m_TransformData = nullptr;
+                Mat4* m_TransformData = nullptr;
             };
 
             struct Renderer2DData
             {
                 CommandQueue2D m_CommandQueue2D;
-                std::vector<std::vector<VertexBuffer*>> m_VertexBuffers;
+                TDArray<TDArray<VertexBuffer*>> m_VertexBuffers;
 
                 uint32_t m_BatchDrawCallIndex = 0;
                 uint32_t m_IndexCount         = 0;
@@ -230,35 +233,35 @@ namespace Lumos
                 IndexBuffer* m_IndexBuffer = nullptr;
                 VertexData* m_Buffer       = nullptr;
 
-                std::vector<glm::mat4> m_TransformationStack;
-                const glm::mat4* m_TransformationBack {};
+                TDArray<Mat4> m_TransformationStack;
+                const Mat4* m_TransformationBack {};
 
                 Texture* m_Textures[MAX_BOUND_TEXTURES];
                 uint32_t m_TextureCount = 0;
 
                 uint32_t m_CurrentBufferID = 0;
-                glm::vec3 m_QuadPositions[4];
+                Vec3 m_QuadPositions[4];
 
                 bool m_RenderToDepthTexture;
                 bool m_TriangleIndicies = false;
 
-                std::vector<uint32_t> m_PreviousFrameTextureCount;
+                TDArray<uint32_t> m_PreviousFrameTextureCount;
                 SharedPtr<Shader> m_Shader     = nullptr;
                 SharedPtr<Pipeline> m_Pipeline = nullptr;
 
-                std::vector<std::vector<SharedPtr<Graphics::DescriptorSet>>> m_DescriptorSet;
+                TDArray<TDArray<SharedPtr<Graphics::DescriptorSet>>> m_DescriptorSet;
             };
 
             struct DebugDrawData
             {
-                std::vector<std::vector<Graphics::VertexBuffer*>> m_LineVertexBuffers;
+                TDArray<TDArray<Graphics::VertexBuffer*>> m_LineVertexBuffers;
                 Graphics::IndexBuffer* m_LineIndexBuffer;
 
                 Graphics::IndexBuffer* m_PointIndexBuffer = nullptr;
-                std::vector<std::vector<Graphics::VertexBuffer*>> m_PointVertexBuffers;
+                TDArray<TDArray<Graphics::VertexBuffer*>> m_PointVertexBuffers;
 
-                std::vector<SharedPtr<Graphics::DescriptorSet>> m_LineDescriptorSet;
-                std::vector<SharedPtr<Graphics::DescriptorSet>> m_PointDescriptorSet;
+                TDArray<SharedPtr<Graphics::DescriptorSet>> m_LineDescriptorSet;
+                TDArray<SharedPtr<Graphics::DescriptorSet>> m_PointDescriptorSet;
 
                 LineVertexData* m_LineBuffer   = nullptr;
                 PointVertexData* m_PointBuffer = nullptr;
@@ -278,7 +281,7 @@ namespace Lumos
             ShadowData& GetShadowData() { return m_ShadowData; }
             SceneRendererStats& GetSceneRendererStats() { return m_Stats; }
 
-            void CreateCubeMap(const std::string& filePath, const glm::vec4& params, SharedPtr<TextureCube>& outEnv, SharedPtr<TextureCube>& outIrr);
+            void CreateCubeMap(const std::string& filePath, const Vec4& params, SharedPtr<TextureCube>& outEnv, SharedPtr<TextureCube>& outIrr);
 
             void SetDisablePostProcess(bool disabled) { m_DisablePostProcess = disabled; }
 
@@ -300,6 +303,7 @@ namespace Lumos
 
             Camera* m_OverrideCamera                    = nullptr;
             Maths::Transform* m_OverrideCameraTransform = nullptr;
+            Maths::Frustum* m_OverrideFrustum           = nullptr;
 
             ShadowData m_ShadowData;
             ForwardData m_ForwardData;
@@ -312,16 +316,16 @@ namespace Lumos
             TextVertexData* TextVertexBufferPtr = nullptr;
 
             // Vertex data per frame in flight, per batch
-            std::vector<std::vector<VertexData*>> m_ParticleBufferBase;
-            std::vector<std::vector<VertexData*>> m_2DBufferBase;
-            std::vector<std::vector<LineVertexData*>> m_LineBufferBase;
-            std::vector<std::vector<PointVertexData*>> m_PointBufferBase;
-            std::vector<std::vector<VertexData*>> m_QuadBufferBase;
-            std::vector<TextVertexData*> TextVertexBufferBase;
-            std::vector<TextVertexData*> DebugTextVertexBufferBase;
+            TDArray<TDArray<VertexData*>> m_ParticleBufferBase;
+            TDArray<TDArray<VertexData*>> m_2DBufferBase;
+            TDArray<TDArray<LineVertexData*>> m_LineBufferBase;
+            TDArray<TDArray<PointVertexData*>> m_PointBufferBase;
+            TDArray<TDArray<VertexData*>> m_QuadBufferBase;
+            TDArray<TextVertexData*> TextVertexBufferBase;
+            TDArray<TextVertexData*> DebugTextVertexBufferBase;
             TextVertexData* DebugTextVertexBufferPtr = nullptr;
 
-            glm::vec4 m_ClearColour;
+            Vec4 m_ClearColour;
 
             int m_ToneMapIndex     = 4;
             float m_Exposure       = 1.0f;
@@ -349,7 +353,7 @@ namespace Lumos
 
             SharedPtr<Graphics::Shader> m_BloomPassShader;
 
-            std::vector<SharedPtr<Graphics::DescriptorSet>> m_BloomDescriptorSets;
+            TDArray<SharedPtr<Graphics::DescriptorSet>> m_BloomDescriptorSets;
 
             SharedPtr<Graphics::DescriptorSet> m_FXAAPassDescriptorSet;
             SharedPtr<Graphics::Shader> m_FXAAShader;
@@ -409,7 +413,7 @@ namespace Lumos
 
             SceneRenderSettings* m_OverrideSceneRenderSettings = nullptr; // For editor viewport
 
-            void TextFlush(Renderer2DData& textRenderData, std::vector<TextVertexData*>& textVertexBufferBase, TextVertexData*& textVertexBufferPtr);
+            void TextFlush(Renderer2DData& textRenderData, TDArray<TextVertexData*>& textVertexBufferBase, TextVertexData*& textVertexBufferPtr);
 
             bool m_CurrentUIText = false;
         };

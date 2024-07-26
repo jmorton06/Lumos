@@ -12,7 +12,7 @@ namespace Lumos
 {
     namespace Graphics
     {
-        uint32_t g_DescriptorSetCount = 0;
+        static uint32_t g_DescriptorSetCount = 0;
         VKDescriptorSet::VKDescriptorSet(const DescriptorDesc& descriptorDesc)
         {
             LUMOS_PROFILE_FUNCTION();
@@ -54,7 +54,7 @@ namespace Lumos
                 m_DescriptorSet[frame]     = nullptr;
                 g_DescriptorSetCount++;
                 auto layout = static_cast<Graphics::VKShader*>(descriptorDesc.shader)->GetDescriptorLayout(descriptorDesc.layoutIndex);
-                VKRenderer::GetRenderer()->AllocateDescriptorSet(&m_DescriptorSet[frame], *layout, descriptorDesc.count);
+                VKRenderer::GetRenderer()->AllocateDescriptorSet(&m_DescriptorSet[frame], m_DescriptorPoolCreatedFrom[frame], *layout, descriptorDesc.count);
             }
         }
 
@@ -65,15 +65,15 @@ namespace Lumos
                 if(!m_DescriptorSet[frame])
                     continue;
 
-                /*         auto descriptorSet                                       = m_DescriptorSet[frame];
-                         auto pool                                                = VKRenderer::GetDescriptorPool();
-                         auto device                                              = VKDevice::GetHandle();
-                         std::map<std::string, SharedPtr<UniformBuffer>>& buffers = m_UniformBuffers[frame];
-                         buffers.clear();
+                auto descriptorSet                                       = m_DescriptorSet[frame];
+                auto pool                                                = m_DescriptorPoolCreatedFrom[frame];
+                auto device                                              = VKDevice::GetHandle();
+                std::map<std::string, SharedPtr<UniformBuffer>>& buffers = m_UniformBuffers[frame];
+                buffers.clear();
 
-                         DeletionQueue& deletionQueue = VKRenderer::GetCurrentDeletionQueue();
-                         deletionQueue.PushFunction([descriptorSet, pool, device]
-                                                    { vkFreeDescriptorSets(device, pool, 1, &descriptorSet); });*/
+                DeletionQueue& deletionQueue = VKRenderer::GetCurrentDeletionQueue();
+                deletionQueue.PushFunction([descriptorSet, pool, device]
+                                           { vkFreeDescriptorSets(device, pool, 1, &descriptorSet); });
             }
 
             for(auto it = m_UniformBuffersData.begin(); it != m_UniformBuffersData.end(); it++)
@@ -146,7 +146,7 @@ namespace Lumos
                 uint32_t imageIndex             = 0;
                 uint32_t index                  = 0;
 
-                const uint32_t descriptorCount            = (uint32_t)m_Descriptors.descriptors.size();
+                const uint32_t descriptorCount            = (uint32_t)m_Descriptors.descriptors.Size();
                 ArenaTemp scratch                         = ScratchBegin(nullptr, 0);
                 VkDescriptorBufferInfo* bufferInfos       = PushArrayNoZero(scratch.arena, VkDescriptorBufferInfo, 32);
                 VkDescriptorImageInfo* imageInfos         = PushArrayNoZero(scratch.arena, VkDescriptorImageInfo, 32);
@@ -355,7 +355,7 @@ namespace Lumos
             // }
             // }
 
-            LUMOS_LOG_WARN("Buffer not found {0}", name);
+            LWARN("Buffer not found %s", name.c_str());
             return nullptr;
         }
 
@@ -379,7 +379,7 @@ namespace Lumos
                 }
             }
 
-            LUMOS_LOG_WARN("Uniform not found {0}.{1}", bufferName, uniformName);
+            LWARN("Uniform not found %s.%s", bufferName.c_str(), uniformName.c_str());
         }
 
         void VKDescriptorSet::SetUniform(const std::string& bufferName, const std::string& uniformName, void* data, uint32_t size)
@@ -402,7 +402,7 @@ namespace Lumos
                 }
             }
 
-            LUMOS_LOG_WARN("Uniform not found {0}.{1}", bufferName, uniformName);
+            LWARN("Uniform not found %s.%s", bufferName.c_str(), uniformName.c_str());
         }
 
         void VKDescriptorSet::SetUniformBufferData(const std::string& bufferName, void* data)
@@ -419,7 +419,7 @@ namespace Lumos
                 return;
             }
 
-            LUMOS_LOG_WARN("Uniform not found {0}.{1}", bufferName);
+            LWARN("Uniform not found %s", bufferName.c_str());
         }
 
         void VKDescriptorSet::SetUniformDynamic(const std::string& bufferName, uint32_t size)

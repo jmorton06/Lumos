@@ -328,8 +328,8 @@ namespace Lumos
             VkImageView m_TextureImageView {};
             VkSampler m_TextureSampler {};
             VkDescriptorImageInfo m_Descriptor {};
-            std::vector<VkImageView> m_IndividualImageViews;
-            std::vector<VkImageView> m_ImageViewsPerMip;
+            TDArray<VkImageView> m_IndividualImageViews;
+            TDArray<VkImageView> m_ImageViewsPerMip;
 
 #ifdef USE_VMA_ALLOCATOR
             VmaAllocation m_Allocation {};
@@ -571,7 +571,7 @@ namespace Lumos
             VkImageView m_TextureImageView {};
             VkSampler m_TextureSampler {};
             VkDescriptorImageInfo m_Descriptor {};
-            std::vector<VkImageView> m_IndividualImageViews;
+            TDArray<VkImageView> m_IndividualImageViews;
 
 #ifdef USE_VMA_ALLOCATOR
             VmaAllocation m_Allocation {};

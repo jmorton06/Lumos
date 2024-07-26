@@ -33,7 +33,7 @@ namespace Lumos
         Pipeline* Pipeline::Create(const PipelineDesc& pipelineDesc)
         {
             LUMOS_PROFILE_FUNCTION();
-            LUMOS_ASSERT(CreateFunc, "No Pipeline Create Function");
+            ASSERT(CreateFunc, "No Pipeline Create Function");
             return CreateFunc(pipelineDesc);
         }
 
@@ -164,7 +164,7 @@ namespace Lumos
                 return m_Description.mipIndex > 0 ? m_Description.cubeMapTarget->GetWidth(m_Description.mipIndex) : m_Description.cubeMapTarget->GetWidth();
             }
 
-            LUMOS_LOG_WARN("Invalid pipeline width");
+            LWARN("Invalid pipeline width");
 
             return 0;
         }
@@ -197,7 +197,7 @@ namespace Lumos
                 return m_Description.mipIndex > 0 ? m_Description.cubeMapTarget->GetHeight(m_Description.mipIndex) : m_Description.cubeMapTarget->GetHeight();
             }
 
-            LUMOS_LOG_WARN("Invalid pipeline height");
+            LWARN("Invalid pipeline height");
 
             return 0;
         }

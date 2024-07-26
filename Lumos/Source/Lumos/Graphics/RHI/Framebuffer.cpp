@@ -18,7 +18,7 @@ namespace Lumos
 
         Framebuffer* Framebuffer::Create(const FramebufferDesc& framebufferDesc)
         {
-            LUMOS_ASSERT(CreateFunc, "No Framebuffer Create Function");
+            ASSERT(CreateFunc, "No Framebuffer Create Function");
 
             return CreateFunc(framebufferDesc);
         }

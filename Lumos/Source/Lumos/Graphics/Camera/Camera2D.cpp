@@ -5,16 +5,16 @@
 #include "Maths/Transform.h"
 #include "Camera.h"
 
-#include <glm/ext/vector_float2.hpp>
-#include <glm/ext/vector_float3.hpp>
-#include <glm/ext/vector_float4.hpp>
-#include <glm/ext/matrix_float4x4.hpp>
+#include "Maths/Vector2.h"
+#include "Maths/Vector3.h"
+#include "Maths/Vector4.h"
+#include "Maths/Matrix4.h"
 
 namespace Lumos
 {
     CameraController2D::CameraController2D()
     {
-        m_Velocity         = glm::vec3(0.0f);
+        m_Velocity         = Vec3(0.0f);
         m_MouseSensitivity = 0.005f;
     }
 
@@ -24,18 +24,18 @@ namespace Lumos
     {
         if(Input::Get().GetMouseHeld(InputCode::MouseKey::ButtonRight))
         {
-            glm::vec3 position = transform.GetLocalPosition();
+            Vec3 position = transform.GetLocalPosition();
             position.x -= (xpos - m_PreviousCurserPos.x) * m_MouseSensitivity * 0.5f;
             position.y += (ypos - m_PreviousCurserPos.y) * m_MouseSensitivity * 0.5f;
             transform.SetLocalPosition(position);
         }
 
-        m_PreviousCurserPos = glm::vec2(xpos, ypos);
+        m_PreviousCurserPos = Vec2(xpos, ypos);
     }
 
     void CameraController2D::HandleKeyboard(Maths::Transform& transform, float dt)
     {
-        glm::vec3 up = glm::vec3(0, 1, 0), right = glm::vec3(1, 0, 0);
+        Vec3 up = Vec3(0, 1, 0), right = Vec3(1, 0, 0);
 
         m_CameraSpeed = dt * 20.0f; // camera->GetScale() *
 
@@ -59,9 +59,9 @@ namespace Lumos
             m_Velocity -= up * m_CameraSpeed;
         }
 
-        if(glm::length(m_Velocity) > Maths::M_EPSILON)
+        if(Maths::Length(m_Velocity) > Maths::M_EPSILON)
         {
-            glm::vec3 position = transform.GetLocalPosition();
+            Vec3 position = transform.GetLocalPosition();
             position += m_Velocity * dt;
             m_Velocity = m_Velocity * pow(m_DampeningFactor, dt);
 

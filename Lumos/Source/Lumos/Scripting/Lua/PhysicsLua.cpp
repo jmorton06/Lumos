@@ -207,7 +207,7 @@ namespace Lumos
         Application::Get().GetSystem<B2PhysicsEngine>()->SetContactListener(listener);
     }
 
-    static void SetB2DGravity(const glm::vec2& gravity)
+    static void SetB2DGravity(const Vec2& gravity)
     {
         Application::Get().GetSystem<B2PhysicsEngine>()->SetGravity(gravity);
     }

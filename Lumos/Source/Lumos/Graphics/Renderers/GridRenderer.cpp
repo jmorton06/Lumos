@@ -62,7 +62,7 @@ namespace Lumos
             m_Quad->GetVertexBuffer()->Bind(commandBuffer, m_Pipeline.get());
             m_Quad->GetIndexBuffer()->Bind(commandBuffer);
 
-            Renderer::BindDescriptorSets(m_Pipeline.get(), commandBuffer, 0, m_CurrentDescriptorSets.data(), 1);
+            Renderer::BindDescriptorSets(m_Pipeline.get(), commandBuffer, 0, m_CurrentDescriptorSets.Data(), 1);
             Renderer::DrawIndexed(commandBuffer, DrawType::TRIANGLE, m_Quad->GetIndexBuffer()->GetCount());
 
             m_Quad->GetVertexBuffer()->Unbind();
@@ -83,16 +83,16 @@ namespace Lumos
             LUMOS_PROFILE_FUNCTION();
             m_Shader = Application::Get().GetAssetManager()->GetAssetData("Grid").As<Graphics::Shader>();
 
-            m_Quad = Graphics::CreateQuad(); // Graphics::CreatePlane(5000.0f, 5000.f, glm::vec3(0.0f, 1.0f, 0.0f));
+            m_Quad = Graphics::CreateQuad(); // Graphics::CreatePlane(5000.0f, 5000.f, Vec3(0.0f, 1.0f, 0.0f));
 
             Graphics::DescriptorDesc descriptorDesc {};
             descriptorDesc.layoutIndex = 0;
             descriptorDesc.shader      = m_Shader.get();
-            m_DescriptorSet.resize(1);
+            m_DescriptorSet.Resize(1);
             m_DescriptorSet[0] = SharedPtr<Graphics::DescriptorSet>(Graphics::DescriptorSet::Create(descriptorDesc));
             UpdateUniformBuffer();
 
-            m_CurrentDescriptorSets.resize(1);
+            m_CurrentDescriptorSets.Resize(1);
         }
 
         void GridRenderer::Begin()
@@ -124,13 +124,13 @@ namespace Lumos
                 return;
 
             auto proj = m_Camera->GetProjectionMatrix();
-            auto view = glm::inverse(m_CameraTransform->GetWorldMatrix());
+            auto view = m_CameraTransform->GetWorldMatrix().Inverse();
 
             UBOFrag test;
             test.Near          = m_Camera->GetNear();
             test.Far           = m_Camera->GetFar();
-            test.cameraPos     = glm::vec4(m_CameraTransform->GetWorldPosition(), 1.0f);
-            test.cameraForward = glm::vec4(m_CameraTransform->GetForwardDirection(), 1.0f);
+            test.cameraPos     = Vec4(m_CameraTransform->GetWorldPosition(), 1.0f);
+            test.cameraForward = Vec4(m_CameraTransform->GetForwardDirection(), 1.0f);
 
             test.maxDistance = m_MaxDistance;
 

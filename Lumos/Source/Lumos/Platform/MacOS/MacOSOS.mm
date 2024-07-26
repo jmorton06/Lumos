@@ -27,14 +27,14 @@ namespace Lumos
 		hours = minutes / 60;
 		minutes = minutes % 60;
 
-        LUMOS_LOG_INFO("--------------------");
-        LUMOS_LOG_INFO(" System Information ");
-        LUMOS_LOG_INFO("--------------------");
+        LINFO("--------------------");
+        LINFO(" System Information ");
+        LINFO("--------------------");
 
         if(state != PowerState::POWERSTATE_NO_BATTERY)
-            LUMOS_LOG_INFO("Battery Info - Percentage : {0} , Time Left {1}s , State : {2}", percentage, secondsLeft, PowerStateToString(state));
+            LINFO("Battery Info - Percentage : %i , Time Left %i , State : %s", percentage, secondsLeft, PowerStateToString(state).c_str());
         else
-            LUMOS_LOG_INFO("Power - Outlet");
+            LINFO("Power - Outlet");
 
         auto systemInfo = MemoryManager::Get()->GetSystemInfo();
         systemInfo.Log();
@@ -51,7 +51,7 @@ namespace Lumos
         GLFWWindow::MakeDefault();
     }
 
-    void MacOSOS::SetTitleBarColour(const glm::vec4& colour, bool dark)
+    void MacOSOS::SetTitleBarColour(const Vec4& colour, bool dark)
     {
         auto& app = Lumos::Application::Get();
 

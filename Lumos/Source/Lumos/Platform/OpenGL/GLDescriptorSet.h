@@ -2,6 +2,7 @@
 
 #include "Graphics/RHI/DescriptorSet.h"
 #include "Core/Buffer.h"
+#include "Core/DataStructures/TDArray.h"
 #include "GLUniformBuffer.h"
 
 namespace Lumos
@@ -40,7 +41,7 @@ namespace Lumos
             GLShader* m_Shader       = nullptr;
 
             std::unordered_map<std::string, uint32_t> m_UniformLocations;
-            std::vector<Descriptor> m_Descriptors;
+            TDArray<Descriptor> m_Descriptors;
             struct UniformBufferInfo
             {
                 SharedPtr<UniformBuffer> UB;

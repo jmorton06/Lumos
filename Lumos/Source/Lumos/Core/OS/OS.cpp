@@ -17,7 +17,7 @@ namespace Lumos
 
     void OS::Create()
     {
-        LUMOS_ASSERT(!s_Instance, "OS already exists!");
+        ASSERT(!s_Instance, "OS already exists!");
 
 #if defined(LUMOS_PLATFORM_WINDOWS)
         s_Instance = new WindowsOS();
@@ -69,4 +69,10 @@ namespace Lumos
     {
         return std::string("");
     };
+
+    void OS::ConsoleWrite(const char* msg, u8 level)
+    {
+        printf("%s", msg);
+    }
+
 }

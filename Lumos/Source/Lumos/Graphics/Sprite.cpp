@@ -7,7 +7,7 @@ namespace Lumos
 {
     namespace Graphics
     {
-        Sprite::Sprite(const glm::vec2& position, const glm::vec2& scale, const glm::vec4& colour)
+        Sprite::Sprite(const Vec2& position, const Vec2& scale, const Vec4& colour)
         {
             m_Position = position;
             m_Scale    = scale;
@@ -16,7 +16,7 @@ namespace Lumos
             m_Texture  = nullptr;
         }
 
-        Sprite::Sprite(const SharedPtr<Texture2D>& texture, const glm::vec2& position, const glm::vec2& scale, const glm::vec4& colour)
+        Sprite::Sprite(const SharedPtr<Texture2D>& texture, const Vec2& position, const Vec2& scale, const Vec4& colour)
         {
             m_Texture  = texture;
             m_Position = position;
@@ -29,13 +29,13 @@ namespace Lumos
         {
         }
 
-        void Sprite::SetSpriteSheet(const glm::vec2& index, const glm::vec2& cellSize, const glm::vec2& spriteSize, float boarder /* = 0.0f*/)
+        void Sprite::SetSpriteSheet(const Vec2& index, const Vec2& cellSize, const Vec2& spriteSize, float boarder /* = 0.0f*/)
         {
             if(!m_Texture)
                 return;
 
-            glm::vec2 min = { (index.x * (cellSize.x + boarder)) / m_Texture->GetWidth(), (index.y * (cellSize.y + boarder)) / m_Texture->GetHeight() };
-            glm::vec2 max = { ((index.x * (cellSize.x + boarder)) + spriteSize.x) / m_Texture->GetWidth(), ((index.y * (cellSize.y + boarder)) + spriteSize.y) / m_Texture->GetHeight() };
+            Vec2 min = { (index.x * (cellSize.x + boarder)) / m_Texture->GetWidth(), (index.y * (cellSize.y + boarder)) / m_Texture->GetHeight() };
+            Vec2 max = { ((index.x * (cellSize.x + boarder)) + spriteSize.x) / m_Texture->GetWidth(), ((index.y * (cellSize.y + boarder)) + spriteSize.y) / m_Texture->GetHeight() };
 
             m_UVs = GetUVs(min, max);
         }
@@ -45,8 +45,8 @@ namespace Lumos
             if(!m_Texture)
                 return;
 
-            glm::vec2 min = { (x * (SpriteSheetTileSize)) / m_Texture->GetWidth(), (y * (SpriteSheetTileSize)) / m_Texture->GetHeight() };
-            glm::vec2 max = { ((x * (SpriteSheetTileSize)) + SpriteSheetTileSize) / m_Texture->GetWidth(), ((y * SpriteSheetTileSize) + SpriteSheetTileSize) / m_Texture->GetHeight() };
+            Vec2 min = { static_cast<float>((x * (SpriteSheetTileSize)) / m_Texture->GetWidth()), static_cast<float>((y * (SpriteSheetTileSize)) / m_Texture->GetHeight()) };
+            Vec2 max = { static_cast<float>(((x * (SpriteSheetTileSize)) + SpriteSheetTileSize) / m_Texture->GetWidth()), static_cast<float>(((y * SpriteSheetTileSize) + SpriteSheetTileSize) / m_Texture->GetHeight()) };
 
             m_UVs = GetUVs(min, max);
         }

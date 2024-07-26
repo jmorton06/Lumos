@@ -1,6 +1,6 @@
 #pragma once
 #include "Renderer.h"
-#include "Definitions.h"
+#include "RHIDefinitions.h"
 #include "Shader.h"
 
 namespace Lumos

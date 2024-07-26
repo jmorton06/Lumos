@@ -77,7 +77,7 @@ namespace Lumos
             }
             else
             {
-                LUMOS_LOG_WARN("Index buffer already mapped");
+                LWARN("Index buffer already mapped");
             }
 
             return result;
