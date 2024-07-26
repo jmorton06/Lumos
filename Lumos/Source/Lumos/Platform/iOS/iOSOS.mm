@@ -68,7 +68,7 @@ static iOSOS* os = nullptr;
         Lumos::VFS::Get().Mount("Sounds", root + "Sounds");
         Lumos::VFS::Get().Mount("Assets", root + "Assets");
 */
-        LINFO("Device : %s",GetModelName());
+        LINFO("Device : %s",GetModelName().c_str());
 
         iOSWindow::MakeDefault();
 
