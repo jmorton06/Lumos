@@ -1,6 +1,7 @@
 #pragma once
 #include "Core/OS/Memory.h"
 #include "Utilities/Hash.h"
+#include <cstring>
 
 namespace Lumos
 {

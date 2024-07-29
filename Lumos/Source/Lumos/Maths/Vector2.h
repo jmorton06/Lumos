@@ -2,6 +2,7 @@
 #ifdef LUMOS_SSE_VEC2
 #include <smmintrin.h>
 #endif
+#include <math.h>
 
 namespace Lumos
 {
