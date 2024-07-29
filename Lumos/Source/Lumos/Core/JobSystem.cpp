@@ -8,7 +8,7 @@
 #include <thread>
 #include <condition_variable>
 #include <deque>
-
+#include <mutex>
 #ifdef LUMOS_PLATFORM_WINDOWS
 #define NOMINMAX
 #include <Windows.h>

@@ -1,6 +1,7 @@
 #pragma once
 #include "Core/LMLog.h"
 #include "Core/DataStructures/TDArray.h"
+#include <cstring>
 
 namespace Lumos
 {

@@ -2053,10 +2053,6 @@ namespace Lumos::Graphics
             }
 
             m_CurrentUIText = false;
-            /*     opengl_2d_renderer_push_quad(widget->position + size * 0.5f,
-                     size,
-                     0.0f,
-                     border_color);*/
 
             {
                 m_Stats.NumRenderedObjects++;
@@ -2137,12 +2133,6 @@ namespace Lumos::Graphics
             }
 
             m_CurrentUIText = false;
-            /*   opengl_2d_renderer_push_quad(p + size * 0.5f,
-                   size,
-                   0.0f,
-                   background_color,
-                   widget->texture);*/
-
             {
                 m_Stats.NumRenderedObjects++;
 
@@ -2210,12 +2200,18 @@ namespace Lumos::Graphics
             Vec2 p    = widget->position /* - size * 0.5f*/ + debugUIOffset;
             // size *= 4.0f;
 
-            p.y = m_MainTexture->GetHeight() - p.y;
-            p.y -= size.y - padding.y * 0.5f;
-            p.x += padding.x * 0.5f;
-
-            // LINFO("Text {0} - Pos {1}, {2} - Size {3}, {4}", (char*)widget->text.str, p.x,p.y,size.x, size.y);
-
+            if(widget->TextAlignment & UI_Text_Alignment_Center_X)
+            {
+                p.y = m_MainTexture->GetHeight() - p.y;
+                p.y -= size.y - padding.y * 0.5f;
+                p.x += size.x * 0.5f + padding.x * 0.5f;
+            }
+            else
+            {
+                p.y = m_MainTexture->GetHeight() - p.y;
+                p.y -= size.y - padding.y * 0.5f;
+                p.x += padding.x * 0.5f;
+            }
             if(!m_CurrentUIText)
             {
                 if(m_Renderer2DData.m_IndexCount >= 0)
@@ -2226,12 +2222,6 @@ namespace Lumos::Graphics
             }
 
             m_CurrentUIText = true;
-
-            /*  opengl_2d_renderer_push_string(font,
-                  widget->text,
-                  text_size,
-                  p + size * 0.5f,
-                  text_color);*/
 
             Vec2 pos = p; // - size * 0.5f;
             {

@@ -3,6 +3,7 @@
 #include "ReferenceCounter.h"
 #include "OS/Memory.h"
 #include "Core/LMLog.h"
+#include <functional> 
 
 namespace Lumos
 {
