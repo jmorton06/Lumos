@@ -55,9 +55,9 @@ namespace Lumos
 #elif LUMOS_PLATFORM_LINUX
 #define VSNPRINTF(...) stbsp_vsnprintf(__VA_ARGS__)
 #elif LUMOS_PLATFORM_MOBILE
-#define VSNPRINTF(...) void(0)
+#define VSNPRINTF(...) stbsp_vsnprintf(__VA_ARGS__)
 #else
-#define VSNPRINTF(...) void(0)
+#define VSNPRINTF(...) 0
 #endif
 
     void DebugRenderer::Init()
