@@ -172,6 +172,7 @@ namespace Lumos
             }
 
             bool Equals(const Vector4& rhs) const;
+            Vector4 Lerp(const Vector4& rhs, float t);
 
 #ifdef LUMOS_SSE
             inline Vector4 operator+(float v) const { return _mm_add_ps(m_Value, _mm_set1_ps(v)); }

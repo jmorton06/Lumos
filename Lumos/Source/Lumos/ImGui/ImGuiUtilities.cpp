@@ -9,12 +9,14 @@
 #include "Core/Application.h"
 #include "Core/OS/Input.h"
 #include "Maths/MathsUtilities.h"
+#include "Maths/Quaternion.h"
 
 #include <imgui/imgui_internal.h>
 
 #ifdef LUMOS_RENDER_API_VULKAN
 #include "Platform/Vulkan/VKTexture.h"
 #endif
+#include <stb/stb_sprintf.h>
 
 namespace Lumos
 {
@@ -28,7 +30,7 @@ namespace Lumos
 
     const char* ImGuiUtilities::GenerateID()
     {
-        sprintf(s_IDBuffer + 2, "%x", s_Counter++);
+		stbsp_sprintf(s_IDBuffer + 2, "%x", s_Counter++);
         //_itoa(s_Counter++, s_IDBuffer + 2, 16);
         return s_IDBuffer;
     }

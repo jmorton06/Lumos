@@ -21,7 +21,7 @@ namespace Lumos
     struct QualitySettings
     {
 #ifdef LUMOS_PLATFORM_MACOS
-        float RendererScale = 0.75f;
+        float RendererScale = 1.0f; //Keep at 1 until fix ui input with this
 #else
         float RendererScale = 1.0f;
 

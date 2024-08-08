@@ -1,8 +1,8 @@
 #pragma once
+#include "Maths/Matrix4.h"
 
 namespace Lumos
 {
-
     namespace Graphics
     {
         class Mesh;

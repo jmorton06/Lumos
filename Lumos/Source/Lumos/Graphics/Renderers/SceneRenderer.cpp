@@ -2021,17 +2021,17 @@ namespace Lumos::Graphics
         Vec4 background_color = widget->style_vars[StyleVar_BackgroundColor];
         Vec4 text_color       = widget->style_vars[StyleVar_TextColor];
 
-        if(widget->hash == GetUIState()->hot_widget)
+        if( widget->HotTransition > 0.0f)
         {
-            border_color     = widget->style_vars[StyleVar_HotBorderColor];
-            background_color = widget->style_vars[StyleVar_HotBackgroundColor];
-            text_color       = widget->style_vars[StyleVar_HotTextColor];
+            border_color     = border_color.Lerp(widget->style_vars[StyleVar_HotBorderColor], widget->HotTransition);
+            background_color = background_color.Lerp( widget->style_vars[StyleVar_HotBackgroundColor], widget->HotTransition);
+            text_color       = text_color.Lerp(widget->style_vars[StyleVar_HotTextColor], widget->HotTransition);
         }
-        else if(widget->hash == GetUIState()->active_widget)
+        else if(widget->ActiveTransition > 0.0f)
         {
-            border_color     = widget->style_vars[StyleVar_ActiveBorderColor];
-            background_color = widget->style_vars[StyleVar_ActiveBackgroundColor];
-            text_color       = widget->style_vars[StyleVar_ActiveTextColor];
+            border_color     = border_color.Lerp(widget->style_vars[StyleVar_ActiveBorderColor], widget->ActiveTransition);
+            background_color = background_color.Lerp( widget->style_vars[StyleVar_ActiveBackgroundColor], widget->ActiveTransition);
+            text_color       = text_color.Lerp(widget->style_vars[StyleVar_ActiveTextColor], widget->ActiveTransition);
         }
 
         if(widget->flags & WidgetFlags_DrawBorder)
@@ -4121,13 +4121,10 @@ namespace Lumos::Graphics
                 }
             }
 
-            if(m_DebugTextRendererData.m_IndexCount == 0)
-            {
-                // m_DebugTextRendererData.m_VertexBuffers[currentFrame][m_DebugTextRendererData.m_BatchDrawCallIndex]->ReleasePointer();
-                return;
-            }
+            if(m_DebugTextRendererData.m_IndexCount != 0)
+                TextFlush(m_DebugTextRendererData, DebugTextVertexBufferBase, DebugTextVertexBufferPtr);
 
-            TextFlush(m_DebugTextRendererData, DebugTextVertexBufferBase, DebugTextVertexBufferPtr);
+
         }
 
         auto& ndtDebugText = DebugRenderer::GetInstance()->GetDebugTextNDT();
@@ -4293,13 +4290,8 @@ namespace Lumos::Graphics
                 }
             }
 
-            if(m_DebugTextRendererData.m_IndexCount == 0)
-            {
-                // m_DebugTextRendererData.m_VertexBuffers[currentFrame][m_DebugTextRendererData.m_BatchDrawCallIndex]->ReleasePointer();
-                return;
-            }
-
-            TextFlush(m_DebugTextRendererData, DebugTextVertexBufferBase, DebugTextVertexBufferPtr);
+            if(m_DebugTextRendererData.m_IndexCount != 0)
+                TextFlush(m_DebugTextRendererData, DebugTextVertexBufferBase, DebugTextVertexBufferPtr);
         }
 
         Mat4 csProjection = Mat4::Orthographic(0.0f, (float)m_MainTexture->GetWidth(), 0.0f, (float)m_MainTexture->GetHeight(), -100.0f, 100.0f);
@@ -4473,13 +4465,8 @@ namespace Lumos::Graphics
                 }
             }
 
-            if(m_DebugTextRendererData.m_IndexCount == 0)
-            {
-                // m_DebugTextRendererData.m_VertexBuffers[currentFrame][m_DebugTextRendererData.m_BatchDrawCallIndex]->ReleasePointer();
-                return;
-            }
-
-            TextFlush(m_DebugTextRendererData, DebugTextVertexBufferBase, DebugTextVertexBufferPtr);
+            if(m_DebugTextRendererData.m_IndexCount != 0)
+                TextFlush(m_DebugTextRendererData, DebugTextVertexBufferBase, DebugTextVertexBufferPtr);
         }
     }
 

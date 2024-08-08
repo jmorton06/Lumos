@@ -750,7 +750,8 @@ namespace Lumos
 
             if(ImGui::BeginMenu("Scenes"))
             {
-                auto scenes = Application::Get().GetSceneManager()->GetSceneNames();
+                ArenaTemp scratch = ScratchBegin(0,0);
+                auto scenes = Application::Get().GetSceneManager()->GetSceneNames(scratch.arena);
 
                 for(size_t i = 0; i < scenes.Size(); i++)
                 {
@@ -760,7 +761,7 @@ namespace Lumos
                         Application::Get().GetSceneManager()->SwitchScene((const char*)name.str);
                     }
                 }
-
+                ScratchEnd(scratch);
                 ImGui::EndMenu();
             }
 
@@ -1156,17 +1157,20 @@ namespace Lumos
 
             if(ImGui::Button("OK", ImVec2(120, 0)))
             {
-                std::string sceneName = newSceneName;
+                String8 sceneName = Str8StdS(newSceneName);
+                ArenaTemp scratch = ScratchBegin(0,0);
                 int sameNameCount     = 0;
-                auto sceneNames       = m_SceneManager->GetSceneNames();
-
-                while(FileSystem::FileExists("//Assets/Scenes/" + sceneName + ".lsn") || m_SceneManager->ContainsScene(sceneName.c_str()))
+                
+                String8 Path = PushStr8F(scratch.arena, "//Assets/Scenes/%s.lsn", (char*)sceneName.str); 
+                while(FileSystem::FileExists((const char*)Path.str) || m_SceneManager->ContainsScene((const char*)sceneName.str))
                 {
                     sameNameCount++;
-                    // sceneName = fmt::format(newSceneName + "{0}", sameNameCount);
+                    sceneName = PushStr8F(scratch.arena, "%s%i", (char*)newSceneName.c_str(), sameNameCount); 
+                    Path = PushStr8F(scratch.arena, "//Assets/Scenes/%s.lsn", (char*)sceneName.str); 
                 }
-                auto scene = new Scene(sceneName);
+                auto scene = new Scene(std::string((const char*)sceneName.str));
 
+                ScratchEnd(scratch);
                 if(defaultSetup)
                 {
                     auto light      = scene->GetEntityManager()->Create("Light");

@@ -6,9 +6,9 @@
 #include "Core/QualitySettings.h"
 #include "Maths/MathsFwd.h"
 #include "Maths/Vector2.h"
+#include "Core/Function.h"
 
 #include <thread>
-#include <functional>
 
 namespace Lumos
 {
@@ -107,7 +107,7 @@ namespace Lumos
         const QualitySettings& GetQualitySettings() const { return m_QualitySettings; }
         QualitySettings& GetQualitySettings() { return m_QualitySettings; }
 
-        void SubmitToMainThread(const std::function<void()>& function);
+        void SubmitToMainThread(const Function<void()>& function);
         void ExecuteMainThreadQueue();
 
         static Application& Get() { return *s_Instance; }
@@ -228,7 +228,7 @@ namespace Lumos
         bool m_RenderDocEnabled     = false;
 
         std::mutex m_EventQueueMutex;
-        TDArray<std::function<void()>> m_EventQueue;
+        TDArray<Function<void()>> m_EventQueue;
 
         UniquePtr<Window> m_Window;
         UniquePtr<SceneManager> m_SceneManager;
@@ -246,7 +246,7 @@ namespace Lumos
 
         std::thread m_UpdateThread;
 
-        TDArray<std::function<void()>> m_MainThreadQueue;
+        TDArray<Function<void()>> m_MainThreadQueue;
         std::mutex m_MainThreadQueueMutex;
 
         Arena* m_FrameArena;

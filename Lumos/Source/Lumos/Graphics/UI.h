@@ -109,6 +109,9 @@ namespace Lumos
         bool drag_constraint_y;
         Vec2 drag_offset;
         Vec2 drag_mouse_p;
+        
+        f32 HotTransition;
+        f32 ActiveTransition;
 
         u64 LastFrameIndexActive;
     };
@@ -157,8 +160,10 @@ namespace Lumos
         u64 active_widget;
 
         Vec2 InputOffset;
-        float DPIScale = 1.0f;
+        f32 DPIScale = 1.0f;
         u64 FrameIndex;
+        f32 AnimationRate = 10.0f;
+        f32 AnimationRateDT = 10.0f;
     };
 
     UI_State* GetUIState();
@@ -168,11 +173,13 @@ namespace Lumos
     bool InitialiseUI(Arena* arena);
     void ShutDownUI();
 
-    void UIBeginFrame(const Vec2& frame_buffer_size, const Vec2& inputOffset);
+    void UIBeginFrame(const Vec2& frame_buffer_size, f32 dt, const Vec2& inputOffset);
 
     void UIEndFrame(Graphics::Font* font);
 
-    UI_Interaction UIBeginPanel(const char* str, WidgetFlags extraFlags = WidgetFlags::WidgetFlags_DrawBackground);
+    UI_Interaction UIBeginPanel(const char* str, u32 extraFlags = 0);
+    UI_Interaction UIBeginPanel(const char* str, Vec4 rect, u32 extraFlags = 0);
+
     void UIEndPanel();
 
     void UIPushStyle(StyleVar style_variable, float value);

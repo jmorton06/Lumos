@@ -6,7 +6,9 @@
 #include "Maths/Vector3.h"
 #include "Maths/Vector4.h"
 #include "Maths/Matrix3.h"
+#include "Maths/Matrix4.h"
 #include "Maths/Quaternion.h"
+#include "Core/Function.h"
 
 namespace Lumos
 {
@@ -25,7 +27,7 @@ namespace Lumos
     //   True	- The physics engine should process the collision as normal
     //	False	- The physics engine should drop the collision pair and not do any further collision resolution/manifold generation
     //			  > This can be useful for AI to see if a player/agent is inside an area/collision volume
-    typedef std::function<bool(RigidBody3D* this_obj, RigidBody3D* colliding_obj)> PhysicsCollisionCallback;
+    typedef Function<bool(RigidBody3D* this_obj, RigidBody3D* colliding_obj)> PhysicsCollisionCallback;
 
     struct RigidBody3DProperties
     {
@@ -159,7 +161,7 @@ namespace Lumos
 
         void DebugDraw(uint64_t flags) const;
 
-        typedef std::function<void(RigidBody3D*, RigidBody3D*, Manifold*)> OnCollisionManifoldCallback;
+        typedef Function<void(RigidBody3D*, RigidBody3D*, Manifold*)> OnCollisionManifoldCallback;
 
         void AddOnCollisionManifoldCallback(const OnCollisionManifoldCallback callback) { m_OnCollisionManifoldCallbacks.PushBack(callback); }
 

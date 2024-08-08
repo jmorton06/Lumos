@@ -126,5 +126,4 @@ namespace Lumos
     {
         DebugRenderer::DrawPoint({ p.x, p.y, 0.0f }, size, false, { colour.r, colour.g, colour.b, colour.a });
     }
-
 }

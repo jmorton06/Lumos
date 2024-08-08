@@ -418,7 +418,7 @@ file.close();
                     numDescriptorSets++;
                 }
                 else
-                    LERROR("Descriptor null");
+                    LERROR("Descriptor null %i", (int)i);
             }
 
             vkCmdBindDescriptorSets(static_cast<Graphics::VKCommandBuffer*>(commandBuffer)->GetHandle(), static_cast<Graphics::VKPipeline*>(pipeline)->IsCompute() ? VK_PIPELINE_BIND_POINT_COMPUTE : VK_PIPELINE_BIND_POINT_GRAPHICS, static_cast<Graphics::VKPipeline*>(pipeline)->GetPipelineLayout(), 0, numDescriptorSets, lCurrentDescriptorSets, numDynamicDescriptorSets, &dynamicOffset);

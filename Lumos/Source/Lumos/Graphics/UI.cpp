@@ -24,6 +24,7 @@ namespace Lumos
         s_UIState->hot_widget      = 0;
         s_UIState->next_hot_widget = 0;
         s_UIState->FrameIndex      = 0;
+		s_UIState->AnimationRate   = 10.0f;
 
         s_UIState->UIArena      = arena;
         s_UIState->UIFrameArena = ArenaAlloc(Megabytes(1));
@@ -51,7 +52,7 @@ namespace Lumos
         style_variable_lists[StyleVar_BackgroundColor].first->value       = { 1.0f, 1.0f, 1.0f, 1.0f };
         style_variable_lists[StyleVar_TextColor].first->value             = { 0.0f, 0.0f, 0.0f, 1.0f };
         style_variable_lists[StyleVar_HotBorderColor].first->value        = { 0.9f, 0.0f, 0.0f, 0.8f };
-        style_variable_lists[StyleVar_HotBackgroundColor].first->value    = { 0.9f, 0.9f, 0.9f, 1.0f };
+        style_variable_lists[StyleVar_HotBackgroundColor].first->value    = { 0.6f, 0.6f, 0.6f, 1.0f };
         style_variable_lists[StyleVar_HotTextColor].first->value          = { 0.1f, 0.1f, 0.1f, 1.0f };
         style_variable_lists[StyleVar_ActiveBorderColor].first->value     = { 0.5f, 0.0f, 0.0f, 0.8f };
         style_variable_lists[StyleVar_ActiveBackgroundColor].first->value = { 0.7f, 0.7f, 0.7f, 1.0f };
@@ -171,8 +172,9 @@ namespace Lumos
         {
             void* mem = s_UIState->WidgetAllocator->Allocate();
             widget    = new(mem) UI_Widget();
+			widget->HotTransition = 0.0f;
+            widget->ActiveTransition = 0.0f;
             HashMapInsert(&s_UIState->widgets, hash, widget);
-            LINFO("Creating Widget");
         }
 
         widget->parent               = parent;
@@ -181,6 +183,7 @@ namespace Lumos
         widget->hash                 = hash;
         widget->texture              = nullptr;
         widget->LastFrameIndexActive = s_UIState->FrameIndex;
+        widget->ActiveTransition     = 0.0f;
 
         widget->first = NULL;
         widget->last  = NULL;
@@ -223,7 +226,7 @@ namespace Lumos
 
         const Vec2& position = widget->position;
         const Vec2& size     = widget->size;
-        const Vec2& mouse    = Input::Get().GetMousePosition() * s_UIState->DPIScale - s_UIState->InputOffset;
+        const Vec2& mouse    = Input::Get().GetMousePosition() * s_UIState->DPIScale - s_UIState->InputOffset; //Needs to take Quality setting render scale into accoutn too
 
         bool hovering = mouse.x >= position.x && mouse.x <= position.x + size.x && mouse.y >= position.y && mouse.y <= position.y + size.y;
         if(hovering)
@@ -238,7 +241,7 @@ namespace Lumos
         return interaction;
     }
 
-    void UIBeginFrame(const Vec2& frame_buffer_size, const Vec2& inputOffset)
+    void UIBeginFrame(const Vec2& frame_buffer_size, f32 dt, const Vec2& inputOffset)
     {
         LUMOS_PROFILE_FUNCTION();
         ArenaClear(s_UIState->UIFrameArena);
@@ -247,6 +250,7 @@ namespace Lumos
         s_UIState->next_hot_widget = 0;
         s_UIState->parents.Clear();
         s_UIState->FrameIndex++;
+        s_UIState->AnimationRateDT = s_UIState->AnimationRate * dt;
 
         UI_Widget* root_parent                    = &s_UIState->root_parent;
         root_parent->semantic_size[UIAxis_X]      = { SizeKind_Pixels, frame_buffer_size.x };
@@ -299,14 +303,14 @@ namespace Lumos
                     {
                         s_UIState->active_widget_state->dragging     = true;
                         s_UIState->active_widget_state->drag_mouse_p = mouse_p;
-                        s_UIState->active_widget_state->drag_offset  = mouse_p - s_UIState->active_widget_state->relative_position;
+                        s_UIState->active_widget_state->drag_offset  = mouse_p - s_UIState->active_widget_state->position;
                     }
                     else
                     {
                         UI_Widget* widget = s_UIState->active_widget_state;
                         UI_Widget* parent = widget->parent;
 
-                        Vec2 min_p = s_UIState->active_widget_state->drag_offset;
+                        Vec2 min_p = parent->position;// s_UIState->active_widget_state->drag_offset;
                         Vec2 max_p = parent->size - (widget->size - s_UIState->active_widget_state->drag_offset);
 
                         if(s_UIState->active_widget_state->drag_constraint_x)
@@ -320,13 +324,13 @@ namespace Lumos
                         }
 
                         mouse_p = Maths::Clamp(mouse_p, min_p, max_p);
-                        Application::Get().GetWindow()->SetMousePosition(mouse_p);
+                        //Application::Get().GetWindow()->SetMousePosition(mouse_p);
                         s_UIState->active_widget_state->relative_position = (mouse_p - s_UIState->active_widget_state->drag_offset);
                     }
                 }
             }
 
-            if(!Input::Get().GetMouseClicked(Lumos::InputCode::MouseKey::ButtonLeft)) // is_button_released(input, 0)) //Mouse_LEFT
+            if(!Input::Get().GetMouseHeld(Lumos::InputCode::MouseKey::ButtonLeft)) // is_button_released(input, 0)) //Mouse_LEFT
             {
                 s_UIState->active_widget_state->clicked  = false;
                 s_UIState->active_widget_state->dragging = false;
@@ -347,20 +351,37 @@ namespace Lumos
                 {
                     s_UIState->active_widget = s_UIState->hot_widget;
                     s_UIState->hot_widget    = 0;
-
+ 
                     HashMapFind(&s_UIState->widgets, s_UIState->active_widget, &s_UIState->active_widget_state);
 
                     if(s_UIState->active_widget_state)
                         s_UIState->active_widget_state->clicked = true;
                 }
             }
-        }
+		}
+
 
         TDArray<UI_Widget*> lWidgetsToDelete(s_UIState->UIFrameArena);
         ForHashMapEach(u64, UI_Widget*, &s_UIState->widgets, it)
         {
             u64 key          = *it.key;
             UI_Widget* value = *it.value;
+            
+            if(key == s_UIState->hot_widget || key == s_UIState->active_widget)
+            {
+                if(key == s_UIState->hot_widget)
+                    value->HotTransition += s_UIState->AnimationRateDT;
+                else
+                    value->ActiveTransition += s_UIState->AnimationRateDT;
+            }
+			else
+			{
+				value->HotTransition -= s_UIState->AnimationRateDT;
+				value->ActiveTransition -= s_UIState->AnimationRateDT;
+            }
+
+			value->HotTransition = Maths::Clamp(value->HotTransition, 0.0f, 1.0f);
+			value->ActiveTransition = Maths::Clamp(value->ActiveTransition, 0.0f, 1.0f);
 
             if(value->LastFrameIndexActive < s_UIState->FrameIndex)
             {
@@ -389,8 +410,8 @@ namespace Lumos
         }
         return text;
     }
-
-    UI_Interaction UIBeginPanel(const char* str, WidgetFlags extraFlags)
+    
+    UI_Interaction UIBeginPanel(const char* str, u32 extraFlags)
     {
         u64 hash;
         String8 text = HandleUIString(str, &hash);
@@ -398,11 +419,50 @@ namespace Lumos
         String8 WindowText = PushStr8F(s_UIState->UIFrameArena, "Window###window%s", (char*)text.str);
         u64 hashWindow;
         String8 WindowText2 = HandleUIString((char*)WindowText.str, &hashWindow);
-        UI_Widget* window   = PushWidget(WidgetFlags_DrawBackground | WidgetFlags_StackVertically | extraFlags,
+        UI_Widget* window   = PushWidget(WidgetFlags_DrawBackground | extraFlags,
                                          WindowText2,
                                          hashWindow,
                                          { SizeKind_MaxChild, 1.0f },
                                          { SizeKind_ChildSum, 1.0f });
+        PushParent(window);
+
+        String8 HeaderText = PushStr8F(s_UIState->UIFrameArena, "Header###header%s", (char*)text.str);
+        u64 hashHeader;
+        String8 HeaderText2 = HandleUIString((char*)HeaderText.str, &hashHeader);
+        UIPushStyle(StyleVar_Padding, { 0.0f, 0.0f, 0.0f, 0.0f });
+        UI_Widget* header = PushWidget(WidgetFlags_DrawBackground | WidgetFlags_StackVertically,
+                                       HeaderText2,
+                                       hashHeader,
+                                       { SizeKind_PercentOfParent, 1.0f },
+                                       { SizeKind_ChildSum, 1.0f });
+        UIPopStyle(StyleVar_Padding);
+        PushParent(header);
+
+        UI_Widget* title = PushWidget(WidgetFlags_DrawText,
+                                      text,
+                                      hash,
+                                      { SizeKind_TextContent, 1.0f },
+                                      { SizeKind_TextContent, 1.0f });
+
+        PopParent(header);
+        return HandleWidgetInteraction(header);
+    }
+    
+    UI_Interaction UIBeginPanel(const char* str, Vec4 rect, u32 extraFlags)
+    {
+        u64 hash;
+        String8 text = HandleUIString(str, &hash);
+
+        String8 WindowText = PushStr8F(s_UIState->UIFrameArena, "Window###window%s", (char*)text.str);
+        u64 hashWindow;
+        String8 WindowText2 = HandleUIString((char*)WindowText.str, &hashWindow);
+        UI_Widget* window   = PushWidget(WidgetFlags_DrawBackground | extraFlags,
+                                         WindowText2,
+                                         hashWindow,
+                                         { SizeKind_MaxChild, 1.0f },
+                                         { SizeKind_ChildSum, 1.0f });
+                                         
+        window->position = Vec2(rect.x * s_UIState->root_parent.size.x, rect.y * s_UIState->root_parent.size.y);
         PushParent(window);
 
         String8 HeaderText = PushStr8F(s_UIState->UIFrameArena, "Header###header%s", (char*)text.str);
@@ -498,22 +558,23 @@ namespace Lumos
 
         PushParent(spacer);
         {
+            float lSliderWidth = 250.0f;
+            float lSliderHeight = 20.0f;
             String8 parentText = PushStr8F(s_UIState->UIFrameArena, "parent###parent%s", (char*)text.str);
             UI_Widget* parent  = PushWidget(WidgetFlags_Clickable | WidgetFlags_DrawBorder | WidgetFlags_DrawBackground,
                                             text,
                                             HashUIStr8Name(parentText),
-                                            { SizeKind_Pixels, 250.0f },
-                                            { SizeKind_Pixels, 20.0f });
+                                            { SizeKind_Pixels, lSliderWidth },
+                                            { SizeKind_Pixels, lSliderHeight });
 
             UI_Interaction parent_interaction = HandleWidgetInteraction(parent);
             PushParent(parent);
 
-            UI_Widget* slider = PushWidget(WidgetFlags_Clickable | WidgetFlags_Draggable | WidgetFlags_DrawBorder | WidgetFlags_DrawBackground,
+            UI_Widget* slider = PushWidget(WidgetFlags_Clickable | WidgetFlags_DrawBorder | WidgetFlags_DrawBackground | WidgetFlags_Floating_X | WidgetFlags_Draggable,
                                            text,
                                            hash,
                                            { SizeKind_PercentOfParent, 0.1f },
                                            { SizeKind_PercentOfParent, 1.0f });
-
             slider->style_vars[StyleVar_Border]  = Vec4(0.0f, 0.0f, 0.0f, 0.0f);
             slider->style_vars[StyleVar_Padding] = Vec4(0.0f, 0.0f, 0.0f, 0.0f);
             slider_interaction                   = HandleWidgetInteraction(slider);
@@ -537,20 +598,24 @@ namespace Lumos
                 *value            = min_value + (max_value - min_value) * t;
             }
 
+            f32 t = 0.0f;
             if(slider->dragging)
             {
-                f32 t  = (slider_x - parent_x) / (parent_size_x - slider_size_x);
+                t  = (slider_x - parent_x) / (lSliderWidth - 0.1f * lSliderWidth);
                 *value = min_value + (max_value - min_value) * t;
             }
             else
             {
-                f32 t      = (*value - min_value) / (max_value - min_value);
-                slider_p.x = t * (parent_size_x - slider_size_x);
+                t      = (*value - min_value) / (max_value - min_value);
+                slider_p.x = t * (lSliderWidth - 0.1f * lSliderWidth);
             }
+
+            *value = Maths::Clamp(*value, min_value, max_value);
+            t = Maths::Clamp(t, 0.0f, 1.0f);
 
             String8 slider_text = PushStr8F(s_UIState->UIFrameArena, "%.2f - %s", *value, (const char*)text.str);
             String8 text        = HandleUIString((char*)slider_text.str, &hash);
-
+            slider->relative_position[UIAxis_X] = lSliderWidth * t - (0.1f * lSliderWidth * 0.5f);
             UI_Widget* widget = PushWidget(WidgetFlags_DrawText,
                                            text,
                                            hash,

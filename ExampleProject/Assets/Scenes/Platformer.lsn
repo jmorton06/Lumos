@@ -1,6 +1,6 @@
 {
     "value0": {
-        "Version": 16,
+        "Version": 25,
         "Scene Name": "Platformer",
         "PhysicsEnabled2D": true,
         "PhysicsEnabled3D": true,
@@ -27,25 +27,29 @@
         "MotionBlurEnabled": false,
         "DepthOFFieldEnabled": false,
         "DepthOfFieldStrength": 1.0,
-        "DepthOfFieldDistance": 100.0
+        "DepthOfFieldDistance": 100.0,
+        "value0": 0.0,
+        "value1": 1.0,
+        "value2": 1.0,
+        "value3": false
     },
     "value1": 1,
-    "value2": 0,
+    "value2": 1,
     "value3": 0,
-    "value4": 1,
-    "value5": 0,
-    "value6": {
+    "value4": 0,
+    "value5": 1,
+    "value6": 0,
+    "value7": {
         "Name": "Controller"
     },
-    "value7": 0,
     "value8": 0,
     "value9": 0,
-    "value10": 1,
-    "value11": 0,
-    "value12": {
+    "value10": 0,
+    "value11": 1,
+    "value12": 0,
+    "value13": {
         "FilePath": "//Assets/Scripts/Script(3).lua"
     },
-    "value13": 0,
     "value14": 0,
     "value15": 0,
     "value16": 0,
@@ -55,12 +59,15 @@
     "value20": 0,
     "value21": 0,
     "value22": 0,
-    "value23": 1,
-    "value24": 0,
-    "value25": {
+    "value23": 0,
+    "value24": 1,
+    "value25": 0,
+    "value26": {
         "value0": 12005131676128391877
     },
-    "value26": 0,
     "value27": 0,
-    "value28": 0
+    "value28": 0,
+    "value29": 0,
+    "value30": 0,
+    "value31": 0
 }

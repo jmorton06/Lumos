@@ -312,32 +312,32 @@ void* operator new[](size_t size, const char* file, int line)
     return Lumos::Memory::NewFunc(size, file, line);
 }
 
-void operator delete(void* memory)
+void operator delete(void* memory) noexcept
 {
     Lumos::Memory::DeleteFunc(memory);
 }
 
-void operator delete(void* memory, const char* desc)
+void operator delete(void* memory, const char* desc) noexcept
 {
     Lumos::Memory::DeleteFunc(memory);
 }
 
-void operator delete(void* memory, const char* file, int line)
+void operator delete(void* memory, const char* file, int line) noexcept
 {
     Lumos::Memory::DeleteFunc(memory);
 }
 
-void operator delete[](void* memory)
+void operator delete[](void* memory) noexcept
 {
     Lumos::Memory::DeleteFunc(memory);
 }
 
-void operator delete[](void* memory, const char* desc)
+void operator delete[](void* memory, const char* desc) noexcept
 {
     Lumos::Memory::DeleteFunc(memory);
 }
 
-void operator delete[](void* memory, const char* file, int line)
+void operator delete[](void* memory, const char* file, int line) noexcept
 {
     Lumos::Memory::DeleteFunc(memory);
 }

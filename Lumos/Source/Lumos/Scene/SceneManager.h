@@ -41,7 +41,7 @@ namespace Lumos
             return static_cast<uint32_t>(m_vpAllScenes.Size());
         }
 
-        TDArray<String8> GetSceneNames();
+        TDArray<String8> GetSceneNames(Arena* arena);
         const TDArray<SharedPtr<Scene>>& GetScenes() const
         {
             return m_vpAllScenes;

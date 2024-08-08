@@ -45,7 +45,7 @@ public:
 
     void Init() override
     {
-        std::vector<std::string> projectLocations = {
+        TDArray<std::string> projectLocations = {
             OS::Instance()->GetExecutablePath() + "../../../../../ExampleProject/",
             "/Users/jmorton/dev/Lumos/ExampleProject/Example.lmproj",
             "ExampleProject/Example.lmproj",

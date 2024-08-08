@@ -720,7 +720,6 @@ namespace Lumos
         }
 
         auto children = entity.GetChildren();
-        std::vector<Entity> copiedChildren;
 
         for(auto child : children)
         {
@@ -828,7 +827,7 @@ namespace Lumos
 
         // Serialize the children recursively
         auto children = entity.GetChildren();
-        archive((int)children.size());
+        archive((int)children.Size());
 
         for(auto child : children)
         {

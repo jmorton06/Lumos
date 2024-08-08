@@ -42,7 +42,7 @@ namespace Lumos
     {
         m_Name        = ICON_MDI_FILE_TREE " Hierarchy###hierarchy";
         m_SimpleName  = "Hierarchy";
-        m_StringArena = ArenaAlloc(Kilobytes(32));
+        m_StringArena = ArenaAlloc(Kilobytes(256));
 
         m_HadRecentDroppedEntity = {};
         m_DoubleClicked          = {};

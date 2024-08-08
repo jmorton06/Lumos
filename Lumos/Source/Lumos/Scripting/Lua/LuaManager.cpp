@@ -200,10 +200,13 @@ namespace Lumos
     {
     };
 
+#if LUMOS_PROFILE && defined(TRACY_ENABLE)
+
+#else
     static void Empty()
     {
     }
-
+#endif
     void LuaManager::OnInit()
     {
         LUMOS_PROFILE_FUNCTION();

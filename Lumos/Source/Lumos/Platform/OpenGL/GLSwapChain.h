@@ -38,7 +38,7 @@ namespace Lumos
             static SwapChain* CreateFuncGL(uint32_t width, uint32_t height);
 
         private:
-            std::vector<GLTexture2D*> swapChainBuffers;
+            TDArray<GLTexture2D*> m_SwapChainBuffers;
             SharedPtr<GLCommandBuffer> MainCommandBuffer;
             uint32_t currentBuffer = 0;
 

@@ -33,6 +33,7 @@
 #include "Maths/Vector4.h"
 #include "Maths/Matrix4.h"
 #include "Maths/Quaternion.h"
+#include <stb/stb_sprintf.h>
 
 namespace Lumos
 {
@@ -48,19 +49,15 @@ namespace Lumos
 #define RENDERER_BUFFER_SIZE RENDERER_LINE_SIZE* MaxLineVertices
 
 #ifdef LUMOS_PLATFORM_WINDOWS
-#define VSNPRINTF(_DstBuf, _DstSize, _MaxCount, _Format, _ArgList) vsnprintf_s(_DstBuf, _DstSize, _MaxCount, _Format, _ArgList)
+#define VSNPRINTF(...) stbsp_vsnprintf(__VA_ARGS__)
 #elif LUMOS_PLATFORM_MACOS
-#define VSNPRINTF(_DstBuf, _DstSize, _MaxCount, _Format, _ArgList) vsnprintf_l(_DstBuf, _DstSize, _MaxCount, _Format, _ArgList)
+#define VSNPRINTF(...) stbsp_vsnprintf(__VA_ARGS__)
 #elif LUMOS_PLATFORM_LINUX
-#define VSNPRINTF(_DstBuf, _DstSize, _MaxCount, _Format, _ArgList) vsnprintf(_DstBuf, _DstSize, _Format, _ArgList)
+#define VSNPRINTF(...) stbsp_vsnprintf(__VA_ARGS__)
 #elif LUMOS_PLATFORM_MOBILE
-#define VSNPRINTF(_DstBuf, _DstSize, _MaxCount, _Format, _ArgList) 0
+#define VSNPRINTF(...) void(0)
 #else
-#define VSNPRINTF(_DstBuf, _DstSize, _MaxCount, _Format, _ArgList) 0
-#endif
-
-#ifndef LUMOS_PLATFORM_WINDOWS
-#define _TRUNCATE 0
+#define VSNPRINTF(...) void(0)
 #endif
 
     void DebugRenderer::Init()
@@ -276,7 +273,7 @@ namespace Lumos
 
         char buf[1024];
 
-        int needed = VSNPRINTF(buf, 1023, _TRUNCATE, text.c_str(), args);
+        int needed = VSNPRINTF(buf, 1023, text.c_str(), args);
 
         va_end(args);
 
@@ -288,7 +285,7 @@ namespace Lumos
         // DrawTextCs(cs_pos, font_size, formatted_text, colour);
 
         DebugText& dText = depthTested ? GetInstance()->m_TextList.EmplaceBack() : GetInstance()->m_TextListNDT.EmplaceBack();
-        dText.text       = text;
+        dText.text       = formatted_text;
         dText.Position   = Vec4(pos, 1.0f);
         dText.colour     = colour;
         dText.Size       = font_size;
@@ -306,7 +303,7 @@ namespace Lumos
 
         char buf[1024];
 
-        int needed = VSNPRINTF(buf, 1023, _TRUNCATE, text.c_str(), args);
+        int needed = VSNPRINTF(buf, 1023, text.c_str(), args);
 
         va_end(args);
 
@@ -352,7 +349,7 @@ namespace Lumos
 
         char buf[1024];
 
-        int needed = VSNPRINTF(buf, 1023, _TRUNCATE, text.c_str(), args);
+        int needed = VSNPRINTF(buf, 1023, text.c_str(), args);
 
         va_end(args);
 
@@ -367,7 +364,7 @@ namespace Lumos
 
         char buf[1024];
 
-        int needed = VSNPRINTF(buf, 1023, _TRUNCATE, text.c_str(), args);
+        int needed = VSNPRINTF(buf, 1023, text.c_str(), args);
 
         va_end(args);
 
@@ -386,7 +383,7 @@ namespace Lumos
 
         char buf[1024];
 
-        int needed = VSNPRINTF(buf, 1023, _TRUNCATE, text.c_str(), args);
+        int needed = VSNPRINTF(buf, 1023, text.c_str(), args);
 
         va_end(args);
 

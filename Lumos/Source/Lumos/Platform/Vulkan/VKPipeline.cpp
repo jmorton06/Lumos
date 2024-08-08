@@ -122,7 +122,7 @@ namespace Lumos
                 for(unsigned int i = 0; i < blendAttachState.Size(); i++)
                 {
                     blendAttachState[i]                     = VkPipelineColorBlendAttachmentState();
-                    blendAttachState[i].colorWriteMask      = 0x0f;
+                    blendAttachState[i].colorWriteMask      = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
                     blendAttachState[i].alphaBlendOp        = VK_BLEND_OP_ADD;
                     blendAttachState[i].colorBlendOp        = VK_BLEND_OP_ADD;
                     blendAttachState[i].srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;

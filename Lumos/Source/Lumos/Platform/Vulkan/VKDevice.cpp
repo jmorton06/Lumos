@@ -12,6 +12,7 @@
 #if LUMOS_PROFILE && defined(TRACY_ENABLE)
 #include <Tracy/public/tracy/TracyVulkan.hpp>
 #endif
+#include <stb/stb_sprintf.h>
 
 #define LOG_VMA_ALLOCATIONS 0
 namespace Lumos
@@ -56,7 +57,7 @@ namespace Lumos
 
             if(Vendor == "Nvidia")
             {
-                sprintf(
+				stbsp_sprintf(
                     buffer,
                     "%d.%d.%d.%d",
                     (version >> 22) & 0x3ff,
@@ -67,7 +68,7 @@ namespace Lumos
 #if LUMOS_PLATFORM_WINDOWS
             else if(Vendor == "Intel")
             {
-                sprintf(
+				stbsp_sprintf(
                     buffer,
                     "%d.%d",
                     (version >> 14),
@@ -76,7 +77,7 @@ namespace Lumos
 #endif
             else // Vulkan version conventions
             {
-                sprintf(
+				stbsp_sprintf(
                     buffer,
                     "%d.%d.%d",
                     (version >> 22),

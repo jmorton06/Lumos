@@ -1,5 +1,6 @@
 #include "Precompiled.h"
 #include "Rect.h"
+#include "Matrix4.h"
 
 namespace Lumos
 {

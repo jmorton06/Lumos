@@ -11,6 +11,7 @@
 #include <Lumos/Graphics/RHI/Renderer.h>
 #include <Lumos/Graphics/RHI/Texture.h>
 #include <Lumos/Graphics/RHI/GraphicsContext.h>
+#include <Lumos/Graphics/Camera/Camera.h>
 
 namespace Lumos
 {
