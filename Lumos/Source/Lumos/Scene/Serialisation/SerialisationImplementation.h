@@ -1,9 +1,5 @@
 #pragma once
-#include "Audio/AudioManager.h"
-#include "Audio/SoundNode.h"
-#include "Scene/Scene.h"
 #include "Scene/Serialisation/Serialisation.h"
-#include <cereal/types/vector.hpp>
 
 #ifndef SERIALISATION_INCLUDE_ONLY
 #include "Maths/MathsSerialisation.h"
@@ -20,8 +16,11 @@
 #include "Physics/LumosPhysicsEngine/RigidBody3D.h"
 #include "Core/Asset/Asset.h"
 #include "Core/Asset/AssetRegistry.h"
-#include <cereal/types/vector.hpp>
+#include "Audio/AudioManager.h"
+#include "Audio/SoundNode.h"
+#include "Scene/Scene.h"
 #include <cereal/types/unordered_map.hpp>
+#include <cereal/types/vector.hpp>
 
 namespace Lumos
 {

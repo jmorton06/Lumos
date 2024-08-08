@@ -28,6 +28,7 @@
 #include <Lumos/Graphics/RHI/GraphicsContext.h>
 #include <Lumos/Graphics/RHI/Renderer.h>
 #include <Lumos/Core/Thread.h>
+#include <Lumos/Scene/SceneGraph.h>
 
 #include <Lumos/Graphics/Material.h>
 #include <Lumos/Graphics/Environment.h>
@@ -2890,7 +2891,7 @@ namespace Lumos
             {
                 if(selected.Valid())
                 {
-                    // ImGui::Text("ID: %d, Version: %d", static_cast<int>(registry.entity(selected)), registry.version(selected));
+                    //ImGui::Text("ID: %d", static_cast<int>(registry.entity(selected)));
                 }
                 else
                 {

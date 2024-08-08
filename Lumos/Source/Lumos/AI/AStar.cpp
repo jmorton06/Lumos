@@ -131,7 +131,7 @@ namespace Lumos
             }
 
             // Reverse path to be ordered start to end
-            for(u32 i = 0; i < (u32)m_Path.Size() / 2, i++;)
+            for(u32 i = 0; i < (u32)m_Path.Size() / 2; i++)
             {
                 Swap(m_Path[i], m_Path[m_Path.Size() - i - 1]);
             }

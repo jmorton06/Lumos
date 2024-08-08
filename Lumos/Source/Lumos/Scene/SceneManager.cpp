@@ -130,13 +130,13 @@ namespace Lumos
         m_SwitchingScenes = false;
     }
 
-    TDArray<String8> SceneManager::GetSceneNames()
+    TDArray<String8> SceneManager::GetSceneNames(Arena* arena)
     {
         TDArray<String8> names;
 
         for(auto& scene : m_vpAllScenes)
         {
-            names.PushBack(PushStr8Copy(m_Arena, scene->GetSceneName().c_str()));
+            names.PushBack(PushStr8Copy(arena, scene->GetSceneName().c_str()));
         }
 
         return names;

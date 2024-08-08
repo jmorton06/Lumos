@@ -13,7 +13,7 @@ namespace Lumos
     {
         m_MaxSize                 = CollisionShapeTypeMax | (CollisionShapeTypeMax >> 1);
         m_CollisionCheckFunctions = new CollisionCheckFunc[m_MaxSize];
-        for(int i = 0; i < m_MaxSize; i++)
+        for(u32 i = 0; i < m_MaxSize; i++)
             m_CollisionCheckFunctions[i] = &CollisionDetection::CheckPolyhedronCollision;
 
         m_CollisionCheckFunctions[CollisionSphere]  = &CollisionDetection::CheckSphereCollision;

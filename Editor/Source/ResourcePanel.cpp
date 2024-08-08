@@ -183,7 +183,7 @@ namespace Lumos
         }
         catch(const std::filesystem::filesystem_error& ex)
         {
-            std::cerr << "Error accessing file: " << ex.what() << std::endl;
+            LERROR("Error accessing file: %s", ex.what());
         }
 
         return false; // Return false by default if any error occurs

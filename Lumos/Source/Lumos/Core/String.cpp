@@ -1,6 +1,7 @@
 #include "Precompiled.h"
 #include "String.h"
 #include <cstdarg>
+#include <stb/stb_sprintf.h>
 
 // Based on https://github.com/Dion-Systems/metadesk/blob/master/source/md.h
 
@@ -203,11 +204,11 @@ namespace Lumos
         va_list args2;
         va_copy(args2, args);
 
-        uint64_t needed_bytes = vsnprintf(0, 0, fmt, args) + 1;
+        uint64_t needed_bytes = stbsp_vsnprintf(0, 0, fmt, args) + 1;
         result.str            = PushArrayNoZero(arena, uint8_t, needed_bytes);
         result.size           = needed_bytes - 1;
 
-        vsnprintf((char*)result.str, needed_bytes, fmt, args2);
+        stbsp_vsnprintf((char*)result.str, (int)needed_bytes, fmt, args2);
 
         return result;
     }

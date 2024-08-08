@@ -7,7 +7,8 @@
 #include "Maths/Vector2.h"
 #include "Maths/MathsFwd.h"
 #include "Core/DataStructures/TDArray.h"
-#include <functional>
+#include "Core/Function.h"
+
 #include <vector>
 
 namespace Lumos
@@ -41,7 +42,7 @@ namespace Lumos
     class LUMOS_EXPORT Window
     {
     public:
-        using EventCallbackFn = std::function<void(Event&)>;
+        using EventCallbackFn = Function<void(Event&)>;
 
         static Window* Create(const WindowDesc& windowDesc);
         virtual ~Window();

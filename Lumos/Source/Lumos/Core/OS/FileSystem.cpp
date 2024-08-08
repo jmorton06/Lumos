@@ -11,12 +11,12 @@ namespace Lumos
 {
     bool FileSystem::IsRelativePath(const char* path)
     {
-        if(!path || path[0] == '/' || path[0] == '\\')
+        if (!path || path[0] == '/' || path[0] == '\\')
         {
             return false;
         }
 
-        if(strlen(path) >= 2 && isalpha(path[0]) && path[1] == ':')
+        if (strlen(path) >= 2 && isalpha(path[0]) && path[1] == ':')
         {
             return false;
         }
@@ -26,7 +26,7 @@ namespace Lumos
 
     bool FileSystem::IsAbsolutePath(const char* path)
     {
-        if(!path)
+        if (!path)
         {
             return false;
         }
@@ -36,19 +36,19 @@ namespace Lumos
 
     const char* FileSystem::GetFileOpenModeString(FileOpenFlags flag)
     {
-        if(flag == FileOpenFlags::READ)
+        if (flag == FileOpenFlags::READ)
         {
             return "rb";
         }
-        else if(flag == FileOpenFlags::WRITE)
+        else if (flag == FileOpenFlags::WRITE)
         {
             return "wb";
         }
-        else if(flag == FileOpenFlags::READ_WRITE)
+        else if (flag == FileOpenFlags::READ_WRITE)
         {
             return "rb+";
         }
-        else if(flag == FileOpenFlags::WRITE_READ)
+        else if (flag == FileOpenFlags::WRITE_READ)
         {
             return "wb+";
         }
@@ -64,15 +64,15 @@ namespace Lumos
         LUMOS_PROFILE_FUNCTION();
         const std::string& updatedPath = path;
 
-        if(!(path[0] == '/' && path[1] == '/'))
+        if (!(path[0] == '/' && path[1] == '/'))
         {
             outPhysicalPath = path;
-            return folder ? FileSystem ::FolderExists(outPhysicalPath) : FileSystem::FileExists(outPhysicalPath);
+            return folder ? FileSystem::FolderExists(outPhysicalPath) : FileSystem::FileExists(outPhysicalPath);
         }
 
         // Assume path starts with //Assets
 #ifndef LUMOS_PRODUCTION
-        if(path.substr(2, 6) != "Assets")
+        if (path.substr(2, 6) != "Assets")
         {
             // Previously paths saved in scenes could be like //Textures and then converted to .../Assets/Textures/...
             outPhysicalPath = ToStdString(m_AssetRootPath) + path.substr(1, path.size());
@@ -122,9 +122,9 @@ namespace Lumos
         std::string updatedPath = path;
         std::replace(updatedPath.begin(), updatedPath.end(), '\\', '/');
 
-        if(updatedPath.find(ToStdString(m_AssetRootPath)) != std::string::npos)
+        if (updatedPath.find(ToStdString(m_AssetRootPath)) != std::string::npos)
         {
-            std::string newPath     = updatedPath;
+            std::string newPath = updatedPath;
             std::string newPartPath = "//Assets";
             newPath.replace(0, m_AssetRootPath.size, newPartPath);
             outFileSystemPath = newPath;
@@ -144,10 +144,24 @@ namespace Lumos
 
     void FileSystem::CreateFolderIfDoesntExist(const std::string& path)
     {
-        if(!FileSystem::FolderExists(path))
+        if (!FileSystem::FolderExists(path))
         {
             std::filesystem::create_directory(path);
             LINFO("Creating folder &s", path.c_str());
         }
     }
+
+    void FileSystem::IterateFolder(const char* path, void (*f)(const char*))
+    {
+        auto folderPath = std::filesystem::path(path);
+
+        if (std::filesystem::is_directory(folderPath))
+        {
+            for (auto entry : std::filesystem::directory_iterator(folderPath))
+            {
+                f(entry.path().string().c_str());
+            }
+        }
+    }
 }
+    

@@ -2,6 +2,7 @@
 #include "Entity.h"
 #include "EntityManager.h"
 #include "Maths/Random.h"
+#include "Scene/SceneGraph.h"
 
 namespace Lumos
 {

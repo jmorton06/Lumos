@@ -286,7 +286,7 @@ namespace Lumos
         ImGui::TextUnformatted(m_Message.c_str());
 
         bool clicked = false;
-        if(ImGui::IsItemClicked())
+        if(ImGui::IsItemClicked() && ImGui::IsItemHovered())
             clicked = true;
 
         if(ImGui::BeginPopupContextItem(m_Message.c_str()))

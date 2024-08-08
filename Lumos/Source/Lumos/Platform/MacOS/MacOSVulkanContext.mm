@@ -13,6 +13,12 @@
 
 #include <MoltenVK/vk_mvk_moltenvk.h>
 
+//Copied from newer versions of mvk
+#define MVK_STRINGIFY_IMPL_COPY(val) #val
+#define MVK_STRINGIFY_COPY(val)       MVK_STRINGIFY_IMPL_COPY(val)
+#define MVK_VERSION_STRING_COPY       (MVK_STRINGIFY_COPY(MVK_VERSION_MAJOR) "." MVK_STRINGIFY_COPY(MVK_VERSION_MINOR) "." MVK_STRINGIFY_COPY(MVK_VERSION_PATCH))
+
+
 extern "C" void* GetCAMetalLayer(void* handle)
 {
     NSWindow* window = (NSWindow*)handle;
@@ -64,17 +70,18 @@ namespace Lumos
 		#endif
 
 		//mvkConfig.traceVulkanCalls = MVK_CONFIG_TRACE_VULKAN_CALLS_DURATION;
-		mvkConfig.performanceTracking = true;
-        //mvkConfig.synchronousQueueSubmits = false;
+		mvkConfig.performanceTracking = false;
+        mvkConfig.synchronousQueueSubmits = false;
         //mvkConfig.presentWithCommandBuffer = false;
         //mvkConfig.prefillMetalCommandBuffers = true;
 
 		//mvkConfig.useMetalArgumentBuffers = MVKUseMetalArgumentBuffers::MVK_CONFIG_USE_METAL_ARGUMENT_BUFFERS_ALWAYS;
-        //mvkConfig.resumeLostDevice = true;
+        mvkConfig.resumeLostDevice = true;
 
         setMoltenVKConfigurationMVK(vkInstance, &mvkConfig, &pConfigurationSize);
-
-
+#ifdef MVK_VERSION_STRING_COPY
+        LINFO("MVK Version %s", MVK_VERSION_STRING_COPY);
+#endif
 		return surface;
 	}
 }

@@ -2,6 +2,7 @@
 #include "MeshFactory.h"
 #include "Core/Asset/Asset.h"
 #include "Utilities/TimeStep.h"
+#include "Maths/Matrix4.h"
 
 namespace Lumos
 {

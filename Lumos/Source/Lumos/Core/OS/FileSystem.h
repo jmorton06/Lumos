@@ -52,6 +52,7 @@ namespace Lumos
         static bool IsRelativePath(const char* path);
         static bool IsAbsolutePath(const char* path);
         static const char* GetFileOpenModeString(FileOpenFlags flag);
-    };
 
+        static void IterateFolder(const char* path, void (*f)(const char*));
+    };
 }

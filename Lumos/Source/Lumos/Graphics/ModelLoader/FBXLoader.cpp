@@ -41,6 +41,7 @@ namespace Lumos::Graphics
     Orientation orientation = Orientation::Y_UP;
     float fbx_scale         = 1.f;
 
+#if 0
     static ofbx::Vec3 operator-(const ofbx::Vec3& a, const ofbx::Vec3& b)
     {
         return { a.x - b.x, a.y - b.y, a.z - b.z };
@@ -50,6 +51,7 @@ namespace Lumos::Graphics
     {
         return { a.x - b.x, a.y - b.y };
     }
+#endif
 
     Vec3 FixOrientation(const Vec3& v)
     {
@@ -87,6 +89,7 @@ namespace Lumos::Graphics
         return Quat(v.x, v.y, v.z, v.w);
     }
 
+#if 0
     static void computeTangents(ofbx::Vec3* out, int vertex_count, const ofbx::Vec3* vertices, const ofbx::Vec3* normals, const ofbx::Vec2* uvs)
     {
         for(int i = 0; i < vertex_count; i += 3)
@@ -117,6 +120,7 @@ namespace Lumos::Graphics
             out[i + 2] = tangent;
         }
     }
+#endif
 
     Vec2 ToLumosVector(const ofbx::Vec2& vec)
     {

@@ -153,7 +153,7 @@ namespace Lumos
         // If mipmaps are used, calculate the size for each level and sum them up
         for(uint32_t mipLevel = 1; mipLevel < imageInfo.mipLevels; ++mipLevel)
         {
-            imageSize += std::max(1u, imageInfo.extent.width >> mipLevel) * std::max(1u, imageInfo.extent.height >> mipLevel) * imageInfo.extent.depth * bytesPerPixel;
+            imageSize += Maths::Max(1u, imageInfo.extent.width >> mipLevel) * Maths::Max(1u, imageInfo.extent.height >> mipLevel) * imageInfo.extent.depth * bytesPerPixel;
         }
 
         // If there are multiple array layers, multiply by the layer count
@@ -499,7 +499,7 @@ namespace Lumos
                 LFATAL("failed to load texture image!");
             }
 
-            m_MipLevels = static_cast<uint32_t>(std::floor(std::log2(Maths::Max(m_Width, m_Height)))) + 1;
+            m_MipLevels = static_cast<uint32_t>(Maths::Floor(Maths::LogBaseTwo(Maths::Max(m_Width, m_Height)))) + 1;
 
             if(!(m_Flags & TextureFlags::Texture_CreateMips) && m_Parameters.generateMipMaps == false)
                 m_MipLevels = 1;
@@ -536,7 +536,7 @@ namespace Lumos
         {
             if(m_Flags & TextureFlags::Texture_CreateMips)
             {
-                m_MipLevels = static_cast<uint32_t>(std::floor(std::log2(Maths::Max(m_Width, m_Height)))) + 1;
+                m_MipLevels = static_cast<uint32_t>(Maths::Floor(Maths::LogBaseTwo(Maths::Max(m_Width, m_Height)))) + 1;
             }
             else
                 m_MipLevels = 1;
@@ -637,7 +637,7 @@ namespace Lumos
             m_Width       = size;
             m_Height      = size;
             m_Data        = (uint8_t*)data;
-            m_NumMips     = static_cast<uint32_t>(std::floor(std::log2(Maths::Max(m_Width, m_Height)))) + 1;
+            m_NumMips     = static_cast<uint32_t>(Maths::Floor(Maths::LogBaseTwo(Maths::Max(m_Width, m_Height)))) + 1;
             m_NumLayers   = 6;
             m_DeleteImage = true;
 

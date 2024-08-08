@@ -1,10 +1,12 @@
 #pragma once
 #include "Core/DataStructures/TDArray.h"
+#include "Core/Function.h"
+
 namespace Lumos
 {
     struct DeletionQueue
     {
-        TDArray<std::function<void()>> Deletors;
+        TDArray<Function<void()>> Deletors;
 
         template <typename F>
         void PushFunction(F&& function)

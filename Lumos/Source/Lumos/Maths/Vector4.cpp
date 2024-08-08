@@ -73,7 +73,12 @@ namespace Lumos
         bool Vector4::Equals(const Vector4& rhs) const
         {
             return Maths::Equals(x, rhs.x) && Maths::Equals(y, rhs.y) && Maths::Equals(z, rhs.z) && Maths::Equals(w, rhs.w);
-        }
+        }    
+                
+        Vector4 Vector4::Lerp(const Vector4& rhs, float t)
+        {
+            return Vector4(Maths::Lerp(x, rhs.x, t), Maths::Lerp(y, rhs.y, t), Maths::Lerp(z, rhs.z, t), Maths::Lerp(w, rhs.w, t));
+        }  
 
         bool Vector4::IsValid() const
         {

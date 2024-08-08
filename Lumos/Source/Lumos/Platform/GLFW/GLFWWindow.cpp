@@ -335,7 +335,7 @@ namespace Lumos
 
     void GLFWWindow::SetIcon(const WindowDesc& desc)
     {
-        std::vector<GLFWimage> images;
+        TDArray<GLFWimage> images;
 
         if(!desc.IconData.empty() && desc.IconData[0].second != nullptr)
         {
@@ -348,10 +348,10 @@ namespace Lumos
                 image.height = data.first;
                 image.width  = data.first;
                 image.pixels = static_cast<unsigned char*>(data.second);
-                images.push_back(image);
+                images.PushBack(image);
             }
 
-            glfwSetWindowIcon(m_Handle, int(images.size()), images.data());
+            glfwSetWindowIcon(m_Handle, int(images.Size()), images.Data());
         }
         else
         {
@@ -374,13 +374,13 @@ namespace Lumos
                     image.height = height;
                     image.width  = width;
                     image.pixels = static_cast<unsigned char*>(pixels);
-                    images.push_back(image);
+                    images.PushBack(image);
                 }
             }
 
-            glfwSetWindowIcon(m_Handle, int(images.size()), images.data());
+            glfwSetWindowIcon(m_Handle, int(images.Size()), images.Data());
 
-            for(int i = 0; i < (int)images.size(); i++)
+            for(int i = 0; i < (int)images.Size(); i++)
             {
                 delete[] images[i].pixels;
             }

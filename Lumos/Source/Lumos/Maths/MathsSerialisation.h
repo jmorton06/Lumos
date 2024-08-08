@@ -5,6 +5,7 @@
 #include "Maths/Vector4.h"
 #include "Maths/Matrix3.h"
 #include "Maths/Matrix4.h"
+#include "Maths/Quaternion.h"
 
 namespace Lumos
 {

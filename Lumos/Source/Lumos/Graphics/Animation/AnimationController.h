@@ -2,6 +2,7 @@
 #include "Core/Reference.h"
 #include "Utilities/TimeStep.h"
 #include "Animation.h"
+#include "Maths/Matrix4.h"
 
 namespace Lumos
 {

@@ -25,7 +25,6 @@ namespace Lumos
         , m_AngularVelocity(properties.AngularVelocity)
         , m_Torque(properties.Torque)
         , m_InvInertia(Mat3(1.0f))
-        , m_OnCollisionCallback(nullptr)
         , m_AngularFactor(1.0f)
         , m_WSTransform(Mat4(1.0f))
     {

@@ -65,7 +65,7 @@ namespace Lumos
             struct Job
             {
                 Context* ctx;
-                std::function<void(JobDispatchArgs)> task;
+                Function<void(JobDispatchArgs)> task;
                 uint32_t groupID;
                 uint32_t groupJobOffset;
                 uint32_t groupJobEnd;
@@ -102,7 +102,7 @@ namespace Lumos
             {
                 uint32_t numCores   = 0;
                 uint32_t numThreads = 0;
-                std::unique_ptr<JobQueue[]> jobQueuePerThread;
+                JobQueue* jobQueuePerThread;
                 std::atomic_bool alive { true };
                 std::condition_variable wakeCondition;
                 std::mutex wakeMutex;
@@ -128,6 +128,7 @@ namespace Lumos
                     wake_loop = false;
                     if(waker.joinable())
                         waker.join();
+                    delete[] jobQueuePerThread;
                 }
             };
             static InternalState* internal_state = nullptr;
@@ -188,7 +189,7 @@ namespace Lumos
                 internal_state->numThreads = Lumos::Maths::Max(1u, internal_state->numCores - reservedThreads);
 
                 // Keep one for update thread
-                internal_state->jobQueuePerThread.reset(new JobQueue[internal_state->numThreads]);
+                internal_state->jobQueuePerThread = new JobQueue[internal_state->numThreads];
                 internal_state->threads.Reserve(internal_state->numThreads);
 
                 for(uint32_t threadID = 0; threadID < internal_state->numThreads; ++threadID)
@@ -280,7 +281,7 @@ namespace Lumos
                 return internal_state->numThreads;
             }
 
-            void Execute(Context& ctx, const std::function<void(JobDispatchArgs)>& task)
+            void Execute(Context& ctx, const Function<void(JobDispatchArgs)>& task)
             {
                 LUMOS_PROFILE_FUNCTION_LOW();
                 // Context state is updated:
@@ -298,7 +299,7 @@ namespace Lumos
                 internal_state->wakeCondition.notify_one();
             }
 
-            void Dispatch(Context& ctx, uint32_t jobCount, uint32_t groupSize, const std::function<void(JobDispatchArgs)>& task, size_t sharedmemory_size)
+            void Dispatch(Context& ctx, uint32_t jobCount, uint32_t groupSize, const Function<void(JobDispatchArgs)>& task, size_t sharedmemory_size)
             {
                 LUMOS_PROFILE_FUNCTION_LOW();
                 if(jobCount == 0 || groupSize == 0)

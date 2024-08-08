@@ -27,6 +27,13 @@
 
 using namespace msdf_atlas;
 
+#define USE_FREETYPE
+#ifdef USE_FREETYPE
+
+#else
+
+#endif
+
 namespace Lumos
 {
     namespace Graphics
@@ -417,13 +424,13 @@ namespace Lumos
             // Check cache here
             Buffer storageBuffer;
             AtlasHeader header;
-            // void* pixels;
-            //  if(TryReadFontAtlasFromCache(fontName, (float)config.emSize, header, pixels, storageBuffer))
-            //{
-            //      m_TextureAtlas = CreateCachedAtlas(header, pixels);
-            //      storageBuffer.Release();
-            //  }
-            //  else
+            void* pixels;
+             if(TryReadFontAtlasFromCache(fontName, (float)config.emSize, header, pixels, storageBuffer))
+            {
+                 m_TextureAtlas = CreateCachedAtlas(header, pixels);
+                 storageBuffer.Release();
+             }
+             else
             {
                 bool floatingPointFormat = true;
                 SharedPtr<Texture2D> texture;

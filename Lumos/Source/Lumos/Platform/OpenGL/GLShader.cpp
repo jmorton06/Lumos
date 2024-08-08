@@ -478,7 +478,7 @@ namespace Lumos
             LUMOS_PROFILE_FUNCTION();
             GLCall(uint32_t program = glCreateProgram());
 
-            std::vector<GLuint> shaders;
+            TDArray<GLuint> shaders;
 
             std::string glVersion;
 
@@ -492,7 +492,7 @@ namespace Lumos
             {
                 // source.second.insert(0, glVersion);
                 // LINFO(source.second);
-                shaders.push_back(CompileShader(source.first, source.second, program, info));
+                shaders.PushBack(CompileShader(source.first, source.second, program, info));
             }
 
             for(unsigned int shader : shaders)
@@ -506,11 +506,11 @@ namespace Lumos
             {
                 GLint length;
                 GLCall(glGetProgramiv(program, GL_INFO_LOG_LENGTH, &length));
-                std::vector<char> error(length);
-                GLCall(glGetProgramInfoLog(program, length, &length, error.data()));
-                std::string errorMessage(error.data(), length);
+                TDArray<char> error(length);
+                GLCall(glGetProgramInfoLog(program, length, &length, error.Data()));
+                std::string errorMessage(error.Data(), length);
                 int32_t lineNumber = -1;
-                sscanf(error.data(), "%*s %*d:%d", &lineNumber);
+                sscanf(error.Data(), "%*s %*d:%d", &lineNumber);
                 info.shader = 3;
                 info.message[info.shader] += "Failed to link shader!\n";
                 info.line[info.shader] = 0;
@@ -522,10 +522,10 @@ namespace Lumos
 
             GLCall(glValidateProgram(program));
 
-            for(int z = 0; z < shaders.size(); z++)
+            for(int z = 0; z < shaders.Size(); z++)
                 glDetachShader(program, shaders[z]);
 
-            for(int z = 0; z < shaders.size(); z++)
+            for(int z = 0; z < shaders.Size(); z++)
                 glDeleteShader(shaders[z]);
 
             return program;
@@ -592,11 +592,11 @@ namespace Lumos
             {
                 GLint length;
                 GLCall(glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &length));
-                std::vector<char> error(length);
-                GLCall(glGetShaderInfoLog(shader, length, &length, error.data()));
-                std::string errorMessage(error.data(), length);
+                TDArray<char> error(length);
+                GLCall(glGetShaderInfoLog(shader, length, &length, error.Data()));
+                std::string errorMessage(error.Data(), length);
                 int32_t lineNumber;
-                sscanf(error.data(), "%*s %*d:%d", &lineNumber);
+                sscanf(error.Data(), "%*s %*d:%d", &lineNumber);
                 info.shader = static_cast<uint32_t>(type);
                 info.message[info.shader] += "Failed to compile " + TypeToString(type) + " shader!\n";
 

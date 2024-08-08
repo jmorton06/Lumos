@@ -334,7 +334,7 @@ namespace Lumos
         if(m_Size == m_Capacity)
             Reserve(m_Capacity == 0 ? 1 : m_Capacity * 2);
 
-        m_Data[m_Size] = T(std::forward<Args>(args)...);
+        m_Data[m_Size] = T(Forward<Args>(args)...);
         return m_Data[m_Size++];
     }
 

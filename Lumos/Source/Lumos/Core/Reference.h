@@ -3,7 +3,6 @@
 #include "ReferenceCounter.h"
 #include "OS/Memory.h"
 #include "Core/LMLog.h"
-#include <functional> 
 
 namespace Lumos
 {
@@ -126,7 +125,7 @@ namespace Lumos
                 m_Counter = nullptr;
             }
 
-            std::swap(tmp, m_Ptr);
+            Swap(tmp, m_Ptr);
             m_Ptr = nullptr;
 
             return tmp;
@@ -244,8 +243,8 @@ namespace Lumos
 
         inline void swap(Reference& other) noexcept
         {
-            std::swap(m_Ptr, other.m_Ptr);
-            std::swap(m_Counter, other.m_Counter);
+            Swap(m_Ptr, other.m_Ptr);
+            Swap(m_Counter, other.m_Counter);
         }
 
         template <typename U>
@@ -512,7 +511,7 @@ namespace Lumos
         inline T* release()
         {
             T* result = nullptr;
-            std::swap(result, m_Ptr);
+            Swap(result, m_Ptr);
             return result;
         }
 
@@ -524,7 +523,7 @@ namespace Lumos
 
         inline void swap(Owned& src) noexcept
         {
-            std::swap(m_Ptr, src.m_Ptr);
+            Swap(m_Ptr, src.m_Ptr);
         }
 
     private:
@@ -546,7 +545,7 @@ namespace Lumos
     template <typename T, typename... Args>
     SharedPtr<T> CreateSharedPtr(Args&&... args)
     {
-        auto ptr = new T(std::forward<Args>(args)...);
+        auto ptr = new T(Forward<Args>(args)...);
 
         return Reference<T>(ptr);
     }
@@ -557,7 +556,7 @@ namespace Lumos
     template <typename T, typename... Args>
     UniquePtr<T> CreateUniquePtr(Args&&... args)
     {
-        auto ptr = new T(std::forward<Args>(args)...);
+        auto ptr = new T(Forward<Args>(args)...);
         return Owned<T>(ptr);
     }
 
@@ -586,16 +585,3 @@ namespace Lumos
     }
 #endif
 }
-#ifdef CUSTOM_SMART_PTR
-namespace std
-{
-    template <typename T>
-    struct hash<Lumos::Reference<T>>
-    {
-        size_t operator()(const Lumos::Reference<T>& x) const
-        {
-            return hash<T*>()(x.get());
-        }
-    };
-}
-#endif

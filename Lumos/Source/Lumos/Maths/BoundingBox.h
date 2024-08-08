@@ -1,6 +1,6 @@
 #pragma once
+#include "Maths/MathsFwd.h"
 #include "Maths/Vector3.h"
-
 namespace Lumos
 {
     namespace Maths
