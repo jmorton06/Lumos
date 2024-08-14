@@ -37,7 +37,7 @@ namespace Lumos
         LINFO("--------------------");
 
         if(state != PowerState::POWERSTATE_NO_BATTERY)
-            LINFO("Battery Info - Percentage : %s , Time Left {1}s , State : {2}", percentage, secondsLeft, PowerStateToString(state));
+            LINFO("Battery Info - Percentage : %d , Time Left %ds , State : %s", percentage, secondsLeft, PowerStateToString(state).c_str());
         else
             LINFO("Power - Outlet");
 
