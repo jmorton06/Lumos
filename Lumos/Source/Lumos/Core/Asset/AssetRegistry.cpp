@@ -23,4 +23,20 @@ namespace Lumos
             m_AssetRegistry.erase(keysToDelete[i]);
         }
     }
+
+    void AssetRegistry::ReplaceID(UUID current, UUID newID)
+    {
+        auto metaData = m_AssetRegistry[current];
+        m_AssetRegistry[newID] = metaData;
+        m_AssetRegistry.erase(current);
+        std::string name;
+        if(GetName(current, name))
+        {
+            m_NameMap[name] = newID;
+#ifndef LUMOS_PRODUCTION
+            m_UUIDNameMap[newID] = name;
+            m_UUIDNameMap.erase(current);
+#endif
+        }
+    }
 }

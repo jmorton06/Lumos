@@ -69,22 +69,20 @@ namespace Lumos
 
     std::string MacOSOS::GetExecutablePath()
     {
-        std::string result;
-
         uint32_t size = 0;
         _NSGetExecutablePath(nullptr, &size);
 
-        std::vector<char> buffer;
-        buffer.resize(size + 1);
+        TDArray<char> buffer;
+        buffer.Resize(size + 1);
 
-        _NSGetExecutablePath(buffer.data(), &size);
+        _NSGetExecutablePath(buffer.Data(), &size);
         buffer[size] = '\0';
 
-        if (!strrchr(buffer.data(), '/'))
+        if (!strrchr(buffer.Data(), '/'))
         {
             return "";
         }
-        return buffer.data();
+        return std::string(buffer.Data());
     }
 
 	void MacOSOS::Delay(uint32_t usec)

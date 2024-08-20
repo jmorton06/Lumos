@@ -241,10 +241,18 @@ namespace Lumos
                 archive(cereal::make_nvp("Name", key), cereal::make_nvp("UUID", value));
             else
                 archive(cereal::make_nvp("Name", key), cereal::make_nvp("UUID", value), cereal::make_nvp("AssetType", type));
-            nameMap[key] = (UUID)value;
 
+			registry.AddName(key, (UUID)value);
             if(type)
             {
+                UUID currentID;
+                if(registry.GetID(key, currentID))
+                {
+                    if((UUID)value != currentID)
+                    {
+                        registry.ReplaceID(currentID, value);
+                    }
+                }
                 if(!registry.Contains((UUID)value))
                 {
                     AssetMetaData metaData;

@@ -32,7 +32,7 @@ namespace Lumos
         struct Light;
         class VertexBuffer;
         class IndexBuffer;
-
+    
         struct LineVertexData
         {
             Vec3 vertex;

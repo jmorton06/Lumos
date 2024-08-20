@@ -140,56 +140,17 @@ namespace Lumos
         auto V = curLuaState.new_usertype<view<entt::get_t<Comp>>>(#Comp "_view");                             \
         V.set_function("each", &view<entt::get_t<Comp>>::each<std::function<void(Comp&)>>);                    \
         V.set_function("front", &view<entt::get_t<Comp>>::front);                                              \
-        s_Identifiers.push_back(#Comp);                                                                        \
-        s_Identifiers.push_back("Add" #Comp);                                                                  \
-        s_Identifiers.push_back("Remove" #Comp);                                                               \
-        s_Identifiers.push_back("Get" #Comp);                                                                  \
-        s_Identifiers.push_back("GetOrAdd" #Comp);                                                             \
-        s_Identifiers.push_back("TryGet" #Comp);                                                               \
-        s_Identifiers.push_back("AddOrReplace" #Comp);                                                         \
-        s_Identifiers.push_back("Has" #Comp);                                                                  \
+        s_Identifiers.PushBack(#Comp);                                                                        \
+        s_Identifiers.PushBack("Add" #Comp);                                                                  \
+        s_Identifiers.PushBack("Remove" #Comp);                                                               \
+        s_Identifiers.PushBack("Get" #Comp);                                                                  \
+        s_Identifiers.PushBack("GetOrAdd" #Comp);                                                             \
+        s_Identifiers.PushBack("TryGet" #Comp);                                                               \
+        s_Identifiers.PushBack("AddOrReplace" #Comp);                                                         \
+        s_Identifiers.PushBack("Has" #Comp);                                                                  \
     }
 
-    std::vector<std::string> LuaManager::s_Identifiers = {
-        "Log",
-        "Trace",
-        "Info",
-        "Warn",
-        "Error",
-        "FATAL",
-        "Input",
-        "GetKeyPressed",
-        "GetKeyHeld",
-        "GetMouseClicked",
-        "GetMouseHeld",
-        "GetMousePosition",
-        "GetScrollOffset",
-        "enttRegistry",
-        "Entity",
-        "EntityManager",
-        "Create"
-        "GetRegistry",
-        "Valid",
-        "Destroy",
-        "SetParent",
-        "GetParent",
-        "IsParent",
-        "GetChildren",
-        "SetActive",
-        "Active",
-        "GetEntityByName",
-        "AddPyramidEntity",
-        "AddSphereEntity",
-        "AddLightCubeEntity",
-        "NameComponent",
-        "GetNameComponent",
-        "GetCurrentEntity",
-        "SetThisComponent",
-        "LuaScriptComponent",
-        "GetLuaScriptComponent",
-        "Transform",
-        "GetTransform"
-    };
+	TDArray<std::string> LuaManager::s_Identifiers;
 
     LuaManager::LuaManager()
         : m_State(nullptr)
@@ -222,6 +183,47 @@ namespace Lumos
         app_type.set_function("ZoneName", &Empty);
         app_type.set_function("ZoneMessage", &Empty);
 #endif
+		s_Identifiers = {
+			"Log",
+			"Trace",
+			"Info",
+			"Warn",
+			"Error",
+			"FATAL",
+			"Input",
+			"GetKeyPressed",
+			"GetKeyHeld",
+			"GetMouseClicked",
+			"GetMouseHeld",
+			"GetMousePosition",
+			"GetScrollOffset",
+			"enttRegistry",
+			"Entity",
+			"EntityManager",
+			"Create"
+			"GetRegistry",
+			"Valid",
+			"Destroy",
+			"SetParent",
+			"GetParent",
+			"IsParent",
+			"GetChildren",
+			"SetActive",
+			"Active",
+			"GetEntityByName",
+			"AddPyramidEntity",
+			"AddSphereEntity",
+			"AddLightCubeEntity",
+			"NameComponent",
+			"GetNameComponent",
+			"GetCurrentEntity",
+			"SetThisComponent",
+			"LuaScriptComponent",
+			"GetLuaScriptComponent",
+			"Transform",
+			"GetTransform"
+		};
+		
         BindAppLua(*m_State);
         BindInputLua(*m_State);
         BindMathsLua(*m_State);
@@ -320,6 +322,8 @@ namespace Lumos
                                                     e = entity;
                                                 } });
 
+        if(e == entt::null)
+            LWARN("Failed to find entity %s", name.c_str());
         return e;
     }
 
@@ -552,15 +556,14 @@ namespace Lumos
 
         REGISTER_COMPONENT_WITH_ECS(state, Sprite, static_cast<Sprite& (Entity::*)(const Vec2&, const Vec2&, const Vec4&)>(&Entity::AddComponent<Sprite, const Vec2&, const Vec2&, const Vec4&>));
 
-        state.new_usertype<Light>(
-            "Light",
-            "Intensity", &Light::Intensity,
-            "Radius", &Light::Radius,
-            "Colour", &Light::Colour,
-            "Direction", &Light::Direction,
-            "Position", &Light::Position,
-            "Type", &Light::Type,
-            "Angle", &Light::Angle);
+        sol::usertype<Light> lightType = state.new_usertype<Light>("Light");
+        lightType.set_function("Intensity", &Light::Intensity);
+        lightType.set_function("Radius", &Light::Radius);
+        lightType.set_function("Colour", &Light::Colour);
+        lightType.set_function("Direction", &Light::Direction);
+        lightType.set_function("Position", &Light::Position);
+        lightType.set_function("Type", &Light::Type);
+        lightType.set_function("Angle", &Light::Angle);
 
         REGISTER_COMPONENT_WITH_ECS(state, Light, static_cast<Light& (Entity::*)()>(&Entity::AddComponent<Light>));
 
@@ -662,13 +665,12 @@ namespace Lumos
 
         auto mesh_type = state.new_usertype<Lumos::Graphics::Mesh>("Mesh",
                                                                    sol::constructors<Lumos::Graphics::Mesh(), Lumos::Graphics::Mesh(const Lumos::Graphics::Mesh&),
-                                                                                     Lumos::Graphics::Mesh(const TDArray<uint32_t>&, const TDArray<Vertex>&, float)>());
+                                                                                     Lumos::Graphics::Mesh(const TDArray<uint32_t>&, const TDArray<Vertex>&)>());
 
         // Bind the member functions and variables
         mesh_type["GetMaterial"]    = &Lumos::Graphics::Mesh::GetMaterial;
         mesh_type["SetMaterial"]    = &Lumos::Graphics::Mesh::SetMaterial;
         mesh_type["GetBoundingBox"] = &Lumos::Graphics::Mesh::GetBoundingBox;
-        mesh_type["GetActive"]      = &Lumos::Graphics::Mesh::GetActive;
         mesh_type["SetName"]        = &Lumos::Graphics::Mesh::SetName;
 
         std::initializer_list<std::pair<sol::string_view, Lumos::Graphics::TextureFilter>> textureFilter = {

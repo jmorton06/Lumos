@@ -57,7 +57,7 @@ namespace Lumos
                     }
                 }
 
-                GLCall(glDrawBuffers(static_cast<GLsizei>(m_AttachmentData.size()), m_AttachmentData.data()));
+                GLCall(glDrawBuffers(static_cast<GLsizei>(m_AttachmentData.Size()), m_AttachmentData.Data()));
 
                 Validate();
 
@@ -86,7 +86,7 @@ namespace Lumos
             GLCall(glViewport(0, 0, width, height));
 
             if(!m_ScreenFramebuffer)
-                GLCall(glDrawBuffers(static_cast<GLsizei>(m_AttachmentData.size()), m_AttachmentData.data()));
+                GLCall(glDrawBuffers(static_cast<GLsizei>(m_AttachmentData.Size()), m_AttachmentData.Data()));
         }
 
         void GLFramebuffer::UnBind() const
@@ -131,7 +131,7 @@ namespace Lumos
 
             if(attachment != GL_DEPTH_ATTACHMENT && attachment != GL_STENCIL_ATTACHMENT && attachment != GL_DEPTH_STENCIL_ATTACHMENT)
             {
-                m_AttachmentData.emplace_back(attachment);
+                m_AttachmentData.EmplaceBack(attachment);
             }
             GLCall(glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, attachment, GL_TEXTURE_2D, (GLuint)(size_t)((GLTexture2D*)texture)->GetHandle(), mipLevel));
         }
@@ -144,7 +144,7 @@ namespace Lumos
             GLenum attachment = GetAttachmentPoint(format);
             if(attachment != GL_DEPTH_ATTACHMENT && attachment != GL_STENCIL_ATTACHMENT && attachment != GL_DEPTH_STENCIL_ATTACHMENT)
             {
-                m_AttachmentData.emplace_back(attachment);
+                m_AttachmentData.EmplaceBack(attachment);
             }
 
             switch(face)

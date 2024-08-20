@@ -12,6 +12,7 @@
 
 #include "Graphics/RHI/Texture.h"
 #include "Maths/MathsBasicTypes.h"
+#include "Maths/MathsUtilities.h"
 
 #include "Maths/Transform.h"
 #include "Core/Application.h"
@@ -55,36 +56,9 @@ namespace Lumos::Graphics
         tinygltf::Sampler* Sampler;
     };
 
-    static std::map<int32_t, size_t> ComponentSize {
-        { TINYGLTF_COMPONENT_TYPE_BYTE, sizeof(int8_t) },
-        { TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE, sizeof(uint8_t) },
-        { TINYGLTF_COMPONENT_TYPE_SHORT, sizeof(int16_t) },
-        { TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT, sizeof(uint16_t) },
-        { TINYGLTF_COMPONENT_TYPE_INT, sizeof(int32_t) },
-        { TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT, sizeof(uint32_t) },
-        { TINYGLTF_COMPONENT_TYPE_FLOAT, sizeof(float) },
-        { TINYGLTF_COMPONENT_TYPE_DOUBLE, sizeof(double) }
-    };
-
-    static std::map<int, int> GLTF_COMPONENT_LENGTH_LOOKUP = {
-        { TINYGLTF_TYPE_SCALAR, 1 },
-        { TINYGLTF_TYPE_VEC2, 2 },
-        { TINYGLTF_TYPE_VEC3, 3 },
-        { TINYGLTF_TYPE_VEC4, 4 },
-        { TINYGLTF_TYPE_MAT2, 4 },
-        { TINYGLTF_TYPE_MAT3, 9 },
-        { TINYGLTF_TYPE_MAT4, 16 }
-    };
-
-    static std::map<int, int> GLTF_COMPONENT_BYTE_SIZE_LOOKUP = {
-        { TINYGLTF_COMPONENT_TYPE_BYTE, 1 },
-        { TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE, 1 },
-        { TINYGLTF_COMPONENT_TYPE_SHORT, 2 },
-        { TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT, 2 },
-        { TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT, 4 },
-        { TINYGLTF_COMPONENT_TYPE_FLOAT, 4 }
-    };
-
+    static HashMap(int, int) GLTF_COMPONENT_LENGTH_LOOKUP;
+    static HashMap(int, int) GLTF_COMPONENT_BYTE_SIZE_LOOKUP;
+    static bool HashMapsInitialised = false;
     static Graphics::TextureWrap GetWrapMode(int mode)
     {
         switch(mode)
@@ -302,7 +276,7 @@ namespace Lumos::Graphics
                     auto& factor = ext_ior->second.Get("ior");
                     float ior    = float(factor.IsNumber() ? factor.Get<double>() : factor.Get<int>());
 
-                    properties.reflectance = std::sqrt(std::pow((ior - 1.0f) / (ior + 1.0f), 2.0f) / 16.0f);
+                    properties.reflectance = Maths::Sqrt(Maths::Pow((ior - 1.0f) / (ior + 1.0f), 2.0f) / 16.0f);
                 }
             }
 
@@ -363,8 +337,14 @@ namespace Lumos::Graphics
                 auto& accessor            = model.accessors.at(attribute.second);
                 auto& bufferView          = model.bufferViews.at(accessor.bufferView);
                 auto& buffer              = model.buffers.at(bufferView.buffer);
-                int componentLength       = GLTF_COMPONENT_LENGTH_LOOKUP.at(accessor.type);
-                int componentTypeByteSize = GLTF_COMPONENT_BYTE_SIZE_LOOKUP.at(accessor.componentType);
+                //int componentLength       = GLTF_COMPONENT_LENGTH_LOOKUP.at(accessor.type);
+                //int componentTypeByteSize = GLTF_COMPONENT_BYTE_SIZE_LOOKUP.at(accessor.componentType);
+
+                int componentLength = 0;// GLTF_COMPONENT_LENGTH_LOOKUP.at(indexAccessor.type);
+                int componentTypeByteSize = 0;// GLTF_COMPONENT_BYTE_SIZE_LOOKUP.at(indexAccessor.componentType);
+
+                HashMapFind(&GLTF_COMPONENT_LENGTH_LOOKUP, accessor.type, &componentLength);
+                HashMapFind(&GLTF_COMPONENT_BYTE_SIZE_LOOKUP, accessor.componentType, &componentTypeByteSize);
 
                 int stride = accessor.ByteStride(bufferView);
 
@@ -586,8 +566,11 @@ namespace Lumos::Graphics
                     auto indexBufferView = model.bufferViews.at(indexAccessor.bufferView);
                     auto indexBuffer     = model.buffers.at(indexBufferView.buffer);
 
-                    int componentLength       = GLTF_COMPONENT_LENGTH_LOOKUP.at(indexAccessor.type);
-                    int componentTypeByteSize = GLTF_COMPONENT_BYTE_SIZE_LOOKUP.at(indexAccessor.componentType);
+                    int componentLength = 0;// GLTF_COMPONENT_LENGTH_LOOKUP.at(indexAccessor.type);
+                    int componentTypeByteSize = 0;// GLTF_COMPONENT_BYTE_SIZE_LOOKUP.at(indexAccessor.componentType);
+
+                    HashMapFind(&GLTF_COMPONENT_LENGTH_LOOKUP, indexAccessor.type, &componentLength);
+                    HashMapFind(&GLTF_COMPONENT_BYTE_SIZE_LOOKUP, indexAccessor.componentType, &componentTypeByteSize);
 
                     // Extra index data
                     size_t bufferOffset = indexBufferView.byteOffset + indexAccessor.byteOffset;
@@ -673,6 +656,36 @@ namespace Lumos::Graphics
             else
                 lMesh = new Graphics::Mesh(indices, vertices);
 
+
+            //Moved from mesh
+            //Move this lbmesh
+            /*
+            // int lod = 2;
+            // float threshold = powf(0.7f, float(lod));
+            
+            if(optimise)
+            {
+                size_t indexCount         = indices.Size();
+                size_t vertexCount        = vertices.Size();
+
+                size_t target_index_count = size_t(indices.Size() * optimiseThreshold);
+
+                float target_error = 1e-3f;
+                float* resultError = nullptr;
+
+                auto newIndexCount = meshopt_simplify(indices.Data(), indices.Data(), indices.Size(), (const float*)(&vertices[0]), vertices.Size(), sizeof(Graphics::Vertex), target_index_count, target_error, resultError);
+
+                auto newVertexCount = meshopt_optimizeVertexFetch( // return vertices (not vertex attribute values)
+                    (vertices.Data()),
+                    (unsigned int*)(indices.Data()),
+                    newIndexCount, // total new indices (not faces)
+                    (vertices.Data()),
+                    (size_t)vertices.Size(), // total vertices (not vertex attribute values)
+                    sizeof(Graphics::Vertex)   // vertex stride
+                );
+            }
+
+            */
             meshes.EmplaceBack(lMesh);
         }
 
@@ -782,14 +795,14 @@ namespace Lumos::Graphics
         for(int r = 0; r < 4; r++)
         {
             float result[4];
-            std::memcpy(result, ozzMat.cols + r, sizeof(ozzMat.cols[r]));
+            MemoryCopy(result, ozzMat.cols + r, sizeof(ozzMat.cols[r]));
             float dresult[4];
             for(int j = 0; j < 4; j++)
             {
                 dresult[j] = result[j];
             }
             //_mm_store_ps(result,p.cols[r]);
-            std::memcpy(matrix + r * 4, dresult, sizeof(dresult));
+            MemoryCopy(matrix + r * 4, dresult, sizeof(dresult));
         }
 
         glmMat = Mat4(matrix);
@@ -799,6 +812,70 @@ namespace Lumos::Graphics
     void Model::LoadGLTF(const std::string& path)
     {
         LUMOS_PROFILE_FUNCTION();
+
+        if (!HashMapsInitialised)
+        {
+            HashMapInit(&GLTF_COMPONENT_LENGTH_LOOKUP);
+            HashMapInit(&GLTF_COMPONENT_BYTE_SIZE_LOOKUP);
+
+            int key = (int)TINYGLTF_TYPE_SCALAR;
+            int value = 1;
+            {
+                HashMapInsert(&GLTF_COMPONENT_LENGTH_LOOKUP, key, value);
+                key = (int)TINYGLTF_TYPE_VEC2;
+                value = 2;
+                HashMapInsert(&GLTF_COMPONENT_LENGTH_LOOKUP, key, value);
+
+                key = (int)TINYGLTF_TYPE_VEC3;
+                value = 3;
+                HashMapInsert(&GLTF_COMPONENT_LENGTH_LOOKUP, key, value);
+
+                key = (int)TINYGLTF_TYPE_VEC4;
+                value = 4;
+                HashMapInsert(&GLTF_COMPONENT_LENGTH_LOOKUP, key, value);
+
+                key = (int)TINYGLTF_TYPE_MAT2;
+                value = 4;
+                HashMapInsert(&GLTF_COMPONENT_LENGTH_LOOKUP, key, value);
+
+                key = (int)TINYGLTF_TYPE_MAT3;
+                value = 9;
+                HashMapInsert(&GLTF_COMPONENT_LENGTH_LOOKUP, key, value);
+
+                key = (int)TINYGLTF_TYPE_MAT4;
+                value = 16;
+                HashMapInsert(&GLTF_COMPONENT_LENGTH_LOOKUP, key, value);
+            }
+
+            {
+                key = (int)TINYGLTF_COMPONENT_TYPE_BYTE;
+                value = 1;
+                HashMapInsert(&GLTF_COMPONENT_BYTE_SIZE_LOOKUP, key, value);
+
+                key = (int)TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE;
+                value = 1;
+                HashMapInsert(&GLTF_COMPONENT_BYTE_SIZE_LOOKUP, key, value);
+
+                key = (int)TINYGLTF_COMPONENT_TYPE_SHORT;
+                value = 2;
+                HashMapInsert(&GLTF_COMPONENT_BYTE_SIZE_LOOKUP, key, value);
+
+                key = (int)TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT;
+                value = 2;
+                HashMapInsert(&GLTF_COMPONENT_BYTE_SIZE_LOOKUP, key, value);
+
+                key = (int)TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT;
+                value = 4;
+                HashMapInsert(&GLTF_COMPONENT_BYTE_SIZE_LOOKUP, key, value);
+
+                key = (int)TINYGLTF_COMPONENT_TYPE_FLOAT;
+                value = 4;
+                HashMapInsert(&GLTF_COMPONENT_BYTE_SIZE_LOOKUP, key, value);
+            }
+
+            HashMapsInitialised = true;
+        }
+
         tinygltf::Model model;
         tinygltf::TinyGLTF loader;
         std::string err;

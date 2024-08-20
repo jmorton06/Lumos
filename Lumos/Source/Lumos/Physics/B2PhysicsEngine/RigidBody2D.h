@@ -5,8 +5,9 @@
 #include "Maths/Vector2.h"
 #include "Maths/Vector3.h"
 #include "Core/UUID.h"
+#include <box2d/id.h>
+
 class Object;
-class b2Body;
 
 namespace Lumos
 {
@@ -44,14 +45,9 @@ namespace Lumos
 
         virtual ~RigidBody2D();
 
-        b2Body* GetB2Body() const
+		b2BodyId GetB2Body() const
         {
             return m_B2Body;
-        }
-
-        b2Body& GetB2BodyRef() const
-        {
-            return *m_B2Body;
         }
 
         void SetLinearVelocity(const Vec2& v) const;
@@ -79,6 +75,7 @@ namespace Lumos
         void SetElasticity(const float elasticity) { m_Elasticity = elasticity; }
         void SetFriction(const float friction) { m_Friction = friction; }
         void SetIsAtRest(const bool isAtRest) { m_AtRest = isAtRest; }
+        void SetLinearDamping(float dampening);
 
         UUID GetUUID() const { return m_UUID; }
 
@@ -103,7 +100,7 @@ namespace Lumos
         }
 
     protected:
-        b2Body* m_B2Body;
+		b2BodyId m_B2Body;
         Shape m_ShapeType;
         float m_Mass;
         float m_Angle;

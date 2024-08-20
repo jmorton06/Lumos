@@ -198,15 +198,17 @@ namespace Lumos
     void DebugRenderer::DrawMatrix(const Mat4& mtx, bool depthTested, float time)
     {
         LUMOS_PROFILE_FUNCTION();
-        //         Vec3 position = Vec3(mtx[3].x, mtx[3].y, mtx[3].z);
-        //         GenDrawHairLine(!depthTested, position, position + Vec3(mtx[0], mtx[1], mtx[2]), Vec4(1.0f, 0.0f, 0.0f, 1.0f), time);
-        //         GenDrawHairLine(!depthTested, position, position + Vec3(mtx[4], mtx[5], mtx[6]), Vec4(0.0f, 1.0f, 0.0f, 1.0f), time);
-        //         GenDrawHairLine(!depthTested, position, position + Vec3(mtx[8], mtx[9], mtx[10]), Vec4(0.0f, 0.0f, 1.0f, 1.0f), time);
+        Vec3 position = Vec3(mtx[13], mtx[14], mtx[15]);
+        GenDrawHairLine(!depthTested, position, position + Vec3(mtx[0], mtx[1], mtx[2]), Vec4(1.0f, 0.0f, 0.0f, 1.0f), time);
+        GenDrawHairLine(!depthTested, position, position + Vec3(mtx[4], mtx[5], mtx[6]), Vec4(0.0f, 1.0f, 0.0f, 1.0f), time);
+        GenDrawHairLine(!depthTested, position, position + Vec3(mtx[8], mtx[9], mtx[10]), Vec4(0.0f, 0.0f, 1.0f, 1.0f), time);
     }
     void DebugRenderer::DrawMatrix(const Mat3& mtx, const Vec3& position, bool depthTested, float time)
     {
         LUMOS_PROFILE_FUNCTION();
-        // s
+        //GenDrawHairLine(!depthTested, position, position + Vec3(mtx[0], mtx[1], mtx[2]), Vec4(1.0f, 0.0f, 0.0f, 1.0f), time);
+        //GenDrawHairLine(!depthTested, position, position + Vec3(mtx[4], mtx[5], mtx[6]), Vec4(0.0f, 1.0f, 0.0f, 1.0f), time);
+       // GenDrawHairLine(!depthTested, position, position + Vec3(mtx[8], mtx[9], mtx[10]), Vec4(0.0f, 0.0f, 1.0f, 1.0f), time);
     }
 
     // Draw Triangle

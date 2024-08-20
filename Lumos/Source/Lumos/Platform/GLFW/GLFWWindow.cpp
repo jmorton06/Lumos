@@ -84,7 +84,7 @@ namespace Lumos
     bool GLFWWindow::Init(const WindowDesc& properties)
     {
         LUMOS_PROFILE_FUNCTION();
-        LINFO("Creating window - Title : %s, Width : %i, Height : %i", properties.Title.c_str(), properties.Width, properties.Height);
+        LINFO("Creating window - Title : %s, Width : %i, Height : %i", properties.Title.str, properties.Width, properties.Height);
 
         if(!s_GLFWInitialized)
         {
@@ -150,7 +150,7 @@ namespace Lumos
             ScreenHeight = properties.Height;
         }
 
-        m_Data.Title  = properties.Title;
+        m_Data.Title  = ToStdString(properties.Title);
         m_Data.Width  = ScreenWidth;
         m_Data.Height = ScreenHeight;
         m_Data.Exit   = false;
@@ -160,7 +160,7 @@ namespace Lumos
             glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 #endif
 
-        m_Handle = glfwCreateWindow(ScreenWidth, ScreenHeight, properties.Title.c_str(), nullptr, nullptr);
+        m_Handle = glfwCreateWindow(ScreenWidth, ScreenHeight, (const char*)properties.Title.str, nullptr, nullptr);
 
         int w, h;
         glfwGetFramebufferSize(m_Handle, &w, &h);
@@ -337,17 +337,19 @@ namespace Lumos
     {
         TDArray<GLFWimage> images;
 
-        if(!desc.IconData.empty() && desc.IconData[0].second != nullptr)
+        if(!desc.IconData.Empty() && desc.IconData[0] != nullptr && desc.IconData.Size() == desc.IconDataSizes.Size())
         {
-            for(auto& data : desc.IconData)
+            for(int i = 0; i < desc.IconData.Size(); i++)
             {
+                u8* data = desc.IconData[i];
+                u32 iconSize = desc.IconDataSizes[i];
                 GLFWimage image;
 
                 uint8_t* pixels = nullptr;
 
-                image.height = data.first;
-                image.width  = data.first;
-                image.pixels = static_cast<unsigned char*>(data.second);
+                image.height = iconSize;
+                image.width  = iconSize;
+                image.pixels = static_cast<unsigned char*>(data);
                 images.PushBack(image);
             }
 
@@ -362,13 +364,13 @@ namespace Lumos
 
                 uint8_t* pixels = nullptr;
 
-                if(path != "")
+                if(path.size)
                 {
-                    pixels = Lumos::LoadImageFromFile(path, &width, &height, nullptr, nullptr, false);
+                    pixels = Lumos::LoadImageFromFile((const char*)path.str, &width, &height, nullptr, nullptr, false);
 
                     if(!pixels)
                     {
-                        LWARN("Failed to load app icon %s", path.c_str());
+                        LWARN("Failed to load app icon %s", path.str);
                     }
 
                     image.height = height;
@@ -507,18 +509,13 @@ namespace Lumos
 
         auto& controllers = Input::Get().m_Controllers;
 
-        ForHashMapEach(int, Controller, &controllers, it)
+        for(int i = 0; i < MAX_CONTROLLER_COUNT; i++)
         {
-            int key           = *it.key;
-            Controller& value = *it.value;
-
-            if(glfwJoystickPresent(key) != GLFW_TRUE)
+            if(glfwJoystickPresent(i) != GLFW_TRUE)
             {
-                LINFO("Controller disconnected : %s", value.Name.c_str());
-                Input::Get().RemoveController(key);
+                controllers[i].Present = false;
             }
         }
-
         UpdateControllers();
     }
 
@@ -542,24 +539,17 @@ namespace Lumos
         {
             if(glfwJoystickPresent(id) == GLFW_TRUE)
             {
-                auto& controllers      = Input::Get().m_Controllers;
-                Controller* controller = (Controller*)HashMapFindPtr(&controllers, id);
-                if(!controller)
+                Controller* controller = &controllers[id];
+                if(!controller->Present)
                 {
-                    Controller newController;
-                    newController.ID   = id;
-                    newController.Name = glfwGetJoystickName(id);
-                    HashMapInsert(&controllers, id, newController);
-                    controller = (Controller*)HashMapFindPtr(&controllers, id);
-                    if(!controller)
-                    {
-                        LINFO("Failed to find controller %s", newController.Name.c_str());
-                    }
+                    controller->ID   = id;
+                    controller->Name = glfwGetJoystickName(id);
+                    controller->Present = true;
                 }
 
-                LINFO("Controller connected %s", controller->Name.c_str());
                 int buttonCount;
                 const unsigned char* buttons = glfwGetJoystickButtons(id, &buttonCount);
+
                 for(int i = 0; i < buttonCount; i++)
                 {
                     if(buttons[i] == GLFW_PRESS && !controller->ButtonDown[i])
@@ -570,8 +560,10 @@ namespace Lumos
                     controller->ButtonDown[i] = buttons[i] == GLFW_PRESS;
                 }
 
+
                 int axisCount;
                 const float* axes = glfwGetJoystickAxes(id, &axisCount);
+
                 for(int i = 0; i < axisCount; i++)
                 {
                     controller->AxisStates[i] = abs(axes[i]) > controller->DeadZones[i] ? axes[i] : 0.0f;

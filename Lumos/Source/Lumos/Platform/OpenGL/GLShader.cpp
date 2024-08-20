@@ -778,9 +778,7 @@ namespace Lumos
 
         void GLShader::LoadFromData(const uint32_t* data, uint32_t size, ShaderType type, std::map<ShaderType, std::string>& sources)
         {
-            std::vector<unsigned int> spv(data, data + size / sizeof(unsigned int));
-
-            spirv_cross::CompilerGLSL* glsl = new spirv_cross::CompilerGLSL(std::move(spv));
+            spirv_cross::CompilerGLSL* glsl = new spirv_cross::CompilerGLSL(data, size_t(size / sizeof(unsigned int)));
 
             // The SPIR-V is now parsed, and we can perform reflection on it.
             spirv_cross::ShaderResources resources = glsl->get_shader_resources();

@@ -2,6 +2,7 @@
 #include "Graphics/RHI/Framebuffer.h"
 #include "Platform/OpenGL/GL.h"
 #include "GLTexture.h"
+#include "Core/DataStructures/TDArray.h"
 
 namespace Lumos
 {
@@ -48,7 +49,7 @@ namespace Lumos
             uint32_t m_Handle;
             uint32_t m_Width, m_Height, m_ColourAttachmentCount;
             Vec4 m_ClearColour;
-            std::vector<GLenum> m_AttachmentData;
+            TDArray<GLenum> m_AttachmentData;
             bool m_ScreenFramebuffer = false;
         };
     }

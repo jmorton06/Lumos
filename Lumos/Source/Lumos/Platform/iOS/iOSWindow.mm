@@ -81,7 +81,7 @@ namespace Lumos
             delete event;
         }
 
-        m_QueuedEvents.clear();
+        m_QueuedEvents.Clear();
     }
 
 	void iOSWindow::MakeDefault()
@@ -99,30 +99,30 @@ namespace Lumos
         if(down)
         {
             KeyPressedEvent* event = new KeyPressedEvent(key, 0);
-            m_QueuedEvents.push_back(event);
+            m_QueuedEvents.PushBack(event);
         }
         else
         {
             KeyReleasedEvent* event = new KeyReleasedEvent(key);
-            m_QueuedEvents.push_back(event);
+            m_QueuedEvents.PushBack(event);
         }
     }
 
     void iOSWindow::OnTouchEvent(uint32_t xPos, uint32_t yPos, uint32_t count, bool down)
     {
         MouseMovedEvent* event = new MouseMovedEvent((float)xPos, (float)yPos);
-        m_QueuedEvents.push_back(event);
+        m_QueuedEvents.PushBack(event);
 
 
         if(down)
         {
             MouseButtonPressedEvent* event2 = new MouseButtonPressedEvent((Lumos::InputCode::MouseKey)Lumos::iOSKeyCodes::iOSTouchToLumosMouseKey(count));
-            m_QueuedEvents.push_back(event2);
+            m_QueuedEvents.PushBack(event2);
         }
         else
         {
             MouseButtonReleasedEvent* event2 = new MouseButtonReleasedEvent((Lumos::InputCode::MouseKey)Lumos::iOSKeyCodes::iOSTouchToLumosMouseKey(count));
-            m_QueuedEvents.push_back(event2);
+            m_QueuedEvents.PushBack(event2);
 
         }
     }
@@ -130,12 +130,12 @@ namespace Lumos
     void iOSWindow::OnMouseMovedEvent(uint32_t xPos, uint32_t yPos)
     {
         MouseMovedEvent* event = new MouseMovedEvent(xPos, yPos);
-        m_QueuedEvents.push_back(event);
+        m_QueuedEvents.PushBack(event);
     }
 
     void iOSWindow::OnResizeEvent(uint32_t width, uint32_t height)
     {
         WindowResizeEvent* event = new WindowResizeEvent(width, height);
-        m_QueuedEvents.push_back(event);
+        m_QueuedEvents.PushBack(event);
     }
 }

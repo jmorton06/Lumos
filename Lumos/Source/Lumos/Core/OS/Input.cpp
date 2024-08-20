@@ -7,8 +7,6 @@ namespace Lumos
         : m_MouseMode(MouseMode::Visible)
     {
         Reset();
-
-        HashMapInit(&m_Controllers);
     }
 
     void Input::Reset()
@@ -92,53 +90,32 @@ namespace Lumos
 
     bool Input::IsControllerPresent(int id)
     {
-        return HashMapFindPtr(&m_Controllers, id);
-        // return m_Controllers.find(id) != m_Controllers.end();
+        return m_Controllers[id].Present;
     }
 
     TDArray<int> Input::GetConnectedControllerIDs()
     {
         TDArray<int> ids;
-        ids.Reserve(HashMapElemSize(&m_Controllers));
-
-        ForHashMapEach(u64, int, &m_Controllers, it)
+        ids.Reserve(MAX_CONTROLLER_COUNT);
+        for(int i = 0; i < MAX_CONTROLLER_COUNT; i++)
         {
-            u64 key   = *it.key;
-            int value = *it.value;
-            ids.PushBack(value);
+            if(m_Controllers[i].Present)
+            {
+                ids.PushBack(i);
+            }
         }
+
         return ids;
     }
 
     Controller* Input::GetController(int id)
     {
-        return (Controller*)HashMapFindPtr(&m_Controllers, id);
+        return &m_Controllers[id];
     }
 
     Controller* Input::GetOrAddController(int id)
     {
-        {
-            // TODO: FIX
-            Controller* value = nullptr;
-            if(HashMapFind(&m_Controllers, id, value))
-            {
-                return value;
-            }
-        }
-
-        {
-            Controller value;
-            value.ID = id;
-            HashMapInsert(&m_Controllers, id, value);
-
-            Controller* valuePtr = nullptr;
-            if(HashMapFind(&m_Controllers, id, valuePtr))
-            {
-                return valuePtr;
-            }
-        }
-
-        return nullptr;
+        return &m_Controllers[id];
     }
 
     std::string Input::GetControllerName(int id)
@@ -181,6 +158,5 @@ namespace Lumos
 
     void Input::RemoveController(int id)
     {
-        HashMapRemove(&m_Controllers, id);
     }
 }

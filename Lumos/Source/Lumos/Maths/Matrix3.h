@@ -56,12 +56,12 @@ namespace Lumos
             Matrix3& ToZero();
             Matrix3& ToIdentity();
 
-            inline float operator[](int index) const
+            inline float operator[](const int index) const
             {
                 return values[index];
             }
 
-            inline float& operator[](int index)
+            inline float& operator[](const int index)
             {
                 return values[index];
             }

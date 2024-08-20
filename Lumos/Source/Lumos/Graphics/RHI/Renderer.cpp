@@ -93,7 +93,7 @@ namespace Lumos
         void Renderer::LoadEngineShaders(bool loadEmbeddedShaders, const std::string& engineShaderPath)
         {
             auto shaderLibrary = Application::Get().GetAssetManager();
-            if(loadEmbeddedShaders)
+            if(true)
             {
                 LINFO("Loading shaders - embedded");
                 LoadShaderEmbedded("Skybox", Skybox, Skybox);
@@ -168,11 +168,10 @@ namespace Lumos
                 LoadShaderFromFile("ForwardPBR", "Shaders/ForwardPBR.shader");
                 LoadShaderFromFile("ForwardPBRAnim", "Shaders/ForwardPBRAnim.shader");
                 LoadShaderFromFile("Particle", "Shaders/Particle.shader");
-
                 LoadShaderFromFile("DepthPrePassAnim", "Shaders/DepthPrePassAnim.shader");
                 LoadShaderFromFile("DepthPrePassAlphaAnim", "Shaders/DepthPrePassAlphaAnim.shader")
 
-                    if(Renderer::GetCapabilities().SupportCompute)
+                if(Renderer::GetCapabilities().SupportCompute)
                 {
                     LoadShaderFromFile("FXAAComp", "Shaders/FXAACompute.shader");
                     LoadShaderFromFile("BloomComp", "Shaders/BloomComp.shader");

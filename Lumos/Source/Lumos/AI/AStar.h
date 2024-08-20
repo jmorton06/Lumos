@@ -3,6 +3,7 @@
 #include "PathNode.h"
 #include "PathNodePriorityQueue.h"
 #include "QueueablePathNode.h"
+#include "Core/DataStructures/Map.h"
 
 namespace Lumos
 {
@@ -36,7 +37,7 @@ namespace Lumos
         }
 
     private:
-        std::map<PathNode*, QueueablePathNode*> m_NodeData;
+        HashMap(PathNode*, QueueablePathNode*) m_NodeData;
         PathNodePriorityQueue m_OpenList;
         TDArray<QueueablePathNode*> m_ClosedList;
         TDArray<PathNode*> m_Path;

@@ -33,7 +33,7 @@ namespace Lumos
         void BindSceneLua(sol::state& state);
         void BindAppLua(sol::state& state);
 
-        static std::vector<std::string>& GetIdentifiers() { return s_Identifiers; }
+        static TDArray<std::string>& GetIdentifiers() { return s_Identifiers; }
 
         sol::state& GetState()
         {
@@ -41,7 +41,7 @@ namespace Lumos
         }
 
     private:
-        static std::vector<std::string> s_Identifiers;
+        static TDArray<std::string> s_Identifiers;
 
         sol::state* m_State;
     };

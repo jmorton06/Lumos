@@ -7,13 +7,24 @@ namespace Lumos
 
     AStar::AStar(const TDArray<PathNode*>& nodes)
     {
+        HashMapInit(&m_NodeData);
+
         // Create node data
-        for(auto it = nodes.begin(); it != nodes.end(); ++it)
-            m_NodeData[*it] = new QueueablePathNode(*it);
+        for (auto it = nodes.begin(); it != nodes.end(); ++it)
+        {
+            QueueablePathNode* pathNode = new QueueablePathNode(*it);
+            HashMapInsert(&m_NodeData, *it, pathNode);
+        }
     }
 
     AStar::~AStar()
     {
+
+        ForHashMapEach(PathNode*, QueueablePathNode*, &m_NodeData, it)
+        {
+            QueueablePathNode* value = *it.value;
+            delete value;
+        }
     }
 
     void AStar::Reset()
@@ -24,11 +35,12 @@ namespace Lumos
         m_Path.Clear();
 
         // Reset node data
-        for(auto it = m_NodeData.begin(); it != m_NodeData.end(); ++it)
+        ForHashMapEach(PathNode*, QueueablePathNode*, &m_NodeData, it)
         {
-            it->second->Parent = nullptr;
-            it->second->fScore = std::numeric_limits<float>::max();
-            it->second->gScore = std::numeric_limits<float>::max();
+            QueueablePathNode* value = *it.value;
+            value->Parent = nullptr;
+            value->fScore = std::numeric_limits<float>::max();
+            value->gScore = std::numeric_limits<float>::max();
         }
     }
 
@@ -37,10 +49,14 @@ namespace Lumos
         // Clear caches
         Reset();
 
-        // Add start node to open list
-        m_NodeData[start]->gScore = 0.0f;
-        m_NodeData[start]->fScore = m_NodeData[start]->node->HeuristicValue(*end);
-        m_OpenList.Push(m_NodeData[start]);
+        QueueablePathNode* startNode = nullptr;
+        if (HashMapFind(&m_NodeData, start, &startNode))
+        {
+            // Add start node to open list
+            startNode->gScore = 0.0f;
+            startNode->fScore = startNode->node->HeuristicValue(*end);
+            m_OpenList.Push(startNode);
+        }
 
         bool success = false;
         while(!m_OpenList.empty())
@@ -67,7 +83,10 @@ namespace Lumos
                 if(!pq->Traversable())
                     continue;
 
-                QueueablePathNode* q = m_NodeData[pq->OtherNode(p->node)];
+                QueueablePathNode* q = nullptr;
+                QueueablePathNode* otherNode = nullptr;
+                auto otherNodePtr = pq->OtherNode(p->node);
+                HashMapFind(&m_NodeData, otherNodePtr, &q);
 
                 // Calculate new scores
                 float gScore = p->gScore + pq->Cost();

@@ -43,20 +43,8 @@ function EndGame()
     end
 end
 
-function beginContact(a, b)
+function beginContact(a, b, approachSpeed)
     EndGame()
-end
-
-function endContact(a, b, coll)
- 
-end
- 
-function preSolve(a, b, coll)
- 
-end
- 
-function postSolve(a, b, coll, normalimpulse, tangentimpulse)
- 
 end
 
 function CreatePlayer()
@@ -71,13 +59,13 @@ function CreatePlayer()
 	params.shape = Shape.Circle
 	params.isStatic = false
 
-    SetCallback(beginContact)
-
+    
     player:GetTransform():SetLocalPosition(Vector3.new(1.0,1.0,1.0))
     player:AddRigidBody2DComponent(params):GetRigidBody():SetForce(Vector2.new(200.0,0.0))
     player:GetRigidBody2DComponent():GetRigidBody():SetIsStatic(true)
-	player:GetRigidBody2DComponent():GetRigidBody():GetB2Body():SetLinearDamping(0.1)
-
+	player:GetRigidBody2DComponent():GetRigidBody():SetLinearDamping(0.1)
+    
+    SetCallback(beginContact, player:GetRigidBody2DComponent():GetRigidBody():GetB2Body())
 end
 
 function CreatePillar(index, offset)
@@ -152,6 +140,8 @@ function OnInit()
 
     entityManager = scene:GetEntityManager()
 
+	SetB2DGravity(Vector2.new(0.0, -9.81 * 2.0))
+
     camera = entityManager:Create()
 	camera:AddTransform()
 
@@ -166,7 +156,7 @@ function OnInit()
 	local screenSize = GetAppInstance():GetWindowSize()
     camera:AddCamera(screenSize.x / screenSize.y, 10.0, 1.0)
 
-	SetB2DGravity(Vector2.new(0.0, -18.0))
+	--SetB2DGravity(Vector2.new(0.0, -18.0))
     CreatePlayer()
 
     for i=1,10, 2 do
@@ -319,6 +309,12 @@ end
 function OnRelease()
     OnCleanUp()
 end
+
+
+
+
+
+
 
 
 

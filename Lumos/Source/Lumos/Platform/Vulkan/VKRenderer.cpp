@@ -14,6 +14,7 @@
 #include "Core/Application.h"
 #include "Core/OS/Window.h"
 #include "Core/Algorithms/Find.h"
+#include "Core/DataStructures/TArray.h"
 #include "stb_image_write.h"
 #include <filesystem>
 
@@ -428,6 +429,8 @@ file.close();
         {
             LUMOS_PROFILE_FUNCTION_LOW();
             Engine::Get().Statistics().NumDrawCalls++;
+            Engine::Get().Statistics().TriangleCount += count / 3;
+
             vkCmdDrawIndexed(static_cast<VKCommandBuffer*>(commandBuffer)->GetHandle(), count, 1, 0, 0, 0);
         }
 
@@ -435,6 +438,8 @@ file.close();
         {
             LUMOS_PROFILE_FUNCTION_LOW();
             Engine::Get().Statistics().NumDrawCalls++;
+            Engine::Get().Statistics().TriangleCount += count / 3;
+            
             vkCmdDraw(static_cast<VKCommandBuffer*>(commandBuffer)->GetHandle(), count, 1, 0, 0);
         }
 
@@ -567,7 +572,8 @@ file.close();
 
         VkDescriptorPool VKRenderer::CreatePool(VkDevice device, uint32_t count, VkDescriptorPoolCreateFlags flags)
         {
-            std::array<VkDescriptorPoolSize, 11> poolSizes = {
+            ArenaTemp scratch = ScratchBegin(0,0);
+            TArray<VkDescriptorPoolSize, 11> poolSizes =  TArray<VkDescriptorPoolSize, 11>({
                 VkDescriptorPoolSize { VK_DESCRIPTOR_TYPE_SAMPLER, count / 2 },
                 VkDescriptorPoolSize { VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, count * 4 },
                 VkDescriptorPoolSize { VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, count },
@@ -578,20 +584,21 @@ file.close();
                 VkDescriptorPoolSize { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, count * 2 },
                 VkDescriptorPoolSize { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, count },
                 VkDescriptorPoolSize { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, count },
-                VkDescriptorPoolSize { VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, count / 2 }
-            };
+                VkDescriptorPoolSize { VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, count / 2 } },
+                scratch.arena);
+           
 
             // Create info
             VkDescriptorPoolCreateInfo poolCreateInfo = {};
             poolCreateInfo.sType                      = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
             poolCreateInfo.flags                      = flags;
-            poolCreateInfo.poolSizeCount              = static_cast<uint32_t>(poolSizes.size());
-            poolCreateInfo.pPoolSizes                 = poolSizes.data();
+            poolCreateInfo.poolSizeCount              = static_cast<uint32_t>(poolSizes.Size());
+            poolCreateInfo.pPoolSizes                 = poolSizes.Data();
             poolCreateInfo.maxSets                    = count;
 
             VkDescriptorPool descriptorPool;
             vkCreateDescriptorPool(device, &poolCreateInfo, nullptr, &descriptorPool);
-
+            ScratchEnd(scratch);
             return descriptorPool;
         }
 
