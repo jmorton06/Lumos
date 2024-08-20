@@ -30,13 +30,14 @@ namespace Lumos
         m_AssetRegistry[newID] = metaData;
         m_AssetRegistry.erase(current);
         std::string name;
+
+#ifndef LUMOS_PRODUCTION
         if(GetName(current, name))
         {
             m_NameMap[name] = newID;
-#ifndef LUMOS_PRODUCTION
             m_UUIDNameMap[newID] = name;
             m_UUIDNameMap.erase(current);
-#endif
         }
+#endif
     }
 }
