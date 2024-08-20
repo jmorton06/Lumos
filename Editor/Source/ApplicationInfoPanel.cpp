@@ -166,6 +166,7 @@ namespace Lumos
                 ImGui::Text("Frame Time : %5.2f ms", Engine::Get().Statistics().FrameTime);
                 ImGui::Text("Arena Count : %i", GetArenaCount());
                 ImGui::Text("Num Draw Calls  %u", Engine::Get().Statistics().NumDrawCalls);
+                ImGui::Text("Total Triangles  %u", Engine::Get().Statistics().TriangleCount);
                 ImGui::Text("Num Rendered Objects %u", Engine::Get().Statistics().NumRenderedObjects);
                 ImGui::Text("Num Shadow Objects %u", Engine::Get().Statistics().NumShadowObjects);
                 ImGui::Text("Bound Pipelines %u", Engine::Get().Statistics().BoundPipelines);

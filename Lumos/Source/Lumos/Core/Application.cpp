@@ -112,7 +112,6 @@ namespace Lumos
         Engine::Get();
         LuaManager::Get().OnInit();
         LuaManager::Get().OnNewProject(m_ProjectSettings.m_ProjectRoot);
-        
         m_Timer = CreateUniquePtr<Timer>();
         
         Graphics::GraphicsContext::SetRenderAPI(static_cast<Graphics::RenderAPI>(m_ProjectSettings.RenderAPI));
@@ -124,12 +123,12 @@ namespace Lumos
         windowDesc.Fullscreen  = m_ProjectSettings.Fullscreen;
         windowDesc.Borderless  = m_ProjectSettings.Borderless;
         windowDesc.ShowConsole = m_ProjectSettings.ShowConsole;
-        windowDesc.Title       = m_ProjectSettings.Title;
+        windowDesc.Title       = Str8StdS(m_ProjectSettings.Title);
         windowDesc.VSync       = m_ProjectSettings.VSync;
         
         if(m_ProjectSettings.DefaultIcon)
         {
-            windowDesc.IconPaths = { std::string("//Assets/Textures/icon.png"), std::string("//Assets/Textures/icon32.png") };
+            windowDesc.IconPaths = { Str8Lit("//Assets/Textures/icon.png"), Str8Lit("//Assets/Textures/icon32.png") };
         }
         
         // Initialise the Window
@@ -515,7 +514,6 @@ namespace Lumos
             
             // Clears debug line and point lists
             DebugRenderer::Reset((float)ts.GetSeconds());
-            OnDebugDraw();
             
             Graphics::Pipeline::DeleteUnusedCache();
             Graphics::Framebuffer::DeleteUnusedCache();
@@ -563,6 +561,9 @@ namespace Lumos
             m_SystemManager->GetSystem<LumosPhysicsEngine>()->SyncTransforms(m_SceneManager->GetCurrentScene());
             m_SystemManager->GetSystem<B2PhysicsEngine>()->SyncTransforms(m_SceneManager->GetCurrentScene());
         }
+
+        if(!m_Minimized)
+            OnDebugDraw(); //Moved after update thread sync to fix debug drawing physics Engine
         
         return m_CurrentState != AppState::Closing;
     }

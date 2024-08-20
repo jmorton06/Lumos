@@ -59,6 +59,8 @@ namespace Lumos
         }
 #endif
 
+        void ReplaceID(UUID current, UUID newID);
+
     private:
         std::unordered_map<UUID, AssetMetaData> m_AssetRegistry;
         std::unordered_map<std::string, UUID> m_NameMap;

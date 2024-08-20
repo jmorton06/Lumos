@@ -852,7 +852,8 @@ namespace Lumos
                     Lumos::OS::Instance()->OpenURL("https://github.com/skypjack/entt");
                 if(ImGui::MenuItem((const char*)PushStr8F(scratch.arena, "Cereal - Version : %i.%i.%i", CEREAL_VERSION_MAJOR, CEREAL_VERSION_MINOR, CEREAL_VERSION_PATCH).str))
                     Lumos::OS::Instance()->OpenURL("https://github.com/USCiLab/cereal");
-
+                if (ImGui::MenuItem((const char*)PushStr8F(scratch.arena, "Box2D - Version : %i.%i", 3, 0).str))
+                    Lumos::OS::Instance()->OpenURL("https://github.com/erincatto/box2d");
                 ScratchEnd(scratch);
 
                 if(ImGui::BeginMenu("Contributers"))
@@ -2239,11 +2240,8 @@ namespace Lumos
 
                 for(auto mesh : meshes)
                 {
-                    if(mesh->GetActive())
-                    {
-                        auto bbCopy = mesh->GetBoundingBox()->Transformed(worldTransform);
-                        DebugRenderer::DebugDraw(bbCopy, selectedColour, true);
-                    }
+                    auto bbCopy = mesh->GetBoundingBox()->Transformed(worldTransform);
+                    DebugRenderer::DebugDraw(bbCopy, selectedColour, true);
                 }
             }
         }
@@ -2335,12 +2333,9 @@ namespace Lumos
                 auto& meshes = model->ModelRef->GetMeshes();
                 for(auto mesh : meshes)
                 {
-                    if(mesh->GetActive())
-                    {
                         auto& worldTransform = transform->GetWorldMatrix();
                         auto bbCopy          = mesh->GetBoundingBox()->Transformed(worldTransform);
                         DebugRenderer::DebugDraw(bbCopy, colour, true);
-                    }
                 }
             }
             auto sprite = m_HoveredEntity.TryGetComponent<Graphics::Sprite>();
@@ -2395,12 +2390,9 @@ namespace Lumos
                     auto& meshes = model->ModelRef->GetMeshes();
                     for(auto mesh : meshes)
                     {
-                        if(mesh->GetActive())
-                        {
                             auto& worldTransform = transform->GetWorldMatrix();
                             auto bbCopy          = mesh->GetBoundingBox()->Transformed(worldTransform);
                             DebugRenderer::DebugDraw(bbCopy, selectedColour, true);
-                        }
                     }
                 }
 
@@ -2477,8 +2469,6 @@ namespace Lumos
 
             for(auto mesh : meshes)
             {
-                if(mesh->GetActive())
-                {
                     auto& worldTransform = trans.GetWorldMatrix();
 
                     auto bbCopy = mesh->GetBoundingBox()->Transformed(worldTransform);
@@ -2493,7 +2483,7 @@ namespace Lumos
                             currentClosestEntity = { entity, scene };
                         }
                     }
-                }
+                
             }
         }
         if(!hoveredOnly)

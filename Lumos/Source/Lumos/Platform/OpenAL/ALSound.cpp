@@ -16,7 +16,7 @@ namespace Lumos
             m_Data = LoadOgg(fileName);
 
         alGenBuffers(1, &m_Buffer);
-        alBufferData(m_Buffer, GetOALFormat(m_Data.BitRate, m_Data.Channels), m_Data.Data.data(), m_Data.Size, static_cast<ALsizei>(m_Data.FreqRate));
+        alBufferData(m_Buffer, GetOALFormat(m_Data.BitRate, m_Data.Channels), m_Data.Data.Data(), m_Data.Size, static_cast<ALsizei>(m_Data.FreqRate));
     }
 
     ALSound::~ALSound()

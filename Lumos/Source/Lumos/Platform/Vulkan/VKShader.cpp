@@ -603,9 +603,7 @@ namespace Lumos
             shaderCreateInfo.pCode                    = source;
             shaderCreateInfo.pNext                    = VK_NULL_HANDLE;
 
-            std::vector<uint32_t> spv(source, source + fileSize / sizeof(uint32_t));
-
-            spirv_cross::Compiler comp(Move(spv));
+            spirv_cross::Compiler comp(source, size_t(fileSize / sizeof(uint32_t)));
             // The SPIR-V is now parsed, and we can perform reflection on it.
             spirv_cross::ShaderResources resources = comp.get_shader_resources();
 

@@ -4,6 +4,12 @@
 #include "OS/Memory.h"
 #include "Core/LMLog.h"
 
+#ifdef DEBUG_REFERENCE_CAST
+#include "Core/DataStructures/TDArray.h"
+#include "Utilities/StringUtilities.h"
+#include <typeinfo>
+#endif
+
 namespace Lumos
 {
     class LUMOS_EXPORT RefCount
@@ -94,10 +100,14 @@ namespace Lumos
                     m_Counter->reference();
                 }
             }
+            #ifdef DEBUG_REFERENCE_CAST
             else
             {
-                LERROR("Failed to cast Reference");
+                auto type1 = StringUtilities::Demangle(typeid(T).name());
+                auto type2 = StringUtilities::Demangle(typeid(U).name());
+                LERROR("Failed to cast Reference %s to %s", type2.c_str(), type1.c_str());
             }
+            #endif
         }
 
         ~Reference() noexcept
@@ -180,10 +190,14 @@ namespace Lumos
                     m_Counter->reference();
                 }
             }
+            #ifdef DEBUG_REFERENCE_CAST
             else
             {
-                LERROR("Failed to cast Reference");
+                auto type1 = StringUtilities::Demangle(typeid(T).name());
+                auto type2 = StringUtilities::Demangle(typeid(U).name());
+                LERROR("Failed to cast Reference %s to %s", type2.c_str(), type1.c_str());
             }
+            #endif
 
             return *this;
         }

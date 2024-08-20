@@ -173,7 +173,7 @@ namespace Lumos
 
     bool WindowsWindow::Init(const WindowDesc& properties)
     {
-        m_Data.Title  = properties.Title;
+        m_Data.Title  = (const char*)properties.Title.str;
         m_Data.Width  = properties.Width;
         m_Data.Height = properties.Height;
         m_Data.Exit   = false;
@@ -185,7 +185,7 @@ namespace Lumos
         winClass.hInstance     = hInstance;
         winClass.style         = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
         winClass.lpfnWndProc   = static_cast<WNDPROC>(WndProc);
-        winClass.lpszClassName = WindowsUtilities::StringToWString(properties.Title).c_str();
+        winClass.lpszClassName = WindowsUtilities::StringToWString((const char*)properties.Title.str).c_str();
 
         winClass.hbrBackground = (HBRUSH)GetStockObject(WHITE_BRUSH);
         winClass.hCursor       = LoadCursorW(nullptr, IDC_ARROW);
@@ -221,7 +221,7 @@ namespace Lumos
             windowTop  = 0;
         }
 
-        hWnd = CreateWindow(winClass.lpszClassName, WindowsUtilities::StringToWString(properties.Title).c_str(), style, windowLeft, windowTop, m_Data.Width, m_Data.Height, NULL, NULL, hInstance, NULL);
+        hWnd = CreateWindow(winClass.lpszClassName, WindowsUtilities::StringToWString((const char*)properties.Title.str).c_str(), style, windowLeft, windowTop, m_Data.Width, m_Data.Height, NULL, NULL, hInstance, NULL);
 
         if(!hWnd)
         {
@@ -250,7 +250,7 @@ namespace Lumos
 
         ShowWindow(hWnd, SW_SHOW);
         SetFocus(hWnd);
-        SetWindowTitle(properties.Title);
+        SetWindowTitle((const char*)properties.Title.str);
 
         RECT clientRect;
         GetClientRect(hWnd, &clientRect);

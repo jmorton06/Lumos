@@ -11,9 +11,13 @@ namespace Lumos
         TArray(Arena* arena = nullptr);
         TArray(const TArray<T, _Size>& other);
         TArray(TArray<T, _Size>&& other) noexcept;
+        TArray(std::initializer_list<T> values, Arena* arena = nullptr);
 
         // Destructor
-        ~TArray() = default;
+        ~TArray()
+        {
+            Destroy();
+        }
 
         // Copy assignment
         TArray<T, _Size>& operator=(const TArray<T, _Size>& other);
@@ -35,6 +39,7 @@ namespace Lumos
         size_t Size() const noexcept;
         size_t Capacity() const noexcept;
         void Clear() noexcept;
+        void Destroy() noexcept;
 
         class Iterator
         {
@@ -136,6 +141,21 @@ namespace Lumos
             m_Data[i] = Move(other.m_Data[i]);
         }
         other.m_Size = 0;
+    }
+    
+    template <class T, size_t _Size>
+    TArray<T, _Size>::TArray(std::initializer_list<T> values, Arena* arena)
+        : m_Size(_Size)
+        , m_Arena(arena)
+    {
+        m_Data = nullptr;
+        if(m_Arena)
+            m_Data = PushArrayNoZero(m_Arena, T, m_Size);
+        else
+            m_Data = new T[m_Size]; 
+        size_t index = 0;
+        for(auto& value : values)
+            m_Data[index++] = value;
     }
 
     // Copy assignment implementation
@@ -241,5 +261,27 @@ namespace Lumos
     void TArray<T, _Size>::Clear() noexcept
     {
         m_Size = 0;
+    }
+    
+    template <class T, size_t _Size>
+    void TArray<T, _Size>::Destroy() noexcept
+    {
+        if(m_Data)
+        {
+            if(m_Arena)
+            {
+                for(size_t i = 0; i < m_Size; ++i)
+                {
+                    m_Data[i].~T();
+                }
+            }
+            else
+            {
+                delete[] m_Data;
+            }
+        }
+
+        m_Data     = nullptr;
+        m_Size     = 0;
     }
 }

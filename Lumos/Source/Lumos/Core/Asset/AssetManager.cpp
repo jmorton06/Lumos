@@ -4,6 +4,7 @@
 #include "Core/Application.h"
 #include "Graphics/RHI/Texture.h"
 #include <future>
+#include <inttypes.h>
 
 namespace Lumos
 {
@@ -30,7 +31,7 @@ namespace Lumos
             return metaData.data;
         }
 
-        LWARN("Asset not found {0}", (u64)ID);
+        LWARN("Asset not found %" PRIu64, (u64)ID);
         return nullptr;
     }
 

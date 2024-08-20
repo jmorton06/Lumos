@@ -15,11 +15,11 @@
 namespace Lumos
 {
     std::string m_Directory;
-    std::vector<SharedPtr<Graphics::Texture2D>> m_Textures;
+    TDArray<SharedPtr<Graphics::Texture2D>> m_Textures;
 
-    SharedPtr<Graphics::Texture2D> LoadMaterialTextures(const std::string& typeName, std::vector<SharedPtr<Graphics::Texture2D>>& textures_loaded, const std::string& name, const std::string& directory, Graphics::TextureDesc format)
+    SharedPtr<Graphics::Texture2D> LoadMaterialTextures(const std::string& typeName, TDArray<SharedPtr<Graphics::Texture2D>>& textures_loaded, const std::string& name, const std::string& directory, Graphics::TextureDesc format)
     {
-        for(uint32_t j = 0; j < textures_loaded.size(); j++)
+        for(uint32_t j = 0; j < textures_loaded.Size(); j++)
         {
             if(std::strcmp(textures_loaded[j]->GetFilepath().c_str(), (directory + name).c_str()) == 0)
             {
@@ -32,7 +32,7 @@ namespace Lumos
             std::string filePath = directory + name;
             filePath             = StringUtilities::BackSlashesToSlashes(filePath);
             auto texture         = SharedPtr<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile(typeName, filePath, format, options));
-            textures_loaded.push_back(texture); // Store it as texture loaded for entire model, to ensure we won't unnecessary load duplicate textures.
+            textures_loaded.PushBack(texture); // Store it as texture loaded for entire model, to ensure we won't unnecessary load duplicate textures.
 
             return texture;
         }
@@ -183,7 +183,7 @@ namespace Lumos
 
             m_Meshes.PushBack(mesh);
 
-            m_Textures.clear();
+            m_Textures.Clear();
         }
     }
 

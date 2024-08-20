@@ -28,35 +28,39 @@ namespace Lumos
     void HullCollisionShape::BuildFromMesh(Graphics::Mesh* mesh)
     {
         m_Hull               = CreateSharedPtr<Hull>();
-        const auto& vertices = mesh->GetVertices();
-        const auto& indices  = mesh->GetIndices();
+        
+        //TODO: Needs to happen after a mesh import
+        // [] Toggle Collider generation
+        // Or option to load mesh to generate collider
+        // const auto& vertices = mesh->GetVertices();
+        // const auto& indices  = mesh->GetIndices();
 
-        /*     auto vertexBuffer          = mesh->GetVertexBuffer();
-             Graphics::Vertex* vertices = vertexBuffer->GetPointer<Graphics::Vertex>();
-             uint32_t size              = vertexBuffer->GetSize();
-             uint32_t count             = size / sizeof(Graphics::Vertex);
+        // /*     auto vertexBuffer          = mesh->GetVertexBuffer();
+        //      Graphics::Vertex* vertices = vertexBuffer->GetPointer<Graphics::Vertex>();
+        //      uint32_t size              = vertexBuffer->GetSize();
+        //      uint32_t count             = size / sizeof(Graphics::Vertex);
 
-             uint32_t* indices   = mesh->GetIndexBuffer()->GetPointer<uint32_t>();
-             uint32_t indexCount = mesh->GetIndexBuffer()->GetCount();*/
+        //      uint32_t* indices   = mesh->GetIndexBuffer()->GetPointer<uint32_t>();
+        //      uint32_t indexCount = mesh->GetIndexBuffer()->GetCount();*/
 
-        for(size_t i = 0; i < vertices.Size(); i++)
-        {
-            m_Hull->AddVertex(vertices[i].Position);
-        }
+        // for(size_t i = 0; i < vertices.Size(); i++)
+        // {
+        //     m_Hull->AddVertex(vertices[i].Position);
+        // }
 
-        for(size_t i = 0; i < indices.Size(); i += 3)
-        {
-            Vec3 n1     = vertices[indices[i]].Normal;
-            Vec3 n2     = vertices[indices[i + 1]].Normal;
-            Vec3 n3     = vertices[indices[i + 2]].Normal;
-            Vec3 normal = n1 + n2 + n3;
-            normal.Normalise();
+        // for(size_t i = 0; i < indices.Size(); i += 3)
+        // {
+        //     Vec3 n1     = vertices[indices[i]].Normal;
+        //     Vec3 n2     = vertices[indices[i + 1]].Normal;
+        //     Vec3 n3     = vertices[indices[i + 2]].Normal;
+        //     Vec3 normal = n1 + n2 + n3;
+        //     normal.Normalise();
 
-            int vertexIdx[] = { (int)indices[i], (int)indices[i + 1], (int)indices[i + 2] };
-            m_Hull->AddFace(normal, 3, vertexIdx);
-        }
+        //     int vertexIdx[] = { (int)indices[i], (int)indices[i + 1], (int)indices[i + 2] };
+        //     m_Hull->AddFace(normal, 3, vertexIdx);
+        // }
 
-        m_Edges.Resize(m_Hull->GetNumEdges());
+        // m_Edges.Resize(m_Hull->GetNumEdges());
     }
 
     // Mat3 HullCollisionShape::GetLocalInertiaTensor(float mass)

@@ -137,7 +137,7 @@ namespace Lumos
         public:
             Mesh();
             Mesh(const Mesh& mesh);
-            Mesh(const TDArray<uint32_t>& indices, const TDArray<Vertex>& vertices, bool optimise = false, float optimiseThreshold = 0.95f);
+            Mesh(const TDArray<uint32_t>& indices, const TDArray<Vertex>& vertices);
             Mesh(const TDArray<uint32_t>& indices, const TDArray<AnimVertex>& vertices);
             virtual ~Mesh();
 
@@ -150,22 +150,11 @@ namespace Lumos
             void SetMaterial(const SharedPtr<Material>& material);
             void SetAndLoadMaterial(const std::string& filePath);
 
-            bool& GetActive() { return m_Active; }
             void SetName(const std::string& name) { m_Name = name; }
             const std::string& GetName() const { return m_Name; }
 
             static void GenerateNormals(Vertex* vertices, uint32_t vertexCount, uint32_t* indices, uint32_t indexCount);
             static void GenerateTangentsAndBitangents(Vertex* vertices, uint32_t vertexCount, uint32_t* indices, uint32_t indexCount);
-
-            void CalculateTriangles();
-
-            const TDArray<Triangle>& GetTriangles()
-            {
-                if(m_Triangles.Empty())
-                    CalculateTriangles();
-
-                return m_Triangles;
-            }
 
 #ifndef LUMOS_PRODUCTION
             const MeshStats& GetStats() const
@@ -178,9 +167,6 @@ namespace Lumos
                 return {};
             }
 #endif
-
-            const TDArray<uint32_t>& GetIndices() const { return m_Indices; }
-            const TDArray<Vertex>& GetVertices() const { return m_Vertices; }
 
         protected:
             static Vec3 GenerateTangent(const Vec3& a, const Vec3& b, const Vec3& c, const Vec2& ta, const Vec2& tb, const Vec2& tc);
@@ -195,13 +181,6 @@ namespace Lumos
             SharedPtr<Maths::BoundingBox> m_BoundingBox;
 
             std::string m_Name;
-
-            bool m_Active = true;
-            TDArray<uint32_t> m_Indices;
-            TDArray<Vertex> m_Vertices;
-
-            // Only calculated on request
-            TDArray<Triangle> m_Triangles;
 
 #ifndef LUMOS_PRODUCTION
             MeshStats m_Stats;

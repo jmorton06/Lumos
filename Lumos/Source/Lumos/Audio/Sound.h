@@ -13,9 +13,9 @@ namespace Lumos
         static SharedPtr<Sound> Create(const std::string& name, const std::string& extension);
         virtual ~Sound() = default;
 
-        const std::byte* GetData() const
+        const u8* GetData() const
         {
-            return reinterpret_cast<const std::byte*>(m_Data.Data.data());
+            return reinterpret_cast<const u8*>(m_Data.Data.Data());
         }
         int GetBitRate() const
         {

@@ -37,10 +37,12 @@ namespace Lumos
         KeyState OldState = KeyState::None;
     };
 
+    #define MAX_CONTROLLER_COUNT 16
     struct Controller
     {
         int ID;
         std::string Name;
+        bool Present = false;
         TArray<bool, 64> ButtonDown;
         TArray<ControllerButtonData, 64> ButtonStates;
         TArray<float, 16> AxisStates;
@@ -122,6 +124,6 @@ namespace Lumos
 
         Vec2 m_MousePosition;
 
-        HashMap(int, Controller) m_Controllers;
+        Controller m_Controllers[MAX_CONTROLLER_COUNT];
     };
 }

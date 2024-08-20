@@ -388,52 +388,43 @@ namespace Lumos
 
                 if(physics2D)
                 {
-                    uint32_t flags = physics2D->GetDebugDrawFlags();
+                   uint32_t flags = physics2D->GetDebugDrawFlags();
 
-                    bool show2DShapes = flags & b2Draw::e_shapeBit;
-                    if(ImGui::Checkbox("Shapes (2D)", &show2DShapes))
-                    {
-                        if(show2DShapes)
-                            flags += b2Draw::e_shapeBit;
-                        else
-                            flags -= b2Draw::e_shapeBit;
-                    }
+                   bool show2DShapes = flags & PhysicsDebugFlags2D::LINEARFORCE2D;
+                   if(ImGui::Checkbox("Shapes (2D)", &show2DShapes))
+                   {
+                       if(show2DShapes)
+                           flags += PhysicsDebugFlags2D::LINEARFORCE2D;
+                       else
+                           flags -= PhysicsDebugFlags2D::LINEARFORCE2D;
+                   }
 
-                    bool showCOG = flags & b2Draw::e_centerOfMassBit;
-                    if(ImGui::Checkbox("Centre of Mass (2D)", &showCOG))
-                    {
-                        if(showCOG)
-                            flags += b2Draw::e_centerOfMassBit;
-                        else
-                            flags -= b2Draw::e_centerOfMassBit;
-                    }
+                   bool showCOG = flags & PhysicsDebugFlags2D::COLLISIONVOLUMES2D;
+                   if(ImGui::Checkbox("Centre of Mass (2D)", &showCOG))
+                   {
+                       if(showCOG)
+                           flags += PhysicsDebugFlags2D::COLLISIONVOLUMES2D;
+                       else
+                           flags -= PhysicsDebugFlags2D::COLLISIONVOLUMES2D;
+                   }
 
-                    bool showJoint = flags & b2Draw::e_jointBit;
-                    if(ImGui::Checkbox("Joint Connection (2D)", &showJoint))
-                    {
-                        if(showJoint)
-                            flags += b2Draw::e_jointBit;
-                        else
-                            flags -= b2Draw::e_jointBit;
-                    }
+                   bool showJoint = flags & PhysicsDebugFlags2D::CONSTRAINT2D;
+                   if(ImGui::Checkbox("Joint Connection (2D)", &showJoint))
+                   {
+                       if(showJoint)
+                           flags += PhysicsDebugFlags2D::CONSTRAINT2D;
+                       else
+                           flags -= PhysicsDebugFlags2D::CONSTRAINT2D;
+                   }
 
-                    bool showAABB = flags & b2Draw::e_aabbBit;
-                    if(ImGui::Checkbox("AABB (2D)", &showAABB))
-                    {
-                        if(showAABB)
-                            flags += b2Draw::e_aabbBit;
-                        else
-                            flags -= b2Draw::e_aabbBit;
-                    }
-
-                    bool showPairs = static_cast<bool>(flags & b2Draw::e_pairBit);
-                    if(ImGui::Checkbox("Broadphase Pairs  (2D)", &showPairs))
-                    {
-                        if(showPairs)
-                            flags += b2Draw::e_pairBit;
-                        else
-                            flags -= b2Draw::e_pairBit;
-                    }
+                   bool showAABB = flags & PhysicsDebugFlags2D::AABB2D;
+                   if(ImGui::Checkbox("AABB (2D)", &showAABB))
+                   {
+                       if(showAABB)
+                           flags += PhysicsDebugFlags2D::AABB2D;
+                       else
+                           flags -= PhysicsDebugFlags2D::AABB2D;
+                   }
 
                     physics2D->SetDebugDrawFlags(flags);
                 }

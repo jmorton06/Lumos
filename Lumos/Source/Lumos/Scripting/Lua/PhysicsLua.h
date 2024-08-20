@@ -7,5 +7,5 @@ namespace sol
 
 namespace Lumos
 {
-    void BindPhysicsLua(sol::state& state);
+	void BindPhysicsLua(sol::state& state);
 }

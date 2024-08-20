@@ -19,8 +19,6 @@ namespace Lumos
             : m_VertexBuffer(nullptr)
             , m_IndexBuffer(nullptr)
             , m_BoundingBox(nullptr)
-            , m_Indices()
-            , m_Vertices()
         {
         }
 
@@ -30,77 +28,11 @@ namespace Lumos
             , m_BoundingBox(mesh.m_BoundingBox)
             , m_Name(mesh.m_Name)
             , m_Material(mesh.m_Material)
-            , m_Indices(mesh.m_Indices)
-            , m_Vertices(mesh.m_Vertices)
         {
         }
 
-        Mesh::Mesh(const TDArray<uint32_t>& indices, const TDArray<Vertex>& vertices, bool optimise, float optimiseThreshold)
+        Mesh::Mesh(const TDArray<uint32_t>& indices, const TDArray<Vertex>& vertices)
         {
-            // int lod = 2;
-            // float threshold = powf(0.7f, float(lod));
-            m_Indices  = indices;
-            m_Vertices = vertices;
-
-            if(optimise)
-            {
-                size_t indexCount         = indices.Size();
-                size_t target_index_count = size_t(indices.Size() * optimiseThreshold);
-
-                float target_error = 1e-3f;
-                float* resultError = nullptr;
-
-                auto newIndexCount = meshopt_simplify(m_Indices.Data(), m_Indices.Data(), m_Indices.Size(), (const float*)(&m_Vertices[0]), m_Vertices.Size(), sizeof(Graphics::Vertex), target_index_count, target_error, resultError);
-
-                auto newVertexCount = meshopt_optimizeVertexFetch( // return vertices (not vertex attribute values)
-                    (m_Vertices.Data()),
-                    (unsigned int*)(m_Indices.Data()),
-                    newIndexCount, // total new indices (not faces)
-                    (m_Vertices.Data()),
-                    (size_t)m_Vertices.Size(), // total vertices (not vertex attribute values)
-                    sizeof(Graphics::Vertex)   // vertex stride
-                );
-
-                m_Vertices.Resize(newVertexCount);
-                m_Indices.Resize(newIndexCount);
-
-                // LINFO("Mesh Optimizer - Before : {0} indices {1} vertices , After : {2} indices , {3} vertices", indexCount, m_Vertices.Size(), newIndexCount, newVertexCount);
-            }
-
-            m_BoundingBox = CreateSharedPtr<Maths::BoundingBox>();
-
-            for(auto& vertex : m_Vertices)
-            {
-                m_BoundingBox->Merge(vertex.Position);
-            }
-
-            m_IndexBuffer  = SharedPtr<Graphics::IndexBuffer>(Graphics::IndexBuffer::Create(m_Indices.Data(), (uint32_t)m_Indices.Size()));
-            m_VertexBuffer = SharedPtr<VertexBuffer>(VertexBuffer::Create((uint32_t)(sizeof(Graphics::Vertex) * m_Vertices.Size()), m_Vertices.Data(), BufferUsage::STATIC));
-
-#ifndef LUMOS_PRODUCTION
-            m_Stats.VertexCount       = (uint32_t)m_Vertices.Size();
-            m_Stats.TriangleCount     = m_Stats.VertexCount / 3;
-            m_Stats.IndexCount        = (uint32_t)m_Indices.Size();
-            m_Stats.OptimiseThreshold = optimiseThreshold;
-#endif
-
-            const bool storeData = true;
-            if(!storeData)
-            {
-                m_Indices.Clear();
-                m_Indices.Destroy();
-                m_Vertices.Clear();
-                m_Vertices.Destroy();
-            }
-        }
-
-        Mesh::Mesh(const TDArray<uint32_t>& indices, const TDArray<AnimVertex>& vertices)
-        {
-            // int lod = 2;
-            // float threshold = powf(0.7f, float(lod));
-            m_Indices = indices;
-            // m_Vertices = vertices;
-
             m_BoundingBox = CreateSharedPtr<Maths::BoundingBox>();
 
             for(auto& vertex : vertices)
@@ -108,24 +40,33 @@ namespace Lumos
                 m_BoundingBox->Merge(vertex.Position);
             }
 
-            m_IndexBuffer      = SharedPtr<Graphics::IndexBuffer>(Graphics::IndexBuffer::Create(m_Indices.Data(), (uint32_t)m_Indices.Size()));
+            m_IndexBuffer  = SharedPtr<Graphics::IndexBuffer>(Graphics::IndexBuffer::Create((uint32_t*)indices.Data(), (uint32_t)indices.Size()));
+            m_VertexBuffer = SharedPtr<VertexBuffer>(VertexBuffer::Create((uint32_t)(sizeof(Graphics::Vertex) * vertices.Size()), vertices.Data(), BufferUsage::STATIC));
+
+#ifndef LUMOS_PRODUCTION
+            m_Stats.VertexCount       = (uint32_t)vertices.Size();
+            m_Stats.TriangleCount     = m_Stats.VertexCount / 3;
+            m_Stats.IndexCount        = (uint32_t)indices.Size();
+#endif
+        }
+
+        Mesh::Mesh(const TDArray<uint32_t>& indices, const TDArray<AnimVertex>& vertices)
+        {
+            m_BoundingBox = CreateSharedPtr<Maths::BoundingBox>();
+
+            for(auto& vertex : vertices)
+            {
+                m_BoundingBox->Merge(vertex.Position);
+            }
+
+            m_IndexBuffer      = SharedPtr<Graphics::IndexBuffer>(Graphics::IndexBuffer::Create((u32*)indices.Data(), (uint32_t)indices.Size()));
             m_AnimVertexBuffer = SharedPtr<VertexBuffer>(VertexBuffer::Create((uint32_t)(sizeof(Graphics::AnimVertex) * vertices.Size()), vertices.Data(), BufferUsage::STATIC));
 
 #ifndef LUMOS_PRODUCTION
             m_Stats.VertexCount       = (uint32_t)vertices.Size();
             m_Stats.TriangleCount     = m_Stats.VertexCount / 3;
-            m_Stats.IndexCount        = (uint32_t)m_Indices.Size();
-            m_Stats.OptimiseThreshold = 1.0f;
+            m_Stats.IndexCount        = (uint32_t)indices.Size();
 #endif
-
-            const bool storeData = false;
-            if(!storeData)
-            {
-                m_Indices.Clear();
-                m_Indices.Destroy();
-                m_Vertices.Clear();
-                m_Vertices.Destroy();
-            }
         }
 
         Mesh::~Mesh()
@@ -359,14 +300,6 @@ namespace Lumos
             }
 
             return tangents;
-        }
-
-        void Mesh::CalculateTriangles()
-        {
-            for(size_t i = 0; i < m_Indices.Size(); i += 3)
-            {
-                m_Triangles.EmplaceBack(m_Vertices[m_Indices[i + 0]], m_Vertices[m_Indices[i + 1]], m_Vertices[m_Indices[i + 2]]);
-            }
         }
 
         void Mesh::SetMaterial(const SharedPtr<Material>& material)

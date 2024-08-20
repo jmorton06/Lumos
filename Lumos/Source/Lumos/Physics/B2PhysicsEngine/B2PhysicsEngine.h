@@ -2,17 +2,28 @@
 
 #include "Utilities/TSingleton.h"
 #include "Scene/ISystem.h"
-
-class b2World;
-class b2Body;
-struct b2BodyDef;
-struct b2FixtureDef;
-class b2ContactListener;
+#include <box2d/id.h>
+#include <box2d/types.h>
 
 namespace Lumos
 {
     class TimeStep;
-    class B2DebugDraw;
+
+    enum PhysicsDebugFlags2D : uint32_t
+    {
+        CONSTRAINT2D       = 1,
+        MANIFOLD2D         = 2,
+        COLLISIONVOLUMES2D = 4,
+        COLLISIONNORMALS2D = 8,
+        AABB2D             = 16,
+        LINEARVELOCITY2D   = 32,
+        LINEARFORCE2D      = 64
+    };
+
+    struct ContactCallback
+    {
+        virtual void OnCollision(b2BodyId a, b2BodyId b, float approachSpeed) { };
+    };
 
     class LUMOS_EXPORT B2PhysicsEngine : public ISystem
     {
@@ -27,35 +38,24 @@ namespace Lumos
         bool OnInit() override { return true; };
         void OnImGui() override;
 
-        b2World* GetB2World() const
-        {
-            return m_B2DWorld.get();
-        }
-        b2Body* CreateB2Body(b2BodyDef* bodyDef) const;
-
-        static void CreateFixture(b2Body* body, const b2FixtureDef* fixtureDef);
-
-        void SetPaused(bool paused)
-        {
-            m_Paused = paused;
-        }
-        bool IsPaused() const
-        {
-            return m_Paused;
-        }
-
+        b2WorldId GetB2World() const { return m_B2DWorld; }
+        b2BodyId CreateB2Body(b2BodyDef bodyDef) const;
+        
+        void SetPaused(bool paused) { m_Paused = paused; }
+        bool IsPaused() const { return m_Paused; }
         void OnDebugDraw() override;
 
         uint32_t GetDebugDrawFlags();
         void SetDebugDrawFlags(uint32_t flags);
         void SetGravity(const Vec2& gravity);
 
-        void SetContactListener(b2ContactListener* listener);
         void SyncTransforms(Scene* scene);
 
     private:
-        UniquePtr<b2World> m_B2DWorld;
-        UniquePtr<B2DebugDraw> m_DebugDraw;
+        b2WorldId m_B2DWorld;
+		b2DebugDraw m_DebugDraw;
+
+        u64 m_DebugDrawFlags = 0;
 
         float m_UpdateTimestep;
         bool m_Paused = true;
@@ -63,6 +63,6 @@ namespace Lumos
         int32_t m_VelocityIterations = 6;
         int32_t m_PositionIterations = 2;
 
-        b2ContactListener* m_Listener;
+        //b2ContactListener* m_Listener;
     };
 }

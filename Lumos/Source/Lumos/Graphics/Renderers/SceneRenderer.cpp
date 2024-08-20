@@ -999,9 +999,6 @@ namespace Lumos::Graphics
 
                 for(auto mesh : meshes)
                 {
-                    if(!mesh->GetActive())
-                        continue;
-
                     auto& worldTransform = trans.GetWorldMatrix();
                     auto bbCopy          = mesh->GetBoundingBox()->Transformed(worldTransform);
 
@@ -4549,14 +4546,13 @@ namespace Lumos::Graphics
         commandBuffer->Init(true);
         commandBuffer->BeginRecording();
         {
-
             auto shader = Application::Get().GetAssetManager()->GetAssetData("CreateEnvironmentMap").As<Graphics::Shader>();
-
+            if(!shader)
+                return;
             Graphics::DescriptorDesc descriptorDesc {};
             descriptorDesc.layoutIndex = 0;
             descriptorDesc.shader      = shader.get();
             auto descriptorSet         = SharedPtr<Graphics::DescriptorSet>(Graphics::DescriptorSet::Create(descriptorDesc));
-
             SharedPtr<Texture> hdri = nullptr;
 
             if(!filePath.empty())
