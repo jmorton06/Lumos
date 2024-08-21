@@ -45,7 +45,7 @@ namespace Lumos
 	{
         LINFO("Creating window - Title : %s, Width : %i, Height : %i", (const char*)properties.Title.str, properties.Width, properties.Height);
 
-        m_Data.Title = properties.Title;
+        m_Data.Title = ToStdString(properties.Title);
         m_Data.Width = properties.Width;
         m_Data.Height = properties.Height;
         m_Data.Exit = false;

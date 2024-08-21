@@ -117,7 +117,7 @@ jobs:
         config: [Debug, Release, Production]
         platform: [x64]
     env:
-      MSBUILD_PATH: C:\Program Files (x86)\Microsoft Visual Studio\2022\Enterprise\MSBuild\Current\Bin\
+      MSBUILD_PATH: C:\Program Files\Microsoft Visual Studio\2022\Enterprise\MSBuild\Current\Bin\
     steps:
       - uses: actions/checkout@v4
         with:
